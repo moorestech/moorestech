@@ -42,7 +42,7 @@ namespace Client.Tests.BeltSegment.Measurement
             var allocationProbe = new byte[8192];
             GC.KeepAlive(allocationProbe);
             long allocationProbeBytes = GC.GetAllocatedBytesForCurrentThread() - probeBefore;
-            bool allocationCounterAvailable = allocationProbeBytes >= allocationProbe.Length;
+            bool allocationCounterAvailable = allocationProbe.Length <= allocationProbeBytes;
             var timer = new Stopwatch();
             long before = GC.GetAllocatedBytesForCurrentThread();
             timer.Start(); var snapshotBytes = MessagePackSerializer.Serialize(snapshot); timer.Stop();
@@ -69,6 +69,35 @@ namespace Client.Tests.BeltSegment.Measurement
             Assert.AreEqual(20253, decodedInputs); Assert.AreEqual(20253, decodedOutputs);
             Assert.AreEqual(workload.InputEvents, decodedInputs); Assert.AreEqual(workload.OutputEvents, decodedOutputs);
             Assert.AreEqual(workload.FinalHash, check.ComputeStateHash());
+            // 本番の外部搬入は新GUIDを割り当てる。旧baselineの同tick循環IDはそのまま保つ。
+            // Production ingress allocates fresh IDs; retain the old same-tick recycling baseline above.
+            var productionWorkload = new BeltRecordedWorkload(segments, capacity, ticks, true);
+            var productionReplay = new BeltReplaySimulation(productionWorkload.Initial);
+            var priorHashes = new uint[ticks];
+            for (int i = 0; i < ticks; i++)
+            {
+                priorHashes[i] = productionReplay.ComputeStateHash();
+                productionReplay.ApplyTick(productionWorkload.Frames[i], false);
+            }
+            productionReplay = new BeltReplaySimulation(productionWorkload.Initial);
+            var replayTimer = new Stopwatch();
+            long replayBefore = GC.GetAllocatedBytesForCurrentThread();
+            replayTimer.Start();
+            for (int i = 0; i < ticks; i++)
+                if (!productionReplay.TryApplyTick(productionWorkload.Frames[i], priorHashes[i], false, out var reason))
+                    Assert.Fail(reason);
+            replayTimer.Stop();
+            long replayAllocated = GC.GetAllocatedBytesForCurrentThread() - replayBefore;
+            Assert.AreEqual(productionWorkload.FinalHash, productionReplay.ComputeStateHash());
+            Assert.AreEqual(workload.InputEvents, productionWorkload.InputEvents);
+            Assert.AreEqual(workload.OutputEvents, productionWorkload.OutputEvents);
+            UnityEngine.Debug.Log(Newtonsoft.Json.JsonConvert.SerializeObject(new {
+                measurement = "production-TryApplyTick-fresh-ingress-workload", segments, capacity, ticks,
+                elapsedMs = replayTimer.Elapsed.TotalMilliseconds,
+                allocatedBytes = allocationCounterAvailable ? (long?)replayAllocated : null,
+                allocationCounterAvailable, allocationProbeBytes, parity = true,
+                scope = "Same 129x64 event timing/counts with fresh ingress GUIDs as production; CPU replay with previousHash/live GUID checks; DTO decode/GPU excluded; old recycling-ID packing baseline above is unchanged"
+            }));
             int initialItems = workload.Initial.Segments.Sum(s => s.Items.Length);
             int finalItems = check.CaptureSnapshot().Segments.Sum(s => s.Items.Length);
             Assert.AreEqual(2064, initialItems); Assert.AreEqual(initialItems, finalItems);

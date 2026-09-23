@@ -13,6 +13,7 @@ namespace Game.Block.Blocks.BeltConveyor
 {
     public sealed class BeltWorldDatastore : IBeltWorldLookup, IBeltWorldMutation, IPostLoadInitializable
     {
+        internal const int FixedSpeedPerTick = 16;
         private readonly IWorldBlockDatastore _world;
         private readonly HashSet<SegmentBeltComponent> _belts = new();
         private readonly BeltWorldItems _items = new();
@@ -24,7 +25,7 @@ namespace Game.Block.Blocks.BeltConveyor
         private BeltStreamPosition _position;
         private ulong _generation;
         private bool _dirty = true;
-        public IObservable<BeltWorldSnapshot> OnRebuilt => _rebuilt;
+        public IObservable<BeltWorldSnapshot> OnBeltWorldRebuilt => _rebuilt;
         public IObservable<BeltWorldFrame> OnFrame => _frames;
         public BeltWorldDatastore(IWorldBlockDatastore world, IWorldBlockUpdateEvent events)
         {
@@ -54,11 +55,11 @@ namespace Game.Block.Blocks.BeltConveyor
         public void SetCellItem(SegmentBeltComponent target, IItemStack stack)
         {
             if (_ticks.InWindow) throw new InvalidOperationException("SetItem is a belt boundary operation.");
-            if (stack.Count > 1) throw new ArgumentException("A belt cell holds one running item.");
+            if (1 < stack.Count) throw new ArgumentException("A belt cell holds one running item.");
             var state = CaptureCell(target);
             if (state.RunningItem != null) _items.Remove(state.RunningItem.TransportGuid);
             BeltSavedItem saved = stack.Count == 0 ? null : _items.Save(_items.Create(stack,
-                BeltTopologyGeometry.Direction(target.Position.BlockDirection.ConvertLocalCell(Vector3Int.back))), 16);
+                BeltTopologyGeometry.Direction(target.Position.BlockDirection.ConvertLocalCell(Vector3Int.back))), FixedSpeedPerTick);
             _items.Cells[target] = new BeltCellSaveState(state.PriorityIndex, saved, state.BufferedItem);
             _dirty = true;
         }
@@ -76,7 +77,7 @@ namespace Game.Block.Blocks.BeltConveyor
                 Debug.LogWarning($"Unbound belt input at {target.Position.OriginalPos}, source {context.SourceBlockInstanceId}.");
                 return stack;
             }
-            int length = Math.Min(16, _graph.GetInputOffer(id));
+            int length = Math.Min(FixedSpeedPerTick, _graph.GetInputOffer(id));
             if (length <= 0) return stack;
             var item = _items.Create(stack, _topology.Inputs[id].InputDirection);
             if (!_graph.TryInsert(id, length, item)) throw new InvalidOperationException("A belt offer changed during synchronous insertion.");

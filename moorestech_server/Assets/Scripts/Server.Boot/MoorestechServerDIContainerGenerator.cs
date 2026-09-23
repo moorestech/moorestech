@@ -1,3 +1,4 @@
+using Server.Event.EventReceive.BeltSegment;
 using System.IO;
 using Game.Block.Blocks.BeltConveyor;
 using Core.Item;
@@ -126,6 +127,8 @@ namespace Server.Boot
             initializerCollection.AddSingleton<IItemStackFactory, ItemStackFactory>();
             initializerCollection.AddSingleton<VanillaIBlockTemplates, VanillaIBlockTemplates>();
             initializerCollection.AddSingleton<IBlockFactory, BlockFactory>();
+            initializerCollection.AddSingleton<Game.Block.Interface.Placement.IBlockPlacementValidator, Game.Block.Interface.Placement.BeltPlacementValidator>();
+            initializerCollection.AddSingleton<Game.Block.Interface.Placement.BlockPlacementValidation>();
 
             initializerCollection.AddSingleton<IWorldBlockDatastore, WorldBlockDatastore>();
             initializerCollection.AddSingleton<IWorldBlockUpdateEvent, WorldBlockUpdateEvent>();
@@ -182,6 +185,7 @@ namespace Server.Boot
             var railGraphDatastore = initializerProvider.GetService<RailGraphDatastore>();
             var trainUnitDatastore = initializerProvider.GetService<TrainUnitDatastore>();
             services.AddSingleton(initializerProvider.GetService<IWorldBlockDatastore>());
+            services.AddSingleton(initializerProvider.GetRequiredService<Game.Block.Interface.Placement.BlockPlacementValidation>());
             services.AddSingleton(initializerProvider.GetService<GearNetworkDatastore>());
             services.AddSingleton<IGearNetworkDatastore>(provider => provider.GetRequiredService<GearNetworkDatastore>());
             services.AddSingleton(initializerProvider.GetService<FluidNetworkDatastore>());

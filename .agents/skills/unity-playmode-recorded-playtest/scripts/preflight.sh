@@ -126,22 +126,10 @@ else
     FAIL=1
 fi
 
-echo "== [5/5] ゲームサーバーポート(11564)の空き =="
-# サーバーポートは固定値のため、他worktreeのPlayModeが掴んでいると起動が「Address already in use」で無言死する。
-# PlayMode停止後もソケットがリークして残ることがあり、その場合は当該EditorへRequestScriptReload()でドメインリロードを要求すると解放される。
-# The game server port is a fixed constant; if another worktree's play mode holds it, boot dies silently with
-# "Address already in use". Sockets can also leak after play mode stops; a RequestScriptReload() on that editor frees them.
-if [[ "$PING" == "pong:True" ]]; then
-    echo "OK: 自プロジェクトがPlayMode中（ポートは自サーバーが保持している想定）"
-else
-    if PORT_RESULT=$(python3 "$(dirname "$0")/platform-probe.py" port 11564 2>&1); then
-        echo "OK: $PORT_RESULT"
-    else
-        echo "NG: port probe failed: $PORT_RESULT"
-        echo "  Stop the owning PlayMode and inspect its listener before retrying."
-        FAIL=1
-    fi
-fi
+echo "== [5/5] ゲームサーバーポート（OS自動割当） =="
+# Port未指定の通常bootと録画bootはOSに空きportを選択させる。
+# Normal and recorded boots leave Port unset so the OS selects an available port.
+echo "OK: server boot uses Port=0 (OS-assigned); no fixed port reservation required"
 
 if [[ $FAIL -ne 0 ]]; then
     echo "PREFLIGHT: FAIL"

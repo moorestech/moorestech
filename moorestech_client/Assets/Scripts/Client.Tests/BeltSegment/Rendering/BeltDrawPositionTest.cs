@@ -1,3 +1,16 @@
+using Core.Master;
+using Core.Update;
+using Game.Block.Blocks.BeltConveyor;
+using Game.Block.Interface;
+using Game.Block.Interface.Extension;
+using Game.Context;
+using Game.SaveLoad.Interface;
+using Game.SaveLoad.Json;
+using Game.World.Interface.DataStore;
+using Microsoft.Extensions.DependencyInjection;
+using Server.Boot;
+using Tests.Module.TestMod;
+using UniRx;
 using System;
 using System.Linq;
 using Client.Game.InGame.BeltSegment.Gpu;
@@ -75,6 +88,67 @@ namespace Client.Tests.BeltSegment.Rendering
             using var f = new DrawFixture(routes,states);
             CollectionAssert.AreEqual(new uint[] {129,0}, f.Counts());
             Assert.That(f.Positions().Max(v=>v.x),Is.EqualTo(128.5f));
+        }
+        [TestCase("upstream")][TestCase("merge")][TestCase("corner")][TestCase("unconnected")]
+        public void RealTopologyRemovalAndReloadKeepLocalCpuAndGpuEntry(string shape)
+        {
+            var (_, services) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            GameUpdater.RestoreCurrentTick(0);
+            var world = services.GetRequiredService<BeltWorldDatastore>();
+            var origin = new Vector3Int(20, 0, 30);
+            var targetPosition = origin + Vector3Int.forward;
+            var removedPosition = origin;
+            var expectedEntry = BeltDirection.Back;
+            if (shape == "corner")
+            {
+                Add(origin, BlockDirection.North);
+                removedPosition = origin + Vector3Int.forward;
+                Add(removedPosition, BlockDirection.East);
+                targetPosition = removedPosition + Vector3Int.right;
+                expectedEntry = BeltDirection.Left;
+            }
+            else if (shape != "unconnected") Add(origin, BlockDirection.North);
+            var target = Add(targetPosition, BlockDirection.North);
+            if (shape == "merge") Add(targetPosition + Vector3Int.left, BlockDirection.East);
+            target.SetItem(0, ServerContext.ItemStackFactory.Create(new ItemId(7), 1));
+            for (int tick = 0; tick < 3; tick++) GameUpdater.Update();
+            var before = world.CaptureCell(target).RunningItem;
+            Assert.Less(before.Progress, 128);
+            if (shape != "unconnected") ServerContext.WorldBlockDatastore.RemoveBlock(removedPosition, BlockRemoveReason.ManualRemove);
+            BeltWorldSnapshot boundary = null;
+            using var subscription = world.OnBeltWorldRebuilt.Subscribe(value => boundary = value);
+            if (shape == "unconnected") boundary = world.CaptureSnapshot();
+            else GameUpdater.Update();
+            Assert.NotNull(boundary);
+            var survivor = boundary.Simulation.Segments.SelectMany(segment => segment.Items).Single();
+            Assert.AreEqual(before.TransportGuid, survivor.Item.Guid);
+            Assert.AreEqual(expectedEntry, survivor.Item.AcceptedInput);
+            Assert.AreEqual(BeltConstants.ItemWidth - before.Progress, survivor.DistanceToExit);
+            AssertPosition(boundary, before.Progress);
+            // 保存と実loadも同じ入口を保持し、古いsegmentの向きへ戻らない。
+            // Production save/load must retain the local entry instead of reverting to the old segment head.
+            var saved = world.CaptureCell(target).RunningItem;
+            string text = services.GetRequiredService<AssembleSaveJsonText>().AssembleSaveJson();
+            var (_, loaded) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            ((WorldLoaderFromJson)loaded.GetRequiredService<IWorldSaveDataLoader>()).Load(text);
+            var restored = loaded.GetRequiredService<BeltWorldDatastore>(); restored.Load();
+            Assert.AreEqual(saved.TransportGuid, restored.CaptureSnapshot().Simulation.Segments.SelectMany(segment => segment.Items).Single().Item.Guid);
+            AssertPosition(restored.CaptureSnapshot(), saved.Progress);
+            #region Internal
+            SegmentBeltComponent Add(Vector3Int position, BlockDirection direction)
+            {
+                Assert.IsTrue(ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, position, direction, Array.Empty<BlockCreateParam>(), out var block));
+                return block.GetComponent<SegmentBeltComponent>();
+            }
+            void AssertPosition(BeltWorldSnapshot snapshot, int progress)
+            {
+                using var draw = new DrawFixture(snapshot.Routes, snapshot.Simulation.Segments);
+                var offset = shape == "merge" || expectedEntry == BeltDirection.Left ? Vector3.left : Vector3.back;
+                var expected = (Vector3)targetPosition + offset * (1 - progress / (float)BeltConstants.ItemWidth) + new Vector3(0.5f, 0.48f, 0.5f);
+                Assert.That(Vector3.Distance(draw.Positions().Single(), expected), Is.LessThan(0.0001f));
+                Assert.AreEqual(1, snapshot.Simulation.Segments.Sum(segment => segment.Items.Length));
+            }
+            #endregion
         }
         private static void AssertPoint(BeltRoute route,int distance,Vector3 expected)
         {

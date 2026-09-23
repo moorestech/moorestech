@@ -5,6 +5,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Block.Interface.State;
+using Game.Block.Interface.Placement;
 using Game.Context;
 using Game.World.Interface.DataStore;
 using UniRx;
@@ -23,9 +24,11 @@ namespace Game.World.DataStore
         private readonly Dictionary<Vector3Int, BlockInstanceId> _coordinateDictionary = new();
         private readonly Dictionary<Vector3Int, BlockInstanceId> _originCoordinateDictionary = new();
         private readonly IBlockFactory _blockFactory;
-        public WorldBlockDatastore(IBlockFactory blockFactory)
+        private readonly BlockPlacementValidation _placement;
+        public WorldBlockDatastore(IBlockFactory blockFactory, BlockPlacementValidation placement)
         {
             _blockFactory = blockFactory;
+            _placement = placement;
         }
         public bool RemoveBlock(Vector3Int pos, BlockRemoveReason reason)
         {
@@ -86,11 +89,11 @@ namespace Game.World.DataStore
         
         public bool TryAddBlock(BlockId blockId, Vector3Int position, BlockDirection direction, BlockCreateParam[] createParams, out IBlock block)
         {
-            // 通常設置・blueprintの共通境界でベルトの純上下向きを拒否する。
-            // Reject vertical belt facing at the shared placement boundary, including blueprints.
-            if (!BeltConveyorPlaceFamilyUtil.IsPlacementDirectionAllowed(blockId, direction))
+            // 作成前に登録済みの配置制約を検証する。
+            // Validate registered placement constraints before creating any components.
+            if (!_placement.TryValidate(blockId, direction, out var reason))
             {
-                Debug.LogWarning($"[BeltPlacement] Rejected vertical direction {direction} for {blockId}.");
+                Debug.LogWarning($"[BlockPlacement] {reason}");
                 block = null;
                 return false;
             }
@@ -180,6 +183,15 @@ namespace Game.World.DataStore
         //TODO ここに書くべきではないのでは？セーブも含めてこの処理は別で書くべきだと思う
         public void LoadBlockDataList(List<BlockJsonObject> saveBlockDataList)
         {
+            // 全入力を先に検査し、拒否されたセーブから一部だけを復元しない。
+            // Validate every placement before restoring any part of a rejected save.
+            foreach (var saved in saveBlockDataList)
+            {
+                var id = MasterHolder.BlockMaster.GetBlockId(saved.BlockGuid);
+                if (_placement.TryValidate(id, (BlockDirection)saved.Direction, out var reason)) continue;
+                Debug.LogError($"[BlockPlacement] Save rejected at {saved.Pos}: {reason}");
+                throw new System.IO.InvalidDataException(reason);
+            }
             foreach (var blockSave in saveBlockDataList)
             {
                 var blockId = MasterHolder.BlockMaster.GetBlockId(blockSave.BlockGuid);

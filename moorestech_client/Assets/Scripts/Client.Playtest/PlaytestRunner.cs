@@ -41,9 +41,11 @@ namespace Client.Playtest
                 // Wait for game initialization, then start recording and run the scenario
                 PlaytestRecorder recorder = null;
                 var driver = new PlaytestDriver(result, runDirectory);
-                using var inputScope = new PlaytestInputScope();
                 try
                 {
+                    try
+                    {
+                    using var inputScope = new PlaytestInputScope();
                     await PlaytestGameReady.WaitUntilReady(options.ReadyTimeoutSeconds);
 
                     // DOM応答ハンドラを登録し、CEF利用時だけInputSystem転送を実行中に有効化する
@@ -58,6 +60,20 @@ namespace Client.Playtest
                     if (options.Record) recorder = PlaytestRecorder.StartRecording(runDirectory);
                     await scenario(driver).Timeout(TimeSpan.FromSeconds(options.ScenarioTimeoutSeconds));
                     result.Success = result.Asserts.TrueForAll(assert => assert.Passed);
+                    }
+                    finally
+                    {
+                        try { CefInputForwarder.StopForwarding(); }
+                        finally
+                        {
+                            try { PlaytestDomQuery.ResetPending(); }
+                            finally
+                            {
+                                try { recorder?.StopRecording(result); }
+                                finally { logCollector.StopCollect(); }
+                            }
+                        }
+                    }
                 }
                 catch (Exception exception)
                 {
@@ -67,19 +83,12 @@ namespace Client.Playtest
                     result.Error = $"{exception.GetType().Name}: {exception.Message}\n{exception.StackTrace}";
                 }
 
-                // 成否にかかわらず転送を止め、次回実行へDOM応答を持ち越さない
-                // Stop forwarding and discard pending DOM responses regardless of success or failure
-                CefInputForwarder.StopForwarding();
-                PlaytestDomQuery.ResetPending();
-
-                // 後始末して結果を書き出す（result.jsonの出現が完走シグナル）
-                // Clean up and write the result (result.json's appearance signals completion)
-                recorder?.StopRecording(result);
-                logCollector.StopCollect();
+                // 入力と録画の復元が終わってから完走を公開する。
+                // Publish completion only after input and recording cleanup have finished.
                 result.ErrorLogs.AddRange(logCollector.ErrorLogs);
                 result.FinishedAt = DateTime.Now.ToString("O");
-                result.Write(runDirectory);
                 _isRunning = false;
+                result.Write(runDirectory);
             }
 
             #endregion

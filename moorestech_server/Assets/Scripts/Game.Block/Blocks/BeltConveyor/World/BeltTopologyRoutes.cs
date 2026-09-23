@@ -42,14 +42,20 @@ namespace Game.Block.Blocks.BeltConveyor
                     current = lookup[next];
                 }
                 Owners.Add(path.ToArray());
-                Kinds.Add(head.IsMerge ? BeltSegmentKind.Merge : current.Outgoing.Count > 1 ? BeltSegmentKind.Branch : BeltSegmentKind.Normal);
+                Kinds.Add(head.IsMerge ? BeltSegmentKind.Merge : 1 < current.Outgoing.Count ? BeltSegmentKind.Branch : BeltSegmentKind.Normal);
                 var cells = new BeltRouteCell[path.Count];
                 var entries = new BeltRouteCell[4];
+                // 消えた接続のitemにも所有headの隣接セルを残す。
+                // Keep local neighboring geometry for items whose incoming edge disappeared.
+                var headPosition = head.Belt.Position.OriginalPos;
+                var directions = new[] { Vector3Int.forward, Vector3Int.back, Vector3Int.left, Vector3Int.right };
+                for (int direction = 0; direction < entries.Length; direction++)
+                    entries[direction] = BeltTopologyGeometry.ExternalCell(headPosition + directions[direction]);
                 for (int i = 0; i < path.Count; i++)
                 {
                     var belt = path[i];
                     var incoming = lookup[belt].Incoming;
-                    var upstream = i > 0 ? path[i - 1].Position.OriginalPos : incoming.Count > 0
+                    var upstream = 0 < i ? path[i - 1].Position.OriginalPos : 0 < incoming.Count
                         ? incoming[0].SourceCell : belt.Position.OriginalPos - belt.Position.BlockDirection.ConvertLocalCell(Vector3Int.forward);
                     cells[i] = BeltTopologyGeometry.Cell(belt, upstream);
                 }

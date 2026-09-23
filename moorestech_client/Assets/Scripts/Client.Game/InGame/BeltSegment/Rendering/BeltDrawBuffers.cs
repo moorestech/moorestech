@@ -26,8 +26,14 @@ namespace Client.Game.InGame.BeltSegment.Rendering
             static GraphicsBuffer Upload<T>(T[] data) where T : struct
             {
                 var buffer = Create<T>(data.Length);
-                if (data.Length > 0) buffer.SetData(data);
-                return buffer;
+                bool transferred = false;
+                try
+                {
+                    if (0 < data.Length) buffer.SetData(data);
+                    transferred = true;
+                    return buffer;
+                }
+                finally { if (!transferred) buffer.Dispose(); }
             }
             #endregion
         }

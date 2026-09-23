@@ -23,7 +23,6 @@ namespace Client.Tests.BeltSegment.Rendering
             var ids=MasterHolder.ItemMaster.GetItemAllIds().Take(3).ToArray();
             var views=new Dictionary<ItemId,ItemViewData>();
             views.Add(ids[0],new ItemViewData(Texture2D.whiteTexture,MasterHolder.ItemMaster.GetItemMaster(ids[0])));
-            views.Add(ids[1],new ItemViewData((Texture2D)null,MasterHolder.ItemMaster.GetItemMaster(ids[1])));
             // 未使用の欠損kindを定義し、再構築だけでは診断しないことを確認する。
             // An unused missing kind must not be diagnosed merely by rebuilding topology.
             views.Add(ids[2],new ItemViewData((Texture2D)null,MasterHolder.ItemMaster.GetItemMaster(ids[2])));

@@ -28,6 +28,11 @@ namespace Client.Tests.BeltSegment.Network
                 initial = new(frame.Position, 2, server.CaptureSnapshot(), initial.Routes);
             }
             Assert.AreEqual((ulong)uint.MaxValue + 199, world.Position.Tick); world.Simulation.Dispose();
+
+            #region Internal
+            static BeltWorldSnapshot RoundTrip(BeltWorldSnapshot snapshot) => BeltWireCodec.Decode(
+                MessagePackSerializer.Deserialize<BeltWorldSnapshotMessagePack>(MessagePackSerializer.Serialize(new BeltWorldSnapshotMessagePack(snapshot))));
+            #endregion
         }
         [Test]
         public void PackingOwnsDetachedPositionValues()
@@ -63,6 +68,20 @@ namespace Client.Tests.BeltSegment.Network
             }
             Assert.Throws<ArgumentException>(() => BeltWireCodec.Decode(wire));
         }
+        [TestCase(BeltSegmentKind.Merge, 0)][TestCase(BeltSegmentKind.Merge, 1)]
+        [TestCase(BeltSegmentKind.Branch, 0)][TestCase(BeltSegmentKind.Branch, 1)]
+        public void WorldSnapshotRejectsJunctionWithFewerThanTwoConnections(BeltSegmentKind kind, int connections)
+        {
+            var initial = Single(0, 0, 1);
+            var items = initial.Simulation.Segments[0].Items;
+            var segment = kind == BeltSegmentKind.Merge ? BeltReplaySegmentState.Merge(16, 0, items, null)
+                : BeltReplaySegmentState.Branch(1, 16, 0, items, null);
+            var inputs = kind == BeltSegmentKind.Merge && connections == 1 ? initial.Simulation.Inputs : Array.Empty<BeltReplayInput>();
+            var outputs = kind == BeltSegmentKind.Branch && connections == 1 ? new[] { new BeltReplayOutput(0, BeltDirection.Front) } : Array.Empty<BeltReplayOutput>();
+            var invalid = new BeltWorldSnapshot(initial.Position, 1, new(new[] { segment }, Array.Empty<BeltReplayLink>(), inputs, outputs), initial.Routes);
+            Assert.IsFalse(BeltWireCodec.TryDecode(new BeltWorldSnapshotMessagePack(invalid), out _, out var reason));
+            StringAssert.Contains("requires two or three", reason);
+        }
         [Test]
         public void InvalidTickRejectsDuplicateIdsAndNonpositiveInsertion()
         {
@@ -92,7 +111,6 @@ namespace Client.Tests.BeltSegment.Network
             Debug.Log($"replay+GPU packing: segments=1 items=1 withEvents={withEvents} iterations=10000 elapsedMs={timer.Elapsed.TotalMilliseconds:F3} allocatedBytes={allocated}; snapshotBytes={snapshotBytes}; frameBytes={frameBytes}; gpuEventBytes={pack.Prepare(tick) * 16}");
             Assert.AreEqual(withEvents ? 2 : 0, pack.Prepare(tick));
         }
-        private static BeltWorldSnapshot RoundTrip(BeltWorldSnapshot snapshot) => BeltWireCodec.Decode(
-            MessagePackSerializer.Deserialize<BeltWorldSnapshotMessagePack>(MessagePackSerializer.Serialize(new BeltWorldSnapshotMessagePack(snapshot))));
+
     }
 }

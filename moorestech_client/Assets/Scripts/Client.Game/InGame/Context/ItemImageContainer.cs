@@ -44,6 +44,8 @@ namespace Client.Game.InGame.Context
             return null;
         }
         
+        public bool TryGetItemView(ItemId itemId, out ItemViewData view) => _itemImageList.TryGetValue(itemId, out view);
+
         public void AddItemView(ItemId itemId, ItemViewData itemViewData)
         {
             _itemImageList[itemId] = itemViewData;

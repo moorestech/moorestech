@@ -17,7 +17,7 @@ namespace Game.Block.Blocks.CleanRoom
     {
         public bool HasOutputItem()
         {
-            foreach (var item in _transitSlots) if (item.Count > 0) return true;
+            foreach (var item in _transitSlots) if (0 < item.Count) return true;
             return false;
         }
 

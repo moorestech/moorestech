@@ -76,6 +76,12 @@ namespace Game.BeltSegment
             return segments[input.TargetSegmentId].TryReceive(input.InputDirection, length, item);
         }
 
+        internal bool ContainsIdentity(Guid identity)
+        {
+            foreach (var segment in segments) if (segment.ContainsIdentity(identity)) return true;
+            return false;
+        }
+
         public uint ComputeStateHash()
         {
             uint hash = BeltStateHash.Add(BeltStateHash.Initial, segments.Length);

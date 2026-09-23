@@ -45,8 +45,7 @@ namespace Game.Block.Factory.BlockTemplate.Transport
                 new BeltConnectionOverride(blockPositionInfo, slopeType,
                     gearBeltParam.InventoryConnectors));
             var world = Game.Context.ServerContext.GetService<IBeltWorldMutation>();
-            var belt = new SegmentBeltComponent(blockInstanceId, blockPositionInfo, slopeType,
-                inventoryConnector, world, componentStates);
+            var belt = new SegmentBeltComponent(blockPositionInfo, slopeType, world, componentStates);
             var gearBeltConveyorComponent = new GearBeltConveyorComponent(blockInstanceId, gearBeltParam.GearConsumption, gearEnergyTransformerConnector);
 
             // 過負荷破壊コンポーネントを追加
@@ -58,7 +57,6 @@ namespace Game.Block.Factory.BlockTemplate.Transport
             {
                 gearBeltConveyorComponent,
                 belt,
-                new SegmentBeltSaveComponent(belt, world),
                 gearEnergyTransformerConnector,
                 inventoryConnector,
                 overloadBreakageComponent

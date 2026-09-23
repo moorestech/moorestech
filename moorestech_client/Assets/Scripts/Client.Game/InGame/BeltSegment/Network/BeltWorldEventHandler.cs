@@ -1,3 +1,4 @@
+using Server.Event.EventReceive.BeltSegment;
 using System;
 using System.Threading;
 using Client.Game.Common;
@@ -17,37 +18,42 @@ namespace Client.Game.InGame.BeltSegment.Network
         private readonly ClientBeltWorld world;
         private readonly BeltWorldRecovery recovery;
         private readonly CancellationToken cancellation;
-        private readonly UniTaskCompletionSource initial = new();
         public BeltWorldEventHandler(IVanillaApiEvent events, ClientBeltWorld world, BeltWorldRecovery recovery, CancellationToken cancellation)
         { this.events = events; this.world = world; this.recovery = recovery; this.cancellation = cancellation; }
-        public UniTask WaitForInitialApplyAsync() => initial.Task;
         public void Initialize()
         {
-            world.OnRebuilt.Subscribe(_ => initial.TrySetResult());
-            world.OnFailed.Subscribe(exception => initial.TrySetException(exception));
             world.OnRecoveryRequested.Subscribe(_ => recovery.Request());
             // 初期要求より先に両購読を登録し、同期イベントreplayの競合も同じ所有者へ渡す。
             // Subscribe before the initial request, routing synchronous event-replay races through the same owner.
             events.SubscribeEventResponse(BeltWorldEventPacket.SnapshotTag, ReceiveSnapshot);
             events.SubscribeEventResponse(BeltWorldEventPacket.FrameTag, ReceiveFrame);
-            cancellation.Register(() => initial.TrySetCanceled(cancellation));
+            cancellation.Register(() => world.CancelInitialApply(cancellation));
             recovery.Request();
+            #region Internal
+            void ReceiveSnapshot(byte[] payload)
+            {
+                if (cancellation.IsCancellationRequested) return;
+                BeltWorldSnapshotMessagePack wire;
+                // MessagePackは外部byte列のパースのみをこの境界で隔離する。
+                // Isolate only parsing external MessagePack bytes at this input boundary.
+                try { wire = MessagePackSerializer.Deserialize<BeltWorldSnapshotMessagePack>(payload); }
+                catch (Exception exception) { world.Recover($"Snapshot decode failed: {exception.Message}"); return; }
+                if (!BeltWireCodec.TryDecode(wire, out var snapshot, out var reason)) { world.Recover(reason); return; }
+                world.ReceiveSnapshot(snapshot);
+            }
+            void ReceiveFrame(byte[] payload)
+            {
+                if (cancellation.IsCancellationRequested) return;
+                BeltWorldFrameMessagePack wire;
+                // 外部byteパース後の検証・ローカル適用はcatchの外で行う。
+                // Validate and apply locally outside the catch after parsing external bytes.
+                try { wire = MessagePackSerializer.Deserialize<BeltWorldFrameMessagePack>(payload); }
+                catch (Exception exception) { world.Recover($"Frame decode failed: {exception.Message}"); return; }
+                if (!BeltWireCodec.TryDecode(wire, out var frame, out var reason)) { world.Recover(reason); return; }
+                world.ReceiveFrame(frame);
+            }
+            #endregion
         }
-        private void ReceiveSnapshot(byte[] payload)
-        {
-            if (cancellation.IsCancellationRequested) return;
-            // 同期InitializeDispatchを止めないネットワーク入力境界。
-            // Network-input boundary that must not interrupt synchronous InitializeDispatch.
-            try { world.ReceiveSnapshot(BeltWireCodec.Decode(MessagePackSerializer.Deserialize<BeltWorldSnapshotMessagePack>(payload))); }
-            catch (Exception exception) { world.Fail(exception); }
-        }
-        private void ReceiveFrame(byte[] payload)
-        {
-            if (cancellation.IsCancellationRequested) return;
-            // 確定frameの検証失敗は復旧状態へ折り畳む。
-            // Fold invalid completed frames into explicit recovery state.
-            try { world.ReceiveFrame(BeltWireCodec.Decode(MessagePackSerializer.Deserialize<BeltWorldFrameMessagePack>(payload))); }
-            catch (Exception exception) { world.Fail(exception); }
-        }
+        public UniTask WaitForInitialApplyAsync() => world.WaitForInitialApplyAsync();
     }
 }

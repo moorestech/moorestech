@@ -101,6 +101,8 @@ namespace Client.Starter.Registration
             builder.Register<MapVeinRangeViewService>(Lifetime.Singleton).As<IMapVeinRangeView>();
             builder.Register<IPlacementUnlockSourceMap, BeltConveyorPlacementUnlockSourceMap>(Lifetime.Singleton);
             builder.Register<PlacementTargetCatalog>(Lifetime.Singleton);
+            builder.Register<global::Game.Block.Interface.Placement.IBlockPlacementValidator, global::Game.Block.Interface.Placement.BeltPlacementValidator>(Lifetime.Singleton);
+            builder.Register<global::Game.Block.Interface.Placement.BlockPlacementValidation>(Lifetime.Singleton);
             builder.Register<BlueprintPasteSystem>(Lifetime.Singleton);
             builder.Register<BlueprintCopySystem>(Lifetime.Singleton);
             builder.Register<PlacementTargetResolver>(Lifetime.Singleton);

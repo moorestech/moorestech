@@ -15,7 +15,14 @@ namespace Client.Tests.Playtest.Input
             var originalDevices = InputSystem.devices.Where(d => d is Keyboard || d is Mouse).ToArray();
             var enabled = originalDevices.Select(d => d.enabled).ToArray();
             var dirty = UnityEditor.EditorUtility.IsDirty(original);
-            try
+            if (fail) Assert.Throws<OperationCanceledException>(ExerciseScope);
+            else Assert.DoesNotThrow(ExerciseScope);
+            Assert.That(InputSystem.settings, Is.SameAs(original));
+            CollectionAssert.AreEqual(enabled, originalDevices.Select(d => d.enabled).ToArray());
+            Assert.That(InputSystem.devices.Any(d => d.name == "PlaytestKeyboard" || d.name == "PlaytestMouse"), Is.False);
+            Assert.That(UnityEditor.EditorUtility.IsDirty(original), Is.EqualTo(dirty));
+            #region Internal
+            void ExerciseScope()
             {
                 using var scope = new PlaytestInputScope();
                 Assert.That(InputSystem.settings, Is.Not.SameAs(original));
@@ -24,11 +31,7 @@ namespace Client.Tests.Playtest.Input
                 Assert.That(originalDevices.All(d => !d.enabled), Is.True);
                 if (fail) throw new OperationCanceledException();
             }
-            catch (OperationCanceledException) { Assert.That(fail, Is.True); }
-            Assert.That(InputSystem.settings, Is.SameAs(original));
-            CollectionAssert.AreEqual(enabled, originalDevices.Select(d => d.enabled).ToArray());
-            Assert.That(InputSystem.devices.Any(d => d.name == "PlaytestKeyboard" || d.name == "PlaytestMouse"), Is.False);
-            Assert.That(UnityEditor.EditorUtility.IsDirty(original), Is.EqualTo(dirty));
+            #endregion
         }
     }
 }

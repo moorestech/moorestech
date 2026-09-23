@@ -1,4 +1,6 @@
 using System;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using Client.Game.InGame.BeltSegment.Gpu;
 using Game.BeltSegment;
 using Server.Util.MessagePack.BeltSegment;
@@ -10,31 +12,34 @@ namespace Client.Game.InGame.BeltSegment.Model
     {
         private readonly ComputeShader shader;
         private readonly BeltFrameBuffer frames = new();
-        private readonly Subject<BeltWorldSnapshot> rebuilt = new();
-        private readonly Subject<BeltReplayTick> advanced = new();
+        private readonly Subject<BeltWorldSnapshot> snapshotApplied = new();
+        private readonly Subject<BeltReplayTick> tickApplied = new();
         private readonly Subject<string> recoveryRequested = new();
-        private readonly Subject<Exception> failed = new();
+        private readonly Subject<Exception> applyFailed = new();
+        private readonly UniTaskCompletionSource initial = new();
         private BeltReplaySimulation cpu;
         private BeltReplaySnapshot topology;
-        internal IObservable<BeltWorldSnapshot> OnRebuilt => rebuilt;
-        internal IObservable<BeltReplayTick> OnAdvanced => advanced;
+        internal IObservable<BeltWorldSnapshot> OnBeltWorldSnapshotApplied => snapshotApplied;
+        internal IObservable<BeltReplayTick> OnBeltWorldTickApplied => tickApplied;
         internal IObservable<string> OnRecoveryRequested => recoveryRequested;
-        internal IObservable<Exception> OnFailed => failed;
+        internal IObservable<Exception> OnBeltWorldApplyFailed => applyFailed;
         internal BeltStreamStatus Status { get; private set; } = BeltStreamStatus.WaitingSnapshot;
-        internal string RecoveryError { get; private set; }
         internal GpuBeltSimulation Simulation { get; private set; }
         internal BeltRoute[] Routes { get; private set; } = Array.Empty<BeltRoute>();
         internal BeltStreamPosition Position { get; private set; }
         internal ulong Generation { get; private set; }
         internal ClientBeltWorld(ComputeShader shader) => this.shader = shader;
+        internal UniTask WaitForInitialApplyAsync() => initial.Task;
+        internal void CancelInitialApply(CancellationToken token) => initial.TrySetCanceled(token);
         internal void ReceiveSnapshot(BeltWorldSnapshot snapshot)
         {
+            if (Status == BeltStreamStatus.Failed) return;
             if (cpu != null && (snapshot.Generation < Generation || BeltFrameBuffer.Compare(snapshot.Position, Position) < 0 ||
-                (snapshot.Generation == Generation && BeltFrameBuffer.Compare(snapshot.Position, Position) == 0 && Status == BeltStreamStatus.Running)))
-            { Debug.Log("[BeltWorld] Discarded covered snapshot."); return; }
+                snapshot.Generation == Generation && BeltFrameBuffer.Compare(snapshot.Position, Position) == 0 && Status == BeltStreamStatus.Running)) return;
             GpuBeltSimulation replacement = null;
-            // ネットワーク状態の構築・適用境界。両方の構築成功まで旧所有を保つ。
-            // Network-state apply boundary: retain old ownership until both constructions succeed.
+            bool applied = false;
+            // 内部例外は再要求へ変換せず、finallyで非描画と初期待機の失敗を確定する。
+            // Internal exceptions propagate; finally marks the world non-drawing and faults startup.
             try
             {
                 var nextCpu = new BeltReplaySimulation(snapshot.Simulation);
@@ -43,52 +48,62 @@ namespace Client.Game.InGame.BeltSegment.Model
                 cpu = nextCpu; Simulation = replacement; replacement = null;
                 topology = snapshot.Simulation; Routes = snapshot.Routes;
                 Position = snapshot.Position; Generation = snapshot.Generation;
-                Status = BeltStreamStatus.Running; RecoveryError = null;
+                Status = BeltStreamStatus.Running;
                 old?.Dispose();
                 frames.DiscardCovered(Generation, Position);
-                rebuilt.OnNext(snapshot);
+                snapshotApplied.OnNext(snapshot);
                 Drain();
+                applied = true;
+                if (Status == BeltStreamStatus.Running) initial.TrySetResult();
             }
-            catch (Exception exception) { Fail(exception); }
-            finally { replacement?.Dispose(); }
+            finally
+            {
+                try { replacement?.Dispose(); }
+                finally { if (!applied) Fail(new InvalidOperationException("Local snapshot construction, GPU binding, or subscriber failed.")); }
+            }
         }
         internal void ReceiveFrame(BeltWorldFrame frame)
         {
-            if (cpu != null && (frame.Generation < Generation || BeltFrameBuffer.Compare(frame.Position, Position) <= 0))
-            { Debug.Log("[BeltWorld] Discarded covered frame."); return; }
+            if (Status == BeltStreamStatus.Failed) return;
+            if (cpu != null && (frame.Generation < Generation || BeltFrameBuffer.Compare(frame.Position, Position) <= 0)) return;
             if (!frames.Add(frame)) { Recover("Frame buffer exceeded 256 entries."); return; }
             if (Status == BeltStreamStatus.Running) Drain();
         }
         private void Drain()
         {
-            // 確定位置に直接連なるframeだけをCPU→GPUの順で一度適用する。
-            // Apply only directly chained frames, once each, in CPU-then-GPU order.
+            bool completed = false;
+            // 明示拒否と内部例外を分け、CPU成功後だけGPUと購読者へ進める。
+            // Separate explicit rejection from internal failures; update GPU and subscribers only after CPU success.
             try
             {
                 while (Status == BeltStreamStatus.Running && frames.TryTake(Generation, Position, out var frame))
                 {
-                    BeltWireCodec.ValidateFrame(frame, topology);
-                    if (frame.PreviousHash != cpu.ComputeStateHash()) { Recover("Previous state hash mismatch."); return; }
-                    cpu.ApplyTick(frame.Replay, false);
+                    if (!BeltWireCodec.TryValidateFrame(frame, topology, out var reason) ||
+                        !cpu.TryApplyTick(frame.Replay, frame.PreviousHash, false, out reason))
+                    { completed = true; Recover(reason); return; }
                     Simulation.ApplyTick(frame.Replay);
                     Position = frame.Position;
-                    advanced.OnNext(frame.Replay);
+                    tickApplied.OnNext(frame.Replay);
                 }
                 if (frames.HasPending) Recover("Missing frame chain or replacement generation.");
+                completed = true;
             }
-            catch (Exception exception) { Fail(exception); }
+            finally { if (!completed) Fail(new InvalidOperationException("Local CPU/GPU tick or subscriber failed.")); }
         }
         internal void Recover(string reason)
         {
-            Status = BeltStreamStatus.Recovering; RecoveryError = reason;
+            if (Status == BeltStreamStatus.Failed) return;
+            Status = BeltStreamStatus.Recovering;
             Debug.LogWarning($"[BeltWorld] Recovering: {reason}");
             recoveryRequested.OnNext(reason);
         }
-        internal void Fail(Exception exception)
+        private void Fail(Exception exception)
         {
-            Debug.LogError($"[BeltWorld] Network state apply failed: {exception}");
-            failed.OnNext(exception);
-            Recover(exception.Message);
+            if (Status == BeltStreamStatus.Failed) return;
+            Status = BeltStreamStatus.Failed;
+            initial.TrySetException(exception);
+            Debug.LogError($"[BeltWorld] Local state apply failed: {exception}");
+            applyFailed.OnNext(exception);
         }
         internal BeltReplaySnapshot CaptureCpuState() => cpu.CaptureSnapshot();
     }

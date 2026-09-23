@@ -34,14 +34,25 @@ namespace Client.Game.InGame.BeltSegment.Rendering
         }
         public void Start()
         {
-            world.OnRebuilt.Subscribe(Rebuild).AddTo(subscriptions);
-            world.OnAdvanced.Subscribe(Advance).AddTo(subscriptions);
+            world.OnBeltWorldSnapshotApplied.Subscribe(Rebuild).AddTo(subscriptions);
+            world.OnBeltWorldTickApplied.Subscribe(Advance).AddTo(subscriptions);
             // 登録順に依存せず、初期snapshot適用後の開始にも対応する。
             // Also initialize when Start follows the first accepted snapshot.
             if (world.Status == BeltStreamStatus.Running)
                 RebuildCurrent(world.CaptureCpuState());
+
+            #region Internal
+            void Rebuild(BeltWorldSnapshot snapshot) => RebuildCurrent(snapshot.Simulation);
+            void Advance(BeltReplayTick tick)
+            {
+                // 確定挿入だけを消費し、frameごとのCPU走行列scanやGPU readbackはしない。
+                // Consume accepted insertions without per-frame CPU queue scans or GPU readback.
+                foreach (var insertion in tick.Insertions) Register(insertion.Item.ItemId);
+                dispatch.Recompute();
+            }
+            #endregion
         }
-        private void Rebuild(BeltWorldSnapshot snapshot) => RebuildCurrent(snapshot.Simulation);
+
         private void RebuildCurrent(BeltReplaySnapshot snapshot)
         {
             dispatch?.Dispose(); buffers?.Dispose(); materials?.Dispose();
@@ -60,20 +71,10 @@ namespace Client.Game.InGame.BeltSegment.Rendering
             }
             dispatch.Recompute();
         }
-        private void Advance(BeltReplayTick tick)
-        {
-            // 確定挿入だけを消費し、frameごとのCPU走行列scanやGPU readbackはしない。
-            // Consume accepted insertions without per-frame CPU queue scans or GPU readback.
-            foreach (var insertion in tick.Insertions) Register(insertion.Item.ItemId);
-            dispatch.Recompute();
-        }
+
         private void Register(int kind)
         {
-            int index = materials.Register(kind);
-            if (index < 0) return;
-            var material = materials.Materials[index];
-            material.SetBuffer("_Positions", buffers.Positions); material.SetBuffer("_Offsets", buffers.Offsets);
-            material.SetInt("_KindIndex", index); material.SetFloat("_CubeEdge", CubeEdge);
+            materials.Register(kind, buffers.Positions, buffers.Offsets, CubeEdge);
         }
         public void Dispose()
         {

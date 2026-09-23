@@ -34,9 +34,6 @@ namespace Client.WebUiHost.Game.Topics
         private bool _continuousSamplePending;
         private bool _sampleContinuously;
         private bool _disposed;
-        // Task 8 の action handler がスナップショット反映に使う公開口
-        // Public access point used by Task 8 action handlers to apply snapshots
-        public BlockNetworkInfoCache NetworkCache => _networkCache;
         public BlockInventoryTopic(WebSocketHub hub, UIStateControl uiStateControl, SubInventoryState subInventoryState)
         {
             _hub = hub;

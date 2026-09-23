@@ -2,7 +2,7 @@ using Game.Block.Blocks.BeltConveyor;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Protocol.MessagePack;
 using Server.Util.MessagePack.BeltSegment;
-namespace Server.Protocol.PacketResponse
+namespace Server.Protocol.PacketResponse.BeltSegment
 {
     public sealed class GetBeltWorldProtocol : IPacketResponse
     {

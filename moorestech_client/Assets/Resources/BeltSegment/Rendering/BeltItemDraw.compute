@@ -71,7 +71,7 @@ void BuildPositions(uint3 group : SV_GroupID, uint lane : SV_GroupIndex)
         {
             int2 item = _Items[physical];
             int kind = DenseKind(item.x);
-            int distance = carry + gaps[lane] + gap + logical * 256;
+            int distance = carry + gaps[lane] + gap + logical * ItemWidth;
             _RawPositions[t.Offset + logical] = float4(PositionOnRoute(segment, distance, item.y), kind);
             InterlockedAdd(_Counts[kind], 1);
         }

@@ -58,6 +58,10 @@ namespace Game.SaveLoad.Pruning.Items
 
             foreach (var property in json.Properties().ToList())
             {
+                if (property.Name is "RunningItem" or "BufferedItem")
+                {
+                    _cleaner.ClearTransportItemIfMissing(property, Locate(property.Value, root, rootOrigin));
+                }
                 if (property.Name == BlockStateItemReferenceFields.ConnectionCostMaterialsPropertyName && property.Value is JArray materials)
                 {
                     foreach (var material in materials.OfType<JObject>()) _cleaner.NeutralizeConnectionMaterialIfMissing(material, Locate(material, root, rootOrigin));

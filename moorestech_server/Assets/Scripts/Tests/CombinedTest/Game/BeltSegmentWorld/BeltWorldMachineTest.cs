@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using Game.Block.Interface.Component;
+using Core.Item.Interface;
 using System.Linq;
 using Core.Master;
 using Game.BeltSegment;
@@ -20,12 +23,15 @@ namespace Tests.CombinedTest.Game.BeltSegmentWorld
             var source = f.Add(ForUnitTestModBlockId.ChestId, Vector3Int.back, BlockDirection.North).GetComponent<VanillaChestComponent>();
             var belt = f.Add(ForUnitTestModBlockId.GearBeltConveyor, Vector3Int.zero, BlockDirection.North).GetComponent<SegmentBeltComponent>();
             var destination = f.Add(ForUnitTestModBlockId.ChestId, Vector3Int.forward, BlockDirection.North).GetComponent<VanillaChestComponent>();
-            source.SetItem(0, ServerContext.ItemStackFactory.Create(new ItemId(1), 3));
+            var marker = new TransportMetadata();
+            var original = ServerContext.ItemStackFactory.Create(new ItemId(1), 3).SetMeta("transport-test", marker);
+            source.SetItem(0, original);
             f.Tick(1);
             Assert.AreEqual(2, source.GetItem(0).Count);
             var payload = belt.GetItem(0);
             var guid = f.Belts.CaptureCell(belt).RunningItem.TransportGuid;
-            Assert.AreEqual(payload.ItemInstanceId, belt.GetItem(0).ItemInstanceId);
+            Assert.AreSame(marker, payload.GetMeta("transport-test"));
+            Assert.AreNotEqual(original.ItemInstanceId, payload.ItemInstanceId, "SubItem creates a new stack instance while preserving metadata.");
             f.Tick(16);
             Assert.AreEqual(1, destination.InventoryItems.Sum(i => i.Count));
             Assert.AreEqual(3, source.InventoryItems.Sum(i => i.Count) + destination.InventoryItems.Sum(i => i.Count) + BeltWorldFixture.Count(f.Snapshot()));
@@ -93,6 +99,31 @@ namespace Tests.CombinedTest.Game.BeltSegmentWorld
             Assert.IsFalse(inventory.HasOutputItem());
             inventory.SetItem(2, new ItemId(1), 1);
             Assert.IsTrue(inventory.HasOutputItem());
+        }
+        [TestCase(false, false)][TestCase(false, true)][TestCase(true, false)][TestCase(true, true)]
+        public void InputOnlyGeneratorsExposeUnavailableOutputWithoutBreakingRebuild(bool gear, bool connected)
+        {
+            var f = new BeltWorldFixture();
+            var source = f.Add(gear ? ForUnitTestModBlockId.FuelGearGeneratorId : ForUnitTestModBlockId.GeneratorId, new Vector3Int(20, 0, 20), BlockDirection.North);
+            var targetBlock = f.Add(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(20, 0, 30), BlockDirection.North);
+            var target = targetBlock.GetComponent<SegmentBeltComponent>();
+            var output = source.GetComponent<IBlockOutputAvailability>();
+            Assert.IsFalse(output.HasOutputItem());
+            if (connected)
+            {
+                // modで指定できる出力辺をconnectorの確定集合へ与え、実topologyを構築する。
+                // Supply a mod-configurable output edge to the settled connector set and build real topology.
+                var connector = source.GetComponent<IBlockConnectorComponent<IBlockInventory>>();
+                ((Dictionary<IBlockInventory, ConnectedInfo>)connector.ConnectedTargets).Add(target,
+                    new ConnectedInfo(null, null, targetBlock, targetBlock.BlockPositionInfo.OriginalPos));
+            }
+            f.Tick(1);
+            Assert.AreEqual(connected ? 1 : 0, f.Snapshot().Simulation.Inputs.Length);
+            Assert.AreEqual(0, target.GetItem(0).Count); Assert.IsFalse(output.HasOutputItem());
+        }
+        private sealed class TransportMetadata : ItemStackMetaData
+        {
+            public override bool Equals(ItemStackMetaData target) => ReferenceEquals(this, target);
         }
     }
 }

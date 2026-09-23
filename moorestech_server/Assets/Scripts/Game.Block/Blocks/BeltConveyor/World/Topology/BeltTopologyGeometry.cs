@@ -12,16 +12,16 @@ namespace Game.Block.Blocks.BeltConveyor
         }
         internal static BeltDirection Direction(Vector3Int delta)
         {
-            if (delta.z > 0) return BeltDirection.Front;
+            if (0 < delta.z) return BeltDirection.Front;
             if (delta.z < 0) return BeltDirection.Back;
             if (delta.x < 0) return BeltDirection.Left;
-            if (delta.x > 0) return BeltDirection.Right;
+            if (0 < delta.x) return BeltDirection.Right;
             throw new InvalidOperationException("Belt edges require a horizontal direction.");
         }
         internal static BeltRouteCell Cell(SegmentBeltComponent belt, Vector3Int upstream)
         {
             var p = belt.Position.OriginalPos;
-            int elevation = upstream.y > p.y ? 4 : upstream.y < p.y ? 8 : 0;
+            int elevation = p.y < upstream.y ? 4 : upstream.y < p.y ? 8 : 0;
             var entry = (BeltEntryDirection)((int)Direction(upstream - p) + elevation);
             return new BeltRouteCell(new BeltCell(p.x, p.z, p.y), entry,
                 p.y * 2 + (belt.SlopeType == BeltConveyorSlopeType.Straight ? 0 : 1),

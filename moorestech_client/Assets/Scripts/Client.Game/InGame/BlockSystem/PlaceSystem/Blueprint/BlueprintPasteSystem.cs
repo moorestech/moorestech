@@ -25,6 +25,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
         private readonly ClientBlueprintLibrary _library;
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
         private readonly Camera _mainCamera;
+        private readonly global::Game.Block.Interface.Placement.BlockPlacementValidation _placement;
         private BlueprintPastePreviewController _previewController;
 
         private BlueprintJsonObject _currentBlueprint;
@@ -34,9 +35,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
         // Shared instance so blocks whose Settings is null (e.g. hand-edited saves) paste as settings-less
         private static readonly Dictionary<string, string> EmptySettings = new();
 
-        public BlueprintPasteSystem(Camera mainCamera, ClientBlueprintLibrary library, BlockGameObjectDataStore blockGameObjectDataStore)
+        public BlueprintPasteSystem(Camera mainCamera, ClientBlueprintLibrary library, BlockGameObjectDataStore blockGameObjectDataStore, global::Game.Block.Interface.Placement.BlockPlacementValidation placement)
         {
             _mainCamera = mainCamera;
+            _placement = placement;
             _library = library;
             _blockGameObjectDataStore = blockGameObjectDataStore;
         }
@@ -107,7 +109,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
             {
                 // 全占有セルで既存ブロックとの重なりをチェック
                 // Check overlap against existing blocks over all occupied cells; server re-validates
-                if (!global::Game.Block.Interface.Extension.BeltConveyorPlaceFamilyUtil.IsPlacementDirectionAllowed(placement.BlockId, placement.Direction)) return false;
+                if (!_placement.TryValidate(placement.BlockId, placement.Direction, out _)) return false;
                 var blockSize = MasterHolder.BlockMaster.GetBlockMaster(placement.BlockId).BlockSize;
                 var positionInfo = new BlockPositionInfo(placement.Position, placement.Direction, blockSize);
                 return !_blockGameObjectDataStore.IsOverlapPositionInfo(positionInfo);
@@ -148,12 +150,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
             #endregion
         }
 
-        internal static void ReportRejectedDirections(IReadOnlyList<BlueprintPlacementElement> placements)
+        internal void ReportRejectedDirections(IReadOnlyList<BlueprintPlacementElement> placements)
         {
             // クリックによる貼付け試行だけを診断し、毎frameのpreviewでは繰り返さない。
             // Diagnose explicit paste attempts only, never each preview frame.
             foreach (var placement in placements)
-                if (!global::Game.Block.Interface.Extension.BeltConveyorPlaceFamilyUtil.IsPlacementDirectionAllowed(placement.BlockId, placement.Direction))
+                if (!_placement.TryValidate(placement.BlockId, placement.Direction, out _))
                     Debug.LogWarning($"[BlueprintPaste] Rejected belt direction: blockId={placement.BlockId}, direction={placement.Direction}, position={placement.Position}");
         }
 

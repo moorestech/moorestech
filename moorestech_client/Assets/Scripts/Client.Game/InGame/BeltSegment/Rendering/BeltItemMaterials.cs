@@ -19,35 +19,53 @@ namespace Client.Game.InGame.BeltSegment.Rendering
             Array.Sort(ids, (a, b) => a.AsPrimitive().CompareTo(b.AsPrimitive()));
             for (int i = 0; i < ids.Length; i++) Kinds[i] = ids[i].AsPrimitive();
         }
-        internal int Register(int kind)
+        internal void Register(int kind, GraphicsBuffer positions, GraphicsBuffer offsets, float cubeEdge)
         {
             int index = Array.BinarySearch(Kinds, kind);
-            if (Materials[index] != null) return -1;
+            if (Materials[index] != null) return;
             // dense索引は固定し、実際に搬送されたkindだけ画像とmaterialを登録する。
             // Keep dense indices fixed and register images/materials only for transported kinds.
-            var texture = images.GetItemView(new ItemId(kind))?.ItemTexture;
+            images.TryGetItemView(new ItemId(kind), out var view);
+            var texture = view?.ItemTexture;
             bool reportMissing = texture == null && diagnosedMissing.Add(kind);
-            Materials[index] = Create(kind, texture, shader, reportMissing);
-            return index;
+            var material = Create(kind, texture, shader, reportMissing);
+            bool registered = false;
+            try
+            {
+                material.SetBuffer("_Positions", positions); material.SetBuffer("_Offsets", offsets);
+                material.SetInt("_KindIndex", index); material.SetFloat("_CubeEdge", cubeEdge);
+                Materials[index] = material;
+                registered = true;
+            }
+            finally { if (!registered) DestroyResource(material); }
         }
         internal static Material Create(int kind, Texture texture, Shader shader, bool reportMissing)
         {
-            var material = new Material(shader) { enableInstancing = true };
-            if (texture == null)
+            var material = new Material(shader);
+            bool initialized = false;
+            try
             {
-                if (reportMissing) Debug.LogWarning($"[BeltItemMaterials] Missing image for item kind {kind}; using magenta cube.");
-                material.SetColor("_BaseColor", Color.magenta);
+                material.enableInstancing = true;
+                if (texture == null)
+                {
+                    if (reportMissing) Debug.LogWarning($"[BeltItemMaterials] Missing image for item kind {kind}; using magenta cube.");
+                    material.SetColor("_BaseColor", Color.magenta);
+                }
+                else material.SetTexture("_BaseMap", texture);
+                initialized = true;
+                return material;
             }
-            else material.SetTexture("_BaseMap", texture);
-            return material;
+            finally { if (!initialized) DestroyResource(material); }
         }
-        public void Dispose() { foreach (var material in Materials) Destroy(material); }
-        internal static void Destroy(UnityEngine.Object resource)
-        {
+        public void Dispose() { foreach (var material in Materials) DestroyResource(material); }
 #if UNITY_EDITOR
-            if (!Application.isPlaying) { UnityEngine.Object.DestroyImmediate(resource); return; }
-#endif
-            UnityEngine.Object.Destroy(resource);
+        internal static void DestroyResource(UnityEngine.Object resource)
+        {
+            if (!Application.isPlaying) UnityEngine.Object.DestroyImmediate(resource);
+            else UnityEngine.Object.Destroy(resource);
         }
+#else
+        internal static void DestroyResource(UnityEngine.Object resource) => UnityEngine.Object.Destroy(resource);
+#endif
     }
 }

@@ -31,7 +31,8 @@ namespace Game.Block.Blocks.BeltConveyor
                 {
                     var target = pair.Key as SegmentBeltComponent;
                     if (source == null && target == null) continue;
-                    if (source != null && !belts.Contains(source) || target != null && !belts.Contains(target)) continue;
+                    if (source != null && !belts.Contains(source) || target != null && !belts.Contains(target))
+                        throw new InvalidOperationException($"Connected belt is missing from the registered world at {block.BlockPositionInfo.OriginalPos}.");
                     var edge = new BeltTopologyEdge(block, pair.Key, pair.Value);
                     edges.Add(edge);
                     if (source != null) lookup[source].Outgoing.Add(edge);
@@ -47,7 +48,7 @@ namespace Game.Block.Blocks.BeltConveyor
                     return compare != 0 ? compare : BeltTopologyEdge.Compare(a, b);
                 });
                 node.Outgoing.Sort(BeltTopologyEdge.Compare);
-                if (node.Incoming.Count > 3 || node.Outgoing.Count > 3 || node.IsMerge && node.Outgoing.Count > 1)
+                if (3 < node.Incoming.Count || 3 < node.Outgoing.Count || node.IsMerge && 1 < node.Outgoing.Count)
                     throw new InvalidOperationException($"Unsupported belt junction at {node.Belt.Position.OriginalPos}.");
             }
             Paths = new BeltTopologyRoutes(nodes, lookup);

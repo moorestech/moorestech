@@ -11,7 +11,13 @@ namespace Game.Block.Interface.Extension
     public static class BeltConveyorPlaceFamilyUtil
     {
         public static bool IsPlacementDirectionAllowed(BlockId blockId, BlockDirection direction)
-            => !TryGetFamily(blockId, out _) || direction >= BlockDirection.North && direction <= BlockDirection.West;
+        {
+            if (BlockDirection.North <= direction && direction <= BlockDirection.West) return true;
+            var guid = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockGuid;
+            foreach (var family in MasterHolder.BlockMaster.Blocks.BeltConveyorFamilies)
+                if (IsMember(family, guid)) return false;
+            return true;
+        }
 
         public static bool TryGetFamily(BlockId blockId, out BeltConveyorFamily family)
         {

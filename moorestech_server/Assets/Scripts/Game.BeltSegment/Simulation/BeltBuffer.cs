@@ -45,7 +45,7 @@ namespace Game.BeltSegment
         /// <summary>段階2では、現在の最優先出力だけを搬出候補として提示する。</summary>
         public bool TryGetOutput(BeltDirection inputDirection)
         {
-            return HasItem && outputCount > 0 && outputDirections[nextOutput % outputCount] == BeltDirections.Opposite(inputDirection);
+            return HasItem && 0 < outputCount && outputDirections[nextOutput % outputCount] == BeltDirections.Opposite(inputDirection);
         }
 
         /// <summary>段階1。出口でクランプしてから回収する。回収後に残りの移動量を使わない。</summary>

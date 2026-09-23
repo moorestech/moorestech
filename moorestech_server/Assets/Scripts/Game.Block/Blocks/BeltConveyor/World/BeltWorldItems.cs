@@ -21,12 +21,16 @@ namespace Game.Block.Blocks.BeltConveyor
             Cells.Add(belt, state);
             RestorePayload(state.RunningItem); RestorePayload(state.BufferedItem);
             belt.ClearLoadedState();
+
+            #region Internal
+            void RestorePayload(BeltSavedItem saved)
+            {
+                if (saved == null) return;
+                _payloads.Add(saved.TransportGuid, ServerContext.ItemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(saved.ItemMasterGuid), 1));
+            }
+            #endregion
         }
-        private void RestorePayload(BeltSavedItem saved)
-        {
-            if (saved == null) return;
-            _payloads.Add(saved.TransportGuid, ServerContext.ItemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(saved.ItemMasterGuid), 1));
-        }
+
         internal BeltItem Create(IItemStack stack, BeltDirection entry)
         {
             var id = GameRandom.NextGuid();
@@ -52,19 +56,36 @@ namespace Game.Block.Blocks.BeltConveyor
             {
                 var path = owners[id]; var segment = snapshot.Segments[id];
                 foreach (var belt in path)
-                    if (Cells.TryGetValue(belt, out var prior)) Cells[belt] = new BeltCellSaveState(prior.PriorityIndex, null, null);
+                {
+                    var prior = Cells[belt];
+                    Cells[belt] = new BeltCellSaveState(prior.PriorityIndex, null, null);
+                }
                 foreach (var item in segment.Items)
                 {
-                    int index = path.Length - 1 - item.DistanceToExit / 256;
+                    int index = path.Length - 1 - item.DistanceToExit / BeltConstants.ItemWidth;
                     var belt = path[index];
-                    if (!Cells.TryGetValue(belt, out var state)) continue;
+                    var state = Cells[belt];
                     if (state.RunningItem != null) throw new InvalidOperationException("Two running items occupy one belt cell.");
-                    Cells[belt] = new BeltCellSaveState(state.PriorityIndex, Save(item.Item, 256 - item.DistanceToExit % 256), null);
+                    // 保存はsegment入口ではなく、現在の所有セルの入口を記録する。
+                    // Save the current owning cell's entry instead of the old segment head's entry.
+                    var localItem = item.Item;
+                    if (0 < index) localItem.AcceptedInput = BeltTopologyGeometry.Direction(path[index - 1].Position.OriginalPos - belt.Position.OriginalPos);
+                    Cells[belt] = new BeltCellSaveState(state.PriorityIndex, Save(localItem, BeltConstants.ItemWidth - item.DistanceToExit % BeltConstants.ItemWidth), null);
                 }
                 var junction = path[path.Length - 1];
-                if (segment.Kind != BeltSegmentKind.Normal && Cells.TryGetValue(junction, out var current))
+                if (segment.Kind != BeltSegmentKind.Normal)
+                {
+                    var current = Cells[junction];
+                    var buffered = segment.BufferedItem;
+                    if (buffered.HasValue && 1 < path.Length)
+                    {
+                        var local = buffered.Value;
+                        local.AcceptedInput = BeltTopologyGeometry.Direction(path[path.Length - 2].Position.OriginalPos - junction.Position.OriginalPos);
+                        buffered = local;
+                    }
                     Cells[junction] = new BeltCellSaveState(segment.PriorityIndex, current.RunningItem,
-                        segment.BufferedItem.HasValue ? Save(segment.BufferedItem.Value, 256) : null);
+                        buffered.HasValue ? Save(buffered.Value, BeltConstants.ItemWidth) : null);
+                }
             }
             _captured = true;
         }

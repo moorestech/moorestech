@@ -11,7 +11,7 @@ namespace Game.Block.Blocks.BeltConveyor
         [JsonConstructor]
         public BeltSavedItem(Guid transportGuid, Guid itemMasterGuid, int progress, BeltDirection entry)
         {
-            if (transportGuid == Guid.Empty || itemMasterGuid == Guid.Empty || progress < 1 || progress > 256 || (int)entry < 0 || (int)entry > 3)
+            if (transportGuid == Guid.Empty || itemMasterGuid == Guid.Empty || progress < 1 || BeltConstants.ItemWidth < progress || (int)entry < 0 || 3 < (int)entry)
                 throw new ArgumentException("Invalid saved belt item.");
             TransportGuid = transportGuid; ItemMasterGuid = itemMasterGuid; Progress = progress; Entry = entry;
         }

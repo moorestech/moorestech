@@ -30,6 +30,21 @@ namespace Game.SaveLoad.Pruning.Items
             _result = result;
         }
 
+        public void ClearTransportItemIfMissing(JProperty property, PrunedItemOrigin origin)
+        {
+            if (property.Value is not JObject item || item["TransportGuid"] == null ||
+                !TryReadMissingItemGuid(item["ItemMasterGuid"], out var guidText)) return;
+            // 走行とbufferの値全体を退避し、復元可能な空slotへ戻す。
+            // Archive the entire running/buffer payload and restore an empty, loadable slot.
+            Record(_result.EmptiedItemStacks, new JObject
+            {
+                ["origin"] = origin.ToJson(), ["kind"] = "transportItem",
+                [ItemStackJsonKeys.ItemGuid] = guidText,
+                ["TransportGuid"] = item["TransportGuid"].DeepClone(), ["original"] = item.DeepClone()
+            }, guidText);
+            property.Value = JValue.CreateNull();
+        }
+
         public void EmptyItemStackIfMissing(JObject stack, PrunedItemOrigin origin)
         {
             if (!TryReadMissingItemGuid(stack[ItemStackJsonKeys.ItemGuid], out var guidText)) return;

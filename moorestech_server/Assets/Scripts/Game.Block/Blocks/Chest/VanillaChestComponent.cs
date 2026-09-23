@@ -18,7 +18,7 @@ namespace Game.Block.Blocks.Chest
     {
         public bool HasOutputItem()
         {
-            foreach (var item in InventoryItems) if (item.Count > 0) return true;
+            foreach (var item in InventoryItems) if (0 < item.Count) return true;
             return false;
         }
 

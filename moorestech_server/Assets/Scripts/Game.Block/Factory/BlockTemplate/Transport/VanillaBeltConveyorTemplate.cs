@@ -38,13 +38,11 @@ namespace Game.Block.Factory.BlockTemplate.Transport
                 blockPositionInfo, new BeltConnectionOverride(blockPositionInfo, slopeType,
                     beltParam.InventoryConnectors));
             var world = Game.Context.ServerContext.GetService<IBeltWorldMutation>();
-            var beltComponent = new SegmentBeltComponent(blockInstanceId, blockPositionInfo, slopeType,
-                connectorComponent, world, componentStates);
+            var beltComponent = new SegmentBeltComponent(blockPositionInfo, slopeType, world, componentStates);
 
             var components = new List<IBlockComponent>
             {
                 beltComponent,
-                new SegmentBeltSaveComponent(beltComponent, world),
                 connectorComponent
             };
             

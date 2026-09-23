@@ -32,7 +32,7 @@ namespace Client.Tests.BeltSegment.Rendering
             Assert.AreEqual(Color.magenta,missing.GetColor("_BaseColor"));
             var textured=BeltItemMaterials.Create(900000,Texture2D.whiteTexture,shader,true);
             Assert.AreSame(Texture2D.whiteTexture,textured.GetTexture("_BaseMap"));
-            BeltItemMaterials.Destroy(missing);BeltItemMaterials.Destroy(textured);
+            BeltItemMaterials.DestroyResource(missing);BeltItemMaterials.DestroyResource(textured);
         }
     }
 }

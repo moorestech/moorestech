@@ -13,7 +13,7 @@ namespace Client.Tests.BeltSegment.Measurement
         internal readonly BeltReplayTick[] Frames;
         internal readonly long InputEvents, OutputEvents;
         internal readonly uint FinalHash;
-        internal BeltRecordedWorkload(int segmentCount, int capacity, int ticks)
+        internal BeltRecordedWorkload(int segmentCount, int capacity, int ticks, bool freshIngressIdentity = false)
         {
             var states = new BeltReplaySegmentState[segmentCount];
             var inputs = new BeltReplayInput[segmentCount];
@@ -43,6 +43,7 @@ namespace Client.Tests.BeltSegment.Measurement
                     if(!ports[i].Pending.HasValue) continue;
                     sent.Add(i);
                     var item=ports[i].Pending.Value;
+                    if (freshIngressIdentity) item.Guid = new Guid(segmentCount * capacity + tick * segmentCount + i + 1, 0, 0, new byte[8]);
                     if(!graph.TryInsert(i,16,item)) throw new InvalidOperationException("Source reinsertion failed");
                     received.Add(new BeltReplayInsertion(i,16,item));ports[i].Pending=null;
                 }

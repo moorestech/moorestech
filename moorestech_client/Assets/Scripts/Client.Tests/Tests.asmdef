@@ -48,6 +48,7 @@
         "Common.Debug",
         "Game.Paths",
         "Game.SaveLoad",
+        "Game.SaveLoad.Interface",
         "Game.MapGeneration",
         "Game.MapGeneration.Contract",
         "Game.MapGeneration.Facade",

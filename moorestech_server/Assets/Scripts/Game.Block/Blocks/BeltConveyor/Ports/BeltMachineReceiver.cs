@@ -12,7 +12,7 @@ namespace Game.Block.Blocks.BeltConveyor
         { _target = target; _context = context; _items = items; }
         internal void Reset() => Consumed = false;
         public void AttachInput(IBeltSource source, BeltDirection inputDirection) { }
-        public int GetOffer(BeltDirection inputDirection) => Consumed ? 0 : 256;
+        public int GetOffer(BeltDirection inputDirection) => Consumed ? 0 : BeltConstants.ItemWidth;
         public bool TryReceive(BeltDirection inputDirection, int length, in BeltItem item)
         {
             if (Consumed) return false;

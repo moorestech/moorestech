@@ -1,3 +1,8 @@
+using Game.PlayerInventory.Interface;
+using Microsoft.Extensions.DependencyInjection;
+using MessagePack;
+using Server.Protocol;
+using Server.Protocol.PacketResponse;
 using Game.Block.Interface.Extension;
 using Tests.Module.TestMod;
 using Game.Block.Blocks.Chest;
@@ -40,8 +45,14 @@ namespace Tests.CombinedTest.Game.BeltSegmentWorld
             f.Seed(first, 1); f.Seed(second, 2); f.Tick(1);
             var survivor = f.Belts.CaptureCell(first).RunningItem.TransportGuid;
             var removed = f.Belts.CaptureCell(second).RunningItem.TransportGuid;
-            var refund = second.GetItem(0); Assert.AreEqual(1, refund.Count);
-            ServerContext.WorldBlockDatastore.RemoveBlock(Vector3Int.forward, BlockRemoveReason.ManualRemove);
+            var inventory = f.Services.GetRequiredService<IPlayerInventoryDataStore>().GetInventoryData(3).MainOpenableInventory;
+            Assert.AreEqual(0, inventory.InventoryItems.Sum(item => item.Count));
+            var protocol = new RemoveBlockProtocol(f.Services);
+            var packet = MessagePackSerializer.Serialize(new RemoveBlockProtocol.RemoveBlockProtocolMessagePack(3, Vector3Int.forward));
+            protocol.GetResponse(packet, new PacketResponseContext(null));
+            Assert.AreEqual(1, inventory.InventoryItems.Where(item => item.Id == new ItemId(2)).Sum(item => item.Count));
+            protocol.GetResponse(packet, new PacketResponseContext(null));
+            Assert.AreEqual(1, inventory.InventoryItems.Where(item => item.Id == new ItemId(2)).Sum(item => item.Count));
             string save = f.Save(); StringAssert.DoesNotContain(removed.ToString(), save);
             Assert.AreEqual(survivor, f.Belts.CaptureCell(first).RunningItem.TransportGuid);
             f.Tick(1); Assert.AreEqual(1, BeltWorldFixture.Count(f.Snapshot()));

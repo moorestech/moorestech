@@ -15,8 +15,9 @@ namespace Game.Block.Blocks.Gear
 {
     // アイテムスロットを管理し、他コンポーネントへインベントリ機能を提供する
     // Manage item slots and expose inventory functionality to other components
-    public class FuelGearGeneratorItemComponent : IOpenableBlockInventoryComponent, IBlockSaveState
+    public class FuelGearGeneratorItemComponent : IOpenableBlockInventoryComponent, IBlockSaveState, IBlockOutputAvailability
     {
+        public bool HasOutputItem() => false;
         public IReadOnlyList<IItemStack> InventoryItems => _inventoryService.InventoryItems;
         public string SaveKey => "fuelGearGeneratorItem";
         

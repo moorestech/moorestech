@@ -23,6 +23,12 @@ namespace Game.BeltSegment
             blockSizes = new int[n];
         }
 
+        internal bool ContainsIdentity(System.Guid identity)
+        {
+            for (int i = 0; i < count; i++) if (items[(head + i) % n].Guid == identity) return true;
+            return false;
+        }
+
         internal BeltItemState[] CaptureItems()
         {
             // 出口からの累積距離に隙間と幅を変換する。

@@ -15,7 +15,7 @@ namespace Tests.CombinedTest.Game.BeltSegmentWorld
         {
             var f = new BeltWorldFixture(); f.Tick(1); var old = f.Snapshot();
             var events = new List<string>(); BeltWorldSnapshot replacement = null; BeltWorldFrame frame = null;
-            f.Belts.OnRebuilt.Subscribe(s => { events.Add("replace"); replacement = s; });
+            f.Belts.OnBeltWorldRebuilt.Subscribe(s => { events.Add("replace"); replacement = s; });
             f.Belts.OnFrame.Subscribe(s => { events.Add("frame"); frame = s; });
             var belt = f.Belt(Vector3Int.zero, BlockDirection.North); f.Seed(belt, 1);
             var first = f.Snapshot(); var second = f.Snapshot();
@@ -62,7 +62,7 @@ namespace Tests.CombinedTest.Game.BeltSegmentWorld
             f.Belt(Vector3Int.zero, BlockDirection.North);
             f.Add(Tests.Module.TestMod.ForUnitTestModBlockId.ChestId, Vector3Int.forward * 2, BlockDirection.North);
             BeltReplaySimulation replay = null; int frames = 0;
-            f.Belts.OnRebuilt.Subscribe(s => replay = new BeltReplaySimulation(s.Simulation));
+            f.Belts.OnBeltWorldRebuilt.Subscribe(s => replay = new BeltReplaySimulation(s.Simulation));
             f.Belts.OnFrame.Subscribe(frame =>
             {
                 Assert.AreEqual(replay.ComputeStateHash(), frame.PreviousHash);

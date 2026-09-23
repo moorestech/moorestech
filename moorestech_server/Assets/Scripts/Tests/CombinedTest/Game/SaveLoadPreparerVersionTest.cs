@@ -110,6 +110,14 @@ namespace Tests.CombinedTest.Game
             var prepared = preparer.Prepare(save.ToString());
             Assert.IsFalse(prepared.CanLoad);
             StringAssert.Contains("new-world belt segment prototype", prepared.BlockedReason);
+
+            #region Internal
+            static void ExpectPrototypeRefusal()
+            {
+                LogAssert.Expect(LogType.Error, new Regex("変換できませんでした"));
+                LogAssert.Expect(LogType.Error, new Regex("^セーブをロードできません"));
+            }
+            #endregion
         }
 
         [Test]
@@ -191,10 +199,6 @@ namespace Tests.CombinedTest.Game
             Assert.IsFalse(result.CanLoad);
             StringAssert.Contains("new-world belt segment prototype", result.BlockedReason);
         }
-        private static void ExpectPrototypeRefusal()
-        {
-            LogAssert.Expect(LogType.Error, new Regex("変換できませんでした"));
-            LogAssert.Expect(LogType.Error, new Regex("^セーブをロードできません"));
-        }
+
     }
 }

@@ -5,7 +5,7 @@ namespace Game.Block.Blocks.BeltConveyor
     public interface IBeltWorldLookup
     {
         BeltWorldSnapshot CaptureSnapshot();
-        IObservable<BeltWorldSnapshot> OnRebuilt { get; }
+        IObservable<BeltWorldSnapshot> OnBeltWorldRebuilt { get; }
         IObservable<BeltWorldFrame> OnFrame { get; }
     }
 }

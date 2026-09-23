@@ -20,6 +20,9 @@ namespace Client.Playtest.Input
             physical = InputSystem.devices.Where(d => d is Keyboard || d is Mouse).ToArray();
             enabled = physical.Select(d => d.enabled).ToArray();
             original = InputSystem.settings;
+            bool initialized = false;
+            try
+            {
             temporary = UnityEngine.Object.Instantiate(original);
             temporary.hideFlags = HideFlags.HideAndDontSave;
             temporary.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
@@ -30,21 +33,44 @@ namespace Client.Playtest.Input
             foreach (var device in physical) InputSystem.DisableDevice(device);
             keyboard = InputSystem.AddDevice<Keyboard>("PlaytestKeyboard");
             mouse = InputSystem.AddDevice<Mouse>("PlaytestMouse");
+            initialized = true;
+            }
+            finally { if (!initialized) Dispose(); }
         }
         public void Dispose()
         {
             // 共有assetは編集せず、成功・失敗の両方で元設定と解放入力へ戻す。
             // Leave the shared asset intact and restore settings and released inputs on either outcome.
-            SemanticInput.ReleaseAllKeys();
-            InputSystem.RemoveDevice(keyboard);
-            InputSystem.RemoveDevice(mouse);
-            InputSystem.settings = original;
-            for (int i = 0; i < physical.Length; i++)
+            try { SemanticInput.ReleaseAllKeys(); }
+            finally
             {
-                if (enabled[i]) InputSystem.EnableDevice(physical[i]);
-                else InputSystem.DisableDevice(physical[i]);
+                try { if (keyboard != null && keyboard.added) InputSystem.RemoveDevice(keyboard); }
+                finally
+                {
+                    try { if (mouse != null && mouse.added) InputSystem.RemoveDevice(mouse); }
+                    finally
+                    {
+                        try { InputSystem.settings = original; }
+                        finally
+                        {
+                            try { RestorePhysical(0); }
+                            finally { if (temporary != null) UnityEngine.Object.DestroyImmediate(temporary); }
+                        }
+                    }
+                }
             }
-            UnityEngine.Object.DestroyImmediate(temporary);
+            #region Internal
+            void RestorePhysical(int index)
+            {
+                if (index == physical.Length) return;
+                try
+                {
+                    if (enabled[index]) InputSystem.EnableDevice(physical[index]);
+                    else InputSystem.DisableDevice(physical[index]);
+                }
+                finally { RestorePhysical(index + 1); }
+            }
+            #endregion
         }
     }
 }

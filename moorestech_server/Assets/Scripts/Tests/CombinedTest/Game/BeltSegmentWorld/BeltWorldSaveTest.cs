@@ -34,7 +34,10 @@ namespace Tests.CombinedTest.Game.BeltSegmentWorld
             var (_, services) = new MoorestechServerDIContainerGenerator().Create(options);
             services.GetRequiredService<IWorldSaveDataLoader>().LoadOrInitialize();
             var world = services.GetRequiredService<BeltWorldDatastore>(); world.Load(); var restored = world.CaptureSnapshot();
-            Assert.AreEqual(new BeltReplaySimulation(expected.Simulation).ComputeStateHash(), new BeltReplaySimulation(restored.Simulation).ComputeStateHash());
+            // セル保存は旧segment入口を局所入口へ正規化するため、輸送identityと進行位置を比較する。
+            // Cell saves normalize the old segment entry to the local entry; compare transport identity and progress.
+            CollectionAssert.AreEqual(expected.Simulation.Segments.SelectMany(s => s.Items).Select(i => (i.Item.Guid, i.Item.ItemId, i.DistanceToExit)),
+                restored.Simulation.Segments.SelectMany(s => s.Items).Select(i => (i.Item.Guid, i.Item.ItemId, i.DistanceToExit)));
             Assert.AreEqual(expected.Routes[0].Cells[0].Cell, restored.Routes[0].Cells[0].Cell);
             Assert.AreEqual(expected.Position.Tick, restored.Position.Tick); Assert.AreEqual(0, restored.Position.Sequence);
             Assert.AreEqual(save, File.ReadAllText(file)); Directory.Delete(root, true);
@@ -69,6 +72,52 @@ namespace Tests.CombinedTest.Game.BeltSegmentWorld
             var after = loaded.Belts.CaptureCell(restored);
             Assert.AreEqual(state.PriorityIndex, after.PriorityIndex); Assert.AreEqual(state.BufferedItem.TransportGuid, after.BufferedItem.TransportGuid);
             Assert.AreEqual(new BeltReplaySimulation(before.Simulation).ComputeStateHash(), new BeltReplaySimulation(loaded.Snapshot().Simulation).ComputeStateHash());
+        }
+        [Test]
+        public void MissingRunningAndBufferedMastersAreArchivedAndPrunedBeforeV3Load()
+        {
+            var fixture = new BeltWorldFixture(); var belt = fixture.Belt(new Vector3Int(20, 0, 30), BlockDirection.North);
+            fixture.Seed(belt, 7); fixture.Tick(2);
+            var valid = fixture.Belts.CaptureCell(belt).RunningItem;
+            var save = JObject.Parse(fixture.Save());
+            var block = (JObject)save["world"][0];
+            var state = (JObject)block["state"][SegmentBeltComponent.SaveKeyStatic];
+            var missingRunning = Guid.NewGuid(); var missingBuffered = Guid.NewGuid();
+            var missingMaster = Guid.Parse(SaveLoadPreparerTestFixture.MissingGuid);
+            state["RunningItem"] = JObject.FromObject(new BeltSavedItem(missingRunning, missingMaster, 64, BeltDirection.Back));
+            state["BufferedItem"] = JObject.FromObject(new BeltSavedItem(missingBuffered, missingMaster, 256, BeltDirection.Left));
+            var control = (JObject)block.DeepClone(); control["instanceId"] = 9999; control["X"] = 40;
+            control["state"][SegmentBeltComponent.SaveKeyStatic]["RunningItem"] = JObject.FromObject(valid);
+            control["state"][SegmentBeltComponent.SaveKeyStatic]["BufferedItem"] = null;
+            ((JArray)save["world"]).Add(control);
+            string root = Path.Combine(Path.GetTempPath(), "belt-prune-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(root); string file = Path.Combine(root, "save.json"); string original = save.ToString(); File.WriteAllText(file, original);
+            var directory = WorldDataDirectory.FromServerDataMap(TestModDirectory.ForUnitTestModDirectory, file);
+            var (_, services) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory) { worldDataDirectory = directory });
+            services.GetRequiredService<IWorldSaveDataLoader>().LoadOrInitialize();
+            var world = services.GetRequiredService<BeltWorldDatastore>(); world.Load();
+            var empty = ServerContext.WorldBlockDatastore.GetBlock(new Vector3Int(20, 0, 30)).GetComponent<SegmentBeltComponent>();
+            Assert.IsNull(world.CaptureCell(empty).RunningItem); Assert.IsNull(world.CaptureCell(empty).BufferedItem);
+            Assert.AreEqual(valid.TransportGuid, world.CaptureSnapshot().Simulation.Segments.SelectMany(segment => segment.Items).Single().Item.Guid);
+            Assert.AreEqual(original, File.ReadAllText(file)); Assert.AreEqual(original, File.ReadAllText(directory.BackupSaveJsonPath(3)));
+            string archive = string.Join("\n", Directory.GetFiles(directory.SavePrunedDirectory, "*.json").Select(File.ReadAllText));
+            StringAssert.Contains(missingMaster.ToString(), archive); StringAssert.Contains(missingRunning.ToString(), archive); StringAssert.Contains(missingBuffered.ToString(), archive);
+            StringAssert.Contains("RunningItem", archive); StringAssert.Contains("BufferedItem", archive); StringAssert.Contains("20", archive);
+            Directory.Delete(root, true);
+        }
+        [Test]
+        public void V3VerticalDirectionRejectsWholeLoadAndPreservesOriginal()
+        {
+            var fixture = new BeltWorldFixture(); fixture.Belt(Vector3Int.zero, BlockDirection.North);
+            var json = JObject.Parse(fixture.Save()); json["world"][0]["direction"] = (int)BlockDirection.UpNorth;
+            string root = Path.Combine(Path.GetTempPath(), "belt-direction-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(root); string file = Path.Combine(root, "save.json"); string original = json.ToString(); File.WriteAllText(file, original);
+            var (_, services) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory)
+            { worldDataDirectory = WorldDataDirectory.FromServerDataMap(TestModDirectory.ForUnitTestModDirectory, file) });
+            LogAssert.Expect(LogType.Error, new Regex("^\\[BlockPlacement\\] Save rejected"));
+            Assert.Throws<Exception>(() => services.GetRequiredService<IWorldSaveDataLoader>().LoadOrInitialize());
+            Assert.IsEmpty(ServerContext.WorldBlockDatastore.BlockMasterDictionary);
+            Assert.AreEqual(original, File.ReadAllText(file)); Directory.Delete(root, true);
         }
     }
 }

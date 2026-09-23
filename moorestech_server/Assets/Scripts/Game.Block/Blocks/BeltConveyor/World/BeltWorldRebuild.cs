@@ -16,14 +16,14 @@ namespace Game.Block.Blocks.BeltConveyor
                 int previous = -1;
                 // 出口から順に再配置し、間隔調整は元の所有セル内だけに限定する。
                 // Reproject from output to input; spacing adjustments must stay inside the owned cell.
-                for (int i = path.Length - 1; i >= 0; i--)
+                for (int i = path.Length - 1; 0 <= i; i--)
                 {
                     var saved = items.Cells[path[i]].RunningItem;
                     if (saved == null) continue;
-                    int lower = (path.Length - 1 - i) * 256;
-                    int desired = lower + 256 - saved.Progress;
-                    int placed = previous < 0 ? desired : Math.Max(desired, previous + 256);
-                    if (placed < lower || placed >= lower + 256)
+                    int lower = (path.Length - 1 - i) * BeltConstants.ItemWidth;
+                    int desired = lower + BeltConstants.ItemWidth - saved.Progress;
+                    int placed = previous < 0 ? desired : Math.Max(desired, previous + BeltConstants.ItemWidth);
+                    if (placed < lower || lower + BeltConstants.ItemWidth <= placed)
                         throw new InvalidOperationException($"Belt reprojection escapes cell {path[i].Position.OriginalPos}.");
                     running.Add(new BeltItemState(items.Restore(saved), placed));
                     previous = placed;
@@ -43,9 +43,9 @@ namespace Game.Block.Blocks.BeltConveyor
                 }
                 states[id] = kind switch
                 {
-                    BeltSegmentKind.Merge => BeltReplaySegmentState.Merge(16, state.PriorityIndex, running.ToArray(), buffer),
-                    BeltSegmentKind.Branch => BeltReplaySegmentState.Branch(path.Length, 16, state.PriorityIndex, running.ToArray(), buffer),
-                    _ => BeltReplaySegmentState.Normal(path.Length, 16, running.ToArray())
+                    BeltSegmentKind.Merge => BeltReplaySegmentState.Merge(BeltWorldDatastore.FixedSpeedPerTick, state.PriorityIndex, running.ToArray(), buffer),
+                    BeltSegmentKind.Branch => BeltReplaySegmentState.Branch(path.Length, BeltWorldDatastore.FixedSpeedPerTick, state.PriorityIndex, running.ToArray(), buffer),
+                    _ => BeltReplaySegmentState.Normal(path.Length, BeltWorldDatastore.FixedSpeedPerTick, running.ToArray())
                 };
             }
             items.PrunePayloads();

@@ -1,3 +1,5 @@
+using Server.Protocol.PacketResponse.BeltSegment;
+using Server.Event.EventReceive.BeltSegment;
 using System;
 using System.Collections.Generic;
 using Core.Update;
@@ -19,7 +21,7 @@ using Server.Protocol.PacketResponse;
 using Server.Util.MessagePack.BeltSegment;
 using Tests.Module.TestMod;
 using UnityEngine;
-namespace Tests.CombinedTest.Server.PacketTest
+namespace Tests.CombinedTest.Server.PacketTest.BeltSegment
 {
     public sealed class BeltWorldProtocolTest
     {

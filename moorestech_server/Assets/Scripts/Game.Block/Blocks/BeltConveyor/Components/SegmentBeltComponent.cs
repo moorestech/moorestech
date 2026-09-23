@@ -7,22 +7,22 @@ using Game.Block.Interface.Component;
 using Game.Block.Interface.Component.ConnectJudge;
 namespace Game.Block.Blocks.BeltConveyor
 {
-    public sealed class SegmentBeltComponent : IBlockInventory
+    public sealed class SegmentBeltComponent : IBlockInventory, IBlockSaveState
     {
-        internal readonly BlockInstanceId BlockInstanceId;
         internal readonly BlockPositionInfo Position;
         internal readonly BeltConveyorSlopeType SlopeType;
-        internal readonly BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> Connector;
         internal BeltCellSaveState LoadedState { get; private set; }
         private readonly IBeltWorldMutation _world;
+        internal const string SaveKeyStatic = "Game.Block.Blocks.BeltConveyor.SegmentBeltSaveComponent";
+        public string SaveKey => SaveKeyStatic;
+        public object GetSaveState() => _world.CaptureCell(this);
         public bool IsDestroy { get; private set; }
-        internal SegmentBeltComponent(BlockInstanceId id, BlockPositionInfo position, BeltConveyorSlopeType slope,
-            BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> connector, IBeltWorldMutation world,
+        internal SegmentBeltComponent(BlockPositionInfo position, BeltConveyorSlopeType slope, IBeltWorldMutation world,
             Dictionary<string, object> states)
         {
-            BlockInstanceId = id; Position = position; SlopeType = slope; Connector = connector; _world = world;
+            Position = position; SlopeType = slope; _world = world;
             LoadedState = states == null ? new BeltCellSaveState(0, null, null)
-                : BlockComponentStateReader.Read<BeltCellSaveState>(states, SegmentBeltSaveComponent.SaveKeyStatic);
+                : BlockComponentStateReader.Read<BeltCellSaveState>(states, SaveKeyStatic);
             _world.Register(this);
         }
         public IItemStack InsertItem(IItemStack stack, InsertItemContext context)

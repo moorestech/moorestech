@@ -22,7 +22,7 @@ namespace Tests.CombinedTest.Game.BeltSegmentWorld
                 var id = MasterHolder.BlockMaster.GetBlockId(guid.Value);
                 foreach (BlockDirection direction in Enum.GetValues(typeof(BlockDirection)))
                 {
-                    bool horizontal = direction >= BlockDirection.North && direction <= BlockDirection.West;
+                    bool horizontal = BlockDirection.North <= direction && direction <= BlockDirection.West;
                     Assert.AreEqual(horizontal,BeltConveyorPlaceFamilyUtil.IsPlacementDirectionAllowed(id,direction));
                     Assert.AreEqual(horizontal,ServerContext.WorldBlockDatastore.TryAddBlock(id,new Vector3Int(x++ * 4,0,0),direction,Array.Empty<BlockCreateParam>(),out _));
                 }

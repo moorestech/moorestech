@@ -32,6 +32,7 @@ namespace Server.Protocol.PacketResponse
         private readonly NotificationService _notificationService;
         private readonly ConstructionWalletService _constructionWallet;
         private readonly PlacementTargetCatalog _placementTargetCatalog;
+        private readonly Game.Block.Interface.Placement.BlockPlacementValidation _placement;
 
         public PlaceBlockProtocol(ServiceProvider serviceProvider)
         {
@@ -40,6 +41,7 @@ namespace Server.Protocol.PacketResponse
             _notificationService = serviceProvider.GetService<NotificationService>();
             _constructionWallet = serviceProvider.GetService<ConstructionWalletService>();
             _placementTargetCatalog = serviceProvider.GetService<PlacementTargetCatalog>();
+            _placement = serviceProvider.GetRequiredService<Game.Block.Interface.Placement.BlockPlacementValidation>();
         }
 
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
@@ -83,9 +85,9 @@ namespace Server.Protocol.PacketResponse
                 var placeBlockId = placeInfo.BlockId;
                 // 向き制約は共通判定を通し、建設計画より前に拒否する。
                 // Reject unsupported facing through the shared rule before planning construction.
-                if (!BeltConveyorPlaceFamilyUtil.IsPlacementDirectionAllowed(placeBlockId, placeInfo.Direction))
+                if (!_placement.TryValidate(placeBlockId, placeInfo.Direction, out var reason))
                 {
-                    UnityEngine.Debug.LogWarning($"[PlaceBlockProtocol] Rejected belt direction: blockId={placeBlockId}, direction={placeInfo.Direction}, position={placeInfo.Position}");
+                    UnityEngine.Debug.LogWarning($"[PlaceBlockProtocol] {reason} position={placeInfo.Position}");
                     return;
                 }
                 var createParams = placeInfo.BlockCreateParams.Select(v => new BlockCreateParam(v.Key, v.Value)).ToArray();

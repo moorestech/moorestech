@@ -22,7 +22,7 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
     {
         public bool HasOutputItem()
         {
-            foreach (var item in Container.InventoryItems) if (item.Count > 0) return true;
+            foreach (var item in Container.InventoryItems) if (0 < item.Count) return true;
             return false;
         }
 

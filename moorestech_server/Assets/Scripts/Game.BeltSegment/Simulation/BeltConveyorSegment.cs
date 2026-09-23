@@ -160,6 +160,9 @@ namespace Game.BeltSegment
             return Buffer == null ? BeltStateHash.Add(hash, 0) : Buffer.ComputeStateHash(hash);
         }
 
+        internal bool ContainsIdentity(Guid identity)
+            => queue.ContainsIdentity(identity) || Buffer != null && Buffer.TryGetItem(out var buffered) && buffered.Guid == identity;
+
         public BeltItemState[] CaptureItems() => queue.CaptureItems();
 
         /// <summary>再生成した空のsegmentへ、出口に近い順のアイテムを復元する。</summary>

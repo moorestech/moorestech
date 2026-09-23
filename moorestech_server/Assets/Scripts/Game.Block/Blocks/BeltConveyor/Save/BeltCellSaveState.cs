@@ -9,7 +9,7 @@ namespace Game.Block.Blocks.BeltConveyor
         [JsonConstructor]
         public BeltCellSaveState(int priorityIndex, BeltSavedItem runningItem, BeltSavedItem bufferedItem)
         {
-            if (priorityIndex < 0 || priorityIndex > 2) throw new ArgumentOutOfRangeException(nameof(priorityIndex));
+            if (priorityIndex < 0 || 2 < priorityIndex) throw new ArgumentOutOfRangeException(nameof(priorityIndex));
             PriorityIndex = priorityIndex; RunningItem = runningItem; BufferedItem = bufferedItem;
         }
     }

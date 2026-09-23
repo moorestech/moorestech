@@ -14,7 +14,7 @@ namespace Game.Block.Blocks.Machine.Inventory
     {
         public bool HasOutputItem()
         {
-            foreach (var item in _vanillaMachineOutputInventory.OutputSlot) if (item.Count > 0) return true;
+            foreach (var item in _vanillaMachineOutputInventory.OutputSlot) if (0 < item.Count) return true;
             return false;
         }
         private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;

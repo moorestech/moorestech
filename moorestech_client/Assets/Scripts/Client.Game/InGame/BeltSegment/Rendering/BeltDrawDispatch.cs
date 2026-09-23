@@ -12,6 +12,9 @@ namespace Client.Game.InGame.BeltSegment.Rendering
         {
             this.capacity = capacity; this.segments = segments; this.kinds = kinds;
             shader = UnityEngine.Object.Instantiate(source);
+            bool initialized = false;
+            try
+            {
             clear = shader.FindKernel("Clear"); build = shader.FindKernel("BuildPositions");
             prefix = shader.FindKernel("PrefixKinds"); scatter = shader.FindKernel("Scatter");
             shader.SetInt("_Capacity", capacity); shader.SetInt("_SegmentCount", segments); shader.SetInt("_KindCount", kinds);
@@ -29,6 +32,9 @@ namespace Client.Game.InGame.BeltSegment.Rendering
             shader.SetBuffer(prefix, "_Arguments", draw.Arguments);
             shader.SetBuffer(scatter, "_RawPositions", draw.RawPositions); shader.SetBuffer(scatter, "_Positions", draw.Positions);
             shader.SetBuffer(scatter, "_Offsets", draw.Offsets); shader.SetBuffer(scatter, "_Cursors", draw.Cursors);
+            initialized = true;
+            }
+            finally { if (!initialized) BeltItemMaterials.DestroyResource(shader); }
         }
         internal void Recompute()
         {
@@ -36,18 +42,22 @@ namespace Client.Game.InGame.BeltSegment.Rendering
             Dispatch(build, segments, true);
             Dispatch(prefix, 1, false);
             Dispatch(scatter, capacity, false);
-        }
-        private void Dispatch(int kernel, int count, bool oneGroupPerElement)
-        {
-            shader.GetKernelThreadGroupSizes(kernel, out uint threads, out _, out _);
-            int width = oneGroupPerElement ? 1 : (int)threads;
-            int limit = 65535 * width;
-            for (int offset = 0; offset < count; offset += limit)
+
+            #region Internal
+            void Dispatch(int kernel, int count, bool oneGroupPerElement)
             {
-                shader.SetInt("_DispatchOffset", offset);
-                shader.Dispatch(kernel, (Math.Min(count - offset, limit) + width - 1) / width, 1, 1);
+                shader.GetKernelThreadGroupSizes(kernel, out uint threads, out _, out _);
+                int width = oneGroupPerElement ? 1 : (int)threads;
+                int limit = 65535 * width;
+                for (int offset = 0; offset < count; offset += limit)
+                {
+                    shader.SetInt("_DispatchOffset", offset);
+                    shader.Dispatch(kernel, (Math.Min(count - offset, limit) + width - 1) / width, 1, 1);
+                }
             }
+            #endregion
         }
-        public void Dispose() => BeltItemMaterials.Destroy(shader);
+
+        public void Dispose() => BeltItemMaterials.DestroyResource(shader);
     }
 }

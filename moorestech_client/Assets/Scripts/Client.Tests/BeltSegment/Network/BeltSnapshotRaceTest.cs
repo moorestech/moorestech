@@ -1,3 +1,4 @@
+using Server.Event.EventReceive.BeltSegment;
 using System;
 using System.Collections;
 using System.Text.RegularExpressions;
@@ -6,6 +7,7 @@ using Client.Game.InGame.BeltSegment.Model;
 using Client.Game.InGame.BeltSegment.Network;
 using Cysharp.Threading.Tasks;
 using MessagePack;
+using UniRx;
 using NUnit.Framework;
 using Server.Event.EventReceive;
 using Server.Util.MessagePack.BeltSegment;
@@ -44,16 +46,14 @@ namespace Client.Tests.BeltSegment.Network
             Assert.AreEqual(UniTaskStatus.Succeeded, handler.WaitForInitialApplyAsync().Status); world.Simulation.Dispose();
         }
         [Test]
-        public void MalformedInitialEventSettlesWaiterWithoutAbortingNextDispatch()
+        public void MalformedInitialEventRecoversAndValidEventCompletesStartup()
         {
             using var cancellation = new CancellationTokenSource();
             var world = World(); var request = new ControlledBeltRequester(); var events = new BeltTestEvents();
             var recovery = new BeltWorldRecovery(world, request, cancellation.Token);
             var handler = new BeltWorldEventHandler(events, world, recovery, cancellation.Token); handler.Initialize();
-            LogAssert.Expect(LogType.Error, new Regex("\\[BeltWorld\\] Network state apply failed:"));
             Assert.DoesNotThrow(() => events.Send(BeltWorldEventPacket.SnapshotTag, new byte[] { 0xc0 }));
-            var waiting = handler.WaitForInitialApplyAsync(); Assert.AreEqual(UniTaskStatus.Faulted, waiting.Status);
-            Assert.Throws<ArgumentException>(() => waiting.GetAwaiter().GetResult());
+            var waiting = handler.WaitForInitialApplyAsync(); Assert.AreEqual(UniTaskStatus.Pending, waiting.Status);
             events.Send(BeltWorldEventPacket.SnapshotTag, MessagePackSerializer.Serialize(new BeltWorldSnapshotMessagePack(Empty(0, 0, 1))));
             Assert.AreEqual(BeltStreamStatus.Running, world.Status); cancellation.Cancel(); world.Simulation.Dispose();
         }
@@ -80,11 +80,14 @@ namespace Client.Tests.BeltSegment.Network
             var world = new ClientBeltWorld(null); var request = new ControlledBeltRequester(); var events = new BeltTestEvents();
             var recovery = new BeltWorldRecovery(world, request, cancellation.Token);
             var handler = new BeltWorldEventHandler(events, world, recovery, cancellation.Token); handler.Initialize();
-            LogAssert.Expect(LogType.Error, new Regex("\\[BeltWorld\\] Network state apply failed:"));
-            request.Calls[0].TrySetResult(Empty(0, 0, 1));
+            LogAssert.Expect(LogType.Error, new Regex("\\[BeltWorld\\] Local state apply failed:"));
+            Assert.Catch<Exception>(() => events.Send(BeltWorldEventPacket.SnapshotTag, MessagePackSerializer.Serialize(new BeltWorldSnapshotMessagePack(Empty(0, 0, 1)))));
             var waiting = handler.WaitForInitialApplyAsync(); Assert.AreEqual(UniTaskStatus.Faulted, waiting.Status);
             Assert.Catch<Exception>(() => waiting.GetAwaiter().GetResult());
-            Assert.AreEqual(BeltStreamStatus.Recovering, world.Status); Assert.IsNull(world.Simulation);
+            Assert.AreEqual(BeltStreamStatus.Failed, world.Status); Assert.IsNull(world.Simulation);
+            request.Calls[0].TrySetResult(Empty(0, 0, 1)); recovery.Request();
+            Assert.AreEqual(1, request.Calls.Count); Assert.IsFalse(recovery.IsPending);
+            Assert.AreEqual(BeltStreamStatus.Failed, world.Status);
             cancellation.Cancel();
         }
         [UnityTest]
@@ -112,5 +115,34 @@ namespace Client.Tests.BeltSegment.Network
             Assert.AreEqual(UniTaskStatus.Succeeded, handler.WaitForInitialApplyAsync().Status);
             cancellation.Cancel(); world.Simulation.Dispose();
         }
+        [UnityTest]
+        public IEnumerator EventRecoveryDuringBackoffSkipsNextRequest() => UniTask.ToCoroutine(async () =>
+        {
+            using var cancellation = new CancellationTokenSource();
+            var world = World(); var request = new ControlledBeltRequester();
+            var recovery = new BeltWorldRecovery(world, request, cancellation.Token); recovery.Request();
+            request.Calls[0].TrySetException(new TimeoutException("test timeout"));
+            world.ReceiveSnapshot(Empty(0, 0, 1));
+            await UniTask.Delay(650, ignoreTimeScale: true);
+            Assert.AreEqual(1, request.Calls.Count); Assert.IsFalse(recovery.IsPending);
+            world.Simulation.Dispose();
+        });
+        [UnityTest]
+        public IEnumerator SubscriberFailureDuringBackoffStaysFailedAndFaultsStartup() => UniTask.ToCoroutine(async () =>
+        {
+            using var cancellation = new CancellationTokenSource();
+            var world = World(); var request = new ControlledBeltRequester();
+            var recovery = new BeltWorldRecovery(world, request, cancellation.Token); recovery.Request();
+            request.Calls[0].TrySetException(new TimeoutException("test timeout"));
+            world.OnBeltWorldSnapshotApplied.Subscribe(_ => throw new InvalidOperationException("subscriber failure"));
+            LogAssert.Expect(LogType.Error, new Regex("\\[BeltWorld\\] Local state apply failed:"));
+            Assert.Throws<InvalidOperationException>(() => world.ReceiveSnapshot(Empty(0, 0, 1)));
+            Assert.AreEqual(BeltStreamStatus.Failed, world.Status);
+            Assert.Throws<InvalidOperationException>(() => world.WaitForInitialApplyAsync().GetAwaiter().GetResult());
+            for (ulong tick = 0; tick < 300; tick++) world.ReceiveFrame(Frame(Empty(tick, 1, 1), EmptyTick()));
+            await UniTask.Delay(650, ignoreTimeScale: true);
+            Assert.AreEqual(1, request.Calls.Count); Assert.IsFalse(recovery.IsPending);
+            Assert.AreEqual(BeltStreamStatus.Failed, world.Status); world.Simulation.Dispose();
+        });
     }
 }

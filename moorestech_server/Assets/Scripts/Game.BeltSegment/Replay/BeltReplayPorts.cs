@@ -30,11 +30,13 @@ namespace Game.BeltSegment
             foreach (int id in tick.SuccessfulOutputs) receiverPorts[id].Enable();
         }
 
-        internal void VerifyOutputs(BeltReplayTick tick)
+        internal bool TryVerifyOutputs(BeltReplayTick tick, out string reason)
         {
+            reason = null;
             foreach (int id in tick.SuccessfulOutputs)
                 if (!receiverPorts[id].Consumed)
-                    throw new InvalidOperationException($"Recorded external output {id} was not reproduced.");
+                { reason = $"Recorded external output {id} was not reproduced after advancing the replay tick."; return false; }
+            return true;
         }
 
         private sealed class Source : IBeltSource

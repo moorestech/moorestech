@@ -6,8 +6,8 @@ float4 _CenterOffset;
 float3 PositionOnRoute(int segment, int distance, int acceptedInput)
 {
     int2 route = _Routes[segment];
-    int cellIndex = route.y - 1 - distance / 256;
-    float progress = (256 - distance % 256) / 256.0;
+    int cellIndex = route.y - 1 - distance / ItemWidth;
+    float progress = (ItemWidth - distance % ItemWidth) / (float)ItemWidth;
     float4 current = _Cells[route.x + cellIndex];
     float4 entry = cellIndex == 0 ? _Entries[segment * 4 + acceptedInput] : _Cells[route.x + cellIndex - 1];
     float3 boundary = float3((entry.x + current.x) * 0.5, current.w, (entry.z + current.z) * 0.5);
