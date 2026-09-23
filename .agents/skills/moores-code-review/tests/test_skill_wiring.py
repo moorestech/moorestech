@@ -20,10 +20,6 @@ REPO_ROOT = SKILL_DIR.parent.parent.parent
 
 
 class SkillWiringTest(unittest.TestCase):
-    def test_requirement_wiring_suite_is_discoverable(self):
-        self.assertTrue((SKILL_DIR / "tests/requirements/__init__.py").is_file())
-        self.assertTrue((SKILL_DIR / "tests/requirements/test_requirement_wiring.py").is_file())
-
     def test_every_verifier_is_wired_in_skill_md(self):
         # verifiers/配下の全ファイルがSKILL.md本文から参照されていること
         # Every verifier file must be referenced from SKILL.md
@@ -110,10 +106,10 @@ class SkillWiringTest(unittest.TestCase):
     def test_every_script_has_regression_banner(self):
         # 全スクリプトが「変更時は回帰テスト必須」バナーを持つこと（新規追加時の掲示漏れ防止）
         # Every script must carry the regression-suite banner (so new scripts inherit the rule)
-        for s in (SKILL_DIR / "scripts").rglob("*.py"):
+        for s in (SKILL_DIR / "scripts").glob("*.py"):
             head = s.read_text(encoding="utf-8")[:1200]
             self.assertIn("必ず回帰テストを実行", head,
-                          f"{s.relative_to(SKILL_DIR)} に回帰テスト必須バナーが無い")
+                          f"scripts/{s.name} に回帰テスト必須バナーが無い")
 
     def test_playtest_scenarios_are_excluded_from_patch(self):
         # patch生成のpathspecからプレイテストシナリオ除外が消えていないこと

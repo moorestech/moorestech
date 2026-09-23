@@ -1,5 +1,4 @@
 # label	review_commit	merge_commit	note
-pr1299	bdb5bced9	8f3331fe7	PR1394 postmortem由来・現候補は未捕獲。context/contractはmoorestech_logs/harness/postmortem/2026-09-22-pr1394-guarantee-handoff/inputs-review-r2/。diffだけでは依頼達成レビュー不可
 pr978-r1	d9e57aade	0e74cef67	PR978 第1ラウンド（ドメイン越境・BlockMaster挿入・UpdateTicks質問）review 4642535092
 pr978-r2	73586377a	0e74cef67	PR978 第2ラウンド（optional:true・毎フレーム判定・Default排除・一時変数）review 4642994960
 pr987	33975adb6	c50a23617	PR987 BuildMenuEntry共用体struct comment r3537879954

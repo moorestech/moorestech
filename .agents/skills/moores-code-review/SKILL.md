@@ -22,8 +22,6 @@ moorestechのコードレビューを **決定論チェック → 6系統の並�
 
 系統の要約（詳細は orchestrator-steps.md）: ①決定論チェック(check_all.py・0トークン) ②mooresレンズ11本 ③汎用reviewer 30本 ④Codex外部監査3本 ⑤Fable全般 ⑥分割深掘り調査(16ファイル以上のみ) + 条件発火verifier + post-checks 2本（コメント保全）+ Refix（反映diff再レビュー `applied-diff-correctness.md`・`scripts/refix_snapshot.py` の snapshot 間 diff・最大3周）+ opus integrator。
 
-`core-any-user-intent-fulfillment` は内部で `scripts/requirements/main.py` を実行する。原文ゴールN件なら独立sonnet worker N件（自由文は全文1件）と既存親reviewerが動くため、通常のreviewer本数とは別にmanifest/summaryの要求件数・欠員・追加費用を確認する。全入力は各workerへ全文配達される。未完了・達成未確認・設計判断は最終報告まで保持し、Critical 0だけで要求達成としない。引用含意検査も継続する。CLIが利用不能ならその理由を報告し、未検証のまま完了扱いしない。global の既定lightでもpriority reviewerとして発火し、同じ追加N workerを使う。実測単価を記録する場合はモデルと試行条件を併記し、固定価格として保証しない。
-
 ## Workflow実行（既定・2026-08-20）
 
 **既定では Step 2 を本体が回し、Step 3.5〜6.5（系統の並列発火→統合→自動適用→post-check）を Workflow ツール（`scripts/review_workflow.js`）で実行する。** 2026-08-18〜20 の sonnet オーケストレータ委譲は、系統群 $164〜225/回 に対し **オーケストレータ1体が待機だけで $194〜240/回**（590〜625ターン・毎ターン25万トークン再送・`Concurrent subagent limit` の再起動16〜34回）を燃やしていた（`docs/research/2026-08-20-moores-code-review-diet-assessment.md`）。Workflow は待機が JS の `await` なのでこの項目が消え、「全員に model 明示」「起動失敗の再起動」「欠員の申告」「fable quota 時の opus fallback」「Codex 完了待ち」が散文でなくコードで強制される（「1メッセージ12体」は Agent 直起動時の規律で、Workflow では同時数をランタイムがキューイングする）。同じ `args` での再実行（`resumeFromRunId`）は完了済みの体をキャッシュから返すので、上限死からの再開で全系統をやり直さない。
@@ -114,7 +112,6 @@ Run dir : <$RUNDIRの実値> / Patch path : <PATCH_PATH> / User prompt : <USER_P
 ## Step 7: 報告＋AskUserQuestion ⑥
 
 1. **統合報告** — Critical/Warning/Info件数、各指摘の出所（決定論/レンズ名/reviewer名/Codex/Fable/N系統一致）、適用した修正、コンパイル・テスト結果。Warningは1件1行で全件載せる（保険としてコンテキストに乗せるのが目的。黙って落とさない）。Infoは末尾に圧縮列挙。raw出力やレビュー表をそのまま貼らない。Codex/Fableをスキップした場合はその旨を明記。
-   - `integrated.md` の「要求別の未確認・欠員・解釈・対象外」を要求ID・理由・報告先付きでそのまま引き渡す。依頼の完了条件にかかるUNCONFIRMED/MISSINGが残る場合は完了/Readyを宣言せず、次の検証または必要情報を書く。INTERPRETATIONだけを設計判断へ回し、OUT_OF_SCOPEや全worker回収を達成の意味にしない。
    - **「免責で消された指摘」セクション必須**: 各観点の `suppressed:` 節を固定形式 `- [Critical|Warning] <指摘要約> — suppressed-by: <トレードオフ1行, 出所ラベル>` で列挙する（元の重大度を行頭に保持。0件なら「suppressed: 0件」と明記）。§2.6参照。
 2. **保留した設計判断だけ**をAskUserQuestionで選択肢付き一括提示（0件ならスキップ）。回答に従い適用（§5の安全規則・検証を再適用）。裁定結果の適用は、1〜2箇所の機械的な直しなら本体が最小Edit、まとまった量なら fix subagent（`model: "sonnet"`）1体に design.md のパス+裁定を渡す。
    - **例外: SDD の単一subagent実装モードから呼ばれた場合**（`subagent-driven-development` の規模ゲート未満の派遣を経てこのレビューに来た場合）は、**裁定反映の fix subagent を `model: "opus"` とし、本体による最小Editは行わない**（量が1〜2箇所でも fix subagent に渡す）。ADR 0053「本体セッションは実装コードを書かない」を最終レビュー局面でも守り切るため。通常の呼び出しでは従来どおり本体の最小Edit or fix subagent（`sonnet`）。
