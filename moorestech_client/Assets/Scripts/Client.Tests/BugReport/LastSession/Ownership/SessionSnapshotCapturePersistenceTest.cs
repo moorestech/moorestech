@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.BuildOrigin;
 using Client.Game.InGame.BugReport.LastSession;
 using Game.Paths;
@@ -31,7 +33,7 @@ namespace Client.Tests.BugReport
         {
             var capture = started ? SessionSnapshotCapture.Started(_root, 1234, "session_100") : SessionSnapshotCapture.NotStarted();
             var path = Path.Combine(_root, "origin.json");
-            new SessionOriginSnapshot("steam", BuildOriginReading.Editor(), capture).WriteTo(path);
+            new SessionOriginSnapshot("steam", null, BuildOriginReading.Editor(), capture).WriteTo(path);
             var restored = SessionOriginSnapshot.ReadFrom(path, out var failure);
             Assert.IsNull(failure);
             Assert.AreEqual("steam", restored.SteamId);
@@ -56,6 +58,39 @@ namespace Client.Tests.BugReport
             Assert.AreEqual("old", restored.SteamId);
             Assert.IsNotEmpty(restored.SnapshotCapture.MissingReason);
             Assert.IsNull(restored.SnapshotCapture.Directory);
+            Assert.IsNull(restored.SteamIdAbsenceReason, "SteamIDが有るのに欠損理由が付いている");
+        }
+
+        // 前回セッションが書いたSteamID欠損理由は、印を往復しても所有印の付け直しでも失われない（F01）
+        // The SteamID absence reason written by the previous session survives the round trip and the ownership re-stamp (F01)
+        [Test]
+        public void SteamIdAbsenceReason_SurvivesRoundTripAndOwnershipRestamp()
+        {
+            const int processId = 2147482986;
+            const string sessionName = "session_101";
+            const string reason = "起動時照合の応答を得られていない status:MalformedResponse";
+            CleanExitMarker.MarkSessionStarted(processId, sessionName, new SessionOriginSnapshot(null, reason, BuildOriginReading.Editor()));
+            CleanExitMarker.RecordSnapshotCapture(processId, sessionName, _root);
+            var source = SessionOriginSnapshot.ReadFrom(Path.Combine(_root, WorldDataDirectory.SnapshotOwnerFileName), out var failure);
+            var session = CleanExitMarker.ConsumeSessionMarks(processId, sessionName);
+            Assert.IsNull(failure);
+            Assert.IsNull(session.Origin.SteamId);
+            Assert.AreEqual(reason, session.Origin.SteamIdAbsenceReason, "セッション印で欠損理由が失われた");
+            Assert.AreEqual(reason, source.SteamIdAbsenceReason, "退避元の所有印で欠損理由が失われた");
+            Assert.AreEqual(reason, session.Origin.WithSalvageMissing(new List<MissingItem>()).SteamIdAbsenceReason);
+        }
+
+        // 理由キーの無い旧形式の印は、nullでなく旧形式であることを明示した理由として読む
+        // A legacy mark without the reason key reads as an explicit legacy reason instead of null
+        [Test]
+        public void LegacyMarkWithoutSteamIdAbsenceReason_ReadsExplicitLegacyReason()
+        {
+            var path = Path.Combine(_root, "origin.json");
+            File.WriteAllText(path, new JObject { ["steamId"] = null, ["buildOriginKind"] = "Editor" }.ToString());
+            var restored = SessionOriginSnapshot.ReadFrom(path, out var failure);
+            Assert.IsNull(failure);
+            Assert.IsNull(restored.SteamId);
+            Assert.AreEqual(SessionOriginSnapshot.LegacyMarkSteamIdAbsenceReason, restored.SteamIdAbsenceReason);
         }
 
         [Test]
@@ -63,7 +98,7 @@ namespace Client.Tests.BugReport
         {
             const int processId = 2147482987;
             const string sessionName = "session_100";
-            CleanExitMarker.MarkSessionStarted(processId, sessionName, new SessionOriginSnapshot("current", BuildOriginReading.Editor()));
+            CleanExitMarker.MarkSessionStarted(processId, sessionName, new SessionOriginSnapshot("current", null, BuildOriginReading.Editor()));
             CleanExitMarker.RecordSnapshotCapture(processId, sessionName, _root);
             var source = SessionOriginSnapshot.ReadFrom(Path.Combine(_root, WorldDataDirectory.SnapshotOwnerFileName), out var failure);
             var session = CleanExitMarker.ConsumeSessionMarks(processId, sessionName);

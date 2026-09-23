@@ -34,11 +34,15 @@ namespace Client.Tests.BugReport
             return Unclean(UnusedLastSessionDirectory, recordingDirectory, null, null, new List<string>());
         }
 
+        // 前回印が記録したSteamID欠損理由。crash箱がこれを素通しするかを確かめる
+        // The SteamID absence reason recorded by the previous mark; checks that the crash box passes it through
+        public const string OriginSteamIdAbsenceReason = "テストで差し込まれていないSteamID";
+
         // 出所はEditor。箱の書き出しが作業ツリーのgit probeを通り、plan C の repository 契約を満たすため
         // The origin is the Editor, so the box goes through the working tree's git probe and meets plan C's repository contract
         public static PreviousSessionArtifacts Unclean(string lastSessionDirectory, string recordingDirectory, string snapshotsDirectory, string playerLogPath, List<string> crashDumpFiles)
         {
-            var origin = new SessionOriginSnapshot(null, BuildOriginReading.Editor());
+            var origin = new SessionOriginSnapshot(null, OriginSteamIdAbsenceReason, BuildOriginReading.Editor());
             return PreviousSessionArtifacts.Unclean(lastSessionDirectory, recordingDirectory, snapshotsDirectory, playerLogPath, crashDumpFiles, new List<int>(), new Dictionary<int, bool>(), origin, new List<MissingItem>());
         }
     }

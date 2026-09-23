@@ -21,7 +21,8 @@ namespace Client.Game.InGame.BugReport.LastSession
 
             // 出所はこのセッション自身が開始時に書き残す。退避元はスナップショット開始時に所有印として後から足す（F12・D-C3）
             // The session writes its own origin at start; the salvage source is added later as an ownership mark when snapshots begin (F12, D-C3)
-            var origin = new SessionOriginSnapshot(PlaytestSessionIdentityProvider.Current.SteamId, RepositoryStateProbe.ReadBuildOrigin());
+            var identity = PlaytestSessionIdentityProvider.Current;
+            var origin = new SessionOriginSnapshot(identity.SteamId, identity.SteamIdAbsenceReason, RepositoryStateProbe.ReadBuildOrigin());
             CleanExitMarker.MarkSessionStarted(processId, sessionName, origin);
 
             // 終了処理側にプレイテストの語彙を持ち込まないため、直接呼び出しでなく汎用イベントの購読で受ける

@@ -16,30 +16,43 @@ namespace Client.Game.InGame.BugReport.LastSession
     {
         private static readonly JsonSerializer Serializer = JsonSerializer.Create(new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() });
 
+        // 旧形式の印（理由キー無し）を読んだときの理由。無音でnullにすると欠損の原因が箱から消える
+        // Reason used for a legacy mark without the reason key; a silent null would erase the gap's cause from the box
+        internal const string LegacyMarkSteamIdAbsenceReason = "SteamIDの欠損理由が記録されていない旧形式の印（前回セッションの開始時点でテスター識別が無かった）";
+
         public string SteamId { get; }
+        public string SteamIdAbsenceReason { get; }
         public BuildOriginReading BuildOrigin { get; }
         internal readonly SessionSnapshotCapture SnapshotCapture;
         internal readonly IReadOnlyList<MissingItem> SalvageMissing;
 
-        public SessionOriginSnapshot(string steamId, BuildOriginReading buildOrigin) : this(steamId, buildOrigin, SessionSnapshotCapture.NotStarted())
+        public SessionOriginSnapshot(string steamId, string steamIdAbsenceReason, BuildOriginReading buildOrigin) : this(steamId, steamIdAbsenceReason, buildOrigin, SessionSnapshotCapture.NotStarted())
         {
         }
 
-        internal SessionOriginSnapshot(string steamId, BuildOriginReading buildOrigin, SessionSnapshotCapture snapshotCapture) : this(steamId, buildOrigin, snapshotCapture, new List<MissingItem>())
+        internal SessionOriginSnapshot(string steamId, string steamIdAbsenceReason, BuildOriginReading buildOrigin, SessionSnapshotCapture snapshotCapture) : this(steamId, steamIdAbsenceReason, buildOrigin, snapshotCapture, new List<MissingItem>())
         {
         }
 
-        private SessionOriginSnapshot(string steamId, BuildOriginReading buildOrigin, SessionSnapshotCapture snapshotCapture, IReadOnlyList<MissingItem> salvageMissing)
+        private SessionOriginSnapshot(string steamId, string steamIdAbsenceReason, BuildOriginReading buildOrigin, SessionSnapshotCapture snapshotCapture, IReadOnlyList<MissingItem> salvageMissing)
         {
             SteamId = steamId;
+            SteamIdAbsenceReason = steamIdAbsenceReason;
             BuildOrigin = buildOrigin;
             SnapshotCapture = snapshotCapture;
             SalvageMissing = salvageMissing;
         }
 
+        // 所有印の付け直しでもSteamIDの欠損理由を落とさない。落とすと上書き後の印から理由が消える
+        // Re-stamping ownership keeps the SteamID absence reason; dropping it would erase the reason from the rewritten mark
+        internal SessionOriginSnapshot WithSnapshotCapture(SessionSnapshotCapture snapshotCapture)
+        {
+            return new SessionOriginSnapshot(SteamId, SteamIdAbsenceReason, BuildOrigin, snapshotCapture);
+        }
+
         internal SessionOriginSnapshot WithSalvageMissing(IReadOnlyList<MissingItem> missing)
         {
-            return new SessionOriginSnapshot(SteamId, BuildOrigin, SnapshotCapture, new List<MissingItem>(missing));
+            return new SessionOriginSnapshot(SteamId, SteamIdAbsenceReason, BuildOrigin, SnapshotCapture, new List<MissingItem>(missing));
         }
 
         public SalvageOperationResult WriteTo(string path)
@@ -47,6 +60,7 @@ namespace Client.Game.InGame.BugReport.LastSession
             var json = new JObject
             {
                 ["steamId"] = SteamId,
+                ["steamIdAbsenceReason"] = SteamIdAbsenceReason,
                 ["buildOriginKind"] = BuildOrigin.Kind.ToString(),
                 ["buildInfo"] = BuildOrigin.BuildInfo == null ? JValue.CreateNull() : JObject.FromObject(BuildOrigin.BuildInfo, Serializer),
                 ["buildOriginMissingReason"] = BuildOrigin.MissingReason,
@@ -87,6 +101,7 @@ namespace Client.Game.InGame.BugReport.LastSession
             }
 
             string steamId;
+            string steamIdAbsenceReason;
             string kindText;
             BuildInfo buildInfo;
             string buildOriginMissingReason;
@@ -99,6 +114,7 @@ namespace Client.Game.InGame.BugReport.LastSession
             {
                 var obj = JObject.Parse(File.ReadAllText(path));
                 steamId = (string)obj["steamId"];
+                steamIdAbsenceReason = ReadSteamIdAbsenceReason(steamId, obj["steamIdAbsenceReason"]);
                 kindText = (string)obj["buildOriginKind"];
                 var buildInfoToken = obj["buildInfo"];
                 buildInfo = buildInfoToken == null || buildInfoToken.Type == JTokenType.Null ? null : buildInfoToken.ToObject<BuildInfo>(Serializer);
@@ -113,9 +129,18 @@ namespace Client.Game.InGame.BugReport.LastSession
             }
 
             var buildOrigin = ToBuildOrigin(kindText, buildInfo, buildOriginMissingReason, path, out failureReason);
-            return buildOrigin == null ? null : new SessionOriginSnapshot(steamId, buildOrigin, snapshotCapture, salvageMissing);
+            return buildOrigin == null ? null : new SessionOriginSnapshot(steamId, steamIdAbsenceReason, buildOrigin, snapshotCapture, salvageMissing);
 
             #region Internal
+
+            // SteamIDが有れば理由は不要。無いのに理由が無い（旧形式の印）なら、そう明示した理由にする
+            // No reason is needed when a SteamID exists; a missing one without a reason (legacy mark) gets an explicit legacy reason
+            static string ReadSteamIdAbsenceReason(string steamId, JToken reasonToken)
+            {
+                if (!string.IsNullOrEmpty(steamId)) return null;
+                var reason = reasonToken?.Type == JTokenType.String ? (string)reasonToken : null;
+                return string.IsNullOrWhiteSpace(reason) ? LegacyMarkSteamIdAbsenceReason : reason;
+            }
 
             static IReadOnlyList<MissingItem> ReadSalvageMissing(JToken token, string owner)
             {

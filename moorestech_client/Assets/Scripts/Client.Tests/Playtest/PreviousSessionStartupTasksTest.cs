@@ -52,7 +52,7 @@ namespace Client.Tests.Playtest
 
             // 失敗した試行は開始の印だけを残し、成功した再試行が正常終了の印を置く
             // The failed attempt leaves only its start mark while the successful retry places the clean-exit mark
-            var origin = new SessionOriginSnapshot(null, BuildOriginReading.Editor());
+            var origin = new SessionOriginSnapshot(null, "テストで差し込まれていないSteamID", BuildOriginReading.Editor());
             CleanExitMarker.MarkSessionStarted(TestProcessId, failedAttempt, origin);
             CleanExitMarker.MarkSessionStarted(TestProcessId, retriedAttempt, origin);
             CleanExitMarker.MarkCleanExit(TestProcessId, retriedAttempt);

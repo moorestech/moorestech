@@ -53,6 +53,8 @@ namespace Client.Tests.BugReport
                 BundleManifestContract.AssertPlanC(bundle, manifest);
                 Assert.AreEqual("crash", (string)manifest["kind"]);
                 Assert.AreEqual("落ちた", (string)manifest["description"]);
+                var steamIdMissing = manifest["missing"].Single(item => (string)item["item"] == "steamId");
+                Assert.AreEqual(TestPreviousSessionArtifacts.OriginSteamIdAbsenceReason, (string)steamIdMissing["reason"], "前回印のSteamID欠損理由が素通しされていない");
                 Assert.IsTrue(File.Exists(Path.Combine(bundle, BugReportBundleLayout.RecordingDirectoryName, "seg_00.mp4")));
                 Assert.IsTrue(File.Exists(Path.Combine(bundle, BugReportBundleLayout.LogsDirectoryName, "Player-prev.log")));
 

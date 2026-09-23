@@ -45,7 +45,7 @@ namespace Client.Tests.BugReport
             var deadDirectory = CreateSessionRecording(DeadProcessId);
 
             var crashed = Session(DeadProcessId, false, deadDirectory);
-            crashed.Origin = new SessionOriginSnapshot(null, BuildOriginReading.Editor(), SessionSnapshotCapture.Started(_snapshots, DeadProcessId, SessionName));
+            crashed.Origin = new SessionOriginSnapshot(null, "テストで差し込まれていないSteamID", BuildOriginReading.Editor(), SessionSnapshotCapture.Started(_snapshots, DeadProcessId, SessionName));
             crashed.Origin.WriteTo(Path.Combine(_snapshots, WorldDataDirectory.SnapshotOwnerFileName));
             var artifacts = PreviousSessionSalvage.Salvage(Request(crashed));
 
@@ -128,7 +128,7 @@ namespace Client.Tests.BugReport
         public void リモート接続ならスナップショットの不在を退避失敗と書かない()
         {
             var request = Request(Session(DeadProcessId, false, null));
-            request.PreviousSessions[0].Origin = new SessionOriginSnapshot(null, BuildOriginReading.Editor());
+            request.PreviousSessions[0].Origin = new SessionOriginSnapshot(null, "テストで差し込まれていないSteamID", BuildOriginReading.Editor());
 
             var artifacts = PreviousSessionSalvage.Salvage(request);
 
@@ -145,7 +145,7 @@ namespace Client.Tests.BugReport
             Directory.CreateDirectory(otherWorldSnapshots);
             File.WriteAllText(Path.Combine(otherWorldSnapshots, "tick_900.json"), "{}");
             var crashed = Session(DeadProcessId, false, null);
-            crashed.Origin = new SessionOriginSnapshot(null, BuildOriginReading.Editor(), SessionSnapshotCapture.Started(otherWorldSnapshots, DeadProcessId, SessionName));
+            crashed.Origin = new SessionOriginSnapshot(null, "テストで差し込まれていないSteamID", BuildOriginReading.Editor(), SessionSnapshotCapture.Started(otherWorldSnapshots, DeadProcessId, SessionName));
             crashed.Origin.WriteTo(Path.Combine(otherWorldSnapshots, WorldDataDirectory.SnapshotOwnerFileName));
 
             var artifacts = PreviousSessionSalvage.Salvage(Request(crashed));

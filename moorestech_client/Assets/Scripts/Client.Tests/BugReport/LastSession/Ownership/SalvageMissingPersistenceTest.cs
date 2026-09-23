@@ -24,7 +24,7 @@ namespace Client.Tests.BugReport
         {
             _root = Path.Combine(Path.GetTempPath(), $"salvage-missing-{Guid.NewGuid():N}");
             _originPath = Path.Combine(_root, PreviousSessionSalvage.PreviousOriginFileName);
-            _origin = new SessionOriginSnapshot("previous", BuildOriginReading.Editor(), SessionSnapshotCapture.Started(Path.Combine(_root, "source"), 1234, "session_100"));
+            _origin = new SessionOriginSnapshot("previous", null, BuildOriginReading.Editor(), SessionSnapshotCapture.Started(Path.Combine(_root, "source"), 1234, "session_100"));
             _origin.WriteTo(_originPath);
         }
 
