@@ -166,6 +166,16 @@ namespace Client.Network.API
             return new PlayerInventoryResponse(response);
         }
 
+        public async UniTask<global::Game.BeltSegment.BeltWorldSnapshot> GetBeltWorld(CancellationToken cancellationToken)
+        {
+            var (response, reason) = await _packetExchangeManager.GetPacketResponseWithReason<Server.Protocol.MessagePack.GetBeltWorldResponse>(
+                Server.Protocol.MessagePack.GetBeltWorldRequest.Create(), cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+            if (reason == PacketWaitCompletionReason.Timeout) throw new TimeoutException("Belt snapshot request timed out after 10 seconds.");
+            if (reason != PacketWaitCompletionReason.Received) throw new InvalidOperationException($"Belt snapshot request failed: {reason}.");
+            return Server.Util.MessagePack.BeltSegment.BeltWireCodec.Decode(response.Snapshot);
+        }
+
         public async UniTask<WorldDataResponse> GetWorldData(CancellationToken ct)
         {
             var request = new RequestWorldDataProtocol.RequestWorldDataMessagePack(_playerConnectionSetting.PlayerId);

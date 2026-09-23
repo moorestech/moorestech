@@ -2,6 +2,8 @@
   "name": "Server.Event",
   "rootNamespace": "",
   "references": [
+    "Game.BeltSegment",
+    "Game.Block",
     "MessagePack.Annotations",
     "MessagePack",
     "Core.Inventory",

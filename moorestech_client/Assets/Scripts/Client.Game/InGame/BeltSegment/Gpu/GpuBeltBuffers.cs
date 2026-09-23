@@ -24,7 +24,7 @@ namespace Client.Game.InGame.BeltSegment.Gpu
                 Buffers = Create<GpuBeltBufferState>(initial.Buffers.Length);
                 Gaps = Create<int>(initial.Gaps.Length);
                 Blocks = Create<int>(initial.Blocks.Length);
-                Items = Create<int>(initial.Items.Length);
+                Items = Create<GpuBeltItem>(initial.Items.Length);
                 Speeds = Create<int>(initial.Speeds.Length);
                 Reservations = Create<int>(layout.Topology.Length);
                 ExternalReady = Create<int>(layout.ExternalInputs.Length);

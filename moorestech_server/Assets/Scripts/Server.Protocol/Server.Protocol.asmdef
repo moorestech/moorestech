@@ -2,6 +2,7 @@
   "name": "Server.Protocol",
   "rootNamespace": "",
   "references": [
+    "Game.BeltSegment",
     "MessagePack.Annotations",
     "Common.Debug",
     "Core.Util",

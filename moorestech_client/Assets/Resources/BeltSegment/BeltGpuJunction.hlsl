@@ -16,7 +16,7 @@ void Collect(uint3 tid : SV_DispatchThreadID)
     Advance(t, s, _Speeds[i], false);
     if (b.HasItem == 0 && s.Count > 0 && _Gaps[Physical(t, s, 0)] == 0)
     {
-        b.ItemKind = _Items[Physical(t, s, 0)];
+        b.ItemKind = _Items[Physical(t, s, 0)].x;
         b.HasItem = 1;
         Dequeue(t, s);
         _Buffers[i] = b;

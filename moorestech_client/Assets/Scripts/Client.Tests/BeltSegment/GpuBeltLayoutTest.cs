@@ -19,6 +19,7 @@ namespace Client.Tests.BeltSegment
             Assert.That(Marshal.SizeOf<GpuBeltBufferState>(), Is.EqualTo(16));
             Assert.That(Marshal.SizeOf<GpuBeltNormalLink>(), Is.EqualTo(16));
             Assert.That(Marshal.SizeOf<GpuBeltNormalState>(), Is.EqualTo(16));
+            Assert.That(Marshal.SizeOf<GpuBeltItem>(), Is.EqualTo(8));
             Assert.That(Marshal.SizeOf<GpuBeltEvent>(), Is.EqualTo(16));
             Assert.That((int)BeltSegmentKind.Normal, Is.Zero);
             Assert.That((int)BeltSegmentKind.Merge, Is.EqualTo(1));
@@ -75,7 +76,7 @@ namespace Client.Tests.BeltSegment
             Assert.That(initial.States[0].TotalGap, Is.EqualTo(288));
             Assert.That(initial.Gaps, Is.EqualTo(new[] { 32, 0, 256, 0, 0, 0, 0 }));
             Assert.That(initial.Blocks, Is.EqualTo(new[] { 2, 2, 1, 0, 0, 0, 0 }));
-            Assert.That(initial.Items, Is.EqualTo(new[] { 0, 7, 9, 0, 0, 0, 0 }));
+            Assert.That(Array.ConvertAll(initial.Items, x => x.Kind), Is.EqualTo(new[] { 0, 7, 9, 0, 0, 0, 0 }));
             Assert.That(initial.Buffers[1].HasItem, Is.EqualTo(1));
             Assert.That(initial.Buffers[1].ItemKind, Is.Zero);
             Assert.That(initial.Buffers[2].HasItem, Is.Zero);

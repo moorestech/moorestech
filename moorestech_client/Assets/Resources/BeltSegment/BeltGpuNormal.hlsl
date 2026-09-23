@@ -33,7 +33,7 @@ void AdvanceNormal(uint3 tid : SV_DispatchThreadID)
         int length = speed - _Gaps[head];
         if (length > 0)
         {
-            int kind = _Items[head];
+            int kind = _Items[head].x;
             if (t.NormalLinkIndex >= 0)
             {
                 GpuBeltNormalState staged = _NormalStates[t.NormalLinkIndex];

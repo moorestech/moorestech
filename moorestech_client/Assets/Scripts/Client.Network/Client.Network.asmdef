@@ -2,6 +2,7 @@
   "name": "Client.Network",
   "rootNamespace": "",
   "references": [
+    "Game.BeltSegment",
     "moorestechServer",
     "ClassLibrary",
     "Core.ConfigJson",

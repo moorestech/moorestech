@@ -15,7 +15,7 @@ bool Receive(int target, int direction, int length, int itemKind)
     if (offer < length) return false;
     GpuBeltTopology t = _Topology[target];
     GpuBeltState s = _States[target];
-    Enqueue(t, s, offer - length, itemKind);
+    Enqueue(t, s, offer - length, int2(itemKind, direction));
     if (t.Kind == SegmentMerge) s.PriorityIndex = (s.PriorityIndex + 1) % t.InputCount;
     _States[target] = s;
     return true;
@@ -30,8 +30,8 @@ bool SourceReady(GpuBeltPort input)
         return s.Count > 0 && _Speeds[input.Id] > _Gaps[Physical(source, s, 0)];
     }
     GpuBeltBufferState b = _Buffers[input.Id];
-    if (b.HasItem == 0) return false;
-    GpuBeltPort output = _OutputPorts[source.FirstOutput + b.PriorityIndex];
+    if (b.HasItem == 0 || source.OutputCount == 0) return false;
+    GpuBeltPort output = _OutputPorts[source.FirstOutput + b.PriorityIndex % source.OutputCount];
     return (output.Direction ^ 1) == input.Direction;
 }
 int OutputOffer(GpuBeltPort output)

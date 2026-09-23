@@ -13,7 +13,7 @@ void SetGap(int p, int value, inout GpuBeltState s)
     s.TotalGap += value - _Gaps[p];
     _Gaps[p] = value;
 }
-void Enqueue(GpuBeltTopology t, inout GpuBeltState s, int gap, int kind)
+void Enqueue(GpuBeltTopology t, inout GpuBeltState s, int gap, int2 kind)
 {
     int p = Physical(t, s, s.Count);
     _Items[p] = kind;

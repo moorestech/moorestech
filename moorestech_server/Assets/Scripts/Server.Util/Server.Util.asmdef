@@ -2,6 +2,7 @@
   "name": "Server.Util",
   "rootNamespace": "",
   "references": [
+    "Game.BeltSegment",
     "MessagePack.Annotations",
     "Game.Entity.Interface",
     "Core.Item.Interface",

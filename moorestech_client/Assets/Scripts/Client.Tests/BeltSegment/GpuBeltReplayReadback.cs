@@ -15,7 +15,7 @@ namespace Client.Tests.BeltSegment
             var occupants = Read<GpuBeltBufferState>(buffers.Buffers, expected.Segments.Length);
             var gaps = Read<int>(buffers.Gaps, layout.TotalCapacity);
             var blocks = Read<int>(buffers.Blocks, layout.TotalCapacity);
-            var kinds = Read<int>(buffers.Items, layout.TotalCapacity);
+            var kinds = Read<GpuBeltItem>(buffers.Items, layout.TotalCapacity);
             var speeds = Read<int>(buffers.Speeds, expected.Segments.Length);
             for (int id = 0; id < expected.Segments.Length; id++)
             {
@@ -41,7 +41,8 @@ namespace Client.Tests.BeltSegment
                     distance += gaps[p] + (item == 0 ? 0 : BeltConstants.ItemWidth);
                     totalGap += gaps[p];
                     Assert.That(distance, Is.EqualTo(segment.Items[item].DistanceToExit), $"segment {id} item {item} distance");
-                    Assert.That(kinds[p], Is.EqualTo(segment.Items[item].Item.ItemId), $"segment {id} item {item} kind");
+                    Assert.That(kinds[p].Kind, Is.EqualTo(segment.Items[item].Item.ItemId), $"segment {id} item {item} kind");
+                    Assert.That(kinds[p].AcceptedInput, Is.EqualTo((int)segment.Items[item].Item.AcceptedInput), $"segment {id} item {item} entry");
                     if (item == 0 || gaps[p] != 0)
                     {
                         int size = 1;

@@ -8,7 +8,7 @@ namespace Client.Game.InGame.BeltSegment.Gpu
         internal readonly GpuBeltBufferState[] Buffers;
         internal readonly int[] Gaps;
         internal readonly int[] Blocks;
-        internal readonly int[] Items;
+        internal readonly GpuBeltItem[] Items;
         internal readonly int[] Speeds;
 
         internal GpuBeltInitialState(BeltReplaySnapshot snapshot, GpuBeltLayout layout)
@@ -18,7 +18,7 @@ namespace Client.Game.InGame.BeltSegment.Gpu
             Buffers = new GpuBeltBufferState[segmentCount];
             Gaps = new int[layout.TotalCapacity];
             Blocks = new int[layout.TotalCapacity];
-            Items = new int[layout.TotalCapacity];
+            Items = new GpuBeltItem[layout.TotalCapacity];
             Speeds = new int[segmentCount];
 
             for (int segmentId = 0; segmentId < segmentCount; segmentId++)
@@ -37,7 +37,7 @@ namespace Client.Game.InGame.BeltSegment.Gpu
                     var item = segment.Items[i];
                     int gap = item.DistanceToExit - previousDistance - BeltConstants.ItemWidth;
                     Gaps[offset + i] = gap;
-                    Items[offset + i] = item.Item.ItemId;
+                    Items[offset + i] = new GpuBeltItem { Kind = item.Item.ItemId, AcceptedInput = (int)item.Item.AcceptedInput };
                     totalGap += gap;
 
                     // 密着列の両端だけに個数を置く。

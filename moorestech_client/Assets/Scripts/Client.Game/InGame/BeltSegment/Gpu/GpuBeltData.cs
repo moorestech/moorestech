@@ -18,6 +18,12 @@ namespace Client.Game.InGame.BeltSegment.Gpu
     // GPU ABIはint32のみ。
     // The GPU ABI uses only 32-bit integers.
     [StructLayout(LayoutKind.Sequential)]
+    internal struct GpuBeltItem
+    {
+        internal int Kind, AcceptedInput;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
     internal struct GpuBeltTopology
     {
         internal int Offset, Capacity, Kind, FirstInput;

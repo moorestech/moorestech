@@ -321,6 +321,7 @@ namespace Server.Boot
             services.AddSingleton<RailNodeCreatedEventPacket>();
             services.AddSingleton<RailConnectionCreatedEventPacket>();
             services.AddSingleton<TrainUnitTickDiffBundleEventPacket>();
+            services.AddSingleton<BeltWorldEventPacket>();
             services.AddSingleton<TrainUnitSnapshotEventPacket>();
             services.AddSingleton<TrainFullSnapshotEventPacket>();
             services.AddSingleton<RailNodeRemovedEventPacket>();
