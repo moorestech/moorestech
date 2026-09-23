@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
 # =====================================================================
-# ⚠ scripts変更後: python3 -m unittest discover -s .claude/skills/moores-code-review/tests
+# ⚠ このscripts/配下を1行でも変更・追加したら、必ず回帰テストを実行すること:
+#     python3 -m unittest discover -s .claude/skills/moores-code-review/tests
+#   全緑になるまで変更は完成扱いにしない。新規スクリプトはSKILL.mdへの配線と
+#   tests/test_skill_wiring.py への不変条件追加まで済ませて初めて完成（配線なき
+#   検出器は未実装と同じ・2026-08-03ユーザー裁定）。このバナー自体も必須
+#   （tests/test_skill_wiring.py が全スクリプトのバナー実在を機械検証する）。
+# ⚠ Run the regression suite after ANY change under scripts/; wiring into
+#   SKILL.md and a wiring-test invariant are part of "done" for new scripts.
 # =====================================================================
 """Launch isolated requirement-review workers and validate their reports."""
 
@@ -61,20 +68,37 @@ def read_report(path, unit_id):
             "reportPath": str(path.resolve()), "sha256": digest(text)}
 
 
-def _completed(attempt, unit_id):
+def _read_object(path, unit_id, label):
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        print(f"{unit_id}: 壊れた{label}を保存し再実行: {error}", file=sys.stderr)
+        return None
+    if not isinstance(value, dict):
+        print(f"{unit_id}: 壊れた{label}を保存し再実行: JSON objectではない", file=sys.stderr)
+        return None
+    return value
+
+
+def _completed(attempt, unit_id, fingerprint):
     status_path = attempt / "status.json"
     if not status_path.is_file():
         return None
-    try:
-        status = json.loads(status_path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
-        print(f"{unit_id}: 壊れたstatusを保存し再実行: {error}", file=sys.stderr)
+    status = _read_object(status_path, unit_id, "status")
+    if status is None:
         return None
-    if not isinstance(status, dict):
-        print(f"{unit_id}: 壊れたstatusを保存し再実行: JSON objectではない", file=sys.stderr)
+    if not (status.get("ok") is True and status.get("exitCode") == 0 and status.get("reason") is None):
+        return None
+    # 成功記録が現入力のものかをlaunch.jsonのfingerprintで照合する
+    # Reuse only when launch.json proves the success belongs to the current inputs
+    launch_record = _read_object(attempt / "launch.json", unit_id, "launch") \
+        if (attempt / "launch.json").is_file() else None
+    if launch_record is None or launch_record.get("fingerprint") != fingerprint:
+        print(f"{unit_id}: {attempt.name} は現入力のfingerprintと一致しないため再利用せず再実行",
+              file=sys.stderr)
         return None
     report = read_report(attempt / "report.md", unit_id)
-    if status.get("ok") and report and status.get("sha256") == report["sha256"]:
+    if report and status.get("sha256") == report["sha256"]:
         return report
     return None
 
@@ -83,7 +107,7 @@ def launch(data, unit, directory, owner):
     directory.mkdir(parents=True, exist_ok=True)
     attempts = sorted(directory.glob("attempt-*"), key=lambda path: int(path.name.split("-")[-1]))
     for attempt in reversed(attempts):
-        completed = _completed(attempt, unit["id"])
+        completed = _completed(attempt, unit["id"], data["fingerprint"])
         if completed:
             return completed
     attempt = directory / f"attempt-{len(attempts) + 1}"

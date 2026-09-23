@@ -13,8 +13,10 @@ sys.path.insert(0, str(SCRIPTS))
 import main as runtime_main
 try:
     from .paid_cli_guard import reject_paid_cli
+    from .requirement_fixture import requirement_fixture
 except ImportError:
     from paid_cli_guard import reject_paid_cli
+    from requirement_fixture import requirement_fixture
 
 
 class RequirementExecuteTests(unittest.TestCase):
@@ -26,25 +28,7 @@ class RequirementExecuteTests(unittest.TestCase):
         self.paid_cli_guard.stop()
 
     def fixture(self, root):
-        source = root / "source"
-        source.mkdir()
-        subprocess.run(["git", "init", "-q", str(source)], check=True)
-        subprocess.run(["git", "-C", str(source), "config", "user.email", "test@example.com"], check=True)
-        subprocess.run(["git", "-C", str(source), "config", "user.name", "Test"], check=True)
-        (source / "tracked").write_text("base", encoding="utf-8")
-        subprocess.run(["git", "-C", str(source), "add", "tracked"], check=True)
-        subprocess.run(["git", "-C", str(source), "commit", "-qm", "initial"], check=True)
-        context, patch = root / "context.md", root / "patch.diff"
-        context.write_text("request", encoding="utf-8")
-        patch.write_text("patch", encoding="utf-8")
-        tooling = root / "tool" / "scripts" / "requirements"
-        tooling.mkdir(parents=True)
-        reference = tooling.parents[1] / "references" / "requirement-proof.md"
-        reference.parent.mkdir()
-        reference.write_text("procedure", encoding="utf-8")
-        args = argparse.Namespace(repo_root=str(source), context=str(context), patch=str(patch),
-                                  run_dir=str(root / "run"), model="sonnet")
-        return args, tooling / "main.py"
+        return requirement_fixture(root)
 
     @mock.patch("main.ProcessOwner.install_signals")
     @mock.patch("main.ProcessOwner.restore_signals")
@@ -114,6 +98,12 @@ class RequirementExecuteTests(unittest.TestCase):
     def test_resumed_future_exception_reports_latest_real_evidence(self):
         with tempfile.TemporaryDirectory() as temp:
             args, fake_main = self.fixture(Path(temp))
+            with mock.patch.object(runtime_main, "__file__", str(fake_main)), \
+                 mock.patch("main.launch", return_value={"id": "R001", "verdict": "MISSING", "reason": "x"}), \
+                 mock.patch("main.ProcessOwner.install_signals"), \
+                 mock.patch("main.ProcessOwner.restore_signals"), \
+                 mock.patch("main.ProcessOwner.stop_all"):
+                self.assertEqual(runtime_main.execute(args), 2)
             unit = Path(args.run_dir, "R001")
             first = unit / "attempt-1"
             first.mkdir(parents=True)

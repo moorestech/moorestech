@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
 # =====================================================================
-# ⚠ scripts変更後: python3 -m unittest discover -s .claude/skills/moores-code-review/tests
+# ⚠ このscripts/配下を1行でも変更・追加したら、必ず回帰テストを実行すること:
+#     python3 -m unittest discover -s .claude/skills/moores-code-review/tests
+#   全緑になるまで変更は完成扱いにしない。新規スクリプトはSKILL.mdへの配線と
+#   tests/test_skill_wiring.py への不変条件追加まで済ませて初めて完成（配線なき
+#   検出器は未実装と同じ・2026-08-03ユーザー裁定）。このバナー自体も必須
+#   （tests/test_skill_wiring.py が全スクリプトのバナー実在を機械検証する）。
+# ⚠ Run the regression suite after ANY change under scripts/; wiring into
+#   SKILL.md and a wiring-test invariant are part of "done" for new scripts.
 # =====================================================================
 """Own worker process groups and stop only processes launched by this run."""
 
@@ -19,6 +26,7 @@ class ProcessOwner:
         self.processes = set()
         self.lock = threading.Lock()
         self.stopping = False
+        self.stop_requested = False
         self.previous = {}
         self.failures = []
 
@@ -33,11 +41,13 @@ class ProcessOwner:
         self.previous.clear()
 
     def _signal(self, _signum, _frame):
-        self.stop_all()
+        # ハンドラは記録だけ。lock/wait/subprocessは再入で自己デッドロックする
+        # Record only: lock, wait or subprocess here can deadlock on reentry
+        self.stop_requested = True
 
     def spawn(self, args, **options):
         with self.lock:
-            if self.stopping:
+            if self.stopping or self.stop_requested:
                 raise OSError("runner is stopping; worker was not started")
             process = subprocess.Popen(args, start_new_session=True,
                                        pass_fds=(self.lock_fd,), **options)

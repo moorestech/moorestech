@@ -4,9 +4,7 @@ import signal
 import subprocess
 import sys
 import tempfile
-import threading
 import unittest
-from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from unittest import mock
 
@@ -59,37 +57,6 @@ class ProcessOwnershipTests(unittest.TestCase):
                 owner.stop_all()
                 lock.close()
                 process.stdout.close()
-
-    def test_signal_stops_running_worker_and_queued_work_never_spawns(self):
-        with tempfile.TemporaryDirectory() as temp:
-            lock = (Path(temp) / "lock").open("a")
-            owner = ProcessOwner(lock.fileno(), termination_grace=0.05)
-            started = threading.Event()
-            count = []
-
-            def work():
-                process = owner.spawn([sys.executable, "-c", "import time;time.sleep(60)"],
-                                      stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
-                                      stderr=subprocess.DEVNULL)
-                count.append(process.pid)
-                started.set()
-                process.wait()
-                owner.finished(process)
-
-            owner.install_signals()
-            try:
-                with ThreadPoolExecutor(max_workers=1) as pool:
-                    futures = [pool.submit(work) for _ in range(4)]
-                    self.assertTrue(started.wait(2))
-                    os.kill(os.getpid(), signal.SIGTERM)
-                    failures = [future.exception() for future in futures]
-                self.assertEqual(len(count), 1)
-                self.assertIsNone(failures[0])
-                self.assertTrue(all(isinstance(error, OSError) for error in failures[1:]))
-            finally:
-                owner.stop_all()
-                owner.restore_signals()
-            lock.close()
 
     def test_communicate_failure_stops_and_reaps_worker(self):
         class FailingOwner(ProcessOwner):

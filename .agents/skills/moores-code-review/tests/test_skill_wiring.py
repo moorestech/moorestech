@@ -110,10 +110,10 @@ class SkillWiringTest(unittest.TestCase):
     def test_every_script_has_regression_banner(self):
         # 全スクリプトが「変更時は回帰テスト必須」バナーを持つこと（新規追加時の掲示漏れ防止）
         # Every script must carry the regression-suite banner (so new scripts inherit the rule)
-        for s in (SKILL_DIR / "scripts").glob("*.py"):
+        for s in (SKILL_DIR / "scripts").rglob("*.py"):
             head = s.read_text(encoding="utf-8")[:1200]
             self.assertIn("必ず回帰テストを実行", head,
-                          f"scripts/{s.name} に回帰テスト必須バナーが無い")
+                          f"{s.relative_to(SKILL_DIR)} に回帰テスト必須バナーが無い")
 
     def test_playtest_scenarios_are_excluded_from_patch(self):
         # patch生成のpathspecからプレイテストシナリオ除外が消えていないこと

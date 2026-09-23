@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 import tempfile
@@ -97,6 +98,28 @@ class RequirementReportTests(unittest.TestCase):
             self.assertEqual(result["verdict"], "SUPPORTED")
             self.assertEqual((old / "status.json").read_bytes(), b"\xffbroken")
             self.assertTrue((root / "attempt-2" / "status.json").is_file())
+
+    def test_success_from_other_inputs_or_untyped_status_is_not_reused(self):
+        data = {"model": "sonnet", "repo": "/tmp", "fingerprint": "fp",
+                "procedure": "p", "context": "c", "patch": "d"}
+        unit = {"id": "R001", "start": 1, "end": 1, "text": "c"}
+        with tempfile.TemporaryDirectory() as temp, mock.patch("sys.stderr"):
+            root = Path(temp) / "R001"
+            launch({**data, "fingerprint": "old"}, unit, root, FakeOwner(FakeProcess))
+            launch(data, unit, root, FakeOwner(FakeProcess))
+            self.assertTrue((root / "attempt-2").is_dir())
+            for broken in ({"ok": "yes"}, {"exitCode": 1}, {"reason": "late failure"}):
+                count = len(list(root.glob("attempt-*")))
+                status_path = root / f"attempt-{count}" / "status.json"
+                status = json.loads(status_path.read_text(encoding="utf-8"))
+                status_path.write_text(json.dumps({**status, **broken}), encoding="utf-8")
+                launch(data, unit, root, FakeOwner(FakeProcess))
+                self.assertTrue((root / f"attempt-{count + 1}").is_dir(), broken)
+            (root / "attempt-5" / "launch.json").unlink()
+            launch(data, unit, root, FakeOwner(FakeProcess))
+            self.assertTrue((root / "attempt-6").is_dir())
+            reuse = FakeOwner(lambda _path: self.fail("matching success relaunched"))
+            self.assertEqual(launch(data, unit, root, reuse)["verdict"], "SUPPORTED")
 
     def test_non_utf8_report_is_missing(self):
         with tempfile.TemporaryDirectory() as temp, mock.patch("sys.stderr"):

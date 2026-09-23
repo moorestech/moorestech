@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
 # =====================================================================
-# ⚠ scripts変更後: python3 -m unittest discover -s .claude/skills/moores-code-review/tests
+# ⚠ このscripts/配下を1行でも変更・追加したら、必ず回帰テストを実行すること:
+#     python3 -m unittest discover -s .claude/skills/moores-code-review/tests
+#   全緑になるまで変更は完成扱いにしない。新規スクリプトはSKILL.mdへの配線と
+#   tests/test_skill_wiring.py への不変条件追加まで済ませて初めて完成（配線なき
+#   検出器は未実装と同じ・2026-08-03ユーザー裁定）。このバナー自体も必須
+#   （tests/test_skill_wiring.py が全スクリプトのバナー実在を機械検証する）。
+# ⚠ Run the regression suite after ANY change under scripts/; wiring into
+#   SKILL.md and a wiring-test invariant are part of "done" for new scripts.
 # =====================================================================
 """Run independent workers for every original requirement."""
 
@@ -9,7 +16,7 @@ import fcntl
 import json
 import subprocess
 import sys
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, wait
 from pathlib import Path
 
 from input_bundle import bundle, snapshot
@@ -20,6 +27,8 @@ from worker_runs import VERDICTS, failure_result, launch
 
 def _manifest(path, data):
     if not path.exists():
+        if any(path.parent.glob("R*/attempt-*")):
+            raise ValueError("manifestが無い既存attemptは入力同一性を証明できない")
         atomic_json(path, data)
         return
     try:
@@ -28,6 +37,30 @@ def _manifest(path, data):
         raise ValueError(f"壊れたmanifestで入力同一性を証明できない: {error}") from error
     if previous != data:
         raise ValueError("入力/コード/modelが変更された: 新しいrun-dirで検証する")
+
+
+def _run_workers(data, target, owner):
+    # シグナルは停止要求の記録だけ。停止はこの制御経路で1回だけ行う
+    # Signals only record a stop request; this control flow performs the stop exactly once
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        futures = [pool.submit(launch, data, unit, target / unit["id"], owner)
+                   for unit in data["units"]]
+        try:
+            pending = set(futures)
+            while pending and not owner.stop_requested:
+                _done, pending = wait(pending, timeout=0.2)
+        finally:
+            owner.stop_all()
+        results = []
+        for unit, future in zip(data["units"], futures):
+            try:
+                result = future.result()
+            except (OSError, subprocess.SubprocessError) as error:
+                result = failure_result(unit["id"], target / unit["id"], str(error))
+                print(f'{unit["id"]}: worker failure: {error}', file=sys.stderr)
+            results.append(result)
+            print(f'{unit["id"]}: {result["verdict"]}', file=sys.stderr)
+    return results
 
 
 def execute(args):
@@ -43,6 +76,8 @@ def execute(args):
     target.mkdir(parents=True, exist_ok=True)
     with (target / "run.lock").open("a") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        if (target / "invalidated.json").exists():
+            raise ValueError("このrun-dirは検査中のコード変化/判定不能で無効化済み: 新しいrun-dirで検証する")
         data = bundle(inputs[0].read_text(encoding="utf-8"), inputs[1].read_text(encoding="utf-8"),
                       procedure.read_text(encoding="utf-8"), repo, args.model)
         _manifest(target / "manifest.json", data)
@@ -50,36 +85,32 @@ def execute(args):
         owner = ProcessOwner(lock.fileno())
         owner.install_signals()
         try:
-            with ThreadPoolExecutor(max_workers=3) as pool:
-                futures = [pool.submit(launch, data, unit, target / unit["id"], owner)
-                           for unit in data["units"]]
-                results = []
-                for unit, future in zip(data["units"], futures):
-                    try:
-                        result = future.result()
-                    except (OSError, subprocess.SubprocessError) as error:
-                        result = failure_result(unit["id"], target / unit["id"], str(error))
-                        print(f'{unit["id"]}: worker failure: {error}', file=sys.stderr)
-                    results.append(result)
-                    print(f'{unit["id"]}: {result["verdict"]}', file=sys.stderr)
+            results = _run_workers(data, target, owner)
         finally:
-            owner.stop_all()
             owner.restore_signals()
-        if owner.failures and results:
-            results[0] = {"id": results[0]["id"], "verdict": "MISSING",
-                          "reason": "; ".join(owner.failures),
-                          "reportPath": results[0].get("reportPath"),
-                          "evidencePath": results[0].get("evidencePath", str(target.resolve()))}
+        # 停止要求は個別判定と独立したrun単位の結果。全件SUPPORTEDでも中断runは成功にしない
+        # A stop request is a run-level outcome; a cancelled run never succeeds even if all units passed
+        stop_requested = owner.stop_requested
+        # コード変化は三値: True/False/None(判定不能)。False以外はrun-dirを恒久無効化する
+        # Code change is tri-state; anything but False permanently invalidates this run-dir
+        change_error = None
         try:
             changed = snapshot(repo) != data["snapshot"]
         except (OSError, subprocess.SubprocessError) as error:
             print(f"snapshot failure: {error}", file=sys.stderr)
-            changed = True
+            changed, change_error = None, str(error)
+        if changed is not False:
+            atomic_json(target / "invalidated.json",
+                        {"codeChanged": changed, "codeChangeError": change_error})
         missing = [row["id"] for row in results if row["verdict"] == "MISSING"]
+        change_line = (f"判定不能（snapshot failure: {change_error}）" if changed is None else changed)
         lines = ["# 原文要求の独立検査", "",
                  "以下はworkerの静的検査報告。実行試験・正しさの機械証明ではない。",
                  f'予定: {len(data["units"])}、回収: {len(results) - len(missing)}、欠員: {missing}',
-                 f"検査中のコード変化: {changed}", ""]
+                 f"検査中のコード変化: {change_line}",
+                 f"後始末失敗: {owner.failures}",
+                 f"停止要求（SIGTERM/SIGINT）: {'あり（中断run・成功扱いにしない）' if stop_requested else 'なし'}",
+                 ""]
         for row in results:
             lines.extend([f'## {row["id"]}: {VERDICTS.get(row["verdict"], "未完了")}',
                           f'個別報告先: {row.get("reportPath") or "なし"}',
@@ -87,9 +118,13 @@ def execute(args):
                           row.get("report", row.get("reason", "欠損")), ""])
         atomic_text(target / "summary.md", "\n".join(lines))
         atomic_json(target / "results.json", {"results": results, "codeChanged": changed,
+                                               "codeChangeError": change_error,
+                                               "runnerFailures": owner.failures,
+                                               "stopRequested": stop_requested,
                                                "missing": missing})
-        if changed or missing:
-            print(f"未完了: コード変化={changed}, 欠員={missing}", file=sys.stderr)
+        if changed is not False or missing or owner.failures or stop_requested:
+            print(f"未完了: コード変化={change_line}, 欠員={missing}, 後始末失敗={owner.failures}, "
+                  f"停止要求={stop_requested}", file=sys.stderr)
             return 2
         print(target / "summary.md")
         return 0

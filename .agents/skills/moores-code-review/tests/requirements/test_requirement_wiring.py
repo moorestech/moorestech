@@ -101,11 +101,6 @@ class RequirementWiringTests(unittest.TestCase):
             self.assertIn("差分全文", launch_prompt)
             self.assertIn(f"個別報告先: {report_path}", summary)
 
-    def test_every_requirement_script_has_regression_banner(self):
-        for script in SCRIPTS.glob("*.py"):
-            text = script.read_text(encoding="utf-8")
-            self.assertIn("unittest discover", text, script.name)
-
 
 if __name__ == "__main__":
     unittest.main()
