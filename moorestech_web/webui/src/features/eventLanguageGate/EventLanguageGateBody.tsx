@@ -1,7 +1,7 @@
 import { Button, Group, Stack, Text } from "@mantine/core";
 import { useLanguageList } from "@/bridge";
 import { DictionaryIndependentText } from "@/shared/i18n";
-import { useLanguageSelectionAnswer, type GateAnswerCopy } from "./FullScreenGate/useLanguageSelectionAnswer";
+import { useLanguageSelectionAnswer, type GateAnswerCopy } from "./useLanguageSelectionAnswer";
 
 // 選ばせる対象が辞書そのものなので、結末の1行も辞書を通さない（ADR 0040）
 // The dictionary itself is what gets chosen, so the outcome line bypasses the dictionary as well (ADR 0040)
