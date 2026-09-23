@@ -2,6 +2,7 @@ using System;
 using Client.Game.InGame.BeltSegment.Gpu;
 using Game.BeltSegment;
 using NUnit.Framework;
+using static Client.Tests.BeltSegment.GpuBeltReplayTest;
 
 namespace Client.Tests.BeltSegment
 {
@@ -24,7 +25,7 @@ namespace Client.Tests.BeltSegment
             using (var gpu = new GpuBeltSimulation(snapshot, GpuBeltReplayTest.Shader()))
             {
                 var cpu = new BeltReplaySimulation(snapshot);
-                GpuBeltReplayTest.Apply(cpu, gpu, GpuBeltReplayTest.Tick());
+                GpuBeltReplayTest.Apply(cpu, gpu, GpuBeltReplayTest.Tick(noIds, noIds, noInsertions));
                 Assert.That(cpu.CaptureSnapshot().Segments[1].Items[0].DistanceToExit, Is.EqualTo(384));
                 Assert.That(cpu.CaptureSnapshot().Segments[1].Items[0].Item.ItemId, Is.Zero);
             }
@@ -42,7 +43,7 @@ namespace Client.Tests.BeltSegment
             using (var gpu = new GpuBeltSimulation(snapshot, GpuBeltReplayTest.Shader()))
             {
                 var cpu = new BeltReplaySimulation(snapshot);
-                GpuBeltReplayTest.Apply(cpu, gpu, GpuBeltReplayTest.Tick());
+                GpuBeltReplayTest.Apply(cpu, gpu, GpuBeltReplayTest.Tick(noIds, noIds, noInsertions));
                 var state = cpu.CaptureSnapshot().Segments[0];
                 Assert.That(state.Items, Is.Empty);
                 Assert.That(state.BufferedItem.HasValue, Is.True);
@@ -73,7 +74,7 @@ namespace Client.Tests.BeltSegment
             using (var gpu = new GpuBeltSimulation(snapshot, GpuBeltReplayTest.Shader()))
             {
                 var cpu = new BeltReplaySimulation(snapshot);
-                GpuBeltReplayTest.Apply(cpu, gpu, GpuBeltReplayTest.Tick(outputs: new[] { 1 }));
+                GpuBeltReplayTest.Apply(cpu, gpu, GpuBeltReplayTest.Tick(noIds, new[] { 1 }, noInsertions));
                 Assert.That(cpu.CaptureSnapshot().Segments[0].BufferedItem.HasValue, Is.False);
                 Assert.That(cpu.CaptureSnapshot().Segments[0].PriorityIndex, Is.EqualTo(1));
             }
@@ -96,7 +97,7 @@ namespace Client.Tests.BeltSegment
             using (var gpu = new GpuBeltSimulation(snapshot, GpuBeltReplayTest.Shader()))
             {
                 var cpu = new BeltReplaySimulation(snapshot);
-                GpuBeltReplayTest.Apply(cpu, gpu, GpuBeltReplayTest.Tick(ready: new[] { 0, 0 }));
+                GpuBeltReplayTest.Apply(cpu, gpu, GpuBeltReplayTest.Tick(new[] { 0, 0 }, noIds, noInsertions));
                 Assert.That(cpu.CaptureSnapshot().Segments[2].Items[0].Item.ItemId, Is.EqualTo(expectedKind));
                 Assert.That(cpu.CaptureSnapshot().Segments[2].Items[0].DistanceToExit, Is.EqualTo(128));
             }
@@ -116,9 +117,9 @@ namespace Client.Tests.BeltSegment
             using (var gpu = new GpuBeltSimulation(snapshot, GpuBeltReplayTest.Shader()))
             {
                 var cpu = new BeltReplaySimulation(snapshot);
-                GpuBeltReplayTest.Apply(cpu, gpu, GpuBeltReplayTest.Tick(outputs: new[] { 0, 0 }));
-                GpuBeltReplayTest.Apply(cpu, gpu, GpuBeltReplayTest.Tick());
-                GpuBeltReplayTest.Apply(cpu, gpu, GpuBeltReplayTest.Tick());
+                GpuBeltReplayTest.Apply(cpu, gpu, GpuBeltReplayTest.Tick(noIds, new[] { 0, 0 }, noInsertions));
+                GpuBeltReplayTest.Apply(cpu, gpu, GpuBeltReplayTest.Tick(noIds, noIds, noInsertions));
+                GpuBeltReplayTest.Apply(cpu, gpu, GpuBeltReplayTest.Tick(noIds, noIds, noInsertions));
                 Assert.That(cpu.CaptureSnapshot().Segments[0].Items.Length, Is.EqualTo(1));
                 Assert.That(cpu.CaptureSnapshot().Segments[0].Items[0].Item.ItemId, Is.EqualTo(2));
             }
@@ -129,14 +130,22 @@ namespace Client.Tests.BeltSegment
         {
             var segments = new BeltReplaySegmentState[129];
             for (int i = 0; i < segments.Length; i++)
-                segments[i] = BeltReplaySegmentState.Normal(1, 0, i == 128
-                    ? new[] { GpuBeltReplayTest.State(128, 0) } : empty);
+                segments[i] = BeltReplaySegmentState.Normal(1, i == 128 ? 64 : 0, i == 128
+                    ? new[] { GpuBeltReplayTest.State(128, 128) } : empty);
             var snapshot = GpuBeltReplayTest.Snapshot(segments);
             using (var gpu = new GpuBeltSimulation(snapshot, GpuBeltReplayTest.Shader()))
             {
                 var cpu = new BeltReplaySimulation(snapshot);
-                GpuBeltReplayTest.Apply(cpu, gpu, GpuBeltReplayTest.Tick());
-                Assert.That(cpu.CaptureSnapshot().Segments[128].Items[0].Item.ItemId, Is.EqualTo(128));
+                GpuBeltReplayTest.Apply(cpu, gpu, GpuBeltReplayTest.Tick(noIds, noIds, noInsertions));
+                var last = cpu.CaptureSnapshot().Segments[128];
+                Assert.That(last.Items.Length, Is.EqualTo(1));
+                Assert.That(last.Items[0].Item.ItemId, Is.EqualTo(128));
+                Assert.That(last.Items[0].DistanceToExit, Is.EqualTo(64));
+                GpuBeltReplayTest.Apply(cpu, gpu, GpuBeltReplayTest.Tick(noIds, noIds, noInsertions));
+                last = cpu.CaptureSnapshot().Segments[128];
+                Assert.That(last.Items.Length, Is.EqualTo(1));
+                Assert.That(last.Items[0].Item.ItemId, Is.EqualTo(128));
+                Assert.That(last.Items[0].DistanceToExit, Is.Zero);
             }
         }
 
@@ -157,7 +166,7 @@ namespace Client.Tests.BeltSegment
                 var cpu = new BeltReplaySimulation(snapshot);
                 for (int tick = 0; tick < 18; tick++)
                 {
-                    GpuBeltReplayTest.Apply(cpu, gpu, GpuBeltReplayTest.Tick());
+                    GpuBeltReplayTest.Apply(cpu, gpu, GpuBeltReplayTest.Tick(noIds, noIds, noInsertions));
                     var segments = cpu.CaptureSnapshot().Segments;
                     Assert.That(segments[0].Items.Length, Is.EqualTo(1), $"tick {tick}");
                     Assert.That(segments[1].Items.Length, Is.EqualTo(1), $"tick {tick}");
@@ -180,7 +189,7 @@ namespace Client.Tests.BeltSegment
             internal bool Sent { get; private set; }
             internal Receiver(bool accept) => this.accept = accept;
             public void AttachInput(IBeltSource source, BeltDirection direction) { }
-            public int GetOffer(BeltDirection direction) => 256;
+            public int GetOffer(BeltDirection direction) => BeltConstants.ItemWidth;
             public bool TryReceive(BeltDirection direction, int length, in BeltItem item)
             {
                 Sent = accept;

@@ -10,8 +10,8 @@ namespace Client.Game.InGame.BeltSegment.Gpu
         readonly ComputeShader shader;
         readonly GpuBeltTickUpload upload;
         readonly int segmentCount, inputCount, outputCount, normalLinkCount;
-        readonly int clearExternal, applyExternal, captureNormalOffers, collect;
-        readonly int reserve, transfer, advanceNormal, commitNormal, insertExternal;
+        readonly (int Id, int ThreadCountX) clearExternal, applyExternal, captureNormalOffers, collect;
+        readonly (int Id, int ThreadCountX) reserve, transfer, advanceNormal, commitNormal, insertExternal;
         bool disposed;
 
         internal GpuBeltSimulation(BeltReplaySnapshot snapshot, ComputeShader source)
@@ -23,81 +23,105 @@ namespace Client.Game.InGame.BeltSegment.Gpu
             outputCount = layout.OutputCount;
             normalLinkCount = layout.NormalLinks.Length;
             upload = new GpuBeltTickUpload(inputCount, outputCount, segmentCount);
-            shader = UnityEngine.Object.Instantiate(source);
-            Buffers = new GpuBeltBuffers(layout, initial, upload.Events.Length);
-            clearExternal = shader.FindKernel("ClearExternal");
-            shader.SetBuffer(clearExternal, "_ExternalReady", Buffers.ExternalReady);
-            shader.SetBuffer(clearExternal, "_ExternalSuccess", Buffers.ExternalSuccess);
+            bool initialized = false;
+            try
+            {
+                shader = UnityEngine.Object.Instantiate(source);
+                Buffers = new GpuBeltBuffers(layout, initial, upload.Events.Length);
+                clearExternal = FindKernel("ClearExternal");
+                shader.SetBuffer(clearExternal.Id, "_ExternalReady", Buffers.ExternalReady);
+                shader.SetBuffer(clearExternal.Id, "_ExternalSuccess", Buffers.ExternalSuccess);
 
-            applyExternal = shader.FindKernel("ApplyExternal");
-            shader.SetBuffer(applyExternal, "_Events", Buffers.Events);
-            shader.SetBuffer(applyExternal, "_ExternalReady", Buffers.ExternalReady);
-            shader.SetBuffer(applyExternal, "_ExternalSuccess", Buffers.ExternalSuccess);
-            shader.SetBuffer(applyExternal, "_Speeds", Buffers.Speeds);
+                applyExternal = FindKernel("ApplyExternal");
+                shader.SetBuffer(applyExternal.Id, "_Events", Buffers.Events);
+                shader.SetBuffer(applyExternal.Id, "_ExternalReady", Buffers.ExternalReady);
+                shader.SetBuffer(applyExternal.Id, "_ExternalSuccess", Buffers.ExternalSuccess);
+                shader.SetBuffer(applyExternal.Id, "_Speeds", Buffers.Speeds);
 
-            captureNormalOffers = shader.FindKernel("CaptureNormalOffers");
-            shader.SetBuffer(captureNormalOffers, "_Topology", Buffers.Topology);
-            shader.SetBuffer(captureNormalOffers, "_States", Buffers.States);
-            shader.SetBuffer(captureNormalOffers, "_Reservations", Buffers.Reservations);
-            shader.SetBuffer(captureNormalOffers, "_NormalLinks", Buffers.NormalLinks);
-            shader.SetBuffer(captureNormalOffers, "_NormalStates", Buffers.NormalStates);
+                captureNormalOffers = FindKernel("CaptureNormalOffers");
+                shader.SetBuffer(captureNormalOffers.Id, "_Topology", Buffers.Topology);
+                shader.SetBuffer(captureNormalOffers.Id, "_States", Buffers.States);
+                shader.SetBuffer(captureNormalOffers.Id, "_Reservations", Buffers.Reservations);
+                shader.SetBuffer(captureNormalOffers.Id, "_NormalLinks", Buffers.NormalLinks);
+                shader.SetBuffer(captureNormalOffers.Id, "_NormalStates", Buffers.NormalStates);
 
-            collect = shader.FindKernel("Collect");
-            BindQueue(collect);
-            shader.SetBuffer(collect, "_Buffers", Buffers.Buffers);
-            shader.SetBuffer(collect, "_Speeds", Buffers.Speeds);
+                collect = FindKernel("Collect");
+                BindQueue(collect.Id);
+                shader.SetBuffer(collect.Id, "_Buffers", Buffers.Buffers);
+                shader.SetBuffer(collect.Id, "_Speeds", Buffers.Speeds);
 
-            reserve = shader.FindKernel("Reserve");
-            shader.SetBuffer(reserve, "_Topology", Buffers.Topology);
-            shader.SetBuffer(reserve, "_States", Buffers.States);
-            shader.SetBuffer(reserve, "_Buffers", Buffers.Buffers);
-            shader.SetBuffer(reserve, "_Gaps", Buffers.Gaps);
-            shader.SetBuffer(reserve, "_Speeds", Buffers.Speeds);
-            shader.SetBuffer(reserve, "_InputPorts", Buffers.InputPorts);
-            shader.SetBuffer(reserve, "_OutputPorts", Buffers.OutputPorts);
-            shader.SetBuffer(reserve, "_ExternalReady", Buffers.ExternalReady);
-            shader.SetBuffer(reserve, "_Reservations", Buffers.Reservations);
+                reserve = FindKernel("Reserve");
+                shader.SetBuffer(reserve.Id, "_Topology", Buffers.Topology);
+                shader.SetBuffer(reserve.Id, "_States", Buffers.States);
+                shader.SetBuffer(reserve.Id, "_Buffers", Buffers.Buffers);
+                shader.SetBuffer(reserve.Id, "_Gaps", Buffers.Gaps);
+                shader.SetBuffer(reserve.Id, "_Speeds", Buffers.Speeds);
+                shader.SetBuffer(reserve.Id, "_InputPorts", Buffers.InputPorts);
+                shader.SetBuffer(reserve.Id, "_OutputPorts", Buffers.OutputPorts);
+                shader.SetBuffer(reserve.Id, "_ExternalReady", Buffers.ExternalReady);
+                shader.SetBuffer(reserve.Id, "_Reservations", Buffers.Reservations);
 
-            transfer = shader.FindKernel("Transfer");
-            BindQueue(transfer);
-            shader.SetBuffer(transfer, "_Buffers", Buffers.Buffers);
-            shader.SetBuffer(transfer, "_Speeds", Buffers.Speeds);
-            shader.SetBuffer(transfer, "_Reservations", Buffers.Reservations);
-            shader.SetBuffer(transfer, "_OutputPorts", Buffers.OutputPorts);
-            shader.SetBuffer(transfer, "_ExternalSuccess", Buffers.ExternalSuccess);
+                transfer = FindKernel("Transfer");
+                BindQueue(transfer.Id);
+                shader.SetBuffer(transfer.Id, "_Buffers", Buffers.Buffers);
+                shader.SetBuffer(transfer.Id, "_Speeds", Buffers.Speeds);
+                shader.SetBuffer(transfer.Id, "_Reservations", Buffers.Reservations);
+                shader.SetBuffer(transfer.Id, "_OutputPorts", Buffers.OutputPorts);
+                shader.SetBuffer(transfer.Id, "_ExternalSuccess", Buffers.ExternalSuccess);
 
-            advanceNormal = shader.FindKernel("AdvanceNormal");
-            BindQueue(advanceNormal);
-            shader.SetBuffer(advanceNormal, "_Speeds", Buffers.Speeds);
-            shader.SetBuffer(advanceNormal, "_Reservations", Buffers.Reservations);
-            shader.SetBuffer(advanceNormal, "_OutputPorts", Buffers.OutputPorts);
-            shader.SetBuffer(advanceNormal, "_ExternalSuccess", Buffers.ExternalSuccess);
-            shader.SetBuffer(advanceNormal, "_NormalStates", Buffers.NormalStates);
+                advanceNormal = FindKernel("AdvanceNormal");
+                BindQueue(advanceNormal.Id);
+                shader.SetBuffer(advanceNormal.Id, "_Speeds", Buffers.Speeds);
+                shader.SetBuffer(advanceNormal.Id, "_Reservations", Buffers.Reservations);
+                shader.SetBuffer(advanceNormal.Id, "_OutputPorts", Buffers.OutputPorts);
+                shader.SetBuffer(advanceNormal.Id, "_ExternalSuccess", Buffers.ExternalSuccess);
+                shader.SetBuffer(advanceNormal.Id, "_NormalStates", Buffers.NormalStates);
 
-            commitNormal = shader.FindKernel("CommitNormal");
-            BindQueue(commitNormal);
-            shader.SetBuffer(commitNormal, "_Reservations", Buffers.Reservations);
-            shader.SetBuffer(commitNormal, "_NormalLinks", Buffers.NormalLinks);
-            shader.SetBuffer(commitNormal, "_NormalStates", Buffers.NormalStates);
+                commitNormal = FindKernel("CommitNormal");
+                BindQueue(commitNormal.Id);
+                shader.SetBuffer(commitNormal.Id, "_Reservations", Buffers.Reservations);
+                shader.SetBuffer(commitNormal.Id, "_NormalLinks", Buffers.NormalLinks);
+                shader.SetBuffer(commitNormal.Id, "_NormalStates", Buffers.NormalStates);
 
-            insertExternal = shader.FindKernel("InsertExternal");
-            BindQueue(insertExternal);
-            shader.SetBuffer(insertExternal, "_Reservations", Buffers.Reservations);
-            shader.SetBuffer(insertExternal, "_Events", Buffers.Events);
-            shader.SetBuffer(insertExternal, "_ExternalInputs", Buffers.ExternalInputs);
-            shader.SetInt("_SegmentCount", segmentCount);
-            shader.SetInt("_InputCount", inputCount);
-            shader.SetInt("_OutputCount", outputCount);
-            shader.SetInt("_NormalLinkCount", normalLinkCount);
-        }
+                insertExternal = FindKernel("InsertExternal");
+                BindQueue(insertExternal.Id);
+                shader.SetBuffer(insertExternal.Id, "_Reservations", Buffers.Reservations);
+                shader.SetBuffer(insertExternal.Id, "_Events", Buffers.Events);
+                shader.SetBuffer(insertExternal.Id, "_ExternalInputs", Buffers.ExternalInputs);
+                shader.SetInt("_SegmentCount", segmentCount);
+                shader.SetInt("_InputCount", inputCount);
+                shader.SetInt("_OutputCount", outputCount);
+                shader.SetInt("_NormalLinkCount", normalLinkCount);
+                initialized = true;
+            }
+            finally
+            {
+                if (!initialized)
+                {
+                    Buffers?.Dispose();
+                    DestroyShader(shader);
+                }
+            }
 
-        void BindQueue(int kernel)
-        {
-            shader.SetBuffer(kernel, "_Topology", Buffers.Topology);
-            shader.SetBuffer(kernel, "_States", Buffers.States);
-            shader.SetBuffer(kernel, "_Gaps", Buffers.Gaps);
-            shader.SetBuffer(kernel, "_Blocks", Buffers.Blocks);
-            shader.SetBuffer(kernel, "_Items", Buffers.Items);
+            #region Internal
+
+            (int Id, int ThreadCountX) FindKernel(string name)
+            {
+                int kernel = shader.FindKernel(name);
+                shader.GetKernelThreadGroupSizes(kernel, out uint threadCountX, out _, out _);
+                return (kernel, (int)threadCountX);
+            }
+
+            void BindQueue(int kernel)
+            {
+                shader.SetBuffer(kernel, "_Topology", Buffers.Topology);
+                shader.SetBuffer(kernel, "_States", Buffers.States);
+                shader.SetBuffer(kernel, "_Gaps", Buffers.Gaps);
+                shader.SetBuffer(kernel, "_Blocks", Buffers.Blocks);
+                shader.SetBuffer(kernel, "_Items", Buffers.Items);
+            }
+
+            #endregion
         }
 
         internal void ApplyTick(BeltReplayTick tick)
@@ -118,17 +142,22 @@ namespace Client.Game.InGame.BeltSegment.Gpu
             Dispatch(advanceNormal, segmentCount);
             Dispatch(commitNormal, normalLinkCount);
             Dispatch(insertExternal, count);
-        }
 
-        void Dispatch(int kernel, int logicalCount)
-        {
-            const int maxThreads = 65535 * 64;
-            for (int offset = 0; offset < logicalCount; offset += maxThreads)
+            #region Internal
+
+            void Dispatch((int Id, int ThreadCountX) kernel, int logicalCount)
             {
-                int groups = (Math.Min(logicalCount - offset, maxThreads) + 63) / 64;
-                shader.SetInt("_DispatchOffset", offset);
-                shader.Dispatch(kernel, groups, 1, 1);
+                int maxThreads = 65535 * kernel.ThreadCountX;
+                for (int offset = 0; offset < logicalCount; offset += maxThreads)
+                {
+                    int groups = (Math.Min(logicalCount - offset, maxThreads) + kernel.ThreadCountX - 1)
+                        / kernel.ThreadCountX;
+                    shader.SetInt("_DispatchOffset", offset);
+                    shader.Dispatch(kernel.Id, groups, 1, 1);
+                }
             }
+
+            #endregion
         }
 
         public void Dispose()
@@ -136,12 +165,17 @@ namespace Client.Game.InGame.BeltSegment.Gpu
             if (disposed) return;
             disposed = true;
             Buffers.Dispose();
+            DestroyShader(shader);
+        }
+
 #if UNITY_EDITOR
+        static void DestroyShader(ComputeShader shader)
+        {
             if (!Application.isPlaying) UnityEngine.Object.DestroyImmediate(shader);
             else UnityEngine.Object.Destroy(shader);
-#else
-            UnityEngine.Object.Destroy(shader);
-#endif
         }
+#else
+        static void DestroyShader(ComputeShader shader) => UnityEngine.Object.Destroy(shader);
+#endif
     }
 }

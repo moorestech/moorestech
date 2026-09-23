@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 using UnityEngine;
 
 namespace Client.Game.InGame.BeltSegment.Gpu
@@ -11,58 +12,71 @@ namespace Client.Game.InGame.BeltSegment.Gpu
 
         internal GpuBeltBuffers(GpuBeltLayout layout, GpuBeltInitialState initial, int eventCapacity)
         {
-            Topology = Create(layout.Topology.Length, 32);
-            InputPorts = Create(layout.InputPorts.Length, 16);
-            OutputPorts = Create(layout.OutputPorts.Length, 16);
-            ExternalInputs = Create(layout.ExternalInputs.Length, 16);
-            NormalLinks = Create(layout.NormalLinks.Length, 16);
-            States = Create(initial.States.Length, 16);
-            Buffers = Create(initial.Buffers.Length, 16);
-            Gaps = Create(initial.Gaps.Length, 4);
-            Blocks = Create(initial.Blocks.Length, 4);
-            Items = Create(initial.Items.Length, 4);
-            Speeds = Create(initial.Speeds.Length, 4);
-            Reservations = Create(layout.Topology.Length, 4);
-            ExternalReady = Create(layout.ExternalInputs.Length, 4);
-            ExternalSuccess = Create(layout.OutputCount, 4);
-            NormalStates = Create(layout.NormalLinks.Length, 16);
-            Events = Create(eventCapacity, 16);
+            bool initialized = false;
+            try
+            {
+                Topology = Create<GpuBeltTopology>(layout.Topology.Length);
+                InputPorts = Create<GpuBeltPort>(layout.InputPorts.Length);
+                OutputPorts = Create<GpuBeltPort>(layout.OutputPorts.Length);
+                ExternalInputs = Create<GpuBeltPort>(layout.ExternalInputs.Length);
+                NormalLinks = Create<GpuBeltNormalLink>(layout.NormalLinks.Length);
+                States = Create<GpuBeltState>(initial.States.Length);
+                Buffers = Create<GpuBeltBufferState>(initial.Buffers.Length);
+                Gaps = Create<int>(initial.Gaps.Length);
+                Blocks = Create<int>(initial.Blocks.Length);
+                Items = Create<int>(initial.Items.Length);
+                Speeds = Create<int>(initial.Speeds.Length);
+                Reservations = Create<int>(layout.Topology.Length);
+                ExternalReady = Create<int>(layout.ExternalInputs.Length);
+                ExternalSuccess = Create<int>(layout.OutputCount);
+                NormalStates = Create<GpuBeltNormalState>(layout.NormalLinks.Length);
+                Events = Create<GpuBeltEvent>(eventCapacity);
 
-            // 不変配線と復元状態はowner生成時にだけ転送する。
-            // Upload immutable wiring and restored state only at owner construction.
-            Upload(Topology, layout.Topology);
-            Upload(InputPorts, layout.InputPorts);
-            Upload(OutputPorts, layout.OutputPorts);
-            Upload(ExternalInputs, layout.ExternalInputs);
-            Upload(NormalLinks, layout.NormalLinks);
-            Upload(States, initial.States);
-            Upload(Buffers, initial.Buffers);
-            Upload(Gaps, initial.Gaps);
-            Upload(Blocks, initial.Blocks);
-            Upload(Items, initial.Items);
-            Upload(Speeds, initial.Speeds);
-            int[] reservations = new int[layout.Topology.Length];
-            Array.Fill(reservations, -1);
-            Upload(Reservations, reservations);
-            Upload(ExternalReady, new int[layout.ExternalInputs.Length]);
-            Upload(ExternalSuccess, new int[layout.OutputCount]);
-            Upload(NormalStates, new GpuBeltNormalState[layout.NormalLinks.Length]);
-        }
+                // 不変配線・復元状態は生成時のみ転送。
+                // Upload immutable wiring and restored state only at construction.
+                Upload(Topology, layout.Topology);
+                Upload(InputPorts, layout.InputPorts);
+                Upload(OutputPorts, layout.OutputPorts);
+                Upload(ExternalInputs, layout.ExternalInputs);
+                Upload(NormalLinks, layout.NormalLinks);
+                Upload(States, initial.States);
+                Upload(Buffers, initial.Buffers);
+                Upload(Gaps, initial.Gaps);
+                Upload(Blocks, initial.Blocks);
+                Upload(Items, initial.Items);
+                Upload(Speeds, initial.Speeds);
+                int[] reservations = new int[layout.Topology.Length];
+                Array.Fill(reservations, -1);
+                Upload(Reservations, reservations);
+                Upload(ExternalReady, new int[layout.ExternalInputs.Length]);
+                Upload(ExternalSuccess, new int[layout.OutputCount]);
+                Upload(NormalStates, new GpuBeltNormalState[layout.NormalLinks.Length]);
+                initialized = true;
+            }
+            finally
+            {
+                if (!initialized) Dispose();
+            }
 
-        static GraphicsBuffer Create(int count, int stride)
-            => new GraphicsBuffer(GraphicsBuffer.Target.Structured, Math.Max(1, count), stride);
+            #region Internal
 
-        static void Upload<T>(GraphicsBuffer buffer, T[] values) where T : struct
-        {
-            if (values.Length != 0) buffer.SetData(values);
+            static GraphicsBuffer Create<T>(int count) where T : struct
+                => new GraphicsBuffer(GraphicsBuffer.Target.Structured, Math.Max(1, count), Marshal.SizeOf<T>());
+
+            static void Upload<T>(GraphicsBuffer buffer, T[] values) where T : struct
+            {
+                if (values.Length != 0) buffer.SetData(values);
+            }
+
+            #endregion
         }
 
         public void Dispose()
         {
-            Topology.Dispose(); InputPorts.Dispose(); OutputPorts.Dispose(); ExternalInputs.Dispose();
-            NormalLinks.Dispose(); States.Dispose(); Buffers.Dispose(); Gaps.Dispose(); Blocks.Dispose();
-            Items.Dispose(); Speeds.Dispose(); Reservations.Dispose(); ExternalReady.Dispose();
-            ExternalSuccess.Dispose(); NormalStates.Dispose(); Events.Dispose();
+            Topology?.Dispose(); InputPorts?.Dispose(); OutputPorts?.Dispose(); ExternalInputs?.Dispose();
+            NormalLinks?.Dispose(); States?.Dispose(); Buffers?.Dispose(); Gaps?.Dispose(); Blocks?.Dispose();
+            Items?.Dispose(); Speeds?.Dispose(); Reservations?.Dispose(); ExternalReady?.Dispose();
+            ExternalSuccess?.Dispose(); NormalStates?.Dispose(); Events?.Dispose();
         }
     }
 }

@@ -11,8 +11,8 @@ namespace Client.Tests.BeltSegment
         [Test]
         public void AbiMatchesIntegerStridesAndCoreEnums()
         {
-            // HLSLが読むstrideと判別値を固定する。
-            // Fix the strides and discriminants read by HLSL.
+            // HLSLのstride・判別値を固定。
+            // Fix HLSL strides and discriminants.
             Assert.That(Marshal.SizeOf<GpuBeltTopology>(), Is.EqualTo(32));
             Assert.That(Marshal.SizeOf<GpuBeltPort>(), Is.EqualTo(16));
             Assert.That(Marshal.SizeOf<GpuBeltState>(), Is.EqualTo(16));
@@ -83,6 +83,13 @@ namespace Client.Tests.BeltSegment
             Assert.That(initial.Buffers[2].PriorityIndex, Is.EqualTo(1));
             Assert.That(initial.Speeds, Is.EqualTo(new[] { 64, 80, 96 }));
             Assert.That(snapshot.Segments[0].Items[0].DistanceToExit, Is.EqualTo(32));
+
+            #region Internal
+
+            static BeltItemState State(int kind, int distance)
+                => new BeltItemState(new BeltItem { ItemId = kind }, distance);
+
+            #endregion
         }
 
         [Test]
@@ -103,8 +110,8 @@ namespace Client.Tests.BeltSegment
                 new[] { new BeltReplayOutput(3, BeltDirection.Right), new BeltReplayOutput(4, BeltDirection.Front) });
             var layout = new GpuBeltLayout(snapshot);
 
-            // 合流には逆ID順の内部接続の後で外部入力が並ぶ。
-            // The merge sees reverse-ID links before its external input.
+            // 合流は逆ID順link→外部入力。
+            // Merge inputs: reverse-ID links, then external input.
             Assert.That(layout.Topology[2].FirstInput, Is.Zero);
             Assert.That(layout.Topology[2].InputCount, Is.EqualTo(3));
             AssertPort(layout.InputPorts[0], 0, 1, 2);
@@ -114,8 +121,8 @@ namespace Client.Tests.BeltSegment
             AssertPort(layout.InputPorts[3], 1, 3, 3);
             AssertPort(layout.InputPorts[4], 2, 1, 1);
 
-            // 分岐のlink出力は機械出力より先に登録される。
-            // The branch link output precedes its machine output.
+            // 分岐はlink→機械出力順。
+            // Branch outputs: link before machine output.
             Assert.That(layout.Topology[3].FirstOutput, Is.EqualTo(2));
             AssertPort(layout.OutputPorts[2], 0, 4, 2);
             AssertPort(layout.OutputPorts[3], 2, 0, 3);
@@ -156,8 +163,7 @@ namespace Client.Tests.BeltSegment
                 Array.Empty<BeltReplayOutput>());
             var layout = new GpuBeltLayout(snapshot);
             Assert.That(layout.NormalLinks.Length, Is.EqualTo(1));
-            Assert.That((layout.NormalLinks[0].Source, layout.NormalLinks[0].Target,
-                layout.NormalLinks[0].InputDirection), Is.EqualTo((0, 0, 1)));
+            Assert.That((layout.NormalLinks[0].Target, layout.NormalLinks[0].InputDirection), Is.EqualTo((0, 1)));
             Assert.That(layout.Topology[0].NormalLinkIndex, Is.Zero);
             Assert.That((layout.Topology[0].InputCount, layout.Topology[0].OutputCount), Is.EqualTo((1, 1)));
         }
@@ -165,9 +171,6 @@ namespace Client.Tests.BeltSegment
         private static BeltReplaySnapshot Snapshot(BeltReplaySegmentState[] segments)
             => new BeltReplaySnapshot(segments, Array.Empty<BeltReplayLink>(), Array.Empty<BeltReplayInput>(),
                 Array.Empty<BeltReplayOutput>());
-
-        private static BeltItemState State(int kind, int distance)
-            => new BeltItemState(new BeltItem { ItemId = kind }, distance);
 
         private static void AssertPort(GpuBeltPort port, int kind, int id, int direction)
             => Assert.That((port.Kind, port.Id, port.Direction), Is.EqualTo((kind, id, direction)));

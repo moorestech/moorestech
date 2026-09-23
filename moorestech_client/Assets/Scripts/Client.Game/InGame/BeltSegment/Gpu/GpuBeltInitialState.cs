@@ -30,8 +30,8 @@ namespace Client.Game.InGame.BeltSegment.Gpu
                 int blockSize = 0;
                 int totalGap = 0;
 
-                // Captureの出口距離からhead 0の隙間列を復元する。
-                // Rebuild the head-zero gap lane from captured exit distances.
+                // Capture距離→head0隙間列。
+                // Capture distances become the head-zero gap lane.
                 for (int i = 0; i < segment.Items.Length; i++)
                 {
                     var item = segment.Items[i];
@@ -40,8 +40,8 @@ namespace Client.Game.InGame.BeltSegment.Gpu
                     Items[offset + i] = item.Item.ItemId;
                     totalGap += gap;
 
-                    // 密着ブロックの先頭と末尾だけに個数を置く。
-                    // Store touching block sizes at its first and last slots.
+                    // 密着列の両端だけに個数を置く。
+                    // Store touching-block sizes only at both ends.
                     if (i == 0 || gap != 0)
                     {
                         blockStart = i;

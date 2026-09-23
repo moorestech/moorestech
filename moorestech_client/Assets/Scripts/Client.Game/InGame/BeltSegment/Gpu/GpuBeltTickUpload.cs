@@ -24,19 +24,19 @@ namespace Client.Game.InGame.BeltSegment.Gpu
             System.Array.Clear(seenOutputs, 0, seenOutputs.Length);
             System.Array.Clear(seenSpeeds, 0, seenSpeeds.Length);
             int count = 0;
-            // 正集合を冪等化し、同じ速度IDの最後の値を残す。
-            // Deduplicate positive sets and retain the last speed for each ID.
+            // 正集合は冪等、速度はID別の最終値。
+            // Deduplicate positive sets; keep the last speed per ID.
             foreach (int id in tick.ReadyInputs)
                 if (!seenInputs[id])
                 {
                     seenInputs[id] = true;
-                    Events[count++] = new GpuBeltEvent { Kind = GpuBeltData.ReadyInput, Id = id, Value = 1 };
+                    Events[count++] = GpuBeltEvent.ReadyInput(id);
                 }
             foreach (int id in tick.SuccessfulOutputs)
                 if (!seenOutputs[id])
                 {
                     seenOutputs[id] = true;
-                    Events[count++] = new GpuBeltEvent { Kind = GpuBeltData.SuccessfulOutput, Id = id, Value = 1 };
+                    Events[count++] = GpuBeltEvent.SuccessfulOutput(id);
                 }
             int speedCount = 0;
             foreach (var change in tick.SpeedChanges)
@@ -51,14 +51,10 @@ namespace Client.Game.InGame.BeltSegment.Gpu
             for (int i = 0; i < speedCount; i++)
             {
                 int id = speedIds[i];
-                Events[count++] = new GpuBeltEvent { Kind = GpuBeltData.Speed, Id = id, Value = speedValues[id] };
+                Events[count++] = GpuBeltEvent.SpeedChange(new BeltReplaySpeedChange(id, speedValues[id]));
             }
             foreach (var insertion in tick.Insertions)
-                Events[count++] = new GpuBeltEvent
-                {
-                    Kind = GpuBeltData.Insertion, Id = insertion.InputId,
-                    Value = insertion.Length, Extra = insertion.Item.ItemId
-                };
+                Events[count++] = GpuBeltEvent.Insert(insertion);
             return count;
         }
     }

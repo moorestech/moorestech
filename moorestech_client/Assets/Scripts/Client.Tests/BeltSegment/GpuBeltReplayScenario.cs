@@ -10,11 +10,6 @@ namespace Client.Tests.BeltSegment
 {
     internal static class GpuBeltReplayScenario
     {
-        static BeltItem Item(int id) => new BeltItem
-        {
-            Guid = new Guid(id, 0, 0, new byte[8]), ItemId = id
-        };
-
         internal static void Run(ComputeShader shader, bool serverParallel)
         {
             var empty = Array.Empty<BeltItemState>();
@@ -86,7 +81,7 @@ namespace Client.Tests.BeltSegment
                         int length = Math.Min(128, actual.GetInputOffer(i));
                         if (length <= 0) continue;
                         var item = Item(nextId);
-                        if (!actual.TryInsert(i, length, item)) continue;
+                        Assert.That(actual.TryInsert(i, length, item), Is.True, $"input {i}, tick {tick}");
                         nextId++;
                         Assert.That(owned.Add(item.Guid), Is.True);
                         insertions.Add(new BeltReplayInsertion(i, length, item));
@@ -106,31 +101,40 @@ namespace Client.Tests.BeltSegment
                     gpu.Dispose();
                     gpu = new GpuBeltSimulation(expected, shader);
                     replay = new BeltReplaySimulation(reproduced);
-                    GpuBeltReplayReadback.AssertMatches(expected, gpu);
+                    GpuBeltReplayReadback.AssertMatches(expected, gpu, tick);
                 }
             }
             finally { gpu.Dispose(); }
-        }
 
-        static void AssertSame(BeltReplaySnapshot expected, BeltReplaySnapshot actual, int tick)
-        {
-            for (int i = 0; i < expected.Segments.Length; i++)
+            #region Internal
+
+            static BeltItem Item(int id) => new BeltItem
             {
-                var a = expected.Segments[i];
-                var b = actual.Segments[i];
-                Assert.That((b.Kind, b.Capacity, b.Speed, b.PriorityIndex),
-                    Is.EqualTo((a.Kind, a.Capacity, a.Speed, a.PriorityIndex)), $"tick {tick}, segment {i}");
-                Assert.That(b.Items.Length, Is.EqualTo(a.Items.Length), $"tick {tick}, segment {i}");
-                for (int j = 0; j < a.Items.Length; j++)
+                Guid = new Guid(id, 0, 0, new byte[8]), ItemId = id
+            };
+
+            static void AssertSame(BeltReplaySnapshot expected, BeltReplaySnapshot actual, int tick)
+            {
+                for (int i = 0; i < expected.Segments.Length; i++)
                 {
-                    Assert.That(b.Items[j].DistanceToExit, Is.EqualTo(a.Items[j].DistanceToExit));
-                    Assert.That(b.Items[j].Item.Guid, Is.EqualTo(a.Items[j].Item.Guid));
-                    Assert.That(b.Items[j].Item.ItemId, Is.EqualTo(a.Items[j].Item.ItemId));
+                    var a = expected.Segments[i];
+                    var b = actual.Segments[i];
+                    Assert.That((b.Kind, b.Capacity, b.Speed, b.PriorityIndex),
+                        Is.EqualTo((a.Kind, a.Capacity, a.Speed, a.PriorityIndex)), $"tick {tick}, segment {i}");
+                    Assert.That(b.Items.Length, Is.EqualTo(a.Items.Length), $"tick {tick}, segment {i}");
+                    for (int j = 0; j < a.Items.Length; j++)
+                    {
+                        Assert.That(b.Items[j].DistanceToExit, Is.EqualTo(a.Items[j].DistanceToExit));
+                        Assert.That(b.Items[j].Item.Guid, Is.EqualTo(a.Items[j].Item.Guid));
+                        Assert.That(b.Items[j].Item.ItemId, Is.EqualTo(a.Items[j].Item.ItemId));
+                    }
+                    Assert.That(b.BufferedItem.HasValue, Is.EqualTo(a.BufferedItem.HasValue));
+                    if (a.BufferedItem.HasValue)
+                        Assert.That(b.BufferedItem.Value.Guid, Is.EqualTo(a.BufferedItem.Value.Guid));
                 }
-                Assert.That(b.BufferedItem.HasValue, Is.EqualTo(a.BufferedItem.HasValue));
-                if (a.BufferedItem.HasValue)
-                    Assert.That(b.BufferedItem.Value.Guid, Is.EqualTo(a.BufferedItem.Value.Guid));
             }
+
+            #endregion
         }
 
         sealed class Source : IBeltSource
@@ -146,7 +150,7 @@ namespace Client.Tests.BeltSegment
             internal BeltItem Item { get; private set; }
             internal void Prepare(bool value) { accept = value; Sent = false; }
             public void AttachInput(IBeltSource source, BeltDirection direction) { }
-            public int GetOffer(BeltDirection direction) => 256;
+            public int GetOffer(BeltDirection direction) => BeltConstants.ItemWidth;
             public bool TryReceive(BeltDirection direction, int length, in BeltItem item)
             {
                 if (!accept) return false;

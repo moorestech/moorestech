@@ -22,8 +22,8 @@ namespace Client.Game.InGame.BeltSegment.Gpu
             var normalLinks = new List<GpuBeltNormalLink>();
             int offset = 0;
 
-            // segment indexを維持し、列の領域を容量で連結する。
-            // Keep segment indices and concatenate lanes by capacity.
+            // segment順で容量分の列を連結。
+            // Concatenate capacity-sized lanes in segment order.
             for (int i = 0; i < segmentCount; i++)
             {
                 var segment = snapshot.Segments[i];
@@ -62,7 +62,7 @@ namespace Client.Game.InGame.BeltSegment.Gpu
                 Topology[link.SourceSegmentId] = topology;
                 normalLinks.Add(new GpuBeltNormalLink
                 {
-                    Source = link.SourceSegmentId, Target = link.TargetSegmentId,
+                    Target = link.TargetSegmentId,
                     InputDirection = inputDirection
                 });
             }

@@ -10,8 +10,8 @@ namespace Client.Tests.BeltSegment
     {
         static readonly BeltItemState[] empty = Array.Empty<BeltItemState>();
         static readonly BeltReplaySpeedChange[] noSpeeds = Array.Empty<BeltReplaySpeedChange>();
-        static readonly int[] noIds = Array.Empty<int>();
-        static readonly BeltReplayInsertion[] noInsertions = Array.Empty<BeltReplayInsertion>();
+        internal static readonly int[] noIds = Array.Empty<int>();
+        internal static readonly BeltReplayInsertion[] noInsertions = Array.Empty<BeltReplayInsertion>();
 
         [Test]
         public void EmptyGraphAndRebuild()
@@ -20,13 +20,13 @@ namespace Client.Tests.BeltSegment
             var shader = Shader();
             using (var gpu = new GpuBeltSimulation(snapshot, shader))
             {
-                gpu.ApplyTick(Tick());
-                GpuBeltReplayReadback.AssertMatches(snapshot, gpu);
+                gpu.ApplyTick(Tick(noIds, noIds, noInsertions));
+                GpuBeltReplayReadback.AssertMatches(snapshot, gpu, -1);
             }
             using (var gpu = new GpuBeltSimulation(snapshot, shader))
             {
-                gpu.ApplyTick(Tick());
-                GpuBeltReplayReadback.AssertMatches(snapshot, gpu);
+                gpu.ApplyTick(Tick(noIds, noIds, noInsertions));
+                GpuBeltReplayReadback.AssertMatches(snapshot, gpu, -1);
             }
         }
 
@@ -39,10 +39,10 @@ namespace Client.Tests.BeltSegment
             using (var gpu = new GpuBeltSimulation(snapshot, Shader()))
             {
                 var cpu = new BeltReplaySimulation(snapshot);
-                var frame = Tick(insertions: new[] { Insert(0, 64, 7) });
+                var frame = Tick(noIds, noIds, new[] { Insert(0, 64, 7) });
                 Apply(cpu, gpu, frame);
                 Assert.That(cpu.CaptureSnapshot().Segments[0].Items[0].DistanceToExit, Is.EqualTo(448));
-                Apply(cpu, gpu, Tick());
+                Apply(cpu, gpu, Tick(noIds, noIds, noInsertions));
                 Assert.That(cpu.CaptureSnapshot().Segments[0].Items[0].DistanceToExit, Is.EqualTo(384));
             }
         }
@@ -58,7 +58,7 @@ namespace Client.Tests.BeltSegment
             using (var gpu = new GpuBeltSimulation(snapshot, Shader()))
             {
                 var cpu = new BeltReplaySimulation(snapshot);
-                Apply(cpu, gpu, Tick());
+                Apply(cpu, gpu, Tick(noIds, noIds, noInsertions));
                 Assert.That(cpu.CaptureSnapshot().Segments[0].Items[0].DistanceToExit, Is.EqualTo(992));
             }
             snapshot = new BeltReplaySnapshot(new[]
@@ -69,7 +69,7 @@ namespace Client.Tests.BeltSegment
             using (var gpu = new GpuBeltSimulation(snapshot, Shader()))
             {
                 var cpu = new BeltReplaySimulation(snapshot);
-                Apply(cpu, gpu, Tick());
+                Apply(cpu, gpu, Tick(noIds, noIds, noInsertions));
                 Assert.That(cpu.CaptureSnapshot().Segments[0].Items[0].DistanceToExit, Is.Zero);
                 Assert.That(cpu.CaptureSnapshot().Segments[0].Items[1].DistanceToExit, Is.EqualTo(256));
             }
@@ -87,7 +87,7 @@ namespace Client.Tests.BeltSegment
             using (var gpu = new GpuBeltSimulation(snapshot, Shader()))
             {
                 var cpu = new BeltReplaySimulation(snapshot);
-                Apply(cpu, gpu, Tick());
+                Apply(cpu, gpu, Tick(noIds, noIds, noInsertions));
                 Assert.That(cpu.CaptureSnapshot().Segments[0].Items[0].DistanceToExit, Is.Zero);
             }
         }
@@ -103,9 +103,9 @@ namespace Client.Tests.BeltSegment
             using (var gpu = new GpuBeltSimulation(snapshot, Shader()))
             {
                 var cpu = new BeltReplaySimulation(snapshot);
-                Apply(cpu, gpu, Tick(outputs: new[] { 0 }));
+                Apply(cpu, gpu, Tick(noIds, new[] { 0 }, noInsertions));
                 Assert.That(cpu.CaptureSnapshot().Segments[0].BufferedItem.HasValue, Is.False);
-                Apply(cpu, gpu, Tick());
+                Apply(cpu, gpu, Tick(noIds, noIds, noInsertions));
             }
         }
 
@@ -140,28 +140,35 @@ namespace Client.Tests.BeltSegment
             => new BeltItemState(new BeltItem { ItemId = kind }, distance);
         internal static BeltReplayInsertion Insert(int input, int length, int kind)
             => new BeltReplayInsertion(input, length, new BeltItem { ItemId = kind });
-        internal static BeltReplayTick Tick(int[] ready = null, int[] outputs = null,
-            BeltReplayInsertion[] insertions = null)
-            => new BeltReplayTick(noSpeeds, ready ?? noIds, outputs ?? noIds, insertions ?? noInsertions);
+        internal static BeltReplayTick Tick(int[] ready, int[] outputs,
+            BeltReplayInsertion[] insertions)
+            => new BeltReplayTick(noSpeeds, ready, outputs, insertions);
         internal static void Apply(BeltReplaySimulation cpu, GpuBeltSimulation gpu, BeltReplayTick tick)
         {
             cpu.ApplyTick(tick, false);
             gpu.ApplyTick(tick);
-            GpuBeltReplayReadback.AssertMatches(cpu.CaptureSnapshot(), gpu);
+            GpuBeltReplayReadback.AssertMatches(cpu.CaptureSnapshot(), gpu, -1);
         }
         internal static ComputeShader Shader()
         {
             Assert.That(SystemInfo.supportsComputeShaders, Is.True, "Compute shaders are required for GPU replay tests.");
             var shader = Resources.Load<ComputeShader>("BeltSegment/BeltGpuReplay");
             Assert.That(shader, Is.Not.Null);
+            AssertShaderDiagnostics(shader);
+            return shader;
+        }
+
 #if UNITY_EDITOR
+        static void AssertShaderDiagnostics(ComputeShader shader)
+        {
             foreach (var message in UnityEditor.ShaderUtil.GetComputeShaderMessages(shader))
             {
                 TestContext.WriteLine($"compute {message.severity}: {message.message}");
                 Assert.That(message.severity.ToString(), Is.Not.EqualTo("Error"), message.message);
             }
-#endif
-            return shader;
         }
+#else
+        static void AssertShaderDiagnostics(ComputeShader shader) { }
+#endif
     }
 }

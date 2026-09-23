@@ -10,6 +10,8 @@
 
 Base: `codex/belt-segment-replay` の `08e7c01c803cb6ed33d558cff8af3c0df8e76774`。2026-09-23にfetchしorigin/master `3fecf603f17897c96a34bd3a84863c220c993b64` を含むことを確認。作業branch `codex/belt-segment-gpu-replay`、ユーザー指定のメインcheckoutで続行する。
 
+**現在の検証と全体進捗（2026-09-23）:** CEF 0.6.1の通常Editor環境は復旧済み。source修正後の計算単位の焦点EditMode実GPUテストは26/26成功・skip0（`postfix-gpu-tests.json`、完了2026-09-23T14:24:28.7736446Z）。同source修正後の単独増分compileはerror0/warning0（`postfix-compile.json`）。その後のコメントのみのC#短縮を受けた最新の単独増分compileは成功・error0/warning14（`postfix-comment-compile.json`）。14件はすべてGPU変更対象外パスで、BlockPreviewBoundingBox 4件、SkitManager 1件、GearBeltConveyorStateChangeProcessor 1件、UnitGenerator 5件、EditModeInPlayingTestUtil 3件。さらに以前のTask1 full compileはerror0/warning39で、39件は変更対象外パスの既存警告として別の履歴に残す。これらはGPU上の整数再現の検証であり、Core→World/機械→tick/seq維持のclient replay→GPUインスタンシングとトポロジー全再構築を通した新規ワールドの実プレイは未完成。今後のshader修正後も実GPU照合を再実行する。
+
 ## Requirements
 
 - R1: CPU snapshotのNormal/Merge/Branch、容量・速度・順序付き接続・列の種類/距離・buffer占有・RRから全GPU状態を構築し、空graphも生成/破棄できる。
@@ -21,11 +23,14 @@ Base: `codex/belt-segment-replay` の `08e7c01c803cb6ed33d558cff8af3c0df8e76774`
 - R7: トポロジー変更のGPU操作は旧ownerを破棄して新snapshotから全生成する。partial rebuildを追加しない。再生成直後とその後の連続tickがCPUと一致する。
 - R8: 有効なCore構成で各phaseの書込先が一意となることを記述し、self link/輪/合流競合を実GPUで検査する。test用readbackを製品の物理判断へ使わない。
 - R9: graphics資源と複製したComputeShaderをownerが破棄する。論理0件に対する物理bufferは最低1要素とし、0group dispatchを行わない。thread余剰分は範囲外に書かない。
-- R10: このPRはGPU計算単位。実World・save・wire/seq・client購読・モデル/画像のinstancing・20Hz補間・旧Entity切替・実ゲーム検証は全体完了の残作業として維持する。Q1/Q3/Q4/Q7を仮定で埋めない。
+- R10: このPRはGPU計算単位。実World・機械接続・新形式save/restore・wire/seq・client購読・画像テクスチャ付き箱のGPU instancing・20Hz確定tick位置描画・旧Entity切替・実ゲーム検証は全体完了の残作業として維持する。D14〜D21を後続統合へ適用し、旧セーブ変換、滑らかな補間、カスタム3Dモデル対応、実ゲーム並列化は次回とする。
 
 ## Global Constraints
 
-- 仕様の正本は `E:/Dropbox/seg/mock/8/Core`、既存Game.BeltSegmentとD9〜D13。Coreの計算変更をこのPRへ混ぜない。
+- 仕様の正本は `E:/Dropbox/seg/mock/8/Core`、既存Game.BeltSegmentとD9〜D21。Coreの計算変更をこのPRへ混ぜない。D14の全liveベルト同一固定速度・歯車供給非依存・占有による負荷切替なしは後続World側の方針であり、数値速度や負荷ゼロを仮定せず、この計算単位の汎用明示速度API・GPU parity fixtureを削除しない。D10はD14で失効した履歴。
+- D15に従い、挙動・残す機能・試作範囲・工数や手戻りを大きく変えるアーキテクチャの分岐は相談する。通常の実装選択は自律的に進め、動く一気通貫の新規ワールド試作と次回へ残す知見を優先する。
+- D16〜D20の後続統合: 独立した旧フィルター分岐器を廃止し、新Core Branch/Mergeを維持する。新規ワールドと新形式save/restoreを対象にし、旧セーブ変換は次回、旧ファイル保持と明示的version境界を要する。ベルトの設置は水平4方向と坂に絞り、真上・真下のベルト設置だけを入力・preview・サーバー検証から除く。描画は20Hzの確定tick位置とアイテム画像テクスチャ付き箱を使い、滑らかな補間・カスタム3Dモデルは次回へ送る。
+- D21の後続統合: 試作のゲームWorld runnerは `Tick(false)` で逐次実行する。実ゲームの並列化と機械在庫との並列同期は次回へ送る。Coreの並列API、Normal接続で前tick状態を参照するD11規則、既存GPU parity fixture（並列Core比較を含む）は維持する。この計算単位でゲームWorldの実行や統合完了を主張しない。
 - 参考実装はMyBeltConvSegmentの確認済み `2ae915273fc0005f5b8bc759ee07470e92875219` の `uni/Assets/BeltLab`。現在のMoveLast/Loop種別は採用しない。過去1bbe206は現checkoutで解決できない。
 - 参照の保存済みexport: `C:/Users/5080/Documents/ChatGPT/segment-normal-diagnostics/MyBeltConvSegment-2ae9152-reference.tar`、SHA256 `E4185B374C286158EF913AD648AE9AF0B73A1E52CA910ED0ABA24BF754AD1D04`。参考のみで製品依存にしない。
 - CPU状態はCaptureの公開値から作り、Core private reflectionをしない。BeltItem.Positionをこの計算単位で更新しない。
@@ -33,7 +38,7 @@ Base: `codex/belt-segment-replay` の `08e7c01c803cb6ed33d558cff8af3c0df8e76774`
 - 1ファイル200行以下・各ディレクトリ10コードファイル以下。partial/Funcは禁止。主要処理のコメントは簡潔な日英ペア。
 - .metaはUnity生成のみ。shaderテキストとasmdef(JSON)は編集可能、Unity YAML/Prefab/Sceneは直接編集禁止。Library削除禁止。
 - 既存dirty5（uloop pin、client/server CompileRequester、ShaderGraphSettings、ConnectOverride.meta）をstage/revertしない。
-- UnityのCEF0.6.1環境復旧が進行中。独立のpackingコード/テスト作成は可能だが、GPUが実行できない状態を成功扱いにせず、実GPUの検証完了まで閉じない。
+- UnityのCEF0.6.1環境は通常Editorで復旧済み。RTX 5090 / Direct3D12 level 12.2でsource修正後の焦点EditMode実GPUテスト26/26成功・skip0（`postfix-gpu-tests.json`）。単独増分compileはsource修正後0error/0warning（`postfix-compile.json`）、続くコメントのみのC#短縮後の最新実行は0error/14warning（`postfix-comment-compile.json`、全件GPU変更対象外パス）。以前のTask1 full compileの0error/39warningは別の履歴として保持する。GPUコード変更後と全体統合時の実GPU検証は引き続き必要。
 
 ## File Structure / Interfaces
 
@@ -337,7 +342,7 @@ GPU全ケース、既存.NET100件成功、compile0error、compute error0。Grap
 | server/client CPU CoreとReplay | 同じ公開契約・物理処理を維持 |
 | 既存Worldの搬送/旧Entity表示 | この単位では既存経路のまま。後続cutoverで置換 |
 | GPU整数状態の再現 | このPRの実装/検証対象 |
-| 実ゲームのGPU instancingと補間 | 全体残作業。synthetic compute比較で完成扱いにしない |
+| 実ゲームのGPU instancingと20Hz確定tick位置描画 | 全体残作業。今回の表示はアイテム画像を貼った箱とし、synthetic compute比較で完成扱いにしない。滑らかな補間とカスタム3Dモデル対応は次回 |
 
 ## 判断記録（ADR）
 

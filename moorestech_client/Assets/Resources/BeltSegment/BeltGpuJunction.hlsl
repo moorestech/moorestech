@@ -4,13 +4,13 @@
 
 // 速度0でも出口にある走行品を空bufferへ回収する。
 // Collect an item already at the exit into an empty buffer even at speed zero.
-[numthreads(64, 1, 1)]
+[numthreads(BELT_GPU_THREAD_COUNT_X, 1, 1)]
 void Collect(uint3 tid : SV_DispatchThreadID)
 {
     uint i = tid.x + _DispatchOffset;
     if (i >= _SegmentCount) return;
     GpuBeltTopology t = _Topology[i];
-    if (t.Kind == 0) return;
+    if (t.Kind == SegmentNormal) return;
     GpuBeltState s = _States[i];
     GpuBeltBufferState b = _Buffers[i];
     Advance(t, s, _Speeds[i], false);
@@ -25,13 +25,13 @@ void Collect(uint3 tid : SV_DispatchThreadID)
 }
 // 回収後の空Mergeで、登録順と開始indexから唯一の入口を予約する。
 // Reserve one input by registration order and start index after collection.
-[numthreads(64, 1, 1)]
+[numthreads(BELT_GPU_THREAD_COUNT_X, 1, 1)]
 void Reserve(uint3 tid : SV_DispatchThreadID)
 {
     uint i = tid.x + _DispatchOffset;
     if (i >= _SegmentCount) return;
     GpuBeltTopology t = _Topology[i];
-    if (t.Kind != 1) return;
+    if (t.Kind != SegmentMerge) return;
     _Reservations[i] = -1;
     GpuBeltState s = _States[i];
     if (s.Count != 0) return;
@@ -46,13 +46,13 @@ void Reserve(uint3 tid : SV_DispatchThreadID)
 }
 // 成功時は選ばれた出力でなく旧開始indexを一つ進める。
 // On success rotate from the old starting index, not the chosen output.
-[numthreads(64, 1, 1)]
+[numthreads(BELT_GPU_THREAD_COUNT_X, 1, 1)]
 void Transfer(uint3 tid : SV_DispatchThreadID)
 {
     uint i = tid.x + _DispatchOffset;
     if (i >= _SegmentCount) return;
     GpuBeltTopology t = _Topology[i];
-    if (t.Kind == 0) return;
+    if (t.Kind == SegmentNormal) return;
     GpuBeltBufferState b = _Buffers[i];
     int speed = _Speeds[i];
     if (b.HasItem == 0 || speed == 0) return;

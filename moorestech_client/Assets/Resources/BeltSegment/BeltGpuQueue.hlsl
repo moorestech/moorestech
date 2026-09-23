@@ -44,7 +44,7 @@ void Dequeue(GpuBeltTopology t, inout GpuBeltState s)
     if (s.Count > 0)
     {
         int head = Physical(t, s, 0);
-        SetGap(head, _Gaps[head] + gap + 256, s);
+        SetGap(head, _Gaps[head] + gap + ItemWidth, s);
     }
     if (size > 0)
     {

@@ -7,7 +7,7 @@ namespace Client.Tests.BeltSegment
 {
     internal static class GpuBeltReplayReadback
     {
-        internal static void AssertMatches(BeltReplaySnapshot expected, GpuBeltSimulation simulation, int tick = -1)
+        internal static void AssertMatches(BeltReplaySnapshot expected, GpuBeltSimulation simulation, int tick)
         {
             var layout = new GpuBeltLayout(expected);
             var buffers = simulation.Buffers;
@@ -38,7 +38,7 @@ namespace Client.Tests.BeltSegment
                 for (int item = 0; item < state.Count; item++)
                 {
                     int p = topology.Offset + (state.Head + item) % topology.Capacity;
-                    distance += gaps[p] + (item == 0 ? 0 : 256);
+                    distance += gaps[p] + (item == 0 ? 0 : BeltConstants.ItemWidth);
                     totalGap += gaps[p];
                     Assert.That(distance, Is.EqualTo(segment.Items[item].DistanceToExit), $"segment {id} item {item} distance");
                     Assert.That(kinds[p], Is.EqualTo(segment.Items[item].Item.ItemId), $"segment {id} item {item} kind");
@@ -58,13 +58,17 @@ namespace Client.Tests.BeltSegment
                 }
                 Assert.That(state.TotalGap, Is.EqualTo(totalGap), $"segment {id} total gap");
             }
-        }
 
-        static T[] Read<T>(GraphicsBuffer buffer, int count) where T : struct
-        {
-            var values = new T[count];
-            if (count != 0) buffer.GetData(values, 0, 0, count);
-            return values;
+            #region Internal
+
+            static T[] Read<T>(GraphicsBuffer buffer, int count) where T : struct
+            {
+                var values = new T[count];
+                if (count != 0) buffer.GetData(values, 0, 0, count);
+                return values;
+            }
+
+            #endregion
         }
     }
 }

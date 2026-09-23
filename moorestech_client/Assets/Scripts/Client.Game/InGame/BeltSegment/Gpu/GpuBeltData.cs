@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using Game.BeltSegment;
 
 namespace Client.Game.InGame.BeltSegment.Gpu
 {
@@ -14,48 +15,65 @@ namespace Client.Game.InGame.BeltSegment.Gpu
         internal const int Insertion = 3;
     }
 
-    // GPU ABIは32-bit整数だけで構成する。
-    // The GPU ABI contains only 32-bit integers.
+    // GPU ABIはint32のみ。
+    // The GPU ABI uses only 32-bit integers.
     [StructLayout(LayoutKind.Sequential)]
     internal struct GpuBeltTopology
     {
-        public int Offset, Capacity, Kind, FirstInput;
-        public int InputCount, FirstOutput, OutputCount, NormalLinkIndex;
+        internal int Offset, Capacity, Kind, FirstInput;
+        internal int InputCount, FirstOutput, OutputCount, NormalLinkIndex;
     }
 
     [StructLayout(LayoutKind.Sequential)]
     internal struct GpuBeltPort
     {
-        public int Kind, Id, Direction, Unused;
+        internal int Kind, Id, Direction, Unused;
     }
 
     [StructLayout(LayoutKind.Sequential)]
     internal struct GpuBeltState
     {
-        public int Head, Count, TotalGap, PriorityIndex;
+        internal int Head, Count, TotalGap, PriorityIndex;
     }
 
     [StructLayout(LayoutKind.Sequential)]
     internal struct GpuBeltBufferState
     {
-        public int HasItem, ItemKind, PriorityIndex, Unused;
+        internal int HasItem, ItemKind, PriorityIndex, Unused;
     }
 
     [StructLayout(LayoutKind.Sequential)]
     internal struct GpuBeltNormalLink
     {
-        public int Source, Target, InputDirection, Unused;
+        internal int Target, InputDirection, Unused0, Unused1;
     }
 
     [StructLayout(LayoutKind.Sequential)]
     internal struct GpuBeltNormalState
     {
-        public int AvailableSpace, Length, ItemKind, Unused;
+        internal int AvailableSpace, Length, ItemKind, Unused;
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    internal struct GpuBeltEvent
+    internal readonly struct GpuBeltEvent
     {
-        public int Kind, Id, Value, Extra;
+        internal readonly int Kind, Id, Value, Extra;
+
+        private GpuBeltEvent(int kind, int id, int value, int extra)
+        {
+            Kind = kind;
+            Id = id;
+            Value = value;
+            Extra = extra;
+        }
+
+        internal static GpuBeltEvent ReadyInput(int inputId)
+            => new GpuBeltEvent(GpuBeltData.ReadyInput, inputId, 1, 0);
+        internal static GpuBeltEvent SuccessfulOutput(int outputId)
+            => new GpuBeltEvent(GpuBeltData.SuccessfulOutput, outputId, 1, 0);
+        internal static GpuBeltEvent SpeedChange(in BeltReplaySpeedChange change)
+            => new GpuBeltEvent(GpuBeltData.Speed, change.SegmentId, change.Speed, 0);
+        internal static GpuBeltEvent Insert(in BeltReplayInsertion insertion)
+            => new GpuBeltEvent(GpuBeltData.Insertion, insertion.InputId, insertion.Length, insertion.Item.ItemId);
     }
 }
