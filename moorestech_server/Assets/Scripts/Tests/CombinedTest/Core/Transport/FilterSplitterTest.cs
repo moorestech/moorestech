@@ -243,7 +243,7 @@ namespace Tests.CombinedTest.Core.Transport
                 var selfConnector = new OutputConnectsElement(i, outputs[i].ConnectorGuid, null, Vector3Int.zero, Array.Empty<Vector3Int>());
                 var targetConnector = new OutputConnectsElement(i + 100, Guid.NewGuid(), null, Vector3Int.zero, Array.Empty<Vector3Int>());
                 dummies[i] = new DummyBlockInventory();
-                connectedTargets.Add(dummies[i], new ConnectedInfo(selfConnector, targetConnector, null));
+                connectedTargets.Add(dummies[i], new ConnectedInfo(selfConnector, targetConnector, null, UnityEngine.Vector3Int.zero));
             }
 
             return (splitter, component, dummies);

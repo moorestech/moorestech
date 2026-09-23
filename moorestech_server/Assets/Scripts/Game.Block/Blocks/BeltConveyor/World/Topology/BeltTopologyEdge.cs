@@ -18,8 +18,7 @@ namespace Game.Block.Blocks.BeltConveyor
             Source = source; Target = target; Connection = connection;
             SourceCell = connection.SelfConnector == null ? source.BlockPositionInfo.OriginalPos
                 : source.BlockPositionInfo.ConvertBlockLocalToWorldCell(connection.SelfConnector.Offset);
-            TargetCell = connection.TargetConnector == null ? connection.TargetBlock.BlockPositionInfo.OriginalPos
-                : connection.TargetBlock.BlockPositionInfo.ConvertBlockLocalToWorldCell(connection.TargetConnector.Offset);
+            TargetCell = connection.TargetConnectorCell;
             Direction = BeltTopologyGeometry.Direction(TargetCell - SourceCell);
         }
         internal InsertItemContext Context => new(Source.BlockInstanceId, Connection.SelfConnector, Connection.TargetConnector);

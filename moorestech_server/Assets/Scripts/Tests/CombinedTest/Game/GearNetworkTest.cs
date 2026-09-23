@@ -480,8 +480,8 @@ namespace Tests.CombinedTest.Game
             var gear2Transform = gear2.GetComponent<IGearEnergyTransformer>();
             
             
-            var gear1Info = new ConnectedInfo(CreateGearConnector(0), CreateGearConnector(1), gear1);
-            var gear2Info = new ConnectedInfo(CreateGearConnector(0), CreateGearConnector(1), gear2);
+            var gear1Info = new ConnectedInfo(CreateGearConnector(0), CreateGearConnector(1), gear1, gear1.BlockPositionInfo.OriginalPos);
+            var gear2Info = new ConnectedInfo(CreateGearConnector(0), CreateGearConnector(1), gear2, gear2.BlockPositionInfo.OriginalPos);
             
             ((Dictionary<IGearEnergyTransformer, ConnectedInfo>)gear1Connector.ConnectedTargets).Add(gear2Transform, gear2Info);
             ((Dictionary<IGearEnergyTransformer, ConnectedInfo>)gear2Connector.ConnectedTargets).Add(gear1Transform, gear1Info);

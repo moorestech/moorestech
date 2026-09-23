@@ -70,7 +70,7 @@ namespace Game.Block.Component.ConnectOverride
                     throw new InvalidOperationException($"Selected belt target is missing at {input.OwnerCell}");
                 if (!targetBlock.TryGetComponent<IBlockInventory>(out var inventory))
                     throw new InvalidOperationException($"Selected belt target has no inventory at {input.OwnerCell}");
-                connectedTargets[inventory] = new ConnectedInfo(output.Connector, input.Connector, targetBlock);
+                connectedTargets[inventory] = new ConnectedInfo(output.Connector, input.Connector, targetBlock, input.OwnerCell);
             }
 
             #region Internal

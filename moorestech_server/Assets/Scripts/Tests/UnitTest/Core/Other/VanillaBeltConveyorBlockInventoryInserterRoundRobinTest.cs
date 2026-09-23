@@ -83,7 +83,7 @@ namespace Tests.UnitTest.Core.Other
             {
                 var selfConnector = CreateInventoryConnector(i * 2, Guid.NewGuid());
                 var targetConnector = CreateInventoryConnector(i * 2 + 1, Guid.NewGuid());
-                result.Add(new RoundRobinTarget(new DummyBlockInventory(), new ConnectedInfo(selfConnector, targetConnector, null)));
+                result.Add(new RoundRobinTarget(new DummyBlockInventory(), new ConnectedInfo(selfConnector, targetConnector, null, UnityEngine.Vector3Int.zero)));
             }
             return result;
         }

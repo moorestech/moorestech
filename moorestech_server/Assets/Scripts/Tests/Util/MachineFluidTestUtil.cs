@@ -22,7 +22,7 @@ namespace Tests.Util
             var machineParam = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.FluidMachineId).BlockParam as ElectricMachineBlockParam;
             var connector = machineParam.FluidInventoryConnectors.InflowConnects
                 .First(c => (c as IFluidConnector).Option.ConnectTankIndex == tankIndex);
-            return new ConnectedInfo(connector, connector, null);
+            return new ConnectedInfo(connector, connector, null, UnityEngine.Vector3Int.zero);
         }
 
         // 出力タンク列取得（private field経由）

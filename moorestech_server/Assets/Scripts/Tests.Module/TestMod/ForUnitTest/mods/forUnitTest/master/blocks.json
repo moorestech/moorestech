@@ -6454,6 +6454,53 @@
       "subCategory": "BeltConveyor",
       "placementsPerCost": 1,
       "openable": false
+    },
+    {
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        1,
+        1,
+        3
+      ],
+      "name": "TestOffsetDirectionlessInputChest",
+      "blockType": "Chest",
+      "blockParam": {
+        "itemSlotCount": 5,
+        "inventoryConnectors": {
+          "outputConnects": [],
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                2
+              ],
+              "connectorGuid": "b83c81c8-a9dd-4e55-9dda-bc00b470d202"
+            }
+          ]
+        }
+      },
+      "blockGuid": "4b4f9f21-b1f3-4719-acee-bc00b470d202",
+      "category": "テスト",
+      "subCategory": "Chest",
+      "placementsPerCost": 1,
+      "openable": false
     }
   ],
   "connectorSettings": {

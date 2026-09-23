@@ -77,7 +77,7 @@ namespace Game.Block.Component
                         out var selfConnector, out var targetElementConnector)) return;
                 if (!_connectedTargets.ContainsKey(targetComponent))
                     _connectedTargets.Add(targetComponent,
-                        new ConnectedInfo(selfConnector, targetElementConnector, targetBlock));
+                        new ConnectedInfo(selfConnector, targetElementConnector, targetBlock, outputTargetPos));
             }
 
             #endregion
