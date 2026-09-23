@@ -60,6 +60,8 @@ namespace Game.BeltSegment
         internal void Transfer()
         {
             if (!HasItem || Segment.TickSpeed == 0) return;
+            // 搬出可能な候補を順に試し、成功した時だけ優先順位を進める。
+            // Try outputs in order and rotate priority only after success.
             for (int offset = 0; offset < outputCount; offset++)
             {
                 BeltDirection direction = outputDirections[(nextOutput + offset) % outputCount];

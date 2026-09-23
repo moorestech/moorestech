@@ -24,6 +24,8 @@ namespace Game.BeltSegment
             var mergeList = new List<BeltConveyorSegment>();
             var normalList = new List<BeltConveyorSegment>();
             var bufferList = new List<BeltBuffer>();
+            // 段階ごとの対象を構築時に分類する。
+            // Classify phase participants when the simulation is built.
             foreach (var segment in segments)
             {
                 all.Add(segment);

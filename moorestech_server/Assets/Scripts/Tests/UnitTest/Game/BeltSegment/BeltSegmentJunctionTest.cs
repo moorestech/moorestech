@@ -12,6 +12,7 @@ namespace Tests.UnitTest.Game.BeltSegment
             var branch = new BeltConveyorSegment(1, 32, BeltSegmentKind.Branch, 0);
             var target = new BeltConveyorSegment(2, 32, BeltSegmentKind.Normal, 0);
             var alternate = new BeltConveyorSegment(2, 32, BeltSegmentKind.Normal, 0);
+            branch.AttachInput(new ReadySource(), BeltDirection.Back);
             branch.Buffer.ConnectTo(target, BeltDirection.Front);
             branch.Buffer.ConnectTo(alternate, BeltDirection.Right);
             branch.RestoreItems(new[] { new BeltItemState(new BeltItem { Guid = Guid.NewGuid(), ItemId = 7 }, 16) });
@@ -27,6 +28,7 @@ namespace Tests.UnitTest.Game.BeltSegment
             var merge = new BeltConveyorSegment(1, 32, BeltSegmentKind.Merge, 0);
             merge.AttachInput(new ReadySource(), BeltDirection.Left);
             merge.AttachInput(new ReadySource(), BeltDirection.Right);
+            merge.Buffer.ConnectTo(new RecordingReceiver { Offer = 256, Accept = true }, BeltDirection.Front);
             new BeltSimulation(new[] { merge }).Tick(false);
             Assert.That(merge.PriorityIndex, Is.Zero);
             Assert.That(merge.GetOffer(BeltDirection.Right), Is.Zero);
@@ -42,6 +44,7 @@ namespace Tests.UnitTest.Game.BeltSegment
             var blocked = new RecordingReceiver { Offer = 0, Accept = true };
             var accepted = new RecordingReceiver { Offer = 256, Accept = true };
             var later = new RecordingReceiver { Offer = 256, Accept = true };
+            branch.AttachInput(new ReadySource(), BeltDirection.Left);
             branch.Buffer.ConnectTo(blocked, BeltDirection.Front);
             branch.Buffer.ConnectTo(accepted, BeltDirection.Right);
             branch.Buffer.ConnectTo(later, BeltDirection.Back);
@@ -57,7 +60,9 @@ namespace Tests.UnitTest.Game.BeltSegment
         {
             var branch = new BeltConveyorSegment(1, 32, BeltSegmentKind.Branch, 0);
             var receiver = new RecordingReceiver { Offer = 256, Accept = true };
+            branch.AttachInput(new ReadySource(), BeltDirection.Left);
             branch.Buffer.ConnectTo(receiver, BeltDirection.Front);
+            branch.Buffer.ConnectTo(new RecordingReceiver { Offer = 256, Accept = true }, BeltDirection.Right);
             branch.Buffer.RestoreItem(BeltSegmentMovementTest.NewItem(1));
             var waiting = BeltSegmentMovementTest.NewItem(2);
             branch.RestoreItems(new[] { new BeltItemState(waiting, 0) });

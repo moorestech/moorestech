@@ -31,6 +31,8 @@ namespace Tests.UnitTest.Game.BeltSegment
             Assert.That(replay.CaptureItems()[0].Item.Position, Is.SameAs(position));
             Assert.That(replay.Buffer.TryGetItem(out var replayed), Is.True);
             Assert.That(replayed.Guid, Is.EqualTo(buffered.Guid));
+            Assert.That(replayed.ItemId, Is.EqualTo(buffered.ItemId));
+            Assert.That(replayed.Position, Is.SameAs(position));
             Assert.That(replay.PriorityIndex, Is.EqualTo(1));
         }
 
@@ -71,17 +73,31 @@ namespace Tests.UnitTest.Game.BeltSegment
             return string.Join("|", segments.Select(segment =>
             {
                 var items = string.Join(",", segment.CaptureItems().Select(state =>
-                    $"{state.Item.Guid}:{state.Item.ItemId}:{state.DistanceToExit}"));
-                var buffer = segment.Buffer != null && segment.Buffer.TryGetItem(out var item)
-                    ? item.Guid.ToString() : "empty";
+                    $"{SnapshotItem(state.Item)}:{state.DistanceToExit}"));
+                var buffer = segment.Buffer == null ? "none" :
+                    segment.Buffer.TryGetItem(out var item) ? SnapshotItem(item) : "empty";
                 return $"{segment.Kind}:{segment.PriorityIndex}:{items}:{buffer}";
             }));
+        }
+
+        private static string SnapshotItem(BeltItem item)
+        {
+            var position = item.Position;
+            var cell = position.CurrentCell;
+            var world = position.Position;
+            return $"{item.Guid}:{item.ItemId}:{cell.X}:{cell.Y}:{cell.Z}:" +
+                   $"{position.EntryDirection}:{position.Progress}:{world.X}:{world.Y}:{world.Z}";
         }
 
         private static BeltItem NewItem(int id, ItemPosition position)
             => new BeltItem { Guid = Guid.NewGuid(), ItemId = id, Position = position };
 
         private static BeltItem StableItem(int id)
-            => new BeltItem { Guid = new Guid(id, 0, 0, new byte[8]), ItemId = id };
+            => new BeltItem
+            {
+                Guid = new Guid(id, 0, 0, new byte[8]),
+                ItemId = id,
+                Position = new ItemPosition(new BeltCell(id, -id, id % 3 - 1), (BeltEntryDirection)id, id * 32)
+            };
     }
 }

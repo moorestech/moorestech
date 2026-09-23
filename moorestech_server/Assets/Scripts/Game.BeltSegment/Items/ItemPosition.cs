@@ -11,6 +11,7 @@ namespace Game.BeltSegment
     public sealed class ItemPosition
     {
         // BeltEntryDirectionの値順。現在マスから搬入元への相対座標。
+        // Relative entry-cell offsets in BeltEntryDirection order.
         static readonly Vector3[] entryOffsets =
         {
             new Vector3(0, 1, 0), new Vector3(0, -1, 0), new Vector3(-1, 0, 0), new Vector3(1, 0, 0),
