@@ -56,6 +56,7 @@ Base: `codex/belt-segment-replay` の `08e7c01c803cb6ed33d558cff8af3c0df8e76774`
 | `moorestech_client/Assets/Resources/BeltSegment/BeltGpuNormal.hlsl` | 入口snapshot/通常前進/staged commit |
 | `moorestech_client/Assets/Scripts/Client.Tests/BeltSegment/GpuBeltLayoutTest.cs` | packing、登録順、0種類/0graphの固定期待値 |
 | `moorestech_client/Assets/Scripts/Client.Tests/BeltSegment/GpuBeltReplayTest.cs` | 実GPUの固定距離/RR/段階境界 |
+| `moorestech_client/Assets/Scripts/Client.Tests/BeltSegment/GpuBeltReplayBoundaryTest.cs` | 合流登録順・RR・部分groupの固定期待値（既存要件を200行内のファイルへ分割） |
 | `moorestech_client/Assets/Scripts/Client.Tests/BeltSegment/GpuBeltReplayScenario.cs` | 実ポートの確定結果を作る連続運転fixture |
 | `moorestech_client/Assets/Scripts/Client.Tests/BeltSegment/GpuBeltReplayReadback.cs` | テストのみのGetDataと論理列比較 |
 
