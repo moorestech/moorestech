@@ -70,8 +70,6 @@ export type ActionPayloads = {
   "playtest.consent.acknowledge": Record<string, never>;
   "research.complete": { researchGuid: string };
   "machine_recipe.select": { operation: "set" | "clear"; recipeGuid?: string };
-  // clear:true は右クリック相当のフィルタ解除。clear:false は C# 側が Grab の持ち手アイテムを設定する
-  // clear:true clears the filter (right-click); with clear:false the C# side assigns the currently grabbed item
   "electric_to_gear.set_output_mode": { modeIndex: number };
   "train_platform.set_transfer_mode": { mode: "loadToTrain" | "unloadToPlatform" };
   "debug.echo": { hello: string };

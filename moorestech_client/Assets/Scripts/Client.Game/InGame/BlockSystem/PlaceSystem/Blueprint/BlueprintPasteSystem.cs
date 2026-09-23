@@ -115,6 +115,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
 
             void SendPlace(List<BlueprintPlacementElement> allPlacements, List<bool> flags)
             {
+                ReportRejectedDirections(allPlacements);
                 var placeInfos = new List<PlaceInfo>();
                 for (var i = 0; i < allPlacements.Count; i++)
                 {
@@ -145,6 +146,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
             }
 
             #endregion
+        }
+
+        internal static void ReportRejectedDirections(IReadOnlyList<BlueprintPlacementElement> placements)
+        {
+            // クリックによる貼付け試行だけを診断し、毎frameのpreviewでは繰り返さない。
+            // Diagnose explicit paste attempts only, never each preview frame.
+            foreach (var placement in placements)
+                if (!global::Game.Block.Interface.Extension.BeltConveyorPlaceFamilyUtil.IsPlacementDirectionAllowed(placement.BlockId, placement.Direction))
+                    Debug.LogWarning($"[BlueprintPaste] Rejected belt direction: blockId={placement.BlockId}, direction={placement.Direction}, position={placement.Position}");
         }
 
         public override void Disable()

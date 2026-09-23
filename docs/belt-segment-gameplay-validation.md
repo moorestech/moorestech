@@ -41,7 +41,7 @@ python .agents/skills/unity-playmode-recorded-playtest/scripts/platform-probe-te
 dotnet run --project tools/BeltSegment/Benchmark/BeltSegment.Benchmark.csproj -c Release -- 129 64 10000 1000 replay-packing
 ```
 
-Focused checks before the material follow-up: 24/24 pass (16 GPU geometry/resources tests, input restoration, real vertical-placement rejection); earlier generic cutover regression run 101/101 pass; native path/port helper tests 2/2 pass. Shader tests include straight/corner/up/down, restored left/right merge entries, wrapped queue head 250 with 259 running items in capacity 260, the 129th segment, sparse item IDs, buffer invisibility and resource replacement. Initial shader failures exposed divergent group barriers and were fixed before the passing runs.
+Focused checks before the material follow-up: 24/24 pass (16 GPU geometry/resources tests, input restoration, real vertical-placement rejection); earlier generic cutover regression run 101/101 pass; native path/port helper tests 2/2 pass. Shader tests include straight/corner/up/down, restored left/right merge entries, wrapped queue head 310 with 259 running items in capacity 320 and varied nonzero gaps across lanes 127/128/255, the 129th segment, sparse item IDs, buffer invisibility and resource replacement. Initial shader failures exposed divergent group barriers and were fixed before the passing runs.
 
 Web work directory `moorestech_web/webui`, using pinned Node 20.18.1/pnpm 9.15.0:
 
@@ -76,15 +76,30 @@ Local .NET 8.0.16 observation, not a performance guarantee. Setup, warmup and re
 | Warmup / measured ticks | 1,000 / 10,000 |
 | Input / output events | 20,253 / 20,253 |
 | Actual GPU ABI event packing | 40,506 × 16 = 648,096 upload bytes |
-| CPU replay | 41.9369 ms; 0 allocated bytes |
-| CPU upload preparation | 0.7392 ms; 0 allocated bytes |
+| CPU replay | 43.128 ms; 0 allocated bytes |
+| CPU upload preparation | 0.749 ms; 0 allocated bytes |
 | Final replay parity | Pass |
+| Shared-workload initial snapshot MessagePack payload | 176,594 bytes |
+| Shared-workload 10,000 frame MessagePack payloads | 1,192,320 bytes total |
+| Unity snapshot serialization | 3.8182 ms |
+| Unity 10,000 frame serialization | 24.8777 ms |
+| Unity serializer allocations | Unavailable: 8,192-byte positive-control allocation reports 0 |
 | GPU execution time | Not measured |
 
-Wire bytes are a separate real-serializer Unity measurement from Task 2, not the 129-segment workload: one segment/one item, 10,000 iterations, snapshot 113 bytes; frame with events 23 bytes, empty frame 18 bytes; GPU events 32/0 bytes respectively. Combined replay/packing CPU time was 1.590/1.144 ms, allocated bytes 0. Raw: `.superpowers/sdd/task2-evidence/packing-measurement-final.json`; Task 3 raw: `replay-benchmark.json`.
+The final .NET rerun uses the same deterministic `BeltRecordedWorkload` source as Unity `BeltRecordedWireMeasurementTest`. Unity warms up 1,000 frame serializations, measures the actual production snapshot/frame DTO serializer, then decodes and replays all 10,000 frames, verifying every previous-state hash, final parity, 20,253 inputs/20,253 outputs and 2,064 initial/final items. The reported wire payload includes generation 1, ticks 0–10,000, per-tick sequence 1, route geometry and prior-state hashes; item Position metadata is null as in the shared Core benchmark. Outer transport envelopes are excluded. This serialized workload is separate from GPU ABI upload bytes and timing. Raw: `.superpowers/sdd/task3-evidence/review-shared-wire-measurement.json`, `review-shared-replay-benchmark.json`.
+
+The earlier wire bytes are a separate real-serializer Unity microbenchmark from Task 2: one segment/one item, 10,000 iterations, snapshot 113 bytes; frame with events 23 bytes, empty frame 18 bytes; GPU events 32/0 bytes respectively. Combined replay/packing CPU time was 1.590/1.144 ms; its Unity allocation counter reported 0. The later positive-control probe shows that counter is unavailable on this runtime, so the earlier zero is not evidence of zero allocations. The .NET allocation measurements above use the separate .NET runtime. Raw: `.superpowers/sdd/task2-evidence/packing-measurement-final.json`; Task 3 raw: `replay-benchmark.json`.
 
 ## Cutover and remaining iteration
 
 FilterSplitter schema, master definitions, dedicated UI/actions and the old belt movement/entity path are removed. Shared generic inventory contracts and block geometry remain. The unused old entity and FilterSplitter prefabs and their Addressable entries were deleted using Unity APIs. Main master pin is `65d288662b0abf826fb8f3ad956db00a4609853b`, pushed in [external Draft PR 67](https://github.com/moorestech/moorestech_master/pull/67); only the four approved master/localization files changed.
 
 Rendering performs no production synchronous GPU readback; accepted ticks/rebuilds update positions, ordinary frames submit indirect draws, and the existing skit visibility role hides/restores the same renderer. The benchmark does not establish GPU execution cost or a production scale target. Large-world GPU profiling, visual art tuning and speed tuning remain future measurements.
+
+## Task review follow-up
+
+Protocol rejection now logs the block ID, direction and position before declining vertical belt placement; regression tests retain no-placement/no-cost assertions. Blueprint rejection logs only on an explicit paste attempt, with no repeated preview-frame diagnostic. The GPU ring-wrap test now checks accumulated varied nonzero gaps for all 259 items, including batch boundaries 127/128/255. The obsolete neighboring Web filter comment was removed.
+
+Compile and the 20 affected tests passed (`review-fixes-focused-2.json`, `review-fixes-focused.xml`). The initial compile failure from a missing Blueprint test assembly reference was corrected. Existing warning artifacts remain; neither the full suite nor recordings were repeated for these diagnostic/measurement changes. The remaining 28 full-suite failures retain their stated unresolved status.
+
+The final wire fixture passed again after adding the allocation-counter positive control (`review-wire-final-test.json`, `review-wire-final.xml`): snapshot 3.8182 ms, frames 24.8777 ms; serializer allocation fields are null because an 8,192-byte allocation also reports zero. Snapshot/frame byte totals and parity remain unchanged.

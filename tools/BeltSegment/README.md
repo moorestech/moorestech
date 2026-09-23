@@ -19,7 +19,13 @@ dotnet run --project tools/BeltSegment/Benchmark/BeltSegment.Benchmark.csproj -c
 
 This mode records a fixed workload, then measures the production CPU `BeltReplaySimulation` and the actual `GpuBeltTickUpload` ABI packing separately. Setup, recording, warmup and final parity checks are outside the measured intervals. JSON includes initial/final item counts, input/output event counts, CPU time and allocated bytes for each stage, and `gpuUploadBytes` (event count × ABI stride). It exits nonzero if replay parity fails.
 
-GPU upload bytes are not MessagePack wire bytes. The production wire serializer is measured separately in Unity's `BeltWireRoundTripTest`; this mode does not submit GPU commands or measure GPU execution. For the measured local run, separate serializer workload and recorded game evidence, see [gameplay validation](../../docs/belt-segment-gameplay-validation.md).
+GPU upload bytes are not MessagePack wire bytes. The same `BeltRecordedWorkload` source is compiled by this benchmark and Unity's focused production-serializer measurement:
+
+```sh
+uloop run-tests --project-path moorestech_client --test-mode EditMode --filter-type class --filter-value BeltRecordedWireMeasurementTest
+```
+
+The Unity fixture uses 129 segments × 64 capacity, 10,000 ticks and 1,000 warmup iterations. It serializes the initial `BeltWorldSnapshotMessagePack` and every `BeltWorldFrameMessagePack`, including generation/tick/sequence/prior-state hash, then decodes and replays the complete stream to verify event counts and parity. Snapshot and accumulated frame bytes are reported separately. This is the shared Core workload with null item Position metadata; transport envelopes are excluded. The earlier one-segment serializer check remains a separate microbenchmark. Neither mode measures GPU execution. See [gameplay validation](../../docs/belt-segment-gameplay-validation.md) for exact results, allocation-counter limits and raw artifacts.
 
 ## Normal connections
 

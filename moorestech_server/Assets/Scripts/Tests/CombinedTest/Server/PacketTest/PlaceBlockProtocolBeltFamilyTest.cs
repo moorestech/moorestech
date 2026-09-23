@@ -8,6 +8,7 @@ using Server.Protocol;
 using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
 using UnityEngine;
+using UnityEngine.TestTools;
 using static Tests.CombinedTest.Server.PacketTest.PlaceBlockProtocolTestSupport;
 
 namespace Tests.CombinedTest.Server.PacketTest
@@ -26,6 +27,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             UnlockBlock(services, ForUnitTestModBlockId.GearBeltConveyor);
             var inventory = GetInventory(services);
             var before = inventory.InventoryItems.Select(s => (s.Id,s.Count)).ToArray();
+            LogAssert.Expect(LogType.Warning, $"[PlaceBlockProtocol] Rejected belt direction: blockId={ForUnitTestModBlockId.GearBeltConveyor}, direction={direction}, position={new Vector3Int(8,0,8)}");
             packet.GetPacketResponse(CreatePlacePayload(new List<PlaceInfo> {new()
             {
                 Position = new Vector3Int(8,0,8), Direction = direction,

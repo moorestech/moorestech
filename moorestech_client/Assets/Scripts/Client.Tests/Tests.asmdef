@@ -2,6 +2,7 @@
     "name": "Client.Tests",
     "rootNamespace": "",
     "references": [
+        "GUID:31dfa4620449b458ea8a370e2fe3bd62",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
         "Server.Tests",

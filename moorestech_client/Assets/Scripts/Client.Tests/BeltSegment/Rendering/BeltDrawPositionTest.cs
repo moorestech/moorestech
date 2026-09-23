@@ -39,17 +39,33 @@ namespace Client.Tests.BeltSegment.Rendering
         [Test]
         public void LinearScanCrosses128AndGroupsSparseKindsWithRingWrap()
         {
-            var route = new BeltRoute(Enumerable.Range(0,260).Select(i => Cell(0,i,0,0)).ToArray(), Entries(Cell(0,-1,0,0)));
-            var items = Enumerable.Range(0,259).Select(i => Item(i % 2 == 0 ? 7 : 900000, BeltDirection.Back, i * 256)).ToArray();
-            using var f = new DrawFixture(new[] { route }, new[] { BeltReplaySegmentState.Normal(260,16,items) });
+            const int capacity = 320, count = 259, head = 310;
+            var route = new BeltRoute(Enumerable.Range(0,capacity).Select(i => Cell(0,i,0,0)).ToArray(), Entries(Cell(0,-1,0,0)));
+            var distances = new int[count];
+            int accumulatedGap = 0;
+            for (int i = 0; i < count; i++)
+            {
+                accumulatedGap += 3 + i % 23;
+                distances[i] = i * 256 + accumulatedGap;
+            }
+            var items = Enumerable.Range(0,count).Select(i => Item(i % 2 == 0 ? 7 : 900000, BeltDirection.Back, distances[i])).ToArray();
+            using var f = new DrawFixture(new[] { route }, new[] { BeltReplaySegmentState.Normal(capacity,16,items) });
             var state = new GpuBeltState[1]; f.Simulation.Buffers.States.GetData(state);
-            var gaps = new int[260]; var values = new GpuBeltItem[260];
-            for (int i = 0; i < 259; i++) values[(i+250)%260] = new GpuBeltItem { Kind = items[i].Item.ItemId, AcceptedInput = (int)BeltDirection.Back };
-            state[0].Head = 250; f.Simulation.Buffers.States.SetData(state);
+            var gaps = new int[capacity]; var values = new GpuBeltItem[capacity];
+            for (int i = 0; i < count; i++)
+            {
+                int physical = (i + head) % capacity;
+                gaps[physical] = 3 + i % 23;
+                values[physical] = new GpuBeltItem { Kind = items[i].Item.ItemId, AcceptedInput = (int)BeltDirection.Back };
+            }
+            state[0].Head = head; f.Simulation.Buffers.States.SetData(state);
             f.Simulation.Buffers.Gaps.SetData(gaps); f.Simulation.Buffers.Items.SetData(values); f.Dispatch.Recompute();
             CollectionAssert.AreEqual(new uint[] {130,129}, f.Counts());
-            var positions = f.Positions().OrderBy(v => v.z).ToArray();
-            for(int i=0;i<259;i++) Assert.That(positions[i].z, Is.EqualTo(i+1.5f).Within(0.0001f));
+            var positions = f.Positions().OrderByDescending(v => v.z).ToArray();
+            // 非ゼロ隙間の累積を127/128/255を含む全itemで比較する。
+            // Check accumulated nonzero gaps for every item, including lanes 127/128/255.
+            for(int i=0;i<count;i++)
+                Assert.That(positions[i].z, Is.EqualTo(capacity-0.5f-distances[i]/256f).Within(0.0001f), $"logical item {i}");
         }
         [Test]
         public void Segment129IsDrawnAndJunctionBufferIsHidden()
