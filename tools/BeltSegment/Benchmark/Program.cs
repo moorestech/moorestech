@@ -39,8 +39,11 @@ internal static class Program
 
         var scenario = new BeltBenchmarkScenario(segmentCount, capacity);
         var initialItemCount = scenario.InitialItemCount;
+        // 計測器自体の割当を測定範囲から除く。
+        // Exclude the timer object's allocation from the measured scope.
+        var stopwatch = new Stopwatch();
         var allocatedBefore = GC.GetTotalAllocatedBytes(true);
-        var stopwatch = Stopwatch.StartNew();
+        stopwatch.Start();
         for (var tick = 0; tick < ticks; tick++)
         {
             // 搬出したアイテムを次のtick境界で同じsegmentへ戻す。
