@@ -59,6 +59,10 @@ namespace Client.PlaytestReceiver.Gate
 
         public bool IsBlocked => Status != PlaytestGateStatus.DeveloperMode && Status != PlaytestGateStatus.Allowed;
 
+        // 照合の結論が出たか。未評価と照合中だけが未確定で、確定待ちと待ち文言の判定はここ1箇所に揃える
+        // Whether the check has concluded; only not-evaluated and checking are unsettled, and every wait and waiting text reads this one place
+        public bool IsSettled => Status != PlaytestGateStatus.NotEvaluated && Status != PlaytestGateStatus.Checking;
+
         public bool TryGetAllowedSession(out PlaytestSession session)
         {
             session = _allowedSession;
@@ -77,7 +81,7 @@ namespace Client.PlaytestReceiver.Gate
         {
             get
             {
-                if (Status == PlaytestGateStatus.NotEvaluated || Status == PlaytestGateStatus.Checking) return LocalizationKeys.Ui.Playtest.Checking;
+                if (!IsSettled) return LocalizationKeys.Ui.Playtest.Checking;
                 if (Status == PlaytestGateStatus.NotAllowed) return LocalizationKeys.Ui.Playtest.NotAllowed;
                 if (Status == PlaytestGateStatus.TicketFailed) return LocalizationKeys.Ui.Playtest.TicketFailed;
                 if (Status == PlaytestGateStatus.MalformedResponse) return LocalizationKeys.Ui.Playtest.MalformedResponse;

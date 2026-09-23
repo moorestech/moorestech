@@ -50,6 +50,22 @@ namespace Client.PlaytestReceiver.Gate
             SetCurrent(result);
         }
 
+        // 照合の確定を購読で待つ。期限までに確定しなければ未確定の結果をそのまま返し、呼び手が期限切れとして扱う
+        // Waits for the verdict to settle by subscription; past the deadline it returns the still-unsettled verdict for the caller to treat as a timeout
+        public static async UniTask<PlaytestGateResult> WaitForSettledVerdictAsync(float timeoutSeconds, CancellationToken token)
+        {
+            using var deadlineSource = CancellationTokenSource.CreateLinkedTokenSource(token);
+            using var deadline = deadlineSource.CancelAfterSlim(TimeSpan.FromSeconds(timeoutSeconds), DelayType.Realtime);
+
+            var (timedOut, settled) = await CurrentProperty.Where(static result => result.IsSettled).ToUniTask(true, deadlineSource.Token).SuppressCancellationThrow();
+            if (!timedOut) return settled;
+
+            // 呼び手自身の打ち切りは期限切れと混ぜず、そのまま打ち切りとして伝える
+            // A cancellation by the caller is not confused with the deadline and propagates as a cancellation
+            token.ThrowIfCancellationRequested();
+            return CurrentProperty.Value;
+        }
+
         // 通れなければ理由をログへ出し、テスター向けの文言をここで解決して返す。呼び手は表示するだけ
         // A refusal is logged and its tester-facing text is resolved here; callers only display it
         public static bool TryPassStart(string callerName, out string denyReasonText)

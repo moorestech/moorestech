@@ -9,13 +9,13 @@ using UnityEngine.SceneManagement;
 
 namespace Client.Starter.EventMode
 {
-    // 自動開始の可否。照合が確定するまでは待ちで、確定して止められていれば断念する
-    // Whether the auto start may go: it waits until the launch check settles, and abandons when the settled verdict blocks
+    // 確定待ちを終えた後の自動開始の可否。断念は理由ごとに分け、ログの文言を判定から直接写す
+    // Whether the auto start may go once the wait is over; abandoning is split by cause so the log wording maps straight from the decision
     public enum EventModeAutoStartDecision
     {
-        WaitForVerdict,
         Start,
-        Abandon,
+        AbandonBlocked,
+        AbandonTimeout,
     }
 
     // 起動時にワールド削除・起動言語の適用・自動開始
@@ -80,66 +80,55 @@ namespace Client.Starter.EventMode
             // The exhibition auto start has nobody to answer, so it is declared an unattended boot that shows no consent or crash confirmation (D2 adjudication; the unanswered marks remain)
             PlaytestStartGateBypass.DeclareUnattendedProcess("eventModeAutoStart");
 
-            // 新規生成（PlayerPrefs維持）
-            // Regenerate world; PlayerPrefs kept
-            GameSystemPaths.DeleteDefaultWorldDirectory();
+            // 言語は表示だけなので先に適用する。ワールド削除は照合が通り開始が確定してから行う
+            // The language only affects display so it applies now; the world is wiped only after the check passes and the start is settled
             ApplyLaunchLanguage(settings);
             StartWhenLaunchVerdictSettles();
+
+            #region Internal
+
+            // 無人宣言が効くのは漏斗の2段目だけで、1段目の起動時照合は待たないと通らない。確定前に開始すると漏斗がタイトルへ戻し、この起動フックは二度と発火しない
+            // The unattended declaration only covers the funnel's second stage; starting before the launch check settles makes the funnel bounce back to the title, and this boot hook never fires again
+            void StartWhenLaunchVerdictSettles()
+            {
+                Debug.Log($"EventModeAutoStart: 起動時照合の確定を待ってから自動開始します（上限{LaunchVerdictTimeoutSeconds}秒）");
+
+                // Forgetに吸われた例外も理由付きで残す（前例: StandalonePlaytestSmokeBootstrap）
+                // Exceptions swallowed by Forget are recorded with a reason too (precedent: StandalonePlaytestSmokeBootstrap)
+                StartWhenLaunchVerdictSettlesAsync().Forget(exception => Debug.LogError($"EventModeAutoStart: 確定待ちが例外で終わったため自動開始しません {exception.GetType()} {exception.Message}"));
+            }
+
+            #endregion
         }
 
-        // 無人宣言が効くのは漏斗の2段目だけで、1段目の起動時照合は待たないと通らない。確定前に開始すると漏斗がタイトルへ戻し、この起動フックは二度と発火しない
-        // The unattended declaration only covers the funnel's second stage; starting before the launch check settles makes the funnel bounce back to the title, and this boot hook never fires again
-        private static void StartWhenLaunchVerdictSettles()
-        {
-            Debug.Log($"EventModeAutoStart: 起動時照合の確定を待ってから自動開始します（上限{LaunchVerdictTimeoutSeconds}秒）");
-
-            // Forgetに吸われた例外も理由付きで残す（前例: StandalonePlaytestSmokeBootstrap）
-            // Exceptions swallowed by Forget are recorded with a reason too (precedent: StandalonePlaytestSmokeBootstrap)
-            StartWhenLaunchVerdictSettlesAsync().Forget(exception => Debug.LogError($"EventModeAutoStart: 確定待ちが例外で終わったため自動開始しません {exception.GetType()} {exception.Message}"));
-        }
-
-        // 待ちは期限付き（前例 StandalonePlaytestSmokeBootstrap.StartWhenPreconditionsHoldAsync と同じ形）。無応答の受け口で無言の居座りにしない
-        // The wait is bounded, in the same shape as the StandalonePlaytestSmokeBootstrap precedent, so a silent receiver never turns into a silent stall
+        // 待ちは期限付き。無応答の受け口で無言の居座りにしない
+        // The wait is bounded, so a silent receiver never turns into a silent stall
         private static async UniTask StartWhenLaunchVerdictSettlesAsync()
         {
-            var startedAt = Time.realtimeSinceStartup;
-            var decision = DecideAutoStartWithinDeadline(PlaytestLaunchGate.Current.Value, 0f, LaunchVerdictTimeoutSeconds);
-            while (decision == EventModeAutoStartDecision.WaitForVerdict)
-            {
-                await UniTask.Yield();
-                decision = DecideAutoStartWithinDeadline(PlaytestLaunchGate.Current.Value, Time.realtimeSinceStartup - startedAt, LaunchVerdictTimeoutSeconds);
-            }
+            var verdict = await PlaytestLaunchGate.WaitForSettledVerdictAsync(LaunchVerdictTimeoutSeconds, Application.exitCancellationToken);
+            var decision = DecideAutoStart(verdict);
 
             // 照合に通らない・期限まで確定しない出展機は自動開始しない。理由を出したままタイトルに留める（fail-closed）
             // An exhibition machine that fails the check, or never settles before the deadline, does not auto-start; it stays on the title with the reason shown (fail closed)
-            if (decision == EventModeAutoStartDecision.Abandon)
+            if (decision != EventModeAutoStartDecision.Start)
             {
-                var verdict = PlaytestLaunchGate.Current.Value;
-                var reason = DecideAutoStart(verdict) == EventModeAutoStartDecision.WaitForVerdict
-                    ? $"起動時照合が{LaunchVerdictTimeoutSeconds}秒以内に確定しなかった"
-                    : "起動時照合に通らなかった";
+                var reason = decision == EventModeAutoStartDecision.AbandonTimeout ? $"起動時照合が{LaunchVerdictTimeoutSeconds}秒以内に確定しなかった" : "起動時照合に通らなかった";
                 Debug.LogError($"EventModeAutoStart: {reason}ため自動開始しません status:{verdict.Status} detail:{verdict.Detail}");
                 return;
             }
 
+            // 新規生成（PlayerPrefs維持）
+            // Regenerate world; PlayerPrefs kept
+            GameSystemPaths.DeleteDefaultWorldDirectory();
             LocalGameLauncher.StartLocalGame();
         }
 
-        // 照合結果ごとの可否。待ちと断念を分けて持つので、待っているだけの状態を「失敗」と読み違えない
-        // The verdict-by-verdict decision; keeping waiting apart from abandoning stops a mere wait from reading as a failure
-        public static EventModeAutoStartDecision DecideAutoStart(PlaytestGateResult verdict)
+        // 確定待ちを終えた照合結果ごとの可否。未確定のまま返ったのは期限切れ、確定して止められていれば照合による断念
+        // The decision for a verdict after the wait: still unsettled means the deadline passed, settled and blocked means the check refused it
+        internal static EventModeAutoStartDecision DecideAutoStart(PlaytestGateResult verdict)
         {
-            if (verdict.Status == PlaytestGateStatus.NotEvaluated || verdict.Status == PlaytestGateStatus.Checking) return EventModeAutoStartDecision.WaitForVerdict;
-            return verdict.IsBlocked ? EventModeAutoStartDecision.Abandon : EventModeAutoStartDecision.Start;
-        }
-
-        // 待ち時間込みの可否。期限を過ぎても確定しなければ待ちを断念へ倒す（fail-closed）
-        // The decision including how long it waited; an unsettled verdict past the deadline falls to abandoning rather than waiting on (fail closed)
-        public static EventModeAutoStartDecision DecideAutoStartWithinDeadline(PlaytestGateResult verdict, float secondsWaited, float timeoutSeconds)
-        {
-            var decision = DecideAutoStart(verdict);
-            if (decision != EventModeAutoStartDecision.WaitForVerdict) return decision;
-            return secondsWaited < timeoutSeconds ? EventModeAutoStartDecision.WaitForVerdict : EventModeAutoStartDecision.Abandon;
+            if (!verdict.IsSettled) return EventModeAutoStartDecision.AbandonTimeout;
+            return verdict.IsBlocked ? EventModeAutoStartDecision.AbandonBlocked : EventModeAutoStartDecision.Start;
         }
     }
 }

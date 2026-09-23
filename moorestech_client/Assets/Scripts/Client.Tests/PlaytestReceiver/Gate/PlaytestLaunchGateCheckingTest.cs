@@ -78,5 +78,18 @@ namespace Client.Tests.PlaytestReceiver
             Assert.AreEqual(PlaytestGateStatus.Allowed, PlaytestLaunchGate.Current.Value.Status);
             Assert.IsTrue(PlaytestLaunchGate.TryPassStart("after-check", out _));
         }
+
+        // 確定待ちは購読で照合中を越え、確定した結論をそのまま返す。出展モードとsmokeはこの1本だけで待つ
+        // The settled-verdict wait rides a subscription past Checking and returns the settled verdict; event mode and smoke both wait through it alone
+        [Test]
+        public void 確定待ちは照合中の間は返らず確定した結論を返す()
+        {
+            PlaytestLaunchGate.SetCurrent(PlaytestGateResult.Checking);
+            var waiting = PlaytestLaunchGate.WaitForSettledVerdictAsync(180f, CancellationToken.None);
+            Assert.AreEqual(UniTaskStatus.Pending, waiting.Status);
+
+            PlaytestLaunchGate.SetCurrent(PlaytestGateResult.Blocked(PlaytestGateStatus.NotAllowed, ""));
+            Assert.AreEqual(PlaytestGateStatus.NotAllowed, waiting.GetAwaiter().GetResult().Status);
+        }
     }
 }
