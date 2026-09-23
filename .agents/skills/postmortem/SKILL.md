@@ -48,7 +48,7 @@ description: 事後検証(ポストモーテム)。「体制・工程があっ�
 
 - `.decisions/` — ユーザー裁定の蒸留(決定・棄却案・理由・日付)。**事故がここに焼き込まれていないか**(誤解釈が「裁定済み」として保護されていないか)、棄却案は実際に提示された案か、を必ず見る。当時版は `git show <sha>:<path>`
 - `docs/adr/`・`docs/superpowers/plans/`(plan と Self-Review)・`docs/research/` — 計画工程の成果物。ADR に対する QA は ADR の誤りを検出できない(自己参照)
-- `.agents/skills/<skill>/` — 工程の定義。**発火条件・入力源は当時版をファイルで読む**(`git show <当時sha>:.agents/skills/...`)。moores-code-review の observation(lenses/reviewers/verifiers/post-checks)・`references/integration-rules.md`・`output-contract.md` が「誰が何を見る契約だったか」の正本
+- `.agents/skills/<skill>/` — 工程の定義。**発火条件・入力源は当時版をファイルで読む**(`git show <当時sha>:.agents/skills/...`)。moores-code-review の observation(reviewers/verifiers/post-checks。2026-09-23 以前は lenses/ も別置き)・`references/integration-rules.md`・`output-contract.md` が「誰が何を見る契約だったか」の正本
 - `bd show <id>`(description / notes に裁定・handoff・LEARN)、`bd dep tree <id>`、`bd list --all | grep`。`.decisions` は bd から `[[ファイル名]]` で参照される
 - `git log -S"<核心シンボル>" -- <path>`(導入コミット)、`git log --grep=<skill名>`(レビュー実施コミット)、`git show <sha> --stat`(そのレビュー回が見たファイル集合)
 

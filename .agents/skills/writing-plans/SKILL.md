@@ -166,7 +166,7 @@ git commit -m "feat: <specific feature>"
 ```
 ````
 
-**判断台帳掲載義務（機械的下限）:** タスクの `Modify:`/`Create:` 対象が `.claude/skills/moores-code-review/lenses/*.md` の `paths` 正規表現にマッチする場合、その改修判断はplanの『## 判断記録（ADR）』への掲載が必須（級の自己判定によらない）。未掲載は ledger-gate（Stop hook）がブロックする。掲載なき判断はレビュー免責力を持たない。カバー範囲はpaths発火型レンズのみ — keywords発火型の観点はレビュー段階のsuppressed規則で捕捉される。**Files節の対象は必ずリポジトリ相対パスで書く**（裸のクラス名だけの表記はゲートの検査対象から漏れる）。
+**判断台帳掲載義務（機械的下限）:** タスクの `Modify:`/`Create:` 対象が `.claude/skills/moores-code-review/reviewers/moores-*.md` の `paths` 正規表現にマッチする場合、その改修判断はplanの『## 判断記録（ADR）』への掲載が必須（級の自己判定によらない）。未掲載は ledger-gate（Stop hook）がブロックする。掲載なき判断はレビュー免責力を持たない。カバー範囲はpaths発火型レンズのみ — keywords発火型の観点はレビュー段階のsuppressed規則で捕捉される。**Files節の対象は必ずリポジトリ相対パスで書く**（裸のクラス名だけの表記はゲートの検査対象から漏れる）。
 
 ## No Placeholders
 

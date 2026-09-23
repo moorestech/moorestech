@@ -1,7 +1,6 @@
 ---
 extensions:
   - .cs
-model: opus
 ---
 
 # Lens: ドメイン境界と依存方向（PR978/PR1000由来）

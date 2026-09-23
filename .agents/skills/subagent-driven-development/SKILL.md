@@ -40,7 +40,7 @@ description: 現在のセッションで、独立したタスクからなる実�
 
 1. 台帳を確認する: `cat "$(git rev-parse --show-toplevel)/.superpowers/sdd/progress.md"`。完了記載のタスクは再派遣せず、完了マークの無い最初のタスクから再開する
 2. ワークスペース隔離（ゲート1）
-3. 計画を一度読み、**事前計画レビュー**を行う: タスク間・Global Constraintsとの矛盾、レビュー基準で欠陥になる義務付け、`moores-code-review/references/lens-digest.md` 違反を一括で人間へ提示する（問題なければ無言で進む）。詳細: controller-gates.md
+3. 計画を一度読み、**事前計画レビュー**を行う: タスク間・Global Constraintsとの矛盾、レビュー基準で欠陥になる義務付け、`moores-code-review/references/moores-reviewer-digest.md` 違反を一括で人間へ提示する（問題なければ無言で進む）。詳細: controller-gates.md
 4. 規模判定を1行で声に出す
 
 ## 単一subagent実装モード（閾値未満）

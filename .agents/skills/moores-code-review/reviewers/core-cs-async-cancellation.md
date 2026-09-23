@@ -13,7 +13,7 @@ keywords:
 # Reviewer: 非同期の寿命とキャンセル伝搬 (C#/UniTask)
 
 ## あなたの役割
-cwd を読み、patch が追加・変更した非同期処理のうち **「待っている間に持ち主が消えても止まらない」構造** を返す。軸は寿命であり、非同期一般の作法ではない。`Dispose` を実装しているか否か (抽象の要否) は `speculative-abstraction` レンズの担当で、本 reviewer は **キャンセル手段が呼び出し鎖のどこで切れているか** を見る。
+cwd を読み、patch が追加・変更した非同期処理のうち **「待っている間に持ち主が消えても止まらない」構造** を返す。軸は寿命であり、非同期一般の作法ではない。`Dispose` を実装しているか否か (抽象の要否) は `moores-cs-speculative-abstraction` の担当で、本 reviewer は **キャンセル手段が呼び出し鎖のどこで切れているか** を見る。
 
 ## 検査対象の絞り込み
 1. 起動 prompt 2 行目 `Patch path : <abs-path>` を Read し、`async` / `await` / `UniTask` / `CancellationToken` を含む追加行に絞る

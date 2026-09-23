@@ -68,7 +68,7 @@ Subagent (general-purpose, フォアグラウンド):
 - `[PLAN_NAME]` — 計画の名前（planファイルのH1）
 - `[SKILL_DIR_ABS]` — このスキルディレクトリの絶対パス
 - `[PLAN_FILE_ABS]` — 計画ファイルの絶対パス（`scripts/task-brief` は使わない）
-- `[LENS_DIGEST_ABS]` — moorestech設計レンズダイジェストの絶対パス（`<repo>/.claude/skills/moores-code-review/references/lens-digest.md`）
+- `[LENS_DIGEST_ABS]` — moores-* reviewer ダイジェストの絶対パス（`<repo>/.claude/skills/moores-code-review/references/moores-reviewer-digest.md`）
 - `[TASK_RANGE]` — 実装するタスク番号の範囲（例: `Task 1〜4`。継続派遣では残りのみ）
 - `[WORKTREE_ABS_PATH]` — 隔離worktreeの絶対パス
 - `[REPORT_FILE]` — `scripts/sdd-workspace` が表示したディレクトリ配下の `single-report.md`

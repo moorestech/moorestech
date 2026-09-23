@@ -7,7 +7,6 @@ keywords_all:
   - "MasterHolder"
 extensions:
   - .cs
-model: sonnet
 ---
 
 # Lens: 暗黙の単数前提（複数ありうる集合を単数として扱う）（PR1017由来）

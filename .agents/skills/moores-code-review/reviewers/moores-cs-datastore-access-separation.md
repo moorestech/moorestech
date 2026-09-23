@@ -10,7 +10,6 @@ keywords:
   - ".Clear("
   - ".Remove("
   - ".Add("
-model: sonnet
 ---
 
 # Lens: DataStoreアクセス分離（PR988由来）

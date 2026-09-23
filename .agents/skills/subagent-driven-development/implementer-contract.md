@@ -36,9 +36,9 @@
 
 ## moorestech設計ルール（実装前に読むこと）
 
-`.claude/skills/moores-code-review/references/lens-digest.md`を読むこと —
-実際のレビュー却下から蒸留された8つの設計レンズ。最終レビューはこれらの
-レンズと照合してチェックする。違反があれば手戻りになる。特に:
+`.claude/skills/moores-code-review/references/moores-reviewer-digest.md`を読むこと —
+実際のレビュー却下から蒸留されたmoorestech設計規約（moores-* reviewer）。最終レビューはこれらの
+観点と照合してチェックする。違反があれば手戻りになる。特に:
 前例優先（このコードベースがすでにこの種の問題をどう解いているか探し、
 その役割等価な前例に従う）、基底コンポーネントにドメイン語彙を持ち込まない
 （代わりにSetHogeで値をプッシュする）、Update()内での毎tickポーリングをしない、

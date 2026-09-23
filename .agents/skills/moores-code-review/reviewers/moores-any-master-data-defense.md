@@ -8,7 +8,6 @@ keywords:
   - "optional"
   - "Default"
   - "TryGet"
-model: sonnet
 ---
 
 # Lens: マスタデータ防御コードの禁止（PR978由来）

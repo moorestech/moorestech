@@ -165,7 +165,7 @@ def schema_optional_true(files: list[FileDiff]) -> list[dict]:
             if OPTIONAL_TRUE_RE.search(text):
                 findings.append(_finding(
                     "schema-optional-true", f.path, lineno, text,
-                    "optional:true新設候補: 原則禁止(必須化+default+全JSON更新が正)。『存在しないことに意味がある』フィールドのみ正当 — master-data-defenseレンズが裁定"))
+                    "optional:true新設候補: 原則禁止(必須化+default+全JSON更新が正)。『存在しないことに意味がある』フィールドのみ正当 — moores-any-master-data-defenseが裁定"))
     return findings
 
 

@@ -21,7 +21,7 @@ applied-diff-correctness はここでは選ばない。反映 diff（修正の�
 Step 6.5-2.5 の Refix が `refix_snapshot.py` の snapshot 間 diff と scope 判定で直接起動する
 （2026-09-10。2026-09-08 の第3引数 apply.diff 方式を置き換えた）。
 
-出力: `<post-check絶対パス>\t<モデル>` のTSV（select_lenses/select_reviewersと同形式）。
+出力: `<post-check絶対パス>\t<モデル>` のTSV（select_reviewersと同形式）。
 条件を満たすガードが無ければ何も出力しない（=post-checksスキップ）。
 モデルは各post-check先頭YAMLの `model` が正。
 """

@@ -89,7 +89,7 @@ AskUserQuestion は deny される。ブロックは同一セッション2回で
 
 | tree | 中身 | 規律 |
 | --- | --- | --- |
-| `$CANON`（`skills-canon-<sha8>`） | 起動時の `origin/master` SHAへピンした測定器（スクリプト・レンズ・reviewer・統合ルール・テンプレート）の唯一の読み取り元 | 不変が契約。`fetch`・`reset`・`clean` も書き込みも一切しない（`.last-used` の `touch` だけ例外）。並列レビューが同じピンを読むため |
+| `$CANON`（`skills-canon-<sha8>`） | 起動時の `origin/master` SHAへピンした測定器（スクリプト・reviewer・統合ルール・テンプレート）の唯一の読み取り元 | 不変が契約。`fetch`・`reset`・`clean` も書き込みも一切しない（`.last-used` の `touch` だけ例外）。並列レビューが同じピンを読むため |
 | `$ORIGIN`（起動元・多くはメインworktree） | 他セッションの作業中ブランチ | worktreeを生やす起点としてのみ使う。読み取り元にも書き込み先にもしない |
 | `$PRWT`（`pr-<番号>`） | PRのheadブランチ | PRのコード修正だけ書いてよい。skill改修・`.decisions/` の裁定記録は積まない |
 
@@ -123,7 +123,7 @@ AskUserQuestion は deny される。ブロックは同一セッション2回で
    | --- | --- | --- |
    | 0 | 用意完了 | 進む |
    | 10 / 11 / 12 | fetch・rev-parse 失敗 / worktree add 失敗 / `novelty_gate.py` 不在 | 即エラー終了。起動元treeの `.claude/` で代替しない |
-   | 13 | SKILL.md 同一性ガードで差分（`$ORIGIN` に未マージのskill改修があり「新しい指示 × 古いレンズ」の版ズレ） | 人が起動したならユーザーへ報告して指示を仰ぎ、続行を選んだ場合のみ `--allow-skew` で再実行して records の `canonical:` に `skew` と両SHAを明記する。無人起動では即エラー終了 |
+   | 13 | SKILL.md 同一性ガードで差分（`$ORIGIN` に未マージのskill改修があり「新しい指示 × 古いreviewer」の版ズレ） | 人が起動したならユーザーへ報告して指示を仰ぎ、続行を選んだ場合のみ `--allow-skew` で再実行して records の `canonical:` に `skew` と両SHAを明記する。無人起動では即エラー終了 |
    | 14 | `$ORIGIN` が作業ツリーのルートでない / `$CANON` が `$ORIGIN` と同一 | 即エラー終了（`$ORIGIN` の特定をやり直す） |
 
 ### skill改修・裁定記録を書きたいとき
@@ -293,9 +293,9 @@ python3 <$CANONの実値>/.claude/skills/moores-code-review/scripts/build_workfl
   patch＋detchecks.json で発火し、contract.md に report-only の前提が付く。修正適用が無いので最終diff＝Step 3のpatchであり、
   決定論チェックの再実行はしない。convention-guardの「機械的は自動適用」も指摘として出す
 - Workflow には `workflow-args.json` の中身をそのまま `args` に渡す。Workflow が `Repo root`（`$PRWT`）と `Skill root`（`$CANON`）を
-  全subagentのpromptへ注入する。**Workflow不可でsonnet委譲へフォールバックする場合のみ**、全prompt（レンズ・reviewer・Fable全般・
+  全subagentのpromptへ注入する。**Workflow不可でsonnet委譲へフォールバックする場合のみ**、全prompt（reviewer・Fable全般・
   verifier・post-checks）の `Read this :` / `Candidates :` / `Patch path :` / `User prompt :` を `$CANON` / `$RUNDIR` の絶対パスで書き、
-  次の2行を足す: 「対象コードのルート: <$PRWTの実値>。コードのReadは必ずこの配下」「スキル・レンズ・post-checks・統合ルールのReadは <$CANONの実値> 配下」
+  次の2行を足す: 「対象コードのルート: <$PRWTの実値>。コードのReadは必ずこの配下」「スキル・reviewer・post-checks・統合ルールのReadは <$CANONの実値> 配下」
 - AskUserQuestionは使わない。設計判断もダイジェストの裁定カードへ。本体Step 7の記録（`$LOGS/harness/moores-code-review/records/`・`eval-log.md`）は書かない
 - 統合結果は `integrated.md` を読む。指摘は全部ダイジェストへ
 
