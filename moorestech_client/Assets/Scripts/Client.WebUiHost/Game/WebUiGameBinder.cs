@@ -180,8 +180,6 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new BlockCollectActionHandler(controller, subInventoryState));
             hub.RegisterAction(new RequestUiStateActionHandler(uiStateControl));
             hub.RegisterAction(new ResearchCompleteActionHandler(researchTopic));
-            hub.RegisterAction(new FilterSplitterSetModeActionHandler(subInventoryState, blockInventoryTopic));
-            hub.RegisterAction(new FilterSplitterSetFilterItemActionHandler(subInventoryState, controller, blockInventoryTopic));
             hub.RegisterAction(new ElectricToGearSetOutputModeActionHandler(subInventoryState));
             hub.RegisterAction(new MachineRecipeSelectActionHandler(subInventoryState, unlockStateData));
             hub.RegisterAction(new TrainPlatformSetTransferModeActionHandler(subInventoryState));

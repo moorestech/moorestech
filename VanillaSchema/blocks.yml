@@ -179,7 +179,6 @@ properties:
       - ElectricPump
       - GearToElectricGenerator
       - ElectricToGearGenerator
-      - FilterSplitter
       - CleanRoomWall
       - CleanRoomDoor
       - CleanRoomItemHatch
@@ -995,16 +994,6 @@ properties:
         - key: connectionHeightRange
           type: integer
           default: 20
-      - when: FilterSplitter
-        type: object
-        implementationInterface:
-        - IInventoryConnectors
-        properties:
-        - key: filterSlotCountPerDirection
-          type: integer
-          default: 10
-        - key: inventoryConnectors
-          ref: inventoryConnects
       - when: CleanRoomWall
         type: object
         properties: []

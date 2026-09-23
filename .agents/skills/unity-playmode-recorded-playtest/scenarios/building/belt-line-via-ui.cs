@@ -62,9 +62,10 @@ return PlaytestRunner.Run("belt-line-via-ui", options, async p =>
     // 先頭ベルトへ鉄インゴットを0.5秒間隔で10個投入（belt-line.csと同一）
     // Feed 10 iron ingots into the head belt at 0.5s intervals (same as belt-line.cs)
     var itemId = PlaytestItemOps.ResolveItemId("鉄インゴット");
-    var headBelt = p.GetBlock(new Vector3Int(2, 32, 2)).GetComponent<VanillaBeltConveyorComponent>();
+    var headBelt = p.GetBlock(new Vector3Int(2, 32, 2)).GetComponent<SegmentBeltComponent>();
     for (var i = 0; i < 10; i++)
     {
+        await p.Until(() => headBelt.GetItem(0).Count == 0, 10f, "先頭セルの空き");
         headBelt.InsertItem(ServerContext.ItemStackFactory.Create(itemId, 1), InsertItemContext.Empty);
         await p.WaitSeconds(0.5f);
     }
@@ -73,7 +74,7 @@ return PlaytestRunner.Run("belt-line-via-ui", options, async p =>
     // チェスト内の鉄インゴット数を数えるヘルパー
     // Helper counting iron ingots inside the chest
     var chestComponent = p.GetBlock(chestPosition).GetComponent<VanillaChestComponent>();
-    System.Func<int> countInChest = () =>
+    int countInChest()
     {
         var total = 0;
         foreach (var stack in chestComponent.InventoryItems)
@@ -81,7 +82,7 @@ return PlaytestRunner.Run("belt-line-via-ui", options, async p =>
             if (stack.Id == itemId) total += stack.Count;
         }
         return total;
-    };
+    }
 
     // 到着を条件待機で検証（固定sleepなし）: 最初の1個→全10個
     // Verify arrival via condition waits (no fixed sleeps): first item, then all ten

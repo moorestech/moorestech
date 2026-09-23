@@ -24,9 +24,5 @@ namespace Game.SaveLoad.Pruning.Items
         // Connection cost materials (materials of ElectricWire/GearChainPole); stack-shaped but not inventory
         public const string ConnectionCostMaterialsPropertyName = "materials";
 
-        // 対象外: filterItemGuids（VanillaFilterSplitter）・miningItemGuids（VanillaMinerProcessor）
-        // Out of scope: filterItemGuids (VanillaFilterSplitter) and miningItemGuids (VanillaMinerProcessor)
-        // 前者はGetItemIdOrNull、後者は文字列比較だけで解決するためロードを止めず、除去は挙動を変えるだけになる
-        // The former resolves through GetItemIdOrNull and the latter only compares strings, so neither blocks a load and pruning them would only change behaviour
     }
 }

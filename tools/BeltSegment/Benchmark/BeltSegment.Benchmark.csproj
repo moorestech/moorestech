@@ -6,6 +6,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
+    <Compile Include="BeltReplayBenchmark.cs" />
+    <Compile Include="../../../moorestech_client/Assets/Scripts/Client.Game/InGame/BeltSegment/Gpu/GpuBeltData.cs" />
+    <Compile Include="../../../moorestech_client/Assets/Scripts/Client.Game/InGame/BeltSegment/Gpu/GpuBeltTickUpload.cs" />
     <Compile Include="BeltBenchmarkScenario.cs" />
     <Compile Include="../../../moorestech_server/Assets/Scripts/Game.BeltSegment/**/*.cs" />
   </ItemGroup>

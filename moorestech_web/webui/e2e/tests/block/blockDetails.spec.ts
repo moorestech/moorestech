@@ -12,7 +12,6 @@ const cases = [
   { type: "gearMachine", testId: "gear-section" },
   { type: "generator", testId: "generator-section" },
   { type: "miner", testId: "miner-section" },
-  { type: "filterSplitter", testId: "filter-splitter" },
   { type: "pump", testId: "pump-section" },
   { type: "gearPump", testId: "pump-section" },
 ] as const;

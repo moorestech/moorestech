@@ -107,6 +107,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
             {
                 // 全占有セルで既存ブロックとの重なりをチェック
                 // Check overlap against existing blocks over all occupied cells; server re-validates
+                if (!global::Game.Block.Interface.Extension.BeltConveyorPlaceFamilyUtil.IsPlacementDirectionAllowed(placement.BlockId, placement.Direction)) return false;
                 var blockSize = MasterHolder.BlockMaster.GetBlockMaster(placement.BlockId).BlockSize;
                 var positionInfo = new BlockPositionInfo(placement.Position, placement.Direction, blockSize);
                 return !_blockGameObjectDataStore.IsOverlapPositionInfo(positionInfo);

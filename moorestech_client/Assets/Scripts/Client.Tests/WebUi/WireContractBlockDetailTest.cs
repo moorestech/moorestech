@@ -181,34 +181,7 @@ namespace Client.Tests.WebUi
             AssertMatchesFixture(dto, "block_inventory_miner.json");
         }
 
-        // filterSplitter 単独。progress/詳細なしで方向配列を含む presence ケース
-        // FilterSplitter only; a presence case with a direction array and no progress/other details
-        [Test]
-        public void FilterSplitterFixtureMatchesDto()
-        {
-            var dto = new BlockInventoryDto
-            {
-                Open = true,
-                Source = "block",
-                BlockType = "FilterSplitter",
-                Identifier = "(2, 0, 2)",
-                BlockGuid = "55555555-5555-4555-8555-555555555555",
-                ItemSlots = new List<BlockItemSlotDto>(),
-                FluidSlots = new List<BlockFluidSlotDto>(),
-                FilterSplitter = new FilterSplitterDto
-                {
-                    DirectionCount = 3,
-                    FilterSlotCountPerDirection = 2,
-                    Directions = new List<FilterSplitterDirectionDto>
-                    {
-                        new() { Mode = "whitelist", FilterItemIds = new List<int> { 4, 0 } },
-                        new() { Mode = "default", FilterItemIds = new List<int> { 0, 0 } },
-                        new() { Mode = "blacklist", FilterItemIds = new List<int> { 7, 8 } },
-                    },
-                },
-            };
-            AssertMatchesFixture(dto, "block_inventory_filter_splitter.json");
-        }
+
 
         // 変換層(秒→分換算・FluidGuid解決・種別分岐)を実際に起動する。DTO手組みではこのmutationが死なない
         // Exercises the conversion layer itself (sec-to-minute, FluidGuid resolution, kind branching); a hand-built DTO leaves those mutations alive

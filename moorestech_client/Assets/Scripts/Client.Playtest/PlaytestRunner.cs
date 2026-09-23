@@ -1,5 +1,6 @@
 using System;
 using Client.Playtest.Core;
+using Client.Playtest.Input;
 using Client.Playtest.Overlay;
 using Client.Playtest.Recording;
 using Client.Playtest.WebUi;
@@ -40,6 +41,7 @@ namespace Client.Playtest
                 // Wait for game initialization, then start recording and run the scenario
                 PlaytestRecorder recorder = null;
                 var driver = new PlaytestDriver(result, runDirectory);
+                using var inputScope = new PlaytestInputScope();
                 try
                 {
                     await PlaytestGameReady.WaitUntilReady(options.ReadyTimeoutSeconds);

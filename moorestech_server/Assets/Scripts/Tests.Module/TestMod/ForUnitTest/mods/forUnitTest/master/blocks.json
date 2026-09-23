@@ -4317,89 +4317,6 @@
         1,
         1
       ],
-      "name": "TestFilterSplitter",
-      "blockType": "FilterSplitter",
-      "blockParam": {
-        "filterSlotCountPerDirection": 4,
-        "inventoryConnectors": {
-          "inputConnects": [
-            {
-              "offset": [
-                0,
-                0,
-                0
-              ],
-              "directions": [
-                [
-                  0,
-                  0,
-                  -1
-                ]
-              ],
-              "connectorGuid": "f1110000-0000-0000-0000-000000000010"
-            }
-          ],
-          "outputConnects": [
-            {
-              "offset": [
-                0,
-                0,
-                0
-              ],
-              "directions": [
-                [
-                  1,
-                  0,
-                  0
-                ]
-              ],
-              "connectorGuid": "f1110000-0000-0000-0000-000000000001"
-            },
-            {
-              "offset": [
-                0,
-                0,
-                0
-              ],
-              "directions": [
-                [
-                  -1,
-                  0,
-                  0
-                ]
-              ],
-              "connectorGuid": "f1110000-0000-0000-0000-000000000002"
-            },
-            {
-              "offset": [
-                0,
-                0,
-                0
-              ],
-              "directions": [
-                [
-                  0,
-                  0,
-                  1
-                ]
-              ],
-              "connectorGuid": "f1110000-0000-0000-0000-000000000003"
-            }
-          ]
-        }
-      },
-      "blockGuid": "00000000-0000-0000-0000-000000000031",
-      "category": "テスト",
-      "subCategory": "FilterSplitter",
-      "placementsPerCost": 1,
-      "openable": false
-    },
-    {
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
       "name": "TestShapeOrderSourceChest",
       "blockType": "Chest",
       "blockParam": {
@@ -5337,8 +5254,7 @@
       "category": "テスト",
       "subCategory": "ElectricPump",
       "placementsPerCost": 1
-    }
-  ,
+    },
     {
       "modelTransform": {
         "scale": [
@@ -5494,8 +5410,7 @@
       "subCategory": "BeltConveyor",
       "placementsPerCost": 1,
       "openable": false
-    }
-  ,
+    },
     {
       "modelTransform": {
         "scale": [
@@ -6553,11 +6468,21 @@
     {
       "straightBlockGuid": "00000000-0000-0000-0000-0000000000b5"
     },
-    {"straightBlockGuid": "00000000-0000-0000-0000-0000000000b6"},
-    {"straightBlockGuid": "00000000-0000-0000-0000-0000000000b7"},
-    {"straightBlockGuid": "00000000-0000-0000-0000-0000000000b8"},
-    {"straightBlockGuid": "00000000-0000-0000-0000-0000000000b9"},
-    {"straightBlockGuid": "00000000-0000-0000-0000-0000000000ba"}
+    {
+      "straightBlockGuid": "00000000-0000-0000-0000-0000000000b6"
+    },
+    {
+      "straightBlockGuid": "00000000-0000-0000-0000-0000000000b7"
+    },
+    {
+      "straightBlockGuid": "00000000-0000-0000-0000-0000000000b8"
+    },
+    {
+      "straightBlockGuid": "00000000-0000-0000-0000-0000000000b9"
+    },
+    {
+      "straightBlockGuid": "00000000-0000-0000-0000-0000000000ba"
+    }
   ],
   "blockDestructionCategories": [
     {

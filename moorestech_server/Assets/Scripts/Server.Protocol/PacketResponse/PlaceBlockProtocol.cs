@@ -4,6 +4,7 @@ using System.Linq;
 using Common.Debug;
 using Core.Master;
 using Game.Block.Interface;
+using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.PlacementTarget;
 using Game.PlayerInventory.Interface;
@@ -80,6 +81,9 @@ namespace Server.Protocol.PacketResponse
                 if (ServerContext.WorldBlockDatastore.Exists(placeInfo.Position)) return;
 
                 var placeBlockId = placeInfo.BlockId;
+                // 向き制約は共通判定を通し、建設計画より前に拒否する。
+                // Reject unsupported facing through the shared rule before planning construction.
+                if (!BeltConveyorPlaceFamilyUtil.IsPlacementDirectionAllowed(placeBlockId, placeInfo.Direction)) return;
                 var createParams = placeInfo.BlockCreateParams.Select(v => new BlockCreateParam(v.Key, v.Value)).ToArray();
 
                 // 無料設置デバッグ: 解放・コスト・電線を一切見ず強制設置して即return

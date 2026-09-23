@@ -1,0 +1,104 @@
+#pragma kernel Clear
+#pragma kernel BuildPositions
+#pragma kernel PrefixKinds
+#pragma kernel Scatter
+#include "../BeltGpuData.hlsl"
+#include "BeltDrawGeometry.hlsl"
+StructuredBuffer<int> _Kinds;
+RWStructuredBuffer<float4> _RawPositions, _Positions;
+RWStructuredBuffer<uint> _Counts, _Offsets, _Cursors;
+RWByteAddressBuffer _Arguments;
+int _KindCount, _Capacity;
+groupshared int gaps[128];
+groupshared int carry;
+groupshared int runningCount;
+groupshared int batchSum;
+[numthreads(128,1,1)]
+void Clear(uint3 id : SV_DispatchThreadID)
+{
+    uint i = id.x + _DispatchOffset;
+    if (i < _Capacity) _RawPositions[i] = float4(0,0,0,-1);
+    if (i < _KindCount) { _Counts[i] = 0; _Cursors[i] = 0; }
+}
+int DenseKind(int kind)
+{
+    int low = 0, high = _KindCount;
+    while (low < high)
+    {
+        int mid = (low + high) / 2;
+        if (_Kinds[mid] < kind) low = mid + 1;
+        else high = mid;
+    }
+    return low;
+}
+[numthreads(128,1,1)]
+void BuildPositions(uint3 group : SV_GroupID, uint lane : SV_GroupIndex)
+{
+    uint segment = group.x + _DispatchOffset;
+    if (segment >= _SegmentCount) return;
+    GpuBeltTopology t = _Topology[segment];
+    GpuBeltState s = _States[segment];
+    if (lane == 0) { carry = 0; runningCount = s.Count; }
+    GroupMemoryBarrierWithGroupSync();
+    // 容量に依存しない128要素scanを繋ぎ、各隙間を線形回数だけ読む。
+    // Chain bounded scans with linear work, reading each queue gap only once.
+    for (int start = 0; start < runningCount; start += 128)
+    {
+        int logical = start + lane;
+        int physical = t.Offset + (s.Head + logical) % t.Capacity;
+        int gap = logical < s.Count ? _Gaps[physical] : 0;
+        gaps[lane] = gap;
+        GroupMemoryBarrierWithGroupSync();
+        for (uint stride = 1; stride < 128; stride *= 2)
+        {
+            uint at = (lane + 1) * stride * 2 - 1;
+            if (at < 128) gaps[at] += gaps[at - stride];
+            GroupMemoryBarrierWithGroupSync();
+        }
+        if (lane == 0) { batchSum = gaps[127]; gaps[127] = 0; }
+        GroupMemoryBarrierWithGroupSync();
+        for (uint downStride = 64; downStride > 0; downStride /= 2)
+        {
+            uint at = (lane + 1) * downStride * 2 - 1;
+            if (at < 128)
+            {
+                int left = gaps[at - downStride];
+                gaps[at - downStride] = gaps[at]; gaps[at] += left;
+            }
+            GroupMemoryBarrierWithGroupSync();
+        }
+        if (logical < s.Count)
+        {
+            int2 item = _Items[physical];
+            int kind = DenseKind(item.x);
+            int distance = carry + gaps[lane] + gap + logical * 256;
+            _RawPositions[t.Offset + logical] = float4(PositionOnRoute(segment, distance, item.y), kind);
+            InterlockedAdd(_Counts[kind], 1);
+        }
+        GroupMemoryBarrierWithGroupSync();
+        if (lane == 0) carry += batchSum;
+        GroupMemoryBarrierWithGroupSync();
+    }
+}
+[numthreads(1,1,1)]
+void PrefixKinds(uint3 id : SV_DispatchThreadID)
+{
+    uint offset = 0;
+    for (int kind = 0; kind < _KindCount; kind++)
+    {
+        _Offsets[kind] = offset;
+        _Arguments.Store(kind * 20 + 4, _Counts[kind]);
+        offset += _Counts[kind];
+    }
+}
+[numthreads(128,1,1)]
+void Scatter(uint3 id : SV_DispatchThreadID)
+{
+    uint i = id.x + _DispatchOffset;
+    if (i >= _Capacity) return;
+    float4 item = _RawPositions[i];
+    if (item.w < 0) return;
+    uint kind = (uint)item.w, index;
+    InterlockedAdd(_Cursors[kind], 1, index);
+    _Positions[_Offsets[kind] + index] = item;
+}

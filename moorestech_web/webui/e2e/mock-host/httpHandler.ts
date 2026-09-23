@@ -24,7 +24,6 @@ const BLOCK_FIXTURES: Record<string, BlockInventoryWireData> = {
   gearMachine: fx.blockGearMachine,
   generator: fx.blockGenerator,
   miner: fx.blockMiner,
-  filterSplitter: fx.blockFilterSplitter,
   gearMiner: fx.blockGearMiner,
   pump: fx.blockPump,
   pumpNoVein: fx.blockPumpNoVein,

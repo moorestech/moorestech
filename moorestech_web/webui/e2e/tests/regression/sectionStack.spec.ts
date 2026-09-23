@@ -4,7 +4,7 @@ import { setBlock } from "../../support/mockControl";
 const sectionIds = [
   "machine-section", "miner-section", "generator-section", "gear-section", "electric-network-section", "gear-network-section",
   "chest-grid", "machine-fluid-slots", "miner-output-grid", "gear-miner-output-grid", "generator-fuel-grid",
-  "generic-block-grid", "generic-block-fluids", "filter-splitter", "pump-section", "pump-fluid-slots",
+  "generic-block-grid", "generic-block-fluids", "pump-section", "pump-fluid-slots",
 ] as const;
 
 const cases = [
@@ -16,7 +16,6 @@ const cases = [
   { type: "gearMiner", shown: ["miner-section", "gear-section", "gear-network-section", "gear-miner-output-grid"] },
   { type: "generator", shown: ["generator-section", "electric-network-section", "generator-fuel-grid"] },
   { type: "generic", shown: ["generic-block-grid", "generic-block-fluids"] },
-  { type: "filterSplitter", shown: ["filter-splitter"] },
   { type: "pump", shown: ["pump-section", "electric-network-section", "pump-fluid-slots"] },
   { type: "gearPump", shown: ["pump-section", "gear-section", "gear-network-section", "pump-fluid-slots"] },
   { type: "gearGenerator", shown: ["gear-section", "gear-network-section"] },

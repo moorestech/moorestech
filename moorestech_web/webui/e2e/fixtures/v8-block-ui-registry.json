@@ -15,7 +15,6 @@
   { "blockType": "ElectricPole", "openable": true },
   { "blockType": "ElectricPump", "openable": false },
   { "blockType": "ElectricToGearGenerator", "openable": true },
-  { "blockType": "FilterSplitter", "openable": true },
   { "blockType": "FluidPipe", "openable": false },
   { "blockType": "FuelGearGenerator", "openable": true },
   { "blockType": "Gear", "openable": true },

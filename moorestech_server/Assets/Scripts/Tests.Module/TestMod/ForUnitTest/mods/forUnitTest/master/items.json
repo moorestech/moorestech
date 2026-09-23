@@ -517,19 +517,6 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
-            "itemGuid": "00000000-0000-0000-1234-000000000031",
-            "imagePath": "",
-            "name": "TestFilterSplitter",
-            "sortPriority": 840,
-            "initialUnlocked": false,
-            "recipeViewType": "IsUnlocked",
-            "addressablePaths": {
-                "handGrabModel": "",
-                "entityModel": ""
-            },
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
-        },
-        {
             "itemGuid": "00000000-0000-0000-1234-000000000032",
             "imagePath": "",
             "name": "TestShapeOrderSourceChest",

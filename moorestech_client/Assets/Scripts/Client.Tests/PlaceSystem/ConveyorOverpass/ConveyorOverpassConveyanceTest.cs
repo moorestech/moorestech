@@ -73,17 +73,17 @@ namespace Client.Tests.PlaceSystem.ConveyorOverpass
 
             #region Internal
 
-            List<(VanillaBeltConveyorComponent belt, GearBeltConveyorComponent gear)> PlaceComputedBelts()
+            List<(SegmentBeltComponent belt, GearBeltConveyorComponent gear)> PlaceComputedBelts()
             {
                 // 本番(PlaceBlockProtocol)のうち縦方向override→TryAddBlock部分を再現する（プロトコル全体は経由しない）
                 // Reproduce production's (PlaceBlockProtocol) vertical-override -> TryAddBlock step (not the full protocol).
-                var result = new List<(VanillaBeltConveyorComponent, GearBeltConveyorComponent)>();
+                var result = new List<(SegmentBeltComponent, GearBeltConveyorComponent)>();
                 foreach (var info in placeInfos)
                 {
                     if (!info.Placeable) continue;
                     var blockId = ResolveVerticalBlockId(info.VerticalDirection);
                     Assert.IsTrue(world.TryAddBlock(blockId, info.Position, info.Direction, Array.Empty<BlockCreateParam>(), out var block), $"設置失敗 / placement failed at {info.Position}");
-                    result.Add((block.GetComponent<VanillaBeltConveyorComponent>(), block.GetComponent<GearBeltConveyorComponent>()));
+                    result.Add((block.GetComponent<SegmentBeltComponent>(), block.GetComponent<GearBeltConveyorComponent>()));
                 }
                 return result;
             }

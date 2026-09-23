@@ -11,13 +11,13 @@ namespace Client.Game.InGame.BeltSegment.Model
         private readonly ComputeShader shader;
         private readonly BeltFrameBuffer frames = new();
         private readonly Subject<BeltWorldSnapshot> rebuilt = new();
-        private readonly Subject<Unit> advanced = new();
+        private readonly Subject<BeltReplayTick> advanced = new();
         private readonly Subject<string> recoveryRequested = new();
         private readonly Subject<Exception> failed = new();
         private BeltReplaySimulation cpu;
         private BeltReplaySnapshot topology;
         internal IObservable<BeltWorldSnapshot> OnRebuilt => rebuilt;
-        internal IObservable<Unit> OnAdvanced => advanced;
+        internal IObservable<BeltReplayTick> OnAdvanced => advanced;
         internal IObservable<string> OnRecoveryRequested => recoveryRequested;
         internal IObservable<Exception> OnFailed => failed;
         internal BeltStreamStatus Status { get; private set; } = BeltStreamStatus.WaitingSnapshot;
@@ -72,7 +72,7 @@ namespace Client.Game.InGame.BeltSegment.Model
                     cpu.ApplyTick(frame.Replay, false);
                     Simulation.ApplyTick(frame.Replay);
                     Position = frame.Position;
-                    advanced.OnNext(Unit.Default);
+                    advanced.OnNext(frame.Replay);
                 }
                 if (frames.HasPending) Recover("Missing frame chain or replacement generation.");
             }
@@ -90,8 +90,6 @@ namespace Client.Game.InGame.BeltSegment.Model
             failed.OnNext(exception);
             Recover(exception.Message);
         }
-#if UNITY_EDITOR
         internal BeltReplaySnapshot CaptureCpuState() => cpu.CaptureSnapshot();
-#endif
     }
 }

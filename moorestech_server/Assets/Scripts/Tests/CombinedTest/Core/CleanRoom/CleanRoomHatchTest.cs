@@ -34,7 +34,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
             ReplaceBlock(ForUnitTestModBlockId.CleanRoomItemHatchId, new Vector3Int(1, 1, 0));
             ReplaceBlock(ForUnitTestModBlockId.CleanRoomPipeHatchId, new Vector3Int(1, 1, 2));
 
-            GameUpdater.UpdateOneTick();
+            GameUpdater.Update();
             Assert.IsTrue(datastore.TryGetCleanRoomAt(new Vector3Int(1, 1, 1), out var room));
             Assert.AreEqual(1, room.Volume);
         }
@@ -50,16 +50,15 @@ namespace Tests.CombinedTest.Core.CleanRoom
             PlaceBlock(ForUnitTestModBlockId.CleanRoomItemHatchId, new Vector3Int(0, 0, 1));
             var chest = PlaceBlock(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, 2));
 
-            var beltComponent = belt.GetComponent<VanillaBeltConveyorComponent>();
-            var remain = beltComponent.InsertItem(ServerContext.ItemStackFactory.Create(new ItemId(1), 1), InsertItemContext.Empty);
-            Assert.AreEqual(0, remain.Count);
+            var beltComponent = belt.GetComponent<SegmentBeltComponent>();
+            beltComponent.SetItem(0, ServerContext.ItemStackFactory.Create(new ItemId(1), 1));
 
             // ベルト搬送時間+マージン以内にチェストへ届くことを確認する
             // The item must reach the chest within belt travel time plus margin
             var beltParam = (BeltConveyorBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.BeltConveyorId).BlockParam;
             var maxTicks = (int)(beltParam.TimeOfItemEnterToExit * GameUpdater.TicksPerSecond) + 10;
             var chestComponent = chest.GetComponent<VanillaChestComponent>();
-            for (var i = 0; i < maxTicks && chestComponent.InventoryItems[0].Count == 0; i++) GameUpdater.UpdateOneTick();
+            for (var i = 0; i < maxTicks && chestComponent.InventoryItems[0].Count == 0; i++) GameUpdater.Update();
 
             Assert.AreEqual(1, chestComponent.InventoryItems[0].Id.AsPrimitive());
             Assert.AreEqual(1, chestComponent.InventoryItems[0].Count);
@@ -75,13 +74,14 @@ namespace Tests.CombinedTest.Core.CleanRoom
             var belt = PlaceBlock(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(0, 0, 0));
             var hatch = PlaceBlock(ForUnitTestModBlockId.CleanRoomItemHatchId, new Vector3Int(0, 0, 1));
 
-            var beltComponent = belt.GetComponent<VanillaBeltConveyorComponent>();
+            var beltComponent = belt.GetComponent<SegmentBeltComponent>();
             var itemStackFactory = ServerContext.ItemStackFactory;
             var lastBeltRemain = 0;
             for (var i = 0; i < 100; i++)
             {
-                lastBeltRemain = beltComponent.InsertItem(itemStackFactory.Create(new ItemId(1), 1), InsertItemContext.Empty).Count;
-                GameUpdater.UpdateOneTick();
+                lastBeltRemain = beltComponent.GetItem(0).Count;
+                if (lastBeltRemain == 0) beltComponent.SetItem(0, itemStackFactory.Create(new ItemId(1), 1));
+                GameUpdater.Update();
             }
 
             // ハッチの中継バッファ4スタックが埋まり、以後の挿入は差し戻される
@@ -109,13 +109,13 @@ namespace Tests.CombinedTest.Core.CleanRoom
             // Right after one transfer the throughput must be positive
             var hatchInventory = hatch.GetComponent<IBlockInventory>();
             hatchInventory.InsertItem(ServerContext.ItemStackFactory.Create(new ItemId(1), 1), InsertItemContext.Empty);
-            GameUpdater.UpdateOneTick();
+            GameUpdater.Update();
             var hatchThroughput = hatch.GetComponent<ICleanRoomItemHatch>();
             Assert.Greater(hatchThroughput.RecentThroughputPerSecond, 0);
 
             // 20tick無搬送でリング窓が流れ切りレートは0に戻る
             // After 20 idle ticks the ring window drains and the rate returns to zero
-            for (var i = 0; i < 20; i++) GameUpdater.UpdateOneTick();
+            for (var i = 0; i < 20; i++) GameUpdater.Update();
             Assert.AreEqual(0, hatchThroughput.RecentThroughputPerSecond);
         }
 

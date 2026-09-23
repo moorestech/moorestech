@@ -8,7 +8,6 @@ const sources = {
   blockItemGrid: read("./BlockItemGrid.tsx"),
   generator: read("./details/GeneratorSection.tsx"),
   gear: read("./details/GearSection.tsx"),
-  filterSplitter: read("./views/FilterSplitterInventory.tsx"),
   trainPlatform: read("./details/TrainPlatformSection.tsx"),
   electricToGear: read("./views/ElectricToGearInventory.tsx"),
   network: read("./details/NetworkSections.tsx"),
@@ -60,7 +59,6 @@ describe("block inventory design whitelist", () => {
 
   it("ゲージとモード切替を用途別に共通部品へ置換する", () => {
     expect(sources.generator).toContain("<GaugeBar");
-    expect(sources.filterSplitter).toContain("<ModeSwitch");
     expect(sources.trainPlatform).toContain("<ModeSwitch");
     expect(sources.electricToGear).toContain("<ModeSwitch");
     expect(sources.electricToGear).toContain('orientation="vertical"');
@@ -71,10 +69,7 @@ describe("block inventory design whitelist", () => {
     expect(sources.blockItemGrid).toContain("cols={Math.min(9, Math.max(1, itemSlots.length))}");
   });
 
-  it("フィルタ分岐器の方向を縦積みにする", () => {
-    expect(sources.filterSplitter).toContain('<Stack gap="sm" data-testid="filter-splitter">');
-    expect(sources.filterSplitter).not.toContain('<Group align="flex-start" gap="md" data-testid="filter-splitter">');
-  });
+
 
   it("ゲージ系部品を寒色トークンで統一する", () => {
     expect(styles.gaugeBar).toContain("var(--gauge-outline-width)");

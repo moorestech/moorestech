@@ -2,30 +2,7 @@ import type { BlockInventoryWireData, MachineRecipe, ResearchTreeData } from "..
 import type { ActionPayloads } from "../../src/bridge/transport/protocol";
 import { overflowingMachineRecipes } from "./fixtures/recipeFixtures";
 
-// mock 用の固定 grab アイテムID。clear:false 時に C# 側が持ち手アイテムを設定するのを代替する
-// Fixed mock grab item id; stands in for the C# side assigning the currently grabbed item on clear:false
-const MOCK_GRAB_ITEM_ID = 999;
 const EMPTY_GUID = "00000000-0000-0000-0000-000000000000";
-
-// filter_splitter.set_mode: 対象方向の mode を書換える。適用できたら true
-// filter_splitter.set_mode: rewrite the target direction's mode; true when applied
-export function applyFilterMode(block: BlockInventoryWireData, p: ActionPayloads["filter_splitter.set_mode"]): boolean {
-  if (!block.open || !("filterSplitter" in block) || !block.filterSplitter) return false;
-  const dir = block.filterSplitter.directions[p.directionIndex];
-  if (!dir) return false;
-  dir.mode = p.mode;
-  return true;
-}
-
-// filter_splitter.set_filter_item: filterItemIds[slotIndex] を clear なら0、それ以外は固定grabIDへ書換える
-// filter_splitter.set_filter_item: set filterItemIds[slotIndex] to 0 when clear, otherwise the fixed grab id
-export function applyFilterItem(block: BlockInventoryWireData, p: ActionPayloads["filter_splitter.set_filter_item"]): boolean {
-  if (!block.open || !("filterSplitter" in block) || !block.filterSplitter) return false;
-  const dir = block.filterSplitter.directions[p.directionIndex];
-  if (!dir || p.slotIndex < 0 || p.slotIndex >= dir.filterItemIds.length) return false;
-  dir.filterItemIds[p.slotIndex] = p.clear ? 0 : MOCK_GRAB_ITEM_ID;
-  return true;
-}
 
 // 有効な出力モードだけ反映する
 // electric_to_gear.set_output_mode: apply only a valid index to the StateDetail equivalent

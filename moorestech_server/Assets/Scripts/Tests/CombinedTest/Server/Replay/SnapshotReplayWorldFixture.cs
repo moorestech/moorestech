@@ -23,7 +23,7 @@ namespace Tests.CombinedTest.Server.Replay
     // Builds a world where belt transport and recipe processing move every tick; a static world would let the determinism check pass vacuously
     public static class SnapshotReplayWorldFixture
     {
-        private static readonly string BeltSaveKey = typeof(VanillaBeltConveyorComponent).FullName;
+        private static readonly string BeltSaveKey = "Game.Block.Blocks.BeltConveyor.SegmentBeltSaveComponent";
         private static readonly string MachineSaveKey = typeof(VanillaMachineSaveComponent).FullName;
 
         private static readonly Vector3Int BeltHeadPosition = new(0, 0, 0);
@@ -35,15 +35,14 @@ namespace Tests.CombinedTest.Server.Replay
         {
             var world = ServerContext.WorldBlockDatastore;
 
-            // 3連ベルト（1本40tick）の先頭へアイテムを入れる。計測中ずっと搬送中で、スナップショット境界ごとに位置が変わる
-            // Insert an item at the head of three chained belts (40 ticks each); it stays in transit and shifts at every snapshot boundary
+            // 3連ベルト（1本16tick）の先頭へアイテムを入れる。計測中ずっと搬送中で、スナップショット境界ごとに位置が変わる
+            // Insert an item at the head of three chained belts (16 ticks each); it stays in transit and shifts at every snapshot boundary
             for (var z = 0; z < 3; z++)
             {
                 world.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(0, 0, z), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             }
-            var belt = world.GetBlock(BeltHeadPosition).GetComponent<VanillaBeltConveyorComponent>();
-            var remainder = belt.InsertItem(ServerContext.ItemStackFactory.Create(new ItemId(1), 1), InsertItemContext.Empty);
-            Assert.AreEqual(ItemMaster.EmptyItemId, remainder.Id, "ベルトへのアイテム投入に失敗した");
+            var belt = world.GetBlock(BeltHeadPosition).GetComponent<SegmentBeltComponent>();
+            belt.SetItem(0, ServerContext.ItemStackFactory.Create(new ItemId(1), 1));
 
             // 電柱・機械・無限発電機を配線してレシピ3周分の材料を入れる。加工は計測中止まらない
             // Wire a pole, machine, and infinite generator, then load three recipe runs' worth of inputs so processing never stalls
@@ -90,8 +89,8 @@ namespace Tests.CombinedTest.Server.Replay
 
         private static List<JToken> BeltItems(string snapshotJson)
         {
-            var states = JObject.Parse(snapshotJson).SelectTokens($"$.world[*].state['{BeltSaveKey}']");
-            return states.SelectMany(state => state.Children()).Where(item => item.Type != JTokenType.Null).ToList();
+            var states = JObject.Parse(snapshotJson).SelectTokens($"$.world[*].state['{BeltSaveKey}'].RunningItem");
+            return states.Where(item => item.Type != JTokenType.Null).ToList();
         }
 
         private static JToken MachineProcessor(string snapshotJson)

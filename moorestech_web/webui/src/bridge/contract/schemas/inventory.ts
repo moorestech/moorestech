@@ -110,16 +110,6 @@ export const GearNetworkDataSchema = z.object({
   stopReason: GearNetworkStopReasonSchema,
 });
 
-export const FilterSplitterModeSchema = z.enum(["default", "whitelist", "blacklist"]);
-export const FilterSplitterDirectionDataSchema = z.object({
-  mode: FilterSplitterModeSchema,
-  filterItemIds: z.array(z.number()),
-});
-export const FilterSplitterDataSchema = z.object({
-  directionCount: z.number(),
-  filterSlotCountPerDirection: z.number(),
-  directions: z.array(FilterSplitterDirectionDataSchema),
-});
 
 export const ElectricToGearOutputModeDataSchema = z.object({
   rpm: z.number(),
@@ -156,7 +146,6 @@ export const BlockInventoryOpenSchema = z.object({
   gear: GearDetailDataSchema.optional(),
   electricNetwork: ElectricNetworkDataSchema.optional(),
   gearNetwork: GearNetworkDataSchema.optional(),
-  filterSplitter: FilterSplitterDataSchema.optional(),
   electricToGear: ElectricToGearDataSchema.optional(),
   trainPlatform: TrainPlatformDataSchema.optional(),
 }).strict();

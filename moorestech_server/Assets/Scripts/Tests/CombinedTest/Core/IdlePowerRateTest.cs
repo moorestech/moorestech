@@ -116,21 +116,21 @@ namespace Tests.CombinedTest.Core
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            // 空のベルトはIdle扱いで要求トルクが低減される
-            // An empty belt is idle, so required torque is reduced
+            // 空のベルトも一定トルクを要求する
+            // Empty belts request the same constant torque.
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGearBeltConveyor, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
             var param = (GearBeltConveyorBlockParam)block.BlockMasterElement.BlockParam;
             var gear = block.GetComponent<GearBeltConveyorComponent>();
-            var belt = block.GetComponent<VanillaBeltConveyorComponent>();
+            var belt = block.GetComponent<SegmentBeltComponent>();
             var baseRpm = new RPM((float)param.GearConsumption.BaseRpm);
             var fullTorque = GearConsumptionCalculator.CalcRequiredTorque(param.GearConsumption, baseRpm).AsPrimitive();
             var idlePowerRate = param.GearConsumption.IdlePowerRate;
-            Assert.AreEqual(fullTorque * idlePowerRate, gear.GetRequiredTorque(baseRpm, true).AsPrimitive(), 0.0001f);
+            Assert.AreEqual(fullTorque, gear.GetRequiredTorque(baseRpm, true).AsPrimitive(), 0.0001f);
 
-            // アイテムが載るとイベントで搬送中としてフル要求に戻る
-            // Once an item is on the belt, the event makes it active and requests full torque
+            // アイテム占有は要求量を変えない
+            // Occupancy does not alter the demand.
             var item = ServerContext.ItemStackFactory.Create(new ItemId(1), 1);
-            belt.InsertItem(item, InsertItemContext.Empty);
+            belt.SetItem(0, item);
             Assert.AreEqual(fullTorque, gear.GetRequiredTorque(baseRpm, true).AsPrimitive(), 0.0001f);
         }
 

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Game.Block.Interface;
 using Game.Context;
 using Game.World.Interface.DataStore;
@@ -17,6 +18,22 @@ namespace Tests.CombinedTest.Server.PacketTest
     /// </summary>
     public class PlaceBlockProtocolBeltFamilyTest
     {
+        [TestCase(BlockDirection.UpNorth)][TestCase(BlockDirection.DownEast)]
+        public void VerticalBeltRequestDoesNotPlaceOrConsumeCost(BlockDirection direction)
+        {
+            var (packet, services) = CreateServer();
+            GrantRequiredItems(services, ForUnitTestModBlockId.GearBeltConveyor, 1);
+            UnlockBlock(services, ForUnitTestModBlockId.GearBeltConveyor);
+            var inventory = GetInventory(services);
+            var before = inventory.InventoryItems.Select(s => (s.Id,s.Count)).ToArray();
+            packet.GetPacketResponse(CreatePlacePayload(new List<PlaceInfo> {new()
+            {
+                Position = new Vector3Int(8,0,8), Direction = direction,
+                VerticalDirection = BlockVerticalDirection.Horizontal, BlockId = ForUnitTestModBlockId.GearBeltConveyor,
+            }}), new PacketResponseContext(null));
+            Assert.IsFalse(ServerContext.WorldBlockDatastore.Exists(new Vector3Int(8,0,8)));
+            CollectionAssert.AreEqual(before,inventory.InventoryItems.Select(s => (s.Id,s.Count)).ToArray());
+        }
         [Test]
         public void セル毎に異なるBlockIdを一括設置できる()
         {

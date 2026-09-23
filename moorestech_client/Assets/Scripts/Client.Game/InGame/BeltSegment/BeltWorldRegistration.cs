@@ -1,4 +1,6 @@
 using Client.Game.Common;
+using Client.Game.InGame.BeltSegment.Rendering;
+using CommandForgeGenerator.Command;
 using Client.Game.InGame.BeltSegment.Model;
 using Client.Game.InGame.BeltSegment.Network;
 using Client.Game.InGame.Context;
@@ -16,6 +18,7 @@ namespace Client.Game.InGame.BeltSegment
             var world = new ClientBeltWorld(Resources.Load<ComputeShader>("BeltSegment/BeltGpuReplay"));
             var recovery = new BeltWorldRecovery(world, new BeltSnapshotRequester(ClientContext.VanillaApi.Response), Application.exitCancellationToken);
             builder.RegisterInstance(world);
+            builder.RegisterEntryPoint<BeltItemRenderer>().As<ISkitWorldObjectControl>();
             builder.RegisterInstance(recovery);
             builder.RegisterEntryPoint<BeltWorldEventHandler>().AsSelf().As<IInitialEventApplyWaitTarget>()
                 .WithParameter(Application.exitCancellationToken);

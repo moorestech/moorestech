@@ -1,85 +1,36 @@
-using System;
-using System.Collections.Generic;
 using Core.Master;
-using Core.Update;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Blocks.Chest;
-using Game.Block.Component;
 using Game.Block.Interface;
-using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using NUnit.Framework;
-using Server.Boot;
+using Tests.CombinedTest.Game.BeltSegmentWorld;
 using Tests.Module.TestMod;
 using UnityEngine;
-using Random = System.Random;
-using Game.Block.Interface.Component.ConnectJudge;
-
 namespace Tests.CombinedTest.Core
 {
     public class ChestLogicTest
     {
-        //ベルトコンベアからアイテムを搬入する
         [Test]
         public void BeltConveyorInsertChestLogicTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            
-            var itemStackFactory = ServerContext.ItemStackFactory;
-            var blockFactory = ServerContext.BlockFactory;
-            
-            var random = new Random(4123);
-            
-            var id = new ItemId(random.Next(1, 11));
-            var count = 1;
-            var item = itemStackFactory.Create(id, count);
-
-            // チェストブロックの配置
-            // Place the chest block
-            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, Vector3Int.one, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var chest);
-            var chestComponent = chest.GetComponent<VanillaChestComponent>();
-
-            // ベルトコンベアブロックの配置
-            // Place the belt conveyor block
-            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var beltConveyor);
-            var beltConveyorComponent = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
-            beltConveyorComponent.InsertItem(item, InsertItemContext.Empty);
-            
-            var beltConnectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>().ConnectedTargets;
-            beltConnectInventory.Add(chestComponent, new ConnectedInfo());
-            
-            
-            while (!chestComponent.GetItem(0).Equals(item)) GameUpdater.UpdateOneTick();
-            
-            Assert.True(chestComponent.GetItem(0).Equals(item));
+            var f = new BeltWorldFixture();
+            var belt = f.Belt(Vector3Int.zero, BlockDirection.North);
+            var chest = f.Add(ForUnitTestModBlockId.ChestId, Vector3Int.forward, BlockDirection.North).GetComponent<VanillaChestComponent>();
+            f.Seed(belt,1); f.Tick(17);
+            Assert.AreEqual(1,chest.GetItem(0).Count);
+            Assert.AreEqual(new ItemId(1),chest.GetItem(0).Id);
         }
-        
         [Test]
         public void BeltConveyorOutputChestLogicTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            
-            var blockFactory = ServerContext.BlockFactory;
-
-            // チェストブロックの配置
-            // Place the chest block
-            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, Vector3Int.one, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var chest);
-            var chestComponent = chest.GetComponent<VanillaChestComponent>();
-
-            // ベルトコンベアブロックの配置
-            // Place the belt conveyor block
-            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var beltconveyor);
-            var beltConveyorComponent = beltconveyor.GetComponent<VanillaBeltConveyorComponent>();
-            
-            chestComponent.SetItem(0, new ItemId(1), 1);
-            
-            var chestConnectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)chest.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>().ConnectedTargets;
-            chestConnectInventory.Add(beltConveyorComponent, new ConnectedInfo());
-            GameUpdater.UpdateOneTick();
-            
-            
-            Assert.AreEqual(chestComponent.GetItem(0).Count, 0);
+            var f = new BeltWorldFixture();
+            var chest = f.Add(ForUnitTestModBlockId.ChestId, Vector3Int.back, BlockDirection.North).GetComponent<VanillaChestComponent>();
+            var belt = f.Belt(Vector3Int.zero,BlockDirection.North);
+            chest.SetItem(0,new ItemId(1),1); f.Tick(1);
+            Assert.AreEqual(0,chest.GetItem(0).Count);
+            Assert.AreEqual(1,belt.GetItem(0).Count);
         }
     }
 }

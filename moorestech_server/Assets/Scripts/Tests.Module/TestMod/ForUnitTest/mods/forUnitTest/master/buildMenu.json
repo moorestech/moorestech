@@ -130,11 +130,6 @@
           "subCategoryGuid": "a2000000-0000-4000-8000-000100000025"
         },
         {
-          "name": "FilterSplitter",
-          "entrySource": "blocks",
-          "subCategoryGuid": "a2000000-0000-4000-8000-000100000026"
-        },
-        {
           "name": "ElectricToGearGenerator",
           "entrySource": "blocks",
           "subCategoryGuid": "a2000000-0000-4000-8000-000100000027"

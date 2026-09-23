@@ -71,37 +71,37 @@ namespace Tests.CombinedTest.Game
             CollectionAssert.AreEqual(freshState, GameRandom.ExportState(), "新規ワールドの乱数が初期化されていない");
         }
 
-        // 版1の実セーブには3項目がそもそも無い。V1→V2ステップが補うので、前段を通せばロードは通る
-        // A real version 1 save has none of the three fields; the V1-to-V2 step backfills them so the prepared save loads
-        // 補填値は「時刻0・種0の乱数列・クールダウン無し」であり、この3つが今の正しい挙動そのもの
-        // The backfilled values are tick 0, the seed-0 random stream and no cooldown, and those three are the correct behaviour now
+        // 旧版の不足項目はv3試作への移行理由にはせず、元データと稼働中の時刻を保つ。
+        // Missing legacy fields do not authorize v3 migration; preserve source data and the live clock.
         [Test]
-        public void 版1のセーブは3項目が欠けていても補填されて実ロードできる()
+        public void 版1の欠落項目を持つセーブは移行を拒否し時計と乱数を変えない()
         {
             var save = SaveLoadPreparerTestFixture.BuildSaveJson();
             save["worldVersion"] = 1;
             save.Remove("currentTick");
             save.Remove("randomState");
             save.Remove("miningCooldowns");
-
+            var original = save.ToString();
             var archiveRoot = SaveLoadPreparerTestFixture.ArchiveRootForThisRun();
-            var (_, preparer) = SaveLoadPreparerTestFixture.CreatePreparer(archiveRoot);
-            var prepared = preparer.Prepare(save.ToString());
-            Assert.IsTrue(prepared.CanLoad, prepared.BlockedReason);
-
-            var loader = SaveLoadPreparerTestFixture.CreateContainer().GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson;
-
-            // 補填値と紛れないよう、ロード直前に別の時刻と乱数へ動かしておく
-            // Move to a different clock and stream right before load so the backfilled values cannot be mistaken for leftovers
-            GameUpdater.RestoreCurrentTick(4242);
-            GameRandom.Reseed(999UL);
-
-            Assert.DoesNotThrow(() => loader.Load(prepared.Save));
-
-            Assert.AreEqual(0UL, GameUpdater.CurrentTick, "補填したcurrentTickが0で復元されていない");
-            CollectionAssert.AreEqual(GameRandom.StateFromSeed(0UL), GameRandom.ExportState(), "補填したrandomStateが種0の状態になっていない");
-
-            if (Directory.Exists(archiveRoot)) Directory.Delete(archiveRoot, true);
+            try
+            {
+                var (_, preparer) = SaveLoadPreparerTestFixture.CreatePreparer(archiveRoot);
+                GameUpdater.RestoreCurrentTick(4242);
+                GameRandom.Reseed(999UL);
+                var random = GameRandom.ExportState();
+                LogAssert.Expect(LogType.Error, new Regex("^セーブをV2からV3へ変換できませんでした:"));
+                LogAssert.Expect(LogType.Error, new Regex("^セーブをロードできません: cause=StepFailed"));
+                var prepared = preparer.Prepare(original);
+                Assert.IsFalse(prepared.CanLoad);
+                StringAssert.Contains("new-world belt segment prototype", prepared.BlockedReason);
+                Assert.AreEqual(original, save.ToString());
+                Assert.AreEqual(4242UL, GameUpdater.CurrentTick);
+                CollectionAssert.AreEqual(random, GameRandom.ExportState());
+            }
+            finally
+            {
+                if (Directory.Exists(archiveRoot)) Directory.Delete(archiveRoot, true);
+            }
         }
 
         // currentTick は値型なので欠損しても既定の0で通り、tickが無音で巻き戻ったまま再生が始まる

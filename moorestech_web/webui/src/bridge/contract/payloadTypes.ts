@@ -15,9 +15,6 @@ import type {
   ElectricNetworkDataSchema,
   ElectricToGearDataSchema,
   ElectricToGearOutputModeDataSchema,
-  FilterSplitterDataSchema,
-  FilterSplitterDirectionDataSchema,
-  FilterSplitterModeSchema,
   FluidMasterDataSchema,
   FluidMasterEntrySchema,
   FluidSlotDataSchema,
@@ -122,9 +119,6 @@ export type TrainPlatformMode = z.infer<typeof TrainPlatformModeSchema>;
 export type TrainPlatformData = z.infer<typeof TrainPlatformDataSchema>;
 export type GearNetworkStopReason = z.infer<typeof GearNetworkStopReasonSchema>;
 export type GearNetworkData = z.infer<typeof GearNetworkDataSchema>;
-export type FilterSplitterMode = z.infer<typeof FilterSplitterModeSchema>;
-export type FilterSplitterDirectionData = z.infer<typeof FilterSplitterDirectionDataSchema>;
-export type FilterSplitterData = z.infer<typeof FilterSplitterDataSchema>;
 export type BlockInventoryOpen = z.infer<typeof BlockInventoryOpenSchema>;
 export type BlockInventoryClosed = z.infer<typeof BlockInventoryClosedSchema>;
 export type BlockInventoryData = z.infer<typeof BlockInventoryDataSchema>;

@@ -95,14 +95,13 @@ describe("validBlockInventory capability details", () => {
       machine: { ...d.machine, selectedRecipeGuid: undefined, blockGuid: undefined },
     }).valid).toBe(false);
   });
-  it("accepts gear + gearNetwork + generator + miner + filterSplitter + electricToGear details", () => {
+  it("accepts gear + gearNetwork + generator + miner + electricToGear details", () => {
     const d = {
       ...openBase,
       generator: { remainingFuelTime: 3, currentFuelTime: 10, operatingRate: 0.5 },
       miner: { currentPower: 1, requestPower: 2, miningItems: [{ itemId: 5, itemsPerMinute: 12 }] },
       gear: { currentRpm: 10, currentTorque: 3, baseRpm: 20, role: "consumer" },
       gearNetwork: { totalRequiredGearPower: 5, totalGenerateGearPower: 10, stopReason: "none" },
-      filterSplitter: { directionCount: 2, filterSlotCountPerDirection: 3, directions: [{ mode: "whitelist", filterItemIds: [1, 0, 0] }, { mode: "default", filterItemIds: [0, 0, 0] }] },
       electricToGear: {
         selectedIndex: 1,
         fulfillmentRate: 0.75,
@@ -151,7 +150,6 @@ describe("validBlockInventory capability details", () => {
   it("rejects malformed details", () => {
     expect(parseTopicPayload(Topics.blockInventory, { ...openBase, machine: { recipeGuid: 1 } }).valid).toBe(false);
     expect(parseTopicPayload(Topics.blockInventory, { ...openBase, gearNetwork: { totalRequiredGearPower: 1, totalGenerateGearPower: 2, stopReason: 3 } }).valid).toBe(false);
-    expect(parseTopicPayload(Topics.blockInventory, { ...openBase, filterSplitter: { directionCount: 1, filterSlotCountPerDirection: 1, directions: [{ mode: "whitelist" }] } }).valid).toBe(false);
   });
   it("still accepts details-less open and closed payloads", () => {
     expect(parseTopicPayload(Topics.blockInventory, openBase).valid).toBe(true);

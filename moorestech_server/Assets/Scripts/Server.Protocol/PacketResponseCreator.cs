@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Game.Train.Event;
 using Game.Train.Unit;
@@ -69,7 +69,6 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(RideActionProtocol.ProtocolTag, new RideActionProtocol(serviceProvider));
             _packetResponseDictionary.Add(RemoveTrainCarProtocol.ProtocolTag, new RemoveTrainCarProtocol(serviceProvider));
             _packetResponseDictionary.Add(SetTrainPlatformTransferModeProtocol.ProtocolTag, new SetTrainPlatformTransferModeProtocol(serviceProvider));
-            _packetResponseDictionary.Add(FilterSplitterStateProtocol.ProtocolTag, new FilterSplitterStateProtocol(serviceProvider));
             _packetResponseDictionary.Add(MachineRecipeSelectionProtocol.ProtocolTag, new MachineRecipeSelectionProtocol(serviceProvider));
             _packetResponseDictionary.Add(SetElectricToGearOutputModeProtocol.ProtocolTag, new SetElectricToGearOutputModeProtocol(serviceProvider));
             _packetResponseDictionary.Add(BlueprintProtocol.ProtocolTag, new BlueprintProtocol(serviceProvider));

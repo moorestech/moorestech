@@ -181,8 +181,7 @@ namespace Client.WebUiHost.Game.Topics
             var electric = param is IElectricWireConnectParam;
             var gear = param is IGearConnectors;
             _sampleContinuously = gear;
-            var filterSplitter = block.BlockMasterElement.BlockType == "FilterSplitter";
-            _networkCache.Track(block, electric, gear, filterSplitter);
+            _networkCache.Track(block, electric, gear);
         }
     }
 }

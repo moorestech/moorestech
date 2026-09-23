@@ -1475,11 +1475,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: a51229a275812984e917c7dd78a1447a
-    m_Address: Vanilla/Game/ItemEntity
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a580b107f1a0e493dbfb43a76d09e90a
     m_Address: Vanilla/Block/FusionReactor
     m_ReadOnly: 0
@@ -2247,11 +2242,6 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: f397dd3cc22734cb8b2048a328906699
     m_Address: Vanilla/Environment/Rock/Redwood/Boulder_0
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: f413000aabe3145018aaa6bd56f5e492
-    m_Address: Vanilla/Block/Filter_splitter
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

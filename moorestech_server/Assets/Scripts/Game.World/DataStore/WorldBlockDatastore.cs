@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Core.Master;
 using Game.Block.Interface;
@@ -86,6 +86,14 @@ namespace Game.World.DataStore
         
         public bool TryAddBlock(BlockId blockId, Vector3Int position, BlockDirection direction, BlockCreateParam[] createParams, out IBlock block)
         {
+            // 通常設置・blueprintの共通境界でベルトの純上下向きを拒否する。
+            // Reject vertical belt facing at the shared placement boundary, including blueprints.
+            if (!BeltConveyorPlaceFamilyUtil.IsPlacementDirectionAllowed(blockId, direction))
+            {
+                Debug.LogWarning($"[BeltPlacement] Rejected vertical direction {direction} for {blockId}.");
+                block = null;
+                return false;
+            }
             var blockSize = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockSize;
             var blockPositionInfo = new BlockPositionInfo(position, direction, blockSize);
             if (IsOverlapExistingBlock(blockPositionInfo))

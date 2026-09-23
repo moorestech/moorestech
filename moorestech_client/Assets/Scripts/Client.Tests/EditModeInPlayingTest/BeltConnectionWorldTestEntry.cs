@@ -122,18 +122,18 @@ namespace Client.Tests.EditModeInPlayingTest
                 {
                     var targets = upperSource.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>()
                         .ConnectedTargets;
-                    if (upperTarget != null && targets.ContainsKey(upperTarget.GetComponent<VanillaBeltConveyorComponent>()))
+                    if (upperTarget != null && targets.ContainsKey(upperTarget.GetComponent<SegmentBeltComponent>()))
                         mask |= UpperToUpper;
-                    if (lowerTarget != null && targets.ContainsKey(lowerTarget.GetComponent<VanillaBeltConveyorComponent>()))
+                    if (lowerTarget != null && targets.ContainsKey(lowerTarget.GetComponent<SegmentBeltComponent>()))
                         mask |= UpperToLower;
                 }
                 if (lowerSource != null)
                 {
                     var targets = lowerSource.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>()
                         .ConnectedTargets;
-                    if (upperTarget != null && targets.ContainsKey(upperTarget.GetComponent<VanillaBeltConveyorComponent>()))
+                    if (upperTarget != null && targets.ContainsKey(upperTarget.GetComponent<SegmentBeltComponent>()))
                         mask |= LowerToUpper;
-                    if (lowerTarget != null && targets.ContainsKey(lowerTarget.GetComponent<VanillaBeltConveyorComponent>()))
+                    if (lowerTarget != null && targets.ContainsKey(lowerTarget.GetComponent<SegmentBeltComponent>()))
                         mask |= LowerToLower;
                 }
                 return mask;

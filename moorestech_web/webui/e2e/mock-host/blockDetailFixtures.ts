@@ -183,27 +183,6 @@ export const blockGeneric = {
   progress: 0.5,
 } satisfies BlockInventoryWireData;
 
-// BLK-8 フィルタ分岐器: 3方向×2フィルタスロットの filterSplitter capability
-// BLK-8 filter splitter: filterSplitter capability with 3 directions x 2 filter slots
-export const blockFilterSplitter = {
-  open: true,
-  source: "block",
-  blockType: "FilterSplitter",
-  identifier: "block:7",
-  blockGuid: BlockGuids.FILTER_SPLITTER_BLOCK_GUID,
-  itemSlots: [],
-  fluidSlots: [],
-  filterSplitter: {
-    directionCount: 3,
-    filterSlotCountPerDirection: 2,
-    directions: [
-      { mode: "whitelist", filterItemIds: [4, 0] },
-      { mode: "default", filterItemIds: [0, 0] },
-      { mode: "blacklist", filterItemIds: [7, 8] },
-    ],
-  },
-} satisfies BlockInventoryWireData;
-
 // 回転生成機の動的fixture
 // B1 electric-to-gear converter: master-ordered modes and dynamic StateDetail values
 export const blockElectricToGear = {

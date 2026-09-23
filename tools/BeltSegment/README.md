@@ -7,9 +7,19 @@ dotnet run --project tools/BeltSegment/Benchmark/BeltSegment.Benchmark.csproj -c
 dotnet run --project tools/BeltSegment/Benchmark/BeltSegment.Benchmark.csproj -c Release -- 1000 64 2000 200 parallel
 ```
 
-The five required arguments are segment count, capacity, measured ticks, warmup ticks, and `serial` or `parallel`. Segment count, capacity, and measured ticks must be positive; warmup may be zero. Capacity cannot exceed the Core limit. Each normal segment runs at speed 32, starts with one item every four cells, and has its own one-item sink. Successful outputs are returned to the same segment at the next tick boundary, preserving their exit distance. Warmup and measurement use separate, identically configured scenarios.
+The five required arguments are segment count, capacity, measured ticks, warmup ticks, and `serial`, `parallel`, or `replay-packing`. The following description covers the two Core modes. Segment count, capacity, and measured ticks must be positive; warmup may be zero. Capacity cannot exceed the Core limit. Each normal segment runs at speed 32, starts with one item every four cells, and has its own one-item sink. Successful outputs are returned to the same segment at the next tick boundary, preserving their exit distance. Warmup and measurement use separate, identically configured scenarios.
 
 The JSON reports elapsed time and allocations for **Tick plus reinsertion** (`measurementScope: "tick-and-reinsertion"`). Setup, warmup, and final item validation are outside the measured interval. The process exits with a nonzero code if item count or GUID conservation fails. These numbers describe the isolated Core loop; they do not measure difference notifications, GPU work, or game integration.
+
+## Replay and GPU upload preparation
+
+```sh
+dotnet run --project tools/BeltSegment/Benchmark/BeltSegment.Benchmark.csproj -c Release -- 129 64 10000 1000 replay-packing
+```
+
+This mode records a fixed workload, then measures the production CPU `BeltReplaySimulation` and the actual `GpuBeltTickUpload` ABI packing separately. Setup, recording, warmup and final parity checks are outside the measured intervals. JSON includes initial/final item counts, input/output event counts, CPU time and allocated bytes for each stage, and `gpuUploadBytes` (event count × ABI stride). It exits nonzero if replay parity fails.
+
+GPU upload bytes are not MessagePack wire bytes. The production wire serializer is measured separately in Unity's `BeltWireRoundTripTest`; this mode does not submit GPU commands or measure GPU execution. For the measured local run, separate serializer workload and recorded game evidence, see [gameplay validation](../../docs/belt-segment-gameplay-validation.md).
 
 ## Normal connections
 

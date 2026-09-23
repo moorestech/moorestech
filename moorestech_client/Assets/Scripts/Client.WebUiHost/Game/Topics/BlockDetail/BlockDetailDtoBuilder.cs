@@ -117,22 +117,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
                     StopReason = ToCamelCase(cache.GearNetwork.StopReason.ToString()),
                 };
             }
-            if (cache.FilterSplitter != null)
-            {
-                var directions = new List<FilterSplitterDirectionDto>();
-                foreach (var d in cache.FilterSplitter.Directions)
-                {
-                    var itemIds = new List<int>();
-                    foreach (var id in d.FilterItemIds) itemIds.Add(id.AsPrimitive());
-                    directions.Add(new FilterSplitterDirectionDto { Mode = ToCamelCase(d.Mode.ToString()), FilterItemIds = itemIds });
-                }
-                dto.FilterSplitter = new FilterSplitterDto
-                {
-                    DirectionCount = cache.FilterSplitter.DirectionCount,
-                    FilterSlotCountPerDirection = cache.FilterSplitter.FilterSlotCountPerDirection,
-                    Directions = directions,
-                };
-            }
+
         }
 
         private static void AppendFluidSlots(List<BlockFluidSlotDto> slots, List<FluidMessagePack> tanks)

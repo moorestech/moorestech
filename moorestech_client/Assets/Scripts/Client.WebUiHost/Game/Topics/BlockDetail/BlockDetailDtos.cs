@@ -134,18 +134,9 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
         public string StopReason;
     }
 
-    public class FilterSplitterDto
-    {
-        public int DirectionCount;
-        public int FilterSlotCountPerDirection;
-        public List<FilterSplitterDirectionDto> Directions;
-    }
 
-    public class FilterSplitterDirectionDto
-    {
-        public string Mode;
-        public List<int> FilterItemIds;
-    }
+
+
 
     public class ElectricToGearDetailDto
     {
