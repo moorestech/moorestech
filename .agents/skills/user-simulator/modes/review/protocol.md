@@ -1,9 +1,9 @@
 # review モード — spec/plan完成時の予測レビュー
 
-brainstorming（spec）/ writing-plans（plan）の完了後・ユーザーレビュー依頼の**前**に必ず実施する。
+moores-grill-with-docs（spec）/ writing-plans（plan）の完了後・ユーザーレビュー依頼の**前**に必ず実施する。
 
 **フック関所**: 両スキルのfrontmatter hooksが `scripts/sim-gate.sh` を配線しており、spec/planを書いた
-セッションは `modes/improve/misses.md` への採点追記（＝手順5）が行われるまでターン終了がブロックされる。
+セッションは `../moorestech_logs/harness/user-simulator/improve/misses.md` への採点追記（＝手順5）が行われるまでターン終了がブロックされる。
 ユーザーが明示的にreviewのスキップを指示した場合も、その旨をmisses.mdに1行記録して通過する。
 
 ## メインセッションの手順
@@ -23,7 +23,7 @@ brainstorming（spec）/ writing-plans（plan）の完了後・ユーザーレ�
 3. 判事の予測レポートを受け、**確信ありの指摘は自分でdocへ適用**し、docのADRを更新する。
 4. ユーザーには下記テンプレートで提示する。指摘の適用済み/要裁定の区別を明確に。
    台帳掲載時の出所表記は3種: `ユーザー裁定（発言引用/AskUserQuestion YYYY-MM-DD）` / `シミュレーター予測→ユーザー承認 YYYY-MM-DD` / `agent前提（拒否権つき）`。レビューcontextの `[ADR:]` ラベルはこの台帳項目だけを参照できる。
-5. ユーザーの反応を採点として `modes/improve/misses.md` に追記する（的中予測の根拠にした知識の実名を寄与知識欄へ転記）:
+5. ユーザーの反応を採点として `../moorestech_logs/harness/user-simulator/improve/misses.md` に追記する（的中予測の根拠にした知識の実名を寄与知識欄へ転記）:
    - 追加指摘があった → **FN**。即座に改善ハンドオフを発行する（modes/improve/protocol.md の発行手順）
    - 適用済み指摘への否定 → **FP**。同じくハンドオフ発行
    - 何もなければ的中分を記録

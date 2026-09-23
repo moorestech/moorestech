@@ -18,7 +18,7 @@
 - 文脈: （このタスクのゴールと、指摘に至る会話の要点3行）
 ```
 
-3. `modes/improve/misses.md` に採点1行を追記する。
+3. `../moorestech_logs/harness/user-simulator/improve/misses.md` に採点1行を追記する。
 4. ユーザーに1行だけ提示する:
    > 改善ハンドオフ発行。新しいセッションで → `/user-simulator improve <YYYYMMDD-HHmm>-<slug>`
 
@@ -47,8 +47,8 @@
 5. ハンドオフを `applied/<id>.md` へ移動し、末尾に**検討過程まで**追記してコミットする:
    同根分析の結果・検討して見送った修正案とその理由・変更ファイル一覧・ゴールデン再演の結果。
    decisions.md の「詳細」列はこの applied ファイルを指す（改善1件の詳細記録はここが正）。
-   複数の外しにまたがる構造的な再設計を行った場合のみ、`decisions/YYYY-MM-DD-<topic>.md` に
-   まとめの検討記録を別途書く（前例: `decisions/2026-07-24-v2-redesign.md`）。
+   複数の外しにまたがる構造的な再設計を行った場合のみ、logs repo の `../moorestech_logs/harness/user-simulator/decisions/YYYY-MM-DD-<topic>.md` に
+   まとめの検討記録を別途書く（前例: 同dirの `2026-07-24-v2-redesign.md`）。
 
 ## 知識の階層化と過学習の扱い（段階的開示・ユーザー裁定 2026-07-28）
 

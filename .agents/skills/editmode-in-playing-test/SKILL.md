@@ -52,11 +52,7 @@ namespace: `Client.Tests.EditModeInPlayingTest`
 - **`SessionState.SetBool("DebugObjectsBootstrap_Disabled", false)`** でフラグクリア
 - **async処理は`.ToCoroutine()`** でIEnumeratorに変換
 - **OS入力注入を使うテストには`[Category("IgnoreCI")]`** を付与
-- **コメントは日英2行セット** で記述
-- **try-catch禁止** - 条件分岐で対応
-- **デフォルト引数禁止** - 呼び出し側を変更（テストヘルパー既存APIは例外）
-- **複雑なテストでは `#region Internal` + ローカル関数** を使用
-- **`#endregion` の下にコードを書かない**
+- テストヘルパーの既存APIに限りデフォルト引数を許容する（AGENTS.mdのデフォルト引数禁止の例外）
 
 ### 3. EditModeInPlayingTestUtil ヘルパーAPI
 
@@ -81,8 +77,7 @@ namespace: `Client.Tests.EditModeInPlayingTest`
 uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "Client\.Tests\.EditModeInPlayingTest\.{ClassName}"
 ```
 
-**重要**: ドメインリロードによりuloopが一度切断され、結果報告まで通常より長く待つ必要がある（45秒以上待ってリトライ）。
-接続が戻らない場合は `~/Library/Application Support/sakastudio/moorestech/TestResults.xml` を直接読む。
+ドメインリロードでuloopが一度切断される。結果が取れない場合の読み方は [references/constraints.md](references/constraints.md)。
 
 ### 5. 制約事項
 
