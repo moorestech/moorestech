@@ -57,6 +57,8 @@ PR1134の `InventoryContext` は具体的な在庫接続判断を共通コネク
 
 参照リポジトリの優先順位変更: 同日後刻のMyBeltConvSegmentはHEAD `42c1144` と未コミットのPriorityOrder変更を含む。成功した方向を末尾へ移す変更は、指定されたDropbox CoreのPriorityIndex規則と異なる。Dropbox側にその変更はないため、GPU移植の参考は確認済み `1bbe206` を基準にし、搬送仕様は引き続きDropboxと明示的なユーザー裁定D11/D12へ合わせる。参考リポジトリの作業中変更は変更しない（agentの参照管理判断）。
 
+GPU計画時の参照確認: 現在のMyBeltConvSegmentでは過去の `1bbe206` を解決できず、HEADは `2ae915273fc0005f5b8bc759ee07470e92875219` である。確認した同revisionを外部診断フォルダへarchiveとして保存し、GPU配列/dispatch構成の参考に用いる。搬送演算の採用基準は移植済み共通Core・Dropbox正本・D11/D12であり、参考側のMoveLastやLoop種別を仕様として採用しない（agentの参照管理判断、過去の確認結果を現在も復元できるとは扱わない）。
+
 ## 実装境界
 
 出所: agent前提（AGENTS.mdの汎用基盤とドメイン分離、既存のイベントパケット＋初期データ＋購読の役割、正本の全再構築規則）。
@@ -118,3 +120,9 @@ tick差分は変更された速度、当該tickで供給可能な外部入力、
 この段階は信頼された確定状態・完全な1tick差分を受ける計算ライブラリであり、通信の完了判定を代行しない。既存tick/seqの意味を変えず、wire上の検証・順序buffer・snapshot watermark・topology generation・再同期・購読を後続の通信統合で組み込む。保存形式、ブロックからのsegment構築、実機械の在庫アダプタ、GPUも引き続き全体ゴールの未完了部分である。
 
 最終レビューD2=Bは親コントローラーによる段階Draft PRの実装判断であり、ユーザー承認ではない。C3〜C6の実World搬送・client差分適用・GPU描画・設置/撤去時CPU/GPU全再構築は、実利用への接続と実ゲーム検証まで全体の未完了ゲートとして保持する。
+
+## GPUの整数計算を独立して実装する
+
+出所: agent実装判断。CPUのReplay snapshotと確定tickをClient.Game内部のGPU資源ownerへ渡し、GPU上で同じ段階・整数状態を再現する。全構築時だけ配線と走行列全体を転送し、継続tickでは外部供給可否・搬出成功・搬入・速度変更をまとめて転送する。topologyの全再構築では旧ownerを破棄し、新snapshotから全GPU資源を生成する。int-only ABIの判別子や非該当値はGPU境界の表現であり、通信や保存の型へ兼用しない。
+
+この単位では実GPU dispatch/readbackをテスト内で行い、CPUの個数・種類・距離・buffer・優先順位との一致を確かめる。実行時にGPU結果をCPU搬送判定へ戻さない。モデル/画像のinstancing・tick間補間・実Worldとの接続・CPU/GPU全再構築通知・旧描画切替は全体の未完了作業として継続する。計画は `docs/superpowers/plans/2026-09-23-belt-segment-gpu-replay.md` を参照する。
