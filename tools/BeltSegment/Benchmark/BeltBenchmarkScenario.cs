@@ -6,6 +6,7 @@ namespace BeltSegment.Benchmark;
 
 internal sealed class BeltBenchmarkScenario
 {
+    private const int SeedIntervalCells = 4;
     private readonly BeltConveyorSegment[] segments;
     private readonly BenchmarkSink[] sinks;
     private readonly HashSet<Guid> initialGuids;
@@ -21,7 +22,15 @@ internal sealed class BeltBenchmarkScenario
             return count;
         }
     }
-    internal long ReinsertionCount { get; private set; }
+    internal long ReinsertionCount
+    {
+        get
+        {
+            long count = 0;
+            foreach (var sink in sinks) count += sink.ReinsertionCount;
+            return count;
+        }
+    }
 
     internal BeltBenchmarkScenario(int segmentCount, int capacity)
     {
@@ -29,17 +38,17 @@ internal sealed class BeltBenchmarkScenario
         sinks = new BenchmarkSink[segmentCount];
         initialGuids = new HashSet<Guid>();
 
-        // 各segmentへ4マス間隔で配置し、専有sinkを接続する。
-        // Seed every fourth cell and connect one private sink per segment.
+        // 4マス間隔で配置しsinkは個別。
+        // Seed every fourth cell with a dedicated sink.
         for (var index = 0; index < segmentCount; index++)
         {
             var segment = new BeltConveyorSegment(capacity, 32, BeltSegmentKind.Normal, 0);
             var sink = new BenchmarkSink();
             segment.ConnectTo(sink, BeltDirection.Front);
-            var states = new BeltItemState[(capacity + 3) / 4];
+            var states = new BeltItemState[(capacity + SeedIntervalCells - 1) / SeedIntervalCells];
             for (var itemIndex = 0; itemIndex < states.Length; itemIndex++)
             {
-                var cellIndex = itemIndex * 4;
+                var cellIndex = itemIndex * SeedIntervalCells;
                 var item = new BeltItem
                 {
                     Guid = Guid.NewGuid(),
@@ -60,8 +69,7 @@ internal sealed class BeltBenchmarkScenario
     {
         for (var index = 0; index < segments.Length; index++)
         {
-            var sink = sinks[index];
-            if (sink.TryReinsert(segments[index])) ReinsertionCount++;
+            sinks[index].Reinsert(segments[index]);
         }
     }
 
@@ -114,6 +122,7 @@ internal sealed class BeltBenchmarkScenario
         internal bool HasPending => hasPending;
         internal Guid PendingGuid => pendingItem.Guid;
         internal long OutputCount => outputCount;
+        internal long ReinsertionCount { get; private set; }
 
         public void AttachInput(IBeltSource source, BeltDirection inputDirection) { }
         public int GetOffer(BeltDirection inputDirection) => BeltConstants.ItemWidth;
@@ -128,13 +137,13 @@ internal sealed class BeltBenchmarkScenario
             return true;
         }
 
-        internal bool TryReinsert(BeltConveyorSegment segment)
+        internal void Reinsert(BeltConveyorSegment segment)
         {
-            if (!hasPending || !segment.TryReceive(BeltDirection.Back, pendingLength, pendingItem)) return false;
+            if (!hasPending || !segment.TryReceive(BeltDirection.Back, pendingLength, pendingItem)) return;
             hasPending = false;
             pendingItem = default;
             pendingLength = 0;
-            return true;
+            ReinsertionCount++;
         }
 
     }

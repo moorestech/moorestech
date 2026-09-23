@@ -73,9 +73,102 @@ namespace Tests.UnitTest.Game.BeltSegment
             Assert.That(branch.CaptureItems()[0].DistanceToExit, Is.Zero);
         }
 
+        [Test]
+        public void MergeRoundRobinAlternatesActualSourceGuids()
+        {
+            var merge = new BeltConveyorSegment(1, 128, BeltSegmentKind.Merge, 0);
+            var receiver = new RecordingReceiver { Offer = 256, Accept = true };
+            merge.AttachInput(new ReadySource(), BeltDirection.Left);
+            merge.AttachInput(new ReadySource(), BeltDirection.Right);
+            merge.Buffer.ConnectTo(receiver, BeltDirection.Front);
+            var left = new[]
+            {
+                BeltSegmentMovementTest.NewItem(1), BeltSegmentMovementTest.NewItem(2),
+                BeltSegmentMovementTest.NewItem(3), BeltSegmentMovementTest.NewItem(4)
+            };
+            var right = new[]
+            {
+                BeltSegmentMovementTest.NewItem(5), BeltSegmentMovementTest.NewItem(6),
+                BeltSegmentMovementTest.NewItem(7), BeltSegmentMovementTest.NewItem(8)
+            };
+
+            var simulation = new BeltSimulation(new[] { merge });
+            for (var tick = 0; tick < 4; tick++)
+            {
+                simulation.Tick(false);
+                Assert.That(merge.TryReceive(BeltDirection.Left, 128, left[tick]), Is.EqualTo(tick % 2 == 0));
+                Assert.That(merge.TryReceive(BeltDirection.Right, 128, right[tick]), Is.EqualTo(tick % 2 == 1));
+            }
+            simulation.Tick(false);
+            Assert.That(receiver.ReceivedGuids,
+                Is.EqualTo(new[] { left[0].Guid, right[1].Guid, left[2].Guid, right[3].Guid }));
+        }
+
+        [Test]
+        public void BranchRoundRobinAdvancesFromStartAfterSkippedOutput()
+        {
+            var branch = new BeltConveyorSegment(4, 128, BeltSegmentKind.Branch, 0);
+            var blocked = new RecordingReceiver { Offer = 0, Accept = true };
+            var first = new RecordingReceiver { Offer = 256, Accept = true };
+            var second = new RecordingReceiver { Offer = 256, Accept = true };
+            branch.AttachInput(new NotReadySource(), BeltDirection.Back);
+            branch.Buffer.ConnectTo(blocked, BeltDirection.Front);
+            branch.Buffer.ConnectTo(first, BeltDirection.Right);
+            branch.Buffer.ConnectTo(second, BeltDirection.Left);
+            var items = new[]
+            {
+                BeltSegmentMovementTest.NewItem(1), BeltSegmentMovementTest.NewItem(2),
+                BeltSegmentMovementTest.NewItem(3), BeltSegmentMovementTest.NewItem(4)
+            };
+            branch.RestoreItems(new[]
+            {
+                new BeltItemState(items[0], 0), new BeltItemState(items[1], 256),
+                new BeltItemState(items[2], 512), new BeltItemState(items[3], 768)
+            });
+
+            var simulation = new BeltSimulation(new[] { branch });
+            for (var tick = 0; tick < 10; tick++) simulation.Tick(false);
+            Assert.That(blocked.ReceivedGuids, Is.Empty);
+            Assert.That(first.ReceivedGuids, Is.EqualTo(new[] { items[0].Guid, items[1].Guid, items[3].Guid }));
+            Assert.That(second.ReceivedGuids, Is.EqualTo(new[] { items[2].Guid }));
+        }
+
+        [Test]
+        public void BufferOffersOnlyPriorityMergeUntilThatMergeIsAvailable()
+        {
+            var branch = new BeltConveyorSegment(1, 32, BeltSegmentKind.Branch, 0);
+            var priorityMerge = new BeltConveyorSegment(1, 32, BeltSegmentKind.Merge, 0);
+            var alternateMerge = new BeltConveyorSegment(1, 32, BeltSegmentKind.Merge, 0);
+            branch.AttachInput(new NotReadySource(), BeltDirection.Back);
+            branch.Buffer.ConnectTo(priorityMerge, BeltDirection.Front);
+            branch.Buffer.ConnectTo(alternateMerge, BeltDirection.Right);
+            priorityMerge.AttachInput(new NotReadySource(), BeltDirection.Left);
+            alternateMerge.AttachInput(new NotReadySource(), BeltDirection.Back);
+            priorityMerge.Buffer.ConnectTo(new RecordingReceiver { Offer = 256, Accept = true }, BeltDirection.Front);
+            alternateMerge.Buffer.ConnectTo(new RecordingReceiver { Offer = 256, Accept = true }, BeltDirection.Front);
+            priorityMerge.RestoreItems(new[] { new BeltItemState(BeltSegmentMovementTest.NewItem(1), 128) });
+            var pending = BeltSegmentMovementTest.NewItem(2);
+            branch.Buffer.RestoreItem(pending);
+
+            var simulation = new BeltSimulation(new[] { branch, priorityMerge, alternateMerge });
+            simulation.Tick(false);
+            Assert.That(branch.Buffer.TryGetItem(out var retained), Is.True);
+            Assert.That(retained.Guid, Is.EqualTo(pending.Guid));
+            Assert.That(alternateMerge.Count, Is.Zero);
+            for (var tick = 0; tick < 3; tick++) simulation.Tick(false);
+            Assert.That(branch.Buffer.HasItem, Is.False);
+            Assert.That(priorityMerge.CaptureItems()[0].Item.Guid, Is.EqualTo(pending.Guid));
+            Assert.That(alternateMerge.Count, Is.Zero);
+        }
+
         private sealed class ReadySource : IBeltSource
         {
             public bool TryGetOutput(BeltDirection inputDirection) => true;
+        }
+
+        private sealed class NotReadySource : IBeltSource
+        {
+            public bool TryGetOutput(BeltDirection inputDirection) => false;
         }
     }
 }

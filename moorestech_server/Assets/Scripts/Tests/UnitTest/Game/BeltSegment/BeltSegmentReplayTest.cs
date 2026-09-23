@@ -49,44 +49,46 @@ namespace Tests.UnitTest.Game.BeltSegment
                 parallelSimulation.Tick(true);
                 Assert.That(Snapshot(parallel), Is.EqualTo(Snapshot(serial)), $"tick {tick}");
             }
-        }
 
-        private static BeltConveyorSegment[] BuildNetwork()
-        {
-            var left = new BeltConveyorSegment(3, 64, BeltSegmentKind.Normal, 0);
-            var right = new BeltConveyorSegment(3, 64, BeltSegmentKind.Normal, 0);
-            var merge = new BeltConveyorSegment(1, 64, BeltSegmentKind.Merge, 0);
-            var branch = new BeltConveyorSegment(1, 64, BeltSegmentKind.Branch, 0);
-            left.ConnectTo(merge, BeltDirection.Right);
-            right.ConnectTo(merge, BeltDirection.Left);
-            merge.Buffer.ConnectTo(branch, BeltDirection.Front);
-            branch.Buffer.ConnectTo(left, BeltDirection.Left);
-            branch.Buffer.ConnectTo(right, BeltDirection.Right);
-            left.RestoreItems(new[] { new BeltItemState(StableItem(1), 32), new BeltItemState(StableItem(2), 400) });
-            right.RestoreItems(new[] { new BeltItemState(StableItem(3), 96) });
-            branch.RestoreItems(new[] { new BeltItemState(StableItem(4), 128) });
-            return new[] { left, right, merge, branch };
-        }
-
-        private static string Snapshot(BeltConveyorSegment[] segments)
-        {
-            return string.Join("|", segments.Select(segment =>
+            #region Internal
+            BeltConveyorSegment[] BuildNetwork()
             {
-                var items = string.Join(",", segment.CaptureItems().Select(state =>
-                    $"{SnapshotItem(state.Item)}:{state.DistanceToExit}"));
-                var buffer = segment.Buffer == null ? "none" :
-                    segment.Buffer.TryGetItem(out var item) ? SnapshotItem(item) : "empty";
-                return $"{segment.Kind}:{segment.PriorityIndex}:{items}:{buffer}";
-            }));
-        }
+                var left = new BeltConveyorSegment(3, 64, BeltSegmentKind.Normal, 0);
+                var right = new BeltConveyorSegment(3, 64, BeltSegmentKind.Normal, 0);
+                var merge = new BeltConveyorSegment(1, 64, BeltSegmentKind.Merge, 0);
+                var branch = new BeltConveyorSegment(1, 64, BeltSegmentKind.Branch, 0);
+                left.ConnectTo(merge, BeltDirection.Right);
+                right.ConnectTo(merge, BeltDirection.Left);
+                merge.Buffer.ConnectTo(branch, BeltDirection.Front);
+                branch.Buffer.ConnectTo(left, BeltDirection.Left);
+                branch.Buffer.ConnectTo(right, BeltDirection.Right);
+                left.RestoreItems(new[] { new BeltItemState(StableItem(1), 32), new BeltItemState(StableItem(2), 400) });
+                right.RestoreItems(new[] { new BeltItemState(StableItem(3), 96) });
+                branch.RestoreItems(new[] { new BeltItemState(StableItem(4), 128) });
+                return new[] { left, right, merge, branch };
+            }
 
-        private static string SnapshotItem(BeltItem item)
-        {
-            var position = item.Position;
-            var cell = position.CurrentCell;
-            var world = position.Position;
-            return $"{item.Guid}:{item.ItemId}:{cell.X}:{cell.Y}:{cell.Z}:" +
-                   $"{position.EntryDirection}:{position.Progress}:{world.X}:{world.Y}:{world.Z}";
+            string Snapshot(BeltConveyorSegment[] segments)
+            {
+                return string.Join("|", segments.Select(segment =>
+                {
+                    var items = string.Join(",", segment.CaptureItems().Select(state =>
+                        $"{SnapshotItem(state.Item)}:{state.DistanceToExit}"));
+                    var buffer = segment.Buffer == null ? "none" :
+                        segment.Buffer.TryGetItem(out var item) ? SnapshotItem(item) : "empty";
+                    return $"{segment.Kind}:{segment.PriorityIndex}:{items}:{buffer}";
+                }));
+            }
+
+            string SnapshotItem(BeltItem item)
+            {
+                var position = item.Position;
+                var cell = position.CurrentCell;
+                var world = position.Position;
+                return $"{item.Guid}:{item.ItemId}:{cell.X}:{cell.Y}:{cell.Z}:" +
+                       $"{position.EntryDirection}:{position.Progress}:{world.X}:{world.Y}:{world.Z}";
+            }
+            #endregion
         }
 
         private static BeltItem NewItem(int id, ItemPosition position)

@@ -6,7 +6,7 @@ namespace Game.BeltSegment
     /// <remarks>
     /// speedは0～ItemWidth/2、搬入lengthは1～ItemWidth。外部供給と配線変更はtick境界で行う。
     /// 通常segmentは段階4、合流・分岐segmentはbufferにより段階1で更新する。
-    /// 走行列の隙間と密着ブロックはBeltItemQueueが管理する。
+    /// 隙間・密着ブロックはBeltItemQueueが管理。
     /// </remarks>
     public sealed class BeltConveyorSegment : IBeltSource, IBeltReceiver
     {
@@ -35,7 +35,7 @@ namespace Game.BeltSegment
 
         public void SetSpeed(int speed)
         {
-            if (speed > BeltConstants.ItemWidth / 2)
+            if (BeltConstants.ItemWidth / 2 < speed)
                 throw new ArgumentOutOfRangeException(nameof(speed));
             Speed = speed;
         }
@@ -48,14 +48,13 @@ namespace Game.BeltSegment
         /// <param name="priorityIndex">存続するblockから引き継ぐ開始index。新しいblockは0。</param>
         public BeltConveyorSegment(int capacity, int speed, BeltSegmentKind kind, int priorityIndex)
         {
-            if (capacity <= 0 || capacity > (int.MaxValue - (BeltConstants.ItemWidth - 1)) / BeltConstants.ItemWidth ||
+            if (capacity <= 0 || BeltConstants.MaximumCapacity < capacity ||
                 (kind == BeltSegmentKind.Merge && capacity != 1))
                 throw new ArgumentOutOfRangeException(nameof(capacity));
-            if (speed > BeltConstants.ItemWidth / 2) throw new ArgumentOutOfRangeException(nameof(speed));
+            SetSpeed(speed);
             if (kind != BeltSegmentKind.Normal && kind != BeltSegmentKind.Merge && kind != BeltSegmentKind.Branch)
                 throw new ArgumentOutOfRangeException(nameof(kind));
             n = capacity;
-            SetSpeed(speed);
             Kind = kind;
             if (kind == BeltSegmentKind.Merge) nextInput = priorityIndex;
             if (kind != BeltSegmentKind.Normal)
@@ -90,7 +89,7 @@ namespace Game.BeltSegment
         public bool TryReceive(BeltDirection inputDirection, int length, in BeltItem item)
         {
             int offer = GetOffer(inputDirection);
-            if (length > offer) return false;
+            if (offer < length) return false;
             queue.EnqueueTail(offer - length, item);
             if (Kind == BeltSegmentKind.Merge)
             {
@@ -99,7 +98,7 @@ namespace Game.BeltSegment
             return true;
         }
 
-        public bool TryGetOutput(BeltDirection inputDirection) => OutputLength > 0;
+        public bool TryGetOutput(BeltDirection inputDirection) => 0 < OutputLength;
 
         internal void BeginTick()
         {
@@ -138,7 +137,7 @@ namespace Game.BeltSegment
         {
             bool sent = false;
             int length = OutputLength;
-            if (length > 0 && Output != null)
+            if (0 < length && Output != null)
                 sent = Output.TryReceive(BeltDirections.Opposite(outputDirection), length, queue.HeadItem);
             queue.Advance(tickSpeed, sent);
         }

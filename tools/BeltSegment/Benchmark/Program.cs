@@ -9,27 +9,24 @@ namespace BeltSegment.Benchmark;
 internal static class Program
 {
     private const string Usage = "Usage: <segmentCount> <capacity> <ticks> <warmup> <serial|parallel>";
-    private const int MaximumCapacity = (int.MaxValue - (Game.BeltSegment.BeltConstants.ItemWidth - 1)) /
-        Game.BeltSegment.BeltConstants.ItemWidth;
-
     private static int Main(string[] args)
     {
         if (args.Length != 5 ||
             !TryPositive(args[0], out var segmentCount) ||
-            !TryPositive(args[1], out var capacity) || capacity > MaximumCapacity ||
+            !TryPositive(args[1], out var capacity) || Game.BeltSegment.BeltConstants.MaximumCapacity < capacity ||
             !TryPositive(args[2], out var ticks) ||
             !int.TryParse(args[3], NumberStyles.Integer, CultureInfo.InvariantCulture, out var warmup) || warmup < 0 ||
             (args[4] != "serial" && args[4] != "parallel"))
         {
             Console.Error.WriteLine(Usage);
-            Console.Error.WriteLine($"capacity must be at most {MaximumCapacity}; warmup must be nonnegative.");
+            Console.Error.WriteLine($"capacity must be at most {Game.BeltSegment.BeltConstants.MaximumCapacity}; warmup must be nonnegative.");
             return 2;
         }
 
         var parallel = args[4] == "parallel";
 
-        // ウォームアップと測定に独立した同一構成を使う。
-        // Use separate scenarios with the same configuration for warmup and measurement.
+        // 同一構成の準備用と計測用を別生成。
+        // Create matching warmup and measurement scenarios separately.
         var warmupScenario = new BeltBenchmarkScenario(segmentCount, capacity);
         for (var tick = 0; tick < warmup; tick++)
         {
@@ -86,6 +83,6 @@ internal static class Program
 
     private static bool TryPositive(string value, out int parsed)
     {
-        return int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out parsed) && parsed > 0;
+        return int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out parsed) && 0 < parsed;
     }
 }

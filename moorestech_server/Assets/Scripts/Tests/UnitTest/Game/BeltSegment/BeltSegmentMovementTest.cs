@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Game.BeltSegment;
@@ -123,6 +124,7 @@ namespace Tests.UnitTest.Game.BeltSegment
         internal bool Accept;
         internal int ReceivedLength;
         internal BeltDirection ReceivedDirection;
+        internal readonly List<Guid> ReceivedGuids = new List<Guid>();
 
         public void AttachInput(IBeltSource source, BeltDirection inputDirection) { }
         public int GetOffer(BeltDirection inputDirection) => Offer;
@@ -130,6 +132,7 @@ namespace Tests.UnitTest.Game.BeltSegment
         {
             ReceivedDirection = inputDirection;
             ReceivedLength = length;
+            if (Accept) ReceivedGuids.Add(item.Guid);
             return Accept;
         }
     }
