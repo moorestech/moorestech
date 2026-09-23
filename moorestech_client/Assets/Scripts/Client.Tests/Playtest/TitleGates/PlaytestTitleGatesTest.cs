@@ -24,6 +24,7 @@ namespace Client.Tests.Playtest.TitleGates
         {
             Localize.Initialize();
             PlaytestTitleGates.ResetOnPlayMode();
+            PlaytestStartGateBypass.ResetOnPlayMode();
             PlaytestLaunchGate.SetCurrent(PlaytestGateResult.DeveloperMode);
             _consentExisted = PlaytestConsentFlag.IsAcknowledged();
         }
@@ -32,6 +33,7 @@ namespace Client.Tests.Playtest.TitleGates
         public void TearDown()
         {
             PlaytestTitleGates.ResetOnPlayMode();
+            PlaytestStartGateBypass.ResetOnPlayMode();
             PlaytestLaunchGate.SetCurrent(PlaytestGateResult.NotEvaluated);
             var exists = File.Exists(PlaytestConsentFlag.FilePath);
             if (_consentExisted && !exists) PlaytestConsentFlag.Acknowledge();
@@ -60,7 +62,7 @@ namespace Client.Tests.Playtest.TitleGates
         [Test]
         public void タイトルを通らない起動は明示通過で開始できる()
         {
-            PlaytestTitleGates.MarkPassedForDirectBoot("test direct boot");
+            PlaytestStartGateBypass.DeclareDirectBoot("test direct boot");
 
             Assert.IsTrue(PlaytestTitleGates.TryPassStart("test", out _));
 

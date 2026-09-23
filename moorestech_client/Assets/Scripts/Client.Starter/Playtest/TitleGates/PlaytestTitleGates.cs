@@ -25,17 +25,12 @@ namespace Client.Starter.Playtest.TitleGates
         // The step's owner is the sequence itself; this holds only the running one, and its absence is what "not started yet" means
         private static PlaytestTitleGateSequence _current;
 
-        // タイトルを通らない起動の明示通過。列が始まればそちらが段階の正本になる（タイトルへ戻れば未応答の確認は出し直す）
-        // The explicit pass for a boot that skips the title; once a sequence starts it becomes the authority (a return to the title still asks the unanswered confirmations)
-        private static string _directBootPassReason;
-
         // Editorの再生し直しは同じプロセスで起動をやり直すため、再生ごとに未開始へ戻す（前例: PlaytestLaunchGate）
         // An Editor replay restarts the boot in the same process, so each play returns to "not started" (precedent: PlaytestLaunchGate)
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         internal static void ResetOnPlayMode()
         {
             _current = null;
-            _directBootPassReason = null;
         }
 
         // タイトル以外のシーンから始まる起動（Editorの直接再生・プレイテストDSL・smoke）はゲートを出す画面が無い。
@@ -47,15 +42,7 @@ namespace Client.Starter.Playtest.TitleGates
         {
             var bootSceneName = SceneManager.GetActiveScene().name;
             if (bootSceneName == SceneConstant.MainMenuSceneName) return;
-            MarkPassedForDirectBoot($"起動シーンがタイトルではない（{bootSceneName}）");
-        }
-
-        // 通過の理由は必ず残す。無音で関所を開けると、配布版で確認を飛ばしている経路に気づけない
-        // The reason for passing is always recorded; opening the checkpoint silently would hide a path that skips the confirmations in a distribution build
-        internal static void MarkPassedForDirectBoot(string reason)
-        {
-            _directBootPassReason = reason;
-            Debug.Log($"[PlaytestTitleGates] タイトルのゲートを出さずに通します reason:{reason}（未応答の印は残り、次にタイトルを通る起動で聞き直します）");
+            PlaytestStartGateBypass.DeclareDirectBoot($"起動シーンがタイトルではない（{bootSceneName}）");
         }
 
         // 照合がAllowedか開発者モードに決まるたびにタイトルの合成ルートから呼ぶ。始動済みなら既存の列をそのまま返す
@@ -97,7 +84,9 @@ namespace Client.Starter.Playtest.TitleGates
 
             if (_current == null)
             {
-                if (_directBootPassReason != null)
+                // タイトルを通らない起動の明示通過。列が始まればそちらが段階の正本になる（タイトルへ戻れば未応答の確認は出し直す）
+                // The explicit pass for a boot that skips the title; once a sequence starts it is the authority (a return to the title still asks the unanswered confirmations)
+                if (PlaytestStartGateBypass.DirectBootReason() != null)
                 {
                     denyReasonText = "";
                     return true;

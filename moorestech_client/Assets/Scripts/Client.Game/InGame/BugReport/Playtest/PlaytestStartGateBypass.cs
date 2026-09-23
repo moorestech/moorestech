@@ -12,20 +12,68 @@ namespace Client.Game.InGame.BugReport.Playtest
         // Why the whole player process was declared unattended (e.g. the distribution smoke run); the process is disposable, so it is never consumed
         private static string _unattendedProcessReason;
 
-        // 迂回する理由。印は読んだ時点で消費し、同じEditorでの次の手動再生にはゲートを戻す
-        // Why the boot bypasses; the mark is consumed on read so the next manual play in the same Editor gets its gates back
+        // この起動が無人かは初回の解決で1度だけ決まる。印を消費した後に読む側（退避・常時記録）が別の答えを得ないようラッチする
+        // Whether this boot is unattended is settled once at the first resolution; it is latched so readers after the mark is consumed (salvage, capture) never get another answer
+        private static bool _unattendedReasonResolved;
+        private static string _resolvedUnattendedReason;
+
+        // タイトル以外のシーンから始まった起動の宣言理由。ゲートを出さない理由の置き場をこのクラスへ揃える
+        // The declared reason for a boot that started outside the title; every reason for not showing the gates lives in this class
+        private static string _directBootReason;
+
+        // Editorの再生し直しは同じプロセスで起動をやり直すため、再生ごとに未解決へ戻す（前例: PlaytestLaunchGate）
+        // An Editor replay restarts the boot in the same process, so each play returns to unresolved (precedent: PlaytestLaunchGate)
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        internal static void ResetOnPlayMode()
+        {
+            _unattendedReasonResolved = false;
+            _resolvedUnattendedReason = null;
+            _directBootReason = null;
+        }
+
+        // 迂回する理由。Editorの印は初回の解決で消費し、同じEditorでの次の手動再生にはゲートを戻す
+        // Why the boot bypasses; the Editor mark is consumed at the first resolution so the next manual play in the same Editor gets its gates back
         // 応答者が居ないまま待つと恒久停止するので、理由は必ず開発者ログへ出す側（ゲート）へ返す
         // Waiting with nobody to answer halts forever, so the reason is handed back to the gate that logs it
         public static string UnattendedReason()
         {
-            var reason = PeekUnattendedReason();
+            if (_unattendedReasonResolved) return _resolvedUnattendedReason;
+
+            _resolvedUnattendedReason = ResolveUnattendedReason();
+            _unattendedReasonResolved = true;
             EraseUnattendedBootMark();
-            return reason;
+            return _resolvedUnattendedReason;
         }
 
-        // 印を消費せずに同じ判定を返す。開始ゲートより先に走る判定（直Playの常時記録）が使う
-        // Returns the same decision without consuming the mark, for decisions that run before the start gates (direct-play capture)
+        // 印を消費せずに同じ判定を返す。開始ゲートより先に走る判定（直Playの常時記録）が使う。解決済みならラッチした答えを返す
+        // Returns the same decision without consuming the mark, for decisions that run before the start gates (direct-play capture); once resolved it returns the latched answer
         public static string PeekUnattendedReason()
+        {
+            if (_unattendedReasonResolved) return _resolvedUnattendedReason;
+            return ResolveUnattendedReason();
+        }
+
+        // タイトルを通らない起動の入口から呼ぶ。通過の理由は必ず残し、配布版で確認を飛ばしている経路を無音にしない
+        // Called from the entry of a boot that skips the title; the reason is always logged so a path skipping the confirmations in a distribution build is never silent
+        public static void DeclareDirectBoot(string reason)
+        {
+            if (string.IsNullOrEmpty(reason))
+            {
+                Debug.LogError("PlaytestStartGateBypass: 理由の無い直接起動の宣言は受け付けません（タイトルのゲートは迂回されません）");
+                return;
+            }
+            _directBootReason = reason;
+            Debug.Log($"PlaytestStartGateBypass: タイトルのゲートを出さずに通します reason:{reason}（未応答の印は残り、次にタイトルを通る起動で聞き直します）");
+        }
+
+        // 直接起動と宣言された理由。宣言が無ければnull
+        // The declared direct-boot reason, or null when none was declared
+        public static string DirectBootReason()
+        {
+            return _directBootReason;
+        }
+
+        private static string ResolveUnattendedReason()
         {
             if (Application.isBatchMode) return "batchMode";
             if (_unattendedProcessReason != null) return _unattendedProcessReason;
@@ -58,9 +106,12 @@ namespace Client.Game.InGame.BugReport.Playtest
 
         private static void HandlePlayModeStateChanged(UnityEditor.PlayModeStateChange state)
         {
+            // 再生中にラッチした答えは編集モードへ持ち越さない（終了では静的状態がリロードされない）
+            // The answer latched during play is not carried into edit mode (exiting play does not reload statics)
             if (state == UnityEditor.PlayModeStateChange.EnteredEditMode)
             {
                 EraseUnattendedBootMark();
+                ResetOnPlayMode();
             }
         }
 
