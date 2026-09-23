@@ -12,8 +12,6 @@ namespace Game.BeltSegment
 
         internal BeltReplayPorts(int inputCount, int outputCount)
         {
-            // 各edge専用のポートを一度だけ確保する。
-            // Allocate a dedicated port for each edge only once.
             sourcePorts = new Source[inputCount];
             receiverPorts = new Receiver[outputCount];
             for (int i = 0; i < inputCount; i++) sourcePorts[i] = new Source();

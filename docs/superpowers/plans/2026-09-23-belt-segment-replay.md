@@ -16,7 +16,7 @@
 - R4: 前tickの供給可否・出力成功は次tickへ持ち越さない。通知がない外部候補は不可として扱い、Branchは元のCoreの順序で次の候補を試す。
 - R5: Normal→Normalは既存D11/D12実装を使う。自己接続の二重前進や満杯輪の停止を再現器が変えない。buffer→Normalの同tick前進も維持する。
 - R6: 搬出成功の未実行、成功搬入の拒否は例外で検出し、無音で成功扱いにしない。搬入長1〜256の契約を境界で検査する。例外後の途中状態はrollbackせず、呼び出し側が全状態から再構築する契約とする。
-- R7: 空構成・外部接続0件でも構築・Tick・Capture/復元ができる。Capture結果に実行中のqueue/接続配列への可変参照を残さない。
+- R7: 空構成・外部接続0件でも構築・Tick・Capture/復元ができる。Graphが固定配線を所有し、公開操作・外部receiver・Capture結果から実行中のsegment/queue/接続配列へ可変参照を渡さない。
 - R8: 逐次と並列を入れ替えた2つの1000tickシナリオで毎tick一致を確認する。列挙順と周期的なCapture/Restoreを含め、アイテム保存則も確認する。
 - R9: 逐次再現tickは準備済み差分を受け取ってから一時配列・List・delegateを生成しない。Captureやシリアライズは測定区間外とし、ウォームアップ後の割当を.NET診断で測定する。
 - R10: この段階は確定済み構成・完全な1tick差分を入力とする共通計算ライブラリ。World構築・実機械在庫・セーブ移行・通信/購読・tick/seqの採番・GPU統合は別の実装単位として全体ゴールに残す。Q1/Q3/Q4/Q7を仮定して埋めない。
@@ -26,7 +26,7 @@
 - 正本: `E:/Dropbox/seg/mock/8/Core` と [ADR0069](../../adr/0069-belt-segment-simulation.md) のD9〜D13。段階を公開せずBeltSimulation.Tick(bool)を使う。
 - 作業先: `C:/Users/5080/Documents/GitHub/moorestech`、branch `codex/belt-segment-replay`。ユーザーがこの本体checkoutでの作業を明示許可済み。baseはNormal接続PRの`8d002eabf4c1e0221e67f105b1e73b746b329f3a`で、origin/master `9f22975545adb3e835d755ae0223bb24dd3b1c46`を含む。
 - このCoreアセンブリはUnity/World/Game.Item/MessagePackに依存しない。ゲームpayloadの同一性とmetadataはWorld側の責務で、BeltItemのGUID/ItemIdと混同しない。
-- `.cs`は各200行以下、ディレクトリ10コードファイル以下。新Replayディレクトリ4ファイル、既存Coreテストディレクトリへ2ファイル追加。partial、Func、デフォルト引数、public setter、イベント用Actionを追加しない。
+- `.cs`は各200行以下、ディレクトリ10コードファイル以下。新Replayディレクトリ4ファイル、既存Coreテストディレクトリへ4ファイル追加して9ファイル。partial、Func、デフォルト引数、public setter、イベント用Actionを追加しない。
 - コメントは意図のある主要区間に日本語・英語の2行。単一呼出の局所helperは呼出元末尾の#region Internalへ置く。
 - Unity YAML/.metaを手で作らない。Unity生成metaのみcommit。無関係dirty5pathはstage/revertしない。
 
@@ -50,13 +50,16 @@
 - Create: `moorestech_server/Assets/Scripts/Game.BeltSegment/Replay/BeltReplaySimulation.cs`
 - Test: `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/BeltSegment/BeltExternalReplayTest.cs`
 - Test: `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/BeltSegment/BeltExternalReplayScenario.cs`
-- Unity生成: 上記6csのmetaとReplayディレクトリmeta。
+- Test: `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/BeltSegment/BeltExternalReplayOrderTest.cs`
+- Test: `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/BeltSegment/BeltSimulationGraphBoundaryTest.cs`
+- Unity生成: 上記8csのmetaとReplayディレクトリmeta。
 
 **Interfaces:** namespaceは `Game.BeltSegment`。既存のBeltItem、BeltItemState、BeltDirection、BeltSegmentKind、IBeltSource、IBeltReceiverを再利用する。
 
 - Consumes: `BeltSimulation.Tick(bool)`、`BeltConveyorSegment.ConnectTo(IBeltReceiver,BeltDirection)`、`AttachInput(IBeltSource,BeltDirection)`、`SetSpeed(int)`、`TryReceive(BeltDirection,int,in BeltItem)`、`CaptureItems()`、`RestoreItems(BeltItemState[])`、`BeltBuffer.ConnectTo/TryGetItem/RestoreItem`。
 - Produces: 以下の値型と、`BeltSimulationGraph(BeltReplaySnapshot,IReadOnlyList<IBeltSource>,IReadOnlyList<IBeltReceiver>)`、snapshotの接続表を所有するgraph、`BeltSimulationGraph.CaptureSnapshot()`、`BeltReplaySimulation(BeltReplaySnapshot)`、`ApplyTick(BeltReplayTick,bool)`、`CaptureSnapshot()`。
-- Graphの公開読取面は `IReadOnlyList<BeltConveyorSegment> Segments`、`BeltSimulation Simulation`。接続表はprivateでclone保持し、全状態Captureで新配列へ複製する。Replayの搬入先解決用に元snapshotのInputsをReplay自身もclone保持する。
+- Graphの公開操作は `int SegmentCount`、`int GetSpeed(int segmentId)`、`void SetSpeed(int segmentId, int speed)`、`int GetInputOffer(int inputId)`、`bool TryInsert(int inputId, int length, in BeltItem item)`、`void Tick(bool parallel)`、`BeltReplaySnapshot CaptureSnapshot()`。segment配列・Simulation・接続表はprivate所有とし、搬入先解決はGraphのInputs表へ集約する。Captureは状態と接続表を新配列へ複製する。
+- 外部出力はprivate nested `GraphOutputReceiver : IBeltReceiver`で包み、AttachInputへprivate nested `GraphSource : IBeltSource`を渡す。GraphSourceは供給照会だけをCoreへ委譲する。内部linkはCore実体を直接接続し、Normal→Normalの既存の型判定と二重前進防止を維持する。
 - 接続表は独立した3型で表現し、外部の有無をnullや無効IDで表す共用体を作らない。Inputs/Outputsの配列indexが、そのsnapshot内で有効な外部接続ID。
 
 - [ ] **Step 1: 確定状態と差分の値型を実装する**
@@ -142,7 +145,7 @@ BufferedItemのnullはアイテム不在を表す。生成は種別ごとのfact
 
 - [ ] **Step 2: 共通graph構築とCaptureを実装する**
 
-`BeltSimulationGraph`のprivate fieldsはsegment配列、Links/Inputs/Outputsのclone。コンストラクタで外部adapter数の一致を検査し、不一致はArgumentException。segment生成時は既存Core ctorへ容量/速度/種別/RRをそのまま渡す。接続の登録後にアイテムを復元し、最後にBeltSimulationを生成する。配列の列挙順を変えない。
+`BeltSimulationGraph`のprivate readonly fieldsはsegment配列、Links/Inputs/Outputsのclone、BeltSimulation。コンストラクタで外部adapter数の一致を検査し、不一致はArgumentException。segment生成時は既存Core ctorへ容量/速度/種別/RRをそのまま渡す。接続の登録後にアイテムを復元し、最後にBeltSimulationを生成する。配列の列挙順を変えない。GraphOutputReceiver/GraphSourceは構築時だけ生成する。
 
 ```csharp
 public BeltSimulationGraph(BeltReplaySnapshot snapshot,
@@ -160,7 +163,8 @@ public BeltSimulationGraph(BeltReplaySnapshot snapshot,
         segments[i] = new BeltConveyorSegment(state.Capacity, state.Speed, state.Kind, state.PriorityIndex);
     }
     foreach (var link in links) Connect(link.SourceSegmentId, segments[link.TargetSegmentId], link.OutputDirection);
-    for (int i = 0; i < outputs.Length; i++) Connect(outputs[i].SourceSegmentId, outputReceivers[i], outputs[i].OutputDirection);
+    for (int i = 0; i < outputs.Length; i++)
+        Connect(outputs[i].SourceSegmentId, new GraphOutputReceiver(outputReceivers[i]), outputs[i].OutputDirection);
     for (int i = 0; i < inputs.Length; i++) segments[inputs[i].TargetSegmentId].AttachInput(inputSources[i], inputs[i].InputDirection);
     for (int i = 0; i < segments.Length; i++)
     {
@@ -169,7 +173,7 @@ public BeltSimulationGraph(BeltReplaySnapshot snapshot,
         if (!state.BufferedItem.HasValue) continue;
         segments[i].Buffer.RestoreItem(state.BufferedItem.Value);
     }
-    Simulation = new BeltSimulation(segments);
+    simulation = new BeltSimulation(segments);
     #region Internal
     void Connect(int sourceId, IBeltReceiver target, BeltDirection direction)
     {
@@ -178,6 +182,22 @@ public BeltSimulationGraph(BeltReplaySnapshot snapshot,
         else source.Buffer.ConnectTo(target, direction);
     }
     #endregion
+}
+public int SegmentCount => segments.Length;
+public int GetSpeed(int segmentId) => segments[segmentId].Speed;
+public void SetSpeed(int segmentId, int speed) => segments[segmentId].SetSpeed(speed);
+public void Tick(bool parallel) => simulation.Tick(parallel);
+public int GetInputOffer(int inputId)
+{
+    var input = inputs[inputId];
+    return segments[input.TargetSegmentId].GetOffer(input.InputDirection);
+}
+public bool TryInsert(int inputId, int length, in BeltItem item)
+{
+    if (length <= 0 || BeltConstants.ItemWidth < length)
+        throw new ArgumentOutOfRangeException(nameof(length), "Insertion length must be 1..256.");
+    var input = inputs[inputId];
+    return segments[input.TargetSegmentId].TryReceive(input.InputDirection, length, item);
 }
 public BeltReplaySnapshot CaptureSnapshot()
 {
@@ -201,6 +221,8 @@ public BeltReplaySnapshot CaptureSnapshot()
 ```
 
 ID範囲・方向・配線の本数・Items間隔/容量/順序は既存Coreと同じく確定済み入力の契約。外部wireの不正値を受け入れる責務はこのAPIへ混ぜず、後続の通信decoderで検証する。現段階のテストは有効なgraphと、ここで追加した数不一致を検査する。各factoryの種別・容量とNormalのbuffer不在も確認する。図からgraphを生成するWorld側がこの契約を満たすことは後続の受入基準に残す。
+
+GraphOutputReceiverは渡されたIBeltReceiverをprivate readonlyで保持し、GetOffer/TryReceiveの方向・長さ・itemをそのまま委譲する。AttachInputだけはnew GraphSource(source)を渡す。GraphSourceはIBeltSourceをprivate readonlyで保持し、TryGetOutputの方向と結果をそのまま委譲する。双方ともGraph内のprivate sealed classで、Core参照を返すメンバーを持たない。外部receiverが保持したsourceからsegment/Bufferへcastして再配線する経路を閉じる。操作は既存Coreと同じtick境界で使う。
 
 - [ ] **Step 3: 再現用ポートと差分runnerを実装する**
 
@@ -237,28 +259,24 @@ public void VerifyOutputs(BeltReplayTick tick)
 
 ReadyInputs/SuccessfulOutputsは正の集合を配列で運ぶ。重複indexは同じtrue指定として冪等。Insertionsは順序付き操作であり、集合として重複除去しない。Receiverは1つの搬送edge専用で、Coreの並列実行でも同じportを複数sourceに共有しない。
 
-`BeltReplaySimulation`はgraph、ports、cloneしたInputsをprivate readonlyで所有する。
+`BeltReplaySimulation`はgraph、portsをprivate readonlyで所有する。入力解決と搬入長の検証はgraph.TryInsertへ委譲する。
 
 ```csharp
 public BeltReplaySimulation(BeltReplaySnapshot snapshot)
 {
     ports = new BeltReplayPorts(snapshot.Inputs.Length, snapshot.Outputs.Length);
     graph = new BeltSimulationGraph(snapshot, ports.Sources, ports.Receivers);
-    inputs = (BeltReplayInput[])snapshot.Inputs.Clone();
 }
 public BeltReplaySnapshot CaptureSnapshot() => graph.CaptureSnapshot();
 public void ApplyTick(BeltReplayTick tick, bool parallel)
 {
     ports.Prepare(tick);
-    foreach (var change in tick.SpeedChanges) graph.Segments[change.SegmentId].SetSpeed(change.Speed);
-    graph.Simulation.Tick(parallel);
+    foreach (var change in tick.SpeedChanges) graph.SetSpeed(change.SegmentId, change.Speed);
+    graph.Tick(parallel);
     ports.VerifyOutputs(tick);
     foreach (var insertion in tick.Insertions)
     {
-        if (insertion.Length <= 0 || BeltConstants.ItemWidth < insertion.Length)
-            throw new ArgumentOutOfRangeException(nameof(tick), "Insertion length must be 1..256.");
-        var input = inputs[insertion.InputId];
-        if (!graph.Segments[input.TargetSegmentId].TryReceive(input.InputDirection, insertion.Length, insertion.Item))
+        if (!graph.TryInsert(insertion.InputId, insertion.Length, insertion.Item))
             throw new InvalidOperationException($"Recorded input {insertion.InputId} was rejected.");
     }
 }
@@ -269,6 +287,8 @@ public void ApplyTick(BeltReplayTick tick, bool parallel)
 - [ ] **Step 4: 固定期待値と連続再現テストを実装する**
 
 `BeltExternalReplayTest.cs`に固定値・境界・差分テスト、`BeltExternalReplayScenario.cs`に実ポートと連続運転fixtureを置く。テスト補助はinternal、publicテスト型の追加メンバーはNUnit入口のみ。scenarioの再現元は実Receiver.GetOffer=256、TryReceiveは現在のCanAcceptを見て、成功時だけSent/Itemを記録する。成功結果だけでGetOfferを再現する方式との差を同じテストで比較する。
+
+`BeltExternalReplayOrderTest.cs`は両候補が同時に可となるMerge/Branchの登録順を独立期待値で検査する。`BeltSimulationGraphBoundaryTest.cs`は外部sourceのcast不可、Normalの停止/再開/成功後の供給照会、bufferの方向/RR/再回収、Graph入力IDと配列分離、内部Normalの一度だけの前進、搬入長検証を検査する。
 
 最小例のコード（実型を使い、補助のState/EmptyTickは唯一のcallerならlocal関数にする）:
 
@@ -303,13 +323,16 @@ public void AfterTickInsertionDoesNotAdvanceUntilNextTick()
 | segment間接続と外部を混ぜたMerge/Branch | 接続登録の順序とCapture/再構築後の継続が一致 |
 | cap4 Normal自己接続item@32 speed64 | 1tick後@992。cap2@0/@256の満杯自己接続は停止 |
 | Capture後のItems/Links/Inputs/Outputs配列を変更 | graphの計算/次回Captureへ影響しない（構築時の元snapshot変更も同様） |
+| Graphの外部receiverがsourceを保持して複数tick照会 | mutable Coreへcastできず、Normal速度/成功搬出とbuffer方向/RR/再回収を反映する |
+| Graph構築元とCaptureの配線を変更後、Normal→NormalをTickしinput IDで搬入 | 元の接続先へ448で一度だけ搬送し、元の入力先へ挿入する。逐次/並列とも同じ固定値 |
+| Mergeの内部2入力をsegment IDと逆に登録、外部2入力が同時ready、Branchの外部2出力が同時accept | 保存済みRRと登録順が選ぶGUID/方向/次のRRを固定値で検査する |
 | 外部adapter数不一致、各種別factory | 数不一致はArgumentException。factoryは指定kind、Merge容量1、Normal buffer不在を保持 |
 | 搬出成功を通知したが空のNormal / speed0のBranch | InvalidOperationException |
 | 境界搬入の長0/257、満杯へ成功搬入 | 長さはArgumentOutOfRangeException、実受入拒否はInvalidOperationException |
 
 連続fixtureは2Normals→Merge→Branch→外部出力2つ、Mergeの追加外部入力、独立Normal→外部出力、item入りNormal自己接続を含む。容量は3/2/1/4/3/4、基本速度64、速度はtickに応じて0/64/128。Mergeの3入力目は外部。各tickで実sourceのReadyを固定→実graph.Tick(serverParallel)→成功外部出力を集計→実機械の境界挿入を順番に実行し成功だけ集計→replay.ApplyTick(frame,!serverParallel)。新規GUIDは実成功した時だけ所有集合へ追加、搬出成功のGUIDを集合から削除する。
 
-初期自己接続itemはGUID9999、distance32とする。その他の新規GUIDは1から単調増加、ItemIdは1+id%7。Readyは(tick+inputId)%3!=0、実際の供給は(tick+inputId)%4!=0、機械受入は(tick+outputId*3)%7<4。入力長はmin(128,actual.GetOffer(direction))で正数だけTryReceive、成功結果を記録する。外部inputのターゲットは0/1/2/4。Linksは0→2 Front、1→2 Right、2→3 Front、5→5 Front。Branch3の外部出力はRight/Left、Normal4の外部出力はFront。入力方向は0/1/4がBack、2がFront。毎73tickでreplicaだけCapture/再生成し、合計1000tickの全segment状態を毎tick比較する。serverParallel false/trueの2ケース。異なる登録順を使うfixtureを比較で誤魔化さず、双方同じsnapshotを共通graphへ渡す。
+初期自己接続itemはGUID9999、distance32とする。その他の新規GUIDは1から単調増加、ItemIdは1+id%7。Readyは(tick+inputId)%3!=0、実際の供給は(tick+inputId)%4!=0、機械受入は(tick+outputId*3)%7<4。入力長はmin(128,actual.GetInputOffer(inputId))で正数だけactual.TryInsert(inputId,length,item)、成功結果を記録する。外部inputのターゲットは0/1/2/4。Linksは0→2 Front、1→2 Right、2→3 Front、5→5 Front。Branch3の外部出力はRight/Left、Normal4の外部出力はFront。入力方向は0/1/4がBack、2がFront。毎73tickでreplicaだけCapture/再生成し、合計1000tickの全segment状態を毎tick比較する。serverParallel false/trueの2ケース。異なる登録順を使うfixtureを比較で誤魔化さず、双方同じsnapshotを共通graphへ渡す。
 
 expectedのsourceとactualのreplayが同じ失敗を隠さないよう、表の448/384/992/満杯停止/Branch RRの固定期待値を別テストに残す。
 
@@ -354,6 +377,8 @@ git commit -m 'Task 1: segmentの全状態復元と外部確定差分の再現�
 ## 判断記録（ADR）
 
 - [ADR0069](../../adr/0069-belt-segment-simulation.md)「外部操作の再現を独立して実装する」に従う。外部供給をTick後に置くのはCore契約と既存機械の同期在庫所有に基づくagent実装判断。
+- 最終レビューC2に対するD1=Aは親コントローラーの実装判断。Graphが固定配線と入力解決を所有し、操作APIと外部source proxyを公開境界とする。Coreの物理計算と内部Normal実体接続を維持する。
+- 最終レビューD2=Bも親コントローラーの実装判断であり、ユーザー承認ではない。段階Draft PRを維持し、C3〜C6の実World搬送・client差分適用・GPU描画・設置/撤去CPU/GPU全再構築は実利用と実ゲーム検証まで未完了ゲートとして残す。
 - 共通構築器は配線とstateの復元に限定する。blockからの分類・速度混在・接続選択を追加しない。Q1/Q3/Q4/Q7は未決のまま。
 - 接続登録順を3配列の順で固定し、それを同じsnapshotで実側と再現側へ渡す。間接推測やCore private reflectionを使わない。
 - 1tickの外部出力はedgeごとに最大1回というCoreの現行処理に対応する。1つのmachineを複数edgeの共有Receiver状態として再現しない。

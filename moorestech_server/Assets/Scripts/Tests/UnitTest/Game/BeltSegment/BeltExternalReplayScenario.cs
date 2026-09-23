@@ -53,22 +53,22 @@ namespace Tests.UnitTest.Game.BeltSegment
                 var successful = new List<int>();
                 var insertions = new List<BeltReplayInsertion>();
                 var changes = new List<BeltReplaySpeedChange>();
-                // 実ポートは供給可否と受入可否を独立して固定する。
-                // Fix real supply readiness and receiver acceptance independently.
+                // 供給可否と受入可否を独立設定。
+                // Set supply and acceptance independently.
                 for (int i = 0; i < sources.Length; i++)
                 {
                     sources[i].SetReady((tick + i) % 3 != 0);
                     if (sources[i].TryGetOutput(initial.Inputs[i].InputDirection)) ready.Add(i);
                 }
                 for (int i = 0; i < receivers.Length; i++) receivers[i].Prepare((tick + i * 3) % 7 < 4);
-                for (int i = 0; i < actual.Segments.Count; i++)
+                for (int i = 0; i < actual.SegmentCount; i++)
                 {
                     int speed = ((tick / 11 + i) % 3) * 64;
-                    if (actual.Segments[i].Speed == speed) continue;
-                    actual.Segments[i].SetSpeed(speed);
+                    if (actual.GetSpeed(i) == speed) continue;
+                    actual.SetSpeed(i, speed);
                     changes.Add(new BeltReplaySpeedChange(i, speed));
                 }
-                actual.Simulation.Tick(serverParallel);
+                actual.Tick(serverParallel);
                 // 成功した搬出だけを記録し、所有集合から一度だけ除く。
                 // Record successful outputs and remove each from ownership exactly once.
                 for (int i = 0; i < receivers.Length; i++)
@@ -80,18 +80,16 @@ namespace Tests.UnitTest.Game.BeltSegment
                 for (int i = 0; i < sources.Length; i++)
                 {
                     if ((tick + i) % 4 == 0) continue;
-                    var input = initial.Inputs[i];
-                    var target = actual.Segments[input.TargetSegmentId];
-                    int length = Math.Min(128, target.GetOffer(input.InputDirection));
+                    int length = Math.Min(128, actual.GetInputOffer(i));
                     if (length <= 0) continue;
                     var item = State(nextId, 0).Item;
-                    if (!target.TryReceive(input.InputDirection, length, item)) continue;
+                    if (!actual.TryInsert(i, length, item)) continue;
                     nextId++;
                     Assert.That(owned.Add(item.Guid), Is.True);
                     insertions.Add(new BeltReplayInsertion(i, length, item));
                 }
-                // 反対の実行方式と周期的な再生成を交えて全状態を比較する。
-                // Compare complete state using the opposite execution mode and periodic reconstruction.
+                // 逆方式と定期再生成で全状態比較。
+                // Compare full state across modes and periodic rebuilds.
                 replay.ApplyTick(new BeltReplayTick(changes.ToArray(), ready.ToArray(), successful.ToArray(), insertions.ToArray()), !serverParallel);
                 var expected = actual.CaptureSnapshot();
                 var reproduced = replay.CaptureSnapshot();

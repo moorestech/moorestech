@@ -52,13 +52,15 @@ namespace Tests.UnitTest.Game.BeltSegment
             var sources = new[] { new Source(), new Source() };
             var actual = new BeltSimulationGraph(snapshot, sources, Array.Empty<IBeltReceiver>());
             var replay = new BeltReplaySimulation(snapshot);
-            // 実Coreの予約切替と、再現ポートの毎tickリセットを照合する。
-            // Compare real Core reservation rotation with per-tick replay port resets.
+            // 実Coreの予約切替を照合。
+            // Compare real Core reservation changes.
+            // 再現ポートは毎tick初期化。
+            // Reset replay ports every tick.
             for (int i = 0; i < 2; i++)
             {
                 sources[0].SetReady(i == 0); sources[1].SetReady(i == 1);
-                actual.Simulation.Tick(false);
-                Assert.That(actual.Segments[0].TryReceive(snapshot.Inputs[i].InputDirection, 256, State(i + 1, 0).Item), Is.True);
+                actual.Tick(false);
+                Assert.That(actual.TryInsert(i, 256, State(i + 1, 0).Item), Is.True);
                 replay.ApplyTick(Frame(new[] { i }, Array.Empty<int>(), new BeltReplayInsertion(i, 256, State(i + 1, 0).Item)), true);
                 AssertSame(actual.CaptureSnapshot(), replay.CaptureSnapshot());
             }
@@ -94,8 +96,10 @@ namespace Tests.UnitTest.Game.BeltSegment
             var replay = new BeltReplaySimulation(snapshot);
             replay.ApplyTick(Frame(Array.Empty<int>(), Array.Empty<int>()), false);
             var first = replay.CaptureSnapshot();
-            // 内部出力を先に選び、bufferから通常列への搬入は同tickに前進する。
-            // Select the internal output first and advance its buffer insertion in the same tick.
+            // 内部出力を優先。
+            // Prefer the internal output.
+            // buffer→通常列は同tick前進。
+            // Buffer insertion into the normal queue advances in the same tick.
             Assert.That(first.Segments[0].PriorityIndex, Is.EqualTo(1));
             Assert.That(first.Segments[1].Items[0].DistanceToExit, Is.EqualTo(384));
             Assert.That(first.Segments[1].Items[0].Item.Guid, Is.EqualTo(State(1, 0).Item.Guid));
@@ -127,8 +131,10 @@ namespace Tests.UnitTest.Game.BeltSegment
             var replay = new BeltReplaySimulation(snapshot);
             var expected = new BeltReplaySimulation(snapshot);
             var captured = replay.CaptureSnapshot();
-            // 入力とCapture双方の配列要素を壊しても実行中の所有状態は変わらない。
-            // Mutating both input and captured array entries must not alter live ownership.
+            // 入力・Capture配列要素を変更。
+            // Mutate input and captured array entries.
+            // 実行中の所有状態は不変。
+            // Live ownership remains unchanged.
             Corrupt(snapshot); Corrupt(captured);
             var frame = Frame(new[] { 0 }, Array.Empty<int>(), new BeltReplayInsertion(0, 64, State(2, 0).Item));
             expected.ApplyTick(frame, false); replay.ApplyTick(frame, true);
