@@ -140,12 +140,33 @@ namespace Client.Tests.Playtest.TitleGates
             var sequence = StartAttendedSequenceWithUnreadConsent(firstTitleUploads);
 
             var revisitUploads = new RecordingUploadRequester();
-            Assert.IsTrue(PlaytestTitleGates.TryBegin(PlaytestGateResult.DeveloperMode, revisitUploads, out var revisited));
+            Assert.IsTrue(PlaytestTitleGates.TryBegin(PlaytestGateResult.Allowed(null, "7656"), revisitUploads, out var revisited));
             Assert.AreSame(sequence, revisited, "再訪で別の列が始まっている");
 
             sequence.AcknowledgeConsent();
             Assert.AreEqual(1, revisitUploads.RequestCount);
             Assert.AreEqual(0, firstTitleUploads.RequestCount, "破棄済みのタイトルが組んだ送り手へ送信を要求している");
+        }
+
+        // 送信可否はタイトルの寿命。開発者モードで通過した列でも、照合がAllowedへ転じた再訪では持ち越しの送信を要求し直す（F12）
+        // The upload permission lives with the title; even a sequence passed in developer mode requests the carry-over again on a revisit whose check turned Allowed (F12)
+        [Test]
+        public void 再訪で照合がAllowedへ転じたら送信可否を押し直して送る()
+        {
+            PlaytestConsentFlag.Acknowledge();
+            var firstTitleUploads = new RecordingUploadRequester();
+            var sequence = PlaytestTitleGates.BeginComposed(TestPreviousSessionArtifacts.Clean(), false, firstTitleUploads, null, CancellationToken.None);
+            Assert.AreEqual(PlaytestTitleGateStep.Passed, sequence.Step.Value);
+            Assert.AreEqual(0, firstTitleUploads.RequestCount);
+
+            var revisitUploads = new RecordingUploadRequester();
+            Assert.IsTrue(PlaytestTitleGates.TryBegin(PlaytestGateResult.Allowed(null, "7656"), revisitUploads, out _));
+            Assert.AreEqual(1, revisitUploads.RequestCount, "照合がAllowedへ転じた再訪で持ち越しの送信を要求していない");
+
+            // 照合を通らない再訪では送信可否を落とし、次の再訪で要求しない
+            // A revisit without an allowed check drops the permission and requests nothing
+            Assert.IsTrue(PlaytestTitleGates.TryBegin(PlaytestGateResult.DeveloperMode, revisitUploads, out _));
+            Assert.AreEqual(1, revisitUploads.RequestCount, "開発者モードの再訪で送信を要求している");
         }
 
         // 再訪の再照合は Checking を置き直す。答え待ちの確認が出ている間は待ち文言を重ねないよう、列が「確認を表示中」と答える必要がある

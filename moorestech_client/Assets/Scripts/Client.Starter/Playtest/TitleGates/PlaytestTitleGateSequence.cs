@@ -15,10 +15,10 @@ namespace Client.Starter.Playtest.TitleGates
         private readonly ReactiveProperty<PlaytestTitleGateStep> _step = new(PlaytestTitleGateStep.NotStarted);
         private readonly PlaytestConsentGate _consent;
         private readonly CrashReportGate _crashReport;
-        private readonly bool _uploadsEnabled;
 
-        // 列はプロセス寿命、送り手はタイトル（合成ルート）の寿命。再訪で作り直されるので readonly にしない（D-C1）
-        // The sequence lives as long as the process while the requester lives with the title's composition root, which a revisit rebuilds, so it is not readonly (D-C1)
+        // 列はプロセス寿命、送信可否と送り手はタイトル（合成ルート）の寿命。再訪で押し直すので readonly にしない（D-C1）
+        // The sequence lives as long as the process while the upload permission and requester live with the title's composition root, re-pushed on a revisit, so they are not readonly (D-C1)
+        private bool _uploadsEnabled;
         private IPlaytestUploadRequester _uploadRequester;
 
         public IReadOnlyReactiveProperty<PlaytestTitleGateStep> Step => _step;
@@ -50,6 +50,13 @@ namespace Client.Starter.Playtest.TitleGates
                 return;
             }
             _uploadRequester = uploadRequester;
+        }
+
+        // 再訪のタイトルが決め直した送信可否を押し直す。照合がAllowedへ転じた再訪で、持ち越しが送られないまま残らないようにする（D-C1）
+        // Re-pushes the upload permission the revisited title decided again, so a revisit whose check turned Allowed does not leave the carry-over unsent (D-C1)
+        internal void SetUploadsEnabled(bool uploadsEnabled)
+        {
+            _uploadsEnabled = uploadsEnabled;
         }
 
         // 待たない段階は同期で抜けるので、既読かつ正常終了なら呼んだその場で Passed になる
@@ -119,7 +126,7 @@ namespace Client.Starter.Playtest.TitleGates
             return result;
         }
 
-        private void RequestUploadIfEnabled(string trigger)
+        internal void RequestUploadIfEnabled(string trigger)
         {
             if (!_uploadsEnabled)
             {

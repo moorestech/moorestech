@@ -55,9 +55,18 @@ namespace Client.Starter.Playtest.TitleGates
             sequence = _current;
             if (sequence != null)
             {
-                // 列は生き残るが合成ルートは再訪のたびに作り直される。送り手だけ今回のタイトルのものへ繋ぎ直す（D-C1）
-                // The sequence survives while the composition root is rebuilt on every revisit, so only the requester is re-attached to this title's one (D-C1)
+                // 列は生き残るが合成ルートは再訪のたびに作り直される。送り手と送信可否を今回のタイトルのものへ繋ぎ直す（D-C1）
+                // The sequence survives while the composition root is rebuilt on every revisit, so the requester and upload permission are re-attached to this title's (D-C1)
                 sequence.SetUploadRequester(uploadRequester);
+
+                // 同意待ちの列は送信要求が了解の後ろに並ぶので、未読でも可にしておく（不可にすると了解後の送信が無音で消える）
+                // A sequence waiting on consent queues its upload behind the acknowledgement, so it stays enabled while unread (disabling it would silently drop the upload after acknowledgement)
+                var consentHoldsUploads = sequence.Step.Value == PlaytestTitleGateStep.Consent;
+                sequence.SetUploadsEnabled(verdict.TryGetAllowedSession(out _) && (PlaytestConsentFlag.IsAcknowledged() || consentHoldsUploads));
+
+                // 通過済みの列には走行が残っていない。照合がAllowedへ転じた再訪の持ち越しはここで送信を要求し直す
+                // A passed sequence has no run left, so a revisit whose check turned Allowed requests the carry-over upload here
+                if (sequence.Step.Value == PlaytestTitleGateStep.Passed) sequence.RequestUploadIfEnabled("title revisit");
                 return true;
             }
 
