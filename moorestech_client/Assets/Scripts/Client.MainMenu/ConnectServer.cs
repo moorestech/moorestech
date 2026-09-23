@@ -37,12 +37,21 @@ namespace Client.MainMenu
         {
             // 同じ関所を通す。照合とタイトルの確認の2段はPlaytestTitleGates 1箇所に閉じており、接続先がリモートでも同じく通す（ADR 0065）
             // The same checkpoint is consulted here; both stages live inside PlaytestTitleGates alone, and a remote destination goes through it just the same (ADR 0065)
-            if (!PlaytestTitleGates.TryPassStart(nameof(Connect), out var gateDenyReasonText))
+            var verdict = PlaytestTitleGates.EvaluateStart(nameof(Connect), out var refusal);
+            switch (verdict)
             {
-                // 文言が空なのは、答えるべき確認が既に画面に出ている場合。理由はゲートがログへ出している
-                // An empty text means the confirmation to answer is already on screen; the gate logged the reason
-                if (!string.IsNullOrEmpty(gateDenyReasonText)) serverConnectPopup.SetText(gateDenyReasonText);
-                return;
+                case PlaytestStartVerdict.Passed:
+                    break;
+                case PlaytestStartVerdict.RefusedWithNotice:
+                    serverConnectPopup.SetText(refusal.NoticeText);
+                    return;
+                case PlaytestStartVerdict.RefusedWhileConfirmationVisible:
+                    // 答えるべき確認が画面に出ている。理由はゲートがログへ出している
+                    // The confirmation to answer is already on screen; the gate logged the reason
+                    return;
+                default:
+                    Debug.LogError($"[ConnectServer] 未知の開始判定 {verdict} のため接続しません");
+                    return;
             }
 
             var playerId = PlayerPrefs.GetInt(PlayerPrefsKeys.PlayerIdKey);

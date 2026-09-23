@@ -45,16 +45,15 @@ namespace Client.Tests.Playtest.TitleGates
         [Test]
         public void 通過するまで開始を断り通過したら通す()
         {
-            Assert.IsFalse(PlaytestTitleGates.TryPassStart("test", out var notStartedText));
-            Assert.IsNotEmpty(notStartedText, "確認が画面に出ていないのに拒否理由の文言が無い");
+            Assert.AreEqual(PlaytestStartVerdict.RefusedWithNotice, PlaytestTitleGates.EvaluateStart("test", out var notStarted));
+            Assert.IsNotEmpty(notStarted.NoticeText, "確認が画面に出ていないのに拒否理由の文言が無い");
 
             var sequence = StartAttendedSequenceWithUnreadConsent();
-            Assert.IsFalse(PlaytestTitleGates.TryPassStart("test", out var consentText));
-            Assert.IsEmpty(consentText, "確認が画面に出ているのに別の文言を重ねている");
+            Assert.AreEqual(PlaytestStartVerdict.RefusedWhileConfirmationVisible, PlaytestTitleGates.EvaluateStart("test", out _), "確認が画面に出ているのに文言付きで断っている");
 
             sequence.AcknowledgeConsent();
             Assert.AreEqual(PlaytestTitleGateStep.Passed, sequence.Step.Value);
-            Assert.IsTrue(PlaytestTitleGates.TryPassStart("test", out _));
+            Assert.AreEqual(PlaytestStartVerdict.Passed, PlaytestTitleGates.EvaluateStart("test", out _));
         }
 
         // タイトルを通らない起動は明示的に通す。確認は出さず、未応答の印は次にタイトルを通る起動が聞き直す（D1 裁定）
@@ -64,12 +63,12 @@ namespace Client.Tests.Playtest.TitleGates
         {
             PlaytestStartGateBypass.DeclareDirectBoot("test direct boot");
 
-            Assert.IsTrue(PlaytestTitleGates.TryPassStart("test", out _));
+            Assert.AreEqual(PlaytestStartVerdict.Passed, PlaytestTitleGates.EvaluateStart("test", out _));
 
             // 直接起動の後にタイトルへ戻れば、始まった列の段階が正本になり未応答の確認で止まる（D-C1）
             // After a direct boot a return to the title makes the started sequence the authority again and the unanswered confirmation stops the start (D-C1)
             StartAttendedSequenceWithUnreadConsent();
-            Assert.IsFalse(PlaytestTitleGates.TryPassStart("test", out _), "明示通過が未応答の確認を素通しさせている");
+            Assert.AreNotEqual(PlaytestStartVerdict.Passed, PlaytestTitleGates.EvaluateStart("test", out _), "明示通過が未応答の確認を素通しさせている");
         }
 
         [Test]
@@ -104,7 +103,7 @@ namespace Client.Tests.Playtest.TitleGates
 
             Assert.AreEqual(PlaytestTitleGateStep.Consent, sequence.Step.Value);
             Assert.AreEqual(0, uploads.RequestCount);
-            Assert.IsFalse(PlaytestTitleGates.TryPassStart("test", out _));
+            Assert.AreNotEqual(PlaytestStartVerdict.Passed, PlaytestTitleGates.EvaluateStart("test", out _));
         }
 
         [Test]

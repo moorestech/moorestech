@@ -12,8 +12,8 @@ using UnityEngine;
 
 namespace Client.PlaytestReceiver.Gate
 {
-    // 起動時照合の関所。開始経路は PlaytestTitleGates.TryPassStart 越しに TryPassLaunchCheck を通り、表示側は照合結果を購読する
-    // The launch check's gate; start paths pass TryPassLaunchCheck through PlaytestTitleGates.TryPassStart, and the title view subscribes to the verdict
+    // 起動時照合の関所。開始経路は PlaytestTitleGates.EvaluateStart 越しに TryPassLaunchCheck を通り、表示側は照合結果を購読する
+    // The launch check's gate; start paths pass TryPassLaunchCheck through PlaytestTitleGates.EvaluateStart, and the title view subscribes to the verdict
     public static class PlaytestLaunchGate
     {
         // シーン跨ぎで持ち回る必要があり、MainMenuシーンにはDIコンテナが無いのでstaticで保持する

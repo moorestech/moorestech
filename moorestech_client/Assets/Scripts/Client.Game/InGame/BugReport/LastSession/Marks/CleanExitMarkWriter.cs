@@ -6,8 +6,8 @@ using UnityEngine;
 
 namespace Client.Game.InGame.BugReport.LastSession
 {
-    // 最初のawait前に据える書き手（待機中の停止も記録するため）。タイトル経由の起動では照合がAllowedで検証済みSteamIDを据えた後（TryPassStart通過後）なので識別も確定している
-    // Installed before the first await so stops during any wait are recorded; on a title boot it runs after TryPassStart set the verified SteamID on Allowed, so the identity is settled
+    // 最初のawait前に据える書き手（待機中の停止も記録するため）。タイトル経由の起動では照合がAllowedで検証済みSteamIDを据えた後（EvaluateStart通過後）なので識別も確定している
+    // Installed before the first await so stops during any wait are recorded; on a title boot it runs after EvaluateStart set the verified SteamID on Allowed, so the identity is settled
     public static class CleanExitMarkWriter
     {
         private static CompositeDisposable _subscriptions;

@@ -20,15 +20,23 @@ namespace Client.MainMenu
         {
             // 照合と同意・前回異常終了の確認は1回の問い合わせで通す。可否も拒否理由の文言もゲートが決め、ここは表示するだけ（ADR 0065）
             // The launch check and the consent / previous-crash confirmation pass in one call; the gate decides both the verdict and the refusal text, and this only displays it (ADR 0065)
-            if (!PlaytestTitleGates.TryPassStart(nameof(StartLocal), out var denyReasonText))
+            var verdict = PlaytestTitleGates.EvaluateStart(nameof(StartLocal), out var refusal);
+            switch (verdict)
             {
-                // 文言が空なのは、答えるべき確認が既に画面に出ている場合。理由はゲートがログへ出している
-                // An empty text means the confirmation to answer is already on screen; the gate logged the reason
-                if (!string.IsNullOrEmpty(denyReasonText)) messagePopup.SetText(denyReasonText);
-                return;
+                case PlaytestStartVerdict.Passed:
+                    LocalGameLauncher.StartLocalGame();
+                    return;
+                case PlaytestStartVerdict.RefusedWithNotice:
+                    messagePopup.SetText(refusal.NoticeText);
+                    return;
+                case PlaytestStartVerdict.RefusedWhileConfirmationVisible:
+                    // 答えるべき確認が画面に出ている。理由はゲートがログへ出している
+                    // The confirmation to answer is already on screen; the gate logged the reason
+                    return;
+                default:
+                    Debug.LogError($"[StartLocal] 未知の開始判定 {verdict} のため開始しません");
+                    return;
             }
-
-            LocalGameLauncher.StartLocalGame();
         }
     }
 }

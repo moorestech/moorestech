@@ -78,39 +78,35 @@ namespace Client.Starter.Playtest.TitleGates
 
         // 2段の順序はここに閉じる。照合の遅延確定が同期でタイトルのゲートを始めるため、照合を先に通さないと段階が読めない
         // The two stages' order is closed in here: the launch check's lazy settling starts the title gates synchronously, so the step cannot be read before it
-        public static bool TryPassStart(string callerName, out string denyReasonText)
+        public static PlaytestStartVerdict EvaluateStart(string callerName, out PlaytestStartRefusal refusal)
         {
-            if (!PlaytestLaunchGate.TryPassLaunchCheck(callerName, out denyReasonText)) return false;
+            refusal = new PlaytestStartRefusal("");
+            if (!PlaytestLaunchGate.TryPassLaunchCheck(callerName, out var launchDenyReasonText))
+            {
+                refusal = new PlaytestStartRefusal(launchDenyReasonText);
+                return PlaytestStartVerdict.RefusedWithNotice;
+            }
 
             if (_current == null)
             {
                 // タイトルを通らない起動の明示通過。列が始まればそちらが段階の正本になる（タイトルへ戻れば未応答の確認は出し直す）
                 // The explicit pass for a boot that skips the title; once a sequence starts it is the authority (a return to the title still asks the unanswered confirmations)
-                if (PlaytestStartGateBypass.DirectBootReason() != null)
-                {
-                    denyReasonText = "";
-                    return true;
-                }
+                if (PlaytestStartGateBypass.DirectBootReason() != null) return PlaytestStartVerdict.Passed;
 
-                // 確認が画面に出ていないのに断る唯一の経路。無音だと押しても何も起きないので、テスターに読める文言を返す
-                // The only refusal with no confirmation on screen; staying silent would make the button do nothing, so a tester-readable text comes back
+                // 確認が画面に出ていないのに断る経路。無音だと押しても何も起きないので、テスターに読める文言を返す
+                // A refusal with no confirmation on screen; staying silent would make the button do nothing, so a tester-readable text comes back
                 Debug.LogWarning($"[PlaytestTitleGates] {callerName} refused: the title gates never started (the launch verdict has not reached the title yet)");
-                denyReasonText = Localize.Get(LocalizationKeys.Ui.Playtest.Gate.NotStarted);
-                return false;
+                refusal = new PlaytestStartRefusal(Localize.Get(LocalizationKeys.Ui.Playtest.Gate.NotStarted));
+                return PlaytestStartVerdict.RefusedWithNotice;
             }
 
             var step = _current.Step.Value;
-            if (step == PlaytestTitleGateStep.Passed)
-            {
-                denyReasonText = "";
-                return true;
-            }
+            if (step == PlaytestTitleGateStep.Passed) return PlaytestStartVerdict.Passed;
 
             // 断った理由は開発者ログへ出す。答えるべき確認は画面に出ているので、テスター向けの文言は足さない
             // The refusal goes to the developer log; the pending confirmation is already on screen, so no tester-facing text is added
             Debug.LogWarning($"[PlaytestTitleGates] {callerName} refused: the title gates are at {step} (answer the consent / previous-crash confirmation first)");
-            denyReasonText = "";
-            return false;
+            return PlaytestStartVerdict.RefusedWhileConfirmationVisible;
         }
 
         // 退避結果・照合・無人の理由からゲート一式を組む。CIはバッチモードで常に無人なので、無人の理由は引数で受けて対話起動もテストで組めるようにする
