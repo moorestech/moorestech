@@ -138,7 +138,7 @@ public readonly struct BeltReplayInsertion
 }
 ```
 
-BufferedItemのnullはアイテム不在を表す。生成は種別ごとのfactoryへ限定し、Normalにbuffer itemを渡せる入口を作らない。Merge容量はCoreと同じ1、NormalのRRは未使用の0。種別を別のboolへ重複保持しない。BeltItem.Positionも値として維持し、ここでWorld経路から座標を推測しない。これらは保存JSONでもMessagePack封筒でもない。
+BufferedItemのnullはアイテム不在を表す。生成は種別ごとのfactoryへ限定し、Normalにbuffer itemを渡せる入口を作らない。Merge容量はCoreと同じ1、NormalのRRは未使用の0。種別を別のboolへ重複保持しない。BeltItemは値として複製し、ItemPositionはCore READMEの契約どおり同じインスタンスを引き継ぐ。ここでWorld経路から座標を推測しない。後続wire/saveの非同期encodeでは、その境界で必要な位置値を切り離す。これらは保存JSONでもMessagePack封筒でもない。
 
 - [ ] **Step 2: 共通graph構築とCaptureを実装する**
 
