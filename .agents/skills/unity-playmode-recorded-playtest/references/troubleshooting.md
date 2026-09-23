@@ -56,7 +56,8 @@ PlayModeは生きているので**ライブで観測**する。効いた実績�
 4. **アクティブなplace system**（リフレクション）: UIStateControl→`_uiStateDictionary`→PlaceBlockState→
    `_placeSystemStateController`→`_currentPlaceSystem` を辿り型名を確認。応答待ちフラグ等の内部状態も同様に読める
 5. **同じ操作を手で1回だけ注入**して差分観測（`SemanticInput.MouseButtonDown(0)`→sleep→`MouseButtonUp(0)`→GetBlock）
-6. それでも不明なら**当該ロジックの入力読み取り・分岐条件を実コードでReadする**
+6. サーバー側の状態（ブロック・コンポーネント・接続先・インベントリ）は runtime-state-probe.md のエントリーポイントで1コールダンプする
+7. それでも不明なら**当該ロジックの入力読み取り・分岐条件を実コードでReadする**
    （この手順でPlaceInfo.BlockId未設定によるプレビュー毎フレーム例外＝実プロダクトバグを特定した実績あり）
 
 チェック観点: legacy Input直読み（input-injection.md）/ `IsPointerOverGameObject` /

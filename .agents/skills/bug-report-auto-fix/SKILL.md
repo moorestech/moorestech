@@ -151,7 +151,11 @@ PLAYTEST_WORLD_DIRECTORY=$WORLD_DIR PLAYTEST_MAP_MODE=$OBSERVE_MAP_MODE PLAYTEST
 
 ## Step 4: 原因特定
 
-`debug-workflow` スキルを起動する。症状＝説明文＋観察結果、既知の試行＝Step 3、尊重すべき制約＝AGENTS.md。ログ仕込みは `$WORKTREE` 内で行い、Step 3 のシナリオで観察する。
+症状＝説明文＋観察結果、既知の試行＝Step 3、尊重すべき制約＝AGENTS.md として、`$WORKTREE` の Editor で原因を特定する:
+
+1. `uloop get-logs --log-type Error` で既出の例外を回収する（ここで9割は決まる）
+2. `uloop execute-dynamic-code` で対象のランタイム状態を1コールでダンプし、期待とどこで食い違うかを見る（エントリーポイントは `unity-playmode-recorded-playtest/references/runtime-state-probe.md`）
+3. 状態が正しいのに挙動が違うなら、PlayMode を停止してから一時 `Debug.Log("[hunt] ...")` を入れ、Step 3 のシナリオで再現して `get-logs --search-text "[hunt]"` で通過を確定する。`[hunt]` は修正前に全て除去する
 
 原因が「期待挙動そのものが決まっていない」に行き着いたら、そこで実装へ進まず Step 9 の `needs_ruling` へ抜ける。
 

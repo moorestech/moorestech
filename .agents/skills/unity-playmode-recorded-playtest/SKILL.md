@@ -26,6 +26,7 @@ ls <repo-root>/moorestech_client/Assets/Scripts/Client.Playtest/ 2>/dev/null
 | ホットバー割当（建築ショートカット。歯車チェーンポール・結線等）を操作する | [references/hotbar-driven-systems.md](references/hotbar-driven-systems.md) |
 | キー・マウス・画面UIを注入する / 入力が効かない | [references/input-injection.md](references/input-injection.md) |
 | 実行が進まない・設置されない・原因不明（診断手順） | [references/troubleshooting.md](references/troubleshooting.md) |
+| ランタイム状態を動的コードで観測する（サーバー側API早見表・バグ原因調査） | [references/runtime-state-probe.md](references/runtime-state-probe.md) |
 
 ## 最初の1コマンド
 
