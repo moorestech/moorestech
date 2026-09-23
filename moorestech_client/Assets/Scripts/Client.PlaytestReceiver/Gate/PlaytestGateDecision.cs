@@ -1,5 +1,3 @@
-using UnityEngine;
-
 namespace Client.PlaytestReceiver.Gate
 {
     // 判定は純関数に閉じる。HTTPもSteamも触らないのでEditModeテストで全分岐を固定できる
@@ -15,19 +13,9 @@ namespace Client.PlaytestReceiver.Gate
             // No distribution marker or no Steam means a developer's own build; skip the check and leave it to the rsync path
             if (!hasBuildInfo || !isSteamRunning) return PlaytestGateResult.DeveloperMode;
 
-            // 検証済みSteamIDは認証の結末から受け取る。ここで作られたAllowedだけが識別を持つ（ADR 0065）
-            // The verified SteamID comes from the authentication outcome, so only the Allowed built here carries an identity (ADR 0065)
-            if (outcome == PlaytestSessionOutcome.Allowed)
-            {
-                // Allowedなのに検証済みSteamIDが無いのは受け口の契約違反。通すと識別が空のまま進行記録・manifest・異常終了箱へ載る（ADR 0065）
-                // An Allowed without a verified SteamID breaks the receiver's contract; letting it pass would carry an empty identity into records, manifests and crash boxes (ADR 0065)
-                if (string.IsNullOrEmpty(authenticated.SteamId))
-                {
-                    Debug.LogError("[PlaytestReceiver] allowed without a verified steamId; treating it as a contract breach and blocking the launch");
-                    return PlaytestGateResult.Blocked(PlaytestGateStatus.MalformedResponse, "allowed without a verified steamId");
-                }
-                return PlaytestGateResult.Allowed(session, authenticated.SteamId);
-            }
+            // 検証済みSteamIDは認証の結末から受け取る。Allowedの結末は生成時にSteamIDを必ず持つ（ADR 0065）
+            // The verified SteamID comes from the authentication outcome, whose Allowed factory always carries one (ADR 0065)
+            if (authenticated.TryGetVerifiedSteamId(out var verifiedSteamId)) return PlaytestGateResult.Allowed(session, verifiedSteamId);
 
             if (outcome == PlaytestSessionOutcome.NotAllowed) return PlaytestGateResult.Blocked(PlaytestGateStatus.NotAllowed, detail);
 

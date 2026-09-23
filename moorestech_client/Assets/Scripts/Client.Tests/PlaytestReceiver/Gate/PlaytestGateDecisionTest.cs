@@ -1,10 +1,8 @@
-using System.Text.RegularExpressions;
+using System;
 using Client.PlaytestReceiver;
 using Client.PlaytestReceiver.Gate;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
-using UnityEngine;
-using UnityEngine.TestTools;
 
 namespace Client.Tests.PlaytestReceiver
 {
@@ -92,19 +90,16 @@ namespace Client.Tests.PlaytestReceiver
             }
         }
 
-        // トークンのキャッシュ短絡など、SteamIDを載せないAllowedが将来Decideへ届いても、識別が空のまま通らないことを押さえる
-        // Pins that a future Allowed without a SteamID (e.g. the token cache short-circuit) never passes with an empty identity
+        // 検証済みSteamIDの無いAllowedは生成口で拒まれ、識別が空のままゲートへ届く経路が無いことを押さえる
+        // Pins that the factory refuses an Allowed without a verified SteamID, so no empty identity can reach the gate
         [Test]
-        public void 検証済みSteamIDの無いAllowedは契約違反として止める()
+        public void 検証済みSteamIDの無いAllowedは生成できない()
         {
-            foreach (var emptySteamId in new[] { null, "" })
+            foreach (var emptySteamId in new[] { null, "", " " })
             {
-                LogAssert.Expect(LogType.Error, new Regex("allowed without a verified steamId"));
-                var result = PlaytestGateDecision.Decide(true, true, Authenticated(PlaytestSessionOutcome.Allowed, "", emptySteamId), null);
-                Assert.IsTrue(result.IsBlocked);
-                Assert.AreEqual(PlaytestGateStatus.MalformedResponse, result.Status);
-                Assert.IsFalse(result.TryGetVerifiedSteamId(out _));
+                Assert.Throws<ArgumentException>(() => PlaytestSessionResult.Allowed(emptySteamId));
             }
+            Assert.Throws<ArgumentException>(() => PlaytestSessionResult.Failed(PlaytestSessionOutcome.Allowed, ""));
         }
 
         [Test]
@@ -116,7 +111,7 @@ namespace Client.Tests.PlaytestReceiver
 
         private static PlaytestSessionResult Authenticated(PlaytestSessionOutcome outcome, string detail, string steamId)
         {
-            return new PlaytestSessionResult { Outcome = outcome, Detail = detail, SteamId = steamId };
+            return outcome == PlaytestSessionOutcome.Allowed ? PlaytestSessionResult.Allowed(steamId) : PlaytestSessionResult.Failed(outcome, detail);
         }
     }
 }
