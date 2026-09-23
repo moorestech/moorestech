@@ -17,7 +17,7 @@ export const meta = {
   name: 'moores-code-review',
   description: 'moores-code-review の系統並列発火→Codex完了待ち→統合→自動適用→反映diff再レビュー(Refix)→post-check を決定論的に実行する',
   phases: [
-    { title: 'Review', detail: 'lens / reviewer / Fable / investigator / verifier を並列発火（ファイルハンドオフ）' },
+    { title: 'Review', detail: 'reviewer / Fable / investigator / verifier を並列発火（ファイルハンドオフ）' },
     { title: 'Integrate', detail: 'Codex 3本の完了を待ってから opus integrator が agents/・Codex結論・checks.json を統合' },
     { title: 'Apply', detail: '確定修正の自動適用と uloop compile（report-only では省略）' },
     { title: 'Refix', detail: '反映diff（修正の前後差分）だけを applied-diff-correctness で再レビューし、Critical なら直し直す（最大3周・report-only では省略）' },
@@ -161,7 +161,7 @@ function accountFor(plans, raw) {
 }
 
 // ---- Review: 全系統を並列発火（同時数はランタイムがキューイング）----
-log(`Review: ${A.systems.length} 系統を発火（lens/reviewer/Fable/investigator/verifier）`)
+log(`Review: ${A.systems.length} 系統を発火（reviewer/Fable/investigator/verifier）`)
 const reviewed = accountFor(A.systems, await parallel(A.systems.map((s) => () => runSystem(s, 'Review'))))
 const noResponse = reviewed.filter((r) => !r.ok).map((r) => r.name)
 const fallbacks = reviewed.filter((r) => r.ok && r.model !== PLANNED_MODEL.get(r.name)).map((r) => `${r.name}→${r.model}`)
@@ -235,7 +235,7 @@ if (!A.reportOnly) {
 
 // ---- Refix: 反映 diff（修正の前後差分）だけを applied-diff-correctness で再レビュー（report-only では省略）----
 // レビューの出力を反映した diff はどの工程の入力にもならず誰にも再レビューされない（2026-09-08 cmux-connector c9baa79:
-// 裁定の反映が判定式の評価時点を誤り 2 日間の機能停止。事後実測で行単位レンズはその diff で Critical 到達）。
+// 裁定の反映が判定式の評価時点を誤り 2 日間の機能停止。事後実測で行単位reviewerはその diff で Critical 到達）。
 // 2 周目以降は「前回レビュー以降に変わった行」だけを見せ、問いを「壊れていないか・方針どおりか」に絞る。
 // A diff that applies review output is never re-reviewed otherwise (c9baa79). Later rounds see only what changed
 // since the last review and ask only "did the fix break something / does it match the stated fix".

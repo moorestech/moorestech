@@ -11,7 +11,7 @@
 # =====================================================================
 """build_workflow_args.py — Workflow（scripts/review_workflow.js）へ渡す args を組み立てる。
 
-Step 2 の checks.json（lenses / reviewers / verifiers_to_launch）と split_chunks の
+Step 2 の checks.json（reviewers / verifiers_to_launch）と split_chunks の
 chunks.tsv、investigators/ の YAML model、Fable全般、post-check、Refix（反映 diff 再レビュー）、
 Codex 3本の成果物パスを、起動名・モデル・絶対パス付きの1つの JSON に畳む。あわせて共通出力契約
 `references/output-contract.md` を `$RUNDIR/contract.md` へ書く（report-only ではその旨の
@@ -83,10 +83,9 @@ def main() -> int:
 
     # セレクタの失敗は error 行として混ざる。1行でもあれば「選択が壊れている」ので先へ進めない
     # Selector failures arrive as error rows; even one means selection is broken, so stop here
-    selector_errors = [row["error"] for key in ("lenses", "reviewers")
-                       for row in checks.get(key, []) if "error" in row]
+    selector_errors = [row["error"] for row in checks.get("reviewers", []) if "error" in row]
     if selector_errors:
-        print(f"セレクタが失敗している（lens/reviewer が0体になる）: {selector_errors}", file=sys.stderr)
+        print(f"セレクタが失敗している（reviewer が0体になる）: {selector_errors}", file=sys.stderr)
         return 4
 
     chunks_path, chunks_reason = resolve_chunks(args.chunks, run_dir)
@@ -98,7 +97,6 @@ def main() -> int:
     contract_path = write_contract(run_dir, args.report_only)
 
     systems = []
-    systems += [system("lens", row) for row in checks.get("lenses", [])]
     systems += [system("rev", row) for row in checks.get("reviewers", [])]
     systems.append(fable_generalist())
     systems += investigators(chunks_path)
@@ -212,12 +210,11 @@ def expected_systems(checks: dict, systems: list) -> dict:
     summary = checks.get("summary") or {}
     investigator_count = len([s for s in systems if s["kind"] == "investigator"])
     return {
-        "lenses": summary.get("lenses", len(checks.get("lenses", []))),
         "reviewers": summary.get("reviewers", len(checks.get("reviewers", []))),
         "verifiers": len(checks.get("verifiers_to_launch", [])),
         "fable": 1,
         "investigators": investigator_count,
-        "total": summary.get("lenses", 0) + summary.get("reviewers", 0)
+        "total": summary.get("reviewers", 0)
         + len(checks.get("verifiers_to_launch", [])) + 1 + investigator_count,
     }
 

@@ -8,18 +8,18 @@
 # ⚠ Run the regression suite after ANY change under scripts/; wiring into
 #   SKILL.md and a wiring-test invariant are part of "done" for new scripts.
 # =====================================================================
-"""レンズ裏付け候補の機械抽出（2026-08-16・LLM観察の決定論化第2弾）。
+"""moores-* reviewer の裏付け候補の機械抽出（2026-08-16・LLM観察の決定論化第2弾）。
 
-schema_optional_true / event_tag_sync と同じ「候補はスクリプトが数え、裁定はレンズ」方式。
+schema_optional_true / event_tag_sync と同じ「候補はスクリプトが数え、裁定はreviewer」方式。
 いずれも確定検出にしない理由: 正当な例外が実在する（DTOのシリアライズ・Unity/外部interopの
-event・生成コードのGUID等）ため、文脈判断はレンズ側が担う。
+event・生成コードのGUID等）ため、文脈判断はreviewer側が担う。
 
-  - guid_literal          : 追加行のGUID文字列リテラル → hardcoded-content-enumeration の裏付け
-  - event_action          : 追加行の `event Action` 宣言（UniRx規約違反疑い） → domain-boundary の裏付け
-  - mutable_auto_property : 追加行の `{ get; set; }`（SetHogeメソッド規約違反疑い） → redundant-member-duplication の裏付け
-  - passthrough_property  : 追加行のバッキングフィールド素通しプロパティ → redundant-member-duplication の裏付け
+  - guid_literal          : 追加行のGUID文字列リテラル → moores-cs-hardcoded-content-enumeration の裏付け
+  - event_action          : 追加行の `event Action` 宣言（UniRx規約違反疑い） → moores-cs-domain-boundary の裏付け
+  - mutable_auto_property : 追加行の `{ get; set; }`（SetHogeメソッド規約違反疑い） → moores-cs-redundant-member-duplication の裏付け
+  - passthrough_property  : 追加行のバッキングフィールド素通しプロパティ → moores-cs-redundant-member-duplication の裏付け
 
-Mechanical candidate extraction backing the lenses; adjudication stays with the lens.
+Mechanical candidate extraction backing the moores-* reviewers; adjudication stays with the reviewer.
 """
 from __future__ import annotations
 

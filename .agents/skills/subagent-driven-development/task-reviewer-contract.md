@@ -73,11 +73,11 @@ Diffを依頼された内容と比較する:
 - 新規・変更されたテストはモックではなく実際の挙動を検証しているか？
 - タスクのエッジケースはカバーされているか？
 
-**moorestech設計レンズ:**
-`.claude/skills/moores-code-review/references/lens-digest.md`を読み、
-8つのレンズそれぞれとdiffを照合する（前例整合性、依存方向、Update()
+**moorestech設計規約（moores-* reviewer）:**
+`.claude/skills/moores-code-review/references/moores-reviewer-digest.md`を読み、
+各観点とdiffを照合する（前例整合性、依存方向、Update()
 ポーリング禁止、サーバー状態3点セット、DataStoreアクセス分離、
-マスタデータ防御コード禁止、型駆動構造、配置ルール）。レンズ違反は
+マスタデータ防御コード禁止、型駆動構造、配置ルール）。違反は
 ImportantまたはCriticalである — これらは実際のマージブロック級レビュー
 コメントから蒸留されたものである。
 

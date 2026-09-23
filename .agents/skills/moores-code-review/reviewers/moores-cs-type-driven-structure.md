@@ -6,7 +6,6 @@ keywords:
   - "MessagePackObject"
 extensions:
   - .cs
-model: opus
 ---
 
 # Lens: 型による不正状態の排除と配置構造（PR987/996/997由来）

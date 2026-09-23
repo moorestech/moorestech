@@ -70,7 +70,7 @@ class SkillWiringTest(unittest.TestCase):
         # scripts/の実行系（deterministic_checks・select_*・*_gate）が、どこかのスキルの
         # 実行経路（いずれかのSKILL.md。hooks経由含む）から呼ばれていること
         # Every executable gate/selector script must be invoked from some skill's SKILL.md
-        for pattern in ("deterministic_checks.py", "select_lenses.py", "select_reviewers.py",
+        for pattern in ("deterministic_checks.py", "select_reviewers.py",
                         "select_post_checks.py"):
             self.assertIn(pattern, SKILL_MD, f"{pattern} がSKILL.mdに配線されていない")
         # 手順書がreferences/へ分割されたスキルがあるため、そちらも配線先として数える
@@ -91,17 +91,17 @@ class SkillWiringTest(unittest.TestCase):
                           "tools/DeadMemberAudit がSKILL.mdに配線されていない")
 
     def test_every_candidate_rule_has_verifier_or_consumer(self):
-        # SKILL.mdに書かれた candidates.* 全種に、起動先（verifier/レンズ/後段Step）の記述があること
+        # SKILL.mdに書かれた candidates.* 全種に、起動先（verifier/reviewer/後段Step）の記述があること
         # Each candidates.* kind mentioned in SKILL.md must state its consumer
         kinds = set(re.findall(r"candidates\.(\w+)", SKILL_MD))
         self.assertTrue(kinds, "candidates.* の記述が見つからない")
         for kind in kinds:
-            # 各記述行の周辺に「verifier」「レンズ」「Step」のいずれかが居ることを緩く確認
-            # Loosely assert a consumer (verifier / lens / Step) is named near each mention
+            # 各記述行の周辺に「verifier」「reviewer」「Step」のいずれかが居ることを緩く確認
+            # Loosely assert a consumer (verifier / reviewer / Step) is named near each mention
             lines = [l for l in SKILL_MD.splitlines() if f"candidates.{kind}" in l]
             self.assertTrue(
-                any(("verifier" in l or "レンズ" in l or "Step" in l) for l in lines),
-                f"candidates.{kind} の消費先（verifier/レンズ/Step）がSKILL.mdに書かれていない")
+                any(("verifier" in l or "reviewer" in l or "Step" in l) for l in lines),
+                f"candidates.{kind} の消費先（verifier/reviewer/Step）がSKILL.mdに書かれていない")
 
     def test_every_script_has_regression_banner(self):
         # 全スクリプトが「変更時は回帰テスト必須」バナーを持つこと（新規追加時の掲示漏れ防止）
@@ -124,14 +124,31 @@ class SkillWiringTest(unittest.TestCase):
         self.assertIn('":(exclude,glob)**/unity-playmode-recorded-playtest/**/*.cs"', independent,
                       "pr-independent-review make_patch.py のpatch生成からプレイテストシナリオ除外が消えている")
 
-    def test_every_reviewer_and_lens_has_frontmatter(self):
-        # selector発見可能性: reviewers/lensesはfrontmatter（extensions等）を持つこと
-        # Selector discoverability: reviewers/lenses must carry frontmatter
-        for d in ("reviewers", "lenses"):
-            for f in (SKILL_DIR / d).glob("*.md"):
-                head = f.read_text(encoding="utf-8").lstrip()
-                self.assertTrue(head.startswith("---"),
-                                f"{d}/{f.name} にfrontmatterが無くselectorから発見できない")
+    def test_every_reviewer_has_frontmatter(self):
+        # selector発見可能性: reviewersはfrontmatter（extensions等）を持つこと
+        # Selector discoverability: reviewers must carry frontmatter
+        for f in (SKILL_DIR / "reviewers").glob("*.md"):
+            head = f.read_text(encoding="utf-8").lstrip()
+            self.assertTrue(head.startswith("---"),
+                            f"reviewers/{f.name} にfrontmatterが無くselectorから発見できない")
+
+    def test_reviewer_names_follow_origin_language_convention(self):
+        # 旧lenses/統合後の命名規約: <moores|core>-<cs|ts_tsx|any>-<観点>
+        # Naming after the lenses/ merge: <moores|core>-<cs|ts_tsx|any>-<topic>
+        self.assertFalse((SKILL_DIR / "lenses").exists(), "lenses/ が復活している（reviewers/ へ統合済み）")
+        for f in (SKILL_DIR / "reviewers").glob("*.md"):
+            self.assertRegex(f.stem, r"^(moores|core)-(cs|ts_tsx|any)-[a-z0-9-]+$",
+                             f"reviewers/{f.name} が <出自>-<言語>-<観点> 命名に従っていない")
+
+    def test_reviewer_model_overrides_name_existing_reviewers(self):
+        # model_map の sonnet/fable 列挙に実在しない stem があると無言で opus に戻る
+        # A stale stem in model_map's sonnet/fable lists silently falls back to opus
+        import json
+        data = json.loads((SKILL_DIR / "scripts/model_map.json").read_text(encoding="utf-8"))
+        stems = {f.stem for f in (SKILL_DIR / "reviewers").glob("*.md")}
+        for model in ("sonnet", "fable"):
+            for stem in data.get(model, []):
+                self.assertIn(stem, stems, f"model_map.json の {model} に実在しない reviewer: {stem}")
 
 
 class RefixWiringTest(unittest.TestCase):
@@ -160,13 +177,12 @@ class RefixWiringTest(unittest.TestCase):
         import json, subprocess, sys, tempfile
         with tempfile.TemporaryDirectory() as td:
             run_dir = Path(td)
-            lens = SKILL_DIR / "lenses/precedent-alignment.md"
+            moores_rev = SKILL_DIR / "reviewers/moores-any-precedent-alignment.md"
             (run_dir / "checks.json").write_text(json.dumps({
                 "deterministic": {"confirmed": [], "candidates": {}},
                 "dead_member": {"status": "skipped", "candidates": []},
                 "ts_dead_code": {"status": "skipped", "candidates": []},
-                "lenses": [{"path": str(lens), "model": "fable"}],
-                "reviewers": [],
+                "reviewers": [{"path": str(moores_rev), "model": "fable"}],
                 "verifiers_to_launch": [],
                 "summary": {"errors": []},
             }), encoding="utf-8")
@@ -266,14 +282,14 @@ class WorkflowWiringTest(unittest.TestCase):
         import json, subprocess, sys, tempfile
         with tempfile.TemporaryDirectory() as td:
             run_dir = Path(td)
-            lens = SKILL_DIR / "lenses/precedent-alignment.md"
+            moores_rev = SKILL_DIR / "reviewers/moores-any-precedent-alignment.md"
             rev = SKILL_DIR / "reviewers/core-cs-centralization-duplication.md"
             (run_dir / "checks.json").write_text(json.dumps({
                 "deterministic": {"confirmed": [], "candidates": {}},
                 "dead_member": {"status": "skipped", "candidates": []},
                 "ts_dead_code": {"status": "skipped", "candidates": []},
-                "lenses": [{"path": str(lens), "model": "fable"}],
-                "reviewers": [{"path": str(rev), "model": "opus"}],
+                "reviewers": [{"path": str(moores_rev), "model": "fable"},
+                              {"path": str(rev), "model": "opus"}],
                 "verifiers_to_launch": [{"verifier": "verifiers/comparison-operator-verifier.md",
                                          "model": "sonnet", "candidate_kind": "comparison_operator", "count": 2}],
                 "summary": {"errors": []},
@@ -288,7 +304,7 @@ class WorkflowWiringTest(unittest.TestCase):
             self.assertEqual(run.returncode, 0, run.stderr)
             args = json.loads((run_dir / "workflow-args.json").read_text(encoding="utf-8"))
             kinds = sorted(s["kind"] for s in args["systems"])
-            self.assertEqual(kinds, ["fable", "investigator", "investigator", "investigator", "lens", "rev", "verifier"])
+            self.assertEqual(kinds, ["fable", "investigator", "investigator", "investigator", "rev", "rev", "verifier"])
             self.assertTrue(all(s["model"] for s in args["systems"]), "model 空欄の系統がある")
             self.assertTrue((run_dir / "contract.md").is_file())
             self.assertEqual(args["baseRef"], "HEAD")
@@ -306,8 +322,7 @@ class WorkflowWiringTest(unittest.TestCase):
                 "deterministic": {"confirmed": [], "candidates": {}},
                 "dead_member": {"status": "skipped", "candidates": []},
                 "ts_dead_code": {"status": "skipped", "candidates": []},
-                "lenses": [{"error": "select_lenses失敗: boom"}],
-                "reviewers": [],
+                "reviewers": [{"error": "select_reviewers失敗: boom"}],
                 "verifiers_to_launch": [],
                 "summary": {"errors": []},
             }), encoding="utf-8")

@@ -105,8 +105,8 @@ def main() -> int:
     if not os.path.isfile(os.path.join(canon, NOVELTY_REL)):
         return fail(12, f"$CANON に novelty_gate.py が無い: {canon}")
 
-    # SKILL.md 同一性ガード。本体は harness が $ORIGIN から読むため、差分＝「新しい指示 × 古いレンズ」の版ズレ
-    # SKILL.md identity guard: the harness reads the body from $ORIGIN, so a diff means new instructions on old lenses
+    # SKILL.md 同一性ガード。本体は harness が $ORIGIN から読むため、差分＝「新しい指示 × 古いreviewer」の版ズレ
+    # SKILL.md identity guard: the harness reads the body from $ORIGIN, so a diff means new instructions on old reviewers
     origin_md = os.path.join(origin, SKILL_MD_REL)
     canon_md = os.path.join(canon, SKILL_MD_REL)
     with open(origin_md, "rb") as a, open(canon_md, "rb") as b:

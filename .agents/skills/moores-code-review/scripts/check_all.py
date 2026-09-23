@@ -15,7 +15,7 @@
   - deterministic_checks.py  (confirmed/candidates: 規約の機械判定)
   - dead_member_gate.py      (IL解析: 参照0・非production参照のみ)
   - ts_dead_code_gate.py     (knip: webui死コード・テスト専用参照)
-  - select_lenses.py / select_reviewers.py (発火する観点とモデル)
+  - select_reviewers.py (発火する reviewer とモデル)
 さらに candidates の件数から「起動すべきverifier」を計算して明示する。
 オーケストレータはこの出力だけでStep 2〜4の全機械層を把握できる。
 
@@ -57,7 +57,6 @@ def main() -> int:
         "deterministic": run_deterministic(args),
         "dead_member": run_dead_member(args),
         "ts_dead_code": run_ts_dead_code(args),
-        "lenses": run_selector("select_lenses.py", args.patch),
         "reviewers": run_selector("select_reviewers.py", args.patch),
     }
     result["verifiers_to_launch"] = plan_verifiers(result)
@@ -137,14 +136,13 @@ def summarize(result: dict) -> dict:
         "dead_member_candidates": len(result["dead_member"].get("candidates", [])),
         "ts_dead_code_status": result["ts_dead_code"].get("status", "error"),
         "ts_dead_code_candidates": len(result["ts_dead_code"].get("candidates", [])),
-        "lenses": len([l for l in result["lenses"] if "path" in l]),
         "reviewers": len([r for r in result["reviewers"] if "path" in r]),
         "verifiers_to_launch": len(result["verifiers_to_launch"]),
         # セレクタの失敗（error 行）も errors へ集約する。落とすと「レビュアー0体」が成功として通る（2026-08-20 C3）
         # Selector failures are collected too; otherwise a zero-reviewer review passes as success
         "errors": [v.get("error") for v in
                    (det, result["dead_member"], result["ts_dead_code"]) if v.get("error")]
-                  + [row["error"] for key in ("lenses", "reviewers") for row in result[key] if "error" in row],
+                  + [row["error"] for row in result["reviewers"] if "error" in row],
     }
 
 

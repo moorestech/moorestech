@@ -159,7 +159,7 @@ partialは禁止。如何なる条件でもpartialを絶対に使ってはいけ
 - **着手前に前例を探す。** 同形の問題を解いている既存実装を検索し、そのパターンに従う。前例は機構でなく役割で選び、逸脱するなら理由を明記して裁定に出す。サーバー可変状態のクライアント同期は「イベントパケット＋初期データ＋購読」の3点セットが標準
 - **挙動の変更・機能追加はgrill-first。** 「〜にしたい」「〜するようにして」型の依頼は、バグ修正に見えても・仕様が自明に見えても、実装前に moores-grill-with-docs を起動する（HARD GATE: 単純だから省略は禁止・真に単純なら数問で終わる）。直接実装してよいのは調査・質問への回答・明白なクラッシュ/コンパイル修正のみ
 - Prefab、モデル、テクスチャ、マテリアル等のアセットの変更だけでテストを新設しない。
-- 実装前チェックリスト: `.agents/skills/moores-code-review/references/lens-digest.md`／PR前レビュー: moores-code-review スキル
+- 実装前チェックリスト: `.agents/skills/moores-code-review/references/moores-reviewer-digest.md`／PR前レビュー: moores-code-review スキル
 
 # スキル配置と実行記録
 - スキルのgit正本は `.agents/skills/` のみ。`.claude/skills` と `.codex/skills` はそこへのsymlink（tracked）。ミラー実体の複製・CI同期は禁止（マージ衝突が3倍になるため廃止済み）

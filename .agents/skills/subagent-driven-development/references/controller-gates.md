@@ -8,7 +8,7 @@ SKILL.md「必須ゲート」2・3と「共通の前段」3の詳細と根拠。
 
 - タスク同士、あるいはタスクと計画のGlobal Constraintsとが矛盾している箇所
 - 計画が明示的に義務付けているが、レビューの基準では欠陥とみなされるもの（何も検証しないテスト、ロジックブロックの逐語的な重複）
-- **moorestech設計レンズ:** 計画を`.claude/skills/moores-code-review/references/lens-digest.md`と照合する。計画がレンズ違反を義務付けている場合（例:「新しいイベントパケットの代わりに既存レスポンスから状態を導出する」「JSON更新を避けるためスキーマフィールドをoptionalにする」「isActive述語を基底コンポーネントに注入する」）は設計段階の欠陥であり、ここで捕捉する方が最終レビューで捕捉するより10倍安く済む。計画がspec-architecture-reviewを飛ばしている場合（配置と前例のセクションが無い場合）は、`.claude/skills/writing-plans/references/moorestech-layer-map.md`を使って今そのスキャンを実行する
+- **moorestech設計規約（moores-* reviewer）:** 計画を`.claude/skills/moores-code-review/references/moores-reviewer-digest.md`と照合する。計画が規約違反を義務付けている場合（例:「新しいイベントパケットの代わりに既存レスポンスから状態を導出する」「JSON更新を避けるためスキーマフィールドをoptionalにする」「isActive述語を基底コンポーネントに注入する」）は設計段階の欠陥であり、ここで捕捉する方が最終レビューで捕捉するより10倍安く済む。計画がspec-architecture-reviewを飛ばしている場合（配置と前例のセクションが無い場合）は、`.claude/skills/writing-plans/references/moorestech-layer-map.md`を使って今そのスキャンを実行する
 
 見つけたものはすべて一括した質問として人間パートナーに提示する — それを義務付ける計画テキストの隣に各所見を並べ、どちらを優先すべきか尋ねる — 実行開始前に行い、計画実行中の発見ごとに1つずつ割り込むのではない。スキャンが問題なければ、コメントなしで進める。実装からのみ明らかになる矛盾については、レビューループが引き続き網の役割を果たす。
 

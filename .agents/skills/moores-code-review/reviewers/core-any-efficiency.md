@@ -26,7 +26,7 @@ diff が持ち込む**無駄な仕事**を検出する。正しさではなく�
 
 ## 姿勢と棄却基準
 
-precision 側に倒す（このレンズの指摘は自動適用に繋がりやすいため）。マイクロ最適化（実測レートの低い経路の定数倍・数個の要素のソート計算量）は Info 止まり。
+precision 側に倒す（このreviewerの指摘は自動適用に繋がりやすいため）。マイクロ最適化（実測レートの低い経路の定数倍・数個の要素のソート計算量）は Info 止まり。
 
 ## 過検知ガード
 
@@ -39,4 +39,4 @@ precision 側に倒す（このレンズの指摘は自動適用に繋がりや�
 共通出力契約（Critical/Warning/Info/suppressed + 設計判断）。各指摘に「具体コスト」「より安い代替（実名）」を含める。
 
 <!-- 由来: 組み込み /code-review v2.1.232 efficiency angle の移植 2026-08-14。
-     同一 diff 比較で light cleanup バンドルの本レンズが Critical (捨てられる list-panes 再取得) を検出した実績。all-code-review ADR-0004 (2026-08-14) からの同文移植。 -->
+     同一 diff 比較で light cleanup バンドルの本reviewerが Critical (捨てられる list-panes 再取得) を検出した実績。all-code-review ADR-0004 (2026-08-14) からの同文移植。 -->

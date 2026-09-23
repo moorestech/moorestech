@@ -16,7 +16,7 @@ Step 7.5 / Step 8 / reconcile が書く成果物の書式。grep で横断集計
     - head: <レビューしたHEADの40桁SHA>
     - base: <BASE_REFを解決した40桁SHA>
     - canonical: <$CANONのHEAD SHA><同一性ガードで差分が出たまま続行した場合のみ ・skew: $ORIGIN=<SHA> を追記>
-    - 系統: <発火した系統名と各々の完了/縮退。例: 決定論=完了/レンズ3本=完了/reviewer5本=完了/Codex=縮退（不在）/Fable=完了>
+    - 系統: <発火した系統名と各々の完了/縮退。例: 決定論=完了/reviewer8本=完了/Codex=縮退（不在）/Fable=完了>
     - session: <このレビューセッションの識別子>
     - rundir: <$LOGS/harness/pr-independent-review/ からの相対パス。例: runs/pr-1116/>
 
