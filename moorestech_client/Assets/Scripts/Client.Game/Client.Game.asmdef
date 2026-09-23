@@ -11,6 +11,7 @@
         "Core.Update",
         "Game.Block",
         "Game.Block.Interface",
+        "Game.BeltSegment",
         "Game.Crafting",
         "Game.Crafting.Interface",
         "Game.EnergySystem",
