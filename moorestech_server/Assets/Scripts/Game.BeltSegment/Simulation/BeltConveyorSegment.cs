@@ -29,6 +29,7 @@ namespace Game.BeltSegment
         public int PriorityIndex => Kind == BeltSegmentKind.Merge ? nextInput
             : Kind == BeltSegmentKind.Branch ? Buffer.PriorityIndex : 0;
         internal int TickSpeed => tickSpeed;
+        internal BeltDirection OutputDirection => outputDirection;
 
         /// <summary>段階0より前に変更する。tick中は固定。0では走行しない。</summary>
         public int Speed { get; private set; }
@@ -133,12 +134,18 @@ namespace Game.BeltSegment
         }
 
         /// <summary>段階4。段階3に受け取ったアイテムも含めて前進する。</summary>
-        internal void AdvanceAndTransfer()
+        internal void AdvanceAndTransfer(BeltNormalTransfer transfer)
         {
             bool sent = false;
             int length = OutputLength;
             if (0 < length && Output != null)
-                sent = Output.TryReceive(BeltDirections.Opposite(outputDirection), length, queue.HeadItem);
+            {
+                // 通常列への搬出は相手の更新と分離して記録する。
+                // Stage Normal output separately from the receiver update.
+                sent = transfer != null
+                    ? transfer.TryStage(length, queue.HeadItem)
+                    : Output.TryReceive(BeltDirections.Opposite(outputDirection), length, queue.HeadItem);
+            }
             queue.Advance(tickSpeed, sent);
         }
 
