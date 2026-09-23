@@ -93,7 +93,12 @@ namespace Client.PlaytestReceiver.Gate
         {
             var cleared = PlaytestSessionIdentityProvider.Current.SteamId;
             if (!string.IsNullOrEmpty(cleared)) Debug.Log($"[PlaytestReceiver] 検証済みSteamIDを空へ戻します status:{status}（この間に書かれる記録・箱のsteamIdは空になります）");
-            PlaytestSessionIdentityProvider.SetCurrent(new EmptyPlaytestSessionIdentity());
+            // 空になった事情は照合の結末で決まる。開発者モード以外を開発者モードと名乗らせない
+            // Why it is empty follows from the verdict; anything other than developer mode never claims to be developer mode
+            var absenceReason = status == PlaytestGateStatus.DeveloperMode
+                ? EmptyPlaytestSessionIdentity.DeveloperModeReason
+                : $"テスター識別（SteamID）が無い（起動時照合で検証済みSteamIDが得られていない status:{status}）";
+            PlaytestSessionIdentityProvider.SetCurrent(new EmptyPlaytestSessionIdentity(absenceReason));
         }
 
         // 配布版でSteamが動いている場合だけ照合する

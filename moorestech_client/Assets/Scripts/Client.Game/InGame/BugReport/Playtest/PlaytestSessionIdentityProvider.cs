@@ -8,7 +8,7 @@ namespace Client.Game.InGame.BugReport.Playtest
     // The start gates run before the container exists and cannot resolve from it; plan D's Steam auth pushes its implementation in via SetCurrent
     public static class PlaytestSessionIdentityProvider
     {
-        private static IPlaytestSessionIdentity _current = new EmptyPlaytestSessionIdentity();
+        private static IPlaytestSessionIdentity _current = new EmptyPlaytestSessionIdentity("テスター識別（SteamID）が無い（起動時照合の結果がまだ差し込まれていない）");
 
         public static IPlaytestSessionIdentity Current => _current;
 

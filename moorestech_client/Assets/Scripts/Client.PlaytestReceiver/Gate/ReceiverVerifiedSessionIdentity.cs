@@ -7,6 +7,7 @@ namespace Client.PlaytestReceiver.Gate
     internal sealed class ReceiverVerifiedSessionIdentity : IPlaytestSessionIdentity
     {
         public string SteamId { get; }
+        public string SteamIdAbsenceReason => null;
 
         public ReceiverVerifiedSessionIdentity(string steamId)
         {

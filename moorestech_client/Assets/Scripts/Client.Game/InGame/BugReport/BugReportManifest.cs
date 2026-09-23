@@ -58,7 +58,7 @@ namespace Client.Game.InGame.BugReport
 
         // 箱の種別に依らない共通見出し。crash と bug で別々に組み立てていた頃は片方だけ列が欠けても誰も気づけなかった
         // The header every kind of box shares; while crash and bug built it separately, a column missing on one side went unnoticed
-        public static BugReportManifest CreateHeader(string description, PlaytestReportKind kind, string steamId, BuildOriginReading buildOrigin)
+        public static BugReportManifest CreateHeader(string description, PlaytestReportKind kind, string steamId, string steamIdAbsenceReason, BuildOriginReading buildOrigin)
         {
             var manifest = new BugReportManifest
             {
@@ -73,7 +73,7 @@ namespace Client.Game.InGame.BugReport
 
             // 空文字のSteamIDは「識別子が空の実テスター」に読める。nullで出し、取れなかった事実を欠損列へ残す（F02）
             // An empty SteamID reads as a real tester with a blank id; it goes out as null with the gap declared in missing (F02)
-            if (manifest.SteamId == null) manifest.AddMissing("steamId", "テスター識別（SteamID）が差し込まれていない（開発者モード。build-info.json 無し、または Steam 未起動）");
+            if (manifest.SteamId == null) manifest.AddMissing("steamId", steamIdAbsenceReason);
             return manifest;
         }
 
