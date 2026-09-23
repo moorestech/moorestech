@@ -6,7 +6,7 @@ SKILL.md「単一subagent実装モード」の手順詳細・継続再派遣・f
 
 - **`scripts/sdd-workspace` は隔離worktree側をcwdにして実行する。** このスクリプトは `git rev-parse --show-toplevel` でcwd基準にツリーを解決する。本体ワーキングツリーで実行すると報告ファイルがworktree外を指し、契約の「作業ディレクトリの外で編集しない」と正面衝突する
 - **同名の `single-report.md` が既に在れば派遣前に削除する。** worktree再利用（隔離の例外1）で前計画の `Task N: done` 行が残ると、復旧の一次ソースが汚染される
-- **フォアグラウンドで派遣する。** バックグラウンド派遣は孤児化して止まる事故があった
+- **派遣したら返るまで待つ。** 派遣と待ちのやり方は [runtime-claude.md](runtime-claude.md) / [runtime-codex.md](runtime-codex.md)
 - `scripts/task-brief` は使わず、計画ファイル全体の絶対パスをブリーフとして直渡しする（`[PLAN_FILE_ABS]`）。実装範囲は `[TASK_RANGE]` で列挙する（末尾の最終レビュー・PR作成タスクは含めない）
 - **計画ファイル全体を渡すため、派遣プロンプトには `single-implementer-prompt.md` のヘッダ無効化文言を必ず含める**（冒頭の `> **For agentic workers:**` / `> **For the controller session:**` ブロックと末尾の最終レビュー・PR作成タスクはコントローラー向けであり、subagentはSDDスキルを起動せず・subagentを派遣せず・PRも作成しない）。これが無いと subagent が平文の命令形ヘッダを自分への指示と読み、入れ子のSDD起動やPR作成という取り消せない副作用が起きる
 - 報告ファイルは `<workspace>/single-report.md` 固定。subagentがタスク完了ごとに `Task N: done <sha7> — <1行要約>` を追記する。継続派遣は同じ報告ファイルへ**追記**させる（Writeで置き換えさせない。1体目の done 行が消えると完了範囲の確定が壊れる）
@@ -36,4 +36,4 @@ SKILL.md「単一subagent実装モード」の手順詳細・継続再派遣・f
 - 切替時 `Single-subagent: switched to SDD per-task at Task N (continuations 2)`
 - 完了時 `Single-subagent: complete (commits <base7>..<head7>)`
 
-復旧順は **台帳 → 元subagentの生存確認（ListAgents） → 報告ファイル → `git log`**。台帳に `dispatched` があって `complete` が無ければ、subagentが走っているか途中終了している — **継続派遣の前に ListAgents 等で元subagentの生存を確認し、生きていれば結果を待つ**（compaction後も subagent は生存しており、死亡と決めつけて再派遣し同一worktreeを二重編集した実事故がある）。不在または報告済みなら、報告ファイルの `Task N: done` 行と `git log` で完了タスクを確定する。完了タスクが `[TASK_RANGE]` を全て覆っていれば再派遣せず、完了行を台帳に補記して最終ブランチ全体レビューへ進む。覆っていなければ継続再派遣する。
+復旧順は **台帳 → 元subagentの生存確認（runtime-*.md） → 報告ファイル → `git log`**。台帳に `dispatched` があって `complete` が無ければ、subagentが走っているか途中終了している — **継続派遣の前に元subagentの生存を確認し（手段は runtime-*.md）、生きていれば結果を待つ**（compaction後も subagent は生存しており、死亡と決めつけて再派遣し同一worktreeを二重編集した実事故がある）。不在または報告済みなら、報告ファイルの `Task N: done` 行と `git log` で完了タスクを確定する。完了タスクが `[TASK_RANGE]` を全て覆っていれば再派遣せず、完了行を台帳に補記して最終ブランチ全体レビューへ進む。覆っていなければ継続再派遣する。
