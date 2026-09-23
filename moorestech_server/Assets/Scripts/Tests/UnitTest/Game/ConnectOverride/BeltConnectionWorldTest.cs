@@ -147,6 +147,31 @@ namespace Tests.UnitTest.Game.ConnectOverride
             Assert.AreEqual(0, connector.ConnectedTargets.Count);
         }
 
+        [Test]
+        public void DirectionalIneligibleUpperTargetDoesNotDisplaceEligibleLowerTarget()
+        {
+            new MoorestechServerDIContainerGenerator().Create(
+                new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var world = ServerContext.WorldBlockDatastore;
+            var upper = new Vector3Int(0, 1, 1);
+            world.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(0, 1, 0),
+                BlockDirection.North, Array.Empty<BlockCreateParam>(), out var source);
+            // 入力は方向付き、出力offsetが非zeroなので対象外。
+            // Its input has a direction; a nonzero output offset makes the target ineligible.
+            world.TryAddBlock(ForUnitTestModBlockId.TestBeltOffsetSource, upper,
+                BlockDirection.North, Array.Empty<BlockCreateParam>(), out var legacyTarget);
+            world.TryAddBlock(ForUnitTestModBlockId.TestBeltConveyorDown, new Vector3Int(0, 0, 1),
+                BlockDirection.North, Array.Empty<BlockCreateParam>(), out var ruledTarget);
+            var connector = InventoryConnector(source);
+            var legacyInventory = legacyTarget.GetComponent<VanillaBeltConveyorComponent>();
+            var ruledInventory = ruledTarget.GetComponent<VanillaBeltConveyorComponent>();
+            Assert.IsTrue(connector.ConnectedTargets.ContainsKey(legacyInventory));
+            Assert.IsTrue(connector.ConnectedTargets.ContainsKey(ruledInventory));
+            world.RemoveBlock(upper, BlockRemoveReason.ManualRemove);
+            Assert.IsFalse(connector.ConnectedTargets.ContainsKey(legacyInventory));
+            Assert.IsTrue(connector.ConnectedTargets.ContainsKey(ruledInventory));
+        }
+
         private static BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> InventoryConnector(IBlock block)
         {
             return block.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>();
