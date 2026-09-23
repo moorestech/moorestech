@@ -129,7 +129,7 @@ Tick/order example: end tick40 has `(40,1), generation7`. A world change at tick
 - `Game.Block/Blocks/BeltConveyor/Ports/BeltMachineSource.cs`, `BeltMachineReceiver.cs`, `BeltMachinePortTable.cs`: fixed per-edge adapters/context keys.
 - `Game.Block/Blocks/BeltConveyor/Components/SegmentBeltComponent.cs`, `SegmentBeltSaveComponent.cs`: IBlockInventory and per-cell persisted state.
 - `Game.Block/Blocks/BeltConveyor/Save/BeltCellSaveState.cs`, `BeltSavedItem.cs`: JSON primitives, Item master GUID, transport GUID, progress/entry, retained RR and optional buffer. ItemInstanceIdは既存IItemStack契約どおりruntime identityで、transport Guidとは別。
-- `Game.Block.Interface/Component/IBlockOutputAvailability.cs`: `bool HasOutputItem()` with no mutation.
+- `Game.Block.Interface/Component/Inventory/IBlockOutputAvailability.cs`: `IBlockComponent` role with `bool HasOutputItem()` and no mutation. Existing Component root already has19 code files; use the Inventory subdirectory.
 - `Game.BeltSegment/World/BeltStreamPosition.cs`, `BeltRoute.cs`, `BeltWorldSnapshot.cs`, `BeltWorldFrame.cs`.
 - `Game.BeltSegment/Replay/BeltStateHash.cs`: deterministic integer/Guid hashing helpers called by Core owners without snapshot allocations.
 - `Game.SaveLoad/Migration/Steps/SaveMigrationStepV2ToV3.cs`.
@@ -166,6 +166,10 @@ public interface IBeltWorldMutation
     IItemStack GetCellItem(SegmentBeltComponent target);
     void SetCellItem(SegmentBeltComponent target, IItemStack stack);
     BeltCellSaveState CaptureCell(SegmentBeltComponent target);
+}
+public interface IBlockOutputAvailability : IBlockComponent
+{
+    bool HasOutputItem();
 }
 // Existing classes; new methods compute directly over their owned queues.
 // BeltSimulationGraph and BeltReplaySimulation: public uint ComputeStateHash();
@@ -245,7 +249,7 @@ UniTask<BeltWorldSnapshot> GetBeltWorld(CancellationToken cancellationToken);
 // GpuBeltSimulation Simulation; BeltRoute[] Routes; BeltStreamPosition Position; ulong Generation.
 ```
 
-- [ ] **Step 1: Encode detached state and register event+initial response.** Codec validates entire payload before constructing CPU/GPU state. Require bounded nonnegative counts, valid IDs/kinds/directions, spacing, unique per-generation external IDs and array lengths; no silent defaults for required fields. Runtime int item kind travels over wire, master Guid travels in JSON. Snapshot positions are value copies; never serialize live ItemPosition references. Events use `va:event:beltWorldSnapshot` and `va:event:beltWorldFrame`; request tag `va:getBeltWorld`. Event packet subscribes once through IBootInitializable.Load and broadcasts through existing provider. Request reads current completed lookup snapshot on the server's existing packet boundary.
+- [ ] **Step 1: Encode detached state and register event+initial response.** Follow creating-server-protocol skill: Request/Response envelope keys start2, event payload keys start0, serializer constructor marked Obsolete, typed ItemId and enums on wire. Codec validates entire payload before constructing CPU/GPU state. Require bounded nonnegative counts, valid IDs/kinds/directions, spacing, unique per-generation external IDs and array lengths; no silent defaults for required fields. Convert Core's int kind at the codec boundary to existing ItemId; master Guid travels in JSON. Snapshot positions are value copies; never serialize live ItemPosition references. Events use `va:event:beltWorldSnapshot` and `va:event:beltWorldFrame`; request tag `va:getBeltWorld`. Event packet subscribes once through IBootInitializable.Load and broadcasts through existing provider. Request reads current completed lookup snapshot on the server's existing packet boundary.
 
 - [ ] **Step 2: Subscribe before initial request and reconcile ordered frames.** Buffer by `(tick,seq)` while WaitingSnapshot/Recovering; impose bounded frame count (256) and request fresh full state if exceeded, recording recovery reason. Only one request in flight. Response generation/position older than accepted state is discarded. Apply a snapshot as one CPU+GPU replacement after both new objects construct; then dispose replaced GPU resources and drain frames whose Previous exactly equals accepted Position. Duplicate covered frames are discarded. Same-generation future frames queue; generation mismatch waits for its replacement; missing chain/hash mismatch triggers one recovery. New valid snapshot clears recovery and resumes, including zero-segment states. Failed/invalid response leaves explicit recovery error and retries through the existing network retry/lifecycle facility with cancellation; no permanently latched request flag.
 
