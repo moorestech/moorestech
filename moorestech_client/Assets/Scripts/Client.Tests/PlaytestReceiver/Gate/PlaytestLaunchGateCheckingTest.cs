@@ -70,13 +70,13 @@ namespace Client.Tests.PlaytestReceiver
             // チケット待ちで止まっている間。ここが素通しだと待ち文言を閉じるだけで開始できてしまう
             // While the ticket is still pending; passing here would let a tester start by closing the waiting message
             Assert.AreEqual(PlaytestGateStatus.Checking, PlaytestLaunchGate.Current.Value.Status);
-            Assert.IsFalse(PlaytestLaunchGate.TryPassStart("during-check", out _));
+            Assert.IsFalse(PlaytestLaunchGate.TryPassLaunchCheck("during-check", out _));
 
             ticketGate.TrySetResult("aabb");
             evaluating.GetAwaiter().GetResult();
 
             Assert.AreEqual(PlaytestGateStatus.Allowed, PlaytestLaunchGate.Current.Value.Status);
-            Assert.IsTrue(PlaytestLaunchGate.TryPassStart("after-check", out _));
+            Assert.IsTrue(PlaytestLaunchGate.TryPassLaunchCheck("after-check", out _));
         }
 
         // 確定待ちは購読で照合中を越え、確定した結論をそのまま返す。出展モードとsmokeはこの1本だけで待つ

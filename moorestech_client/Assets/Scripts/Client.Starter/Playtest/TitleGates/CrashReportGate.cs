@@ -82,14 +82,18 @@ namespace Client.Starter.Playtest.TitleGates
                 else ReturnToWaiting();
             }
             return written ? CrashReportResponseResult.Sent : CrashReportResponseResult.WriteFailed;
-        }
 
-        // 「送らない」は常に押せるため、書けないまま待機へ戻しても起動が恒久停止することはない
-        // "Do not send" is always available, so returning to waiting after a failed write never halts the boot permanently
-        private void ReturnToWaiting()
-        {
-            Debug.LogError("前回異常終了の箱を書けなかったため確認を閉じません（送り直すか、送らないを選べます）");
-            IsWaitingResponse = true;
+            #region Internal
+
+            // 「送らない」は常に押せるため、書けないまま待機へ戻しても起動が恒久停止することはない
+            // "Do not send" is always available, so returning to waiting after a failed write never halts the boot permanently
+            void ReturnToWaiting()
+            {
+                Debug.LogError("前回異常終了の箱を書けなかったため確認を閉じません（送り直すか、送らないを選べます）");
+                IsWaitingResponse = true;
+            }
+
+            #endregion
         }
     }
 

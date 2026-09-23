@@ -12,8 +12,8 @@ using UnityEngine;
 
 namespace Client.PlaytestReceiver.Gate
 {
-    // 起動時照合の関所。開始経路は PlaytestTitleGates.TryPassStart 越しにここを通り、表示側は照合結果を購読する
-    // The launch check's gate; start paths reach it through PlaytestTitleGates.TryPassStart, and the title view subscribes to the verdict
+    // 起動時照合の関所。開始経路は PlaytestTitleGates.TryPassStart 越しに TryPassLaunchCheck を通り、表示側は照合結果を購読する
+    // The launch check's gate; start paths pass TryPassLaunchCheck through PlaytestTitleGates.TryPassStart, and the title view subscribes to the verdict
     public static class PlaytestLaunchGate
     {
         // シーン跨ぎで持ち回る必要があり、MainMenuシーンにはDIコンテナが無いのでstaticで保持する
@@ -68,7 +68,7 @@ namespace Client.PlaytestReceiver.Gate
 
         // 通れなければ理由をログへ出し、テスター向けの文言をここで解決して返す。呼び手は表示するだけ
         // A refusal is logged and its tester-facing text is resolved here; callers only display it
-        public static bool TryPassStart(string callerName, out string denyReasonText)
+        public static bool TryPassLaunchCheck(string callerName, out string denyReasonText)
         {
             // 未評価のまま開始が来たら遅延評価する。照合の要らない起動（Editor・自作ビルド）はここで開発者モードに確定する
             // A start before any evaluation is judged lazily; a launch that needs no check (Editor, own build) settles as developer mode here
@@ -101,20 +101,24 @@ namespace Client.PlaytestReceiver.Gate
             // 識別は結果を配る前に据える。購読側（タイトルのゲート・開始経路）が読む時点で検証済みSteamIDが揃っている（ADR 0065）
             // The identity is set before the verdict goes out, so subscribers (title gates, start paths) already see the verified SteamID (ADR 0065)
             CurrentProperty.Value = result;
-        }
 
-        // 消去も縮退。検証済みSteamIDが載っていた起動で消えたら、記録のsteamIdが欠ける理由を読めるよう必ず痕跡を残す（再評価中のCheckingを含む）
-        // Clearing is a degradation too: when a boot that had a verified SteamID loses it, the reason the records lack a steamId is always left readable (a re-evaluation's Checking included)
-        private static void ClearIdentity(PlaytestGateStatus status)
-        {
-            var cleared = PlaytestSessionIdentityProvider.Current.SteamId;
-            if (!string.IsNullOrEmpty(cleared)) Debug.Log($"[PlaytestReceiver] 検証済みSteamIDを空へ戻します status:{status}（この間に書かれる記録・箱のsteamIdは空になります）");
-            // 空になった事情は照合の結末で決まる。開発者モード以外を開発者モードと名乗らせない
-            // Why it is empty follows from the verdict; anything other than developer mode never claims to be developer mode
-            var absenceReason = status == PlaytestGateStatus.DeveloperMode
-                ? EmptyPlaytestSessionIdentity.DeveloperModeReason
-                : $"テスター識別（SteamID）が無い（起動時照合で検証済みSteamIDが得られていない status:{status}）";
-            PlaytestSessionIdentityProvider.SetCurrent(new EmptyPlaytestSessionIdentity(absenceReason));
+            #region Internal
+
+            // 消去も縮退。検証済みSteamIDが載っていた起動で消えたら、記録のsteamIdが欠ける理由を読めるよう必ず痕跡を残す（再評価中のCheckingを含む）
+            // Clearing is a degradation too: when a boot that had a verified SteamID loses it, the reason the records lack a steamId is always left readable (a re-evaluation's Checking included)
+            void ClearIdentity(PlaytestGateStatus status)
+            {
+                var cleared = PlaytestSessionIdentityProvider.Current.SteamId;
+                if (!string.IsNullOrEmpty(cleared)) Debug.Log($"[PlaytestReceiver] 検証済みSteamIDを空へ戻します status:{status}（この間に書かれる記録・箱のsteamIdは空になります）");
+                // 空になった事情は照合の結末で決まる。開発者モード以外を開発者モードと名乗らせない
+                // Why it is empty follows from the verdict; anything other than developer mode never claims to be developer mode
+                var absenceReason = status == PlaytestGateStatus.DeveloperMode
+                    ? EmptyPlaytestSessionIdentity.DeveloperModeReason
+                    : $"テスター識別（SteamID）が無い（起動時照合で検証済みSteamIDが得られていない status:{status}）";
+                PlaytestSessionIdentityProvider.SetCurrent(new EmptyPlaytestSessionIdentity(absenceReason));
+            }
+
+            #endregion
         }
 
         // 配布版でSteamが動いている場合だけ照合する

@@ -93,7 +93,7 @@ namespace Client.Starter.Playtest.TitleGates
         // The two stages' order is closed in here: the launch check's lazy settling starts the title gates synchronously, so the step cannot be read before it
         public static bool TryPassStart(string callerName, out string denyReasonText)
         {
-            if (!PlaytestLaunchGate.TryPassStart(callerName, out denyReasonText)) return false;
+            if (!PlaytestLaunchGate.TryPassLaunchCheck(callerName, out denyReasonText)) return false;
 
             if (_current == null)
             {

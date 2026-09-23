@@ -27,7 +27,7 @@ namespace Client.Tests.PlaytestReceiver
             // The Editor has no build-info.json, so the lazy evaluation settles as developer mode and never stops a start
             PlaytestLaunchGate.SetCurrent(PlaytestGateResult.NotEvaluated);
 
-            Assert.IsTrue(PlaytestLaunchGate.TryPassStart("test", out _));
+            Assert.IsTrue(PlaytestLaunchGate.TryPassLaunchCheck("test", out _));
             Assert.AreEqual(PlaytestGateStatus.DeveloperMode, PlaytestLaunchGate.Current.Value.Status);
         }
 
@@ -35,14 +35,14 @@ namespace Client.Tests.PlaytestReceiver
         public void 開発者モードでは関所が拒否しない()
         {
             PlaytestLaunchGate.SetCurrent(PlaytestGateResult.DeveloperMode);
-            Assert.IsTrue(PlaytestLaunchGate.TryPassStart("test", out _));
+            Assert.IsTrue(PlaytestLaunchGate.TryPassLaunchCheck("test", out _));
         }
 
         [Test]
         public void 止められているときは拒否する()
         {
             PlaytestLaunchGate.SetCurrent(PlaytestGateResult.Blocked(PlaytestGateStatus.Unreachable, "dns-detail-for-logs"));
-            Assert.IsFalse(PlaytestLaunchGate.TryPassStart("test", out var denyReasonText));
+            Assert.IsFalse(PlaytestLaunchGate.TryPassLaunchCheck("test", out var denyReasonText));
 
             // テスター向けの文言は種別から解決し、ログ専用のDetailは混ぜない
             // The tester-facing text is resolved from the kind and never carries the log-only Detail
@@ -54,7 +54,7 @@ namespace Client.Tests.PlaytestReceiver
         public void 照合中も拒否する()
         {
             PlaytestLaunchGate.SetCurrent(PlaytestGateResult.Checking);
-            Assert.IsFalse(PlaytestLaunchGate.TryPassStart("test", out _));
+            Assert.IsFalse(PlaytestLaunchGate.TryPassLaunchCheck("test", out _));
         }
     }
 }

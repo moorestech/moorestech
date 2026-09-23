@@ -36,7 +36,11 @@ namespace Client.MainMenu.Playtest
             _uploadRequester = new PlaytestUploadRunner(receiver, PlaytestOutboxDirectories.FromGameSystemPaths());
 
             PlaytestLaunchGate.Current.Subscribe(Show).AddTo(this);
-            PlaytestLaunchGate.EvaluateAsync(new PlaytestSteamTicketProvider(), receiver, DateTime.UtcNow, destroyCancellationToken).Forget();
+
+            // 照合はプロセス寿命で走らせる。シーン寿命で切ると結果が出ないまま無言で止まり、次の開始経路が照合中のまま塞がれる
+            // The check runs for the process lifetime; cutting it with the scene would stop it silently without a verdict and leave later start paths blocked on Checking
+            PlaytestLaunchGate.EvaluateAsync(new PlaytestSteamTicketProvider(), receiver, DateTime.UtcNow, Application.exitCancellationToken)
+                .Forget(exception => Debug.LogError($"[PlaytestLaunchGate] 起動時照合が例外で終わりました {exception.GetType()} {exception.Message}"));
         }
 
         private void Show(PlaytestGateResult result)
@@ -60,26 +64,30 @@ namespace Client.MainMenu.Playtest
             // A launch that is never checked showed no waiting message, so there is nothing to close
             if (result.Status == PlaytestGateStatus.Allowed) messagePopup.gameObject.SetActive(false);
             BeginTitleGates(result);
-        }
 
-        private void BeginTitleGates(PlaytestGateResult result)
-        {
-            // 始動済みかの判定はゲートが1箇所で持つ。再訪でも同じ列が返るので、未応答の確認をこの画面へ繋ぎ直せる（D-C1）
-            // Whether they already started is decided in one place inside the gates; a revisit gets the same sequence back and re-wires its unanswered confirmation to this screen (D-C1)
-            if (!PlaytestTitleGates.TryBegin(result, _uploadRequester, out var sequence)) return;
-            if (_boundSequence == sequence) return;
+            #region Internal
 
-            _boundSequence = sequence;
-            consentPopup.Initialize(sequence);
-            crashReportPopup.Initialize(sequence);
-
-            // 表示は段階を映すだけ。購読はこの常時有効な合成ルートが持つ（非アクティブのポップアップにAddToしない）
-            // The display only mirrors the step; this always-active root owns the subscription (never AddTo an inactive popup)
-            sequence.Step.Subscribe(step =>
+            void BeginTitleGates(PlaytestGateResult verdict)
             {
-                consentPopup.SetVisible(step == PlaytestTitleGateStep.Consent);
-                crashReportPopup.SetVisible(step == PlaytestTitleGateStep.CrashReport);
-            }).AddTo(this);
+                // 始動済みかの判定はゲートが1箇所で持つ。再訪でも同じ列が返るので、未応答の確認をこの画面へ繋ぎ直せる（D-C1）
+                // Whether they already started is decided in one place inside the gates; a revisit gets the same sequence back and re-wires its unanswered confirmation to this screen (D-C1)
+                if (!PlaytestTitleGates.TryBegin(verdict, _uploadRequester, out var sequence)) return;
+                if (_boundSequence == sequence) return;
+
+                _boundSequence = sequence;
+                consentPopup.Initialize(sequence);
+                crashReportPopup.Initialize(sequence);
+
+                // 表示は段階を映すだけ。購読はこの常時有効な合成ルートが持つ（非アクティブのポップアップにAddToしない）
+                // The display only mirrors the step; this always-active root owns the subscription (never AddTo an inactive popup)
+                sequence.Step.Subscribe(step =>
+                {
+                    consentPopup.SetVisible(step == PlaytestTitleGateStep.Consent);
+                    crashReportPopup.SetVisible(step == PlaytestTitleGateStep.CrashReport);
+                }).AddTo(this);
+            }
+
+            #endregion
         }
     }
 }
