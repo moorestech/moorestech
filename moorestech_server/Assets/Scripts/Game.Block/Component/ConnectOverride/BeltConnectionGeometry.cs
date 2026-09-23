@@ -12,22 +12,26 @@ namespace Game.Block.Component.ConnectOverride
         internal static bool IsEligible(BlockPositionInfo position, InventoryConnects connectors)
         {
             if (position.BlockSize != Vector3Int.one || position.BlockDirection < BlockDirection.North ||
-                position.BlockDirection > BlockDirection.West) return false;
+                BlockDirection.West < position.BlockDirection) return false;
             return Valid(connectors.InputConnects) && Valid(connectors.OutputConnects);
-        }
 
-        private static bool Valid(IReadOnlyList<IBlockConnector> connectors)
-        {
-            if (connectors == null) return true;
-            foreach (var connector in connectors)
+            #region Internal
+
+            bool Valid(IReadOnlyList<IBlockConnector> portDefinitions)
             {
-                if (connector.Offset != Vector3Int.zero || connector.Directions == null) return false;
-                foreach (var direction in connector.Directions)
-                    if (Mathf.Abs(direction.x) + Mathf.Abs(direction.z) != 1 ||
-                        Mathf.Abs(direction.y) > 1)
-                        return false;
+                if (portDefinitions == null) return true;
+                foreach (var connector in portDefinitions)
+                {
+                    if (connector.Offset != Vector3Int.zero || connector.Directions == null) return false;
+                    foreach (var direction in connector.Directions)
+                        if (Mathf.Abs(direction.x) + Mathf.Abs(direction.z) != 1 ||
+                            1 < Mathf.Abs(direction.y))
+                            return false;
+                }
+                return true;
             }
-            return true;
+
+            #endregion
         }
 
         internal static List<BeltConnectionPort> Create(BlockPositionInfo position,

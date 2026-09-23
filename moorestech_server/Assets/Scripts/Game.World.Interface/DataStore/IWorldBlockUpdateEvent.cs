@@ -7,7 +7,6 @@ namespace Game.World.Interface.DataStore
     {
         public IObservable<BlockPlaceProperties> OnBlockPlaceEvent { get; }
         public IObservable<BlockRemoveProperties> OnBlockRemoveEvent { get; }
-        public IObservable<BlockRemoveProperties> OnBlockRemovalCompleted { get; }
         
         /// <summary>
         ///     特定の座標にブロックが置かれた時のイベントを取得する

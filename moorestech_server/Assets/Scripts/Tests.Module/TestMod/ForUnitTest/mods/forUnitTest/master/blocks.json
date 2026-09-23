@@ -5896,6 +5896,564 @@
       "subCategory": "BeltConveyor",
       "placementsPerCost": 1,
       "openable": false
+    },
+    {
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "TestBeltMultiInputAB",
+      "blockType": "BeltConveyor",
+      "blockParam": {
+        "timeOfItemEnterToExit": 2,
+        "beltConveyorItemCount": 4,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ],
+              "connectorGuid": "00000000-0000-0000-0000-00000000b601",
+              "shapeGuid": "11111111-1111-1111-1111-111111111111"
+            },
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ],
+              "connectorGuid": "00000000-0000-0000-0000-00000000b602",
+              "shapeGuid": "22222222-2222-2222-2222-222222222222"
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectorGuid": "00000000-0000-0000-0000-00000000b603"
+            }
+          ]
+        },
+        "slopeType": "Straight"
+      },
+      "blockGuid": "00000000-0000-0000-0000-0000000000b6",
+      "initialUnlocked": true,
+      "category": "テスト",
+      "subCategory": "BeltConveyor",
+      "placementsPerCost": 1,
+      "openable": false
+    },
+    {
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "TestBeltMultiInputBA",
+      "blockType": "BeltConveyor",
+      "blockParam": {
+        "timeOfItemEnterToExit": 2,
+        "beltConveyorItemCount": 4,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ],
+              "connectorGuid": "00000000-0000-0000-0000-00000000b701",
+              "shapeGuid": "22222222-2222-2222-2222-222222222222"
+            },
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ],
+              "connectorGuid": "00000000-0000-0000-0000-00000000b702",
+              "shapeGuid": "11111111-1111-1111-1111-111111111111"
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectorGuid": "00000000-0000-0000-0000-00000000b703"
+            }
+          ]
+        },
+        "slopeType": "Straight"
+      },
+      "blockGuid": "00000000-0000-0000-0000-0000000000b7",
+      "initialUnlocked": true,
+      "category": "テスト",
+      "subCategory": "BeltConveyor",
+      "placementsPerCost": 1,
+      "openable": false
+    },
+    {
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "TestBeltMultiOutputAB",
+      "blockType": "BeltConveyor",
+      "blockParam": {
+        "timeOfItemEnterToExit": 2,
+        "beltConveyorItemCount": 4,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ],
+              "connectorGuid": "00000000-0000-0000-0000-00000000b803",
+              "shapeGuid": "22222222-2222-2222-2222-222222222222"
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectorGuid": "00000000-0000-0000-0000-00000000b801",
+              "shapeGuid": "11111111-1111-1111-1111-111111111111"
+            },
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectorGuid": "00000000-0000-0000-0000-00000000b802",
+              "shapeGuid": "22222222-2222-2222-2222-222222222222"
+            }
+          ]
+        },
+        "slopeType": "Straight"
+      },
+      "blockGuid": "00000000-0000-0000-0000-0000000000b8",
+      "initialUnlocked": true,
+      "category": "テスト",
+      "subCategory": "BeltConveyor",
+      "placementsPerCost": 1,
+      "openable": false
+    },
+    {
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "TestBeltMultiOutputBA",
+      "blockType": "BeltConveyor",
+      "blockParam": {
+        "timeOfItemEnterToExit": 2,
+        "beltConveyorItemCount": 4,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ],
+              "connectorGuid": "00000000-0000-0000-0000-00000000b903",
+              "shapeGuid": "22222222-2222-2222-2222-222222222222"
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectorGuid": "00000000-0000-0000-0000-00000000b901",
+              "shapeGuid": "22222222-2222-2222-2222-222222222222"
+            },
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectorGuid": "00000000-0000-0000-0000-00000000b902",
+              "shapeGuid": "11111111-1111-1111-1111-111111111111"
+            }
+          ]
+        },
+        "slopeType": "Straight"
+      },
+      "blockGuid": "00000000-0000-0000-0000-0000000000b9",
+      "initialUnlocked": true,
+      "category": "テスト",
+      "subCategory": "BeltConveyor",
+      "placementsPerCost": 1,
+      "openable": false
+    },
+    {
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "TestBeltMultiOutputAA",
+      "blockType": "BeltConveyor",
+      "blockParam": {
+        "timeOfItemEnterToExit": 2,
+        "beltConveyorItemCount": 4,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ],
+              "connectorGuid": "00000000-0000-0000-0000-00000000ba03",
+              "shapeGuid": "22222222-2222-2222-2222-222222222222"
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectorGuid": "00000000-0000-0000-0000-00000000ba01",
+              "shapeGuid": "11111111-1111-1111-1111-111111111111"
+            },
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectorGuid": "00000000-0000-0000-0000-00000000ba02",
+              "shapeGuid": "11111111-1111-1111-1111-111111111111"
+            }
+          ]
+        },
+        "slopeType": "Straight"
+      },
+      "blockGuid": "00000000-0000-0000-0000-0000000000ba",
+      "initialUnlocked": true,
+      "category": "テスト",
+      "subCategory": "BeltConveyor",
+      "placementsPerCost": 1,
+      "openable": false
     }
   ],
   "connectorSettings": {
@@ -5947,7 +6505,12 @@
     },
     {
       "straightBlockGuid": "00000000-0000-0000-0000-0000000000b5"
-    }
+    },
+    {"straightBlockGuid": "00000000-0000-0000-0000-0000000000b6"},
+    {"straightBlockGuid": "00000000-0000-0000-0000-0000000000b7"},
+    {"straightBlockGuid": "00000000-0000-0000-0000-0000000000b8"},
+    {"straightBlockGuid": "00000000-0000-0000-0000-0000000000b9"},
+    {"straightBlockGuid": "00000000-0000-0000-0000-0000000000ba"}
   ],
   "blockDestructionCategories": [
     {

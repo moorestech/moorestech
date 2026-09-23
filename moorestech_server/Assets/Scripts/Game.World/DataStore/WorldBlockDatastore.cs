@@ -46,7 +46,7 @@ namespace Game.World.DataStore
                 _coordinateDictionary.Remove(position);
 
             _originCoordinateDictionary.Remove(data.BlockPositionInfo.OriginalPos);
-            ((WorldBlockUpdateEvent)ServerContext.WorldBlockUpdateEvent).OnBlockRemovalCompletedInvoke(pos, data, reason);
+            ((WorldBlockUpdateEvent)ServerContext.WorldBlockUpdateEvent).OnBlockRemovalCompletedInvoke(data, reason);
             return true;
         }
         public IBlock GetBlock(Vector3Int pos)

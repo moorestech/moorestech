@@ -48,6 +48,11 @@ namespace Tests.Module.TestMod
         public static BlockId TestBeltShapeTarget => GetBlock("00000000-0000-0000-0000-0000000000b3");
         public static BlockId TestBeltOffsetSource => GetBlock("00000000-0000-0000-0000-0000000000b4");
         public static BlockId TestBeltUnrestrictedTarget => GetBlock("00000000-0000-0000-0000-0000000000b5");
+        public static BlockId TestBeltMultiInputAB => GetBlock("00000000-0000-0000-0000-0000000000b6");
+        public static BlockId TestBeltMultiInputBA => GetBlock("00000000-0000-0000-0000-0000000000b7");
+        public static BlockId TestBeltMultiOutputAB => GetBlock("00000000-0000-0000-0000-0000000000b8");
+        public static BlockId TestBeltMultiOutputBA => GetBlock("00000000-0000-0000-0000-0000000000b9");
+        public static BlockId TestBeltMultiOutputAA => GetBlock("00000000-0000-0000-0000-0000000000ba");
         public static BlockId SmallGearBeltConveyor => GetBlock("00000000-0000-0000-0000-000000000030");
         public static BlockId GearBeltConveyorSplitter => GetBlock("eccb9f59-4439-4caf-9ae8-67da50549040");
         

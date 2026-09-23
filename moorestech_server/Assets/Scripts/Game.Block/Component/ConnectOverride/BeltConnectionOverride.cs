@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Core.Master;
 using Game.Block.Blocks.BeltConveyor;
@@ -65,57 +66,60 @@ namespace Game.Block.Component.ConnectOverride
                 if (!BeltConnectionSelector.TrySelect(outputs, inputs, out var output, out var input) ||
                     output.OwnerCell != selfCell) continue;
                 var targetBlock = ServerContext.WorldBlockDatastore.GetBlock(input.OwnerCell);
-                if (targetBlock == null || !targetBlock.TryGetComponent<IBlockInventory>(out var inventory)) continue;
+                if (targetBlock == null)
+                    throw new InvalidOperationException($"Selected belt target is missing at {input.OwnerCell}");
+                if (!targetBlock.TryGetComponent<IBlockInventory>(out var inventory))
+                    throw new InvalidOperationException($"Selected belt target has no inventory at {input.OwnerCell}");
                 connectedTargets[inventory] = new ConnectedInfo(output.Connector, input.Connector, targetBlock);
             }
-        }
 
-        private void CollectColumn(Vector3Int column, Vector3Int boundary, Vector3Int normal,
-            bool output, List<BeltConnectionPort> result)
-        {
-            for (var dy = -1; dy <= 1; dy++)
+            #region Internal
+
+            void CollectColumn(Vector3Int column, Vector3Int boundary, Vector3Int normal,
+                bool output, List<BeltConnectionPort> result)
             {
-                var cell = column + Vector3Int.up * dy;
-                var block = cell == _position.OriginalPos
-                    ? null : ServerContext.WorldBlockDatastore.GetBlock(cell);
-                BlockPositionInfo position;
-                BeltConveyorSlopeType slope;
-                InventoryConnects connectors;
-                if (cell == _position.OriginalPos)
+                for (var dy = -1; dy <= 1; dy++)
                 {
-                    position = _position;
-                    slope = _slope;
-                    connectors = _connectors;
+                    var cell = column + Vector3Int.up * dy;
+                    var block = cell == _position.OriginalPos
+                        ? null : ServerContext.WorldBlockDatastore.GetBlock(cell);
+                    BlockPositionInfo position;
+                    BeltConveyorSlopeType slope;
+                    InventoryConnects connectors;
+                    if (cell == _position.OriginalPos)
+                    {
+                        position = _position;
+                        slope = _slope;
+                        connectors = _connectors;
+                    }
+                    else if (!TryDescribe(block, out slope, out connectors))
+                        continue;
+                    else
+                        position = block.BlockPositionInfo;
+
+                    IReadOnlyList<IBlockConnector> definitions = output
+                        ? connectors.OutputConnects : connectors.InputConnects;
+                    foreach (var port in BeltConnectionGeometry.Create(position, slope, definitions, output))
+                        if (port.Boundary == boundary && port.OutwardNormal == normal) result.Add(port);
                 }
-                else if (!TryDescribe(block, out slope, out connectors))
-                    continue;
-                else
-                    position = block.BlockPositionInfo;
-
-                IReadOnlyList<IBlockConnector> definitions = output
-                    ? connectors.OutputConnects : connectors.InputConnects;
-                foreach (var port in BeltConnectionGeometry.Create(position, slope, definitions, output))
-                    if (port.Boundary == boundary && port.OutwardNormal == normal) result.Add(port);
             }
-        }
 
-        private static bool TryDescribe(IBlock block, out BeltConveyorSlopeType slope,
-            out InventoryConnects connectors)
-        {
-            slope = default;
-            connectors = null;
-            if (block == null || !block.TryGetComponent<VanillaBeltConveyorComponent>(out var belt)) return false;
-            var param = MasterHolder.BlockMaster.GetBlockMaster(block.BlockGuid).BlockParam;
-            connectors = param switch
+            bool TryDescribe(IBlock block, out BeltConveyorSlopeType slope,
+                out InventoryConnects connectors)
             {
-                BeltConveyorBlockParam normal => normal.InventoryConnectors,
-                GearBeltConveyorBlockParam gear => gear.InventoryConnectors,
-                _ => null
-            };
-            if (connectors == null || !BeltConnectionGeometry.IsEligible(block.BlockPositionInfo, connectors))
-                return false;
-            slope = belt.SlopeType;
-            return true;
+                slope = default;
+                connectors = null;
+                if (block == null || !block.TryGetComponent<VanillaBeltConveyorComponent>(out var belt)) return false;
+                var param = MasterHolder.BlockMaster.GetBlockMaster(block.BlockGuid).BlockParam;
+                if (param is not IInventoryConnectors inventoryConnectors) return false;
+                connectors = inventoryConnectors.InventoryConnectors;
+                if (connectors == null || !BeltConnectionGeometry.IsEligible(block.BlockPositionInfo, connectors))
+                    return false;
+                slope = belt.SlopeType;
+                return true;
+            }
+
+            #endregion
         }
     }
 }

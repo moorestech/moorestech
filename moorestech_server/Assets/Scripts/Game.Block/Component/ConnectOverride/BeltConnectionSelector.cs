@@ -13,37 +13,64 @@ namespace Game.Block.Component.ConnectOverride
             output = default;
             input = default;
             if (outputs.Count == 0 || inputs.Count == 0) return false;
-            output = outputs[0];
+            var selectedOutput = outputs[0];
             foreach (var port in outputs)
-                if (OutputPriority(port.Slope) > OutputPriority(output.Slope)) output = port;
-            input = inputs[0];
+                if (OutputPriority(selectedOutput.Slope) < OutputPriority(port.Slope)) selectedOutput = port;
+            var selectedInput = inputs[0];
             foreach (var port in inputs)
-                if (InputPriority(port.Slope) > InputPriority(input.Slope)) input = port;
-            if (output.Slope == BeltConveyorSlopeType.Down && input.Slope == BeltConveyorSlopeType.Up ||
-                output.Slope == BeltConveyorSlopeType.Up && input.Slope == BeltConveyorSlopeType.Down)
+                if (InputPriority(selectedInput.Slope) < InputPriority(port.Slope)) selectedInput = port;
+            if (selectedOutput.Slope == BeltConveyorSlopeType.Down && selectedInput.Slope == BeltConveyorSlopeType.Up ||
+                selectedOutput.Slope == BeltConveyorSlopeType.Up && selectedInput.Slope == BeltConveyorSlopeType.Down)
                 return false;
-            return MasterHolder.BlockMaster.CanConnectConnectorShapes(
-                output.Connector.ShapeGuid, input.Connector.ShapeGuid);
-        }
+            return TrySelectCompatiblePair(outputs, inputs, selectedOutput.OwnerCell,
+                selectedInput.OwnerCell, out output, out input);
 
-        private static int OutputPriority(BeltConveyorSlopeType slope)
-        {
-            return slope switch
-            {
-                BeltConveyorSlopeType.Down => 3,
-                BeltConveyorSlopeType.Straight => 2,
-                _ => 1
-            };
-        }
+            #region Internal
 
-        private static int InputPriority(BeltConveyorSlopeType slope)
-        {
-            return slope switch
+            bool TrySelectCompatiblePair(IReadOnlyList<BeltConnectionPort> outputPorts,
+                IReadOnlyList<BeltConnectionPort> inputPorts, UnityEngine.Vector3Int outputOwner,
+                UnityEngine.Vector3Int inputOwner, out BeltConnectionPort compatibleOutput,
+                out BeltConnectionPort compatibleInput)
             {
-                BeltConveyorSlopeType.Up => 3,
-                BeltConveyorSlopeType.Straight => 2,
-                _ => 1
-            };
+                compatibleOutput = default;
+                compatibleInput = default;
+                foreach (var outputPort in outputPorts)
+                {
+                    if (outputPort.OwnerCell != outputOwner) continue;
+                    foreach (var inputPort in inputPorts)
+                    {
+                        if (inputPort.OwnerCell != inputOwner) continue;
+                        if (!MasterHolder.BlockMaster.CanConnectConnectorShapes(
+                                outputPort.Connector.ShapeGuid, inputPort.Connector.ShapeGuid)) continue;
+                        compatibleOutput = outputPort;
+                        compatibleInput = inputPort;
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            int OutputPriority(BeltConveyorSlopeType slope)
+            {
+                return slope switch
+                {
+                    BeltConveyorSlopeType.Down => 3,
+                    BeltConveyorSlopeType.Straight => 2,
+                    _ => 1
+                };
+            }
+
+            int InputPriority(BeltConveyorSlopeType slope)
+            {
+                return slope switch
+                {
+                    BeltConveyorSlopeType.Up => 3,
+                    BeltConveyorSlopeType.Straight => 2,
+                    _ => 1
+                };
+            }
+
+            #endregion
         }
     }
 }

@@ -42,41 +42,44 @@ namespace Tests.UnitTest.Game.ConnectOverride
             foreach (var (id, position) in order)
                 Assert.IsTrue(world.TryAddBlock(id, position, BlockDirection.North,
                     Array.Empty<BlockCreateParam>(), out _));
-            AssertConnections(sourceUpper, sourceLower, targetUpper, targetLower, false);
+            AssertConnections(false);
             var save = saveServices.GetService<AssembleSaveJsonText>().AssembleSaveJson();
 
             var (_, loadServices) = new MoorestechServerDIContainerGenerator().Create(
                 new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             (loadServices.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(save);
-            AssertConnections(sourceUpper, sourceLower, targetUpper, targetLower, false);
+            AssertConnections(false);
 
             ServerContext.WorldBlockDatastore.RemoveBlock(sourceUpper, BlockRemoveReason.ManualRemove);
-            AssertConnections(sourceUpper, sourceLower, targetUpper, targetLower, true);
-        }
+            AssertConnections(true);
 
-        private static void AssertConnections(Vector3Int sourceUpper, Vector3Int sourceLower,
-            Vector3Int targetUpper, Vector3Int targetLower, bool upperRemoved)
-        {
-            var world = ServerContext.WorldBlockDatastore;
-            var upperTarget = world.GetBlock(targetUpper).GetComponent<VanillaBeltConveyorComponent>();
-            var lowerTarget = world.GetBlock(targetLower).GetComponent<VanillaBeltConveyorComponent>();
-            var lower = Connector(world.GetBlock(sourceLower));
-            if (upperRemoved)
+            #region Internal
+
+            void AssertConnections(bool upperRemoved)
             {
-                Assert.IsTrue(lower.ConnectedTargets.ContainsKey(upperTarget));
+                var currentWorld = ServerContext.WorldBlockDatastore;
+                var upperTarget = currentWorld.GetBlock(targetUpper).GetComponent<VanillaBeltConveyorComponent>();
+                var lowerTarget = currentWorld.GetBlock(targetLower).GetComponent<VanillaBeltConveyorComponent>();
+                var lower = Connector(currentWorld.GetBlock(sourceLower));
+                if (upperRemoved)
+                {
+                    Assert.IsTrue(lower.ConnectedTargets.ContainsKey(upperTarget));
+                    Assert.IsFalse(lower.ConnectedTargets.ContainsKey(lowerTarget));
+                    return;
+                }
+                var upper = Connector(currentWorld.GetBlock(sourceUpper));
+                Assert.IsTrue(upper.ConnectedTargets.ContainsKey(upperTarget));
+                Assert.IsFalse(upper.ConnectedTargets.ContainsKey(lowerTarget));
+                Assert.IsFalse(lower.ConnectedTargets.ContainsKey(upperTarget));
                 Assert.IsFalse(lower.ConnectedTargets.ContainsKey(lowerTarget));
-                return;
             }
-            var upper = Connector(world.GetBlock(sourceUpper));
-            Assert.IsTrue(upper.ConnectedTargets.ContainsKey(upperTarget));
-            Assert.IsFalse(upper.ConnectedTargets.ContainsKey(lowerTarget));
-            Assert.IsFalse(lower.ConnectedTargets.ContainsKey(upperTarget));
-            Assert.IsFalse(lower.ConnectedTargets.ContainsKey(lowerTarget));
-        }
 
-        private static BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> Connector(IBlock block)
-        {
-            return block.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>();
+            BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> Connector(IBlock block)
+            {
+                return block.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>();
+            }
+
+            #endregion
         }
     }
 }

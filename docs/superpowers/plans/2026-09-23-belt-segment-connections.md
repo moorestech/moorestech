@@ -10,7 +10,7 @@
 
 ## Requirements
 
-- 正本はユーザー指定 `E:\Dropbox\seg\images\08b_vertex_patterns_ruled.png` と `08_vertex_patterns_generator/generate_vertex_patterns.py`。PythonのINPUTは頂点へ入る側、つまり上流ブロックの出力port群であり Down > Flat > Up。PythonのOUTPUTは頂点を出る側、つまり下流ブロックの入力port群であり Up > Flat > Down。この順で候補を選び、Down→UpとUp→Downを拒否する。拒否後に下位候補へ繰り下げない。図の25ケースと空を含む4voxelの256ケースを検証する。
+- 正本はユーザー指定 `E:\Dropbox\seg\images\08b_vertex_patterns_ruled.png` と `08_vertex_patterns_generator/generate_vertex_patterns.py`。PythonのINPUTは頂点へ入る側、つまり上流ブロックの出力port群であり Down > Flat > Up。PythonのOUTPUTは頂点を出る側、つまり下流ブロックの入力port群であり Up > Flat > Down。この順で両側のownerを固定し、Down→UpとUp→Downを拒否する。選択owner内ではshape適合するコネクタ組を探索し、適合組がない場合も下位ownerへ繰り下げない。図の25ケースと空を含む4voxelの256ケースを検証する。
 - 接続は在庫コネクタの実際の `ConnectedTargets` に反映する。純粋な判定関数を追加するだけでは完了しない。通常・歯車ベルコン、方位4方向、分岐の複数出力に適用する。
 - 設置順に依存しない。上側候補の追加で下側が外れ、撤去で下側が再評価される。各候補の入出力面が同じ境界で向き合う場合だけ候補とする。異なる高さ・面・向きを混同しない。
 - 自分自身のWorld登録前に走るfactory初期化で、未登録の自分をWorldから引かない。位置・slope・コネクタ定義をcontextのctorへ明示する。
@@ -36,10 +36,9 @@
 | `moorestech_server/Assets/Scripts/Game.Block/Component/ConnectOverride/BeltConnectionOverride.cs` | 自分のdescriptorとWorld読み取りを使う具体的な接続集合の所有者。PR1134 InventoryContextの役割を担当 |
 | `moorestech_server/Assets/Scripts/Game.Block/Component/ConnectOverride/BeltConnectionGeometry.cs` | コネクタの向きとslopeから整数座標の面を構成。既存BlockDirection.ConvertLocalCellへ回転を委譲 |
 | `moorestech_server/Assets/Scripts/Game.Block/Component/ConnectOverride/BeltConnectionPort.cs` | block・入出力コネクタ・境界・外向き法線・slopeを持つ不変値。整数座標で境界を照合 |
-| `moorestech_server/Assets/Scripts/Game.Block/Component/ConnectOverride/BeltConnectionSelector.cs` | 片側ごとの上側選択→禁止ペア判定。選択後に形状互換性を確認し、失敗しても下位候補へ戻らない |
-| `moorestech_server/Assets/Scripts/Game.Block/Component/BlockConnectorComponent.cs` | 現行購読と接続集合を保持。contextをインスタンスで受け取り、追加観測座標と撤去完了を購読 |
-| `moorestech_server/Assets/Scripts/Game.Block/Component/BlockConnectorCandidateMatcher.cs` | 既存のペア照合をそのまま抽出しconnectorを200行以下に保つ。gear previewも現在の静的TryJudgeConnectから委譲 |
-| `moorestech_server/Assets/Scripts/Game.World.Interface/DataStore/IWorldBlockUpdateEvent.cs` | 撤去完了のグローバル・座標別IObservableを追加 |
+| `moorestech_server/Assets/Scripts/Game.Block/Component/ConnectOverride/BeltConnectionSelector.cs` | 片側ごとの上位owner選択→禁止ペア判定→選択owner内の形状適合組探索。失敗しても下位ownerへ戻らない |
+| `moorestech_server/Assets/Scripts/Game.Block/Component/BlockConnectorComponent.cs` | 現行購読と接続集合、gear previewと実Worldで共有する既存ペア照合を保持。contextをインスタンスで受け取り、追加観測座標と撤去完了を購読 |
+| `moorestech_server/Assets/Scripts/Game.World.Interface/DataStore/IWorldBlockUpdateEvent.cs` | 撤去完了の座標別IObservableを追加 |
 | `moorestech_server/Assets/Scripts/Game.World/WorldBlockUpdateEvent.cs` | 既存Subject辞書方式で撤去完了を配信・最終購読解除時に座標を除去 |
 | `moorestech_server/Assets/Scripts/Game.World/DataStore/WorldBlockDatastore.cs` | 既存の撤去通知・Destroy・辞書削除の後に完了を発火 |
 | `moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/Transport/VanillaBeltConveyorTemplate.cs` | 通常ベルコンのcontextを明示生成して渡す |
@@ -82,7 +81,6 @@ internal BeltConnectionOverride(BlockPositionInfo position,
     BeltConveyorSlopeType slope, InventoryConnects connectors);
 
 // 既存interfaceに追加。remove前通知はそのまま。
-IObservable<BlockRemoveProperties> OnBlockRemovalCompleted { get; }
 IObservable<BlockRemoveProperties> GetBlockRemovalCompletedEvent(Vector3Int subscribePos);
 ```
 
@@ -101,7 +99,7 @@ IObservable<BlockRemoveProperties> GetBlockRemovalCompletedEvent(Vector3Int subs
 
   ワールドテストはServerDIと実際のfactoryで生成する。既存 `ForUnitTestModBlockId.GearBeltConveyor`、`TestGearBeltConveyorUp`、`TestGearBeltConveyorDown` を使い、必要な通常slope fixtureは新しい期待値と同じ条件で構築する。上側候補追加→下側切断、上側候補撤去→下側接続、禁止上側候補あり→下側へfallbackしない、接続した後に無関係ブロックを置いても集合不変、撤去済みcomponentが集合に残らない、双方の設置順を検証する。分岐は3面を独立に検証する。
 
-  上側がshape不適合で下側が適合する場合も非接続になることを実Worldで検証する。Flat+Up→Flat+Downの4台を上側先／下側先で設置し、実際のsave/loadを通した別Worldで全接続集合が一致すること、ロード後の上側撤去で下側が再接続することを検証する。既存flat→機械だけの保存テストでは代用しない。200行制約に合わせ、テストはRule/World/SaveLoad/Fixture/Eventの責務別に分けてよい（各ディレクトリ10ファイル以内）。
+  上側がshape不適合で下側が適合する場合も非接続になることを実Worldで検証する。同一ownerに複数shapeがある入出力では両配列順を検証し、適合組がすべてない場合も下位ownerへ繰り下げない。Flat+Up→Flat+Downの4台を上側先／下側先で設置し、実際のsave/loadを通した別Worldで全接続集合が一致すること、ロード後の上側撤去で下側が再接続することを検証する。既存flat→機械だけの保存テストでは代用しない。200行制約に合わせ、テストはRule/World/SaveLoad/Fixture/Eventの責務別に分けてよい（各ディレクトリ10ファイル以内）。
 
 - [ ] **Step 2: 境界の選択を実装する。** 方向配列の高さ違いは同じ物理面として重複を除去し、元のconnector識別子を保持する。平坦の面高さはセル底面、上りは入力0/出力1、下りは入力1/出力0。高さはcell基準。水平境界中心の2倍座標で厳密に照合する。
 
@@ -113,7 +111,7 @@ var boundary = position.OriginalPos * 2 + Vector3Int.one
 // Example: a north-facing flat output at cell(0,0,0) is (1,0,2).
 ```
 
-  同じ境界で法線が逆向きの出力群・入力群を別々に選択する。候補の有無は相手と接続できるかより先に判定する。図の優先順で選んだ一組だけに山谷拒否とshape互換を適用する。flatの複数入出力は各面別。回転は既存関数に統一する。図が規定するNorth/East/South/Westを必須検証範囲とし、他方向を黙って別の方位へ補正しない。
+  同じ境界で法線が逆向きの出力群・入力群を別々に選択する。候補の有無は相手と接続できるかより先に判定する。図の優先順で両側のownerを選び、山谷拒否後に同じowner内のshape適合組を探索する。適合組がない場合も下位ownerへ戻らない。flatの複数入出力は各面別。回転は既存関数に統一する。図が規定するNorth/East/South/Westを必須検証範囲とし、他方向を黙って別の方位へ補正しない。
 
   上記の検証範囲は図に定義されたNorth/East/South/Westであり、既存の設置操作すべてを指さない。自己と相手の両方が保証範囲内の組だけを置換する。同じeligibility判定を候補列挙・既存集合の削除・追加に共用する。対象外selfのcontextは何も置換しない。対象内selfから対象外targetへの旧接続は残し、対象外portは新優先選択の候補に含めない。対象外と対象内が混在した境界では旧リンクと新リンクの並存があり得るため、その競合仕様はQ7の未完了事項として残す。対象外を新規則の非接続へ黙って変換しない。対象外を示す理由はブロックcontext構築時に一度開発者向けログへ出し、再評価ごとのログにはしない。
 
@@ -124,14 +122,14 @@ var boundary = position.OriginalPos * 2 + Vector3Int.one
 - [ ] **Step 3: 汎用connectorへcontextを接続する。** `TryAddDefaultTarget` を既存OnPlaceBlockから分離し、追加観測座標が旧出力辞書にない場合でも例外を出さない。`OnPlaceBlock` は次の一経路にする。
 
 ```csharp
-private void OnPlaceBlock(Vector3Int changedPosition)
+void OnPlaceBlock(Vector3Int changedPosition)
 {
     TryAddDefaultTarget(changedPosition);
     _connectionOverride.ApplyTo(_connectedTargets);
 }
 ```
 
-  default contextは何もしない。具体contextは自己と相手の両方が保証範囲にある既存ベルコン接続だけを取り除き、正本で確定した組を `ConnectedInfo` として追加する。機械宛てや対象外target宛てを消さない。既存出力の観測座標とpre削除購読は維持し、対象外リンクの撤去も取りこぼさない。初期登録・追加観測座標・撤去完了から同じApplyToを呼ぶ。生成したばかりの自分がWorld未登録でも正しく初期接続でき、Worldに登録後の自座標通知でも同じ結果になるようにする。200行を超える既存matcherは既存gear previewの公開関数を保って抽出する。
+  default contextは何もしない。具体contextは自己と相手の両方が保証範囲にある既存ベルコン接続だけを取り除き、正本で確定した組を `ConnectedInfo` として追加する。機械宛てや対象外target宛てを消さない。既存出力の観測座標とpre削除購読は維持し、対象外リンクの撤去も取りこぼさない。初期登録・追加観測座標・撤去完了から同じApplyToを呼ぶ。生成したばかりの自分がWorld未登録でも正しく初期接続でき、Worldに登録後の自座標通知でも同じ結果になるようにする。既存gear previewの公開関数と共有ペア照合はBlockConnectorComponent内に保つ。
 
   対象外self、対象外target、混在境界で上位の対象外portを候補扱いしないこと、対象外target撤去で旧リンクが消えることを実Worldテストで検証する。非zero offsetのfixtureでも同じ段階分離を検証する。これは任意geometryの完成テストではなく、確定領域の実装が未確定領域を破壊しないための検証である。
 

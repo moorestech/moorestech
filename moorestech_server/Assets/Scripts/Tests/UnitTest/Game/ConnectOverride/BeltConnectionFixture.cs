@@ -100,33 +100,37 @@ namespace Tests.UnitTest.Game.ConnectOverride
                 foreach (var name in order)
                     if (blocks.ContainsKey(name)) world.RemoveBlock(cells[name], BlockRemoveReason.ManualRemove);
             }
-        }
 
-        private static bool CentralSource(string name, string slope)
-        {
-            return name == "UpperSource" ? slope == "Flat" || slope == "Down" : slope == "Up";
-        }
+            #region Internal
 
-        private static bool CentralTarget(string name, string slope)
-        {
-            return name == "UpperTarget" ? slope == "Flat" || slope == "Up" : slope == "Down";
-        }
+            bool CentralSource(string name, string slope)
+            {
+                return name == "UpperSource" ? slope == "Flat" || slope == "Down" : slope == "Up";
+            }
 
-        private static BlockId Id(string slope, bool gear)
-        {
-            if (gear)
+            bool CentralTarget(string name, string slope)
+            {
+                return name == "UpperTarget" ? slope == "Flat" || slope == "Up" : slope == "Down";
+            }
+
+            BlockId Id(string slope, bool gear)
+            {
+                if (gear)
+                    return slope switch
+                    {
+                        "Flat" => ForUnitTestModBlockId.GearBeltConveyor,
+                        "Up" => ForUnitTestModBlockId.TestGearBeltConveyorUp,
+                        _ => ForUnitTestModBlockId.TestGearBeltConveyorDown
+                    };
                 return slope switch
                 {
-                    "Flat" => ForUnitTestModBlockId.GearBeltConveyor,
-                    "Up" => ForUnitTestModBlockId.TestGearBeltConveyorUp,
-                    _ => ForUnitTestModBlockId.TestGearBeltConveyorDown
+                    "Flat" => ForUnitTestModBlockId.BeltConveyorId,
+                    "Up" => ForUnitTestModBlockId.TestBeltConveyorUp,
+                    _ => ForUnitTestModBlockId.TestBeltConveyorDown
                 };
-            return slope switch
-            {
-                "Flat" => ForUnitTestModBlockId.BeltConveyorId,
-                "Up" => ForUnitTestModBlockId.TestBeltConveyorUp,
-                _ => ForUnitTestModBlockId.TestBeltConveyorDown
-            };
+            }
+
+            #endregion
         }
     }
 }

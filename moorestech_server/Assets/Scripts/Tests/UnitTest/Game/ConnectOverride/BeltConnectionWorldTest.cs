@@ -109,7 +109,27 @@ namespace Tests.UnitTest.Game.ConnectOverride
             world.RemoveBlock(new Vector3Int(0, 1, 0), BlockRemoveReason.ManualRemove);
             Assert.IsTrue(InventoryConnector(lower).ConnectedTargets.ContainsKey(inventory));
         }
-
+        [Test]
+        public void IncompatibleUpperInputBlocksFallbackAndRemovalRestoresLowerInput()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var world = ServerContext.WorldBlockDatastore;
+            var upperPosition = Vector3Int.up + Vector3Int.forward;
+            Assert.IsTrue(world.TryAddBlock(ForUnitTestModBlockId.TestBeltShapeDown, Vector3Int.up, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var source));
+            Assert.IsTrue(world.TryAddBlock(ForUnitTestModBlockId.TestBeltConveyorDown, Vector3Int.forward, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var lower));
+            var connector = InventoryConnector(source);
+            var lowerInventory = lower.GetComponent<VanillaBeltConveyorComponent>();
+            Assert.IsTrue(connector.ConnectedTargets.ContainsKey(lowerInventory));
+            Assert.IsTrue(world.TryAddBlock(ForUnitTestModBlockId.TestBeltShapeTarget, upperPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var upper));
+            var upperInventory = upper.GetComponent<VanillaBeltConveyorComponent>();
+            Assert.IsFalse(connector.ConnectedTargets.ContainsKey(lowerInventory));
+            Assert.IsFalse(connector.ConnectedTargets.ContainsKey(upperInventory));
+            Assert.IsTrue(world.RemoveBlock(upperPosition, BlockRemoveReason.ManualRemove));
+            Assert.IsTrue(connector.ConnectedTargets.ContainsKey(lowerInventory));
+            Assert.IsTrue(world.TryAddBlock(ForUnitTestModBlockId.TestBeltShapeTarget, upperPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out upper));
+            Assert.IsFalse(connector.ConnectedTargets.ContainsKey(lowerInventory));
+            Assert.IsFalse(connector.ConnectedTargets.ContainsKey(upper.GetComponent<VanillaBeltConveyorComponent>()));
+        }
         [Test]
         public void IneligibleOffsetSourceKeepsLegacyConnection()
         {

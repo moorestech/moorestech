@@ -22,7 +22,6 @@ namespace Tests.UnitTest.Game.ConnectOverride
             var position = new Vector3Int(5, 0, 5);
             var pre = 0;
             var completed = 0;
-            var globalCompleted = 0;
             using (events.GetBlockRemoveEvent(position).Subscribe(_ =>
                    {
                        Assert.IsTrue(world.Exists(position));
@@ -33,7 +32,6 @@ namespace Tests.UnitTest.Game.ConnectOverride
                        Assert.IsFalse(world.Exists(position));
                        completed++;
                    }))
-            using (events.OnBlockRemovalCompleted.Subscribe(_ => globalCompleted++))
             {
                 Assert.IsFalse(world.RemoveBlock(position, BlockRemoveReason.ManualRemove));
                 world.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, position,
@@ -42,7 +40,6 @@ namespace Tests.UnitTest.Game.ConnectOverride
             }
             Assert.AreEqual(1, pre);
             Assert.AreEqual(1, completed);
-            Assert.AreEqual(1, globalCompleted);
         }
 
         [Test]

@@ -62,24 +62,24 @@ namespace Client.Tests.EditModeInPlayingTest
             if (!Place(_downId, LowerTarget, "lower Down target")) return;
             if (!Place(_flatId, UpperSource, "upper Flat source")) return;
             if (!Place(_flatId, UpperTarget, "upper Flat target")) return;
-            InitiallyPresent = Presence(world);
-            InitiallyConnected = Connections(world);
+            InitiallyPresent = Presence();
+            InitiallyConnected = Connections();
 
-            // 上段の搬出側を撤去し、下段から上段への再選択を記録する。
-            // Remove the upper source and record selection from the lower to the upper row.
+            // 下段→上段の再選択を記録。
+            // Record lower-to-upper reselection after removal.
             if (!world.RemoveBlock(UpperSource, BlockRemoveReason.ManualRemove))
             {
                 FinishWithFailure("remove upper Flat source");
                 return;
             }
-            AfterRemovalPresent = Presence(world);
-            AfterRemovalConnected = Connections(world);
+            AfterRemovalPresent = Presence();
+            AfterRemovalConnected = Connections();
 
-            // 同じ位置に戻して上段同士の接続へ収束することを記録する。
-            // Restore the source and record convergence back to the upper pair.
+            // 上段再設置後の復帰を記録。
+            // Record restoration after replacing the upper source.
             if (!Place(_flatId, UpperSource, "replace upper Flat source")) return;
-            AfterReplacementPresent = Presence(world);
-            AfterReplacementConnected = Connections(world);
+            AfterReplacementPresent = Presence();
+            AfterReplacementConnected = Connections();
             Volatile.Write(ref _completed, 1);
 
             #region Internal
@@ -92,54 +92,54 @@ namespace Client.Tests.EditModeInPlayingTest
                 return false;
             }
 
+            void FinishWithFailure(string operation)
+            {
+                Failure = operation;
+                Volatile.Write(ref _completed, 1);
+            }
+
+            int Presence()
+            {
+                var mask = 0;
+                if (world.Exists(UpperSource)) mask |= 1;
+                if (world.Exists(LowerSource)) mask |= 2;
+                if (world.Exists(UpperTarget)) mask |= 4;
+                if (world.Exists(LowerTarget)) mask |= 8;
+                return mask;
+            }
+
+            int Connections()
+            {
+                var upperSource = world.GetBlock(UpperSource);
+                var lowerSource = world.GetBlock(LowerSource);
+                var upperTarget = world.GetBlock(UpperTarget);
+                var lowerTarget = world.GetBlock(LowerTarget);
+                var mask = 0;
+
+                // 実World上のsourceだけを照会し、撤去済みオブジェクトは判定から外す。
+                // Query only sources in the live world, excluding removed block objects.
+                if (upperSource != null)
+                {
+                    var targets = upperSource.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>()
+                        .ConnectedTargets;
+                    if (upperTarget != null && targets.ContainsKey(upperTarget.GetComponent<VanillaBeltConveyorComponent>()))
+                        mask |= UpperToUpper;
+                    if (lowerTarget != null && targets.ContainsKey(lowerTarget.GetComponent<VanillaBeltConveyorComponent>()))
+                        mask |= UpperToLower;
+                }
+                if (lowerSource != null)
+                {
+                    var targets = lowerSource.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>()
+                        .ConnectedTargets;
+                    if (upperTarget != null && targets.ContainsKey(upperTarget.GetComponent<VanillaBeltConveyorComponent>()))
+                        mask |= LowerToUpper;
+                    if (lowerTarget != null && targets.ContainsKey(lowerTarget.GetComponent<VanillaBeltConveyorComponent>()))
+                        mask |= LowerToLower;
+                }
+                return mask;
+            }
+
             #endregion
-        }
-
-        private void FinishWithFailure(string operation)
-        {
-            Failure = operation;
-            Volatile.Write(ref _completed, 1);
-        }
-
-        private static int Presence(IWorldBlockDatastore world)
-        {
-            var mask = 0;
-            if (world.Exists(UpperSource)) mask |= 1;
-            if (world.Exists(LowerSource)) mask |= 2;
-            if (world.Exists(UpperTarget)) mask |= 4;
-            if (world.Exists(LowerTarget)) mask |= 8;
-            return mask;
-        }
-
-        private static int Connections(IWorldBlockDatastore world)
-        {
-            var upperSource = world.GetBlock(UpperSource);
-            var lowerSource = world.GetBlock(LowerSource);
-            var upperTarget = world.GetBlock(UpperTarget);
-            var lowerTarget = world.GetBlock(LowerTarget);
-            var mask = 0;
-
-            // 実World上のsourceだけを照会し、撤去済みオブジェクトは判定から外す。
-            // Query only sources in the live world, excluding removed block objects.
-            if (upperSource != null)
-            {
-                var targets = upperSource.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>()
-                    .ConnectedTargets;
-                if (upperTarget != null && targets.ContainsKey(upperTarget.GetComponent<VanillaBeltConveyorComponent>()))
-                    mask |= UpperToUpper;
-                if (lowerTarget != null && targets.ContainsKey(lowerTarget.GetComponent<VanillaBeltConveyorComponent>()))
-                    mask |= UpperToLower;
-            }
-            if (lowerSource != null)
-            {
-                var targets = lowerSource.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>()
-                    .ConnectedTargets;
-                if (upperTarget != null && targets.ContainsKey(upperTarget.GetComponent<VanillaBeltConveyorComponent>()))
-                    mask |= LowerToUpper;
-                if (lowerTarget != null && targets.ContainsKey(lowerTarget.GetComponent<VanillaBeltConveyorComponent>()))
-                    mask |= LowerToLower;
-            }
-            return mask;
         }
     }
 }

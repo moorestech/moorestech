@@ -30,8 +30,6 @@ namespace Client.Tests.EditModeInPlayingTest
             {
                 await LoadMainGame();
 
-                // 実ゲームのマスターとサーバーtickのキューを使う。
-                // Use the live game's master data and server tick queue.
                 var entry = new BeltConnectionWorldTestEntry(
                     FindBlockIdByName("直進高速ベルトコンベア"),
                     FindBlockIdByName("上り高速ベルトコンベア"),
@@ -43,8 +41,8 @@ namespace Client.Tests.EditModeInPlayingTest
                 Assert.AreEqual(0, completed, "server tick entry timed out");
                 Assert.IsNull(entry.Failure, entry.Failure);
 
-                // 上段の選択、撤去後の下段への切替、再設置後の復帰を全候補で照合する。
-                // Check the selected pair across all candidates at placement, removal, and replacement.
+                // 全候補の選択・切替・復帰を照合。
+                // Check selection, switching, and restoration for all candidates.
                 Assert.AreEqual(BeltConnectionWorldTestEntry.AllBlocks, entry.InitiallyPresent);
                 Assert.AreEqual(BeltConnectionWorldTestEntry.UpperToUpper, entry.InitiallyConnected);
                 Assert.AreEqual(BeltConnectionWorldTestEntry.WithoutUpperSource, entry.AfterRemovalPresent);
