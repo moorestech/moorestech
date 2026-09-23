@@ -11,6 +11,10 @@ namespace Client.PlaytestReceiver.Gate
         NotAllowed,
         Unreachable,
         TicketFailed,
+
+        // 受け口は応答したが契約の形でない（版ずれ・受け口の不具合）。到達失敗の総称へ混ぜない
+        // The receiver answered but broke the contract (version skew, receiver bug); kept apart from the unreachable catch-all
+        MalformedResponse,
     }
 
     // 照合の結末。止めるか・理由の文言キー・許可されたセッションをここだけが持つ
@@ -76,6 +80,7 @@ namespace Client.PlaytestReceiver.Gate
                 if (Status == PlaytestGateStatus.NotEvaluated || Status == PlaytestGateStatus.Checking) return LocalizationKeys.Ui.Playtest.Checking;
                 if (Status == PlaytestGateStatus.NotAllowed) return LocalizationKeys.Ui.Playtest.NotAllowed;
                 if (Status == PlaytestGateStatus.TicketFailed) return LocalizationKeys.Ui.Playtest.TicketFailed;
+                if (Status == PlaytestGateStatus.MalformedResponse) return LocalizationKeys.Ui.Playtest.MalformedResponse;
                 return LocalizationKeys.Ui.Playtest.Unreachable;
             }
         }

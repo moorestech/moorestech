@@ -24,7 +24,7 @@ namespace Client.PlaytestReceiver.Gate
                 if (string.IsNullOrEmpty(authenticated.SteamId))
                 {
                     Debug.LogError("[PlaytestReceiver] allowed without a verified steamId; treating it as a contract breach and blocking the launch");
-                    return PlaytestGateResult.Blocked(PlaytestGateStatus.Unreachable, "allowed without a verified steamId");
+                    return PlaytestGateResult.Blocked(PlaytestGateStatus.MalformedResponse, "allowed without a verified steamId");
                 }
                 return PlaytestGateResult.Allowed(session, authenticated.SteamId);
             }
@@ -37,6 +37,10 @@ namespace Client.PlaytestReceiver.Gate
             {
                 return PlaytestGateResult.Blocked(PlaytestGateStatus.TicketFailed, detail);
             }
+
+            // 応答が契約の形でないのは到達失敗と別の理由で出す。総称の到達不能には到達失敗だけが落ちる
+            // A contract-breaking answer gets its own reason; only a genuine unreachability falls through to the catch-all
+            if (outcome == PlaytestSessionOutcome.MalformedResponse) return PlaytestGateResult.Blocked(PlaytestGateStatus.MalformedResponse, detail);
 
             return PlaytestGateResult.Blocked(PlaytestGateStatus.Unreachable, detail);
         }

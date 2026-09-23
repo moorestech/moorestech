@@ -60,6 +60,15 @@ namespace Client.Tests.PlaytestReceiver
         }
 
         [Test]
+        public void 契約違反の応答は到達不能と別の理由で止める()
+        {
+            var result = PlaytestGateDecision.Decide(true, true, Authenticated(PlaytestSessionOutcome.MalformedResponse, "html", null), null);
+            Assert.AreEqual(PlaytestGateStatus.MalformedResponse, result.Status);
+            Assert.IsTrue(result.IsBlocked);
+            Assert.AreEqual(LocalizationKeys.Ui.Playtest.MalformedResponse.Key, result.ReasonKey.Key);
+        }
+
+        [Test]
         public void 配布ビルドでSteamが動いているのにチケットが取れないのは止める()
         {
             var unavailable = PlaytestGateDecision.Decide(true, true, Authenticated(PlaytestSessionOutcome.TicketUnavailable, "", null), null);
@@ -93,7 +102,7 @@ namespace Client.Tests.PlaytestReceiver
                 LogAssert.Expect(LogType.Error, new Regex("allowed without a verified steamId"));
                 var result = PlaytestGateDecision.Decide(true, true, Authenticated(PlaytestSessionOutcome.Allowed, "", emptySteamId), null);
                 Assert.IsTrue(result.IsBlocked);
-                Assert.AreEqual(PlaytestGateStatus.Unreachable, result.Status);
+                Assert.AreEqual(PlaytestGateStatus.MalformedResponse, result.Status);
                 Assert.IsFalse(result.TryGetVerifiedSteamId(out _));
             }
         }
