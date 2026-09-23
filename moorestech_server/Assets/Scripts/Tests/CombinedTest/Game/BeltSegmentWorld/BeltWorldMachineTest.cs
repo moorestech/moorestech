@@ -111,8 +111,8 @@ namespace Tests.CombinedTest.Game.BeltSegmentWorld
             Assert.IsFalse(output.HasOutputItem());
             if (connected)
             {
-                // modで指定できる出力辺をconnectorの確定集合へ与え、実topologyを構築する。
-                // Supply a mod-configurable output edge to the settled connector set and build real topology.
+                // mod出力辺で実配線を構築。
+                // Build actual topology using the mod output edge.
                 var connector = source.GetComponent<IBlockConnectorComponent<IBlockInventory>>();
                 ((Dictionary<IBlockInventory, ConnectedInfo>)connector.ConnectedTargets).Add(target,
                     new ConnectedInfo(null, null, targetBlock, targetBlock.BlockPositionInfo.OriginalPos));

@@ -78,8 +78,6 @@ namespace Client.Game.InGame.BeltSegment.Rendering
         }
         public void Dispose()
         {
-            // ゲーム終了時にも購読と描画資源をまとめて解放する。
-            // Release subscriptions and draw resources when the game lifetime ends.
             subscriptions.Dispose();
             dispatch?.Dispose(); buffers?.Dispose(); materials?.Dispose();
         }

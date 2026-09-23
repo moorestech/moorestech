@@ -10,6 +10,8 @@ namespace Game.SaveLoad.Pruning.Items
     {
         // 裸のguid文字列でアイテムを指す項目。欠損のまま残すとロード時にItemMaster.GetItemIdが例外を投げる
         // Fields pointing at an item with a bare guid string; left missing, ItemMaster.GetItemId throws at load
+        // miningItemGuidsは対象比較用の文字列でロードを妨げず、除去すると採掘タイマーの復元判定が変わるため対象外。
+        // Exclude miningItemGuids: these target-comparison strings do not block loading, and pruning them would change mining-timer restoration.
         public static readonly IReadOnlyList<string> BareItemGuidPropertyNames = new[]
         {
             // VanillaElectricGeneratorSaveJsonObject の [JsonProperty("currentFuelItemGuid")]

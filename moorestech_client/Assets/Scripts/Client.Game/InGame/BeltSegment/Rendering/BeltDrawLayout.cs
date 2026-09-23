@@ -14,8 +14,8 @@ namespace Client.Game.InGame.BeltSegment.Rendering
             var entries = new List<Vector4>();
             Routes = new Vector2Int[routes.Length];
             var bounds = new Bounds(Vector3.zero, Vector3.one);
-            // Core軸をUnity軸へ変換し、表面高さを保つ。
-            // Map Core axes into Unity axes while retaining surface heights.
+            // Core→Unity軸、表面高維持。
+            // Map Core to Unity axes; retain surface height.
             for (int i = 0; i < routes.Length; i++)
             {
                 Routes[i] = new Vector2Int(cells.Count, routes[i].Cells.Length);

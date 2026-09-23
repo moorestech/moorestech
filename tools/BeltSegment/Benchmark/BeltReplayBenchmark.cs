@@ -29,8 +29,8 @@ internal static class BeltReplayBenchmark
         clock.Reset();before=GC.GetTotalAllocatedBytes(true);long packedEvents=0;
         clock.Start();foreach(var frame in frames) packedEvents+=upload.Prepare(frame);clock.Stop();
         double packingMs=clock.Elapsed.TotalMilliseconds;long packingAlloc=GC.GetTotalAllocatedBytes(true)-before;
-        // 実Coreとreplayを照合し、GUID集合と個数も別に照合。
-        // Compare actual Core/replay state hashes and independently check identity conservation.
+        // 状態hash・GUID集合/数照合。
+        // Compare Core/replay hashes and GUID set/count.
         var final=replay.CaptureSnapshot();
         var initialIds=initial.Segments.SelectMany(s=>s.Items).Select(i=>i.Item.Guid).OrderBy(i=>i).ToArray();
         var finalIds=final.Segments.SelectMany(s=>s.Items).Select(i=>i.Item.Guid).OrderBy(i=>i).ToArray();

@@ -75,8 +75,8 @@ namespace Client.Tests.BeltSegment.Rendering
             f.Simulation.Buffers.Gaps.SetData(gaps); f.Simulation.Buffers.Items.SetData(values); f.Dispatch.Recompute();
             CollectionAssert.AreEqual(new uint[] {130,129}, f.Counts());
             var positions = f.Positions().OrderByDescending(v => v.z).ToArray();
-            // 非ゼロ隙間の累積を127/128/255を含む全itemで比較する。
-            // Check accumulated nonzero gaps for every item, including lanes 127/128/255.
+            // 127/128/255隙間累積比較。
+            // Compare cumulative gaps at 127/128/255.
             for(int i=0;i<count;i++)
                 Assert.That(positions[i].z, Is.EqualTo(capacity-0.5f-distances[i]/256f).Within(0.0001f), $"logical item {i}");
         }

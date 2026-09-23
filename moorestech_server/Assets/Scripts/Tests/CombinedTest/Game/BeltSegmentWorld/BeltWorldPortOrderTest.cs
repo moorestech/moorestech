@@ -45,8 +45,8 @@ namespace Tests.CombinedTest.Game.BeltSegmentWorld
             CollectionAssert.AreEquivalent(new[] { firstDirection, secondDirection },
                 snapshot.Simulation.Outputs.Select(o => o.OutputDirection));
 
-            // RRの次の搬送がもう一方の実インベントリに届くことを確かめる。
-            // Verify that the next round-robin delivery reaches the other real inventory.
+            // 次のRRは別inventoryへ。
+            // Next RR delivery reaches the other inventory.
             f.Seed(branch, 1); f.Tick(18);
             Assert.AreEqual(1, offset.InventoryItems.Sum(i => i.Count));
             Assert.AreEqual(1, second.InventoryItems.Sum(i => i.Count));

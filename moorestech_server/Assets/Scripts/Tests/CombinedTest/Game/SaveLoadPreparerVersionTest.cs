@@ -185,6 +185,8 @@ namespace Tests.CombinedTest.Game
             };
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(options);
 
+            // 生JSONをLoadへ渡す結線退行を検出するため、欠損ブロック入り入力を本番LoadOrInitializeで検証する。
+            // Use production LoadOrInitialize with a missing block to detect wiring that passes raw JSON to Load instead of prepared output.
             Assert.DoesNotThrow(() => serviceProvider.GetService<IWorldSaveDataLoader>().LoadOrInitialize());
             Assert.IsFalse(ServerContext.WorldBlockDatastore.BlockMasterDictionary.ContainsKey(new BlockInstanceId(987662)));
         }

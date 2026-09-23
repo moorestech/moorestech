@@ -5,8 +5,8 @@ using Game.BeltSegment;
 
 namespace Client.Tests.BeltSegment.Measurement
 {
-    // Unity通信量と.NET replay/packingで同一の記録済みworkloadを共有する。
-    // Share one recorded workload between Unity wire sizing and .NET replay/packing.
+    // Unity/.NETで記録負荷を共有。
+    // Share recorded workload across Unity and .NET.
     internal sealed class BeltRecordedWorkload
     {
         internal readonly BeltReplaySnapshot Initial;

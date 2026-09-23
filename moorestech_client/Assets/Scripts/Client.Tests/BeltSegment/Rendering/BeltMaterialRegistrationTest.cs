@@ -23,8 +23,8 @@ namespace Client.Tests.BeltSegment.Rendering
             var ids=MasterHolder.ItemMaster.GetItemAllIds().Take(3).ToArray();
             var views=new Dictionary<ItemId,ItemViewData>();
             views.Add(ids[0],new ItemViewData(Texture2D.whiteTexture,MasterHolder.ItemMaster.GetItemMaster(ids[0])));
-            // 未使用の欠損kindを定義し、再構築だけでは診断しないことを確認する。
-            // An unused missing kind must not be diagnosed merely by rebuilding topology.
+            // 未使用欠損kindは無診断。
+            // Unused missing kinds emit no diagnostic.
             views.Add(ids[2],new ItemViewData((Texture2D)null,MasterHolder.ItemMaster.GetItemMaster(ids[2])));
             var images=(ItemImageContainer)Activator.CreateInstance(typeof(ItemImageContainer),BindingFlags.Instance|BindingFlags.NonPublic,null,new object[]{views},null);
             var imageProperty=typeof(ClientContext).GetProperty(nameof(ClientContext.ItemImageContainer));
@@ -51,8 +51,8 @@ namespace Client.Tests.BeltSegment.Rendering
                 world.ReceiveSnapshot(new(world.Position,2,world.CaptureCpuState(),world.Routes));
                 Assert.IsFalse(oldBuffer.IsValid()); Assert.IsTrue(oldMaterials.All(m=>m==null));
                 AssertBinding(ids[0]); AssertBinding(ids[1]); AssertNoMaterial(ids[2]);
-                // 同じ欠損kindの再構築で二度目のwarningを出さない。
-                // Rebuilding the same missing kind does not repeat its warning.
+                // 再構築で欠損警告は重複しない。
+                // Rebuild does not repeat the missing-kind warning.
                 Assert.AreEqual(1,missingWarnings);
             }
             finally

@@ -21,8 +21,8 @@ namespace Client.Game.InGame.BeltSegment.Rendering
             shader.SetVector("_CenterOffset", centerOffset);
             shader.SetBuffer(clear, "_RawPositions", draw.RawPositions);
             shader.SetBuffer(clear, "_Counts", draw.Counts); shader.SetBuffer(clear, "_Cursors", draw.Cursors);
-            // simulationの確定走行列を直接参照する。
-            // Read the accepted running queue directly from simulation buffers.
+            // 確定走行列を直接参照。
+            // Read accepted queue buffers directly.
             shader.SetBuffer(build, "_Topology", simulation.Topology); shader.SetBuffer(build, "_States", simulation.States);
             shader.SetBuffer(build, "_Gaps", simulation.Gaps); shader.SetBuffer(build, "_Items", simulation.Items);
             shader.SetBuffer(build, "_Cells", draw.Cells); shader.SetBuffer(build, "_Entries", draw.Entries);
