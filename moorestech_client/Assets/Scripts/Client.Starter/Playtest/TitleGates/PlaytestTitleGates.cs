@@ -1,3 +1,4 @@
+using System.Threading;
 using Client.Common;
 using Client.Game.InGame.BugReport.LastSession;
 using Client.Game.InGame.BugReport.Playtest;
@@ -66,13 +67,10 @@ namespace Client.Starter.Playtest.TitleGates
                 return false;
             }
 
-            var artifacts = PreviousSessionStartupTasks.SalvageAtTitle();
-            sequence = Compose(artifacts, verdict.TryGetAllowedSession(out _), uploadRequester, PlaytestStartGateBypass.UnattendedReason());
-            SetCurrentSequence(sequence);
-
             // 待ちの寿命はプロセスへ揃える。タイトルが破棄されても列は生き残り、再訪で同じ確認を答えられる（D-C1）
             // The wait lives as long as the process, so the sequence survives the title's teardown and the same confirmation can be answered on a revisit (D-C1)
-            sequence.RunAsync(Application.exitCancellationToken).Forget();
+            var artifacts = PreviousSessionStartupTasks.SalvageAtTitle();
+            sequence = BeginComposed(artifacts, verdict.TryGetAllowedSession(out _), uploadRequester, PlaytestStartGateBypass.UnattendedReason(), Application.exitCancellationToken);
             return true;
         }
 
@@ -109,9 +107,19 @@ namespace Client.Starter.Playtest.TitleGates
             return PlaytestStartVerdict.RefusedWhileConfirmationVisible;
         }
 
-        // 退避結果・照合・無人の理由からゲート一式を組む。CIはバッチモードで常に無人なので、無人の理由は引数で受けて対話起動もテストで組めるようにする
-        // Builds the gate set from the salvage result, the check and the unattended reason; CI is always unattended in batch mode, so the reason is a parameter and tests can build an attended boot too
-        internal static PlaytestTitleGateSequence Compose(PreviousSessionArtifacts artifacts, bool receiverSessionAllowed, IPlaytestUploadRequester uploadRequester, string unattendedReason)
+        // 組んだ列を現行として据えてから進める唯一の入口。CIはバッチモードで常に無人なので、無人の理由は引数で受けて対話起動もテストで組めるようにする
+        // The single entry that installs the composed sequence as the running one before advancing it; CI is always unattended in batch mode, so the reason is a parameter and tests can build an attended boot too
+        internal static PlaytestTitleGateSequence BeginComposed(PreviousSessionArtifacts artifacts, bool receiverSessionAllowed, IPlaytestUploadRequester uploadRequester, string unattendedReason, CancellationToken ct)
+        {
+            var sequence = Compose(artifacts, receiverSessionAllowed, uploadRequester, unattendedReason);
+            SetCurrentSequence(sequence);
+            sequence.RunAsync(ct).Forget();
+            return sequence;
+        }
+
+        // 退避結果・照合・無人の理由からゲート一式を組む
+        // Builds the gate set from the salvage result, the check and the unattended reason
+        private static PlaytestTitleGateSequence Compose(PreviousSessionArtifacts artifacts, bool receiverSessionAllowed, IPlaytestUploadRequester uploadRequester, string unattendedReason)
         {
             var consentAcknowledged = PlaytestConsentFlag.IsAcknowledged();
             if (unattendedReason == null)
@@ -128,7 +136,7 @@ namespace Client.Starter.Playtest.TitleGates
 
         // 現行の列を据える唯一の窓口。段階の正本はこの列なので、据え替えは開始経路の判定と同じ場所に置く
         // The single window that installs the running sequence; the step's authority is that sequence, so installing it sits with the start-path decision
-        internal static void SetCurrentSequence(PlaytestTitleGateSequence sequence)
+        private static void SetCurrentSequence(PlaytestTitleGateSequence sequence)
         {
             _current = sequence;
         }

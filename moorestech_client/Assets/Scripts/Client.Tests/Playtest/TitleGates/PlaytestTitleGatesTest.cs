@@ -6,7 +6,6 @@ using Client.PlaytestReceiver.Gate;
 using Client.Starter.Playtest.TitleGates;
 using Client.Tests.BugReport;
 using Client.Tests.PlaytestReceiver;
-using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 
 namespace Client.Tests.Playtest.TitleGates
@@ -77,7 +76,7 @@ namespace Client.Tests.Playtest.TitleGates
             PlaytestConsentFlag.Acknowledge();
             var uploads = new RecordingUploadRequester();
 
-            var sequence = Start(PlaytestTitleGates.Compose(TestPreviousSessionArtifacts.Unclean(), true, uploads, "batchMode"));
+            var sequence = PlaytestTitleGates.BeginComposed(TestPreviousSessionArtifacts.Unclean(), true, uploads, "batchMode", CancellationToken.None);
 
             Assert.AreEqual(PlaytestTitleGateStep.Passed, sequence.Step.Value);
             Assert.AreEqual(1, uploads.RequestCount);
@@ -89,7 +88,7 @@ namespace Client.Tests.Playtest.TitleGates
             if (File.Exists(PlaytestConsentFlag.FilePath)) File.Delete(PlaytestConsentFlag.FilePath);
             var uploads = new RecordingUploadRequester();
 
-            var sequence = Start(PlaytestTitleGates.Compose(TestPreviousSessionArtifacts.Clean(), true, uploads, "batchMode"));
+            var sequence = PlaytestTitleGates.BeginComposed(TestPreviousSessionArtifacts.Clean(), true, uploads, "batchMode", CancellationToken.None);
 
             Assert.AreEqual(PlaytestTitleGateStep.Passed, sequence.Step.Value);
             Assert.AreEqual(0, uploads.RequestCount);
@@ -112,7 +111,7 @@ namespace Client.Tests.Playtest.TitleGates
             PlaytestConsentFlag.Acknowledge();
             var uploads = new RecordingUploadRequester();
 
-            var sequence = Start(PlaytestTitleGates.Compose(TestPreviousSessionArtifacts.Unclean(), true, uploads, null));
+            var sequence = PlaytestTitleGates.BeginComposed(TestPreviousSessionArtifacts.Unclean(), true, uploads, null, CancellationToken.None);
 
             Assert.AreEqual(PlaytestTitleGateStep.CrashReport, sequence.Step.Value);
             Assert.AreEqual(1, uploads.RequestCount);
@@ -126,7 +125,7 @@ namespace Client.Tests.Playtest.TitleGates
             PlaytestConsentFlag.Acknowledge();
             var uploads = new RecordingUploadRequester();
 
-            var sequence = Start(PlaytestTitleGates.Compose(TestPreviousSessionArtifacts.Clean(), false, uploads, null));
+            var sequence = PlaytestTitleGates.BeginComposed(TestPreviousSessionArtifacts.Clean(), false, uploads, null, CancellationToken.None);
 
             Assert.AreEqual(PlaytestTitleGateStep.Passed, sequence.Step.Value);
             Assert.AreEqual(0, uploads.RequestCount);
@@ -170,16 +169,7 @@ namespace Client.Tests.Playtest.TitleGates
         private static PlaytestTitleGateSequence StartAttendedSequenceWithUnreadConsent(RecordingUploadRequester uploads)
         {
             if (File.Exists(PlaytestConsentFlag.FilePath)) File.Delete(PlaytestConsentFlag.FilePath);
-            return Start(PlaytestTitleGates.Compose(TestPreviousSessionArtifacts.Clean(), true, uploads, null));
-        }
-
-        // 本番と同じく、組んだ列を現行として据えてから進める。開始経路はこの列の段階を読む
-        // Just as in production, the composed sequence is installed as the running one before it advances, and the start paths read its step
-        private static PlaytestTitleGateSequence Start(PlaytestTitleGateSequence sequence)
-        {
-            PlaytestTitleGates.SetCurrentSequence(sequence);
-            sequence.RunAsync(CancellationToken.None).Forget();
-            return sequence;
+            return PlaytestTitleGates.BeginComposed(TestPreviousSessionArtifacts.Clean(), true, uploads, null, CancellationToken.None);
         }
     }
 }
