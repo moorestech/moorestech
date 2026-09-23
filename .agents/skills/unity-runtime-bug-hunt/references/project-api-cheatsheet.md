@@ -59,7 +59,7 @@ if (mgr.TryGetComponent<BlockConnectorComponent<IBlockInventory>>(out var conn))
 
 moorestech では `ServerGameUpdater.StartUpdate` が別スレッドで `GameUpdater.Update()` を 50ms ごとに叩く。このスレッドが死ぬと `BlockSystem.Update()` が一切呼ばれなくなる。
 
-`mcp__rider-debugger__list_threads` → 返却される threads[] 内に `"[moorestech]ゲームアップデートスレッド"` が存在するか確認。無ければ initialization pipeline が更新ループを起動していない。
+`execute-dynamic-code` で `Core.Update.GameUpdater.CurrentTick` を数百ms空けて2回読み、進んでいるかで判定する。進まなければ initialization pipeline が更新ループを起動していない。
 
 ### よくある名前ミス
 
@@ -67,8 +67,7 @@ moorestech では `ServerGameUpdater.StartUpdate` が別スレッドで `GameUpd
 |---|---|---|
 | `BlockPositionInfo.OriginPos` | `OriginalPos` | プロパティ名 |
 | `block.TryGetComponent<T>` | `block.ComponentManager.TryGetComponent<T>` | IBlock は Unity の GameObject ではない |
-| `itemStack is ItemStack` (BP条件内) | `is Core.Item.Implementation.ItemStack` | internal クラスは FQN 必須 |
-| `chest.InventoryItems.Count`（debugger内） | `_itemDataStoreService._inventory._size` | property getter は debugger で評価不可 |
+| `itemStack is ItemStack`（動的コード内） | `is Core.Item.Implementation.ItemStack` | internal クラスは FQN 必須 |
 
 ### PlayMode 起動を伴うテストユーティリティ
 

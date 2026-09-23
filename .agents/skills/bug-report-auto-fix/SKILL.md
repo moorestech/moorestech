@@ -151,7 +151,7 @@ PLAYTEST_WORLD_DIRECTORY=$WORLD_DIR PLAYTEST_MAP_MODE=$OBSERVE_MAP_MODE PLAYTEST
 
 ## Step 4: 原因特定
 
-`debug-workflow` スキルを起動する。症状＝説明文＋観察結果、既知の試行＝Step 3、尊重すべき制約＝AGENTS.md。ログ仕込みは `$WORKTREE` 内で行い、Step 3 のシナリオで観察する。
+`unity-runtime-bug-hunt` スキルを起動する。症状＝説明文＋観察結果、既知の試行＝Step 3、尊重すべき制約＝AGENTS.md。ランタイム状態のスナップショットは `$WORKTREE` の Editor で取り、再現には Step 3 のシナリオを使う。
 
 原因が「期待挙動そのものが決まっていない」に行き着いたら、そこで実装へ進まず Step 9 の `needs_ruling` へ抜ける。
 
