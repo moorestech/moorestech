@@ -1,8 +1,16 @@
-# Project API Cheatsheet
+# ユースケース: ランタイム状態を動的コードで観測する（原因調査の API 早見表）
 
-Step 3 で動的コードを書くときに参照する、プロジェクト固有のエントリーポイント集。対象プロジェクトで検証済みの API・名前・典型パターンを追記していく。未登録のプロジェクトで作業するときは最初にここへエントリを追加する。
+PlayMode 中の「何が存在していて、どうなっているか」を `uloop execute-dynamic-code` で1コール取るときのエントリーポイント集。
+黄金律は **推測で直さず、状態の真実を先に取る**。呼ばれているかの確認は一時 `Debug.Log("[hunt] ...")` を入れ `uloop get-logs --search-text "[hunt]"` で見る（`.cs` 編集の前に必ず PlayMode を停止し、調査後は `[hunt]` を全て除去する）。
 
-## moorestech (client-server統合版)
+## 「見えない」は推論でなく probe の結果として宣言する
+
+`_localServerProcess (Process)` のような field 名を見て「サーバーは別OSプロセスだから見えない」と結論し、動的コードを試さずに諦めた実例がある。実際は PlayMode 中は同一プロセスで `ServerContext.*` が普通に引けた。field 名・型名はデプロイモードごとに意味が変わるので、「この状態は見えない」と言う前に該当エントリーポイントを1回叩く。返れば見える、throw / null なら見えない。
+
+```csharp
+var ctx = Game.Context.ServerContext.WorldBlockDatastore;
+return ctx == null ? "null" : $"OK count={ctx.BlockMasterDictionary.Count}";
+```
 
 ### プロセス構成: PlayMode では同一プロセス
 
