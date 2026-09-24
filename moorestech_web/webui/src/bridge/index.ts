@@ -13,6 +13,6 @@ export { blockIconUrl, itemIconUrl, fluidIconUrl, itemMasterUrl, fluidMasterUrl,
 export { setToastSink } from "./transport/notify";
 export type { NotifyVariant } from "./transport/notify";
 export { NestedPauseSubStateNames, PauseMenuPageNames, PauseMenuReportKinds, Topics, UiStateNames } from "./transport/protocol";
-export type { TopicPayloads, ActionPayloads, PauseMenuPageName, PauseMenuReportKind } from "./transport/protocol";
+export type { TopicPayloads, ActionPayloads, ActionResultPayloads, PauseMenuPageName, PauseMenuReportKind } from "./transport/protocol";
 export { initBridge, sendInputState } from "./transport/webSocketClient";
 export type * from "./contract/payloadTypes";

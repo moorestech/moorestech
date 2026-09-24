@@ -149,3 +149,9 @@ export const NotificationDataSchema = z.union([
   ItemEarnedNotificationSchema,
   MessageNotificationSchema,
 ]);
+
+// 送った報告に欠けた記録があれば、成功応答でその名前を返す
+// A successful submission returns the names of any records missing from the sent report
+export const BugReportSubmitResultSchema = z.object({
+  missing: z.array(z.string()),
+}).strict();

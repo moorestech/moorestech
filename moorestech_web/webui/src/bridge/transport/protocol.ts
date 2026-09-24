@@ -119,4 +119,4 @@ export type TopicPayloads = {
 // 200行制限でactionContract.tsへ分離
 // Split into actionContract.ts for the 200-line rule
 export { NestedPauseSubStateNames, PauseMenuPageNames, PauseMenuReportKinds, UiStateNames, ACTION_TYPES } from "./actionContract";
-export type { ActionPayloads, ActionType, ActionTypesExhaustive, PauseMenuPageName, PauseMenuReportKind } from "./actionContract";
+export type { ActionPayloads, ActionResultPayloads, ActionType, ActionTypesExhaustive, PauseMenuPageName, PauseMenuReportKind } from "./actionContract";

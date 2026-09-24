@@ -66,6 +66,19 @@ describe("BugReportForm submission results", () => {
     act(() => renderer.unmount());
   });
 
+  it("応答payloadの契約違反時は成功表示せず入力を残す", async () => {
+    const renderer = await render({ kind: "ready", missing: [] });
+    const textarea = renderer.root.findByProps({ "data-testid": "bug-report-description" });
+    act(() => textarea.props.onChange({ currentTarget: { value: "ベルトが止まる" } }));
+    mocks.dispatchActionOutcome.mockResolvedValueOnce({ kind: "rejected", error: "invalid_response" });
+
+    await act(async () => sendButton(renderer).props.onClick());
+
+    expect(mocks.emitToast).not.toHaveBeenCalled();
+    expect(textarea.props.value).toBe("ベルトが止まる");
+    act(() => renderer.unmount());
+  });
+
   // 種別を残すと、感想を1件送った次のバグ報告が feedback のまま箱詰めされる
   // Leaving the kind boxes the bug report that follows a feedback submission as feedback
   it("送信成功後は種別が既定のバグへ戻る", async () => {

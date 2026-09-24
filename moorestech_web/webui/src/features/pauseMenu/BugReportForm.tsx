@@ -37,7 +37,7 @@ export function BugReportForm({ status, draft }: Props) {
 
     // 再確保後のtopicではなく、送った箱に確定した欠損をaction結果から読む
     // Read the gaps settled for the sent bundle from the action result, not the topic after recapture
-    const missing = parseSubmittedMissing(result.payload);
+    const missing = result.payload.missing;
     if (missing.length === 0) emitToast(t(L.ui.bugReport.sent), "info");
     else emitToast(t(L.ui.bugReport.missing, { items: missing.join(", ") }), "error");
 
@@ -93,10 +93,4 @@ export function BugReportForm({ status, draft }: Props) {
     if (status.missing.length === 0) return null;
     return t(L.ui.bugReport.missing, { items: status.missing.join(", ") });
   }
-}
-
-function parseSubmittedMissing(payload: unknown): string[] {
-  if (typeof payload !== "object" || payload === null || !("missing" in payload)) return [];
-  const missing = payload.missing;
-  return Array.isArray(missing) && missing.every((item) => typeof item === "string") ? missing : [];
 }

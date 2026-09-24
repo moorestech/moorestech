@@ -1,17 +1,20 @@
 import { describe, it, expect } from "vitest";
-
-import { parseTopicPayload } from "./validators";
+import { parseActionResultPayload, parseTopicPayload } from "./validators";
 import { loadFixture } from "./wireFixtures.test-helper";
 import { BENIGN_ERRORS } from "../transport/actions";
 import { TopicEnvelopeSchema, Topics } from "../transport/protocol";
 import type { PlayerInventoryData, BlockInventoryData, ProgressData, ModalData, UiStateData, BuildMenuData, ChallengeTreeData, ChallengeCurrentData, PauseMenuData, NotificationData } from "./payloadTypes";
 
 describe("wire contract fixtures (shared with C#)", () => {
+  it("bug_report.submit の成功応答fixtureを受理する", () => {
+    const result = parseActionResultPayload("bug_report.submit", loadFixture("bug_report_submit_result.json"));
+    expect(result.registered).toBe(true);
+    if (result.registered && result.valid) expect(result.value.missing).toEqual(["video", "serverSnapshot"]);
+  });
   it("削除した重複採掘HUD topicと読み手のない削除モードtopicを公開しない", () => {
     expect(Object.values(Topics)).not.toContain("ui.mining_hud");
     expect(Object.values(Topics)).not.toContain("ui.delete_mode");
   });
-
   it("accepts Phase C4 presentation fixtures", () => {
     expect(parseTopicPayload(Topics.gameState, loadFixture("game_state.json")).valid).toBe(true);
     expect(parseTopicPayload(Topics.tutorialPresentation, loadFixture("tutorial_presentation.json")).valid).toBe(true);
@@ -32,13 +35,11 @@ describe("wire contract fixtures (shared with C#)", () => {
     expect(inv.selectedEquipment).toBe(1);
     expect(inv.equipmentSelectionConfirmationRevision).toBe(7);
   });
-
   it("block_inventory は open(presence)/closed(omission) の両方が受理される", () => {
     const open = loadFixture("block_inventory_open.json");
     const closed = loadFixture("block_inventory_closed.json");
     expect(parseTopicPayload(Topics.blockInventory, open).valid).toBe(true);
     expect(parseTopicPayload(Topics.blockInventory, closed).valid).toBe(true);
-
     const openData = open as BlockInventoryData;
     expect(openData.open).toBe(true);
     if (openData.open && openData.source === "block") {
@@ -46,19 +47,16 @@ describe("wire contract fixtures (shared with C#)", () => {
       expect(openData.fluidSlots.length).toBe(1);
       expect(openData.progress).toBe(0.5);
     }
-
     const closedData = closed as BlockInventoryData;
     expect(closedData.open).toBe(false);
     // 閉状態は他フィールドが省略される
     // The closed state omits every other field
     expect("blockType" in closedData).toBe(false);
   });
-
   it("train.riding と貨車inventory fixtureを受理する", () => {
     expect(parseTopicPayload(Topics.trainRiding, loadFixture("train_riding.json")).valid).toBe(true);
     expect(parseTopicPayload(Topics.blockInventory, loadFixture("train_inventory.json")).valid).toBe(true);
   });
-
   it("progress は label あり(presence)/なし(omission) の両方が受理される", () => {
     const withLabel = loadFixture("progress_with_label.json");
     const noLabel = loadFixture("progress_no_label.json");
