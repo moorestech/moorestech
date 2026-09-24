@@ -45,7 +45,7 @@ const topicFixtures: TopicFixtureRegistry = {
   [Topics.consentGate]: () => ({ waiting: false, precedence: fx.StartGatePrecedence.consent }),
   [Topics.challengeTree]: () => fx.challengeTree,
   [Topics.challengeCurrent]: () => fx.challengeCurrent,
-  [Topics.pauseMenu]: () => ({ disconnected: false, bugReport: { kind: "ready", missing: [] } }),
+  [Topics.pauseMenu]: () => ({ disconnected: false, bugReport: { kind: "ready", missing: [] }, page: state.pauseMenuPage }),
   [Topics.placementMode]: () => ({
     selectedTargetType: "raw", selectedName: "", height: 0, unavailableReason: "", wheelOwnedByTool: false,
   }),

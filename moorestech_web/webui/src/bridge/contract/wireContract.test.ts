@@ -102,10 +102,11 @@ describe("wire contract fixtures (shared with C#)", () => {
     expect((data as UiStateData).state).toBe("PlayerInventory");
   });
 
-  it("pause_menu が切断状態を受理する", () => {
+  it("pause_menu が切断状態と今の画面を受理する", () => {
     const data = loadFixture("pause_menu.json");
     expect(parseTopicPayload(Topics.pauseMenu, data).valid).toBe(true);
     expect((data as PauseMenuData).disconnected).toBe(true);
+    expect((data as PauseMenuData).page).toBe("bugReport");
   });
 
   it("C2 HUD/common fixtures are accepted", () => {

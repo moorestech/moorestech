@@ -114,6 +114,14 @@ export function attachWsHandlers(wss: WebSocketServer) {
           setTimeout(() => {
             for (const sub of subscribersOf(Topics.modal)) send(sub, { op: "event", topic: Topics.modal, data: { modal: null } });
           }, 30);
+        } else if (msg.type === "pause_menu.show_page") {
+          state.pauseMenuPage = (msg.payload as ActionPayloads["pause_menu.show_page"]).page;
+          const pauseMenuOverride = state.topicOverrides.get(Topics.pauseMenu) as { page?: string } | undefined;
+          if (pauseMenuOverride) state.topicOverrides.set(Topics.pauseMenu, { ...pauseMenuOverride, page: state.pauseMenuPage });
+          setTimeout(() => {
+            const data = topicData(Topics.pauseMenu, inv, demoMode);
+            for (const sub of subscribersOf(Topics.pauseMenu)) send(sub, { op: "event", topic: Topics.pauseMenu, data });
+          }, 30);
         } else if (msg.type === "block_inventory.move_item") {
           const moveError = applyBlockMove(inv, state.currentBlock, msg.payload as ActionPayloads["block_inventory.move_item"]);
           if (moveError) error = moveError;
