@@ -1,7 +1,7 @@
+using Core.Update;
 using Game.Train.RailGraph;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Game.Train.Unit;
 
 namespace Game.Train.Diagram
@@ -13,6 +13,7 @@ namespace Game.Train.Diagram
         private ITrainDiagramContext _context;
         private readonly IRailGraphProvider _railGraphProvider;
         private readonly TrainDiagramManager _diagramManager;
+        private bool _isCurrentEntryChanged;
 
         public IReadOnlyList<TrainDiagramEntry> Entries => _entries;
         public int CurrentIndex => _currentIndex;
@@ -44,52 +45,14 @@ namespace Game.Train.Diagram
         {
             _entries.Clear();
             _currentIndex = -1;
+            _isCurrentEntryChanged = false;
+            TrainDiagramSaveDataConverter.Restore(this, saveData, _railGraphProvider);
+        }
 
-            if (saveData == null || saveData.Entries == null)
-            {
-                return;
-            }
-
-            foreach (var entryData in saveData.Entries)
-            {
-                if (entryData == null)
-                {
-                    continue;
-                }
-                
-                var node = _railGraphProvider.ResolveRailNode(entryData.Node);
-                if (node == null)
-                {
-                    continue;
-                }
-
-                var entry = TrainDiagramEntry.CreateFromSaveData(
-                    node,
-                    entryData.EntryId,
-                    entryData.DepartureConditions,
-                    entryData.WaitForTicksInitial,
-                    entryData.WaitForTicksRemaining);
-
-                _entries.Add(entry);
-            }
-
-            if (_entries.Count == 0)
-            {
-                _currentIndex = -1;
-                return;
-            }
-
-            var restoredIndex = saveData.CurrentIndex;
-            if (restoredIndex < -1)
-            {
-                restoredIndex = -1;
-            }
-            else if (restoredIndex >= _entries.Count)
-            {
-                restoredIndex = _entries.Count - 1;
-            }
-
-            _currentIndex = restoredIndex;
+        internal void SetRestoredEntries(List<TrainDiagramEntry> entries, int currentIndex)
+        {
+            _entries.AddRange(entries);
+            _currentIndex = currentIndex;
         }
 
         internal void SetContext(ITrainDiagramContext context)
@@ -97,84 +60,59 @@ namespace Game.Train.Diagram
             _context = context;
         }
 
-        //最後に追加
         public TrainDiagramEntry AddEntry(IRailNode node)
         {
-            if (_currentIndex < 0)
-                _currentIndex = 0;
-            var entry = new TrainDiagramEntry(node);
-            _entries.Add(entry);
-            return entry;
+            return TrainDiagramEntryOperations.Add(_entries, ref _currentIndex, node);
         }
-        //最後に追加のcondition付き
-        public TrainDiagramEntry AddEntry(IRailNode node, DepartureConditionType departureConditionType, int waitTicks = 0)
+
+        public TrainDiagramEntry AddEntry(IRailNode node, DepartureConditionType departureConditionType, int waitTicks)
         {
-            var entry = AddEntry(node);
-            if (departureConditionType == DepartureConditionType.WaitForTicks)
-            {
-                entry.SetDepartureWaitTicks(waitTicks);
-            }
-            else 
-            {
-                entry.SetDepartureCondition(departureConditionType);
-            }
-            return entry;
+            return TrainDiagramEntryOperations.Add(_entries, ref _currentIndex, node, departureConditionType, waitTicks);
         }
-        //index指定して追加
+
         public TrainDiagramEntry InsertEntry(int index, IRailNode node)
         {
-            if (_currentIndex < 0)
-                _currentIndex = 0;
-            if (index < 0)
+            return TrainDiagramEntryOperations.Insert(_entries, ref _currentIndex, index, node);
+        }
+
+        // 時刻表を丸ごと置き換え、現在地を先頭へ戻す
+        // Replace the whole timetable and reset the cursor to its first stop
+        public void ReplaceEntries(IReadOnlyList<IRailNode> stationNodes)
+        {
+            _entries.Clear();
+            _currentIndex = -1;
+            foreach (var node in stationNodes)
             {
-                index = 0;
+                AddEntry(node, DepartureConditionType.WaitForTicks, GameUpdater.TicksPerSecond);
             }
-            else if (index > _entries.Count)
-            {
-                index = _entries.Count;
-            }
-            var entry = new TrainDiagramEntry(node);
-            _entries.Insert(index, entry);
-            return entry;
+            _isCurrentEntryChanged = true;
+        }
+
+        // 現在地の変化を一度だけ通知側へ渡す
+        // Pass a cursor change to the notifier exactly once
+        public bool ConsumeCurrentEntryChanged()
+        {
+            var changed = _isCurrentEntryChanged;
+            _isCurrentEntryChanged = false;
+            return changed;
         }
 
         public void Update()
         {
-            if (_currentIndex < 0)
-            {
-                return;
-            }
-
-            if (!TryGetActiveEntry(out var currentEntry))
-            {
-                _currentIndex = -1;
-                return;
-            }
-
-            currentEntry.Tick(_context);
+            TrainDiagramEntryOperations.Tick(_entries, ref _currentIndex, _context);
         }
 
         public bool CanCurrentEntryDepart()
         {
-            if (_currentIndex < 0)
-            {
-                return true;
-            }
-
-            if (!TryGetActiveEntry(out var currentEntry))
-            {
-                _currentIndex = -1;
-                return true;
-            }
-
-            return currentEntry.CanDepart(_context);
+            return TrainDiagramEntryOperations.CanDepart(_entries, ref _currentIndex, _context);
         }
 
         public IRailNode GetCurrentNode()
         {
             return TryGetActiveEntry(out var entry) ? entry.Node : null;
         }
-        //getNextのguid版
+        // 現在のエントリIDを返す
+        // Return the current entry ID
         public Guid GetCurrentGuid()
         {
             return TryGetActiveEntry(out var entry) ? entry.entryId : Guid.Empty;
@@ -189,6 +127,7 @@ namespace Game.Train.Diagram
             }
 
             _currentIndex = (_currentIndex + 1) % _entries.Count;
+            _isCurrentEntryChanged = true;
         }
 
         // 出発時に現在entryの状態を初期化してから次entryへ移動する。
@@ -203,43 +142,24 @@ namespace Game.Train.Diagram
             MoveToNextEntry();
         }
 
-        //node削除時かならず呼ばれます->entriesの中身は常に実在するnodeのみ
-        //currentIndexも削除対象なら暗黙的に次のnodeに移動します
+        // ノード削除時に現在地を補正する
+        // Adjust the cursor when a rail node is removed
         public void HandleNodeRemoval(IRailNode removedNode)
         {
             if (removedNode == null)
+            {
+                UnityEngine.Debug.LogWarning("[TrainDiagram] Cannot remove a null rail node.");
                 return;
-            var isCurrentEntryRemoved = false;
-            for (var i = _entries.Count - 1; i >= 0; i--)
-            {
-                if (!_entries[i].MatchesNode(removedNode))
-                {
-                    continue;
-                }
-
-                if (_currentIndex >= 0 && i < _currentIndex)
-                {
-                    _currentIndex--;
-                }
-                else if (_currentIndex >= 0 && i == _currentIndex)
-                {
-                    isCurrentEntryRemoved = true;
-                }
-                _entries.RemoveAt(i);
             }
-
-            if (_entries.Count == 0)
+            _currentIndex = TrainDiagramNodeRemoval.Remove(
+                _entries, _currentIndex, removedNode, out var removedAny, out var currentRemoved);
+            if (removedAny)
             {
-                _currentIndex = -1;
-            }
-            else 
-            {
-                _currentIndex %= _entries.Count;
-            }
-
-            if (isCurrentEntryRemoved && _entries.Count > 0)
-            {
-                _context?.OnCurrentEntryShiftedByRemoval();
+                _isCurrentEntryChanged = true;
+                if (currentRemoved && _entries.Count > 0)
+                {
+                    _context?.OnCurrentEntryShiftedByRemoval();
+                }
             }
         }
 
@@ -260,7 +180,8 @@ namespace Game.Train.Diagram
             return true;
         }
 
-        //到着時発車条件リセット
+        // 到着時に出発条件をリセットする
+        // Reset departure conditions on arrival
         public void ResetCurrentEntryDepartureConditions()
         {
             if (TryGetActiveEntry(out var entry))
@@ -271,24 +192,7 @@ namespace Game.Train.Diagram
 
         public TrainDiagramSaveData CreateTrainDiagramSaveData()
         {
-            var entries = new List<TrainDiagramEntrySaveData>();
-            foreach (var entry in this.Entries)
-            {
-                entries.Add(new TrainDiagramEntrySaveData
-                {
-                    EntryId = entry.entryId,
-                    Node = entry.Node.ConnectionDestination,
-                    DepartureConditions = entry.DepartureConditionTypes?.ToList() ?? new List<DepartureConditionType>(),
-                    WaitForTicksInitial = entry.GetWaitForTicksInitialTicks(),
-                    WaitForTicksRemaining = entry.GetWaitForTicksRemainingTicks()
-                });
-            }
-
-            return new TrainDiagramSaveData
-            {
-                CurrentIndex = this.CurrentIndex,
-                Entries = entries
-            };
+            return TrainDiagramSaveDataConverter.Create(this);
         }
     }
 }

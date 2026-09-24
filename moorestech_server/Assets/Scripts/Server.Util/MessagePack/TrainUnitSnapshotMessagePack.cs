@@ -40,6 +40,9 @@ namespace Server.Util.MessagePack
         [Key(3)] public int MasconLevel { get; set; }
         [Key(4)] public List<TrainCarSnapshotMessagePack> Cars { get; set; }
         [Key(5)] public int ManualBranchSelectionIndex { get; set; }
+        [Key(6)] public bool IsAutoRun { get; set; }
+        [Key(7)] public int TimetableCurrentIndex { get; set; }
+        [Key(8)] public List<TrainTimetableStopMessagePack> TimetableStops { get; set; }
 
         [Obsolete("Reserved for MessagePack serialization.")]
         public TrainSimulationSnapshotMessagePack() { }
@@ -53,18 +56,26 @@ namespace Server.Util.MessagePack
             ManualBranchSelectionIndex = snapshot.ManualBranchSelectionIndex;
             Cars = snapshot.Cars?.Select(car => new TrainCarSnapshotMessagePack(car)).ToList()
                    ?? new List<TrainCarSnapshotMessagePack>();
+            IsAutoRun = snapshot.IsAutoRun;
+            TimetableCurrentIndex = snapshot.TimetableCurrentIndex;
+            TimetableStops = snapshot.TimetableStops?.Select(stop => new TrainTimetableStopMessagePack(stop)).ToList()
+                             ?? new List<TrainTimetableStopMessagePack>();
         }
 
         public TrainSimulationSnapshot ToModel()
         {
             var cars = Cars?.Select(car => car.ToModel()).ToArray() ?? Array.Empty<TrainCarSnapshot>();
+            var stops = TimetableStops?.Select(stop => stop.ToModel()).ToArray() ?? Array.Empty<TrainTimetableStopSnapshot>();
             return new TrainSimulationSnapshot(
                 TrainUnitInstanceId,
                 CurrentSpeed,
                 AccumulatedDistance,
                 MasconLevel,
                 ManualBranchSelectionIndex,
-                cars);
+                cars,
+                IsAutoRun,
+                TimetableCurrentIndex,
+                stops);
         }
     }
 
