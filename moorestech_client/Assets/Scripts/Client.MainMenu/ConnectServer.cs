@@ -4,8 +4,8 @@ using System.Net.Sockets;
 using Client.Common;
 using Client.Localization;
 using Client.MainMenu.PopUp;
-using Client.PlaytestReceiver.Gate;
 using Client.Starter;
+using Client.Starter.Playtest.TitleGates;
 using Mooresmaster.Localization.Generated;
 using Server.Boot;
 using TMPro;
@@ -35,12 +35,23 @@ namespace Client.MainMenu
 
         private void Connect()
         {
-            // 同じ関所を通す。判定と拒否理由の文言はPlaytestLaunchGate 1箇所にしか無い
-            // The same gate is consulted here; the decision and the refusal text live only in PlaytestLaunchGate
-            if (!PlaytestLaunchGate.TryPassStart(nameof(Connect), out var gateDenyReasonText))
+            // 同じ関所を通す。照合とタイトルの確認の2段はPlaytestTitleGates 1箇所に閉じており、接続先がリモートでも同じく通す（ADR 0065）
+            // The same checkpoint is consulted here; both stages live inside PlaytestTitleGates alone, and a remote destination goes through it just the same (ADR 0065)
+            var verdict = PlaytestTitleGates.EvaluateStart(nameof(Connect), out var refusal);
+            switch (verdict)
             {
-                serverConnectPopup.SetText(gateDenyReasonText);
-                return;
+                case PlaytestStartVerdict.Passed:
+                    break;
+                case PlaytestStartVerdict.RefusedWithNotice:
+                    serverConnectPopup.SetText(refusal.NoticeText);
+                    return;
+                case PlaytestStartVerdict.RefusedWhileConfirmationVisible:
+                    // 答えるべき確認が画面に出ている。理由はゲートがログへ出している
+                    // The confirmation to answer is already on screen; the gate logged the reason
+                    return;
+                default:
+                    Debug.LogError($"[ConnectServer] 未知の開始判定 {verdict} のため接続しません");
+                    return;
             }
 
             var playerId = PlayerPrefs.GetInt(PlayerPrefsKeys.PlayerIdKey);

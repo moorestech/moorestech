@@ -68,7 +68,7 @@ namespace Client.Game.InGame.BugReport.LastSession
 
             // 保存元とsessionの両方が同じ所有者を指す場合だけ次回回収を許す
             // Next-boot salvage requires both the source and session to name the same owner
-            var ownedOrigin = new SessionOriginSnapshot(origin.SteamId, origin.BuildOrigin, SessionSnapshotCapture.Started(snapshotDirectory, processId, sessionName));
+            var ownedOrigin = origin.WithSnapshotCapture(SessionSnapshotCapture.Started(snapshotDirectory, processId, sessionName));
             ownedOrigin.WriteTo(Path.Combine(snapshotDirectory, WorldDataDirectory.SnapshotOwnerFileName));
             ownedOrigin.WriteTo(originPath);
         }

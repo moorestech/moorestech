@@ -24,7 +24,7 @@ namespace Client.Tests.BugReport
             _root = Path.Combine(Path.GetTempPath(), $"capture-registration-{Guid.NewGuid():N}");
             ProcessSessionScope.BeginNewSession();
             _session = ProcessSessionScope.CurrentSessionName;
-            CleanExitMarker.MarkSessionStarted(RecordingProcessDirectories.CurrentProcessId(), _session, new SessionOriginSnapshot(null, BuildOriginReading.Editor()));
+            CleanExitMarker.MarkSessionStarted(RecordingProcessDirectories.CurrentProcessId(), _session, new SessionOriginSnapshot(null, "テストで差し込まれていないSteamID", BuildOriginReading.Editor()));
         }
 
         [TearDown]

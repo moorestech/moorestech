@@ -3,7 +3,6 @@ using Client.Tests.WebUi.Gate;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Game.Actions.EventMode;
 using Client.WebUiHost.Game.EventMode;
-using Client.WebUiHost.Game.StartGates;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 
@@ -17,30 +16,21 @@ namespace Client.Tests.EventMode
             Localize.Initialize();
         }
 
-        // Web側は precedence が欠けた payload を拒否する。待機と一緒に順番も必ず配る
-        // The web rejects a payload without precedence, so the order always travels with the wait
+        // 開始を止めるゲートは言語選択1枚なので、配るのは waiting だけで順序は持たない
+        // The language gate is the only one holding the start, so only waiting travels and no order comes with it
         [Test]
-        public void Snapshotは待機状態をwaitingとして順番をprecedenceとして配る()
+        public void Snapshotは待機状態をwaitingとして配り順序は持たない()
         {
             var gate = new EventLanguageGate(true);
-            var topic = new WaitingGateTopic(new WebSocketHub(), StartGateTopics.EventLanguageName, StartGateTopics.EventLanguagePrecedence, gate);
+            var topic = new EventLanguageGateTopic(new WebSocketHub(), gate);
 
             var waitingJson = JObject.Parse(topic.GetSnapshotJsonAsync().GetAwaiter().GetResult());
             Assert.IsTrue(waitingJson["waiting"].Value<bool>());
-            Assert.AreEqual(StartGateTopics.EventLanguagePrecedence, waitingJson["precedence"].Value<int>());
+            Assert.IsNull(waitingJson["precedence"]);
 
             gate.TrySelectLanguage("english");
             var selectedJson = JObject.Parse(topic.GetSnapshotJsonAsync().GetAwaiter().GetResult());
             Assert.IsFalse(selectedJson["waiting"].Value<bool>());
-        }
-
-        // precedence は起動時に待つ順（言語→同意→前回異常終了）そのもの。並びが崩れると同時待機で後ろのゲートが前に出る
-        // Precedence is the boot-time wait order itself (language, consent, crash); a broken sequence would put a later gate in front
-        [Test]
-        public void 開始ゲートの順番は言語_同意_前回異常終了の順に小さい()
-        {
-            Assert.Less(StartGateTopics.EventLanguagePrecedence, StartGateTopics.ConsentPrecedence);
-            Assert.Less(StartGateTopics.ConsentPrecedence, StartGateTopics.CrashReportPrecedence);
         }
 
         [Test]
@@ -66,11 +56,11 @@ namespace Client.Tests.EventMode
         {
             var hub = new WebSocketHub();
             var gate = new EventLanguageGate(true);
-            WaitingGateTopic.Register(hub, StartGateTopics.EventLanguageName, StartGateTopics.EventLanguagePrecedence, gate);
+            EventLanguageGateTopic.Register(hub, gate);
 
-            var revisionBefore = hub.GetTopicRevision(StartGateTopics.EventLanguageName);
+            var revisionBefore = hub.GetTopicRevision(EventLanguageGateTopic.TopicName);
             gate.TrySelectLanguage("english");
-            var revisionAfter = hub.GetTopicRevision(StartGateTopics.EventLanguageName);
+            var revisionAfter = hub.GetTopicRevision(EventLanguageGateTopic.TopicName);
 
             Assert.Greater(revisionAfter, revisionBefore);
         }
@@ -82,7 +72,7 @@ namespace Client.Tests.EventMode
 
             EventLanguageGateBinder.Bind(hub, true);
 
-            Assert.IsNotNull(hub.ResolveTopic(StartGateTopics.EventLanguageName));
+            Assert.IsNotNull(hub.ResolveTopic(EventLanguageGateTopic.TopicName));
             Assert.IsNotNull(hub.ResolveAction("event_mode.select_language"));
         }
 
@@ -93,7 +83,7 @@ namespace Client.Tests.EventMode
 
             EventLanguageGateBinder.Bind(hub, false);
 
-            StartGateTopicAssert.AssertWaiting(hub, StartGateTopics.EventLanguageName, false, StartGateTopics.EventLanguagePrecedence);
+            StartGateTopicAssert.AssertWaiting(hub, EventLanguageGateTopic.TopicName, false);
             Assert.IsNotNull(hub.ResolveAction("event_mode.select_language"));
         }
     }

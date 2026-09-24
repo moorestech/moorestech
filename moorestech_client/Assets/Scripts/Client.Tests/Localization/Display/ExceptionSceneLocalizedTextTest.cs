@@ -5,6 +5,7 @@ using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.SceneManagement;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace Client.Tests.Localization.Display
@@ -47,6 +48,45 @@ namespace Client.Tests.Localization.Display
             }
         }
 
+        // タイトルのプレイテスト確認は静的ラベルをシーン側で翻訳する。C#流し込みへ戻ると表示中の言語切替に追従しなくなる
+        // The title's playtest confirmations localize their static labels in the scene; going back to C# injection would stop following a language switch while shown
+        [Test]
+        public void タイトルのプレイテスト確認の静的ラベルが翻訳キーへ配線されている()
+        {
+            const string scenePath = "Assets/Scenes/Game/MainMenu.unity";
+            var expectedKeys = new Dictionary<string, string>
+            {
+                { "Canvas/PlaytestConsentPopup/Panel/Title", "ui.playtest.consent.title" },
+                { "Canvas/PlaytestConsentPopup/Panel/Message", "ui.playtest.consent.body" },
+                { "Canvas/PlaytestConsentPopup/Panel/AgreeButton/Text (TMP)", "ui.playtest.consent.agree" },
+                { "Canvas/CrashReportPopup/Panel/Title", "ui.playtest.crashGate.title" },
+                { "Canvas/CrashReportPopup/Panel/Message", "ui.playtest.crashGate.body" },
+                { "Canvas/CrashReportPopup/Panel/Description/Text Area/Placeholder", "ui.playtest.crashGate.placeholder" },
+                { "Canvas/CrashReportPopup/Panel/SendButton/Text (TMP)", "ui.playtest.crashGate.send" },
+                { "Canvas/CrashReportPopup/Panel/SkipButton/Text (TMP)", "ui.playtest.crashGate.skip" },
+            };
+
+            var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
+            try
+            {
+                var wiredKeysByPath = new Dictionary<string, string>();
+                foreach (var localizedText in CollectSceneComponents<TextMeshProLocalize>(scene))
+                    wiredKeysByPath[ScenePathOf(localizedText.transform)] = new SerializedObject(localizedText).FindProperty("key").stringValue;
+
+                foreach (var expected in expectedKeys)
+                {
+                    Assert.IsTrue(
+                        wiredKeysByPath.ContainsKey(expected.Key),
+                        $"{scenePath} の {expected.Key} に TextMeshProLocalize が付いていない（言語切替に追従しない文言が戻っている）");
+                    Assert.AreEqual(expected.Value, wiredKeysByPath[expected.Key], $"{scenePath} の {expected.Key} の翻訳キーが違う");
+                }
+            }
+            finally
+            {
+                EditorSceneManager.CloseScene(scene, true);
+            }
+        }
+
         // ローディング表示は実行時にLoadingProgressLogが型付きキーで流し込むため、検査点は出力先の参照が生きていること
         // The loading text is filled at runtime by LoadingProgressLog with typed keys, so the check point is that its sink reference survives
         [Test]
@@ -66,6 +106,17 @@ namespace Client.Tests.Localization.Display
             {
                 EditorSceneManager.CloseScene(scene, true);
             }
+        }
+
+        private static string ScenePathOf(Transform target)
+        {
+            var path = target.name;
+            while (target.parent != null)
+            {
+                target = target.parent;
+                path = $"{target.name}/{path}";
+            }
+            return path;
         }
 
         private static List<T> CollectSceneComponents<T>(Scene scene) where T : UnityEngine.Component

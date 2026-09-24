@@ -109,7 +109,16 @@ namespace Client.Game.InGame.Block
                 };
 
                 blockImageCamera.targetTexture = renderTexture;
-                blockImageCamera.Render();
+                // PlayModeは通常の描画フレームへ委ね、同期Render内でのメインスレッド固着を避ける。
+                // Let the normal PlayMode frame render the Camera to avoid a main-thread freeze inside synchronous Render.
+                if (Application.isPlaying)
+                {
+                    await UniTask.Yield(PlayerLoopTiming.Update);
+                }
+                else
+                {
+                    blockImageCamera.Render();
+                }
                 blockImageCamera.targetTexture = null;
 
                 // 同期読み戻しの直前。ここで止まっていればReadPixelsかApplyの固着

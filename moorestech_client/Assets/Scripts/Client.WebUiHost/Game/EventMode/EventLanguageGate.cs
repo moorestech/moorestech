@@ -1,6 +1,5 @@
 using System;
 using Client.Localization;
-using Client.WebUiHost.Game.StartGates;
 using Cysharp.Threading.Tasks;
 using UniRx;
 
@@ -10,7 +9,7 @@ namespace Client.WebUiHost.Game.EventMode
     /// 言語が選ばれるまでゲーム開始を止める出展モードの開始ゲート。
     /// The event-mode start gate that holds the game start until a language is chosen.
     /// </summary>
-    public class EventLanguageGate : IStartGateWaitState
+    public class EventLanguageGate
     {
         private readonly UniTaskCompletionSource _selectionSource = new();
         private readonly Subject<Unit> _onWaitingChanged = new();
@@ -19,8 +18,6 @@ namespace Client.WebUiHost.Game.EventMode
         // Only this assembly's topic and action touch the waiting state and the selection intake
         internal bool IsWaitingSelection { get; private set; }
         internal IObservable<Unit> OnWaitingChanged => _onWaitingChanged;
-        bool IStartGateWaitState.IsWaiting => IsWaitingSelection;
-        IObservable<Unit> IStartGateWaitState.OnWaitingChanged => _onWaitingChanged;
 
         // 登録は常に無条件、待つかどうかは初期状態で決める（未登録による固着を避ける）
         // Registration is always unconditional; whether to wait is decided by the initial state to avoid a stuck subscription

@@ -39,10 +39,6 @@
     "no_capture_session",
     "capture_pending",
     "already_submitted",
-    "submit_in_flight",
-    "already_responded",
-    "already_acknowledged",
-    "invalid_send",
-    "unknown_result"
+    "submit_in_flight"
   ]
 }

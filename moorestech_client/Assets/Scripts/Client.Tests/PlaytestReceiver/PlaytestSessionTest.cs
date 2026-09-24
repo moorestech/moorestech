@@ -22,6 +22,8 @@ namespace Client.Tests.PlaytestReceiver
             Assert.AreEqual(PlaytestSessionOutcome.Allowed, result.Outcome);
             Assert.AreEqual("tok-1", session.GetValidTokenAsync(IssuedAt, CancellationToken.None).GetAwaiter().GetResult());
             Assert.AreEqual(1, api.SessionCallCount);
+            Assert.IsTrue(result.TryGetVerifiedSteamId(out var verifiedSteamId));
+            Assert.AreEqual("7656", verifiedSteamId, "受け口が検証したSteamIDを結末に載せていない");
         }
 
         [Test]
@@ -53,17 +55,21 @@ namespace Client.Tests.PlaytestReceiver
         [Test]
         public void 形の欠けた200では許可しない()
         {
-            // トークン欠落・期限欠落・JSONでない（キャプティブポータル）はいずれも到達不能と混ぜず契約違反として返す
-            // A missing token, a missing expiry or a non-JSON body (captive portal) all come back as a contract breach, not as unreachability
+            // トークン・期限・steamIdの欠落、空や空白のsteamId・token、JSONでない本文（キャプティブポータル）はいずれも到達不能と混ぜず契約違反として返す
+            // A missing token, expiry or steamId, an empty or whitespace-only steamId/token, or a non-JSON body (captive portal) all come back as a contract breach, not as unreachability
             AssertOutcome(PlaytestApiResult.Responded(200, "{\"steamId\":\"7656\",\"allowed\":true,\"expiresAt\":\"2999-01-01T00:00:00Z\"}"), PlaytestSessionOutcome.MalformedResponse);
             AssertOutcome(PlaytestApiResult.Responded(200, "{\"steamId\":\"7656\",\"allowed\":true,\"token\":\"tok-1\"}"), PlaytestSessionOutcome.MalformedResponse);
+            AssertOutcome(PlaytestApiResult.Responded(200, "{\"allowed\":true,\"token\":\"tok-1\",\"expiresAt\":\"2999-01-01T00:00:00Z\"}"), PlaytestSessionOutcome.MalformedResponse);
+            AssertOutcome(PlaytestApiResult.Responded(200, "{\"steamId\":\"\",\"allowed\":true,\"token\":\"tok-1\",\"expiresAt\":\"2999-01-01T00:00:00Z\"}"), PlaytestSessionOutcome.MalformedResponse);
+            AssertOutcome(PlaytestApiResult.Responded(200, "{\"steamId\":\"  \",\"allowed\":true,\"token\":\"tok-1\",\"expiresAt\":\"2999-01-01T00:00:00Z\"}"), PlaytestSessionOutcome.MalformedResponse);
+            AssertOutcome(PlaytestApiResult.Responded(200, "{\"steamId\":\"7656\",\"allowed\":true,\"token\":\"  \",\"expiresAt\":\"2999-01-01T00:00:00Z\"}"), PlaytestSessionOutcome.MalformedResponse);
             AssertOutcome(PlaytestApiResult.Responded(200, "<html>sign in to the wifi</html>"), PlaytestSessionOutcome.MalformedResponse);
         }
 
         [Test]
         public void allowedが立っていない200では許可しない()
         {
-            AssertOutcome(PlaytestApiResult.Responded(200, "{\"allowed\":false,\"token\":\"tok-1\",\"expiresAt\":\"2999-01-01T00:00:00Z\"}"), PlaytestSessionOutcome.NotAllowed);
+            AssertOutcome(PlaytestApiResult.Responded(200, "{\"steamId\":\"7656\",\"allowed\":false,\"token\":\"tok-1\",\"expiresAt\":\"2999-01-01T00:00:00Z\"}"), PlaytestSessionOutcome.NotAllowed);
         }
 
         [Test]

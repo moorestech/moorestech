@@ -89,27 +89,18 @@ describe("dispatchAction の toast 配線", () => {
     expect(sendAction).toHaveBeenLastCalledWith("inventory.move_item", movePayload, 5000);
   });
 
-  // 退避物の同期コピーは既定の5秒を超える。既定のままだと箱は書けているのに失敗表示が出る
-  // The synchronous salvage copy exceeds the 5s default; at the default the box is written yet a failure is shown
-  it("playtest.crash_report.respond も 120 秒の待ち時間で送る", async () => {
-    const sendAction = vi.spyOn(webSocketClient, "sendAction").mockResolvedValue({ ok: true });
-    const respondPayload = { send: true, description: "" };
-    await dispatchAction("playtest.crash_report.respond", respondPayload);
-    expect(sendAction).toHaveBeenCalledWith("playtest.crash_report.respond", respondPayload, 120000);
-  });
-
   // 「サーバーが断った」と「届かなかった」を真偽値へ潰すと、ゲートが無効な指示（もう一度押す）を出す
   // Collapsing "the server refused" and "it never arrived" into a boolean makes the gate print an invalid instruction
   it("dispatchActionOutcome は拒否理由と到達不能を区別して返す", async () => {
-    vi.spyOn(webSocketClient, "sendAction").mockResolvedValue({ ok: false, error: "already_responded" });
-    expect(await dispatchActionOutcome("playtest.crash_report.respond", { send: true, description: "" }))
-      .toEqual({ kind: "rejected", error: "already_responded" });
+    vi.spyOn(webSocketClient, "sendAction").mockResolvedValue({ ok: false, error: "already_selected" });
+    expect(await dispatchActionOutcome("event_mode.select_language", { locale: "ja" }))
+      .toEqual({ kind: "rejected", error: "already_selected" });
 
     vi.spyOn(webSocketClient, "sendAction").mockRejectedValue(new Error("timeout"));
-    expect(await dispatchActionOutcome("playtest.consent.acknowledge", {}))
+    expect(await dispatchActionOutcome("event_mode.select_language", { locale: "ja" }))
       .toEqual({ kind: "unreachable", reason: "timeout" });
 
     vi.spyOn(webSocketClient, "sendAction").mockResolvedValue({ ok: true });
-    expect(await dispatchActionOutcome("playtest.consent.acknowledge", {})).toEqual({ kind: "accepted" });
+    expect(await dispatchActionOutcome("event_mode.select_language", { locale: "ja" })).toEqual({ kind: "accepted" });
   });
 });

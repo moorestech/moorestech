@@ -17,6 +17,8 @@ namespace Client.Game.InGame.BugReport.LastSession
 
     // 退避の入力。生存プロセスの判定と印の回収は呼び出し側（RunAtStartup）で済ませ、ここには結果だけを渡す
     // The salvage's input; liveness and marker consumption happen in RunAtStartup, and only their results arrive here
+    // 退避元（接続種別・ワールド）は前回セッション自身の印から読むので入力には無い（D-C3）
+    // The salvage source (connection kind, world) is read from the previous session's own mark, so it is not an input (D-C3)
     public sealed class PreviousSessionSalvageRequest
     {
         public string LastSessionDirectory;

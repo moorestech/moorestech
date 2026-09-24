@@ -6,7 +6,6 @@ using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Network.Settings;
-using Client.PlaytestReceiver.Gate;
 using Client.Starter.Initialization;
 using Client.Starter.Initialization.Progress;
 using Cysharp.Threading.Tasks;
@@ -46,9 +45,9 @@ namespace Client.Starter
 
         private async UniTask Initialize()
         {
-            // 開始経路（メニュー・イベント自動開始・QA起動）は全てここを通る。照合を通っていない配布版はメニューへ戻す
-            // Every start path (menu, event auto-start, QA boot) passes here; an unchecked distribution build returns to the menu
-            if (!PlaytestLaunchGate.TryPassStart(nameof(InitializeScenePipeline), out _)) { SceneManager.LoadScene(SceneConstant.MainMenuSceneName); return; }
+            // 開始経路（メニュー・イベント自動開始・QA起動）は全てここを通る。照合もタイトルの確認も通っていない起動はメニューへ戻す（ADR 0065）
+            // Every start path (menu, event auto-start, QA boot) passes here; a boot past neither the launch check nor the title confirmations returns to the menu (ADR 0065)
+            if (Playtest.TitleGates.PlaytestTitleGates.EvaluateStart(nameof(InitializeScenePipeline), out _) != Playtest.TitleGates.PlaytestStartVerdict.Passed) { SceneManager.LoadScene(SceneConstant.MainMenuSceneName); return; }
             // 新しい起動シーケンスの開始。前回セッションの終了ガードをここで戻す
             // A new boot sequence begins; clear the previous session's shutdown guard here
             GameShutdownEvent.ResetForNewSession();
@@ -84,9 +83,9 @@ namespace Client.Starter
             var args = CliConvert.Parse<StartServerSettings>(_proprieties.CreateLocalServerArgs);
             var serverDirectory = args.ServerDataDirectory;
 
-            // 前回セッションの印を読む処理はここ1箇所へ束ねてある（ADR 0060 裁定5）。記録を集めるかもここで1度だけ決める
-            // Everything that reads the previous session's marks is bundled into this single spot (ADR 0060 adjudication 5); whether to collect records is decided once here too
-            var collectsPlaytestRecords = Playtest.PlaytestRecordCollection.Decide(_proprieties.IsRemoteConnection, Client.WebUiHost.Boot.WebUiHost.Hub != null);
+            // 退避はタイトル（直接起動ならここ）、終了印の書き手は上の最初のawait前。記録を集めるかもここで1度だけ決める（ADR 0060 裁定5・ADR 0065）
+            // Salvage happens at the title (here for a direct boot) and the exit-mark writer before the first await above; whether to collect is decided once here too (ADR 0060 adjudication 5, ADR 0065)
+            var collectsPlaytestRecords = Playtest.PlaytestRecordCollection.Decide(_proprieties.IsRemoteConnection);
             Playtest.PreviousSessionStartupTasks.RunAtStartup(collectsPlaytestRecords);
 
             var loadingStopwatch = new Stopwatch();
@@ -175,10 +174,10 @@ namespace Client.Starter
 
                 // Forget境界の例外を専用callbackで観測し、DI未構築のMainGameへ取り残さない
                 // Observe the forgotten boundary through its dedicated callback so MainGame is never stranded without DI
-                new MainGameInitializationFinalizer(serverResult, serverDirectory, _proprieties.IsRemoteConnection, collectsPlaytestRecords).RunAsync(exitToken).Forget(exception =>
+                new MainGameInitializationFinalizer(serverResult, serverDirectory, collectsPlaytestRecords).RunAsync(exitToken).Forget(exception =>
                 {
-                    // Play終了で開始ゲートの待ちを打ち切っただけなら失敗ではない。メインメニューへ戻さない
-                    // Cancelling the start-gate wait on play exit is not a failure, so it never returns to the main menu
+                    // Play終了で言語ゲートの待ちを打ち切っただけなら失敗ではない。メインメニューへ戻さない
+                    // Cancelling the language-gate wait on play exit is not a failure, so it never returns to the main menu
                     if (exception is OperationCanceledException)
                     {
                         Debug.Log("Initialization was aborted because an exit cancellation arrived midway");
@@ -189,7 +188,6 @@ namespace Client.Starter
                     // メインメニューへ戻る経路はすべて内蔵サーバーを道連れにする
                     // Every path back to the main menu takes the embedded server down with it
                     GameShutdownEvent.FireGameShutdown(GameShutdownReason.InitializationFailed);
-
                     SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
                 });
             }

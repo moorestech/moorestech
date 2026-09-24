@@ -45,7 +45,7 @@ namespace Client.Tests.BugReport
             var deadDirectory = CreateSessionRecording(DeadProcessId);
 
             var crashed = Session(DeadProcessId, false, deadDirectory);
-            crashed.Origin = new SessionOriginSnapshot(null, BuildOriginReading.Editor(), SessionSnapshotCapture.Started(_snapshots, DeadProcessId, SessionName));
+            crashed.Origin = new SessionOriginSnapshot(null, "テストで差し込まれていないSteamID", BuildOriginReading.Editor(), SessionSnapshotCapture.Started(_snapshots, DeadProcessId, SessionName));
             crashed.Origin.WriteTo(Path.Combine(_snapshots, WorldDataDirectory.SnapshotOwnerFileName));
             var artifacts = PreviousSessionSalvage.Salvage(Request(crashed));
 
@@ -128,12 +128,30 @@ namespace Client.Tests.BugReport
         public void リモート接続ならスナップショットの不在を退避失敗と書かない()
         {
             var request = Request(Session(DeadProcessId, false, null));
-            request.PreviousSessions[0].Origin = new SessionOriginSnapshot(null, BuildOriginReading.Editor());
+            request.PreviousSessions[0].Origin = new SessionOriginSnapshot(null, "テストで差し込まれていないSteamID", BuildOriginReading.Editor());
 
             var artifacts = PreviousSessionSalvage.Salvage(request);
 
             Assert.IsNull(artifacts.SnapshotsDirectory);
             StringAssert.Contains("リモート接続", MissingReasons(artifacts));
+        }
+
+        // 前回セッションが所有印を残した保存先だけを使う。今回の起動が別ワールドでも、落ちたセッションのスナップショットが箱へ入る（D-C3）
+        // Only the directory the previous session marked as owned is used, so the crashed session's snapshots reach the box even when this boot uses another world (D-C3)
+        [Test]
+        public void 退避元は前回セッションが記録したワールドから決まる()
+        {
+            var otherWorldSnapshots = Path.Combine(_root, "generated-world-snapshots");
+            Directory.CreateDirectory(otherWorldSnapshots);
+            File.WriteAllText(Path.Combine(otherWorldSnapshots, "tick_900.json"), "{}");
+            var crashed = Session(DeadProcessId, false, null);
+            crashed.Origin = new SessionOriginSnapshot(null, "テストで差し込まれていないSteamID", BuildOriginReading.Editor(), SessionSnapshotCapture.Started(otherWorldSnapshots, DeadProcessId, SessionName));
+            crashed.Origin.WriteTo(Path.Combine(otherWorldSnapshots, WorldDataDirectory.SnapshotOwnerFileName));
+
+            var artifacts = PreviousSessionSalvage.Salvage(Request(crashed));
+
+            Assert.IsTrue(File.Exists(Path.Combine(artifacts.SnapshotsDirectory, "tick_900.json")));
+            Assert.AreEqual(2, Directory.GetFiles(_snapshots, "*", SearchOption.AllDirectories).Length, "前回セッションが遊んでいないワールドのスナップショットを退避している");
         }
 
         // 「初回起動を異常終了にしない」は印が1件も無いことから出る。印が1件でも残れば異常終了へ倒れる

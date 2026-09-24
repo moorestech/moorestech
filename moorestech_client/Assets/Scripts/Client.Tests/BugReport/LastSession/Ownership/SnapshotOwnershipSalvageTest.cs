@@ -46,7 +46,7 @@ namespace Client.Tests.BugReport
             {
                 ProcessId = 1234,
                 SessionName = "session_200",
-                Origin = new SessionOriginSnapshot(unrecordedBoot, BuildOriginReading.Editor()),
+                Origin = new SessionOriginSnapshot(unrecordedBoot, null, BuildOriginReading.Editor()),
             };
             var artifacts = PreviousSessionSalvage.Salvage(Request(crashed));
 
@@ -98,7 +98,7 @@ namespace Client.Tests.BugReport
             var old = OwnedSession("session_100");
             old.Origin.WriteTo(Path.Combine(_snapshots, WorldDataDirectory.SnapshotOwnerFileName));
             PreviousSessionSalvage.Salvage(Request(old));
-            var unrecorded = new PreviousProcessSession { ProcessId = 1234, SessionName = "session_200", Origin = new SessionOriginSnapshot(null, BuildOriginReading.Editor()) };
+            var unrecorded = new PreviousProcessSession { ProcessId = 1234, SessionName = "session_200", Origin = new SessionOriginSnapshot(null, "テストで差し込まれていないSteamID", BuildOriginReading.Editor()) };
             Assert.IsNull(PreviousSessionSalvage.Salvage(Request(unrecorded)).SnapshotsDirectory);
             var clean = new PreviousProcessSession { ProcessId = 1234, SessionName = "session_300", ExitedCleanly = true };
             Assert.IsNull(PreviousSessionSalvage.Salvage(Request(clean)).SnapshotsDirectory);
@@ -120,7 +120,7 @@ namespace Client.Tests.BugReport
             {
                 ProcessId = 1234,
                 SessionName = sessionName,
-                Origin = new SessionOriginSnapshot("local", BuildOriginReading.Editor(), SessionSnapshotCapture.Started(_snapshots, 1234, sessionName)),
+                Origin = new SessionOriginSnapshot("local", null, BuildOriginReading.Editor(), SessionSnapshotCapture.Started(_snapshots, 1234, sessionName)),
             };
         }
     }

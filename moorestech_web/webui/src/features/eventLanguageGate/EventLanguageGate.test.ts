@@ -58,6 +58,17 @@ describe("EventLanguageGate", () => {
     act(() => renderer.unmount());
   });
 
+  it("見せるなら全画面ゲート共有の不透明面とz層に固定testIdで描く", async () => {
+    const renderer = await renderGate();
+
+    const overlay = renderer.root.findByType("mock-overlay" as never);
+    expect(overlay.props["data-testid"]).toBe("event-language-gate");
+    expect(overlay.props.color).toBe("var(--full-screen-gate-face)");
+    expect(overlay.props.zIndex).toBe("var(--z-portal-full-screen-gate)");
+    expect(renderer.root.findByType("mock-title" as never).props["data-testid"]).toBe("event-language-gate-title");
+    act(() => renderer.unmount());
+  });
+
   it("ボタン押下でlocale付きのselect_languageを送る", async () => {
     const renderer = await renderGate();
     await act(async () => { optionAt(renderer, 1).props.onClick(); });
