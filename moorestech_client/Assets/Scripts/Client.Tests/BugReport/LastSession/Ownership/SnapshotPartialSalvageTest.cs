@@ -30,7 +30,7 @@ namespace Client.Tests.BugReport
             _root = Path.Combine(Path.GetTempPath(), $"partial-snapshot-{Guid.NewGuid():N}");
             _snapshots = Path.Combine(_root, "snapshots");
             Directory.CreateDirectory(_snapshots);
-            _origin = new SessionOriginSnapshot(null, BuildOriginReading.Editor(), SessionSnapshotCapture.Started(_snapshots, 1234, "session_100"));
+            _origin = new SessionOriginSnapshot(null, "テストで差し込まれていないSteamID", BuildOriginReading.Editor(), SessionSnapshotCapture.Started(_snapshots, 1234, "session_100"));
             _origin.WriteTo(Path.Combine(_snapshots, WorldDataDirectory.SnapshotOwnerFileName));
             _request = new PreviousSessionSalvageRequest
             {
@@ -79,7 +79,7 @@ namespace Client.Tests.BugReport
             var moveFailure = first.Missing.Single(item => item.Item == "snapshots" && item.Reason.Contains("移動")).Reason;
             _request.PreviousSessions.Clear();
             if (consume) PendingCrashReportMark.Clear(_request.LastSessionDirectory);
-            else _request.PreviousSessions.Add(new PreviousProcessSession { ProcessId = 5678, SessionName = "session_200", Origin = new SessionOriginSnapshot(null, BuildOriginReading.Editor()) });
+            else _request.PreviousSessions.Add(new PreviousProcessSession { ProcessId = 5678, SessionName = "session_200", Origin = new SessionOriginSnapshot(null, "テストで差し込まれていないSteamID", BuildOriginReading.Editor()) });
 
             var next = PreviousSessionSalvage.Salvage(_request);
             Assert.IsFalse(next.Missing.Exists(item => item.Reason == moveFailure));

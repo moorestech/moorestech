@@ -7,7 +7,6 @@ using Client.Starter.EventMode;
 using Client.Tests.WebUi.Gate;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Game.EventMode;
-using Client.WebUiHost.Game.StartGates;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using UnityEngine;
@@ -53,8 +52,8 @@ namespace Client.Tests.EventMode
             Assert.AreEqual(0, Object.FindObjectsByType<EventIdleQuitWatcher>(FindObjectsSortMode.None).Length);
         }
 
-        // 通常モードでも言語ゲートのtopicは登録する。Web側は3ゲートを無条件購読し、未登録だとWS再接続後にrestoringが解けず全UIが操作不能になる
-        // The language-gate topic is registered even outside exhibition mode; the web subscribes to all three gates unconditionally, and a missing topic leaves restoring stuck after a WS reconnect
+        // 通常モードでも言語ゲートのtopicは登録する。Web側は無条件に購読し、未登録だとWS再接続後にrestoringが解けず全UIが操作不能になる
+        // The language-gate topic is registered even outside exhibition mode; the web subscribes unconditionally, and a missing topic leaves restoring stuck after a WS reconnect
         [Test]
         public void 出展モードでなくても言語ゲートのtopicとactionを待機なしで登録する()
         {
@@ -63,7 +62,7 @@ namespace Client.Tests.EventMode
             var task = EventModeStartGate.WaitForLanguageSelectionWithHubAsync(hub, EventExhibitionSettings.FromEnvironment(), CancellationToken.None);
 
             Assert.IsTrue(task.Status.IsCompletedSuccessfully());
-            StartGateTopicAssert.AssertWaiting(hub, StartGateTopics.EventLanguageName, false, StartGateTopics.EventLanguagePrecedence);
+            StartGateTopicAssert.AssertWaiting(hub, EventLanguageGateTopic.TopicName, false);
             Assert.IsNotNull(hub.ResolveAction("event_mode.select_language"));
         }
 

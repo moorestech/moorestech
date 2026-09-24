@@ -7,12 +7,24 @@ namespace Client.Game.InGame.BugReport.Playtest
     public interface IPlaytestSessionIdentity
     {
         string SteamId { get; }
+
+        // SteamIDが無い理由。欠損列へそのまま載る。SteamIDを持つ実体はnullを返す
+        // Why there is no SteamID, copied verbatim into the missing list; an identity that has one returns null
+        string SteamIdAbsenceReason { get; }
     }
 
-    // 既定の実体（開発者のrsync経路）。SteamIDは存在しないのでnull
-    // The default implementation (the developer rsync path); there is no SteamID, so it is null
+    // SteamIDを持たない実体。空になった事情は差し込む側が一番よく知っているので、理由は生成時に受け取る
+    // The identity without a SteamID; whoever installs it knows best why it is empty, so the reason is taken at construction
     public sealed class EmptyPlaytestSessionIdentity : IPlaytestSessionIdentity
     {
+        public const string DeveloperModeReason = "テスター識別（SteamID）が無い（開発者モード。build-info.json 無し、または Steam 未起動）";
+
         public string SteamId => null;
+        public string SteamIdAbsenceReason { get; }
+
+        public EmptyPlaytestSessionIdentity(string steamIdAbsenceReason)
+        {
+            SteamIdAbsenceReason = steamIdAbsenceReason;
+        }
     }
 }

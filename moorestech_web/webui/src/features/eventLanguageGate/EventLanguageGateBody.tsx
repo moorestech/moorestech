@@ -1,7 +1,7 @@
 import { Button, Group, Stack, Text } from "@mantine/core";
 import { useLanguageList } from "@/bridge";
 import { DictionaryIndependentText } from "@/shared/i18n";
-import { useGateAnswer, type GateAnswerCopy } from "@/shared/ui";
+import { useLanguageSelectionAnswer, type GateAnswerCopy } from "./useLanguageSelectionAnswer";
 
 // 選ばせる対象が辞書そのものなので、結末の1行も辞書を通さない（ADR 0040）
 // The dictionary itself is what gets chosen, so the outcome line bypasses the dictionary as well (ADR 0040)
@@ -16,7 +16,7 @@ const LanguageGateAnswerCopy: GateAnswerCopy = {
 // The body mounted only while waiting; the list fetch starts here for the first time
 export function EventLanguageGateBody() {
   const languages = useLanguageList();
-  const { disabled, message, answer } = useGateAnswer("event_mode.select_language", LanguageGateAnswerCopy);
+  const { disabled, message, answer } = useLanguageSelectionAnswer(LanguageGateAnswerCopy);
 
   // 一覧はローダーが3秒間隔で自動再試行するため、届くまでは読み込み中を出し続ける
   // The loader retries the list every 3s, so this keeps showing the loading line until entries arrive

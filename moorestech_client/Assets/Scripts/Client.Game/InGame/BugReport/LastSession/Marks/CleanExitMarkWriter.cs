@@ -6,8 +6,8 @@ using UnityEngine;
 
 namespace Client.Game.InGame.BugReport.LastSession
 {
-    // 最初のawait前に据える書き手。ホストやシーンを待つと、その待機中の停止を記録できない
-    // Install before the first await; waiting for a host or scene would leave stops during that wait unrecorded
+    // 最初のawait前に据える書き手（待機中の停止も記録するため）。タイトル経由の起動では照合がAllowedで検証済みSteamIDを据えた後（EvaluateStart通過後）なので識別も確定している
+    // Installed before the first await so stops during any wait are recorded; on a title boot it runs after EvaluateStart set the verified SteamID on Allowed, so the identity is settled
     public static class CleanExitMarkWriter
     {
         private static CompositeDisposable _subscriptions;
@@ -19,9 +19,10 @@ namespace Client.Game.InGame.BugReport.LastSession
             _subscriptions?.Dispose();
             _subscriptions = new CompositeDisposable();
 
-            // 出所はこのセッション自身が開始時に書き残す。落ちた後の送信時に読むと、次に起動したビルドの値になる
-            // The session writes its own origin at start; reading it at send time after a crash would yield whatever build launched next
-            var origin = new SessionOriginSnapshot(PlaytestSessionIdentityProvider.Current.SteamId, RepositoryStateProbe.ReadBuildOrigin());
+            // 出所はこのセッション自身が開始時に書き残す。退避元はスナップショット開始時に所有印として後から足す（F12・D-C3）
+            // The session writes its own origin at start; the salvage source is added later as an ownership mark when snapshots begin (F12, D-C3)
+            var identity = PlaytestSessionIdentityProvider.Current;
+            var origin = new SessionOriginSnapshot(identity.SteamId, identity.SteamIdAbsenceReason, RepositoryStateProbe.ReadBuildOrigin());
             CleanExitMarker.MarkSessionStarted(processId, sessionName, origin);
 
             // 終了処理側にプレイテストの語彙を持ち込まないため、直接呼び出しでなく汎用イベントの購読で受ける

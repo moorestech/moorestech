@@ -78,7 +78,7 @@ namespace Client.Tests.BugReport
         {
             var directory = Path.Combine(Path.GetTempPath(), $"moorestech-origin-{Guid.NewGuid():N}");
             var origin = BuildOriginReading.WithoutInfo("build-info.json が無い");
-            var manifest = BugReportManifest.CreateHeader("説明", PlaytestReportKind.Bug, null, origin);
+            var manifest = BugReportManifest.CreateHeader("説明", PlaytestReportKind.Bug, null, EmptyPlaytestSessionIdentity.DeveloperModeReason, origin);
 
             BugReportRepositoryFiles.Write(directory, manifest, origin, RepositoryStateProbe.RepositoryRoot, RepositoryStateProbe.MasterDataRoot);
 
@@ -92,7 +92,7 @@ namespace Client.Tests.BugReport
         [Test]
         public void manifestはsteamIdとbuildInfoを持ちEditorではnullで書ける()
         {
-            var manifest = BugReportManifest.CreateHeader("説明", PlaytestReportKind.Bug, null, BuildOriginReading.Editor());
+            var manifest = BugReportManifest.CreateHeader("説明", PlaytestReportKind.Bug, null, EmptyPlaytestSessionIdentity.DeveloperModeReason, BuildOriginReading.Editor());
             var json = JObject.Parse(manifest.ToJson());
 
             Assert.IsTrue(json.ContainsKey("steamId"));

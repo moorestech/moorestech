@@ -59,7 +59,7 @@ namespace Client.Game.InGame.BugReport
 
             // 見出しが積んだ欠損（steamId等）を消さないよう、確保時の欠損は上書きせず後ろへ足す
             // The capture's gaps are appended rather than assigned, so the header's own gaps (steamId and friends) survive
-            var manifest = BugReportManifest.CreateHeader(description, kind, _identity.SteamId, buildOrigin);
+            var manifest = BugReportManifest.CreateHeader(description, kind, _identity.SteamId, _identity.SteamIdAbsenceReason, buildOrigin);
             manifest.ReportTick = data.ReportTick;
             manifest.ClientState = data.ClientState;
             manifest.Missing.AddRange(data.Missing);

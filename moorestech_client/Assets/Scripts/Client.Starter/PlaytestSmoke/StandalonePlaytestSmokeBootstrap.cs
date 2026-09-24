@@ -71,13 +71,10 @@ namespace Client.Starter.PlaytestSmoke
         {
             // 照合の結論を待つ。判定前に開始すると初期化パイプラインがメニューへ戻し、無人のまま止まる
             // Wait for the launch verdict; starting before it makes the pipeline bounce back to the menu and stall unattended
-            var gateDeadline = Time.realtimeSinceStartup + LaunchGateTimeoutSeconds;
-            while (IsGatePending(PlaytestLaunchGate.Current.Value.Status) && Time.realtimeSinceStartup < gateDeadline)
-            {
-                await UniTask.Yield();
-            }
-
-            if (StandalonePlaytestSmokePreconditions.TryFindFailure(settings, PlaytestLaunchGate.Current.Value, out var failureReason))
+            // 期限までに確定しなければ未確定の結果が返り、Allowed必須の前提検査が理由付きで落とす
+            // An unsettled verdict comes back past the deadline, and the Allowed-required precondition fails it with a reason
+            var verdict = await PlaytestLaunchGate.WaitForSettledVerdictAsync(LaunchGateTimeoutSeconds, Application.exitCancellationToken);
+            if (StandalonePlaytestSmokePreconditions.TryFindFailure(settings, verdict, out var failureReason))
             {
                 Fail(settings, "preconditions", failureReason);
                 return;
@@ -122,11 +119,6 @@ namespace Client.Starter.PlaytestSmoke
                 : $"game initialization did not complete within {GameInitializationTimeoutSeconds}s (a start gate the unattended bypass does not cover, such as event mode's language selection, may be waiting for input)");
 
             #region Internal
-
-            bool IsGatePending(PlaytestGateStatus status)
-            {
-                return status == PlaytestGateStatus.NotEvaluated || status == PlaytestGateStatus.Checking;
-            }
 
             void OnSceneLoaded(Scene scene, LoadSceneMode mode)
             {

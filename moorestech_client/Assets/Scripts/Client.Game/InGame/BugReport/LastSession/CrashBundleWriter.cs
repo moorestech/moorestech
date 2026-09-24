@@ -45,7 +45,10 @@ namespace Client.Game.InGame.BugReport.LastSession
             // The origin and SteamID come from what the crashed session wrote at its own start; attaching this boot's build would reproduce on a different build (F12)
             var origin = artifacts.PreviousOrigin;
             var buildOrigin = origin == null ? BuildOriginReading.WithoutInfo("前回セッションの出所の印が無いため、どのビルドで落ちたか分からない") : origin.BuildOrigin;
-            var manifest = BugReportManifest.CreateHeader(description, PlaytestReportKind.Crash, origin?.SteamId, buildOrigin);
+            // SteamIDの欠損理由も前回印が記録した値を使う。ここで書き起こすと照合失敗の種類が潰れる（F01）
+            // The SteamID absence reason also comes from the previous mark; composing one here would flatten which verification failure it was (F01)
+            var steamIdAbsenceReason = origin == null ? "前回セッションの出所の印が無いため、前回のテスター識別（SteamID）が分からない" : origin.SteamIdAbsenceReason;
+            var manifest = BugReportManifest.CreateHeader(description, PlaytestReportKind.Crash, origin?.SteamId, steamIdAbsenceReason, buildOrigin);
             manifest.Missing.AddRange(artifacts.Missing);
 
             string directory;

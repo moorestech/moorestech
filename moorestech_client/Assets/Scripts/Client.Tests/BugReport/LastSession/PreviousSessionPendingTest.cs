@@ -65,7 +65,7 @@ namespace Client.Tests.BugReport
         [Test]
         public void 異常終了セッションの出所は再提示の起動でも読み戻せる()
         {
-            var origin = new SessionOriginSnapshot("steam-crashed", BuildOriginReading.Editor());
+            var origin = new SessionOriginSnapshot("steam-crashed", null, BuildOriginReading.Editor());
             var crashed = Session(DeadProcessId, "session_1", false, null);
             crashed.Origin = origin;
 

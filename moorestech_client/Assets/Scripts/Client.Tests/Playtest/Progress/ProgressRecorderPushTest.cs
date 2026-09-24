@@ -27,7 +27,7 @@ namespace Client.Tests.Playtest
         // The push path touches none of the ctor dependencies, and no subscription is made unless Initialize runs
         private static ProgressRecorder CreateRecorderForPushOnly()
         {
-            return new ProgressRecorder(null, null, new EmptyPlaytestSessionIdentity());
+            return new ProgressRecorder(null, null, new EmptyPlaytestSessionIdentity(EmptyPlaytestSessionIdentity.DeveloperModeReason));
         }
 
         // ヘッダの無い events.jsonl が残ると、次回起動が「一度も遊んでいないセッション」を1件 outbox へ出す

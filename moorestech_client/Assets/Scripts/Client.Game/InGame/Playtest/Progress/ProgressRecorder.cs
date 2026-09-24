@@ -138,7 +138,7 @@ namespace Client.Game.InGame.Playtest.Progress
                     BaselineChallenges = ProgressBaseline.CompletedChallengeGuids(completedChallenges),
                     BaselineResearch = ProgressBaseline.CompletedResearchGuids(_handshake.ResearchNodeStates),
                 };
-                if (header.SteamId == null) header.AddMissing("steamId", "テスター識別（SteamID）が差し込まれていない（plan D 未導入またはSteam未起動）");
+                if (header.SteamId == null) header.AddMissing("steamId", _identity.SteamIdAbsenceReason);
                 return header;
             }
 

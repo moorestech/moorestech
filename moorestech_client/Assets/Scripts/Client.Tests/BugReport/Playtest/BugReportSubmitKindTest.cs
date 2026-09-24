@@ -39,7 +39,7 @@ namespace Client.Tests.BugReport
             // kind 検証は送信より前段なので、トップへの遷移は起きない
             // The kind check runs before submitting, so no move to the top happens
             var session = new BugReportCaptureSession(new NullBugReportCaptureSources());
-            var handler = new BugReportSubmitActionHandler(new BugReportSubmitter(new BugReportBundleWriter(new EmptyPlaytestSessionIdentity()), session, new RecordingProgressSink(), new RecordingUploadRequester()), new PauseMenuStateService());
+            var handler = new BugReportSubmitActionHandler(new BugReportSubmitter(new BugReportBundleWriter(new EmptyPlaytestSessionIdentity(EmptyPlaytestSessionIdentity.DeveloperModeReason)), session, new RecordingProgressSink(), new RecordingUploadRequester()), new PauseMenuStateService());
 
             var crash = handler.ExecuteAsync(new JObject { ["description"] = "説明", ["kind"] = "crash" }).GetAwaiter().GetResult();
             Assert.IsFalse(crash.Ok);

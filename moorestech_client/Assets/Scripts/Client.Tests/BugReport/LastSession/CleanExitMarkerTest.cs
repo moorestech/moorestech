@@ -31,7 +31,7 @@ namespace Client.Tests.BugReport
         [Test]
         public void 正常終了の印があれば前回は正常終了と判定し印ごと消える()
         {
-            CleanExitMarker.MarkSessionStarted(TestProcessId, OlderSessionName, new SessionOriginSnapshot("steam-1", BuildOriginReading.Editor()));
+            CleanExitMarker.MarkSessionStarted(TestProcessId, OlderSessionName, new SessionOriginSnapshot("steam-1", null, BuildOriginReading.Editor()));
             CleanExitMarker.MarkExitIntent(TestProcessId, OlderSessionName);
             CleanExitMarker.MarkCleanExit(TestProcessId, OlderSessionName);
 
@@ -53,7 +53,7 @@ namespace Client.Tests.BugReport
         [Test]
         public void 開始の印だけが残っていれば前回は異常終了と判定する()
         {
-            CleanExitMarker.MarkSessionStarted(TestProcessId, OlderSessionName, new SessionOriginSnapshot(null, BuildOriginReading.Editor()));
+            CleanExitMarker.MarkSessionStarted(TestProcessId, OlderSessionName, new SessionOriginSnapshot(null, "テストで差し込まれていないSteamID", BuildOriginReading.Editor()));
 
             Assert.IsTrue(ContainsMarked(OlderSessionName));
             var record = CleanExitMarker.ConsumeSessionMarks(TestProcessId, OlderSessionName);
@@ -66,7 +66,7 @@ namespace Client.Tests.BugReport
         [Test]
         public void 終了の意思表明だけで書き出し完了の印が無ければ終了処理中の停止として数える()
         {
-            CleanExitMarker.MarkSessionStarted(TestProcessId, OlderSessionName, new SessionOriginSnapshot(null, BuildOriginReading.Editor()));
+            CleanExitMarker.MarkSessionStarted(TestProcessId, OlderSessionName, new SessionOriginSnapshot(null, "テストで差し込まれていないSteamID", BuildOriginReading.Editor()));
             CleanExitMarker.MarkExitIntent(TestProcessId, OlderSessionName);
 
             var record = CleanExitMarker.ConsumeSessionMarks(TestProcessId, OlderSessionName);
@@ -79,7 +79,7 @@ namespace Client.Tests.BugReport
         [Test]
         public void 生存している他pidの印は回収の対象にならず消えない()
         {
-            CleanExitMarker.MarkSessionStarted(TestProcessId, OlderSessionName, new SessionOriginSnapshot(null, BuildOriginReading.Editor()));
+            CleanExitMarker.MarkSessionStarted(TestProcessId, OlderSessionName, new SessionOriginSnapshot(null, "テストで差し込まれていないSteamID", BuildOriginReading.Editor()));
 
             var scan = PreviousProcessScanner.Scan(0, CurrentSessionName, new RecordingProcessTakeover(), CleanExitMarker.MarkedSessions(), new[] { TestProcessId });
 
@@ -92,8 +92,8 @@ namespace Client.Tests.BugReport
         [Test]
         public void 自pidの今回以外のセッションは前回として数え今回のセッションは数えない()
         {
-            CleanExitMarker.MarkSessionStarted(TestProcessId, OlderSessionName, new SessionOriginSnapshot(null, BuildOriginReading.Editor()));
-            CleanExitMarker.MarkSessionStarted(TestProcessId, CurrentSessionName, new SessionOriginSnapshot(null, BuildOriginReading.Editor()));
+            CleanExitMarker.MarkSessionStarted(TestProcessId, OlderSessionName, new SessionOriginSnapshot(null, "テストで差し込まれていないSteamID", BuildOriginReading.Editor()));
+            CleanExitMarker.MarkSessionStarted(TestProcessId, CurrentSessionName, new SessionOriginSnapshot(null, "テストで差し込まれていないSteamID", BuildOriginReading.Editor()));
 
             var scan = PreviousProcessScanner.Scan(TestProcessId, CurrentSessionName, new RecordingProcessTakeover(), CleanExitMarker.MarkedSessions(), new[] { TestProcessId });
 

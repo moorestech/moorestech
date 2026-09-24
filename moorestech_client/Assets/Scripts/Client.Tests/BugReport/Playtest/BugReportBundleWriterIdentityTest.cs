@@ -16,6 +16,7 @@ namespace Client.Tests.BugReport
         private sealed class FakeIdentity : IPlaytestSessionIdentity
         {
             public string SteamId => "steam-76500000000000001";
+            public string SteamIdAbsenceReason => null;
         }
 
         [Test]
