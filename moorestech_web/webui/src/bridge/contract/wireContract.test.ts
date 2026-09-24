@@ -7,9 +7,9 @@ import type { PlayerInventoryData, BlockInventoryData, ProgressData, ModalData, 
 
 describe("wire contract fixtures (shared with C#)", () => {
   it("bug_report.submit の成功応答fixtureを受理する", () => {
-    const result = parseActionResultPayload("bug_report.submit", loadFixture("bug_report_submit_result.json"));
-    expect(result.registered).toBe(true);
-    if (result.registered && result.valid) expect(result.value.missing).toEqual(["video", "serverSnapshot"]);
+    const fixture = loadFixture("bug_report_submit_result.json");
+    const result = parseActionResultPayload("bug_report.submit", fixture);
+    expect(result).toEqual({ registered: true, valid: true, value: fixture });
   });
   it("削除した重複採掘HUD topicと読み手のない削除モードtopicを公開しない", () => {
     expect(Object.values(Topics)).not.toContain("ui.mining_hud");
