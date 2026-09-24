@@ -25,7 +25,8 @@ vi.mock("@mantine/core", () => ({
   Text: ({ children }: { children: ReactNode }) => createElement("p", null, children),
   Title: ({ children }: { children: ReactNode }) => createElement("h1", null, children),
 }));
-vi.mock("@/shared/ui", () => ({
+vi.mock("@/shared/ui", async () => ({
+  PanelActionButton: (await import("@/shared/ui/PanelActionButton")).default,
   ModeSwitch: ({ value, onChange, testId }: { value: string; onChange: (v: string) => void; testId?: string }) =>
     createElement("mock-mode-switch", { value, onChange, "data-testid": testId }),
 }));
@@ -46,8 +47,14 @@ afterEach(() => {
 describe("PauseMenuPanel", () => {
   it("トップは4ボタンだけを出し、言語選択と報告欄を出さない", async () => {
     const renderer = await render("top");
-    for (const id of ["pause-menu-save", "pause-menu-save-and-quit", "pause-menu-open-settings", "pause-menu-open-bug-report"]) {
-      expect(byTestId(renderer, id)).toHaveLength(1);
+    for (const [id, anchor] of [
+      ["pause-menu-save", "pause.save"], ["pause-menu-save-and-quit", "pause.back"],
+      ["pause-menu-open-settings", "pause.settings"], ["pause-menu-open-bug-report", "pause.bug-report"],
+    ]) {
+      const buttons = byTestId(renderer, id);
+      expect(buttons).toHaveLength(1);
+      expect(buttons[0].type).toBe("button");
+      expect(buttons[0].props["data-tutorial-anchor"]).toBe(anchor);
     }
     expect(byTestId(renderer, "language-select")).toHaveLength(0);
     expect(byTestId(renderer, "bug-report-description")).toHaveLength(0);
@@ -64,6 +71,8 @@ describe("PauseMenuPanel", () => {
   it("設定画面は言語選択と戻るボタンを出し、戻るはtopへのshow_pageを送る", async () => {
     const renderer = await render("settings");
     expect(byTestId(renderer, "language-select")).toHaveLength(1);
+    expect(byTestId(renderer, "pause-menu-back")[0].type).toBe("button");
+    expect(byTestId(renderer, "pause-menu-back")[0].props["data-tutorial-anchor"]).toBe("pause.back-to-top");
     await act(async () => byTestId(renderer, "pause-menu-back")[0].props.onClick());
     expect(mocks.dispatchAction).toHaveBeenCalledWith("pause_menu.show_page", { page: "top" });
     act(() => renderer.unmount());
