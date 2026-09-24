@@ -2,7 +2,7 @@
 // The report form on the bug-report page; the parent panel holds the draft, this only handles input and sending
 import { Button } from "@mantine/core";
 import { useState } from "react";
-import { dispatchActionOutcome, PauseMenuReportKinds, type PauseMenuData, type PauseMenuReportKind } from "@/bridge";
+import { dispatchAction, PauseMenuReportKinds, type PauseMenuData, type PauseMenuReportKind } from "@/bridge";
 import { emitToast } from "@/features/toast";
 import { L, useI18n } from "@/shared/i18n";
 import { ModeSwitch } from "@/shared/ui";
@@ -28,16 +28,16 @@ export function BugReportForm({ status, draft }: Props) {
     // 二度押しは同じ確保から2箱を作り、同じ報告のdraft PRが2本出る
     // A second click makes two boxes from one capture and raises two draft PRs for one report
     if (blocked) return;
+    const missing = [...status.missing];
     setSending(true);
-    // 失敗時のトーストは dispatchActionOutcome が出すため、ここでは書き出し成功だけを伝える
-    // dispatchActionOutcome toasts the failure itself, so this path only reports a successful write
-    const result = await dispatchActionOutcome("bug_report.submit", { description: trimmedDescription, kind: draft.kind });
+    // 失敗時のトーストは dispatchAction が出すため、ここでは書き出し成功だけを伝える
+    // dispatchAction toasts the failure itself, so this path only reports a successful write
+    const accepted = await dispatchAction("bug_report.submit", { description: trimmedDescription, kind: draft.kind });
     setSending(false);
-    if (result.kind !== "accepted") return;
+    if (!accepted) return;
 
-    // 再確保後のtopicではなく、送った箱に確定した欠損をaction結果から読む
-    // Read the gaps settled for the sent bundle from the action result, not the topic after recapture
-    const missing = result.payload.missing;
+    // 押した時点の確保状態で出す。書き出し中の欠損はmanifestにだけ残す
+    // Use capture state at click time; gaps during writing remain only in the manifest
     if (missing.length === 0) emitToast(t(L.ui.bugReport.sent), "info");
     else emitToast(t(L.ui.bugReport.missing, { items: missing.join(", ") }), "error");
 
@@ -82,7 +82,6 @@ export function BugReportForm({ status, draft }: Props) {
       case "noSession": return t(L.ui.bugReport.noSession);
       case "capturing": return t(L.ui.bugReport.capturePending);
       case "submitting": return t(L.ui.bugReport.sending);
-      case "submitted": return t(L.ui.bugReport.sent);
       case "ready": return null;
     }
   }

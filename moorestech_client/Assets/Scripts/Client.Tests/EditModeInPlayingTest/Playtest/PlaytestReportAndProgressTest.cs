@@ -70,7 +70,7 @@ namespace Client.Tests.EditModeInPlayingTest.Playtest
                 // 種別は webui のトグルが載せる契約値。送信経路を通ってmanifestまで届くことを確かめる
                 // The kind is the contract value the webui toggle sends; this checks it reaches the manifest through the submit path
                 await BugReportSubmitUtil.OpenPauseMenuAndWaitCapture(resolver);
-                var (bundle, _) = await BugReportSubmitUtil.SubmitAndTakeNewBundle(resolver, "感想テスト", PlaytestReportKind.Feedback, bundlesBefore);
+                var bundle = await BugReportSubmitUtil.SubmitAndTakeNewBundle(resolver, "感想テスト", PlaytestReportKind.Feedback, bundlesBefore);
                 AssertManifestCarriesKindAndIdentity(bundle);
                 Directory.Delete(bundle, true);
 

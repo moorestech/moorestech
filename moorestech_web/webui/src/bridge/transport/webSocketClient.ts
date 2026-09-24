@@ -113,7 +113,7 @@ class WebSocketClient {
         if (!pending) return;
         this.pendingActions.delete(msg.requestId);
         window.clearTimeout(pending.timer);
-        pending.resolve({ ok: msg.ok === true, error: msg.error, payload: msg.payload });
+        pending.resolve({ ok: msg.ok === true, error: msg.error });
         return;
       }
       if (msg.op !== "snapshot" && msg.op !== "event") return;

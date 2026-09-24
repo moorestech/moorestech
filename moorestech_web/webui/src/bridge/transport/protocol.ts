@@ -28,7 +28,7 @@ export type TopicEnvelope = z.infer<typeof TopicEnvelopeSchema>;
 export type ServerMsg =
   | TopicEnvelope
   | { op: "pong" }
-  | { op: "result"; requestId: string; ok: boolean; error?: string; payload?: unknown };
+  | { op: "result"; requestId: string; ok: boolean; error?: string };
 
 export type ClientMsg =
   | { op: "subscribe"; topics: string[] }
@@ -37,7 +37,7 @@ export type ClientMsg =
   | { op: "input_state"; pointerOverUi: boolean; textInputFocused: boolean }
   | { op: "ping" };
 
-export type ActionResult = { ok: boolean; error?: string; payload?: unknown };
+export type ActionResult = { ok: boolean; error?: string };
 
 // topic 名の単一の真実。文字列リテラルの散在を防ぐ
 // Single source of truth for topic names; prevents scattered string literals
@@ -119,4 +119,4 @@ export type TopicPayloads = {
 // 200行制限でactionContract.tsへ分離
 // Split into actionContract.ts for the 200-line rule
 export { NestedPauseSubStateNames, PauseMenuPageNames, PauseMenuReportKinds, UiStateNames, ACTION_TYPES } from "./actionContract";
-export type { ActionPayloads, ActionResultPayloads, ActionType, ActionTypesExhaustive, PauseMenuPageName, PauseMenuReportKind } from "./actionContract";
+export type { ActionPayloads, ActionType, ActionTypesExhaustive, PauseMenuPageName, PauseMenuReportKind } from "./actionContract";

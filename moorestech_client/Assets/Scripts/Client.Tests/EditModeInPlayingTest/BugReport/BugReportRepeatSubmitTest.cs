@@ -47,7 +47,7 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
                 await UniTask.Delay(1000);
                 var before = BugReportSubmitUtil.ExistingBundles();
                 pauseMenu.ShowPage(PauseMenuPage.BugReport);
-                var (first, _) = await BugReportSubmitUtil.SubmitAndTakeNewBundle(resolver, "一件目", PlaytestReportKind.Bug, before);
+                var first = await BugReportSubmitUtil.SubmitAndTakeNewBundle(resolver, "一件目", PlaytestReportKind.Bug, before);
                 Assert.AreEqual(PauseMenuPage.Top, pauseMenu.CurrentPage.Value);
                 Assert.AreEqual(UIStateEnum.PauseMenu, resolver.Resolve<UIStateControl>().CurrentState);
                 await BugReportSubmitUtil.WaitCapture(session);
@@ -55,7 +55,7 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
                 // ポーズを開き直さず二件目を送り、二つの独立した完成済みバンドルを確かめる
                 // Send again without reopening the pause and verify two independent completed bundles
                 pauseMenu.ShowPage(PauseMenuPage.BugReport);
-                var (second, secondResult) = await BugReportSubmitUtil.SubmitAndTakeNewBundle(resolver, "二件目", PlaytestReportKind.Bug, BugReportSubmitUtil.ExistingBundles());
+                var second = await BugReportSubmitUtil.SubmitAndTakeNewBundle(resolver, "二件目", PlaytestReportKind.Bug, BugReportSubmitUtil.ExistingBundles());
                 Assert.AreNotEqual(first, second);
                 Assert.AreEqual(2, BugReportSubmitUtil.ExistingBundles().Except(before).Count(path => path == first || path == second));
                 Assert.AreEqual(1, opened);
@@ -67,9 +67,6 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
                 BundleManifestContract.AssertPlanC(first, firstManifest);
                 BundleManifestContract.AssertPlanC(second, secondManifest);
 
-                // 二件目は同じポーズ内での再確保直後の送信なので、payloadの欠損が確保状態でなくmanifestと一致し続けることを確かめる
-                // The second send follows a fresh capture within the same pause, so pin the payload's missing items to the manifest, not the capture status
-                BundleManifestContract.AssertPayloadMissingMatchesManifest(BundleManifestContract.MissingItemNames(secondManifest), secondResult);
                 Assert.AreEqual("一件目", (string)firstManifest["description"]);
                 Assert.AreEqual("二件目", (string)secondManifest["description"]);
                 Assert.Greater((ulong)secondManifest["reportTick"], (ulong)firstManifest["reportTick"]);

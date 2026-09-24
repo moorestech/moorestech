@@ -16,7 +16,6 @@ namespace Client.Game.InGame.BugReport.Capture
         public const string Capturing = "capturing";
         public const string Submitting = "submitting";
         public const string Ready = "ready";
-        public const string Submitted = "submitted";
 
         public string Kind { get; }
         public IReadOnlyList<string> Missing { get; }
@@ -81,7 +80,6 @@ namespace Client.Game.InGame.BugReport.Capture
                 case BugReportSubmitTicket.NoCaptureSession: return BugReportCaptureStatus.NoSession;
                 case BugReportSubmitTicket.CapturePending: return BugReportCaptureStatus.Capturing;
                 case BugReportSubmitTicket.SubmitInFlight: return BugReportCaptureStatus.Submitting;
-                case BugReportSubmitTicket.AlreadySubmitted: return BugReportCaptureStatus.Submitted;
                 // 未知の拒否コードを送信可として配ると、送れない状態のまま押させて拒否ログだけが溜まる
                 // Publishing an unknown refusal code as submittable would invite a click that only piles up refusal logs
                 default:

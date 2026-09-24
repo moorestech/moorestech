@@ -20,7 +20,7 @@ describe("BugReportForm input and availability", () => {
     act(() => textarea.props.onChange({ currentTarget: { value: "ベルトが止まる" } }));
     expect(sendButton(renderer).props.disabled).toBe(true);
     await act(async () => sendButton(renderer).props.onClick());
-    expect(mocks.dispatchActionOutcome).not.toHaveBeenCalled();
+    expect(mocks.dispatchAction).not.toHaveBeenCalled();
     act(() => renderer.unmount());
   });
 
@@ -30,19 +30,8 @@ describe("BugReportForm input and availability", () => {
     act(() => textarea.props.onChange({ currentTarget: { value: "ベルトが止まる" } }));
     expect(sendButton(renderer).props.disabled).toBe(true);
     await act(async () => sendButton(renderer).props.onClick());
-    expect(mocks.dispatchActionOutcome).not.toHaveBeenCalled();
+    expect(mocks.dispatchAction).not.toHaveBeenCalled();
     expect(statusTexts(renderer).some((text) => text.includes("ポーズメニューを開き直してください"))).toBe(true);
-    act(() => renderer.unmount());
-  });
-
-  // 送信済みの確保をもう一度送ろうとしても門が拒むだけなので、押せないことと理由を配信値から出す
-  // Re-sending a submitted capture only hits the gate's refusal, so both the block and its reason come from the delivered state
-  it("送信済みの確保では押せず送信済みの文言を出す", async () => {
-    const renderer = await render({ kind: "submitted", missing: [] });
-    const textarea = renderer.root.findByProps({ "data-testid": "bug-report-description" });
-    act(() => textarea.props.onChange({ currentTarget: { value: "ベルトが止まる" } }));
-    expect(sendButton(renderer).props.disabled).toBe(true);
-    expect(statusTexts(renderer).some((text) => text.includes("書き出しました"))).toBe(true);
     act(() => renderer.unmount());
   });
 
@@ -50,7 +39,7 @@ describe("BugReportForm input and availability", () => {
     const renderer = await render({ kind: "ready", missing: [] });
     expect(sendButton(renderer).props.disabled).toBe(true);
     await act(async () => sendButton(renderer).props.onClick());
-    expect(mocks.dispatchActionOutcome).not.toHaveBeenCalled();
+    expect(mocks.dispatchAction).not.toHaveBeenCalled();
     act(() => renderer.unmount());
   });
 
@@ -80,8 +69,8 @@ describe("BugReportForm input and availability", () => {
   // Changing the kind mid-round-trip leaves the sent kind and the on-screen selection disagreeing
   it("送信中は種別切替と記述欄を操作できなくする", async () => {
     let resolveDispatch: ((ok: boolean) => void) | undefined;
-    mocks.dispatchActionOutcome.mockImplementation(() => new Promise((resolve) => {
-      resolveDispatch = (ok) => resolve(ok ? { kind: "accepted", payload: { missing: [] } } : { kind: "rejected", error: "failed" });
+    mocks.dispatchAction.mockImplementation(() => new Promise((resolve) => {
+      resolveDispatch = (ok) => resolve(ok);
     }));
 
     const renderer = await render({ kind: "ready", missing: [] });

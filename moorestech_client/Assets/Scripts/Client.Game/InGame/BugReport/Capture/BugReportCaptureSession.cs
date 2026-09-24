@@ -94,7 +94,7 @@ namespace Client.Game.InGame.BugReport.Capture
                 return;
             }
 
-            _submitGate.Complete(ready);
+            _submitGate.Complete();
             // 成功した記録は次へ引き継がず、その瞬間の一式を確保する。失敗なら元の資料で再試行する
             // A successful send starts fresh records at this instant; a failed send retries the original materials
             if (ready)

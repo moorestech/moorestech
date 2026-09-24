@@ -1,5 +1,5 @@
 import type { z } from "zod";
-import { Topics, type ActionPayloads, type ActionResultPayloads, type TopicPayloads } from "../transport/protocol";
+import { Topics, type TopicPayloads } from "../transport/protocol";
 import {
   BlockInventoryDataSchema,
   BuildMenuDataSchema,
@@ -29,7 +29,6 @@ import {
   SkitPresentationDataSchema,
   TrainRidingDataSchema,
   NotificationDataSchema,
-  BugReportSubmitResultSchema,
 } from "./schemas";
 
 type TopicSchemaRegistry = {
@@ -68,36 +67,6 @@ const topicSchemas = {
   [Topics.trainRiding]: TrainRidingDataSchema,
   [Topics.notification]: NotificationDataSchema,
 } satisfies TopicSchemaRegistry;
-
-type ActionResultSchemaRegistry = {
-  [K in keyof ActionResultPayloads]: z.ZodType<ActionResultPayloads[K]>;
-};
-
-const actionResultSchemas = {
-  "bug_report.submit": BugReportSubmitResultSchema,
-} satisfies ActionResultSchemaRegistry;
-
-type ActionResultPayloadParse<K extends keyof ActionPayloads> = K extends keyof ActionResultPayloads
-  ? { registered: true; valid: true; value: ActionResultPayloads[K] } | { registered: true; valid: false }
-  : { registered: false };
-
-export function parseActionResultPayload<K extends keyof ActionPayloads>(
-  action: K,
-  payload: unknown,
-): ActionResultPayloadParse<K>;
-export function parseActionResultPayload(
-  action: keyof ActionPayloads,
-  payload: unknown,
-): { registered: false } | { registered: true; valid: true; value: unknown } | { registered: true; valid: false } {
-  const schemas: Partial<Record<keyof ActionPayloads, z.ZodType<unknown>>> = actionResultSchemas;
-  const schema = schemas[action];
-  if (schema === undefined) return { registered: false };
-
-  const result = schema.safeParse(payload);
-  return result.success
-    ? { registered: true, valid: true, value: result.data }
-    : { registered: true, valid: false };
-}
 
 // 既知topicは検証と同時に変換後の値を返す。判別union化したスキーマは変換結果こそが正
 // Known topics return the transformed value alongside validation; for discriminated-union schemas the transformed value is the real one

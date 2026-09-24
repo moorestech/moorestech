@@ -41,9 +41,7 @@ namespace Client.Tests.EditModeInPlayingTest.Util
 
         // 種別はwebuiのトグルが必ず載せる契約値で、欠けた要求は invalid_kind で拒否される
         // The kind is a contract value the webui toggle always sends; a request without it is refused as invalid_kind
-        // ActionResultも返す。一致確認は呼出側で
-        // Also returns ActionResult; caller confirms the match
-        public static async UniTask<(string bundle, ActionResult result)> SubmitAndTakeNewBundle(IObjectResolver resolver, string description, PlaytestReportKind kind, IReadOnlyCollection<string> before)
+        public static async UniTask<string> SubmitAndTakeNewBundle(IObjectResolver resolver, string description, PlaytestReportKind kind, IReadOnlyCollection<string> before)
         {
             var uploadRequester = new RecordingUploadRequester();
             var submitter = new BugReportSubmitter(
@@ -61,7 +59,7 @@ namespace Client.Tests.EditModeInPlayingTest.Util
             // The boot-time salvage adds a kind=crash box to the same outbox, so counting new boxes alone yields false positives; filter by kind
             var added = ExistingBundles().Except(before).Where(bundle => BundleKind(bundle) == kindText).ToList();
             Assert.AreEqual(1, added.Count, $"送信でoutboxに増えた kind={kind} の箱が1つではない");
-            return (added[0], result);
+            return added[0];
         }
 
         private static string BundleKind(string bundleDirectory)

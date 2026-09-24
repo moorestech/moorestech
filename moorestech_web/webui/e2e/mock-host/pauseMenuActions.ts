@@ -17,10 +17,10 @@ function applyPauseMenuShowPage(inv: PlayerInventoryData, payload: ActionPayload
   }, 30);
 }
 
-export type PauseMenuActionResult = { handled: false } | { handled: true; payload?: unknown };
+export type PauseMenuActionResult = { handled: false } | { handled: true };
 
-// 状態変更と成功応答payloadを同じ境界で組立
-// Builds state changes and success payload at the same boundary
+// ポーズ画面の状態変更を反映
+// Applies pause-page state changes
 export function applyPauseMenuAction(inv: PlayerInventoryData, type: string, payload: unknown): PauseMenuActionResult {
   if (type === "pause_menu.show_page") {
     applyPauseMenuShowPage(inv, payload as ActionPayloads["pause_menu.show_page"]);
@@ -28,7 +28,7 @@ export function applyPauseMenuAction(inv: PlayerInventoryData, type: string, pay
   }
   if (type === "bug_report.submit") {
     applyPauseMenuShowPage(inv, { page: "top" });
-    return { handled: true, payload: { missing: [] } };
+    return { handled: true };
   }
   return { handled: false };
 }

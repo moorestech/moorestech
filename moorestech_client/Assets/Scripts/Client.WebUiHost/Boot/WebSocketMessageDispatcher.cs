@@ -100,7 +100,7 @@ namespace Client.WebUiHost.Boot
             var handler = msg.Type == null ? null : _hub.ResolveAction(msg.Type);
             if (handler == null)
             {
-                conn.EnqueueSend(WebSocketEnvelope.BuildResult(msg.RequestId, false, "unknown_action", null));
+                conn.EnqueueSend(WebSocketEnvelope.BuildResult(msg.RequestId, false, "unknown_action"));
                 return;
             }
 
@@ -113,13 +113,13 @@ namespace Client.WebUiHost.Boot
             if (_hub.ResolveAction(msg.Type) == null)
             {
                 await UniTask.SwitchToTaskPool();
-                conn.EnqueueSend(WebSocketEnvelope.BuildResult(msg.RequestId, false, "host_stopping", null));
+                conn.EnqueueSend(WebSocketEnvelope.BuildResult(msg.RequestId, false, "host_stopping"));
                 return;
             }
 
             var result = await ExecuteHandlerAsync();
             await UniTask.SwitchToTaskPool();
-            conn.EnqueueSend(WebSocketEnvelope.BuildResult(msg.RequestId, result.Ok, result.Error, result.Payload));
+            conn.EnqueueSend(WebSocketEnvelope.BuildResult(msg.RequestId, result.Ok, result.Error));
 
             async UniTask<ActionResult> ExecuteHandlerAsync()
             {

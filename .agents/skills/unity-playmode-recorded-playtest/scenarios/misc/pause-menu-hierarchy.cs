@@ -161,6 +161,9 @@ return PlaytestRunner.Run("pause-menu-hierarchy", options, async p =>
     async UniTask SubmitAndAssertBundle(string description, int expectedNewCount, string screenshot)
     {
         await p.Until(() => captureSession.Status.Value.Kind == BugReportCaptureStatus.Ready, 30f, "バグ報告の確保が送信可能になる");
+        // トーストは押した時点の確保状態の欠損で出る
+        // The toast reports the gaps held by the capture state at click time
+        var clickMissing = captureSession.Status.Value.Missing.ToList();
         await p.ClickWebUi("bug-report-send");
         await p.Until(() => ReadyBugBoxes().Except(existingBugBoxes).Count() == expectedNewCount, 60f, $"bug outboxが{expectedNewCount}箱増える");
         var created = ReadyBugBoxes().Except(existingBugBoxes).Select(ReadManifest).ToList();
@@ -168,12 +171,8 @@ return PlaytestRunner.Run("pause-menu-hierarchy", options, async p =>
         p.Assert(created.Any(manifest => (string)manifest["description"] == description && (string)manifest["kind"] == "bug"), $"manifestはkind=bugで説明文を保持: {description}");
         await p.Until(() => pauseMenu.CurrentPage.Value == PauseMenuPage.Top, 15f, "送信後にトップへ戻る");
         p.Assert(p.CurrentUiState == UIStateEnum.PauseMenu, "送信後もPauseMenuが開いている");
-        // 送った箱に欠損があればトーストは欠損文言になり、無ければoutbox書き出し文言になる
-        // The toast names the sent box's gaps when it has any, otherwise it reports the outbox write
-        var sent = created.First(manifest => (string)manifest["description"] == description);
-        var sentMissing = ((JArray)sent["missing"]).Select(item => (string)item["item"]).ToList();
-        await PlaytestWebUiOps.WaitWebUiTextContains("toast-host", sentMissing.Count == 0 ? "outbox" : sentMissing[0], 15f);
-        p.Note($"送った箱の欠損: {(sentMissing.Count == 0 ? "なし" : string.Join(",", sentMissing))}");
+        await PlaytestWebUiOps.WaitWebUiTextContains("toast-host", clickMissing.Count == 0 ? "outbox" : clickMissing[0], 15f);
+        p.Note($"送信時の欠損: {(clickMissing.Count == 0 ? "なし" : string.Join(",", clickMissing))}");
         await p.Screenshot(screenshot);
     }
 

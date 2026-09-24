@@ -55,7 +55,7 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
                 // 実際の送信はバグ報告画面から行われるので、その画面にいる状態から送る
                 // Real sends happen from the bug-report page, so send while standing on it
                 resolver.Resolve<PauseMenuStateService>().ShowPage(PauseMenuPage.BugReport);
-                var (bundle, actionResult) = await BugReportSubmitUtil.SubmitAndTakeNewBundle(resolver, "テスト報告", PlaytestReportKind.Bug, before);
+                var bundle = await BugReportSubmitUtil.SubmitAndTakeNewBundle(resolver, "テスト報告", PlaytestReportKind.Bug, before);
                 var manifest = JObject.Parse(File.ReadAllText(Path.Combine(bundle, "manifest.json")));
                 Assert.AreEqual("テスト報告", (string)manifest["description"]);
                 BundleManifestContract.AssertPlanC(bundle, manifest);
@@ -79,7 +79,6 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
                 // The recording ring is off in test boots, so the video must be absent and recorded as missing
                 Assert.IsFalse(File.Exists(Path.Combine(bundle, "video.mp4")), "録画を止めてあるのに動画がある");
                 Assert.IsTrue(missing.Contains("video"), "動画が無いのに欠損にも載っていない");
-                BundleManifestContract.AssertPayloadMissingMatchesManifest(missing, actionResult);
 
                 await AssertReturnedToPauseMenuTop(resolver);
                 Directory.Delete(bundle, true);
@@ -117,7 +116,7 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
                 // 実際の送信はバグ報告画面から行われるので、その画面にいる状態から送る
                 // Real sends happen from the bug-report page, so send while standing on it
                 resolver.Resolve<PauseMenuStateService>().ShowPage(PauseMenuPage.BugReport);
-                var (bundle, actionResult) = await BugReportSubmitUtil.SubmitAndTakeNewBundle(resolver, "確保に失敗した報告", PlaytestReportKind.Bug, before);
+                var bundle = await BugReportSubmitUtil.SubmitAndTakeNewBundle(resolver, "確保に失敗した報告", PlaytestReportKind.Bug, before);
                 var manifest = JObject.Parse(File.ReadAllText(Path.Combine(bundle, "manifest.json")));
                 Assert.AreEqual("確保に失敗した報告", (string)manifest["description"]);
 
@@ -134,7 +133,6 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
                 Assert.IsTrue(((JArray)manifest["missing"]).All(item => ((string)item["reason"]).Length > 0), "理由の無い欠損がある");
                 Assert.AreEqual(0, ((JArray)manifest["snapshotFiles"]).Count, "確保に失敗したのにスナップショットが載っている");
 
-                BundleManifestContract.AssertPayloadMissingMatchesManifest(missing, actionResult);
 
                 await AssertReturnedToPauseMenuTop(resolver);
                 Directory.Delete(bundle, true);

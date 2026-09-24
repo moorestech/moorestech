@@ -5,15 +5,13 @@ import { setDictionaries } from "@/shared/i18n/i18nStore";
 import { useBugReportDraft } from "../useBugReportDraft";
 
 const mocks = vi.hoisted(() => ({
-  dispatchActionOutcome: vi.fn(async (): Promise<
-    { kind: "accepted"; payload: unknown } | { kind: "rejected"; error: string }
-  > => ({ kind: "accepted", payload: { missing: [] } })),
+  dispatchAction: vi.fn(async (): Promise<boolean> => true),
   emitToast: vi.fn(),
 }));
 
 vi.mock("@/bridge", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/bridge")>()),
-  dispatchActionOutcome: mocks.dispatchActionOutcome,
+  dispatchAction: mocks.dispatchAction,
 }));
 vi.mock("@/features/toast", () => ({ emitToast: mocks.emitToast }));
 // node環境ではMantineのcolor scheme hookがwindowを触るため、素のbuttonへ差し替える（前例: 共有UIのスタブ）
@@ -30,7 +28,7 @@ vi.mock("@/shared/ui", () => ({
 
 import { BugReportForm } from "../BugReportForm";
 
-type Status = { kind: "noSession" | "capturing" | "submitting" | "ready" | "submitted"; missing: string[] };
+type Status = { kind: "noSession" | "capturing" | "submitting" | "ready"; missing: string[] };
 
 const dictionary = {
   "ui.bugReport.placeholder": "何が起きた？",
@@ -47,7 +45,7 @@ const dictionary = {
 
 afterEach(() => {
   vi.clearAllMocks();
-  mocks.dispatchActionOutcome.mockImplementation(async () => ({ kind: "accepted", payload: { missing: [] } }));
+  mocks.dispatchAction.mockImplementation(async () => true);
 });
 
 export function getMocks() {

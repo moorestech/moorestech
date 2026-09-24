@@ -6,7 +6,6 @@ namespace Client.Game.InGame.BugReport.Capture
     {
         public const string NoCaptureSession = "no_capture_session";
         public const string CapturePending = "capture_pending";
-        public const string AlreadySubmitted = "already_submitted";
         public const string SubmitInFlight = "submit_in_flight";
 
         public BugReportCapturedData Data { get; }

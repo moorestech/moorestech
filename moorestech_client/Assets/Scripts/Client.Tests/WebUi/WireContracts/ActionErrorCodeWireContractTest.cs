@@ -29,7 +29,7 @@ namespace Client.Tests.WebUi.WireContracts
                 "blueprint_delete_not_found", "blueprint_delete_not_unlocked", "blueprint_delete_request_failed",
                 // plan G: 送信+同意/異常終了
                 // plan G: submission + consent/crash gates
-                "empty_description", "invalid_kind", "invalid_page", "bundle_write_failed", "no_capture_session", "capture_pending", "already_submitted", "submit_in_flight", "already_responded", "already_acknowledged", "invalid_send", "unknown_result",
+                "empty_description", "invalid_kind", "invalid_page", "bundle_write_failed", "no_capture_session", "capture_pending", "submit_in_flight", "already_responded", "already_acknowledged", "invalid_send", "unknown_result",
             };
             var shared = JObject.Parse(LoadFixture("error_codes.json"))["codes"].ToObject<List<string>>();
 

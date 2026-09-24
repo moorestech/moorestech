@@ -49,14 +49,8 @@ namespace Client.WebUiHost.Game.Actions
             // 送れたらポーズは開いたままトップへ戻す。失敗時は画面を動かさず書きかけを残す
             // After a send the pause stays open and returns to the top; on failure the page stays so the draft survives
             _pauseMenuStateService.ShowPage(PauseMenuPage.Top);
-            return CreateSuccessResult(submitted);
+            return ActionResult.Success();
         }
 
-        internal static ActionResult CreateSuccessResult(BugReportSubmitResult submitted)
-        {
-            var missing = new JArray();
-            foreach (var item in submitted.Missing) missing.Add(item.Item);
-            return ActionResult.Success(new JObject { ["missing"] = missing });
-        }
     }
 }

@@ -39,7 +39,6 @@
     "bundle_write_failed",
     "no_capture_session",
     "capture_pending",
-    "already_submitted",
     "submit_in_flight",
     "already_responded",
     "already_acknowledged",

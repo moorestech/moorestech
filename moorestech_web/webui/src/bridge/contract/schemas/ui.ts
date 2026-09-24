@@ -53,7 +53,6 @@ const BugReportStatusSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("capturing"), ...BugReportMissingField }).strict(),
   z.object({ kind: z.literal("submitting"), ...BugReportMissingField }).strict(),
   z.object({ kind: z.literal("ready"), ...BugReportMissingField }).strict(),
-  z.object({ kind: z.literal("submitted"), ...BugReportMissingField }).strict(),
 ]);
 export const PauseMenuDataSchema = z.object({
   disconnected: z.boolean(),
@@ -149,9 +148,3 @@ export const NotificationDataSchema = z.union([
   ItemEarnedNotificationSchema,
   MessageNotificationSchema,
 ]);
-
-// 送った報告に欠けた記録があれば、成功応答でその名前を返す
-// A successful submission returns the names of any records missing from the sent report
-export const BugReportSubmitResultSchema = z.object({
-  missing: z.array(z.string()),
-}).strict();

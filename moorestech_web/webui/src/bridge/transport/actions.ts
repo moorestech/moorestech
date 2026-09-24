@@ -1,7 +1,6 @@
 import { sendAction } from "./webSocketClient";
 import { notify } from "./notify";
-import { parseActionResultPayload } from "../contract/validators";
-import type { ActionPayloads, ActionResultPayloads } from "./protocol";
+import type { ActionPayloads } from "./protocol";
 
 // 全画面ゲートの「すでに応答済み」を表す拒否コード。ゲートはこの1表から文言を選ぶ
 // The rejection code meaning "already answered" for a full-screen gate; the gate picks its copy from this single table
@@ -61,38 +60,22 @@ export function shouldToastFailure(type: keyof ActionPayloads, error: string | u
 
 // 失敗を真偽値へ潰さずに受け取るための結果型。「サーバーが断った」と「届かなかった」は別の対処になる
 // Outcome type that keeps failures out of a boolean: "the server refused" and "it never arrived" call for different handling
-type ActionOutcome<TPayload = never> =
-  | ([TPayload] extends [never] ? { kind: "accepted" } : { kind: "accepted"; payload: TPayload })
+type ActionOutcome =
+  | { kind: "accepted" }
   | { kind: "rejected"; error: string }
   | { kind: "unreachable"; reason: "timeout" | "disconnected" | "other" };
-
-type ActionOutcomeFor<K extends keyof ActionPayloads> =
-  K extends keyof ActionResultPayloads ? ActionOutcome<ActionResultPayloads[K]> : ActionOutcome;
 
 // action を発行し、失敗時はトースト表示して理由つきの結果を返す。理由まで要る画面だけがこちらを呼ぶ
 // Dispatch an action, toast on failure and return the outcome with its reason; only screens that need the reason call this
 // accepted は「サーバーが受理した」ことを意味し、topic event の反映完了を保証しない
 // accepted means the server accepted the action; it does not guarantee the topic event has arrived yet
-export function dispatchActionOutcome<K extends keyof ActionPayloads>(
-  type: K,
-  payload: ActionPayloads[K],
-): Promise<ActionOutcomeFor<K>>;
 export async function dispatchActionOutcome<K extends keyof ActionPayloads>(
   type: K,
   payload: ActionPayloads[K],
-): Promise<ActionOutcome | ActionOutcome<unknown>> {
+): Promise<ActionOutcome> {
   try {
     const result = await sendAction(type, payload, ACTION_TIMEOUTS_MS[type] ?? DEFAULT_ACTION_TIMEOUT_MS);
-    if (result.ok) {
-      const parsed = parseActionResultPayload(type, result.payload);
-      if (!parsed.registered) return { kind: "accepted" };
-      if (parsed.valid) return { kind: "accepted", payload: parsed.value };
-      // 契約違反を欠損なしの成功へ縮退させず、開発者とユーザーの両方へ失敗を示す
-      // Do not degrade a contract violation into gap-free success; expose failure to both developers and users
-      console.warn("Action returned an invalid registered success payload", { type, payload: result.payload });
-      notify(`${type} failed: invalid_response`, "error");
-      return { kind: "rejected", error: "invalid_response" };
-    }
+    if (result.ok) return { kind: "accepted" };
     const error = result.error ?? "unknown";
     if (shouldToastFailure(type, result.error)) notify(`${type} failed: ${error}`, "error");
     return { kind: "rejected", error };

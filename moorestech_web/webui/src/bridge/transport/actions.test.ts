@@ -80,7 +80,7 @@ describe("dispatchAction の toast 配線", () => {
   // 既定の5秒だと ffmpeg 結合とgit起動を待つ bug_report.submit が成功しても失敗として表示される
   // At the 5s default, bug_report.submit (ffmpeg concat plus git spawns) reports a success as a failure
   it("bug_report.submit だけ 120 秒の待ち時間で送る", async () => {
-    const sendAction = vi.spyOn(webSocketClient, "sendAction").mockResolvedValue({ ok: true, payload: { missing: [] } });
+    const sendAction = vi.spyOn(webSocketClient, "sendAction").mockResolvedValue({ ok: true });
     const submitPayload = { description: "ベルトが止まる", kind: PauseMenuReportKinds.bug };
     await dispatchAction("bug_report.submit", submitPayload);
     expect(sendAction).toHaveBeenCalledWith("bug_report.submit", submitPayload, 120000);
@@ -109,32 +109,10 @@ describe("dispatchAction の toast 配線", () => {
     expect(await dispatchActionOutcome("playtest.consent.acknowledge", {}))
       .toEqual({ kind: "unreachable", reason: "timeout" });
 
-    vi.spyOn(webSocketClient, "sendAction").mockResolvedValue({ ok: true, payload: { ignored: true } });
+    vi.spyOn(webSocketClient, "sendAction").mockResolvedValue({ ok: true });
     expect(await dispatchActionOutcome("playtest.consent.acknowledge", {}))
       .toEqual({ kind: "accepted" });
   });
 
-  // 応答スキーマ登録済みなら検証値を返し、未登録ならpayloadを公開しない
-  // Registered response schemas return validated values; unregistered actions expose no payload
-  it("応答スキーマの登録有無だけで成功payloadを分岐する", async () => {
-    vi.spyOn(webSocketClient, "sendAction").mockResolvedValueOnce({ ok: true, payload: { missing: ["video"] } });
-    expect(await dispatchActionOutcome("bug_report.submit", { description: "停止した", kind: PauseMenuReportKinds.bug }))
-      .toEqual({ kind: "accepted", payload: { missing: ["video"] } });
 
-    vi.spyOn(webSocketClient, "sendAction").mockResolvedValueOnce({ ok: true, payload: { ignored: true } });
-    expect(await dispatchActionOutcome("playtest.consent.acknowledge", {}))
-      .toEqual({ kind: "accepted" });
-  });
-
-  // 壊れた成功payloadを欠損なしへ縮退させず、ログとエラー表示を残す
-  // A malformed success payload must not degrade to gap-free success; leave a log and an error notification
-  it("bug_report.submit の成功payloadが契約違反なら拒否する", async () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    vi.spyOn(webSocketClient, "sendAction").mockResolvedValue({ ok: true, payload: { missing: "video" } });
-
-    expect(await dispatchActionOutcome("bug_report.submit", { description: "停止した", kind: PauseMenuReportKinds.bug }))
-      .toEqual({ kind: "rejected", error: "invalid_response" });
-    expect(warn).toHaveBeenCalledOnce();
-    expect(notify).toHaveBeenCalledWith("bug_report.submit failed: invalid_response", "error");
-  });
 });

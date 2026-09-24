@@ -39,7 +39,6 @@ export function attachWsHandlers(wss: WebSocketServer) {
         // ack は実 host 同様 apply 後に確定し、topic event は数十ms 後に別経路で push（stale grab 再現）
         // ack is decided after apply like the real host; the topic event is pushed later on a separate channel
         let error: string | undefined;
-        let resultPayload: unknown;
         let skitActionResult: string | null | undefined, localizationActionResult: string | null | undefined, pauseMenuActionResult: PauseMenuActionResult;
         if (state.injectedActionError?.type === msg.type) {
           error = state.injectedActionError.error;
@@ -49,7 +48,10 @@ export function attachWsHandlers(wss: WebSocketServer) {
         } else if ((skitActionResult = applySkitAction(msg.type, msg.payload)) !== null) {
           error = skitActionResult ?? undefined;
         } else if ((localizationActionResult = applyLocalizationAction(msg.type, msg.payload)) !== null) error = localizationActionResult ?? undefined;
-        else if ((pauseMenuActionResult = applyPauseMenuAction(inv, msg.type, msg.payload)).handled) resultPayload = pauseMenuActionResult.payload;
+        else if ((pauseMenuActionResult = applyPauseMenuAction(inv, msg.type, msg.payload)).handled) {
+          // ポーズ画面の操作は状態更新だけで成功する
+          // Pause actions succeed after applying their state change
+        }
         else if (msg.type === "inventory.move_item") {
           // 状態が変化したときだけ topic event を流す（host の失敗は packet を出さない）
           // Emit a topic event only when state changed (the host's failed move sends no packet)
@@ -164,7 +166,7 @@ export function attachWsHandlers(wss: WebSocketServer) {
           // Unknown action types are rejected with unknown_action like the real dispatcher (known-but-unimplemented split/sort stay no-op ok:true)
           error = "unknown_action";
         }
-        send(ws, { op: "result", requestId: msg.requestId, ok: error === undefined, error, payload: resultPayload });
+        send(ws, { op: "result", requestId: msg.requestId, ok: error === undefined, error });
         return;
       }
     });

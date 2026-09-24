@@ -51,22 +51,5 @@ namespace Client.Tests.BugReport
             var missing = handler.ExecuteAsync(new JObject { ["description"] = "説明" }).GetAwaiter().GetResult();
             Assert.AreEqual("invalid_kind", missing.Error);
         }
-
-        // 次の記録を確保し直しても、送った箱の欠損はaction応答に残す
-        // Keep the sent bundle's gaps in the action response even after recapturing the next records
-        [Test]
-        public void 欠損付き成功は送った報告の欠損をpayloadで返す()
-        {
-            var submitted = BugReportSubmitResult.Succeed("/outbox/report", new List<MissingItem>
-            {
-                new() { Item = "video", Reason = "ffmpegが見つからなかった" },
-                new() { Item = "steamId", Reason = "Steam IDを取得できなかった" },
-            });
-
-            var result = BugReportSubmitActionHandler.CreateSuccessResult(submitted);
-
-            Assert.IsTrue(result.Ok);
-            CollectionAssert.AreEqual(new[] { "video", "steamId" }, result.Payload["missing"].Values<string>());
-        }
     }
 }

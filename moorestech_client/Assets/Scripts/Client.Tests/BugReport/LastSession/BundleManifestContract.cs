@@ -42,12 +42,5 @@ namespace Client.Tests
             return ((JArray)manifest["missing"]).Select(item => (string)item["item"]).ToList();
         }
 
-        // Actionの応答payloadは送った箱そのものの欠損を運ぶ。manifestとpayloadで名前がずれると通知が箱と食い違う
-        // The action payload carries the sent box's own missing items; a name mismatch between manifest and payload would desync the toast
-        public static void AssertPayloadMissingMatchesManifest(IEnumerable<string> manifestMissing, ActionResult actionResult)
-        {
-            var payloadMissing = ((JArray)actionResult.Payload["missing"]).Select(item => (string)item).OrderBy(item => item).ToList();
-            Assert.AreEqual(manifestMissing.OrderBy(item => item).ToList(), payloadMissing, "送信結果payloadの欠損がmanifestの欠損と一致しない");
-        }
     }
 }

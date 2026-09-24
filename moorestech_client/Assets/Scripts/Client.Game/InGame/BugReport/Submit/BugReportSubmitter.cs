@@ -57,7 +57,7 @@ namespace Client.Game.InGame.BugReport.Submit
             // 書き出した箱の送信を要求する。実際に送るかは走行役がゲート判定から決める
             // Ask for the freshly written box to ship; the runner decides from the gate verdict whether it actually ships
             _uploadRequester.RequestUpload();
-            return BugReportSubmitResult.Succeed(result.BundleDirectory, result.Missing);
+            return BugReportSubmitResult.Succeed(result.BundleDirectory);
         }
     }
 }

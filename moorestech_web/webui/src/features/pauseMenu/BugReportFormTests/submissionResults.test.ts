@@ -11,7 +11,7 @@ describe("BugReportForm submission results", () => {
     act(() => textarea.props.onChange({ currentTarget: { value: "ベルトが止まる" } }));
     expect(sendButton(renderer).props.disabled).toBe(false);
     await act(async () => sendButton(renderer).props.onClick());
-    expect(mocks.dispatchActionOutcome).toHaveBeenCalledWith("bug_report.submit", { description: "ベルトが止まる", kind: "bug" });
+    expect(mocks.dispatchAction).toHaveBeenCalledWith("bug_report.submit", { description: "ベルトが止まる", kind: "bug" });
     expect(mocks.emitToast).toHaveBeenCalledWith("書き出しました", "info");
     expect(textarea.props.value).toBe("");
     act(() => renderer.unmount());
@@ -24,9 +24,9 @@ describe("BugReportForm submission results", () => {
     const textarea = renderer.root.findByProps({ "data-testid": "bug-report-description" });
     act(() => textarea.props.onChange({ currentTarget: { value: "ベルトが止まる" } }));
     await act(async () => sendButton(renderer).props.onClick());
-    expect(mocks.dispatchActionOutcome).toHaveBeenCalledTimes(1);
-    expect(mocks.dispatchActionOutcome).not.toHaveBeenCalledWith("ui_state.request", expect.anything());
-    expect(mocks.dispatchActionOutcome).not.toHaveBeenCalledWith("pause_menu.show_page", expect.anything());
+    expect(mocks.dispatchAction).toHaveBeenCalledTimes(1);
+    expect(mocks.dispatchAction).not.toHaveBeenCalledWith("ui_state.request", expect.anything());
+    expect(mocks.dispatchAction).not.toHaveBeenCalledWith("pause_menu.show_page", expect.anything());
     act(() => renderer.unmount());
   });
 
@@ -34,8 +34,8 @@ describe("BugReportForm submission results", () => {
   // A second click while writing makes two boxes from one capture and raises two draft PRs for one report
   it("書き出し中は二度目の送信を受け付けない", async () => {
     let resolveSubmit: (ok: boolean) => void = () => {};
-    mocks.dispatchActionOutcome.mockImplementationOnce(() => new Promise((resolve) => {
-      resolveSubmit = (ok) => resolve(ok ? { kind: "accepted", payload: { missing: [] } } : { kind: "rejected", error: "failed" });
+    mocks.dispatchAction.mockImplementationOnce(() => new Promise((resolve) => {
+      resolveSubmit = (ok) => resolve(ok);
     }));
     const renderer = await render({ kind: "ready", missing: [] });
     const textarea = renderer.root.findByProps({ "data-testid": "bug-report-description" });
@@ -44,38 +44,29 @@ describe("BugReportForm submission results", () => {
     act(() => { void sendButton(renderer).props.onClick(); });
     expect(sendButton(renderer).props.disabled).toBe(true);
     await act(async () => sendButton(renderer).props.onClick());
-    expect(mocks.dispatchActionOutcome).toHaveBeenCalledTimes(1);
+    expect(mocks.dispatchAction).toHaveBeenCalledTimes(1);
 
     await act(async () => { resolveSubmit(true); });
-    expect(mocks.dispatchActionOutcome).toHaveBeenCalledWith("bug_report.submit", { description: "ベルトが止まる", kind: "bug" });
+    expect(mocks.dispatchAction).toHaveBeenCalledWith("bug_report.submit", { description: "ベルトが止まる", kind: "bug" });
     act(() => renderer.unmount());
   });
 
-  // 送信成功直後は次の記録へ再確保されるため、送った箱の欠損はaction結果から読む
-  // A successful send immediately recaptures the next records, so read the sent bundle's gaps from the action result
-  it("欠損付きで書けたときは成功トーストと別の文言を出す", async () => {
-    const renderer = await render({ kind: "ready", missing: [] });
+  // 押した時点の欠損を表示し、書き出し中の欠損はmanifestに残す
+  // Show gaps present at click time; later gaps remain in the manifest
+  it("確保済みの欠損を成功トーストに出す", async () => {
+    let resolveSubmit: (ok: boolean) => void = () => {};
+    mocks.dispatchAction.mockImplementationOnce(() => new Promise((resolve) => {
+      resolveSubmit = resolve;
+    }));
+    const status = { kind: "ready" as const, missing: ["video"] };
+    const renderer = await render(status);
     const textarea = renderer.root.findByProps({ "data-testid": "bug-report-description" });
     act(() => textarea.props.onChange({ currentTarget: { value: "ベルトが止まる" } }));
-
-    mocks.dispatchActionOutcome.mockResolvedValueOnce({ kind: "accepted", payload: { missing: ["video"] } });
-    await act(async () => sendButton(renderer).props.onClick());
-
+    act(() => { void sendButton(renderer).props.onClick(); });
+    status.missing[0] = "screenshot";
+    await act(async () => { resolveSubmit(true); });
     expect(mocks.emitToast).toHaveBeenCalledWith("欠けている項目: video", "error");
-    expect(mocks.emitToast).not.toHaveBeenCalledWith("書き出しました", "info");
-    act(() => renderer.unmount());
-  });
-
-  it("応答payloadの契約違反時は成功表示せず入力を残す", async () => {
-    const renderer = await render({ kind: "ready", missing: [] });
-    const textarea = renderer.root.findByProps({ "data-testid": "bug-report-description" });
-    act(() => textarea.props.onChange({ currentTarget: { value: "ベルトが止まる" } }));
-    mocks.dispatchActionOutcome.mockResolvedValueOnce({ kind: "rejected", error: "invalid_response" });
-
-    await act(async () => sendButton(renderer).props.onClick());
-
-    expect(mocks.emitToast).not.toHaveBeenCalled();
-    expect(textarea.props.value).toBe("ベルトが止まる");
+    expect(mocks.emitToast).not.toHaveBeenCalledWith("欠けている項目: screenshot", "error");
     act(() => renderer.unmount());
   });
 
@@ -98,7 +89,7 @@ describe("BugReportForm submission results", () => {
     const textarea = renderer.root.findByProps({ "data-testid": "bug-report-description" });
     act(() => textarea.props.onChange({ currentTarget: { value: "序盤が長い" } }));
     await act(async () => sendButton(renderer).props.onClick());
-    expect(mocks.dispatchActionOutcome).toHaveBeenCalledWith("bug_report.submit", { description: "序盤が長い", kind: "feedback" });
+    expect(mocks.dispatchAction).toHaveBeenCalledWith("bug_report.submit", { description: "序盤が長い", kind: "feedback" });
     act(() => renderer.unmount());
   });
 });

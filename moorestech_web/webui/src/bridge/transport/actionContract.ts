@@ -100,12 +100,6 @@ export type ActionPayloads = {
   "skit.set_ui_hidden": { sessionId: string; sceneRevision: number; hidden: boolean };
 };
 
-// action→payload型の対応表
-// Registry of success payload types by action type
-export type ActionResultPayloads = {
-  "bug_report.submit": { missing: string[] };
-};
-
 // 既知 action type の実行時リスト。ActionPayloads のキーと1:1（下の網羅チェックで担保）
 // Runtime list of known action types, 1:1 with ActionPayloads keys (enforced by the check below)
 export const ACTION_TYPES = [
