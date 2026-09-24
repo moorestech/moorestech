@@ -1,5 +1,5 @@
-// 通信せず実コンポーネントを操作し、編集と同期の境界を検証する
-// Exercise real components without transport to verify editing and synchronization boundaries
+// 実コンポーネントで編集/同期境界を検証（非通信）
+// Exercise real components (no transport) to verify edit/sync boundaries
 import { createElement } from "react";
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { beforeEach, describe, expect, it, vi } from "vitest";

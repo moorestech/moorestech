@@ -1,20 +1,20 @@
-// 駅ブロックの名前欄（§8.9の素input）。「決定」で送信し、表示の正本はブロック状態
-// Station name field (bare input per §8.9); sent on "Set", block state remains the display source of truth
+// 駅名欄（§8.9）。「決定」で送信、表示の正本はブロック状態
+// Station name field (§8.9); sent on "Set", block state is the display source of truth
 import { useState } from "react";
 import { Text } from "@mantine/core";
 import { dispatchAction } from "@/bridge";
 import type { BlockInventoryOpen } from "@/bridge";
 import { L, useI18n } from "@/shared/i18n";
 import { PanelActionButton } from "@/shared/ui";
-import styles from "../../train/style.module.css";
+import styles from "./trainStationNameSection.module.css";
 
 export default function TrainStationNameSection({ data }: { data: BlockInventoryOpen }) {
   const { t } = useI18n();
   const detail = data.trainStation;
   const [name, setName] = useState(detail?.name ?? "");
   const [previousName, setPreviousName] = useState(detail?.name);
-  // 編集していない入力欄へ同期済みの駅名を反映する
-  // Reflect synchronized station names when the input has no local edits
+  // 未編集の入力欄へ同期済み駅名を反映
+  // Reflect the synced station name into an unedited input
   if (previousName !== detail?.name) {
     setPreviousName(detail?.name);
     if (name === (previousName ?? "")) setName(detail?.name ?? "");

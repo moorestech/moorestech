@@ -1,5 +1,5 @@
-// 時刻表タブ。ローカルdraftを編集し「適用」で丸ごと送る。自動運転は即送信
-// Timetable tab: edit a local draft and send the whole list on Apply; auto-run is sent immediately
+// 時刻表タブ。draft編集→適用で送信、自動運転は即送信
+// Timetable tab: edit a draft, send on Apply; auto-run sends immediately
 import { useState } from "react";
 import { Stack, Text } from "@mantine/core";
 import { dispatchAction } from "@/bridge";
@@ -12,12 +12,12 @@ import styles from "./style.module.css";
 
 export default function TrainTimetableSection({ timetable }: { timetable: TrainTimetableData }) {
   const { t } = useI18n();
-  // 適用前に閉じたら破棄される（コンポーネントのアンマウントで消える）
-  // Discarded when closed before Apply (state dies with the component)
+  // 適用前に閉じるとdraftは破棄（アンマウントで消える）
+  // The draft is discarded if closed before Apply (dies on unmount)
   const [draft, setDraft] = useState<TimetableDraft>({ stops: timetable.stops });
   const [previousStops, setPreviousStops] = useState(timetable.stops);
-  // 未編集なら最新snapshotへ追従し、編集中の並びは保持する
-  // Follow new snapshots while clean, preserving an actively edited order
+  // 未編集は最新snapshotに追従、編集中は並び保持
+  // Follow the latest snapshot while clean; keep order while editing
   if (previousStops !== timetable.stops) {
     setPreviousStops(timetable.stops);
     if (sameStopOrder(draft.stops, previousStops)) setDraft({ stops: timetable.stops });
@@ -42,7 +42,7 @@ export default function TrainTimetableSection({ timetable }: { timetable: TrainT
       <Text size="sm">{t(L.ui.blockInventory.timetableStops)}</Text>
       <TrainTimetableStopList
         stops={draft.stops}
-        currentIndex={matchesServer ? timetable.currentIndex : -1}
+        currentIndex={matchesServer ? timetable.currentIndex : null}
         onMove={(i, d) => setDraft((prev) => moveStop(prev, i, d))}
         onRemove={(i) => setDraft((prev) => removeStop(prev, i))}
       />

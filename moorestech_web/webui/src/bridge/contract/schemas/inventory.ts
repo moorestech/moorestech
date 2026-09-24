@@ -142,7 +142,7 @@ export const TrainPlatformDataSchema = z.object({
 
 // 時刻表は駅ブロック座標で対象を固定し、表示名は独立して保持する
 // The timetable identifies station blocks by position and carries names only for display
-export const TrainStationPositionSchema = z.object({ x: z.number().int(), y: z.number().int(), z: z.number().int() });
+const TrainStationPositionSchema = z.object({ x: z.number().int(), y: z.number().int(), z: z.number().int() });
 export const TrainTimetableStationSchema = z.object({ position: TrainStationPositionSchema, name: z.string() });
 export const TrainTimetableDataSchema = z.object({
   trainUnitId: z.string(),
@@ -151,7 +151,7 @@ export const TrainTimetableDataSchema = z.object({
   stops: z.array(TrainTimetableStationSchema),
   stations: z.array(TrainTimetableStationSchema),
 });
-export const TrainStationDetailSchema = z.object({ name: z.string() });
+const TrainStationDetailSchema = z.object({ name: z.string() });
 
 export const BlockInventoryOpenSchema = z.object({
   open: z.literal(true),

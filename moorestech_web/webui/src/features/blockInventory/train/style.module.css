@@ -26,23 +26,6 @@
   flex-shrink: 0;
 }
 
-.nameInput {
-  background: var(--gauge-track);
-  border: var(--bevel-1) solid var(--bevel-c1);
-  color: var(--text-default);
-  padding: var(--mode-switch-padding-block) var(--mode-switch-padding-inline);
-  font-family: inherit;
-}
-
-.nameInput::placeholder {
-  color: var(--text-muted);
-}
-
-.nameInput:focus-visible {
-  outline: var(--bevel-1) solid var(--text-high-contrast);
-  outline-offset: var(--bevel-1);
-}
-
 /* 高さはstageのパネル本文に従い、駅数では伸ばさない */
 /* Follow the stage panel body height instead of growing with station count */
 .body {

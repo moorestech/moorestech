@@ -1,33 +1,10 @@
-/* タブ列はModeSwitchの溝面を横に並べる */
-/* The tab row places ModeSwitch track faces side by side */
+/* タブ列はModeSwitchの面をそのまま流用する（選択・フォーカスの差異を持たせない） */
+/* The tab row reuses ModeSwitch faces verbatim (no divergence in selection/focus styling) */
 .root {
-  display: flex;
-  flex-direction: row;
-  gap: var(--mode-switch-gap);
+  composes: root from "../ModeSwitch/style.module.css";
   margin-bottom: var(--mode-switch-padding-block);
 }
 
 .tab {
-  flex: 1 1 auto;
-  padding: var(--mode-switch-padding-block) var(--mode-switch-padding-inline);
-  color: var(--text-muted);
-  font: inherit;
-  cursor: pointer;
-  border: 0;
-  border-radius: var(--bevel-1);
-  background: var(--gauge-track);
-  box-shadow: 0 0 0 var(--bevel-1) var(--bevel-c1);
-}
-
-/* 選択状態は寒色面と高コントラスト文字で示す */
-/* The selected state uses a cool face and high-contrast text */
-.tab[data-selected="true"] {
-  color: var(--text-high-contrast);
-  background: color-mix(in srgb, var(--gauge-track), var(--bevel-c2) var(--mode-switch-selected-mix));
-  box-shadow: 0 0 0 var(--bevel-1) var(--bevel-c2);
-}
-
-.tab:focus-visible {
-  outline: var(--bevel-1) solid var(--text-high-contrast);
-  outline-offset: var(--bevel-1);
+  composes: option from "../ModeSwitch/style.module.css";
 }

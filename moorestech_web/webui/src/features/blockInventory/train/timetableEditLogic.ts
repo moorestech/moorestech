@@ -1,13 +1,12 @@
-// 時刻表タブのローカル編集。サーバーへは「適用」で丸ごと送る
-// Local editing for the timetable tab; the whole list is sent on "Apply"
+// 時刻表タブのローカル編集。適用で丸ごと送信
+// Local editing for the timetable tab; sent whole on Apply
 import type { TrainTimetableStation } from "@/bridge";
 import { L, useI18n } from "@/shared/i18n";
 
 export type TimetableDraft = { stops: TrainTimetableStation[] };
-export type StationKey = string;
-export type StationPosition = TrainTimetableStation["position"];
+type StationPosition = TrainTimetableStation["position"];
 
-export function stationKey(position: StationPosition): StationKey {
+export function stationKey(position: StationPosition): string {
   return `${position.x},${position.y},${position.z}`;
 }
 

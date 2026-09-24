@@ -2,8 +2,8 @@ import type { BlockInventoryWireData } from "../../../src/bridge/contract/payloa
 
 const empty = () => ({ itemId: 0, count: 0 });
 
-// 駅名あり・なしの両方と現在停車駅を持つ列車を再現する
-// Reproduces a train with named and unnamed stations and a current stop
+// 駅名有無と現在停車駅を持つ列車を再現
+// Reproduces a train with named/unnamed stations and a current stop
 export const trainWithTimetable = {
   open: true,
   source: "train",

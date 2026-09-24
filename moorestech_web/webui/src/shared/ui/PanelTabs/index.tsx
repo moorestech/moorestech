@@ -1,18 +1,18 @@
-// パネル内のビュー切替タブ。ModeSwitchと同じ面で選択中を示す
-// In-panel view tabs use ModeSwitch faces and expose the selected tab
+// パネル内ビュー切替タブ。ModeSwitchと同面で選択中を表示
+// In-panel view tabs; shows selection on the same face as ModeSwitch
 import type { ReactNode } from "react";
 import styles from "./style.module.css";
 
-export type PanelTab = { value: string; label: ReactNode; testId?: string };
+type PanelTabItem<T extends string> = { value: T; label: ReactNode; testId?: string };
 
-type Props = {
-  value: string;
-  tabs: PanelTab[];
-  onChange: (value: string) => void;
+type Props<T extends string> = {
+  value: T;
+  tabs: PanelTabItem<T>[];
+  onChange: (value: T) => void;
   testId?: string;
 };
 
-export default function PanelTabs({ value, tabs, onChange, testId }: Props) {
+export default function PanelTabs<T extends string>({ value, tabs, onChange, testId }: Props<T>) {
   return (
     <div className={styles.root} role="tablist" data-testid={testId}>
       {tabs.map((tab) => (

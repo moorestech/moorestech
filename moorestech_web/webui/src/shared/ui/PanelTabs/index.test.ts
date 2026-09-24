@@ -1,4 +1,4 @@
-// PanelTabsの選択状態とクリック契約を検証する
+// PanelTabsの選択状態/クリック契約を検証
 // Verifies PanelTabs selection state and click contract
 import { createElement } from "react";
 import { act, create } from "react-test-renderer";
