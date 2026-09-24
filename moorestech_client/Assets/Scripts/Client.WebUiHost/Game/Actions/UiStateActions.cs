@@ -30,7 +30,7 @@ namespace Client.WebUiHost.Game.Actions
 
         // Web起点のUIState遷移はこの1本に集める。別経路から状態機械へ書くと現stateの検査を素通りする
         // Every web-initiated UI-state transition funnels through here; another path would bypass the current-state checks
-        public static ActionResult RequestState(UIStateControl uiStateControl, string stateName)
+        private static ActionResult RequestState(UIStateControl uiStateControl, string stateName)
         {
             // Webから要求できるのは GameScreen / PlayerInventory のみ（SubInventoryは対象ブロックが必要）
             // The web may request only GameScreen / PlayerInventory (SubInventory needs a target block)

@@ -90,11 +90,21 @@ namespace Client.Game.InGame.BugReport
 
             #region Internal
 
+            bool IsAlreadyMissing(string item)
+            {
+                foreach (var missing in manifest.Missing)
+                    if (missing.Item == item)
+                        return true;
+                return false;
+            }
+
             void AssembleVideo()
             {
+                // 確保時に既にvideoが欠けている理由がmanifestへ積まれているため、ここでは重複追加しない
+                // The capture side already recorded video's own gap reason on manifest, so this branch never appends a duplicate
                 if (data.VideoSegmentFiles.Count == 0)
                 {
-                    manifest.AddMissing("video", "録画の区間ファイルが1本も無かった");
+                    if (!IsAlreadyMissing("video")) manifest.AddMissing("video", "録画の区間ファイルが1本も無かった");
                     return;
                 }
 
@@ -143,9 +153,11 @@ namespace Client.Game.InGame.BugReport
 
             void CopyScreenshot()
             {
+                // 確保時に既にscreenshotが欠けている理由がmanifestへ積まれているため、ここでは重複追加しない
+                // The capture side already recorded screenshot's own gap reason on manifest, so this branch never appends a duplicate
                 if (string.IsNullOrEmpty(data.ScreenshotPath) || !File.Exists(data.ScreenshotPath))
                 {
-                    manifest.AddMissing("screenshot", "確保時のスクリーンショットが無かった");
+                    if (!IsAlreadyMissing("screenshot")) manifest.AddMissing("screenshot", "確保時のスクリーンショットが無かった");
                     return;
                 }
                 File.Copy(data.ScreenshotPath, Path.Combine(directory, BugReportBundleLayout.ScreenshotFileName));

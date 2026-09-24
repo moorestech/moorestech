@@ -6,12 +6,12 @@ using UnityEngine;
 
 namespace Client.Tests.WebUi.WireContracts
 {
-    // Action拒否コードのC#⇔TypeScript契約を共有フィクスチャへ集約する
-    // Centralizes the C#-to-TypeScript action rejection-code contract in a shared fixture
+    // Action拒否コード契約をfixtureへ集約
+    // Centralizes the C#/TS action rejection-code contract in a fixture
     public class ActionErrorCodeWireContractTest
     {
-        // 全Actionハンドラとdispatcherのエラーコードを過不足なく網羅する
-        // Covers every error code returned by action handlers and the dispatcher exactly
+        // 全エラーコードを網羅
+        // Covers all error codes exactly
         [Test]
         public void ErrorCodesFixtureCoversAllHandlerCodes()
         {
@@ -27,8 +27,8 @@ namespace Client.Tests.WebUi.WireContracts
                 "invalid_direction", "filter_request_failed", "unknown_entry", "unknown_locale", "already_selected",
                 "stale_session", "stale_revision", "intent_not_allowed", "unknown_choice",
                 "blueprint_delete_not_found", "blueprint_delete_not_unlocked", "blueprint_delete_request_failed",
-                // プレイ報告（plan G）: ポーズ送信と、初回同意・前回異常終了の2ゲート
-                // Play reports (plan G): pause-menu submission plus first-boot consent and previous-crash gates
+                // plan G: 送信+同意/異常終了
+                // plan G: submission + consent/crash gates
                 "empty_description", "invalid_kind", "invalid_page", "bundle_write_failed", "no_capture_session", "capture_pending", "already_submitted", "submit_in_flight", "already_responded", "already_acknowledged", "invalid_send", "unknown_result",
             };
             var shared = JObject.Parse(LoadFixture("error_codes.json"))["codes"].ToObject<List<string>>();

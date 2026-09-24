@@ -7,8 +7,8 @@ using UnityEngine;
 
 namespace Client.WebUiHost.Game.Actions
 {
-    // 説明文を受け取り、確保済みの記録と一緒に outbox へ書き、ポーズメニューのトップへ戻す（ADR 0069）
-    // Takes the description, writes it with the secured records into the outbox, then returns to the pause-menu top (ADR 0069)
+    // 記録と説明文をoutbox書きトップへ戻す(ADR0069)
+    // Writes records+description to outbox, returns to top (ADR 0069)
     public class BugReportSubmitActionHandler : IActionHandler
     {
         private readonly BugReportSubmitter _submitter;

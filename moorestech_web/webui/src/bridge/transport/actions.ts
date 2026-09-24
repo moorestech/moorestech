@@ -61,7 +61,7 @@ export function shouldToastFailure(type: keyof ActionPayloads, error: string | u
 
 // 失敗を真偽値へ潰さずに受け取るための結果型。「サーバーが断った」と「届かなかった」は別の対処になる
 // Outcome type that keeps failures out of a boolean: "the server refused" and "it never arrived" call for different handling
-export type ActionOutcome<TPayload = never> =
+type ActionOutcome<TPayload = never> =
   | ([TPayload] extends [never] ? { kind: "accepted" } : { kind: "accepted"; payload: TPayload })
   | { kind: "rejected"; error: string }
   | { kind: "unreachable"; reason: "timeout" | "disconnected" | "other" };

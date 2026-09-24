@@ -10,8 +10,8 @@ using UnityEngine;
 
 namespace Client.Tests.WebUi
 {
-    // C#とTypeScriptのワイヤ契約を共有フィクスチャと照合する。フィクスチャは契約の単一ソース
-    // Checks the C# and TypeScript wire contract against shared fixtures, the single source of truth
+    // C#/TS契約をfixtureと照合。単一ソース
+    // Checks C#/TS wire contract against fixtures, the single source
     public class WireContractTest
     {
         // 共通envelopeがrevisionとpayloadをフィクスチャ通り保持する

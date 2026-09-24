@@ -55,12 +55,12 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
                 // 実際の送信はバグ報告画面から行われるので、その画面にいる状態から送る
                 // Real sends happen from the bug-report page, so send while standing on it
                 resolver.Resolve<PauseMenuStateService>().ShowPage(PauseMenuPage.BugReport);
-                var bundle = await BugReportSubmitUtil.SubmitAndTakeNewBundle(resolver, "テスト報告", PlaytestReportKind.Bug, before);
+                var (bundle, actionResult) = await BugReportSubmitUtil.SubmitAndTakeNewBundle(resolver, "テスト報告", PlaytestReportKind.Bug, before);
                 var manifest = JObject.Parse(File.ReadAllText(Path.Combine(bundle, "manifest.json")));
                 Assert.AreEqual("テスト報告", (string)manifest["description"]);
                 BundleManifestContract.AssertPlanC(bundle, manifest);
 
-                var missing = MissingItems(manifest);
+                var missing = BundleManifestContract.MissingItemNames(manifest);
                 Assert.IsFalse(missing.Contains("serverSnapshot"), "サーバースナップショットが欠損扱いになっている");
                 Assert.GreaterOrEqual(((JArray)manifest["snapshotFiles"]).Count, 1, "スナップショットが同梱されていない");
                 Assert.GreaterOrEqual(((JArray)manifest["snapshotTicks"]).Count, 1, "スナップショットのtickが1つも載っていない");
@@ -79,6 +79,7 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
                 // The recording ring is off in test boots, so the video must be absent and recorded as missing
                 Assert.IsFalse(File.Exists(Path.Combine(bundle, "video.mp4")), "録画を止めてあるのに動画がある");
                 Assert.IsTrue(missing.Contains("video"), "動画が無いのに欠損にも載っていない");
+                BundleManifestContract.AssertPayloadMissingMatchesManifest(missing, actionResult);
 
                 await AssertReturnedToPauseMenuTop(resolver);
                 Directory.Delete(bundle, true);
@@ -116,7 +117,7 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
                 // 実際の送信はバグ報告画面から行われるので、その画面にいる状態から送る
                 // Real sends happen from the bug-report page, so send while standing on it
                 resolver.Resolve<PauseMenuStateService>().ShowPage(PauseMenuPage.BugReport);
-                var bundle = await BugReportSubmitUtil.SubmitAndTakeNewBundle(resolver, "確保に失敗した報告", PlaytestReportKind.Bug, before);
+                var (bundle, actionResult) = await BugReportSubmitUtil.SubmitAndTakeNewBundle(resolver, "確保に失敗した報告", PlaytestReportKind.Bug, before);
                 var manifest = JObject.Parse(File.ReadAllText(Path.Combine(bundle, "manifest.json")));
                 Assert.AreEqual("確保に失敗した報告", (string)manifest["description"]);
 
@@ -125,7 +126,7 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
                 BundleManifestContract.AssertPlanC(bundle, manifest);
                 Assert.IsTrue(File.Exists(Path.Combine(bundle, "logs", "unity.log")), "確保に失敗した報告からUnityログまで落ちている");
 
-                var missing = MissingItems(manifest);
+                var missing = BundleManifestContract.MissingItemNames(manifest);
                 Assert.IsTrue(missing.Contains("serverSnapshot"), "サーバースナップショットの欠損がmanifestに残っていない");
                 Assert.IsTrue(missing.Contains("snapshots"), "スナップショット置き場が無かったことがmanifestに残っていない");
                 Assert.IsTrue(missing.Contains("video"), "動画の欠損がmanifestに残っていない");
@@ -133,18 +134,13 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
                 Assert.IsTrue(((JArray)manifest["missing"]).All(item => ((string)item["reason"]).Length > 0), "理由の無い欠損がある");
                 Assert.AreEqual(0, ((JArray)manifest["snapshotFiles"]).Count, "確保に失敗したのにスナップショットが載っている");
 
+                BundleManifestContract.AssertPayloadMissingMatchesManifest(missing, actionResult);
+
                 await AssertReturnedToPauseMenuTop(resolver);
                 Directory.Delete(bundle, true);
             }
 
             #endregion
-        }
-
-        // 欠損は同じ項目名が複数回載りうる（確保側と書き出し側の両方が理由を足す）ため一覧のまま扱う
-        // The same item can appear more than once (both capture and writer add reasons), so keep it as a list
-        private static List<string> MissingItems(JObject manifest)
-        {
-            return ((JArray)manifest["missing"]).Select(item => (string)item["item"]).ToList();
         }
 
         // 送信後はポーズを閉じずにトップへ戻る（ADR 0069）

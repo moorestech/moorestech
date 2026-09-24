@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Client.Game.InGame.BugReport;
+using Client.WebUiHost.Game.Actions;
 using Game.Paths;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -32,6 +33,21 @@ namespace Client.Tests
         public static List<string> StringList(JObject manifest, string key)
         {
             return ((JArray)manifest[key]).Select(item => (string)item).ToList();
+        }
+
+        // 欠損は同じ項目名が複数回載りうる（確保側と書き出し側の両方が理由を足す）ため一覧のまま扱う
+        // The same item can appear more than once (both capture and writer add reasons), so keep it as a list
+        public static List<string> MissingItemNames(JObject manifest)
+        {
+            return ((JArray)manifest["missing"]).Select(item => (string)item["item"]).ToList();
+        }
+
+        // Actionの応答payloadは送った箱そのものの欠損を運ぶ。manifestとpayloadで名前がずれると通知が箱と食い違う
+        // The action payload carries the sent box's own missing items; a name mismatch between manifest and payload would desync the toast
+        public static void AssertPayloadMissingMatchesManifest(IEnumerable<string> manifestMissing, ActionResult actionResult)
+        {
+            var payloadMissing = ((JArray)actionResult.Payload["missing"]).Select(item => (string)item).OrderBy(item => item).ToList();
+            Assert.AreEqual(manifestMissing.OrderBy(item => item).ToList(), payloadMissing, "送信結果payloadの欠損がmanifestの欠損と一致しない");
         }
     }
 }

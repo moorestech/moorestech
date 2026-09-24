@@ -89,8 +89,8 @@ describe("PauseMenuPanel", () => {
     act(() => renderer.unmount());
   });
 
-  // ポーズを閉じるとパネルごと外れ、書きかけは捨てられる
-  // Closing the pause unmounts the panel, and the draft goes with it
+  // 閉じるとパネルごと外れ書きかけ破棄
+  // Closing unmounts the panel; the draft is discarded
   it("パネルを外して付け直すと書きかけは空になる", async () => {
     const first = await render("bugReport");
     act(() => byTestId(first, "bug-report-description")[0].props.onChange({ currentTarget: { value: "ベルトが止まる" } }));

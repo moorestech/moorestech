@@ -5,8 +5,8 @@ import { send } from "../wire";
 import { state, topicSubscribers } from "../state";
 import { demoMode, topicData } from "../topics/topicFixtures";
 
-// action以外の通信制御を処理し、処理済みならtrueを返す
-// Handle non-action transport control and return true when the message was consumed
+// action以外の制御を処理し処理済みならtrue
+// Handles non-action transport control, returns consumed
 export function handleNonActionMessage(ws: WebSocket, msg: ClientMsg, inv: PlayerInventoryData): boolean {
   if (msg.op === "ping") {
     send(ws, { op: "pong" });

@@ -22,8 +22,8 @@ export function PauseMenuPanel() {
   );
 
   function renderPage() {
-    // 初回配信前はトップの枠だけ出す。報告欄は確保状態が届くまで描かない
-    // Before the first delivery only the top renders; the report form waits for the capture status
+    // 初回配信前はトップの枠のみ。確保状態待ち
+    // Before first delivery, only top renders; waits for capture status
     if (!data) return <PauseMenuTopPage disconnected={false} />;
     switch (data.page) {
       case "top": return <PauseMenuTopPage disconnected={data.disconnected} />;

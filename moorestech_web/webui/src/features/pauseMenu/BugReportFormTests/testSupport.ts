@@ -21,8 +21,8 @@ vi.mock("@/features/toast", () => ({ emitToast: mocks.emitToast }));
 vi.mock("@mantine/core", () => ({
   Button: ({ children, ...rest }: { children: ReactNode }) => createElement("button", rest, children),
 }));
-// ModeSwitchは択一トグルの前例（LanguageSelect）と同じ共有UIをスタブする
-// ModeSwitch is stubbed the same way the shared UI precedent (LanguageSelect) does
+// ModeSwitchは前例と同UIスタブ
+// ModeSwitch stubbed same as precedent (LanguageSelect)
 vi.mock("@/shared/ui", () => ({
   ModeSwitch: ({ value, onChange, disabled, testId }: { value: string; onChange: (v: string) => void; disabled?: boolean; testId?: string }) =>
     createElement("mock-mode-switch", { value, onChange, disabled, "data-testid": testId }),

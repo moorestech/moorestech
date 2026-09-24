@@ -5,8 +5,8 @@ import { send } from "./wire";
 import { state, subscribersOf } from "./state";
 import { demoMode, topicData } from "./topics/topicFixtures";
 
-// 指定ページへ遷移し、上書き中のfixtureと全購読者へ同じ状態を反映する
-// Move to the requested page and reflect the same state in the overridden fixture and every subscriber
+// 指定ページへ遷移しfixtureと購読者へ反映
+// Moves to the page, reflects state in fixture and subscribers
 function applyPauseMenuShowPage(inv: PlayerInventoryData, payload: ActionPayloads["pause_menu.show_page"]): void {
   state.pauseMenuPage = payload.page;
   const pauseMenuOverride = state.topicOverrides.get(Topics.pauseMenu) as { page?: string } | undefined;
@@ -19,8 +19,8 @@ function applyPauseMenuShowPage(inv: PlayerInventoryData, payload: ActionPayload
 
 export type PauseMenuActionResult = { handled: false } | { handled: true; payload?: unknown };
 
-// ポーズメニューactionの状態変更と成功応答payloadを同じ境界で組み立てる
-// Build pause-menu action state changes and success-response payloads at the same boundary
+// 状態変更と成功応答payloadを同じ境界で組立
+// Builds state changes and success payload at the same boundary
 export function applyPauseMenuAction(inv: PlayerInventoryData, type: string, payload: unknown): PauseMenuActionResult {
   if (type === "pause_menu.show_page") {
     applyPauseMenuShowPage(inv, payload as ActionPayloads["pause_menu.show_page"]);

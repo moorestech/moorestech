@@ -4,8 +4,8 @@ import { L, useI18n } from "@/shared/i18n";
 import { tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
 import { PanelActionButton } from "@/shared/ui";
 
-// ポーズメニューのトップ。セーブ系2つと、子画面への入口2つを並べる（ADR 0069）
-// The pause-menu top: two save actions plus two entries to the sub-pages (ADR 0069)
+// ポーズトップ。セーブ2+子画面入口2を配置(ADR0069)
+// Pause-menu top: 2 save actions + 2 sub-page entries (ADR 0069)
 export function PauseMenuTopPage({ disconnected }: { disconnected: boolean }) {
   const { t } = useI18n();
   const disconnectColor = "red";
@@ -17,16 +17,16 @@ export function PauseMenuTopPage({ disconnected }: { disconnected: boolean }) {
     <Stack gap="md">
       <Title order={1}>{t(L.ui.pauseMenu.title)}</Title>
       {disconnected && <Text c={disconnectColor}>{t(L.ui.pauseMenu.disconnected)}</Text>}
-      <PanelActionButton onClick={save} data-testid="pause-menu-save" {...tutorialAnchor(TutorialAnchorIds.pauseSave)}>
+      <PanelActionButton onClick={save} testId="pause-menu-save" {...tutorialAnchor(TutorialAnchorIds.pauseSave)}>
         {t(L.ui.game.saveGame)}
       </PanelActionButton>
-      <PanelActionButton onClick={quit} data-testid="pause-menu-save-and-quit" {...tutorialAnchor(TutorialAnchorIds.pauseBack)}>
+      <PanelActionButton onClick={quit} testId="pause-menu-save-and-quit" {...tutorialAnchor(TutorialAnchorIds.pauseBack)}>
         {t(L.ui.game.saveAndQuit)}
       </PanelActionButton>
-      <PanelActionButton onClick={() => open(PauseMenuPageNames.settings)} data-testid="pause-menu-open-settings" {...tutorialAnchor(TutorialAnchorIds.pauseSettings)}>
+      <PanelActionButton onClick={() => open(PauseMenuPageNames.settings)} testId="pause-menu-open-settings" {...tutorialAnchor(TutorialAnchorIds.pauseSettings)}>
         {t(L.ui.pauseMenu.settings)}
       </PanelActionButton>
-      <PanelActionButton onClick={() => open(PauseMenuPageNames.bugReport)} data-testid="pause-menu-open-bug-report" {...tutorialAnchor(TutorialAnchorIds.pauseBugReport)}>
+      <PanelActionButton onClick={() => open(PauseMenuPageNames.bugReport)} testId="pause-menu-open-bug-report" {...tutorialAnchor(TutorialAnchorIds.pauseBugReport)}>
         {t(L.ui.pauseMenu.bugReport)}
       </PanelActionButton>
     </Stack>

@@ -30,8 +30,8 @@ export const PauseMenuReportKinds = {
   feedback: "feedback",
 } as const;
 
-// C#のPauseMenuPageContractと1対1で対応する画面名（ADR 0069）
-// Page names mirroring C#'s PauseMenuPageContract one-to-one (ADR 0069)
+// C#契約と1対1対応(ADR0069)
+// Mirrors C#'s PauseMenuPageContract 1:1 (ADR 0069)
 export const PauseMenuPageNames = {
   top: "top",
   settings: "settings",
@@ -100,8 +100,8 @@ export type ActionPayloads = {
   "skit.set_ui_hidden": { sessionId: string; sceneRevision: number; hidden: boolean };
 };
 
-// action type → 成功応答payload型の対応表。payloadを返すactionだけを登録する
-// action type → success-response payload registry; only actions returning a payload are registered
+// action→payload型の対応表
+// Registry of success payload types by action type
 export type ActionResultPayloads = {
   "bug_report.submit": { missing: string[] };
 };

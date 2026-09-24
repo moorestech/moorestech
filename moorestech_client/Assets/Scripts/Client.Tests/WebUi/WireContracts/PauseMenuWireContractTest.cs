@@ -15,12 +15,12 @@ using UnityEngine;
 
 namespace Client.Tests.WebUi.WireContracts
 {
-    // ポーズメニューとAction応答のC#⇔TypeScript契約を、共有フィクスチャと応答封筒で固定する
-    // Pins the C#-to-TypeScript pause-menu and action-response contracts with shared fixtures and envelopes
+    // ポーズ/Action応答契約をfixtureと封筒で固定
+    // Pins pause-menu/action-response C#/TS contract via fixtures and envelope
     public class PauseMenuWireContractTest
     {
-        // ポーズメニューは切断表示・報告の確保状態・今の画面を配信する
-        // The pause menu sends the disconnect state, the report capture status and the current page
+        // 切断表示・確保状態・今の画面を配信
+        // Sends disconnect state, capture status, current page
         [Test]
         public void PauseMenuMatchesFixture()
         {

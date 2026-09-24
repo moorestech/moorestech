@@ -22,8 +22,8 @@ namespace Client.Game.InGame.UI.UIState.State.PauseMenu
             _currentPage.Value = page;
         }
 
-        // Escapeが押されたフレームだけ1段戻りを判定し、ポーズを閉じてよいかを返す
-        // Judges the one-step back only on the frame Escape is pressed and returns whether the pause may close
+        // Escapeフレームのみ1段戻り可否を判定して返す
+        // Judges one-step back only on the Escape frame, returns close-ok
         public bool HandleCloseKey()
         {
             return InputManager.UI.CloseUI.GetKeyDown && StepBackOnCloseKey();
@@ -31,7 +31,7 @@ namespace Client.Game.InGame.UI.UIState.State.PauseMenu
 
         // 子画面ならトップへ戻して閉じない。トップなら閉じてよい
         // On a sub-page go back to the top and stay open; on the top the pause may close
-        public bool StepBackOnCloseKey()
+        internal bool StepBackOnCloseKey()
         {
             if (_currentPage.Value == PauseMenuPage.Top) return true;
 
@@ -41,8 +41,8 @@ namespace Client.Game.InGame.UI.UIState.State.PauseMenu
 
         public void OnEnter()
         {
-            // 開くたびにトップから始め、前回の子画面を持ち越さない
-            // Every open starts from the top and never carries over the previous sub-page
+            // 毎回トップから開始し前回は持ち越さない
+            // Every open starts from top, never carries over previous
             _currentPage.Value = PauseMenuPage.Top;
             InputManager.MouseCursorVisible(true);
             _onPauseMenuOpened.OnNext(Unit.Default);

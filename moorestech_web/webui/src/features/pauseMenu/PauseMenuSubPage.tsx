@@ -15,7 +15,7 @@ export function PauseMenuSubPage({ title, children }: { title: string; children:
     <Stack gap="md">
       <Title order={1}>{title}</Title>
       {children}
-      <PanelActionButton onClick={back} data-testid="pause-menu-back" {...tutorialAnchor(TutorialAnchorIds.pauseBackToTop)}>
+      <PanelActionButton onClick={back} testId="pause-menu-back" {...tutorialAnchor(TutorialAnchorIds.pauseBackToTop)}>
         {t(L.ui.pauseMenu.back)}
       </PanelActionButton>
     </Stack>

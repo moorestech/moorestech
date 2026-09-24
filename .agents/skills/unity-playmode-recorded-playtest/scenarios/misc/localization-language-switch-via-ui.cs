@@ -112,8 +112,11 @@ return PlaytestRunner.Run("localization-language-switch-via-ui", options, async 
         await p.PressKey(Key.Escape);
         await p.WaitUiState(UIStateEnum.PauseMenu, 15f);
         await p.UntilWebUiElement("pause-menu", 15f);
+        await p.ClickWebUi("pause-menu-open-settings");
         await p.ClickWebUi($"language-select-option-{locale}");
         await p.UntilWebUiElement($"pause-menu-locale-{locale}", 15f);
+        await p.PressKey(Key.Escape);
+        await p.UntilWebUiElement("pause-menu-open-settings", 15f);
         await p.PressKey(Key.Escape);
         await p.WaitUiState(UIStateEnum.GameScreen, 15f);
     }

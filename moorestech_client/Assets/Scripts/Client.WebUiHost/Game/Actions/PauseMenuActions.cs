@@ -41,8 +41,8 @@ namespace Client.WebUiHost.Game.Actions
         }
     }
 
-    // Webのボタンからの画面遷移要求。画面の持ち主はPauseMenuStateService
-    // Page-move requests from the Web buttons; PauseMenuStateService owns the page
+    // Web発の画面遷移要求。持ち主はStateService
+    // Page-move requests from Web; owned by StateService
     public class PauseMenuShowPageActionHandler : IActionHandler
     {
         private readonly PauseMenuStateService _pauseMenuStateService;

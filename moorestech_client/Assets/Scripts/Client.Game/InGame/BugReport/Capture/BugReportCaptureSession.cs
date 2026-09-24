@@ -7,8 +7,8 @@ using UnityEngine;
 
 namespace Client.Game.InGame.BugReport.Capture
 {
-    // ポーズ開始と送信成功の瞬間を確保し、サーバー側スナップショットの完了を待つ
-    // Captures the pause-open and successful-send moments, then waits for the server snapshot
+    // 開始・成功の瞬間を確保しサーバー完了を待つ
+    // Captures pause-open/send-success moments, waits for server completion
     public sealed class BugReportCaptureSession
     {
         public const float ServerCaptureTimeoutSeconds = 15f;
@@ -62,8 +62,8 @@ namespace Client.Game.InGame.BugReport.Capture
             data.ReportTick = data.ClientState.Tick;
             // 取れなかったカメラ・プレイヤーは原点という実値ではなく欠損として残す
             // A camera or player that could not be read is recorded as missing, never as a real position at the origin
-            if (!data.ClientState.HasCamera) AddMissing(data, "cameraState", "メインカメラが無く、カメラの位置と向きを確保できなかった");
-            if (!data.ClientState.HasPlayer) AddMissing(data, "playerState", "プレイヤーが無く、位置を確保できなかった");
+            if (!data.ClientState.HasCamera) data.AddMissing("cameraState", "メインカメラが無く、カメラの位置と向きを確保できなかった");
+            if (!data.ClientState.HasPlayer) data.AddMissing("playerState", "プレイヤーが無く、位置を確保できなかった");
             _progress.Publish(_data, _submitGate);
         }
 
@@ -123,7 +123,7 @@ namespace Client.Game.InGame.BugReport.Capture
             var captured = await recording;
             if (beginCount != _beginCount) return;
             _progress.FinishRecording();
-            if (!captured.IsAvailable) AddMissing(data, "video", captured.UnavailableReason);
+            if (!captured.IsAvailable) data.AddMissing("video", captured.UnavailableReason);
             data.VideoSegmentFiles = captured.SegmentFiles.ToList();
             data.FrameTicks = captured.FrameTicks;
             _progress.Publish(_data, _submitGate);
@@ -134,15 +134,9 @@ namespace Client.Game.InGame.BugReport.Capture
             var path = await _sources.CaptureScreenshot(data.CaptureWorkDirectory);
             if (beginCount != _beginCount) return;
             _progress.FinishScreenshot();
-            if (path == null) AddMissing(data, "screenshot", "スクリーンショットの書き出しに失敗した");
+            if (path == null) data.AddMissing("screenshot", "スクリーンショットの書き出しに失敗した");
             data.ScreenshotPath = path;
             _progress.Publish(_data, _submitGate);
-        }
-
-        private static void AddMissing(BugReportCapturedData data, string item, string reason)
-        {
-            Debug.LogWarning($"バグ報告の記録が欠けます item:{item} reason:{reason}");
-            data.Missing.Add(new MissingItem { Item = item, Reason = reason });
         }
     }
 }
