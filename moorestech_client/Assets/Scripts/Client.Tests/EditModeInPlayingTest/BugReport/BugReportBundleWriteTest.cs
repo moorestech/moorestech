@@ -6,6 +6,7 @@ using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState;
+using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Tests.EditModeInPlayingTest.Util;
 using Cysharp.Threading.Tasks;
 using Game.Context;
@@ -51,6 +52,9 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
                 var session = await BugReportSubmitUtil.OpenPauseMenuAndWaitCapture(resolver);
                 Assert.IsFalse(session.Status.Value.Missing.Contains("serverSnapshot"), "サーバースナップショットの確保に失敗した");
 
+                // 実際の送信はバグ報告画面から行われるので、その画面にいる状態から送る
+                // Real sends happen from the bug-report page, so send while standing on it
+                resolver.Resolve<PauseMenuStateService>().ShowPage(PauseMenuPage.BugReport);
                 var bundle = await BugReportSubmitUtil.SubmitAndTakeNewBundle(resolver, "テスト報告", PlaytestReportKind.Bug, before);
                 var manifest = JObject.Parse(File.ReadAllText(Path.Combine(bundle, "manifest.json")));
                 Assert.AreEqual("テスト報告", (string)manifest["description"]);
@@ -76,7 +80,7 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
                 Assert.IsFalse(File.Exists(Path.Combine(bundle, "video.mp4")), "録画を止めてあるのに動画がある");
                 Assert.IsTrue(missing.Contains("video"), "動画が無いのに欠損にも載っていない");
 
-                await AssertReturnedToGameScreen(resolver);
+                await AssertReturnedToPauseMenuTop(resolver);
                 Directory.Delete(bundle, true);
             }
 
@@ -109,6 +113,9 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
                 var session = await BugReportSubmitUtil.OpenPauseMenuAndWaitCapture(resolver);
                 Assert.IsTrue(session.Status.Value.Missing.Contains("serverSnapshot"), "拒否されたのに確保状態が欠損を持っていない");
 
+                // 実際の送信はバグ報告画面から行われるので、その画面にいる状態から送る
+                // Real sends happen from the bug-report page, so send while standing on it
+                resolver.Resolve<PauseMenuStateService>().ShowPage(PauseMenuPage.BugReport);
                 var bundle = await BugReportSubmitUtil.SubmitAndTakeNewBundle(resolver, "確保に失敗した報告", PlaytestReportKind.Bug, before);
                 var manifest = JObject.Parse(File.ReadAllText(Path.Combine(bundle, "manifest.json")));
                 Assert.AreEqual("確保に失敗した報告", (string)manifest["description"]);
@@ -126,7 +133,7 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
                 Assert.IsTrue(((JArray)manifest["missing"]).All(item => ((string)item["reason"]).Length > 0), "理由の無い欠損がある");
                 Assert.AreEqual(0, ((JArray)manifest["snapshotFiles"]).Count, "確保に失敗したのにスナップショットが載っている");
 
-                await AssertReturnedToGameScreen(resolver);
+                await AssertReturnedToPauseMenuTop(resolver);
                 Directory.Delete(bundle, true);
             }
 
@@ -140,11 +147,15 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
             return ((JArray)manifest["missing"]).Select(item => (string)item["item"]).ToList();
         }
 
-        private static async UniTask AssertReturnedToGameScreen(IObjectResolver resolver)
+        // 送信後はポーズを閉じずにトップへ戻る（ADR 0069）
+        // After a send the pause stays open and returns to its top (ADR 0069)
+        private static async UniTask AssertReturnedToPauseMenuTop(IObjectResolver resolver)
         {
             var uiState = resolver.Resolve<UIStateControl>();
-            for (var i = 0; i < 40 && uiState.CurrentState != UIStateEnum.GameScreen; i++) await UniTask.Delay(50);
-            Assert.AreEqual(UIStateEnum.GameScreen, uiState.CurrentState, "送信後にポーズメニューが閉じていない");
+            var pauseMenu = resolver.Resolve<PauseMenuStateService>();
+            for (var i = 0; i < 40 && pauseMenu.CurrentPage.Value != PauseMenuPage.Top; i++) await UniTask.Delay(50);
+            Assert.AreEqual(PauseMenuPage.Top, pauseMenu.CurrentPage.Value, "送信後にポーズメニューのトップへ戻っていない");
+            Assert.AreEqual(UIStateEnum.PauseMenu, uiState.CurrentState, "送信後にポーズメニューが閉じている");
         }
     }
 }

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Client.Game.InGame.BugReport.Capture;
+using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.WebUiHost.Common;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Game.Topics;
@@ -8,15 +9,8 @@ using Client.WebUiHost.Game.Topics.BuildMenu;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using UnityEngine;
-
 namespace Client.Tests.WebUi
 {
-    /// <summary>
-    /// C#⇔TS のワイヤ契約テスト: 実 DTO を WebUiJson でシリアライズし正準フィクスチャと一致検証する
-    /// フィクスチャは TS 側 vitest と同一ファイルを参照する単一ソース
-    /// C#⇔TS wire-contract test: serialize real DTOs via WebUiJson and match them against canonical fixtures
-    /// The fixtures are the single source, referenced by the TS-side vitest too
-    /// </summary>
     public class WireContractTest
     {
         // 共通envelopeがrevisionとpayloadをフィクスチャ通り保持する
@@ -133,9 +127,8 @@ namespace Client.Tests.WebUi
                 "blueprint_delete_not_found", "blueprint_delete_not_unlocked", "blueprint_delete_request_failed",
                 // プレイ報告（plan G）: ポーズメニューの送信と、初回同意・前回異常終了の2ゲート
                 // Play reports (plan G): the pause-menu send plus the first-boot consent and previous-crash gates
-                "empty_description", "invalid_kind", "bundle_write_failed", "no_capture_session", "capture_pending", "already_submitted", "submit_in_flight", "already_responded", "already_acknowledged", "invalid_send", "unknown_result",
+                "empty_description", "invalid_kind", "invalid_page", "bundle_write_failed", "no_capture_session", "capture_pending", "already_submitted", "submit_in_flight", "already_responded", "already_acknowledged", "invalid_send", "unknown_result",
             };
-
             var shared = JObject.Parse(LoadFixture("error_codes.json"))["codes"].ToObject<List<string>>();
             Assert.AreEqual(shared.Count, new HashSet<string>(shared).Count, "error_codes.json に重複コードがある / duplicate codes");
             Assert.That(new HashSet<string>(shared), Is.EquivalentTo(expected), "error_codes.json が C# のエラーコード集合と不一致 / mismatch with the C# error-code set");
@@ -152,9 +145,8 @@ namespace Client.Tests.WebUi
             };
             AssertMatchesFixture(dto, "ui_state.json");
         }
-
-        // ポーズメニューは切断表示に必要な状態だけを配信する
-        // The pause menu sends only the state required for disconnect presentation
+        // ポーズメニューは切断表示・報告の確保状態・今の画面を配信する
+        // The pause menu sends the disconnect state, the report capture status and the current page
         [Test]
         public void PauseMenuMatchesFixture()
         {
@@ -162,10 +154,10 @@ namespace Client.Tests.WebUi
             {
                 Disconnected = true,
                 BugReport = new BugReportStatusDto { Kind = BugReportCaptureStatus.Capturing, Missing = new List<string> { "video" } },
+                Page = PauseMenuPageContract.ToContractText(PauseMenuPage.BugReport),
             };
             AssertMatchesFixture(dto, "pause_menu.json");
         }
-
         // ビルドメニュー: 全エントリ種別とアイコンURL省略の正準形
         // Build menu: the canonical form covering every entry type and icon-url omission
         [Test]
@@ -191,7 +183,6 @@ namespace Client.Tests.WebUi
             };
             AssertMatchesFixture(dto, "build_menu_snapshot.json");
         }
-
         // DTO を WebUiJson でシリアライズし、キー順序差を無視して JToken.DeepEquals で照合する
         // Serialize the DTO via WebUiJson and match with JToken.DeepEquals, ignoring key-order differences
         private static void AssertMatchesFixture(object dto, string fixtureName)
@@ -200,11 +191,9 @@ namespace Client.Tests.WebUi
             var expected = JToken.Parse(LoadFixture(fixtureName));
             Assert.IsTrue(JToken.DeepEquals(expected, actual), $"{fixtureName} mismatch\nexpected: {expected}\nactual:   {actual}");
         }
-
         private static string LoadFixture(string fixtureName)
         {
-            var path = Path.Combine(Application.dataPath, "Scripts/Client.Tests/WebUi/WireFixtures", fixtureName);
-            return File.ReadAllText(path);
+            return File.ReadAllText(Path.Combine(Application.dataPath, "Scripts/Client.Tests/WebUi/WireFixtures", fixtureName));
         }
     }
 }

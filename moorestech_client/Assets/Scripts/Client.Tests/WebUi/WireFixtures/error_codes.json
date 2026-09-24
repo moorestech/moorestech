@@ -35,6 +35,7 @@
     "blueprint_delete_request_failed",
     "empty_description",
     "invalid_kind",
+    "invalid_page",
     "bundle_write_failed",
     "no_capture_session",
     "capture_pending",
