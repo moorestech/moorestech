@@ -38,6 +38,7 @@ namespace Client.Tests.EditModeInPlayingTest.Util
             Assert.That(AlwaysOnCaptureSetting.Current.IsEnabled, Is.False);
         }
 
+        [Category("CiShardClientPlay1")]
         [UnityTest]
         public IEnumerator ゲート未到達でPlayを終了しても次の有人起動へ印を残さない()
         {
