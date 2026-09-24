@@ -1,6 +1,7 @@
+using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Train.RailGraph;
-using Core.Master;
+using UniRx;
 using Game.Train.Unit;
 
 namespace Client.Game.InGame.Train.Unit
@@ -15,8 +16,9 @@ namespace Client.Game.InGame.Train.Unit
         private readonly Dictionary<TrainUnitInstanceId, ClientTrainUnit> _units = new();
         // 車両スナップショット索引
         // Index for train car snapshots
-        private readonly Dictionary<TrainCarInstanceId, TrainCarCacheEntry> _carIndex = new();
-        private readonly Dictionary<TrainUnitInstanceId, List<TrainCarInstanceId>> _carIdsByTrain = new();
+        private readonly TrainCarSnapshotIndex _carSnapshots = new();
+        private readonly Subject<TrainUnitInstanceId> _onSnapshotApplied = new();
+        public IObservable<TrainUnitInstanceId> OnSnapshotApplied => _onSnapshotApplied;
 
         // 列車一覧の読み取り専用ビュー
         // Read-only view for external systems
@@ -34,8 +36,7 @@ namespace Client.Game.InGame.Train.Unit
         public void OverrideAll(IReadOnlyList<TrainUnitSnapshotBundle> snapshots)
         {
             _units.Clear();
-            _carIndex.Clear();
-            _carIdsByTrain.Clear();
+            _carSnapshots.Clear();
             if (snapshots == null)
             {
                 return;
@@ -52,8 +53,12 @@ namespace Client.Game.InGame.Train.Unit
                 var unit = new ClientTrainUnit(bundle.Simulation.TrainUnitInstanceId, _railGraphProvider);
                 unit.SnapshotUpdate(bundle.Simulation, bundle.RailPositionSnapshot);
                 _units[bundle.Simulation.TrainUnitInstanceId] = unit;
-                BuildCarIndexForUnit(unit);
+                _carSnapshots.BuildCarIndexForUnit(unit);
             }
+
+            // 全索引の確定後に表示へ通知する
+            // Notify presentation only after all indexes have been rebuilt
+            foreach (var id in _units.Keys) _onSnapshotApplied.OnNext(id);
         }
 
         // 現在のTrainUnit状態からハッシュを計算する
@@ -83,9 +88,10 @@ namespace Client.Game.InGame.Train.Unit
                 _units[trainUnitInstanceId] = unit;
             }
 
-            RemoveCarIndex(trainUnitInstanceId);
+            _carSnapshots.RemoveCarIndex(trainUnitInstanceId);
             unit.SnapshotUpdate(snapshot.Simulation, snapshot.RailPositionSnapshot);
-            BuildCarIndexForUnit(unit);
+            _carSnapshots.BuildCarIndexForUnit(unit);
+            _onSnapshotApplied.OnNext(trainUnitInstanceId);
             return unit;
         }
 
@@ -103,37 +109,23 @@ namespace Client.Game.InGame.Train.Unit
             var didReverse = unit.ApplyPreSimulationDiff(masconLevelDiff, isNowDockingSpeedZero, approachingNodeId, isReversedThisTick, manualBranchSelectionIndexDiff);
             if (didReverse)
             {
-                RemoveCarIndex(trainUnitInstanceId);
-                BuildCarIndexForUnit(unit);
+                _carSnapshots.RemoveCarIndex(trainUnitInstanceId);
+                _carSnapshots.BuildCarIndexForUnit(unit);
             }
             return true;
         }
 
         public bool Remove(TrainUnitInstanceId trainUnitInstanceId)
         {
-            RemoveCarIndex(trainUnitInstanceId);
+            _carSnapshots.RemoveCarIndex(trainUnitInstanceId);
             return _units.Remove(trainUnitInstanceId);
         }
 
         // 車両スナップショット索引を取得する
         // Resolve a cached car snapshot entry
-        public bool TryGetCarSnapshot(TrainCarInstanceId trainCarInstanceId, out ClientTrainUnit unit, out TrainCarSnapshot snapshot, out int frontOffset, out int rearOffset)
+        public bool TryGetCarSnapshot(TrainCarInstanceId id, out ClientTrainUnit unit, out TrainCarSnapshot snapshot, out int frontOffset, out int rearOffset)
         {
-            // 出力を初期化する
-            // Initialize output values
-            unit = null;
-            snapshot = default;
-            frontOffset = 0;
-            rearOffset = 0;
-
-            // 索引から対象車両を取得する
-            // Lookup the target car from the index
-            if (!_carIndex.TryGetValue(trainCarInstanceId, out var entry)) return false;
-            unit = entry.Unit;
-            snapshot = entry.Snapshot;
-            frontOffset = entry.FrontOffset;
-            rearOffset = entry.RearOffset;
-            return true;
+            return _carSnapshots.TryGetCarSnapshot(id, out unit, out snapshot, out frontOffset, out rearOffset);
         }
 
         // 列車情報の取得を試みる
@@ -147,72 +139,6 @@ namespace Client.Game.InGame.Train.Unit
         {
             buffer.Clear();
             buffer.AddRange(_units.Values);
-        }
-
-
-        private void BuildCarIndexForUnit(ClientTrainUnit unit)
-        {
-            // 車両スナップショットから索引を構築する
-            // Build car index entries from snapshots
-            var cars = unit.Cars;
-            if (cars.Count == 0) return;
-
-            var carIds = new List<TrainCarInstanceId>(cars.Count);
-            var offsetFromHead = 0;
-            for (var i = 0; i < cars.Count; i++)
-            {
-                // 車両長さを算出し前後オフセットを登録する
-                // Resolve length and store front/rear offsets
-                var carSnapshot = cars[i];
-                var carLength = ResolveCarLength(carSnapshot);
-                if (carLength <= 0) continue;
-                var frontOffset = offsetFromHead;
-                var rearOffset = offsetFromHead + carLength;
-                offsetFromHead += carLength;
-                _carIndex[carSnapshot.TrainCarInstanceId] = new TrainCarCacheEntry(unit, carSnapshot, frontOffset, rearOffset);
-                carIds.Add(carSnapshot.TrainCarInstanceId);
-            }
-
-            _carIdsByTrain[unit.TrainUnitInstanceId] = carIds;
-
-            #region Internal
-
-            int ResolveCarLength(TrainCarSnapshot snapshot)
-            {
-                // マスター情報から車両長さを解決する
-                // Resolve car length from master data
-                if (MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(snapshot.TrainCarMasterId, out var master) && master.Length > 0) return TrainLengthConverter.ToRailUnits(master.Length);
-                return 0;
-            }
-
-            #endregion
-        }
-
-        private void RemoveCarIndex(TrainUnitInstanceId trainUnitInstanceId)
-        {
-            // 列車に紐づく車両索引を削除する
-            // Remove car index entries for the target train
-            if (!_carIdsByTrain.TryGetValue(trainUnitInstanceId, out var carIds)) return;
-            for (var i = 0; i < carIds.Count; i++) _carIndex.Remove(carIds[i]);
-            _carIdsByTrain.Remove(trainUnitInstanceId);
-        }
-        
-        private readonly struct TrainCarCacheEntry
-        {
-            public readonly ClientTrainUnit Unit;
-            public readonly TrainCarSnapshot Snapshot;
-            public readonly int FrontOffset;
-            public readonly int RearOffset;
-            
-            public TrainCarCacheEntry(ClientTrainUnit unit, TrainCarSnapshot snapshot, int frontOffset, int rearOffset)
-            {
-                // 索引の内容を初期化する
-                // Initialize entry values
-                Unit = unit;
-                Snapshot = snapshot;
-                FrontOffset = frontOffset;
-                RearOffset = rearOffset;
-            }
         }
     }
 }

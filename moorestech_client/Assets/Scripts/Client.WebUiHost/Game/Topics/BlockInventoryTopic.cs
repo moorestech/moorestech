@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory;
@@ -13,6 +13,7 @@ using Cysharp.Threading.Tasks;
 using Mooresmaster.Model.BlocksModule;
 using Server.Event.EventReceive;
 using UniRx;
+using VContainer;
 namespace Client.WebUiHost.Game.Topics
 {
     /// <summary>
@@ -22,6 +23,8 @@ namespace Client.WebUiHost.Game.Topics
     public class BlockInventoryTopic : ITopicHandler, IDisposable
     {
         public const string TopicName = "block_inventory.current";
+        private readonly TrainUnitClientCache _trainUnitClientCache;
+        private readonly IDisposable _trainSnapshotSubscription;
         private readonly WebSocketHub _hub;
         private readonly UIStateControl _uiStateControl;
         private readonly SubInventoryState _subInventoryState;
@@ -39,6 +42,12 @@ namespace Client.WebUiHost.Game.Topics
         public BlockNetworkInfoCache NetworkCache => _networkCache;
         public BlockInventoryTopic(WebSocketHub hub, UIStateControl uiStateControl, SubInventoryState subInventoryState)
         {
+            _trainUnitClientCache = ClientDIContext.DIContainer.DIContainerResolver.Resolve<TrainUnitClientCache>();
+            // 列車snapshotの適用後に時刻表を再配信する
+            // Republish the timetable after train snapshots are applied
+            _trainSnapshotSubscription = _trainUnitClientCache.OnSnapshotApplied
+                .Where(_ => _subInventoryState.CurrentSubInventorySource is TrainSubInventorySource)
+                .Subscribe(_ => SchedulePublish());
             _hub = hub;
             _uiStateControl = uiStateControl;
             _subInventoryState = subInventoryState;
@@ -65,6 +74,7 @@ namespace Client.WebUiHost.Game.Topics
             _uiStateControl.OnStateChanged -= OnStateChanged;
             _subInventorySubscription.Dispose();
             _continuousSampleSubscription.Dispose();
+            _trainSnapshotSubscription.Dispose();
             _networkCache.OnUpdated -= SchedulePublish;
             TrackBlock(null);
         }
@@ -116,7 +126,7 @@ namespace Client.WebUiHost.Game.Topics
             if (_subInventoryState.CurrentSubInventorySource is TrainSubInventorySource trainSource)
             {
                 TrackBlock(null);
-                return WebUiJson.Serialize(TrainInventoryDtoFactory.Create(trainSource, sub));
+                return WebUiJson.Serialize(TrainInventoryDtoFactory.Create(trainSource, sub, _trainUnitClientCache, ClientDIContext.BlockGameObjectDataStore));
             }
             if (blockSource == null)
             {
@@ -131,26 +141,7 @@ namespace Client.WebUiHost.Game.Topics
                 return WebUiJson.Serialize(new BlockInventoryDto { Open = false });
             }
             TrackBlock(block);
-            var dto = new BlockInventoryDto
-            {
-                Open = true,
-                Source = "block",
-                BlockType = blockSource.BlockTypeName,
-                BlockGuid = blockSource.BlockGuid.ToString("D"),
-                Identifier = blockSource.BlockPosition.ToString(),
-                ItemSlots = new List<BlockItemSlotDto>(sub.Count),
-                FluidSlots = new List<BlockFluidSlotDto>(),
-                Progress = null,
-            };
-            // SubInventory からスロットを写す（id/count は InventoryTopic 同型）
-            // Copy slots from SubInventory; id/count mirrors InventoryTopic
-            foreach (var stack in sub.SubInventory)
-            {
-                dto.ItemSlots.Add(new BlockItemSlotDto { ItemId = stack.Id.AsPrimitive(), Count = stack.Count });
-            }
-            // capability 詳細とネットワーク集約を充填する
-            // Fill capability details and network aggregates
-            BlockDetailDtoBuilder.Apply(dto, block, _networkCache);
+            var dto = BlockInventoryDtoFactory.Create(blockSource, sub, block, _networkCache);
             return WebUiJson.Serialize(dto);
         }
         // 追跡ブロックを切り替え、state イベント購読とネットワーク取得を張り替える

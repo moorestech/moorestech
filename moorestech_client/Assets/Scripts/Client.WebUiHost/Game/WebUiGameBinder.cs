@@ -1,3 +1,4 @@
+using Client.Game.InGame.Train.Unit;
 using System.Collections.Generic;
 using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.Submit;
@@ -185,6 +186,10 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new ElectricToGearSetOutputModeActionHandler(subInventoryState));
             hub.RegisterAction(new MachineRecipeSelectActionHandler(subInventoryState, unlockStateData));
             hub.RegisterAction(new TrainPlatformSetTransferModeActionHandler(subInventoryState));
+            var trainUnitClientCache = resolver.Resolve<TrainUnitClientCache>();
+            hub.RegisterAction(new TrainTimetableReplaceActionHandler(subInventoryState, trainUnitClientCache));
+            hub.RegisterAction(new TrainTimetableSetAutoRunActionHandler(subInventoryState, trainUnitClientCache));
+            hub.RegisterAction(new TrainStationSetNameActionHandler(subInventoryState));
             hub.RegisterAction(new BuildMenuSelectActionHandler(uiStateControl, placementTargetResolver, buildMenuSelection));
             hub.RegisterAction(new BlueprintDeleteActionHandler(blueprintLibrary));
             hub.RegisterAction(new PauseMenuSaveActionHandler(resolver.Resolve<GameSaveRequester>()));

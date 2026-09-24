@@ -30,6 +30,8 @@ namespace Client.WebUiHost.Game.Topics
         public ElectricToGearDetailDto ElectricToGear;
         public string Error;
         public TrainPlatformDetailDto TrainPlatform;
+        public TrainTimetableDto Timetable;
+        public TrainStationDetailDto TrainStation;
     }
 
     public class BlockItemSlotDto

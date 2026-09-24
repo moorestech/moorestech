@@ -12,6 +12,14 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
     {
         public static void Apply(BlockInventoryDto dto, BlockGameObject block, object param)
         {
+            // 駅名は転送状態の受信とは独立して配信する
+            // Publish the station name independently of transfer-state availability
+            if (param is TrainStationBlockParam)
+            {
+                var nameState = block.GetStateDetail<TrainStationNameStateDetail>(TrainStationNameStateDetail.BlockStateDetailKey);
+                dto.TrainStation = new TrainStationDetailDto { Name = nameState?.StationName ?? string.Empty };
+            }
+
             var state = block.GetStateDetail<TrainPlatformTransferStateDetail>(
                 TrainPlatformTransferStateDetail.BlockStateDetailKey);
             if (state == null) return;

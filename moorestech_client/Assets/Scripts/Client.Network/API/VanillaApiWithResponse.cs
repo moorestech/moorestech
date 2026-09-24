@@ -1,22 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using Client.Network.Settings;
 using Core.Item.Interface;
-using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Context;
-using Game.Research;
 using Game.Train.RailPositions;
-using Game.Train.Unit;
-using Game.Block.Blocks.TrainRail;
-using Game.Block.Interface;
-using Game.Gear.Common;
 using Game.PlayerRiding.Interface;
-using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
-using Server.Protocol.PacketResponse.MapData;
 using Server.Util.MessagePack;
 using UnityEngine;
 
@@ -26,38 +17,25 @@ namespace Client.Network.API
     {
         private readonly IItemStackFactory _itemStackFactory;
         private readonly IItemStackLevelUnlocker _itemStackLevelUnlocker;
-        private readonly PacketExchangeManager _packetExchangeManager;
-        private readonly PlayerConnectionSetting _playerConnectionSetting;
+        // 同一アセンブリの送信APIへ接続情報を共有する
+        // Share connection dependencies with request APIs in this assembly
+        internal readonly PacketExchangeManager PacketExchange;
+        internal readonly PlayerConnectionSetting ConnectionSetting;
 
         public VanillaApiWithResponse(PacketExchangeManager packetExchangeManager, PlayerConnectionSetting playerConnectionSetting)
         {
             _itemStackFactory = ServerContext.ItemStackFactory;
             _itemStackLevelUnlocker = ServerContext.GetService<IItemStackLevelUnlocker>();
-            _packetExchangeManager = packetExchangeManager;
-            _playerConnectionSetting = playerConnectionSetting;
-        }
-
-        // 保存を要求し、その要求番号を受け取る。書き出し完了は完了イベントと突き合わせる
-        // Request a save and receive its generation; completion is matched against the completed event
-        public async UniTask<SaveProtocol.SaveProtocolResponseMessagePack> Save(CancellationToken ct)
-        {
-            var request = new SaveProtocol.SaveProtocolMessagePack();
-            return await _packetExchangeManager.GetPacketResponse<SaveProtocol.SaveProtocolResponseMessagePack>(request, ct);
-        }
-
-        // バグ報告用の即時スナップショットを要求する。完了は BugReportCaptureCompletedEventPacket.EventTag で届く
-        // Requests an immediate snapshot for a bug report; completion arrives via BugReportCaptureCompletedEventPacket.EventTag
-        public async UniTask<BugReportCaptureProtocol.BugReportCaptureResponse> RequestBugReportCapture(CancellationToken ct)
-        {
-            var request = BugReportCaptureProtocol.BugReportCaptureRequest.CreateCaptureNowRequest();
-            return await _packetExchangeManager.GetPacketResponse<BugReportCaptureProtocol.BugReportCaptureResponse>(request, ct);
+            PacketExchange = packetExchangeManager;
+            ConnectionSetting = playerConnectionSetting;
         }
 
         public async UniTask<InitialHandshakeResponse> InitialHandShake(int playerId, CancellationToken ct)
         {
-            //最初のハンドシェイクを行う
+            // 最初のハンドシェイクを行う
+            // Perform the initial handshake
             var request = new InitialHandshakeProtocol.RequestInitialHandshakeMessagePack(playerId, $"Player {playerId}");
-            var initialHandShake = await _packetExchangeManager.GetPacketResponse<InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack>(request, ct);
+            var initialHandShake = await PacketExchange.GetPacketResponse<InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack>(request, ct);
 
             // ハンドシェイクに同梱されたスタックレベルを先に適用（インベントリ等のItemStack生成前に上限を正すため）
             // Apply stack levels bundled in the handshake first so ItemStacks built from later responses use correct limits
@@ -69,47 +47,56 @@ namespace Client.Network.API
             //必要なデータを取得する
             // Fetch all required resources
             var responses = await UniTask.WhenAll(
-                GetMapObjectInfo(ct),
-                GetWorldData(ct),
+                this.GetMapObjectInfo(ct),
+                this.GetWorldData(ct),
                 GetPlayerInventory(playerId, ct),
-                GetChallengeResponse(ct),
-                GetUnlockState(ct),
-                GetPlayedSkitIds(ct),
-                GetResearchNodeStates(ct),
+                this.GetChallengeResponse(ct),
+                this.GetUnlockState(ct),
+                this.GetPlayedSkitIds(ct),
+                this.GetResearchNodeStates(ct),
                 GetMapData(ct));
 
             return new InitialHandshakeResponse(initialHandShake, responses);
         }
 
-        public async UniTask<List<GetMapObjectInfoProtocol.MapObjectsInfoMessagePack>> GetMapObjectInfo(CancellationToken ct)
+        public async UniTask<PlayerInventoryResponse> GetMyPlayerInventory(CancellationToken ct)
         {
-            var request = new GetMapObjectInfoProtocol.RequestMapObjectInfosMessagePack();
-            var response = await _packetExchangeManager.GetPacketResponse<GetMapObjectInfoProtocol.ResponseMapObjectInfosMessagePack>(request, ct);
-            return response?.MapObjects;
+            return await GetPlayerInventory(ConnectionSetting.PlayerId, ct);
         }
 
-        // マップレイアウト（spawn/mapObjects/mapVeins）をハンドシェイク時に取得する
-        // Fetch the map layout (spawn/mapObjects/mapVeins) during the handshake
-        public async UniTask<GetMapDataProtocol.ResponseMapDataMessagePack> GetMapData(CancellationToken ct)
+        public async UniTask<PlayerInventoryResponse> GetPlayerInventory(int playerId, CancellationToken ct)
         {
-            var request = GetMapDataProtocol.RequestMapDataMessagePack.CreateLayoutRequest();
-            return await _packetExchangeManager.GetPacketResponse<GetMapDataProtocol.ResponseMapDataMessagePack>(request, ct);
+            var request = new PlayerInventoryResponseProtocol.RequestPlayerInventoryProtocolMessagePack(playerId);
+
+            var response = await PacketExchange.GetPacketResponse<PlayerInventoryResponseProtocol.PlayerInventoryResponseProtocolMessagePack>(request, ct);
+
+            // メイン・Grabだけでなく装備と選択インデックスも落とさず変換する
+            // Converts equipment and the selected index as well, not just main and grab
+            return new PlayerInventoryResponse(response);
         }
 
-        // 地形バイナリのGZip断片を1チャンク取得する。Layout応答とは別の型が返るため送信口も分ける
-        // Fetch one GZip slice of the terrain binary; it returns a different type than Layout, so it needs its own entry point
-        public async UniTask<ResponseMapDataTerrainChunkMessagePack> GetTerrainChunk(int chunkIndex, CancellationToken ct)
+        public async UniTask<InventoryResponse> GetInventory(InventoryIdentifierMessagePack identifier, CancellationToken ct)
         {
-            var request = GetMapDataProtocol.RequestMapDataMessagePack.CreateTerrainChunkRequest(chunkIndex);
-            return await _packetExchangeManager.GetPacketResponse<ResponseMapDataTerrainChunkMessagePack>(request, ct);
+            var request = new InventoryRequestProtocol.RequestInventoryRequestProtocolMessagePack(identifier);
+            var response = await PacketExchange.GetPacketResponse<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(request, ct);
+            return new InventoryResponse(response.Identifier, CreateStacks(response.Items), response.Result);
         }
 
-        // train/rail再同期の引き金を送る。snapshot本体はイベント経路で届く
-        // Send the resync trigger; snapshots arrive over the event stream
-        public async UniTask<TrainResyncProtocol.ResponseMessagePack> SendTrainResync(bool includeRailGraph, CancellationToken ct)
+        // 時刻表置換と自動運転切替を単一の送信口で扱う
+        // Send timetable replacement and auto-run changes through one entry point
+        public async UniTask<TrainScheduleEditProtocol.TrainScheduleEditResponse> SendTrainScheduleEdit(
+            TrainScheduleEditProtocol.TrainScheduleEditRequest request, CancellationToken ct)
         {
-            var request = new TrainResyncProtocol.RequestMessagePack(includeRailGraph);
-            return await _packetExchangeManager.GetPacketResponse<TrainResyncProtocol.ResponseMessagePack>(request, ct);
+            return await PacketExchange.GetPacketResponse<TrainScheduleEditProtocol.TrainScheduleEditResponse>(request, ct);
+        }
+
+        // 改名結果を待ち、表示更新はブロック状態の通知に委ねる
+        // Await the rename result; block state notifications update the displayed name
+        public async UniTask<SetTrainStationNameProtocol.SetTrainStationNameResponse> SetTrainStationName(
+            Vector3Int position, string stationName, CancellationToken ct)
+        {
+            var request = new SetTrainStationNameProtocol.SetTrainStationNameRequest(position, stationName);
+            return await PacketExchange.GetPacketResponse<SetTrainStationNameProtocol.SetTrainStationNameResponse>(request, ct);
         }
 
         public async UniTask<PlaceTrainCarOnRailProtocol.PlaceTrainOnRailResponseMessagePack> PlaceTrainOnRail(RailPosition railPosition, Guid trainCarGuid, CancellationToken ct)
@@ -117,285 +104,24 @@ namespace Client.Network.API
             // 列車設置のレスポンスを取得する
             // Get response for train placement
             var railPositionSnapshot = new RailPositionSnapshotMessagePack(railPosition?.CreateSaveSnapshot());
-            var request = new PlaceTrainCarOnRailProtocol.PlaceTrainOnRailRequestMessagePack(railPositionSnapshot, trainCarGuid, _playerConnectionSetting.PlayerId);
-            return await _packetExchangeManager.GetPacketResponse<PlaceTrainCarOnRailProtocol.PlaceTrainOnRailResponseMessagePack>(request, ct);
-        }
-
-        public async UniTask<AttachTrainCarToUnitProtocol.AttachTrainCarToUnitResponseMessagePack> AttachTrainCarToUnit(
-            TrainUnitInstanceId targetTrainUnitInstanceId,
-            RailPosition railPosition,
-            Guid trainCarGuid,
-            bool attachCarFacingForward,
-            bool attachToTargetTrainHead,
-            CancellationToken ct)
-        {
-            // 既存編成連結のレスポンスを取得する
-            // Get response for attaching a car to an existing train unit
-            var railPositionSnapshot = new RailPositionSnapshotMessagePack(railPosition?.CreateSaveSnapshot());
-            var request = new AttachTrainCarToUnitProtocol.AttachTrainCarToUnitRequestMessagePack(
-                targetTrainUnitInstanceId,
-                railPositionSnapshot,
-                trainCarGuid,
-                _playerConnectionSetting.PlayerId,
-                attachCarFacingForward,
-                attachToTargetTrainHead);
-            return await _packetExchangeManager.GetPacketResponse<AttachTrainCarToUnitProtocol.AttachTrainCarToUnitResponseMessagePack>(request, ct);
+            var request = new PlaceTrainCarOnRailProtocol.PlaceTrainOnRailRequestMessagePack(railPositionSnapshot, trainCarGuid, ConnectionSetting.PlayerId);
+            return await PacketExchange.GetPacketResponse<PlaceTrainCarOnRailProtocol.PlaceTrainOnRailResponseMessagePack>(request, ct);
         }
 
         // 乗車/降車をサーバーに要求し、結果を受け取る（仕様書セクション5.1）。
         // Requests ride/dismount from the server and returns the result.
         public async UniTask<RideActionProtocol.ResponseRideActionMessagePack> RideAction(RideActionType action, RidableIdentifierMessagePack target, CancellationToken ct)
         {
-            var request = new RideActionProtocol.RequestRideActionMessagePack(_playerConnectionSetting.PlayerId, action, target);
-            return await _packetExchangeManager.GetPacketResponse<RideActionProtocol.ResponseRideActionMessagePack>(request, ct);
+            var request = new RideActionProtocol.RequestRideActionMessagePack(ConnectionSetting.PlayerId, action, target);
+            return await PacketExchange.GetPacketResponse<RideActionProtocol.ResponseRideActionMessagePack>(request, ct);
         }
 
-        public async UniTask<PlayerInventoryResponse> GetMyPlayerInventory(CancellationToken ct)
+        // マップレイアウト（spawn/mapObjects/mapVeins）をハンドシェイク時に取得する
+        // Fetch the map layout (spawn/mapObjects/mapVeins) during the handshake
+        public async UniTask<GetMapDataProtocol.ResponseMapDataMessagePack> GetMapData(CancellationToken ct)
         {
-            return await GetPlayerInventory(_playerConnectionSetting.PlayerId, ct);
-        }
-
-        public async UniTask<PlayerInventoryResponse> GetPlayerInventory(int playerId, CancellationToken ct)
-        {
-            var request = new PlayerInventoryResponseProtocol.RequestPlayerInventoryProtocolMessagePack(playerId);
-
-            var response = await _packetExchangeManager.GetPacketResponse<PlayerInventoryResponseProtocol.PlayerInventoryResponseProtocolMessagePack>(request, ct);
-
-            // メイン・Grabだけでなく装備と選択インデックスも落とさず変換する
-            // Converts equipment and the selected index as well, not just main and grab
-            return new PlayerInventoryResponse(response);
-        }
-
-        public async UniTask<WorldDataResponse> GetWorldData(CancellationToken ct)
-        {
-            var request = new RequestWorldDataProtocol.RequestWorldDataMessagePack(_playerConnectionSetting.PlayerId);
-            var (response, reason) = await _packetExchangeManager.GetPacketResponseWithReason<RequestWorldDataProtocol.ResponseWorldDataMessagePack>(request, ct);
-            // 正常終了以外（タイムアウト等）はスキップし、呼び出し側 (WorldDataHandler) の null ガードに委ねる
-            // Return null unless the exchange completed successfully so the caller (WorldDataHandler) can skip this update cycle
-            if (reason != PacketWaitCompletionReason.Received) return null;
-
-            return ParseWorldResponse(response);
-
-            #region Internal
-
-            WorldDataResponse ParseWorldResponse(RequestWorldDataProtocol.ResponseWorldDataMessagePack worldData)
-            {
-                var blocks = worldData.Blocks.Select(b => new BlockInfo(b));
-                var entities = worldData.Entities.Select(e => new EntityResponse(e));
-
-                return new WorldDataResponse(blocks.ToList(), entities.ToList());
-            }
-
-            #endregion
-        }
-
-        public async UniTask<List<ChallengeCategoryResponse>> GetChallengeResponse(CancellationToken ct)
-        {
-            var request = new GetChallengeInfoProtocol.RequestChallengeMessagePack();
-            var response = await _packetExchangeManager.GetPacketResponse<GetChallengeInfoProtocol.ResponseChallengeInfoMessagePack>(request, ct);
-
-            var result = new List<ChallengeCategoryResponse>();
-            foreach (var category in response.Categories)
-            {
-                var categoryMaster = MasterHolder.ChallengeMaster.GetChallengeCategory(category.ChallengeCategoryGuid);
-                var current = category.CurrentChallengeGuids.Select(MasterHolder.ChallengeMaster.GetChallenge).ToList();
-                var completed = category.CompletedChallengeGuids.Select(MasterHolder.ChallengeMaster.GetChallenge).ToList();
-
-                result.Add(new ChallengeCategoryResponse(categoryMaster, category.IsUnlocked, current, completed));
-            }
-
-            return result;
-        }
-
-        public async UniTask<BlockStateMessagePack> GetBlockState(Vector3Int blockPos, CancellationToken ct)
-        {
-            var request = new BlockStateProtocol.RequestBlockStateProtocolMessagePack(blockPos);
-            var response = await _packetExchangeManager.GetPacketResponse<BlockStateProtocol.ResponseBlockStateProtocolMessagePack>(request, ct);
-
-            return response.State;
-        }
-
-        public async UniTask<RemoveBlockProtocol.RemoveBlockResponseMessagePack> BlockRemove(Vector3Int pos, CancellationToken ct)
-        {
-            var request = new RemoveBlockProtocol.RemoveBlockProtocolMessagePack(_playerConnectionSetting.PlayerId, pos);
-            return await _packetExchangeManager.GetPacketResponse<RemoveBlockProtocol.RemoveBlockResponseMessagePack>(request, ct);
-        }
-        
-        // Renamed method to reflect its broader scope
-        public async UniTask<UnlockStateResponse> GetUnlockState(CancellationToken ct)
-        {
-            var request = new GetGameUnlockStateProtocol.RequestGameUnlockStateProtocolMessagePack();
-            var response = await _packetExchangeManager.GetPacketResponse<GetGameUnlockStateProtocol.ResponseGameUnlockStateProtocolMessagePack>(request, ct);
-
-            return new UnlockStateResponse(
-                lockedCraftRecipeGuids: response.LockedCraftRecipeGuids,
-                unlockedCraftRecipeGuids: response.UnlockedCraftRecipeGuids,
-                lockedItemIds: response.LockedItemIds,
-                unlockedItemIds: response.UnlockedItemIds,
-                lockedChallengeCategoryGuids: response.LockedCategoryChallengeGuids,
-                unlockedChallengeCategoryGuids: response.UnlockedCategoryChallengeGuids,
-                lockedMachineRecipeGuids: response.LockedMachineRecipeGuids,
-                unlockedMachineRecipeGuids: response.UnlockedMachineRecipeGuids,
-                lockedBlockGuids: response.LockedBlockGuids,
-                unlockedBlockGuids: response.UnlockedBlockGuids,
-                lockedTrainCarGuids: response.LockedTrainCarGuids,
-                unlockedTrainCarGuids: response.UnlockedTrainCarGuids,
-                lockedConnectToolGuids: response.LockedConnectToolGuids,
-                unlockedConnectToolGuids: response.UnlockedConnectToolGuids,
-                isBlueprintUnlocked: response.IsBlueprintUnlocked);
-        }
-
-        public async UniTask<Dictionary<Guid, ResearchNodeState>> GetResearchNodeStates(CancellationToken ct)
-        {
-            var request = new GetResearchInfoProtocol.RequestResearchInfoMessagePack(_playerConnectionSetting.PlayerId);
-            var response = await _packetExchangeManager.GetPacketResponse<GetResearchInfoProtocol.ResponseResearchInfoMessagePack>(request, ct);
-
-            return response.ToDictionary();
-        }
-
-        public async UniTask<List<string>> GetPlayedSkitIds(CancellationToken ct)
-        {
-            var request = new GetPlayedSkitIdsProtocol.RequestGetPlayedSkitIdsMessagePack();
-            var response = await _packetExchangeManager.GetPacketResponse<GetPlayedSkitIdsProtocol.ResponseGetPlayedSkitIdsMessagePack>(request, ct);
-
-            return response.PlayedSkitIds;
-        }
-
-        // 進行記録がセッション開始時に1回だけ読む。可変状態の同期ではないので初期データ取得のみ
-        // The progress record reads this once at session start; it syncs no mutable state, so a fetch is enough
-        public async UniTask<GetWorldPlaySessionInfoProtocol.ResponseWorldPlaySessionInfoMessagePack> GetWorldPlaySessionInfo(CancellationToken ct)
-        {
-            var request = new GetWorldPlaySessionInfoProtocol.RequestWorldPlaySessionInfoMessagePack();
-            return await _packetExchangeManager.GetPacketResponse<GetWorldPlaySessionInfoProtocol.ResponseWorldPlaySessionInfoMessagePack>(request, ct);
-        }
-
-        public async UniTask<CompleteResearchProtocol.ResponseCompleteResearchMessagePack> CompleteResearch(Guid researchGuid, CancellationToken ct)
-        {
-            var request = new CompleteResearchProtocol.RequestCompleteResearchMessagePack(_playerConnectionSetting.PlayerId, researchGuid);
-            var response = await _packetExchangeManager.GetPacketResponse<CompleteResearchProtocol.ResponseCompleteResearchMessagePack>(request, ct);
-
-            return response;
-        }
-
-        public async UniTask<InventoryResponse> GetInventory(InventoryIdentifierMessagePack identifier, CancellationToken ct)
-        {
-            var request = new InventoryRequestProtocol.RequestInventoryRequestProtocolMessagePack(identifier);
-            var response = await _packetExchangeManager.GetPacketResponse<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(request, ct);
-            return new InventoryResponse(response.Identifier, CreateStacks(response.Items), response.Result);
-        }
-
-        // 指定ブロックが属するギアネットワークの現時点の集約値を取得する
-        // Fetch current aggregate info of the gear network that the given block belongs to
-        public async UniTask<GetGearNetworkInfoProtocol.ResponseGetGearNetworkInfoMessagePack> GetGearNetworkInfo(BlockInstanceId blockInstanceId, CancellationToken ct)
-        {
-            var request = new GetGearNetworkInfoProtocol.RequestGetGearNetworkInfoMessagePack(blockInstanceId);
-            return await _packetExchangeManager.GetPacketResponse<GetGearNetworkInfoProtocol.ResponseGetGearNetworkInfoMessagePack>(request, ct);
-        }
-
-        // 指定ブロックが属する電力ネットワークの現時点の集約値を取得する
-        // Fetch current aggregate info of the electric network that the given block belongs to
-        public async UniTask<GetElectricNetworkInfoProtocol.ResponseGetElectricNetworkInfoMessagePack> GetElectricNetworkInfo(BlockInstanceId blockInstanceId, CancellationToken ct)
-        {
-            var request = new GetElectricNetworkInfoProtocol.RequestGetElectricNetworkInfoMessagePack(blockInstanceId);
-            return await _packetExchangeManager.GetPacketResponse<GetElectricNetworkInfoProtocol.ResponseGetElectricNetworkInfoMessagePack>(request, ct);
-        }
-
-        // 貨物プラットフォームのロード/アンロードモードを切り替える
-        // Switch the load/unload transfer mode of a train platform block
-        public async UniTask<SetTrainPlatformTransferModeProtocol.SetTrainPlatformTransferModeResponse> SetTrainPlatformTransferMode(
-            Vector3Int position, TrainPlatformTransferComponent.TransferMode mode, CancellationToken ct)
-        {
-            var request = new SetTrainPlatformTransferModeProtocol.SetTrainPlatformTransferModeRequest(position, mode);
-            return await _packetExchangeManager.GetPacketResponse<SetTrainPlatformTransferModeProtocol.SetTrainPlatformTransferModeResponse>(request, ct);
-        }
-
-        // ElectricToGear の出力モードを切り替える
-        // Switch the output mode of an ElectricToGear block
-        public async UniTask<SetElectricToGearOutputModeResponse> SetElectricToGearOutputMode(
-            Vector3Int position, int index, CancellationToken ct)
-        {
-            var request = new SetElectricToGearOutputModeRequest(position, index);
-            return await _packetExchangeManager.GetPacketResponse<SetElectricToGearOutputModeResponse>(request, ct);
-        }
-
-        // フィルター分岐器の状態取得・設定 (Get/SetMode/SetFilterItem を 1 メソッドで扱う)
-        // Filter splitter state request (single endpoint for Get / SetMode / SetFilterItem)
-        public async UniTask<FilterSplitterStateProtocol.FilterSplitterStateResponse> SendFilterSplitterStateRequest(
-            FilterSplitterStateProtocol.FilterSplitterStateRequest request, CancellationToken ct)
-        {
-            return await _packetExchangeManager.GetPacketResponse<FilterSplitterStateProtocol.FilterSplitterStateResponse>(request, ct);
-        }
-
-        // SetRecipe/Clearを1メソッドで送信
-        // Machine recipe selection request (single endpoint for SetRecipe / Clear)
-        public async UniTask<MachineRecipeSelectionProtocol.MachineRecipeSelectionResponse> SendMachineRecipeSelectionRequest(
-            MachineRecipeSelectionProtocol.MachineRecipeSelectionRequest request, CancellationToken ct)
-        {
-            return await _packetExchangeManager.GetPacketResponse<MachineRecipeSelectionProtocol.MachineRecipeSelectionResponse>(request, ct);
-        }
-
-        // BP Create/GetAll/Deleteを1メソッドで統合
-        // Blueprint request (single endpoint for Create / GetAll / Delete)
-        public async UniTask<BlueprintResponse> SendBlueprintRequest(BlueprintRequest request, CancellationToken ct)
-        {
-            return await _packetExchangeManager.GetPacketResponse<BlueprintResponse>(request, ct);
-        }
-
-        public async UniTask<RailConnectionEditProtocol.ResponseRailConnectionEditMessagePack> DisconnectRailAsync(
-            int playerId,
-            int fromNodeId,
-            Guid fromGuid,
-            int toNodeId,
-            Guid toGuid,
-            CancellationToken ct)
-        {
-            var request = RailConnectionEditProtocol.RailConnectionEditRequest.CreateDisconnectRequest(playerId, fromNodeId, fromGuid, toNodeId, toGuid);
-            return await _packetExchangeManager.GetPacketResponse<RailConnectionEditProtocol.ResponseRailConnectionEditMessagePack>(request, ct);
-        }
-
-        public async UniTask<RailConnectWithPlacePierProtocol.RailConnectWithPlacePierResponse> PlaceRailWithPier(
-            int fromNodeId,
-            Guid fromGuid,
-            BlockId pierBlockId,
-            PlaceInfo pierPlaceInfo,
-            Guid railTypeGuid,
-            CancellationToken ct)
-        {
-            var request = RailConnectWithPlacePierProtocol.RailConnectWithPlacePierRequest.Create(_playerConnectionSetting.PlayerId, fromNodeId, fromGuid, pierBlockId, pierPlaceInfo, railTypeGuid);
-            return await _packetExchangeManager.GetPacketResponse<RailConnectWithPlacePierProtocol.RailConnectWithPlacePierResponse>(request, ct);
-        }
-
-        // 電線延長プロトコルの唯一の送信口。Operationごとの組み立てはRequestのstatic factoryに委ねる
-        // Sole send entry for the wire-extend protocol; per-operation assembly is delegated to the Request's static factories
-        public async UniTask<ElectricWireExtendProtocol.ElectricWireExtendResponse> SendElectricWireExtend(
-            ElectricWireExtendProtocol.ElectricWireExtendRequest request,
-            CancellationToken ct)
-        {
-            return await _packetExchangeManager.GetPacketResponse<ElectricWireExtendProtocol.ElectricWireExtendResponse>(request, ct);
-        }
-
-        // 起点ポールから新規ポールを自動設置しつつチェーン接続する
-        // Place a new pole from the source pole and connect the chain
-        public async UniTask<GearChainPoleExtendProtocol.GearChainPoleExtendResponse> ExtendGearChainPole(
-            Vector3Int fromPolePos,
-            BlockId poleBlockId,
-            PlaceInfo polePlaceInfo,
-            Guid connectToolGuid,
-            CancellationToken ct)
-        {
-            var request = GearChainPoleExtendProtocol.GearChainPoleExtendRequest.CreateExtendRequest(_playerConnectionSetting.PlayerId, fromPolePos, poleBlockId, polePlaceInfo, connectToolGuid);
-            return await _packetExchangeManager.GetPacketResponse<GearChainPoleExtendProtocol.GearChainPoleExtendResponse>(request, ct);
-        }
-
-        // 接続なしの孤立ポールを設置する
-        // Place an isolated pole without any connection
-        public async UniTask<GearChainPoleExtendProtocol.GearChainPoleExtendResponse> PlaceIsolatedGearChainPole(
-            BlockId poleBlockId,
-            PlaceInfo polePlaceInfo,
-            CancellationToken ct)
-        {
-            var request = GearChainPoleExtendProtocol.GearChainPoleExtendRequest.CreateIsolatedPlaceRequest(_playerConnectionSetting.PlayerId, poleBlockId, polePlaceInfo);
-            return await _packetExchangeManager.GetPacketResponse<GearChainPoleExtendProtocol.GearChainPoleExtendResponse>(request, ct);
+            var request = GetMapDataProtocol.RequestMapDataMessagePack.CreateLayoutRequest();
+            return await PacketExchange.GetPacketResponse<GetMapDataProtocol.ResponseMapDataMessagePack>(request, ct);
         }
 
         private List<IItemStack> CreateStacks(ItemMessagePack[] items)
@@ -410,20 +136,6 @@ namespace Client.Network.API
                 stacks.Add(_itemStackFactory.Create(item.Id, item.Count));
             }
             return stacks;
-        }
-    }
-
-    public class InventoryResponse
-    {
-        public InventoryIdentifierMessagePack Identifier { get; }
-        public List<IItemStack> Items { get; }
-        public InventoryRequestResult Result { get; }
-
-        public InventoryResponse(InventoryIdentifierMessagePack identifier, List<IItemStack> items, InventoryRequestResult result)
-        {
-            Identifier = identifier;
-            Items = items;
-            Result = result;
         }
     }
 }

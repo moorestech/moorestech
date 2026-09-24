@@ -17,6 +17,7 @@
         "Game.Block",
         "Game.Block.Interface",
         "Game.Gear",
+        "Game.Train",
         "Game.Context",
         "Game.Construction",
         "Server.Protocol",
