@@ -141,8 +141,8 @@ describe("WebSocket bridge initialization", () => {
     expect(useTopicStore.getState().status).not.toBe("reconnecting");
 
     const requestId = JSON.parse(sockets[0].sent.find((raw) => raw.includes("bug_report.submit"))!).requestId;
-    sockets[0].receive({ op: "result", requestId, ok: true });
-    await expect(pending).resolves.toEqual({ ok: true, error: undefined });
+    sockets[0].receive({ op: "result", requestId, ok: true, payload: { missing: ["video"] } });
+    await expect(pending).resolves.toEqual({ ok: true, error: undefined, payload: { missing: ["video"] } });
   });
 
   it("pong が途絶えると socket を閉じて再接続状態へ移る", async () => {

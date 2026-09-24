@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using Client.Game.InGame.BugReport;
+
 namespace Client.Game.InGame.BugReport.Submit
 {
     // 送信手続きの結末
@@ -12,22 +15,24 @@ namespace Client.Game.InGame.BugReport.Submit
 
         public string BundleDirectory { get; }
         public string FailureCode { get; }
+        public IReadOnlyList<MissingItem> Missing { get; }
         public bool Submitted => FailureCode == null;
 
-        private BugReportSubmitResult(string bundleDirectory, string failureCode)
+        private BugReportSubmitResult(string bundleDirectory, string failureCode, IReadOnlyList<MissingItem> missing)
         {
             BundleDirectory = bundleDirectory;
             FailureCode = failureCode;
+            Missing = missing;
         }
 
-        internal static BugReportSubmitResult Succeed(string bundleDirectory)
+        internal static BugReportSubmitResult Succeed(string bundleDirectory, IReadOnlyList<MissingItem> missing)
         {
-            return new BugReportSubmitResult(bundleDirectory, null);
+            return new BugReportSubmitResult(bundleDirectory, null, missing);
         }
 
         internal static BugReportSubmitResult Fail(string failureCode, string bundleDirectory)
         {
-            return new BugReportSubmitResult(bundleDirectory, failureCode);
+            return new BugReportSubmitResult(bundleDirectory, failureCode, null);
         }
     }
 }

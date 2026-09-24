@@ -109,7 +109,8 @@ describe("dispatchAction の toast 配線", () => {
     expect(await dispatchActionOutcome("playtest.consent.acknowledge", {}))
       .toEqual({ kind: "unreachable", reason: "timeout" });
 
-    vi.spyOn(webSocketClient, "sendAction").mockResolvedValue({ ok: true });
-    expect(await dispatchActionOutcome("playtest.consent.acknowledge", {})).toEqual({ kind: "accepted" });
+    vi.spyOn(webSocketClient, "sendAction").mockResolvedValue({ ok: true, payload: { missing: ["video"] } });
+    expect(await dispatchActionOutcome("playtest.consent.acknowledge", {}))
+      .toEqual({ kind: "accepted", payload: { missing: ["video"] } });
   });
 });

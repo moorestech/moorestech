@@ -2,7 +2,7 @@
 // The report form on the bug-report page; the parent panel holds the draft, this only handles input and sending
 import { Button } from "@mantine/core";
 import { useState } from "react";
-import { dispatchAction, PauseMenuReportKinds, readTopic, Topics, type PauseMenuData, type PauseMenuReportKind } from "@/bridge";
+import { dispatchActionOutcome, PauseMenuReportKinds, type PauseMenuData, type PauseMenuReportKind } from "@/bridge";
 import { emitToast } from "@/features/toast";
 import { L, useI18n } from "@/shared/i18n";
 import { ModeSwitch } from "@/shared/ui";
@@ -29,15 +29,15 @@ export function BugReportForm({ status, draft }: Props) {
     // A second click makes two boxes from one capture and raises two draft PRs for one report
     if (blocked) return;
     setSending(true);
-    // 失敗時のトーストは dispatchAction が出すため、ここでは書き出し成功だけを伝える
-    // dispatchAction toasts the failure itself, so this path only reports a successful write
-    const ok = await dispatchAction("bug_report.submit", { description: trimmedDescription, kind: draft.kind });
+    // 失敗時のトーストは dispatchActionOutcome が出すため、ここでは書き出し成功だけを伝える
+    // dispatchActionOutcome toasts the failure itself, so this path only reports a successful write
+    const result = await dispatchActionOutcome("bug_report.submit", { description: trimmedDescription, kind: draft.kind });
     setSending(false);
-    if (!ok) return;
+    if (result.kind !== "accepted") return;
 
-    // 欠損の判定はC#が持つ。押した時点の props は古いので、配信済みの最新値をその場で読む
-    // C# owns the missing decision; the props captured at click time are stale, so the latest delivered value is read on the spot
-    const missing = readTopic(Topics.pauseMenu)?.bugReport.missing ?? [];
+    // 再確保後のtopicではなく、送った箱に確定した欠損をaction結果から読む
+    // Read the gaps settled for the sent bundle from the action result, not the topic after recapture
+    const missing = parseSubmittedMissing(result.payload);
     if (missing.length === 0) emitToast(t(L.ui.bugReport.sent), "info");
     else emitToast(t(L.ui.bugReport.missing, { items: missing.join(", ") }), "error");
 
@@ -93,4 +93,10 @@ export function BugReportForm({ status, draft }: Props) {
     if (status.missing.length === 0) return null;
     return t(L.ui.bugReport.missing, { items: status.missing.join(", ") });
   }
+}
+
+function parseSubmittedMissing(payload: unknown): string[] {
+  if (typeof payload !== "object" || payload === null || !("missing" in payload)) return [];
+  const missing = payload.missing;
+  return Array.isArray(missing) && missing.every((item) => typeof item === "string") ? missing : [];
 }

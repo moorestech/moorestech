@@ -26,21 +26,28 @@ namespace Client.WebUiHost.Game.Actions
     {
         public readonly bool Ok;
         public readonly string Error;
+        public readonly JToken Payload;
 
-        private ActionResult(bool ok, string error)
+        private ActionResult(bool ok, string error, JToken payload)
         {
             Ok = ok;
             Error = error;
+            Payload = payload;
         }
 
         public static ActionResult Success()
         {
-            return new ActionResult(true, null);
+            return new ActionResult(true, null, null);
+        }
+
+        public static ActionResult Success(JToken payload)
+        {
+            return new ActionResult(true, null, payload);
         }
 
         public static ActionResult Fail(string error)
         {
-            return new ActionResult(false, error ?? "unknown_error");
+            return new ActionResult(false, error ?? "unknown_error", null);
         }
     }
 }

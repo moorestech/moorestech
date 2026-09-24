@@ -60,8 +60,8 @@ export function shouldToastFailure(type: keyof ActionPayloads, error: string | u
 
 // 失敗を真偽値へ潰さずに受け取るための結果型。「サーバーが断った」と「届かなかった」は別の対処になる
 // Outcome type that keeps failures out of a boolean: "the server refused" and "it never arrived" call for different handling
-type ActionOutcome =
-  | { kind: "accepted" }
+export type ActionOutcome =
+  | { kind: "accepted"; payload: unknown }
   | { kind: "rejected"; error: string }
   | { kind: "unreachable"; reason: "timeout" | "disconnected" | "other" };
 
@@ -75,7 +75,7 @@ export async function dispatchActionOutcome<K extends keyof ActionPayloads>(
 ): Promise<ActionOutcome> {
   try {
     const result = await sendAction(type, payload, ACTION_TIMEOUTS_MS[type] ?? DEFAULT_ACTION_TIMEOUT_MS);
-    if (result.ok) return { kind: "accepted" };
+    if (result.ok) return { kind: "accepted", payload: result.payload };
     const error = result.error ?? "unknown";
     if (shouldToastFailure(type, result.error)) notify(`${type} failed: ${error}`, "error");
     return { kind: "rejected", error };

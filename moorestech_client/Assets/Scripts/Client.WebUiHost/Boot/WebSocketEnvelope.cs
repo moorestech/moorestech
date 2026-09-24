@@ -12,7 +12,7 @@ namespace Client.WebUiHost.Boot
     {
         // action 応答の result 封筒を作る
         // Build the result envelope for an action response
-        public static string BuildResult(string requestId, bool ok, string error)
+        public static string BuildResult(string requestId, bool ok, string error, JToken payload)
         {
             var env = new JObject
             {
@@ -21,6 +21,7 @@ namespace Client.WebUiHost.Boot
                 ["ok"] = ok,
             };
             if (error != null) env["error"] = error;
+            if (payload != null) env["payload"] = payload;
             return env.ToString(Formatting.None);
         }
 
