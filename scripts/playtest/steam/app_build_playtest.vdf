@@ -1,10 +1,10 @@
 "appbuild"
 {
 	"appid" "1958160"
-	"desc" "moorestech playtest __BUILD_LABEL__"
+	"desc" "moorestech playtest staging __BUILD_LABEL__"
 	"buildoutput" "__RUN_DIR__/steam/output"
 	"contentroot" "__CONTENT_ROOT__"
-	"setlive" "playtest"
+	"setlive" "playtest-staging"
 	"preview" "0"
 
 	"depots"

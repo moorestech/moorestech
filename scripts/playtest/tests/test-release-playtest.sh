@@ -14,7 +14,9 @@ OUTPUT=$(run_target); STATUS=$?
 ORDER=$(awk '{print $1}' "$SANDBOX/calls.log" | tr '\n' ' ')
 [ "$ORDER" = "git git git moores-wt git git git git git git git git git unity steamcmd verify moores-wt " ] || fail "call order was: $ORDER"
 grep -q "run_app_build" "$SANDBOX/calls.log" || fail "steamcmd was not asked to run_app_build"
-ls "$SANDBOX"/runs/*/announce.md >/dev/null 2>&1 || fail "announce.md was not written"
+ls "$SANDBOX"/runs/*/promotion.md >/dev/null 2>&1 || fail "promotion.md was not written"
+grep -q '"setlive" "playtest-staging"' "$SANDBOX"/runs/*/steam/app_build_playtest.vdf || fail "Steam upload did not target playtest-staging"
+grep -q '手動でライブ設定' "$SANDBOX"/runs/*/promotion.md || fail "promotion instructions omitted manual playtest update"
 grep -q "__[A-Z_]*__" "$SANDBOX"/runs/*/steam/*.vdf && fail "vdf still contains a raw token"
 grep -q "1958161" "$SANDBOX"/runs/*/steam/depot_build_windows.vdf || fail "depot id was not substituted"
 grep -q "$SANDBOX/runs" "$SANDBOX"/runs/*/steam/*.vdf || fail "contentroot was not pointed at the run's build dir"
@@ -56,11 +58,11 @@ OUTPUT=$(UNITY_EXIT=1 run_target); STATUS=$?
 [ "$STATUS" -ne 0 ] || fail "build failure did not fail the run"
 grep -q "^steamcmd" "$SANDBOX/calls.log" && fail "steamcmd ran after a failed build"
 
-# 検証機の通し検証が落ちたら告知テキストを書かない
+# 検証機の通し検証が落ちたら手動反映手順を書かない
 make_sandbox
 OUTPUT=$(VERIFY_EXIT=1 run_target); STATUS=$?
 [ "$STATUS" -ne 0 ] || fail "verification failure did not fail the run"
-ls "$SANDBOX"/runs/*/announce.md >/dev/null 2>&1 && fail "announce.md was written for a failed verification"
+ls "$SANDBOX"/runs/*/promotion.md >/dev/null 2>&1 && fail "promotion.md was written for a failed verification"
 
 # moores-wtがstaleな(既に存在する)worktreeディレクトリを残しつつ非0終了しても、
 # set -o pipefailがパイプの失敗を伝搬させ、そのまま後続(unity等)へ進まない

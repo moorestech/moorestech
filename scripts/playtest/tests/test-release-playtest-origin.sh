@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# release-playtest.sh の出所まわり（同梱元 master とピンの突き合わせ・配布元 branch・告知のコミット表記）の契約テスト
+# release-playtest.sh の出所まわり（同梱元 master とピンの突き合わせ・配布元 branch・手動反映手順のコミット表記）の契約テスト
 # fail()で集計してFAILURES件数を末尾判定する方式のため、set -eは使わない(1件の失敗で打ち切らない)
-# Contract tests for release-playtest.sh's origin handling (bundled master vs pin, distribution branch, announced commit)
+# Contract tests for release-playtest.sh's origin handling (bundled master vs pin, distribution branch, promotion commit)
 # Aggregated via fail() and judged by FAILURES at the end, so set -e is not used (one failure must not abort the rest)
 set -uo pipefail
 
@@ -118,7 +118,7 @@ make_sandbox
 FULL="0123456789abcdef0123456789abcdef01234567"
 OUTPUT=$(RELEASE_ARG="origin/master" GIT_VERIFY_OUTPUT="$FULL" BUILD_INFO_COMMIT="$FULL" run_target); STATUS=$?
 [ "$STATUS" -eq 0 ] || fail "origin/master input did not succeed: $OUTPUT"
-grep -q "コミット: $FULL" "$SANDBOX"/runs/*/announce.md || fail "announce.md did not carry the resolved commit"
+grep -q "コミット: $FULL" "$SANDBOX"/runs/*/promotion.md || fail "promotion.md did not carry the resolved commit"
 case "$OUTPUT" in *"commit=$FULL"*) ;; *) fail "the run log did not carry the resolved commit: $OUTPUT";; esac
 
 # fetch に失敗したら解決にも worktree 作成にも進まない
