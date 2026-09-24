@@ -31,6 +31,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             var start = TrainTestHelper.PlaceRail(Environment, Vector3Int.zero, BlockDirection.North).FrontNode;
             var end = TrainTestHelper.PlaceRail(Environment, new Vector3Int(0, 0, 100), BlockDirection.North).FrontNode;
             start.ConnectNode(end, 10000);
+            // 経路再検証で列車が反転しても車両位置を表せるようにする
+            // Keep the fixture rail position valid when route validation reverses the train
+            end.OppositeRailNode.ConnectNode(start.OppositeRailNode, 10000);
             var (car, _) = TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 400000, 1, 1, true, TrainTestCarFactory.StableAutoRunTestWeight);
             var position = new RailPosition(new List<IRailNode> { end, start }, TrainLengthConverter.ToRailUnits(1), 0);
             Train = new TrainUnit(position, new List<TrainCar> { car }, Environment.GetTrainRailPositionManager(), Environment.GetTrainDiagramManager());

@@ -132,7 +132,9 @@ namespace Game.Train.Unit
                 var notify = ServerContext.GetService<ITrainUnitSnapshotNotifyEvent>();
                 foreach (var trainUnit in _trainUnitLookupDatastore.GetRegisteredTrains())
                 {
-                    if (!trainUnit.trainDiagram.ConsumeCurrentEntryChanged())
+                    var entryChanged = trainUnit.trainDiagram.ConsumeCurrentEntryChanged();
+                    var autoRunChanged = trainUnit.ConsumeAutoRunChanged();
+                    if (!entryChanged && !autoRunChanged)
                     {
                         continue;
                     }

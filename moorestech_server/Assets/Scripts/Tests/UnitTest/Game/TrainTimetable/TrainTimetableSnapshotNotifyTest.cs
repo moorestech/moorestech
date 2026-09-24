@@ -1,5 +1,8 @@
+using System.Collections.Generic;
+using System.Linq;
 using Game.Context;
 using Game.Train.Event;
+using Game.Train.RailGraph;
 using Game.Train.Unit;
 using NUnit.Framework;
 using Tests.Util;
@@ -10,6 +13,22 @@ namespace Tests.UnitTest.Game.TrainTimetable
     public class TrainTimetableSnapshotNotifyTest
     {
         [Test]
+        public void AutoRunChangeFlagOnlyTracksTransitions()
+        {
+            using var scenario = TrainAutoRunTestScenario.CreateDockedScenario();
+            var train = scenario.Train;
+            Assert.IsTrue(train.ConsumeAutoRunChanged());
+            Assert.IsFalse(train.ConsumeAutoRunChanged());
+
+            train.TurnOnAutoRun();
+            Assert.IsFalse(train.ConsumeAutoRunChanged());
+            train.TurnOffAutoRun();
+            Assert.IsTrue(train.ConsumeAutoRunChanged());
+            train.TurnOffAutoRun();
+            Assert.IsFalse(train.ConsumeAutoRunChanged());
+        }
+
+        [Test]
         public void SnapshotIsNotifiedOnceAfterCurrentEntryAdvances()
         {
             using var scenario = TrainAutoRunTestScenario.CreateDockedScenario();
@@ -17,6 +36,7 @@ namespace Tests.UnitTest.Game.TrainTimetable
             var updateService = ServerContext.GetService<TrainUpdateService>();
             var notify = ServerContext.GetService<ITrainUnitSnapshotNotifyEvent>();
             var initialIndex = train.trainDiagram.CurrentIndex;
+            train.ConsumeAutoRunChanged();
             var notificationCount = 0;
             var notificationTick = 0u;
             var preSimulationTick = 0u;
@@ -50,6 +70,79 @@ namespace Tests.UnitTest.Game.TrainTimetable
 
             updateService.UpdateTrains();
             Assert.AreEqual(1, notificationCount, "次のtickでは重複通知しない");
+        }
+
+        [Test]
+        public void DepartingTowardDisconnectedStopNotifiesAutoRunOffOnce()
+        {
+            using var scenario = TrainAutoRunTestScenario.CreateDockedScenario();
+            var train = scenario.Train;
+            var diagram = train.trainDiagram;
+            var nextStation = scenario.AddConnectedDestinationStation();
+            diagram.ReplaceEntries(new IRailNode[] { scenario.StationExitFront, nextStation });
+            var stationEntry = (RailNode)scenario.StationExitFront.ConnectedNodes.First(node =>
+                node.StationRef.HasStation && node.StationRef.StationPosition == nextStation.StationRef.StationPosition);
+            scenario.StationExitFront.DisconnectNode(stationEntry);
+            diagram.Entries[0].SetDepartureWaitTicks(1);
+            diagram.ConsumeCurrentEntryChanged();
+            train.ConsumeAutoRunChanged();
+
+            var updateService = ServerContext.GetService<TrainUpdateService>();
+            var notify = ServerContext.GetService<ITrainUnitSnapshotNotifyEvent>();
+            var offTicks = new List<uint>();
+            using var subscription = notify.OnTrainUnitSnapshotNotified.Subscribe(data =>
+            {
+                if (data.TrainUnitInstanceId == train.TrainUnitInstanceId && !data.TrainUnit.IsAutoRun)
+                {
+                    offTicks.Add(updateService.GetCurrentTick());
+                }
+            });
+
+            // 駅Aを出た後、未接続の次駅でOFFになったtickを確認する
+            // Check the OFF snapshot on the tick that encounters the disconnected next stop
+            for (var i = 0; i < 12000 && train.IsAutoRun; i++)
+            {
+                updateService.UpdateTrains();
+            }
+            Assert.IsFalse(train.IsAutoRun);
+            Assert.AreEqual(1, offTicks.Count);
+            Assert.AreEqual(updateService.GetCurrentTick(), offTicks[0]);
+            updateService.UpdateTrains();
+            Assert.AreEqual(1, offTicks.Count);
+        }
+
+        [Test]
+        public void DisconnectingRailWhileRunningNotifiesAutoRunOffOnce()
+        {
+            using var scenario = TrainAutoRunTestScenario.CreateRunningScenario();
+            var train = scenario.Train;
+            var next = (RailNode)train.trainDiagram.Entries[1].Node;
+            train.trainDiagram.MoveToNextEntry();
+            scenario.StationExitFront.DisconnectNode(next);
+            train.trainDiagram.ConsumeCurrentEntryChanged();
+            train.ConsumeAutoRunChanged();
+
+            var updateService = ServerContext.GetService<TrainUpdateService>();
+            var notify = ServerContext.GetService<ITrainUnitSnapshotNotifyEvent>();
+            var offSnapshots = 0;
+            using var subscription = notify.OnTrainUnitSnapshotNotified.Subscribe(data =>
+            {
+                if (data.TrainUnitInstanceId == train.TrainUnitInstanceId && !data.TrainUnit.IsAutoRun)
+                {
+                    offSnapshots++;
+                }
+            });
+
+            // 走行中の線路切断によるOFFをシミュレーション後に通知する
+            // Notify the post-simulation OFF state after a rail is disconnected while running
+            for (var i = 0; i < 12000 && train.IsAutoRun; i++)
+            {
+                updateService.UpdateTrains();
+            }
+            Assert.IsFalse(train.IsAutoRun);
+            Assert.AreEqual(1, offSnapshots);
+            updateService.UpdateTrains();
+            Assert.AreEqual(1, offSnapshots);
         }
     }
 }

@@ -27,6 +27,7 @@ namespace Game.Train.Unit
         public TrainUnitInstanceId TrainUnitInstanceId => _trainUnitInstanceId;
         private int _remainingDistance;// 自動減速用
         private bool _isAutoRun;
+        private bool _isAutoRunChanged;
         public bool IsAutoRun => _isAutoRun;
         private double _currentSpeed;   // m/s など適宜
         public double CurrentSpeed => _currentSpeed;
@@ -414,8 +415,19 @@ namespace Game.Train.Unit
         {
             // バリデーションで auto-run を止める条件を洗い出す。
             // Validate whether auto-run can stay enabled.
+            if (!_isAutoRun)
+            {
+                _isAutoRunChanged = true;
+            }
             _isAutoRun = true;
             DiagramValidation(true);
+        }
+
+        public bool ConsumeAutoRunChanged()
+        {
+            var changed = _isAutoRunChanged;
+            _isAutoRunChanged = false;
+            return changed;
         }
         
         // masconLevel などの差分を抽出する。
@@ -490,6 +502,10 @@ namespace Game.Train.Unit
 
         public void TurnOffAutoRun()
         {
+            if (_isAutoRun)
+            {
+                _isAutoRunChanged = true;
+            }
             _isAutoRun = false;
             _remainingDistance = int.MaxValue;
             masconLevel = 0;

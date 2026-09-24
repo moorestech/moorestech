@@ -75,6 +75,7 @@ namespace Server.Protocol.PacketResponse
                 // Notify immediately after applying and consume the pending tick notification
                 trainUnit.ReplaceTimetable(nodes);
                 trainUnit.trainDiagram.ConsumeCurrentEntryChanged();
+                trainUnit.ConsumeAutoRunChanged();
                 _snapshotNotifyEvent.NotifySnapshot(trainUnit);
                 return new TrainScheduleEditResponse(true, TrainScheduleEditFailureReason.None, data.Operation);
             }
@@ -91,6 +92,8 @@ namespace Server.Protocol.PacketResponse
                 {
                     trainUnit.TurnOffAutoRun();
                 }
+                trainUnit.trainDiagram.ConsumeCurrentEntryChanged();
+                trainUnit.ConsumeAutoRunChanged();
                 _snapshotNotifyEvent.NotifySnapshot(trainUnit);
                 return new TrainScheduleEditResponse(true, TrainScheduleEditFailureReason.None, data.Operation);
             }

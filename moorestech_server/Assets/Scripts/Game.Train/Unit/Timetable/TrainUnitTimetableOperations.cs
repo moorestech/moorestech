@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Game.Train.RailGraph;
-using UnityEngine;
 
 namespace Game.Train.Unit
 {
@@ -18,33 +17,10 @@ namespace Game.Train.Unit
             {
                 train.trainUnitStationDocking.UndockFromStation();
             }
-            if (train.IsAutoRun && stationNodes.Count > 0)
+            if (train.IsAutoRun)
             {
-                var approaching = train.RailPosition.GetNodeApproaching();
-                var destination = stationNodes[0];
-                var railNodes = train.RailPosition.GetRailNodes();
-                var reverseApproaching = railNodes[railNodes.Count - 1].OppositeNode;
-
-                // 未接続駅も受理し、経路がある場合だけ置換直後に再検証する
-                // Accept disconnected stations and revalidate immediately only when a route exists
-                if (approaching == destination || HasRoute(approaching, destination) || HasRoute(reverseApproaching, destination))
-                {
-                    train.DiagramValidation(true);
-                }
-                else
-                {
-                    Debug.LogWarning($"[TrainTimetable] no route to replacement head train={train.TrainUnitInstanceId}");
-                }
+                train.DiagramValidation(true);
             }
-
-            #region Internal
-
-            bool HasRoute(IRailNode start, IRailNode end)
-            {
-                return start != null && start.GraphProvider.FindShortestPath(start, end)?.Count >= 2;
-            }
-
-            #endregion
         }
     }
 }

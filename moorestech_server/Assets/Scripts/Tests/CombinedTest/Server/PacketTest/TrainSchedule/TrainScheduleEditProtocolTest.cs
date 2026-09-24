@@ -18,7 +18,7 @@ namespace Tests.CombinedTest.Server.PacketTest
     public class TrainScheduleEditProtocolTest
     {
         [Test]
-        public void ReplaceDisconnectedStationsPreservesAutoRunAndNotifiesOnce()
+        public void ReplaceDisconnectedStationsStopsAutoRunAndNotifiesOnce()
         {
             var fixture = new TrainScheduleProtocolTestEnvironment();
             var first = fixture.PlaceStation(new Vector3Int(100, 0, 0));
@@ -50,7 +50,7 @@ namespace Tests.CombinedTest.Server.PacketTest
                 Assert.AreEqual(StationNodeRole.Exit, entry.Node.StationRef.NodeRole);
                 Assert.AreEqual(GameUpdater.TicksPerSecond, entry.GetWaitForTicksInitialTicks());
             }
-            Assert.IsTrue(fixture.Train.IsAutoRun);
+            Assert.IsFalse(fixture.Train.IsAutoRun);
             Assert.AreEqual(1, notifications);
             Assert.IsFalse(diagram.ConsumeCurrentEntryChanged());
         }
@@ -123,6 +123,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var fixture = new TrainScheduleProtocolTestEnvironment();
             Assert.IsTrue(fixture.Send(Request.CreateReplaceTimetableRequest(fixture.Train.TrainUnitInstanceId, Array.Empty<Vector3Int>())).Success);
             Assert.AreEqual(-1, fixture.Train.trainDiagram.CurrentIndex);
+            Assert.IsFalse(fixture.Train.IsAutoRun);
             var response = fixture.Send(Request.CreateSetAutoRunRequest(fixture.Train.TrainUnitInstanceId, true));
 
             Assert.IsTrue(response.Success);
