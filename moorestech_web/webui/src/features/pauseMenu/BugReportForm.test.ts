@@ -2,6 +2,7 @@ import { createElement, type ReactNode } from "react";
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { setDictionaries } from "@/shared/i18n/i18nStore";
+import { useBugReportDraft } from "./useBugReportDraft";
 
 const mocks = vi.hoisted(() => ({
   dispatchAction: vi.fn(async () => true),
@@ -72,9 +73,9 @@ describe("BugReportForm", () => {
     act(() => renderer.unmount());
   });
 
-  // 閉じる責務はC#の送信ハンドラ1本が持つ。Web側からも閉じると同じ判断が2箇所に増える
-  // The one C# submit handler owns closing; closing from the Web too would put the same decision in two places
-  it("送信後にポーズメニューを閉じるactionは出さない", async () => {
+  // 送信後の画面遷移はC#の送信ハンドラ1本が持つ。Web側からも遷移させると同じ判断が2箇所に増える
+  // The one C# submit handler owns the page move after a send; moving from the Web too would put the same decision in two places
+  it("送信後に画面遷移のactionは出さない", async () => {
     setDictionaries("japanese", dictionary, {}, {});
     const renderer = await render({ kind: "ready", missing: [] });
     const textarea = renderer.root.findByProps({ "data-testid": "bug-report-description" });
@@ -82,6 +83,7 @@ describe("BugReportForm", () => {
     await act(async () => sendButton(renderer).props.onClick());
     expect(mocks.dispatchAction).toHaveBeenCalledTimes(1);
     expect(mocks.dispatchAction).not.toHaveBeenCalledWith("ui_state.request", expect.anything());
+    expect(mocks.dispatchAction).not.toHaveBeenCalledWith("pause_menu.show_page", expect.anything());
     act(() => renderer.unmount());
   });
 
@@ -240,10 +242,15 @@ describe("BugReportForm", () => {
   });
 });
 
+function FormWithDraft({ status }: { status: Status }) {
+  const draft = useBugReportDraft();
+  return createElement(BugReportForm, { status, draft });
+}
+
 async function render(status: Status): Promise<ReactTestRenderer> {
   let renderer: ReactTestRenderer;
   await act(async () => {
-    renderer = create(createElement(BugReportForm, { status }));
+    renderer = create(createElement(FormWithDraft, { status }));
   });
   return renderer!;
 }
