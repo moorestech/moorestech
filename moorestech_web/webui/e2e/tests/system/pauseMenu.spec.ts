@@ -35,6 +35,8 @@ test("トップから設定画面へ進み言語を選べ、戻るでトップ�
   await menu.getByTestId("pause-menu-open-settings").click();
   await expect.poll(async () => (await payloadsOf(page, "pause_menu.show_page")).at(-1)).toEqual({ page: "settings" });
   await expect(menu.getByTestId("language-select")).toBeVisible();
+  await menu.getByTestId("language-select-option-english").click();
+  await expect.poll(async () => (await payloadsOf(page, "localization.setLocale")).at(-1)).toEqual({ locale: "english" });
 
   await menu.getByTestId("pause-menu-back").click();
   await expect.poll(async () => (await payloadsOf(page, "pause_menu.show_page")).at(-1)).toEqual({ page: "top" });

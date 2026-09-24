@@ -1,6 +1,5 @@
 import type { WebSocketServer } from "ws";
-import { Topics, UiStateNames } from "../../src/bridge/transport/protocol";
-import type { ClientMsg, ActionPayloads } from "../../src/bridge/transport/protocol";
+import { Topics, UiStateNames, type ClientMsg, type ActionPayloads } from "../../src/bridge/transport/protocol";
 import type { PlayerInventoryData } from "../../src/bridge/contract/payloadTypes";
 import * as fx from "./fixtures";
 import { send, clone } from "./wire";
@@ -8,6 +7,7 @@ import { received, state, connections, subscribersOf, topicSubscribers } from ".
 import { applyMove, applyBlockMove, applyBlockSplit, applyCollect, applyBlockCollect, applyCraft, applySplitDrag } from "./inventoryModel";
 import { applyElectricToGearMode, applyFilterMode, applyFilterItem, applyMachineRecipeSelect, applyResearchComplete, applyTrainPlatformMode } from "./detailActions";
 import { applySkitAction } from "./skitActions";
+import { applyPauseMenuShowPage } from "./pauseMenuActions";
 import { demoMode, topicData } from "./topics/topicFixtures";
 import { knownActions } from "./topics/actionTypes";
 import { applyLocalizationAction } from "./localization/transport";
@@ -30,7 +30,6 @@ export function attachWsHandlers(wss: WebSocketServer) {
       }
       for (const subscribers of topicSubscribers.values()) subscribers.delete(ws);
     });
-
     ws.on("message", (raw) => {
       const msg = JSON.parse(raw.toString()) as ClientMsg;
       if (msg.op === "ping") {
@@ -104,9 +103,7 @@ export function attachWsHandlers(wss: WebSocketServer) {
           if (typeof index === "number" && index >= 0 && index < inv.equipment.length) {
             inv.selectedEquipment = index;
             setTimeout(() => send(ws, { op: "event", topic: Topics.inventory, data: inv }), 30);
-          } else {
-            error = "invalid_index";
-          }
+          } else error = "invalid_index";
         } else if (msg.type === "ui.modal.respond") {
           // どの結果でもモーダルを閉じ、全 modal 購読者へ modal:null を push
           // Any result closes the modal and pushes modal:null to all modal subscribers
@@ -114,15 +111,8 @@ export function attachWsHandlers(wss: WebSocketServer) {
           setTimeout(() => {
             for (const sub of subscribersOf(Topics.modal)) send(sub, { op: "event", topic: Topics.modal, data: { modal: null } });
           }, 30);
-        } else if (msg.type === "pause_menu.show_page") {
-          state.pauseMenuPage = (msg.payload as ActionPayloads["pause_menu.show_page"]).page;
-          const pauseMenuOverride = state.topicOverrides.get(Topics.pauseMenu) as { page?: string } | undefined;
-          if (pauseMenuOverride) state.topicOverrides.set(Topics.pauseMenu, { ...pauseMenuOverride, page: state.pauseMenuPage });
-          setTimeout(() => {
-            const data = topicData(Topics.pauseMenu, inv, demoMode);
-            for (const sub of subscribersOf(Topics.pauseMenu)) send(sub, { op: "event", topic: Topics.pauseMenu, data });
-          }, 30);
-        } else if (msg.type === "block_inventory.move_item") {
+        } else if (msg.type === "pause_menu.show_page") applyPauseMenuShowPage(inv, msg.payload as ActionPayloads["pause_menu.show_page"]);
+        else if (msg.type === "block_inventory.move_item") {
           const moveError = applyBlockMove(inv, state.currentBlock, msg.payload as ActionPayloads["block_inventory.move_item"]);
           if (moveError) error = moveError;
           else {
