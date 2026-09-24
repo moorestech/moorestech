@@ -23,6 +23,7 @@ export * from "./fixtures/blockLocalizationFixtures";
 export * from "./fixtures/contentLocalizationFixtures";
 export * from "./fixtures/buildMenuFixtures";
 export * from "./fixtures/hotbarFixtures";
+export * from "./fixtures/trainTimetableFixtures";
 
 const empty = () => ({ itemId: 0, count: 0 });
 

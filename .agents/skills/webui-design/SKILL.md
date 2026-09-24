@@ -590,6 +590,14 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
 
 - ADR 0065 でタイトル（MainMenu、uGUI）へ移した。WebUI 側の `features/playtestGate`・topic・action は存在しない。新たに WebUI で同種の確認を作らない（作り直すならメインメニュー作り変え `moorestech-zohw` と一緒に設計する）。
 
+## 8.22 パネル内タブ（`shared/ui/PanelTabs`）
+
+- 1つのパネルに同じ対象の別ビュー（例: 列車の「インベントリ / 時刻表」）を持たせるときだけ使う。別対象・別画面をタブで束ねない。
+- 見た目は ModeSwitch と同族（`--gauge-track` の溝面、選択中は `--bevel-c2` の明るい寒色面と `--text-high-contrast`）。新しい色相・下線・アニメーションは足さない。
+- タブ列はパネル本文の最上段に置き、`--mode-switch-gap` で並べる。高さはパネルに比例させない。
+- `data-selected="true"` と `role="tab"` を公開する。testid は `<feature>-tab-<name>`。
+- 出所: ユーザー裁定 2026-09-24「タブを新設する」（`.decisions/2026-09-24-列車インベントリに時刻表タブを新設する.md`）。
+
 ## 9. やらないことリスト（再掲・明示）
 
 - 全画面UI・不透明な面での塗り潰し（例外は §8.12 のスキット暗転・§8.20a の出展モード言語選択ゲートだけ。外殻は §8.20 の `FullScreenGate` を共有）

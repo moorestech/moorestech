@@ -140,6 +140,19 @@ export const TrainPlatformDataSchema = z.object({
   fluidCapacity: z.number().nonnegative().optional(),
 });
 
+// 時刻表は駅ブロック座標で対象を固定し、表示名は独立して保持する
+// The timetable identifies station blocks by position and carries names only for display
+export const TrainStationPositionSchema = z.object({ x: z.number().int(), y: z.number().int(), z: z.number().int() });
+export const TrainTimetableStationSchema = z.object({ position: TrainStationPositionSchema, name: z.string() });
+export const TrainTimetableDataSchema = z.object({
+  trainUnitId: z.string(),
+  isAutoRun: z.boolean(),
+  currentIndex: z.number().int(),
+  stops: z.array(TrainTimetableStationSchema),
+  stations: z.array(TrainTimetableStationSchema),
+});
+export const TrainStationDetailSchema = z.object({ name: z.string() });
+
 export const BlockInventoryOpenSchema = z.object({
   open: z.literal(true),
   source: z.literal("block"),
@@ -159,6 +172,7 @@ export const BlockInventoryOpenSchema = z.object({
   filterSplitter: FilterSplitterDataSchema.optional(),
   electricToGear: ElectricToGearDataSchema.optional(),
   trainPlatform: TrainPlatformDataSchema.optional(),
+  trainStation: TrainStationDetailSchema.optional(),
 }).strict();
 export const TrainInventoryOpenSchema = z.object({
   open: z.literal(true),
@@ -167,6 +181,7 @@ export const TrainInventoryOpenSchema = z.object({
   identifier: z.string(),
   itemSlots: z.array(SlotDataSchema),
   fluidSlots: z.array(FluidSlotDataSchema),
+  timetable: TrainTimetableDataSchema.optional(),
   error: z.enum(["containerMissing", "trainCarMissing", "openFailed"]).optional(),
 });
 export const BlockInventoryClosedSchema = z.object({ open: z.literal(false) });
