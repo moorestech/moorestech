@@ -69,7 +69,7 @@ echo "[verify] running smoke on $MOORESTECH_VERIFY_HOST"
     "powershell -NoProfile -ExecutionPolicy Bypass -File \"$REMOTE_ROOT/run-smoke.ps1\" -ResultRoot \"$REMOTE_ROOT/results\" -ExpectedBuildLabel \"$BUILD_LABEL\""
 
 # 前回実行の残骸を先に消す。scpは宛先に既存のresultsがあるとその中へ入れ子で置くため、
-# 消さないまま再実行すると古いresult.json/announce.mdを読んでしまう
+# 消さないまま再実行すると古いresult.json/promotion.mdを読んでしまう
 # Clear any leftover from a previous run first; scp nests results/ inside an existing
 # destination, so skipping this would leave a stale result.json readable by the next run
 rm -rf "$VERIFY_ARTIFACT_ROOT/results"

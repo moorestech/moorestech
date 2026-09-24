@@ -114,7 +114,7 @@ function Assert-ExpectedBuildLabel {
 }
 
 if (-not (Test-Path $GameExe)) {
-    Fail 3 "moorestech.exe が見つかりません（Steam で playtest ブランチをインストールしておくこと）: $GameExe"
+    Fail 3 "moorestech.exe が見つかりません（Steam で playtest-staging ブランチをインストールしておくこと）: $GameExe"
 }
 
 # テスターと同じ起動経路（Steam の DRM・AppID 決定）を通すため、smoke 引数ごと steam.exe -applaunch で起動する

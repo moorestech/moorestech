@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# 指定コミットからWindows配布ビルドを焼き、Steamのplaytestブランチへ上げ、検証機で通し検証する
-# Bakes the Windows distribution build from a commit, ships it to the Steam playtest branch and verifies it on the check machine
+# 指定コミットからWindows配布ビルドを焼き、Steamのplaytest-stagingブランチへ上げ、検証機で通し検証する
+# Bakes the Windows distribution build from a commit, ships it to the Steam playtest-staging branch and verifies it on the check machine
 #
 # usage: release-playtest.sh <commit>
 # <commit> は SHA か origin/<branch> を渡す。ローカルブランチ名（master 等）は fetch で進まず古いコミットを焼くため使わない
@@ -70,8 +70,8 @@ fi
 RUN_DIR="$PLAYTEST_RUN_ROOT/$BUILD_LABEL"
 BUILD_DIR="$RUN_DIR/build"
 STEAM_DIR="$RUN_DIR/steam"
-# RUN_DIRの再利用は前回の成果物・announce.mdを黙って読ませる温床になるためfail-closedで拒否する
-# Reusing RUN_DIR would silently read a previous run's artifacts/announce.md, so refuse it fail-closed
+# RUN_DIRの再利用は前回の成果物・promotion.mdを黙って読ませる温床になるためfail-closedで拒否する
+# Reusing RUN_DIR would silently read a previous run's artifacts/promotion.md, so refuse it fail-closed
 if [ -e "$RUN_DIR" ]; then
     echo "ERROR: RUN_DIR が既に存在します（前回実行の残骸の可能性）: ${RUN_DIR}" >&2
     exit 2
@@ -158,17 +158,17 @@ done
 
 "$STEAMCMD_BIN" +login "$MOORESTECH_STEAM_USER" +run_app_build "$STEAM_DIR/app_build_playtest.vdf" +quit
 
-# 検証機の通し検証に通ったものだけを告知対象にする
-# Only a build that passed the check machine becomes announceable
+# 検証機の通し検証に通ったものだけを手動反映の対象にする
+# Only a build that passed the check machine becomes eligible for manual promotion
 "$VERIFY_SCRIPT" "$BUILD_LABEL"
 
-cat >"$RUN_DIR/announce.md" <<EOF
-# moorestech プレイテスト更新 ($BUILD_LABEL)
+cat >"$RUN_DIR/promotion.md" <<EOF
+# moorestech プレイテスト反映手順 ($BUILD_LABEL)
 
 - コミット: $COMMIT_FULL
-- Steam ブランチ: playtest
+- Steam アップロード先: playtest-staging
 - 通し検証: 合格（検証機で phase1 / phase2 とも成功）
 
-Steam クライアントを再起動すると自動で更新されます。更新後に不具合があれば、ポーズメニューの報告からお知らせください。
+Steamworks → アプリ 1958160 → SteamPipe → ビルドで、検証済みビルドを `playtest` ブランチに手動でライブ設定してください。設定後に対象のビルド ID を確認し、テスターへ告知してください。
 EOF
-echo "[release-playtest] announce: $RUN_DIR/announce.md"
+echo "[release-playtest] promotion: $RUN_DIR/promotion.md"

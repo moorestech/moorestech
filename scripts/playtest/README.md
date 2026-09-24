@@ -29,15 +29,15 @@ bash /Users/sakastudio/hermes-agent/data/repos/moorestech/scripts/playtest/allow
 
 ## 配布工程
 
-配布ビルドを焼き、Steam の `playtest` ブランチへ上げ、検証機で通し検証するまでの運用。
+配布ビルドを焼き、Steam の `playtest-staging` ブランチへ上げ、検証機で通し検証する。`playtest` への反映は検証後に Steamworks Web UI で手動実行する。
 用語は CONTEXT.md「プレイテスト」節、裁定は docs/adr/0061 を正とする。
 
 ### 1回だけ行う準備
 
 #### Steamworks 側（Web の手動作業。自動化しない）
 
-1. アプリ 1958160 の Steamworks 管理画面 → SteamPipe → Builds でベータブランチ `playtest` を作成する。
-2. `playtest` ブランチにパスワードを設定する（テスターへキーと一緒に配る）。
+1. アプリ 1958160 の Steamworks 管理画面 → SteamPipe → Builds で `playtest` と `playtest-staging` ブランチを作成する。
+2. 両ブランチに別々のパスワードを設定する。`playtest` のパスワードだけをテスターへキーと一緒に配る。
 3. Depot のIDを控える（Steamworks → SteamPipe → Depots）。`MOORESTECH_STEAM_DEPOT_ID` に設定する。
 4. Steam Web API の publisher key を発行する（受け口 plan D の `STEAM_WEB_API_KEY` に使う）。
 5. テスター配布用のキーを発行する（Steamworks → Packages → キー生成）。
@@ -77,7 +77,8 @@ scripts/playtest/release-playtest.sh <SHA または origin/master>
   `git status --porcelain` が空であること、`ffmpeg/win-x64/ffmpeg.exe`（LFS ポインタでない実体）と `LICENSE` が揃うことを確かめる。
   ずれていれば「どこをどのコミットへ合わせるか」を出して止まるので、合わせてから再実行する（自動では動かさない）。
 
-成果物・ログ・告知テキストは `~/hermes-agent/data/services/playtest/runs/<label>/` に残る。告知の「コミット」は解決後の40桁 SHA。
+成果物・ログ・手動反映手順 `promotion.md` は `~/hermes-agent/data/services/playtest/runs/<label>/` に残る。ビルドのコミットは解決後の40桁 SHA。
+検証が通った後、Steamworks → アプリ 1958160 → SteamPipe → ビルドで、検証済みビルドを `playtest` に手動でライブ設定する。対象ビルド ID を確認してからテスターへ告知する。
 
 ## 検証機（自宅 Windows PC）
 
@@ -98,7 +99,7 @@ scripts/playtest/release-playtest.sh <SHA または origin/master>
    「このデバイスで、コンピューターのスタンバイ状態を解除できるようにする」を ON。高速スタートアップは OFF にする。
    NIC の MAC アドレスを控え `MOORESTECH_VERIFY_MAC` に設定する。
 6. Steam クライアントを入れてテスター用アカウントでログインし、moorestech（app 1958160）をライブラリへ追加。
-   プロパティ → ベータ で `playtest` ブランチのパスワードを1度入力して選択しておく。プロパティ → 更新 は「常にこのゲームを最新の状態に保つ」にする
+   プロパティ → ベータ で `playtest-staging` ブランチのパスワードを1度入力して選択しておく。プロパティ → 更新 は「常にこのゲームを最新の状態に保つ」にする
    （`run-smoke.ps1` はゲームを起動せず Steam の自動更新でラベルが切り替わるのを待つ）。Steam を既定以外の場所に入れた場合は
    Windows のシステム環境変数 `MOORESTECH_STEAM_EXE` に steam.exe のフルパスを設定する（未設定ならレジストリ→`C:\Program Files (x86)\Steam` の順に探す）。
    ゲームは Steam ルート直下の `steamapps\common\moorestech` にある前提（別ライブラリフォルダは未対応）。
@@ -166,7 +167,7 @@ plan H の取り込み（supervisor periodic 300s）が走ると、smoke の報�
 ### CEF raw input 確認（初回合格ビルドのみ・手動）
 
 配布ビルドでは入力注入が使えないため、Windows の CEF raw input 奪取は人が確認する。
-1. Remote Desktop（または実機）で検証機に入り、Steam から `playtest` ブランチのゲームを起動して新規ワールドに入る
+1. Remote Desktop（または実機）で検証機に入り、Steam から `playtest-staging` ブランチのゲームを起動して新規ワールドに入る
 2. 右ドラッグで視点を回しながら Tab でインベントリ（WebUI）を開閉し、開いた状態でホイールスクロールが効くか、閉じた状態で右ドラッグ視点回転が効くかを見る
 3. 結果（両方効く／ホイール死亡／視点回転死亡）を `bd note <配布タスクid> "CEF raw input: ..."` に書く。奪取が再現したら既知バグ一覧へ載せ、根治は別タスク（[[.decisions/2026-09-13-CEF raw input応急処置は入れず検証機の通し検証で実害を確かめてから決める.md]]）
 
