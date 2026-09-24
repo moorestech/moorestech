@@ -23,6 +23,7 @@
 .controls {
   display: flex;
   gap: var(--mode-switch-gap);
+  flex-shrink: 0;
 }
 
 .nameInput {
@@ -59,8 +60,4 @@
 .row > span:first-child {
   min-width: 0;
   overflow-wrap: anywhere;
-}
-
-.controls {
-  flex-shrink: 0;
 }

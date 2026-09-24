@@ -91,6 +91,18 @@ describe("train timetable UI", () => {
     expect(dispatchAction).toHaveBeenCalledWith("train_timetable.replace", { stations: [a.position] });
   });
 
+  it("keeps unapplied edits while switching tabs", () => {
+    const data = { open: true, source: "train", blockType: "Train", identifier: "car", itemSlots: [], timetable } as const;
+    let tree!: ReactTestRenderer;
+    act(() => { tree = create(createElement(TrainInventoryBody, { data: { ...data, itemSlots: [], fluidSlots: [] } })); });
+    click(tree, "train-tab-timetable");
+    click(tree, "train-timetable-station-2_0_2-add");
+    click(tree, "train-tab-inventory");
+    click(tree, "train-tab-timetable");
+    click(tree, "train-timetable-apply");
+    expect(dispatchAction).toHaveBeenCalledWith("train_timetable.replace", { stations: [a.position, b.position] });
+  });
+
   it("sends station names only through Set and hides the field for platforms", () => {
     const data = { open: true, source: "block", blockType: "TrainStation", identifier: "station", blockGuid: "g", itemSlots: [], fluidSlots: [], trainStation: { name: "A" } } as const;
     let tree!: ReactTestRenderer;

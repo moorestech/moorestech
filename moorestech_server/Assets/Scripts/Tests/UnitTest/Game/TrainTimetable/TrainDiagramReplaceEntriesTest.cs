@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using Core.Update;
+using Game.Context;
 using Game.Train.RailGraph;
+using Game.Train.Unit;
 using NUnit.Framework;
 using Tests.Util;
 
@@ -30,6 +32,29 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(GameUpdater.TicksPerSecond, diagram.Entries[1].GetWaitForTicksInitialTicks());
             Assert.IsTrue(diagram.ConsumeCurrentEntryChanged());
             Assert.IsFalse(diagram.ConsumeCurrentEntryChanged());
+        }
+
+        [Test]
+        public void ReplacingWhileDockedHeadsForNewFirstStation()
+        {
+            using var scenario = TrainAutoRunTestScenario.CreateDockedScenario();
+            var train = scenario.Train;
+            var firstStation = scenario.AddConnectedDestinationStation();
+            Assert.IsTrue(train.trainUnitStationDocking.IsDocked);
+
+            train.ReplaceTimetable(new List<IRailNode> { firstStation, scenario.StationExitFront });
+            Assert.IsFalse(train.trainUnitStationDocking.IsDocked);
+            Assert.IsTrue(train.IsAutoRun);
+
+            // 旧駅の待機時間を超えても新しい先頭駅を飛ばさない
+            // Keep the new first station after the old docking wait would have expired
+            var updateService = ServerContext.GetService<TrainUpdateService>();
+            for (var i = 0; i < GameUpdater.TicksPerSecond + 2; i++)
+            {
+                updateService.UpdateTrains();
+            }
+            Assert.AreSame(firstStation, train.trainDiagram.GetCurrentNode());
+            Assert.AreEqual(0, train.trainDiagram.CurrentIndex);
         }
 
         [Test]

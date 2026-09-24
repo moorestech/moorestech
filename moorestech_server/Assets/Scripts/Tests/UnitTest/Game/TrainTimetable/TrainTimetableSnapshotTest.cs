@@ -62,5 +62,18 @@ namespace Tests.UnitTest.Game.TrainTimetable
             Assert.IsEmpty(restored.Simulation.TimetableStops);
             Assert.AreEqual(bundle.Simulation.IsAutoRun, restored.Simulation.IsAutoRun);
         }
+
+        [Test]
+        public void NonStationEntryDoesNotHighlightAnotherStation()
+        {
+            using var scenario = TrainAutoRunTestScenario.CreateDockedScenario();
+            var diagram = scenario.Train.trainDiagram;
+            diagram.MoveToNextEntry();
+
+            var snapshot = TrainUnitSnapshotFactory.CreateSnapshot(scenario.Train);
+
+            Assert.AreEqual(-1, snapshot.Simulation.TimetableCurrentIndex);
+            Assert.AreEqual(1, snapshot.Simulation.TimetableStops.Count);
+        }
     }
 }

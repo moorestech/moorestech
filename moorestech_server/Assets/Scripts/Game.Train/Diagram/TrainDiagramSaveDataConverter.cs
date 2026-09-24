@@ -7,7 +7,7 @@ namespace Game.Train.Diagram
 {
     // 既存の時刻表セーブ形式と実行時エントリを相互変換する
     // Convert between the existing timetable save format and runtime entries
-    public static class TrainDiagramSaveDataConverter
+    internal static class TrainDiagramSaveDataConverter
     {
         public static TrainDiagramSaveData Create(TrainDiagram diagram)
         {

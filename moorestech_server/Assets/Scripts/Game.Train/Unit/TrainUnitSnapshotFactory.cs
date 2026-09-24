@@ -23,10 +23,13 @@ namespace Game.Train.Unit
             // 駅参照を持つ停車駅だけを座標として送る
             // Send positions only for stops with a station reference
             var stops = new List<TrainTimetableStopSnapshot>(train.trainDiagram.Entries.Count);
-            foreach (var entry in train.trainDiagram.Entries)
+            var currentStopIndex = -1;
+            for (var entryIndex = 0; entryIndex < train.trainDiagram.Entries.Count; entryIndex++)
             {
+                var entry = train.trainDiagram.Entries[entryIndex];
                 var station = entry.Node.StationRef;
                 if (station == null || !station.HasStation) continue;
+                if (entryIndex == train.trainDiagram.CurrentIndex) currentStopIndex = stops.Count;
                 stops.Add(new TrainTimetableStopSnapshot(station.StationPosition));
             }
 
@@ -38,7 +41,7 @@ namespace Game.Train.Unit
                 train.GetManualBranchSelectionIndex(),
                 carSnapshots,
                 train.IsAutoRun,
-                train.trainDiagram.CurrentIndex,
+                currentStopIndex,
                 stops);
         }
 

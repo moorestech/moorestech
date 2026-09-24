@@ -27,7 +27,11 @@ export default function TrainInventoryBody({ data }: { data: TrainData }) {
       <PanelTabs value={tab} tabs={tabs} onChange={(v) => setTab(v as Tab)} testId="train-tabs" />
       <ScrollArea className={styles.scroll} type="auto">
         {tab === "inventory" && <BlockItemGrid itemSlots={data.itemSlots} testId="train-inventory-slots" />}
-        {tab === "timetable" && data.timetable && <TrainTimetableSection key={data.timetable.trainUnitId} timetable={data.timetable} />}
+        {data.timetable && (
+          <div hidden={tab !== "timetable"}>
+            <TrainTimetableSection key={data.timetable.trainUnitId} timetable={data.timetable} />
+          </div>
+        )}
       </ScrollArea>
     </div>
   );

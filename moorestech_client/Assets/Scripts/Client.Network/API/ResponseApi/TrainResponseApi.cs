@@ -51,5 +51,22 @@ namespace Client.Network.API
             var request = new SetTrainPlatformTransferModeProtocol.SetTrainPlatformTransferModeRequest(position, mode);
             return await api.PacketExchange.GetPacketResponse<SetTrainPlatformTransferModeProtocol.SetTrainPlatformTransferModeResponse>(request, ct);
         }
+
+        // 時刻表置換と自動運転切替を単一の送信口で扱う
+        // Send timetable replacement and auto-run changes through one entry point
+        public static async UniTask<TrainScheduleEditProtocol.TrainScheduleEditResponse> SendTrainScheduleEdit(
+            this VanillaApiWithResponse api, TrainScheduleEditProtocol.TrainScheduleEditRequest request, CancellationToken ct)
+        {
+            return await api.PacketExchange.GetPacketResponse<TrainScheduleEditProtocol.TrainScheduleEditResponse>(request, ct);
+        }
+
+        // 改名結果を待ち、表示更新はブロック状態の通知に委ねる
+        // Await the rename result; block state notifications update the displayed name
+        public static async UniTask<SetTrainStationNameProtocol.SetTrainStationNameResponse> SetTrainStationName(
+            this VanillaApiWithResponse api, Vector3Int position, string stationName, CancellationToken ct)
+        {
+            var request = new SetTrainStationNameProtocol.SetTrainStationNameRequest(position, stationName);
+            return await api.PacketExchange.GetPacketResponse<SetTrainStationNameProtocol.SetTrainStationNameResponse>(request, ct);
+        }
     }
 }

@@ -11,7 +11,7 @@ namespace Game.Block.Blocks.TrainRail
     {
         public const string BlockStateDetailKey = "TrainStationName";
 
-        [Key(0)] public string StationName;
+        [Key(0)] public string StationName { get; set; }
 
         public TrainStationNameStateDetail(string stationName)
         {

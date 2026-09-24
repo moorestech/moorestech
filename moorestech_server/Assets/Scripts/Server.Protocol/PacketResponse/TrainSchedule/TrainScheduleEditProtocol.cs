@@ -73,7 +73,7 @@ namespace Server.Protocol.PacketResponse
 
                 // 適用直後に通知し、次tickの重複通知を消費する
                 // Notify immediately after applying and consume the pending tick notification
-                trainUnit.trainDiagram.ReplaceEntries(nodes);
+                trainUnit.ReplaceTimetable(nodes);
                 trainUnit.trainDiagram.ConsumeCurrentEntryChanged();
                 _snapshotNotifyEvent.NotifySnapshot(trainUnit);
                 return new TrainScheduleEditResponse(true, TrainScheduleEditFailureReason.None, data.Operation);
@@ -111,10 +111,10 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class TrainScheduleEditRequest : ProtocolMessagePackBase
         {
-            [Key(2)] public TrainUnitInstanceId TrainUnitInstanceId;
-            [Key(3)] public TrainScheduleEditOperation Operation;
-            [Key(4)] public List<Vector3IntMessagePack> StationPositions;
-            [Key(5)] public bool AutoRunEnabled;
+            [Key(2)] public TrainUnitInstanceId TrainUnitInstanceId { get; set; }
+            [Key(3)] public TrainScheduleEditOperation Operation { get; set; }
+            [Key(4)] public List<Vector3IntMessagePack> StationPositions { get; set; }
+            [Key(5)] public bool AutoRunEnabled { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public TrainScheduleEditRequest()
@@ -152,9 +152,9 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class TrainScheduleEditResponse : ProtocolMessagePackBase
         {
-            [Key(2)] public bool Success;
-            [Key(3)] public TrainScheduleEditFailureReason FailureReason;
-            [Key(4)] public TrainScheduleEditOperation Operation;
+            [Key(2)] public bool Success { get; set; }
+            [Key(3)] public TrainScheduleEditFailureReason FailureReason { get; set; }
+            [Key(4)] public TrainScheduleEditOperation Operation { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public TrainScheduleEditResponse()

@@ -69,8 +69,8 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class SetTrainStationNameRequest : ProtocolMessagePackBase
         {
-            [Key(2)] public Vector3IntMessagePack Position;
-            [Key(3)] public string StationName;
+            [Key(2)] public Vector3IntMessagePack Position { get; set; }
+            [Key(3)] public string StationName { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public SetTrainStationNameRequest() { }
@@ -86,9 +86,9 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class SetTrainStationNameResponse : ProtocolMessagePackBase
         {
-            [Key(2)] public bool Success;
-            [Key(3)] public string AppliedName;
-            [Key(4)] public SetTrainStationNameFailureReason FailureReason;
+            [Key(2)] public bool Success { get; set; }
+            [Key(3)] public string AppliedName { get; set; }
+            [Key(4)] public SetTrainStationNameFailureReason FailureReason { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public SetTrainStationNameResponse() { }
