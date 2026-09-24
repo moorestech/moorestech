@@ -83,9 +83,7 @@ return PlaytestRunner.Run("train-timetable-via-ui", options, async p =>
         // ===== UI: 時刻表を設定 =====
         // ===== UI: configure the timetable =====
         p.Note("車両をFで開き時刻表タブへ");
-        var car = SpawnedCar();
-        p.WarpPlayer(car.transform.position + new Vector3(0f, 1.5f, -3f));
-        await p.AimAt(car.transform.position);
+        await AimAtCar();
         await p.PressInteract();
         await p.WaitUiState(UIStateEnum.SubInventory, 10f);
         await p.ClickWebUi("train-tab-timetable");
@@ -121,9 +119,7 @@ return PlaytestRunner.Run("train-timetable-via-ui", options, async p =>
         // ===== UI: 自動運転OFF → 停止 =====
         // ===== UI: auto-run off → stopped =====
         p.Note("車両を開き直して自動運転OFF");
-        car = SpawnedCar();
-        p.WarpPlayer(car.transform.position + new Vector3(0f, 1.5f, -3f));
-        await p.AimAt(car.transform.position);
+        await AimAtCar();
         await p.PressInteract();
         await p.WaitUiState(UIStateEnum.SubInventory, 10f);
         await p.ClickWebUi("train-tab-timetable");
@@ -148,6 +144,25 @@ return PlaytestRunner.Run("train-timetable-via-ui", options, async p =>
     {
         if (condition.Contains("Hash mismatch detected")) mismatchCount++;
         if (condition.Contains("[TrainScheduleEdit] rejected") || condition.Contains("[SetTrainStationName] rejected")) rejectCount++;
+    }
+
+    // 車両は駅の構内にあり横から狙うと駅ブロックが先に当たるため、北向き固定カメラに合わせ駅の外の後端（南）側からFの届く2m以内（InteractTargetSelector.InteractDistance）で狙う
+    // The car sits inside the station, so aiming from the side hits the station block first; aim northward from outside the rear (south) end within the 2m F reach
+    async UniTask AimAtCar()
+    {
+        Collider rear = null;
+        foreach (var collider in SpawnedCar().GetComponentsInChildren<Collider>(true))
+        {
+            if (rear == null || collider.bounds.min.z < rear.bounds.min.z) rear = collider;
+        }
+        var bounds = rear.bounds;
+        p.WarpPlayer(new Vector3(bounds.center.x, 33.5f, bounds.min.z - 1.2f));
+        await p.WaitSeconds(1f);
+        // 画面下端のHUDにカーソルが重なるとインタラクト走査が空になるため、車両の上寄りを狙う
+        // Aim high on the car because a cursor over the bottom HUD empties the interact scan
+        await p.AimAt(new Vector3(bounds.center.x, bounds.max.y - 0.3f, bounds.min.z + 0.3f));
+        p.Note($"aim screen point={Camera.main.WorldToScreenPoint(new Vector3(bounds.center.x, bounds.max.y - 0.3f, bounds.min.z + 0.3f))} screen={Screen.width}x{Screen.height}");
+        await p.WaitSeconds(0.5f);
     }
 
     TrainCarEntityObject SpawnedCar() => UnityEngine.Object.FindObjectsByType<TrainCarEntityObject>(FindObjectsSortMode.None).FirstOrDefault();
