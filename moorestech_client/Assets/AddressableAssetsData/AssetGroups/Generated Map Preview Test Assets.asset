@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Generated Map Preview Test Assets
+  m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
+  m_GroupName: Generated Map Preview Test Assets
+  m_GUID: eb1b7ee8eac9845b8bbdd2430cdf00e3
+  m_SerializeEntries:
+  - m_GUID: 040ffbef8c222481e8679b0e61c2af5a
+    m_Address: Tests/GeneratedMapPreview/MapObject
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d2951e897e8c54d2b821da1533776b9c
+    m_Address: Tests/GeneratedMapPreview/TerrainLayer
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: df7015e909b4e419a9109e9330ff9ec0
+    m_Address: Tests/GeneratedMapPreview/Outcrop
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: be510649df329a24cabdde2725dd7579, type: 2}
+  m_SchemaSet:
+    m_Schemas: []

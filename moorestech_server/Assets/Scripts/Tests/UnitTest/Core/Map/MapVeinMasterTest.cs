@@ -66,7 +66,7 @@ namespace Tests.UnitTest.Core.Map
             var json = JToken.Parse(@"{""mapObjects"":[],""mapVeins"":[
                 {""veinGuid"":""33333333-0000-0000-0000-000000000001"",""veinName"":""bad"",""veinType"":""item"",
                  ""veinParam"":{""itemGuid"":""99999999-9999-9999-9999-999999999999""},
-                 ""outcropAddressablePath"":""Vanilla/Environment/Vein/Item/VeinPrefab_Stone"",""soundEffectType"":""stone"",""terrainSurroundEffectType"":""rockNoBareGround"",
+                 ""outcropAddressablePath"":""test/outcrop"",""soundEffectType"":""stone"",""terrainSurroundEffectType"":""rockNoBareGround"",
                  ""handMiningType"":""none"",""handMiningParam"":null}]}");
             var master = new MapVeinMaster(json);
             Assert.IsFalse(master.Validate(out var logs));

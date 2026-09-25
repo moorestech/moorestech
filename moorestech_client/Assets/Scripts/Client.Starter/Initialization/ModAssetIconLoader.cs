@@ -32,6 +32,11 @@ namespace Client.Starter.Initialization
 
         public async UniTask<ModAssetIconLoadResult> RunAsync()
         {
+            // バッチ実行では代替画像を登録
+            // Register display placeholders without waiting for rendering in non-interactive batch runs
+            if (Application.isBatchMode)
+                Debug.Log("[ModAssetIconLoader] Batch mode uses placeholder icons instead of rendering.");
+
             // 撮影画像は BlockId 専用
             // Captured images are BlockId-specific
             var blockImageContainer = await TakeBlockImagesAsync();
@@ -55,12 +60,13 @@ namespace Client.Starter.Initialization
             // BlockId ごとに画像登録
             // Register images by BlockId
             var blockImageContainer = new BlockImageContainer();
-            var textures = await _photographer.TakeBlockIconImages(targets);
+            var captureIcons = !Application.isBatchMode;
+            var textures = captureIcons ? await _photographer.TakeBlockIconImages(targets) : null;
             for (var i = 0; i < blockIds.Count; i++)
             {
                 var blockId = blockIds[i];
                 var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
-                blockImageContainer.AddBlockView(blockId, new ItemViewData(textures[i], blockMaster.Name));
+                blockImageContainer.AddBlockView(blockId, new ItemViewData(captureIcons ? textures[i] : Texture2D.whiteTexture, blockMaster.Name));
             }
 
             _loadingProgressLog.AppendElapsed(LocalizationKeys.Ui.Loading.BlockScreenshotsCaptured);
@@ -78,9 +84,10 @@ namespace Client.Starter.Initialization
             // 撮影順を維持してTrainCarGuidへ画像を登録する
             // Preserve capture order while registering images by TrainCarGuid
             var trainCarImageContainer = new TrainCarImageContainer();
-            var textures = await _photographer.TakeIconImages(targets);
+            var captureIcons = !Application.isBatchMode;
+            var textures = captureIcons ? await _photographer.TakeIconImages(targets) : null;
             for (var i = 0; i < _trainCarIconTargets.Count; i++)
-                trainCarImageContainer.AddTrainCarView(_trainCarIconTargets[i].TrainCarGuid, new ItemViewData(textures[i], targets[i].debugName));
+                trainCarImageContainer.AddTrainCarView(_trainCarIconTargets[i].TrainCarGuid, new ItemViewData(captureIcons ? textures[i] : Texture2D.whiteTexture, targets[i].debugName));
 
             _loadingProgressLog.AppendElapsed(LocalizationKeys.Ui.Loading.TrainCarScreenshotsCaptured);
             return trainCarImageContainer;

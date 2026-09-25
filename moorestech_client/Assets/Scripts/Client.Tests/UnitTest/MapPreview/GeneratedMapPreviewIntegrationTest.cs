@@ -26,6 +26,7 @@ namespace Client.Tests.UnitTest.MapPreview
         private string _assetFolder;
         private Scene _main;
         private GeneratedMapPreviewStage _stage;
+        private GeneratedMapPreviewTestFixture _fixture;
 
         [SetUp]
         public void SetUp()
@@ -34,6 +35,7 @@ namespace Client.Tests.UnitTest.MapPreview
             Assert.That(StageUtility.GetCurrentStage(), Is.SameAs(StageUtility.GetMainStage()));
             _assetFolder = $"Assets/GeneratedMapPreviewIntegrationTest_{Guid.NewGuid():N}";
             AssetDatabase.CreateFolder("Assets", _assetFolder.Substring(7));
+            _fixture = new GeneratedMapPreviewTestFixture(false);
             // Runnerのbootstrapを保存可能なfixtureへ替え、主Sceneの保持を実測する
             // Replace the runner bootstrap with a savable fixture to measure main-scene preservation
             _main = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
@@ -49,11 +51,12 @@ namespace Client.Tests.UnitTest.MapPreview
             StageUtility.GoToMainStage();
             EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
             AssetDatabase.DeleteAsset(_assetFolder);
+            _fixture.Dispose();
         }
 
         [UnityTest]
         [Timeout(1400000)]
-        public IEnumerator RealMasterMatchesEveryPlacementAndTileAndRegenerationReleasesPreviousRuns()
+        public IEnumerator TrackedFixtureMatchesEveryPlacementAndTileAndRegenerationReleasesPreviousRuns()
         {
             var baselineData = Resources.FindObjectsOfTypeAll<TerrainData>().Select(x => x.GetInstanceID()).ToHashSet();
             var baselineDirectories = GeneratedMapPreviewObservation.WorldDirectories();
@@ -74,7 +77,7 @@ namespace Client.Tests.UnitTest.MapPreview
                 var data = root.GetComponentsInChildren<UnityEngine.Terrain>().Select(x => x.terrainData).ToArray();
                 var directory = GeneratedMapPreviewObservation.WorldDirectories().Except(baselineDirectories).Single();
                 var files = WorldDataDirectory.FromWorldRoot(directory);
-                var session = (TiledTerrainSession)WorldTerrainSession.Open(TerrainTransferMetaReader.Read(files), ServerDirectory.GetDirectory());
+                var session = (TiledTerrainSession)WorldTerrainSession.Open(TerrainTransferMetaReader.Read(files), _fixture.ServerDataDirectory);
 
                 // 実走行のmap.jsonと転送メタを使い、別生成の結果で代用しない
                 // Read the actual run's map and transfer metadata rather than substituting another generation
