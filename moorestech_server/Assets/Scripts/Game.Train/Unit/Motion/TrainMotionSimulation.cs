@@ -3,7 +3,7 @@ using Core.Master;
 using Core.Update;
 using Game.Train.RailCalc;
 
-namespace Game.Train.Unit
+namespace Game.Train.Unit.Motion
 {
     public readonly struct AutoRunMasconInput
     {
@@ -58,7 +58,7 @@ namespace Game.Train.Unit
 
             if (targetAcceleration >= 0)
             {
-                var maxTractionAcceleration = input.TotalTraction / totalWeight;
+                var maxTractionAcceleration = input.TotalTraction / TrainEffectiveWeightCalculator.CalculateFromMaster(totalWeight);
                 if (maxTractionAcceleration <= 0)
                 {
                     return 0;
@@ -132,7 +132,7 @@ namespace Game.Train.Unit
             if (input.MasconLevel > 0)
             {
                 var masconRate = input.MasconLevel / (double)MasterHolder.TrainUnitMaster.MasconLevelMaximum;
-                var acceleration = input.TotalTraction / input.TotalWeight * masconRate;
+                var acceleration = input.TotalTraction / TrainEffectiveWeightCalculator.CalculateFromMaster(input.TotalWeight) * masconRate;
                 speed += acceleration * GameUpdater.SecondsPerTick;
             }
             if (input.MasconLevel < 0)
@@ -171,10 +171,11 @@ namespace Game.Train.Unit
         public static double CalculateResistanceAcceleration(double speed, int totalWeight)
         {
             if (speed == 0) return 0;
-            var rollingResistanceForce = MasterHolder.TrainUnitMaster.Friction * totalWeight * 9.80665;
+            // 転がり抵抗は実重量に比例し実重量で割るので重量に依存しない。空気抵抗だけ実効重量で割る
+            // Rolling resistance scales with real weight and cancels out; only air resistance is divided by effective weight
+            var rollingResistanceAcceleration = MasterHolder.TrainUnitMaster.Friction * 9.80665;
             var airResistanceForce = MasterHolder.TrainUnitMaster.AirResistance * speed * speed;
-            var resistanceForce = rollingResistanceForce + airResistanceForce;
-            return resistanceForce / totalWeight;
+            return rollingResistanceAcceleration + airResistanceForce / TrainEffectiveWeightCalculator.CalculateFromMaster(totalWeight);
         }
 
     }

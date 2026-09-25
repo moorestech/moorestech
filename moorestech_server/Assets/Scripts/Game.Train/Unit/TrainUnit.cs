@@ -6,6 +6,7 @@ using Game.Train.Diagram;
 using Game.Train.RailCalc;
 using Game.Train.RailGraph;
 using Game.Train.RailPositions;
+using Game.Train.Unit.Motion;
 using Core.Master;
 using UnityEngine;
 

@@ -52,6 +52,8 @@
     "friction": 35300,
     "airResistance": 117,
     "maxBrakeDecelerationKmhPerSecond": 9,
-    "masconLevelMaximum": 16777216
+    "masconLevelMaximum": 16777216,
+    "weightInfluenceExponent": 1,
+    "referenceWeight": 120000
   }
 }

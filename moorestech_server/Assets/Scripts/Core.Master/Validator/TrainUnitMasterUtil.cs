@@ -12,6 +12,7 @@ namespace Core.Master.Validator
             errorLogs = "";
             errorLogs += TrainCarWeightValidation();
             errorLogs += TrainCarRequiredItemsValidation();
+            errorLogs += WeightInfluenceValidation();
             return string.IsNullOrEmpty(errorLogs);
 
             #region Internal
@@ -48,6 +49,24 @@ namespace Core.Master.Validator
                             logs += $"[TrainUnitMaster] TrainCar:{trainCar.TrainCarGuid} has invalid RequiredItem.Count:{requiredItem.Count}\n";
                         }
                     }
+                }
+
+                return logs;
+            }
+
+            string WeightInfluenceValidation()
+            {
+                // 負の影響度は重いほど速くなり、基準重量0以下は実効重量が計算できないためマスタエラー
+                // A negative exponent makes heavier trains faster and a non-positive reference weight breaks the formula
+                var logs = "";
+                var motionParameters = train.MotionParameters;
+                if (motionParameters.WeightInfluenceExponent < 0)
+                {
+                    logs += $"[TrainUnitMaster] MotionParameters has invalid WeightInfluenceExponent:{motionParameters.WeightInfluenceExponent}\n";
+                }
+                if (motionParameters.ReferenceWeight <= 0)
+                {
+                    logs += $"[TrainUnitMaster] MotionParameters has invalid ReferenceWeight:{motionParameters.ReferenceWeight}\n";
                 }
 
                 return logs;

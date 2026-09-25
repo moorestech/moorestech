@@ -120,3 +120,13 @@ properties:
   - key: masconLevelMaximum
     type: integer
     default: 16777216
+  # 重量の影響度。実効重量 = referenceWeight * (編成重量 / referenceWeight) ^ この値。1で物理式どおり、0で重量が加速に効かない
+  # Weight influence exponent. effectiveWeight = referenceWeight * (totalWeight / referenceWeight) ^ this. 1 is plain physics, 0 ignores weight
+  - key: weightInfluenceExponent
+    type: number
+    default: 1
+  # 影響度をかける基準重量。この重さの編成は影響度に関わらず加速が変わらない
+  # Reference weight for the exponent. A train of exactly this weight accelerates the same regardless of the exponent
+  - key: referenceWeight
+    type: integer
+    default: 120000

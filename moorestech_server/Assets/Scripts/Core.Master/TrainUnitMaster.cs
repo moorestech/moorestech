@@ -17,6 +17,8 @@ namespace Core.Master
         public double AirResistance => Train.MotionParameters.AirResistance / (double)10000000;
         public double MaxBrakeDecelerationMetersPerSecondSquared => Train.MotionParameters.MaxBrakeDecelerationKmhPerSecond / 3.6d;
         public int MasconLevelMaximum => Train.MotionParameters.MasconLevelMaximum;
+        public double WeightInfluenceExponent => Train.MotionParameters.WeightInfluenceExponent;
+        public int ReferenceWeight => Train.MotionParameters.ReferenceWeight;
 
         public TrainUnitMaster(JToken jToken)
         {

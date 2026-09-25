@@ -1,6 +1,7 @@
 using Game.Train.RailGraph;
 using Game.Train.RailPositions;
 using Game.Train.Unit;
+using Game.Train.Unit.Motion;
 using System;
 using System.Collections.Generic;
 using System.Linq;
