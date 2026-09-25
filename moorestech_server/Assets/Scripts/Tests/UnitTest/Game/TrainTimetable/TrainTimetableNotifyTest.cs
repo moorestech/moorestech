@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
+using Core.Update;
 using Game.Context;
+using Game.Train.Diagram;
 using Game.Train.Event;
 using Game.Train.RailGraph;
 using Game.Train.Unit;
@@ -14,23 +16,53 @@ namespace Tests.UnitTest.Game.TrainTimetable
     public class TrainTimetableNotifyTest
     {
         [Test]
-        public void AutoRunChangeFlagOnlyTracksTransitions()
+        public void AutoRunNotificationOnlyTracksRealTransitions()
         {
             using var scenario = TrainAutoRunTestScenario.CreateDockedScenario();
             var train = scenario.Train;
-            Assert.IsTrue(train.ConsumeAutoRunChanged());
-            Assert.IsFalse(train.ConsumeAutoRunChanged());
+            var notifications = 0;
+            using var subscription = ServerContext.GetService<ITrainTimetableNotifyEvent>().OnTimetableChanged
+                .Subscribe(notified =>
+                {
+                    if (notified.TrainUnitInstanceId == train.TrainUnitInstanceId) notifications++;
+                });
 
+            // すでにONの列車を再度ONにしても状態は変わらない
+            // Turning ON an already running train does not change its state
+            Assert.IsTrue(train.IsAutoRun);
             train.TurnOnAutoRun();
-            Assert.IsFalse(train.ConsumeAutoRunChanged());
+            Assert.AreEqual(0, notifications);
+
             train.TurnOffAutoRun();
-            Assert.IsTrue(train.ConsumeAutoRunChanged());
+            Assert.AreEqual(1, notifications);
             train.TurnOffAutoRun();
-            Assert.IsFalse(train.ConsumeAutoRunChanged());
+            Assert.AreEqual(1, notifications);
         }
 
         [Test]
-        public void TimetableIsNotifiedOnceAfterCurrentEntryAdvances()
+        public void FailedAutoRunRequestDoesNotNotify()
+        {
+            using var scenario = TrainAutoRunTestScenario.CreateDockedScenario();
+            var train = scenario.Train;
+            train.ReplaceTimetable(new List<TrainDiagramStopPlan>());
+            Assert.IsFalse(train.IsAutoRun);
+            var notifications = 0;
+            using var subscription = ServerContext.GetService<ITrainTimetableNotifyEvent>().OnTimetableChanged
+                .Subscribe(notified =>
+                {
+                    if (notified.TrainUnitInstanceId == train.TrainUnitInstanceId) notifications++;
+                });
+
+            // 目的地が無いのでONにできず、検証中の一時的なOFFも外へ出さない
+            // The request cannot take effect without a destination, and the transient OFF stays inside
+            train.TurnOnAutoRun();
+
+            Assert.IsFalse(train.IsAutoRun);
+            Assert.AreEqual(0, notifications);
+        }
+
+        [Test]
+        public void TimetableIsNotifiedOnceWhenCurrentEntryAdvances()
         {
             using var scenario = TrainAutoRunTestScenario.CreateDockedScenario();
             var train = scenario.Train;
@@ -38,16 +70,8 @@ namespace Tests.UnitTest.Game.TrainTimetable
             var timetableNotify = ServerContext.GetService<ITrainTimetableNotifyEvent>();
             var snapshotNotify = ServerContext.GetService<ITrainUnitSnapshotNotifyEvent>();
             var initialIndex = train.trainDiagram.CurrentIndex;
-            train.ConsumeAutoRunChanged();
             var notificationCount = 0;
-            var notificationTick = 0u;
-            var preSimulationTick = 0u;
             var snapshotCount = 0;
-
-            using var diffSubscription = updateService.OnPreSimulationDiffEvent.Subscribe(data =>
-            {
-                preSimulationTick = data.Item1;
-            });
 
             using var snapshotSubscription = snapshotNotify.OnTrainUnitSnapshotNotified.Subscribe(data =>
             {
@@ -57,9 +81,7 @@ namespace Tests.UnitTest.Game.TrainTimetable
             using var subscription = timetableNotify.OnTimetableChanged.Subscribe(trainUnit =>
             {
                 if (trainUnit.TrainUnitInstanceId != train.TrainUnitInstanceId) return;
-
                 notificationCount++;
-                notificationTick = updateService.GetCurrentTick();
             });
 
             // 停車中の待機を進め、発車による現在地の変更を待つ
@@ -70,8 +92,7 @@ namespace Tests.UnitTest.Game.TrainTimetable
             }
 
             Assert.AreNotEqual(initialIndex, train.trainDiagram.CurrentIndex, "時刻表の現在地が進む");
-            Assert.AreEqual(1, notificationCount, "現在地が進んだtickに一度だけ通知する");
-            Assert.AreEqual(preSimulationTick, notificationTick, "同じtickのシミュレーション後に通知する");
+            Assert.AreEqual(1, notificationCount, "現在地が進んだ時点で一度だけ通知する");
             Assert.AreEqual(0, snapshotCount, "時刻表の前進で列車の走行同期を送らない");
 
             updateService.UpdateTrains();
@@ -85,18 +106,20 @@ namespace Tests.UnitTest.Game.TrainTimetable
             var train = scenario.Train;
             var diagram = train.trainDiagram;
             var nextStation = scenario.AddConnectedDestinationStation();
-            diagram.ReplaceEntries(new IRailNode[] { scenario.StationExitFront, nextStation });
+            train.ReplaceTimetable(new List<TrainDiagramStopPlan>
+            {
+                new(scenario.StationExitFront, TrainDiagram.DepartureConditionType.WaitForTicks, GameUpdater.TicksPerSecond),
+                new(nextStation, TrainDiagram.DepartureConditionType.WaitForTicks, GameUpdater.TicksPerSecond),
+            });
             var stationEntry = (RailNode)scenario.StationExitFront.ConnectedNodes.First(node =>
                 node.StationRef.HasStation && node.StationRef.StationPosition == nextStation.StationRef.StationPosition);
             scenario.StationExitFront.DisconnectNode(stationEntry);
             diagram.Entries[0].SetDepartureWaitTicks(1);
-            diagram.ConsumeCurrentEntryChanged();
-            train.ConsumeAutoRunChanged();
 
             var updateService = ServerContext.GetService<TrainUpdateService>();
             var timetableNotify = ServerContext.GetService<ITrainTimetableNotifyEvent>();
             var snapshotNotify = ServerContext.GetService<ITrainUnitSnapshotNotifyEvent>();
-            var offTicks = new List<uint>();
+            var offNotifications = 0;
             var snapshotCount = 0;
             using var snapshotSubscription = snapshotNotify.OnTrainUnitSnapshotNotified.Subscribe(data =>
             {
@@ -106,22 +129,21 @@ namespace Tests.UnitTest.Game.TrainTimetable
             {
                 if (trainUnit.TrainUnitInstanceId == train.TrainUnitInstanceId && !trainUnit.IsAutoRun)
                 {
-                    offTicks.Add(updateService.GetCurrentTick());
+                    offNotifications++;
                 }
             });
 
-            // 駅Aを出た後、未接続の次駅でOFFになったtickを確認する
-            // Check the OFF snapshot on the tick that encounters the disconnected next stop
+            // 駅Aを出た後、未接続の次駅でOFFになったことを確認する
+            // Check the OFF notification when the disconnected next stop is encountered
             for (var i = 0; i < 12000 && train.IsAutoRun; i++)
             {
                 updateService.UpdateTrains();
             }
             Assert.IsFalse(train.IsAutoRun);
-            Assert.AreEqual(1, offTicks.Count);
-            Assert.AreEqual(updateService.GetCurrentTick(), offTicks[0]);
+            Assert.AreEqual(1, offNotifications);
             Assert.AreEqual(0, snapshotCount, "時刻表の前進で列車の走行同期を送らない");
             updateService.UpdateTrains();
-            Assert.AreEqual(1, offTicks.Count);
+            Assert.AreEqual(1, offNotifications);
         }
 
         [Test]
@@ -132,13 +154,11 @@ namespace Tests.UnitTest.Game.TrainTimetable
             var next = (RailNode)train.trainDiagram.Entries[1].Node;
             train.trainDiagram.MoveToNextEntry();
             scenario.StationExitFront.DisconnectNode(next);
-            train.trainDiagram.ConsumeCurrentEntryChanged();
-            train.ConsumeAutoRunChanged();
 
             var updateService = ServerContext.GetService<TrainUpdateService>();
             var timetableNotify = ServerContext.GetService<ITrainTimetableNotifyEvent>();
             var snapshotNotify = ServerContext.GetService<ITrainUnitSnapshotNotifyEvent>();
-            var offSnapshots = 0;
+            var offNotifications = 0;
             var snapshotCount = 0;
             using var snapshotSubscription = snapshotNotify.OnTrainUnitSnapshotNotified.Subscribe(data =>
             {
@@ -148,21 +168,21 @@ namespace Tests.UnitTest.Game.TrainTimetable
             {
                 if (trainUnit.TrainUnitInstanceId == train.TrainUnitInstanceId && !trainUnit.IsAutoRun)
                 {
-                    offSnapshots++;
+                    offNotifications++;
                 }
             });
 
-            // 走行中の線路切断によるOFFをシミュレーション後に通知する
-            // Notify the post-simulation OFF state after a rail is disconnected while running
+            // 走行中の線路切断によるOFFをその場で通知する
+            // The OFF caused by a disconnected rail while running is notified on the spot
             for (var i = 0; i < 12000 && train.IsAutoRun; i++)
             {
                 updateService.UpdateTrains();
             }
             Assert.IsFalse(train.IsAutoRun);
-            Assert.AreEqual(1, offSnapshots);
+            Assert.AreEqual(1, offNotifications);
             Assert.AreEqual(0, snapshotCount, "時刻表の前進で列車の走行同期を送らない");
             updateService.UpdateTrains();
-            Assert.AreEqual(1, offSnapshots);
+            Assert.AreEqual(1, offNotifications);
         }
 
         [Test]

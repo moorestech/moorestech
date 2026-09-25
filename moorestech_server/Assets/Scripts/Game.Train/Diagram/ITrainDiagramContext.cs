@@ -16,5 +16,9 @@ namespace Game.Train.Diagram
         bool IsAutoRun { get; }
         bool IsDocked { get; }
         void OnCurrentEntryShiftedByRemoval();
+
+        // 時刻表の内容や現在地が実際に変わった時点で呼ぶ
+        // Called at the moment the timetable contents or cursor actually changed
+        void OnTimetableChanged();
     }
 }

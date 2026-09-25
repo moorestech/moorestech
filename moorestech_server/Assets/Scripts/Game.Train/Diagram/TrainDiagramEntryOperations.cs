@@ -47,7 +47,7 @@ namespace Game.Train.Diagram
             {
                 index = 0;
             }
-            else if (index > entries.Count)
+            else if (entries.Count < index)
             {
                 index = entries.Count;
             }
@@ -64,7 +64,7 @@ namespace Game.Train.Diagram
                 return;
             }
 
-            if (currentIndex >= entries.Count)
+            if (entries.Count <= currentIndex)
             {
                 currentIndex = -1;
                 return;
@@ -80,7 +80,7 @@ namespace Game.Train.Diagram
                 return true;
             }
 
-            if (currentIndex >= entries.Count)
+            if (entries.Count <= currentIndex)
             {
                 currentIndex = -1;
                 return true;

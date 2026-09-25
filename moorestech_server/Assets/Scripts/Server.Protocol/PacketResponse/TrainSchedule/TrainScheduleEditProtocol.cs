@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Game.Block.Blocks.TrainRail;
-using Game.Context;
 using Game.Train.Event;
-using Game.Train.RailGraph;
 using Game.Train.Unit;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,13 +16,11 @@ namespace Server.Protocol.PacketResponse
         public const string ProtocolTag = "va:trainScheduleEdit";
 
         private readonly ITrainUnitLookupDatastore _trainUnitLookupDatastore;
-        private readonly ITrainTimetableNotifyEvent _timetableNotifyEvent;
         private readonly ITrainUnitSnapshotNotifyEvent _snapshotNotifyEvent;
 
         public TrainScheduleEditProtocol(ServiceProvider serviceProvider)
         {
             _trainUnitLookupDatastore = serviceProvider.GetService<ITrainUnitLookupDatastore>();
-            _timetableNotifyEvent = serviceProvider.GetService<ITrainTimetableNotifyEvent>();
             _snapshotNotifyEvent = serviceProvider.GetService<ITrainUnitSnapshotNotifyEvent>();
         }
 
@@ -44,7 +39,9 @@ namespace Server.Protocol.PacketResponse
                 case TrainScheduleEditOperation.SetAutoRun:
                     return SetAutoRun(request, train);
                 default:
-                    return Reject(request, TrainScheduleEditFailureReason.InvalidRequest, "unknown operation");
+                    // 既定値0(未指定)と未定義値はここで止める
+                    // The default 0 (unspecified) and undefined values stop here
+                    return Reject(request, TrainScheduleEditFailureReason.InvalidRequest, $"unknown operation={(int)request.Operation}");
             }
 
             #region Internal
@@ -53,44 +50,16 @@ namespace Server.Protocol.PacketResponse
             {
                 // 全駅を先に解決し、1つでも駅でなければ全体を拒否する
                 // Resolve every station first; reject the whole request if any entry is not a station
-                if (data.Stops == null || data.Stops.Contains(null))
+                if (!TrainScheduleStopResolver.TryResolve(data.Stops, out var stops, out var failureReason, out var detail))
                 {
-                    return Reject(data, TrainScheduleEditFailureReason.InvalidRequest, "stops are missing");
+                    return Reject(data, failureReason, detail);
                 }
 
-                var nodes = new List<IRailNode>(data.Stops.Count);
-                foreach (var stop in data.Stops)
-                {
-                    if (stop.StationPosition == null)
-                    {
-                        return Reject(data, TrainScheduleEditFailureReason.InvalidRequest, "station position is missing");
-                    }
-                    if (!Enum.IsDefined(typeof(StationNodeSide), stop.Side))
-                    {
-                        return Reject(data, TrainScheduleEditFailureReason.InvalidStationSide, $"pos={stop.StationPosition.Vector3Int} side={(int)stop.Side}");
-                    }
-
-                    var position = stop.StationPosition.Vector3Int;
-                    var block = ServerContext.WorldBlockDatastore.GetBlock(position);
-                    if (block == null)
-                    {
-                        return Reject(data, TrainScheduleEditFailureReason.StationBlockNotFound, $"pos={position}");
-                    }
-                    if (!TrainTimetableStationNodeResolver.TryResolve(block, stop.Side, out var node))
-                    {
-                        return Reject(data, TrainScheduleEditFailureReason.NotTrainStation, $"pos={position} type={block.BlockMasterElement.BlockType}");
-                    }
-                    nodes.Add(node);
-                }
-
-                // 適用直後に通知し、次tickの重複通知を消費する
-                // Notify immediately after applying and consume the pending tick notification
-                trainUnit.ReplaceTimetable(nodes);
-                trainUnit.trainDiagram.ConsumeCurrentEntryChanged();
-                trainUnit.ConsumeAutoRunChanged();
-                _timetableNotifyEvent.NotifyTimetableChanged(trainUnit);
+                // 適用そのものが時刻表イベントを押し出すので、ここでは走行同期だけ送る
+                // Applying pushes the timetable event by itself, so only the motion sync is sent here
+                trainUnit.ReplaceTimetable(stops);
                 _snapshotNotifyEvent.NotifySnapshot(trainUnit);
-                return new TrainScheduleEditResponse(true, TrainScheduleEditFailureReason.None, data.Operation);
+                return new TrainScheduleEditResponse(true, TrainScheduleEditFailureReason.None, data.Operation, trainUnit.IsAutoRun);
             }
 
             ProtocolMessagePackBase SetAutoRun(TrainScheduleEditRequest data, TrainUnit trainUnit)
@@ -105,11 +74,10 @@ namespace Server.Protocol.PacketResponse
                 {
                     trainUnit.TurnOffAutoRun();
                 }
-                trainUnit.trainDiagram.ConsumeCurrentEntryChanged();
-                trainUnit.ConsumeAutoRunChanged();
-                _timetableNotifyEvent.NotifyTimetableChanged(trainUnit);
+                // 実状態が変わったときだけ時刻表イベントが出る。応答のappliedIsAutoRunが最終的な正
+                // The timetable event fires only on a real change; the response's appliedIsAutoRun is authoritative
                 _snapshotNotifyEvent.NotifySnapshot(trainUnit);
-                return new TrainScheduleEditResponse(true, TrainScheduleEditFailureReason.None, data.Operation);
+                return new TrainScheduleEditResponse(true, TrainScheduleEditFailureReason.None, data.Operation, trainUnit.IsAutoRun);
             }
 
             ProtocolMessagePackBase Reject(TrainScheduleEditRequest data, TrainScheduleEditFailureReason reason, string detail)
@@ -117,7 +85,9 @@ namespace Server.Protocol.PacketResponse
                 // 拒否は無音にせず理由をログへ残す
                 // Never reject silently; leave the reason in the log
                 Debug.LogWarning($"[TrainScheduleEdit] rejected op={data.Operation} reason={reason} {detail}");
-                return new TrainScheduleEditResponse(false, reason, data.Operation);
+                // 列車が取れない拒否では適用後の実状態も無いのでfalseを載せる
+                // A rejection without a train has no applied state, so false is sent
+                return new TrainScheduleEditResponse(false, reason, data.Operation, false);
             }
 
             #endregion
@@ -172,6 +142,9 @@ namespace Server.Protocol.PacketResponse
             [Key(2)] public bool Success { get; set; }
             [Key(3)] public TrainScheduleEditFailureReason FailureReason { get; set; }
             [Key(4)] public TrainScheduleEditOperation Operation { get; set; }
+            // 要求した状態に到達したかをUIが判定できるよう、適用後の実状態を載せる
+            // Carries the state after applying so the UI can tell whether the request took effect
+            [Key(5)] public bool AppliedIsAutoRun { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public TrainScheduleEditResponse()
@@ -179,12 +152,13 @@ namespace Server.Protocol.PacketResponse
                 Tag = ProtocolTag;
             }
 
-            public TrainScheduleEditResponse(bool success, TrainScheduleEditFailureReason failureReason, TrainScheduleEditOperation operation)
+            public TrainScheduleEditResponse(bool success, TrainScheduleEditFailureReason failureReason, TrainScheduleEditOperation operation, bool appliedIsAutoRun)
             {
                 Tag = ProtocolTag;
                 Success = success;
                 FailureReason = failureReason;
                 Operation = operation;
+                AppliedIsAutoRun = appliedIsAutoRun;
             }
         }
 

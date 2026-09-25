@@ -16,12 +16,21 @@ namespace Game.Block.Blocks.TrainRail
         private readonly Subject<Unit> _onChangeBlockState = new();
         public IObservable<Unit> OnChangeBlockState => _onChangeBlockState;
 
+        // 駅名未設定は空文字で表す。表示名の既定はクライアント側が決める
+        // An unnamed station is the empty string; the client decides the fallback display name
+        private const string UnnamedStationName = "";
+
+        public TrainStationComponent()
+        {
+            StationName = UnnamedStationName;
+        }
+
         public TrainStationComponent(string stationName)
         {
             StationName = stationName;
         }
 
-        public TrainStationComponent(Dictionary<string, object> componentStates) : this(string.Empty)
+        public TrainStationComponent(Dictionary<string, object> componentStates) : this()
         {
             if (!BlockComponentStateReader.TryRead<TrainStationComponentSaveData>(componentStates, SaveKey, out var saveData)) return;
             StationName = saveData.stationName;

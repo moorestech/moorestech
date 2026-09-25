@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using Core.Update;
+using Game.Train.Diagram;
 using Game.Train.RailGraph;
 using Game.Train.Unit;
 using NUnit.Framework;
@@ -14,6 +16,14 @@ namespace Tests.CombinedTest.Server.PacketTest
 {
     public class TrainScheduleMalformedRequestTest
     {
+        // 正規のfactoryが作る停車駅1件を組み立てる
+        // Build one valid stop exactly as the regular factory would
+        private static TrainTimetableStopMessagePack ValidStop(Vector3Int position)
+        {
+            return new TrainTimetableStopMessagePack(new TrainTimetableStop(
+                position, StationNodeSide.Front, TrainDiagram.DepartureConditionType.WaitForTicks, GameUpdater.TicksPerSecond));
+        }
+
         [TestCase(0)]
         [TestCase(1)]
         [TestCase(2)]
@@ -50,29 +60,79 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(0, notifications);
         }
 
+        // 既定値0の操作種別は「未指定」として拒否する
+        // Operation 0 is the unspecified default and is rejected
+        [Test]
+        public void UnspecifiedOperationIsRejected()
+        {
+            var fixture = new TrainScheduleProtocolTestEnvironment();
+            var request = Request.CreateReplaceTimetableRequest(fixture.Train.TrainUnitInstanceId, new TrainTimetableStop[0]);
+            request.Operation = TrainScheduleEditOperation.Unspecified;
+            var originalEntry = fixture.Train.trainDiagram.Entries[0];
+            var notifications = 0;
+            using var subscription = fixture.TimetableNotifications.OnTimetableChanged.Subscribe(_ => notifications++);
+            LogAssert.Expect(LogType.Warning, new Regex("\\[TrainScheduleEdit\\] rejected.*reason=InvalidRequest"));
+
+            var response = fixture.Send(request);
+
+            Assert.IsFalse(response.Success);
+            Assert.AreEqual(TrainScheduleEditFailureReason.InvalidRequest, response.FailureReason);
+            Assert.AreSame(originalEntry, fixture.Train.trainDiagram.Entries[0]);
+            Assert.AreEqual(0, notifications);
+        }
+
+        // 既定値0の入線側は「未指定」として拒否する
+        // Stop side 0 is the unspecified default and is rejected
+        [Test]
+        public void UnspecifiedStationSideIsRejected()
+        {
+            var fixture = new TrainScheduleProtocolTestEnvironment();
+            var station = fixture.PlaceStation(new Vector3Int(100, 0, 0));
+            var stop = ValidStop(station.BlockPositionInfo.OriginalPos);
+            stop.Side = TrainTimetableStopSideWireValue.Unspecified;
+
+            AssertStopIsRejected(fixture, stop, TrainScheduleEditFailureReason.InvalidStationSide);
+        }
+
         [Test]
         public void InvalidStationSideIsRejected()
         {
             var fixture = new TrainScheduleProtocolTestEnvironment();
             var station = fixture.PlaceStation(new Vector3Int(100, 0, 0));
-            var request = Request.CreateReplaceTimetableRequest(fixture.Train.TrainUnitInstanceId, new TrainTimetableStop[0]);
+            var stop = ValidStop(station.BlockPositionInfo.OriginalPos);
+            stop.Side = (TrainTimetableStopSideWireValue)99;
 
-            // 未定義のenum値を積んだ外部入力を再現する
-            // Reproduce external input carrying an undefined enum value
-            request.Stops = new List<TrainTimetableStopMessagePack>
-            {
-                new(new TrainTimetableStop(station.BlockPositionInfo.OriginalPos, (StationNodeSide)99)),
-            };
+            AssertStopIsRejected(fixture, stop, TrainScheduleEditFailureReason.InvalidStationSide);
+        }
+
+        [Test]
+        public void UnspecifiedDepartureConditionIsRejected()
+        {
+            var fixture = new TrainScheduleProtocolTestEnvironment();
+            var station = fixture.PlaceStation(new Vector3Int(100, 0, 0));
+            var stop = ValidStop(station.BlockPositionInfo.OriginalPos);
+            stop.DepartureCondition = TrainTimetableDepartureConditionWireValue.Unspecified;
+
+            AssertStopIsRejected(fixture, stop, TrainScheduleEditFailureReason.InvalidRequest);
+        }
+
+        private static void AssertStopIsRejected(
+            TrainScheduleProtocolTestEnvironment fixture, TrainTimetableStopMessagePack stop, TrainScheduleEditFailureReason reason)
+        {
+            // 未指定・未定義のenum値を積んだ外部入力を再現する
+            // Reproduce external input carrying unspecified or undefined enum values
+            var request = Request.CreateReplaceTimetableRequest(fixture.Train.TrainUnitInstanceId, new TrainTimetableStop[0]);
+            request.Stops = new List<TrainTimetableStopMessagePack> { stop };
 
             var originalEntry = fixture.Train.trainDiagram.Entries[0];
             var notifications = 0;
             using var subscription = fixture.TimetableNotifications.OnTimetableChanged.Subscribe(_ => notifications++);
-            LogAssert.Expect(LogType.Warning, new Regex("\\[TrainScheduleEdit\\] rejected.*reason=InvalidStationSide"));
+            LogAssert.Expect(LogType.Warning, new Regex($"\\[TrainScheduleEdit\\] rejected.*reason={reason}"));
 
             var response = fixture.Send(request);
 
             Assert.IsFalse(response.Success);
-            Assert.AreEqual(TrainScheduleEditFailureReason.InvalidStationSide, response.FailureReason);
+            Assert.AreEqual(reason, response.FailureReason);
             Assert.AreSame(originalEntry, fixture.Train.trainDiagram.Entries[0]);
             Assert.AreEqual(0, notifications);
         }

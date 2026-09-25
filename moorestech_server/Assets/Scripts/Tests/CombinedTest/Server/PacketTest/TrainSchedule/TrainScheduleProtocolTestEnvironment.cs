@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using Core.Update;
 using Game.Block.Interface;
+using Game.Train.Diagram;
 using Game.Train.Event;
 using Game.Train.RailGraph;
 using Game.Train.RailPositions;
@@ -40,7 +42,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var position = new RailPosition(new List<IRailNode> { end, start }, TrainLengthConverter.ToRailUnits(1), 0);
             Train = new TrainUnit(position, new List<TrainCar> { car }, Environment.GetTrainRailPositionManager(), Environment.GetTrainDiagramManager());
             Environment.GetITrainUnitMutationDatastore().RegisterTrain(Train);
-            Train.trainDiagram.ReplaceEntries(new[] { end });
+            Train.ReplaceTimetable(new[] { new TrainDiagramStopPlan(end, TrainDiagram.DepartureConditionType.WaitForTicks, GameUpdater.TicksPerSecond) });
             Train.TurnOnAutoRun();
             Assert.IsTrue(Train.IsAutoRun);
         }

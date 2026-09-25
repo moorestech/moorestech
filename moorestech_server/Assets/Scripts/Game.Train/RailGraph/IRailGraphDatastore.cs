@@ -29,7 +29,6 @@ namespace Game.Train.RailGraph
         bool TryGetRailSegmentType(int startNodeId, int endNodeId, out Guid railTypeGuid);
         uint GetConnectNodesHash();
         RailGraphSnapshot CaptureSnapshot(uint currentTick);
-        IReadOnlyList<RailNode> GetRailNodes();
         void Reset();
     }
 }

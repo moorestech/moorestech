@@ -16,7 +16,7 @@ namespace Game.Train.Diagram
 
             // 末尾から削除し、現在地より前の削除分だけインデックスを詰める
             // Remove from the end and shift the cursor for preceding entries
-            for (var i = entries.Count - 1; i >= 0; i--)
+            for (var i = entries.Count - 1; 0 <= i; i--)
             {
                 if (!entries[i].MatchesNode(removedNode))
                 {
@@ -24,11 +24,11 @@ namespace Game.Train.Diagram
                 }
 
                 removedAny = true;
-                if (currentIndex >= 0 && i < currentIndex)
+                if ((0 <= currentIndex) && (i < currentIndex))
                 {
                     currentIndex--;
                 }
-                else if (currentIndex >= 0 && i == currentIndex)
+                else if ((0 <= currentIndex) && (i == currentIndex))
                 {
                     currentRemoved = true;
                 }

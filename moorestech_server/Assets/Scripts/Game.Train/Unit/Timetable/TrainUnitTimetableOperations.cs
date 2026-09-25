@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Game.Train.RailGraph;
+using Game.Train.Diagram;
 
 namespace Game.Train.Unit
 {
@@ -7,12 +7,15 @@ namespace Game.Train.Unit
     // Keep train state consistent with a timetable replacement in one operation
     public static class TrainUnitTimetableOperations
     {
-        public static void ReplaceTimetable(this TrainUnit train, IReadOnlyList<IRailNode> stationNodes)
+        // 時刻表を置き換える唯一の公開入口。置換に伴う複数の状態変化は1回の通知へまとめる
+        // The only public entry for replacing a timetable; its several state changes coalesce into one notification
+        public static void ReplaceTimetable(this TrainUnit train, IReadOnlyList<TrainDiagramStopPlan> stops)
         {
-            train.trainDiagram.ReplaceEntries(stationNodes);
+            train.BeginTimetableChangeBatch();
+            train.trainDiagram.ReplaceEntries(stops);
 
-            // 旧駅での停車を終え、新しい先頭駅への走行経路を求め直す
-            // Leave the old station and recalculate the route to the new first stop
+            // 不変条件: 置換したら必ず離線する（旧駅の停車は新しい時刻表のどのentryにも属さないため）
+            // Invariant: a replacement always undocks, since the old docking belongs to no entry of the new timetable
             if (train.trainUnitStationDocking.IsDocked)
             {
                 train.trainUnitStationDocking.UndockFromStation();
@@ -21,6 +24,7 @@ namespace Game.Train.Unit
             {
                 train.DiagramValidation(true);
             }
+            train.EndTimetableChangeBatch(true);
         }
     }
 }

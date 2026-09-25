@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Core.Update;
 using Game.Block.Interface;
+using Game.Train.Diagram;
 using Game.Train.RailGraph;
 using Game.Train.Unit;
 using NUnit.Framework;
@@ -22,7 +23,9 @@ namespace Tests.CombinedTest.Server.PacketTest
         // Convert bare positions into Back-side TrainTimetableStop entries
         private static TrainTimetableStop[] Stops(params Vector3Int[] positions)
         {
-            return positions.Select(p => new TrainTimetableStop(p, StationNodeSide.Back)).ToArray();
+            return positions
+                .Select(p => new TrainTimetableStop(p, StationNodeSide.Back, TrainDiagram.DepartureConditionType.WaitForTicks, GameUpdater.TicksPerSecond))
+                .ToArray();
         }
 
         [Test]
@@ -65,7 +68,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             // R2: timetable edits mutate running state outside a tick, so they fire the dedicated event plus one running snapshot
             Assert.AreEqual(1, timetableNotifications);
             Assert.AreEqual(1, snapshotNotifications);
-            Assert.IsFalse(diagram.ConsumeCurrentEntryChanged());
+            // 要求した自動運転状態に到達しなかったことを応答で伝える
+            // The response reports that the requested auto-run state was not reached
+            Assert.IsFalse(response.AppliedIsAutoRun);
         }
 
         [TestCase(true, TrainScheduleEditFailureReason.NotTrainStation)]
@@ -129,6 +134,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.IsTrue(on.Success);
             Assert.IsTrue(fixture.Train.IsAutoRun);
             Assert.AreEqual(TrainScheduleEditOperation.SetAutoRun, on.Operation);
+            Assert.IsFalse(off.AppliedIsAutoRun);
+            Assert.IsTrue(on.AppliedIsAutoRun);
             CollectionAssert.AreEqual(new[] { false, true }, states);
             // R2: 自動運転トグルはtick外で走行状態を書き換えるため毎回走行snapshotを送る
             // R2: the auto-run toggle mutates running state outside a tick, so it sends a running snapshot every time
@@ -142,7 +149,10 @@ namespace Tests.CombinedTest.Server.PacketTest
             var fixture = new TrainScheduleProtocolTestEnvironment();
             var station = fixture.PlaceStation(new Vector3Int(0, 0, 40));
             var response = fixture.Send(Request.CreateReplaceTimetableRequest(fixture.Train.TrainUnitInstanceId,
-                new[] { new TrainTimetableStop(station.BlockPositionInfo.OriginalPos, side) }));
+                new[]
+                {
+                    new TrainTimetableStop(station.BlockPositionInfo.OriginalPos, side, TrainDiagram.DepartureConditionType.WaitForTicks, GameUpdater.TicksPerSecond),
+                }));
 
             Assert.IsTrue(response.Success);
             var node = fixture.Train.trainDiagram.Entries[0].Node;
@@ -160,6 +170,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             var response = fixture.Send(Request.CreateSetAutoRunRequest(fixture.Train.TrainUnitInstanceId, true));
 
             Assert.IsTrue(response.Success);
+            // 受理はされたが自動運転は成立していないことを応答が示す
+            // The request is accepted, yet the response shows auto-run did not take effect
+            Assert.IsFalse(response.AppliedIsAutoRun);
             fixture.Train.Update();
             Assert.IsFalse(fixture.Train.IsAutoRun);
         }

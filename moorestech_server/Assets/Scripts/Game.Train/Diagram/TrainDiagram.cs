@@ -1,4 +1,3 @@
-using Core.Update;
 using Game.Train.RailGraph;
 using System;
 using System.Collections.Generic;
@@ -13,7 +12,6 @@ namespace Game.Train.Diagram
         private ITrainDiagramContext _context;
         private readonly IRailGraphProvider _railGraphProvider;
         private readonly TrainDiagramManager _diagramManager;
-        private bool _isCurrentEntryChanged;
 
         public IReadOnlyList<TrainDiagramEntry> Entries => _entries;
         public int CurrentIndex => _currentIndex;
@@ -45,7 +43,6 @@ namespace Game.Train.Diagram
         {
             _entries.Clear();
             _currentIndex = -1;
-            _isCurrentEntryChanged = false;
             TrainDiagramSaveDataConverter.Restore(this, saveData, _railGraphProvider);
         }
 
@@ -62,39 +59,36 @@ namespace Game.Train.Diagram
 
         public TrainDiagramEntry AddEntry(IRailNode node)
         {
-            return TrainDiagramEntryOperations.Add(_entries, ref _currentIndex, node);
+            var entry = TrainDiagramEntryOperations.Add(_entries, ref _currentIndex, node);
+            NotifyTimetableChanged();
+            return entry;
         }
 
         public TrainDiagramEntry AddEntry(IRailNode node, DepartureConditionType departureConditionType, int waitTicks)
         {
-            return TrainDiagramEntryOperations.Add(_entries, ref _currentIndex, node, departureConditionType, waitTicks);
+            var entry = TrainDiagramEntryOperations.Add(_entries, ref _currentIndex, node, departureConditionType, waitTicks);
+            NotifyTimetableChanged();
+            return entry;
         }
 
         public TrainDiagramEntry InsertEntry(int index, IRailNode node)
         {
-            return TrainDiagramEntryOperations.Insert(_entries, ref _currentIndex, index, node);
+            var entry = TrainDiagramEntryOperations.Insert(_entries, ref _currentIndex, index, node);
+            NotifyTimetableChanged();
+            return entry;
         }
 
-        // 時刻表を丸ごと置き換え、現在地を先頭へ戻す
-        // Replace the whole timetable and reset the cursor to its first stop
-        public void ReplaceEntries(IReadOnlyList<IRailNode> stationNodes)
+        // 時刻表を丸ごと置き換え、現在地を先頭へ戻す。公開入口はTrainUnit.ReplaceTimetableだけ
+        // Replace the whole timetable and reset the cursor; TrainUnit.ReplaceTimetable is the only public entry
+        internal void ReplaceEntries(IReadOnlyList<TrainDiagramStopPlan> stops)
         {
             _entries.Clear();
             _currentIndex = -1;
-            foreach (var node in stationNodes)
+            foreach (var stop in stops)
             {
-                AddEntry(node, DepartureConditionType.WaitForTicks, GameUpdater.TicksPerSecond);
+                TrainDiagramEntryOperations.Add(_entries, ref _currentIndex, stop.Node, stop.DepartureConditionType, stop.WaitTicks);
             }
-            _isCurrentEntryChanged = true;
-        }
-
-        // 現在地の変化を一度だけ通知側へ渡す
-        // Pass a cursor change to the notifier exactly once
-        public bool ConsumeCurrentEntryChanged()
-        {
-            var changed = _isCurrentEntryChanged;
-            _isCurrentEntryChanged = false;
-            return changed;
+            NotifyTimetableChanged();
         }
 
         public void Update()
@@ -120,14 +114,13 @@ namespace Game.Train.Diagram
 
         public void MoveToNextEntry()
         {
-            if (_entries.Count == 0) 
+            var previousIndex = _currentIndex;
+            _currentIndex = _entries.Count == 0 ? -1 : (_currentIndex + 1) % _entries.Count;
+            if (previousIndex == _currentIndex)
             {
-                _currentIndex = -1;
                 return;
             }
-
-            _currentIndex = (_currentIndex + 1) % _entries.Count;
-            _isCurrentEntryChanged = true;
+            NotifyTimetableChanged();
         }
 
         // 出発時に現在entryの状態を初期化してから次entryへ移動する。
@@ -144,6 +137,8 @@ namespace Game.Train.Diagram
 
         // ノード削除時に現在地を補正する
         // Adjust the cursor when a rail node is removed
+        // 不変条件: ノード削除時に必ず本メソッドが呼ばれるため _entries は常に実在ノードのみを保持する
+        // Invariant: this is always called on node removal, so _entries only ever holds live nodes
         public void HandleNodeRemoval(IRailNode removedNode)
         {
             if (removedNode == null)
@@ -155,14 +150,20 @@ namespace Game.Train.Diagram
                 _entries, _currentIndex, removedNode, out var removedAny, out var currentRemoved);
             if (removedAny)
             {
-                _isCurrentEntryChanged = true;
-                if (currentRemoved && _entries.Count > 0)
+                if (currentRemoved && (0 < _entries.Count))
                 {
                     _context?.OnCurrentEntryShiftedByRemoval();
                 }
+                NotifyTimetableChanged();
             }
         }
 
+        // 時刻表の変化を購読側へその場で押し出す
+        // Push a timetable change to the subscriber at the moment it happens
+        private void NotifyTimetableChanged()
+        {
+            _context?.OnTimetableChanged();
+        }
 
         public TrainDiagramEntry GetCurrentEntry()
         {
@@ -172,7 +173,7 @@ namespace Game.Train.Diagram
         private bool TryGetActiveEntry(out TrainDiagramEntry entry)
         {
             entry = null;
-            if ((_currentIndex < 0) || (_entries.Count == 0) || (_currentIndex >= _entries.Count))
+            if ((_currentIndex < 0) || (_entries.Count == 0) || (_entries.Count <= _currentIndex))
             {
                 return false;
             }

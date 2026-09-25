@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Core.Update;
-using Game.Context;
-using Game.Train.Diagram;
-using Game.Train.Event;
 using Game.Train.RailGraph;
 using UniRx;
 
@@ -11,7 +8,6 @@ namespace Game.Train.Unit
 {
     public class TrainUpdateService
     {
-        private readonly TrainDiagramManager _diagramManager;
         private readonly IRailGraphDatastore _railGraphDatastore;
         private readonly ITrainUnitLookupDatastore _trainUnitLookupDatastore;
         private readonly TrainCarRidingManualCommandResolver _trainCarRidingManualCommandResolver;
@@ -30,12 +26,10 @@ namespace Game.Train.Unit
         // 駆動はMasterTickUpdaterの固定順序がUpdateTrainsを呼ぶ（購読による暗黙順序を持たない）
         // Driven by MasterTickUpdater's fixed order calling UpdateTrains; no implicit subscription ordering
         public TrainUpdateService(
-            TrainDiagramManager diagramManager,
             IRailGraphDatastore railGraphDatastore,
             ITrainUnitLookupDatastore trainUnitLookupDatastore,
             TrainCarRidingManualCommandResolver trainCarRidingManualCommandResolver)
         {
-            _diagramManager = diagramManager;
             _railGraphDatastore = railGraphDatastore;
             _trainUnitLookupDatastore = trainUnitLookupDatastore;
             _trainCarRidingManualCommandResolver = trainCarRidingManualCommandResolver;
@@ -75,9 +69,6 @@ namespace Game.Train.Unit
             }
 
             NotifyPreSimulationDiff(_executedTick);
-            // 時刻表・自動運転が変わった列車をUIへ知らせる（走行同期とは別経路）
-            // Notify the UI of trains whose timetable or auto-run changed (separate from motion sync)
-            NotifyTimetableAdvanced();
 
             //↓これ以降にクライアントからの操作コマンド系適応がはいる、hashmismatchなどによるブロードキャストもはいる
             // Client command application and hash-mismatch broadcasting continue after this point.
@@ -124,18 +115,6 @@ namespace Game.Train.Unit
                 bool HasDiff(int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeIdDiff, bool isReversedThisTick, int manualBranchSelectionIndexDiff)
                 {
                     return masconLevelDiff != 0 || isNowDockingSpeedZero || approachingNodeIdDiff != -1 || isReversedThisTick || manualBranchSelectionIndexDiff != 0;
-                }
-            }
-
-            void NotifyTimetableAdvanced()
-            {
-                var notify = ServerContext.GetService<ITrainTimetableNotifyEvent>();
-                foreach (var trainUnit in _trainUnitLookupDatastore.GetRegisteredTrains())
-                {
-                    var entryChanged = trainUnit.trainDiagram.ConsumeCurrentEntryChanged();
-                    var autoRunChanged = trainUnit.ConsumeAutoRunChanged();
-                    if (!entryChanged && !autoRunChanged) continue;
-                    notify.NotifyTimetableChanged(trainUnit);
                 }
             }
             #endregion
