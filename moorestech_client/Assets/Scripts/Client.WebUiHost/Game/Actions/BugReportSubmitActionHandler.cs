@@ -1,24 +1,24 @@
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.BugReport.Submit;
-using Client.Game.InGame.UI.UIState;
+using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
 namespace Client.WebUiHost.Game.Actions
 {
-    // 説明文を受け取り、確保済みの記録と一緒に outbox へ書き、ポーズメニューを閉じる
-    // Takes the description, writes it with the secured records into the outbox, then closes the pause menu
+    // 記録と説明文をoutbox書きトップへ戻す(ADR0069)
+    // Writes records+description to outbox, returns to top (ADR 0069)
     public class BugReportSubmitActionHandler : IActionHandler
     {
         private readonly BugReportSubmitter _submitter;
-        private readonly UIStateControl _uiStateControl;
+        private readonly PauseMenuStateService _pauseMenuStateService;
         public string ActionType => "bug_report.submit";
 
-        public BugReportSubmitActionHandler(BugReportSubmitter submitter, UIStateControl uiStateControl)
+        public BugReportSubmitActionHandler(BugReportSubmitter submitter, PauseMenuStateService pauseMenuStateService)
         {
             _submitter = submitter;
-            _uiStateControl = uiStateControl;
+            _pauseMenuStateService = pauseMenuStateService;
         }
 
         public async UniTask<ActionResult> ExecuteAsync(JObject payload)
@@ -46,11 +46,11 @@ namespace Client.WebUiHost.Game.Actions
             var submitted = await _submitter.SubmitAsync(description, kind);
             if (!submitted.Submitted) return ActionResult.Fail(submitted.FailureCode);
 
-            // 閉じは既存のWeb境界1本へ寄せる。閉じられなくても報告自体は書けているので成功として返す
-            // Closing goes through the one existing web boundary; a refused close still leaves a written report, so the send succeeds
-            var closed = RequestUiStateActionHandler.RequestState(_uiStateControl, nameof(UIStateEnum.GameScreen));
-            if (!closed.Ok) Debug.LogWarning($"バグ報告の送信後にポーズメニューを閉じられませんでした error:{closed.Error}");
+            // 送れたらポーズは開いたままトップへ戻す。失敗時は画面を動かさず書きかけを残す
+            // After a send the pause stays open and returns to the top; on failure the page stays so the draft survives
+            _pauseMenuStateService.ShowPage(PauseMenuPage.Top);
             return ActionResult.Success();
         }
+
     }
 }

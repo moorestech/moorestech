@@ -24,6 +24,7 @@ test("ポーズメニューの言語選択で英語と日本語を往復する",
   await setTopicScenario(page, "japanese");
   await setUiState(page, "PauseMenu");
   await page.goto("/");
+  await page.getByTestId("pause-menu-open-settings").click();
 
   const languageSection = page.getByRole("region", { name: "言語" });
   // 録画E2Eと同じ安定識別子で言語操作と辞書反映完了を確認する
@@ -38,12 +39,12 @@ test("ポーズメニューの言語選択で英語と日本語を往復する",
   await english.click();
   await expect(page.getByTestId("pause-menu-locale-english")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Language" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Save this game" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
   await expect(english).toHaveAttribute("aria-pressed", "true");
 
   await japanese.click();
   await expect(page.getByTestId("pause-menu-locale-japanese")).toBeVisible();
   await expect(page.getByRole("heading", { name: "言語" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "ゲームをセーブする" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "設定" })).toBeVisible();
   await expect(japanese).toHaveAttribute("aria-pressed", "true");
 });

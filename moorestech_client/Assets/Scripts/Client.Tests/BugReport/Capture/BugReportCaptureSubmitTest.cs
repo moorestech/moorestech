@@ -4,6 +4,7 @@ using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
+using UniRx;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -75,10 +76,10 @@ namespace Client.Tests.BugReport.Capture
             Assert.IsTrue(session.TryBeginSubmit().Allowed);
         }
 
-        // 同じ確保から2箱作ると同じ報告のdraft PRが2本出る
-        // Two boxes from one capture raise two draft PRs for one report
+        // 送信中の重複を拒否し、成功後だけ新しい記録で次の送信を受け付ける
+        // Reject duplicates in flight, then accept the next send only with fresh records after success
         [Test]
-        public void 書き出し中の再送と送信済みの再送を塞ぐ()
+        public void 書き出し中は再送を塞ぎ成功後は再確保して次の送信を受け付ける()
         {
             var sources = new FakeBugReportCaptureSources();
             var session = new BugReportCaptureSession(sources);
@@ -90,13 +91,28 @@ namespace Client.Tests.BugReport.Capture
             LogAssert.Expect(LogType.Warning, new Regex(BugReportSubmitTicket.SubmitInFlight));
             Assert.AreEqual(BugReportSubmitTicket.SubmitInFlight, session.TryBeginSubmit().RefusedCode);
 
+            var kinds = new List<string>();
+            using var subscription = session.Status.Skip(1).Subscribe(status => kinds.Add(status.Kind));
+            sources.RequestResult = new BugReportServerCaptureRequest(true, 8, null);
+            sources.ScreenshotPath = "/tmp/second-shot.png";
             session.CompleteSubmit(ticket.Data, true, new List<MissingItem>());
 
-            // 送信済みを配らないと、Webは送れる状態を描き続けて拒否ログだけが溜まる
-            // Without publishing the sent state the Web keeps drawing a submittable form and only refusal logs accumulate
-            Assert.AreEqual(BugReportCaptureStatus.Submitted, session.Status.Value.Kind);
-            LogAssert.Expect(LogType.Warning, new Regex(BugReportSubmitTicket.AlreadySubmitted));
-            Assert.AreEqual(BugReportSubmitTicket.AlreadySubmitted, session.TryBeginSubmit().RefusedCode);
+            Assert.AreEqual(2, sources.TakeRecordingCount);
+            Assert.AreEqual(BugReportCaptureStatus.Capturing, session.Status.Value.Kind);
+            LogAssert.Expect(LogType.Warning, new Regex(BugReportSubmitTicket.CapturePending));
+            Assert.AreEqual(BugReportSubmitTicket.CapturePending, session.TryBeginSubmit().RefusedCode);
+            session.OnServerCaptureCompleted(new ServerCaptureCompletion(8, 9, true, "/w/snapshots", "/master/server_v8", new List<string>(), new List<string>(), null, 0));
+
+            // 配信は既存の確保中→準備完了を使い、2件目の資料が最初と別であることを確かめる
+            // Reuse the capturing-to-ready delivery and verify that the second report owns distinct materials
+            Assert.AreEqual(BugReportCaptureStatus.Capturing, kinds[0]);
+            Assert.AreEqual(BugReportCaptureStatus.Ready, kinds[kinds.Count - 1]);
+            var second = session.TryBeginSubmit();
+            Assert.IsTrue(second.Allowed);
+            Assert.AreNotSame(ticket.Data, second.Data);
+            Assert.AreNotEqual(ticket.Data.CaptureWorkDirectory, second.Data.CaptureWorkDirectory);
+            Assert.AreEqual(9UL, second.Data.ReportTick);
+            Assert.AreEqual("/tmp/second-shot.png", second.Data.ScreenshotPath);
         }
 
         // 書き出せなかった箱は運搬されない。送信済みにすると残った資料で送り直す道が塞がる
@@ -112,13 +128,16 @@ namespace Client.Tests.BugReport.Capture
             var ticket = session.TryBeginSubmit();
             session.CompleteSubmit(ticket.Data, false, new List<MissingItem>());
 
-            Assert.IsTrue(session.TryBeginSubmit().Allowed);
+            var retry = session.TryBeginSubmit();
+            Assert.IsTrue(retry.Allowed);
+            Assert.AreSame(ticket.Data, retry.Data);
+            Assert.AreEqual(1, sources.TakeRecordingCount);
         }
 
         // 書き出し時に判明した欠損を戻さないと、報告者は欠けたまま送ったことを知る機会が無い
         // Without feeding back the missing items found while writing, the reporter never learns what was dropped
         [Test]
-        public void 書き出しで判明した欠損が確保状態へ戻る()
+        public void 書き出し失敗で判明した欠損が確保状態へ戻る()
         {
             var sources = new FakeBugReportCaptureSources();
             var session = new BugReportCaptureSession(sources);
@@ -126,7 +145,7 @@ namespace Client.Tests.BugReport.Capture
             session.OnServerCaptureCompleted(new ServerCaptureCompletion(7, 5, true, "/w/snapshots", "/master/server_v8", new List<string> { "tick_5.json" }, new List<string>(), null, 0));
 
             var ticket = session.TryBeginSubmit();
-            session.CompleteSubmit(ticket.Data, true, new List<MissingItem> { new() { Item = "video", Reason = "ffmpegが見つからなかった" } });
+            session.CompleteSubmit(ticket.Data, false, new List<MissingItem> { new() { Item = "video", Reason = "ffmpegが見つからなかった" } });
 
             CollectionAssert.AreEqual(new[] { "video" }, session.Status.Value.Missing);
         }

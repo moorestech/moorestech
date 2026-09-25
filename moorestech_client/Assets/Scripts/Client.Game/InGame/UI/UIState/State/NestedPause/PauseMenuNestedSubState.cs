@@ -22,7 +22,7 @@ namespace Client.Game.InGame.UI.UIState.State.NestedPause
         
         public NestedPauseSubStateEnum? GetNextUpdate()
         {
-            return _pauseMenuStateService.IsClosePause() ? NestedPauseSubStateEnum.GameScreen : null;
+            return _pauseMenuStateService.HandleCloseKey() ? NestedPauseSubStateEnum.GameScreen : null;
         }
         
         public void OnExit()

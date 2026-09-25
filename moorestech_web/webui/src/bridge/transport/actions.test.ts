@@ -101,6 +101,7 @@ describe("dispatchAction の toast 配線", () => {
       .toEqual({ kind: "unreachable", reason: "timeout" });
 
     vi.spyOn(webSocketClient, "sendAction").mockResolvedValue({ ok: true });
-    expect(await dispatchActionOutcome("event_mode.select_language", { locale: "ja" })).toEqual({ kind: "accepted" });
+    expect(await dispatchActionOutcome("event_mode.select_language", { locale: "ja" }))
+      .toEqual({ kind: "accepted" });
   });
 });

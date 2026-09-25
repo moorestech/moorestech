@@ -7,6 +7,7 @@ using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.BugReport.Submit;
 using Client.Game.InGame.Playtest.Progress;
 using Client.Game.InGame.UI.UIState;
+using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Tests.PlaytestReceiver;
 using Client.WebUiHost.Game.Actions;
 using Cysharp.Threading.Tasks;
@@ -25,13 +26,17 @@ namespace Client.Tests.EditModeInPlayingTest.Util
         {
             var session = resolver.Resolve<BugReportCaptureSession>();
             resolver.Resolve<UIStateControl>().RequestTransition(UIStateEnum.PauseMenu);
+            await WaitCapture(session);
+            return session;
+        }
 
+        public static async UniTask WaitCapture(BugReportCaptureSession session)
+        {
             // サーバー確保の打ち切り上限は15秒なので、それより長く待って確定を見届ける
             // The server capture gives up after 15 seconds, so wait longer than that to see it settle
             for (var i = 0; i < 400 && session.Status.Value.Kind != BugReportCaptureStatus.Ready; i++) await UniTask.Delay(50);
 
-            Assert.AreEqual(BugReportCaptureStatus.Ready, session.Status.Value.Kind, "ポーズメニューを開いても20秒以内に送信できる状態にならない");
-            return session;
+            Assert.AreEqual(BugReportCaptureStatus.Ready, session.Status.Value.Kind, "20秒以内に送信できる状態にならない");
         }
 
         // 種別はwebuiのトグルが必ず載せる契約値で、欠けた要求は invalid_kind で拒否される
@@ -44,7 +49,7 @@ namespace Client.Tests.EditModeInPlayingTest.Util
                 resolver.Resolve<BugReportCaptureSession>(),
                 resolver.Resolve<IPlaytestProgressSink>(),
                 uploadRequester);
-            var handler = new BugReportSubmitActionHandler(submitter, resolver.Resolve<UIStateControl>());
+            var handler = new BugReportSubmitActionHandler(submitter, resolver.Resolve<PauseMenuStateService>());
             var kindText = PlaytestReportKindText.ToContractText(kind);
             var result = await handler.ExecuteAsync(new JObject { ["description"] = description, ["kind"] = kindText });
             Assert.IsTrue(result.Ok, result.Error);

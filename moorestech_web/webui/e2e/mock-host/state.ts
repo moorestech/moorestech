@@ -2,6 +2,7 @@ import type { WebSocket } from "ws";
 import type { BlockInventoryWireData, ModalRequest, UiStateData, ResearchTreeData, GameStateData, SkitPresentationData, TrainRidingData, PlayerInventoryData, WorldPinPresentationData } from "../../src/bridge/contract/payloadTypes";
 import * as fx from "./fixtures";
 import { clone } from "./wire";
+import type { PauseMenuPageName } from "../../src/bridge/transport/protocol";
 
 // 受信 action を記録（送信契約 assert 用に /__actions で返す）
 // Record received actions (exposed at /__actions to assert the send contract)
@@ -30,6 +31,7 @@ export const state = {
   skitPresentation: clone(fx.skitPresentation) as SkitPresentationData,
   worldPins: clone(fx.worldPins) as WorldPinPresentationData,
   trainRiding: clone(fx.trainRiding) as TrainRidingData,
+  pauseMenuPage: "top" as PauseMenuPageName,
   topicOverrides: new Map<string, unknown>(),
   injectedActionError: null as { type: string; error: string } | null,
   snapshotDelayMs: 0,
