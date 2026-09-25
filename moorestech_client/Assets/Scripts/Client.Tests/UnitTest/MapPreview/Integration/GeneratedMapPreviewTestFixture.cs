@@ -17,7 +17,7 @@ namespace Client.Tests.UnitTest.MapPreview.Integration
         private readonly string _previousDebugDirectory;
         internal string ServerDataDirectory { get; }
 
-        internal GeneratedMapPreviewTestFixture(bool generateOre)
+        internal GeneratedMapPreviewTestFixture(bool generateOre, int tileGridSize)
         {
             ServerDataDirectory = Path.Combine(Path.GetTempPath(), $"GeneratedMapPreviewTest_{Guid.NewGuid():N}");
             CopyDirectory(TestModDirectory.ForUnitTestModDirectory, ServerDataDirectory);
@@ -29,8 +29,8 @@ namespace Client.Tests.UnitTest.MapPreview.Integration
             var config = generation["algorithmParam"];
             config["overrideResolution"] = 33;
             config["detailResolution"] = 32;
-            config["gridSizeX"] = 1;
-            config["gridSizeZ"] = 1;
+            config["gridSizeX"] = tileGridSize;
+            config["gridSizeZ"] = tileGridSize;
             config["generateObject"] = false;
             config["generateOre"] = generateOre;
             config["generateDetail"] = false;

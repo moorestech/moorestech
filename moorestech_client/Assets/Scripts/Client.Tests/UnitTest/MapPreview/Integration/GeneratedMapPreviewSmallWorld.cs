@@ -26,7 +26,7 @@ namespace Client.Tests.UnitTest.MapPreview.Integration
 
         internal GeneratedMapPreviewSmallWorld()
         {
-            _fixture = new GeneratedMapPreviewTestFixture(false);
+            _fixture = new GeneratedMapPreviewTestFixture(false, 1);
             _directory = _fixture.ServerDataDirectory;
         }
 

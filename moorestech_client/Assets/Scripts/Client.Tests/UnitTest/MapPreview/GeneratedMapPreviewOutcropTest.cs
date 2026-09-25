@@ -42,7 +42,7 @@ namespace Client.Tests.UnitTest.MapPreview
             AssetDatabase.CreateFolder("Assets", _assetFolder.Substring("Assets/".Length));
             var main = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             EditorSceneManager.SaveScene(main, $"{_assetFolder}/Main.unity");
-            _fixture = new GeneratedMapPreviewTestFixture(true);
+            _fixture = new GeneratedMapPreviewTestFixture(true, 1);
 
             // 実生成の公開結果を使い、地形全量の描画だけを省いて配置経路を検査する
             // Use real generated public results and inspect placement without rebuilding all terrain visuals

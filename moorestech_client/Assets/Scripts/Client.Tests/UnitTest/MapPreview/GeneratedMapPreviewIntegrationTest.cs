@@ -35,7 +35,7 @@ namespace Client.Tests.UnitTest.MapPreview
             Assert.That(StageUtility.GetCurrentStage(), Is.SameAs(StageUtility.GetMainStage()));
             _assetFolder = $"Assets/GeneratedMapPreviewIntegrationTest_{Guid.NewGuid():N}";
             AssetDatabase.CreateFolder("Assets", _assetFolder.Substring(7));
-            _fixture = new GeneratedMapPreviewTestFixture(false);
+            _fixture = new GeneratedMapPreviewTestFixture(false, 1);
             // Runnerのbootstrapを保存可能なfixtureへ替え、主Sceneの保持を実測する
             // Replace the runner bootstrap with a savable fixture to measure main-scene preservation
             _main = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);

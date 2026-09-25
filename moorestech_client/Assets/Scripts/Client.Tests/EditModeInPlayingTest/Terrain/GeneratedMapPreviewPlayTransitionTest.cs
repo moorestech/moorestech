@@ -33,7 +33,9 @@ namespace Client.Tests.EditModeInPlayingTest
         public IEnumerator PendingPreviewClosesOnPlay()
         {
             EnterPlayModeUtil();
-            _fixture = new GeneratedMapPreviewTestFixture(false);
+            // 複数タイルで生成中断を再現
+            // Keep generation pending across frames so entering Play exercises cancellation
+            _fixture = new GeneratedMapPreviewTestFixture(false, 4);
             // Playのreloadを跨ぐ所有物の場所はEditorのSessionStateへ記録する
             // Record owned paths in Editor SessionState so they survive Play's domain reload
             var folder = $"Assets/GeneratedMapPreviewPlayTransitionTest_{Guid.NewGuid():N}";
