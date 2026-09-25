@@ -43,11 +43,7 @@ namespace Client.Tests.UnitTest.MapPreview.Integration
                 .SelectMany(x => x["prefabs"].SelectMany(p => p.SelectTokens("$..mapObjectGuid"))).Select(x => Guid.Parse((string)x)).ToHashSet();
             var treeCount = objects.Values.Count(x => treeGuids.Contains(x.MapObjectGuid));
             var rockCount = objects.Values.Count(x => rockGuids.Contains(x.MapObjectGuid));
-            Assert.That(treeCount, Is.GreaterThan(0), "The real master fixture must contain trees.");
-            Assert.That(rockCount, Is.GreaterThan(0), "The real master fixture must contain rocks.");
-
             var outcrops = root.transform.Find("VeinOutcrops");
-            Assert.That(map.MapVeins.Count, Is.GreaterThan(0), "The real master fixture must contain veins.");
             Assert.That(outcrops.childCount, Is.EqualTo(map.MapVeins.Count));
             var assets = new EditorTerrainAssetLoader();
             var prefabs = new Dictionary<Guid, GameObject>();

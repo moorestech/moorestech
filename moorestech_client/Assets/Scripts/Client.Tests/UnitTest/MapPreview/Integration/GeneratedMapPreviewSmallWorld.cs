@@ -3,14 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Client.MapScene.Editor;
-using Common.Debug;
 using Game.Map.Interface.Json;
 using Game.MapGeneration.Transfer;
 using Game.Paths;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
-using Server.Boot;
 using UnityEngine;
 
 namespace Client.Tests.UnitTest.MapPreview.Integration
@@ -18,7 +16,7 @@ namespace Client.Tests.UnitTest.MapPreview.Integration
     internal sealed class GeneratedMapPreviewSmallWorld : IDisposable
     {
         private readonly string _directory;
-        private readonly string _originalDebugDirectory;
+        private readonly GeneratedMapPreviewTestFixture _fixture;
         private string _cache;
         private string _masterPath;
         private JObject _mapMaster;
@@ -28,14 +26,8 @@ namespace Client.Tests.UnitTest.MapPreview.Integration
 
         internal GeneratedMapPreviewSmallWorld()
         {
-            var realServer = ServerDirectory.GetDirectory();
-            _directory = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Temp", $"PreviewFixture_{Guid.NewGuid():N}"));
-            _originalDebugDirectory = DebugParametersCacheDirectory.GetOverride();
-            // コピー先だけを小さくし、実マスタとユーザーのデバッグ設定を保護する
-            // Shrink only copied inputs, protecting real masters and the user's debug settings
-            CopyDirectory(Path.Combine(realServer, "mods"), Path.Combine(_directory, "mods"));
-            DebugParametersCacheDirectory.SetOverride(Path.Combine(_directory, "debug"));
-            DebugParameters.SaveString(ServerDirectory.DebugServerDirectorySettingKey, _directory);
+            _fixture = new GeneratedMapPreviewTestFixture(false, 1);
+            _directory = _fixture.ServerDataDirectory;
         }
 
         internal void Initialize()
@@ -83,16 +75,8 @@ namespace Client.Tests.UnitTest.MapPreview.Integration
 
         public void Dispose()
         {
-            DebugParametersCacheDirectory.SetOverride(_originalDebugDirectory);
             if (_cache != null && Directory.Exists(_cache)) Directory.Delete(_cache, true);
-            if (Directory.Exists(_directory)) Directory.Delete(_directory, true);
-        }
-
-        private static void CopyDirectory(string source, string destination)
-        {
-            Directory.CreateDirectory(destination);
-            foreach (var file in Directory.GetFiles(source)) File.Copy(file, Path.Combine(destination, Path.GetFileName(file)));
-            foreach (var directory in Directory.GetDirectories(source)) CopyDirectory(directory, Path.Combine(destination, Path.GetFileName(directory)));
+            _fixture.Dispose();
         }
     }
 }

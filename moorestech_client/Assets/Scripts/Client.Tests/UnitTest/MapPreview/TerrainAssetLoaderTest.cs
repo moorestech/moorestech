@@ -14,8 +14,8 @@ namespace Client.Tests.UnitTest.MapPreview
 {
     public class TerrainAssetLoaderTest
     {
-        private const string TreeAddress = "Vanilla/Environment/Tree/Base/BirchTree02";
-        private const string GrassAddress = "Vanilla/Environment/Terrain/Detail/Redwood/Grass1";
+        private const string TreeAddress = "Tests/TerrainAssetLoader/Tree";
+        private const string GrassAddress = "Tests/TerrainAssetLoader/Grass";
         private string _assetFolder;
         private AddressableAssetSettings _fixtureSettings;
         private AddressableAssetGroup _fixtureGroup;
@@ -33,6 +33,8 @@ namespace Client.Tests.UnitTest.MapPreview
             _fixtureGroup = _fixtureSettings.CreateGroup("Fixture", false, false, false, null);
             _projectSettings = AddressableAssetSettingsDefaultObject.Settings;
             _projectSettings.groups.Add(_fixtureGroup);
+            CreatePrefab("Tree", TreeAddress);
+            CreatePrefab("Grass", GrassAddress);
         }
 
         [TearDown]
@@ -45,7 +47,7 @@ namespace Client.Tests.UnitTest.MapPreview
         }
 
         [Test]
-        public void ResolvesRealMaterialTreeAndGrassAsBorrowedAssets()
+        public void ResolvesMaterialAndTrackedFixturePrefabsAsBorrowedAssets()
         {
             var assets = new EditorTerrainAssetLoader();
             var material = TerrainMaterialAssetLoader.LoadAsync(assets, CancellationToken.None).GetAwaiter().GetResult();
@@ -53,8 +55,8 @@ namespace Client.Tests.UnitTest.MapPreview
             var grass = assets.LoadAsync<GameObject>(GrassAddress, CancellationToken.None).GetAwaiter().GetResult();
 
             Assert.That(material, Is.SameAs(AssetDatabase.LoadAssetAtPath<Material>("Assets/AddressableResources/Environment/Terrain/TerrainLitMaterial.mat")));
-            Assert.That(tree, Is.SameAs(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/AddressableResources/Environment/Tree/Base/BirchTree02.prefab")));
-            Assert.That(grass, Is.SameAs(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/AddressableResources/Environment/Terrain/Detail/Redwood/Grass1.prefab")));
+            Assert.That(tree, Is.SameAs(AssetDatabase.LoadAssetAtPath<GameObject>($"{_assetFolder}/Tree.prefab")));
+            Assert.That(grass, Is.SameAs(AssetDatabase.LoadAssetAtPath<GameObject>($"{_assetFolder}/Grass.prefab")));
             Assert.That(AssetDatabase.Contains(material) && AssetDatabase.Contains(tree) && AssetDatabase.Contains(grass), Is.True);
         }
 
@@ -100,7 +102,7 @@ namespace Client.Tests.UnitTest.MapPreview
         }
 
         [TestCase("Tests/Absent")]
-        [TestCase("vanilla/Environment/Tree/Base/BirchTree02")]
+        [TestCase("tests/TerrainAssetLoader/Tree")]
         public void RejectsMissingOrWrongCaseAddressWithRequestedType(string address)
         {
             var assets = new EditorTerrainAssetLoader();
@@ -160,6 +162,15 @@ namespace Client.Tests.UnitTest.MapPreview
         {
             var path = $"{_assetFolder}/{name}.asset";
             AssetDatabase.CreateAsset(new Texture2D(2, 2), path);
+            Register(path, address);
+        }
+
+        private void CreatePrefab(string name, string address)
+        {
+            var instance = new GameObject(name);
+            var path = $"{_assetFolder}/{name}.prefab";
+            PrefabUtility.SaveAsPrefabAsset(instance, path);
+            Object.DestroyImmediate(instance);
             Register(path, address);
         }
 

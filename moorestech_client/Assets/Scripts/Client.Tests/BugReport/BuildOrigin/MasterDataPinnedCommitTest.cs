@@ -66,7 +66,7 @@ namespace Client.Tests.BugReport.BuildOrigin
         {
             var checkoutRoot = CreateCheckoutWithCommittedPin(CommittedMasterCommit);
 
-            var expected = Path.GetFullPath(Path.Combine(checkoutRoot, "..", "moorestech_master"));
+            var expected = Path.GetFullPath(Path.Combine(checkoutRoot, "..", "fixture_master"));
             Assert.AreEqual(expected, MasterDataRootLocator.ResolveForBuildingCheckout(checkoutRoot));
         }
 
@@ -105,7 +105,7 @@ namespace Client.Tests.BugReport.BuildOrigin
         private static void WritePin(string checkoutRoot, string commit)
         {
             File.WriteAllText(Path.Combine(checkoutRoot, PinFileName),
-                "{\"repositories\":[{\"key\":\"moorestech_master\",\"relativePath\":\"../moorestech_master\",\"commitHash\":\"" + commit + "\"}]}");
+                "{\"repositories\":[{\"key\":\"moorestech_master\",\"relativePath\":\"../fixture_master\",\"commitHash\":\"" + commit + "\"}]}");
         }
 
         private static void RunGit(string workingDirectory, string arguments)
