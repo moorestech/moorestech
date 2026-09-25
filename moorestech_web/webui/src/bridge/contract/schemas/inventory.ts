@@ -155,6 +155,13 @@ export const TrainTimetableDataSchema = z.object({
   stops: z.array(TrainTimetableStopSchema),
   stations: z.array(TrainTimetableStationSchema),
 });
+// 取得状態はC#が判定して kind で届く。読み込み中と取得不可を「値の有無」1ビットに畳まない
+// C# decides the fetch state and sends it as the status; loading and unavailable are not folded into value presence
+const TrainTimetableStateSchema = z.discriminatedUnion("status", [
+  z.object({ status: z.literal("loading") }).strict(),
+  z.object({ status: z.literal("unavailable") }).strict(),
+  z.object({ status: z.literal("ready"), data: TrainTimetableDataSchema }).strict(),
+]);
 const TrainStationDetailSchema = z.object({ name: z.string() });
 
 export const BlockInventoryOpenSchema = z.object({
@@ -185,7 +192,7 @@ export const TrainInventoryOpenSchema = z.object({
   identifier: z.string(),
   itemSlots: z.array(SlotDataSchema),
   fluidSlots: z.array(FluidSlotDataSchema),
-  timetable: TrainTimetableDataSchema.optional(),
+  timetable: TrainTimetableStateSchema,
   error: z.enum(["containerMissing", "trainCarMissing", "openFailed"]).optional(),
 });
 export const BlockInventoryClosedSchema = z.object({ open: z.literal(false) });

@@ -3,7 +3,7 @@
 import { createElement } from "react";
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { TrainTimetableData } from "@/bridge";
+import type { BlockInventoryData, TrainTimetableData } from "@/bridge";
 
 vi.mock("@/bridge", () => ({ dispatchAction: vi.fn().mockResolvedValue(true) }));
 vi.mock("@/shared/i18n", async (importOriginal) => ({
@@ -27,6 +27,11 @@ const bStop = { ...b, side: "back" as const };
 const timetable: TrainTimetableData = {
   trainUnitId: "train", isAutoRun: false, currentIndex: 0, stops: [aStop], stations: [a, b],
 };
+const readyTimetable = { status: "ready", data: timetable } as const;
+type TrainData = Extract<BlockInventoryData, { source: "train" }>;
+function trainData(state: TrainData["timetable"]): TrainData {
+  return { open: true, source: "train", blockType: "Train", identifier: "car", itemSlots: [], fluidSlots: [], timetable: state };
+}
 
 function button(tree: ReactTestRenderer, id: string) {
   return tree.root.findAll((node) => node.type === "button" && node.props["data-testid"] === id)[0];
@@ -80,7 +85,7 @@ describe("train timetable UI", () => {
   });
 
   it("discards unapplied edits when the train panel unmounts", () => {
-    const data = { open: true, source: "train", blockType: "Train", identifier: "car", itemSlots: [], timetable } as const;
+    const data = { open: true, source: "train", blockType: "Train", identifier: "car", itemSlots: [], timetable: readyTimetable } as const;
     let tree!: ReactTestRenderer;
     act(() => { tree = create(createElement(TrainInventoryBody, { data: { ...data, itemSlots: [], fluidSlots: [] } })); });
     click(tree, "train-tab-timetable");
@@ -89,12 +94,12 @@ describe("train timetable UI", () => {
     act(() => { tree = create(createElement(TrainInventoryBody, { data: { ...data, itemSlots: [], fluidSlots: [] } })); });
     click(tree, "train-tab-timetable");
     click(tree, "train-timetable-apply");
-    expect(dispatchAction).toHaveBeenCalledTimes(1);
-    expect(dispatchAction).toHaveBeenCalledWith("train_timetable.replace", { stops: [{ ...a.position, side: "back" }] });
+    const replaceCalls = vi.mocked(dispatchAction).mock.calls.filter(([type]) => type === "train_timetable.replace");
+    expect(replaceCalls).toEqual([["train_timetable.replace", { stops: [{ ...a.position, side: "back" }] }]]);
   });
 
   it("keeps unapplied edits while switching tabs", () => {
-    const data = { open: true, source: "train", blockType: "Train", identifier: "car", itemSlots: [], timetable } as const;
+    const data = { open: true, source: "train", blockType: "Train", identifier: "car", itemSlots: [], timetable: readyTimetable } as const;
     let tree!: ReactTestRenderer;
     act(() => { tree = create(createElement(TrainInventoryBody, { data: { ...data, itemSlots: [], fluidSlots: [] } })); });
     click(tree, "train-tab-timetable");
@@ -103,6 +108,33 @@ describe("train timetable UI", () => {
     click(tree, "train-tab-timetable");
     click(tree, "train-timetable-apply");
     expect(dispatchAction).toHaveBeenCalledWith("train_timetable.replace", { stops: [{ ...a.position, side: "back" }, { ...b.position, side: "back" }] });
+  });
+
+  it("asks C# to fetch only when the timetable tab is selected", () => {
+    let tree!: ReactTestRenderer;
+    act(() => { tree = create(createElement(TrainInventoryBody, { data: trainData({ status: "loading" }) })); });
+    expect(dispatchAction).not.toHaveBeenCalled();
+    click(tree, "train-tab-timetable");
+    expect(dispatchAction).toHaveBeenCalledWith("train_timetable.open", {});
+    click(tree, "train-tab-inventory");
+    expect(dispatchAction).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows loading and unavailable as distinct states without warning", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    let tree!: ReactTestRenderer;
+    act(() => { tree = create(createElement(TrainInventoryBody, { data: trainData({ status: "loading" }) })); });
+    click(tree, "train-tab-timetable");
+    const byTestId = (id: string) => tree.root.findAll((node) => node.props["data-testid"] === id);
+    expect(byTestId("train-timetable-loading")).toHaveLength(1);
+    expect(byTestId("train-timetable-unavailable")).toHaveLength(0);
+    act(() => tree.update(createElement(TrainInventoryBody, { data: trainData({ status: "unavailable" }) })));
+    expect(byTestId("train-timetable-loading")).toHaveLength(0);
+    expect(byTestId("train-timetable-unavailable")).toHaveLength(1);
+    act(() => tree.update(createElement(TrainInventoryBody, { data: trainData(readyTimetable) })));
+    expect(byTestId("train-timetable-section")).toHaveLength(1);
+    expect(warn).not.toHaveBeenCalled();
+    warn.mockRestore();
   });
 
   it("sends station names only through Set and hides the field for platforms", () => {

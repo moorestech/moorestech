@@ -1,8 +1,11 @@
 // 時刻表UI経路の通し検証: 駅2基・レール・機関車を置き、Fで車両を開き時刻表タブから2駅を追加→適用→自動運転ON→走行→OFF→停止。
 // 駅名はサーバー直で付け、時刻表タブの表示に名前が出ることを確認する（CEFへキー入力は転送されないため入力欄の打鍵はしない）。
+// 時刻表の取得は列車インベントリを開いただけでは起きず、時刻表タブを選んだときに1回だけ起き、開き直すと再取得されることも確かめる。
 // Timetable UI end-to-end: place two stations, rails and a locomotive, open the car with F, add both stations from the
 // timetable tab, apply, turn auto-run on, watch it move, turn it off and watch it stop. Station names are set server-side
 // and verified in the tab (keystrokes are not forwarded to CEF, so the name input is not typed).
+// It also checks that opening the train inventory alone does not fetch the timetable, selecting the tab fetches it once,
+// and reopening fetches it again.
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -29,6 +32,7 @@ return PlaytestRunner.Run("train-timetable-via-ui", options, async p =>
 {
     var mismatchCount = 0;
     var rejectCount = 0;
+    var timetableRequestCount = 0;
     Application.logMessageReceived += CountWarnings;
     try
     {
@@ -86,8 +90,12 @@ return PlaytestRunner.Run("train-timetable-via-ui", options, async p =>
         await AimAtCar();
         await p.PressInteract();
         await p.WaitUiState(UIStateEnum.SubInventory, 10f);
+        await p.UntilWebUiElement("train-tab-timetable", 10f);
+        await p.WaitSeconds(1f);
+        p.Assert(timetableRequestCount == 0, $"列車インベントリを開いただけでは時刻表を取得しない (count={timetableRequestCount})");
         await p.ClickWebUi("train-tab-timetable");
         await p.UntilWebUiElement("train-timetable-section", 10f);
+        p.Assert(timetableRequestCount == 1, $"時刻表タブを選ぶと時刻表を1回取得する (count={timetableRequestCount})");
         await PlaytestWebUiOps.WaitWebUiTextContains("train-timetable-stations", "北駅", 10f);
         await PlaytestWebUiOps.WaitWebUiTextContains("train-timetable-stations", "南駅", 10f);
         await p.Screenshot("01-timetable-tab");
@@ -123,6 +131,9 @@ return PlaytestRunner.Run("train-timetable-via-ui", options, async p =>
         await p.PressInteract();
         await p.WaitUiState(UIStateEnum.SubInventory, 10f);
         await p.ClickWebUi("train-tab-timetable");
+        await p.UntilWebUiElement("train-timetable-section", 10f);
+        p.Assert(timetableRequestCount == 2, $"開き直して時刻表タブを選ぶと再取得する (count={timetableRequestCount})");
+        await PlaytestWebUiOps.WaitWebUiTextContains("train-timetable-stops", "南駅", 10f);
         await p.ClickWebUi("train-timetable-auto-run-off");
         await p.Until(() => !train.IsAutoRun, 10f, "サーバーの自動運転がOFF");
         await p.ClickWebUi("block-inventory-close");
@@ -144,6 +155,7 @@ return PlaytestRunner.Run("train-timetable-via-ui", options, async p =>
     {
         if (condition.Contains("Hash mismatch detected")) mismatchCount++;
         if (condition.Contains("[TrainScheduleEdit] rejected") || condition.Contains("[SetTrainStationName] rejected")) rejectCount++;
+        if (condition.Contains("[TrainTimetableFetcher] requesting timetable")) timetableRequestCount++;
     }
 
     // 車両は駅の構内にあり横から狙うと駅ブロックが先に当たるため、北向き固定カメラに合わせ駅の外の後端（南）側からFの届く2m以内（InteractTargetSelector.InteractDistance）で狙う

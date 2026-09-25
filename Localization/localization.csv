@@ -309,6 +309,7 @@ ui.blockInventory.timetableStops,Stops,Stops,停車駅,Haltestellen
 ui.blockInventory.timetableStopsEmpty,No stops. Add a station below.,No stops. Add a station below.,停車駅がありません。下の駅一覧から追加してください。,Keine Halte. Unten eine Station hinzufügen.
 ui.blockInventory.timetableStations,Stations,Stations,駅一覧,Stationen
 ui.blockInventory.timetableStationsEmpty,No stations in the world.,No stations in the world.,ワールドに駅がありません。,Keine Stationen in der Welt.
+ui.blockInventory.timetableLoading,Loading timetable...,Loading timetable...,時刻表を読み込み中…,Fahrplan wird geladen...
 ui.blockInventory.timetableUnavailable,Timetable unavailable.,Timetable unavailable.,時刻表を取得できません。,Fahrplan nicht verfügbar.
 ui.blockInventory.timetableAdd,Add,Add,追加,Hinzufügen
 ui.blockInventory.timetableApply,Apply,Apply,適用,Anwenden

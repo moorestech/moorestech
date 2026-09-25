@@ -12,13 +12,16 @@ export const trainWithTimetable = {
   itemSlots: Array.from({ length: 10 }, empty),
   fluidSlots: [],
   timetable: {
-    trainUnitId: "unit-1",
-    isAutoRun: false,
-    currentIndex: 0,
-    stops: [{ position: { x: 12, y: 0, z: 40 }, name: "北駅", side: "back" }],
-    stations: [
-      { position: { x: -8, y: 0, z: 3 }, name: "" },
-      { position: { x: 12, y: 0, z: 40 }, name: "北駅" },
-    ],
+    status: "ready",
+    data: {
+      trainUnitId: "unit-1",
+      isAutoRun: false,
+      currentIndex: 0,
+      stops: [{ position: { x: 12, y: 0, z: 40 }, name: "北駅", side: "back" }],
+      stations: [
+        { position: { x: -8, y: 0, z: 3 }, name: "" },
+        { position: { x: 12, y: 0, z: 40 }, name: "北駅" },
+      ],
+    },
   },
 } satisfies BlockInventoryWireData;
