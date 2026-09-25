@@ -24,7 +24,7 @@ python3 .claude/skills/moores-code-review/scripts/check_all.py "<PATCH_PATH>" --
 
 `deterministic` 節の解釈:
 
-- **`confirmed`**（partial・try-catch・Func・デフォルト引数・SerializeField命名・10ファイル・master_default_fallback・packet_response_root・server_realtime_api・init_method_naming・context_source_label）— 検出正確・裏取り不要。Criticalとして統合に直接載せる（修正の適用可否は §3/§4）。`context_source_label`（出所ラベル欠落）はcontextファイルを修正して再実行する。
+- **`confirmed`**（partial・try-catch・Func・デフォルト引数・SerializeField命名・10ファイル・master_default_fallback・packet_response_root・server_realtime_api・init_method_naming・external_repo_reference・context_source_label）— 検出正確・裏取り不要。Criticalとして統合に直接載せる（修正の適用可否は §3/§4）。`external_repo_reference`（コードからmoorestech-client-private/PersonalAssets・moorestech_masterへの直接言及。moorestech repo単体＝CIで動かなくなる・起点moorestech-sm831）は言及を外し公開側フィクスチャや既存入口経由へ直す。起動パイプライン等どうしても要る箇所は `scripts/external_repo_reference_allowlist.json` に理由付きで足す（足すかどうかはユーザー判断＝§4）。`context_source_label`（出所ラベル欠落）はcontextファイルを修正して再実行する。
 - **`confirmed` のうち200行超過（file-too-long）は努力目標** — Criticalにせず報告のWarning備考に1行載せるだけ。分割を強制せず、AskUserQuestionにも**絶対に**載せない（ユーザー裁定 2026-07-23）。
 - **既に規約超過しているディレクトリへの1〜2ファイル追加も努力目標** — `dir-file-limit` のうち、そのディレクトリが本ブランチ以前から10ファイルを超えていた場合は `file-too-long` と同様に扱う。報告のWarning備考に1行のみ載せ、**AskUserQuestionには載せない**（ユーザー裁定 2026-08-14・[[2026-08-14-既存超過ディレクトリへの追加はレビューで問わない]]）。本ブランチが新規に作ったディレクトリが超過した場合のみCriticalとして扱う。
 - **テストコードは200行/10ファイル規約の適用外** — `*Test(s).cs`・`*.test.ts(x)`・`*.spec.ts`・`Tests`系/`e2e`/`tests`ディレクトリ配下は `file-too-long`/`dir-file-limit` の対象外（スクリプトが除外済み。ユーザー裁定 2026-07-28）。
