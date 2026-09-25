@@ -67,6 +67,10 @@ jobs:
           fetch-depth: 1
           path: moorestech
 
+      - name: Reject external repository references in tests
+        working-directory: moorestech
+        run: python3 .github/scripts/check-test-external-dependencies.py
+
       - name: List Unity test shards.
         id: shards
         shell: bash

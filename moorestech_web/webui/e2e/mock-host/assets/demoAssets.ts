@@ -13,10 +13,10 @@ function iconFilesIn(directory: string): string[] {
 }
 
 export const iconDirectory = process.env.MOCK_ICON_DIR
-  ?? resolve(process.cwd(), "../../../moorestech_master/server_v8/mods/moorestechAlphaMod_8/assets/item");
+  ?? resolve(process.cwd(), "e2e/mock-host/assets/item");
 export const iconFiles = iconFilesIn(iconDirectory);
 export const fluidIconDirectory = process.env.MOCK_FLUID_ICON_DIR
-  ?? resolve(process.cwd(), "../../../moorestech_master/server_v8/mods/moorestechAlphaMod_8/assets/fluid");
+  ?? resolve(process.cwd(), "e2e/mock-host/assets/fluid");
 export const fluidIconFiles = iconFilesIn(fluidIconDirectory);
 const mimeTypes: Record<string, string> = {
   ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".json": "application/json", ".png": "image/png",

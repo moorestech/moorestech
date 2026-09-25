@@ -1,6 +1,9 @@
 /* スキット表示層より前に立たないとポーズ中の操作面が背面へ沈む（ADR 0017の層序） */
 /* Without standing ahead of the skit layer the paused controls sink behind it (the ADR 0017 ordering) */
 .panel {
+  /* 横幅は本文のStackが決める。整理ボタン用の既定幅では長いメニュー名が折り返す */
+  /* The body Stack owns the width; the sort button's default width wraps long menu labels */
+  --panel-action-button-width: auto;
   position: absolute;
   z-index: var(--z-stage-pause-menu);
   left: 50%;

@@ -94,7 +94,7 @@ namespace Client.WebUiHost.Game
             // ポーズメニューの切断表示を登録する
             // Register the pause-menu disconnect presentation
             var networkDisconnectState = resolver.Resolve<NetworkDisconnectState>();
-            var pauseMenuTopic = new PauseMenuTopic(hub, networkDisconnectState, resolver.Resolve<BugReportCaptureSession>());
+            var pauseMenuTopic = new PauseMenuTopic(hub, networkDisconnectState, resolver.Resolve<BugReportCaptureSession>(), resolver.Resolve<PauseMenuStateService>());
             hub.RegisterTopic(PauseMenuTopic.TopicName, pauseMenuTopic);
             // 設置モードHUDを既存の設置状態へ接続する
             // Connect the placement HUD to the existing placement state
@@ -193,7 +193,8 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new BlueprintDeleteActionHandler(blueprintLibrary));
             hub.RegisterAction(new PauseMenuSaveActionHandler(resolver.Resolve<GameSaveRequester>()));
             hub.RegisterAction(new PauseMenuSaveAndQuitActionHandler(resolver.Resolve<SaveAndQuitPresenter>()));
-            hub.RegisterAction(new BugReportSubmitActionHandler(resolver.Resolve<BugReportSubmitter>(), uiStateControl));
+            hub.RegisterAction(new PauseMenuShowPageActionHandler(resolver.Resolve<PauseMenuStateService>()));
+            hub.RegisterAction(new BugReportSubmitActionHandler(resolver.Resolve<BugReportSubmitter>(), resolver.Resolve<PauseMenuStateService>()));
         }
     }
 }

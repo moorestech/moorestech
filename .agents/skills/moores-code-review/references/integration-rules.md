@@ -6,7 +6,7 @@
 
 ## 0. 5系統の性質の違い
 
-- **決定論チェック（`deterministic_checks.py`）** — AGENTS.md・moorestech規約の機械判定可能分（partial・try-catch・200行・10ファイル・デフォルト引数・SerializeField命名・master_default_fallback・packet_response_root）の `confirmed`。**検出は正確で裏取り不要**（誤検出はスクリプトのバグ扱い）。ただし修正が設計作業になるものは §3/§4 の判断フローに乗せる。**例外: 200行超過（file-too-long）は努力目標** — Criticalに数えず報告のWarning備考のみ、質問・強制修正なし。
+- **決定論チェック（`deterministic_checks.py`）** — AGENTS.md・moorestech規約の機械判定可能分（partial・try-catch・200行・10ファイル・デフォルト引数・SerializeField命名・master_default_fallback・packet_response_root・external_repo_reference）の `confirmed`。**検出は正確で裏取り不要**（誤検出はスクリプトのバグ扱い）。ただし修正が設計作業になるものは §3/§4 の判断フローに乗せる。**例外: 200行超過（file-too-long）は努力目標** — Criticalに数えず報告のWarning備考のみ、質問・強制修正なし。
 - **`reviewers/moores-*`** — moorestech固有の設計規約（ドメイン境界・サーバー状態同期3点セット・DataStore分離・マスタデータ防御・型構造・前例一致）。実PRレビュー指摘由来。実コード（patch+cwd）を読んで `Critical` のみ返す。
 - **`reviewers/core-*`** — 言語横断のコード品質（命名・重複・デッドコード・一方向フロー・Unity規約・React作法等）。全数調査で採用実績のある観点＋`moores-cs-*` 5本のts/tsx翻案版を採録。
 - **Codex外部監査（3起動）** — 別モデルの独立第三者視点。俯瞰（3観点同梱）＋バグ狩り専任＋設計整合専任の3本を並列起動する。**コードを実行しないため行番号・事実主張を誤ることがある**。重大度(Critical/High/Medium/Low)付き。3本は同一モデルなので相互には独立系統でない（§2）。

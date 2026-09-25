@@ -1,6 +1,5 @@
 import type { WebSocketServer } from "ws";
-import { Topics, UiStateNames } from "../../src/bridge/transport/protocol";
-import type { ClientMsg, ActionPayloads } from "../../src/bridge/transport/protocol";
+import { Topics, UiStateNames, type ClientMsg, type ActionPayloads } from "../../src/bridge/transport/protocol";
 import type { PlayerInventoryData } from "../../src/bridge/contract/payloadTypes";
 import * as fx from "./fixtures";
 import { send, clone } from "./wire";
@@ -8,9 +7,11 @@ import { received, state, connections, subscribersOf, topicSubscribers } from ".
 import { applyMove, applyBlockMove, applyBlockSplit, applyCollect, applyBlockCollect, applyCraft, applySplitDrag } from "./inventoryModel";
 import { applyElectricToGearMode, applyFilterMode, applyFilterItem, applyMachineRecipeSelect, applyResearchComplete, applyTrainPlatformMode } from "./detailActions";
 import { applySkitAction } from "./skitActions";
-import { demoMode, topicData } from "./topics/topicFixtures";
+import { applyPauseMenuAction, type PauseMenuActionResult } from "./pauseMenuActions";
+import { demoMode } from "./topics/topicFixtures";
 import { knownActions } from "./topics/actionTypes";
 import { applyLocalizationAction } from "./localization/transport";
+import { handleNonActionMessage } from "./messages/nonActionMessages";
 // インベントリ状態は接続ごとに分離する。並列テストが同一 inv を奪い合わないため
 // Inventory state is isolated per connection so parallel tests don't race on the same inv
 export function attachWsHandlers(wss: WebSocketServer) {
@@ -30,44 +31,15 @@ export function attachWsHandlers(wss: WebSocketServer) {
       }
       for (const subscribers of topicSubscribers.values()) subscribers.delete(ws);
     });
-
     ws.on("message", (raw) => {
       const msg = JSON.parse(raw.toString()) as ClientMsg;
-      if (msg.op === "ping") {
-        send(ws, { op: "pong" });
-        return;
-      }
-      // 入力排他は Unity 側だけの関心事。mock には反映先が無いので受理して捨てる
-      // Input exclusivity concerns only the Unity side; the mock has nothing to apply it to, so accept and drop
-      if (msg.op === "input_state") return;
-      if (msg.op === "subscribe") {
-        for (const topic of msg.topics) {
-          const subscribers = topicSubscribers.get(topic) ?? new Set();
-          subscribers.add(ws);
-          topicSubscribers.set(topic, subscribers);
-          const data = topicData(topic, inv, demoMode);
-          if (data !== undefined) {
-            const deliver = () => send(ws, { op: "snapshot", topic, data });
-            if (state.snapshotDelayMs > 0 && (state.snapshotDelayTopic === null || state.snapshotDelayTopic === topic)) setTimeout(deliver, state.snapshotDelayMs);
-            else deliver();
-          }
-        }
-        return;
-      }
-      // 購読解除: グローバル購読 Set から除去する（本番 host が unsubscribe を尊重するのに合わせる）
-      // Unsubscribe: remove from the global subscription Sets (mirrors the real host honoring unsubscribe)
-      if (msg.op === "unsubscribe") {
-        for (const topic of msg.topics) {
-          topicSubscribers.get(topic)?.delete(ws);
-        }
-        return;
-      }
+      if (handleNonActionMessage(ws, msg, inv)) return;
       if (msg.op === "action") {
         received.push({ type: msg.type, payload: msg.payload });
         // ack は実 host 同様 apply 後に確定し、topic event は数十ms 後に別経路で push（stale grab 再現）
         // ack is decided after apply like the real host; the topic event is pushed later on a separate channel
         let error: string | undefined;
-        let skitActionResult: string | null | undefined, localizationActionResult: string | null | undefined;
+        let skitActionResult: string | null | undefined, localizationActionResult: string | null | undefined, pauseMenuActionResult: PauseMenuActionResult;
         if (state.injectedActionError?.type === msg.type) {
           error = state.injectedActionError.error;
           state.injectedActionError = null;
@@ -76,6 +48,10 @@ export function attachWsHandlers(wss: WebSocketServer) {
         } else if ((skitActionResult = applySkitAction(msg.type, msg.payload)) !== null) {
           error = skitActionResult ?? undefined;
         } else if ((localizationActionResult = applyLocalizationAction(msg.type, msg.payload)) !== null) error = localizationActionResult ?? undefined;
+        else if ((pauseMenuActionResult = applyPauseMenuAction(inv, msg.type, msg.payload)).handled) {
+          // ポーズ画面の操作は状態更新だけで成功する
+          // Pause actions succeed after applying their state change
+        }
         else if (msg.type === "inventory.move_item") {
           // 状態が変化したときだけ topic event を流す（host の失敗は packet を出さない）
           // Emit a topic event only when state changed (the host's failed move sends no packet)
@@ -104,9 +80,7 @@ export function attachWsHandlers(wss: WebSocketServer) {
           if (typeof index === "number" && index >= 0 && index < inv.equipment.length) {
             inv.selectedEquipment = index;
             setTimeout(() => send(ws, { op: "event", topic: Topics.inventory, data: inv }), 30);
-          } else {
-            error = "invalid_index";
-          }
+          } else error = "invalid_index";
         } else if (msg.type === "ui.modal.respond") {
           // どの結果でもモーダルを閉じ、全 modal 購読者へ modal:null を push
           // Any result closes the modal and pushes modal:null to all modal subscribers

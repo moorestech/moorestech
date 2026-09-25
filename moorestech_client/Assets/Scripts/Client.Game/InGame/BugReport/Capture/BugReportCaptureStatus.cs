@@ -16,7 +16,6 @@ namespace Client.Game.InGame.BugReport.Capture
         public const string Capturing = "capturing";
         public const string Submitting = "submitting";
         public const string Ready = "ready";
-        public const string Submitted = "submitted";
 
         public string Kind { get; }
         public IReadOnlyList<string> Missing { get; }
@@ -81,7 +80,6 @@ namespace Client.Game.InGame.BugReport.Capture
                 case BugReportSubmitTicket.NoCaptureSession: return BugReportCaptureStatus.NoSession;
                 case BugReportSubmitTicket.CapturePending: return BugReportCaptureStatus.Capturing;
                 case BugReportSubmitTicket.SubmitInFlight: return BugReportCaptureStatus.Submitting;
-                case BugReportSubmitTicket.AlreadySubmitted: return BugReportCaptureStatus.Submitted;
                 // 未知の拒否コードを送信可として配ると、送れない状態のまま押させて拒否ログだけが溜まる
                 // Publishing an unknown refusal code as submittable would invite a click that only piles up refusal logs
                 default:
@@ -119,6 +117,14 @@ namespace Client.Game.InGame.BugReport.Capture
         public ClientStateSnapshot ClientState;
         public string ScreenshotPath;
         public List<MissingItem> Missing = new();
+
+        // 欠損は開発者向けログとMissing一覧の両方へ残す。片方だけだと調査時にもう片方へ辿り着けない
+        // Every missing item goes to both the developer log and the Missing list, one alone leaves an investigator stranded
+        public void AddMissing(string item, string reason)
+        {
+            UnityEngine.Debug.LogWarning($"バグ報告の記録が欠けます item:{item} reason:{reason}");
+            Missing.Add(new MissingItem { Item = item, Reason = reason });
+        }
     }
 
     // サーバーへの即時スナップショット要求の結果。受理と拒否を型で分ける

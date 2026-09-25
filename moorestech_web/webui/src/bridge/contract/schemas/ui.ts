@@ -50,9 +50,12 @@ const BugReportStatusSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("capturing"), ...BugReportMissingField }).strict(),
   z.object({ kind: z.literal("submitting"), ...BugReportMissingField }).strict(),
   z.object({ kind: z.literal("ready"), ...BugReportMissingField }).strict(),
-  z.object({ kind: z.literal("submitted"), ...BugReportMissingField }).strict(),
 ]);
-export const PauseMenuDataSchema = z.object({ disconnected: z.boolean(), bugReport: BugReportStatusSchema });
+export const PauseMenuDataSchema = z.object({
+  disconnected: z.boolean(),
+  bugReport: BugReportStatusSchema,
+  page: z.enum(["top", "settings", "bugReport"]),
+});
 const PlacementModeCommonFields = {
   height: z.number().int(),
   unavailableReason: z.string(),

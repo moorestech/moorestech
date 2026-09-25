@@ -3,6 +3,7 @@ using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.BugReport.Submit;
+using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Tests.Playtest;
 using Client.Tests.PlaytestReceiver;
 using Client.WebUiHost.Game.Actions;
@@ -35,10 +36,10 @@ namespace Client.Tests.BugReport
         [Test]
         public void 範囲外のkindはactionが拒否する()
         {
-            // kind 検証は確保セッション解決より前段なので、UIStateControlはnullのままでも足りる
-            // The kind check runs before the capture session is resolved, so UIStateControl may stay null here
+            // kind 検証は送信より前段なので、トップへの遷移は起きない
+            // The kind check runs before submitting, so no move to the top happens
             var session = new BugReportCaptureSession(new NullBugReportCaptureSources());
-            var handler = new BugReportSubmitActionHandler(new BugReportSubmitter(new BugReportBundleWriter(new EmptyPlaytestSessionIdentity(EmptyPlaytestSessionIdentity.DeveloperModeReason)), session, new RecordingProgressSink(), new RecordingUploadRequester()), null);
+            var handler = new BugReportSubmitActionHandler(new BugReportSubmitter(new BugReportBundleWriter(new EmptyPlaytestSessionIdentity(EmptyPlaytestSessionIdentity.DeveloperModeReason)), session, new RecordingProgressSink(), new RecordingUploadRequester()), new PauseMenuStateService());
 
             var crash = handler.ExecuteAsync(new JObject { ["description"] = "説明", ["kind"] = "crash" }).GetAwaiter().GetResult();
             Assert.IsFalse(crash.Ok);

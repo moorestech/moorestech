@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using Client.Game.InGame.Map.Outcrop;
 using Client.MapScene.Editor;
+using Client.Tests.UnitTest.MapPreview.Integration;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Map.Interface.Json;
@@ -30,6 +31,7 @@ namespace Client.Tests.UnitTest.MapPreview
         private EditorTerrainAssetLoader _assets;
         private Transform _outcrops;
         private CancellationTokenSource _cancellation;
+        private GeneratedMapPreviewTestFixture _fixture;
 
         [SetUp]
         public void SetUp()
@@ -40,10 +42,11 @@ namespace Client.Tests.UnitTest.MapPreview
             AssetDatabase.CreateFolder("Assets", _assetFolder.Substring("Assets/".Length));
             var main = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             EditorSceneManager.SaveScene(main, $"{_assetFolder}/Main.unity");
+            _fixture = new GeneratedMapPreviewTestFixture(true, 1);
 
             // 実生成の公開結果を使い、地形全量の描画だけを省いて配置経路を検査する
             // Use real generated public results and inspect placement without rebuilding all terrain visuals
-            _world = GeneratedMapPreviewWorld.Create(ServerDirectory.GetDirectory());
+            _world = GeneratedMapPreviewWorld.Create(_fixture.ServerDataDirectory);
             _stage = ScriptableObject.CreateInstance<GeneratedMapPreviewStage>();
             StageUtility.GoToStage(_stage, true);
             _content = new GeneratedMapPreviewContent(_stage.scene);
@@ -69,6 +72,7 @@ namespace Client.Tests.UnitTest.MapPreview
             if (_stage != null) Object.DestroyImmediate(_stage);
             EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
             AssetDatabase.DeleteAsset(_assetFolder);
+            _fixture.Dispose();
         }
 
         [UnityTest]

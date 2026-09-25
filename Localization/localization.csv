@@ -122,6 +122,9 @@ ui.notification.unknownMessage,Unknown notification: {messageId},Unknown notific
 ui.notification.saveMigrationMissingMasterPruned,"Removed data missing from this version: {p0} blocks, {p1} item stacks, {p2} research","Removed data missing from this version: {p0} blocks, {p1} item stacks, {p2} research",このバージョンに無くなったデータを取り除きました: ブロック{p0}個・アイテム{p1}枠・研究{p2}件,"Nicht mehr vorhandene Daten entfernt: {p0} Blöcke, {p1} Gegenstandsstapel, {p2} Forschungen"
 ui.pauseMenu.title,Pause Menu,Pause Menu,ポーズメニュー,Pausenmenü
 ui.pauseMenu.disconnected,Disconnected from server,Disconnected from server,サーバーから切断されました,Verbindung zum Server getrennt
+ui.pauseMenu.settings,Settings,Settings,設定,Einstellungen
+ui.pauseMenu.bugReport,Bug report,Bug report,バグ報告,Fehlerbericht
+ui.pauseMenu.back,Back,Back,戻る,Zurück
 ui.settings.language,Language,Language,言語,Sprache
 ui.recipe.catalogTitle,CRAFT RECIPE,CRAFT RECIPE,クラフトレシピ,HANDWERKSREZEPT
 ui.recipe.selectItemHint,Select an item from the list on the right,Select an item from the list on the right,右のリストからアイテムを選択してください,Wählen Sie einen Gegenstand aus der Liste rechts

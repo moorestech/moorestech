@@ -30,6 +30,16 @@ export const PauseMenuReportKinds = {
   feedback: "feedback",
 } as const;
 
+// C#契約と1対1対応(ADR0069)
+// Mirrors C#'s PauseMenuPageContract 1:1 (ADR 0069)
+export const PauseMenuPageNames = {
+  top: "top",
+  settings: "settings",
+  bugReport: "bugReport",
+} as const;
+
+export type PauseMenuPageName = (typeof PauseMenuPageNames)[keyof typeof PauseMenuPageNames];
+
 export type PauseMenuReportKind = (typeof PauseMenuReportKinds)[keyof typeof PauseMenuReportKinds];
 
 // action type → payload 型の対応表。dispatchAction がこれで型付けされる
@@ -63,6 +73,7 @@ export type ActionPayloads = {
   "ui_state.request": { state: typeof UiStateNames.gameScreen | typeof UiStateNames.playerInventory };
   "pause_menu.save": Record<string, never>;
   "pause_menu.save_and_quit": Record<string, never>;
+  "pause_menu.show_page": { page: PauseMenuPageName };
   "bug_report.submit": { description: string; kind: PauseMenuReportKind };
   "localization.setLocale": { locale: string };
   "event_mode.select_language": { locale: string };
@@ -116,6 +127,7 @@ export const ACTION_TYPES = [
   "ui_state.request",
   "pause_menu.save",
   "pause_menu.save_and_quit",
+  "pause_menu.show_page",
   "bug_report.submit",
   "localization.setLocale",
   "event_mode.select_language",
