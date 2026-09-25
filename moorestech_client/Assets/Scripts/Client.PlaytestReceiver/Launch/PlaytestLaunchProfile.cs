@@ -98,13 +98,12 @@ namespace Client.PlaytestReceiver.Launch
             _identityPublished = false;
         }
 
-        // テストの状態設定口も識別の公開状態まで揃える
-        // Keep the test state setter and published identity in sync
+        // テストの状態設定も起動入口と同じ公開手順を通す
+        // Route test state setup through the same publication step as boot
         internal static void Apply(PlaytestLaunchKind kind, IPlaytestSessionIdentity identity)
         {
             SetResolved(kind, identity);
-            PlaytestSessionIdentityProvider.SetCurrent(identity);
-            _identityPublished = true;
+            EnsureIdentityPublished();
         }
     }
 }

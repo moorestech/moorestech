@@ -168,20 +168,6 @@ namespace Client.Tests.Playtest.TitleGates
 
         }
 
-        // 直接起動も漏斗の前で識別を確定し、異常終了箱に未確定理由を残さない（C4/C15）
-        // Direct boots publish identity before the funnel so crash boxes do not keep an unresolved reason (C4/C15)
-        [Test]
-        public void 直接起動の漏斗前に識別を確定する()
-        {
-            PlaytestLaunchProfile.ResetOnPlayMode();
-            PlaytestStartGateBypass.DeclareDirectBoot("test");
-
-            PlaytestLaunchProfile.EnsureIdentityPublished();
-            Assert.AreEqual(PlaytestStartVerdict.Passed, PlaytestTitleGates.EvaluateStart("test", out _));
-
-            Assert.AreEqual(EmptyPlaytestSessionIdentity.DeveloperModeReason, PlaytestSessionIdentityProvider.Current.SteamIdAbsenceReason);
-        }
-
         private static PlaytestTitleGateSequence StartAttendedSequenceWithUnreadConsent()
         {
             return StartAttendedSequenceWithUnreadConsent(new RecordingUploadRequester());

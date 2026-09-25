@@ -27,9 +27,16 @@ namespace Client.PlaytestReceiver.Upload
         {
             _api = api;
             _directories = directories;
-            // 最初の走行役が認証境界を確定し、後続の走行役も期限内のトークンを使う
-            // The first runner fixes the authentication boundary; later runners reuse its valid token
-            if (_sharedSession == null) _sharedSession = new PlaytestSession(api, ticketProvider);
+            // 最初の走行役の認証境界を共有し、後続の依存を使わない理由を記録する
+            // Share the first runner's auth boundary and log why later dependencies are unused
+            if (_sharedSession == null)
+            {
+                _sharedSession = new PlaytestSession(api, ticketProvider);
+            }
+            else
+            {
+                Debug.Log("[PlaytestReceiver] shared session already exists; later api and ticketProvider are ignored for authentication; runner api remains in use for uploads");
+            }
         }
 
         // 走行フラグはEditorの再生跨ぎで残る。残したままだと2回目の再生で一度もアップロードが始まらない
