@@ -8,5 +8,5 @@
     { "itemId": 2, "count": 8 }
   ],
   "fluidSlots": [],
-  "timetable": { "status": "loading" }
+  "timetable": { "kind": "loading" }
 }

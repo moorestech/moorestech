@@ -6,7 +6,7 @@
   "itemSlots": [],
   "fluidSlots": [],
   "timetable": {
-    "status": "ready",
+    "kind": "ready",
     "data": {
       "trainUnitId": "7",
       "isAutoRun": true,

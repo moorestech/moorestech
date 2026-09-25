@@ -156,11 +156,11 @@ export const TrainTimetableDataSchema = z.object({
   stations: z.array(TrainTimetableStationSchema),
 });
 // 取得状態はC#が判定して kind で届く。読み込み中と取得不可を「値の有無」1ビットに畳まない
-// C# decides the fetch state and sends it as the status; loading and unavailable are not folded into value presence
-const TrainTimetableStateSchema = z.discriminatedUnion("status", [
-  z.object({ status: z.literal("loading") }).strict(),
-  z.object({ status: z.literal("unavailable") }).strict(),
-  z.object({ status: z.literal("ready"), data: TrainTimetableDataSchema }).strict(),
+// C# decides the fetch state and sends it as the kind; loading and unavailable are not folded into value presence
+const TrainTimetableStateSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("loading") }).strict(),
+  z.object({ kind: z.literal("unavailable") }).strict(),
+  z.object({ kind: z.literal("ready"), data: TrainTimetableDataSchema }).strict(),
 ]);
 const TrainStationDetailSchema = z.object({ name: z.string() });
 

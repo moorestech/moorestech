@@ -35,26 +35,26 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
         public List<TrainTimetableStationDto> Stations;
     }
 
-    // 時刻表の取得状態。status が "ready" のときだけ data を持つ（読み込み中と取得不可を区別する）
-    // Timetable fetch state; data is present only when status is "ready" (loading and unavailable stay distinct)
+    // 時刻表の取得状態。kind が "ready" のときだけ data を持つ（読み込み中と取得不可を区別する）
+    // Timetable fetch state; data is present only when kind is "ready" (loading and unavailable stay distinct)
     public class TrainTimetableStateDto
     {
-        public string Status;
+        public string Kind;
         public TrainTimetableDto Data;
 
         public static TrainTimetableStateDto Loading()
         {
-            return new TrainTimetableStateDto { Status = "loading" };
+            return new TrainTimetableStateDto { Kind = "loading" };
         }
 
         public static TrainTimetableStateDto Unavailable()
         {
-            return new TrainTimetableStateDto { Status = "unavailable" };
+            return new TrainTimetableStateDto { Kind = "unavailable" };
         }
 
         public static TrainTimetableStateDto Ready(TrainTimetableDto data)
         {
-            return new TrainTimetableStateDto { Status = "ready", Data = data };
+            return new TrainTimetableStateDto { Kind = "ready", Data = data };
         }
     }
 

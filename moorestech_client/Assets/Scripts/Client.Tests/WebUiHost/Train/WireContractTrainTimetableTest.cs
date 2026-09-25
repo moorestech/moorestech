@@ -43,7 +43,7 @@ namespace Client.Tests.WebUiHost.Train
         public void UnavailableTimetableCarriesNoData()
         {
             var json = JObject.Parse(WebUiJson.Serialize(TrainTimetableStateDto.Unavailable()));
-            Assert.That(json.ToString(Newtonsoft.Json.Formatting.None), Is.EqualTo("{\"status\":\"unavailable\"}"));
+            Assert.That(json.ToString(Newtonsoft.Json.Formatting.None), Is.EqualTo("{\"kind\":\"unavailable\"}"));
         }
 
         private static BlockInventoryDto CreateTrainInventory(TrainTimetableStateDto timetable)

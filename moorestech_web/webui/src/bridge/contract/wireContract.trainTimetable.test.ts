@@ -14,11 +14,11 @@ describe("train timetable fetch state (shared with C#)", () => {
 
   it("取得状態ごとの形だけを受理する", () => {
     const train = loadFixture("train_inventory.json") as Record<string, unknown>;
-    expect(parseTopicPayload(Topics.blockInventory, { ...train, timetable: { status: "unavailable" } }).valid).toBe(true);
+    expect(parseTopicPayload(Topics.blockInventory, { ...train, timetable: { kind: "unavailable" } }).valid).toBe(true);
     // 取得済み以外は data を持てず、取得済みは data 必須、状態の省略は不可
     // Only ready may carry data, ready requires it, and the state cannot be omitted
-    expect(parseTopicPayload(Topics.blockInventory, { ...train, timetable: { status: "ready" } }).valid).toBe(false);
-    expect(parseTopicPayload(Topics.blockInventory, { ...train, timetable: { status: "loading", data: {} } }).valid).toBe(false);
+    expect(parseTopicPayload(Topics.blockInventory, { ...train, timetable: { kind: "ready" } }).valid).toBe(false);
+    expect(parseTopicPayload(Topics.blockInventory, { ...train, timetable: { kind: "loading", data: {} } }).valid).toBe(false);
     expect(parseTopicPayload(Topics.blockInventory, { ...train, timetable: undefined }).valid).toBe(false);
   });
 });

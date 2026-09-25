@@ -27,7 +27,7 @@ const bStop = { ...b, side: "back" as const };
 const timetable: TrainTimetableData = {
   trainUnitId: "train", isAutoRun: false, currentIndex: 0, stops: [aStop], stations: [a, b],
 };
-const readyTimetable = { status: "ready", data: timetable } as const;
+const readyTimetable = { kind: "ready", data: timetable } as const;
 type TrainData = Extract<BlockInventoryData, { source: "train" }>;
 function trainData(state: TrainData["timetable"]): TrainData {
   return { open: true, source: "train", blockType: "Train", identifier: "car", itemSlots: [], fluidSlots: [], timetable: state };
@@ -85,13 +85,12 @@ describe("train timetable UI", () => {
   });
 
   it("discards unapplied edits when the train panel unmounts", () => {
-    const data = { open: true, source: "train", blockType: "Train", identifier: "car", itemSlots: [], timetable: readyTimetable } as const;
     let tree!: ReactTestRenderer;
-    act(() => { tree = create(createElement(TrainInventoryBody, { data: { ...data, itemSlots: [], fluidSlots: [] } })); });
+    act(() => { tree = create(createElement(TrainInventoryBody, { data: trainData(readyTimetable) })); });
     click(tree, "train-tab-timetable");
     click(tree, "train-timetable-station-2_0_2-add");
     act(() => tree.unmount());
-    act(() => { tree = create(createElement(TrainInventoryBody, { data: { ...data, itemSlots: [], fluidSlots: [] } })); });
+    act(() => { tree = create(createElement(TrainInventoryBody, { data: trainData(readyTimetable) })); });
     click(tree, "train-tab-timetable");
     click(tree, "train-timetable-apply");
     const replaceCalls = vi.mocked(dispatchAction).mock.calls.filter(([type]) => type === "train_timetable.replace");
@@ -99,9 +98,8 @@ describe("train timetable UI", () => {
   });
 
   it("keeps unapplied edits while switching tabs", () => {
-    const data = { open: true, source: "train", blockType: "Train", identifier: "car", itemSlots: [], timetable: readyTimetable } as const;
     let tree!: ReactTestRenderer;
-    act(() => { tree = create(createElement(TrainInventoryBody, { data: { ...data, itemSlots: [], fluidSlots: [] } })); });
+    act(() => { tree = create(createElement(TrainInventoryBody, { data: trainData(readyTimetable) })); });
     click(tree, "train-tab-timetable");
     click(tree, "train-timetable-station-2_0_2-add");
     click(tree, "train-tab-inventory");
@@ -112,7 +110,7 @@ describe("train timetable UI", () => {
 
   it("asks C# to fetch only when the timetable tab is selected", () => {
     let tree!: ReactTestRenderer;
-    act(() => { tree = create(createElement(TrainInventoryBody, { data: trainData({ status: "loading" }) })); });
+    act(() => { tree = create(createElement(TrainInventoryBody, { data: trainData({ kind: "loading" }) })); });
     expect(dispatchAction).not.toHaveBeenCalled();
     click(tree, "train-tab-timetable");
     expect(dispatchAction).toHaveBeenCalledWith("train_timetable.open", {});
@@ -120,15 +118,28 @@ describe("train timetable UI", () => {
     expect(dispatchAction).toHaveBeenCalledTimes(1);
   });
 
+  it("re-asks C# when a reset fetch arrives as loading while the timetable tab stays selected", () => {
+    let tree!: ReactTestRenderer;
+    act(() => { tree = create(createElement(TrainInventoryBody, { data: trainData({ kind: "loading" }) })); });
+    click(tree, "train-tab-timetable");
+    act(() => tree.update(createElement(TrainInventoryBody, { data: trainData({ kind: "unavailable" }) })));
+    expect(dispatchAction).toHaveBeenCalledTimes(1);
+    // 同一車両の閉→開が畳まれ再マウントされなくても、読み込み中の配信で取得を頼み直す
+    // Even without a remount after a folded same-car close/open, a loading publish asks for the fetch again
+    act(() => tree.update(createElement(TrainInventoryBody, { data: trainData({ kind: "loading" }) })));
+    expect(dispatchAction).toHaveBeenCalledTimes(2);
+    expect(dispatchAction).toHaveBeenLastCalledWith("train_timetable.open", {});
+  });
+
   it("shows loading and unavailable as distinct states without warning", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     let tree!: ReactTestRenderer;
-    act(() => { tree = create(createElement(TrainInventoryBody, { data: trainData({ status: "loading" }) })); });
+    act(() => { tree = create(createElement(TrainInventoryBody, { data: trainData({ kind: "loading" }) })); });
     click(tree, "train-tab-timetable");
     const byTestId = (id: string) => tree.root.findAll((node) => node.props["data-testid"] === id);
     expect(byTestId("train-timetable-loading")).toHaveLength(1);
     expect(byTestId("train-timetable-unavailable")).toHaveLength(0);
-    act(() => tree.update(createElement(TrainInventoryBody, { data: trainData({ status: "unavailable" }) })));
+    act(() => tree.update(createElement(TrainInventoryBody, { data: trainData({ kind: "unavailable" }) })));
     expect(byTestId("train-timetable-loading")).toHaveLength(0);
     expect(byTestId("train-timetable-unavailable")).toHaveLength(1);
     act(() => tree.update(createElement(TrainInventoryBody, { data: trainData(readyTimetable) })));
