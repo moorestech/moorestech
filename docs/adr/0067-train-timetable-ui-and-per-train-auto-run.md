@@ -61,15 +61,25 @@
 
 ### agent前提（ユーザー裁定ではない）
 
-- **時刻表に載せられるのは蒸気機関車駅（`BlockTypeConst.TrainStation`）だけ。登録ノードは Back側 Exit。** 出所: agent前提（`docs/train/StationPlatformComponentRefactoring.md`「Station = Diagram が認識する駅のマーカー」、既存デバッグ規則 `IsDebugAutoRunStationNode` と同一）
+- **時刻表に載せられるのは蒸気機関車駅（`BlockTypeConst.TrainStation`）だけ。** 出所: agent前提（`docs/train/StationPlatformComponentRefactoring.md`「Station = Diagram が認識する駅のマーカー」）
 - **列車への操作は1プロトコル `va:trainScheduleEdit` に Operation enum（ReplaceTimetable / SetAutoRun）で束ね、static factory で Request を作る。駅名は別プロトコル `va:setTrainStationName`。** 出所: agent前提（moorestech-principles「1プロトコル＝1ドメイン」、`FilterSplitterStateProtocol`・`RailConnectionEditRequest` 前例）
-- **同期は既存 snapshot 経路に同乗。** `TrainSimulationSnapshotMessagePack` に自動運転フラグと時刻表（駅ブロック座標の列＋現在インデックス）を追加し、編集適用時と到着で次エントリへ進んだ時に `NotifySnapshot` を呼ぶ。初期データは `va:event:trainUnitFullSnapshot` が兼ねる。ハッシュには含めない。出所: agent前提（creating-server-protocol 3点セットを既存経路で満たす。`TrainPlatformItemContainerComponent` が `NotifySnapshotByCar` を呼ぶ前例）
 - **駅名の配信はブロック状態（`IBlockStateObservable`）で行い、既存の `TrainPlatformDetailDtoBuilder` に載せる。** 出所: agent前提（`TrainPlatformTransferComponent` と同型）
 - **セーブ形式は変えない。** エントリはノード参照のまま。駅名は既に永続化済み。出所: agent前提（AGENTS.md セーブ形式変更時のマイグレーション規約を回避できる）
 - **駅の座標が駅でない・不明なら置換全体を失敗理由付きで拒否しログに出す。** 出所: agent前提（fail-closed 無音縮退禁止）
 - **playerId は自己申告のまま。** 出所: agent前提（[[2026-08-14-プロトコルのplayerId自己申告は既存多数派として放置する]]）
 
+### 2026-09-25 改訂（PR #1415 レビュー後のユーザー指摘）
+
+- **時刻表と自動運転フラグは tick 同期しない。** 列車の走行同期（`TrainSimulationSnapshot`・tick差分）には載せず、tick番号を持たない専用イベント `va:event:trainTimetable`（自動運転フラグ・停車駅の列・現在の停車駅）で UI 向けに配る。送るのは編集時・到着で次の駅へ進んだ時・自動運転の切替時。初期データは時刻表タブを開いたときの問い合わせ（`va:getTrainTimetable`）で取り、開いている間はイベントを購読して更新する。クライアントの列車はこれまでどおり時刻表を知らずに走る（行き先の選択と出発判定はサーバーだけが行い、結果はマスコン値と進行先ノードの tick 差分で届く）。
+  出所: ユーザー裁定 2026-09-25 原文「diagramの状態はtick同期する必要はない」「自動運転のトグルスイッチもtick同期する必要はない」「クライアントはシミュレーションtick時点での時刻表情報は知らなくていいし、自動運転かどうかも知っている必要がありません」→ 開いたままの更新について選択「A（tick と無関係な専用イベント＋開いたときの問い合わせ）」
+  棄却案: 開いたときと自分の編集時だけ問い合わせる（B。開いたままでは現在駅・自動OFF・他者の編集が反映されない）／既存 snapshot 経路に同乗（改訂前の agent前提）
+- **停車駅は駅ブロックの先端側・後端側のどちらの Exit ノードでも指定できる。プロトコル `va:trainScheduleEdit` は停車駅ごとに端（Front/Back）を持ち、Web UI は入線方向を固定（新規追加は Back側）して送る。** 既に登録されている停車駅はイベントで届いた端をそのまま送り返す。
+  出所: ユーザー裁定 2026-09-25 原文「駅blockは先端と後端が両方駅nodeとして認識対象になるべきである」「原理上どちらも指定できるが、基本的にUIでは固定方向（つまり駅の入線方向は固定）としたい」「プロトコルではどちらも指定できる。UIレイヤーで固定する」
+  棄却案: 近い方の端にサーバーが着ける／端をサーバーで固定しプロトコルからは指定できない（いずれも選択肢として提示し、ユーザーは選ばず自由記述で上記を指示）
+- **UIで固定する端は Back側（改訂前と同じ）。セーブ形式は変えない**（エントリは従来どおりノード1つを保存し、端はノードから分かる）。出所: agent前提（改訂前の挙動を保つ・AGENTS.md セーブ形式変更規約を回避）
+- 上記2点は既存 Train コード（`TrainSnapshots`・`TrainUpdateService`・駅ノード解決）への改修を伴うが、ユーザーの明示指示により本PRで行う。[[2026-09-24-時刻表UIの最終レビューでは既存Trainコードへの改修を持ち込まない]] の例外。出所: ユーザー裁定 2026-09-25 原文「その方向でPR上で直して、裁定も更新して」
+
 ## Consequences
 
 - `TrainDiagram.AddEntry(node, type, waitTicks)` のデフォルト引数（`waitTicks = 0`）は規約違反なので `ReplaceEntries` 実装時に呼び出し側を明示に直す。
-- 時刻表と自動運転フラグの変更で snapshot が飛ぶため、頻度は「編集時＋到着時」に限る。
+- 時刻表イベントの頻度は「編集時＋到着で次の駅へ進んだ時＋自動運転の切替時」に限る。列車の走行同期（tick差分・スナップショット）の頻度には影響しない。
