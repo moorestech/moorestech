@@ -1,6 +1,5 @@
 using System;
 using Steamworks;
-using UnityEngine;
 
 namespace Client.PlaytestReceiver.Steam
 {
@@ -23,7 +22,6 @@ namespace Client.PlaytestReceiver.Steam
             }
             catch (Exception exception)
             {
-                Debug.LogError($"[PlaytestReceiver] SteamUser.GetSteamID failed: {exception.GetBaseException().Message}");
                 steamId = "";
                 failureReason = $"SteamUser.GetSteamID failed: {exception.GetBaseException().Message}";
                 return false;
@@ -33,7 +31,6 @@ namespace Client.PlaytestReceiver.Steam
             {
                 steamId = "";
                 failureReason = "SteamUser.GetSteamID returned an invalid (zero) id";
-                Debug.LogWarning($"[PlaytestReceiver] {failureReason}");
                 return false;
             }
 

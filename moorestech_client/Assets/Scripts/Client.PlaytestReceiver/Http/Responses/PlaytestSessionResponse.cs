@@ -6,20 +6,16 @@ using UnityEngine;
 
 namespace Client.PlaytestReceiver.Http.Responses
 {
-    // POST /v1/session の200応答。生成はParse経由だけに閉じ、steamId・token・期限が揃った応答しか作れない
-    // The 200 body of POST /v1/session; Parse is the only constructor, so an instance always carries a steamId, a token and its expiry
+    // POST /v1/session の200応答。SteamIDは契約検査に使い、トークンと期限だけを保持する
+    // The 200 body of POST /v1/session validates the SteamID contract and retains only the token and expiry
     internal sealed class PlaytestSessionResponse
     {
-        private PlaytestSessionResponse(string steamId, string token, DateTime expiresAtUtc)
+        private PlaytestSessionResponse(string token, DateTime expiresAtUtc)
         {
-            SteamId = steamId;
             Token = token;
             ExpiresAtUtc = expiresAtUtc;
         }
 
-        // 受け口がSteam Web APIで検証したSteamID。送信先のアカウントを示す（ADR 0070）
-        // The SteamID the receiver verified through the Steam Web API; it identifies the receiving account (ADR 0070)
-        public string SteamId { get; }
         public string Token { get; }
         public DateTime ExpiresAtUtc { get; }
 
@@ -66,7 +62,7 @@ namespace Client.PlaytestReceiver.Http.Responses
                 return null;
             }
 
-            return new PlaytestSessionResponse(steamId, token, expiresAt.UtcDateTime);
+            return new PlaytestSessionResponse(token, expiresAt.UtcDateTime);
         }
     }
 }

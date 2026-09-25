@@ -11,7 +11,8 @@ TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
 # Fake R2 with five boxes: bug, feedback, progress, one without files[] and one with special file names
 mk_object report/7656001/20260913_100000_bug1/manifest.json '{"kind":"bug","steamId":"7656001","description":"ベルトが止まる"}'
 mk_object report/7656001/20260913_100000_bug1/screenshot.png 'PNG'
-mk_ready report/7656001/20260913_100000_bug1 '["manifest.json","screenshot.png"]'
+mk_object report/7656001/20260913_100000_bug1/.persona.json 'tester-file'
+mk_ready report/7656001/20260913_100000_bug1 '["manifest.json","screenshot.png",".persona.json"]'
 mk_object report/7656002/20260913_110000_fb1/manifest.json '{"kind":"feedback","steamId":"7656002","description":"序盤が長い"}'
 mk_ready report/7656002/20260913_110000_fb1 '["manifest.json"]'
 mk_object progress/7656001/20260913_120000_pg1/record.json '{"schemaVersion":1,"steamId":"7656001","playSeconds":600}'
@@ -37,6 +38,7 @@ run_ingest
 P="$LOGS/harness/playtest"
 [ -f "$P/reports/7656001/20260913_100000_bug1/manifest.json" ] || { echo "NG: バグ報告が置かれていない"; exit 1; }
 [ -f "$P/reports/7656001/20260913_100000_bug1/ingest.json" ] || { echo "NG: ingest.json が無い"; exit 1; }
+[ "$(cat "$P/reports/7656001/20260913_100000_bug1/.persona.json")" = tester-file ] || { echo "NG: テスターの .persona.json が上書きされた"; exit 1; }
 grep -q '"readyAt":"2026-09-13T01:00:00Z"' "$P/reports/7656001/20260913_100000_bug1/ingest.json" || { echo "NG: readyAt が写っていない"; exit 1; }
 [ -f "$P/reports/7656002/20260913_110000_fb1/manifest.json" ] || { echo "NG: 感想が置かれていない"; exit 1; }
 [ -f "$P/progress/7656001/20260913_120000_pg1/record.json" ] || { echo "NG: 進行記録が置かれていない"; exit 1; }
@@ -134,4 +136,13 @@ assert sys.argv[2] in meta["steamPersonaMissing"]
 PY
   grep -q '\[WARN\]' "$TMP/$mode.log" || { echo "NG: $mode の警告が無い"; exit 1; }
 done
+
+# source 時に一時ディレクトリを作らず、キャッシュ先未設定なら理由を出して失敗する
+# Sourcing creates no temporary directory; an unset cache directory fails with a reason
+mkdir -p "$TMP/source-only"
+if (unset STEAM_PERSONA_CACHE_DIR; TMPDIR="$TMP/source-only"; log() { echo "$*" >&2; }; . "$HERE/../lib/steam-persona.sh"; steam_persona_resolve 7656 "$TMP/no-cache.json") > "$TMP/no-cache.log" 2>&1; then
+  echo "NG: キャッシュ先未設定でも表示名解決が成功した"; exit 1
+fi
+grep -q 'STEAM_PERSONA_CACHE_DIR が未設定' "$TMP/no-cache.log" || { echo "NG: キャッシュ先未設定の理由が無い"; exit 1; }
+[ -z "$(ls -A "$TMP/source-only")" ] || { echo "NG: source 時に一時ディレクトリが残った"; exit 1; }
 echo OK

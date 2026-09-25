@@ -8,10 +8,10 @@ namespace Client.Starter.Playtest
 {
     /// <summary>
     /// 前回セッションの印を読む処理（退避と印の消費）を起動1回に1度、1箇所で行う（ADR 0060 裁定5・ADR 0065）。
-    /// タイトルを通る起動（出展モードの自動開始を含む）はタイトルの照合通過で、タイトルを通らない直接起動（テスト・DSL・Editorの直接再生）はパイプラインで行う。
+    /// タイトルを通る起動（出展モードの自動開始を含む）はタイトルの確認開始時に、タイトルを通らない直接起動（テスト・DSL・Editorの直接再生）はパイプラインで行う。
     /// 今回の終了印の書き手は、パイプラインの開始ゲート通過直後・最初のawait前に同期設置する。
     /// Reads the previous session's marks (salvage and consumption) once per boot at a single spot (ADR 0060 adjudication 5, ADR 0065).
-    /// A boot through the title (the event-mode auto start included) does it when the launch check passes there; a direct boot that skips the title (tests, the DSL, an Editor direct play) does it in the pipeline.
+    /// A boot through the title (including event-mode auto start) does it when title confirmations begin; a direct boot that skips the title does it in the pipeline.
     /// This boot's exit-mark writer is installed synchronously right after the pipeline's start gate, before the first await.
     /// </summary>
     public static class PreviousSessionStartupTasks
@@ -26,8 +26,8 @@ namespace Client.Starter.Playtest
             _salvagedThisBoot = false;
         }
 
-        // タイトルの照合通過で1回だけ呼ぶ。退避元は前回セッション自身の所有印が決めるので、ここは今回の起動設定を渡さない（D-C3）
-        // Called once when the launch check passes at the title; the previous session's own ownership mark decides the salvage source, so no setting of this boot is handed over (D-C3)
+        // タイトルの確認開始時に1回だけ呼ぶ。退避元は前回セッション自身の所有印が決めるので、今回の起動設定は渡さない（D-C3）
+        // Called once when title confirmations begin; the previous session's ownership mark decides the salvage source, so this boot's settings are not passed (D-C3)
         internal static PreviousSessionArtifacts SalvageAtTitle()
         {
             // 退避はこの起動に1回（ADR 0060 裁定5）。直接起動の後にタイトルへ戻った再訪では、退避済みの資料をそのまま渡して未応答の確認を出し直す（D-C1）

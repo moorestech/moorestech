@@ -35,8 +35,8 @@ namespace Client.MainMenu
 
         private void Connect()
         {
-            // 同じ関所を通す。照合とタイトルの確認の2段はPlaytestTitleGates 1箇所に閉じており、接続先がリモートでも同じく通す（ADR 0065）
-            // The same checkpoint is consulted here; both stages live inside PlaytestTitleGates alone, and a remote destination goes through it just the same (ADR 0065)
+            // リモート接続も同じタイトルの確認を通す。判定と拒否理由はPlaytestTitleGatesが決める
+            // Remote connections use the same title confirmations; PlaytestTitleGates decides the verdict and refusal text
             var verdict = PlaytestTitleGates.EvaluateStart(nameof(Connect), out var refusal);
             switch (verdict)
             {

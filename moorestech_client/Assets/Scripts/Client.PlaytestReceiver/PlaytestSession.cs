@@ -84,9 +84,7 @@ namespace Client.PlaytestReceiver
                 _token = parsed.Token;
                 _tokenRefreshAtUtc = parsed.ExpiresAtUtc.AddSeconds(-PlaytestReceiverConfig.TokenRefreshMarginSeconds);
 
-                // 検証済みSteamIDは結末に載せて渡す。セッションに残すと、後の再認証が失敗しても前回の値が読めてしまう（ADR 0065）
-                // The verified SteamID rides on the outcome; keeping it on the session would let a later failed re-authentication still read the old value (ADR 0065)
-                return PlaytestSessionResult.Allowed(parsed.SteamId);
+                return PlaytestSessionResult.Allowed();
             }
 
             #endregion
@@ -117,8 +115,8 @@ namespace Client.PlaytestReceiver
             return await call.SendAsync(_token, token);
         }
 
-        // キャッシュ命中は認証を経ないのでSteamIDを持たない。認証の結末を装わずトークンの可用性だけを返す
-        // A cache hit skips authentication and has no SteamID, so it reports token availability instead of posing as an authentication outcome
+        // キャッシュ命中は認証を経ない。認証の結末を装わずトークンの可用性だけを返す
+        // A cache hit skips authentication, so report token availability rather than an authentication outcome
         private async UniTask<PlaytestTokenAvailability> EnsureTokenAsync(DateTime utcNow, bool forceRenew, CancellationToken token)
         {
             if (!forceRenew && _token != null && utcNow < _tokenRefreshAtUtc) return PlaytestTokenAvailability.Usable;

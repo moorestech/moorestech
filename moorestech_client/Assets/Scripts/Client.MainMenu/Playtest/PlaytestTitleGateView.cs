@@ -28,7 +28,7 @@ namespace Client.MainMenu.Playtest
 
             // 配布版判定を確定し、通信を待たずにタイトルの確認を始める（ADR 0070）
             // Resolve the distribution kind and begin title confirmations without waiting for a network check (ADR 0070)
-            if (!PlaytestTitleGates.TryBegin(PlaytestLaunchProfile.Resolve(), uploadRequester, out var sequence)) return;
+            PlaytestTitleGates.Begin(PlaytestLaunchProfile.Resolve(), uploadRequester, out var sequence);
             if (_boundSequence == sequence) return;
             _boundSequence = sequence;
             consentPopup.Initialize(sequence);

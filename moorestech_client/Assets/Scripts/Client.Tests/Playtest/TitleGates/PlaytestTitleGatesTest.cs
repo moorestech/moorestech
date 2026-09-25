@@ -140,7 +140,7 @@ namespace Client.Tests.Playtest.TitleGates
             var sequence = StartAttendedSequenceWithUnreadConsent(firstTitleUploads);
 
             var revisitUploads = new RecordingUploadRequester();
-            Assert.IsTrue(PlaytestTitleGates.TryBegin(PlaytestLaunchKind.Distribution, revisitUploads, out var revisited));
+            PlaytestTitleGates.Begin(PlaytestLaunchKind.Distribution, revisitUploads, out var revisited);
             Assert.AreSame(sequence, revisited, "再訪で別の列が始まっている");
 
             sequence.AcknowledgeConsent();
@@ -160,7 +160,7 @@ namespace Client.Tests.Playtest.TitleGates
             Assert.AreEqual(0, firstTitleUploads.RequestCount);
 
             var revisitUploads = new RecordingUploadRequester();
-            Assert.IsTrue(PlaytestTitleGates.TryBegin(PlaytestLaunchKind.Distribution, revisitUploads, out _));
+            PlaytestTitleGates.Begin(PlaytestLaunchKind.Distribution, revisitUploads, out _);
             Assert.AreEqual(1, revisitUploads.RequestCount, "配布版としての再訪で持ち越しの送信を要求していない");
 
 

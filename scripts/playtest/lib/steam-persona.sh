@@ -6,6 +6,10 @@ STEAM_API_MAX_TIME="${STEAM_API_MAX_TIME:-20}"
 
 steam_persona_resolve() {
   local steam_id="$1" out="$2"
+  if [ -z "${STEAM_PERSONA_CACHE_DIR:-}" ] || [ ! -d "$STEAM_PERSONA_CACHE_DIR" ]; then
+    log "ERROR: STEAM_PERSONA_CACHE_DIR が未設定または存在しない（表示名を保存できない）"
+    return 1
+  fi
   local cached="$STEAM_PERSONA_CACHE_DIR/$steam_id.json"
 
   # 同じ実行では SteamID ごとに一度だけ照会する
