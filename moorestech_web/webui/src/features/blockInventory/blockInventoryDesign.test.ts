@@ -25,7 +25,6 @@ const sources = {
 };
 
 const styles = {
-  panelTabs: read("../../shared/ui/PanelTabs/style.module.css"),
   trainTimetable: read("./train/style.module.css"),
   panel: read("./style.module.css"),
   gaugeBar: read("../../shared/ui/GaugeBar/style.module.css"),

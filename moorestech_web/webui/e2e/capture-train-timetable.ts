@@ -38,7 +38,7 @@ async function main() {
   // 時刻表タブへ切替
   // Switch to the timetable tab
   await page.getByTestId("train-tab-timetable").click();
-  await page.getByTestId("train-timetable-section").waitFor().catch(() => undefined);
+  await page.getByTestId("train-timetable-section").waitFor();
   await page.waitForTimeout(300);
   await page.screenshot({ path: join(OUT_DIR, "train-tab-timetable.png") });
 

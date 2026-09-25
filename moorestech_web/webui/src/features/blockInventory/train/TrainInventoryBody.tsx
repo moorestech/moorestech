@@ -1,12 +1,12 @@
-// 列車インベントリ本文（§8.22 PanelTabsで切替）
-// Train inventory body (§8.22, switched via PanelTabs)
+// 列車インベントリ本文（§8.22 tablist版ModeSwitchで切替）
+// Train inventory body (§8.22, switched via the tablist ModeSwitch)
 import { useEffect, useRef, useState } from "react";
 import { ScrollArea, Text } from "@mantine/core";
 import styles from "./style.module.css";
 import { dispatchAction } from "@/bridge";
 import type { BlockInventoryData } from "@/bridge";
 import { L, useI18n } from "@/shared/i18n";
-import { PanelTabs } from "@/shared/ui";
+import { ModeSwitch, type ModeSwitchOption } from "@/shared/ui";
 import BlockItemGrid from "../BlockItemGrid";
 import TrainTimetableSection from "./TrainTimetableSection";
 
@@ -28,13 +28,13 @@ export default function TrainInventoryBody({ data }: { data: TrainData }) {
     previousTab.current = tab;
     if (tab === "timetable" && (selectedNow || loadingTimetable)) void dispatchAction("train_timetable.open", {});
   }, [tab, loadingTimetable]);
-  const tabs: { value: Tab; label: string; testId: string }[] = [
+  const tabs: ModeSwitchOption<Tab>[] = [
     { value: "inventory", label: t(L.ui.blockInventory.trainTabInventory), testId: "train-tab-inventory" },
     { value: "timetable", label: t(L.ui.blockInventory.trainTabTimetable), testId: "train-tab-timetable" },
   ];
   return (
     <div className={styles.body}>
-      <PanelTabs value={tab} tabs={tabs} onChange={setTab} testId="train-tabs" />
+      <ModeSwitch role="tablist" value={tab} options={tabs} onChange={setTab} testId="train-tabs" />
       <ScrollArea className={styles.scroll} type="auto">
         {tab === "inventory" && <BlockItemGrid itemSlots={data.itemSlots} testId="train-inventory-slots" />}
         {tab === "timetable" && timetable.kind === "loading" && (

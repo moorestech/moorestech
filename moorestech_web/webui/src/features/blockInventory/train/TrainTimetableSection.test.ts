@@ -47,6 +47,9 @@ function render(data: TrainTimetableData) {
 function currentRows(tree: ReactTestRenderer) {
   return tree.root.findAll((node) => node.type === "li" && node.props["data-current"] === "true");
 }
+function stopRows(tree: ReactTestRenderer) {
+  return tree.root.findAll((node) => node.type === "li");
+}
 
 beforeEach(() => vi.clearAllMocks());
 
@@ -62,6 +65,47 @@ describe("train timetable UI", () => {
     expect(dispatchAction).toHaveBeenCalledWith("train_timetable.replace", { stops: [{ ...b.position, side: "back" }, { ...a.position, side: "back" }] });
     click(tree, "train-timetable-auto-run-on");
     expect(dispatchAction).toHaveBeenLastCalledWith("train_timetable.set_auto_run", { enabled: true });
+  });
+
+  // ON時のOFFクリック経路はテストで守られていなかった（isAutoRunを反転しても赤くならない）
+  // The ON-to-OFF click path was untested (flipping isAutoRun did not turn anything red)
+  it("sends auto-run off from the ON state", () => {
+    const tree = render({ ...timetable, isAutoRun: true });
+    expect(button(tree, "train-timetable-auto-run-on").props["data-selected"]).toBe("true");
+    click(tree, "train-timetable-auto-run-off");
+    expect(dispatchAction).toHaveBeenCalledWith("train_timetable.set_auto_run", { enabled: false });
+  });
+
+  // 非受理は編集を権威へ戻す（dirtyのまま再同期されなくなるのを防ぐ）
+  // A rejected replacement returns the draft to authority (it must not stay dirty forever)
+  it("returns the draft to the server timetable when the replacement is not accepted", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const tree = render(timetable);
+    click(tree, "train-timetable-station-2_0_2-add");
+    expect(stopRows(tree)).toHaveLength(2);
+    vi.mocked(dispatchAction).mockResolvedValueOnce(false);
+    await act(async () => { button(tree, "train-timetable-apply").props.onClick(); });
+    expect(stopRows(tree)).toHaveLength(1);
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
+  });
+
+  // 差し戻し先はクリック時ではなくawait解決時の権威（古い権威で固定するとdirtyのまま残る）
+  // The revert target is the authority at resolution time, not at click time (an old one would leave it dirty)
+  it("reverts to the authority that arrived while the send was in flight", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const tree = render(timetable);
+    click(tree, "train-timetable-station-2_0_2-add");
+    let settle!: (accepted: boolean) => void;
+    vi.mocked(dispatchAction).mockReturnValueOnce(new Promise<boolean>((resolve) => { settle = resolve; }));
+    click(tree, "train-timetable-apply");
+    act(() => tree.update(createElement(TrainTimetableSection, { timetable: { ...timetable, stops: [bStop] } })));
+    await act(async () => { settle(false); });
+    expect(stopRows(tree)).toHaveLength(1);
+    click(tree, "train-timetable-apply");
+    expect(dispatchAction).toHaveBeenLastCalledWith("train_timetable.replace", { stops: [{ ...b.position, side: "back" }] });
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
   });
 
   it("keeps ON disabled until the server has stops, even with locally added stops", () => {
