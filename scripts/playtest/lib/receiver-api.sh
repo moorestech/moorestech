@@ -60,22 +60,3 @@ receiver_ack() {
   receiver_curl /dev/null -X POST \
     "$RECEIVER_BASE/v1/inbox/$(url_encode "$kind")/$(url_encode "$steam_id")/$(url_encode "$id")/ack"
 }
-
-# 応答本文を標準出力へ返す版（許可リストの GET/PUT 用）。失敗時は何も出さず非0で返す
-# Variant that returns the response body on stdout (for allowlist GET/PUT); prints nothing and fails on error
-receiver_admin_body() {
-  local body rc=0
-  body="$(mktemp)"
-  receiver_curl "$body" "$@" || rc=$?
-  [ "$rc" -ne 0 ] || cat "$body"
-  rm -f "$body"
-  return "$rc"
-}
-
-receiver_allowlist_get() {
-  receiver_admin_body "$RECEIVER_BASE/v1/allowlist"
-}
-
-receiver_allowlist_put() {
-  receiver_admin_body -X PUT -H "Content-Type: application/json" --data "$1" "$RECEIVER_BASE/v1/allowlist"
-}

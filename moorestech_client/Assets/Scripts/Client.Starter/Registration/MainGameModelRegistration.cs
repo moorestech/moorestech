@@ -25,6 +25,7 @@ using Client.Game.InGame.UnlockState;
 using Client.Network.API;
 using Client.PlaytestReceiver;
 using Client.PlaytestReceiver.Http;
+using Client.PlaytestReceiver.Steam;
 using Client.PlaytestReceiver.Upload;
 using Client.Starter.PlaytestSmoke;
 using Core.Item.Interface;
@@ -62,6 +63,7 @@ namespace Client.Starter.Registration
             // The push site used right after a report; the runner decides whether to ship and keeps runs single
             builder.RegisterInstance<IPlaytestReceiverApi>(new PlaytestReceiverClient(PlaytestReceiverConfig.BaseUrl));
             builder.RegisterInstance(PlaytestOutboxDirectories.FromGameSystemPaths());
+            builder.RegisterInstance<IPlaytestSteamTicketProvider>(new PlaytestSteamTicketProvider());
             builder.Register<PlaytestUploadRunner>(Lifetime.Singleton).As<IPlaytestUploadRequester>();
 
             // 操作枠と設置数の状態購読を登録

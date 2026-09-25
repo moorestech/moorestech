@@ -11,7 +11,8 @@ TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
 # Fake R2 with five boxes: bug, feedback, progress, one without files[] and one with special file names
 mk_object report/7656001/20260913_100000_bug1/manifest.json '{"kind":"bug","steamId":"7656001","description":"ベルトが止まる"}'
 mk_object report/7656001/20260913_100000_bug1/screenshot.png 'PNG'
-mk_ready report/7656001/20260913_100000_bug1 '["manifest.json","screenshot.png"]'
+mk_object report/7656001/20260913_100000_bug1/.persona.json 'tester-file'
+mk_ready report/7656001/20260913_100000_bug1 '["manifest.json","screenshot.png",".persona.json"]'
 mk_object report/7656002/20260913_110000_fb1/manifest.json '{"kind":"feedback","steamId":"7656002","description":"序盤が長い"}'
 mk_ready report/7656002/20260913_110000_fb1 '["manifest.json"]'
 mk_object progress/7656001/20260913_120000_pg1/record.json '{"schemaVersion":1,"steamId":"7656001","playSeconds":600}'
@@ -37,6 +38,7 @@ run_ingest
 P="$LOGS/harness/playtest"
 [ -f "$P/reports/7656001/20260913_100000_bug1/manifest.json" ] || { echo "NG: バグ報告が置かれていない"; exit 1; }
 [ -f "$P/reports/7656001/20260913_100000_bug1/ingest.json" ] || { echo "NG: ingest.json が無い"; exit 1; }
+[ "$(cat "$P/reports/7656001/20260913_100000_bug1/.persona.json")" = tester-file ] || { echo "NG: テスターの .persona.json が上書きされた"; exit 1; }
 grep -q '"readyAt":"2026-09-13T01:00:00Z"' "$P/reports/7656001/20260913_100000_bug1/ingest.json" || { echo "NG: readyAt が写っていない"; exit 1; }
 [ -f "$P/reports/7656002/20260913_110000_fb1/manifest.json" ] || { echo "NG: 感想が置かれていない"; exit 1; }
 [ -f "$P/progress/7656001/20260913_120000_pg1/record.json" ] || { echo "NG: 進行記録が置かれていない"; exit 1; }
@@ -86,4 +88,61 @@ if MOORESTECH_LOGS="$NOGIT" PLAYTEST_ENV_FILE=/dev/null PLAYTEST_ADMIN_KEY=dummy
 fi
 [ ! -d "$NOGIT/harness" ] || { echo "NG: logs repo が無いのに取り込みが進んだ"; exit 1; }
 [ ! -f "$R2/acked.txt" ] || { echo "NG: logs repo が無いのに ack された"; exit 1; }
+
+# 同じ SteamID の二箱を取り込み、表示名と実行内キャッシュを検証する
+# Ingest two boxes for one SteamID and verify persona fields and the per-run cache
+for box in persona1 persona2; do
+  mk_object "report/76561198000000001/$box/manifest.json" '{"kind":"bug"}'
+  mk_ready "report/76561198000000001/$box" '["manifest.json"]'
+done
+cat > "$R2/inbox.json" <<'JSON'
+{"items":[
+ {"kind":"report","steamId":"76561198000000001","id":"persona1","readyAt":"2026-09-25T01:00:00Z"},
+ {"kind":"report","steamId":"76561198000000001","id":"persona2","readyAt":"2026-09-25T02:00:00Z"}],"cursor":null}
+JSON
+STEAM_WEB_API_KEY=dummy STEAM_STUB_MODE=ok run_ingest > "$TMP/persona.log" 2>&1
+python3 - "$P/reports/76561198000000001/persona1/ingest.json" <<'PY'
+import json
+import sys
+with open(sys.argv[1], encoding="utf-8") as source:
+    meta = json.load(source)
+assert meta["steamPersonaName"] == "Tester <One>"
+assert meta["steamProfileUrl"] == "https://steamcommunity.com/profiles/76561198000000001/"
+assert meta["steamPersonaMissing"] == ""
+PY
+[ "$(wc -l < "$TMP/steam-calls.log")" -eq 1 ] || { echo "NG: 同一 SteamID を複数回照会した"; exit 1; }
+
+# API 鍵欠如と HTTP 失敗は取り込みを続け、理由を JSON とログへ残す
+# Missing key and HTTP failure keep ingestion running and record their reasons in JSON and logs
+for mode in missing fail; do
+  mk_object "report/76561198000000001/$mode/manifest.json" '{"kind":"bug"}'
+  mk_ready "report/76561198000000001/$mode" '["manifest.json"]'
+  printf '{"items":[{"kind":"report","steamId":"76561198000000001","id":"%s","readyAt":"2026-09-25T03:00:00Z"}],"cursor":null}\n' "$mode" > "$R2/inbox.json"
+  if [ "$mode" = missing ]; then
+    STEAM_WEB_API_KEY= run_ingest > "$TMP/$mode.log" 2>&1
+    expected='STEAM_WEB_API_KEY 未設定'
+  else
+    STEAM_WEB_API_KEY=dummy STEAM_STUB_MODE=fail run_ingest > "$TMP/$mode.log" 2>&1
+    expected='status=503'
+  fi
+  python3 - "$P/reports/76561198000000001/$mode/ingest.json" "$expected" <<'PY'
+import json
+import sys
+with open(sys.argv[1], encoding="utf-8") as source:
+    meta = json.load(source)
+assert meta["steamPersonaName"] == ""
+assert meta["steamProfileUrl"] == ""
+assert sys.argv[2] in meta["steamPersonaMissing"]
+PY
+  grep -q '\[WARN\]' "$TMP/$mode.log" || { echo "NG: $mode の警告が無い"; exit 1; }
+done
+
+# source 時に一時ディレクトリを作らず、キャッシュ先未設定なら理由を出して失敗する
+# Sourcing creates no temporary directory; an unset cache directory fails with a reason
+mkdir -p "$TMP/source-only"
+if (unset STEAM_PERSONA_CACHE_DIR; TMPDIR="$TMP/source-only"; log() { echo "$*" >&2; }; . "$HERE/../lib/steam-persona.sh"; steam_persona_resolve 7656 "$TMP/no-cache.json") > "$TMP/no-cache.log" 2>&1; then
+  echo "NG: キャッシュ先未設定でも表示名解決が成功した"; exit 1
+fi
+grep -q 'STEAM_PERSONA_CACHE_DIR が未設定' "$TMP/no-cache.log" || { echo "NG: キャッシュ先未設定の理由が無い"; exit 1; }
+[ -z "$(ls -A "$TMP/source-only")" ] || { echo "NG: source 時に一時ディレクトリが残った"; exit 1; }
 echo OK

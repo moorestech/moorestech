@@ -1,7 +1,8 @@
 using System.IO;
+using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.BugReport.Submit;
 using Client.PlaytestReceiver;
-using Client.PlaytestReceiver.Gate;
+using Client.PlaytestReceiver.Launch;
 using Client.PlaytestReceiver.Http;
 using Client.PlaytestReceiver.Upload;
 using Cysharp.Threading.Tasks;
@@ -17,6 +18,7 @@ namespace Client.Tests.PlaytestReceiver
         [SetUp]
         public void CreateRoot()
         {
+            PlaytestUploadRunner.ResetOnPlayMode();
             _root = Path.Combine(Path.GetTempPath(), "playtest-runner-" + Path.GetRandomFileName());
             _directories = PlaytestOutboxTestBoxes.Directories(_root);
             PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_120000_aaaa", ("manifest.json", "{}"));
@@ -25,28 +27,55 @@ namespace Client.Tests.PlaytestReceiver
         [TearDown]
         public void DeleteRoot()
         {
-            PlaytestLaunchGate.SetCurrent(PlaytestGateResult.NotEvaluated);
+            PlaytestUploadRunner.ResetOnPlayMode();
+            PlaytestLaunchProfile.ResetOnPlayMode();
             Directory.Delete(_root, true);
         }
 
         [Test]
-        public void 照合を通っていれば送り開発者モードや不許可では何も送らない()
+        public void 別の走行役も期限内のトークンを再利用する()
         {
-            // 送るかどうかは押し場ではなく走行役が照合結果から決める。押し場を増やしても判定は増えない
-            // The runner, not the push site, decides from the verdict; adding push sites never adds another decision
             var api = new FakeUploadApi();
-            IPlaytestUploadRequester runner = new PlaytestUploadRunner(api, _directories);
+            var first = new PlaytestUploadRunner(api, _directories, new FakeTicketProvider("aabb"));
+            PlaytestLaunchProfile.Apply(PlaytestLaunchKind.Distribution, new LocalSteamSessionIdentity("76561198000000001"));
 
-            PlaytestLaunchGate.SetCurrent(PlaytestGateResult.DeveloperMode);
-            runner.RequestUpload();
-            PlaytestLaunchGate.SetCurrent(PlaytestGateResult.Blocked(PlaytestGateStatus.NotAllowed, ""));
+            first.RequestUpload();
+            Assert.AreEqual(1, api.SessionCallCount);
+
+            // シーンで走行役を組み直しても同じ認証済みセッションを使う
+            // A runner rebuilt for another scene uses the same authenticated session
+            PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_150000_dddd", ("manifest.json", "{}"));
+            var second = new PlaytestUploadRunner(api, _directories, new FakeTicketProvider("different"));
+            second.RequestUpload();
+            Assert.AreEqual(2, api.CompleteCount);
+            Assert.AreEqual(1, api.SessionCallCount);
+        }
+
+        [Test]
+        public void 配布版は送信時に認証し開発者モードは送らない()
+        {
+            // 送るかどうかは押し場ではなく走行役が配布版判定から決める。押し場を増やしても判定は増えない
+            // The runner, not the push site, decides from the launch kind; adding push sites never adds another decision
+            var api = new FakeUploadApi();
+            IPlaytestUploadRequester runner = new PlaytestUploadRunner(api, _directories, new FakeTicketProvider("aabb"));
+
+            PlaytestLaunchProfile.Apply(PlaytestLaunchKind.DeveloperMode, new EmptyPlaytestSessionIdentity(EmptyPlaytestSessionIdentity.DeveloperModeReason));
             runner.RequestUpload();
             Assert.AreEqual(0, api.SessionCallCount + api.PutAttemptCount);
 
-            PlaytestLaunchGate.SetCurrent(PlaytestGateResult.Allowed(new PlaytestSession(api, new FakeTicketProvider("aabb")), "7656"));
+            PlaytestLaunchProfile.Apply(PlaytestLaunchKind.Distribution, new LocalSteamSessionIdentity("76561198000000001"));
             runner.RequestUpload();
             Assert.AreEqual(1, api.PutAttemptCount);
             Assert.AreEqual(1, api.CompleteCount);
+            Assert.AreEqual(1, api.SessionCallCount);
+            Assert.AreEqual(1, api.SessionCallsAtFirstPrepare);
+
+            // 別の走行でも同じトークンを再利用する
+            // A later run reuses the same token
+            PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_140000_cccc", ("manifest.json", "{}"));
+            runner.RequestUpload();
+            Assert.AreEqual(2, api.CompleteCount);
+            Assert.AreEqual(1, api.SessionCallCount);
         }
 
         [Test]
@@ -55,8 +84,8 @@ namespace Client.Tests.PlaytestReceiver
             PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_130000_bbbb", ("manifest.json", "{}"));
             var gate = new UniTaskCompletionSource<PlaytestApiResult>();
             var api = new FakeUploadApi { PendingPut = gate };
-            IPlaytestUploadRequester runner = new PlaytestUploadRunner(api, _directories);
-            PlaytestLaunchGate.SetCurrent(PlaytestGateResult.Allowed(new PlaytestSession(api, new FakeTicketProvider("aabb")), "7656"));
+            IPlaytestUploadRequester runner = new PlaytestUploadRunner(api, _directories, new FakeTicketProvider("aabb"));
+            PlaytestLaunchProfile.Apply(PlaytestLaunchKind.Distribution, new LocalSteamSessionIdentity("76561198000000001"));
 
             runner.RequestUpload();
             runner.RequestUpload();

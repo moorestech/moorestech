@@ -19,11 +19,9 @@ namespace Client.Tests.PlaytestReceiver
 
             var result = Authenticate(session, IssuedAt);
 
-            Assert.AreEqual(PlaytestSessionOutcome.Allowed, result.Outcome);
+            Assert.AreEqual(PlaytestSessionOutcome.Authenticated, result.Outcome);
             Assert.AreEqual("tok-1", session.GetValidTokenAsync(IssuedAt, CancellationToken.None).GetAwaiter().GetResult());
             Assert.AreEqual(1, api.SessionCallCount);
-            Assert.IsTrue(result.TryGetVerifiedSteamId(out var verifiedSteamId));
-            Assert.AreEqual("7656", verifiedSteamId, "受け口が検証したSteamIDを結末に載せていない");
         }
 
         [Test]
@@ -45,7 +43,6 @@ namespace Client.Tests.PlaytestReceiver
         [Test]
         public void 応答コードごとに結末が分かれる()
         {
-            AssertOutcome(PlaytestApiResult.Responded(403, "{\"reason\":\"not-allowed\"}"), PlaytestSessionOutcome.NotAllowed);
             AssertOutcome(PlaytestApiResult.Responded(401, "{\"reason\":\"invalid-ticket\"}"), PlaytestSessionOutcome.TicketRejected);
             AssertOutcome(PlaytestApiResult.Responded(503, "{\"reason\":\"steam-unavailable\"}"), PlaytestSessionOutcome.Unreachable);
             AssertOutcome(PlaytestApiResult.Responded(500, ""), PlaytestSessionOutcome.Unreachable);
@@ -67,9 +64,9 @@ namespace Client.Tests.PlaytestReceiver
         }
 
         [Test]
-        public void allowedが立っていない200では許可しない()
+        public void allowed欄が無い200でもトークンを受け取る()
         {
-            AssertOutcome(PlaytestApiResult.Responded(200, "{\"steamId\":\"7656\",\"allowed\":false,\"token\":\"tok-1\",\"expiresAt\":\"2999-01-01T00:00:00Z\"}"), PlaytestSessionOutcome.NotAllowed);
+            AssertOutcome(PlaytestApiResult.Responded(200, "{\"steamId\":\"7656\",\"token\":\"tok-1\",\"expiresAt\":\"2999-01-01T00:00:00Z\"}"), PlaytestSessionOutcome.Authenticated);
         }
 
         [Test]
@@ -93,8 +90,8 @@ namespace Client.Tests.PlaytestReceiver
             var second = session.AuthenticateAsync(IssuedAt, CancellationToken.None);
             gate.TrySetResult("aabb");
 
-            Assert.AreEqual(PlaytestSessionOutcome.Allowed, first.GetAwaiter().GetResult().Outcome);
-            Assert.AreEqual(PlaytestSessionOutcome.Allowed, second.GetAwaiter().GetResult().Outcome);
+            Assert.AreEqual(PlaytestSessionOutcome.Authenticated, first.GetAwaiter().GetResult().Outcome);
+            Assert.AreEqual(PlaytestSessionOutcome.Authenticated, second.GetAwaiter().GetResult().Outcome);
             Assert.AreEqual(1, api.SessionCallCount);
         }
 
@@ -111,7 +108,7 @@ namespace Client.Tests.PlaytestReceiver
             Assert.Catch<OperationCanceledException>(() => session.AuthenticateAsync(IssuedAt, cancelled.Token).GetAwaiter().GetResult());
             CollectionAssert.AreEqual(new[] { "release" }, api.Events);
 
-            Assert.AreEqual(PlaytestSessionOutcome.Allowed, Authenticate(session, IssuedAt).Outcome);
+            Assert.AreEqual(PlaytestSessionOutcome.Authenticated, Authenticate(session, IssuedAt).Outcome);
         }
 
         [Test]

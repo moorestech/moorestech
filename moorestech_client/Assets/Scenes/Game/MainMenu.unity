@@ -416,7 +416,7 @@ GameObject:
   - component: {fileID: 13224382}
   - component: {fileID: 13224381}
   m_Layer: 0
-  m_Name: PlaytestLaunchGate
+  m_Name: PlaytestTitleGates
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -434,7 +434,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5de7c7cf81242420ea63dd8d6e7834fa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Client.MainMenu.Playtest.PlaytestLaunchGateView
-  messagePopup: {fileID: 1453508732}
   consentPopup: {fileID: 1079124393}
   crashReportPopup: {fileID: 59367540}
 --- !u!4 &13224382

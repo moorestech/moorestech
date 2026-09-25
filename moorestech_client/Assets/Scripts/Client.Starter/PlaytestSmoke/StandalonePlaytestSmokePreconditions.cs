@@ -1,6 +1,6 @@
 using System.IO;
 using Client.Game.InGame.BugReport.Playtest;
-using Client.PlaytestReceiver.Gate;
+using Client.PlaytestReceiver.Launch;
 using Game.Paths;
 
 namespace Client.Starter.PlaytestSmoke
@@ -13,13 +13,13 @@ namespace Client.Starter.PlaytestSmoke
     {
         // 越えられない関門があれば true とその理由を返す
         // Returns true with the reason when a gate cannot be passed
-        internal static bool TryFindFailure(StandalonePlaytestSmokeSettings settings, PlaytestGateResult gate, out string failureReason)
+        internal static bool TryFindFailure(StandalonePlaytestSmokeSettings settings, PlaytestLaunchKind kind, out string failureReason)
         {
-            // 通し検証の対象は照合を通った配布版だけ。開発者モードでは報告が受け口へ運ばれない
-            // Only a checked distribution build is in scope; in developer mode no report ever reaches the receiver
-            if (gate.Status != PlaytestGateStatus.Allowed)
+            // 通し検証の対象は配布版だけ。開発者モードでは報告が受け口へ運ばれない
+            // Only a distribution build is in scope; in developer mode no report ever reaches the receiver
+            if (kind != PlaytestLaunchKind.Distribution)
             {
-                failureReason = $"launch gate is {gate.Status} (Allowed required; developer mode means build-info.json is missing or Steam is not running) {gate.Detail}";
+                failureReason = $"launch kind is {kind} (Distribution required; developer mode means build-info.json is missing or Steam is not running)";
                 return true;
             }
 

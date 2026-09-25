@@ -36,4 +36,17 @@ describe("router", () => {
     // Errors on a known path keep the reason shape; R1's verbatim 404 belongs to unknown paths only
     expect(await response.json()).toEqual({ reason: "method-not-allowed" });
   });
+
+  it("許可リストの管理経路は404になる", async () => {
+    // 撤去済みの管理経路。ルーティングの確認だけが目的で、実ネットワークには出ない（C14）
+    // The admin route was removed; this checks routing only and never reaches the real network (C14)
+    const ADMIN = (env as unknown as Env).ADMIN_KEY;
+    const response = await handle(
+      new Request("https://playtest.moores.tech/v1/allowlist", { headers: { "X-Admin-Key": ADMIN } }),
+      env as unknown as Env,
+      noNetwork,
+    );
+    expect(response.status).toBe(404);
+    expect(await response.json()).toEqual({ error: "not_found" });
+  });
 });

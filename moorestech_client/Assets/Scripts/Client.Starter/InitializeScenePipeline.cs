@@ -45,8 +45,9 @@ namespace Client.Starter
 
         private async UniTask Initialize()
         {
-            // 開始経路（メニュー・イベント自動開始・QA起動）は全てここを通る。照合もタイトルの確認も通っていない起動はメニューへ戻す（ADR 0065）
-            // Every start path (menu, event auto-start, QA boot) passes here; a boot past neither the launch check nor the title confirmations returns to the menu (ADR 0065)
+            // 全開始経路で識別を確定し、タイトルの確認も直接起動の印も無ければメニューへ戻す
+            // Publish identity on every boot path, then return to the menu without title confirmations or a direct-boot mark
+            Client.PlaytestReceiver.Launch.PlaytestLaunchProfile.EnsureIdentityPublished();
             if (Playtest.TitleGates.PlaytestTitleGates.EvaluateStart(nameof(InitializeScenePipeline), out _) != Playtest.TitleGates.PlaytestStartVerdict.Passed) { SceneManager.LoadScene(SceneConstant.MainMenuSceneName); return; }
             // 新しい起動シーケンスの開始。前回セッションの終了ガードをここで戻す
             // A new boot sequence begins; clear the previous session's shutdown guard here

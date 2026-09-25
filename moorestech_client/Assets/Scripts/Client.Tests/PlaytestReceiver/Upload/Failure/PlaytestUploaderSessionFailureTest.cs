@@ -18,6 +18,7 @@ namespace Client.Tests.PlaytestReceiver
         [SetUp]
         public void CreateRoot()
         {
+            PlaytestUploadRunner.ResetOnPlayMode();
             _root = Path.Combine(Path.GetTempPath(), "playtest-upload-session-" + Path.GetRandomFileName());
             _directories = PlaytestOutboxTestBoxes.Directories(_root);
         }
@@ -28,9 +29,8 @@ namespace Client.Tests.PlaytestReceiver
             Directory.Delete(_root, true);
         }
 
-        // 不許可・チケット拒否は待っても直らずどの箱も同じ。約100秒の再試行も箱の計数もせず走行を止める
-        // Not-allowed and a rejected ticket never heal and hit every box alike; the run stops without the ~100s of retries or counting a box
-        [TestCase(403, "{\"reason\":\"not-allowed\"}")]
+        // チケット拒否は待っても直らずどの箱も同じ。約100秒の再試行も箱の計数もせず走行を止める
+        // A rejected ticket never heals and hits every box alike; the run stops without the ~100s of retries or counting a box
         [TestCase(401, "{\"reason\":\"invalid-ticket\"}")]
         public void セッションが拒まれたら再試行も計数もせず走行を止める(int statusCode, string body)
         {

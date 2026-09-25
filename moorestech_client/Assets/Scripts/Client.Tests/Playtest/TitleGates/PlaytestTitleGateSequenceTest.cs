@@ -11,8 +11,8 @@ using UnityEngine.TestTools;
 
 namespace Client.Tests.Playtest.TitleGates
 {
-    // 「照合 → 同意 → 前回異常終了の確認 → 開始を受け付ける」の順序と、持ち越しの送信要求を置く位置を最小構成ごとに押さえる（ADR 0065）
-    // Pins the order check → consent → previous-crash confirmation → accept the start, and where the carried-over upload sits, per minimal configuration (ADR 0065)
+    // 「同意 → 前回異常終了の確認 → 開始を受け付ける」の順序と、持ち越しの送信要求を置く位置を押さえる
+    // Pins consent → previous-crash confirmation → accepting the start, and the carried-over upload point
     public class PlaytestTitleGateSequenceTest
     {
         private const string WrittenDirectory = "/tmp/crash-bundle-double";
