@@ -86,4 +86,52 @@ if MOORESTECH_LOGS="$NOGIT" PLAYTEST_ENV_FILE=/dev/null PLAYTEST_ADMIN_KEY=dummy
 fi
 [ ! -d "$NOGIT/harness" ] || { echo "NG: logs repo が無いのに取り込みが進んだ"; exit 1; }
 [ ! -f "$R2/acked.txt" ] || { echo "NG: logs repo が無いのに ack された"; exit 1; }
+
+# 同じ SteamID の二箱を取り込み、表示名と実行内キャッシュを検証する
+# Ingest two boxes for one SteamID and verify persona fields and the per-run cache
+for box in persona1 persona2; do
+  mk_object "report/76561198000000001/$box/manifest.json" '{"kind":"bug"}'
+  mk_ready "report/76561198000000001/$box" '["manifest.json"]'
+done
+cat > "$R2/inbox.json" <<'JSON'
+{"items":[
+ {"kind":"report","steamId":"76561198000000001","id":"persona1","readyAt":"2026-09-25T01:00:00Z"},
+ {"kind":"report","steamId":"76561198000000001","id":"persona2","readyAt":"2026-09-25T02:00:00Z"}],"cursor":null}
+JSON
+STEAM_WEB_API_KEY=dummy STEAM_STUB_MODE=ok run_ingest > "$TMP/persona.log" 2>&1
+python3 - "$P/reports/76561198000000001/persona1/ingest.json" <<'PY'
+import json
+import sys
+with open(sys.argv[1], encoding="utf-8") as source:
+    meta = json.load(source)
+assert meta["steamPersonaName"] == "Tester <One>"
+assert meta["steamProfileUrl"] == "https://steamcommunity.com/profiles/76561198000000001/"
+assert meta["steamPersonaMissing"] == ""
+PY
+[ "$(wc -l < "$TMP/steam-calls.log")" -eq 1 ] || { echo "NG: 同一 SteamID を複数回照会した"; exit 1; }
+
+# API 鍵欠如と HTTP 失敗は取り込みを続け、理由を JSON とログへ残す
+# Missing key and HTTP failure keep ingestion running and record their reasons in JSON and logs
+for mode in missing fail; do
+  mk_object "report/76561198000000001/$mode/manifest.json" '{"kind":"bug"}'
+  mk_ready "report/76561198000000001/$mode" '["manifest.json"]'
+  printf '{"items":[{"kind":"report","steamId":"76561198000000001","id":"%s","readyAt":"2026-09-25T03:00:00Z"}],"cursor":null}\n' "$mode" > "$R2/inbox.json"
+  if [ "$mode" = missing ]; then
+    STEAM_WEB_API_KEY= run_ingest > "$TMP/$mode.log" 2>&1
+    expected='STEAM_WEB_API_KEY 未設定'
+  else
+    STEAM_WEB_API_KEY=dummy STEAM_STUB_MODE=fail run_ingest > "$TMP/$mode.log" 2>&1
+    expected='status=503'
+  fi
+  python3 - "$P/reports/76561198000000001/$mode/ingest.json" "$expected" <<'PY'
+import json
+import sys
+with open(sys.argv[1], encoding="utf-8") as source:
+    meta = json.load(source)
+assert meta["steamPersonaName"] == ""
+assert meta["steamProfileUrl"] == ""
+assert sys.argv[2] in meta["steamPersonaMissing"]
+PY
+  grep -q '\[WARN\]' "$TMP/$mode.log" || { echo "NG: $mode の警告が無い"; exit 1; }
+done
 echo OK

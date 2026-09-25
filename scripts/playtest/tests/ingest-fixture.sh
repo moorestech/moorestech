@@ -73,9 +73,34 @@ mkdir -p "$(dirname "$out")"; cp "$src" "$out"; echo 200
 SH
 chmod +x "$TMP/curl"
 
+# Steam Web API の応答を固定し、問い合わせ回数も記録する
+# Fix the Steam Web API response and record lookup counts
+steam_stub_curl() {
+  local out="" url=""
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      -o) out="$2"; shift 2 ;;
+      -w|--max-time|-H) shift 2 ;;
+      -*) shift ;;
+      *) url="$1"; shift ;;
+    esac
+  done
+  echo "$url" >> "$TMP/steam-calls.log"
+  if [ "${STEAM_STUB_MODE:-ok}" = ok ]; then
+    printf '{"response":{"players":[{"steamid":"76561198000000001","personaname":"Tester <One>","profileurl":"https://steamcommunity.com/profiles/76561198000000001/"}]}}' > "$out"
+    printf 200
+  else
+    printf unavailable > "$out"
+    printf 503
+  fi
+}
+export -f steam_stub_curl
+export TMP
+
 ISOLATED_TMPDIR="$TMP/tmpdir"; mkdir -p "$ISOLATED_TMPDIR"
 
 run_ingest() {
   MOORESTECH_LOGS="$LOGS" PLAYTEST_ENV_FILE=/dev/null PLAYTEST_ADMIN_KEY=dummy \
-  FAKE_R2="$R2" CURL_CMD="$TMP/curl" GIT_PUSH="${GIT_PUSH:-0}" TMPDIR="$ISOLATED_TMPDIR" bash "$HERE/../ingest.sh"
+  FAKE_R2="$R2" CURL_CMD="$TMP/curl" STEAM_CURL_CMD=steam_stub_curl \
+  GIT_PUSH="${GIT_PUSH:-0}" TMPDIR="$ISOLATED_TMPDIR" bash "$HERE/../ingest.sh"
 }
