@@ -28,8 +28,8 @@ namespace Tests.UnitTest.Game.TrainMotion
         [Test]
         public void ExponentHalf_ShrinksHeavyTrainAndKeepsReferenceWeight()
         {
-            // 基準の4倍重い編成は影響度0.5で実効2倍になる
-            // A train four times the reference weight becomes twice as heavy at exponent 0.5
+            // 基準4倍→影響度0.5で実効2倍
+            // 4x reference weight -> 2x effective at exponent 0.5
             Assert.AreEqual(ReferenceWeight * 2, TrainEffectiveWeightCalculator.Calculate(ReferenceWeight * 4, 0.5, ReferenceWeight), 1e-6);
             Assert.AreEqual(ReferenceWeight, TrainEffectiveWeightCalculator.Calculate(ReferenceWeight, 0.5, ReferenceWeight), 1e-6);
         }
@@ -37,8 +37,8 @@ namespace Tests.UnitTest.Game.TrainMotion
         [Test]
         public void StepWithTestMaster_MatchesPlainPhysicsAtExponentOne()
         {
-            // テストマスタは影響度1なので、牽引加速は従来の牽引力÷編成重量と一致する
-            // The test master uses exponent 1, so traction acceleration equals the old traction / weight
+            // 影響度1: 加速=牽引力÷重量
+            // Exponent 1: acceleration = traction / weight
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
             const int totalWeight = 160000;
@@ -48,7 +48,11 @@ namespace Tests.UnitTest.Game.TrainMotion
 
             var expectedAcceleration = totalTraction / totalWeight;
             var afterTraction = expectedAcceleration * GameUpdater.SecondsPerTick;
-            var expectedSpeed = afterTraction - TrainDistanceSimulator.CalculateResistanceAcceleration(afterTraction, totalWeight) * GameUpdater.SecondsPerTick;
+            // 期待値はマスタ値から独立に計算
+            // Expected value is computed independently from master values
+            var expectedResistance = MasterHolder.TrainUnitMaster.Friction * 9.80665
+                + MasterHolder.TrainUnitMaster.AirResistance * afterTraction * afterTraction / totalWeight;
+            var expectedSpeed = afterTraction - expectedResistance * GameUpdater.SecondsPerTick;
             Assert.AreEqual(expectedSpeed, result.NewSpeed, 1e-9);
         }
     }
