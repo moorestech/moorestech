@@ -40,6 +40,11 @@ properties:
       type: integer
     - key: tractionForce
       type: integer
+    # 重量の影響度。1で物理式どおり、0で重量が加速に効かない。編成では牽引力で重み付けした平均を使う（牽引力0の車両は効かない）
+    # Weight influence exponent. 1 is plain physics, 0 ignores weight. A train uses the traction-weighted average (zero-traction cars have no effect)
+    - key: weightInfluenceExponent
+      type: number
+      default: 1
     - key: inventorySlots
       type: integer
       default: 1
@@ -120,13 +125,8 @@ properties:
   - key: masconLevelMaximum
     type: integer
     default: 16777216
-  # 重量の影響度。実効重量 = referenceWeight * (編成重量 / referenceWeight) ^ この値。1で物理式どおり、0で重量が加速に効かない
-  # Weight influence exponent. effectiveWeight = referenceWeight * (totalWeight / referenceWeight) ^ this. 1 is plain physics, 0 ignores weight
-  - key: weightInfluenceExponent
-    type: number
-    default: 1
-  # 影響度をかける基準重量。この重さの編成は影響度に関わらず加速が変わらない
-  # Reference weight for the exponent. A train of exactly this weight accelerates the same regardless of the exponent
+  # 実効重量 = referenceWeight * (編成重量 / referenceWeight) ^ 影響度。この重さの編成は影響度に関わらず加速が変わらない
+  # effectiveWeight = referenceWeight * (totalWeight / referenceWeight) ^ exponent. A train of exactly this weight is unaffected by the exponent
   - key: referenceWeight
     type: integer
     default: 120000

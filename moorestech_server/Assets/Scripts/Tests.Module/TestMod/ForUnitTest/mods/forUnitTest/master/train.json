@@ -3,6 +3,7 @@
     {
       "weight": 320,
       "tractionForce": 222400400,
+      "weightInfluenceExponent": 1,
       "inventorySlots": 10,
       "length": 8,
       "addressablePath": "",
@@ -32,6 +33,7 @@
     {
       "weight": 320,
       "tractionForce": 0,
+      "weightInfluenceExponent": 1,
       "inventorySlots": 1,
       "length": 1,
       "addressablePath": "",
@@ -53,7 +55,6 @@
     "airResistance": 117,
     "maxBrakeDecelerationKmhPerSecond": 9,
     "masconLevelMaximum": 16777216,
-    "weightInfluenceExponent": 1,
     "referenceWeight": 120000
   }
 }
