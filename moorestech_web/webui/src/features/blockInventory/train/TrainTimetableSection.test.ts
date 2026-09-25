@@ -118,6 +118,15 @@ describe("train timetable UI", () => {
     expect(dispatchAction).toHaveBeenCalledTimes(1);
   });
 
+  it("asks C# to fetch on tab select even when the timetable is already ready", () => {
+    let tree!: ReactTestRenderer;
+    act(() => { tree = create(createElement(TrainInventoryBody, { data: trainData(readyTimetable) })); });
+    click(tree, "train-tab-timetable");
+    expect(dispatchAction).toHaveBeenCalledWith("train_timetable.open", {});
+    act(() => tree.update(createElement(TrainInventoryBody, { data: trainData(readyTimetable) })));
+    expect(dispatchAction).toHaveBeenCalledTimes(1);
+  });
+
   it("re-asks C# when a reset fetch arrives as loading while the timetable tab stays selected", () => {
     let tree!: ReactTestRenderer;
     act(() => { tree = create(createElement(TrainInventoryBody, { data: trainData({ kind: "loading" }) })); });
