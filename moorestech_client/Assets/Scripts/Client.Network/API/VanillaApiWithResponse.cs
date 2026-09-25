@@ -1,15 +1,12 @@
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using Client.Network.Settings;
 using Core.Item.Interface;
 using Cysharp.Threading.Tasks;
 using Game.Context;
-using Game.Train.RailPositions;
 using Game.PlayerRiding.Interface;
 using Server.Protocol.PacketResponse;
 using Server.Util.MessagePack;
-using UnityEngine;
 
 namespace Client.Network.API
 {
@@ -17,17 +14,29 @@ namespace Client.Network.API
     {
         private readonly IItemStackFactory _itemStackFactory;
         private readonly IItemStackLevelUnlocker _itemStackLevelUnlocker;
-        // 同一アセンブリの送信APIへ接続情報を共有する
-        // Share connection dependencies with request APIs in this assembly
-        internal readonly PacketExchangeManager PacketExchange;
-        internal readonly PlayerConnectionSetting ConnectionSetting;
+        private readonly PacketExchangeManager _packetExchange;
+        private readonly PlayerConnectionSetting _connectionSetting;
+
+        // 領域ごとのレスポンスAPIを合成で保持する
+        // Hold the per-domain response APIs by composition
+        public readonly BlockResponseApi Block;
+        public readonly ConnectionResponseApi Connection;
+        public readonly ProgressResponseApi Progress;
+        public readonly TrainResponseApi Train;
+        public readonly WorldResponseApi World;
 
         public VanillaApiWithResponse(PacketExchangeManager packetExchangeManager, PlayerConnectionSetting playerConnectionSetting)
         {
             _itemStackFactory = ServerContext.ItemStackFactory;
             _itemStackLevelUnlocker = ServerContext.GetService<IItemStackLevelUnlocker>();
-            PacketExchange = packetExchangeManager;
-            ConnectionSetting = playerConnectionSetting;
+            _packetExchange = packetExchangeManager;
+            _connectionSetting = playerConnectionSetting;
+
+            Block = new BlockResponseApi(packetExchangeManager, playerConnectionSetting);
+            Connection = new ConnectionResponseApi(packetExchangeManager, playerConnectionSetting);
+            Progress = new ProgressResponseApi(packetExchangeManager, playerConnectionSetting);
+            Train = new TrainResponseApi(packetExchangeManager, playerConnectionSetting);
+            World = new WorldResponseApi(packetExchangeManager, playerConnectionSetting);
         }
 
         public async UniTask<InitialHandshakeResponse> InitialHandShake(int playerId, CancellationToken ct)
@@ -35,7 +44,7 @@ namespace Client.Network.API
             // 最初のハンドシェイクを行う
             // Perform the initial handshake
             var request = new InitialHandshakeProtocol.RequestInitialHandshakeMessagePack(playerId, $"Player {playerId}");
-            var initialHandShake = await PacketExchange.GetPacketResponse<InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack>(request, ct);
+            var initialHandShake = await _packetExchange.GetPacketResponse<InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack>(request, ct);
 
             // ハンドシェイクに同梱されたスタックレベルを先に適用（インベントリ等のItemStack生成前に上限を正すため）
             // Apply stack levels bundled in the handshake first so ItemStacks built from later responses use correct limits
@@ -47,28 +56,28 @@ namespace Client.Network.API
             //必要なデータを取得する
             // Fetch all required resources
             var responses = await UniTask.WhenAll(
-                this.GetMapObjectInfo(ct),
-                this.GetWorldData(ct),
+                World.GetMapObjectInfo(ct),
+                World.GetWorldData(ct),
                 GetPlayerInventory(playerId, ct),
-                this.GetChallengeResponse(ct),
-                this.GetUnlockState(ct),
-                this.GetPlayedSkitIds(ct),
-                this.GetResearchNodeStates(ct),
-                GetMapData(ct));
+                Progress.GetChallengeResponse(ct),
+                Progress.GetUnlockState(ct),
+                Progress.GetPlayedSkitIds(ct),
+                Progress.GetResearchNodeStates(ct),
+                World.GetMapData(ct));
 
             return new InitialHandshakeResponse(initialHandShake, responses);
         }
 
         public async UniTask<PlayerInventoryResponse> GetMyPlayerInventory(CancellationToken ct)
         {
-            return await GetPlayerInventory(ConnectionSetting.PlayerId, ct);
+            return await GetPlayerInventory(_connectionSetting.PlayerId, ct);
         }
 
         public async UniTask<PlayerInventoryResponse> GetPlayerInventory(int playerId, CancellationToken ct)
         {
             var request = new PlayerInventoryResponseProtocol.RequestPlayerInventoryProtocolMessagePack(playerId);
 
-            var response = await PacketExchange.GetPacketResponse<PlayerInventoryResponseProtocol.PlayerInventoryResponseProtocolMessagePack>(request, ct);
+            var response = await _packetExchange.GetPacketResponse<PlayerInventoryResponseProtocol.PlayerInventoryResponseProtocolMessagePack>(request, ct);
 
             // メイン・Grabだけでなく装備と選択インデックスも落とさず変換する
             // Converts equipment and the selected index as well, not just main and grab
@@ -78,33 +87,16 @@ namespace Client.Network.API
         public async UniTask<InventoryResponse> GetInventory(InventoryIdentifierMessagePack identifier, CancellationToken ct)
         {
             var request = new InventoryRequestProtocol.RequestInventoryRequestProtocolMessagePack(identifier);
-            var response = await PacketExchange.GetPacketResponse<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(request, ct);
+            var response = await _packetExchange.GetPacketResponse<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(request, ct);
             return new InventoryResponse(response.Identifier, CreateStacks(response.Items), response.Result);
-        }
-
-        public async UniTask<PlaceTrainCarOnRailProtocol.PlaceTrainOnRailResponseMessagePack> PlaceTrainOnRail(RailPosition railPosition, Guid trainCarGuid, CancellationToken ct)
-        {
-            // 列車設置のレスポンスを取得する
-            // Get response for train placement
-            var railPositionSnapshot = new RailPositionSnapshotMessagePack(railPosition?.CreateSaveSnapshot());
-            var request = new PlaceTrainCarOnRailProtocol.PlaceTrainOnRailRequestMessagePack(railPositionSnapshot, trainCarGuid, ConnectionSetting.PlayerId);
-            return await PacketExchange.GetPacketResponse<PlaceTrainCarOnRailProtocol.PlaceTrainOnRailResponseMessagePack>(request, ct);
         }
 
         // 乗車/降車をサーバーに要求し、結果を受け取る（仕様書セクション5.1）。
         // Requests ride/dismount from the server and returns the result.
         public async UniTask<RideActionProtocol.ResponseRideActionMessagePack> RideAction(RideActionType action, RidableIdentifierMessagePack target, CancellationToken ct)
         {
-            var request = new RideActionProtocol.RequestRideActionMessagePack(ConnectionSetting.PlayerId, action, target);
-            return await PacketExchange.GetPacketResponse<RideActionProtocol.ResponseRideActionMessagePack>(request, ct);
-        }
-
-        // マップレイアウト（spawn/mapObjects/mapVeins）をハンドシェイク時に取得する
-        // Fetch the map layout (spawn/mapObjects/mapVeins) during the handshake
-        public async UniTask<GetMapDataProtocol.ResponseMapDataMessagePack> GetMapData(CancellationToken ct)
-        {
-            var request = GetMapDataProtocol.RequestMapDataMessagePack.CreateLayoutRequest();
-            return await PacketExchange.GetPacketResponse<GetMapDataProtocol.ResponseMapDataMessagePack>(request, ct);
+            var request = new RideActionProtocol.RequestRideActionMessagePack(_connectionSetting.PlayerId, action, target);
+            return await _packetExchange.GetPacketResponse<RideActionProtocol.ResponseRideActionMessagePack>(request, ct);
         }
 
         private List<IItemStack> CreateStacks(ItemMessagePack[] items)

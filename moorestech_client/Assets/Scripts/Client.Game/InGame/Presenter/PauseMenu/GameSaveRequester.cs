@@ -1,4 +1,3 @@
-using Client.Network.API;
 using System;
 using Client.Game.InGame.Context;
 using Cysharp.Threading.Tasks;
@@ -14,7 +13,7 @@ namespace Client.Game.InGame.Presenter.PauseMenu
     {
         public void Save()
         {
-            ClientContext.VanillaApi.Response.Save(default).Forget(LogSaveFailure);
+            ClientContext.VanillaApi.Response.World.Save(default).Forget(LogSaveFailure);
         }
 
         private static void LogSaveFailure(Exception exception)

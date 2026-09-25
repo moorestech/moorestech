@@ -1,4 +1,3 @@
-using Client.Network.API;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -95,7 +94,7 @@ namespace Client.WebUiHost.Game.Topics
 
         private async UniTaskVoid RefreshAsync(CancellationToken ct)
         {
-            var states = await ClientContext.VanillaApi.Response.GetResearchNodeStates(ct);
+            var states = await ClientContext.VanillaApi.Response.Progress.GetResearchNodeStates(ct);
             if (_disposed || ct.IsCancellationRequested || states == null) return;
             ApplyNodeStates(states);
         }

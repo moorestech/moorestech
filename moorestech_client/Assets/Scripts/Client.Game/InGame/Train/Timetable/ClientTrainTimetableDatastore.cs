@@ -18,10 +18,11 @@ namespace Client.Game.InGame.Train.Timetable
     public interface IClientTrainTimetableMutator
     {
         void Apply(TrainTimetableSnapshot timetable);
+        void Remove(TrainUnitInstanceId trainUnitInstanceId);
     }
 
-    // サーバーから届いた列車ごとの時刻表をUI用に保持する（走行計算は参照しない）
-    // Hold per-train timetables from the server for the UI; motion simulation never reads this
+    // 列車ごとの時刻表をUI用に保持する（走行計算は参照しない）
+    // Hold per-train timetables for the UI; motion simulation never reads this
     public class ClientTrainTimetableDatastore : IClientTrainTimetableLookup, IClientTrainTimetableMutator
     {
         private readonly Dictionary<TrainUnitInstanceId, TrainTimetableSnapshot> _timetables = new();
@@ -32,6 +33,14 @@ namespace Client.Game.InGame.Train.Timetable
         {
             _timetables[timetable.TrainUnitInstanceId] = timetable;
             _onTimetableUpdated.OnNext(timetable.TrainUnitInstanceId);
+        }
+
+        // 列車が消えたら時刻表も捨てる。残すと古い内容がreadyとして表示され続ける
+        // Drop the timetable when its train is gone; keeping it would keep showing stale data as ready
+        public void Remove(TrainUnitInstanceId trainUnitInstanceId)
+        {
+            if (!_timetables.Remove(trainUnitInstanceId)) return;
+            _onTimetableUpdated.OnNext(trainUnitInstanceId);
         }
 
         public bool TryGet(TrainUnitInstanceId trainUnitInstanceId, out TrainTimetableSnapshot timetable)

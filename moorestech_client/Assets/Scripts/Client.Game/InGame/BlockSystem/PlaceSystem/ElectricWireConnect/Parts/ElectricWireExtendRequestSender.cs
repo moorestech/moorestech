@@ -1,4 +1,3 @@
-using Client.Network.API;
 using System;
 using System.Threading;
 using Client.Game.InGame.Block;
@@ -101,7 +100,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
                 {
                     // 応答を待ち、成功時のみ終点ブロックの生成を待って次起点を解決する
                     // Await the response, then resolve the next origin only on success
-                    var response = await ClientContext.VanillaApi.Response.SendElectricWireExtend(request, CancellationToken.None);
+                    var response = await ClientContext.VanillaApi.Response.Connection.SendElectricWireExtend(request, CancellationToken.None);
                     isSuccess = response is { IsSuccess: true };
                     if (isSuccess) endpoint = await WaitForEndpoint(new BlockInstanceId(response.EndpointBlockInstanceId));
                 }

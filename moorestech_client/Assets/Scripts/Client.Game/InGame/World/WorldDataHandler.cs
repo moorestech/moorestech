@@ -81,7 +81,7 @@ namespace Client.Game.InGame.World
             
             async UniTask GetAndApplyWorldData()
             {
-                var data = await ClientContext.VanillaApi.Response.GetWorldData(ct);
+                var data = await ClientContext.VanillaApi.Response.World.GetWorldData(ct);
                 if (data == null) return;
                 
                 ApplyWorldData(data);

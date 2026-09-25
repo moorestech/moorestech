@@ -5,7 +5,7 @@ using Game.Train.Unit;
 
 namespace Client.WebUiHost.Game.Topics.BlockDetail
 {
-    // 開いている車両インベントリから、受信済みスナップショット上の所属列車IDを引く
+    // 開いている車両インベントリから所属列車IDを引く
     // Resolve the owning train id of the open car inventory from received snapshots
     public static class OpenTrainUnitResolver
     {

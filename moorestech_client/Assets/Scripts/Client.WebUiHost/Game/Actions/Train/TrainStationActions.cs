@@ -29,17 +29,21 @@ namespace Client.WebUiHost.Game.Actions
             if (_subInventoryState.CurrentSubInventorySource is not BlockSubInventorySource source) return Reject("block_not_open");
             if (source.BlockTypeName != BlockTypeConst.TrainStation) return Reject("invalid_block_type");
 
-            // 駅名の正本はサーバーからのブロック状態とする
+            // 駅名の正本はサーバーのブロック状態
             // Keep server block state as the source of truth for station names
-            var response = await ClientContext.VanillaApi.Response.SetTrainStationName(source.BlockPosition, (string)name, CancellationToken.None);
+            var response = await ClientContext.VanillaApi.Response.Train.SetTrainStationName(source.BlockPosition, (string)name, CancellationToken.None);
             if (response == null || !response.Success) return Reject($"set_name_failed:{response?.FailureReason}");
             return ActionResult.Success();
-        }
 
-        private static ActionResult Reject(string reason)
-        {
-            Debug.LogWarning($"[TrainStationAction] rejected: {reason}");
-            return ActionResult.Fail(reason);
+            #region Internal
+
+            ActionResult Reject(string reason)
+            {
+                Debug.LogWarning($"[TrainStationAction] rejected: {reason}");
+                return ActionResult.Fail(reason);
+            }
+
+            #endregion
         }
     }
 }

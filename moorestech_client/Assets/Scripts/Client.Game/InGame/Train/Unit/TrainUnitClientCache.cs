@@ -17,10 +17,14 @@ namespace Client.Game.InGame.Train.Unit
         // 車両スナップショット索引
         // Index for train car snapshots
         private readonly TrainCarSnapshotIndex _carSnapshots = new();
-        // 列車単位の構成変化（追加・置換・削除）を索引確定後に通知する。時刻表は運ばない
-        // Notify per-train composition changes (add/replace/remove) after indexes settle; carries no timetable
+        // 列車の構成変化を索引確定後に通知する。時刻表は運ばない
+        // Notify per-train composition changes after indexes settle; carries no timetable
         private readonly Subject<TrainUnitInstanceId> _onUnitApplied = new();
         public IObservable<TrainUnitInstanceId> OnUnitApplied => _onUnitApplied;
+        // 消えた列車は別の口で流す。購読側が辞書を引き直して種別を当てないため（前例: BlockGameObjectDataStore）
+        // Vanished trains use their own subject so subscribers never re-query to guess (precedent: BlockGameObjectDataStore)
+        private readonly Subject<TrainUnitInstanceId> _onUnitRemoved = new();
+        public IObservable<TrainUnitInstanceId> OnUnitRemoved => _onUnitRemoved;
 
         // 列車一覧の読み取り専用ビュー
         // Read-only view for external systems
@@ -37,30 +41,36 @@ namespace Client.Game.InGame.Train.Unit
         // Replace the entire cache when a full snapshot arrives
         public void OverrideAll(IReadOnlyList<TrainUnitSnapshotBundle> snapshots)
         {
+            // 消えた列車にも通知するため、入れ替え前のIDを退避する
+            // Keep the pre-swap ids so trains that disappear are notified too
+            var removedIds = new List<TrainUnitInstanceId>(_units.Keys);
             _units.Clear();
             _carSnapshots.Clear();
-            if (snapshots == null)
-            {
-                return;
-            }
 
-            for (var i = 0; i < snapshots.Count; i++)
+            if (snapshots != null)
             {
-                var bundle = snapshots[i];
-                if (bundle.Simulation.TrainUnitInstanceId == TrainUnitInstanceId.Empty)
+                for (var i = 0; i < snapshots.Count; i++)
                 {
-                    continue;
-                }
+                    var bundle = snapshots[i];
+                    if (bundle.Simulation.TrainUnitInstanceId == TrainUnitInstanceId.Empty)
+                    {
+                        continue;
+                    }
 
-                var unit = new ClientTrainUnit(bundle.Simulation.TrainUnitInstanceId, _railGraphProvider);
-                unit.SnapshotUpdate(bundle.Simulation, bundle.RailPositionSnapshot);
-                _units[bundle.Simulation.TrainUnitInstanceId] = unit;
-                _carSnapshots.BuildCarIndexForUnit(unit);
+                    var unit = new ClientTrainUnit(bundle.Simulation.TrainUnitInstanceId, _railGraphProvider);
+                    unit.SnapshotUpdate(bundle.Simulation, bundle.RailPositionSnapshot);
+                    _units[bundle.Simulation.TrainUnitInstanceId] = unit;
+                    _carSnapshots.BuildCarIndexForUnit(unit);
+                }
             }
 
-            // 全索引の確定後に通知する
-            // Notify only after all indexes have been rebuilt
-            foreach (var id in _units.Keys) _onUnitApplied.OnNext(id);
+            // 列挙中の購読者操作で壊れないよう、確定したIDを配列へ写してから流す
+            // Copy the settled ids into arrays first so subscriber edits cannot break enumeration
+            removedIds.RemoveAll(id => _units.ContainsKey(id));
+            var appliedIds = new TrainUnitInstanceId[_units.Count];
+            _units.Keys.CopyTo(appliedIds, 0);
+            foreach (var id in removedIds) _onUnitRemoved.OnNext(id);
+            foreach (var id in appliedIds) _onUnitApplied.OnNext(id);
         }
 
         // 現在のTrainUnit状態からハッシュを計算する
@@ -113,6 +123,7 @@ namespace Client.Game.InGame.Train.Unit
             {
                 _carSnapshots.RemoveCarIndex(trainUnitInstanceId);
                 _carSnapshots.BuildCarIndexForUnit(unit);
+                _onUnitApplied.OnNext(trainUnitInstanceId);
             }
             return true;
         }
@@ -121,7 +132,7 @@ namespace Client.Game.InGame.Train.Unit
         {
             _carSnapshots.RemoveCarIndex(trainUnitInstanceId);
             var removed = _units.Remove(trainUnitInstanceId);
-            if (removed) _onUnitApplied.OnNext(trainUnitInstanceId);
+            if (removed) _onUnitRemoved.OnNext(trainUnitInstanceId);
             return removed;
         }
 

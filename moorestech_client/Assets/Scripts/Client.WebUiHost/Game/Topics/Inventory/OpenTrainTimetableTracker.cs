@@ -9,7 +9,7 @@ using UniRx;
 
 namespace Client.WebUiHost.Game.Topics
 {
-    // 開いている車両の所属列車を追い、時刻表の再配信契機と取得のやり直しをまとめる
+    // 開いている車両の所属列車を追い、再配信と再取得をまとめる
     // Track the open car's owning train and gather timetable republish triggers and refetches
     public class OpenTrainTimetableTracker : IDisposable
     {
@@ -28,7 +28,7 @@ namespace Client.WebUiHost.Game.Topics
             _uiStateControl = uiStateControl;
             _trainUnitClientCache = trainUnitClientCache;
             _fetcher = fetcher;
-            // 開閉（UIステート遷移）で取得状態を忘れ、開いている列車を解決し直す
+            // 開閉で取得状態を忘れ、開いている列車を解決し直す
             // Forget the fetch state on open/close (UI-state transitions) and re-resolve the open train
             _uiStateControl.OnStateChanged += OnUiStateChanged;
             // 開いている列車の時刻表更新と取得失敗で再配信する
@@ -38,9 +38,10 @@ namespace Client.WebUiHost.Game.Topics
                 .Subscribe(_ => _onRepublishRequested.OnNext(Unit.Default))
                 .AddTo(_subscriptions);
             _fetcher.OnFetchFailed.Subscribe(_onRepublishRequested.OnNext).AddTo(_subscriptions);
-            // 連結・分割・車両の後着で所属列車が変わったら再配信・再取得する
+            // 所属列車が変わったら再配信・再取得する
             // Republish and refetch when coupling, splitting, or a late car snapshot changes the owning train
             _trainUnitClientCache.OnUnitApplied.Subscribe(_ => OnTrainUnitApplied()).AddTo(_subscriptions);
+            _trainUnitClientCache.OnUnitRemoved.Subscribe(_ => OnTrainUnitApplied()).AddTo(_subscriptions);
         }
 
         public void Dispose()

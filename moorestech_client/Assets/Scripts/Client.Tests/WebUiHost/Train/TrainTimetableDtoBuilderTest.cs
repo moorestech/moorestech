@@ -1,9 +1,11 @@
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using Client.WebUiHost.Game.Topics.BlockDetail;
 using Game.Train.RailGraph;
 using Game.Train.Unit;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Client.Tests.WebUiHost
 {
@@ -50,6 +52,9 @@ namespace Client.Tests.WebUiHost
             var timetable = new TrainTimetableSnapshot(id, true, 1, stops);
             var stations = new List<TrainTimetableStationDto> { TrainTimetableDtoBuilder.CreateStationDto(new Vector3Int(1, 0, 0), "north") };
 
+            // 駅ブロックが引けない停車駅は無言で空名にせず警告を出す
+            // A stop whose station block is missing warns instead of silently going nameless
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[TrainTimetableDto\] station block not found"));
             var dto = TrainTimetableDtoBuilder.CreateFromTimetable(timetable, stations);
 
             Assert.That(dto.TrainUnitId, Is.EqualTo(id.ToString()));

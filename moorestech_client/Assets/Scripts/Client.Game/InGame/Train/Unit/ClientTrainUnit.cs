@@ -79,6 +79,22 @@ namespace Client.Game.InGame.Train.Unit
                 _motion.QueueDockingStop();
             }
             return isReversedThisTick;
+
+            #region Internal
+
+            void ApplyReverseDiff()
+            {
+                // RailPositionの向きをサーバーのTrainUnit.Reverseと同じように反転する
+                // Reverse RailPosition the same way as server-side TrainUnit.Reverse
+                RailPosition?.Reverse();
+                _motion.ResetTarget(RailPosition);
+
+                // 車両順と各車両の向きを同時に反転し見た目の向きの打ち消しを再現する
+                // Reverse car order and per-car facing together to reproduce the visual-canceling state
+                _cars = ClientTrainCarSnapshots.Reverse(_cars);
+            }
+
+            #endregion
         }
 
         // 指定したTrainCarを現在の列車スナップショットから削除する
@@ -148,25 +164,6 @@ namespace Client.Game.InGame.Train.Unit
             CurrentSpeed = speed;
             AccumulatedDistance = accumulated;
             return moved;
-        }
-        
-        // 現在の目標ノードに到達する経路を探索する
-        // Find path toward the current target node
-        public (bool, List<IRailNode>) TryFindPathToSimulationTarget(IRailNode approaching)
-        {
-            return _motion.TryFindPathToSimulationTarget(approaching);
-        }
-
-        private void ApplyReverseDiff()
-        {
-            // RailPosition の向きをサーバーの TrainUnit.Reverse と同じように反転する
-            // Reverse RailPosition the same way as server-side TrainUnit.Reverse
-            RailPosition?.Reverse();
-            _motion.ResetTarget(RailPosition);
-
-            // 車両順と各車両の向きを同時に反転し、見た目の向きが打ち消される状態を再現する
-            // Reverse car order and per-car facing together to reproduce the visual-canceling state
-            _cars = ClientTrainCarSnapshots.Reverse(_cars);
         }
     }
 }

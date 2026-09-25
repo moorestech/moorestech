@@ -1,4 +1,3 @@
-using Client.Network.API;
 using System;
 using System.Threading;
 using Client.Game.InGame.Block;
@@ -68,7 +67,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect.Parts
 
             UniTask.Create(async () =>
             {
-                var response = await ClientContext.VanillaApi.Response.PlaceRailWithPier(fromNode.NodeId, fromNode.NodeGuid, pierBlockId, pierPlaceInfo, railTypeGuid, CancellationToken.None);
+                var response = await ClientContext.VanillaApi.Response.Connection.PlaceRailWithPier(fromNode.NodeId, fromNode.NodeGuid, pierBlockId, pierPlaceInfo, railTypeGuid, CancellationToken.None);
                 if (!response.Success) return;
 
                 // 設置済み橋脚の接続エリアが解決できたときだけ引き継ぎ先として残す

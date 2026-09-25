@@ -1,4 +1,3 @@
-using Client.Network.API;
 using System.Threading;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState.State;
@@ -35,7 +34,7 @@ namespace Client.WebUiHost.Game.Actions
 
             // StateDetailを表示の正本にする
             // Send the target through the existing protocol and keep the later StateDetail as the view source of truth
-            var response = await ClientContext.VanillaApi.Response.SetTrainPlatformTransferMode(
+            var response = await ClientContext.VanillaApi.Response.Train.SetTrainPlatformTransferMode(
                 source.BlockPosition,
                 mode.Value,
                 CancellationToken.None);

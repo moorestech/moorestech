@@ -67,8 +67,8 @@ namespace Client.Game.InGame.Train.Unit
                 distanceToMove -= moveLength;
                 totalMoved += moveLength;
 
-                // 目標ノードへの到着時はサーバー通知の停車を適用する
-                // Apply a server-notified stop when the target node is reached
+                // 目標ノード到着時はサーバー通知の停車を適用
+                // Apply the server-notified stop on reaching the target node
                 if (IsArrivedDestination())
                 {
                     if (_isDockingStopPendingForTick)
@@ -78,7 +78,7 @@ namespace Client.Game.InGame.Train.Unit
                         _isDockingStopPendingForTick = false;
                         break;
                     }
-                    if (distanceToMove > 0)
+                    if (0 < distanceToMove)
                     {
                         Debug.LogWarning("1st hashよりApplySnapshotTrainUnitのtickが前ならこれは想定内です。次のhash検証でmismatchになる可能性あり");
                         break;
@@ -107,7 +107,7 @@ namespace Client.Game.InGame.Train.Unit
                 railPosition.AddNodeToHead(newPath[1]);
 
                 loopCount++;
-                if (loopCount > 1000000)
+                if (1000000 < loopCount)
                 {
                     throw new InvalidOperationException("列車速度が無限に近いか、レール経路の無限ループを検知しました。");
                 }

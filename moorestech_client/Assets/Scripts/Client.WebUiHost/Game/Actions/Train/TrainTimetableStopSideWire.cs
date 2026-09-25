@@ -4,11 +4,11 @@ using UnityEngine;
 
 namespace Client.WebUiHost.Game.Actions
 {
-    // 端(StationNodeSide)とwire文字列"front"/"back"の対応を1箇所に集約する
+    // StationNodeSideとwire文字列"front"/"back"の対応表
     // Centralizes the mapping between StationNodeSide and the wire strings "front"/"back"
     internal static class TrainTimetableStopSideWire
     {
-        // 未知値はnullを返しfail-closedで呼び出し側に伝える（無言で"back"を出さない）
+        // 未知値はnullでfail-closedに倒す（無言で"back"を出さない）
         // Unknown values return null so the caller fails closed instead of silently emitting "back"
         public static string ToWire(StationNodeSide side)
         {

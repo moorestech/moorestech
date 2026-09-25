@@ -9,7 +9,7 @@ using Client.Game.InGame.UI.UIState.State.SubInventory;
 
 namespace Client.WebUiHost.Game.Topics
 {
-    // 統一SubInventoryの列車状態をWeb向けDTOへ変換する
+    // 列車SubInventoryの状態をWeb DTOへ変換する
     // Converts unified train SubInventory state into its Web DTO.
     public static class TrainInventoryDtoFactory
     {

@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace Client.Tests.WebUiHost.Train
 {
-    // 列車インベントリの時刻表取得状態の DTO ⇔ WireFixtures の一致を C# 側から強制する
+    // 時刻表取得状態のDTOとWireFixturesの一致を強制する
     // Enforce DTO ⇔ WireFixtures equality for the train inventory's timetable fetch state from the C# side
     public class WireContractTrainTimetableTest
     {

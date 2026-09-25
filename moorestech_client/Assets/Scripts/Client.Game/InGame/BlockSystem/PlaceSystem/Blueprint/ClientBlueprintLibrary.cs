@@ -1,4 +1,3 @@
-using Client.Network.API;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -54,14 +53,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
 
         public async UniTask Refresh(CancellationToken ct)
         {
-            var response = await ClientContext.VanillaApi.Response.SendBlueprintRequest(BlueprintRequest.CreateGetAllRequest(), ct);
+            var response = await ClientContext.VanillaApi.Response.Block.SendBlueprintRequest(BlueprintRequest.CreateGetAllRequest(), ct);
             ApplyResponse(response);
         }
 
         public async UniTask<(bool success, Guid blueprintGuid)> CreateBlueprint(string name, Vector3Int min, Vector3Int max, CancellationToken ct)
         {
             var request = BlueprintRequest.CreateCreateRequest(name, min, max);
-            var response = await ClientContext.VanillaApi.Response.SendBlueprintRequest(request, ct);
+            var response = await ClientContext.VanillaApi.Response.Block.SendBlueprintRequest(request, ct);
 
             // タイムアウト等のnull応答は失敗扱い
             // Treat a null response (timeout etc.) as failure
@@ -73,7 +72,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
 
         public async UniTask<BlueprintDeleteResult> DeleteBlueprint(Guid blueprintGuid, CancellationToken ct)
         {
-            var response = await ClientContext.VanillaApi.Response.SendBlueprintRequest(BlueprintRequest.CreateDeleteRequest(blueprintGuid), ct);
+            var response = await ClientContext.VanillaApi.Response.Block.SendBlueprintRequest(BlueprintRequest.CreateDeleteRequest(blueprintGuid), ct);
             ApplyResponse(response);
 
             // nullは通信失敗、理由で未発見判別

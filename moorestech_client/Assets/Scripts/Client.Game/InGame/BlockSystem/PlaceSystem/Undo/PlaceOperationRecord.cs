@@ -1,4 +1,3 @@
-using Client.Network.API;
 using System.Collections.Generic;
 using System.Threading;
 using Client.Game.InGame.Block;
@@ -51,7 +50,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
             foreach (var cell in _cells)
             {
                 if (!IsSameBlockAlive(cell)) continue;
-                await ClientContext.VanillaApi.Response.BlockRemove(cell.Position, CancellationToken.None);
+                await ClientContext.VanillaApi.Response.Block.BlockRemove(cell.Position, CancellationToken.None);
             }
 
             #region Internal

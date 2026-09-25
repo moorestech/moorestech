@@ -29,6 +29,10 @@ namespace Client.Game.InGame.Block
         public IObservable<Vector3Int> OnBlockRemoved => _onBlockRemoved;
         private readonly Subject<Vector3Int> _onBlockRemoved = new();
 
+        // ブロック種別ごとの索引。種別での列挙に全ブロック走査を使わないため
+        // Per-block-type index, so enumerating one type needs no full scan
+        private readonly Dictionary<string, List<BlockGameObject>> _blocksByBlockType = new();
+
         // ブロックGUID別の最近傍索引。全ブロック走査での最寄り探索を毎フレーム回さないため（前例: OutcropGameObjectDatastore）
         // Per-block-GUID nearest index, so no per-frame full scan is needed for nearest lookups (precedent: OutcropGameObjectDatastore)
         private readonly NearestTargetIndex<BlockGameObject> _nearestIndex = new();
@@ -86,6 +90,7 @@ namespace Client.Game.InGame.Block
                 var oldBlock = _blockObjectsDictionary[blockPosition];
                 _blockObjectsByInstanceIdDictionary.Remove(oldBlock.BlockInstanceId);
                 DropFromNearestIndex(oldBlock);
+                DropFromBlockTypeIndex(oldBlock);
                 Destroy(oldBlock.gameObject);
                 _blockObjectsDictionary.Remove(blockPosition);
             }
@@ -106,6 +111,7 @@ namespace Client.Game.InGame.Block
             _blockObjectsDictionary.Add(blockPosition, block);
             _blockObjectsByInstanceIdDictionary.Add(blockInstanceId, block);
             _nearestIndex.Register(block.BlockMasterElement.BlockGuid, block);
+            RegisterToBlockTypeIndex(block);
             _onBlockPlaced.OnNext(block);
         }
         
@@ -119,6 +125,7 @@ namespace Client.Game.InGame.Block
             block.DestroyBlock().Forget();
             _blockObjectsByInstanceIdDictionary.Remove(block.BlockInstanceId);
             DropFromNearestIndex(block);
+            DropFromBlockTypeIndex(block);
             _blockObjectsDictionary.Remove(blockPosition);
             
             // ブロック削除イベントを発行
@@ -132,6 +139,28 @@ namespace Client.Game.InGame.Block
         {
             block.MarkUnsearchable();
             _nearestIndex.NotifyTargetUnsearchable(block.BlockMasterElement.BlockGuid);
+        }
+
+        public IReadOnlyList<BlockGameObject> GetBlocksByBlockType(string blockType)
+        {
+            return _blocksByBlockType.TryGetValue(blockType, out var blocks) ? blocks : Array.Empty<BlockGameObject>();
+        }
+
+        private void RegisterToBlockTypeIndex(BlockGameObject block)
+        {
+            var blockType = block.BlockMasterElement.BlockType;
+            if (!_blocksByBlockType.TryGetValue(blockType, out var blocks))
+            {
+                blocks = new List<BlockGameObject>();
+                _blocksByBlockType.Add(blockType, blocks);
+            }
+            blocks.Add(block);
+        }
+
+        private void DropFromBlockTypeIndex(BlockGameObject block)
+        {
+            if (!_blocksByBlockType.TryGetValue(block.BlockMasterElement.BlockType, out var blocks)) return;
+            blocks.Remove(block);
         }
 
         public bool IsOverlapPositionInfo(BlockPositionInfo target)

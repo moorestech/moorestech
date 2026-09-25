@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using Client.Network.Settings;
 using Cysharp.Threading.Tasks;
 using Game.Train.RailPositions;
 using Game.Train.Unit;
@@ -10,18 +11,35 @@ using UnityEngine;
 
 namespace Client.Network.API
 {
-    public static class TrainResponseApi
+    public class TrainResponseApi
     {
-        // train/rail再同期の引き金を送る。snapshot本体はイベント経路で届く
-        // Send the resync trigger; snapshots arrive over the event stream
-        public static async UniTask<TrainResyncProtocol.ResponseMessagePack> SendTrainResync(this VanillaApiWithResponse api, bool includeRailGraph, CancellationToken ct)
+        private readonly PacketExchangeManager _packetExchange;
+        private readonly PlayerConnectionSetting _connectionSetting;
+
+        public TrainResponseApi(PacketExchangeManager packetExchangeManager, PlayerConnectionSetting playerConnectionSetting)
         {
-            var request = new TrainResyncProtocol.RequestMessagePack(includeRailGraph);
-            return await api.PacketExchange.GetPacketResponse<TrainResyncProtocol.ResponseMessagePack>(request, ct);
+            _packetExchange = packetExchangeManager;
+            _connectionSetting = playerConnectionSetting;
         }
 
-        public static async UniTask<AttachTrainCarToUnitProtocol.AttachTrainCarToUnitResponseMessagePack> AttachTrainCarToUnit(
-            this VanillaApiWithResponse api,
+        // train/rail再同期の引き金を送る。snapshot本体はイベント経路で届く
+        // Send the resync trigger; snapshots arrive over the event stream
+        public async UniTask<TrainResyncProtocol.ResponseMessagePack> SendTrainResync(bool includeRailGraph, CancellationToken ct)
+        {
+            var request = new TrainResyncProtocol.RequestMessagePack(includeRailGraph);
+            return await _packetExchange.GetPacketResponse<TrainResyncProtocol.ResponseMessagePack>(request, ct);
+        }
+
+        // 新規編成としてレールへ列車車両を設置する
+        // Place a train car on a rail as a new train unit
+        public async UniTask<PlaceTrainCarOnRailProtocol.PlaceTrainOnRailResponseMessagePack> PlaceTrainOnRail(RailPosition railPosition, Guid trainCarGuid, CancellationToken ct)
+        {
+            var railPositionSnapshot = new RailPositionSnapshotMessagePack(railPosition?.CreateSaveSnapshot());
+            var request = new PlaceTrainCarOnRailProtocol.PlaceTrainOnRailRequestMessagePack(railPositionSnapshot, trainCarGuid, _connectionSetting.PlayerId);
+            return await _packetExchange.GetPacketResponse<PlaceTrainCarOnRailProtocol.PlaceTrainOnRailResponseMessagePack>(request, ct);
+        }
+
+        public async UniTask<AttachTrainCarToUnitProtocol.AttachTrainCarToUnitResponseMessagePack> AttachTrainCarToUnit(
             TrainUnitInstanceId targetTrainUnitInstanceId,
             RailPosition railPosition,
             Guid trainCarGuid,
@@ -36,46 +54,45 @@ namespace Client.Network.API
                 targetTrainUnitInstanceId,
                 railPositionSnapshot,
                 trainCarGuid,
-                api.ConnectionSetting.PlayerId,
+                _connectionSetting.PlayerId,
                 attachCarFacingForward,
                 attachToTargetTrainHead);
-            return await api.PacketExchange.GetPacketResponse<AttachTrainCarToUnitProtocol.AttachTrainCarToUnitResponseMessagePack>(request, ct);
+            return await _packetExchange.GetPacketResponse<AttachTrainCarToUnitProtocol.AttachTrainCarToUnitResponseMessagePack>(request, ct);
         }
 
         // 貨物プラットフォームのロード/アンロードモードを切り替える
         // Switch the load/unload transfer mode of a train platform block
-        public static async UniTask<SetTrainPlatformTransferModeProtocol.SetTrainPlatformTransferModeResponse> SetTrainPlatformTransferMode(
-            this VanillaApiWithResponse api,
+        public async UniTask<SetTrainPlatformTransferModeProtocol.SetTrainPlatformTransferModeResponse> SetTrainPlatformTransferMode(
             Vector3Int position, TrainPlatformTransferComponent.TransferMode mode, CancellationToken ct)
         {
             var request = new SetTrainPlatformTransferModeProtocol.SetTrainPlatformTransferModeRequest(position, mode);
-            return await api.PacketExchange.GetPacketResponse<SetTrainPlatformTransferModeProtocol.SetTrainPlatformTransferModeResponse>(request, ct);
+            return await _packetExchange.GetPacketResponse<SetTrainPlatformTransferModeProtocol.SetTrainPlatformTransferModeResponse>(request, ct);
         }
 
         // 時刻表置換と自動運転切替を単一の送信口で扱う
         // Send timetable replacement and auto-run changes through one entry point
-        public static async UniTask<TrainScheduleEditProtocol.TrainScheduleEditResponse> SendTrainScheduleEdit(
-            this VanillaApiWithResponse api, TrainScheduleEditProtocol.TrainScheduleEditRequest request, CancellationToken ct)
+        public async UniTask<TrainScheduleEditProtocol.TrainScheduleEditResponse> SendTrainScheduleEdit(
+            TrainScheduleEditProtocol.TrainScheduleEditRequest request, CancellationToken ct)
         {
-            return await api.PacketExchange.GetPacketResponse<TrainScheduleEditProtocol.TrainScheduleEditResponse>(request, ct);
+            return await _packetExchange.GetPacketResponse<TrainScheduleEditProtocol.TrainScheduleEditResponse>(request, ct);
         }
 
         // 時刻表タブを開いたときに現在の時刻表を取り寄せる
         // Fetch the current timetable when the timetable tab opens
-        public static async UniTask<GetTrainTimetableProtocol.GetTrainTimetableResponse> GetTrainTimetable(
-            this VanillaApiWithResponse api, TrainUnitInstanceId trainUnitInstanceId, CancellationToken ct)
+        public async UniTask<GetTrainTimetableProtocol.GetTrainTimetableResponse> GetTrainTimetable(
+            TrainUnitInstanceId trainUnitInstanceId, CancellationToken ct)
         {
             var request = new GetTrainTimetableProtocol.GetTrainTimetableRequest(trainUnitInstanceId);
-            return await api.PacketExchange.GetPacketResponse<GetTrainTimetableProtocol.GetTrainTimetableResponse>(request, ct);
+            return await _packetExchange.GetPacketResponse<GetTrainTimetableProtocol.GetTrainTimetableResponse>(request, ct);
         }
 
         // 改名結果を待ち、表示更新はブロック状態の通知に委ねる
         // Await the rename result; block state notifications update the displayed name
-        public static async UniTask<SetTrainStationNameProtocol.SetTrainStationNameResponse> SetTrainStationName(
-            this VanillaApiWithResponse api, Vector3Int position, string stationName, CancellationToken ct)
+        public async UniTask<SetTrainStationNameProtocol.SetTrainStationNameResponse> SetTrainStationName(
+            Vector3Int position, string stationName, CancellationToken ct)
         {
             var request = new SetTrainStationNameProtocol.SetTrainStationNameRequest(position, stationName);
-            return await api.PacketExchange.GetPacketResponse<SetTrainStationNameProtocol.SetTrainStationNameResponse>(request, ct);
+            return await _packetExchange.GetPacketResponse<SetTrainStationNameProtocol.SetTrainStationNameResponse>(request, ct);
         }
     }
 }

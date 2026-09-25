@@ -1,4 +1,3 @@
-using Client.Network.API;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -121,7 +120,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                         return;
                     }
 
-                    var attachResponse = await ClientContext.VanillaApi.Response.AttachTrainCarToUnit(
+                    var attachResponse = await ClientContext.VanillaApi.Response.Train.AttachTrainCarToUnit(
                         placementHit.TargetTrainUnitInstanceId,
                         placementHit.RailPosition,
                         trainCarGuid,
@@ -137,7 +136,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
                 // 新規編成modeではRailPositionのみで設置を依頼する
                 // In new-unit mode, request placement with only the RailPosition
-                var placeResponse = await ClientContext.VanillaApi.Response.PlaceTrainOnRail(placementHit.RailPosition, trainCarGuid, CancellationToken.None);
+                var placeResponse = await ClientContext.VanillaApi.Response.Train.PlaceTrainOnRail(placementHit.RailPosition, trainCarGuid, CancellationToken.None);
                 if (placeResponse == null || !placeResponse.Success)
                 {
                     Debug.LogWarning($"[TrainCarPlaceSystem] PlaceTrain failed. reason={placeResponse?.FailureType}");

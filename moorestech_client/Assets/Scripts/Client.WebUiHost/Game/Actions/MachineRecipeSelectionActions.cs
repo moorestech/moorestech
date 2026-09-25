@@ -1,4 +1,3 @@
-using Client.Network.API;
 using System;
 using System.Threading;
 using Client.Game.InGame.Context;
@@ -59,7 +58,7 @@ namespace Client.WebUiHost.Game.Actions
             var resolveResult = ResolveRequest(out var request);
             if (!resolveResult.Ok) return resolveResult;
 
-            var response = await ClientContext.VanillaApi.Response.SendMachineRecipeSelectionRequest(request, CancellationToken.None);
+            var response = await ClientContext.VanillaApi.Response.Block.SendMachineRecipeSelectionRequest(request, CancellationToken.None);
             if (response == null || !response.Success) return ActionResult.Fail("machine_recipe_request_failed");
             return ActionResult.Success();
 

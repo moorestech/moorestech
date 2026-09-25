@@ -88,7 +88,7 @@ namespace Client.Network.API
         // The response wait is bounded by the network layer, which returns null on timeout
         private async UniTask<long?> RequestSaveAsync()
         {
-            var saveResponse = await _vanillaApi.Response.Save(default);
+            var saveResponse = await _vanillaApi.Response.World.Save(default);
             if (saveResponse == null)
             {
                 Debug.LogWarning("[ServerSaveGenerationWaiter] the save request got no response within the packet timeout");

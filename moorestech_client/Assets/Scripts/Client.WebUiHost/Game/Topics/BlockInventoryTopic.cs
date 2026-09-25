@@ -48,7 +48,7 @@ namespace Client.WebUiHost.Game.Topics
             _trainUnitClientCache = trainUnitClientCache;
             _timetables = timetables;
             _timetableFetcher = timetableFetcher;
-            // 開いている列車の時刻表更新・取得失敗・所属列車の変化で再配信する
+            // 時刻表更新・取得失敗・所属列車の変化で再配信する
             // Republish on the open train's timetable updates, fetch failures, and owning-train changes
             _openTrainTimetableTracker = new OpenTrainTimetableTracker(subInventoryState, uiStateControl, trainUnitClientCache, timetables, timetableFetcher);
             _trainTimetableSubscription = _openTrainTimetableTracker.OnRepublishRequested.Subscribe(_ => SchedulePublish());

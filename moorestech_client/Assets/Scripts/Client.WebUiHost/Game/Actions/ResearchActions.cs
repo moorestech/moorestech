@@ -1,4 +1,3 @@
-using Client.Network.API;
 using System;
 using System.Threading;
 using Client.Game.InGame.Context;
@@ -29,7 +28,7 @@ namespace Client.WebUiHost.Game.Actions
             if (payload["researchGuid"] is not JValue { Type: JTokenType.String } guidValue) return ActionResult.Fail("invalid_payload");
             if (!Guid.TryParse((string)guidValue, out var researchGuid)) return ActionResult.Fail("invalid_guid");
 
-            var response = await ClientContext.VanillaApi.Response.CompleteResearch(researchGuid, CancellationToken.None);
+            var response = await ClientContext.VanillaApi.Response.Progress.CompleteResearch(researchGuid, CancellationToken.None);
             if (response == null) return ActionResult.Fail("research_failed");
 
             // 成否に関わらず最新全ノード状態を配信し、Web を正しい状態へ収束させる

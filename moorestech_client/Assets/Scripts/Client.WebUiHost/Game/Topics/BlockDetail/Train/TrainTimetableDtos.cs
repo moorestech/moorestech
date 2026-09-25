@@ -35,7 +35,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
         public List<TrainTimetableStationDto> Stations;
     }
 
-    // 時刻表の取得状態。kind が "ready" のときだけ data を持つ（読み込み中と取得不可を区別する）
+    // 取得状態。kindが"ready"の時だけdataを持つ
     // Timetable fetch state; data is present only when kind is "ready" (loading and unavailable stay distinct)
     public class TrainTimetableStateDto
     {
@@ -56,10 +56,5 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
         {
             return new TrainTimetableStateDto { Kind = "ready", Data = data };
         }
-    }
-
-    public class TrainStationDetailDto
-    {
-        public string Name;
     }
 }

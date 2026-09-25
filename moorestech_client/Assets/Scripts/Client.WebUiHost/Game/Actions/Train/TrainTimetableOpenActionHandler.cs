@@ -27,7 +27,7 @@ namespace Client.WebUiHost.Game.Actions
         {
             if (!OpenTrainUnitResolver.TryResolveOpenTrain(_subInventoryState, _cache, out var trainUnitId))
             {
-                // 車両未着でもタブを開いた事実は残し、後着した車両で取得を始められるようにする
+                // 車両未着でもタブを開いた事実は残す
                 // Keep the tab-open fact even before the car arrives so a late car snapshot can start the fetch
                 _fetcher.MarkTabOpenedWithoutTrain();
                 return UniTask.FromResult(TrainTimetableActionSupport.Reject("train_not_open"));

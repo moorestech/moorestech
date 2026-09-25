@@ -1,4 +1,3 @@
-using Client.Network.API;
 using System.Threading;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Main;
@@ -39,7 +38,7 @@ namespace Client.WebUiHost.Game.Actions
             if (_subInventoryState.CurrentSubInventorySource is not BlockSubInventorySource source) return ActionResult.Fail("block_not_open");
 
             var request = FilterSplitterStateProtocol.FilterSplitterStateRequest.CreateSetModeRequest(source.BlockPosition, (int)dirLong, mode.Value);
-            var response = await ClientContext.VanillaApi.Response.SendFilterSplitterStateRequest(request, CancellationToken.None);
+            var response = await ClientContext.VanillaApi.Response.Block.SendFilterSplitterStateRequest(request, CancellationToken.None);
             if (response == null || !response.Success) return ActionResult.Fail("filter_request_failed");
 
             // 応答スナップショットをキャッシュへ反映し topic を再配信する（D2: state は topic 一本）
@@ -92,7 +91,7 @@ namespace Client.WebUiHost.Game.Actions
             // Assign the grabbed item, or EmptyItemId to clear
             var itemId = (bool)clearValue.Value ? ItemMaster.EmptyItemId : _controller.GrabInventory.Id;
             var request = FilterSplitterStateProtocol.FilterSplitterStateRequest.CreateSetFilterItemRequest(source.BlockPosition, (int)dirLong, (int)slotLong, itemId);
-            var response = await ClientContext.VanillaApi.Response.SendFilterSplitterStateRequest(request, CancellationToken.None);
+            var response = await ClientContext.VanillaApi.Response.Block.SendFilterSplitterStateRequest(request, CancellationToken.None);
             if (response == null || !response.Success) return ActionResult.Fail("filter_request_failed");
 
             _blockInventoryTopic.NetworkCache.ApplyFilterSplitterSnapshot(response);
