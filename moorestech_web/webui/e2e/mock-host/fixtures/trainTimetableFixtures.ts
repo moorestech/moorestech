@@ -15,7 +15,7 @@ export const trainWithTimetable = {
     trainUnitId: "unit-1",
     isAutoRun: false,
     currentIndex: 0,
-    stops: [{ position: { x: 12, y: 0, z: 40 }, name: "北駅" }],
+    stops: [{ position: { x: 12, y: 0, z: 40 }, name: "北駅", side: "back" }],
     stations: [
       { position: { x: -8, y: 0, z: 3 }, name: "" },
       { position: { x: 12, y: 0, z: 40 }, name: "北駅" },

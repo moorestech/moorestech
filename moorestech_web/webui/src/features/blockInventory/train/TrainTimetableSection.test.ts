@@ -22,8 +22,10 @@ import TrainStationNameSection from "../details/station/TrainStationNameSection"
 
 const a = { position: { x: 1, y: 0, z: 1 }, name: "A" };
 const b = { position: { x: 2, y: 0, z: 2 }, name: "B" };
+const aStop = { ...a, side: "back" as const };
+const bStop = { ...b, side: "back" as const };
 const timetable: TrainTimetableData = {
-  trainUnitId: "train", isAutoRun: false, currentIndex: 0, stops: [a], stations: [a, b],
+  trainUnitId: "train", isAutoRun: false, currentIndex: 0, stops: [aStop], stations: [a, b],
 };
 
 function button(tree: ReactTestRenderer, id: string) {
@@ -52,7 +54,7 @@ describe("train timetable UI", () => {
     expect(currentRows(tree)).toHaveLength(0);
     click(tree, "train-timetable-apply");
     expect(dispatchAction).toHaveBeenCalledTimes(1);
-    expect(dispatchAction).toHaveBeenCalledWith("train_timetable.replace", { stations: [b.position, a.position] });
+    expect(dispatchAction).toHaveBeenCalledWith("train_timetable.replace", { stops: [{ ...b.position, side: "back" }, { ...a.position, side: "back" }] });
     click(tree, "train-timetable-auto-run-on");
     expect(dispatchAction).toHaveBeenLastCalledWith("train_timetable.set_auto_run", { enabled: true });
   });
@@ -68,13 +70,13 @@ describe("train timetable UI", () => {
 
   it("follows clean snapshots and current index but preserves unsent edits", () => {
     const tree = render(timetable);
-    const updated = { ...timetable, stops: [a, b], currentIndex: 1 };
+    const updated = { ...timetable, stops: [aStop, bStop], currentIndex: 1 };
     act(() => tree.update(createElement(TrainTimetableSection, { timetable: updated })));
     expect(currentRows(tree)[0].props["data-testid"]).toBe("train-timetable-stop-1");
     click(tree, "train-timetable-stop-0-remove");
-    act(() => tree.update(createElement(TrainTimetableSection, { timetable: { ...updated, stops: [a] } })));
+    act(() => tree.update(createElement(TrainTimetableSection, { timetable: { ...updated, stops: [aStop] } })));
     click(tree, "train-timetable-apply");
-    expect(dispatchAction).toHaveBeenLastCalledWith("train_timetable.replace", { stations: [b.position] });
+    expect(dispatchAction).toHaveBeenLastCalledWith("train_timetable.replace", { stops: [{ ...b.position, side: "back" }] });
   });
 
   it("discards unapplied edits when the train panel unmounts", () => {
@@ -88,7 +90,7 @@ describe("train timetable UI", () => {
     click(tree, "train-tab-timetable");
     click(tree, "train-timetable-apply");
     expect(dispatchAction).toHaveBeenCalledTimes(1);
-    expect(dispatchAction).toHaveBeenCalledWith("train_timetable.replace", { stations: [a.position] });
+    expect(dispatchAction).toHaveBeenCalledWith("train_timetable.replace", { stops: [{ ...a.position, side: "back" }] });
   });
 
   it("keeps unapplied edits while switching tabs", () => {
@@ -100,7 +102,7 @@ describe("train timetable UI", () => {
     click(tree, "train-tab-inventory");
     click(tree, "train-tab-timetable");
     click(tree, "train-timetable-apply");
-    expect(dispatchAction).toHaveBeenCalledWith("train_timetable.replace", { stations: [a.position, b.position] });
+    expect(dispatchAction).toHaveBeenCalledWith("train_timetable.replace", { stops: [{ ...a.position, side: "back" }, { ...b.position, side: "back" }] });
   });
 
   it("sends station names only through Set and hides the field for platforms", () => {

@@ -1,14 +1,14 @@
 // 停車駅リスト。現在行はdata-current、↑↓×で並替/削除
 // Stop list; current row has data-current, up/down/remove controls
 import { Text } from "@mantine/core";
-import type { TrainTimetableStation } from "@/bridge";
+import type { TrainTimetableStop } from "@/bridge";
 import { L, useI18n } from "@/shared/i18n";
 import { PanelActionButton } from "@/shared/ui";
 import { stationLabel } from "./timetableEditLogic";
 import styles from "./style.module.css";
 
 type Props = {
-  stops: TrainTimetableStation[];
+  stops: TrainTimetableStop[];
   currentIndex: number | null;
   onMove: (index: number, delta: -1 | 1) => void;
   onRemove: (index: number) => void;

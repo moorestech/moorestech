@@ -1,17 +1,21 @@
 // 時刻表タブのローカル編集。適用で丸ごと送信
 // Local editing for the timetable tab; sent whole on Apply
-import type { TrainTimetableStation } from "@/bridge";
+import type { TrainTimetableStation, TrainTimetableStop } from "@/bridge";
 import { L, useI18n } from "@/shared/i18n";
 
-export type TimetableDraft = { stops: TrainTimetableStation[] };
+export type TimetableDraft = { stops: TrainTimetableStop[] };
 type StationPosition = TrainTimetableStation["position"];
+
+// UIは入線方向を固定し、新しい停車駅は常に後端側へ着ける（裁定 2026-09-25）
+// The UI fixes the arrival direction; new stops always use the back side (ruling 2026-09-25)
+export const UI_FIXED_STOP_SIDE = "back" as const;
 
 export function stationKey(position: StationPosition): string {
   return `${position.x},${position.y},${position.z}`;
 }
 
 export function addStop(draft: TimetableDraft, station: TrainTimetableStation): TimetableDraft {
-  return { stops: [...draft.stops, station] };
+  return { stops: [...draft.stops, { ...station, side: UI_FIXED_STOP_SIDE }] };
 }
 
 export function removeStop(draft: TimetableDraft, index: number): TimetableDraft {
@@ -35,7 +39,7 @@ export function moveStop(draft: TimetableDraft, index: number, delta: -1 | 1): T
 
 // 空の時刻表ではONにしない（サーバーは受理して即OFFに戻すため、UI側で塞ぐ裁定）
 // Never enable on an empty timetable (the server accepts then immediately turns it off, so the UI blocks it)
-export function canEnableAutoRun(stops: readonly TrainTimetableStation[]): boolean {
+export function canEnableAutoRun(stops: readonly TrainTimetableStop[]): boolean {
   return stops.length > 0;
 }
 
@@ -46,12 +50,12 @@ export function stationLabel(t: Translator, station: TrainTimetableStation): str
   return t(L.ui.blockInventory.timetableStationLabel, { name, x: station.position.x, y: station.position.y, z: station.position.z });
 }
 
-export function toReplacePayload(draft: TimetableDraft): { stations: StationPosition[] } {
-  return { stations: draft.stops.map((s) => ({ x: s.position.x, y: s.position.y, z: s.position.z })) };
+export function toReplacePayload(draft: TimetableDraft): { stops: { x: number; y: number; z: number; side: TrainTimetableStop["side"] }[] } {
+  return { stops: draft.stops.map((s) => ({ x: s.position.x, y: s.position.y, z: s.position.z, side: s.side })) };
 }
 
-// 順序が同じときだけサーバーの行番号を編集リストへ適用する
-// Apply the server row index to the draft only when both orders match
-export function sameStopOrder(left: readonly TrainTimetableStation[], right: readonly TrainTimetableStation[]): boolean {
-  return left.length === right.length && left.every((stop, i) => stationKey(stop.position) === stationKey(right[i].position));
+// 順序が同じときだけサーバーの行番号を編集リストへ適用する。端の違いも別行として扱う
+// Apply the server row index to the draft only when both orders match; a differing side counts as a different row
+export function sameStopOrder(left: readonly TrainTimetableStop[], right: readonly TrainTimetableStop[]): boolean {
+  return left.length === right.length && left.every((stop, i) => stationKey(stop.position) === stationKey(right[i].position) && stop.side === right[i].side);
 }

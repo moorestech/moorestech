@@ -72,6 +72,7 @@ import type {
   TrainPlatformModeSchema,
   TrainTimetableDataSchema,
   TrainTimetableStationSchema,
+  TrainTimetableStopSchema,
   NotificationDataSchema,
 } from "./schemas";
 
@@ -120,6 +121,7 @@ export type TrainPlatformMode = z.infer<typeof TrainPlatformModeSchema>;
 export type TrainPlatformData = z.infer<typeof TrainPlatformDataSchema>;
 export type TrainTimetableData = z.infer<typeof TrainTimetableDataSchema>;
 export type TrainTimetableStation = z.infer<typeof TrainTimetableStationSchema>;
+export type TrainTimetableStop = z.infer<typeof TrainTimetableStopSchema>;
 export type GearNetworkStopReason = z.infer<typeof GearNetworkStopReasonSchema>;
 export type GearNetworkData = z.infer<typeof GearNetworkDataSchema>;
 export type FilterSplitterMode = z.infer<typeof FilterSplitterModeSchema>;

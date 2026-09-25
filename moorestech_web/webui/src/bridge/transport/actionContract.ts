@@ -74,7 +74,7 @@ export type ActionPayloads = {
   "filter_splitter.set_filter_item": { directionIndex: number; slotIndex: number; clear: boolean };
   "electric_to_gear.set_output_mode": { modeIndex: number };
   "train_platform.set_transfer_mode": { mode: "loadToTrain" | "unloadToPlatform" };
-  "train_timetable.replace": { stations: { x: number; y: number; z: number }[] };
+  "train_timetable.replace": { stops: { x: number; y: number; z: number; side: "front" | "back" }[] };
   "train_timetable.set_auto_run": { enabled: boolean };
   "train_station.set_name": { name: string };
   "debug.echo": { hello: string };
