@@ -107,7 +107,9 @@ def flatten_progress_record(record: dict, box: dict) -> dict:
     # A null playSeconds (the producer's legitimate "unmeasured" case) is passed through as None; aggregation averages only the present ones
     raw_seconds = record["playSeconds"]
     return {
-        "steamId": record["steamId"] or box["meta"]["steamId"],
+        # meta（R2の置き場所）が正。旧い箱だけrecord本文へフォールバックする（ADR 0070「追跡の正はR2の置き場所」）
+        # meta (the R2 location) is authoritative; only legacy boxes fall back to the record body (ADR 0070 "the R2 location is the tracking authority")
+        "steamId": box["meta"]["steamId"] or record["steamId"],
         "tester": tester_label(box["meta"]),
         "playSeconds": float(raw_seconds) if raw_seconds is not None else None,
         "endReason": record["endReason"] or "unknown",

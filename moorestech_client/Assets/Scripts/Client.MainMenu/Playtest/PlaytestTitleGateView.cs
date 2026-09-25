@@ -1,6 +1,6 @@
 using Client.PlaytestReceiver;
 using Client.PlaytestReceiver.Http;
-using Client.PlaytestReceiver.Launch;
+using Client.PlaytestReceiver.Steam;
 using Client.PlaytestReceiver.Upload;
 using Client.Starter.Playtest.TitleGates;
 using UniRx;
@@ -15,22 +15,16 @@ namespace Client.MainMenu.Playtest
         [SerializeField] private PlaytestConsentPopup consentPopup;
         [SerializeField] private CrashReportPopup crashReportPopup;
 
-        // 同じ列へ二度繋がないよう、接続した列だけを覚える
-        // Remember the wired sequence so it is never bound twice
-        private PlaytestTitleGateSequence _boundSequence;
-
         private void Start()
         {
             // MainMenuにはDIコンテナが無いので、ここで受け口と走行役を組む
             // The MainMenu scene has no DI container, so compose the receiver and runner here
             var receiver = new PlaytestReceiverClient(PlaytestReceiverConfig.BaseUrl);
-            var uploadRequester = new PlaytestUploadRunner(receiver, PlaytestOutboxDirectories.FromGameSystemPaths());
+            var uploadRequester = new PlaytestUploadRunner(receiver, PlaytestOutboxDirectories.FromGameSystemPaths(), new PlaytestSteamTicketProvider());
 
             // 配布版判定を確定し、通信を待たずにタイトルの確認を始める（ADR 0070）
             // Resolve the distribution kind and begin title confirmations without waiting for a network check (ADR 0070)
-            PlaytestTitleGates.Begin(PlaytestLaunchProfile.Resolve(), uploadRequester, out var sequence);
-            if (_boundSequence == sequence) return;
-            _boundSequence = sequence;
+            var sequence = PlaytestTitleGates.Begin(uploadRequester);
             consentPopup.Initialize(sequence);
             crashReportPopup.Initialize(sequence);
 

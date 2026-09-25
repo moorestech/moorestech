@@ -4,7 +4,7 @@ namespace Client.PlaytestReceiver
     // Whether the held token is usable; a cache hit carries no SteamID, so it travels in a type apart from the authentication outcome
     internal sealed class PlaytestTokenAvailability
     {
-        public static readonly PlaytestTokenAvailability Usable = new(true, PlaytestSessionOutcome.Allowed, "");
+        public static readonly PlaytestTokenAvailability Usable = new(true, PlaytestSessionOutcome.Authenticated, "");
 
         public bool IsUsable { get; }
 

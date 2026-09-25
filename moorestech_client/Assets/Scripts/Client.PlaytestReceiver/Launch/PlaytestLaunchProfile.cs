@@ -15,7 +15,7 @@ namespace Client.PlaytestReceiver.Launch
         private static PlaytestLaunchKind _kind = PlaytestLaunchKind.NotEvaluated;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        private static void ResetOnPlayMode()
+        internal static void ResetOnPlayMode()
         {
             // 前回の再生の識別を次の判定前へ持ち越さない
             // Do not carry the previous play session identity into the next unresolved boot
@@ -23,64 +23,63 @@ namespace Client.PlaytestReceiver.Launch
             {
                 Debug.Log("[PlaytestReceiver] resetting local SteamID for the next launch");
             }
-            Apply(PlaytestLaunchKind.NotEvaluated, "");
+            Apply(PlaytestLaunchKind.NotEvaluated, new EmptyPlaytestSessionIdentity(EmptyPlaytestSessionIdentity.NotYetResolvedReason));
         }
 
         public static PlaytestLaunchKind Resolve()
         {
             if (_kind != PlaytestLaunchKind.NotEvaluated) return _kind;
-            if (!IsDistributionBuild())
+            return ResolveWith(File.Exists(GameSystemPaths.BuildInfoFilePath), new PlaytestSteamTicketProvider(), new PlaytestLocalSteamIdReader());
+        }
+
+        // Steam境界を差し替えられる形で解決する。テストは同じ経路で配布版の2条件をmutation可能な形で検査できる（C4）
+        // Resolves with substitutable Steam boundaries so tests can mutate both distribution conditions through the same path (C4)
+        internal static PlaytestLaunchKind ResolveWith(bool buildInfoExists, IPlaytestSteamTicketProvider steam, IPlaytestLocalSteamIdReader reader)
+        {
+            var kind = Decide(buildInfoExists, steam);
+            if (kind != PlaytestLaunchKind.Distribution)
             {
-                Apply(PlaytestLaunchKind.DeveloperMode, "");
+                Apply(kind, new EmptyPlaytestSessionIdentity(EmptyPlaytestSessionIdentity.DeveloperModeReason));
                 return _kind;
             }
+
             // 読めなくても開始は止めない。追跡の正は送信時トークンが決めるR2の置き場所
             // A failed read never stops the boot; the R2 location set by the send-time token is the tracking authority
-            if (!PlaytestLocalSteamIdReader.TryRead(out var steamId, out var failureReason)) Debug.LogWarning($"[PlaytestReceiver] 記録のSteamIDを空で続行します: {failureReason}");
-            Apply(PlaytestLaunchKind.Distribution, steamId);
-            return _kind;
-
-            #region Internal
-
-            bool IsDistributionBuild()
+            if (!reader.TryRead(out var steamId, out var failureReason))
             {
-                // 開発者モードへ倒す経路も理由をログへ残す。無音だと配布版で送信が止まっても気づけない
-                // The developer-mode fallback is logged too; silently, a distribution build that stopped shipping would go unnoticed
-                if (!File.Exists(GameSystemPaths.BuildInfoFilePath))
-                {
-                    Debug.Log("[PlaytestReceiver] developer mode (no build-info.json)");
-                    return false;
-                }
-                if (!new PlaytestSteamTicketProvider().IsSteamRunning())
-                {
-                    Debug.Log("[PlaytestReceiver] developer mode (Steam is not running)");
-                    return false;
-                }
-                return true;
+                Debug.LogWarning($"[PlaytestReceiver] 記録のSteamIDを空で続行します: {failureReason}");
+                Apply(kind, new EmptyPlaytestSessionIdentity($"{EmptyPlaytestSessionIdentity.LocalSteamIdUnreadableReason}: {failureReason}"));
+                return _kind;
             }
-
-            #endregion
+            Apply(kind, new LocalSteamSessionIdentity(steamId));
+            return _kind;
         }
 
-        internal static void SetForTest(PlaytestLaunchKind kind, string steamId)
+        // 配布版か開発者モードかだけを判定する純関数。Steam境界をmutationテストで検査できるよう分離する（C4）
+        // A pure decision between distribution and developer mode, split out so the Steam boundary is mutation-testable (C4)
+        internal static PlaytestLaunchKind Decide(bool buildInfoExists, IPlaytestSteamTicketProvider steam)
         {
-            Apply(kind, steamId);
+            // 開発者モードへ倒す経路も理由をログへ残す。無音だと配布版で送信が止まっても気づけない
+            // The developer-mode fallback is logged too; silently, a distribution build that stopped shipping would go unnoticed
+            if (!buildInfoExists)
+            {
+                Debug.Log("[PlaytestReceiver] developer mode (no build-info.json)");
+                return PlaytestLaunchKind.DeveloperMode;
+            }
+            if (!steam.IsSteamRunning())
+            {
+                Debug.Log("[PlaytestReceiver] developer mode (Steam is not running)");
+                return PlaytestLaunchKind.DeveloperMode;
+            }
+            return PlaytestLaunchKind.Distribution;
         }
 
-        internal static void ResetForTest()
-        {
-            ResetOnPlayMode();
-        }
-
-        private static void Apply(PlaytestLaunchKind kind, string steamId)
+        // 識別を組む場所は呼び出し側（Resolve系・ResetOnPlayMode）に一元化する。理由を捨てず型で運ぶ（C5）
+        // Identity construction is centralized in the callers (the resolve paths and ResetOnPlayMode); the reason travels through the type instead of being discarded (C5)
+        internal static void Apply(PlaytestLaunchKind kind, IPlaytestSessionIdentity identity)
         {
             _kind = kind;
-            // 識別の設定は判定と同じ1箇所で行う。開発者モードと読めなかった配布版は理由付きの空にする
-            // The identity is set in the same single place as the decision; developer mode and an unreadable distribution get a reasoned empty one
-            if (kind == PlaytestLaunchKind.Distribution && !string.IsNullOrEmpty(steamId)) PlaytestSessionIdentityProvider.SetCurrent(new LocalSteamSessionIdentity(steamId));
-            else if (kind == PlaytestLaunchKind.DeveloperMode) PlaytestSessionIdentityProvider.SetCurrent(new EmptyPlaytestSessionIdentity(EmptyPlaytestSessionIdentity.DeveloperModeReason));
-            else if (kind == PlaytestLaunchKind.Distribution) PlaytestSessionIdentityProvider.SetCurrent(new EmptyPlaytestSessionIdentity("テスター識別（SteamID）が無い（SteamUser.GetSteamID で読めなかった）"));
-            else PlaytestSessionIdentityProvider.SetCurrent(new EmptyPlaytestSessionIdentity("テスター識別（SteamID）が無い（起動時のローカルSteamIDがまだ差し込まれていない）"));
+            PlaytestSessionIdentityProvider.SetCurrent(identity);
         }
     }
 }

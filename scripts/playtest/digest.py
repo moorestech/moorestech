@@ -68,7 +68,9 @@ def format_progress(agg: dict, stats: dict, records: list[dict]) -> list[str]:
         lines.append("- なし")
     else:
         lines.append(f"- 人数 {agg['testers']} 人 / セッション {agg['sessions']} 件")
-        testers = {record["steamId"]: record["tester"] for record in records}
+        # 人数集計（aggregate_progress）と同じ述語（steamId非空）でそろえる。空IDの記録が一覧だけに残ると人数と食い違う
+        # Matches aggregate_progress's predicate (non-empty steamId); a record with an empty id would otherwise inflate the list past the count
+        testers = {record["steamId"]: record["tester"] for record in records if record["steamId"]}
         lines.append("- テスター: " + "、".join(testers.values()))
         # 全件 playSeconds 欠落なら 0 分と偽らず「不明」と明示する
         # When every session lacks playSeconds, say "unknown" rather than falsely printing 0 minutes

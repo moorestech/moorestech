@@ -4,7 +4,7 @@ namespace Client.PlaytestReceiver
 {
     public enum PlaytestSessionOutcome
     {
-        Allowed,
+        Authenticated,
         TicketRejected,
         TicketUnavailable,
         Unreachable,
@@ -30,14 +30,14 @@ namespace Client.PlaytestReceiver
             Detail = detail ?? "";
         }
 
-        public static PlaytestSessionResult Allowed()
+        public static PlaytestSessionResult Authenticated()
         {
-            return new PlaytestSessionResult(PlaytestSessionOutcome.Allowed, "");
+            return new PlaytestSessionResult(PlaytestSessionOutcome.Authenticated, "");
         }
 
         public static PlaytestSessionResult Failed(PlaytestSessionOutcome outcome, string detail)
         {
-            if (outcome == PlaytestSessionOutcome.Allowed) throw new ArgumentException("a failed session result cannot be Allowed", nameof(outcome));
+            if (outcome == PlaytestSessionOutcome.Authenticated) throw new ArgumentException("a failed session result cannot be Authenticated", nameof(outcome));
             return new PlaytestSessionResult(outcome, detail);
         }
     }

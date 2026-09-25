@@ -21,14 +21,9 @@ namespace Client.PlaytestReceiver.Upload
         private readonly PlaytestOutboxDirectories _directories;
         private readonly PlaytestSession _session;
 
-        public PlaytestUploadRunner(IPlaytestReceiverApi api, PlaytestOutboxDirectories directories)
-            : this(api, directories, new PlaytestSteamTicketProvider())
-        {
-        }
-
-        // Steam境界だけ差し替え、テストでも走行役自身のセッションを使う
-        // Replace only the Steam boundary so tests use the runner-owned session too
-        internal PlaytestUploadRunner(IPlaytestReceiverApi api, PlaytestOutboxDirectories directories, IPlaytestSteamTicketProvider ticketProvider)
+        // Steam境界はDIが注入する。本番はPlaytestSteamTicketProvider、テストは差し替え
+        // The Steam boundary is injected by DI; production uses PlaytestSteamTicketProvider, tests substitute it
+        public PlaytestUploadRunner(IPlaytestReceiverApi api, PlaytestOutboxDirectories directories, IPlaytestSteamTicketProvider ticketProvider)
         {
             _api = api;
             _directories = directories;

@@ -26,11 +26,11 @@ steam_persona_resolve() {
     return 0
   fi
 
-  # API 鍵はクエリ文字列に載るため URL をログに出さない
-  # The API key rides in the query, so never log the URL
+  # API 鍵はクエリ文字列に載るため URL をログに出さない。argvにも載せない（ps・Activity Monitor等の同一ホスト観測者から読める外部境界のため。C13）
+  # The API key rides in the query, so never log the URL; keep it off argv too (readable from ps/Activity Monitor by others on the same host; external boundary, C13)
   local body="$STEAM_PERSONA_CACHE_DIR/$steam_id.response" code missing
-  code="$("$STEAM_CURL_CMD" --silent --max-time "$STEAM_API_MAX_TIME" -w '%{http_code}' -o "$body" \
-    "https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=${STEAM_WEB_API_KEY}&steamids=${steam_id}")" || code="curl-failed"
+  code="$(printf 'url = "%s"\n' "https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=${STEAM_WEB_API_KEY}&steamids=${steam_id}" \
+    | "$STEAM_CURL_CMD" --config - --silent --max-time "$STEAM_API_MAX_TIME" -w '%{http_code}' -o "$body")" || code="curl-failed"
   if [ "$code" = 200 ]; then
     python3 "$HERE/lib/steam_persona.py" extract "$body" "$steam_id" "$cached" \
       || { log "ERROR: 表示名の応答を記録できない: $steam_id"; return 1; }

@@ -163,7 +163,7 @@ def neutralize_discord_markup(text: str) -> str:
 # 生成側で既に保証されている（値にバッククォートがあればコマンド行自体を出さない）
 # Shape of the pasteable command line format_candidates emits; the absence of a backtick is
 # already guaranteed by the generator (it omits the command line entirely when a value has one)
-PASTEABLE_COMMAND_RE = re.compile(r"^  `scripts/playtest/enqueue-autofix\.sh .*`$", re.MULTILINE)
+PASTEABLE_COMMAND_RE = re.compile(r"^  `scripts/playtest/enqueue-autofix\.sh [^`\n]*`$", re.MULTILINE)
 
 
 def protect_pasteable_commands(body: str) -> tuple[str, dict[str, str]]:

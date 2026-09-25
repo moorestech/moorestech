@@ -3,7 +3,16 @@
 Extract a public Steam persona from a response and write failures in the same shape.
 """
 import json
+import re
 import sys
+
+# 制御文字・改行を空白1つへ畳む。表示名の改行は貼り付けコマンドの退避（PASTEABLE_COMMAND_RE）を偽装できる（C12）
+# Folds control characters and newlines to a single space; a newline in the display name can otherwise forge the pasteable-command stash (PASTEABLE_COMMAND_RE, C12)
+_CONTROL_CHARS_RE = re.compile(r"[\x00-\x1f\x7f]+")
+
+
+def _normalize(value: str) -> str:
+    return _CONTROL_CHARS_RE.sub(" ", value).strip()
 
 
 def unresolved(reason: str) -> dict:
@@ -26,7 +35,7 @@ def extract(response_path: str, steam_id: str) -> dict:
             name = player.get("personaname")
             url = player.get("profileurl")
             if isinstance(name, str) and isinstance(url, str):
-                return {"steamPersonaName": name, "steamProfileUrl": url, "steamPersonaMissing": ""}
+                return {"steamPersonaName": _normalize(name), "steamProfileUrl": _normalize(url), "steamPersonaMissing": ""}
     return unresolved("応答に該当 SteamID が無い")
 
 

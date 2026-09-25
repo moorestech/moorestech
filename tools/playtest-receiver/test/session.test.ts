@@ -19,7 +19,7 @@ function sessionRequest(body: string): Request {
 }
 
 describe("POST /v1/session", () => {
-  it("issues a token to any Steam-verified ticket without consulting an allowlist", async () => {
+  it("許可リストを見ずにSteam検証済みチケットへトークンを発行する", async () => {
     const response = await handle(sessionRequest(JSON.stringify({ ticket: "aabb" })), workerEnv, steamOk("76561198000000001"));
     expect(response.status).toBe(200);
     const body = (await response.json()) as { steamId: string; allowed: boolean; token: string; expiresAt: string };
@@ -34,11 +34,6 @@ describe("POST /v1/session", () => {
     expect(body.expiresAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z$/);
     expect(body.expiresAt).toBe(new Date(payload.exp * 1000).toISOString());
     expect(payload.exp - payload.iat).toBe(TOKEN_TTL_SECONDS);
-  });
-
-  it("no longer serves the allowlist admin route", async () => {
-    const response = await handle(new Request("https://x/v1/allowlist", { headers: { "X-Admin-Key": workerEnv.ADMIN_KEY } }), workerEnv, fetch);
-    expect(response.status).toBe(404);
   });
 
   it("Steam Web APIに到達できなければ401ではなく503 steam-unavailable", async () => {

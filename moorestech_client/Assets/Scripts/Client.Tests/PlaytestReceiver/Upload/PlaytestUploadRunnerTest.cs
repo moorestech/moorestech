@@ -1,4 +1,5 @@
 using System.IO;
+using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.BugReport.Submit;
 using Client.PlaytestReceiver;
 using Client.PlaytestReceiver.Launch;
@@ -25,7 +26,7 @@ namespace Client.Tests.PlaytestReceiver
         [TearDown]
         public void DeleteRoot()
         {
-            PlaytestLaunchProfile.ResetForTest();
+            PlaytestLaunchProfile.ResetOnPlayMode();
             Directory.Delete(_root, true);
         }
 
@@ -37,11 +38,11 @@ namespace Client.Tests.PlaytestReceiver
             var api = new FakeUploadApi();
             IPlaytestUploadRequester runner = new PlaytestUploadRunner(api, _directories, new FakeTicketProvider("aabb"));
 
-            PlaytestLaunchProfile.SetForTest(PlaytestLaunchKind.DeveloperMode, "");
+            PlaytestLaunchProfile.Apply(PlaytestLaunchKind.DeveloperMode, new EmptyPlaytestSessionIdentity(EmptyPlaytestSessionIdentity.DeveloperModeReason));
             runner.RequestUpload();
             Assert.AreEqual(0, api.SessionCallCount + api.PutAttemptCount);
 
-            PlaytestLaunchProfile.SetForTest(PlaytestLaunchKind.Distribution, "76561198000000001");
+            PlaytestLaunchProfile.Apply(PlaytestLaunchKind.Distribution, new LocalSteamSessionIdentity("76561198000000001"));
             runner.RequestUpload();
             Assert.AreEqual(1, api.PutAttemptCount);
             Assert.AreEqual(1, api.CompleteCount);
@@ -63,7 +64,7 @@ namespace Client.Tests.PlaytestReceiver
             var gate = new UniTaskCompletionSource<PlaytestApiResult>();
             var api = new FakeUploadApi { PendingPut = gate };
             IPlaytestUploadRequester runner = new PlaytestUploadRunner(api, _directories, new FakeTicketProvider("aabb"));
-            PlaytestLaunchProfile.SetForTest(PlaytestLaunchKind.Distribution, "76561198000000001");
+            PlaytestLaunchProfile.Apply(PlaytestLaunchKind.Distribution, new LocalSteamSessionIdentity("76561198000000001"));
 
             runner.RequestUpload();
             runner.RequestUpload();

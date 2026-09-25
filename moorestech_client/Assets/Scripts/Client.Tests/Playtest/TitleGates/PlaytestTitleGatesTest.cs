@@ -24,7 +24,7 @@ namespace Client.Tests.Playtest.TitleGates
             Localize.Initialize();
             PlaytestTitleGates.ResetOnPlayMode();
             PlaytestStartGateBypass.ResetOnPlayMode();
-            PlaytestLaunchProfile.SetForTest(PlaytestLaunchKind.DeveloperMode, "");
+            PlaytestLaunchProfile.Apply(PlaytestLaunchKind.DeveloperMode, new EmptyPlaytestSessionIdentity(EmptyPlaytestSessionIdentity.DeveloperModeReason));
             _consentExisted = PlaytestConsentFlag.IsAcknowledged();
         }
 
@@ -33,7 +33,7 @@ namespace Client.Tests.Playtest.TitleGates
         {
             PlaytestTitleGates.ResetOnPlayMode();
             PlaytestStartGateBypass.ResetOnPlayMode();
-            PlaytestLaunchProfile.ResetForTest();
+            PlaytestLaunchProfile.ResetOnPlayMode();
             var exists = File.Exists(PlaytestConsentFlag.FilePath);
             if (_consentExisted && !exists) PlaytestConsentFlag.Acknowledge();
             if (!_consentExisted && exists) File.Delete(PlaytestConsentFlag.FilePath);
@@ -140,7 +140,8 @@ namespace Client.Tests.Playtest.TitleGates
             var sequence = StartAttendedSequenceWithUnreadConsent(firstTitleUploads);
 
             var revisitUploads = new RecordingUploadRequester();
-            PlaytestTitleGates.Begin(PlaytestLaunchKind.Distribution, revisitUploads, out var revisited);
+            PlaytestLaunchProfile.Apply(PlaytestLaunchKind.Distribution, new LocalSteamSessionIdentity("76561198000000001"));
+            var revisited = PlaytestTitleGates.Begin(revisitUploads);
             Assert.AreSame(sequence, revisited, "再訪で別の列が始まっている");
 
             sequence.AcknowledgeConsent();
@@ -160,10 +161,24 @@ namespace Client.Tests.Playtest.TitleGates
             Assert.AreEqual(0, firstTitleUploads.RequestCount);
 
             var revisitUploads = new RecordingUploadRequester();
-            PlaytestTitleGates.Begin(PlaytestLaunchKind.Distribution, revisitUploads, out _);
+            PlaytestLaunchProfile.Apply(PlaytestLaunchKind.Distribution, new LocalSteamSessionIdentity("76561198000000001"));
+            PlaytestTitleGates.Begin(revisitUploads);
             Assert.AreEqual(1, revisitUploads.RequestCount, "配布版としての再訪で持ち越しの送信を要求していない");
 
 
+        }
+
+        // EvaluateStart冒頭のResolve呼び出し（副作用のみ、戻り値は捨てる）が消されると、直接起動の異常終了箱でSteamID欠落理由が「まだ差し込まれていない」のまま固まる（C4/C15）
+        // If EvaluateStart's opening Resolve call (side-effect only, return value discarded) is removed, a direct boot's crash box freezes the SteamID absence reason at "not yet resolved" (C4/C15)
+        [Test]
+        public void 直接起動の開始評価で識別が確定する()
+        {
+            PlaytestLaunchProfile.ResetOnPlayMode();
+            PlaytestStartGateBypass.DeclareDirectBoot("test");
+
+            PlaytestTitleGates.EvaluateStart("test", out _);
+
+            Assert.AreEqual(EmptyPlaytestSessionIdentity.DeveloperModeReason, PlaytestSessionIdentityProvider.Current.SteamIdAbsenceReason);
         }
 
         private static PlaytestTitleGateSequence StartAttendedSequenceWithUnreadConsent()

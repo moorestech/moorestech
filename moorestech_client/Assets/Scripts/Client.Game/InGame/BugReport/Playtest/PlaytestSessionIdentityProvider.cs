@@ -8,7 +8,7 @@ namespace Client.Game.InGame.BugReport.Playtest
     // The start gates run before the container exists and cannot resolve from it; the local SteamID at startup pushes its implementation in via SetCurrent
     public static class PlaytestSessionIdentityProvider
     {
-        private static IPlaytestSessionIdentity _current = new EmptyPlaytestSessionIdentity("テスター識別（SteamID）が無い（起動時のローカルSteamIDがまだ差し込まれていない）");
+        private static IPlaytestSessionIdentity _current = new EmptyPlaytestSessionIdentity(EmptyPlaytestSessionIdentity.NotYetResolvedReason);
 
         public static IPlaytestSessionIdentity Current => _current;
 

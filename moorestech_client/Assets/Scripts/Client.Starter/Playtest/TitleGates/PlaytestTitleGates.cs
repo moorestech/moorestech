@@ -44,13 +44,16 @@ namespace Client.Starter.Playtest.TitleGates
             PlaytestStartGateBypass.DeclareDirectBoot($"起動シーンがタイトルではない（{bootSceneName}）");
         }
 
-        // 配布版か開発者モードかが決まったらタイトルの合成ルートから呼ぶ。始動済みなら既存の列をそのまま返す
-        // Called from the title's composition root when the launch kind settles; an already-started sequence comes back as it is
-        public static void Begin(PlaytestLaunchKind kind, IPlaytestUploadRequester uploadRequester, out PlaytestTitleGateSequence sequence)
+        // タイトルの合成ルートから呼ぶ。配布版判定は自分で調達し、始動済みなら既存の列をそのまま返す
+        // Called from the title's composition root; it resolves the launch kind itself, and an already-started sequence comes back as it is
+        public static PlaytestTitleGateSequence Begin(IPlaytestUploadRequester uploadRequester)
         {
+            var kind = PlaytestLaunchProfile.Resolve();
+            var distributionBuild = kind == PlaytestLaunchKind.Distribution;
+
             // 始動済みなら既存の列を返す。初期化失敗でタイトルへ戻った再訪でも、未応答の確認を繋ぎ直して出せる（D-C1）
             // An already-started sequence comes back so a revisit after a failed initialization can re-attach and show the unanswered confirmation (D-C1)
-            sequence = _current;
+            var sequence = _current;
             if (sequence != null)
             {
                 // 列は生き残るが合成ルートは再訪のたびに作り直される。送り手と送信可否を今回のタイトルのものへ繋ぎ直す（D-C1）
@@ -60,18 +63,18 @@ namespace Client.Starter.Playtest.TitleGates
                 // 同意待ちの列は送信要求が了解の後ろに並ぶので、未読でも可にしておく（不可にすると了解後の送信が無音で消える）
                 // A sequence waiting on consent queues its upload behind the acknowledgement, so it stays enabled while unread (disabling it would silently drop the upload after acknowledgement)
                 var consentHoldsUploads = sequence.Step.Value == PlaytestTitleGateStep.Consent;
-                sequence.SetUploadsEnabled(kind == PlaytestLaunchKind.Distribution && (PlaytestConsentFlag.IsAcknowledged() || consentHoldsUploads));
+                sequence.SetUploadsEnabled(distributionBuild && (PlaytestConsentFlag.IsAcknowledged() || consentHoldsUploads));
 
                 // 通過済みの列には走行が残っていない。配布版としての再訪の持ち越しはここで送信を要求し直す
                 // A passed sequence has no run left, so a distribution revisit requests the carry-over upload here
                 if (sequence.Step.Value == PlaytestTitleGateStep.Passed) sequence.RequestUploadIfEnabled("title revisit");
-                return;
+                return sequence;
             }
 
             // 待ちの寿命はプロセスへ揃える。タイトルが破棄されても列は生き残り、再訪で同じ確認を答えられる（D-C1）
             // The wait lives as long as the process, so the sequence survives the title's teardown and the same confirmation can be answered on a revisit (D-C1)
             var artifacts = PreviousSessionStartupTasks.SalvageAtTitle();
-            sequence = BeginComposed(artifacts, kind == PlaytestLaunchKind.Distribution, uploadRequester, PlaytestStartGateBypass.UnattendedReason(), Application.exitCancellationToken);
+            return BeginComposed(artifacts, distributionBuild, uploadRequester, PlaytestStartGateBypass.UnattendedReason(), Application.exitCancellationToken);
         }
 
         // 直接起動でも識別を確定し、タイトルの確認段階に従って開始可否を返す

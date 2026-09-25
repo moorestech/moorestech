@@ -74,8 +74,8 @@ namespace Client.PlaytestReceiver
                 if (response.StatusCode == 401) return PlaytestSessionResult.Failed(PlaytestSessionOutcome.TicketRejected, response.Body);
                 if (response.StatusCode != 200) return PlaytestSessionResult.Failed(PlaytestSessionOutcome.Unreachable, $"HTTP {response.StatusCode} {response.Body}");
 
-                // 200でも本文は外部入力。形が違えば契約違反として返し、トークン無しでAllowedを返さない
-                // Even a 200 body is external input; a malformed one comes back as a contract breach, never as Allowed
+                // 200でも本文は外部入力。形が違えば契約違反として返し、トークン無しでAuthenticatedを返さない
+                // Even a 200 body is external input; a malformed one comes back as a contract breach, never as Authenticated
                 var parsed = PlaytestSessionResponse.Parse(response.Body);
                 if (parsed == null) return PlaytestSessionResult.Failed(PlaytestSessionOutcome.MalformedResponse, "malformed session response");
 
@@ -84,7 +84,7 @@ namespace Client.PlaytestReceiver
                 _token = parsed.Token;
                 _tokenRefreshAtUtc = parsed.ExpiresAtUtc.AddSeconds(-PlaytestReceiverConfig.TokenRefreshMarginSeconds);
 
-                return PlaytestSessionResult.Allowed();
+                return PlaytestSessionResult.Authenticated();
             }
 
             #endregion
@@ -122,7 +122,7 @@ namespace Client.PlaytestReceiver
             if (!forceRenew && _token != null && utcNow < _tokenRefreshAtUtc) return PlaytestTokenAvailability.Usable;
 
             var result = await AuthenticateAsync(utcNow, token);
-            if (result.Outcome == PlaytestSessionOutcome.Allowed) return PlaytestTokenAvailability.Usable;
+            if (result.Outcome == PlaytestSessionOutcome.Authenticated) return PlaytestTokenAvailability.Usable;
 
             _token = null;
             Debug.LogWarning($"[PlaytestReceiver] could not refresh the session token: {result.Outcome} {result.Detail}");

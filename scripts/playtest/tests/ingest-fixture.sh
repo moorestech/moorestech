@@ -76,15 +76,21 @@ chmod +x "$TMP/curl"
 # Steam Web API の応答を固定し、問い合わせ回数も記録する
 # Fix the Steam Web API response and record lookup counts
 steam_stub_curl() {
-  local out="" url=""
+  local out="" url="" config=""
   while [ "$#" -gt 0 ]; do
     case "$1" in
       -o) out="$2"; shift 2 ;;
+      --config) config="$2"; shift 2 ;;
       -w|--max-time|-H) shift 2 ;;
       -*) shift ;;
       *) url="$1"; shift ;;
     esac
   done
+  # --config - は本番と同じくURLを標準入力のconfig形式で渡す経路（C13）
+  # --config - carries the URL via stdin config, mirroring production (C13)
+  if [ "$config" = "-" ]; then
+    url="$(sed -n 's/^url = "\(.*\)"$/\1/p')"
+  fi
   echo "$url" >> "$TMP/steam-calls.log"
   if [ "${STEAM_STUB_MODE:-ok}" = ok ]; then
     printf '{"response":{"players":[{"steamid":"76561198000000001","personaname":"Tester <One>","profileurl":"https://steamcommunity.com/profiles/76561198000000001/"}]}}' > "$out"
