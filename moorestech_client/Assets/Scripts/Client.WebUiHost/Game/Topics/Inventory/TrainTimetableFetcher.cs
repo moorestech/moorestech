@@ -15,13 +15,13 @@ namespace Client.WebUiHost.Game.Topics
         private readonly ITrainTimetableQuery _query;
         private readonly IClientTrainTimetableMutator _timetables;
         private readonly Subject<Unit> _onFetchFailed = new();
-        // タブを開いた列車（閉じるまで保持）と、再要求を抑える取得ラッチは別物
-        // The train whose tab is open (kept until close) differs from the latch that suppresses re-requests
-        private TrainUnitInstanceId? _timetableOpenTrainUnitInstanceId;
+        // タブが開いている事実（閉じるまで保持）と、再要求を抑える取得ラッチは別物。開いている列車IDはtrackerが持つ
+        // Whether the tab is open (kept until close) differs from the re-request latch; the tracker owns the open train id
+        private bool _isTimetableTabOpen;
         private TrainUnitInstanceId? _requestedTrainUnitInstanceId;
         private TrainUnitInstanceId? _unavailableTrainUnitInstanceId;
         private int _requestGeneration;
-        private bool _retriedSinceOpen;
+        private bool _retriedForRequestedTrain;
         public IObservable<Unit> OnFetchFailed => _onFetchFailed;
 
         public TrainTimetableFetcher(ITrainTimetableQuery query, IClientTrainTimetableMutator timetables)
@@ -34,18 +34,28 @@ namespace Client.WebUiHost.Game.Topics
         // Start fetching for the train whose timetable tab opened; a train already in flight or fetched is not re-requested
         public void RequestForOpenedTab(TrainUnitInstanceId trainUnitInstanceId)
         {
-            _timetableOpenTrainUnitInstanceId = trainUnitInstanceId;
+            _isTimetableTabOpen = true;
             if (_requestedTrainUnitInstanceId == trainUnitInstanceId) return;
+            // 再試行の残りは要求する列車ごとに持ち、列車が変わったら戻す
+            // The retry allowance is per requested train and resets when the train changes
             _requestedTrainUnitInstanceId = trainUnitInstanceId;
             _unavailableTrainUnitInstanceId = null;
+            _retriedForRequestedTrain = false;
             FetchTimetableAsync(trainUnitInstanceId, ++_requestGeneration).Forget();
         }
 
-        // 連結・分割で開いている車両の列車が変わったら、タブを開いている間だけ取り直す
-        // When coupling or splitting changes the open car's train, refetch only while the tab is open
+        // 車両スナップショット未着で列車が引けなくても、タブが開いた事実だけは残し、後着時の取得に繋ぐ
+        // Even if the train cannot be resolved before the car snapshot arrives, keep the tab-open fact for the later fetch
+        public void MarkTabOpenedWithoutTrain()
+        {
+            _isTimetableTabOpen = true;
+        }
+
+        // 連結・分割・車両の後着で開いている車両の列車が変わったら、タブを開いている間だけ取り直す
+        // When coupling, splitting, or a late car snapshot changes the open car's train, refetch only while the tab is open
         public void FollowOpenTrainChange(TrainUnitInstanceId trainUnitInstanceId)
         {
-            if (_timetableOpenTrainUnitInstanceId == null) return;
+            if (!_isTimetableTabOpen) return;
             RequestForOpenedTab(trainUnitInstanceId);
         }
 
@@ -53,11 +63,11 @@ namespace Client.WebUiHost.Game.Topics
         // Forget on sub-inventory open/close so the next open fetches again
         public void Close()
         {
-            _timetableOpenTrainUnitInstanceId = null;
+            _isTimetableTabOpen = false;
             _requestedTrainUnitInstanceId = null;
             _unavailableTrainUnitInstanceId = null;
             _requestGeneration++;
-            _retriedSinceOpen = false;
+            _retriedForRequestedTrain = false;
         }
 
         public bool IsUnavailable(TrainUnitInstanceId trainUnitInstanceId)
@@ -92,15 +102,15 @@ namespace Client.WebUiHost.Game.Topics
                 // Log no-response separately from "no train"; only the latest request decides what follows
                 Debug.LogWarning($"[TrainTimetableFetcher] no response for timetable request: {trainUnitInstanceId}");
                 if (generation != _requestGeneration) return;
-                // 決まって失敗する応答で要求し続けないよう、再試行は開くたびに1回まで
-                // Retry at most once per open so a deterministic failure does not keep requesting
-                if (_retriedSinceOpen)
+                // 決まって失敗する応答で要求し続けないよう、再試行は要求する列車ごとに1回まで
+                // Retry at most once per requested train so a deterministic failure does not keep requesting
+                if (_retriedForRequestedTrain)
                 {
                     Debug.LogWarning($"[TrainTimetableFetcher] retry already used; unavailable until reopen: {trainUnitInstanceId}");
                     MarkUnavailable();
                     return;
                 }
-                _retriedSinceOpen = true;
+                _retriedForRequestedTrain = true;
                 FetchTimetableAsync(trainUnitInstanceId, ++_requestGeneration).Forget();
             }
 

@@ -3,8 +3,8 @@ using System.Threading;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.UI.UIState.State;
-using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Network.API;
+using Client.WebUiHost.Game.Topics.BlockDetail;
 using Cysharp.Threading.Tasks;
 using Game.Train.Unit;
 using Newtonsoft.Json.Linq;
@@ -30,7 +30,7 @@ namespace Client.WebUiHost.Game.Actions
         public async UniTask<ActionResult> ExecuteAsync(JObject payload)
         {
             if (payload?["stops"] is not JArray stopTokens) return TrainTimetableActionSupport.Reject("invalid_payload");
-            if (!TrainTimetableActionSupport.TryResolveOpenTrain(_subInventoryState, _cache, out var trainUnitId)) return TrainTimetableActionSupport.Reject("train_not_open");
+            if (!OpenTrainUnitResolver.TryResolveOpenTrain(_subInventoryState, _cache, out var trainUnitId)) return TrainTimetableActionSupport.Reject("train_not_open");
 
             // 1件でも不正な停車駅があれば置換全体を拒否する
             // Reject the whole replacement if any stop is malformed
@@ -68,7 +68,7 @@ namespace Client.WebUiHost.Game.Actions
         public async UniTask<ActionResult> ExecuteAsync(JObject payload)
         {
             if (payload?["enabled"] is not JValue { Type: JTokenType.Boolean } enabled) return TrainTimetableActionSupport.Reject("invalid_payload");
-            if (!TrainTimetableActionSupport.TryResolveOpenTrain(_subInventoryState, _cache, out var trainUnitId)) return TrainTimetableActionSupport.Reject("train_not_open");
+            if (!OpenTrainUnitResolver.TryResolveOpenTrain(_subInventoryState, _cache, out var trainUnitId)) return TrainTimetableActionSupport.Reject("train_not_open");
 
             // 検証済みの編集だけをサーバーへ送る
             // Send only validated edits to the server
@@ -79,23 +79,14 @@ namespace Client.WebUiHost.Game.Actions
         }
     }
 
-    // 開いている車両インベントリから所属列車IDを引く
-    // Resolve the owning train id from the open car inventory
+    // 時刻表actionの拒否理由をログへ残して失敗を返す
+    // Log the timetable action's rejection reason and return a failure
     internal static class TrainTimetableActionSupport
     {
         public static ActionResult Reject(string reason)
         {
             Debug.LogWarning($"[TrainTimetableAction] rejected: {reason}");
             return ActionResult.Fail(reason);
-        }
-
-        public static bool TryResolveOpenTrain(SubInventoryState state, TrainUnitClientCache cache, out TrainUnitInstanceId trainUnitId)
-        {
-            trainUnitId = default;
-            if (state.CurrentSubInventorySource is not TrainSubInventorySource source) return false;
-            if (!cache.TryGetCarSnapshot(new TrainCarInstanceId(source.TrainCarInstanceId), out var unit, out _, out _, out _)) return false;
-            trainUnitId = unit.TrainUnitInstanceId;
-            return true;
         }
     }
 }

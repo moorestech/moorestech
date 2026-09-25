@@ -128,6 +128,38 @@ namespace Client.Tests.WebUiHost.Train
             Assert.That(query.Requests, Is.EqualTo(new[] { before, after }));
         }
 
+        [Test]
+        public void TabOpenedBeforeTheCarArrivesFetchesOnceTheTrainResolves()
+        {
+            var query = new RecordingTrainTimetableQuery();
+            var fetcher = new TrainTimetableFetcher(query, new ClientTrainTimetableDatastore());
+            var id = TrainUnitInstanceId.Create();
+
+            // 車両未着でタブが開いても、後着した列車で取得が始まる
+            // Even if the tab opens before the car arrives, the later-resolved train is fetched
+            fetcher.MarkTabOpenedWithoutTrain();
+            fetcher.FollowOpenTrainChange(id);
+            Assert.That(query.Requests, Is.EqualTo(new[] { id }));
+        }
+
+        [Test]
+        public void RetryAllowanceResetsWhenTheRequestedTrainChanges()
+        {
+            var query = new RecordingTrainTimetableQuery();
+            var fetcher = new TrainTimetableFetcher(query, new ClientTrainTimetableDatastore());
+            var before = TrainUnitInstanceId.Create();
+            var after = TrainUnitInstanceId.Create();
+
+            // 旧列車で再試行を使っても、新列車の初回の応答なしは再試行される
+            // Even after the old train used its retry, the new train's first no-response is retried
+            fetcher.RequestForOpenedTab(before);
+            query.Respond(0, null);
+            fetcher.FollowOpenTrainChange(after);
+            query.Respond(2, null);
+            Assert.That(query.Requests, Is.EqualTo(new[] { before, before, after, after }));
+            Assert.That(fetcher.IsUnavailable(after), Is.False);
+        }
+
         private static GetTrainTimetableProtocol.GetTrainTimetableResponse Found(TrainUnitInstanceId id)
         {
             var stops = new[] { new TrainTimetableStop(new Vector3Int(1, 2, 3), StationNodeSide.Back) };

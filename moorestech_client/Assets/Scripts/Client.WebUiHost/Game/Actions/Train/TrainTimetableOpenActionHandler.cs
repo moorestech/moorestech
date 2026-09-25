@@ -1,6 +1,7 @@
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.UI.UIState.State;
 using Client.WebUiHost.Game.Topics;
+using Client.WebUiHost.Game.Topics.BlockDetail;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
@@ -24,7 +25,13 @@ namespace Client.WebUiHost.Game.Actions
 
         public UniTask<ActionResult> ExecuteAsync(JObject payload)
         {
-            if (!TrainTimetableActionSupport.TryResolveOpenTrain(_subInventoryState, _cache, out var trainUnitId)) return UniTask.FromResult(TrainTimetableActionSupport.Reject("train_not_open"));
+            if (!OpenTrainUnitResolver.TryResolveOpenTrain(_subInventoryState, _cache, out var trainUnitId))
+            {
+                // 車両未着でもタブを開いた事実は残し、後着した車両で取得を始められるようにする
+                // Keep the tab-open fact even before the car arrives so a late car snapshot can start the fetch
+                _fetcher.MarkTabOpenedWithoutTrain();
+                return UniTask.FromResult(TrainTimetableActionSupport.Reject("train_not_open"));
+            }
             _fetcher.RequestForOpenedTab(trainUnitId);
             return UniTask.FromResult(ActionResult.Success());
         }

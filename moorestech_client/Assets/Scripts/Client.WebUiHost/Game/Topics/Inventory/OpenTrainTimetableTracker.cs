@@ -3,7 +3,7 @@ using Client.Game.InGame.Train.Timetable;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
-using Client.WebUiHost.Game.Actions;
+using Client.WebUiHost.Game.Topics.BlockDetail;
 using Game.Train.Unit;
 using UniRx;
 
@@ -66,7 +66,7 @@ namespace Client.WebUiHost.Game.Topics
 
         private TrainUnitInstanceId? ResolveOpenTrainUnitInstanceId()
         {
-            if (!TrainTimetableActionSupport.TryResolveOpenTrain(_subInventoryState, _trainUnitClientCache, out var trainUnitInstanceId)) return null;
+            if (!OpenTrainUnitResolver.TryResolveOpenTrain(_subInventoryState, _trainUnitClientCache, out var trainUnitInstanceId)) return null;
             return trainUnitInstanceId;
         }
     }

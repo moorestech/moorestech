@@ -16,7 +16,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
     {
         public static TrainTimetableStateDto Build(long trainCarInstanceId, TrainUnitClientCache cache, IClientTrainTimetableLookup timetables, TrainTimetableFetcher fetcher, BlockGameObjectDataStore blocks)
         {
-            if (!cache.TryGetCarSnapshot(new TrainCarInstanceId(trainCarInstanceId), out var unit, out _, out _, out _))
+            if (!OpenTrainUnitResolver.TryResolveOwningTrain(trainCarInstanceId, cache, out var trainUnitInstanceId))
             {
                 Debug.LogWarning($"[TrainTimetableDto] Missing car snapshot: {trainCarInstanceId}");
                 return TrainTimetableStateDto.Unavailable();
@@ -24,7 +24,6 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
 
             // 未着なら取得に失敗した列車だけを取得不可とし、それ以外は読み込み中
             // Until received, only a train whose fetch failed is unavailable; anything else is loading
-            var trainUnitInstanceId = unit.TrainUnitInstanceId;
             if (!timetables.TryGet(trainUnitInstanceId, out var timetable))
             {
                 return fetcher.IsUnavailable(trainUnitInstanceId) ? TrainTimetableStateDto.Unavailable() : TrainTimetableStateDto.Loading();
