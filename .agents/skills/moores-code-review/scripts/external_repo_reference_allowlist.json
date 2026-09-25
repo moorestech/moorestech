@@ -2,11 +2,12 @@
   "_comment": "checks_external_repo.py の検査対象外（パス前方一致）。起動パイプライン等どうしても外部repoを指定する箇所だけを理由付きで足す / Path-prefix exemptions for checks_external_repo.py; add only pipelines that must name the external repos, with a reason",
   "allow": [
     {"path": ".github/workflows/", "reason": "CIが外部repoをcheckoutする起動パイプライン"},
+    {"path": ".github/scripts/check-test-external-dependencies.py", "reason": "テストの外部repo参照を検出するガードの検索パターン"},
+    {"path": ".github/scripts/tests/test_check_test_external_dependencies.py", "reason": "外部repo参照ガードの検出例を固定する合成テスト"},
     {"path": ".moorestech-external-revisions.json", "reason": "外部repoのピン定義そのもの"},
     {"path": "moorestech_client/Assets/Scripts/Editor/RepositorySync/", "reason": "外部repoのピン同期ツール"},
     {"path": "moorestech_client/Assets/Scripts/Editor/Build/", "reason": "配布ビルドが非公開アセット・マスタを同梱するビルドパイプライン"},
     {"path": "moorestech_server/Assets/Scripts/Server.Boot/ServerDirectory.cs", "reason": "サーバー起動時のマスタディレクトリ解決（唯一の入口）"},
-    {"path": "moorestech_client/Assets/Scripts/Client.Tests/Support/PinnedMasterRepository.cs", "reason": "テストがピン留めマスタを読む唯一の入口"},
     {"path": "moorestech_client/Assets/Scripts/Client.Game/InGame/BugReport/MasterDataRootLocator.cs", "reason": "バグレポートが報告時のマスタ位置を記録する入口"},
     {"path": "moorestech_client/Assets/Scripts/Client.Tests/BugReport/BuildOrigin/MasterDataPinnedCommitTest.cs", "reason": "ピン機構（MasterDataRootLocator）そのものの契約テストでキー名・相対パスを検証する"},
     {"path": ".dev-hooks/", "reason": "ローカル開発フックの案内文（CI・ゲームからは実行されない）"},
