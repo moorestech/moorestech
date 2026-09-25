@@ -27,6 +27,7 @@ INT = (int,)
 # Schema: field name -> (kind, default). A dict kind is a nested schema; [kind] is a list of that kind
 INGEST_SCHEMA = {
     "id": (STR, ""), "steamId": (STR, ""), "readyAt": (STR, ""), "ingestedAt": (STR, ""),
+    "steamPersonaName": (STR, ""), "steamProfileUrl": (STR, ""), "steamPersonaMissing": (STR, ""),
 }
 MANIFEST_SCHEMA = {
     "kind": (STR, ""), "description": (STR, ""),

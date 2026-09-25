@@ -57,17 +57,19 @@ def format_feedback(reports: list[dict]) -> list[str]:
     if not items:
         return lines + ["- なし"]
     for report in items:
-        lines.append(f"### {report['id']}（SteamID {report['steamId']} / build {report['buildLabel'] or '不明'}）")
+        lines.append(f"### {report['id']}（{report['reporter']} / build {report['buildLabel'] or '不明'}）")
         lines.append(report["description"].strip() or "（説明文が空）")
     return lines
 
 
-def format_progress(agg: dict, stats: dict) -> list[str]:
+def format_progress(agg: dict, stats: dict, records: list[dict]) -> list[str]:
     lines = ["", "## 進行記録"]
     if agg["sessions"] == 0:
         lines.append("- なし")
     else:
         lines.append(f"- 人数 {agg['testers']} 人 / セッション {agg['sessions']} 件")
+        testers = {record["steamId"]: record["tester"] for record in records}
+        lines.append("- テスター: " + "、".join(testers.values()))
         # 全件 playSeconds 欠落なら 0 分と偽らず「不明」と明示する
         # When every session lacks playSeconds, say "unknown" rather than falsely printing 0 minutes
         if agg["meanPlaySeconds"] is None:
@@ -176,14 +178,13 @@ def main(argv: list[str] | None = None) -> int:
     lines += format_counts(reports, report_stats)
     lines += dcand.format_candidates(candidates, candidate_stats)
     lines += format_feedback(reports)
-    lines += format_progress(progress_agg, progress_stats)
+    lines += format_progress(progress_agg, progress_stats, progress)
     lines += format_runs(runs, run_stats)
     # テスター由来の値が散在するため出力境界で本文全体を無害化するが、コマンド行だけは退避して書き戻す
     # Tester-supplied values are scattered so the whole body is neutralized at the boundary, but command lines are stashed and restored
     raw_body = "\n".join(lines) + "\n"
     protected_body, stashed_commands = protect_cmds(raw_body)
     body = restore_cmds(safe(protected_body), stashed_commands)
-
     archive = playtest / "digests" / f"{date}.md"
     if not args.no_archive:
         archive.parent.mkdir(parents=True, exist_ok=True)

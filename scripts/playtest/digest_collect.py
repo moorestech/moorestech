@@ -11,6 +11,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import digest_schema as schema
+from digest_reporter import reporter_label, tester_label
 
 JST = timezone(timedelta(hours=9))
 REACH_BUCKETS = ((0, 0, "0"), (1, 2, "1-2"), (3, 5, "3-5"), (6, 9, "6-9"))
@@ -86,6 +87,7 @@ def load_reports(root: Path, date: str) -> tuple[list[dict], dict]:
         reports.append({
             "id": box["meta"]["id"] or box["dir"].name,
             "steamId": box["meta"]["steamId"],
+            "reporter": reporter_label(box["meta"]),
             "kind": manifest["kind"],
             "description": manifest["description"],
             "buildLabel": manifest["buildInfo"]["steamBuildLabel"],
@@ -106,6 +108,7 @@ def flatten_progress_record(record: dict, box: dict) -> dict:
     raw_seconds = record["playSeconds"]
     return {
         "steamId": record["steamId"] or box["meta"]["steamId"],
+        "tester": tester_label(box["meta"]),
         "playSeconds": float(raw_seconds) if raw_seconds is not None else None,
         "endReason": record["endReason"] or "unknown",
         "reached": len(record["reachedChallenges"]),

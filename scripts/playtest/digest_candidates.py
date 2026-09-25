@@ -12,7 +12,7 @@ import shlex
 from pathlib import Path
 
 import digest_schema as schema
-from digest_collect import jst_date, warn
+from digest_collect import jst_date, reporter_label, warn
 
 
 def load_candidate_reports(root: Path) -> tuple[list[dict], dict]:
@@ -42,6 +42,7 @@ def load_candidate_reports(root: Path) -> tuple[list[dict], dict]:
         reports.append({
             "id": meta["id"] or ingest_path.parent.name,
             "steamId": meta["steamId"],
+            "reporter": reporter_label(meta),
             "description": manifest["description"],
             "readyAtDate": jst_date(meta["readyAt"] or meta["ingestedAt"]) or "不明",
         })
@@ -62,7 +63,7 @@ def format_candidates(candidates: list[dict], stats: dict) -> list[str]:
         quoted_id = shlex.quote(report["id"])
         quoted_steam = shlex.quote(report["steamId"])
         head = (report["description"].strip().splitlines() or ["（説明文が空）"])[0]
-        lines.append(f"- {quoted_id}（{report['readyAtDate']}）… {head}")
+        lines.append(f"- {quoted_id}（{report['readyAtDate']}・{report['reporter']}）… {head}")
         # バッククォート入りの値はコードスパンを閉じて外へ漏れるので、貼り付けコマンドを出さない
         # A value containing a backtick would close the code span and leak out, so no pasteable command is printed
         if "`" in report["id"] + report["steamId"]:
