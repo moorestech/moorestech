@@ -32,7 +32,8 @@ Usage:
     }
 
 confirmed は汎用(checks_static: partial・try-catch・デフォルト引数・SerializeField命名・200行・10ファイル)
-と moorestech固有(checks_moores: master_default_fallback・packet_response_root)、
+と moorestech固有(checks_moores: master_default_fallback・packet_response_root、
+checks_external_repo: external_repo_reference)、
 および --context 指定時の出所ラベル欠落(checks_context: context_source_label)の和。
 空リストは対応 verifier/moores-* reviewer の裏付けを起動しない合図（0トークン）。
 """
@@ -46,6 +47,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import checks_comment_length
 import checks_comparison
+import checks_external_repo
 import checks_moores_reviewer_evidence
 import checks_moores
 import checks_region
@@ -68,7 +70,8 @@ def main(argv: list[str]) -> int:
     patch_text = patch_path.read_text(encoding="utf-8", errors="replace")
     files = parse_patch(patch_text)
     result = {
-        "confirmed": checks_static.run(files, repo_root) + checks_moores.run_confirmed(files) + context_findings,
+        "confirmed": checks_static.run(files, repo_root) + checks_moores.run_confirmed(files)
+        + checks_external_repo.run(files) + context_findings,
         "candidates": {
             "comparison_operator": checks_comparison.run(files),
             "try_catch_boundary": checks_static.try_catch_boundary(files),
