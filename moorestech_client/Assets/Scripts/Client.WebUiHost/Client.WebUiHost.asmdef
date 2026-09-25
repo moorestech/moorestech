@@ -25,6 +25,7 @@
         "Game.Research",
         "Game.UnlockState",
         "Server.Event",
+        "Server.Util",
         "Nuget",
         "UniRx",
         "UniTask",

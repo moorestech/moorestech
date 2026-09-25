@@ -1,4 +1,5 @@
 using System;
+using Client.Game.InGame.Train.Timetable;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
@@ -24,7 +25,9 @@ namespace Client.WebUiHost.Game.Topics
     {
         public const string TopicName = "block_inventory.current";
         private readonly TrainUnitClientCache _trainUnitClientCache;
-        private readonly IDisposable _trainSnapshotSubscription;
+        private readonly ClientTrainTimetableDatastore _timetables;
+        private readonly TrainTimetableFetcher _timetableFetcher;
+        private readonly IDisposable _trainTimetableSubscription;
         private readonly WebSocketHub _hub;
         private readonly UIStateControl _uiStateControl;
         private readonly SubInventoryState _subInventoryState;
@@ -43,9 +46,11 @@ namespace Client.WebUiHost.Game.Topics
         public BlockInventoryTopic(WebSocketHub hub, UIStateControl uiStateControl, SubInventoryState subInventoryState)
         {
             _trainUnitClientCache = ClientDIContext.DIContainer.DIContainerResolver.Resolve<TrainUnitClientCache>();
-            // 列車snapshotの適用後に時刻表を再配信する
-            // Republish the timetable after train snapshots are applied
-            _trainSnapshotSubscription = _trainUnitClientCache.OnSnapshotApplied
+            _timetables = ClientDIContext.DIContainer.DIContainerResolver.Resolve<ClientTrainTimetableDatastore>();
+            _timetableFetcher = new TrainTimetableFetcher(_trainUnitClientCache, _timetables);
+            // 列車を開いている間は時刻表の更新で再配信する
+            // Republish on timetable updates while a train is open
+            _trainTimetableSubscription = _timetables.OnTimetableUpdated
                 .Where(_ => _subInventoryState.CurrentSubInventorySource is TrainSubInventorySource)
                 .Subscribe(_ => SchedulePublish());
             _hub = hub;
@@ -74,7 +79,7 @@ namespace Client.WebUiHost.Game.Topics
             _uiStateControl.OnStateChanged -= OnStateChanged;
             _subInventorySubscription.Dispose();
             _continuousSampleSubscription.Dispose();
-            _trainSnapshotSubscription.Dispose();
+            _trainTimetableSubscription.Dispose();
             _networkCache.OnUpdated -= SchedulePublish;
             TrackBlock(null);
         }
@@ -119,6 +124,7 @@ namespace Client.WebUiHost.Game.Topics
             if (!open || sub == null)
             {
                 TrackBlock(null);
+                _timetableFetcher.Reset();
                 return WebUiJson.Serialize(new BlockInventoryDto { Open = false });
             }
             // 列車も既存の統一SubInventoryを同じwireへ写し、並行インベントリ経路を作らない
@@ -126,8 +132,10 @@ namespace Client.WebUiHost.Game.Topics
             if (_subInventoryState.CurrentSubInventorySource is TrainSubInventorySource trainSource)
             {
                 TrackBlock(null);
-                return WebUiJson.Serialize(TrainInventoryDtoFactory.Create(trainSource, sub, _trainUnitClientCache, ClientDIContext.BlockGameObjectDataStore));
+                _timetableFetcher.RequestWhenTrainChanged(trainSource);
+                return WebUiJson.Serialize(TrainInventoryDtoFactory.Create(trainSource, sub, _trainUnitClientCache, _timetables, ClientDIContext.BlockGameObjectDataStore));
             }
+            _timetableFetcher.Reset();
             if (blockSource == null)
             {
                 TrackBlock(null);

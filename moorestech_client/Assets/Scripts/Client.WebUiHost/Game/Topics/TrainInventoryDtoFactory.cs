@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.Train.Timetable;
 using Client.Game.InGame.Train.Unit;
 using Client.WebUiHost.Game.Topics.BlockDetail;
 using Client.Game.InGame.UI.Inventory;
@@ -12,7 +13,7 @@ namespace Client.WebUiHost.Game.Topics
     // Converts unified train SubInventory state into its Web DTO.
     public static class TrainInventoryDtoFactory
     {
-        public static BlockInventoryDto Create(TrainSubInventorySource source, SubInventoryModel inventory, TrainUnitClientCache cache, BlockGameObjectDataStore blocks)
+        public static BlockInventoryDto Create(TrainSubInventorySource source, SubInventoryModel inventory, TrainUnitClientCache cache, ClientTrainTimetableDatastore timetables, BlockGameObjectDataStore blocks)
         {
             var dto = new BlockInventoryDto
             {
@@ -22,7 +23,7 @@ namespace Client.WebUiHost.Game.Topics
                 BlockType = "Train",
                 ItemSlots = new List<BlockItemSlotDto>(inventory.Count),
                 FluidSlots = new List<BlockFluidSlotDto>(),
-                Timetable = TrainTimetableDtoBuilder.Build(source.TrainCarInstanceId, cache, blocks),
+                Timetable = TrainTimetableDtoBuilder.Build(source.TrainCarInstanceId, cache, timetables, blocks),
                 Error = ResolveError(source.LastOpenMessage),
             };
             foreach (var stack in inventory.SubInventory)

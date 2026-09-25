@@ -60,6 +60,15 @@ namespace Client.Network.API
             return await api.PacketExchange.GetPacketResponse<TrainScheduleEditProtocol.TrainScheduleEditResponse>(request, ct);
         }
 
+        // 時刻表タブを開いたときに現在の時刻表を取り寄せる
+        // Fetch the current timetable when the timetable tab opens
+        public static async UniTask<GetTrainTimetableProtocol.GetTrainTimetableResponse> GetTrainTimetable(
+            this VanillaApiWithResponse api, TrainUnitInstanceId trainUnitInstanceId, CancellationToken ct)
+        {
+            var request = new GetTrainTimetableProtocol.GetTrainTimetableRequest(trainUnitInstanceId);
+            return await api.PacketExchange.GetPacketResponse<GetTrainTimetableProtocol.GetTrainTimetableResponse>(request, ct);
+        }
+
         // 改名結果を待ち、表示更新はブロック状態の通知に委ねる
         // Await the rename result; block state notifications update the displayed name
         public static async UniTask<SetTrainStationNameProtocol.SetTrainStationNameResponse> SetTrainStationName(

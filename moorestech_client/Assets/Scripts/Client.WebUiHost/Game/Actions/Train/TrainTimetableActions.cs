@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Train.Unit;
@@ -7,7 +6,6 @@ using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
-using Game.Train.RailGraph;
 using Game.Train.Unit;
 using Newtonsoft.Json.Linq;
 using Server.Protocol.PacketResponse;
@@ -31,20 +29,21 @@ namespace Client.WebUiHost.Game.Actions
 
         public async UniTask<ActionResult> ExecuteAsync(JObject payload)
         {
-            if (payload?["stations"] is not JArray stations) return TrainTimetableActionSupport.Reject("invalid_payload");
+            if (payload?["stops"] is not JArray stopTokens) return TrainTimetableActionSupport.Reject("invalid_payload");
             if (!TrainTimetableActionSupport.TryResolveOpenTrain(_subInventoryState, _cache, out var trainUnitId)) return TrainTimetableActionSupport.Reject("train_not_open");
 
-            var positions = new List<Vector3Int>(stations.Count);
-            foreach (var token in stations)
+            // 1件でも不正な停車駅があれば置換全体を拒否する
+            // Reject the whole replacement if any stop is malformed
+            var stops = new List<TrainTimetableStop>(stopTokens.Count);
+            foreach (var token in stopTokens)
             {
-                if (!TrainStationPositionParser.TryParse(token, out var position))
-                    return TrainTimetableActionSupport.Reject("invalid_station");
-                positions.Add(position);
+                if (!TrainTimetableStopParser.TryParse(token, out var stop))
+                    return TrainTimetableActionSupport.Reject("invalid_stop");
+                stops.Add(stop);
             }
 
-            // 検証済みの編集だけをサーバーへ送る（端はTask 3までBack固定）
-            // Send only validated edits to the server (side is fixed to Back until Task 3)
-            var stops = positions.Select(p => new TrainTimetableStop(p, StationNodeSide.Back)).ToList();
+            // 検証済みの編集だけをサーバーへ送る
+            // Send only validated edits to the server
             var request = TrainScheduleEditProtocol.TrainScheduleEditRequest.CreateReplaceTimetableRequest(trainUnitId, stops);
             var response = await ClientContext.VanillaApi.Response.SendTrainScheduleEdit(request, CancellationToken.None);
             if (response == null || !response.Success) return TrainTimetableActionSupport.Reject($"replace_failed:{response?.FailureReason}");
