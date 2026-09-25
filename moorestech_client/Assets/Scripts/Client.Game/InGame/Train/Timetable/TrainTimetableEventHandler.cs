@@ -21,7 +21,7 @@ namespace Client.Game.InGame.Train.Timetable
         {
             ClientContext.VanillaApi.Event.SubscribeEventResponse(TrainTimetableEventPacket.EventTag, payload =>
             {
-                _datastore.Apply(MessagePackSerializer.Deserialize<TrainTimetableMessagePack>(payload));
+                _datastore.Apply(MessagePackSerializer.Deserialize<TrainTimetableMessagePack>(payload).ToModel());
             });
         }
     }

@@ -1,0 +1,18 @@
+{
+  "open": true,
+  "source": "train",
+  "blockType": "Train",
+  "identifier": "101",
+  "itemSlots": [],
+  "fluidSlots": [],
+  "timetable": {
+    "status": "ready",
+    "data": {
+      "trainUnitId": "7",
+      "isAutoRun": true,
+      "currentIndex": 0,
+      "stops": [{ "position": { "x": 1, "y": 0, "z": 2 }, "name": "North", "side": "front" }],
+      "stations": [{ "position": { "x": 1, "y": 0, "z": 2 }, "name": "North" }]
+    }
+  }
+}

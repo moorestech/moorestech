@@ -1,10 +1,8 @@
 using System.Collections.Generic;
-using Client.Game.InGame.Train.Timetable;
 using Client.WebUiHost.Game.Topics.BlockDetail;
 using Game.Train.RailGraph;
 using Game.Train.Unit;
 using NUnit.Framework;
-using Server.Util.MessagePack;
 using UnityEngine;
 
 namespace Client.Tests.WebUiHost
@@ -44,16 +42,15 @@ namespace Client.Tests.WebUiHost
         public void StopsCarrySideAndNameFromDatastore()
         {
             var id = TrainUnitInstanceId.Create();
-            var timetables = new ClientTrainTimetableDatastore();
             var stops = new[]
             {
                 new TrainTimetableStop(new Vector3Int(1, 0, 0), StationNodeSide.Front),
                 new TrainTimetableStop(new Vector3Int(9, 0, 0), StationNodeSide.Back),
             };
-            timetables.Apply(new TrainTimetableMessagePack(new TrainTimetableSnapshot(id, true, 1, stops)));
+            var timetable = new TrainTimetableSnapshot(id, true, 1, stops);
             var stations = new List<TrainTimetableStationDto> { TrainTimetableDtoBuilder.CreateStationDto(new Vector3Int(1, 0, 0), "north") };
 
-            var dto = TrainTimetableDtoBuilder.CreateFromTimetable(id, timetables, stations);
+            var dto = TrainTimetableDtoBuilder.CreateFromTimetable(timetable, stations);
 
             Assert.That(dto.TrainUnitId, Is.EqualTo(id.ToString()));
             Assert.That(dto.IsAutoRun, Is.True);
@@ -64,15 +61,6 @@ namespace Client.Tests.WebUiHost
             Assert.That(dto.Stops[1].Name, Is.EqualTo(string.Empty));
             Assert.That(dto.Stops[1].Position.X, Is.EqualTo(9));
             Assert.That(dto.Stations, Is.SameAs(stations));
-        }
-
-        // 未着なら時刻表なし（webuiは欠落時の文言を出す）
-        // Without a received timetable the DTO is absent, so the webui shows its missing-timetable text
-        [Test]
-        public void TimetableIsNullUntilReceived()
-        {
-            var dto = TrainTimetableDtoBuilder.CreateFromTimetable(TrainUnitInstanceId.Create(), new ClientTrainTimetableDatastore(), new List<TrainTimetableStationDto>());
-            Assert.That(dto, Is.Null);
         }
     }
 }

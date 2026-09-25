@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Train.RailGraph;
 using Game.Train.Unit;
+using UniRx;
 
 namespace Client.Game.InGame.Train.Unit
 {
@@ -15,6 +17,10 @@ namespace Client.Game.InGame.Train.Unit
         // 車両スナップショット索引
         // Index for train car snapshots
         private readonly TrainCarSnapshotIndex _carSnapshots = new();
+        // 列車単位の構成変化（追加・置換・削除）を索引確定後に通知する。時刻表は運ばない
+        // Notify per-train composition changes (add/replace/remove) after indexes settle; carries no timetable
+        private readonly Subject<TrainUnitInstanceId> _onUnitApplied = new();
+        public IObservable<TrainUnitInstanceId> OnUnitApplied => _onUnitApplied;
 
         // 列車一覧の読み取り専用ビュー
         // Read-only view for external systems
@@ -51,6 +57,10 @@ namespace Client.Game.InGame.Train.Unit
                 _units[bundle.Simulation.TrainUnitInstanceId] = unit;
                 _carSnapshots.BuildCarIndexForUnit(unit);
             }
+
+            // 全索引の確定後に通知する
+            // Notify only after all indexes have been rebuilt
+            foreach (var id in _units.Keys) _onUnitApplied.OnNext(id);
         }
 
         // 現在のTrainUnit状態からハッシュを計算する
@@ -83,6 +93,7 @@ namespace Client.Game.InGame.Train.Unit
             _carSnapshots.RemoveCarIndex(trainUnitInstanceId);
             unit.SnapshotUpdate(snapshot.Simulation, snapshot.RailPositionSnapshot);
             _carSnapshots.BuildCarIndexForUnit(unit);
+            _onUnitApplied.OnNext(trainUnitInstanceId);
             return unit;
         }
 
@@ -109,7 +120,9 @@ namespace Client.Game.InGame.Train.Unit
         public bool Remove(TrainUnitInstanceId trainUnitInstanceId)
         {
             _carSnapshots.RemoveCarIndex(trainUnitInstanceId);
-            return _units.Remove(trainUnitInstanceId);
+            var removed = _units.Remove(trainUnitInstanceId);
+            if (removed) _onUnitApplied.OnNext(trainUnitInstanceId);
+            return removed;
         }
 
         // 車両スナップショット索引を取得する

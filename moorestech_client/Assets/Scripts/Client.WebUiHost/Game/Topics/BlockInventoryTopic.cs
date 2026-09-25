@@ -14,7 +14,6 @@ using Cysharp.Threading.Tasks;
 using Mooresmaster.Model.BlocksModule;
 using Server.Event.EventReceive;
 using UniRx;
-using VContainer;
 namespace Client.WebUiHost.Game.Topics
 {
     /// <summary>
@@ -27,6 +26,7 @@ namespace Client.WebUiHost.Game.Topics
         private readonly TrainUnitClientCache _trainUnitClientCache;
         private readonly IClientTrainTimetableLookup _timetables;
         private readonly TrainTimetableFetcher _timetableFetcher;
+        private readonly OpenTrainTimetableTracker _openTrainTimetableTracker;
         private readonly IDisposable _trainTimetableSubscription;
         private readonly WebSocketHub _hub;
         private readonly UIStateControl _uiStateControl;
@@ -43,19 +43,15 @@ namespace Client.WebUiHost.Game.Topics
         // Task 8 の action handler がスナップショット反映に使う公開口
         // Public access point used by Task 8 action handlers to apply snapshots
         public BlockNetworkInfoCache NetworkCache => _networkCache;
-        public BlockInventoryTopic(WebSocketHub hub, UIStateControl uiStateControl, SubInventoryState subInventoryState)
+        public BlockInventoryTopic(WebSocketHub hub, UIStateControl uiStateControl, SubInventoryState subInventoryState, TrainUnitClientCache trainUnitClientCache, IClientTrainTimetableLookup timetables, TrainTimetableFetcher timetableFetcher)
         {
-            _trainUnitClientCache = ClientDIContext.DIContainer.DIContainerResolver.Resolve<TrainUnitClientCache>();
-            var timetableDatastore = ClientDIContext.DIContainer.DIContainerResolver.Resolve<ClientTrainTimetableDatastore>();
-            _timetables = timetableDatastore;
-            _timetableFetcher = new TrainTimetableFetcher(_trainUnitClientCache, timetableDatastore);
-            // 開いている列車の時刻表更新と、取得失敗後の再要求で再配信する
-            // Republish on the open train's timetable updates and on retries after a failed fetch
-            _trainTimetableSubscription = _timetables.OnTimetableUpdated
-                .Where(id => _subInventoryState.CurrentSubInventorySource is TrainSubInventorySource && _timetableFetcher.IsOpenTrain(id))
-                .AsUnitObservable()
-                .Merge(_timetableFetcher.OnRetryRequested)
-                .Subscribe(_ => SchedulePublish());
+            _trainUnitClientCache = trainUnitClientCache;
+            _timetables = timetables;
+            _timetableFetcher = timetableFetcher;
+            // 開いている列車の時刻表更新・取得失敗・所属列車の変化で再配信する
+            // Republish on the open train's timetable updates, fetch failures, and owning-train changes
+            _openTrainTimetableTracker = new OpenTrainTimetableTracker(subInventoryState, uiStateControl, trainUnitClientCache, timetables, timetableFetcher);
+            _trainTimetableSubscription = _openTrainTimetableTracker.OnRepublishRequested.Subscribe(_ => SchedulePublish());
             _hub = hub;
             _uiStateControl = uiStateControl;
             _subInventoryState = subInventoryState;
@@ -83,6 +79,7 @@ namespace Client.WebUiHost.Game.Topics
             _subInventorySubscription.Dispose();
             _continuousSampleSubscription.Dispose();
             _trainTimetableSubscription.Dispose();
+            _openTrainTimetableTracker.Dispose();
             _networkCache.OnUpdated -= SchedulePublish;
             TrackBlock(null);
         }
@@ -127,7 +124,6 @@ namespace Client.WebUiHost.Game.Topics
             if (!open || sub == null)
             {
                 TrackBlock(null);
-                _timetableFetcher.Reset();
                 return WebUiJson.Serialize(new BlockInventoryDto { Open = false });
             }
             // 列車も既存の統一SubInventoryを同じwireへ写し、並行インベントリ経路を作らない
@@ -135,10 +131,8 @@ namespace Client.WebUiHost.Game.Topics
             if (_subInventoryState.CurrentSubInventorySource is TrainSubInventorySource trainSource)
             {
                 TrackBlock(null);
-                _timetableFetcher.RequestWhenTrainChanged(trainSource);
-                return WebUiJson.Serialize(TrainInventoryDtoFactory.Create(trainSource, sub, _trainUnitClientCache, _timetables, ClientDIContext.BlockGameObjectDataStore));
+                return WebUiJson.Serialize(TrainInventoryDtoFactory.Create(trainSource, sub, _trainUnitClientCache, _timetables, _timetableFetcher, ClientDIContext.BlockGameObjectDataStore));
             }
-            _timetableFetcher.Reset();
             if (blockSource == null)
             {
                 TrackBlock(null);

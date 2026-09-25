@@ -14,12 +14,20 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
 {
     public static class TrainTimetableDtoBuilder
     {
-        public static TrainTimetableDto Build(long trainCarInstanceId, TrainUnitClientCache cache, IClientTrainTimetableLookup timetables, BlockGameObjectDataStore blocks)
+        public static TrainTimetableStateDto Build(long trainCarInstanceId, TrainUnitClientCache cache, IClientTrainTimetableLookup timetables, TrainTimetableFetcher fetcher, BlockGameObjectDataStore blocks)
         {
             if (!cache.TryGetCarSnapshot(new TrainCarInstanceId(trainCarInstanceId), out var unit, out _, out _, out _))
             {
                 Debug.LogWarning($"[TrainTimetableDto] Missing car snapshot: {trainCarInstanceId}");
-                return null;
+                return TrainTimetableStateDto.Unavailable();
+            }
+
+            // 未着なら取得に失敗した列車だけを取得不可とし、それ以外は読み込み中
+            // Until received, only a train whose fetch failed is unavailable; anything else is loading
+            var trainUnitInstanceId = unit.TrainUnitInstanceId;
+            if (!timetables.TryGet(trainUnitInstanceId, out var timetable))
+            {
+                return fetcher.IsUnavailable(trainUnitInstanceId) ? TrainTimetableStateDto.Unavailable() : TrainTimetableStateDto.Loading();
             }
 
             // ワールド上の駅ブロックを列挙し、駅名は受信済みブロック状態から引く
@@ -32,19 +40,14 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
                 stations.Add(CreateStationDto(block.BlockPosInfo.OriginalPos, name));
             }
             SortStations(stations);
-            return CreateFromTimetable(unit.TrainUnitInstanceId, timetables, stations);
+            var dto = CreateFromTimetable(timetable, stations);
+            return dto == null ? TrainTimetableStateDto.Unavailable() : TrainTimetableStateDto.Ready(dto);
         }
 
-        // 受信済みの時刻表を停車駅DTOへ写す。未着ならnull（取得はBlockInventoryTopicが起こす）
-        // Map the received timetable to stop DTOs; null until received (BlockInventoryTopic triggers the fetch)
-        internal static TrainTimetableDto CreateFromTimetable(TrainUnitInstanceId trainUnitInstanceId, IClientTrainTimetableLookup timetables, List<TrainTimetableStationDto> stations)
+        // 受信済みの時刻表を停車駅DTOへ写す。未知の端を含むならnull
+        // Map a received timetable to stop DTOs; null when it contains an unknown side
+        internal static TrainTimetableDto CreateFromTimetable(TrainTimetableSnapshot timetable, List<TrainTimetableStationDto> stations)
         {
-            if (!timetables.TryGet(trainUnitInstanceId, out var timetable))
-            {
-                Debug.Log($"[TrainTimetableDto] timetable not received yet: {trainUnitInstanceId}");
-                return null;
-            }
-
             var stationNames = new Dictionary<Vector3Int, string>();
             foreach (var station in stations)
             {
@@ -59,10 +62,10 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
                 {
                     // 未知の端は個別stopでなく時刻表全体をunavailable扱いにする(fail-closed)
                     // An unknown side marks the whole timetable unavailable, not just this stop (fail-closed)
-                    Debug.LogError($"[TrainTimetableDto] discarding timetable with unknown side: {trainUnitInstanceId}");
+                    Debug.LogError($"[TrainTimetableDto] discarding timetable with unknown side: {timetable.TrainUnitInstanceId}");
                     return null;
                 }
-                var position = stop.StationPosition.Vector3Int;
+                var position = stop.StationPosition;
                 stationNames.TryGetValue(position, out var name);
                 stops.Add(new TrainTimetableStopDto
                 {
@@ -74,7 +77,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
 
             return new TrainTimetableDto
             {
-                TrainUnitId = trainUnitInstanceId.ToString(),
+                TrainUnitId = timetable.TrainUnitInstanceId.ToString(),
                 IsAutoRun = timetable.IsAutoRun,
                 CurrentIndex = timetable.CurrentIndex,
                 Stops = stops,

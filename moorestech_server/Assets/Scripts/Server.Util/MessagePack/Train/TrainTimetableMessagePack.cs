@@ -26,5 +26,10 @@ namespace Server.Util.MessagePack
             CurrentIndex = snapshot.CurrentIndex;
             Stops = snapshot.Stops.Select(stop => new TrainTimetableStopMessagePack(stop)).ToList();
         }
+
+        public TrainTimetableSnapshot ToModel()
+        {
+            return new TrainTimetableSnapshot(TrainUnitInstanceId, IsAutoRun, CurrentIndex, Stops.Select(stop => stop.ToModel()).ToList());
+        }
     }
 }
