@@ -2,7 +2,7 @@ using System;
 using Client.Common;
 using Client.Game.Common;
 using Client.Game.InGame.BugReport.Playtest;
-using Client.PlaytestReceiver.Gate;
+using Client.PlaytestReceiver.Launch;
 using Cysharp.Threading.Tasks;
 using Game.Paths;
 using UniRx;
@@ -19,10 +19,6 @@ namespace Client.Starter.PlaytestSmoke
     /// </summary>
     public static class StandalonePlaytestSmokeBootstrap
     {
-        // 起動時照合は受け口への通信を伴う。応答が無いまま検証機を占有し続けないよう期限を切る
-        // The launch check talks to the receiver; bound it so a silent receiver never holds the verifier forever
-        private const float LaunchGateTimeoutSeconds = 180f;
-
         // 初期化完了の期限は前例 StandaloneTerrainQaBootstrap と同じ120秒
         // The initialization deadline matches the 120 seconds of the StandaloneTerrainQaBootstrap precedent
         private const float GameInitializationTimeoutSeconds = 120f;
@@ -69,12 +65,9 @@ namespace Client.Starter.PlaytestSmoke
 
         private static async UniTask StartWhenPreconditionsHoldAsync(StandalonePlaytestSmokeSettings settings)
         {
-            // 照合の結論を待つ。判定前に開始すると初期化パイプラインがメニューへ戻し、無人のまま止まる
-            // Wait for the launch verdict; starting before it makes the pipeline bounce back to the menu and stall unattended
-            // 期限までに確定しなければ未確定の結果が返り、Allowed必須の前提検査が理由付きで落とす
-            // An unsettled verdict comes back past the deadline, and the Allowed-required precondition fails it with a reason
-            var verdict = await PlaytestLaunchGate.WaitForSettledVerdictAsync(LaunchGateTimeoutSeconds, Application.exitCancellationToken);
-            if (StandalonePlaytestSmokePreconditions.TryFindFailure(settings, verdict, out var failureReason))
+            // 配布版判定は同期で確定し、開始前の前提を検査する
+            // Resolve the distribution kind synchronously and check the startup preconditions
+            if (StandalonePlaytestSmokePreconditions.TryFindFailure(settings, PlaytestLaunchProfile.Resolve(), out var failureReason))
             {
                 Fail(settings, "preconditions", failureReason);
                 return;

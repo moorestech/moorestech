@@ -33,13 +33,6 @@ namespace Client.Starter.Playtest.TitleGates
             _uploadsEnabled = uploadsEnabled;
         }
 
-        // 答えを待つ確認が画面に出ている段階か。再照合の待ち文言をその上へ重ねないための問い合わせ（D-C1 の繋ぎ直し経路）
-        // Whether a confirmation awaiting an answer is on screen; asked so a re-check's waiting message is never stacked on top of it (the D-C1 re-attach path)
-        public bool IsShowingConfirmation()
-        {
-            return _step.Value == PlaytestTitleGateStep.Consent || _step.Value == PlaytestTitleGateStep.CrashReport;
-        }
-
         // 再訪のタイトルが組んだ送り手へ繋ぎ直す。破棄済みの画面が作った送り手を掴み続けると、答え終えた確認の送信が無音で死ぬ（D-C1）
         // Re-attaches the requester the revisited title composed; holding the destroyed screen's one would let an answered confirmation's upload die silently (D-C1)
         internal void SetUploadRequester(IPlaytestUploadRequester uploadRequester)
@@ -52,8 +45,8 @@ namespace Client.Starter.Playtest.TitleGates
             _uploadRequester = uploadRequester;
         }
 
-        // 再訪のタイトルが決め直した送信可否を押し直す。照合がAllowedへ転じた再訪で、持ち越しが送られないまま残らないようにする（D-C1）
-        // Re-pushes the upload permission the revisited title decided again, so a revisit whose check turned Allowed does not leave the carry-over unsent (D-C1)
+        // 再訪のタイトルが決め直した送信可否を押し直す。配布版としての再訪で、持ち越しが送られないまま残らないようにする（D-C1）
+        // Re-pushes the upload permission the revisited title decided again, so a revisit as a distribution build does not leave the carry-over unsent (D-C1)
         internal void SetUploadsEnabled(bool uploadsEnabled)
         {
             _uploadsEnabled = uploadsEnabled;
@@ -120,8 +113,8 @@ namespace Client.Starter.Playtest.TitleGates
 
             var result = await _crashReport.RespondAsync(send, description);
 
-            // 箱を書いたら同じ窓口へ送信をもう一度要求する。照合直後の走行はもう終わっていることがある（ADR 0065）
-            // After writing the box, request an upload again through the same port; the run started after the check may already be over (ADR 0065)
+            // 箱を書いたら同じ窓口へ送信をもう一度要求する。同意直後の走行はもう終わっていることがある（ADR 0065）
+            // After writing the box, request an upload again through the same port; the run started after consent may already be over (ADR 0065)
             if (result == CrashReportResponseResult.Sent) RequestUploadIfEnabled("crash box written");
             return result;
         }

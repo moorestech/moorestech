@@ -2,13 +2,13 @@ using System;
 using Steamworks;
 using UnityEngine;
 
-namespace Client.Starter.PlaytestSmoke
+namespace Client.PlaytestReceiver.Steam
 {
     /// <summary>
     /// 報告を送ったSteamアカウントのSteamIDを読む。受け口は認証チケットの持ち主のSteamIDで報告を置くので、同じ値になる
     /// Reads the SteamID of the account that sent the report; the receiver stores reports under the ticket owner's SteamID, so the values match
     /// </summary>
-    internal static class StandalonePlaytestSmokeSteamIdReader
+    public static class PlaytestLocalSteamIdReader
     {
         // 読めたら true とSteamIDを返す。読めなければ false と理由を返す
         // Returns true with the SteamID when readable, or false with the reason
@@ -23,7 +23,7 @@ namespace Client.Starter.PlaytestSmoke
             }
             catch (Exception exception)
             {
-                Debug.LogError($"[PlaytestSmoke] SteamUser.GetSteamID failed: {exception.GetBaseException().Message}");
+                Debug.LogError($"[PlaytestReceiver] SteamUser.GetSteamID failed: {exception.GetBaseException().Message}");
                 steamId = "";
                 failureReason = $"SteamUser.GetSteamID failed: {exception.GetBaseException().Message}";
                 return false;
@@ -33,6 +33,7 @@ namespace Client.Starter.PlaytestSmoke
             {
                 steamId = "";
                 failureReason = "SteamUser.GetSteamID returned an invalid (zero) id";
+                Debug.LogWarning($"[PlaytestReceiver] {failureReason}");
                 return false;
             }
 

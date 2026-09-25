@@ -5,7 +5,6 @@ namespace Client.PlaytestReceiver
     public enum PlaytestSessionOutcome
     {
         Allowed,
-        NotAllowed,
         TicketRejected,
         TicketUnavailable,
         Unreachable,

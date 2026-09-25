@@ -45,7 +45,6 @@ namespace Client.Tests.PlaytestReceiver
         [Test]
         public void 応答コードごとに結末が分かれる()
         {
-            AssertOutcome(PlaytestApiResult.Responded(403, "{\"reason\":\"not-allowed\"}"), PlaytestSessionOutcome.NotAllowed);
             AssertOutcome(PlaytestApiResult.Responded(401, "{\"reason\":\"invalid-ticket\"}"), PlaytestSessionOutcome.TicketRejected);
             AssertOutcome(PlaytestApiResult.Responded(503, "{\"reason\":\"steam-unavailable\"}"), PlaytestSessionOutcome.Unreachable);
             AssertOutcome(PlaytestApiResult.Responded(500, ""), PlaytestSessionOutcome.Unreachable);
@@ -67,9 +66,9 @@ namespace Client.Tests.PlaytestReceiver
         }
 
         [Test]
-        public void allowedが立っていない200では許可しない()
+        public void allowed欄が無い200でもトークンを受け取る()
         {
-            AssertOutcome(PlaytestApiResult.Responded(200, "{\"steamId\":\"7656\",\"allowed\":false,\"token\":\"tok-1\",\"expiresAt\":\"2999-01-01T00:00:00Z\"}"), PlaytestSessionOutcome.NotAllowed);
+            AssertOutcome(PlaytestApiResult.Responded(200, "{\"steamId\":\"7656\",\"token\":\"tok-1\",\"expiresAt\":\"2999-01-01T00:00:00Z\"}"), PlaytestSessionOutcome.Allowed);
         }
 
         [Test]

@@ -18,8 +18,8 @@ namespace Client.Starter.Playtest
     {
         private static bool _salvagedThisBoot;
 
-        // Editorの再生し直しは同じプロセスで起動をやり直すため、再生ごとに未退避へ戻す（前例: PlaytestLaunchGate）
-        // An Editor replay restarts the boot in the same process, so each play resets to "not salvaged" (precedent: PlaytestLaunchGate)
+        // Editorの再生し直しは同じプロセスで起動をやり直すため、再生ごとに未退避へ戻す（前例: PlaytestLaunchProfile）
+        // An Editor replay restarts the boot in the same process, so each play resets to "not salvaged" (precedent: PlaytestLaunchProfile)
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetOnPlayMode()
         {

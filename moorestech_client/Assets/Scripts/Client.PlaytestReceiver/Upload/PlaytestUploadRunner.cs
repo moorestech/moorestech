@@ -1,5 +1,6 @@
 using Client.Game.InGame.BugReport.Submit;
-using Client.PlaytestReceiver.Gate;
+using Client.PlaytestReceiver.Launch;
+using Client.PlaytestReceiver.Steam;
 using Client.PlaytestReceiver.Http;
 using Client.PlaytestReceiver.Upload.Attempt;
 using Cysharp.Threading.Tasks;
@@ -7,8 +8,8 @@ using UnityEngine;
 
 namespace Client.PlaytestReceiver.Upload
 {
-    // 起動直後と報告送信直後の押し場の受け手。送るかどうかは照合結果から自分で決め、走行は1本に保つ
-    // Receives the post-launch and post-report pushes; it decides from the gate verdict whether to ship and keeps runs single
+    // 起動直後と報告送信直後の押し場の受け手。送るかどうかは配布版判定から自分で決め、走行は1本に保つ
+    // Receives the post-launch and post-report pushes; it decides from the launch profile whether to ship and keeps runs single
     public sealed class PlaytestUploadRunner : IPlaytestUploadRequester
     {
         // 走行はプロセスで1本。MainMenuとMainGameがそれぞれの合成ルートで組んだ走行役同士でも重ねないため型で共有する
@@ -18,11 +19,20 @@ namespace Client.PlaytestReceiver.Upload
 
         private readonly IPlaytestReceiverApi _api;
         private readonly PlaytestOutboxDirectories _directories;
+        private readonly PlaytestSession _session;
 
         public PlaytestUploadRunner(IPlaytestReceiverApi api, PlaytestOutboxDirectories directories)
+            : this(api, directories, new PlaytestSteamTicketProvider())
+        {
+        }
+
+        // Steam境界だけ差し替え、テストでも走行役自身のセッションを使う
+        // Replace only the Steam boundary so tests use the runner-owned session too
+        internal PlaytestUploadRunner(IPlaytestReceiverApi api, PlaytestOutboxDirectories directories, IPlaytestSteamTicketProvider ticketProvider)
         {
             _api = api;
             _directories = directories;
+            _session = new PlaytestSession(api, ticketProvider);
         }
 
         // 走行フラグはEditorの再生跨ぎで残る。残したままだと2回目の再生で一度もアップロードが始まらない
@@ -36,13 +46,11 @@ namespace Client.PlaytestReceiver.Upload
 
         public void RequestUpload()
         {
-            // 送るのは照合を通った配布版だけ。送らない場合も理由をログへ出す
-            // Only a distribution build that passed the check ships, and not shipping is logged too
-            var gate = PlaytestLaunchGate.Current.Value;
-            if (!gate.TryGetAllowedSession(out var session))
+            // 送るのは配布版だけ。送らない場合も理由をログへ出す
+            // Only a distribution build ships, and not shipping is logged too
+            if (PlaytestLaunchProfile.Resolve() != PlaytestLaunchKind.Distribution)
             {
-                if (gate.Status == PlaytestGateStatus.DeveloperMode) Debug.Log("[PlaytestReceiver] developer mode; outbox boxes are left for the rsync path");
-                else Debug.LogWarning($"[PlaytestReceiver] not shipping outbox boxes: the launch gate is {gate.Status} {gate.Detail}");
+                Debug.Log("[PlaytestReceiver] developer mode; outbox boxes are left for the rsync path");
                 return;
             }
 
@@ -55,7 +63,7 @@ namespace Client.PlaytestReceiver.Upload
                 return;
             }
             _running = true;
-            RunAsync(session).Forget();
+            RunAsync(_session).Forget();
         }
 
         private async UniTaskVoid RunAsync(PlaytestSession session)

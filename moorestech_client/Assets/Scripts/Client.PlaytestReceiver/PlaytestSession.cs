@@ -69,9 +69,8 @@ namespace Client.PlaytestReceiver
 
                 if (response.Kind != PlaytestApiResultKind.Responded) return PlaytestSessionResult.Failed(PlaytestSessionOutcome.Unreachable, response.Detail);
 
-                // 状態コードの意味は受け口の契約そのまま。503（Steam・許可リストの障害）は到達不能と同じく止める
-                // Status codes carry the receiver's contract verbatim; a 503 (Steam or allowlist outage) stops like unreachability
-                if (response.StatusCode == 403) return PlaytestSessionResult.Failed(PlaytestSessionOutcome.NotAllowed, response.Body);
+                // 状態コードの意味は受け口の契約そのまま。503（Steamの障害）は到達不能と同じく止める
+                // Status codes carry the receiver's contract verbatim; a 503 (Steam outage) stops like unreachability
                 if (response.StatusCode == 401) return PlaytestSessionResult.Failed(PlaytestSessionOutcome.TicketRejected, response.Body);
                 if (response.StatusCode != 200) return PlaytestSessionResult.Failed(PlaytestSessionOutcome.Unreachable, $"HTTP {response.StatusCode} {response.Body}");
 
@@ -79,12 +78,6 @@ namespace Client.PlaytestReceiver
                 // Even a 200 body is external input; a malformed one comes back as a contract breach, never as Allowed
                 var parsed = PlaytestSessionResponse.Parse(response.Body);
                 if (parsed == null) return PlaytestSessionResult.Failed(PlaytestSessionOutcome.MalformedResponse, "malformed session response");
-
-                if (!parsed.Allowed)
-                {
-                    Debug.LogWarning("[PlaytestReceiver] session answered 200 without allowed; treating it as not allowed");
-                    return PlaytestSessionResult.Failed(PlaytestSessionOutcome.NotAllowed, "200 without allowed");
-                }
 
                 // 更新時刻は受け口が名乗った期限から逆算する。寿命の正本を受け口1箇所に保つ
                 // The refresh time is derived from the expiry the receiver states, keeping the lifetime's source there alone
