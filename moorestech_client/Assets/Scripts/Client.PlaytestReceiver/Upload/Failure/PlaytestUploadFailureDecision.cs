@@ -22,8 +22,8 @@ namespace Client.PlaytestReceiver.Upload.Failure
         // A single file never heals (an R2 refusal, an existing key of another length, a file changed locally); it drops into the skips and the box restarts from prepare
         PermanentForFile,
 
-        // セッションそのものが拒まれた（不許可・チケット拒否）。どの箱も同じ理由で通らないので、やり直さず数えず走行を止める
-        // The session itself was refused (not allowed, ticket rejected); every box fails alike, so the run stops without retrying or counting
+        // セッションそのものが拒まれた（チケット拒否）。どの箱も同じ理由で通らないので、やり直さず数えず走行を止める
+        // The session itself was refused (ticket rejected); every box fails alike, so the run stops without retrying or counting
         SessionRefused,
     }
 

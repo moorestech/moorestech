@@ -15,8 +15,8 @@ namespace Client.Tests.PlaytestReceiver
         [Test]
         public void Editor実行では配布ビルドの印が無い()
         {
-            // 配布ビルドだけがbuild-info.jsonを持つ。Editorに置かれていたら照合が誤発火する
-            // Only distribution builds carry build-info.json; one left in the Editor would misfire the gate
+            // 配布ビルドだけがbuild-info.jsonを持つ。Editorに置かれていたら配布版と誤判定する
+            // Only distribution builds carry build-info.json; one left in the Editor would misidentify a distribution build
             Assert.IsFalse(File.Exists(GameSystemPaths.BuildInfoFilePath), $"Editorに {GameSystemPaths.BuildInfoFilePath} が残っている");
         }
     }

@@ -88,9 +88,9 @@ for phase in phase1 phase2; do
         exit 4
     fi
     # トップレベルのsuccessだけを見る。ステップ配列にも同名キーがあるため、
-    # grepの全文一致ではどちらか一方が真なだけで合格にしてしまう(兄弟のallowlist.shに合わせpython3 jsonで読む)
+    # grepの全文一致ではどちらか一方が真なだけで合格にしてしまう(兄弟のingest.shに合わせpython3 jsonで読む)
     # Read only the top-level success; the steps array carries the same key name, so a whole-text
-    # grep would pass when either one alone is true (python3 json, matching sibling allowlist.sh)
+    # grep would pass when either one alone is true (python3 json, matching sibling ingest.sh)
     if ! python3 -c 'import json,sys; sys.exit(0 if json.load(open(sys.argv[1])).get("success") is True else 1)' "$result"; then
         echo "ERROR: $phase の通し検証が失敗しました: $(cat "$result")" >&2
         exit 5

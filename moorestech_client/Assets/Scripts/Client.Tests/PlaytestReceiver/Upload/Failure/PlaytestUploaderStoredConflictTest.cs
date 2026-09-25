@@ -21,6 +21,7 @@ namespace Client.Tests.PlaytestReceiver
         [SetUp]
         public void CreateRoot()
         {
+            PlaytestUploadRunner.ResetOnPlayMode();
             _root = Path.Combine(Path.GetTempPath(), "playtest-upload-conflict-" + Path.GetRandomFileName());
             _directories = PlaytestOutboxTestBoxes.Directories(_root);
         }

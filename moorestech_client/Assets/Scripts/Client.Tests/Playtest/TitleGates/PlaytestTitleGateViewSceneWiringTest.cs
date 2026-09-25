@@ -8,12 +8,12 @@ using UnityEngine.SceneManagement;
 namespace Client.Tests.Playtest.TitleGates
 {
     /// <summary>
-    /// タイトルの合成ルート（PlaytestLaunchGateView）とポップアップのシーン配線を守る。配線が切れると確認が出ず、関所が恒久に開始を断る。
+    /// タイトルの合成ルート（PlaytestTitleGateView）とポップアップのシーン配線を守る。配線が切れると確認が出ず、関所が恒久に開始を断る。
     /// Client.MainMenu はasmdefを持たずテストから型を参照できないので、型名とSerializedObjectで読む（シーンは開いて読むだけ）。
-    /// Guards the scene wiring of the title's composition root (PlaytestLaunchGateView) and its popups; broken wiring hides the confirmations and the checkpoint refuses every start forever.
+    /// Guards the scene wiring of the title's composition root (PlaytestTitleGateView) and its popups; broken wiring hides the confirmations and the checkpoint refuses every start forever.
     /// Client.MainMenu has no asmdef the tests can reference, so the types are read by name through SerializedObject (the scene is only opened and read).
     /// </summary>
-    public class PlaytestLaunchGateViewSceneWiringTest
+    public class PlaytestTitleGateViewSceneWiringTest
     {
         private const string ScenePath = "Assets/Scenes/Game/MainMenu.unity";
 
@@ -23,16 +23,17 @@ namespace Client.Tests.Playtest.TitleGates
             var scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Additive);
             try
             {
-                var views = CollectSceneBehavioursNamed(scene, "PlaytestLaunchGateView");
-                Assert.AreEqual(1, views.Count, $"{ScenePath} の PlaytestLaunchGateView が1つでない");
+                var views = CollectSceneBehavioursNamed(scene, "PlaytestTitleGateView");
+                Assert.AreEqual(1, views.Count, $"{ScenePath} の PlaytestTitleGateView が1つでない");
 
-                // 合成ルートの3参照と、その先の各ポップアップが持つ参照（ボタン・入力欄・文言）を全て辿る
-                // Walk the root's three references and every reference each popup holds (buttons, input field, texts)
+                // 合成ルートの2参照と、その先の各ポップアップが持つ参照（ボタン・入力欄・文言）を全て辿る
+                // Walk the root's two references and every reference each popup holds (buttons, input field, texts)
+                Assert.AreEqual("PlaytestTitleGates", views[0].gameObject.name);
                 var view = new SerializedObject(views[0]);
-                foreach (var popupField in new[] { "messagePopup", "consentPopup", "crashReportPopup" })
+                foreach (var popupField in new[] { "consentPopup", "crashReportPopup" })
                 {
                     var popup = view.FindProperty(popupField).objectReferenceValue;
-                    Assert.IsNotNull(popup, $"{ScenePath} の PlaytestLaunchGateView.{popupField} が未配線");
+                    Assert.IsNotNull(popup, $"{ScenePath} の PlaytestTitleGateView.{popupField} が未配線");
                     AssertAllObjectReferencesWired(popup, popupField);
                 }
             }

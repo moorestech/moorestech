@@ -68,7 +68,7 @@ namespace Client.Tests.BugReport
         {
             const int processId = 2147482986;
             const string sessionName = "session_101";
-            const string reason = "起動時照合の応答を得られていない status:MalformedResponse";
+            const string reason = "テスター識別（SteamID）が無い（SteamUser.GetSteamID で読めなかった）";
             CleanExitMarker.MarkSessionStarted(processId, sessionName, new SessionOriginSnapshot(null, reason, BuildOriginReading.Editor()));
             CleanExitMarker.RecordSnapshotCapture(processId, sessionName, _root);
             var source = SessionOriginSnapshot.ReadFrom(Path.Combine(_root, WorldDataDirectory.SnapshotOwnerFileName), out var failure);

@@ -103,6 +103,7 @@ namespace Client.Tests.PlaytestReceiver
         public readonly List<string> Calls = new();
         public int SessionCallCount;
         public int PutAttemptCount;
+        public int SessionCallsAtFirstPrepare = -1;
         public int CompleteCount;
         public string LastCompleteBody = "";
         public List<string> LastPreparedPaths = new();
@@ -131,6 +132,9 @@ namespace Client.Tests.PlaytestReceiver
 
         public UniTask<PlaytestApiResult> PostPrepareAsync(string bearerToken, PlaytestUploadKind kind, string bundleId, int generation, IReadOnlyList<PlaytestDeclaredFile> files, CancellationToken token)
         {
+            // 最初のprepare時点で認証済みだったかを記録する
+            // Record whether authentication preceded the first prepare
+            if (SessionCallsAtFirstPrepare == -1) SessionCallsAtFirstPrepare = SessionCallCount;
             Calls.Add("prepare");
             LastPreparedPaths = files.Select(file => file.Path).ToList();
             PreparedGenerations.Add(generation);

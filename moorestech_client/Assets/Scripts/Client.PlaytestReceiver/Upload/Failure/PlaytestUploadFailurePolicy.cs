@@ -59,13 +59,12 @@ namespace Client.PlaytestReceiver.Upload.Failure
                 return isRequired ? boxKind : PlaytestUploadFailureKind.PermanentForFile;
             }
 
-            // トークンが取れなかった理由で分ける。不許可・チケット拒否は待っても直らず、どの箱も同じなので走行を止める
-            // Split by why no token was available; not-allowed and a rejected ticket never heal and fail every box, so the run stops
+            // トークンが取れなかった理由で分ける。チケット拒否は待っても直らず、どの箱も同じなので走行を止める
+            // Split by why no token was available; a rejected ticket never heals and fails every box, so the run stops
             PlaytestUploadFailureDecision DecideSession()
             {
                 switch (result.SessionOutcome)
                 {
-                    case PlaytestSessionOutcome.NotAllowed:
                     case PlaytestSessionOutcome.TicketRejected:
                         return Verdict(PlaytestUploadFailureKind.SessionRefused, true);
                     case PlaytestSessionOutcome.Unreachable:

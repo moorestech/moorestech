@@ -1,5 +1,9 @@
+using System;
 using System.Reflection;
 using Client.Playtest;
+using Client.PlaytestReceiver.Launch;
+using Client.Starter;
+using Client.Starter.Playtest.TitleGates;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine.SceneManagement;
@@ -8,6 +12,26 @@ namespace Client.Tests.Playtest
 {
     public class PlaytestBootUnityCallbackBindingTest
     {
+        // 直接起動の漏斗が識別公開を先に通ることを本番の非同期入口で固定する（C4/C15）
+        // Pin publication before the direct boot funnel in the production async entry (C4/C15)
+        [Test]
+        public void InitializeScenePipeline_漏斗前に識別を公開する()
+        {
+            Type stateMachine = null;
+            foreach (var nestedType in typeof(InitializeScenePipeline).GetNestedTypes(BindingFlags.NonPublic))
+            {
+                if (nestedType.Name.StartsWith("<Initialize>d__", StringComparison.Ordinal)) stateMachine = nestedType;
+            }
+
+            var moveNext = stateMachine?.GetMethod("MoveNext", BindingFlags.Instance | BindingFlags.NonPublic);
+            var publish = typeof(PlaytestLaunchProfile).GetMethod(nameof(PlaytestLaunchProfile.EnsureIdentityPublished));
+            var evaluate = typeof(PlaytestTitleGates).GetMethod(nameof(PlaytestTitleGates.EvaluateStart));
+
+            Assert.That(moveNext, Is.Not.Null);
+            Assert.That(MethodCallInspector.CallsInOrder(moveNext, publish, evaluate), Is.True,
+                "直接起動の漏斗が識別公開より先に進み、異常終了箱へ未確定理由を残す");
+        }
+
         [Test]
         public void HookAfterDomainReload_UnityInitializeOnLoadから起動される()
         {

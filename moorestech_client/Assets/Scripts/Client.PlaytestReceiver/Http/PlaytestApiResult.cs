@@ -34,8 +34,8 @@ namespace Client.PlaytestReceiver.Http
         // Why a non-response ended the call; for logs only
         public readonly string Detail;
 
-        // トークンが取れなかった理由。SessionUnavailable でだけ意味を持ち、他の種別では Allowed
-        // Why no token was available; meaningful only for SessionUnavailable, Allowed for every other kind
+        // トークンが取れなかった理由。SessionUnavailable でだけ意味を持ち、他の種別では Authenticated
+        // Why no token was available; meaningful only for SessionUnavailable, Authenticated for every other kind
         public readonly PlaytestSessionOutcome SessionOutcome;
 
         private PlaytestApiResult(PlaytestApiResultKind kind, int statusCode, string body, string detail, PlaytestSessionOutcome sessionOutcome)
@@ -49,22 +49,22 @@ namespace Client.PlaytestReceiver.Http
 
         public static PlaytestApiResult Responded(int statusCode, string body)
         {
-            return new PlaytestApiResult(PlaytestApiResultKind.Responded, statusCode, body, "", PlaytestSessionOutcome.Allowed);
+            return new PlaytestApiResult(PlaytestApiResultKind.Responded, statusCode, body, "", PlaytestSessionOutcome.Authenticated);
         }
 
         public static PlaytestApiResult TransportFailure(string detail)
         {
-            return new PlaytestApiResult(PlaytestApiResultKind.TransportFailure, 0, "", detail, PlaytestSessionOutcome.Allowed);
+            return new PlaytestApiResult(PlaytestApiResultKind.TransportFailure, 0, "", detail, PlaytestSessionOutcome.Authenticated);
         }
 
         public static PlaytestApiResult LocalFileChanged(string detail)
         {
-            return new PlaytestApiResult(PlaytestApiResultKind.LocalFileChanged, 0, "", detail, PlaytestSessionOutcome.Allowed);
+            return new PlaytestApiResult(PlaytestApiResultKind.LocalFileChanged, 0, "", detail, PlaytestSessionOutcome.Authenticated);
         }
 
         public static PlaytestApiResult LocalFileUnavailable(string detail)
         {
-            return new PlaytestApiResult(PlaytestApiResultKind.LocalFileUnavailable, 0, "", detail, PlaytestSessionOutcome.Allowed);
+            return new PlaytestApiResult(PlaytestApiResultKind.LocalFileUnavailable, 0, "", detail, PlaytestSessionOutcome.Authenticated);
         }
 
         public static PlaytestApiResult SessionUnavailable(PlaytestSessionOutcome sessionOutcome, string detail)
@@ -74,7 +74,7 @@ namespace Client.PlaytestReceiver.Http
 
         public static PlaytestApiResult MalformedResponse(int statusCode, string detail)
         {
-            return new PlaytestApiResult(PlaytestApiResultKind.MalformedResponse, statusCode, "", detail, PlaytestSessionOutcome.Allowed);
+            return new PlaytestApiResult(PlaytestApiResultKind.MalformedResponse, statusCode, "", detail, PlaytestSessionOutcome.Authenticated);
         }
 
         public bool IsSuccess => Kind == PlaytestApiResultKind.Responded && 200 <= StatusCode && StatusCode < 300;

@@ -29,6 +29,8 @@ fi
 . "$HERE/lib/receiver-api.sh"
 # shellcheck source=lib/ingest-lock.sh
 . "$HERE/lib/ingest-lock.sh"
+# shellcheck source=lib/steam-persona.sh
+. "$HERE/lib/steam-persona.sh"
 
 LOGS="${MOORESTECH_LOGS:-$REPO/../moorestech_logs}"
 PLAYTEST_DIR="$LOGS/harness/playtest"
@@ -61,6 +63,7 @@ ingest_one() {
     || { log "ERROR: steamId/id が安全なパスセグメントでない: $kind/$steam_id/${id}（ack しない）"; return 1; }
   local dest="$PLAYTEST_DIR/$sub/$steam_id/$id"
   local partial="$PLAYTEST_DIR/$sub/$steam_id/$id.partial"
+  local persona_file="$STEAM_PERSONA_CACHE_DIR/$kind-$steam_id-$id.persona.json"
 
   # 既に置かれている＝前回 ack だけ失敗した箱。落とし直さず ack だけやり直す
   # An existing dest means only the ack failed last time: never re-download, just re-ack
@@ -94,13 +97,10 @@ ingest_one() {
       receiver_get_object "$kind" "$steam_id" "$id" "$rel" "$partial/$rel" \
         || { log "ERROR: 取得失敗 $id/$rel"; rm -rf "$partial"; return 1; }
     done <<< "$files"
-    python3 -c '
-import json,sys
-kind, steam_id, idv, ready_at, ingested_at, out = sys.argv[1:7]
-with open(out, "w") as f:
-    json.dump({"kind": kind, "steamId": steam_id, "id": idv, "readyAt": ready_at, "ingestedAt": ingested_at},
-              f, separators=(",", ":"))
-' "$kind" "$steam_id" "$id" "$ready_at" "$(now_utc)" "$partial/ingest.json" \
+    steam_persona_resolve "$steam_id" "$persona_file" \
+      || { log "ERROR: 表示名の結果を書けない $kind/$steam_id/$id（ack しない）"; rm -rf "$partial"; return 1; }
+    python3 "$HERE/lib/ingest_metadata.py" \
+      "$kind" "$steam_id" "$id" "$ready_at" "$(now_utc)" "$persona_file" "$partial/ingest.json" \
       || { log "ERROR: ingest.json 書き込み失敗 $kind/$steam_id/$id（ack しない）"; rm -rf "$partial"; return 1; }
     mkdir -p "$(dirname "$dest")" || { log "ERROR: mkdir 失敗 $dest（ack しない）"; rm -rf "$partial"; return 1; }
     mv "$partial" "$dest" || { log "ERROR: mv 失敗 $partial -> $dest（ack しない）"; rm -rf "$partial"; return 1; }
@@ -150,6 +150,8 @@ commit_logs() {
 acquire_lock || exit 0
 WORK="$(mktemp -d)"
 trap 'rm -rf "$LOCK" "$WORK"' EXIT
+STEAM_PERSONA_CACHE_DIR="$WORK/steam-persona"
+mkdir -p "$STEAM_PERSONA_CACHE_DIR" || { log "ERROR: 表示名キャッシュを作れない: $STEAM_PERSONA_CACHE_DIR"; exit 1; }
 
 ITEMS="$WORK/items.txt"; : > "$ITEMS"
 cursor=""; page=0

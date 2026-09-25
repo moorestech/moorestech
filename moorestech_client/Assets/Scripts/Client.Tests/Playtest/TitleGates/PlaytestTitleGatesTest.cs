@@ -2,7 +2,7 @@ using System.IO;
 using System.Threading;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Localization;
-using Client.PlaytestReceiver.Gate;
+using Client.PlaytestReceiver.Launch;
 using Client.Starter.Playtest.TitleGates;
 using Client.Tests.BugReport;
 using Client.Tests.PlaytestReceiver;
@@ -16,15 +16,15 @@ namespace Client.Tests.Playtest.TitleGates
     {
         private bool _consentExisted;
 
-        // 関所の状態は静的なので、再生し直しと同じ入口で毎回戻す。照合は開発者モードに固定して2段目だけを見る
-        // The checkpoint's state is static, so it is reset every time through the same entry a replay uses; the launch check is pinned to developer mode so only the second stage is observed
+        // 関所の状態は静的なので、再生し直しと同じ入口で毎回戻す。起動判定は開発者モードに固定して確認段階を見る
+        // The checkpoint's state is static, so it is reset every time through the same entry a replay uses; the launch kind is pinned to developer mode so the confirmation stage is observed
         [SetUp]
         public void SetUp()
         {
             Localize.Initialize();
             PlaytestTitleGates.ResetOnPlayMode();
             PlaytestStartGateBypass.ResetOnPlayMode();
-            PlaytestLaunchGate.SetCurrent(PlaytestGateResult.DeveloperMode);
+            PlaytestLaunchProfile.Apply(PlaytestLaunchKind.DeveloperMode, new EmptyPlaytestSessionIdentity(EmptyPlaytestSessionIdentity.DeveloperModeReason));
             _consentExisted = PlaytestConsentFlag.IsAcknowledged();
         }
 
@@ -33,7 +33,7 @@ namespace Client.Tests.Playtest.TitleGates
         {
             PlaytestTitleGates.ResetOnPlayMode();
             PlaytestStartGateBypass.ResetOnPlayMode();
-            PlaytestLaunchGate.SetCurrent(PlaytestGateResult.NotEvaluated);
+            PlaytestLaunchProfile.ResetOnPlayMode();
             var exists = File.Exists(PlaytestConsentFlag.FilePath);
             if (_consentExisted && !exists) PlaytestConsentFlag.Acknowledge();
             if (!_consentExisted && exists) File.Delete(PlaytestConsentFlag.FilePath);
@@ -120,8 +120,8 @@ namespace Client.Tests.Playtest.TitleGates
         [Test]
         public void 開発者モードは既読でも送信要求を出さない()
         {
-            // receiverSessionAllowedがfalse（開発者モード）なら、了解済みでも送信は要求されない
-            // With receiverSessionAllowed false (developer mode), no upload is requested even when consent is already acknowledged
+            // distributionBuildがfalse（開発者モード）なら、了解済みでも送信は要求されない
+            // With distributionBuild false (developer mode), no upload is requested even when consent is already acknowledged
             PlaytestConsentFlag.Acknowledge();
             var uploads = new RecordingUploadRequester();
 
@@ -140,7 +140,8 @@ namespace Client.Tests.Playtest.TitleGates
             var sequence = StartAttendedSequenceWithUnreadConsent(firstTitleUploads);
 
             var revisitUploads = new RecordingUploadRequester();
-            Assert.IsTrue(PlaytestTitleGates.TryBegin(PlaytestGateResult.Allowed(null, "7656"), revisitUploads, out var revisited));
+            PlaytestLaunchProfile.Apply(PlaytestLaunchKind.Distribution, new LocalSteamSessionIdentity("76561198000000001"));
+            var revisited = PlaytestTitleGates.Begin(revisitUploads);
             Assert.AreSame(sequence, revisited, "再訪で別の列が始まっている");
 
             sequence.AcknowledgeConsent();
@@ -148,10 +149,10 @@ namespace Client.Tests.Playtest.TitleGates
             Assert.AreEqual(0, firstTitleUploads.RequestCount, "破棄済みのタイトルが組んだ送り手へ送信を要求している");
         }
 
-        // 送信可否はタイトルの寿命。開発者モードで通過した列でも、照合がAllowedへ転じた再訪では持ち越しの送信を要求し直す（F12）
-        // The upload permission lives with the title; even a sequence passed in developer mode requests the carry-over again on a revisit whose check turned Allowed (F12)
+        // 送信可否はタイトルの寿命。開発者モードで通過した列でも、配布版としての再訪では持ち越しの送信を要求し直す（F12）
+        // The upload permission lives with the title; even a sequence passed in developer mode requests the carry-over again on a revisit as a distribution build (F12)
         [Test]
-        public void 再訪で照合がAllowedへ転じたら送信可否を押し直して送る()
+        public void 再訪が配布版なら送信可否を押し直して送る()
         {
             PlaytestConsentFlag.Acknowledge();
             var firstTitleUploads = new RecordingUploadRequester();
@@ -160,26 +161,11 @@ namespace Client.Tests.Playtest.TitleGates
             Assert.AreEqual(0, firstTitleUploads.RequestCount);
 
             var revisitUploads = new RecordingUploadRequester();
-            Assert.IsTrue(PlaytestTitleGates.TryBegin(PlaytestGateResult.Allowed(null, "7656"), revisitUploads, out _));
-            Assert.AreEqual(1, revisitUploads.RequestCount, "照合がAllowedへ転じた再訪で持ち越しの送信を要求していない");
+            PlaytestLaunchProfile.Apply(PlaytestLaunchKind.Distribution, new LocalSteamSessionIdentity("76561198000000001"));
+            PlaytestTitleGates.Begin(revisitUploads);
+            Assert.AreEqual(1, revisitUploads.RequestCount, "配布版としての再訪で持ち越しの送信を要求していない");
 
-            // 照合を通らない再訪では送信可否を落とし、次の再訪で要求しない
-            // A revisit without an allowed check drops the permission and requests nothing
-            Assert.IsTrue(PlaytestTitleGates.TryBegin(PlaytestGateResult.DeveloperMode, revisitUploads, out _));
-            Assert.AreEqual(1, revisitUploads.RequestCount, "開発者モードの再訪で送信を要求している");
-        }
 
-        // 再訪の再照合は Checking を置き直す。答え待ちの確認が出ている間は待ち文言を重ねないよう、列が「確認を表示中」と答える必要がある
-        // A revisit's re-check re-installs Checking; while a confirmation awaits an answer the sequence must report that it is showing one so no waiting message is stacked on it
-        [Test]
-        public void 答え待ちの確認がある間だけ確認を表示中と答える()
-        {
-            var sequence = StartAttendedSequenceWithUnreadConsent();
-            Assert.IsTrue(sequence.IsShowingConfirmation(), "同意待ちなのに確認を表示していないと答えている");
-
-            sequence.AcknowledgeConsent();
-            Assert.AreEqual(PlaytestTitleGateStep.Passed, sequence.Step.Value);
-            Assert.IsFalse(sequence.IsShowingConfirmation(), "答え終えた後も確認を表示中と答えている");
         }
 
         private static PlaytestTitleGateSequence StartAttendedSequenceWithUnreadConsent()

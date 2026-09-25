@@ -34,8 +34,8 @@ namespace Client.PlaytestReceiver
         public const string PrepareOutcomePrepared = "prepared";
         public const string PrepareOutcomeAcked = "acked";
 
-        // 配布版は定数に固定する。差し替えを許すと偽の受け口で照合そのものを無効化できる
-        // Release builds are pinned to the constant; allowing an override would let a fake receiver disable the check
+        // 配布版は定数に固定する。差し替えを許すと報告を偽の受け口へ送れてしまう
+        // Release builds are pinned to the constant so reports cannot be redirected to a fake receiver
         public static string BaseUrl
         {
             get

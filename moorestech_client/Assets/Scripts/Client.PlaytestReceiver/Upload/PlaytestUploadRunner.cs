@@ -1,5 +1,6 @@
 using Client.Game.InGame.BugReport.Submit;
-using Client.PlaytestReceiver.Gate;
+using Client.PlaytestReceiver.Launch;
+using Client.PlaytestReceiver.Steam;
 using Client.PlaytestReceiver.Http;
 using Client.PlaytestReceiver.Upload.Attempt;
 using Cysharp.Threading.Tasks;
@@ -7,42 +8,54 @@ using UnityEngine;
 
 namespace Client.PlaytestReceiver.Upload
 {
-    // 起動直後と報告送信直後の押し場の受け手。送るかどうかは照合結果から自分で決め、走行は1本に保つ
-    // Receives the post-launch and post-report pushes; it decides from the gate verdict whether to ship and keeps runs single
+    // 起動直後と報告送信直後の押し場の受け手。送るかどうかは配布版判定から自分で決め、走行は1本に保つ
+    // Receives the post-launch and post-report pushes; it decides from the launch profile whether to ship and keeps runs single
     public sealed class PlaytestUploadRunner : IPlaytestUploadRequester
     {
         // 走行はプロセスで1本。MainMenuとMainGameがそれぞれの合成ルートで組んだ走行役同士でも重ねないため型で共有する
         // One run per process; the flags are shared by type so runners built by the MainMenu and MainGame roots never overlap
         private static bool _running;
         private static bool _rerunRequested;
+        private static PlaytestSession _sharedSession;
 
         private readonly IPlaytestReceiverApi _api;
         private readonly PlaytestOutboxDirectories _directories;
 
-        public PlaytestUploadRunner(IPlaytestReceiverApi api, PlaytestOutboxDirectories directories)
+        // Steam境界はDIが注入する。本番はPlaytestSteamTicketProvider、テストは差し替え
+        // The Steam boundary is injected by DI; production uses PlaytestSteamTicketProvider, tests substitute it
+        public PlaytestUploadRunner(IPlaytestReceiverApi api, PlaytestOutboxDirectories directories, IPlaytestSteamTicketProvider ticketProvider)
         {
             _api = api;
             _directories = directories;
+            // 最初の走行役の認証境界を共有し、後続の依存を使わない理由を記録する
+            // Share the first runner's auth boundary and log why later dependencies are unused
+            if (_sharedSession == null)
+            {
+                _sharedSession = new PlaytestSession(api, ticketProvider);
+            }
+            else
+            {
+                Debug.Log("[PlaytestReceiver] shared session already exists; later api and ticketProvider are ignored for authentication; runner api remains in use for uploads");
+            }
         }
 
         // 走行フラグはEditorの再生跨ぎで残る。残したままだと2回目の再生で一度もアップロードが始まらない
         // The in-flight flags would survive between Editor play sessions, and stale ones would stop every later upload
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        private static void ResetOnPlayMode()
+        internal static void ResetOnPlayMode()
         {
             _running = false;
             _rerunRequested = false;
+            _sharedSession = null;
         }
 
         public void RequestUpload()
         {
-            // 送るのは照合を通った配布版だけ。送らない場合も理由をログへ出す
-            // Only a distribution build that passed the check ships, and not shipping is logged too
-            var gate = PlaytestLaunchGate.Current.Value;
-            if (!gate.TryGetAllowedSession(out var session))
+            // 送るのは配布版だけ。送らない場合も理由をログへ出す
+            // Only a distribution build ships, and not shipping is logged too
+            if (PlaytestLaunchProfile.Resolve() != PlaytestLaunchKind.Distribution)
             {
-                if (gate.Status == PlaytestGateStatus.DeveloperMode) Debug.Log("[PlaytestReceiver] developer mode; outbox boxes are left for the rsync path");
-                else Debug.LogWarning($"[PlaytestReceiver] not shipping outbox boxes: the launch gate is {gate.Status} {gate.Detail}");
+                Debug.Log("[PlaytestReceiver] developer mode; outbox boxes are left for the rsync path");
                 return;
             }
 
@@ -55,7 +68,7 @@ namespace Client.PlaytestReceiver.Upload
                 return;
             }
             _running = true;
-            RunAsync(session).Forget();
+            RunAsync(_sharedSession).Forget();
         }
 
         private async UniTaskVoid RunAsync(PlaytestSession session)

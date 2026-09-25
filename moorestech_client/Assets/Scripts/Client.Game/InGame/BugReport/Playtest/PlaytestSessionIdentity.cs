@@ -19,6 +19,11 @@ namespace Client.Game.InGame.BugReport.Playtest
     {
         public const string DeveloperModeReason = "テスター識別（SteamID）が無い（開発者モード。build-info.json 無し、または Steam 未起動）";
 
+        // 未解決・読めなかった配布版の理由文言。複数箇所で組み立てると字面が割れるので一元管理する（C6）
+        // Reasons for not-yet-resolved and unreadable-distribution cases, centralized so the wording never diverges across call sites (C6)
+        public const string NotYetResolvedReason = "テスター識別（SteamID）が無い（起動時のローカルSteamIDがまだ差し込まれていない）";
+        public const string LocalSteamIdUnreadableReason = "テスター識別（SteamID）が無い（SteamUser.GetSteamID で読めなかった）";
+
         public string SteamId => null;
         public string SteamIdAbsenceReason { get; }
 

@@ -1,3 +1,4 @@
+using Client.PlaytestReceiver.Steam;
 using System.Collections.Generic;
 using Client.Game.Common;
 using Client.Game.InGame.BugReport.Capture;
@@ -124,7 +125,7 @@ namespace Client.Starter.PlaytestSmoke
                 if (!Record("report-written", writeStartedAt, written)) return false;
                 reportBundleDirectory = written.Value;
 
-                var steamIdOutcome = StandalonePlaytestSmokeSteamIdReader.TryRead(out var steamId, out var steamIdFailure)
+                var steamIdOutcome = new PlaytestLocalSteamIdReader().TryRead(out var steamId, out var steamIdFailure)
                     ? StandalonePlaytestSmokeStepOutcome.Succeeded(steamId)
                     : StandalonePlaytestSmokeStepOutcome.Failed(steamIdFailure);
                 if (!Record("report-steam-id", Time.realtimeSinceStartup, steamIdOutcome)) return false;

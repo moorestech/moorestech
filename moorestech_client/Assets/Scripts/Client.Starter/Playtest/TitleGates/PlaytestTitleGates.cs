@@ -4,7 +4,7 @@ using Client.Game.InGame.BugReport.LastSession;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.BugReport.Submit;
 using Client.Localization;
-using Client.PlaytestReceiver.Gate;
+using Client.PlaytestReceiver.Launch;
 using Cysharp.Threading.Tasks;
 using Mooresmaster.Localization.Generated;
 using UnityEngine;
@@ -13,21 +13,19 @@ using UnityEngine.SceneManagement;
 namespace Client.Starter.Playtest.TitleGates
 {
     /// <summary>
-    /// 開始の関所。照合（PlaytestLaunchGate）→ タイトルのゲート（同意・前回異常終了の確認）の2段の順序をここに閉じ、
-    /// 開始経路（Play locally・サーバー接続・パイプラインの漏斗）はこの1箇所だけを呼ぶ（ADR 0065）。
-    /// The start checkpoint; it closes the order of the two stages (the launch check, then the title gates for consent and the previous crash) inside itself,
-    /// and every start path (Play locally, server connection, the pipeline funnel) calls only this one place (ADR 0065).
+    /// タイトルのゲート（同意・前回異常終了の確認）の順序をここに閉じる。
+    /// Owns the title gate order for consent and the previous-crash confirmation.
     /// </summary>
     public static class PlaytestTitleGates
     {
-        // MainMenuシーンにはDIコンテナが無く、開始経路と表示が別のMonoBehaviourなのでstaticで持つ（前例: PlaytestLaunchGate）
-        // The MainMenu scene has no DI container and the start paths and the view are separate MonoBehaviours, so it is held statically (precedent: PlaytestLaunchGate)
+        // MainMenuシーンにはDIコンテナが無く、開始経路と表示が別のMonoBehaviourなのでstaticで持つ（前例: PlaytestLaunchProfile）
+        // The MainMenu scene has no DI container and the start paths and the view are separate MonoBehaviours, so it is held statically (precedent: PlaytestLaunchProfile)
         // 段階の持ち主は列そのもの。ここは「今動いている列」だけを持ち、列が無いことが「まだ始まっていない」を表す
         // The step's owner is the sequence itself; this holds only the running one, and its absence is what "not started yet" means
         private static PlaytestTitleGateSequence _current;
 
-        // Editorの再生し直しは同じプロセスで起動をやり直すため、再生ごとに未開始へ戻す（前例: PlaytestLaunchGate）
-        // An Editor replay restarts the boot in the same process, so each play returns to "not started" (precedent: PlaytestLaunchGate)
+        // Editorの再生し直しは同じプロセスで起動をやり直すため、再生ごとに未開始へ戻す（前例: PlaytestLaunchProfile）
+        // An Editor replay restarts the boot in the same process, so each play returns to "not started" (precedent: PlaytestLaunchProfile)
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         internal static void ResetOnPlayMode()
         {
@@ -46,13 +44,16 @@ namespace Client.Starter.Playtest.TitleGates
             PlaytestStartGateBypass.DeclareDirectBoot($"起動シーンがタイトルではない（{bootSceneName}）");
         }
 
-        // 照合がAllowedか開発者モードに決まるたびにタイトルの合成ルートから呼ぶ。始動済みなら既存の列をそのまま返す
-        // Called from the title's composition root whenever the launch check settles as Allowed or developer mode; an already-started sequence comes back as it is
-        public static bool TryBegin(PlaytestGateResult verdict, IPlaytestUploadRequester uploadRequester, out PlaytestTitleGateSequence sequence)
+        // タイトルの合成ルートから呼ぶ。配布版判定は自分で調達し、始動済みなら既存の列をそのまま返す
+        // Called from the title's composition root; it resolves the launch kind itself, and an already-started sequence comes back as it is
+        public static PlaytestTitleGateSequence Begin(IPlaytestUploadRequester uploadRequester)
         {
+            var kind = PlaytestLaunchProfile.Resolve();
+            var distributionBuild = kind == PlaytestLaunchKind.Distribution;
+
             // 始動済みなら既存の列を返す。初期化失敗でタイトルへ戻った再訪でも、未応答の確認を繋ぎ直して出せる（D-C1）
             // An already-started sequence comes back so a revisit after a failed initialization can re-attach and show the unanswered confirmation (D-C1)
-            sequence = _current;
+            var sequence = _current;
             if (sequence != null)
             {
                 // 列は生き残るが合成ルートは再訪のたびに作り直される。送り手と送信可否を今回のタイトルのものへ繋ぎ直す（D-C1）
@@ -62,37 +63,25 @@ namespace Client.Starter.Playtest.TitleGates
                 // 同意待ちの列は送信要求が了解の後ろに並ぶので、未読でも可にしておく（不可にすると了解後の送信が無音で消える）
                 // A sequence waiting on consent queues its upload behind the acknowledgement, so it stays enabled while unread (disabling it would silently drop the upload after acknowledgement)
                 var consentHoldsUploads = sequence.Step.Value == PlaytestTitleGateStep.Consent;
-                sequence.SetUploadsEnabled(verdict.TryGetAllowedSession(out _) && (PlaytestConsentFlag.IsAcknowledged() || consentHoldsUploads));
+                sequence.SetUploadsEnabled(distributionBuild && (PlaytestConsentFlag.IsAcknowledged() || consentHoldsUploads));
 
-                // 通過済みの列には走行が残っていない。照合がAllowedへ転じた再訪の持ち越しはここで送信を要求し直す
-                // A passed sequence has no run left, so a revisit whose check turned Allowed requests the carry-over upload here
+                // 通過済みの列には走行が残っていない。配布版としての再訪の持ち越しはここで送信を要求し直す
+                // A passed sequence has no run left, so a distribution revisit requests the carry-over upload here
                 if (sequence.Step.Value == PlaytestTitleGateStep.Passed) sequence.RequestUploadIfEnabled("title revisit");
-                return true;
-            }
-
-            if (verdict.IsBlocked)
-            {
-                Debug.LogWarning($"[PlaytestTitleGates] 照合を通っていない結果（{verdict.Status}）ではタイトルのゲートを始めません");
-                return false;
+                return sequence;
             }
 
             // 待ちの寿命はプロセスへ揃える。タイトルが破棄されても列は生き残り、再訪で同じ確認を答えられる（D-C1）
             // The wait lives as long as the process, so the sequence survives the title's teardown and the same confirmation can be answered on a revisit (D-C1)
             var artifacts = PreviousSessionStartupTasks.SalvageAtTitle();
-            sequence = BeginComposed(artifacts, verdict.TryGetAllowedSession(out _), uploadRequester, PlaytestStartGateBypass.UnattendedReason(), Application.exitCancellationToken);
-            return true;
+            return BeginComposed(artifacts, distributionBuild, uploadRequester, PlaytestStartGateBypass.UnattendedReason(), Application.exitCancellationToken);
         }
 
-        // 2段の順序はここに閉じる。照合の遅延確定が同期でタイトルのゲートを始めるため、照合を先に通さないと段階が読めない
-        // The two stages' order is closed in here: the launch check's lazy settling starts the title gates synchronously, so the step cannot be read before it
+        // タイトルの確認段階に従って開始可否を返す。識別は起動入口で確定済み
+        // Decide from the title confirmation step; the boot entry has already published identity
         public static PlaytestStartVerdict EvaluateStart(string callerName, out PlaytestStartRefusal refusal)
         {
             refusal = new PlaytestStartRefusal("");
-            if (!PlaytestLaunchGate.TryPassLaunchCheck(callerName, out var launchDenyReasonText))
-            {
-                refusal = new PlaytestStartRefusal(launchDenyReasonText);
-                return PlaytestStartVerdict.RefusedWithNotice;
-            }
 
             if (_current == null)
             {
@@ -102,7 +91,7 @@ namespace Client.Starter.Playtest.TitleGates
 
                 // 確認が画面に出ていないのに断る経路。無音だと押しても何も起きないので、テスターに読める文言を返す
                 // A refusal with no confirmation on screen; staying silent would make the button do nothing, so a tester-readable text comes back
-                Debug.LogWarning($"[PlaytestTitleGates] {callerName} refused: the title gates never started (the launch verdict has not reached the title yet)");
+                Debug.LogWarning($"[PlaytestTitleGates] {callerName} refused: the title gates never started");
                 refusal = new PlaytestStartRefusal(Localize.Get(LocalizationKeys.Ui.Playtest.Gate.NotStarted));
                 return PlaytestStartVerdict.RefusedWithNotice;
             }
@@ -118,28 +107,28 @@ namespace Client.Starter.Playtest.TitleGates
 
         // 組んだ列を現行として据えてから進める唯一の入口。CIはバッチモードで常に無人なので、無人の理由は引数で受けて対話起動もテストで組めるようにする
         // The single entry that installs the composed sequence as the running one before advancing it; CI is always unattended in batch mode, so the reason is a parameter and tests can build an attended boot too
-        internal static PlaytestTitleGateSequence BeginComposed(PreviousSessionArtifacts artifacts, bool receiverSessionAllowed, IPlaytestUploadRequester uploadRequester, string unattendedReason, CancellationToken ct)
+        internal static PlaytestTitleGateSequence BeginComposed(PreviousSessionArtifacts artifacts, bool distributionBuild, IPlaytestUploadRequester uploadRequester, string unattendedReason, CancellationToken ct)
         {
-            var sequence = Compose(artifacts, receiverSessionAllowed, uploadRequester, unattendedReason);
+            var sequence = Compose(artifacts, distributionBuild, uploadRequester, unattendedReason);
             SetCurrentSequence(sequence);
             sequence.RunAsync(ct).Forget();
             return sequence;
         }
 
-        // 退避結果・照合・無人の理由からゲート一式を組む
-        // Builds the gate set from the salvage result, the check and the unattended reason
-        private static PlaytestTitleGateSequence Compose(PreviousSessionArtifacts artifacts, bool receiverSessionAllowed, IPlaytestUploadRequester uploadRequester, string unattendedReason)
+        // 退避結果・配布版判定・無人の理由からゲート一式を組む
+        // Builds the gate set from the salvage result, the distribution kind and the unattended reason
+        private static PlaytestTitleGateSequence Compose(PreviousSessionArtifacts artifacts, bool distributionBuild, IPlaytestUploadRequester uploadRequester, string unattendedReason)
         {
             var consentAcknowledged = PlaytestConsentFlag.IsAcknowledged();
             if (unattendedReason == null)
             {
-                return new PlaytestTitleGateSequence(new PlaytestConsentGate(!consentAcknowledged), new CrashReportGate(new CrashBundleWriter(), artifacts), uploadRequester, receiverSessionAllowed);
+                return new PlaytestTitleGateSequence(new PlaytestConsentGate(!consentAcknowledged), new CrashReportGate(new CrashBundleWriter(), artifacts), uploadRequester, distributionBuild);
             }
 
             // 無人起動には応答者が居ない。閉じたゲートで進め、未読のままなら持ち越しも送らない（「了解まで送らない」を無人でも守る）
             // An unattended boot has nobody to answer: proceed with closed gates, and ship nothing carried over while the consent is unread (the hold applies unattended too)
             Debug.LogWarning($"[PlaytestTitleGates] 無人起動のためタイトルのゲートを出さずに進みます reason:{unattendedReason} previousExitWasClean:{artifacts.PreviousExitWasClean} consentAcknowledged:{consentAcknowledged}（退避物は last-session に残り次回の対話起動で聞き直せます）");
-            var uploadsEnabled = receiverSessionAllowed && consentAcknowledged;
+            var uploadsEnabled = distributionBuild && consentAcknowledged;
             return new PlaytestTitleGateSequence(new PlaytestConsentGate(false), CrashReportGate.Closed(), uploadRequester, uploadsEnabled);
         }
 

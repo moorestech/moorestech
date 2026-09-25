@@ -1,4 +1,3 @@
-import { readAllowlist, writeAllowlist } from "../allowlist";
 import { ackedMarkerKey, isAcked } from "../bundleMarkers";
 import type { Env } from "../env";
 import { fail, json, requireAdmin, requireMethod } from "../http";
@@ -19,24 +18,14 @@ const INBOX_PAGE_SIZE = 100;
 // Path matching and dispatch for the admin API live here; returns null on a non-match so index.ts can try the next route
 export async function routeAdmin(request: Request, env: Env, segments: string[]): Promise<Response | null> {
   if (segments[0] !== "v1") return null;
-  if (segments[1] !== "allowlist" && segments[1] !== "inbox") return null;
+  if (segments[1] !== "inbox") return null;
 
   // 管理APIの認証はここ1箇所だけで行う。経路の形やメソッドの正誤に関わらず、鍵なし・不一致は必ず401
   // The admin API is authenticated in exactly one place; a missing or mismatched key is always 401, regardless of path shape or method
   const denied = requireAdmin(request, env);
   if (denied !== null) return denied;
 
-  if (segments[1] === "allowlist" && segments.length === 2) {
-    const denied = requireMethod(request, ["GET", "PUT"], "/v1/allowlist");
-    if (denied !== null) return denied;
-    return request.method === "GET" ? getAllowlist(env) : putAllowlist(request, env);
-  }
-
-  if (segments[1] === "inbox") return routeInbox(request, env, segments);
-
-  // 未知の形はここに来る。認証を存在確認より前に置くため、鍵なしは401・鍵ありはnullで404に落ちる（意図的な非対称）
-  // Unknown shapes land here; auth runs before existence checks, so unauthed=401, authed falls through to 404 (deliberate asymmetry)
-  return null;
+  return routeInbox(request, env, segments);
 }
 
 async function routeInbox(request: Request, env: Env, segments: string[]): Promise<Response> {
@@ -141,38 +130,4 @@ async function postAck(env: Env, kind: PlaytestKind, steamId: string, id: string
   await env.BUCKET.put(ackedMarkerKey(kind, steamId, id), new Date().toISOString());
   await env.BUCKET.delete(indexKey);
   return json({ acked: true });
-}
-
-// 破損時は503。空リストを返すとGET→編集→全置換PUTで既存の許可リストを消し飛ばす。修復はPUTの全置換で行う
-// Corruption answers 503; returning [] would let GET -> edit -> full PUT wipe the list. Repair is done with a full-replace PUT
-async function getAllowlist(env: Env): Promise<Response> {
-  const allowlist = await readAllowlist(env.BUCKET);
-  if (allowlist.kind === "corrupt") {
-    console.warn(`[allowlist] refused GET: the stored allowlist is corrupt (${allowlist.reason})`);
-    return fail("allowlist-unavailable", 503);
-  }
-  return json({ steamIds: allowlist.steamIds });
-}
-
-async function putAllowlist(request: Request, env: Env): Promise<Response> {
-  // 管理者が手で送るJSON本文のパースは外部入力境界。全置換なので壊れた本文で上書きせず現状を残して400を返す
-  // Parsing an admin-supplied JSON body is an external-input boundary; this replaces the whole list, so a parse/shape failure keeps the current list and answers 400
-  let steamIds: string[];
-  try {
-    const body = (await request.json()) as { steamIds?: unknown };
-    if (!Array.isArray(body.steamIds) || body.steamIds.some((value) => typeof value !== "string")) {
-      console.warn("[allowlist] rejected a PUT whose steamIds is missing or not a string array");
-      return fail("bad-request", 400);
-    }
-    steamIds = body.steamIds as string[];
-  } catch (error) {
-    console.warn(`[allowlist] rejected a PUT with a body that is not JSON: ${error instanceof Error ? error.message : String(error)}`);
-    return fail("bad-request", 400);
-  }
-
-  const stored = await writeAllowlist(env.BUCKET, steamIds);
-  // 成功時の監査ログ。拒否理由ではないのでwarnではなくlogを使う
-  // Success-path audit log; not a rejection reason, so this uses log rather than warn
-  console.log(`[allowlist] replaced with ${stored.length} steamIds`);
-  return json({ steamIds: stored });
 }

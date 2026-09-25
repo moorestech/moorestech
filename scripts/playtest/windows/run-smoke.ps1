@@ -12,13 +12,13 @@ param(
 $ErrorActionPreference = "Stop"
 $AppId = "1958160"
 $GameProcessName = "moorestech"
-# フェーズ期限は、クライアント内部期限の合計が最長になる phase2（起動ゲート180+初期化120+キャプチャ180+アップロード300=780秒。
-# phase1 は起動ゲート180+初期化120+セーブ180=480秒）に、Steam 起動・更新確認・プロセス終了待ちの余裕240秒を足した値。
+# フェーズ期限は、クライアント内部期限の合計が最長になる phase2（初期化120+キャプチャ180+アップロード300=600秒。
+# phase1 は初期化120+セーブ180=300秒）に、Steam 起動・更新確認・プロセス終了待ちの余裕240秒を足した値。
 # 内部期限より短いと、クライアントが理由付きで失敗を書く前にここで打ち切ってしまう
-# The phase deadline is the longest client-side deadline sum, phase2 (launch gate 180 + init 120 + capture 180 + upload 300 = 780s;
-# phase1 is gate 180 + init 120 + save 180 = 480s), plus 240s headroom for Steam launch, update checks and process exit.
+# The phase deadline is the longest client-side deadline sum, phase2 (init 120 + capture 180 + upload 300 = 600s;
+# phase1 is init 120 + save 180 = 300s), plus 240s headroom for Steam launch, update checks and process exit.
 # Anything shorter kills the client before it can write its own failure reason
-$PhaseTimeoutSeconds = 1020
+$PhaseTimeoutSeconds = 840
 
 # Stop 下の Write-Error は終了エラーになり exit に届かない。理由を標準エラーへ直接書いてから意図した終了コードで抜ける
 # Under Stop, Write-Error is terminating and never reaches exit; write the reason to stderr directly, then exit with the intended code
