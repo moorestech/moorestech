@@ -19,12 +19,12 @@ namespace Server.Protocol.PacketResponse
         public const string ProtocolTag = "va:trainScheduleEdit";
 
         private readonly ITrainUnitLookupDatastore _trainUnitLookupDatastore;
-        private readonly ITrainUnitSnapshotNotifyEvent _snapshotNotifyEvent;
+        private readonly ITrainTimetableNotifyEvent _timetableNotifyEvent;
 
         public TrainScheduleEditProtocol(ServiceProvider serviceProvider)
         {
             _trainUnitLookupDatastore = serviceProvider.GetService<ITrainUnitLookupDatastore>();
-            _snapshotNotifyEvent = serviceProvider.GetService<ITrainUnitSnapshotNotifyEvent>();
+            _timetableNotifyEvent = serviceProvider.GetService<ITrainTimetableNotifyEvent>();
         }
 
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
@@ -51,22 +51,32 @@ namespace Server.Protocol.PacketResponse
             {
                 // 全駅を先に解決し、1つでも駅でなければ全体を拒否する
                 // Resolve every station first; reject the whole request if any entry is not a station
-                if (data.StationPositions == null || data.StationPositions.Contains(null))
+                if (data.Stops == null || data.Stops.Contains(null))
                 {
-                    return Reject(data, TrainScheduleEditFailureReason.InvalidRequest, "station positions are missing");
+                    return Reject(data, TrainScheduleEditFailureReason.InvalidRequest, "stops are missing");
                 }
 
-                var nodes = new List<IRailNode>(data.StationPositions.Count);
-                foreach (var position in data.StationPositions)
+                var nodes = new List<IRailNode>(data.Stops.Count);
+                foreach (var stop in data.Stops)
                 {
-                    var block = ServerContext.WorldBlockDatastore.GetBlock(position.Vector3Int);
+                    if (stop.StationPosition == null)
+                    {
+                        return Reject(data, TrainScheduleEditFailureReason.InvalidRequest, "station position is missing");
+                    }
+                    if (!Enum.IsDefined(typeof(StationNodeSide), stop.Side))
+                    {
+                        return Reject(data, TrainScheduleEditFailureReason.InvalidStationSide, $"pos={stop.StationPosition.Vector3Int} side={(int)stop.Side}");
+                    }
+
+                    var position = stop.StationPosition.Vector3Int;
+                    var block = ServerContext.WorldBlockDatastore.GetBlock(position);
                     if (block == null)
                     {
-                        return Reject(data, TrainScheduleEditFailureReason.StationBlockNotFound, $"pos={position.Vector3Int}");
+                        return Reject(data, TrainScheduleEditFailureReason.StationBlockNotFound, $"pos={position}");
                     }
-                    if (!TrainTimetableStationNodeResolver.TryResolve(block, StationNodeSide.Back, out var node))
+                    if (!TrainTimetableStationNodeResolver.TryResolve(block, stop.Side, out var node))
                     {
-                        return Reject(data, TrainScheduleEditFailureReason.NotTrainStation, $"pos={position.Vector3Int} type={block.BlockMasterElement.BlockType}");
+                        return Reject(data, TrainScheduleEditFailureReason.NotTrainStation, $"pos={position} type={block.BlockMasterElement.BlockType}");
                     }
                     nodes.Add(node);
                 }
@@ -76,7 +86,7 @@ namespace Server.Protocol.PacketResponse
                 trainUnit.ReplaceTimetable(nodes);
                 trainUnit.trainDiagram.ConsumeCurrentEntryChanged();
                 trainUnit.ConsumeAutoRunChanged();
-                _snapshotNotifyEvent.NotifySnapshot(trainUnit);
+                _timetableNotifyEvent.NotifyTimetableChanged(trainUnit);
                 return new TrainScheduleEditResponse(true, TrainScheduleEditFailureReason.None, data.Operation);
             }
 
@@ -94,7 +104,7 @@ namespace Server.Protocol.PacketResponse
                 }
                 trainUnit.trainDiagram.ConsumeCurrentEntryChanged();
                 trainUnit.ConsumeAutoRunChanged();
-                _snapshotNotifyEvent.NotifySnapshot(trainUnit);
+                _timetableNotifyEvent.NotifyTimetableChanged(trainUnit);
                 return new TrainScheduleEditResponse(true, TrainScheduleEditFailureReason.None, data.Operation);
             }
 
@@ -116,7 +126,7 @@ namespace Server.Protocol.PacketResponse
         {
             [Key(2)] public TrainUnitInstanceId TrainUnitInstanceId { get; set; }
             [Key(3)] public TrainScheduleEditOperation Operation { get; set; }
-            [Key(4)] public List<Vector3IntMessagePack> StationPositions { get; set; }
+            [Key(4)] public List<TrainTimetableStopMessagePack> Stops { get; set; }
             [Key(5)] public bool AutoRunEnabled { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
@@ -127,28 +137,28 @@ namespace Server.Protocol.PacketResponse
 
             // Operationごとに必要な項目が違うので生成はstatic factoryに限る
             // Construction goes through static factories because each operation needs different fields
-            private TrainScheduleEditRequest(TrainUnitInstanceId trainUnitInstanceId, TrainScheduleEditOperation operation, List<Vector3IntMessagePack> stationPositions, bool autoRunEnabled)
+            private TrainScheduleEditRequest(TrainUnitInstanceId trainUnitInstanceId, TrainScheduleEditOperation operation, List<TrainTimetableStopMessagePack> stops, bool autoRunEnabled)
             {
                 Tag = ProtocolTag;
                 TrainUnitInstanceId = trainUnitInstanceId;
                 Operation = operation;
-                StationPositions = stationPositions;
+                Stops = stops;
                 AutoRunEnabled = autoRunEnabled;
             }
 
-            public static TrainScheduleEditRequest CreateReplaceTimetableRequest(TrainUnitInstanceId trainUnitInstanceId, IReadOnlyList<Vector3Int> stationPositions)
+            public static TrainScheduleEditRequest CreateReplaceTimetableRequest(TrainUnitInstanceId trainUnitInstanceId, IReadOnlyList<TrainTimetableStop> stops)
             {
-                var positions = new List<Vector3IntMessagePack>(stationPositions.Count);
-                foreach (var position in stationPositions)
+                var messagePackStops = new List<TrainTimetableStopMessagePack>(stops.Count);
+                foreach (var stop in stops)
                 {
-                    positions.Add(new Vector3IntMessagePack(position));
+                    messagePackStops.Add(new TrainTimetableStopMessagePack(stop));
                 }
-                return new TrainScheduleEditRequest(trainUnitInstanceId, TrainScheduleEditOperation.ReplaceTimetable, positions, false);
+                return new TrainScheduleEditRequest(trainUnitInstanceId, TrainScheduleEditOperation.ReplaceTimetable, messagePackStops, false);
             }
 
             public static TrainScheduleEditRequest CreateSetAutoRunRequest(TrainUnitInstanceId trainUnitInstanceId, bool autoRunEnabled)
             {
-                return new TrainScheduleEditRequest(trainUnitInstanceId, TrainScheduleEditOperation.SetAutoRun, new List<Vector3IntMessagePack>(), autoRunEnabled);
+                return new TrainScheduleEditRequest(trainUnitInstanceId, TrainScheduleEditOperation.SetAutoRun, new List<TrainTimetableStopMessagePack>(), autoRunEnabled);
             }
         }
 

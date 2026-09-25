@@ -322,6 +322,7 @@ namespace Server.Boot
             services.AddSingleton<RailNodeRemovedEventPacket>();
             services.AddSingleton<RailConnectionRemovedEventPacket>();
             services.AddSingleton<RidingStateEventPacket>();
+            services.AddSingleton<TrainTimetableEventPacket>();
             services.AddSingleton<AchievementNotificationWiring>();
             services.AddSingleton<MissingMasterPruneNotificationWiring>();
 

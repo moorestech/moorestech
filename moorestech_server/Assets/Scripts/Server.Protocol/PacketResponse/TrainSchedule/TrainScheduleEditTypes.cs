@@ -13,6 +13,7 @@ namespace Server.Protocol.PacketResponse
         StationBlockNotFound,
         NotTrainStation,
         InvalidRequest,
+        InvalidStationSide,
     }
 
 }

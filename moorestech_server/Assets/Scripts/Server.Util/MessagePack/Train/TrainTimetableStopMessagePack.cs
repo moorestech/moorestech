@@ -1,6 +1,8 @@
 using System;
+using Game.Train.RailGraph;
 using Game.Train.Unit;
 using MessagePack;
+using UnityEngine;
 
 namespace Server.Util.MessagePack
 {
@@ -8,18 +10,22 @@ namespace Server.Util.MessagePack
     public class TrainTimetableStopMessagePack
     {
         [Key(0)] public Vector3IntMessagePack StationPosition { get; set; }
+        [Key(1)] public StationNodeSide Side { get; set; }
 
         [Obsolete("Reserved for MessagePack serialization.")]
         public TrainTimetableStopMessagePack() { }
 
-        public TrainTimetableStopMessagePack(TrainTimetableStopSnapshot stop)
+        public TrainTimetableStopMessagePack(TrainTimetableStop stop) : this(stop.StationPosition, stop.Side) { }
+
+        public TrainTimetableStopMessagePack(Vector3Int stationPosition, StationNodeSide side)
         {
-            StationPosition = new Vector3IntMessagePack(stop.StationPosition);
+            StationPosition = new Vector3IntMessagePack(stationPosition);
+            Side = side;
         }
 
-        public TrainTimetableStopSnapshot ToModel()
+        public TrainTimetableStop ToModel()
         {
-            return new TrainTimetableStopSnapshot(StationPosition.Vector3Int);
+            return new TrainTimetableStop(StationPosition.Vector3Int, Side);
         }
     }
 }

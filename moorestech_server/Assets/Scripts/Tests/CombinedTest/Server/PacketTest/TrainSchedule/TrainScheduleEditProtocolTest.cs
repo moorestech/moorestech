@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Core.Update;
 using Game.Block.Interface;
 using Game.Train.RailGraph;
@@ -17,24 +18,33 @@ namespace Tests.CombinedTest.Server.PacketTest
 {
     public class TrainScheduleEditProtocolTest
     {
+        // 座標配列を末尾側(Back)停車のTrainTimetableStop配列へ変換する
+        // Convert bare positions into Back-side TrainTimetableStop entries
+        private static TrainTimetableStop[] Stops(params Vector3Int[] positions)
+        {
+            return positions.Select(p => new TrainTimetableStop(p, StationNodeSide.Back)).ToArray();
+        }
+
         [Test]
         public void ReplaceDisconnectedStationsStopsAutoRunAndNotifiesOnce()
         {
             var fixture = new TrainScheduleProtocolTestEnvironment();
             var first = fixture.PlaceStation(new Vector3Int(100, 0, 0));
             var second = fixture.PlaceStation(new Vector3Int(200, 0, 0));
-            var notifications = 0;
-            using var subscription = fixture.Notifications.OnTrainUnitSnapshotNotified.Subscribe(data =>
+            var timetableNotifications = 0;
+            var snapshotNotifications = 0;
+            using var timetableSubscription = fixture.TimetableNotifications.OnTimetableChanged.Subscribe(trainUnit =>
             {
-                Assert.AreSame(fixture.Train, data.TrainUnit);
-                Assert.AreEqual(2, data.TrainUnit.trainDiagram.Entries.Count);
-                notifications++;
+                Assert.AreSame(fixture.Train, trainUnit);
+                Assert.AreEqual(2, trainUnit.trainDiagram.Entries.Count);
+                timetableNotifications++;
             });
+            using var snapshotSubscription = fixture.SnapshotNotifications.OnTrainUnitSnapshotNotified.Subscribe(_ => snapshotNotifications++);
 
             // 外部接続のない駅でも入力順で受理する
             // Accept stations without external connections in the requested order
             var response = fixture.Send(Request.CreateReplaceTimetableRequest(fixture.Train.TrainUnitInstanceId,
-                new[] { first.BlockPositionInfo.OriginalPos, second.BlockPositionInfo.OriginalPos }));
+                Stops(first.BlockPositionInfo.OriginalPos, second.BlockPositionInfo.OriginalPos)));
 
             Assert.IsTrue(response.Success);
             Assert.AreEqual(TrainScheduleEditFailureReason.None, response.FailureReason);
@@ -51,7 +61,10 @@ namespace Tests.CombinedTest.Server.PacketTest
                 Assert.AreEqual(GameUpdater.TicksPerSecond, entry.GetWaitForTicksInitialTicks());
             }
             Assert.IsFalse(fixture.Train.IsAutoRun);
-            Assert.AreEqual(1, notifications);
+            // R2: 時刻表編集はtick同期snapshotを増やさず、専用イベントだけを1回発火する
+            // R2: timetable edits fire only the dedicated event, never the tick-synced snapshot
+            Assert.AreEqual(1, timetableNotifications);
+            Assert.AreEqual(0, snapshotNotifications);
             Assert.IsFalse(diagram.ConsumeCurrentEntryChanged());
         }
 
@@ -68,13 +81,13 @@ namespace Tests.CombinedTest.Server.PacketTest
             }
             var before = fixture.Train.trainDiagram.Entries[0];
             var notifications = 0;
-            using var subscription = fixture.Notifications.OnTrainUnitSnapshotNotified.Subscribe(_ => notifications++);
+            using var subscription = fixture.TimetableNotifications.OnTimetableChanged.Subscribe(_ => notifications++);
 
             // 後続駅の拒否でも部分適用と通知は発生させない
             // Rejecting a later station must not partially apply or notify
             LogAssert.Expect(LogType.Warning, new Regex($"\\[TrainScheduleEdit\\] rejected.*reason={reason}"));
             var response = fixture.Send(Request.CreateReplaceTimetableRequest(fixture.Train.TrainUnitInstanceId,
-                new[] { valid.BlockPositionInfo.OriginalPos, invalidPosition }));
+                Stops(valid.BlockPositionInfo.OriginalPos, invalidPosition)));
 
             Assert.IsFalse(response.Success);
             Assert.AreEqual(reason, response.FailureReason);
@@ -90,8 +103,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             var fixture = new TrainScheduleProtocolTestEnvironment();
             var first = fixture.PlaceStation(new Vector3Int(100, 0, 0)).BlockPositionInfo.OriginalPos;
             var second = fixture.PlaceStation(new Vector3Int(200, 0, 0)).BlockPositionInfo.OriginalPos;
-            Assert.IsTrue(fixture.Send(Request.CreateReplaceTimetableRequest(fixture.Train.TrainUnitInstanceId, new[] { first })).Success);
-            Assert.IsTrue(fixture.Send(Request.CreateReplaceTimetableRequest(fixture.Train.TrainUnitInstanceId, new[] { second, second })).Success);
+            Assert.IsTrue(fixture.Send(Request.CreateReplaceTimetableRequest(fixture.Train.TrainUnitInstanceId, Stops(first))).Success);
+            Assert.IsTrue(fixture.Send(Request.CreateReplaceTimetableRequest(fixture.Train.TrainUnitInstanceId, Stops(second, second))).Success);
 
             Assert.AreEqual(2, fixture.Train.trainDiagram.Entries.Count);
             Assert.AreEqual(second, fixture.Train.trainDiagram.Entries[0].Node.StationRef.StationBlock.BlockPositionInfo.OriginalPos);
@@ -103,7 +116,9 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             var fixture = new TrainScheduleProtocolTestEnvironment();
             var states = new System.Collections.Generic.List<bool>();
-            using var subscription = fixture.Notifications.OnTrainUnitSnapshotNotified.Subscribe(data => states.Add(data.TrainUnit.IsAutoRun));
+            var snapshotNotifications = 0;
+            using var timetableSubscription = fixture.TimetableNotifications.OnTimetableChanged.Subscribe(trainUnit => states.Add(trainUnit.IsAutoRun));
+            using var snapshotSubscription = fixture.SnapshotNotifications.OnTrainUnitSnapshotNotified.Subscribe(_ => snapshotNotifications++);
 
             // 両操作の適用済み状態が通知される
             // Notifications expose the applied state for both toggles
@@ -115,13 +130,31 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.IsTrue(fixture.Train.IsAutoRun);
             Assert.AreEqual(TrainScheduleEditOperation.SetAutoRun, on.Operation);
             CollectionAssert.AreEqual(new[] { false, true }, states);
+            // R2: 自動運転トグルもtick同期snapshotを増やさない
+            // R2: the auto-run toggle also never touches the tick-synced snapshot
+            Assert.AreEqual(0, snapshotNotifications);
+        }
+
+        [TestCase(StationNodeSide.Front)]
+        [TestCase(StationNodeSide.Back)]
+        public void ReplaceRegistersExitNodeOfRequestedSide(StationNodeSide side)
+        {
+            var fixture = new TrainScheduleProtocolTestEnvironment();
+            var station = fixture.PlaceStation(new Vector3Int(0, 0, 40));
+            var response = fixture.Send(Request.CreateReplaceTimetableRequest(fixture.Train.TrainUnitInstanceId,
+                new[] { new TrainTimetableStop(station.BlockPositionInfo.OriginalPos, side) }));
+
+            Assert.IsTrue(response.Success);
+            var node = fixture.Train.trainDiagram.Entries[0].Node;
+            Assert.AreEqual(side, node.StationRef.NodeSide);
+            Assert.AreEqual(StationNodeRole.Exit, node.StationRef.NodeRole);
         }
 
         [Test]
         public void EmptyTimetableAutoRunIsAcceptedAndStops()
         {
             var fixture = new TrainScheduleProtocolTestEnvironment();
-            Assert.IsTrue(fixture.Send(Request.CreateReplaceTimetableRequest(fixture.Train.TrainUnitInstanceId, Array.Empty<Vector3Int>())).Success);
+            Assert.IsTrue(fixture.Send(Request.CreateReplaceTimetableRequest(fixture.Train.TrainUnitInstanceId, Array.Empty<TrainTimetableStop>())).Success);
             Assert.AreEqual(-1, fixture.Train.trainDiagram.CurrentIndex);
             Assert.IsFalse(fixture.Train.IsAutoRun);
             var response = fixture.Send(Request.CreateSetAutoRunRequest(fixture.Train.TrainUnitInstanceId, true));

@@ -1,3 +1,4 @@
+using Game.Train.RailGraph;
 using Game.Train.RailPositions;
 using Game.Train.SaveLoad;
 using Game.Train.Unit;
@@ -58,14 +59,17 @@ namespace Server.Util.MessagePack
                    ?? new List<TrainCarSnapshotMessagePack>();
             IsAutoRun = snapshot.IsAutoRun;
             TimetableCurrentIndex = snapshot.TimetableCurrentIndex;
-            TimetableStops = snapshot.TimetableStops?.Select(stop => new TrainTimetableStopMessagePack(stop)).ToList()
+            // 旧TrainTimetableStopSnapshotは端を持たないため、末尾側(Back)として端付き型へ持ち上げる
+            // TrainTimetableStopSnapshot predates the side field, so lift it in as Back
+            // TODO Task4でTimetableStops/TimetableCurrentIndexごと削除する
+            TimetableStops = snapshot.TimetableStops?.Select(stop => new TrainTimetableStopMessagePack(stop.StationPosition, StationNodeSide.Back)).ToList()
                              ?? new List<TrainTimetableStopMessagePack>();
         }
 
         public TrainSimulationSnapshot ToModel()
         {
             var cars = Cars?.Select(car => car.ToModel()).ToArray() ?? Array.Empty<TrainCarSnapshot>();
-            var stops = TimetableStops?.Select(stop => stop.ToModel()).ToArray() ?? Array.Empty<TrainTimetableStopSnapshot>();
+            var stops = TimetableStops?.Select(stop => new TrainTimetableStopSnapshot(stop.ToModel().StationPosition)).ToArray() ?? Array.Empty<TrainTimetableStopSnapshot>();
             return new TrainSimulationSnapshot(
                 TrainUnitInstanceId,
                 CurrentSpeed,

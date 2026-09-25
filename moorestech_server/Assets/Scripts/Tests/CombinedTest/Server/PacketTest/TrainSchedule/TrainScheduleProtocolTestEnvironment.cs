@@ -19,12 +19,14 @@ namespace Tests.CombinedTest.Server.PacketTest
     {
         internal TrainTestEnvironment Environment { get; }
         internal TrainUnit Train { get; }
-        internal ITrainUnitSnapshotNotifyEvent Notifications { get; }
+        internal ITrainTimetableNotifyEvent TimetableNotifications { get; }
+        internal ITrainUnitSnapshotNotifyEvent SnapshotNotifications { get; }
 
         internal TrainScheduleProtocolTestEnvironment()
         {
             Environment = TrainTestHelper.CreateEnvironment();
-            Notifications = Environment.ServiceProvider.GetRequiredService<ITrainUnitSnapshotNotifyEvent>();
+            TimetableNotifications = Environment.ServiceProvider.GetRequiredService<ITrainTimetableNotifyEvent>();
+            SnapshotNotifications = Environment.ServiceProvider.GetRequiredService<ITrainUnitSnapshotNotifyEvent>();
 
             // 到達済みの目的地を持つ列車を登録する
             // Register a train whose initial destination is its approaching node
