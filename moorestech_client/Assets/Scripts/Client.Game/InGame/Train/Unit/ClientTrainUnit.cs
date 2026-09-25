@@ -20,13 +20,9 @@ namespace Client.Game.InGame.Train.Unit
         private int _manualBranchSelectionIndex;
 
         private IReadOnlyList<TrainCarSnapshot> _cars;
-        private IReadOnlyList<TrainTimetableStopSnapshot> _timetableStops;
         // 車両スナップショットを外部に公開する
         // Expose car snapshots to consumers
         public IReadOnlyList<TrainCarSnapshot> Cars => _cars ?? Array.Empty<TrainCarSnapshot>();
-        public bool IsAutoRun { get; private set; }
-        public int TimetableCurrentIndex { get; private set; }
-        public IReadOnlyList<TrainTimetableStopSnapshot> TimetableStops => _timetableStops ?? Array.Empty<TrainTimetableStopSnapshot>();
         public RailPosition RailPosition { get; private set; }
 
         public ClientTrainUnit(TrainUnitInstanceId trainUnitInstanceId, IRailGraphProvider railGraphProvider)
@@ -53,9 +49,6 @@ namespace Client.Game.InGame.Train.Unit
             _manualBranchSelectionIndex = simulation.ManualBranchSelectionIndex;
             RailPosition = RailPositionFactory.Restore(railPosition, _railGraphProvider);
             _cars = simulation.Cars ?? Array.Empty<TrainCarSnapshot>();
-            IsAutoRun = simulation.IsAutoRun;
-            TimetableCurrentIndex = simulation.TimetableCurrentIndex;
-            _timetableStops = simulation.TimetableStops ?? Array.Empty<TrainTimetableStopSnapshot>();
             _motion.ResetTarget(RailPosition);
         }
 
@@ -127,10 +120,7 @@ namespace Client.Game.InGame.Train.Unit
                     AccumulatedDistance,
                     MasconLevel,
                     _manualBranchSelectionIndex,
-                    carSnapshots,
-                    IsAutoRun,
-                    TimetableCurrentIndex,
-                    TimetableStops);
+                    carSnapshots);
             }
 
             #endregion

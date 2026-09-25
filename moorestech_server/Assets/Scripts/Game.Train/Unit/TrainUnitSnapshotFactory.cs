@@ -20,29 +20,13 @@ namespace Game.Train.Unit
                 carSnapshots.Add(new TrainCarSnapshot(car.TrainCarInstanceId, car.TrainCarMasterElement.TrainCarGuid, car.IsFacingForward, weight));
             }
 
-            // 駅参照を持つ停車駅だけを座標として送る
-            // Send positions only for stops with a station reference
-            var stops = new List<TrainTimetableStopSnapshot>(train.trainDiagram.Entries.Count);
-            var currentStopIndex = -1;
-            for (var entryIndex = 0; entryIndex < train.trainDiagram.Entries.Count; entryIndex++)
-            {
-                var entry = train.trainDiagram.Entries[entryIndex];
-                var station = entry.Node.StationRef;
-                if (station == null || !station.HasStation) continue;
-                if (entryIndex == train.trainDiagram.CurrentIndex) currentStopIndex = stops.Count;
-                stops.Add(new TrainTimetableStopSnapshot(station.StationPosition));
-            }
-
             return new TrainSimulationSnapshot(
                 train.TrainUnitInstanceId,
                 train.CurrentSpeed,
                 train.AccumulatedDistance,
                 train.masconLevel,
                 train.GetManualBranchSelectionIndex(),
-                carSnapshots,
-                train.IsAutoRun,
-                currentStopIndex,
-                stops);
+                carSnapshots);
         }
 
     }

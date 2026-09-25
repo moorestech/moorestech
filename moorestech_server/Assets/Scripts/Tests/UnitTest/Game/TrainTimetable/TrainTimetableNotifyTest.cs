@@ -5,6 +5,7 @@ using Game.Train.Event;
 using Game.Train.RailGraph;
 using Game.Train.Unit;
 using NUnit.Framework;
+using Server.Util.MessagePack;
 using Tests.Util;
 using UniRx;
 
@@ -162,6 +163,16 @@ namespace Tests.UnitTest.Game.TrainTimetable
             Assert.AreEqual(0, snapshotCount, "時刻表の前進で列車の走行同期を送らない");
             updateService.UpdateTrains();
             Assert.AreEqual(1, offSnapshots);
+        }
+
+        [Test]
+        public void SimulationSnapshotWireFormHasNoTimetableFields()
+        {
+            var keys = typeof(TrainSimulationSnapshotMessagePack).GetProperties()
+                .Select(property => property.Name).ToArray();
+            CollectionAssert.DoesNotContain(keys, "IsAutoRun");
+            CollectionAssert.DoesNotContain(keys, "TimetableCurrentIndex");
+            CollectionAssert.DoesNotContain(keys, "TimetableStops");
         }
     }
 }

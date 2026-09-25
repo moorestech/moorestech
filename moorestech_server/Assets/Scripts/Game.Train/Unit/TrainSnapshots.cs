@@ -4,7 +4,6 @@ using Game.Train.RailPositions;
 using System;
 using System.Collections.Generic;
 using Game.Train.SaveLoad;
-using UnityEngine;
 
 namespace Game.Train.Unit
 {
@@ -73,18 +72,6 @@ namespace Game.Train.Unit
         public int Weight { get; }
     }
 
-    // 停車駅のブロック原点をクライアントへ渡す
-    // Carry a stop's station block origin to the client
-    public readonly struct TrainTimetableStopSnapshot
-    {
-        public TrainTimetableStopSnapshot(Vector3Int stationPosition)
-        {
-            StationPosition = stationPosition;
-        }
-
-        public Vector3Int StationPosition { get; }
-    }
-
     // 列車のシミュレーション状態をクライアントにおくる構造体
     // Per-tick snapshot of the simulation specific state
     public readonly struct TrainSimulationSnapshot
@@ -95,10 +82,7 @@ namespace Game.Train.Unit
             double accumulatedDistance,
             int masconLevel,
             int manualBranchSelectionIndex,
-            IReadOnlyList<TrainCarSnapshot> cars,
-            bool isAutoRun,
-            int timetableCurrentIndex,
-            IReadOnlyList<TrainTimetableStopSnapshot> timetableStops)
+            IReadOnlyList<TrainCarSnapshot> cars)
         {
             TrainUnitInstanceId = trainUnitInstanceId;
             CurrentSpeed = currentSpeed;
@@ -106,9 +90,6 @@ namespace Game.Train.Unit
             MasconLevel = masconLevel;
             ManualBranchSelectionIndex = manualBranchSelectionIndex;
             Cars = cars;
-            IsAutoRun = isAutoRun;
-            TimetableCurrentIndex = timetableCurrentIndex;
-            TimetableStops = timetableStops;
         }
 
         public TrainUnitInstanceId TrainUnitInstanceId { get; }
@@ -117,9 +98,6 @@ namespace Game.Train.Unit
         public int MasconLevel { get; }
         public int ManualBranchSelectionIndex { get; }
         public IReadOnlyList<TrainCarSnapshot> Cars { get; }
-        public bool IsAutoRun { get; }
-        public int TimetableCurrentIndex { get; }
-        public IReadOnlyList<TrainTimetableStopSnapshot> TimetableStops { get; }
     }
 
     // シミュレーションと線路位置をまとめて扱うためのバンドル

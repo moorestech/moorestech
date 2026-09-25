@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Train.RailGraph;
-using UniRx;
 using Game.Train.Unit;
 
 namespace Client.Game.InGame.Train.Unit
@@ -17,8 +15,6 @@ namespace Client.Game.InGame.Train.Unit
         // 車両スナップショット索引
         // Index for train car snapshots
         private readonly TrainCarSnapshotIndex _carSnapshots = new();
-        private readonly Subject<TrainUnitInstanceId> _onSnapshotApplied = new();
-        public IObservable<TrainUnitInstanceId> OnSnapshotApplied => _onSnapshotApplied;
 
         // 列車一覧の読み取り専用ビュー
         // Read-only view for external systems
@@ -55,10 +51,6 @@ namespace Client.Game.InGame.Train.Unit
                 _units[bundle.Simulation.TrainUnitInstanceId] = unit;
                 _carSnapshots.BuildCarIndexForUnit(unit);
             }
-
-            // 全索引の確定後に表示へ通知する
-            // Notify presentation only after all indexes have been rebuilt
-            foreach (var id in _units.Keys) _onSnapshotApplied.OnNext(id);
         }
 
         // 現在のTrainUnit状態からハッシュを計算する
@@ -91,7 +83,6 @@ namespace Client.Game.InGame.Train.Unit
             _carSnapshots.RemoveCarIndex(trainUnitInstanceId);
             unit.SnapshotUpdate(snapshot.Simulation, snapshot.RailPositionSnapshot);
             _carSnapshots.BuildCarIndexForUnit(unit);
-            _onSnapshotApplied.OnNext(trainUnitInstanceId);
             return unit;
         }
 
