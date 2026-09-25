@@ -15,12 +15,10 @@ namespace Server.Util.MessagePack
         [Obsolete("Reserved for MessagePack serialization.")]
         public TrainTimetableStopMessagePack() { }
 
-        public TrainTimetableStopMessagePack(TrainTimetableStop stop) : this(stop.StationPosition, stop.Side) { }
-
-        public TrainTimetableStopMessagePack(Vector3Int stationPosition, StationNodeSide side)
+        public TrainTimetableStopMessagePack(TrainTimetableStop stop)
         {
-            StationPosition = new Vector3IntMessagePack(stationPosition);
-            Side = side;
+            StationPosition = new Vector3IntMessagePack(stop.StationPosition);
+            Side = stop.Side;
         }
 
         public TrainTimetableStop ToModel()

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Train.Timetable;
 using Client.Game.InGame.Train.Unit;
+using Client.WebUiHost.Game.Actions;
 using Core.Master;
 using Game.Block.Blocks.TrainRail;
 using Game.Train.RailGraph;
@@ -13,7 +14,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
 {
     public static class TrainTimetableDtoBuilder
     {
-        public static TrainTimetableDto Build(long trainCarInstanceId, TrainUnitClientCache cache, ClientTrainTimetableDatastore timetables, BlockGameObjectDataStore blocks)
+        public static TrainTimetableDto Build(long trainCarInstanceId, TrainUnitClientCache cache, IClientTrainTimetableLookup timetables, BlockGameObjectDataStore blocks)
         {
             if (!cache.TryGetCarSnapshot(new TrainCarInstanceId(trainCarInstanceId), out var unit, out _, out _, out _))
             {
@@ -36,7 +37,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
 
         // 受信済みの時刻表を停車駅DTOへ写す。未着ならnull（取得はBlockInventoryTopicが起こす）
         // Map the received timetable to stop DTOs; null until received (BlockInventoryTopic triggers the fetch)
-        internal static TrainTimetableDto CreateFromTimetable(TrainUnitInstanceId trainUnitInstanceId, ClientTrainTimetableDatastore timetables, List<TrainTimetableStationDto> stations)
+        internal static TrainTimetableDto CreateFromTimetable(TrainUnitInstanceId trainUnitInstanceId, IClientTrainTimetableLookup timetables, List<TrainTimetableStationDto> stations)
         {
             if (!timetables.TryGet(trainUnitInstanceId, out var timetable))
             {
@@ -53,13 +54,21 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             var stops = new List<TrainTimetableStopDto>(timetable.Stops.Count);
             foreach (var stop in timetable.Stops)
             {
+                var wireSide = TrainTimetableStopSideWire.ToWire(stop.Side);
+                if (wireSide == null)
+                {
+                    // 未知の端は個別stopでなく時刻表全体をunavailable扱いにする(fail-closed)
+                    // An unknown side marks the whole timetable unavailable, not just this stop (fail-closed)
+                    Debug.LogError($"[TrainTimetableDto] discarding timetable with unknown side: {trainUnitInstanceId}");
+                    return null;
+                }
                 var position = stop.StationPosition.Vector3Int;
                 stationNames.TryGetValue(position, out var name);
                 stops.Add(new TrainTimetableStopDto
                 {
                     Position = CreatePositionDto(position),
                     Name = name ?? string.Empty,
-                    Side = stop.Side == StationNodeSide.Front ? "front" : "back",
+                    Side = wireSide,
                 });
             }
 

@@ -25,7 +25,7 @@ namespace Client.WebUiHost.Game.Topics
     {
         public const string TopicName = "block_inventory.current";
         private readonly TrainUnitClientCache _trainUnitClientCache;
-        private readonly ClientTrainTimetableDatastore _timetables;
+        private readonly IClientTrainTimetableLookup _timetables;
         private readonly TrainTimetableFetcher _timetableFetcher;
         private readonly IDisposable _trainTimetableSubscription;
         private readonly WebSocketHub _hub;
@@ -46,12 +46,15 @@ namespace Client.WebUiHost.Game.Topics
         public BlockInventoryTopic(WebSocketHub hub, UIStateControl uiStateControl, SubInventoryState subInventoryState)
         {
             _trainUnitClientCache = ClientDIContext.DIContainer.DIContainerResolver.Resolve<TrainUnitClientCache>();
-            _timetables = ClientDIContext.DIContainer.DIContainerResolver.Resolve<ClientTrainTimetableDatastore>();
-            _timetableFetcher = new TrainTimetableFetcher(_trainUnitClientCache, _timetables);
-            // 列車を開いている間は時刻表の更新で再配信する
-            // Republish on timetable updates while a train is open
+            var timetableDatastore = ClientDIContext.DIContainer.DIContainerResolver.Resolve<ClientTrainTimetableDatastore>();
+            _timetables = timetableDatastore;
+            _timetableFetcher = new TrainTimetableFetcher(_trainUnitClientCache, timetableDatastore);
+            // 開いている列車の時刻表更新と、取得失敗後の再要求で再配信する
+            // Republish on the open train's timetable updates and on retries after a failed fetch
             _trainTimetableSubscription = _timetables.OnTimetableUpdated
-                .Where(_ => _subInventoryState.CurrentSubInventorySource is TrainSubInventorySource)
+                .Where(id => _subInventoryState.CurrentSubInventorySource is TrainSubInventorySource && _timetableFetcher.IsOpenTrain(id))
+                .AsUnitObservable()
+                .Merge(_timetableFetcher.OnRetryRequested)
                 .Subscribe(_ => SchedulePublish());
             _hub = hub;
             _uiStateControl = uiStateControl;

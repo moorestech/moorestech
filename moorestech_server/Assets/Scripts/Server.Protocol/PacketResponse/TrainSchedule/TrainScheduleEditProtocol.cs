@@ -20,11 +20,13 @@ namespace Server.Protocol.PacketResponse
 
         private readonly ITrainUnitLookupDatastore _trainUnitLookupDatastore;
         private readonly ITrainTimetableNotifyEvent _timetableNotifyEvent;
+        private readonly ITrainUnitSnapshotNotifyEvent _snapshotNotifyEvent;
 
         public TrainScheduleEditProtocol(ServiceProvider serviceProvider)
         {
             _trainUnitLookupDatastore = serviceProvider.GetService<ITrainUnitLookupDatastore>();
             _timetableNotifyEvent = serviceProvider.GetService<ITrainTimetableNotifyEvent>();
+            _snapshotNotifyEvent = serviceProvider.GetService<ITrainUnitSnapshotNotifyEvent>();
         }
 
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
@@ -87,6 +89,7 @@ namespace Server.Protocol.PacketResponse
                 trainUnit.trainDiagram.ConsumeCurrentEntryChanged();
                 trainUnit.ConsumeAutoRunChanged();
                 _timetableNotifyEvent.NotifyTimetableChanged(trainUnit);
+                _snapshotNotifyEvent.NotifySnapshot(trainUnit);
                 return new TrainScheduleEditResponse(true, TrainScheduleEditFailureReason.None, data.Operation);
             }
 
@@ -105,6 +108,7 @@ namespace Server.Protocol.PacketResponse
                 trainUnit.trainDiagram.ConsumeCurrentEntryChanged();
                 trainUnit.ConsumeAutoRunChanged();
                 _timetableNotifyEvent.NotifyTimetableChanged(trainUnit);
+                _snapshotNotifyEvent.NotifySnapshot(trainUnit);
                 return new TrainScheduleEditResponse(true, TrainScheduleEditFailureReason.None, data.Operation);
             }
 

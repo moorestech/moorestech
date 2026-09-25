@@ -22,7 +22,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             var response = Get(fixture, fixture.Train.TrainUnitInstanceId);
 
-            Assert.IsTrue(response.Found);
+            Assert.IsNotNull(response.Timetable);
             Assert.AreEqual(fixture.Train.IsAutoRun, response.Timetable.IsAutoRun);
             Assert.AreEqual(0, response.Timetable.CurrentIndex);
             Assert.AreEqual(position, response.Timetable.Stops.Single().StationPosition.Vector3Int);
@@ -34,7 +34,6 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             var fixture = new TrainScheduleProtocolTestEnvironment();
             var response = Get(fixture, TrainUnitInstanceId.Create());
-            Assert.IsFalse(response.Found);
             Assert.IsNull(response.Timetable);
         }
 

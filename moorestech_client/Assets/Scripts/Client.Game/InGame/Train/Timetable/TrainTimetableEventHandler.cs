@@ -10,9 +10,9 @@ namespace Client.Game.InGame.Train.Timetable
     // Subscribe to timetable events and apply them to the datastore, bypassing the tick buffer
     public class TrainTimetableEventHandler : IInitializable
     {
-        private readonly ClientTrainTimetableDatastore _datastore;
+        private readonly IClientTrainTimetableMutator _datastore;
 
-        public TrainTimetableEventHandler(ClientTrainTimetableDatastore datastore)
+        public TrainTimetableEventHandler(IClientTrainTimetableMutator datastore)
         {
             _datastore = datastore;
         }

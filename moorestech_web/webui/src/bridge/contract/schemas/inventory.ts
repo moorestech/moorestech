@@ -146,7 +146,7 @@ const TrainStationPositionSchema = z.object({ x: z.number().int(), y: z.number()
 export const TrainTimetableStationSchema = z.object({ position: TrainStationPositionSchema, name: z.string() });
 // 停車駅は駅一覧に入線方向（端）を足した形。端はホストの正本で、UIからの新規追加時だけ固定値を積む
 // A stop is a station plus the arrival side; the host owns the side and the UI only fixes it for new additions
-export const TrainTimetableStopSideSchema = z.enum(["front", "back"]);
+const TrainTimetableStopSideSchema = z.enum(["front", "back"]);
 export const TrainTimetableStopSchema = TrainTimetableStationSchema.extend({ side: TrainTimetableStopSideSchema });
 export const TrainTimetableDataSchema = z.object({
   trainUnitId: z.string(),

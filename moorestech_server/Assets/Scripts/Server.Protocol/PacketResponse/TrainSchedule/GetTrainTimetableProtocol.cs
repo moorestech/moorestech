@@ -25,9 +25,9 @@ namespace Server.Protocol.PacketResponse
             if (!_trainUnitLookupDatastore.TryGetTrainUnit(request.TrainUnitInstanceId, out var train))
             {
                 Debug.LogWarning($"[GetTrainTimetable] train not found: {request.TrainUnitInstanceId}");
-                return new GetTrainTimetableResponse(false, null);
+                return new GetTrainTimetableResponse(null);
             }
-            return new GetTrainTimetableResponse(true, new TrainTimetableMessagePack(TrainTimetableSnapshotFactory.Create(train)));
+            return new GetTrainTimetableResponse(new TrainTimetableMessagePack(TrainTimetableSnapshotFactory.Create(train)));
         }
 
         [MessagePackObject]
@@ -48,16 +48,18 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class GetTrainTimetableResponse : ProtocolMessagePackBase
         {
-            [Key(2)] public bool Found { get; set; }
-            [Key(3)] public TrainTimetableMessagePack Timetable { get; set; }
+            // Timetable が null なら対象列車は存在しない。bool Found との二重表現を避け、
+            // 「見つからない」は Timetable 全体の null 一本で表す（GetGearNetworkInfoProtocol と同型）
+            // Timetable == null means the train does not exist. Avoids a double representation with a bool Found;
+            // "not found" is expressed solely by a whole-object null on Timetable (mirrors GetGearNetworkInfoProtocol)
+            [Key(2)] public TrainTimetableMessagePack Timetable { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public GetTrainTimetableResponse() { Tag = ProtocolTag; }
 
-            public GetTrainTimetableResponse(bool found, TrainTimetableMessagePack timetable)
+            public GetTrainTimetableResponse(TrainTimetableMessagePack timetable)
             {
                 Tag = ProtocolTag;
-                Found = found;
                 Timetable = timetable;
             }
         }

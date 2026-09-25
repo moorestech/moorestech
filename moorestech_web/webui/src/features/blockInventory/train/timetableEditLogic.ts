@@ -1,6 +1,6 @@
 // 時刻表タブのローカル編集。適用で丸ごと送信
 // Local editing for the timetable tab; sent whole on Apply
-import type { TrainTimetableStation, TrainTimetableStop } from "@/bridge";
+import type { ActionPayloads, TrainTimetableStation, TrainTimetableStop } from "@/bridge";
 import { L, useI18n } from "@/shared/i18n";
 
 export type TimetableDraft = { stops: TrainTimetableStop[] };
@@ -8,7 +8,7 @@ type StationPosition = TrainTimetableStation["position"];
 
 // UIは入線方向を固定し、新しい停車駅は常に後端側へ着ける（裁定 2026-09-25）
 // The UI fixes the arrival direction; new stops always use the back side (ruling 2026-09-25)
-export const UI_FIXED_STOP_SIDE = "back" as const;
+const UI_FIXED_STOP_SIDE = "back" as const;
 
 export function stationKey(position: StationPosition): string {
   return `${position.x},${position.y},${position.z}`;
@@ -50,7 +50,7 @@ export function stationLabel(t: Translator, station: TrainTimetableStation): str
   return t(L.ui.blockInventory.timetableStationLabel, { name, x: station.position.x, y: station.position.y, z: station.position.z });
 }
 
-export function toReplacePayload(draft: TimetableDraft): { stops: { x: number; y: number; z: number; side: TrainTimetableStop["side"] }[] } {
+export function toReplacePayload(draft: TimetableDraft): ActionPayloads["train_timetable.replace"] {
   return { stops: draft.stops.map((s) => ({ x: s.position.x, y: s.position.y, z: s.position.z, side: s.side })) };
 }
 

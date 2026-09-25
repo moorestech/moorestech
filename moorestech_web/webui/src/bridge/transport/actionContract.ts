@@ -1,4 +1,4 @@
-import type { SlotRef, BlockSlotRef } from "../contract/payloadTypes";
+import type { SlotRef, BlockSlotRef, TrainTimetableStop } from "../contract/payloadTypes";
 
 // C# UIStateEnum 由来の state 名。文字列リテラルの散在を防ぐ
 // State names from the C# UIStateEnum; prevents scattered string literals
@@ -74,7 +74,7 @@ export type ActionPayloads = {
   "filter_splitter.set_filter_item": { directionIndex: number; slotIndex: number; clear: boolean };
   "electric_to_gear.set_output_mode": { modeIndex: number };
   "train_platform.set_transfer_mode": { mode: "loadToTrain" | "unloadToPlatform" };
-  "train_timetable.replace": { stops: { x: number; y: number; z: number; side: "front" | "back" }[] };
+  "train_timetable.replace": { stops: { x: number; y: number; z: number; side: TrainTimetableStop["side"] }[] };
   "train_timetable.set_auto_run": { enabled: boolean };
   "train_station.set_name": { name: string };
   "debug.echo": { hello: string };

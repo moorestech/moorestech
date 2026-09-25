@@ -13,7 +13,7 @@ namespace Client.WebUiHost.Game.Topics
     // Converts unified train SubInventory state into its Web DTO.
     public static class TrainInventoryDtoFactory
     {
-        public static BlockInventoryDto Create(TrainSubInventorySource source, SubInventoryModel inventory, TrainUnitClientCache cache, ClientTrainTimetableDatastore timetables, BlockGameObjectDataStore blocks)
+        public static BlockInventoryDto Create(TrainSubInventorySource source, SubInventoryModel inventory, TrainUnitClientCache cache, IClientTrainTimetableLookup timetables, BlockGameObjectDataStore blocks)
         {
             var dto = new BlockInventoryDto
             {

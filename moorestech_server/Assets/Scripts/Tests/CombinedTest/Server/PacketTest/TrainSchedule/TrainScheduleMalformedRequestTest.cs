@@ -61,7 +61,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Reproduce external input carrying an undefined enum value
             request.Stops = new List<TrainTimetableStopMessagePack>
             {
-                new(station.BlockPositionInfo.OriginalPos, (StationNodeSide)99),
+                new(new TrainTimetableStop(station.BlockPositionInfo.OriginalPos, (StationNodeSide)99)),
             };
 
             var originalEntry = fixture.Train.trainDiagram.Entries[0];

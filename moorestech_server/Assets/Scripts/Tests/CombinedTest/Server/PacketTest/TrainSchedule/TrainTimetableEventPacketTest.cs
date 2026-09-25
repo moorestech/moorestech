@@ -16,7 +16,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         private const int PlayerId = 1;
 
         [Test]
-        public void ReplaceBroadcastsTimetableEventWithSidesAndDoesNotTouchSnapshotEvent()
+        public void ReplaceBroadcastsTimetableEventWithSidesAndOneMotionResync()
         {
             var fixture = new TrainScheduleProtocolTestEnvironment();
             var sink = EventTestUtil.RegisterCaptureSink(fixture.Environment.ServiceProvider, PlayerId);
@@ -29,11 +29,11 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             var events = sink.TakeAll();
 
-            // R2: 時刻表イベントは1件発火し、tick同期snapshotイベントは1件も増えない
-            // R2: exactly one timetable event fires and the tick-synced snapshot event never grows
+            // 時刻表イベントは1件。tick外で走行状態を書き換えたので走行snapshotも1件だけ送る
+            // One timetable event; the off-tick motion change also sends exactly one motion snapshot
             var timetableEvents = events.Where(e => e.Tag == TrainTimetableEventPacket.EventTag).ToList();
             Assert.AreEqual(1, timetableEvents.Count);
-            Assert.IsEmpty(events.Where(e => e.Tag == TrainUnitSnapshotEventPacket.EventTag));
+            Assert.AreEqual(1, events.Count(e => e.Tag == TrainUnitSnapshotEventPacket.EventTag));
 
             var payload = MessagePackSerializer.Deserialize<TrainTimetableMessagePack>(timetableEvents[0].Payload);
             Assert.AreEqual(fixture.Train.TrainUnitInstanceId, payload.TrainUnitInstanceId);

@@ -16,32 +16,19 @@ namespace Client.WebUiHost.Game.Actions
                 !TryReadCoordinate(station["x"], out var x) ||
                 !TryReadCoordinate(station["y"], out var y) ||
                 !TryReadCoordinate(station["z"], out var z) ||
-                !TryReadSide(station["side"], out var side)) return false;
+                !TrainTimetableStopSideWire.TryParse(station["side"], out var side)) return false;
             stop = new TrainTimetableStop(new Vector3Int(x, y, z), side);
             return true;
-        }
 
-        private static bool TryReadCoordinate(JToken token, out int coordinate)
-        {
-            coordinate = 0;
-            return token is JValue { Type: JTokenType.Integer } && int.TryParse(token.ToString(), out coordinate);
-        }
+            #region Internal
 
-        private static bool TryReadSide(JToken token, out StationNodeSide side)
-        {
-            side = default;
-            if (token is not JValue { Type: JTokenType.String }) return false;
-            switch ((string)token)
+            bool TryReadCoordinate(JToken coordinateToken, out int coordinate)
             {
-                case "front":
-                    side = StationNodeSide.Front;
-                    return true;
-                case "back":
-                    side = StationNodeSide.Back;
-                    return true;
-                default:
-                    return false;
+                coordinate = 0;
+                return coordinateToken is JValue { Type: JTokenType.Integer } && int.TryParse(coordinateToken.ToString(), out coordinate);
             }
+
+            #endregion
         }
     }
 }

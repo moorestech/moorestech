@@ -95,7 +95,7 @@ namespace Client.Starter.Registration
             builder.RegisterEntryPoint<TrainFullSnapshotEventNetworkHandler>().AsSelf();
             // 時刻表はtick同期の外でUI用に保持する
             // Keep timetables for the UI outside the tick-synchronized path
-            builder.Register<ClientTrainTimetableDatastore>(Lifetime.Singleton);
+            builder.Register<ClientTrainTimetableDatastore>(Lifetime.Singleton).As<IClientTrainTimetableLookup>().As<IClientTrainTimetableMutator>().AsSelf();
             builder.RegisterEntryPoint<TrainTimetableEventHandler>();
 
             // 通し検証はsmoke起動時だけ登録する（前例: PlaytestRecordRegistration のフラグ分岐）

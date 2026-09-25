@@ -61,10 +61,10 @@ namespace Tests.CombinedTest.Server.PacketTest
                 Assert.AreEqual(GameUpdater.TicksPerSecond, entry.GetWaitForTicksInitialTicks());
             }
             Assert.IsFalse(fixture.Train.IsAutoRun);
-            // R2: 時刻表編集はtick同期snapshotを増やさず、専用イベントだけを1回発火する
-            // R2: timetable edits fire only the dedicated event, never the tick-synced snapshot
+            // R2: 時刻表編集はtick外の走行状態変化を伴うため、専用イベントに加え走行snapshotも1回発火する
+            // R2: timetable edits mutate running state outside a tick, so they fire the dedicated event plus one running snapshot
             Assert.AreEqual(1, timetableNotifications);
-            Assert.AreEqual(0, snapshotNotifications);
+            Assert.AreEqual(1, snapshotNotifications);
             Assert.IsFalse(diagram.ConsumeCurrentEntryChanged());
         }
 
@@ -130,9 +130,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.IsTrue(fixture.Train.IsAutoRun);
             Assert.AreEqual(TrainScheduleEditOperation.SetAutoRun, on.Operation);
             CollectionAssert.AreEqual(new[] { false, true }, states);
-            // R2: 自動運転トグルもtick同期snapshotを増やさない
-            // R2: the auto-run toggle also never touches the tick-synced snapshot
-            Assert.AreEqual(0, snapshotNotifications);
+            // R2: 自動運転トグルはtick外で走行状態を書き換えるため毎回走行snapshotを送る
+            // R2: the auto-run toggle mutates running state outside a tick, so it sends a running snapshot every time
+            Assert.AreEqual(2, snapshotNotifications);
         }
 
         [TestCase(StationNodeSide.Front)]
