@@ -168,15 +168,16 @@ namespace Client.Tests.Playtest.TitleGates
 
         }
 
-        // EvaluateStart冒頭のResolve呼び出し（副作用のみ、戻り値は捨てる）が消されると、直接起動の異常終了箱でSteamID欠落理由が「まだ差し込まれていない」のまま固まる（C4/C15）
-        // If EvaluateStart's opening Resolve call (side-effect only, return value discarded) is removed, a direct boot's crash box freezes the SteamID absence reason at "not yet resolved" (C4/C15)
+        // 直接起動も漏斗の前で識別を確定し、異常終了箱に未確定理由を残さない（C4/C15）
+        // Direct boots publish identity before the funnel so crash boxes do not keep an unresolved reason (C4/C15)
         [Test]
-        public void 直接起動の開始評価で識別が確定する()
+        public void 直接起動の漏斗前に識別を確定する()
         {
             PlaytestLaunchProfile.ResetOnPlayMode();
             PlaytestStartGateBypass.DeclareDirectBoot("test");
 
-            PlaytestTitleGates.EvaluateStart("test", out _);
+            PlaytestLaunchProfile.EnsureIdentityPublished();
+            Assert.AreEqual(PlaytestStartVerdict.Passed, PlaytestTitleGates.EvaluateStart("test", out _));
 
             Assert.AreEqual(EmptyPlaytestSessionIdentity.DeveloperModeReason, PlaytestSessionIdentityProvider.Current.SteamIdAbsenceReason);
         }

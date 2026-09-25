@@ -1,5 +1,6 @@
 using Client.PlaytestReceiver;
 using Client.PlaytestReceiver.Http;
+using Client.PlaytestReceiver.Launch;
 using Client.PlaytestReceiver.Steam;
 using Client.PlaytestReceiver.Upload;
 using Client.Starter.Playtest.TitleGates;
@@ -17,6 +18,9 @@ namespace Client.MainMenu.Playtest
 
         private void Start()
         {
+            // タイトルの退避物を扱う前に配布版の識別を確定する
+            // Publish the distribution identity before handling title salvage
+            PlaytestLaunchProfile.EnsureIdentityPublished();
             // MainMenuにはDIコンテナが無いので、ここで受け口と走行役を組む
             // The MainMenu scene has no DI container, so compose the receiver and runner here
             var receiver = new PlaytestReceiverClient(PlaytestReceiverConfig.BaseUrl);

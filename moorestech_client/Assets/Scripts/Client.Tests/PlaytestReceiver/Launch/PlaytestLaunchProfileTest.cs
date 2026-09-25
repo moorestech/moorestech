@@ -10,6 +10,12 @@ namespace Client.Tests.PlaytestReceiver
 {
     public class PlaytestLaunchProfileTest
     {
+        [SetUp]
+        public void StartWithUnresolvedProfile()
+        {
+            PlaytestLaunchProfile.ResetOnPlayMode();
+        }
+
         [TearDown]
         public void ResetProfile()
         {
@@ -35,6 +41,8 @@ namespace Client.Tests.PlaytestReceiver
         {
             var kind = PlaytestLaunchProfile.ResolveWith(true, new SteamRunningFake(true), new FakeLocalSteamIdReader("76561198000000001", ""));
             Assert.AreEqual(PlaytestLaunchKind.Distribution, kind);
+            Assert.IsNull(PlaytestSessionIdentityProvider.Current.SteamId);
+            PlaytestLaunchProfile.EnsureIdentityPublished();
             Assert.AreEqual("76561198000000001", PlaytestSessionIdentityProvider.Current.SteamId);
         }
 
@@ -43,6 +51,7 @@ namespace Client.Tests.PlaytestReceiver
         {
             var kind = PlaytestLaunchProfile.ResolveWith(true, new SteamRunningFake(true), new FakeLocalSteamIdReader(null, "fake-unreadable"));
             Assert.AreEqual(PlaytestLaunchKind.Distribution, kind);
+            PlaytestLaunchProfile.EnsureIdentityPublished();
             Assert.IsNull(PlaytestSessionIdentityProvider.Current.SteamId);
             var reason = PlaytestSessionIdentityProvider.Current.SteamIdAbsenceReason;
             StringAssert.StartsWith(EmptyPlaytestSessionIdentity.LocalSteamIdUnreadableReason, reason);

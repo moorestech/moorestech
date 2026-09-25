@@ -18,6 +18,7 @@ namespace Client.Tests.PlaytestReceiver
         [SetUp]
         public void CreateRoot()
         {
+            PlaytestUploadRunner.ResetOnPlayMode();
             _root = Path.Combine(Path.GetTempPath(), "playtest-runner-" + Path.GetRandomFileName());
             _directories = PlaytestOutboxTestBoxes.Directories(_root);
             PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_120000_aaaa", ("manifest.json", "{}"));
@@ -26,8 +27,28 @@ namespace Client.Tests.PlaytestReceiver
         [TearDown]
         public void DeleteRoot()
         {
+            PlaytestUploadRunner.ResetOnPlayMode();
             PlaytestLaunchProfile.ResetOnPlayMode();
             Directory.Delete(_root, true);
+        }
+
+        [Test]
+        public void 別の走行役も期限内のトークンを再利用する()
+        {
+            var api = new FakeUploadApi();
+            var first = new PlaytestUploadRunner(api, _directories, new FakeTicketProvider("aabb"));
+            PlaytestLaunchProfile.Apply(PlaytestLaunchKind.Distribution, new LocalSteamSessionIdentity("76561198000000001"));
+
+            first.RequestUpload();
+            Assert.AreEqual(1, api.SessionCallCount);
+
+            // シーンで走行役を組み直しても同じ認証済みセッションを使う
+            // A runner rebuilt for another scene uses the same authenticated session
+            PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_150000_dddd", ("manifest.json", "{}"));
+            var second = new PlaytestUploadRunner(api, _directories, new FakeTicketProvider("different"));
+            second.RequestUpload();
+            Assert.AreEqual(2, api.CompleteCount);
+            Assert.AreEqual(1, api.SessionCallCount);
         }
 
         [Test]

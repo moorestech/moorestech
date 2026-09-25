@@ -16,10 +16,10 @@ namespace Client.PlaytestReceiver.Upload
         // One run per process; the flags are shared by type so runners built by the MainMenu and MainGame roots never overlap
         private static bool _running;
         private static bool _rerunRequested;
+        private static PlaytestSession _sharedSession;
 
         private readonly IPlaytestReceiverApi _api;
         private readonly PlaytestOutboxDirectories _directories;
-        private readonly PlaytestSession _session;
 
         // Steam境界はDIが注入する。本番はPlaytestSteamTicketProvider、テストは差し替え
         // The Steam boundary is injected by DI; production uses PlaytestSteamTicketProvider, tests substitute it
@@ -27,16 +27,19 @@ namespace Client.PlaytestReceiver.Upload
         {
             _api = api;
             _directories = directories;
-            _session = new PlaytestSession(api, ticketProvider);
+            // 最初の走行役が認証境界を確定し、後続の走行役も期限内のトークンを使う
+            // The first runner fixes the authentication boundary; later runners reuse its valid token
+            if (_sharedSession == null) _sharedSession = new PlaytestSession(api, ticketProvider);
         }
 
         // 走行フラグはEditorの再生跨ぎで残る。残したままだと2回目の再生で一度もアップロードが始まらない
         // The in-flight flags would survive between Editor play sessions, and stale ones would stop every later upload
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        private static void ResetOnPlayMode()
+        internal static void ResetOnPlayMode()
         {
             _running = false;
             _rerunRequested = false;
+            _sharedSession = null;
         }
 
         public void RequestUpload()
@@ -58,7 +61,7 @@ namespace Client.PlaytestReceiver.Upload
                 return;
             }
             _running = true;
-            RunAsync(_session).Forget();
+            RunAsync(_sharedSession).Forget();
         }
 
         private async UniTaskVoid RunAsync(PlaytestSession session)

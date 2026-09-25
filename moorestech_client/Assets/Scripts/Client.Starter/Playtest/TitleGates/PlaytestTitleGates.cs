@@ -77,12 +77,11 @@ namespace Client.Starter.Playtest.TitleGates
             return BeginComposed(artifacts, distributionBuild, uploadRequester, PlaytestStartGateBypass.UnattendedReason(), Application.exitCancellationToken);
         }
 
-        // 直接起動でも識別を確定し、タイトルの確認段階に従って開始可否を返す
-        // Resolve identity even for direct boots, then decide from the title confirmation step
+        // タイトルの確認段階に従って開始可否を返す。識別は起動入口で確定済み
+        // Decide from the title confirmation step; the boot entry has already published identity
         public static PlaytestStartVerdict EvaluateStart(string callerName, out PlaytestStartRefusal refusal)
         {
             refusal = new PlaytestStartRefusal("");
-            PlaytestLaunchProfile.Resolve();
 
             if (_current == null)
             {
