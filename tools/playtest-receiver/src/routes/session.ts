@@ -1,4 +1,3 @@
-import { readAllowlist } from "../allowlist";
 import type { Env } from "../env";
 import { fail, json, requireMethod } from "../http";
 import { authenticateUserTicket } from "../steamAuth";
@@ -28,18 +27,6 @@ async function postSession(request: Request, env: Env, steamFetch: typeof fetch)
   if (verified.kind === "unverifiable") {
     console.warn(`[session] refused: Steam could not verify the ticket (${verified.reason})`);
     return fail("steam-unavailable", 503);
-  }
-
-  // 許可リストが壊れていたら誰も通さず503。空リスト扱いの403にするとテスターへ誤った恒久拒否を返す
-  // A corrupt allowlist lets nobody in with 503; treating it as empty (403) would tell testers they are permanently denied
-  const allowlist = await readAllowlist(env.BUCKET);
-  if (allowlist.kind === "corrupt") {
-    console.warn(`[session] refused: the allowlist is unavailable (${allowlist.reason})`);
-    return fail("allowlist-unavailable", 503);
-  }
-  if (!allowlist.steamIds.includes(verified.steamId)) {
-    console.warn(`[session] ${verified.steamId} is not on the allowlist`);
-    return fail("not-allowed", 403);
   }
 
   const nowSeconds = Math.floor(Date.now() / 1000);

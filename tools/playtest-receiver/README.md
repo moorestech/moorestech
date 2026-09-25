@@ -7,14 +7,13 @@ Mac mini（plan H の `scripts/playtest/ingest.sh`）が管理APIで取り込む
 
 | メソッド | パス | 認証 | 用途 |
 |---|---|---|---|
-| POST | `/v1/session` | なし（Steamチケット） | チケット検証＋許可リスト照合＋1時間トークン発行 |
+| POST | `/v1/session` | なし（Steamチケット） | チケット検証＋1時間トークン発行 |
 | POST | `/v1/uploads/{kind}/{id}/prepare` | `Authorization: Bearer` | ファイル宣言を受け、ファイルごとの署名付き R2 PUT URL を発行する |
 | PUT | `/v1/uploads/{kind}/{id}/{path...}` | なし（410固定） | 廃止。旧クライアントの中継PUTは410 `direct-upload-required`（ADR 0064） |
 | POST | `/v1/uploads/{kind}/{id}/complete` | `Authorization: Bearer` | R2の実オブジェクトを宣言と照合し、揃っていれば `READY` と未ACK索引を書く |
 | GET | `/v1/inbox?cursor=` | `X-Admin-Key` | 未ACKの一覧 |
 | GET | `/v1/inbox/{kind}/{steamId}/{id}/{path...}` | `X-Admin-Key` | 個別ファイル取得 |
 | POST | `/v1/inbox/{kind}/{steamId}/{id}/ack` | `X-Admin-Key` | `ACKED` を書き索引を消す |
-| GET / PUT | `/v1/allowlist` | `X-Admin-Key` | 許可SteamIDの取得・全置換 |
 
 `kind` は `report` / `progress`。R2 のキーは `reports/{steamId}/{id}/...` と `progress/{steamId}/{id}/...`（`src/keys.ts` の `KIND_PREFIX` が正本）。
 
@@ -88,7 +87,7 @@ Worker は宣言済みファイルを R2 で列挙し、存在と長さを照合
    pnpm run deploy
    ```
 5. DNS: `wrangler.toml` の `routes` に `playtest.moores.tech` を `custom_domain = true` で書いてあるので、`pnpm run deploy` が moores.tech ゾーンへ CNAME を作る。作られない場合は Cloudflare ダッシュボード → Workers & Pages → moorestech-playtest-receiver → Settings → Domains & Routes → Add → Custom domain に `playtest.moores.tech` を追加する。**cloudflared のトンネル（Mac mini）とは無関係の経路なので、`~/.cloudflared/*.yml` は触らない。**
-6. Mac mini 側の env ファイルを作る。`scripts/playtest/allowlist.sh`（Task 5）はここから `PLAYTEST_RECEIVER_BASE`・`PLAYTEST_ADMIN_KEY` を読む。ヒアドキュメントは Markdown リスト内の字下げでコピー時に終端行を見失うため、`echo` を積み上げる形にしてある:
+6. Mac mini 側の env ファイルを作る。ingest がこの env から `PLAYTEST_RECEIVER_BASE`・`PLAYTEST_ADMIN_KEY` を読む。ヒアドキュメントは Markdown リスト内の字下げでコピー時に終端行を見失うため、`echo` を積み上げる形にしてある:
    ```bash
    mkdir -p ~/hermes-agent/data/services/playtest
    {
@@ -98,19 +97,12 @@ Worker は宣言済みファイルを R2 で列挙し、存在と長さを照合
    chmod 600 ~/hermes-agent/data/services/playtest/env.sh
    ```
    既定パスと異なる場所に置く場合は `PLAYTEST_ENV_FILE` でそのパスを指す。
-7. 許可リストへ最初のテスターを入れる（手順1で `tools/playtest-receiver` へ `cd` した状態のままなので、`scripts/playtest/allowlist.sh` はリポジトリルートへ戻ってから呼ぶ）:
-   ```bash
-   . ~/hermes-agent/data/services/playtest/env.sh
-   (cd ../.. && scripts/playtest/allowlist.sh add <steamId>)
-   ```
-
 ## 動作確認
 
 ```bash
 . ~/hermes-agent/data/services/playtest/env.sh
 BASE="$PLAYTEST_RECEIVER_BASE"
 curl -s -o /dev/null -w '%{http_code}\n' "$BASE/v1/inbox"                          # 401 を期待
-curl -s -H "X-Admin-Key: $PLAYTEST_ADMIN_KEY" "$BASE/v1/allowlist"                 # {"steamIds":[...]}
 curl -s -o /dev/null -w '%{http_code}\n' -X POST -d '{"ticket":"00"}' "$BASE/v1/session"  # 401 を期待（無効チケット）
 ```
 

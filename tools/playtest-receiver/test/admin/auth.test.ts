@@ -41,9 +41,9 @@ describe("admin api auth", () => {
     warn.mockRestore();
   });
 
-  it("adminキーが無ければ経路の形に関わらず401になる（allowlistへの不正メソッド）", async () => {
+  it("adminキーが無ければ経路の形に関わらず401になる（inboxへの不正メソッド）", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    const response = await handle(new Request("https://playtest.moores.tech/v1/allowlist", { method: "POST" }), workerEnv, noNetwork);
+    const response = await handle(new Request("https://playtest.moores.tech/v1/inbox", { method: "DELETE" }), workerEnv, noNetwork);
     expect(response.status).toBe(401);
     expect(warn).toHaveBeenCalled();
     warn.mockRestore();
