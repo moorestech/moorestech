@@ -11,17 +11,16 @@ namespace Tests.UnitTest.Game
 {
     public class TrainTimetableStationNodeResolverTest
     {
-        [Test]
-        public void ResolvesBackExitNodeOfTrainStation()
+        [TestCase(StationNodeSide.Front)]
+        [TestCase(StationNodeSide.Back)]
+        public void ResolvesExitNodeOfRequestedSide(StationNodeSide side)
         {
             var env = TrainTestHelper.CreateEnvironment();
             var (block, _) = TrainTestHelper.PlaceBlockWithRailComponents(
                 env, ForUnitTestModBlockId.TestTrainStation, Vector3Int.zero, BlockDirection.North);
 
-            var resolved = TrainTimetableStationNodeResolver.TryResolve(block, out var node);
-
-            Assert.IsTrue(resolved);
-            Assert.AreEqual(StationNodeSide.Back, node.StationRef.NodeSide);
+            Assert.IsTrue(TrainTimetableStationNodeResolver.TryResolve(block, side, out var node));
+            Assert.AreEqual(side, node.StationRef.NodeSide);
             Assert.AreEqual(StationNodeRole.Exit, node.StationRef.NodeRole);
             Assert.AreSame(block, node.StationRef.StationBlock);
         }
@@ -33,14 +32,14 @@ namespace Tests.UnitTest.Game
             var block = TrainTestHelper.PlaceBlock(
                 env, ForUnitTestModBlockId.TestTrainItemPlatform, Vector3Int.zero, BlockDirection.North);
 
-            Assert.IsFalse(TrainTimetableStationNodeResolver.TryResolve(block, out var node));
+            Assert.IsFalse(TrainTimetableStationNodeResolver.TryResolve(block, StationNodeSide.Back, out var node));
             Assert.IsNull(node);
         }
 
         [Test]
         public void RejectsNullBlock()
         {
-            Assert.IsFalse(TrainTimetableStationNodeResolver.TryResolve(null, out var node));
+            Assert.IsFalse(TrainTimetableStationNodeResolver.TryResolve(null, StationNodeSide.Back, out var node));
             Assert.IsNull(node);
         }
     }

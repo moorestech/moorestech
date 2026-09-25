@@ -75,8 +75,8 @@ namespace Game.Train.Unit
             }
 
             NotifyPreSimulationDiff(_executedTick);
-            // 時刻表の現在地が進んだ列車をシミュレーション後に同期する
-            // Synchronize trains whose timetable cursor advanced after simulation
+            // 時刻表・自動運転が変わった列車をUIへ知らせる（走行同期とは別経路）
+            // Notify the UI of trains whose timetable or auto-run changed (separate from motion sync)
             NotifyTimetableAdvanced();
 
             //↓これ以降にクライアントからの操作コマンド系適応がはいる、hashmismatchなどによるブロードキャストもはいる
@@ -129,17 +129,13 @@ namespace Game.Train.Unit
 
             void NotifyTimetableAdvanced()
             {
-                var notify = ServerContext.GetService<ITrainUnitSnapshotNotifyEvent>();
+                var notify = ServerContext.GetService<ITrainTimetableNotifyEvent>();
                 foreach (var trainUnit in _trainUnitLookupDatastore.GetRegisteredTrains())
                 {
                     var entryChanged = trainUnit.trainDiagram.ConsumeCurrentEntryChanged();
                     var autoRunChanged = trainUnit.ConsumeAutoRunChanged();
-                    if (!entryChanged && !autoRunChanged)
-                    {
-                        continue;
-                    }
-
-                    notify.NotifySnapshot(trainUnit);
+                    if (!entryChanged && !autoRunChanged) continue;
+                    notify.NotifyTimetableChanged(trainUnit);
                 }
             }
             #endregion

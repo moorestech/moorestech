@@ -10,7 +10,7 @@ using UniRx;
 
 namespace Tests.UnitTest.Game.TrainTimetable
 {
-    public class TrainTimetableSnapshotNotifyTest
+    public class TrainTimetableNotifyTest
     {
         [Test]
         public void AutoRunChangeFlagOnlyTracksTransitions()
@@ -29,29 +29,33 @@ namespace Tests.UnitTest.Game.TrainTimetable
         }
 
         [Test]
-        public void SnapshotIsNotifiedOnceAfterCurrentEntryAdvances()
+        public void TimetableIsNotifiedOnceAfterCurrentEntryAdvances()
         {
             using var scenario = TrainAutoRunTestScenario.CreateDockedScenario();
             var train = scenario.Train;
             var updateService = ServerContext.GetService<TrainUpdateService>();
-            var notify = ServerContext.GetService<ITrainUnitSnapshotNotifyEvent>();
+            var timetableNotify = ServerContext.GetService<ITrainTimetableNotifyEvent>();
+            var snapshotNotify = ServerContext.GetService<ITrainUnitSnapshotNotifyEvent>();
             var initialIndex = train.trainDiagram.CurrentIndex;
             train.ConsumeAutoRunChanged();
             var notificationCount = 0;
             var notificationTick = 0u;
             var preSimulationTick = 0u;
+            var snapshotCount = 0;
 
             using var diffSubscription = updateService.OnPreSimulationDiffEvent.Subscribe(data =>
             {
                 preSimulationTick = data.Item1;
             });
 
-            using var subscription = notify.OnTrainUnitSnapshotNotified.Subscribe(data =>
+            using var snapshotSubscription = snapshotNotify.OnTrainUnitSnapshotNotified.Subscribe(data =>
             {
-                if (data.TrainUnitInstanceId != train.TrainUnitInstanceId || data.IsDeleted)
-                {
-                    return;
-                }
+                if (data.TrainUnitInstanceId == train.TrainUnitInstanceId) snapshotCount++;
+            });
+
+            using var subscription = timetableNotify.OnTimetableChanged.Subscribe(trainUnit =>
+            {
+                if (trainUnit.TrainUnitInstanceId != train.TrainUnitInstanceId) return;
 
                 notificationCount++;
                 notificationTick = updateService.GetCurrentTick();
@@ -67,6 +71,7 @@ namespace Tests.UnitTest.Game.TrainTimetable
             Assert.AreNotEqual(initialIndex, train.trainDiagram.CurrentIndex, "時刻表の現在地が進む");
             Assert.AreEqual(1, notificationCount, "現在地が進んだtickに一度だけ通知する");
             Assert.AreEqual(preSimulationTick, notificationTick, "同じtickのシミュレーション後に通知する");
+            Assert.AreEqual(0, snapshotCount, "時刻表の前進で列車の走行同期を送らない");
 
             updateService.UpdateTrains();
             Assert.AreEqual(1, notificationCount, "次のtickでは重複通知しない");
@@ -88,11 +93,17 @@ namespace Tests.UnitTest.Game.TrainTimetable
             train.ConsumeAutoRunChanged();
 
             var updateService = ServerContext.GetService<TrainUpdateService>();
-            var notify = ServerContext.GetService<ITrainUnitSnapshotNotifyEvent>();
+            var timetableNotify = ServerContext.GetService<ITrainTimetableNotifyEvent>();
+            var snapshotNotify = ServerContext.GetService<ITrainUnitSnapshotNotifyEvent>();
             var offTicks = new List<uint>();
-            using var subscription = notify.OnTrainUnitSnapshotNotified.Subscribe(data =>
+            var snapshotCount = 0;
+            using var snapshotSubscription = snapshotNotify.OnTrainUnitSnapshotNotified.Subscribe(data =>
             {
-                if (data.TrainUnitInstanceId == train.TrainUnitInstanceId && !data.TrainUnit.IsAutoRun)
+                if (data.TrainUnitInstanceId == train.TrainUnitInstanceId) snapshotCount++;
+            });
+            using var subscription = timetableNotify.OnTimetableChanged.Subscribe(trainUnit =>
+            {
+                if (trainUnit.TrainUnitInstanceId == train.TrainUnitInstanceId && !trainUnit.IsAutoRun)
                 {
                     offTicks.Add(updateService.GetCurrentTick());
                 }
@@ -107,6 +118,7 @@ namespace Tests.UnitTest.Game.TrainTimetable
             Assert.IsFalse(train.IsAutoRun);
             Assert.AreEqual(1, offTicks.Count);
             Assert.AreEqual(updateService.GetCurrentTick(), offTicks[0]);
+            Assert.AreEqual(0, snapshotCount, "時刻表の前進で列車の走行同期を送らない");
             updateService.UpdateTrains();
             Assert.AreEqual(1, offTicks.Count);
         }
@@ -123,11 +135,17 @@ namespace Tests.UnitTest.Game.TrainTimetable
             train.ConsumeAutoRunChanged();
 
             var updateService = ServerContext.GetService<TrainUpdateService>();
-            var notify = ServerContext.GetService<ITrainUnitSnapshotNotifyEvent>();
+            var timetableNotify = ServerContext.GetService<ITrainTimetableNotifyEvent>();
+            var snapshotNotify = ServerContext.GetService<ITrainUnitSnapshotNotifyEvent>();
             var offSnapshots = 0;
-            using var subscription = notify.OnTrainUnitSnapshotNotified.Subscribe(data =>
+            var snapshotCount = 0;
+            using var snapshotSubscription = snapshotNotify.OnTrainUnitSnapshotNotified.Subscribe(data =>
             {
-                if (data.TrainUnitInstanceId == train.TrainUnitInstanceId && !data.TrainUnit.IsAutoRun)
+                if (data.TrainUnitInstanceId == train.TrainUnitInstanceId) snapshotCount++;
+            });
+            using var subscription = timetableNotify.OnTimetableChanged.Subscribe(trainUnit =>
+            {
+                if (trainUnit.TrainUnitInstanceId == train.TrainUnitInstanceId && !trainUnit.IsAutoRun)
                 {
                     offSnapshots++;
                 }
@@ -141,6 +159,7 @@ namespace Tests.UnitTest.Game.TrainTimetable
             }
             Assert.IsFalse(train.IsAutoRun);
             Assert.AreEqual(1, offSnapshots);
+            Assert.AreEqual(0, snapshotCount, "時刻表の前進で列車の走行同期を送らない");
             updateService.UpdateTrains();
             Assert.AreEqual(1, offSnapshots);
         }

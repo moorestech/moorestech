@@ -229,6 +229,7 @@ namespace Server.Boot
             services.AddSingleton<TrainDockingStateRestorer>();
             services.AddSingleton<ITrainUpdateEvent, TrainUpdateEvent>();
             services.AddSingleton<ITrainUnitSnapshotNotifyEvent, TrainUnitSnapshotNotifyEvent>();
+            services.AddSingleton<ITrainTimetableNotifyEvent, TrainTimetableNotifyEvent>();
             services.AddSingleton<TrainCarRidingInputBuffer>();
             services.AddSingleton<TrainCarRidingManualCommandResolver>();
             services.AddSingleton<TrainUpdateService>();

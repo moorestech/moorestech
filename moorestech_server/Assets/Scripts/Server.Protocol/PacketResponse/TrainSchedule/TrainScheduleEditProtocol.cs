@@ -64,7 +64,7 @@ namespace Server.Protocol.PacketResponse
                     {
                         return Reject(data, TrainScheduleEditFailureReason.StationBlockNotFound, $"pos={position.Vector3Int}");
                     }
-                    if (!TrainTimetableStationNodeResolver.TryResolve(block, out var node))
+                    if (!TrainTimetableStationNodeResolver.TryResolve(block, StationNodeSide.Back, out var node))
                     {
                         return Reject(data, TrainScheduleEditFailureReason.NotTrainStation, $"pos={position.Vector3Int} type={block.BlockMasterElement.BlockType}");
                     }
