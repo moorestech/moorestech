@@ -23,20 +23,26 @@ namespace Client.Editor.Build
             BuildInteractive(BuildTarget.StandaloneOSX, AsksDevelopmentBuild());
         }
 
-        // 展示会などの配布用。Development/Releaseを聞かずRelease固定で焼く
-        // For distribution such as exhibitions: no Development prompt, always Release
-        [MenuItem("moorestech/Build/MacOsReleaseLocalBuild")]
-        public static void MacOsReleaseLocalBuild()
+        // 展示会ブース用。再起動ループを同梱しRelease固定で焼く
+        // For the exhibition booth: bundles the restart loop and always builds Release
+        [MenuItem("moorestech/Build/MacOsExhibitionBuild")]
+        public static void MacOsExhibitionBuild()
         {
-            BuildReleaseLocalInteractive(BuildTarget.StandaloneOSX);
+            BuildDistributionInteractive(BuildTarget.StandaloneOSX, BuildPurpose.Exhibition);
         }
 
-        // プレイテスト配布用のWindows成果物。契約はmac版と同一
-        // The Windows artifact for playtest distribution; same contract as the mac entry
-        [MenuItem("moorestech/Build/WindowsReleaseLocalBuild")]
-        public static void WindowsReleaseLocalBuild()
+        // Steamプレイテスト配布の成果物を手元で焼く。無人入口と同じ用途
+        // Builds the Steam playtest artifact by hand with the same purpose as the unattended entry
+        [MenuItem("moorestech/Build/WindowsSteamPlaytestBuild")]
+        public static void WindowsSteamPlaytestBuild()
         {
-            BuildReleaseLocalInteractive(BuildTarget.StandaloneWindows64);
+            BuildDistributionInteractive(BuildTarget.StandaloneWindows64, BuildPurpose.SteamPlaytest);
+        }
+
+        [MenuItem("moorestech/Build/MacOsSteamPlaytestBuild")]
+        public static void MacOsSteamPlaytestBuild()
+        {
+            BuildDistributionInteractive(BuildTarget.StandaloneOSX, BuildPurpose.SteamPlaytest);
         }
 
         [MenuItem("moorestech/Build/LinuxBuild")]
@@ -68,26 +74,31 @@ namespace Client.Editor.Build
             var outputDirectory = SelectOutputDirectory(buildTarget);
             if (outputDirectory == null) return;
 
-            // 開発用: 同梱・出所の問題はCIと同じく警告で続行する。strictは配布入口（ReleaseLocalBuildCli.CreateRequest）に限る
-            // Development use: bundling/origin problems warn and continue like CI; strict is reserved for the distribution entry (ReleaseLocalBuildCli.CreateRequest)
+            // 開発用: 同梱・出所の問題は警告で続行する。strictは人へ配る用途に限る
+            // Development use: bundling/origin problems warn and continue; strict is reserved for purposes handed to people
             var outcome = BuildPipeline.Execute(new PlayerBuildRequest
             {
                 Target = buildTarget,
                 OutputDirectory = outputDirectory,
+                Purpose = BuildPurpose.LocalDevelopment,
                 IsDevelopmentBuild = isDevelopmentBuild,
-                IsStrictBundling = false,
-                BundleLocalGameData = true,
             });
 
             ReportOutcome(outcome, outputDirectory);
         }
 
-        private static void BuildReleaseLocalInteractive(BuildTarget buildTarget)
+        private static void BuildDistributionInteractive(BuildTarget buildTarget, BuildPurpose purpose)
         {
             var outputDirectory = SelectOutputDirectory(buildTarget);
             if (outputDirectory == null) return;
 
-            ReportOutcome(BuildPipeline.Execute(ReleaseLocalBuildCli.CreateRequest(buildTarget, outputDirectory)), outputDirectory);
+            ReportOutcome(BuildPipeline.Execute(new PlayerBuildRequest
+            {
+                Target = buildTarget,
+                OutputDirectory = outputDirectory,
+                Purpose = purpose,
+                IsDevelopmentBuild = false,
+            }), outputDirectory);
         }
 
         // 出力先を選択する（前回パスを記憶）。キャンセル時はnull

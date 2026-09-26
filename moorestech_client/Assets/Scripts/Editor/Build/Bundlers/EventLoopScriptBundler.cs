@@ -1,8 +1,6 @@
-using System.Diagnostics;
 using System.IO;
 using UnityEditor.Build;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
 
 namespace Client.Editor.Build.Bundlers
 {
@@ -37,11 +35,7 @@ namespace Client.Editor.Build.Bundlers
 
         private static void MarkExecutable(string filePath, bool isStrict)
         {
-            // 外部プロセス境界: .NET Standard 2.1にパーミッション付与APIが無いためchmodへ委譲する
-            // External process boundary: .NET Standard 2.1 has no permission API, so delegate to chmod
-            var process = Process.Start(new ProcessStartInfo("/bin/chmod", $"+x \"{filePath}\"") { UseShellExecute = false });
-            process.WaitForExit();
-            if (process.ExitCode == 0) return;
+            if (ExternalToolRunner.Run("/bin/chmod", $"+x \"{filePath}\"") == 0) return;
 
             if (isStrict) throw new BuildFailedException($"[EventLoopScriptBundler] chmod failed: {filePath}");
             Debug.LogWarning($"[EventLoopScriptBundler] chmod failed: {filePath}");
