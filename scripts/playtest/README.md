@@ -16,7 +16,7 @@ export STEAM_WEB_API_KEY=<Steam Web API の publisher key>
 
 ## 配布工程
 
-配布ビルドを焼き、Steam の `playtest-staging` ブランチへ上げ、検証機で通し検証する。`playtest` への反映は検証後に Steamworks Web UI で手動実行する。
+Windows と Mac（Apple Silicon）の配布ビルドを焼き、1つの Steam ビルドに両 depot を入れて `playtest-staging` へ上げる。Windows は検証機で通し検証し、Mac は `promotion.md` の手順で人が確認する。`playtest` への反映は確認後に Steamworks Web UI で手動実行する。
 用語は CONTEXT.md「プレイテスト」節、裁定は docs/adr/0061 を正とする。
 
 ### 1回だけ行う準備
@@ -25,9 +25,13 @@ export STEAM_WEB_API_KEY=<Steam Web API の publisher key>
 
 1. アプリ 1958160 の Steamworks 管理画面 → SteamPipe → Builds で `playtest` と `playtest-staging` ブランチを作成する。
 2. 両ブランチに別々のパスワードを設定する。`playtest` のパスワードだけをテスターへキーと一緒に配る。
-3. Depot のIDを控える（Steamworks → SteamPipe → Depots）。`MOORESTECH_STEAM_DEPOT_ID` に設定する。
-4. Steam Web API の publisher key を発行する（Worker のチケット検証と ingest の表示名解決 `GetPlayerSummaries` の両方で使う）。
-5. テスター配布用のキーを発行する（Steamworks → Packages → キー生成）。
+3. Windows の Depot ID を控え `MOORESTECH_STEAM_DEPOT_ID_WINDOWS` に設定する（Steamworks → SteamPipe → Depots）。
+4. macOS 用 depot を作成する（Depots → 新規 depot、OS 指定 macOS）。ID を `MOORESTECH_STEAM_DEPOT_ID_MAC` に設定する。
+5. インストール設定 → 一般 → 起動オプションに macOS 用を追加する（実行ファイル `moorestech.app`、OS: macOS）。
+6. テスター用キーのパッケージ（Packages）に macOS depot を追加する。入れないと Mac のテスターへ配信されない。
+7. ストア/depot のシステム要件に「Apple Silicon（M1 以降）専用。Intel Mac 非対応」と明記する（CEF の Mac ランタイムが arm64 のみのため）。
+8. Steam Web API の publisher key を発行する（Worker のチケット検証と ingest の表示名解決 `GetPlayerSummaries` の両方で使う）。
+9. テスター配布用のキーを発行する（Steamworks → Packages → キー生成）。
 
 #### Mac mini 側
 
@@ -35,7 +39,8 @@ export STEAM_WEB_API_KEY=<Steam Web API の publisher key>
 2. 初回だけ対話で Steam Guard を通す: `steamcmd +login <user> +quit`（以降は保存された資格で無人ログインできる）。
 3. `~/hermes-agent/data/services/playtest/env.sh` に次を追記して export する（このファイルは封じ込め env の外に置かず、値をログへ出さない）:
    - `MOORESTECH_STEAM_USER`
-   - `MOORESTECH_STEAM_DEPOT_ID`
+   - `MOORESTECH_STEAM_DEPOT_ID_WINDOWS`
+   - `MOORESTECH_STEAM_DEPOT_ID_MAC`
    - `STEAM_WEB_API_KEY`（取り込み時の報告者名解決に使う。未設定でも箱は取り込み、未解決理由を記録する）
    - `MOORESTECH_BUILD_BRANCH`（任意。build-info.json の `branch` に焼く配布元 ref。既定 `master`）
    - 検証機向けの変数（「検証機」節の「Mac mini 側の env」を参照）
@@ -52,21 +57,23 @@ scripts/playtest/release-playtest.sh <SHA または origin/master>
   worktree はメインクローンで作るため、別 clone（pr-review の baseline clone 等）から実行すると解決した object が無いことがある。
 - `<commit>` は SHA か `origin/<branch>` を渡す。ローカルブランチ名（`master` 等）は fetch で進まないので古いコミットを焼く。
 - 要求コミットが `origin/$MOORESTECH_BUILD_BRANCH`（既定 `origin/master`）に含まれなければビルド前に止まる（焼く `branch` を嘘にしない）。
-- ビルド前（worktree 作成前）に、Steam・検証機・受け口の必須 env（`MOORESTECH_STEAM_USER`/`MOORESTECH_STEAM_DEPOT_ID`/
+- ビルド前（worktree 作成前）に、Steam・検証機・受け口の必須 env（`MOORESTECH_STEAM_USER`/`MOORESTECH_STEAM_DEPOT_ID_WINDOWS`/`MOORESTECH_STEAM_DEPOT_ID_MAC`/
   `MOORESTECH_VERIFY_HOST`/`MOORESTECH_VERIFY_USER`/`MOORESTECH_VERIFY_MAC`/`PLAYTEST_ADMIN_KEY`）を全部見る。
-  ビルドラベル（`MOORESTECH_STEAM_BUILD_LABEL`）は `^[A-Za-z0-9][A-Za-z0-9._-]*$`、depot id は数字だけを許す
-  （sed 置換・VDF・リモート PowerShell 文字列・パスへ埋め込むため）。`verify-on-windows.sh` も入口で同じラベル検証をする。
+  ビルドラベル（`MOORESTECH_STEAM_BUILD_LABEL`）は `^[A-Za-z0-9][A-Za-z0-9._-]*$`、両 depot id は数字だけを許す
+  （VDF へ埋め込むため）。`verify-on-windows.sh` も入口で同じラベル検証をする。
+- 同じ worktree から Windows→Mac の順に焼き、成果物は `runs/<label>/build-windows/`・`runs/<label>/build-mac/`、ログは `unity-build-windows.log`・`unity-build-mac.log` に残す。どちらかのビルド・成果物検査が失敗したら Steam には何も上げない。
+- Mac 成果物は `moorestech.app` の ad-hoc 署名（`codesign --verify --deep --strict`）と主実行ファイルが arm64 のみであること、展示会用スクリプトが入っていないことも検査する。
 - 同梱元 master data は、moorestech_master のメインclone（`$MOORESTECH_MASTER_CLONE`、既定 `~/hermes-agent/data/repos/moorestech_master`）の
   `git worktree list --porcelain` から HEAD がピンの `commitHash` と一致する worktree を選び（`pin-*`→detached→その他の順で clean なものを優先）、
   `MOORESTECH_MASTER_DATA_ROOT` として Unity へ渡す。`moores-wt new` は一致する既存 worktree（メインclone含む）を再利用し、
   無いときだけ `pin-<commitHash先頭8桁>` を作るため、名前は当てにしない。一致が無ければピンと作り方（`moores-wt new`）を出して止まる。
   ピン（`relativePath`/`commitHash`）はコミット済み HEAD から読む。
 - ビルド前に、選んだ master worktree と非公開アセット（ピンの `moorestech_client_private`）の HEAD をピンと突き合わせ、
-  `git status --porcelain` が空であること、`ffmpeg/win-x64/ffmpeg.exe`（LFS ポインタでない実体）と `LICENSE` が揃うことを確かめる。
+  `git status --porcelain` が空であること、`ffmpeg/win-x64/ffmpeg.exe` と `ffmpeg/macos-arm64/ffmpeg`（LFS ポインタでない実体）とそれぞれの `LICENSE` が揃うことを確かめる。
   ずれていれば「どこをどのコミットへ合わせるか」を出して止まるので、合わせてから再実行する（自動では動かさない）。
 
 成果物・ログ・手動反映手順 `promotion.md` は `~/hermes-agent/data/services/playtest/runs/<label>/` に残る。ビルドのコミットは解決後の40桁 SHA。
-検証が通った後、Steamworks → アプリ 1958160 → SteamPipe → ビルドで、検証済みビルドを `playtest` に手動でライブ設定する。対象ビルド ID を確認してからテスターへ告知する。
+Mac は自動検証しない。`promotion.md` の「Mac 版の手動確認」を済ませてから、Steamworks → アプリ 1958160 → SteamPipe → ビルドで、Windows の通し検証を通ったビルドを `playtest` に手動でライブ設定する。回避操作が要った場合も配布は止めず、その手順をキーと一緒に案内する（ADR 0071）。対象ビルド ID を確認してからテスターへ告知する。
 
 ## 検証機（自宅 Windows PC）
 
@@ -163,6 +170,7 @@ plan H の取り込み（supervisor periodic 300s）が走ると、smoke の報�
 
 ```bash
 bash scripts/playtest/tests/test-release-playtest.sh    # PASS: release-playtest contract と出れば合格
+bash scripts/playtest/tests/test-release-playtest-mac.sh   # PASS: release-playtest mac contract と出れば合格
 bash scripts/playtest/tests/test-release-playtest-origin.sh  # PASS: release-playtest origin contract と出れば合格
 bash scripts/playtest/tests/test-verify-on-windows.sh   # PASS: verify-on-windows contract と出れば合格
 ```
