@@ -25,7 +25,10 @@ namespace Client.Tests.EditModeInPlayingTest
         private void OnLogMessage(string message, string stackTrace, LogType type)
         {
             if (type != LogType.Error || !Regex.IsMatch(message, @"\ATree prefab at index [0-9]+ is missing\.\z")) return;
-            if (!stackTrace.Contains("UnityEngine.ResourceManagement.ResourceProviders.AssetDatabaseProvider:LoadAssetAtPath")) return;
+            // Linuxのnative terrainログはcallbackでは遅延ロードの末尾frameだけになる。
+            // Linux native terrain logs expose only the delayed-load tail frame to the callback.
+            if (!stackTrace.Contains("UnityEngine.ResourceManagement.ResourceProviders.AssetDatabaseProvider:LoadAssetAtPath") &&
+                stackTrace.Trim() != "UnityEngine.ResourceManagement.Util.DelayedActionManager:LateUpdate ()") return;
 
             // 同じフレーム内で期待を積み、可変回数の既知ログをフレーム末尾の検査へ渡す。
             // Register each observed known log before the test runner evaluates expected logs at frame end.
