@@ -19,18 +19,18 @@ namespace Server.Event.EventReceive
         private readonly EventProtocolProvider _eventProtocolProvider;
         private readonly IRailGraphDatastore _railGraphDatastore;
         private readonly ITrainUnitLookupDatastore _trainUnitLookupDatastore;
-        private readonly TrainUpdateService _trainUpdateService;
+        private readonly TrainTickSequenceSource _trainTickSequenceSource;
 
         public TrainFullSnapshotEventPacket(
             EventProtocolProvider eventProtocolProvider,
             IRailGraphDatastore railGraphDatastore,
             ITrainUnitLookupDatastore trainUnitLookupDatastore,
-            TrainUpdateService trainUpdateService)
+            TrainTickSequenceSource trainTickSequenceSource)
         {
             _eventProtocolProvider = eventProtocolProvider;
             _railGraphDatastore = railGraphDatastore;
             _trainUnitLookupDatastore = trainUnitLookupDatastore;
-            _trainUpdateService = trainUpdateService;
+            _trainTickSequenceSource = trainTickSequenceSource;
         }
 
         public void Load()
@@ -51,11 +51,11 @@ namespace Server.Event.EventReceive
 
             void PushRailGraphFullSnapshot(int targetPlayerId)
             {
-                var snapshot = _railGraphDatastore.CaptureSnapshot(_trainUpdateService.GetCurrentTick());
+                var snapshot = _railGraphDatastore.CaptureSnapshot(_trainTickSequenceSource.Sequence.Tick);
 
                 // watermarkは発行済み最新IDを使い、新規採番しない（他クライアントにseq穴を作らない）
                 // Use the latest issued id as watermark without consuming a new one (no seq gaps for others)
-                var message = new RailGraphSnapshotMessagePack(snapshot, _trainUpdateService.GetCurrentTickSequenceId());
+                var message = new RailGraphSnapshotMessagePack(snapshot, _trainTickSequenceSource.Sequence.SequenceId);
                 var payload = MessagePackSerializer.Serialize(new RailGraphFullSnapshotEventMessagePack(message));
                 _eventProtocolProvider.AddEvent(targetPlayerId, RailGraphFullSnapshotEventTag, payload);
             }
@@ -74,9 +74,9 @@ namespace Server.Event.EventReceive
                 var unitsHash = TrainUnitSnapshotHashCalculator.Compute(bundles);
                 var payload = MessagePackSerializer.Serialize(new TrainUnitFullSnapshotEventMessagePack(
                     snapshots,
-                    _trainUpdateService.GetCurrentTick(),
+                    _trainTickSequenceSource.Sequence.Tick,
                     unitsHash,
-                    _trainUpdateService.GetCurrentTickSequenceId()));
+                    _trainTickSequenceSource.Sequence.SequenceId));
                 _eventProtocolProvider.AddEvent(targetPlayerId, TrainUnitFullSnapshotEventTag, payload);
             }
 

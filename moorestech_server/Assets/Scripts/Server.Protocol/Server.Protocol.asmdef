@@ -5,6 +5,7 @@
     "MessagePack.Annotations",
     "Common.Debug",
     "Core.Util",
+    "Core.Update",
     "Game.Entity.Interface",
     "Server.Util",
     "Game.World.Interface",

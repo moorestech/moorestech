@@ -57,12 +57,10 @@ namespace Tests.Util
             var environment = new TrainTestEnvironment(serviceProvider, ServerContext.WorldBlockDatastore, packet);
             var trainRailPositionManager = serviceProvider.GetService<TrainRailPositionManager>();
             var trainDiagramManager = serviceProvider.GetService<TrainDiagramManager>();
-            var trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
             var trainUnitDatastore = serviceProvider.GetService<TrainUnitDatastore>();
             var railGraphDatastore = serviceProvider.GetService<IRailGraphDatastore>();
             trainRailPositionManager.Reset();
             trainDiagramManager.Reset();
-            trainUpdateService.ResetTick();
             trainUnitDatastore.Reset();
             railGraphDatastore.Reset();
             return environment;

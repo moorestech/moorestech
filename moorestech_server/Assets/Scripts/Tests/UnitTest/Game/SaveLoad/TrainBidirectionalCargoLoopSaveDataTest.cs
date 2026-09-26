@@ -226,7 +226,6 @@ namespace Tests.UnitTest.Game.SaveLoad
             var saveJson = SaveLoadJsonTestHelper.AssembleSaveJson(environment.ServiceProvider);
             Assert.IsTrue(saveJson.Contains("trainUnits"), "セーブデータに trainUnits セクションが含まれていません。");
             Debug.Log(saveJson);
-            environment.GetTrainUpdateService().ResetTick();
             environment.GetTrainUnitDatastore().Reset();
         }
 

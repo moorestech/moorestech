@@ -39,15 +39,15 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         public void SnapshotPushDoesNotConsumeTickSequenceId()
         {
             var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
+            var sequence = serviceProvider.GetService<TrainTickSequenceSource>().Sequence;
 
-            var before = trainUpdateService.GetCurrentTickSequenceId();
+            var before = sequence.SequenceId;
 
             var context = new PacketResponseContext(new CapturedEventSink());
             var handshake = MessagePackSerializer.Serialize(new InitialHandshakeProtocol.RequestInitialHandshakeMessagePack(0, "Player 0"));
             packetResponse.GetPacketResponse(handshake, context);
 
-            Assert.AreEqual(before, trainUpdateService.GetCurrentTickSequenceId());
+            Assert.AreEqual(before, sequence.SequenceId);
         }
     }
 }

@@ -18,13 +18,13 @@ namespace Server.Event.EventReceive
 
         private readonly EventProtocolProvider _eventProtocolProvider;
         private readonly IRailGraphDatastore _railGraphDatastore;
-        private readonly TrainUpdateService _trainUpdateService;
+        private readonly TrainTickSequenceSource _trainTickSequenceSource;
 
-        public RailNodeRemovedEventPacket(EventProtocolProvider eventProtocolProvider, IRailGraphDatastore railGraphDatastore, TrainUpdateService trainUpdateService)
+        public RailNodeRemovedEventPacket(EventProtocolProvider eventProtocolProvider, IRailGraphDatastore railGraphDatastore, TrainTickSequenceSource trainTickSequenceSource)
         {
             _eventProtocolProvider = eventProtocolProvider;
             _railGraphDatastore = railGraphDatastore;
-            _trainUpdateService = trainUpdateService;
+            _trainTickSequenceSource = trainTickSequenceSource;
         }
 
         public void Load()
@@ -36,8 +36,8 @@ namespace Server.Event.EventReceive
         {
             // ノード削除メッセージをシリアライズ
             // Serialize node removal payload
-            var tick = _trainUpdateService.GetCurrentTick();
-            var tickSequenceId = _trainUpdateService.NextTickSequenceId();
+            var tick = _trainTickSequenceSource.Sequence.Tick;
+            var tickSequenceId = _trainTickSequenceSource.Sequence.NextSequenceId();
             // 削除差分とTickを束ねて配信
             // Broadcast removal diff together with tick
             var payload = MessagePackSerializer.Serialize(new RailNodeRemovedMessagePack(data.NodeId, data.NodeGuid, tick, tickSequenceId));

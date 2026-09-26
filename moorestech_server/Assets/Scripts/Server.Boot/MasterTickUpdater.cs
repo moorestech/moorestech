@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Core.Update.TickSynchronization;
 using Game.Block.Blocks.Fluid;
 using Game.EnergySystem;
 using Game.Gear.Common;
@@ -18,6 +19,8 @@ namespace Server.Boot
         private readonly GearTickUpdater _gearTickUpdater;
         private readonly FluidTickUpdater _fluidTickUpdater;
         private readonly TrainUpdateService _trainUpdateService;
+        private readonly ServerTickClock _serverTickClock;
+        private readonly TrainTickSequenceSource _trainTickSequenceSource;
         private readonly IWorldBlockDatastore _worldBlockDatastore;
 
         // 正準順の反復に使う再利用バッファ。毎tickの確保を避ける
@@ -32,6 +35,8 @@ namespace Server.Boot
             GearTickUpdater gearTickUpdater,
             FluidTickUpdater fluidTickUpdater,
             TrainUpdateService trainUpdateService,
+            ServerTickClock serverTickClock,
+            TrainTickSequenceSource trainTickSequenceSource,
             IWorldBlockDatastore worldBlockDatastore)
         {
             _electricWireNetworkDatastore = electricWireNetworkDatastore;
@@ -41,6 +46,8 @@ namespace Server.Boot
             _gearTickUpdater = gearTickUpdater;
             _fluidTickUpdater = fluidTickUpdater;
             _trainUpdateService = trainUpdateService;
+            _serverTickClock = serverTickClock;
+            _trainTickSequenceSource = trainTickSequenceSource;
             _worldBlockDatastore = worldBlockDatastore;
         }
 
@@ -54,7 +61,12 @@ namespace Server.Boot
             _electricTickUpdater.Update();
             _gearTickUpdater.Update();
             _fluidTickUpdater.Update();
-            _trainUpdateService.UpdateTrains();
+            // 旧tickのhashを採番してから、新tickのstreamを開始する。
+            // Allocate the previous tick hash before beginning the new stream tick.
+            _trainUpdateService.PublishCurrentTickHash(_serverTickClock.Tick);
+            _serverTickClock.AdvanceTick();
+            _trainTickSequenceSource.Sequence.BeginTick(_serverTickClock.Tick);
+            _trainUpdateService.UpdateTrains(_serverTickClock.Tick);
 
             // ブロック更新を中央から一括駆動する（自走宣言した搬送系コンポーネントは対象外）
             // Drive block updates from one place; self-driven transport components are excluded

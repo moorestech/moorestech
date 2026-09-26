@@ -28,7 +28,7 @@ namespace Server.Util.MessagePack
             uint diffTickSequenceId,
             uint unitsHash,
             uint railGraphHash,
-            IReadOnlyList<TrainUpdateService.TrainTickDiffData> diffs)
+            IReadOnlyList<TrainTickDiffData> diffs)
         {
             ServerTick = serverTick;
             HashTickSequenceId = hashTickSequenceId;
@@ -40,9 +40,9 @@ namespace Server.Util.MessagePack
 
         #region Internal
 
-        private static List<TrainUnitTickDiffMessagePack> BuildDiffs(IReadOnlyList<TrainUpdateService.TrainTickDiffData> diffs)
+        private static List<TrainUnitTickDiffMessagePack> BuildDiffs(IReadOnlyList<TrainTickDiffData> diffs)
         {
-            var sourceDiffs = diffs ?? Array.Empty<TrainUpdateService.TrainTickDiffData>();
+            var sourceDiffs = diffs ?? Array.Empty<TrainTickDiffData>();
             var result = new List<TrainUnitTickDiffMessagePack>(sourceDiffs.Count);
             foreach (var diff in sourceDiffs)
             {

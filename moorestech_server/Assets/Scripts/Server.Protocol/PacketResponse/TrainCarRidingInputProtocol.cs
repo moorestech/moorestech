@@ -1,4 +1,5 @@
 using System;
+using Core.Update.TickSynchronization;
 using Game.Train.Unit;
 using MessagePack;
 using Server.Util.MessagePack;
@@ -8,14 +9,14 @@ namespace Server.Protocol.PacketResponse
     public class TrainCarRidingInputProtocol : IPacketResponse
     {
         private readonly TrainCarRidingInputBuffer _inputBuffer;
-        private readonly TrainUpdateService _trainUpdateService;
+        private readonly ServerTickClock _serverTickClock;
 
         public const string ProtocolTag = "va:trainCarRidingInput";
 
-        public TrainCarRidingInputProtocol(TrainCarRidingInputBuffer inputBuffer, TrainUpdateService trainUpdateService)
+        public TrainCarRidingInputProtocol(TrainCarRidingInputBuffer inputBuffer, ServerTickClock serverTickClock)
         {
             _inputBuffer = inputBuffer;
-            _trainUpdateService = trainUpdateService;
+            _serverTickClock = serverTickClock;
         }
 
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
@@ -23,7 +24,7 @@ namespace Server.Protocol.PacketResponse
             var input = MessagePackSerializer.Deserialize<TrainCarRidingInputMessagePack>(payload);
             _inputBuffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(
                 input.PlayerId,
-                _trainUpdateService.GetCurrentTick(),
+                _serverTickClock.Tick,
                 input.MoveForward,
                 input.SelectPreviousBranch,
                 input.MoveBackward,

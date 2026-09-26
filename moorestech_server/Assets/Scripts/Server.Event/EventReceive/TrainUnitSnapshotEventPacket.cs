@@ -14,16 +14,16 @@ namespace Server.Event.EventReceive
         public const string EventTag = "va:event:trainUnitSnapshot";
 
         private readonly EventProtocolProvider _eventProtocolProvider;
-        private readonly TrainUpdateService _trainUpdateService;
+        private readonly TrainTickSequenceSource _trainTickSequenceSource;
         private readonly ITrainUnitSnapshotNotifyEvent _trainUnitSnapshotNotifyEvent;
 
         public TrainUnitSnapshotEventPacket(
             EventProtocolProvider eventProtocolProvider,
-            TrainUpdateService trainUpdateService,
+            TrainTickSequenceSource trainTickSequenceSource,
             ITrainUnitSnapshotNotifyEvent trainUnitSnapshotNotifyEvent)
         {
             _eventProtocolProvider = eventProtocolProvider;
-            _trainUpdateService = trainUpdateService;
+            _trainTickSequenceSource = trainTickSequenceSource;
             _trainUnitSnapshotNotifyEvent = trainUnitSnapshotNotifyEvent;
         }
 
@@ -49,8 +49,8 @@ namespace Server.Event.EventReceive
 
         private TrainUnitSnapshotEventMessagePack CreatePayload(TrainUnitSnapshotNotifyEventData notifyEventData)
         {
-            var tick = _trainUpdateService.GetCurrentTick();
-            var tickSequenceId = _trainUpdateService.NextTickSequenceId();
+            var tick = _trainTickSequenceSource.Sequence.Tick;
+            var tickSequenceId = _trainTickSequenceSource.Sequence.NextSequenceId();
             if (notifyEventData.IsDeleted)
             {
                 return new TrainUnitSnapshotEventMessagePack(

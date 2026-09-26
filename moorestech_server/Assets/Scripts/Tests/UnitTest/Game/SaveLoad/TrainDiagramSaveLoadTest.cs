@@ -208,7 +208,6 @@ namespace Tests.UnitTest.Game.SaveLoad
                 context.Environment.WorldBlockDatastore.RemoveBlock(position, BlockRemoveReason.ManualRemove);
             }
             
-            context.Environment.GetTrainUpdateService().ResetTick();
             context.Environment.GetTrainUnitDatastore().Reset();
             context.Environment.GetRailGraphDatastore().Reset();
         }
@@ -221,7 +220,6 @@ namespace Tests.UnitTest.Game.SaveLoad
                 environment.WorldBlockDatastore.RemoveBlock(position, BlockRemoveReason.ManualRemove);
             }
             
-            environment.GetTrainUpdateService().ResetTick();
             environment.GetTrainUnitDatastore().Reset();
             environment.GetRailGraphDatastore().Reset();
         }
