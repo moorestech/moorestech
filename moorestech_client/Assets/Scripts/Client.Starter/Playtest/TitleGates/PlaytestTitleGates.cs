@@ -7,6 +7,7 @@ using Client.Localization;
 using Client.PlaytestReceiver.Launch;
 using Cysharp.Threading.Tasks;
 using Mooresmaster.Localization.Generated;
+using UniRx;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -22,14 +23,16 @@ namespace Client.Starter.Playtest.TitleGates
         // The MainMenu scene has no DI container and the start paths and the view are separate MonoBehaviours, so it is held statically (precedent: PlaytestLaunchProfile)
         // 段階の持ち主は列そのもの。ここは「今動いている列」だけを持ち、列が無いことが「まだ始まっていない」を表す
         // The step's owner is the sequence itself; this holds only the running one, and its absence is what "not started yet" means
-        private static PlaytestTitleGateSequence _current;
+        // 無人の開始役が列の始動を購読で待てるよう、変化を通知する器で持つ
+        // Held in a notifying property so an unattended starter can subscribe to the sequence starting
+        private static readonly ReactiveProperty<PlaytestTitleGateSequence> _current = new();
 
         // Editorの再生し直しは同じプロセスで起動をやり直すため、再生ごとに未開始へ戻す（前例: PlaytestLaunchProfile）
         // An Editor replay restarts the boot in the same process, so each play returns to "not started" (precedent: PlaytestLaunchProfile)
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         internal static void ResetOnPlayMode()
         {
-            _current = null;
+            _current.Value = null;
         }
 
         // タイトル以外のシーンから始まる起動（Editorの直接再生・プレイテストDSL・smoke）はゲートを出す画面が無い。
@@ -53,7 +56,7 @@ namespace Client.Starter.Playtest.TitleGates
 
             // 始動済みなら既存の列を返す。初期化失敗でタイトルへ戻った再訪でも、未応答の確認を繋ぎ直して出せる（D-C1）
             // An already-started sequence comes back so a revisit after a failed initialization can re-attach and show the unanswered confirmation (D-C1)
-            var sequence = _current;
+            var sequence = _current.Value;
             if (sequence != null)
             {
                 // 列は生き残るが合成ルートは再訪のたびに作り直される。送り手と送信可否を今回のタイトルのものへ繋ぎ直す（D-C1）
@@ -83,7 +86,7 @@ namespace Client.Starter.Playtest.TitleGates
         {
             refusal = new PlaytestStartRefusal("");
 
-            if (_current == null)
+            if (_current.Value == null)
             {
                 // タイトルを通らない起動の明示通過。列が始まればそちらが段階の正本になる（タイトルへ戻れば未応答の確認は出し直す）
                 // The explicit pass for a boot that skips the title; once a sequence starts it is the authority (a return to the title still asks the unanswered confirmations)
@@ -96,13 +99,23 @@ namespace Client.Starter.Playtest.TitleGates
                 return PlaytestStartVerdict.RefusedWithNotice;
             }
 
-            var step = _current.Step.Value;
+            var step = _current.Value.Step.Value;
             if (step == PlaytestTitleGateStep.Passed) return PlaytestStartVerdict.Passed;
 
             // 断った理由は開発者ログへ出す。答えるべき確認は画面に出ているので、テスター向けの文言は足さない
             // The refusal goes to the developer log; the pending confirmation is already on screen, so no tester-facing text is added
             Debug.LogWarning($"[PlaytestTitleGates] {callerName} refused: the title gates are at {step} (answer the consent / previous-crash confirmation first)");
             return PlaytestStartVerdict.RefusedWhileConfirmationVisible;
+        }
+
+        // 無人の開始役がボタンを押す人の代わりに、タイトルの列が始まり通過するまで待つ
+        // 列はタイトル合成ルートのStartで始まり、AfterSceneLoadで動く開始役より遅い。待たずに始めると初期化が「未開始」で断る
+        // An unattended starter waits, in place of a person pressing the button, until the title sequence starts and passes
+        // The sequence starts in the title composition root's Start, later than an AfterSceneLoad starter; starting without waiting is refused as "not started"
+        internal static async UniTask WaitUntilPassedAsync(CancellationToken ct)
+        {
+            var sequence = await _current.Where(static current => current != null).ToUniTask(true, ct);
+            await sequence.Step.Where(static step => step == PlaytestTitleGateStep.Passed).ToUniTask(true, ct);
         }
 
         // 組んだ列を現行として据えてから進める唯一の入口。CIはバッチモードで常に無人なので、無人の理由は引数で受けて対話起動もテストで組めるようにする
@@ -136,7 +149,7 @@ namespace Client.Starter.Playtest.TitleGates
         // The single window that installs the running sequence; the step's authority is that sequence, so installing it sits with the start-path decision
         private static void SetCurrentSequence(PlaytestTitleGateSequence sequence)
         {
-            _current = sequence;
+            _current.Value = sequence;
         }
     }
 }
