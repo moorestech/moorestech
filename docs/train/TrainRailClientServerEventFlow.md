@@ -237,7 +237,7 @@ handshake時は `TrainFullSnapshotEventPacket` がrail→trainの順でfull snap
 
 `MainGameInitializationFinalizer` は `InitialEventApplyWaiter` で全初期適用を待ち、地形構築後にplayer runtimeを開始する。保存乗車は `MainGameStarter.RestoreLoginState` → `MainGameContainerActivation` → `InitialRideTrainCarRequest` → `TrainHUDScreenState` → `RidingPlayerState` → `TrainCarRideFollowTargetResolver` を通り、生成済み実車両のseat markerへ追従する。
 
-`InitializeScenePipeline` は初期snapshotの失敗を `GameShutdownEvent.QuitAfterSynchronizationFailure` へ振り分ける。実行中のtrain/rail hash不一致も同じ終了口へ入る。stream停止は後続受信・event flush・visual更新より前にラッチする。終了理由を先に確定し、保存参加者・remote save・embedded serverの保存終了を迂回し、正常終了印を作らずaffected clientを終了する。EditorではPlayModeを止める。別processの専用serverを停止する操作は行わない。
+初期snapshot失敗は受信境界で `GameShutdownEvent.QuitAfterSynchronizationFailure` を呼び、初期待機のfaultより先に保存なし終了を確定する。finalizerはdispatch直後・地形構築前にtrain初期待機を観測し、`InitializeScenePipeline` はtyped failureをメニュー復帰させず既存fatal終了へ接続する。実行中のtrain/rail hash不一致も同じ終了口へ入る。stream停止は後続受信・event flush・visual更新より前にラッチする。終了理由を先に確定し、保存参加者・remote save・embedded serverの保存終了を迂回し、正常終了印を作らずaffected clientを終了する。EditorではPlayModeを止める。別processの専用serverを停止する操作は行わない。
 
 通信待ち・初期待機・main-thread dispatchのawaitは維持する。受入では初期pairの成功/失敗・同watermark・両hash、失敗後replayと次frame停止、保存なしの終了と正常終了の回帰を検証する。保存乗車worldの実起動から複数回のhash検証を跨ぐ順序付きdeltaの前進も確認する。設計根拠は [ADR 0071](../adr/0071-tick-synchronization-stream-boundaries.md) を参照。
 

@@ -180,6 +180,10 @@ namespace Client.Tests.TickSynchronization
                 Assert.AreEqual(UniTaskStatus.Pending, waiting.Status);
                 client.ApplyTrain(sink.Events[1].Payload);
                 Assert.AreEqual(UniTaskStatus.Succeeded, waiting.Status);
+                // terrain前の個別待機後も全target待機が同じcompletionを再観測できる。
+                // The all-target wait can observe the same completion after the pre-terrain wait.
+                client.Handler.WaitForInitialApplyAsync().GetAwaiter().GetResult();
+                InitialEventApplyWaiter.WaitAllAsync(new IInitialEventApplyWaitTarget[] { client.Handler }).GetAwaiter().GetResult();
                 Assert.IsTrue(client.Context.IsInitialSnapshotApplied);
                 Assert.IsEmpty(client.Rails.Nodes);
                 Assert.IsEmpty(client.Trains.Units);

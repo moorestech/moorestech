@@ -3,6 +3,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
 using Client.Game.InGame.Context;
+using Client.Game.Common;
 using Client.Game.InGame.Train.Network;
 using Client.Game.InGame.Train.Network.TickSynchronization;
 using Client.Network.API;
@@ -26,6 +27,10 @@ namespace Client.Tests
 {
     public class TrainFullSnapshotFailurePropagationTest
     {
+        [SetUp]
+        [TearDown]
+        public void ResetShutdown() => GameShutdownEvent.ResetForNewSession();
+
         [TestCase("rail-decode")]
         [TestCase("train-decode")]
         [TestCase("rail-null")]
@@ -62,6 +67,14 @@ namespace Client.Tests
             var railBytes = failure == "rail-decode" ? new byte[] { 0xC1 } : MessagePackSerializer.Serialize(rail);
             var trainBytes = failure == "train-decode" ? new byte[] { 0xC1 } : MessagePackSerializer.Serialize(train);
             var waiting = client.Handler.WaitForInitialApplyAsync().Preserve();
+            var save = new SaveProbe();
+            GameShutdownEvent.RegisterParticipant(save);
+            var fatalCount = 0;
+            using var shutdown = GameShutdownEvent.OnGameShutdown.Subscribe(reason =>
+            {
+                Assert.AreEqual(GameShutdownReason.FatalSynchronizationFailure, reason);
+                fatalCount++;
+            });
             var previous = ClientContext.VanillaApi;
             using var source = new Subject<EventMessagePack>();
             var exchange = (PacketExchangeManager)FormatterServices.GetUninitializedObject(typeof(PacketExchangeManager));
@@ -90,6 +103,11 @@ namespace Client.Tests
                 var delta = new TrainUnitTickDiffBundleMessagePack(1, 1, 1, uint.MaxValue, uint.MaxValue, Array.Empty<global::Game.Train.Unit.TickSynchronization.TrainTickDiffData>());
                 source.OnNext(new EventMessagePack(TrainUnitTickDiffBundleEventPacket.EventTag, MessagePackSerializer.Serialize(delta)));
                 Assert.DoesNotThrow(() => dispatcher.InitializeDispatch());
+                // 初期待機を読む前でも通常終了は保存を開始できない。
+                // Normal quit cannot begin saving even before startup observes its failed wait.
+                Assert.AreEqual(1, fatalCount);
+                Assert.AreEqual(ShutdownFlushResult.AlreadyShutdown, GameShutdownEvent.FireGameShutdownAsync(GameShutdownReason.IntentionalExit).GetAwaiter().GetResult());
+                Assert.AreEqual(0, save.Calls);
                 Assert.AreEqual(UniTaskStatus.Faulted, waiting.Status);
                 Assert.Throws<TrainInitialSnapshotException>(() => waiting.GetAwaiter().GetResult());
                 Assert.IsTrue(client.Context.State.IsStopped);
@@ -101,6 +119,16 @@ namespace Client.Tests
             finally
             {
                 TestReflection.SetStaticProperty(typeof(ClientContext), "VanillaApi", previous);
+            }
+        }
+
+        private sealed class SaveProbe : IGameShutdownParticipant
+        {
+            public int Calls;
+            public UniTask<ShutdownFlushResult> FlushOnShutdownAsync()
+            {
+                Calls++;
+                return UniTask.FromResult(ShutdownFlushResult.Flushed);
             }
         }
     }

@@ -10,8 +10,8 @@ using UniRx;
 
 namespace Server.Event.EventReceive
 {
-    // 接続登録時にtrain/railのfull snapshotをイベント経路でpushする
-    // Pushes full train/rail snapshots over the event stream on connection
+    // 接続時にtrain/rail snapshotを送信
+    // Send train/rail snapshots on connection.
     public sealed class TrainFullSnapshotEventPacket : IBootInitializable
     {
         public const string RailGraphFullSnapshotEventTag = "va:event:railGraphFullSnapshot";

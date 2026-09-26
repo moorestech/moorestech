@@ -107,10 +107,11 @@ namespace Client.Game.InGame.Train.Network
 
         private void FailInitialApply(string domain, Exception exception)
         {
-            // replayの続きより先に停止し、起動境界に異常終了の理由を渡す
-            // Stop before replay continues and carry the fatal reason to the startup boundary
+            // 待機側の再入より先に保存なし終了を確定する
+            // Establish no-save exit before faulting the wait can re-enter initialization
             var failure = new TrainInitialSnapshotException($"[TrainFullSnapshot] {domain} initial apply failed: {exception.Message}", exception);
             _context.State.Stop(failure.ToString());
+            GameShutdownEvent.QuitAfterSynchronizationFailure();
             _initialApplyCompletion.TrySetException(failure);
         }
 

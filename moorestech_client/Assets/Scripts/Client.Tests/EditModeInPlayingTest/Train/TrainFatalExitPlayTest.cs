@@ -1,6 +1,16 @@
 using System;
 using System.Collections;
 using System.Reflection;
+using System.Runtime.Serialization;
+using Client.Game.InGame.Context;
+using Client.Game.InGame.Train.Network;
+using Client.Network.API;
+using Client.Tests.Common;
+using Cysharp.Threading.Tasks;
+using MessagePack;
+using Server.Event;
+using Server.Event.EventReceive;
+using Server.Util.MessagePack;
 using System.Text.RegularExpressions;
 using Client.Game.Common;
 using Client.Game.InGame.BugReport.LastSession;
@@ -23,7 +33,7 @@ namespace Client.Tests.EditModeInPlayingTest
         private const string Session = "fatal_playmode_test";
 
         [UnityTest]
-        public IEnumerator InitialSnapshotFailure_StartupBoundaryQuitsPlayWithoutSaving()
+        public IEnumerator InitialSnapshotFailure_DetectionQuitsBeforeStartupObservesFailure()
         {
             EnterPlayModeUtil();
             yield return new EnterPlayMode(expectDomainReload: true);
@@ -51,8 +61,8 @@ namespace Client.Tests.EditModeInPlayingTest
             LogAssert.ignoreFailingMessages = false;
         }
 
-        // Test Runnerへ期待する遷移を宣言し、実起動失敗callback自身に終了させる。
-        // Declare the expected transition to Test Runner and let the real startup-failure callback perform the exit.
+        // 受信境界自身が終了し、未観測の初期待機に依存しないことを確認する。
+        // Let the receive boundary exit without relying on startup observing the failed wait.
         private sealed class FailedSnapshotExit : IEditModeTestYieldInstruction
         {
             public bool ExpectDomainReload => false;
@@ -65,20 +75,63 @@ namespace Client.Tests.EditModeInPlayingTest
                 SessionState.SetInt("TrainFatalExit_Flushes", 0);
                 CleanExitMarkWriter.InstallAtStartup(ProcessId, Session);
                 GameShutdownEvent.RegisterParticipant(new SaveProbe());
-                using var notification = GameShutdownEvent.OnGameShutdown.Subscribe(reason =>
-                {
-                    Assert.AreEqual(GameShutdownReason.FatalSynchronizationFailure, reason);
-                    SessionState.SetInt("TrainFatalExit_Notices", SessionState.GetInt("TrainFatalExit_Notices", 0) + 1);
-                });
                 using var client = new TrainSnapshotClientFixture();
-                LogAssert.Expect(LogType.Error, new Regex("TrainFullSnapshot.*initial apply failed"));
-                client.ApplyRail(new byte[] { 0xC1 });
-                var failure = Assert.Throws<TrainInitialSnapshotException>(() => client.Handler.WaitForInitialApplyAsync().GetAwaiter().GetResult());
-                var callback = typeof(InitializeScenePipeline).GetMethod("OnMainGameInitializationFailed", BindingFlags.NonPublic | BindingFlags.Static);
-                Assert.IsNotNull(callback);
-                callback.Invoke(null, new object[] { failure });
-                Assert.IsFalse(GameShutdownEvent.NotifyUnannouncedExit());
-                while (EditorApplication.isPlaying) yield return null;
+                var initialApply = client.Handler.WaitForInitialApplyAsync();
+                var previousApi = ClientContext.VanillaApi;
+                using var source = new Subject<EventMessagePack>();
+                var exchange = (PacketExchangeManager)FormatterServices.GetUninitializedObject(typeof(PacketExchangeManager));
+                TestReflection.SetField(exchange, "_eventPacketSubject", source);
+                var dispatcher = new VanillaApiEvent(exchange);
+                var api = (VanillaApi)FormatterServices.GetUninitializedObject(typeof(VanillaApi));
+                typeof(VanillaApi).GetField("Event").SetValue(api, dispatcher);
+                try
+                {
+                    TestReflection.SetStaticProperty(typeof(ClientContext), "VanillaApi", api);
+                    client.Handler.Initialize();
+                    using var deltas = new TrainUnitTickDiffBundleEventNetworkHandler(client.Context, client.Trains);
+                    deltas.Initialize();
+                    using var notification = GameShutdownEvent.OnGameShutdown.Subscribe(reason =>
+                    {
+                        Assert.AreEqual(GameShutdownReason.FatalSynchronizationFailure, reason);
+                        Assert.AreEqual(UniTaskStatus.Pending, initialApply.Status);
+                        SessionState.SetInt("TrainFatalExit_Notices", SessionState.GetInt("TrainFatalExit_Notices", 0) + 1);
+                        // 終了通知内の購読解除と通常終了の再入にも保存させない。
+                        // Unsubscribing and re-entering normal quit during the notice must not save.
+                        client.Handler.Dispose();
+                        Assert.AreEqual(ShutdownFlushResult.AlreadyShutdown, GameShutdownEvent.FireGameShutdownAsync(GameShutdownReason.IntentionalExit).GetAwaiter().GetResult());
+                        Assert.IsFalse(GameShutdownEvent.NotifyUnannouncedExit());
+                    });
+                    var replayedDeltas = 0;
+                    using var replay = dispatcher.SubscribeEventResponse(TrainUnitTickDiffBundleEventPacket.EventTag, _ => replayedDeltas++);
+                    source.OnNext(new EventMessagePack(TrainFullSnapshotEventPacket.RailGraphFullSnapshotEventTag, new byte[] { 0xC1 }));
+                    var delta = new TrainUnitTickDiffBundleMessagePack(1, 1, 1, uint.MaxValue, uint.MaxValue,
+                        Array.Empty<global::Game.Train.Unit.TickSynchronization.TrainTickDiffData>());
+                    source.OnNext(new EventMessagePack(TrainUnitTickDiffBundleEventPacket.EventTag, MessagePackSerializer.Serialize(delta)));
+                    LogAssert.Expect(LogType.Error, new Regex("TrainFullSnapshot.*initial apply failed"));
+                    Assert.DoesNotThrow(() => dispatcher.InitializeDispatch());
+
+                    // 待機結果を読む前に保存なし終了と後続replay停止を観測する。
+                    // Observe no-save exit and stopped delta application before reading the wait result.
+                    Assert.AreEqual(1, SessionState.GetInt("TrainFatalExit_Notices", 0));
+                    Assert.AreEqual(0, SessionState.GetInt("TrainFatalExit_Flushes", 0));
+                    Assert.AreEqual(1, replayedDeltas);
+                    Assert.IsTrue(client.Context.State.IsStopped);
+                    Assert.IsFalse(client.Context.Events.TryFlushEvent(1ul << 32 | 1));
+                    GameShutdownEvent.QuitApplicationAsync().GetAwaiter().GetResult();
+                    Assert.AreEqual(0, SessionState.GetInt("TrainFatalExit_Flushes", 0));
+                    var failure = Assert.Throws<TrainInitialSnapshotException>(() => initialApply.GetAwaiter().GetResult());
+                    var callback = typeof(InitializeScenePipeline).GetMethod("OnMainGameInitializationFailed", BindingFlags.NonPublic | BindingFlags.Static);
+                    Assert.IsNotNull(callback);
+                    var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().path;
+                    callback.Invoke(null, new object[] { failure });
+                    Assert.AreEqual(scene, UnityEngine.SceneManagement.SceneManager.GetActiveScene().path);
+                    Assert.AreEqual(1, SessionState.GetInt("TrainFatalExit_Notices", 0));
+                    while (EditorApplication.isPlaying) yield return null;
+                }
+                finally
+                {
+                    TestReflection.SetStaticProperty(typeof(ClientContext), "VanillaApi", previousApi);
+                }
             }
         }
 

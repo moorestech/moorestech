@@ -561,3 +561,10 @@ D1/C実測検証: 最終compile 0 errors / 8 warnings（既存UnitGenerator・Ed
 初回liveは残存IDisposable DI登録で1/2、修正後は新testの受信/適用待機条件不備で104/105となり、両方の失敗XML・ログを保存した。DI登録を掃引修正し、観測deltaの統合IDまでの適用を待つテストへ直した。catch-up製品式は変更していない。最終Console Error17件は意図した初期failure12件＋runtime hash不一致2件、既知CEF遷移例外1件＋終了時socket2件。raw logには3回のPlay遷移ごとのCEF例外とfatal fixtureの期待Errorも残る。通常保存乗車のstrict区間に同期Errorなし。既知tree-prefab scopeは維持しWindows受入0件、Linux再確認はCIへ残る。
 
 証跡: 外部 `C:/Users/5080/Documents/ChatGPT/tick-delta-refactor-20260926/fatal-r3-{compile.json,loaded-before.json,loaded-after.json,all.xml,editor.log,errors.json,source-manifest.json}` と `initial-sync-fatal-decision-report.md`。CLIのreload切断は成功根拠にせず、終了済みXMLで判定した。EditorPlaying=false / BootstrapDisabled=false。実C#差分は追加/削除を含む30ファイル、通常protocol/save形式とD2/Aを保持。既存大型API/integration fixtureの全分割は行わず、201行の起動boundaryも含め規模上の残存をreportへ明記する。
+
+
+### D1/C独立review Critical修正（W7 round 1、2026-09-26）
+
+独立reviewは、初期snapshot失敗からfatal終了までの間にTerrain構築待機が入り、通常終了が保存を開始できる窓を検出した。受信境界で停止・保存なし終了をcompletion faultより先に確定する。finalizerはdispatch前にtrain初期待機を取得し、dispatch直後・Terrain開始前に観測して、終了後の地形処理へ進まない。既存outcrop開始後の全target待機は維持する。非poolのUniTaskCompletionSourceは結果を消費時にresetせず複数consumerを保持するため、同じ初期completionを両境界で観測できる。
+
+回帰は12failureの各々で初期待機を読む前のfatal通知・通常終了からの保存不可を確認し、実PlayModeでは同期replay中のfailure自体が終了することと、終了通知内の購読解除・通常終了再入・後続delta・後着typed catchを検証する。必須comment guardのclass説明1件も同時修正する。終了検出前から進行中だったsaveの取消には範囲を広げない。
