@@ -1,26 +1,15 @@
+using Core.Update.TickSynchronization;
 using System;
 
-namespace Client.Game.InGame.Train.Unit
+namespace Client.Game.Common.TickSynchronization
 {
-    // tick と tickSequenceId を単一の比較キーに統合する。
-    // Compose tick and tickSequenceId into a single monotonic order key.
-    public static class TrainTickUnifiedIdUtility
-    {
-        // 上位32bitにtick、下位32bitにtickSequenceIdを詰める。
-        // Pack tick into high 32 bits and tickSequenceId into low 32 bits.
-        public static ulong CreateTickUnifiedId(uint tick, uint tickSequenceId)
-        {
-            return ((ulong)tick << 32) | tickSequenceId;
-        }
-    }
-
-    // クライアント列車シミュレーションのtick状態を一元管理する。
-    // Centralize tick state for client train simulation.
-    public sealed class TrainUnitTickState
+    // クライアントstreamのtick状態を一元管理する。
+    // Centralize tick state for a client stream.
+    internal sealed class ClientTickState
     {
         private ulong _appliedTickUnifiedId = 0;
         private uint _maxBufferedTicks = 0;
-        
+
         // 統合IDから上位32bitのtickを取り出す。
         // Extract high 32-bit tick from unified id.
         public uint GetTick()
@@ -43,7 +32,7 @@ namespace Client.Game.InGame.Train.Unit
         // Update the highest applied tickUnifiedId.
         public void RecordAppliedTickUnifiedId(uint tick, uint tickSequenceId)
         {
-            RecordAppliedTickUnifiedId(TrainTickUnifiedIdUtility.CreateTickUnifiedId(tick, tickSequenceId));
+            RecordAppliedTickUnifiedId(TickUnifiedIdUtility.CreateTickUnifiedId(tick, tickSequenceId));
         }
         public void RecordAppliedTickUnifiedId(ulong tickUnifiedId)
         {
@@ -53,11 +42,11 @@ namespace Client.Game.InGame.Train.Unit
             }
             _appliedTickUnifiedId = tickUnifiedId;
         }
-        
+
         // バッファー済み最大tick
         public void SetMaxBufferedTicks(uint maxBufferedTicks)
         {
-            _maxBufferedTicks = Math.Max(_maxBufferedTicks, maxBufferedTicks); 
+            _maxBufferedTicks = Math.Max(_maxBufferedTicks, maxBufferedTicks);
         }
         public uint GetMaxBufferedTicks()
         {
@@ -67,7 +56,7 @@ namespace Client.Game.InGame.Train.Unit
         public void AdvanceTick()
         {
             var tick = GetTick() + 1;
-            _appliedTickUnifiedId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(tick, 0);
+            _appliedTickUnifiedId = TickUnifiedIdUtility.CreateTickUnifiedId(tick, 0);
         }
     }
 }

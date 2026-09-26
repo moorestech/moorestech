@@ -8,6 +8,8 @@ using MessagePack;
 using Server.Event.EventReceive;
 using Server.Util.MessagePack;
 using VContainer.Unity;
+using Client.Game.Common.TickSynchronization;
+using Client.Game.InGame.Train.Network.TickSynchronization;
 
 namespace Client.Game.InGame.Train.Network
 {
@@ -15,17 +17,17 @@ namespace Client.Game.InGame.Train.Network
     // Receive per-train-unit snapshot events and enqueue them into the future buffer.
     public sealed class TrainUnitSnapshotEventNetworkHandler : IInitializable, IDisposable
     {
-        private readonly TrainUnitFutureMessageBuffer _futureMessageBuffer;
+        private readonly TrainTickContext _context;
         private readonly TrainUnitClientCache _cache;
         private readonly TrainCarObjectDatastore _trainCarDatastore;
         private IDisposable _subscription;
 
         public TrainUnitSnapshotEventNetworkHandler(
-            TrainUnitFutureMessageBuffer futureMessageBuffer,
+            TrainTickContext context,
             TrainUnitClientCache cache,
             TrainCarObjectDatastore trainCarDatastore)
         {
-            _futureMessageBuffer = futureMessageBuffer;
+            _context = context;
             _cache = cache;
             _trainCarDatastore = trainCarDatastore;
         }
@@ -54,13 +56,13 @@ namespace Client.Game.InGame.Train.Network
                 return;
             }
 
-            _futureMessageBuffer.EnqueueEvent(message.ServerTick, message.TickSequenceId, CreateBufferedEvent(message));
+            _context.Events.EnqueueEvent(message.ServerTick, message.TickSequenceId, CreateBufferedEvent(message));
 
             #region Internal
 
-            ITrainTickBufferedEvent CreateBufferedEvent(TrainUnitSnapshotEventMessagePack messagePack)
+            ITickBufferedEvent CreateBufferedEvent(TrainUnitSnapshotEventMessagePack messagePack)
             {
-                return TrainTickBufferedEvent.Create(ApplySnapshotEvent);
+                return TickBufferedEvent.Create(ApplySnapshotEvent);
 
                 void ApplySnapshotEvent()
                 {

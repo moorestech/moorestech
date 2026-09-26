@@ -6,6 +6,8 @@ using Server.Event.EventReceive;
 using Server.Util.MessagePack;
 using UniRx;
 using VContainer.Unity;
+using Client.Game.Common.TickSynchronization;
+using Client.Game.InGame.Train.Network.TickSynchronization;
 
 namespace Client.Game.InGame.Train.Network
 {
@@ -15,15 +17,15 @@ namespace Client.Game.InGame.Train.Network
     /// </summary>
     public sealed class RailGraphConnectionNetworkHandler : IInitializable, IDisposable
     {
-        private readonly TrainUnitFutureMessageBuffer _futureMessageBuffer;
+        private readonly TrainTickContext _context;
         private readonly RailGraphClientCache _cache;
         private readonly CompositeDisposable _subscriptions = new();
 
         public RailGraphClientCache Cache => _cache;
 
-        public RailGraphConnectionNetworkHandler(TrainUnitFutureMessageBuffer futureMessageBuffer, RailGraphClientCache cache)
+        public RailGraphConnectionNetworkHandler(TrainTickContext context, RailGraphClientCache cache)
         {
-            _futureMessageBuffer = futureMessageBuffer;
+            _context = context;
             _cache = cache;
         }
 
@@ -46,12 +48,12 @@ namespace Client.Game.InGame.Train.Network
                 {
                     return;
                 }
-                _futureMessageBuffer.EnqueueEvent(message.ServerTick, message.TickSequenceId, CreateBufferedEvent(message));
+                _context.Events.EnqueueEvent(message.ServerTick, message.TickSequenceId, CreateBufferedEvent(message));
                 
                 
-                ITrainTickBufferedEvent CreateBufferedEvent(RailConnectionCreatedMessagePack messagePack)
+                ITickBufferedEvent CreateBufferedEvent(RailConnectionCreatedMessagePack messagePack)
                 {
-                    return TrainTickBufferedEvent.Create(ApplyCreatedConnection);
+                    return TickBufferedEvent.Create(ApplyCreatedConnection);
                     
                     void ApplyCreatedConnection()
                     {
@@ -91,12 +93,12 @@ namespace Client.Game.InGame.Train.Network
             {
                 return;
             }
-            _futureMessageBuffer.EnqueueEvent(message.ServerTick, message.TickSequenceId, CreateBufferedEvent(message));
+            _context.Events.EnqueueEvent(message.ServerTick, message.TickSequenceId, CreateBufferedEvent(message));
 
         #region Internal
-            ITrainTickBufferedEvent CreateBufferedEvent(RailConnectionRemovedMessagePack messagePack)
+            ITickBufferedEvent CreateBufferedEvent(RailConnectionRemovedMessagePack messagePack)
             {
-                return TrainTickBufferedEvent.Create(ApplyRemovedConnection);
+                return TickBufferedEvent.Create(ApplyRemovedConnection);
 
                 void ApplyRemovedConnection()
                 {

@@ -1,26 +1,26 @@
 using System;
 
-namespace Client.Game.InGame.Train.Network
+namespace Client.Game.Common.TickSynchronization
 {
     // delegateで適用処理を持つ汎用tickイベント。
     // Generic tick event that stores apply logic as a delegate.
-    public sealed class TrainTickBufferedEvent : ITrainTickBufferedEvent
+    internal sealed class TickBufferedEvent : ITickBufferedEvent
     {
         private readonly Action _applyAction;
 
-        private TrainTickBufferedEvent(Action applyAction)
+        private TickBufferedEvent(Action applyAction)
         {
             _applyAction = applyAction;
         }
 
-        public static ITrainTickBufferedEvent Create(Action applyAction)
+        public static ITickBufferedEvent Create(Action applyAction)
         {
             if (applyAction == null)
             {
                 throw new ArgumentNullException(nameof(applyAction));
             }
 
-            return new TrainTickBufferedEvent(applyAction);
+            return new TickBufferedEvent(applyAction);
         }
 
         public void Apply()

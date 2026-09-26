@@ -12,6 +12,8 @@ using Server.Event.EventReceive;
 using UniRx;
 using VContainer.Unity;
 using Debug = UnityEngine.Debug;
+using Client.Game.InGame.Train.Network.TickSynchronization;
+using Core.Update.TickSynchronization;
 
 namespace Client.Game.InGame.Train.Network
 {
@@ -21,7 +23,7 @@ namespace Client.Game.InGame.Train.Network
     {
         private readonly RailGraphSnapshotApplier _railGraphSnapshotApplier;
         private readonly TrainUnitSnapshotApplier _trainSnapshotApplier;
-        private readonly TrainUnitFutureMessageBuffer _futureMessageBuffer;
+        private readonly TrainTickContext _context;
         private readonly Subject<ulong> _onFullSnapshotApplied = new();
         private IDisposable _railSubscription;
         private IDisposable _trainSubscription;
@@ -42,11 +44,11 @@ namespace Client.Game.InGame.Train.Network
         public TrainFullSnapshotEventNetworkHandler(
             RailGraphSnapshotApplier railGraphSnapshotApplier,
             TrainUnitSnapshotApplier trainSnapshotApplier,
-            TrainUnitFutureMessageBuffer futureMessageBuffer)
+            TrainTickContext context)
         {
             _railGraphSnapshotApplier = railGraphSnapshotApplier;
             _trainSnapshotApplier = trainSnapshotApplier;
-            _futureMessageBuffer = futureMessageBuffer;
+            _context = context;
         }
 
         public void Initialize()
@@ -95,9 +97,9 @@ namespace Client.Game.InGame.Train.Network
 
                 // watermark以下の古いdiff/hashをpurgeし、以後のイベントが連続適用できる状態にする
                 // Purge stale diffs/hashes at or below the watermark so later events continue seamlessly
-                var watermarkId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(message.ServerTick, message.WatermarkTickSequenceId);
-                _futureMessageBuffer.DiscardEventsAtOrBelow(watermarkId);
-                _futureMessageBuffer.DiscardHashesOlderThan(watermarkId);
+                var watermarkId = TickUnifiedIdUtility.CreateTickUnifiedId(message.ServerTick, message.WatermarkTickSequenceId);
+                _context.Events.DiscardEventsAtOrBelow(watermarkId);
+                _context.Hashes.DiscardHashesOlderThan(watermarkId);
 
                 // 適用完了を先に確定させる。OnNextは購読者を同期実行するため、購読者の例外で起動が失敗扱いになるのを防ぐ
                 // Settle the apply first: OnNext runs subscribers synchronously, so a subscriber throwing must not mark startup as failed

@@ -3,6 +3,8 @@ using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.Train.Unit;
 using Server.Util.MessagePack;
 using UnityEngine;
+using Client.Game.InGame.Train.Network.TickSynchronization;
+using Core.Update.TickSynchronization;
 
 namespace Client.Game.InGame.Train.Network
 {
@@ -14,16 +16,16 @@ namespace Client.Game.InGame.Train.Network
     {
         private readonly RailGraphClientCache _cache;
         private readonly ClientStationReferenceRegistry _stationReferenceRegistry;
-        private readonly TrainUnitTickState _tickState;
+        private readonly TrainTickContext _context;
 
         public RailGraphSnapshotApplier(
             RailGraphClientCache cache,
             ClientStationReferenceRegistry stationReferenceRegistry,
-            TrainUnitTickState tickState)
+            TrainTickContext context)
         {
             _cache = cache;
             _stationReferenceRegistry = stationReferenceRegistry;
-            _tickState = tickState;
+            _context = context;
         }
 
         public void ApplySnapshot(RailGraphSnapshotMessagePack snapshot)
@@ -35,15 +37,15 @@ namespace Client.Game.InGame.Train.Network
                 return;
             }
 
-            var unifiedId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(snapshot.GraphTick, snapshot.GraphTickSequenceId);
-            if (unifiedId < _tickState.GetAppliedTickUnifiedId())
+            var unifiedId = TickUnifiedIdUtility.CreateTickUnifiedId(snapshot.GraphTick, snapshot.GraphTickSequenceId);
+            if (unifiedId < _context.State.GetAppliedTickUnifiedId())
             {
                 // 遅延rail snapshotが既に適用済み範囲より古い場合は破棄する。
                 // Ignore delayed rail snapshots older than the applied sequence baseline.
                 Debug.LogWarning(
                     "[RailGraphSnapshotApplier] Ignored stale rail snapshot. " +
                     $"graphTick={snapshot.GraphTick}, graphTickSequenceId={snapshot.GraphTickSequenceId}, " +
-                    $"appliedTickUnifiedId={_tickState.GetAppliedTickUnifiedId()}");
+                    $"appliedTickUnifiedId={_context.State.GetAppliedTickUnifiedId()}");
                 return;
             }
 
@@ -57,7 +59,7 @@ namespace Client.Game.InGame.Train.Network
             // 駅参照をキャッシュへ反映する
             // Apply station references to cache.
             _stationReferenceRegistry.ApplyStationReferences();
-            _tickState.RecordAppliedTickUnifiedId(unifiedId);
+            _context.State.RecordAppliedTickUnifiedId(unifiedId);
 
             #region Internal
             int ResolveMaxNodeId(RailGraphSnapshotMessagePack targetSnapshot)

@@ -7,6 +7,8 @@ using Server.Event.EventReceive;
 using Server.Util.MessagePack;
 using UniRx;
 using VContainer.Unity;
+using Client.Game.Common.TickSynchronization;
+using Client.Game.InGame.Train.Network.TickSynchronization;
 
 namespace Client.Game.InGame.Train.Network
 {
@@ -16,17 +18,17 @@ namespace Client.Game.InGame.Train.Network
     /// </summary>
     public sealed class RailGraphCacheNetworkHandler : IInitializable, IDisposable
     {
-        private readonly TrainUnitFutureMessageBuffer _futureMessageBuffer;
+        private readonly TrainTickContext _context;
         private readonly RailGraphClientCache _cache;
         private readonly ClientStationReferenceRegistry _stationReferenceRegistry;
         private readonly CompositeDisposable _subscriptions = new();
 
         public RailGraphCacheNetworkHandler(
-            TrainUnitFutureMessageBuffer futureMessageBuffer,
+            TrainTickContext context,
             RailGraphClientCache cache,
             ClientStationReferenceRegistry stationReferenceRegistry)
         {
-            _futureMessageBuffer = futureMessageBuffer;
+            _context = context;
             _cache = cache;
             _stationReferenceRegistry = stationReferenceRegistry;
         }
@@ -55,12 +57,12 @@ namespace Client.Game.InGame.Train.Network
                 {
                     return;
                 }
-                _futureMessageBuffer.EnqueueEvent(message.ServerTick, message.TickSequenceId, CreateBufferedEvent(message));
+                _context.Events.EnqueueEvent(message.ServerTick, message.TickSequenceId, CreateBufferedEvent(message));
                 return;
 
-                ITrainTickBufferedEvent CreateBufferedEvent(RailNodeCreatedMessagePack messagePack)
+                ITickBufferedEvent CreateBufferedEvent(RailNodeCreatedMessagePack messagePack)
                 {
-                    return TrainTickBufferedEvent.Create(ApplyCreatedNode);
+                    return TickBufferedEvent.Create(ApplyCreatedNode);
 
                     void ApplyCreatedNode()
                     {
@@ -88,11 +90,11 @@ namespace Client.Game.InGame.Train.Network
                 {
                     return;
                 }
-                _futureMessageBuffer.EnqueueEvent(message.ServerTick, message.TickSequenceId, CreateBufferedEvent(message));
+                _context.Events.EnqueueEvent(message.ServerTick, message.TickSequenceId, CreateBufferedEvent(message));
 
-                ITrainTickBufferedEvent CreateBufferedEvent(RailNodeRemovedMessagePack messagePack)
+                ITickBufferedEvent CreateBufferedEvent(RailNodeRemovedMessagePack messagePack)
                 {
-                    return TrainTickBufferedEvent.Create(ApplyRemovedNode);
+                    return TickBufferedEvent.Create(ApplyRemovedNode);
 
                     void ApplyRemovedNode()
                     {

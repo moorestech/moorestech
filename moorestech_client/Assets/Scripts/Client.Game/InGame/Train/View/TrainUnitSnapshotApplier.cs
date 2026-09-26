@@ -4,6 +4,8 @@ using Client.Game.InGame.Train.View.Object.Core;
 using Client.Network.API;
 using Game.Train.Unit;
 using UnityEngine;
+using Client.Game.InGame.Train.Network.TickSynchronization;
+using Core.Update.TickSynchronization;
 
 namespace Client.Game.InGame.Train.View
 {
@@ -14,16 +16,16 @@ namespace Client.Game.InGame.Train.View
     public sealed class TrainUnitSnapshotApplier
     {
         private readonly TrainUnitClientCache _cache;
-        private readonly TrainUnitTickState _tickState;
+        private readonly TrainTickContext _context;
         private readonly TrainCarObjectDatastore _trainCarDatastore;
 
         public TrainUnitSnapshotApplier(
             TrainUnitClientCache cache,
-            TrainUnitTickState tickState,
+            TrainTickContext context,
             TrainCarObjectDatastore trainCarDatastore)
         {
             _cache = cache;
-            _tickState = tickState;
+            _context = context;
             _trainCarDatastore = trainCarDatastore;
         }
 
@@ -32,17 +34,17 @@ namespace Client.Game.InGame.Train.View
         public void ApplySnapshot(TrainUnitSnapshotResponse response)
         {
             if (response == null) return;
-            var snapshotTickUnifiedId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(response.ServerTick, response.TickSequenceId);
+            var snapshotTickUnifiedId = TickUnifiedIdUtility.CreateTickUnifiedId(response.ServerTick, response.TickSequenceId);
             Debug.Log("ApplySnapshotTrainUnit: " + response.ServerTick + "_" + response.TickSequenceId);
             
-            if (snapshotTickUnifiedId < _tickState.GetAppliedTickUnifiedId())
+            if (snapshotTickUnifiedId < _context.State.GetAppliedTickUnifiedId())
             {
                 // 遅延して届いた古いsnapshotは適用せず破棄する。
                 // Ignore delayed snapshots that are older than the applied sequence baseline.
                 Debug.LogWarning(
                     "[TrainUnitSnapshotApplier] Ignored stale snapshot response. " +
                     $"serverTick={response.ServerTick}, tickSequenceId={response.TickSequenceId}, " +
-                    $"snapshotTickUnifiedId={snapshotTickUnifiedId}, appliedTickUnifiedId={_tickState.GetAppliedTickUnifiedId()}");
+                    $"snapshotTickUnifiedId={snapshotTickUnifiedId}, appliedTickUnifiedId={_context.State.GetAppliedTickUnifiedId()}");
                 return;
             }
 
@@ -76,7 +78,7 @@ namespace Client.Game.InGame.Train.View
             // cache更新後に列車表示オブジェクトを全再生成する
             // Recreate all train view objects after cache replacement
             _trainCarDatastore.RecreateAllTrainEntities(bundles);
-            _tickState.RecordAppliedTickUnifiedId(snapshotTickUnifiedId);
+            _context.State.RecordAppliedTickUnifiedId(snapshotTickUnifiedId);
         }
     }
 }

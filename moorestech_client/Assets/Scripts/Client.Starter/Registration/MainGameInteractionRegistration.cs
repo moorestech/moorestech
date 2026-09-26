@@ -58,6 +58,7 @@ using Game.PlayerRiding.Interface;
 using Game.UnlockState;
 using VContainer;
 using VContainer.Unity;
+using Client.Game.InGame.Train.Network.TickSynchronization;
 
 namespace Client.Starter.Registration
 {
@@ -165,12 +166,11 @@ namespace Client.Starter.Registration
                 .AsSelf().As<IInitializable>().As<IDisposable>();
             builder.Register<RailGraphSnapshotApplier>(Lifetime.Singleton);
             builder.Register<TrainUnitClientCache>(Lifetime.Singleton);
-            builder.Register<TrainUnitTickState>(Lifetime.Singleton);
-            builder.Register<TrainUnitFutureMessageBuffer>(Lifetime.Singleton);
+            builder.Register<TrainTickContext>(Lifetime.Singleton);
             builder.Register<TrainUnitSnapshotApplier>(Lifetime.Singleton);
             builder.Register<TrainUnitVisualUpdateSystem>(Lifetime.Singleton);
             builder.Register<TrainUnitClientSimulator>(Lifetime.Singleton).AsSelf().As<ITickable>();
-            builder.Register<TrainUnitHashVerifier>(Lifetime.Singleton).As<ITrainUnitHashTickGate>().As<IDisposable>();
+            builder.Register<TrainUnitHashVerifier>(Lifetime.Singleton).AsSelf().As<IDisposable>();
             builder.Register<TrainUnitDebugOverlayPresenter>(Lifetime.Singleton).As<ITickable>().As<IDisposable>();
         }
     }

@@ -5,6 +5,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using VContainer.Unity;
+using Client.Game.InGame.Train.Network.TickSynchronization;
 
 namespace Client.Game.InGame.Train.DebugView
 {
@@ -14,7 +15,7 @@ namespace Client.Game.InGame.Train.DebugView
         private const int SortingOrder = 32700;
 
         private readonly TrainUnitClientCache _trainCache;
-        private readonly TrainUnitTickState _tickState;
+        private readonly TrainTickContext _context;
         private readonly TrainUnitDebugStatusFormatter _formatter = new();
 
         private GameObject _root;
@@ -22,10 +23,10 @@ namespace Client.Game.InGame.Train.DebugView
         private float _elapsedSeconds = RefreshIntervalSeconds;
         private bool _wasEnabled;
 
-        public TrainUnitDebugOverlayPresenter(TrainUnitClientCache trainCache, TrainUnitTickState tickState)
+        public TrainUnitDebugOverlayPresenter(TrainUnitClientCache trainCache, TrainTickContext context)
         {
             _trainCache = trainCache;
-            _tickState = tickState;
+            _context = context;
         }
 
         public void Tick()
@@ -53,7 +54,7 @@ namespace Client.Game.InGame.Train.DebugView
             // Create the overlay when enabled, then refresh text at a fixed interval.
             EnsureOverlay();
             _wasEnabled = true;
-            _text.text = _formatter.Format(_trainCache, _tickState);
+            _text.text = _formatter.Format(_trainCache, _context);
         }
 
         public void Dispose()
@@ -112,7 +113,7 @@ namespace Client.Game.InGame.Train.DebugView
             _text.alignment = TextAlignmentOptions.TopLeft;
             _text.textWrappingMode = TextWrappingModes.NoWrap;
             _text.overflowMode = TextOverflowModes.Overflow;
-            _text.text = _formatter.Format(_trainCache, _tickState);
+            _text.text = _formatter.Format(_trainCache, _context);
         }
 
         private void HideOverlay()

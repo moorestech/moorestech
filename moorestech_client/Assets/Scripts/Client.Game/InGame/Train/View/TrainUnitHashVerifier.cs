@@ -7,32 +7,31 @@ using Client.Game.InGame.Train.Unit;
 using Cysharp.Threading.Tasks;
 using UniRx;
 using UnityEngine;
+using Client.Game.Common.TickSynchronization;
+using Client.Game.InGame.Train.Network.TickSynchronization;
 
 namespace Client.Game.InGame.Train.View
 {
     // Train/Railのhash gate判定と不整合時リシンクを担当する
     // Handles train/rail hash gate checks and resync on mismatch.
-    public sealed class TrainUnitHashVerifier : ITrainUnitHashTickGate, IDisposable
+    public sealed class TrainUnitHashVerifier : ITickAdvanceGate, IDisposable
     {
-        private readonly TrainUnitFutureMessageBuffer _futureMessageBuffer;
+        private readonly TrainTickContext _context;
         private readonly TrainUnitClientCache _trainCache;
         private readonly RailGraphClientCache _railGraphCache;
-        private readonly TrainUnitTickState _tickState;
         private readonly IDisposable _fullSnapshotSubscription;
         private CancellationTokenSource _resyncCancellation;
         private int _resyncInProgress;
 
         public TrainUnitHashVerifier(
             TrainFullSnapshotEventNetworkHandler fullSnapshotEventNetworkHandler,
-            TrainUnitFutureMessageBuffer futureMessageBuffer,
+            TrainTickContext context,
             TrainUnitClientCache trainCache,
-            RailGraphClientCache railGraphCache,
-            TrainUnitTickState tickState)
+            RailGraphClientCache railGraphCache)
         {
-            _futureMessageBuffer = futureMessageBuffer;
+            _context = context;
             _trainCache = trainCache;
             _railGraphCache = railGraphCache;
-            _tickState = tickState;
 
             // full snapshot適用完了でresyncゲートを解除する（適用自体はhandlerが担う）
             // Release the resync gate on full-snapshot application; the handler owns the apply itself
@@ -76,15 +75,15 @@ namespace Client.Game.InGame.Train.View
                 return false;
             // 古いhashはバッファから捨てる
             // Discard any stale hashes that are older than the current tick
-            _futureMessageBuffer.DiscardHashesOlderThan(currentTickUnifiedId);
+            _context.Hashes.DiscardHashesOlderThan(currentTickUnifiedId);
             
             // このtickにメッセージがなく将来tickにメッセージがある場合このtickのメッセージは送られてこない可能性が非常に高い。なのでTickを強制的に進めることにする
             // If there is no message for the current tick but there are messages for future ticks, it's likely that the current tick's message won't arrive. In that case, we will force advance the tick.
-            if (!_futureMessageBuffer.TryDequeueHashAtTickSequenceId(currentTickUnifiedId, out var message))
+            if (!_context.Hashes.TryDequeueHashAtTickSequenceId(currentTickUnifiedId, out var message))
             {
                 // バッファが空なら次バンドル待ちの正常状態なので警告しない
                 // An empty buffer just means waiting for the next bundle, so stay silent
-                if (!_futureMessageBuffer.TryGetFirstHashTickUnifiedId(out var firstBufferedTickUnifiedId))
+                if (!_context.Hashes.TryGetFirstHashTickUnifiedId(out var firstBufferedTickUnifiedId))
                     return false;
                 Debug.LogWarning(
                     $"tick force slip! expected={currentTickUnifiedId >> 32}_{(uint)currentTickUnifiedId}, " +
@@ -101,7 +100,7 @@ namespace Client.Game.InGame.Train.View
             {
                 if (IsDummyHash(message))
                 {
-                    _tickState.RecordAppliedTickUnifiedId(currentTickUnifiedId);
+                    _context.State.RecordAppliedTickUnifiedId(currentTickUnifiedId);
                     return true;
                 }
 
@@ -113,11 +112,11 @@ namespace Client.Game.InGame.Train.View
                 var isRailGraphMismatch = localRailGraphHash != message.railGraphHash;
                 if (!isTrainMismatch && !isRailGraphMismatch)
                 {
-                    _tickState.RecordAppliedTickUnifiedId(currentTickUnifiedId);
+                    _context.State.RecordAppliedTickUnifiedId(currentTickUnifiedId);
                     return true;
                 }
                 Debug.LogWarning(
-                    $"[TrainUnitHashVerifier] Hash mismatch detected. tick={_tickState.GetTick()}, " +
+                    $"[TrainUnitHashVerifier] Hash mismatch detected. tick={_context.State.GetTick()}, " +
                     $"train(client={localTrainHash}, server={message.unitsHash}), " +
                     $"rail(client={localRailGraphHash}, server={message.railGraphHash}), " +
                     $"tickSequenceId={message.tickSequenceId}. Requesting snapshot.");
@@ -128,8 +127,8 @@ namespace Client.Game.InGame.Train.View
                 
                 bool IsDummyHash((uint unitsHash, uint railGraphHash, uint serverTick, uint tickSequenceId) hashState)
                 {
-                    return hashState.unitsHash == TrainUnitFutureMessageBuffer.DummyHash &&
-                           hashState.railGraphHash == TrainUnitFutureMessageBuffer.DummyHash;
+                    return hashState.unitsHash == TrainUnitHashBuffer.DummyHash &&
+                           hashState.railGraphHash == TrainUnitHashBuffer.DummyHash;
                 }
             }
 
