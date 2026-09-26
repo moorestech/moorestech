@@ -39,6 +39,7 @@
         "Game.PlayerInventory.Interface",
         "CommandForgeGeneratorUtil.Editor",
         "Client.WebUiHost",
+        "Client.Build.Policy",
         "Client.Playtest",
         "Client.Skit",
         "Unity.Addressables.Editor",

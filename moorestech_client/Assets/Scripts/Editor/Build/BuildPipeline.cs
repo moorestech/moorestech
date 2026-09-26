@@ -20,7 +20,11 @@ namespace Client.Editor.Build
             Debug.Log("Build Start Time : " + DateTime.Now);
             var buildStartTime = DateTime.Now;
 
-            var buildOptionsFlags = request.IsDevelopmentBuild
+            // 同梱・検査の方針は用途からだけ導く
+            // Bundling and check policy derive from the purpose alone
+            var isStrictBundling = BuildPurposeRules.IsStrictBundling(request.Purpose);
+
+            var buildOptionsFlags = BuildPurposeRules.IsDevelopmentBuild(request.Purpose, request.LocalDevelopmentChoosesDevelopment)
                 ? BuildOptions.Development
                 : BuildOptions.CompressWithLz4;
 
@@ -43,6 +47,13 @@ namespace Client.Editor.Build
                 return PlayerBuildOutcome.PlayerBuildFailed;
             }
 
+            // CEFのMacランタイムがarm64のみのため、Macは焼く前にarm64へ固定する
+            // CEF's Mac runtime is arm64 only, so pin the Mac player to arm64 before building
+            if (request.Target == BuildTarget.StandaloneOSX && !MacPlayerArchitecture.TryPinAppleSilicon(isStrictBundling))
+            {
+                return PlayerBuildOutcome.PlayerBuildFailed;
+            }
+
             // Addressablesコンテンツをクリーンビルドする
             // Clean build Addressables content before building the player
             AddressableAssetSettings.CleanPlayerContent();
@@ -56,7 +67,7 @@ namespace Client.Editor.Build
 
             // 他の同梱と同じく strict を引数で渡して焼く。strict の関門は BuildPlayer の数十分より前に落とす
             // Bake with strict passed as an argument like the other bundlers; the strict gate fails before BuildPlayer's lengthy run
-            BuildInfoWriter.Write(request.IsStrictBundling, request.Target);
+            BuildInfoWriter.Write(isStrictBundling, request.Target);
             var report = UnityEditor.BuildPipeline.BuildPlayer(buildOptions);
             Debug.Log("Build Result :" + report.summary.result);
 
@@ -64,18 +75,23 @@ namespace Client.Editor.Build
             // Only on success, bundle the CEF runtime and game data the player needs to run
             if (report.summary.result == BuildResult.Succeeded)
             {
-                CefRuntimeBundler.Bundle(request.Target, report.summary.outputPath, request.IsStrictBundling);
-                FfmpegRuntimeBundler.Bundle(request.Target, report.summary.outputPath, request.IsStrictBundling);
-                if (request.BundleLocalGameData)
+                CefRuntimeBundler.Bundle(request.Target, report.summary.outputPath, isStrictBundling);
+                FfmpegRuntimeBundler.Bundle(request.Target, report.summary.outputPath, isStrictBundling);
+                if (BuildPurposeRules.BundlesLocalGameData(request.Purpose))
                 {
-                    GameDataBundler.Bundle(request.OutputDirectory, request.IsStrictBundling);
-                    WorldSnapshotBundler.Bundle(request.OutputDirectory, request.IsStrictBundling);
+                    GameDataBundler.Bundle(request.OutputDirectory, isStrictBundling);
+                    WorldSnapshotBundler.Bundle(request.OutputDirectory, isStrictBundling);
                 }
 
-                // 展示会の起動ループはmacの.commandなので、mac向けのローカル配布成果物にだけ入れる
-                // The exhibition loop is a mac .command, so it ships only with mac local-distribution artifacts
-                if (request.BundleLocalGameData && request.Target == BuildTarget.StandaloneOSX)
-                    EventLoopScriptBundler.Bundle(request.OutputDirectory, request.IsStrictBundling);
+                // 展示会限定（Steam版への混入防止）
+                // Exhibition only; keep it out of Steam builds
+                if (BuildPurposeRules.BundlesExhibitionLaunchScript(request.Purpose))
+                    EventLoopScriptBundler.Bundle(request.Target, request.OutputDirectory, isStrictBundling);
+
+                // 同梱で崩れた署名を最後にまとめて張り直す
+                // Re-seal the signature broken by bundling, as the very last step
+                if (request.Target == BuildTarget.StandaloneOSX)
+                    MacAppAdHocSigner.Sign(report.summary.outputPath, isStrictBundling);
             }
 
             Debug.Log("Build Output Path :" + report.summary.outputPath);
@@ -131,9 +147,7 @@ namespace Client.Editor.Build
             {
                 Target = buildTarget,
                 OutputDirectory = "Output_" + buildTarget,
-                IsDevelopmentBuild = true,
-                IsStrictBundling = false,
-                BundleLocalGameData = false,
+                Purpose = BuildPurpose.Ci,
             });
 
             EditorApplication.Exit(outcome == PlayerBuildOutcome.Succeeded ? 0 : 1);

@@ -6,13 +6,22 @@ namespace Client.Game.InGame.BugReport.Recording
 {
     public static class FfmpegLocator
     {
-        public const string MissingFfmpegReason = "ffmpeg が見つかりません（配布物同梱 moorestech_Data/Plugins/x86_64/ffmpeg.exe・MOORESTECH_FFMPEG・PATH・既知の場所 /opt/homebrew/bin, /usr/local/bin のいずれにも無い）";
+        public const string MissingFfmpegReason = "ffmpeg が見つかりません（配布物同梱 Windows: moorestech_Data/Plugins/x86_64/ffmpeg.exe・Mac: moorestech.app/Contents/MacOS/ffmpeg・MOORESTECH_FFMPEG・PATH・既知の場所 /opt/homebrew/bin, /usr/local/bin のいずれにも無い）";
         // 同梱ffmpeg実行ファイル名
-        // The bundled ffmpeg executable name
+        // The bundled ffmpeg executable names
         public const string BundledWindowsExecutableName = "ffmpeg.exe";
+        public const string BundledMacExecutableName = "ffmpeg";
         // 同梱先の Player データフォルダ（<exe>_Data）からの相対ディレクトリ。ビルド側の同梱先と実行時の探索先で共有する
         // The bundled directory relative to the player data folder (<exe>_Data), shared by the build bundler and the runtime lookup
         public static readonly string BundledPluginsRelativeDirectory = Path.Combine("Plugins", "x86_64");
+        // Mac版dataPathからの相対パス
+        // Relative to the Mac player's dataPath
+        public static readonly string BundledMacExecutableRelativePath = Path.Combine("MacOS", BundledMacExecutableName);
+
+        // ビルドと署名で共有するffmpegパス生成
+        // Builds the ffmpeg path shared by the bundler and signer
+        public static string ResolveBundledMacExecutablePath(string appPath) =>
+            Path.Combine(appPath, "Contents", BundledMacExecutableRelativePath);
 
         private static readonly string[] KnownPaths = { "/opt/homebrew/bin/ffmpeg", "/usr/local/bin/ffmpeg" };
 
@@ -20,11 +29,26 @@ namespace Client.Game.InGame.BugReport.Recording
         // Search the bundled copy, then env var, then PATH, then known locations; null if absent (the caller records the degradation)
         public static string Find()
         {
-            var bundledPath = Path.Combine(Application.dataPath, BundledPluginsRelativeDirectory, BundledWindowsExecutableName);
+            var bundledPath = ResolveBundledPath(Application.dataPath, Application.platform);
             var pathExecutableName = Application.platform == RuntimePlatform.WindowsEditor || Application.platform == RuntimePlatform.WindowsPlayer
                 ? BundledWindowsExecutableName
-                : "ffmpeg";
+                : BundledMacExecutableName;
             return FindIn(bundledPath, global::System.Environment.GetEnvironmentVariable("MOORESTECH_FFMPEG"), global::System.Environment.GetEnvironmentVariable("PATH"), pathExecutableName, KnownPaths);
+        }
+
+        // Player種別ごとの同梱位置。Editorに同梱物は無い
+        // Bundled location by player kind; the Editor has no bundled copy
+        public static string ResolveBundledPath(string dataPath, RuntimePlatform platform)
+        {
+            switch (platform)
+            {
+                case RuntimePlatform.WindowsPlayer:
+                    return Path.Combine(dataPath, BundledPluginsRelativeDirectory, BundledWindowsExecutableName);
+                case RuntimePlatform.OSXPlayer:
+                    return Path.Combine(dataPath, BundledMacExecutableRelativePath);
+                default:
+                    return string.Empty;
+            }
         }
 
         // 見つからなかったときの縮退理由。無音で諦めず理由を残し、報告側が欠損として記録できるようにする

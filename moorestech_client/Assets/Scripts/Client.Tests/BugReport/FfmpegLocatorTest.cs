@@ -73,5 +73,27 @@ namespace Client.Tests.BugReport
             Directory.Delete(empty, true);
             Assert.IsNull(found);
         }
+
+        [Test]
+        public void MacPlayerの同梱位置はContents配下のMacOS()
+        {
+            var dataPath = Path.Combine("moorestech.app", "Contents");
+            var path = FfmpegLocator.ResolveBundledPath(dataPath, UnityEngine.RuntimePlatform.OSXPlayer);
+            Assert.AreEqual(Path.Combine(dataPath, "MacOS", "ffmpeg"), path);
+        }
+
+        [Test]
+        public void WindowsPlayerの同梱位置はPluginsのx86_64()
+        {
+            var dataPath = "moorestech_Data";
+            var path = FfmpegLocator.ResolveBundledPath(dataPath, UnityEngine.RuntimePlatform.WindowsPlayer);
+            Assert.AreEqual(Path.Combine(dataPath, "Plugins", "x86_64", "ffmpeg.exe"), path);
+        }
+
+        [Test]
+        public void Editorには同梱位置が無い()
+        {
+            Assert.AreEqual(string.Empty, FfmpegLocator.ResolveBundledPath("Assets", UnityEngine.RuntimePlatform.OSXEditor));
+        }
     }
 }

@@ -3,8 +3,8 @@ using UnityEditor;
 namespace Client.Editor.Build
 {
     /// <summary>
-    /// Playerビルド1回分の入力（入口ごとの契約差はここで表現する）
-    /// Input for one Player build; per-entry contract differences live here
+    /// Playerビルド1回分の入力（入口ごとの違いは用途で表す）
+    /// Input for one Player build; per-entry differences are expressed by the purpose
     /// </summary>
     public class PlayerBuildRequest
     {
@@ -14,15 +14,11 @@ namespace Client.Editor.Build
         // Directory receiving the artifact (player executable and game/ sit directly under it)
         public string OutputDirectory;
 
-        public bool IsDevelopmentBuild;
+        public BuildPurpose Purpose;
 
-        // trueなら同梱失敗を即ビルド失敗にする（ローカル配布用）。falseはCI互換の警告のみ
-        // True fails the build on bundling problems (local distribution); false keeps CI-compatible warnings
-        public bool IsStrictBundling;
-
-        // ../moorestech_master/server_v8 を game/ として同梱するか（CI入口では行わない）
-        // Whether to bundle ../moorestech_master/server_v8 as game/ (skipped for CI entries)
-        public bool BundleLocalGameData;
+        // 開発メニューだけが選ぶ。ほかの用途は規則から導く
+        // Only the dev menu chooses; other purposes derive their mode from policy
+        public bool LocalDevelopmentChoosesDevelopment;
     }
 
     /// <summary>

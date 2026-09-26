@@ -3,12 +3,13 @@
 	"appid" "1958160"
 	"desc" "moorestech playtest staging __BUILD_LABEL__"
 	"buildoutput" "__RUN_DIR__/steam/output"
-	"contentroot" "__CONTENT_ROOT__"
+	"contentroot" "__RUN_DIR__"
 	"setlive" "playtest-staging"
 	"preview" "0"
 
 	"depots"
 	{
-		"__DEPOT_ID__" "__RUN_DIR__/steam/depot_build_windows.vdf"
+		"__DEPOT_ID_WINDOWS__" "__RUN_DIR__/steam/depot_build_windows.vdf"
+		"__DEPOT_ID_MAC__" "__RUN_DIR__/steam/depot_build_mac.vdf"
 	}
 }
