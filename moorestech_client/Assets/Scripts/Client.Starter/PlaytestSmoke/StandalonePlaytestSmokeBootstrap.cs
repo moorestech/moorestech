@@ -3,6 +3,7 @@ using Client.Common;
 using Client.Game.Common;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.PlaytestReceiver.Launch;
+using Client.Starter.Playtest.TitleGates;
 using Cysharp.Threading.Tasks;
 using Game.Paths;
 using UniRx;
@@ -22,6 +23,10 @@ namespace Client.Starter.PlaytestSmoke
         // 初期化完了の期限は前例 StandaloneTerrainQaBootstrap と同じ120秒
         // The initialization deadline matches the 120 seconds of the StandaloneTerrainQaBootstrap precedent
         private const float GameInitializationTimeoutSeconds = 120f;
+
+        // 無人起動のタイトルの確認は閉じたゲートで即座に通る。これを超えるのは列が始まらない配線不良だけ
+        // Unattended title gates pass at once with closed gates; exceeding this means the sequence never started (a wiring fault)
+        private const float TitleGatesTimeoutSeconds = 60f;
 
         internal static bool IsActive { get; private set; }
         internal static StandalonePlaytestSmokeSettings Settings { get; private set; }
@@ -70,6 +75,16 @@ namespace Client.Starter.PlaytestSmoke
             if (StandalonePlaytestSmokePreconditions.TryFindFailure(settings, PlaytestLaunchProfile.Resolve(), out var failureReason))
             {
                 Fail(settings, "preconditions", failureReason);
+                return;
+            }
+
+            // タイトルの確認の通過を待ってから開始する。先に始めると初期化が「確認が未開始」で断りメニューへ戻す
+            // Start only after the title gates pass; starting earlier makes initialization refuse as "not started" and bounce to the menu
+            var titleGatesPassed = PlaytestTitleGates.WaitUntilPassedAsync(Application.exitCancellationToken);
+            var titleGatesDeadline = UniTask.Delay(TimeSpan.FromSeconds(TitleGatesTimeoutSeconds), DelayType.Realtime, cancellationToken: Application.exitCancellationToken);
+            if (await UniTask.WhenAny(titleGatesPassed, titleGatesDeadline) != 0)
+            {
+                Fail(settings, "title-gates", $"title gates did not pass within {TitleGatesTimeoutSeconds}s (the title composition root may not have started the sequence)");
                 return;
             }
 
