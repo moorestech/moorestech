@@ -22,6 +22,7 @@ namespace Client.Game.InGame.Train.Network
         private readonly RailGraphSnapshotApplier _railGraphSnapshotApplier;
         private readonly TrainUnitSnapshotApplier _trainSnapshotApplier;
         private readonly TrainTickContext _context;
+        private readonly TrainUnitFutureMessageBuffer _futureMessageBuffer;
         private ulong? _railWatermark;
         private IDisposable _railSubscription;
         private IDisposable _trainSubscription;
@@ -41,6 +42,7 @@ namespace Client.Game.InGame.Train.Network
             _railGraphSnapshotApplier = railGraphSnapshotApplier;
             _trainSnapshotApplier = trainSnapshotApplier;
             _context = context;
+            _futureMessageBuffer = context.Events;
         }
 
         public void Initialize()
@@ -60,7 +62,7 @@ namespace Client.Game.InGame.Train.Network
                 var message = MessagePackSerializer.Deserialize<TrainFullSnapshotEventPacket.RailGraphFullSnapshotEventMessagePack>(payload);
                 if (_railWatermark.HasValue) throw new InvalidOperationException("Duplicate initial rail snapshot.");
                 _railGraphSnapshotApplier.ApplySnapshot(message.Snapshot);
-                _railWatermark = TickUnifiedIdUtility.CreateTickUnifiedId(message.Snapshot.GraphTick, message.Snapshot.GraphTickSequenceId);
+                _railWatermark = TrainTickUnifiedIdUtility.CreateTickUnifiedId(message.Snapshot.GraphTick, message.Snapshot.GraphTickSequenceId);
             }
             catch (Exception applyException)
             {
@@ -79,7 +81,7 @@ namespace Client.Game.InGame.Train.Network
 
                 // 初期pairは同じ採番位置で両payloadが揃っていることを要求する
                 // Require both initial payloads to represent the same sequence watermark
-                var watermarkId = TickUnifiedIdUtility.CreateTickUnifiedId(message.ServerTick, message.WatermarkTickSequenceId);
+                var watermarkId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(message.ServerTick, message.WatermarkTickSequenceId);
                 if (!_railWatermark.HasValue || _railWatermark.Value != watermarkId)
                     throw new InvalidOperationException($"Incoherent initial snapshot watermark: rail={_railWatermark}, train={watermarkId}");
                 if (message.Snapshots == null) throw new InvalidOperationException("Initial train snapshot list is missing.");
@@ -91,7 +93,7 @@ namespace Client.Game.InGame.Train.Network
 
                 // watermark以下の古いdiff/hashをpurgeし、以後のイベントが連続適用できる状態にする
                 // Purge stale diffs/hashes at or below the watermark so later events continue seamlessly
-                _context.Events.DiscardEventsAtOrBelow(watermarkId);
+                _futureMessageBuffer.DiscardEventsAtOrBelow(watermarkId);
                 _context.Hashes.DiscardHashesOlderThan(watermarkId);
 
                 // 両cacheとviewの成功が確定してから起動を解放する

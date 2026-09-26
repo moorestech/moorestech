@@ -1,6 +1,6 @@
 # tick同期の機械的処理をstream単位で共通化する
 
-2026-09-26。train/railが所有するtick同期を、セッションtickの時計・streamごとの採番・順序バッファ・クライアント進行計算と、ドメイン固有の差分・hash・snapshotに分離する。現在のtrainを実利用者として維持し、共通部はTrain/Rail型を参照しない。
+2026-09-26。train/railが所有するtick同期を、セッションtickの時計・streamごとの採番・順序バッファ・クライアント進行計算と、ドメイン固有の差分・hash・snapshotに分離する。現在のtrainを実利用者として維持し、共通化する処理はtrain/railのpayload・cache・hashに依存しない。
 
 ## 目的と出所
 
@@ -30,19 +30,21 @@ driverからviewを購読して動かす機構へ変えず、既存ITickableのt
 
 ## 既存ファイルの配置
 
-出所: ユーザー裁定 2026-09-27「わたしが書いて中身理解してるのはなるべくファイルの場所を移動しないでほしい」「ある程度コード自体の差分が確認できたらファイル移動したい」。コード差分の確認を先に行えるよう、既存本体5件はmasterのpathとmeta identityを維持する。型名とnamespaceは責務分離後のままとし、ファイル名との一時的な差を許容する。
+出所: ユーザー裁定 2026-09-27。コード差分を元の名前で確認できるよう、既存本体5件のpath・meta identity・型名・namespaceをmasterに合わせる。既存利用者の`_futureMessageBuffer`・`_tickState`などの名前と呼出し形状も維持する。機械的処理はtrain payloadに依存せず、各streamで再利用できる。
 
 `Client.Game/` からの相対path:
 
 | 型 | ファイル |
 |---|---|
-| TickEventBuffer | InGame/Train/Network/TrainUnitFutureMessageBuffer.cs |
-| ITickBufferedEvent | InGame/Train/Network/ITrainTickBufferedEvent.cs |
-| TickBufferedEvent | InGame/Train/Network/TrainTickBufferedEvent.cs |
-| ClientTickState | InGame/Train/Unit/TrainUnitTickState.cs |
-| ITickAdvanceGate | InGame/Train/Unit/ITrainUnitHashTickGate.cs |
+| TrainUnitFutureMessageBuffer | InGame/Train/Network/TrainUnitFutureMessageBuffer.cs |
+| ITrainTickBufferedEvent | InGame/Train/Network/ITrainTickBufferedEvent.cs |
+| TrainTickBufferedEvent | InGame/Train/Network/TrainTickBufferedEvent.cs |
+| TrainUnitTickState | InGame/Train/Unit/TrainUnitTickState.cs |
+| ITrainUnitHashTickGate | InGame/Train/Unit/ITrainUnitHashTickGate.cs |
 
-FutureMessageBufferから分離したTrainUnitHashBuffer、TrainUnitClientSimulatorから抽出したClientTickAdvanceControllerなど、新規抽出型は現在の配置を維持する。処理・型の依存関係は変更せず、後日のファイル移動はコード差分の確認後に扱う。
+Network配下3型のnamespaceは`Client.Game.InGame.Train.Network`、Unit配下2型は`Client.Game.InGame.Train.Unit`とする。TrainTickContextがState/Events/Hashes/AdvanceControllerを各1個所有し、既存利用者は同じ実体への参照を旧field名で保持する。初期完了・進行計算が必要な箇所ではcontextも保持する。
+
+FutureMessageBufferから分離したTrainUnitHashBuffer、TrainUnitClientSimulatorから抽出したClientTickAdvanceControllerなど、新規抽出型は現在の配置を維持する。server DTOの`HashStateEventData`・`TrainTickDiffData`は元の`Game.Train.Unit` namespaceを使い、独立型としての抽出を維持する。`TrainTickUnifiedIdUtility`はserver/client共用のため`Core.Update.TickSynchronization`に置く。後日の配置整理はコード差分の確認後に扱う。
 
 ## 同期と非同期の境界
 

@@ -17,7 +17,7 @@ Use this skill when changing train/rail event contracts and handler wiring under
 - `TickSequenceId` is server-allocated and per-tick monotonic.
 
 ### 2) Unified event queue
-- Client handlers enqueue events into `TrainTickContext.Events` (`TickEventBuffer`, in the retained `InGame/Train/Network/TrainUnitFutureMessageBuffer.cs` path; see ADR0071).
+- Client handlers enqueue events into `TrainTickContext.Events` (`TrainUnitFutureMessageBuffer`, in the retained `InGame/Train/Network/TrainUnitFutureMessageBuffer.cs` path; see ADR0071).
 - Buffered events apply by unified id order.
 
 ### 3) Snapshot-first train sync

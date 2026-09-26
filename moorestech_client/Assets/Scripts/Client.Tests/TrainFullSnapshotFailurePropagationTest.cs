@@ -100,7 +100,7 @@ namespace Client.Tests
                 // 失敗後に正常pairとdeltaがreplayされても起動成功へ戻らない。
                 // A valid pair and delta replayed after failure must never restore startup success.
                 foreach (var message in sink.Events) source.OnNext(message);
-                var delta = new TrainUnitTickDiffBundleMessagePack(1, 1, 1, uint.MaxValue, uint.MaxValue, Array.Empty<global::Game.Train.Unit.TickSynchronization.TrainTickDiffData>());
+                var delta = new TrainUnitTickDiffBundleMessagePack(1, 1, 1, uint.MaxValue, uint.MaxValue, Array.Empty<global::Game.Train.Unit.TrainTickDiffData>());
                 source.OnNext(new EventMessagePack(TrainUnitTickDiffBundleEventPacket.EventTag, MessagePackSerializer.Serialize(delta)));
                 Assert.DoesNotThrow(() => dispatcher.InitializeDispatch());
                 // 初期待機を読む前でも通常終了は保存を開始できない。

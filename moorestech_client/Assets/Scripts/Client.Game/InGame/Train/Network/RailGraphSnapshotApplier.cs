@@ -16,7 +16,7 @@ namespace Client.Game.InGame.Train.Network
     {
         private readonly RailGraphClientCache _cache;
         private readonly ClientStationReferenceRegistry _stationReferenceRegistry;
-        private readonly TrainTickContext _context;
+        private readonly TrainUnitTickState _tickState;
 
         public RailGraphSnapshotApplier(
             RailGraphClientCache cache,
@@ -25,7 +25,7 @@ namespace Client.Game.InGame.Train.Network
         {
             _cache = cache;
             _stationReferenceRegistry = stationReferenceRegistry;
-            _context = context;
+            _tickState = context.State;
         }
 
         public void ApplySnapshot(RailGraphSnapshotMessagePack snapshot)
@@ -37,10 +37,10 @@ namespace Client.Game.InGame.Train.Network
                 throw new InvalidOperationException("Initial rail snapshot payload, nodes or connections are missing.");
             }
 
-            var unifiedId = TickUnifiedIdUtility.CreateTickUnifiedId(snapshot.GraphTick, snapshot.GraphTickSequenceId);
-            if (unifiedId < _context.State.GetAppliedTickUnifiedId())
+            var unifiedId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(snapshot.GraphTick, snapshot.GraphTickSequenceId);
+            if (unifiedId < _tickState.GetAppliedTickUnifiedId())
             {
-                throw new InvalidOperationException($"Initial rail snapshot watermark is stale: received={unifiedId}, applied={_context.State.GetAppliedTickUnifiedId()}");
+                throw new InvalidOperationException($"Initial rail snapshot watermark is stale: received={unifiedId}, applied={_tickState.GetAppliedTickUnifiedId()}");
             }
 
             // ノードの最大IDから配列サイズを確定（空snapshotはsize 0でキャッシュ全消去になる）
@@ -56,7 +56,7 @@ namespace Client.Game.InGame.Train.Network
             var actualHash = _cache.ComputeCurrentHash();
             if (actualHash != snapshot.GraphHash)
                 throw new InvalidOperationException($"Initial rail hash mismatch: tick={snapshot.GraphTick}_{snapshot.GraphTickSequenceId}, expected={snapshot.GraphHash}, actual={actualHash}");
-            _context.State.RecordAppliedTickUnifiedId(unifiedId);
+            _tickState.RecordAppliedTickUnifiedId(unifiedId);
 
             #region Internal
             int ResolveMaxNodeId(RailGraphSnapshotMessagePack targetSnapshot)

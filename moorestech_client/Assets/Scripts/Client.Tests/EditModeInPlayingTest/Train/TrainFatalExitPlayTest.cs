@@ -105,7 +105,7 @@ namespace Client.Tests.EditModeInPlayingTest
                     using var replay = dispatcher.SubscribeEventResponse(TrainUnitTickDiffBundleEventPacket.EventTag, _ => replayedDeltas++);
                     source.OnNext(new EventMessagePack(TrainFullSnapshotEventPacket.RailGraphFullSnapshotEventTag, new byte[] { 0xC1 }));
                     var delta = new TrainUnitTickDiffBundleMessagePack(1, 1, 1, uint.MaxValue, uint.MaxValue,
-                        Array.Empty<global::Game.Train.Unit.TickSynchronization.TrainTickDiffData>());
+                        Array.Empty<global::Game.Train.Unit.TrainTickDiffData>());
                     source.OnNext(new EventMessagePack(TrainUnitTickDiffBundleEventPacket.EventTag, MessagePackSerializer.Serialize(delta)));
                     LogAssert.Expect(LogType.Error, new Regex("TrainFullSnapshot.*initial apply failed"));
                     Assert.DoesNotThrow(() => dispatcher.InitializeDispatch());

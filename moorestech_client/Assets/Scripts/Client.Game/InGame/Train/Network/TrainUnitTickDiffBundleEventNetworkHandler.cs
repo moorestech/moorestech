@@ -6,7 +6,6 @@ using MessagePack;
 using Server.Event.EventReceive;
 using Server.Util.MessagePack;
 using VContainer.Unity;
-using Client.Game.TickSynchronization;
 using Client.Game.InGame.Train.Network.TickSynchronization;
 
 namespace Client.Game.InGame.Train.Network
@@ -15,13 +14,15 @@ namespace Client.Game.InGame.Train.Network
     // Handler that splits TickDiffBundle into hash+diff queue entries.
     public sealed class TrainUnitTickDiffBundleEventNetworkHandler : IInitializable, IDisposable
     {
-        private readonly TrainTickContext _context;
+        private readonly TrainUnitFutureMessageBuffer _futureMessageBuffer;
+        private readonly TrainUnitHashBuffer _hashBuffer;
         private readonly TrainUnitClientCache _cache;
         private IDisposable _subscription;
 
         public TrainUnitTickDiffBundleEventNetworkHandler(TrainTickContext context, TrainUnitClientCache cache)
         {
-            _context = context;
+            _futureMessageBuffer = context.Events;
+            _hashBuffer = context.Hashes;
             _cache = cache;
         }
 
@@ -44,7 +45,7 @@ namespace Client.Game.InGame.Train.Network
             if (message == null)
                 return;
             EnqueueHash(message);
-            _context.Events.EnqueueEvent(message.ServerTick, message.DiffTickSequenceId, CreateBufferedEvent(message));
+            _futureMessageBuffer.EnqueueEvent(message.ServerTick, message.DiffTickSequenceId, CreateBufferedEvent(message));
             return;
 
             #region Internal
@@ -56,16 +57,16 @@ namespace Client.Game.InGame.Train.Network
                 if (bundleMessage.ServerTick == 0)
                     return;
                 var hashTick = bundleMessage.ServerTick - 1;
-                _context.Hashes.EnqueueHash(
+                _hashBuffer.EnqueueHash(
                     bundleMessage.UnitsHash,
                     bundleMessage.RailGraphHash,
                     hashTick,
                     bundleMessage.HashTickSequenceId);
             }
 
-            ITickBufferedEvent CreateBufferedEvent(TrainUnitTickDiffBundleMessagePack messagePack)
+            ITrainTickBufferedEvent CreateBufferedEvent(TrainUnitTickDiffBundleMessagePack messagePack)
             {
-                return TickBufferedEvent.Create(ApplyDiffs);
+                return TrainTickBufferedEvent.Create(ApplyDiffs);
 
                 void ApplyDiffs()
                 {

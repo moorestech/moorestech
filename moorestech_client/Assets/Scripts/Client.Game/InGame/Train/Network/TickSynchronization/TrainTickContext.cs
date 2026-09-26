@@ -1,3 +1,5 @@
+using Client.Game.InGame.Train.Unit;
+using Client.Game.InGame.Train.Network;
 using Client.Game.TickSynchronization;
 
 namespace Client.Game.InGame.Train.Network.TickSynchronization
@@ -7,15 +9,15 @@ namespace Client.Game.InGame.Train.Network.TickSynchronization
     public sealed class TrainTickContext
     {
         internal bool IsInitialSnapshotApplied { get; private set; }
-        internal readonly ClientTickState State;
-        internal readonly TickEventBuffer Events;
+        internal readonly TrainUnitTickState State;
+        internal readonly TrainUnitFutureMessageBuffer Events;
         internal readonly ClientTickAdvanceController AdvanceController;
         internal readonly TrainUnitHashBuffer Hashes;
 
         public TrainTickContext()
         {
-            State = new ClientTickState();
-            Events = new TickEventBuffer(State);
+            State = new TrainUnitTickState();
+            Events = new TrainUnitFutureMessageBuffer(State);
             AdvanceController = new ClientTickAdvanceController(State, Events);
             Hashes = new TrainUnitHashBuffer(State);
         }

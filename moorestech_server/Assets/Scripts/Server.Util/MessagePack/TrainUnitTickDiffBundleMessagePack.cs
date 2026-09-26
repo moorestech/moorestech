@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Game.Train.Unit;
-using Game.Train.Unit.TickSynchronization;
 using MessagePack;
 
 namespace Server.Util.MessagePack

@@ -37,7 +37,7 @@ namespace Server.Event.EventReceive
 
             #region Internal
 
-            void OnHashTick(TrainHashStateEventData hashStateEventData)
+            void OnHashTick(HashStateEventData hashStateEventData)
             {
                 var hashTickSequenceId = _trainTickSequenceSource.Sequence.NextSequenceId();
                 _hashStatesByTick[hashStateEventData.Tick] = new HashTickState(

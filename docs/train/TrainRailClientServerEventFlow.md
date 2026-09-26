@@ -227,7 +227,7 @@
 
 `Core.Update.TickSynchronization.ServerTickClock` はセッション内uint tickを所有する。保存される累積 `GameUpdater.CurrentTick` とは別instance・別用途であり、save/loadしてもwire tickは新sessionの0から始まる。`MasterTickUpdater` は入口で旧tickを保持してclockを1回進め、gear/fluid更新後の既存境界で旧tickのtrain hashを発行し、`TrainTickSequenceSource.Sequence.BeginTick` でseq0へ戻してからtrain simulationとdiffを実行する。最初のeventはseq1、順序keyは `((ulong)tick << 32) | seq` のままである。
 
-train/railのpacketは同じ `TrainTickSequenceSource` を使う。他streamは同じclockを使えても、別 `TickSequenceState` を所有する。clientは `TrainTickContext` が `ClientTickState`、`TickEventBuffer`、`ClientTickAdvanceController`、train固有の `TrainUnitHashBuffer` を所有する。共通state/buffer/driverにTrain/Railの型・通信tag・hash判断を持ち込まない。別contextへのwatermark purgeやgate停止の波及はない。
+train/railのpacketは同じ `TrainTickSequenceSource` を使う。他streamは同じclockを使えても、別 `TickSequenceState` を所有する。clientは `TrainTickContext` が `TrainUnitTickState`、`TrainUnitFutureMessageBuffer`、`ClientTickAdvanceController`、train固有の `TrainUnitHashBuffer` を所有する。共通化するstate/buffer/driverはtrain/railのpayload・cache・通信tag・hash判断に依存しない。別contextへのwatermark purgeやgate停止の波及はない。
 
 bundleはhash(n-1)とdiff(n)を運び、空diffでもsimulationを起動する。4tick間引き、dummy hash、future-only force-slip、hash不一致時の保存なし異常終了の判断は `TrainUnitHashVerifier` に残る。driverのcatch-up係数と1frame最大4tickも維持する。
 

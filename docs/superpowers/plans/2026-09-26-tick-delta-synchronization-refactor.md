@@ -14,7 +14,7 @@
 
 - R1: ユーザー「差分通知の部分だけ」「masterブランチからリファクタリングPR作成」。「まずはこれだけ単体PR」を満たし、gear/belt本体・GPU・搬送・schema・save変更を含めない。受入: PR差分の範囲確認。
 - R2: 既存ユーザー「tickとseq idの仕様はこのまま」。受入: uint session tick、tickごとseq0、最初の発行seq1、合成key、hash(n-1)+diff(n)、空diffトリガ、train/rail共通streamを回帰テストする。
-- R3: ユーザー「鉄道べったりだったのを今後ギアやベルコンの差分通知に拡張」。受入: common部にTrain/Rail型・payload・通信tagがなく、2つの非train fixtureで同tick同seqを独立に適用できる。
+- R3: ユーザー「鉄道べったりだったのを今後ギアやベルコンの差分通知に拡張」。受入: 共通化する処理がtrain/railのpayload・cache・hash・通信tagに依存せず、2つの非train fixtureで同tick同seqを独立に適用できる。既存の型名・namespaceはコード差分の確認のため維持する。
 - R4: stream Aの採番、適用、snapshot watermark、gate停止がstream Bへ作用しない。受入: server2streamとclient2contextのテストで相互不干渉を確認する。
 - R5: 初期rail→train snapshotの同watermark・両hash・cache/view成功後だけ起動する。初期失敗または実行中hash不一致はstreamを即停止し、Error記録後にaffected clientを保存・再起動なしで異常終了する。自動再同期のwire/API/ack待機/完了通知は廃止する。
 - R6: 永続累積GameUpdater.CurrentTickとwire session tickの非同一を維持する。受入: save tickを復元しても新sessionのwire tickは0起点、既存train save/loadと乗車入力の回帰が通る。
@@ -35,17 +35,17 @@
 
 | 項目 | 配置先 | 機構・現実の受益者・前例 |
 |---|---|---|
-| ServerTickClock / TickSequenceState / TickUnifiedIdUtility | Core.Update/TickSynchronization | ドメイン非依存のuint時計と順序値。既存TrainUpdateService/TrainUnitTickStateから抽出。server7packetとclient bufferが使う |
+| ServerTickClock / TickSequenceState / TrainTickUnifiedIdUtility | Core.Update/TickSynchronization | ドメイン非依存のuint時計と順序値。既存TrainUpdateService/TrainUnitTickStateから抽出。server7packetとclient bufferが使う |
 | TrainTickSequenceSource | Game.Train/Unit/TickSynchronization | train/rail streamの採番所有者。各packetからsimulation service依存を外し、別streamに同じsingletonが誤注入されない型付きcomposition境界 |
-| ClientTickState / TickEventBuffer | Client.Game/InGame/Train/Unit/TrainUnitTickState.cs、同Network/TrainUnitFutureMessageBuffer.cs | 2026-09-27ユーザー裁定で既存pathへ本体を戻す。型名/namespaceとドメイン非依存の処理は維持 |
+| TrainUnitTickState / TrainUnitFutureMessageBuffer | Client.Game/InGame/Train/Unit/TrainUnitTickState.cs、同Network/TrainUnitFutureMessageBuffer.cs | 2026-09-27ユーザー裁定で既存pathへ本体を戻す。型名/namespaceとドメイン非依存の処理は維持 |
 | ClientTickAdvanceController | Client.Game/TickSynchronization | ClientSimulatorから抽出した進行計算。新規抽出型の配置は維持 |
-| ITickBufferedEvent / TickBufferedEvent / ITickAdvanceGate | Client.Game/InGame/Train/Network/ITrainTickBufferedEvent.cs、同TrainTickBufferedEvent.cs、同Unit/ITrainUnitHashTickGate.cs | 既存契約/実装のコード差分を元pathで確認する。型名/namespaceは維持 |
+| ITrainTickBufferedEvent / TrainTickBufferedEvent / ITrainUnitHashTickGate | Client.Game/InGame/Train/Network/ITrainTickBufferedEvent.cs、同TrainTickBufferedEvent.cs、同Unit/ITrainUnitHashTickGate.cs | 既存契約/実装のコード差分を元pathで確認する。型名/namespaceは維持 |
 | TrainTickContext / TrainUnitHashBuffer | Client.Game/InGame/Train/Network/TickSynchronization | train state/events/driver/hash bufferの所有と接続。現在のnetwork/applier/simulator/debugが使用する |
 | TrainUnitHashVerifier / snapshot / DTO / view | 現在のtrain/通信配置 | train hashとresync、rail依存、view構築をcommonへ入れない |
 
 呼出し鎖: `GameUpdater → MasterTickUpdater入口で旧tick保持・ServerTickClock.AdvanceTick → 電力/gear/fluid → train旧tick hash → train sequence.BeginTick → train simulation+diff → EventProtocolProvider → PacketExchangeManager main-thread dispatch → Train handlers → train context.Events → common driver → train gate → train visual update`。
 
-配置は[ADR 0071の既存ファイルの配置](../../adr/0071-tick-synchronization-stream-boundaries.md#既存ファイルの配置)を正とする。2026-09-27のユーザー指示により既存5ファイルのmaster path/metaを維持し、コード確認後にファイル移動を検討する。型名との一時的な差を理由に再移動しない。新規抽出のhash buffer、clock/sequence、DTO、context、進行計算は現在地に残す。
+配置と名前は[ADR 0071の既存ファイルの配置](../../adr/0071-tick-synchronization-stream-boundaries.md#既存ファイルの配置)を正とする。既存5ファイルのmaster path/meta・型名・namespaceと利用側のfield名を維持し、contextが所有する同じ実体を参照する。新規抽出のhash buffer、clock/sequence、DTO、context、進行計算は現在地に残す。server DTOは`Game.Train.Unit`、共有utilityはassembly境界上必要な`Core.Update.TickSynchronization`を使う。
 
 同じ時計を共有することは同じseqを共有することではない。将来domainは別TickSequenceStateと別client contextを持ち、MasterTickUpdaterの同じ明示境界からtickを受ける。train/rail内だけは従来のseq範囲を維持する。現PRは将来domainの登録・自動列挙機構を作らない。
 
@@ -95,7 +95,7 @@
 **Interfaces:**
 - Produces: `ServerTickClock.Tick : uint { get; private set; }`, `void ServerTickClock.AdvanceTick()`.
 - Produces: `TickSequenceState.Tick : uint { get; private set; }`, `TickSequenceState.SequenceId : uint { get; private set; }`, `void BeginTick(uint tick)`, `uint NextSequenceId()`.
-- Produces: `ulong TickUnifiedIdUtility.CreateTickUnifiedId(uint tick, uint tickSequenceId)`.
+- Produces: `ulong TrainTickUnifiedIdUtility.CreateTickUnifiedId(uint tick, uint tickSequenceId)`.
 - Produces: `TrainTickSequenceSource.Sequence : readonly TickSequenceState` (実stream所有者、staticではない).
 - Produces: `void TrainUpdateService.PublishCurrentTickHash(uint tick)`, `void TrainUpdateService.UpdateTrains(uint tick)`.
 - Consumes: 現在のTrainUpdateService.OnHashEvent/OnPreSimulationDiffEvent。payloadは同じfield構成の外部readonly structへ移動するだけ。
@@ -148,7 +148,7 @@ public sealed class TickSequenceState
     }
     public uint NextSequenceId() => ++SequenceId;
 }
-public static class TickUnifiedIdUtility
+public static class TrainTickUnifiedIdUtility
 {
     public static ulong CreateTickUnifiedId(uint tick, uint tickSequenceId)
         => ((ulong)tick << 32) | tickSequenceId;
@@ -200,11 +200,11 @@ Commit: `refactor: separate server tick clock and train stream sequence`
 ### Task 2: clientの順序処理と進行計算をstream単位で抽出する
 
 **Files:**
-- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Unit/TrainUnitTickState.cs`（ClientTickState本体）
-- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Network/TrainUnitFutureMessageBuffer.cs`（TickEventBuffer本体）
-- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Network/ITrainTickBufferedEvent.cs`（ITickBufferedEvent契約）
-- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Network/TrainTickBufferedEvent.cs`（TickBufferedEvent本体）
-- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Unit/ITrainUnitHashTickGate.cs`（ITickAdvanceGate契約）
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Unit/TrainUnitTickState.cs`（TrainUnitTickState本体）
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Network/TrainUnitFutureMessageBuffer.cs`（TrainUnitFutureMessageBuffer本体）
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Network/ITrainTickBufferedEvent.cs`（ITrainTickBufferedEvent契約）
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Network/TrainTickBufferedEvent.cs`（TrainTickBufferedEvent本体）
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Unit/ITrainUnitHashTickGate.cs`（ITrainUnitHashTickGate契約）
 - Create: `moorestech_client/Assets/Scripts/Client.Game/TickSynchronization/ClientTickAdvanceController.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Network/TickSynchronization/TrainTickContext.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Network/TickSynchronization/TrainUnitHashBuffer.cs`
@@ -228,14 +228,14 @@ Commit: `refactor: separate server tick clock and train stream sequence`
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/TickSynchronization/TrainTickHashGateTest.cs`
 
 **Interfaces:**
-- Consumes: Task 1の `TickUnifiedIdUtility.CreateTickUnifiedId(uint,uint)`。
-- Produces: internal `ClientTickState`。旧TrainUnitTickStateのmethod名/戻り値/挙動を維持する。
-- Produces: internal `ITickBufferedEvent { void Apply(); }`, `TickBufferedEvent.Create(Action applyAction) : ITickBufferedEvent`。既存の同期callback契約の移動。
-- Produces: internal `TickEventBuffer(ClientTickState state)`, `void EnqueueEvent(uint tick,uint sequence,ITickBufferedEvent bufferedEvent)`, `bool TryFlushEvent(ulong id)`, `bool TryFlushEvent(uint tick,uint sequence)`, `void DiscardEventsAtOrBelow(ulong watermark)`。
-- Produces: internal `ITickAdvanceGate { bool CanAdvanceTick(ulong currentTickUnifiedId); }`。
-- Produces: internal `ClientTickAdvanceController(ClientTickState state,TickEventBuffer events)`, `double Advance(float deltaTime,ITickAdvanceGate gate)`。
-- Produces: public `TrainTickContext()`、internal readonly fields `State : ClientTickState`, `Events : TickEventBuffer`, `AdvanceController : ClientTickAdvanceController`, `Hashes : TrainUnitHashBuffer`。
-- Produces: internal `TrainUnitHashBuffer(ClientTickState state)`。旧FutureMessageBufferのhash tuple/API・DummyHash・first-hash logをそのまま移動する。
+- Consumes: Task 1の `TrainTickUnifiedIdUtility.CreateTickUnifiedId(uint,uint)`。
+- Produces: internal `TrainUnitTickState`。旧TrainUnitTickStateのmethod名/戻り値/挙動を維持する。
+- Produces: internal `ITrainTickBufferedEvent { void Apply(); }`, `TrainTickBufferedEvent.Create(Action applyAction) : ITrainTickBufferedEvent`。既存の同期callback契約の移動。
+- Produces: internal `TrainUnitFutureMessageBuffer(TrainUnitTickState state)`, `void EnqueueEvent(uint tick,uint sequence,ITrainTickBufferedEvent bufferedEvent)`, `bool TryFlushEvent(ulong id)`, `bool TryFlushEvent(uint tick,uint sequence)`, `void DiscardEventsAtOrBelow(ulong watermark)`。
+- Produces: internal `ITrainUnitHashTickGate { bool CanAdvanceTick(ulong currentTickUnifiedId); }`。
+- Produces: internal `ClientTickAdvanceController(TrainUnitTickState state,TrainUnitFutureMessageBuffer events)`, `double Advance(float deltaTime,ITrainUnitHashTickGate gate)`。
+- Produces: public `TrainTickContext()`、internal readonly fields `State : TrainUnitTickState`, `Events : TrainUnitFutureMessageBuffer`, `AdvanceController : ClientTickAdvanceController`, `Hashes : TrainUnitHashBuffer`。
+- Produces: internal `TrainUnitHashBuffer(TrainUnitTickState state)`。旧FutureMessageBufferのhash tuple/API・DummyHash・first-hash logをそのまま移動する。
 
 - [ ] **Step 1: common適用の非train fixtureと既存gateケースをテストする。**
 
@@ -243,22 +243,22 @@ Commit: `refactor: separate server tick clock and train stream sequence`
 [Test]
 public void EqualIdsInSeparateStreams_DoNotCollideOrPurgeEachOther()
 {
-    var firstState = new ClientTickState();
-    var secondState = new ClientTickState();
-    var first = new TickEventBuffer(firstState);
-    var second = new TickEventBuffer(secondState);
+    var firstState = new TrainUnitTickState();
+    var secondState = new TrainUnitTickState();
+    var first = new TrainUnitFutureMessageBuffer(firstState);
+    var second = new TrainUnitFutureMessageBuffer(secondState);
     var firstEvent = new CountingTickEvent();
     var secondEvent = new CountingTickEvent();
     first.EnqueueEvent(1, 1, firstEvent);
     second.EnqueueEvent(1, 1, secondEvent);
-    first.DiscardEventsAtOrBelow(TickUnifiedIdUtility.CreateTickUnifiedId(1, 1));
+    first.DiscardEventsAtOrBelow(TrainTickUnifiedIdUtility.CreateTickUnifiedId(1, 1));
     Assert.IsFalse(first.TryFlushEvent(1, 1));
     Assert.IsTrue(second.TryFlushEvent(1, 1));
     Assert.AreEqual(0, firstEvent.Count);
     Assert.AreEqual(1, secondEvent.Count);
     Assert.AreEqual(0ul, firstState.GetAppliedTickUnifiedId());
 }
-private sealed class CountingTickEvent : ITickBufferedEvent
+private sealed class CountingTickEvent : ITrainTickBufferedEvent
 {
     public int Count { get; private set; }
     public void Apply() => Count++;
@@ -274,14 +274,14 @@ private sealed class CountingTickEvent : ITickBufferedEvent
 ```csharp
 public sealed class TrainTickContext
 {
-    internal readonly ClientTickState State;
-    internal readonly TickEventBuffer Events;
+    internal readonly TrainUnitTickState State;
+    internal readonly TrainUnitFutureMessageBuffer Events;
     internal readonly ClientTickAdvanceController AdvanceController;
     internal readonly TrainUnitHashBuffer Hashes;
     public TrainTickContext()
     {
-        State = new ClientTickState();
-        Events = new TickEventBuffer(State);
+        State = new TrainUnitTickState();
+        Events = new TrainUnitFutureMessageBuffer(State);
         AdvanceController = new ClientTickAdvanceController(State, Events);
         Hashes = new TrainUnitHashBuffer(State);
     }
@@ -298,7 +298,7 @@ public void Tick()
 }
 ```
 
-TrainUnitClientSimulatorは `(TrainTickContext context, TrainUnitHashVerifier hashVerifier, TrainUnitVisualUpdateSystem visualUpdateSystem)` を受け取る。TrainUnitHashVerifierはITickAdvanceGateを実装し、context.State/context.Hashesを利用する。gateのboolは既存の進行可否契約で、新しい意思決定結果を呼出し側に組み立てさせる変更ではない。
+TrainUnitClientSimulatorは `(TrainTickContext context, TrainUnitHashVerifier hashTickGate, TrainUnitVisualUpdateSystem visualUpdateSystem)` を受け取る。TrainUnitHashVerifierはITrainUnitHashTickGateを実装し、context.State/context.Hashesを利用する。gateのboolは既存の進行可否契約で、新しい意思決定結果を呼出し側に組み立てさせる変更ではない。
 
 全network/applier/debugの旧state/buffer注入をTrainTickContextへ置換し、event操作はcontext.Events、hash操作はcontext.Hashes、位置操作はcontext.Stateへ一意に寄せる。TrainUnitSnapshotApplier/RailGraphSnapshotApplier/TrainFullSnapshotEventNetworkHandlerの適用bodyと完了順を変更しない。debug formatterがinternal型をpublic引数に出さないようFormatはTrainTickContextを受け取る。
 
@@ -421,7 +421,7 @@ async UniTask VerifyLiveTickSync(TrainUnitInstanceId trainId, TrainCarInstanceId
 }
 ```
 
-`TrainSnapshotApplyObservation` のHasCompletePairは3種の観測が各1件揃った条件。raw rail payloadからGraphTick/GraphTickSequenceId/GraphHash、raw train payloadからServerTick/WatermarkTickSequenceId/UnitsHashを記録し、watermarkはTickUnifiedIdUtilityで作る。OnFullSnapshotAppliedのcallback内でStateAtApply、両ComputeCurrentHash、対象train unit/node/car view参照を即時に保存する。raw train購読と製品handlerの購読順には依存せず、照合は両方の記録が揃ってから行う。fixtureは停止中の車両を使い、callback外の後続tickでhashを取り直さない。snapshotを捨ててackと通常diffだけ届く実装はHasCompletePair、OnNextだけ通知して適用しない実装は3つの参照更新assert、rail適用を落とした実装はrail参照/hash/orderのいずれかで失敗する。
+`TrainSnapshotApplyObservation` のHasCompletePairは3種の観測が各1件揃った条件。raw rail payloadからGraphTick/GraphTickSequenceId/GraphHash、raw train payloadからServerTick/WatermarkTickSequenceId/UnitsHashを記録し、watermarkはTrainTickUnifiedIdUtilityで作る。OnFullSnapshotAppliedのcallback内でStateAtApply、両ComputeCurrentHash、対象train unit/node/car view参照を即時に保存する。raw train購読と製品handlerの購読順には依存せず、照合は両方の記録が揃ってから行う。fixtureは停止中の車両を使い、callback外の後続tickでhashを取り直さない。snapshotを捨ててackと通常diffだけ届く実装はHasCompletePair、OnNextだけ通知して適用しない実装は3つの参照更新assert、rail適用を落とした実装はrail参照/hash/orderのいずれかで失敗する。
 
 観測購読はtest helperのDisposeで解除する。frame/時間上限で未完了なら受信件数・watermark・stateをassertに含める。PlayerStartsOnBuiltTerrainTestに合わせ、LogAssert.ignoreFailingMessagesはEnterPlayMode直後と終了の既知framework期間だけに限定し、起動・snapshot適用中のErrorを検出する。
 
@@ -485,7 +485,7 @@ Commit: `test: cover tick stream isolation and train synchronization lifecycle`
 - 内容の自己確認: R1〜R8はTask 1〜5へ対応。common配置はドメイン型を含まず、現在の同役割実装から抽出する。future-only/empty/dummy/mismatch/initial-pendingを区別し、空streamでも停止と再開の条件をテストする。
 - 構造の自己確認: 配置表の全項目は既存の駆動元・DI所有・型依存と突合済み。新たな共通状態をstaticへ置かず、train context/sourceがstream識別の所有を担う。nested TrainTickDiffDataの利用先を全検索し、bundleと個別diff DTOの両方をTask 1へ列挙した。placeholder検索とgit diff --checkは問題なし。
 - snapshot失敗・外部通信失敗の寿命は既存handler/verifierに残す。新しい永続封鎖stateを追加しない。既存stale snapshot完了通知やresync失敗policyを今回修正する場合はplanを更新して独立reviewへ戻す。
-- 独立plan reviewはCritical0/Important2、両ImportantをTask 3へ反映した。型閉包の弱い発火は純粋なTickUnifiedIdUtilityのCore.Update配置1件で、reviewerは配置妥当と判定。Task 1/2の設計変更はない。
+- 独立plan reviewはCritical0/Important2、両ImportantをTask 3へ反映した。型閉包の弱い発火は純粋なTrainTickUnifiedIdUtilityのCore.Update配置1件で、reviewerは配置妥当と判定。Task 1/2の設計変更はない。
 - user-simulator reviewは逸脱/要裁定0、shadowはsample0で対象なし。compile/test・PRは未実行。担当者が証跡を追記する。
 
 ### 実装・検証の実測記録（2026-09-26）

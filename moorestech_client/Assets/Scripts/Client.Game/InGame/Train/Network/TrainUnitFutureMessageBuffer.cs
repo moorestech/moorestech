@@ -1,28 +1,29 @@
+using Client.Game.InGame.Train.Unit;
 using Core.Update.TickSynchronization;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Client.Game.TickSynchronization
+namespace Client.Game.InGame.Train.Network
 {
     // stream内のイベントを統合IDで保持する。
     // Buffer stream events by unified id.
-    internal sealed class TickEventBuffer
+    internal sealed class TrainUnitFutureMessageBuffer
     {
-        private readonly ClientTickState _tickState;
-        private readonly SortedDictionary<ulong, ITickBufferedEvent> _futureEvents = new();
+        private readonly TrainUnitTickState _tickState;
+        private readonly SortedDictionary<ulong, ITrainTickBufferedEvent> _futureEvents = new();
 
-        public TickEventBuffer(ClientTickState tickState)
+        public TrainUnitFutureMessageBuffer(TrainUnitTickState tickState)
         {
             _tickState = tickState;
         }
 
         // イベントを未来tickキューへ積む。
         // Queue a pre-simulation event only when its tick is still in the future.
-        public void EnqueueEvent(uint serverTick, uint tickSequenceId, ITickBufferedEvent bufferedEvent)
+        public void EnqueueEvent(uint serverTick, uint tickSequenceId, ITrainTickBufferedEvent bufferedEvent)
         {
             if (bufferedEvent == null)
                 return;
-            var eventTickUnifiedId = TickUnifiedIdUtility.CreateTickUnifiedId(serverTick, tickSequenceId);
+            var eventTickUnifiedId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(serverTick, tickSequenceId);
             if (!_tickState.TryAcceptReceivedTickUnifiedId(eventTickUnifiedId))
             {
                 // 適用済みの統合順序以下は捨てる。

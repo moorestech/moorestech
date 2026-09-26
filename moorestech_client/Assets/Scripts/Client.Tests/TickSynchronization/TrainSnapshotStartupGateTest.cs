@@ -10,6 +10,7 @@ using Client.Game.InGame.Player.StateController;
 using Client.Game.InGame.Player.StateController.State;
 using Client.Game.InGame.Riding;
 using Client.Game.InGame.Train.Network;
+using Client.Game.InGame.Train.Network.TickSynchronization;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Network.API;
@@ -38,7 +39,7 @@ namespace Client.Tests.EditModeInPlayingTest
         [Test]
         public void TrainInitialApply_RemainsPendingBeforePayload()
         {
-            using var handler = new TrainFullSnapshotEventNetworkHandler(null, null, null);
+            using var handler = new TrainFullSnapshotEventNetworkHandler(null, null, new TrainTickContext());
             Assert.AreEqual(UniTaskStatus.Pending, handler.WaitForInitialApplyAsync().Preserve().Status);
         }
 
@@ -143,13 +144,13 @@ namespace Client.Tests.EditModeInPlayingTest
                     TrainSnapshotClientFixture.Receive(structural, "OnEventReceived", world.DeletePayload);
                     Assert.IsTrue(client.Views.TryGetEntity(world.CarId, out _));
                     var deleted = MessagePackSerializer.Deserialize<TrainUnitSnapshotEventMessagePack>(world.DeletePayload);
-                    Assert.IsTrue(client.Context.Events.TryFlushEvent(TickUnifiedIdUtility.CreateTickUnifiedId(deleted.ServerTick, deleted.TickSequenceId)));
+                    Assert.IsTrue(client.Context.Events.TryFlushEvent(TrainTickUnifiedIdUtility.CreateTickUnifiedId(deleted.ServerTick, deleted.TickSequenceId)));
                     Assert.IsFalse(client.Trains.TryGet(world.TrainId, out _));
                     Assert.IsFalse(client.Views.TryGetEntity(world.CarId, out _));
                     TrainSnapshotClientFixture.Receive(structural, "OnEventReceived", world.UpsertPayload);
                     Assert.IsFalse(client.Views.TryGetEntity(world.CarId, out _));
                     var upsert = MessagePackSerializer.Deserialize<TrainUnitSnapshotEventMessagePack>(world.UpsertPayload);
-                    Assert.IsTrue(client.Context.Events.TryFlushEvent(TickUnifiedIdUtility.CreateTickUnifiedId(upsert.ServerTick, upsert.TickSequenceId)));
+                    Assert.IsTrue(client.Context.Events.TryFlushEvent(TrainTickUnifiedIdUtility.CreateTickUnifiedId(upsert.ServerTick, upsert.TickSequenceId)));
                     Assert.IsTrue(client.Trains.TryGet(world.TrainId, out _));
                     Assert.IsTrue(client.Views.TryGetEntity(world.CarId, out var recreated));
                     Assert.AreNotSame(view, recreated);

@@ -41,8 +41,8 @@ namespace Tests.UnitTest.Core.TickSynchronization
         [Test]
         public void UnifiedId_PacksUnsignedTickAndSequence()
         {
-            Assert.AreEqual(0x89ABCDEF01234567ul, TickUnifiedIdUtility.CreateTickUnifiedId(0x89ABCDEFu, 0x01234567u));
-            Assert.AreEqual(ulong.MaxValue, TickUnifiedIdUtility.CreateTickUnifiedId(uint.MaxValue, uint.MaxValue));
+            Assert.AreEqual(0x89ABCDEF01234567ul, TrainTickUnifiedIdUtility.CreateTickUnifiedId(0x89ABCDEFu, 0x01234567u));
+            Assert.AreEqual(ulong.MaxValue, TrainTickUnifiedIdUtility.CreateTickUnifiedId(uint.MaxValue, uint.MaxValue));
         }
     }
 }

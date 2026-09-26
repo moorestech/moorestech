@@ -1,9 +1,9 @@
 using Core.Update.TickSynchronization;
 using System;
 
-namespace Client.Game.TickSynchronization
+namespace Client.Game.InGame.Train.Unit
 {
-    internal sealed class ClientTickState
+    internal sealed class TrainUnitTickState
     {
         internal bool IsStopped { get; private set; }
 
@@ -41,7 +41,7 @@ namespace Client.Game.TickSynchronization
         // Update the highest applied tickUnifiedId.
         public void RecordAppliedTickUnifiedId(uint tick, uint tickSequenceId)
         {
-            RecordAppliedTickUnifiedId(TickUnifiedIdUtility.CreateTickUnifiedId(tick, tickSequenceId));
+            RecordAppliedTickUnifiedId(TrainTickUnifiedIdUtility.CreateTickUnifiedId(tick, tickSequenceId));
         }
         public void RecordAppliedTickUnifiedId(ulong tickUnifiedId)
         {
@@ -77,7 +77,7 @@ namespace Client.Game.TickSynchronization
         public void AdvanceTick()
         {
             var tick = GetTick() + 1;
-            _appliedTickUnifiedId = TickUnifiedIdUtility.CreateTickUnifiedId(tick, 0);
+            _appliedTickUnifiedId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(tick, 0);
         }
     }
 }

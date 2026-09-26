@@ -15,7 +15,7 @@ namespace Client.Game.InGame.Train.View
     public sealed class TrainUnitSnapshotApplier
     {
         private readonly TrainUnitClientCache _cache;
-        private readonly TrainTickContext _context;
+        private readonly TrainUnitTickState _tickState;
         private readonly TrainCarObjectDatastore _trainCarDatastore;
 
         public TrainUnitSnapshotApplier(
@@ -24,7 +24,7 @@ namespace Client.Game.InGame.Train.View
             TrainCarObjectDatastore trainCarDatastore)
         {
             _cache = cache;
-            _context = context;
+            _tickState = context.State;
             _trainCarDatastore = trainCarDatastore;
         }
 
@@ -33,12 +33,12 @@ namespace Client.Game.InGame.Train.View
         public void ApplySnapshot(TrainUnitSnapshotResponse response)
         {
             if (response?.Snapshots == null) throw new InvalidOperationException("Initial train snapshot list is missing.");
-            var snapshotTickUnifiedId = TickUnifiedIdUtility.CreateTickUnifiedId(response.ServerTick, response.TickSequenceId);
+            var snapshotTickUnifiedId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(response.ServerTick, response.TickSequenceId);
             Debug.Log("ApplySnapshotTrainUnit: " + response.ServerTick + "_" + response.TickSequenceId);
             
-            if (snapshotTickUnifiedId < _context.State.GetAppliedTickUnifiedId())
+            if (snapshotTickUnifiedId < _tickState.GetAppliedTickUnifiedId())
             {
-                throw new InvalidOperationException($"Initial train snapshot watermark is stale: received={snapshotTickUnifiedId}, applied={_context.State.GetAppliedTickUnifiedId()}");
+                throw new InvalidOperationException($"Initial train snapshot watermark is stale: received={snapshotTickUnifiedId}, applied={_tickState.GetAppliedTickUnifiedId()}");
             }
 
             var bundles = response.Snapshots;
@@ -60,7 +60,7 @@ namespace Client.Game.InGame.Train.View
             // cache更新後に列車表示オブジェクトを全再生成する
             // Recreate all train view objects after cache replacement
             _trainCarDatastore.RecreateAllTrainEntities(bundles);
-            _context.State.RecordAppliedTickUnifiedId(snapshotTickUnifiedId);
+            _tickState.RecordAppliedTickUnifiedId(snapshotTickUnifiedId);
         }
     }
 }

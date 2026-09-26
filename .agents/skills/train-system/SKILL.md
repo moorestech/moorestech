@@ -30,7 +30,7 @@ Single reference for all train/rail work. Read the shared contracts first, then 
 - `TickUnifiedId = ((ulong)ServerTick << 32) | TickSequenceId`.
 - Sequence IDs are allocated only via `TrainUpdateService.NextTickSequenceId()`, server-managed, reset per tick.
 - Every train/rail event carries `ServerTick` + sequence ID.
-- Client network handlers enqueue into `TrainTickContext.Events` (`TickEventBuffer`, kept in `InGame/Train/Network/TrainUnitFutureMessageBuffer.cs` for code review); no immediate side-effect apply in handlers. Buffered events apply in unified-id order. Existing file placement follows ADR0071 until the user has reviewed the code changes.
+- Client network handlers enqueue into `TrainTickContext.Events` (`TrainUnitFutureMessageBuffer`, kept in `InGame/Train/Network/TrainUnitFutureMessageBuffer.cs` for code review); no immediate side-effect apply in handlers. Buffered events apply in unified-id order. Existing file placement follows ADR0071 until the user has reviewed the code changes.
 
 ### Snapshot-First Train Sync
 - Structural TrainUnit/TrainCar changes flow through per-unit snapshot event `va:event:trainUnitSnapshot` (upsert/delete); initial rail/train full snapshots arrive on connection; a proven runtime hash mismatch stops the stream and exits the affected client without saving (ADR0071).

@@ -141,7 +141,7 @@ namespace Client.Tests.EditModeInPlayingTest
                         Server.Event.EventReceive.TrainUnitTickDiffBundleEventPacket.EventTag, payload =>
                         {
                             var message = MessagePack.MessagePackSerializer.Deserialize<Server.Util.MessagePack.TrainUnitTickDiffBundleMessagePack>(payload);
-                            received.Add(Core.Update.TickSynchronization.TickUnifiedIdUtility.CreateTickUnifiedId(message.ServerTick, message.DiffTickSequenceId));
+                            received.Add(Core.Update.TickSynchronization.TrainTickUnifiedIdUtility.CreateTickUnifiedId(message.ServerTick, message.DiffTickSequenceId));
                         });
                     var deadline = Stopwatch.StartNew();
                     while ((received.Count < 8 || context.State.GetAppliedTickUnifiedId() < received[7]) && deadline.Elapsed < TickResumeTimeout)

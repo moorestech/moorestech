@@ -1,4 +1,3 @@
-using Game.Train.Unit.TickSynchronization;
 using System;
 using System.Collections.Generic;
 using Core.Update;
@@ -22,7 +21,7 @@ namespace Game.Train.Unit
         public const double HashBroadcastIntervalSeconds = TickSeconds;
         private static readonly uint TrainUnitHashBroadcastIntervalTicks = Math.Max(4u, (uint)Math.Ceiling(HashBroadcastIntervalSeconds / TickSeconds));
 
-        private readonly Subject<TrainHashStateEventData> _onHashEvent = new();
+        private readonly Subject<HashStateEventData> _onHashEvent = new();
         private readonly Subject<(uint, IReadOnlyList<TrainTickDiffData>)> _onPreSimulationDiffEvent = new();
         private bool _trainAutoRunDebugEnabled;
 
@@ -40,7 +39,7 @@ namespace Game.Train.Unit
             _trainCarRidingManualCommandResolver = trainCarRidingManualCommandResolver;
         }
 
-        public IObservable<TrainHashStateEventData> OnHashEvent => _onHashEvent;
+        public IObservable<HashStateEventData> OnHashEvent => _onHashEvent;
         public IObservable<(uint, IReadOnlyList<TrainTickDiffData>)> OnPreSimulationDiffEvent => _onPreSimulationDiffEvent;
         public bool IsTrainAutoRunDebugEnabled() => _trainAutoRunDebugEnabled;
 
@@ -51,11 +50,11 @@ namespace Game.Train.Unit
             _onHashEvent.OnNext(BuildHashStateEventData(tick));
 
             #region Internal
-            TrainHashStateEventData BuildHashStateEventData(uint hashTick)
+            HashStateEventData BuildHashStateEventData(uint hashTick)
             {
                 if (hashTick % TrainUnitHashBroadcastIntervalTicks != 0)
                 {
-                    return new TrainHashStateEventData(hashTick, uint.MaxValue, uint.MaxValue);
+                    return new HashStateEventData(hashTick, uint.MaxValue, uint.MaxValue);
                 }
 
                 var bundles = new List<TrainUnitSnapshotBundle>();
@@ -65,7 +64,7 @@ namespace Game.Train.Unit
                 }
                 var unitsHash = TrainUnitSnapshotHashCalculator.Compute(bundles);
                 var railGraphHash = _railGraphDatastore.GetConnectNodesHash();
-                return new TrainHashStateEventData(hashTick, unitsHash, railGraphHash);
+                return new HashStateEventData(hashTick, unitsHash, railGraphHash);
             }
             #endregion
         }

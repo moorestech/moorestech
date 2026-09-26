@@ -1,4 +1,4 @@
-namespace Game.Train.Unit.TickSynchronization
+namespace Game.Train.Unit
 {
     public readonly struct TrainTickDiffData
     {

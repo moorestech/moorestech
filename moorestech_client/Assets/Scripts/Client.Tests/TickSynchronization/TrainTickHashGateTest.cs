@@ -118,7 +118,7 @@ namespace Client.Tests.TickSynchronization
             Client.Game.Common.GameShutdownEvent.ResetForNewSession();
         }
 
-        private sealed class CountingEvent : Client.Game.TickSynchronization.ITickBufferedEvent
+        private sealed class CountingEvent : Client.Game.InGame.Train.Network.ITrainTickBufferedEvent
         {
             public int Applied;
             public void Apply() => Applied++;

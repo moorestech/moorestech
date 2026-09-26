@@ -1,12 +1,12 @@
-namespace Game.Train.Unit.TickSynchronization
+namespace Game.Train.Unit
 {
-    public readonly struct TrainHashStateEventData
+    public readonly struct HashStateEventData
     {
         public uint Tick { get; }
         public uint UnitsHash { get; }
         public uint RailGraphHash { get; }
 
-        public TrainHashStateEventData(uint tick, uint unitsHash, uint railGraphHash)
+        public HashStateEventData(uint tick, uint unitsHash, uint railGraphHash)
         {
             Tick = tick;
             UnitsHash = unitsHash;

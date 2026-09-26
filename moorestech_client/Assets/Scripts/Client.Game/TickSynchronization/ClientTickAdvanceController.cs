@@ -1,3 +1,5 @@
+using Client.Game.InGame.Train.Unit;
+using Client.Game.InGame.Train.Network;
 using Core.Update;
 using System;
 
@@ -14,8 +16,8 @@ namespace Client.Game.TickSynchronization
 
         private const int MaxCatchUpTicksPerFrame = 4;
 
-        private readonly ClientTickState _tickState;
-        private readonly TickEventBuffer _events;
+        private readonly TrainUnitTickState _tickState;
+        private readonly TrainUnitFutureMessageBuffer _events;
 
         private double _estimatedClientTick;
         private double _modifyTick = 0.1;
@@ -23,13 +25,13 @@ namespace Client.Game.TickSynchronization
         private uint _lastGetMaxBufferedTicks = 0;
         private int _localcnt = 0;
 
-        public ClientTickAdvanceController(ClientTickState state, TickEventBuffer events)
+        public ClientTickAdvanceController(TrainUnitTickState state, TrainUnitFutureMessageBuffer events)
         {
             _tickState = state;
             _events = events;
         }
 
-        public double Advance(float deltaTime, ITickAdvanceGate gate)
+        public double Advance(float deltaTime, ITrainUnitHashTickGate gate)
         {
             if (_tickState.IsStopped) return _estimatedClientTick;
             _localcnt++;

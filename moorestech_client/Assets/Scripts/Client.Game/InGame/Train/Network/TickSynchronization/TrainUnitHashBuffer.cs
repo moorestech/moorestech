@@ -1,4 +1,4 @@
-using Client.Game.TickSynchronization;
+using Client.Game.InGame.Train.Unit;
 using Core.Update.TickSynchronization;
 using System;
 using System.Collections.Generic;
@@ -15,10 +15,10 @@ namespace Client.Game.InGame.Train.Network.TickSynchronization
     {
         public const uint DummyHash = uint.MaxValue;
         private bool isGetFirstHash = false;
-        private readonly ClientTickState _tickState;
+        private readonly TrainUnitTickState _tickState;
         private readonly SortedDictionary<ulong, (uint unitsHash, uint railGraphHash, uint serverTick, uint tickSequenceId)> _futureHashStates = new();
 
-        public TrainUnitHashBuffer(ClientTickState tickState)
+        public TrainUnitHashBuffer(TrainUnitTickState tickState)
         {
             _tickState = tickState;
         }
@@ -33,7 +33,7 @@ namespace Client.Game.InGame.Train.Network.TickSynchronization
                 isGetFirstHash = true;
             }
 
-            var messageTickUnifiedId = TickUnifiedIdUtility.CreateTickUnifiedId(serverTick, tickSequenceId);
+            var messageTickUnifiedId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(serverTick, tickSequenceId);
             if (!_tickState.TryAcceptReceivedTickUnifiedId(messageTickUnifiedId))
             {
                 // 適用済みの統合順序以下は捨てる。

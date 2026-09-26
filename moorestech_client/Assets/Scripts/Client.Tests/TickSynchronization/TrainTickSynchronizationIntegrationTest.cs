@@ -139,19 +139,19 @@ namespace Client.Tests.TickSynchronization
                     case TrainUnitTickDiffBundleEventPacket.EventTag:
                         var bundle = MessagePackSerializer.Deserialize<TrainUnitTickDiffBundleMessagePack>(message.Payload);
                         Assert.IsNotEmpty(bundle.Diffs);
-                        return TickUnifiedIdUtility.CreateTickUnifiedId(bundle.ServerTick, bundle.DiffTickSequenceId);
+                        return TrainTickUnifiedIdUtility.CreateTickUnifiedId(bundle.ServerTick, bundle.DiffTickSequenceId);
                     case RailNodeCreatedEventPacket.EventTag:
                         var created = MessagePackSerializer.Deserialize<RailNodeCreatedMessagePack>(message.Payload);
-                        return TickUnifiedIdUtility.CreateTickUnifiedId(created.ServerTick, created.TickSequenceId);
+                        return TrainTickUnifiedIdUtility.CreateTickUnifiedId(created.ServerTick, created.TickSequenceId);
                     case RailNodeRemovedEventPacket.EventTag:
                         var removed = MessagePackSerializer.Deserialize<RailNodeRemovedMessagePack>(message.Payload);
-                        return TickUnifiedIdUtility.CreateTickUnifiedId(removed.ServerTick, removed.TickSequenceId);
+                        return TrainTickUnifiedIdUtility.CreateTickUnifiedId(removed.ServerTick, removed.TickSequenceId);
                     case RailConnectionCreatedEventPacket.EventTag:
                         var connected = MessagePackSerializer.Deserialize<RailConnectionCreatedMessagePack>(message.Payload);
-                        return TickUnifiedIdUtility.CreateTickUnifiedId(connected.ServerTick, connected.TickSequenceId);
+                        return TrainTickUnifiedIdUtility.CreateTickUnifiedId(connected.ServerTick, connected.TickSequenceId);
                     case RailConnectionRemovedEventPacket.EventTag:
                         var disconnected = MessagePackSerializer.Deserialize<RailConnectionRemovedMessagePack>(message.Payload);
-                        return TickUnifiedIdUtility.CreateTickUnifiedId(disconnected.ServerTick, disconnected.TickSequenceId);
+                        return TrainTickUnifiedIdUtility.CreateTickUnifiedId(disconnected.ServerTick, disconnected.TickSequenceId);
                     default:
                         throw new AssertionException("Unexpected event: " + message.Tag);
                 }
@@ -197,7 +197,7 @@ namespace Client.Tests.TickSynchronization
                 client.Context.AdvanceController.Advance(0.1f, client.Gate);
                 Assert.AreEqual(1u, client.Context.State.GetTick());
                 client.Context.AdvanceController.Advance(0.1f, client.Gate);
-                Assert.IsFalse(client.Context.Events.TryFlushEvent(TickUnifiedIdUtility.CreateTickUnifiedId(1, bundle.DiffTickSequenceId)));
+                Assert.IsFalse(client.Context.Events.TryFlushEvent(TrainTickUnifiedIdUtility.CreateTickUnifiedId(1, bundle.DiffTickSequenceId)));
                 Assert.AreEqual(1u, client.Context.State.GetTick());
             }
         }
@@ -223,9 +223,9 @@ namespace Client.Tests.TickSynchronization
                 client.ApplyRail(sink.Events.Single(e => e.Tag == TrainFullSnapshotEventPacket.RailGraphFullSnapshotEventTag).Payload);
                 client.ApplyTrain(sink.Events.Single(e => e.Tag == TrainFullSnapshotEventPacket.TrainUnitFullSnapshotEventTag).Payload);
                 Assert.AreEqual(1u, client.Context.State.GetTick());
-                Assert.IsFalse(client.Context.Events.TryFlushEvent(TickUnifiedIdUtility.CreateTickUnifiedId(1, 1)));
-                Assert.IsTrue(client.Context.Events.TryFlushEvent(TickUnifiedIdUtility.CreateTickUnifiedId(2, 1)));
-                Assert.IsFalse(client.Context.Events.TryFlushEvent(TickUnifiedIdUtility.CreateTickUnifiedId(2, 1)));
+                Assert.IsFalse(client.Context.Events.TryFlushEvent(TrainTickUnifiedIdUtility.CreateTickUnifiedId(1, 1)));
+                Assert.IsTrue(client.Context.Events.TryFlushEvent(TrainTickUnifiedIdUtility.CreateTickUnifiedId(2, 1)));
+                Assert.IsFalse(client.Context.Events.TryFlushEvent(TrainTickUnifiedIdUtility.CreateTickUnifiedId(2, 1)));
             }
         }
     }

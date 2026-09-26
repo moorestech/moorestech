@@ -5,7 +5,6 @@ using Client.Game.InGame.Train.Unit;
 using Game.Train.RailGraph;
 using Game.Train.SaveLoad;
 using Game.Train.Unit;
-using Client.Game.InGame.Train.Network.TickSynchronization;
 
 namespace Client.Game.InGame.Train.DebugView
 {
@@ -16,7 +15,7 @@ namespace Client.Game.InGame.Train.DebugView
         private readonly StringBuilder _builder = new(8192);
         private readonly List<ClientTrainUnit> _units = new();
 
-        internal string Format(TrainUnitClientCache trainCache, TrainTickContext context)
+        internal string Format(TrainUnitClientCache trainCache, TrainUnitTickState tickState)
         {
             _builder.Clear();
             _units.Clear();
@@ -49,8 +48,8 @@ namespace Client.Game.InGame.Train.DebugView
                 // 同期状況とハッシュを先頭に出し、ズレの有無を最初に見えるようにする
                 // Show sync state and hash first so drift is visible immediately.
                 _builder.AppendLine("[TrainUnit Debug Status]");
-                _builder.Append("tick=").Append(context.State.GetTick());
-                _builder.Append(" sequence=").Append(context.State.GetTickSequenceId());
+                _builder.Append("tick=").Append(tickState.GetTick());
+                _builder.Append(" sequence=").Append(tickState.GetTickSequenceId());
                 _builder.Append(" units=").Append(trainCache.Units.Count);
                 _builder.Append(" hash=0x").Append(trainCache.ComputeCurrentHash().ToString("X8"));
                 _builder.AppendLine();

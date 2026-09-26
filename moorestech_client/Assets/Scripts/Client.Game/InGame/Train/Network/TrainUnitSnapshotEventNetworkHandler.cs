@@ -8,7 +8,6 @@ using MessagePack;
 using Server.Event.EventReceive;
 using Server.Util.MessagePack;
 using VContainer.Unity;
-using Client.Game.TickSynchronization;
 using Client.Game.InGame.Train.Network.TickSynchronization;
 
 namespace Client.Game.InGame.Train.Network
@@ -17,7 +16,7 @@ namespace Client.Game.InGame.Train.Network
     // Receive per-train-unit snapshot events and enqueue them into the future buffer.
     public sealed class TrainUnitSnapshotEventNetworkHandler : IInitializable, IDisposable
     {
-        private readonly TrainTickContext _context;
+        private readonly TrainUnitFutureMessageBuffer _futureMessageBuffer;
         private readonly TrainUnitClientCache _cache;
         private readonly TrainCarObjectDatastore _trainCarDatastore;
         private IDisposable _subscription;
@@ -27,7 +26,7 @@ namespace Client.Game.InGame.Train.Network
             TrainUnitClientCache cache,
             TrainCarObjectDatastore trainCarDatastore)
         {
-            _context = context;
+            _futureMessageBuffer = context.Events;
             _cache = cache;
             _trainCarDatastore = trainCarDatastore;
         }
@@ -56,13 +55,13 @@ namespace Client.Game.InGame.Train.Network
                 return;
             }
 
-            _context.Events.EnqueueEvent(message.ServerTick, message.TickSequenceId, CreateBufferedEvent(message));
+            _futureMessageBuffer.EnqueueEvent(message.ServerTick, message.TickSequenceId, CreateBufferedEvent(message));
 
             #region Internal
 
-            ITickBufferedEvent CreateBufferedEvent(TrainUnitSnapshotEventMessagePack messagePack)
+            ITrainTickBufferedEvent CreateBufferedEvent(TrainUnitSnapshotEventMessagePack messagePack)
             {
-                return TickBufferedEvent.Create(ApplySnapshotEvent);
+                return TrainTickBufferedEvent.Create(ApplySnapshotEvent);
 
                 void ApplySnapshotEvent()
                 {
