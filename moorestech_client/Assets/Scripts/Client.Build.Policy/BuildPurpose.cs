@@ -70,5 +70,23 @@ namespace Client.Editor.Build
                     throw new ArgumentOutOfRangeException(nameof(purpose), purpose, null);
             }
         }
+
+        // CIのDevelopmentはメモリ節約、配布はRelease固定
+        // CI uses Development to save memory; distribution always uses Release
+        public static bool IsDevelopmentBuild(BuildPurpose purpose, bool localDevelopmentChoice)
+        {
+            switch (purpose)
+            {
+                case BuildPurpose.Ci:
+                    return true;
+                case BuildPurpose.LocalDevelopment:
+                    return localDevelopmentChoice;
+                case BuildPurpose.Exhibition:
+                case BuildPurpose.SteamPlaytest:
+                    return false;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(purpose), purpose, null);
+            }
+        }
     }
 }

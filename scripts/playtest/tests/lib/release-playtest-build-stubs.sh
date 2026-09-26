@@ -16,16 +16,21 @@ case "\$*" in
     app="\$out/moorestech.app"
     mkdir -p "\$app/Contents/MacOS" "\$app/Contents/Resources/Data/StreamingAssets" "\$out/game/mods"
     touch "\$app/Contents/MacOS/moorestech" "\$app/Contents/MacOS/ffmpeg" "\$app/Contents/Resources/ffmpeg-LICENSE.txt"
+    case "\${MAC_MISSING_PATH:-}" in
+      main) rm "\$app/Contents/MacOS/moorestech" ;;
+      ffmpeg) rm "\$app/Contents/MacOS/ffmpeg" ;;
+      license) rm "\$app/Contents/Resources/ffmpeg-LICENSE.txt" ;;
+    esac
     [ "\${MAC_LEAKS_EVENT_SCRIPT:-0}" = "0" ] || touch "\$out/start-gamescom-loop.command"
     info="\$app/Contents/Resources/Data/StreamingAssets/build-info.json"
-    target=StandaloneOSX
+    target="\${BUILD_INFO_TARGET_MAC:-StandaloneOSX}"
     ;;
   *)
     [ "\${UNITY_EXIT:-0}" = "0" ] || exit "\${UNITY_EXIT}"
     mkdir -p "\$out/moorestech_Data/StreamingAssets" "\$out/game/mods"
     touch "\$out/moorestech.exe"
     info="\$out/moorestech_Data/StreamingAssets/build-info.json"
-    target=StandaloneWindows64
+    target="\${BUILD_INFO_TARGET_WINDOWS:-StandaloneWindows64}"
     ;;
 esac
 printf '{"commit":"%s","branch":"%s","steamBuildLabel":"%s","target":"%s"}' \
@@ -39,6 +44,7 @@ EOF
     cat >"$sandbox/bin/lipo" <<EOF
 #!/bin/bash
 echo "lipo \$*" >>"$sandbox/calls.log"
+case "\$*" in *'/Contents/MacOS/ffmpeg'*) echo "\${LIPO_FFMPEG_ARCHS:-\${LIPO_ARCHS:-arm64}}"; exit 0;; esac
 echo "\${LIPO_ARCHS:-arm64}"
 EOF
     chmod +x "$sandbox/bin/unity" "$sandbox/bin/codesign" "$sandbox/bin/lipo"

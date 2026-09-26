@@ -12,7 +12,7 @@ make_sandbox
 OUTPUT=$(run_target); STATUS=$?
 [ "$STATUS" -eq 0 ] || fail "success run exited $STATUS: $OUTPUT"
 ORDER=$(awk '{print $1}' "$SANDBOX/calls.log" | tr '\n' ' ')
-[ "$ORDER" = "git git git moores-wt git git git git git git git git git unity unity codesign lipo steamcmd verify moores-wt " ] || fail "call order was: $ORDER"
+[ "$ORDER" = "git git git moores-wt git git git git git git git git git unity unity codesign lipo lipo steamcmd verify moores-wt " ] || fail "call order was: $ORDER"
 grep -q "run_app_build" "$SANDBOX/calls.log" || fail "steamcmd was not asked to run_app_build"
 ls "$SANDBOX"/runs/*/promotion.md >/dev/null 2>&1 || fail "promotion.md was not written"
 grep -q '"setlive" "playtest-staging"' "$SANDBOX"/runs/*/steam/app_build_playtest.vdf || fail "Steam upload did not target playtest-staging"
@@ -65,6 +65,14 @@ make_sandbox
 OUTPUT=$(UNITY_EXIT=1 run_target); STATUS=$?
 [ "$STATUS" -ne 0 ] || fail "build failure did not fail the run"
 grep -q "^steamcmd" "$SANDBOX/calls.log" && fail "steamcmd ran after a failed build"
+
+# Windows成果物の不一致はMacビルドを始める前に止める
+# Stop on a bad Windows artifact before starting the Mac build
+make_sandbox
+OUTPUT=$(BUILD_INFO_TARGET_WINDOWS=StandaloneOSX run_target); STATUS=$?
+[ "$STATUS" -eq 4 ] || fail "Windows target mismatch did not exit 4 (got $STATUS)"
+[ "$(grep -c '^unity' "$SANDBOX/calls.log")" -eq 1 ] || fail "Mac build ran despite the Windows artifact mismatch"
+grep -q '^steamcmd' "$SANDBOX/calls.log" && fail "steamcmd ran despite the Windows artifact mismatch"
 
 # 検証機の通し検証が落ちたら手動反映手順を書かない
 make_sandbox

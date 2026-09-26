@@ -35,6 +35,15 @@ release_require_env() {
             exit 2
         fi
     done
+    # 2つのdepotが同じIDだとVDFでキーが衝突するため、値が別物であることも見る
+    # The two depots must differ, or the VDF ends up with a duplicate key
+    local windows_depot_number mac_depot_number
+    windows_depot_number="$(printf '%s' "$MOORESTECH_STEAM_DEPOT_ID_WINDOWS" | sed 's/^0*//')"
+    mac_depot_number="$(printf '%s' "$MOORESTECH_STEAM_DEPOT_ID_MAC" | sed 's/^0*//')"
+    if [ "$windows_depot_number" = "$mac_depot_number" ]; then
+        echo "ERROR: MOORESTECH_STEAM_DEPOT_ID_WINDOWS と MOORESTECH_STEAM_DEPOT_ID_MAC は別のdepotを指す必要があります" >&2
+        exit 2
+    fi
 }
 
 # コミット済み HEAD のピンから、指定キーの relativePath と commitHash を2行で出す（worktree 上のファイルは Unity が書き戻すため読まない）
@@ -134,8 +143,8 @@ release_require_private_assets() {
     release_require_ffmpeg_source "$private_root/ffmpeg/macos-arm64" ffmpeg
 }
 
-# ffmpeg の実体と LICENSE を検査し、LFS 未解決の殻を拒否する
-# Check the real ffmpeg and license, rejecting an unresolved LFS pointer
+# ffmpeg実体とLICENSEを検査する。LFS判定はCefLfsPointerと同じ1024バイト以下・先頭version https://git-lfs
+# Check ffmpeg and LICENSE; match CefLfsPointer's 1024-byte LFS threshold and version https://git-lfs prefix
 release_require_ffmpeg_source() {
     local ffmpeg_dir="$1" executable="$2"
     if [ ! -f "$ffmpeg_dir/$executable" ] || { [ "$(wc -c <"$ffmpeg_dir/$executable")" -le 1024 ] &&

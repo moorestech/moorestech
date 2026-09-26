@@ -24,7 +24,7 @@ namespace Client.Editor.Build
             // Bundling and check policy derive from the purpose alone
             var isStrictBundling = BuildPurposeRules.IsStrictBundling(request.Purpose);
 
-            var buildOptionsFlags = request.IsDevelopmentBuild
+            var buildOptionsFlags = BuildPurposeRules.IsDevelopmentBuild(request.Purpose, request.LocalDevelopmentChoosesDevelopment)
                 ? BuildOptions.Development
                 : BuildOptions.CompressWithLz4;
 
@@ -49,7 +49,7 @@ namespace Client.Editor.Build
 
             // CEFのMacランタイムがarm64のみのため、Macは焼く前にarm64へ固定する
             // CEF's Mac runtime is arm64 only, so pin the Mac player to arm64 before building
-            if (request.Target == BuildTarget.StandaloneOSX && !MacPlayerArchitecture.TryPinAppleSilicon())
+            if (request.Target == BuildTarget.StandaloneOSX && !MacPlayerArchitecture.TryPinAppleSilicon(isStrictBundling))
             {
                 return PlayerBuildOutcome.PlayerBuildFailed;
             }
@@ -83,10 +83,10 @@ namespace Client.Editor.Build
                     WorldSnapshotBundler.Bundle(request.OutputDirectory, isStrictBundling);
                 }
 
-                // 展示会の起動ループは展示会ビルドにだけ入れる（Steam配布のMac版へ混ぜない）
-                // The exhibition loop ships only with exhibition builds, never with the Steam Mac artifact
+                // 展示会限定（Steam版への混入防止）
+                // Exhibition only; keep it out of Steam builds
                 if (BuildPurposeRules.BundlesExhibitionLaunchScript(request.Purpose))
-                    EventLoopScriptBundler.Bundle(request.OutputDirectory, isStrictBundling);
+                    EventLoopScriptBundler.Bundle(request.Target, request.OutputDirectory, isStrictBundling);
 
                 // 同梱で崩れた署名を最後にまとめて張り直す
                 // Re-seal the signature broken by bundling, as the very last step
@@ -148,7 +148,6 @@ namespace Client.Editor.Build
                 Target = buildTarget,
                 OutputDirectory = "Output_" + buildTarget,
                 Purpose = BuildPurpose.Ci,
-                IsDevelopmentBuild = true,
             });
 
             EditorApplication.Exit(outcome == PlayerBuildOutcome.Succeeded ? 0 : 1);

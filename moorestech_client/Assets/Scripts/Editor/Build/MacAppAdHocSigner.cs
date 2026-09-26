@@ -1,5 +1,6 @@
 using System.IO;
 using Client.Game.InGame.BugReport.Recording;
+using Client.WebUiHost.Editor;
 using UnityEditor.Build;
 using UnityEngine;
 
@@ -17,13 +18,18 @@ namespace Client.Editor.Build
         {
             // 入れ子のコードを先に署名してから.app全体を封印する
             // Sign nested code first, then seal the whole .app
-            var bundledFfmpeg = Path.Combine(appPath, "Contents", FfmpegLocator.BundledMacExecutableRelativePath);
-            if (File.Exists(bundledFfmpeg) && ExternalToolRunner.Run(CodesignPath, $"--force -s - \"{bundledFfmpeg}\"") != 0)
+            var bundledFfmpeg = FfmpegLocator.ResolveBundledMacExecutablePath(appPath);
+            if (!File.Exists(bundledFfmpeg))
+            {
+                // 個別署名を飛ばしても後続の--deepが検査するため続行するが、無音にはしない
+                // Skipping the per-file sign still lets the later --deep pass verify it, but this must not stay silent
+                Debug.LogWarning($"[MacAppAdHocSigner] bundled ffmpeg not found, skipping its individual signing: {bundledFfmpeg}");
+            }
+            else if (EditorProcessRunner.Run(CodesignPath, $"--force -s - \"{bundledFfmpeg}\"", Application.dataPath, "") != 0)
             {
                 Fail($"codesign failed for bundled ffmpeg: {bundledFfmpeg}");
-                return;
             }
-            if (ExternalToolRunner.Run(CodesignPath, $"--force --deep -s - \"{appPath}\"") != 0)
+            if (EditorProcessRunner.Run(CodesignPath, $"--force --deep -s - \"{appPath}\"", Application.dataPath, "") != 0)
             {
                 Fail($"codesign failed for app: {appPath}");
                 return;
@@ -31,7 +37,7 @@ namespace Client.Editor.Build
 
             // 署名が実際に通るかを配布前に確かめる
             // Confirm before distribution that the signature actually verifies
-            if (ExternalToolRunner.Run(CodesignPath, $"--verify --deep --strict \"{appPath}\"") != 0)
+            if (EditorProcessRunner.Run(CodesignPath, $"--verify --deep --strict \"{appPath}\"", Application.dataPath, "") != 0)
             {
                 Fail($"codesign verification failed: {appPath}");
                 return;
@@ -42,8 +48,6 @@ namespace Client.Editor.Build
 
             void Fail(string message)
             {
-                // strict時は起動保証の無い成果物を配らない。CI互換時は警告のみ
-                // Strict mode never ships an artifact without a launch guarantee; CI-compatible mode only warns
                 if (isStrict) throw new BuildFailedException("[MacAppAdHocSigner] " + message);
                 Debug.LogWarning("[MacAppAdHocSigner] " + message);
             }

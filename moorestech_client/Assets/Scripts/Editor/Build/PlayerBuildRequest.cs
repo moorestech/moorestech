@@ -16,9 +16,24 @@ namespace Client.Editor.Build
 
         public BuildPurpose Purpose;
 
-        // 開発メニューで人が選ぶ。展示会・Steam配布はfalse、CIはtrueを入口が渡す
-        // Chosen by a person in the dev menu; exhibition/Steam entries pass false and CI passes true
-        public bool IsDevelopmentBuild;
+        // 開発メニューだけが選ぶ。ほかの用途は規則から導く
+        // Only the dev menu chooses; other purposes derive their mode from policy
+        public bool LocalDevelopmentChoosesDevelopment;
+    }
+
+    internal static class PlayerBuildRequestFactory
+    {
+        // 手動と無人のSteam入口で同じ要求を使う
+        // Share one request between manual and unattended Steam entries
+        public static PlayerBuildRequest CreateSteamPlaytest(BuildTarget target, string outputDirectory)
+        {
+            return new PlayerBuildRequest
+            {
+                Target = target,
+                OutputDirectory = outputDirectory,
+                Purpose = BuildPurpose.SteamPlaytest,
+            };
+        }
     }
 
     /// <summary>

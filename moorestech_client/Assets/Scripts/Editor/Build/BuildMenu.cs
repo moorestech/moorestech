@@ -23,16 +23,16 @@ namespace Client.Editor.Build
             BuildInteractive(BuildTarget.StandaloneOSX, AsksDevelopmentBuild());
         }
 
-        // 展示会ブース用。再起動ループを同梱しRelease固定で焼く
-        // For the exhibition booth: bundles the restart loop and always builds Release
+        // 再起動ループ同梱・Release固定
+        // Bundles the restart loop, always Release
         [MenuItem("moorestech/Build/MacOsExhibitionBuild")]
         public static void MacOsExhibitionBuild()
         {
             BuildDistributionInteractive(BuildTarget.StandaloneOSX, BuildPurpose.Exhibition);
         }
 
-        // Steamプレイテスト配布の成果物を手元で焼く。無人入口と同じ用途
-        // Builds the Steam playtest artifact by hand with the same purpose as the unattended entry
+        // 手元焼き。無人入口と同用途
+        // Manual bake; same purpose as the unattended entry
         [MenuItem("moorestech/Build/WindowsSteamPlaytestBuild")]
         public static void WindowsSteamPlaytestBuild()
         {
@@ -74,14 +74,14 @@ namespace Client.Editor.Build
             var outputDirectory = SelectOutputDirectory(buildTarget);
             if (outputDirectory == null) return;
 
-            // 開発用: 同梱・出所の問題は警告で続行する。strictは人へ配る用途に限る
-            // Development use: bundling/origin problems warn and continue; strict is reserved for purposes handed to people
+            // 開発用は同梱失敗を警告で続行
+            // Dev builds warn and continue on bundling failures
             var outcome = BuildPipeline.Execute(new PlayerBuildRequest
             {
                 Target = buildTarget,
                 OutputDirectory = outputDirectory,
                 Purpose = BuildPurpose.LocalDevelopment,
-                IsDevelopmentBuild = isDevelopmentBuild,
+                LocalDevelopmentChoosesDevelopment = isDevelopmentBuild,
             });
 
             ReportOutcome(outcome, outputDirectory);
@@ -92,13 +92,15 @@ namespace Client.Editor.Build
             var outputDirectory = SelectOutputDirectory(buildTarget);
             if (outputDirectory == null) return;
 
-            ReportOutcome(BuildPipeline.Execute(new PlayerBuildRequest
-            {
-                Target = buildTarget,
-                OutputDirectory = outputDirectory,
-                Purpose = purpose,
-                IsDevelopmentBuild = false,
-            }), outputDirectory);
+            var request = purpose == BuildPurpose.SteamPlaytest
+                ? PlayerBuildRequestFactory.CreateSteamPlaytest(buildTarget, outputDirectory)
+                : new PlayerBuildRequest
+                {
+                    Target = buildTarget,
+                    OutputDirectory = outputDirectory,
+                    Purpose = purpose,
+                };
+            ReportOutcome(BuildPipeline.Execute(request), outputDirectory);
         }
 
         // 出力先を選択する（前回パスを記憶）。キャンセル時はnull

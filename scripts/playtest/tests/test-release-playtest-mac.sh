@@ -34,7 +34,10 @@ grep -Fqx "$(printf '\t"contentroot" "%s/build-mac"' "$special_run")" "$special_
 # Mac 側の失敗では steamcmd へ進まず、worktree を片付ける
 # Mac failures do not reach steamcmd and still remove the worktree
 for case_spec in "mac-build UNITY_MAC_EXIT=1" "codesign CODESIGN_EXIT=1" "universal LIPO_ARCHS=x86_64_arm64" \
-    "intel LIPO_ARCHS=x86_64" "event-script MAC_LEAKS_EVENT_SCRIPT=1"; do
+    "intel LIPO_ARCHS=x86_64" "ffmpeg-architecture LIPO_FFMPEG_ARCHS=x86_64" \
+    "event-script MAC_LEAKS_EVENT_SCRIPT=1" "mac-target BUILD_INFO_TARGET_MAC=StandaloneWindows64" \
+    "missing-main MAC_MISSING_PATH=main" "missing-ffmpeg MAC_MISSING_PATH=ffmpeg" \
+    "missing-license MAC_MISSING_PATH=license"; do
     name="${case_spec%% *}"
     assignment="${case_spec#* }"
     make_sandbox
@@ -42,6 +45,19 @@ for case_spec in "mac-build UNITY_MAC_EXIT=1" "codesign CODESIGN_EXIT=1" "univer
     [ "$STATUS" -ne 0 ] || fail "$name did not fail the run"
     grep -q "^steamcmd" "$SANDBOX/calls.log" && fail "steamcmd ran despite $name"
     grep -q "^moores-wt .*rm" "$SANDBOX/calls.log" || fail "worktree was not torn down after $name"
+done
+
+# Macの欠損とtarget不一致は理由を示す
+# Mac missing paths and target mismatches name their reason
+make_sandbox
+OUTPUT=$(BUILD_INFO_TARGET_MAC=StandaloneWindows64 run_target); STATUS=$?
+[ "$STATUS" -eq 4 ] || fail "Mac target mismatch did not exit 4 (got $STATUS)"
+case "$OUTPUT" in *'target mismatch'*) ;; *) fail "Mac target mismatch reason was absent";; esac
+for missing_path in main ffmpeg license; do
+    make_sandbox
+    OUTPUT=$(MAC_MISSING_PATH="$missing_path" run_target); STATUS=$?
+    [ "$STATUS" -eq 4 ] || fail "missing Mac $missing_path did not exit 4 (got $STATUS)"
+    case "$OUTPUT" in *'成果物に '*'/Contents/'*) ;; *) fail "missing Mac $missing_path path was absent";; esac
 done
 
 # Mac depot ID が欠落・非数字ならビルド前に exit 2
@@ -53,6 +69,20 @@ for value in "" "12a"; do
     [ ! -f "$SANDBOX/calls.log" ] || fail "mac depot id '$value' reached git/build"
     case "$OUTPUT" in *MOORESTECH_STEAM_DEPOT_ID_MAC*) ;; *) fail "mac depot id '$value' was not named";; esac
 done
+
+# Windows と Mac の depot ID が同じ値ならビルド前に exit 2
+# Windows and Mac depot ids being equal exits 2 before building
+make_sandbox
+OUTPUT=$(MOORESTECH_STEAM_DEPOT_ID_MAC="1958161" run_target); STATUS=$?
+[ "$STATUS" -eq 2 ] || fail "equal depot ids did not exit 2 (got $STATUS)"
+[ ! -f "$SANDBOX/calls.log" ] || fail "equal depot ids reached git/build"
+
+# 先頭ゼロが違っても数値として同じdepotなら拒否する
+# Reject numerically equal depot ids despite different leading zeroes
+make_sandbox
+OUTPUT=$(MOORESTECH_STEAM_DEPOT_ID_WINDOWS=01958161 MOORESTECH_STEAM_DEPOT_ID_MAC=1958161 run_target); STATUS=$?
+[ "$STATUS" -eq 2 ] || fail "numeric-equal depot ids did not exit 2 (got $STATUS)"
+[ ! -f "$SANDBOX/calls.log" ] || fail "numeric-equal depot ids reached git/build"
 
 # Mac ffmpeg が欠落または LFS ポインタならビルド前に exit 3
 # Missing Mac ffmpeg or an LFS pointer exits 3 before building

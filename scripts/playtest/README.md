@@ -62,7 +62,7 @@ scripts/playtest/release-playtest.sh <SHA または origin/master>
   ビルドラベル（`MOORESTECH_STEAM_BUILD_LABEL`）は `^[A-Za-z0-9][A-Za-z0-9._-]*$`、両 depot id は数字だけを許す
   （VDF へ埋め込むため）。`verify-on-windows.sh` も入口で同じラベル検証をする。
 - 同じ worktree から Windows→Mac の順に焼き、成果物は `runs/<label>/build-windows/`・`runs/<label>/build-mac/`、ログは `unity-build-windows.log`・`unity-build-mac.log` に残す。どちらかのビルド・成果物検査が失敗したら Steam には何も上げない。
-- Mac 成果物は `moorestech.app` の ad-hoc 署名（`codesign --verify --deep --strict`）と主実行ファイルが arm64 のみであること、展示会用スクリプトが入っていないことも検査する。
+- Mac 成果物は `moorestech.app` の ad-hoc 署名（`codesign --verify --deep --strict`）と主実行ファイル・同梱 ffmpeg が arm64 のみであること、展示会用スクリプトが入っていないことも検査する。
 - 同梱元 master data は、moorestech_master のメインclone（`$MOORESTECH_MASTER_CLONE`、既定 `~/hermes-agent/data/repos/moorestech_master`）の
   `git worktree list --porcelain` から HEAD がピンの `commitHash` と一致する worktree を選び（`pin-*`→detached→その他の順で clean なものを優先）、
   `MOORESTECH_MASTER_DATA_ROOT` として Unity へ渡す。`moores-wt new` は一致する既存 worktree（メインclone含む）を再利用し、

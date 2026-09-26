@@ -74,8 +74,6 @@ namespace Client.Tests.BugReport
             Assert.IsNull(found);
         }
 
-        // Mac Playerは.app/Contents/MacOS/ffmpegを同梱位置として探す
-        // A Mac player looks for the bundled copy at .app/Contents/MacOS/ffmpeg
         [Test]
         public void MacPlayerの同梱位置はContents配下のMacOS()
         {
@@ -92,8 +90,6 @@ namespace Client.Tests.BugReport
             Assert.AreEqual(Path.Combine(dataPath, "Plugins", "x86_64", "ffmpeg.exe"), path);
         }
 
-        // Editorには同梱物が無いので同梱位置を持たない
-        // The Editor has no bundled copy, so it has no bundled location
         [Test]
         public void Editorには同梱位置が無い()
         {

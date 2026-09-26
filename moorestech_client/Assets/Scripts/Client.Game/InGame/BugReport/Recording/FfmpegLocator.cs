@@ -14,9 +14,14 @@ namespace Client.Game.InGame.BugReport.Recording
         // 同梱先の Player データフォルダ（<exe>_Data）からの相対ディレクトリ。ビルド側の同梱先と実行時の探索先で共有する
         // The bundled directory relative to the player data folder (<exe>_Data), shared by the build bundler and the runtime lookup
         public static readonly string BundledPluginsRelativeDirectory = Path.Combine("Plugins", "x86_64");
-        // Mac PlayerのApplication.dataPath（.app/Contents）からの相対パス
-        // Relative to a Mac player's Application.dataPath (.app/Contents)
+        // Mac版dataPathからの相対パス
+        // Relative to the Mac player's dataPath
         public static readonly string BundledMacExecutableRelativePath = Path.Combine("MacOS", BundledMacExecutableName);
+
+        // ビルドと署名で共有するffmpegパス生成
+        // Builds the ffmpeg path shared by the bundler and signer
+        public static string ResolveBundledMacExecutablePath(string appPath) =>
+            Path.Combine(appPath, "Contents", BundledMacExecutableRelativePath);
 
         private static readonly string[] KnownPaths = { "/opt/homebrew/bin/ffmpeg", "/usr/local/bin/ffmpeg" };
 

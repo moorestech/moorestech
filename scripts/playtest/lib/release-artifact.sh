@@ -36,7 +36,7 @@ release_require_windows_artifact() {
 }
 
 release_require_mac_artifact() {
-    local build_dir="$1" app="$1/moorestech.app" archs
+    local build_dir="$1" app="$1/moorestech.app" archs executable
     release_require_paths "$app/Contents/MacOS/moorestech" "$app/Contents/MacOS/ffmpeg" "$app/Contents/Resources/ffmpeg-LICENSE.txt" \
         "$build_dir/game/mods" "$app/Contents/Resources/Data/StreamingAssets/build-info.json"
     # 展示会用の再起動ループが混ざっていたら用途の取り違え
@@ -49,15 +49,17 @@ release_require_mac_artifact() {
         echo "ERROR: Mac成果物の署名検証に失敗しました: ${app}" >&2
         exit 4
     fi
-    # CEF の Mac ランタイムに合わせ主実行ファイルを arm64 のみにする
-    # Match the main executable to the arm64-only Mac CEF runtime
-    if ! archs="$("$LIPO_BIN" -archs "$app/Contents/MacOS/moorestech")"; then
-        echo "ERROR: Mac成果物のアーキテクチャを取得できません: ${app}" >&2
-        exit 4
-    fi
-    if [ "$archs" != "arm64" ]; then
-        echo "ERROR: Mac成果物のアーキテクチャが arm64 のみではありません（${archs}）: ${app}" >&2
-        exit 4
-    fi
+    # CEFと録画用ffmpegの両方をApple Silicon専用に揃える
+    # Match both CEF and recording ffmpeg to Apple Silicon only
+    for executable in "$app/Contents/MacOS/moorestech" "$app/Contents/MacOS/ffmpeg"; do
+        if ! archs="$("$LIPO_BIN" -archs "$executable")"; then
+            echo "ERROR: Mac成果物のアーキテクチャを取得できません: ${executable}" >&2
+            exit 4
+        fi
+        if [ "$archs" != "arm64" ]; then
+            echo "ERROR: Mac成果物のアーキテクチャが arm64 のみではありません（${archs}）: ${executable}" >&2
+            exit 4
+        fi
+    done
     release_require_build_info "$app/Contents/Resources/Data/StreamingAssets/build-info.json" StandaloneOSX
 }
