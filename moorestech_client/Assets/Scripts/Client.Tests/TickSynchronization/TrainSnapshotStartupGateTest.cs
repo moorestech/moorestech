@@ -54,46 +54,56 @@ namespace Client.Tests.EditModeInPlayingTest
             // domain reload後にlocal functionのcaptureを生成する。
             // Create local-function captures after the PlayMode domain reload.
             {
-                using var world = new SavedRidingWorldFixture();
-                using var client = new TrainSnapshotClientFixture();
-                var root = new GameObject("DelayedTrainStartup");
-                root.SetActive(false);
                 var previousPlayer = PlayerSystemContainer.Instance;
                 var previousApi = ClientContext.VanillaApi;
-                var player = root.AddComponent<PlayerObjectController>();
-                root.AddComponent<CharacterController>();
-                root.AddComponent<StarterAssetsInputs>();
-                var controller = root.AddComponent<ThirdPersonController>();
-                TestReflection.SetField(player, "controller", controller);
-                player.Initialize(Vector3.zero, Vector3.zero);
-                var playerContainer = root.AddComponent<PlayerSystemContainer>();
-                TestReflection.SetField(playerContainer, "playerObjectController", player);
-                TestReflection.SetStaticProperty(typeof(PlayerSystemContainer), "Instance", playerContainer);
+                SavedRidingWorldFixture world = null;
+                TrainSnapshotClientFixture client = null;
+                GameObject root = null;
+                Subject<EventMessagePack> eventSource = null;
+                TrainHUDScreenState hud = null;
+                IObjectResolver resolver = null;
+                PlayerSystemContainer playerContainer = null;
+                MainGameStarter starter = null;
+                InitialHandshakeResponse handshake = null;
 
-                // 通信受信ループなしで実イベント配送口を提供する。
-                // Provide the real event dispatcher without starting a perpetual network receive loop.
-                var exchange = (PacketExchangeManager)FormatterServices.GetUninitializedObject(typeof(PacketExchangeManager));
-                using var eventSource = new Subject<EventMessagePack>();
-                TestReflection.SetField(exchange, "_eventPacketSubject", eventSource);
-                var api = (VanillaApi)FormatterServices.GetUninitializedObject(typeof(VanillaApi));
-                typeof(VanillaApi).GetField("Event").SetValue(api, new VanillaApiEvent(exchange));
-                TestReflection.SetStaticProperty(typeof(ClientContext), "VanillaApi", api);
-                var states = new PlayerStateController(new PlayerStateDictionary(new NormalPlayerState(),
-                    new RidingPlayerState(new TrainCarRideFollowTargetResolver(client.Views))));
-                var hud = new TrainHUDScreenState(states, client.Trains, root.AddComponent<InGameCameraController>(), null);
-                var ui = root.AddComponent<UIStateControl>();
-                ui.Construct(new UIStateDictionary(null, null, null, null, null, null, null, null, null, null, hud, null));
-                var builder = new ContainerBuilder();
-                builder.RegisterInstance(ui);
-                var resolver = builder.Build();
-                var starter = root.AddComponent<MainGameStarter>();
-                TestReflection.SetField(starter, "_resolver", resolver);
-                var handshake = new InitialHandshakeResponse(world.Handshake, default);
-
-                // グローバルcontextとUnityオブジェクトをassert失敗時も復元する。
-                // Restore global contexts and Unity objects even when an assertion fails.
+                // グローバルcontextとUnityオブジェクトを初期化失敗時も復元する。
+                // Restore global contexts and Unity objects even when initialization fails.
                 try
                 {
+                    world = new SavedRidingWorldFixture();
+                    client = new TrainSnapshotClientFixture();
+                    root = new GameObject("DelayedTrainStartup");
+                    root.SetActive(false);
+                    var player = root.AddComponent<PlayerObjectController>();
+                    root.AddComponent<CharacterController>();
+                    root.AddComponent<StarterAssetsInputs>();
+                    var controller = root.AddComponent<ThirdPersonController>();
+                    TestReflection.SetField(player, "controller", controller);
+                    player.Initialize(Vector3.zero, Vector3.zero);
+                    playerContainer = root.AddComponent<PlayerSystemContainer>();
+                    TestReflection.SetField(playerContainer, "playerObjectController", player);
+                    TestReflection.SetStaticProperty(typeof(PlayerSystemContainer), "Instance", playerContainer);
+
+                    // 通信受信ループなしで実イベント配送口を提供する。
+                    // Provide the real event dispatcher without starting a perpetual network receive loop.
+                    var exchange = (PacketExchangeManager)FormatterServices.GetUninitializedObject(typeof(PacketExchangeManager));
+                    eventSource = new Subject<EventMessagePack>();
+                    TestReflection.SetField(exchange, "_eventPacketSubject", eventSource);
+                    var api = (VanillaApi)FormatterServices.GetUninitializedObject(typeof(VanillaApi));
+                    typeof(VanillaApi).GetField("Event").SetValue(api, new VanillaApiEvent(exchange));
+                    TestReflection.SetStaticProperty(typeof(ClientContext), "VanillaApi", api);
+                    var states = new PlayerStateController(new PlayerStateDictionary(new NormalPlayerState(),
+                        new RidingPlayerState(new TrainCarRideFollowTargetResolver(client.Views))));
+                    hud = new TrainHUDScreenState(states, client.Trains, root.AddComponent<InGameCameraController>(), null);
+                    var ui = root.AddComponent<UIStateControl>();
+                    ui.Construct(new UIStateDictionary(null, null, null, null, null, null, null, null, null, null, hud, null));
+                    var builder = new ContainerBuilder();
+                    builder.RegisterInstance(ui);
+                    resolver = builder.Build();
+                    starter = root.AddComponent<MainGameStarter>();
+                    TestReflection.SetField(starter, "_resolver", resolver);
+                    handshake = new InitialHandshakeResponse(world.Handshake, default);
+
                     Assert.AreEqual(world.CarId.AsPrimitive(), handshake.RidingTarget.TrainCarInstanceId);
                     Assert.AreEqual(world.SeatIndex, handshake.RidingSeatIndex);
                     var waiting = RestoreAfterSnapshot().Preserve();
@@ -146,11 +156,20 @@ namespace Client.Tests.EditModeInPlayingTest
                 }
                 finally
                 {
-                    hud.OnExit();
-                    TestReflection.SetStaticProperty(typeof(PlayerSystemContainer), "Instance", previousPlayer);
-                    TestReflection.SetStaticProperty(typeof(ClientContext), "VanillaApi", previousApi);
-                    resolver.Dispose();
-                    UnityEngine.Object.DestroyImmediate(root);
+                    try
+                    {
+                        hud?.OnExit();
+                    }
+                    finally
+                    {
+                        TestReflection.SetStaticProperty(typeof(PlayerSystemContainer), "Instance", previousPlayer);
+                        TestReflection.SetStaticProperty(typeof(ClientContext), "VanillaApi", previousApi);
+                        resolver?.Dispose();
+                        if (root != null) UnityEngine.Object.DestroyImmediate(root);
+                        eventSource?.Dispose();
+                        client?.Dispose();
+                        world?.Dispose();
+                    }
                 }
 
                 #region Internal

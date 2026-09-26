@@ -2,6 +2,7 @@ using System.Linq;
 using Core.Update;
 using Core.Update.TickSynchronization;
 using Game.Train.Unit;
+using Game.Train.Unit.TickSynchronization;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;

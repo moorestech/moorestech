@@ -60,8 +60,6 @@ namespace Client.Tests.EditModeInPlayingTest
                     yield return UniTask.WaitUntil(() => initialized).Timeout(InitializationTimeout).ToCoroutine();
                     yield return tracing.ToCoroutine();
 
-                    // 実loaderとhandshakeが保存車両と座席を復元したことを確認する。
-                    // Verify the real loader and handshake restored the saved car and seat.
                     resolver = ClientDIContext.DIContainer.DIContainerResolver;
                     var handshake = resolver.Resolve<InitialHandshakeResponse>();
                     Assert.IsNotNull(handshake.RidingTarget);

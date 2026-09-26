@@ -509,3 +509,12 @@ Commit: `test: cover tick stream isolation and train synchronization lifecycle`
 - Client.Tests MVID `e3f3f59e-e3a9-4129-8fdb-4682a90f00a9`、Client.Game MVID `2f4dc774-a469-4c7a-b312-818057cf8fbf`、Game.Train MVID `4b0fc77a-0763-49f3-9c56-b7eb628c608b`。新case・移動後namespace・TryAcceptReceivedTickUnifiedId・単一ID overloadをロード済みreflectionで確認。最初の変更compileは0 errors / 77 warnings、最後の変更なしcompileは0 errors / 0 warnings。既存警告の消滅という意味ではない。
 - 最終live Errorは **3件**。独立Editor-log segmentの314行が未変更CEF validatorのmacOS metaパス例外（Play遷移直後）、4690/4707行が未変更UserPacketHandlerの終了時切断LogError/SocketException。assert区間は329〜4440行でignore=false、初期`4_1`と要求後`202_1`のsnapshot適用を含み、同期Errorなし。失敗したstartup初回もWebUiHost停止・backup scene復元・ignore=falseへの復帰と後続ケース継続を確認した。
 - 生証拠は `C:/Users/5080/Documents/ChatGPT/tick-delta-refactor-20260926/final-fix-*` のcompile/loaded/affected-final/play-final XMLとEditor-log/errors-final JSON。外部の構築IOExceptionプローブは結果表示時にテスト外LogAssert getterが失敗したため、成功証拠に数えない。共用source無変更、read-lockはusingで解除、通常live Error件数とは分離した。C9/C10の挙動・期待値はこの修正では変更していない。
+
+
+### 再reviewの機械修正と最終検証（round 2、2026-09-26）
+
+- 製品commit `5dd44c4e310c328cf6dc655ce9c01c3e424d0d98` の `Game.Train.Unit.TickSynchronization` への3型移動へ、全test参照を検索しserverの `TrainTickSequencePacketTest` / `TrainFullSnapshotEventPacketTest` を追従した。規約guard指定のtestコメント2箇所を変更し、順序・失敗時cleanupの根拠は保持した。
+- `TrainSnapshotStartupGateTest` のouter tryをfixture・GameObject・購読・static置換より前へ移動し、初期化途中のnullを許容して生成済みresourceを回収する。HUD終了時もfinallyからstaticを復元する。EnterPlayMode後にcaptureを生成するblockとUnityTearDownは維持した。追加失敗注入は行わず、この最終編集の成功経路を以下で検証した。
+- 編集と整形の確定後に一巡実行。compile **0 errors / 77 warnings**、影響回帰 **84/84 PASS**（12:36:55〜12:37:06 UTC）、実保存乗車起動・再同期 **1/1 PASS**（12:37:51〜12:38:11 UTC）、fail/skip 0。Client.Tests MVID `5c5701d6-4cc7-495a-ac43-6496ac03c33a`、Client.Game `7f7ce535-242c-4d19-8c3c-4fb2917f01f0`、Game.Train `b0e5b94b-5f6b-43e0-9fe7-ddd5d6d6f253`。検証前後のreflectionで移動3型・旧namespace不在・単一ID flush・C8 caseを確認した。
+- 最終liveのConsole Errorは **3件**。`final-fix-r2-play-editor.log` の313行がCEF遷移時例外、4710/4727行が終了時の既存socket切断2件。assert区間328〜4439行はignore=falseで、snapshot `4_1` と `203_1` の適用を含む。同期Errorなし、終了時ignore=false（4808行）、EditorPlaying=false / BootstrapDisabled=falseを確認。4524行のWebSocket受信終了診断もteardown開始後で、Console Error件数とは区別した。
+- 生証拠は外部 `C:/Users/5080/Documents/ChatGPT/tick-delta-refactor-20260926/final-fix-r2-{compile.json,loaded-before.json,loaded-after.json,affected.xml,play.xml,play-editor.log,errors.json}`。CLI遷移切断応答も保存し、完了した実XMLを判定根拠とした。C9/C10は未回答のまま、今回も動作・期待値を変更していない。

@@ -54,8 +54,8 @@ namespace Client.Tests.TickSynchronization
             var initialBranch = clientTrain.GetManualBranchSelectionIndex();
             sink.TakeAll();
 
-            // 実運転入力と4種のrail更新を、同じサーバーtickの各通知口から発行する。
-            // Emit real driving input and all four rail mutations through their ports in one server tick.
+            // 同一tickで入力・rail更新
+            // Emit input and rail updates in one server tick.
             services.GetRequiredService<TrainCarRidingInputBuffer>().SetLatestInput(
                 new TrainCarRidingInputBuffer.TrainCarRidingInputState(1, 0, false, true, false, false));
             GameUpdater.UpdateOneTick();

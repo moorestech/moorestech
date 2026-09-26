@@ -6,6 +6,7 @@ using Server.Protocol;
 using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
 using Game.Train.Unit;
+using Game.Train.Unit.TickSynchronization;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
