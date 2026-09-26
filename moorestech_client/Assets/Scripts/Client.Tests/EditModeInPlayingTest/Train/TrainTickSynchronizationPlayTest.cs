@@ -56,8 +56,11 @@ namespace Client.Tests.EditModeInPlayingTest
                 var tracing = TraceStartup().Preserve();
                 try
                 {
-                    yield return LoadMainGame(fixture.ServerDirectory, fixture.WorldDirectory).ToCoroutine();
-                    yield return UniTask.WaitUntil(() => initialized).Timeout(InitializationTimeout).ToCoroutine();
+                    using (new TrainStartupAssetLogScope())
+                    {
+                        yield return LoadMainGame(fixture.ServerDirectory, fixture.WorldDirectory).ToCoroutine();
+                        yield return UniTask.WaitUntil(() => initialized).Timeout(InitializationTimeout).ToCoroutine();
+                    }
                     yield return tracing.ToCoroutine();
 
                     resolver = ClientDIContext.DIContainer.DIContainerResolver;

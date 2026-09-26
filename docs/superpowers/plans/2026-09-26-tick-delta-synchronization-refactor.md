@@ -529,6 +529,14 @@ Commit: `test: cover tick stream isolation and train synchronization lifecycle`
 - [x] MasterTickUpdater入口でpreviousTickを保持し、時計を一度だけcurrentTickへ進める。hash(previousTick)はgear/fluid後の既存位置、BeginTick(currentTick)はtrain更新境界に保つ。
 - [x] 実GearTickUpdaterの登録済み過負荷チェック経路から時計を観測し、gear→旧tick hash→新tick diffの順序・stream境界を検証する。既存空diff・hash cadence・初期0tick・packet/save回帰も実行する。
 - [x] compile、ロード済みMVIDと新case実行、実XMLとErrorログを記録してscoped commitする。
-- [ ] 既存CIの保存乗車テストで報告されたtree prefab起動ログを別コミットで調査・対処し、変更後DLLで保存乗車起動・snapshot再同期の実起動テストを再実行する（controller追加指示）。
+- [x] 既存CIの保存乗車テストで報告されたtree prefab起動ログを別コミットで調査・対処し、変更後DLLで保存乗車起動・snapshot再同期の実起動テストを再実行する（controller追加指示）。
 
 D2サーバー検証: compile 0 errors / 46 warnings（既存source）、影響範囲37/37 PASS、fail/skip 0（2026-09-26 13:27:17〜13:27:25 UTC）。実gear経路から新tickを観測する新caseと、旧tick hash→新tick diff・空diff・初期0tick・乗車入力・保存復元・gear通知/過負荷・rail/gear/train replayを含む。Server.Boot MVID `aeda6519-63c1-4f9e-bc4f-97dc9b85089c`、Server.Tests `306fa55d-ce3e-4c7a-88f1-1019f3b41eba` を検証前後で確認。Errorログ0件。証跡は外部 `clock-phase-{compile.json,loaded-before.json,loaded-after.json,affected.xml,test-editor.log,errors-after.json}`。
+
+### 保存乗車テストのCI起動ログ対応（2026-09-26）
+
+既存CI run36243154920のclient-play-3で、Addressables `AssetDatabaseProvider:LoadAssetAtPath` 由来の `Tree prefab at index N is missing.` が新規保存乗車テストを失敗させた。他の成功shardにも同じログがあり、全jobではindex1〜6が観測された。LoadMainGameからGameInitializedまでのテスト専用scopeで、Error型・メッセージ全体・providerスタックの3条件を満たす実ログだけをLogAssert.Expectへ登録する。回数を固定せず、元ErrorとstackをEditorログに保持し、scope破棄時に件数も記録する。scopeはusing/finallyで解除し、起動中もその他のError、起動後は全Errorを通常検出する。terrain/asset本体は変更しない。
+
+controllerからD1/C「このPRで再同期を廃止し、hash不一致時の終了まで実装する（推奨）」の追加裁定を受領した。次の実装担当が契約文書とclientを更新する。ここで既存resyncを通す実起動検証は時計変更時点の過渡的な回帰確認であり、最終仕様の再同期要件ではない。
+
+CI対応の検証: compile 0 errors / 28 warnings（既存source）、変更後Client.Tests MVID `26bbb32c-e7e0-44d2-aff2-7bd0b33f27eb`、保存乗車実起動1/1 PASS（実case 2026-09-26 13:32:42〜13:33:24 UTC）。Server.Boot/Server.Tests MVIDはD2検証時と同一。Windowsでは対象terrainログ0件で、Linux CIの同ログ再発時の確認は次回CIに残る。既知のCEF遷移時例外1件と終了時socket Error2件は生ログへ保存し、通常のError検出を維持した起動・同期assert区間にはErrorなし。EditorPlaying=false / BootstrapDisabled=falseで終了。外部証跡 `clock-phase-ci-{compile.json,loaded-before.json,loaded-after.json,play.xml,play-editor.log,errors.json}`。
