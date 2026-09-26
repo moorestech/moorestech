@@ -169,6 +169,6 @@ cat >"$RUN_DIR/promotion.md" <<EOF
 - Steam アップロード先: playtest-staging
 - 通し検証: 合格（検証機で phase1 / phase2 とも成功）
 
-Steamworks → アプリ 1958160 → SteamPipe → ビルドで、検証済みビルドを `playtest` ブランチに手動でライブ設定してください。設定後に対象のビルド ID を確認し、テスターへ告知してください。
+Steamworks → アプリ 1958160 → SteamPipe → ビルドで、検証済みビルドを \`playtest\` ブランチに手動でライブ設定してください。設定後に対象のビルド ID を確認し、テスターへ告知してください。
 EOF
 echo "[release-playtest] promotion: $RUN_DIR/promotion.md"
