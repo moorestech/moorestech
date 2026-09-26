@@ -14,9 +14,9 @@
 ## 共通の通知配送レイヤー
 
 1. サーバー側は各 EventPacket から `EventProtocolProvider.AddBroadcastEvent(...)` を呼ぶ。  
-2. クライアント側は `VanillaApiEvent` が `va:event` をポーリングして受信イベントをタグごとに配信する。  
-3. Train/Rail 系ハンドラは即時適用せず `TrainUnitFutureMessageBuffer.EnqueueEvent(serverTick, tickSequenceId, ...)` に積む。  
-4. `TrainUnitClientSimulator` が tick 進行時に flush して適用する。
+2. クライアント側は `PacketExchangeManager` がpushイベントをmain threadへdispatchし、`VanillaApiEvent` がタグごとに配信する。購読開始前のイベントはbufferし、`InitializeDispatch` で到着順に同期replayする。
+3. Train/Rail 系ハンドラは即時適用せず `TrainTickContext.Events.EnqueueEvent(serverTick, tickSequenceId, ...)` に積む。
+4. `TrainUnitClientSimulator` が `TrainTickContext.AdvanceController` を呼び、共通driverがexact-keyのeventを同期flushしてからtrainのhash gateを評価する。view更新は引き続きsimulatorが担当する。
 
 ---
 
@@ -47,7 +47,7 @@
 ### クライアント適用
 
 - `RailGraphCacheNetworkHandler.OnRailNodeCreated(...)`
-- `TrainUnitFutureMessageBuffer` に enqueue
+- `TrainTickContext.Events` に enqueue
 - flush 時に `RailGraphClientCache.UpsertNode(...)` と `ClientStationReferenceRegistry.ApplyStationReference(...)`
 
 ---
@@ -79,7 +79,7 @@
 ### クライアント適用
 
 - `RailGraphCacheNetworkHandler.OnRailNodeRemoved(...)`
-- `TrainUnitFutureMessageBuffer` に enqueue
+- `TrainTickContext.Events` に enqueue
 - flush 時に `RailGraphClientCache.RemoveNode(...)`
 
 ---
@@ -111,7 +111,7 @@
 #### クライアント適用
 
 - `RailGraphConnectionNetworkHandler.OnConnectionCreated(...)`
-- `TrainUnitFutureMessageBuffer` に enqueue
+- `TrainTickContext.Events` に enqueue
 - flush 時に `RailGraphClientCache.UpsertConnection(...)`
 
 ### 代表経路 B: ピアを置いて接続
@@ -151,7 +151,7 @@
 #### クライアント適用
 
 - `RailGraphConnectionNetworkHandler.OnConnectionRemoved(...)`
-- `TrainUnitFutureMessageBuffer` に enqueue
+- `TrainTickContext.Events` に enqueue
 - flush 時に `RailGraphClientCache.RemoveConnection(...)`
 
 ### 代表経路 B: ブロック削除に伴う消滅
@@ -186,7 +186,7 @@
 ### クライアント適用
 
 - `TrainUnitSnapshotEventNetworkHandler.OnEventReceived(...)`
-- `TrainUnitFutureMessageBuffer` に enqueue
+- `TrainTickContext.Events` に enqueue
 - flush 時に `TrainUnitClientCache.Upsert(...)` + `TrainCarObjectDatastore.OnTrainObjectUpdate(...)`
 
 ---
@@ -222,6 +222,24 @@
   - `IsDeleted=false`: upsert し、差分で消えた車両オブジェクトを削除
 
 ---
+
+## tickとstreamの所有者
+
+`Core.Update.TickSynchronization.ServerTickClock` はセッション内uint tickを所有する。保存される累積 `GameUpdater.CurrentTick` とは別instance・別用途であり、save/loadしてもwire tickは新sessionの0から始まる。`MasterTickUpdater` は旧tickのtrain hashを発行し、clockを1回進め、`TrainTickSequenceSource.Sequence.BeginTick` でseq0へ戻してからtrain simulationとdiffを実行する。最初のeventはseq1、順序keyは `((ulong)tick << 32) | seq` のままである。
+
+train/railのpacketは同じ `TrainTickSequenceSource` を使う。他streamは同じclockを使えても、別 `TickSequenceState` を所有する。clientは `TrainTickContext` が `ClientTickState`、`TickEventBuffer`、`ClientTickAdvanceController`、train固有の `TrainUnitHashBuffer` を所有する。共通state/buffer/driverにTrain/Railの型・通信tag・hash判断を持ち込まない。別contextへのwatermark purgeやgate停止の波及はない。
+
+bundleはhash(n-1)とdiff(n)を運び、空diffでもsimulationを起動する。4tick間引き、dummy hash、future-only force-slip、hash不一致時resyncの判断は `TrainUnitHashVerifier` に残る。driverのcatch-up係数と1frame最大4tickも維持する。
+
+## 初期snapshotと再同期
+
+handshake時は `TrainFullSnapshotEventPacket` がrail→trainの順でfull snapshotを応答前にpushする。full snapshotは順序bufferへ積む通常差分と異なり、`TrainFullSnapshotEventNetworkHandler` が到着順に即時適用する。rail cacheを置換してからtrain cacheと車両viewを全再生成し、watermark以下のeventをpurgeする。その後に初期完了sourceを成功させ、`OnFullSnapshotApplied` を通知する。rail/trainの適用失敗はLogErrorと初期待機のfaultへ届く。
+
+`MainGameInitializationFinalizer` は `InitialEventApplyWaiter` で全初期適用を待ち、地形構築後にplayer runtimeを開始する。保存乗車は `MainGameStarter.RestoreLoginState` → `MainGameContainerActivation` → `InitialRideTrainCarRequest` → `TrainHUDScreenState` → `RidingPlayerState` → `TrainCarRideFollowTargetResolver` を通り、生成済み実車両のseat markerへ追従する。
+
+`SendTrainResync` は通信UniTaskを直接返す。ackは要求受付の応答であり、適用完了を意味しない。hash verifierのgateはsnapshot適用通知で解除し、旧要求のack失敗が新しい要求のgateを解除しないよう要求所有を照合する。通信待ち・初期待機・main-thread dispatchのawaitは維持し、差分とsnapshotの適用は同期で行う。
+
+受入テストはraw rail/train payload、適用通知、watermark、適用直後の両hashとtrain/rail/view参照更新を照合する。保存乗車worldの実起動を通し、snapshot適用後のtick前進まで確認する。設計根拠は [ADR 0071](../adr/0071-tick-synchronization-stream-boundaries.md) を参照。
 
 ## 補足
 
