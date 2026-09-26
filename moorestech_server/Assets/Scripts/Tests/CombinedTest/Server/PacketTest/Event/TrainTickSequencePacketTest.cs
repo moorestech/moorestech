@@ -1,6 +1,9 @@
+using System.Collections.Generic;
 using System.Linq;
 using Core.Update;
 using Core.Update.TickSynchronization;
+using Game.Gear.Common;
+using Game.Gear.Tick;
 using Game.Train.Unit;
 using Game.Train.Unit.TickSynchronization;
 using MessagePack;
@@ -12,6 +15,7 @@ using Server.Protocol;
 using Server.Protocol.PacketResponse;
 using Server.Util.MessagePack;
 using Tests.Module.TestMod;
+using UniRx;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
 {
@@ -93,6 +97,65 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             {
                 GameUpdater.RestoreCurrentTick(originalTick);
             }
+        }
+
+        [Test]
+        public void GearUpdate_SeesCurrentClockBeforePreviousTrainHashAndCurrentDiff()
+        {
+            var originalTick = GameUpdater.CurrentTick;
+            try
+            {
+                var (_, services) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+                var clock = services.GetService<ServerTickClock>();
+                var sequence = services.GetService<TrainTickSequenceSource>().Sequence;
+                var train = services.GetService<TrainUpdateService>();
+                var phases = new List<string>();
+                var gearProbe = new GearClockProbe(clock, phases);
+                var gears = services.GetService<GearNetworkDatastore>();
+                gears.RegisterOverloadTickTarget(gearProbe);
+                using var hashSubscription = train.OnHashEvent.Subscribe(hash =>
+                {
+                    phases.Add($"hash:{hash.Tick}:clock:{clock.Tick}:stream:{sequence.Tick}");
+                    Assert.AreEqual(hash.Tick % 4 != 0, hash.UnitsHash == uint.MaxValue);
+                    Assert.AreEqual(hash.Tick % 4 != 0, hash.RailGraphHash == uint.MaxValue);
+                });
+                using var diffSubscription = train.OnPreSimulationDiffEvent.Subscribe(diff =>
+                    phases.Add($"diff:{diff.Item1}:clock:{clock.Tick}:stream:{sequence.Tick}"));
+
+                // 実gear更新から時計を観測し、hash計算位置とtrain境界も固定する。
+                // Observe the clock inside the real gear update and preserve the hash phase and train boundary.
+                for (uint currentTick = 1; currentTick <= 5; currentTick++)
+                {
+                    phases.Clear();
+                    GameUpdater.UpdateOneTick();
+                    CollectionAssert.AreEqual(new[]
+                    {
+                        $"gear:{currentTick}",
+                        $"hash:{currentTick - 1}:clock:{currentTick}:stream:{currentTick - 1}",
+                        $"diff:{currentTick}:clock:{currentTick}:stream:{currentTick}"
+                    }, phases);
+                    Assert.AreEqual(currentTick, clock.Tick);
+                }
+                gears.UnregisterOverloadTickTarget(gearProbe);
+            }
+            finally
+            {
+                GameUpdater.RestoreCurrentTick(originalTick);
+            }
+        }
+
+        private sealed class GearClockProbe : IGearOverloadTickTarget
+        {
+            private readonly ServerTickClock _clock;
+            private readonly List<string> _phases;
+
+            public GearClockProbe(ServerTickClock clock, List<string> phases)
+            {
+                _clock = clock;
+                _phases = phases;
+            }
+
+            public void TickOverloadCheck() => _phases.Add($"gear:{_clock.Tick}");
         }
 
         private static CapturedEventSink Handshake(PacketResponseCreator packets, int playerId)

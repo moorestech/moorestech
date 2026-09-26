@@ -12,9 +12,9 @@
 
 ## 時計とstreamの所有権
 
-出所: agent前提（`GameUpdater`、`TrainUpdateService`、`MasterTickUpdater`の現実の呼出順、AGENTS.mdの汎用基盤へのドメイン語彙混入禁止）。
+出所: ユーザー裁定 2026-09-26（最終review D2/A）「全体更新の開始時に時計を進める」「これ採用します」。streamごとの採番所有は既存agent前提を維持する。
 
-永続累積tickの `GameUpdater.CurrentTick` と通信のセッション内uint tickは別物である。共通の `ServerTickClock` は後者を所有し、MasterTickUpdaterの既存train更新位置で1回だけ進める。直前に旧tickのtrain hashを発火し、直後にtrain/rail streamの `TickSequenceState` を新tick/seq0に進め、その後trainをsimulateする。電力・gear・fluid・block更新の順序は維持する。
+永続累積tickの `GameUpdater.CurrentTick` と通信のセッション内uint tickは別物である。共通の `ServerTickClock` は後者を所有し、`MasterTickUpdater.Update` の入口で旧tickを保持して1回だけ進める。電力・gear・fluid更新後の既存train境界で保持した旧tickのtrain hashを発火し、train/rail streamの `TickSequenceState` を新tick/seq0に進め、その後trainをsimulateする。電力・gear・fluid・train・block更新の順序とhash計算位置は維持する。将来のgear通知handlerはDIされた同じ `ServerTickClock.Tick` をgear更新中に読めば当該更新のtickを得られる。通知の採番はそのstreamの別 `TickSequenceState` が所有する。初期wire tickは0、最初の全体更新中は1となる。
 
 seqはstreamごとの状態であり、全ドメイン共通の採番singletonにしない。現在のtrainとrailは従来どおり1stream。trainのsequence ownerはsimulation serviceから分離して各packetが参照する。別domainのownerは別のsequence stateを持ち、同じtickを入力できる。別streamのイベントをtrainが受信しないことによるseqの穴を作らない。
 
@@ -39,3 +39,7 @@ driverからviewを購読して動かす機構へ変えず、既存ITickableのt
 ## 今回の境界
 
 出所: agent前提（リファクタリング範囲）。MessagePack key/tag、保存形式、hash cadence、catch-up係数、欠落時の判断、stale snapshot完了通知の既存挙動を変えない。seq/wire tickは永続化しない。機械的共通部を2つの非train fixtureで動かし、採番・適用・watermarkが相互に干渉しないことを確認する。実際のgear/belt adapterは、それぞれのpayload・hash・世代復旧契約を決めるPRで接続する。
+
+## snapshot/hash方針の継続確認
+
+出所: ユーザー発言 2026-09-26（最終review D1）「初回snapshotのあと差分通知で完璧に同期がとれている前提」「再同期は面倒なので考えてない」「hashミスマッチなら強制終了でいいかなと」。初期snapshot＋順序付き差分、hash不一致時の終了方針について終了範囲を確認中。上記のresync記述は既存実装の記録であり、この発言への最終裁定ではない。D2の時計移動ではclient/hash/resyncの挙動を変更しない。

@@ -54,6 +54,12 @@ namespace Server.Boot
 
         public void Update()
         {
+            // 全ドメインの通知に当該tickを使う。train hash用の旧tickは保持する。
+            // Expose the current tick to every domain while retaining the previous tick for the train hash.
+            var previousTick = _serverTickClock.Tick;
+            _serverTickClock.AdvanceTick();
+            var currentTick = _serverTickClock.Tick;
+
             // トポロジ反映は全網とも需給計算より先（tick途中でセグメント所属を変えないため）
             // Apply every topology before any settlement so segment membership never changes mid tick
             _electricWireNetworkDatastore.RebuildIfDirty();
@@ -64,10 +70,9 @@ namespace Server.Boot
             _fluidTickUpdater.Update();
             // 旧tickのhashを採番してから、新tickのstreamを開始する。
             // Allocate the previous tick hash before beginning the new stream tick.
-            _trainUpdateService.PublishCurrentTickHash(_serverTickClock.Tick);
-            _serverTickClock.AdvanceTick();
-            _trainTickSequenceSource.Sequence.BeginTick(_serverTickClock.Tick);
-            _trainUpdateService.UpdateTrains(_serverTickClock.Tick);
+            _trainUpdateService.PublishCurrentTickHash(previousTick);
+            _trainTickSequenceSource.Sequence.BeginTick(currentTick);
+            _trainUpdateService.UpdateTrains(currentTick);
 
             // ブロック更新を中央から一括駆動する（自走宣言した搬送系コンポーネントは対象外）
             // Drive block updates from one place; self-driven transport components are excluded

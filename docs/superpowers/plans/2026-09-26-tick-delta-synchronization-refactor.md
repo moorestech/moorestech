@@ -42,7 +42,7 @@
 | TrainTickContext / TrainUnitHashBuffer | Client.Game/InGame/Train/Network/TickSynchronization | train state/events/driver/hash bufferの所有と接続。現在のnetwork/applier/simulator/debugが使用する |
 | TrainUnitHashVerifier / snapshot / DTO / view | 現在のtrain/通信配置 | train hashとresync、rail依存、view構築をcommonへ入れない |
 
-呼出し鎖: `GameUpdater → MasterTickUpdater → train旧tick hash → ServerTickClock.AdvanceTick → train sequence.BeginTick → train simulation+diff → EventProtocolProvider → PacketExchangeManager main-thread dispatch → Train handlers → train context.Events → common driver → train gate → train visual update`。
+呼出し鎖: `GameUpdater → MasterTickUpdater入口で旧tick保持・ServerTickClock.AdvanceTick → 電力/gear/fluid → train旧tick hash → train sequence.BeginTick → train simulation+diff → EventProtocolProvider → PacketExchangeManager main-thread dispatch → Train handlers → train context.Events → common driver → train gate → train visual update`。
 
 同じ時計を共有することは同じseqを共有することではない。将来domainは別TickSequenceStateと別client contextを持ち、MasterTickUpdaterの同じ明示境界からtickを受ける。train/rail内だけは従来のseq範囲を維持する。現PRは将来domainの登録・自動列挙機構を作らない。
 
@@ -158,13 +158,16 @@ public sealed class TrainTickSequenceSource
 
 各型はFilesの別ファイルへ置く。common3型は `Core.Update.TickSynchronization`、train ownerと2payloadは `Game.Train.Unit` namespace。sourceのreadonly fieldはDI上のstream識別境界であり、新domainはこのtrain ownerを再利用しない。
 
-MasterTickUpdaterの現在の `_trainUpdateService.UpdateTrains()` の位置だけを以下に置換する。gear/fluid/blockの前後関係を動かさない。
+D2/Aユーザー裁定に従い、MasterTickUpdater.Updateの入口で旧tickを保持して時計を進める。gear/fluid/blockの前後関係を動かさず、既存train境界で旧tick hashと新tickのstream開始を行う。
 
 ```csharp
-_trainUpdateService.PublishCurrentTickHash(_serverTickClock.Tick);
+var previousTick = _serverTickClock.Tick;
 _serverTickClock.AdvanceTick();
-_trainTickSequenceSource.Sequence.BeginTick(_serverTickClock.Tick);
-_trainUpdateService.UpdateTrains(_serverTickClock.Tick);
+var currentTick = _serverTickClock.Tick;
+// Existing topology, electric, gear and fluid updates remain here.
+_trainUpdateService.PublishCurrentTickHash(previousTick);
+_trainTickSequenceSource.Sequence.BeginTick(currentTick);
+_trainUpdateService.UpdateTrains(currentTick);
 ```
 
 TrainUpdateServiceのBuildHashStateEventDataをPublishCurrentTickHashのlocal functionへ移し、OnHashEvent.OnNextまでをこのメソッドで実行。UpdateTrains(uint tick)は旧 `_executedTick` を引数tickに置換し、入力集計・simulate・NotifyPreSimulationDiffだけを既存順で実行する。内部2structを各新ファイルへ移し、nested type参照を新型へ直すことで200行以下へ収める。debugの挙動は変更しない。
@@ -518,3 +521,14 @@ Commit: `test: cover tick stream isolation and train synchronization lifecycle`
 - 編集と整形の確定後に一巡実行。compile **0 errors / 77 warnings**、影響回帰 **84/84 PASS**（12:36:55〜12:37:06 UTC）、実保存乗車起動・再同期 **1/1 PASS**（12:37:51〜12:38:11 UTC）、fail/skip 0。Client.Tests MVID `5c5701d6-4cc7-495a-ac43-6496ac03c33a`、Client.Game `7f7ce535-242c-4d19-8c3c-4fb2917f01f0`、Game.Train `b0e5b94b-5f6b-43e0-9fe7-ddd5d6d6f253`。検証前後のreflectionで移動3型・旧namespace不在・単一ID flush・C8 caseを確認した。
 - 最終liveのConsole Errorは **3件**。`final-fix-r2-play-editor.log` の313行がCEF遷移時例外、4710/4727行が終了時の既存socket切断2件。assert区間328〜4439行はignore=falseで、snapshot `4_1` と `203_1` の適用を含む。同期Errorなし、終了時ignore=false（4808行）、EditorPlaying=false / BootstrapDisabled=falseを確認。4524行のWebSocket受信終了診断もteardown開始後で、Console Error件数とは区別した。
 - 生証拠は外部 `C:/Users/5080/Documents/ChatGPT/tick-delta-refactor-20260926/final-fix-r2-{compile.json,loaded-before.json,loaded-after.json,affected.xml,play.xml,play-editor.log,errors.json}`。CLI遷移切断応答も保存し、完了した実XMLを判定根拠とした。C9/C10は未回答のまま、今回も動作・期待値を変更していない。
+
+### D2/A ユーザー裁定の適用（2026-09-26）
+
+出所: ユーザー「全体更新の開始時に時計を進める」「これ採用します」。既存PRの追加裁定として以下を実施する。D1の初期snapshot＋差分・hash不一致時終了方針は確認中で、今回client/resyncを変更しない。
+
+- [x] MasterTickUpdater入口でpreviousTickを保持し、時計を一度だけcurrentTickへ進める。hash(previousTick)はgear/fluid後の既存位置、BeginTick(currentTick)はtrain更新境界に保つ。
+- [x] 実GearTickUpdaterの登録済み過負荷チェック経路から時計を観測し、gear→旧tick hash→新tick diffの順序・stream境界を検証する。既存空diff・hash cadence・初期0tick・packet/save回帰も実行する。
+- [x] compile、ロード済みMVIDと新case実行、実XMLとErrorログを記録してscoped commitする。
+- [ ] 既存CIの保存乗車テストで報告されたtree prefab起動ログを別コミットで調査・対処し、変更後DLLで保存乗車起動・snapshot再同期の実起動テストを再実行する（controller追加指示）。
+
+D2サーバー検証: compile 0 errors / 46 warnings（既存source）、影響範囲37/37 PASS、fail/skip 0（2026-09-26 13:27:17〜13:27:25 UTC）。実gear経路から新tickを観測する新caseと、旧tick hash→新tick diff・空diff・初期0tick・乗車入力・保存復元・gear通知/過負荷・rail/gear/train replayを含む。Server.Boot MVID `aeda6519-63c1-4f9e-bc4f-97dc9b85089c`、Server.Tests `306fa55d-ce3e-4c7a-88f1-1019f3b41eba` を検証前後で確認。Errorログ0件。証跡は外部 `clock-phase-{compile.json,loaded-before.json,loaded-after.json,affected.xml,test-editor.log,errors-after.json}`。
