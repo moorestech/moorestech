@@ -4,6 +4,10 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 const sources = {
+  trainInventoryBody: read("./train/TrainInventoryBody.tsx"),
+  trainTimetable: read("./train/TrainTimetableSection.tsx"),
+  trainTimetableStops: read("./train/TrainTimetableStopList.tsx"),
+  trainStationName: read("./details/station/TrainStationNameSection.tsx"),
   panel: read("./BlockInventoryPanel.tsx"),
   blockItemGrid: read("./BlockItemGrid.tsx"),
   generator: read("./details/GeneratorSection.tsx"),
@@ -21,6 +25,7 @@ const sources = {
 };
 
 const styles = {
+  trainTimetable: read("./train/style.module.css"),
   panel: read("./style.module.css"),
   gaugeBar: read("../../shared/ui/GaugeBar/style.module.css"),
   modeSwitch: read("../../shared/ui/ModeSwitch/style.module.css"),

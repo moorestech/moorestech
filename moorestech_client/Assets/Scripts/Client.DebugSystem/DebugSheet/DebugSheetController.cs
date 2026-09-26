@@ -79,7 +79,6 @@ namespace Client.DebugSystem
             rootPage.AddBoolWithSave(false, SkitPlaySettingsLabel, SkitPlaySettingsKey);
             rootPage.AddBoolWithSave(false, MapObjectSuperMineLabel, DebugParameterKeys.MapObjectSuperMine);
             rootPage.AddBoolWithSave(false, FixCraftTimeLabel, FixCraftTimeKey);
-            rootPage.AddBoolWithSave(false, TrainAutoRunLabel, TrainAutoRunKey);
             rootPage.AddBoolWithSave(false, TrainUnitDebugOverlayLabel, TrainUnitDebugOverlayKey);
             rootPage.AddBoolWithSave(false, PlacePreviewKeepLabel, PlacePreviewKeepKey);
             rootPage.AddBoolWithSave(false, FreeBlockPlacementLabel, DebugParameterKeys.FreeBlockPlacement);

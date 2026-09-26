@@ -65,7 +65,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             // Same 1-second polling as uGUI ElectricNetworkInfoView
             while (!ct.IsCancellationRequested)
             {
-                var response = await ClientContext.VanillaApi.Response.GetElectricNetworkInfo(block.BlockInstanceId, ct);
+                var response = await ClientContext.VanillaApi.Response.Block.GetElectricNetworkInfo(block.BlockInstanceId, ct);
                 if (ct.IsCancellationRequested) return;
                 Electric = response?.Info;
                 OnUpdated?.Invoke();
@@ -79,7 +79,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             // Same 1-second polling as PollElectric, so the stop-reason row stays live while open
             while (!ct.IsCancellationRequested)
             {
-                var response = await ClientContext.VanillaApi.Response.GetGearNetworkInfo(block.BlockInstanceId, ct);
+                var response = await ClientContext.VanillaApi.Response.Block.GetGearNetworkInfo(block.BlockInstanceId, ct);
                 if (ct.IsCancellationRequested) return;
 
                 // 通信失敗は網未所属(Info=null)と区別し、前回値を保って停止理由行を消さない
@@ -100,7 +100,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
         private async UniTaskVoid FetchFilterSplitter(Vector3Int pos, CancellationToken ct)
         {
             var request = FilterSplitterStateProtocol.FilterSplitterStateRequest.CreateGetRequest(pos);
-            var response = await ClientContext.VanillaApi.Response.SendFilterSplitterStateRequest(request, ct);
+            var response = await ClientContext.VanillaApi.Response.Block.SendFilterSplitterStateRequest(request, ct);
             if (ct.IsCancellationRequested) return;
             // 取得失敗（未配置/別ブロック）は空スナップショットで上書きせず無視する（uGUI と同じガード）
             // Ignore fetch failures instead of overwriting with an empty snapshot (same guard as uGUI)

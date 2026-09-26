@@ -36,7 +36,7 @@ namespace Game.Block.Factory.BlockTemplate.Train
             //②stationをつなげて設置した場合にピッタリ重なる位置のrailComponentを自動接続するための処理
             var railComponents = RailComponentUtility.Create2RailComponents(positionInfo, stationParam.EntryRailPosition, stationParam.ExitRailPosition, _railGraphDatastore, (float)stationParam.MaxConnectableRailLength);//①が行われる
             RailComponentUtility.RegisterAndConnetStationBlocks(railComponents, _railGraphDatastore);//②接続処理
-            var station = new TrainStationComponent("test");
+            var station = new TrainStationComponent();
             var trainPlatformDockingComponent = new TrainPlatformDockingComponent(stationParam.LoadingAnimeSpeed);
             var trainPlatformTransferComponent = new TrainPlatformTransferComponent(TrainPlatformTransferComponent.TransferMode.LoadToTrain);
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(stationParam.InventoryConnectors, positionInfo);
@@ -105,4 +105,3 @@ namespace Game.Block.Factory.BlockTemplate.Train
         }
     }
 }
-

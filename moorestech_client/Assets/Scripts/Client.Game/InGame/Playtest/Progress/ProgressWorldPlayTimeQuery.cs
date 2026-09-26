@@ -13,7 +13,7 @@ namespace Client.Game.InGame.Playtest.Progress
     {
         public static async UniTask FillAsync(ProgressSessionWriter writer, CancellationToken cancellationToken)
         {
-            var info = await ClientContext.VanillaApi.Response.GetWorldPlaySessionInfo(cancellationToken);
+            var info = await ClientContext.VanillaApi.Response.World.GetWorldPlaySessionInfo(cancellationToken);
             writer.UpdateWorldPlayTime(ToWorldPlayTime(info));
 
             #region Internal

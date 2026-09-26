@@ -1,5 +1,6 @@
 using System;
-using System.Collections.Generic;
+using Client.Game.InGame.Train.Timetable;
+using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory;
@@ -22,6 +23,11 @@ namespace Client.WebUiHost.Game.Topics
     public class BlockInventoryTopic : ITopicHandler, IDisposable
     {
         public const string TopicName = "block_inventory.current";
+        private readonly TrainUnitClientCache _trainUnitClientCache;
+        private readonly IClientTrainTimetableLookup _timetables;
+        private readonly TrainTimetableFetcher _timetableFetcher;
+        private readonly OpenTrainTimetableTracker _openTrainTimetableTracker;
+        private readonly IDisposable _trainTimetableSubscription;
         private readonly WebSocketHub _hub;
         private readonly UIStateControl _uiStateControl;
         private readonly SubInventoryState _subInventoryState;
@@ -37,8 +43,15 @@ namespace Client.WebUiHost.Game.Topics
         // Task 8 の action handler がスナップショット反映に使う公開口
         // Public access point used by Task 8 action handlers to apply snapshots
         public BlockNetworkInfoCache NetworkCache => _networkCache;
-        public BlockInventoryTopic(WebSocketHub hub, UIStateControl uiStateControl, SubInventoryState subInventoryState)
+        public BlockInventoryTopic(WebSocketHub hub, UIStateControl uiStateControl, SubInventoryState subInventoryState, TrainUnitClientCache trainUnitClientCache, IClientTrainTimetableLookup timetables, TrainTimetableFetcher timetableFetcher)
         {
+            _trainUnitClientCache = trainUnitClientCache;
+            _timetables = timetables;
+            _timetableFetcher = timetableFetcher;
+            // 時刻表更新・取得失敗・所属列車の変化で再配信する
+            // Republish on the open train's timetable updates, fetch failures, and owning-train changes
+            _openTrainTimetableTracker = new OpenTrainTimetableTracker(subInventoryState, uiStateControl, trainUnitClientCache, timetables, timetableFetcher);
+            _trainTimetableSubscription = _openTrainTimetableTracker.OnRepublishRequested.Subscribe(_ => SchedulePublish());
             _hub = hub;
             _uiStateControl = uiStateControl;
             _subInventoryState = subInventoryState;
@@ -65,6 +78,8 @@ namespace Client.WebUiHost.Game.Topics
             _uiStateControl.OnStateChanged -= OnStateChanged;
             _subInventorySubscription.Dispose();
             _continuousSampleSubscription.Dispose();
+            _trainTimetableSubscription.Dispose();
+            _openTrainTimetableTracker.Dispose();
             _networkCache.OnUpdated -= SchedulePublish;
             TrackBlock(null);
         }
@@ -116,7 +131,7 @@ namespace Client.WebUiHost.Game.Topics
             if (_subInventoryState.CurrentSubInventorySource is TrainSubInventorySource trainSource)
             {
                 TrackBlock(null);
-                return WebUiJson.Serialize(TrainInventoryDtoFactory.Create(trainSource, sub));
+                return WebUiJson.Serialize(TrainInventoryDtoFactory.Create(trainSource, sub, _trainUnitClientCache, _timetables, _timetableFetcher, ClientDIContext.BlockGameObjectDataStore));
             }
             if (blockSource == null)
             {
@@ -131,26 +146,7 @@ namespace Client.WebUiHost.Game.Topics
                 return WebUiJson.Serialize(new BlockInventoryDto { Open = false });
             }
             TrackBlock(block);
-            var dto = new BlockInventoryDto
-            {
-                Open = true,
-                Source = "block",
-                BlockType = blockSource.BlockTypeName,
-                BlockGuid = blockSource.BlockGuid.ToString("D"),
-                Identifier = blockSource.BlockPosition.ToString(),
-                ItemSlots = new List<BlockItemSlotDto>(sub.Count),
-                FluidSlots = new List<BlockFluidSlotDto>(),
-                Progress = null,
-            };
-            // SubInventory からスロットを写す（id/count は InventoryTopic 同型）
-            // Copy slots from SubInventory; id/count mirrors InventoryTopic
-            foreach (var stack in sub.SubInventory)
-            {
-                dto.ItemSlots.Add(new BlockItemSlotDto { ItemId = stack.Id.AsPrimitive(), Count = stack.Count });
-            }
-            // capability 詳細とネットワーク集約を充填する
-            // Fill capability details and network aggregates
-            BlockDetailDtoBuilder.Apply(dto, block, _networkCache);
+            var dto = BlockInventoryDtoFactory.Create(blockSource, sub, block, _networkCache);
             return WebUiJson.Serialize(dto);
         }
         // 追跡ブロックを切り替え、state イベント購読とネットワーク取得を張り替える

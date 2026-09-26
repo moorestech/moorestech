@@ -76,7 +76,7 @@ namespace Client.Game.InGame.Block
         {
             _isDeleteRequesting = true;
             var blockPosition = BlockGameObject.BlockPosInfo.OriginalPos;
-            var response = await ClientContext.VanillaApi.Response.BlockRemove(blockPosition, this.GetCancellationTokenOnDestroy());
+            var response = await ClientContext.VanillaApi.Response.Block.BlockRemove(blockPosition, this.GetCancellationTokenOnDestroy());
             _isDeleteRequesting = false;
 
 

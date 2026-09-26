@@ -17,6 +17,7 @@ using Client.Game.InGame.Presenter.PauseMenu;
 using Client.Game.InGame.Skit;
 using Client.Game.InGame.Train.Network;
 using Client.Game.InGame.Train.RailGraph;
+using Client.Game.InGame.Train.Timetable;
 using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.World;
@@ -94,6 +95,10 @@ namespace Client.Starter.Registration
             builder.RegisterEntryPoint<TrainUnitSnapshotEventNetworkHandler>();
             builder.RegisterEntryPoint<TrainUnitTickDiffBundleEventNetworkHandler>();
             builder.RegisterEntryPoint<TrainFullSnapshotEventNetworkHandler>().AsSelf();
+            // 時刻表はtick同期の外でUI用に保持する
+            // Keep timetables for the UI outside the tick-synchronized path
+            builder.Register<ClientTrainTimetableDatastore>(Lifetime.Singleton).As<IClientTrainTimetableLookup>().As<IClientTrainTimetableMutator>().AsSelf();
+            builder.RegisterEntryPoint<TrainTimetableEventHandler>();
 
             // 通し検証はsmoke起動時だけ登録する（前例: PlaytestRecordRegistration のフラグ分岐）
             // The smoke runner is registered only on a smoke launch (precedent: PlaytestRecordRegistration's flag branch)

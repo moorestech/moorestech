@@ -32,7 +32,7 @@ namespace Client.WebUiHost.Game.Actions
 
             // 既存protocolで設定する
             // Send the target index through the existing protocol; the later StateDetail topic updates the view
-            var response = await ClientContext.VanillaApi.Response.SetElectricToGearOutputMode(
+            var response = await ClientContext.VanillaApi.Response.Block.SetElectricToGearOutputMode(
                 source.BlockPosition,
                 (int)modeIndex,
                 CancellationToken.None);

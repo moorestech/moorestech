@@ -275,6 +275,7 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
   - **縦利用（`orientation="vertical"`）はサイドバーナビとして使ってよい。** カテゴリ切替のような縦積み択一に、新規コンポーネントを作らずこれを転用する。
   - **`disabled?: boolean`**: root に `data-disabled` を付与し全ボタンを `disabled` にする汎用減衰。選択肢は `--text-muted` 系へさらに減衰しクリック不可（`pointer-events: none`）。判断（いつdisabledにするか）は利用側が持ち、ModeSwitch自体はドメイン語彙を持たない。
   - **`ModeSwitchOption.disabled?: boolean`**: 選択肢単位の無効化（`data-option-disabled`）。rootの `disabled` と同じ減衰で、他の選択肢は生かす。判断は利用側が持つ。
+  - **`role?: "group" | "tablist"`**: 既定は `group`（`aria-pressed`）。パネル内のビュー切替（§8.22）だけ `tablist` を渡し、各ボタンを `role="tab"` + `aria-selected` にする。
 - **PanelActionButton**: パネルへ付随する副次アクションの押しボタン。面は検索入力（§8.9）同族の `--gauge-track`、文字は `--text-high-contrast`、hoverは色相を変えず面だけを明化、`:focus-visible` は ModeSwitch 踏襲。寸法は `--panel-action-button-*` 固定長トークン。主要アクションの青グラデ（`RecipeActionButton`・§5）へ寄せない。置き場は `GamePanel` の `titleAction`（前例: 持ち物パネルの「整理」）。`onClick` / `children` だけを受け、ドメイン語彙は持たない。
   - ポーズメニューのトップ4ボタンと子画面の「戻る」もこれを使う（ユーザー裁定 2026-09-24）。縦並びの幅はポーズパネルで `--panel-action-button-width: auto` を局所指定し、本文の `Stack` へ追従させる。`IconButton` 同様に汎用HTML属性をボタン自身へ転送し、`data-testid` とチュートリアルアンカーを同じ要素に残す。バグ報告フォームの主要な送信ボタンは今回の対象外。
   - `ChallengePanel` / `ModalHost` には素の Mantine `Button` が残っている。同語彙へ寄せる候補だが未着手の負債であり、**前例として引用しない**。
@@ -590,6 +591,14 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
 ## 8.21 （撤去）前回異常終了の確認ゲート・プレイテスト同意ゲート
 
 - ADR 0065 でタイトル（MainMenu、uGUI）へ移した。WebUI 側の `features/playtestGate`・topic・action は存在しない。新たに WebUI で同種の確認を作らない（作り直すならメインメニュー作り変え `moorestech-zohw` と一緒に設計する）。
+
+## 8.22 パネル内タブ（`shared/ui/ModeSwitch` の `role="tablist"`）
+
+- 1つのパネルに同じ対象の別ビュー（例: 列車の「インベントリ / 時刻表」）を持たせるときだけ使う。別対象・別画面をタブで束ねない。
+- 専用コンポーネントは作らず、`ModeSwitch` に `role="tablist"` を渡して使う（見た目・様式は §8.6 の ModeSwitch そのまま）。新しい色相・下線・アニメーションは足さない。
+- タブ列はパネル本文の最上段に置き、`--mode-switch-gap` で並べる。高さはパネルに比例させない。
+- `role="tablist"` のとき各ボタンは `role="tab"` と `aria-selected` を出す（既定の `group` は `aria-pressed` のまま）。`data-selected="true"` は共通。testid は `<feature>-tab-<name>`。
+- 出所: ユーザー裁定 2026-09-24「タブを新設する」（`.decisions/2026-09-24-列車インベントリに時刻表タブを新設する.md`）。
 
 ## 9. やらないことリスト（再掲・明示）
 

@@ -90,7 +90,7 @@ namespace Client.Starter.Initialization
 
             async UniTask<byte[]> FetchChunk(int chunkIndex)
             {
-                var response = await _vanillaApiWithResponse.GetTerrainChunk(chunkIndex, _exitToken);
+                var response = await _vanillaApiWithResponse.World.GetTerrainChunk(chunkIndex, _exitToken);
 
                 // サーバーが例外を投げた場合は応答が届かず、PacketExchangeManagerのタイムアウトでnullが返る
                 // When the server throws, no response arrives and PacketExchangeManager's timeout surfaces it as null

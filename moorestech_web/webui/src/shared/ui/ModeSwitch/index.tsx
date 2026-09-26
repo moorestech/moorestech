@@ -3,8 +3,8 @@
 import type { ReactNode } from "react";
 import styles from "./style.module.css";
 
-export type ModeSwitchOption = {
-  value: string;
+export type ModeSwitchOption<T extends string = string> = {
+  value: T;
   label: ReactNode;
   testId?: string;
   // root全体無効とは別物
@@ -12,21 +12,26 @@ export type ModeSwitchOption = {
   disabled?: boolean;
 };
 
-type Props = {
+type Props<T extends string> = {
   // 無選択はnull。空文字センチネルを呼び出し側へ広げない
   // No selection is null; this keeps an empty-string sentinel from spreading to callers
-  value: string | null;
-  options: ModeSwitchOption[];
-  onChange: (value: string) => void;
+  value: T | null;
+  options: ModeSwitchOption<T>[];
+  onChange: (value: T) => void;
   orientation?: "horizontal" | "vertical";
+  // パネル内ビュー切替（§8.22）はtablist、既定の択一モードはgroup
+  // In-panel view switching (§8.22) is a tablist; the default exclusive mode is a group
+  role?: "group" | "tablist";
   disabled?: boolean;
   testId?: string;
 };
 
-export default function ModeSwitch({ value, options, onChange, orientation = "horizontal", disabled, testId }: Props) {
+export default function ModeSwitch<T extends string>({ value, options, onChange, orientation = "horizontal", role = "group", disabled, testId }: Props<T>) {
+  const tablist = role === "tablist";
   return (
     <div
       className={styles.root}
+      role={tablist ? "tablist" : undefined}
       data-orientation={orientation}
       data-disabled={disabled || undefined}
       data-testid={testId}
@@ -40,7 +45,9 @@ export default function ModeSwitch({ value, options, onChange, orientation = "ho
             data-selected={selected ? "true" : undefined}
             data-option-disabled={option.disabled ? "true" : undefined}
             data-testid={option.testId}
-            aria-pressed={selected}
+            role={tablist ? "tab" : undefined}
+            aria-selected={tablist ? selected : undefined}
+            aria-pressed={tablist ? undefined : selected}
             key={option.value}
             type="button"
             disabled={optionDisabled}

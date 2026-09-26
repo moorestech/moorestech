@@ -3,9 +3,6 @@ using Game.Train.RailPositions;
 using Game.Train.Unit;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using Core.Master;
-using UnityEngine;
 
 namespace Client.Game.InGame.Train.Unit
 {
@@ -14,9 +11,7 @@ namespace Client.Game.InGame.Train.Unit
     public sealed class ClientTrainUnit
     {
         private readonly IRailGraphProvider _railGraphProvider;
-        private readonly IRailGraphTraversalProvider _railGraphTraversalProvider;
-        private bool _isDockingStopPendingForTick;
-        private IRailNode _simulationTargetNode;
+        private readonly ClientTrainUnitMotion _motion;
 
         public TrainUnitInstanceId TrainUnitInstanceId { get; }
         public double CurrentSpeed { get; set; }
@@ -26,6 +21,7 @@ namespace Client.Game.InGame.Train.Unit
 
         private IReadOnlyList<TrainCarSnapshot> _cars;
         // 車両スナップショットを外部に公開する
+        // Expose car snapshots to consumers
         public IReadOnlyList<TrainCarSnapshot> Cars => _cars ?? Array.Empty<TrainCarSnapshot>();
         public RailPosition RailPosition { get; private set; }
 
@@ -34,7 +30,7 @@ namespace Client.Game.InGame.Train.Unit
             // レールグラフプロバイダを保持する
             // Keep the rail graph provider reference
             _railGraphProvider = railGraphProvider;
-            _railGraphTraversalProvider = railGraphProvider as IRailGraphTraversalProvider;
+            _motion = new ClientTrainUnitMotion(railGraphProvider);
             TrainUnitInstanceId = trainUnitInstanceId;
         }
 
@@ -53,7 +49,7 @@ namespace Client.Game.InGame.Train.Unit
             _manualBranchSelectionIndex = simulation.ManualBranchSelectionIndex;
             RailPosition = RailPositionFactory.Restore(railPosition, _railGraphProvider);
             _cars = simulation.Cars ?? Array.Empty<TrainCarSnapshot>();
-            _simulationTargetNode = RailPosition?.GetNodeApproaching();
+            _motion.ResetTarget(RailPosition);
         }
 
         // pre sim差分イベントを反映する
@@ -73,48 +69,43 @@ namespace Client.Game.InGame.Train.Unit
             _manualBranchSelectionIndex += manualBranchSelectionIndexDiff;
             if (approachingNodeId != -1)
             {
-                _railGraphTraversalProvider.TryGetNode(approachingNodeId, out _simulationTargetNode);
+                _motion.SetApproachingNode(approachingNodeId);
             }
 
             // ドッキング停止はこの tick の移動処理内で消化する
             // Consume docking stop inside this tick's movement step
             if (isNowDockingSpeedZero)
             {
-                // このtickのシミュレーション内でドッキング停止処理を実行する
-                _isDockingStopPendingForTick = true;
+                _motion.QueueDockingStop();
             }
             return isReversedThisTick;
+
+            #region Internal
+
+            void ApplyReverseDiff()
+            {
+                // RailPositionの向きをサーバーのTrainUnit.Reverseと同じように反転する
+                // Reverse RailPosition the same way as server-side TrainUnit.Reverse
+                RailPosition?.Reverse();
+                _motion.ResetTarget(RailPosition);
+
+                // 車両順と各車両の向きを同時に反転し見た目の向きの打ち消しを再現する
+                // Reverse car order and per-car facing together to reproduce the visual-canceling state
+                _cars = ClientTrainCarSnapshots.Reverse(_cars);
+            }
+
+            #endregion
         }
 
         // 指定したTrainCarを現在の列車スナップショットから削除する
         // Remove the specified train car from the current snapshot state.
         public bool RemoveCar(TrainCarInstanceId trainCarInstanceId)
         {
-            var localCars = _cars ?? Array.Empty<TrainCarSnapshot>();
-            if (localCars.Count == 0)
+            if (!ClientTrainCarSnapshots.TryRemove(_cars, trainCarInstanceId, out var remaining))
             {
                 return false;
             }
-
-            var nextCars = new List<TrainCarSnapshot>(localCars.Count);
-            var removed = false;
-            for (var i = 0; i < localCars.Count; i++)
-            {
-                var car = localCars[i];
-                if (car.TrainCarInstanceId == trainCarInstanceId)
-                {
-                    removed = true;
-                    continue;
-                }
-                nextCars.Add(car);
-            }
-
-            if (!removed)
-            {
-                return false;
-            }
-
-            _cars = nextCars;
+            _cars = remaining;
             return true;
         }
 
@@ -157,163 +148,22 @@ namespace Client.Game.InGame.Train.Unit
         {
             // サーバー通知済みMasconLevelで速度シミュレーションを進める
             // Simulate movement using the server-synchronized mascon level.
-            var distanceToMove = SimulateMotionStep();
-            return UpdateTrainByDistance(distanceToMove);
-
-            #region Internal
-
-            int SimulateMotionStep()
-            {
-                // 速度と距離のステップ計算
-                var (totalWeight, totalTraction) = GetWeightAndTractionForce();
-                //var stepInput = new TrainMotionStepInput(CurrentSpeed, AccumulatedDistance, MasconLevel, tractionForce);
-                var stepInput = new TrainMotionStepInput(CurrentSpeed, AccumulatedDistance, MasconLevel, totalTraction, totalWeight);
-                var stepResult = TrainDistanceSimulator.Step(stepInput);
-                CurrentSpeed = stepResult.NewSpeed;
-                AccumulatedDistance = stepResult.NewAccumulatedDistance;
-                return stepResult.DistanceToMove;
-                // 加速力を計算する
-                // Calculate traction force
-                (int,double) GetWeightAndTractionForce()
-                {
-                    var localCars = _cars ?? Array.Empty<TrainCarSnapshot>();
-                    if (localCars.Count == 0) return (0, 0);
-                    int totalWeight = 0;
-                    int totalTraction = 0;
-                    foreach (var car in localCars)
-                    {
-                        var (weight, traction) = GetWeightAndTraction(car);
-                        totalWeight += weight;
-                        totalTraction += traction;
-                    }
-                    return (totalWeight, totalTraction);
-                    //if (totalWeight == 0) return 0;
-                    //return (double)totalTraction / totalWeight * masconLevel / MasterHolder.TrainUnitMaster.MasconLevelMaximum;
-                    (int, int) GetWeightAndTraction(TrainCarSnapshot trainCarSnapshot)
-                    {
-                        MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(trainCarSnapshot.TrainCarMasterId, out var trainElement);
-                        return (trainCarSnapshot.Weight, trainElement.TractionForce);
-                    }
-                }
-            }
-            #endregion
+            var step = _motion.SimulateStep(CurrentSpeed, AccumulatedDistance, MasconLevel, Cars);
+            CurrentSpeed = step.NewSpeed;
+            AccumulatedDistance = step.NewAccumulatedDistance;
+            return UpdateTrainByDistance(step.DistanceToMove);
         }
 
         // Updateの距離int版
+        // Integer-distance variant of Update
         public int UpdateTrainByDistance(int distanceToMove)
         {
-            int totalMoved = 0;
-            int loopCount = 0;
-            while (true)
-            {
-                int moveLength = RailPosition.MoveForward(distanceToMove);
-                distanceToMove -= moveLength;
-                totalMoved += moveLength;
-
-                // 目標ノードに到達したら停止
-                if (IsArrivedDestination())
-                {
-                    if (_isDockingStopPendingForTick)
-                    {
-                        CurrentSpeed = 0;
-                        AccumulatedDistance = 0;
-                        _isDockingStopPendingForTick = false;
-                        break;
-                    }
-                    else
-                    {
-                        if (distanceToMove > 0)
-                        {
-                            Debug.LogWarning("1st hashよりApplySnapshotTrainUnitのtickが前ならこれは想定内です。次のhash検証でmismatchになる可能性あり");
-                            break;
-                        }
-                    }
-                }
-
-                if (distanceToMove == 0) break;
-
-                var approaching = RailPosition.GetNodeApproaching();
-                if (approaching == null)
-                {
-                    CurrentSpeed = 0;
-                    Debug.LogWarning("クライアント側でRailPositionの解決に失敗");
-                    break;
-                }
-
-                var (found, newPath) = TryFindPathToSimulationTarget(approaching);
-                if (!found)
-                {
-                    Debug.LogWarning("クライアント側で分岐またぎの解決に失敗");
-                    break;
-                }
-
-                RailPosition.AddNodeToHead(newPath[1]);
-
-                loopCount++;
-                if (loopCount > 1000000)
-                {
-                    throw new InvalidOperationException("列車速度が無限に近いか、レール経路の無限ループを検知しました。");
-                }
-            }
-            return totalMoved;
-
-            #region Internal
-            bool IsArrivedDestination()
-            {
-                // 目標ノードに0距離で到達したか判定する
-                var node = RailPosition.GetNodeApproaching();
-                if (node == null || _simulationTargetNode == null)
-                {
-                    return false;
-                }
-                return (node.NodeGuid == _simulationTargetNode.NodeGuid) && (RailPosition.GetDistanceToNextNode() == 0);
-            }
-
-            #endregion
-        }
-        
-        // 現在の目標ノードに到達する経路を探索する
-        // Find path toward the current target node
-        public (bool, List<IRailNode>) TryFindPathToSimulationTarget(IRailNode approaching)
-        {
-            if (approaching == null || _simulationTargetNode == null)
-            {
-                return (false, null);
-            }
-            var path = _railGraphProvider.FindShortestPath(approaching, _simulationTargetNode);
-            var newPath = path?.ToList();
-            if (newPath == null || newPath.Count < 2)
-            {
-                return (false, null);
-            }
-            return (true, newPath);
-        }
-
-        private void ApplyReverseDiff()
-        {
-            // RailPosition の向きをサーバーの TrainUnit.Reverse と同じように反転する
-            // Reverse RailPosition the same way as server-side TrainUnit.Reverse
-            RailPosition?.Reverse();
-            _simulationTargetNode = RailPosition?.GetNodeApproaching();
-
-            // 車両順と各車両の向きを同時に反転し、見た目の向きが打ち消される状態を再現する
-            // Reverse car order and per-car facing together to reproduce the visual-canceling state
-            var localCars = _cars ?? Array.Empty<TrainCarSnapshot>();
-            if (localCars.Count == 0)
-            {
-                return;
-            }
-
-            // readonly snapshot なので反転後の配列を新規構築する
-            // Rebuild readonly snapshots into a reversed array
-            var reversedCars = new TrainCarSnapshot[localCars.Count];
-            for (var i = 0; i < localCars.Count; i++)
-            {
-                var source = localCars[localCars.Count - 1 - i];
-                reversedCars[i] = new TrainCarSnapshot(source.TrainCarInstanceId, source.TrainCarMasterId, !source.IsFacingForward, source.Weight);
-            }
-            _cars = reversedCars;
+            var speed = CurrentSpeed;
+            var accumulated = AccumulatedDistance;
+            var moved = _motion.UpdateTrainByDistance(RailPosition, distanceToMove, ref speed, ref accumulated);
+            CurrentSpeed = speed;
+            AccumulatedDistance = accumulated;
+            return moved;
         }
     }
 }
-

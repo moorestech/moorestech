@@ -4,6 +4,8 @@ import { FluidSlotRow } from "@/shared/ui";
 import BlockItemGrid from "../BlockItemGrid";
 import TrainPlatformSection from "../details/TrainPlatformSection";
 
+import TrainStationNameSection from "../details/station/TrainStationNameSection";
+
 const ITEM_SLOTS_TEST_ID = "train-platform-item-slots";
 const FLUID_SLOTS_TEST_ID = "train-platform-fluid-slots";
 
@@ -12,6 +14,7 @@ export default function TrainPlatformInventory({ data }: { data: BlockInventoryO
 
   return (
     <Stack gap="sm" data-testid="train-platform-view">
+      <TrainStationNameSection data={data} />
       {hasItemSlots ? (
         <BlockItemGrid itemSlots={data.itemSlots} testId={ITEM_SLOTS_TEST_ID} />
       ) : null}

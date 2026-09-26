@@ -50,7 +50,7 @@ namespace Client.Tests.EditModeInPlayingTest
                 var worldDirectory = Path.Combine(Path.GetTempPath(), $"moorestech_terrain_cache_test_{Guid.NewGuid()}");
                 await LoadMainGameWithMapMode(null, worldDirectory, WorldMapMode.Generated);
 
-                var mapLayout = await ClientContext.VanillaApi.Response.GetMapData(default);
+                var mapLayout = await ClientContext.VanillaApi.Response.World.GetMapData(default);
                 Assert.AreEqual(WorldMapMode.Generated, mapLayout.TerrainMeta.MapMode, "generatedモードで起動していない");
                 Assert.Less(0, mapLayout.TerrainMeta.TerrainChunkTotal, "地形チャンクが1本も無い");
 

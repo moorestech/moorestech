@@ -37,6 +37,24 @@ namespace Tests.Util
         public RailNode StationEntryBack => _stationNodes.EntryBack;
         public int StationSegmentLength => _stationNodes.SegmentLength;
 
+        public RailNode AddConnectedDestinationStation()
+        {
+            var (_, components) = TrainTestHelper.PlaceBlockWithRailComponents(
+                _environment,
+                ForUnitTestModBlockId.TestTrainStation,
+                new Vector3Int(0, 0, 100),
+                BlockDirection.North);
+            var destination = components.SelectMany(component => new[] { component.FrontNode, component.BackNode })
+                .First(node => node.StationRef.NodeRole == StationNodeRole.Exit && node.StationRef.NodeSide == StationNodeSide.Front);
+            var entry = components.SelectMany(component => new[] { component.FrontNode, component.BackNode })
+                .First(node => node.StationRef.NodeRole == StationNodeRole.Entry && node.StationRef.NodeSide == StationNodeSide.Front);
+
+            // 停車中の駅から別駅への順方向経路を追加する
+            // Add a forward route from the docked station to another station
+            StationExitFront.ConnectNode(entry, 123456);
+            return destination;
+        }
+
         public static TrainAutoRunTestScenario CreateDockedScenario()
         {
             return CreateScenario(startRunning: false);
@@ -84,7 +102,7 @@ namespace Tests.Util
             var stationBlockLength = stationBlock!.BlockPositionInfo.BlockSize.z;
             Assert.Greater(stationBlockLength, 0, "Station block size Z must be positive");
 
-            var stationNodes = ExtractStationNodes(stationBlock, stationComponents);
+            var stationNodes = TrainAutoRunStationNodeResolver.ExtractStationNodes(stationBlock, stationComponents);
 
             n0.ConnectNode(stationNodes.EntryFront,9876543);
             stationNodes.ExitFront.ConnectNode(n1, 123456);
@@ -166,43 +184,6 @@ namespace Tests.Util
             _disposed = true;
         }
 
-        private static StationNodeSet ExtractStationNodes(IBlock stationBlock, IReadOnlyList<RailComponent> railComponents)
-        {
-            var nodeInfos = railComponents
-                .SelectMany(component => new[]
-                {
-                    (Node: component.FrontNode, IsFront: true),
-                    (Node: component.BackNode, IsFront: false)
-                })
-                .Where(info => info.Node != null)
-                .ToList();
 
-            var exitFront = nodeInfos
-                .FirstOrDefault(info => info.IsFront && info.Node.StationRef.NodeRole == StationNodeRole.Exit)
-                .Node;
-            Assert.IsNotNull(exitFront, "Station exit (front) node not found");
-
-            var entryFront = nodeInfos
-                .FirstOrDefault(info => info.IsFront && info.Node.StationRef.NodeRole == StationNodeRole.Entry)
-                .Node;
-            Assert.IsNotNull(entryFront, "Station entry (front) node not found");
-
-            var exitBack = nodeInfos
-                .FirstOrDefault(info => !info.IsFront && info.Node.StationRef.NodeRole == StationNodeRole.Exit)
-                .Node;
-            Assert.IsNotNull(exitBack, "Station exit (back) node not found");
-
-            var entryBack = nodeInfos
-                .FirstOrDefault(info => !info.IsFront && info.Node.StationRef.NodeRole == StationNodeRole.Entry)
-                .Node;
-            Assert.IsNotNull(entryBack, "Station entry (back) node not found");
-
-            var segmentLength = entryFront!.GetDistanceToNode(exitFront!);
-            Assert.Greater(segmentLength, 0, "Station segment length must be positive");
-            var blockLength = stationBlock.BlockPositionInfo.BlockSize.z;
-            Assert.Greater(blockLength, 0, "Station block size Z must be positive");
-            return new StationNodeSet(exitFront!, entryFront!, exitBack!, entryBack!, segmentLength, blockLength);
-        }
     }
 }
-
