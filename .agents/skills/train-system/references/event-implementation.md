@@ -22,7 +22,7 @@ Use this skill when changing train/rail event contracts and handler wiring under
 
 ### 3) Snapshot-first train sync
 - Structural TrainUnit/TrainCar changes use `va:event:trainUnitSnapshot` (upsert/delete).
-- Full-unit resync uses `va:getTrainUnitSnapshots`.
+- Initial full rail/train snapshots arrive on connection, before ordered deltas; hash mismatch exits without saving (ADR0071).
 
 ### 4) TickDiffBundle role
 - `va:event:trainUnitTickDiffBundle` transports hash + per-tick diffs and drives simulation timing.

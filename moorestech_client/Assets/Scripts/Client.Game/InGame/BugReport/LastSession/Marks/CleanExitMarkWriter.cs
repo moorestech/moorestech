@@ -37,8 +37,9 @@ namespace Client.Game.InGame.BugReport.LastSession
             // Only a deliberate exit is recorded; the fold-up after a failed initialization is the crash side and writes nothing
             void OnShutdownDeclared(GameShutdownReason reason)
             {
-                if (reason == GameShutdownReason.InitializationFailed)
+                if (reason == GameShutdownReason.InitializationFailed || reason == GameShutdownReason.FatalSynchronizationFailure)
                 {
+                    exitIntentDeclared = false;
                     Debug.Log($"正常終了マーカーを書きません（終了理由: {reason}）。次回起動は前回異常終了として扱われます");
                     return;
                 }

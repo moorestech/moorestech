@@ -37,8 +37,10 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
                 // A targeted snapshot must not introduce sequence gaps for either player.
                 if (pushSnapshot)
                 {
-                    services.GetService<TrainFullSnapshotEventPacket>().PushFullSnapshots(0, true);
-                    var snapshotEvent = firstSink.Events.Single(e => e.Tag == TrainFullSnapshotEventPacket.TrainUnitFullSnapshotEventTag);
+                    var joiningSink = new CapturedEventSink();
+                    var request = MessagePackSerializer.Serialize(new InitialHandshakeProtocol.RequestInitialHandshakeMessagePack(2, "Joining player"));
+                    packets.GetPacketResponse(request, new PacketResponseContext(joiningSink));
+                    var snapshotEvent = joiningSink.Events.Single(e => e.Tag == TrainFullSnapshotEventPacket.TrainUnitFullSnapshotEventTag);
                     var snapshot = MessagePackSerializer.Deserialize<TrainFullSnapshotEventPacket.TrainUnitFullSnapshotEventMessagePack>(snapshotEvent.Payload);
                     Assert.AreEqual(1u, snapshot.ServerTick);
                     Assert.AreEqual(1u, snapshot.WatermarkTickSequenceId);

@@ -24,22 +24,20 @@ seqはstreamごとの状態であり、全ドメイン共通の採番singleton�
 
 出所: agent前提（既存 `TrainUnitTickState`、`TrainUnitFutureMessageBuffer`、`TrainUnitClientSimulator`、`TrainUnitHashVerifier` の役割分離）。
 
-共通部は `((ulong)tick << 32) | seq` の比較、exact-key event flush、古いevent破棄、単調な適用位置、フレームからの進行計算を持つ。train/rail hashの型、4tick間引きとdummy、欠落時のforce-slip、hash不一致時のresync、snapshot生成・cache/view置換はtrain側に残す。既存のgate interfaceをドメイン非依存の進行gateへ移し、train verifierが実装する。
+共通部は `((ulong)tick << 32) | seq` の比較、exact-key event flush、古いevent破棄、単調な適用位置、フレームからの進行計算を持つ。train/rail hashの型、4tick間引きとdummy、欠落時のforce-slip、hash不一致時のfatal終了、snapshot生成・cache/view置換はtrain側に残す。既存のgate interfaceをドメイン非依存の進行gateへ移し、train verifierが実装する。
 
 driverからviewを購読して動かす機構へ変えず、既存ITickableのtrain simulatorが共通driverを明示的に呼び、その結果でtrain visualを更新する。既存機構への受動的統合は、現行streamをそのまま接続して機械的処理だけ委譲する形で実現する。別の並行simulation、凍結対象リスト、汎用domain登録registryは導入しない。
 
 ## 同期と非同期の境界
 
-出所: agent前提（最新masterの実装調査）。差分Applyとsnapshot cache/view適用は既に同期voidである。`SendTrainResync` の単なる `return await` はUniTask直接返却へ畳めるが、要求自体は非同期のまま。ack失敗時に現役resync gateだけを解除する待機、初期snapshot到着/適用完了source、main-thread受信dispatchのYieldは残す。
+出所: ユーザー裁定 2026-09-26（最終review D1/C）「このPRで再同期を廃止し、hash不一致時の終了まで実装する（推奨）」。初回snapshot成功後に順序付き差分で進行する。railとtrainのpayloadは同じwatermarkで、両cacheのhash一致・view構築成功を確認してから初期完了を通知し、player runtimeと乗車復帰を開始する。null・stale・適用例外・hash不一致では完了しない。空listは有効である。
 
-初期snapshotはrail→trainの順でhandshake応答より前にpushされる。train snapshotのcache/view生成が終わってから初期完了を通知し、その後にplayer runtimeと乗車復帰を開始する。失敗はLogErrorと待機sourceのfaultで伝え、同期replayへrethrowしない。
+snapshot外部境界は失敗を区別可能な例外として初期待機へ届け、同期replayへrethrowしない。stream停止を先にラッチして以後の受信・event flush・visual更新を止める。InitializeScenePipelineはこの失敗を通常の保存終了へ流さずfatal終了へ接続する。実行中のtrain/rail hash不一致もdomain/tick/期待値/実値をError記録して同じ終了口へ入る。
+
+GameShutdownEventが異常理由と終了許可を先に確定し、保存参加者・remote save・embedded ShutdownAsyncを起動せずaffected clientを終了する。exit-intent/clean-exit印と再起動は作らない。EditorはPlayModeだけ停止する。外部専用serverは停止しない。二重通知を防ぎ、次sessionで終了flagをresetする。初期snapshot待機・main-thread dispatch・通常通信待機は維持し、resync要求/応答/ack待機/完了通知と選択的rail取得modeを削除する。
 
 出所: ユーザー裁定の既存記録 [.decisions/2026-08-03-Train適用失敗のrethrowは削除しADRを正とする.md](../../.decisions/2026-08-03-Train適用失敗のrethrowは削除しADRを正とする.md)。
 
 ## 今回の境界
 
-出所: agent前提（リファクタリング範囲）。MessagePack key/tag、保存形式、hash cadence、catch-up係数、欠落時の判断、stale snapshot完了通知の既存挙動を変えない。seq/wire tickは永続化しない。機械的共通部を2つの非train fixtureで動かし、採番・適用・watermarkが相互に干渉しないことを確認する。実際のgear/belt adapterは、それぞれのpayload・hash・世代復旧契約を決めるPRで接続する。
-
-## snapshot/hash方針の継続確認
-
-出所: ユーザー発言 2026-09-26（最終review D1）「初回snapshotのあと差分通知で完璧に同期がとれている前提」「再同期は面倒なので考えてない」「hashミスマッチなら強制終了でいいかなと」。初期snapshot＋順序付き差分、hash不一致時の終了方針について終了範囲を確認中。上記のresync記述は既存実装の記録であり、この発言への最終裁定ではない。D2の時計移動ではclient/hash/resyncの挙動を変更しない。
+出所: agent前提（実装範囲）。保存形式、通常eventのMessagePack key/tag、hash cadence、dummy、catch-up係数は維持する。期待hashがなく未来hashがあるforce-slipは証明済み不一致ではないため維持する。seq/wire tickは永続化しない。機械的共通部を2つの非train fixtureで動かし、採番・適用・watermarkが相互に干渉しないことを確認する。実際のgear/belt adapterは別PRで接続する。

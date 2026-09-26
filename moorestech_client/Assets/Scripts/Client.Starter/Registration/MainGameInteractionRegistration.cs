@@ -170,7 +170,7 @@ namespace Client.Starter.Registration
             builder.Register<TrainUnitSnapshotApplier>(Lifetime.Singleton);
             builder.Register<TrainUnitVisualUpdateSystem>(Lifetime.Singleton);
             builder.Register<TrainUnitClientSimulator>(Lifetime.Singleton).AsSelf().As<ITickable>();
-            builder.Register<TrainUnitHashVerifier>(Lifetime.Singleton).AsSelf().As<IDisposable>();
+            builder.Register<TrainUnitHashVerifier>(Lifetime.Singleton).AsSelf();
             builder.Register<TrainUnitDebugOverlayPresenter>(Lifetime.Singleton).As<ITickable>().As<IDisposable>();
         }
     }

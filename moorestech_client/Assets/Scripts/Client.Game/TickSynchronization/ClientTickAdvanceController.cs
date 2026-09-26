@@ -31,6 +31,7 @@ namespace Client.Game.TickSynchronization
 
         public double Advance(float deltaTime, ITickAdvanceGate gate)
         {
+            if (_tickState.IsStopped) return _estimatedClientTick;
             _localcnt++;
             _modifyTime *= 0.9991;
             _modifyTick *= 0.9991;

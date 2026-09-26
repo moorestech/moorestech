@@ -5,6 +5,17 @@ namespace Client.Game.TickSynchronization
 {
     internal sealed class ClientTickState
     {
+        internal bool IsStopped { get; private set; }
+
+        // 停止理由を一度記録し、以後のstream適用を止める
+        // Record the stop reason once and prevent subsequent stream application
+        internal void Stop(string reason)
+        {
+            if (IsStopped) return;
+            IsStopped = true;
+            UnityEngine.Debug.LogError(reason);
+        }
+
         private ulong _appliedTickUnifiedId = 0;
         private uint _maxBufferedTicks = 0;
 
@@ -34,7 +45,7 @@ namespace Client.Game.TickSynchronization
         }
         public void RecordAppliedTickUnifiedId(ulong tickUnifiedId)
         {
-            if (tickUnifiedId <= _appliedTickUnifiedId)
+            if (IsStopped || tickUnifiedId <= _appliedTickUnifiedId)
             {
                 return;
             }
@@ -45,7 +56,7 @@ namespace Client.Game.TickSynchronization
         // Apply the same receive boundary to events and hashes.
         internal bool TryAcceptReceivedTickUnifiedId(ulong tickUnifiedId)
         {
-            if (tickUnifiedId <= _appliedTickUnifiedId)
+            if (IsStopped || tickUnifiedId <= _appliedTickUnifiedId)
             {
                 return false;
             }

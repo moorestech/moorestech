@@ -1,78 +1,30 @@
-using System;
-using System.Threading;
-using Client.Game.InGame.Context;
-using Client.Game.InGame.Train.Network;
+using Client.Game.Common;
 using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.Train.Unit;
-using Cysharp.Threading.Tasks;
-using UniRx;
-using UnityEngine;
 using Client.Game.TickSynchronization;
 using Client.Game.InGame.Train.Network.TickSynchronization;
+using UnityEngine;
 
 namespace Client.Game.InGame.Train.View
 {
-    // Train/Railのhash gate判定と不整合時リシンクを担当する
-    // Handles train/rail hash gate checks and resync on mismatch.
-    public sealed class TrainUnitHashVerifier : ITickAdvanceGate, IDisposable
+    // 実hash不一致時はstream停止と保存なし終了を行う
+    // Stop the stream and exit without saving on a proven hash mismatch
+    public sealed class TrainUnitHashVerifier : ITickAdvanceGate
     {
         private readonly TrainTickContext _context;
         private readonly TrainUnitClientCache _trainCache;
         private readonly RailGraphClientCache _railGraphCache;
-        private readonly IDisposable _fullSnapshotSubscription;
-        private CancellationTokenSource _resyncCancellation;
-        private int _resyncInProgress;
 
-        public TrainUnitHashVerifier(
-            TrainFullSnapshotEventNetworkHandler fullSnapshotEventNetworkHandler,
-            TrainTickContext context,
-            TrainUnitClientCache trainCache,
-            RailGraphClientCache railGraphCache)
+        public TrainUnitHashVerifier(TrainTickContext context, TrainUnitClientCache trainCache, RailGraphClientCache railGraphCache)
         {
             _context = context;
             _trainCache = trainCache;
             _railGraphCache = railGraphCache;
-
-            // full snapshot適用完了でresyncゲートを解除する（適用自体はhandlerが担う）
-            // Release the resync gate on full-snapshot application; the handler owns the apply itself
-            _fullSnapshotSubscription = fullSnapshotEventNetworkHandler.OnFullSnapshotApplied.Subscribe(_ => ReleaseResyncGate());
-        }
-
-        private void ReleaseResyncGate()
-        {
-            var cts = Interlocked.Exchange(ref _resyncCancellation, null);
-            cts?.Dispose();
-            Interlocked.Exchange(ref _resyncInProgress, 0);
-        }
-
-        public void Dispose()
-        {
-            _fullSnapshotSubscription?.Dispose();
-            CancelResync();
-
-            #region Internal
-
-            void CancelResync()
-            {
-                // 終了時に進行中の再同期処理をキャンセルする
-                // Cancel any in-flight resync operation during shutdown
-                var cts = Interlocked.Exchange(ref _resyncCancellation, null);
-                if (cts == null)
-                    return;
-                cts.Cancel();
-                cts.Dispose();
-                Interlocked.Exchange(ref _resyncInProgress, 0);
-            }
-
-            #endregion
         }
 
         public bool CanAdvanceTick(ulong currentTickUnifiedId)
         {
-            // 再同期中はtick進行を止める
-            // Stop simulation advance while resync is in progress
-            if (Interlocked.CompareExchange(ref _resyncInProgress, 0, 0) == 1)
-                return false;
+            if (_context.State.IsStopped) return false;
             // 古いhashはバッファから捨てる
             // Discard any stale hashes that are older than the current tick
             _context.Hashes.DiscardHashesOlderThan(currentTickUnifiedId);
@@ -92,7 +44,7 @@ namespace Client.Game.InGame.Train.View
             }
             
             var isVerified = ValidateCurrentTickHash();
-            return isVerified && Interlocked.CompareExchange(ref _resyncInProgress, 0, 0) == 0;
+            return isVerified;
 
             #region Internal
 
@@ -115,14 +67,12 @@ namespace Client.Game.InGame.Train.View
                     _context.State.RecordAppliedTickUnifiedId(currentTickUnifiedId);
                     return true;
                 }
-                Debug.LogWarning(
+                _context.State.Stop(
                     $"[TrainUnitHashVerifier] Hash mismatch detected. tick={_context.State.GetTick()}, " +
                     $"train(client={localTrainHash}, server={message.unitsHash}), " +
                     $"rail(client={localRailGraphHash}, server={message.railGraphHash}), " +
-                    $"tickSequenceId={message.tickSequenceId}. Requesting snapshot.");
-                if (Interlocked.CompareExchange(ref _resyncInProgress, 1, 0) == 1)
-                    return false;
-                RequestResyncAsync(isRailGraphMismatch).Forget();
+                    $"tickSequenceId={message.tickSequenceId}. Exiting without saving.");
+                GameShutdownEvent.QuitAfterSynchronizationFailure();
                 return false;
                 
                 bool IsDummyHash((uint unitsHash, uint railGraphHash, uint serverTick, uint tickSequenceId) hashState)
@@ -132,27 +82,6 @@ namespace Client.Game.InGame.Train.View
                 }
             }
 
-            async UniTask RequestResyncAsync(bool includeRailGraph)
-            {
-                var api = ClientContext.VanillaApi.Response;
-                var cts = new CancellationTokenSource();
-                _resyncCancellation = cts;
-
-                // 引き金だけ送る。snapshotはイベント経路で届き、適用完了通知でゲートが解除される
-                // Send only the trigger; the snapshot arrives via the event stream and releases the gate on apply
-                var ackResult = await api.SendTrainResync(includeRailGraph, cts.Token).SuppressCancellationThrow();
-                if (ackResult.IsCanceled || ackResult.Result == null)
-                {
-                    // ack失敗時は自要求が現役の場合のみゲート解放。後続resync要求の状態を旧要求が壊さないため
-                    // On ack failure release only if this request still owns the gate; never clobber a newer resync
-                    if (Interlocked.CompareExchange(ref _resyncCancellation, null, cts) == cts)
-                    {
-                        Debug.LogWarning("[TrainUnitHashVerifier] Resync trigger failed. Releasing gate for retry.");
-                        cts.Dispose();
-                        Interlocked.Exchange(ref _resyncInProgress, 0);
-                    }
-                }
-            }
             #endregion
         }
     }

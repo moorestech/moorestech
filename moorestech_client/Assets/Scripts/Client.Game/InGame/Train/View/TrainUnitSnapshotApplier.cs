@@ -1,8 +1,7 @@
-using System.Collections.Generic;
+using System;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.Train.View.Object.Core;
 using Client.Network.API;
-using Game.Train.Unit;
 using UnityEngine;
 using Client.Game.InGame.Train.Network.TickSynchronization;
 using Core.Update.TickSynchronization;
@@ -11,7 +10,7 @@ namespace Client.Game.InGame.Train.View
 {
     /// <summary>
     ///     列車スナップショットを初期化時にキャッシュへ流し込むアプライヤー
-    ///     Applies the initial train snapshots to the local cache and can be reused for resync
+    ///     Applies and verifies initial train snapshots in the local cache
     /// </summary>
     public sealed class TrainUnitSnapshotApplier
     {
@@ -33,33 +32,16 @@ namespace Client.Game.InGame.Train.View
         // Apply the received snapshot response to the cache
         public void ApplySnapshot(TrainUnitSnapshotResponse response)
         {
-            if (response == null) return;
+            if (response?.Snapshots == null) throw new InvalidOperationException("Initial train snapshot list is missing.");
             var snapshotTickUnifiedId = TickUnifiedIdUtility.CreateTickUnifiedId(response.ServerTick, response.TickSequenceId);
             Debug.Log("ApplySnapshotTrainUnit: " + response.ServerTick + "_" + response.TickSequenceId);
             
             if (snapshotTickUnifiedId < _context.State.GetAppliedTickUnifiedId())
             {
-                // 遅延して届いた古いsnapshotは適用せず破棄する。
-                // Ignore delayed snapshots that are older than the applied sequence baseline.
-                Debug.LogWarning(
-                    "[TrainUnitSnapshotApplier] Ignored stale snapshot response. " +
-                    $"serverTick={response.ServerTick}, tickSequenceId={response.TickSequenceId}, " +
-                    $"snapshotTickUnifiedId={snapshotTickUnifiedId}, appliedTickUnifiedId={_context.State.GetAppliedTickUnifiedId()}");
-                return;
+                throw new InvalidOperationException($"Initial train snapshot watermark is stale: received={snapshotTickUnifiedId}, applied={_context.State.GetAppliedTickUnifiedId()}");
             }
 
-            // スナップショットをモデルに変換する
-            // Convert received snapshots into model bundles
-            var snapshots = response.Snapshots;
-            var bundles = new List<TrainUnitSnapshotBundle>(snapshots?.Count ?? 0);
-            if (snapshots != null)
-            {
-                for (var i = 0; i < snapshots.Count; i++)
-                {
-                    var bundle = snapshots[i];
-                    bundles.Add(bundle);
-                }
-            }
+            var bundles = response.Snapshots;
 
             // full snapshotはcacheとviewを同じ単位で全差し替えする
             // Replace both cache and views as one full-snapshot boundary
@@ -69,7 +51,7 @@ namespace Client.Game.InGame.Train.View
             {
                 // 初期適用直後のhash差分を検知して原因切り分けに使う
                 // Detect hash differences right after snapshot apply for root-cause isolation.
-                Debug.LogWarning(
+                throw new InvalidOperationException(
                     "[TrainUnitSnapshotApplier] Snapshot hash mismatch right after apply. " +
                     $"serverTick={response.ServerTick}, snapshotCount={bundles.Count}, " +
                     $"serverHash={response.UnitsHash}, clientHash={localHashAfterApply}, cacheTrainCount={_cache.Units.Count}");

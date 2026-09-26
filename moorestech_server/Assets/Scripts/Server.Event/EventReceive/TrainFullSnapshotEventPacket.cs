@@ -10,8 +10,8 @@ using UniRx;
 
 namespace Server.Event.EventReceive
 {
-    // 接続登録・resync要求に応じてtrain/railのfull snapshotをイベント経路でpushする
-    // Pushes full train/rail snapshots over the event stream on connection or resync request
+    // 接続登録時にtrain/railのfull snapshotをイベント経路でpushする
+    // Pushes full train/rail snapshots over the event stream on connection
     public sealed class TrainFullSnapshotEventPacket : IBootInitializable
     {
         public const string RailGraphFullSnapshotEventTag = "va:event:railGraphFullSnapshot";
@@ -38,14 +38,14 @@ namespace Server.Event.EventReceive
         {
             // 新規接続の登録完了を購読し、同期的に初期snapshotをpushする（順序契約）
             // Subscribe registration completion and push initial snapshots synchronously (ordering contract)
-            _eventProtocolProvider.OnPlayerEventStreamRegistered.Subscribe(playerId => PushFullSnapshots(playerId, true));
+            _eventProtocolProvider.OnPlayerEventStreamRegistered.Subscribe(PushInitialSnapshots);
         }
 
-        // rail→trainの順で対象プレイヤーへfull snapshotをpushする（resyncからも呼ばれる）
-        // Push full snapshots (rail first, then train) to the player; also used by resync
-        public void PushFullSnapshots(int playerId, bool includeRailGraph)
+        // rail→trainの順で対象プレイヤーへfull snapshotをpushする
+        // Push full snapshots (rail first, then train) to the player
+        private void PushInitialSnapshots(int playerId)
         {
-            if (includeRailGraph) PushRailGraphFullSnapshot(playerId);
+            PushRailGraphFullSnapshot(playerId);
             PushTrainUnitFullSnapshot(playerId);
 
             #region Internal

@@ -20,10 +20,12 @@ namespace Client.Game.InGame.Train.Unit
 
         public void Tick()
         {
+            if (!_context.IsInitialSnapshotApplied || _context.State.IsStopped) return;
             // 進行後のtickで列車表示を更新。
             // Update train visuals at the advanced tick.
             var renderTick = _context.AdvanceController.Advance(Time.deltaTime, _hashVerifier);
-            _visualUpdateSystem.UpdateAll(renderTick, _context.State.GetTick());
+            if (!_context.State.IsStopped)
+                _visualUpdateSystem.UpdateAll(renderTick, _context.State.GetTick());
         }
     }
 }

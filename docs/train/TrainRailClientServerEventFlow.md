@@ -225,21 +225,21 @@
 
 ## tickとstreamの所有者
 
-`Core.Update.TickSynchronization.ServerTickClock` はセッション内uint tickを所有する。保存される累積 `GameUpdater.CurrentTick` とは別instance・別用途であり、save/loadしてもwire tickは新sessionの0から始まる。`MasterTickUpdater` は旧tickのtrain hashを発行し、clockを1回進め、`TrainTickSequenceSource.Sequence.BeginTick` でseq0へ戻してからtrain simulationとdiffを実行する。最初のeventはseq1、順序keyは `((ulong)tick << 32) | seq` のままである。
+`Core.Update.TickSynchronization.ServerTickClock` はセッション内uint tickを所有する。保存される累積 `GameUpdater.CurrentTick` とは別instance・別用途であり、save/loadしてもwire tickは新sessionの0から始まる。`MasterTickUpdater` は入口で旧tickを保持してclockを1回進め、gear/fluid更新後の既存境界で旧tickのtrain hashを発行し、`TrainTickSequenceSource.Sequence.BeginTick` でseq0へ戻してからtrain simulationとdiffを実行する。最初のeventはseq1、順序keyは `((ulong)tick << 32) | seq` のままである。
 
 train/railのpacketは同じ `TrainTickSequenceSource` を使う。他streamは同じclockを使えても、別 `TickSequenceState` を所有する。clientは `TrainTickContext` が `ClientTickState`、`TickEventBuffer`、`ClientTickAdvanceController`、train固有の `TrainUnitHashBuffer` を所有する。共通state/buffer/driverにTrain/Railの型・通信tag・hash判断を持ち込まない。別contextへのwatermark purgeやgate停止の波及はない。
 
-bundleはhash(n-1)とdiff(n)を運び、空diffでもsimulationを起動する。4tick間引き、dummy hash、future-only force-slip、hash不一致時resyncの判断は `TrainUnitHashVerifier` に残る。driverのcatch-up係数と1frame最大4tickも維持する。
+bundleはhash(n-1)とdiff(n)を運び、空diffでもsimulationを起動する。4tick間引き、dummy hash、future-only force-slip、hash不一致時の保存なし異常終了の判断は `TrainUnitHashVerifier` に残る。driverのcatch-up係数と1frame最大4tickも維持する。
 
-## 初期snapshotと再同期
+## 初期snapshotとfatal終了
 
-handshake時は `TrainFullSnapshotEventPacket` がrail→trainの順でfull snapshotを応答前にpushする。full snapshotは順序bufferへ積む通常差分と異なり、`TrainFullSnapshotEventNetworkHandler` が到着順に即時適用する。rail cacheを置換してからtrain cacheと車両viewを全再生成し、watermark以下のeventをpurgeする。その後に初期完了sourceを成功させ、`OnFullSnapshotApplied` を通知する。rail/trainの適用失敗はLogErrorと初期待機のfaultへ届く。
+handshake時は `TrainFullSnapshotEventPacket` がrail→trainの順でfull snapshotを応答前にpushする。full snapshotは順序bufferへ積む通常差分と異なり、`TrainFullSnapshotEventNetworkHandler` が到着順に即時適用する。railとtrainの両payloadが同watermarkを表し、cache適用・両hash照合・車両view構築が成功してからwatermark以下のeventをpurgeして初期完了sourceを成功させる。欠損・stale・適用失敗はstreamを止め、LogErrorと`TrainInitialSnapshotException`で初期待機へ届ける。
 
 `MainGameInitializationFinalizer` は `InitialEventApplyWaiter` で全初期適用を待ち、地形構築後にplayer runtimeを開始する。保存乗車は `MainGameStarter.RestoreLoginState` → `MainGameContainerActivation` → `InitialRideTrainCarRequest` → `TrainHUDScreenState` → `RidingPlayerState` → `TrainCarRideFollowTargetResolver` を通り、生成済み実車両のseat markerへ追従する。
 
-`SendTrainResync` は通信UniTaskを直接返す。ackは要求受付の応答であり、適用完了を意味しない。hash verifierのgateはsnapshot適用通知で解除し、旧要求のack失敗が新しい要求のgateを解除しないよう要求所有を照合する。通信待ち・初期待機・main-thread dispatchのawaitは維持し、差分とsnapshotの適用は同期で行う。
+`InitializeScenePipeline` は初期snapshotの失敗を `GameShutdownEvent.QuitAfterSynchronizationFailure` へ振り分ける。実行中のtrain/rail hash不一致も同じ終了口へ入る。stream停止は後続受信・event flush・visual更新より前にラッチする。終了理由を先に確定し、保存参加者・remote save・embedded serverの保存終了を迂回し、正常終了印を作らずaffected clientを終了する。EditorではPlayModeを止める。別processの専用serverを停止する操作は行わない。
 
-受入テストはraw rail/train payload、適用通知、watermark、適用直後の両hashとtrain/rail/view参照更新を照合する。保存乗車worldの実起動を通し、snapshot適用後のtick前進まで確認する。設計根拠は [ADR 0071](../adr/0071-tick-synchronization-stream-boundaries.md) を参照。
+通信待ち・初期待機・main-thread dispatchのawaitは維持する。受入では初期pairの成功/失敗・同watermark・両hash、失敗後replayと次frame停止、保存なしの終了と正常終了の回帰を検証する。保存乗車worldの実起動から複数回のhash検証を跨ぐ順序付きdeltaの前進も確認する。設計根拠は [ADR 0071](../adr/0071-tick-synchronization-stream-boundaries.md) を参照。
 
 ## 補足
 

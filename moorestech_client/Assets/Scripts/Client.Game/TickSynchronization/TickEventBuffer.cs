@@ -44,7 +44,7 @@ namespace Client.Game.TickSynchronization
 
         public bool TryFlushEvent(ulong eventTickUnifiedId)
         {
-            if (!_futureEvents.ContainsKey(eventTickUnifiedId))
+            if (_tickState.IsStopped || !_futureEvents.ContainsKey(eventTickUnifiedId))
                 return false;
             var bufferedEvent = _futureEvents[eventTickUnifiedId];
             bufferedEvent.Apply();

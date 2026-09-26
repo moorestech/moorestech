@@ -175,10 +175,12 @@ namespace Client.Tests.TickSynchronization
 
                 // railだけでは起動待機を完了せず、trainのview適用後に完了する。
                 // Rail alone cannot finish startup; train view application must complete first.
+                new Client.Game.InGame.Train.Unit.TrainUnitClientSimulator(client.Context, client.Gate, null).Tick();
                 client.ApplyRail(sink.Events[0].Payload);
                 Assert.AreEqual(UniTaskStatus.Pending, waiting.Status);
                 client.ApplyTrain(sink.Events[1].Payload);
                 Assert.AreEqual(UniTaskStatus.Succeeded, waiting.Status);
+                Assert.IsTrue(client.Context.IsInitialSnapshotApplied);
                 Assert.IsEmpty(client.Rails.Nodes);
                 Assert.IsEmpty(client.Trains.Units);
 
@@ -206,7 +208,7 @@ namespace Client.Tests.TickSynchronization
             {
                 var sink = EventTestUtil.RegisterCaptureSink(services, 1);
                 GameUpdater.UpdateOneTick();
-                services.GetRequiredService<TrainFullSnapshotEventPacket>().PushFullSnapshots(1, true);
+                services.GetRequiredService<EventProtocolProvider>().RegisterPlayer(1, sink);
                 GameUpdater.UpdateOneTick();
                 var bundles = sink.Events.Where(e => e.Tag == TrainUnitTickDiffBundleEventPacket.EventTag).ToArray();
                 var handler = new TrainUnitTickDiffBundleEventNetworkHandler(client.Context, client.Trains);

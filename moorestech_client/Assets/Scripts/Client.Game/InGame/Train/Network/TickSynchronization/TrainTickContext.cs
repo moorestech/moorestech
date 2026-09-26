@@ -6,6 +6,7 @@ namespace Client.Game.InGame.Train.Network.TickSynchronization
     // Own synchronization state exclusively for the train/rail stream.
     public sealed class TrainTickContext
     {
+        internal bool IsInitialSnapshotApplied { get; private set; }
         internal readonly ClientTickState State;
         internal readonly TickEventBuffer Events;
         internal readonly ClientTickAdvanceController AdvanceController;
@@ -18,5 +19,11 @@ namespace Client.Game.InGame.Train.Network.TickSynchronization
             AdvanceController = new ClientTickAdvanceController(State, Events);
             Hashes = new TrainUnitHashBuffer(State);
         }
+
+        internal void CompleteInitialSnapshot()
+        {
+            IsInitialSnapshotApplied = true;
+        }
+
     }
 }

@@ -62,7 +62,6 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(GetWorldPlaySessionInfoProtocol.ProtocolTag, new GetWorldPlaySessionInfoProtocol(serviceProvider));
             _packetResponseDictionary.Add(RailConnectionEditProtocol.Tag, new RailConnectionEditProtocol(serviceProvider));
             _packetResponseDictionary.Add(RailConnectWithPlacePierProtocol.Tag, new RailConnectWithPlacePierProtocol(serviceProvider));
-            _packetResponseDictionary.Add(TrainResyncProtocol.ProtocolTag, new TrainResyncProtocol(serviceProvider));
             _packetResponseDictionary.Add(PlaceTrainCarOnRailProtocol.ProtocolTag, new PlaceTrainCarOnRailProtocol(serviceProvider));
             _packetResponseDictionary.Add(AttachTrainCarToUnitProtocol.ProtocolTag, new AttachTrainCarToUnitProtocol(serviceProvider));
             _packetResponseDictionary.Add(TrainCarRidingInputProtocol.ProtocolTag, new TrainCarRidingInputProtocol(trainCarRidingInputBuffer, serverTickClock));

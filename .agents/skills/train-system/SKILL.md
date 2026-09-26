@@ -33,7 +33,7 @@ Single reference for all train/rail work. Read the shared contracts first, then 
 - Client network handlers enqueue into `TrainUnitFutureMessageBuffer`; no immediate side-effect apply in handlers. Buffered events apply in unified-id order.
 
 ### Snapshot-First Train Sync
-- Structural TrainUnit/TrainCar changes flow through per-unit snapshot event `va:event:trainUnitSnapshot` (upsert/delete); full resync via `va:getTrainUnitSnapshots` (canonical recovery path on hash mismatch).
+- Structural TrainUnit/TrainCar changes flow through per-unit snapshot event `va:event:trainUnitSnapshot` (upsert/delete); initial rail/train full snapshots arrive on connection; a proven runtime hash mismatch stops the stream and exits the affected client without saving (ADR0071).
 - Tick simulation trigger remains `va:event:trainUnitTickDiffBundle`; it does not replace snapshot-based structural sync.
 
 ## 1. Network Sync Flow (end-to-end ownership)
@@ -68,7 +68,7 @@ Client order (must preserve):
 3. Evaluate hash gate for next unified id.
 4. Advance tick when gate permits; allow deadlock-avoidance when only future hashes exist.
 
-Gate rules: dummy hash `uint.MaxValue` is a pass sentinel; stale hashes are discarded; hash-mismatch recovery uses the snapshot retrieval path.
+Gate rules: dummy hash `uint.MaxValue` is a pass sentinel; stale hashes are discarded; a proven hash mismatch stops progression and exits without saving (ADR0071).
 
 ## 4. Save / Load
 

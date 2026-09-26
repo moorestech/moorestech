@@ -34,11 +34,10 @@ namespace Client.Tests.EditModeInPlayingTest
     public class TrainTickSynchronizationPlayTest
     {
         private static readonly TimeSpan InitializationTimeout = TimeSpan.FromSeconds(180);
-        private static readonly TimeSpan SnapshotApplyTimeout = TimeSpan.FromSeconds(15);
         private static readonly TimeSpan TickResumeTimeout = TimeSpan.FromSeconds(15);
 
         [UnityTest]
-        public IEnumerator SavedRidingWorld_RestoresSeatThenAppliesResyncAndAdvances()
+        public IEnumerator SavedRidingWorld_RestoresSeatThenAppliesOrderedDeltas()
         {
             EnterPlayModeUtil();
             yield return new EnterPlayMode(expectDomainReload: true);
@@ -74,7 +73,7 @@ namespace Client.Tests.EditModeInPlayingTest
                     Assert.AreEqual(PlayerStateEnum.Riding, resolver.Resolve<PlayerStateController>().CurrentState);
                     Assert.IsTrue(resolver.Resolve<TrainHUDScreenState>().IsRiding);
                     VerifySeat();
-                    yield return VerifyResync().ToCoroutine();
+                    yield return VerifyOrderedDeltas().ToCoroutine();
                 }
                 finally
                 {
@@ -131,46 +130,32 @@ namespace Client.Tests.EditModeInPlayingTest
                     Assert.Less(Quaternion.Angle(player.transform.rotation, seat.rotation), 0.01f);
                 }
 
-                async UniTask VerifyResync()
+                async UniTask VerifyOrderedDeltas()
                 {
                     var context = resolver.Resolve<TrainTickContext>();
-                    var handler = resolver.Resolve<TrainFullSnapshotEventNetworkHandler>();
                     var trains = resolver.Resolve<TrainUnitClientCache>();
-                    var rails = resolver.Resolve<RailGraphClientCache>();
-                    var views = resolver.Resolve<TrainCarObjectDatastore>();
                     var beforeTrain = trains.Units[fixture.TrainId];
-                    var railNodeId = rails.Nodes.First(node => node != null).NodeId;
-                    var beforeRail = rails.Nodes[railNodeId];
-                    Assert.IsTrue(views.TryGetEntity(fixture.CarId, out var beforeView));
-                    Assert.AreEqual(0, TestReflection.GetField<int>(resolver.Resolve<TrainUnitHashVerifier>(), "_resyncInProgress"));
+                    var initialTick = context.State.GetTick();
+                    var received = new System.Collections.Generic.List<ulong>();
+                    using var deltas = ClientContext.VanillaApi.Event.SubscribeEventResponse(
+                        Server.Event.EventReceive.TrainUnitTickDiffBundleEventPacket.EventTag, payload =>
+                        {
+                            var message = MessagePack.MessagePackSerializer.Deserialize<Server.Util.MessagePack.TrainUnitTickDiffBundleMessagePack>(payload);
+                            received.Add(Core.Update.TickSynchronization.TickUnifiedIdUtility.CreateTickUnifiedId(message.ServerTick, message.DiffTickSequenceId));
+                        });
+                    var deadline = Stopwatch.StartNew();
+                    while ((received.Count < 8 || context.State.GetAppliedTickUnifiedId() < received[7]) && deadline.Elapsed < TickResumeTimeout)
+                        await UniTask.Yield();
 
-                    // 要求前に3つの購読を揃え、別要求の混入も件数で検出する。
-                    // Subscribe to all three signals before requesting; counts detect interleaved requests too.
-                    using var observation = new TrainSnapshotApplyObservation(ClientContext.VanillaApi.Event, handler,
-                        context, trains, rails, views, fixture.TrainId, fixture.CarId, railNodeId);
-                    var ack = ClientContext.VanillaApi.Response.SendTrainResync(true, CancellationToken.None).Preserve();
-                    var snapshotDeadline = Stopwatch.StartNew();
-                    while (!observation.HasCompletePair && snapshotDeadline.Elapsed < SnapshotApplyTimeout) await UniTask.Yield();
-                    Assert.IsTrue(observation.HasCompletePair, observation.Diagnostic);
-                    Assert.Less(observation.RailReceivedOrder, observation.TrainAppliedOrder);
-                    Assert.AreEqual(observation.RailWatermark, observation.TrainWatermark);
-                    Assert.AreEqual(observation.TrainWatermark, observation.AppliedWatermark);
-                    Assert.AreEqual(observation.AppliedWatermark, observation.StateAtApply);
-                    Assert.AreEqual(observation.TrainPayloadHash, observation.TrainHashAtApply);
-                    Assert.AreEqual(observation.RailPayloadHash, observation.RailHashAtApply);
-                    Assert.AreNotSame(beforeTrain, observation.TrainUnitAtApply);
-                    Assert.AreNotSame(beforeRail, observation.RailNodeAtApply);
-                    Assert.AreNotSame(beforeView, observation.CarViewAtApply);
-                    Assert.AreEqual(fixture.CarId, observation.CarViewAtApply.TrainCarInstanceId);
-                    Assert.IsNotNull(await ack.Timeout(TimeSpan.FromSeconds(15)));
-
-                    var appliedTick = (uint)(observation.AppliedWatermark >> 32);
-                    var tickDeadline = Stopwatch.StartNew();
-                    while (context.State.GetTick() <= appliedTick && tickDeadline.Elapsed < TickResumeTimeout) await UniTask.Yield();
-                    Assert.Greater(context.State.GetTick(), appliedTick, observation.Diagnostic);
-                    Assert.AreEqual(1, observation.RailCount, observation.Diagnostic);
-                    Assert.AreEqual(1, observation.TrainCount, observation.Diagnostic);
-                    Assert.AreEqual(1, observation.AppliedCount, observation.Diagnostic);
+                    // 複数回の実hash照合を跨いで同じcacheのまま順序付き差分が進む。
+                    // Advance ordered deltas across multiple real hash checks while retaining the same cache.
+                    Assert.GreaterOrEqual(context.State.GetTick(), initialTick + 8);
+                    Assert.GreaterOrEqual(received.Count, 8);
+                    Assert.IsFalse(context.State.IsStopped);
+                    Assert.AreSame(beforeTrain, trains.Units[fixture.TrainId]);
+                    Assert.IsTrue(received.Zip(received.Skip(1), (first, second) => first < second).All(inOrder => inOrder));
+                    Assert.GreaterOrEqual(context.State.GetAppliedTickUnifiedId(), received[7]);
+                    VerifySeat();
                 }
                 #endregion
             }

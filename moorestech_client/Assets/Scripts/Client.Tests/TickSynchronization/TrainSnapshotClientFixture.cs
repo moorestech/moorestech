@@ -35,7 +35,7 @@ namespace Client.Tests.TickSynchronization
             _stations.Initialize();
             Handler = new TrainFullSnapshotEventNetworkHandler(new RailGraphSnapshotApplier(Rails, _stations, Context),
                 new TrainUnitSnapshotApplier(Trains, Context, Views), Context);
-            Gate = new TrainUnitHashVerifier(Handler, Context, Trains, Rails);
+            Gate = new TrainUnitHashVerifier(Context, Trains, Rails);
         }
 
         public static void Receive(object handler, string methodName, byte[] payload)
@@ -52,7 +52,6 @@ namespace Client.Tests.TickSynchronization
 
         public void Dispose()
         {
-            Gate.Dispose();
             Handler.Dispose();
             _stations.Dispose();
             UnityEngine.Object.DestroyImmediate(_root);

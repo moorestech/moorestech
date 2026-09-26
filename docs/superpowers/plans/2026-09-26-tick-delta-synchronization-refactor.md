@@ -4,7 +4,7 @@
 
 **Goal:** train/railの既存tick・seq仕様を保ちながら、差分通知の機械的処理を別domainからも利用できる単独PRにする。
 
-**Architecture:** セッションuint tickの時計をMasterTickUpdaterで明示的に進め、streamごとのseqを別instanceで管理する。clientはstreamごとの状態・順序buffer・進行計算を共通部へ抽出し、train contextがそれらを所有する。train固有のhash・欠落時判断・snapshot・resyncはtrain側に残す。
+**Architecture:** セッションuint tickの時計をMasterTickUpdaterで明示的に進め、streamごとのseqを別instanceで管理する。clientはstreamごとの状態・順序buffer・進行計算を共通部へ抽出し、train contextがそれらを所有する。train固有のhash・欠落時判断・初期snapshot・fatal終了判定はtrain側に残す。
 
 **Tech Stack:** Unity/C#、UniRx、UniTask、MessagePack、Microsoft DI、VContainer、NUnit、uloop。
 
@@ -16,9 +16,9 @@
 - R2: 既存ユーザー「tickとseq idの仕様はこのまま」。受入: uint session tick、tickごとseq0、最初の発行seq1、合成key、hash(n-1)+diff(n)、空diffトリガ、train/rail共通streamを回帰テストする。
 - R3: ユーザー「鉄道べったりだったのを今後ギアやベルコンの差分通知に拡張」。受入: common部にTrain/Rail型・payload・通信tagがなく、2つの非train fixtureで同tick同seqを独立に適用できる。
 - R4: stream Aの採番、適用、snapshot watermark、gate停止がstream Bへ作用しない。受入: server2streamとclient2contextのテストで相互不干渉を確認する。
-- R5: 既存train startup/recoveryを維持。受入: rail→train初期push、購読前buffer/replay、view生成後の初期完了、失敗のfault伝搬、resync要求に対応するsnapshot適用通知・watermark・cache/view差し替え、古いevent破棄を検証する。ackと通常tick前進だけでは再同期成功としない。
+- R5: 初期rail→train snapshotの同watermark・両hash・cache/view成功後だけ起動する。初期失敗または実行中hash不一致はstreamを即停止し、Error記録後にaffected clientを保存・再起動なしで異常終了する。自動再同期のwire/API/ack待機/完了通知は廃止する。
 - R6: 永続累積GameUpdater.CurrentTickとwire session tickの非同一を維持する。受入: save tickを復元しても新sessionのwire tickは0起点、既存train save/loadと乗車入力の回帰が通る。
-- R7: ユーザー「過剰なawaitとかあったでしょ？」を実態に基づき整理する。受入: SendTrainResyncの中継state machineを除去、差分Applyは同期のまま、真の通信待ち・初期完了待ち・main-thread dispatchを維持する。
+- R7: ユーザー「過剰なawaitとかあったでしょ？」を実態に基づき整理する。受入: 自動再同期要求とその待機を除去、差分Applyは同期のまま、真の通信待ち・初期完了待ち・main-thread dispatchを維持する。
 - R8: ユーザー「あなたはオーケストレーションに徹して。レビューはまた別にsol起動してやって」。受入: 実装担当と別のgpt-6-sol/highが全branchをレビューし、必要な修正と検証後にPRを作成する。
 
 ## Global Constraints
@@ -26,7 +26,7 @@
 - [ADR 0071](../../adr/0071-tick-synchronization-stream-boundaries.md)を全タスクに適用。agent前提をユーザー裁定へ昇格しない。
 - C#変更後は `uloop compile --project-path ./moorestech_client`。1コードファイル200行以下、新規ディレクトリ内コード10ファイル以下、partial/Func禁止。新しい汎用domain registryは作らない。
 - meta/Unity YAMLは手書き禁止。Unity担当だけがEditorでmetaを生成する。Library削除禁止。原本 `C:/Users/5080/Documents/GitHub/moorestech` はread-only。
-- MessagePackのfield/key/tag、保存形式、hash間引き、dummy、force-slip、catch-up係数・上限、main-thread/同期replay順序を変えない。
+- 通常eventのMessagePack field/key/tag、保存形式、hash間引き、dummy、force-slip、catch-up係数・上限、main-thread/同期replay順序を変えない。
 - compile/test失敗を成功扱いしない。domain reloadエラー時は45秒後に再試行する。既知環境失敗は生出力を外部記録へ残す。
 - 実装担当は始めにpwd/AGENTS.mdとtrain-systemを読む。レビューはユーザー指定 `model: gpt-6-sol`, `reasoning_effort: high` を明示する。
 - 本計画は3実装タスク＋2終了タスク。C#約47〜57ファイル、論理追加/変更1050〜1650行、削除/移動600〜900行の概算。Task 3の保存乗車・実snapshot適用fixture強化を含む。実測diffで更新する。
@@ -54,7 +54,7 @@
 | train/car生成・追加・削除 | 維持 | 既存構造snapshot eventを同じstreamへenqueue |
 | rail接続・撤去・GUID不一致拒否 | 維持 | handlerのpayload適用bodyを変更しない |
 | 初期接続・保存された乗車状態の復帰 | 維持 | rail→train snapshot、車両view完成、初期待機後にplayer開始 |
-| hash不一致からの復旧 | 維持 | train verifierの要求・現役所有・snapshot完了解除を維持 |
+| hash不一致時の終了 | D1/Cで変更 | Error記録・stream停止・保存なしのaffected client異常終了 |
 | train debug表示 | 維持 | 同じtrain contextのtick/seqを表示 |
 | 通常save/load・累積tick復元 | 維持 | saveデータ・loaderを変更せず、wire clockを別instanceで開始 |
 
@@ -463,7 +463,7 @@ Commit: `test: cover tick stream isolation and train synchronization lifecycle`
 - [ ] 全作業がcommit/push済み、PRがmaster宛て、公開diffにbelt/GPU実装が混入していないことを確認する。
 - [ ] PRをattach_artifactでtaskへ添付する。検証できなかった点はPRと最終報告へ正確に残す。作成だけでCIやmerge可能状態を推測せず、実際の状態を確認する。
 
-## 判断記録（ADR）
+## 当初タスクの判断記録（履歴。D1/Cの現在契約は末尾に記載）
 
 | 決定 | 出所 | 対象 |
 |---|---|---|
@@ -540,3 +540,24 @@ D2サーバー検証: compile 0 errors / 46 warnings（既存source）、影響�
 controllerからD1/C「このPRで再同期を廃止し、hash不一致時の終了まで実装する（推奨）」の追加裁定を受領した。次の実装担当が契約文書とclientを更新する。ここで既存resyncを通す実起動検証は時計変更時点の過渡的な回帰確認であり、最終仕様の再同期要件ではない。
 
 CI対応の検証: compile 0 errors / 28 warnings（既存source）、変更後Client.Tests MVID `26bbb32c-e7e0-44d2-aff2-7bd0b33f27eb`、保存乗車実起動1/1 PASS（実case 2026-09-26 13:32:42〜13:33:24 UTC）。Server.Boot/Server.Tests MVIDはD2検証時と同一。Windowsでは対象terrainログ0件で、Linux CIの同ログ再発時の確認は次回CIに残る。既知のCEF遷移時例外1件と終了時socket Error2件は生ログへ保存し、通常のError検出を維持した起動・同期assert区間にはErrorなし。EditorPlaying=false / BootstrapDisabled=falseで終了。外部証跡 `clock-phase-ci-{compile.json,loaded-before.json,loaded-after.json,play.xml,play-editor.log,errors.json}`。
+
+### D1/C 初期snapshot・fatal終了の適用（2026-09-26、現在の契約）
+
+出所: ユーザー「このPRで再同期を廃止し、hash不一致時の終了まで実装する（推奨）」。上記Task 2/3の再同期維持・race・実再同期検証は当初実装の履歴であり、現在の受入は本節とADR0071で置換する。D2/Aは保持する。
+
+- [x] 既存GameShutdownEventの終了所有内に保存を迂回するfatal経路を加える。終了理由・fired/quit状態を破棄前に確定し、wantsToQuitを通し、CleanExitMarkWriterは両印を書かない。ResetForNewSessionで終了状態を戻す。
+- [x] 共通stream状態に停止をpushし、受信・buffer flush・driver・train visualの前で停止する。初期replayの失敗後もtrain streamを進めない。
+- [x] rail/train payload・hash・watermark・view成功を初期完了条件にする。typed failureをInitializeScenePipelineでfatalへ振り分け、他の初期化失敗policyは保持する。
+- [x] runtime mismatchはdomain/tick/期待hash/実hashをErrorへ記録して一度だけfatal終了する。gap force-slip・dummy・catch-upを維持する。
+- [x] resync wire/API/registration/ack/completion subscribers/includeRailGraphを全削除し、connection bootstrapへテストを合わせる。
+- [x] snapshot成功/失敗/replay、runtime train/rail不一致と後続frame停止、終了参加者・remote save・正常終了印の迂回、通常終了、force-slipをテストする。保存乗車実起動では初期snapshotと続く順序付きdeltaを検証する。
+- [x] source-current compile/MVID/XML、影響回帰、保存world実起動、Editorを閉じないfatal PlayMode終了検証を行い、外部reportへ限界も記録する。
+
+独立plan reviewのCritical2/Important3は上記の必須受入へ反映済み。追加のユーザー選択はない。実装想定は製品14〜18 C#、test8〜12 C#、追加/変更700〜1100行・削除500〜800行。実測を報告時に追記する。
+
+
+D1/C実測検証: 最終compile 0 errors / 8 warnings（既存UnitGenerator・EditModeInPlayingTestUtilのみ）。修正確定後の同一sourceで **105/105 PASS、fail/skip 0**。XML aggregateは2026-09-26 14:04:50〜14:05:23 UTC、domain reload前を含む最初のcaseは14:04:19開始。保存乗車実起動・観測8件目までのdelta適用は14:04:41〜14:05:13、typed初期失敗callbackによる保存なしPlayMode終了は14:04:19〜14:04:30でPASS。Client.Game MVID `fe84ddff-545c-4511-9319-affce865dace`、Client.Starter `be44b864-7b52-4e8b-89fb-7d2925289884`、Client.Tests `0ca8702c-f19a-445e-a8e8-14c0e0925ce5`。前後reflection一致とsource SHA256 manifest一致を確認した。
+
+初回liveは残存IDisposable DI登録で1/2、修正後は新testの受信/適用待機条件不備で104/105となり、両方の失敗XML・ログを保存した。DI登録を掃引修正し、観測deltaの統合IDまでの適用を待つテストへ直した。catch-up製品式は変更していない。最終Console Error17件は意図した初期failure12件＋runtime hash不一致2件、既知CEF遷移例外1件＋終了時socket2件。raw logには3回のPlay遷移ごとのCEF例外とfatal fixtureの期待Errorも残る。通常保存乗車のstrict区間に同期Errorなし。既知tree-prefab scopeは維持しWindows受入0件、Linux再確認はCIへ残る。
+
+証跡: 外部 `C:/Users/5080/Documents/ChatGPT/tick-delta-refactor-20260926/fatal-r3-{compile.json,loaded-before.json,loaded-after.json,all.xml,editor.log,errors.json,source-manifest.json}` と `initial-sync-fatal-decision-report.md`。CLIのreload切断は成功根拠にせず、終了済みXMLで判定した。EditorPlaying=false / BootstrapDisabled=false。実C#差分は追加/削除を含む30ファイル、通常protocol/save形式とD2/Aを保持。既存大型API/integration fixtureの全分割は行わず、201行の起動boundaryも含め規模上の残存をreportへ明記する。

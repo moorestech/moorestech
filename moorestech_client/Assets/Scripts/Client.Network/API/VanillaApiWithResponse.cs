@@ -104,13 +104,7 @@ namespace Client.Network.API
             return await _packetExchangeManager.GetPacketResponse<ResponseMapDataTerrainChunkMessagePack>(request, ct);
         }
 
-        // train/rail再同期の引き金を送る。snapshot本体はイベント経路で届く
-        // Send the resync trigger; snapshots arrive over the event stream
-        public UniTask<TrainResyncProtocol.ResponseMessagePack> SendTrainResync(bool includeRailGraph, CancellationToken ct)
-        {
-            var request = new TrainResyncProtocol.RequestMessagePack(includeRailGraph);
-            return _packetExchangeManager.GetPacketResponse<TrainResyncProtocol.ResponseMessagePack>(request, ct);
-        }
+
 
         public async UniTask<PlaceTrainCarOnRailProtocol.PlaceTrainOnRailResponseMessagePack> PlaceTrainOnRail(RailPosition railPosition, Guid trainCarGuid, CancellationToken ct)
         {

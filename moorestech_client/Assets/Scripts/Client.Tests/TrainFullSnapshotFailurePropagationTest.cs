@@ -1,11 +1,24 @@
 using System;
-using System.Reflection;
+using System.Linq;
+using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
+using Client.Game.InGame.Context;
 using Client.Game.InGame.Train.Network;
+using Client.Game.InGame.Train.Network.TickSynchronization;
+using Client.Network.API;
+using Client.Tests.Common;
+using Client.Tests.TickSynchronization;
 using Cysharp.Threading.Tasks;
 using MessagePack;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
+using Server.Boot;
+using Server.Event;
 using Server.Event.EventReceive;
+using Server.Util.MessagePack;
+using Tests.CombinedTest.Server.PacketTest.Event;
+using Tests.Module.TestMod;
+using UniRx;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -13,66 +26,82 @@ namespace Client.Tests
 {
     public class TrainFullSnapshotFailurePropagationTest
     {
-        private const string RailGraphHandlerName = "HandleRailGraphFullSnapshot";
-        private const string TrainUnitHandlerName = "HandleTrainUnitFullSnapshot";
-
-        // MessagePackが決して出力しないバイトなのでデシリアライズ段で必ず失敗する
-        // A byte MessagePack never emits, so deserialization is guaranteed to fail
-        private static readonly byte[] UndeserializablePayload = { 0xC1 };
-
-        [Test]
-        public void railGraphのデシリアライズ失敗は待機タスクへ例外として届く()
+        [TestCase("rail-decode")]
+        [TestCase("train-decode")]
+        [TestCase("rail-null")]
+        [TestCase("nodes-null")]
+        [TestCase("connections-null")]
+        [TestCase("train-null")]
+        [TestCase("rail-hash")]
+        [TestCase("train-hash")]
+        [TestCase("watermark")]
+        [TestCase("rail-stale")]
+        [TestCase("train-stale")]
+        [TestCase("rail-missing")]
+        public void FailedInitialPair_FaultsStartupAndStopsBufferedReplay(string failure)
         {
-            AssertFailureReachesWaitingTask<MessagePackSerializationException>(RailGraphHandlerName, UndeserializablePayload);
-        }
-
-        [Test]
-        public void trainUnitのデシリアライズ失敗は待機タスクへ例外として届く()
-        {
-            AssertFailureReachesWaitingTask<MessagePackSerializationException>(TrainUnitHandlerName, UndeserializablePayload);
-        }
-
-        [Test]
-        public void railGraphのApplySnapshot失敗は待機タスクへ例外として届く()
-        {
-            // デシリアライズは成功させ、applier未設定の適用段だけを失敗させる
-            // Let deserialization succeed so only the apply step, with no applier wired, fails
-            var payload = MessagePackSerializer.Serialize(new TrainFullSnapshotEventPacket.RailGraphFullSnapshotEventMessagePack(null));
-            AssertFailureReachesWaitingTask<NullReferenceException>(RailGraphHandlerName, payload);
-        }
-
-        [Test]
-        public void trainUnitのApplySnapshot失敗は待機タスクへ例外として届く()
-        {
-            // Snapshotsがnullならbundleは空のまま適用段へ進み、そこで失敗する
-            // A null Snapshots list keeps bundles empty and carries execution to the apply step, where it fails
-            var payload = MessagePackSerializer.Serialize(new TrainFullSnapshotEventPacket.TrainUnitFullSnapshotEventMessagePack(null, 0, 0, 0));
-            AssertFailureReachesWaitingTask<NullReferenceException>(TrainUnitHandlerName, payload);
-        }
-
-        // 購読コールバックを外部境界として直接叩き、失敗が呼び出し元へ抜けずに待機タスクだけへ出ることを見る
-        // Invoke the subscription callback directly as the external boundary and check the failure reaches only the waiting task, never the caller
-        private void AssertFailureReachesWaitingTask<TException>(string handlerName, byte[] payload) where TException : Exception
-        {
-            // 失敗payloadはapplierへ到達しないか到達即NREなので、applierは組み立てない
-            // The failing payloads either never reach an applier or NRE on contact, so no applier is built
-            var handler = new TrainFullSnapshotEventNetworkHandler(null, null, null);
-            var waiting = handler.WaitForInitialApplyAsync().Preserve();
-
-            var method = typeof(TrainFullSnapshotEventNetworkHandler).GetMethod(
-                handlerName, BindingFlags.Instance | BindingFlags.NonPublic);
-            Assert.That(method, Is.Not.Null, $"{handlerName} がprivateメソッドとして存在しない");
-
-            // 再送出しない代わりに適用失敗をLogErrorで残す。期待しないとNUnitがLogErrorで落とす
-            // The failure is logged instead of rethrown, and an unexpected LogError would fail the test
-            LogAssert.Expect(LogType.Error, new Regex("^\\[TrainFullSnapshot\\]"));
-
-            // 初期snapshotはInitializeDispatchの同期replayを通るため、再送出すると起動ごと中断する（ADR#19）
-            // The initial snapshot arrives through InitializeDispatch's synchronous replay, so a rethrow would abort startup (ADR#19)
-            Assert.DoesNotThrow(() => method.Invoke(handler, new object[] { payload }), "適用失敗が呼び出し元へ再送出されている");
-
-            Assert.AreEqual(UniTaskStatus.Faulted, waiting.Status, "適用失敗がPendingのまま残っている");
-            Assert.Catch<TException>(() => waiting.GetAwaiter().GetResult());
+            var (_, services) = new MoorestechServerDIContainerGenerator().Create(
+                new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            using var server = services;
+            using var client = new TrainSnapshotClientFixture();
+            var sink = new CapturedEventSink();
+            services.GetRequiredService<EventProtocolProvider>().RegisterPlayer(1, sink);
+            var rail = MessagePackSerializer.Deserialize<TrainFullSnapshotEventPacket.RailGraphFullSnapshotEventMessagePack>(sink.Events[0].Payload);
+            var train = MessagePackSerializer.Deserialize<TrainFullSnapshotEventPacket.TrainUnitFullSnapshotEventMessagePack>(sink.Events[1].Payload);
+            switch (failure)
+            {
+                case "rail-null": rail.Snapshot = null; break;
+                case "nodes-null": rail.Snapshot.Nodes = null; break;
+                case "connections-null": rail.Snapshot.Connections = null; break;
+                case "train-null": train.Snapshots = null; break;
+                case "rail-hash": rail.Snapshot.GraphHash ^= 1; break;
+                case "train-hash": train.UnitsHash ^= 1; break;
+                case "watermark": train.WatermarkTickSequenceId++; break;
+                case "rail-stale": client.Context.State.RecordAppliedTickUnifiedId(1); break;
+            }
+            var railBytes = failure == "rail-decode" ? new byte[] { 0xC1 } : MessagePackSerializer.Serialize(rail);
+            var trainBytes = failure == "train-decode" ? new byte[] { 0xC1 } : MessagePackSerializer.Serialize(train);
+            var waiting = client.Handler.WaitForInitialApplyAsync().Preserve();
+            var previous = ClientContext.VanillaApi;
+            using var source = new Subject<EventMessagePack>();
+            var exchange = (PacketExchangeManager)FormatterServices.GetUninitializedObject(typeof(PacketExchangeManager));
+            TestReflection.SetField(exchange, "_eventPacketSubject", source);
+            var dispatcher = new VanillaApiEvent(exchange);
+            var api = (VanillaApi)FormatterServices.GetUninitializedObject(typeof(VanillaApi));
+            typeof(VanillaApi).GetField("Event").SetValue(api, dispatcher);
+            try
+            {
+                TestReflection.SetStaticProperty(typeof(ClientContext), "VanillaApi", api);
+                client.Handler.Initialize();
+                using var deltas = new TrainUnitTickDiffBundleEventNetworkHandler(client.Context, client.Trains);
+                deltas.Initialize();
+                LogAssert.Expect(LogType.Error, new Regex("TrainFullSnapshot.*initial apply failed"));
+                if (failure != "rail-missing")
+                    source.OnNext(new EventMessagePack(TrainFullSnapshotEventPacket.RailGraphFullSnapshotEventTag, railBytes));
+                if (failure == "train-stale")
+                {
+                    dispatcher.InitializeDispatch();
+                    client.Context.State.RecordAppliedTickUnifiedId(1);
+                }
+                source.OnNext(new EventMessagePack(TrainFullSnapshotEventPacket.TrainUnitFullSnapshotEventTag, trainBytes));
+                // 失敗後に正常pairとdeltaがreplayされても起動成功へ戻らない。
+                // A valid pair and delta replayed after failure must never restore startup success.
+                foreach (var message in sink.Events) source.OnNext(message);
+                var delta = new TrainUnitTickDiffBundleMessagePack(1, 1, 1, uint.MaxValue, uint.MaxValue, Array.Empty<global::Game.Train.Unit.TickSynchronization.TrainTickDiffData>());
+                source.OnNext(new EventMessagePack(TrainUnitTickDiffBundleEventPacket.EventTag, MessagePackSerializer.Serialize(delta)));
+                Assert.DoesNotThrow(() => dispatcher.InitializeDispatch());
+                Assert.AreEqual(UniTaskStatus.Faulted, waiting.Status);
+                Assert.Throws<TrainInitialSnapshotException>(() => waiting.GetAwaiter().GetResult());
+                Assert.IsTrue(client.Context.State.IsStopped);
+                Assert.IsFalse(client.Context.Events.TryFlushEvent(1ul << 32 | 1));
+                var applied = client.Context.State.GetAppliedTickUnifiedId();
+                client.Context.AdvanceController.Advance(0.1f, client.Gate);
+                Assert.AreEqual(applied, client.Context.State.GetAppliedTickUnifiedId());
+            }
+            finally
+            {
+                TestReflection.SetStaticProperty(typeof(ClientContext), "VanillaApi", previous);
+            }
         }
     }
 }
