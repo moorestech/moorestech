@@ -1,21 +1,16 @@
-using System;
-using System.Collections.Generic;
 using Client.Game.InGame.Train.Unit;
+using Core.Update.TickSynchronization;
+using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 namespace Client.Game.InGame.Train.Network
 {
-    // 未来tickのTrain/Railイベントを種類別に保持して、シミュレーションtick到達時に適用する。
-    // Buffer future train/rail events by phase and apply them when simulation reaches their tick.
+    // stream内のイベントを統合IDで保持する。
+    // Buffer stream events by unified id.
     public sealed class TrainUnitFutureMessageBuffer
     {
-        public const uint DummyHash = uint.MaxValue;
-        private bool isGetFirstHash = false;
-
         private readonly TrainUnitTickState _tickState;
         private readonly SortedDictionary<ulong, ITrainTickBufferedEvent> _futureEvents = new();
-        private readonly SortedDictionary<ulong, (uint unitsHash, uint railGraphHash, uint serverTick, uint tickSequenceId)> _futureHashStates = new();
 
         public TrainUnitFutureMessageBuffer(TrainUnitTickState tickState)
         {
@@ -29,64 +24,15 @@ namespace Client.Game.InGame.Train.Network
             if (bufferedEvent == null)
                 return;
             var eventTickUnifiedId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(serverTick, tickSequenceId);
-            if (eventTickUnifiedId <= _tickState.GetAppliedTickUnifiedId())
+            if (!_tickState.TryAcceptReceivedTickUnifiedId(eventTickUnifiedId))
             {
                 // 適用済みの統合順序以下は捨てる。
                 // Drop events already covered.
                 return;
             }
-            _tickState.SetMaxBufferedTicks(serverTick);
             _futureEvents[eventTickUnifiedId] = bufferedEvent;
         }
 
-        // ハッシュイベントをtick基準でキューへ積む。
-        // Queue hash states by tick for tick-aligned verification.
-        public void EnqueueHash(uint unitsHash, uint railGraphHash, uint serverTick, uint tickSequenceId)
-        {
-            if (isGetFirstHash == false)
-            {
-                Debug.Log($"1stHash: serverTick={serverTick}, tickSequenceId={tickSequenceId}, ");
-                isGetFirstHash = true;
-            }
-            
-            var messageTickUnifiedId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(serverTick, tickSequenceId);
-            if (messageTickUnifiedId <= _tickState.GetAppliedTickUnifiedId())
-            {
-                // 適用済みの統合順序以下は捨てる。
-                // Drop hash states already covered.
-                return;
-            }
-            _tickState.SetMaxBufferedTicks(serverTick);
-            _futureHashStates[messageTickUnifiedId] = (unitsHash, railGraphHash, serverTick, tickSequenceId);
-        }
-
-        // 指定tickのハッシュを取り出す。
-        // Dequeue hash state at the specified tick.
-        public bool TryDequeueHashAtTickSequenceId(ulong tickUnifiedId, out (uint unitsHash, uint railGraphHash, uint serverTick, uint tickSequenceId) message)
-        {
-            return _futureHashStates.TryGetValue(tickUnifiedId, out message);
-        }
-        
-        // 対象tickより古いhashは検証対象外として破棄する。
-        // Discard hashes older than the requested tick.
-        public void DiscardHashesOlderThan(ulong tickUnifiedId)
-        {
-            while (true)
-            {
-                if (TryGetFirstHashTickUnifiedId(out var firstTickUnifiedId))
-                {
-                    if (firstTickUnifiedId < tickUnifiedId)
-                    {
-                        _futureHashStates.Remove(firstTickUnifiedId);
-                        continue;
-                    }
-                }
-                break;
-            }
-        }
-
-        // full snapshot適用時に呼ぶ
-        // Called when a full snapshot is applied
         public void DiscardEventsAtOrBelow(ulong tickUnifiedId)
         {
             while (0 < _futureEvents.Count)
@@ -97,60 +43,18 @@ namespace Client.Game.InGame.Train.Network
             }
         }
 
-        // 最初のkeyを取得
-        // Get the first key
-        public bool TryGetFirstHashTickUnifiedId(out ulong tickUnifiedId)
-        {
-            tickUnifiedId = UInt64.MaxValue;
-            if (_futureHashStates.Count > 0)
-            {
-                tickUnifiedId = _futureHashStates.First().Key;
-                return true;
-            }
-            return false;
-        }
-        
-        public bool TryFlushEvent(uint currentTick, uint tickSequenceId)
-        {
-            var eventTickUnifiedId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(currentTick, tickSequenceId);
-            return TryFlushEvent(eventTickUnifiedId);
-        }
         public bool TryFlushEvent(ulong eventTickUnifiedId)
         {
-            if (!_futureEvents.ContainsKey(eventTickUnifiedId))
+            if (_tickState.IsStopped || !_futureEvents.ContainsKey(eventTickUnifiedId))
                 return false;
             var bufferedEvent = _futureEvents[eventTickUnifiedId];
             bufferedEvent.Apply();
-            
+
             // 実行済みイベント以下は再適用不要なので一括破棄する。
             // Drop all events at or below executed unified id to prevent re-apply.
-            RemoveEventsAtOrBelow(eventTickUnifiedId);
+            DiscardEventsAtOrBelow(eventTickUnifiedId);
             _tickState.RecordAppliedTickUnifiedId(eventTickUnifiedId);
             return true;
-            
-            #region Internal
-            void RemoveEventsAtOrBelow(ulong maxTickUnifiedId)
-            {
-                while (TryGetFirstTickUnifiedId(_futureEvents, out var firstTickUnifiedId) &&
-                    firstTickUnifiedId <= maxTickUnifiedId)
-                {
-                    _futureEvents.Remove(firstTickUnifiedId);
-                }
-            }
-            
-            static bool TryGetFirstTickUnifiedId<TValue>(SortedDictionary<ulong, TValue> source, out ulong firstTickUnifiedId)
-            {
-                using var enumerator = source.GetEnumerator();
-                if (enumerator.MoveNext())
-                {
-                    firstTickUnifiedId = enumerator.Current.Key;
-                    return true;
-                }
-                
-                firstTickUnifiedId = 0;
-                return false;
-            }
-            #endregion
         }
     }
 }

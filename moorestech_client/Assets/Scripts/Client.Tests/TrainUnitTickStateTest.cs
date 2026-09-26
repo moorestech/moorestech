@@ -1,5 +1,6 @@
 using Client.Game.InGame.Train.Unit;
 using NUnit.Framework;
+using Core.Update.TickSynchronization;
 
 namespace Client.Tests
 {

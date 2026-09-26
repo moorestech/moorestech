@@ -3,12 +3,13 @@ using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.Train.Unit;
 using Server.Util.MessagePack;
 using UnityEngine;
+using Core.Update.TickSynchronization;
 
 namespace Client.Game.InGame.Train.Network
 {
     /// <summary>
-    ///     RailGraph差分の初期適用から再同期までを担うキャッシュ反映サービス
-    ///     Service that applies the initial RailGraph snapshot and future resync payloads
+    ///     初期RailGraph snapshotのキャッシュ反映サービス
+    ///     Applies and verifies the initial RailGraph snapshot
     /// </summary>
     public sealed class RailGraphSnapshotApplier
     {
@@ -28,23 +29,17 @@ namespace Client.Game.InGame.Train.Network
 
         public void ApplySnapshot(RailGraphSnapshotMessagePack snapshot)
         {
-            // ペイロード欠損のみ無視。空Nodesは「レール全消滅」の正当なfull snapshotとして適用する
-            // Skip only a missing payload; empty Nodes is a valid "all rails removed" full snapshot
-            if (snapshot?.Nodes == null)
+            // 欠損payloadを拒否し、空Nodesは有効な初期状態として適用する
+            // Reject missing payloads; empty Nodes is a valid initial state
+            if (snapshot?.Nodes == null || snapshot.Connections == null)
             {
-                return;
+                throw new InvalidOperationException("Initial rail snapshot payload, nodes or connections are missing.");
             }
 
             var unifiedId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(snapshot.GraphTick, snapshot.GraphTickSequenceId);
             if (unifiedId < _tickState.GetAppliedTickUnifiedId())
             {
-                // 遅延rail snapshotが既に適用済み範囲より古い場合は破棄する。
-                // Ignore delayed rail snapshots older than the applied sequence baseline.
-                Debug.LogWarning(
-                    "[RailGraphSnapshotApplier] Ignored stale rail snapshot. " +
-                    $"graphTick={snapshot.GraphTick}, graphTickSequenceId={snapshot.GraphTickSequenceId}, " +
-                    $"appliedTickUnifiedId={_tickState.GetAppliedTickUnifiedId()}");
-                return;
+                throw new InvalidOperationException($"Initial rail snapshot watermark is stale: received={unifiedId}, applied={_tickState.GetAppliedTickUnifiedId()}");
             }
 
             // ノードの最大IDから配列サイズを確定（空snapshotはsize 0でキャッシュ全消去になる）
@@ -57,6 +52,9 @@ namespace Client.Game.InGame.Train.Network
             // 駅参照をキャッシュへ反映する
             // Apply station references to cache.
             _stationReferenceRegistry.ApplyStationReferences();
+            var actualHash = _cache.ComputeCurrentHash();
+            if (actualHash != snapshot.GraphHash)
+                throw new InvalidOperationException($"Initial rail hash mismatch: tick={snapshot.GraphTick}_{snapshot.GraphTickSequenceId}, expected={snapshot.GraphHash}, actual={actualHash}");
             _tickState.RecordAppliedTickUnifiedId(unifiedId);
 
             #region Internal

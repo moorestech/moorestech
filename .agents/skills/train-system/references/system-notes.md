@@ -19,7 +19,7 @@ Use this skill as a guardrail for train fundamentals and deterministic behavior.
 ## Train Sync Invariants
 - Structural TrainUnit/TrainCar changes should flow through per-unit snapshot notify path.
 - Deletion should clear both cache state and visual/car representation on apply.
-- Full snapshot API remains canonical recovery path on mismatch/resync.
+- Connection bootstrap supplies the only full snapshot pair; a proven hash mismatch exits without saving (ADR0071).
 
 ## Rail Graph Model Invariants
 - Each rail component has directional endpoints (`FrontNode`/`BackNode`) as opposite pairs.

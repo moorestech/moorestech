@@ -58,6 +58,7 @@ using Game.PlayerRiding.Interface;
 using Game.UnlockState;
 using VContainer;
 using VContainer.Unity;
+using Client.Game.InGame.Train.Network.TickSynchronization;
 
 namespace Client.Starter.Registration
 {
@@ -165,12 +166,17 @@ namespace Client.Starter.Registration
                 .AsSelf().As<IInitializable>().As<IDisposable>();
             builder.Register<RailGraphSnapshotApplier>(Lifetime.Singleton);
             builder.Register<TrainUnitClientCache>(Lifetime.Singleton);
-            builder.Register<TrainUnitTickState>(Lifetime.Singleton);
-            builder.Register<TrainUnitFutureMessageBuffer>(Lifetime.Singleton);
+            // context所有の同一実体を各依存型から解決する
+            // Resolve each dependency type to the instance owned by the context
+            var trainTickContext = new TrainTickContext();
+            builder.RegisterInstance(trainTickContext);
+            builder.RegisterInstance(trainTickContext.State);
+            builder.RegisterInstance(trainTickContext.Events);
+            builder.RegisterInstance(trainTickContext.Hashes);
             builder.Register<TrainUnitSnapshotApplier>(Lifetime.Singleton);
             builder.Register<TrainUnitVisualUpdateSystem>(Lifetime.Singleton);
             builder.Register<TrainUnitClientSimulator>(Lifetime.Singleton).AsSelf().As<ITickable>();
-            builder.Register<TrainUnitHashVerifier>(Lifetime.Singleton).As<ITrainUnitHashTickGate>().As<IDisposable>();
+            builder.Register<TrainUnitHashVerifier>(Lifetime.Singleton).AsSelf().As<ITrainUnitHashTickGate>();
             builder.Register<TrainUnitDebugOverlayPresenter>(Lifetime.Singleton).As<ITickable>().As<IDisposable>();
         }
     }

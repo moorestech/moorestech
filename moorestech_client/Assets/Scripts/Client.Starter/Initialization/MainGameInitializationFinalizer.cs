@@ -10,6 +10,7 @@ using Client.Game.InGame.Hotbar;
 using Client.Game.InGame.Map.Outcrop;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Player;
+using Client.Game.InGame.Train.Network;
 using Client.Game.InGame.Presenter.Player;
 using Client.Game.InGame.UI.Challenge;
 using Client.Network.API;
@@ -74,7 +75,11 @@ namespace Client.Starter.Initialization
 
             // イベント適用開始を地形構築より前へ戻し、未生成個体宛イベントが捨てられる窓を地形構築時間分広げない（ADR#15）
             // Start event application before terrain build so the drop window for not-yet-spawned targets never widens by build time (ADR#15)
+            var initialTrainApply = resolver.Resolve<TrainFullSnapshotEventNetworkHandler>().WaitForInitialApplyAsync();
             (_serverResult.VanillaApi.Event as VanillaApiEvent)?.InitializeDispatch();
+            // 終了で破棄される地形へ触る前にsnapshot失敗を観測する
+            // Observe snapshot failure before touching terrain that shutdown can destroy
+            await initialTrainApply;
 
             // 露頭を含むワールドオブジェクトの生成前にTerrainを構築する
             // Build Terrain before instantiating world objects including outcrops

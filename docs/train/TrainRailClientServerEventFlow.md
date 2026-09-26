@@ -14,9 +14,9 @@
 ## 共通の通知配送レイヤー
 
 1. サーバー側は各 EventPacket から `EventProtocolProvider.AddBroadcastEvent(...)` を呼ぶ。  
-2. クライアント側は `VanillaApiEvent` が `va:event` をポーリングして受信イベントをタグごとに配信する。  
-3. Train/Rail 系ハンドラは即時適用せず `TrainUnitFutureMessageBuffer.EnqueueEvent(serverTick, tickSequenceId, ...)` に積む。  
-4. `TrainUnitClientSimulator` が tick 進行時に flush して適用する。
+2. クライアント側は `PacketExchangeManager` がpushイベントをmain threadへdispatchし、`VanillaApiEvent` がタグごとに配信する。購読開始前のイベントはbufferし、`InitializeDispatch` で到着順に同期replayする。
+3. Train/Rail 系ハンドラは即時適用せず `TrainUnitFutureMessageBuffer.EnqueueEvent(serverTick, tickSequenceId, ...)` に積む。
+4. `TrainUnitClientSimulator` が `TrainTickContext.AdvanceController` を呼び、共通driverがexact-keyのeventを同期flushしてからtrainのhash gateを評価する。view更新は引き続きsimulatorが担当する。
 
 ---
 
@@ -47,7 +47,7 @@
 ### クライアント適用
 
 - `RailGraphCacheNetworkHandler.OnRailNodeCreated(...)`
-- `TrainUnitFutureMessageBuffer` に enqueue
+- `TrainTickContext.Events` に enqueue
 - flush 時に `RailGraphClientCache.UpsertNode(...)` と `ClientStationReferenceRegistry.ApplyStationReference(...)`
 
 ---
@@ -79,7 +79,7 @@
 ### クライアント適用
 
 - `RailGraphCacheNetworkHandler.OnRailNodeRemoved(...)`
-- `TrainUnitFutureMessageBuffer` に enqueue
+- `TrainTickContext.Events` に enqueue
 - flush 時に `RailGraphClientCache.RemoveNode(...)`
 
 ---
@@ -111,7 +111,7 @@
 #### クライアント適用
 
 - `RailGraphConnectionNetworkHandler.OnConnectionCreated(...)`
-- `TrainUnitFutureMessageBuffer` に enqueue
+- `TrainTickContext.Events` に enqueue
 - flush 時に `RailGraphClientCache.UpsertConnection(...)`
 
 ### 代表経路 B: ピアを置いて接続
@@ -151,7 +151,7 @@
 #### クライアント適用
 
 - `RailGraphConnectionNetworkHandler.OnConnectionRemoved(...)`
-- `TrainUnitFutureMessageBuffer` に enqueue
+- `TrainTickContext.Events` に enqueue
 - flush 時に `RailGraphClientCache.RemoveConnection(...)`
 
 ### 代表経路 B: ブロック削除に伴う消滅
@@ -186,7 +186,7 @@
 ### クライアント適用
 
 - `TrainUnitSnapshotEventNetworkHandler.OnEventReceived(...)`
-- `TrainUnitFutureMessageBuffer` に enqueue
+- `TrainTickContext.Events` に enqueue
 - flush 時に `TrainUnitClientCache.Upsert(...)` + `TrainCarObjectDatastore.OnTrainObjectUpdate(...)`
 
 ---
@@ -222,6 +222,24 @@
   - `IsDeleted=false`: upsert し、差分で消えた車両オブジェクトを削除
 
 ---
+
+## tickとstreamの所有者
+
+`Core.Update.TickSynchronization.ServerTickClock` はセッション内uint tickを所有する。保存される累積 `GameUpdater.CurrentTick` とは別instance・別用途であり、save/loadしてもwire tickは新sessionの0から始まる。`MasterTickUpdater` は入口で旧tickを保持してclockを1回進め、gear/fluid更新後の既存境界で旧tickのtrain hashを発行し、`TrainTickSequenceSource.Sequence.BeginTick` でseq0へ戻してからtrain simulationとdiffを実行する。最初のeventはseq1、順序keyは `((ulong)tick << 32) | seq` のままである。
+
+train/railのpacketは同じ `TrainTickSequenceSource` を使う。他streamは同じclockを使えても、別 `TickSequenceState` を所有する。clientは `TrainTickContext` が `TrainUnitTickState`、`TrainUnitFutureMessageBuffer`、`ClientTickAdvanceController`、train固有の `TrainUnitHashBuffer` を所有する。DIは同じState/Events/Hashesを各型から解決し、handler/applier/debugへ必要な依存を直接渡す。共通化するstate/buffer/driverはtrain/railのpayload・cache・通信tag・hash判断に依存しない。別contextへのwatermark purgeやgate停止の波及はない。
+
+bundleはhash(n-1)とdiff(n)を運び、空diffでもsimulationを起動する。4tick間引き、dummy hash、future-only force-slip、hash不一致時の保存なし異常終了の判断は `TrainUnitHashVerifier` に残る。driverのcatch-up係数と1frame最大4tickも維持する。
+
+## 初期snapshotとfatal終了
+
+handshake時は `TrainFullSnapshotEventPacket` がrail→trainの順でfull snapshotを応答前にpushする。full snapshotは順序bufferへ積む通常差分と異なり、`TrainFullSnapshotEventNetworkHandler` が到着順に即時適用する。railとtrainの両payloadが同watermarkを表し、cache適用・両hash照合・車両view構築が成功してからwatermark以下のeventをpurgeして初期完了sourceを成功させる。欠損・stale・適用失敗はstreamを止め、LogErrorと`TrainInitialSnapshotException`で初期待機へ届ける。
+
+`MainGameInitializationFinalizer` は `InitialEventApplyWaiter` で全初期適用を待ち、地形構築後にplayer runtimeを開始する。保存乗車は `MainGameStarter.RestoreLoginState` → `MainGameContainerActivation` → `InitialRideTrainCarRequest` → `TrainHUDScreenState` → `RidingPlayerState` → `TrainCarRideFollowTargetResolver` を通り、生成済み実車両のseat markerへ追従する。
+
+初期snapshot失敗は受信境界で `GameShutdownEvent.QuitAfterSynchronizationFailure` を呼び、初期待機のfaultより先に保存なし終了を確定する。finalizerはdispatch直後・地形構築前にtrain初期待機を観測し、`InitializeScenePipeline` はtyped failureをメニュー復帰させず既存fatal終了へ接続する。実行中のtrain/rail hash不一致も同じ終了口へ入る。stream停止は後続受信・event flush・visual更新より前にラッチする。終了理由を先に確定し、保存参加者・remote save・embedded serverの保存終了を迂回し、正常終了印を作らずaffected clientを終了する。EditorではPlayModeを止める。別processの専用serverを停止する操作は行わない。
+
+通信待ち・初期待機・main-thread dispatchのawaitは維持する。受入では初期pairの成功/失敗・同watermark・両hash、失敗後replayと次frame停止、保存なしの終了と正常終了の回帰を検証する。保存乗車worldの実起動から複数回のhash検証を跨ぐ順序付きdeltaの前進も確認する。設計根拠は [ADR 0071](../adr/0071-tick-synchronization-stream-boundaries.md) を参照。
 
 ## 補足
 

@@ -39,7 +39,7 @@ Client order:
 ## Snapshot Event Coexistence Contract
 - Structural TrainUnit/TrainCar sync remains per-unit snapshot event (`va:event:trainUnitSnapshot`).
 - Tick diff bundle does not replace snapshot-based structural synchronization.
-- Hash mismatch recovery still uses snapshot retrieval path.
+- A proven hash mismatch stops the stream and exits the affected client without saving (ADR0071).
 
 ## Workflow
 1. Verify server order: hash -> tick increment/reset -> sim -> diff trigger.

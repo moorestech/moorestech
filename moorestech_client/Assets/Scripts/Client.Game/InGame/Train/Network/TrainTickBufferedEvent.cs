@@ -4,7 +4,7 @@ namespace Client.Game.InGame.Train.Network
 {
     // delegateで適用処理を持つ汎用tickイベント。
     // Generic tick event that stores apply logic as a delegate.
-    public sealed class TrainTickBufferedEvent : ITrainTickBufferedEvent
+    internal sealed class TrainTickBufferedEvent : ITrainTickBufferedEvent
     {
         private readonly Action _applyAction;
 

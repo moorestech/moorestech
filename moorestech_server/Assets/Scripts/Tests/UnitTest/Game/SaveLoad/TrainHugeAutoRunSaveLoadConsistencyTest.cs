@@ -64,7 +64,6 @@ namespace Tests.UnitTest.Game.SaveLoad
         private static Dictionary<int, TrainSimulationSnapshot> RunScenarioWithoutSave(int seed, int totalTicks, int saveAfterTicks)
         {
             var (scenario, _) = SetupScenario(seed);
-            var trainUpdateService = scenario.Environment.GetTrainUpdateService();
             AdvanceTicks(totalTicks - saveAfterTicks);
             AdvanceTicks(saveAfterTicks);
 
@@ -79,7 +78,6 @@ namespace Tests.UnitTest.Game.SaveLoad
         private static Dictionary<int, TrainSimulationSnapshot> RunScenarioWithSave(int seed, int totalTicks, int saveAfterTicks)
         {
             var (scenario, expectedSnapshot) = SetupScenario(seed);
-            var trainUpdateService = scenario.Environment.GetTrainUpdateService();
 
             AdvanceTicks(totalTicks - saveAfterTicks);
 
@@ -92,7 +90,6 @@ namespace Tests.UnitTest.Game.SaveLoad
                 train.OnDestroy();
             }
             scenario.Environment.GetTrainUnitDatastore().Reset();
-            trainUpdateService.ResetTick();
             
             CleanupWorld(scenario.Environment);
             scenario.Environment.GetRailGraphDatastore().Reset();
@@ -142,7 +139,6 @@ namespace Tests.UnitTest.Game.SaveLoad
             UnityEngine.Random.InitState(seed);
             var environment = TrainTestHelper.CreateEnvironment();
             SetupRandomLengthTrainCarMasters(seed, TrainCount, 600000);
-            environment.GetTrainUpdateService().ResetTick();
             environment.GetTrainUnitDatastore().Reset();
 
             var components = BuildRailNetwork(environment, RailComponentCount, seed);
@@ -393,7 +389,6 @@ namespace Tests.UnitTest.Game.SaveLoad
             {
                 train.OnDestroy();
             }
-            environment.GetTrainUpdateService().ResetTick();
             environment.GetTrainUnitDatastore().Reset();
         }
 

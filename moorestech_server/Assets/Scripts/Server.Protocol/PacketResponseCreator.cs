@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Core.Update.TickSynchronization;
 using Game.Train.Event;
 using Game.Train.Unit;
 using MessagePack;
@@ -19,7 +20,7 @@ namespace Server.Protocol
         {
             // パケット生成に必要な列車系サービスを取得
             // Acquire train-related services required for packet creation
-            var trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
+            var serverTickClock = serviceProvider.GetService<ServerTickClock>();
             var trainCarRidingInputBuffer = serviceProvider.GetService<TrainCarRidingInputBuffer>();
             _packetResponseDictionary.Add(InitialHandshakeProtocol.ProtocolTag, new InitialHandshakeProtocol(serviceProvider));
             _packetResponseDictionary.Add(RequestWorldDataProtocol.ProtocolTag, new RequestWorldDataProtocol(serviceProvider));
@@ -61,10 +62,9 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(GetWorldPlaySessionInfoProtocol.ProtocolTag, new GetWorldPlaySessionInfoProtocol(serviceProvider));
             _packetResponseDictionary.Add(RailConnectionEditProtocol.Tag, new RailConnectionEditProtocol(serviceProvider));
             _packetResponseDictionary.Add(RailConnectWithPlacePierProtocol.Tag, new RailConnectWithPlacePierProtocol(serviceProvider));
-            _packetResponseDictionary.Add(TrainResyncProtocol.ProtocolTag, new TrainResyncProtocol(serviceProvider));
             _packetResponseDictionary.Add(PlaceTrainCarOnRailProtocol.ProtocolTag, new PlaceTrainCarOnRailProtocol(serviceProvider));
             _packetResponseDictionary.Add(AttachTrainCarToUnitProtocol.ProtocolTag, new AttachTrainCarToUnitProtocol(serviceProvider));
-            _packetResponseDictionary.Add(TrainCarRidingInputProtocol.ProtocolTag, new TrainCarRidingInputProtocol(trainCarRidingInputBuffer, trainUpdateService));
+            _packetResponseDictionary.Add(TrainCarRidingInputProtocol.ProtocolTag, new TrainCarRidingInputProtocol(trainCarRidingInputBuffer, serverTickClock));
             _packetResponseDictionary.Add(RideActionProtocol.ProtocolTag, new RideActionProtocol(serviceProvider));
             _packetResponseDictionary.Add(RemoveTrainCarProtocol.ProtocolTag, new RemoveTrainCarProtocol(serviceProvider));
             _packetResponseDictionary.Add(SetTrainPlatformTransferModeProtocol.ProtocolTag, new SetTrainPlatformTransferModeProtocol(serviceProvider));

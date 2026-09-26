@@ -12,6 +12,10 @@ namespace Client.Game.Common
         // The fold-up after a failed initialization; this is the crash side we want to keep, never a clean exit
         InitializationFailed,
 
+        // 同期不整合による保存しない異常終了
+        // Abnormal exit without saving after synchronization failure
+        FatalSynchronizationFailure,
+
         // 書き出し完了を待てない終了（EditorのPlay停止・破棄・終了要求を遅らせられない環境）。完了を観測できないので意思表明の時点が最後の記録点になる
         // An exit that cannot await the flush (Editor Play stop, teardown, or a platform that ignores quit deferral); the intent is the last point that can be recorded
         UnawaitableExit,

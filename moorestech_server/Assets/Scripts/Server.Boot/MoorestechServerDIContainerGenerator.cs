@@ -1,8 +1,9 @@
-﻿using System.IO;
+using System.IO;
 using Core.Item;
 using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
+using Core.Update.TickSynchronization;
 using Game.Action;
 using Game.Block.Blocks.Fluid;
 using Game.Block.Event;
@@ -53,6 +54,7 @@ using Game.Train.RailGraph;
 using Game.Train.RailPositions;
 using Game.Train.SaveLoad;
 using Game.Train.Unit;
+using Game.Train.Unit.TickSynchronization;
 using Game.Train.Unit.Containers;
 using Game.UnlockState;
 using Game.World;
@@ -231,6 +233,8 @@ namespace Server.Boot
             services.AddSingleton<ITrainUnitSnapshotNotifyEvent, TrainUnitSnapshotNotifyEvent>();
             services.AddSingleton<TrainCarRidingInputBuffer>();
             services.AddSingleton<TrainCarRidingManualCommandResolver>();
+            services.AddSingleton<ServerTickClock>();
+            services.AddSingleton<TrainTickSequenceSource>();
             services.AddSingleton<TrainUpdateService>();
 
             // 電力・gear・流体のtick更新をDIから登録する

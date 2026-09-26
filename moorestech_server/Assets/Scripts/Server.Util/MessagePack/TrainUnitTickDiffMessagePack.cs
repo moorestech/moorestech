@@ -21,7 +21,7 @@ namespace Server.Util.MessagePack
         {
         }
 
-        public TrainUnitTickDiffMessagePack(TrainUpdateService.TrainTickDiffData diff)
+        public TrainUnitTickDiffMessagePack(TrainTickDiffData diff)
         {
             TrainUnitInstanceId = diff.TrainUnitInstanceId;
             MasconLevelDiff = diff.MasconLevelDiff;

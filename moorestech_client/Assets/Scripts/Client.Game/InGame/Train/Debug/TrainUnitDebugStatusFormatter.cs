@@ -8,21 +8,21 @@ using Game.Train.Unit;
 
 namespace Client.Game.InGame.Train.DebugView
 {
-    public sealed class TrainUnitDebugStatusFormatter
+    internal sealed class TrainUnitDebugStatusFormatter
     {
         private const int MaxDisplayedCarsPerTrain = 16;
 
         private readonly StringBuilder _builder = new(8192);
         private readonly List<ClientTrainUnit> _units = new();
 
-        public string Format(TrainUnitClientCache trainCache, TrainUnitTickState tickState)
+        internal string Format(TrainUnitClientCache trainCache, TrainUnitTickState tickState)
         {
             _builder.Clear();
             _units.Clear();
 
             // 列車キャッシュとtick状態を同じフレームの表示文字列へまとめる
             // Build one visible text snapshot from train cache and tick state.
-            AppendHeader(trainCache, tickState);
+            AppendHeader();
             trainCache.CopyUnitsTo(_units);
             _units.Sort(CompareUnits);
 
@@ -40,18 +40,22 @@ namespace Client.Game.InGame.Train.DebugView
             }
 
             return _builder.ToString();
-        }
 
-        private void AppendHeader(TrainUnitClientCache trainCache, TrainUnitTickState tickState)
-        {
-            // 同期状況とハッシュを先頭に出し、ズレの有無を最初に見えるようにする
-            // Show sync state and hash first so drift is visible immediately.
-            _builder.AppendLine("[TrainUnit Debug Status]");
-            _builder.Append("tick=").Append(tickState.GetTick());
-            _builder.Append(" sequence=").Append(tickState.GetTickSequenceId());
-            _builder.Append(" units=").Append(trainCache.Units.Count);
-            _builder.Append(" hash=0x").Append(trainCache.ComputeCurrentHash().ToString("X8"));
-            _builder.AppendLine();
+            #region Internal
+
+            void AppendHeader()
+            {
+                // 同期状況とハッシュを先頭に出し、ズレの有無を最初に見えるようにする
+                // Show sync state and hash first so drift is visible immediately.
+                _builder.AppendLine("[TrainUnit Debug Status]");
+                _builder.Append("tick=").Append(tickState.GetTick());
+                _builder.Append(" sequence=").Append(tickState.GetTickSequenceId());
+                _builder.Append(" units=").Append(trainCache.Units.Count);
+                _builder.Append(" hash=0x").Append(trainCache.ComputeCurrentHash().ToString("X8"));
+                _builder.AppendLine();
+            }
+
+            #endregion
         }
 
         private void AppendUnit(int index, ClientTrainUnit unit)

@@ -19,7 +19,6 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.SceneManagement;
 using Debug = UnityEngine.Debug;
-
 namespace Client.Starter
 {
     /// <summary>
@@ -32,17 +31,14 @@ namespace Client.Starter
         [SerializeField] private BlockGameObject missingBlockIdObject;
         [SerializeField] private TMP_Text loadingLog;
         private InitializeProprieties _proprieties = InitializeProprieties.CreateLocalServer(null);
-
         public void SetProperty(InitializeProprieties proprieties)
         {
             _proprieties = proprieties;
         }
-
         private void Start()
         {
             Initialize().Forget();
         }
-
         private async UniTask Initialize()
         {
             // 全開始経路で識別を確定し、タイトルの確認も直接起動の印も無ければメニューへ戻す
@@ -77,13 +73,11 @@ namespace Client.Starter
                 // Continue without WebUI; isolate external-process startup failures and keep retries possible
                 Debug.LogWarning($"[WebUiHost] start skipped: {e.Message}");
             }
-
 #if UNITY_EDITOR
             Editor.PlayModeLaunchOverrides.ApplyIfNeeded(_proprieties);
 #endif
             var args = CliConvert.Parse<StartServerSettings>(_proprieties.CreateLocalServerArgs);
             var serverDirectory = args.ServerDataDirectory;
-
             // 退避はタイトル（直接起動ならここ）、終了印の書き手は上の最初のawait前。記録を集めるかもここで1度だけ決める（ADR 0060 裁定5・ADR 0065）
             // Salvage happens at the title (here for a direct boot) and the exit-mark writer before the first await above; whether to collect is decided once here too (ADR 0060 adjudication 5, ADR 0065)
             var collectsPlaytestRecords = Playtest.PlaytestRecordCollection.Decide(_proprieties.IsRemoteConnection);
@@ -175,25 +169,33 @@ namespace Client.Starter
 
                 // Forget境界の例外を専用callbackで観測し、DI未構築のMainGameへ取り残さない
                 // Observe the forgotten boundary through its dedicated callback so MainGame is never stranded without DI
-                new MainGameInitializationFinalizer(serverResult, serverDirectory, collectsPlaytestRecords).RunAsync(exitToken).Forget(exception =>
-                {
-                    // Play終了で言語ゲートの待ちを打ち切っただけなら失敗ではない。メインメニューへ戻さない
-                    // Cancelling the language-gate wait on play exit is not a failure, so it never returns to the main menu
-                    if (exception is OperationCanceledException)
-                    {
-                        Debug.Log("Initialization was aborted because an exit cancellation arrived midway");
-                        return;
-                    }
-                    Debug.LogError($"初期化処理中にエラーが発生しました: {exception.GetType()} {exception.Message}\n{exception.StackTrace}");
-
-                    // メインメニューへ戻る経路はすべて内蔵サーバーを道連れにする
-                    // Every path back to the main menu takes the embedded server down with it
-                    GameShutdownEvent.FireGameShutdown(GameShutdownReason.InitializationFailed);
-                    SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
-                });
+                new MainGameInitializationFinalizer(serverResult, serverDirectory, collectsPlaytestRecords).RunAsync(exitToken).Forget(OnMainGameInitializationFailed);
             }
 
             #endregion
+        }
+        private static void OnMainGameInitializationFailed(Exception exception)
+        {
+            // Play終了で言語ゲートの待ちを打ち切っただけなら失敗ではない。メインメニューへ戻さない
+            // Cancelling the language-gate wait on play exit is not a failure, so it never returns to the main menu
+            if (exception is OperationCanceledException)
+            {
+                Debug.Log("Initialization was aborted because an exit cancellation arrived midway");
+                return;
+            }
+            // snapshot失敗は保存もメニュー復帰も行わない
+            // Snapshot failure neither saves nor returns to the menu
+            if (exception is Client.Game.InGame.Train.Network.TickSynchronization.TrainInitialSnapshotException)
+            {
+                GameShutdownEvent.QuitAfterSynchronizationFailure();
+                return;
+            }
+            Debug.LogError($"初期化処理中にエラーが発生しました: {exception.GetType()} {exception.Message}\n{exception.StackTrace}");
+
+            // メインメニューへ戻る経路はすべて内蔵サーバーを道連れにする
+            // Every path back to the main menu takes the embedded server down with it
+            GameShutdownEvent.FireGameShutdown(GameShutdownReason.InitializationFailed);
+            SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
         }
     }
 }

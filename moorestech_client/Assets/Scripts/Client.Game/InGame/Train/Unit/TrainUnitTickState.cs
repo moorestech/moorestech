@@ -1,26 +1,24 @@
+using Core.Update.TickSynchronization;
 using System;
 
 namespace Client.Game.InGame.Train.Unit
 {
-    // tick と tickSequenceId を単一の比較キーに統合する。
-    // Compose tick and tickSequenceId into a single monotonic order key.
-    public static class TrainTickUnifiedIdUtility
-    {
-        // 上位32bitにtick、下位32bitにtickSequenceIdを詰める。
-        // Pack tick into high 32 bits and tickSequenceId into low 32 bits.
-        public static ulong CreateTickUnifiedId(uint tick, uint tickSequenceId)
-        {
-            return ((ulong)tick << 32) | tickSequenceId;
-        }
-    }
-
-    // クライアント列車シミュレーションのtick状態を一元管理する。
-    // Centralize tick state for client train simulation.
     public sealed class TrainUnitTickState
     {
+        internal bool IsStopped { get; private set; }
+
+        // 停止理由を一度記録し、以後のstream適用を止める
+        // Record the stop reason once and prevent subsequent stream application
+        internal void Stop(string reason)
+        {
+            if (IsStopped) return;
+            IsStopped = true;
+            UnityEngine.Debug.LogError(reason);
+        }
+
         private ulong _appliedTickUnifiedId = 0;
         private uint _maxBufferedTicks = 0;
-        
+
         // 統合IDから上位32bitのtickを取り出す。
         // Extract high 32-bit tick from unified id.
         public uint GetTick()
@@ -47,17 +45,29 @@ namespace Client.Game.InGame.Train.Unit
         }
         public void RecordAppliedTickUnifiedId(ulong tickUnifiedId)
         {
-            if (tickUnifiedId <= _appliedTickUnifiedId)
+            if (IsStopped || tickUnifiedId <= _appliedTickUnifiedId)
             {
                 return;
             }
             _appliedTickUnifiedId = tickUnifiedId;
         }
-        
+
+        // eventとhashに同じ受信境界を適用する。
+        // Apply the same receive boundary to events and hashes.
+        internal bool TryAcceptReceivedTickUnifiedId(ulong tickUnifiedId)
+        {
+            if (IsStopped || tickUnifiedId <= _appliedTickUnifiedId)
+            {
+                return false;
+            }
+            SetMaxBufferedTicks((uint)(tickUnifiedId >> 32));
+            return true;
+        }
+
         // バッファー済み最大tick
         public void SetMaxBufferedTicks(uint maxBufferedTicks)
         {
-            _maxBufferedTicks = Math.Max(_maxBufferedTicks, maxBufferedTicks); 
+            _maxBufferedTicks = Math.Max(_maxBufferedTicks, maxBufferedTicks);
         }
         public uint GetMaxBufferedTicks()
         {

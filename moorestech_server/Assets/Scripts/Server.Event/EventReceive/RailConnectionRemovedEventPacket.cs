@@ -1,4 +1,5 @@
-﻿using Game.Train.Unit;
+using Game.Train.Unit;
+using Game.Train.Unit.TickSynchronization;
 using Game.Context;
 using Game.Train.RailGraph;
 using MessagePack;
@@ -18,13 +19,13 @@ namespace Server.Event.EventReceive
 
         private readonly EventProtocolProvider _eventProtocolProvider;
         private readonly IRailGraphDatastore _railGraphDatastore;
-        private readonly TrainUpdateService _trainUpdateService;
+        private readonly TrainTickSequenceSource _trainTickSequenceSource;
 
-        public RailConnectionRemovedEventPacket(EventProtocolProvider eventProtocolProvider, IRailGraphDatastore railGraphDatastore, TrainUpdateService trainUpdateService)
+        public RailConnectionRemovedEventPacket(EventProtocolProvider eventProtocolProvider, IRailGraphDatastore railGraphDatastore, TrainTickSequenceSource trainTickSequenceSource)
         {
             _eventProtocolProvider = eventProtocolProvider;
             _railGraphDatastore = railGraphDatastore;
-            _trainUpdateService = trainUpdateService;
+            _trainTickSequenceSource = trainTickSequenceSource;
         }
 
         public void Load()
@@ -36,8 +37,8 @@ namespace Server.Event.EventReceive
         {
             // 削除された接続情報をMessagePack化
             // Serialize the removed connection payload
-            var tick = _trainUpdateService.GetCurrentTick();
-            var tickSequenceId = _trainUpdateService.NextTickSequenceId();
+            var tick = _trainTickSequenceSource.Sequence.Tick;
+            var tickSequenceId = _trainTickSequenceSource.Sequence.NextSequenceId();
             // 削除差分とtickをまとめてブロードキャスト
             // Broadcast removal diff paired with current tick
             var payload = MessagePackSerializer.Serialize(

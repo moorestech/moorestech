@@ -3,27 +3,21 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UniRx;
 using UnityEngine;
-
 namespace Client.Game.Common
 {
-    /// <summary>
-    /// ゲームの終了パイプラインイベント
-    /// Game shutdown pipeline event
-    /// </summary>
     public static class GameShutdownEvent
     {
         private static readonly Subject<GameShutdownReason> _onGameShutdown = new();
         private static readonly Subject<ShutdownFlushResult> _onShutdownFlushed = new();
         private static readonly List<IGameShutdownParticipant> _participants = new();
         private static bool _fired;
+        private static bool _fatal;
         private static bool _quitDeferralInstalled;
         private static bool _quitInProgress;
         private static bool _quitAllowed;
-
         // 終了理由つきで発火するイベント。終了の意思が表明された時点で飛び、書き出しの完了は待たない
         // Event carrying the shutdown reason; it fires when the intent to exit is declared, without waiting for any flush
         public static IObservable<GameShutdownReason> OnGameShutdown => _onGameShutdown;
-
         // 全参加者の書き出しが終わった時点で、畳んだ結果つきで飛ぶ。意思表明（OnGameShutdown）と分けるのは、終了処理中の停止を検知可能にするため
         // Fires once every participant's flush has finished, carrying the folded result; kept apart from the intent (OnGameShutdown) so a stall during shutdown stays detectable
         public static IObservable<ShutdownFlushResult> OnShutdownFlushed => _onShutdownFlushed;
@@ -33,6 +27,9 @@ namespace Client.Game.Common
         public static void ResetForNewSession()
         {
             _fired = false;
+            _fatal = false;
+            _quitAllowed = false;
+            _quitInProgress = false;
             _participants.Clear();
         }
 
@@ -123,6 +120,7 @@ namespace Client.Game.Common
             if (_fired) return ShutdownFlushResult.AlreadyShutdown;
             _fired = true;
             _onGameShutdown.OnNext(reason);
+            if (_fatal) return ShutdownFlushResult.AlreadyShutdown;
 
             // 購読中に登録された分を取り切ってから待つ。参加者の再入を避けリストは先に空にする
             // Take what the subscribers just registered and clear first, avoiding participant re-entry
@@ -136,16 +134,35 @@ namespace Client.Game.Common
             // 戻り値は1つだけなので、畳んで消える失敗は捨てる前にログへ残す
             // Only one value can come back, so the failures that folding erases are logged before they go
             var aggregated = ShutdownFlushResultAggregator.AggregateAndReport(results);
-            _onShutdownFlushed.OnNext(aggregated);
+            if (!_fatal) _onShutdownFlushed.OnNext(aggregated);
             return aggregated;
         }
 
-        // アプリを終了する唯一の口。書き出しを待ってから落とす
-        // The single application-exit entry point; waits for the flush before going down
+        // 異常を破棄より先に確定し、保存参加者を起動せず終了する
+        // Declare abnormal exit before teardown and quit without invoking save participants
+        public static void QuitAfterSynchronizationFailure()
+        {
+            if (_fatal) return;
+            _fatal = true;
+            _fired = true;
+            _quitInProgress = true;
+            _quitAllowed = true;
+            _participants.Clear();
+            _onGameShutdown.OnNext(GameShutdownReason.FatalSynchronizationFailure);
+            Application.Quit();
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+#endif
+        }
+
+        // 通常終了は書き出し完了を待つ
+        // Intentional exit waits for the flush
         public static async UniTask QuitApplicationAsync()
         {
+            if (_fatal) return;
             _quitInProgress = true;
             var flushResult = await FireGameShutdownAsync(GameShutdownReason.IntentionalExit);
+            if (_fatal) return;
             if (flushResult == ShutdownFlushResult.FlushTimedOut)
                 Debug.LogError("セーブの書き出し完了を待ち切れないままアプリを終了します");
             if (flushResult == ShutdownFlushResult.SaveAbandoned)

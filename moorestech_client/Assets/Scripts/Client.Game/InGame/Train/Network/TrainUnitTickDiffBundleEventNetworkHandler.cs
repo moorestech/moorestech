@@ -6,6 +6,7 @@ using MessagePack;
 using Server.Event.EventReceive;
 using Server.Util.MessagePack;
 using VContainer.Unity;
+using Client.Game.InGame.Train.Network.TickSynchronization;
 
 namespace Client.Game.InGame.Train.Network
 {
@@ -14,13 +15,15 @@ namespace Client.Game.InGame.Train.Network
     public sealed class TrainUnitTickDiffBundleEventNetworkHandler : IInitializable, IDisposable
     {
         private readonly TrainUnitFutureMessageBuffer _futureMessageBuffer;
+        private readonly TrainUnitHashBuffer _hashBuffer;
         private readonly TrainUnitClientCache _cache;
         private IDisposable _subscription;
 
-        public TrainUnitTickDiffBundleEventNetworkHandler(TrainUnitFutureMessageBuffer futureMessageBuffer, TrainUnitClientCache cache)
+        public TrainUnitTickDiffBundleEventNetworkHandler(TrainUnitFutureMessageBuffer futureMessageBuffer, TrainUnitClientCache cache, TrainUnitHashBuffer hashBuffer)
         {
             _futureMessageBuffer = futureMessageBuffer;
             _cache = cache;
+            _hashBuffer = hashBuffer;
         }
 
         public void Initialize()
@@ -54,7 +57,7 @@ namespace Client.Game.InGame.Train.Network
                 if (bundleMessage.ServerTick == 0)
                     return;
                 var hashTick = bundleMessage.ServerTick - 1;
-                _futureMessageBuffer.EnqueueHash(
+                _hashBuffer.EnqueueHash(
                     bundleMessage.UnitsHash,
                     bundleMessage.RailGraphHash,
                     hashTick,
