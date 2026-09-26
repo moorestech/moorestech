@@ -28,6 +28,22 @@ seqはstreamごとの状態であり、全ドメイン共通の採番singleton�
 
 driverからviewを購読して動かす機構へ変えず、既存ITickableのtrain simulatorが共通driverを明示的に呼び、その結果でtrain visualを更新する。既存機構への受動的統合は、現行streamをそのまま接続して機械的処理だけ委譲する形で実現する。別の並行simulation、凍結対象リスト、汎用domain登録registryは導入しない。
 
+## 既存ファイルの配置
+
+出所: ユーザー裁定 2026-09-27「わたしが書いて中身理解してるのはなるべくファイルの場所を移動しないでほしい」「ある程度コード自体の差分が確認できたらファイル移動したい」。コード差分の確認を先に行えるよう、既存本体5件はmasterのpathとmeta identityを維持する。型名とnamespaceは責務分離後のままとし、ファイル名との一時的な差を許容する。
+
+`Client.Game/` からの相対path:
+
+| 型 | ファイル |
+|---|---|
+| TickEventBuffer | InGame/Train/Network/TrainUnitFutureMessageBuffer.cs |
+| ITickBufferedEvent | InGame/Train/Network/ITrainTickBufferedEvent.cs |
+| TickBufferedEvent | InGame/Train/Network/TrainTickBufferedEvent.cs |
+| ClientTickState | InGame/Train/Unit/TrainUnitTickState.cs |
+| ITickAdvanceGate | InGame/Train/Unit/ITrainUnitHashTickGate.cs |
+
+FutureMessageBufferから分離したTrainUnitHashBuffer、TrainUnitClientSimulatorから抽出したClientTickAdvanceControllerなど、新規抽出型は現在の配置を維持する。処理・型の依存関係は変更せず、後日のファイル移動はコード差分の確認後に扱う。
+
 ## 同期と非同期の境界
 
 出所: ユーザー裁定 2026-09-26（最終review D1/C）「このPRで再同期を廃止し、hash不一致時の終了まで実装する（推奨）」。初回snapshot成功後に順序付き差分で進行する。railとtrainのpayloadは同じwatermarkで、両cacheのhash一致・view構築成功を確認してから初期完了を通知し、player runtimeと乗車復帰を開始する。null・stale・適用例外・hash不一致では完了しない。空listは有効である。

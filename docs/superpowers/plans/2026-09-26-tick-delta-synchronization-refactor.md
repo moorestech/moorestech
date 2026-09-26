@@ -37,12 +37,15 @@
 |---|---|---|
 | ServerTickClock / TickSequenceState / TickUnifiedIdUtility | Core.Update/TickSynchronization | ドメイン非依存のuint時計と順序値。既存TrainUpdateService/TrainUnitTickStateから抽出。server7packetとclient bufferが使う |
 | TrainTickSequenceSource | Game.Train/Unit/TickSynchronization | train/rail streamの採番所有者。各packetからsimulation service依存を外し、別streamに同じsingletonが誤注入されない型付きcomposition境界 |
-| ClientTickState / TickEventBuffer / ClientTickAdvanceController | Client.Game/Common/TickSynchronization | 既存TrainUnitTickState/FutureMessageBuffer/ClientSimulatorの機械的部分。ドメイン型を含めない |
-| ITickBufferedEvent / TickBufferedEvent / ITickAdvanceGate | 同上 | 既存同期Apply契約・既存callback実装・既存gate契約の移動/改名。将来目的だけのinterfaceを新設しない |
+| ClientTickState / TickEventBuffer | Client.Game/InGame/Train/Unit/TrainUnitTickState.cs、同Network/TrainUnitFutureMessageBuffer.cs | 2026-09-27ユーザー裁定で既存pathへ本体を戻す。型名/namespaceとドメイン非依存の処理は維持 |
+| ClientTickAdvanceController | Client.Game/TickSynchronization | ClientSimulatorから抽出した進行計算。新規抽出型の配置は維持 |
+| ITickBufferedEvent / TickBufferedEvent / ITickAdvanceGate | Client.Game/InGame/Train/Network/ITrainTickBufferedEvent.cs、同TrainTickBufferedEvent.cs、同Unit/ITrainUnitHashTickGate.cs | 既存契約/実装のコード差分を元pathで確認する。型名/namespaceは維持 |
 | TrainTickContext / TrainUnitHashBuffer | Client.Game/InGame/Train/Network/TickSynchronization | train state/events/driver/hash bufferの所有と接続。現在のnetwork/applier/simulator/debugが使用する |
 | TrainUnitHashVerifier / snapshot / DTO / view | 現在のtrain/通信配置 | train hashとresync、rail依存、view構築をcommonへ入れない |
 
 呼出し鎖: `GameUpdater → MasterTickUpdater入口で旧tick保持・ServerTickClock.AdvanceTick → 電力/gear/fluid → train旧tick hash → train sequence.BeginTick → train simulation+diff → EventProtocolProvider → PacketExchangeManager main-thread dispatch → Train handlers → train context.Events → common driver → train gate → train visual update`。
+
+配置は[ADR 0071の既存ファイルの配置](../../adr/0071-tick-synchronization-stream-boundaries.md#既存ファイルの配置)を正とする。2026-09-27のユーザー指示により既存5ファイルのmaster path/metaを維持し、コード確認後にファイル移動を検討する。型名との一時的な差を理由に再移動しない。新規抽出のhash buffer、clock/sequence、DTO、context、進行計算は現在地に残す。
 
 同じ時計を共有することは同じseqを共有することではない。将来domainは別TickSequenceStateと別client contextを持ち、MasterTickUpdaterの同じ明示境界からtickを受ける。train/rail内だけは従来のseq範囲を維持する。現PRは将来domainの登録・自動列挙機構を作らない。
 
@@ -197,19 +200,14 @@ Commit: `refactor: separate server tick clock and train stream sequence`
 ### Task 2: clientの順序処理と進行計算をstream単位で抽出する
 
 **Files:**
-- Create: `moorestech_client/Assets/Scripts/Client.Game/Common/TickSynchronization/ClientTickState.cs`
-- Create: `moorestech_client/Assets/Scripts/Client.Game/Common/TickSynchronization/TickEventBuffer.cs`
-- Create: `moorestech_client/Assets/Scripts/Client.Game/Common/TickSynchronization/ITickBufferedEvent.cs`
-- Create: `moorestech_client/Assets/Scripts/Client.Game/Common/TickSynchronization/TickBufferedEvent.cs`
-- Create: `moorestech_client/Assets/Scripts/Client.Game/Common/TickSynchronization/ITickAdvanceGate.cs`
-- Create: `moorestech_client/Assets/Scripts/Client.Game/Common/TickSynchronization/ClientTickAdvanceController.cs`
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Unit/TrainUnitTickState.cs`（ClientTickState本体）
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Network/TrainUnitFutureMessageBuffer.cs`（TickEventBuffer本体）
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Network/ITrainTickBufferedEvent.cs`（ITickBufferedEvent契約）
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Network/TrainTickBufferedEvent.cs`（TickBufferedEvent本体）
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Unit/ITrainUnitHashTickGate.cs`（ITickAdvanceGate契約）
+- Create: `moorestech_client/Assets/Scripts/Client.Game/TickSynchronization/ClientTickAdvanceController.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Network/TickSynchronization/TrainTickContext.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Network/TickSynchronization/TrainUnitHashBuffer.cs`
-- Delete: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Unit/TrainUnitTickState.cs`
-- Delete: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Unit/ITrainUnitHashTickGate.cs`
-- Delete: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Network/TrainUnitFutureMessageBuffer.cs`
-- Delete: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Network/ITrainTickBufferedEvent.cs`
-- Delete: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Network/TrainTickBufferedEvent.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Unit/TrainUnitClientSimulator.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/View/TrainUnitHashVerifier.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/View/TrainUnitSnapshotApplier.cs`
