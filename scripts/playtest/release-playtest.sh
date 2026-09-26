@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# 指定コミットからWindows配布ビルドを焼き、Steamのplaytest-stagingブランチへ上げ、検証機で通し検証する
-# Bakes the Windows distribution build from a commit, ships it to the Steam playtest-staging branch and verifies it on the check machine
+# 指定コミットからWindowsとMac（Apple Silicon）の配布ビルドを焼き、Steamへ上げてWindowsを検証する
+# Bake Windows and Mac (Apple Silicon) from a commit, upload to Steam and verify Windows
 #
 # usage: release-playtest.sh <commit>
 # <commit> は SHA か origin/<branch> を渡す。ローカルブランチ名（master 等）は fetch で進まず古いコミットを焼くため使わない
@@ -18,6 +18,8 @@ GIT_BIN="${GIT_BIN:-git}"
 MOORES_WT_BIN="${MOORES_WT_BIN:-moores-wt}"
 UNITY_BIN="${UNITY_BIN:-/Applications/Unity/Hub/Editor/6000.3.8f1/Unity.app/Contents/MacOS/Unity}"
 STEAMCMD_BIN="${STEAMCMD_BIN:-steamcmd}"
+CODESIGN_BIN="${CODESIGN_BIN:-/usr/bin/codesign}"
+LIPO_BIN="${LIPO_BIN:-/usr/bin/lipo}"
 VERIFY_SCRIPT="${VERIFY_SCRIPT:-$SCRIPT_DIR/verify-on-windows.sh}"
 PLAYTEST_RUN_ROOT="${PLAYTEST_RUN_ROOT:-$HOME/hermes-agent/data/services/playtest/runs}"
 # master data worktree を列挙する moorestech_master のメインclone（moores-wt の MASTER と同じ）
@@ -31,6 +33,10 @@ BUILD_BRANCH="${MOORESTECH_BUILD_BRANCH:-master}"
 # Check every required env (check machine included) and the label before building, so nothing fails after baking or upload
 # shellcheck source=lib/release-preflight.sh
 . "$SCRIPT_DIR/lib/release-preflight.sh"
+# shellcheck source=lib/release-artifact.sh
+. "$SCRIPT_DIR/lib/release-artifact.sh"
+# shellcheck source=lib/release-steam-vdf.sh
+. "$SCRIPT_DIR/lib/release-steam-vdf.sh"
 release_require_env
 BUILD_LABEL="${MOORESTECH_STEAM_BUILD_LABEL:-playtest-$(date +%Y%m%d-%H%M)}"
 playtest_require_build_label "$BUILD_LABEL"
@@ -68,7 +74,6 @@ elif [ "$ANCESTOR_STATUS" -ne 0 ]; then
 fi
 
 RUN_DIR="$PLAYTEST_RUN_ROOT/$BUILD_LABEL"
-BUILD_DIR="$RUN_DIR/build"
 STEAM_DIR="$RUN_DIR/steam"
 # RUN_DIRの再利用は前回の成果物・promotion.mdを黙って読ませる温床になるためfail-closedで拒否する
 # Reusing RUN_DIR would silently read a previous run's artifacts/promotion.md, so refuse it fail-closed
@@ -76,7 +81,7 @@ if [ -e "$RUN_DIR" ]; then
     echo "ERROR: RUN_DIR が既に存在します（前回実行の残骸の可能性）: ${RUN_DIR}" >&2
     exit 2
 fi
-mkdir -p "$BUILD_DIR" "$STEAM_DIR/output"
+mkdir -p "$RUN_DIR/build-windows" "$RUN_DIR/build-mac" "$STEAM_DIR/output"
 echo "[release-playtest] label=$BUILD_LABEL commit=$COMMIT_FULL branch=$BUILD_BRANCH run=$RUN_DIR"
 
 # 使い捨てworktreeで焼く（メインワークツリーのEditorとブランチを触らない）
@@ -108,53 +113,25 @@ release_resolve_master_data_root "$WORKTREE"
 release_require_private_assets "$WORKTREE"
 echo "[release-playtest] master data root=$MOORESTECH_MASTER_DATA_ROOT"
 
-MOORESTECH_BUILD_OUTPUT="$BUILD_DIR" MOORESTECH_STEAM_BUILD_LABEL="$BUILD_LABEL" MOORESTECH_BUILD_BRANCH="$BUILD_BRANCH" \
-    MOORESTECH_MASTER_DATA_ROOT="$MOORESTECH_MASTER_DATA_ROOT" \
-    "$UNITY_BIN" -batchmode -nographics \
-    -projectPath "$WORKTREE/moorestech_client" \
-    -executeMethod Client.Editor.Build.ReleaseLocalBuildCli.WindowsReleaseLocalBuild \
-    -logFile "$RUN_DIR/unity-build.log"
+# 同じworktreeからWindows→Macの順に焼き、両方の検査が済んでから上げる
+# Bake Windows then Mac from the same worktree and upload only after both pass inspection
+release_build_player() {
+    local method="$1" output="$2" log="$3"
+    MOORESTECH_BUILD_OUTPUT="$output" MOORESTECH_STEAM_BUILD_LABEL="$BUILD_LABEL" MOORESTECH_BUILD_BRANCH="$BUILD_BRANCH" \
+        MOORESTECH_MASTER_DATA_ROOT="$MOORESTECH_MASTER_DATA_ROOT" \
+        "$UNITY_BIN" -batchmode -nographics \
+        -projectPath "$WORKTREE/moorestech_client" \
+        -executeMethod "Client.Editor.Build.SteamPlaytestBuildCli.$method" \
+        -logFile "$log"
+}
+release_build_player WindowsSteamPlaytestBuild "$RUN_DIR/build-windows" "$RUN_DIR/unity-build-windows.log"
+release_build_player MacOsSteamPlaytestBuild "$RUN_DIR/build-mac" "$RUN_DIR/unity-build-mac.log"
 
-# 成果物の必須構成を検査する（欠けたままSteamへ上げない）
-# Verify the artifact layout so nothing incomplete reaches Steam
-BUILD_INFO="$BUILD_DIR/moorestech_Data/StreamingAssets/build-info.json"
-for required in "$BUILD_DIR/moorestech.exe" "$BUILD_DIR/game/mods" "$BUILD_INFO"; do
-    if [ ! -e "$required" ]; then
-        echo "ERROR: 成果物に $required がありません" >&2
-        exit 4
-    fi
-done
-# steamBuildLabel・成果物のcommitが指定コミットと一致すること・targetが存在することを検査する。
-# grepの文字列一致だけではstaleなworktreeや取り違えた成果物のcommitずれに気づけない
-# Verify steamBuildLabel, that the artifact's commit matches the requested commit, and that target
-# is present; a plain grep match alone cannot catch a stale worktree or a mismatched artifact's commit
-if ! BUILD_LABEL="$BUILD_LABEL" COMMIT="$COMMIT_FULL" BRANCH="$BUILD_BRANCH" python3 -c '
-import json, os, sys
-info = json.load(open(sys.argv[1]))
-for key, env in (("steamBuildLabel", "BUILD_LABEL"), ("commit", "COMMIT"), ("branch", "BRANCH")):
-    if info.get(key) != os.environ[env]:
-        print(f"{key} mismatch: got {info.get(key)!r} want {os.environ[env]!r}", file=sys.stderr)
-        sys.exit(1)
-if not info.get("target"):
-    print("target is missing", file=sys.stderr)
-    sys.exit(1)
-' "$BUILD_INFO"; then
-    echo "ERROR: build-info.json の内容が指定コミット/ラベルと一致しません（共有契約 Global Constraints §1 のキー名。stale worktreeや取り違えた成果物の可能性）: ${BUILD_INFO}" >&2
-    exit 4
-fi
-
-# vdfのトークンを差し込む（depot idはアカウント固有なのでrepoへ書かない。ラベルとdepot idは入口で許可リスト検証済み）
-# sedの区切り文字はパスに現れないASCII制御文字を使い、RUN_DIR/BUILD_DIRに'|'を含む環境でも壊れないようにする
-# Substitute the vdf tokens; the depot id is account-specific and never committed (label and depot id were allowlist-checked at entry)
-# The sed delimiter is a control char that paths never contain, so a '|' in RUN_DIR/BUILD_DIR cannot break it
-SED_DELIM=$'\x01'
-for template in app_build_playtest.vdf depot_build_windows.vdf; do
-    sed -e "s${SED_DELIM}__BUILD_LABEL__${SED_DELIM}${BUILD_LABEL}${SED_DELIM}g" \
-        -e "s${SED_DELIM}__RUN_DIR__${SED_DELIM}${RUN_DIR}${SED_DELIM}g" \
-        -e "s${SED_DELIM}__CONTENT_ROOT__${SED_DELIM}${BUILD_DIR}${SED_DELIM}g" \
-        -e "s${SED_DELIM}__DEPOT_ID__${SED_DELIM}${MOORESTECH_STEAM_DEPOT_ID}${SED_DELIM}g" \
-        "$SCRIPT_DIR/steam/$template" >"$STEAM_DIR/$template"
-done
+# 両OSの成果物の必須構成・出所・Macの署名とCPUを検査する
+# Verify both artifacts' layout and origin plus the Mac signature and CPU
+release_require_windows_artifact "$RUN_DIR/build-windows"
+release_require_mac_artifact "$RUN_DIR/build-mac"
+release_render_steam_vdfs "$RUN_DIR" "$STEAM_DIR"
 
 "$STEAMCMD_BIN" +login "$MOORESTECH_STEAM_USER" +run_app_build "$STEAM_DIR/app_build_playtest.vdf" +quit
 
@@ -166,9 +143,18 @@ cat >"$RUN_DIR/promotion.md" <<EOF
 # moorestech プレイテスト反映手順 ($BUILD_LABEL)
 
 - コミット: $COMMIT_FULL
-- Steam アップロード先: playtest-staging
-- 通し検証: 合格（検証機で phase1 / phase2 とも成功）
+- Steam アップロード先: playtest-staging（Windows depot と Mac depot を同じビルドに格納）
+- 通し検証: Windows は検証機で phase1 / phase2 とも合格。Mac 版は自動検証していない（ADR 0071）
 
-Steamworks → アプリ 1958160 → SteamPipe → ビルドで、検証済みビルドを `playtest` ブランチに手動でライブ設定してください。設定後に対象のビルド ID を確認し、テスターへ告知してください。
+## Mac 版の手動確認（playtest 反映前に必須）
+
+1. Apple Silicon の Mac で Steam のベータ \`playtest-staging\` を選び、更新後に Steam から起動する
+2. タイトルから新規ワールドへ入り、Tab でインベントリが開くことを確認する
+3. 起動に回避操作（セキュリティ設定の変更・コマンド実行）が要ったか: [ ] 要らなかった / [ ] 要った（手順: ）
+   要った場合も配布は止めず、その手順をキーと一緒にテスターへ案内する
+
+## 反映
+
+Steamworks → アプリ 1958160 → SteamPipe → ビルドで、検証済みビルドを \`playtest\` ブランチに手動でライブ設定してください。設定後に対象のビルド ID を確認し、テスターへ告知してください。
 EOF
 echo "[release-playtest] promotion: $RUN_DIR/promotion.md"

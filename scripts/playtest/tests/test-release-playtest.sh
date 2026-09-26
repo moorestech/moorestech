@@ -12,22 +12,30 @@ make_sandbox
 OUTPUT=$(run_target); STATUS=$?
 [ "$STATUS" -eq 0 ] || fail "success run exited $STATUS: $OUTPUT"
 ORDER=$(awk '{print $1}' "$SANDBOX/calls.log" | tr '\n' ' ')
-[ "$ORDER" = "git git git moores-wt git git git git git git git git git unity steamcmd verify moores-wt " ] || fail "call order was: $ORDER"
+[ "$ORDER" = "git git git moores-wt git git git git git git git git git unity unity codesign lipo steamcmd verify moores-wt " ] || fail "call order was: $ORDER"
 grep -q "run_app_build" "$SANDBOX/calls.log" || fail "steamcmd was not asked to run_app_build"
 ls "$SANDBOX"/runs/*/promotion.md >/dev/null 2>&1 || fail "promotion.md was not written"
 grep -q '"setlive" "playtest-staging"' "$SANDBOX"/runs/*/steam/app_build_playtest.vdf || fail "Steam upload did not target playtest-staging"
 grep -q '手動でライブ設定' "$SANDBOX"/runs/*/promotion.md || fail "promotion instructions omitted manual playtest update"
 grep -q "__[A-Z_]*__" "$SANDBOX"/runs/*/steam/*.vdf && fail "vdf still contains a raw token"
 grep -q "1958161" "$SANDBOX"/runs/*/steam/depot_build_windows.vdf || fail "depot id was not substituted"
+grep -q "1958162" "$SANDBOX"/runs/*/steam/depot_build_mac.vdf || fail "mac depot id was not substituted"
+grep -q '"1958161"' "$SANDBOX"/runs/*/steam/app_build_playtest.vdf || fail "app build did not list the windows depot"
+grep -q '"1958162"' "$SANDBOX"/runs/*/steam/app_build_playtest.vdf || fail "app build did not list the mac depot"
+grep -q "/build-windows" "$SANDBOX"/runs/*/steam/depot_build_windows.vdf || fail "windows depot contentroot is not build-windows"
+grep -q "/build-mac" "$SANDBOX"/runs/*/steam/depot_build_mac.vdf || fail "mac depot contentroot is not build-mac"
+grep -q 'Mac 版の手動確認' "$SANDBOX"/runs/*/promotion.md || fail "promotion.md lacks the Mac manual check"
+grep -q '回避操作' "$SANDBOX"/runs/*/promotion.md || fail "promotion.md lacks the workaround record"
+grep -q '案内' "$SANDBOX"/runs/*/promotion.md || fail "promotion.md does not say workarounds are guided, not blocking"
 grep -q "$SANDBOX/runs" "$SANDBOX"/runs/*/steam/*.vdf || fail "contentroot was not pointed at the run's build dir"
 grep -q "^moores-wt .*rm" "$SANDBOX/calls.log" || fail "the disposable worktree was not torn down"
 
 # 必須envの欠落はビルド前に落ちる
 make_sandbox
-OUTPUT=$(MOORESTECH_STEAM_DEPOT_ID="" run_target); STATUS=$?
+OUTPUT=$(MOORESTECH_STEAM_DEPOT_ID_WINDOWS="" run_target); STATUS=$?
 [ "$STATUS" -ne 0 ] || fail "missing depot id did not fail"
 [ ! -f "$SANDBOX/calls.log" ] || fail "missing env reached the build"
-case "$OUTPUT" in *MOORESTECH_STEAM_DEPOT_ID*) ;; *) fail "missing env did not name the variable";; esac
+case "$OUTPUT" in *MOORESTECH_STEAM_DEPOT_ID_WINDOWS*) ;; *) fail "missing env did not name the variable";; esac
 
 # 検証機・受け口の env が欠けていても、ビルドやアップロードの後ではなく最初に落ちる（F12）
 # Missing check-machine/receiver env fails up front rather than after the build or the upload
@@ -48,7 +56,7 @@ for label in "bad'label" "a/b" "-lead" "has space"; do
     [ ! -f "$SANDBOX/calls.log" ] || fail "label '$label' reached git/build"
 done
 make_sandbox
-OUTPUT=$(MOORESTECH_STEAM_DEPOT_ID="1958161|x" run_target); STATUS=$?
+OUTPUT=$(MOORESTECH_STEAM_DEPOT_ID_WINDOWS="1958161|x" run_target); STATUS=$?
 [ "$STATUS" -eq 2 ] || fail "a non-numeric depot id was not refused (got $STATUS)"
 [ ! -f "$SANDBOX/calls.log" ] || fail "a non-numeric depot id reached git/build"
 
@@ -79,14 +87,28 @@ make_sandbox
 cat >"$SANDBOX/bin/unity" <<EOF
 #!/bin/bash
 echo "unity \$*" >>"$SANDBOX/calls.log"
-mkdir -p "\$MOORESTECH_BUILD_OUTPUT/moorestech_Data/StreamingAssets" "\$MOORESTECH_BUILD_OUTPUT/game/mods"
-touch "\$MOORESTECH_BUILD_OUTPUT/moorestech.exe"
-printf '{"commit":"%s","someOtherField":"%s"}' "$COMMIT" "\$MOORESTECH_STEAM_BUILD_LABEL" \
-  >"\$MOORESTECH_BUILD_OUTPUT/moorestech_Data/StreamingAssets/build-info.json"
+case "\$*" in
+  *MacOsSteamPlaytestBuild*)
+    app="\$MOORESTECH_BUILD_OUTPUT/moorestech.app"
+    mkdir -p "\$app/Contents/MacOS" "\$app/Contents/Resources/Data/StreamingAssets" "\$MOORESTECH_BUILD_OUTPUT/game/mods"
+    touch "\$app/Contents/MacOS/moorestech" "\$app/Contents/MacOS/ffmpeg" "\$app/Contents/Resources/ffmpeg-LICENSE.txt"
+    printf '{"commit":"%s","branch":"%s","steamBuildLabel":"%s","target":"StandaloneOSX"}' \
+      "$COMMIT" "\$MOORESTECH_BUILD_BRANCH" "\$MOORESTECH_STEAM_BUILD_LABEL" \
+      >"\$app/Contents/Resources/Data/StreamingAssets/build-info.json"
+    ;;
+  *)
+    mkdir -p "\$MOORESTECH_BUILD_OUTPUT/moorestech_Data/StreamingAssets" "\$MOORESTECH_BUILD_OUTPUT/game/mods"
+    touch "\$MOORESTECH_BUILD_OUTPUT/moorestech.exe"
+    printf '{"commit":"%s","branch":"%s","someOtherField":"%s","target":"StandaloneWindows64"}' \
+      "$COMMIT" "\$MOORESTECH_BUILD_BRANCH" "\$MOORESTECH_STEAM_BUILD_LABEL" \
+      >"\$MOORESTECH_BUILD_OUTPUT/moorestech_Data/StreamingAssets/build-info.json"
+    ;;
+esac
 EOF
 chmod +x "$SANDBOX/bin/unity"
 OUTPUT=$(run_target); STATUS=$?
 [ "$STATUS" -ne 0 ] || fail "build-info.json missing steamBuildLabel key did not fail"
+case "$OUTPUT" in *"steamBuildLabel mismatch"*) ;; *) fail "missing steamBuildLabel was not the failure reason: $OUTPUT";; esac
 grep -q "^steamcmd" "$SANDBOX/calls.log" 2>/dev/null && fail "steamcmd ran despite missing steamBuildLabel key"
 
 # 成果物のcommitが指定コミットと違えばsteamcmdへ進まない(stale worktree/取り違え対策)

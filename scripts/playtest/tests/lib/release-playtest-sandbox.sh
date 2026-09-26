@@ -10,6 +10,8 @@ COMMIT="93ddfdab3ffffffffffffffffffffffffffffffff"
 PINNED_MASTER="c219a2f56c327f33a53dfb0b6994f63bd362220b"
 PINNED_PRIVATE="aa741996fda0141060210dfdaa335a312b3ef857"
 PRIVATE_REL="moorestech_client/Assets/PersonalAssets/moorestech-client-private"
+# shellcheck source=release-playtest-build-stubs.sh
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/release-playtest-build-stubs.sh"
 
 fail() { echo "FAIL: $1"; FAILURES=$((FAILURES + 1)); }
 
@@ -101,18 +103,15 @@ case "\${FFMPEG_STATE:-real}" in
   real) head -c 4096 /dev/zero >"\$ffmpeg_dir/ffmpeg.exe" ;;
   lfs) printf 'version https://git-lfs.github.com/spec/v1\noid sha256:00\nsize 1\n' >"\$ffmpeg_dir/ffmpeg.exe" ;;
 esac
+mac_ffmpeg_dir="$SANDBOX/wt/$PRIVATE_REL/ffmpeg/macos-arm64"
+mkdir -p "\$mac_ffmpeg_dir"
+[ "\${FFMPEG_MAC_LICENSE_STATE:-present}" = "missing" ] || touch "\$mac_ffmpeg_dir/LICENSE"
+case "\${FFMPEG_MAC_STATE:-real}" in
+  real) head -c 4096 /dev/zero >"\$mac_ffmpeg_dir/ffmpeg" ;;
+  lfs) printf 'version https://git-lfs.github.com/spec/v1\noid sha256:00\nsize 1\n' >"\$mac_ffmpeg_dir/ffmpeg" ;;
+esac
 echo "$SANDBOX/wt"
 exit "\${MOORES_WT_EXIT:-0}"
-EOF
-    cat >"$SANDBOX/bin/unity" <<EOF
-#!/bin/bash
-echo "unity \$* branch=\$MOORESTECH_BUILD_BRANCH masterRoot=\$MOORESTECH_MASTER_DATA_ROOT" >>"$SANDBOX/calls.log"
-[ "\${UNITY_EXIT:-0}" = "0" ] || exit "\${UNITY_EXIT}"
-mkdir -p "\$MOORESTECH_BUILD_OUTPUT/moorestech_Data/StreamingAssets" "\$MOORESTECH_BUILD_OUTPUT/game/mods"
-touch "\$MOORESTECH_BUILD_OUTPUT/moorestech.exe"
-printf '{"commit":"%s","branch":"%s","steamBuildLabel":"%s","target":"StandaloneWindows64"}' \\
-  "\${BUILD_INFO_COMMIT:-$COMMIT}" "\${BUILD_INFO_BRANCH:-\$MOORESTECH_BUILD_BRANCH}" "\$MOORESTECH_STEAM_BUILD_LABEL" \\
-  >"\$MOORESTECH_BUILD_OUTPUT/moorestech_Data/StreamingAssets/build-info.json"
 EOF
     cat >"$SANDBOX/bin/steamcmd" <<EOF
 #!/bin/bash
@@ -124,13 +123,19 @@ EOF
 echo "verify \$*" >>"$SANDBOX/calls.log"
 exit "\${VERIFY_EXIT:-0}"
 EOF
+    write_build_stubs "$SANDBOX" "$COMMIT"
     chmod +x "$SANDBOX/bin/"*
 }
 
 run_target() {
     ( cd "$SANDBOX" && \
       MOORESTECH_STEAM_USER="${MOORESTECH_STEAM_USER-steamuser}" \
-      MOORESTECH_STEAM_DEPOT_ID="${MOORESTECH_STEAM_DEPOT_ID-1958161}" \
+      MOORESTECH_STEAM_DEPOT_ID_WINDOWS="${MOORESTECH_STEAM_DEPOT_ID_WINDOWS-1958161}" \
+      MOORESTECH_STEAM_DEPOT_ID_MAC="${MOORESTECH_STEAM_DEPOT_ID_MAC-1958162}" \
+      CODESIGN_BIN="$SANDBOX/bin/codesign" LIPO_BIN="$SANDBOX/bin/lipo" \
+      UNITY_MAC_EXIT="${UNITY_MAC_EXIT-0}" CODESIGN_EXIT="${CODESIGN_EXIT-0}" LIPO_ARCHS="${LIPO_ARCHS-arm64}" \
+      MAC_LEAKS_EVENT_SCRIPT="${MAC_LEAKS_EVENT_SCRIPT-0}" FFMPEG_MAC_STATE="${FFMPEG_MAC_STATE-real}" \
+      FFMPEG_MAC_LICENSE_STATE="${FFMPEG_MAC_LICENSE_STATE-present}" \
       MOORESTECH_STEAM_BUILD_LABEL="${MOORESTECH_STEAM_BUILD_LABEL-}" \
       MOORESTECH_BUILD_BRANCH="${MOORESTECH_BUILD_BRANCH-}" \
       MOORESTECH_VERIFY_HOST="${MOORESTECH_VERIFY_HOST-verify-pc}" MOORESTECH_VERIFY_USER=moores \
@@ -142,7 +147,7 @@ run_target() {
       GIT_BIN="$SANDBOX/bin/git" \
       MOORES_WT_BIN="$SANDBOX/bin/moores-wt" UNITY_BIN="$SANDBOX/bin/unity" \
       STEAMCMD_BIN="$SANDBOX/bin/steamcmd" VERIFY_SCRIPT="$SANDBOX/bin/verify" \
-      PLAYTEST_RUN_ROOT="$SANDBOX/runs" \
+      PLAYTEST_RUN_ROOT="${PLAYTEST_RUN_ROOT-$SANDBOX/runs}" \
       UNITY_EXIT="${UNITY_EXIT-0}" STEAMCMD_EXIT="${STEAMCMD_EXIT-0}" VERIFY_EXIT="${VERIFY_EXIT-0}" \
       MOORES_WT_EXIT="${MOORES_WT_EXIT-0}" MOORES_WT_RM_EXIT="${MOORES_WT_RM_EXIT-0}" \
       GIT_VERIFY_EXIT="${GIT_VERIFY_EXIT-0}" GIT_VERIFY_OUTPUT="${GIT_VERIFY_OUTPUT-}" GIT_HEAD_OUTPUT="${GIT_HEAD_OUTPUT-}" \
