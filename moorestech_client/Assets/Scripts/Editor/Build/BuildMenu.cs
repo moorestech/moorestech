@@ -92,14 +92,12 @@ namespace Client.Editor.Build
             var outputDirectory = SelectOutputDirectory(buildTarget);
             if (outputDirectory == null) return;
 
-            var request = purpose == BuildPurpose.SteamPlaytest
-                ? PlayerBuildRequestFactory.CreateSteamPlaytest(buildTarget, outputDirectory)
-                : new PlayerBuildRequest
-                {
-                    Target = buildTarget,
-                    OutputDirectory = outputDirectory,
-                    Purpose = purpose,
-                };
+            var request = new PlayerBuildRequest
+            {
+                Target = buildTarget,
+                OutputDirectory = outputDirectory,
+                Purpose = purpose,
+            };
             ReportOutcome(BuildPipeline.Execute(request), outputDirectory);
         }
 

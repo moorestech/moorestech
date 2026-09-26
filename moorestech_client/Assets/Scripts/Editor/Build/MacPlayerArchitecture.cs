@@ -15,8 +15,8 @@ namespace Client.Editor.Build
             Debug.Log("[MacPlayerArchitecture] macOS player architecture pinned to ARM64");
             return true;
 #else
-            // この設定の型はMacホストのEditorにだけある拡張アセンブリに属するため、他ホストからのMacビルドは理由を残して止める
-            // The setting's type lives in an extension assembly shipped only with Mac-host Editors, so a Mac build from another host stops with a reason
+            // 設定型はMacホスト専用。strictは停止し、他はCEF制約を警告して続行する
+            // The setting exists only on Mac hosts; strict stops, others warn about CEF and continue
             const string reason = "[MacPlayerArchitecture] 非Macホストではarm64へ固定できず、osx-arm64専用CEFのWeb UIが動かない可能性があります";
             if (isStrict)
             {

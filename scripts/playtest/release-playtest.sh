@@ -128,8 +128,8 @@ release_build_player WindowsSteamPlaytestBuild "$RUN_DIR/build-windows" "$RUN_DI
 release_require_windows_artifact "$RUN_DIR/build-windows"
 release_build_player MacOsSteamPlaytestBuild "$RUN_DIR/build-mac" "$RUN_DIR/unity-build-mac.log"
 
-# 両OSの成果物の必須構成・出所・Macの署名とCPUを検査する
-# Verify both artifacts' layout and origin plus the Mac signature and CPU
+# Mac成果物の構成・出所・署名・CPUを検査する
+# Verify the Mac artifact's layout, origin, signature, and CPU
 release_require_mac_artifact "$RUN_DIR/build-mac"
 release_render_steam_vdfs "$RUN_DIR" "$STEAM_DIR"
 

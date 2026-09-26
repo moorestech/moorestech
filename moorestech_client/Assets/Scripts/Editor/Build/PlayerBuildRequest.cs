@@ -21,21 +21,6 @@ namespace Client.Editor.Build
         public bool LocalDevelopmentChoosesDevelopment;
     }
 
-    internal static class PlayerBuildRequestFactory
-    {
-        // 手動と無人のSteam入口で同じ要求を使う
-        // Share one request between manual and unattended Steam entries
-        public static PlayerBuildRequest CreateSteamPlaytest(BuildTarget target, string outputDirectory)
-        {
-            return new PlayerBuildRequest
-            {
-                Target = target,
-                OutputDirectory = outputDirectory,
-                Purpose = BuildPurpose.SteamPlaytest,
-            };
-        }
-    }
-
     /// <summary>
     /// Playerビルド1回分の結果（入口はこれを見て成果物の扱いを決める）
     /// Result of one Player build; entries decide what to do with the artifact from this

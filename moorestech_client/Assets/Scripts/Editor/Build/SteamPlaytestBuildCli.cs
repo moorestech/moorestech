@@ -34,7 +34,12 @@ namespace Client.Editor.Build
                 return;
             }
 
-            var outcome = BuildPipeline.Execute(PlayerBuildRequestFactory.CreateSteamPlaytest(target, outputDirectory));
+            var outcome = BuildPipeline.Execute(new PlayerBuildRequest
+            {
+                Target = target,
+                OutputDirectory = outputDirectory,
+                Purpose = BuildPurpose.SteamPlaytest,
+            });
             Debug.Log($"[SteamPlaytestBuildCli] outcome:{outcome} target:{target} output:{outputDirectory}");
             EditorApplication.Exit(outcome == PlayerBuildOutcome.Succeeded ? 0 : 1);
         }
