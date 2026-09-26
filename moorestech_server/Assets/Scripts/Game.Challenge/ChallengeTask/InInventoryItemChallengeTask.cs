@@ -35,21 +35,25 @@ namespace Game.Challenge.Task
         {
             if (_completed) return;
             
+            // ワールド共通チャレンジなので全プレイヤーの所持数を合算する
+            // A world-wide challenge, so sum the held count over all players
+            var taskItemId = MasterHolder.ItemMaster.GetItemId(_inInventoryItemTaskParam.ItemGuid);
             var itemCount = 0;
             foreach (var playerId in _playerInventoryDataStore.GetAllPlayerId())
             {
                 foreach (var item in _playerInventoryDataStore.GetInventoryData(playerId).MainOpenableInventory.InventoryItems)
                 {
-                    var taskItemId = MasterHolder.ItemMaster.GetItemId(_inInventoryItemTaskParam.ItemGuid);
                     if (item.Id != taskItemId) continue;
-                    
+
                     itemCount += item.Count;
                     if (itemCount < _inInventoryItemTaskParam.ItemCount) continue;
-                    
-                    _onChallengeComplete.OnNext(this);
+
+                    // 達成通知を重ねないよう到達した時点で抜ける
+                    // Return on reaching the goal so completion is notified only once
                     _completed = true;
+                    _onChallengeComplete.OnNext(this);
+                    return;
                 }
-                break;
             }
         }
     }
