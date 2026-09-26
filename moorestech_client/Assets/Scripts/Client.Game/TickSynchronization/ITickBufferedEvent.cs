@@ -1,4 +1,4 @@
-namespace Client.Game.Common.TickSynchronization
+namespace Client.Game.TickSynchronization
 {
     // tick到達時に適用されるstreamイベントを表す。
     // Represents a buffered stream event applied when its tick is reached.

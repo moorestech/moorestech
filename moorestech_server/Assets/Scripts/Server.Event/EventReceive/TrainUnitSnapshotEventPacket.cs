@@ -30,52 +30,52 @@ namespace Server.Event.EventReceive
         public void Load()
         {
             _trainUnitSnapshotNotifyEvent.OnTrainUnitSnapshotNotified.Subscribe(OnNotified);
-        }
 
-        #region Internal
+            #region Internal
 
-        private void OnNotified(TrainUnitSnapshotNotifyEventData notifyEventData)
-        {
-            if (notifyEventData.TrainUnitInstanceId == TrainUnitInstanceId.Empty)
+            void OnNotified(TrainUnitSnapshotNotifyEventData notifyEventData)
             {
-                return;
+                if (notifyEventData.TrainUnitInstanceId == TrainUnitInstanceId.Empty)
+                {
+                    return;
+                }
+
+                // 通知内容をイベントペイロードに変換して配信する
+                // Convert notification data into event payload and broadcast it.
+                var payload = CreatePayload(notifyEventData);
+                AddBroadcast(payload);
             }
 
-            // 通知内容をイベントペイロードに変換して配信する
-            // Convert notification data into event payload and broadcast it.
-            var payload = CreatePayload(notifyEventData);
-            AddBroadcast(payload);
-        }
-
-        private TrainUnitSnapshotEventMessagePack CreatePayload(TrainUnitSnapshotNotifyEventData notifyEventData)
-        {
-            var tick = _trainTickSequenceSource.Sequence.Tick;
-            var tickSequenceId = _trainTickSequenceSource.Sequence.NextSequenceId();
-            if (notifyEventData.IsDeleted)
+            TrainUnitSnapshotEventMessagePack CreatePayload(TrainUnitSnapshotNotifyEventData notifyEventData)
             {
+                var tick = _trainTickSequenceSource.Sequence.Tick;
+                var tickSequenceId = _trainTickSequenceSource.Sequence.NextSequenceId();
+                if (notifyEventData.IsDeleted)
+                {
+                    return new TrainUnitSnapshotEventMessagePack(
+                        notifyEventData.TrainUnitInstanceId,
+                        true,
+                        null,
+                        tick,
+                        tickSequenceId);
+                }
+
+                var snapshot = TrainUnitSnapshotFactory.CreateSnapshot(notifyEventData.TrainUnit);
                 return new TrainUnitSnapshotEventMessagePack(
                     notifyEventData.TrainUnitInstanceId,
-                    true,
-                    null,
+                    false,
+                    new TrainUnitSnapshotBundleMessagePack(snapshot),
                     tick,
                     tickSequenceId);
             }
 
-            var snapshot = TrainUnitSnapshotFactory.CreateSnapshot(notifyEventData.TrainUnit);
-            return new TrainUnitSnapshotEventMessagePack(
-                notifyEventData.TrainUnitInstanceId,
-                false,
-                new TrainUnitSnapshotBundleMessagePack(snapshot),
-                tick,
-                tickSequenceId);
-        }
+            void AddBroadcast(TrainUnitSnapshotEventMessagePack messagePack)
+            {
+                var bytes = MessagePackSerializer.Serialize(messagePack);
+                _eventProtocolProvider.AddBroadcastEvent(EventTag, bytes);
+            }
 
-        private void AddBroadcast(TrainUnitSnapshotEventMessagePack messagePack)
-        {
-            var bytes = MessagePackSerializer.Serialize(messagePack);
-            _eventProtocolProvider.AddBroadcastEvent(EventTag, bytes);
+            #endregion
         }
-
-        #endregion
     }
 }

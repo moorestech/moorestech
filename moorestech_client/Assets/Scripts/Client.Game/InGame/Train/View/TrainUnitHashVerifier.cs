@@ -7,7 +7,7 @@ using Client.Game.InGame.Train.Unit;
 using Cysharp.Threading.Tasks;
 using UniRx;
 using UnityEngine;
-using Client.Game.Common.TickSynchronization;
+using Client.Game.TickSynchronization;
 using Client.Game.InGame.Train.Network.TickSynchronization;
 
 namespace Client.Game.InGame.Train.View

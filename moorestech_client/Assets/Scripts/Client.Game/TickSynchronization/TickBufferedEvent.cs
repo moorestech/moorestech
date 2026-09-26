@@ -1,6 +1,6 @@
 using System;
 
-namespace Client.Game.Common.TickSynchronization
+namespace Client.Game.TickSynchronization
 {
     // delegateで適用処理を持つ汎用tickイベント。
     // Generic tick event that stores apply logic as a delegate.

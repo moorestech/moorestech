@@ -1,7 +1,7 @@
 using Core.Update;
 using System;
 
-namespace Client.Game.Common.TickSynchronization
+namespace Client.Game.TickSynchronization
 {
     internal sealed class ClientTickAdvanceController
     {
@@ -38,7 +38,7 @@ namespace Client.Game.Common.TickSynchronization
             _localcnt++;
             _modifyTime *= 0.9991;
             _modifyTick *= 0.9991;
-            if ( _localcnt >=20 && deltaTime < 0.5f)
+            if ( 20 <= _localcnt && deltaTime < 0.5f)
             {
                 _modifyTime += deltaTime;
                 _modifyTick += _tickState.GetMaxBufferedTicks() - _lastGetMaxBufferedTicks;
@@ -59,7 +59,7 @@ namespace Client.Game.Common.TickSynchronization
             {
                 _estimatedClientTick += 1e-4 * pendingTicks * pendingTicks;
             }
-            if (pendingTicks > 0.0)
+            if (0.0 < pendingTicks)
             {
                 _estimatedClientTick -= 1e-3 * pendingTicks;
             }
@@ -68,7 +68,7 @@ namespace Client.Game.Common.TickSynchronization
             // Advance ticks while the gate allows it and apply server events in order
             var nextCount = Math.Max(0, _estimatedClientTick - _tickState.GetTick());
             var loopTicks = (int)nextCount;
-            if (nextCount >= MaxCatchUpTicksPerFrame)
+            if (MaxCatchUpTicksPerFrame <= nextCount)
             {
                 _estimatedClientTick = _tickState.GetTick() + MaxCatchUpTicksPerFrame;
                 loopTicks = MaxCatchUpTicksPerFrame;

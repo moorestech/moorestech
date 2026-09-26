@@ -33,43 +33,40 @@ namespace Server.Event.EventReceive
         {
             _trainUpdateService.OnHashEvent.Subscribe(OnHashTick);
             _trainUpdateService.OnPreSimulationDiffEvent.Subscribe(tuple => OnPreSimulationDiff(tuple.Item1, tuple.Item2));
-        }
-
-        #region Internal
-
-        private void OnHashTick(TrainHashStateEventData hashStateEventData)
-        {
-            var hashTickSequenceId = _trainTickSequenceSource.Sequence.NextSequenceId();
-            _hashStatesByTick[hashStateEventData.Tick] = new HashTickState(
-                hashStateEventData.UnitsHash,
-                hashStateEventData.RailGraphHash,
-                hashTickSequenceId);
-        }
-
-        private void OnPreSimulationDiff(uint diffTick, IReadOnlyList<TrainTickDiffData> diffs)
-        {
-            var hashTick = diffTick - 1;
-            PruneStaleHashes(hashTick);
-            if (!TryGetHashState(hashTick, out var hashState))
-            {
-                Debug.LogWarning($"[TrainUnitTickDiffBundleEventPacket] Missing hash state for diffTick={diffTick}, hashTick={hashTick}.");
-                return;
-            }
-
-            var diffTickSequenceId = _trainTickSequenceSource.Sequence.NextSequenceId();
-            var messagePack = new TrainUnitTickDiffBundleMessagePack(
-                diffTick,
-                hashState.HashTickSequenceId,
-                diffTickSequenceId,
-                hashState.UnitsHash,
-                hashState.RailGraphHash,
-                diffs);
-            var payload = MessagePackSerializer.Serialize(messagePack);
-            _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
-            _hashStatesByTick.Remove(hashTick);
-            return;
 
             #region Internal
+
+            void OnHashTick(TrainHashStateEventData hashStateEventData)
+            {
+                var hashTickSequenceId = _trainTickSequenceSource.Sequence.NextSequenceId();
+                _hashStatesByTick[hashStateEventData.Tick] = new HashTickState(
+                    hashStateEventData.UnitsHash,
+                    hashStateEventData.RailGraphHash,
+                    hashTickSequenceId);
+            }
+
+            void OnPreSimulationDiff(uint diffTick, IReadOnlyList<TrainTickDiffData> diffs)
+            {
+                var hashTick = diffTick - 1;
+                PruneStaleHashes(hashTick);
+                if (!TryGetHashState(hashTick, out var hashState))
+                {
+                    Debug.LogWarning($"[TrainUnitTickDiffBundleEventPacket] Missing hash state for diffTick={diffTick}, hashTick={hashTick}.");
+                    return;
+                }
+
+                var diffTickSequenceId = _trainTickSequenceSource.Sequence.NextSequenceId();
+                var messagePack = new TrainUnitTickDiffBundleMessagePack(
+                    diffTick,
+                    hashState.HashTickSequenceId,
+                    diffTickSequenceId,
+                    hashState.UnitsHash,
+                    hashState.RailGraphHash,
+                    diffs);
+                var payload = MessagePackSerializer.Serialize(messagePack);
+                _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
+                _hashStatesByTick.Remove(hashTick);
+            }
 
             void PruneStaleHashes(uint targetHashTick)
             {
@@ -108,7 +105,5 @@ namespace Server.Event.EventReceive
                 HashTickSequenceId = hashTickSequenceId;
             }
         }
-
-        #endregion
     }
 }

@@ -1,7 +1,7 @@
 using Core.Update.TickSynchronization;
 using System;
 
-namespace Client.Game.Common.TickSynchronization
+namespace Client.Game.TickSynchronization
 {
     // クライアントstreamのtick状態を一元管理する。
     // Centralize tick state for a client stream.
@@ -41,6 +41,18 @@ namespace Client.Game.Common.TickSynchronization
                 return;
             }
             _appliedTickUnifiedId = tickUnifiedId;
+        }
+
+        // eventとhashに同じ受信境界を適用する。
+        // Apply the same receive boundary to events and hashes.
+        internal bool TryAcceptReceivedTickUnifiedId(ulong tickUnifiedId)
+        {
+            if (tickUnifiedId <= _appliedTickUnifiedId)
+            {
+                return false;
+            }
+            SetMaxBufferedTicks((uint)(tickUnifiedId >> 32));
+            return true;
         }
 
         // バッファー済み最大tick

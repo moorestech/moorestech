@@ -1,4 +1,4 @@
-using Client.Game.Common.TickSynchronization;
+using Client.Game.TickSynchronization;
 using Core.Update.TickSynchronization;
 using System;
 using System.Collections.Generic;
@@ -32,13 +32,12 @@ namespace Client.Game.InGame.Train.Network.TickSynchronization
             }
 
             var messageTickUnifiedId = TickUnifiedIdUtility.CreateTickUnifiedId(serverTick, tickSequenceId);
-            if (messageTickUnifiedId <= _tickState.GetAppliedTickUnifiedId())
+            if (!_tickState.TryAcceptReceivedTickUnifiedId(messageTickUnifiedId))
             {
                 // 適用済みの統合順序以下は捨てる。
                 // Drop hash states already covered.
                 return;
             }
-            _tickState.SetMaxBufferedTicks(serverTick);
             _futureHashStates[messageTickUnifiedId] = (unitsHash, railGraphHash, serverTick, tickSequenceId);
         }
 
@@ -72,7 +71,7 @@ namespace Client.Game.InGame.Train.Network.TickSynchronization
         public bool TryGetFirstHashTickUnifiedId(out ulong tickUnifiedId)
         {
             tickUnifiedId = UInt64.MaxValue;
-            if (_futureHashStates.Count > 0)
+            if (0 < _futureHashStates.Count)
             {
                 tickUnifiedId = _futureHashStates.First().Key;
                 return true;

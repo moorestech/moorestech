@@ -2,7 +2,7 @@ using Core.Update.TickSynchronization;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Client.Game.Common.TickSynchronization
+namespace Client.Game.TickSynchronization
 {
     // stream内のイベントを統合IDで保持する。
     // Buffer stream events by unified id.
@@ -23,13 +23,12 @@ namespace Client.Game.Common.TickSynchronization
             if (bufferedEvent == null)
                 return;
             var eventTickUnifiedId = TickUnifiedIdUtility.CreateTickUnifiedId(serverTick, tickSequenceId);
-            if (eventTickUnifiedId <= _tickState.GetAppliedTickUnifiedId())
+            if (!_tickState.TryAcceptReceivedTickUnifiedId(eventTickUnifiedId))
             {
                 // 適用済みの統合順序以下は捨てる。
                 // Drop events already covered.
                 return;
             }
-            _tickState.SetMaxBufferedTicks(serverTick);
             _futureEvents[eventTickUnifiedId] = bufferedEvent;
         }
 
@@ -45,11 +44,6 @@ namespace Client.Game.Common.TickSynchronization
             }
         }
 
-        public bool TryFlushEvent(uint currentTick, uint tickSequenceId)
-        {
-            var eventTickUnifiedId = TickUnifiedIdUtility.CreateTickUnifiedId(currentTick, tickSequenceId);
-            return TryFlushEvent(eventTickUnifiedId);
-        }
         public bool TryFlushEvent(ulong eventTickUnifiedId)
         {
             if (!_futureEvents.ContainsKey(eventTickUnifiedId))
@@ -59,33 +53,9 @@ namespace Client.Game.Common.TickSynchronization
 
             // 実行済みイベント以下は再適用不要なので一括破棄する。
             // Drop all events at or below executed unified id to prevent re-apply.
-            RemoveEventsAtOrBelow(eventTickUnifiedId);
+            DiscardEventsAtOrBelow(eventTickUnifiedId);
             _tickState.RecordAppliedTickUnifiedId(eventTickUnifiedId);
             return true;
-
-            #region Internal
-            void RemoveEventsAtOrBelow(ulong maxTickUnifiedId)
-            {
-                while (TryGetFirstTickUnifiedId(_futureEvents, out var firstTickUnifiedId) &&
-                    firstTickUnifiedId <= maxTickUnifiedId)
-                {
-                    _futureEvents.Remove(firstTickUnifiedId);
-                }
-            }
-
-            static bool TryGetFirstTickUnifiedId<TValue>(SortedDictionary<ulong, TValue> source, out ulong firstTickUnifiedId)
-            {
-                using var enumerator = source.GetEnumerator();
-                if (enumerator.MoveNext())
-                {
-                    firstTickUnifiedId = enumerator.Current.Key;
-                    return true;
-                }
-
-                firstTickUnifiedId = 0;
-                return false;
-            }
-            #endregion
         }
     }
 }

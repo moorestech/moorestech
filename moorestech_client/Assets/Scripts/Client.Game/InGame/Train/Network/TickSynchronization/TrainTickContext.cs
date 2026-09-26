@@ -1,4 +1,4 @@
-using Client.Game.Common.TickSynchronization;
+using Client.Game.TickSynchronization;
 
 namespace Client.Game.InGame.Train.Network.TickSynchronization
 {
