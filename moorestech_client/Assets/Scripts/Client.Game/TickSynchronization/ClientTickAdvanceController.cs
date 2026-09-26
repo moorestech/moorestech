@@ -5,8 +5,6 @@ namespace Client.Game.TickSynchronization
 {
     internal sealed class ClientTickAdvanceController
     {
-        // クライアントの基本 tick 間隔は共通のゲーム tick 定義に合わせる
-        // Keep the base client tick interval aligned with the shared game tick definition
         private const double TickSeconds = 1d / GameUpdater.TicksPerSecond;
 
         // 閾値を超えた遅延だけを catch-up 対象にする
@@ -14,8 +12,6 @@ namespace Client.Game.TickSynchronization
         private const double FastForwardLagSeconds = 0.2d;
         private static readonly double FastForwardLagTicks = Math.Max(1.0, Math.Ceiling(FastForwardLagSeconds / TickSeconds));
 
-        // 1 フレームで追いつく最大 tick 数を固定する
-        // Fix the maximum ticks to catch up in a single frame
         private const int MaxCatchUpTicksPerFrame = 4;
 
         private readonly ClientTickState _tickState;
@@ -51,8 +47,8 @@ namespace Client.Game.TickSynchronization
                 _modifyTick += 1.0;
                 _estimatedClientTick += deltaTime / TickSeconds;
             }
-            // 受信済みtickとの差を推定進行へ補正する
-            // Correct estimated progress against the latest buffered tick
+            // 受信tickへ推定値を補正
+            // Correct the estimate against received ticks.
             _lastGetMaxBufferedTicks = _tickState.GetMaxBufferedTicks();
             var pendingTicks = _estimatedClientTick - _lastGetMaxBufferedTicks;
             if (pendingTicks < -FastForwardLagTicks)

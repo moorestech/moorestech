@@ -1,6 +1,7 @@
 using Game.Context;
 using Game.Train.Event;
 using Game.Train.Unit;
+using Game.Train.Unit.TickSynchronization;
 using MessagePack;
 using Server.Util.MessagePack;
 using UniRx;
@@ -40,8 +41,6 @@ namespace Server.Event.EventReceive
                     return;
                 }
 
-                // 通知内容をイベントペイロードに変換して配信する
-                // Convert notification data into event payload and broadcast it.
                 var payload = CreatePayload(notifyEventData);
                 AddBroadcast(payload);
             }

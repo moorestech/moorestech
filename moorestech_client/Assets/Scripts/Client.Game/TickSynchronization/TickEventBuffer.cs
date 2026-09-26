@@ -32,8 +32,6 @@ namespace Client.Game.TickSynchronization
             _futureEvents[eventTickUnifiedId] = bufferedEvent;
         }
 
-        // full snapshot適用時に呼ぶ
-        // Called when a full snapshot is applied
         public void DiscardEventsAtOrBelow(ulong tickUnifiedId)
         {
             while (0 < _futureEvents.Count)

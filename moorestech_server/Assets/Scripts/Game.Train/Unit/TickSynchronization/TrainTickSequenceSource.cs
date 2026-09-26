@@ -1,6 +1,6 @@
 using Core.Update.TickSynchronization;
 
-namespace Game.Train.Unit
+namespace Game.Train.Unit.TickSynchronization
 {
     public sealed class TrainTickSequenceSource
     {

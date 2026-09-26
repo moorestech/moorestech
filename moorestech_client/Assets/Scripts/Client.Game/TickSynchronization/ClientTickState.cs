@@ -3,8 +3,6 @@ using System;
 
 namespace Client.Game.TickSynchronization
 {
-    // クライアントstreamのtick状態を一元管理する。
-    // Centralize tick state for a client stream.
     internal sealed class ClientTickState
     {
         private ulong _appliedTickUnifiedId = 0;

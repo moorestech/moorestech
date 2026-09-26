@@ -1,4 +1,4 @@
-namespace Game.Train.Unit
+namespace Game.Train.Unit.TickSynchronization
 {
     public readonly struct TrainHashStateEventData
     {

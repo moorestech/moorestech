@@ -7,8 +7,10 @@ using UnityEngine;
 
 namespace Client.Game.InGame.Train.Network.TickSynchronization
 {
-    // train/railの照合用hashをstreamの状態とともに保持する。
-    // Buffer train/rail verification hashes against the stream state.
+    // - train/rail hashを保持
+    // - Buffer train/rail hashes.
+    // - stream状態で既適用IDを除外
+    // - Reject already applied IDs using stream state.
     internal sealed class TrainUnitHashBuffer
     {
         public const uint DummyHash = uint.MaxValue;
@@ -41,8 +43,6 @@ namespace Client.Game.InGame.Train.Network.TickSynchronization
             _futureHashStates[messageTickUnifiedId] = (unitsHash, railGraphHash, serverTick, tickSequenceId);
         }
 
-        // 指定tickのハッシュを取り出す。
-        // Dequeue hash state at the specified tick.
         public bool TryDequeueHashAtTickSequenceId(ulong tickUnifiedId, out (uint unitsHash, uint railGraphHash, uint serverTick, uint tickSequenceId) message)
         {
             return _futureHashStates.TryGetValue(tickUnifiedId, out message);
@@ -66,8 +66,6 @@ namespace Client.Game.InGame.Train.Network.TickSynchronization
             }
         }
 
-        // 最初のkeyを取得
-        // Get the first key
         public bool TryGetFirstHashTickUnifiedId(out ulong tickUnifiedId)
         {
             tickUnifiedId = UInt64.MaxValue;

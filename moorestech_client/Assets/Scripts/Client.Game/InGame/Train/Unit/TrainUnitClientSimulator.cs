@@ -20,8 +20,8 @@ namespace Client.Game.InGame.Train.Unit
 
         public void Tick()
         {
-            // stream進行後の推定tickで列車の表示を更新する。
-            // Update train visuals from the estimated tick after advancing the stream.
+            // 進行後のtickで列車表示を更新。
+            // Update train visuals at the advanced tick.
             var renderTick = _context.AdvanceController.Advance(Time.deltaTime, _hashVerifier);
             _visualUpdateSystem.UpdateAll(renderTick, _context.State.GetTick());
         }
