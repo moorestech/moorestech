@@ -3,25 +3,25 @@ using Core.Master;
 using Core.Update;
 using Game.Train.RailCalc;
 
-namespace Game.Train.Unit
+namespace Game.Train.Unit.Motion
 {
     public readonly struct AutoRunMasconInput
     {
         public AutoRunMasconInput(
             double currentSpeed,
             int remainingDistance,
-            int totalWeight,
+            double effectiveWeight,
             double totalTraction)
         {
             CurrentSpeed = currentSpeed;
             RemainingDistance = remainingDistance;
-            TotalWeight = totalWeight;
+            EffectiveWeight = effectiveWeight;
             TotalTraction = totalTraction;
         }
 
         public double CurrentSpeed { get; }
         public int RemainingDistance { get; }
-        public int TotalWeight { get; }
+        public double EffectiveWeight { get; }
         public double TotalTraction { get; }
     }
 
@@ -46,10 +46,9 @@ namespace Game.Train.Unit
                 return maxMascon;
             }
 
-            var totalWeight = input.TotalWeight;
             // 残距離から7/8ブレーキ曲線上の許容速度を求める。
             // Calculate the allowed speed on the 7/8 brake curve from the remaining distance.
-            var resistanceAcceleration = TrainDistanceSimulator.CalculateResistanceAcceleration(speed, totalWeight);
+            var resistanceAcceleration = TrainDistanceSimulator.CalculateResistanceAcceleration(speed, input.EffectiveWeight);
             var curveAcceleration = maxBrakeAcceleration * TargetBrakeRate + resistanceAcceleration;
             var allowedSpeed = Math.Sqrt(2.0d * curveAcceleration * remainingMeters);
             // 許容速度との差を1tick分の加速度へ変換し、曲線が要求する再加速も許可する。
@@ -58,7 +57,7 @@ namespace Game.Train.Unit
 
             if (targetAcceleration >= 0)
             {
-                var maxTractionAcceleration = input.TotalTraction / totalWeight;
+                var maxTractionAcceleration = input.TotalTraction / input.EffectiveWeight;
                 if (maxTractionAcceleration <= 0)
                 {
                     return 0;
@@ -85,19 +84,19 @@ namespace Game.Train.Unit
             double accumulatedDistance,
             int masconLevel,
             double totalTraction,
-            int totalweight)
+            double effectiveWeight)
         {
             CurrentSpeed = currentSpeed;
             AccumulatedDistance = accumulatedDistance;
             MasconLevel = masconLevel;
             TotalTraction = totalTraction;
-            TotalWeight = totalweight;
+            EffectiveWeight = effectiveWeight;
         }
         public double CurrentSpeed { get; }
         public double AccumulatedDistance { get; }
         public int MasconLevel { get; }
         public double TotalTraction { get; }
-        public int TotalWeight { get; }
+        public double EffectiveWeight { get; }
         
     }
 
@@ -132,7 +131,7 @@ namespace Game.Train.Unit
             if (input.MasconLevel > 0)
             {
                 var masconRate = input.MasconLevel / (double)MasterHolder.TrainUnitMaster.MasconLevelMaximum;
-                var acceleration = input.TotalTraction / input.TotalWeight * masconRate;
+                var acceleration = input.TotalTraction / input.EffectiveWeight * masconRate;
                 speed += acceleration * GameUpdater.SecondsPerTick;
             }
             if (input.MasconLevel < 0)
@@ -147,7 +146,7 @@ namespace Game.Train.Unit
                 speed = 0;
             }
             
-            var resistanceAcceleration = CalculateResistanceAcceleration(speed, input.TotalWeight);
+            var resistanceAcceleration = CalculateResistanceAcceleration(speed, input.EffectiveWeight);
             speed = ApplyOpposingAcceleration(speed, resistanceAcceleration, GameUpdater.SecondsPerTick);
             
             var distanceMeters = speed * GameUpdater.SecondsPerTick;
@@ -168,13 +167,14 @@ namespace Game.Train.Unit
             #endregion
         }
         
-        public static double CalculateResistanceAcceleration(double speed, int totalWeight)
+        public static double CalculateResistanceAcceleration(double speed, double effectiveWeight)
         {
             if (speed == 0) return 0;
-            var rollingResistanceForce = MasterHolder.TrainUnitMaster.Friction * totalWeight * 9.80665;
+            // 転がり抵抗は実重量に比例し実重量で割るので重量に依存しない。空気抵抗だけ実効重量で割る
+            // Rolling resistance scales with real weight and cancels out; only air resistance is divided by effective weight
+            var rollingResistanceAcceleration = MasterHolder.TrainUnitMaster.Friction * 9.80665;
             var airResistanceForce = MasterHolder.TrainUnitMaster.AirResistance * speed * speed;
-            var resistanceForce = rollingResistanceForce + airResistanceForce;
-            return resistanceForce / totalWeight;
+            return rollingResistanceAcceleration + airResistanceForce / effectiveWeight;
         }
 
     }

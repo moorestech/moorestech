@@ -1,6 +1,7 @@
 using Game.Train.RailGraph;
 using Game.Train.RailPositions;
 using Game.Train.Unit;
+using Game.Train.Unit.Motion;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -165,35 +166,29 @@ namespace Client.Game.InGame.Train.Unit
             int SimulateMotionStep()
             {
                 // 速度と距離のステップ計算
-                var (totalWeight, totalTraction) = GetWeightAndTractionForce();
-                //var stepInput = new TrainMotionStepInput(CurrentSpeed, AccumulatedDistance, MasconLevel, tractionForce);
-                var stepInput = new TrainMotionStepInput(CurrentSpeed, AccumulatedDistance, MasconLevel, totalTraction, totalWeight);
+                // Simulate velocity and distance per tick
+                var (effectiveWeight, totalTraction) = GetEffectiveWeightAndTractionForce();
+                var stepInput = new TrainMotionStepInput(CurrentSpeed, AccumulatedDistance, MasconLevel, totalTraction, effectiveWeight);
                 var stepResult = TrainDistanceSimulator.Step(stepInput);
                 CurrentSpeed = stepResult.NewSpeed;
                 AccumulatedDistance = stepResult.NewAccumulatedDistance;
                 return stepResult.DistanceToMove;
-                // 加速力を計算する
-                // Calculate traction force
-                (int,double) GetWeightAndTractionForce()
+
+                // サーバーと同じ実効重量と牽引力を求める
+                // Calculate the same effective weight and traction as the server
+                (double, double) GetEffectiveWeightAndTractionForce()
                 {
                     var localCars = _cars ?? Array.Empty<TrainCarSnapshot>();
                     if (localCars.Count == 0) return (0, 0);
-                    int totalWeight = 0;
-                    int totalTraction = 0;
+                    var effectiveWeightCalculator = new TrainEffectiveWeightCalculator();
+                    double totalTraction = 0;
                     foreach (var car in localCars)
                     {
-                        var (weight, traction) = GetWeightAndTraction(car);
-                        totalWeight += weight;
-                        totalTraction += traction;
+                        MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(car.TrainCarMasterId, out var trainElement);
+                        effectiveWeightCalculator.AddCar(car.Weight, trainElement);
+                        totalTraction += trainElement.TractionForce;
                     }
-                    return (totalWeight, totalTraction);
-                    //if (totalWeight == 0) return 0;
-                    //return (double)totalTraction / totalWeight * masconLevel / MasterHolder.TrainUnitMaster.MasconLevelMaximum;
-                    (int, int) GetWeightAndTraction(TrainCarSnapshot trainCarSnapshot)
-                    {
-                        MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(trainCarSnapshot.TrainCarMasterId, out var trainElement);
-                        return (trainCarSnapshot.Weight, trainElement.TractionForce);
-                    }
+                    return (effectiveWeightCalculator.CalculateEffectiveWeight(), totalTraction);
                 }
             }
             #endregion
