@@ -1,5 +1,5 @@
 using NUnit.Framework;
-using Client.Game.Common.TickSynchronization;
+using Client.Game.TickSynchronization;
 using Core.Update.TickSynchronization;
 
 namespace Client.Tests

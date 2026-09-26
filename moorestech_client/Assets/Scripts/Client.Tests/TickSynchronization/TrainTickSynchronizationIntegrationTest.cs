@@ -1,3 +1,18 @@
+using System;
+using System.Runtime.Serialization;
+using Client.Game.InGame.Context;
+using Client.Game.InGame.Train.RailGraph;
+using Client.Network.API;
+using Client.Tests.Common;
+using Game.Context;
+using Game.PlayerRiding.Interface;
+using Game.Train.RailGraph;
+using Game.Train.Unit;
+using Server.Event;
+using Tests.UnitTest.PlayerRiding;
+using Tests.Util;
+using UniRx;
+using Core.Update.TickSynchronization;
 using System.Linq;
 using Client.Game.Common;
 using Client.Game.InGame.Train.Network;
@@ -19,6 +34,131 @@ namespace Client.Tests.TickSynchronization
 {
     public class TrainTickSynchronizationIntegrationTest
     {
+        [Test]
+        public void RealRailAndTrainPorts_ShareSequenceAndApplyEveryCapturedMutation()
+        {
+            var (packets, services) = new MoorestechServerDIContainerGenerator().Create(
+                new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            using var serviceLifetime = services;
+            var environment = new TrainTestEnvironment(services, ServerContext.WorldBlockDatastore, packets);
+            using var client = new TrainSnapshotClientFixture();
+            var car = RidingTestHelper.RegisterSeatedCarOnNewTrain(environment, 0);
+            Assert.IsTrue(environment.GetTrainUnitDatastore().TryGetTrainUnitByCar(car.TrainCarInstanceId, out var train));
+            var riding = services.GetRequiredService<IPlayerRidingDatastore>();
+            Assert.AreEqual(RideActionResult.Success, riding.TryRide(1,
+                new TrainCarRidableIdentifier(car.TrainCarInstanceId.AsPrimitive()), out _));
+            var sink = new CapturedEventSink();
+            services.GetRequiredService<EventProtocolProvider>().RegisterPlayer(1, sink);
+            client.ApplyRail(sink.Events.Single(e => e.Tag == TrainFullSnapshotEventPacket.RailGraphFullSnapshotEventTag).Payload);
+            var clientTrain = client.Trains.Upsert(TrainUnitSnapshotFactory.CreateSnapshot(train));
+            var initialBranch = clientTrain.GetManualBranchSelectionIndex();
+            sink.TakeAll();
+
+            // 実運転入力と4種のrail更新を、同じサーバーtickの各通知口から発行する。
+            // Emit real driving input and all four rail mutations through their ports in one server tick.
+            services.GetRequiredService<TrainCarRidingInputBuffer>().SetLatestInput(
+                new TrainCarRidingInputBuffer.TrainCarRidingInputState(1, 0, false, true, false, false));
+            GameUpdater.UpdateOneTick();
+            var graph = environment.GetRailGraphDatastore();
+            var (first, second) = RailNode.CreatePairAndRegister(graph);
+            graph.ConnectNode(first, second, 10, Guid.Empty, false);
+            graph.DisconnectNode(first, second);
+            graph.RemoveNode(second);
+            var events = sink.TakeAll();
+            Assert.AreEqual(6, events.Count);
+            var ids = events.Select(GetId).ToArray();
+            Assert.That(ids.Select(id => (uint)(id >> 32)), Is.All.EqualTo(1u));
+            CollectionAssert.AreEqual(Enumerable.Range(1, events.Count).Select(seq => (uint)seq), ids.Select(id => (uint)id));
+            Assert.AreEqual(events.Count, ids.Distinct().Count());
+            Assert.AreEqual(initialBranch + 1, train.GetManualBranchSelectionIndex());
+
+            var previousApi = ClientContext.VanillaApi;
+            using var source = new Subject<EventMessagePack>();
+            var exchange = (PacketExchangeManager)FormatterServices.GetUninitializedObject(typeof(PacketExchangeManager));
+            TestReflection.SetField(exchange, "_eventPacketSubject", source);
+            var dispatcher = new VanillaApiEvent(exchange);
+            var api = (VanillaApi)FormatterServices.GetUninitializedObject(typeof(VanillaApi));
+            typeof(VanillaApi).GetField("Event").SetValue(api, dispatcher);
+            try
+            {
+                TestReflection.SetStaticProperty(typeof(ClientContext), "VanillaApi", api);
+                using var nodes = new RailGraphCacheNetworkHandler(client.Context, client.Rails,
+                    TestReflection.GetField<ClientStationReferenceRegistry>(client, "_stations"));
+                using var connections = new RailGraphConnectionNetworkHandler(client.Context, client.Rails);
+                using var bundles = new TrainUnitTickDiffBundleEventNetworkHandler(client.Context, client.Trains);
+                nodes.Initialize();
+                connections.Initialize();
+                bundles.Initialize();
+                foreach (var message in events.AsEnumerable().Reverse()) source.OnNext(message);
+                dispatcher.InitializeDispatch();
+                Assert.AreEqual(initialBranch, clientTrain.GetManualBranchSelectionIndex());
+                Assert.IsFalse(client.Rails.Nodes.Any(node => node != null && node.NodeGuid == first.Guid));
+
+                // 逆順到着しても全keyを一度ずつ適用し、相殺される追加/削除の中間状態も観測する。
+                // Flush every key once after reverse delivery and observe intermediate create/remove states.
+                foreach (var message in events)
+                {
+                    var id = GetId(message);
+                    Assert.IsTrue(client.Context.Events.TryFlushEvent(id), message.Tag);
+                    Assert.IsFalse(client.Context.Events.TryFlushEvent(id), message.Tag);
+                    switch (message.Tag)
+                    {
+                        case TrainUnitTickDiffBundleEventPacket.EventTag:
+                            Assert.AreEqual(train.GetManualBranchSelectionIndex(), clientTrain.GetManualBranchSelectionIndex());
+                            break;
+                        case RailNodeCreatedEventPacket.EventTag:
+                            var created = MessagePackSerializer.Deserialize<RailNodeCreatedMessagePack>(message.Payload);
+                            Assert.AreEqual(created.NodeGuid, client.Rails.Nodes[created.NodeId].NodeGuid);
+                            break;
+                        case RailConnectionCreatedEventPacket.EventTag:
+                            var connected = MessagePackSerializer.Deserialize<RailConnectionCreatedMessagePack>(message.Payload);
+                            Assert.IsTrue(client.Rails.ConnectNodes[connected.FromNodeId].Any(edge => edge.targetId == connected.ToNodeId && edge.distance == connected.Distance));
+                            break;
+                        case RailConnectionRemovedEventPacket.EventTag:
+                            var disconnected = MessagePackSerializer.Deserialize<RailConnectionRemovedMessagePack>(message.Payload);
+                            Assert.IsFalse(client.Rails.ConnectNodes[disconnected.FromNodeId].Any(edge => edge.targetId == disconnected.ToNodeId));
+                            break;
+                        case RailNodeRemovedEventPacket.EventTag:
+                            var removed = MessagePackSerializer.Deserialize<RailNodeRemovedMessagePack>(message.Payload);
+                            Assert.IsNull(client.Rails.Nodes[removed.NodeId]);
+                            break;
+                    }
+                }
+                Assert.AreEqual(graph.GetConnectNodesHash(), client.Rails.ComputeCurrentHash());
+            }
+            finally
+            {
+                TestReflection.SetStaticProperty(typeof(ClientContext), "VanillaApi", previousApi);
+            }
+
+            #region Internal
+            ulong GetId(EventMessagePack message)
+            {
+                switch (message.Tag)
+                {
+                    case TrainUnitTickDiffBundleEventPacket.EventTag:
+                        var bundle = MessagePackSerializer.Deserialize<TrainUnitTickDiffBundleMessagePack>(message.Payload);
+                        Assert.IsNotEmpty(bundle.Diffs);
+                        return TickUnifiedIdUtility.CreateTickUnifiedId(bundle.ServerTick, bundle.DiffTickSequenceId);
+                    case RailNodeCreatedEventPacket.EventTag:
+                        var created = MessagePackSerializer.Deserialize<RailNodeCreatedMessagePack>(message.Payload);
+                        return TickUnifiedIdUtility.CreateTickUnifiedId(created.ServerTick, created.TickSequenceId);
+                    case RailNodeRemovedEventPacket.EventTag:
+                        var removed = MessagePackSerializer.Deserialize<RailNodeRemovedMessagePack>(message.Payload);
+                        return TickUnifiedIdUtility.CreateTickUnifiedId(removed.ServerTick, removed.TickSequenceId);
+                    case RailConnectionCreatedEventPacket.EventTag:
+                        var connected = MessagePackSerializer.Deserialize<RailConnectionCreatedMessagePack>(message.Payload);
+                        return TickUnifiedIdUtility.CreateTickUnifiedId(connected.ServerTick, connected.TickSequenceId);
+                    case RailConnectionRemovedEventPacket.EventTag:
+                        var disconnected = MessagePackSerializer.Deserialize<RailConnectionRemovedMessagePack>(message.Payload);
+                        return TickUnifiedIdUtility.CreateTickUnifiedId(disconnected.ServerTick, disconnected.TickSequenceId);
+                    default:
+                        throw new AssertionException("Unexpected event: " + message.Tag);
+                }
+            }
+            #endregion
+        }
+
         [Test]
         public void CapturedHandshakeAndEmptyBundle_ApplyThenAdvanceExactlyOnce()
         {
@@ -51,7 +191,7 @@ namespace Client.Tests.TickSynchronization
                 client.Context.AdvanceController.Advance(0.1f, client.Gate);
                 Assert.AreEqual(1u, client.Context.State.GetTick());
                 client.Context.AdvanceController.Advance(0.1f, client.Gate);
-                Assert.IsFalse(client.Context.Events.TryFlushEvent(1, bundle.DiffTickSequenceId));
+                Assert.IsFalse(client.Context.Events.TryFlushEvent(TickUnifiedIdUtility.CreateTickUnifiedId(1, bundle.DiffTickSequenceId)));
                 Assert.AreEqual(1u, client.Context.State.GetTick());
             }
         }
@@ -77,9 +217,9 @@ namespace Client.Tests.TickSynchronization
                 client.ApplyRail(sink.Events.Single(e => e.Tag == TrainFullSnapshotEventPacket.RailGraphFullSnapshotEventTag).Payload);
                 client.ApplyTrain(sink.Events.Single(e => e.Tag == TrainFullSnapshotEventPacket.TrainUnitFullSnapshotEventTag).Payload);
                 Assert.AreEqual(1u, client.Context.State.GetTick());
-                Assert.IsFalse(client.Context.Events.TryFlushEvent(1, 1));
-                Assert.IsTrue(client.Context.Events.TryFlushEvent(2, 1));
-                Assert.IsFalse(client.Context.Events.TryFlushEvent(2, 1));
+                Assert.IsFalse(client.Context.Events.TryFlushEvent(TickUnifiedIdUtility.CreateTickUnifiedId(1, 1)));
+                Assert.IsTrue(client.Context.Events.TryFlushEvent(TickUnifiedIdUtility.CreateTickUnifiedId(2, 1)));
+                Assert.IsFalse(client.Context.Events.TryFlushEvent(TickUnifiedIdUtility.CreateTickUnifiedId(2, 1)));
             }
         }
     }

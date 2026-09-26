@@ -499,3 +499,13 @@ Commit: `test: cover tick stream isolation and train synchronization lifecycle`
 - 最終Error取得は **3件**。未変更のCEF package validatorによるmacOS用metaパスのDirectoryNotFoundExceptionがEnterPlayMode直後、未変更のUserPacketHandlerによる切断LogErrorとSocketExceptionがExitPlayMode後に各1件。実起動・snapshot適用の検証区間は `LogAssert.ignoreFailingMessages=false` でPASS。Error0とは報告しない。
 - 起動準備時に判明したWebUI Node不足は環境担当が指定Node v20.18.1/pnpm9.15.0とfrozen-lockfile依存を配置して解消。環境ソース・lockfile・CEF・Library・pinの変更はコミットへ含めない。保存fixtureが破棄済みDIをstaticへ残していた問題はfixture所有の前値復元で解消し、製品bootは変更していない。
 - 生出力: `C:/Users/5080/Documents/ChatGPT/tick-delta-refactor-20260926/task-3-compile-final.json`、`task-3-loaded-types-final.json`、`task-3-affected-final.xml`、`task-3-play-final.xml`、`task-3-play-final-editor.log`、`task-3-errors-final.json`。初回失敗を含む各iterationのJSON/XMLも同directoryへ保存した。
+
+
+### 最終review修正の検証（2026-09-26、C9/C10裁定待ち時点）
+
+- C7のfixture/helperを呼出し元のlocal functionへ移し、両Play testのbodyをiteratorへ展開した。Unityのdomain reloadで捕捉オブジェクトが失われないよう、local functionを含むbodyのスコープはEnterPlayMode後に開始する。C13のsnapshot待機とtick再開は各15秒の名前付きTimeSpanとStopwatchで期限を判定する。C14のfixture構築失敗はfinallyでproviderと一時rootを回収し、Play退出・SessionState・ignore flagはUnityTearDownで復元する。
+- C8の追加受入はGeneratorのIBootInitializable.Loadで登録された実購読を維持し、乗車中のbranch選択入力によるtrain diff、node作成2件、connection作成/削除、node削除の計6件を同tickで発行する。全seqの連番・一意性と、逆順配送→VanillaApiEvent→実handler→buffer→各keyのrail/train cache変化・最終graph hashを確認した。既存TrainTestHelper.CreateEnvironmentの起動後Resetは4notifierを再生成するため使わず、GeneratorからTrainTestEnvironmentへ直接接続している。
+- namespace移動と単一統合ID版TryFlushEventへの追従を含め、テスト変更は既存8 C#ファイル。最終影響回帰は **84/84 PASS、fail/skip 0**（12:14:22〜12:14:33 UTC）、実保存乗車起動・再同期は **1/1 PASS**（12:16:15〜12:16:34 UTC）。初回83/84のiterator捕捉失敗を修正後、両iteratorを現行assemblyで再実行した。
+- Client.Tests MVID `e3f3f59e-e3a9-4129-8fdb-4682a90f00a9`、Client.Game MVID `2f4dc774-a469-4c7a-b312-818057cf8fbf`、Game.Train MVID `4b0fc77a-0763-49f3-9c56-b7eb628c608b`。新case・移動後namespace・TryAcceptReceivedTickUnifiedId・単一ID overloadをロード済みreflectionで確認。最初の変更compileは0 errors / 77 warnings、最後の変更なしcompileは0 errors / 0 warnings。既存警告の消滅という意味ではない。
+- 最終live Errorは **3件**。独立Editor-log segmentの314行が未変更CEF validatorのmacOS metaパス例外（Play遷移直後）、4690/4707行が未変更UserPacketHandlerの終了時切断LogError/SocketException。assert区間は329〜4440行でignore=false、初期`4_1`と要求後`202_1`のsnapshot適用を含み、同期Errorなし。失敗したstartup初回もWebUiHost停止・backup scene復元・ignore=falseへの復帰と後続ケース継続を確認した。
+- 生証拠は `C:/Users/5080/Documents/ChatGPT/tick-delta-refactor-20260926/final-fix-*` のcompile/loaded/affected-final/play-final XMLとEditor-log/errors-final JSON。外部の構築IOExceptionプローブは結果表示時にテスト外LogAssert getterが失敗したため、成功証拠に数えない。共用source無変更、read-lockはusingで解除、通常live Error件数とは分離した。C9/C10の挙動・期待値はこの修正では変更していない。

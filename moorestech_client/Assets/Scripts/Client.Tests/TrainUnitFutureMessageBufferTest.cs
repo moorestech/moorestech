@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using NUnit.Framework;
-using Client.Game.Common.TickSynchronization;
+using Client.Game.TickSynchronization;
 using Core.Update.TickSynchronization;
 
 namespace Client.Tests
@@ -28,8 +28,8 @@ namespace Client.Tests
             _tickState.RecordAppliedTickUnifiedId(10, 0);
             _buffer.EnqueueEvent(11, 1, TickBufferedEvent.Create(() => applied.Add("eventA")));
 
-            var flushed = _buffer.TryFlushEvent(11, 1);
-            var flushedAgain = _buffer.TryFlushEvent(11, 1);
+            var flushed = _buffer.TryFlushEvent(TickUnifiedIdUtility.CreateTickUnifiedId(11, 1));
+            var flushedAgain = _buffer.TryFlushEvent(TickUnifiedIdUtility.CreateTickUnifiedId(11, 1));
 
             Assert.IsTrue(flushed);
             Assert.IsFalse(flushedAgain);
@@ -50,9 +50,9 @@ namespace Client.Tests
             _buffer.EnqueueEvent(20, 5, TickBufferedEvent.Create(() => applied.Add("staleB")));
             _buffer.EnqueueEvent(21, 0, TickBufferedEvent.Create(() => applied.Add("future")));
 
-            Assert.IsFalse(_buffer.TryFlushEvent(20, 4));
-            Assert.IsFalse(_buffer.TryFlushEvent(20, 5));
-            Assert.IsTrue(_buffer.TryFlushEvent(21, 0));
+            Assert.IsFalse(_buffer.TryFlushEvent(TickUnifiedIdUtility.CreateTickUnifiedId(20, 4)));
+            Assert.IsFalse(_buffer.TryFlushEvent(TickUnifiedIdUtility.CreateTickUnifiedId(20, 5)));
+            Assert.IsTrue(_buffer.TryFlushEvent(TickUnifiedIdUtility.CreateTickUnifiedId(21, 0)));
             CollectionAssert.AreEqual(new[] { "future" }, applied);
         }
 

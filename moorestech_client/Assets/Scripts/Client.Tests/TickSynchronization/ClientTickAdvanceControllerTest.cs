@@ -1,4 +1,4 @@
-using Client.Game.Common.TickSynchronization;
+using Client.Game.TickSynchronization;
 using Core.Update.TickSynchronization;
 using NUnit.Framework;
 using System.Collections.Generic;
