@@ -229,13 +229,13 @@ Commit: `refactor: separate server tick clock and train stream sequence`
 
 **Interfaces:**
 - Consumes: Task 1の `TrainTickUnifiedIdUtility.CreateTickUnifiedId(uint,uint)`。
-- Produces: internal `TrainUnitTickState`。旧TrainUnitTickStateのmethod名/戻り値/挙動を維持する。
-- Produces: internal `ITrainTickBufferedEvent { void Apply(); }`, `TrainTickBufferedEvent.Create(Action applyAction) : ITrainTickBufferedEvent`。既存の同期callback契約の移動。
-- Produces: internal `TrainUnitFutureMessageBuffer(TrainUnitTickState state)`, `void EnqueueEvent(uint tick,uint sequence,ITrainTickBufferedEvent bufferedEvent)`, `bool TryFlushEvent(ulong id)`, `bool TryFlushEvent(uint tick,uint sequence)`, `void DiscardEventsAtOrBelow(ulong watermark)`。
-- Produces: internal `ITrainUnitHashTickGate { bool CanAdvanceTick(ulong currentTickUnifiedId); }`。
+- Produces: public `TrainUnitTickState`。旧TrainUnitTickStateのmethod名/戻り値/挙動を維持する。
+- Produces: public `ITrainTickBufferedEvent { void Apply(); }`, internal `TrainTickBufferedEvent.Create(Action applyAction) : ITrainTickBufferedEvent`。既存の同期callback契約の移動。
+- Produces: public `TrainUnitFutureMessageBuffer(TrainUnitTickState state)`, `void EnqueueEvent(uint tick,uint sequence,ITrainTickBufferedEvent bufferedEvent)`, `bool TryFlushEvent(ulong id)`, `bool TryFlushEvent(uint tick,uint sequence)`, `void DiscardEventsAtOrBelow(ulong watermark)`。
+- Produces: public `ITrainUnitHashTickGate { bool CanAdvanceTick(ulong currentTickUnifiedId); }`。
 - Produces: internal `ClientTickAdvanceController(TrainUnitTickState state,TrainUnitFutureMessageBuffer events)`, `double Advance(float deltaTime,ITrainUnitHashTickGate gate)`。
-- Produces: public `TrainTickContext()`、internal readonly fields `State : TrainUnitTickState`, `Events : TrainUnitFutureMessageBuffer`, `AdvanceController : ClientTickAdvanceController`, `Hashes : TrainUnitHashBuffer`。
-- Produces: internal `TrainUnitHashBuffer(TrainUnitTickState state)`。旧FutureMessageBufferのhash tuple/API・DummyHash・first-hash logをそのまま移動する。
+- Produces: public `TrainTickContext()`、public readonly fields `State : TrainUnitTickState`, `Events : TrainUnitFutureMessageBuffer`, `Hashes : TrainUnitHashBuffer`、internal readonly field `AdvanceController : ClientTickAdvanceController`。
+- Produces: public `TrainUnitHashBuffer(TrainUnitTickState state)`。旧FutureMessageBufferのhash tuple/API・DummyHash・first-hash logをそのまま移動する。
 
 - [ ] **Step 1: common適用の非train fixtureと既存gateケースをテストする。**
 
@@ -274,10 +274,10 @@ private sealed class CountingTickEvent : ITrainTickBufferedEvent
 ```csharp
 public sealed class TrainTickContext
 {
-    internal readonly TrainUnitTickState State;
-    internal readonly TrainUnitFutureMessageBuffer Events;
+    public readonly TrainUnitTickState State;
+    public readonly TrainUnitFutureMessageBuffer Events;
     internal readonly ClientTickAdvanceController AdvanceController;
-    internal readonly TrainUnitHashBuffer Hashes;
+    public readonly TrainUnitHashBuffer Hashes;
     public TrainTickContext()
     {
         State = new TrainUnitTickState();
@@ -298,17 +298,21 @@ public void Tick()
 }
 ```
 
-TrainUnitClientSimulatorは `(TrainTickContext context, TrainUnitHashVerifier hashTickGate, TrainUnitVisualUpdateSystem visualUpdateSystem)` を受け取る。TrainUnitHashVerifierはITrainUnitHashTickGateを実装し、context.State/context.Hashesを利用する。gateのboolは既存の進行可否契約で、新しい意思決定結果を呼出し側に組み立てさせる変更ではない。
+TrainUnitClientSimulatorは `(TrainUnitTickState tickState, ITrainUnitHashTickGate hashTickGate, TrainUnitVisualUpdateSystem visualUpdateSystem, TrainTickContext context)` を受け取る。TrainUnitHashVerifierはITrainUnitHashTickGateを実装し、contextが所有するTrainUnitTickState/TrainUnitHashBufferを直接注入する。gateのboolは既存の進行可否契約で、新しい意思決定結果を呼出し側に組み立てさせる変更ではない。
 
-全network/applier/debugの旧state/buffer注入をTrainTickContextへ置換し、event操作はcontext.Events、hash操作はcontext.Hashes、位置操作はcontext.Stateへ一意に寄せる。TrainUnitSnapshotApplier/RailGraphSnapshotApplier/TrainFullSnapshotEventNetworkHandlerの適用bodyと完了順を変更しない。debug formatterがinternal型をpublic引数に出さないようFormatはTrainTickContextを受け取る。
+network/applier/debugは必要なstate/bufferを直接注入する。DIはTrainTickContextが一度だけ生成したState/Events/Hashesを各型へ登録し、同一streamの状態を共有する。初期完了を所有するTrainFullSnapshotEventNetworkHandlerと進行controllerを使うsimulatorはcontextを受け取る。debug formatterはTrainUnitTickStateを受け取る。
 
 ```csharp
-builder.Register<TrainTickContext>(Lifetime.Singleton);
+var trainTickContext = new TrainTickContext();
+builder.RegisterInstance(trainTickContext);
+builder.RegisterInstance(trainTickContext.State);
+builder.RegisterInstance(trainTickContext.Events);
+builder.RegisterInstance(trainTickContext.Hashes);
 builder.Register<TrainUnitClientSimulator>(Lifetime.Singleton).AsSelf().As<ITickable>();
-builder.Register<TrainUnitHashVerifier>(Lifetime.Singleton).AsSelf().As<IDisposable>();
+builder.Register<TrainUnitHashVerifier>(Lifetime.Singleton).AsSelf().As<ITrainUnitHashTickGate>();
 ```
 
-旧state/buffer/gate interfaceのunkeyed DI登録を削除する。将来streamは独自のdomain contextでcommon instanceを所有し、TrainTickContextを注入しない。
+State/Events/Hashesの型別DI登録はtrain用contextが所有する実体を指す。hash gateは同一singletonを具体型とITrainUnitHashTickGateから解決する。将来streamは独自のdomain contextでcommon instanceを所有し、TrainTickContextを注入しない。
 
 ```csharp
 public UniTask<TrainResyncProtocol.ResponseMessagePack> SendTrainResync(bool includeRailGraph, CancellationToken ct)

@@ -3,7 +3,6 @@ using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.Train.View.Object.Core;
 using Client.Network.API;
 using UnityEngine;
-using Client.Game.InGame.Train.Network.TickSynchronization;
 using Core.Update.TickSynchronization;
 
 namespace Client.Game.InGame.Train.View
@@ -20,11 +19,11 @@ namespace Client.Game.InGame.Train.View
 
         public TrainUnitSnapshotApplier(
             TrainUnitClientCache cache,
-            TrainTickContext context,
+            TrainUnitTickState tickState,
             TrainCarObjectDatastore trainCarDatastore)
         {
             _cache = cache;
-            _tickState = context.State;
+            _tickState = tickState;
             _trainCarDatastore = trainCarDatastore;
         }
 

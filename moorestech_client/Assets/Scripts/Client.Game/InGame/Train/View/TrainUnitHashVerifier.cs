@@ -11,16 +11,20 @@ namespace Client.Game.InGame.Train.View
     public sealed class TrainUnitHashVerifier : ITrainUnitHashTickGate
     {
         private readonly TrainUnitHashBuffer _futureMessageBuffer;
-        private readonly TrainUnitTickState _tickState;
         private readonly TrainUnitClientCache _trainCache;
         private readonly RailGraphClientCache _railGraphCache;
+        private readonly TrainUnitTickState _tickState;
 
-        public TrainUnitHashVerifier(TrainTickContext context, TrainUnitClientCache trainCache, RailGraphClientCache railGraphCache)
+        public TrainUnitHashVerifier(
+            TrainUnitHashBuffer futureMessageBuffer,
+            TrainUnitClientCache trainCache,
+            RailGraphClientCache railGraphCache,
+            TrainUnitTickState tickState)
         {
-            _futureMessageBuffer = context.Hashes;
-            _tickState = context.State;
+            _futureMessageBuffer = futureMessageBuffer;
             _trainCache = trainCache;
             _railGraphCache = railGraphCache;
+            _tickState = tickState;
         }
 
         public bool CanAdvanceTick(ulong currentTickUnifiedId)

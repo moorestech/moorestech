@@ -33,9 +33,9 @@ namespace Client.Tests.TickSynchronization
             Views.Construct();
             _stations = new ClientStationReferenceRegistry(_root.AddComponent<BlockGameObjectDataStore>(), Rails);
             _stations.Initialize();
-            Handler = new TrainFullSnapshotEventNetworkHandler(new RailGraphSnapshotApplier(Rails, _stations, Context),
-                new TrainUnitSnapshotApplier(Trains, Context, Views), Context);
-            Gate = new TrainUnitHashVerifier(Context, Trains, Rails);
+            Handler = new TrainFullSnapshotEventNetworkHandler(new RailGraphSnapshotApplier(Rails, _stations, Context.State),
+                new TrainUnitSnapshotApplier(Trains, Context.State, Views), Context.Events, Context);
+            Gate = new TrainUnitHashVerifier(Context.Hashes, Trains, Rails, Context.State);
         }
 
         public static void Receive(object handler, string methodName, byte[] payload)

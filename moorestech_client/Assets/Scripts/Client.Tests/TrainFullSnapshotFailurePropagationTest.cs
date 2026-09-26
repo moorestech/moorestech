@@ -86,7 +86,7 @@ namespace Client.Tests
             {
                 TestReflection.SetStaticProperty(typeof(ClientContext), "VanillaApi", api);
                 client.Handler.Initialize();
-                using var deltas = new TrainUnitTickDiffBundleEventNetworkHandler(client.Context, client.Trains);
+                using var deltas = new TrainUnitTickDiffBundleEventNetworkHandler(client.Context.Events, client.Trains, client.Context.Hashes);
                 deltas.Initialize();
                 LogAssert.Expect(LogType.Error, new Regex("TrainFullSnapshot.*initial apply failed"));
                 if (failure != "rail-missing")

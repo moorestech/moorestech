@@ -3,7 +3,6 @@ using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.Train.Unit;
 using Server.Util.MessagePack;
 using UnityEngine;
-using Client.Game.InGame.Train.Network.TickSynchronization;
 using Core.Update.TickSynchronization;
 
 namespace Client.Game.InGame.Train.Network
@@ -21,11 +20,11 @@ namespace Client.Game.InGame.Train.Network
         public RailGraphSnapshotApplier(
             RailGraphClientCache cache,
             ClientStationReferenceRegistry stationReferenceRegistry,
-            TrainTickContext context)
+            TrainUnitTickState tickState)
         {
             _cache = cache;
             _stationReferenceRegistry = stationReferenceRegistry;
-            _tickState = context.State;
+            _tickState = tickState;
         }
 
         public void ApplySnapshot(RailGraphSnapshotMessagePack snapshot)

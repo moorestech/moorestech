@@ -8,7 +8,6 @@ using MessagePack;
 using Server.Event.EventReceive;
 using Server.Util.MessagePack;
 using VContainer.Unity;
-using Client.Game.InGame.Train.Network.TickSynchronization;
 
 namespace Client.Game.InGame.Train.Network
 {
@@ -22,11 +21,11 @@ namespace Client.Game.InGame.Train.Network
         private IDisposable _subscription;
 
         public TrainUnitSnapshotEventNetworkHandler(
-            TrainTickContext context,
+            TrainUnitFutureMessageBuffer futureMessageBuffer,
             TrainUnitClientCache cache,
             TrainCarObjectDatastore trainCarDatastore)
         {
-            _futureMessageBuffer = context.Events;
+            _futureMessageBuffer = futureMessageBuffer;
             _cache = cache;
             _trainCarDatastore = trainCarDatastore;
         }

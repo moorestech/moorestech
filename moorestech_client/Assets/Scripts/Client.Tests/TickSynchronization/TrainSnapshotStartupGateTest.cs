@@ -39,7 +39,8 @@ namespace Client.Tests.EditModeInPlayingTest
         [Test]
         public void TrainInitialApply_RemainsPendingBeforePayload()
         {
-            using var handler = new TrainFullSnapshotEventNetworkHandler(null, null, new TrainTickContext());
+            var context = new TrainTickContext();
+            using var handler = new TrainFullSnapshotEventNetworkHandler(null, null, context.Events, context);
             Assert.AreEqual(UniTaskStatus.Pending, handler.WaitForInitialApplyAsync().Preserve().Status);
         }
 
@@ -140,7 +141,7 @@ namespace Client.Tests.EditModeInPlayingTest
 
                     // 実server通知payloadをbuffer経由で削除・再生成まで通す。
                     // Apply real server structural payloads through the buffer to deletion and recreation.
-                    var structural = new TrainUnitSnapshotEventNetworkHandler(client.Context, client.Trains, client.Views);
+                    var structural = new TrainUnitSnapshotEventNetworkHandler(client.Context.Events, client.Trains, client.Views);
                     TrainSnapshotClientFixture.Receive(structural, "OnEventReceived", world.DeletePayload);
                     Assert.IsTrue(client.Views.TryGetEntity(world.CarId, out _));
                     var deleted = MessagePackSerializer.Deserialize<TrainUnitSnapshotEventMessagePack>(world.DeletePayload);

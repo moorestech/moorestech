@@ -6,7 +6,6 @@ using Server.Event.EventReceive;
 using Server.Util.MessagePack;
 using UniRx;
 using VContainer.Unity;
-using Client.Game.InGame.Train.Network.TickSynchronization;
 
 namespace Client.Game.InGame.Train.Network
 {
@@ -22,9 +21,9 @@ namespace Client.Game.InGame.Train.Network
 
         public RailGraphClientCache Cache => _cache;
 
-        public RailGraphConnectionNetworkHandler(TrainTickContext context, RailGraphClientCache cache)
+        public RailGraphConnectionNetworkHandler(TrainUnitFutureMessageBuffer futureMessageBuffer, RailGraphClientCache cache)
         {
-            _futureMessageBuffer = context.Events;
+            _futureMessageBuffer = futureMessageBuffer;
             _cache = cache;
         }
 

@@ -15,7 +15,7 @@
 
 1. サーバー側は各 EventPacket から `EventProtocolProvider.AddBroadcastEvent(...)` を呼ぶ。  
 2. クライアント側は `PacketExchangeManager` がpushイベントをmain threadへdispatchし、`VanillaApiEvent` がタグごとに配信する。購読開始前のイベントはbufferし、`InitializeDispatch` で到着順に同期replayする。
-3. Train/Rail 系ハンドラは即時適用せず `TrainTickContext.Events.EnqueueEvent(serverTick, tickSequenceId, ...)` に積む。
+3. Train/Rail 系ハンドラは即時適用せず `TrainUnitFutureMessageBuffer.EnqueueEvent(serverTick, tickSequenceId, ...)` に積む。
 4. `TrainUnitClientSimulator` が `TrainTickContext.AdvanceController` を呼び、共通driverがexact-keyのeventを同期flushしてからtrainのhash gateを評価する。view更新は引き続きsimulatorが担当する。
 
 ---
@@ -227,7 +227,7 @@
 
 `Core.Update.TickSynchronization.ServerTickClock` はセッション内uint tickを所有する。保存される累積 `GameUpdater.CurrentTick` とは別instance・別用途であり、save/loadしてもwire tickは新sessionの0から始まる。`MasterTickUpdater` は入口で旧tickを保持してclockを1回進め、gear/fluid更新後の既存境界で旧tickのtrain hashを発行し、`TrainTickSequenceSource.Sequence.BeginTick` でseq0へ戻してからtrain simulationとdiffを実行する。最初のeventはseq1、順序keyは `((ulong)tick << 32) | seq` のままである。
 
-train/railのpacketは同じ `TrainTickSequenceSource` を使う。他streamは同じclockを使えても、別 `TickSequenceState` を所有する。clientは `TrainTickContext` が `TrainUnitTickState`、`TrainUnitFutureMessageBuffer`、`ClientTickAdvanceController`、train固有の `TrainUnitHashBuffer` を所有する。共通化するstate/buffer/driverはtrain/railのpayload・cache・通信tag・hash判断に依存しない。別contextへのwatermark purgeやgate停止の波及はない。
+train/railのpacketは同じ `TrainTickSequenceSource` を使う。他streamは同じclockを使えても、別 `TickSequenceState` を所有する。clientは `TrainTickContext` が `TrainUnitTickState`、`TrainUnitFutureMessageBuffer`、`ClientTickAdvanceController`、train固有の `TrainUnitHashBuffer` を所有する。DIは同じState/Events/Hashesを各型から解決し、handler/applier/debugへ必要な依存を直接渡す。共通化するstate/buffer/driverはtrain/railのpayload・cache・通信tag・hash判断に依存しない。別contextへのwatermark purgeやgate停止の波及はない。
 
 bundleはhash(n-1)とdiff(n)を運び、空diffでもsimulationを起動する。4tick間引き、dummy hash、future-only force-slip、hash不一致時の保存なし異常終了の判断は `TrainUnitHashVerifier` に残る。driverのcatch-up係数と1frame最大4tickも維持する。
 

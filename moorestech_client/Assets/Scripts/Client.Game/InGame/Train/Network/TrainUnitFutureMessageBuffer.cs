@@ -7,7 +7,7 @@ namespace Client.Game.InGame.Train.Network
 {
     // stream内のイベントを統合IDで保持する。
     // Buffer stream events by unified id.
-    internal sealed class TrainUnitFutureMessageBuffer
+    public sealed class TrainUnitFutureMessageBuffer
     {
         private readonly TrainUnitTickState _tickState;
         private readonly SortedDictionary<ulong, ITrainTickBufferedEvent> _futureEvents = new();

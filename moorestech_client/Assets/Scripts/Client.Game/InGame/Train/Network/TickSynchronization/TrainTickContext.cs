@@ -9,10 +9,10 @@ namespace Client.Game.InGame.Train.Network.TickSynchronization
     public sealed class TrainTickContext
     {
         internal bool IsInitialSnapshotApplied { get; private set; }
-        internal readonly TrainUnitTickState State;
-        internal readonly TrainUnitFutureMessageBuffer Events;
+        public readonly TrainUnitTickState State;
+        public readonly TrainUnitFutureMessageBuffer Events;
         internal readonly ClientTickAdvanceController AdvanceController;
-        internal readonly TrainUnitHashBuffer Hashes;
+        public readonly TrainUnitHashBuffer Hashes;
 
         public TrainTickContext()
         {

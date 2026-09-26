@@ -5,7 +5,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using VContainer.Unity;
-using Client.Game.InGame.Train.Network.TickSynchronization;
 
 namespace Client.Game.InGame.Train.DebugView
 {
@@ -23,10 +22,10 @@ namespace Client.Game.InGame.Train.DebugView
         private float _elapsedSeconds = RefreshIntervalSeconds;
         private bool _wasEnabled;
 
-        public TrainUnitDebugOverlayPresenter(TrainUnitClientCache trainCache, TrainTickContext context)
+        public TrainUnitDebugOverlayPresenter(TrainUnitClientCache trainCache, TrainUnitTickState tickState)
         {
             _trainCache = trainCache;
-            _tickState = context.State;
+            _tickState = tickState;
         }
 
         public void Tick()

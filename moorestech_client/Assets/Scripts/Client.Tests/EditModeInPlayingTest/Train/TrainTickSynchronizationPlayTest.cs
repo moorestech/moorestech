@@ -133,6 +133,10 @@ namespace Client.Tests.EditModeInPlayingTest
                 async UniTask VerifyOrderedDeltas()
                 {
                     var context = resolver.Resolve<TrainTickContext>();
+                    Assert.AreSame(context.State, resolver.Resolve<TrainUnitTickState>());
+                    Assert.AreSame(context.Events, resolver.Resolve<TrainUnitFutureMessageBuffer>());
+                    Assert.AreSame(context.Hashes, resolver.Resolve<TrainUnitHashBuffer>());
+                    Assert.AreSame(resolver.Resolve<TrainUnitHashVerifier>(), resolver.Resolve<ITrainUnitHashTickGate>());
                     var trains = resolver.Resolve<TrainUnitClientCache>();
                     var beforeTrain = trains.Units[fixture.TrainId];
                     var initialTick = context.State.GetTick();

@@ -42,7 +42,7 @@ driverからviewを購読して動かす機構へ変えず、既存ITickableのt
 | TrainUnitTickState | InGame/Train/Unit/TrainUnitTickState.cs |
 | ITrainUnitHashTickGate | InGame/Train/Unit/ITrainUnitHashTickGate.cs |
 
-Network配下3型のnamespaceは`Client.Game.InGame.Train.Network`、Unit配下2型は`Client.Game.InGame.Train.Unit`とする。TrainTickContextがState/Events/Hashes/AdvanceControllerを各1個所有し、既存利用者は同じ実体への参照を旧field名で保持する。初期完了・進行計算が必要な箇所ではcontextも保持する。
+Network配下3型のnamespaceは`Client.Game.InGame.Train.Network`、Unit配下2型は`Client.Game.InGame.Train.Unit`とする。TrainTickContextがState/Events/Hashes/AdvanceControllerを各1個所有する。MainGameInteractionRegistrationはcontextを一度生成し、同じState/Events/Hashesを各型のDI登録へ渡す。既存利用者は必要な依存を直接受け取り、旧引数名・field名・代入を維持する。分離したhash処理にはTrainUnitHashBufferを注入する。初期完了・進行計算が必要な箇所ではcontextも保持する。
 
 FutureMessageBufferから分離したTrainUnitHashBuffer、TrainUnitClientSimulatorから抽出したClientTickAdvanceControllerなど、新規抽出型は現在の配置を維持する。server DTOの`HashStateEventData`・`TrainTickDiffData`は元の`Game.Train.Unit` namespaceを使い、独立型としての抽出を維持する。`TrainTickUnifiedIdUtility`はserver/client共用のため`Core.Update.TickSynchronization`に置く。後日の配置整理はコード差分の確認後に扱う。
 

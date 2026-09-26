@@ -7,7 +7,6 @@ using Server.Event.EventReceive;
 using Server.Util.MessagePack;
 using UniRx;
 using VContainer.Unity;
-using Client.Game.InGame.Train.Network.TickSynchronization;
 
 namespace Client.Game.InGame.Train.Network
 {
@@ -23,11 +22,11 @@ namespace Client.Game.InGame.Train.Network
         private readonly CompositeDisposable _subscriptions = new();
 
         public RailGraphCacheNetworkHandler(
-            TrainTickContext context,
+            TrainUnitFutureMessageBuffer futureMessageBuffer,
             RailGraphClientCache cache,
             ClientStationReferenceRegistry stationReferenceRegistry)
         {
-            _futureMessageBuffer = context.Events;
+            _futureMessageBuffer = futureMessageBuffer;
             _cache = cache;
             _stationReferenceRegistry = stationReferenceRegistry;
         }

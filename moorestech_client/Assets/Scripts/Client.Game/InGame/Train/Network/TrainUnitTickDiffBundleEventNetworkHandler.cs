@@ -19,11 +19,11 @@ namespace Client.Game.InGame.Train.Network
         private readonly TrainUnitClientCache _cache;
         private IDisposable _subscription;
 
-        public TrainUnitTickDiffBundleEventNetworkHandler(TrainTickContext context, TrainUnitClientCache cache)
+        public TrainUnitTickDiffBundleEventNetworkHandler(TrainUnitFutureMessageBuffer futureMessageBuffer, TrainUnitClientCache cache, TrainUnitHashBuffer hashBuffer)
         {
-            _futureMessageBuffer = context.Events;
-            _hashBuffer = context.Hashes;
+            _futureMessageBuffer = futureMessageBuffer;
             _cache = cache;
+            _hashBuffer = hashBuffer;
         }
 
         public void Initialize()

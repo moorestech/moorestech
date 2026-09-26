@@ -82,10 +82,10 @@ namespace Client.Tests.TickSynchronization
             try
             {
                 TestReflection.SetStaticProperty(typeof(ClientContext), "VanillaApi", api);
-                using var nodes = new RailGraphCacheNetworkHandler(client.Context, client.Rails,
+                using var nodes = new RailGraphCacheNetworkHandler(client.Context.Events, client.Rails,
                     TestReflection.GetField<ClientStationReferenceRegistry>(client, "_stations"));
-                using var connections = new RailGraphConnectionNetworkHandler(client.Context, client.Rails);
-                using var bundles = new TrainUnitTickDiffBundleEventNetworkHandler(client.Context, client.Trains);
+                using var connections = new RailGraphConnectionNetworkHandler(client.Context.Events, client.Rails);
+                using var bundles = new TrainUnitTickDiffBundleEventNetworkHandler(client.Context.Events, client.Trains, client.Context.Hashes);
                 nodes.Initialize();
                 connections.Initialize();
                 bundles.Initialize();
@@ -175,7 +175,7 @@ namespace Client.Tests.TickSynchronization
 
                 // railだけでは起動待機を完了せず、trainのview適用後に完了する。
                 // Rail alone cannot finish startup; train view application must complete first.
-                new Client.Game.InGame.Train.Unit.TrainUnitClientSimulator(client.Context, client.Gate, null).Tick();
+                new Client.Game.InGame.Train.Unit.TrainUnitClientSimulator(client.Context.State, client.Gate, null, client.Context).Tick();
                 client.ApplyRail(sink.Events[0].Payload);
                 Assert.AreEqual(UniTaskStatus.Pending, waiting.Status);
                 client.ApplyTrain(sink.Events[1].Payload);
@@ -192,7 +192,7 @@ namespace Client.Tests.TickSynchronization
                 var payload = sink.Events.Single(e => e.Tag == TrainUnitTickDiffBundleEventPacket.EventTag).Payload;
                 var bundle = MessagePackSerializer.Deserialize<TrainUnitTickDiffBundleMessagePack>(payload);
                 Assert.IsEmpty(bundle.Diffs);
-                var handler = new TrainUnitTickDiffBundleEventNetworkHandler(client.Context, client.Trains);
+                var handler = new TrainUnitTickDiffBundleEventNetworkHandler(client.Context.Events, client.Trains, client.Context.Hashes);
                 TrainSnapshotClientFixture.Receive(handler, "OnEventReceived", payload);
                 client.Context.AdvanceController.Advance(0.1f, client.Gate);
                 Assert.AreEqual(1u, client.Context.State.GetTick());
@@ -215,7 +215,7 @@ namespace Client.Tests.TickSynchronization
                 services.GetRequiredService<EventProtocolProvider>().RegisterPlayer(1, sink);
                 GameUpdater.UpdateOneTick();
                 var bundles = sink.Events.Where(e => e.Tag == TrainUnitTickDiffBundleEventPacket.EventTag).ToArray();
-                var handler = new TrainUnitTickDiffBundleEventNetworkHandler(client.Context, client.Trains);
+                var handler = new TrainUnitTickDiffBundleEventNetworkHandler(client.Context.Events, client.Trains, client.Context.Hashes);
                 foreach (var bundle in bundles) TrainSnapshotClientFixture.Receive(handler, "OnEventReceived", bundle.Payload);
 
                 // snapshotを跨いで到着済みの2本を、watermarkで片方だけ捨てる。

@@ -11,7 +11,7 @@ namespace Client.Game.InGame.Train.Network.TickSynchronization
     // - Buffer train/rail hashes.
     // - stream状態で既適用IDを除外
     // - Reject already applied IDs using stream state.
-    internal sealed class TrainUnitHashBuffer
+    public sealed class TrainUnitHashBuffer
     {
         public const uint DummyHash = uint.MaxValue;
         private bool isGetFirstHash = false;

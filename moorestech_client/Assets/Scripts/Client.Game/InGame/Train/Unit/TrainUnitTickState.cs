@@ -3,7 +3,7 @@ using System;
 
 namespace Client.Game.InGame.Train.Unit
 {
-    internal sealed class TrainUnitTickState
+    public sealed class TrainUnitTickState
     {
         internal bool IsStopped { get; private set; }
 

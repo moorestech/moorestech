@@ -88,7 +88,7 @@ namespace Client.Tests.EditModeInPlayingTest
                 {
                     TestReflection.SetStaticProperty(typeof(ClientContext), "VanillaApi", api);
                     client.Handler.Initialize();
-                    using var deltas = new TrainUnitTickDiffBundleEventNetworkHandler(client.Context, client.Trains);
+                    using var deltas = new TrainUnitTickDiffBundleEventNetworkHandler(client.Context.Events, client.Trains, client.Context.Hashes);
                     deltas.Initialize();
                     using var notification = GameShutdownEvent.OnGameShutdown.Subscribe(reason =>
                     {

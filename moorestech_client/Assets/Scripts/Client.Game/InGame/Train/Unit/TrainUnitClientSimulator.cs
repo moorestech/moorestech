@@ -12,12 +12,16 @@ namespace Client.Game.InGame.Train.Unit
         private readonly ITrainUnitHashTickGate _hashTickGate;
         private readonly TrainUnitVisualUpdateSystem _visualUpdateSystem;
 
-        public TrainUnitClientSimulator(TrainTickContext context, TrainUnitHashVerifier hashTickGate, TrainUnitVisualUpdateSystem visualUpdateSystem)
+        public TrainUnitClientSimulator(
+            TrainUnitTickState tickState,
+            ITrainUnitHashTickGate hashTickGate,
+            TrainUnitVisualUpdateSystem visualUpdateSystem,
+            TrainTickContext context)
         {
-            _context = context;
-            _tickState = context.State;
+            _tickState = tickState;
             _hashTickGate = hashTickGate;
             _visualUpdateSystem = visualUpdateSystem;
+            _context = context;
         }
 
         public void Tick()

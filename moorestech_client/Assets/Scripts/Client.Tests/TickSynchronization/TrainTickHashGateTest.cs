@@ -26,8 +26,8 @@ namespace Client.Tests.TickSynchronization
             _context = new TrainTickContext();
             _rails = (RailGraphClientCache)Activator.CreateInstance(typeof(RailGraphClientCache), true);
             _trains = new TrainUnitClientCache(_rails);
-            _handler = new TrainFullSnapshotEventNetworkHandler(null, null, _context);
-            _gate = new TrainUnitHashVerifier(_context, _trains, _rails);
+            _handler = new TrainFullSnapshotEventNetworkHandler(null, null, _context.Events, _context);
+            _gate = new TrainUnitHashVerifier(_context.Hashes, _trains, _rails, _context.State);
         }
 
         [TearDown]
@@ -104,12 +104,12 @@ namespace Client.Tests.TickSynchronization
             // Verify the hash inside the simulator frame independently of EditMode frame time.
             _context.CompleteInitialSnapshot();
             Client.Tests.Common.TestReflection.SetField(_context.AdvanceController, "_estimatedClientTick", 2d);
-            new TrainUnitClientSimulator(_context, _gate, null).Tick();
+            new TrainUnitClientSimulator(_context.State, _gate, null, _context).Tick();
 
             // 次frameのflushとvisualも停止する。nullのvisual依存へ到達したら失敗する。
             // Stop the next frame's flush and visual update; reaching the null visual dependency fails.
             _context.AdvanceController.Advance(0.1f, _gate);
-            new TrainUnitClientSimulator(_context, _gate, null).Tick();
+            new TrainUnitClientSimulator(_context.State, _gate, null, _context).Tick();
             Assert.IsFalse(_context.Events.TryFlushEvent(2));
             Assert.IsFalse(_gate.CanAdvanceTick(1));
             Assert.AreEqual(0, pending.Applied);

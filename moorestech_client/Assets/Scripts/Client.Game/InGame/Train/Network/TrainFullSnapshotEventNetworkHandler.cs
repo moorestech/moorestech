@@ -21,8 +21,8 @@ namespace Client.Game.InGame.Train.Network
     {
         private readonly RailGraphSnapshotApplier _railGraphSnapshotApplier;
         private readonly TrainUnitSnapshotApplier _trainSnapshotApplier;
-        private readonly TrainTickContext _context;
         private readonly TrainUnitFutureMessageBuffer _futureMessageBuffer;
+        private readonly TrainTickContext _context;
         private ulong? _railWatermark;
         private IDisposable _railSubscription;
         private IDisposable _trainSubscription;
@@ -37,12 +37,13 @@ namespace Client.Game.InGame.Train.Network
         public TrainFullSnapshotEventNetworkHandler(
             RailGraphSnapshotApplier railGraphSnapshotApplier,
             TrainUnitSnapshotApplier trainSnapshotApplier,
+            TrainUnitFutureMessageBuffer futureMessageBuffer,
             TrainTickContext context)
         {
             _railGraphSnapshotApplier = railGraphSnapshotApplier;
             _trainSnapshotApplier = trainSnapshotApplier;
+            _futureMessageBuffer = futureMessageBuffer;
             _context = context;
-            _futureMessageBuffer = context.Events;
         }
 
         public void Initialize()
