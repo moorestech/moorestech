@@ -17,6 +17,7 @@ grep -q "run_app_build" "$SANDBOX/calls.log" || fail "steamcmd was not asked to 
 ls "$SANDBOX"/runs/*/promotion.md >/dev/null 2>&1 || fail "promotion.md was not written"
 grep -q '"setlive" "playtest-staging"' "$SANDBOX"/runs/*/steam/app_build_playtest.vdf || fail "Steam upload did not target playtest-staging"
 grep -q '手動でライブ設定' "$SANDBOX"/runs/*/promotion.md || fail "promotion instructions omitted manual playtest update"
+grep -q '検証済みビルドを `playtest` ブランチに' "$SANDBOX"/runs/*/promotion.md || fail "promotion instructions lost the playtest branch name"
 grep -q "__[A-Z_]*__" "$SANDBOX"/runs/*/steam/*.vdf && fail "vdf still contains a raw token"
 grep -q "1958161" "$SANDBOX"/runs/*/steam/depot_build_windows.vdf || fail "depot id was not substituted"
 grep -q "$SANDBOX/runs" "$SANDBOX"/runs/*/steam/*.vdf || fail "contentroot was not pointed at the run's build dir"
