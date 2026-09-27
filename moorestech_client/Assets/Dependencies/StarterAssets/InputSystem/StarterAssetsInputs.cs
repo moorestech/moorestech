@@ -1,3 +1,4 @@
+using Client.Input;
 using UnityEngine;
 #if ENABLE_INPUT_SYSTEM && STARTER_ASSETS_PACKAGES_CHECKED
 using UnityEngine.InputSystem;
@@ -7,7 +8,7 @@ namespace StarterAssets
 {
 	public class StarterAssetsInputs : MonoBehaviour
 	{
-		public bool inputEnable = true;
+		public bool inputEnable { get; private set; } = true;
 		
 		[Header("Character Input Values")]
 		public Vector2 move;
@@ -24,27 +25,6 @@ namespace StarterAssets
 		public bool cursorInputForLook = true;
 #endif
 
-#if ENABLE_INPUT_SYSTEM && STARTER_ASSETS_PACKAGES_CHECKED
-		// アクション名はOnMove/OnSprint等のInput System配線と一致させる
-		// Action names must match the OnMove/OnSprint Input System wiring
-		private const string MoveActionName = "Move";
-		private const string SprintActionName = "Sprint";
-		private PlayerInput _playerInput;
-
-		// PlayerInput確定後にキャッシュ
-		// Cache after PlayerInput exists
-		public void Initialize()
-		{
-			_playerInput = GetComponent<PlayerInput>();
-		}
-#else
-		// 未使用ビルド向けの空実装
-		// No-op for builds without it
-		public void Initialize()
-		{
-		}
-#endif
-
 		public void SetInputEnable(bool enable)
 		{
 			// 同値の再適用で押下中のジャンプ等を捨てないよう、切替時だけ処理する
@@ -56,13 +36,8 @@ namespace StarterAssets
 			// Presses and releases are dropped while disabled, so resync to the keys actually held at the moment of toggling
 			jump = false;
 			look = Vector2.zero;
-#if ENABLE_INPUT_SYSTEM && STARTER_ASSETS_PACKAGES_CHECKED
-			move = enable ? _playerInput.actions.FindAction(MoveActionName, true).ReadValue<Vector2>() : Vector2.zero;
-			sprint = enable && _playerInput.actions.FindAction(SprintActionName, true).IsPressed();
-#else
-			move = Vector2.zero;
-			sprint = false;
-#endif
+			move = enable ? InputManager.Player.Move.ReadValue<Vector2>() : Vector2.zero;
+			sprint = enable && InputManager.Player.Sprint.GetKey;
 		}
 
 #if ENABLE_INPUT_SYSTEM && STARTER_ASSETS_PACKAGES_CHECKED

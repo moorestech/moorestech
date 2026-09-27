@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using Client.Game.InGame.Player;
+using Client.Tests.Common;
 using NUnit.Framework;
 using StarterAssets;
 using UnityEngine;
@@ -19,6 +20,10 @@ namespace Client.Tests.Player
                 if (created != null) Object.DestroyImmediate(created);
             }
             _createdObjects.Clear();
+
+            // 降車時の読み直しでInputManagerの静的アセットが生えるため、次のテストへ持ち越さない
+            // The dismount reread builds InputManager's static asset, so it must not carry over to the next test
+            TestReflection.ResetInputManagerCache();
         }
 
         [Test]
@@ -57,8 +62,8 @@ namespace Client.Tests.Player
             playablePlayer.ClearRideFollowTarget();
             Assert.IsTrue(playableThirdPersonController.enabled, "降車後も操作不能のまま");
 
-            // UIロック中は元から無効。降車で無条件に有効化するとロックが破れる
-            // A UI lock leaves it disabled beforehand; unconditionally enabling it on dismount would break the lock
+            // 乗車前から何らかの理由で無効な場合。降車で無条件に有効化すると元の無効が消える
+            // Already disabled for some reason before riding; unconditionally enabling it on dismount would lose that state
             var lockedPlayer = CreateStartedPlayerObjectController(out var lockedThirdPersonController);
             lockedThirdPersonController.enabled = false;
 
@@ -74,10 +79,6 @@ namespace Client.Tests.Player
             playerRoot.AddComponent<CharacterController>();
             playerRoot.AddComponent<StarterAssetsInputs>();
             thirdPersonController = playerRoot.AddComponent<ThirdPersonController>();
-
-            // 降車で操作可へ戻す際に押下中の移動を読み直すため、本番Prefabと同じ入力定義を持たせる
-            // Getting off rereads the held movement, so give PlayerInput the same action asset as the production prefab
-            playerRoot.GetComponent<UnityEngine.InputSystem.PlayerInput>().actions = new MoorestechInputSettings().asset;
 
             var playerObjectController = playerRoot.AddComponent<PlayerObjectController>();
             SetField(playerObjectController, "controller", thirdPersonController);

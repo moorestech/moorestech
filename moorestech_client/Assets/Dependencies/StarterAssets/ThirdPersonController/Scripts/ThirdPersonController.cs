@@ -97,13 +97,16 @@ namespace StarterAssets
 		private const float _threshold = 0.01f;
 
 		private bool _hasAnimator;
+
+		// 移動ロックは自クラスの状態として持つ。入力受付フラグの外部読みに寄せない
+		// Keep the movement lock as this class's own state instead of reading the input-enable flag from outside
+		private bool _movementLocked;
         
         public void Initialize()
         {
             _hasAnimator = _animator;
             _controller = GetComponent<CharacterController>();
             _input = GetComponent<StarterAssetsInputs>();
-            _input.Initialize();
             // 足場追従処理を専用サービスへ委譲する
             // Delegate moving-platform follow logic to its dedicated service
             _platformFollowService = new PlayerPlatformFollowService(transform, _controller);
@@ -126,6 +129,7 @@ namespace StarterAssets
         
         public void SetControllable(bool value)
         {
+            _movementLocked = !value;
             _input.SetInputEnable(value);
         }
 
@@ -197,14 +201,14 @@ namespace StarterAssets
 			float speedOffset = 0.1f;
 			float inputMagnitude = _input.analogMovement ? _input.move.magnitude : 1f;
 
-			// 操作停止中は慣性で滑らせず、水平移動をその場で止める（重力は下のMoveで維持）
-			// While control is stopped, halt horizontal motion at once instead of coasting (gravity stays in Move below)
-			if (!_input.inputEnable)
+			// 操作停止中は水平移動のみ即停止（重力は維持）
+			// Halt horizontal motion only while stopped (gravity unaffected)
+			if (_movementLocked)
 			{
 				_speed = 0.0f;
 			}
 			// accelerate or decelerate to target speed
-			else if (currentHorizontalSpeed < targetSpeed - speedOffset || currentHorizontalSpeed > targetSpeed + speedOffset)
+			else if (currentHorizontalSpeed < targetSpeed - speedOffset || targetSpeed + speedOffset < currentHorizontalSpeed)
 			{
 				// creates curved result rather than a linear one giving a more organic speed change
 				// note T in Lerp is clamped, so we don't need to clamp our speed
