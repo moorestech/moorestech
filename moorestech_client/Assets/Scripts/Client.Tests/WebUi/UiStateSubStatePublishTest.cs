@@ -31,6 +31,7 @@ namespace Client.Tests.WebUi
         {
             public NestedPauseSubStateEnum SubState { get; }
             public IObservable<Unit> OnPresentationChanged => Observable.Never<Unit>();
+            public IObservable<NestedPauseSubStateEnum> OnSubStateChanged => Observable.Never<NestedPauseSubStateEnum>();
 
             public NestedPauseScreenStub(NestedPauseSubStateEnum subState)
             {

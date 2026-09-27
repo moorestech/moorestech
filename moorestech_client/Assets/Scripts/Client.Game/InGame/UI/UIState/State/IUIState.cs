@@ -16,9 +16,13 @@ namespace Client.Game.InGame.UI.UIState.State
 
         /// <summary>
         /// 滞在中に自機の移動（WASD・ジャンプ・ダッシュ）を止めるか。メニュー画面がtrue
-        /// true の集合はWeb UIの背景ディム画面族（uiScreenRouting.ts の backdrop）と揃える
+        /// trueはWeb UIの背景ディム画面族（uiScreenRouting.ts の backdrop）に、WASDを画面自身が奪う画面を足した集合
+        /// 列車HUDはbackdropを出さないがWASDが列車操作なのでtrue。背景ディムの有無だけで決めてはいけない
+        /// 入れ子ポーズを持つ画面は定数ではなく表示中のサブステートの宣言を返すため、滞在中に値が変わる
         /// Whether player movement (WASD, jump, sprint) stops while this screen is open; true for menu screens
-        /// The true set mirrors the Web UI's dimmed-backdrop screens (backdrop in uiScreenRouting.ts)
+        /// True is the Web UI's dimmed-backdrop screens (backdrop in uiScreenRouting.ts) plus screens that take WASD themselves
+        /// The train HUD shows no backdrop yet is true because WASD drives the train; the backdrop alone must not decide this
+        /// Screens owning a nested pause return their showing sub-state's declaration, so the value changes mid-screen
         /// </summary>
         public bool LocksPlayerMovement();
 
