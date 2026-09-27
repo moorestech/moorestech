@@ -118,8 +118,8 @@ namespace Client.Starter.Registration
             builder.Register<IPlayerCameraInteractionApplier, PlayerCameraInteractionApplier>(Lifetime.Singleton);
             builder.Register<PlayerViewModeController>(Lifetime.Singleton).AsSelf().As<IStartable>().As<ITickable>();
             builder.Register<UiStateCameraPolicyService>(Lifetime.Singleton);
-            // UIStateControlが画面の宣言に従って自機の移動を止めるための窓口
-            // Lets UIStateControl stop player movement according to each screen's declaration
+            // UIStateControlへ移動ロックの窓口を公開
+            // Expose the movement-lock endpoint to UIStateControl
             builder.Register<IPlayerObjectController>(resolver => resolver.Resolve<PlayerSystemContainer>().PlayerObjectController, Lifetime.Singleton);
 
             // UI state群を単一の辞書へ集約する
