@@ -62,7 +62,8 @@
         "Game.PlacementTarget",
         "Game.Construction",
         "Game.Map.Interface",
-        "Client.PlaytestReceiver"
+        "Client.PlaytestReceiver",
+        "Client.RemoteExec"
     ],
     "includePlatforms": [
         "Editor"
