@@ -1,5 +1,6 @@
 using System;
 using Cysharp.Threading.Tasks;
+using Server.Boot.Loop;
 using UnityEngine;
 
 namespace Server.Boot
@@ -42,6 +43,10 @@ namespace Server.Boot
             }
 
             var flushResult = ResolveFlushResult();
+
+            // 終了完了を返す前に受付を閉じ、遅延破棄までの実行を防ぐ
+            // Close admission before reporting shutdown, ahead of deferred destruction
+            ServerThreadActionQueue.Stop();
 
             // 破棄はOnDestroy経由に一本化する
             // Funnel the teardown through OnDestroy

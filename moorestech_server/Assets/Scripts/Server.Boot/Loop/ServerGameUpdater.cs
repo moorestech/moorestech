@@ -13,35 +13,43 @@ namespace Server.Boot.Loop
         
         public static void StartUpdate(CancellationToken token)
         {
+            ServerThreadActionQueue.BeginServerThread();
             var profilerMarker = new ProfilerMarker("GameUpdate");
             
             var stopwatch = new Stopwatch();
             
-            while (!token.IsCancellationRequested)
+            try
             {
-                profilerMarker.Begin();
-                
-                stopwatch.Restart();
-                
-                try
+                while (!token.IsCancellationRequested)
                 {
-                    GameUpdater.Update();
+                    profilerMarker.Begin();
+
+                    stopwatch.Restart();
+
+                    try
+                    {
+                        GameUpdater.Update();
+                    }
+                    catch (Exception ex)
+                    {
+                        UnityEngine.Debug.LogException(ex);
+                    }
+
+                    // 経過時間を測定
+                    var remaining = FrameInterval - stopwatch.Elapsed;
+
+                    // まだフレーム時間が余っていれば、その分だけ待機
+                    if (remaining > TimeSpan.Zero)
+                    {
+                        Thread.Sleep(remaining);
+                    }
+
+                    profilerMarker.End();
                 }
-                catch (Exception ex)
-                {
-                    UnityEngine.Debug.LogException(ex);
-                }
-                
-                // 経過時間を測定
-                var remaining = FrameInterval - stopwatch.Elapsed;
-                
-                // まだフレーム時間が余っていれば、その分だけ待機
-                if (remaining > TimeSpan.Zero)
-                {
-                    Thread.Sleep(remaining);
-                }
-                
-                profilerMarker.End();
+            }
+            finally
+            {
+                ServerThreadActionQueue.Stop();
             }
         }
     }

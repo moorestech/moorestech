@@ -57,6 +57,9 @@ namespace Server.Boot
 
         public void Dispose()
         {
+            // 終了後の受付を閉じ、保留中の実行者へ失敗を返す
+            // Close admission and fail pending work when the server stops
+            Loop.ServerThreadActionQueue.Stop();
             try
             {
                 _cancellationTokenSource?.Cancel();
