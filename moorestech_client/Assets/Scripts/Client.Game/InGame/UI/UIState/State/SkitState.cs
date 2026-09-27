@@ -84,6 +84,11 @@ namespace Client.Game.InGame.UI.UIState.State
         
         // 表示中のサブステートが宣言したヒントをそのまま返す
         // Return the hints declared by whichever sub-state is currently showing
+        public bool LocksPlayerMovement()
+        {
+            return false;
+        }
+
         public IReadOnlyList<KeyHint> GetKeyHints()
         {
             return _subStateController.GetKeyHints();

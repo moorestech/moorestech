@@ -1,4 +1,5 @@
 using System;
+using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.UIState.State.NestedPause;
 using UnityEngine;
 using VContainer;
@@ -8,6 +9,7 @@ namespace Client.Game.InGame.UI.UIState
     public class UIStateControl : MonoBehaviour
     {
         private UIStateDictionary _uiStateDictionary;
+        private IPlayerObjectController _playerObjectController;
 
         public event Action<UIStateEnum> OnStateChanged;
         public UIStateEnum CurrentState { get; private set; }
@@ -15,15 +17,16 @@ namespace Client.Game.InGame.UI.UIState
         private UIStateEnum? _webTransitionRequest;
 
         [Inject]
-        public void Construct(UIStateDictionary uiStateDictionary)
+        public void Construct(UIStateDictionary uiStateDictionary, IPlayerObjectController playerObjectController)
         {
             _uiStateDictionary = uiStateDictionary;
+            _playerObjectController = playerObjectController;
         }
 
         public void Initialize(UIStateEnum initialState, UITransitContext initialContext)
         {
             CurrentState = initialState;
-            _uiStateDictionary.GetState(CurrentState).OnEnter(initialContext);
+            EnterState(CurrentState, initialContext);
         }
 
         // 現stateが入れ子ポーズを持つ画面かの解決口。Web境界はこの1箇所だけを見る（ADR 0035）
@@ -55,7 +58,7 @@ namespace Client.Game.InGame.UI.UIState
             // Exit current UI state and call next state
             _uiStateDictionary.GetState(lastState).OnExit();
             CurrentState = nextContext.NextStateEnum;
-            _uiStateDictionary.GetState(CurrentState).OnEnter(nextContext);
+            EnterState(CurrentState, nextContext);
 
             OnStateChanged?.Invoke(CurrentState);
 
@@ -74,6 +77,15 @@ namespace Client.Game.InGame.UI.UIState
             }
 
             #endregion
+        }
+
+        private void EnterState(UIStateEnum state, UITransitContext context)
+        {
+            // 移動可否は画面自身の宣言に従い、OnEnterより先に確定させる
+            // Movement follows the screen's own declaration and is settled before OnEnter runs
+            var uiState = _uiStateDictionary.GetState(state);
+            _playerObjectController.SetMovementLockedByUi(uiState.LocksPlayerMovement());
+            uiState.OnEnter(context);
         }
 
         private void OnApplicationFocus(bool hasFocus)

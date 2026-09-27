@@ -64,15 +64,43 @@ namespace Client.Tests.Player
         [Test]
         public void 乗車中はメニューを閉じても操作不可のまま()
         {
-            _controller.SetControllable(false);
+            var trainCar = new GameObject("PlayerMovementUiLockTestTrainCar");
+            _controller.SetRideFollowTarget(trainCar.transform, Vector3.zero, Quaternion.identity);
             _controller.SetMovementLockedByUi(true);
 
             _controller.SetMovementLockedByUi(false);
 
             Assert.IsFalse(_inputs.inputEnable, "メニューを閉じただけで乗車中の操作不可が解除された");
 
-            _controller.SetControllable(true);
+            _controller.ClearRideFollowTarget();
             Assert.IsTrue(_inputs.inputEnable);
+            Object.DestroyImmediate(trainCar);
+        }
+
+        [Test]
+        public void デバッグ停止中はメニューを閉じても操作不可のまま()
+        {
+            _controller.SetMovementLockedByDebug(true);
+            _controller.SetMovementLockedByUi(true);
+
+            _controller.SetMovementLockedByUi(false);
+
+            Assert.IsFalse(_inputs.inputEnable, "メニューを閉じただけでデバッグ停止が解除された");
+
+            _controller.SetMovementLockedByDebug(false);
+            Assert.IsTrue(_inputs.inputEnable);
+        }
+
+        [Test]
+        public void 非メニュー画面どうしの遷移ではジャンプ入力を捨てない()
+        {
+            _inputs.JumpInput(true);
+
+            // 非メニュー間の遷移でも解除が再適用されるため、同値なら何もしないこと
+            // Non-menu transitions reapply the unlock too, so a same-value call must be a no-op
+            _controller.SetMovementLockedByUi(false);
+
+            Assert.IsTrue(_inputs.jump);
         }
 
         [Test]
@@ -87,6 +115,18 @@ namespace Client.Tests.Player
             // The press was dropped during the menu, so without rereading the live value the player would stay still
             Assert.IsTrue(_inputs.inputEnable);
             Assert.AreEqual(new Vector2(0f, 1f), _inputs.move);
+        }
+
+        [Test]
+        public void メニューを閉じた時点でダッシュキーを押していればダッシュを再開する()
+        {
+            _controller.SetMovementLockedByUi(true);
+            Press(_keyboard.wKey);
+            Press(_keyboard.leftShiftKey);
+
+            _controller.SetMovementLockedByUi(false);
+
+            Assert.IsTrue(_inputs.sprint);
         }
     }
 }

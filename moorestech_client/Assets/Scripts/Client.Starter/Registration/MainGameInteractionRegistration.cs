@@ -22,6 +22,7 @@ using Client.Game.InGame.Interact.Selection;
 using Client.Game.InGame.BlockSystem.PlaceSystem.VeinRestriction;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview;
 using Client.Game.InGame.Map.MapVein;
+using Client.Game.InGame.Player;
 using Client.Game.InGame.Player.StateController;
 using Client.Game.InGame.Player.StateController.State;
 using Client.Game.InGame.Riding;
@@ -42,7 +43,6 @@ using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.CancelInput;
 using Client.Game.InGame.UI.UIState.State.CameraPolicy;
-using Client.Game.InGame.UI.UIState.State.MovementPolicy;
 using Client.Game.InGame.UI.UIState.State.Hotbar;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
 using Client.Game.InGame.UI.UIState.State.NestedPause;
@@ -118,7 +118,9 @@ namespace Client.Starter.Registration
             builder.Register<IPlayerCameraInteractionApplier, PlayerCameraInteractionApplier>(Lifetime.Singleton);
             builder.Register<PlayerViewModeController>(Lifetime.Singleton).AsSelf().As<IStartable>().As<ITickable>();
             builder.Register<UiStateCameraPolicyService>(Lifetime.Singleton);
-            builder.RegisterEntryPoint<UiStatePlayerMovementPolicy>();
+            // UIStateControlが画面の宣言に従って自機の移動を止めるための窓口
+            // Lets UIStateControl stop player movement according to each screen's declaration
+            builder.Register<IPlayerObjectController>(resolver => resolver.Resolve<PlayerSystemContainer>().PlayerObjectController, Lifetime.Singleton);
 
             // UI state群を単一の辞書へ集約する
             // Gather UI states into their single dictionary

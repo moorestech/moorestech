@@ -13,7 +13,13 @@ namespace Client.Game.InGame.UI.UIState.State
         public UITransitContext GetNextUpdate();
         
         public void OnExit();
-        
+
+        /// <summary>
+        /// 滞在中に自機の移動（WASD・ジャンプ・ダッシュ）を止めるか。メニュー画面がtrue
+        /// Whether player movement (WASD, jump, sprint) stops while this screen is open; true for menu screens
+        /// </summary>
+        public bool LocksPlayerMovement();
+
         /// <summary>
         /// この画面の操作ヒント。遷移判定と同じ場所で宣言し、ずれを構造的に防ぐ（ADR-0032）
         /// This screen's key hints, declared beside the transition checks so they cannot drift (ADR-0032)

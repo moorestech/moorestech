@@ -12,8 +12,8 @@ namespace Client.Game.InGame.Player
         public void SetActive(bool active);
         
         public void SetAnimationState(string state);
-        public void SetControllable(bool enable);
         public void SetMovementLockedByUi(bool isLocked);
+        public void SetMovementLockedByDebug(bool isLocked);
         public void SetModelVisible(bool visible);
     }
     
@@ -27,8 +27,9 @@ namespace Client.Game.InGame.Player
         private readonly PlayerModelVisibility _modelVisibility = new();
         private PlayerRideFollow _rideFollow;
         private bool _isModelVisible = true;
-        private bool _isControllable = true;
+        private bool _isMovementLockedByRide;
         private bool _isMovementLockedByUi;
+        private bool _isMovementLockedByDebug;
         private Vector3 worldSpawnPosition;
         private Vector3 initialPlayerPosition;
         private bool isRuntimeStarted;
@@ -119,23 +120,23 @@ namespace Client.Game.InGame.Player
         {
             animator.Play(state);
         }
-        public void SetControllable(bool enable)
-        {
-            _isControllable = enable;
-            ApplyControllable();
-        }
-
-        // 乗車等の操作可否とは独立に持つ。画面を閉じても乗車中の操作不可を解除しないため
-        // Held apart from ride controllability so closing a screen never re-enables control while riding
+        // 停止理由ごとに別フラグで持つ。画面を閉じても乗車中の停止を解除しないため
+        // One flag per stop reason, so closing a screen never lifts the stop while riding
         public void SetMovementLockedByUi(bool isLocked)
         {
             _isMovementLockedByUi = isLocked;
-            ApplyControllable();
+            ApplyMovementLock();
         }
 
-        private void ApplyControllable()
+        public void SetMovementLockedByDebug(bool isLocked)
         {
-            controller.SetControllable(_isControllable && !_isMovementLockedByUi);
+            _isMovementLockedByDebug = isLocked;
+            ApplyMovementLock();
+        }
+
+        private void ApplyMovementLock()
+        {
+            controller.SetControllable(!_isMovementLockedByRide && !_isMovementLockedByUi && !_isMovementLockedByDebug);
         }
 
         public void SetModelVisible(bool visible)
@@ -162,13 +163,15 @@ namespace Client.Game.InGame.Player
         public void SetRideFollowTarget(Transform target, Vector3 localPosition, Quaternion localRotation)
         {
             _rideFollow.SetTarget(target, localPosition, localRotation);
-            SetControllable(false);
+            _isMovementLockedByRide = true;
+            ApplyMovementLock();
         }
 
         public void ClearRideFollowTarget()
         {
             _rideFollow.ClearTarget();
-            SetControllable(true);
+            _isMovementLockedByRide = false;
+            ApplyMovementLock();
         }
     }
 }

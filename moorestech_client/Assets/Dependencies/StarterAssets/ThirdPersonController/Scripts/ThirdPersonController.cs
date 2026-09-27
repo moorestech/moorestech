@@ -197,8 +197,14 @@ namespace StarterAssets
 			float speedOffset = 0.1f;
 			float inputMagnitude = _input.analogMovement ? _input.move.magnitude : 1f;
 
+			// 操作停止中は慣性で滑らせず、水平移動をその場で止める（重力は下のMoveで維持）
+			// While control is stopped, halt horizontal motion at once instead of coasting (gravity stays in Move below)
+			if (!_input.inputEnable)
+			{
+				_speed = 0.0f;
+			}
 			// accelerate or decelerate to target speed
-			if (currentHorizontalSpeed < targetSpeed - speedOffset || currentHorizontalSpeed > targetSpeed + speedOffset)
+			else if (currentHorizontalSpeed < targetSpeed - speedOffset || currentHorizontalSpeed > targetSpeed + speedOffset)
 			{
 				// creates curved result rather than a linear one giving a more organic speed change
 				// note T in Lerp is clamped, so we don't need to clamp our speed
