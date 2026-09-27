@@ -147,7 +147,13 @@ elif [ -z "$LATEST_TICK" ]; then
   log "スナップショットの tick が無いため save.json を置けない。固定ワールド起動はできない"
 elif [ -f "$RUN/snapshots/tick_$LATEST_TICK.json" ]; then
   mkdir -p "$WORLD_DIR"
-  cp "$RUN/snapshots/tick_$LATEST_TICK.json" "$WORLD_DIR/save.json" || log "save.json のコピーに失敗した。固定ワールド起動はできない"
+  if cp "$RUN/snapshots/tick_$LATEST_TICK.json" "$WORLD_DIR/save.json"; then
+    # 開発機が報告者のプレイヤーとして入れるよう候補へ戻す
+    # Unclaim the reporter so the developer joins as that player
+    python3 "$HERE/unclaim-reporter.py" "$WORLD_DIR/save.json" "$RUN/manifest.json" 2>&1 | while IFS= read -r line; do log "$line"; done
+  else
+    log "save.json のコピーに失敗した。固定ワールド起動はできない"
+  fi
 else
   log "tick に対応するスナップショットファイルが無いため save.json を置けない: $RUN/snapshots/tick_$LATEST_TICK.json"
 fi

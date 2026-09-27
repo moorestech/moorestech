@@ -191,4 +191,8 @@ done
 ( . "$TMP/runs/r10/run.env"; [ "$WORLD_DIR" = "$TMP/runs/r10/world" ] && [ "$WORLD_MATERIALIZE_PENDING" = "0" ] && [ "$WORLD_MAP_MODE" = "template" ] ) || { echo "NG: r10 の full 箱"; exit 1; }
 ( . "$TMP/runs/r11/run.env"; [ "$WORLD_MATERIALIZE_PENDING" = "1" ] ) && grep -q "自分では土台を決めず" "$TMP/r11.log" || { echo "NG: r11 の読めない宣言"; exit 1; }
 
+# 報告者の付け替えも同じ一時リポジトリで検証する
+# Verify reporter reassignment using the same temporary repositories
+source "$HERE/reporter/prepare-run-cases.sh"
+
 echo OK
