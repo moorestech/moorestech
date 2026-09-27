@@ -5,10 +5,10 @@ using VContainer.Unity;
 namespace Client.Game.InGame.UI.UIState.State.MovementPolicy
 {
     /// <summary>
-    ///     UIステートごとに自機の移動(WASD・ジャンプ・ダッシュ)を許すかの単一所有者。
-    ///     メニュー画面を開いている間は移動を止め、ワールド操作の画面へ戻ったら解除する。
-    ///     Single owner of whether the player may move (WASD, jump, sprint) in each UI state.
-    ///     Movement stops while a menu screen is open and resumes on returning to a world-facing screen.
+    ///     UIステート別の移動可否の単一所有者。
+    ///     メニュー中は停止、復帰で解除。
+    ///     Single owner of per-state movement permission.
+    ///     Blocks movement in menus, restores on return.
     /// </summary>
     public sealed class UiStatePlayerMovementPolicy : IInitializable
     {

@@ -103,6 +103,7 @@ namespace StarterAssets
             _hasAnimator = _animator;
             _controller = GetComponent<CharacterController>();
             _input = GetComponent<StarterAssetsInputs>();
+            _input.Initialize();
             // 足場追従処理を専用サービスへ委譲する
             // Delegate moving-platform follow logic to its dedicated service
             _platformFollowService = new PlayerPlatformFollowService(transform, _controller);

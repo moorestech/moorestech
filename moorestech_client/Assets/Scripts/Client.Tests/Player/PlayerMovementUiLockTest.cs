@@ -8,8 +8,8 @@ using UnityEngine.InputSystem;
 namespace Client.Tests.Player
 {
     /// <summary>
-    ///     メニュー画面による移動停止が乗車の操作不可と独立に効き、押下状態を正しく揃えることを確かめる
-    ///     Verifies the menu movement lock composes with ride controllability and keeps held input consistent
+    ///     メニュー移動停止と乗車操作不可の独立性を確認
+    ///     Verifies menu lock is independent of ride lock
     /// </summary>
     public class PlayerMovementUiLockTest : InputTestFixture
     {
@@ -24,8 +24,8 @@ namespace Client.Tests.Player
             base.Setup();
             _keyboard = InputSystem.AddDevice<Keyboard>();
 
-            // 本番Prefabと同じくPlayerInputへ入力定義を持たせ、移動系アクションを有効にする
-            // Give PlayerInput the same action asset as the production prefab and enable it
+            // 本番同様に入力定義を付与し有効化
+            // Match production: attach and enable actions
             _playerRoot = new GameObject("PlayerMovementUiLockTestPlayer");
             _playerRoot.AddComponent<CharacterController>();
             _inputs = _playerRoot.AddComponent<StarterAssetsInputs>();

@@ -21,8 +21,8 @@ namespace Client.Tests.UIState.MovementPolicy
                 UIStateEnum.BuildMenu,
             };
 
-            // 全stateを分類し、未分類の追加で例外になることも同時に押さえる
-            // Classify every state; an unclassified addition would throw here as well
+            // 全state分類、未分類追加は例外で検知
+            // Classify all states; unclassified ones throw
             var actualMenuScreens = Enum.GetValues(typeof(UIStateEnum)).Cast<UIStateEnum>()
                 .Where(UiStatePlayerMovementPolicy.IsMenuScreen)
                 .ToArray();
