@@ -1,0 +1,28 @@
+using Client.RemoteExec.Access;
+using Client.RemoteExec.Loading;
+using UnityEngine;
+
+namespace Client.RemoteExec
+{
+    public static class RemoteExecActivation
+    {
+        public static void ActivateIfRequested(int kestrelPort)
+        {
+            if (!RemoteExecLaunchOption.IsEnabled)
+            {
+                Debug.Log("[RemoteExec] 起動オプションが無いため遠隔実行は無効です");
+                return;
+            }
+            if (kestrelPort == 0)
+            {
+                Debug.LogError("[RemoteExec] Web UI サーバーが起動していないため遠隔実行を開けません");
+                return;
+            }
+
+            // 有効起動だけで別置きDLLを読み、接続情報を発行する
+            // Load the separate DLL and publish access details only on an enabled boot
+            RemoteExecHarmonyLoader.Load();
+            RemoteExecAccessFile.Issue(kestrelPort);
+        }
+    }
+}

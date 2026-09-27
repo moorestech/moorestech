@@ -25,6 +25,8 @@ namespace Client.WebUiHost.Boot
         private static Task _stopTask = Task.CompletedTask;
         public static WebSocketHub Hub => _hub;
 
+        public static int KestrelPort => _kestrel == null ? 0 : _kestrel.ActualPort;
+
         public static string WebUiUrl => _webUiUrl;
         private static string _webUiUrl;
         // exitToken はPlay終了で発火し、Kestrel起動やVite疎通のTask継続がEditModeで再開するのを止める

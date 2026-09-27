@@ -56,27 +56,14 @@ namespace Client.Starter
             // 正規の終了口を通らない終了（エディタのPlay停止）でも、正常終了の印が書かれるようにする
             // Ensures the clean-exit mark is written even for exits that skip the canonical path (an Editor play-stop)
             GameShutdownEvent.InstallUnannouncedExitNotice();
+            // 前回セッションの出所印より先に起動オプションを確定する
+            // Resolve launch arguments before capturing the current session origin
+            Client.RemoteExec.RemoteExecLaunchOption.ResolveFromCommandLine(Environment.GetCommandLineArgs());
             Playtest.PreviousSessionStartupTasks.BeginCurrentSessionMarks();
             // Play終了で各await継続を打ち切る。Task系境界の継続がEditModeで再開しシーンを汚すのを防ぐ
             // Play-mode exit cancels every await so Task-based continuations never resume in EditMode and dirty the scene
             var exitToken = Application.exitCancellationToken;
-            // ---- Web UI サーバーの起動（最序盤）----
-            // GameShutdownEvent の購読は WebUiHost 側で 1 度だけ張られる
-            // ---- Web UI server bootstrap (earliest phase) ----
-            // The GameShutdownEvent subscription is installed once inside WebUiHost itself
-            //
-            // 起動失敗でも継続、UIはWeb一本のため非表示
-            // Web UI startup failure does not block gameplay, but the screen UI is web-only so nothing is shown
-            try
-            {
-                await Client.WebUiHost.Boot.WebUiHost.StartAsync(exitToken);
-            }
-            catch (Exception e) when (e is not OperationCanceledException)
-            {
-                // WebUI 無しでゲーム続行。外部プロセス境界の起動失敗を隔離して再試行可能にする
-                // Continue without WebUI; isolate external-process startup failures and keep retries possible
-                Debug.LogWarning($"[WebUiHost] start skipped: {e.Message}");
-            }
+            await Initialization.Boot.WebUiStartup.StartAsync(exitToken);
 
 #if UNITY_EDITOR
             Editor.PlayModeLaunchOverrides.ApplyIfNeeded(_proprieties);

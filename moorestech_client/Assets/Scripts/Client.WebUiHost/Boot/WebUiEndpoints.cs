@@ -94,6 +94,14 @@ namespace Client.WebUiHost.Boot
                     return;
                 }
 
+                if (path == Client.RemoteExec.RemoteExecEndpoint.Path && Client.RemoteExec.RemoteExecLaunchOption.IsEnabled)
+                {
+                    // 起動オプションで有効にした要求だけを受ける
+                    // Accept remote execution only when enabled by launch arguments
+                    await Client.RemoteExec.RemoteExecEndpoint.HandleAsync(context);
+                    return;
+                }
+
                 if (path == Game.LocalizationLanguagesEndpoint.Path)
                 {
                     // 選択可能な言語コードと表示名を配信

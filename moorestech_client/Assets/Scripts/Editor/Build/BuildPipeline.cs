@@ -64,6 +64,7 @@ namespace Client.Editor.Build
             // Only on success, bundle the CEF runtime and game data the player needs to run
             if (report.summary.result == BuildResult.Succeeded)
             {
+                RemoteExecHarmonyBundler.Bundle(request.Target, report.summary.outputPath);
                 CefRuntimeBundler.Bundle(request.Target, report.summary.outputPath, request.IsStrictBundling);
                 FfmpegRuntimeBundler.Bundle(request.Target, report.summary.outputPath, request.IsStrictBundling);
                 if (request.BundleLocalGameData)
