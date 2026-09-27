@@ -24,9 +24,7 @@ namespace Server.Util.MessagePack
         /// </summary>
         [Key(2)] public string TrainCarInstanceId { get; set; }
 
-        
-        
-        public InventoryIdentifierMessagePack() { }
+public InventoryIdentifierMessagePack() { }
 
         public static InventoryIdentifierMessagePack CreateMainMessage()
         {

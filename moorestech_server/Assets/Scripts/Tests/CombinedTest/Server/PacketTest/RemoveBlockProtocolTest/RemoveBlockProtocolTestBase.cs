@@ -31,7 +31,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         protected const int PlayerId = 1;
         
         
-        protected byte[] RemoveBlock(Vector3Int pos, int playerId)
+        protected byte[] RemoveBlock(Vector3Int pos)
         {
             return MessagePackSerializer.Serialize(new RemoveBlockProtocolMessagePack(pos));
         }

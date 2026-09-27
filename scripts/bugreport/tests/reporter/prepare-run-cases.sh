@@ -39,7 +39,7 @@ import json, sys
 save, original = [json.load(open(path)) for path in sys.argv[1:3]]
 case = sys.argv[3]
 expected = json.loads(json.dumps(original))
-if case not in ("unbound", "no-device"):
+if case not in ("unbound", "no-device", "unmatched"):
     selected_id = 2 if case == "steam" else 1
     expected["players"]["claimCandidatePlayerId"] = selected_id
     next(entry for entry in expected["players"]["entries"]

@@ -71,7 +71,7 @@ namespace Tests.UnitTest.Game.Chain
             return total;
         }
 
-        protected static byte[] CreateRemoveBlockPacket(Vector3Int pos, int playerId)
+        protected static byte[] CreateRemoveBlockPacket(Vector3Int pos)
         {
             return MessagePackSerializer.Serialize(new RemoveBlockProtocolMessagePack(pos));
         }

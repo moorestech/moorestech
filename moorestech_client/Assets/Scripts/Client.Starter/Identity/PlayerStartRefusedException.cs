@@ -1,4 +1,5 @@
 using System;
+using Mooresmaster.Localization.Generated;
 
 namespace Client.Starter.Identity
 {
@@ -6,9 +7,9 @@ namespace Client.Starter.Identity
     // The player identity could not be settled before start; display goes through the localization key
     public class PlayerStartRefusedException : Exception
     {
-        public readonly string LocalizationKey;
+        public readonly LocalizationKey LocalizationKey;
 
-        public PlayerStartRefusedException(string localizationKey, string logReason) : base(logReason)
+        public PlayerStartRefusedException(LocalizationKey localizationKey, string logReason) : base(logReason)
         {
             LocalizationKey = localizationKey;
         }

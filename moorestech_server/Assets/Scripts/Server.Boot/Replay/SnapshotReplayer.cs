@@ -99,7 +99,6 @@ namespace Server.Boot.Replay
                 return created;
             }
 
-
             // 渡されたログが再生区間をどれだけ覆っているかを必ず出す。0件再生を「一致しなかった＝非決定性」と誤読させないため
             // Always report how much of the replay interval the given log covers, so a zero-packet replay is not misread as non-determinism
             // セーブと即時取得は再生対象から外す。走らせると再生用の一時セーブを上書きし、常時記録まで動き出す

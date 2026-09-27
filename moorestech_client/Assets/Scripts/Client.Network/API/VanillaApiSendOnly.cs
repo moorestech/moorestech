@@ -170,12 +170,18 @@ namespace Client.Network.API
         }
 
         public void AssignHotbar(int slot, Guid targetId)
-            => _hotbar.AssignHotbar(slot, targetId);
+        {
+            _hotbar.AssignHotbar(slot, targetId);
+        }
 
         public void ClearHotbar(int slot)
-            => _hotbar.ClearHotbar(slot);
+        {
+            _hotbar.ClearHotbar(slot);
+        }
 
         public void SwapHotbar(int slotA, int slotB)
-            => _hotbar.SwapHotbar(slotA, slotB);
+        {
+            _hotbar.SwapHotbar(slotA, slotB);
+        }
     }
 }

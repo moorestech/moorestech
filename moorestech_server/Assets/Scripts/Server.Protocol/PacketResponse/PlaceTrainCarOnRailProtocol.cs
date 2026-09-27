@@ -93,9 +93,8 @@ namespace Server.Protocol.PacketResponse
                 _trainUnitSnapshotNotifyEvent.NotifySnapshot(createdTrain);
                 
                 return PlaceTrainOnRailResponseMessagePack.CreateSuccess();
-                
 
-            }
+}
             #endregion
         }
         

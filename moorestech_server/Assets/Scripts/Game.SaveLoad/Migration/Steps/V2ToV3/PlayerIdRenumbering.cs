@@ -9,26 +9,26 @@ namespace Game.SaveLoad.Migration.Steps.V2ToV3
     // Validate legacy ids across every section before applying ascending sequential ids
     public static class PlayerIdRenumbering
     {
-        private const string PlayerEntityType = "va:Player";
-        private static readonly (string section, string key)[] PlayerIdSections =
+        internal const string PlayerEntityType = "va:Player";
+        private static readonly (string section, string key, bool allowDuplicateIds)[] PlayerIdSections =
         {
-            ("playerInventory", "PlayerId"),
-            ("playerRidingStates", "PlayerId"),
-            ("hotbarAssignments", "PlayerId"),
-            ("remainingPlacementCounts", "PlayerId"),
-            ("constructionPayers", "PlayerId"),
-            ("miningCooldowns", "playerId"),
+            ("playerInventory", "PlayerId", false),
+            ("playerRidingStates", "PlayerId", false),
+            ("hotbarAssignments", "PlayerId", false),
+            ("remainingPlacementCounts", "PlayerId", false),
+            ("constructionPayers", "PlayerId", true),
+            ("miningCooldowns", "playerId", false),
         };
 
         public static bool TryBuildMap(JObject save, out Dictionary<long, int> map, out string reason)
         {
             map = null;
             var oldIds = new SortedSet<long>();
-            foreach (var (section, key) in PlayerIdSections)
+            foreach (var (section, key, allowDuplicateIds) in PlayerIdSections)
             {
-                if (!TryCollect(section, key, false, out reason)) return false;
+                if (!TryCollect(section, key, false, allowDuplicateIds, out reason)) return false;
             }
-            if (!TryCollect("entities", "InstanceId", true, out reason)) return false;
+            if (!TryCollect("entities", "InstanceId", true, false, out reason)) return false;
 
             // 同じIDを参照する複数の節は、同じ連番に結びつける
             // References to one id in multiple sections share the same sequential id
@@ -40,7 +40,7 @@ namespace Game.SaveLoad.Migration.Steps.V2ToV3
 
             #region Internal
 
-            bool TryCollect(string section, string key, bool onlyPlayerEntities, out string collectReason)
+            bool TryCollect(string section, string key, bool onlyPlayerEntities, bool allowDuplicateIds, out string collectReason)
             {
                 collectReason = null;
                 var token = save[section];
@@ -79,7 +79,7 @@ namespace Game.SaveLoad.Migration.Steps.V2ToV3
                         collectReason = $"{section} の {key} が正のlong整数でない";
                         return false;
                     }
-                    if (!sectionIds.Add(oldId) && section != "constructionPayers")
+                    if (!sectionIds.Add(oldId) && !allowDuplicateIds)
                     {
                         collectReason = $"{section} のプレイヤーIDが重複している: {oldId}";
                         return false;
@@ -94,7 +94,7 @@ namespace Game.SaveLoad.Migration.Steps.V2ToV3
 
         public static void Apply(JObject save, Dictionary<long, int> map)
         {
-            foreach (var (section, key) in PlayerIdSections) Rewrite(section, key, false);
+            foreach (var (section, key, _) in PlayerIdSections) Rewrite(section, key, false);
             Rewrite("entities", "InstanceId", true);
 
             #region Internal

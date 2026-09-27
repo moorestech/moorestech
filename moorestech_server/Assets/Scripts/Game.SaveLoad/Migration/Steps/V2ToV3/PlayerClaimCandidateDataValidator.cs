@@ -26,7 +26,7 @@ namespace Game.SaveLoad.Migration.Steps.V2ToV3
             {
                 foreach (JObject entity in entities)
                 {
-                    if ((string)entity["Type"] != "va:Player") continue;
+                    if ((string)entity["Type"] != PlayerIdRenumbering.PlayerEntityType) continue;
                     if (CoordinatesValid(entity, "")) continue;
                     reason = "プレイヤーの座標が不正";
                     return false;

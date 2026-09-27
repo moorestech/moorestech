@@ -37,7 +37,6 @@ namespace Server.Protocol.PacketResponse
                 Tag = ProtocolTag;
             }
 
-
         }
 
         [MessagePackObject]

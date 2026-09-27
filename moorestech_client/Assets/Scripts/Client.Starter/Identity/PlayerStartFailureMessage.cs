@@ -13,8 +13,8 @@ namespace Client.Starter.Identity
             // Map start refusal reasons to the existing loading display
             return exception switch
             {
-                PlayerStartRefusedException refused => new LocalizationKey(refused.LocalizationKey),
-                PlayerHandshakeRejectedException { Rejection: HandshakeRejection.AlreadyConnected } => new LocalizationKey("ui.loading.playerAlreadyConnected"),
+                PlayerStartRefusedException refused => refused.LocalizationKey,
+                PlayerHandshakeRejectedException { Rejection: HandshakeRejection.AlreadyConnected } => LocalizationKeys.Ui.Loading.PlayerAlreadyConnected,
                 _ => LocalizationKeys.Ui.Loading.InitializationFailed,
             };
         }

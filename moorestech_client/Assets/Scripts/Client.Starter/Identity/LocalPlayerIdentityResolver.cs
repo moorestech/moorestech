@@ -4,6 +4,7 @@ using System.Text;
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.BuildOrigin;
 using Client.PlaytestReceiver.Steam;
+using Mooresmaster.Localization.Generated;
 using UnityEngine;
 
 namespace Client.Starter.Identity
@@ -12,9 +13,6 @@ namespace Client.Starter.Identity
     // Resolves this process's player identity: Steam on Steam distribution builds, the device value otherwise (ADR 0073)
     public static class LocalPlayerIdentityResolver
     {
-        public const string SteamUnavailableKey = "ui.loading.steamIdentityUnavailable";
-        public const string DeviceUnavailableKey = "ui.loading.deviceIdentityUnavailable";
-
         public static PlayerIdentityResolution ResolveForThisProcess()
         {
             // 配布の種別は焼き込み値で決め、実行時のSteamの状態では決めない
@@ -29,12 +27,12 @@ namespace Client.Starter.Identity
             if (isSteamDistributionBuild)
             {
                 if (steamReader.TryRead(out var steamId, out var failureReason)) return PlayerIdentityResolution.Success("steam:" + steamId);
-                return PlayerIdentityResolution.Refused(SteamUnavailableKey, $"Steam配布ビルドでSteamIDを読めないため開始しない: {failureReason}");
+                return PlayerIdentityResolution.Refused(LocalizationKeys.Ui.Loading.SteamIdentityUnavailable, $"Steam配布ビルドでSteamIDを読めないため開始しない: {failureReason}");
             }
 
             if (string.IsNullOrEmpty(deviceUniqueIdentifier) || deviceUniqueIdentifier == SystemInfo.unsupportedIdentifier)
             {
-                return PlayerIdentityResolution.Refused(DeviceUnavailableKey, $"端末の識別子を取得できないため開始しない: '{deviceUniqueIdentifier}'");
+                return PlayerIdentityResolution.Refused(LocalizationKeys.Ui.Loading.DeviceIdentityUnavailable, $"端末の識別子を取得できないため開始しない: '{deviceUniqueIdentifier}'");
             }
             return PlayerIdentityResolution.Success("device:" + Sha256Hex(deviceUniqueIdentifier));
 
@@ -57,10 +55,10 @@ namespace Client.Starter.Identity
     {
         public readonly bool Succeeded;
         public readonly string Identity;
-        public readonly string RefusalLocalizationKey;
+        public readonly LocalizationKey RefusalLocalizationKey;
         public readonly string RefusalLogReason;
 
-        private PlayerIdentityResolution(bool succeeded, string identity, string refusalLocalizationKey, string refusalLogReason)
+        private PlayerIdentityResolution(bool succeeded, string identity, LocalizationKey refusalLocalizationKey, string refusalLogReason)
         {
             Succeeded = succeeded;
             Identity = identity;
@@ -68,7 +66,7 @@ namespace Client.Starter.Identity
             RefusalLogReason = refusalLogReason;
         }
 
-        public static PlayerIdentityResolution Success(string identity) => new(true, identity, null, null);
-        public static PlayerIdentityResolution Refused(string localizationKey, string logReason) => new(false, null, localizationKey, logReason);
+        public static PlayerIdentityResolution Success(string identity) => new(true, identity, default, null);
+        public static PlayerIdentityResolution Refused(LocalizationKey localizationKey, string logReason) => new(false, null, localizationKey, logReason);
     }
 }

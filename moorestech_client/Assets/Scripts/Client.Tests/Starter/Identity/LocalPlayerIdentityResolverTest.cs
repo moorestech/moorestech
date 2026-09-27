@@ -1,5 +1,6 @@
 using Client.PlaytestReceiver.Steam;
 using Client.Starter.Identity;
+using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -36,7 +37,7 @@ namespace Client.Tests.Starter
         {
             var result = LocalPlayerIdentityResolver.Resolve(true, new FakeSteamReader(null), "abc");
             Assert.IsFalse(result.Succeeded);
-            Assert.AreEqual("ui.loading.steamIdentityUnavailable", result.RefusalLocalizationKey);
+            Assert.AreEqual(LocalizationKeys.Ui.Loading.SteamIdentityUnavailable.Key, result.RefusalLocalizationKey.Key);
         }
 
         [Test]
@@ -52,7 +53,7 @@ namespace Client.Tests.Starter
         {
             var result = LocalPlayerIdentityResolver.Resolve(false, new FakeSteamReader("1"), SystemInfo.unsupportedIdentifier);
             Assert.IsFalse(result.Succeeded);
-            Assert.AreEqual("ui.loading.deviceIdentityUnavailable", result.RefusalLocalizationKey);
+            Assert.AreEqual(LocalizationKeys.Ui.Loading.DeviceIdentityUnavailable.Key, result.RefusalLocalizationKey.Key);
         }
 
         [TestCase("")]
@@ -61,7 +62,7 @@ namespace Client.Tests.Starter
         {
             var result = LocalPlayerIdentityResolver.Resolve(false, new FakeSteamReader("1"), device);
             Assert.IsFalse(result.Succeeded);
-            Assert.AreEqual("ui.loading.deviceIdentityUnavailable", result.RefusalLocalizationKey);
+            Assert.AreEqual(LocalizationKeys.Ui.Loading.DeviceIdentityUnavailable.Key, result.RefusalLocalizationKey.Key);
         }
     }
 }

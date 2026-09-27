@@ -46,7 +46,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             
             //プレイヤーの座標を変更
-            packet.GetPacketResponse(GetPlayerPositionPacket(handShakeResponse.PlayerId, new Vector3(100, 0, -100)), context);
+            packet.GetPacketResponse(GetPlayerPositionPacket(new Vector3(100, 0, -100)), context);
             
             
             // 切断後に同じ身元で入り直し、保存座標を復元する
@@ -95,6 +95,7 @@ namespace Tests.CombinedTest.Server.PacketTest
                 new PacketResponseContext(null))[0];
             var handshakeResponse = MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(response);
 
+            Assert.AreEqual(PlayerId, handshakeResponse.PlayerId);
             Assert.AreEqual(InitialHandshakeRidingStateType.Restored, handshakeResponse.RidingStateType);
             Assert.IsTrue(handshakeResponse.HasRidingState);
             Assert.IsNotNull(handshakeResponse.RidingTarget);
@@ -118,7 +119,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Use an unregistered sink so the handshake itself must wire the context's sink
             var sink = new CapturedEventSink();
             var context = new PacketResponseContext(sink);
-            environment.PacketResponseCreator.GetPacketResponse(GetHandshakePacket(), context);
+            var handshakeResponsePacket = environment.PacketResponseCreator.GetPacketResponse(GetHandshakePacket(), context)[0];
+            var handshakeResponse = MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(handshakeResponsePacket);
+            Assert.AreEqual(PlayerId, handshakeResponse.PlayerId);
             sink.TakeAll();
 
             datastore.TryRide(PlayerId, id, out _);
@@ -134,7 +137,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         }
         
         
-        private byte[] GetPlayerPositionPacket(int playerId, Vector3 pos)
+        private byte[] GetPlayerPositionPacket(Vector3 pos)
         {
             return MessagePackSerializer.Serialize(
                 new SetPlayerCoordinateProtocol.PlayerCoordinateSendProtocolMessagePack(pos));

@@ -47,6 +47,5 @@ namespace Client.Network.API
 
             return new InitialHandshakeResponse(initialHandShake, responses);
         }
-
     }
 }

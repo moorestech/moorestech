@@ -124,6 +124,5 @@ namespace Client.Tests.EditModeInPlayingTest
             #endregion
         }
 
-
     }
 }

@@ -76,7 +76,8 @@ def main(save_path, manifest_path):
         identity = "steam:" + steam_id
         target = next((entry for entry in entries if entry.get("identity") == identity), None)
         if target is None:
-            note("報告者の身元 %s に結びつくプレイヤーが無い。端末身元の持ち物総数で選ぶ" % identity)
+            note("報告者の身元 %s に結びつくプレイヤーが無いため付け替えしない" % identity)
+            return
     else:
         note("manifest に steamId が無い。端末身元の持ち物総数で選ぶ")
 
