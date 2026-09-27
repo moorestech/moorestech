@@ -79,7 +79,7 @@ namespace Client.Tests.EditModeInPlayingTest.Util
             {
                 SceneManager.sceneLoaded -= SetInitializeProperty;
 
-                var localProperties = InitializeProprieties.CreateLocalServer(null);
+                var localProperties = InitializeProprieties.CreateLocalServer();
                 localProperties.CreateLocalServerArgs = CliConvert.Serialize(CreateServerSettings(worldDirectory, serverDirectory, mapMode));
 
                 var starter = GameObject.FindObjectOfType<InitializeScenePipeline>();

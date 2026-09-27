@@ -19,7 +19,7 @@ namespace Client.Tests.Map.Vein
         {
             var mapLayout = new GetMapDataProtocol.ResponseMapDataMessagePack(new Vector3MessagePack(Vector3.zero),
                 new List<MapObjectLayoutMessagePack>(), new List<VeinLayoutMessagePack>(veinLayouts), TerrainTransferMeta.CreateWithoutWorldDirectory(), string.Empty);
-            var handshake = new InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack(new Vector3MessagePack(Vector3.zero), null, -1, null, null, null);
+            var handshake = new InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack(new Vector3MessagePack(Vector3.zero), null, -1, null, null, null, 1);
 
             return new MapVeinAabbRegistry(new InitialHandshakeResponse(handshake, (default, default, default, default, default, default, default, mapLayout)));
         }

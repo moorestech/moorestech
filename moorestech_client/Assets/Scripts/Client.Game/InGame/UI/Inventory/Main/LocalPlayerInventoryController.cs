@@ -142,44 +142,14 @@ namespace Client.Game.InGame.UI.Inventory.Main
 
         public void CollectItems(LocalMoveInventoryType targetType, int targetSlot)
         {
-            // 同種アイテムを所持数の少ない順に集積先へ移す（uGUI ダブルクリックと Web collect の共通実装）
-            // Gather same-type stacks smallest-first into the target; shared by uGUI double-click and web collect
-            var collectTarget = GetItem(targetType, targetSlot);
-            if (collectTarget.Id == ItemMaster.EmptyItemId) return;
-
-            // 集積先が結合スロットのときだけ、同じ index を移動元から除外する
-            // Exclude the same index from the sources only when the target is a combined slot
-            var isCombinedTarget = targetType == LocalMoveInventoryType.MainOrSub;
-            var sourceSlots = LocalPlayerInventory
-                .Select((item, index) => (item, index))
-                .Where(x => x.item.Id == collectTarget.Id)
-                .Where(x => !isCombinedTarget || x.index != targetSlot)
-                .OrderBy(x => x.item.Count)
-                .Select(x => x.index)
-                .ToList();
-
-            foreach (var index in sourceSlots)
-            {
-                var added = collectTarget.AddItem(LocalPlayerInventory[index]);
-                var moveCount = LocalPlayerInventory[index].Count - added.RemainderItemStack.Count;
-
-                // 1個も移せない＝集積先が満杯なので終了
-                // Zero movable items means the target is full; stop here
-                if (moveCount <= 0) break;
-                MoveItem(LocalMoveInventoryType.MainOrSub, index, targetType, targetSlot, moveCount);
-                collectTarget = added.ProcessResultItemStack;
-
-                // 余りが出たら集積先が満杯なので終了
-                // A remainder means the target stack is full; stop here
-                if (added.RemainderItemStack.Count != 0) break;
-            }
+            InventoryItemCollector.Collect(this, targetType, targetSlot);
         }
 
         public void SortInventory()
         {
             // メインインベントリを整理（ホットバー除外はサーバー側で実施）
             // Sort the main inventory (hotbar exclusion is handled on the server).
-            ClientContext.VanillaApi.SendOnly.SortInventory(CreateMainMessage(ClientContext.PlayerConnectionSetting.PlayerId));
+            ClientContext.VanillaApi.SendOnly.SortInventory(CreateMainMessage());
 
             // 開いているサブインベントリがあれば整理する
             // Also sort the currently open sub-inventory, if any.

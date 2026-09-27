@@ -5,7 +5,7 @@ using Client.Common;
 using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
-using Client.Network.Settings;
+using Client.Starter.Identity;
 using Client.Starter.Initialization;
 using Client.Starter.Initialization.Progress;
 using Cysharp.Threading.Tasks;
@@ -31,7 +31,7 @@ namespace Client.Starter
         [SerializeField] private BlockIconImagePhotographer blockIconImagePhotographer;
         [SerializeField] private BlockGameObject missingBlockIdObject;
         [SerializeField] private TMP_Text loadingLog;
-        private InitializeProprieties _proprieties = InitializeProprieties.CreateLocalServer(null);
+        private InitializeProprieties _proprieties = InitializeProprieties.CreateLocalServer();
 
         public void SetProperty(InitializeProprieties proprieties)
         {
@@ -110,11 +110,9 @@ namespace Client.Starter
             var trainCarIconTargets = await ModAssetLoader.PreloadTrainCarIconTargetsAsync();
             Debug.Log($"[InitializeScenePipeline] train car preload completed {loadingStopwatch.Elapsed}");
 
-            var playerConnectionSetting = new PlayerConnectionSetting(_proprieties.PlayerId);
-
             // サーバー接続とアセットロードを並列実行し結果を受け取る
             // Run server connection and asset load in parallel and collect results
-            var serverInitializer = new ServerConnectionInitializer(_proprieties, loadingProgressLog, playerConnectionSetting, exitToken);
+            var serverInitializer = new ServerConnectionInitializer(_proprieties, loadingProgressLog, exitToken);
             var modAssetLoader = new ModAssetLoader(serverDirectory, missingBlockIdObject, blockIconImagePhotographer, trainCarIconTargets, loadingProgressLog);
 
             ServerConnectionResult serverResult;
@@ -136,7 +134,7 @@ namespace Client.Starter
                 // Fold the embedded server that already started; leaving it doubles the authority writing the same save
                 GameShutdownEvent.FireGameShutdown(GameShutdownReason.InitializationFailed);
 
-                loadingProgressLog.Append(LocalizationKeys.Ui.Loading.InitializationFailed);
+                loadingProgressLog.Append(PlayerStartFailureMessage.GetKey(e));
                 await UniTask.Delay(2000);
                 SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
                 return;
@@ -145,7 +143,7 @@ namespace Client.Starter
             // 取得結果から通信フォーマッタと静的コンテキストを初期化する
             // Initialize the message formatter and static context from the collected results
             MessagePackInitializer.Initialize();
-            new ClientContext(assetResult.BlockGameObjectPrefabContainer, assetResult.ItemImageContainer, assetResult.BlockImageContainer, assetResult.TrainCarImageContainer, assetResult.ConnectToolImageContainer, assetResult.FluidImageContainer, playerConnectionSetting, serverResult.VanillaApi);
+            new ClientContext(assetResult.BlockGameObjectPrefabContainer, assetResult.ItemImageContainer, assetResult.BlockImageContainer, assetResult.TrainCarImageContainer, assetResult.ConnectToolImageContainer, assetResult.FluidImageContainer, serverResult.PlayerConnectionSetting, serverResult.VanillaApi);
 
             // シーンロードは全アセットロード完了後に直列実行する
             // Load the scene serially, after every asset load has finished

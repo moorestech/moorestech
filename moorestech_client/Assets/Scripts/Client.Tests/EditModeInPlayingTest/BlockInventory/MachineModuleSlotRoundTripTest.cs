@@ -80,7 +80,6 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 // Give the player a module item and locate the main inventory slot it landed in.
                 await GiveItem(ModuleItemName, 1);
                 var moduleItemId = FindItemId(ModuleItemName);
-                var playerId = ClientContext.PlayerConnectionSetting.PlayerId;
                 var playerInventory = await ClientContext.VanillaApi.Response.GetMyPlayerInventory(CancellationToken.None);
                 var mainSlot = playerInventory.MainInventory.FindIndex(item => item.Id == moduleItemId);
                 Assert.GreaterOrEqual(mainSlot, 0, "module item not found in player main inventory");
@@ -88,7 +87,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 // 既存の移動プロトコル（InventoryType.Block＋スロット番号）でモジュールスロットへ装着する
                 // Equip into the module slot via the existing move protocol (InventoryType.Block + slot number).
                 ClientContext.VanillaApi.SendOnly.ItemMove(1, ItemMoveType.SwapSlot,
-                    InventoryIdentifierMessagePack.CreateMainMessage(playerId), mainSlot,
+                    InventoryIdentifierMessagePack.CreateMainMessage(), mainSlot,
                     InventoryIdentifierMessagePack.CreateBlockMessage(pos), ModuleRangeStart);
 
                 // 既存のインベントリ取得プロトコルへ装着が反映されるまでポーリングして確認

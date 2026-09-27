@@ -16,6 +16,7 @@ using Server.Event.EventReceive;
 using Server.Protocol;
 using Tests.CombinedTest.Server.PacketTest.Event;
 using Tests.Module.TestMod;
+using Tests.Util;
 using UniRx;
 using static Server.Protocol.PacketResponse.SetSelectedEquipmentIndexProtocol;
 using static Server.Protocol.PacketResponse.PlayerInventoryResponseProtocol;
@@ -28,7 +29,7 @@ namespace Client.Tests.Inventory
     /// </summary>
     public class LocalPlayerEquipmentTest
     {
-        private const int PlayerId = 0;
+        private const int PlayerId = 1;
         private static readonly System.Guid ToolItemGuid = System.Guid.Parse("00000000-0000-0000-1234-000000000001");
 
         [Test]
@@ -61,8 +62,8 @@ namespace Client.Tests.Inventory
 
             // 空スロット(1)への切替を送信→サーバー→イベント→適用まで通す
             // Drive a switch to the empty slot (1) through send, server, event and apply
-            var request = MessagePackSerializer.Serialize(new SetSelectedEquipmentIndexMessagePack(PlayerId, 1));
-            packet.GetPacketResponse(request, new PacketResponseContext(null));
+            var request = MessagePackSerializer.Serialize(new SetSelectedEquipmentIndexMessagePack(1));
+            packet.GetPacketResponse(request, BoundPacketContext.Bind(PlayerId));
             apiEvent.Dispatch(EquipmentSelectedIndexUpdateEventPacket.EventTag, TakeSelectedIndexPayload(sink));
 
             Assert.AreEqual(1, GetEquipmentInventory(serviceProvider).SelectedEquipmentIndex);
@@ -172,8 +173,8 @@ namespace Client.Tests.Inventory
 
         private PlayerInventoryResponseProtocolMessagePack RequestInventoryResponse(PacketResponseCreator packet)
         {
-            var payload = MessagePackSerializer.Serialize(new RequestPlayerInventoryProtocolMessagePack(PlayerId));
-            return MessagePackSerializer.Deserialize<PlayerInventoryResponseProtocolMessagePack>(packet.GetPacketResponse(payload, new PacketResponseContext(null))[0]);
+            var payload = MessagePackSerializer.Serialize(new RequestPlayerInventoryProtocolMessagePack());
+            return MessagePackSerializer.Deserialize<PlayerInventoryResponseProtocolMessagePack>(packet.GetPacketResponse(payload, BoundPacketContext.Bind(PlayerId))[0]);
         }
 
         private ItemId ToolItemId()

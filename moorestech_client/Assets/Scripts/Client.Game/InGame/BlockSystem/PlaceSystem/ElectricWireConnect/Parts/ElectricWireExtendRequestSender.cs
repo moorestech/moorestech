@@ -62,20 +62,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
 
         public void SendConnect(Vector3Int fromPos, Vector3Int toPos, Guid connectToolGuid)
         {
-            var playerId = ClientContext.PlayerConnectionSetting.PlayerId;
-            Send(ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateConnectRequest(playerId, fromPos, toPos, connectToolGuid));
+            Send(ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateConnectRequest(fromPos, toPos, connectToolGuid));
         }
 
         public void SendExtend(Vector3Int fromPos, BlockId poleBlockId, PlaceInfo polePlaceInfo, Guid connectToolGuid)
         {
-            var playerId = ClientContext.PlayerConnectionSetting.PlayerId;
-            Send(ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateExtendRequest(playerId, fromPos, poleBlockId, polePlaceInfo, connectToolGuid));
+            Send(ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateExtendRequest(fromPos, poleBlockId, polePlaceInfo, connectToolGuid));
         }
 
         public void SendIsolatedPlace(BlockId poleBlockId, PlaceInfo polePlaceInfo)
         {
-            var playerId = ClientContext.PlayerConnectionSetting.PlayerId;
-            Send(ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateIsolatedPlaceRequest(playerId, poleBlockId, polePlaceInfo));
+            Send(ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateIsolatedPlaceRequest(poleBlockId, polePlaceInfo));
         }
 
         public void Disconnect(Vector3Int posA, Vector3Int posB)

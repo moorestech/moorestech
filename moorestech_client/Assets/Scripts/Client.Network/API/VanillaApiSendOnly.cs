@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Client.Network.Settings;
 using Core.Master;
 
 using Game.Train.RailPositions;
@@ -19,12 +18,12 @@ namespace Client.Network.API
     public class VanillaApiSendOnly
     {
         private readonly PacketSender _packetSender;
-        private readonly int _playerId;
+        private readonly HotbarCommandApi _hotbar;
         
-        public VanillaApiSendOnly(PacketSender packetSender, PlayerConnectionSetting playerConnectionSetting)
+        public VanillaApiSendOnly(PacketSender packetSender)
         {
             _packetSender = packetSender;
-            _playerId = playerConnectionSetting.PlayerId;
+            _hotbar = new HotbarCommandApi(packetSender);
         }
         
         
@@ -42,31 +41,31 @@ namespace Client.Network.API
         
         public void PlaceBlock(List<PlaceInfo> placePositions)
         {
-            var request = new PlaceBlockProtocol.SendPlaceBlockProtocolMessagePack(_playerId, placePositions);
+            var request = new PlaceBlockProtocol.SendPlaceBlockProtocolMessagePack(placePositions);
             _packetSender.Send(request);
         }
 
         public void SendPlayerPosition(Vector3 pos)
         {
-            var request = new SetPlayerCoordinateProtocol.PlayerCoordinateSendProtocolMessagePack(_playerId, pos);
+            var request = new SetPlayerCoordinateProtocol.PlayerCoordinateSendProtocolMessagePack(pos);
             _packetSender.Send(request);
         }
         
         public void Craft(Guid craftRecipeId)
         {
-            var request = new OneClickCraft.RequestOneClickCraftProtocolMessagePack(_playerId, craftRecipeId);
+            var request = new OneClickCraft.RequestOneClickCraftProtocolMessagePack(craftRecipeId);
             _packetSender.Send(request);
         }
         
         public void AttackMapObject(int instanceId)
         {
-            var request = MiningProtocol.MiningProtocolMessagePack.CreateMapObjectRequest(_playerId, instanceId);
+            var request = MiningProtocol.MiningProtocolMessagePack.CreateMapObjectRequest(instanceId);
             _packetSender.Send(request);
         }
 
         public void MineVein(Guid veinGuid, Vector3Int position)
         {
-            var request = MiningProtocol.MiningProtocolMessagePack.CreateVeinRequest(_playerId, veinGuid, position);
+            var request = MiningProtocol.MiningProtocolMessagePack.CreateVeinRequest(veinGuid, position);
             _packetSender.Send(request);
         }
         
@@ -76,7 +75,7 @@ namespace Client.Network.API
         /// </summary>
         public void SetSelectedEquipment(int selectedIndex)
         {
-            var request = new SetSelectedEquipmentIndexProtocol.SetSelectedEquipmentIndexMessagePack(_playerId, selectedIndex);
+            var request = new SetSelectedEquipmentIndexProtocol.SetSelectedEquipmentIndexMessagePack(selectedIndex);
             _packetSender.Send(request);
         }
 
@@ -88,7 +87,7 @@ namespace Client.Network.API
         
         public void RegisterPlayedSkit(string skitId)
         {
-            var request = new RegisterPlayedSkitProtocol.RegisterPlayedSkitMessagePack(_playerId, skitId);
+            var request = new RegisterPlayedSkitProtocol.RegisterPlayedSkitMessagePack(skitId);
             _packetSender.Send(request);
         }
         
@@ -100,43 +99,43 @@ namespace Client.Network.API
         
         public void CompleteBaseCamp(Vector3Int position)
         {
-            var request = new CompleteBaseCampProtocol.CompleteBaseCampProtocolMessagePack(_playerId, position);
+            var request = new CompleteBaseCampProtocol.CompleteBaseCampProtocolMessagePack(position);
             _packetSender.Send(request);
         }
 
         public void CompleteResearch(Guid researchGuid)
         {
-            var request = new CompleteResearchProtocol.RequestCompleteResearchMessagePack(_playerId, researchGuid);
+            var request = new CompleteResearchProtocol.RequestCompleteResearchMessagePack(researchGuid);
             _packetSender.Send(request);
         }
 
         public void ConnectRail(int fromNodeId, Guid fromGuid, int toNodeId, Guid toGuid, Guid railTypeGuid)
         {
-            var request = RailConnectionEditRequest.CreateConnectRequest(_playerId, fromNodeId, fromGuid, toNodeId, toGuid, railTypeGuid);
+            var request = RailConnectionEditRequest.CreateConnectRequest(fromNodeId, fromGuid, toNodeId, toGuid, railTypeGuid);
             _packetSender.Send(request);
         }
         
         public void DisconnectRail(int fromNodeId, Guid fromGuid, int toNodeId, Guid toGuid)
         {
-            var request = RailConnectionEditRequest.CreateDisconnectRequest(_playerId, fromNodeId, fromGuid, toNodeId, toGuid);
+            var request = RailConnectionEditRequest.CreateDisconnectRequest(fromNodeId, fromGuid, toNodeId, toGuid);
             _packetSender.Send(request);
         }
         
         public void PlaceRailWithPier(int fromNodeId, Guid fromGuid, BlockId pierBlockId, PlaceInfo pierPlaceInfo, Guid railTypeGuid)
         {
-            var request = RailConnectWithPlacePierProtocol.RailConnectWithPlacePierRequest.Create(_playerId, fromNodeId, fromGuid, pierBlockId, pierPlaceInfo, railTypeGuid);
+            var request = RailConnectWithPlacePierProtocol.RailConnectWithPlacePierRequest.Create(fromNodeId, fromGuid, pierBlockId, pierPlaceInfo, railTypeGuid);
             _packetSender.Send(request);
         }
         
         public void SendTrainCarRidingInput(bool moveForward, bool moveBackward, bool selectPreviousBranch, bool selectNextBranch)
         {
-            var request = new TrainCarRidingInputMessagePack(_playerId, moveForward, moveBackward, selectPreviousBranch, selectNextBranch);
+            var request = new TrainCarRidingInputMessagePack(moveForward, moveBackward, selectPreviousBranch, selectNextBranch);
             _packetSender.Send(request);
         }
         
         public void RemoveTrain(TrainCarInstanceId trainCarInstanceId)
         {
-            var request = new RemoveTrainCarProtocol.RemoveTrainCarRequestMessagePack(trainCarInstanceId.AsPrimitive(), _playerId);
+            var request = new RemoveTrainCarProtocol.RemoveTrainCarRequestMessagePack(trainCarInstanceId.AsPrimitive());
             _packetSender.Send(request);
         }
         
@@ -146,7 +145,7 @@ namespace Client.Network.API
         /// </summary>
         public void SubscribeInventory(InventoryIdentifierMessagePack identifier, bool isSubscribe)
         {
-            var request = new SubscribeInventoryRequestMessagePack(_playerId, identifier, isSubscribe);
+            var request = new SubscribeInventoryRequestMessagePack(identifier, isSubscribe);
             _packetSender.Send(request);
         }
 
@@ -156,7 +155,7 @@ namespace Client.Network.API
         /// </summary>
         public void ConnectGearChain(Vector3Int posA, Vector3Int posB, Guid connectToolGuid)
         {
-            var request = GearChainConnectionEditRequest.CreateConnectRequest(posA, posB, _playerId, connectToolGuid);
+            var request = GearChainConnectionEditRequest.CreateConnectRequest(posA, posB, connectToolGuid);
             _packetSender.Send(request);
         }
 
@@ -166,38 +165,17 @@ namespace Client.Network.API
         /// </summary>
         public void DisconnectElectricWire(Vector3Int posA, Vector3Int posB)
         {
-            var request = ElectricWireDisconnectProtocol.ElectricWireDisconnectRequest.CreateDisconnectRequest(posA, posB, _playerId);
+            var request = ElectricWireDisconnectProtocol.ElectricWireDisconnectRequest.CreateDisconnectRequest(posA, posB);
             _packetSender.Send(request);
         }
 
-        /// <summary>
-        /// ホットバーの枠へ設置対象を割り当てる（結果はホットバー更新イベントで返る）
-        /// Assign a placement target to a hotbar slot; the result comes back through the hotbar update event
-        /// </summary>
         public void AssignHotbar(int slot, Guid targetId)
-        {
-            var request = HotbarProtocol.HotbarProtocolMessagePack.CreateAssignRequest(_playerId, slot, targetId);
-            _packetSender.Send(request);
-        }
+            => _hotbar.AssignHotbar(slot, targetId);
 
-        /// <summary>
-        /// ホットバーの枠を空にする
-        /// Clear a hotbar slot
-        /// </summary>
         public void ClearHotbar(int slot)
-        {
-            var request = HotbarProtocol.HotbarProtocolMessagePack.CreateClearRequest(_playerId, slot);
-            _packetSender.Send(request);
-        }
+            => _hotbar.ClearHotbar(slot);
 
-        /// <summary>
-        /// ホットバーの2枠を入れ替える
-        /// Swap two hotbar slots
-        /// </summary>
         public void SwapHotbar(int slotA, int slotB)
-        {
-            var request = HotbarProtocol.HotbarProtocolMessagePack.CreateSwapRequest(_playerId, slotA, slotB);
-            _packetSender.Send(request);
-        }
+            => _hotbar.SwapHotbar(slotA, slotB);
     }
 }

@@ -12,6 +12,7 @@ namespace Client.Network.API
 {
     public class InitialHandshakeResponse
     {
+        public int PlayerId { get; }
         public Vector3 PlayerPos { get; }
         public WorldDataResponse WorldData { get; }
         public List<MapObjectsInfoMessagePack> MapObjects { get; }
@@ -44,6 +45,7 @@ namespace Client.Network.API
                 Dictionary<Guid, ResearchNodeState> researchNodeStates,
                 ResponseMapDataMessagePack mapLayout) responses)
         {
+            PlayerId = initialHandshake.PlayerId;
             PlayerPos = initialHandshake.PlayerPos;
             WorldData = responses.worldData;
             MapObjects = responses.mapObjects;

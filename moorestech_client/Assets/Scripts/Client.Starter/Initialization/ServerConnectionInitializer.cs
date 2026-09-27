@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Client.Game.Common;
 using Client.Game.InGame.BugReport.LastSession;
 using Client.Network;
+using Client.Starter.Identity;
 using Client.Network.API;
 using Client.Network.Settings;
 using Cysharp.Threading.Tasks;
@@ -23,19 +24,26 @@ namespace Client.Starter.Initialization
     {
         private readonly InitializeProprieties _proprieties;
         private readonly LoadingProgressLog _loadingProgressLog;
-        private readonly PlayerConnectionSetting _playerConnectionSetting;
         private readonly CancellationToken _exitToken;
 
-        public ServerConnectionInitializer(InitializeProprieties proprieties, LoadingProgressLog loadingProgressLog, PlayerConnectionSetting playerConnectionSetting, CancellationToken exitToken)
+        public ServerConnectionInitializer(InitializeProprieties proprieties, LoadingProgressLog loadingProgressLog, CancellationToken exitToken)
         {
             _proprieties = proprieties;
             _loadingProgressLog = loadingProgressLog;
-            _playerConnectionSetting = playerConnectionSetting;
             _exitToken = exitToken;
         }
 
         public async UniTask<ServerConnectionResult> RunAsync()
         {
+            // 身元が決まらなければ接続もサーバー起動もしない
+            // Resolve identity before connecting or starting the server
+            var identity = LocalPlayerIdentityResolver.ResolveForThisProcess();
+            if (!identity.Succeeded)
+            {
+                Debug.LogWarning(identity.RefusalLogReason);
+                throw new PlayerStartRefusedException(identity.RefusalLocalizationKey, identity.RefusalLogReason);
+            }
+
             //サーバーとの接続を確立
             var serverCommunicator = await ConnectionToServer();
 
@@ -47,7 +55,7 @@ namespace Client.Starter.Initialization
             Task.Run(() => serverCommunicator.StartCommunicat(exchangeManager));
 
             //Vanilla APIの作成
-            var vanillaApi = new VanillaApi(exchangeManager, packetSender, serverCommunicator, _playerConnectionSetting);
+            var vanillaApi = new VanillaApi(exchangeManager, packetSender, serverCommunicator);
 
             // セーブ世代の待ち手はゲーム寿命で1つ。完了通知を取りこぼさないよう最初の要求より前に作り、DIへも同じ個体を渡す
             // One save-generation waiter for the game's lifetime; created before any request so no notice is missed, and handed to DI as the same instance
@@ -59,11 +67,11 @@ namespace Client.Starter.Initialization
 
             //最初に必要なデータを取得
             // Fetch the initial data bundle
-            var handshakeResponse = await vanillaApi.Response.InitialHandShake(_playerConnectionSetting.PlayerId, _exitToken);
+            var handshakeResponse = await vanillaApi.Response.InitialHandShake(identity.Identity, _exitToken);
 
             _loadingProgressLog.AppendElapsed(LocalizationKeys.Ui.Loading.InitialDataFetched);
 
-            return new ServerConnectionResult { VanillaApi = vanillaApi, HandshakeResponse = handshakeResponse, SaveGenerationWaiter = saveGenerationWaiter };
+            return new ServerConnectionResult { PlayerConnectionSetting = new PlayerConnectionSetting(handshakeResponse.PlayerId), VanillaApi = vanillaApi, HandshakeResponse = handshakeResponse, SaveGenerationWaiter = saveGenerationWaiter };
 
             #region Internal
 
@@ -129,6 +137,7 @@ namespace Client.Starter.Initialization
     /// </summary>
     public class ServerConnectionResult
     {
+        public PlayerConnectionSetting PlayerConnectionSetting;
         public VanillaApi VanillaApi;
         public InitialHandshakeResponse HandshakeResponse;
         public ServerSaveGenerationWaiter SaveGenerationWaiter;
