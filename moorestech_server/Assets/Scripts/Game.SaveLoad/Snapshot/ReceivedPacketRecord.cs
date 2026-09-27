@@ -5,11 +5,13 @@ namespace Game.SaveLoad.Snapshot
     public readonly struct ReceivedPacketRecord
     {
         public ulong Tick { get; }
+        public int PlayerId { get; }
         public byte[] Payload { get; }
 
-        public ReceivedPacketRecord(ulong tick, byte[] payload)
+        public ReceivedPacketRecord(ulong tick, int playerId, byte[] payload)
         {
             Tick = tick;
+            PlayerId = playerId;
             Payload = payload;
         }
     }

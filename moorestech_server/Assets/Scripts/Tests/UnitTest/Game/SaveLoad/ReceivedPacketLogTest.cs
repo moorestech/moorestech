@@ -12,15 +12,35 @@ namespace Tests.UnitTest.Game.SaveLoad
     public class ReceivedPacketLogTest
     {
         [Test]
+        public void 送り手のIDと未紐づけと同tick内の順序が読み戻せるTest()
+        {
+            var dir = Path.Combine(Path.GetTempPath(), $"moorestech-packetlog-{Guid.NewGuid():N}");
+            var log = new ReceivedPacketLog();
+            log.Start(dir, 1);
+            log.Append(1, 2, new byte[] { 1 });
+            log.Append(1, 0, new byte[] { 2 });
+            log.Rotate(2);
+            log.Append(2, 7, new byte[] { 3 });
+            log.Stop();
+
+            // 区間を跨いでも送り手とペイロードの対応を崩さない
+            // Keep sender and payload paired even across segment boundaries
+            var records = ReceivedPacketLogReader.ReadAll(log.SegmentFilePaths());
+            CollectionAssert.AreEqual(new[] { 2, 0, 7 }, records.Select(record => record.PlayerId));
+            CollectionAssert.AreEqual(new byte[] { 1, 2, 3 }, records.Select(record => record.Payload[0]));
+            Directory.Delete(dir, true);
+        }
+
+        [Test]
         public void 追記したレコードをtick付きで読み戻せる()
         {
             var dir = Path.Combine(Path.GetTempPath(), $"moorestech-packetlog-{Guid.NewGuid():N}");
             var log = new ReceivedPacketLog();
             log.Start(dir, 1);
-            log.Append(1, new byte[] { 1, 2, 3 });
-            log.Append(3, new byte[] { 9 });
+            log.Append(1, 1, new byte[] { 1, 2, 3 });
+            log.Append(3, 1, new byte[] { 9 });
             log.Rotate(4);
-            log.Append(4, new byte[] { 4, 4 });
+            log.Append(4, 1, new byte[] { 4, 4 });
             log.Flush();
 
             var records = ReceivedPacketLogReader.ReadAll(log.SegmentFilePaths());
@@ -66,7 +86,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.IsFalse(log.IsActive, "記録が止まっていない");
 
             LogAssert.Expect(LogType.Log, new Regex("^パケットログは未開始のため記録しません"));
-            Assert.DoesNotThrow(() => log.Append(12, new byte[] { 1 }), "縮退後のAppendが呼び出し元へ伝播している");
+            Assert.DoesNotThrow(() => log.Append(12, 1, new byte[] { 1 }), "縮退後のAppendが呼び出し元へ伝播している");
 
             // ログだけに残すと取得結果は欠損を伝えられない。理由と停止tickは状態として持つ
             // Leaving it in the log alone keeps the gap out of the capture result, so the reason and the stop tick are held as state
@@ -78,8 +98,8 @@ namespace Tests.UnitTest.Game.SaveLoad
         public void 開始前のAppendは無視される()
         {
             var log = new ReceivedPacketLog();
-            log.Append(1, new byte[] { 1 });
-            log.Append(2, new byte[] { 1 });
+            log.Append(1, 1, new byte[] { 1 });
+            log.Append(2, 1, new byte[] { 1 });
             Assert.IsFalse(log.IsActive);
         }
 
@@ -91,7 +111,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var dir = Path.Combine(Path.GetTempPath(), $"moorestech-packetlog-{Guid.NewGuid():N}");
             var log = new ReceivedPacketLog();
             log.Start(dir, 1);
-            log.Append(1, new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 });
+            log.Append(1, 1, new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 });
             log.Stop();
 
             // 宣言された長さより短いところでファイルを切る（書き込み中のプロセスが落ちた状態と同じ）

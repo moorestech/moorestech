@@ -19,6 +19,7 @@ namespace Game.SaveLoad.Snapshot
                 while (reader.BaseStream.Position < reader.BaseStream.Length)
                 {
                     var tick = reader.ReadUInt64();
+                    var playerId = reader.ReadInt32();
                     var length = reader.ReadInt32();
                     if (length < 0) throw new InvalidDataException($"パケットログの長さが負です path:{path} tick:{tick} length:{length}");
 
@@ -27,7 +28,7 @@ namespace Game.SaveLoad.Snapshot
                     var payload = reader.ReadBytes(length);
                     if (payload.Length != length) throw new InvalidDataException($"パケットログのレコードが途中で切れています path:{path} tick:{tick} expected:{length} actual:{payload.Length}");
 
-                    result.Add(new ReceivedPacketRecord(tick, payload));
+                    result.Add(new ReceivedPacketRecord(tick, playerId, payload));
                 }
             }
             return result.OrderBy(record => record.Tick).ToList();

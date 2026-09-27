@@ -54,7 +54,7 @@ namespace Server.Boot.Replay
             var records = ReceivedPacketLogReader.ReadAll(request.PacketLogFilePaths);
             var inRange = ReportPacketLogCoverage(records, loadedTick, request.TargetTick);
             var queue = provider.GetRequiredService<TickEndPacketQueue>();
-            var context = new PacketResponseContext(null);
+            var contexts = new Dictionary<int, PacketResponseContext>();
             var replayed = 0;
             var excluded = 0;
             var next = 0;
@@ -70,7 +70,7 @@ namespace Server.Boot.Replay
                     if (IsExcludedFromReplay(records[next].Payload)) excluded++;
                     else
                     {
-                        queue.Enqueue(new ReplayPacketEntry(packetResponseCreator, context, records[next].Payload));
+                        queue.Enqueue(new ReplayPacketEntry(packetResponseCreator, ContextFor(records[next].PlayerId), records[next].Payload));
                         replayed++;
                     }
                     next++;
@@ -84,6 +84,21 @@ namespace Server.Boot.Replay
             return new ReplayResult(loadedTick, GameUpdater.CurrentTick, replayed, inRange, excluded, json);
 
             #region Internal
+
+            // 記録された送り手ごとに接続を復元する。0はハンドシェイク前の未紐づけ
+            // Restore a connection per recorded sender; zero denotes an unbound sender before handshake
+            PacketResponseContext ContextFor(int playerId)
+            {
+                // 未紐づけレコードは別接続かもしれないため、先のハンドシェイク結果を引き継がない
+                // Unbound records may come from different connections, so never inherit an earlier handshake
+                if (playerId == 0) return new PacketResponseContext(null);
+                if (contexts.TryGetValue(playerId, out var existing)) return existing;
+                var created = new PacketResponseContext(null);
+                created.TryBindPlayerId(playerId);
+                contexts.Add(playerId, created);
+                return created;
+            }
+
 
             // 渡されたログが再生区間をどれだけ覆っているかを必ず出す。0件再生を「一致しなかった＝非決定性」と誤読させないため
             // Always report how much of the replay interval the given log covers, so a zero-packet replay is not misread as non-determinism

@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using Core.Update;
-using Game.Paths;
 using UnityEngine;
 
 namespace Game.SaveLoad.Snapshot
@@ -14,13 +12,8 @@ namespace Game.SaveLoad.Snapshot
     public sealed class ReceivedPacketLog
     {
         private readonly object _lock = new();
-        private string _directory;
+        private ReceivedPacketLogSegments _segments = new(null);
         private BinaryWriter _writer;
-        private ulong _currentSegmentFromTick;
-
-        // 書き込み中の区間があるか。閉じ切っていない区間はバッファ境界で切れているため複製してはいけない
-        // Whether a segment is still open; an unclosed segment ends at a buffer boundary and must never be copied
-        private bool _currentSegmentOpen;
         private bool _inactiveLogged;
         private int _isActive;
 
@@ -43,7 +36,7 @@ namespace Game.SaveLoad.Snapshot
 
         public void Start(string directory, ulong fromTick)
         {
-            _directory = directory;
+            _segments = new ReceivedPacketLogSegments(directory);
 
             // ディレクトリ作成は外部境界。記録を始められなくても起動そのものは落とさない
             // Creating the directory is an external boundary; failing to start capture must not fail the boot
@@ -61,7 +54,7 @@ namespace Game.SaveLoad.Snapshot
             Volatile.Write(ref _isActive, 1);
         }
 
-        public void Append(ulong tick, byte[] payload)
+        public void Append(ulong tick, int playerId, byte[] payload)
         {
             if (!IsActive)
             {
@@ -82,6 +75,7 @@ namespace Game.SaveLoad.Snapshot
                 try
                 {
                     _writer.Write(tick);
+                    _writer.Write(playerId);
                     _writer.Write(payload.Length);
                     _writer.Write(payload);
                 }
@@ -124,11 +118,11 @@ namespace Game.SaveLoad.Snapshot
 
                     // 閉じ切れた区間だけを完成扱いにする。失敗した区間はこのまま書き込み中として扱い複製から外す
                     // Only a segment that closed cleanly counts as complete; a failed one stays open and is kept out of copies
-                    _currentSegmentOpen = false;
+                    _segments.MarkClosed();
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError($"パケットログの終了処理に失敗しました message:{e.Message} 区間{_currentSegmentFromTick}は書き込み中のまま扱います");
+                    Debug.LogError($"パケットログの終了処理に失敗しました message:{e.Message} 区間{_segments.CurrentFromTick}は書き込み中のまま扱います");
                 }
                 _writer = null;
                 Volatile.Write(ref _isActive, 0);
@@ -154,10 +148,9 @@ namespace Game.SaveLoad.Snapshot
                     _writer?.Flush();
                     _writer?.Dispose();
                     _writer = null;
-                    var path = Path.Combine(_directory, WorldDataDirectory.ReceivedPacketLogFileName(fromTick));
+                    var path = _segments.PathFor(fromTick);
                     _writer = new BinaryWriter(new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Read));
-                    _currentSegmentFromTick = fromTick;
-                    _currentSegmentOpen = true;
+                    _segments.MarkOpened(fromTick);
                     return true;
                 }
                 catch (Exception e)
@@ -185,57 +178,21 @@ namespace Game.SaveLoad.Snapshot
             Debug.LogError($"{reason} 以後パケットログの記録を停止します tick:{tick} message:{exception.Message}");
         }
 
-        // 最古スナップショット以前で始まる区間を消す。書き込み中の区間は残す
-        // Delete segments starting at or before the oldest snapshot; keep the segment being written
         public void DeleteSegmentsBefore(ulong oldestSnapshotTick)
         {
-            foreach (var path in SegmentFilePaths())
-            {
-                if (!WorldDataDirectory.TryParsePacketLogFromTick(Path.GetFileName(path), out var fromTick)) continue;
-                if (fromTick > oldestSnapshotTick || fromTick == _currentSegmentFromTick) continue;
-
-                // 常時記録の削除は後から追跡できる必要があるので、消した区間と理由を必ず残す
-                // Deleting always-on capture must stay auditable, so record which segment went and why
-                Debug.Log($"パケットログ区間を削除しました path:{path} 理由:最古スナップショット{oldestSnapshotTick}より前の区間");
-                DeleteSegmentFile(path);
-            }
+            _segments.DeleteBefore(oldestSnapshotTick);
         }
 
-        // 並びは開始tickの昇順。ファイル名規則と順序の定義は WorldDataDirectory だけが持つ
-        // Ordered by starting tick; the naming rule and the ordering live only in WorldDataDirectory
         public IReadOnlyList<string> SegmentFilePaths()
         {
-            return WorldDataDirectory.EnumeratePacketLogFiles(_directory);
+            return _segments.FilePaths();
         }
 
-        // 閉じ切った区間だけ。書き込み中の区間はバッファ境界で末尾が切れており、複製すると読み側がレコード破損で全滅する
-        // Closed segments only; an open segment ends mid-record at a buffer boundary and a copy of it kills the reader outright
         public IReadOnlyList<string> CompletedSegmentFilePaths()
         {
             lock (_lock)
             {
-                if (!_currentSegmentOpen) return SegmentFilePaths();
-
-                var openSegmentFileName = WorldDataDirectory.ReceivedPacketLogFileName(_currentSegmentFromTick);
-                return SegmentFilePaths().Where(path => Path.GetFileName(path) != openSegmentFileName).ToList();
-            }
-        }
-
-        private static void DeleteSegmentFile(string path)
-        {
-            // ディスク削除は外部境界。消せなくても記録は続けたいので、失敗は出力して次の区間へ進む
-            // Disk deletion is an external boundary; capture must continue, so a failure is logged and the loop moves on
-            try
-            {
-                File.Delete(path);
-            }
-            catch (IOException e)
-            {
-                Debug.LogError($"パケットログ区間の削除に失敗しました path:{path} message:{e.Message}");
-            }
-            catch (UnauthorizedAccessException e)
-            {
-                Debug.LogError($"パケットログ区間の削除が権限で拒否されました path:{path} message:{e.Message}");
+                return _segments.CompletedFilePaths();
             }
         }
     }

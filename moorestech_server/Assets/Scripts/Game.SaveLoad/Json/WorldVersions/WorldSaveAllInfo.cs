@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Game.Blueprint;
 using Game.Challenge;
 using Game.CleanRoom.Save;
@@ -6,6 +6,7 @@ using Game.Construction;
 using Game.Entity.Interface;
 using Game.Hotbar;
 using Game.Map.Interface.Json;
+using Game.PlayerIdentity;
 using Game.PlayerInventory.Interface;
 using Game.PlayerRiding.Interface;
 using Game.Research;
@@ -21,7 +22,7 @@ namespace Game.SaveLoad.Json.WorldVersions
     {
         // セーブ形式の現在版。マイグレーション連鎖の終点であり、形式を変えるPRがここを上げる
         // The current save format version; the migration chain's destination, raised by any PR that changes the format
-        public const int CurrentVersion = 2;
+        public const int CurrentVersion = 3;
 
         [JsonProperty("worldVersion")] public int WorldVersion = CurrentVersion;
         
@@ -46,7 +47,8 @@ namespace Game.SaveLoad.Json.WorldVersions
             List<CleanRoomSaveData> cleanRoomRooms,
             List<PlayerMiningCooldownSaveJsonObject> miningCooldowns,
             ulong[] randomState,
-            List<string> backfilledFields)
+            List<string> backfilledFields,
+            PlayersSaveJsonObject players)
         {
             World = world;
             Inventory = inventory;
@@ -69,8 +71,11 @@ namespace Game.SaveLoad.Json.WorldVersions
             MiningCooldowns = miningCooldowns;
             RandomState = randomState;
             BackfilledFields = backfilledFields;
+            Players = players;
         }
         
+        [JsonProperty("players")] public PlayersSaveJsonObject Players { get; }
+
         [JsonProperty("world")] public List<BlockJsonObject> World { get; }
         [JsonProperty("playerInventory")] public List<PlayerInventorySaveJsonObject> Inventory { get; }
         [JsonProperty("entities")] public List<EntityJsonObject> Entities { get; }

@@ -57,6 +57,7 @@
         "Game.PlayerRiding.Interface",
         "Game.PlayerRiding",
         "Game.PlayerConnection",
+        "Game.PlayerIdentity",
         "Game.CleanRoom",
         "Game.Blueprint",
         "Game.PlacementTarget",

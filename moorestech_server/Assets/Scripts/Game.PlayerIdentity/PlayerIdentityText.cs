@@ -1,0 +1,60 @@
+using System;
+
+namespace Game.PlayerIdentity
+{
+    // プレイヤー身元の文字列書式。種別の接頭辞で出どころを区別する
+    // The player identity text format; the prefix tells where it came from
+    public static class PlayerIdentityText
+    {
+        public const string SteamPrefix = "steam:";
+        public const string DevicePrefix = "device:";
+        private const int MaxSteamIdDigits = 20;
+        private const int DeviceHashLength = 64;
+
+        public static bool IsValid(string identity, out string reason)
+        {
+            reason = null;
+            if (string.IsNullOrEmpty(identity))
+            {
+                reason = "身元が空";
+                return false;
+            }
+
+            // Steamは10進のSteamID64、端末はSHA-256の小文字16進
+            // Steam carries a decimal SteamID64; a device carries a lowercase hex SHA-256
+            if (identity.StartsWith(SteamPrefix, StringComparison.Ordinal)) return IsSteamBody(identity.Substring(SteamPrefix.Length), out reason);
+            if (identity.StartsWith(DevicePrefix, StringComparison.Ordinal)) return IsDeviceBody(identity.Substring(DevicePrefix.Length), out reason);
+
+            reason = $"未知の身元種別: {identity}";
+            return false;
+
+            #region Internal
+
+            bool IsSteamBody(string body, out string steamReason)
+            {
+                steamReason = null;
+                if (body.Length == 0 || body.Length > MaxSteamIdDigits) steamReason = $"SteamIDの桁数が不正: {identity}";
+                foreach (var c in body)
+                {
+                    if (c >= '0' && c <= '9') continue;
+                    steamReason = $"SteamIDに数字以外が含まれる: {identity}";
+                }
+                return steamReason == null;
+            }
+
+            bool IsDeviceBody(string body, out string deviceReason)
+            {
+                deviceReason = null;
+                if (body.Length != DeviceHashLength) deviceReason = $"端末値の長さが不正: {identity}";
+                foreach (var c in body)
+                {
+                    if ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f')) continue;
+                    deviceReason = $"端末値に小文字16進以外が含まれる: {identity}";
+                }
+                return deviceReason == null;
+            }
+
+            #endregion
+        }
+    }
+}

@@ -2,6 +2,7 @@
   "name": "Game.SaveLoad",
   "rootNamespace": "",
   "references": [
+    "Game.PlayerIdentity",
     "Core.Item",
     "Core.Master",
     "Core.Update",

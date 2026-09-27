@@ -46,7 +46,7 @@ namespace Server.Boot.Loop.PacketProcessing
         {
             // 再生の真実はここ（tick末尾の処理点）。クライアント送信時刻ではなく処理tickで記録する
             // Replay truth lives here at the tick-end processing point; record the processing tick, not the client send time
-            _receivedPacketLog.Append(GameUpdater.CurrentTick, packet);
+            _receivedPacketLog.Append(GameUpdater.CurrentTick, _packetResponseContext.PlayerId ?? 0, packet);
 
             var results = _packetResponseCreator.GetPacketResponse(packet, _packetResponseContext);
 

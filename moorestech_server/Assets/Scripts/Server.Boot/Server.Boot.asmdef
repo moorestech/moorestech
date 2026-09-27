@@ -2,6 +2,7 @@
     "name": "Server.Boot",
     "rootNamespace": "",
     "references": [
+        "Game.PlayerIdentity",
         "Common.Debug",
         "Game.SaveLoad.Interface",
         "Server.Protocol",

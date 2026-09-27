@@ -21,7 +21,7 @@ namespace Server.Boot.Replay
             {
                 var tag = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(record.Payload).Tag;
                 var json = MessagePackSerializer.ConvertToJson(record.Payload);
-                var line = new JObject { ["tick"] = record.Tick, ["tag"] = tag, ["json"] = JToken.Parse(json) };
+                var line = new JObject { ["tick"] = record.Tick, ["playerId"] = record.PlayerId, ["tag"] = tag, ["json"] = JToken.Parse(json) };
                 builder.Append(line.ToString(Formatting.None)).Append('\n');
             }
             File.WriteAllText(outputJsonlPath, builder.ToString());
