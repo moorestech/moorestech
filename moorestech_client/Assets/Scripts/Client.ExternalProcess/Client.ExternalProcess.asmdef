@@ -1,8 +1,8 @@
 {
-    "name": "Client.Build.Policy",
-    "rootNamespace": "Client.Build.Policy",
+    "name": "Client.ExternalProcess",
+    "rootNamespace": "Client.ExternalProcess",
     "references": [],
-    "includePlatforms": ["Editor"],
+    "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
@@ -10,5 +10,5 @@
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],
-    "noEngineReferences": true
+    "noEngineReferences": false
 }

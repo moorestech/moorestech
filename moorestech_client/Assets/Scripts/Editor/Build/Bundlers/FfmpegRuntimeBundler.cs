@@ -1,7 +1,7 @@
 using System.IO;
 using Client.Editor;
 using Client.Game.InGame.BugReport.Recording;
-using Client.WebUiHost.Editor;
+using Client.ExternalProcess;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEngine;
@@ -59,22 +59,21 @@ namespace Client.Editor.Build.Bundlers
 
             void BundleMacOs()
             {
-                // 実行→MacOS、ライセンス→Resources
-                // Executable goes to MacOS, license to Resources
-                var executableDestination = FfmpegLocator.ResolveBundledMacExecutablePath(playerOutputPath);
+                // 実行ファイルとライセンスの配置先
+                // Where the executable and the license go
+                var executableDestination = MacPlayerAppBundle.ResolveBundledFfmpegPath(playerOutputPath);
                 if (!Directory.Exists(Path.GetDirectoryName(executableDestination)))
                 {
                     Fail($"Contents/MacOS not found in build output: {Path.GetDirectoryName(executableDestination)}");
                     return;
                 }
 
-                var contentsDirectory = Path.Combine(playerOutputPath, "Contents");
                 if (!CopyExecutableAndLicense(SourceDirectory("macos-arm64"), FfmpegLocator.BundledMacExecutableName,
-                        executableDestination, Path.Combine(contentsDirectory, "Resources", BundledLicenseName))) return;
+                        executableDestination, MacPlayerAppBundle.ResolveBundledResourcePath(playerOutputPath, BundledLicenseName))) return;
 
                 // コピー後に実行権を保証する
                 // Ensure the executable bit after copying
-                if (EditorProcessRunner.Run("/bin/chmod", $"+x \"{executableDestination}\"", Application.dataPath, "") != 0)
+                if (!EditorProcessRunner.MarkExecutable(executableDestination, Application.dataPath))
                     Fail($"chmod failed: {executableDestination}");
             }
 

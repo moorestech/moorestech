@@ -1,7 +1,6 @@
 using System.IO;
-using Client.Game.InGame.BugReport.Recording;
-using Client.WebUiHost.Editor;
-using UnityEditor.Build;
+using Client.Editor.Build.Bundlers;
+using Client.ExternalProcess;
 using UnityEngine;
 
 namespace Client.Editor.Build
@@ -14,42 +13,45 @@ namespace Client.Editor.Build
     {
         private const string CodesignPath = "/usr/bin/codesign";
 
-        public static void Sign(string appPath, bool isStrict)
+        // 署名できたかを返し、成果物の扱いは呼び出し側（BuildPipeline）が決める
+        // Returns whether signing succeeded; BuildPipeline decides what happens to the artifact
+        public static bool Sign(string appPath)
         {
             // 入れ子のコードを先に署名してから.app全体を封印する
             // Sign nested code first, then seal the whole .app
-            var bundledFfmpeg = FfmpegLocator.ResolveBundledMacExecutablePath(appPath);
+            var bundledFfmpeg = MacPlayerAppBundle.ResolveBundledFfmpegPath(appPath);
             if (!File.Exists(bundledFfmpeg))
             {
                 // 個別署名を飛ばしても後続の--deepが検査するため続行するが、無音にはしない
                 // Skipping the per-file sign still lets the later --deep pass verify it, but this must not stay silent
                 Debug.LogWarning($"[MacAppAdHocSigner] bundled ffmpeg not found, skipping its individual signing: {bundledFfmpeg}");
             }
-            else if (EditorProcessRunner.Run(CodesignPath, $"--force -s - \"{bundledFfmpeg}\"", Application.dataPath, "") != 0)
+            else if (Codesign($"--force -s - \"{bundledFfmpeg}\"") != 0)
             {
-                Fail($"codesign failed for bundled ffmpeg: {bundledFfmpeg}");
+                return Fail($"codesign failed for bundled ffmpeg: {bundledFfmpeg}");
             }
-            if (EditorProcessRunner.Run(CodesignPath, $"--force --deep -s - \"{appPath}\"", Application.dataPath, "") != 0)
+            if (Codesign($"--force --deep -s - \"{appPath}\"") != 0)
             {
-                Fail($"codesign failed for app: {appPath}");
-                return;
+                return Fail($"codesign failed for app: {appPath}");
             }
 
             // 署名が実際に通るかを配布前に確かめる
             // Confirm before distribution that the signature actually verifies
-            if (EditorProcessRunner.Run(CodesignPath, $"--verify --deep --strict \"{appPath}\"", Application.dataPath, "") != 0)
+            if (Codesign($"--verify --deep --strict \"{appPath}\"") != 0)
             {
-                Fail($"codesign verification failed: {appPath}");
-                return;
+                return Fail($"codesign verification failed: {appPath}");
             }
             Debug.Log($"[MacAppAdHocSigner] ad-hoc signed and verified: {appPath}");
+            return true;
 
             #region Internal
 
-            void Fail(string message)
+            int Codesign(string arguments) => EditorProcessRunner.Run(CodesignPath, arguments, Application.dataPath, "");
+
+            bool Fail(string message)
             {
-                if (isStrict) throw new BuildFailedException("[MacAppAdHocSigner] " + message);
-                Debug.LogWarning("[MacAppAdHocSigner] " + message);
+                Debug.LogError("[MacAppAdHocSigner] " + message);
+                return false;
             }
 
             #endregion

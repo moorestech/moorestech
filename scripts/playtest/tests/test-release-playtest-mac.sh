@@ -8,6 +8,21 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=lib/release-playtest-sandbox.sh
 . "$SCRIPT_DIR/lib/release-playtest-sandbox.sh"
+# 必須パス列は検査の正本から読む。検査項目を足せば欠損ケースが自動で増える
+# Read the required paths from the checker itself, so a new check adds its missing case automatically
+# shellcheck source=../lib/release-artifact.sh
+. "$SCRIPT_DIR/../lib/release-artifact.sh"
+
+# 検査の正本から読む必須パス列そのものが縮んでいないことを先に確かめる（縮小改変を緑にしないため）
+# Check the sourced required-path list itself has not shrunk, so a removal cannot pass silently
+for expected_path in "moorestech.app/Contents/MacOS/moorestech" "moorestech.app/Contents/MacOS/ffmpeg" \
+    "moorestech.app/Contents/Resources/ffmpeg-LICENSE.txt" \
+    "moorestech.app/Contents/Resources/Data/StreamingAssets/build-info.json" "game/mods"; do
+    case " ${MAC_REQUIRED_RELATIVE_PATHS[*]} " in
+      *" $expected_path "*) ;;
+      *) fail "MAC_REQUIRED_RELATIVE_PATHS lost $expected_path";;
+    esac
+done
 
 # 同じ worktree から Windows、Mac の順に OS 別ディレクトリへ焼く
 # Build Windows then Mac from one worktree into separate directories
@@ -33,11 +48,15 @@ grep -Fqx "$(printf '\t"contentroot" "%s/build-mac"' "$special_run")" "$special_
 
 # Mac 側の失敗では steamcmd へ進まず、worktree を片付ける
 # Mac failures do not reach steamcmd and still remove the worktree
-for case_spec in "mac-build UNITY_MAC_EXIT=1" "codesign CODESIGN_EXIT=1" "universal LIPO_ARCHS=x86_64_arm64" \
+FAILURE_CASES=("mac-build UNITY_MAC_EXIT=1" "codesign CODESIGN_EXIT=1" "universal LIPO_ARCHS=x86_64_arm64" \
     "intel LIPO_ARCHS=x86_64" "ffmpeg-architecture LIPO_FFMPEG_ARCHS=x86_64" \
+    "helper-architecture LIPO_HELPER_ARCHS=x86_64" "helper-not-executable MAC_HELPER_NOT_EXECUTABLE=1" \
     "event-script MAC_LEAKS_EVENT_SCRIPT=1" "mac-target BUILD_INFO_TARGET_MAC=StandaloneWindows64" \
-    "missing-main MAC_MISSING_PATH=main" "missing-ffmpeg MAC_MISSING_PATH=ffmpeg" \
-    "missing-license MAC_MISSING_PATH=license"; do
+    "missing-cef-helper MAC_MISSING_PATH=moorestech.app/Contents/PlugIns/cef-unity-server.app")
+for required_path in "${MAC_REQUIRED_RELATIVE_PATHS[@]}"; do
+    FAILURE_CASES+=("missing-$required_path MAC_MISSING_PATH=$required_path")
+done
+for case_spec in "${FAILURE_CASES[@]}"; do
     name="${case_spec%% *}"
     assignment="${case_spec#* }"
     make_sandbox
@@ -53,12 +72,27 @@ make_sandbox
 OUTPUT=$(BUILD_INFO_TARGET_MAC=StandaloneWindows64 run_target); STATUS=$?
 [ "$STATUS" -eq 4 ] || fail "Mac target mismatch did not exit 4 (got $STATUS)"
 case "$OUTPUT" in *'target mismatch'*) ;; *) fail "Mac target mismatch reason was absent";; esac
-for missing_path in main ffmpeg license; do
+for missing_path in "${MAC_REQUIRED_RELATIVE_PATHS[@]}"; do
     make_sandbox
     OUTPUT=$(MAC_MISSING_PATH="$missing_path" run_target); STATUS=$?
     [ "$STATUS" -eq 4 ] || fail "missing Mac $missing_path did not exit 4 (got $STATUS)"
-    case "$OUTPUT" in *'成果物に '*'/Contents/'*) ;; *) fail "missing Mac $missing_path path was absent";; esac
+    case "$OUTPUT" in *"成果物に "*"/$missing_path "*) ;; *) fail "missing Mac $missing_path path was absent";; esac
 done
+
+# CEF helper の欠落・非実行・非arm64は理由を名指しする
+# A missing, non-executable or non-arm64 CEF helper names its reason
+make_sandbox
+OUTPUT=$(MAC_MISSING_PATH=moorestech.app/Contents/PlugIns/cef-unity-server.app run_target); STATUS=$?
+[ "$STATUS" -eq 4 ] || fail "missing CEF helper did not exit 4 (got $STATUS)"
+case "$OUTPUT" in *'CEF helper'*) ;; *) fail "missing CEF helper reason was absent";; esac
+make_sandbox
+OUTPUT=$(MAC_HELPER_NOT_EXECUTABLE=1 run_target); STATUS=$?
+[ "$STATUS" -eq 4 ] || fail "non-executable CEF helper did not exit 4 (got $STATUS)"
+case "$OUTPUT" in *'実行権'*) ;; *) fail "non-executable CEF helper reason was absent";; esac
+make_sandbox
+OUTPUT=$(LIPO_HELPER_ARCHS=x86_64 run_target); STATUS=$?
+[ "$STATUS" -eq 4 ] || fail "non-arm64 CEF helper did not exit 4 (got $STATUS)"
+case "$OUTPUT" in *'cef-unity-server'*) ;; *) fail "non-arm64 CEF helper was not named";; esac
 
 # Mac depot ID が欠落・非数字ならビルド前に exit 2
 # A missing or nonnumeric Mac depot ID exits 2 before building

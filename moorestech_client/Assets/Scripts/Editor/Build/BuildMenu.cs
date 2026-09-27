@@ -28,7 +28,10 @@ namespace Client.Editor.Build
         [MenuItem("moorestech/Build/MacOsExhibitionBuild")]
         public static void MacOsExhibitionBuild()
         {
-            BuildDistributionInteractive(BuildTarget.StandaloneOSX, BuildPurpose.Exhibition);
+            var outputDirectory = SelectOutputDirectory(BuildTarget.StandaloneOSX);
+            if (outputDirectory == null) return;
+
+            ReportOutcome(BuildPipeline.Execute(PlayerBuildRequest.ForExhibition(outputDirectory)), outputDirectory);
         }
 
         // 手元焼き。無人入口と同用途
@@ -36,13 +39,13 @@ namespace Client.Editor.Build
         [MenuItem("moorestech/Build/WindowsSteamPlaytestBuild")]
         public static void WindowsSteamPlaytestBuild()
         {
-            BuildDistributionInteractive(BuildTarget.StandaloneWindows64, BuildPurpose.SteamPlaytest);
+            BuildSteamPlaytestInteractive(BuildTarget.StandaloneWindows64);
         }
 
         [MenuItem("moorestech/Build/MacOsSteamPlaytestBuild")]
         public static void MacOsSteamPlaytestBuild()
         {
-            BuildDistributionInteractive(BuildTarget.StandaloneOSX, BuildPurpose.SteamPlaytest);
+            BuildSteamPlaytestInteractive(BuildTarget.StandaloneOSX);
         }
 
         [MenuItem("moorestech/Build/LinuxBuild")]
@@ -76,29 +79,17 @@ namespace Client.Editor.Build
 
             // 開発用は同梱失敗を警告で続行
             // Dev builds warn and continue on bundling failures
-            var outcome = BuildPipeline.Execute(new PlayerBuildRequest
-            {
-                Target = buildTarget,
-                OutputDirectory = outputDirectory,
-                Purpose = BuildPurpose.LocalDevelopment,
-                LocalDevelopmentChoosesDevelopment = isDevelopmentBuild,
-            });
+            var outcome = BuildPipeline.Execute(PlayerBuildRequest.ForLocalDevelopment(buildTarget, outputDirectory, isDevelopmentBuild));
 
             ReportOutcome(outcome, outputDirectory);
         }
 
-        private static void BuildDistributionInteractive(BuildTarget buildTarget, BuildPurpose purpose)
+        private static void BuildSteamPlaytestInteractive(BuildTarget buildTarget)
         {
             var outputDirectory = SelectOutputDirectory(buildTarget);
             if (outputDirectory == null) return;
 
-            var request = new PlayerBuildRequest
-            {
-                Target = buildTarget,
-                OutputDirectory = outputDirectory,
-                Purpose = purpose,
-            };
-            ReportOutcome(BuildPipeline.Execute(request), outputDirectory);
+            ReportOutcome(BuildPipeline.Execute(PlayerBuildRequest.ForSteamPlaytest(buildTarget, outputDirectory)), outputDirectory);
         }
 
         // 出力先を選択する（前回パスを記憶）。キャンセル時はnull
@@ -122,11 +113,20 @@ namespace Client.Editor.Build
                 case PlayerBuildOutcome.Succeeded:
                     EditorUtility.RevealInFinder(outputDirectory);
                     break;
+                case PlayerBuildOutcome.BuildTargetSwitchFailed:
+                    EditorUtility.DisplayDialog("Build Failed", "ビルドターゲットの切り替えに失敗しました。Consoleのエラーを確認してください。", "OK");
+                    break;
+                case PlayerBuildOutcome.MacArchitecturePinFailed:
+                    EditorUtility.DisplayDialog("Build Failed", "Macのarm64固定に失敗しました。Consoleのエラーを確認してください。", "OK");
+                    break;
                 case PlayerBuildOutcome.AddressablesBuildFailed:
                     EditorUtility.DisplayDialog("Build Failed", "Addressablesのビルドに失敗しました。Consoleのエラーを確認してください。", "OK");
                     break;
                 case PlayerBuildOutcome.PlayerBuildFailed:
                     EditorUtility.DisplayDialog("Build Failed", "Playerのビルドに失敗しました。Consoleのエラーを確認してください。", "OK");
+                    break;
+                case PlayerBuildOutcome.MacSigningFailed:
+                    EditorUtility.DisplayDialog("Build Failed", "Mac成果物のad-hoc署名に失敗しました。Consoleのエラーを確認してください。", "OK");
                     break;
             }
         }

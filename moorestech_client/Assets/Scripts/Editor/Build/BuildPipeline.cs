@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using Client.Build.Policy;
 using Client.Editor.Build.Bundlers;
 using UnityEditor;
 using UnityEditor.AddressableAssets.Settings;
@@ -22,18 +23,14 @@ namespace Client.Editor.Build
 
             // 同梱・検査の方針は用途からだけ導く
             // Bundling and check policy derive from the purpose alone
-            var isStrictBundling = BuildPurposeRules.IsStrictBundling(request.Purpose);
-
-            var buildOptionsFlags = BuildPurposeRules.IsDevelopmentBuild(request.Purpose, request.LocalDevelopmentChoosesDevelopment)
-                ? BuildOptions.Development
-                : BuildOptions.CompressWithLz4;
+            var policy = BuildPurposeRules.Resolve(request.Purpose, request.LocalDevelopmentChoosesDevelopment);
 
             var buildOptions = new BuildPlayerOptions
             {
                 target = request.Target,
                 locationPathName = Path.Combine(request.OutputDirectory, PlayerExecutableName(request.Target)),
                 scenes = EditorBuildSettings.scenes.Select(s => s.path).ToArray(),
-                options = buildOptionsFlags,
+                options = policy.IsDevelopmentBuild ? BuildOptions.Development : BuildOptions.CompressWithLz4,
             };
 
             // Addressablesはアクティブターゲット向けに焼かれるため、先にターゲットを合わせる
@@ -44,14 +41,7 @@ namespace Client.Editor.Build
                 !EditorUserBuildSettings.SwitchActiveBuildTarget(UnityEditor.BuildPipeline.GetBuildTargetGroup(request.Target), request.Target))
             {
                 Debug.LogError("Build target switch failed: " + request.Target);
-                return PlayerBuildOutcome.PlayerBuildFailed;
-            }
-
-            // CEFのMacランタイムがarm64のみのため、Macは焼く前にarm64へ固定する
-            // CEF's Mac runtime is arm64 only, so pin the Mac player to arm64 before building
-            if (request.Target == BuildTarget.StandaloneOSX && !MacPlayerArchitecture.TryPinAppleSilicon(isStrictBundling))
-            {
-                return PlayerBuildOutcome.PlayerBuildFailed;
+                return PlayerBuildOutcome.BuildTargetSwitchFailed;
             }
 
             // Addressablesコンテンツをクリーンビルドする
@@ -67,41 +57,60 @@ namespace Client.Editor.Build
 
             // 他の同梱と同じく strict を引数で渡して焼く。strict の関門は BuildPlayer の数十分より前に落とす
             // Bake with strict passed as an argument like the other bundlers; the strict gate fails before BuildPlayer's lengthy run
-            BuildInfoWriter.Write(isStrictBundling, request.Target);
+            BuildInfoWriter.Write(policy.IsStrictBundling, request.Target);
+
+            // CEFのMacランタイムがarm64のみのため、配布用途のMacは焼く直前にarm64へ固定する
+            // CEF's Mac runtime is arm64 only, so distribution Mac builds pin arm64 right before baking
+            // Editor全体の設定を書き換えるため、復元を飛ばす離脱点を間に挟まない位置に置く
+            // It rewrites an Editor-wide setting, so nothing that could exit early sits between the pin and the restore
+            var pinsAppleSilicon = policy.PinsAppleSilicon && request.Target == BuildTarget.StandaloneOSX;
+            if (pinsAppleSilicon && MacPlayerArchitecture.PinAppleSilicon() == MacArchitecturePinResult.UnsupportedHost)
+            {
+                Debug.LogError(MacPlayerArchitecture.UnsupportedHostReason);
+                return PlayerBuildOutcome.MacArchitecturePinFailed;
+            }
+
             var report = UnityEditor.BuildPipeline.BuildPlayer(buildOptions);
             Debug.Log("Build Result :" + report.summary.result);
 
-            // 成功時のみ、動作に必要なCEFランタイムとゲームデータを同梱する
-            // Only on success, bundle the CEF runtime and game data the player needs to run
-            if (report.summary.result == BuildResult.Succeeded)
-            {
-                CefRuntimeBundler.Bundle(request.Target, report.summary.outputPath, isStrictBundling);
-                FfmpegRuntimeBundler.Bundle(request.Target, report.summary.outputPath, isStrictBundling);
-                if (BuildPurposeRules.BundlesLocalGameData(request.Purpose))
-                {
-                    GameDataBundler.Bundle(request.OutputDirectory, isStrictBundling);
-                    WorldSnapshotBundler.Bundle(request.OutputDirectory, isStrictBundling);
-                }
-
-                // 展示会限定（Steam版への混入防止）
-                // Exhibition only; keep it out of Steam builds
-                if (BuildPurposeRules.BundlesExhibitionLaunchScript(request.Purpose))
-                    EventLoopScriptBundler.Bundle(request.Target, request.OutputDirectory, isStrictBundling);
-
-                // 同梱で崩れた署名を最後にまとめて張り直す
-                // Re-seal the signature broken by bundling, as the very last step
-                if (request.Target == BuildTarget.StandaloneOSX)
-                    MacAppAdHocSigner.Sign(report.summary.outputPath, isStrictBundling);
-            }
+            // 焼き終えた直後に戻す
+            // Restore it as soon as the bake is done
+            if (pinsAppleSilicon) MacPlayerArchitecture.RestoreArchitectureBeforePin();
 
             Debug.Log("Build Output Path :" + report.summary.outputPath);
             Debug.Log("Build Summary TotalSize :" + report.summary.totalSize);
             Debug.Log("Build Finish Time : " + DateTime.Now);
             Debug.Log("Build Time : " + (DateTime.Now - buildStartTime).ToString(@"hh\:mm\:ss"));
 
-            return report.summary.result == BuildResult.Succeeded
-                ? PlayerBuildOutcome.Succeeded
-                : PlayerBuildOutcome.PlayerBuildFailed;
+            if (report.summary.result != BuildResult.Succeeded) return PlayerBuildOutcome.PlayerBuildFailed;
+
+            // 動作に必要なCEFランタイムとゲームデータを同梱する
+            // Bundle the CEF runtime and game data the player needs to run
+            CefRuntimeBundler.Bundle(request.Target, report.summary.outputPath, policy.IsStrictBundling);
+            FfmpegRuntimeBundler.Bundle(request.Target, report.summary.outputPath, policy.IsStrictBundling);
+            if (policy.BundlesLocalGameData)
+            {
+                GameDataBundler.Bundle(request.OutputDirectory, policy.IsStrictBundling);
+                WorldSnapshotBundler.Bundle(request.OutputDirectory, policy.IsStrictBundling);
+            }
+
+            // 展示会限定（Steam版への混入防止）
+            // Exhibition only; keep it out of Steam builds
+            if (policy.BundlesExhibitionLaunchScript)
+                EventLoopScriptBundler.Bundle(request.Target, request.OutputDirectory, policy.IsStrictBundling);
+
+            // 同梱で崩れた署名を最後にまとめて張り直す
+            // Re-seal the signature broken by bundling, as the very last step
+            var reSignsMacApp = policy.ReSignsMacApp && request.Target == BuildTarget.StandaloneOSX;
+            if (reSignsMacApp && !MacAppAdHocSigner.Sign(report.summary.outputPath))
+                return PlayerBuildOutcome.MacSigningFailed;
+
+            // 非配布用途のMacはarm64固定も再署名も省く。無音で縮退させず理由を残す
+            // Non-distribution Mac builds skip both pinning and re-signing; say so instead of degrading silently
+            if (request.Target == BuildTarget.StandaloneOSX && !policy.PinsAppleSilicon)
+                Debug.Log($"[BuildPipeline] {request.Purpose} は配布用途でないためarm64固定とad-hoc再署名を行いません。osx-arm64専用CEFのWeb UIが動かない可能性があります");
+
+            return PlayerBuildOutcome.Succeeded;
 
             #region Internal
 
@@ -141,14 +150,7 @@ namespace Client.Editor.Build
         {
             // CI入口: 現行契約を維持（Output_<target>固定・警告のみの同梱・ゲームデータ無し）
             // CI entry keeps the current contract: fixed Output_<target>, warn-only bundling, no game data
-            // Developmentで固定するのはメモリ効率のため（Release=CompressWithLz4は圧縮でバッチ機のメモリを食う）
-            // Development is pinned for memory efficiency (Release CompressWithLz4 eats batch-machine memory)
-            var outcome = Execute(new PlayerBuildRequest
-            {
-                Target = buildTarget,
-                OutputDirectory = "Output_" + buildTarget,
-                Purpose = BuildPurpose.Ci,
-            });
+            var outcome = Execute(PlayerBuildRequest.ForCi(buildTarget, "Output_" + buildTarget));
 
             EditorApplication.Exit(outcome == PlayerBuildOutcome.Succeeded ? 0 : 1);
         }

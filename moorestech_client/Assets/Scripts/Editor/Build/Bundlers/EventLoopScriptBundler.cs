@@ -1,5 +1,5 @@
 using System.IO;
-using Client.WebUiHost.Editor;
+using Client.ExternalProcess;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEngine;
@@ -16,8 +16,8 @@ namespace Client.Editor.Build.Bundlers
 
         public static void Bundle(BuildTarget target, string outputDirectory, bool isStrict)
         {
-            // .commandはmacOS専用。用途を問わず他OSへ混ざると実行時にProcess.Startが落ちる
-            // .command is macOS-only; mixing it into another OS build crashes Process.Start at run time regardless of purpose
+            // ForExhibitionがMacへ固定するため到達しない保険。破られたら他OSへ.commandが混ざる
+            // Unreachable insurance because ForExhibition fixes the target to Mac; breaking it would leak a .command into another OS
             if (target != BuildTarget.StandaloneOSX)
             {
                 Fail($"exhibition launch script is Mac-only, skipped for {target}");
@@ -38,17 +38,11 @@ namespace Client.Editor.Build.Bundlers
 
             // コピー直後は実行権が落ちるため付け直す（ダブルクリック起動の前提）
             // The copy drops the executable bit, so restore it because the booth launches it by double-click
-            MarkExecutable(destinationPath);
+            if (!EditorProcessRunner.MarkExecutable(destinationPath, Application.dataPath))
+                Fail($"chmod failed: {destinationPath}");
             Debug.Log($"[EventLoopScriptBundler] bundled launch script: {destinationPath}");
 
             #region Internal
-
-            void MarkExecutable(string filePath)
-            {
-                if (EditorProcessRunner.Run("/bin/chmod", $"+x \"{filePath}\"", Application.dataPath, "") == 0) return;
-
-                Fail($"chmod failed: {filePath}");
-            }
 
             void Fail(string message)
             {

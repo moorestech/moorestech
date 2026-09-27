@@ -14,19 +14,19 @@ case "\$*" in
   *MacOsSteamPlaytestBuild*)
     [ "\${UNITY_MAC_EXIT:-0}" = "0" ] || exit "\${UNITY_MAC_EXIT}"
     app="\$out/moorestech.app"
-    mkdir -p "\$app/Contents/MacOS" "\$app/Contents/Resources/Data/StreamingAssets" "\$out/game/mods"
-    touch "\$app/Contents/MacOS/moorestech" "\$app/Contents/MacOS/ffmpeg" "\$app/Contents/Resources/ffmpeg-LICENSE.txt"
-    case "\${MAC_MISSING_PATH:-}" in
-      main) rm "\$app/Contents/MacOS/moorestech" ;;
-      ffmpeg) rm "\$app/Contents/MacOS/ffmpeg" ;;
-      license) rm "\$app/Contents/Resources/ffmpeg-LICENSE.txt" ;;
-    esac
+    helper="\$app/Contents/PlugIns/cef-unity-server.app/Contents/MacOS/cef-unity-server"
+    mkdir -p "\$app/Contents/MacOS" "\$app/Contents/Resources/Data/StreamingAssets" "\$out/game/mods" "\$(dirname "\$helper")"
+    touch "\$app/Contents/MacOS/moorestech" "\$app/Contents/MacOS/ffmpeg" "\$app/Contents/Resources/ffmpeg-LICENSE.txt" "\$helper"
+    chmod +x "\$helper"
+    [ "\${MAC_HELPER_NOT_EXECUTABLE:-0}" = "0" ] || chmod -x "\$helper"
+    remove_after_write="\${MAC_MISSING_PATH:-}"
     [ "\${MAC_LEAKS_EVENT_SCRIPT:-0}" = "0" ] || touch "\$out/start-gamescom-loop.command"
     info="\$app/Contents/Resources/Data/StreamingAssets/build-info.json"
     target="\${BUILD_INFO_TARGET_MAC:-StandaloneOSX}"
     ;;
   *)
     [ "\${UNITY_EXIT:-0}" = "0" ] || exit "\${UNITY_EXIT}"
+    remove_after_write=""
     mkdir -p "\$out/moorestech_Data/StreamingAssets" "\$out/game/mods"
     touch "\$out/moorestech.exe"
     info="\$out/moorestech_Data/StreamingAssets/build-info.json"
@@ -35,6 +35,9 @@ case "\$*" in
 esac
 printf '{"commit":"%s","branch":"%s","steamBuildLabel":"%s","target":"%s"}' \
   "\${BUILD_INFO_COMMIT:-$commit}" "\${BUILD_INFO_BRANCH:-\$MOORESTECH_BUILD_BRANCH}" "\$MOORESTECH_STEAM_BUILD_LABEL" "\$target" >"\$info"
+# 欠損ケースは検査対象の相対パスをそのまま消す。build-info も消せるよう書き出しの後に行う
+# A missing case removes the checked relative path as-is, after the write so build-info can be removed too
+[ -z "\$remove_after_write" ] || rm -rf "\$out/\$remove_after_write"
 EOF
     cat >"$sandbox/bin/codesign" <<EOF
 #!/bin/bash
@@ -44,7 +47,10 @@ EOF
     cat >"$sandbox/bin/lipo" <<EOF
 #!/bin/bash
 echo "lipo \$*" >>"$sandbox/calls.log"
-case "\$*" in *'/Contents/MacOS/ffmpeg'*) echo "\${LIPO_FFMPEG_ARCHS:-\${LIPO_ARCHS:-arm64}}"; exit 0;; esac
+case "\$*" in
+  *'/Contents/MacOS/ffmpeg'*) echo "\${LIPO_FFMPEG_ARCHS:-\${LIPO_ARCHS:-arm64}}"; exit 0;;
+  *'cef-unity-server'*) echo "\${LIPO_HELPER_ARCHS:-\${LIPO_ARCHS:-arm64}}"; exit 0;;
+esac
 echo "\${LIPO_ARCHS:-arm64}"
 EOF
     chmod +x "$sandbox/bin/unity" "$sandbox/bin/codesign" "$sandbox/bin/lipo"

@@ -5,8 +5,8 @@ using UnityEngine;
 namespace Client.Editor.Build
 {
     /// <summary>
-    /// Steam配布の無人ビルド入口（release-playtest.sh用）
-    /// Unattended Steam build entry called by release-playtest.sh
+    /// release-playtest.sh用の無人入口
+    /// The unattended entry called by release-playtest.sh
     /// </summary>
     public static class SteamPlaytestBuildCli
     {
@@ -34,12 +34,7 @@ namespace Client.Editor.Build
                 return;
             }
 
-            var outcome = BuildPipeline.Execute(new PlayerBuildRequest
-            {
-                Target = target,
-                OutputDirectory = outputDirectory,
-                Purpose = BuildPurpose.SteamPlaytest,
-            });
+            var outcome = BuildPipeline.Execute(PlayerBuildRequest.ForSteamPlaytest(target, outputDirectory));
             Debug.Log($"[SteamPlaytestBuildCli] outcome:{outcome} target:{target} output:{outputDirectory}");
             EditorApplication.Exit(outcome == PlayerBuildOutcome.Succeeded ? 0 : 1);
         }

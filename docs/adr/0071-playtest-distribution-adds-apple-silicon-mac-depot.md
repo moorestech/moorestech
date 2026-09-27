@@ -44,9 +44,30 @@ ADR 0061 の配布工程（`scripts/playtest/release-playtest.sh`）は Windows 
   出所: ユーザー裁定 2026-09-26 質問「Steamworks側で必要な設定はどう進めますか？」→ 選択「A：手作業手順をREADMEに書き人が行う。env未設定ならビルド前に止まる。既存変数はWINDOWSへ改名し対称にする」
   棄却案: 既存の変数名を残し `_MAC` だけ足す
 
+- **ビルド要求は用途別の static factory (`PlayerBuildRequest.ForCi` / `ForLocalDevelopment` / `ForExhibition` / `ForSteamPlaytest`) だけが作り、`BuildPurpose` の 0 値は `Unspecified` に充てる。用途×ターゲットの不正な組合せ（Exhibition×Windows 等）は構築時点で作れない。**
+  出所: 独立レビュー PR #1425 の裁定 D-1 案A（2026-09-27）
+  棄却案: enum を 5〜6 値化して payload を消す／リクエストを variant 型に分割する／現状維持で捨てた入力を警告する
+
+- **用途から導く方針は `BuildPurposeRules.Resolve` が `BuildPurposePolicy` を 1 度に返す。strict・ゲームデータ同梱・展示会スクリプト同梱に加え、arm64 固定と ad-hoc 再署名も用途から導き、`Ci` / `LocalDevelopment` では行わない。**
+  出所: 独立レビュー PR #1425 の裁定 D-5 案A・CR-2（2026-09-27）
+  棄却案: 述語を用途ごとに 4〜6 本並べたまま置く
+
+- **`PlayerBuildOutcome` は原因ごとに variant を持つ（`BuildTargetSwitchFailed` / `MacArchitecturePinFailed` / `AddressablesBuildFailed` / `PlayerBuildFailed` / `MacSigningFailed`）。arm64 固定の可否は `MacArchitecturePinResult` が返し、strict かどうかの判断は `BuildPipeline` だけが持つ。**
+  出所: 独立レビュー PR #1425 の裁定 D-3 案A（2026-09-27）
+  棄却案: pre-build 段の失敗を `PreBuildSetupFailed` 1 つに束ねる
+
+- **`BuildPurpose` / `BuildPurposeRules` は Editor 限定・`noEngineReferences: true` の `Client.Build.Policy` asmdef に置き、テストアセンブリ `Client.Tests` からそれを参照する。この形は本 repo 初のパターンとして受け入れる。`BuildTarget` を取る方針はこの層に置けない制約が残る。**
+  出所: 独立レビュー PR #1425 の裁定 D-7 案A・N-1（2026-09-27）
+  棄却案: plan どおり `Assets/Scripts/Editor/Build/BuildPurpose.cs` へ戻し asmdef を削除する（回帰検知が人手に戻る）／`Editor/Build/` ごと移設する
+
+- **外部プロセス実行 (`EditorProcessRunner`) と env 浄化 (`SanitizedProcessEnvironment`) は Web UI ドメインから切り離し、汎用 assembly `Client.ExternalProcess` に置く。配布ビルド工程は `Client.WebUiHost` に依存しない。**
+  出所: 独立レビュー PR #1425 の裁定 D-4 案B・CR-7（2026-09-27）
+  棄却案: default assembly へ移す（`Client.WebUiHost` 側 2 呼び出し元の扱いが別途要る）／現状維持
+  注: `SanitizedProcessEnvironment` は `Client.WebUiHost` のランタイム経路 (`ViteProcess` / `PnpmInstaller`) も使うため、`Client.ExternalProcess` は Editor 限定にできない。`EditorProcessRunner` 側が `#if UNITY_EDITOR` で閉じる。
+
 - 以下は agent 前提:
   - 両 OS は同じ使い捨て worktree で Windows→Mac の順に焼き、成果物は `runs/<label>/build-windows/`・`build-mac/` に分ける。出所: agent前提（既存 release-playtest.sh の worktree・RUN_DIR 構成の延長）
-  - Mac の成果物検査は `moorestech.app`・`game/mods`・`moorestech.app/Contents/Resources/Data/StreamingAssets/build-info.json`（target が StandaloneOSX）と、同梱 ffmpeg・CEF helper の実在。出所: agent前提（Windows 側の成果物検査と同型）
+  - Mac の成果物検査の必須パスは `release-artifact.sh` の `MAC_REQUIRED_RELATIVE_PATHS` 1 箇所に置き、契約テストはその各要素を消すループで欠損を確かめる。CEF helper は実在・実行権・arm64 まで見る。出所: 独立レビュー PR #1425 の裁定 D-8 案A・CR-1（2026-09-27）
   - Mac 向け ffmpeg は Windows と同じ GPL の静的ビルドを `ffmpeg/macos-arm64/`（実行ファイル `ffmpeg` と `LICENSE`）に置く。出所: agent前提（既存 `ffmpeg/win-x64` の配置・ライセンス同梱の前例）
 
 ## Consequences

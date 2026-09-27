@@ -1,6 +1,6 @@
 using System;
 
-namespace Client.Editor.Build
+namespace Client.Build.Policy
 {
     /// <summary>
     /// Playerビルドの目的。strict検査と同梱物はここからだけ導く（ADR 0071）
@@ -8,10 +8,38 @@ namespace Client.Editor.Build
     /// </summary>
     public enum BuildPurpose
     {
+        // 既定値がCiになると書き忘れが無言で通るため、0値は用途未指定に充てる
+        // A forgotten assignment would silently mean Ci, so the zero value stands for "not specified"
+        Unspecified,
         Ci,
         LocalDevelopment,
         Exhibition,
         SteamPlaytest,
+    }
+
+    /// <summary>
+    /// 用途から導いた1回分のビルド方針
+    /// The build policy derived from a purpose for one build
+    /// </summary>
+    public readonly struct BuildPurposePolicy
+    {
+        public readonly bool IsStrictBundling;
+        public readonly bool BundlesLocalGameData;
+        public readonly bool BundlesExhibitionLaunchScript;
+        public readonly bool PinsAppleSilicon;
+        public readonly bool ReSignsMacApp;
+        public readonly bool IsDevelopmentBuild;
+
+        public BuildPurposePolicy(bool isStrictBundling, bool bundlesLocalGameData, bool bundlesExhibitionLaunchScript,
+            bool pinsAppleSilicon, bool reSignsMacApp, bool isDevelopmentBuild)
+        {
+            IsStrictBundling = isStrictBundling;
+            BundlesLocalGameData = bundlesLocalGameData;
+            BundlesExhibitionLaunchScript = bundlesExhibitionLaunchScript;
+            PinsAppleSilicon = pinsAppleSilicon;
+            ReSignsMacApp = reSignsMacApp;
+            IsDevelopmentBuild = isDevelopmentBuild;
+        }
     }
 
     /// <summary>
@@ -20,70 +48,38 @@ namespace Client.Editor.Build
     /// </summary>
     public static class BuildPurposeRules
     {
-        // 人へ配る成果物だけは同梱・出所の問題でビルドを落とす
-        // Only artifacts handed to people fail the build on bundling or origin problems
-        public static bool IsStrictBundling(BuildPurpose purpose)
+        // 用途を1つ足すときに触るのはこのswitchだけになるよう、全方針を1度に返す
+        // Adding a purpose touches only this switch, because every policy is returned at once
+        public static BuildPurposePolicy Resolve(BuildPurpose purpose, bool localDevelopmentChoosesDevelopment)
         {
             switch (purpose)
             {
+                // CIはmaster data無しで焼き、メモリ節約のためDevelopmentで固定する
+                // CI builds without master data and pins Development to save memory
                 case BuildPurpose.Ci:
-                case BuildPurpose.LocalDevelopment:
-                    return false;
-                case BuildPurpose.Exhibition:
-                case BuildPurpose.SteamPlaytest:
-                    return true;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(purpose), purpose, null);
-            }
-        }
+                    return new BuildPurposePolicy(
+                        isStrictBundling: false, bundlesLocalGameData: false, bundlesExhibitionLaunchScript: false,
+                        pinsAppleSilicon: false, reSignsMacApp: false, isDevelopmentBuild: true);
 
-        // CIはmaster data無しで焼くため同梱しない
-        // CI builds without master data, so it never bundles game data
-        public static bool BundlesLocalGameData(BuildPurpose purpose)
-        {
-            switch (purpose)
-            {
-                case BuildPurpose.Ci:
-                    return false;
+                // 手元焼きは同梱失敗を警告で流し、Development可否だけ人が選ぶ
+                // Local builds warn through bundling failures; only Development mode is chosen by a human
                 case BuildPurpose.LocalDevelopment:
-                case BuildPurpose.Exhibition:
-                case BuildPurpose.SteamPlaytest:
-                    return true;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(purpose), purpose, null);
-            }
-        }
+                    return new BuildPurposePolicy(
+                        isStrictBundling: false, bundlesLocalGameData: true, bundlesExhibitionLaunchScript: false,
+                        pinsAppleSilicon: false, reSignsMacApp: false, isDevelopmentBuild: localDevelopmentChoosesDevelopment);
 
-        // 展示会ブースの再起動ループは展示会ビルドにだけ入れる
-        // The booth restart loop ships with exhibition builds only
-        public static bool BundlesExhibitionLaunchScript(BuildPurpose purpose)
-        {
-            switch (purpose)
-            {
+                // 人へ配る成果物はarm64固定と再署名まで通し、欠けたらビルドを落とす
+                // Artifacts handed to people go through arm64 pinning and re-signing, and fail the build when incomplete
                 case BuildPurpose.Exhibition:
-                    return true;
-                case BuildPurpose.Ci:
-                case BuildPurpose.LocalDevelopment:
-                case BuildPurpose.SteamPlaytest:
-                    return false;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(purpose), purpose, null);
-            }
-        }
+                    return new BuildPurposePolicy(
+                        isStrictBundling: true, bundlesLocalGameData: true, bundlesExhibitionLaunchScript: true,
+                        pinsAppleSilicon: true, reSignsMacApp: true, isDevelopmentBuild: false);
 
-        // CIのDevelopmentはメモリ節約、配布はRelease固定
-        // CI uses Development to save memory; distribution always uses Release
-        public static bool IsDevelopmentBuild(BuildPurpose purpose, bool localDevelopmentChoice)
-        {
-            switch (purpose)
-            {
-                case BuildPurpose.Ci:
-                    return true;
-                case BuildPurpose.LocalDevelopment:
-                    return localDevelopmentChoice;
-                case BuildPurpose.Exhibition:
                 case BuildPurpose.SteamPlaytest:
-                    return false;
+                    return new BuildPurposePolicy(
+                        isStrictBundling: true, bundlesLocalGameData: true, bundlesExhibitionLaunchScript: false,
+                        pinsAppleSilicon: true, reSignsMacApp: true, isDevelopmentBuild: false);
+
                 default:
                     throw new ArgumentOutOfRangeException(nameof(purpose), purpose, null);
             }

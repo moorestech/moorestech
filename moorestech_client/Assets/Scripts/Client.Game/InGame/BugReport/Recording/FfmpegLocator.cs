@@ -18,11 +18,6 @@ namespace Client.Game.InGame.BugReport.Recording
         // Relative to the Mac player's dataPath
         public static readonly string BundledMacExecutableRelativePath = Path.Combine("MacOS", BundledMacExecutableName);
 
-        // ビルドと署名で共有するffmpegパス生成
-        // Builds the ffmpeg path shared by the bundler and signer
-        public static string ResolveBundledMacExecutablePath(string appPath) =>
-            Path.Combine(appPath, "Contents", BundledMacExecutableRelativePath);
-
         private static readonly string[] KnownPaths = { "/opt/homebrew/bin/ffmpeg", "/usr/local/bin/ffmpeg" };
 
         // 同梱→環境変数→PATH→既知の場所の順に探す。無ければ null（呼び出し側が縮退を記録する）
