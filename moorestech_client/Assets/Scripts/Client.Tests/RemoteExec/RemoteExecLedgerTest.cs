@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using Client.RemoteExec.Access;
+using Client.RemoteExec.Run;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 
@@ -31,7 +32,7 @@ namespace Client.Tests.RemoteExec
         public void 結果前に停止しても開始行に送信コードが残る()
         {
             Assert.IsFalse(Directory.Exists(_directory));
-            var sequence = _writer.AppendStart("client", "return 1;");
+            var sequence = _writer.AppendStart(RemoteExecTarget.Client, "return 1;");
             var entries = Array.ConvertAll(File.ReadAllLines(_writer.FilePath), JObject.Parse);
             Assert.AreEqual(1, entries.Length);
             Assert.AreEqual("start", entries[0].Value<string>("event"));

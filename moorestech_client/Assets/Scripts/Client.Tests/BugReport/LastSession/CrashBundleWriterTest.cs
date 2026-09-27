@@ -4,8 +4,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Client.Game.InGame.BugReport;
+using Client.Game.InGame.BugReport.BuildOrigin;
 using Client.Game.InGame.BugReport.LastSession;
 using Client.Game.InGame.BugReport.Playtest;
+using Client.RemoteExec.Access;
 using Game.Paths;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -163,6 +165,41 @@ namespace Client.Tests.BugReport
                 Chmod(playerLog, "600");
                 if (bundle != null) Directory.Delete(bundle, true);
                 Directory.Delete(source, true);
+            }
+        }
+
+        // 箱へ印を載せる配線を守る。この配線が落ちても他のcrashテストは緑のままなので専用に固定する
+        // Pins the wiring that attaches the mark to the box; the other crash tests stay green even if this wiring breaks, so it needs its own case
+        [Test]
+        public void 遠隔実行が有効だった前回セッションの印と台帳が箱へ入る()
+        {
+            // 今のプロセスの台帳と混同しないよう、あえて別PIDの名前を前回セッションの台帳として使う
+            // Use a different PID's file name as the previous session's ledger, so it is never confused with this process's own
+            var previousProcessId = Process.GetCurrentProcess().Id + 1;
+            var ledgerFileName = RemoteExecLedgerWriter.FileNameFor(previousProcessId);
+            var ledgerPath = RemoteExecLedger.PathForFileName(ledgerFileName);
+            Directory.CreateDirectory(RemoteExecAccessFile.DirectoryPath);
+            File.WriteAllText(ledgerPath, "{\"event\":\"start\"}\n");
+
+            var origin = new SessionOriginSnapshot(null, TestPreviousSessionArtifacts.OriginSteamIdAbsenceReason, BuildOriginReading.Editor(), ledgerFileName);
+            var artifacts = PreviousSessionArtifacts.Unclean(TestPreviousSessionArtifacts.UnusedLastSessionDirectory, null, null, null, new List<string>(),
+                new List<int>(), new Dictionary<int, bool>(), origin, new List<MissingItem>());
+
+            var bundle = WriteBundle(artifacts, "遠隔実行あり");
+            try
+            {
+                var manifest = JObject.Parse(File.ReadAllText(Path.Combine(bundle, BugReportBundleLayout.ManifestFileName)));
+                Assert.IsTrue((bool)manifest["remoteExec"]["enabled"], "remoteExec.enabled が箱に立っていない");
+                var ledgerFiles = manifest["remoteExec"]["ledgerFiles"].Select(item => (string)item).ToList();
+                var relativePath = BugReportBundleLayout.RemoteExecDirectoryName + "/" + ledgerFileName;
+                CollectionAssert.Contains(ledgerFiles, relativePath, "remoteExec.ledgerFiles に台帳の相対パスが無い");
+                var copiedContent = File.ReadAllText(Path.Combine(bundle, BugReportBundleLayout.RemoteExecDirectoryName, ledgerFileName));
+                Assert.AreEqual("{\"event\":\"start\"}\n", copiedContent, "台帳の中身がそのまま箱へ写っていない");
+            }
+            finally
+            {
+                Directory.Delete(bundle, true);
+                File.Delete(ledgerPath);
             }
         }
 

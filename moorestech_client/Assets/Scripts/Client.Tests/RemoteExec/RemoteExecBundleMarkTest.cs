@@ -5,7 +5,6 @@ using System.Text.RegularExpressions;
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.BuildOrigin;
 using Client.Game.InGame.BugReport.LastSession;
-using Client.Game.InGame.BugReport.Recording.ProcessScope;
 using Client.RemoteExec;
 using Client.RemoteExec.Access;
 using Game.Paths;
@@ -92,7 +91,7 @@ namespace Client.Tests.RemoteExec
             _previousLedger = RemoteExecLedger.PathFor(previousId);
             File.WriteAllText(_previousLedger, "previous session ledger\n");
             var manifest = new BugReportManifest();
-            var origin = PreviousOrigin(true, Path.GetFileName(_previousLedger));
+            var origin = PreviousOrigin(Path.GetFileName(_previousLedger));
             var originPath = Path.Combine(_bundle, "previous-origin.json");
             Assert.IsTrue(origin.WriteTo(originPath).Succeeded);
             origin = SessionOriginSnapshot.ReadFrom(originPath, out var reason);
@@ -109,21 +108,10 @@ namespace Client.Tests.RemoteExec
             while (File.Exists(RemoteExecLedger.PathFor(missingId))) missingId++;
             var missingName = Path.GetFileName(RemoteExecLedger.PathFor(missingId));
             LogAssert.Expect(LogType.Warning, new Regex("遠隔実行の台帳が無い"));
-            RemoteExecBundleMark.ApplyForPreviousSession(manifest, _bundle, PreviousOrigin(true, missingName));
+            RemoteExecBundleMark.ApplyForPreviousSession(manifest, _bundle, PreviousOrigin(missingName));
             Assert.IsTrue(manifest.RemoteExec.Enabled);
             Assert.IsEmpty(manifest.RemoteExec.LedgerFiles);
             StringAssert.Contains("台帳が無い", manifest.Missing[0].Reason);
-        }
-
-        [Test]
-        public void 旧形式の出所に台帳名が無ければ欠損を明示する()
-        {
-            var manifest = new BugReportManifest();
-            LogAssert.Expect(LogType.Warning, new Regex("台帳ファイル名が無い"));
-            RemoteExecBundleMark.ApplyForPreviousSession(manifest, _bundle, PreviousOrigin(true, null));
-            Assert.IsTrue(manifest.RemoteExec.Enabled);
-            Assert.IsEmpty(manifest.RemoteExec.LedgerFiles);
-            StringAssert.Contains("台帳ファイル名が無い", manifest.Missing[0].Reason);
         }
 
         [Test]
@@ -132,7 +120,7 @@ namespace Client.Tests.RemoteExec
             RemoteExecLaunchOption.ResolveFromCommandLine(new[] { RemoteExecLaunchOption.Marker });
             WriteLedger();
             var manifest = new BugReportManifest();
-            RemoteExecBundleMark.ApplyForPreviousSession(manifest, _bundle, PreviousOrigin(false, null));
+            RemoteExecBundleMark.ApplyForPreviousSession(manifest, _bundle, PreviousOrigin(null));
             Assert.IsNull(manifest.RemoteExec);
             Assert.IsFalse(Directory.Exists(Path.Combine(_bundle, BugReportBundleLayout.RemoteExecDirectoryName)));
         }
@@ -154,14 +142,14 @@ namespace Client.Tests.RemoteExec
         private static string WriteLedger()
         {
             Directory.CreateDirectory(RemoteExecAccessFile.DirectoryPath);
-            var path = RemoteExecLedger.PathFor(RecordingProcessDirectories.CurrentProcessId());
+            var path = RemoteExecLedger.CurrentPath;
             File.WriteAllText(path, "{\"code\":\"return 1;\",\"ok\":true}\n");
             return path;
         }
 
-        private static SessionOriginSnapshot PreviousOrigin(bool enabled, string ledgerFileName)
+        private static SessionOriginSnapshot PreviousOrigin(string ledgerFileName)
         {
-            return new SessionOriginSnapshot("steam", null, BuildOriginReading.Editor(), enabled, ledgerFileName,
+            return new SessionOriginSnapshot("steam", null, BuildOriginReading.Editor(), ledgerFileName,
                 SessionSnapshotCapture.NotStarted(), new List<MissingItem>());
         }
 

@@ -21,7 +21,7 @@ def load_candidate_reports(root: Path) -> tuple[list[dict], dict]:
     Collects un-enqueued bug reports across all time regardless of ingest date; boxes with an unreadable
     ingest.json or manifest.json are logged to stderr and counted, never silently dropped from the candidates"""
     reports: list[dict] = []
-    stats = {"unreadable": 0}
+    stats = {"unreadable": 0, "remoteExec": 0}
     if not root.is_dir():
         return reports, stats
     for ingest_path in sorted(root.glob("*/*/ingest.json")):
@@ -41,6 +41,7 @@ def load_candidate_reports(root: Path) -> tuple[list[dict], dict]:
             continue
         if manifest["remoteExec"]["enabled"]:
             warn("遠隔実行が有効だったセッションを投入候補から除外", manifest_path)
+            stats["remoteExec"] += 1
             continue
         reports.append({
             "id": meta["id"] or ingest_path.parent.name,
@@ -75,4 +76,6 @@ def format_candidates(candidates: list[dict], stats: dict) -> list[str]:
         lines.append(f"  `scripts/playtest/enqueue-autofix.sh {quoted_steam} {quoted_id}`")
     if stats["unreadable"]:
         lines.append(f"- ⚠ ingest.json/manifest.json を読めず投入候補の判定から除外した箱 {stats['unreadable']}件")
+    if stats["remoteExec"]:
+        lines.append(f"- ⚠ 遠隔実行が有効で投入候補から除外 {stats['remoteExec']}件")
     return lines

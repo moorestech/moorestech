@@ -6,8 +6,18 @@ using UnityEngine;
 
 namespace Client.RemoteExec.Loading
 {
-    internal static class RemoteExecHarmonyLoader
+    // Editor専用asmdefを持たないRemoteExecHarmonyBundlerから定数を参照させるためpublicにする（FfmpegLocator前例）
+    // Public so the asmdef-less RemoteExecHarmonyBundler (Editor) can reference the constants, matching the FfmpegLocator precedent
+    public static class RemoteExecHarmonyLoader
     {
+        // Harmonyアセンブリ名。ビルド側の同梱・実行時の探索・アセンブリ解決で共有する
+        // The Harmony assembly name shared by the build-side bundling, runtime lookup and assembly resolution
+        public const string HarmonyAssemblyName = "0Harmony";
+        // 同梱先の相対ディレクトリ（Application.dataPath基準）。ビルド側の同梱先と実行時の探索先で共有する
+        // The bundled directory relative to Application.dataPath, shared by the build bundler and the runtime lookup
+        public const string BundledRelativeDirectory = "RemoteExec";
+        public const string BundledFileName = HarmonyAssemblyName + ".dll";
+
         private static Assembly _harmony;
         private static bool _resolverRegistered;
 
@@ -24,14 +34,14 @@ namespace Client.RemoteExec.Loading
             // Avoid the editor's uloop copy and match the exact assembly name
             if (Application.isEditor)
             {
-                _harmony = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(a => a.GetName().Name == "0Harmony");
+                _harmony = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(a => a.GetName().Name == HarmonyAssemblyName);
                 if (_harmony == null) Debug.LogWarning("[RemoteExec] 0Harmony が未読込です。Harmony無しで遠隔実行を続けます");
                 return;
             }
 
             // 配布DLLはディスク境界。欠損・破損をログへ出して機能欠損を明示する
             // The shipped DLL is a disk boundary; report missing or damaged Harmony explicitly
-            var path = Path.Combine(Application.dataPath, "RemoteExec", "0Harmony.dll");
+            var path = Path.Combine(Application.dataPath, BundledRelativeDirectory, BundledFileName);
             try
             {
                 _harmony = Assembly.LoadFrom(path);
@@ -44,7 +54,7 @@ namespace Client.RemoteExec.Loading
 
         private static Assembly Resolve(object sender, ResolveEventArgs args)
         {
-            return new AssemblyName(args.Name).Name == "0Harmony" ? _harmony : null;
+            return new AssemblyName(args.Name).Name == HarmonyAssemblyName ? _harmony : null;
         }
     }
 }

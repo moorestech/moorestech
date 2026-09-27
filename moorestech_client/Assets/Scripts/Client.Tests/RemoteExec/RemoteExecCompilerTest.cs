@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Client.RemoteExec;
 using Client.RemoteExec.Compile;
+using Client.RemoteExec.Loading;
 using NUnit.Framework;
 
 namespace Client.Tests.RemoteExec
@@ -78,9 +79,9 @@ namespace Client.Tests.RemoteExec
         [Test]
         public void Editorツール内部の再同梱アセンブリは参照候補から外す()
         {
-            Assert.IsFalse(RemoteExecReferenceSet.ShouldIncludeAssemblyName("UnityCliLoop.0Harmony"));
+            Assert.IsFalse(RemoteExecReferenceSet.ShouldIncludeAssemblyName("UnityCliLoop." + RemoteExecHarmonyLoader.HarmonyAssemblyName));
             Assert.IsFalse(RemoteExecReferenceSet.ShouldIncludeAssemblyName("UnityCliLoop.System.Reflection.Metadata"));
-            Assert.IsTrue(RemoteExecReferenceSet.ShouldIncludeAssemblyName("0Harmony"));
+            Assert.IsTrue(RemoteExecReferenceSet.ShouldIncludeAssemblyName(RemoteExecHarmonyLoader.HarmonyAssemblyName));
         }
 
         [Test]

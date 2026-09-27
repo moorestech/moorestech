@@ -9,13 +9,13 @@ using Microsoft.CodeAnalysis.CSharp;
 
 namespace Client.RemoteExec.Compile
 {
-    public sealed class RemoteExecCompileOutcome
+    internal sealed class RemoteExecCompileOutcome
     {
         public Assembly Assembly { get; }
         public IReadOnlyList<string> Errors { get; }
         public bool Succeeded => Assembly != null;
 
-        public RemoteExecCompileOutcome(Assembly assembly, IReadOnlyList<string> errors)
+        internal RemoteExecCompileOutcome(Assembly assembly, IReadOnlyList<string> errors)
         {
             Assembly = assembly;
             Errors = errors;
@@ -24,11 +24,11 @@ namespace Client.RemoteExec.Compile
 
     // 本体コードを Roslyn でコンパイルして結果と診断を返す
     // Compile a method body with Roslyn and return the assembly or diagnostics
-    public static class RemoteExecCompiler
+    internal static class RemoteExecCompiler
     {
         private static int _sequence;
 
-        public static RemoteExecCompileOutcome Compile(string body)
+        internal static RemoteExecCompileOutcome Compile(string body)
         {
             return CompileWithAssemblies(body, AppDomain.CurrentDomain.GetAssemblies());
         }

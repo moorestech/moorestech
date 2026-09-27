@@ -21,8 +21,8 @@ namespace Client.RemoteExec
                 return;
             }
 
-            // 有効起動だけで別置きDLLを読み、接続情報を発行する
-            // Load the separate DLL and publish access details only on an enabled boot
+            // DLLを読み接続情報を発行
+            // Load the DLL and publish access details
             RemoteExecHarmonyLoader.Load();
             RemoteExecAccessFile.Issue(kestrelPort);
         }

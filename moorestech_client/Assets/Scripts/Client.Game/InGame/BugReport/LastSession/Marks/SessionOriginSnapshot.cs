@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using Client.Game.InGame.BugReport.BuildOrigin;
 using Client.Game.InGame.BugReport.DiskOperations;
-using Client.RemoteExec.Access;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
@@ -24,25 +23,29 @@ namespace Client.Game.InGame.BugReport.LastSession
         public string SteamId { get; }
         public string SteamIdAbsenceReason { get; }
         public BuildOriginReading BuildOrigin { get; }
-        public bool RemoteExecEnabled { get; }
         public string RemoteExecLedgerFileName { get; }
+
+        // 有効判定は台帳ファイル名の有無だけから導く。専用のboolを別に持つと不整合な組み合わせが生じる
+        // Derive the enabled state solely from the ledger file name's presence; a separate bool would allow an inconsistent combination
+        public bool RemoteExecEnabled => RemoteExecLedgerFileName != null;
         internal readonly SessionSnapshotCapture SnapshotCapture;
         internal readonly IReadOnlyList<MissingItem> SalvageMissing;
 
-        public SessionOriginSnapshot(string steamId, string steamIdAbsenceReason, BuildOriginReading buildOrigin, bool remoteExecEnabled) : this(steamId, steamIdAbsenceReason, buildOrigin, remoteExecEnabled, SessionSnapshotCapture.NotStarted())
+        // remoteExecLedgerFileNameはnull＝無効。呼び出し側がRemoteExecLaunchOption等から解決した値をそのまま渡す
+        // remoteExecLedgerFileName is null when disabled; callers pass the value they already resolved from RemoteExecLaunchOption etc.
+        public SessionOriginSnapshot(string steamId, string steamIdAbsenceReason, BuildOriginReading buildOrigin, string remoteExecLedgerFileName) : this(steamId, steamIdAbsenceReason, buildOrigin, remoteExecLedgerFileName, SessionSnapshotCapture.NotStarted())
         {
         }
 
-        internal SessionOriginSnapshot(string steamId, string steamIdAbsenceReason, BuildOriginReading buildOrigin, bool remoteExecEnabled, SessionSnapshotCapture snapshotCapture) : this(steamId, steamIdAbsenceReason, buildOrigin, remoteExecEnabled, remoteExecEnabled ? RemoteExecLedger.CurrentFileName : null, snapshotCapture, new List<MissingItem>())
+        internal SessionOriginSnapshot(string steamId, string steamIdAbsenceReason, BuildOriginReading buildOrigin, string remoteExecLedgerFileName, SessionSnapshotCapture snapshotCapture) : this(steamId, steamIdAbsenceReason, buildOrigin, remoteExecLedgerFileName, snapshotCapture, new List<MissingItem>())
         {
         }
 
-        internal SessionOriginSnapshot(string steamId, string steamIdAbsenceReason, BuildOriginReading buildOrigin, bool remoteExecEnabled, string remoteExecLedgerFileName, SessionSnapshotCapture snapshotCapture, IReadOnlyList<MissingItem> salvageMissing)
+        internal SessionOriginSnapshot(string steamId, string steamIdAbsenceReason, BuildOriginReading buildOrigin, string remoteExecLedgerFileName, SessionSnapshotCapture snapshotCapture, IReadOnlyList<MissingItem> salvageMissing)
         {
             SteamId = steamId;
             SteamIdAbsenceReason = steamIdAbsenceReason;
             BuildOrigin = buildOrigin;
-            RemoteExecEnabled = remoteExecEnabled;
             RemoteExecLedgerFileName = remoteExecLedgerFileName;
             SnapshotCapture = snapshotCapture;
             SalvageMissing = salvageMissing;
@@ -52,12 +55,12 @@ namespace Client.Game.InGame.BugReport.LastSession
         // Re-stamping ownership keeps the SteamID absence reason; dropping it would erase the reason from the rewritten mark
         internal SessionOriginSnapshot WithSnapshotCapture(SessionSnapshotCapture snapshotCapture)
         {
-            return new SessionOriginSnapshot(SteamId, SteamIdAbsenceReason, BuildOrigin, RemoteExecEnabled, RemoteExecLedgerFileName, snapshotCapture, new List<MissingItem>());
+            return new SessionOriginSnapshot(SteamId, SteamIdAbsenceReason, BuildOrigin, RemoteExecLedgerFileName, snapshotCapture, new List<MissingItem>());
         }
 
         internal SessionOriginSnapshot WithSalvageMissing(IReadOnlyList<MissingItem> missing)
         {
-            return new SessionOriginSnapshot(SteamId, SteamIdAbsenceReason, BuildOrigin, RemoteExecEnabled, RemoteExecLedgerFileName, SnapshotCapture, new List<MissingItem>(missing));
+            return new SessionOriginSnapshot(SteamId, SteamIdAbsenceReason, BuildOrigin, RemoteExecLedgerFileName, SnapshotCapture, new List<MissingItem>(missing));
         }
 
         public SalvageOperationResult WriteTo(string path)

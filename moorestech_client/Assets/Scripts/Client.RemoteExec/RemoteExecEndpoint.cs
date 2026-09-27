@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Client.RemoteExec.Access;
 using Client.RemoteExec.Run;
+using Cysharp.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -21,7 +22,12 @@ namespace Client.RemoteExec
             ContractResolver = new CamelCasePropertyNamesContractResolver(),
         };
 
-        public static async Task HandleAsync(HttpContext context)
+        public static Task HandleAsync(HttpContext context)
+        {
+            return HandleAsync(context, RemoteExecHttpRunner.Instance);
+        }
+
+        internal static async Task HandleAsync(HttpContext context, IRemoteExecHttpRunner runner)
         {
             // 登録時の有効判定はWebUiEndpointsが担い、ここでは各要求を認証する
             // WebUiEndpoints checks boot activation when routing; this method authenticates each request
@@ -53,7 +59,7 @@ namespace Client.RemoteExec
                 return;
             }
             var targetName = (string)targetValue;
-            if (targetName != "client" && targetName != "server")
+            if (!RemoteExecTargetWireName.TryParse(targetName, out var target))
             {
                 await RejectAsync(context, 400, $"未知の実行先です: {targetName}");
                 return;
@@ -62,29 +68,59 @@ namespace Client.RemoteExec
             // 実行前にソースを記録し、クラッシュや停止でも開始行を残す
             // Record source before running so a crash or hang still leaves a start entry
             var code = (string)codeValue;
-            var target = targetName == "server" ? RemoteExecTarget.Server : RemoteExecTarget.Client;
-            var sequence = RemoteExecLedger.AppendStart(targetName, code);
-            var result = await RemoteExecRunner.RunAsync(code, target);
-            RemoteExecLedger.AppendResult(sequence, result.Ok);
+            long? sequence = null;
+            RemoteExecResult result;
+            // HTTP要求の実行境界で想定外の例外を隔離し、Kestrelの無音500を防ぐ
+            // Isolate unexpected exceptions at the HTTP request boundary instead of a silent Kestrel 500
+            try
+            {
+                sequence = RemoteExecLedger.AppendStart(target, code);
+                result = await runner.RunAsync(code, target);
+            }
+            catch (Exception error)
+            {
+                Debug.LogError($"[RemoteExec] 実行要求に失敗しました: {error}");
+                result = RemoteExecResult.FromUnhandledException(error);
+            }
+            if (sequence.HasValue) RemoteExecLedger.AppendResult(sequence.Value, result.Ok);
             context.Response.ContentType = "application/json; charset=utf-8";
             await context.Response.WriteAsync(JsonConvert.SerializeObject(result, ResponseSettings), context.RequestAborted);
-        }
 
-        private static bool IsAuthorized(HttpContext context, out string reason)
-        {
-            reason = null;
-            if (context.Request.Method != "POST") reason = "POST 以外";
-            else if (context.Request.Headers.ContainsKey("Origin")) reason = "Origin ヘッダ付き（ブラウザ由来）";
-            else if (RemoteExecAccessFile.Token == null) reason = "トークン未発行";
-            else if (context.Request.Headers[RemoteExecAccessFile.HeaderName].ToString() != RemoteExecAccessFile.Token) reason = "トークン不一致";
-            return reason == null;
-        }
+            #region Internal
 
-        private static async Task RejectAsync(HttpContext context, int status, string reason)
+            bool IsAuthorized(HttpContext ctx, out string authReason)
+            {
+                authReason = null;
+                if (ctx.Request.Method != "POST") authReason = "POST 以外";
+                else if (ctx.Request.Headers.ContainsKey("Origin")) authReason = "Origin ヘッダ付き（ブラウザ由来）";
+                else if (RemoteExecAccessFile.Token == null) authReason = "トークン未発行";
+                else if (ctx.Request.Headers[RemoteExecAccessFile.HeaderName].ToString() != RemoteExecAccessFile.Token) authReason = "トークン不一致";
+                return authReason == null;
+            }
+
+            async Task RejectAsync(HttpContext ctx, int status, string rejectReason)
+            {
+                Debug.LogWarning($"[RemoteExec] 要求を拒否しました: {rejectReason}");
+                ctx.Response.StatusCode = status;
+                await ctx.Response.WriteAsync(rejectReason, ctx.RequestAborted);
+            }
+
+            #endregion
+        }
+    }
+
+    internal interface IRemoteExecHttpRunner
+    {
+        UniTask<RemoteExecResult> RunAsync(string body, RemoteExecTarget target);
+    }
+
+    internal sealed class RemoteExecHttpRunner : IRemoteExecHttpRunner
+    {
+        internal static readonly RemoteExecHttpRunner Instance = new();
+
+        public UniTask<RemoteExecResult> RunAsync(string body, RemoteExecTarget target)
         {
-            Debug.LogWarning($"[RemoteExec] 要求を拒否しました: {reason}");
-            context.Response.StatusCode = status;
-            await context.Response.WriteAsync(reason, context.RequestAborted);
+            return RemoteExecRunner.RunAsync(body, target);
         }
     }
 }

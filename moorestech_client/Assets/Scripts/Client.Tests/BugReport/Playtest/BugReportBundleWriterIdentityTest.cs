@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.Playtest;
+using Client.RemoteExec;
 using Game.Paths;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -42,6 +43,36 @@ namespace Client.Tests.BugReport
             finally
             {
                 Directory.Delete(result.BundleDirectory, true);
+            }
+        }
+
+        // 箱へ印を載せる配線を守る。bug経路はcrash経路と別呼び出しなので、片方だけ配線が落ちても気づける専用ケースにする
+        // Pins the wiring that attaches the mark to the box; the bug path calls it separately from the crash path, so a dropped wiring on one side alone is still caught
+        [Test]
+        public async Task WriteAsync経由で起動フラグ有効な遠隔実行印がmanifestへ渡る()
+        {
+            RemoteExecLaunchOption.ResolveFromCommandLine(new[] { RemoteExecLaunchOption.Marker });
+            try
+            {
+                var writer = new BugReportBundleWriter(new FakeIdentity());
+                var data = new BugReportCapturedData { CaptureId = 1, ReportTick = 0, Missing = new() };
+
+                var result = await writer.WriteAsync(data, "遠隔実行印配線テスト", PlaytestReportKind.Bug);
+                try
+                {
+                    Assert.IsTrue(result.Ready, "manifestの書き出しに失敗した");
+                    var manifestPath = Path.Combine(result.BundleDirectory, BugReportBundleLayout.ManifestFileName);
+                    var manifest = JObject.Parse(File.ReadAllText(manifestPath));
+                    Assert.IsTrue((bool)manifest["remoteExec"]["enabled"], "起動フラグ有効なのにremoteExec.enabledがmanifestに立っていない");
+                }
+                finally
+                {
+                    Directory.Delete(result.BundleDirectory, true);
+                }
+            }
+            finally
+            {
+                RemoteExecLaunchOption.ResolveFromCommandLine(new string[0]);
             }
         }
     }

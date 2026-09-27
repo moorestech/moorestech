@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using Client.Game.InGame.BugReport.LastSession;
-using Client.Game.InGame.BugReport.Recording.ProcessScope;
 using Client.RemoteExec;
 using Client.RemoteExec.Access;
 using Game.Paths;
@@ -16,7 +15,7 @@ namespace Client.Game.InGame.BugReport
         {
             if (!RemoteExecLaunchOption.IsEnabled) return;
             manifest.RemoteExec = new RemoteExecMark { Enabled = true };
-            CopyLedger(manifest, bundleDirectory, RemoteExecLedger.PathFor(RecordingProcessDirectories.CurrentProcessId()), false);
+            CopyLedger(manifest, bundleDirectory, RemoteExecLedger.CurrentPath, false);
         }
 
         // 今回の起動設定でなく、落ちたセッション自身が書いた印を使う
@@ -25,12 +24,7 @@ namespace Client.Game.InGame.BugReport
         {
             if (previousOrigin == null || !previousOrigin.RemoteExecEnabled) return;
             manifest.RemoteExec = new RemoteExecMark { Enabled = true };
-            if (previousOrigin.RemoteExecLedgerFileName == null)
-            {
-                manifest.AddMissing(BugReportBundleLayout.RemoteExecDirectoryName, "前回セッションの出所に遠隔実行の台帳ファイル名が無い");
-                return;
-            }
-            CopyLedger(manifest, bundleDirectory, Path.Combine(RemoteExecAccessFile.DirectoryPath, previousOrigin.RemoteExecLedgerFileName), true);
+            CopyLedger(manifest, bundleDirectory, RemoteExecLedger.PathForFileName(previousOrigin.RemoteExecLedgerFileName), true);
         }
 
         private static void CopyLedger(BugReportManifest manifest, string bundleDirectory, string source, bool missingIfAbsent)

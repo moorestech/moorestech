@@ -5,10 +5,10 @@ namespace Client.RemoteExec.Compile
 {
     // 先頭の名前空間指定を移してメソッド本体を実行用クラスへ包む
     // Lift leading namespace imports and wrap the method body in a runnable class
-    public static class RemoteExecSourceWrapper
+    internal static class RemoteExecSourceWrapper
     {
-        public const string EntryTypeName = "RemoteExecSnippet";
-        public const string EntryMethodName = "Run";
+        internal const string EntryTypeName = "RemoteExecSnippet";
+        internal const string EntryMethodName = "Run";
 
         private static readonly string[] DefaultUsings = { "System", "System.Linq", "System.Collections.Generic", "UnityEngine", "Cysharp.Threading.Tasks" };
         private static readonly Regex UsingDirective = new Regex(@"^\s*using\s+(?:static\s+)?(?:global::)?[A-Za-z_][\w.]*(?:\s*=\s*(?:global::)?[A-Za-z_][\w.]*(?:<\s*[\w.,<>\s]+>)?)?\s*;\s*(?://.*)?$", RegexOptions.Compiled);
@@ -38,8 +38,8 @@ namespace Client.RemoteExec.Compile
             for (var index = 0; index < lines.Length; index++)
                 source.AppendLine(index < usingCount ? string.Empty : lines[index]);
 
-            // 値を返さないコードにも共通の戻り値を付ける
-            // Add a shared return value for bodies without an explicit return
+            // 戻り値の型を常に統一
+            // Always unify the return type
             source.AppendLine("#line default");
             source.AppendLine("#pragma warning disable CS0162, CS1998");
             source.Append("return null; } }");

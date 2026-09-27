@@ -31,22 +31,22 @@ namespace Client.RemoteExec.Run
         private static async UniTask<RemoteExecResult> RunCoreAsync(string body, RemoteExecTarget target)
         {
             var result = new RemoteExecResult();
+            // 参照解決とUnityログ購読はメインスレッドから始める
+            // Start reference resolution and Unity log subscription on the main thread
             await UniTask.SwitchToMainThread();
 
-            if (target != RemoteExecTarget.Client && target != RemoteExecTarget.Server)
-            {
-                result.Exception = $"未知の実行先です: {target}";
-                Debug.LogWarning(result.Exception);
-                return result;
-            }
-
+            // 未知の実行先の拒否はRemoteExecEndpointの文字列検証1箇所に一本化する（ここへ来る時点でClient/Serverのいずれかである）
+            // Rejecting an unknown target is centralized in RemoteExecEndpoint's string validation; by the time execution reaches here it is always Client or Server
+            // 事前判定は無駄なコンパイル（Roslynは数百DLLを読む）を避けるためのもの。以後の受付失敗もRejectServerStoppedへ集約する
+            // The pre-check avoids a wasted compile (Roslyn reads hundreds of DLLs); every later admission failure also funnels through RejectServerStopped
             if (target == RemoteExecTarget.Server && !ServerThreadActionQueue.HasDrainedThisLifetime)
             {
-                result.Exception = "内蔵サーバーが起動していないため、サーバー側では実行できません";
-                Debug.LogWarning(result.Exception);
+                RejectServerStopped();
                 return result;
             }
 
+            // Unity側の参照集合を使うコンパイルも同じスレッドで完了させる
+            // Complete compilation with Unity's reference set on that same thread
             var outcome = RemoteExecCompiler.Compile(body);
             if (!outcome.Succeeded)
             {
@@ -56,15 +56,43 @@ namespace Client.RemoteExec.Run
 
             var entry = outcome.Assembly.GetType(RemoteExecSourceWrapper.EntryTypeName)
                 .GetMethod(RemoteExecSourceWrapper.EntryMethodName, BindingFlags.Public | BindingFlags.Static);
+
+            // ログキャプチャはtickキュー受理より前に作る。受理直後に別スレッドがDrainすると、
+            // 購読前に流れた送信コードの同期ログが応答から漏れるため
+            // The log capture must exist before tick-queue admission; if another thread drains
+            // right after acceptance, the submitted code's synchronous logs would leak past an unsubscribed capture
             using var capture = new RemoteExecLogCapture();
+
+            UniTaskCompletionSource<object> serverCompletion = null;
+            if (target == RemoteExecTarget.Server)
+            {
+                serverCompletion = new UniTaskCompletionSource<object>();
+                var accepted = ServerThreadActionQueue.TryEnqueue(
+                    () => StartOnServerThread(entry, serverCompletion),
+                    () => serverCompletion.TrySetException(new InvalidOperationException("内蔵サーバーが終了したため、サーバー側実行を取り消しました")));
+                if (!accepted)
+                {
+                    RejectServerStopped();
+                    return result;
+                }
+            }
 
             // 送信されたコードという外部入力の例外を応答へ隔離する
             // Isolate exceptions from submitted external code into the response
             try
             {
-                var value = target == RemoteExecTarget.Client
-                    ? await InvokeAsync(entry)
-                    : await RunOnServerThreadAsync(entry);
+                object value;
+                if (target == RemoteExecTarget.Client)
+                {
+                    // clientだけメインスレッドへ切り替える。serverはtickキューへ直行するので不要
+                    // Only client switches to the main thread; server goes straight to the tick queue and needs none
+                    await UniTask.SwitchToMainThread();
+                    value = await InvokeAsync(entry);
+                }
+                else
+                {
+                    value = await serverCompletion.Task;
+                }
                 result.Ok = true;
                 result.Result = value?.ToString();
             }
@@ -76,25 +104,23 @@ namespace Client.RemoteExec.Run
             await UniTask.SwitchToMainThread();
             result.Logs.AddRange(capture.TakeLines());
             return result;
+
+            #region Internal
+
+            void RejectServerStopped()
+            {
+                // 事前判定とtickキュー拒否の両方をここへ集約し、文言・ログ・応答の形を1本に揃える
+                // Both the pre-check and the tick-queue rejection funnel through here, keeping the wording, log and response shape in one place
+                result.Exception = "内蔵サーバーが起動していないため、サーバー側では実行できません";
+                Debug.LogWarning(result.Exception);
+            }
+
+            #endregion
         }
 
         private static async UniTask<object> InvokeAsync(MethodInfo entry)
         {
             return await (UniTask<object>)entry.Invoke(null, null);
-        }
-
-        private static async UniTask<object> RunOnServerThreadAsync(MethodInfo entry)
-        {
-            var completion = new UniTaskCompletionSource<object>();
-            var accepted = ServerThreadActionQueue.TryEnqueue(
-                () => StartOnServerThread(entry, completion),
-                () => completion.TrySetException(new InvalidOperationException("内蔵サーバーが終了したため、サーバー側実行を取り消しました")));
-            if (!accepted)
-            {
-                Debug.LogWarning("内蔵サーバーが停止中のため、サーバー側実行を受け付けません");
-                throw new InvalidOperationException("内蔵サーバーが起動していないため、サーバー側では実行できません");
-            }
-            return await completion.Task;
         }
 
         private static void StartOnServerThread(MethodInfo entry, UniTaskCompletionSource<object> completion)

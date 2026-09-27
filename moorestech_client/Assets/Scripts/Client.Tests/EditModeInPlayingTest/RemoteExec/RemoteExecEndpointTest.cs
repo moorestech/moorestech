@@ -57,8 +57,8 @@ namespace Client.Tests.EditModeInPlayingTest.RemoteExec
                 using (var disabled = await SendAsync(client, url, HttpMethod.Post, "{}", null, null))
                     Assert.AreEqual(HttpStatusCode.NotFound, disabled.StatusCode);
 
-                // 製品と同じ有効化経路でトークンと実ポートを得る
-                // Issue the token and actual port through the production activation path
+                // 本番経路でトークン/ポート取得
+                // Get token/port through the production path
                 RemoteExecLaunchOption.ResolveFromCommandLine(new[] { "-remote-exec" });
                 RemoteExecActivation.ActivateIfRequested(kestrel.ActualPort);
                 var access = JObject.Parse(File.ReadAllText(Path.Combine(RemoteExecAccessFile.DirectoryPath, "access.json")));
@@ -67,8 +67,8 @@ namespace Client.Tests.EditModeInPlayingTest.RemoteExec
                 Assert.AreEqual(64, token.Length);
                 var before = files.CountLedgerLines();
 
-                // トークン・Origin・HTTPメソッドの拒否を理由ログとともに確認する
-                // Check token, origin, and method rejections together with their reason logs
+                // 拒否と理由ログを確認
+                // Check rejections and reason logs
                 LogAssert.Expect(LogType.Warning, new Regex("トークン不一致"));
                 using (var missing = await SendAsync(client, url, HttpMethod.Post, "{}", null, null))
                     Assert.AreEqual(HttpStatusCode.Forbidden, missing.StatusCode);
@@ -85,8 +85,8 @@ namespace Client.Tests.EditModeInPlayingTest.RemoteExec
                 using (var method = await SendAsync(client, url, HttpMethod.Get, "{}", token, null))
                     Assert.AreEqual(HttpStatusCode.Forbidden, method.StatusCode);
 
-                // 不正なJSON・型・実行先は実行せず理由付きで拒否する
-                // Reject malformed JSON, types, and targets with reasons before executing
+                // 不正入力を理由付きで拒否
+                // Reject invalid input with reasons
                 foreach (var body in new[] { "{", "{\"code\":1,\"target\":\"client\"}", "{\"code\":\"return 2;\",\"target\":\"other\"}" })
                 {
                     LogAssert.Expect(LogType.Warning, new Regex("要求を拒否しました"));
@@ -108,8 +108,8 @@ namespace Client.Tests.EditModeInPlayingTest.RemoteExec
                 }
                 Assert.AreEqual(before + 4, files.CountLedgerLines());
 
-                // コンパイル失敗もHTTP成功応答と失敗台帳を返す
-                // A compilation failure still returns a structured response and a failed ledger entry
+                // 失敗もHTTP成功+失敗台帳
+                // Failure still returns HTTP success + failed ledger
                 using var failed = await SendAsync(client, url, HttpMethod.Post, "{\"code\":\"return +;\",\"target\":\"client\"}", token, null);
                 var failedJson = JObject.Parse(await failed.Content.ReadAsStringAsync());
                 Assert.AreEqual(HttpStatusCode.OK, failed.StatusCode);
@@ -128,8 +128,8 @@ namespace Client.Tests.EditModeInPlayingTest.RemoteExec
             }
             finally
             {
-                // 失敗時も待受と実ユーザーファイルを元へ戻す
-                // Restore the listener and real user files even if an assertion fails
+                // 失敗時も状態を復元
+                // Restore state even on failure
                 RemoteExecLaunchOption.ResolveFromCommandLine(Array.Empty<string>());
                 try { await kestrel.StopAsync(); }
                 finally { files.Restore(); }

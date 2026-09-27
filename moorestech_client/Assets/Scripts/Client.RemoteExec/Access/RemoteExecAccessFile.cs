@@ -7,12 +7,12 @@ using UnityEngine;
 
 namespace Client.RemoteExec.Access
 {
-    // 起動ごとのトークンとWeb UIポートをユーザーのデータフォルダへ保存する
-    // Store the per-boot token and Web UI port in the user's data directory
+    // 起動毎のトークン/ポートを保存
+    // Persist per-boot token/port
     public static class RemoteExecAccessFile
     {
-        public const string HeaderName = "X-Remote-Exec-Token";
-        public static string Token { get; private set; }
+        internal const string HeaderName = "X-Remote-Exec-Token";
+        internal static string Token { get; private set; }
         public static string DirectoryPath => Path.Combine(GameSystemPaths.GameSystemDirectory, "RemoteExec");
 
         internal static void ClearToken()
@@ -20,7 +20,7 @@ namespace Client.RemoteExec.Access
             Token = null;
         }
 
-        public static void Issue(int port)
+        internal static void Issue(int port)
         {
             Token = null;
             var bytes = new byte[32];

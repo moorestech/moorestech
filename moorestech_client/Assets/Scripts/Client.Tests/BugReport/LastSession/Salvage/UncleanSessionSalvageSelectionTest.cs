@@ -69,7 +69,7 @@ namespace Client.Tests.BugReport.Salvage
         // Each session writes an ownership mark into its directory when snapshots start; marks are written in argument order so the later one remains the owner
         private static PreviousProcessSession Crashed(int processId, string sessionName, string worldSnapshotDirectory)
         {
-            var origin = new SessionOriginSnapshot(null, "テストで差し込まれていないSteamID", BuildOriginReading.Editor(), false, SessionSnapshotCapture.Started(worldSnapshotDirectory, processId, sessionName));
+            var origin = new SessionOriginSnapshot(null, "テストで差し込まれていないSteamID", BuildOriginReading.Editor(), null, SessionSnapshotCapture.Started(worldSnapshotDirectory, processId, sessionName));
             origin.WriteTo(Path.Combine(worldSnapshotDirectory, WorldDataDirectory.SnapshotOwnerFileName));
             return new PreviousProcessSession
             {

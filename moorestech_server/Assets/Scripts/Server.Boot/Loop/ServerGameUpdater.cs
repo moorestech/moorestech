@@ -38,8 +38,8 @@ namespace Server.Boot.Loop
                     // 経過時間を測定
                     var remaining = FrameInterval - stopwatch.Elapsed;
 
-                    // まだフレーム時間が余っていれば、その分だけ待機
-                    if (remaining > TimeSpan.Zero)
+                    // 残りフレーム時間だけ待機
+                    if (TimeSpan.Zero < remaining)
                     {
                         Thread.Sleep(remaining);
                     }

@@ -15,44 +15,8 @@ namespace Client.Tests.RemoteExec
             ServerThreadActionQueue.Stop();
         }
 
-        [Test]
-        public void サーバー終了は待機処理を失敗通知して受付を閉じる()
-        {
-            ServerThreadActionQueue.Stop();
-            ServerThreadActionQueue.Drain();
-            Assert.IsFalse(ServerThreadActionQueue.HasDrainedThisLifetime, "更新スレッド開始前のtickは有効化しない");
-
-            ServerThreadActionQueue.BeginServerThread();
-            ServerThreadActionQueue.Drain();
-            var ran = false;
-            var stopped = false;
-            Assert.IsTrue(ServerThreadActionQueue.TryEnqueue(() => ran = true, () => stopped = true));
-            ServerThreadActionQueue.Stop();
-
-            Assert.IsFalse(ran);
-            Assert.IsTrue(stopped);
-            Assert.IsFalse(ServerThreadActionQueue.HasDrainedThisLifetime);
-            Assert.IsFalse(ServerThreadActionQueue.TryEnqueue(() => ran = true, () => stopped = true));
-        }
-
-        [Test]
-        public void 旧更新スレッドの終了は新サーバーの処理を捨てない()
-        {
-            var oldGeneration = ServerThreadActionQueue.BeginServerThread();
-            ServerThreadActionQueue.Stop();
-            ServerThreadActionQueue.BeginServerThread();
-            ServerThreadActionQueue.Drain();
-            var ran = false;
-            var stopped = false;
-            Assert.IsTrue(ServerThreadActionQueue.TryEnqueue(() => ran = true, () => stopped = true));
-
-            ServerThreadActionQueue.Stop(oldGeneration);
-            Assert.IsTrue(ServerThreadActionQueue.HasDrainedThisLifetime);
-            ServerThreadActionQueue.Drain();
-            Assert.IsTrue(ran);
-            Assert.IsFalse(stopped);
-            ServerThreadActionQueue.Stop();
-        }
+        // 世代管理そのものの純粋テストは Server.Tests 側の ServerThreadActionQueueTest へ移した（Server.Boot が Client.Tests へ internal を開く必要をなくすため）
+        // The pure generation-management tests moved to Server.Tests' ServerThreadActionQueueTest, so Server.Boot no longer needs to expose internals to Client.Tests
 
         [UnityTest]
         public IEnumerator コンパイルエラーは実行せず返る() => UniTask.ToCoroutine(async () =>

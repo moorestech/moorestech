@@ -23,8 +23,8 @@ var postfix = typeof(RemoteExecSnippet).GetMethods(BindingFlags.NonPublic | Bind
 var harmony = new Harmony(""remote-exec-harmony-test"");
 var before = Client.Tests.RemoteExec.RemoteExecHarmonyTest.Target();
 var during = 0;
-// 適用後に呼び出し、失敗してもパッチを解除する
-// Call after patching and always remove the patch on failure
+// 失敗時もパッチを解除
+// Remove the patch even on failure
 try
 {
     harmony.Patch(original, postfix: new HarmonyMethod(postfix));
@@ -39,8 +39,8 @@ return $""{before},{during},{after}"";
 
 static void Postfix(ref int __result) { __result = 42; }";
 
-            // 前後の値も見て、実際の差し込み効果と後片付けを確かめる
-            // Check before and after values to verify the detour and cleanup
+            // 差し込みと後片付けを確認
+            // Verify the detour and cleanup
             var result = await RemoteExecRunner.RunAsync(code, RemoteExecTarget.Client);
             Assert.IsTrue(result.Ok, result.Exception + string.Join("\n", result.CompileErrors));
             Assert.AreEqual("1,42,1", result.Result);

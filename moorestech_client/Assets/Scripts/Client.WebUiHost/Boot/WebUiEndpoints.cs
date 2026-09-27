@@ -96,8 +96,8 @@ namespace Client.WebUiHost.Boot
 
                 if (path == Client.RemoteExec.RemoteExecEndpoint.Path && Client.RemoteExec.RemoteExecLaunchOption.IsEnabled)
                 {
-                    // 起動オプションで有効にした要求だけを受ける
-                    // Accept remote execution only when enabled by launch arguments
+                    // 有効化時のみ要求を受理
+                    // Accept requests only when enabled
                     await Client.RemoteExec.RemoteExecEndpoint.HandleAsync(context);
                     return;
                 }

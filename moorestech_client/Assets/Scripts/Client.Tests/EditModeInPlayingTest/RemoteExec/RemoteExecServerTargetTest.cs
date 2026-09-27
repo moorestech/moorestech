@@ -29,8 +29,8 @@ namespace Client.Tests.EditModeInPlayingTest.RemoteExec
             {
                 await LoadMainGame();
 
-                // client のawait結果・ログ・例外を実際のPlayerLoop上で検証する
-                // Verify client awaits, logs, and exceptions on a running PlayerLoop
+                // PlayerLoop上でawait結果を検証
+                // Verify await results on the PlayerLoop
                 var client = await RemoteExecRunner.RunAsync("UnityEngine.Debug.Log(\"hello\"); await UniTask.Yield(); return 2;", RemoteExecTarget.Client);
                 Assert.IsTrue(client.Ok, client.Exception);
                 Assert.AreEqual("2", client.Result);
@@ -66,8 +66,8 @@ namespace Client.Tests.EditModeInPlayingTest.RemoteExec
                 Assert.IsTrue(afterFailure.Ok, afterFailure.Exception);
                 Assert.AreEqual("3", afterFailure.Result);
 
-                // 終了後の指定はキューに残さず理由付きで失敗する
-                // Reject server work with a reason after its lifetime ends
+                // 終了後は理由付きで失敗
+                // Fail with a reason after shutdown
                 await GameShutdownEvent.FireGameShutdownAsync(GameShutdownReason.IntentionalExit);
                 Assert.IsFalse(ServerThreadActionQueue.HasDrainedThisLifetime, "終了完了直後はOnDestroyを待たず受付を閉じる");
                 var stopped = await RemoteExecRunner.RunAsync("return 1;", RemoteExecTarget.Server);

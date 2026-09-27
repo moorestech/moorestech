@@ -45,21 +45,23 @@ namespace Server.Boot.Loop
         public static void Drain()
         {
             int count;
+            long generation;
             lock (Gate)
             {
                 if (_stopped) return;
                 _hasDrainedThisLifetime = true;
+                generation = _generation;
                 count = Pending.Count;
             }
 
-            // 排出中の追加は次tickへ送る
-            // Leave work added during draining for the next tick
+            // 排出中の追加は次tickへ送る。世代が変わった分は新サーバーのDrainに任せる
+            // Leave work added during draining for the next tick; a changed generation is left to the new server's own Drain
             for (var index = 0; index < count; index++)
             {
                 PendingAction item;
                 lock (Gate)
                 {
-                    if (!_hasDrainedThisLifetime || Pending.Count == 0) return;
+                    if (_stopped || generation != _generation || Pending.Count == 0) return;
                     item = Pending.Dequeue();
                 }
                 item.Run();
@@ -101,7 +103,7 @@ namespace Server.Boot.Loop
                 }
                 _stopped = true;
                 _hasDrainedThisLifetime = false;
-                while (Pending.Count > 0) abandoned.Add(Pending.Dequeue());
+                while (0 < Pending.Count) abandoned.Add(Pending.Dequeue());
             }
 
             // 待機者には寿命終了を伝えて完了させる
