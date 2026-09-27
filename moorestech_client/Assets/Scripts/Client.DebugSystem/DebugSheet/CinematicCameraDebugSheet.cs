@@ -38,14 +38,14 @@ namespace Client.DebugSystem
                     // プレイヤーの回転は取得できないため、現在のカメラの回転を維持
                     _cinematicCamera.SetCameraTransform(playerPosition + new Vector3(0, 1, 0), _cinematicCamera.transform.rotation);
                     
-                    playerObjectController.SetMovementLockedByDebug(true);
+                    playerObjectController.SetMovementLock(PlayerMovementLockReason.Debug, true);
                     
                     Debug.Log("Cinematic camera enabled");
                 }
                 else
                 {
                     CameraManager.UnRegisterCamera(_cinematicCamera);
-                    PlayerSystemContainer.Instance.PlayerObjectController.SetMovementLockedByDebug(false);
+                    PlayerSystemContainer.Instance.PlayerObjectController.SetMovementLock(PlayerMovementLockReason.Debug, false);
 
                     Debug.Log("Cinematic camera disabled");
                 }
