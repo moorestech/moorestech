@@ -1,17 +1,15 @@
 using System;
 using System.Threading;
-using Client.Game.InGame.Context;
 using Client.Game.InGame.Train.Network;
 using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.Train.Unit;
-using Cysharp.Threading.Tasks;
 using UniRx;
 using UnityEngine;
 
 namespace Client.Game.InGame.Train.View
 {
-    // Train/Railのhash gate判定と不整合時リシンクを担当する
-    // Handles train/rail hash gate checks and resync on mismatch.
+    // Train/Railのhash gate判定を担当する
+    // Handles train/rail hash gate checks.
     public sealed class TrainUnitHashVerifier : ITrainUnitHashTickGate, IDisposable
     {
         private readonly TrainUnitFutureMessageBuffer _futureMessageBuffer;
@@ -70,8 +68,8 @@ namespace Client.Game.InGame.Train.View
 
         public bool CanAdvanceTick(ulong currentTickUnifiedId)
         {
-            // 再同期中はtick進行を止める
-            // Stop simulation advance while resync is in progress
+            // 不整合ゲートが閉じている間はtick進行を止める
+            // Stop simulation advance while the mismatch gate is closed
             if (Interlocked.CompareExchange(ref _resyncInProgress, 0, 0) == 1)
                 return false;
             // 古いhashはバッファから捨てる
@@ -120,10 +118,9 @@ namespace Client.Game.InGame.Train.View
                     $"[TrainUnitHashVerifier] Hash mismatch detected. tick={_tickState.GetTick()}, " +
                     $"train(client={localTrainHash}, server={message.unitsHash}), " +
                     $"rail(client={localRailGraphHash}, server={message.railGraphHash}), " +
-                    $"tickSequenceId={message.tickSequenceId}. Requesting snapshot.");
+                    $"tickSequenceId={message.tickSequenceId}. Tick advancement stopped.");
                 if (Interlocked.CompareExchange(ref _resyncInProgress, 1, 0) == 1)
                     return false;
-                RequestResyncAsync(isRailGraphMismatch).Forget();
                 return false;
                 
                 bool IsDummyHash((uint unitsHash, uint railGraphHash, uint serverTick, uint tickSequenceId) hashState)
@@ -133,27 +130,6 @@ namespace Client.Game.InGame.Train.View
                 }
             }
 
-            async UniTask RequestResyncAsync(bool includeRailGraph)
-            {
-                var api = ClientContext.VanillaApi.Response;
-                var cts = new CancellationTokenSource();
-                _resyncCancellation = cts;
-
-                // 引き金だけ送る。snapshotはイベント経路で届き、適用完了通知でゲートが解除される
-                // Send only the trigger; the snapshot arrives via the event stream and releases the gate on apply
-                var ackResult = await api.SendTrainResync(includeRailGraph, cts.Token).SuppressCancellationThrow();
-                if (ackResult.IsCanceled || ackResult.Result == null)
-                {
-                    // ack失敗時は自要求が現役の場合のみゲート解放。後続resync要求の状態を旧要求が壊さないため
-                    // On ack failure release only if this request still owns the gate; never clobber a newer resync
-                    if (Interlocked.CompareExchange(ref _resyncCancellation, null, cts) == cts)
-                    {
-                        Debug.LogWarning("[TrainUnitHashVerifier] Resync trigger failed. Releasing gate for retry.");
-                        cts.Dispose();
-                        Interlocked.Exchange(ref _resyncInProgress, 0);
-                    }
-                }
-            }
             #endregion
         }
     }
