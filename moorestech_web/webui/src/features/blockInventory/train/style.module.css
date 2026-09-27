@@ -1,0 +1,46 @@
+/* 行は左に名前・右に操作。寸法は固定長トークンだけを使う */
+/* Rows put the label left and controls right; sizes use fixed-length tokens only */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mode-switch-gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mode-switch-padding-inline);
+}
+
+.row[data-current="true"] {
+  color: var(--text-high-contrast);
+}
+
+.controls {
+  display: flex;
+  gap: var(--mode-switch-gap);
+  flex-shrink: 0;
+}
+
+/* 高さはstageのパネル本文に従い、駅数では伸ばさない */
+/* Follow the stage panel body height instead of growing with station count */
+.body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: var(--mode-switch-gap);
+}
+
+.scroll {
+  composes: scroll from "../../../shared/ui/panelBodyScrollArea.module.css";
+}
+
+.row > span:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}

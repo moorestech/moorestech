@@ -111,30 +111,30 @@ namespace Server.Protocol.PacketResponse
 _packetResponseDictionary.Add(YourProtocol.ProtocolTag, new YourProtocol(serviceProvider));
 ```
 
-### Step 2.5: クライアント側 VanillaApi にメソッドを追加（**1プロトコル = 1メソッド**）
+### Step 2.5: ResponseApi のドメイン別拡張クラスにメソッドを追加（**1プロトコル = 1メソッド**）
 
-`moorestech_client/Assets/Scripts/Client.Network/API/VanillaApiWithResponse.cs` にプロトコル送信用メソッドを **1個だけ** 追加する。
+`moorestech_client/Assets/Scripts/Client.Network/API/ResponseApi/<ドメイン>ResponseApi.cs` に `VanillaApiWithResponse` の拡張メソッドを **1個だけ** 追加する。呼び出し側には `using Client.Network.API;` を追加する。
 
-**原則: 1プロトコル = 1 VanillaApi メソッド**。1つのプロトコルに対して複数のラッパーメソッド（`GetXxx` / `SetXxx` / `UpdateXxx` 等）を作ってはいけない。プロトコルが複数の Operation を持つ場合は、`Request` オブジェクトを呼び出し側で構築して渡す形にする。
+**原則: 1プロトコル = 1 ResponseApi 拡張メソッド**。1つのプロトコルに対して複数のラッパーメソッド（`GetXxx` / `SetXxx` / `UpdateXxx` 等）を作ってはいけない。プロトコルが複数の Operation を持つ場合は、`Request` オブジェクトを呼び出し側で構築して渡す形にする。
 
 ```csharp
 // 良い: 1メソッドだけ。呼び出し側が Request を構築する
-public async UniTask<YourProtocol.YourResponseMessagePack> SendYourRequest(
-    YourProtocol.YourRequestMessagePack request, CancellationToken ct)
+public static async UniTask<YourProtocol.YourResponseMessagePack> SendYourRequest(
+    this VanillaApiWithResponse api, YourProtocol.YourRequestMessagePack request, CancellationToken ct)
 {
-    return await _packetExchangeManager.GetPacketResponse<YourProtocol.YourResponseMessagePack>(request, ct);
+    return await api.PacketExchange.GetPacketResponse<YourProtocol.YourResponseMessagePack>(request, ct);
 }
 
 // 単純なプロトコルなら、全プロパティを引数に取って内部で Request を組む形も可
-public async UniTask<YourProtocol.YourResponseMessagePack> SendYourRequest(
-    Vector3Int position, int someField, CancellationToken ct)
+public static async UniTask<YourProtocol.YourResponseMessagePack> SendYourRequest(
+    this VanillaApiWithResponse api, Vector3Int position, int someField, CancellationToken ct)
 {
     var request = new YourProtocol.YourRequestMessagePack(position, someField);
-    return await _packetExchangeManager.GetPacketResponse<YourProtocol.YourResponseMessagePack>(request, ct);
+    return await api.PacketExchange.GetPacketResponse<YourProtocol.YourResponseMessagePack>(request, ct);
 }
 ```
 
-**禁止例**: 1プロトコルに複数の Operation を持たせて、operation ごとに VanillaApi メソッドを生やす。これは「1プロトコル = N メソッド」になりラッパーが肥大化する。
+**禁止例**: 1プロトコルに複数の Operation を持たせて、operation ごとに ResponseApi メソッドを生やす。これは「1プロトコル = N メソッド」になりラッパーが肥大化する。
 
 ```csharp
 // 禁止: 1プロトコル (FilterSplitterStateProtocol) に対し 3 メソッド生やしている
@@ -143,7 +143,7 @@ public async UniTask<...> SetFilterSplitterMode(...) { ... }
 public async UniTask<...> SetFilterSplitterItem(...) { ... }
 ```
 
-このルールにより、プロトコルの追加コストが「1ファイル + 1 PacketResponseCreator 登録行 + 1 VanillaApi メソッド」に固定され、後続の Operation 追加が API 表面に波及しない。
+このルールにより、プロトコルの追加コストが「1ファイル + 1 PacketResponseCreator 登録行 + 1 ResponseApi 拡張メソッド」に固定され、後続の Operation 追加が API 表面に波及しない。
 
 ### Step 3: テストを作成
 

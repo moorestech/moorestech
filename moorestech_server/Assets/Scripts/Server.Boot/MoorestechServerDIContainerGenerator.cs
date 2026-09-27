@@ -70,6 +70,7 @@ using Server.Event;
 using Server.Event.EventReceive;
 using Server.Event.Notification;
 using Server.Event.EventReceive.UnifiedInventoryEvent;
+using Server.Event.EventReceive.Train;
 using Server.Boot.Loop.PacketProcessing;
 using Server.Protocol;
 using Server.Protocol.PacketResponse.Util.InventoryService;
@@ -229,6 +230,7 @@ namespace Server.Boot
             services.AddSingleton<TrainDockingStateRestorer>();
             services.AddSingleton<ITrainUpdateEvent, TrainUpdateEvent>();
             services.AddSingleton<ITrainUnitSnapshotNotifyEvent, TrainUnitSnapshotNotifyEvent>();
+            services.AddSingleton<ITrainTimetableNotifyEvent, TrainTimetableNotifyEvent>();
             services.AddSingleton<TrainCarRidingInputBuffer>();
             services.AddSingleton<TrainCarRidingManualCommandResolver>();
             services.AddSingleton<TrainUpdateService>();
@@ -321,6 +323,8 @@ namespace Server.Boot
             services.AddSingleton<RailNodeRemovedEventPacket>();
             services.AddSingleton<RailConnectionRemovedEventPacket>();
             services.AddSingleton<RidingStateEventPacket>();
+            services.AddSingleton<ITrainTimetableSubscriptionRegistry, TrainInventoryTimetableSubscriptionRegistry>();
+            services.AddSingleton<TrainTimetableEventPacket>();
             services.AddSingleton<AchievementNotificationWiring>();
             services.AddSingleton<MissingMasterPruneNotificationWiring>();
 

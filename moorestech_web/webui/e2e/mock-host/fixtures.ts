@@ -23,6 +23,7 @@ export * from "./fixtures/blockLocalizationFixtures";
 export * from "./fixtures/contentLocalizationFixtures";
 export * from "./fixtures/buildMenuFixtures";
 export * from "./fixtures/hotbarFixtures";
+export * from "./fixtures/trainInventoryFixtures";
 
 const empty = () => ({ itemId: 0, count: 0 });
 
@@ -86,25 +87,6 @@ export const blockTank = {
 // Closed matches the production wire: only open:false (the C# side omits every other key)
 export const blockClosed = {
   open: false,
-} satisfies BlockInventoryWireData;
-
-export const trainCargo = {
-  open: true,
-  source: "train",
-  blockType: "Train",
-  identifier: "train:101",
-  itemSlots: [{ itemId: 1, count: 24 }, { itemId: 2, count: 8 }, ...Array.from({ length: 7 }, empty)],
-  fluidSlots: [],
-} satisfies BlockInventoryWireData;
-
-export const trainContainerMissing = {
-  open: true,
-  source: "train",
-  blockType: "Train",
-  identifier: "train:102",
-  itemSlots: [],
-  fluidSlots: [],
-  error: "containerMissing",
 } satisfies BlockInventoryWireData;
 
 // 新topicの既定snapshotは必ず非乗車にし、再接続復元でHUDを残留させない

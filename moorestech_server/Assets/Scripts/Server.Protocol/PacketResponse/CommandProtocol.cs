@@ -19,15 +19,11 @@ namespace Server.Protocol.PacketResponse
         
         public const string GiveCommand = "give";
         public const string ClearInventoryCommand = "clearInventory";
-        public const string TrainAutoRunCommand = "trainAutoRun";
-        public const string TrainAutoRunOnArgument = "on";
-        public const string TrainAutoRunOffArgument = "off";
         public const string GetPlayTimeCommand = "getPlayTime";
         public const string AddFuelToAllTrainCarsCommand = "addFuelToAllTrainCarsCommand";
 
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly IWorldSettingsDatastore _worldSettingsDatastore;
-        private readonly TrainUpdateService _trainUpdateService;
         private readonly ITrainUnitLookupDatastore _trainUnitLookupDatastore;
         private readonly ITrainUnitSnapshotNotifyEvent _trainUnitSnapshotNotifyEvent;
         
@@ -35,7 +31,6 @@ namespace Server.Protocol.PacketResponse
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
             _worldSettingsDatastore = serviceProvider.GetService<IWorldSettingsDatastore>();
-            _trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
             _trainUnitLookupDatastore = serviceProvider.GetService<ITrainUnitLookupDatastore>();
             _trainUnitSnapshotNotifyEvent = serviceProvider.GetService<ITrainUnitSnapshotNotifyEvent>();
         }
@@ -64,12 +59,6 @@ namespace Server.Protocol.PacketResponse
                 {
                     inventory.MainOpenableInventory.SetItem(i, ServerContext.ItemStackFactory.CreatEmpty());
                 }
-            }
-            else if (command[0] == TrainAutoRunCommand)
-            {
-                // トグル引数に応じて全列車の自動運転状態を決定
-                // Decide auto-run state for every train based on the toggle argument
-                _trainUpdateService.TurnOnorOffTrainAutoRun(command);
             }
             else if (command[0] == GetPlayTimeCommand)
             {
@@ -111,6 +100,12 @@ namespace Server.Protocol.PacketResponse
                         Debug.Log($"add fuel to train car {MasterHolder.ItemMaster.GetItemMaster(fuel.ItemGuid).Name} x 100");
                     }
                 }
+            }
+            else
+            {
+                // 未知のデバッグコマンドは理由を記録して拒否する
+                // Log the reason when rejecting an unknown debug command
+                Debug.LogWarning($"[SendCommand] Unknown command: {command[0]}");
             }
 
             return null;

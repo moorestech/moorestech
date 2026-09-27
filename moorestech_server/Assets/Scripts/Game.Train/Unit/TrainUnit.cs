@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Game.Context;
 using Game.Train.Diagram;
+using Game.Train.Event;
 using Game.Train.RailCalc;
 using Game.Train.RailGraph;
 using Game.Train.RailPositions;
@@ -28,6 +29,7 @@ namespace Game.Train.Unit
         private int _remainingDistance;// 自動減速用
         private bool _isAutoRun;
         public bool IsAutoRun => _isAutoRun;
+        private readonly TrainTimetableChangeNotifier _timetableChangeNotifier;
         private double _currentSpeed;   // m/s など適宜
         public double CurrentSpeed => _currentSpeed;
         private double _accumulatedDistance; // 累積距離、距離の小数点以下を保持するために使用
@@ -80,6 +82,9 @@ namespace Game.Train.Unit
             _cars = cars;
             _currentSpeed = 0.0; // 仮の初期速度
             _isAutoRun = false;
+            // 通知口はTrainUnitの生成経路が50箇所超あり全てへ引き回せないため、生成時に1度だけ解決する
+            // The notify gateway is resolved once here because TrainUnit has 50+ construction sites to thread it through
+            _timetableChangeNotifier = new TrainTimetableChangeNotifier(ServerContext.GetService<ITrainTimetableNotifyEvent>(), this);
             trainUnitStationDocking = new TrainUnitStationDocking(this, this);
             trainDiagram = new TrainDiagram(_railGraphProvider, _diagramManager);
             trainDiagram.SetContext(this);
@@ -414,10 +419,15 @@ namespace Game.Train.Unit
         {
             // バリデーションで auto-run を止める条件を洗い出す。
             // Validate whether auto-run can stay enabled.
+            // 検証中の一時的なOFFを外へ出さず、要求前後で実状態が変わった時だけ通知する
+            // Hide the transient OFF during validation and notify only on a real state flip
+            var previousAutoRun = _isAutoRun;
+            _timetableChangeNotifier.BeginBatch();
             _isAutoRun = true;
             DiagramValidation(true);
+            _timetableChangeNotifier.EndBatch(previousAutoRun != _isAutoRun);
         }
-        
+
         // masconLevel などの差分を抽出する。
         // Extract mascon and other per-tick diffs.
         public (int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeIdDiff, bool isReversedThisTick, int manualBranchSelectionIndexDiff) GetTickDiff()
@@ -441,6 +451,9 @@ namespace Game.Train.Unit
             var approaching = _railPosition.GetNodeApproaching();
             if (destinationNode == null || approaching == null)
             {
+                // 目的地か接近ノードが無いまま自動運転はできないので理由を残して止める
+                // Auto-run cannot continue without a destination or approaching node, so log the reason before stopping
+                Debug.Log($"diagramの目的地か接近nodeがない。自動運転off train={_trainUnitInstanceId} index={trainDiagram.CurrentIndex} destinationNull={destinationNode == null} approachingNull={approaching == null}");
                 TurnOffAutoRun();
                 return;
             }
@@ -456,6 +469,9 @@ namespace Game.Train.Unit
             {
                 if (!arrowBack)
                 {
+                    // 反転探索を許さない呼び出しでは順方向の経路なしで打ち切る
+                    // Callers that forbid reversing stop here when no forward route exists
+                    Debug.Log($"diagramの登録nodeに対する順方向の経路がない。自動運転off train={_trainUnitInstanceId} index={trainDiagram.CurrentIndex}");
                     TurnOffAutoRun();
                     return;
                 }
@@ -463,6 +479,9 @@ namespace Game.Train.Unit
                 approaching = _railPosition.GetNodeApproaching();
                 if (approaching == null)
                 {
+                    // 反転後に接近ノードを失ったので自動運転を続けられない
+                    // Reversing lost the approaching node, so auto-run cannot continue
+                    Debug.Log($"反転後の接近nodeがない。自動運転off train={_trainUnitInstanceId} index={trainDiagram.CurrentIndex}");
                     TurnOffAutoRun();
                     return;
                 }
@@ -476,7 +495,7 @@ namespace Game.Train.Unit
                 if (!found)//逆方向にも経路がない
                 {
                     Reverse();
-                    Debug.Log("diagramの登録nodeに対する経路が全てない。自動運転off");
+                    Debug.Log($"diagramの登録nodeに対する経路が全てない。自動運転off train={_trainUnitInstanceId} index={trainDiagram.CurrentIndex}");
                     TurnOffAutoRun();
                     // 経路が無いので newPath は null。距離計算へ落とさず打ち切る。
                     // newPath is null here, so bail out before the distance calculation.
@@ -490,6 +509,8 @@ namespace Game.Train.Unit
 
         public void TurnOffAutoRun()
         {
+            var previousAutoRun = _isAutoRun;
+            _timetableChangeNotifier.BeginBatch();
             _isAutoRun = false;
             _remainingDistance = int.MaxValue;
             masconLevel = 0;
@@ -500,6 +521,7 @@ namespace Game.Train.Unit
             {
                 trainUnitStationDocking.UndockFromStation();
             }
+            _timetableChangeNotifier.EndBatch(previousAutoRun != _isAutoRun);
         }
 
         // 順方向に現在の diagram current を見て、なければ反転して見て、なければ反転もどす
@@ -750,6 +772,25 @@ namespace Game.Train.Unit
         }
         public void OnTrainUndocked()
         {
+        }
+
+        // 時刻表の変化をUI向け通知へ中継する
+        // Relay a timetable change to the UI-facing notification
+        public void OnTimetableChanged()
+        {
+            _timetableChangeNotifier.NotifyChanged();
+        }
+
+        // 時刻表適用のように複数の状態変化を含む操作を1回の通知へまとめる
+        // Coalesce an operation with several state changes, such as applying a timetable, into one notification
+        internal void BeginTimetableChangeBatch()
+        {
+            _timetableChangeNotifier.BeginBatch();
+        }
+
+        internal void EndTimetableChangeBatch(bool changed)
+        {
+            _timetableChangeNotifier.EndBatch(changed);
         }
 
         public void OnCurrentEntryShiftedByRemoval()

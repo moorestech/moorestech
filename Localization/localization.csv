@@ -297,3 +297,26 @@ ui.playtest.gate.answerAccepted,Your answer was received. This closes shortly.,Y
 ui.playtest.gate.disconnected,Disconnected. Please press again once it reconnects.,Disconnected. Please press again once it reconnects.,接続が切れています。つながったらもう一度押してください。,Verbindung getrennt. Bitte erneut drücken sobald sie wiederhergestellt ist.
 ui.playtest.gate.notClosed,The answer arrived but this screen did not close. Please press again.,The answer arrived but this screen did not close. Please press again.,応答は届きましたが画面が閉じません。もう一度押してください。,Die Antwort kam an aber dieser Bildschirm schloss nicht. Bitte erneut drücken.
 ui.playtest.gate.notStarted,The title confirmations are still being prepared. Try again in a moment.,The title confirmations are still being prepared. Try again in a moment.,タイトルの確認を準備中です。少し待ってからもう一度お試しください。,Die Bestätigungen auf dem Titelbildschirm werden noch vorbereitet. Bitte versuche es gleich noch einmal.
+ui.blockInventory.trainTabInventory,Inventory,Inventory,インベントリ,Inventar
+ui.blockInventory.trainTabTimetable,Timetable,Timetable,時刻表,Fahrplan
+ui.blockInventory.timetableAutoRun,Auto run,Auto run,自動運転,Automatik
+ui.blockInventory.timetableAutoRunUnavailable,Apply at least one stop to enable auto run.,Apply at least one stop to enable auto run.,停車駅を1つ以上適用すると自動運転をONにできます。,Mindestens einen Halt anwenden um den Automatikbetrieb zu aktivieren.
+ui.blockInventory.timetableAutoRunOn,ON,ON,ON,AN
+ui.blockInventory.timetableAutoRunOff,OFF,OFF,OFF,AUS
+ui.blockInventory.timetableStops,Stops,Stops,停車駅,Haltestellen
+ui.blockInventory.timetableStopsEmpty,No stops. Add a station below.,No stops. Add a station below.,停車駅がありません。下の駅一覧から追加してください。,Keine Halte. Unten eine Station hinzufügen.
+ui.blockInventory.timetableStations,Stations,Stations,駅一覧,Stationen
+ui.blockInventory.timetableStationsEmpty,No stations in the world.,No stations in the world.,ワールドに駅がありません。,Keine Stationen in der Welt.
+ui.blockInventory.timetableLoading,Loading timetable...,Loading timetable...,時刻表を読み込み中…,Fahrplan wird geladen...
+ui.blockInventory.timetableUnavailable,Timetable unavailable.,Timetable unavailable.,時刻表を取得できません。,Fahrplan nicht verfügbar.
+ui.blockInventory.timetableAdd,Add,Add,追加,Hinzufügen
+ui.blockInventory.timetableApply,Apply,Apply,適用,Anwenden
+ui.blockInventory.timetableMoveUp,Move up,Move up,上へ,Nach oben
+ui.blockInventory.timetableMoveDown,Move down,Move down,下へ,Nach unten
+ui.blockInventory.timetableRemove,Remove,Remove,削除,Entfernen
+ui.blockInventory.timetableStopLabel,{index}. {station},{index}. {station},{index}. {station},{index}. {station}
+ui.blockInventory.timetableStationLabel,"{name} ({x}, {y}, {z})","{name} ({x}, {y}, {z})","{name} ({x}, {y}, {z})","{name} ({x}, {y}, {z})"
+ui.blockInventory.timetableUnnamedStation,Station,Station,駅,Station
+ui.blockInventory.stationNameLabel,Station name,Station name,駅名,Stationsname
+ui.blockInventory.stationNamePlaceholder,Enter a station name,Enter a station name,駅名を入力,Stationsname eingeben
+ui.blockInventory.stationNameApply,Set,Set,決定,Übernehmen
