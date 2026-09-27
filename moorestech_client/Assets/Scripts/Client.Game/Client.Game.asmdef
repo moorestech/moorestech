@@ -36,6 +36,7 @@
         "Server.Util",
         "VContainer",
         "Client.Mod",
+        "Client.RemoteExec",
         "Client.Common",
         "Client.Input",
         "Client.Localization",

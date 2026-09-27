@@ -23,22 +23,24 @@ namespace Client.Game.InGame.BugReport.LastSession
         public string SteamId { get; }
         public string SteamIdAbsenceReason { get; }
         public BuildOriginReading BuildOrigin { get; }
+        public bool RemoteExecEnabled { get; }
         internal readonly SessionSnapshotCapture SnapshotCapture;
         internal readonly IReadOnlyList<MissingItem> SalvageMissing;
 
-        public SessionOriginSnapshot(string steamId, string steamIdAbsenceReason, BuildOriginReading buildOrigin) : this(steamId, steamIdAbsenceReason, buildOrigin, SessionSnapshotCapture.NotStarted())
+        public SessionOriginSnapshot(string steamId, string steamIdAbsenceReason, BuildOriginReading buildOrigin, bool remoteExecEnabled) : this(steamId, steamIdAbsenceReason, buildOrigin, remoteExecEnabled, SessionSnapshotCapture.NotStarted())
         {
         }
 
-        internal SessionOriginSnapshot(string steamId, string steamIdAbsenceReason, BuildOriginReading buildOrigin, SessionSnapshotCapture snapshotCapture) : this(steamId, steamIdAbsenceReason, buildOrigin, snapshotCapture, new List<MissingItem>())
+        internal SessionOriginSnapshot(string steamId, string steamIdAbsenceReason, BuildOriginReading buildOrigin, bool remoteExecEnabled, SessionSnapshotCapture snapshotCapture) : this(steamId, steamIdAbsenceReason, buildOrigin, remoteExecEnabled, snapshotCapture, new List<MissingItem>())
         {
         }
 
-        private SessionOriginSnapshot(string steamId, string steamIdAbsenceReason, BuildOriginReading buildOrigin, SessionSnapshotCapture snapshotCapture, IReadOnlyList<MissingItem> salvageMissing)
+        private SessionOriginSnapshot(string steamId, string steamIdAbsenceReason, BuildOriginReading buildOrigin, bool remoteExecEnabled, SessionSnapshotCapture snapshotCapture, IReadOnlyList<MissingItem> salvageMissing)
         {
             SteamId = steamId;
             SteamIdAbsenceReason = steamIdAbsenceReason;
             BuildOrigin = buildOrigin;
+            RemoteExecEnabled = remoteExecEnabled;
             SnapshotCapture = snapshotCapture;
             SalvageMissing = salvageMissing;
         }
@@ -47,12 +49,12 @@ namespace Client.Game.InGame.BugReport.LastSession
         // Re-stamping ownership keeps the SteamID absence reason; dropping it would erase the reason from the rewritten mark
         internal SessionOriginSnapshot WithSnapshotCapture(SessionSnapshotCapture snapshotCapture)
         {
-            return new SessionOriginSnapshot(SteamId, SteamIdAbsenceReason, BuildOrigin, snapshotCapture);
+            return new SessionOriginSnapshot(SteamId, SteamIdAbsenceReason, BuildOrigin, RemoteExecEnabled, snapshotCapture);
         }
 
         internal SessionOriginSnapshot WithSalvageMissing(IReadOnlyList<MissingItem> missing)
         {
-            return new SessionOriginSnapshot(SteamId, SteamIdAbsenceReason, BuildOrigin, SnapshotCapture, new List<MissingItem>(missing));
+            return new SessionOriginSnapshot(SteamId, SteamIdAbsenceReason, BuildOrigin, RemoteExecEnabled, SnapshotCapture, new List<MissingItem>(missing));
         }
 
         public SalvageOperationResult WriteTo(string path)
@@ -60,6 +62,7 @@ namespace Client.Game.InGame.BugReport.LastSession
             var json = new JObject
             {
                 ["steamId"] = SteamId,
+                ["remoteExecEnabled"] = RemoteExecEnabled,
                 ["steamIdAbsenceReason"] = SteamIdAbsenceReason,
                 ["buildOriginKind"] = BuildOrigin.Kind.ToString(),
                 ["buildInfo"] = BuildOrigin.BuildInfo == null ? JValue.CreateNull() : JObject.FromObject(BuildOrigin.BuildInfo, Serializer),
@@ -100,6 +103,7 @@ namespace Client.Game.InGame.BugReport.LastSession
                 return null;
             }
 
+            bool remoteExecEnabled;
             string steamId;
             string steamIdAbsenceReason;
             string kindText;
@@ -114,6 +118,15 @@ namespace Client.Game.InGame.BugReport.LastSession
             {
                 var obj = JObject.Parse(File.ReadAllText(path));
                 steamId = (string)obj["steamId"];
+                // 旧形式のキー欠損だけを許し、不正型の暗黙変換を避ける
+                // Allow only a legacy missing key and avoid coercing invalid token types
+                var remoteExecToken = obj["remoteExecEnabled"];
+                if (remoteExecToken != null && remoteExecToken.Type != JTokenType.Boolean)
+                {
+                    failureReason = $"セッション開始時の出所を読めない {path}: remoteExecEnabledはBooleanである必要があります（型: {remoteExecToken.Type}）";
+                    return null;
+                }
+                remoteExecEnabled = remoteExecToken != null && (bool)remoteExecToken;
                 steamIdAbsenceReason = ReadSteamIdAbsenceReason(steamId, obj["steamIdAbsenceReason"]);
                 kindText = (string)obj["buildOriginKind"];
                 var buildInfoToken = obj["buildInfo"];
@@ -129,7 +142,7 @@ namespace Client.Game.InGame.BugReport.LastSession
             }
 
             var buildOrigin = ToBuildOrigin(kindText, buildInfo, buildOriginMissingReason, path, out failureReason);
-            return buildOrigin == null ? null : new SessionOriginSnapshot(steamId, steamIdAbsenceReason, buildOrigin, snapshotCapture, salvageMissing);
+            return buildOrigin == null ? null : new SessionOriginSnapshot(steamId, steamIdAbsenceReason, buildOrigin, remoteExecEnabled, snapshotCapture, salvageMissing);
 
             #region Internal
 

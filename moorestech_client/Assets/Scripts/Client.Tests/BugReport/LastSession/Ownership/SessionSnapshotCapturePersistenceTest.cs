@@ -33,7 +33,7 @@ namespace Client.Tests.BugReport
         {
             var capture = started ? SessionSnapshotCapture.Started(_root, 1234, "session_100") : SessionSnapshotCapture.NotStarted();
             var path = Path.Combine(_root, "origin.json");
-            new SessionOriginSnapshot("steam", null, BuildOriginReading.Editor(), capture).WriteTo(path);
+            new SessionOriginSnapshot("steam", null, BuildOriginReading.Editor(), false, capture).WriteTo(path);
             var restored = SessionOriginSnapshot.ReadFrom(path, out var failure);
             Assert.IsNull(failure);
             Assert.AreEqual("steam", restored.SteamId);
@@ -69,7 +69,7 @@ namespace Client.Tests.BugReport
             const int processId = 2147482986;
             const string sessionName = "session_101";
             const string reason = "テスター識別（SteamID）が無い（SteamUser.GetSteamID で読めなかった）";
-            CleanExitMarker.MarkSessionStarted(processId, sessionName, new SessionOriginSnapshot(null, reason, BuildOriginReading.Editor()));
+            CleanExitMarker.MarkSessionStarted(processId, sessionName, new SessionOriginSnapshot(null, reason, BuildOriginReading.Editor(), false));
             CleanExitMarker.RecordSnapshotCapture(processId, sessionName, _root);
             var source = SessionOriginSnapshot.ReadFrom(Path.Combine(_root, WorldDataDirectory.SnapshotOwnerFileName), out var failure);
             var session = CleanExitMarker.ConsumeSessionMarks(processId, sessionName);
@@ -98,7 +98,7 @@ namespace Client.Tests.BugReport
         {
             const int processId = 2147482987;
             const string sessionName = "session_100";
-            CleanExitMarker.MarkSessionStarted(processId, sessionName, new SessionOriginSnapshot("current", null, BuildOriginReading.Editor()));
+            CleanExitMarker.MarkSessionStarted(processId, sessionName, new SessionOriginSnapshot("current", null, BuildOriginReading.Editor(), false));
             CleanExitMarker.RecordSnapshotCapture(processId, sessionName, _root);
             var source = SessionOriginSnapshot.ReadFrom(Path.Combine(_root, WorldDataDirectory.SnapshotOwnerFileName), out var failure);
             var session = CleanExitMarker.ConsumeSessionMarks(processId, sessionName);

@@ -27,7 +27,9 @@ namespace Client.Game.InGame.BugReport
         // 2: added serverData (where the server read its masters); without it the reproduction replays different masters
         // 3: worldDefinitionを追加（ADR 0064）
         // 3: added worldDefinition (ADR 0064)
-        public int SchemaVersion = 3;
+        // 4: 遠隔実行が有効だったセッションの印と台帳を追加（ADR 0072）
+        // 4: added the remote execution session mark and ledgers (ADR 0072)
+        public int SchemaVersion = 4;
         public string CreatedAt;
         public string Description;
 
@@ -55,6 +57,10 @@ namespace Client.Game.InGame.BugReport
         public ClientStateSnapshot ClientState;
         public List<MissingItem> Missing = new();
         public double VideoSeconds;
+
+        // 無効なセッションはnull。有効な報告は取り込み側の自動修正と通常集計から除く
+        // Disabled sessions use null; ingestion excludes enabled reports from automatic fixes and normal counts
+        public RemoteExecMark RemoteExec;
 
         // 箱の種別に依らない共通見出し。crash と bug で別々に組み立てていた頃は片方だけ列が欠けても誰も気づけなかった
         // The header every kind of box shares; while crash and bug built it separately, a column missing on one side went unnoticed

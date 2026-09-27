@@ -83,6 +83,7 @@ namespace Client.Game.InGame.BugReport.LastSession
 
             // リポジトリ状態とマスタの出所は bug の箱と同じ経路で入れる。crash だけ null だと再現側が別コミットで再生する
             // The repository state and master origin go through the same path as a bug box; leaving them null only for crash replays a different commit
+            RemoteExecBundleMark.ApplyForPreviousSession(manifest, directory, origin != null && origin.RemoteExecEnabled, artifacts.SalvagedProcessIds);
             BugReportRepositoryFiles.Write(directory, manifest, buildOrigin, repositoryRoot, masterDataRoot);
 
             if (BugReportOutbox.TryFinishBundle(directory, manifest)) return directory;
