@@ -42,6 +42,7 @@ using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.CancelInput;
 using Client.Game.InGame.UI.UIState.State.CameraPolicy;
+using Client.Game.InGame.UI.UIState.State.MovementPolicy;
 using Client.Game.InGame.UI.UIState.State.Hotbar;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
 using Client.Game.InGame.UI.UIState.State.NestedPause;
@@ -117,6 +118,7 @@ namespace Client.Starter.Registration
             builder.Register<IPlayerCameraInteractionApplier, PlayerCameraInteractionApplier>(Lifetime.Singleton);
             builder.Register<PlayerViewModeController>(Lifetime.Singleton).AsSelf().As<IStartable>().As<ITickable>();
             builder.Register<UiStateCameraPolicyService>(Lifetime.Singleton);
+            builder.RegisterEntryPoint<UiStatePlayerMovementPolicy>();
 
             // UI state群を単一の辞書へ集約する
             // Gather UI states into their single dictionary

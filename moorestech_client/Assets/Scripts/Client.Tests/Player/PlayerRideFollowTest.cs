@@ -75,6 +75,10 @@ namespace Client.Tests.Player
             playerRoot.AddComponent<StarterAssetsInputs>();
             thirdPersonController = playerRoot.AddComponent<ThirdPersonController>();
 
+            // 降車で操作可へ戻す際に押下中の移動を読み直すため、本番Prefabと同じ入力定義を持たせる
+            // Getting off rereads the held movement, so give PlayerInput the same action asset as the production prefab
+            playerRoot.GetComponent<UnityEngine.InputSystem.PlayerInput>().actions = new MoorestechInputSettings().asset;
+
             var playerObjectController = playerRoot.AddComponent<PlayerObjectController>();
             SetField(playerObjectController, "controller", thirdPersonController);
 

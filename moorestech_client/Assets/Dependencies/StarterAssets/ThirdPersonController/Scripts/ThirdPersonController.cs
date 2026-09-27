@@ -125,7 +125,7 @@ namespace StarterAssets
         
         public void SetControllable(bool value)
         {
-            _input.inputEnable = value;
+            _input.SetInputEnable(value);
         }
 
 		private void Update()

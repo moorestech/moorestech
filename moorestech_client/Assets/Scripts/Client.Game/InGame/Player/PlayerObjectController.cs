@@ -13,6 +13,7 @@ namespace Client.Game.InGame.Player
         
         public void SetAnimationState(string state);
         public void SetControllable(bool enable);
+        public void SetMovementLockedByUi(bool isLocked);
         public void SetModelVisible(bool visible);
     }
     
@@ -26,6 +27,8 @@ namespace Client.Game.InGame.Player
         private readonly PlayerModelVisibility _modelVisibility = new();
         private PlayerRideFollow _rideFollow;
         private bool _isModelVisible = true;
+        private bool _isControllable = true;
+        private bool _isMovementLockedByUi;
         private Vector3 worldSpawnPosition;
         private Vector3 initialPlayerPosition;
         private bool isRuntimeStarted;
@@ -118,7 +121,21 @@ namespace Client.Game.InGame.Player
         }
         public void SetControllable(bool enable)
         {
-            controller.SetControllable(enable);
+            _isControllable = enable;
+            ApplyControllable();
+        }
+
+        // 乗車等の操作可否とは独立に持つ。画面を閉じても乗車中の操作不可を解除しないため
+        // Held apart from ride controllability so closing a screen never re-enables control while riding
+        public void SetMovementLockedByUi(bool isLocked)
+        {
+            _isMovementLockedByUi = isLocked;
+            ApplyControllable();
+        }
+
+        private void ApplyControllable()
+        {
+            controller.SetControllable(_isControllable && !_isMovementLockedByUi);
         }
 
         public void SetModelVisible(bool visible)

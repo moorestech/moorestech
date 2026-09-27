@@ -24,6 +24,27 @@ namespace StarterAssets
 		public bool cursorInputForLook = true;
 #endif
 
+		public void SetInputEnable(bool enable)
+		{
+			// 同値の再適用で押下中のジャンプ等を捨てないよう、切替時だけ処理する
+			// Act only on an actual toggle so a same-value reapply never drops an in-flight jump
+			if (inputEnable == enable) return;
+			inputEnable = enable;
+
+			// 無効中は押下も離しも捨てられるため、切替の瞬間に押しっぱなしの実値へ揃え直す
+			// Presses and releases are dropped while disabled, so resync to the keys actually held at the moment of toggling
+			jump = false;
+			look = Vector2.zero;
+#if ENABLE_INPUT_SYSTEM && STARTER_ASSETS_PACKAGES_CHECKED
+			var actions = GetComponent<PlayerInput>().actions;
+			move = enable ? actions["Move"].ReadValue<Vector2>() : Vector2.zero;
+			sprint = enable && actions["Sprint"].IsPressed();
+#else
+			move = Vector2.zero;
+			sprint = false;
+#endif
+		}
+
 #if ENABLE_INPUT_SYSTEM && STARTER_ASSETS_PACKAGES_CHECKED
 		public void OnMove(InputValue value)
 		{
