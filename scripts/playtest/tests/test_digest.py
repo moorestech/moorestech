@@ -33,6 +33,20 @@ class DigestTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         return result.stdout
 
+    def test_remote_exec_excluded_from_counts_and_candidates(self):
+        root = self.root / "harness/playtest/reports"
+        manifest = root / "7656001/20260912_100000_bug1/manifest.json"
+        write_json(manifest, {"kind": "bug", "remoteExec": {"enabled": True}})
+        reports, stats = dc.load_reports(root, self.date)
+        self.assertEqual(sum(r["kind"] == "bug" for r in reports), 1)
+        self.assertEqual(stats["remoteExec"], 1)
+        candidates, _ = dcand.load_candidate_reports(root)
+        self.assertEqual(candidates, [])
+        self.assertIn("遠隔実行ありの報告 1 件（集計から除外）", self.run_ok())
+        for mark in (None, {"enabled": False}):
+            write_json(manifest, {"kind": "bug", "remoteExec": mark})
+            self.assertEqual(len(dc.load_reports(root, self.date)[0]), 4)
+
     def test_jst_date_converts_utc(self):
         self.assertEqual(dc.jst_date("2026-09-12T15:30:00Z"), "2026-09-13")
         self.assertEqual(dc.jst_date(""), "")

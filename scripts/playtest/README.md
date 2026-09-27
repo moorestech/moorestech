@@ -166,3 +166,27 @@ bash scripts/playtest/tests/test-release-playtest.sh    # PASS: release-playtest
 bash scripts/playtest/tests/test-release-playtest-origin.sh  # PASS: release-playtest origin contract と出れば合格
 bash scripts/playtest/tests/test-verify-on-windows.sh   # PASS: verify-on-windows contract と出れば合格
 ```
+
+## 遠隔実行（開発者向け）
+
+Steam の起動オプション欄へ `-remote-exec` を付けてゲームを起動する。
+Windows では `steam.exe -applaunch <appid> -remote-exec` でも指定できる。
+ゲーム開始後に、C# のメソッド本体をファイルまたは標準入力から送る。
+
+```bash
+scripts/playtest/remote-exec.sh snippet.cs
+printf 'return 1 + 1;' | scripts/playtest/remote-exec.sh -
+scripts/playtest/remote-exec.sh --windows --target server snippet.cs
+```
+
+`--windows` は `MOORESTECH_VERIFY_HOST` / `MOORESTECH_VERIFY_USER` と SSH を使い、
+検証機内からループバックへ送信する。WoL や受け口の admin key は不要。
+ローカルの接続ファイルは `/Users/<user>/Library/Application Support/moorestech/RemoteExec/access.json`。
+必要なら `MOORESTECH_REMOTE_EXEC_ACCESS` で別のファイルを指定できる。
+応答 JSON を stdout に出し、HTTP が 200 以外なら exit 1 を返す。
+
+タイトル画面では使えない。固まったらゲームを再起動する。
+`server` の同期部分だけがサーバースレッドで動く。`await` 以降の実行スレッドは待機先に依存する。
+補助処理は static ローカル関数で書き、トップレベルの型宣言は使わない。
+有効だったセッションの報告には印と台帳が付き、通常の自動修正投入・日次報告集計から除外される。
+明示的に投入する場合のみ `enqueue-autofix.sh --force` を使う。

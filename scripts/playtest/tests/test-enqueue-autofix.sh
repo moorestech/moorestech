@@ -61,4 +61,30 @@ echo '{"kind":"bug"}' > "$RUNBOX/manifest.json"; echo 'READY-summary' > "$RUNBOX
 set +e; run 7656004 20260913_130000_rerun 2>"$TMP/rerun.log"; code=$?; set -e
 [ "$code" = 5 ] && [ ! -e "$I/20260913_130000_rerun" ] || { echo "NG: 既存ランのある id が投入された（exit=$code）"; exit 1; }
 grep -q '同名のラン記録が既にある' "$TMP/rerun.log" || { echo "NG: 既存ランの拒否理由が出ていない"; exit 1; }
+
+# 遠隔実行の印は通常投入を拒否し、明示的な強制だけを通す
+# Remote-exec marks refuse ordinary enqueue and allow only explicit force
+REX="$LOGS/harness/playtest/reports/7656005/rex"
+mkdir -p "$REX"
+echo '{"kind":"bug","remoteExec":{"enabled":true,"ledgerFiles":[]}}' > "$REX/manifest.json"
+echo ready > "$REX/READY"
+set +e; run 7656005 rex 2>"$TMP/rex.log"; code=$?; set -e
+[ "$code" = 3 ] && [ ! -e "$I/rex" ]
+grep -q '遠隔実行が有効だったセッション' "$TMP/rex.log"
+run --force 7656005 rex
+[ -f "$I/rex/AUTOFIX_FORCED" ]
+mkdir -p "$LOGS/harness/playtest/reports/7656005/normal"
+echo '{"kind":"bug","remoteExec":null}' > "$LOGS/harness/playtest/reports/7656005/normal/manifest.json"
+echo ready > "$LOGS/harness/playtest/reports/7656005/normal/READY"
+run 7656005 normal
+
+# 型が壊れた印は強制指定でも黙って通常扱いにしない
+# Malformed marks must never silently become ordinary reports, even with force
+BAD="$LOGS/harness/playtest/reports/7656005/bad"
+mkdir -p "$BAD"
+echo ready > "$BAD/READY"
+echo '{"kind":"bug","remoteExec":{"enabled":"true"}}' > "$BAD/manifest.json"
+set +e; run --force 7656005 bad 2>"$TMP/bad.log"; code=$?; set -e
+[ "$code" = 1 ] && [ ! -e "$I/bad" ]
+grep -q 'remoteExec を読めない' "$TMP/bad.log"
 echo OK

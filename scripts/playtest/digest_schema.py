@@ -22,6 +22,7 @@ from pathlib import Path
 STR = (str,)
 NUMBER = (int, float)
 INT = (int,)
+BOOL = (bool,)
 
 # スキーマ: フィールド名 → (型, 既定値)。型が dict なら入れ子スキーマ、[要素型] ならその要素の list
 # Schema: field name -> (kind, default). A dict kind is a nested schema; [kind] is a list of that kind
@@ -31,6 +32,7 @@ INGEST_SCHEMA = {
 }
 MANIFEST_SCHEMA = {
     "kind": (STR, ""), "description": (STR, ""),
+    "remoteExec": ({"enabled": (BOOL, False)}, None),
     "buildInfo": ({"steamBuildLabel": (STR, "")}, None),
 }
 RECORD_SCHEMA = {
@@ -100,7 +102,7 @@ def conform_value(value, kind, default, path):
         return conform_list(value, kind[0], path)
     # bool は int の派生だが数値として受け入れない
     # bool subclasses int but is not accepted as a number
-    if isinstance(value, bool) or not isinstance(value, kind):
+    if (isinstance(value, bool) and kind != BOOL) or not isinstance(value, kind):
         return Invalid(path)
     return value
 
