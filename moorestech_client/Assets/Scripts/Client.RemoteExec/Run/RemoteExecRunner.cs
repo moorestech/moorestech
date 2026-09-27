@@ -99,8 +99,8 @@ namespace Client.RemoteExec.Run
 
         private static void StartOnServerThread(MethodInfo entry, UniTaskCompletionSource<object> completion)
         {
-            // 同期部分は更新スレッドで動く。await後の継続先は送信コードが選ぶ
-            // The synchronous part runs on the update thread; submitted awaits determine continuations
+            // 同期部分だけ更新スレッドで動く。UniTaskのYield/Delay後はPlayerLoopのメインスレッドで続く
+            // Only the synchronous part runs on the update thread; UniTask Yield/Delay resumes on the main-thread PlayerLoop
             try
             {
                 var invocation = (UniTask<object>)entry.Invoke(null, null);

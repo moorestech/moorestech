@@ -1,6 +1,5 @@
 using System;
 using System.Threading;
-using Client.RemoteExec;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -10,6 +9,8 @@ namespace Client.Starter.Initialization.Boot
     {
         internal static async UniTask StartAsync(CancellationToken exitToken)
         {
+            // 終了時の購読はWebUiHostが一度だけ張る。UIはWeb一本なので起動失敗時は非表示で続ける
+            // WebUiHost owns its single shutdown subscription; the web-only UI stays hidden if startup fails
             // 外部プロセスの起動境界を隔離し、ゲームの初期化を続ける
             // Isolate external process startup failures and continue game initialization
             try
@@ -20,8 +21,6 @@ namespace Client.Starter.Initialization.Boot
             {
                 Debug.LogWarning($"[WebUiHost] start skipped: {e.Message}");
             }
-
-            RemoteExecActivation.ActivateIfRequested(Client.WebUiHost.Boot.WebUiHost.KestrelPort);
         }
     }
 }

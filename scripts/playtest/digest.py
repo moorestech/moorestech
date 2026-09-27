@@ -17,7 +17,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import digest_candidates as dcand  # noqa: E402
 import digest_collect as dc  # noqa: E402
-from digest_support.sections import format_progress, format_runs
+from digest_support.sections import format_progress, format_runs  # noqa: E402
 from digest_schema import neutralize_discord_markup as safe  # noqa: E402
 from digest_schema import protect_pasteable_commands as protect_cmds, restore_pasteable_commands as restore_cmds  # noqa: E402
 
@@ -42,7 +42,7 @@ def format_counts(reports: list[dict], stats: dict) -> list[str]:
     if stats.get("noPayload"):
         lines.append(f"- ⚠ manifest.json が無い箱（クライアントが全ファイルを見送った） {stats['noPayload']}件")
     if stats.get("remoteExec"):
-        lines.append(f"- 遠隔実行ありの報告 {stats['remoteExec']} 件（集計から除外）")
+        lines.append(f"- 遠隔実行ありの報告 {stats['remoteExec']}件（集計から除外）")
     return lines
 
 

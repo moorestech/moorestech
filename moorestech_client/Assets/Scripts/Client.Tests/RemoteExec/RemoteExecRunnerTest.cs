@@ -18,7 +18,7 @@ namespace Client.Tests.RemoteExec
         [Test]
         public void サーバー終了は待機処理を失敗通知して受付を閉じる()
         {
-            ServerThreadActionQueue.ResetForNewServer();
+            ServerThreadActionQueue.Stop();
             ServerThreadActionQueue.Drain();
             Assert.IsFalse(ServerThreadActionQueue.HasDrainedThisLifetime, "更新スレッド開始前のtickは有効化しない");
 
@@ -33,6 +33,25 @@ namespace Client.Tests.RemoteExec
             Assert.IsTrue(stopped);
             Assert.IsFalse(ServerThreadActionQueue.HasDrainedThisLifetime);
             Assert.IsFalse(ServerThreadActionQueue.TryEnqueue(() => ran = true, () => stopped = true));
+        }
+
+        [Test]
+        public void 旧更新スレッドの終了は新サーバーの処理を捨てない()
+        {
+            var oldGeneration = ServerThreadActionQueue.BeginServerThread();
+            ServerThreadActionQueue.Stop();
+            ServerThreadActionQueue.BeginServerThread();
+            ServerThreadActionQueue.Drain();
+            var ran = false;
+            var stopped = false;
+            Assert.IsTrue(ServerThreadActionQueue.TryEnqueue(() => ran = true, () => stopped = true));
+
+            ServerThreadActionQueue.Stop(oldGeneration);
+            Assert.IsTrue(ServerThreadActionQueue.HasDrainedThisLifetime);
+            ServerThreadActionQueue.Drain();
+            Assert.IsTrue(ran);
+            Assert.IsFalse(stopped);
+            ServerThreadActionQueue.Stop();
         }
 
         [UnityTest]

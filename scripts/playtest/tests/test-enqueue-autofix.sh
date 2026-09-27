@@ -71,12 +71,17 @@ echo ready > "$REX/READY"
 set +e; run 7656005 rex 2>"$TMP/rex.log"; code=$?; set -e
 [ "$code" = 3 ] && [ ! -e "$I/rex" ]
 grep -q '遠隔実行が有効だったセッション' "$TMP/rex.log"
-run --force 7656005 rex
+run --force 7656005 rex 2>"$TMP/rex-force.log"
 [ -f "$I/rex/AUTOFIX_FORCED" ]
+grep -q -- '--force で遠隔実行ありの箱を投入する' "$TMP/rex-force.log"
 mkdir -p "$LOGS/harness/playtest/reports/7656005/normal"
 echo '{"kind":"bug","remoteExec":null}' > "$LOGS/harness/playtest/reports/7656005/normal/manifest.json"
 echo ready > "$LOGS/harness/playtest/reports/7656005/normal/READY"
 run 7656005 normal
+mkdir -p "$LOGS/harness/playtest/reports/7656005/empty-mark"
+echo '{"kind":"bug","remoteExec":{}}' > "$LOGS/harness/playtest/reports/7656005/empty-mark/manifest.json"
+echo ready > "$LOGS/harness/playtest/reports/7656005/empty-mark/READY"
+run 7656005 empty-mark
 
 # 型が壊れた印は強制指定でも黙って通常扱いにしない
 # Malformed marks must never silently become ordinary reports, even with force

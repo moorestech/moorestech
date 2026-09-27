@@ -11,7 +11,7 @@ namespace Client.RemoteExec.Compile
         public const string EntryMethodName = "Run";
 
         private static readonly string[] DefaultUsings = { "System", "System.Linq", "System.Collections.Generic", "UnityEngine", "Cysharp.Threading.Tasks" };
-        private static readonly Regex UsingDirective = new Regex(@"^\s*using\s+(?:static\s+)?(?:global::)?[A-Za-z_][\w.]*(?:\s*=\s*(?:global::)?[A-Za-z_][\w.]*)?\s*;\s*(?://.*)?$", RegexOptions.Compiled);
+        private static readonly Regex UsingDirective = new Regex(@"^\s*using\s+(?:static\s+)?(?:global::)?[A-Za-z_][\w.]*(?:\s*=\s*(?:global::)?[A-Za-z_][\w.]*(?:<\s*[\w.,<>\s]+>)?)?\s*;\s*(?://.*)?$", RegexOptions.Compiled);
 
         internal static string Wrap(string body)
         {

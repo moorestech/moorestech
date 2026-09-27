@@ -17,5 +17,8 @@ class Handler(BaseHTTPRequestHandler):
 
 
 server = HTTPServer(('127.0.0.1', 0), Handler)
-Path(sys.argv[1]).write_text(json.dumps({'port': server.server_port, 'token': 'test-token'}))
+access = Path(sys.argv[1])
+temporary = access.with_name(access.name + '.tmp')
+temporary.write_text(json.dumps({'port': server.server_port, 'token': 'test-token'}), encoding='utf-8')
+temporary.replace(access)
 server.serve_forever()

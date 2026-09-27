@@ -6,7 +6,7 @@ namespace Client.RemoteExec.Run
 {
     // 実行中のUnityログを集める。同時刻の他処理のログも含む
     // Collect Unity logs during execution, including concurrent unrelated logs
-    public sealed class RemoteExecLogCapture : IDisposable
+    internal sealed class RemoteExecLogCapture : IDisposable
     {
         private readonly List<string> _lines = new();
 

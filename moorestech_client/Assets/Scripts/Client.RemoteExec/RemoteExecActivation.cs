@@ -4,6 +4,8 @@ using UnityEngine;
 
 namespace Client.RemoteExec
 {
+    // Web UI起動後、有効な起動だけでHarmonyと接続情報を用意する
+    // Prepare Harmony and access details only for enabled boots after Web UI startup
     public static class RemoteExecActivation
     {
         public static void ActivateIfRequested(int kestrelPort)

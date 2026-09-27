@@ -33,7 +33,7 @@ namespace Client.RemoteExec.Compile
             return CompileWithAssemblies(body, AppDomain.CurrentDomain.GetAssemblies());
         }
 
-        private static RemoteExecCompileOutcome CompileWithAssemblies(string body, Assembly[] loadedAssemblies)
+        internal static RemoteExecCompileOutcome CompileWithAssemblies(string body, Assembly[] loadedAssemblies)
         {
             var tree = CSharpSyntaxTree.ParseText(RemoteExecSourceWrapper.Wrap(body));
             var name = $"RemoteExecSnippet_{Interlocked.Increment(ref _sequence)}";

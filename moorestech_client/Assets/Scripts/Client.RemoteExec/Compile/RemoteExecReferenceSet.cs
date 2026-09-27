@@ -39,6 +39,8 @@ namespace Client.RemoteExec.Compile
 
             void Add(string name, string path)
             {
+                // Editorでは同名の別版が並ぶため、最初の参照を保って型の曖昧さを防ぐ
+                // Keep the first version in the Editor to avoid ambiguous type references
                 if (!byName.ContainsKey(name)) byName.Add(name, path);
             }
 

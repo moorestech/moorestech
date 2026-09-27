@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using Client.RemoteExec.Access;
+using Newtonsoft.Json.Linq;
 
 namespace Client.Tests.RemoteExec
 {
@@ -26,6 +28,11 @@ namespace Client.Tests.RemoteExec
         internal int CountLedgerLines()
         {
             return File.Exists(_ledgerPath) ? File.ReadAllLines(_ledgerPath).Length : 0;
+        }
+
+        internal JObject[] ReadLedgerEntries()
+        {
+            return File.Exists(_ledgerPath) ? File.ReadAllLines(_ledgerPath).Select(JObject.Parse).ToArray() : new JObject[0];
         }
 
         internal void Restore()

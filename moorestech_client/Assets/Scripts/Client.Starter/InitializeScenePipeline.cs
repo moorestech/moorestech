@@ -64,6 +64,9 @@ namespace Client.Starter
             // Play-mode exit cancels every await so Task-based continuations never resume in EditMode and dirty the scene
             var exitToken = Application.exitCancellationToken;
             await Initialization.Boot.WebUiStartup.StartAsync(exitToken);
+            // Web UI の実ポートが確定してから遠隔実行を有効化する
+            // Activate remote exec after the Web UI's actual port is known
+            Client.RemoteExec.RemoteExecActivation.ActivateIfRequested(Client.WebUiHost.Boot.WebUiHost.KestrelPort);
 
 #if UNITY_EDITOR
             Editor.PlayModeLaunchOverrides.ApplyIfNeeded(_proprieties);

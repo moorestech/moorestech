@@ -1,4 +1,5 @@
 using System;
+using Client.RemoteExec.Access;
 using UnityEngine;
 
 namespace Client.RemoteExec
@@ -14,6 +15,7 @@ namespace Client.RemoteExec
         public static void ResolveFromCommandLine(string[] args)
         {
             IsEnabled = Array.IndexOf(args, Marker) >= 0;
+            if (!IsEnabled) RemoteExecAccessFile.ClearToken();
             if (IsEnabled) Debug.LogWarning($"[RemoteExec] {Marker} が指定されたため遠隔実行を有効にします");
         }
     }

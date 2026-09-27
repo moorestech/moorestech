@@ -37,7 +37,7 @@ if [ "$WINDOWS" = 1 ]; then
     # cmd.exeの引用符・パイプ解釈を避け、PowerShellだけに本文を解釈させる
     # Avoid cmd.exe quote/pipe interpretation by encoding the PowerShell script
     . "$HERE/lib/verify-ssh.sh"
-    ENCODED="$(python3 -c 'import base64,pathlib,sys; print(base64.b64encode(pathlib.Path(sys.argv[1]).read_text().encode("utf-16le")).decode())' "$HERE/windows/remote-exec.ps1")"
+    ENCODED="$(python3 -c 'import base64,pathlib,sys; print(base64.b64encode(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8").encode("utf-16le")).decode())' "$HERE/windows/remote-exec.ps1")"
     verify_ssh_remote "powershell -NoProfile -EncodedCommand $ENCODED" < "$TMP/body" || exit 1
     exit 0
 fi

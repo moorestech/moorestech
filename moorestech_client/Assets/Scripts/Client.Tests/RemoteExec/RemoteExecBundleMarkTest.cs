@@ -1,7 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using Client.Game.InGame.BugReport;
+using Client.Game.InGame.BugReport.BuildOrigin;
+using Client.Game.InGame.BugReport.LastSession;
 using Client.Game.InGame.BugReport.Recording.ProcessScope;
 using Client.RemoteExec;
 using Client.RemoteExec.Access;
@@ -78,7 +81,7 @@ namespace Client.Tests.RemoteExec
         }
 
         [Test]
-        public void 前回有効なら今回無効でも退避プロセスの台帳を載せる()
+        public void 録画が無くても前回の出所が記録した台帳を載せる()
         {
             RemoteExecLaunchOption.ResolveFromCommandLine(Array.Empty<string>());
             WriteLedger();
@@ -89,8 +92,38 @@ namespace Client.Tests.RemoteExec
             _previousLedger = RemoteExecLedger.PathFor(previousId);
             File.WriteAllText(_previousLedger, "previous session ledger\n");
             var manifest = new BugReportManifest();
-            RemoteExecBundleMark.ApplyForPreviousSession(manifest, _bundle, true, new[] { previousId });
+            var origin = PreviousOrigin(true, Path.GetFileName(_previousLedger));
+            var originPath = Path.Combine(_bundle, "previous-origin.json");
+            Assert.IsTrue(origin.WriteTo(originPath).Succeeded);
+            origin = SessionOriginSnapshot.ReadFrom(originPath, out var reason);
+            Assert.IsNull(reason);
+            RemoteExecBundleMark.ApplyForPreviousSession(manifest, _bundle, origin);
             AssertCopiedLedger(manifest, _previousLedger);
+        }
+
+        [Test]
+        public void 前回有効なのに台帳が無ければ理由を欠損とログへ残す()
+        {
+            var manifest = new BugReportManifest();
+            var missingId = 999999999;
+            while (File.Exists(RemoteExecLedger.PathFor(missingId))) missingId++;
+            var missingName = Path.GetFileName(RemoteExecLedger.PathFor(missingId));
+            LogAssert.Expect(LogType.Warning, new Regex("遠隔実行の台帳が無い"));
+            RemoteExecBundleMark.ApplyForPreviousSession(manifest, _bundle, PreviousOrigin(true, missingName));
+            Assert.IsTrue(manifest.RemoteExec.Enabled);
+            Assert.IsEmpty(manifest.RemoteExec.LedgerFiles);
+            StringAssert.Contains("台帳が無い", manifest.Missing[0].Reason);
+        }
+
+        [Test]
+        public void 旧形式の出所に台帳名が無ければ欠損を明示する()
+        {
+            var manifest = new BugReportManifest();
+            LogAssert.Expect(LogType.Warning, new Regex("台帳ファイル名が無い"));
+            RemoteExecBundleMark.ApplyForPreviousSession(manifest, _bundle, PreviousOrigin(true, null));
+            Assert.IsTrue(manifest.RemoteExec.Enabled);
+            Assert.IsEmpty(manifest.RemoteExec.LedgerFiles);
+            StringAssert.Contains("台帳ファイル名が無い", manifest.Missing[0].Reason);
         }
 
         [Test]
@@ -99,7 +132,7 @@ namespace Client.Tests.RemoteExec
             RemoteExecLaunchOption.ResolveFromCommandLine(new[] { RemoteExecLaunchOption.Marker });
             WriteLedger();
             var manifest = new BugReportManifest();
-            RemoteExecBundleMark.ApplyForPreviousSession(manifest, _bundle, false, new[] { RecordingProcessDirectories.CurrentProcessId() });
+            RemoteExecBundleMark.ApplyForPreviousSession(manifest, _bundle, PreviousOrigin(false, null));
             Assert.IsNull(manifest.RemoteExec);
             Assert.IsFalse(Directory.Exists(Path.Combine(_bundle, BugReportBundleLayout.RemoteExecDirectoryName)));
         }
@@ -124,6 +157,12 @@ namespace Client.Tests.RemoteExec
             var path = RemoteExecLedger.PathFor(RecordingProcessDirectories.CurrentProcessId());
             File.WriteAllText(path, "{\"code\":\"return 1;\",\"ok\":true}\n");
             return path;
+        }
+
+        private static SessionOriginSnapshot PreviousOrigin(bool enabled, string ledgerFileName)
+        {
+            return new SessionOriginSnapshot("steam", null, BuildOriginReading.Editor(), enabled, ledgerFileName,
+                SessionSnapshotCapture.NotStarted(), new List<MissingItem>());
         }
 
         private void AssertCopiedLedger(BugReportManifest manifest, string source)

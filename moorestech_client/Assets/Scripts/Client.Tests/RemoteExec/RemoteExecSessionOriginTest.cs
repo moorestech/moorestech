@@ -4,6 +4,7 @@ using System.IO;
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.BuildOrigin;
 using Client.Game.InGame.BugReport.LastSession;
+using Client.RemoteExec.Access;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 
@@ -39,6 +40,7 @@ namespace Client.Tests.RemoteExec
             var restored = SessionOriginSnapshot.ReadFrom(_path, out var reason);
             Assert.IsNull(reason);
             Assert.AreEqual(enabled, restored.RemoteExecEnabled);
+            Assert.AreEqual(enabled ? RemoteExecLedger.CurrentFileName : null, restored.RemoteExecLedgerFileName);
             Assert.AreEqual(capture.Owner, restored.SnapshotCapture.Owner);
         }
 
@@ -68,10 +70,40 @@ namespace Client.Tests.RemoteExec
             Assert.IsTrue(origin.WriteTo(_path).Succeeded);
             var json = JObject.Parse(File.ReadAllText(_path));
             json.Remove("remoteExecEnabled");
+            json.Remove("remoteExecLedgerFileName");
             File.WriteAllText(_path, json.ToString());
             var restored = SessionOriginSnapshot.ReadFrom(_path, out var reason);
             Assert.IsNull(reason);
             Assert.IsFalse(restored.RemoteExecEnabled);
+            Assert.IsNull(restored.RemoteExecLedgerFileName);
+        }
+
+        [Test]
+        public void 旧形式で台帳名だけ欠けても有効印を読める()
+        {
+            var origin = new SessionOriginSnapshot("steam", null, BuildOriginReading.Editor(), true);
+            Assert.IsTrue(origin.WriteTo(_path).Succeeded);
+            var json = JObject.Parse(File.ReadAllText(_path));
+            json.Remove("remoteExecLedgerFileName");
+            File.WriteAllText(_path, json.ToString());
+            var restored = SessionOriginSnapshot.ReadFrom(_path, out var reason);
+            Assert.IsNull(reason);
+            Assert.IsTrue(restored.RemoteExecEnabled);
+            Assert.IsNull(restored.RemoteExecLedgerFileName);
+        }
+
+        [TestCase("1")]
+        [TestCase("\"../ledger-1.jsonl\"")]
+        [TestCase("\"ledger-invalid.jsonl\"")]
+        public void 不正な台帳名は理由付き読み込み失敗になる(string value)
+        {
+            var origin = new SessionOriginSnapshot("steam", null, BuildOriginReading.Editor(), true);
+            Assert.IsTrue(origin.WriteTo(_path).Succeeded);
+            var json = JObject.Parse(File.ReadAllText(_path));
+            json["remoteExecLedgerFileName"] = JToken.Parse(value);
+            File.WriteAllText(_path, json.ToString());
+            Assert.IsNull(SessionOriginSnapshot.ReadFrom(_path, out var reason));
+            StringAssert.Contains("remoteExecLedgerFileName", reason);
         }
     }
 }

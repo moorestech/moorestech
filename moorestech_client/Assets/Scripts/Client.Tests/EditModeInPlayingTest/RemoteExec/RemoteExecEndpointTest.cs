@@ -67,6 +67,8 @@ namespace Client.Tests.EditModeInPlayingTest.RemoteExec
                 Assert.AreEqual(64, token.Length);
                 var before = files.CountLedgerLines();
 
+                // トークン・Origin・HTTPメソッドの拒否を理由ログとともに確認する
+                // Check token, origin, and method rejections together with their reason logs
                 LogAssert.Expect(LogType.Warning, new Regex("トークン不一致"));
                 using (var missing = await SendAsync(client, url, HttpMethod.Post, "{}", null, null))
                     Assert.AreEqual(HttpStatusCode.Forbidden, missing.StatusCode);
@@ -104,7 +106,7 @@ namespace Client.Tests.EditModeInPlayingTest.RemoteExec
                     Assert.IsNotNull(json["logs"]);
                     Assert.IsNull(json["Ok"]);
                 }
-                Assert.AreEqual(before + 2, files.CountLedgerLines());
+                Assert.AreEqual(before + 4, files.CountLedgerLines());
 
                 // コンパイル失敗もHTTP成功応答と失敗台帳を返す
                 // A compilation failure still returns a structured response and a failed ledger entry
@@ -113,7 +115,16 @@ namespace Client.Tests.EditModeInPlayingTest.RemoteExec
                 Assert.AreEqual(HttpStatusCode.OK, failed.StatusCode);
                 Assert.IsFalse(failedJson.Value<bool>("ok"));
                 Assert.IsNotEmpty((JArray)failedJson["compileErrors"]);
-                Assert.AreEqual(before + 3, files.CountLedgerLines());
+                Assert.AreEqual(before + 6, files.CountLedgerLines());
+                var entries = files.ReadLedgerEntries();
+                for (var index = 0; index < entries.Length; index += 2)
+                {
+                    Assert.AreEqual("start", entries[index].Value<string>("event"));
+                    Assert.AreEqual("result", entries[index + 1].Value<string>("event"));
+                    Assert.AreEqual(entries[index].Value<long>("sequence"), entries[index + 1].Value<long>("sequence"));
+                    Assert.AreEqual(index == 4 ? "return +;" : "return 1 + 1;", entries[index].Value<string>("code"));
+                    Assert.AreEqual(index != 4, entries[index + 1].Value<bool>("ok"));
+                }
             }
             finally
             {

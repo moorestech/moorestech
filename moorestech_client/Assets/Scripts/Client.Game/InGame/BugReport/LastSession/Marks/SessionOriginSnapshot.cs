@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Client.Game.InGame.BugReport.BuildOrigin;
 using Client.Game.InGame.BugReport.DiskOperations;
+using Client.RemoteExec.Access;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
@@ -24,6 +25,7 @@ namespace Client.Game.InGame.BugReport.LastSession
         public string SteamIdAbsenceReason { get; }
         public BuildOriginReading BuildOrigin { get; }
         public bool RemoteExecEnabled { get; }
+        public string RemoteExecLedgerFileName { get; }
         internal readonly SessionSnapshotCapture SnapshotCapture;
         internal readonly IReadOnlyList<MissingItem> SalvageMissing;
 
@@ -31,16 +33,17 @@ namespace Client.Game.InGame.BugReport.LastSession
         {
         }
 
-        internal SessionOriginSnapshot(string steamId, string steamIdAbsenceReason, BuildOriginReading buildOrigin, bool remoteExecEnabled, SessionSnapshotCapture snapshotCapture) : this(steamId, steamIdAbsenceReason, buildOrigin, remoteExecEnabled, snapshotCapture, new List<MissingItem>())
+        internal SessionOriginSnapshot(string steamId, string steamIdAbsenceReason, BuildOriginReading buildOrigin, bool remoteExecEnabled, SessionSnapshotCapture snapshotCapture) : this(steamId, steamIdAbsenceReason, buildOrigin, remoteExecEnabled, remoteExecEnabled ? RemoteExecLedger.CurrentFileName : null, snapshotCapture, new List<MissingItem>())
         {
         }
 
-        private SessionOriginSnapshot(string steamId, string steamIdAbsenceReason, BuildOriginReading buildOrigin, bool remoteExecEnabled, SessionSnapshotCapture snapshotCapture, IReadOnlyList<MissingItem> salvageMissing)
+        internal SessionOriginSnapshot(string steamId, string steamIdAbsenceReason, BuildOriginReading buildOrigin, bool remoteExecEnabled, string remoteExecLedgerFileName, SessionSnapshotCapture snapshotCapture, IReadOnlyList<MissingItem> salvageMissing)
         {
             SteamId = steamId;
             SteamIdAbsenceReason = steamIdAbsenceReason;
             BuildOrigin = buildOrigin;
             RemoteExecEnabled = remoteExecEnabled;
+            RemoteExecLedgerFileName = remoteExecLedgerFileName;
             SnapshotCapture = snapshotCapture;
             SalvageMissing = salvageMissing;
         }
@@ -49,12 +52,12 @@ namespace Client.Game.InGame.BugReport.LastSession
         // Re-stamping ownership keeps the SteamID absence reason; dropping it would erase the reason from the rewritten mark
         internal SessionOriginSnapshot WithSnapshotCapture(SessionSnapshotCapture snapshotCapture)
         {
-            return new SessionOriginSnapshot(SteamId, SteamIdAbsenceReason, BuildOrigin, RemoteExecEnabled, snapshotCapture);
+            return new SessionOriginSnapshot(SteamId, SteamIdAbsenceReason, BuildOrigin, RemoteExecEnabled, RemoteExecLedgerFileName, snapshotCapture, new List<MissingItem>());
         }
 
         internal SessionOriginSnapshot WithSalvageMissing(IReadOnlyList<MissingItem> missing)
         {
-            return new SessionOriginSnapshot(SteamId, SteamIdAbsenceReason, BuildOrigin, RemoteExecEnabled, SnapshotCapture, new List<MissingItem>(missing));
+            return new SessionOriginSnapshot(SteamId, SteamIdAbsenceReason, BuildOrigin, RemoteExecEnabled, RemoteExecLedgerFileName, SnapshotCapture, new List<MissingItem>(missing));
         }
 
         public SalvageOperationResult WriteTo(string path)
@@ -63,6 +66,7 @@ namespace Client.Game.InGame.BugReport.LastSession
             {
                 ["steamId"] = SteamId,
                 ["remoteExecEnabled"] = RemoteExecEnabled,
+                ["remoteExecLedgerFileName"] = RemoteExecLedgerFileName,
                 ["steamIdAbsenceReason"] = SteamIdAbsenceReason,
                 ["buildOriginKind"] = BuildOrigin.Kind.ToString(),
                 ["buildInfo"] = BuildOrigin.BuildInfo == null ? JValue.CreateNull() : JObject.FromObject(BuildOrigin.BuildInfo, Serializer),
@@ -92,105 +96,11 @@ namespace Client.Game.InGame.BugReport.LastSession
             }
         }
 
-        // 読めなければnullと理由を返す。無音で今回のビルドへ差し替えると、別ビルドのクラッシュとして再現される
-        // Returns null with a reason when unreadable; silently substituting this boot's build would reproduce the crash on a different build
+        // 前回セッションの出所の読み取りと型検証は専用の読み手へ委ねる
+        // Delegate reading and type checks of the previous origin to its reader
         public static SessionOriginSnapshot ReadFrom(string path, out string failureReason)
         {
-            failureReason = null;
-            if (!File.Exists(path))
-            {
-                failureReason = $"セッション開始時の出所の印が無い: {path}";
-                return null;
-            }
-
-            bool remoteExecEnabled;
-            string steamId;
-            string steamIdAbsenceReason;
-            string kindText;
-            BuildInfo buildInfo;
-            string buildOriginMissingReason;
-            SessionSnapshotCapture snapshotCapture;
-            IReadOnlyList<MissingItem> salvageMissing;
-
-            // 読み込みはディスクIO、JObject.Parse は外部入力JSONのパース境界（途中で落ちたセッションは切れたJSONを残しうる）
-            // Reading is disk IO and JObject.Parse is the external JSON parse boundary (a session that died midway can leave truncated JSON)
-            try
-            {
-                var obj = JObject.Parse(File.ReadAllText(path));
-                steamId = (string)obj["steamId"];
-                // 旧形式のキー欠損だけを許し、不正型の暗黙変換を避ける
-                // Allow only a legacy missing key and avoid coercing invalid token types
-                var remoteExecToken = obj["remoteExecEnabled"];
-                if (remoteExecToken != null && remoteExecToken.Type != JTokenType.Boolean)
-                {
-                    failureReason = $"セッション開始時の出所を読めない {path}: remoteExecEnabledはBooleanである必要があります（型: {remoteExecToken.Type}）";
-                    return null;
-                }
-                remoteExecEnabled = remoteExecToken != null && (bool)remoteExecToken;
-                steamIdAbsenceReason = ReadSteamIdAbsenceReason(steamId, obj["steamIdAbsenceReason"]);
-                kindText = (string)obj["buildOriginKind"];
-                var buildInfoToken = obj["buildInfo"];
-                buildInfo = buildInfoToken == null || buildInfoToken.Type == JTokenType.Null ? null : buildInfoToken.ToObject<BuildInfo>(Serializer);
-                buildOriginMissingReason = (string)obj["buildOriginMissingReason"];
-                snapshotCapture = SessionSnapshotCapture.Read(obj["snapshotCapture"]);
-                salvageMissing = ReadSalvageMissing(obj["salvageMissing"], snapshotCapture.Owner);
-            }
-            catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e) || e is JsonException || e is ArgumentException)
-            {
-                failureReason = $"セッション開始時の出所を読めない {path}: {e.GetBaseException().Message}";
-                return null;
-            }
-
-            var buildOrigin = ToBuildOrigin(kindText, buildInfo, buildOriginMissingReason, path, out failureReason);
-            return buildOrigin == null ? null : new SessionOriginSnapshot(steamId, steamIdAbsenceReason, buildOrigin, remoteExecEnabled, snapshotCapture, salvageMissing);
-
-            #region Internal
-
-            // SteamIDが有れば理由は不要。無いのに理由が無い（旧形式の印）なら、そう明示した理由にする
-            // No reason is needed when a SteamID exists; a missing one without a reason (legacy mark) gets an explicit legacy reason
-            static string ReadSteamIdAbsenceReason(string steamId, JToken reasonToken)
-            {
-                if (!string.IsNullOrEmpty(steamId)) return null;
-                var reason = reasonToken?.Type == JTokenType.String ? (string)reasonToken : null;
-                return string.IsNullOrWhiteSpace(reason) ? LegacyMarkSteamIdAbsenceReason : reason;
-            }
-
-            static IReadOnlyList<MissingItem> ReadSalvageMissing(JToken token, string owner)
-            {
-                // 旧形式や世代不一致を「欠損なし」にしない
-                // Never interpret legacy or mismatched generations as having no missing evidence
-                var unknown = new List<MissingItem> { new MissingItem { Item = "previousOrigin", Reason = "退避欠損の履歴が不明（旧形式・不正形式・所有世代不一致）" } };
-                if (!(token is JObject ledger) || !JToken.DeepEquals(ledger["version"], new JValue(1)) ||
-                    !JToken.DeepEquals(ledger["owner"], owner == null ? JValue.CreateNull() : new JValue(owner)) || !(ledger["items"] is JArray items)) return unknown;
-
-                var result = new List<MissingItem>();
-                foreach (var item in items)
-                {
-                    if (!(item is JObject entry) || entry["item"]?.Type != JTokenType.String || entry["reason"]?.Type != JTokenType.String ||
-                        string.IsNullOrWhiteSpace((string)entry["item"]) || string.IsNullOrWhiteSpace((string)entry["reason"])) return unknown;
-                    result.Add(new MissingItem { Item = (string)entry["item"], Reason = (string)entry["reason"] });
-                }
-                return result;
-            }
-
-            #endregion
-        }
-
-        private static BuildOriginReading ToBuildOrigin(string kindText, BuildInfo buildInfo, string missingReason, string path, out string failureReason)
-        {
-            failureReason = null;
-            if (!Enum.TryParse<BuildOriginKind>(kindText, out var kind))
-            {
-                failureReason = $"セッション開始時の出所の種類が読めない value:{kindText} path:{path}";
-                return null;
-            }
-
-            if (kind == BuildOriginKind.Editor) return BuildOriginReading.Editor();
-            if (kind == BuildOriginKind.BuildWithoutInfo) return BuildOriginReading.WithoutInfo(missingReason ?? "前回セッションの開始時点で build-info.json を読めていなかった");
-            if (buildInfo != null) return BuildOriginReading.Baked(buildInfo);
-
-            failureReason = $"焼き込み情報つきビルドと記録されているのに buildInfo が無い path:{path}";
-            return null;
+            return SessionOriginSnapshotReader.ReadFrom(path, out failureReason);
         }
     }
 }

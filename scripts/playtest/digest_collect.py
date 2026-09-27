@@ -11,9 +11,9 @@ from pathlib import Path
 
 import digest_schema as schema
 from digest_reporter import reporter_label, tester_label
+from digest_support.progress import aggregate_progress
 
 JST = timezone(timedelta(hours=9))
-from digest_support.progress import aggregate_progress
 # バグ報告の manifest.kind として想定する値。これ以外（空含む）は件数からも警告からも消えないよう別枠で出す
 # The manifest.kind values the digest expects; anything else (including empty) surfaces as its own warning
 KNOWN_KINDS = ("bug", "feedback", "crash")

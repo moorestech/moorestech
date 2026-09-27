@@ -78,9 +78,9 @@ REMOTE_ERR="$(mktemp)"
 if ! REMOTE_EXEC="$(python3 -c '
 import json,sys
 mark = json.load(open(sys.argv[1])).get("remoteExec")
-if mark is not None and (not isinstance(mark, dict) or type(mark.get("enabled")) is not bool):
+if mark is not None and (not isinstance(mark, dict) or type(mark.get("enabled", False)) is not bool):
     sys.exit("remoteExec.enabled がboolでない")
-print("1" if mark and mark["enabled"] else "0")
+print("1" if mark and mark.get("enabled", False) else "0")
 ' "${BOX}/manifest.json" 2>"$REMOTE_ERR")"; then
   log "ERROR: remoteExec を読めない（$(cat "$REMOTE_ERR")）: ${ID}"
   rm -f "$REMOTE_ERR"
@@ -91,6 +91,7 @@ if [ "$REMOTE_EXEC" = 1 ] && [ "$FORCE" != 1 ]; then
   log "遠隔実行が有効だったセッションの箱は自動修正ランの対象外。投入するなら --force: ${ID}"
   exit 3
 fi
+[ "$REMOTE_EXEC" = 1 ] && log "--force で遠隔実行ありの箱を投入する: ${ID}"
 
 # .partial へ組んでから mv で公開する。poller が途中の箱を掴まないため（plan C と同じ作法）。
 # 既に公開済み/組立中の箱があれば無言で消さず据え置く（前例 ship-outbox.sh:96-103。並行実行や

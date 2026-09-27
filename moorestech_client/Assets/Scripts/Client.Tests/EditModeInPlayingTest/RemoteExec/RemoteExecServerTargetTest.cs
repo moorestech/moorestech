@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Threading;
 using Client.Game.Common;
 using Client.RemoteExec.Run;
 using Cysharp.Threading.Tasks;
@@ -54,10 +53,18 @@ namespace Client.Tests.EditModeInPlayingTest.RemoteExec
 
                 // サーバー指定の同期部分は別更新スレッドで実行する
                 // Run the synchronous server entry on its distinct update thread
-                var main = Thread.CurrentThread.ManagedThreadId;
-                var server = await RemoteExecRunner.RunAsync("return System.Threading.Thread.CurrentThread.ManagedThreadId;", RemoteExecTarget.Server);
+                var server = await RemoteExecRunner.RunAsync("return System.Threading.Thread.CurrentThread.Name;", RemoteExecTarget.Server);
                 Assert.IsTrue(server.Ok, server.Exception);
-                Assert.AreNotEqual(main.ToString(), server.Result);
+                Assert.AreEqual("[moorestech]ゲームアップデートスレッド", server.Result);
+
+                // 送信コードの例外は応答に閉じ込め、後続tickを動かし続ける
+                // Keep submitted exceptions in the response and allow later ticks to run
+                var serverFailure = await RemoteExecRunner.RunAsync("throw new System.InvalidOperationException(\"server-boom\");", RemoteExecTarget.Server);
+                Assert.IsFalse(serverFailure.Ok);
+                Assert.That(serverFailure.Exception, Does.Contain("server-boom"));
+                var afterFailure = await RemoteExecRunner.RunAsync("return 3;", RemoteExecTarget.Server);
+                Assert.IsTrue(afterFailure.Ok, afterFailure.Exception);
+                Assert.AreEqual("3", afterFailure.Result);
 
                 // 終了後の指定はキューに残さず理由付きで失敗する
                 // Reject server work with a reason after its lifetime ends

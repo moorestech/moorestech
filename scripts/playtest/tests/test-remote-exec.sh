@@ -10,6 +10,7 @@ trap cleanup EXIT
 python3 "$HERE/lib/remote-exec-http-stub.py" "$TMP/access.json" &
 PID=$!
 for _ in {1..100}; do [ ! -f "$TMP/access.json" ] || break; sleep .05; done
+[ -f "$TMP/access.json" ] || { echo 'NG: HTTP stub did not publish access.json' >&2; exit 1; }
 MOORESTECH_REMOTE_EXEC_ACCESS="$TMP/access.json" bash "$HERE/../remote-exec.sh" - <<< 'return 1;' > "$TMP/result"
 python3 -c 'import json,sys; assert json.load(open(sys.argv[1]))["result"] == "1"' "$TMP/result"
 python3 - "$TMP/access.json" <<'PY'

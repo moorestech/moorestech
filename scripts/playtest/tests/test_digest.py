@@ -42,7 +42,7 @@ class DigestTest(unittest.TestCase):
         self.assertEqual(stats["remoteExec"], 1)
         candidates, _ = dcand.load_candidate_reports(root)
         self.assertEqual(candidates, [])
-        self.assertIn("遠隔実行ありの報告 1 件（集計から除外）", self.run_ok())
+        self.assertIn("遠隔実行ありの報告 1件（集計から除外）", self.run_ok())
         for mark in (None, {"enabled": False}):
             write_json(manifest, {"kind": "bug", "remoteExec": mark})
             self.assertEqual(len(dc.load_reports(root, self.date)[0]), 4)

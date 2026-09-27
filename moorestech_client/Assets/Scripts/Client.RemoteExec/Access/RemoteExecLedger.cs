@@ -1,35 +1,33 @@
-using System;
 using System.Diagnostics;
 using System.IO;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Debug = UnityEngine.Debug;
 
 namespace Client.RemoteExec.Access
 {
+    // 実行開始と結果を同じ連番で追記し、停止したコードも追跡できるようにする
+    // Append starts and results with one sequence so stalled code remains traceable
     public static class RemoteExecLedger
     {
-        private static readonly object WriteLock = new();
+        public static string CurrentFileName => RemoteExecLedgerWriter.FileNameFor(Process.GetCurrentProcess().Id);
 
         public static string PathFor(int processId)
         {
-            return Path.Combine(RemoteExecAccessFile.DirectoryPath, $"ledger-{processId}.jsonl");
+            return Path.Combine(RemoteExecAccessFile.DirectoryPath, RemoteExecLedgerWriter.FileNameFor(processId));
         }
 
-        public static void Append(string target, string body, bool ok)
+        public static long AppendStart(string target, string body)
         {
-            var line = new JObject { ["at"] = DateTime.UtcNow.ToString("o"), ["target"] = target, ["ok"] = ok, ["code"] = body }.ToString(Formatting.None);
+            return CurrentWriter.Instance.AppendStart(target, body);
+        }
 
-            // ディスクIO失敗でも結果を返し、台帳の欠損をログに残す
-            // Return the result on disk IO failure and log the missing ledger entry
-            try
-            {
-                lock (WriteLock) File.AppendAllText(PathFor(Process.GetCurrentProcess().Id), line + "\n");
-            }
-            catch (Exception e) when (e is IOException || e is UnauthorizedAccessException)
-            {
-                Debug.LogError($"[RemoteExec] 台帳に書けませんでした（実行記録が欠損）: {e.Message}");
-            }
+        public static void AppendResult(long sequence, bool ok)
+        {
+            CurrentWriter.Instance.AppendResult(sequence, ok);
+        }
+
+        private static class CurrentWriter
+        {
+            internal static readonly RemoteExecLedgerWriter Instance =
+                new(RemoteExecAccessFile.DirectoryPath, Process.GetCurrentProcess().Id);
         }
     }
 }

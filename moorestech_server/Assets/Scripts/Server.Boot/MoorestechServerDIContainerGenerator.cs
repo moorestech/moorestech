@@ -102,7 +102,7 @@ namespace Server.Boot
         public (PacketResponseCreator, ServiceProvider) Create(MoorestechServerDIContainerOptions options)
         {
             GameUpdater.ResetUpdate();
-            ServerThreadActionQueue.ResetForNewServer();
+            ServerThreadActionQueue.Stop();
 
             //必要な各種インスタンスを手動で作成
             // Manually construct the required bootstrap instances.
@@ -344,6 +344,8 @@ namespace Server.Boot
             // tick末尾: 固定した入力と予約破壊を一つの更新器で確定する。派生する網の再構築は次tick先頭のRebuildIfDirtyに委ねる
             // Tick end: commit frozen input and reserved removals through one updater; derived network rebuilding is deferred to RebuildIfDirty at the next tick head
             GameUpdater.TickEndUpdates.Add(serviceProvider.GetRequiredService<WorldMutationTickEndUpdater>().Update);
+            // 他スレッドから預かった処理をtick末尾で実行する
+            // Run work received from other threads at tick end
             GameUpdater.TickEndUpdates.Add(ServerThreadActionQueue.Drain);
 
             // 全世界変更の確定後が唯一のセーブ可能な安定点（仕様2.1⑦）。将来の初回snapshot取得もこの位置に登録する

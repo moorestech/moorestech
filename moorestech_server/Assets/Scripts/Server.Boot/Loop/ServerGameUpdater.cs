@@ -13,7 +13,7 @@ namespace Server.Boot.Loop
         
         public static void StartUpdate(CancellationToken token)
         {
-            ServerThreadActionQueue.BeginServerThread();
+            var queueGeneration = ServerThreadActionQueue.BeginServerThread();
             var profilerMarker = new ProfilerMarker("GameUpdate");
             
             var stopwatch = new Stopwatch();
@@ -49,7 +49,7 @@ namespace Server.Boot.Loop
             }
             finally
             {
-                ServerThreadActionQueue.Stop();
+                ServerThreadActionQueue.Stop(queueGeneration);
             }
         }
     }

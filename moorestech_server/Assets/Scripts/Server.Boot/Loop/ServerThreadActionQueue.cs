@@ -23,6 +23,7 @@ namespace Server.Boot.Loop
         private static readonly Queue<PendingAction> Pending = new();
         private static bool _stopped = true;
         private static bool _hasDrainedThisLifetime;
+        private static long _generation;
 
         // 現サーバーのtick末尾が実際に動いた場合だけ受け付ける
         // Accept work only after this server has actually run a tick end
@@ -65,25 +66,39 @@ namespace Server.Boot.Loop
             }
         }
 
-        public static void ResetForNewServer()
-        {
-            Stop();
-        }
-
-        public static void BeginServerThread()
+        internal static long BeginServerThread()
         {
             lock (Gate)
             {
+                _generation++;
                 _stopped = false;
                 _hasDrainedThisLifetime = false;
+                return _generation;
             }
         }
 
-        public static void Stop()
+        internal static void Stop()
+        {
+            StopGeneration(0, false);
+        }
+
+        // 古い更新スレッドの終了では、新しいサーバーの受付を閉じない
+        // An old update thread cannot close the queue of a newer server
+        internal static void Stop(long generation)
+        {
+            StopGeneration(generation, true);
+        }
+
+        private static void StopGeneration(long generation, bool checkGeneration)
         {
             var abandoned = new List<PendingAction>();
             lock (Gate)
             {
+                if (checkGeneration && generation != _generation)
+                {
+                    UnityEngine.Debug.Log($"[ServerThreadActionQueue] 古い世代の停止を無視しました generation:{generation} current:{_generation}");
+                    return;
+                }
                 _stopped = true;
                 _hasDrainedThisLifetime = false;
                 while (Pending.Count > 0) abandoned.Add(Pending.Dequeue());

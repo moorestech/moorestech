@@ -11,6 +11,8 @@ using UnityEngine;
 
 namespace Client.RemoteExec
 {
+    // 認証済みのHTTP要求を実行し、結果と実行履歴を返す
+    // Run authenticated HTTP requests and return their results and execution history
     public static class RemoteExecEndpoint
     {
         public const string Path = "/api/remote-exec";
@@ -21,11 +23,8 @@ namespace Client.RemoteExec
 
         public static async Task HandleAsync(HttpContext context)
         {
-            if (!RemoteExecLaunchOption.IsEnabled)
-            {
-                await RejectAsync(context, 404, "起動オプションが無いため遠隔実行は無効です");
-                return;
-            }
+            // 登録時の有効判定はWebUiEndpointsが担い、ここでは各要求を認証する
+            // WebUiEndpoints checks boot activation when routing; this method authenticates each request
             if (!IsAuthorized(context, out var reason))
             {
                 await RejectAsync(context, 403, reason);
@@ -60,12 +59,13 @@ namespace Client.RemoteExec
                 return;
             }
 
-            // 検証した要求を実行し、成功・失敗の両方を台帳へ残す
-            // Execute validated input and record both success and failure
+            // 実行前にソースを記録し、クラッシュや停止でも開始行を残す
+            // Record source before running so a crash or hang still leaves a start entry
             var code = (string)codeValue;
             var target = targetName == "server" ? RemoteExecTarget.Server : RemoteExecTarget.Client;
+            var sequence = RemoteExecLedger.AppendStart(targetName, code);
             var result = await RemoteExecRunner.RunAsync(code, target);
-            RemoteExecLedger.Append(targetName, code, result.Ok);
+            RemoteExecLedger.AppendResult(sequence, result.Ok);
             context.Response.ContentType = "application/json; charset=utf-8";
             await context.Response.WriteAsync(JsonConvert.SerializeObject(result, ResponseSettings), context.RequestAborted);
         }
