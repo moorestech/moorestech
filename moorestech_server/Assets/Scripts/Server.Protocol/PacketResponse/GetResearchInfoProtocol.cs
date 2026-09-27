@@ -22,7 +22,7 @@ namespace Server.Protocol.PacketResponse
         {
             var request = MessagePackSerializer.Deserialize<RequestResearchInfoMessagePack>(payload);
 
-            var nodeStates = _researchDataStore.GetResearchNodeStates(request.PlayerId);
+            var nodeStates = _researchDataStore.GetResearchNodeStates(context.PlayerId.Value);
             return new ResponseResearchInfoMessagePack(nodeStates);
         }
         
@@ -31,18 +31,13 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class RequestResearchInfoMessagePack : ProtocolMessagePackBase
         {
-            [Key(2)] public int PlayerId { get; set; }
 
             public RequestResearchInfoMessagePack()
             {
                 Tag = ProtocolTag;
             }
 
-            public RequestResearchInfoMessagePack(int playerId)
-            {
-                Tag = ProtocolTag;
-                PlayerId = playerId;
-            }
+
         }
 
         [MessagePackObject]

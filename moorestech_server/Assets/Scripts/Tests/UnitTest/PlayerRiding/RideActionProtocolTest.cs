@@ -20,7 +20,7 @@ namespace Tests.UnitTest.PlayerRiding
             var car = RidingTestHelper.RegisterSeatedCarOnNewTrain(environment, 0);
             RegisterPlayer(environment, 1);
             var target = RidableIdentifierMessagePack.CreateTrainCarMessage(car.TrainCarInstanceId.AsPrimitive());
-            var request = new RideActionProtocol.RequestRideActionMessagePack(1, RideActionType.Ride, target);
+            var request = new RideActionProtocol.RequestRideActionMessagePack(RideActionType.Ride, target);
 
             var response = SendRideAction(environment, request, CreateBoundContext(1));
 
@@ -36,7 +36,7 @@ namespace Tests.UnitTest.PlayerRiding
             var environment = TrainTestHelper.CreateEnvironment();
             RidingTestHelper.RegisterSeatedCarOnNewTrain(environment, 0);
             RegisterPlayer(environment, 1);
-            var request = new RideActionProtocol.RequestRideActionMessagePack(1, RideActionType.Dismount, null);
+            var request = new RideActionProtocol.RequestRideActionMessagePack(RideActionType.Dismount, null);
 
             var response = SendRideAction(environment, request, CreateBoundContext(1));
 
@@ -57,8 +57,7 @@ namespace Tests.UnitTest.PlayerRiding
 
         private static PacketResponseContext CreateBoundContext(int playerId)
         {
-            var context = new PacketResponseContext(null);
-            context.TryBindPlayerId(playerId);
+            var context = Tests.Util.BoundPacketContext.Bind(playerId);
             return context;
         }
 

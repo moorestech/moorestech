@@ -43,10 +43,12 @@ namespace Tests.CombinedTest.Game.Snapshot
 
             try
             {
+                var context = new PacketResponseContext(sendQueueProcessor);
+                Assert.IsTrue(context.TryBindPlayerId(PlayerId));
                 var receiveQueueProcessor = new ReceiveQueueProcessor(
                     packetResponseCreator,
                     sendQueueProcessor,
-                    new PacketResponseContext(sendQueueProcessor),
+                    context,
                     provider.GetRequiredService<TickEndPacketQueue>(),
                     packetLog);
 
@@ -62,6 +64,7 @@ namespace Tests.CombinedTest.Game.Snapshot
                 var records = ReceivedPacketLogReader.ReadAll(packetLog.SegmentFilePaths());
                 Assert.AreEqual(1, records.Count, "受信パケットがログへ1件も入っていない");
                 Assert.AreEqual(501UL, records[0].Tick);
+                Assert.AreEqual(PlayerId, records[0].PlayerId);
                 CollectionAssert.AreEqual(payload, records[0].Payload);
             }
             finally

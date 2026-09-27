@@ -114,10 +114,9 @@ namespace Tests.CombinedTest.Server.PacketTest.Rail
 
         private RailConnectionEditProtocol.ResponseRailConnectionEditMessagePack SendConnectWith(Guid connectToolGuid)
         {
-            var request = RailConnectionEditProtocol.RailConnectionEditRequest.CreateConnectRequest(
-                PlayerId, _fromNode.NodeId, _fromNode.Guid, _toNode.NodeId, _toNode.Guid, connectToolGuid);
+            var request = RailConnectionEditProtocol.RailConnectionEditRequest.CreateConnectRequest(_fromNode.NodeId, _fromNode.Guid, _toNode.NodeId, _toNode.Guid, connectToolGuid);
             var responseBytes = _environment.PacketResponseCreator.GetPacketResponse(
-                MessagePackSerializer.Serialize(request), new PacketResponseContext(null)).First();
+                MessagePackSerializer.Serialize(request), Tests.Util.BoundPacketContext.Bind(PlayerId)).First();
             return MessagePackSerializer.Deserialize<RailConnectionEditProtocol.ResponseRailConnectionEditMessagePack>(responseBytes.ToArray());
         }
 

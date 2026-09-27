@@ -79,13 +79,13 @@ namespace Tests.CombinedTest.Server.PacketTest.GearChain
 
         public GearChainPoleExtendProtocol.GearChainPoleExtendResponse SendExtendWithBlock(Vector3Int placePos, BlockId poleBlockId)
         {
-            var request = GearChainPoleExtendProtocol.GearChainPoleExtendRequest.CreateExtendRequest(PlayerId, FromPos, poleBlockId, CreatePlaceInfo(placePos), ConnectToolGuid);
+            var request = GearChainPoleExtendProtocol.GearChainPoleExtendRequest.CreateExtendRequest(FromPos, poleBlockId, CreatePlaceInfo(placePos), ConnectToolGuid);
             return Send(request);
         }
 
         public GearChainPoleExtendProtocol.GearChainPoleExtendResponse SendIsolated(Vector3Int placePos)
         {
-            var request = GearChainPoleExtendProtocol.GearChainPoleExtendRequest.CreateIsolatedPlaceRequest(PlayerId, ForUnitTestModBlockId.GearChainPole, CreatePlaceInfo(placePos));
+            var request = GearChainPoleExtendProtocol.GearChainPoleExtendRequest.CreateIsolatedPlaceRequest(ForUnitTestModBlockId.GearChainPole, CreatePlaceInfo(placePos));
             return Send(request);
         }
 
@@ -96,7 +96,7 @@ namespace Tests.CombinedTest.Server.PacketTest.GearChain
 
         private GearChainPoleExtendProtocol.GearChainPoleExtendResponse Send(GearChainPoleExtendProtocol.GearChainPoleExtendRequest request)
         {
-            var responseBytes = _packet.GetPacketResponse(MessagePackSerializer.Serialize(request), new PacketResponseContext(null)).First();
+            var responseBytes = _packet.GetPacketResponse(MessagePackSerializer.Serialize(request), Tests.Util.BoundPacketContext.Bind(PlayerId)).First();
             return MessagePackSerializer.Deserialize<GearChainPoleExtendProtocol.GearChainPoleExtendResponse>(responseBytes.ToArray());
         }
 

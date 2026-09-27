@@ -60,7 +60,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
 
             //インベントリを開く
-            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(new Vector3Int(5, 7), true), new PacketResponseContext(null));
+            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(new Vector3Int(5, 7), true), Tests.Util.BoundPacketContext.Bind(PlayerId));
             //ブロックにアイテムを入れる（スロット1は素材1に束縛される）
             //Add item to the block (slot 1 is bound to input 1)
             blockInventory.SetItem(1, itemStackFactory.Create(input1Id, 8));
@@ -83,7 +83,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
 
             //ブロックのインベントリを閉じる
-            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(new Vector3Int(5, 7), false), new PacketResponseContext(null));
+            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(new Vector3Int(5, 7), false), Tests.Util.BoundPacketContext.Bind(PlayerId));
 
             //ブロックにアイテムを入れる（スロット2は生産物0に束縛される）
             //Add item to the block (slot 2 is bound to output 0)
@@ -125,10 +125,10 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             // 一つ目のブロックインベントリを開く
             // Open first block inventory
-            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(new Vector3Int(5, 7), true), new PacketResponseContext(null));
+            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(new Vector3Int(5, 7), true), Tests.Util.BoundPacketContext.Bind(PlayerId));
             // 二つ目のブロックインベントリを開く
             // Open second block inventory
-            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(new Vector3Int(10, 20), true), new PacketResponseContext(null));
+            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(new Vector3Int(10, 20), true), Tests.Util.BoundPacketContext.Bind(PlayerId));
 
 
             // 一つ目のブロックインベントリにアイテムを入れる（スロット2は生産物0に束縛される）
@@ -181,7 +181,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         {
             var identifier = InventoryIdentifierMessagePack.CreateBlockMessage(pos);
             return MessagePackSerializer
-                .Serialize(new SubscribeInventoryProtocol.SubscribeInventoryRequestMessagePack(PlayerId, identifier, isOpen));
+                .Serialize(new SubscribeInventoryProtocol.SubscribeInventoryRequestMessagePack(identifier, isOpen));
         }
     }
 }

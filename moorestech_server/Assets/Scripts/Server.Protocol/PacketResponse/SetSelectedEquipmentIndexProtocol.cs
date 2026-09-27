@@ -24,7 +24,7 @@ namespace Server.Protocol.PacketResponse
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
         {
             var request = MessagePackSerializer.Deserialize<SetSelectedEquipmentIndexMessagePack>(payload);
-            var equipmentInventory = _playerInventoryDataStore.GetInventoryData(request.PlayerId).EquipmentInventory;
+            var equipmentInventory = _playerInventoryDataStore.GetInventoryData(context.PlayerId.Value).EquipmentInventory;
 
             // 範囲外の指定は装備インベントリ側でクランプされる
             // Out-of-range indexes are clamped by the equipment inventory itself
@@ -38,16 +38,14 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class SetSelectedEquipmentIndexMessagePack : ProtocolMessagePackBase
         {
-            [Key(2)] public int PlayerId { get; set; }
-            [Key(3)] public int SelectedIndex { get; set; }
+            [Key(2)] public int SelectedIndex { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public SetSelectedEquipmentIndexMessagePack() { Tag = ProtocolTag; }
 
-            public SetSelectedEquipmentIndexMessagePack(int playerId, int selectedIndex)
+            public SetSelectedEquipmentIndexMessagePack(int selectedIndex)
             {
                 Tag = ProtocolTag;
-                PlayerId = playerId;
                 SelectedIndex = selectedIndex;
             }
         }

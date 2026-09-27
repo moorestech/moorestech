@@ -30,11 +30,11 @@ namespace Server.Protocol.PacketResponse
             var identifier = ConvertIdentifier(data.Identifier);
             if (data.IsSubscribe)
             {
-                _inventorySubscriptionStore.Subscribe(data.PlayerId, identifier);
+                _inventorySubscriptionStore.Subscribe(context.PlayerId.Value, identifier);
             }
             else
             {
-                _inventorySubscriptionStore.Unsubscribe(data.PlayerId, identifier);
+                _inventorySubscriptionStore.Unsubscribe(context.PlayerId.Value, identifier);
             }
             
             return null;
@@ -58,18 +58,16 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class SubscribeInventoryRequestMessagePack : ProtocolMessagePackBase
         {
-            [Key(2)] public int PlayerId { get; set; }
-            [Key(4)] public InventoryIdentifierMessagePack Identifier { get; set; }
-            [Key(5)] public bool IsSubscribe { get; set; }
+            [Key(2)] public InventoryIdentifierMessagePack Identifier { get; set; }
+            [Key(3)] public bool IsSubscribe { get; set; }
             
             
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public SubscribeInventoryRequestMessagePack() { }
             
-            public SubscribeInventoryRequestMessagePack(int playerId, InventoryIdentifierMessagePack identifier, bool isSubscribe)
+            public SubscribeInventoryRequestMessagePack(InventoryIdentifierMessagePack identifier, bool isSubscribe)
             {
                 Tag = ProtocolTag;
-                PlayerId = playerId;
                 Identifier = identifier;
                 IsSubscribe = isSubscribe;
             }

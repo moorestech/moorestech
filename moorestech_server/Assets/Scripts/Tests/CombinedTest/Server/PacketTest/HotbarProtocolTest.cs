@@ -40,21 +40,21 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // Assign後に割当状態が一致
             // Assign then read the resulting assignments back
-            SendHotbar(HotbarProtocol.HotbarProtocolMessagePack.CreateAssignRequest(PlayerId, 3, validId));
+            SendHotbar(HotbarProtocol.HotbarProtocolMessagePack.CreateAssignRequest(3, validId));
             var afterAssign = ReadAssignments();
             Assert.AreEqual(validId, afterAssign[3]);
             Assert.AreEqual(Guid.Empty, afterAssign[5]);
 
             // Swap(3, 5) → [5]に移動
             // Swap moves the assignment from slot 3 to slot 5
-            SendHotbar(HotbarProtocol.HotbarProtocolMessagePack.CreateSwapRequest(PlayerId, 3, 5));
+            SendHotbar(HotbarProtocol.HotbarProtocolMessagePack.CreateSwapRequest(3, 5));
             var afterSwap = ReadAssignments();
             Assert.AreEqual(Guid.Empty, afterSwap[3]);
             Assert.AreEqual(validId, afterSwap[5]);
 
             // Clear(5) → Guid.Empty
             // Clear resets the slot to Guid.Empty
-            SendHotbar(HotbarProtocol.HotbarProtocolMessagePack.CreateClearRequest(PlayerId, 5));
+            SendHotbar(HotbarProtocol.HotbarProtocolMessagePack.CreateClearRequest(5));
             var afterClear = ReadAssignments();
             Assert.AreEqual(Guid.Empty, afterClear[5]);
 
@@ -63,7 +63,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             void SendHotbar(HotbarProtocol.HotbarProtocolMessagePack request)
             {
                 var payload = MessagePackSerializer.Serialize(request);
-                packet.GetPacketResponse(payload, new PacketResponseContext(null));
+                packet.GetPacketResponse(payload, Tests.Util.BoundPacketContext.Bind(PlayerId));
             }
 
             // 取得口はInitialHandshakeへ同梱されたため、状態はlookupから直接読む
@@ -91,9 +91,9 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // Assignで全9枠がイベントに
             // Assign enqueues a hotbar update event carrying all 9 slots
-            var request = HotbarProtocol.HotbarProtocolMessagePack.CreateAssignRequest(PlayerId, 2, validId);
+            var request = HotbarProtocol.HotbarProtocolMessagePack.CreateAssignRequest(2, validId);
             var payload = MessagePackSerializer.Serialize(request);
-            packet.GetPacketResponse(payload, new PacketResponseContext(null));
+            packet.GetPacketResponse(payload, Tests.Util.BoundPacketContext.Bind(PlayerId));
 
             var events = sink.TakeAll().Where(e => e.Tag == HotbarUpdateEventPacket.EventTag).ToList();
             Assert.AreEqual(1, events.Count);

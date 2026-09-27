@@ -99,7 +99,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             var request = new SetTrainPlatformTransferModeProtocol.SetTrainPlatformTransferModeRequest(position, mode);
             var payload = MessagePackSerializer.Serialize(request);
-            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(payload, new PacketResponseContext(null));
+            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(payload, Tests.Util.BoundPacketContext.Bind(1));
 
             Assert.AreEqual(1, responseBytes.Count);
             return MessagePackSerializer.Deserialize<SetTrainPlatformTransferModeProtocol.SetTrainPlatformTransferModeResponse>(responseBytes[0]);

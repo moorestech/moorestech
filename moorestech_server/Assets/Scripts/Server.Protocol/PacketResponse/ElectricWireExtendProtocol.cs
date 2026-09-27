@@ -32,12 +32,12 @@ namespace Server.Protocol.PacketResponse
             // Delegate validation, placement, wiring and consumption to the service; map its result to a response
             var result = ElectricWireExtendService.Execute(
                 request.Operation, request.FromPosVector, request.ToPosVector, request.PolePlaceInfo,
-                request.PlayerId, request.PoleBlockId, request.ConnectToolGuid);
+                context.PlayerId.Value, request.PoleBlockId, request.ConnectToolGuid);
 
             // 拒否理由は通常設置と同じ通知経路でプレイヤーへ返す（前例: RailConnectionEditProtocol）
             // Surface the rejection through the same notification path as normal placement (precedent: RailConnectionEditProtocol)
             if (!result.IsSuccess)
-                _notificationService.Notify(request.PlayerId, NotificationMessagePack.CreateOperationDenied($"denied.electricWireExtend.{result.FailureReason}", Array.Empty<string>()));
+                _notificationService.Notify(context.PlayerId.Value, NotificationMessagePack.CreateOperationDenied($"denied.electricWireExtend.{result.FailureReason}", Array.Empty<string>()));
 
             return result.IsSuccess
                 ? ElectricWireExtendResponse.CreateSuccess(result.EndpointPos, result.EndpointBlockInstanceId)
@@ -51,9 +51,8 @@ namespace Server.Protocol.PacketResponse
             [Key(3)] public Vector3IntMessagePack FromPos { get; set; }
             [Key(4)] public Vector3IntMessagePack ToPos { get; set; }
             [Key(5)] public PlaceInfoMessagePack PolePlaceInfo { get; set; }
-            [Key(6)] public int PlayerId { get; set; }
-            [Key(7)] public int PoleBlockIdInt { get; set; }
-            [Key(8)] public Guid ConnectToolGuid { get; set; }
+            [Key(6)] public int PoleBlockIdInt { get; set; }
+            [Key(7)] public Guid ConnectToolGuid { get; set; }
 
             [IgnoreMember] public Vector3Int FromPosVector => FromPos;
             [IgnoreMember] public Vector3Int ToPosVector => ToPos;
@@ -64,26 +63,26 @@ namespace Server.Protocol.PacketResponse
 
             // Operationごとに必要フィールドが異なるため、生成はstatic factory経由に限定する
             // Creation is restricted to static factories since required fields differ per operation
-            private ElectricWireExtendRequest(ElectricWireExtendOperation operation, Vector3Int fromPos, Vector3Int toPos, PlaceInfoMessagePack polePlaceInfo, int playerId, int poleBlockIdInt, Guid connectToolGuid)
+            private ElectricWireExtendRequest(ElectricWireExtendOperation operation, Vector3Int fromPos, Vector3Int toPos, PlaceInfoMessagePack polePlaceInfo, int poleBlockIdInt, Guid connectToolGuid)
             {
                 Tag = ElectricWireExtendProtocol.Tag;
                 Operation = operation;
                 FromPos = new Vector3IntMessagePack(fromPos);
                 ToPos = new Vector3IntMessagePack(toPos);
                 PolePlaceInfo = polePlaceInfo;
-                PlayerId = playerId;
+
                 PoleBlockIdInt = poleBlockIdInt;
                 ConnectToolGuid = connectToolGuid;
             }
 
-            public static ElectricWireExtendRequest CreateConnectRequest(int playerId, Vector3Int fromPos, Vector3Int toPos, Guid connectToolGuid)
-                => new(ElectricWireExtendOperation.ConnectToExisting, fromPos, toPos, new PlaceInfoMessagePack(new PlaceInfo()), playerId, 0, connectToolGuid);
+            public static ElectricWireExtendRequest CreateConnectRequest(Vector3Int fromPos, Vector3Int toPos, Guid connectToolGuid)
+                => new(ElectricWireExtendOperation.ConnectToExisting, fromPos, toPos, new PlaceInfoMessagePack(new PlaceInfo()), 0, connectToolGuid);
 
-            public static ElectricWireExtendRequest CreateExtendRequest(int playerId, Vector3Int fromPos, BlockId poleBlockId, PlaceInfo polePlaceInfo, Guid connectToolGuid)
-                => new(ElectricWireExtendOperation.ExtendToNewPole, fromPos, Vector3Int.zero, new PlaceInfoMessagePack(polePlaceInfo), playerId, poleBlockId.AsPrimitive(), connectToolGuid);
+            public static ElectricWireExtendRequest CreateExtendRequest(Vector3Int fromPos, BlockId poleBlockId, PlaceInfo polePlaceInfo, Guid connectToolGuid)
+                => new(ElectricWireExtendOperation.ExtendToNewPole, fromPos, Vector3Int.zero, new PlaceInfoMessagePack(polePlaceInfo), poleBlockId.AsPrimitive(), connectToolGuid);
 
-            public static ElectricWireExtendRequest CreateIsolatedPlaceRequest(int playerId, BlockId poleBlockId, PlaceInfo polePlaceInfo)
-                => new(ElectricWireExtendOperation.PlaceIsolatedPole, Vector3Int.zero, Vector3Int.zero, new PlaceInfoMessagePack(polePlaceInfo), playerId, poleBlockId.AsPrimitive(), Guid.Empty);
+            public static ElectricWireExtendRequest CreateIsolatedPlaceRequest(BlockId poleBlockId, PlaceInfo polePlaceInfo)
+                => new(ElectricWireExtendOperation.PlaceIsolatedPole, Vector3Int.zero, Vector3Int.zero, new PlaceInfoMessagePack(polePlaceInfo), poleBlockId.AsPrimitive(), Guid.Empty);
         }
 
         [MessagePackObject]

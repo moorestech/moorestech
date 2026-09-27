@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Core.Item.Interface;
 using Core.Master;
@@ -43,7 +43,7 @@ namespace Server.Protocol.PacketResponse
 
             // 財布に返却物を問い合わせ（確定は後段）
             // Ask the wallet what to refund (finalized further down)
-            var removalPlan = _constructionWallet.PlanRemoval(MasterHolder.BlockMaster.GetBlockMaster(block.BlockId), block.BlockInstanceId, data.PlayerId);
+            var removalPlan = _constructionWallet.PlanRemoval(MasterHolder.BlockMaster.GetBlockMaster(block.BlockId), block.BlockInstanceId, context.PlayerId.Value);
 
             // 破壊した後のアイテムをインベントリに挿入できるかチェック
             // Check if items after destruction can be inserted into inventory
@@ -94,7 +94,7 @@ namespace Server.Protocol.PacketResponse
             
             bool TryInsertRefundItems(out List<IItemStack> items)
             {
-                var playerMainInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory;
+                var playerMainInventory = _playerInventoryDataStore.GetInventoryData(context.PlayerId.Value).MainOpenableInventory;
                 items = GetRefundItems();
                 
                 return playerMainInventory.InsertionCheck(items);
@@ -131,7 +131,7 @@ namespace Server.Protocol.PacketResponse
             
             void InsertItemsToPlayerInventory(List<IItemStack> items)
             {
-                var playerMainInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory;
+                var playerMainInventory = _playerInventoryDataStore.GetInventoryData(context.PlayerId.Value).MainOpenableInventory;
                 playerMainInventory.InsertItem(items);
             }
             
@@ -142,15 +142,13 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class RemoveBlockProtocolMessagePack : ProtocolMessagePackBase
         {
-            [Key(2)] public int PlayerId { get; set; }
-            [Key(3)] public Vector3IntMessagePack Pos { get; set; }
+            [Key(2)] public Vector3IntMessagePack Pos { get; set; }
             
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public RemoveBlockProtocolMessagePack() { }
-            public RemoveBlockProtocolMessagePack(int playerId, Vector3Int pos)
+            public RemoveBlockProtocolMessagePack(Vector3Int pos)
             {
                 Tag = ProtocolTag;
-                PlayerId = playerId;
                 Pos = new Vector3IntMessagePack(pos);
             }
         }

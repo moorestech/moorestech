@@ -23,7 +23,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // handshakeでsink登録と初期push（ここで捕捉分はクリアする）
             // Handshake registers the sink and pushes initial snapshots; clear those captures
-            var handshake = MessagePackSerializer.Serialize(new InitialHandshakeProtocol.RequestInitialHandshakeMessagePack(0, "Player 0"));
+            var handshake = MessagePackSerializer.Serialize(new InitialHandshakeProtocol.RequestInitialHandshakeMessagePack("steam:1"));
             packetResponse.GetPacketResponse(handshake, context);
             sink.TakeAll();
 
@@ -47,7 +47,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var sink = new CapturedEventSink();
             var context = new PacketResponseContext(sink);
 
-            var handshake = MessagePackSerializer.Serialize(new InitialHandshakeProtocol.RequestInitialHandshakeMessagePack(0, "Player 0"));
+            var handshake = MessagePackSerializer.Serialize(new InitialHandshakeProtocol.RequestInitialHandshakeMessagePack("steam:1"));
             packetResponse.GetPacketResponse(handshake, context);
             sink.TakeAll();
 

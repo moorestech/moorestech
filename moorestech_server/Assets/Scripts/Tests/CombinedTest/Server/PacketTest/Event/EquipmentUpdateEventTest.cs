@@ -17,7 +17,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 {
     public class EquipmentUpdateEventTest
     {
-        private const int PlayerId = 0;
+        private const int PlayerId = 1;
         private static readonly Guid ToolItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
 
         [Test]
@@ -39,8 +39,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             // 選択変更はサーバーと専用イベントへ反映
             // Selection updates server state and its dedicated event
-            var request = MessagePackSerializer.Serialize(new SetSelectedEquipmentIndexMessagePack(PlayerId, 2));
-            packet.GetPacketResponse(request, new PacketResponseContext(null));
+            var request = MessagePackSerializer.Serialize(new SetSelectedEquipmentIndexMessagePack(2));
+            packet.GetPacketResponse(request, Tests.Util.BoundPacketContext.Bind(PlayerId));
 
             Assert.AreEqual(2, equipmentInventory.SelectedEquipmentIndex);
             var selectedEvents = TakeSelectedIndexEvents(sink);
@@ -78,8 +78,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             // 装備の初期データは専用プロトコルを持たずインベントリ応答へ同梱される
             // Equipment has no dedicated fetch protocol; its initial data rides on the inventory response
-            var payload = MessagePackSerializer.Serialize(new RequestPlayerInventoryProtocolMessagePack(PlayerId));
-            var response = MessagePackSerializer.Deserialize<PlayerInventoryResponseProtocolMessagePack>(packet.GetPacketResponse(payload, new PacketResponseContext(null))[0]);
+            var payload = MessagePackSerializer.Serialize(new RequestPlayerInventoryProtocolMessagePack());
+            var response = MessagePackSerializer.Deserialize<PlayerInventoryResponseProtocolMessagePack>(packet.GetPacketResponse(payload, Tests.Util.BoundPacketContext.Bind(PlayerId))[0]);
 
             Assert.AreEqual(MasterHolder.ItemMaster.Items.EquipmentSlotCount, response.Equipment.Length);
             Assert.AreEqual(ToolItemId(), response.Equipment[0].Id);

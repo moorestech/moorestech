@@ -19,6 +19,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 {
     public class CompleteResearchProtocolTest
     {
+        private const int PlayerId = 1;
         // ノード数はマスタから導出する（フィクスチャ追加で赤にならないため）
         // Derive the node count from the master so fixture additions cannot turn this red
         private static int ResearchNodeCount => MasterHolder.ResearchMaster.GetAllResearches().Count;
@@ -144,8 +145,8 @@ namespace Tests.CombinedTest.Server.PacketTest
 
         private CompleteResearchProtocol.ResponseCompleteResearchMessagePack SendCompleteResearchRequest(PacketResponseCreator packet, Guid researchGuid)
         {
-            var requestData = MessagePackSerializer.Serialize(new CompleteResearchProtocol.RequestCompleteResearchMessagePack(PlayerId, researchGuid));
-            var response = packet.GetPacketResponse(requestData, new PacketResponseContext(null));
+            var requestData = MessagePackSerializer.Serialize(new CompleteResearchProtocol.RequestCompleteResearchMessagePack(researchGuid));
+            var response = packet.GetPacketResponse(requestData, Tests.Util.BoundPacketContext.Bind(PlayerId));
             
             return MessagePackSerializer.Deserialize<CompleteResearchProtocol.ResponseCompleteResearchMessagePack>(response[0]);
         }

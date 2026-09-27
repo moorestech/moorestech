@@ -41,7 +41,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var wallet = ForUnitTestModBlockId.GearBeltConveyor;
             serviceProvider.GetService<IRemainingPlacementCountMutation>().Refill(PlayerId, wallet, 3);
 
-            var payload = MessagePackSerializer.Serialize(new InitialHandshakeProtocol.RequestInitialHandshakeMessagePack(PlayerId, "test"));
+            var payload = MessagePackSerializer.Serialize(new InitialHandshakeProtocol.RequestInitialHandshakeMessagePack("steam:1"));
             var responseBytes = packet.GetPacketResponse(payload, new PacketResponseContext(null))[0];
             var response = MessagePackSerializer.Deserialize<InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack>(responseBytes);
 

@@ -14,6 +14,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 {
     public class GetResearchInfoProtocolTest
     {
+        private const int PlayerId = 1;
         [Test]
         public void GetResearchNodeStatesAreReturned()
         {
@@ -42,9 +43,9 @@ namespace Tests.CombinedTest.Server.PacketTest
 
         private GetResearchInfoProtocol.ResponseResearchInfoMessagePack SendGetResearchInfoRequest(PacketResponseCreator packet)
         {
-            var request = new GetResearchInfoProtocol.RequestResearchInfoMessagePack(PlayerId);
+            var request = new GetResearchInfoProtocol.RequestResearchInfoMessagePack();
             var requestData = MessagePackSerializer.Serialize(request);
-            var response = packet.GetPacketResponse(requestData, new PacketResponseContext(null));
+            var response = packet.GetPacketResponse(requestData, Tests.Util.BoundPacketContext.Bind(PlayerId));
 
             return MessagePackSerializer.Deserialize<GetResearchInfoProtocol.ResponseResearchInfoMessagePack>(response[0]);
         }

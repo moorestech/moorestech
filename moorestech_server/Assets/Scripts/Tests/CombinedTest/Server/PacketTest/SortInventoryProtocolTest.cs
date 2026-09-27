@@ -21,9 +21,8 @@ using static Server.Protocol.PacketResponse.SortInventoryProtocol;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
-    public class SortInventoryProtocolTest
+    public class SortInventoryProtocolTest : SortInventoryProtocolTestBase
     {
-        private const int PlayerId = 0;
 
         [Test]
         public void MainInventorySortTest()
@@ -43,7 +42,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // メインインベントリを整理
             // Sort the main inventory.
-            packet.GetPacketResponse(GetPacket(InventoryIdentifierMessagePack.CreateMainMessage(PlayerId)), new PacketResponseContext(null));
+            packet.GetPacketResponse(GetPacket(InventoryIdentifierMessagePack.CreateMainMessage()), Tests.Util.BoundPacketContext.Bind(PlayerId));
 
             // 同種結合しId昇順に再配置
             // Same items are merged and re-packed in ItemId ascending order (trailing slots included too).
@@ -73,7 +72,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             mainInventory.SetItem(0, itemId, maxStack - 5);
             mainInventory.SetItem(3, itemId, 10);
 
-            packet.GetPacketResponse(GetPacket(InventoryIdentifierMessagePack.CreateMainMessage(PlayerId)), new PacketResponseContext(null));
+            packet.GetPacketResponse(GetPacket(InventoryIdentifierMessagePack.CreateMainMessage()), Tests.Util.BoundPacketContext.Bind(PlayerId));
 
             // 先頭スロットは最大スタックまで詰まり、あふれた5個が次スロットへ流れる
             // The first slot fills to max stack and the overflowing 5 items flow into the next slot.
@@ -81,121 +80,6 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(itemStackFactory.Create(itemId, 5), mainInventory.GetItem(1));
             Assert.AreEqual(ItemMaster.EmptyItemId, mainInventory.GetItem(2).Id);
             Assert.AreEqual(ItemMaster.EmptyItemId, mainInventory.GetItem(3).Id);
-        }
-
-        [Test]
-        public void BlockInventorySortTest()
-        {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-
-            var worldDataStore = ServerContext.WorldBlockDatastore;
-            var itemStackFactory = ServerContext.ItemStackFactory;
-
-            var chestPosition = new Vector3Int(5, 10);
-            worldDataStore.TryAddBlock(ForUnitTestModBlockId.ChestId, chestPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var chest);
-            var chestComponent = chest.GetComponent<VanillaChestComponent>();
-
-            // チェスト（itemSlotCount=5, slot0-4）へバラけた・分割されたアイテムを配置する
-            // Place scattered and split items into the chest (itemSlotCount=5, slots 0-4).
-            chestComponent.SetItem(1, new ItemId(2), 5);
-            chestComponent.SetItem(2, new ItemId(1), 4);
-            chestComponent.SetItem(4, new ItemId(1), 6);
-
-            // チェスト（サブインベントリ）を整理
-            // Sort the chest (sub-inventory).
-            packet.GetPacketResponse(GetPacket(InventoryIdentifierMessagePack.CreateBlockMessage(chestPosition)), new PacketResponseContext(null));
-
-            // 同種結合＋ItemId 昇順（ホットバー除外なし、全スロット対象）
-            // Same items merged and re-packed in ItemId order (no hotbar exclusion; all slots).
-            Assert.AreEqual(itemStackFactory.Create(new ItemId(1), 10), chestComponent.GetItem(0));
-            Assert.AreEqual(itemStackFactory.Create(new ItemId(2), 5), chestComponent.GetItem(1));
-            Assert.AreEqual(ItemMaster.EmptyItemId, chestComponent.GetItem(2).Id);
-            Assert.AreEqual(ItemMaster.EmptyItemId, chestComponent.GetItem(4).Id);
-        }
-
-        [Test]
-        // 旧仕様は入出力レンジをソートしモジュールだけ除外したが、ADR 0042で全スロットがレシピ束縛されソート自体が完全なno-opになった
-        // The old spec sorted the input/output range and excluded only modules; ADR 0042 binds every slot to the recipe, making sorting a full no-op
-        public void MachineInventorySortIsNoOpTest()
-        {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-
-            var worldDataStore = ServerContext.WorldBlockDatastore;
-            var itemStackFactory = ServerContext.ItemStackFactory;
-
-            // 機械（input=2, output=3, module=4）を設置し、レシピを選択してから束縛先スロット1にだけ素材を配置する
-            // （スロット0は空のまま。両方埋めると「ソートで空きへ寄せる」旧挙動と「全スロット束縛でno-op」の
-            // 新挙動が同じ結果になり回帰を検知できないため。C12・mutation testing実測）
-            // Place the machine (input=2, output=3, module=4), select the recipe, then place material only into
-            // bound slot 1 (slot 0 stays empty; filling both would make the old "sort compacts into the gap"
-            // behavior and the new "every slot is bound, no-op" behavior indistinguishable. C12, per mutation testing)
-            var machinePosition = new Vector3Int(5, 10);
-            worldDataStore.TryAddBlock(ForUnitTestModBlockId.MachineId, machinePosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var machine);
-            var machineComponent = machine.GetComponent<VanillaMachineBlockInventoryComponent>();
-            var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data.First(r => r.BlockGuid == MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.MachineId).BlockGuid);
-            MachineRecipeSelectTestUtil.SelectRecipe(machine, recipe);
-            var input1 = itemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(recipe.InputItems[1].ItemGuid), 4);
-            machineComponent.SetItem(1, input1);
-
-            // モジュールレンジの先頭と末尾（slot5・slot8）にモジュールアイテムを装着する
-            // Equip module items into the first and last module slots (slot 5 and slot 8).
-            var moduleItemId = MasterHolder.ItemMaster.GetItemId(MasterHolder.ItemMaster.Items.Modules.First().ItemGuid);
-            var firstModuleItem = itemStackFactory.Create(moduleItemId, 1);
-            var lastModuleItem = itemStackFactory.Create(moduleItemId, 2);
-            machineComponent.SetItem(5, firstModuleItem);
-            machineComponent.SetItem(8, lastModuleItem);
-
-            // 実プロトコル経由で機械インベントリを整理する
-            // Sort the machine inventory via the actual protocol packet.
-            packet.GetPacketResponse(GetPacket(InventoryIdentifierMessagePack.CreateBlockMessage(machinePosition)), new PacketResponseContext(null));
-
-            // 全スロットが束縛済みのため、ソートしてもスロット1の素材はスロット0へ寄らず、スロット0は空のまま
-            // Every slot is bound, so sorting never pulls slot 1's material into slot 0, which stays empty
-            Assert.AreEqual(ItemMaster.EmptyItemId, machineComponent.GetItem(0).Id);
-            Assert.AreEqual(input1, machineComponent.GetItem(1));
-            Assert.AreEqual(ItemMaster.EmptyItemId, machineComponent.GetItem(2).Id);
-
-            // モジュールスロットも整理対象外なので位置も中身も不動
-            // Module slots are also excluded from sorting and stay in place untouched.
-            Assert.AreEqual(firstModuleItem, machineComponent.GetItem(5));
-            Assert.AreEqual(ItemMaster.EmptyItemId, machineComponent.GetItem(6).Id);
-            Assert.AreEqual(ItemMaster.EmptyItemId, machineComponent.GetItem(7).Id);
-            Assert.AreEqual(lastModuleItem, machineComponent.GetItem(8));
-        }
-
-        [Test]
-        public void EquipmentInventoryIsExcludedFromSortTest()
-        {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-
-            var equipmentInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).EquipmentInventory;
-            var itemStackFactory = ServerContext.ItemStackFactory;
-
-            // マスタの初期装備が前方スロットを埋めるため、空き前提を作り直してから検証する
-            // The master's initial equipment fills the front slots, so rebuild the empty precondition first
-            for (var slot = 0; slot < equipmentInventory.GetSlotSize(); slot++)
-                equipmentInventory.SetItem(slot, itemStackFactory.CreatEmpty());
-
-            // 前方に空きを残して装備を置き、選択インデックス2が指す中身を固定する
-            // Leave the front slots empty so the content pointed at by selected index 2 is pinned
-            var lastSlot = equipmentInventory.GetSlotSize() - 1;
-            equipmentInventory.SetItem(lastSlot, new ItemId(2), 3);
-            equipmentInventory.SetSelectedEquipmentIndex(lastSlot);
-
-            // 装備識別子はプロトコル上そのまま解決されるため、除外宣言が無いと実際に整理されてしまう
-            // The equipment identifier resolves as-is in the protocol, so without an exclusion it really would be tidied
-            packet.GetPacketResponse(GetPacket(InventoryIdentifierMessagePack.CreateEquipmentMessage(PlayerId)), new PacketResponseContext(null));
-
-            // 詰め直されると選択インデックスが空スロットを指すことになる
-            // Re-packing would leave the selected index pointing at an empty slot
-            Assert.AreEqual(itemStackFactory.Create(new ItemId(2), 3), equipmentInventory.GetItem(lastSlot));
-            Assert.AreEqual(ItemMaster.EmptyItemId, equipmentInventory.GetItem(0).Id);
-            Assert.AreEqual(new ItemId(2), equipmentInventory.GetSelectedItem().Id);
-        }
-
-        private byte[] GetPacket(InventoryIdentifierMessagePack target)
-        {
-            return MessagePackSerializer.Serialize(new SortInventoryProtocolMessagePack(target));
         }
     }
 }

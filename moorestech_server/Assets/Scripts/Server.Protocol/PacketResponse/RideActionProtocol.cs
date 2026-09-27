@@ -20,7 +20,7 @@ namespace Server.Protocol.PacketResponse
         {
             var data = MessagePackSerializer.Deserialize<RequestRideActionMessagePack>(payload);
             
-            var result = ResolveAction(data.PlayerId);
+            var result = ResolveAction(context.PlayerId.Value);
             
             return new ResponseRideActionMessagePack(result);
 
@@ -56,17 +56,15 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class RequestRideActionMessagePack : ProtocolMessagePackBase
         {
-            [Key(2)] public int PlayerId { get; set; }
-            [Key(3)] public RideActionType Action { get; set; }
-            [Key(4)] public RidableIdentifierMessagePack Target { get; set; }
+            [Key(2)] public RideActionType Action { get; set; }
+            [Key(3)] public RidableIdentifierMessagePack Target { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public RequestRideActionMessagePack() { }
 
-            public RequestRideActionMessagePack(int playerId, RideActionType action, RidableIdentifierMessagePack target)
+            public RequestRideActionMessagePack(RideActionType action, RidableIdentifierMessagePack target)
             {
                 Tag = ProtocolTag;
-                PlayerId = playerId;
                 Action = action;
                 Target = target;
             }

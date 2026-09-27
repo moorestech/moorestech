@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Game.PlayerInventory.Interface;
 using MessagePack;
@@ -20,9 +20,9 @@ namespace Server.Protocol.PacketResponse
         
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
         {
-            var data = MessagePackSerializer.Deserialize<PlayerInventoryResponseProtocolMessagePack>(payload);
+            var data = MessagePackSerializer.Deserialize<RequestPlayerInventoryProtocolMessagePack>(payload);
             
-            var playerInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId);
+            var playerInventory = _playerInventoryDataStore.GetInventoryData(context.PlayerId.Value);
             
             //メインインベントリのアイテムを設定
             var slotSize = playerInventory.MainOpenableInventory.GetSlotSize();
@@ -49,21 +49,16 @@ namespace Server.Protocol.PacketResponse
                 equipmentItems.Add(new ItemMessagePack(equipmentInventory.GetItem(i)));
             }
 
-            return new PlayerInventoryResponseProtocolMessagePack(data.PlayerId, mainItems.ToArray(), grabItem, equipmentItems.ToArray(), equipmentInventory.SelectedEquipmentIndex);
+            return new PlayerInventoryResponseProtocolMessagePack(context.PlayerId.Value, mainItems.ToArray(), grabItem, equipmentItems.ToArray(), equipmentInventory.SelectedEquipmentIndex);
         }
         
         [MessagePackObject]
         public class RequestPlayerInventoryProtocolMessagePack : ProtocolMessagePackBase
         {
-            [Key(2)] public int PlayerId { get; set; }
             
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-            public RequestPlayerInventoryProtocolMessagePack() { }
-            
-            public RequestPlayerInventoryProtocolMessagePack(int playerId)
+            public RequestPlayerInventoryProtocolMessagePack()
             {
                 Tag = ProtocolTag;
-                PlayerId = playerId;
             }
         }
         

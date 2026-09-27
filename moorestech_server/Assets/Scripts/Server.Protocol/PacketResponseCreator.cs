@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Game.Train.Event;
 using Game.Train.Unit;
@@ -82,6 +82,13 @@ namespace Server.Protocol
             try
             {
                 request = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(payload);
+                // 身元未確定の接続から届く操作は送り手を決められないため破棄する
+                // Drop operations before the connection identifies their sender
+                if (request.Tag != InitialHandshakeProtocol.ProtocolTag && !context.PlayerId.HasValue)
+                {
+                    Debug.LogWarning($"[PacketResponseCreator] 未紐づけの接続からの要求を無視しました tag:{request.Tag}");
+                    return new List<byte[]>();
+                }
                 response = _packetResponseDictionary[request.Tag].GetResponse(payload, context);
             }
             catch (Exception e)

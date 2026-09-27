@@ -17,6 +17,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 {
     public class OperationDeniedNotificationTest
     {
+        private const int PlayerId = 1;
         [Test]
         public void CompleteResearchFailureFiresDeniedNotification()
         {
@@ -25,8 +26,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             // 素材ゼロで研究完了要求→拒否通知
             // Request research completion with no materials → denied notification
-            var request = new CompleteResearchProtocol.RequestCompleteResearchMessagePack(PlayerId, Research1Guid);
-            packet.GetPacketResponse(MessagePackSerializer.Serialize(request), new PacketResponseContext(null));
+            var request = new CompleteResearchProtocol.RequestCompleteResearchMessagePack(Research1Guid);
+            packet.GetPacketResponse(MessagePackSerializer.Serialize(request), Tests.Util.BoundPacketContext.Bind(PlayerId));
 
             var denied = TakeDenied(sink);
             Assert.AreEqual(1, denied.Count(d => d.MessageId == "denied.researchNotCompletable"));
@@ -45,8 +46,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             // 完了済み研究への二重完了要求
             // Send a duplicate completion request for the same guid
-            var request = new CompleteResearchProtocol.RequestCompleteResearchMessagePack(PlayerId, Research1Guid);
-            packet.GetPacketResponse(MessagePackSerializer.Serialize(request), new PacketResponseContext(null));
+            var request = new CompleteResearchProtocol.RequestCompleteResearchMessagePack(Research1Guid);
+            packet.GetPacketResponse(MessagePackSerializer.Serialize(request), Tests.Util.BoundPacketContext.Bind(PlayerId));
 
             var denied = TakeDenied(sink);
             Assert.AreEqual(0, denied.Count(d => d.MessageId == "denied.researchNotCompletable"));
@@ -61,8 +62,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             // 素材ゼロでクラフト要求 → 素材不足通知
             // Request crafting with no materials → material shortage notification
             var recipeGuid = MasterHolder.CraftRecipeMaster.CraftRecipes.Data[0].CraftRecipeGuid;
-            var request = new OneClickCraft.RequestOneClickCraftProtocolMessagePack(PlayerId, recipeGuid);
-            packet.GetPacketResponse(MessagePackSerializer.Serialize(request), new PacketResponseContext(null));
+            var request = new OneClickCraft.RequestOneClickCraftProtocolMessagePack(recipeGuid);
+            packet.GetPacketResponse(MessagePackSerializer.Serialize(request), Tests.Util.BoundPacketContext.Bind(PlayerId));
 
             var denied = TakeDenied(sink);
             Assert.AreEqual(1, denied.Count(d => d.MessageId == "denied.craftMaterialShortage"));
@@ -78,7 +79,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             // Request placing a locked block → not-unlocked notification
             var blockId = Tests.Module.TestMod.ForUnitTestModBlockId.LockedElectricPoleId;
             var payload = PlaceBlockProtocolTestSupport.CreatePlaceBlockPayload(blockId, (0, 0));
-            packet.GetPacketResponse(payload, new PacketResponseContext(null));
+            packet.GetPacketResponse(payload, Tests.Util.BoundPacketContext.Bind(PlaceBlockProtocolTestSupport.PlayerId));
 
             var denied = TakeDenied(sink);
             Assert.AreEqual(1, denied.Count(d => d.MessageId == "denied.placeBlockNotUnlocked"));
@@ -92,9 +93,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             // 存在しないノード接続→拒否通知
             // Request connecting nonexistent nodes → denied notification
-            var request = RailConnectionEditProtocol.RailConnectionEditRequest.CreateConnectRequest(
-                PlayerId, 999999, Guid.NewGuid(), 999998, Guid.NewGuid(), Guid.NewGuid());
-            environment.PacketResponseCreator.GetPacketResponse(MessagePackSerializer.Serialize(request), new PacketResponseContext(null));
+            var request = RailConnectionEditProtocol.RailConnectionEditRequest.CreateConnectRequest(999999, Guid.NewGuid(), 999998, Guid.NewGuid(), Guid.NewGuid());
+            environment.PacketResponseCreator.GetPacketResponse(MessagePackSerializer.Serialize(request), Tests.Util.BoundPacketContext.Bind(PlayerId));
 
             var denied = TakeDenied(sink);
             Assert.AreEqual(1, denied.Count(d => d.MessageId == "denied.railEdit.InvalidNode"));

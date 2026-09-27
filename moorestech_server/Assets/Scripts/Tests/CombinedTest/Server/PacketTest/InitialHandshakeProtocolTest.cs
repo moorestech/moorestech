@@ -33,7 +33,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             serviceProvider.GetService<IWorldSettingsDatastore>().Initialize(serviceProvider.GetService<MapInfoJson>());
             
             //最初のハンドシェイクを実行
-            var response = packet.GetPacketResponse(GetHandshakePacket(PlayerId), new PacketResponseContext(null))[0];
+            var context = new PacketResponseContext(null);
+            var response = packet.GetPacketResponse(GetHandshakePacket(), context)[0];
             var handShakeResponse =
                 MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(response);
             
@@ -45,11 +46,14 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             
             //プレイヤーの座標を変更
-            packet.GetPacketResponse(GetPlayerPositionPacket(PlayerId, new Vector3(100, 0, -100)), new PacketResponseContext(null));
+            packet.GetPacketResponse(GetPlayerPositionPacket(handShakeResponse.PlayerId, new Vector3(100, 0, -100)), context);
             
             
-            //再度ハンドシェイクを実行して座標が変更されていることを確認
-            response = packet.GetPacketResponse(GetHandshakePacket(PlayerId), new PacketResponseContext(null))[0];
+            // 切断後に同じ身元で入り直し、保存座標を復元する
+            // Reconnect with the same identity after disconnecting and restore the position
+            var disconnectedPlayerId = context.MarkClosedAndGetPlayerId().Value;
+            ((PlayerConnectionRegistry)serviceProvider.GetService<IPlayerConnectionChecker>()).Unregister(disconnectedPlayerId);
+            response = packet.GetPacketResponse(GetHandshakePacket(), new PacketResponseContext(null))[0];
             handShakeResponse =
                 MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(response);
             Assert.AreEqual(100, handShakeResponse.PlayerPos.X);
@@ -64,11 +68,12 @@ namespace Tests.CombinedTest.Server.PacketTest
             serviceProvider.GetService<IWorldSettingsDatastore>().Initialize(serviceProvider.GetService<MapInfoJson>());
             var connectionChecker = serviceProvider.GetService<IPlayerConnectionChecker>();
 
-            packet.GetPacketResponse(GetHandshakePacket(PlayerId), new PacketResponseContext(null));
+            var response = packet.GetPacketResponse(GetHandshakePacket(), new PacketResponseContext(null))[0];
+            var handshakeResponse = MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(response);
 
             // ハンドシェイクプロトコルが接続登録を担当する。
             // The handshake protocol owns connection registration.
-            Assert.IsTrue(connectionChecker.IsConnected(PlayerId));
+            Assert.IsTrue(connectionChecker.IsConnected(handshakeResponse.PlayerId));
         }
 
         [Test]
@@ -86,7 +91,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             });
 
             var response = environment.PacketResponseCreator.GetPacketResponse(
-                GetHandshakePacket(PlayerId),
+                GetHandshakePacket(),
                 new PacketResponseContext(null))[0];
             var handshakeResponse = MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(response);
 
@@ -113,7 +118,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Use an unregistered sink so the handshake itself must wire the context's sink
             var sink = new CapturedEventSink();
             var context = new PacketResponseContext(sink);
-            environment.PacketResponseCreator.GetPacketResponse(GetHandshakePacket(PlayerId), context);
+            environment.PacketResponseCreator.GetPacketResponse(GetHandshakePacket(), context);
             sink.TakeAll();
 
             datastore.TryRide(PlayerId, id, out _);
@@ -122,17 +127,17 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.IsTrue(events.Exists(e => e.Tag == RidingStateEventPacket.EventTag));
         }
         
-        private byte[] GetHandshakePacket(int playerId)
+        private byte[] GetHandshakePacket()
         {
             return MessagePackSerializer.Serialize(
-                new RequestInitialHandshakeMessagePack(playerId, "test player name"));
+                new RequestInitialHandshakeMessagePack("steam:1"));
         }
         
         
         private byte[] GetPlayerPositionPacket(int playerId, Vector3 pos)
         {
             return MessagePackSerializer.Serialize(
-                new SetPlayerCoordinateProtocol.PlayerCoordinateSendProtocolMessagePack(playerId, pos));
+                new SetPlayerCoordinateProtocol.PlayerCoordinateSendProtocolMessagePack(pos));
         }
     }
 }

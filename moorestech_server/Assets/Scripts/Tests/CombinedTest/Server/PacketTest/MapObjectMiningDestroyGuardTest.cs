@@ -23,7 +23,7 @@ namespace Tests.CombinedTest.Server.PacketTest
     /// </summary>
     public class MapObjectMiningDestroyGuardTest
     {
-        private const int PlayerId = 0;
+        private const int PlayerId = 1;
 
         // テストマスタのPickUp型mapObject。素手の1打で破壊される
         // The PickUp-type map object in the test master; one bare-handed hit destroys it
@@ -79,8 +79,8 @@ namespace Tests.CombinedTest.Server.PacketTest
 
         private void SendAttack(PacketResponseCreator packet, int instanceId)
         {
-            var messagePack = MiningProtocol.MiningProtocolMessagePack.CreateMapObjectRequest(PlayerId, instanceId);
-            packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), new PacketResponseContext(null));
+            var messagePack = MiningProtocol.MiningProtocolMessagePack.CreateMapObjectRequest(instanceId);
+            packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), Tests.Util.BoundPacketContext.Bind(PlayerId));
         }
 
         private int CountDestroyEvents(CapturedEventSink sink)

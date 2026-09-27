@@ -1,3 +1,4 @@
+using Server.Protocol.PacketResponse.Util.TrainPlacement;
 using System;
 using Core.Item.Interface;
 using Core.Master;
@@ -20,7 +21,7 @@ namespace Server.Protocol.PacketResponse
     {
         public const string ProtocolTag = "va:attachTrainCarToUnit";
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
-        private readonly IRailGraphDatastore _railGraphDatastore;
+        private readonly TrainCarAttachmentPlacement _placement;
         private readonly ITrainUnitLookupDatastore _trainUnitLookupDatastore;
         private readonly ITrainUnitMutationDatastore _trainUnitMutationDatastore;
         private readonly ITrainUnitSnapshotNotifyEvent _trainUnitSnapshotNotifyEvent;
@@ -29,7 +30,7 @@ namespace Server.Protocol.PacketResponse
         public AttachTrainCarToUnitProtocol(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
-            _railGraphDatastore = serviceProvider.GetService<IRailGraphDatastore>();
+            _placement = new TrainCarAttachmentPlacement(serviceProvider.GetService<IRailGraphDatastore>());
             _trainUnitLookupDatastore = serviceProvider.GetService<ITrainUnitLookupDatastore>();
             _trainUnitSnapshotNotifyEvent = serviceProvider.GetService<ITrainUnitSnapshotNotifyEvent>();
             _trainUnitMutationDatastore = serviceProvider.GetService<ITrainUnitMutationDatastore>();
@@ -65,7 +66,7 @@ namespace Server.Protocol.PacketResponse
 
                 // 建設コストの充足をインベントリ横断で検証する
                 // Validate construction cost across the whole inventory
-                var inventoryData = _playerInventoryDataStore.GetInventoryData(data.PlayerId);
+                var inventoryData = _playerInventoryDataStore.GetInventoryData(context.PlayerId.Value);
                 var mainInventory = inventoryData.MainOpenableInventory;
                 var costItemCounts = ConstructionCostItems.ToItemCounts(trainCarMaster.RequiredItems);
                 if (!ConstructionCostService.HasRequiredItems(costItemCounts, mainInventory.InventoryItems))
@@ -82,14 +83,14 @@ namespace Server.Protocol.PacketResponse
 
                 // 連結位置と車両マスターを検証して新規車両を生成する
                 // Validate attach position/master and create a car
-                if (!TryCreateCarAndRailPosition(trainCarMaster, data, out var attachingCar, out var attachingRailPosition, out var failureType))
+                if (!_placement.TryCreateCarAndRailPosition(trainCarMaster, data, out var attachingCar, out var attachingRailPosition, out var failureType))
                 {
                     return AttachTrainCarToUnitResponseMessagePack.CreateFailure(failureType);
                 }
 
                 // クライアント指定の接続端点(head/rear)で連結する
                 // Attach using client-specified target endpoint (head/rear)
-                if (!TryAttachToTargetTrain(targetTrain, attachingCar, attachingRailPosition, data.AttachToTargetTrainHead))
+                if (!_placement.TryAttachToTargetTrain(targetTrain, attachingCar, attachingRailPosition, data.AttachToTargetTrainHead))
                 {
                     return AttachTrainCarToUnitResponseMessagePack.CreateFailure(AttachTrainCarFailureType.InvalidRailPosition);
                 }
@@ -100,160 +101,6 @@ namespace Server.Protocol.PacketResponse
                 _trainUnitMutationDatastore.RegisterTrain(targetTrain);
                 _trainUnitSnapshotNotifyEvent.NotifySnapshot(targetTrain);
                 return AttachTrainCarToUnitResponseMessagePack.CreateSuccess();
-            }
-
-            bool TryCreateCarAndRailPosition(
-                TrainCarMasterElement trainCarMaster,
-                AttachTrainCarToUnitRequestMessagePack request,
-                out TrainCar attachingCar,
-                out RailPosition attachingRailPosition,
-                out AttachTrainCarFailureType failureType)
-            {
-                attachingCar = null;
-                attachingRailPosition = null;
-                failureType = AttachTrainCarFailureType.InvalidRailPosition;
-
-                // レール位置を復元し長さ整合を検証する
-                // Restore rail position and validate expected length
-                var expectedLength = TrainLengthConverter.ToRailUnits(trainCarMaster.Length);
-                if (!TryRestoreRailPosition(request.RailPosition, expectedLength, out attachingRailPosition, out failureType))
-                {
-                    return false;
-                }
-
-                // 追加車両を作成する 自分の接続面が前、相手の接続面も前なら接続後の自分の向きはunitからみて反対向きになる->facingforwardはfalse
-                // Create attaching car. Facing forward is false if both self and target connection sides are front, which means the attached car will face opposite direction from unit perspective after attachment.
-                attachingCar = new TrainCar(trainCarMaster, request.AttachCarFacingForward ^ request.AttachToTargetTrainHead);
-
-                // attachingRailPositionは接続先編成からみた方向に正規化する
-                // Normalize attachingRailPosition so that its direction matches the connecting train unit. When the car is not facing forward relative to the unit, the physical front of the car lies on the opposite side, so we reverse the rail position to keep "head" and "rear" consistent with the target train's travel direction.
-                if (!attachingCar.IsFacingForward)
-                    attachingRailPosition.Reverse();
-                return true;
-            }
-
-            bool TryAttachToTargetTrain(TrainUnit targetTrain, TrainCar car, RailPosition railPosition, bool attachToTargetTrainHead)
-            {
-                if (targetTrain == null || car == null || railPosition == null)
-                {
-                    return false;
-                }
-
-                // 指定された既存編成の先頭に連結する
-                // Attach to target train head when requested
-                if (attachToTargetTrainHead)
-                {
-                    if (!targetTrain.RailPosition.GetHeadRailPosition().IsSamePositionAllowNodeOverlap(railPosition.GetRearRailPosition()))
-                    {
-                        return false;
-                    }
-                    targetTrain.AttachCarToHead(car, railPosition);
-                    return true;
-                }
-
-                // 指定された既存編成の最後尾に連結する
-                // Attach to target train rear when requested
-                if (!railPosition.GetHeadRailPosition().IsSamePositionAllowNodeOverlap(targetTrain.RailPosition.GetRearRailPosition()))
-                {
-                    return false;
-                }
-                targetTrain.AttachCarToRear(car, railPosition);
-                return true;
-            }
-
-            bool TryRestoreRailPosition(
-                RailPositionSnapshotMessagePack snapshot,
-                int expectedLength,
-                out RailPosition railPosition,
-                out AttachTrainCarFailureType failureType)
-            {
-                railPosition = null;
-                failureType = AttachTrainCarFailureType.InvalidRailPosition;
-
-                // スナップショットを保存形式へ変換して検証する
-                // Convert snapshot to save-data and validate it
-                if (snapshot == null)
-                {
-                    return false;
-                }
-                var saveData = snapshot.ToModel();
-                if (!TryValidateSnapshot(saveData, expectedLength, out var validatedSaveData, out failureType))
-                {
-                    return false;
-                }
-
-                // 検証済みデータからRailPositionを復元する
-                // Restore rail position from validated save-data
-                railPosition = RailPositionFactory.Restore(validatedSaveData, _railGraphDatastore);
-                return railPosition != null;
-            }
-
-            bool TryValidateSnapshot(
-                RailPositionSaveData snapshot,
-                int expectedTrainLength,
-                out RailPositionSaveData validatedSnapshot,
-                out AttachTrainCarFailureType failureType)
-            {
-                validatedSnapshot = null;
-                failureType = AttachTrainCarFailureType.InvalidRailPosition;
-
-                // 入力値と列車長を検証する
-                // Validate input payload and train length
-                if (snapshot == null || snapshot.RailSnapshot == null || snapshot.RailSnapshot.Count < 2)
-                {
-                    return false;
-                }
-                if (snapshot.TrainLength != expectedTrainLength)
-                {
-                    return false;
-                }
-                if (snapshot.DistanceToNextNode < 0)
-                {
-                    return false;
-                }
-
-                // ノード列を解決して経路整合性を検証する
-                // Resolve rail nodes and validate path consistency
-                var nodes = new System.Collections.Generic.List<IRailNode>(snapshot.RailSnapshot.Count);
-                for (var i = 0; i < snapshot.RailSnapshot.Count; i++)
-                {
-                    var node = _railGraphDatastore.ResolveRailNode(snapshot.RailSnapshot[i]);
-                    if (node == null)
-                    {
-                        failureType = AttachTrainCarFailureType.RailNotFound;
-                        return false;
-                    }
-                    nodes.Add(node);
-                }
-
-                var totalDistance = 0;
-                for (var i = 0; i < nodes.Count - 1; i++)
-                {
-                    var segmentDistance = nodes[i + 1].GetDistanceToNode(nodes[i]);
-                    if (segmentDistance <= 0)
-                    {
-                        return false;
-                    }
-                    if (i == 0 && snapshot.DistanceToNextNode > segmentDistance)
-                    {
-                        return false;
-                    }
-                    totalDistance += segmentDistance;
-                }
-
-                var requiredDistance = snapshot.TrainLength + snapshot.DistanceToNextNode;
-                if (totalDistance < requiredDistance)
-                {
-                    return false;
-                }
-
-                validatedSnapshot = new RailPositionSaveData
-                {
-                    TrainLength = expectedTrainLength,
-                    DistanceToNextNode = snapshot.DistanceToNextNode,
-                    RailSnapshot = snapshot.RailSnapshot
-                };
-                return true;
             }
 
             #endregion
@@ -267,9 +114,8 @@ namespace Server.Protocol.PacketResponse
             [Key(2)] public TrainUnitInstanceId TargetTrainUnitInstanceId { get; set; }
             [Key(3)] public RailPositionSnapshotMessagePack RailPosition { get; set; }
             [Key(4)] public Guid TrainCarGuid { get; set; }
-            [Key(5)] public int PlayerId { get; set; }
-            [Key(6)] public bool AttachCarFacingForward { get; set; }
-            [Key(7)] public bool AttachToTargetTrainHead { get; set; }
+            [Key(5)] public bool AttachCarFacingForward { get; set; }
+            [Key(6)] public bool AttachToTargetTrainHead { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public AttachTrainCarToUnitRequestMessagePack()
@@ -281,7 +127,6 @@ namespace Server.Protocol.PacketResponse
                 TrainUnitInstanceId targetTrainUnitInstanceId,
                 RailPositionSnapshotMessagePack railPosition,
                 Guid trainCarGuid,
-                int playerId,
                 bool attachCarFacingForward,
                 bool attachToTargetTrainHead)
             {
@@ -289,7 +134,7 @@ namespace Server.Protocol.PacketResponse
                 TargetTrainUnitInstanceId = targetTrainUnitInstanceId;
                 RailPosition = railPosition;
                 TrainCarGuid = trainCarGuid;
-                PlayerId = playerId;
+
                 AttachCarFacingForward = attachCarFacingForward;
                 AttachToTargetTrainHead = attachToTargetTrainHead;
             }

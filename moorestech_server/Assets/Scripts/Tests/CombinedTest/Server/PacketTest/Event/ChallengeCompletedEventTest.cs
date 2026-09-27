@@ -21,7 +21,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 {
     public class ChallengeCompletedEventTest
     {
-        private const int PlayerId = 0;
+        private const int PlayerId = 1;
         private const int CraftRecipeId = 1;
         
         [Test]
@@ -62,7 +62,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             // クラフトを実行
             // Execute the craft
-            packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(PlayerId, craftRecipeElement.CraftRecipeGuid)), new PacketResponseContext(null));
+            packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(craftRecipeElement.CraftRecipeGuid)), Tests.Util.BoundPacketContext.Bind(PlayerId));
         }
         
         [Test]

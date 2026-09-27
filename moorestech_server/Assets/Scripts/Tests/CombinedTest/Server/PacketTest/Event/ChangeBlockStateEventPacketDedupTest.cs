@@ -33,7 +33,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var blockData = world.GetOriginPosBlock(pos);
             var blockState = blockData.Block.GetBlockState();
 
-            var playerId = 0;
+            var playerId = 1;
             var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, playerId);
             // キューをクリア
             // Clear the event queue
@@ -59,7 +59,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             world.TryAddBlock(ForUnitTestModBlockId.MachineId, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             var blockData = world.GetOriginPosBlock(pos);
 
-            var playerId = 0;
+            var playerId = 1;
             var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, playerId);
             // キューをクリア
             // Clear the event queue
@@ -89,7 +89,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var blockData = world.GetOriginPosBlock(pos);
             var blockState = blockData.Block.GetBlockState();
 
-            var playerId = 0;
+            var playerId = 1;
             var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, playerId);
             // キューをクリア
             // Clear the event queue
@@ -120,7 +120,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             // Record the payload as the previously broadcast one
             changeBlockStateEventPacket.ChangeState((blockState, blockData));
 
-            var playerId = 0;
+            var playerId = 1;
             var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, playerId);
             // キューをクリア
             // Clear the event queue
@@ -130,7 +130,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             // Fire through the real packet path
             var request = new RequestBlockStateProtocolMessagePack(pos);
             var payload = MessagePackSerializer.Serialize(request);
-            packet.GetPacketResponse(payload, new PacketResponseContext(null));
+            packet.GetPacketResponse(payload, Tests.Util.BoundPacketContext.Bind(playerId));
 
             var events = sink.TakeAll();
             Assert.AreEqual(1, events.Count, "変化がなくてもpull経路では必ず1件積まれるべき");
@@ -165,7 +165,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             // (3) Simulate a Destroy()-time event: re-register the stale entry right after removal
             changeBlockStateEventPacket.ChangeState((sharedState, firstBlockData));
 
-            var playerId = 0;
+            var playerId = 1;
             var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, playerId);
             // (4) キューをクリア
             // (4) Clear the event queue

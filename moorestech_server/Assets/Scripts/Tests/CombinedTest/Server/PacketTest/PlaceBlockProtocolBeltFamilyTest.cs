@@ -39,7 +39,7 @@ namespace Tests.CombinedTest.Server.PacketTest
                     VerticalDirection = BlockVerticalDirection.Up, BlockId = ForUnitTestModBlockId.TestGearBeltConveyorUp,
                 },
             };
-            packet.GetPacketResponse(CreatePlacePayload(placeInfos), new PacketResponseContext(null));
+            packet.GetPacketResponse(CreatePlacePayload(placeInfos), Tests.Util.BoundPacketContext.Bind(PlayerId));
 
             Assert.IsTrue(ServerContext.WorldBlockDatastore.Exists(new Vector3Int(10, 0, 10)));
             Assert.IsTrue(ServerContext.WorldBlockDatastore.Exists(new Vector3Int(10, 0, 11)));
@@ -64,13 +64,13 @@ namespace Tests.CombinedTest.Server.PacketTest
                     VerticalDirection = BlockVerticalDirection.Up, BlockId = ForUnitTestModBlockId.TestGearBeltConveyorUp,
                 },
             };
-            packet.GetPacketResponse(CreatePlacePayload(placeInfos), new PacketResponseContext(null));
+            packet.GetPacketResponse(CreatePlacePayload(placeInfos), Tests.Util.BoundPacketContext.Bind(PlayerId));
             Assert.IsFalse(ServerContext.WorldBlockDatastore.Exists(new Vector3Int(20, 0, 10)));
 
             // 直線を解放すると坂を設置できる
             // Unlocking the straight block allows slope placement
             UnlockBlock(serviceProvider, ForUnitTestModBlockId.GearBeltConveyor);
-            packet.GetPacketResponse(CreatePlacePayload(placeInfos), new PacketResponseContext(null));
+            packet.GetPacketResponse(CreatePlacePayload(placeInfos), Tests.Util.BoundPacketContext.Bind(PlayerId));
             Assert.IsTrue(ServerContext.WorldBlockDatastore.Exists(new Vector3Int(20, 0, 10)));
             Assert.AreEqual(ForUnitTestModBlockId.TestGearBeltConveyorUp,
                 ServerContext.WorldBlockDatastore.GetBlock(new Vector3Int(20, 0, 10)).BlockId);

@@ -31,7 +31,7 @@ namespace Server.Protocol.PacketResponse
 
             // 対象インベントリを解決（存在しなければ何もしない）
             // Resolve the target inventory; do nothing if it cannot be found.
-            var inventory = _openableInventoryResolver.Resolve(data.Target);
+            var inventory = _openableInventoryResolver.Resolve(data.Target, context.PlayerId.Value);
             if (inventory == null) return null;
 
             // 除外スロット宣言時は除外

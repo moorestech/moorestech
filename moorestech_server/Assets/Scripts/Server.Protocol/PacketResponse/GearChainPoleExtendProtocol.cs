@@ -42,7 +42,7 @@ namespace Server.Protocol.PacketResponse
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
         {
             var request = MessagePackSerializer.Deserialize<GearChainPoleExtendRequest>(payload);
-            var inventory = _playerInventoryDataStore.GetInventoryData(request.PlayerId).MainOpenableInventory;
+            var inventory = _playerInventoryDataStore.GetInventoryData(context.PlayerId.Value).MainOpenableInventory;
             var placePosition = (Vector3Int)request.PolePlaceInfo.Position;
 
             // 設置先が空いているか確認する
@@ -62,7 +62,7 @@ namespace Server.Protocol.PacketResponse
 
             // 建設コストは財布に問い合わせる。残りで賄えるなら素材を要求しない
             // Ask the wallet for the construction cost; when the remainder covers it no materials are demanded
-            var placementPlan = _constructionWallet.PlanPlacement(blockMaster, request.PlayerId);
+            var placementPlan = _constructionWallet.PlanPlacement(blockMaster, context.PlayerId.Value);
             var costItemCounts = placementPlan.ItemsToConsume;
             if (!ConstructionCostService.HasRequiredItems(costItemCounts, inventory.InventoryItems)) return GearChainPoleExtendResponse.CreateFailed(GearChainPlacementEvaluator.InsufficientItemsError);
 
@@ -91,7 +91,7 @@ namespace Server.Protocol.PacketResponse
 
             // 起点ありならチェーン接続とアイテム消費
             // With a from pole, connect the chain and consume chain items
-            if (request.HasFromPole && !GearChainSystemUtil.TryConnect(request.FromPolePosVector, placePosition, request.PlayerId, request.ConnectToolGuid, out var connectError))
+            if (request.HasFromPole && !GearChainSystemUtil.TryConnect(request.FromPolePosVector, placePosition, context.PlayerId.Value, request.ConnectToolGuid, out var connectError))
             {
                 // 事前検証済みのため通常到達しないが、孤立ポールを残さないよう設置を取り消す
                 // Unreachable after pre-validation; remove the block to avoid leaving an orphan pole
@@ -113,9 +113,8 @@ namespace Server.Protocol.PacketResponse
             [Key(2)] public bool HasFromPole { get; set; }
             [Key(3)] public Vector3IntMessagePack FromPolePos { get; set; }
             [Key(4)] public PlaceInfoMessagePack PolePlaceInfo { get; set; }
-            [Key(5)] public int PlayerId { get; set; }
-            [Key(6)] public int PoleBlockIdInt { get; set; }
-            [Key(7)] public Guid ConnectToolGuid { get; set; }
+            [Key(5)] public int PoleBlockIdInt { get; set; }
+            [Key(6)] public Guid ConnectToolGuid { get; set; }
 
             [IgnoreMember] public Vector3Int FromPolePosVector => FromPolePos;
             [IgnoreMember] public BlockId PoleBlockId => new(PoleBlockIdInt);
@@ -126,27 +125,27 @@ namespace Server.Protocol.PacketResponse
                 Tag = GearChainPoleExtendProtocol.Tag;
             }
 
-            public static GearChainPoleExtendRequest CreateExtendRequest(int playerId, Vector3Int fromPolePos, BlockId poleBlockId, PlaceInfo polePlaceInfo, Guid connectToolGuid)
+            public static GearChainPoleExtendRequest CreateExtendRequest(Vector3Int fromPolePos, BlockId poleBlockId, PlaceInfo polePlaceInfo, Guid connectToolGuid)
             {
                 return new GearChainPoleExtendRequest
                 {
                     HasFromPole = true,
                     FromPolePos = new Vector3IntMessagePack(fromPolePos),
                     PolePlaceInfo = new PlaceInfoMessagePack(polePlaceInfo),
-                    PlayerId = playerId,
+
                     PoleBlockIdInt = poleBlockId.AsPrimitive(),
                     ConnectToolGuid = connectToolGuid,
                 };
             }
 
-            public static GearChainPoleExtendRequest CreateIsolatedPlaceRequest(int playerId, BlockId poleBlockId, PlaceInfo polePlaceInfo)
+            public static GearChainPoleExtendRequest CreateIsolatedPlaceRequest(BlockId poleBlockId, PlaceInfo polePlaceInfo)
             {
                 return new GearChainPoleExtendRequest
                 {
                     HasFromPole = false,
                     FromPolePos = new Vector3IntMessagePack(Vector3Int.zero),
                     PolePlaceInfo = new PlaceInfoMessagePack(polePlaceInfo),
-                    PlayerId = playerId,
+
                     PoleBlockIdInt = poleBlockId.AsPrimitive(),
                     ConnectToolGuid = Guid.Empty,
                 };

@@ -1,20 +1,11 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using Core.Item.Interface;
-using Game.Construction;
-using Game.Entity.Interface;
-using Game.Hotbar;
-using Game.PlayerConnection;
 using Game.PlayerInventory.Interface;
 using Game.PlayerRiding.Interface;
-using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
-using Server.Event;
 using Server.Event.EventReceive;
+using Server.Protocol.PacketResponse.Handshake;
 using Server.Util.MessagePack;
-using UnityEngine;
 using static Server.Event.EventReceive.ItemStackLevelUnlockEventPacket;
 
 namespace Server.Protocol.PacketResponse
@@ -22,126 +13,46 @@ namespace Server.Protocol.PacketResponse
     public class InitialHandshakeProtocol : IPacketResponse
     {
         public const string ProtocolTag = "va:initialHandshake";
-        
-        private readonly IEntitiesDatastore _entitiesDatastore;
-        private readonly IEntityFactory _entityFactory;
-        private readonly IWorldSettingsDatastore _worldSettingsDatastore;
-        private readonly PlayerConnectionRegistry _connectionRegistry;
-        private readonly IPlayerRidingDatastore _playerRidingDatastore;
-        private readonly EventProtocolProvider _eventProtocolProvider;
-        private readonly IItemStackLevelLookup _itemStackLevelLookup;
-        private readonly IHotbarAssignmentLookup _hotbarAssignmentLookup;
-        private readonly IRemainingPlacementCountLookup _remainingPlacementCountLookup;
+        private readonly InitialHandshakeBinding _binding;
+        private readonly InitialHandshakeResponseFactory _responseFactory;
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
 
         public InitialHandshakeProtocol(ServiceProvider serviceProvider)
         {
-            _itemStackLevelLookup = serviceProvider.GetService<IItemStackLevelLookup>();
-            _entitiesDatastore = serviceProvider.GetService<IEntitiesDatastore>();
-            _entityFactory = serviceProvider.GetService<IEntityFactory>();
-            _worldSettingsDatastore = serviceProvider.GetService<IWorldSettingsDatastore>();
-            _connectionRegistry = (PlayerConnectionRegistry)serviceProvider.GetService<IPlayerConnectionChecker>();
-            _playerRidingDatastore = serviceProvider.GetService<IPlayerRidingDatastore>();
-            _eventProtocolProvider = serviceProvider.GetService<EventProtocolProvider>();
-            _hotbarAssignmentLookup = serviceProvider.GetService<IHotbarAssignmentLookup>();
-            _remainingPlacementCountLookup = serviceProvider.GetService<IRemainingPlacementCountLookup>();
+            _binding = new InitialHandshakeBinding(serviceProvider);
+            _responseFactory = new InitialHandshakeResponseFactory(serviceProvider);
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
         }
-        
+
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
         {
+            // 接続確定まで身元の登録と初期装備の付与を保留する
+            // Defer identity registration and initial equipment until the connection binds
             var data = MessagePackSerializer.Deserialize<RequestInitialHandshakeMessagePack>(payload);
-            _connectionRegistry.Register(data.PlayerId);
-            _eventProtocolProvider.RegisterPlayer(data.PlayerId, context.EventSink);
-            if (!context.TryBindPlayerId(data.PlayerId))
-            {
-                // handshake処理中に切断済み。登録を巻き戻してsink/登録の永久残留を防ぐ
-                // Connection closed mid-handshake: roll back registrations to avoid a leaked sink
-                _eventProtocolProvider.UnregisterPlayer(data.PlayerId, context.EventSink);
-                _connectionRegistry.Unregister(data.PlayerId);
-            }
+            var rejection = _binding.Bind(data.PlayerIdentity, context, out var playerId);
+            if (rejection != HandshakeRejection.None) return ResponseInitialHandshakeMessagePack.Rejected(rejection);
 
-            // 初期装備は新規プレイヤーの接続確定時にだけ配る。インベントリ取得は副作用を持たない
-            // The initial equipment is granted only when a brand-new player connects; fetching an inventory has no side effect
-            _playerInventoryDataStore.GrantInitialEquipmentIfNewPlayer(data.PlayerId);
-
-            var response = CreateResponse();
-
-            return response;
-
-            #region Internal
-
-            ResponseInitialHandshakeMessagePack CreateResponse()
-            {
-                // 乗り物に乗っているかどうかの状態の取得
-                // Get the riding state if the player is currently riding something.
-                RidableIdentifierMessagePack ridingTarget = null;
-                var ridingSeatIndex = -1;
-                if (_playerRidingDatastore.EvaluateOnLogin(data.PlayerId)
-                    && _playerRidingDatastore.TryGetRidingState(data.PlayerId, out var state))
-                {
-                    ridingTarget = state.Identifier.ToMessagePack();
-                    ridingSeatIndex = state.SeatIndex;
-                }
-                
-                var playerPos = GetPlayerPosition(new EntityInstanceId(data.PlayerId));
-
-                // 解放済みスタックレベルを初期データとして同梱する
-                // Bundle unlocked stack levels as part of the initial data
-                var itemStackLevels = _itemStackLevelLookup.UnlockedLevels
-                    .Select(level => new ItemStackLevelMessagePack(level.Key, level.Value))
-                    .ToArray();
-
-                // ホットバー割当も初期データとして同梱し、ログイン後の追加往復とnull経路をなくす
-                // Bundle the hotbar assignments too, removing the extra post-login round trip and its null path
-                var hotbarAssignments = _hotbarAssignmentLookup.GetAssignments(data.PlayerId).ToArray();
-
-                // 残り設置数も初期データとして同梱し、ログイン直後からプレビュー・表示に使えるようにする
-                // Bundle remaining placements as initial data so previews and displays work right after login
-                var remainingPlacementCounts = _remainingPlacementCountLookup.GetRemainingCounts(data.PlayerId)
-                    .Select(pair => new RemainingPlacementCountChangedEventPacket.RemainingPlacementCountMessagePack(pair.walletBlockId.AsPrimitive(), pair.remainingCount))
-                    .ToArray();
-
-                return new ResponseInitialHandshakeMessagePack(playerPos, ridingTarget, ridingSeatIndex, itemStackLevels, hotbarAssignments, remainingPlacementCounts);
-            }
-            
-            Vector3MessagePack GetPlayerPosition(EntityInstanceId playerId)
-            {
-                if (_entitiesDatastore.Exists(playerId))
-                {
-                    //プレイヤーがいるのでセーブされた座標を返す
-                    var pos = _entitiesDatastore.GetPosition(playerId);
-                    return new Vector3MessagePack(pos.x, pos.y, pos.z);
-                }
-                
-                var spawnPoint = _worldSettingsDatastore.WorldSpawnPoint;
-                var playerEntity = _entityFactory.CreateEntity(VanillaEntityType.VanillaPlayer, playerId, spawnPoint);
-                _entitiesDatastore.Add(playerEntity);
-                
-                //プレイヤーのデータがなかったのでスポーン地点を取得する
-                return new Vector3MessagePack(spawnPoint);
-            }
-
-            #endregion
+            // 復元済みの持ち物は維持し、初期データを返す
+            // Preserve restored inventories and return the initial state
+            _playerInventoryDataStore.GrantInitialEquipmentIfNewPlayer(playerId);
+            return _responseFactory.CreateResponse(playerId);
         }
-        
+
         [MessagePackObject]
         public class RequestInitialHandshakeMessagePack : ProtocolMessagePackBase
         {
-            [Key(2)] public int PlayerId { get; set; }
-            [Key(3)] public string PlayerName { get; set; }
-            
+            [Key(2)] public string PlayerIdentity { get; set; }
+
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public RequestInitialHandshakeMessagePack() { }
-            
-            public RequestInitialHandshakeMessagePack(int playerId, string playerName)
+
+            public RequestInitialHandshakeMessagePack(string playerIdentity)
             {
                 Tag = ProtocolTag;
-                PlayerId = playerId;
-                PlayerName = playerName;
+                PlayerIdentity = playerIdentity;
             }
         }
-        
+
         [MessagePackObject]
         public class ResponseInitialHandshakeMessagePack : ProtocolMessagePackBase
         {
@@ -153,6 +64,9 @@ namespace Server.Protocol.PacketResponse
             [Key(7)] public Guid[] HotbarAssignments { get; set; }
             [Key(8)] public RemainingPlacementCountChangedEventPacket.RemainingPlacementCountMessagePack[] RemainingPlacementCounts { get; set; }
 
+            [Key(9)] public int PlayerId { get; set; }
+            [Key(10)] public HandshakeRejection Rejection { get; set; }
+
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public ResponseInitialHandshakeMessagePack() { }
 
@@ -162,7 +76,8 @@ namespace Server.Protocol.PacketResponse
                 int ridingSeatIndex,
                 ItemStackLevelMessagePack[] itemStackLevels,
                 Guid[] hotbarAssignments,
-                RemainingPlacementCountChangedEventPacket.RemainingPlacementCountMessagePack[] remainingPlacementCounts)
+                RemainingPlacementCountChangedEventPacket.RemainingPlacementCountMessagePack[] remainingPlacementCounts,
+                int playerId)
             {
                 Tag = ProtocolTag;
                 PlayerPos = playerPos;
@@ -172,6 +87,18 @@ namespace Server.Protocol.PacketResponse
                 ItemStackLevels = itemStackLevels;
                 HotbarAssignments = hotbarAssignments;
                 RemainingPlacementCounts = remainingPlacementCounts;
+                PlayerId = playerId;
+                Rejection = HandshakeRejection.None;
+            }
+
+            public static ResponseInitialHandshakeMessagePack Rejected(HandshakeRejection rejection)
+            {
+                return new ResponseInitialHandshakeMessagePack(null, null, -1,
+                    Array.Empty<ItemStackLevelMessagePack>(), Array.Empty<Guid>(),
+                    Array.Empty<RemainingPlacementCountChangedEventPacket.RemainingPlacementCountMessagePack>(), 0)
+                {
+                    Rejection = rejection,
+                };
             }
 
             [IgnoreMember] public bool HasRidingState => RidingStateType == InitialHandshakeRidingStateType.Restored;

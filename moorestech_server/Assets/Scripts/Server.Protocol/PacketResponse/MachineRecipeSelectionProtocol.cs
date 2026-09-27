@@ -40,7 +40,7 @@ namespace Server.Protocol.PacketResponse
 
             // 返却先にリクエスト元インベントリを渡す
             // Pass the requesting player's main inventory as the refund overflow target
-            var playerInventory = _playerInventoryDataStore.GetInventoryData(request.PlayerId).MainOpenableInventory;
+            var playerInventory = _playerInventoryDataStore.GetInventoryData(context.PlayerId.Value).MainOpenableInventory;
 
             switch (request.Operation)
             {
@@ -91,30 +91,29 @@ namespace Server.Protocol.PacketResponse
             [Key(2)] public Vector3IntMessagePack Position { get; set; }
             [Key(3)] public MachineRecipeSelectionOperation Operation { get; set; }
             [Key(4)] public string MachineRecipeGuidStr { get; set; }
-            [Key(5)] public int PlayerId { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public MachineRecipeSelectionRequest() { Tag = ProtocolTag; }
 
             // Operationごとに必要フィールドのみ設定
             // Private constructor; static factories below set only the fields each Operation needs
-            private MachineRecipeSelectionRequest(Vector3Int position, MachineRecipeSelectionOperation operation, string machineRecipeGuidStr, int playerId)
+            private MachineRecipeSelectionRequest(Vector3Int position, MachineRecipeSelectionOperation operation, string machineRecipeGuidStr)
             {
                 Tag = ProtocolTag;
                 Position = new Vector3IntMessagePack(position);
                 Operation = operation;
                 MachineRecipeGuidStr = machineRecipeGuidStr;
-                PlayerId = playerId;
+
             }
 
-            public static MachineRecipeSelectionRequest CreateSetRecipeRequest(Vector3Int position, Guid machineRecipeGuid, int playerId)
+            public static MachineRecipeSelectionRequest CreateSetRecipeRequest(Vector3Int position, Guid machineRecipeGuid)
             {
-                return new MachineRecipeSelectionRequest(position, MachineRecipeSelectionOperation.SetRecipe, machineRecipeGuid.ToString(), playerId);
+                return new MachineRecipeSelectionRequest(position, MachineRecipeSelectionOperation.SetRecipe, machineRecipeGuid.ToString());
             }
 
-            public static MachineRecipeSelectionRequest CreateClearRequest(Vector3Int position, int playerId)
+            public static MachineRecipeSelectionRequest CreateClearRequest(Vector3Int position)
             {
-                return new MachineRecipeSelectionRequest(position, MachineRecipeSelectionOperation.Clear, Guid.Empty.ToString(), playerId);
+                return new MachineRecipeSelectionRequest(position, MachineRecipeSelectionOperation.Clear, Guid.Empty.ToString());
             }
         }
 

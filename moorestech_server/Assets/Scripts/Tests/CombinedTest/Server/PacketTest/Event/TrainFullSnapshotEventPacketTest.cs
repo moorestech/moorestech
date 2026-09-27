@@ -22,7 +22,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var sink = new CapturedEventSink();
             var context = new PacketResponseContext(sink);
 
-            var handshake = MessagePackSerializer.Serialize(new InitialHandshakeProtocol.RequestInitialHandshakeMessagePack(0, "Player 0"));
+            var handshake = MessagePackSerializer.Serialize(new InitialHandshakeProtocol.RequestInitialHandshakeMessagePack("steam:1"));
             var response = packetResponse.GetPacketResponse(handshake, context);
 
             // GetPacketResponseが返った時点でsinkに両snapshotが積まれている＝応答より先にワイヤへ載る
@@ -44,7 +44,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var before = trainUpdateService.GetCurrentTickSequenceId();
 
             var context = new PacketResponseContext(new CapturedEventSink());
-            var handshake = MessagePackSerializer.Serialize(new InitialHandshakeProtocol.RequestInitialHandshakeMessagePack(0, "Player 0"));
+            var handshake = MessagePackSerializer.Serialize(new InitialHandshakeProtocol.RequestInitialHandshakeMessagePack("steam:1"));
             packetResponse.GetPacketResponse(handshake, context);
 
             Assert.AreEqual(before, trainUpdateService.GetCurrentTickSequenceId());

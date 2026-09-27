@@ -102,7 +102,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         private static byte[] CreateRemovePayload(Vector3Int position)
         {
             return MessagePackSerializer.Serialize(
-                new RemoveBlockProtocol.RemoveBlockProtocolMessagePack(PlayerId, position));
+                new RemoveBlockProtocol.RemoveBlockProtocolMessagePack(position));
         }
 
         private sealed class ProtocolEntry : ITickEndPacketEntry
@@ -120,7 +120,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             public void Process()
             {
-                Responses.AddRange(_packet.GetPacketResponse(_payload, new PacketResponseContext(null)));
+                Responses.AddRange(_packet.GetPacketResponse(_payload, Tests.Util.BoundPacketContext.Bind(PlayerId)));
             }
         }
     }

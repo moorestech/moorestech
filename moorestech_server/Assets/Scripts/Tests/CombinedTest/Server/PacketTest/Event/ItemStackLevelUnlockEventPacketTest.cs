@@ -16,6 +16,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 {
     public class ItemStackLevelUnlockEventPacketTest
     {
+        private const int PlayerId = 1;
         // 研究完了によるスタックレベル解放がイベントとして配信される
         // Stack level unlocks from research completion are broadcast as events
         [Test]
@@ -53,7 +54,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             serviceProvider.GetService<IWorldSettingsDatastore>().Initialize(serviceProvider.GetService<MapInfoJson>());
             serviceProvider.GetService<IResearchDataStore>().CompleteResearch(StackUpgradeResearchGuid, PlayerId);
 
-            var handshakeRequest = MessagePackSerializer.Serialize(new InitialHandshakeProtocol.RequestInitialHandshakeMessagePack(PlayerId, "test player"));
+            var handshakeRequest = MessagePackSerializer.Serialize(new InitialHandshakeProtocol.RequestInitialHandshakeMessagePack("steam:1"));
             var response = packetResponse.GetPacketResponse(handshakeRequest, new PacketResponseContext(null))[0];
             var handshakeResponse = MessagePackSerializer.Deserialize<InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack>(response);
 

@@ -32,7 +32,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             UnlockBlock(serviceProvider, belt);
             SetItem(inventory, 0, Material1Guid, 1);
             SetItem(inventory, 1, Material2Guid, 1);
-            packet.GetPacketResponse(CreatePlaceBlockPayload(belt, (10, 0), (11, 0), (12, 0)), new PacketResponseContext(null));
+            packet.GetPacketResponse(CreatePlaceBlockPayload(belt, (10, 0), (11, 0), (12, 0)), Tests.Util.BoundPacketContext.Bind(PlayerId));
             Assert.AreEqual(0, GetItemCount(inventory, Material1Guid));
             var lookup = serviceProvider.GetService<IRemainingPlacementCountLookup>();
 
@@ -59,7 +59,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             UnlockBlock(serviceProvider, belt);
             SetItem(inventory, 0, Material1Guid, 1);
             SetItem(inventory, 1, Material2Guid, 1);
-            packet.GetPacketResponse(CreatePlaceBlockPayload(belt, (10, 0)), new PacketResponseContext(null));
+            packet.GetPacketResponse(CreatePlaceBlockPayload(belt, (10, 0)), Tests.Util.BoundPacketContext.Bind(PlayerId));
             var lookup = serviceProvider.GetService<IRemainingPlacementCountLookup>();
 
             // 1本設置で素材1セット消費、財布はN-1
@@ -86,7 +86,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             UnlockBlock(serviceProvider, belt);
             SetItem(inventory, 0, Material1Guid, 1);
             SetItem(inventory, 1, Material2Guid, 1);
-            packet.GetPacketResponse(CreatePlaceBlockPayload(belt, (10, 0)), new PacketResponseContext(null));
+            packet.GetPacketResponse(CreatePlaceBlockPayload(belt, (10, 0)), Tests.Util.BoundPacketContext.Bind(PlayerId));
             var mutation = serviceProvider.GetService<IRemainingPlacementCountMutation>();
             mutation.ConsumeOne(PlayerId, belt); mutation.ConsumeOne(PlayerId, belt); // 残り0にする
 
@@ -109,7 +109,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var inventory = GetInventory(serviceProvider);
             SetItem(inventory, 0, Material1Guid, 2);
             SetItem(inventory, 1, Material2Guid, 1);
-            packet.GetPacketResponse(CreatePlaceBlockPayload(ForUnitTestModBlockId.BlockId, (10, 0)), new PacketResponseContext(null));
+            packet.GetPacketResponse(CreatePlaceBlockPayload(ForUnitTestModBlockId.BlockId, (10, 0)), Tests.Util.BoundPacketContext.Bind(PlayerId));
 
             Remove(packet, new Vector3Int(10, 0));
 
@@ -119,8 +119,8 @@ namespace Tests.CombinedTest.Server.PacketTest
 
         private static void Remove(PacketResponseCreator packet, Vector3Int pos)
         {
-            var payload = MessagePackSerializer.Serialize(new RemoveBlockProtocol.RemoveBlockProtocolMessagePack(PlayerId, pos));
-            packet.GetPacketResponse(payload, new PacketResponseContext(null));
+            var payload = MessagePackSerializer.Serialize(new RemoveBlockProtocol.RemoveBlockProtocolMessagePack(pos));
+            packet.GetPacketResponse(payload, Tests.Util.BoundPacketContext.Bind(PlayerId));
         }
     }
 }

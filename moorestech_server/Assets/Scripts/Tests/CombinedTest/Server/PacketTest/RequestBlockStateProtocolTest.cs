@@ -31,14 +31,14 @@ namespace Tests.CombinedTest.Server.PacketTest
             worldBlock.TryAddBlock(ForUnitTestModBlockId.MachineId, blockPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
             
             // イベントキューをクリア
-            var playerId = 0;
+            var playerId = 1;
             var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, playerId);
             sink.TakeAll();
             
             // Act
             var request = new RequestBlockStateProtocolMessagePack(blockPosition);
             var payload = MessagePackSerializer.Serialize(request);
-            var response = packet.GetPacketResponse(payload, new PacketResponseContext(null));
+            var response = packet.GetPacketResponse(payload, Tests.Util.BoundPacketContext.Bind(1));
             
             // Assert
             // プロトコルがnullを返すため、レスポンスが空になることを確認
@@ -63,14 +63,14 @@ namespace Tests.CombinedTest.Server.PacketTest
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var blockPosition = new Vector3Int(100, 200, 300); // 存在しない座標
-            var playerId = 0;
+            var playerId = 1;
             var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, playerId);
             sink.TakeAll();
             
             // Act
             var request = new RequestBlockStateProtocolMessagePack(blockPosition);
             var payload = MessagePackSerializer.Serialize(request);
-            var response = packet.GetPacketResponse(payload, new PacketResponseContext(null));
+            var response = packet.GetPacketResponse(payload, Tests.Util.BoundPacketContext.Bind(1));
             
             // Assert
             // プロトコルがnullを返すため、レスポンスが空になることを確認

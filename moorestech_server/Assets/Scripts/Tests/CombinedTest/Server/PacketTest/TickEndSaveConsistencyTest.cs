@@ -34,7 +34,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // 設置→保存要求の順で処理し、保存はこの時点では実行されない（要求のみ）
             // Process placement then the save request; the save itself is only requested at this point
-            var context = new PacketResponseContext(null);
+            var context = Tests.Util.BoundPacketContext.Bind(PlayerId);
             packet.GetPacketResponse(CreatePlaceBlockPayload(ForUnitTestModBlockId.BlockId, (60, 0)), context);
             packet.GetPacketResponse(MessagePackSerializer.Serialize(new SaveProtocol.SaveProtocolMessagePack()), context);
             Assert.IsFalse(File.Exists(savePath));

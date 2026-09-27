@@ -18,7 +18,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 {
     public class PlayerMainInventoryUpdateTest
     {
-        private const int PlayerId = 0;
+        private const int PlayerId = 1;
         
         [Test]
         public void UpdateTest()
@@ -29,7 +29,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             Assert.AreEqual(0, sink.TakeAll().Count);
             
             //インベントリにアイテムを追加
-            var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0);
+            var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
             var itemStackFactory = ServerContext.ItemStackFactory;
             playerInventoryData.MainOpenableInventory.SetItem(5, itemStackFactory.Create(new ItemId(1), 5));
             
@@ -44,8 +44,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             //インベントリ内のアイテムの移動を実際に移動のプロトコルを用いてテストする
             //分割のイベントのテスト
-            packetResponse.GetPacketResponse(PlayerInventoryItemMove(true, 5, 3), new PacketResponseContext(null));
-            packetResponse.GetPacketResponse(PlayerInventoryItemMove(false, 4, 3), new PacketResponseContext(null));
+            packetResponse.GetPacketResponse(PlayerInventoryItemMove(true, 5, 3), Tests.Util.BoundPacketContext.Bind(PlayerId));
+            packetResponse.GetPacketResponse(PlayerInventoryItemMove(false, 4, 3), Tests.Util.BoundPacketContext.Bind(PlayerId));
             
             events = sink.TakeAll();
             
@@ -71,8 +71,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             
             //合成のテスト
-            packetResponse.GetPacketResponse(PlayerInventoryItemMove(true, 4, 3), new PacketResponseContext(null));
-            packetResponse.GetPacketResponse(PlayerInventoryItemMove(false, 5, 3), new PacketResponseContext(null));
+            packetResponse.GetPacketResponse(PlayerInventoryItemMove(true, 4, 3), Tests.Util.BoundPacketContext.Bind(PlayerId));
+            packetResponse.GetPacketResponse(PlayerInventoryItemMove(false, 5, 3), Tests.Util.BoundPacketContext.Bind(PlayerId));
             
             events = sink.TakeAll();
             
@@ -102,15 +102,15 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             InventoryItemMoveProtocolMessagePack messagePack;
             if (toGrab)
             {
-                var from = CreateMainMessage(PlayerId);
-                var to = CreateGrabMessage(PlayerId);
+                var from = CreateMainMessage();
+                var to = CreateGrabMessage();
                 messagePack = new InventoryItemMoveProtocolMessagePack(itemCount, ItemMoveType.SwapSlot,
                     from, inventorySlot, to, 0);
             }
             else
             {
-                var from = CreateGrabMessage(PlayerId);
-                var to = CreateMainMessage(PlayerId);
+                var from = CreateGrabMessage();
+                var to = CreateMainMessage();
                 messagePack = new InventoryItemMoveProtocolMessagePack(itemCount, ItemMoveType.SwapSlot,
                     from, 0, to, inventorySlot);
             }

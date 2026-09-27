@@ -18,8 +18,8 @@ namespace Tests.CombinedTest.Server.Replay
             var dir = Path.Combine(Path.GetTempPath(), $"moorestech-dump-{Guid.NewGuid():N}");
             var log = new ReceivedPacketLog();
             log.Start(dir, 1);
-            log.Append(5, MessagePackSerializer.Serialize(new SaveProtocol.SaveProtocolMessagePack()));
-            log.Append(7, MessagePackSerializer.Serialize(BugReportCaptureProtocol.BugReportCaptureRequest.CreateCaptureNowRequest()));
+            log.Append(5, 2, MessagePackSerializer.Serialize(new SaveProtocol.SaveProtocolMessagePack()));
+            log.Append(7, 0, MessagePackSerializer.Serialize(BugReportCaptureProtocol.BugReportCaptureRequest.CreateCaptureNowRequest()));
             log.Flush();
 
             var output = Path.Combine(dir, "packets.jsonl");
@@ -27,6 +27,8 @@ namespace Tests.CombinedTest.Server.Replay
             Assert.AreEqual(2, count);
             var lines = File.ReadAllLines(output).Select(JObject.Parse).ToList();
             Assert.AreEqual(5UL, (ulong)lines[0]["tick"]);
+            Assert.AreEqual(2, (int)lines[0]["playerId"]);
+            Assert.AreEqual(0, (int)lines[1]["playerId"]);
             Assert.AreEqual(SaveProtocol.ProtocolTag, (string)lines[0]["tag"]);
             Assert.AreEqual(BugReportCaptureProtocol.ProtocolTag, (string)lines[1]["tag"]);
             Assert.IsTrue(lines[1]["json"].ToString().Contains("va:bugReportCapture"));

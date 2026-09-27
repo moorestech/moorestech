@@ -33,7 +33,7 @@ namespace Server.Protocol.PacketResponse
             // 再生済みスキットリストのイベントを送信
             var eventData = new SkitRegisterEventPacket.SkitRegisterEventMessagePack(info.PlayedSkitIds);
             var eventPayload = MessagePackSerializer.Serialize(eventData);
-            _eventProtocolProvider.AddEvent(data.PlayerId, SkitRegisterEventPacket.EventTag, eventPayload);
+            _eventProtocolProvider.AddEvent(context.PlayerId.Value, SkitRegisterEventPacket.EventTag, eventPayload);
             
             return null;
         }
@@ -41,16 +41,14 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class RegisterPlayedSkitMessagePack : ProtocolMessagePackBase
         {
-            [Key(2)] public int PlayerId { get; set; }
-            [Key(3)] public string SkitId { get; set; }
+            [Key(2)] public string SkitId { get; set; }
             
             [System.Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public RegisterPlayedSkitMessagePack() { }
             
-            public RegisterPlayedSkitMessagePack(int playerId, string skitId)
+            public RegisterPlayedSkitMessagePack(string skitId)
             {
                 Tag = ProtocolTag;
-                PlayerId = playerId;
                 SkitId = skitId;
             }
         }

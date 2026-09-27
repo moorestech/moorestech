@@ -109,14 +109,14 @@ namespace Tests.CombinedTest.Server.PacketTest.Construction
                     BlockId = blockId,
                 },
             };
-            var payload = MessagePackSerializer.Serialize(new PlaceBlockProtocol.SendPlaceBlockProtocolMessagePack(playerId, placeInfos));
-            packet.GetPacketResponse(payload, new PacketResponseContext(null));
+            var payload = MessagePackSerializer.Serialize(new PlaceBlockProtocol.SendPlaceBlockProtocolMessagePack(placeInfos));
+            packet.GetPacketResponse(payload, Tests.Util.BoundPacketContext.Bind(playerId));
         }
 
         private static void Remove(PacketResponseCreator packet, int playerId)
         {
-            var payload = MessagePackSerializer.Serialize(new RemoveBlockProtocol.RemoveBlockProtocolMessagePack(playerId, PlacePosition));
-            packet.GetPacketResponse(payload, new PacketResponseContext(null));
+            var payload = MessagePackSerializer.Serialize(new RemoveBlockProtocol.RemoveBlockProtocolMessagePack(PlacePosition));
+            packet.GetPacketResponse(payload, Tests.Util.BoundPacketContext.Bind(playerId));
         }
 
         private static IOpenableInventory GetPlayerInventory(ServiceProvider serviceProvider, int playerId)

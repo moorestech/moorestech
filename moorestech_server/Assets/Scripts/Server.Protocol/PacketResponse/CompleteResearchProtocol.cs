@@ -26,8 +26,8 @@ namespace Server.Protocol.PacketResponse
             var request = MessagePackSerializer.Deserialize<RequestCompleteResearchMessagePack>(payload);
 
             // 研究完了を試みる
-            var isSuccess = _researchDataStore.CompleteResearch(request.ResearchGuid, request.PlayerId);
-            var nodeStates = _researchDataStore.GetResearchNodeStates(request.PlayerId);
+            var isSuccess = _researchDataStore.CompleteResearch(request.ResearchGuid, context.PlayerId.Value);
+            var nodeStates = _researchDataStore.GetResearchNodeStates(context.PlayerId.Value);
 
             // 完了済みは二重通知を抑制
             // Skip notify if already completed
@@ -35,7 +35,7 @@ namespace Server.Protocol.PacketResponse
 
             // 失敗は通知基盤で知らせる
             // Report failure via the notification service
-            if (!isSuccess && !alreadyCompleted) _notificationService.Notify(request.PlayerId, NotificationMessagePack.CreateOperationDenied("denied.researchNotCompletable", Array.Empty<string>()));
+            if (!isSuccess && !alreadyCompleted) _notificationService.Notify(context.PlayerId.Value, NotificationMessagePack.CreateOperationDenied("denied.researchNotCompletable", Array.Empty<string>()));
 
             return new ResponseCompleteResearchMessagePack(isSuccess, request.ResearchGuid.ToString(), nodeStates);
         }
@@ -45,8 +45,7 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class RequestCompleteResearchMessagePack : ProtocolMessagePackBase
         {
-            [Key(2)] public int PlayerId { get; set; }
-            [Key(3)] public string ResearchGuidStr { get; set; }
+            [Key(2)] public string ResearchGuidStr { get; set; }
             [IgnoreMember] public Guid ResearchGuid => Guid.Parse(ResearchGuidStr);
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
@@ -54,10 +53,9 @@ namespace Server.Protocol.PacketResponse
             {
             }
 
-            public RequestCompleteResearchMessagePack(int playerId, Guid researchGuid)
+            public RequestCompleteResearchMessagePack(Guid researchGuid)
             {
                 Tag = ProtocolTag;
-                PlayerId = playerId;
                 ResearchGuidStr = researchGuid.ToString();
             }
         }
