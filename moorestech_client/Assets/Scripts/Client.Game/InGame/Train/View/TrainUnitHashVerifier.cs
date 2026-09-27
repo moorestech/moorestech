@@ -1,27 +1,20 @@
-using System;
-using System.Threading;
 using Client.Game.InGame.Train.Network;
 using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.Train.Unit;
-using UniRx;
 using UnityEngine;
 
 namespace Client.Game.InGame.Train.View
 {
     // Train/Railのhash gate判定を担当する
     // Handles train/rail hash gate checks.
-    public sealed class TrainUnitHashVerifier : ITrainUnitHashTickGate, IDisposable
+    public sealed class TrainUnitHashVerifier : ITrainUnitHashTickGate
     {
         private readonly TrainUnitFutureMessageBuffer _futureMessageBuffer;
         private readonly TrainUnitClientCache _trainCache;
         private readonly RailGraphClientCache _railGraphCache;
         private readonly TrainUnitTickState _tickState;
-        private readonly IDisposable _fullSnapshotSubscription;
-        private CancellationTokenSource _resyncCancellation;
-        private int _resyncInProgress;
 
         public TrainUnitHashVerifier(
-            TrainFullSnapshotEventNetworkHandler fullSnapshotEventNetworkHandler,
             TrainUnitFutureMessageBuffer futureMessageBuffer,
             TrainUnitClientCache trainCache,
             RailGraphClientCache railGraphCache,
@@ -31,47 +24,10 @@ namespace Client.Game.InGame.Train.View
             _trainCache = trainCache;
             _railGraphCache = railGraphCache;
             _tickState = tickState;
-
-            // full snapshot適用完了でresyncゲートを解除する（適用自体はhandlerが担う）
-            // Release the resync gate on full-snapshot application; the handler owns the apply itself
-            _fullSnapshotSubscription = fullSnapshotEventNetworkHandler.OnFullSnapshotApplied.Subscribe(_ => ReleaseResyncGate());
-        }
-
-        private void ReleaseResyncGate()
-        {
-            var cts = Interlocked.Exchange(ref _resyncCancellation, null);
-            cts?.Dispose();
-            Interlocked.Exchange(ref _resyncInProgress, 0);
-        }
-
-        public void Dispose()
-        {
-            _fullSnapshotSubscription?.Dispose();
-            CancelResync();
-
-            #region Internal
-
-            void CancelResync()
-            {
-                // 終了時に進行中の再同期処理をキャンセルする
-                // Cancel any in-flight resync operation during shutdown
-                var cts = Interlocked.Exchange(ref _resyncCancellation, null);
-                if (cts == null)
-                    return;
-                cts.Cancel();
-                cts.Dispose();
-                Interlocked.Exchange(ref _resyncInProgress, 0);
-            }
-
-            #endregion
         }
 
         public bool CanAdvanceTick(ulong currentTickUnifiedId)
         {
-            // 不整合ゲートが閉じている間はtick進行を止める
-            // Stop simulation advance while the mismatch gate is closed
-            if (Interlocked.CompareExchange(ref _resyncInProgress, 0, 0) == 1)
-                return false;
             // 古いhashはバッファから捨てる
             // Discard any stale hashes that are older than the current tick
             _futureMessageBuffer.DiscardHashesOlderThan(currentTickUnifiedId);
@@ -90,8 +46,7 @@ namespace Client.Game.InGame.Train.View
                 return true;
             }
             
-            var isVerified = ValidateCurrentTickHash();
-            return isVerified && Interlocked.CompareExchange(ref _resyncInProgress, 0, 0) == 0;
+            return ValidateCurrentTickHash();
 
             #region Internal
 
@@ -118,9 +73,7 @@ namespace Client.Game.InGame.Train.View
                     $"[TrainUnitHashVerifier] Hash mismatch detected. tick={_tickState.GetTick()}, " +
                     $"train(client={localTrainHash}, server={message.unitsHash}), " +
                     $"rail(client={localRailGraphHash}, server={message.railGraphHash}), " +
-                    $"tickSequenceId={message.tickSequenceId}. Tick advancement stopped.");
-                if (Interlocked.CompareExchange(ref _resyncInProgress, 1, 0) == 1)
-                    return false;
+                    $"tickSequenceId={message.tickSequenceId}. Current tick hash validation failed.");
                 return false;
                 
                 bool IsDummyHash((uint unitsHash, uint railGraphHash, uint serverTick, uint tickSequenceId) hashState)

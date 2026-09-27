@@ -9,7 +9,6 @@ using Cysharp.Threading.Tasks;
 using Game.Train.Unit;
 using MessagePack;
 using Server.Event.EventReceive;
-using UniRx;
 using VContainer.Unity;
 using Debug = UnityEngine.Debug;
 
@@ -22,13 +21,8 @@ namespace Client.Game.InGame.Train.Network
         private readonly RailGraphSnapshotApplier _railGraphSnapshotApplier;
         private readonly TrainUnitSnapshotApplier _trainSnapshotApplier;
         private readonly TrainUnitFutureMessageBuffer _futureMessageBuffer;
-        private readonly Subject<ulong> _onFullSnapshotApplied = new();
         private IDisposable _railSubscription;
         private IDisposable _trainSubscription;
-
-        // full snapshot適用完了通知（resyncゲート解除に使用）
-        // Notifies full-snapshot application completion (used to release the resync gate)
-        public IObservable<ulong> OnFullSnapshotApplied => _onFullSnapshotApplied;
 
         // 適用完了の通知口。タスクを所有しないため完了ソースで表し、trainUnit適用で満了・rail/train片方の失敗で失格になる
         // Completion source for the apply: owning no task, it is fulfilled by the trainUnit apply and failed by either side
@@ -99,10 +93,9 @@ namespace Client.Game.InGame.Train.Network
                 _futureMessageBuffer.DiscardEventsAtOrBelow(watermarkId);
                 _futureMessageBuffer.DiscardHashesOlderThan(watermarkId);
 
-                // 適用完了を先に確定させる。OnNextは購読者を同期実行するため、購読者の例外で起動が失敗扱いになるのを防ぐ
-                // Settle the apply first: OnNext runs subscribers synchronously, so a subscriber throwing must not mark startup as failed
+                // snapshot適用と古いバッファの破棄を終えて初期同期を完了する
+                // Complete initial synchronization after applying the snapshot and purging stale buffers
                 _initialApplyCompletion.TrySetResult();
-                _onFullSnapshotApplied.OnNext(watermarkId);
             }
             catch (Exception applyException)
             {
