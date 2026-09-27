@@ -82,13 +82,13 @@ namespace Client.Game.InGame.UI.UIState.State
             return _subStateController.RequestClosePauseMenu();
         }
         
-        // 表示中のサブステートが宣言したヒントをそのまま返す
-        // Return the hints declared by whichever sub-state is currently showing
         public bool LocksPlayerMovement()
         {
             return false;
         }
 
+        // 表示中のサブステートが宣言したヒントをそのまま返す
+        // Return the hints declared by whichever sub-state is currently showing
         public IReadOnlyList<KeyHint> GetKeyHints()
         {
             return _subStateController.GetKeyHints();

@@ -16,7 +16,9 @@ namespace Client.Game.InGame.UI.UIState.State
 
         /// <summary>
         /// 滞在中に自機の移動（WASD・ジャンプ・ダッシュ）を止めるか。メニュー画面がtrue
+        /// true の集合はWeb UIの背景ディム画面族（uiScreenRouting.ts の backdrop）と揃える
         /// Whether player movement (WASD, jump, sprint) stops while this screen is open; true for menu screens
+        /// The true set mirrors the Web UI's dimmed-backdrop screens (backdrop in uiScreenRouting.ts)
         /// </summary>
         public bool LocksPlayerMovement();
 
