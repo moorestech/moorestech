@@ -34,7 +34,6 @@
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/View/TrainUnitHashVerifier.cs` — hash判定と待機理由通知。
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Unit/TrainUnitTickState.cs` — 受信位置、初期化、通常待機と永久待機の状態。
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Network/TrainUnitFutureMessageBuffer.cs` — 受信・適用位置の診断通知。並び順・古いメッセージ破棄の意味を維持。
-- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Network/TrainUnitTickDiffBundleEventNetworkHandler.cs`、`TrainUnitSnapshotEventNetworkHandler.cs`、`RailGraphCacheNetworkHandler.cs`、`RailGraphConnectionNetworkHandler.cs` — 既存のイベントタグをバッファへ渡し、履歴の受信種別を区別する。
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Network/TrainFullSnapshotEventNetworkHandler.cs` — 初回成功後の診断有効化。
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Unit/TrainUnitClientSimulator.cs` — 進行予算が0の間も欠落を観測し、通常待機では後着を再評価する。永久待機中は描画更新を続ける。
 - Modify: `moorestech_client/Assets/Scripts/Client.Starter/Registration/MainGameInteractionRegistration.cs` — 診断と保存先をDIへ登録。
@@ -88,7 +87,7 @@ Assert.AreEqual(beforeId, tickState.GetAppliedTickUnifiedId());
 
 検証ケース: 後続hashのみ/同tick1seq欠落/後続eventのみで即保存、空buffer/無通信中/初回snapshot前は保存なし、hash不一致の199対200tick境界、初回履歴の保持、同じ停止で一度、保存先がファイルで書けない、一致hashとdummy正常進行、正常な連続受信で誤警告・誤保存なし。確定停止後の大量受信でpayload保持数が0、履歴が256件以下、適用IDが固定されることを確認する。通常待機の後着回復と、永久待機後にgateを再実行しないことを分けて確認する。PlayModeへ移行する軽量テストで複数フレームの列車待機中も別のフレームカウンタが進むことを確認する。初回snapshot完了直後から一件も受信せず待機するケースを、実バッファ・gate・simulatorの駆動経路で検証する。
 
-履歴は到着履歴として、staleによる破棄や同じIDの上書きより前に記録する。種類は受信ハンドラから既存のイベントタグを明示して渡す。欠落時のserver hashは不明であり0やdummyを実測値として記録しない。missing通知とmismatch通知を別メソッドにして、存在しないhash値を要求しないAPIにする。
+履歴は到着履歴として、staleによる破棄や同じIDの上書きより前に記録する。欠落時のserver hashは不明であり0やdummyを実測値として記録しない。missing通知とmismatch通知を別メソッドにして、存在しないhash値を要求しないAPIにする。
 
 - [x] 親が `uloop compile --project-path ./moorestech_client` を実行し、該当TrainSynchronizationテストと既存のTrainFullSnapshotEventPacketTest・TrainFullSnapshotFailurePropagationTest・InitialEventApplyWaiterTest・InitialApplyTaskConcurrentAwaitTest・TrainUnitFutureMessageBufferTest・TrainUnitTickStateTestを絞って実行した。2026-09-28: 永久待機時のpayload解放まで反映し、compileエラー0件、警告136件（今回編集したC#ファイルからは0件）、対象テスト35/35成功。テスト項目の新規追加はせず、単純なタグ転送テスト1件を削除した。PlayMode遷移時のCLI接続断後、Unity保存XMLで全件完了を確認。
 - [x] branch・HEAD・対象ファイル一覧を確認し、検証済みの作業をfeatureへコミットする。Unityが更新した外部revision/pin差分は復元する。
