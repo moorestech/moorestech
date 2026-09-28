@@ -68,6 +68,8 @@ stdout は JSON だけ。stderr に PowerShell の進捗レコード（`#< CLIXM
   - 取得した箱（台帳1件つき）を一時 LOGS に置き `digest_collect.load_reports` を実行 → `remoteExec: 1`・`invalidManifest: 0`・集計対象 0 件（実データの箱で除外を確認。日次集計の本文表示までは見ていない）
 - Step 5（警告語 grep）: 全起動の Player.log で `[RemoteExec]`・`[WebUiHost]`・`[ServerThreadActionQueue]` 行に対し同じ語で grep し、意図した 404 拒否とトークン不一致の2件以外は0件
 
+- master 取り込み後（992ba2f0c）: ビルド要求が用途別の生成メソッドへ組み替わったため `PlayerBuildRequest.ForSteamPlaytest(StandaloneWindows64)` で焼き直し、`moorestech_Data/RemoteExec/0Harmony.dll` の同梱と、`--remoteExec` 起動での Harmony（`20,777777,20`）・server 実行の `Succeeded` を再確認した
+
 ## 未検証・残差
 - 対話操作（ポーズメニューからの報告送信・タイトルからの手動開始）での確認はしていない（検証機のロック画面のため）。
 - 実データでの日次集計（digest）の本文表示（読み込み段の除外は実データの箱で確認済み）。
