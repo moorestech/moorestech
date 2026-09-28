@@ -62,6 +62,13 @@ public static class LocalizationSettingsParser
                 throw new LocalizationCsvException("Language setting display name must not be empty");
             }
 
+            // コード重複はSteam列より先に
+            // Report duplicated codes first
+            if (!seenCodes.Add(code))
+            {
+                throw new LocalizationCsvException($"Duplicated language setting code: {code}");
+            }
+
             // 空要素と重複のSteam言語を拒否
             // Reject empty or duplicate Steam languages at input
             var steamLanguagesField = fields[2];
@@ -87,11 +94,6 @@ public static class LocalizationSettingsParser
                 {
                     throw new LocalizationCsvException($"Steam language {steamLanguage} is mapped to more than one language");
                 }
-            }
-
-            if (!seenCodes.Add(code))
-            {
-                throw new LocalizationCsvException($"Duplicated language setting code: {code}");
             }
 
             settings[recordIndex - 1] = new LanguageSetting(code, displayName, steamLanguages);

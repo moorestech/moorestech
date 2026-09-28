@@ -20,13 +20,13 @@ internal static class LanguageCatalogCodeEmitter
         builder.AppendLine("    {");
         builder.AppendLine("        public readonly string Code;");
         builder.AppendLine("        public readonly string DisplayName;");
-        builder.AppendLine("        public readonly string[] SteamLanguages;");
+        builder.AppendLine("        public readonly IReadOnlyList<string> SteamLanguages;");
         builder.AppendLine();
         builder.AppendLine("        public LanguageInfo(string code, string displayName, string[] steamLanguages)");
         builder.AppendLine("        {");
         builder.AppendLine("            Code = code;");
         builder.AppendLine("            DisplayName = displayName;");
-        builder.AppendLine("            SteamLanguages = steamLanguages;");
+        builder.AppendLine("            SteamLanguages = System.Array.AsReadOnly(steamLanguages);");
         builder.AppendLine("        }");
         builder.AppendLine("    }");
         builder.AppendLine();

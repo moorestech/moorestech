@@ -20,6 +20,23 @@ public class LanguageCatalogTest
         Assert.Contains("LanguageCatalog", code);
         Assert.Contains("日本語", code);
         Assert.Contains("new string[] { \"japanese\" }", code);
+        Assert.Contains("public readonly IReadOnlyList<string> SteamLanguages;", code);
+        Assert.Contains("SteamLanguages = System.Array.AsReadOnly(steamLanguages);", code);
+    }
+
+    [Fact]
+    public void 複数Steam言語が生成コードへ並ぶ()
+    {
+        const string dictionaryCsv = "key,Source,english,spanish\nui.a.b,x,x,y\n";
+        const string settingsCsv =
+            "lang_name,display_name,steam_languages\nenglish,English,english\nspanish,Español,spanish;latam\n";
+
+        var code = LocalizationCodeGenerator.Generate(
+            LocalizationCsvParser.Parse(dictionaryCsv),
+            LocalizationSettingsParser.Parse(settingsCsv),
+            System.Array.Empty<ContentKeyDefinition>());
+
+        Assert.Contains("new string[] { \"spanish\", \"latam\" }", code);
     }
 
     [Fact]
