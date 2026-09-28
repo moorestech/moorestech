@@ -56,6 +56,7 @@
   "description": "何のためのルールか（人間向けメモ）",
   "pattern": "正規表現（tool_input 全体に対して照合）",
   "flags": "i",                       // 任意。正規表現フラグ（例: 大文字小文字無視）
+  "filePattern": "\\.cs$",             // 任意。編集対象のファイルパスに対する正規表現。省略時は全ファイル
   "tools": ["Edit", "Write"],          // 任意。対象ツール限定。省略時は全編集ツール
   "message": "エージェントに流す文言"
 }
@@ -68,12 +69,14 @@
   "id": "no-async-void",
   "pattern": "async\\s+void",
   "flags": "",
+  "filePattern": "\\.cs$",
   "message": "⚠ async void を検出。Task 戻り値に変更し、例外が握り潰されないか確認してください。"
 }
 ```
 
 - `pattern` は JSON 文字列なのでバックスラッシュは `\\` でエスケープする。
 - 複数ルールが一致したら、各 message を空行区切りで連結して注入する。
+- コード向けのルールには `filePattern` を付ける。付けないと、その語を含む Markdown や HTML を書いただけで発火する。
 
 ## 確認
 
