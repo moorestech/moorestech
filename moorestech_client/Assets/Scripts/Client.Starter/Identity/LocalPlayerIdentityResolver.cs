@@ -21,8 +21,17 @@ namespace Client.Starter.Identity
             // 配布の種別は焼き込み値で決め、実行時のSteamの状態では決めない
             // The build kind comes from the baked value, never from runtime Steam state
             var origin = RepositoryStateProbe.ReadBuildOrigin();
+            return ResolveForBuildOrigin(origin, new PlaytestLocalSteamIdReader(), SystemInfo.deviceUniqueIdentifier);
+        }
+
+        internal static PlayerIdentityResolution ResolveForBuildOrigin(BuildOriginReading origin, IPlaytestLocalSteamIdReader steamReader, string deviceUniqueIdentifier)
+        {
+            if (origin.Kind == BuildOriginKind.BuildWithoutInfo)
+            {
+                return PlayerIdentityResolution.Refused(LocalizationKeys.Ui.Loading.BuildOriginUnavailable, $"build-info を読めないため身元を決められません: {origin.MissingReason}");
+            }
             var isSteamDistribution = origin.Kind == BuildOriginKind.BakedBuild && !string.IsNullOrEmpty(origin.BuildInfo.SteamBuildLabel);
-            return Resolve(isSteamDistribution, new PlaytestLocalSteamIdReader(), SystemInfo.deviceUniqueIdentifier);
+            return Resolve(isSteamDistribution, steamReader, deviceUniqueIdentifier);
         }
 
         public static PlayerIdentityResolution Resolve(bool isSteamDistributionBuild, IPlaytestLocalSteamIdReader steamReader, string deviceUniqueIdentifier)

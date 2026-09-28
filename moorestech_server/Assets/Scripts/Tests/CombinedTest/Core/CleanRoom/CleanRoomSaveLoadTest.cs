@@ -1,3 +1,5 @@
+using static Tests.CombinedTest.Core.CleanRoom.Helpers.CleanRoomSaveLoadTicking;
+using Tests.Util.EnergySystem;
 using System;
 using System.Linq;
 using System.Reflection;
@@ -150,49 +152,6 @@ namespace Tests.CombinedTest.Core.CleanRoom
             filter.GetComponent<IOpenableBlockInventoryComponent>().SetItem(0, ForUnitTestItemId.TestCleanRoomFilter, 5);
             return filter;
         }
-
-        private static void TickUntilRealCleanClass(IBlock filter, CleanRoomDatastore datastore, Vector3Int cell, int maxTicks)
-        {
-            for (var i = 0; i < maxTicks && !HasRealCleanClass(datastore, cell); i++) TickFilter(filter);
-        }
-
-        private static bool HasRealCleanClass(CleanRoomDatastore datastore, Vector3Int cell)
-        {
-            return datastore.TryGetCleanRoomAt(cell, out var room) &&
-                   room.ThresholdIndex < MasterHolder.CleanRoomMaster.OutThresholdIndex;
-        }
-
-        private static void TickUntilProcessing(IBlock filter, IBlock machine, CleanRoomMachineProcessorComponent processor, int maxTicks)
-        {
-            for (var i = 0; i < maxTicks && processor.CurrentState != ProcessState.Processing; i++) TickRoom(filter, machine);
-        }
-
-        private static void TickFilter(IBlock filter)
-        {
-            // 清浄機を電線経由の満電で毎tick進め、室内純度を進める
-            // Keep the filter fully powered through wires each tick to advance room purity
-            EnsureFilterWiredPower(filter);
-            GameUpdater.UpdateOneTick();
-        }
-
-        private static void TickRoom(IBlock filter, IBlock machine)
-        {
-            // 清浄機は電線経由、機械は内部経路で同じtick満電にし、通常の室内加工経路を通す
-            // Power the filter through wires and the machine through its internal path in the same tick for normal in-room processing
-            EnsureFilterWiredPower(filter);
-            machine.GetComponent<CleanRoomMachineProcessorComponent>().SupplyExternalPower(100f);
-            GameUpdater.UpdateOneTick();
-        }
-
-        // 清浄機が発電機付きセグメントに居なければ、部屋外の電柱経由で満電の発電機を接続する
-        // Unless the filter's segment already has a generator, wire a full-power generator through a pole outside the room
-        private static void EnsureFilterWiredPower(IBlock filter)
-        {
-            var datastore = ServerContext.GetService<IElectricWireNetworkLookup>();
-            if (datastore.TryGetEnergySegment(filter.BlockInstanceId, out var segment) && 0 < ElectricNetworkReflectionTestUtil.GetGenerators(segment).Count) return;
-            ElectricWireTestUtil.WirePower(filter.BlockPositionInfo.OriginalPos, new Vector3Int(30, 0, 30), 100f);
-        }
-
 
         #endregion
     }

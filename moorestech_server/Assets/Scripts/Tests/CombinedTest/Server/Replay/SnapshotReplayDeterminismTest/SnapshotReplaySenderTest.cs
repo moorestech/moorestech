@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Collections.Generic;
 using Core.Master;
 using Core.Update;
 using Game.Paths;
@@ -19,12 +20,60 @@ using Tests.Module.TestMod;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace Tests.CombinedTest.Server.Replay
+namespace Tests.CombinedTest.Server.Replay.SnapshotReplayDeterminismTest
 {
     public class SnapshotReplaySenderTest
     {
         [Test]
-        public void 再生は送り手別に操作しハンドシェイク後もIDゼロを未紐づけとして拒否するTest()
+        public void 切断後は同じ身元の再接続を再生でも受理する()
+        {
+            var root = Path.Combine(Path.GetTempPath(), $"moorestech-replay-reconnect-{Guid.NewGuid():N}");
+            Directory.CreateDirectory(root);
+            var snapshotPath = Path.Combine(root, "save.json");
+            var directory = WorldDataDirectory.FromServerDataMap(TestModDirectory.ForUnitTestModDirectory, snapshotPath);
+            var (_, provider) = new MoorestechServerDIContainerGenerator().Create(
+                new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory) { worldDataDirectory = directory });
+            var log = new ReceivedPacketLog();
+            var warnings = new List<string>();
+            Application.logMessageReceived += ObserveLog;
+            try
+            {
+                provider.GetRequiredService<IWorldSaveDataLoader>().LoadOrInitialize();
+                GameUpdater.RestoreCurrentTick(0);
+                File.WriteAllText(snapshotPath, provider.GetRequiredService<AssembleSaveJsonText>().AssembleSaveJson());
+                log.Start(Path.Combine(root, "packets"), 1);
+                var handshake = MessagePackSerializer.Serialize(
+                    new InitialHandshakeProtocol.RequestInitialHandshakeMessagePack("steam:1"));
+                log.Append(1, null, handshake);
+                log.AppendDisconnect(2, 1);
+                log.Append(3, null, handshake);
+                log.Stop();
+
+                var result = SnapshotReplayer.Replay(new ReplayRequest(TestModDirectory.ForUnitTestModDirectory,
+                    directory, snapshotPath, log.SegmentFilePaths(), 3));
+                Assert.AreEqual(2, result.ReplayedPacketCount);
+                Assert.AreEqual("steam:1", (string)JObject.Parse(result.SnapshotJson)["players"]["entries"][0]["identity"]);
+                Assert.IsFalse(warnings.Any(message => message.Contains("接続中のため後からの接続を拒否")));
+            }
+            finally
+            {
+                Application.logMessageReceived -= ObserveLog;
+                log.Stop();
+                Directory.Delete(root, true);
+            }
+
+            #region Internal
+
+            void ObserveLog(string message, string stackTrace, LogType type)
+            {
+                if (type == LogType.Warning) warnings.Add(message);
+            }
+
+            #endregion
+        }
+
+        [Test]
+        public void 再生は送り手別に操作しハンドシェイク後も未紐づけを拒否するTest()
         {
             var root = Path.Combine(Path.GetTempPath(), $"moorestech-replay-senders-{Guid.NewGuid():N}");
             Directory.CreateDirectory(root);
@@ -48,10 +97,10 @@ namespace Tests.CombinedTest.Server.Replay
                 File.WriteAllText(snapshotPath, provider.GetRequiredService<AssembleSaveJsonText>().AssembleSaveJson());
                 log.Start(Path.Combine(root, "packets"), 1);
 
-                // 最初の0は接続を紐づけるが、次の0はその接続を引き継いではいけない
-                // The first zero binds a connection, but the next zero must not inherit that connection
-                log.Append(1, 0, MessagePackSerializer.Serialize(new InitialHandshakeProtocol.RequestInitialHandshakeMessagePack("steam:1")));
-                AppendAssignment(2, 0, 0);
+                // 最初の未紐づけ接続は確定するが、次の未紐づけ接続は引き継がない
+                // The first unbound connection binds, but the next unbound connection must not inherit it
+                log.Append(1, null, MessagePackSerializer.Serialize(new InitialHandshakeProtocol.RequestInitialHandshakeMessagePack("steam:1")));
+                AppendAssignment(2, null, 0);
                 AppendAssignment(3, 1, 1);
                 AppendAssignment(3, 2, 2);
                 AppendAssignment(4, 1, 3);
@@ -83,7 +132,7 @@ namespace Tests.CombinedTest.Server.Replay
 
             #region Internal
 
-            void AppendAssignment(ulong tick, int sender, int slot)
+            void AppendAssignment(ulong tick, int? sender, int slot)
             {
                 var request = HotbarProtocol.HotbarProtocolMessagePack.CreateAssignRequest(slot, target);
                 log.Append(tick, sender, MessagePackSerializer.Serialize(request));

@@ -19,12 +19,12 @@ namespace Client.Network.API
     public class VanillaApiSendOnly
     {
         private readonly PacketSender _packetSender;
-        private readonly HotbarCommandApi _hotbar;
+        public HotbarCommandApi Hotbar { get; }
         
         public VanillaApiSendOnly(PacketSender packetSender)
         {
             _packetSender = packetSender;
-            _hotbar = new HotbarCommandApi(packetSender);
+            Hotbar = new HotbarCommandApi(packetSender);
         }
         
         
@@ -170,19 +170,5 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
 
-        public void AssignHotbar(int slot, Guid targetId)
-        {
-            _hotbar.AssignHotbar(slot, targetId);
-        }
-
-        public void ClearHotbar(int slot)
-        {
-            _hotbar.ClearHotbar(slot);
-        }
-
-        public void SwapHotbar(int slotA, int slotB)
-        {
-            _hotbar.SwapHotbar(slotA, slotB);
-        }
     }
 }

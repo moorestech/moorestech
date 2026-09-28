@@ -44,7 +44,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // RailPositionを登録して手動削除ガードの監視対象にする
             // Register a RailPosition so the manual removal guard can observe it.
             CreateTrainOnNode(environment, railA.FrontNode);
-            var response = GetRemoveBlockResponse(environment.PacketResponseCreator.GetPacketResponse(RemoveBlock(railPos), Tests.Util.BoundPacketContext.Bind(PlayerId)));
+            var response = GetRemoveBlockResponse(environment.PacketResponseCreator.GetPacketResponse(RemoveBlock(railPos), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId)));
             Assert.False(response.Success);
             Assert.AreEqual(RemoveBlockFailureReason.NodeInUseByTrain, response.FailureReason);
 
@@ -64,7 +64,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 列車に使われていない橋脚は通常どおり削除できる
             // A pier unused by trains can still be removed normally.
             TrainTestHelper.PlaceRail(environment, railPos, BlockDirection.East);
-            var response = GetRemoveBlockResponse(environment.PacketResponseCreator.GetPacketResponse(RemoveBlock(railPos), Tests.Util.BoundPacketContext.Bind(PlayerId)));
+            var response = GetRemoveBlockResponse(environment.PacketResponseCreator.GetPacketResponse(RemoveBlock(railPos), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId)));
             Assert.True(response.Success);
             Assert.AreEqual(RemoveBlockFailureReason.None, response.FailureReason);
 

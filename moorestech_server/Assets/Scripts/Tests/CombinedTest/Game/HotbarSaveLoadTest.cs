@@ -9,6 +9,7 @@ using Game.SaveLoad.Json;
 using Game.UnlockState;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
+using Tests.Util.PlayerIdentity;
 using Server.Boot;
 using UniRx;
 using Tests.Module.TestMod;
@@ -21,7 +22,6 @@ namespace Tests.CombinedTest.Game
     /// </summary>
     public class HotbarSaveLoadTest
     {
-        private const int PlayerId = 0;
 
         // セーブ→ロードで割当が復元される
         // Save then load restores the assignments
@@ -29,17 +29,18 @@ namespace Tests.CombinedTest.Game
         public void SaveLoadRestoresHotbarAssignmentsTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var playerId = PlayerIdentityTestHelper.Register(serviceProvider, "steam:1");
             var datastore = serviceProvider.GetService<HotbarAssignmentDatastore>();
             var blockGuid = ResolvableBlockGuid();
             serviceProvider.GetService<IGameUnlockStateDataController>().UnlockBlock(blockGuid);
 
-            datastore.SetAssignment(PlayerId, 4, blockGuid);
+            datastore.SetAssignment(playerId, 4, blockGuid);
             var saveJson = serviceProvider.GetService<AssembleSaveJsonText>().AssembleSaveJson();
 
             var (_, loadServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             (loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(saveJson);
 
-            var loaded = loadServiceProvider.GetService<IHotbarAssignmentLookup>().GetAssignments(PlayerId);
+            var loaded = loadServiceProvider.GetService<IHotbarAssignmentLookup>().GetAssignments(playerId);
             Assert.AreEqual(blockGuid, loaded[4]);
             Assert.AreEqual(Guid.Empty, loaded[0]);
         }
@@ -50,9 +51,10 @@ namespace Tests.CombinedTest.Game
         public void ReadingAssignmentsDoesNotPersistAnEmptyRecordTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var playerId = PlayerIdentityTestHelper.Register(serviceProvider, "steam:1");
             var datastore = serviceProvider.GetService<HotbarAssignmentDatastore>();
 
-            var assignments = datastore.GetAssignments(PlayerId);
+            var assignments = datastore.GetAssignments(playerId);
 
             Assert.AreEqual(HotbarAssignmentDatastore.SlotCount, assignments.Count);
             Assert.IsEmpty(datastore.GetSaveJsonObject(), "読み取りだけではレコードを作らない");
@@ -64,6 +66,7 @@ namespace Tests.CombinedTest.Game
         public void DeletingBlueprintPrunesOnlyItsAssignmentTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var playerId = PlayerIdentityTestHelper.Register(serviceProvider, "steam:1");
             var blueprintDatastore = serviceProvider.GetService<IBlueprintDatastore>();
             var datastore = serviceProvider.GetService<HotbarAssignmentDatastore>();
             var unlockState = serviceProvider.GetService<IGameUnlockStateDataController>();
@@ -74,8 +77,8 @@ namespace Tests.CombinedTest.Game
 
             var blockGuid = ResolvableBlockGuid();
             unlockState.UnlockBlock(blockGuid);
-            datastore.SetAssignment(PlayerId, 0, blueprintGuid);
-            datastore.SetAssignment(PlayerId, 1, blockGuid);
+            datastore.SetAssignment(playerId, 0, blueprintGuid);
+            datastore.SetAssignment(playerId, 1, blockGuid);
 
             var changedPlayerIds = new List<int>();
             using (datastore.OnAssignmentChanged.Subscribe(changedPlayerIds.Add))
@@ -83,10 +86,10 @@ namespace Tests.CombinedTest.Game
                 blueprintDatastore.Delete(blueprintGuid);
             }
 
-            var assignments = datastore.GetAssignments(PlayerId);
+            var assignments = datastore.GetAssignments(playerId);
             Assert.AreEqual(Guid.Empty, assignments[0], "削除されたBPを指す枠は外れる");
             Assert.AreEqual(blockGuid, assignments[1], "無関係な枠は残る");
-            CollectionAssert.AreEqual(new[] { PlayerId }, changedPlayerIds, "変化したプレイヤーだけ通知される");
+            CollectionAssert.AreEqual(new[] { playerId }, changedPlayerIds, "変化したプレイヤーだけ通知される");
         }
 
         // カタログで解決できる実在ブロックGuid

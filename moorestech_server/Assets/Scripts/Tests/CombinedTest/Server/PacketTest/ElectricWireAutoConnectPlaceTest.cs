@@ -1,3 +1,4 @@
+using Tests.Util.EnergySystem;
 using Core.Update;
 using System;
 using System.Collections.Generic;
@@ -97,7 +98,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 事前配置分のトポロジを反映してから基準値を取る
             // Flush the pre-placed topology before taking the baseline
             GameUpdater.UpdateOneTick();
-            var segmentCountBefore = Tests.Util.ElectricNetworkReflectionTestUtil.GetSegmentCount(segmentDatastore);
+            var segmentCountBefore = Tests.Util.EnergySystem.ElectricNetworkReflectionTestUtil.GetSegmentCount(segmentDatastore);
 
             PlaceBlock(packet, ForUnitTestModBlockId.MachineId, new Vector3Int(0, 0, 0));
 
@@ -106,7 +107,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 設置失敗後の状態確認もtick反映後に行う
             // Verify the unchanged state after a tick so pending commands are settled
             GameUpdater.UpdateOneTick();
-            Assert.AreEqual(segmentCountBefore, Tests.Util.ElectricNetworkReflectionTestUtil.GetSegmentCount(segmentDatastore));
+            Assert.AreEqual(segmentCountBefore, Tests.Util.EnergySystem.ElectricNetworkReflectionTestUtil.GetSegmentCount(segmentDatastore));
         }
     }
 }

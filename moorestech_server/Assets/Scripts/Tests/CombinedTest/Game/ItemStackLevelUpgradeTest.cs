@@ -8,6 +8,7 @@ using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
+using Tests.Util.PlayerIdentity;
 using Server.Boot;
 using Tests.Module.TestMod;
 
@@ -15,7 +16,6 @@ namespace Tests.CombinedTest.Game
 {
     public class ItemStackLevelUpgradeTest
     {
-        public const int PlayerId = 0;
         public static readonly Guid StackUpgradeResearchGuid = Guid.Parse("a5b6c7d8-0000-4000-8000-000000000001");
         public static readonly Guid Test1ItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
 
@@ -25,11 +25,12 @@ namespace Tests.CombinedTest.Game
         public void CompleteResearchUnlocksStackLevelTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var playerId = PlayerIdentityTestHelper.Register(serviceProvider, "steam:1");
             var researchDataStore = serviceProvider.GetService<IResearchDataStore>();
 
             Assert.AreEqual(100, ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.ItemId1));
 
-            var result = researchDataStore.CompleteResearch(StackUpgradeResearchGuid, PlayerId);
+            var result = researchDataStore.CompleteResearch(StackUpgradeResearchGuid, playerId);
             Assert.IsTrue(result);
             Assert.AreEqual(200, ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.ItemId1));
         }
@@ -40,10 +41,11 @@ namespace Tests.CombinedTest.Game
         public void UpgradedItemCanStackBeyondBaseLimitTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var playerId = PlayerIdentityTestHelper.Register(serviceProvider, "steam:1");
             var researchDataStore = serviceProvider.GetService<IResearchDataStore>();
-            researchDataStore.CompleteResearch(StackUpgradeResearchGuid, PlayerId);
+            researchDataStore.CompleteResearch(StackUpgradeResearchGuid, playerId);
 
-            var inventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
+            var inventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId);
             var item150 = ServerContext.ItemStackFactory.Create(Test1ItemGuid, 150);
             inventory.MainOpenableInventory.InsertItem(item150);
 
@@ -60,8 +62,9 @@ namespace Tests.CombinedTest.Game
         public void NonUpgradedItemStillOverflowsAtBaseLimitTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var playerId = PlayerIdentityTestHelper.Register(serviceProvider, "steam:1");
 
-            var inventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
+            var inventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId);
             var item100A = ServerContext.ItemStackFactory.Create(Test1ItemGuid, 100);
             var item50 = ServerContext.ItemStackFactory.Create(Test1ItemGuid, 50);
             inventory.MainOpenableInventory.InsertItem(item100A);
@@ -81,12 +84,13 @@ namespace Tests.CombinedTest.Game
         public void SaveWithUpgradedStackLoadsSuccessfullyTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var playerId = PlayerIdentityTestHelper.Register(serviceProvider, "steam:1");
             var researchDataStore = serviceProvider.GetService<IResearchDataStore>();
-            researchDataStore.CompleteResearch(StackUpgradeResearchGuid, PlayerId);
+            researchDataStore.CompleteResearch(StackUpgradeResearchGuid, playerId);
 
             // 上限超える150個を保持しセーブ
             // Save with a slot holding 150 items beyond the base limit
-            var inventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
+            var inventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId);
             inventory.MainOpenableInventory.InsertItem(ServerContext.ItemStackFactory.Create(Test1ItemGuid, 150));
             var saveJson = serviceProvider.GetService<AssembleSaveJsonText>().AssembleSaveJson();
 
@@ -97,7 +101,7 @@ namespace Tests.CombinedTest.Game
 
             // 150個が1スタックで復元される（メインInvはホットバー優先挿入のため非空スロットで検証）
             // 150 items are restored as a single stack (verified by non-empty slot due to hotbar-first insert)
-            var loadedInventory = loadServiceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
+            var loadedInventory = loadServiceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId);
             var occupiedSlots = loadedInventory.MainOpenableInventory.InventoryItems.Where(item => 0 < item.Count).ToList();
             Assert.AreEqual(1, occupiedSlots.Count);
             Assert.AreEqual(150, occupiedSlots[0].Count);
@@ -110,7 +114,8 @@ namespace Tests.CombinedTest.Game
         public void LoadDoesNotDoubleApplyLevelsTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            serviceProvider.GetService<IResearchDataStore>().CompleteResearch(StackUpgradeResearchGuid, PlayerId);
+            var playerId = PlayerIdentityTestHelper.Register(serviceProvider, "steam:1");
+            serviceProvider.GetService<IResearchDataStore>().CompleteResearch(StackUpgradeResearchGuid, playerId);
             var saveJson = serviceProvider.GetService<AssembleSaveJsonText>().AssembleSaveJson();
 
             var (_, loadServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));

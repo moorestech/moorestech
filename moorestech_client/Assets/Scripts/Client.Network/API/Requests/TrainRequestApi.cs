@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace Client.Network.API.Requests
 {
-    internal sealed class TrainRequestApi
+    public sealed class TrainRequestApi
     {
         private readonly PacketExchangeManager _packetExchangeManager;
 

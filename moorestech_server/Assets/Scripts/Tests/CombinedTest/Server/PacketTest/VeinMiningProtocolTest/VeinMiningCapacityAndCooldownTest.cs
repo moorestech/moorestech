@@ -85,7 +85,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 座標から報酬を解決
             // Resolve reward from position
             var request = MiningProtocol.MiningProtocolMessagePack.CreateVeinRequest(IronVeinGuid, InsideIronVein);
-            packet.GetPacketResponse(MessagePackSerializer.Serialize(request), Tests.Util.BoundPacketContext.Bind(PlayerId));
+            packet.GetPacketResponse(MessagePackSerializer.Serialize(request), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
 
             var expectedItemId = MasterHolder.ItemMaster.GetItemId(((ItemVeinParam)MasterHolder.MapVeinMaster.GetElementOrNull(IronVeinGuid).VeinParam).ItemGuid);
             Assert.AreEqual(1, CountMainInventoryItem(playerInventory, expectedItemId));

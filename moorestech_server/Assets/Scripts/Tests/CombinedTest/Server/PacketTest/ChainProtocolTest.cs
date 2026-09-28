@@ -53,7 +53,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // 接続プロトコルを送信する
             // Send connect protocol
-            var connectBytes = packet.GetPacketResponse(Connect(posA, posB, PlayerId), Tests.Util.BoundPacketContext.Bind(PlayerId)).First();
+            var connectBytes = packet.GetPacketResponse(Connect(posA, posB, PlayerId), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId)).First();
             var typedConnect = MessagePackSerializer.Deserialize<GearChainConnectionEditProtocol.GearChainConnectionEditResponse>(connectBytes.ToArray());
             Assert.True(typedConnect.IsSuccess);
 

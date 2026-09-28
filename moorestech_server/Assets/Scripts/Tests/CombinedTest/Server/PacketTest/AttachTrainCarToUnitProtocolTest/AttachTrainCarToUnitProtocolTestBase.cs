@@ -74,7 +74,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var targetRailPosition = new RailPosition(targetNodes, trainLength, 0);
             var targetSnapshot = new RailPositionSnapshotMessagePack(targetRailPosition.CreateSaveSnapshot());
             var placePacket = MessagePackSerializer.Serialize(new PlaceTrainOnRailRequestMessagePack(targetSnapshot, trainCarMasterElement.TrainCarGuid));
-            environment.PacketResponseCreator.GetPacketResponse(placePacket, Tests.Util.BoundPacketContext.Bind(PlayerId));
+            environment.PacketResponseCreator.GetPacketResponse(placePacket, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
 
             var targetTrain = environment.GetITrainLookupDatastore().GetRegisteredTrains().Last();
             return new AttachTestSetup(environment, targetTrain.TrainUnitInstanceId, rail1, rail2, trainCarMasterElement.TrainCarGuid, trainLength);
@@ -99,7 +99,7 @@ namespace Tests.CombinedTest.Server.PacketTest
                 trainCarGuid,
                 true,
                 false));
-            var responses = setup.Environment.PacketResponseCreator.GetPacketResponse(packet, Tests.Util.BoundPacketContext.Bind(PlayerId));
+            var responses = setup.Environment.PacketResponseCreator.GetPacketResponse(packet, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
             return MessagePackSerializer.Deserialize<AttachTrainCarToUnitResponseMessagePack>(responses[0]);
         }
 

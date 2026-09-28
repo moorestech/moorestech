@@ -17,7 +17,7 @@ namespace Server.Protocol.PacketResponse
         {
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             // 要求データをデシリアライズする
             // Deserialize request payload
@@ -39,7 +39,7 @@ namespace Server.Protocol.PacketResponse
                 switch (data.Mode)
                 {
                     case ChainEditMode.Connect:
-                        success = GearChainSystemUtil.TryConnect(data.PosAVector, data.PosBVector, context.PlayerId.Value, data.ConnectToolGuid, out error);
+                        success = GearChainSystemUtil.TryConnect(data.PosAVector, data.PosBVector, requesterPlayerId, data.ConnectToolGuid, out error);
                         break;
 
                     default:
@@ -74,7 +74,6 @@ namespace Server.Protocol.PacketResponse
                     PosA = new Vector3IntMessagePack(posA),
                     PosB = new Vector3IntMessagePack(posB),
                     Mode = ChainEditMode.Connect,
-
                     ConnectToolGuid = connectToolGuid,
                 };
             }

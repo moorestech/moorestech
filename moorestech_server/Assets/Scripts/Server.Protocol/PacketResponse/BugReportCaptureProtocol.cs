@@ -21,12 +21,12 @@ namespace Server.Protocol.PacketResponse
             _requesterRegistry = serviceProvider.GetRequiredService<BugReportCaptureRequesterRegistry>();
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             MessagePackSerializer.Deserialize<BugReportCaptureRequest>(payload);
 
             var result = _snapshotCaptureRequest.RequestImmediateSnapshot();
-            if (result.Accepted) _requesterRegistry.Remember(result.RequestId, context.PlayerId.Value);
+            if (result.Accepted) _requesterRegistry.Remember(result.RequestId, requesterPlayerId);
             return new BugReportCaptureResponse(result.Accepted, result.RequestId, result.RejectedReason);
         }
 

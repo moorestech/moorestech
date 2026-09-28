@@ -58,7 +58,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             itemContainer.SetItem(0, itemFactory.Create(new ItemId(1), 7));
             itemContainer.SetItem(1, itemFactory.Create(new ItemId(2), 3));
 
-            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestTrain(trainCar.TrainCarInstanceId), Tests.Util.BoundPacketContext.Bind(1))[0];
+            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestTrain(trainCar.TrainCarInstanceId), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1))[0];
             var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(responseBytes);
 
             Assert.AreEqual(InventoryType.Train, data.InventoryType); // inventory type
@@ -95,7 +95,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // コンテナなしが空インベントリとは別の結果として返ることを確認
             // Verify that missing container is returned separately from an empty inventory
-            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestTrain(trainCar.TrainCarInstanceId), Tests.Util.BoundPacketContext.Bind(1))[0];
+            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestTrain(trainCar.TrainCarInstanceId), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1))[0];
             var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(responseBytes);
 
             Assert.AreEqual(InventoryType.Train, data.InventoryType);

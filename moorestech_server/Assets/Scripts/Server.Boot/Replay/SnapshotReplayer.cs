@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Core.Update;
+using Game.PlayerConnection;
 using Game.Paths;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
@@ -54,6 +55,7 @@ namespace Server.Boot.Replay
             var records = ReceivedPacketLogReader.ReadAll(request.PacketLogFilePaths);
             var inRange = ReportPacketLogCoverage(records, loadedTick, request.TargetTick);
             var queue = provider.GetRequiredService<TickEndPacketQueue>();
+            var connectionRegistry = (PlayerConnectionRegistry)provider.GetRequiredService<IPlayerConnectionChecker>();
             var contexts = new Dictionary<int, PacketResponseContext>();
             var replayed = 0;
             var excluded = 0;
@@ -67,7 +69,13 @@ namespace Server.Boot.Replay
                 while (next < records.Count && records[next].Tick < nextTick) next++;
                 while (next < records.Count && records[next].Tick == nextTick)
                 {
-                    if (IsExcludedFromReplay(records[next].Payload)) excluded++;
+                    if (records[next].Kind == ReceivedPacketRecordKind.Disconnect)
+                    {
+                        var disconnectedPlayerId = records[next].PlayerId.Value;
+                        connectionRegistry.Unregister(disconnectedPlayerId);
+                        contexts.Remove(disconnectedPlayerId);
+                    }
+                    else if (IsExcludedFromReplay(records[next].Payload)) excluded++;
                     else
                     {
                         queue.Enqueue(new ReplayPacketEntry(packetResponseCreator, ContextFor(records[next].PlayerId), records[next].Payload));
@@ -85,17 +93,17 @@ namespace Server.Boot.Replay
 
             #region Internal
 
-            // 記録された送り手ごとに接続を復元する。0はハンドシェイク前の未紐づけ
-            // Restore a connection per recorded sender; zero denotes an unbound sender before handshake
-            PacketResponseContext ContextFor(int playerId)
+            // 記録された送り手ごとに接続を復元する。nullはハンドシェイク前の未紐づけ
+            // Restore a connection per recorded sender; null denotes an unbound sender before handshake
+            PacketResponseContext ContextFor(int? playerId)
             {
                 // 未紐づけレコードは別接続かもしれないため、先のハンドシェイク結果を引き継がない
                 // Unbound records may come from different connections, so never inherit an earlier handshake
-                if (playerId == 0) return new PacketResponseContext(null);
-                if (contexts.TryGetValue(playerId, out var existing)) return existing;
+                if (!playerId.HasValue) return new PacketResponseContext(null);
+                if (contexts.TryGetValue(playerId.Value, out var existing)) return existing;
                 var created = new PacketResponseContext(null);
-                created.TryBindPlayerId(playerId);
-                contexts.Add(playerId, created);
+                created.TryBindPlayerId(playerId.Value);
+                contexts.Add(playerId.Value, created);
                 return created;
             }
 

@@ -21,10 +21,10 @@ namespace Server.Protocol.PacketResponse
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var request = MessagePackSerializer.Deserialize<SetSelectedEquipmentIndexMessagePack>(payload);
-            var equipmentInventory = _playerInventoryDataStore.GetInventoryData(context.PlayerId.Value).EquipmentInventory;
+            var equipmentInventory = _playerInventoryDataStore.GetInventoryData(requesterPlayerId).EquipmentInventory;
 
             // 範囲外の指定は装備インベントリ側でクランプされる
             // Out-of-range indexes are clamped by the equipment inventory itself

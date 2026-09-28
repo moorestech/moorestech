@@ -2,7 +2,7 @@ using Game.MapGeneration.Pipeline.Generators;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace Tests.UnitTest.Game.MapGeneration
+namespace Tests.UnitTest.Game.MapGeneration.Vein
 {
     // AABBは配置点中心の固定サイズを固定（ADR-0023）。
     // Pins the AABB as a fixed size centred on the point (ADR-0023).

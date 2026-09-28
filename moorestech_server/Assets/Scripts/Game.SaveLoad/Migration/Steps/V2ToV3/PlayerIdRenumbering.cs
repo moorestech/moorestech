@@ -33,7 +33,7 @@ namespace Game.SaveLoad.Migration.Steps.V2ToV3
             // 同じIDを参照する複数の節は、同じ連番に結びつける
             // References to one id in multiple sections share the same sequential id
             map = new Dictionary<long, int>();
-            var next = 1;
+            var next = SaveMigrationStepV2ToV3.FirstMigratedPlayerId;
             foreach (var oldId in oldIds) map[oldId] = next++;
             reason = null;
             return true;

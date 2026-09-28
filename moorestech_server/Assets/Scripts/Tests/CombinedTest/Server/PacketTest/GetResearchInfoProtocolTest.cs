@@ -45,7 +45,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             var request = new GetResearchInfoProtocol.RequestResearchInfoMessagePack();
             var requestData = MessagePackSerializer.Serialize(request);
-            var response = packet.GetPacketResponse(requestData, Tests.Util.BoundPacketContext.Bind(PlayerId));
+            var response = packet.GetPacketResponse(requestData, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
 
             return MessagePackSerializer.Deserialize<GetResearchInfoProtocol.ResponseResearchInfoMessagePack>(response[0]);
         }

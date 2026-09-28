@@ -42,7 +42,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // メインインベントリを整理
             // Sort the main inventory.
-            packet.GetPacketResponse(GetPacket(InventoryIdentifierMessagePack.CreateMainMessage()), Tests.Util.BoundPacketContext.Bind(PlayerId));
+            packet.GetPacketResponse(GetPacket(InventoryIdentifierMessagePack.CreateMainMessage()), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
 
             // 同種結合しId昇順に再配置
             // Same items are merged and re-packed in ItemId ascending order (trailing slots included too).
@@ -72,7 +72,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             mainInventory.SetItem(0, itemId, maxStack - 5);
             mainInventory.SetItem(3, itemId, 10);
 
-            packet.GetPacketResponse(GetPacket(InventoryIdentifierMessagePack.CreateMainMessage()), Tests.Util.BoundPacketContext.Bind(PlayerId));
+            packet.GetPacketResponse(GetPacket(InventoryIdentifierMessagePack.CreateMainMessage()), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
 
             // 先頭スロットは最大スタックまで詰まり、あふれた5個が次スロットへ流れる
             // The first slot fills to max stack and the overflowing 5 items flow into the next slot.

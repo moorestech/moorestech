@@ -13,9 +13,9 @@ namespace Game.SaveLoad.Migration.Steps.V2ToV3
             if (map.Count == 0) return null;
 
             var spawn = save["setting"] as JObject;
-            var spawnX = (double?)spawn?["SpawnX"] ?? 0;
-            var spawnY = (double?)spawn?["SpawnY"] ?? 0;
-            var spawnZ = (double?)spawn?["SpawnZ"] ?? 0;
+            var spawnX = (double?)spawn?["SpawnX"];
+            var spawnY = (double?)spawn?["SpawnY"];
+            var spawnZ = (double?)spawn?["SpawnZ"];
 
             return map.Values
                 .Select(newId => (newId, items: CountItems(newId), distance: DistanceFromSpawn(newId)))
@@ -39,14 +39,18 @@ namespace Game.SaveLoad.Migration.Steps.V2ToV3
                 return stacks.OfType<JObject>().Sum(stack => (long?)stack["count"] ?? 0);
             }
 
-            double DistanceFromSpawn(int newId)
+            double? DistanceFromSpawn(int newId)
             {
                 var entity = (save["entities"] as JArray)?.OfType<JObject>()
                     .FirstOrDefault(e => (string)e["Type"] == PlayerIdRenumbering.PlayerEntityType && (long)e["InstanceId"] == newId);
-                if (entity == null) return 0;
-                var dx = ((double?)entity["X"] ?? spawnX) - spawnX;
-                var dy = ((double?)entity["Y"] ?? spawnY) - spawnY;
-                var dz = ((double?)entity["Z"] ?? spawnZ) - spawnZ;
+                if (entity == null || !spawnX.HasValue || !spawnY.HasValue || !spawnZ.HasValue) return null;
+                var x = (double?)entity["X"];
+                var y = (double?)entity["Y"];
+                var z = (double?)entity["Z"];
+                if (!x.HasValue || !y.HasValue || !z.HasValue) return null;
+                var dx = x.Value - spawnX.Value;
+                var dy = y.Value - spawnY.Value;
+                var dz = z.Value - spawnZ.Value;
                 return dx * dx + dy * dy + dz * dz;
             }
 

@@ -60,7 +60,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // PacketResponseCreatorの例外catchを経由せず直接呼び、ArgumentOutOfRangeExceptionが起きないことを確かめる
             // Call directly, bypassing PacketResponseCreator's exception catch, to confirm no ArgumentOutOfRangeException occurs
             ProtocolMessagePackBase response = null;
-            Assert.DoesNotThrow(() => response = miningProtocol.GetResponse(payload, Tests.Util.BoundPacketContext.Bind(PlayerId)));
+            Assert.DoesNotThrow(() => response = miningProtocol.GetResponse(payload, PlayerId));
 
             Assert.IsNull(response);
             Assert.IsFalse(decoration.IsDestroyed);

@@ -13,7 +13,7 @@ using Tests.Module.TestMod;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace Tests.CombinedTest.Game
+namespace Tests.CombinedTest.Game.SaveLoad
 {
     /// <summary>本番ロード経路が版変換とマスタ欠損除去を通ることを検証する</summary>
     /// <summary>Verifies that the production loader applies migration and missing-master pruning</summary>
@@ -102,6 +102,25 @@ namespace Tests.CombinedTest.Game
 
             Assert.DoesNotThrow(() => serviceProvider.GetService<IWorldSaveDataLoader>().LoadOrInitialize());
             Assert.IsFalse(ServerContext.WorldBlockDatastore.BlockMasterDictionary.ContainsKey(new BlockInstanceId(987662)));
+        }
+
+        [Test]
+        public void 身元対応表に無いプレイヤー状態はロードを拒否する()
+        {
+            var saveJsonFilePath = Path.Combine(_archiveRoot, "save.json");
+            var save = SaveLoadPreparerTestFixture.BuildSaveJson();
+            ((JArray)save["playerInventory"]).Add(new JObject { ["PlayerId"] = 10 });
+            Directory.CreateDirectory(_archiveRoot);
+            File.WriteAllText(saveJsonFilePath, save.ToString());
+
+            var options = new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory)
+            {
+                worldDataDirectory = WorldDataDirectory.FromServerDataMap(TestModDirectory.ForUnitTestModDirectory, saveJsonFilePath),
+            };
+            var (_, provider) = new MoorestechServerDIContainerGenerator().Create(options);
+            LogAssert.Expect(LogType.Error, new Regex("playerInventory に身元対応表に無いプレイヤーID 10"));
+            var error = Assert.Throws<Exception>(() => provider.GetRequiredService<IWorldSaveDataLoader>().LoadOrInitialize());
+            StringAssert.Contains("playerInventory に身元対応表に無いプレイヤーID 10", error.Message);
         }
     }
 }

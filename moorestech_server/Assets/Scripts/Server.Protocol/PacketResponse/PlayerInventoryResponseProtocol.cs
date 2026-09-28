@@ -18,11 +18,11 @@ namespace Server.Protocol.PacketResponse
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
         }
         
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var data = MessagePackSerializer.Deserialize<RequestPlayerInventoryProtocolMessagePack>(payload);
             
-            var playerInventory = _playerInventoryDataStore.GetInventoryData(context.PlayerId.Value);
+            var playerInventory = _playerInventoryDataStore.GetInventoryData(requesterPlayerId);
             
             //メインインベントリのアイテムを設定
             var slotSize = playerInventory.MainOpenableInventory.GetSlotSize();
@@ -49,7 +49,7 @@ namespace Server.Protocol.PacketResponse
                 equipmentItems.Add(new ItemMessagePack(equipmentInventory.GetItem(i)));
             }
 
-            return new PlayerInventoryResponseProtocolMessagePack(context.PlayerId.Value, mainItems.ToArray(), grabItem, equipmentItems.ToArray(), equipmentInventory.SelectedEquipmentIndex);
+            return new PlayerInventoryResponseProtocolMessagePack(requesterPlayerId, mainItems.ToArray(), grabItem, equipmentItems.ToArray(), equipmentInventory.SelectedEquipmentIndex);
         }
         
         [MessagePackObject]

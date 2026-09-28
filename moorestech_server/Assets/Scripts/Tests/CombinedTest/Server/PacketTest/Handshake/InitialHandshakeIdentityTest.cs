@@ -14,7 +14,7 @@ using Tests.Module.TestMod;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace Tests.CombinedTest.Server.PacketTest
+namespace Tests.CombinedTest.Server.PacketTest.Handshake
 {
     public class InitialHandshakeIdentityTest
     {
@@ -37,8 +37,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             var context = new PacketResponseContext(new CapturedEventSink());
             var first = Handshake(context, SteamA);
             Assert.AreEqual(HandshakeRejection.None, first.Rejection);
-            Assert.AreEqual(1, first.PlayerId);
-            Assert.AreEqual(first.PlayerId, context.PlayerId);
+            Assert.AreEqual(1, first.Accepted.PlayerId);
+            Assert.AreEqual(first.Accepted.PlayerId, context.PlayerId);
             var playerId = context.MarkClosedAndGetPlayerId().Value;
             _provider.GetRequiredService<EventProtocolProvider>().UnregisterPlayer(playerId, context.EventSink);
             ((PlayerConnectionRegistry)_provider.GetRequiredService<IPlayerConnectionChecker>()).Unregister(playerId);
@@ -47,9 +47,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Reconnection keeps the id; only another identity receives the next one
             var again = Handshake(new PacketResponseContext(new CapturedEventSink()), SteamA);
             Assert.AreEqual(HandshakeRejection.None, again.Rejection);
-            Assert.AreEqual(first.PlayerId, again.PlayerId);
+            Assert.AreEqual(first.Accepted.PlayerId, again.Accepted.PlayerId);
             var other = Handshake(new PacketResponseContext(new CapturedEventSink()), "steam:2");
-            Assert.AreEqual(2, other.PlayerId);
+            Assert.AreEqual(2, other.Accepted.PlayerId);
         }
 
         [Test]
@@ -66,9 +66,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             LogAssert.Expect(LogType.Warning, new Regex("接続中"));
             var duplicate = Handshake(duplicateContext, SteamA);
             Assert.AreEqual(HandshakeRejection.AlreadyConnected, duplicate.Rejection);
-            Assert.AreEqual(0, duplicate.PlayerId);
+            Assert.IsNull(duplicate.Accepted);
             Assert.IsNull(duplicateContext.PlayerId);
-            _provider.GetRequiredService<EventProtocolProvider>().AddEvent(original.PlayerId, "test:probe", new byte[0]);
+            _provider.GetRequiredService<EventProtocolProvider>().AddEvent(original.Accepted.PlayerId, "test:probe", new byte[0]);
             Assert.AreEqual(1, originalSink.Events.Count);
             Assert.IsEmpty(duplicateSink.Events);
         }
@@ -82,7 +82,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             LogAssert.Expect(LogType.Warning, new Regex("身元"));
             var response = Handshake(new PacketResponseContext(new CapturedEventSink()), identity);
             Assert.AreEqual(HandshakeRejection.InvalidIdentity, response.Rejection);
-            Assert.AreEqual(0, response.PlayerId);
+            Assert.IsNull(response.Accepted);
             Assert.IsEmpty(_provider.GetRequiredService<PlayerIdentityRegistry>().GetSaveJsonObject().Entries);
         }
 
@@ -97,8 +97,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 付け替えを拒否し、切断時の解除対象も元のIDに保つ
             // Reject rebinding and preserve the original id used by disconnect cleanup
             Assert.AreEqual(HandshakeRejection.AlreadyConnected, second.Rejection);
-            Assert.AreEqual(first.PlayerId, context.PlayerId);
-            Assert.IsFalse(_provider.GetRequiredService<IPlayerIdentityRegistry>().TryGetPlayerId("steam:2", out _));
+            Assert.AreEqual(first.Accepted.PlayerId, context.PlayerId);
+            Assert.IsFalse(_provider.GetRequiredService<PlayerIdentityRegistry>().GetSaveJsonObject().Entries.Exists(entry => entry.Identity == "steam:2"));
         }
 
         private InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack Handshake(PacketResponseContext context, string identity)

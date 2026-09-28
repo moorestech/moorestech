@@ -19,9 +19,15 @@ namespace Server.Boot.Replay
             var builder = new StringBuilder();
             foreach (var record in records)
             {
+                if (record.Kind == ReceivedPacketRecordKind.Disconnect)
+                {
+                    var disconnect = new JObject { ["tick"] = record.Tick, ["playerId"] = record.PlayerId.HasValue ? new JValue(record.PlayerId.Value) : JValue.CreateNull(), ["kind"] = "disconnect" };
+                    builder.Append(disconnect.ToString(Formatting.None)).Append('\n');
+                    continue;
+                }
                 var tag = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(record.Payload).Tag;
                 var json = MessagePackSerializer.ConvertToJson(record.Payload);
-                var line = new JObject { ["tick"] = record.Tick, ["playerId"] = record.PlayerId, ["tag"] = tag, ["json"] = JToken.Parse(json) };
+                var line = new JObject { ["tick"] = record.Tick, ["playerId"] = record.PlayerId.HasValue ? new JValue(record.PlayerId.Value) : JValue.CreateNull(), ["tag"] = tag, ["json"] = JToken.Parse(json) };
                 builder.Append(line.ToString(Formatting.None)).Append('\n');
             }
             File.WriteAllText(outputJsonlPath, builder.ToString());

@@ -146,7 +146,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var (packet, _) = new MoorestechServerDIContainerGenerator().Create(options);
 
             var request = RequestMapDataMessagePack.CreateLayoutRequest();
-            var responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(request), Tests.Util.BoundPacketContext.Bind(1))[0];
+            var responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(request), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1))[0];
             return MessagePackSerializer.Deserialize<ResponseMapDataMessagePack>(responseBytes);
         }
     }

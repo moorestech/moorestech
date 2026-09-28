@@ -54,7 +54,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Execute the removal protocol.
             var packet = MessagePackSerializer.Serialize(
                 new RemoveTrainCarProtocol.RemoveTrainCarRequestMessagePack(trainCar.TrainCarInstanceId.AsPrimitive()));
-            environment.PacketResponseCreator.GetPacketResponse(packet, Tests.Util.BoundPacketContext.Bind(PlayerId));
+            environment.PacketResponseCreator.GetPacketResponse(packet, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
 
             // 列車が削除され、建設コスト全額(Test3x3 + Test4x2)がインベントリへ返却されている
             // The train is removed and the full construction cost (Test3x3 + Test4x2) is refunded.
@@ -88,7 +88,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Execute the removal protocol.
             var packet = MessagePackSerializer.Serialize(
                 new RemoveTrainCarProtocol.RemoveTrainCarRequestMessagePack(trainCar.TrainCarInstanceId.AsPrimitive()));
-            environment.PacketResponseCreator.GetPacketResponse(packet, Tests.Util.BoundPacketContext.Bind(PlayerId));
+            environment.PacketResponseCreator.GetPacketResponse(packet, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
 
             // 満杯時は削除が中止され、列車はそのまま残る
             // On a full inventory the removal is aborted and the train remains.
@@ -134,7 +134,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 配置プロトコルで列車を生成する
             // Create the train through the placement protocol.
             var placePacket = MessagePackSerializer.Serialize(new PlaceTrainOnRailRequestMessagePack(railPositionSnapshot, trainCarMasterElement.TrainCarGuid));
-            environment.PacketResponseCreator.GetPacketResponse(placePacket, Tests.Util.BoundPacketContext.Bind(PlayerId));
+            environment.PacketResponseCreator.GetPacketResponse(placePacket, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
 
             var trainCar = environment.GetITrainLookupDatastore().GetRegisteredTrains().Last().Cars[0];
             return (environment, trainCar);

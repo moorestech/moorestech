@@ -26,7 +26,7 @@ namespace Server.Protocol.PacketResponse
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var request = MessagePackSerializer.Deserialize<MachineRecipeSelectionRequest>(payload);
             if (request.Position == null) return Fail(MachineRecipeSelectionFailureReason.InvalidRequest);
@@ -40,7 +40,7 @@ namespace Server.Protocol.PacketResponse
 
             // 返却先にリクエスト元インベントリを渡す
             // Pass the requesting player's main inventory as the refund overflow target
-            var playerInventory = _playerInventoryDataStore.GetInventoryData(context.PlayerId.Value).MainOpenableInventory;
+            var playerInventory = _playerInventoryDataStore.GetInventoryData(requesterPlayerId).MainOpenableInventory;
 
             switch (request.Operation)
             {
@@ -103,7 +103,6 @@ namespace Server.Protocol.PacketResponse
                 Position = new Vector3IntMessagePack(position);
                 Operation = operation;
                 MachineRecipeGuidStr = machineRecipeGuidStr;
-
             }
 
             public static MachineRecipeSelectionRequest CreateSetRecipeRequest(Vector3Int position, Guid machineRecipeGuid)

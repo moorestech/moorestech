@@ -75,99 +75,13 @@ namespace Server.Protocol.PacketResponse.Util.TrainPlacement
             return true;
         }
 
-        private bool TryRestoreRailPosition(
-            RailPositionSnapshotMessagePack snapshot,
-            int expectedLength,
-            out RailPosition railPosition,
-            out AttachTrainCarFailureType failureType)
+        private bool TryRestoreRailPosition(RailPositionSnapshotMessagePack snapshot, int expectedLength,
+            out RailPosition position, out AttachTrainCarFailureType failureType)
         {
-            railPosition = null;
-            failureType = AttachTrainCarFailureType.InvalidRailPosition;
-
-            // スナップショットを変換・検証
-            // Convert snapshot to save-data and validate
-            if (snapshot == null)
-            {
-                return false;
-            }
-            var saveData = snapshot.ToModel();
-            if (!TryValidateSnapshot(saveData, expectedLength, out var validatedSaveData, out failureType))
-            {
-                return false;
-            }
-
-            // 検証済みデータからRailPosition復元
-            // Restore RailPosition from validated save-data
-            railPosition = RailPositionFactory.Restore(validatedSaveData, _railGraphDatastore);
-            return railPosition != null;
-        }
-
-        private bool TryValidateSnapshot(
-            RailPositionSaveData snapshot,
-            int expectedTrainLength,
-            out RailPositionSaveData validatedSnapshot,
-            out AttachTrainCarFailureType failureType)
-        {
-            validatedSnapshot = null;
-            failureType = AttachTrainCarFailureType.InvalidRailPosition;
-
-            // 入力値と列車長を検証する
-            // Validate input payload and train length
-            if (snapshot == null || snapshot.RailSnapshot == null || snapshot.RailSnapshot.Count < 2)
-            {
-                return false;
-            }
-            if (snapshot.TrainLength != expectedTrainLength)
-            {
-                return false;
-            }
-            if (snapshot.DistanceToNextNode < 0)
-            {
-                return false;
-            }
-
-            // ノード列を解決して経路整合性を検証する
-            // Resolve rail nodes and validate path consistency
-            var nodes = new System.Collections.Generic.List<IRailNode>(snapshot.RailSnapshot.Count);
-            for (var i = 0; i < snapshot.RailSnapshot.Count; i++)
-            {
-                var node = _railGraphDatastore.ResolveRailNode(snapshot.RailSnapshot[i]);
-                if (node == null)
-                {
-                    failureType = AttachTrainCarFailureType.RailNotFound;
-                    return false;
-                }
-                nodes.Add(node);
-            }
-
-            var totalDistance = 0;
-            for (var i = 0; i < nodes.Count - 1; i++)
-            {
-                var segmentDistance = nodes[i + 1].GetDistanceToNode(nodes[i]);
-                if (segmentDistance <= 0)
-                {
-                    return false;
-                }
-                if (i == 0 && segmentDistance < snapshot.DistanceToNextNode)
-                {
-                    return false;
-                }
-                totalDistance += segmentDistance;
-            }
-
-            var requiredDistance = snapshot.TrainLength + snapshot.DistanceToNextNode;
-            if (totalDistance < requiredDistance)
-            {
-                return false;
-            }
-
-            validatedSnapshot = new RailPositionSaveData
-            {
-                TrainLength = expectedTrainLength,
-                DistanceToNextNode = snapshot.DistanceToNextNode,
-                RailSnapshot = snapshot.RailSnapshot
-            };
-            return true;
+            var valid = RailPositionSnapshotValidator.TryValidate(snapshot, expectedLength, _railGraphDatastore,
+                out position, out var railNotFound);
+            failureType = railNotFound ? AttachTrainCarFailureType.RailNotFound : AttachTrainCarFailureType.InvalidRailPosition;
+            return valid;
         }
     }
 }

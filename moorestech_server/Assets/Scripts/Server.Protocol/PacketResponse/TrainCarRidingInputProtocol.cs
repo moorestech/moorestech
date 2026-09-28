@@ -18,11 +18,11 @@ namespace Server.Protocol.PacketResponse
             _trainUpdateService = trainUpdateService;
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var input = MessagePackSerializer.Deserialize<TrainCarRidingInputMessagePack>(payload);
             _inputBuffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(
-                context.PlayerId.Value,
+                requesterPlayerId,
                 _trainUpdateService.GetCurrentTick(),
                 input.MoveForward,
                 input.SelectPreviousBranch,

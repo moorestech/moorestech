@@ -24,14 +24,13 @@ namespace Server.Util.MessagePack
         /// </summary>
         [Key(2)] public string TrainCarInstanceId { get; set; }
 
-public InventoryIdentifierMessagePack() { }
+        public InventoryIdentifierMessagePack() { }
 
         public static InventoryIdentifierMessagePack CreateMainMessage()
         {
             return new InventoryIdentifierMessagePack
             {
                 InventoryType = InventoryType.Main,
-
             };
         }
 
@@ -40,7 +39,6 @@ public InventoryIdentifierMessagePack() { }
             return new InventoryIdentifierMessagePack
             {
                 InventoryType = InventoryType.Grab,
-
             };
         }
         
@@ -49,7 +47,6 @@ public InventoryIdentifierMessagePack() { }
             return new InventoryIdentifierMessagePack
             {
                 InventoryType = InventoryType.Equipment,
-
             };
         }
 

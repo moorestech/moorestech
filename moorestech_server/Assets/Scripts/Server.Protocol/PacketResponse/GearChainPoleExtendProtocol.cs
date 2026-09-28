@@ -39,10 +39,10 @@ namespace Server.Protocol.PacketResponse
             _constructionWallet = serviceProvider.GetService<ConstructionWalletService>();
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var request = MessagePackSerializer.Deserialize<GearChainPoleExtendRequest>(payload);
-            var inventory = _playerInventoryDataStore.GetInventoryData(context.PlayerId.Value).MainOpenableInventory;
+            var inventory = _playerInventoryDataStore.GetInventoryData(requesterPlayerId).MainOpenableInventory;
             var placePosition = (Vector3Int)request.PolePlaceInfo.Position;
 
             // 設置先が空いているか確認する
@@ -62,7 +62,7 @@ namespace Server.Protocol.PacketResponse
 
             // 建設コストは財布に問い合わせる。残りで賄えるなら素材を要求しない
             // Ask the wallet for the construction cost; when the remainder covers it no materials are demanded
-            var placementPlan = _constructionWallet.PlanPlacement(blockMaster, context.PlayerId.Value);
+            var placementPlan = _constructionWallet.PlanPlacement(blockMaster, requesterPlayerId);
             var costItemCounts = placementPlan.ItemsToConsume;
             if (!ConstructionCostService.HasRequiredItems(costItemCounts, inventory.InventoryItems)) return GearChainPoleExtendResponse.CreateFailed(GearChainPlacementEvaluator.InsufficientItemsError);
 
@@ -91,7 +91,7 @@ namespace Server.Protocol.PacketResponse
 
             // 起点ありならチェーン接続とアイテム消費
             // With a from pole, connect the chain and consume chain items
-            if (request.HasFromPole && !GearChainSystemUtil.TryConnect(request.FromPolePosVector, placePosition, context.PlayerId.Value, request.ConnectToolGuid, out var connectError))
+            if (request.HasFromPole && !GearChainSystemUtil.TryConnect(request.FromPolePosVector, placePosition, requesterPlayerId, request.ConnectToolGuid, out var connectError))
             {
                 // 事前検証済みのため通常到達しないが、孤立ポールを残さないよう設置を取り消す
                 // Unreachable after pre-validation; remove the block to avoid leaving an orphan pole

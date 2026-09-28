@@ -31,17 +31,17 @@ namespace Client.Game.InGame.Hotbar
         // No optimistic update; the va:event:hotbarUpdate echo from the server applies the change
         public void RequestAssign(int slot, Guid targetId)
         {
-            ClientContext.VanillaApi.SendOnly.AssignHotbar(slot, targetId);
+            ClientContext.VanillaApi.SendOnly.Hotbar.AssignHotbar(slot, targetId);
         }
 
         public void RequestClear(int slot)
         {
-            ClientContext.VanillaApi.SendOnly.ClearHotbar(slot);
+            ClientContext.VanillaApi.SendOnly.Hotbar.ClearHotbar(slot);
         }
 
         public void RequestSwap(int slotA, int slotB)
         {
-            ClientContext.VanillaApi.SendOnly.SwapHotbar(slotA, slotB);
+            ClientContext.VanillaApi.SendOnly.Hotbar.SwapHotbar(slotA, slotB);
         }
 
         // 選択要求をUIStateが1回消費するキュー（前例 BuildMenuSelection）

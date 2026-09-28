@@ -141,7 +141,7 @@ namespace Client.Game.InGame.Train.View
 
                 // 引き金だけ送る。snapshotはイベント経路で届き、適用完了通知でゲートが解除される
                 // Send only the trigger; the snapshot arrives via the event stream and releases the gate on apply
-                var ackResult = await api.SendTrainResync(includeRailGraph, cts.Token).SuppressCancellationThrow();
+                var ackResult = await api.Train.SendTrainResync(includeRailGraph, cts.Token).SuppressCancellationThrow();
                 if (ackResult.IsCanceled || ackResult.Result == null)
                 {
                     // ack失敗時は自要求が現役の場合のみゲート解放。後続resync要求の状態を旧要求が壊さないため

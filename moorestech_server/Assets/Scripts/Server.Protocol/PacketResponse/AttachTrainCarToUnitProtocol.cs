@@ -37,7 +37,7 @@ namespace Server.Protocol.PacketResponse
             _gameUnlockStateDataController = serviceProvider.GetService<IGameUnlockStateDataController>();
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var request = MessagePackSerializer.Deserialize<AttachTrainCarToUnitRequestMessagePack>(payload);
             return ExecuteRequest(request);
@@ -66,7 +66,7 @@ namespace Server.Protocol.PacketResponse
 
                 // 建設コストの充足をインベントリ横断で検証する
                 // Validate construction cost across the whole inventory
-                var inventoryData = _playerInventoryDataStore.GetInventoryData(context.PlayerId.Value);
+                var inventoryData = _playerInventoryDataStore.GetInventoryData(requesterPlayerId);
                 var mainInventory = inventoryData.MainOpenableInventory;
                 var costItemCounts = ConstructionCostItems.ToItemCounts(trainCarMaster.RequiredItems);
                 if (!ConstructionCostService.HasRequiredItems(costItemCounts, mainInventory.InventoryItems))

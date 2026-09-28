@@ -158,20 +158,20 @@ namespace Tests.CombinedTest.Server.PacketTest
         private static int SendTerrainChunkRequest(PacketResponseCreator packetResponseCreator, int chunkIndex)
         {
             var request = RequestMapDataMessagePack.CreateTerrainChunkRequest(chunkIndex);
-            return packetResponseCreator.GetPacketResponse(MessagePackSerializer.Serialize(request), Tests.Util.BoundPacketContext.Bind(1)).Count;
+            return packetResponseCreator.GetPacketResponse(MessagePackSerializer.Serialize(request), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1)).Count;
         }
 
         private static ResponseMapDataMessagePack RequestLayout(PacketResponseCreator packetResponseCreator)
         {
             var request = RequestMapDataMessagePack.CreateLayoutRequest();
-            var responseBytes = packetResponseCreator.GetPacketResponse(MessagePackSerializer.Serialize(request), Tests.Util.BoundPacketContext.Bind(1))[0];
+            var responseBytes = packetResponseCreator.GetPacketResponse(MessagePackSerializer.Serialize(request), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1))[0];
             return MessagePackSerializer.Deserialize<ResponseMapDataMessagePack>(responseBytes);
         }
 
         private static ResponseMapDataTerrainChunkMessagePack RequestTerrainChunk(PacketResponseCreator packetResponseCreator, int chunkIndex)
         {
             var request = RequestMapDataMessagePack.CreateTerrainChunkRequest(chunkIndex);
-            var responseBytes = packetResponseCreator.GetPacketResponse(MessagePackSerializer.Serialize(request), Tests.Util.BoundPacketContext.Bind(1))[0];
+            var responseBytes = packetResponseCreator.GetPacketResponse(MessagePackSerializer.Serialize(request), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1))[0];
             return MessagePackSerializer.Deserialize<ResponseMapDataTerrainChunkMessagePack>(responseBytes);
         }
 

@@ -40,9 +40,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             // スポーンポイントの座標のチェック
             var pos = new Vector3(186, 15.7f, -37.401f);;
-            Assert.AreEqual(pos.x, handShakeResponse.PlayerPos.X);
-            Assert.AreEqual(pos.y, handShakeResponse.PlayerPos.Y);
-            Assert.AreEqual(pos.z, handShakeResponse.PlayerPos.Z);
+            Assert.AreEqual(pos.x, handShakeResponse.Accepted.PlayerPos.X);
+            Assert.AreEqual(pos.y, handShakeResponse.Accepted.PlayerPos.Y);
+            Assert.AreEqual(pos.z, handShakeResponse.Accepted.PlayerPos.Z);
             
             
             //プレイヤーの座標を変更
@@ -56,9 +56,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             response = packet.GetPacketResponse(GetHandshakePacket(), new PacketResponseContext(null))[0];
             handShakeResponse =
                 MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(response);
-            Assert.AreEqual(100, handShakeResponse.PlayerPos.X);
-            Assert.AreEqual(0, handShakeResponse.PlayerPos.Y);
-            Assert.AreEqual(-100, handShakeResponse.PlayerPos.Z);
+            Assert.AreEqual(100, handShakeResponse.Accepted.PlayerPos.X);
+            Assert.AreEqual(0, handShakeResponse.Accepted.PlayerPos.Y);
+            Assert.AreEqual(-100, handShakeResponse.Accepted.PlayerPos.Z);
         }
 
         [Test]
@@ -73,7 +73,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // ハンドシェイクプロトコルが接続登録を担当する。
             // The handshake protocol owns connection registration.
-            Assert.IsTrue(connectionChecker.IsConnected(handshakeResponse.PlayerId));
+            Assert.IsTrue(connectionChecker.IsConnected(handshakeResponse.Accepted.PlayerId));
         }
 
         [Test]
@@ -95,13 +95,13 @@ namespace Tests.CombinedTest.Server.PacketTest
                 new PacketResponseContext(null))[0];
             var handshakeResponse = MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(response);
 
-            Assert.AreEqual(PlayerId, handshakeResponse.PlayerId);
-            Assert.AreEqual(InitialHandshakeRidingStateType.Restored, handshakeResponse.RidingStateType);
-            Assert.IsTrue(handshakeResponse.HasRidingState);
-            Assert.IsNotNull(handshakeResponse.RidingTarget);
-            Assert.AreEqual(RidableType.TrainCar, handshakeResponse.RidingTarget.RidableType);
-            Assert.AreEqual(car.TrainCarInstanceId.AsPrimitive(), handshakeResponse.RidingTarget.TrainCarInstanceId);
-            Assert.AreEqual(0, handshakeResponse.RidingSeatIndex);
+            Assert.AreEqual(PlayerId, handshakeResponse.Accepted.PlayerId);
+            Assert.AreEqual(InitialHandshakeRidingStateType.Restored, handshakeResponse.Accepted.RidingStateType);
+            Assert.IsTrue(handshakeResponse.Accepted.HasRidingState);
+            Assert.IsNotNull(handshakeResponse.Accepted.RidingTarget);
+            Assert.AreEqual(RidableType.TrainCar, handshakeResponse.Accepted.RidingTarget.RidableType);
+            Assert.AreEqual(car.TrainCarInstanceId.AsPrimitive(), handshakeResponse.Accepted.RidingTarget.TrainCarInstanceId);
+            Assert.AreEqual(0, handshakeResponse.Accepted.RidingSeatIndex);
         }
 
         [Test]
@@ -121,7 +121,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var context = new PacketResponseContext(sink);
             var handshakeResponsePacket = environment.PacketResponseCreator.GetPacketResponse(GetHandshakePacket(), context)[0];
             var handshakeResponse = MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(handshakeResponsePacket);
-            Assert.AreEqual(PlayerId, handshakeResponse.PlayerId);
+            Assert.AreEqual(PlayerId, handshakeResponse.Accepted.PlayerId);
             sink.TakeAll();
 
             datastore.TryRide(PlayerId, id, out _);

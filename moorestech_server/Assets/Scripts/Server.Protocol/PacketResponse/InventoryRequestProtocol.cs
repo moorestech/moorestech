@@ -31,7 +31,7 @@ namespace Server.Protocol.PacketResponse
             _inventoryResolver = serviceProvider.GetService<OpenableInventoryResolver>();
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             // リクエストをデシリアライズ
             // Deserialize request
@@ -63,7 +63,7 @@ namespace Server.Protocol.PacketResponse
                 if (!datastore.ExistsComponent<IOpenableBlockInventoryComponent>(position))
                     return ResponseInventoryRequestProtocolMessagePack.CreateContainerNotFound(InventoryType.Block, identifier);
 
-                var items = _inventoryResolver.Resolve(identifier, context.PlayerId.Value).InventoryItems;
+                var items = _inventoryResolver.Resolve(identifier, requesterPlayerId).InventoryItems;
                 return ResponseInventoryRequestProtocolMessagePack.CreateSuccess(InventoryType.Block, identifier, items);
             }
 
@@ -78,7 +78,7 @@ namespace Server.Protocol.PacketResponse
                 // 列車カーのインベントリを生成
                 // Build the train car inventory
                 if (trainCar.Container is ItemTrainCarContainer)
-                    return ResponseInventoryRequestProtocolMessagePack.CreateSuccess(InventoryType.Train, identifier, _inventoryResolver.Resolve(identifier, context.PlayerId.Value).InventoryItems.ToArray());
+                    return ResponseInventoryRequestProtocolMessagePack.CreateSuccess(InventoryType.Train, identifier, _inventoryResolver.Resolve(identifier, requesterPlayerId).InventoryItems.ToArray());
                 return ResponseInventoryRequestProtocolMessagePack.CreateContainerNotFound(InventoryType.Train, identifier);
             }
 

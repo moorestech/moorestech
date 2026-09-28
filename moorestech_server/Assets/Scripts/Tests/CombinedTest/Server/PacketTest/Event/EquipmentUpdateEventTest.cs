@@ -40,7 +40,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             // 選択変更はサーバーと専用イベントへ反映
             // Selection updates server state and its dedicated event
             var request = MessagePackSerializer.Serialize(new SetSelectedEquipmentIndexMessagePack(2));
-            packet.GetPacketResponse(request, Tests.Util.BoundPacketContext.Bind(PlayerId));
+            packet.GetPacketResponse(request, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
 
             Assert.AreEqual(2, equipmentInventory.SelectedEquipmentIndex);
             var selectedEvents = TakeSelectedIndexEvents(sink);
@@ -79,7 +79,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             // 装備の初期データは専用プロトコルを持たずインベントリ応答へ同梱される
             // Equipment has no dedicated fetch protocol; its initial data rides on the inventory response
             var payload = MessagePackSerializer.Serialize(new RequestPlayerInventoryProtocolMessagePack());
-            var response = MessagePackSerializer.Deserialize<PlayerInventoryResponseProtocolMessagePack>(packet.GetPacketResponse(payload, Tests.Util.BoundPacketContext.Bind(PlayerId))[0]);
+            var response = MessagePackSerializer.Deserialize<PlayerInventoryResponseProtocolMessagePack>(packet.GetPacketResponse(payload, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId))[0]);
 
             Assert.AreEqual(MasterHolder.ItemMaster.Items.EquipmentSlotCount, response.Equipment.Length);
             Assert.AreEqual(ToolItemId(), response.Equipment[0].Id);

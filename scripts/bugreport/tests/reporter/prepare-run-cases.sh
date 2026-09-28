@@ -1,6 +1,6 @@
 # test-prepare-run.sh の一時リポジトリを使い、複製セーブだけが変更されることを検査する
 # Use test-prepare-run.sh's temporary repositories to check that only the copied save changes
-for reporter_case in steam missing unmatched tie unbound no-device; do
+for reporter_case in steam missing unmatched tie largest-high-id unbound no-device; do
   reporter_run="$TMP/runs/reporter-$reporter_case"
   mkdir -p "$reporter_run/snapshots"
   python3 - "$reporter_run" "$REPORT_COMMIT_1B" "$reporter_case" <<'PY'
@@ -26,7 +26,7 @@ save = {"currentTick": 300, "players": {"nextPlayerId": 5,
     {"PlayerId": 1, "MainInventoryItems": [{"count": 7}],
      "EquipmentInventoryItems": [{"count": 8}], "GrabInventoryItems": {"count": 9}},
     {"PlayerId": 2, "MainInventoryItems": [{"count": 1 if case == "steam" else 100}]},
-    {"PlayerId": 4, "MainInventoryItems": [{"count": 24 if case == "tie" else 20}]},
+    {"PlayerId": 4, "MainInventoryItems": [{"count": 25 if case == "largest-high-id" else (24 if case == "tie" else 20)}]},
     {"PlayerId": 3, "MainInventoryItems": [{"count": 1000}]}]}
 (run / "manifest.json").write_text(json.dumps(manifest))
 (run / "snapshots/tick_300.json").write_text(json.dumps(save))
@@ -34,13 +34,18 @@ PY
   env "${ENVS[@]}" bash "$HERE/../prepare-run.sh" "reporter-$reporter_case" 2>"$TMP/reporter-$reporter_case.log"
   (
     source "$reporter_run/run.env"
+    if [[ "$reporter_case" == "unmatched" || "$reporter_case" == "unbound" || "$reporter_case" == "no-device" ]]; then
+      [ "$REPORTER_UNCLAIM_FAILED" = "1" ] || { echo "NG: 付け替え未了のフラグが無い: $reporter_case"; exit 1; }
+    else
+      [ "$REPORTER_UNCLAIM_FAILED" = "0" ] || { echo "NG: 付け替え成功が失敗扱い: $reporter_case"; exit 1; }
+    fi
     python3 - "$WORLD_DIR/save.json" "$reporter_run/snapshots/tick_300.json" "$reporter_case" <<'PY'
 import json, sys
 save, original = [json.load(open(path)) for path in sys.argv[1:3]]
 case = sys.argv[3]
 expected = json.loads(json.dumps(original))
 if case not in ("unbound", "no-device", "unmatched"):
-    selected_id = 2 if case == "steam" else 1
+    selected_id = 2 if case == "steam" else (4 if case == "largest-high-id" else 1)
     expected["players"]["claimCandidatePlayerId"] = selected_id
     next(entry for entry in expected["players"]["entries"]
          if entry["playerId"] == selected_id)["identity"] = None
@@ -51,7 +56,7 @@ PY
   )
   case "$reporter_case" in
     steam) reporter_message="プレイヤー2" ;;
-    missing|tie) reporter_message="manifest に steamId が無い" ;;
+    missing|tie|largest-high-id) reporter_message="manifest に steamId が無い" ;;
     unmatched) reporter_message="結びつくプレイヤーが無い" ;;
     unbound|no-device) reporter_message="端末身元に結びついたプレイヤーが居ない" ;;
   esac
@@ -71,7 +76,7 @@ for source in ("{broken", "[]", '{"players": []}',
                            "playerInventory": [{"PlayerId": 1, "MainInventoryItems": [{"count": "invalid"}]}]})):
     save_path.write_text(source)
     result = subprocess.run(["python3", script, str(save_path), str(manifest_path)], capture_output=True, text=True)
-    assert result.returncode == 0, result.stderr
+    assert result.returncode != 0, result.stderr
     assert result.stderr and "Traceback" not in result.stderr, result.stderr
     assert save_path.read_text() == source
 

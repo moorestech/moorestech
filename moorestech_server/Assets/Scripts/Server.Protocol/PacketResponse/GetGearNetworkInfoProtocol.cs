@@ -19,7 +19,7 @@ namespace Server.Protocol.PacketResponse
             _gearNetworkDatastore = serviceProvider.GetService<IGearNetworkDatastore>();
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var request = MessagePackSerializer.Deserialize<RequestGetGearNetworkInfoMessagePack>(payload);
 

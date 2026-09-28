@@ -89,7 +89,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         private static GetWorldPlaySessionInfoProtocol.ResponseWorldPlaySessionInfoMessagePack GetResponse(PacketResponseCreator packet)
         {
             var request = MessagePackSerializer.Serialize(new GetWorldPlaySessionInfoProtocol.RequestWorldPlaySessionInfoMessagePack());
-            var response = packet.GetPacketResponse(request, Tests.Util.BoundPacketContext.Bind(1))[0];
+            var response = packet.GetPacketResponse(request, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1))[0];
             return MessagePackSerializer.Deserialize<GetWorldPlaySessionInfoProtocol.ResponseWorldPlaySessionInfoMessagePack>(response);
         }
     }

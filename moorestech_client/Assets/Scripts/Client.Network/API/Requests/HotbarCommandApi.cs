@@ -3,7 +3,7 @@ using Server.Protocol.PacketResponse;
 
 namespace Client.Network.API.Requests
 {
-    internal sealed class HotbarCommandApi
+    public sealed class HotbarCommandApi
     {
         private readonly PacketSender _packetSender;
 

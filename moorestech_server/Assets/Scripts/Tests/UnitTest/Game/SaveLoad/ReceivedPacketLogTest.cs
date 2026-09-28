@@ -18,7 +18,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var log = new ReceivedPacketLog();
             log.Start(dir, 1);
             log.Append(1, 2, new byte[] { 1 });
-            log.Append(1, 0, new byte[] { 2 });
+            log.Append(1, null, new byte[] { 2 });
             log.Rotate(2);
             log.Append(2, 7, new byte[] { 3 });
             log.Stop();
@@ -26,7 +26,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             // 区間を跨いでも送り手とペイロードの対応を崩さない
             // Keep sender and payload paired even across segment boundaries
             var records = ReceivedPacketLogReader.ReadAll(log.SegmentFilePaths());
-            CollectionAssert.AreEqual(new[] { 2, 0, 7 }, records.Select(record => record.PlayerId));
+            CollectionAssert.AreEqual(new int?[] { 2, null, 7 }, records.Select(record => record.PlayerId));
             CollectionAssert.AreEqual(new byte[] { 1, 2, 3 }, records.Select(record => record.Payload[0]));
             Directory.Delete(dir, true);
         }
@@ -49,6 +49,46 @@ namespace Tests.UnitTest.Game.SaveLoad
             CollectionAssert.AreEqual(new byte[] { 1, 2, 3 }, records[0].Payload);
             Assert.AreEqual(3UL, records[1].Tick);
             Assert.AreEqual(4UL, records[2].Tick);
+            Directory.Delete(dir, true);
+        }
+
+        [Test]
+        public void 切断レコードの種別と送り手を読み戻せる()
+        {
+            var dir = Path.Combine(Path.GetTempPath(), $"moorestech-packetlog-{Guid.NewGuid():N}");
+            var log = new ReceivedPacketLog();
+            log.Start(dir, 1);
+            log.AppendDisconnect(2, 3);
+            log.Stop();
+
+            var record = ReceivedPacketLogReader.ReadAll(log.SegmentFilePaths()).Single();
+            Assert.AreEqual(ReceivedPacketRecordKind.Disconnect, record.Kind);
+            Assert.AreEqual(3, record.PlayerId);
+            Directory.Delete(dir, true);
+        }
+
+        [Test]
+        public void 旧形式の区間を理由付きで読み飛ばし現行区間を読む()
+        {
+            var dir = Path.Combine(Path.GetTempPath(), $"moorestech-packetlog-{Guid.NewGuid():N}");
+            var log = new ReceivedPacketLog();
+            log.Start(dir, 2);
+            log.Append(2, 1, new byte[] { 42 });
+            log.Stop();
+            var newPath = log.SegmentFilePaths()[0];
+            var oldPath = Path.Combine(dir, "packets_1.bin");
+            using (var old = new BinaryWriter(File.Create(oldPath)))
+            {
+                old.Write(1UL);
+                old.Write(1);
+                old.Write(1);
+                old.Write((byte)7);
+            }
+
+            LogAssert.Expect(LogType.Warning, new Regex("パケットログ区間の形式が現在版と異なる"));
+            var records = ReceivedPacketLogReader.ReadAll(new[] { oldPath, newPath });
+            Assert.AreEqual(1, records.Count);
+            CollectionAssert.AreEqual(new byte[] { 42 }, records[0].Payload);
             Directory.Delete(dir, true);
         }
 

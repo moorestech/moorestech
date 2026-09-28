@@ -11,13 +11,14 @@ namespace Game.SaveLoad.Migration.Steps
     // - legacy random id→sequential / players section built all-unclaimed
     public sealed class SaveMigrationStepV2ToV3 : ISaveMigrationStep
     {
+        internal const int FirstMigratedPlayerId = 1;
         public int FromVersion => 2;
 
         public SaveMigrationStepResult Migrate(JObject save)
         {
             // 版2に players 節は無い。あるなら想定外の形なので変換しない
             // V2 has no players section; its presence is an unexpected shape, so refuse
-            if (save["players"] != null) return Fail("版2のセーブに players 節が既にある");
+            if (save["players"] is JToken players && players.Type != JTokenType.Null) return Fail("版2のセーブに players 節が既にある");
 
             if (!PlayerIdRenumbering.TryBuildMap(save, out var map, out var reason)) return Fail(reason);
             if (!PlayerClaimCandidateDataValidator.TryValidate(save, out reason)) return Fail(reason);
@@ -29,7 +30,7 @@ namespace Game.SaveLoad.Migration.Steps
             var entries = new JArray(map.Values.OrderBy(id => id).Select(id => new JObject { ["playerId"] = id, ["identity"] = null }));
             save["players"] = new JObject
             {
-                ["nextPlayerId"] = map.Count + 1,
+                ["nextPlayerId"] = map.Count + FirstMigratedPlayerId,
                 ["claimCandidatePlayerId"] = candidate.HasValue ? new JValue(candidate.Value) : JValue.CreateNull(),
                 ["entries"] = entries,
             };

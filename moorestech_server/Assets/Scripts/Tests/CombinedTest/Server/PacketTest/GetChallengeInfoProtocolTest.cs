@@ -45,7 +45,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 現在のチャレンジ情報をリクエスト
             // Request current challenge information
             var messagePack = new RequestChallengeMessagePack();
-            var response = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), Tests.Util.BoundPacketContext.Bind(1))[0];
+            var response = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1))[0];
             var challengeInfo = MessagePackSerializer.Deserialize<ResponseChallengeInfoMessagePack>(response);
             
             // 検証
@@ -86,7 +86,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 現在のチャレンジ情報をリクエスト
             // Request current challenge information
             messagePack = new RequestChallengeMessagePack();
-            response = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), Tests.Util.BoundPacketContext.Bind(1))[0];
+            response = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1))[0];
             challengeInfo = MessagePackSerializer.Deserialize<ResponseChallengeInfoMessagePack>(response);
             
             // 検証

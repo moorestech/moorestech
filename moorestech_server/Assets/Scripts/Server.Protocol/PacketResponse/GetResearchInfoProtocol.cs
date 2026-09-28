@@ -18,11 +18,11 @@ namespace Server.Protocol.PacketResponse
             _researchDataStore = serviceProvider.GetService<IResearchDataStore>();
         }
         
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var request = MessagePackSerializer.Deserialize<RequestResearchInfoMessagePack>(payload);
 
-            var nodeStates = _researchDataStore.GetResearchNodeStates(context.PlayerId.Value);
+            var nodeStates = _researchDataStore.GetResearchNodeStates(requesterPlayerId);
             return new ResponseResearchInfoMessagePack(nodeStates);
         }
         

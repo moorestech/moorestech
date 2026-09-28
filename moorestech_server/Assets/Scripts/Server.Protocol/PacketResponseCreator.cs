@@ -12,6 +12,7 @@ namespace Server.Protocol
     public class PacketResponseCreator
     {
         private readonly Dictionary<string, IPacketResponse> _packetResponseDictionary = new();
+        private readonly Dictionary<string, IHandshakePacketResponse> _handshakeResponseDictionary = new();
         
         //TODO この辺もDIコンテナに載せる?こういうパケット周りめっちゃなんとかしたい
         // TODO should packet registration also be moved into the DI container?
@@ -21,7 +22,7 @@ namespace Server.Protocol
             // Acquire train-related services required for packet creation
             var trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
             var trainCarRidingInputBuffer = serviceProvider.GetService<TrainCarRidingInputBuffer>();
-            _packetResponseDictionary.Add(InitialHandshakeProtocol.ProtocolTag, new InitialHandshakeProtocol(serviceProvider));
+            _handshakeResponseDictionary.Add(InitialHandshakeProtocol.ProtocolTag, new InitialHandshakeProtocol(serviceProvider));
             _packetResponseDictionary.Add(RequestWorldDataProtocol.ProtocolTag, new RequestWorldDataProtocol(serviceProvider));
             _packetResponseDictionary.Add(PlayerInventoryResponseProtocol.ProtocolTag, new PlayerInventoryResponseProtocol(serviceProvider));
             _packetResponseDictionary.Add(SetPlayerCoordinateProtocol.ProtocolTag, new SetPlayerCoordinateProtocol(serviceProvider));
@@ -84,12 +85,19 @@ namespace Server.Protocol
                 request = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(payload);
                 // 身元未確定の接続から届く操作は送り手を決められないため破棄する
                 // Drop operations before the connection identifies their sender
-                if (request.Tag != InitialHandshakeProtocol.ProtocolTag && !context.PlayerId.HasValue)
+                if (_handshakeResponseDictionary.TryGetValue(request.Tag, out var handshake))
+                {
+                    response = handshake.GetResponse(payload, context);
+                }
+                else if (!context.PlayerId.HasValue)
                 {
                     Debug.LogWarning($"[PacketResponseCreator] 未紐づけの接続からの要求を無視しました tag:{request.Tag}");
                     return new List<byte[]>();
                 }
-                response = _packetResponseDictionary[request.Tag].GetResponse(payload, context);
+                else
+                {
+                    response = _packetResponseDictionary[request.Tag].GetResponse(payload, context.PlayerId.Value);
+                }
             }
             catch (Exception e)
             {

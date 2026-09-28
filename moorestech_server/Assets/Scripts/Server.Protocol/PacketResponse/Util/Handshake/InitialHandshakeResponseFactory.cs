@@ -7,10 +7,11 @@ using Game.PlayerRiding.Interface;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Event.EventReceive;
+using Server.Protocol.PacketResponse.Handshake;
 using Server.Util.MessagePack;
 using static Server.Event.EventReceive.ItemStackLevelUnlockEventPacket;
 
-namespace Server.Protocol.PacketResponse.Handshake
+namespace Server.Protocol.PacketResponse.Util.Handshake
 {
     internal sealed class InitialHandshakeResponseFactory
     {
@@ -65,7 +66,8 @@ namespace Server.Protocol.PacketResponse.Handshake
                 .Select(pair => new RemainingPlacementCountChangedEventPacket.RemainingPlacementCountMessagePack(pair.walletBlockId.AsPrimitive(), pair.remainingCount))
                 .ToArray();
 
-            return new InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack(playerPos, ridingTarget, ridingSeatIndex, itemStackLevels, hotbarAssignments, remainingPlacementCounts, playerId);
+            var accepted = new HandshakeAcceptedMessagePack(playerPos, ridingTarget, ridingSeatIndex, itemStackLevels, hotbarAssignments, remainingPlacementCounts, playerId);
+            return new InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack(accepted);
 
             #region Internal
 

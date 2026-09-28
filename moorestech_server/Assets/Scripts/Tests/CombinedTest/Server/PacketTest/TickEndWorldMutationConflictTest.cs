@@ -88,7 +88,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             public void Process()
             {
-                _packet.GetPacketResponse(_payload, Tests.Util.BoundPacketContext.Bind(PlayerId));
+                _packet.GetPacketResponse(_payload, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
             }
         }
     }

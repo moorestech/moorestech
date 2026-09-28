@@ -26,7 +26,7 @@ namespace Server.Protocol.PacketResponse
             _entitiesDatastore = serviceProvider.GetService<IEntitiesDatastore>();
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             // リクエストを読み、接続のプレイヤー位置を使う
             // Read the request and use the position of the bound player
@@ -34,7 +34,7 @@ namespace Server.Protocol.PacketResponse
 
             // プレイヤー位置を取得
             // Get player position
-            var playerEntityId = new EntityInstanceId(context.PlayerId.Value);
+            var playerEntityId = new EntityInstanceId(requesterPlayerId);
             var playerPosition = _entitiesDatastore.Exists(playerEntityId)
                 ? _entitiesDatastore.GetPosition(playerEntityId)
                 : Vector3.zero;

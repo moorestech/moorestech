@@ -1,3 +1,4 @@
+using Tests.Util.PlayerIdentity;
 using System.Text.RegularExpressions;
 using MessagePack;
 using NUnit.Framework;
@@ -9,7 +10,7 @@ using Tests.Util;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace Tests.CombinedTest.Server.PacketTest
+namespace Tests.CombinedTest.Server.PacketTest.ConnectionGate
 {
     public class PacketResponseCreatorUnboundGateTest
     {

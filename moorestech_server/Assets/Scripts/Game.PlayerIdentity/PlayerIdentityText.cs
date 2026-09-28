@@ -33,11 +33,16 @@ namespace Game.PlayerIdentity
             bool IsSteamBody(string body, out string steamReason)
             {
                 steamReason = null;
-                if (body.Length == 0 || MaxSteamIdDigits < body.Length) steamReason = $"SteamIDの桁数が不正: {identity}";
+                if (body.Length == 0 || MaxSteamIdDigits < body.Length)
+                {
+                    steamReason = $"SteamIDの桁数が不正: {identity}";
+                    return false;
+                }
                 foreach (var c in body)
                 {
                     if ('0' <= c && c <= '9') continue;
                     steamReason = $"SteamIDに数字以外が含まれる: {identity}";
+                    return false;
                 }
                 return steamReason == null;
             }

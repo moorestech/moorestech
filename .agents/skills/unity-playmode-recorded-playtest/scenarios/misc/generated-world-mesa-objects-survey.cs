@@ -14,7 +14,7 @@ var options = new PlaytestRunOptions { Record = false };
 return PlaytestRunner.Run("generated-world-mesa-objects-survey", options, async p =>
 {
     p.Note("generatedワールドのobjectConfig配置を調べる");
-    var meta = (await ClientContext.VanillaApi.Response.GetMapData(default)).TerrainMeta;
+    var meta = (await ClientContext.VanillaApi.Response.World.GetMapData(default)).TerrainMeta;
     p.Assert(meta.MapMode == "generated", "generatedモードで起動している");
 
     // 1: 種別ごとの個体数。objectConfig経由の種が0なら配置ステージかプレハブ解決が死んでいる

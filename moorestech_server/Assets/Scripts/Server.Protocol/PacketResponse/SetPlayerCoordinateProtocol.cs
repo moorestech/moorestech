@@ -22,12 +22,12 @@ namespace Server.Protocol.PacketResponse
             _entitiesDatastore = serviceProvider.GetService<IEntitiesDatastore>();
         }
         
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var data = MessagePackSerializer.Deserialize<PlayerCoordinateSendProtocolMessagePack>(payload);
             
             //プレイヤーの座標を更新する
-            _entitiesDatastore.SetPosition(new EntityInstanceId(context.PlayerId.Value), data.Pos.Vector3);
+            _entitiesDatastore.SetPosition(new EntityInstanceId(requesterPlayerId), data.Pos.Vector3);
             
             return null;
         }

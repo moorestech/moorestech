@@ -38,7 +38,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var insertCount = MasterHolder.ItemMaster.Items.EquipmentSlotCount + 2;
             playerInventory.MainOpenableInventory.SetItem(0, toolItemId, insertCount);
 
-            packet.GetPacketResponse(MoveItemPacket(insertCount, 0, 0, ItemMoveType.InsertSlot), Tests.Util.BoundPacketContext.Bind(PlayerId));
+            packet.GetPacketResponse(MoveItemPacket(insertCount, 0, 0, ItemMoveType.InsertSlot), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
 
             var equipmentInventory = playerInventory.EquipmentInventory;
             Assert.AreEqual(MasterHolder.ItemMaster.Items.EquipmentSlotCount, equipmentInventory.GetSlotSize());
@@ -54,7 +54,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var nonToolItemId = NonToolItemId();
             playerInventory.MainOpenableInventory.SetItem(0, nonToolItemId, 5);
 
-            packet.GetPacketResponse(MoveItemPacket(5, 0, 0, ItemMoveType.InsertSlot), Tests.Util.BoundPacketContext.Bind(PlayerId));
+            packet.GetPacketResponse(MoveItemPacket(5, 0, 0, ItemMoveType.InsertSlot), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
 
             Assert.AreEqual(nonToolItemId, playerInventory.EquipmentInventory.GetItem(0).Id);
             Assert.AreEqual(5, playerInventory.EquipmentInventory.GetItem(0).Count);
@@ -70,7 +70,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // 移動先が空のためSwapSlot指定でも入れ替えではなくReplaceItem経路を通る
             // The destination is empty, so SwapSlot still goes through the ReplaceItem path instead of a swap
-            packet.GetPacketResponse(MoveItemPacket(4, 0, 0, ItemMoveType.SwapSlot), Tests.Util.BoundPacketContext.Bind(PlayerId));
+            packet.GetPacketResponse(MoveItemPacket(4, 0, 0, ItemMoveType.SwapSlot), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
 
             Assert.AreEqual(4, playerInventory.EquipmentInventory.GetItem(0).Count);
             Assert.AreEqual(0, playerInventory.MainOpenableInventory.GetItem(0).Count);
@@ -87,7 +87,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Swap an equipped tool with a non-tool in full
             playerInventory.EquipmentInventory.SetItem(0, toolItemId, 1);
             playerInventory.MainOpenableInventory.SetItem(0, nonToolItemId, 1);
-            packet.GetPacketResponse(MoveItemPacket(1, 0, 0, ItemMoveType.SwapSlot), Tests.Util.BoundPacketContext.Bind(PlayerId));
+            packet.GetPacketResponse(MoveItemPacket(1, 0, 0, ItemMoveType.SwapSlot), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
 
             Assert.AreEqual(nonToolItemId, playerInventory.EquipmentInventory.GetItem(0).Id);
             Assert.AreEqual(toolItemId, playerInventory.MainOpenableInventory.GetItem(0).Id);

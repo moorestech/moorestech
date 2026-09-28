@@ -20,7 +20,7 @@ namespace Server.Protocol.PacketResponse
             _hotbarAssignmentMutation = serviceProvider.GetService<IHotbarAssignmentMutation>();
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var request = MessagePackSerializer.Deserialize<HotbarProtocolMessagePack>(payload);
 
@@ -29,13 +29,13 @@ namespace Server.Protocol.PacketResponse
             switch (request.Operation)
             {
                 case HotbarOperation.Assign:
-                    _hotbarAssignmentMutation.SetAssignment(context.PlayerId.Value, request.Slot, request.TargetId);
+                    _hotbarAssignmentMutation.SetAssignment(requesterPlayerId, request.Slot, request.TargetId);
                     break;
                 case HotbarOperation.Clear:
-                    _hotbarAssignmentMutation.ClearAssignment(context.PlayerId.Value, request.Slot);
+                    _hotbarAssignmentMutation.ClearAssignment(requesterPlayerId, request.Slot);
                     break;
                 case HotbarOperation.Swap:
-                    _hotbarAssignmentMutation.SwapAssignments(context.PlayerId.Value, request.Slot, request.SlotB);
+                    _hotbarAssignmentMutation.SwapAssignments(requesterPlayerId, request.Slot, request.SlotB);
                     break;
             }
 

@@ -113,6 +113,7 @@ namespace Game.SaveLoad.Json
             // 身元の対応表はプレイヤー状態より先に戻す
             // Restore the identity table before any player state
             _playerIdentityRegistry.Load(load.Players);
+            PlayerSaveReferenceValidator.Validate(load, _playerIdentityRegistry);
             _inventoryDataStore.LoadPlayerInventory(load.Inventory);
             _entitiesDatastore.LoadBlockDataList(load.Entities);
             _worldSettingsDatastore.LoadSettingData(load.Setting);

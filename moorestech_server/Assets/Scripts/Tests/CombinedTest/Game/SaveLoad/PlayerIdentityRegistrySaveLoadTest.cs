@@ -10,7 +10,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace Tests.CombinedTest.Game
+namespace Tests.CombinedTest.Game.SaveLoad
 {
     public class PlayerIdentityRegistrySaveLoadTest
     {
@@ -20,8 +20,8 @@ namespace Tests.CombinedTest.Game
             var saveProvider = SaveLoadPreparerTestFixture.CreateContainer();
             var registry = saveProvider.GetRequiredService<PlayerIdentityRegistry>();
             Assert.AreSame(registry, saveProvider.GetRequiredService<IPlayerIdentityRegistry>());
-            registry.Assign("steam:1");
-            registry.Assign("steam:2");
+            PreviewAndCommit(registry, "steam:1");
+            PreviewAndCommit(registry, "steam:2");
             var json = saveProvider.GetRequiredService<AssembleSaveJsonText>().AssembleSaveJson();
 
             // 別コンテナで保存前の割当と採番の続きを確認する
@@ -30,9 +30,9 @@ namespace Tests.CombinedTest.Game
             ((WorldLoaderFromJson)loadProvider.GetRequiredService<IWorldSaveDataLoader>()).Load(json);
             var restored = loadProvider.GetRequiredService<PlayerIdentityRegistry>();
 
-            Assert.AreEqual(2, restored.Assign("steam:2").PlayerId);
-            Assert.AreEqual(1, restored.Assign("steam:1").PlayerId);
-            Assert.AreEqual(3, restored.Assign("steam:3").PlayerId);
+            Assert.AreEqual(2, PreviewAndCommit(restored, "steam:2").PlayerId);
+            Assert.AreEqual(1, PreviewAndCommit(restored, "steam:1").PlayerId);
+            Assert.AreEqual(3, PreviewAndCommit(restored, "steam:3").PlayerId);
         }
 
         [Test]
@@ -47,8 +47,8 @@ namespace Tests.CombinedTest.Game
             ((WorldLoaderFromJson)restoredProvider.GetRequiredService<IWorldSaveDataLoader>()).Load(json);
             var restored = restoredProvider.GetRequiredService<PlayerIdentityRegistry>();
 
-            Assert.AreEqual(2, restored.Assign("steam:9").PlayerId);
-            Assert.AreEqual(3, restored.Assign("steam:10").PlayerId);
+            Assert.AreEqual(2, PreviewAndCommit(restored, "steam:9").PlayerId);
+            Assert.AreEqual(3, PreviewAndCommit(restored, "steam:10").PlayerId);
             var saved = restored.GetSaveJsonObject();
             Assert.IsNull(saved.ClaimCandidatePlayerId);
             Assert.AreEqual(1, saved.Entries[0].PlayerId);
@@ -60,13 +60,13 @@ namespace Tests.CombinedTest.Game
         {
             var provider = SaveLoadPreparerTestFixture.CreateContainer();
             var registry = provider.GetRequiredService<PlayerIdentityRegistry>();
-            registry.Assign("steam:1");
-            registry.Assign("steam:2");
+            PreviewAndCommit(registry, "steam:1");
+            PreviewAndCommit(registry, "steam:2");
 
             ((WorldLoaderFromJson)provider.GetRequiredService<IWorldSaveDataLoader>()).WorldInitialize();
 
-            Assert.IsFalse(registry.TryGetPlayerId("steam:2", out _));
-            Assert.AreEqual(1, registry.Assign("steam:3").PlayerId);
+            Assert.IsEmpty(registry.GetSaveJsonObject().Entries);
+            Assert.AreEqual(1, PreviewAndCommit(registry, "steam:3").PlayerId);
         }
 
         [Test]
@@ -81,6 +81,13 @@ namespace Tests.CombinedTest.Game
             var exception = Assert.Throws<InvalidOperationException>(() => loader.Load(save));
 
             StringAssert.Contains("players", exception.Message);
+        }
+
+        private static PlayerIdAssignment PreviewAndCommit(PlayerIdentityRegistry registry, string identity)
+        {
+            var preview = registry.PreviewAssignment(identity);
+            registry.Commit(preview);
+            return preview;
         }
     }
 }

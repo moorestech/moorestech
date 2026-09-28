@@ -13,11 +13,13 @@ namespace Game.PlayerIdentity
     {
         public readonly int PlayerId;
         public readonly PlayerIdAssignmentKind Kind;
+        public readonly string Identity;
 
-        public PlayerIdAssignment(int playerId, PlayerIdAssignmentKind kind)
+        internal PlayerIdAssignment(int playerId, PlayerIdAssignmentKind kind, string identity)
         {
             PlayerId = playerId;
             Kind = kind;
+            Identity = identity;
         }
     }
 }

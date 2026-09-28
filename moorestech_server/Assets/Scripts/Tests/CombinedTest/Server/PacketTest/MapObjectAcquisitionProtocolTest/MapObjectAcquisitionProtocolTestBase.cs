@@ -71,7 +71,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         protected void SendAttack(PacketResponseCreator packet, int instanceId)
         {
             var messagePack = MiningProtocol.MiningProtocolMessagePack.CreateMapObjectRequest(instanceId);
-            packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), Tests.Util.BoundPacketContext.Bind(PlayerId));
+            packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
         }
 
         protected void SendAttackAfterCooldown(PacketResponseCreator packet, int instanceId)

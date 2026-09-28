@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Client.Network.API.Requests
 {
-    internal sealed class BlockRequestApi
+    public sealed class BlockRequestApi
     {
         private readonly PacketExchangeManager _packetExchangeManager;
 

@@ -97,14 +97,14 @@ namespace Tests.CombinedTest.Server.PacketTest
         private ElectricWireExtendProtocol.ElectricWireExtendResponse SendConnectViaExtend(Vector3Int posA, Vector3Int posB)
         {
             var payload = MessagePackSerializer.Serialize(ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateConnectRequest(posA, posB, ConnectToolGuid));
-            var responses = _packet.GetPacketResponse(payload, Tests.Util.BoundPacketContext.Bind(PlayerId));
+            var responses = _packet.GetPacketResponse(payload, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
             return MessagePackSerializer.Deserialize<ElectricWireExtendProtocol.ElectricWireExtendResponse>(responses[0]);
         }
 
         private ElectricWireDisconnectProtocol.ElectricWireDisconnectResponse SendDisconnect(Vector3Int posA, Vector3Int posB)
         {
             var payload = MessagePackSerializer.Serialize(ElectricWireDisconnectProtocol.ElectricWireDisconnectRequest.CreateDisconnectRequest(posA, posB));
-            var responses = _packet.GetPacketResponse(payload, Tests.Util.BoundPacketContext.Bind(PlayerId));
+            var responses = _packet.GetPacketResponse(payload, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
             return MessagePackSerializer.Deserialize<ElectricWireDisconnectProtocol.ElectricWireDisconnectResponse>(responses[0]);
         }
 

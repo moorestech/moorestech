@@ -23,7 +23,7 @@ hooks:
 
 `$RUN = $BUG_REPORT_RUNDIR_BASE/<run-id>`（既定 `~/hermes-agent/data/repos/moorestech_logs/harness/bug-report/runs/<run-id>`）。
 `$RUN/run.env` に `WORKTREE`・`MASTER_DIR`・`SERVER_DATA_DIR`・`WORLD_DIR`・`WORLD_MATERIALIZE_PENDING`・`WORLD_NOT_CAPTURED`・`WORLD_MAP_MODE`・`WORLD_SEED`（箱の `world.json` の `mapMode`・`seed`。読めなければ空）・`REPORT_COMMIT`・`REPORT_BRANCH`・`LATEST_TICK` と、
-**再現環境の欠けを表すフラグ**（`COMMIT_MISSING`・`DIFF_APPLY_FAILED`・`DIFF_ABSENT`・`UNTRACKED_FAILED`・`MASTER_FAILED`・`MASTER_DIFF_APPLY_FAILED`・`MASTER_DIFF_ABSENT`・`MASTER_UNTRACKED_FAILED`）がある。
+**再現環境の欠けを表すフラグ**（`COMMIT_MISSING`・`DIFF_APPLY_FAILED`・`DIFF_ABSENT`・`UNTRACKED_FAILED`・`MASTER_FAILED`・`MASTER_DIFF_APPLY_FAILED`・`MASTER_DIFF_ABSENT`・`MASTER_UNTRACKED_FAILED`・`REPORTER_UNCLAIM_FAILED`）がある。
 `$RUN/repo/bundle-status.txt` は運搬側が付けた bundle の3状態（`created` / `not-needed-origin-has-commit` / `failed-*` / `skipped-*`）で、`failed-*` は報告者のローカルコミットが受け側に無いことを意味する。
 `SERVER_DATA_DIR` は**記録時にサーバーが実際にマスタを読んだ置き場**（manifest の `serverData` から受け側の worktree 配下へ解決した値）。`MASTER_DIR` とは一致しないことがあり、再生・観察には必ず `SERVER_DATA_DIR` を使う。作業は必ず `$WORKTREE` で行う。
 `$RUN`・`$WORKTREE` 等は本ドキュメント上のプレースホルダである。コマンドへ渡すときは `. $RUN/run.env` で読み込むか、実値の絶対パスへ展開して書く。
@@ -76,6 +76,7 @@ poller は cwd を `$CANON` にして起動する（`scripts/bugreport/inbox-pol
 | --- | --- |
 | `COMMIT_MISSING=1` / `DIFF_APPLY_FAILED=1` / `DIFF_ABSENT=1` / `UNTRACKED_FAILED=1` | 止まらず進む。再現環境が報告時と違う旨を `summary` と PR 本文に必ず書く |
 | `MASTER_FAILED=1` / `MASTER_DIFF_APPLY_FAILED=1` / `MASTER_DIFF_ABSENT=1` / `MASTER_UNTRACKED_FAILED=1` | 止まらず進む。**マスタデータが報告時と違う**（レシピ・ブロック定義が別物でありうる）ため、`not_reproduced` の判定はこれを踏まえ、`summary` と PR 本文に必ず書く |
+| `REPORTER_UNCLAIM_FAILED=1` | 複製セーブで報告者の持ち主未定化が完了していない。別の身元で接続すると報告者の状態を再現できないため、理由を `summary` と PR 本文に書く |
 | `$RUN/repo/bundle-status.txt` に `failed-*` がある | 報告者のローカルコミットが受け側に無い。`COMMIT_MISSING=1` と同じ扱いで `summary` と PR 本文に書く |
 | バンドルの欠損（動画・スナップショット・パケットログ） | 残った資料で進める。欠損項目を `summary` に書く |
 | Step 3 の観察で症状が出ない | 追加シナリオを最大3本試し、それでも出なければ `not_reproduced` |

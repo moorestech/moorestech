@@ -16,11 +16,11 @@ namespace Server.Protocol.PacketResponse
             _playerRidingDatastore = serviceProvider.GetService<IPlayerRidingDatastore>();
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var data = MessagePackSerializer.Deserialize<RequestRideActionMessagePack>(payload);
             
-            var result = ResolveAction(context.PlayerId.Value);
+            var result = ResolveAction(requesterPlayerId);
             
             return new ResponseRideActionMessagePack(result);
 

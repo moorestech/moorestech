@@ -44,7 +44,8 @@
     "Game.Research",
     "Game.Train",
     "Game.Gear",
-    "Game.PlayerRiding.Interface"
+    "Game.PlayerRiding.Interface",
+    "Client.Localization"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

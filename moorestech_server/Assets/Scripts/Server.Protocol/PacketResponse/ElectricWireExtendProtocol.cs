@@ -22,7 +22,7 @@ namespace Server.Protocol.PacketResponse
             _notificationService = serviceProvider.GetService<NotificationService>();
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             // 要求データをデシリアライズする
             // Deserialize request payload
@@ -32,12 +32,12 @@ namespace Server.Protocol.PacketResponse
             // Delegate validation, placement, wiring and consumption to the service; map its result to a response
             var result = ElectricWireExtendService.Execute(
                 request.Operation, request.FromPosVector, request.ToPosVector, request.PolePlaceInfo,
-                context.PlayerId.Value, request.PoleBlockId, request.ConnectToolGuid);
+                requesterPlayerId, request.PoleBlockId, request.ConnectToolGuid);
 
             // 拒否理由は通常設置と同じ通知経路でプレイヤーへ返す（前例: RailConnectionEditProtocol）
             // Surface the rejection through the same notification path as normal placement (precedent: RailConnectionEditProtocol)
             if (!result.IsSuccess)
-                _notificationService.Notify(context.PlayerId.Value, NotificationMessagePack.CreateOperationDenied($"denied.electricWireExtend.{result.FailureReason}", Array.Empty<string>()));
+                _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied($"denied.electricWireExtend.{result.FailureReason}", Array.Empty<string>()));
 
             return result.IsSuccess
                 ? ElectricWireExtendResponse.CreateSuccess(result.EndpointPos, result.EndpointBlockInstanceId)

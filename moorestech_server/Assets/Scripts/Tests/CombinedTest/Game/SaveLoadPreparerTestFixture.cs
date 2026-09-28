@@ -4,6 +4,7 @@ using Game.Block.Interface;
 using Game.Context;
 using Game.Paths;
 using Game.PlayerInventory.Interface;
+using Game.PlayerIdentity;
 using Game.SaveLoad.Json;
 using Game.SaveLoad.Json.WorldVersions;
 using Game.SaveLoad.Migration;
@@ -57,6 +58,8 @@ namespace Tests.CombinedTest.Game
         {
             var serviceProvider = CreateContainer();
 
+            var identities = serviceProvider.GetRequiredService<PlayerIdentityRegistry>();
+            identities.Commit(identities.PreviewAssignment("steam:1"));
             serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(1);
             var placed = ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             Assert.IsTrue(placed, "テストの土台となるチェストの設置に失敗しました");

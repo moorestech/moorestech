@@ -2,7 +2,7 @@ using Game.SaveLoad.Migration.Steps;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 
-namespace Tests.UnitTest.Game.SaveLoad
+namespace Tests.UnitTest.Game.SaveLoad.PlayerIdentity
 {
     public class SaveMigrationStepV2ToV3ValidationTest
     {

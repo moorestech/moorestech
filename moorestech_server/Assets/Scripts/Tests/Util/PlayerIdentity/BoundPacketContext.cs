@@ -4,7 +4,7 @@ using Server.Protocol;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Handshake;
 
-namespace Tests.Util
+namespace Tests.Util.PlayerIdentity
 {
     // 実ハンドシェイクと直接バインドの二通りでテスト用接続を作る
     // Build test connections through a real handshake or direct binding
@@ -16,7 +16,7 @@ namespace Tests.Util
             var payload = MessagePackSerializer.Serialize(new InitialHandshakeProtocol.RequestInitialHandshakeMessagePack(identity));
             var response = MessagePackSerializer.Deserialize<InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack>(creator.GetPacketResponse(payload, context)[0]);
             Assert.AreEqual(HandshakeRejection.None, response.Rejection, $"テスト用ハンドシェイクが拒否された: {response.Rejection}");
-            playerId = response.PlayerId;
+            playerId = response.Accepted.PlayerId;
             return context;
         }
 

@@ -1,13 +1,24 @@
 using Client.PlaytestReceiver.Steam;
+using Client.Game.InGame.BugReport.BuildOrigin;
 using Client.Starter.Identity;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace Client.Tests.Starter
+namespace Client.Tests.Starter.Identity
 {
     public class LocalPlayerIdentityResolverTest
     {
+        [Test]
+        public void ビルド情報の無い実行ファイルは端末値へ落とさず拒否Test()
+        {
+            var origin = BuildOriginReading.WithoutInfo("build-info.json missing");
+            var result = LocalPlayerIdentityResolver.ResolveForBuildOrigin(origin, new FakeSteamReader("1"), "device-value");
+            Assert.IsFalse(result.Succeeded);
+            Assert.AreEqual(LocalizationKeys.Ui.Loading.BuildOriginUnavailable.Key, result.RefusalLocalizationKey.Key);
+            StringAssert.Contains("build-info.json missing", result.RefusalLogReason);
+        }
+
         private sealed class FakeSteamReader : IPlaytestLocalSteamIdReader
         {
             private readonly string _steamId;

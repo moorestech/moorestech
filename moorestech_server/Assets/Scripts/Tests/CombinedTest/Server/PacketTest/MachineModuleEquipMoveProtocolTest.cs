@@ -57,7 +57,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Move into the first module-range slot via the existing move protocol (InventoryType.Block + slot number)
             packet.GetPacketResponse(MovePacket(1,
                 InventoryIdentifierMessagePack.CreateMainMessage(), 0,
-                InventoryIdentifierMessagePack.CreateBlockMessage(machinePos), ModuleRangeStart), Tests.Util.BoundPacketContext.Bind(PlayerId));
+                InventoryIdentifierMessagePack.CreateBlockMessage(machinePos), ModuleRangeStart), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
 
             // ブロック側のモジュールスロットに装着され、メイン側は空になっていることを確認
             // Verify the block module slot holds the module and the main slot is now empty
@@ -86,7 +86,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             {
                 var identifier = InventoryIdentifierMessagePack.CreateBlockMessage(machinePos);
                 var request = MessagePackSerializer.Serialize(new InventoryRequestProtocol.RequestInventoryRequestProtocolMessagePack(identifier));
-                return MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(packet.GetPacketResponse(request, Tests.Util.BoundPacketContext.Bind(PlayerId))[0]);
+                return MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(packet.GetPacketResponse(request, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId))[0]);
             }
 
             #endregion
@@ -111,7 +111,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Move into the second module-range slot (no insertion guard by design)
             packet.GetPacketResponse(MovePacket(3,
                 InventoryIdentifierMessagePack.CreateMainMessage(), 0,
-                InventoryIdentifierMessagePack.CreateBlockMessage(machinePos), ModuleRangeStart + 1), Tests.Util.BoundPacketContext.Bind(PlayerId));
+                InventoryIdentifierMessagePack.CreateBlockMessage(machinePos), ModuleRangeStart + 1), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
 
             // アイテムはスロットに存在し続け、ロストしていないことを確認
             // Verify the item remains in the slot and is not lost

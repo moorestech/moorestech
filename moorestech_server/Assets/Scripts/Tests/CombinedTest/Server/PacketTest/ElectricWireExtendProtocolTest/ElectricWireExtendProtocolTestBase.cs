@@ -65,7 +65,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             var placeInfo = new PlaceInfo { Position = newPolePos, Direction = BlockDirection.North, VerticalDirection = BlockVerticalDirection.Horizontal };
             var payload = MessagePackSerializer.Serialize(ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateExtendRequest(fromPos, ForUnitTestModBlockId.ElectricPoleId, placeInfo, ConnectToolGuid));
-            var responses = _packet.GetPacketResponse(payload, Tests.Util.BoundPacketContext.Bind(PlayerId));
+            var responses = _packet.GetPacketResponse(payload, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
             return MessagePackSerializer.Deserialize<ElectricWireExtendProtocol.ElectricWireExtendResponse>(responses[0]);
         }
 
@@ -73,14 +73,14 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             var placeInfo = new PlaceInfo { Position = newPolePos, Direction = BlockDirection.North, VerticalDirection = BlockVerticalDirection.Horizontal };
             var payload = MessagePackSerializer.Serialize(ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateIsolatedPlaceRequest(ForUnitTestModBlockId.ElectricPoleId, placeInfo));
-            var responses = _packet.GetPacketResponse(payload, Tests.Util.BoundPacketContext.Bind(PlayerId));
+            var responses = _packet.GetPacketResponse(payload, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
             return MessagePackSerializer.Deserialize<ElectricWireExtendProtocol.ElectricWireExtendResponse>(responses[0]);
         }
 
         protected ElectricWireExtendProtocol.ElectricWireExtendResponse SendConnect(Vector3Int fromPos, Vector3Int toPos, Guid connectToolGuid)
         {
             var payload = MessagePackSerializer.Serialize(ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateConnectRequest(fromPos, toPos, connectToolGuid));
-            var responses = _packet.GetPacketResponse(payload, Tests.Util.BoundPacketContext.Bind(PlayerId));
+            var responses = _packet.GetPacketResponse(payload, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
             return MessagePackSerializer.Deserialize<ElectricWireExtendProtocol.ElectricWireExtendResponse>(responses[0]);
         }
 

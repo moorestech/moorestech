@@ -5,7 +5,7 @@ using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace Tests.UnitTest.Game.MapGeneration
+namespace Tests.UnitTest.Game.MapGeneration.Spawn
 {
     // スポーン探索系テストが共有する 5x5 格子ワールドの組み立てと、その格子に対する出力の範囲判定をまとめる。
     // Builds the 5x5 grid world shared by the spawn-search tests and checks outputs against that grid's extent.

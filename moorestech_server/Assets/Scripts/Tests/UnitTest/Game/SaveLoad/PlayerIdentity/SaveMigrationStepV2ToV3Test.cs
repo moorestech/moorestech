@@ -2,7 +2,7 @@ using Game.SaveLoad.Migration.Steps;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 
-namespace Tests.UnitTest.Game.SaveLoad
+namespace Tests.UnitTest.Game.SaveLoad.PlayerIdentity
 {
     public class SaveMigrationStepV2ToV3Test
     {
@@ -49,6 +49,15 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.AreEqual(2, (int)players["claimCandidatePlayerId"]);
             Assert.AreEqual(2, ((JArray)players["entries"]).Count);
             foreach (var entry in (JArray)players["entries"]) Assert.AreEqual(JTokenType.Null, entry["identity"].Type);
+        }
+
+        [Test]
+        public void 持ち物数が多ければスポーン上でも遠いプレイヤーより優先するTest()
+        {
+            var save = JObject.Parse(TesterLikeSave);
+            save["playerInventory"][0]["MainInventoryItems"] = new JArray(new JObject { ["itemGuid"] = "aafce615-6c30-48c4-a29e-3c5b3266748f", ["count"] = 613 });
+
+            Assert.AreEqual(1, (int)Convert(save)["players"]["claimCandidatePlayerId"]);
         }
 
         [Test]

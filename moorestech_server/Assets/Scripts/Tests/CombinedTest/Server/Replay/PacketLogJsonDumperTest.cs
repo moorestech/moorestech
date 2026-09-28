@@ -19,7 +19,7 @@ namespace Tests.CombinedTest.Server.Replay
             var log = new ReceivedPacketLog();
             log.Start(dir, 1);
             log.Append(5, 2, MessagePackSerializer.Serialize(new SaveProtocol.SaveProtocolMessagePack()));
-            log.Append(7, 0, MessagePackSerializer.Serialize(BugReportCaptureProtocol.BugReportCaptureRequest.CreateCaptureNowRequest()));
+            log.Append(7, null, MessagePackSerializer.Serialize(BugReportCaptureProtocol.BugReportCaptureRequest.CreateCaptureNowRequest()));
             log.Flush();
 
             var output = Path.Combine(dir, "packets.jsonl");
@@ -28,7 +28,7 @@ namespace Tests.CombinedTest.Server.Replay
             var lines = File.ReadAllLines(output).Select(JObject.Parse).ToList();
             Assert.AreEqual(5UL, (ulong)lines[0]["tick"]);
             Assert.AreEqual(2, (int)lines[0]["playerId"]);
-            Assert.AreEqual(0, (int)lines[1]["playerId"]);
+            Assert.AreEqual(JTokenType.Null, lines[1]["playerId"].Type);
             Assert.AreEqual(SaveProtocol.ProtocolTag, (string)lines[0]["tag"]);
             Assert.AreEqual(BugReportCaptureProtocol.ProtocolTag, (string)lines[1]["tag"]);
             Assert.IsTrue(lines[1]["json"].ToString().Contains("va:bugReportCapture"));

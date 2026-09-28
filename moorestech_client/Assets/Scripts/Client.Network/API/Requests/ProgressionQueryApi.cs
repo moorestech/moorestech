@@ -9,7 +9,7 @@ using Server.Protocol.PacketResponse;
 
 namespace Client.Network.API.Requests
 {
-    internal sealed class ProgressionQueryApi
+    public sealed class ProgressionQueryApi
     {
         private readonly PacketExchangeManager _packetExchangeManager;
 

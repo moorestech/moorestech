@@ -16,7 +16,7 @@ using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
 using static Tests.CombinedTest.Server.PacketTest.PlaceBlockProtocolTestSupport;
 
-namespace Tests.CombinedTest.Server.Replay
+namespace Tests.CombinedTest.Server.Replay.SnapshotReplayDeterminismTest
 {
     // スナップショットkからパケットを流し直すとk+1と一致する。これが再生の忠実性の唯一の検査
     // Replaying packets from snapshot k must reproduce snapshot k+1; this is the only fidelity check for replay
@@ -44,7 +44,7 @@ namespace Tests.CombinedTest.Server.Replay
 
             public void Process()
             {
-                _packetLog.Append(GameUpdater.CurrentTick, _context.PlayerId ?? 0, _payload);
+                _packetLog.Append(GameUpdater.CurrentTick, _context.PlayerId, _payload);
                 _packetResponseCreator.GetPacketResponse(_payload, _context);
             }
         }

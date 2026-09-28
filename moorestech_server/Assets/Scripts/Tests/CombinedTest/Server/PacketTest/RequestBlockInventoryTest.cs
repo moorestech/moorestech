@@ -46,7 +46,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             machineComponent.SetItem(recipe.InputItems.Length, itemStackFactory.Create(output0, 5));
 
             //レスポンスの取得
-            var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(packet.GetPacketResponse(RequestBlock(new Vector3Int(5, 10)), Tests.Util.BoundPacketContext.Bind(1))[0]);
+            var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(packet.GetPacketResponse(RequestBlock(new Vector3Int(5, 10)), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1))[0]);
 
             Assert.AreEqual(InputSlotNum + OutPutSlotNum + ModuleSlotNum, data.Items.Length); // slot num
 
@@ -70,7 +70,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var position = new Vector3Int(10, 20, 0);
             TrainTestHelper.PlaceBlock(environment, ForUnitTestModBlockId.TestTrainItemPlatform, position, BlockDirection.North);
 
-            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestBlock(position), Tests.Util.BoundPacketContext.Bind(1))[0];
+            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestBlock(position), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1))[0];
             var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(responseBytes);
             var param = (TrainItemPlatformBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainItemPlatform).BlockParam;
 
@@ -89,7 +89,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var position = new Vector3Int(30, 20, 0);
             TrainTestHelper.PlaceBlock(environment, ForUnitTestModBlockId.TestTrainStation, position, BlockDirection.North);
 
-            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestBlock(position), Tests.Util.BoundPacketContext.Bind(1))[0];
+            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestBlock(position), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1))[0];
             var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(responseBytes);
             var param = (TrainStationBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainStation).BlockParam;
 
@@ -107,7 +107,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var environment = TrainTestHelper.CreateEnvironment();
             var position = new Vector3Int(999, 20, 0);
 
-            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestBlock(position), Tests.Util.BoundPacketContext.Bind(1))[0];
+            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestBlock(position), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1))[0];
             var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(responseBytes);
 
             Assert.AreEqual(InventoryType.Block, data.InventoryType);
@@ -124,7 +124,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var position = new Vector3Int(40, 20, 0);
             TrainTestHelper.PlaceBlock(environment, ForUnitTestModBlockId.TestTrainRail, position, BlockDirection.North);
 
-            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestBlock(position), Tests.Util.BoundPacketContext.Bind(1))[0];
+            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestBlock(position), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1))[0];
             var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(responseBytes);
 
             Assert.AreEqual(InventoryType.Block, data.InventoryType);

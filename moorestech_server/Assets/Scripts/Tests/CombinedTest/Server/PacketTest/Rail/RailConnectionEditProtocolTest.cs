@@ -116,7 +116,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Rail
         {
             var request = RailConnectionEditProtocol.RailConnectionEditRequest.CreateConnectRequest(_fromNode.NodeId, _fromNode.Guid, _toNode.NodeId, _toNode.Guid, connectToolGuid);
             var responseBytes = _environment.PacketResponseCreator.GetPacketResponse(
-                MessagePackSerializer.Serialize(request), Tests.Util.BoundPacketContext.Bind(PlayerId)).First();
+                MessagePackSerializer.Serialize(request), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId)).First();
             return MessagePackSerializer.Deserialize<RailConnectionEditProtocol.ResponseRailConnectionEditMessagePack>(responseBytes.ToArray());
         }
 

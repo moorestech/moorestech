@@ -7,6 +7,7 @@ using Game.SaveLoad.Interface;
 using Game.SaveLoad.Snapshot;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
+using Tests.Util.PlayerIdentity;
 using Server.Boot;
 using Server.Boot.Loop.PacketProcessing;
 using Server.Boot.Replay;
@@ -14,13 +15,14 @@ using MessagePack;
 using Server.Protocol;
 using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
+using Tests.CombinedTest.Server.Replay.SnapshotReplayDeterminismTest;
 using static Tests.CombinedTest.Server.PacketTest.PlaceBlockProtocolTestSupport;
 
 namespace Tests.CombinedTest.Server.Replay
 {
     // スナップショットkからパケットを流し直すとk+1と一致する。これが再生の忠実性の唯一の検査
     // Replaying packets from snapshot k must reproduce snapshot k+1; this is the only fidelity check for replay
-    public class SnapshotReplayDeterminismTest : SnapshotReplayDeterminismTestBase
+    public class SnapshotReplayDeterminismIntegrationTest : SnapshotReplayDeterminismTestBase
     {
         [Test]
         public void スナップショットkから再生するとk_plus_1と一致する()
@@ -45,13 +47,14 @@ namespace Tests.CombinedTest.Server.Replay
                 GameRandom.Reseed(2026UL);
                 GameUpdater.RestoreCurrentTick(0);
                 ring.Start(10u, 30u, 16);
+                var context = BoundPacketContext.Handshake(packet, "steam:1", out var playerId);
+                Assert.AreEqual(PlayerId, playerId);
                 GrantRequiredItems(provider, ForUnitTestModBlockId.BlockId, 3);
                 GrantRequiredItems(provider, ForUnitTestModBlockId.ChestId, 1);
                 UnlockBlock(provider, ForUnitTestModBlockId.ChestId);
 
                 // tick末尾で処理される経路（ログ点）を通すため、受信プロセッサ相当の処理をtick中に行う
                 // Route packets through the tick-end path (the log point), as the receive processor would
-                var context = Tests.Util.BoundPacketContext.Bind(PlayerId);
                 var queue = provider.GetRequiredService<TickEndPacketQueue>();
                 void Send(byte[] payload) => queue.Enqueue(new RecordedLivePacketEntry(packet, context, payload, packetLog));
 
@@ -118,11 +121,12 @@ namespace Tests.CombinedTest.Server.Replay
                 GameRandom.Reseed(2026UL);
                 GameUpdater.RestoreCurrentTick(0);
                 ring.Start(10u, 30u, 16);
+                var context = BoundPacketContext.Handshake(packet, "steam:1", out var playerId);
+                Assert.AreEqual(PlayerId, playerId);
                 GrantRequiredItems(provider, ForUnitTestModBlockId.ChestId, 1);
                 UnlockBlock(provider, ForUnitTestModBlockId.ChestId);
                 SnapshotReplayWorldFixture.BuildMovingWorld();
 
-                var context = Tests.Util.BoundPacketContext.Bind(PlayerId);
                 var queue = provider.GetRequiredService<TickEndPacketQueue>();
 
                 for (var tick = 1; tick <= 45; tick++)

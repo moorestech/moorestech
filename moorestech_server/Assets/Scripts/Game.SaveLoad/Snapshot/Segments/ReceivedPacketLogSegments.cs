@@ -56,6 +56,8 @@ namespace Game.SaveLoad.Snapshot.Segments
             foreach (var path in FilePaths())
             {
                 if (!WorldDataDirectory.TryParsePacketLogFromTick(Path.GetFileName(path), out var fromTick)) continue;
+                // 書き込み中か最後に開いた区間は、最古スナップショットより前でも消さない
+                // Never delete the current or last-opened segment, even before the oldest snapshot
                 if (oldestSnapshotTick < fromTick || fromTick == CurrentFromTick) continue;
 
                 // 削除した区間と理由を残して、記録の保持範囲を追跡できるようにする
@@ -66,8 +68,8 @@ namespace Game.SaveLoad.Snapshot.Segments
 
             #region Internal
 
-            // ディスク削除は外部境界。失敗はログへ残し、実際のファイル一覧にも残す
-            // Disk deletion is an external boundary; failures remain in the log and the actual file listing
+            // ディスク削除は外部境界。消せなくても記録を止めず、失敗をログへ残して次へ進む
+            // Disk deletion is external; capture continues after a logged failure on one segment
             void DeleteFile(string path)
             {
                 try

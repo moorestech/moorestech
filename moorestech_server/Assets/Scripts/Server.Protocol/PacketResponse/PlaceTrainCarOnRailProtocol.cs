@@ -1,18 +1,13 @@
 using Server.Protocol.PacketResponse.Util.TrainPlacement;
 using System;
-using System.Collections.Generic;
 using Core.Master;
 using Game.Construction;
 using Game.PlayerInventory.Interface;
-using Game.Train.Diagram;
 using Game.Train.Event;
-using Game.Train.RailPositions;
 using Game.Train.Unit;
-using Game.Train.RailGraph;
 using Game.UnlockState;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
-using Mooresmaster.Model.TrainModule;
 using Server.Protocol.PacketResponse.Util.Construction;
 using Server.Util.MessagePack;
 
@@ -36,7 +31,7 @@ namespace Server.Protocol.PacketResponse
             _gameUnlockStateDataController = serviceProvider.GetService<IGameUnlockStateDataController>();
         }
         
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var request = MessagePackSerializer.Deserialize<PlaceTrainOnRailRequestMessagePack>(payload);
             return ExecuteRequest(request);
@@ -68,7 +63,7 @@ namespace Server.Protocol.PacketResponse
 
                 // 建設コストの充足をインベントリ横断で検証する
                 // Validate construction cost across the whole inventory
-                var inventoryData = _playerInventoryDataStore.GetInventoryData(context.PlayerId.Value);
+                var inventoryData = _playerInventoryDataStore.GetInventoryData(requesterPlayerId);
                 var mainInventory = inventoryData.MainOpenableInventory;
                 var costItemCounts = ConstructionCostItems.ToItemCounts(trainCarMaster.RequiredItems);
                 if (!ConstructionCostService.HasRequiredItems(costItemCounts, mainInventory.InventoryItems))
@@ -93,8 +88,8 @@ namespace Server.Protocol.PacketResponse
                 _trainUnitSnapshotNotifyEvent.NotifySnapshot(createdTrain);
                 
                 return PlaceTrainOnRailResponseMessagePack.CreateSuccess();
+            }
 
-}
             #endregion
         }
         
@@ -123,7 +118,6 @@ namespace Server.Protocol.PacketResponse
                 Tag = ProtocolTag;
                 RailPosition = railPosition;
                 TrainCarGuid = trainCarGuid;
-
             }
         }
         

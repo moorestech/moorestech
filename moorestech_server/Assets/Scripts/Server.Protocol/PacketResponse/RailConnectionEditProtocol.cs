@@ -5,10 +5,8 @@ using System.Linq;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Construction;
-using Game.PlayerInventory.Interface;
 using Game.Train.RailCalc;
 using Game.Train.RailGraph;
-using Game.Train.RailPositions;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Event.Notification;
@@ -30,7 +28,7 @@ namespace Server.Protocol.PacketResponse
             _notificationService = serviceProvider.GetService<NotificationService>();
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             // 要求データをデシリアライズする
             // Deserialize request payload
@@ -38,13 +36,13 @@ namespace Server.Protocol.PacketResponse
 
             // 編集処理を実行
             // Execute edit operation
-            var response = _editService.ExecuteEdit(request, context.PlayerId.Value);
+            var response = _editService.ExecuteEdit(request, requesterPlayerId);
 
             // 失敗応答はSendOnlyで破棄されるため、通知基盤経由でプレイヤーに理由を届ける
             // Failure responses are discarded by SendOnly, so deliver the reason via the notification service
             if (!response.Success)
             {
-                _notificationService.Notify(context.PlayerId.Value, NotificationMessagePack.CreateOperationDenied($"denied.railEdit.{response.FailureReason}", Array.Empty<string>()));
+                _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied($"denied.railEdit.{response.FailureReason}", Array.Empty<string>()));
             }
 
             return response;
@@ -111,7 +109,6 @@ namespace Server.Protocol.PacketResponse
             {
                 return new RailConnectionEditRequest
                 {
-
                     FromNodeId = fromNodeId,
                     FromGuid = fromGuid,
                     ToNodeId = toNodeId,
@@ -125,7 +122,6 @@ namespace Server.Protocol.PacketResponse
             {
                 return new RailConnectionEditRequest
                 {
-
                     FromNodeId = fromNodeId,
                     FromGuid = fromGuid,
                     ToNodeId = toNodeId,

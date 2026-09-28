@@ -7,6 +7,8 @@ namespace Game.PlayerIdentity
     // The save's players section: identity-to-id entries, the next id, and the claim candidate
     public class PlayersSaveJsonObject
     {
+        // 欠番を再利用しないため、現在の entries から導かず次のIDを保持する
+        // Keep the next ID independent of entries so gaps are never reused
         [JsonProperty("nextPlayerId")] public int NextPlayerId;
         [JsonProperty("claimCandidatePlayerId")] public int? ClaimCandidatePlayerId;
         [JsonProperty("entries")] public List<PlayerIdentityEntryJsonObject> Entries;

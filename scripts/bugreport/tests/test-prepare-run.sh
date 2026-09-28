@@ -195,4 +195,9 @@ done
 # Verify reporter reassignment using the same temporary repositories
 source "$HERE/reporter/prepare-run-cases.sh"
 
+# 報告者を付け替えられない箱では、再現環境の欠損を上位へ伝える
+# Surface an unclaimed reporter as a reproduction gap to the caller
+( . "$TMP/runs/reporter-unmatched/run.env"; [ "$REPORTER_UNCLAIM_FAILED" = "1" ] ) \
+  || { echo "NG: 報告者の付け替え失敗フラグ"; exit 1; }
+
 echo OK

@@ -8,7 +8,7 @@ using Server.Util.MessagePack;
 
 namespace Client.Network.API.Requests
 {
-    internal sealed class InventoryQueryApi
+    public sealed class InventoryQueryApi
     {
         private readonly PacketExchangeManager _packetExchangeManager;
         private readonly IItemStackFactory _itemStackFactory;
@@ -17,6 +17,15 @@ namespace Client.Network.API.Requests
         {
             _packetExchangeManager = packetExchangeManager;
             _itemStackFactory = itemStackFactory;
+        }
+
+        public async UniTask<PlayerInventoryResponse> GetMyPlayerInventory(CancellationToken ct)
+        {
+            var request = new PlayerInventoryResponseProtocol.RequestPlayerInventoryProtocolMessagePack();
+            var response = await _packetExchangeManager.GetPacketResponse<PlayerInventoryResponseProtocol.PlayerInventoryResponseProtocolMessagePack>(request, ct);
+            // 装備と選択インデックスも落とさず変換する
+            // Preserve equipment and the selected index during conversion
+            return new PlayerInventoryResponse(response);
         }
 
         public async UniTask<InventoryResponse> GetInventory(InventoryIdentifierMessagePack identifier, CancellationToken ct)

@@ -52,7 +52,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // プロトコルを使ってブロックを削除
             // Remove block using protocol
-            var response = GetRemoveBlockResponse(packet.GetPacketResponse(RemoveBlock(new Vector3Int(0, 0)), Tests.Util.BoundPacketContext.Bind(PlayerId)));
+            var response = GetRemoveBlockResponse(packet.GetPacketResponse(RemoveBlock(new Vector3Int(0, 0)), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId)));
             Assert.True(response.Success);
             Assert.AreEqual(RemoveBlockFailureReason.None, response.FailureReason);
 
@@ -107,7 +107,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // プロトコルを使ってブロックを削除
             // Try to remove block using protocol
-            var response = GetRemoveBlockResponse(packet.GetPacketResponse(RemoveBlock(new Vector3Int(0, 0)), Tests.Util.BoundPacketContext.Bind(PlayerId)));
+            var response = GetRemoveBlockResponse(packet.GetPacketResponse(RemoveBlock(new Vector3Int(0, 0)), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId)));
             Assert.False(response.Success);
             Assert.AreEqual(RemoveBlockFailureReason.Unknown, response.FailureReason);
 
@@ -156,7 +156,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             
             //プロトコルを使ってブロックを削除
-            var response = GetRemoveBlockResponse(packet.GetPacketResponse(RemoveBlock(new Vector3Int(0, 0)), Tests.Util.BoundPacketContext.Bind(PlayerId)));
+            var response = GetRemoveBlockResponse(packet.GetPacketResponse(RemoveBlock(new Vector3Int(0, 0)), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId)));
             Assert.False(response.Success);
             Assert.AreEqual(RemoveBlockFailureReason.Unknown, response.FailureReason);
             

@@ -21,13 +21,13 @@ namespace Server.Protocol.PacketResponse
             _notificationService = serviceProvider.GetService<NotificationService>();
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var request = MessagePackSerializer.Deserialize<RequestCompleteResearchMessagePack>(payload);
 
             // 研究完了を試みる
-            var isSuccess = _researchDataStore.CompleteResearch(request.ResearchGuid, context.PlayerId.Value);
-            var nodeStates = _researchDataStore.GetResearchNodeStates(context.PlayerId.Value);
+            var isSuccess = _researchDataStore.CompleteResearch(request.ResearchGuid, requesterPlayerId);
+            var nodeStates = _researchDataStore.GetResearchNodeStates(requesterPlayerId);
 
             // 完了済みは二重通知を抑制
             // Skip notify if already completed
@@ -35,7 +35,7 @@ namespace Server.Protocol.PacketResponse
 
             // 失敗は通知基盤で知らせる
             // Report failure via the notification service
-            if (!isSuccess && !alreadyCompleted) _notificationService.Notify(context.PlayerId.Value, NotificationMessagePack.CreateOperationDenied("denied.researchNotCompletable", Array.Empty<string>()));
+            if (!isSuccess && !alreadyCompleted) _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.researchNotCompletable", Array.Empty<string>()));
 
             return new ResponseCompleteResearchMessagePack(isSuccess, request.ResearchGuid.ToString(), nodeStates);
         }

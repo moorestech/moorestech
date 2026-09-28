@@ -33,7 +33,7 @@ namespace Server.Protocol.PacketResponse
             _constructionWallet = serviceProvider.GetService<ConstructionWalletService>();
         }
         
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var data = MessagePackSerializer.Deserialize<RemoveBlockProtocolMessagePack>(payload);
             
@@ -43,7 +43,7 @@ namespace Server.Protocol.PacketResponse
 
             // 財布に返却物を問い合わせ（確定は後段）
             // Ask the wallet what to refund (finalized further down)
-            var removalPlan = _constructionWallet.PlanRemoval(MasterHolder.BlockMaster.GetBlockMaster(block.BlockId), block.BlockInstanceId, context.PlayerId.Value);
+            var removalPlan = _constructionWallet.PlanRemoval(MasterHolder.BlockMaster.GetBlockMaster(block.BlockId), block.BlockInstanceId, requesterPlayerId);
 
             // 破壊した後のアイテムをインベントリに挿入できるかチェック
             // Check if items after destruction can be inserted into inventory
@@ -94,7 +94,7 @@ namespace Server.Protocol.PacketResponse
             
             bool TryInsertRefundItems(out List<IItemStack> items)
             {
-                var playerMainInventory = _playerInventoryDataStore.GetInventoryData(context.PlayerId.Value).MainOpenableInventory;
+                var playerMainInventory = _playerInventoryDataStore.GetInventoryData(requesterPlayerId).MainOpenableInventory;
                 items = GetRefundItems();
                 
                 return playerMainInventory.InsertionCheck(items);
@@ -131,7 +131,7 @@ namespace Server.Protocol.PacketResponse
             
             void InsertItemsToPlayerInventory(List<IItemStack> items)
             {
-                var playerMainInventory = _playerInventoryDataStore.GetInventoryData(context.PlayerId.Value).MainOpenableInventory;
+                var playerMainInventory = _playerInventoryDataStore.GetInventoryData(requesterPlayerId).MainOpenableInventory;
                 playerMainInventory.InsertItem(items);
             }
             

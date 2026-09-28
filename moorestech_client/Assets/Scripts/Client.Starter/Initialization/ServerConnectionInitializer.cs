@@ -6,6 +6,7 @@ using Client.Game.InGame.BugReport.LastSession;
 using Client.Network;
 using Client.Starter.Identity;
 using Client.Network.API;
+using Client.Network.API.Identity;
 using Client.Network.Settings;
 using Cysharp.Threading.Tasks;
 using Server.Boot;
@@ -41,7 +42,7 @@ namespace Client.Starter.Initialization
             if (!identity.Succeeded)
             {
                 Debug.LogWarning(identity.RefusalLogReason);
-                throw new PlayerStartRefusedException(identity.RefusalLocalizationKey, identity.RefusalLogReason);
+                return new ServerConnectionResult { Refusal = new PlayerStartRefusal(identity.RefusalLocalizationKey, identity.RefusalLogReason) };
             }
 
             //サーバーとの接続を確立
@@ -63,7 +64,10 @@ namespace Client.Starter.Initialization
 
             //最初に必要なデータを取得
             // Fetch the initial data bundle
-            var handshakeResponse = await vanillaApi.Response.InitialHandShake(identity.Identity, _exitToken);
+            var handshakeAttempt = await vanillaApi.Response.InitialHandShake(identity.Identity, _exitToken);
+            if (handshakeAttempt.Refusal.HasValue)
+                return new ServerConnectionResult { Refusal = handshakeAttempt.Refusal };
+            var handshakeResponse = handshakeAttempt.Response;
 
             // リモートは内蔵サーバーを持たないため、通信越しに書き出し完了を待つ参加者を立てる。ハンドシェイク成功後に限る（拒否経路で未紐づけ接続からの送信を防ぐ）
             // A remote connection owns no embedded server, so register a participant that awaits the flush over the wire; only after a successful handshake, to keep a rejected connection from sending unbound
@@ -137,6 +141,7 @@ namespace Client.Starter.Initialization
     /// </summary>
     public class ServerConnectionResult
     {
+        public PlayerStartRefusal? Refusal;
         public PlayerConnectionSetting PlayerConnectionSetting;
         public VanillaApi VanillaApi;
         public InitialHandshakeResponse HandshakeResponse;

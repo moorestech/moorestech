@@ -45,10 +45,10 @@ namespace Server.Protocol.PacketResponse
             _constructionWallet = serviceProvider.GetService<ConstructionWalletService>();
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var request = MessagePackSerializer.Deserialize<RailConnectWithPlacePierRequest>(payload);
-            var inventory = _playerInventoryDataStore.GetInventoryData(context.PlayerId.Value).MainOpenableInventory;
+            var inventory = _playerInventoryDataStore.GetInventoryData(requesterPlayerId).MainOpenableInventory;
             var placePosition = (Vector3Int)request.PierPlaceInfo.Position;
 
             // fromNodeの解決と設置先の空き確認
@@ -70,7 +70,7 @@ namespace Server.Protocol.PacketResponse
             var blockId = request.PierBlockId;
             var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
             if (blockMaster.BlockParam is not TrainRailBlockParam) return RailConnectWithPlacePierResponse.CreateFailedResponse();
-            var placementPlan = _constructionWallet.PlanPlacement(blockMaster, context.PlayerId.Value);
+            var placementPlan = _constructionWallet.PlanPlacement(blockMaster, requesterPlayerId);
             var pierItemCounts = placementPlan.ItemsToConsume;
             if (!ConstructionCostService.HasRequiredItems(pierItemCounts, inventory.InventoryItems)) return RailConnectWithPlacePierResponse.CreateFailedResponse();
 
@@ -161,7 +161,6 @@ namespace Server.Protocol.PacketResponse
             {
                 return new RailConnectWithPlacePierRequest
                 {
-
                     FromNodeId = fromNodeId,
                     FromGuid = fromGuid,
                     PierBlockIdInt = pierBlockId.AsPrimitive(),

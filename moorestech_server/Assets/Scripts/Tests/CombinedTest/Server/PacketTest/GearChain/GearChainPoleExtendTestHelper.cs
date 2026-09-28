@@ -96,7 +96,7 @@ namespace Tests.CombinedTest.Server.PacketTest.GearChain
 
         private GearChainPoleExtendProtocol.GearChainPoleExtendResponse Send(GearChainPoleExtendProtocol.GearChainPoleExtendRequest request)
         {
-            var responseBytes = _packet.GetPacketResponse(MessagePackSerializer.Serialize(request), Tests.Util.BoundPacketContext.Bind(PlayerId)).First();
+            var responseBytes = _packet.GetPacketResponse(MessagePackSerializer.Serialize(request), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId)).First();
             return MessagePackSerializer.Deserialize<GearChainPoleExtendProtocol.GearChainPoleExtendResponse>(responseBytes.ToArray());
         }
 

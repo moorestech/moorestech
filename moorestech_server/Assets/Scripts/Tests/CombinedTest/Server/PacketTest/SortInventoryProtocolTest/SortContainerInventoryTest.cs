@@ -44,7 +44,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // チェスト（サブインベントリ）を整理
             // Sort the chest (sub-inventory).
-            packet.GetPacketResponse(GetPacket(InventoryIdentifierMessagePack.CreateBlockMessage(chestPosition)), Tests.Util.BoundPacketContext.Bind(PlayerId));
+            packet.GetPacketResponse(GetPacket(InventoryIdentifierMessagePack.CreateBlockMessage(chestPosition)), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
 
             // 同種結合＋ItemId 昇順（ホットバー除外なし、全スロット対象）
             // Same items merged and re-packed in ItemId order (no hotbar exclusion; all slots).
@@ -88,7 +88,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // 実プロトコル経由で機械インベントリを整理する
             // Sort the machine inventory via the actual protocol packet.
-            packet.GetPacketResponse(GetPacket(InventoryIdentifierMessagePack.CreateBlockMessage(machinePosition)), Tests.Util.BoundPacketContext.Bind(PlayerId));
+            packet.GetPacketResponse(GetPacket(InventoryIdentifierMessagePack.CreateBlockMessage(machinePosition)), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
 
             // 全スロットが束縛済みのため、ソートしてもスロット1の素材はスロット0へ寄らず、スロット0は空のまま
             // Every slot is bound, so sorting never pulls slot 1's material into slot 0, which stays empty
@@ -125,7 +125,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // 装備識別子はプロトコル上そのまま解決されるため、除外宣言が無いと実際に整理されてしまう
             // The equipment identifier resolves as-is in the protocol, so without an exclusion it really would be tidied
-            packet.GetPacketResponse(GetPacket(InventoryIdentifierMessagePack.CreateEquipmentMessage()), Tests.Util.BoundPacketContext.Bind(PlayerId));
+            packet.GetPacketResponse(GetPacket(InventoryIdentifierMessagePack.CreateEquipmentMessage()), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
 
             // 詰め直されると選択インデックスが空スロットを指すことになる
             // Re-packing would leave the selected index pointing at an empty slot

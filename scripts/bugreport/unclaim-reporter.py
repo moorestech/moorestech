@@ -41,7 +41,7 @@ def item_count(save, player_id):
     total = 0
     for stack in stacks:
         if not isinstance(stack, dict):
-            continue
+            raise ValueError("プレイヤー%dのアイテム要素がオブジェクトでない" % player_id)
         count = stack.get("count", 0)
         if type(count) is not int or count < 0:
             raise ValueError("プレイヤー%dのアイテム個数が不正" % player_id)
@@ -53,19 +53,19 @@ def main(save_path, manifest_path):
     save = read_json(save_path, "save.json を読めないため報告者の付け替えをしない")
     if not isinstance(save, dict):
         note("save.json が辞書でないため報告者の付け替えをしない")
-        return
+        return 1
     players = save.get("players")
     if players is None:
         note("save.json に players 節が無い。ロード時の変換が候補を選ぶので付け替えは不要")
-        return
+        return 1
     if not isinstance(players, dict) or not isinstance(players.get("entries"), list):
         note("players 節が不正なため報告者の付け替えをしない")
-        return
+        return 1
     entries = players["entries"]
     if any(not isinstance(entry, dict) or type(entry.get("playerId")) is not int
            or entry["playerId"] < 1 for entry in entries):
         note("players のプレイヤーIDが不正なため報告者の付け替えをしない")
-        return
+        return 1
 
     # manifest の身元が一致するときは持ち物数より優先する
     # Prefer the manifest identity over inventory size when it matches
@@ -77,7 +77,7 @@ def main(save_path, manifest_path):
         target = next((entry for entry in entries if entry.get("identity") == identity), None)
         if target is None:
             note("報告者の身元 %s に結びつくプレイヤーが無いため付け替えしない" % identity)
-            return
+            return 1
     else:
         note("manifest に steamId が無い。端末身元の持ち物総数で選ぶ")
 
@@ -88,14 +88,14 @@ def main(save_path, manifest_path):
                  and entry["identity"].startswith("device:")]
         if not bound:
             note("端末身元に結びついたプレイヤーが居ないため付け替えしない")
-            return
+            return 1
         # 外部JSONの個数を検証し、壊れた入力では候補変更を保留する
         # Validate external JSON counts and withhold candidate changes for corrupt input
         try:
             target = min(bound, key=lambda entry: (-item_count(save, entry["playerId"]), entry["playerId"]))
         except ValueError as error:
             note("持ち物総数を読めないため報告者の付け替えをしない（%s）" % error)
-            return
+            return 1
 
     previous_identity = target["identity"]
     target["identity"] = None
@@ -111,7 +111,7 @@ def main(save_path, manifest_path):
         os.replace(temporary_path, save_path)
     except OSError as error:
         note("save.json を更新できないため報告者の付け替えは未完了（%s）" % error)
-        return
+        return 1
     finally:
         if temporary_path is not None and os.path.exists(temporary_path):
             try:
@@ -120,7 +120,8 @@ def main(save_path, manifest_path):
                 note("更新用一時ファイルを削除できない（%s: %s）" % (temporary_path, error))
     note("開発機が報告者として接続できるよう、プレイヤー%d（身元 %s）を持ち主未定の結びつけ候補へ戻す"
          % (target["playerId"], previous_identity))
+    return 0
 
 
 if __name__ == "__main__":
-    main(sys.argv[1], sys.argv[2])
+    sys.exit(main(sys.argv[1], sys.argv[2]))

@@ -21,7 +21,7 @@ namespace Server.Protocol.PacketResponse
             _inventorySubscriptionStore = serviceProvider.GetService<IInventorySubscriptionStore>();
         }
         
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var data = MessagePackSerializer.Deserialize<SubscribeInventoryRequestMessagePack>(payload);
             
@@ -30,11 +30,11 @@ namespace Server.Protocol.PacketResponse
             var identifier = ConvertIdentifier(data.Identifier);
             if (data.IsSubscribe)
             {
-                _inventorySubscriptionStore.Subscribe(context.PlayerId.Value, identifier);
+                _inventorySubscriptionStore.Subscribe(requesterPlayerId, identifier);
             }
             else
             {
-                _inventorySubscriptionStore.Unsubscribe(context.PlayerId.Value, identifier);
+                _inventorySubscriptionStore.Unsubscribe(requesterPlayerId, identifier);
             }
             
             return null;

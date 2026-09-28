@@ -63,7 +63,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             void SendHotbar(HotbarProtocol.HotbarProtocolMessagePack request)
             {
                 var payload = MessagePackSerializer.Serialize(request);
-                packet.GetPacketResponse(payload, Tests.Util.BoundPacketContext.Bind(PlayerId));
+                packet.GetPacketResponse(payload, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
             }
 
             // 取得口はInitialHandshakeへ同梱されたため、状態はlookupから直接読む
@@ -93,7 +93,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Assign enqueues a hotbar update event carrying all 9 slots
             var request = HotbarProtocol.HotbarProtocolMessagePack.CreateAssignRequest(2, validId);
             var payload = MessagePackSerializer.Serialize(request);
-            packet.GetPacketResponse(payload, Tests.Util.BoundPacketContext.Bind(PlayerId));
+            packet.GetPacketResponse(payload, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
 
             var events = sink.TakeAll().Where(e => e.Tag == HotbarUpdateEventPacket.EventTag).ToList();
             Assert.AreEqual(1, events.Count);

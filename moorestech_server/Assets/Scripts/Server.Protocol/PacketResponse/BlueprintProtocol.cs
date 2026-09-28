@@ -29,7 +29,7 @@ namespace Server.Protocol.PacketResponse
             _notificationService = serviceProvider.GetService<NotificationService>();
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var request = MessagePackSerializer.Deserialize<BlueprintRequest>(payload);
 
@@ -88,7 +88,7 @@ namespace Server.Protocol.PacketResponse
             // Surface the locked rejection as a notification too, so it is distinguishable from a request failure (same denied-id shape as railEdit/electricWireExtend)
             BlueprintResponse NotUnlockedResponse()
             {
-                _notificationService.Notify(context.PlayerId.Value, NotificationMessagePack.CreateOperationDenied($"denied.blueprint.{BlueprintFailureReason.NotUnlocked}", Array.Empty<string>()));
+                _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied($"denied.blueprint.{BlueprintFailureReason.NotUnlocked}", Array.Empty<string>()));
 
                 return FailResponse(BlueprintFailureReason.NotUnlocked);
             }

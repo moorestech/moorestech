@@ -1,3 +1,4 @@
+using Tests.Util.PlayerIdentity;
 using Game.PlayerInventory.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,7 +8,7 @@ using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
 using Tests.Util;
 
-namespace Tests.CombinedTest.Server.PacketTest
+namespace Tests.CombinedTest.Server.PacketTest.ConnectionGate
 {
     public class SetSelectedEquipmentIndexProtocolTest
     {

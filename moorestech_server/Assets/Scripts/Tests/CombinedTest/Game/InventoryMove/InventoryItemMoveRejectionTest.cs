@@ -144,7 +144,7 @@ namespace Tests.CombinedTest.Game.InventoryMove
 
         private static void SendMove(PacketResponseCreator packet, int count, InventoryIdentifierMessagePack from, InventoryIdentifierMessagePack to)
         {
-            var context = Tests.Util.BoundPacketContext.Bind(PlayerId);
+            var context = Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId);
             var payload = MessagePackSerializer.Serialize(new InventoryItemMoveProtocolMessagePack(count, ItemMoveType.SwapSlot, from, 0, to, 0));
             packet.GetPacketResponse(payload, context);
         }

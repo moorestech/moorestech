@@ -40,7 +40,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var unrelatedSink = EventTestUtil.RegisterCaptureSink(provider, UnrelatedPlayerId);
 
             var request = MessagePackSerializer.Serialize(BugReportCaptureProtocol.BugReportCaptureRequest.CreateCaptureNowRequest());
-            var context = Tests.Util.BoundPacketContext.Bind(RequesterPlayerId);
+            var context = Tests.Util.PlayerIdentity.BoundPacketContext.Bind(RequesterPlayerId);
             var responseBytes = packet.GetPacketResponse(request, context);
             var response = MessagePackSerializer.Deserialize<BugReportCaptureProtocol.BugReportCaptureResponse>(responseBytes[0]);
             Assert.IsTrue(response.Accepted, "常時記録が有効なのに要求が受理されていない");
@@ -105,7 +105,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             Directory.CreateDirectory(directory.SnapshotDirectory);
 
             var request = MessagePackSerializer.Serialize(BugReportCaptureProtocol.BugReportCaptureRequest.CreateCaptureNowRequest());
-            var context = Tests.Util.BoundPacketContext.Bind(RequesterPlayerId);
+            var context = Tests.Util.PlayerIdentity.BoundPacketContext.Bind(RequesterPlayerId);
             packet.GetPacketResponse(request, context);
 
             GameUpdater.UpdateOneTick();

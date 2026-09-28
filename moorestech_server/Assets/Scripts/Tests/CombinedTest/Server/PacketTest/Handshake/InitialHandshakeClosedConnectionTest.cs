@@ -18,7 +18,7 @@ using UniRx;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace Tests.CombinedTest.Server.PacketTest
+namespace Tests.CombinedTest.Server.PacketTest.Handshake
 {
     public class InitialHandshakeClosedConnectionTest
     {
@@ -61,7 +61,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 候補・次ID・持ち物を含めて一切確定されていないことを確かめる
             // Verify nothing was committed, including the candidate, next id and inventory
             Assert.AreEqual(HandshakeRejection.ConnectionClosed, response.Rejection);
-            Assert.AreEqual(0, response.PlayerId);
+            Assert.IsNull(response.Accepted);
             Assert.IsNull(context.PlayerId);
             Assert.AreEqual(before, JsonConvert.SerializeObject(registry.GetSaveJsonObject()));
             Assert.AreEqual(inventoryBefore, JsonConvert.SerializeObject(inventory.GetSaveJsonObject()));

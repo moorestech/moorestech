@@ -121,7 +121,7 @@ namespace Client.Game.InGame.UI.UIState.State
 
                 // インベントリデータを取得し真データを組み立てる
                 // Fetch inventory data and build the authoritative model
-                var inventoryResponse = await ClientContext.VanillaApi.Response.GetInventory(CurrentSubInventorySource.InventoryIdentifier, ct);
+                var inventoryResponse = await ClientContext.VanillaApi.Response.Inventory.GetInventory(CurrentSubInventorySource.InventoryIdentifier, ct);
                 CurrentSubInventory = CurrentSubInventorySource.CreateModel(inventoryResponse);
                 _localPlayerInventoryController.SetSubInventory(CurrentSubInventory);
 

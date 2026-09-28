@@ -82,7 +82,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             };
 
             var payload = MessagePackSerializer.Serialize(new PlaceBlockProtocol.SendPlaceBlockProtocolMessagePack(placeInfo));
-            packet.GetPacketResponse(payload, Tests.Util.BoundPacketContext.Bind(PlayerId));
+            packet.GetPacketResponse(payload, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
         }
 
         protected static int GetWireCount(IOpenableInventory inventory)

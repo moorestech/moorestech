@@ -38,7 +38,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             // 初期状態でCategory2は未開始
             var messagePack = new RequestChallengeMessagePack();
-            var response = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), Tests.Util.BoundPacketContext.Bind(1))[0];
+            var response = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1))[0];
             var challengeInfo = MessagePackSerializer.Deserialize<ResponseChallengeInfoMessagePack>(response);
             
             // Category2は未開始
@@ -71,7 +71,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             // Challenge5が開始されていることを確認
             messagePack = new RequestChallengeMessagePack();
-            response = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), Tests.Util.BoundPacketContext.Bind(1))[0];
+            response = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1))[0];
             challengeInfo = MessagePackSerializer.Deserialize<ResponseChallengeInfoMessagePack>(response);
             
             var allCurrentChallenges = challengeInfo.Categories.SelectMany(c => c.CurrentChallengeGuids).ToList();
@@ -89,7 +89,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             // 最新のチャレンジ情報を取得
             messagePack = new RequestChallengeMessagePack();
-            response = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), Tests.Util.BoundPacketContext.Bind(1))[0];
+            response = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1))[0];
             challengeInfo = MessagePackSerializer.Deserialize<ResponseChallengeInfoMessagePack>(response);
             
             // Category2はアンロック済み

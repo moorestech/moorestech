@@ -59,7 +59,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             BlueprintResponse Send(BlueprintRequest request)
             {
                 var payload = MessagePackSerializer.Serialize(request);
-                var responses = packet.GetPacketResponse(payload, Tests.Util.BoundPacketContext.Bind(1));
+                var responses = packet.GetPacketResponse(payload, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1));
                 return MessagePackSerializer.Deserialize<BlueprintResponse>(responses[0]);
             }
 
@@ -98,7 +98,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             BlueprintResponse Send(BlueprintRequest request)
             {
                 var payload = MessagePackSerializer.Serialize(request);
-                var responses = packet.GetPacketResponse(payload, Tests.Util.BoundPacketContext.Bind(1));
+                var responses = packet.GetPacketResponse(payload, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1));
                 return MessagePackSerializer.Deserialize<BlueprintResponse>(responses[0]);
             }
 
@@ -126,7 +126,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             BlueprintResponse Send(BlueprintRequest request)
             {
                 var payload = MessagePackSerializer.Serialize(request);
-                var responses = packet.GetPacketResponse(payload, Tests.Util.BoundPacketContext.Bind(1));
+                var responses = packet.GetPacketResponse(payload, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1));
                 return MessagePackSerializer.Deserialize<BlueprintResponse>(responses[0]);
             }
 
@@ -161,7 +161,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             BlueprintResponse Send(BlueprintRequest request)
             {
                 var payload = MessagePackSerializer.Serialize(request);
-                var responses = packet.GetPacketResponse(payload, Tests.Util.BoundPacketContext.Bind(1));
+                var responses = packet.GetPacketResponse(payload, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1));
                 return MessagePackSerializer.Deserialize<BlueprintResponse>(responses[0]);
             }
 

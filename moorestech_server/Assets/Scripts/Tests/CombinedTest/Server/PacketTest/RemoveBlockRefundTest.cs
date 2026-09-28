@@ -34,7 +34,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             world.TryAddBlock(ForUnitTestModBlockId.BlockId, new Vector3Int(3, 3), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
 
             var inventory = GetInventory(serviceProvider);
-            packet.GetPacketResponse(CreateRemovePayload(3, 3), Tests.Util.BoundPacketContext.Bind(PlayerId));
+            packet.GetPacketResponse(CreateRemovePayload(3, 3), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
 
             // 素材(Test3×2+Test4×1)が返り、旧ブロックアイテム(Test2)は返らない
             // Materials (Test3 x2 + Test4 x1) are refunded; the old block item (Test2) is not
@@ -53,7 +53,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             world.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(4, 4), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
 
             var inventory = GetInventory(serviceProvider);
-            packet.GetPacketResponse(CreateRemovePayload(4, 4), Tests.Util.BoundPacketContext.Bind(PlayerId));
+            packet.GetPacketResponse(CreateRemovePayload(4, 4), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
 
             // フォールバック廃止により、コスト未定義ブロックは破壊しても本体アイテムを返さない
             // With the fallback removed, destroying a cost-less block refunds no body item

@@ -1,7 +1,9 @@
 using System;
 using System.Net.Sockets;
 using System.Threading;
+using Core.Update;
 using Game.PlayerConnection;
+using Game.SaveLoad.Snapshot;
 using Server.Event;
 using Server.Protocol;
 using Server.Util;
@@ -22,9 +24,10 @@ namespace Server.Boot.Loop.PacketProcessing
         private readonly PlayerConnectionRegistry _connectionRegistry;
         private readonly EventProtocolProvider _eventProtocolProvider;
         private readonly PacketResponseContext _packetResponseContext;
+        private readonly ReceivedPacketLog _receivedPacketLog;
         private bool _cleaned;
 
-        public UserPacketHandler(Socket client, ReceiveQueueProcessor receiveQueueProcessor, SendQueueProcessor sendQueueProcessor, PlayerConnectionRegistry connectionRegistry, EventProtocolProvider eventProtocolProvider, PacketResponseContext packetResponseContext)
+        public UserPacketHandler(Socket client, ReceiveQueueProcessor receiveQueueProcessor, SendQueueProcessor sendQueueProcessor, PlayerConnectionRegistry connectionRegistry, EventProtocolProvider eventProtocolProvider, PacketResponseContext packetResponseContext, ReceivedPacketLog receivedPacketLog)
         {
             _client = client;
             _receiveQueueProcessor = receiveQueueProcessor;
@@ -32,6 +35,7 @@ namespace Server.Boot.Loop.PacketProcessing
             _connectionRegistry = connectionRegistry;
             _eventProtocolProvider = eventProtocolProvider;
             _packetResponseContext = packetResponseContext;
+            _receivedPacketLog = receivedPacketLog;
         }
 
         public void StartListen(CancellationToken token)
@@ -98,6 +102,7 @@ namespace Server.Boot.Loop.PacketProcessing
                 // Unregister only this connection's sink, then fire the disconnect event
                 _eventProtocolProvider.UnregisterPlayer(playerId.Value, _packetResponseContext.EventSink);
                 _connectionRegistry.Unregister(playerId.Value);
+                _receivedPacketLog.AppendDisconnect(GameUpdater.CurrentTick, playerId.Value);
             }
 
             _receiveQueueProcessor.Dispose();

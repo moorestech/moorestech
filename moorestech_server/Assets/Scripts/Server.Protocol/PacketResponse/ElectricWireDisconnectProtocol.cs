@@ -23,17 +23,17 @@ namespace Server.Protocol.PacketResponse
             _notificationService = serviceProvider.GetService<NotificationService>();
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             // 要求データをデシリアライズし切断を実行する
             // Deserialize the request and run the disconnect
             var request = MessagePackSerializer.Deserialize<ElectricWireDisconnectRequest>(payload);
-            var success = ElectricWireSystemUtil.TryDisconnect(request.PosAVector, request.PosBVector, context.PlayerId.Value, out var failureReason);
+            var success = ElectricWireSystemUtil.TryDisconnect(request.PosAVector, request.PosBVector, requesterPlayerId, out var failureReason);
 
             // 送信はSendOnlyで応答を待たないため、切断拒否は通知でプレイヤーへ返す
             // The client sends this without awaiting a response, so a refused disconnect is surfaced through a notification
             if (!success)
-                _notificationService.Notify(context.PlayerId.Value, NotificationMessagePack.CreateOperationDenied($"denied.electricWireDisconnect.{failureReason}", Array.Empty<string>()));
+                _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied($"denied.electricWireDisconnect.{failureReason}", Array.Empty<string>()));
 
             return new ElectricWireDisconnectResponse(success, failureReason);
         }
@@ -57,7 +57,6 @@ namespace Server.Protocol.PacketResponse
                     Tag = ElectricWireDisconnectProtocol.Tag,
                     PosA = new Vector3IntMessagePack(posA),
                     PosB = new Vector3IntMessagePack(posB),
-
                 };
             }
         }

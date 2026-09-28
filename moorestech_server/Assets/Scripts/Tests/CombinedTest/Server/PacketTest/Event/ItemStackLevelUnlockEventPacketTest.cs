@@ -58,9 +58,9 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var response = packetResponse.GetPacketResponse(handshakeRequest, new PacketResponseContext(null))[0];
             var handshakeResponse = MessagePackSerializer.Deserialize<InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack>(response);
 
-            Assert.AreEqual(1, handshakeResponse.ItemStackLevels.Length);
-            Assert.AreEqual(Test1ItemGuid, handshakeResponse.ItemStackLevels[0].ItemGuid);
-            Assert.AreEqual(2, handshakeResponse.ItemStackLevels[0].Level);
+            Assert.AreEqual(1, handshakeResponse.Accepted.ItemStackLevels.Length);
+            Assert.AreEqual(Test1ItemGuid, handshakeResponse.Accepted.ItemStackLevels[0].ItemGuid);
+            Assert.AreEqual(2, handshakeResponse.Accepted.ItemStackLevels[0].Level);
         }
     }
 }

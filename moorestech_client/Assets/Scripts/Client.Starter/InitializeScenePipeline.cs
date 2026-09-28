@@ -7,6 +7,7 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Starter.Identity;
 using Client.Starter.Initialization;
+using Client.Starter.Initialization.WebUi;
 using Client.Starter.Initialization.Progress;
 using Cysharp.Threading.Tasks;
 using Game.Context;
@@ -60,23 +61,7 @@ namespace Client.Starter
             // Play終了で各await継続を打ち切る。Task系境界の継続がEditModeで再開しシーンを汚すのを防ぐ
             // Play-mode exit cancels every await so Task-based continuations never resume in EditMode and dirty the scene
             var exitToken = Application.exitCancellationToken;
-            // ---- Web UI サーバーの起動（最序盤）----
-            // GameShutdownEvent の購読は WebUiHost 側で 1 度だけ張られる
-            // ---- Web UI server bootstrap (earliest phase) ----
-            // The GameShutdownEvent subscription is installed once inside WebUiHost itself
-            //
-            // 起動失敗でも継続、UIはWeb一本のため非表示
-            // Web UI startup failure does not block gameplay, but the screen UI is web-only so nothing is shown
-            try
-            {
-                await Client.WebUiHost.Boot.WebUiHost.StartAsync(exitToken);
-            }
-            catch (Exception e) when (e is not OperationCanceledException)
-            {
-                // WebUI 無しでゲーム続行。外部プロセス境界の起動失敗を隔離して再試行可能にする
-                // Continue without WebUI; isolate external-process startup failures and keep retries possible
-                Debug.LogWarning($"[WebUiHost] start skipped: {e.Message}");
-            }
+            await WebUiStartup.StartAsync(exitToken);
 
 #if UNITY_EDITOR
             Editor.PlayModeLaunchOverrides.ApplyIfNeeded(_proprieties);
@@ -134,7 +119,19 @@ namespace Client.Starter
                 // Fold the embedded server that already started; leaving it doubles the authority writing the same save
                 GameShutdownEvent.FireGameShutdown(GameShutdownReason.InitializationFailed);
 
-                loadingProgressLog.Append(PlayerStartFailureMessage.GetKey(e));
+                loadingProgressLog.Append(LocalizationKeys.Ui.Loading.InitializationFailed);
+                await UniTask.Delay(2000);
+                SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
+                return;
+            }
+
+            // アセットロード完了後に通常の開始拒否を表示し、接続未成立の結果を後段へ渡さない
+            // Surface an expected refusal after assets finish, before any context uses the absent connection
+            if (serverResult.Refusal.HasValue)
+            {
+                Debug.LogWarning(serverResult.Refusal.Value.LogReason);
+                GameShutdownEvent.FireGameShutdown(GameShutdownReason.InitializationFailed);
+                loadingProgressLog.Append(serverResult.Refusal.Value.Key);
                 await UniTask.Delay(2000);
                 SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
                 return;
@@ -162,6 +159,7 @@ namespace Client.Starter
             async UniTask<ServerConnectionResult> ConnectServerThenFetchTerrainAsync()
             {
                 var connectionResult = await serverInitializer.RunAsync();
+                if (connectionResult.Refusal.HasValue) return connectionResult;
                 var fetchedChunkCount = await new TerrainDataFetcher(connectionResult.VanillaApi.Response, exitToken).RunAsync(connectionResult.HandshakeResponse.MapLayout);
                 loadingProgressLog.AppendElapsed(LocalizationKeys.Ui.Loading.TerrainReady, fetchedChunkCount.ToString());
                 return connectionResult;

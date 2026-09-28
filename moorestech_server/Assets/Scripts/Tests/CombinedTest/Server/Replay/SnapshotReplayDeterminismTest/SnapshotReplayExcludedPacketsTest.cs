@@ -16,7 +16,7 @@ using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
 using static Tests.CombinedTest.Server.PacketTest.PlaceBlockProtocolTestSupport;
 
-namespace Tests.CombinedTest.Server.Replay
+namespace Tests.CombinedTest.Server.Replay.SnapshotReplayDeterminismTest
 {
     // スナップショットkからパケットを流し直すとk+1と一致する。これが再生の忠実性の唯一の検査
     // Replaying packets from snapshot k must reproduce snapshot k+1; this is the only fidelity check for replay
@@ -47,7 +47,7 @@ namespace Tests.CombinedTest.Server.Replay
                 GameUpdater.RestoreCurrentTick(0);
                 ring.Start(10u, 30u, 16);
 
-                var context = Tests.Util.BoundPacketContext.Bind(1);
+                var context = Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1);
                 var queue = provider.GetRequiredService<TickEndPacketQueue>();
                 var savePayload = MessagePackSerializer.Serialize(new SaveProtocol.SaveProtocolMessagePack());
                 var capturePayload = MessagePackSerializer.Serialize(BugReportCaptureProtocol.BugReportCaptureRequest.CreateCaptureNowRequest());

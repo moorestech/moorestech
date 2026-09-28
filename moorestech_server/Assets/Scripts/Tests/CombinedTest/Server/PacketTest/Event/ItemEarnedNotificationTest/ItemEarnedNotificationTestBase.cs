@@ -42,13 +42,13 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         protected void SendMapObjectMining(PacketResponseCreator packet, int instanceId)
         {
             var messagePack = MiningProtocol.MiningProtocolMessagePack.CreateMapObjectRequest(instanceId);
-            packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), Tests.Util.BoundPacketContext.Bind(PlayerId));
+            packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
         }
 
         protected void SendVeinMining(PacketResponseCreator packet)
         {
             var messagePack = MiningProtocol.MiningProtocolMessagePack.CreateVeinRequest(IronVeinGuid, InsideIronVein);
-            packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), Tests.Util.BoundPacketContext.Bind(PlayerId));
+            packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
         }
 
         // 指定アイテムの空きだけを残して他スロットを別アイテムで埋める

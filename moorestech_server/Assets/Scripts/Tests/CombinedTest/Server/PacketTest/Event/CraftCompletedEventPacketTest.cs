@@ -47,7 +47,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlayerId);
 
             var craftRecipeGuid = MasterHolder.CraftRecipeMaster.CraftRecipes.Data[CraftRecipeId].CraftRecipeGuid;
-            packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(craftRecipeGuid)), Tests.Util.BoundPacketContext.Bind(PlayerId));
+            packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(craftRecipeGuid)), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
 
             Assert.IsFalse(sink.TakeAll().Any(e => e.Tag == CraftCompletedEventPacket.EventTag));
         }

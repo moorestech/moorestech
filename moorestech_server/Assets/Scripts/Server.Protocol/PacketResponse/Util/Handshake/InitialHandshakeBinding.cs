@@ -2,9 +2,10 @@ using Game.PlayerConnection;
 using Game.PlayerIdentity;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Event;
+using Server.Protocol.PacketResponse.Handshake;
 using UnityEngine;
 
-namespace Server.Protocol.PacketResponse.Handshake
+namespace Server.Protocol.PacketResponse.Util.Handshake
 {
     internal sealed class InitialHandshakeBinding
     {
@@ -37,12 +38,12 @@ namespace Server.Protocol.PacketResponse.Handshake
 
             // 採番前に既存接続を確認し、その接続のイベント宛先を保護する
             // Check existing connections before assignment to preserve their event destination
-            if (_identities.TryGetPlayerId(identity, out var existingId) && _connections.IsConnected(existingId))
+            var assignment = _identities.PreviewAssignment(identity);
+            if (assignment.Kind == PlayerIdAssignmentKind.Known && _connections.IsConnected(assignment.PlayerId))
             {
-                Debug.LogWarning($"[InitialHandshake] 身元{identity}(プレイヤー{existingId})は接続中のため後からの接続を拒否");
+                Debug.LogWarning($"[InitialHandshake] 身元{identity}(プレイヤー{assignment.PlayerId})は接続中のため後からの接続を拒否");
                 return HandshakeRejection.AlreadyConnected;
             }
-            var assignment = _identities.PreviewAssignment(identity);
             playerId = assignment.PlayerId;
 
             // 切断処理はバインド直後から解除できるため、その前に登録を揃える
@@ -59,7 +60,7 @@ namespace Server.Protocol.PacketResponse.Handshake
 
             // ハンドシェイクはメインスレッドで直列処理されるため候補は確定まで変わらない
             // Handshakes run serially on the main thread, keeping the preview stable until assignment
-            _identities.Assign(identity);
+            _identities.Commit(assignment);
             return HandshakeRejection.None;
         }
     }

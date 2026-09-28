@@ -153,7 +153,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             var placeInfo = new PlaceInfo { Position = newPolePos, Direction = BlockDirection.North, VerticalDirection = BlockVerticalDirection.Horizontal };
             var payload = MessagePackSerializer.Serialize(ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateExtendRequest(fromPos, poleBlockId, placeInfo, ConnectToolGuid));
-            var responses = _packet.GetPacketResponse(payload, Tests.Util.BoundPacketContext.Bind(PlayerId));
+            var responses = _packet.GetPacketResponse(payload, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
             return MessagePackSerializer.Deserialize<ElectricWireExtendProtocol.ElectricWireExtendResponse>(responses[0]);
         }
 

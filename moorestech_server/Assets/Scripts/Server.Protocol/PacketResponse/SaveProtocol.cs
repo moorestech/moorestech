@@ -16,7 +16,7 @@ namespace Server.Protocol.PacketResponse
             _worldSaveRequest = serviceProvider.GetRequiredService<IWorldSaveRequest>();
         }
         
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             // 要求番号を返し、クライアントが書き出し完了イベントと突き合わせられるようにする
             // Return the generation so the client can match it against the write-completed event

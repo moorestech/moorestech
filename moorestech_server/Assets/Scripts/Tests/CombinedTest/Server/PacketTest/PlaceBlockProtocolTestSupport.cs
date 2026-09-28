@@ -11,6 +11,7 @@ using Game.UnlockState.States;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
+using Tests.Util.PlayerIdentity;
 using Server.Boot;
 using Server.Protocol;
 using Server.Protocol.PacketResponse;
@@ -26,11 +27,13 @@ namespace Tests.CombinedTest.Server.PacketTest
     /// </summary>
     public static class PlaceBlockProtocolTestSupport
     {
-        public const int PlayerId = 3;
+        public const int PlayerId = 1;
 
         public static (PacketResponseCreator packet, ServiceProvider serviceProvider) CreateServer()
         {
-            return new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            PlayerIdentityTestHelper.Register(serviceProvider, "steam:1");
+            return (packet, serviceProvider);
         }
 
         public static IOpenableInventory GetInventory(ServiceProvider serviceProvider)

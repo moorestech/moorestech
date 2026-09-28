@@ -24,17 +24,12 @@ namespace Game.PlayerIdentity
             _claimCandidatePlayerId = null;
         }
 
-        public bool TryGetPlayerId(string identity, out int playerId)
-        {
-            return _idByIdentity.TryGetValue(identity, out playerId);
-        }
-
         // 接続確定前に候補を読む。対応表も次のIDも変更しない
         // Read the candidate before binding without changing the table or next id
         public PlayerIdAssignment PreviewAssignment(string identity)
         {
-            if (_idByIdentity.TryGetValue(identity, out var knownId)) return new PlayerIdAssignment(knownId, PlayerIdAssignmentKind.Known);
-            if (_claimCandidatePlayerId.HasValue) return new PlayerIdAssignment(_claimCandidatePlayerId.Value, PlayerIdAssignmentKind.ClaimedCandidate);
+            if (_idByIdentity.TryGetValue(identity, out var knownId)) return new PlayerIdAssignment(knownId, PlayerIdAssignmentKind.Known, identity);
+            if (_claimCandidatePlayerId.HasValue) return new PlayerIdAssignment(_claimCandidatePlayerId.Value, PlayerIdAssignmentKind.ClaimedCandidate, identity);
 
             // 次のIDを保存できない場合は負数へ周回させない
             // Never wrap into negative ids when the next id can no longer be saved
@@ -44,13 +39,12 @@ namespace Game.PlayerIdentity
                 Debug.LogError(reason);
                 throw new InvalidOperationException(reason);
             }
-            return new PlayerIdAssignment(_nextPlayerId, PlayerIdAssignmentKind.NewlyAssigned);
+            return new PlayerIdAssignment(_nextPlayerId, PlayerIdAssignmentKind.NewlyAssigned, identity);
         }
 
-        public PlayerIdAssignment Assign(string identity)
+        public void Commit(PlayerIdAssignment assignment)
         {
-            var assignment = PreviewAssignment(identity);
-            if (assignment.Kind == PlayerIdAssignmentKind.Known) return assignment;
+            if (assignment.Kind == PlayerIdAssignmentKind.Known) return;
 
             // 旧セーブ・再現用の候補は最初の未知の身元にだけ渡す
             // The legacy/repro candidate goes only to the first unknown identity
@@ -58,15 +52,19 @@ namespace Game.PlayerIdentity
             {
                 _claimCandidatePlayerId = null;
                 _unclaimedPlayerIds.Remove(assignment.PlayerId);
-                Debug.Log($"[PlayerIdentity] 持ち主未定のプレイヤー{assignment.PlayerId}を身元{identity}へ結びつけました");
+                Debug.Log($"[PlayerIdentity] 持ち主未定のプレイヤー{assignment.PlayerId}を身元{assignment.Identity}へ結びつけました");
             }
             else
             {
                 _nextPlayerId++;
-                Debug.Log($"[PlayerIdentity] 身元{identity}へ新しいプレイヤーID{assignment.PlayerId}を払い出しました");
+                Debug.Log($"[PlayerIdentity] 身元{assignment.Identity}へ新しいプレイヤーID{assignment.PlayerId}を払い出しました");
             }
-            _idByIdentity[identity] = assignment.PlayerId;
-            return assignment;
+            _idByIdentity[assignment.Identity] = assignment.PlayerId;
+        }
+
+        public bool IsRegisteredPlayerId(int playerId)
+        {
+            return _idByIdentity.ContainsValue(playerId) || _unclaimedPlayerIds.Contains(playerId);
         }
 
         public PlayersSaveJsonObject GetSaveJsonObject()
@@ -94,14 +92,6 @@ namespace Game.PlayerIdentity
             _nextPlayerId = save.NextPlayerId;
             _claimCandidatePlayerId = save.ClaimCandidatePlayerId;
 
-            // 候補が持ち主未定に居ないのは壊れたセーブ。結びつけずに理由を出す
-            // A candidate missing from the unclaimed set means a broken save; drop it and log why
-            if (_claimCandidatePlayerId.HasValue && !_unclaimedPlayerIds.Contains(_claimCandidatePlayerId.Value))
-            {
-                Debug.LogError($"[PlayerIdentity] 結びつけ候補{_claimCandidatePlayerId.Value}が持ち主未定の一覧に無いため候補を破棄します");
-                _claimCandidatePlayerId = null;
-            }
-
             #region Internal
 
             void ValidateSave()
@@ -128,13 +118,17 @@ namespace Game.PlayerIdentity
                     if (!PlayerIdentityText.IsValid(entry.Identity, out var reason)) throw InvalidSave(reason);
                     if (!identities.Add(entry.Identity)) throw InvalidSave($"身元が重複しています: {entry.Identity}");
                 }
-
-                InvalidOperationException InvalidSave(string reason)
+                if (save.ClaimCandidatePlayerId.HasValue && !save.Entries.Any(entry => entry.PlayerId == save.ClaimCandidatePlayerId.Value && entry.Identity == null))
                 {
-                    var message = $"[PlayerIdentity] players 節を復元できません: {reason}";
-                    Debug.LogError(message);
-                    return new InvalidOperationException(message);
+                    throw InvalidSave($"結びつけ候補{save.ClaimCandidatePlayerId.Value}が持ち主未定の一覧にありません");
                 }
+            }
+
+            InvalidOperationException InvalidSave(string reason)
+            {
+                var message = $"[PlayerIdentity] players 節を復元できません: {reason}";
+                Debug.LogError(message);
+                return new InvalidOperationException(message);
             }
 
             #endregion

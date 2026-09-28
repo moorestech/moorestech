@@ -10,6 +10,7 @@ using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
+using Tests.Util.PlayerIdentity;
 using Server.Boot;
 using Server.Protocol;
 using Server.Protocol.PacketResponse;
@@ -30,11 +31,12 @@ namespace Tests.CombinedTest.Server.PacketTest
                 worldDataDirectory = WorldDataDirectory.FromServerDataMap(TestModDirectory.ForUnitTestModDirectory, savePath),
             };
             var (packet, saveProvider) = new MoorestechServerDIContainerGenerator().Create(saveOptions);
+            var context = BoundPacketContext.Handshake(packet, "steam:1", out var playerId);
+            Assert.AreEqual(PlayerId, playerId);
             GrantRequiredItems(saveProvider, ForUnitTestModBlockId.BlockId, 1);
 
             // 設置→保存要求の順で処理し、保存はこの時点では実行されない（要求のみ）
             // Process placement then the save request; the save itself is only requested at this point
-            var context = Tests.Util.BoundPacketContext.Bind(PlayerId);
             packet.GetPacketResponse(CreatePlaceBlockPayload(ForUnitTestModBlockId.BlockId, (60, 0)), context);
             packet.GetPacketResponse(MessagePackSerializer.Serialize(new SaveProtocol.SaveProtocolMessagePack()), context);
             Assert.IsFalse(File.Exists(savePath));

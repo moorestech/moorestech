@@ -40,7 +40,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // サーバーからアンロック状態を取得
             // Get the unlock state from the server
             var messagePack = new RequestGameUnlockStateProtocolMessagePack();
-            var responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), Tests.Util.BoundPacketContext.Bind(1))[0];
+            var responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1))[0];
             var response = MessagePackSerializer.Deserialize<ResponseGameUnlockStateProtocolMessagePack>(responseBytes);
             
             Assert.True(response.UnlockedCraftRecipeGuids.Contains(Craft1));
@@ -62,7 +62,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             // 再びサーバーからアンロック状態を取得
             // Get the unlock state from the server again
-            responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), Tests.Util.BoundPacketContext.Bind(1))[0];
+            responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1))[0];
             response = MessagePackSerializer.Deserialize<ResponseGameUnlockStateProtocolMessagePack>(responseBytes);
             
             Assert.True(response.UnlockedCraftRecipeGuids.Contains(Craft1));
@@ -89,7 +89,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 初期ハンドシェイクでロックされていることを確認
             // Verify it is locked in the initial handshake
             var messagePack = new RequestGameUnlockStateProtocolMessagePack();
-            var responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), Tests.Util.BoundPacketContext.Bind(1))[0];
+            var responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1))[0];
             var response = MessagePackSerializer.Deserialize<ResponseGameUnlockStateProtocolMessagePack>(responseBytes);
             Assert.True(response.LockedConnectToolGuids.Contains(electricWireGuid));
             Assert.False(response.UnlockedConnectToolGuids.Contains(electricWireGuid));
@@ -97,7 +97,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 解放後のハンドシェイクに解放状態が含まれることを確認
             // Verify the unlocked state is included in the handshake after unlocking
             unlockStateDatastore.UnlockConnectTool(electricWireGuid);
-            responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), Tests.Util.BoundPacketContext.Bind(1))[0];
+            responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1))[0];
             response = MessagePackSerializer.Deserialize<ResponseGameUnlockStateProtocolMessagePack>(responseBytes);
             Assert.True(response.UnlockedConnectToolGuids.Contains(electricWireGuid));
             Assert.False(response.LockedConnectToolGuids.Contains(electricWireGuid));
@@ -112,14 +112,14 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 初期ハンドシェイクでロック確認
             // Verify it is locked in the initial handshake
             var messagePack = new RequestGameUnlockStateProtocolMessagePack();
-            var responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), Tests.Util.BoundPacketContext.Bind(1))[0];
+            var responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1))[0];
             var response = MessagePackSerializer.Deserialize<ResponseGameUnlockStateProtocolMessagePack>(responseBytes);
             Assert.False(response.IsBlueprintUnlocked);
 
             // 解放後のハンドシェイクで解放状態を確認
             // Verify the unlocked state is included in the handshake after unlocking
             unlockStateDatastore.UnlockBlueprint();
-            responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), Tests.Util.BoundPacketContext.Bind(1))[0];
+            responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1))[0];
             response = MessagePackSerializer.Deserialize<ResponseGameUnlockStateProtocolMessagePack>(responseBytes);
             Assert.True(response.IsBlueprintUnlocked);
         }

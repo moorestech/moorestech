@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading;
 using Core.Update;
 using Game.SaveLoad.Snapshot.Segments;
 using UnityEngine;
@@ -12,28 +11,17 @@ namespace Game.SaveLoad.Snapshot
     // Appends received packets with their processing tick to segment files; a new segment starts at each snapshot
     public sealed class ReceivedPacketLog
     {
+        private const int UnboundSenderPlayerId = 0;
+        internal const int SegmentMagic = 0x504B544C;
+        internal const int SegmentVersion = 1;
         private readonly object _lock = new();
+        private readonly ReceivedPacketLogCaptureState _captureState = new();
         private ReceivedPacketLogSegments _segments = new(null);
         private BinaryWriter _writer;
         private bool _inactiveLogged;
-        private int _isActive;
-
-        // 縮退した理由と止めたtick。tickスレッドが書き、取得完了を組む側が別スレッドから読むので可視性を明示する
-        // The degradation reason and the tick it stopped at; the tick thread writes them and the completion builder reads them from another thread
-        private string _degradeReason = string.Empty;
-        private long _degradedAtTick;
-
-        // tickスレッドが追記し、終了経路が別スレッドから止めるので、可視性を明示する
-        // The tick thread appends while shutdown stops it from another thread, so visibility is made explicit
-        public bool IsActive => Volatile.Read(ref _isActive) != 0;
-
-        // 縮退した理由。空なら記録は欠けていない。取得結果に載せないと欠損が「取れた」と申告される
-        // Why capture degraded; empty means nothing is missing. Without this on the capture result a gap is reported as a successful capture
-        public string DegradeReason => Volatile.Read(ref _degradeReason);
-
-        // 記録を止めたtick。縮退していなければ0
-        // The tick capture stopped at; 0 while healthy
-        public ulong DegradedAtTick => (ulong)Volatile.Read(ref _degradedAtTick);
+        public bool IsActive => _captureState.IsActive;
+        public string DegradeReason => _captureState.DegradeReason;
+        public ulong DegradedAtTick => _captureState.DegradedAtTick;
 
         public void Start(string directory, ulong fromTick)
         {
@@ -52,10 +40,25 @@ namespace Game.SaveLoad.Snapshot
             }
 
             if (!TryRotate(fromTick)) return;
-            Volatile.Write(ref _isActive, 1);
+            _captureState.Start();
         }
 
-        public void Append(ulong tick, int playerId, byte[] payload)
+        public void Append(ulong tick, int? senderPlayerId, byte[] payload)
+        {
+            AppendRecord(tick, ReceivedPacketRecordKind.Packet, senderPlayerId, payload);
+        }
+
+        public void AppendDisconnect(ulong tick, int playerId)
+        {
+            AppendRecord(tick, ReceivedPacketRecordKind.Disconnect, playerId, Array.Empty<byte>());
+        }
+
+        internal static int? DecodeSenderPlayerId(int storedPlayerId)
+        {
+            return storedPlayerId == UnboundSenderPlayerId ? null : storedPlayerId;
+        }
+
+        private void AppendRecord(ulong tick, ReceivedPacketRecordKind kind, int? senderPlayerId, byte[] payload)
         {
             if (!IsActive)
             {
@@ -76,7 +79,8 @@ namespace Game.SaveLoad.Snapshot
                 try
                 {
                     _writer.Write(tick);
-                    _writer.Write(playerId);
+                    _writer.Write((byte)kind);
+                    _writer.Write(senderPlayerId ?? UnboundSenderPlayerId);
                     _writer.Write(payload.Length);
                     _writer.Write(payload);
                 }
@@ -126,7 +130,7 @@ namespace Game.SaveLoad.Snapshot
                     Debug.LogError($"パケットログの終了処理に失敗しました message:{e.Message} 区間{_segments.CurrentFromTick}は書き込み中のまま扱います");
                 }
                 _writer = null;
-                Volatile.Write(ref _isActive, 0);
+                _captureState.Stop();
             }
         }
 
@@ -151,6 +155,8 @@ namespace Game.SaveLoad.Snapshot
                     _writer = null;
                     var path = _segments.PathFor(fromTick);
                     _writer = new BinaryWriter(new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Read));
+                    _writer.Write(SegmentMagic);
+                    _writer.Write(SegmentVersion);
                     _segments.MarkOpened(fromTick);
                     return true;
                 }
@@ -166,17 +172,8 @@ namespace Game.SaveLoad.Snapshot
         // Degrade capture alone, holding the reason and the stop tick as state so both the log and the capture result carry them
         private void Degrade(string reason, ulong tick, Exception exception)
         {
-            Volatile.Write(ref _isActive, 0);
             _writer = null;
-
-            // 最初の理由を残す。後続の失敗で上書きすると、記録が止まった本当のきっかけが消える
-            // Keep the first reason; overwriting it with later failures would erase what actually stopped the capture
-            if (Volatile.Read(ref _degradeReason).Length == 0)
-            {
-                Volatile.Write(ref _degradedAtTick, (long)tick);
-                Volatile.Write(ref _degradeReason, reason);
-            }
-            Debug.LogError($"{reason} 以後パケットログの記録を停止します tick:{tick} message:{exception.Message}");
+            _captureState.Degrade(reason, tick, exception);
         }
 
         public void DeleteSegmentsBefore(ulong oldestSnapshotTick)

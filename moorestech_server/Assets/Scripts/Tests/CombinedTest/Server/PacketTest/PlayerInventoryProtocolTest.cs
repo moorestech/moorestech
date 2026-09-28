@@ -28,7 +28,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             //からの時のデータ要求
             var payload = MessagePackSerializer.Serialize(new RequestPlayerInventoryProtocolMessagePack());
             //データの検証
-            var data = MessagePackSerializer.Deserialize<PlayerInventoryResponseProtocolMessagePack>(packet.GetPacketResponse(payload, Tests.Util.BoundPacketContext.Bind(playerId))[0]);
+            var data = MessagePackSerializer.Deserialize<PlayerInventoryResponseProtocolMessagePack>(packet.GetPacketResponse(payload, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(playerId))[0]);
             Assert.AreEqual(playerId, data.PlayerId);
             
             //プレイヤーインベントリの検証
@@ -52,7 +52,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             
             //2回目のデータ要求
-            data = MessagePackSerializer.Deserialize<PlayerInventoryResponseProtocolMessagePack>(packet.GetPacketResponse(payload, Tests.Util.BoundPacketContext.Bind(playerId))[0]);
+            data = MessagePackSerializer.Deserialize<PlayerInventoryResponseProtocolMessagePack>(packet.GetPacketResponse(payload, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(playerId))[0]);
             Assert.AreEqual(playerId, data.PlayerId);
             
             //データの検証

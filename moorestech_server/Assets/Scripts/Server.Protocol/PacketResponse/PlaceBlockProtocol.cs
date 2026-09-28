@@ -41,10 +41,10 @@ namespace Server.Protocol.PacketResponse
             _placementTargetCatalog = serviceProvider.GetService<PlacementTargetCatalog>();
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var data = MessagePackSerializer.Deserialize<SendPlaceBlockProtocolMessagePack>(payload);
-            var inventoryData = _playerInventoryDataStore.GetInventoryData(context.PlayerId.Value);
+            var inventoryData = _playerInventoryDataStore.GetInventoryData(requesterPlayerId);
 
             // デバッグ: ブロック設置無料化トグル（設置ごとのファイルIOを避け一度だけ読む）
             // Debug: free block placement toggle (read once to avoid per-cell file IO)
@@ -65,9 +65,9 @@ namespace Server.Protocol.PacketResponse
             // Collapse the wallet notifications into one at the very end so a drag never amplifies them per cell
             _constructionWallet.FlushRemainingCountChanges();
 
-            if (0 < notUnlockedCount) _notificationService.Notify(context.PlayerId.Value, NotificationMessagePack.CreateOperationDenied("denied.placeBlockNotUnlocked", Array.Empty<string>()));
-            if (0 < costShortageCount) _notificationService.Notify(context.PlayerId.Value, NotificationMessagePack.CreateOperationDenied("denied.placeBlockCostShortage", Array.Empty<string>()));
-            if (0 < wireShortageCount) _notificationService.Notify(context.PlayerId.Value, NotificationMessagePack.CreateOperationDenied("denied.placeBlockWireShortage", Array.Empty<string>()));
+            if (0 < notUnlockedCount) _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.placeBlockNotUnlocked", Array.Empty<string>()));
+            if (0 < costShortageCount) _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.placeBlockCostShortage", Array.Empty<string>()));
+            if (0 < wireShortageCount) _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.placeBlockWireShortage", Array.Empty<string>()));
 
             return null;
 
@@ -101,7 +101,7 @@ namespace Server.Protocol.PacketResponse
                 // 財布に問い合わせ、賄えないセルはスキップ
                 // Ask the wallet; skip cells it cannot cover
                 var inventory = inventoryData.MainOpenableInventory;
-                var placementPlan = _constructionWallet.PlanPlacement(blockMaster, context.PlayerId.Value);
+                var placementPlan = _constructionWallet.PlanPlacement(blockMaster, requesterPlayerId);
                 if (!ConstructionCostService.HasRequiredItems(placementPlan.ItemsToConsume, inventory.InventoryItems)) { costShortageCount++; return; }
 
                 // 電気なら自動接続を事前検証

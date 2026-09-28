@@ -40,7 +40,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // PlayerIdを指定してリクエストを作成（Tagが正しく設定される）
             // Create request with PlayerId (Tag is correctly set)
             var requestBytes = MessagePackSerializer.Serialize(new RequestWorldDataMessagePack());
-            byte[] responseBytes = packetResponse.GetPacketResponse(requestBytes, Tests.Util.BoundPacketContext.Bind(1))[0];
+            byte[] responseBytes = packetResponse.GetPacketResponse(requestBytes, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1))[0];
             var responseWorld = MessagePackSerializer.Deserialize<ResponseWorldDataMessagePack>(responseBytes);
             
             //検証
@@ -70,7 +70,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // PlayerIdを指定してリクエストを作成（Tagが正しく設定される）
             // Create request with PlayerId (Tag is correctly set)
             var requestBytes = MessagePackSerializer.Serialize(new RequestWorldDataMessagePack());
-            byte[] responseBytes = packetResponse.GetPacketResponse(requestBytes, Tests.Util.BoundPacketContext.Bind(1))[0];
+            byte[] responseBytes = packetResponse.GetPacketResponse(requestBytes, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1))[0];
             var responseWorld = MessagePackSerializer.Deserialize<ResponseWorldDataMessagePack>(responseBytes);
             
             //ブロックが設置されていることを確認する

@@ -62,9 +62,9 @@ namespace Tests.CombinedTest.Game
             {
                 new(3, "steam:3"), new(2, "steam:2"), new(1, "steam:1"),
             }));
-            registry.Assign("steam:3");
-            registry.Assign("steam:2");
-            registry.Assign("steam:1");
+            registry.Commit(registry.PreviewAssignment("steam:3"));
+            registry.Commit(registry.PreviewAssignment("steam:2"));
+            registry.Commit(registry.PreviewAssignment("steam:1"));
 
             var save = JObject.Parse(provider.GetRequiredService<AssembleSaveJsonText>().AssembleSaveJson());
             var ids = save["players"]["entries"].Select(entry => (int)entry["playerId"]).ToArray();

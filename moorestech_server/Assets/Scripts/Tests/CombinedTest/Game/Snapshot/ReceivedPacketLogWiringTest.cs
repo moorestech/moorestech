@@ -4,14 +4,18 @@ using System.Net;
 using System.Net.Sockets;
 using Core.Update;
 using Game.Context;
+using Game.Map.Interface.Json;
 using Game.Paths;
 using Game.SaveLoad.Snapshot;
 using Game.World.Interface.DataStore;
+using Game.World.DataStore.WorldSettings;
+using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Boot.Loop.PacketProcessing;
 using Server.Protocol;
+using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
 using UnityEngine;
 using static Tests.CombinedTest.Server.PacketTest.PlaceBlockProtocolTestSupport;
@@ -20,6 +24,46 @@ namespace Tests.CombinedTest.Game.Snapshot
 {
     public class ReceivedPacketLogWiringTest
     {
+        [Test]
+        public void 未紐づけハンドシェイクを送り手nullで記録する()
+        {
+            var savePath = Path.Combine(Path.GetTempPath(), $"moorestech-packetwire-{Guid.NewGuid():N}", "save.json");
+            var options = new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory)
+            {
+                worldDataDirectory = WorldDataDirectory.FromServerDataMap(TestModDirectory.ForUnitTestModDirectory, savePath),
+            };
+            var (creator, provider) = new MoorestechServerDIContainerGenerator().Create(options);
+            provider.GetRequiredService<IWorldSettingsDatastore>().Initialize(provider.GetRequiredService<MapInfoJson>());
+            var log = provider.GetRequiredService<ReceivedPacketLog>();
+            GameUpdater.RestoreCurrentTick(500);
+            provider.GetRequiredService<WorldSnapshotRing>().Start(null, null, null);
+            using var listener = CreateBoundLoopbackListener();
+            using var clientSocket = ConnectTo(listener);
+            using var acceptedSocket = listener.Accept();
+            var sender = new SendQueueProcessor(acceptedSocket);
+
+            try
+            {
+                var receiver = new ReceiveQueueProcessor(creator, sender, new PacketResponseContext(sender),
+                    provider.GetRequiredService<TickEndPacketQueue>(), log);
+                var payload = MessagePackSerializer.Serialize(new InitialHandshakeProtocol.RequestInitialHandshakeMessagePack("steam:1"));
+                receiver.EnqueuePacket(payload);
+                GameUpdater.UpdateOneTick();
+                log.Flush();
+
+                var record = ReceivedPacketLogReader.ReadAll(log.SegmentFilePaths());
+                Assert.AreEqual(1, record.Count);
+                Assert.IsNull(record[0].PlayerId);
+                Assert.AreEqual(ReceivedPacketRecordKind.Packet, record[0].Kind);
+            }
+            finally
+            {
+                sender.Dispose();
+                log.Stop();
+                Directory.Delete(Path.GetDirectoryName(savePath), true);
+            }
+        }
+
         [Test]
         public void 受信キュー経由で入ったパケットを実処理tick付きで読み戻せる()
         {

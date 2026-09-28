@@ -45,9 +45,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             var responseBytes = packet.GetPacketResponse(payload, new PacketResponseContext(null))[0];
             var response = MessagePackSerializer.Deserialize<InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack>(responseBytes);
 
-            Assert.AreEqual(1, response.RemainingPlacementCounts.Length);
-            Assert.AreEqual(wallet.AsPrimitive(), response.RemainingPlacementCounts[0].WalletBlockId);
-            Assert.AreEqual(3, response.RemainingPlacementCounts[0].RemainingCount);
+            Assert.AreEqual(1, response.Accepted.RemainingPlacementCounts.Length);
+            Assert.AreEqual(wallet.AsPrimitive(), response.Accepted.RemainingPlacementCounts[0].WalletBlockId);
+            Assert.AreEqual(3, response.Accepted.RemainingPlacementCounts[0].RemainingCount);
         }
     }
 }

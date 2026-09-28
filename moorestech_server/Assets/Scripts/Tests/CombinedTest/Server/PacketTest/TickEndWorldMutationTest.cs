@@ -120,7 +120,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             public void Process()
             {
-                Responses.AddRange(_packet.GetPacketResponse(_payload, Tests.Util.BoundPacketContext.Bind(PlayerId)));
+                Responses.AddRange(_packet.GetPacketResponse(_payload, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId)));
             }
         }
     }

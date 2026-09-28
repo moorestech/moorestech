@@ -12,13 +12,25 @@ using UnityEngine;
 
 namespace Client.Network.API.Requests
 {
-    internal sealed class WorldQueryApi
+    public sealed class WorldQueryApi
     {
         private readonly PacketExchangeManager _packetExchangeManager;
 
         public WorldQueryApi(PacketExchangeManager packetExchangeManager)
         {
             _packetExchangeManager = packetExchangeManager;
+        }
+
+        public async UniTask<SaveProtocol.SaveProtocolResponseMessagePack> Save(CancellationToken ct)
+        {
+            var request = new SaveProtocol.SaveProtocolMessagePack();
+            return await _packetExchangeManager.GetPacketResponse<SaveProtocol.SaveProtocolResponseMessagePack>(request, ct);
+        }
+
+        public async UniTask<BugReportCaptureProtocol.BugReportCaptureResponse> RequestBugReportCapture(CancellationToken ct)
+        {
+            var request = BugReportCaptureProtocol.BugReportCaptureRequest.CreateCaptureNowRequest();
+            return await _packetExchangeManager.GetPacketResponse<BugReportCaptureProtocol.BugReportCaptureResponse>(request, ct);
         }
 
         public async UniTask<List<GetMapObjectInfoProtocol.MapObjectsInfoMessagePack>> GetMapObjectInfo(CancellationToken ct)
