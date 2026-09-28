@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+# SDDの実行メモ（現在地と、最後にまとめて聞く質問）の置き場所を解決・確保し、
+# 絶対パスを標準出力へ表示する。無ければ雛形を作る。既にあれば中身に触れない。
+#
+# 置き場所は記録repo `moorestech_logs/harness/sdd/<ブランチslug>/memo.md`。
+# worktree内（.superpowers/sdd）に置かないのは、worktreeを畳むとメモごと消え、
+# 未回答の質問が失われるため。/tmp はOSに掃除されるので使わない。
+#
+# 記録repoは「本体ワーキングツリーの兄弟」として解決する。cwd基準の
+# `../moorestech_logs` はworktreeからだと別の場所を指すことがある。
+#
+# 使い方: sdd-memo（隔離worktree側をcwdにして実行する）
+set -euo pipefail
+
+root=$(git rev-parse --show-toplevel)
+main_root=$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")
+logs="$(dirname "$main_root")/moorestech_logs"
+
+branch=$(git rev-parse --abbrev-ref HEAD)
+if [ "$branch" = "HEAD" ]; then
+  branch="detached-$(git rev-parse --short HEAD)"
+fi
+slug=$(printf '%s' "$branch" | tr '/ ' '--')
+
+if [ -d "$logs/.git" ] || [ -f "$logs/.git" ]; then
+  dir="$logs/harness/sdd/$slug"
+else
+  # 記録repoが無い環境ではworktree内へ退避する（worktree削除で消える点に注意）
+  echo "sdd-memo: 記録repoが見つかりません（$logs）。worktree内へ退避します" >&2
+  dir=$("$(cd "$(dirname "$0")" && pwd)/sdd-workspace")
+fi
+
+mkdir -p "$dir"
+memo="$dir/memo.md"
+
+if [ ! -e "$memo" ]; then
+  cat > "$memo" <<EOF
+# SDDメモ: $branch
+
+- 更新: $(date '+%Y-%m-%d %H:%M')
+- worktree: $root
+- 計画: （計画ファイルの絶対パス）
+- 台帳: $root/.superpowers/sdd/progress.md
+
+## 現在地
+
+（いま何をしているか・次に何をするかを1〜3行。毎回書き換える）
+
+## 質問
+
+（まだ無し）
+EOF
+fi
+
+printf '%s\n' "$memo"
