@@ -29,14 +29,16 @@ namespace Client.Tests.Localization
             Localize.Initialize();
         }
 
+        // 拒否理由はLocalizeのログへ
+        // The rejection reason surfaces on Localize's log
         [Test]
         public void EditorBootDoesNotReadSteamOrApplyLanguage()
         {
             Assert.IsTrue(Application.isEditor);
-            LogAssert.Expect(LogType.Log,
-                "[SteamStartupLanguage] staying on english: editor session does not consult Steam");
+            LogAssert.Expect(LogType.Warning,
+                "[Localize] temporary language unavailable: editor session does not consult Steam");
 
-            SteamStartupLanguage.ApplyAtBoot();
+            Assert.IsFalse(SteamStartupLanguage.TryApplyOnce());
 
             Assert.AreEqual(Localize.DefaultLanguageCode, Localize.GetCurrentLanguageCode());
             Assert.IsFalse(PlayerPrefs.HasKey(Localize.LanguagePreferenceKey));

@@ -1,15 +1,32 @@
 using Client.Localization;
+using UnityEngine;
 
 namespace Client.Starter.Localization
 {
-    // Steam読取とCSV対応づけをLocalizeの出所にまとめる
+    // SteamとCSVをLocalize出所に統合
     // Combine the Steam read and CSV mapping into a Localize source
-    public sealed class SteamUnchosenLanguageSource : IUnchosenLanguageSource
+    internal sealed class SteamUnchosenLanguageSource : IUnchosenLanguageSource
     {
+        private readonly ISteamGameLanguageReader reader;
+
+        public SteamUnchosenLanguageSource(ISteamGameLanguageReader reader)
+        {
+            this.reader = reader;
+        }
+
         public bool TryResolveGameLanguage(out string languageCode, out string failureReason)
         {
             languageCode = "";
-            if (!SteamGameLanguageReader.TryRead(out var steamLanguage, out failureReason))
+
+            // EditorはSteamを読まない
+            // The editor never consults Steam
+            if (Application.isEditor)
+            {
+                failureReason = "editor session does not consult Steam";
+                return false;
+            }
+
+            if (!reader.TryRead(out var steamLanguage, out failureReason))
                 return false;
 
             if (!SteamLanguageMapping.TryToGameLanguage(steamLanguage, out languageCode))

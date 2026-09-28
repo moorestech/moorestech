@@ -27,32 +27,15 @@ namespace Client.Starter.EventMode
         {
             var requestedLanguageCode = settings.RequestedLanguageCode;
 
-            // 未指定は既定言語を適用して正常扱い
-            // Unset applies the default language and counts as normal
-            if (string.IsNullOrEmpty(requestedLanguageCode))
-            {
-                ApplyDefaultLanguage();
-                return;
-            }
+            // 未指定は言語に触らない
+            // Unset touches no language
+            if (string.IsNullOrEmpty(requestedLanguageCode)) return;
 
-            // 可否判定はTrySetLanguage（公開辞書）だけに任せる
-            // Acceptance is decided only by TrySetLanguage against the published dictionary
-            if (Localize.TrySetLanguage(requestedLanguageCode)) return;
+            // 可否判定は公開辞書だけに任せる
+            // Acceptance is decided by the published dictionary alone
+            if (Localize.TrySetChosenLanguage(requestedLanguageCode)) return;
 
-            Debug.LogError($"EventModeAutoStart: unknown {EventExhibitionSettings.LanguageEnvKey}={requestedLanguageCode}, falling back to {Localize.DefaultLanguageCode}");
-            ApplyDefaultLanguage();
-
-            #region Internal
-
-            void ApplyDefaultLanguage()
-            {
-                // 既定言語の適用失敗も握り潰さない
-                // A failed default apply is never swallowed either
-                if (!Localize.TrySetLanguage(Localize.DefaultLanguageCode))
-                    Debug.LogError($"EventModeAutoStart: failed to set language to {Localize.DefaultLanguageCode}");
-            }
-
-            #endregion
+            Debug.LogError($"EventModeAutoStart: unknown {EventExhibitionSettings.LanguageEnvKey}={requestedLanguageCode}, keeping {Localize.GetCurrentLanguageCode()}");
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]

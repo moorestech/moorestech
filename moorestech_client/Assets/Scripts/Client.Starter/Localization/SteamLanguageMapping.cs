@@ -4,7 +4,7 @@ namespace Client.Starter.Localization
 {
     // CSVの対応づけでSteam言語をゲーム言語に寄せる
     // Map Steam languages to game languages through the CSV catalog
-    public static class SteamLanguageMapping
+    internal static class SteamLanguageMapping
     {
         public static bool TryToGameLanguage(string steamLanguage, out string gameLanguage)
         {
