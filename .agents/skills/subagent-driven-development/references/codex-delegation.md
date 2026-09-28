@@ -33,7 +33,7 @@ codexは `workspace-write` サンドボックスで動くので、次はでき�
 3. webuiの `e2e/`（mock-host・spec）は `pnpm tsc -b` の対象外で、分割時のimport消し忘れはmock-hostの起動時にReferenceErrorで初めて出る。e2eに触る依頼では完了条件に `pnpm exec tsc -p e2e/tsconfig.json --noEmit` を入れる。
 4. コンパイル → 影響ドメイン全域のテスト（狭いフィルタだけにしない）→ PlayMode遷移テスト → webuiの vitest / tsc / lint / e2e を自分で回す。どれもバックグラウンド起動＋完了通知待ち。失敗したら、変更前のbaseでも落ちるかを確かめてから原因を判断する。
 5. 通ったらClaudeがタスク単位でコミットし、`scripts/review-package` でdiffを作ってタスクレビュアーsubagentへ渡す（通常のSDDと同じ）。実装者の報告は、codexの最終出力とClaudeの検証結果を1ファイルにまとめて渡す。
-6. レビュー所見の修正もcodexへ依頼する（所見ファイルのパスを渡すだけ。所見を転記しない）。planが義務付けた内容と衝突する所見や、仕様の穴は人間の裁定に回し、裁定の結果を要件ファイルにまとめてcodexへ渡す。
+6. レビュー所見の修正もcodexへ依頼する（所見ファイルのパスを渡すだけ。所見を転記しない）。planが義務付けた内容と衝突する所見や、仕様の穴は [deferred-questions.md](deferred-questions.md) の振り分けに掛け、採った既定（途中で聞いた場合は裁定の結果）を要件ファイルにまとめてcodexへ渡す。
 
 ## 台帳
 
