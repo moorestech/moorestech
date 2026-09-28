@@ -46,7 +46,7 @@ namespace Client.Tests.Localization.Resolution
         [Test]
         public void KeepsChosenLanguage()
         {
-            Localize.TrySetLanguage("japanese");
+            Localize.TrySetChosenLanguage("japanese");
 
             var source = new FixedSource(true, "german");
             LogAssert.Expect(LogType.Log, "[Localize] temporary language rejected: the player already chose a language");
@@ -85,12 +85,12 @@ namespace Client.Tests.Localization.Resolution
         }
 
         [Test]
-        public void TrySetLanguagePublishesExactlyOneEventAndPersistsSelection()
+        public void TrySetChosenLanguagePublishesExactlyOneEventAndPersistsSelection()
         {
             var eventCount = 0;
             using var subscription = Localize.OnLanguageChanged.Subscribe(_ => eventCount++);
 
-            var applied = Localize.TrySetLanguage("japanese");
+            var applied = Localize.TrySetChosenLanguage("japanese");
 
             Assert.IsTrue(applied);
             Assert.AreEqual(1, eventCount);
@@ -102,14 +102,14 @@ namespace Client.Tests.Localization.Resolution
         [TestCase("")]
         [TestCase(Localize.SourcePseudoLocale)]
         [TestCase("klingon")]
-        public void TrySetLanguageRejectsInvalidCodeWithoutChangingState(string invalidLanguageCode)
+        public void TrySetChosenLanguageRejectsInvalidCodeWithoutChangingState(string invalidLanguageCode)
         {
             var eventCount = 0;
             using var subscription = Localize.OnLanguageChanged.Subscribe(_ => eventCount++);
 
             LogAssert.Expect(LogType.Warning,
                 $"[Localize] language rejected: unsupported code {invalidLanguageCode ?? "<null>"}");
-            var applied = Localize.TrySetLanguage(invalidLanguageCode);
+            var applied = Localize.TrySetChosenLanguage(invalidLanguageCode);
 
             Assert.IsFalse(applied);
             Assert.AreEqual(0, eventCount);

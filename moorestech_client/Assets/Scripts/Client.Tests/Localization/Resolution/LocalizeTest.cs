@@ -57,10 +57,10 @@ namespace Client.Tests.Localization.Resolution
         public void TypedKeyReturnsTextForSelectedEnglishAndJapaneseLanguages()
         {
             Localize.Initialize();
-            Localize.TrySetLanguage("english");
+            Localize.TrySetChosenLanguage("english");
             var english = Localize.Get(LocalizationKeys.Ui.MainMenu.PlayLocally);
 
-            Localize.TrySetLanguage("japanese");
+            Localize.TrySetChosenLanguage("japanese");
             var japanese = Localize.Get(LocalizationKeys.Ui.MainMenu.PlayLocally);
 
             Assert.AreEqual("Play locally", english);
@@ -71,10 +71,10 @@ namespace Client.Tests.Localization.Resolution
         public void BlueprintCopyTypedKeyReturnsTextForSelectedEnglishAndJapaneseLanguages()
         {
             Localize.Initialize();
-            Localize.TrySetLanguage("english");
+            Localize.TrySetChosenLanguage("english");
             var english = Localize.Get(LocalizationKeys.Ui.BuildMenu.BlueprintCopy);
 
-            Localize.TrySetLanguage("japanese");
+            Localize.TrySetChosenLanguage("japanese");
             var japanese = Localize.Get(LocalizationKeys.Ui.BuildMenu.BlueprintCopy);
 
             Assert.AreEqual("Blueprint Copy", english);

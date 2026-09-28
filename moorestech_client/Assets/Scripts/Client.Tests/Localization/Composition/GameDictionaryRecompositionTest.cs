@@ -163,7 +163,7 @@ namespace Client.Tests.Localization.Composition
             Assert.AreEqual(research.ResearchNodeName, sourceDictionary[researchNameKey.Key]);
             Assert.AreEqual(challenge.Title, sourceDictionary[challengeTitleKey.Key]);
 
-            Localize.TrySetLanguage("english");
+            Localize.TrySetChosenLanguage("english");
             Assert.AreEqual("English Research Name", Localize.GetContent(researchNameKey));
             Assert.AreEqual("English Challenge Title", Localize.GetContent(challengeTitleKey));
         }

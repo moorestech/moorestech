@@ -127,11 +127,11 @@ namespace Client.Tests.Mining
 
             var otherLanguageCode = LanguageCatalog.Languages
                 .Select(language => language.Code).First(code => code != originalLanguageCode);
-            Assert.IsTrue(Localize.TrySetLanguage(otherLanguageCode), otherLanguageCode);
+            Assert.IsTrue(Localize.TrySetChosenLanguage(otherLanguageCode), otherLanguageCode);
 
             Assert.Less(accessCountBeforeSwitch, twoItemTarget.EarnItemGuidsAccessCount);
 
-            Localize.TrySetLanguage(originalLanguageCode);
+            Localize.TrySetChosenLanguage(originalLanguageCode);
             UnityEngine.Object.DestroyImmediate(twoItemObject);
         }
 

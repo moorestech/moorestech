@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using Client.Localization;
-using Mooresmaster.Localization.Generated;
+﻿using Client.Localization;
 using TMPro;
 using UniRx;
 using UnityEngine;
@@ -13,21 +11,10 @@ namespace Client.MainMenu
     {
         [SerializeField] private TMP_Dropdown tmpDropdown;
 
-        private readonly List<string> languageCodes = new();
-
         private void Start()
         {
-            // CSVの順序で表示名とコードを対応させる
-            // Keep names and codes aligned in CSV order
-            var displayNames = new List<string>();
-            foreach (var language in LanguageCatalog.Languages)
-            {
-                languageCodes.Add(language.Code);
-                displayNames.Add(language.DisplayName);
-            }
-
             tmpDropdown.ClearOptions();
-            tmpDropdown.AddOptions(displayNames);
+            tmpDropdown.AddOptions(LanguageSelection.GetDisplayNames());
             ShowCurrentLanguage();
             tmpDropdown.onValueChanged.AddListener(OnValueChanged);
 
@@ -38,14 +25,12 @@ namespace Client.MainMenu
 
         private void ShowCurrentLanguage()
         {
-            tmpDropdown.SetValueWithoutNotify(languageCodes.IndexOf(Localize.GetCurrentLanguageCode()));
+            tmpDropdown.SetValueWithoutNotify(LanguageSelection.GetCurrentIndex());
         }
 
         private void OnValueChanged(int index)
         {
-            // 選択肢は有効な言語だけを含む
-            // Options contain only selectable languages
-            Localize.TrySetLanguage(languageCodes[index]);
+            LanguageSelection.TrySetByIndex(index);
         }
     }
 }

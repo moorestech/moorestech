@@ -23,19 +23,20 @@ namespace Client.Localization
         private static PublishedLocalizationDictionarySnapshot publishedSnapshot;
         private static long dictionaryRevision;
         private static string currentLanguageCode;
+        private static LanguageOrigin currentLanguageOrigin;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void Initialize()
         {
             PublishSnapshot(VanillaLocalizationDictionaryFactory.Create());
 
-            // 選択不能な保存値は生成済み英語辞書へ戻す
-            // Fall back to the generated English dictionary for unselectable persisted values
+            // 選択済み導出はここ1回だけ
+            // Chosen state is derived only here
             var savedLanguageCode = PlayerPrefs.GetString(LanguagePreferenceKey, DefaultLanguageCode);
-            currentLanguageCode = IsSelectable(savedLanguageCode)
-                ? savedLanguageCode
-                : DefaultLanguageCode;
-            if (savedLanguageCode != currentLanguageCode && PlayerPrefs.HasKey(LanguagePreferenceKey))
+            var chosen = PlayerPrefs.HasKey(LanguagePreferenceKey) && IsSelectable(savedLanguageCode);
+            currentLanguageCode = chosen ? savedLanguageCode : DefaultLanguageCode;
+            currentLanguageOrigin = chosen ? LanguageOrigin.Chosen : LanguageOrigin.Unchosen;
+            if (!chosen && PlayerPrefs.HasKey(LanguagePreferenceKey))
                 Debug.LogWarning($"[Localize] saved language {savedLanguageCode} is unavailable; using {DefaultLanguageCode}");
         }
 
@@ -80,24 +81,18 @@ namespace Client.Localization
             onLanguageChangedSubject.OnNext(Unit.Default);
         }
 
-        public static bool TrySetLanguage(string languageCode)
+        public static bool TrySetChosenLanguage(string languageCode)
         {
-            return TryApplyLanguage(languageCode, true);
+            return TryApplyLanguage(languageCode, LanguageOrigin.Chosen);
         }
 
         // 選択済みなら外部の言語ソースを読まない
         // Do not consult an external language source after the player has chosen
         public static bool TryApplyUnchosenLanguage(IUnchosenLanguageSource source)
         {
-            if (PlayerPrefs.HasKey(LanguagePreferenceKey) &&
-                IsSelectable(PlayerPrefs.GetString(LanguagePreferenceKey)))
+            if (currentLanguageOrigin == LanguageOrigin.Chosen)
             {
                 Debug.Log("[Localize] temporary language rejected: the player already chose a language");
-                return false;
-            }
-            if (source == null)
-            {
-                Debug.LogWarning("[Localize] temporary language rejected: source is null");
                 return false;
             }
             if (!source.TryResolveGameLanguage(out var languageCode, out var failureReason))
@@ -105,7 +100,7 @@ namespace Client.Localization
                 Debug.LogWarning($"[Localize] temporary language unavailable: {failureReason}");
                 return false;
             }
-            return TryApplyLanguage(languageCode, false);
+            return TryApplyLanguage(languageCode, LanguageOrigin.Unchosen);
         }
 
         public static string GetCurrentLanguageCode()
@@ -157,7 +152,7 @@ namespace Client.Localization
                    Volatile.Read(ref publishedSnapshot).Languages.ContainsKey(languageCode);
         }
 
-        private static bool TryApplyLanguage(string languageCode, bool persist)
+        private static bool TryApplyLanguage(string languageCode, LanguageOrigin origin)
         {
             if (!IsSelectable(languageCode))
             {
@@ -165,16 +160,19 @@ namespace Client.Localization
                 return false;
             }
 
-            // 保存は明示選択に限り、一時適用も同じイベントで通知する
-            // Persist only explicit choices and notify through the same event for temporary application
+            // 明示選択のみ保存、共通イベントで通知
+            // Persist only explicit choices; notify through the shared event
             currentLanguageCode = languageCode;
-            if (persist)
-            {
-                PlayerPrefs.SetString(LanguagePreferenceKey, languageCode);
-                PlayerPrefs.Save();
-            }
+            currentLanguageOrigin = origin;
+            if (origin == LanguageOrigin.Chosen) PersistCurrentLanguage();
             onLanguageChangedSubject.OnNext(Unit.Default);
             return true;
+        }
+
+        private static void PersistCurrentLanguage()
+        {
+            PlayerPrefs.SetString(LanguagePreferenceKey, currentLanguageCode);
+            PlayerPrefs.Save();
         }
     }
 }
