@@ -44,25 +44,6 @@ public void ComplexMethod()
 }
 ```
 
-禁止例：
-```csharp
-public class BadExample
-{
-    public void UpdateView()
-    {
-        Execute();
-    }
-
-    #region Internal
-
-    private void Execute()
-    {
-    }
-
-    #endregion
-}
-```
-
 ## コメント
 主要な処理セクションには日本語・英語の2行セットコメント（// 日本語 → // English）を、約3〜10行ごとに挿入してください。日本語・英語それぞれ必ず1行に収めること（長くなっても折り返さない。日本語複数行＋英語複数行の固まりは禁止）。冗長な説明は避け、意図を端的に示してください。
 
@@ -174,9 +155,5 @@ partialは禁止。如何なる条件でもpartialを絶対に使ってはいけ
 
 # タスク管理 (Beads)
 treeにログを残すためにマージは通常のマージコミットを使うSquash and mergeは使用しない
-本repoはbd(Beads)でタスク・設計検討・学びを管理する。セッション開始時にhookが概況を注入する（詳細ワークフローは`.agents/skills/beads/SKILL.md`）。
-- タスクは着手前に`bd create`で積み、`bd update <id> --claim`で着手、`bd close <id> --reason="..."`で完了。派生発見は`--parent`や`bd dep`で系譜を残す
-- 設計メモ・経緯・失敗は`bd note <id> "..."`へ。応答末尾に`LEARN: <一行>`と書くとhookが自動でnoteに保存する
-- ユーザー裁定の蒸留は従来どおり`.decisions/`が正。bd側からは`[[ファイル名]]`で参照する
-- issueデータはprivate remote(moorestech_logs)へ同期される。それでも秘密情報（トークン・認証情報）は書かない
-- `bd edit`は対話エディタを開くため使用禁止。ハーネス内蔵のタスクリストは当該ターンの実行チェックリスト用途に限る
+本repoはbd(Beads)でタスク・設計検討・学びを管理する。使い方と概況はセッション開始時にhookが注入する（詳細ワークフローは`.agents/skills/beads/SKILL.md`）。派生発見は`--parent`や`bd dep`で系譜を残す
+ハーネス内蔵のタスクリストは当該ターンの実行チェックリスト用途に限る
