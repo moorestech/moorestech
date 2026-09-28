@@ -30,6 +30,8 @@ namespace Client.Game.InGame.Train.Network
         public void EnqueueEvent(string eventTag, uint serverTick, uint tickSequenceId, ITrainTickBufferedEvent bufferedEvent)
         {
             _diagnostics.RecordReceived(eventTag, serverTick, tickSequenceId);
+            _tickState.RecordReceivedTickUnifiedId(TrainTickUnifiedIdUtility.CreateTickUnifiedId(serverTick, tickSequenceId));
+            if (_tickState.IsPermanentlyWaiting) return;
             if (bufferedEvent == null)
             {
                 Debug.LogWarning($"[TrainUnitFutureMessageBuffer] Ignored null event: {serverTick}_{tickSequenceId}");
@@ -51,6 +53,8 @@ namespace Client.Game.InGame.Train.Network
         public void EnqueueHash(uint unitsHash, uint railGraphHash, uint serverTick, uint tickSequenceId)
         {
             _diagnostics.RecordReceived("Hash", serverTick, tickSequenceId);
+            _tickState.RecordReceivedTickUnifiedId(TrainTickUnifiedIdUtility.CreateTickUnifiedId(serverTick, tickSequenceId));
+            if (_tickState.IsPermanentlyWaiting) return;
             if (isGetFirstHash == false)
             {
                 Debug.Log($"1stHash: serverTick={serverTick}, tickSequenceId={tickSequenceId}, ");
@@ -78,6 +82,16 @@ namespace Client.Game.InGame.Train.Network
         internal bool HasMessageAt(ulong tickUnifiedId)
         {
             return _futureEvents.ContainsKey(tickUnifiedId) || _futureHashStates.ContainsKey(tickUnifiedId);
+        }
+
+        internal void StopRetainingFutureMessages(string reason)
+        {
+            // 確定停止後は後着を再適用せず、保持済みpayloadも解放する。
+            // Never apply late arrivals after a terminal stop and release already retained payloads.
+            _tickState.StopPermanently();
+            _futureEvents.Clear();
+            _futureHashStates.Clear();
+            Debug.Log($"[TrainSynchronization] Permanently waiting: {reason}. Released buffered payloads; later payloads are discarded while bounded receive history continues.");
         }
         
         // 対象tickより古いhashは検証対象外として破棄する。

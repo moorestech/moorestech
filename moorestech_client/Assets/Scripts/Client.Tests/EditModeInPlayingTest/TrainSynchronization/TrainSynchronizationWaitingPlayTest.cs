@@ -28,7 +28,7 @@ namespace Client.Tests.EditModeInPlayingTest
                 buffered.Buffer.EnqueueHash(uint.MaxValue, uint.MaxValue, snapshotTick, 1);
                 buffered.Simulator.Tick();
                 Assert.That(buffered.State.GetAppliedTickUnifiedId(), Is.EqualTo(initialId));
-                Assert.That(buffered.Diagnostics.IsWaiting, Is.False);
+                Assert.That(buffered.State.IsWaiting, Is.False);
                 Assert.That(buffered.Reports(), Is.Empty);
             }
 
@@ -40,7 +40,7 @@ namespace Client.Tests.EditModeInPlayingTest
                 var initialId = context.State.GetAppliedTickUnifiedId();
                 var initialFrame = Time.frameCount;
                 context.Simulator.Tick();
-                Assert.That(context.Diagnostics.IsWaiting, Is.True);
+                Assert.That(context.State.IsWaiting, Is.True);
                 for (var i = 0; i < 30; i++)
                 {
                     context.Simulator.Tick();
@@ -62,8 +62,9 @@ namespace Client.Tests.EditModeInPlayingTest
                 var applied = false;
                 context.Buffer.EnqueueEvent("test:late-event", snapshotTick, 1, TrainTickBufferedEvent.Create(() => applied = true));
                 context.Simulator.Tick();
-                Assert.That(applied, Is.True);
-                Assert.That(context.State.GetTick(), Is.EqualTo(snapshotTick + 1));
+                Assert.That(applied, Is.False);
+                Assert.That(context.State.IsPermanentlyWaiting, Is.True);
+                Assert.That(context.State.GetTick(), Is.EqualTo(snapshotTick));
             }
 
             yield return new ExitPlayMode();

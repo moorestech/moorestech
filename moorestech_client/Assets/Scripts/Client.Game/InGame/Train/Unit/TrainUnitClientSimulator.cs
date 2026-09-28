@@ -1,6 +1,5 @@
 using System;
 using Client.Game.InGame.Train.Network;
-using Client.Game.InGame.Train.Network.Diagnostics;
 using Client.Game.InGame.Train.View;
 using Core.Update;
 using UnityEngine;
@@ -27,7 +26,6 @@ namespace Client.Game.InGame.Train.Unit
         private readonly ITrainUnitHashTickGate _hashTickGate;
         private readonly TrainUnitFutureMessageBuffer _futureMessageBuffer;
         private readonly TrainUnitVisualUpdateSystem _visualUpdateSystem;
-        private readonly TrainSynchronizationDiagnostics _diagnostics;
 
         private double _estimatedClientTick;
         private double _modifyTick = 0.1;
@@ -39,18 +37,23 @@ namespace Client.Game.InGame.Train.Unit
             TrainUnitTickState tickState,
             ITrainUnitHashTickGate hashTickGate,
             TrainUnitFutureMessageBuffer futureMessageBuffer,
-            TrainUnitVisualUpdateSystem visualUpdateSystem,
-            TrainSynchronizationDiagnostics diagnostics)
+            TrainUnitVisualUpdateSystem visualUpdateSystem)
         {
             _tickState = tickState;
             _hashTickGate = hashTickGate;
             _futureMessageBuffer = futureMessageBuffer;
             _visualUpdateSystem = visualUpdateSystem;
-            _diagnostics = diagnostics;
         }
 
         public void Tick()
         {
+            // 恒久待機ではhash再検証もpayload適用も止め、描画更新だけを継続する。
+            // During permanent waiting, stop hash checks and payload application while continuing visual updates.
+            if (!_tickState.IsInitialized || _tickState.IsPermanentlyWaiting)
+            {
+                _visualUpdateSystem.UpdateAll(_tickState.GetTick(), _tickState.GetTick());
+                return;
+            }
             _localcnt++;
             _modifyTime *= 0.9991;
             _modifyTick *= 0.9991;
@@ -95,8 +98,8 @@ namespace Client.Game.InGame.Train.Unit
             // Observe missing messages even without a normal tick budget and retry existing waits each frame.
             var nextId = _tickState.GetAppliedTickUnifiedId() + 1;
             if (loopTicks == 0 && !_futureMessageBuffer.HasMessageAt(nextId))
-                _diagnostics.RecordMissingOrderedMessage(nextId);
-            if (_diagnostics.IsWaiting) loopTicks = Math.Max(1, loopTicks);
+                _hashTickGate.CanAdvanceTick(nextId);
+            if (_tickState.IsWaiting) loopTicks = Math.Max(1, loopTicks);
 
             for (var i = 0; i < loopTicks; i++)
             {

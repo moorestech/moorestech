@@ -20,6 +20,35 @@ namespace Client.Game.InGame.Train.Unit
     {
         private ulong _appliedTickUnifiedId = 0;
         private uint _maxBufferedTicks = 0;
+        private SynchronizationPhase _phase;
+        internal ulong LatestReceivedId { get; private set; }
+        internal bool IsInitialized => _phase != SynchronizationPhase.AwaitingInitialSnapshot;
+        internal bool IsWaiting => _phase == SynchronizationPhase.WaitingForOrderedMessage;
+        internal bool IsPermanentlyWaiting => _phase == SynchronizationPhase.PermanentlyWaiting;
+
+        internal void Initialize(ulong appliedId)
+        {
+            // 初期snapshotの基準を確定してから、順序付き進行を許可する。
+            // Establish the initial snapshot baseline before allowing ordered progress.
+            RecordAppliedTickUnifiedId(appliedId);
+            RecordReceivedTickUnifiedId(appliedId);
+            _phase = SynchronizationPhase.Running;
+        }
+
+        internal void RecordReceivedTickUnifiedId(ulong receivedId)
+        {
+            LatestReceivedId = Math.Max(LatestReceivedId, receivedId);
+        }
+
+        internal void RecordWaiting()
+        {
+            _phase = SynchronizationPhase.WaitingForOrderedMessage;
+        }
+
+        internal void StopPermanently()
+        {
+            _phase = SynchronizationPhase.PermanentlyWaiting;
+        }
         
         // 統合IDから上位32bitのtickを取り出す。
         // Extract high 32-bit tick from unified id.
@@ -52,6 +81,7 @@ namespace Client.Game.InGame.Train.Unit
                 return;
             }
             _appliedTickUnifiedId = tickUnifiedId;
+            if (IsWaiting) _phase = SynchronizationPhase.Running;
         }
         
         // バッファー済み最大tick
@@ -68,6 +98,14 @@ namespace Client.Game.InGame.Train.Unit
         {
             var tick = GetTick() + 1;
             _appliedTickUnifiedId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(tick, 0);
+        }
+
+        private enum SynchronizationPhase
+        {
+            AwaitingInitialSnapshot,
+            Running,
+            WaitingForOrderedMessage,
+            PermanentlyWaiting,
         }
     }
 }

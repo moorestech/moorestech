@@ -59,8 +59,9 @@ namespace Client.Tests
         {
             // 失敗payloadはapplierへ到達しないか到達即NREなので、applierは組み立てない
             // The failing payloads either never reach an applier or NRE on contact, so no applier is built
-            var diagnostics = new TrainSynchronizationDiagnostics(new TrainUnitTickState(), new TrainSynchronizationDiagnosticWriter(Path.GetTempPath()));
-            var handler = new TrainFullSnapshotEventNetworkHandler(null, null, null, diagnostics);
+            var tickState = new TrainUnitTickState();
+            var diagnostics = new TrainSynchronizationDiagnostics(tickState, new TrainSynchronizationDiagnosticWriter(Path.GetTempPath()));
+            var handler = new TrainFullSnapshotEventNetworkHandler(null, null, null, diagnostics, tickState);
             var waiting = handler.WaitForInitialApplyAsync().Preserve();
 
             var method = typeof(TrainFullSnapshotEventNetworkHandler).GetMethod(

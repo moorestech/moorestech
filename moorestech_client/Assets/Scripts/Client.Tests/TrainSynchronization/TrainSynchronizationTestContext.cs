@@ -40,14 +40,13 @@ namespace Client.Tests.TrainSynchronization
             Buffer = new TrainUnitFutureMessageBuffer(State, Diagnostics);
             Gate = new TrainUnitHashVerifier(Buffer, Trains, Rail, State, Diagnostics);
             var visuals = new TrainUnitVisualUpdateSystem(Trains, null, Rail);
-            Simulator = new TrainUnitClientSimulator(State, Gate, Buffer, visuals, Diagnostics);
+            Simulator = new TrainUnitClientSimulator(State, Gate, Buffer, visuals);
             Application.logMessageReceived += CaptureWarning;
         }
 
-        internal void InitializeDiagnostics(uint tick)
+        internal void Initialize(uint tick)
         {
-            State.RecordAppliedTickUnifiedId(tick, 0);
-            Diagnostics.Initialize(State.GetAppliedTickUnifiedId());
+            State.Initialize(TrainTickUnifiedIdUtility.CreateTickUnifiedId(tick, 0));
         }
 
         internal TrainFullSnapshotEventNetworkHandler CreateSnapshotHandler()
@@ -56,7 +55,7 @@ namespace Client.Tests.TrainSynchronization
             var datastore = _snapshotObjects.AddComponent<TrainCarObjectDatastore>();
             var registry = new ClientStationReferenceRegistry(null, Rail);
             return new TrainFullSnapshotEventNetworkHandler(new RailGraphSnapshotApplier(Rail, registry, State),
-                new TrainUnitSnapshotApplier(Trains, State, datastore), Buffer, Diagnostics);
+                new TrainUnitSnapshotApplier(Trains, State, datastore), Buffer, Diagnostics, State);
         }
 
         internal void ApplyInitialSnapshot(uint tick)
@@ -67,7 +66,7 @@ namespace Client.Tests.TrainSynchronization
             handler.WaitForInitialApplyAsync().GetAwaiter().GetResult();
         }
 
-        internal void ApplyRailSnapshot(TrainFullSnapshotEventNetworkHandler handler, uint tick)
+        private void ApplyRailSnapshot(TrainFullSnapshotEventNetworkHandler handler, uint tick)
         {
             var railSnapshot = new RailGraphSnapshot(Array.Empty<RailNodeInitializationData>(),
                 Array.Empty<RailGraphConnectionSnapshot>(), Rail.ComputeCurrentHash(), tick);

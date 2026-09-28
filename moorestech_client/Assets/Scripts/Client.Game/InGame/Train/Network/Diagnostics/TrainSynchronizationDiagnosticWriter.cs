@@ -25,26 +25,24 @@ namespace Client.Game.InGame.Train.Network.Diagnostics
             {
                 Directory.CreateDirectory(_directory);
                 File.WriteAllText(path, json);
-                Debug.Log($"[TrainSynchronization] Diagnostic saved: {path}");
-                return new TrainSynchronizationDiagnosticWriteResult(path, null);
             }
             catch (Exception exception) when (exception is IOException || exception is UnauthorizedAccessException)
             {
                 var reason = $"[TrainSynchronization] Diagnostic save failed: {path}: {exception.Message}";
                 Debug.LogError(reason);
-                return new TrainSynchronizationDiagnosticWriteResult(path, reason);
+                return new TrainSynchronizationDiagnosticWriteResult(reason);
             }
+            Debug.Log($"[TrainSynchronization] Diagnostic saved: {path}");
+            return new TrainSynchronizationDiagnosticWriteResult(null);
         }
     }
 
     internal sealed class TrainSynchronizationDiagnosticWriteResult
     {
-        internal readonly string Path;
         internal readonly string FailureReason;
 
-        internal TrainSynchronizationDiagnosticWriteResult(string path, string failureReason)
+        internal TrainSynchronizationDiagnosticWriteResult(string failureReason)
         {
-            Path = path;
             FailureReason = failureReason;
         }
     }

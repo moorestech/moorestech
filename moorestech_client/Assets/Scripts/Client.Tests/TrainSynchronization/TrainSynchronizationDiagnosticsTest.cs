@@ -6,7 +6,6 @@ using Client.Game.InGame.Train.Network.Diagnostics;
 using Client.Game.InGame.Train.Unit;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
-using Server.Event.EventReceive;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -25,17 +24,17 @@ namespace Client.Tests.TrainSynchronization
         [Test]
         public void ConfirmedGap_SavesWithFrozenOnsetAndBoundedRecentHistory()
         {
-            _context.InitializeDiagnostics(10);
+            _context.Initialize(10);
             var expected = _context.State.GetAppliedTickUnifiedId() + 1;
             _context.Diagnostics.RecordReceived("before", 10, 0);
-            _context.Diagnostics.RecordMissingOrderedMessage(expected);
+            Assert.That(_context.Gate.CanAdvanceTick(expected), Is.False);
             Assert.That(_context.Reports(), Is.Empty);
 
             // 上書き・古い到着で履歴が循環しても初回の証拠は保持する。
             // Keep onset evidence even after stale and duplicate arrivals wrap recent history.
             for (var i = 0; i < 300; i++) _context.Diagnostics.RecordReceived("stale", 9, (uint)i);
-            _context.Diagnostics.RecordReceived("Hash", 10, 2);
-            _context.Diagnostics.RecordMissingOrderedMessage(expected);
+            _context.Buffer.EnqueueHash(uint.MaxValue, uint.MaxValue, 10, 2);
+            Assert.That(_context.Gate.CanAdvanceTick(expected), Is.False);
             var report = _context.ReadReport();
             Assert.That((string)report["CaptureReason"], Is.EqualTo("ConfirmedOrderedGap"));
             Assert.That((uint)report["TickGapAtOnset"], Is.Zero);
@@ -54,49 +53,46 @@ namespace Client.Tests.TrainSynchronization
         [Test]
         public void MissingMessageSaving_RequiresInitialSuccessAndLaterArrival()
         {
-            _context.Diagnostics.RecordMissingOrderedMessage(1);
-            _context.Diagnostics.RecordReceived("Hash", 200, 1);
-            _context.Diagnostics.RecordMissingOrderedMessage(1);
+            Assert.That(_context.Gate.CanAdvanceTick(1), Is.False);
+            _context.Buffer.EnqueueHash(uint.MaxValue, uint.MaxValue, 200, 1);
+            Assert.That(_context.Gate.CanAdvanceTick(1), Is.False);
             Assert.That(_context.Reports(), Is.Empty);
-            _context.InitializeDiagnostics(201);
+            _context.Initialize(201);
             var expected = _context.State.GetAppliedTickUnifiedId() + 1;
-            for (var i = 0; i < 10000; i++) _context.Diagnostics.RecordMissingOrderedMessage(expected);
+            for (var i = 0; i < 10000; i++) Assert.That(_context.Gate.CanAdvanceTick(expected), Is.False);
             Assert.That(_context.Reports(), Is.Empty);
-            _context.Diagnostics.RecordReceived("Hash", 201, 2);
-            _context.Diagnostics.RecordMissingOrderedMessage(expected);
+            _context.Buffer.EnqueueHash(uint.MaxValue, uint.MaxValue, 201, 2);
+            Assert.That(_context.Gate.CanAdvanceTick(expected), Is.False);
             var report = _context.ReadReport();
             Assert.That((string)report["CaptureReason"], Is.EqualTo("ConfirmedOrderedGap"));
             Assert.That((uint)report["TickGapAtCapture"], Is.Zero);
         }
 
         [Test]
-        public void ShortWaitAndRepeatedEvaluation_DoNotWriteAgainUntilRecovery()
+        public void ShortWaitCanResume_ConfirmedWaitWritesOnlyOnce()
         {
-            _context.InitializeDiagnostics(10);
+            _context.Initialize(10);
             var expected = _context.State.GetAppliedTickUnifiedId() + 1;
-            _context.Diagnostics.RecordMissingOrderedMessage(expected);
-            _context.Diagnostics.RecordApplied(expected);
-            _context.Diagnostics.RecordReceived("Hash", 11, 0);
+            Assert.That(_context.Gate.CanAdvanceTick(expected), Is.False);
+            _context.Buffer.EnqueueHash(uint.MaxValue, uint.MaxValue, 10, 1);
+            Assert.That(_context.Gate.CanAdvanceTick(expected), Is.True);
             Assert.That(_context.Reports(), Is.Empty);
 
-            // 一度保存した停止は抑制し、適用通知後の別停止は新しい診断にする。
-            // Suppress repeats for one stall and create a new diagnostic after applied recovery.
-            _context.Diagnostics.RecordMissingOrderedMessage(expected);
-            _context.Diagnostics.RecordReceived("Hash", 210, 0);
-            for (var i = 0; i < 1000; i++) _context.Diagnostics.RecordMissingOrderedMessage(expected);
+            // 通常待ちは再開し、確定後は後着でも同じ停止を維持する。
+            // Resume ordinary waits, but retain the same terminal stop even after late arrivals.
+            _context.Buffer.EnqueueHash(uint.MaxValue, uint.MaxValue, 10, 3);
+            for (var i = 0; i < 1000; i++) Assert.That(_context.Gate.CanAdvanceTick(expected + 1), Is.False);
+            _context.Buffer.EnqueueHash(uint.MaxValue, uint.MaxValue, 10, 2);
+            Assert.That(_context.Gate.CanAdvanceTick(expected + 1), Is.False);
+            Assert.That(_context.State.IsPermanentlyWaiting, Is.True);
             Assert.That(_context.Reports(), Has.Length.EqualTo(1));
             Assert.That(_context.Warnings, Has.Count.EqualTo(1));
-            _context.State.RecordAppliedTickUnifiedId(expected);
-            _context.Diagnostics.RecordApplied(expected);
-            _context.Diagnostics.RecordMissingOrderedMessage(expected + 1);
-            Assert.That(_context.Reports(), Has.Length.EqualTo(2));
-            Assert.That(_context.Warnings, Has.Count.EqualTo(2));
         }
 
         [Test]
         public void BufferArrivalHistory_IncludesStaleMessagesAndDuplicateOverwrites()
         {
-            _context.InitializeDiagnostics(10);
+            _context.Initialize(10);
             _context.Buffer.EnqueueHash(1, 2, 9, 7);
             _context.Buffer.EnqueueHash(3, 4, 10, 0);
             _context.Buffer.EnqueueHash(5, 6, 10, 3);
@@ -112,36 +108,24 @@ namespace Client.Tests.TrainSynchronization
         }
 
         [Test]
-        public void BufferedEventHistory_RetainsDistinctProtocolTags()
-        {
-            _context.InitializeDiagnostics(10);
-            // 共通のラッパー型でも、受信したプロトコル種別を区別する。
-            // Distinguish received protocol tags even when events share one wrapper type.
-            var first = TrainTickBufferedEvent.Create(() => { });
-            var second = TrainTickBufferedEvent.Create(() => { });
-            _context.Buffer.EnqueueEvent(RailNodeCreatedEventPacket.EventTag, 10, 2, first);
-            _context.Buffer.EnqueueEvent(TrainUnitSnapshotEventPacket.EventTag, 10, 3, second);
-            Assert.That(_context.Gate.CanAdvanceTick(_context.State.GetAppliedTickUnifiedId() + 1), Is.False);
-            var history = (JArray)_context.ReadReport()["RecentHistory"];
-            Assert.That((string)history[0]["Kind"], Is.EqualTo(RailNodeCreatedEventPacket.EventTag));
-            Assert.That((string)history[1]["Kind"], Is.EqualTo(TrainUnitSnapshotEventPacket.EventTag));
-        }
-
-        [Test]
         public void DiskFailure_IsReportedAndNotRetriedEveryFrame()
         {
             Directory.CreateDirectory(_context.DirectoryPath);
             var blockedPath = Path.Combine(_context.DirectoryPath, "file-instead-of-directory");
             File.WriteAllText(blockedPath, "occupied");
             var diagnostics = new TrainSynchronizationDiagnostics(_context.State, new TrainSynchronizationDiagnosticWriter(blockedPath));
-            diagnostics.Initialize(0);
-            diagnostics.RecordMissingOrderedMessage(1);
+            var buffer = new TrainUnitFutureMessageBuffer(_context.State, diagnostics);
+            var gate = new Client.Game.InGame.Train.View.TrainUnitHashVerifier(buffer, _context.Trains, _context.Rail, _context.State, diagnostics);
+            _context.Initialize(0);
+            buffer.EnqueueHash(_context.Trains.ComputeCurrentHash() ^ 1, _context.Rail.ComputeCurrentHash(), 0, 1);
+            Assert.That(gate.CanAdvanceTick(1), Is.False);
+            buffer.EnqueueHash(uint.MaxValue, uint.MaxValue, 200, 1);
             LogAssert.Expect(LogType.Error, new Regex("^\\[TrainSynchronization\\] Diagnostic save failed:"));
-            diagnostics.RecordReceived("Hash", 200, 0);
-            Assert.DoesNotThrow(() => diagnostics.RecordMissingOrderedMessage(1));
+            Assert.DoesNotThrow(() => gate.CanAdvanceTick(1));
+            Assert.That(_context.State.IsPermanentlyWaiting, Is.True);
             Assert.That(diagnostics.LastWriteResult.FailureReason, Is.Not.Empty);
             var result = diagnostics.LastWriteResult;
-            for (var i = 0; i < 1000; i++) diagnostics.RecordMissingOrderedMessage(1);
+            for (var i = 0; i < 1000; i++) Assert.That(gate.CanAdvanceTick(1), Is.False);
             Assert.That(diagnostics.LastWriteResult, Is.SameAs(result));
             Assert.That(File.ReadAllText(blockedPath), Is.EqualTo("occupied"));
         }

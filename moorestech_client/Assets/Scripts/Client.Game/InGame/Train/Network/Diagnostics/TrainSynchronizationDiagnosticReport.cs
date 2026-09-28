@@ -15,8 +15,8 @@ namespace Client.Game.InGame.Train.Network.Diagnostics
         public ulong AppliedIdAtCapture;
         public ulong LatestReceivedIdAtOnset;
         public ulong LatestReceivedIdAtCapture;
-        public uint TickGapAtOnset;
-        public uint TickGapAtCapture;
+        public uint TickGapAtOnset => (uint)Math.Max(0L, (long)(LatestReceivedIdAtOnset >> 32) - (long)(AppliedIdAtOnset >> 32));
+        public uint TickGapAtCapture => (uint)Math.Max(0L, (long)(LatestReceivedIdAtCapture >> 32) - (long)(AppliedIdAtCapture >> 32));
         public string WaitingReason;
         public string WaitingReasonAtCapture;
         public string CaptureReason;

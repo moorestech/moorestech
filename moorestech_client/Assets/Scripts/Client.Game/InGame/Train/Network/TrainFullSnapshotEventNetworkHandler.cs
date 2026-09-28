@@ -23,6 +23,7 @@ namespace Client.Game.InGame.Train.Network
         private readonly TrainUnitSnapshotApplier _trainSnapshotApplier;
         private readonly TrainUnitFutureMessageBuffer _futureMessageBuffer;
         private readonly TrainSynchronizationDiagnostics _diagnostics;
+        private readonly TrainUnitTickState _tickState;
         private IDisposable _railSubscription;
         private IDisposable _trainSubscription;
 
@@ -39,12 +40,14 @@ namespace Client.Game.InGame.Train.Network
             RailGraphSnapshotApplier railGraphSnapshotApplier,
             TrainUnitSnapshotApplier trainSnapshotApplier,
             TrainUnitFutureMessageBuffer futureMessageBuffer,
-            TrainSynchronizationDiagnostics diagnostics)
+            TrainSynchronizationDiagnostics diagnostics,
+            TrainUnitTickState tickState)
         {
             _railGraphSnapshotApplier = railGraphSnapshotApplier;
             _trainSnapshotApplier = trainSnapshotApplier;
             _futureMessageBuffer = futureMessageBuffer;
             _diagnostics = diagnostics;
+            _tickState = tickState;
         }
 
         public void Initialize()
@@ -62,7 +65,11 @@ namespace Client.Game.InGame.Train.Network
             {
                 var message = MessagePackSerializer.Deserialize<TrainFullSnapshotEventPacket.RailGraphFullSnapshotEventMessagePack>(payload);
                 if (message.Snapshot != null)
+                {
+                    _tickState.RecordReceivedTickUnifiedId(TrainTickUnifiedIdUtility.CreateTickUnifiedId(message.Snapshot.GraphTick, message.Snapshot.GraphTickSequenceId));
                     _diagnostics.RecordReceived("RailGraphFullSnapshot", message.Snapshot.GraphTick, message.Snapshot.GraphTickSequenceId);
+                }
+                if (!CanApplyInitialSnapshot()) return;
                 _railGraphSnapshotApplier.ApplySnapshot(message.Snapshot);
             }
             catch (Exception applyException)
@@ -82,6 +89,8 @@ namespace Client.Game.InGame.Train.Network
             {
                 var message = MessagePackSerializer.Deserialize<TrainFullSnapshotEventPacket.TrainUnitFullSnapshotEventMessagePack>(payload);
                 _diagnostics.RecordReceived("TrainUnitFullSnapshot", message.ServerTick, message.WatermarkTickSequenceId);
+                _tickState.RecordReceivedTickUnifiedId(TrainTickUnifiedIdUtility.CreateTickUnifiedId(message.ServerTick, message.WatermarkTickSequenceId));
+                if (!CanApplyInitialSnapshot()) return;
 
                 // MessagePackのbundleをモデルへ変換してapplierの既存入力型に合わせる
                 // Convert bundles to models to reuse the applier's existing input type
@@ -100,10 +109,13 @@ namespace Client.Game.InGame.Train.Network
                 _futureMessageBuffer.DiscardEventsAtOrBelow(watermarkId);
                 _futureMessageBuffer.DiscardHashesOlderThan(watermarkId);
 
-                // snapshot適用と古いバッファの破棄を終えて初期同期を完了する
-                // Complete initial synchronization after applying the snapshot and purging stale buffers
-                if (_initialApplyCompletion.TrySetResult())
-                    _diagnostics.Initialize(watermarkId);
+                // 同期継続が走る完了通知より先に、runtimeの初期状態を確定する。
+                // Establish runtime initialization before completion can execute synchronous continuations.
+                if (_initialApplyCompletion.Task.Status == UniTaskStatus.Pending)
+                {
+                    _tickState.Initialize(watermarkId);
+                    _initialApplyCompletion.TrySetResult();
+                }
             }
             catch (Exception applyException)
             {
@@ -112,6 +124,16 @@ namespace Client.Game.InGame.Train.Network
                 _initialApplyCompletion.TrySetException(applyException);
                 Debug.LogError($"[TrainFullSnapshot] trainUnitの適用に失敗しました: {applyException}");
             }
+        }
+
+        private bool CanApplyInitialSnapshot()
+        {
+            if (_initialApplyCompletion.Task.Status == UniTaskStatus.Pending) return true;
+            // 失敗・恒久停止の理由は通知済み。完了済みsnapshotの再適用だけを説明する。
+            // Failure and permanent-stop reasons were already logged; explain only completed-snapshot rejection.
+            if (_initialApplyCompletion.Task.Status == UniTaskStatus.Succeeded && !_tickState.IsPermanentlyWaiting)
+                Debug.LogWarning("[TrainFullSnapshot] Ignored full snapshot after initial synchronization completed.");
+            return false;
         }
 
         public void Dispose()
