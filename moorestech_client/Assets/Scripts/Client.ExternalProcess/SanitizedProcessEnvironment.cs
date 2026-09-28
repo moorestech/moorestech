@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Text;
 using Debug = UnityEngine.Debug;
 
-namespace Client.WebUiHost.Common
+namespace Client.ExternalProcess
 {
     /// <summary>
     /// 子プロセスへ渡す環境変数を組み立てる（不正UTF-8エントリの除外とPATH先頭追加）

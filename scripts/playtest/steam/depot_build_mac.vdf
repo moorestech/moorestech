@@ -1,7 +1,7 @@
 "DepotBuild"
 {
-	"DepotID" "__DEPOT_ID_WINDOWS__"
-	"contentroot" "__CONTENT_ROOT_WINDOWS__"
+	"DepotID" "__DEPOT_ID_MAC__"
+	"contentroot" "__CONTENT_ROOT_MAC__"
 
 	"FileMapping"
 	{
@@ -10,7 +10,7 @@
 		"recursive" "1"
 	}
 
-	"FileExclusion" "*.pdb"
 	"FileExclusion" "**/*_BurstDebugInformation_DoNotShip/*"
 	"FileExclusion" "**/*_BackUpThisFolder_ButDontShipItWithYourGame/*"
+	"FileExclusion" "**/*.dSYM/*"
 }
