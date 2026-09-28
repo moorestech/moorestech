@@ -8,14 +8,14 @@ namespace Client.RemoteExec
     // Prepare Harmony and access details only for enabled boots after Web UI startup
     public static class RemoteExecActivation
     {
-        public static void ActivateIfRequested(int kestrelPort)
+        public static void ActivateIfRequested(bool webUiStarted, int kestrelPort)
         {
             if (!RemoteExecLaunchOption.IsEnabled)
             {
                 Debug.Log("[RemoteExec] 起動オプションが無いため遠隔実行は無効です");
                 return;
             }
-            if (kestrelPort == 0)
+            if (!webUiStarted)
             {
                 Debug.LogError("[RemoteExec] Web UI サーバーが起動していないため遠隔実行を開けません");
                 return;

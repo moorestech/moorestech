@@ -14,7 +14,7 @@ namespace Client.RemoteExec.Compile
         // ランタイム/Facadesはプロセス起動後は変わらないため、ディスク列挙とMetadataReference生成を1回だけ行う
         // Runtime/Facades never change after the process starts, so their disk enumeration and MetadataReference creation happen only once
         private static readonly object RuntimeFacadeCacheLock = new();
-        private static IReadOnlyDictionary<string, MetadataReference> _runtimeFacadeCache;
+        private static volatile IReadOnlyDictionary<string, MetadataReference> _runtimeFacadeCache;
 
         // パスからMetadataReferenceへのstaticキャッシュ。要求ごとに数百DLLを読み直さない
         // A static path-to-MetadataReference cache so hundreds of DLLs are never re-read per request

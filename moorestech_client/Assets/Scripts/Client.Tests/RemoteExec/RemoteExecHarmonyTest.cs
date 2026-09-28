@@ -1,5 +1,7 @@
 using System.Collections;
+using System;
 using System.Runtime.CompilerServices;
+using Client.RemoteExec.Access;
 using Client.RemoteExec.Run;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
@@ -9,6 +11,21 @@ namespace Client.Tests.RemoteExec
 {
     public class RemoteExecHarmonyTest
     {
+        private RemoteExecTestFiles _files;
+
+        [SetUp]
+        public void SetUp()
+        {
+            RemoteExecLedger.Initialize("session_" + DateTime.UtcNow.Ticks, null);
+            _files = new RemoteExecTestFiles();
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            _files.Restore();
+        }
+
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static int Target() => 1;
 
@@ -42,7 +59,7 @@ static void Postfix(ref int __result) { __result = 42; }";
             // 差し込みと後片付けを確認
             // Verify the detour and cleanup
             var result = await RemoteExecRunner.RunAsync(code, RemoteExecTarget.Client);
-            Assert.IsTrue(result.Ok, result.Exception + string.Join("\n", result.CompileErrors));
+            Assert.AreEqual(RemoteExecOutcome.Succeeded, result.Outcome, result.Exception + string.Join("\n", result.CompileErrors));
             Assert.AreEqual("1,42,1", result.Result);
             Assert.AreEqual(1, Target());
         });

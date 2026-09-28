@@ -17,10 +17,12 @@ prefix='powershell -NoProfile -EncodedCommand '
 assert args[3].startswith(prefix), args
 script=base64.b64decode(args[3][len(prefix):]).decode('utf-16le')
 assert 'Invoke-WebRequest' in script and '-MaximumRedirection 0' in script
+assert "$ProgressPreference = 'SilentlyContinue'" in script
+assert "outcome -ne 'Succeeded'" in script
 body=json.load(sys.stdin)
 assert body == {'code':'return "日本語";\n','target':'server'},body
 Path(os.environ['REX_TEST_ROOT'],'ssh-body.json').write_text(json.dumps(body))
-print('{"ok":true,"result":"日本語"}')
+print('{"outcome":"Succeeded","result":"日本語"}')
 PY
 chmod +x "$SANDBOX/bin/ssh"
 MOORESTECH_VERIFY_HOST=verify-pc MOORESTECH_VERIFY_USER=moores SSH_BIN="$SANDBOX/bin/ssh" \
@@ -36,7 +38,7 @@ args=sys.argv[1:]
 assert 'X-Remote-Exec-Token: dummy' in args
 body=json.loads(Path(args[args.index('--data-binary')+1][1:]).read_text())
 assert body == {'code':'return 1;\n','target':'client'},body
-Path(args[args.index('-o')+1]).write_text('{"ok":true}')
+Path(args[args.index('-o')+1]).write_text(os.environ.get('HTTP_BODY', '{"outcome":"Succeeded"}'))
 print(os.environ['HTTP_STATUS'],end='')
 PY
 chmod +x "$SANDBOX/bin/curl"
@@ -47,6 +49,10 @@ for code in 200 201 302 403 500; do
         bash "$CLI" - <<< 'return 1;' > "$SANDBOX/response" 2> "$SANDBOX/error" || status=$?
     if [ "$code" = 200 ]; then [ "$status" = 0 ]; else [ "$status" = 1 ]; fi
 done
+status=0
+HTTP_STATUS=200 HTTP_BODY='{"outcome":"CompileFailed"}' PATH="$SANDBOX/bin:$PATH" MOORESTECH_REMOTE_EXEC_ACCESS="$SANDBOX/access.json" \
+    bash "$CLI" - <<< 'return 1;' > "$SANDBOX/response" 2> "$SANDBOX/error" || status=$?
+[ "$status" = 2 ]
 for arg in '--target' '--unknown'; do
     status=0
     bash "$CLI" "$arg" </dev/null > /dev/null 2>&1 || status=$?

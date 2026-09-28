@@ -89,6 +89,7 @@ def emit_warnings(report_stats: dict, progress_stats: dict, run_stats: dict) -> 
         "progress.unreadable": progress_stats.get("unreadable", 0),
         "progress.readyAtFallback": progress_stats.get("readyAtFallback", 0),
         "progress.invalidRecord": progress_stats.get("invalidRecord", 0),
+        "progress.remoteExec": progress_stats.get("remoteExec", 0),
         "progress.noPayload": progress_stats.get("noPayload", 0),
         "progress.playSecondsMissing": progress_stats.get("playSecondsMissing", 0),
         "runs.finishedAtFallback": run_stats["finishedAtFallback"],

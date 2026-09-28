@@ -15,6 +15,7 @@ namespace Server.Boot
         private Thread _gameUpdateThread;
         private CancellationTokenSource _cancellationTokenSource;
         private Socket _listener;
+        private long _queueGeneration;
 
         // 終了時に保留中の保存を消化するための保存調停役
         // The save coordinator used to flush pending saves at shutdown
@@ -45,7 +46,7 @@ namespace Server.Boot
 
         public void Start()
         {
-            (_connectionUpdateThread, _gameUpdateThread, _cancellationTokenSource, _listener) = ServerInstanceStartup.Start(_args, out _worldSaveCoordinator, out _worldSnapshotRing);
+            (_connectionUpdateThread, _gameUpdateThread, _cancellationTokenSource, _listener) = ServerInstanceStartup.Start(_args, out _worldSaveCoordinator, out _worldSnapshotRing, out _queueGeneration);
         }
 
         // 終了直前の保存を通信を介さず直接要求する。パケット到達待ちの競合を作らない
@@ -55,11 +56,16 @@ namespace Server.Boot
             _worldSaveCoordinator?.RequestSave();
         }
 
+        internal void StopThreadActions()
+        {
+            Loop.ServerThreadActionQueue.Stop(_queueGeneration);
+        }
+
         public void Dispose()
         {
             // 終了後の受付を閉じ、保留中の実行者へ失敗を返す
             // Close admission and fail pending work when the server stops
-            Loop.ServerThreadActionQueue.Stop();
+            StopThreadActions();
             try
             {
                 _cancellationTokenSource?.Cancel();

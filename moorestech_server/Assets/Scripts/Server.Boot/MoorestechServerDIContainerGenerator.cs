@@ -97,12 +97,14 @@ namespace Server.Boot
 
     public class MoorestechServerDIContainerGenerator
     {
+        private readonly long _queueGeneration = ServerThreadActionQueue.CurrentGeneration;
+
         //TODO セーブファイルのディレクトリもここで指定できるようにする
         // TODO allow the save file directory to be configured here as well.
         public (PacketResponseCreator, ServiceProvider) Create(MoorestechServerDIContainerOptions options)
         {
             GameUpdater.ResetUpdate();
-            ServerThreadActionQueue.Stop();
+            ServerThreadActionQueue.Stop(_queueGeneration);
 
             //必要な各種インスタンスを手動で作成
             // Manually construct the required bootstrap instances.

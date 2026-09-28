@@ -51,6 +51,10 @@ BOUNDARY_ALLOWLIST = {
                 "容量不足", "空き容量", "アクセス権", "書き込み権限", "読み取り権限",
                 "ファイルのロック", "他プロセスのロック", "file lock",
                 "IOException", "UnauthorizedAccessException"),
+    # 外から送られ動的にコンパイル・実行したコードの実行境界（2026-09-28 AGENTS.md 第5類型）
+    # Execution boundary of code sent from outside and compiled/run dynamically (AGENTS.md 5th kind, 2026-09-28)
+    "dynamic-code": ("動的に実行", "動的にコンパイル", "動的コード", "送られたコード",
+                     "dynamically compiled", "dynamically executed", "submitted code"),
 }
 # 根拠コメントを探す遡り幅（try の直前に置かれた2行セットコメントまで届く距離）
 # Look-back window for the rationale comment (reaches the 2-line comment set placed above `try`)
@@ -147,7 +151,7 @@ def _classify_boundary(comment: str) -> list[str]:
 def try_catch_boundary(files: list[FileDiff]) -> list[dict]:
     """境界を主張する根拠コメント付き try-catch を候補として返す（免除ではなく裁定行き）。
 
-    コメントが存在するだけでは免除しない。許可リスト3種のどれかを主張しているものだけを
+    コメントが存在するだけでは免除しない。許可リストのどれかを主張しているものだけを
     candidate へ降ろし、verifier が「主張どおりの境界か」を実コードで裁定する。
     主張が無い / コメント自体が無いものは confirmed のまま（_added_line_rules 側）。
     """

@@ -52,15 +52,15 @@ namespace Client.Tests.EditModeInPlayingTest.RemoteExec
                 RemoteExecLaunchOption.ResolveFromCommandLine(Array.Empty<string>());
                 await kestrel.StartAsync(new WebSocketHub());
                 var url = $"http://127.0.0.1:{kestrel.ActualPort}{RemoteExecEndpoint.Path}";
-                RemoteExecActivation.ActivateIfRequested(kestrel.ActualPort);
+                RemoteExecActivation.ActivateIfRequested(true, kestrel.ActualPort);
                 Assert.IsFalse(File.Exists(Path.Combine(RemoteExecAccessFile.DirectoryPath, "access.json")));
                 using (var disabled = await SendAsync(client, url, HttpMethod.Post, "{}", null, null))
                     Assert.AreEqual(HttpStatusCode.NotFound, disabled.StatusCode);
 
                 // 本番経路でトークン/ポート取得
                 // Get token/port through the production path
-                RemoteExecLaunchOption.ResolveFromCommandLine(new[] { "-remote-exec" });
-                RemoteExecActivation.ActivateIfRequested(kestrel.ActualPort);
+                RemoteExecLaunchOption.ResolveFromCommandLine(new[] { "--remoteExec" });
+                RemoteExecActivation.ActivateIfRequested(true, kestrel.ActualPort);
                 var access = JObject.Parse(File.ReadAllText(Path.Combine(RemoteExecAccessFile.DirectoryPath, "access.json")));
                 var token = access.Value<string>("token");
                 Assert.AreEqual(kestrel.ActualPort, access.Value<int>("port"));
@@ -100,11 +100,11 @@ namespace Client.Tests.EditModeInPlayingTest.RemoteExec
                     using var result = await SendAsync(client, url, HttpMethod.Post, "{\"code\":\"return 1 + 1;\",\"target\":\"client\"}", token, null);
                     Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
                     var json = JObject.Parse(await result.Content.ReadAsStringAsync());
-                    Assert.IsTrue(json.Value<bool>("ok"));
+                    Assert.AreEqual("Succeeded", json.Value<string>("outcome"));
                     Assert.AreEqual("2", json.Value<string>("result"));
                     Assert.IsNotNull(json["compileErrors"]);
                     Assert.IsNotNull(json["logs"]);
-                    Assert.IsNull(json["Ok"]);
+                    Assert.IsNull(json["ok"]);
                 }
                 Assert.AreEqual(before + 4, files.CountLedgerLines());
 
@@ -113,7 +113,7 @@ namespace Client.Tests.EditModeInPlayingTest.RemoteExec
                 using var failed = await SendAsync(client, url, HttpMethod.Post, "{\"code\":\"return +;\",\"target\":\"client\"}", token, null);
                 var failedJson = JObject.Parse(await failed.Content.ReadAsStringAsync());
                 Assert.AreEqual(HttpStatusCode.OK, failed.StatusCode);
-                Assert.IsFalse(failedJson.Value<bool>("ok"));
+                Assert.AreEqual("CompileFailed", failedJson.Value<string>("outcome"));
                 Assert.IsNotEmpty((JArray)failedJson["compileErrors"]);
                 Assert.AreEqual(before + 6, files.CountLedgerLines());
                 var entries = files.ReadLedgerEntries();
@@ -123,7 +123,7 @@ namespace Client.Tests.EditModeInPlayingTest.RemoteExec
                     Assert.AreEqual("result", entries[index + 1].Value<string>("event"));
                     Assert.AreEqual(entries[index].Value<long>("sequence"), entries[index + 1].Value<long>("sequence"));
                     Assert.AreEqual(index == 4 ? "return +;" : "return 1 + 1;", entries[index].Value<string>("code"));
-                    Assert.AreEqual(index != 4, entries[index + 1].Value<bool>("ok"));
+                    Assert.AreEqual(index == 4 ? "CompileFailed" : "Succeeded", entries[index + 1].Value<string>("outcome"));
                 }
             }
             finally

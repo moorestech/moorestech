@@ -1,9 +1,12 @@
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.RemoteExec;
+using Client.RemoteExec.Access;
+using Client.Tests.RemoteExec;
 using Game.Paths;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -63,7 +66,7 @@ namespace Client.Tests.BugReport
                     Assert.IsTrue(result.Ready, "manifestの書き出しに失敗した");
                     var manifestPath = Path.Combine(result.BundleDirectory, BugReportBundleLayout.ManifestFileName);
                     var manifest = JObject.Parse(File.ReadAllText(manifestPath));
-                    Assert.IsTrue((bool)manifest["remoteExec"]["enabled"], "起動フラグ有効なのにremoteExec.enabledがmanifestに立っていない");
+                    Assert.IsNotNull(manifest["remoteExec"], "起動フラグ有効なのにremoteExecがmanifestに立っていない");
                 }
                 finally
                 {
@@ -73,6 +76,37 @@ namespace Client.Tests.BugReport
             finally
             {
                 RemoteExecLaunchOption.ResolveFromCommandLine(new string[0]);
+            }
+        }
+
+        [Test]
+        public async Task WriteAsync経由で台帳の中身と相対パスがmanifestへ渡る()
+        {
+            // 実ユーザーデータを退避し、台帳のある有効セッションを箱の入口から通す
+            // Preserve real user files while exercising an enabled session with a ledger through the writer
+            var files = new RemoteExecTestFiles();
+            RemoteExecLaunchOption.ResolveFromCommandLine(new[] { RemoteExecLaunchOption.Marker });
+            BugReportBundleResult result = null;
+            try
+            {
+                Directory.CreateDirectory(RemoteExecAccessFile.DirectoryPath);
+                File.WriteAllText(RemoteExecLedger.CurrentPath, "current-session-ledger");
+                var writer = new BugReportBundleWriter(new FakeIdentity());
+                var data = new BugReportCapturedData { CaptureId = 1, ReportTick = 0, Missing = new() };
+                result = await writer.WriteAsync(data, "台帳配線テスト", PlaytestReportKind.Bug);
+
+                Assert.IsTrue(result.Ready);
+                var manifest = JObject.Parse(File.ReadAllText(Path.Combine(result.BundleDirectory, BugReportBundleLayout.ManifestFileName)));
+                var relativePath = $"{BugReportBundleLayout.RemoteExecDirectoryName}/{RemoteExecLedger.CurrentFileName}";
+                CollectionAssert.Contains(((JArray)manifest["remoteExec"]["ledgerFiles"]).Select(x => (string)x).ToArray(), relativePath);
+                Assert.AreEqual("current-session-ledger", File.ReadAllText(Path.Combine(result.BundleDirectory,
+                    BugReportBundleLayout.RemoteExecDirectoryName, RemoteExecLedger.CurrentFileName)));
+            }
+            finally
+            {
+                if (result?.BundleDirectory != null && Directory.Exists(result.BundleDirectory)) Directory.Delete(result.BundleDirectory, true);
+                RemoteExecLaunchOption.ResolveFromCommandLine(new string[0]);
+                files.Restore();
             }
         }
     }

@@ -63,7 +63,7 @@ bash /Users/sakastudio/hermes-agent/data/repos/moorestech/scripts/playtest/enque
 - 二度目は `exit 2`（箱の `AUTOFIX_QUEUED` マーカーで判定）。やり直すならマーカーを消す
 - `harness/bug-report/runs/<id>` が既にあると `exit 5`（poller が `.duplicate` へ隔離してランを起こさないため）。やり直すなら旧ランを改名・退避してからマーカーを消す
 - 元箱に `READY` が無い（取り込みが完結していない）箱、steamId/id が安全な単一パスセグメントでない（空・`.`・`..`・`/`・`\`・制御文字）引数は `exit 1` で拒否する
-- 感想・クラッシュは `exit 3` で拒否。どうしても走らせるなら `--force`（inbox 側に `AUTOFIX_FORCED` が付き、poller の種別ガードを通る）
+- 感想・クラッシュは `exit 3`、遠隔実行印のある箱は `exit 6` で拒否。どうしても走らせるなら `--force`（inbox 側に理由を含む `AUTOFIX_FORCED` が付き、poller の種別ガードを通る）
 - 結果は `moorestech_logs/harness/bug-report/runs/<id>/fix-result.json`、翌朝のダイジェストの「自動修正ラン」節にも出る
 
 ## 詰まったとき

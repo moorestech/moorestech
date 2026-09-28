@@ -32,7 +32,7 @@ namespace Client.Tests.EditModeInPlayingTest.RemoteExec
                 // PlayerLoop上でawait結果を検証
                 // Verify await results on the PlayerLoop
                 var client = await RemoteExecRunner.RunAsync("UnityEngine.Debug.Log(\"hello\"); await UniTask.Yield(); return 2;", RemoteExecTarget.Client);
-                Assert.IsTrue(client.Ok, client.Exception);
+                Assert.AreEqual(RemoteExecOutcome.Succeeded, client.Outcome, client.Exception);
                 Assert.AreEqual("2", client.Result);
                 Assert.That(client.Logs, Has.Some.Contains("hello"));
 
@@ -42,28 +42,28 @@ namespace Client.Tests.EditModeInPlayingTest.RemoteExec
                 var second = RemoteExecRunner.RunAsync("UnityEngine.Debug.Log(\"second-start\"); return 2;", RemoteExecTarget.Client);
                 var firstResult = await first;
                 var secondResult = await second;
-                Assert.IsTrue(firstResult.Ok, firstResult.Exception);
-                Assert.IsTrue(secondResult.Ok, secondResult.Exception);
+                Assert.AreEqual(RemoteExecOutcome.Succeeded, firstResult.Outcome, firstResult.Exception);
+                Assert.AreEqual(RemoteExecOutcome.Succeeded, secondResult.Outcome, secondResult.Exception);
                 Assert.That(firstResult.Logs, Has.Some.Contains("first-end"));
                 Assert.That(firstResult.Logs, Has.None.Contains("second-start"));
 
                 var failed = await RemoteExecRunner.RunAsync("throw new System.InvalidOperationException(\"boom\");", RemoteExecTarget.Client);
-                Assert.IsFalse(failed.Ok);
+                Assert.AreEqual(RemoteExecOutcome.RuntimeException, failed.Outcome);
                 Assert.That(failed.Exception, Does.Contain("boom"));
 
                 // サーバー指定の同期部分は別更新スレッドで実行する
                 // Run the synchronous server entry on its distinct update thread
                 var server = await RemoteExecRunner.RunAsync("return System.Threading.Thread.CurrentThread.Name;", RemoteExecTarget.Server);
-                Assert.IsTrue(server.Ok, server.Exception);
+                Assert.AreEqual(RemoteExecOutcome.Succeeded, server.Outcome, server.Exception);
                 Assert.AreEqual("[moorestech]ゲームアップデートスレッド", server.Result);
 
                 // 送信コードの例外は応答に閉じ込め、後続tickを動かし続ける
                 // Keep submitted exceptions in the response and allow later ticks to run
                 var serverFailure = await RemoteExecRunner.RunAsync("throw new System.InvalidOperationException(\"server-boom\");", RemoteExecTarget.Server);
-                Assert.IsFalse(serverFailure.Ok);
+                Assert.AreEqual(RemoteExecOutcome.RuntimeException, serverFailure.Outcome);
                 Assert.That(serverFailure.Exception, Does.Contain("server-boom"));
                 var afterFailure = await RemoteExecRunner.RunAsync("return 3;", RemoteExecTarget.Server);
-                Assert.IsTrue(afterFailure.Ok, afterFailure.Exception);
+                Assert.AreEqual(RemoteExecOutcome.Succeeded, afterFailure.Outcome, afterFailure.Exception);
                 Assert.AreEqual("3", afterFailure.Result);
 
                 // 終了後は理由付きで失敗
@@ -71,7 +71,7 @@ namespace Client.Tests.EditModeInPlayingTest.RemoteExec
                 await GameShutdownEvent.FireGameShutdownAsync(GameShutdownReason.IntentionalExit);
                 Assert.IsFalse(ServerThreadActionQueue.HasDrainedThisLifetime, "終了完了直後はOnDestroyを待たず受付を閉じる");
                 var stopped = await RemoteExecRunner.RunAsync("return 1;", RemoteExecTarget.Server);
-                Assert.IsFalse(stopped.Ok);
+                Assert.AreEqual(RemoteExecOutcome.Rejected, stopped.Outcome);
                 Assert.That(stopped.Exception, Does.Contain("サーバー"));
             }
 

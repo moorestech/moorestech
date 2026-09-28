@@ -14,7 +14,12 @@ namespace Client.Game.InGame.BugReport.LastSession
     // The origin at session start (build, SteamID, snapshot capture); the crashed session writes it itself so the previous crash's box never carries the build or world launched this time (F12, D-C3)
     public sealed class SessionOriginSnapshot
     {
-        private static readonly JsonSerializer Serializer = JsonSerializer.Create(new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() });
+        // 読み書きで同じ設定を使い、並行する処理に可変のSerializer本体は共有しない
+        // Share one setting across reads and writes without sharing a mutable serializer between concurrent operations
+        internal static JsonSerializer CreateSerializer()
+        {
+            return JsonSerializer.Create(new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() });
+        }
 
         // 旧形式の印（理由キー無し）を読んだときの理由。無音でnullにすると欠損の原因が箱から消える
         // Reason used for a legacy mark without the reason key; a silent null would erase the gap's cause from the box
@@ -24,6 +29,8 @@ namespace Client.Game.InGame.BugReport.LastSession
         public string SteamIdAbsenceReason { get; }
         public BuildOriginReading BuildOrigin { get; }
         public string RemoteExecLedgerFileName { get; }
+        public bool RemoteExecAttempted { get; private set; }
+        public bool RemoteExecLedgerWriteFailed { get; private set; }
 
         // 有効判定は台帳ファイル名の有無だけから導く。専用のboolを別に持つと不整合な組み合わせが生じる
         // Derive the enabled state solely from the ledger file name's presence; a separate bool would allow an inconsistent combination
@@ -55,27 +62,46 @@ namespace Client.Game.InGame.BugReport.LastSession
         // Re-stamping ownership keeps the SteamID absence reason; dropping it would erase the reason from the rewritten mark
         internal SessionOriginSnapshot WithSnapshotCapture(SessionSnapshotCapture snapshotCapture)
         {
-            return new SessionOriginSnapshot(SteamId, SteamIdAbsenceReason, BuildOrigin, RemoteExecLedgerFileName, snapshotCapture, new List<MissingItem>());
+            var copy = new SessionOriginSnapshot(SteamId, SteamIdAbsenceReason, BuildOrigin, RemoteExecLedgerFileName, snapshotCapture, new List<MissingItem>());
+            copy.SetRemoteExecAttempted(RemoteExecAttempted);
+            copy.SetRemoteExecLedgerWriteFailed(RemoteExecLedgerWriteFailed);
+            return copy;
         }
 
         internal SessionOriginSnapshot WithSalvageMissing(IReadOnlyList<MissingItem> missing)
         {
-            return new SessionOriginSnapshot(SteamId, SteamIdAbsenceReason, BuildOrigin, RemoteExecLedgerFileName, SnapshotCapture, new List<MissingItem>(missing));
+            var copy = new SessionOriginSnapshot(SteamId, SteamIdAbsenceReason, BuildOrigin, RemoteExecLedgerFileName, SnapshotCapture, new List<MissingItem>(missing));
+            copy.SetRemoteExecAttempted(RemoteExecAttempted);
+            copy.SetRemoteExecLedgerWriteFailed(RemoteExecLedgerWriteFailed);
+            return copy;
+        }
+
+        internal void SetRemoteExecAttempted(bool attempted)
+        {
+            RemoteExecAttempted = attempted;
+        }
+
+        internal void SetRemoteExecLedgerWriteFailed(bool failed)
+        {
+            RemoteExecLedgerWriteFailed = failed;
         }
 
         public SalvageOperationResult WriteTo(string path)
         {
+            var serializer = CreateSerializer();
             var json = new JObject
             {
                 ["steamId"] = SteamId,
                 ["remoteExecEnabled"] = RemoteExecEnabled,
                 ["remoteExecLedgerFileName"] = RemoteExecLedgerFileName,
+                ["remoteExecAttempted"] = RemoteExecAttempted,
+                ["remoteExecLedgerWriteFailed"] = RemoteExecLedgerWriteFailed,
                 ["steamIdAbsenceReason"] = SteamIdAbsenceReason,
                 ["buildOriginKind"] = BuildOrigin.Kind.ToString(),
-                ["buildInfo"] = BuildOrigin.BuildInfo == null ? JValue.CreateNull() : JObject.FromObject(BuildOrigin.BuildInfo, Serializer),
+                ["buildInfo"] = BuildOrigin.BuildInfo == null ? JValue.CreateNull() : JObject.FromObject(BuildOrigin.BuildInfo, serializer),
                 ["buildOriginMissingReason"] = BuildOrigin.MissingReason,
                 ["snapshotCapture"] = SnapshotCapture.ToJson(),
-                ["salvageMissing"] = new JObject { ["version"] = 1, ["owner"] = SnapshotCapture.Owner, ["items"] = JArray.FromObject(SalvageMissing, Serializer) },
+                ["salvageMissing"] = new JObject { ["version"] = 1, ["owner"] = SnapshotCapture.Owner, ["items"] = JArray.FromObject(SalvageMissing, serializer) },
             };
 
             // 出所の書き出しはディスクIO。失敗しても起動は続け、次回の箱では出所不明として欠損に表明される

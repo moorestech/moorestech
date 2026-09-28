@@ -83,7 +83,7 @@ def load_reports(root: Path, date: str) -> tuple[list[dict], dict]:
             warn(reason or "manifest.json の型が想定外", box["dir"] / "manifest.json")
             stats["invalidManifest"] += 1
             continue
-        if manifest["remoteExec"]["enabled"]:
+        if manifest["remoteExec"] is not None:
             warn("遠隔実行が有効だったセッションを集計から除外", box["dir"])
             stats["remoteExec"] = stats.get("remoteExec", 0) + 1
             continue
@@ -137,6 +137,10 @@ def load_progress(root: Path, date: str) -> tuple[list[dict], dict]:
         if reason is not None:
             warn(reason, box["dir"] / "record.json")
             stats["invalidRecord"] += 1
+            continue
+        if record["remoteExec"]:
+            warn("遠隔実行が有効だった進行記録を集計から除外", box["dir"])
+            stats["remoteExec"] = stats.get("remoteExec", 0) + 1
             continue
         records.append(flatten_progress_record(record, box))
     return records, stats

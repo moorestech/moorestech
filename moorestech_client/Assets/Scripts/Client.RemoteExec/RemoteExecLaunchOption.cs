@@ -8,7 +8,7 @@ namespace Client.RemoteExec
     // Resolve remote execution permission from launch arguments (ADR 0072)
     public static class RemoteExecLaunchOption
     {
-        internal const string Marker = "-remote-exec";
+        internal const string Marker = "--remoteExec";
 
         public static bool IsEnabled { get; private set; }
 

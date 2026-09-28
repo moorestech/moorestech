@@ -28,6 +28,7 @@ namespace Client.Tests.RemoteExec
             // 実データを退避し、設定もテスト前の状態へ戻せるよう残す
             // Preserve real files and retain the launch setting for restoration
             _wasEnabled = RemoteExecLaunchOption.IsEnabled;
+            RemoteExecLedger.Initialize("session_" + DateTime.UtcNow.Ticks, null);
             _files = new RemoteExecTestFiles();
             _bundle = Path.Combine(Path.GetTempPath(), "remote-exec-bundle-" + Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(_bundle);
@@ -65,7 +66,8 @@ namespace Client.Tests.RemoteExec
             AssertCopiedLedger(manifest, source);
             var json = JObject.Parse(manifest.ToJson());
             Assert.AreEqual(4, (int)json["schemaVersion"]);
-            Assert.IsTrue((bool)json["remoteExec"]["enabled"]);
+            Assert.IsNotNull(json["remoteExec"]);
+            Assert.IsNull(json["remoteExec"]["enabled"]);
         }
 
         [Test]
@@ -74,7 +76,7 @@ namespace Client.Tests.RemoteExec
             RemoteExecLaunchOption.ResolveFromCommandLine(new[] { RemoteExecLaunchOption.Marker });
             var manifest = new BugReportManifest();
             RemoteExecBundleMark.ApplyForCurrentSession(manifest, _bundle);
-            Assert.IsTrue(manifest.RemoteExec.Enabled);
+            Assert.IsNotNull(manifest.RemoteExec);
             Assert.IsEmpty(manifest.RemoteExec.LedgerFiles);
             Assert.IsEmpty(manifest.Missing);
         }
@@ -87,8 +89,8 @@ namespace Client.Tests.RemoteExec
             // 現在のpidを誤採用しても通らないよう、未使用の別pidに前回の台帳を置く
             // Use an unused different pid so accidentally selecting the current ledger cannot pass
             var previousId = 1000000000;
-            while (File.Exists(RemoteExecLedger.PathFor(previousId)) || Directory.Exists(RemoteExecLedger.PathFor(previousId))) previousId++;
-            _previousLedger = RemoteExecLedger.PathFor(previousId);
+            while (File.Exists(RemoteExecLedger.PathFor(previousId, "session_123")) || Directory.Exists(RemoteExecLedger.PathFor(previousId, "session_123"))) previousId++;
+            _previousLedger = RemoteExecLedger.PathFor(previousId, "session_123");
             File.WriteAllText(_previousLedger, "previous session ledger\n");
             var manifest = new BugReportManifest();
             var origin = PreviousOrigin(Path.GetFileName(_previousLedger));
@@ -101,17 +103,34 @@ namespace Client.Tests.RemoteExec
         }
 
         [Test]
-        public void 前回有効なのに台帳が無ければ理由を欠損とログへ残す()
+        public void 前回有効でも未実行なら台帳欠損を付けない()
         {
             var manifest = new BugReportManifest();
             var missingId = 999999999;
-            while (File.Exists(RemoteExecLedger.PathFor(missingId))) missingId++;
-            var missingName = Path.GetFileName(RemoteExecLedger.PathFor(missingId));
-            LogAssert.Expect(LogType.Warning, new Regex("遠隔実行の台帳が無い"));
+            while (File.Exists(RemoteExecLedger.PathFor(missingId, "session_123"))) missingId++;
+            var missingName = Path.GetFileName(RemoteExecLedger.PathFor(missingId, "session_123"));
             RemoteExecBundleMark.ApplyForPreviousSession(manifest, _bundle, PreviousOrigin(missingName));
-            Assert.IsTrue(manifest.RemoteExec.Enabled);
+            Assert.IsNotNull(manifest.RemoteExec);
             Assert.IsEmpty(manifest.RemoteExec.LedgerFiles);
-            StringAssert.Contains("台帳が無い", manifest.Missing[0].Reason);
+            Assert.IsEmpty(manifest.Missing);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void 前回に実行試行があり台帳が無ければ欠損を付ける(bool failureSignal)
+        {
+            var manifest = new BugReportManifest();
+            var missingId = 999999998;
+            while (File.Exists(RemoteExecLedger.PathFor(missingId, "session_123"))) missingId--;
+            var origin = PreviousOrigin(Path.GetFileName(RemoteExecLedger.PathFor(missingId, "session_123")));
+            origin.SetRemoteExecAttempted(true);
+            origin.SetRemoteExecLedgerWriteFailed(failureSignal);
+            LogAssert.Expect(LogType.Warning, new Regex(failureSignal ? "前回セッションで遠隔実行の台帳または実行試行の印を書けなかった" : "実行試行があったが遠隔実行の台帳が無い"));
+            RemoteExecBundleMark.ApplyForPreviousSession(manifest, _bundle, origin);
+            Assert.IsNotNull(manifest.RemoteExec);
+            Assert.IsEmpty(manifest.RemoteExec.LedgerFiles);
+            Assert.AreEqual(1, manifest.Missing.Count);
+            Assert.AreEqual(BugReportBundleLayout.RemoteExecDirectoryName, manifest.Missing[0].Item);
         }
 
         [Test]
@@ -126,6 +145,16 @@ namespace Client.Tests.RemoteExec
         }
 
         [Test]
+        public void 前回の出所が読めなければ印を空にし理由を欠損へ載せる()
+        {
+            var manifest = new BugReportManifest();
+            LogAssert.Expect(LogType.Warning, new Regex("前回セッションの出所が読めず"));
+            RemoteExecBundleMark.ApplyForPreviousSession(manifest, _bundle, null);
+            Assert.IsNull(manifest.RemoteExec);
+            Assert.AreEqual("remoteExec", manifest.Missing[0].Item);
+        }
+
+        [Test]
         public void コピー失敗でも有効印を保ち理由をログと欠損に残す()
         {
             RemoteExecLaunchOption.ResolveFromCommandLine(new[] { RemoteExecLaunchOption.Marker });
@@ -134,7 +163,7 @@ namespace Client.Tests.RemoteExec
             var manifest = new BugReportManifest();
             LogAssert.Expect(LogType.Warning, new Regex("遠隔実行の台帳をコピーできなかった"));
             RemoteExecBundleMark.ApplyForCurrentSession(manifest, _bundle);
-            Assert.IsTrue(manifest.RemoteExec.Enabled);
+            Assert.IsNotNull(manifest.RemoteExec);
             Assert.IsEmpty(manifest.RemoteExec.LedgerFiles);
             Assert.AreEqual(BugReportBundleLayout.RemoteExecDirectoryName, manifest.Missing[0].Item);
         }
@@ -156,7 +185,7 @@ namespace Client.Tests.RemoteExec
         private void AssertCopiedLedger(BugReportManifest manifest, string source)
         {
             var relative = BugReportBundleLayout.RemoteExecDirectoryName + "/" + Path.GetFileName(source);
-            Assert.IsTrue(manifest.RemoteExec.Enabled);
+            Assert.IsNotNull(manifest.RemoteExec);
             CollectionAssert.AreEqual(new[] { relative }, manifest.RemoteExec.LedgerFiles);
             Assert.AreEqual(File.ReadAllText(source), File.ReadAllText(Path.Combine(_bundle, relative)));
             Assert.IsEmpty(manifest.Missing);

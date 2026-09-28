@@ -79,24 +79,19 @@ namespace Server.Boot.Loop
             }
         }
 
-        internal static void Stop()
+        internal static long CurrentGeneration
         {
-            StopGeneration(0, false);
+            get { lock (Gate) return _generation; }
         }
 
         // 古い更新スレッドの終了では、新しいサーバーの受付を閉じない
         // An old update thread cannot close the queue of a newer server
         internal static void Stop(long generation)
         {
-            StopGeneration(generation, true);
-        }
-
-        private static void StopGeneration(long generation, bool checkGeneration)
-        {
             var abandoned = new List<PendingAction>();
             lock (Gate)
             {
-                if (checkGeneration && generation != _generation)
+                if (generation != _generation)
                 {
                     UnityEngine.Debug.Log($"[ServerThreadActionQueue] 古い世代の停止を無視しました generation:{generation} current:{_generation}");
                     return;

@@ -169,8 +169,8 @@ bash scripts/playtest/tests/test-verify-on-windows.sh   # PASS: verify-on-window
 
 ## 遠隔実行（開発者向け）
 
-Steam の起動オプション欄へ `-remote-exec` を付けてゲームを起動する。
-Windows では `steam.exe -applaunch <appid> -remote-exec` でも指定できる。
+Steam の起動オプション欄へ `--remoteExec` を付けてゲームを起動する。
+Windows では `steam.exe -applaunch <appid> --remoteExec` でも指定できる。
 ゲーム開始後に、C# のメソッド本体をファイルまたは標準入力から送る。
 
 ```bash
@@ -183,7 +183,7 @@ scripts/playtest/remote-exec.sh --windows --target server snippet.cs
 検証機内からループバックへ送信する。WoL や受け口の admin key は不要。
 ローカルの接続ファイルは `/Users/<user>/Library/Application Support/moorestech/RemoteExec/access.json`。
 必要なら `MOORESTECH_REMOTE_EXEC_ACCESS` で別のファイルを指定できる。
-応答 JSON を stdout に出し、HTTP が 200 以外なら exit 1 を返す。
+応答 JSON を stdout に出し、HTTP が 200 以外なら exit 1、`outcome` が `Succeeded` 以外なら exit 2 を返す。
 
 タイトル画面では使えない。固まったらゲームを再起動する。
 `server` の同期部分だけがサーバースレッドで動く。`await` 以降の実行スレッドは待機先に依存する。

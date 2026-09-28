@@ -24,6 +24,7 @@ namespace Client.Game.InGame.BugReport.LastSession
             // 出所はこのセッション自身が開始時に書き残す。退避元はスナップショット開始時に所有印として後から足す（F12・D-C3）
             // The session writes its own origin at start; the salvage source is added later as an ownership mark when snapshots begin (F12, D-C3)
             var identity = PlaytestSessionIdentityProvider.Current;
+            RemoteExecLedger.Initialize(sessionName, CleanExitMarker.RemoteExecAttemptSignalPath(processId, sessionName));
             var remoteExecLedgerFileName = RemoteExecLaunchOption.IsEnabled ? RemoteExecLedger.CurrentFileName : null;
             var origin = new SessionOriginSnapshot(identity.SteamId, identity.SteamIdAbsenceReason, RepositoryStateProbe.ReadBuildOrigin(), remoteExecLedgerFileName);
             CleanExitMarker.MarkSessionStarted(processId, sessionName, origin);

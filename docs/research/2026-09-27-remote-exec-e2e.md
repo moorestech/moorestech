@@ -5,7 +5,7 @@
 ## 実施方法と plan からの差分
 
 - 検証機は自動ログイン後すぐにロック画面になる設定で、対話セッションへクリックを送れなかった。ロック画面を迂回する操作はしていない。
-- そのため「ゲーム開始後」の状態は、入力を要しない `--playtestSmoke`（phase1＝ワールドに入って保存し終了、phase2＝ワールドを読んでバグ報告を送信し終了）に `-remote-exec` を足して作り、その間に検証機内または Mac から要求を送った。
+- そのため「ゲーム開始後」の状態は、入力を要しない `--playtestSmoke`（phase1＝ワールドに入って保存し終了、phase2＝ワールドを読んでバグ報告を送信し終了）に `--remoteExec` を足して作り、その間に検証機内または Mac から要求を送った。
 - Step 4 の「ポーズメニューからのバグ報告」は、smoke phase2 の自動送信（同じ `BugReportSubmitter` 経路）で代えた。
 - Steam 初期化（報告送信に必要）のため、作業フォルダに `steam_appid.txt`（1958160）を置いた。
 
@@ -16,7 +16,7 @@
 - `%APPDATA%\.moorestech\RemoteExec\access.json` は作られない（起動前に無し・起動後も無し）
 - Player.log: `[RemoteExec] 起動オプションが無いため遠隔実行は無効です`
 
-### Step 3: `-remote-exec` 付き（R13-1, R13-2, R4, R6, R12）: 合格
+### Step 3: `--remoteExec` 付き（R13-1, R13-2, R4, R6, R12）: 合格
 検証機内の PowerShell から:
 ```
 [c1.cs/client] status=403   ← トークン誤り。Player.log: [RemoteExec] 要求を拒否しました: トークン不一致

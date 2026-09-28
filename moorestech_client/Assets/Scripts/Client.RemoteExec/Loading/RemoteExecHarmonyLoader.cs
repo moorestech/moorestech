@@ -20,6 +20,7 @@ namespace Client.RemoteExec.Loading
 
         private static Assembly _harmony;
         private static bool _resolverRegistered;
+        internal static string LoadFailureReason { get; private set; }
 
         internal static void Load()
         {
@@ -28,14 +29,23 @@ namespace Client.RemoteExec.Loading
                 AppDomain.CurrentDomain.AssemblyResolve += Resolve;
                 _resolverRegistered = true;
             }
-            if (_harmony != null) return;
+            if (_harmony != null)
+            {
+                LoadFailureReason = null;
+                return;
+            }
 
             // Editorのuloop同梱版を避け、名前が完全一致する版を使う
             // Avoid the editor's uloop copy and match the exact assembly name
             if (Application.isEditor)
             {
                 _harmony = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(a => a.GetName().Name == HarmonyAssemblyName);
-                if (_harmony == null) Debug.LogWarning("[RemoteExec] 0Harmony が未読込です。Harmony無しで遠隔実行を続けます");
+                if (_harmony == null)
+                {
+                    LoadFailureReason = "0Harmony がEditorに読み込まれていません";
+                    Debug.LogWarning($"[RemoteExec] {LoadFailureReason}。Harmony無しで遠隔実行を続けます");
+                }
+                else LoadFailureReason = null;
                 return;
             }
 
@@ -45,10 +55,12 @@ namespace Client.RemoteExec.Loading
             try
             {
                 _harmony = Assembly.LoadFrom(path);
+                LoadFailureReason = null;
             }
             catch (Exception e) when (e is IOException || e is UnauthorizedAccessException || e is BadImageFormatException)
             {
-                Debug.LogWarning($"[RemoteExec] Harmony を読み込めません（Harmony無しで続行）: {e.Message}");
+                LoadFailureReason = $"Harmony DLL を読み込めません ({path}): {e.Message}";
+                Debug.LogWarning($"[RemoteExec] {LoadFailureReason}。Harmony無しで遠隔実行を続けます");
             }
         }
 

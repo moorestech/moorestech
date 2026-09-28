@@ -3,6 +3,7 @@ using System.Linq;
 using Client.RemoteExec;
 using Client.RemoteExec.Compile;
 using Client.RemoteExec.Loading;
+using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 
 namespace Client.Tests.RemoteExec
@@ -38,6 +39,40 @@ namespace Client.Tests.RemoteExec
         {
             var outcome = RemoteExecCompiler.Compile("using System.Text; // namespace\nreturn new StringBuilder(\"a\").ToString();");
             Assert.IsTrue(outcome.Succeeded, string.Join("\n", outcome.Errors));
+        }
+
+        [Test]
+        public void 先頭コメントの後のusingも名前空間の指定として使われる()
+        {
+            var outcome = RemoteExecCompiler.Compile("// comment\n/* block\ncomment */\nusing System.Text;\nreturn new StringBuilder(\"a\").ToString();");
+            Assert.IsTrue(outcome.Succeeded, string.Join("\n", outcome.Errors));
+        }
+
+        [Test]
+        public void ブロックコメント内のusingは名前空間の指定にしない()
+        {
+            var outcome = RemoteExecCompiler.Compile("/*\nusing Missing.Namespace;\n*/\nusing System.Text;\nreturn new StringBuilder(\"a\").ToString();");
+            Assert.IsTrue(outcome.Succeeded, string.Join("\n", outcome.Errors));
+        }
+
+        [Test]
+        public void 同じ行の先頭コメント後にあるreturnを実行する()
+        {
+            var outcome = RemoteExecCompiler.Compile("/* note */ return 42;");
+            Assert.IsTrue(outcome.Succeeded, string.Join("\n", outcome.Errors));
+            var method = outcome.Assembly.GetType(RemoteExecSourceWrapper.EntryTypeName).GetMethod(RemoteExecSourceWrapper.EntryMethodName);
+            var result = (UniTask<object>)method.Invoke(null, null);
+            Assert.AreEqual(42, result.GetAwaiter().GetResult());
+        }
+
+        [Test]
+        public void 複数行コメントの終了後にあるreturnを実行する()
+        {
+            var outcome = RemoteExecCompiler.Compile("/* note\n*/ return 42;");
+            Assert.IsTrue(outcome.Succeeded, string.Join("\n", outcome.Errors));
+            var method = outcome.Assembly.GetType(RemoteExecSourceWrapper.EntryTypeName).GetMethod(RemoteExecSourceWrapper.EntryMethodName);
+            var result = (UniTask<object>)method.Invoke(null, null);
+            Assert.AreEqual(42, result.GetAwaiter().GetResult());
         }
 
         [Test]
@@ -90,7 +125,7 @@ namespace Client.Tests.RemoteExec
             var wasEnabled = RemoteExecLaunchOption.IsEnabled;
             try
             {
-                RemoteExecLaunchOption.ResolveFromCommandLine(new[] { "game", "-remote-exec-extra" });
+                RemoteExecLaunchOption.ResolveFromCommandLine(new[] { "game", "--remoteExec-extra" });
                 Assert.IsFalse(RemoteExecLaunchOption.IsEnabled);
                 RemoteExecLaunchOption.ResolveFromCommandLine(new[] { "game", RemoteExecLaunchOption.Marker });
                 Assert.IsTrue(RemoteExecLaunchOption.IsEnabled);

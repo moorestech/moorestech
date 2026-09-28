@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Threading;
+using System.Text.RegularExpressions;
 using Client.RemoteExec.Run;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -14,6 +15,7 @@ namespace Client.RemoteExec.Access
     {
         private readonly string _directory;
         private readonly int _processId;
+        private readonly string _sessionName;
         private readonly object _writeLock = new();
         private long _sequence;
 
@@ -21,35 +23,43 @@ namespace Client.RemoteExec.Access
         // The single source of truth for the ledger file name's prefix and extension; change the format here alone
         internal const string FileNamePrefix = "ledger-";
         internal const string FileNameExtension = ".jsonl";
+        internal static readonly string FileNamePattern = $"^{Regex.Escape(FileNamePrefix)}[0-9]+-session_[0-9]+{Regex.Escape(FileNameExtension)}$";
+        private static readonly Regex NameMatcher = new(FileNamePattern, RegexOptions.Compiled);
 
-        internal string FilePath => Path.Combine(_directory, FileNameFor(_processId));
+        internal static bool IsLedgerFileName(string fileName)
+        {
+            return fileName != null && NameMatcher.IsMatch(fileName);
+        }
 
-        internal RemoteExecLedgerWriter(string directory, int processId)
+        internal string FilePath => Path.Combine(_directory, FileNameFor(_processId, _sessionName));
+
+        internal RemoteExecLedgerWriter(string directory, int processId, string sessionName)
         {
             _directory = directory;
             _processId = processId;
+            _sessionName = sessionName;
         }
 
-        internal static string FileNameFor(int processId)
+        internal static string FileNameFor(int processId, string sessionName)
         {
-            return $"{FileNamePrefix}{processId}{FileNameExtension}";
+            return $"{FileNamePrefix}{processId}-{sessionName}{FileNameExtension}";
         }
 
-        internal long AppendStart(RemoteExecTarget target, string body)
+        internal long AppendStart(RemoteExecTarget target, string body, out bool written)
         {
             var sequence = Interlocked.Increment(ref _sequence);
             var line = new JObject { ["event"] = "start", ["sequence"] = sequence, ["at"] = DateTime.UtcNow.ToString("o"), ["target"] = RemoteExecTargetWireName.ToWireName(target), ["code"] = body };
-            Append(line);
+            written = Append(line);
             return sequence;
         }
 
-        internal void AppendResult(long sequence, bool ok)
+        internal bool AppendResult(long sequence, RemoteExecOutcome outcome)
         {
-            var line = new JObject { ["event"] = "result", ["sequence"] = sequence, ["at"] = DateTime.UtcNow.ToString("o"), ["ok"] = ok };
-            Append(line);
+            var line = new JObject { ["event"] = "result", ["sequence"] = sequence, ["at"] = DateTime.UtcNow.ToString("o"), ["outcome"] = outcome.ToString() };
+            return Append(line);
         }
 
-        private void Append(JObject entry)
+        private bool Append(JObject entry)
         {
             // ディスクIO境界で保存先を用意し、失敗時は欠損をログに残す
             // Create the destination at the disk IO boundary and log missing entries on failure
@@ -60,10 +70,12 @@ namespace Client.RemoteExec.Access
                     Directory.CreateDirectory(_directory);
                     File.AppendAllText(FilePath, entry.ToString(Formatting.None) + "\n");
                 }
+                return true;
             }
             catch (Exception e) when (e is IOException || e is UnauthorizedAccessException)
             {
                 Debug.LogError($"[RemoteExec] 台帳に書けませんでした（実行記録が欠損）: {e.Message}");
+                return false;
             }
         }
     }

@@ -36,16 +36,24 @@ class DigestTest(unittest.TestCase):
     def test_remote_exec_excluded_from_counts_and_candidates(self):
         root = self.root / "harness/playtest/reports"
         manifest = root / "7656001/20260912_100000_bug1/manifest.json"
-        write_json(manifest, {"kind": "bug", "remoteExec": {"enabled": True}})
+        write_json(manifest, {"kind": "bug", "remoteExec": {"ledgerFiles": []}})
         reports, stats = dc.load_reports(root, self.date)
         self.assertEqual(sum(r["kind"] == "bug" for r in reports), 1)
         self.assertEqual(stats["remoteExec"], 1)
         candidates, _ = dcand.load_candidate_reports(root)
         self.assertEqual(candidates, [])
         self.assertIn("遠隔実行ありの報告 1件（集計から除外）", self.run_ok())
-        for mark in (None, {"enabled": False}):
-            write_json(manifest, {"kind": "bug", "remoteExec": mark})
-            self.assertEqual(len(dc.load_reports(root, self.date)[0]), 4)
+        write_json(manifest, {"kind": "bug", "remoteExec": None})
+        self.assertEqual(len(dc.load_reports(root, self.date)[0]), 4)
+
+    def test_remote_exec_progress_excluded_from_sessions_and_shown_in_digest(self):
+        record = self.root / "harness/playtest/progress/7656001/20260912_130000_pg1/record.json"
+        write_json(record, {"schemaVersion": 1, "steamId": "7656001", "playSeconds": 1200,
+                            "remoteExec": True, "endReason": "quit"})
+        records, stats = dc.load_progress(self.root / "harness/playtest/progress", self.date)
+        self.assertEqual(len(records), 1)
+        self.assertEqual(stats["remoteExec"], 1)
+        self.assertIn("遠隔実行ありの進行記録 1件（集計から除外）", self.run_ok())
 
     def test_jst_date_converts_utc(self):
         self.assertEqual(dc.jst_date("2026-09-12T15:30:00Z"), "2026-09-13")

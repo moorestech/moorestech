@@ -2,7 +2,7 @@
 
 > **For the controller session (実装を担うsubagentはこのブロックを無視してよい):** このplanの実行は subagent-driven-development スキルが担う。実行モード（規模ゲート未満の単一subagent実装モード／閾値超のタスクごと派遣）は同スキルの規模ゲートに従って決める。ステップはチェックボックス（`- [ ]`）記法で書く。
 
-**Goal:** 起動オプション `-remote-exec` を付けたゲーム（配布ビルド含む）へ、開発者が SSH 越しに C# ソースを送り、ゲーム内でコンパイル・実行して結果を受け取れるようにする。
+**Goal:** 起動オプション `--remoteExec` を付けたゲーム（配布ビルド含む）へ、開発者が SSH 越しに C# ソースを送り、ゲーム内でコンパイル・実行して結果を受け取れるようにする。
 
 **Architecture:** クライアントに新アセンブリ `Client.RemoteExec` を置き、Roslyn でソースをコンパイル→`Assembly.Load(bytes)`→実行先（クライアント=Unityメインスレッド／サーバー=内蔵サーバー更新スレッドのtick末尾）で実行する。入口は既存 Web UI サーバー（Kestrel, 127.0.0.1）の `POST /api/remote-exec` 1本で、起動ごとのトークンを要求する。実行記録（台帳）をディスクに残し、プレイ報告・異常終了の箱の manifest に印と台帳を載せ、取り込み側は印付きを自動修正・日次集計から外す。
 
@@ -12,19 +12,19 @@
 
 設計の正本は `docs/adr/0072-remote-exec-in-distributed-builds.md`。
 
-- R1: 配布ビルドを含む全ビルドに入る。起動引数に `-remote-exec` が無い起動では、入口を登録せず・トークンを作らず・Roslyn/Harmony を読み込まない。受入: 引数なしで起動したビルドで `POST /api/remote-exec` が 404、`RemoteExec` ディレクトリにトークンファイルが作られない。
+- R1: 配布ビルドを含む全ビルドに入る。起動引数に `--remoteExec` が無い起動では、入口を登録せず・トークンを作らず・Roslyn/Harmony を読み込まない。受入: 引数なしで起動したビルドで `POST /api/remote-exec` が 404、`RemoteExec` ディレクトリにトークンファイルが作られない。
 - R2: C# はゲーム内の Roslyn でコンパイルする。送る側はソース文字列だけを送る。受入: `return 1 + 1;` を送ると `"2"` が返る。
 - R3: 送るコードの形は uloop execute-dynamic-code に揃える（メソッド本体。先頭の `using` 行は取り出して使う。`await` 可。`return` が無くてもよい）。受入: `await UniTask.Delay(10); return "ok";` が `"ok"` を返す／`Debug.Log("x");` だけのコードが成功し戻り値 null。
 - R4: 実行先を要求ごとに `client` / `server` で選ぶ。client は Unity メインスレッド、server は内蔵サーバー更新スレッドの tick 末尾。サーバー未起動で server を指定すると理由付き失敗。受入: server 指定で `return System.Threading.Thread.CurrentThread.ManagedThreadId;` がメインスレッドと異なる値を返す（PlayMode テスト）。
-- R5: 応答は成否・戻り値（文字列化）・コンパイルエラー一覧・実行時例外・実行中に出た Unity ログを JSON で返す。受入: 構文エラーのコードで `ok:false` と `compileErrors` に行番号付きの診断が入る。
+- R5: 応答は結果種別・戻り値（文字列化）・コンパイルエラー一覧・実行時例外・実行中に出た Unity ログを JSON で返す。受入: 構文エラーのコードで `outcome:CompileFailed` と `compileErrors` に行番号付きの診断が入る。
 - R6: 入口は既存 Web UI サーバーの `POST /api/remote-exec`。ヘッダ `X-Remote-Exec-Token` が起動ごとのトークンと一致しない要求、`Origin` ヘッダ付きの要求（ブラウザ由来）は 403 で拒否し、拒否理由を `Debug.LogWarning` に出す。受入: トークン誤り・Origin付きで 403 とログ。
 - R7: トークンとポートは `GameSystemPaths.GameSystemDirectory/RemoteExec/access.json` に書く（起動ごとに上書き）。受入: 有効起動後にファイルがあり `port` と `token` を持つ。
 - R8: Harmony を同梱し、送ったコードから `HarmonyLib` を使える。受入: 送ったコードで既存メソッドに Postfix を当て、呼び出しで効果が観測できる（EditMode テスト）。
-- R9: 実行のたびに台帳 `RemoteExec/ledger-<pid>.jsonl` に1行（時刻・実行先・ソース・成否）追記する。受入: 2回実行で2行。
-- R10: 有効だったセッションのプレイ報告（bug/feedback）と異常終了（crash）の manifest に `remoteExec`（`enabled:true` と台帳ファイル名）を載せ、台帳を箱の `remote-exec/` に入れる。manifest の `SchemaVersion` を 4 に上げる。受入: 有効セッションの箱の manifest に `remoteExec.enabled == true`、無効セッションでは `remoteExec == null`。
-- R11: 取り込み側は `remoteExec.enabled == true` の箱を自動修正ラン投入の対象外にし（`--force` で投入可）、日次ダイジェストのテスター報告件数から除外して別枠件数で出す。受入: scripts/playtest/tests の追加テストが通る。
+- R9: 実行のたびに台帳 `RemoteExec/ledger-<pid>-<sessionName>.jsonl` に開始行と結果行（時刻・実行先・ソース・結果種別）を追記する。
+- R10: 有効だったセッションのプレイ報告（bug/feedback）と異常終了（crash）の manifest に `remoteExec`（`ledgerFiles` の一覧）を載せ、台帳を箱の `remote-exec/` に入れる。manifest の `SchemaVersion` を 4 に上げる。受入: 有効セッションの箱の manifest に `remoteExec != null`、無効セッションでは `remoteExec == null`。
+- R11: 取り込み側は `remoteExec != null` の箱を自動修正ラン投入の対象外にし（`--force` で投入可）、日次ダイジェストのテスター報告件数から除外して別枠件数で出す。受入: scripts/playtest/tests の追加テストが通る。
 - R12: 送る側 CLI `scripts/playtest/remote-exec.sh`。ソースファイルまたは stdin、`--target client|server`、`--windows`（`MOORESTECH_VERIFY_*` で SSH）を受け、結果 JSON を出す。受入: ローカル起動のゲームと検証機の両方で動く（Task 8）。
-- R13: 完了条件（ADR 0072）: 検証機の配布ビルド相当で (1) `-remote-exec` 付き起動でコードを送り結果が返る (2) Harmony で差し込める (3) オプションなしでは入口が開かない。
+- R13: 完了条件（ADR 0072）: 検証機の配布ビルド相当で (1) `--remoteExec` 付き起動でコードを送り結果が返る (2) Harmony で差し込める (3) オプションなしでは入口が開かない。
 - やらないこと: タイトル画面での利用（Web UI サーバーはゲーム開始の初期化で起動する）／実行の打ち切り・タイムアウト（固まったら再起動）／別プロセス・別マシンのサーバー／テスターへの案内／クラッシュ再現検証そのもの（moorestech-rhvub で本機能を使って別途行う）。
 
 ## Global Constraints
@@ -44,7 +44,7 @@
 | `moorestech_client/Assets/packages.config` | Roslyn・Harmony を NuGetForUnity で追加 | 前例: Kestrel 一式（同ファイル）に従う |
 | `moorestech_client/Packages/manifest.json` | UPM の `org.nuget.microsoft.codeanalysis.csharp` を外す（Editor限定のため製品に入らない。uloop v3 は外部コンパイラを使う） | Task 1 で uloop の動作を確認してから外す |
 | `moorestech_client/Assets/Scripts/Client.RemoteExec/Client.RemoteExec.asmdef` | 新アセンブリ | 新規（遠隔実行はどの既存アセンブリの責務でもない） |
-| `Client.RemoteExec/RemoteExecLaunchOption.cs` | 起動引数 `-remote-exec` の判定を1度だけ行い保持 | 前例: `Client.Starter/PlaytestSmoke/StandalonePlaytestSmokeSettings.HasMarker` の形 |
+| `Client.RemoteExec/RemoteExecLaunchOption.cs` | 起動引数 `--remoteExec` の判定を1度だけ行い保持 | 前例: `Client.Starter/PlaytestSmoke/StandalonePlaytestSmokeSettings.HasMarker` の形 |
 | `Client.RemoteExec/Compile/RemoteExecSourceWrapper.cs` | 本体コードを実行用クラスへ包む（using 取り出し） | 新規 |
 | `Client.RemoteExec/Compile/RemoteExecCompiler.cs` | Roslyn でコンパイルし Assembly を返す／診断を返す | 新規 |
 | `Client.RemoteExec/Compile/RemoteExecReferenceSet.cs` | 参照アセンブリ一覧（読み込み済み＋Managed/ の全DLL、名前で重複排除） | 新規 |
@@ -183,7 +183,7 @@ git commit -m "build(remote-exec): Roslyn と Harmony を NuGetForUnity で製�
 
 **Interfaces:**
 - Produces:
-  - `public static class RemoteExecLaunchOption { public const string Marker = "-remote-exec"; public static bool IsEnabled { get; private set; } public static void ResolveFromCommandLine(string[] args); }`
+  - `public static class RemoteExecLaunchOption { public const string Marker = "--remoteExec"; public static bool IsEnabled { get; private set; } public static void ResolveFromCommandLine(string[] args); }`
   - `public static class RemoteExecSourceWrapper { public const string EntryTypeName = "RemoteExecSnippet"; public const string EntryMethodName = "Run"; public static string Wrap(string body); }`
   - `public sealed class RemoteExecCompileOutcome { public Assembly Assembly { get; } public IReadOnlyList<string> Errors { get; } public bool Succeeded => Assembly != null; }`
   - `public static class RemoteExecCompiler { public static RemoteExecCompileOutcome Compile(string body); }`
@@ -249,7 +249,7 @@ namespace Client.RemoteExec
     // Decides once, from the launch arguments, whether this boot may open remote exec (ADR 0072)
     public static class RemoteExecLaunchOption
     {
-        public const string Marker = "-remote-exec";
+        public const string Marker = "--remoteExec";
 
         public static bool IsEnabled { get; private set; }
 
@@ -736,7 +736,7 @@ git commit -m "feat(remote-exec): 実行先への振り分けと結果の組み�
 - 有効化後・正しいトークン・本文 `{"code":"return 1 + 1;","target":"client"}` → 200 かつ JSON の `ok == true`・`result == "2"`
 - 2回実行後に `RemoteExecLedger.PathFor(現在pid)` の行数が 2
 
-有効化はテスト用の公開口を作らず、`RemoteExecLaunchOption.ResolveFromCommandLine(new[]{"-remote-exec"})` と `RemoteExecActivation.ActivateIfRequested(kestrel.ActualPort)` を順に呼ぶ（プロダクションと同じ経路）。テスト後に `RemoteExecLaunchOption.ResolveFromCommandLine(new string[0])` で戻す。
+有効化はテスト用の公開口を作らず、`RemoteExecLaunchOption.ResolveFromCommandLine(new[]{"--remoteExec"})` と `RemoteExecActivation.ActivateIfRequested(kestrel.ActualPort)` を順に呼ぶ（プロダクションと同じ経路）。テスト後に `RemoteExecLaunchOption.ResolveFromCommandLine(new string[0])` で戻す。
 
 - [ ] **Step 2: 実行して失敗を確認する**
 
@@ -1181,12 +1181,12 @@ git commit -m "feat(remote-exec): 有効だったセッションの報告に印�
 - Modify: `scripts/playtest/README.md`（使い方の節）
 
 **Interfaces:**
-- Consumes: manifest の `remoteExec.enabled`、ゲームの `access.json`（`port`/`token`）、`POST /api/remote-exec`
+- Consumes: manifest の `remoteExec`、ゲームの `access.json`（`port`/`token`）、`POST /api/remote-exec`
 - Produces: `scripts/playtest/remote-exec.sh [--windows] [--target client|server] [FILE|-]`（stdout に応答 JSON。HTTP 非200は exit 1）
 
 - [ ] **Step 1: 失敗するテストを書く**
 
-- `test-enqueue-autofix.sh`: `{"kind":"bug","remoteExec":{"enabled":true,"ledgerFiles":[]}}` の箱 → exit 3 で「遠隔実行が有効だったセッション」のログ。`--force` 付きなら投入される。`remoteExec: null` の bug は従来どおり投入。
+- `test-enqueue-autofix.sh`: `{"kind":"bug","remoteExec":{"ledgerFiles":[]}}` の箱 → exit 6 で「遠隔実行が有効だったセッション」のログ。`--force` 付きなら投入される。`remoteExec: null` の bug は従来どおり投入。
 - `test_digest.py`: remoteExec 付きの bug 1件＋通常 bug 1件 → テスター報告の件数 1、除外件数 1。
 - `test-remote-exec.sh`: `python3 -m http.server` 相当の小さなスタブ（`tests/lib/` に置く。`X-Remote-Exec-Token` を検証し固定 JSON を返す）と一時 `access.json` を用意し、`MOORESTECH_REMOTE_EXEC_ACCESS=<一時パス> remote-exec.sh - <<< 'return 1;'` が JSON を出す／トークン不一致で exit 1。
 
@@ -1204,23 +1204,23 @@ Expected: 追加ケースが FAIL。
 REMOTE_EXEC="$(python3 -c '
 import json,sys
 mark = json.load(open(sys.argv[1])).get("remoteExec")
-print("1" if isinstance(mark, dict) and mark.get("enabled") is True else "0")
+print("1" if isinstance(mark, dict) else "0")
 ' "${BOX}/manifest.json" 2>/dev/null)" || REMOTE_EXEC=0
 if [ "${REMOTE_EXEC}" = 1 ] && [ "${FORCE}" != 1 ]; then
   log "遠隔実行が有効だったセッションの箱は自動修正ランの対象外。投入するなら --force: ${ID}"
-  exit 3
+  exit 6
 fi
 ```
 
-`digest_collect.py` の `load_reports`: manifest を読んだ後、`manifest.get("remoteExec")` が dict で `enabled` が True なら `stats["remoteExec"] = stats.get("remoteExec", 0) + 1` して `continue`。`digest_reporter.py` はその件数が 1 以上なら「遠隔実行ありの報告 N 件（集計から除外）」を1行出す。
+`digest_collect.py` の `load_reports`: manifest を読んだ後、`manifest.get("remoteExec")` が null でなければ `stats["remoteExec"] = stats.get("remoteExec", 0) + 1` して `continue`。`digest_reporter.py` はその件数が 1 以上なら「遠隔実行ありの報告 N 件（集計から除外）」を1行出す。
 
 `lib/verify-ssh.sh`: `verify-on-windows.sh` にある `MOORESTECH_VERIFY_*` の読み込み・WoL・ssh 呼び出しを `verify_ssh <command...>` 関数として切り出す（中身は移動のみ。挙動を変えない）。`verify-on-windows.sh` は `source` して使う。
 
 `remote-exec.sh`:
 ```bash
 #!/usr/bin/env bash
-# 起動オプション -remote-exec 付きのゲームへ C# 本体コードを送り、結果 JSON を出す（ADR 0072）
-# Sends a C# method body to a game launched with -remote-exec and prints the result JSON (ADR 0072)
+# 起動オプション --remoteExec 付きのゲームへ C# 本体コードを送り、結果 JSON を出す（ADR 0072）
+# Sends a C# method body to a game launched with --remoteExec and prints the result JSON (ADR 0072)
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 WINDOWS=0; TARGET=client; SRC=-
@@ -1252,7 +1252,7 @@ curl -sS --fail-with-body -X POST "http://127.0.0.1:${PORT}/api/remote-exec" \
 ```
 （Mac の既定値は `GameSystemPaths.GameSystemDirectory` の macOS 分岐 `/Users/<user>/Library/Application Support/moorestech` に合わせてある。Windows 分岐は `%APPDATA%\.moorestech`）
 
-README に「使い方」節（起動オプションの付け方: Steam の起動オプション欄、または `steam.exe -applaunch <appid> -remote-exec`／送り方の例／タイトル画面では使えない／固まったら再起動／報告に印が付く）を足す。
+README に「使い方」節（起動オプションの付け方: Steam の起動オプション欄、または `steam.exe -applaunch <appid> --remoteExec`／送り方の例／タイトル画面では使えない／固まったら再起動／報告に印が付く）を足す。
 
 - [ ] **Step 4: テストを実行して通ることを確認する**
 
@@ -1281,7 +1281,7 @@ git commit -m "feat(remote-exec): 取り込み側の除外と送る側 CLI"
 
 対話セッションのスケジュールタスク経由（`scripts/playtest/windows/run-smoke.ps1` の `Start-SteamInInteractiveSession` と同じ方式）で起動し、ゲーム開始後に検証機内から `Invoke-WebRequest -Method Post http://127.0.0.1:<Web UI のポート>/api/remote-exec` → 404、`%APPDATA%\.moorestech\RemoteExec\access.json` が今回の起動で作られていない（無い、または更新時刻が起動前）ことを確認。
 
-- [ ] **Step 3: `-remote-exec` 付きで起動し、実行と Harmony を確かめる（R13-1, R13-2）**
+- [ ] **Step 3: `--remoteExec` 付きで起動し、実行と Harmony を確かめる（R13-1, R13-2）**
 
 ```bash
 echo 'return QualitySettings.vSyncCount;' | scripts/playtest/remote-exec.sh --windows
@@ -1291,7 +1291,7 @@ Harmony: Task 5 のテストと同じ形のコードで、ゲーム内の既存 
 
 - [ ] **Step 4: 印付き報告の一巡を確かめる（R10, R11）**
 
-有効起動のままポーズメニューからバグ報告を1件送り、取り込み後の `moorestech_logs/harness/playtest/reports/<steamId>/<id>/manifest.json` に `remoteExec.enabled: true` と `remote-exec/ledger-*.jsonl` があり、`enqueue-autofix.sh` が exit 3 で拒否することを確認。確認後、その報告は取り込み先で「検証用」と分かる名前へ移すか削除する（テスター報告の母数を汚さない）。
+有効起動のままポーズメニューからバグ報告を1件送り、取り込み後の `moorestech_logs/harness/playtest/reports/<steamId>/<id>/manifest.json` に `remoteExec: {ledgerFiles:[...]}` と `remote-exec/ledger-*.jsonl` があり、`enqueue-autofix.sh` が exit 6 で拒否することを確認。確認後、その報告は取り込み先で「検証用」と分かる名前へ移すか削除する（テスター報告の母数を汚さない）。
 
 - [ ] **Step 5: ログの警告語がゼロであることを確かめる**
 

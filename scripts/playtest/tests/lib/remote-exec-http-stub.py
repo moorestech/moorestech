@@ -13,7 +13,7 @@ class Handler(BaseHTTPRequestHandler):
               and body == {'code': 'return 1;\n', 'target': 'client'})
         self.send_response(200 if ok else 403)
         self.end_headers()
-        self.wfile.write(json.dumps({'ok': ok, 'result': '1'}).encode())
+        self.wfile.write(json.dumps({'outcome': 'Succeeded' if ok else 'Rejected', 'result': '1'}).encode())
 
 
 server = HTTPServer(('127.0.0.1', 0), Handler)

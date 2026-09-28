@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using Client.RemoteExec.Loading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
@@ -48,6 +49,10 @@ namespace Client.RemoteExec.Compile
                 // The #line directive maps diagnostic locations to submitted source lines
                 var errors = emit.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error)
                     .Select(d => d.ToString()).ToList();
+                // 起動時のHarmony読込失敗を、関連するコンパイル失敗の原因として返す
+                // Include startup Harmony load failure in the failed compilation response
+                if (RemoteExecHarmonyLoader.LoadFailureReason != null)
+                    errors.Add(RemoteExecHarmonyLoader.LoadFailureReason);
                 return new RemoteExecCompileOutcome(null, errors);
             }
             return new RemoteExecCompileOutcome(Assembly.Load(stream.ToArray()), new List<string>());

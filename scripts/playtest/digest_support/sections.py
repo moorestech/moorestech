@@ -37,6 +37,8 @@ def format_progress(agg: dict, stats: dict, records: list[dict]) -> list[str]:
         lines.append(f"- ⚠ readyAt が無く ingestedAt で日付判定した箱 {stats['readyAtFallback']}件")
     if stats.get("invalidRecord"):
         lines.append(f"- ⚠ record.json の型・値が想定外で除外した件数 {stats['invalidRecord']}件")
+    if stats.get("remoteExec"):
+        lines.append(f"- 遠隔実行ありの進行記録 {stats['remoteExec']}件（集計から除外）")
     if stats.get("noPayload"):
         lines.append(f"- ⚠ record.json が無い箱（クライアントが全ファイルを見送った） {stats['noPayload']}件")
     return lines
@@ -57,5 +59,4 @@ def format_runs(runs: list[dict], stats: dict) -> list[str]:
     if stats["invalidResult"]:
         lines.append(f"- ⚠ fix-result.json の型が想定外で除外したラン {stats['invalidResult']}件")
     return lines
-
 

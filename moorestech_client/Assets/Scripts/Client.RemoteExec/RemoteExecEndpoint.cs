@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Client.RemoteExec.Access;
 using Client.RemoteExec.Run;
@@ -29,8 +30,18 @@ namespace Client.RemoteExec
 
         internal static async Task HandleAsync(HttpContext context, IRemoteExecHttpRunner runner)
         {
-            // 登録時の有効判定はWebUiEndpointsが担い、ここでは各要求を認証する
-            // WebUiEndpoints checks boot activation when routing; this method authenticates each request
+            // 無効な起動では経路を隠し、理由を開発者ログへ残す
+            // Hide the route on disabled boots and log the reason for developers
+            if (!RemoteExecLaunchOption.IsEnabled)
+            {
+                Debug.LogWarning("[RemoteExec] 起動オプションが無いため要求を404で拒否しました");
+                context.Response.StatusCode = 404;
+                await WriteResponseAsync(context, "not found");
+                return;
+            }
+
+            // 有効な起動では各要求を認証する
+            // Authenticate each request on enabled boots
             if (!IsAuthorized(context, out var reason))
             {
                 await RejectAsync(context, 403, reason);
@@ -65,26 +76,10 @@ namespace Client.RemoteExec
                 return;
             }
 
-            // 実行前にソースを記録し、クラッシュや停止でも開始行を残す
-            // Record source before running so a crash or hang still leaves a start entry
             var code = (string)codeValue;
-            long? sequence = null;
-            RemoteExecResult result;
-            // HTTP要求の実行境界で想定外の例外を隔離し、Kestrelの無音500を防ぐ
-            // Isolate unexpected exceptions at the HTTP request boundary instead of a silent Kestrel 500
-            try
-            {
-                sequence = RemoteExecLedger.AppendStart(target, code);
-                result = await runner.RunAsync(code, target);
-            }
-            catch (Exception error)
-            {
-                Debug.LogError($"[RemoteExec] 実行要求に失敗しました: {error}");
-                result = RemoteExecResult.FromUnhandledException(error);
-            }
-            if (sequence.HasValue) RemoteExecLedger.AppendResult(sequence.Value, result.Ok);
+            var result = await RemoteExecRunner.RunAsync(code, target, context.RequestAborted, runner);
             context.Response.ContentType = "application/json; charset=utf-8";
-            await context.Response.WriteAsync(JsonConvert.SerializeObject(result, ResponseSettings), context.RequestAborted);
+            await WriteResponseAsync(context, JsonConvert.SerializeObject(result, ResponseSettings));
 
             #region Internal
 
@@ -102,7 +97,18 @@ namespace Client.RemoteExec
             {
                 Debug.LogWarning($"[RemoteExec] 要求を拒否しました: {rejectReason}");
                 ctx.Response.StatusCode = status;
-                await ctx.Response.WriteAsync(rejectReason, ctx.RequestAborted);
+                await WriteResponseAsync(ctx, rejectReason);
+            }
+
+            async Task WriteResponseAsync(HttpContext ctx, string text)
+            {
+                // HTTP送信境界の切断を記録し、実行結果が未達だったことを残す
+                // Record disconnects at the HTTP send boundary so undelivered results remain visible
+                try { await ctx.Response.WriteAsync(text, ctx.RequestAborted); }
+                catch (Exception error) when (error is IOException || error is OperationCanceledException)
+                {
+                    Debug.LogWarning($"[RemoteExec] 応答を届けられませんでした: {error.Message}");
+                }
             }
 
             #endregion
@@ -111,16 +117,16 @@ namespace Client.RemoteExec
 
     internal interface IRemoteExecHttpRunner
     {
-        UniTask<RemoteExecResult> RunAsync(string body, RemoteExecTarget target);
+        UniTask<RemoteExecResult> RunAsync(string body, RemoteExecTarget target, CancellationToken cancellationToken);
     }
 
     internal sealed class RemoteExecHttpRunner : IRemoteExecHttpRunner
     {
         internal static readonly RemoteExecHttpRunner Instance = new();
 
-        public UniTask<RemoteExecResult> RunAsync(string body, RemoteExecTarget target)
+        public UniTask<RemoteExecResult> RunAsync(string body, RemoteExecTarget target, CancellationToken cancellationToken)
         {
-            return RemoteExecRunner.RunAsync(body, target);
+            return RemoteExecRunner.ExecuteAsync(body, target, cancellationToken);
         }
     }
 }

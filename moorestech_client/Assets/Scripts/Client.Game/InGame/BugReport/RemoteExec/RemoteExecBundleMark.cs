@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using Client.Game.InGame.BugReport.LastSession;
+using Client.Game.InGame.BugReport.DiskOperations;
 using Client.RemoteExec;
 using Client.RemoteExec.Access;
 using Game.Paths;
@@ -14,26 +15,49 @@ namespace Client.Game.InGame.BugReport
         internal static void ApplyForCurrentSession(BugReportManifest manifest, string bundleDirectory)
         {
             if (!RemoteExecLaunchOption.IsEnabled) return;
-            manifest.RemoteExec = new RemoteExecMark { Enabled = true };
-            CopyLedger(manifest, bundleDirectory, RemoteExecLedger.CurrentPath, false);
+            manifest.RemoteExec = new RemoteExecMark();
+            if (RemoteExecLedger.HasWriteFailure)
+                manifest.AddMissing(BugReportBundleLayout.RemoteExecDirectoryName, "遠隔実行の台帳または実行試行の印を書けなかった");
+            // 台帳パスの解決も外部ディスク境界。失敗理由を箱へ載せる
+            // Resolving the ledger path is also a disk boundary; put failures in the bundle
+            try { CopyLedger(manifest, bundleDirectory, RemoteExecLedger.CurrentPath, RemoteExecLedger.HasAttempted && !RemoteExecLedger.HasWriteFailure); }
+            catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e) || e is ArgumentException)
+            {
+                manifest.AddMissing(BugReportBundleLayout.RemoteExecDirectoryName, $"遠隔実行の台帳パスを解決できなかった: {e.Message}");
+            }
         }
 
         // 今回の起動設定でなく、落ちたセッション自身が書いた印を使う
         // Use the crashed session's own mark rather than the current launch setting
         internal static void ApplyForPreviousSession(BugReportManifest manifest, string bundleDirectory, SessionOriginSnapshot previousOrigin)
         {
-            if (previousOrigin == null || !previousOrigin.RemoteExecEnabled) return;
-            manifest.RemoteExec = new RemoteExecMark { Enabled = true };
-            CopyLedger(manifest, bundleDirectory, RemoteExecLedger.PathForFileName(previousOrigin.RemoteExecLedgerFileName), true);
+            if (previousOrigin == null)
+            {
+                manifest.AddMissing("remoteExec", "前回セッションの出所が読めず、遠隔実行の有効状態が不明");
+                return;
+            }
+            if (!previousOrigin.RemoteExecEnabled) return;
+            manifest.RemoteExec = new RemoteExecMark();
+            if (previousOrigin.RemoteExecLedgerWriteFailed)
+                manifest.AddMissing(BugReportBundleLayout.RemoteExecDirectoryName, "前回セッションで遠隔実行の台帳または実行試行の印を書けなかった");
+            try
+            {
+                CopyLedger(manifest, bundleDirectory, RemoteExecLedger.PathForFileName(previousOrigin.RemoteExecLedgerFileName),
+                    previousOrigin.RemoteExecAttempted && !previousOrigin.RemoteExecLedgerWriteFailed);
+            }
+            catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e) || e is ArgumentException)
+            {
+                manifest.AddMissing(BugReportBundleLayout.RemoteExecDirectoryName, $"前回の台帳パスを解決できなかった: {e.Message}");
+            }
         }
 
-        private static void CopyLedger(BugReportManifest manifest, string bundleDirectory, string source, bool missingIfAbsent)
+        private static void CopyLedger(BugReportManifest manifest, string bundleDirectory, string source, bool attempted)
         {
             if (!File.Exists(source))
             {
-                // 前回有効なら台帳なしを欠損として申告する。今回の未実行だけは正常
-                // A prior enabled session missing its ledger is declared missing; a current unexecuted session is valid
-                if (missingIfAbsent) manifest.AddMissing(BugReportBundleLayout.RemoteExecDirectoryName, $"遠隔実行の台帳が無い、または読めない: {source}");
+                // 試行印が無ければ未実行。印があれば台帳書込失敗を欠損へ残す
+                // No attempt signal means no run; a signal without a ledger declares a write gap
+                if (attempted) manifest.AddMissing(BugReportBundleLayout.RemoteExecDirectoryName, $"実行試行があったが遠隔実行の台帳が無い: {source}");
                 return;
             }
 
@@ -51,6 +75,16 @@ namespace Client.Game.InGame.BugReport
             {
                 manifest.AddMissing(BugReportBundleLayout.RemoteExecDirectoryName, $"遠隔実行の台帳をコピーできなかった: {e.Message}");
             }
+        }
+
+        // READY箱へ台帳を写せた前回分だけ消し、失敗時の再送元は残す
+        // Remove a prior ledger only after a READY bundle contains its copy, retaining retry sources on failure
+        internal static void ReleaseBundledPreviousLedger(BugReportManifest manifest, SessionOriginSnapshot previousOrigin)
+        {
+            if (previousOrigin?.RemoteExecLedgerFileName == null || manifest.RemoteExec == null || manifest.RemoteExec.LedgerFiles.Count == 0) return;
+            var path = RemoteExecLedger.PathForFileName(previousOrigin.RemoteExecLedgerFileName);
+            var deletion = BugReportFileOperations.DeleteFile(path);
+            if (!deletion.Succeeded) UnityEngine.Debug.LogWarning($"遠隔実行の台帳を整理できませんでした: {deletion.FailureReason}");
         }
     }
 }

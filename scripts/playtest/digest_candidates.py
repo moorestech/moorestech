@@ -39,7 +39,7 @@ def load_candidate_reports(root: Path) -> tuple[list[dict], dict]:
             continue
         if manifest["kind"] != "bug" or (ingest_path.parent / "AUTOFIX_QUEUED").is_file():
             continue
-        if manifest["remoteExec"]["enabled"]:
+        if manifest["remoteExec"] is not None:
             warn("遠隔実行が有効だったセッションを投入候補から除外", manifest_path)
             stats["remoteExec"] += 1
             continue

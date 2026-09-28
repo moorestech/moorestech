@@ -27,8 +27,8 @@ namespace Client.Game.InGame.BugReport
         // 2: added serverData (where the server read its masters); without it the reproduction replays different masters
         // 3: worldDefinitionを追加（ADR 0064）
         // 3: added worldDefinition (ADR 0064)
-        // v4: 遠隔実行の印+台帳追加
-        // v4: added remote execution mark + ledgers
+        // v4: 遠隔実行の印+台帳追加。印はnull＝無効/不明、非null＝有効で、不明理由はmissingに載せる（ADR 0057）
+        // v4: added remote execution mark + ledgers; null means disabled/unknown, non-null means enabled, with unknown reasons in missing (ADR 0057)
         public int SchemaVersion = 4;
         public string CreatedAt;
         public string Description;

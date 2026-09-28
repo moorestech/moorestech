@@ -58,6 +58,27 @@ namespace Client.Tests.RemoteExec
             Assert.IsNull(restored.RemoteExecLedgerFileName);
         }
 
+        [Test]
+        public void 実行試行の印は出所の退避後も残る()
+        {
+            var origin = new SessionOriginSnapshot("steam", null, BuildOriginReading.Editor(), RemoteExecLedger.CurrentFileName);
+            Assert.IsTrue(origin.WriteTo(_path).Succeeded);
+            File.WriteAllText(Path.Combine(_directory, RemoteExecLedger.AttemptSignalFileName), string.Empty);
+            File.WriteAllText(Path.Combine(_directory, RemoteExecLedger.FailureSignalFileName), string.Empty);
+
+            var restored = SessionOriginSnapshot.ReadFrom(_path, out var reason);
+            Assert.IsNull(reason);
+            Assert.IsTrue(restored.RemoteExecAttempted);
+            Assert.IsTrue(restored.RemoteExecLedgerWriteFailed);
+            var salvaged = restored.WithSalvageMissing(new List<MissingItem>());
+            var salvagedPath = Path.Combine(_directory, "salvaged", "previous-origin.json");
+            Assert.IsTrue(salvaged.WriteTo(salvagedPath).Succeeded);
+            var reread = SessionOriginSnapshot.ReadFrom(salvagedPath, out reason);
+            Assert.IsNull(reason);
+            Assert.IsTrue(reread.RemoteExecAttempted);
+            Assert.IsTrue(reread.RemoteExecLedgerWriteFailed);
+        }
+
         [TestCase("1")]
         [TestCase("\"../ledger-1.jsonl\"")]
         [TestCase("\"ledger-invalid.jsonl\"")]

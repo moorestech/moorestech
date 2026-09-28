@@ -66,13 +66,14 @@ grep -q '同名のラン記録が既にある' "$TMP/rerun.log" || { echo "NG: �
 # Remote-exec marks refuse ordinary enqueue and allow only explicit force
 REX="$LOGS/harness/playtest/reports/7656005/rex"
 mkdir -p "$REX"
-echo '{"kind":"bug","remoteExec":{"enabled":true,"ledgerFiles":[]}}' > "$REX/manifest.json"
+echo '{"kind":"bug","remoteExec":{"ledgerFiles":[]}}' > "$REX/manifest.json"
 echo ready > "$REX/READY"
 set +e; run 7656005 rex 2>"$TMP/rex.log"; code=$?; set -e
-[ "$code" = 3 ] && [ ! -e "$I/rex" ]
-grep -q '遠隔実行が有効だったセッション' "$TMP/rex.log"
+[ "$code" = 6 ] && [ ! -e "$I/rex" ] || { echo "NG: 遠隔実行の箱が拒否されない（exit=$code）"; exit 1; }
+grep -q '遠隔実行が有効だったセッション' "$TMP/rex.log" || { echo "NG: 遠隔実行の拒否理由が無い"; exit 1; }
 run --force 7656005 rex 2>"$TMP/rex-force.log"
-[ -f "$I/rex/AUTOFIX_FORCED" ]
+[ -f "$I/rex/AUTOFIX_FORCED" ] || { echo "NG: 強制投入印が無い"; exit 1; }
+grep -q 'remoteExec=1' "$I/rex/AUTOFIX_FORCED" || { echo "NG: 遠隔実行の強制理由が無い"; exit 1; }
 grep -q -- '--force で遠隔実行ありの箱を投入する' "$TMP/rex-force.log"
 mkdir -p "$LOGS/harness/playtest/reports/7656005/normal"
 echo '{"kind":"bug","remoteExec":null}' > "$LOGS/harness/playtest/reports/7656005/normal/manifest.json"
@@ -81,15 +82,16 @@ run 7656005 normal
 mkdir -p "$LOGS/harness/playtest/reports/7656005/empty-mark"
 echo '{"kind":"bug","remoteExec":{}}' > "$LOGS/harness/playtest/reports/7656005/empty-mark/manifest.json"
 echo ready > "$LOGS/harness/playtest/reports/7656005/empty-mark/READY"
-run 7656005 empty-mark
+set +e; run 7656005 empty-mark 2>"$TMP/empty.log"; code=$?; set -e
+[ "$code" = 6 ] || { echo "NG: 空の印を通常扱いした（exit=$code）"; exit 1; }
 
 # 型が壊れた印は強制指定でも黙って通常扱いにしない
 # Malformed marks must never silently become ordinary reports, even with force
 BAD="$LOGS/harness/playtest/reports/7656005/bad"
 mkdir -p "$BAD"
 echo ready > "$BAD/READY"
-echo '{"kind":"bug","remoteExec":{"enabled":"true"}}' > "$BAD/manifest.json"
+echo '{"kind":"bug","remoteExec":{"ledgerFiles":"bad"}}' > "$BAD/manifest.json"
 set +e; run --force 7656005 bad 2>"$TMP/bad.log"; code=$?; set -e
-[ "$code" = 1 ] && [ ! -e "$I/bad" ]
-grep -q 'remoteExec を読めない' "$TMP/bad.log"
+[ "$code" = 1 ] && [ ! -e "$I/bad" ] || { echo "NG: 壊れた印を投入した（exit=$code）"; exit 1; }
+grep -q 'remoteExec を読めない' "$TMP/bad.log" || { echo "NG: 壊れた印の理由が無い"; exit 1; }
 echo OK

@@ -6,7 +6,6 @@ using Client.Game.InGame.BugReport.DiskOperations;
 using Client.RemoteExec.Access;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
 
 namespace Client.Game.InGame.BugReport.LastSession
 {
@@ -14,8 +13,8 @@ namespace Client.Game.InGame.BugReport.LastSession
     // Read the previous session's origin while checking types and ownership generation
     internal static class SessionOriginSnapshotReader
     {
-        private static readonly JsonSerializer Serializer = JsonSerializer.Create(new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() });
-
+        // 読めなければnullと理由を返す。無音で今回のビルドへ差し替えると、別ビルドのクラッシュとして再現される
+        // Returns null with a reason when unreadable; silently substituting this boot's build would reproduce the crash on a different build
         internal static SessionOriginSnapshot ReadFrom(string path, out string failureReason)
         {
             failureReason = null;
@@ -26,6 +25,8 @@ namespace Client.Game.InGame.BugReport.LastSession
             }
 
             string remoteExecLedgerFileName;
+            bool remoteExecAttempted;
+            bool remoteExecLedgerWriteFailed;
             string steamId;
             string steamIdAbsenceReason;
             string kindText;
@@ -34,8 +35,8 @@ namespace Client.Game.InGame.BugReport.LastSession
             SessionSnapshotCapture snapshotCapture;
             IReadOnlyList<MissingItem> salvageMissing;
 
-            // 前回プロセスの印はディスクIOと外部JSONの境界で読む
-            // Read the prior process mark at the disk IO and external JSON boundary
+            // 読み込みはディスクIO、パースは外部JSON境界。途中で落ちたセッションは切れたJSONを残しうる
+            // Reading is disk IO and parsing is external JSON; an interrupted session can leave truncated JSON
             try
             {
                 var obj = JObject.Parse(File.ReadAllText(path));
@@ -58,10 +59,29 @@ namespace Client.Game.InGame.BugReport.LastSession
                     return null;
                 }
 
+                // 試行印は台帳と別の場所に先行保存される。退避済み出所ではJSON値を引き継ぐ
+                // The attempt signal is written first outside the ledger; salvaged origins carry its JSON value
+                var attemptedToken = obj["remoteExecAttempted"];
+                if (attemptedToken != null && attemptedToken.Type != JTokenType.Boolean)
+                {
+                    failureReason = $"セッション開始時の出所を読めない {path}: remoteExecAttemptedが不正です";
+                    return null;
+                }
+                remoteExecAttempted = (attemptedToken != null && (bool)attemptedToken) ||
+                    File.Exists(Path.Combine(Path.GetDirectoryName(path), RemoteExecLedger.AttemptSignalFileName));
+                var failedToken = obj["remoteExecLedgerWriteFailed"];
+                if (failedToken != null && failedToken.Type != JTokenType.Boolean)
+                {
+                    failureReason = $"セッション開始時の出所を読めない {path}: remoteExecLedgerWriteFailedが不正です";
+                    return null;
+                }
+                remoteExecLedgerWriteFailed = (failedToken != null && (bool)failedToken) ||
+                    File.Exists(Path.Combine(Path.GetDirectoryName(path), RemoteExecLedger.FailureSignalFileName));
+
                 steamIdAbsenceReason = ReadSteamIdAbsenceReason(steamId, obj["steamIdAbsenceReason"]);
                 kindText = (string)obj["buildOriginKind"];
                 var buildInfoToken = obj["buildInfo"];
-                buildInfo = buildInfoToken == null || buildInfoToken.Type == JTokenType.Null ? null : buildInfoToken.ToObject<BuildInfo>(Serializer);
+                buildInfo = buildInfoToken == null || buildInfoToken.Type == JTokenType.Null ? null : buildInfoToken.ToObject<BuildInfo>(SessionOriginSnapshot.CreateSerializer());
                 buildOriginMissingReason = (string)obj["buildOriginMissingReason"];
                 snapshotCapture = SessionSnapshotCapture.Read(obj["snapshotCapture"]);
                 salvageMissing = ReadSalvageMissing(obj["salvageMissing"], snapshotCapture.Owner);
@@ -73,12 +93,18 @@ namespace Client.Game.InGame.BugReport.LastSession
             }
 
             var buildOrigin = ToBuildOrigin(kindText, buildInfo, buildOriginMissingReason, out failureReason);
-            return buildOrigin == null ? null : new SessionOriginSnapshot(steamId, steamIdAbsenceReason, buildOrigin, remoteExecLedgerFileName, snapshotCapture, salvageMissing);
+            if (buildOrigin == null) return null;
+            var origin = new SessionOriginSnapshot(steamId, steamIdAbsenceReason, buildOrigin, remoteExecLedgerFileName, snapshotCapture, salvageMissing);
+            origin.SetRemoteExecAttempted(remoteExecAttempted);
+            origin.SetRemoteExecLedgerWriteFailed(remoteExecLedgerWriteFailed);
+            return origin;
 
             #region Internal
 
             string ReadSteamIdAbsenceReason(string forSteamId, JToken reasonToken)
             {
+                // 旧形式の印でSteamIDも理由も無いときは、理由欠落を明示した理由で埋める
+                // A legacy mark lacking both SteamID and reason explicitly reports the missing reason
                 if (!string.IsNullOrEmpty(forSteamId)) return null;
                 var reason = reasonToken?.Type == JTokenType.String ? (string)reasonToken : null;
                 return string.IsNullOrWhiteSpace(reason) ? SessionOriginSnapshot.LegacyMarkSteamIdAbsenceReason : reason;

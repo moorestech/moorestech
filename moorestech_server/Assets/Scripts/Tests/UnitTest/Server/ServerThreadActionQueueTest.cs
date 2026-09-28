@@ -7,25 +7,34 @@ namespace Tests.UnitTest.Server
     // Pure generation-management tests that need no PlayMode; kept in Server.Tests so Server.Boot no longer needs to expose internals to Client.Tests
     public class ServerThreadActionQueueTest
     {
+        private long _generation;
+
         [SetUp]
         public void ResetServerQueue()
         {
-            ServerThreadActionQueue.Stop();
+            _generation = ServerThreadActionQueue.CurrentGeneration;
+            ServerThreadActionQueue.Stop(_generation);
+        }
+
+        [TearDown]
+        public void StopOwnedGeneration()
+        {
+            ServerThreadActionQueue.Stop(_generation);
         }
 
         [Test]
         public void サーバー終了は待機処理を失敗通知して受付を閉じる()
         {
-            ServerThreadActionQueue.Stop();
+            ServerThreadActionQueue.Stop(_generation);
             ServerThreadActionQueue.Drain();
             Assert.IsFalse(ServerThreadActionQueue.HasDrainedThisLifetime, "更新スレッド開始前のtickは有効化しない");
 
-            ServerThreadActionQueue.BeginServerThread();
+            _generation = ServerThreadActionQueue.BeginServerThread();
             ServerThreadActionQueue.Drain();
             var ran = false;
             var stopped = false;
             Assert.IsTrue(ServerThreadActionQueue.TryEnqueue(() => ran = true, () => stopped = true));
-            ServerThreadActionQueue.Stop();
+            ServerThreadActionQueue.Stop(_generation);
 
             Assert.IsFalse(ran);
             Assert.IsTrue(stopped);
@@ -36,9 +45,10 @@ namespace Tests.UnitTest.Server
         [Test]
         public void 旧更新スレッドの終了は新サーバーの処理を捨てない()
         {
-            var oldGeneration = ServerThreadActionQueue.BeginServerThread();
-            ServerThreadActionQueue.Stop();
-            ServerThreadActionQueue.BeginServerThread();
+            _generation = ServerThreadActionQueue.BeginServerThread();
+            var oldGeneration = _generation;
+            ServerThreadActionQueue.Stop(_generation);
+            _generation = ServerThreadActionQueue.BeginServerThread();
             ServerThreadActionQueue.Drain();
             var ran = false;
             var stopped = false;
@@ -49,7 +59,7 @@ namespace Tests.UnitTest.Server
             ServerThreadActionQueue.Drain();
             Assert.IsTrue(ran);
             Assert.IsFalse(stopped);
-            ServerThreadActionQueue.Stop();
+            ServerThreadActionQueue.Stop(_generation);
         }
     }
 }

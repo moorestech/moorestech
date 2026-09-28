@@ -2,6 +2,7 @@ using Client.Game.Common;
 using Client.Game.InGame.BugReport.BuildOrigin;
 using Client.Game.InGame.BugReport.LastSession;
 using Client.Game.InGame.BugReport.Recording.ProcessScope;
+using Client.RemoteExec.Access;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 
@@ -106,6 +107,7 @@ namespace Client.Tests.BugReport
         public void 意図的な終了以外は終了の印を書かない()
         {
             CleanExitMarkWriter.InstallAtStartup(TestProcessId, CurrentSessionName);
+            StringAssert.Contains("-" + CurrentSessionName + ".jsonl", RemoteExecLedger.CurrentFileName);
 
             // 初期化失敗でメインメニューへ戻る経路は、拾いたいクラッシュ側。ここで印を書くと録画が次回起動で捨てられる
             // The fold-up to the main menu after a failed initialization is the crash side; a mark here would discard the recording at the next boot

@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace Client.RemoteExec.Run
 {
@@ -6,6 +8,15 @@ namespace Client.RemoteExec.Run
     {
         Client,
         Server,
+    }
+
+    [JsonConverter(typeof(StringEnumConverter))]
+    public enum RemoteExecOutcome
+    {
+        Rejected,
+        CompileFailed,
+        RuntimeException,
+        Succeeded,
     }
 
     // RemoteExecTargetのワイヤ文字列との対応をここ1箇所に置く
@@ -43,7 +54,7 @@ namespace Client.RemoteExec.Run
     // Execution outcome returned to the sender
     public sealed class RemoteExecResult
     {
-        public bool Ok;
+        public RemoteExecOutcome Outcome;
         public string Result;
         public List<string> CompileErrors = new();
         public string Exception;
@@ -57,7 +68,7 @@ namespace Client.RemoteExec.Run
 
         internal static RemoteExecResult FromUnhandledException(System.Exception error)
         {
-            return new RemoteExecResult { Exception = error.ToString() };
+            return new RemoteExecResult { Outcome = RemoteExecOutcome.RuntimeException, Exception = error.ToString() };
         }
     }
 }

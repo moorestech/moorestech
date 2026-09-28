@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Client.Game.InGame.BugReport.DiskOperations;
 using Client.Game.InGame.BugReport.Recording.ProcessScope;
+using Client.RemoteExec.Access;
 using Game.Paths;
 using UnityEngine;
 
@@ -116,6 +117,14 @@ namespace Client.Game.InGame.BugReport.LastSession
 
             void DiscardCleanSessionRecording(PreviousProcessSession session)
             {
+                // 正常終了が確定したセッションの台帳だけを片付ける。異常終了分は箱へ移すまで保持する
+                // Remove only ledgers from confirmed clean sessions; keep crashed ones until bundled
+                if (session.Origin?.RemoteExecLedgerFileName != null)
+                {
+                    var ledgerName = session.Origin.RemoteExecLedgerFileName;
+                    var ledgerDeletion = BugReportFileOperations.DeleteFile(RemoteExecLedger.PathForFileName(ledgerName));
+                    if (!ledgerDeletion.Succeeded) missing.Report(BugReportBundleLayout.RemoteExecDirectoryName, $"pid {session.ProcessId} {session.SessionName} の台帳を消せなかった: {ledgerDeletion.FailureReason}");
+                }
                 if (session.RecordingDirectory == null) return;
                 var deletion = BugReportDiskOperations.DeleteDirectory(session.RecordingDirectory);
                 if (!deletion.Succeeded) missing.Report(BugReportBundleLayout.RecordingDirectoryName, $"pid {session.ProcessId} {session.SessionName} の録画を消せなかった: {deletion.FailureReason}");

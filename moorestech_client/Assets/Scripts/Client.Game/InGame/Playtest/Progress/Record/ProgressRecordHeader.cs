@@ -25,6 +25,9 @@ namespace Client.Game.InGame.Playtest.Progress.Record
         public string SteamId;
         public BuildInfo BuildInfo;
         public string SessionStart;
+        // 遠隔実行の有効状態は開始時に固定し、異常終了後もヘッダから復元する
+        // Capture remote execution at start so recovery can restore it from the header
+        public bool RemoteExec;
         public string WorldCreatedAt;
         public double? TotalPlaySecondsAtStart;
 

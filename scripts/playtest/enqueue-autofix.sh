@@ -70,18 +70,12 @@ if [ "${MANIFEST_KIND}" != bug ] && [ "${FORCE}" != 1 ]; then
   log "kind=${MANIFEST_KIND} は自動修正ランの対象外。投入するなら --force: ${ID}"
   exit 3
 fi
-[ "${MANIFEST_KIND}" != bug ] && log "--force で kind=${MANIFEST_KIND} を投入する: ${ID}"
+if [ "${MANIFEST_KIND}" != bug ]; then log "--force で kind=${MANIFEST_KIND} を投入する: ${ID}"; fi
 
 # 外部manifestの読み取り失敗は理由を残して拒否する
 # Refuse external manifest read failures with a recorded reason
 REMOTE_ERR="$(mktemp)"
-if ! REMOTE_EXEC="$(python3 -c '
-import json,sys
-mark = json.load(open(sys.argv[1])).get("remoteExec")
-if mark is not None and (not isinstance(mark, dict) or type(mark.get("enabled", False)) is not bool):
-    sys.exit("remoteExec.enabled がboolでない")
-print("1" if mark and mark.get("enabled", False) else "0")
-' "${BOX}/manifest.json" 2>"$REMOTE_ERR")"; then
+if ! REMOTE_EXEC="$(python3 "$HERE/remote_exec_manifest_state.py" "${BOX}/manifest.json" 2>"$REMOTE_ERR")"; then
   log "ERROR: remoteExec を読めない（$(cat "$REMOTE_ERR")）: ${ID}"
   rm -f "$REMOTE_ERR"
   exit 1
@@ -89,9 +83,9 @@ fi
 rm -f "$REMOTE_ERR"
 if [ "$REMOTE_EXEC" = 1 ] && [ "$FORCE" != 1 ]; then
   log "遠隔実行が有効だったセッションの箱は自動修正ランの対象外。投入するなら --force: ${ID}"
-  exit 3
+  exit 6
 fi
-[ "$REMOTE_EXEC" = 1 ] && log "--force で遠隔実行ありの箱を投入する: ${ID}"
+if [ "$REMOTE_EXEC" = 1 ]; then log "--force で遠隔実行ありの箱を投入する: ${ID}"; fi
 
 # .partial へ組んでから mv で公開する。poller が途中の箱を掴まないため（plan C と同じ作法）。
 # 既に公開済み/組立中の箱があれば無言で消さず据え置く（前例 ship-outbox.sh:96-103。並行実行や
@@ -109,7 +103,9 @@ cp -R "${BOX}" "${PARTIAL}"
 rm -f "${PARTIAL}/AUTOFIX_QUEUED"
 # --force の印は inbox 側へ持たせる。poller の種別ガードはこの印がある箱だけ通す（plan C 改訂メモ2）
 # The --force marker travels with the inbox copy; the poller's kind guard lets only marked boxes through
-[ "${FORCE}" = 1 ] && printf 'forced kind=%s at %s\n' "${MANIFEST_KIND}" "$(now_utc)" > "${PARTIAL}/AUTOFIX_FORCED"
+if [ "${FORCE}" = 1 ]; then
+  printf 'forced kind=%s remoteExec=%s at %s\n' "${MANIFEST_KIND}" "${REMOTE_EXEC}" "$(now_utc)" > "${PARTIAL}/AUTOFIX_FORCED"
+fi
 mv "${PARTIAL}" "${BUG_INBOX}/${ID}"
 printf 'queued at %s\n' "$(now_utc)" > "${BOX}/AUTOFIX_QUEUED"
 log "投入した: ${ID}（poller が最大60秒で拾う）"

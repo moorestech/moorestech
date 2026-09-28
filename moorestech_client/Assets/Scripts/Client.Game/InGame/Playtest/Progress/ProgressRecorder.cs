@@ -135,6 +135,7 @@ namespace Client.Game.InGame.Playtest.Progress
                     SteamId = string.IsNullOrEmpty(_identity.SteamId) ? null : _identity.SteamId,
                     BuildInfo = RepositoryStateProbe.ReadBuildInfo(),
                     SessionStart = ProgressUtcTime.ToIso(_sessionStartUtc),
+                    RemoteExec = Client.RemoteExec.RemoteExecLaunchOption.IsEnabled,
                     BaselineChallenges = ProgressBaseline.CompletedChallengeGuids(completedChallenges),
                     BaselineResearch = ProgressBaseline.CompletedResearchGuids(_handshake.ResearchNodeStates),
                 };

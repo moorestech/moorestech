@@ -19,7 +19,7 @@ namespace Client.WebUiHost.Boot
     /// </summary>
     public static class WebUiEndpoints
     {
-        public static void Configure(IApplicationBuilder app, WebSocketHub hub, WebUiStaticFileEndpoint staticFiles)
+        internal static void Configure(IApplicationBuilder app, WebSocketHub hub, WebUiStaticFileEndpoint staticFiles)
         {
             // エンドポイントの fault を Unity コンソールへ必ず残す（Kestrel の no-op logger 対策）
             // Always surface endpoint faults to the Unity console (Kestrel's logger is a no-op here)
@@ -94,10 +94,10 @@ namespace Client.WebUiHost.Boot
                     return;
                 }
 
-                if (path == Client.RemoteExec.RemoteExecEndpoint.Path && Client.RemoteExec.RemoteExecLaunchOption.IsEnabled)
+                if (path == Client.RemoteExec.RemoteExecEndpoint.Path)
                 {
-                    // 有効化時のみ要求を受理
-                    // Accept requests only when enabled
+                    // 有効判定と拒否理由はエンドポイントに集約する
+                    // Keep activation checks and rejection reasons in the endpoint
                     await Client.RemoteExec.RemoteExecEndpoint.HandleAsync(context);
                     return;
                 }

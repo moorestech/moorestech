@@ -12,8 +12,9 @@ namespace Client.RemoteExec.Access
     public static class RemoteExecAccessFile
     {
         internal const string HeaderName = "X-Remote-Exec-Token";
+        internal const string FileName = "access.json";
         internal static string Token { get; private set; }
-        public static string DirectoryPath => Path.Combine(GameSystemPaths.GameSystemDirectory, "RemoteExec");
+        public static string DirectoryPath => GameSystemPaths.RemoteExecDirectory;
 
         internal static void ClearToken()
         {
@@ -33,7 +34,7 @@ namespace Client.RemoteExec.Access
             {
                 Directory.CreateDirectory(DirectoryPath);
                 var json = new JObject { ["port"] = port, ["token"] = token, ["processId"] = System.Diagnostics.Process.GetCurrentProcess().Id };
-                var path = Path.Combine(DirectoryPath, "access.json");
+                var path = Path.Combine(DirectoryPath, FileName);
                 File.WriteAllText(path, json.ToString());
                 Token = token;
                 Debug.LogWarning($"[RemoteExec] 入口を開きました port:{port} access:{path}");

@@ -26,7 +26,7 @@ namespace Server.Boot
 {
     internal static class ServerInstanceStartup
     {
-        internal static (Thread connectionUpdateThread, Thread gameUpdateThread, CancellationTokenSource cancellationTokenSource, Socket listener) Start(string[] args, out WorldSaveCoordinator worldSaveCoordinator, out WorldSnapshotRing worldSnapshotRing)
+        internal static (Thread connectionUpdateThread, Thread gameUpdateThread, CancellationTokenSource cancellationTokenSource, Socket listener) Start(string[] args, out WorldSaveCoordinator worldSaveCoordinator, out WorldSnapshotRing worldSnapshotRing, out long queueGeneration)
         {
             var settings = CliConvert.Parse<StartServerSettings>(args);
             var worldDataDirectory = WorldDataDirectory.FromWorldRoot(settings.WorldDirectory);
@@ -120,7 +120,11 @@ namespace Server.Boot
                 Task.Run(() => AutoSaveSystem.AutoSave(serviceProvider.GetRequiredService<IWorldSaveRequest>(), token), cancellationToken.Token);
             }
 
-            var gameUpdateThread = new Thread(() => ServerGameUpdater.StartUpdate(token));
+            // スレッド開始前に世代を所有し、早期終了でも同じ受付を閉じる
+            // Own the generation before thread start so early shutdown closes the same admission
+            queueGeneration = ServerThreadActionQueue.BeginServerThread();
+            var startedGeneration = queueGeneration;
+            var gameUpdateThread = new Thread(() => ServerGameUpdater.StartUpdate(token, startedGeneration));
             gameUpdateThread.Name = "[moorestech]ゲームアップデートスレッド";
             gameUpdateThread.Start();
 

@@ -32,8 +32,8 @@ INGEST_SCHEMA = {
 }
 MANIFEST_SCHEMA = {
     "kind": (STR, ""), "description": (STR, ""),
-    "remoteExec": ({"enabled": (BOOL, False)}, None),
-    "buildInfo": ({"steamBuildLabel": (STR, "")}, None),
+    "remoteExec": ({"ledgerFiles": ([STR], None)}, None),
+    "buildInfo": ({"steamBuildLabel": (STR, "")}, {"steamBuildLabel": ""}),
 }
 RECORD_SCHEMA = {
     # playSeconds は既定値を None にする（0.0 だと「計測0秒」と「未計測」が区別できず平均へ無言混入する）
@@ -41,6 +41,7 @@ RECORD_SCHEMA = {
     "schemaVersion": (INT, None), "steamId": (STR, ""), "playSeconds": (NUMBER, None), "endReason": (STR, ""), "lastUiState": (STR, ""),
     "reachedChallenges": ([None], None), "completedResearch": ([None], None),
     "events": ([{"type": (STR, "")}], None),
+    "remoteExec": (BOOL, False),
 }
 FIX_RESULT_SCHEMA = {
     "status": (STR, ""), "pr_number": (INT, None), "base": (STR, ""), "summary": (STR, ""),
@@ -87,10 +88,12 @@ def conform(data: dict, schema: dict) -> dict | Invalid:
 
 
 def conform_value(value, kind, default, path):
-    # null・欠落は既定値。入れ子と list は空の形を既定にする
-    # Null or missing takes the default; nested schemas and lists default to their empty shape
+    # null・欠落は既定値。null 許容の入れ子は None のまま残す
+    # Null or missing takes the default; nullable nested objects remain None
     if value is None:
         if isinstance(kind, dict):
+            if default is None:
+                return None
             return conform({}, kind)
         return [] if isinstance(kind, list) else default
     if isinstance(kind, dict):

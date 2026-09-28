@@ -74,7 +74,10 @@ namespace Client.Game.InGame.BugReport
                 // Only disk failures are caught; catching implementation bugs would collapse defects and outages into the same "missing" line
                 // 2段の資料を書くCopyとWriteは内側で段ごとに隔離する。ここで一括して握ると、どちらが落ちたか分からないまま片方の名前で欠損が立つ
                 // Copy and Write each produce two materials and isolate them inside; one catch here would blame a single name without knowing which stage failed
-                RemoteExecBundleMark.ApplyForCurrentSession(manifest, directory);
+                // 台帳の元パス解決もディスクIO。失敗は他の資料を妨げずmanifestへ明示する
+                // Ledger source-path resolution is disk IO too; declare a failure without blocking other evidence
+                try { RemoteExecBundleMark.ApplyForCurrentSession(manifest, directory); }
+                catch (Exception e) when (IsDiskFailure(e)) { manifest.AddMissing(BugReportBundleLayout.RemoteExecDirectoryName, $"台帳の元パスを解決できなかった: {e.Message}"); }
                 BugReportWorldFilesCopier.Copy(data, directory, manifest);
                 // 直後の4件はそれぞれ独立したディスクIO（動画組立・tick書き出し・ログ書き出し・スクリーンショット保存）。1件の失敗が他を巻き込まないよう境界をここでまとめて主張する
                 // Each of the next four is an independent disk IO (video assembly, tick log, text log, screenshot save); the boundary is claimed here once so one failure never drags down the rest

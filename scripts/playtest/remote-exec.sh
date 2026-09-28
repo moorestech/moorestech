@@ -44,6 +44,8 @@ fi
 
 # HOME差し替え環境でもゲームと同じユーザーディレクトリを参照する
 # Use the game user directory even when a supervisor replaces HOME
+# C# の GameSystemPaths.GameSystemDirectory + RemoteExecAccessFile.DirectoryName/FileName と同じ場所
+# Matches the C# GameSystemPaths.GameSystemDirectory + RemoteExecAccessFile.DirectoryName/FileName
 ACCESS="${MOORESTECH_REMOTE_EXEC_ACCESS:-/Users/$(id -un)/Library/Application Support/moorestech/RemoteExec/access.json}"
 python3 "$HERE/lib/remote-exec-access.py" "$ACCESS" > "$TMP/access" || exit 1
 PORT="$(head -n 1 "$TMP/access")"
@@ -52,3 +54,7 @@ STATUS="$(curl -sS -o "$TMP/response" -w '%{http_code}' -X POST "http://127.0.0.
     -H "X-Remote-Exec-Token: ${TOKEN}" -H 'Content-Type: application/json' --data-binary "@$TMP/body")" || exit 1
 cat "$TMP/response"
 [ "$STATUS" = 200 ] || fail "HTTP $STATUS"
+if ! python3 -c 'import json,sys; outcome=json.load(open(sys.argv[1],encoding="utf-8")).get("outcome"); sys.exit(0 if outcome=="Succeeded" else 1)' "$TMP/response"; then
+    echo 'ERROR: execution outcome was not Succeeded' >&2
+    exit 2
+fi

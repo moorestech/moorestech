@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Client.RemoteExec.Access;
@@ -11,7 +10,7 @@ namespace Client.Tests.RemoteExec
     internal sealed class RemoteExecTestFiles
     {
         private readonly string _accessPath = Path.Combine(RemoteExecAccessFile.DirectoryPath, "access.json");
-        private readonly string _ledgerPath = RemoteExecLedger.PathFor(Process.GetCurrentProcess().Id);
+        private readonly string _ledgerPath = RemoteExecLedger.CurrentPath;
         private readonly byte[] _access;
         private readonly byte[] _ledger;
         private readonly bool _directoryExisted;

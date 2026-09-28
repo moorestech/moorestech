@@ -1,5 +1,8 @@
 using System;
 using System.Reflection;
+using Client.RemoteExec;
+using Client.Starter.Initialization.Boot;
+using Client.Starter.Playtest;
 using Client.Playtest;
 using Client.PlaytestReceiver.Launch;
 using Client.Starter;
@@ -7,6 +10,7 @@ using Client.Starter.Playtest.TitleGates;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine.SceneManagement;
+using Client.WebUiHost.Boot;
 
 namespace Client.Tests.Playtest
 {
@@ -30,6 +34,41 @@ namespace Client.Tests.Playtest
             Assert.That(moveNext, Is.Not.Null);
             Assert.That(MethodCallInspector.CallsInOrder(moveNext, publish, evaluate), Is.True,
                 "直接起動の漏斗が識別公開より先に進み、異常終了箱へ未確定理由を残す");
+        }
+
+        [Test]
+        public void InitializeScenePipeline_起動印より先に遠隔実行フラグを確定する()
+        {
+            // 実際の非同期入口で順序を固定し、前回セッションの印へ今回のフラグが漏れる退行を検出する
+            // Pin order in the actual async entry so the current flag cannot be omitted from the current session mark
+            var moveNext = FindInitializeMoveNext();
+            var resolve = typeof(RemoteExecLaunchOption).GetMethod(nameof(RemoteExecLaunchOption.ResolveFromCommandLine));
+            var beginMarks = typeof(PreviousSessionStartupTasks).GetMethod(nameof(PreviousSessionStartupTasks.BeginCurrentSessionMarks));
+
+            Assert.That(MethodCallInspector.CallsInOrder(moveNext, resolve, beginMarks), Is.True);
+        }
+
+        [Test]
+        public void InitializeScenePipeline_WebUi起動後の実ポートで遠隔実行を有効化する()
+        {
+            // Web UI起動完了後に実ポートを読み、その値で有効化する呼び出し順を守る
+            // Preserve calls that read the actual port after Web UI startup and pass it to activation
+            var moveNext = FindInitializeMoveNext();
+            var startWebUi = typeof(WebUiStartup).GetMethod(nameof(WebUiStartup.StartAsync), BindingFlags.Static | BindingFlags.NonPublic);
+            var getPort = typeof(Client.WebUiHost.Boot.WebUiHost).GetProperty(nameof(Client.WebUiHost.Boot.WebUiHost.KestrelPort)).GetGetMethod();
+            var activate = typeof(RemoteExecActivation).GetMethod(nameof(RemoteExecActivation.ActivateIfRequested));
+
+            Assert.That(startWebUi, Is.Not.Null);
+            Assert.That(MethodCallInspector.CallsInOrder(moveNext, startWebUi, getPort), Is.True);
+            Assert.That(MethodCallInspector.CallsInOrder(moveNext, getPort, activate), Is.True);
+        }
+
+        private static MethodInfo FindInitializeMoveNext()
+        {
+            foreach (var nestedType in typeof(InitializeScenePipeline).GetNestedTypes(BindingFlags.NonPublic))
+                if (nestedType.Name.StartsWith("<Initialize>d__", StringComparison.Ordinal))
+                    return nestedType.GetMethod("MoveNext", BindingFlags.Instance | BindingFlags.NonPublic);
+            return null;
         }
 
         [Test]

@@ -40,6 +40,19 @@ namespace Client.Tests.Playtest
         }
 
         [Test]
+        public void 遠隔実行の印は異常終了後に回収した記録にも残る()
+        {
+            ProgressTestSession.WriteHeader(new ProgressRecordHeader
+            {
+                SessionStart = ProgressUtcTime.ToIso(DateTime.UtcNow.AddMinutes(-1)),
+                RemoteExec = true,
+            });
+            var bundle = ProgressRecordFiles.CloseLeftoverInto(ProgressTestSession.Directory, ProgressEndReason.CrashRecovered, Array.Empty<MissingItem>()).BundleDirectory;
+            Assert.IsTrue((bool)ReadRecord(bundle)["remoteExec"]);
+            Directory.Delete(bundle, true);
+        }
+
+        [Test]
         // 「畳む中身が無い」を「書けなかった」と同じ結果にすると、終了コードが書き出し失敗として出てしまう
         // Reporting "nothing to fold" as "could not write" would surface the shutdown as a failed flush
         public void 閉じる中身が無いときは書き出し失敗ではなく中身無しを返す()
