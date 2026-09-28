@@ -10,6 +10,7 @@ using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Game.PlayerIdentity;
 using NUnit.Framework;
 using Tests.Util.PlayerIdentity;
 using Server.Event.EventReceive;
@@ -36,8 +37,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Construction
         public void 別プレイヤーが撤去しても財布は設置者へ戻り返却物は撤去者へ渡る()
         {
             var (packet, serviceProvider) = CreateServer();
-            var payerPlayerId = PlayerIdentityTestHelper.Register(serviceProvider, "steam:1");
-            var removerPlayerId = PlayerIdentityTestHelper.Register(serviceProvider, "steam:2");
+            var payerPlayerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<IPlayerIdentityRegistry>(), "steam:1").PlayerId;
+            var removerPlayerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<IPlayerIdentityRegistry>(), "steam:2").PlayerId;
             var belt = ForUnitTestModBlockId.GearBeltConveyor;
             UnlockBlock(serviceProvider, belt);
             var payerInventory = GetPlayerInventory(serviceProvider, payerPlayerId);
@@ -77,8 +78,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Construction
         public void セーブロードをまたいでも課金元の財布へ戻る()
         {
             var (packet, serviceProvider) = CreateServer();
-            var payerPlayerId = PlayerIdentityTestHelper.Register(serviceProvider, "steam:1");
-            var removerPlayerId = PlayerIdentityTestHelper.Register(serviceProvider, "steam:2");
+            var payerPlayerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<IPlayerIdentityRegistry>(), "steam:1").PlayerId;
+            var removerPlayerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<IPlayerIdentityRegistry>(), "steam:2").PlayerId;
             var belt = ForUnitTestModBlockId.GearBeltConveyor;
             UnlockBlock(serviceProvider, belt);
             SetItem(GetPlayerInventory(serviceProvider, payerPlayerId), 0, Material1Guid, 1);

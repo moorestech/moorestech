@@ -48,12 +48,8 @@ namespace Server.Protocol.PacketResponse.Util.Handshake
 
             // 切断処理はバインド直後から解除できるため、その前に登録を揃える
             // Cleanup can unregister immediately after binding, so install both registrations first
-            _connections.Register(playerId);
-            _events.RegisterPlayer(playerId, context.EventSink);
-            if (!context.TryBindPlayerId(playerId))
+            if (!PlayerConnectionBinding.TryBind(playerId, context, _connections, _events))
             {
-                _events.UnregisterPlayer(playerId, context.EventSink);
-                _connections.Unregister(playerId);
                 Debug.LogWarning($"[InitialHandshake] ハンドシェイク中に切断されたためプレイヤー{playerId}の接続を拒否");
                 return HandshakeRejection.ConnectionClosed;
             }

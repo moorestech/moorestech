@@ -13,6 +13,7 @@ using Game.SaveLoad.Pruning;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
+using Tests.Util.PlayerIdentity;
 using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
@@ -59,8 +60,8 @@ namespace Tests.CombinedTest.Game
             var serviceProvider = CreateContainer();
 
             var identities = serviceProvider.GetRequiredService<PlayerIdentityRegistry>();
-            identities.Commit(identities.PreviewAssignment("steam:1"));
-            serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(1);
+            var playerId = PlayerIdentityTestHelper.Register(identities, "steam:1").PlayerId;
+            serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId);
             var placed = ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             Assert.IsTrue(placed, "テストの土台となるチェストの設置に失敗しました");
 

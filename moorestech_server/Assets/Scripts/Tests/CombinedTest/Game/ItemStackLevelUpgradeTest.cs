@@ -7,6 +7,7 @@ using Game.Research;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
 using Microsoft.Extensions.DependencyInjection;
+using Game.PlayerIdentity;
 using NUnit.Framework;
 using Tests.Util.PlayerIdentity;
 using Server.Boot;
@@ -25,7 +26,7 @@ namespace Tests.CombinedTest.Game
         public void CompleteResearchUnlocksStackLevelTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var playerId = PlayerIdentityTestHelper.Register(serviceProvider, "steam:1");
+            var playerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<IPlayerIdentityRegistry>(), "steam:1").PlayerId;
             var researchDataStore = serviceProvider.GetService<IResearchDataStore>();
 
             Assert.AreEqual(100, ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.ItemId1));
@@ -41,7 +42,7 @@ namespace Tests.CombinedTest.Game
         public void UpgradedItemCanStackBeyondBaseLimitTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var playerId = PlayerIdentityTestHelper.Register(serviceProvider, "steam:1");
+            var playerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<IPlayerIdentityRegistry>(), "steam:1").PlayerId;
             var researchDataStore = serviceProvider.GetService<IResearchDataStore>();
             researchDataStore.CompleteResearch(StackUpgradeResearchGuid, playerId);
 
@@ -62,7 +63,7 @@ namespace Tests.CombinedTest.Game
         public void NonUpgradedItemStillOverflowsAtBaseLimitTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var playerId = PlayerIdentityTestHelper.Register(serviceProvider, "steam:1");
+            var playerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<IPlayerIdentityRegistry>(), "steam:1").PlayerId;
 
             var inventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId);
             var item100A = ServerContext.ItemStackFactory.Create(Test1ItemGuid, 100);
@@ -84,7 +85,7 @@ namespace Tests.CombinedTest.Game
         public void SaveWithUpgradedStackLoadsSuccessfullyTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var playerId = PlayerIdentityTestHelper.Register(serviceProvider, "steam:1");
+            var playerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<IPlayerIdentityRegistry>(), "steam:1").PlayerId;
             var researchDataStore = serviceProvider.GetService<IResearchDataStore>();
             researchDataStore.CompleteResearch(StackUpgradeResearchGuid, playerId);
 
@@ -114,7 +115,7 @@ namespace Tests.CombinedTest.Game
         public void LoadDoesNotDoubleApplyLevelsTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var playerId = PlayerIdentityTestHelper.Register(serviceProvider, "steam:1");
+            var playerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<IPlayerIdentityRegistry>(), "steam:1").PlayerId;
             serviceProvider.GetService<IResearchDataStore>().CompleteResearch(StackUpgradeResearchGuid, playerId);
             var saveJson = serviceProvider.GetService<AssembleSaveJsonText>().AssembleSaveJson();
 

@@ -9,6 +9,7 @@ using Game.Gear.Common;
 using Game.PlayerInventory.Interface;
 using Game.UnlockState;
 using Microsoft.Extensions.DependencyInjection;
+using Game.PlayerIdentity;
 using NUnit.Framework;
 using Tests.Util.PlayerIdentity;
 using Server.Boot;
@@ -31,7 +32,7 @@ namespace Tests.CombinedTest.Core.Gear
             // 保存前ワールドにチェーン経由のギアネットワークを構築する
             // Build a gear network through chain poles before saving
             var (_, saveServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var playerId = PlayerIdentityTestHelper.Register(saveServiceProvider, "steam:1");
+            var playerId = PlayerIdentityTestHelper.Register(saveServiceProvider.GetRequiredService<IPlayerIdentityRegistry>(), "steam:1").PlayerId;
             var chainItemId = MasterHolder.ItemMaster.GetItemId(ChainMaterialGuid);
             saveServiceProvider.GetService<IGameUnlockStateDataController>().UnlockConnectTool(ConnectToolGuid);
 

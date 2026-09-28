@@ -10,6 +10,6 @@ namespace Game.PlayerIdentity
         // Commit the preview after the connection has been bound
         void Commit(PlayerIdAssignment previewed);
 
-        bool IsRegisteredPlayerId(int playerId);
+        bool IsRegisteredPlayerId(long playerId);
     }
 }

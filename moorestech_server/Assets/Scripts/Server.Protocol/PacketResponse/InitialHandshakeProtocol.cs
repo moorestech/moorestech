@@ -70,13 +70,15 @@ namespace Server.Protocol.PacketResponse
                 Accepted = accepted;
             }
 
+            private ResponseInitialHandshakeMessagePack(HandshakeRejection rejection)
+            {
+                Tag = ProtocolTag;
+                Rejection = rejection;
+            }
+
             public static ResponseInitialHandshakeMessagePack Rejected(HandshakeRejection rejection)
             {
-                return new ResponseInitialHandshakeMessagePack
-                {
-                    Tag = ProtocolTag,
-                    Rejection = rejection,
-                };
+                return new ResponseInitialHandshakeMessagePack(rejection);
             }
         }
     }

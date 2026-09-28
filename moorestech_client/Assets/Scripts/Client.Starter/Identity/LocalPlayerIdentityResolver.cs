@@ -4,6 +4,7 @@ using System.Text;
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.BuildOrigin;
 using Client.PlaytestReceiver.Steam;
+using Client.Network.API.Identity;
 using Game.PlayerIdentity;
 using Mooresmaster.Localization.Generated;
 using UnityEngine;
@@ -65,20 +66,16 @@ namespace Client.Starter.Identity
 
     public readonly struct PlayerIdentityResolution
     {
-        public readonly bool Succeeded;
         public readonly string Identity;
-        public readonly LocalizationKey RefusalLocalizationKey;
-        public readonly string RefusalLogReason;
+        public readonly PlayerStartRefusal? Refusal;
 
-        private PlayerIdentityResolution(bool succeeded, string identity, LocalizationKey refusalLocalizationKey, string refusalLogReason)
+        private PlayerIdentityResolution(string identity, PlayerStartRefusal? refusal)
         {
-            Succeeded = succeeded;
             Identity = identity;
-            RefusalLocalizationKey = refusalLocalizationKey;
-            RefusalLogReason = refusalLogReason;
+            Refusal = refusal;
         }
 
-        internal static PlayerIdentityResolution Success(string identity) => new(true, identity, default, null);
-        internal static PlayerIdentityResolution Refused(LocalizationKey localizationKey, string logReason) => new(false, null, localizationKey, logReason);
+        internal static PlayerIdentityResolution Success(string identity) => new(identity, null);
+        internal static PlayerIdentityResolution Refused(LocalizationKey localizationKey, string logReason) => new(null, new PlayerStartRefusal(localizationKey, logReason));
     }
 }

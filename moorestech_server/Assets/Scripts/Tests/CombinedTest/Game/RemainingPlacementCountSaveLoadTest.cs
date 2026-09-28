@@ -2,6 +2,7 @@ using Game.Construction;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
 using Microsoft.Extensions.DependencyInjection;
+using Game.PlayerIdentity;
 using NUnit.Framework;
 using Tests.Util.PlayerIdentity;
 using Server.Boot;
@@ -16,7 +17,7 @@ namespace Tests.CombinedTest.Game
         public void セーブしてロードすると残り設置数が復元される()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var playerId = PlayerIdentityTestHelper.Register(serviceProvider, "steam:1");
+            var playerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<IPlayerIdentityRegistry>(), "steam:1").PlayerId;
             var store = serviceProvider.GetService<RemainingPlacementCountDataStore>();
             var wallet = ForUnitTestModBlockId.GearBeltConveyor;
             store.Refill(playerId, wallet, 3);

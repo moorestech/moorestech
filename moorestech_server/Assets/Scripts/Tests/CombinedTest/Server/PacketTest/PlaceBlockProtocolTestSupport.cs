@@ -10,6 +10,7 @@ using Game.UnlockState;
 using Game.UnlockState.States;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Game.PlayerIdentity;
 using NUnit.Framework;
 using Tests.Util.PlayerIdentity;
 using Server.Boot;
@@ -32,7 +33,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         public static (PacketResponseCreator packet, ServiceProvider serviceProvider) CreateServer()
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            PlayerIdentityTestHelper.Register(serviceProvider, "steam:1");
+            PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<IPlayerIdentityRegistry>(), "steam:1");
             return (packet, serviceProvider);
         }
 

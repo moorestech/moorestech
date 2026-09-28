@@ -62,9 +62,10 @@ namespace Game.PlayerIdentity
             _idByIdentity[assignment.Identity] = assignment.PlayerId;
         }
 
-        public bool IsRegisteredPlayerId(int playerId)
+        public bool IsRegisteredPlayerId(long playerId)
         {
-            return _idByIdentity.ContainsValue(playerId) || _unclaimedPlayerIds.Contains(playerId);
+            if (playerId < FirstPlayerId || playerId > int.MaxValue) return false;
+            return _idByIdentity.ContainsValue((int)playerId) || _unclaimedPlayerIds.Contains((int)playerId);
         }
 
         public PlayersSaveJsonObject GetSaveJsonObject()

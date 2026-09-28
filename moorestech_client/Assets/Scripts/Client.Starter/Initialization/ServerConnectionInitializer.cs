@@ -39,10 +39,9 @@ namespace Client.Starter.Initialization
             // 身元が決まらなければ接続もサーバー起動もしない
             // Resolve identity before connecting or starting the server
             var identity = LocalPlayerIdentityResolver.ResolveForThisProcess();
-            if (!identity.Succeeded)
+            if (identity.Refusal.HasValue)
             {
-                Debug.LogWarning(identity.RefusalLogReason);
-                return new ServerConnectionResult { Refusal = new PlayerStartRefusal(identity.RefusalLocalizationKey, identity.RefusalLogReason) };
+                return new ServerConnectionResult { Refusal = identity.Refusal };
             }
 
             //サーバーとの接続を確立
@@ -66,7 +65,10 @@ namespace Client.Starter.Initialization
             // Fetch the initial data bundle
             var handshakeAttempt = await vanillaApi.Response.InitialHandShake(identity.Identity, _exitToken);
             if (handshakeAttempt.Refusal.HasValue)
+            {
+                serverCommunicator.Close();
                 return new ServerConnectionResult { Refusal = handshakeAttempt.Refusal };
+            }
             var handshakeResponse = handshakeAttempt.Response;
 
             // リモートは内蔵サーバーを持たないため、通信越しに書き出し完了を待つ参加者を立てる。ハンドシェイク成功後に限る（拒否経路で未紐づけ接続からの送信を防ぐ）

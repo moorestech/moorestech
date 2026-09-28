@@ -35,7 +35,7 @@ namespace Game.SaveLoad.Snapshot
                     var playerId = reader.ReadInt32();
                     var length = reader.ReadInt32();
                     if (length < 0) throw new InvalidDataException($"パケットログの長さが負です path:{path} tick:{tick} length:{length}");
-                    if (kind == ReceivedPacketRecordKind.Disconnect && (playerId <= 0 || length != 0))
+                    if (kind == ReceivedPacketRecordKind.Disconnect && (!ReceivedPacketLog.DecodeSenderPlayerId(playerId).HasValue || length != 0))
                         throw new InvalidDataException($"パケットログの切断レコードが不正です path:{path} tick:{tick} playerId:{playerId} length:{length}");
 
                     // ReadBytes は足りない分を黙って短く返す。通すと壊れた末尾が別のパケットとして再生され、非決定性のバグに見える

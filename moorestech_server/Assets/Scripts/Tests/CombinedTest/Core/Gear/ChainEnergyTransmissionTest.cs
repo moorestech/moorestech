@@ -9,6 +9,7 @@ using Game.Gear.Common;
 using Game.PlayerInventory.Interface;
 using Game.UnlockState;
 using Microsoft.Extensions.DependencyInjection;
+using Game.PlayerIdentity;
 using NUnit.Framework;
 using Tests.Util.PlayerIdentity;
 using Server.Boot;
@@ -31,7 +32,7 @@ namespace Tests.CombinedTest.Core.Gear
             // テスト用DIコンテナを立ち上げる
             // Initialize test DI container
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var playerId = PlayerIdentityTestHelper.Register(serviceProvider, "steam:1");
+            var playerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<IPlayerIdentityRegistry>(), "steam:1").PlayerId;
             var chainItemId = MasterHolder.ItemMaster.GetItemId(ChainMaterialGuid);
             serviceProvider.GetService<IGameUnlockStateDataController>().UnlockConnectTool(ConnectToolGuid);
 
@@ -72,7 +73,7 @@ namespace Tests.CombinedTest.Core.Gear
             // テスト用DIコンテナを立ち上げる
             // Initialize test DI container
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var playerId = PlayerIdentityTestHelper.Register(serviceProvider, "steam:1");
+            var playerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<IPlayerIdentityRegistry>(), "steam:1").PlayerId;
             var chainItemId = MasterHolder.ItemMaster.GetItemId(ChainMaterialGuid);
             serviceProvider.GetService<IGameUnlockStateDataController>().UnlockConnectTool(ConnectToolGuid);
 
@@ -118,7 +119,7 @@ namespace Tests.CombinedTest.Core.Gear
             // テスト用DIコンテナを立ち上げる
             // Initialize test DI container
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var playerId = PlayerIdentityTestHelper.Register(serviceProvider, "steam:1");
+            var playerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<IPlayerIdentityRegistry>(), "steam:1").PlayerId;
             var chainItemId = MasterHolder.ItemMaster.GetItemId(ChainMaterialGuid);
             serviceProvider.GetService<IGameUnlockStateDataController>().UnlockConnectTool(ConnectToolGuid);
 

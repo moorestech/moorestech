@@ -9,6 +9,7 @@ using Game.SaveLoad.Json.WorldVersions;
 using Microsoft.Extensions.DependencyInjection;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
+using Game.PlayerIdentity;
 using NUnit.Framework;
 using Tests.Util.PlayerIdentity;
 using Server.Boot;
@@ -153,7 +154,7 @@ namespace Tests.CombinedTest.Game
         public void 採掘クールダウンがセーブロードで復元される()
         {
             var (_, saveProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var playerId = PlayerIdentityTestHelper.Register(saveProvider, "steam:1");
+            var playerId = PlayerIdentityTestHelper.Register(saveProvider.GetRequiredService<IPlayerIdentityRegistry>(), "steam:1").PlayerId;
             GameUpdater.RestoreCurrentTick(1000);
             saveProvider.GetRequiredService<MiningCooldownService>().RecordAttack(playerId);
             var json = saveProvider.GetRequiredService<AssembleSaveJsonText>().AssembleSaveJson();

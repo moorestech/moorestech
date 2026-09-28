@@ -9,6 +9,7 @@ using Client.Starter.Identity;
 using Client.Starter.Initialization;
 using Client.Starter.Initialization.WebUi;
 using Client.Starter.Initialization.Progress;
+using Client.Starter.Initialization.Refusal;
 using Cysharp.Threading.Tasks;
 using Game.Context;
 using Mooresmaster.Localization.Generated;
@@ -101,6 +102,7 @@ namespace Client.Starter
             var modAssetLoader = new ModAssetLoader(serverDirectory, missingBlockIdObject, blockIconImagePhotographer, trainCarIconTargets, loadingProgressLog);
 
             ServerConnectionResult serverResult;
+            Client.Network.API.Identity.PlayerStartRefusal? pendingRefusal = null;
             ModAssetLoadResult assetResult;
             // 辞書・通信・読込の外部境界を隔離する
             // Isolate the external boundaries for mod dictionaries, communication, and asset loading
@@ -114,14 +116,12 @@ namespace Client.Starter
                 // 失敗をログとUIへ出し、文言を読ませてからメインメニューへ戻す
                 // Log the failure, surface it in the UI, and return to the main menu after the message is readable
                 Debug.LogError($"初期化処理中にエラーが発生しました: {e.GetType()} {e.Message}\n{e.StackTrace}");
-
-                // 起動済みの内蔵サーバーを道連れに畳む。残すと同一セーブへ書く権威が二重になる
-                // Fold the embedded server that already started; leaving it doubles the authority writing the same save
-                GameShutdownEvent.FireGameShutdown(GameShutdownReason.InitializationFailed);
-
-                loadingProgressLog.Append(LocalizationKeys.Ui.Loading.InitializationFailed);
-                await UniTask.Delay(2000);
-                SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
+                if (pendingRefusal.HasValue)
+                {
+                    await InitializationFailurePresenter.ShowRefusalAsync(pendingRefusal.Value, loadingProgressLog);
+                    return;
+                }
+                await InitializationFailurePresenter.ShowInitializationFailedAsync(loadingProgressLog);
                 return;
             }
 
@@ -129,11 +129,7 @@ namespace Client.Starter
             // Surface an expected refusal after assets finish, before any context uses the absent connection
             if (serverResult.Refusal.HasValue)
             {
-                Debug.LogWarning(serverResult.Refusal.Value.LogReason);
-                GameShutdownEvent.FireGameShutdown(GameShutdownReason.InitializationFailed);
-                loadingProgressLog.Append(serverResult.Refusal.Value.Key);
-                await UniTask.Delay(2000);
-                SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
+                await InitializationFailurePresenter.ShowRefusalAsync(serverResult.Refusal.Value, loadingProgressLog);
                 return;
             }
 
@@ -159,7 +155,11 @@ namespace Client.Starter
             async UniTask<ServerConnectionResult> ConnectServerThenFetchTerrainAsync()
             {
                 var connectionResult = await serverInitializer.RunAsync();
-                if (connectionResult.Refusal.HasValue) return connectionResult;
+                if (connectionResult.Refusal.HasValue)
+                {
+                    pendingRefusal = connectionResult.Refusal;
+                    return connectionResult;
+                }
                 var fetchedChunkCount = await new TerrainDataFetcher(connectionResult.VanillaApi.Response, exitToken).RunAsync(connectionResult.HandshakeResponse.MapLayout);
                 loadingProgressLog.AppendElapsed(LocalizationKeys.Ui.Loading.TerrainReady, fetchedChunkCount.ToString());
                 return connectionResult;

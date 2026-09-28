@@ -1,13 +1,13 @@
 # test-prepare-run.sh の一時リポジトリを使い、複製セーブだけが変更されることを検査する
 # Use test-prepare-run.sh's temporary repositories to check that only the copied save changes
-for reporter_case in steam missing unmatched tie largest-high-id unbound no-device; do
+for reporter_case in steam missing unmatched tie largest-high-id unbound no-device version2; do
   reporter_run="$TMP/runs/reporter-$reporter_case"
   mkdir -p "$reporter_run/snapshots"
   python3 - "$reporter_run" "$REPORT_COMMIT_1B" "$reporter_case" <<'PY'
 import json, pathlib, sys
 run, commit, case = pathlib.Path(sys.argv[1]), sys.argv[2], sys.argv[3]
 manifest = {"repository": {"commit": commit}, "snapshotTicks": [300]}
-if case == "steam":
+if case in ("steam", "version2"):
     manifest["steamId"] = "76561198319362448"
 elif case == "unmatched":
     manifest["steamId"] = "999"
@@ -28,13 +28,16 @@ save = {"currentTick": 300, "players": {"nextPlayerId": 5,
     {"PlayerId": 2, "MainInventoryItems": [{"count": 1 if case == "steam" else 100}]},
     {"PlayerId": 4, "MainInventoryItems": [{"count": 25 if case == "largest-high-id" else (24 if case == "tie" else 20)}]},
     {"PlayerId": 3, "MainInventoryItems": [{"count": 1000}]}]}
+if case == "version2":
+    save["worldVersion"] = 2
+    del save["players"]
 (run / "manifest.json").write_text(json.dumps(manifest))
 (run / "snapshots/tick_300.json").write_text(json.dumps(save))
 PY
   env "${ENVS[@]}" bash "$HERE/../prepare-run.sh" "reporter-$reporter_case" 2>"$TMP/reporter-$reporter_case.log"
   (
     source "$reporter_run/run.env"
-    if [[ "$reporter_case" == "unmatched" || "$reporter_case" == "unbound" || "$reporter_case" == "no-device" ]]; then
+    if [[ "$reporter_case" == "unmatched" || "$reporter_case" == "unbound" || "$reporter_case" == "no-device" || "$reporter_case" == "version2" ]]; then
       [ "$REPORTER_UNCLAIM_FAILED" = "1" ] || { echo "NG: 付け替え未了のフラグが無い: $reporter_case"; exit 1; }
     else
       [ "$REPORTER_UNCLAIM_FAILED" = "0" ] || { echo "NG: 付け替え成功が失敗扱い: $reporter_case"; exit 1; }
@@ -44,14 +47,17 @@ import json, sys
 save, original = [json.load(open(path)) for path in sys.argv[1:3]]
 case = sys.argv[3]
 expected = json.loads(json.dumps(original))
-if case not in ("unbound", "no-device", "unmatched"):
+if case not in ("unbound", "no-device", "unmatched", "version2"):
     selected_id = 2 if case == "steam" else (4 if case == "largest-high-id" else 1)
     expected["players"]["claimCandidatePlayerId"] = selected_id
     next(entry for entry in expected["players"]["entries"]
          if entry["playerId"] == selected_id)["identity"] = None
 assert save == expected, (case, save, expected)
-assert original["players"]["claimCandidatePlayerId"] == 3
-assert case == "unbound" or original["players"]["entries"][1]["identity"] is not None
+if case != "version2":
+    assert original["players"]["claimCandidatePlayerId"] == 3
+    assert case == "unbound" or original["players"]["entries"][1]["identity"] is not None
+else:
+    assert original["worldVersion"] == 2 and "players" not in original
 PY
   )
   case "$reporter_case" in
@@ -59,6 +65,7 @@ PY
     missing|tie|largest-high-id) reporter_message="manifest に steamId が無い" ;;
     unmatched) reporter_message="結びつくプレイヤーが無い" ;;
     unbound|no-device) reporter_message="端末身元に結びついたプレイヤーが居ない" ;;
+    version2) reporter_message="報告者と一致する保証なし" ;;
   esac
   grep -q "$reporter_message" "$TMP/reporter-$reporter_case.log" || { echo "NG: 報告者の付け替え理由が無い: $reporter_case"; exit 1; }
 done

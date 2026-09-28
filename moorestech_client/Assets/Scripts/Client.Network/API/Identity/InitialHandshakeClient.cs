@@ -34,7 +34,7 @@ namespace Client.Network.API.Identity
             {
                 const string reason = "ハンドシェイクが成功を返しましたが受理データがありません";
                 Debug.LogError(reason);
-                return new InitialHandshakeAttempt(null, new PlayerStartRefusal(LocalizationKeys.Ui.Loading.InitializationFailed, reason));
+                return new InitialHandshakeAttempt(null, new PlayerStartRefusal(LocalizationKeys.Ui.Loading.HandshakeProtocolError, reason));
             }
 
             // ハンドシェイクに同梱されたスタックレベルを先に適用（インベントリ等のItemStack生成前に上限を正すため）
@@ -69,7 +69,6 @@ namespace Client.Network.API.Identity
                 HandshakeRejection.ConnectionClosed => LocalizationKeys.Ui.Loading.InitializationFailed,
                 _ => UnknownRejection(),
             };
-            Debug.LogWarning(reason);
             return new PlayerStartRefusal(key, reason);
 
             #region Internal

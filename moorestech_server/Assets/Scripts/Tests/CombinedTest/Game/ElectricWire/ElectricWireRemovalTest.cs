@@ -14,6 +14,7 @@ using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
 using Game.UnlockState;
 using Microsoft.Extensions.DependencyInjection;
+using Game.PlayerIdentity;
 using NUnit.Framework;
 using Tests.Util.PlayerIdentity;
 using Server.Boot;
@@ -39,7 +40,7 @@ namespace Tests.CombinedTest.Game.ElectricWire
         public void ブロック撤去でワイヤーが切れ電線が返却される()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var playerId = PlayerIdentityTestHelper.Register(serviceProvider, "steam:1");
+            var playerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<IPlayerIdentityRegistry>(), "steam:1").PlayerId;
             var wireItemId = MasterHolder.ItemMaster.GetItemId(WireItemGuid);
             serviceProvider.GetService<IGameUnlockStateDataController>().UnlockConnectTool(ConnectToolGuid);
 

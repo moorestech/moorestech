@@ -32,7 +32,7 @@ namespace Game.SaveLoad.Json
 
             void Check(long playerId, string section)
             {
-                if (playerId >= 1 && playerId <= int.MaxValue && identities.IsRegisteredPlayerId((int)playerId)) return;
+                if (identities.IsRegisteredPlayerId(playerId)) return;
                 var reason = $"セーブの {section} に身元対応表に無いプレイヤーID {playerId} があります";
                 Debug.LogError(reason);
                 throw new InvalidOperationException(reason);

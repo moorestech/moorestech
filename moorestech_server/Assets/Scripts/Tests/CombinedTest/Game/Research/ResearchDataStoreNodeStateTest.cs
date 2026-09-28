@@ -6,6 +6,7 @@ using Game.Research;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
 using Microsoft.Extensions.DependencyInjection;
+using Game.PlayerIdentity;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -20,7 +21,7 @@ namespace Tests.CombinedTest.Game.Research
         public void GetResearchNodeStatesReflectRequirements()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var playerId = PlayerIdentityTestHelper.Register(serviceProvider, "steam:1");
+            var playerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<IPlayerIdentityRegistry>(), "steam:1").PlayerId;
 
             var researchDataStore = serviceProvider.GetService<IResearchDataStore>();
             var inventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId);

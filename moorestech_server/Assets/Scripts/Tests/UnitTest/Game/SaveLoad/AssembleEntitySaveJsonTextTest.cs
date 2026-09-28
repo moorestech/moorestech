@@ -2,6 +2,7 @@ using Game.Entity.Interface;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
 using Microsoft.Extensions.DependencyInjection;
+using Game.PlayerIdentity;
 using NUnit.Framework;
 using Tests.Util.PlayerIdentity;
 using Server.Boot;
@@ -18,8 +19,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             var (_, serviceProvider) =
                 new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
-            var firstPlayerId = PlayerIdentityTestHelper.Register(serviceProvider, "steam:1");
-            var secondPlayerId = PlayerIdentityTestHelper.Register(serviceProvider, "steam:2");
+            var firstPlayerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<IPlayerIdentityRegistry>(), "steam:1").PlayerId;
+            var secondPlayerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<IPlayerIdentityRegistry>(), "steam:2").PlayerId;
             var entitiesDatastore = serviceProvider.GetService<IEntitiesDatastore>();
             var entityFactory = serviceProvider.GetService<IEntityFactory>();
             

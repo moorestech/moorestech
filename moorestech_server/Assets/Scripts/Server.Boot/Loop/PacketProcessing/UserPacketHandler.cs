@@ -6,6 +6,7 @@ using Game.PlayerConnection;
 using Game.SaveLoad.Snapshot;
 using Server.Event;
 using Server.Protocol;
+using Server.Protocol.PacketResponse.Util.Handshake;
 using Server.Util;
 using UnityEngine;
 
@@ -98,11 +99,13 @@ namespace Server.Boot.Loop.PacketProcessing
             var playerId = _packetResponseContext.MarkClosedAndGetPlayerId();
             if (playerId.HasValue)
             {
+                // CurrentTick は処理済み tick。切断はその tick の後、次の tick の前に起きたと記録する
+                // CurrentTick is the completed tick; record disconnect after it and before the next tick
+                var disconnectTick = GameUpdater.CurrentTick;
                 // この接続のsinkだけを解除し、切断イベントを発火する
                 // Unregister only this connection's sink, then fire the disconnect event
-                _eventProtocolProvider.UnregisterPlayer(playerId.Value, _packetResponseContext.EventSink);
-                _connectionRegistry.Unregister(playerId.Value);
-                _receivedPacketLog.AppendDisconnect(GameUpdater.CurrentTick, playerId.Value);
+                PlayerConnectionBinding.Unregister(playerId.Value, _packetResponseContext.EventSink, _connectionRegistry, _eventProtocolProvider);
+                _receivedPacketLog.AppendDisconnect(disconnectTick, playerId.Value);
             }
 
             _receiveQueueProcessor.Dispose();

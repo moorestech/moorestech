@@ -14,6 +14,7 @@ using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
 using Game.UnlockState;
 using Microsoft.Extensions.DependencyInjection;
+using Game.PlayerIdentity;
 using NUnit.Framework;
 using Tests.Util.PlayerIdentity;
 using Server.Boot;
@@ -41,7 +42,7 @@ namespace Tests.CombinedTest.Game
         public void ワイヤー接続がセーブロードで復元される()
         {
             var (_, saveServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var playerId = PlayerIdentityTestHelper.Register(saveServiceProvider, "steam:1");
+            var playerId = PlayerIdentityTestHelper.Register(saveServiceProvider.GetRequiredService<IPlayerIdentityRegistry>(), "steam:1").PlayerId;
             var wireItemId = MasterHolder.ItemMaster.GetItemId(WireItemGuid);
             saveServiceProvider.GetService<IGameUnlockStateDataController>().UnlockConnectTool(ConnectToolGuid);
 

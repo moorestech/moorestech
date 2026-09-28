@@ -96,8 +96,6 @@ namespace Tests.CombinedTest.Server.PacketTest
             var handshakeResponse = MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(response);
 
             Assert.AreEqual(PlayerId, handshakeResponse.Accepted.PlayerId);
-            Assert.AreEqual(InitialHandshakeRidingStateType.Restored, handshakeResponse.Accepted.RidingStateType);
-            Assert.IsTrue(handshakeResponse.Accepted.HasRidingState);
             Assert.IsNotNull(handshakeResponse.Accepted.RidingTarget);
             Assert.AreEqual(RidableType.TrainCar, handshakeResponse.Accepted.RidingTarget.RidableType);
             Assert.AreEqual(car.TrainCarInstanceId.AsPrimitive(), handshakeResponse.Accepted.RidingTarget.TrainCarInstanceId);

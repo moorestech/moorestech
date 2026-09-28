@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Game.PlayerIdentity;
 using NUnit.Framework;
+using Tests.Util.PlayerIdentity;
 
 namespace Tests.UnitTest.Game.PlayerIdentity
 {
@@ -16,9 +17,9 @@ namespace Tests.UnitTest.Game.PlayerIdentity
             var registry = new PlayerIdentityRegistry();
             registry.InitializeForNewWorld();
 
-            Assert.AreEqual(1, PreviewAndCommit(registry, SteamA).PlayerId);
-            Assert.AreEqual(2, PreviewAndCommit(registry, SteamB).PlayerId);
-            Assert.AreEqual(PlayerIdAssignmentKind.NewlyAssigned, PreviewAndCommit(registry, SteamC).Kind);
+            Assert.AreEqual(1, PlayerIdentityTestHelper.Register(registry, SteamA).PlayerId);
+            Assert.AreEqual(2, PlayerIdentityTestHelper.Register(registry, SteamB).PlayerId);
+            Assert.AreEqual(PlayerIdAssignmentKind.NewlyAssigned, PlayerIdentityTestHelper.Register(registry, SteamC).Kind);
         }
 
         [Test]
@@ -26,9 +27,9 @@ namespace Tests.UnitTest.Game.PlayerIdentity
         {
             var registry = new PlayerIdentityRegistry();
             registry.InitializeForNewWorld();
-            PreviewAndCommit(registry, SteamA);
+            PlayerIdentityTestHelper.Register(registry, SteamA);
 
-            var again = PreviewAndCommit(registry, SteamA);
+            var again = PlayerIdentityTestHelper.Register(registry, SteamA);
             Assert.AreEqual(1, again.PlayerId);
             Assert.AreEqual(PlayerIdAssignmentKind.Known, again.Kind);
             Assert.AreEqual(SteamA, registry.GetSaveJsonObject().Entries[0].Identity);
@@ -45,7 +46,7 @@ namespace Tests.UnitTest.Game.PlayerIdentity
                 new(1, SteamA),
             }));
 
-            Assert.AreEqual(5, PreviewAndCommit(registry, SteamB).PlayerId);
+            Assert.AreEqual(5, PlayerIdentityTestHelper.Register(registry, SteamB).PlayerId);
         }
 
         [Test]
@@ -58,11 +59,11 @@ namespace Tests.UnitTest.Game.PlayerIdentity
                 new(2, null),
             }));
 
-            var first = PreviewAndCommit(registry, SteamA);
+            var first = PlayerIdentityTestHelper.Register(registry, SteamA);
             Assert.AreEqual(2, first.PlayerId);
             Assert.AreEqual(PlayerIdAssignmentKind.ClaimedCandidate, first.Kind);
 
-            var second = PreviewAndCommit(registry, SteamB);
+            var second = PlayerIdentityTestHelper.Register(registry, SteamB);
             Assert.AreEqual(3, second.PlayerId);
             Assert.AreEqual(PlayerIdAssignmentKind.NewlyAssigned, second.Kind);
 
@@ -82,18 +83,13 @@ namespace Tests.UnitTest.Game.PlayerIdentity
                 new(3, SteamC),
                 new(1, SteamA),
             }));
-            PreviewAndCommit(registry, SteamB);
+            PlayerIdentityTestHelper.Register(registry, SteamB);
 
             var entries = registry.GetSaveJsonObject().Entries;
             CollectionAssert.AreEqual(new[] { 1, 3, 4 }, entries.ConvertAll(e => e.PlayerId));
             Assert.AreEqual(5, registry.GetSaveJsonObject().NextPlayerId);
         }
 
-        private static PlayerIdAssignment PreviewAndCommit(PlayerIdentityRegistry registry, string identity)
-        {
-            var preview = registry.PreviewAssignment(identity);
-            registry.Commit(preview);
-            return preview;
-        }
+
     }
 }

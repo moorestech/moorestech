@@ -13,6 +13,7 @@ using Game.PlayerInventory.Interface;
 using Game.SaveLoad.Json;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
+using Tests.Util.PlayerIdentity;
 using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
@@ -62,9 +63,9 @@ namespace Tests.CombinedTest.Game
             {
                 new(3, "steam:3"), new(2, "steam:2"), new(1, "steam:1"),
             }));
-            registry.Commit(registry.PreviewAssignment("steam:3"));
-            registry.Commit(registry.PreviewAssignment("steam:2"));
-            registry.Commit(registry.PreviewAssignment("steam:1"));
+            PlayerIdentityTestHelper.Register(registry, "steam:3");
+            PlayerIdentityTestHelper.Register(registry, "steam:2");
+            PlayerIdentityTestHelper.Register(registry, "steam:1");
 
             var save = JObject.Parse(provider.GetRequiredService<AssembleSaveJsonText>().AssembleSaveJson());
             var ids = save["players"]["entries"].Select(entry => (int)entry["playerId"]).ToArray();

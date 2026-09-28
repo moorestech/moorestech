@@ -56,7 +56,7 @@ def main(save_path, manifest_path):
         return 1
     players = save.get("players")
     if players is None:
-        note("save.json に players 節が無い。ロード時の変換が候補を選ぶので付け替えは不要")
+        note("版2のセーブは付け替えできない。ロード時変換の持ち物最大候補の選択に委ねる（報告者と一致する保証なし）")
         return 1
     if not isinstance(players, dict) or not isinstance(players.get("entries"), list):
         note("players 節が不正なため報告者の付け替えをしない")

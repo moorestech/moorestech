@@ -199,5 +199,9 @@ source "$HERE/reporter/prepare-run-cases.sh"
 # Surface an unclaimed reporter as a reproduction gap to the caller
 ( . "$TMP/runs/reporter-unmatched/run.env"; [ "$REPORTER_UNCLAIM_FAILED" = "1" ] ) \
   || { echo "NG: 報告者の付け替え失敗フラグ"; exit 1; }
+( . "$TMP/runs/reporter-version2/run.env"; [ "$REPORTER_UNCLAIM_FAILED" = "1" ] ) \
+  || { echo "NG: 版2の候補未保証フラグ"; exit 1; }
+grep -q "報告者と一致する保証なし" "$TMP/reporter-version2.log" \
+  || { echo "NG: 版2の候補未保証理由"; exit 1; }
 
 echo OK

@@ -10,8 +10,10 @@ using Game.SaveLoad.Snapshot;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Boot.Loop.PacketProcessing;
+using Server.Event;
 using Server.Protocol;
 using Server.Protocol.PacketResponse;
+using Server.Protocol.PacketResponse.Util.Handshake;
 using UnityEngine;
 
 namespace Server.Boot.Replay
@@ -56,24 +58,25 @@ namespace Server.Boot.Replay
             var inRange = ReportPacketLogCoverage(records, loadedTick, request.TargetTick);
             var queue = provider.GetRequiredService<TickEndPacketQueue>();
             var connectionRegistry = (PlayerConnectionRegistry)provider.GetRequiredService<IPlayerConnectionChecker>();
+            var eventProvider = provider.GetRequiredService<EventProtocolProvider>();
             var contexts = new Dictionary<int, PacketResponseContext>();
+            var pendingDisconnects = new List<int>();
             var replayed = 0;
             var excluded = 0;
             var next = 0;
 
-            // 記録tick == 次のtick のパケットを積んでから Update する。tick末尾でまとめて処理される
-            // Enqueue packets whose recorded tick equals the next tick, then Update; they are processed together at tick end
+            // パケットは記録tick末尾で処理し、切断はそのtickの処理が終わってから適用する
+            // Process packets at their recorded tick end, then apply disconnects after that tick completes
             while (GameUpdater.CurrentTick < request.TargetTick)
             {
                 var nextTick = GameUpdater.CurrentTick + 1;
+                pendingDisconnects.Clear();
                 while (next < records.Count && records[next].Tick < nextTick) next++;
                 while (next < records.Count && records[next].Tick == nextTick)
                 {
                     if (records[next].Kind == ReceivedPacketRecordKind.Disconnect)
                     {
-                        var disconnectedPlayerId = records[next].PlayerId.Value;
-                        connectionRegistry.Unregister(disconnectedPlayerId);
-                        contexts.Remove(disconnectedPlayerId);
+                        pendingDisconnects.Add(records[next].PlayerId.Value);
                     }
                     else if (IsExcludedFromReplay(records[next].Payload)) excluded++;
                     else
@@ -84,6 +87,12 @@ namespace Server.Boot.Replay
                     next++;
                 }
                 GameUpdater.Update();
+                foreach (var disconnectedPlayerId in pendingDisconnects)
+                {
+                    contexts.TryGetValue(disconnectedPlayerId, out var disconnectedContext);
+                    PlayerConnectionBinding.Unregister(disconnectedPlayerId, disconnectedContext?.EventSink, connectionRegistry, eventProvider);
+                    contexts.Remove(disconnectedPlayerId);
+                }
             }
 
             var json = provider.GetRequiredService<AssembleSaveJsonText>().AssembleSaveJson();
@@ -102,7 +111,12 @@ namespace Server.Boot.Replay
                 if (!playerId.HasValue) return new PacketResponseContext(null);
                 if (contexts.TryGetValue(playerId.Value, out var existing)) return existing;
                 var created = new PacketResponseContext(null);
-                created.TryBindPlayerId(playerId.Value);
+                if (!PlayerConnectionBinding.TryBind(playerId.Value, created, connectionRegistry, eventProvider))
+                {
+                    var reason = $"再生接続のバインドに失敗しました playerId:{playerId.Value}";
+                    Debug.LogError(reason);
+                    throw new InvalidOperationException(reason);
+                }
                 contexts.Add(playerId.Value, created);
                 return created;
             }
