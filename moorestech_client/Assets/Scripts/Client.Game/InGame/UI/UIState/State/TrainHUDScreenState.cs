@@ -39,6 +39,7 @@ namespace Client.Game.InGame.UI.UIState.State
         public int BranchCandidateCount => _branchRoutePreviewController.BranchCandidateCount;
         public int SelectedBranchIndex { get; private set; }
         public IObservable<Unit> OnPresentationChanged => _onPresentationChanged;
+        public IObservable<NestedPauseSubStateEnum> OnSubStateChanged => _subStateController.OnStateChanged;
 
 
         public TrainHUDScreenState(PlayerStateController playerStateController, TrainUnitClientCache trainUnitClientCache, InGameCameraController inGameCameraController, PauseMenuStateService pauseMenuStateService)
@@ -129,6 +130,13 @@ namespace Client.Game.InGame.UI.UIState.State
         public void RestoreAfterApplicationFocus()
         {
             _subStateController.RestoreAfterApplicationFocus();
+        }
+
+        // 表示中のサブステートが宣言した移動可否をそのまま返す
+        // Return the movement lock declared by whichever sub-state is currently showing
+        public bool LocksPlayerMovement()
+        {
+            return _subStateController.CurrentSubStateLocksPlayerMovement();
         }
 
         // 表示中のサブステートが宣言したヒントをそのまま返す

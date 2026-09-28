@@ -35,5 +35,12 @@ namespace Client.Game.InGame.UI.UIState.State.NestedPause
         {
             return Array.Empty<KeyHint>();
         }
+        
+        // ポーズメニューはメニュー画面なので滞在中は移動を止める
+        // The pause menu is a menu screen, so movement stops while it shows
+        public bool LocksPlayerMovement()
+        {
+            return true;
+        }
     }
 }

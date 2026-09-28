@@ -152,7 +152,7 @@ public async UniTask<...> SetFilterSplitterItem(...) { ... }
 
 ### Step 4: コンパイル確認
 
-MCPツールまたは`unity-test.sh`でコンパイルを確認。
+`uloop compile --project-path ./moorestech_client` でコンパイルを確認。
 
 ---
 
@@ -167,19 +167,27 @@ using System;
 using Game.Context;
 using MessagePack;
 using Server.Event;
+using UniRx;
 
 namespace Server.Event.EventReceive
 {
-    public class YourEventPacket
+    public class YourEventPacket : IBootInitializable
     {
         public const string EventTag = "va:event:yourEvent";
         private readonly EventProtocolProvider _eventProtocolProvider;
+        private readonly ISomeDataStore _someDataStore;
 
-        public YourEventPacket(EventProtocolProvider eventProtocolProvider)
+        public YourEventPacket(EventProtocolProvider eventProtocolProvider, ISomeDataStore someDataStore)
         {
             _eventProtocolProvider = eventProtocolProvider;
-            // ゲームイベントを購読（UniRx .Subscribe）
-            ServerContext.SomeEvent.OnSomething.Subscribe(OnSomething);
+            _someDataStore = someDataStore;
+        }
+
+        public void Load()
+        {
+            // 購読はコンストラクタでなくLoadで行う（起動時に一括で呼ばれる）
+            // Subscribe in Load, not the constructor (invoked in bulk at boot)
+            _someDataStore.OnSomething.Subscribe(OnSomething);
         }
 
         private void OnSomething(SomeEventData eventData)
@@ -213,11 +221,15 @@ namespace Server.Event.EventReceive
 }
 ```
 
-### Step 2: イベントパケットを初期化
+### Step 2: DIコンテナに登録
 
-イベントを発火する責任を持つシステムのコンストラクタでインスタンス化し、フィールドに保持する（GC防止）。
+`moorestech_server/Assets/Scripts/Server.Boot/MoorestechServerDIContainerGenerator.cs` の EventPacket 群に追加:
 
-例: ブロック配置イベント → `BlockUpdateSystem`で初期化、レールノード作成イベント → `RailGraphDatastore`関連で初期化。
+```csharp
+services.AddSingleton<YourEventPacket>();
+```
+
+`IBootInitializable` を実装していれば、起動時に `AddInitializableForwarding` 経由で生成され `Load()` が呼ばれる（前例: `UnlockedEventPacket`）。初期ロード完了後に購読を始めたい場合は `IPostLoadInitializable` を使う。
 
 ### Step 3: テストを作成
 
@@ -225,7 +237,7 @@ namespace Server.Event.EventReceive
 
 ### Step 4: コンパイル確認
 
-MCPツールまたは`unity-test.sh`でコンパイルを確認。
+`uloop compile --project-path ./moorestech_client` でコンパイルを確認。
 
 ---
 

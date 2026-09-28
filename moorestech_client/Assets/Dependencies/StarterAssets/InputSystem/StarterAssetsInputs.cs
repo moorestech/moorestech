@@ -1,3 +1,4 @@
+using Client.Input;
 using UnityEngine;
 #if ENABLE_INPUT_SYSTEM && STARTER_ASSETS_PACKAGES_CHECKED
 using UnityEngine.InputSystem;
@@ -7,7 +8,7 @@ namespace StarterAssets
 {
 	public class StarterAssetsInputs : MonoBehaviour
 	{
-		public bool inputEnable = true;
+		public bool inputEnable { get; private set; } = true;
 		
 		[Header("Character Input Values")]
 		public Vector2 move;
@@ -23,6 +24,21 @@ namespace StarterAssets
 		public bool cursorLocked = true;
 		public bool cursorInputForLook = true;
 #endif
+
+		public void SetInputEnable(bool enable)
+		{
+			// 同値の再適用で押下中のジャンプ等を捨てないよう、切替時だけ処理する
+			// Act only on an actual toggle so a same-value reapply never drops an in-flight jump
+			if (inputEnable == enable) return;
+			inputEnable = enable;
+
+			// 無効中は押下も離しも捨てられるため、切替の瞬間に押しっぱなしの実値へ揃え直す
+			// Presses and releases are dropped while disabled, so resync to the keys actually held at the moment of toggling
+			jump = false;
+			look = Vector2.zero;
+			move = enable ? InputManager.Player.Move.ReadValue<Vector2>() : Vector2.zero;
+			sprint = enable && InputManager.Player.Sprint.GetKey;
+		}
 
 #if ENABLE_INPUT_SYSTEM && STARTER_ASSETS_PACKAGES_CHECKED
 		public void OnMove(InputValue value)

@@ -1,28 +1,49 @@
+using Client.Build.Policy;
 using UnityEditor;
 
 namespace Client.Editor.Build
 {
     /// <summary>
-    /// Playerビルド1回分の入力（入口ごとの契約差はここで表現する）
-    /// Input for one Player build; per-entry contract differences live here
+    /// Playerビルド1回分の入力。用途ごとのfactoryだけが作れる（ADR 0071）
+    /// Input for one Player build; only the per-purpose factories can construct it (ADR 0071)
+    /// 用途とターゲットの不正な組合せを構築時点で作らせないため、コンストラクタは公開しない
+    /// The constructor stays private so an invalid purpose/target pair cannot be built in the first place
     /// </summary>
     public class PlayerBuildRequest
     {
-        public BuildTarget Target;
+        public readonly BuildTarget Target;
 
         // 成果物を配置するディレクトリ（この直下に実行ファイルとgame/が並ぶ）
         // Directory receiving the artifact (player executable and game/ sit directly under it)
-        public string OutputDirectory;
+        public readonly string OutputDirectory;
 
-        public bool IsDevelopmentBuild;
+        public readonly BuildPurpose Purpose;
 
-        // trueなら同梱失敗を即ビルド失敗にする（ローカル配布用）。falseはCI互換の警告のみ
-        // True fails the build on bundling problems (local distribution); false keeps CI-compatible warnings
-        public bool IsStrictBundling;
+        // 開発メニューだけが選ぶ。ほかの用途は規則から導く
+        // Only the dev menu chooses; other purposes derive their mode from policy
+        public readonly bool LocalDevelopmentChoosesDevelopment;
 
-        // ../moorestech_master/server_v8 を game/ として同梱するか（CI入口では行わない）
-        // Whether to bundle ../moorestech_master/server_v8 as game/ (skipped for CI entries)
-        public bool BundleLocalGameData;
+        private PlayerBuildRequest(BuildTarget target, string outputDirectory, BuildPurpose purpose, bool localDevelopmentChoosesDevelopment)
+        {
+            Target = target;
+            OutputDirectory = outputDirectory;
+            Purpose = purpose;
+            LocalDevelopmentChoosesDevelopment = localDevelopmentChoosesDevelopment;
+        }
+
+        public static PlayerBuildRequest ForCi(BuildTarget target, string outputDirectory) =>
+            new PlayerBuildRequest(target, outputDirectory, BuildPurpose.Ci, false);
+
+        public static PlayerBuildRequest ForLocalDevelopment(BuildTarget target, string outputDirectory, bool choosesDevelopment) =>
+            new PlayerBuildRequest(target, outputDirectory, BuildPurpose.LocalDevelopment, choosesDevelopment);
+
+        // 展示会の起動スクリプトが.commandのためMacに固定する
+        // The exhibition launch script is a .command, so the target is fixed to Mac
+        public static PlayerBuildRequest ForExhibition(string outputDirectory) =>
+            new PlayerBuildRequest(BuildTarget.StandaloneOSX, outputDirectory, BuildPurpose.Exhibition, false);
+
+        public static PlayerBuildRequest ForSteamPlaytest(BuildTarget target, string outputDirectory) =>
+            new PlayerBuildRequest(target, outputDirectory, BuildPurpose.SteamPlaytest, false);
     }
 
     /// <summary>
@@ -32,7 +53,10 @@ namespace Client.Editor.Build
     public enum PlayerBuildOutcome
     {
         Succeeded,
+        BuildTargetSwitchFailed,
+        MacArchitecturePinFailed,
         AddressablesBuildFailed,
         PlayerBuildFailed,
+        MacSigningFailed,
     }
 }

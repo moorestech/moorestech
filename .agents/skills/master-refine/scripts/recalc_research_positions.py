@@ -2,8 +2,8 @@
 """操作 B — research.json の graphViewSettings.UIPosition を再計算して書き戻す。
 
 依存関係グラフ (prevResearchNodeGuids) と nodeGraph.v1.json のビジュアル配置
-(masterGuid 照合) から各研究ノードの座標を決める。アルゴリズムは SKILL.md の
-操作 B (Step B-1〜B-5) に従う。
+(masterGuid 照合) から各研究ノードの座標を決める。アルゴリズムの正本はこの docstring
+とコード (SKILL.md は要点のみ)。
 
   - depth: prevResearchNodeGuids を辿った最長パス
   - Y: nodeGraph の y でグループ判定 (upper/main/lower) → main=0, upper=200, lower=-200

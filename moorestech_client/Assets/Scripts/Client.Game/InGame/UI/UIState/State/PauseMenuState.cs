@@ -26,6 +26,11 @@ namespace Client.Game.InGame.UI.UIState.State
         {
         }
 
+        public bool LocksPlayerMovement()
+        {
+            return true;
+        }
+
         public IReadOnlyList<KeyHint> GetKeyHints()
         {
             return System.Array.Empty<KeyHint>();

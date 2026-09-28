@@ -13,6 +13,10 @@ namespace Client.Game.InGame.UI.UIState.State.NestedPause
         
         IObservable<Unit> OnPresentationChanged { get; }
         
+        // サブステートが変わった通知。滞在中に移動可否が変わるためUIStateControlが再適用に使う
+        // Fires when the sub-state changes; UIStateControl re-applies the movement lock because it can change mid-screen
+        IObservable<NestedPauseSubStateEnum> OnSubStateChanged { get; }
+        
         // 入れ子ポーズだけを閉じる。実際に閉じたときだけtrue
         // Closes only the nested pause menu; true only when it actually closed
         bool RequestClosePauseMenu();

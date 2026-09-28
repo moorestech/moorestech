@@ -35,6 +35,42 @@ function loadRules() {
   return Array.isArray(parsed) ? parsed : parsed.rules || [];
 }
 
+// 編集ツールの入力形状の差を吸収し、編集対象のファイルパスを取り出す
+// Absorb per-tool input shapes and extract the edited file paths.
+function collectEditedPaths(toolInput) {
+  const paths = [];
+
+  // Claude Code の編集系は file_path（ノートブックは notebook_path）を持つ
+  // Claude Code's edit tools carry file_path (notebook_path for notebooks).
+  for (const key of ["file_path", "notebook_path", "path"]) {
+    if (typeof toolInput[key] === "string") paths.push(toolInput[key]);
+  }
+
+  // Codex の apply_patch はパッチ本文の Add/Update File 行にパスが載る
+  // Codex's apply_patch puts paths on the Add/Update File lines of the patch body.
+  const patch = [toolInput.command, toolInput.input, toolInput.patch]
+    .filter((v) => typeof v === "string")
+    .join("\n");
+  for (const m of patch.matchAll(/^\*\*\* (?:Add|Update) File: (.+)$/gm)) {
+    paths.push(m[1].trim());
+  }
+
+  return [...new Set(paths)];
+}
+
+// filePattern 指定のルールは、編集対象のどれかが一致した時だけ照合へ進める
+// A rule with filePattern proceeds only when some edited path matches it.
+function matchesFilePattern(rule, editedPaths) {
+  if (!rule.filePattern) return true;
+  let re;
+  try {
+    re = new RegExp(rule.filePattern, rule.filePatternFlags || "");
+  } catch {
+    return false;
+  }
+  return editedPaths.some((p) => re.test(p));
+}
+
 function readStdin() {
   try {
     return readFileSync(0, "utf8");
@@ -74,12 +110,14 @@ function main() {
     bail();
   }
 
-  // 各ルールを照合し、ツール限定があれば尊重する
-  // Match each rule, respecting an optional per-rule tool allowlist.
+  // 各ルールを照合し、ツール限定・ファイル種別限定があれば尊重する
+  // Match each rule, respecting optional per-rule tool and file-path filters.
+  const editedPaths = collectEditedPaths(toolInput);
   const messages = [];
   for (const rule of rules) {
     if (!rule || !rule.pattern || !rule.message) continue;
     if (Array.isArray(rule.tools) && rule.tools.length && toolName && !rule.tools.includes(toolName)) continue;
+    if (!matchesFilePattern(rule, editedPaths)) continue;
 
     let re;
     try {

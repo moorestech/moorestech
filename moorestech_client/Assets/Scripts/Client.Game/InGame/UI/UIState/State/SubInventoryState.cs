@@ -164,6 +164,11 @@ namespace Client.Game.InGame.UI.UIState.State
             CurrentSubInventorySource = null;
         }
 
+        public bool LocksPlayerMovement()
+        {
+            return true;
+        }
+
         public IReadOnlyList<KeyHint> GetKeyHints()
         {
             return SubInventoryStateHints.Hints;

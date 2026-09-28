@@ -18,79 +18,32 @@ description: Use when the user wants a moorestech item produced at a target thro
 - 機械稼働の前提:
   - **GearMachine は `gearConsumption.baseRpm` で定格動作**することを仮定（機械ごとに異なるので blocks.json から読む。動力不足でRPMが下がるとレシピ時間が伸びる）
   - **ElectricMachine は `requiredPower` を満たして定格動作**することを仮定。`requiredPower: 0` の機械（石窯など）は電力供給不要
-- 1台あたり生産量 = `60 / time × outputCount`（個/分）
-- 必要台数 = `ceil(需要/分 ÷ 1台あたり/分)`
 
 ## 手順
 
-### Step 1. 目標アイテムを itemGuid で特定
+### Step 1. Python でレシピDBを組み、DAG を展開する
 
-ユーザー指定のアイテム名を `items.json` から逆引きし itemGuid を取得する。
+手計算・grep での手繰りはしない。Python で master の JSON を読み、次を組み立てて計算する：
 
-```bash
-grep -n -B2 -A2 "\"name\": \"<アイテム名>\"" <master>/items.json
-```
+- `items.json` / `fluids.json` から名前 ↔ Guid の対応
+- `machineRecipes.json` から「出力 itemGuid → レシピ（`time`・出力 count・`inputItems[]`・`blockGuid`）」。入力側に登場するだけのレシピはそのアイテムの作成レシピではない
+- `blocks.json` から blockGuid → `name`・`blockType`（hex で判断しない。同系列でも tier 違いで `time` の違うレシピが別登録されている）
 
-### Step 2. 出力レシピを検索
+計算規則：
 
-itemGuid が `outputItems[].itemGuid` に登場するレシピを `machineRecipes.json` で検索する。
+- 1台あたり/分 = `60 / time × outputCount`、必要台数 = `ceil(需要/分 ÷ 1台あたり/分)`、子の需要/分 = 入力 count × (親の需要/分 ÷ 親の outputCount)
+- 作成レシピが複数あれば、ユーザーが機械を指定していない限り最も基本的な機械（原始的な〜系）を採る
+- `isRemain: true` の入力（鋳型など）は消費されないので需要にも再帰にも入れない。未指定は false（消費される）
+- 作成レシピが無いアイテムは採取系の生原料。採掘機（GearMiner / ElectricMiner の `mineSettings[].time`、`60 / time` 個/分）の台数まで出す
+- 液体（`inputFluids` / `outputFluids`）が絡む場合は液体源（採掘・蒸気源・抽出機）まで遡る
 
-```bash
-grep -n -B5 -A2 "\"itemGuid\": \"<itemGuid>\"" <master>/machineRecipes.json
-```
+DFS は2回走らせる：
 
-複数レシピがヒットした場合：
+1. **完全展開DFS**: 同じ中間素材でも消費先ごとに独立したサブツリーとして展開し、各ノードの台数を機械種別合計に加算する
+2. **合算DFS**: 各アイテムの需要を全消費先で合計してから台数を計算する
+3. 両者の機械合計の差は端数切り上げの累積として出力で明示する
 
-- ユーザーが特定の機械を指定していない限り、**最も基本的な機械（原始的な〜系）のレシピを採用**
-- 出力側 (`outputItems[]`) に該当 itemGuid を含むものだけがそのアイテムの作成レシピ。入力側 (`inputItems[]`) に登場するものは別アイテムを作るときに当該アイテムを消費する側なので無視する
-
-### Step 3. レシピ周辺を読み込んで `time` / `outputCount` / `inputItems[]` / `blockGuid` を確定
-
-`Read` で前後 30〜50 行を取り、`time`、出力 count、入力 itemGuid と count、blockGuid を抜き出す。
-
-`isRemain: true` の入力（鋳型など）は**消費されない**ので、需要計算からは除外する。ただし「機械セット時に1個必要」なのでスキル末尾の注意書きに残す。`isRemain` フィールドが未指定なら **false（消費される）扱い**。
-
-### Step 4. blockGuid から機械種別を取得
-
-`blocks.json` で blockGuid を引き、`name` と `blockType` を確認する。
-
-```bash
-grep -n -B1 -A3 "<blockGuid>" <master>/blocks.json
-```
-
-主要な `blockType`:
-- `GearMachine` — 歯車動力。`gearConsumption.baseRpm` で定格
-- `ElectricMachine` — 電力。`requiredPower` で定格
-
-### Step 5. レート計算
-
-```
-1台あたり/分 = 60 / time × outputCount
-必要台数 = ceil(需要/分 / 1台あたり/分)
-親アイテム消費/分 → 各 inputItems の count × (需要/分 / outputCount)
-```
-
-### Step 6. 入力アイテムを Step 1〜5 に再帰
-
-各 `inputItems[]` を新たな目標として再帰。`isRemain: true` は再帰しない（消費されないため）。**採取系の生原料（鉄鉱石・原木など）には採掘機の台数も含めて計算する**（採掘機レートは blocks.json の GearMiner / ElectricMiner ブロックの `mineSettings[].time` から `60 / time` 個/分）。
-
-同じ中間素材が複数の親から消費される場合の扱いは、出力する2種類のビュー（完全展開ツリー / アイテム合計表）で異なる：
-- **完全展開ツリー**: 合算しない。消費先ごとに**完全に独立したサブツリー**を展開する（鉄板用の鉄インゴットと鉄ロッド用の鉄インゴットは別ノード、原木も消費先ごとに別ノード）
-- **アイテム種ごとの合計表**: 全消費先の需要を合算してから台数を計算する
-
-### Step 7. 終端の判定
-
-`grep` で `outputItems` に該当 itemGuid を持つレシピが見つからなければ、それは**採取系の生原料**（鉄鉱石・原木・青銅の鉱石など）。採掘機の台数を `ceil(需要/分 / (60/採掘time))` で計算してツリーに含める。
-
-### Step 8. Pythonで計算と検算
-
-レシピDB（dict）を組み立て、Pythonで再帰DFSを2回走らせる。**手計算は禁止、必ずPython実行**：
-
-1. **完全展開DFS**: 子に`is_remain=False`の入力を辿る際、合算せず各経路ごとに独立にツリーを再帰。各ノードで `machines = ceil(demand/(60/time*output))` を計算し、機械種別合計に加算
-2. **合算DFS**: 各アイテムの需要を全消費先で合計し、その合算需要から台数を計算
-3. **検算**: 機械種別合計（ツリー展開ベース）と合算ベースの値が、共有素材を持たない部分（採掘機・加工機を除く可能性あり）で一致することを確認。差分は端数切り上げ累積によるものと明示
-
-### Step 9. 出力（**4パート固定構成**）
+### Step 2. 出力（**4パート固定構成**）
 
 以下の4パートを必ずこの順序で出力する。1つでも欠けてはいけない：
 
@@ -165,12 +118,3 @@ grep -n -B1 -A3 "<blockGuid>" <master>/blocks.json
 
 ### baseRpm 前提の明記
 GearMachine の計算は「定格RPMで動いている」前提。ユーザーが歯車動力に余裕がない場合、実際の台数は増える。回答末尾で必ず「歯車動力でRPMが下がるとGearMachineの台数は増える」と注意する。
-
-### grep の前後行数が足りないと recipe ブロックが切れる
-`grep -A2` ではレシピが切れる。`-B5 -A40` を取るか、ヒット位置を `Read` で読み直すこと。
-
-### blockGuid → 機械名の引き直しは省略しない
-blockGuid の hex だけで判断しない。必ず `blocks.json` で `name` を確認する。同じ系列でも tier 違い（原始的な加工機 vs 加工機）で `time` が異なるレシピが別々に登録されている。
-
-### inputFluids / outputFluids の扱い
-レシピは液体を入出力することがある（`fluidGuid` で参照）。液体の生産チェーンは固体と独立してたどる必要がある。今回の鉄フレーム鎖には液体は無いが、化学プラント等が絡む目標アイテムでは液体源（採掘・蒸気源・抽出機）まで遡ること。`fluids.json` に名前マッピングがある。
