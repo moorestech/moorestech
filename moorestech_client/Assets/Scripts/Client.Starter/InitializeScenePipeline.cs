@@ -15,6 +15,7 @@ using Server.Boot;
 using Server.Boot.Args;
 using Server.Util.MessagePack;
 using TMPro;
+using UniRx;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.SceneManagement;
@@ -67,6 +68,9 @@ namespace Client.Starter
             // Web UI の実ポートが確定してから遠隔実行を有効化する
             // Activate remote exec after the Web UI's actual port is known
             Client.RemoteExec.RemoteExecActivation.ActivateIfRequested(webUiStarted, Client.WebUiHost.Boot.WebUiHost.KestrelPort);
+            // 正常終了で遠隔実行の入口を撤去する。終了イベントを知らないClient.RemoteExecへここから配線する
+            // A clean exit withdraws the remote-exec entry; Client.RemoteExec does not know the shutdown event, so it is wired from here
+            GameShutdownEvent.OnGameShutdown.Subscribe(_ => Client.RemoteExec.RemoteExecActivation.Deactivate());
 
 #if UNITY_EDITOR
             Editor.PlayModeLaunchOverrides.ApplyIfNeeded(_proprieties);

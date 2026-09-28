@@ -52,7 +52,7 @@ Path(args[args.index('-o')+1]).write_text(os.environ.get('HTTP_BODY', '{"outcome
 print(os.environ['HTTP_STATUS'],end='')
 PY
 chmod +x "$SANDBOX/bin/curl"
-echo '{"port":12345,"token":"dummy"}' > "$SANDBOX/access.json"
+printf '{"port":12345,"token":"dummy","processId":%s}' "$$" > "$SANDBOX/access.json"
 for code in 200 201 302 403 500; do
     status=0
     HTTP_STATUS="$code" PATH="$SANDBOX/bin:$PATH" MOORESTECH_REMOTE_EXEC_ACCESS="$SANDBOX/access.json" \

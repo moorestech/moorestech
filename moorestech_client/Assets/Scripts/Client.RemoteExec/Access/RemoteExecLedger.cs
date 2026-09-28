@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using Client.RemoteExec.Run;
+using Game.Paths;
 using Debug = UnityEngine.Debug;
 
 namespace Client.RemoteExec.Access
@@ -43,9 +44,14 @@ namespace Client.RemoteExec.Access
             return Path.Combine(RemoteExecAccessFile.DirectoryPath, fileName);
         }
 
-        public static string PathFor(int processId, string sessionName)
+        // 印ファイルはプロセスが落ちても残る唯一の物理証跡。真偽の読み手はここ1本に固定する
+        // The signal files are the only physical evidence surviving a crash, so this is the single reader of those truths
+        public static RemoteExecOriginMark ReadState(string markDirectory, string ledgerFileName)
         {
-            return PathForFileName(RemoteExecLedgerWriter.FileNameFor(processId, sessionName));
+            if (ledgerFileName == null) return null;
+            return new RemoteExecOriginMark(ledgerFileName).WithSignals(
+                File.Exists(Path.Combine(markDirectory, AttemptSignalFileName)),
+                File.Exists(Path.Combine(markDirectory, FailureSignalFileName)));
         }
 
         internal static RemoteExecLedgerEntry AppendStart(RemoteExecTarget target, string body)
@@ -77,7 +83,13 @@ namespace Client.RemoteExec.Access
 
         private static void MarkAttempt()
         {
-            if (_attemptSignalPath == null) return;
+            // 印の置き場を知らないまま実行すると、クラッシュ後に未実行と区別できない
+            // Running without knowing where the signal goes makes a crash indistinguishable from no run
+            if (_attemptSignalPath == null)
+            {
+                Debug.LogError("[RemoteExec] 実行試行の印の置き場が未設定です（Initialize未了。前回セッションの判定が欠損）");
+                return;
+            }
             // 台帳とは別の印ディレクトリへ先に残し、クラッシュ後も書込失敗と未実行を区別する
             // Write first in the separate marks directory so a crash can distinguish failed writes from no run
             if (!TryWriteSignal(_attemptSignalPath)) RecordFailure();
@@ -86,7 +98,12 @@ namespace Client.RemoteExec.Access
         private static void RecordFailure()
         {
             _hasWriteFailure = true;
-            if (_failureSignalPath != null) TryWriteSignal(_failureSignalPath);
+            if (_failureSignalPath == null)
+            {
+                Debug.LogError("[RemoteExec] 台帳書込失敗の印の置き場が未設定です（Initialize未了。前回セッションの判定が欠損）");
+                return;
+            }
+            TryWriteSignal(_failureSignalPath);
         }
 
         private static bool TryWriteSignal(string path)
@@ -98,7 +115,7 @@ namespace Client.RemoteExec.Access
                 lock (AttemptSignalLock)
                 {
                     if (File.Exists(path)) return true;
-                    Directory.CreateDirectory(Path.GetDirectoryName(path));
+                    RemoteExecDirectory.EnsureCreated(Path.GetDirectoryName(path));
                     File.WriteAllText(path, string.Empty);
                 }
                 return true;
@@ -125,7 +142,7 @@ namespace Client.RemoteExec.Access
         private static class CurrentWriter
         {
             private static readonly object Gate = new();
-            private static string _sessionName = "session_" + System.DateTime.UtcNow.Ticks;
+            private static string _sessionName = ProcessSessionName.Prefix + System.DateTime.UtcNow.Ticks;
             private static RemoteExecLedgerWriter _instance;
             internal static string FileName => RemoteExecLedgerWriter.FileNameFor(Process.GetCurrentProcess().Id, _sessionName);
 

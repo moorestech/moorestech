@@ -25,7 +25,9 @@ namespace Client.WebUiHost.Boot
         private static Task _stopTask = Task.CompletedTask;
         public static WebSocketHub Hub => _hub;
 
-        public static int KestrelPort => _kestrel == null ? 0 : _kestrel.ActualPort;
+        // 未起動はnull。0は実ポート域外の値で、書けば「届かない入口」を正常系の数字として名乗る
+        // Not started is null; 0 is outside the real port range and would pose as a normal value for an unreachable entry
+        public static int? KestrelPort => _kestrel?.ActualPort;
 
         public static string WebUiUrl => _webUiUrl;
         private static string _webUiUrl;
