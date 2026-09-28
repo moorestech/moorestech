@@ -6,10 +6,16 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 TMP="$(mktemp -d)"; trap 'rm -rf "${TMP:?}"' EXIT
 export TMPDIR="$TMP"   # ロックもテスト用一時ディレクトリへ隔離する / keep the lock inside the test temp dir
 LOGS="$TMP/logs"; INBOX="$LOGS/harness/bug-report/inbox"; RUNS="$LOGS/harness/bug-report/runs"
-mkdir -p "$INBOX/20260911_120000_aaaa1111" "$RUNS"
+mkdir -p "$RUNS"
 ( cd "$LOGS" && git init -q && git config user.email t@t && git config user.name t && echo x > .gitkeep && git add . && git commit -qm init )
-echo '{"description":"x"}' > "$INBOX/20260911_120000_aaaa1111/manifest.json"
-touch "$INBOX/20260911_120000_aaaa1111/READY"
+# 箱は必ず遠隔実行の印つきで作る。印が無い箱は不明として遮断される（ADR 0072）
+# Every box carries the remote-exec mark; a box without one is held back as unknown (ADR 0072)
+ready_box() {
+  mkdir -p "$INBOX/$1"
+  echo '{"description":"x","remoteExec":{"state":"Disabled","ledgerFiles":[]}}' > "$INBOX/$1/manifest.json"
+  touch "$INBOX/$1/READY"
+}
+ready_box 20260911_120000_aaaa1111
 # 運搬中の箱は READY を含んでいても掴まない / an in-flight box carries READY too and must be ignored
 mkdir -p "$INBOX/20260911_110000_partial.partial"
 touch "$INBOX/20260911_110000_partial.partial/READY"
@@ -64,8 +70,8 @@ grep -q "bug-report run 20260911_120000_aaaa1111" "$TMP/logs-commits.txt" || { e
 
 # 同じ id が runs に残っている状態で再び届いても、二度処理せず入れ子にもせず、後続の箱を止めない
 # A box reusing an existing run id is neither processed twice nor nested, and it must not block the boxes behind it
-mkdir -p "$INBOX/20260911_120000_aaaa1111" "$INBOX/20260911_130000_bbbb2222"
-touch "$INBOX/20260911_120000_aaaa1111/READY" "$INBOX/20260911_130000_bbbb2222/READY"
+ready_box 20260911_120000_aaaa1111
+ready_box 20260911_130000_bbbb2222
 poll 2>"$TMP/run2.log"
 grep -q "隔離した" "$TMP/run2.log" || { echo "NG: 重複箱の隔離理由がログされていない"; exit 1; }
 [ -d "$INBOX/.duplicate/20260911_120000_aaaa1111" ] || { echo "NG: 重複箱が隔離先に無い"; exit 1; }
@@ -77,8 +83,7 @@ git -C "$LOGS" log --oneline > "$TMP/logs-commits2.txt"
 
 # 隔離先にも同名がある箱は動かさずに飛ばす（人が中身を見るまで残す）
 # A box whose name already exists in quarantine is left untouched and skipped until a human looks at it
-mkdir -p "$INBOX/20260911_120000_aaaa1111"
-touch "$INBOX/20260911_120000_aaaa1111/READY"
+ready_box 20260911_120000_aaaa1111
 poll 2>"$TMP/run2b.log"
 grep -q "触らず次の候補へ" "$TMP/run2b.log" || { echo "NG: 隔離先衝突の理由がログされていない"; exit 1; }
 [ -d "$INBOX/20260911_120000_aaaa1111" ] || { echo "NG: 隔離先衝突の箱を消した"; exit 1; }
@@ -86,8 +91,7 @@ rm -rf "${INBOX:?}/20260911_120000_aaaa1111"
 
 # ロックが取られている間は起動しない（多重起動防止）
 # While the lock is held, a second invocation does not start (single flight)
-mkdir -p "$INBOX/20260911_140000_cccc3333"
-touch "$INBOX/20260911_140000_cccc3333/READY"
+ready_box 20260911_140000_cccc3333
 mkdir "$TMP/moorestech-bugreport-poller.lock"
 poll 2>"$TMP/run3.log"
 grep -q "別のランが進行中" "$TMP/run3.log" || { echo "NG: ロック理由がログされていない"; exit 1; }
@@ -106,8 +110,7 @@ cat > "$TMP/claude-forbidden" <<'SH'
 touch "$CLAUDE_CALLED_MARKER"
 SH
 chmod +x "$TMP/prepare-broken" "$TMP/claude-forbidden"
-mkdir -p "$INBOX/20260911_150000_dddd4444"
-touch "$INBOX/20260911_150000_dddd4444/READY"
+ready_box 20260911_150000_dddd4444
 poll CLAUDE_CALLED_MARKER="$TMP/claude-was-called" CLAUDE_CMD="$TMP/claude-forbidden" \
   PREPARE_CMD="$TMP/prepare-broken" 2>"$TMP/run4.log"
 [ ! -e "$TMP/claude-was-called" ] || { echo "NG: worktree 無しで claude を起こした"; exit 1; }
@@ -123,8 +126,7 @@ mkdir -p "$TMP/canon-empty"
 echo '{"canon": "$TMP/canon-empty"}'
 SH
 chmod +x "$TMP/canon-setup-empty"
-mkdir -p "$INBOX/20260911_170000_ffff6666"
-touch "$INBOX/20260911_170000_ffff6666/READY"
+ready_box 20260911_170000_ffff6666
 poll CLAUDE_CALLED_MARKER="$TMP/claude-was-called-canon" CLAUDE_CMD="$TMP/claude-forbidden" \
   CANON_SETUP_CMD="$TMP/canon-setup-empty" 2>"$TMP/run7.log"
 [ ! -e "$TMP/claude-was-called-canon" ] || { echo "NG: canon 不備で claude を起こした"; exit 1; }
@@ -139,8 +141,7 @@ echo "boom" >&2
 exit 1
 SH
 chmod +x "$TMP/canon-setup-broken"
-mkdir -p "$INBOX/20260911_180000_9999aaaa"
-touch "$INBOX/20260911_180000_9999aaaa/READY"
+ready_box 20260911_180000_9999aaaa
 poll CLAUDE_CALLED_MARKER="$TMP/claude-was-called-canon2" CLAUDE_CMD="$TMP/claude-forbidden" \
   CANON_SETUP_CMD="$TMP/canon-setup-broken" 2>"$TMP/run8.log"
 [ ! -e "$TMP/claude-was-called-canon2" ] || { echo "NG: canon_setup 失敗で claude を起こした"; exit 1; }
@@ -154,11 +155,28 @@ grep -q "READY の箱が無いので何もしない" "$TMP/run5.log" || { echo "
 
 # push の失敗を無音で 0 に潰さない（記録が private remote へ届いていないことを必ず言う）
 # A failed push is never swallowed; the run must say the record did not reach the private remote
-mkdir -p "$INBOX/20260911_160000_eeee5555"
-touch "$INBOX/20260911_160000_eeee5555/READY"
+ready_box 20260911_160000_eeee5555
 poll GIT_PUSH=1 2>"$TMP/run6.log"
 grep -q "logs push 失敗" "$TMP/run6.log" || { echo "NG: push 失敗の理由がログされていない"; exit 1; }
 git -C "$LOGS" log --oneline > "$TMP/logs-commits3.txt"
 grep -q "bug-report run 20260911_160000_eeee5555" "$TMP/logs-commits3.txt" || { echo "NG: push 失敗で commit まで失われた"; exit 1; }
+
+# 遠隔実行が有効/不明の箱はランを起こさず退避する。読めない manifest も無効と名乗らせない
+# A box with remote execution enabled or unknown is held instead of run; an unreadable manifest never claims "disabled"
+mkdir -p "$INBOX/20260911_190000_rex11111"
+echo '{"description":"x","remoteExec":{"state":"Enabled","ledgerFiles":[]}}' > "$INBOX/20260911_190000_rex11111/manifest.json"
+touch "$INBOX/20260911_190000_rex11111/READY"
+poll CLAUDE_CALLED_MARKER="$TMP/claude-was-called-rex" CLAUDE_CMD="$TMP/claude-forbidden" 2>"$TMP/run9.log"
+[ ! -e "$TMP/claude-was-called-rex" ] || { echo "NG: 遠隔実行ありの箱で claude を起こした"; exit 1; }
+grep -q "遠隔実行が有効/不明のためランを起こさず退避した" "$TMP/run9.log" || { echo "NG: 遮断理由がログされていない"; exit 1; }
+[ -d "$INBOX/.remote-exec-held/20260911_190000_rex11111" ] || { echo "NG: 退避先に箱が無い"; exit 1; }
+[ ! -e "$RUNS/20260911_190000_rex11111" ] || { echo "NG: runs へ移動した"; exit 1; }
+
+mkdir -p "$INBOX/20260911_200000_nomani11"
+touch "$INBOX/20260911_200000_nomani11/READY"
+poll CLAUDE_CALLED_MARKER="$TMP/claude-was-called-nomani" CLAUDE_CMD="$TMP/claude-forbidden" 2>"$TMP/run10.log"
+[ ! -e "$TMP/claude-was-called-nomani" ] || { echo "NG: manifest の無い箱で claude を起こした"; exit 1; }
+grep -q "manifest を読めない" "$TMP/run10.log" || { echo "NG: 読めない manifest の理由がログされていない"; exit 1; }
+[ -d "$INBOX/.remote-exec-held/20260911_200000_nomani11" ] || { echo "NG: 読めない箱が退避されていない"; exit 1; }
 
 echo OK

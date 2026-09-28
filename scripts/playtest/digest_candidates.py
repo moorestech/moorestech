@@ -39,8 +39,11 @@ def load_candidate_reports(root: Path) -> tuple[list[dict], dict]:
             continue
         if manifest["kind"] != "bug" or (ingest_path.parent / "AUTOFIX_QUEUED").is_file():
             continue
-        if manifest["remoteExec"] is not None:
-            warn("遠隔実行が有効だったセッションを投入候補から除外", manifest_path)
+        # 有効と不明はどちらも投入候補から外す。不明を通すと遠隔実行のあった箱が自動修正へ流れうる
+        # Both enabled and unknown stay out of the candidates; letting unknown through could feed a remote-exec box into auto-fix
+        state, unknown_reason = schema.remote_exec_state(manifest)
+        if state != schema.REMOTE_EXEC_DISABLED:
+            warn(f"遠隔実行が{'有効' if state == schema.REMOTE_EXEC_ENABLED else '不明'}のセッションを投入候補から除外{f'（{unknown_reason}）' if unknown_reason else ''}", manifest_path)
             stats["remoteExec"] += 1
             continue
         reports.append({
@@ -77,5 +80,5 @@ def format_candidates(candidates: list[dict], stats: dict) -> list[str]:
     if stats["unreadable"]:
         lines.append(f"- ⚠ ingest.json/manifest.json を読めず投入候補の判定から除外した箱 {stats['unreadable']}件")
     if stats["remoteExec"]:
-        lines.append(f"- ⚠ 遠隔実行が有効で投入候補から除外 {stats['remoteExec']}件")
+        lines.append(f"- ⚠ 遠隔実行が有効/不明で投入候補から除外 {stats['remoteExec']}件")
     return lines

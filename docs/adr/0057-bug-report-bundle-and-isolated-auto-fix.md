@@ -65,7 +65,7 @@
 - **バンドルは manifest（コミット・dirty・未コミット差分・master dataの実チェックアウト値・プラットフォーム・Editor/ビルド・報告tick・各スナップショットtick・説明文・縮退項目と理由・カメラ位置向き・開いているUI）＋スナップショット群＋パケットログ＋動画と連番フレーム＋Unityログのリング＋報告時スクリーンショット。取得側と再現側の契約はこのバンドル形式のみ。**
   出所: agent前提（壁打ちで提示し異議なし。契約を固定して両側を独立に作る）
 
-  manifest の `remoteExec` は、遠隔実行が無効なら `null`、有効なら `{ "ledgerFiles": ["remote-exec/session_....jsonl"] }` とする。`ledgerFiles` はバンドル内の台帳への相対パスを文字列で並べた配列で、実行試行が無い場合などは空配列も許す。台帳をコピーできない場合は `missing` に理由を残す。Mac mini の日次集計は `remoteExec` が非 `null` の箱を除外し、自動修正への通常投入も拒否する。明示的な `--force` だけが投入を許すが、`ledgerFiles` の型が壊れた manifest は強制指定でも拒否する。
+  manifest の `remoteExec` は常時存在し、`{ "state": "Disabled"|"Enabled"|"Unknown", "unknownReason": ..., "ledgerFiles": ["remote-exec/session_....jsonl"] }` とする（SchemaVersion 5。2026-09-28 のレビュー裁定で `null`＝無効/不明の2値から3状態へ改めた）。`state` が `Unknown` なのは「証跡を読めなかった」ことを表し、理由を `unknownReason` と `missing` の両方へ残す。`ledgerFiles` はバンドル内の台帳への相対パスを文字列で並べた配列で、実行試行が無い場合などは空配列も許す。台帳をコピーできない場合は `missing` に理由を残す。Mac mini の日次集計は `state` が `Disabled` 以外の箱を除外し、自動修正への通常投入も拒否する（印の無い旧版の箱は `Unknown` として遮断される）。遮断は投入経路に依らず `scripts/bugreport/inbox-poller.sh` の箱確定直後で行い、`enqueue-autofix.sh` 側の拒否はその手前の早期拒否として残す。明示的な `--force`（inbox 側では `AUTOFIX_FORCED`）だけが投入を許すが、`ledgerFiles` の型が壊れた manifest は強制指定でも拒否する。
 
 - **Mac mini側は inbox を監視し、バンドル1件ごとに隔離worktreeを切って自動修正ランを直列に起動する（サーバーポート11564固定のためプレイテストは同時1つ）。運用は既存のMac mini無人開発運用（タスク毎worktree・PR更新hook）に乗せる。**
   出所: agent前提（既存運用と前例一致）

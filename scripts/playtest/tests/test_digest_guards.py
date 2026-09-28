@@ -9,7 +9,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from digest_fixture import SCRIPTS, TARGET_DATE, build_fixture, run_digest, write_json  # noqa: E402
+from digest_fixture import DISABLED_MARK, SCRIPTS, TARGET_DATE, build_fixture, run_digest, write_json  # noqa: E402
 
 sys.path.insert(0, str(SCRIPTS))
 import digest_collect as dc  # noqa: E402
@@ -31,6 +31,9 @@ class DigestGuardsTest(unittest.TestCase):
         box = self.root / "harness/playtest/reports" / steam_id / box_id
         write_json(box / "ingest.json", {"kind": "report", "steamId": steam_id,
                                          "id": ingest_id or box_id, "readyAt": READY_AT})
+        # 印を明示しない箱は不明として除外される。印の3状態を見ないテストには無効の印を補う
+        # A box with no explicit mark is excluded as unknown, so tests unconcerned with the three states get the disabled one
+        if "remoteExec" not in manifest: manifest = dict(manifest, remoteExec=DISABLED_MARK)
         write_json(box / "manifest.json", manifest)
         return box
 
@@ -75,15 +78,15 @@ class DigestGuardsTest(unittest.TestCase):
 
     def test_nonempty_remote_exec_ledger_is_counted_without_invalid_manifest(self):
         box = self.add_report("7656030", "20260912_183000_rex",
-                              {"kind": "bug", "remoteExec": {"ledgerFiles": ["remote-exec/session_1.jsonl"]}})
+                              {"kind": "bug", "remoteExec": {"state": "Enabled", "ledgerFiles": ["remote-exec/session_1.jsonl"]}})
         reports, stats = dc.load_reports(self.root / "harness/playtest/reports", TARGET_DATE)
         self.assertEqual(stats["remoteExec"], 1)
         self.assertEqual(stats["invalidManifest"], 0)
         self.assertNotIn(box.name, {report["id"] for report in reports})
         result = run_digest(self.root, TARGET_DATE, "--max-chars", "0", "--no-archive")
-        self.assertIn("遠隔実行ありの報告 1件（集計から除外）", result.stdout)
+        self.assertIn("遠隔実行あり/不明の報告 1件（集計から除外）", result.stdout)
         self.assertNotIn("invalidManifest", result.stderr)
-        write_json(box / "manifest.json", {"kind": "bug", "remoteExec": {"ledgerFiles": [7]}})
+        write_json(box / "manifest.json", {"kind": "bug", "remoteExec": {"state": "Enabled", "ledgerFiles": [7]}})
         _, stats = dc.load_reports(self.root / "harness/playtest/reports", TARGET_DATE)
         self.assertEqual(stats["invalidManifest"], 1)
 
@@ -93,7 +96,7 @@ class DigestGuardsTest(unittest.TestCase):
         self.add_report("7656026", "20260912_173000_kindping", {"kind": "@everyone", "description": "x"})
         box = self.root / "harness/playtest/progress/7656027/20260912_181000_ping"
         write_json(box / "ingest.json", {"kind": "progress", "steamId": "7656027", "id": box.name, "readyAt": READY_AT})
-        write_json(box / "record.json", {"schemaVersion": 1, "playSeconds": 60, "endReason": "@here",
+        write_json(box / "record.json", {"schemaVersion": 1, "remoteExec": False, "playSeconds": 60, "endReason": "@here",
                                          "lastUiState": "<@789>", "events": [{"type": "```fence"}]})
         out = self.digest()
         for raw in ("@everyone", "@here", "<@789>", "```"):

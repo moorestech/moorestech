@@ -80,12 +80,16 @@ if ! REMOTE_EXEC="$(python3 "$HERE/remote_exec_manifest_state.py" "${BOX}/manife
   rm -f "$REMOTE_ERR"
   exit 1
 fi
+# 「不明」の理由は標準エラーへ来る。捨てると遮断の根拠が誰にも見えない
+# An unknown's reason arrives on stderr; discarding it would hide why the box was held
+REMOTE_REASON="$(tr '\n' ' ' < "$REMOTE_ERR")"
 rm -f "$REMOTE_ERR"
+if [ -n "${REMOTE_REASON}" ]; then log "remoteExec の判定理由: ${REMOTE_REASON}: ${ID}"; fi
 if [ "$REMOTE_EXEC" = 1 ] && [ "$FORCE" != 1 ]; then
-  log "遠隔実行が有効だったセッションの箱は自動修正ランの対象外。投入するなら --force: ${ID}"
+  log "遠隔実行が有効/不明のセッションの箱は自動修正ランの対象外。投入するなら --force: ${ID}"
   exit 6
 fi
-if [ "$REMOTE_EXEC" = 1 ]; then log "--force で遠隔実行ありの箱を投入する: ${ID}"; fi
+if [ "$REMOTE_EXEC" = 1 ]; then log "--force で遠隔実行あり/不明の箱を投入する: ${ID}"; fi
 
 # .partial へ組んでから mv で公開する。poller が途中の箱を掴まないため（plan C と同じ作法）。
 # 既に公開済み/組立中の箱があれば無言で消さず据え置く（前例 ship-outbox.sh:96-103。並行実行や

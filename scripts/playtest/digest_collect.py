@@ -83,8 +83,11 @@ def load_reports(root: Path, date: str) -> tuple[list[dict], dict]:
             warn(reason or "manifest.json の型が想定外", box["dir"] / "manifest.json")
             stats["invalidManifest"] += 1
             continue
-        if manifest["remoteExec"] is not None:
-            warn("遠隔実行が有効だったセッションを集計から除外", box["dir"])
+        # 有効と不明はどちらも集計から外す。不明を通すと証跡の読めない箱が通常の数字へ混ざる
+        # Both enabled and unknown stay out of the counts; letting unknown through would mix unverifiable boxes into normal figures
+        state, unknown_reason = schema.remote_exec_state(manifest)
+        if state != schema.REMOTE_EXEC_DISABLED:
+            warn(f"遠隔実行が{'有効' if state == schema.REMOTE_EXEC_ENABLED else '不明'}のセッションを集計から除外{f'（{unknown_reason}）' if unknown_reason else ''}", box["dir"])
             stats["remoteExec"] = stats.get("remoteExec", 0) + 1
             continue
         reports.append({
@@ -138,8 +141,10 @@ def load_progress(root: Path, date: str) -> tuple[list[dict], dict]:
             warn(reason, box["dir"] / "record.json")
             stats["invalidRecord"] += 1
             continue
-        if record["remoteExec"]:
-            warn("遠隔実行が有効だった進行記録を集計から除外", box["dir"])
+        # None は不明（キーの無い旧版の記録）。有効と同じく集計から外す
+        # None means unknown (a legacy record without the key) and stays out of the counts just like enabled
+        if record["remoteExec"] is None or record["remoteExec"]:
+            warn(f"遠隔実行が{'有効' if record['remoteExec'] else '不明'}の進行記録を集計から除外", box["dir"])
             stats["remoteExec"] = stats.get("remoteExec", 0) + 1
             continue
         records.append(flatten_progress_record(record, box))

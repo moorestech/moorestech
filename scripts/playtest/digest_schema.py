@@ -30,9 +30,15 @@ INGEST_SCHEMA = {
     "id": (STR, ""), "steamId": (STR, ""), "readyAt": (STR, ""), "ingestedAt": (STR, ""),
     "steamPersonaName": (STR, ""), "steamProfileUrl": (STR, ""), "steamPersonaMissing": (STR, ""),
 }
+# 遠隔実行の印は3状態。state が読めない箱は不明として扱い、無効側へ落とさない
+# The remote-exec mark has three states; a box whose state is unreadable counts as unknown, never as disabled
+REMOTE_EXEC_DISABLED = "Disabled"
+REMOTE_EXEC_ENABLED = "Enabled"
+REMOTE_EXEC_UNKNOWN = "Unknown"
 MANIFEST_SCHEMA = {
     "kind": (STR, ""), "description": (STR, ""),
-    "remoteExec": ({"ledgerFiles": ([STR], None)}, None),
+    "remoteExec": ({"state": (STR, REMOTE_EXEC_UNKNOWN), "unknownReason": (STR, ""), "ledgerFiles": ([STR], None)},
+                   {"state": REMOTE_EXEC_UNKNOWN}),
     "buildInfo": ({"steamBuildLabel": (STR, "")}, {"steamBuildLabel": ""}),
 }
 RECORD_SCHEMA = {
@@ -41,7 +47,9 @@ RECORD_SCHEMA = {
     "schemaVersion": (INT, None), "steamId": (STR, ""), "playSeconds": (NUMBER, None), "endReason": (STR, ""), "lastUiState": (STR, ""),
     "reachedChallenges": ([None], None), "completedResearch": ([None], None),
     "events": ([{"type": (STR, "")}], None),
-    "remoteExec": (BOOL, False),
+    # remoteExec は None を残す（False だと「無効だった記録」と「キーの無い旧版の記録」が同じ扱いになる）
+    # remoteExec keeps None: False would conflate "recorded as disabled" with "a legacy record lacking the key"
+    "remoteExec": (BOOL, None),
 }
 FIX_RESULT_SCHEMA = {
     "status": (STR, ""), "pr_number": (INT, None), "base": (STR, ""), "summary": (STR, ""),
@@ -138,6 +146,18 @@ def read_conformed(path: Path, schema: dict) -> tuple[dict | None, str | None]:
     if isinstance(conformed, Invalid):
         return None, f"型不一致: {conformed.path}"
     return conformed, None
+
+
+def remote_exec_state(manifest: dict) -> tuple[str, str]:
+    """manifest の遠隔実行の印を (state, 理由) にする。契約外の綴りは不明へ寄せる（無効と名乗らせない）
+    Turns the manifest's remote-exec mark into (state, reason); an off-contract spelling becomes unknown, never disabled"""
+    mark = manifest["remoteExec"]
+    state = mark["state"]
+    if state == REMOTE_EXEC_DISABLED or state == REMOTE_EXEC_ENABLED:
+        return state, ""
+    if state == REMOTE_EXEC_UNKNOWN:
+        return state, mark["unknownReason"] or "manifest に remoteExec が無い/理由が空（旧版の箱の可能性）"
+    return REMOTE_EXEC_UNKNOWN, f"remoteExec.state が契約外の値: {state!r}"
 
 
 def record_value_problem(record: dict) -> str | None:

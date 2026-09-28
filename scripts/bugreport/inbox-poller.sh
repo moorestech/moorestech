@@ -53,6 +53,31 @@ for marker in "$INBOX"/*/READY; do
 done
 [ -n "$box" ] || { log "READY の箱が無いので何もしない: $INBOX"; exit 0; }
 
+# 遠隔実行が有効・不明だったセッションの箱は自動修正ランへ流さない（ADR 0072）。投入経路に依らずここが唯一の関所
+# A box from a session with remote execution enabled or unknown never reaches an auto-fix run (ADR 0072); this is the single gate regardless of how it was enqueued
+HELD="$INBOX/.remote-exec-held"
+remote_err="$(mktemp)"
+if REMOTE_EXEC="$(python3 "$REPO/scripts/playtest/remote_exec_manifest_state.py" "$box/manifest.json" 2>"$remote_err")"; then
+  remote_reason="$(tr '\n' ' ' < "$remote_err")"
+else
+  # 読めない manifest は無効と名乗らせない。遮断して人が中身を見る
+  # An unreadable manifest is never allowed to claim "disabled"; it is held for a human to inspect
+  REMOTE_EXEC=1; remote_reason="manifest を読めない（$(tr '\n' ' ' < "$remote_err")）"
+fi
+rm -f "$remote_err"
+if [ "$REMOTE_EXEC" = 1 ] && [ ! -e "$box/AUTOFIX_FORCED" ]; then
+  mkdir -p "$HELD"
+  if [ -e "$HELD/$id" ]; then
+    log "遠隔実行ありの箱を退避できない（同名が退避先にある）。触らず何もしない: $HELD/$id"
+  elif mv "$box" "$HELD/$id"; then
+    log "遠隔実行が有効/不明のためランを起こさず退避した（${remote_reason:-manifest の印が有効}）: $HELD/$id"
+  else
+    log "遠隔実行ありの箱を退避できなかった。次回に再試行: $box"
+  fi
+  exit 0
+fi
+if [ "$REMOTE_EXEC" = 1 ]; then log "AUTOFIX_FORCED があるため遠隔実行ありの箱を流す（${remote_reason:-manifest の印が有効}）: $id"; fi
+
 mkdir -p "$RUNS"
 mv "$box" "$RUNS/$id" || { log "箱を runs へ移せなかった。次回に再試行: $box"; exit 1; }
 run="$RUNS/$id"

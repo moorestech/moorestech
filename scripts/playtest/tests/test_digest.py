@@ -10,7 +10,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from digest_fixture import SCRIPTS, TARGET_DATE, build_fixture, run_digest, write_json  # noqa: E402
+from digest_fixture import DISABLED_MARK, SCRIPTS, TARGET_DATE, build_fixture, run_digest, write_json  # noqa: E402
 
 sys.path.insert(0, str(SCRIPTS))
 import digest_candidates as dcand  # noqa: E402
@@ -36,14 +36,18 @@ class DigestTest(unittest.TestCase):
     def test_remote_exec_excluded_from_counts_and_candidates(self):
         root = self.root / "harness/playtest/reports"
         manifest = root / "7656001/20260912_100000_bug1/manifest.json"
-        write_json(manifest, {"kind": "bug", "remoteExec": {"ledgerFiles": []}})
+        write_json(manifest, {"kind": "bug", "remoteExec": {"state": "Enabled", "ledgerFiles": []}})
         reports, stats = dc.load_reports(root, self.date)
         self.assertEqual(sum(r["kind"] == "bug" for r in reports), 1)
         self.assertEqual(stats["remoteExec"], 1)
         candidates, _ = dcand.load_candidate_reports(root)
         self.assertEqual(candidates, [])
-        self.assertIn("遠隔実行ありの報告 1件（集計から除外）", self.run_ok())
+        self.assertIn("遠隔実行あり/不明の報告 1件（集計から除外）", self.run_ok())
+        # 印が無い旧版の箱は無効と名乗らせない（不明として除外し続ける）
+        # A legacy box without the mark never claims "disabled"; it stays excluded as unknown
         write_json(manifest, {"kind": "bug", "remoteExec": None})
+        self.assertEqual(dc.load_reports(root, self.date)[1]["remoteExec"], 1)
+        write_json(manifest, {"kind": "bug", "remoteExec": {"state": "Disabled", "ledgerFiles": []}})
         self.assertEqual(len(dc.load_reports(root, self.date)[0]), 4)
 
     def test_remote_exec_progress_excluded_from_sessions_and_shown_in_digest(self):
@@ -53,7 +57,11 @@ class DigestTest(unittest.TestCase):
         records, stats = dc.load_progress(self.root / "harness/playtest/progress", self.date)
         self.assertEqual(len(records), 1)
         self.assertEqual(stats["remoteExec"], 1)
-        self.assertIn("遠隔実行ありの進行記録 1件（集計から除外）", self.run_ok())
+        self.assertIn("遠隔実行あり/不明の進行記録 1件（集計から除外）", self.run_ok())
+        # キーの無い旧版の記録も不明として集計から外す
+        # A legacy record without the key is excluded as unknown as well
+        write_json(record, {"schemaVersion": 1, "steamId": "7656001", "playSeconds": 1200, "endReason": "quit"})
+        self.assertEqual(dc.load_progress(self.root / "harness/playtest/progress", self.date)[1]["remoteExec"], 1)
 
     def test_jst_date_converts_utc(self):
         self.assertEqual(dc.jst_date("2026-09-12T15:30:00Z"), "2026-09-13")
@@ -89,7 +97,7 @@ class DigestTest(unittest.TestCase):
         pg3 = self.root / "harness/playtest/progress/7656003/20260912_150000_pg3"
         write_json(pg3 / "ingest.json", {"kind": "progress", "steamId": "7656003",
                                          "id": "20260912_150000_pg3", "readyAt": "2026-09-12T09:30:00Z"})
-        write_json(pg3 / "record.json", {"schemaVersion": 1, "steamId": "7656003", "playSeconds": None,
+        write_json(pg3 / "record.json", {"schemaVersion": 1, "steamId": "7656003", "remoteExec": False, "playSeconds": None,
                                          "endReason": "quit", "lastUiState": "GameScreen"})
         records, stats = dc.load_progress(self.root / "harness/playtest/progress", self.date)
         self.assertEqual(stats["invalidRecord"], 0)
@@ -108,7 +116,7 @@ class DigestTest(unittest.TestCase):
                 box = root / "harness/playtest/progress" / steam_id / f"20260912_16{box_id}000_pgnull"
                 write_json(box / "ingest.json", {"kind": "progress", "steamId": steam_id,
                                                  "id": box.name, "readyAt": "2026-09-12T10:00:00Z"})
-                write_json(box / "record.json", {"schemaVersion": 1, "steamId": steam_id, "playSeconds": None,
+                write_json(box / "record.json", {"schemaVersion": 1, "steamId": steam_id, "remoteExec": False, "playSeconds": None,
                                                  "endReason": "quit", "lastUiState": "GameScreen"})
             result = run_digest(root, self.date, "--max-chars", "0", "--no-archive")
             self.assertEqual(result.returncode, 0, result.stderr)
@@ -154,7 +162,7 @@ class DigestTest(unittest.TestCase):
         malicious = self.root / "harness/playtest/reports/7656006/20260912_160000_evil"
         write_json(malicious / "ingest.json", {"kind": "report", "steamId": "7656006",
                                                 "id": "$(touch pwned)", "readyAt": "2026-09-12T09:40:00Z"})
-        write_json(malicious / "manifest.json", {"kind": "bug", "description": "injection test"})
+        write_json(malicious / "manifest.json", {"kind": "bug", "remoteExec": DISABLED_MARK, "description": "injection test"})
         lines = dcand.format_candidates(*dcand.load_candidate_reports(self.root / "harness/playtest/reports"))
         cmd_line = next(line for line in lines if "enqueue-autofix.sh 7656006" in line).strip().strip("`")
         harmless = cmd_line.replace("scripts/playtest/enqueue-autofix.sh", "printf '%s\\n'", 1)
@@ -172,7 +180,7 @@ class DigestTest(unittest.TestCase):
         box = self.root / "harness/playtest/reports/7656007/20260912_170000_atsign"
         write_json(box / "ingest.json", {"kind": "report", "steamId": "7656007@evil",
                                           "id": "20260912_170000_atsign@evil", "readyAt": "2026-09-12T09:45:00Z"})
-        write_json(box / "manifest.json", {"kind": "bug", "description": "@everyone check this"})
+        write_json(box / "manifest.json", {"kind": "bug", "remoteExec": DISABLED_MARK, "description": "@everyone check this"})
         out = self.run_ok("--max-chars", "0")
         self.assertIn(f"@{dschema.ZERO_WIDTH_SPACE}everyone", out)
         cmd_line = next(line for line in out.splitlines()
@@ -187,7 +195,7 @@ class DigestTest(unittest.TestCase):
         write_json(long_box / "ingest.json", {"kind": "report", "steamId": "7656005",
                                               "id": "20260912_150000_fb2", "readyAt": "2026-09-12T09:30:00Z",
                                               "ingestedAt": "2026-09-12T09:31:00Z"})
-        write_json(long_box / "manifest.json", {"kind": "feedback", "description": "あ" * 4000})
+        write_json(long_box / "manifest.json", {"kind": "feedback", "remoteExec": DISABLED_MARK, "description": "あ" * 4000})
         out = self.run_ok("--max-chars", "600")
         self.assertLessEqual(len(out), 700)
         self.assertIn("digests/2026-09-12.md", out)

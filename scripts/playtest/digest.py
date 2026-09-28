@@ -42,7 +42,7 @@ def format_counts(reports: list[dict], stats: dict) -> list[str]:
     if stats.get("noPayload"):
         lines.append(f"- ⚠ manifest.json が無い箱（クライアントが全ファイルを見送った） {stats['noPayload']}件")
     if stats.get("remoteExec"):
-        lines.append(f"- 遠隔実行ありの報告 {stats['remoteExec']}件（集計から除外）")
+        lines.append(f"- 遠隔実行あり/不明の報告 {stats['remoteExec']}件（集計から除外）")
     return lines
 
 

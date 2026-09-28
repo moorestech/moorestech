@@ -50,6 +50,8 @@
 
 2026-09-28 追記（ユーザー裁定）: 起動フラグは `--remoteExec` とする。遠隔実行の結果は `Rejected`・`CompileFailed`・`RuntimeException`・`Succeeded` の種別で返す。報告の `remoteExec` は無効時に null、有効時に `ledgerFiles` を持つオブジェクトとし、進行記録も有効印を保持して日次集計から除外する。
 
+2026-09-28 追記（独立レビューの裁定を反映）: 結果の種別は `Rejected` を原因ごとに割り `Cancelled`・`ServerUnavailable`・`Unauthorized`・`BadRequest`・`CompileFailed`・`RuntimeException`・`Succeeded` の7種にする（入口の拒否も同じ `RemoteExecResult` の JSON で返し、拒否理由は送信コードの例外とは別の `rejectionReason` へ入れる）。報告の `remoteExec` は常時存在する3状態（`Disabled`/`Enabled`/`Unknown`）とし、進行記録側の `remoteExec` はキー欠損を不明として扱えるよう `bool?` にする（ADR 0057 の該当節が正本）。`access.json` は置き場ごと所有者限定権限で作り、無効な起動と正常終了で撤去する。読み手は `processId` の生存を確かめ、撤去漏れの残骸を生きた入口として使わない。サーバー側実行の受付キューはサーバーインスタンス寿命の `ServerThreadActionQueue` が所有し、tick末尾で返らない処理は打ち切らずログへ残す。
+
 - テスターの PC にも Roslyn と Harmony（計約14MB）が入る。オプションを付けない限り読み込まれない。
 - 起動オプションを付けた PC では、「トークンを読める人（＝その PC のユーザー権限を持つ人）」が何でも実行できる。オプションはテスターへ案内しない。
 - 読み込んだアセンブリは解放されないため、実行のたびにメモリが少しずつ増える。長時間の計測では、遠隔実行自身の増加分を差し引いて読む。
