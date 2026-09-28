@@ -47,13 +47,6 @@ namespace Client.Game.InGame.Train.Unit
 
         public void Tick()
         {
-            // 恒久待機ではhash再検証もpayload適用も止め、描画更新だけを継続する。
-            // During permanent waiting, stop hash checks and payload application while continuing visual updates.
-            if (!_tickState.IsInitialized || _tickState.IsPermanentlyWaiting)
-            {
-                _visualUpdateSystem.UpdateAll(_tickState.GetTick(), _tickState.GetTick());
-                return;
-            }
             _localcnt++;
             _modifyTime *= 0.9991;
             _modifyTick *= 0.9991;
@@ -93,13 +86,6 @@ namespace Client.Game.InGame.Train.Unit
                 _estimatedClientTick = _tickState.GetTick() + MaxCatchUpTicksPerFrame;
                 loopTicks = MaxCatchUpTicksPerFrame;
             }
-
-            // 通常進行の予算がなくても欠落を観測し、既存の待機は後着を毎フレーム再評価する。
-            // Observe missing messages even without a normal tick budget and retry existing waits each frame.
-            var nextId = _tickState.GetAppliedTickUnifiedId() + 1;
-            if (loopTicks == 0 && !_futureMessageBuffer.HasMessageAt(nextId))
-                _hashTickGate.CanAdvanceTick(nextId);
-            if (_tickState.IsWaiting) loopTicks = Math.Max(1, loopTicks);
 
             for (var i = 0; i < loopTicks; i++)
             {

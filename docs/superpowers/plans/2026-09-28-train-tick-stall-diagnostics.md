@@ -14,7 +14,7 @@
 - R2: 通常の到着待ちでは、必要なメッセージが届けば順番に適用する。後続受信で欠番が確定した場合は永久待機する。hash不一致だけの待機も、実受信の乖離が200tickに達したら永久待機する。
 - R3: UI等のフレーム更新は継続する。終了・全体pause・再同期要求を追加しない。
 - R4: 最初の待機日時、期待tick/連番、直前の適用位置、最新受信tick、検知時と保存時の乖離、hash比較値、初回待機直前と保存直前の受信履歴を保存する。
-- R5: 後続連番を受信済みなのに期待IDが実バッファにない場合、1seqの欠番でも即保存。後続がまだ来ない間は待機位置と日時を保持する。hash不一致だけの場合は受信済み最新tickと適用tickの差が200以上で保存する。
+- R5: 既存のtickループ内のhash gateで、後続連番を受信済みなのに期待IDが実バッファにないと検知した場合、1seqの欠番でもその場で保存する。後続がまだ来ない間は待機位置と日時を保持する。hash不一致だけの場合は受信済み最新tickと適用tickの差が200以上で保存する。
 - R6: 同じ未解消の待機では保存・警告を連発しない。短い正常待ちでは診断ファイルを作らない。停止状態は診断の保存成否に依存しない。
 - R7: 履歴は256件を上限とし、初回待機の記録は別に保持する。永久待機時にevent/hash本体を解放し、以後の受信payloadを蓄積しない。保存失敗はログと失敗結果で観測でき、他の処理へ例外を漏らさない。
 - R8: 初回full snapshot適用成功後に診断を有効化する。初回rail→train適用順序・watermark・完了/失敗伝播を維持する。
@@ -35,7 +35,6 @@
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Unit/TrainUnitTickState.cs` — 受信位置、初期化、通常待機と永久待機の状態。
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Network/TrainUnitFutureMessageBuffer.cs` — 受信・適用位置の診断通知。並び順・古いメッセージ破棄の意味を維持。
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Network/TrainFullSnapshotEventNetworkHandler.cs` — 初回成功後の診断有効化。
-- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Unit/TrainUnitClientSimulator.cs` — 進行予算が0の間も欠落を観測し、通常待機では後着を再評価する。永久待機中は描画更新を続ける。
 - Modify: `moorestech_client/Assets/Scripts/Client.Starter/Registration/MainGameInteractionRegistration.cs` — 診断と保存先をDIへ登録。
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Network/Diagnostics/TrainSynchronizationDiagnostics.cs` — 待機エピソード・履歴・診断保存の所有者。
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Network/Diagnostics/TrainSynchronizationDiagnosticReport.cs` — 永続診断のスナップショットと受信履歴データ。

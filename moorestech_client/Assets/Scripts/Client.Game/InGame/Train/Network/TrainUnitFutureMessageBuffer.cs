@@ -79,11 +79,6 @@ namespace Client.Game.InGame.Train.Network
             return _futureHashStates.TryGetValue(tickUnifiedId, out message);
         }
 
-        internal bool HasMessageAt(ulong tickUnifiedId)
-        {
-            return _futureEvents.ContainsKey(tickUnifiedId) || _futureHashStates.ContainsKey(tickUnifiedId);
-        }
-
         internal void StopRetainingFutureMessages(string reason)
         {
             // 確定停止後は後着を再適用せず、保持済みpayloadも解放する。
