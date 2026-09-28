@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Train.Network;
+using Client.Game.InGame.Train.Network.Diagnostics;
+using System.IO;
 using Client.Game.InGame.Train.Unit;
 using NUnit.Framework;
 using Server.Util.MessagePack;
@@ -17,7 +19,8 @@ namespace Client.Tests
             // バッファ検証に必要な最小依存だけを組み立てる。
             // Build only the minimum dependencies required for buffer tests.
             _tickState = new TrainUnitTickState();
-            _buffer = new TrainUnitFutureMessageBuffer(_tickState);
+            var diagnostics = new TrainSynchronizationDiagnostics(_tickState, new TrainSynchronizationDiagnosticWriter(Path.GetTempPath()));
+            _buffer = new TrainUnitFutureMessageBuffer(_tickState, diagnostics);
         }
 
         [Test]

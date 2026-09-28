@@ -1,7 +1,7 @@
 using Client.Game.InGame.Train.Network;
+using Client.Game.InGame.Train.Network.Diagnostics;
 using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.Train.Unit;
-using UnityEngine;
 
 namespace Client.Game.InGame.Train.View
 {
@@ -13,17 +13,20 @@ namespace Client.Game.InGame.Train.View
         private readonly TrainUnitClientCache _trainCache;
         private readonly RailGraphClientCache _railGraphCache;
         private readonly TrainUnitTickState _tickState;
+        private readonly TrainSynchronizationDiagnostics _diagnostics;
 
         public TrainUnitHashVerifier(
             TrainUnitFutureMessageBuffer futureMessageBuffer,
             TrainUnitClientCache trainCache,
             RailGraphClientCache railGraphCache,
-            TrainUnitTickState tickState)
+            TrainUnitTickState tickState,
+            TrainSynchronizationDiagnostics diagnostics)
         {
             _futureMessageBuffer = futureMessageBuffer;
             _trainCache = trainCache;
             _railGraphCache = railGraphCache;
             _tickState = tickState;
+            _diagnostics = diagnostics;
         }
 
         public bool CanAdvanceTick(ulong currentTickUnifiedId)
@@ -32,18 +35,12 @@ namespace Client.Game.InGame.Train.View
             // Discard any stale hashes that are older than the current tick
             _futureMessageBuffer.DiscardHashesOlderThan(currentTickUnifiedId);
             
-            // このtickにメッセージがなく将来tickにメッセージがある場合このtickのメッセージは送られてこない可能性が非常に高い。なのでTickを強制的に進めることにする
-            // If there is no message for the current tick but there are messages for future ticks, it's likely that the current tick's message won't arrive. In that case, we will force advance the tick.
+            // 後続の到着にかかわらず、欠けた順序位置を待ち続ける。
+            // Keep waiting for the missing ordered position regardless of later arrivals.
             if (!_futureMessageBuffer.TryDequeueHashAtTickSequenceId(currentTickUnifiedId, out var message))
             {
-                // バッファが空なら次バンドル待ちの正常状態なので警告しない
-                // An empty buffer just means waiting for the next bundle, so stay silent
-                if (!_futureMessageBuffer.TryGetFirstHashTickUnifiedId(out var firstBufferedTickUnifiedId))
-                    return false;
-                Debug.LogWarning(
-                    $"tick force slip! expected={currentTickUnifiedId >> 32}_{(uint)currentTickUnifiedId}, " +
-                    $"firstBuffered={firstBufferedTickUnifiedId >> 32}_{(uint)firstBufferedTickUnifiedId}");
-                return true;
+                _diagnostics.RecordMissingOrderedMessage(currentTickUnifiedId);
+                return false;
             }
             
             return ValidateCurrentTickHash();
@@ -55,6 +52,7 @@ namespace Client.Game.InGame.Train.View
                 if (IsDummyHash(message))
                 {
                     _tickState.RecordAppliedTickUnifiedId(currentTickUnifiedId);
+                    _diagnostics.RecordApplied(currentTickUnifiedId);
                     return true;
                 }
 
@@ -67,13 +65,11 @@ namespace Client.Game.InGame.Train.View
                 if (!isTrainMismatch && !isRailGraphMismatch)
                 {
                     _tickState.RecordAppliedTickUnifiedId(currentTickUnifiedId);
+                    _diagnostics.RecordApplied(currentTickUnifiedId);
                     return true;
                 }
-                Debug.LogWarning(
-                    $"[TrainUnitHashVerifier] Hash mismatch detected. tick={_tickState.GetTick()}, " +
-                    $"train(client={localTrainHash}, server={message.unitsHash}), " +
-                    $"rail(client={localRailGraphHash}, server={message.railGraphHash}), " +
-                    $"tickSequenceId={message.tickSequenceId}. Current tick hash validation failed.");
+                _diagnostics.RecordHashMismatch(currentTickUnifiedId, localTrainHash, message.unitsHash,
+                    localRailGraphHash, message.railGraphHash);
                 return false;
                 
                 bool IsDummyHash((uint unitsHash, uint railGraphHash, uint serverTick, uint tickSequenceId) hashState)

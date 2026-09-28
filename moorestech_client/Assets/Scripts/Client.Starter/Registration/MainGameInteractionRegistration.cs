@@ -27,6 +27,7 @@ using Client.Game.InGame.Player.StateController.State;
 using Client.Game.InGame.Riding;
 using Client.Game.InGame.Train.DebugView;
 using Client.Game.InGame.Train.Network;
+using Client.Game.InGame.Train.Network.Diagnostics;
 using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.Train.View;
@@ -166,6 +167,8 @@ namespace Client.Starter.Registration
             builder.Register<RailGraphSnapshotApplier>(Lifetime.Singleton);
             builder.Register<TrainUnitClientCache>(Lifetime.Singleton);
             builder.Register<TrainUnitTickState>(Lifetime.Singleton);
+            builder.RegisterInstance(new TrainSynchronizationDiagnosticWriter(System.IO.Path.Combine(UnityEngine.Application.persistentDataPath, "Logs", "TrainSynchronization")));
+            builder.Register<TrainSynchronizationDiagnostics>(Lifetime.Singleton);
             builder.Register<TrainUnitFutureMessageBuffer>(Lifetime.Singleton);
             builder.Register<TrainUnitSnapshotApplier>(Lifetime.Singleton);
             builder.Register<TrainUnitVisualUpdateSystem>(Lifetime.Singleton);

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Train.Unit;
+using Client.Game.InGame.Train.Network.Diagnostics;
 using System.Linq;
 using UnityEngine;
 
@@ -14,20 +15,26 @@ namespace Client.Game.InGame.Train.Network
         private bool isGetFirstHash = false;
 
         private readonly TrainUnitTickState _tickState;
+        private readonly TrainSynchronizationDiagnostics _diagnostics;
         private readonly SortedDictionary<ulong, ITrainTickBufferedEvent> _futureEvents = new();
         private readonly SortedDictionary<ulong, (uint unitsHash, uint railGraphHash, uint serverTick, uint tickSequenceId)> _futureHashStates = new();
 
-        public TrainUnitFutureMessageBuffer(TrainUnitTickState tickState)
+        public TrainUnitFutureMessageBuffer(TrainUnitTickState tickState, TrainSynchronizationDiagnostics diagnostics)
         {
             _tickState = tickState;
+            _diagnostics = diagnostics;
         }
 
         // イベントを未来tickキューへ積む。
         // Queue a pre-simulation event only when its tick is still in the future.
         public void EnqueueEvent(uint serverTick, uint tickSequenceId, ITrainTickBufferedEvent bufferedEvent)
         {
+            _diagnostics.RecordReceived(bufferedEvent?.GetType().Name ?? "NullEvent", serverTick, tickSequenceId);
             if (bufferedEvent == null)
+            {
+                Debug.LogWarning($"[TrainUnitFutureMessageBuffer] Ignored null event: {serverTick}_{tickSequenceId}");
                 return;
+            }
             var eventTickUnifiedId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(serverTick, tickSequenceId);
             if (eventTickUnifiedId <= _tickState.GetAppliedTickUnifiedId())
             {
@@ -43,6 +50,7 @@ namespace Client.Game.InGame.Train.Network
         // Queue hash states by tick for tick-aligned verification.
         public void EnqueueHash(uint unitsHash, uint railGraphHash, uint serverTick, uint tickSequenceId)
         {
+            _diagnostics.RecordReceived("Hash", serverTick, tickSequenceId);
             if (isGetFirstHash == false)
             {
                 Debug.Log($"1stHash: serverTick={serverTick}, tickSequenceId={tickSequenceId}, ");
@@ -65,6 +73,11 @@ namespace Client.Game.InGame.Train.Network
         public bool TryDequeueHashAtTickSequenceId(ulong tickUnifiedId, out (uint unitsHash, uint railGraphHash, uint serverTick, uint tickSequenceId) message)
         {
             return _futureHashStates.TryGetValue(tickUnifiedId, out message);
+        }
+
+        internal bool HasMessageAt(ulong tickUnifiedId)
+        {
+            return _futureEvents.ContainsKey(tickUnifiedId) || _futureHashStates.ContainsKey(tickUnifiedId);
         }
         
         // 対象tickより古いhashは検証対象外として破棄する。
@@ -126,6 +139,7 @@ namespace Client.Game.InGame.Train.Network
             // Drop all events at or below executed unified id to prevent re-apply.
             RemoveEventsAtOrBelow(eventTickUnifiedId);
             _tickState.RecordAppliedTickUnifiedId(eventTickUnifiedId);
+            _diagnostics.RecordApplied(eventTickUnifiedId);
             return true;
             
             #region Internal

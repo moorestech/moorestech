@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Client.Game.Common;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Train.Unit;
+using Client.Game.InGame.Train.Network.Diagnostics;
 using Client.Game.InGame.Train.View;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
@@ -21,6 +22,7 @@ namespace Client.Game.InGame.Train.Network
         private readonly RailGraphSnapshotApplier _railGraphSnapshotApplier;
         private readonly TrainUnitSnapshotApplier _trainSnapshotApplier;
         private readonly TrainUnitFutureMessageBuffer _futureMessageBuffer;
+        private readonly TrainSynchronizationDiagnostics _diagnostics;
         private IDisposable _railSubscription;
         private IDisposable _trainSubscription;
 
@@ -36,11 +38,13 @@ namespace Client.Game.InGame.Train.Network
         public TrainFullSnapshotEventNetworkHandler(
             RailGraphSnapshotApplier railGraphSnapshotApplier,
             TrainUnitSnapshotApplier trainSnapshotApplier,
-            TrainUnitFutureMessageBuffer futureMessageBuffer)
+            TrainUnitFutureMessageBuffer futureMessageBuffer,
+            TrainSynchronizationDiagnostics diagnostics)
         {
             _railGraphSnapshotApplier = railGraphSnapshotApplier;
             _trainSnapshotApplier = trainSnapshotApplier;
             _futureMessageBuffer = futureMessageBuffer;
+            _diagnostics = diagnostics;
         }
 
         public void Initialize()
@@ -57,6 +61,8 @@ namespace Client.Game.InGame.Train.Network
             try
             {
                 var message = MessagePackSerializer.Deserialize<TrainFullSnapshotEventPacket.RailGraphFullSnapshotEventMessagePack>(payload);
+                if (message.Snapshot != null)
+                    _diagnostics.RecordReceived("RailGraphFullSnapshot", message.Snapshot.GraphTick, message.Snapshot.GraphTickSequenceId);
                 _railGraphSnapshotApplier.ApplySnapshot(message.Snapshot);
             }
             catch (Exception applyException)
@@ -75,6 +81,7 @@ namespace Client.Game.InGame.Train.Network
             try
             {
                 var message = MessagePackSerializer.Deserialize<TrainFullSnapshotEventPacket.TrainUnitFullSnapshotEventMessagePack>(payload);
+                _diagnostics.RecordReceived("TrainUnitFullSnapshot", message.ServerTick, message.WatermarkTickSequenceId);
 
                 // MessagePackのbundleをモデルへ変換してapplierの既存入力型に合わせる
                 // Convert bundles to models to reuse the applier's existing input type
@@ -95,7 +102,8 @@ namespace Client.Game.InGame.Train.Network
 
                 // snapshot適用と古いバッファの破棄を終えて初期同期を完了する
                 // Complete initial synchronization after applying the snapshot and purging stale buffers
-                _initialApplyCompletion.TrySetResult();
+                if (_initialApplyCompletion.TrySetResult())
+                    _diagnostics.Initialize(watermarkId);
             }
             catch (Exception applyException)
             {

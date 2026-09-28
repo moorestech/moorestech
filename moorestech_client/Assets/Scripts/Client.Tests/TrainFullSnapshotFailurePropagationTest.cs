@@ -1,7 +1,10 @@
 using System;
+using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Client.Game.InGame.Train.Network;
+using Client.Game.InGame.Train.Network.Diagnostics;
+using Client.Game.InGame.Train.Unit;
 using Cysharp.Threading.Tasks;
 using MessagePack;
 using NUnit.Framework;
@@ -56,7 +59,8 @@ namespace Client.Tests
         {
             // 失敗payloadはapplierへ到達しないか到達即NREなので、applierは組み立てない
             // The failing payloads either never reach an applier or NRE on contact, so no applier is built
-            var handler = new TrainFullSnapshotEventNetworkHandler(null, null, null);
+            var diagnostics = new TrainSynchronizationDiagnostics(new TrainUnitTickState(), new TrainSynchronizationDiagnosticWriter(Path.GetTempPath()));
+            var handler = new TrainFullSnapshotEventNetworkHandler(null, null, null, diagnostics);
             var waiting = handler.WaitForInitialApplyAsync().Preserve();
 
             var method = typeof(TrainFullSnapshotEventNetworkHandler).GetMethod(
