@@ -13,51 +13,52 @@ namespace Client.RemoteExec.Run
     // Start compiled code on the chosen thread and build its outcome
     public static class RemoteExecRunner
     {
-        private static readonly SemaphoreSlim Execution = new(1, 1);
-
-        public static async UniTask<RemoteExecResult> RunAsync(string body, RemoteExecTarget target)
-        {
-            return await RunAsync(body, target, CancellationToken.None, null);
-        }
+        // client実行とserver実行で別の直列化にする。片方の長い実行がもう片方を待たせない
+        // Client and server runs serialize separately, so a long run on one side never blocks the other
+        private static readonly SemaphoreSlim ClientExecution = new(1, 1);
+        private static readonly SemaphoreSlim ServerExecution = new(1, 1);
 
         // 台帳の対はHTTP入口と直接呼び出しの両方で同じRunnerが所有する
         // The runner owns the ledger pair for both HTTP and direct calls
-        internal static async UniTask<RemoteExecResult> RunAsync(string body, RemoteExecTarget target, CancellationToken cancellationToken, IRemoteExecHttpRunner executionRunner)
+        internal static async UniTask<RemoteExecResult> RunAsync(string body, RemoteExecTarget target, CancellationToken cancellationToken)
         {
-            var sequence = RemoteExecLedger.AppendStart(target, body);
+            var execution = target == RemoteExecTarget.Server ? ServerExecution : ClientExecution;
+            var acquired = false;
+            var sequence = default(RemoteExecLedger.RemoteExecLedgerEntry);
             RemoteExecResult result;
             // 外部から送られ動的に実行するコードの第5境界で失敗を台帳へ閉じ込める
             // Isolate failure at the fifth boundary for dynamically executed submitted code
             try
             {
-                result = executionRunner == null ? await ExecuteAsync(body, target, cancellationToken) : await executionRunner.RunAsync(body, target, cancellationToken);
+                // 実行先ごとにawait完了まで占有し、ログ捕捉の重複を防ぐ
+                // Hold the target through completion to prevent overlapping log capture
+                await execution.WaitAsync(cancellationToken);
+                acquired = true;
+                // 台帳のstart行は直列化を抜けて実際に開始する実行だけに対応させる
+                // The ledger's start line corresponds only to a run that actually begins after serialization
+                sequence = RemoteExecLedger.AppendStart(target, body);
+                result = await RunCoreAsync(body, target, cancellationToken);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
                 Debug.LogWarning("[RemoteExec] 切断済み要求の実行を取り消しました");
-                result = new RemoteExecResult { Outcome = RemoteExecOutcome.Rejected, Exception = "要求が取り消されました" };
+                result = RemoteExecResult.Cancelled("要求が取り消されました", null);
             }
             catch (Exception error)
             {
                 Debug.LogError($"[RemoteExec] 実行要求に失敗しました: {error}");
-                result = RemoteExecResult.FromUnhandledException(error);
+                result = RemoteExecResult.RuntimeException(error.ToString(), null);
+            }
+            finally
+            {
+                if (acquired) execution.Release();
             }
             RemoteExecLedger.AppendResult(sequence, result.Outcome);
             return result;
         }
 
-        internal static async UniTask<RemoteExecResult> ExecuteAsync(string body, RemoteExecTarget target, CancellationToken cancellationToken)
-        {
-            // 全実行先をawait完了まで占有し、ログ捕捉の重複を防ぐ
-            // Hold all targets through completion to prevent overlapping log capture
-            await Execution.WaitAsync(cancellationToken);
-            try { return await RunCoreAsync(body, target, cancellationToken); }
-            finally { Execution.Release(); }
-        }
-
         private static async UniTask<RemoteExecResult> RunCoreAsync(string body, RemoteExecTarget target, CancellationToken cancellationToken)
         {
-            var result = new RemoteExecResult();
             // 参照解決とUnityログ購読はメインスレッドから始める
             // Start reference resolution and Unity log subscription on the main thread
             await UniTask.SwitchToMainThread(cancellationToken);
@@ -66,13 +67,11 @@ namespace Client.RemoteExec.Run
 
             // 未知の実行先の拒否はRemoteExecEndpointの文字列検証1箇所に一本化する（ここへ来る時点でClient/Serverのいずれかである）
             // Rejecting an unknown target is centralized in RemoteExecEndpoint's string validation; by the time execution reaches here it is always Client or Server
-            // 事前判定は無駄なコンパイル（Roslynは数百DLLを読む）を避けるためのもの。以後の受付失敗もRejectServerStoppedへ集約する
-            // The pre-check avoids a wasted compile (Roslyn reads hundreds of DLLs); every later admission failure also funnels through RejectServerStopped
-            if (target == RemoteExecTarget.Server && !ServerThreadActionQueue.HasDrainedThisLifetime)
-            {
-                RejectServerStopped();
-                return result;
-            }
+            // 事前判定は無駄なコンパイル（Roslynは数百DLLを読む）を避けるためのもの。以後の受付失敗も同じ拒否文へ集約する
+            // The pre-check avoids a wasted compile (Roslyn reads hundreds of DLLs); every later admission failure funnels into the same rejection text
+            var queue = ServerThreadActionQueueAccess.Current;
+            if (target == RemoteExecTarget.Server && (queue == null || !queue.HasDrainedThisLifetime))
+                return ServerStopped(null);
 
             // Unity側の参照集合を使うコンパイルも同じスレッドで完了させる
             // Complete compilation with Unity's reference set on that same thread
@@ -83,16 +82,9 @@ namespace Client.RemoteExec.Run
             catch (Exception error)
             {
                 Debug.LogError($"[RemoteExec] コンパイル段に失敗しました: {error}");
-                result.Outcome = RemoteExecOutcome.CompileFailed;
-                result.CompileErrors.Add(error.GetBaseException().ToString());
-                return result;
+                return RemoteExecResult.CompileFailed(new[] { error.GetBaseException().ToString() }, null);
             }
-            if (!outcome.Succeeded)
-            {
-                result.Outcome = RemoteExecOutcome.CompileFailed;
-                result.CompileErrors.AddRange(outcome.Errors);
-                return result;
-            }
+            if (!outcome.Succeeded) return RemoteExecResult.CompileFailed(outcome.Errors, null);
 
             var entry = outcome.Assembly.GetType(RemoteExecSourceWrapper.EntryTypeName)
                 .GetMethod(RemoteExecSourceWrapper.EntryMethodName, BindingFlags.Public | BindingFlags.Static);
@@ -103,17 +95,9 @@ namespace Client.RemoteExec.Run
 
             cancellationToken.ThrowIfCancellationRequested();
             using var serverInvocation = target == RemoteExecTarget.Server
-                ? new RemoteExecServerInvocation(entry, cancellationToken) : null;
-            if (target == RemoteExecTarget.Server)
-            {
-                var accepted = ServerThreadActionQueue.TryEnqueue(
-                    serverInvocation.StartOnServerThread, serverInvocation.StopBeforeStart);
-                if (!accepted)
-                {
-                    RejectServerStopped();
-                    return result;
-                }
-            }
+                ? new RemoteExecServerInvocation(entry, cancellationToken, queue) : null;
+            if (target == RemoteExecTarget.Server && !queue.TryEnqueue(serverInvocation))
+                return ServerStopped(capture);
 
             // 動的に実行する送信コードの第5境界で例外を応答へ隔離する
             // Isolate exceptions at the fifth boundary for dynamically executed submitted code
@@ -122,54 +106,60 @@ namespace Client.RemoteExec.Run
                 object value;
                 if (target == RemoteExecTarget.Client)
                 {
-                    value = await InvokeAsync(entry);
+                    value = await InvokeAsync(entry, cancellationToken);
                 }
                 else
                 {
                     value = await serverInvocation.Completion;
                 }
-                result.Result = value?.ToString();
-                result.Outcome = RemoteExecOutcome.Succeeded;
+
+                // 結果の文字列化は送信コードの継続スレッド（server実行ならtickスレッド）で行わない
+                // Never stringify the result on the submitted code's continuation thread, which is the tick thread for server runs
+                await UniTask.SwitchToMainThread();
+                return RemoteExecResult.Succeeded(value?.ToString(), capture.TakeLines());
             }
             catch (OperationCanceledException) when (serverInvocation != null && !serverInvocation.HasStarted && cancellationToken.IsCancellationRequested)
             {
+                await UniTask.SwitchToMainThread();
                 Debug.LogWarning("[RemoteExec] 実行前の要求を取り消しました");
-                result.Exception = "要求が取り消されました";
-                result.Outcome = RemoteExecOutcome.Rejected;
+                return RemoteExecResult.Cancelled("要求が取り消されました", capture.TakeLines());
             }
             catch (RemoteExecServerStoppedBeforeStartException)
             {
-                RejectServerStopped();
+                await UniTask.SwitchToMainThread();
+                return ServerStopped(capture);
+            }
+            catch (RemoteExecServerAbandonedException error)
+            {
+                await UniTask.SwitchToMainThread();
+                Debug.LogError($"[RemoteExec] {error.Message}");
+                return RemoteExecResult.ServerUnavailable(error.Message, capture.TakeLines());
             }
             catch (Exception error)
             {
-                result.Exception = error.GetBaseException().ToString();
-                result.Outcome = RemoteExecOutcome.RuntimeException;
-                Debug.LogWarning($"[RemoteExec] 送信コードの実行に失敗しました: {result.Exception}");
+                await UniTask.SwitchToMainThread();
+                var exception = error.GetBaseException().ToString();
+                Debug.LogWarning($"[RemoteExec] 送信コードの実行に失敗しました: {exception}");
+                return RemoteExecResult.RuntimeException(exception, capture.TakeLines());
             }
-
-            await UniTask.SwitchToMainThread();
-            result.Logs.AddRange(capture.TakeLines());
-            return result;
 
             #region Internal
 
-            void RejectServerStopped()
+            // 事前判定・投入拒否・開始前停止の3経路を1つの拒否文へ集約し、ログと応答の形を1本に揃える
+            // The pre-check, the refused admission and the stop-before-start funnel into one rejection text, keeping the log and response shape in one place
+            RemoteExecResult ServerStopped(RemoteExecLogCapture logCapture)
             {
-                // 事前判定とtickキュー拒否の両方をここへ集約し、文言・ログ・応答の形を1本に揃える
-                // Both the pre-check and the tick-queue rejection funnel through here, keeping the wording, log and response shape in one place
-                result.Exception = "内蔵サーバーが起動していないため、サーバー側では実行できません";
-                result.Outcome = RemoteExecOutcome.Rejected;
-                Debug.LogWarning(result.Exception);
+                const string reason = "内蔵サーバーが起動していないため、サーバー側では実行できません";
+                Debug.LogWarning(reason);
+                return RemoteExecResult.ServerUnavailable(reason, logCapture?.TakeLines());
             }
 
-            async UniTask<object> InvokeAsync(MethodInfo method)
+            async UniTask<object> InvokeAsync(MethodInfo method, CancellationToken token)
             {
-                return await (UniTask<object>)method.Invoke(null, null);
+                return await (UniTask<object>)method.Invoke(null, new object[] { token });
             }
 
             #endregion
         }
-
     }
 }

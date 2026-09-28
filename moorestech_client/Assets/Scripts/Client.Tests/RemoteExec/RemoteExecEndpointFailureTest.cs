@@ -19,11 +19,15 @@ namespace Client.Tests.RemoteExec
     public sealed class RemoteExecEndpointFailureTest
     {
         private RemoteExecTestFiles _files;
+        private string _signalDirectory;
 
         [SetUp]
         public void SetUp()
         {
-            RemoteExecLedger.Initialize("session_" + DateTime.UtcNow.Ticks, null);
+            // 印の置き場は製品と同じく必ず渡す。nullは「Initialize未了」で欠損ログが出る本番あり得ない状態
+            // The signal directory is always supplied as in production; null means "not initialized", a state production never reaches
+            _signalDirectory = Path.Combine(Path.GetTempPath(), "remote-exec-signal-" + Guid.NewGuid().ToString("N"));
+            RemoteExecLedger.Initialize("session_" + DateTime.UtcNow.Ticks, Path.Combine(_signalDirectory, RemoteExecLedger.AttemptSignalFileName));
             _files = new RemoteExecTestFiles();
             RemoteExecAccessFile.ClearToken();
         }
@@ -34,6 +38,7 @@ namespace Client.Tests.RemoteExec
             RemoteExecLaunchOption.ResolveFromCommandLine(Array.Empty<string>());
             RemoteExecAccessFile.ClearToken();
             _files.Restore();
+            if (Directory.Exists(_signalDirectory)) Directory.Delete(_signalDirectory, true);
         }
 
         [Test]
@@ -63,11 +68,11 @@ namespace Client.Tests.RemoteExec
             Assert.AreEqual(0, _files.ReadLedgerEntries().Length);
         }
 
+        // 送信コードの実行時例外が、応答と台帳の両方へ同じoutcomeで残ることを本番経路のまま確かめる
+        // Confirms a submitted code's runtime exception lands in both the response and the ledger with one outcome, through the production path alone
         [Test]
-        public async Task 実行処理の想定外例外をログと失敗応答と台帳へ残す()
+        public async Task 送信コードの実行時例外を失敗応答と台帳へ残す()
         {
-            // 実HTTP待受なしで入口を通し、実行処理の例外を再現する
-            // Exercise the endpoint without a listener and simulate an execution failure
             LogAssert.Expect(LogType.Warning, new Regex("--remoteExec が指定された"));
             RemoteExecLaunchOption.ResolveFromCommandLine(new[] { "--remoteExec" });
             LogAssert.Expect(LogType.Warning, new Regex("入口を開きました"));
@@ -75,11 +80,11 @@ namespace Client.Tests.RemoteExec
             var context = new DefaultHttpContext();
             context.Request.Method = "POST";
             context.Request.Headers.AppendCommaSeparatedValues(RemoteExecAccessFile.HeaderName, new[] { RemoteExecAccessFile.Token });
-            context.Request.Body = new MemoryStream(Encoding.UTF8.GetBytes("{\"code\":\"return 1 + 1;\",\"target\":\"client\"}"));
+            context.Request.Body = new MemoryStream(Encoding.UTF8.GetBytes("{\"code\":\"throw new System.InvalidOperationException(\\\"execution failure\\\");\",\"target\":\"client\"}"));
             context.Response.Body = new MemoryStream();
 
-            LogAssert.Expect(LogType.Error, new Regex("execution failure"));
-            await RemoteExecEndpoint.HandleAsync(context, new ThrowingRunner());
+            LogAssert.Expect(LogType.Warning, new Regex("送信コードの実行に失敗しました"));
+            await RemoteExecEndpoint.HandleAsync(context);
 
             context.Response.Body.Position = 0;
             var response = JObject.Parse(new StreamReader(context.Response.Body).ReadToEnd());
@@ -94,12 +99,23 @@ namespace Client.Tests.RemoteExec
             Assert.AreEqual(entries[0].Value<long>("sequence"), entries[1].Value<long>("sequence"));
         }
 
-        private sealed class ThrowingRunner : IRemoteExecHttpRunner
+        // 入口の拒否も実行結果と同じ型で返す。送信側は成功と拒否を1つの形で読める
+        // An entry rejection comes back as the same type as a result, so the sender reads success and refusal through one shape
+        [Test]
+        public async Task 入口の拒否も実行結果と同じJSONで返す()
         {
-            public UniTask<RemoteExecResult> RunAsync(string body, RemoteExecTarget target, CancellationToken cancellationToken)
-            {
-                throw new InvalidOperationException("execution failure");
-            }
+            RemoteExecLaunchOption.ResolveFromCommandLine(Array.Empty<string>());
+            var context = new DefaultHttpContext();
+            context.Request.Method = "POST";
+            context.Response.Body = new MemoryStream();
+
+            LogAssert.Expect(LogType.Warning, new Regex("起動オプションが無いため要求を404で拒否"));
+            await RemoteExecEndpoint.HandleAsync(context);
+
+            context.Response.Body.Position = 0;
+            var response = JObject.Parse(new StreamReader(context.Response.Body).ReadToEnd());
+            Assert.AreEqual("Unauthorized", response.Value<string>("outcome"));
+            StringAssert.Contains("起動オプションが無い", response.Value<string>("rejectionReason"));
         }
     }
 }

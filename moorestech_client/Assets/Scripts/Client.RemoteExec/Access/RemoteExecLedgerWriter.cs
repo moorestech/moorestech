@@ -56,7 +56,9 @@ namespace Client.RemoteExec.Access
 
         internal bool AppendResult(long sequence, RemoteExecOutcome outcome)
         {
-            var line = new JObject { ["event"] = "result", ["sequence"] = sequence, ["at"] = DateTime.UtcNow.ToString("o"), ["outcome"] = outcome.ToString() };
+            // outcomeの綴りはHTTP応答と同じ変換器（RemoteExecOutcomeのStringEnumConverter）に通す
+            // The outcome's spelling goes through the same converter as the HTTP response (RemoteExecOutcome's StringEnumConverter)
+            var line = new JObject { ["event"] = "result", ["sequence"] = sequence, ["at"] = DateTime.UtcNow.ToString("o"), ["outcome"] = JToken.FromObject(outcome) };
             return Append(line);
         }
 
@@ -68,7 +70,7 @@ namespace Client.RemoteExec.Access
             {
                 lock (_writeLock)
                 {
-                    Directory.CreateDirectory(_directory);
+                    RemoteExecDirectory.EnsureCreated(_directory);
                     File.AppendAllText(FilePath, entry.ToString(Formatting.None) + "\n");
                 }
                 return true;

@@ -2,6 +2,7 @@ using System;
 using System.Reflection;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using Server.Boot.Loop;
 using UnityEngine;
 
 namespace Client.RemoteExec.Run
@@ -14,26 +15,38 @@ namespace Client.RemoteExec.Run
         }
     }
 
-    internal sealed class RemoteExecServerInvocation : IDisposable
+    // 開始後にサーバーが止まった実行。結果は不明で、成功も失敗も名乗らない
+    // A run whose server stopped after start; the outcome is unknown and claims neither success nor failure
+    internal sealed class RemoteExecServerAbandonedException : InvalidOperationException
+    {
+        internal RemoteExecServerAbandonedException()
+            : base("内蔵サーバーが終了したため、開始済みのサーバー側実行の結果は不明です")
+        {
+        }
+    }
+
+    internal sealed class RemoteExecServerInvocation : IServerThreadAction, IDisposable
     {
         private readonly MethodInfo _entry;
         private readonly CancellationToken _cancellationToken;
         private readonly CancellationTokenRegistration _registration;
+        private readonly ServerThreadActionQueue _queue;
         private readonly UniTaskCompletionSource<object> _completion = new();
         private int _admissionState;
 
         internal bool HasStarted => Volatile.Read(ref _admissionState) == 1;
 
-        internal RemoteExecServerInvocation(MethodInfo entry, CancellationToken cancellationToken)
+        internal RemoteExecServerInvocation(MethodInfo entry, CancellationToken cancellationToken, ServerThreadActionQueue queue)
         {
             _entry = entry;
             _cancellationToken = cancellationToken;
+            _queue = queue;
             _registration = cancellationToken.Register(CancelBeforeStart);
         }
 
         internal UniTask<object> Completion => _completion.Task;
 
-        internal void StartOnServerThread()
+        public void Run()
         {
             // 開始と取消を排他にし、実行中の取消では直列化を解かない
             // Arbitrate start against cancellation; cancellation after start must not release serialization
@@ -43,7 +56,7 @@ namespace Client.RemoteExec.Run
             // Forward synchronous exceptions at the dynamically compiled external-code boundary
             try
             {
-                var invocation = (UniTask<object>)_entry.Invoke(null, null);
+                var invocation = (UniTask<object>)_entry.Invoke(null, new object[] { _cancellationToken });
                 CompleteAsync(invocation).Forget();
             }
             catch (Exception error)
@@ -52,18 +65,27 @@ namespace Client.RemoteExec.Run
             }
         }
 
-        internal void StopBeforeStart()
+        // 未開始なら拒否、開始済みなら結果不明として閉じる。どちらも待機者を放置しない
+        // Refuse when unstarted and close as unknown when already started; neither leaves the waiter hanging
+        public void OnServerStopped()
         {
-            // 停止と開始を排他にし、実行済みの要求の結果を上書きしない
-            // Arbitrate stop against start without replacing the outcome of an invocation already running
-            if (Interlocked.CompareExchange(ref _admissionState, 3, 0) != 0) return;
-            Debug.LogWarning("[RemoteExec] 内蔵サーバー停止により実行前の要求を拒否しました");
-            _completion.TrySetException(new RemoteExecServerStoppedBeforeStartException());
+            if (Interlocked.CompareExchange(ref _admissionState, 3, 0) == 0)
+            {
+                Debug.LogWarning("[RemoteExec] 内蔵サーバー停止により実行前の要求を拒否しました");
+                _completion.TrySetException(new RemoteExecServerStoppedBeforeStartException());
+                return;
+            }
+            if (Interlocked.CompareExchange(ref _admissionState, 4, 1) != 1) return;
+            // 完了済みなら結果を上書きしない。閉じた事実だけをログへ出す
+            // A finished invocation keeps its outcome; only an actual close is logged
+            if (!_completion.TrySetException(new RemoteExecServerAbandonedException())) return;
+            Debug.LogError("[RemoteExec] 内蔵サーバー停止により開始済みのサーバー側実行を結果不明で閉じました");
         }
 
         public void Dispose()
         {
             _registration.Dispose();
+            _queue?.Release(this);
         }
 
         private void CancelBeforeStart()

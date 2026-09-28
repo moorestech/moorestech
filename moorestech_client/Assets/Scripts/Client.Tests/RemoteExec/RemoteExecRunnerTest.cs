@@ -21,7 +21,10 @@ namespace Client.Tests.RemoteExec
         public void SetUp()
         {
             _sessionName = "session_" + DateTime.UtcNow.Ticks;
-            RemoteExecLedger.Initialize(_sessionName, null);
+            // 印の置き場は製品と同じく必ず渡す。nullは「Initialize未了」で欠損ログが出る本番あり得ない状態
+            // The signal directory is always supplied as in production; null means "not initialized", a state production never reaches
+            _signalDirectory = Path.Combine(Path.GetTempPath(), "remote-exec-attempt-" + Guid.NewGuid().ToString("N"));
+            RemoteExecLedger.Initialize(_sessionName, Path.Combine(_signalDirectory, RemoteExecLedger.AttemptSignalFileName));
             _files = new RemoteExecTestFiles();
         }
 
@@ -40,7 +43,7 @@ namespace Client.Tests.RemoteExec
         [UnityTest]
         public IEnumerator コンパイルエラーは実行せず返る() => UniTask.ToCoroutine(async () =>
         {
-            var result = await RemoteExecRunner.RunAsync("return 1 +;", RemoteExecTarget.Client);
+            var result = await RemoteExecRunner.RunAsync("return 1 +;", RemoteExecTarget.Client, CancellationToken.None);
             Assert.AreEqual(RemoteExecOutcome.CompileFailed, result.Outcome);
             Assert.IsNotEmpty(result.CompileErrors);
             var entries = _files.ReadLedgerEntries();
@@ -52,10 +55,8 @@ namespace Client.Tests.RemoteExec
         [UnityTest]
         public IEnumerator 台帳より先に実行試行の印を残す() => UniTask.ToCoroutine(async () =>
         {
-            _signalDirectory = Path.Combine(Path.GetTempPath(), "remote-exec-attempt-" + Guid.NewGuid().ToString("N"));
             var signalPath = Path.Combine(_signalDirectory, RemoteExecLedger.AttemptSignalFileName);
-            RemoteExecLedger.Initialize(_sessionName, signalPath);
-            var result = await RemoteExecRunner.RunAsync("return 1 +;", RemoteExecTarget.Client);
+            var result = await RemoteExecRunner.RunAsync("return 1 +;", RemoteExecTarget.Client, CancellationToken.None);
             Assert.AreEqual(RemoteExecOutcome.CompileFailed, result.Outcome);
             Assert.IsTrue(File.Exists(signalPath));
         });
@@ -65,7 +66,7 @@ namespace Client.Tests.RemoteExec
         {
             LogAssert.Expect(UnityEngine.LogType.Warning, new Regex("送信コードの実行に失敗しました"));
             var result = await RemoteExecRunner.RunAsync(
-                "return new Client.Tests.RemoteExec.RemoteExecRunnerTest.ThrowingResult();", RemoteExecTarget.Client);
+                "return new Client.Tests.RemoteExec.RemoteExecRunnerTest.ThrowingResult();", RemoteExecTarget.Client, CancellationToken.None);
             Assert.AreEqual(RemoteExecOutcome.RuntimeException, result.Outcome);
             Assert.IsNull(result.Result);
             StringAssert.Contains("result formatting failure", result.Exception);
@@ -78,9 +79,11 @@ namespace Client.Tests.RemoteExec
             using var cancellation = new CancellationTokenSource();
             cancellation.Cancel();
             LogAssert.Expect(UnityEngine.LogType.Warning, new Regex("切断済み要求の実行を取り消しました"));
-            var result = await RemoteExecRunner.RunAsync("throw new System.Exception();", RemoteExecTarget.Client, cancellation.Token, null);
-            Assert.AreEqual(RemoteExecOutcome.Rejected, result.Outcome);
-            Assert.AreEqual("Rejected", _files.ReadLedgerEntries()[1].Value<string>("outcome"));
+            var result = await RemoteExecRunner.RunAsync("throw new System.Exception();", RemoteExecTarget.Client, cancellation.Token);
+            Assert.AreEqual(RemoteExecOutcome.Cancelled, result.Outcome);
+            // 取り消しは直列化を取る前に起こる。実際に開始していない実行は台帳へ残さない
+            // A cancellation happens before serialization is taken, so a run that never began leaves no ledger line
+            Assert.AreEqual(0, _files.ReadLedgerEntries().Length);
         });
 
         public sealed class ThrowingResult
@@ -95,9 +98,10 @@ namespace Client.Tests.RemoteExec
         public IEnumerator サーバー未起動は即時失敗する() => UniTask.ToCoroutine(async () =>
         {
             LogAssert.Expect(UnityEngine.LogType.Warning, "内蔵サーバーが起動していないため、サーバー側では実行できません");
-            var result = await RemoteExecRunner.RunAsync("return 1;", RemoteExecTarget.Server);
-            Assert.AreEqual(RemoteExecOutcome.Rejected, result.Outcome);
-            Assert.That(result.Exception, Does.Contain("サーバー"));
+            var result = await RemoteExecRunner.RunAsync("return 1;", RemoteExecTarget.Server, CancellationToken.None);
+            Assert.AreEqual(RemoteExecOutcome.ServerUnavailable, result.Outcome);
+            Assert.That(result.RejectionReason, Does.Contain("サーバー"));
+            Assert.IsNull(result.Exception, "入口拒否の理由を送信コードの例外として出さない");
         });
     }
 }

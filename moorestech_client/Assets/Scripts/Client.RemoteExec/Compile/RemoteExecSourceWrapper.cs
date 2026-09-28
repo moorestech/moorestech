@@ -33,9 +33,11 @@ namespace Client.RemoteExec.Compile
             {
                 if (imports[index] != null) source.AppendLine(imports[index]);
             }
+            // 切断で止められるよう、トークンを送信コードから見える引数名で渡す
+            // Pass the token under a name the submitted code can see, so a disconnect can stop it
             source.Append("public static class ").Append(EntryTypeName)
                 .Append(" { public static async Cysharp.Threading.Tasks.UniTask<object> ")
-                .Append(EntryMethodName).AppendLine("() {");
+                .Append(EntryMethodName).AppendLine("(System.Threading.CancellationToken cancellationToken) {");
             source.AppendLine("#line 1");
             for (var index = 0; index < lines.Length; index++)
                 source.AppendLine(bodyLines[index]);

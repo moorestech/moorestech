@@ -24,7 +24,7 @@ namespace Client.RemoteExec.Run
             lock (_lines)
             {
                 var result = new List<string>(_lines);
-                if (_droppedLines > 0) result.Add($"[RemoteExec] ログ上限により {_droppedLines} 行を省略しました");
+                if (0 < _droppedLines) result.Add($"[RemoteExec] ログ上限により {_droppedLines} 行を省略しました");
                 return result;
             }
         }
@@ -42,7 +42,7 @@ namespace Client.RemoteExec.Run
             {
                 var prefix = $"[{type}] ";
                 var remaining = MaximumCharacters - _characters;
-                if (_lines.Count >= MaximumLines || condition.Length + prefix.Length > remaining)
+                if (MaximumLines <= _lines.Count || remaining < condition.Length + prefix.Length)
                 {
                     _droppedLines++;
                     return;

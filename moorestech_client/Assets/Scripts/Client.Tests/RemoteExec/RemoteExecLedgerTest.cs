@@ -71,7 +71,7 @@ namespace Client.Tests.RemoteExec
             _writer.AppendStart(RemoteExecTarget.Client, "return 1;", out var written);
             Assert.IsFalse(written);
             LogAssert.Expect(LogType.Error, new Regex("台帳に書けませんでした"));
-            Assert.IsFalse(_writer.AppendResult(1, RemoteExecOutcome.Rejected));
+            Assert.IsFalse(_writer.AppendResult(1, RemoteExecOutcome.ServerUnavailable));
         }
     }
 }

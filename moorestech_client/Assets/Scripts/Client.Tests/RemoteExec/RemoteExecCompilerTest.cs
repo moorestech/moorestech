@@ -75,7 +75,7 @@ namespace Client.Tests.RemoteExec
             var outcome = RemoteExecCompiler.Compile("/* note */ return 42;");
             Assert.IsTrue(outcome.Succeeded, string.Join("\n", outcome.Errors));
             var method = outcome.Assembly.GetType(RemoteExecSourceWrapper.EntryTypeName).GetMethod(RemoteExecSourceWrapper.EntryMethodName);
-            var result = (UniTask<object>)method.Invoke(null, null);
+            var result = (UniTask<object>)method.Invoke(null, new object[] { System.Threading.CancellationToken.None });
             Assert.AreEqual(42, result.GetAwaiter().GetResult());
         }
 
@@ -85,7 +85,7 @@ namespace Client.Tests.RemoteExec
             var outcome = RemoteExecCompiler.Compile("/* note\n*/ return 42;");
             Assert.IsTrue(outcome.Succeeded, string.Join("\n", outcome.Errors));
             var method = outcome.Assembly.GetType(RemoteExecSourceWrapper.EntryTypeName).GetMethod(RemoteExecSourceWrapper.EntryMethodName);
-            var result = (UniTask<object>)method.Invoke(null, null);
+            var result = (UniTask<object>)method.Invoke(null, new object[] { System.Threading.CancellationToken.None });
             Assert.AreEqual(42, result.GetAwaiter().GetResult());
         }
 
