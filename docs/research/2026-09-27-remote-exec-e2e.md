@@ -1,6 +1,6 @@
 # 遠隔実行 検証機での実機確認（Task 8, 2026-09-28）
 
-対象: `feat/remote-exec` の e84fdedbc を Windows x64 Release（`ReleaseLocalBuildCli.CreateRequest` と同じ Release・strict・ゲームデータ同梱）で焼いたビルド。検証機の作業フォルダ `C:\moorestech-remote-exec\build` に置いた（Steam のインストール先・Steam 配布は触っていない）。
+対象: `feat/remote-exec` の e84fdedbc を Windows x64 Release（`ReleaseLocalBuildCli.CreateRequest` と同じ Release・strict・ゲームデータ同梱）で焼いたビルド（初回。当時の起動フラグは `-remote-exec`。以下の記述は改名後の `--remoteExec` に読み替えて統一している）。検証機の作業フォルダ `C:\moorestech-remote-exec\build` に置いた（Steam のインストール先・Steam 配布は触っていない）。
 
 ## 実施方法と plan からの差分
 
@@ -56,7 +56,18 @@ stdout は JSON だけ。stderr に PowerShell の進捗レコード（`#< CLIXM
 - `UnityDebugSheet` の `NullReferenceException`
 - 終了時の `UserPacketHandler` の `SocketException`
 
+## 最終レビュー反映後の再実施（a67d71920, 2026-09-28）
+
+最終レビューの反映が有効化の判定（起動フラグの `--remoteExec` への改名）と結果の表し方（`outcome`）に触れたため、a67d71920 を同じ条件で焼き直し、同じ手順を再実施した。
+
+- Step 2（オプションなし）: `POST /api/remote-exec` → **404**。access.json は作られない。Player.log: `[RemoteExec] 起動オプションが無いため遠隔実行は無効です`・`[RemoteExec] 起動オプションが無いため要求を404で拒否しました`
+- Step 3（`--remoteExec` 付き）: トークン誤り **403**（`[RemoteExec] 要求を拒否しました: トークン不一致`）。client `return 1 + 1;` → `{"outcome":"Succeeded","result":"2",...}`。サーバー起動前の server 指定 → `{"outcome":"Rejected",...,"exception":"内蔵サーバーが起動していないため、サーバー側では実行できません"}`、起動後 → `Succeeded`（client と別スレッド）
+- Mac からの CLI（`remote-exec.sh --windows`）: client vsync `Succeeded` exit 0、Harmony `20,777777,20` exit 0、ロード前 server `Rejected` exit 2、コンパイル失敗 `CompileFailed` exit 2。stdout は JSON だけで **stderr は 0 バイト**（初回にあった PowerShell 進捗レコードの混入は解消）
+- Step 4（印付き報告の一巡）: phase2 の報告 `76561198217468291/20260928_094755_85c4df84` を取得し直後に ACK。manifest は `schemaVersion 4`、`remoteExec: {"ledgerFiles": ["remote-exec/ledger-6040-session_639261856209102150.jsonl"]}`（台帳名にセッション名）、Missing に遠隔実行関連なし。台帳に開始行と結果行（`"outcome":"Succeeded"`）
+  - `enqueue-autofix.sh` → **exit 6**（遠隔実行の拒否。kind 拒否と終了コードを分離）。一時 LOGS で `--force` → 投入され `AUTOFIX_FORCED` が残る
+  - 取得した箱（台帳1件つき）を一時 LOGS に置き `digest_collect.load_reports` を実行 → `remoteExec: 1`・`invalidManifest: 0`・集計対象 0 件（実データの箱で除外を確認。日次集計の本文表示までは見ていない）
+- Step 5（警告語 grep）: 全起動の Player.log で `[RemoteExec]`・`[WebUiHost]`・`[ServerThreadActionQueue]` 行に対し同じ語で grep し、意図した 404 拒否とトークン不一致の2件以外は0件
+
 ## 未検証・残差
 - 対話操作（ポーズメニューからの報告送信・タイトルからの手動開始）での確認はしていない（検証機のロック画面のため）。
-- 実データでの日次集計（digest）の除外表示。
-- CLI の stderr に PowerShell の進捗レコードが混ざる件。
+- 実データでの日次集計（digest）の本文表示（読み込み段の除外は実データの箱で確認済み）。
