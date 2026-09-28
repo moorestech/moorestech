@@ -85,6 +85,11 @@ namespace Client.Game.InGame.UI.UIState.State
             _localPlayerEquipment.Initialize(response.Equipment, response.SelectedEquipmentIndex);
         }
 
+        public bool LocksPlayerMovement()
+        {
+            return true;
+        }
+
         public IReadOnlyList<KeyHint> GetKeyHints()
         {
             return PlayerInventoryStateHints.Hints;
