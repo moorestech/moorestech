@@ -19,12 +19,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \".dev-hooks/decisions-index.mjs\"",
-            "timeout": 15,
-            "statusMessage": "Loading decision ledger"
-          },
-          {
-            "type": "command",
             "command": "node \".dev-hooks/beads-prime.mjs\"",
             "timeout": 15,
             "statusMessage": "Loading beads context"

@@ -12,10 +12,9 @@
 .dev-hooks/
   check-diff.mjs                 # 差分観点リマインダ本体（node。mac/windows・claude/codex 共通）
   rules.json                     # ルール定義（ここだけ編集すれば拡張できる）
-  decisions-index.mjs            # 意思決定台帳(.decisions/)の目次と運用ルールをSessionStartで注入
   decisions-ruling-reminder.mjs  # AskUserQuestion完了時に台帳への記録をリマインド（Claude Codeのみ）
   decisions-format-check.mjs     # .decisions/レコードの書式検査（違反はexit 2で差し戻し）
-  beads-prime.mjs                # Beads台帳(bd)の概況と役割分担ルールをSessionStartで注入
+  beads-prime.mjs                # Beads台帳(bd)の概況と、bd/.decisionsの運用ルールをSessionStartで注入
   beads-guard.mjs                # 破壊的bd/doltコマンドの物理拒否とpublic誤送信ガード（PreToolUse）
   poll-guard.mjs                 # 同一ツール呼び出しの反復＝ポーリングを拒否し正しい待ち方を再注入（PreToolUse 全ツール。Claudeのみ登録 — リセット判定に全ツールイベントが要るため）
   beads-sync-watch.mjs           # Dolt同期障害の復旧誘導＋claim/createへのセッション出自刻印（PostToolUse）
