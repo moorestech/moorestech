@@ -85,13 +85,14 @@ namespace Client.Game.InGame.BugReport.LastSession
             // The repository state and master origin go through the same path as a bug box; leaving them null only for crash replays a different commit
             // 台帳の元パス解決にもディスクIOがある。失敗を箱の欠損へ隔離し、起動ゲートは続ける
             // Ledger source-path resolution also performs disk IO; isolate failures in the bundle so the startup gate continues
-            try { RemoteExecBundleMark.ApplyForSalvagedSessions(manifest, directory, artifacts.LastSessionDirectory, origin); }
+            var ledgerPlacement = default(RemoteExecBundleLedgerPlacement);
+            try { ledgerPlacement = RemoteExecBundleMark.ApplyForSalvagedSessions(manifest, directory, artifacts.LastSessionDirectory); }
             catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e)) { manifest.AddMissing(BugReportBundleLayout.RemoteExecDirectoryName, $"台帳の元パスを解決できなかった: {e.Message}"); }
             BugReportRepositoryFiles.Write(directory, manifest, buildOrigin, repositoryRoot, masterDataRoot);
 
             if (BugReportOutbox.TryFinishBundle(directory, manifest))
             {
-                RemoteExecBundleMark.ReleaseBundledSalvagedLedgers(manifest, artifacts.LastSessionDirectory, origin);
+                RemoteExecBundleMark.ReleaseBundledLedgers(ledgerPlacement);
                 return directory;
             }
 

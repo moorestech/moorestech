@@ -33,50 +33,54 @@ namespace Client.Tests.RemoteExec
         [TestCase(false)]
         public void 有効設定が書き読みと所有印更新で保持される(bool enabled)
         {
-            var origin = new SessionOriginSnapshot("steam", null, BuildOriginReading.Editor(), enabled ? RemoteExecLedger.CurrentFileName : null);
+            var origin = new SessionOriginSnapshot("steam", null, BuildOriginReading.Editor(), enabled ? new RemoteExecOriginMark(RemoteExecLedger.CurrentFileName) : null);
             var capture = SessionSnapshotCapture.Started(Path.Combine(_directory, "snapshots"), 1234, "session_100");
             origin = origin.WithSnapshotCapture(capture).WithSalvageMissing(new List<MissingItem>());
             Assert.IsTrue(origin.WriteTo(_path).Succeeded);
             var restored = SessionOriginSnapshot.ReadFrom(_path, out var reason);
             Assert.IsNull(reason);
-            Assert.AreEqual(enabled, restored.RemoteExecEnabled);
-            Assert.AreEqual(enabled ? RemoteExecLedger.CurrentFileName : null, restored.RemoteExecLedgerFileName);
+            Assert.AreEqual(enabled, restored.RemoteExec != null);
+            Assert.AreEqual(enabled ? RemoteExecLedger.CurrentFileName : null, restored.RemoteExec?.LedgerFileName);
             Assert.AreEqual(capture.Owner, restored.SnapshotCapture.Owner);
         }
 
         [Test]
         public void キー欠損は無効として読む()
         {
-            var origin = new SessionOriginSnapshot("steam", null, BuildOriginReading.Editor(), RemoteExecLedger.CurrentFileName);
+            var origin = new SessionOriginSnapshot("steam", null, BuildOriginReading.Editor(), new RemoteExecOriginMark(RemoteExecLedger.CurrentFileName));
             Assert.IsTrue(origin.WriteTo(_path).Succeeded);
             var json = JObject.Parse(File.ReadAllText(_path));
             json.Remove("remoteExecLedgerFileName");
             File.WriteAllText(_path, json.ToString());
             var restored = SessionOriginSnapshot.ReadFrom(_path, out var reason);
             Assert.IsNull(reason);
-            Assert.IsFalse(restored.RemoteExecEnabled);
-            Assert.IsNull(restored.RemoteExecLedgerFileName);
+            Assert.IsNull(restored.RemoteExec);
         }
 
         [Test]
         public void 実行試行の印は出所の退避後も残る()
         {
-            var origin = new SessionOriginSnapshot("steam", null, BuildOriginReading.Editor(), RemoteExecLedger.CurrentFileName);
+            var origin = new SessionOriginSnapshot("steam", null, BuildOriginReading.Editor(), new RemoteExecOriginMark(RemoteExecLedger.CurrentFileName));
             Assert.IsTrue(origin.WriteTo(_path).Succeeded);
             File.WriteAllText(Path.Combine(_directory, RemoteExecLedger.AttemptSignalFileName), string.Empty);
             File.WriteAllText(Path.Combine(_directory, RemoteExecLedger.FailureSignalFileName), string.Empty);
 
             var restored = SessionOriginSnapshot.ReadFrom(_path, out var reason);
             Assert.IsNull(reason);
-            Assert.IsTrue(restored.RemoteExecAttempted);
-            Assert.IsTrue(restored.RemoteExecLedgerWriteFailed);
+            Assert.IsTrue(restored.RemoteExec.Attempted);
+            Assert.IsTrue(restored.RemoteExec.LedgerWriteFailed);
+
+            // 退避先へ出所だけ移しても、印ファイルを伴わない先では真偽を名乗らない（JSONへ複写しないため）
+            // Moving only the origin to a salvage directory never claims either truth there, because neither is copied into JSON
             var salvaged = restored.WithSalvageMissing(new List<MissingItem>());
             var salvagedPath = Path.Combine(_directory, "salvaged", "previous-origin.json");
             Assert.IsTrue(salvaged.WriteTo(salvagedPath).Succeeded);
+            File.WriteAllText(Path.Combine(_directory, "salvaged", RemoteExecLedger.AttemptSignalFileName), string.Empty);
+            File.WriteAllText(Path.Combine(_directory, "salvaged", RemoteExecLedger.FailureSignalFileName), string.Empty);
             var reread = SessionOriginSnapshot.ReadFrom(salvagedPath, out reason);
             Assert.IsNull(reason);
-            Assert.IsTrue(reread.RemoteExecAttempted);
-            Assert.IsTrue(reread.RemoteExecLedgerWriteFailed);
+            Assert.IsTrue(reread.RemoteExec.Attempted);
+            Assert.IsTrue(reread.RemoteExec.LedgerWriteFailed);
         }
 
         [TestCase("1")]
@@ -84,7 +88,7 @@ namespace Client.Tests.RemoteExec
         [TestCase("\"ledger-invalid.jsonl\"")]
         public void 不正な台帳名は理由付き読み込み失敗になる(string value)
         {
-            var origin = new SessionOriginSnapshot("steam", null, BuildOriginReading.Editor(), RemoteExecLedger.CurrentFileName);
+            var origin = new SessionOriginSnapshot("steam", null, BuildOriginReading.Editor(), new RemoteExecOriginMark(RemoteExecLedger.CurrentFileName));
             Assert.IsTrue(origin.WriteTo(_path).Succeeded);
             var json = JObject.Parse(File.ReadAllText(_path));
             json["remoteExecLedgerFileName"] = JToken.Parse(value);

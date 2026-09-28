@@ -39,12 +39,12 @@ namespace Client.Game.InGame.BugReport.LastSession
             }
             foreach (var session in sessions)
             {
-                var name = session.Origin?.RemoteExecLedgerFileName;
-                if (name != null) entries[name] = new PreviousSessionRemoteExecLedger
+                var mark = session.Origin?.RemoteExec;
+                if (mark != null) entries[mark.LedgerFileName] = new PreviousSessionRemoteExecLedger
                 {
-                    Name = name,
-                    Attempted = session.Origin.RemoteExecAttempted,
-                    WriteFailed = session.Origin.RemoteExecLedgerWriteFailed,
+                    Name = mark.LedgerFileName,
+                    Attempted = mark.Attempted,
+                    WriteFailed = mark.LedgerWriteFailed,
                 };
                 if (session.Origin == null)
                     missing.Report(BugReportBundleLayout.RemoteExecDirectoryName, $"pid {session.ProcessId} {session.SessionName} の出所が読めず遠隔実行の有効状態が不明");
@@ -63,21 +63,8 @@ namespace Client.Game.InGame.BugReport.LastSession
                 ["writeFailed"] = entries[name].WriteFailed,
             });
             var json = new JObject { ["ledgers"] = files };
-            var write = BugReportFileOperations.WriteText(path + ".tmp", json.ToString(Formatting.Indented));
-            if (!write.Succeeded)
-            {
-                missing.Report(BugReportBundleLayout.RemoteExecDirectoryName, write.FailureReason);
-                return;
-            }
-            try
-            {
-                if (File.Exists(path)) File.Replace(path + ".tmp", path, null);
-                else File.Move(path + ".tmp", path);
-            }
-            catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e))
-            {
-                missing.Report(BugReportBundleLayout.RemoteExecDirectoryName, $"遠隔実行台帳一覧を書けなかった: {e.Message}");
-            }
+            var write = BugReportFileOperations.WriteTextAtomically(path, json.ToString(Formatting.Indented));
+            if (!write.Succeeded) missing.Report(BugReportBundleLayout.RemoteExecDirectoryName, $"遠隔実行台帳一覧を書けなかった: {write.FailureReason}");
         }
 
         internal static bool TryRead(string lastSessionDirectory, out List<PreviousSessionRemoteExecLedger> entries, out string reason)

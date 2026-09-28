@@ -70,8 +70,8 @@ namespace Client.Tests.Starter
 
                 var record = CleanExitMarker.ConsumeSessionMarks(processId, session);
                 Assert.IsNotNull(record.Origin, record.OriginMissingReason);
-                Assert.IsTrue(record.Origin.RemoteExecEnabled, "起動フラグ有効なのに開始印のremoteExecEnabledがfalse");
-                Assert.AreEqual(RemoteExecLedger.CurrentFileName, record.Origin.RemoteExecLedgerFileName);
+                Assert.IsNotNull(record.Origin.RemoteExec, "起動フラグ有効なのに開始印へ遠隔実行の印が無い");
+                Assert.AreEqual(RemoteExecLedger.CurrentFileName, record.Origin.RemoteExec.LedgerFileName);
             }
             finally
             {

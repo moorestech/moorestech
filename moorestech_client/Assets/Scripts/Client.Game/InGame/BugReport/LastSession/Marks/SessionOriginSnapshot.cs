@@ -1,12 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using Client.Game.InGame.BugReport.BuildOrigin;
 using Client.Game.InGame.BugReport.DiskOperations;
+using Client.RemoteExec.Access;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
-using UnityEngine;
 
 namespace Client.Game.InGame.BugReport.LastSession
 {
@@ -28,32 +26,29 @@ namespace Client.Game.InGame.BugReport.LastSession
         public string SteamId { get; }
         public string SteamIdAbsenceReason { get; }
         public BuildOriginReading BuildOrigin { get; }
-        public string RemoteExecLedgerFileName { get; }
-        public bool RemoteExecAttempted { get; private set; }
-        public bool RemoteExecLedgerWriteFailed { get; private set; }
 
-        // 有効判定は台帳ファイル名の有無だけから導く。専用のboolを別に持つと不整合な組み合わせが生じる
-        // Derive the enabled state solely from the ledger file name's presence; a separate bool would allow an inconsistent combination
-        public bool RemoteExecEnabled => RemoteExecLedgerFileName != null;
+        // null＝遠隔実行が無効だったセッション。有効なら台帳名と2つの印を1つのペイロードとして持つ
+        // Null means the session had remote execution disabled; an enabled one carries the ledger name and both signals as one payload
+        public RemoteExecOriginMark RemoteExec { get; }
         internal readonly SessionSnapshotCapture SnapshotCapture;
         internal readonly IReadOnlyList<MissingItem> SalvageMissing;
 
-        // remoteExecLedgerFileNameはnull＝無効。呼び出し側がRemoteExecLaunchOption等から解決した値をそのまま渡す
-        // remoteExecLedgerFileName is null when disabled; callers pass the value they already resolved from RemoteExecLaunchOption etc.
-        public SessionOriginSnapshot(string steamId, string steamIdAbsenceReason, BuildOriginReading buildOrigin, string remoteExecLedgerFileName) : this(steamId, steamIdAbsenceReason, buildOrigin, remoteExecLedgerFileName, SessionSnapshotCapture.NotStarted())
+        // remoteExecはnull＝無効。呼び出し側がRemoteExecLaunchOption等から解決した印をそのまま渡す
+        // remoteExec is null when disabled; callers pass the mark they already resolved from RemoteExecLaunchOption etc.
+        public SessionOriginSnapshot(string steamId, string steamIdAbsenceReason, BuildOriginReading buildOrigin, RemoteExecOriginMark remoteExec) : this(steamId, steamIdAbsenceReason, buildOrigin, remoteExec, SessionSnapshotCapture.NotStarted())
         {
         }
 
-        internal SessionOriginSnapshot(string steamId, string steamIdAbsenceReason, BuildOriginReading buildOrigin, string remoteExecLedgerFileName, SessionSnapshotCapture snapshotCapture) : this(steamId, steamIdAbsenceReason, buildOrigin, remoteExecLedgerFileName, snapshotCapture, new List<MissingItem>())
+        internal SessionOriginSnapshot(string steamId, string steamIdAbsenceReason, BuildOriginReading buildOrigin, RemoteExecOriginMark remoteExec, SessionSnapshotCapture snapshotCapture) : this(steamId, steamIdAbsenceReason, buildOrigin, remoteExec, snapshotCapture, new List<MissingItem>())
         {
         }
 
-        internal SessionOriginSnapshot(string steamId, string steamIdAbsenceReason, BuildOriginReading buildOrigin, string remoteExecLedgerFileName, SessionSnapshotCapture snapshotCapture, IReadOnlyList<MissingItem> salvageMissing)
+        internal SessionOriginSnapshot(string steamId, string steamIdAbsenceReason, BuildOriginReading buildOrigin, RemoteExecOriginMark remoteExec, SessionSnapshotCapture snapshotCapture, IReadOnlyList<MissingItem> salvageMissing)
         {
             SteamId = steamId;
             SteamIdAbsenceReason = steamIdAbsenceReason;
             BuildOrigin = buildOrigin;
-            RemoteExecLedgerFileName = remoteExecLedgerFileName;
+            RemoteExec = remoteExec;
             SnapshotCapture = snapshotCapture;
             SalvageMissing = salvageMissing;
         }
@@ -62,40 +57,23 @@ namespace Client.Game.InGame.BugReport.LastSession
         // Re-stamping ownership keeps the SteamID absence reason; dropping it would erase the reason from the rewritten mark
         internal SessionOriginSnapshot WithSnapshotCapture(SessionSnapshotCapture snapshotCapture)
         {
-            var copy = new SessionOriginSnapshot(SteamId, SteamIdAbsenceReason, BuildOrigin, RemoteExecLedgerFileName, snapshotCapture, new List<MissingItem>());
-            copy.SetRemoteExecAttempted(RemoteExecAttempted);
-            copy.SetRemoteExecLedgerWriteFailed(RemoteExecLedgerWriteFailed);
-            return copy;
+            return new SessionOriginSnapshot(SteamId, SteamIdAbsenceReason, BuildOrigin, RemoteExec, snapshotCapture, new List<MissingItem>());
         }
 
         internal SessionOriginSnapshot WithSalvageMissing(IReadOnlyList<MissingItem> missing)
         {
-            var copy = new SessionOriginSnapshot(SteamId, SteamIdAbsenceReason, BuildOrigin, RemoteExecLedgerFileName, SnapshotCapture, new List<MissingItem>(missing));
-            copy.SetRemoteExecAttempted(RemoteExecAttempted);
-            copy.SetRemoteExecLedgerWriteFailed(RemoteExecLedgerWriteFailed);
-            return copy;
-        }
-
-        internal void SetRemoteExecAttempted(bool attempted)
-        {
-            RemoteExecAttempted = attempted;
-        }
-
-        internal void SetRemoteExecLedgerWriteFailed(bool failed)
-        {
-            RemoteExecLedgerWriteFailed = failed;
+            return new SessionOriginSnapshot(SteamId, SteamIdAbsenceReason, BuildOrigin, RemoteExec, SnapshotCapture, new List<MissingItem>(missing));
         }
 
         public SalvageOperationResult WriteTo(string path)
         {
             var serializer = CreateSerializer();
+            // 遠隔実行の真偽は印ファイルが正本。ここは台帳の在処だけを書き、2つの印はJSONへ複写しない
+            // The signal files own the remote-exec truths; only the ledger's location is written here and neither signal is copied into JSON
             var json = new JObject
             {
                 ["steamId"] = SteamId,
-                ["remoteExecEnabled"] = RemoteExecEnabled,
-                ["remoteExecLedgerFileName"] = RemoteExecLedgerFileName,
-                ["remoteExecAttempted"] = RemoteExecAttempted,
-                ["remoteExecLedgerWriteFailed"] = RemoteExecLedgerWriteFailed,
+                ["remoteExecLedgerFileName"] = RemoteExec?.LedgerFileName,
                 ["steamIdAbsenceReason"] = SteamIdAbsenceReason,
                 ["buildOriginKind"] = BuildOrigin.Kind.ToString(),
                 ["buildInfo"] = BuildOrigin.BuildInfo == null ? JValue.CreateNull() : JObject.FromObject(BuildOrigin.BuildInfo, serializer),
@@ -106,23 +84,11 @@ namespace Client.Game.InGame.BugReport.LastSession
 
             // 出所の書き出しはディスクIO。失敗しても起動は続け、次回の箱では出所不明として欠損に表明される
             // Writing the origin is disk IO; boot continues on failure, and the next box declares the origin as unknown
-            try
-            {
-                Directory.CreateDirectory(Path.GetDirectoryName(path));
-                // 容量不足でも既存の所有証明を壊さない
-                // Preserve existing ownership evidence even when disk space runs out
-                var temporaryPath = path + ".tmp";
-                File.WriteAllText(temporaryPath, json.ToString(Formatting.Indented));
-                if (File.Exists(path)) File.Replace(temporaryPath, path, null);
-                else File.Move(temporaryPath, path);
-                return SalvageOperationResult.Success();
-            }
-            catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e))
-            {
-                var reason = $"セッションの出所を書けませんでした（このセッションが落ちると出所不明の箱になります） {path}: {e.Message}";
-                Debug.LogError(reason);
-                return SalvageOperationResult.Failure(reason);
-            }
+            var write = BugReportFileOperations.WriteTextAtomically(path, json.ToString(Formatting.Indented));
+            if (write.Succeeded) return write;
+            var reason = $"セッションの出所を書けませんでした（このセッションが落ちると出所不明の箱になります） {write.FailureReason}";
+            UnityEngine.Debug.LogError(reason);
+            return SalvageOperationResult.Failure(reason);
         }
 
         // 前回セッションの出所の読み取りと型検証は専用の読み手へ委ねる

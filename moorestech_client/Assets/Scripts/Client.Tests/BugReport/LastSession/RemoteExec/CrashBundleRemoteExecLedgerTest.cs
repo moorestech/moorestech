@@ -37,7 +37,7 @@ namespace Client.Tests.BugReport
                             ProcessId = 654324,
                             SessionName = "session_400",
                             Origin = new SessionOriginSnapshot(null, TestPreviousSessionArtifacts.OriginSteamIdAbsenceReason,
-                                BuildOriginReading.Editor(), name),
+                                BuildOriginReading.Editor(), new RemoteExecOriginMark(name)),
                         },
                     },
                 });
@@ -78,7 +78,7 @@ namespace Client.Tests.BugReport
                     ProcessId = 654321 + i,
                     SessionName = "session_" + (100 * (i + 1)),
                     Origin = new SessionOriginSnapshot(null, TestPreviousSessionArtifacts.OriginSteamIdAbsenceReason,
-                        BuildOriginReading.Editor(), names[i]),
+                        BuildOriginReading.Editor(), new RemoteExecOriginMark(names[i])),
                 });
                 sessions.Add(new PreviousProcessSession
                 {
@@ -108,7 +108,7 @@ namespace Client.Tests.BugReport
                 bundle = CrashBundleWriter.Write(carried, "複数の遠隔実行", RepositoryStateProbe.RepositoryRoot,
                     RepositoryStateProbe.MasterDataRoot);
                 var manifest = JObject.Parse(File.ReadAllText(Path.Combine(bundle, BugReportBundleLayout.ManifestFileName)));
-                Assert.IsNotNull(manifest["remoteExec"]);
+                Assert.AreEqual("Enabled", (string)manifest["remoteExec"]["state"]);
                 foreach (var name in names)
                 {
                     var relative = $"{BugReportBundleLayout.RemoteExecDirectoryName}/{name}";
@@ -135,8 +135,10 @@ namespace Client.Tests.BugReport
             }
         }
 
+        // 台帳一覧が無い退避は「無効」と名乗らず、不明として理由つきで表明する
+        // A salvage without the ledger index never claims "disabled"; it declares unknown with its reason
         [Test]
-        public void 遠隔実行が有効だった前回セッションの印と台帳が箱へ入る()
+        public void 台帳一覧の無い退避は不明として表明し台帳を載せない()
         {
             var previousProcessId = Process.GetCurrentProcess().Id + 1;
             var ledgerFileName = RemoteExecLedgerWriter.FileNameFor(previousProcessId, "session_123");
@@ -152,7 +154,7 @@ namespace Client.Tests.BugReport
                 Directory.CreateDirectory(RemoteExecAccessFile.DirectoryPath);
                 File.WriteAllText(ledgerPath, "{\"event\":\"start\"}\n");
                 var origin = new SessionOriginSnapshot(null, TestPreviousSessionArtifacts.OriginSteamIdAbsenceReason,
-                    BuildOriginReading.Editor(), ledgerFileName);
+                    BuildOriginReading.Editor(), new RemoteExecOriginMark(ledgerFileName));
                 var artifacts = PreviousSessionArtifacts.Unclean(TestPreviousSessionArtifacts.UnusedLastSessionDirectory,
                     null, null, null, new List<string>(), new List<int>(), new Dictionary<int, bool>(),
                     origin, new List<MissingItem>());
@@ -160,11 +162,11 @@ namespace Client.Tests.BugReport
                     RepositoryStateProbe.MasterDataRoot);
 
                 var manifest = JObject.Parse(File.ReadAllText(Path.Combine(bundle, BugReportBundleLayout.ManifestFileName)));
-                Assert.IsNotNull(manifest["remoteExec"]);
-                var relativePath = BugReportBundleLayout.RemoteExecDirectoryName + "/" + ledgerFileName;
-                CollectionAssert.Contains(manifest["remoteExec"]["ledgerFiles"].Select(item => (string)item).ToList(), relativePath);
-                Assert.AreEqual("{\"event\":\"start\"}\n", File.ReadAllText(Path.Combine(bundle, relativePath)));
-                Assert.IsFalse(File.Exists(ledgerPath), "READY箱へ写した台帳が残っている");
+                Assert.AreEqual("Unknown", (string)manifest["remoteExec"]["state"]);
+                StringAssert.Contains("不明", (string)manifest["remoteExec"]["unknownReason"]);
+                Assert.IsEmpty(manifest["remoteExec"]["ledgerFiles"].Select(item => (string)item).ToList());
+                Assert.IsTrue(manifest["missing"].Any(item => (string)item["item"] == BugReportBundleLayout.RemoteExecDirectoryName));
+                Assert.IsTrue(File.Exists(ledgerPath), "在処の分からない台帳を消してはならない");
             }
             finally
             {

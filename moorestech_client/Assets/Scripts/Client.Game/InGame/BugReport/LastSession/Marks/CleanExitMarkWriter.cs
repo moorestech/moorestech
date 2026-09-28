@@ -25,8 +25,8 @@ namespace Client.Game.InGame.BugReport.LastSession
             // The session writes its own origin at start; the salvage source is added later as an ownership mark when snapshots begin (F12, D-C3)
             var identity = PlaytestSessionIdentityProvider.Current;
             RemoteExecLedger.Initialize(sessionName, CleanExitMarker.RemoteExecAttemptSignalPath(processId, sessionName));
-            var remoteExecLedgerFileName = RemoteExecLaunchOption.IsEnabled ? RemoteExecLedger.CurrentFileName : null;
-            var origin = new SessionOriginSnapshot(identity.SteamId, identity.SteamIdAbsenceReason, RepositoryStateProbe.ReadBuildOrigin(), remoteExecLedgerFileName);
+            var remoteExec = RemoteExecLaunchOption.IsEnabled ? new RemoteExecOriginMark(RemoteExecLedger.CurrentFileName) : null;
+            var origin = new SessionOriginSnapshot(identity.SteamId, identity.SteamIdAbsenceReason, RepositoryStateProbe.ReadBuildOrigin(), remoteExec);
             CleanExitMarker.MarkSessionStarted(processId, sessionName, origin);
 
             // 終了処理側にプレイテストの語彙を持ち込まないため、直接呼び出しでなく汎用イベントの購読で受ける

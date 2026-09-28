@@ -25,8 +25,6 @@ namespace Client.Game.InGame.BugReport.LastSession
             }
 
             string remoteExecLedgerFileName;
-            bool remoteExecAttempted;
-            bool remoteExecLedgerWriteFailed;
             string steamId;
             string steamIdAbsenceReason;
             string kindText;
@@ -59,25 +57,6 @@ namespace Client.Game.InGame.BugReport.LastSession
                     return null;
                 }
 
-                // 試行印は台帳と別の場所に先行保存される。退避済み出所ではJSON値を引き継ぐ
-                // The attempt signal is written first outside the ledger; salvaged origins carry its JSON value
-                var attemptedToken = obj["remoteExecAttempted"];
-                if (attemptedToken != null && attemptedToken.Type != JTokenType.Boolean)
-                {
-                    failureReason = $"セッション開始時の出所を読めない {path}: remoteExecAttemptedが不正です";
-                    return null;
-                }
-                remoteExecAttempted = (attemptedToken != null && (bool)attemptedToken) ||
-                    File.Exists(Path.Combine(Path.GetDirectoryName(path), RemoteExecLedger.AttemptSignalFileName));
-                var failedToken = obj["remoteExecLedgerWriteFailed"];
-                if (failedToken != null && failedToken.Type != JTokenType.Boolean)
-                {
-                    failureReason = $"セッション開始時の出所を読めない {path}: remoteExecLedgerWriteFailedが不正です";
-                    return null;
-                }
-                remoteExecLedgerWriteFailed = (failedToken != null && (bool)failedToken) ||
-                    File.Exists(Path.Combine(Path.GetDirectoryName(path), RemoteExecLedger.FailureSignalFileName));
-
                 steamIdAbsenceReason = ReadSteamIdAbsenceReason(steamId, obj["steamIdAbsenceReason"]);
                 kindText = (string)obj["buildOriginKind"];
                 var buildInfoToken = obj["buildInfo"];
@@ -94,10 +73,10 @@ namespace Client.Game.InGame.BugReport.LastSession
 
             var buildOrigin = ToBuildOrigin(kindText, buildInfo, buildOriginMissingReason, out failureReason);
             if (buildOrigin == null) return null;
-            var origin = new SessionOriginSnapshot(steamId, steamIdAbsenceReason, buildOrigin, remoteExecLedgerFileName, snapshotCapture, salvageMissing);
-            origin.SetRemoteExecAttempted(remoteExecAttempted);
-            origin.SetRemoteExecLedgerWriteFailed(remoteExecLedgerWriteFailed);
-            return origin;
+            // 2つの印の真偽は印ファイルだけから読む（JSONへ複写しないので不整合な組み合わせが生じない）
+            // Both signals are read from the signal files alone, so no inconsistent combination can exist
+            var remoteExec = RemoteExecLedger.ReadState(Path.GetDirectoryName(path), remoteExecLedgerFileName);
+            return new SessionOriginSnapshot(steamId, steamIdAbsenceReason, buildOrigin, remoteExec, snapshotCapture, salvageMissing);
 
             #region Internal
 

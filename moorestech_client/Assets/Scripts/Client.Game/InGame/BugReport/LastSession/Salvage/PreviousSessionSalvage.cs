@@ -121,9 +121,9 @@ namespace Client.Game.InGame.BugReport.LastSession
             {
                 // 正常終了が確定したセッションの台帳だけを片付ける。異常終了分は箱へ移すまで保持する
                 // Remove only ledgers from confirmed clean sessions; keep crashed ones until bundled
-                if (session.Origin?.RemoteExecLedgerFileName != null)
+                if (session.Origin?.RemoteExec != null)
                 {
-                    var ledgerName = session.Origin.RemoteExecLedgerFileName;
+                    var ledgerName = session.Origin.RemoteExec.LedgerFileName;
                     var ledgerDeletion = BugReportFileOperations.DeleteFile(RemoteExecLedger.PathForFileName(ledgerName));
                     if (!ledgerDeletion.Succeeded) missing.Report(BugReportBundleLayout.RemoteExecDirectoryName, $"pid {session.ProcessId} {session.SessionName} の台帳を消せなかった: {ledgerDeletion.FailureReason}");
                 }
