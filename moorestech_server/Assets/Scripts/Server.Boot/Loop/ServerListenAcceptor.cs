@@ -53,7 +53,7 @@ namespace Server.Boot.Loop
                     packetResponseCreator, sendQueueProcessor, packetResponseContext, tickEndPacketQueue, receivedPacketLog);
 
                 // 受信スレッドを起動
-                var receiveThread = new Thread(() => new UserPacketHandler(client, receiveQueueProcessor, sendQueueProcessor, connectionRegistry, eventProtocolProvider, packetResponseContext, receivedPacketLog).StartListen(token));
+                var receiveThread = new Thread(() => new UserPacketHandler(client, receiveQueueProcessor, sendQueueProcessor, connectionRegistry, eventProtocolProvider, packetResponseContext, receivedPacketLog, tickEndPacketQueue).StartListen(token));
                 receiveThread.Name = "[moorestech] 受信スレッド";
                 receiveThread.Start();
             }

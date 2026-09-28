@@ -1,12 +1,10 @@
 using System;
 using System.Net.Sockets;
 using System.Threading;
-using Core.Update;
 using Game.PlayerConnection;
 using Game.SaveLoad.Snapshot;
 using Server.Event;
 using Server.Protocol;
-using Server.Protocol.PacketResponse.Util.Handshake;
 using Server.Util;
 using UnityEngine;
 
@@ -26,9 +24,10 @@ namespace Server.Boot.Loop.PacketProcessing
         private readonly EventProtocolProvider _eventProtocolProvider;
         private readonly PacketResponseContext _packetResponseContext;
         private readonly ReceivedPacketLog _receivedPacketLog;
+        private readonly TickEndPacketQueue _tickEndPacketQueue;
         private bool _cleaned;
 
-        public UserPacketHandler(Socket client, ReceiveQueueProcessor receiveQueueProcessor, SendQueueProcessor sendQueueProcessor, PlayerConnectionRegistry connectionRegistry, EventProtocolProvider eventProtocolProvider, PacketResponseContext packetResponseContext, ReceivedPacketLog receivedPacketLog)
+        public UserPacketHandler(Socket client, ReceiveQueueProcessor receiveQueueProcessor, SendQueueProcessor sendQueueProcessor, PlayerConnectionRegistry connectionRegistry, EventProtocolProvider eventProtocolProvider, PacketResponseContext packetResponseContext, ReceivedPacketLog receivedPacketLog, TickEndPacketQueue tickEndPacketQueue)
         {
             _client = client;
             _receiveQueueProcessor = receiveQueueProcessor;
@@ -37,6 +36,7 @@ namespace Server.Boot.Loop.PacketProcessing
             _eventProtocolProvider = eventProtocolProvider;
             _packetResponseContext = packetResponseContext;
             _receivedPacketLog = receivedPacketLog;
+            _tickEndPacketQueue = tickEndPacketQueue;
         }
 
         public void StartListen(CancellationToken token)
@@ -94,21 +94,10 @@ namespace Server.Boot.Loop.PacketProcessing
             if (_cleaned) return;
             _cleaned = true;
 
-            // close確定を先に記録し、以後のhandshakeバインドを失敗させる（handshake中切断のsink残留防止）
-            // Mark closed first so a concurrent handshake bind fails; prevents sink leaks on mid-handshake disconnect
-            var playerId = _packetResponseContext.MarkClosedAndGetPlayerId();
-            if (playerId.HasValue)
-            {
-                // CurrentTick は処理済み tick。切断はその tick の後、次の tick の前に起きたと記録する
-                // CurrentTick is the completed tick; record disconnect after it and before the next tick
-                var disconnectTick = GameUpdater.CurrentTick;
-                // この接続のsinkだけを解除し、切断イベントを発火する
-                // Unregister only this connection's sink, then fire the disconnect event
-                PlayerConnectionBinding.Unregister(playerId.Value, _packetResponseContext.EventSink, _connectionRegistry, _eventProtocolProvider);
-                _receivedPacketLog.AppendDisconnect(disconnectTick, playerId.Value);
-            }
-
-            _receiveQueueProcessor.Dispose();
+            // 受信スレッドは接続を閉じて切断項目を積むだけ。登録解除と記録はtick末尾で行う
+            // The receive thread only closes and enqueues; tick end removes the binding and records it
+            ConnectionDisconnectEntry.Schedule(_packetResponseContext, _receiveQueueProcessor,
+                _tickEndPacketQueue, _connectionRegistry, _eventProtocolProvider, _receivedPacketLog);
             _sendQueueProcessor.Dispose();
             _client.Close();
         }

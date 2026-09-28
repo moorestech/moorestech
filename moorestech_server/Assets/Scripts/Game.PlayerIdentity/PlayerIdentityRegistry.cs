@@ -64,8 +64,13 @@ namespace Game.PlayerIdentity
 
         public bool IsRegisteredPlayerId(long playerId)
         {
-            if (playerId < FirstPlayerId || playerId > int.MaxValue) return false;
+            if (!IsValidPlayerId(playerId)) return false;
             return _idByIdentity.ContainsValue((int)playerId) || _unclaimedPlayerIds.Contains((int)playerId);
+        }
+
+        public static bool IsValidPlayerId(long playerId)
+        {
+            return playerId >= FirstPlayerId && playerId <= int.MaxValue;
         }
 
         public PlayersSaveJsonObject GetSaveJsonObject()

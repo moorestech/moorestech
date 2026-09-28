@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Game.PlayerIdentity;
 using UnityEngine;
 
 namespace Game.SaveLoad.Snapshot
@@ -35,7 +36,9 @@ namespace Game.SaveLoad.Snapshot
                     var playerId = reader.ReadInt32();
                     var length = reader.ReadInt32();
                     if (length < 0) throw new InvalidDataException($"パケットログの長さが負です path:{path} tick:{tick} length:{length}");
-                    if (kind == ReceivedPacketRecordKind.Disconnect && (!ReceivedPacketLog.DecodeSenderPlayerId(playerId).HasValue || length != 0))
+                    var decodedPlayerId = ReceivedPacketLog.DecodeSenderPlayerId(playerId);
+                    if (kind == ReceivedPacketRecordKind.Disconnect && (!decodedPlayerId.HasValue ||
+                        !PlayerIdentityRegistry.IsValidPlayerId(decodedPlayerId.Value) || length != 0))
                         throw new InvalidDataException($"パケットログの切断レコードが不正です path:{path} tick:{tick} playerId:{playerId} length:{length}");
 
                     // ReadBytes は足りない分を黙って短く返す。通すと壊れた末尾が別のパケットとして再生され、非決定性のバグに見える
@@ -43,7 +46,7 @@ namespace Game.SaveLoad.Snapshot
                     var payload = reader.ReadBytes(length);
                     if (payload.Length != length) throw new InvalidDataException($"パケットログのレコードが途中で切れています path:{path} tick:{tick} expected:{length} actual:{payload.Length}");
 
-                    result.Add(new ReceivedPacketRecord(tick, ReceivedPacketLog.DecodeSenderPlayerId(playerId), payload, kind));
+                    result.Add(new ReceivedPacketRecord(tick, decodedPlayerId, payload, kind));
                 }
             }
             return result.OrderBy(record => record.Tick).ToList();

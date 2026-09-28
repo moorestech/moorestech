@@ -68,6 +68,22 @@ namespace Tests.UnitTest.Game.SaveLoad
         }
 
         [Test]
+        public void 負のプレイヤーIDを持つ切断レコードを拒否する()
+        {
+            var dir = Path.Combine(Path.GetTempPath(), $"moorestech-packetlog-{Guid.NewGuid():N}");
+            var log = new ReceivedPacketLog();
+            log.Start(dir, 1);
+            log.AppendDisconnect(2, -7);
+            log.Stop();
+
+            // 壊れた区間を無音で再生すると切断解除が空振りし、接続集合が分岐する
+            // Replaying a corrupt segment silently would miss removal and diverge the connection set
+            var exception = Assert.Throws<InvalidDataException>(() => ReceivedPacketLogReader.ReadAll(log.SegmentFilePaths()));
+            StringAssert.Contains("切断レコードが不正", exception.Message);
+            Directory.Delete(dir, true);
+        }
+
+        [Test]
         public void 旧形式の区間を理由付きで読み飛ばし現行区間を読む()
         {
             var dir = Path.Combine(Path.GetTempPath(), $"moorestech-packetlog-{Guid.NewGuid():N}");
@@ -77,6 +93,13 @@ namespace Tests.UnitTest.Game.SaveLoad
             log.Stop();
             var newPath = log.SegmentFilePaths()[0];
             var oldPath = Path.Combine(dir, "packets_1.bin");
+            var previousVersionPath = Path.Combine(dir, "packets_0.bin");
+            File.Copy(newPath, previousVersionPath);
+            using (var previousVersion = new BinaryWriter(new FileStream(previousVersionPath, FileMode.Open)))
+            {
+                previousVersion.BaseStream.Position = sizeof(int);
+                previousVersion.Write(1);
+            }
             using (var old = new BinaryWriter(File.Create(oldPath)))
             {
                 old.Write(1UL);
@@ -86,7 +109,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             }
 
             LogAssert.Expect(LogType.Warning, new Regex("パケットログ区間の形式が現在版と異なる"));
-            var records = ReceivedPacketLogReader.ReadAll(new[] { oldPath, newPath });
+            LogAssert.Expect(LogType.Warning, new Regex("パケットログ区間の形式が現在版と異なる"));
+            var records = ReceivedPacketLogReader.ReadAll(new[] { oldPath, previousVersionPath, newPath });
             Assert.AreEqual(1, records.Count);
             CollectionAssert.AreEqual(new byte[] { 42 }, records[0].Payload);
             Directory.Delete(dir, true);

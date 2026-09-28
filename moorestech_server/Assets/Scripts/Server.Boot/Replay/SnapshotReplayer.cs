@@ -13,7 +13,6 @@ using Server.Boot.Loop.PacketProcessing;
 using Server.Event;
 using Server.Protocol;
 using Server.Protocol.PacketResponse;
-using Server.Protocol.PacketResponse.Util.Handshake;
 using UnityEngine;
 
 namespace Server.Boot.Replay
@@ -59,40 +58,33 @@ namespace Server.Boot.Replay
             var queue = provider.GetRequiredService<TickEndPacketQueue>();
             var connectionRegistry = (PlayerConnectionRegistry)provider.GetRequiredService<IPlayerConnectionChecker>();
             var eventProvider = provider.GetRequiredService<EventProtocolProvider>();
-            var contexts = new Dictionary<int, PacketResponseContext>();
-            var pendingDisconnects = new List<int>();
+            var contexts = new ReplayConnectionContexts(connectionRegistry, eventProvider);
             var replayed = 0;
             var excluded = 0;
             var next = 0;
 
-            // パケットは記録tick末尾で処理し、切断はそのtickの処理が終わってから適用する
-            // Process packets at their recorded tick end, then apply disconnects after that tick completes
+            // 同tickのパケットと切断を記録順に積み、本番と同じtick末尾FIFOで処理する
+            // Enqueue packets and disconnects in record order for the same tick-end FIFO as production
             while (GameUpdater.CurrentTick < request.TargetTick)
             {
                 var nextTick = GameUpdater.CurrentTick + 1;
-                pendingDisconnects.Clear();
                 while (next < records.Count && records[next].Tick < nextTick) next++;
                 while (next < records.Count && records[next].Tick == nextTick)
                 {
                     if (records[next].Kind == ReceivedPacketRecordKind.Disconnect)
                     {
-                        pendingDisconnects.Add(records[next].PlayerId.Value);
+                        queue.Enqueue(new ReplayDisconnectEntry(contexts, records[next].PlayerId.Value));
                     }
                     else if (IsExcludedFromReplay(records[next].Payload)) excluded++;
                     else
                     {
-                        queue.Enqueue(new ReplayPacketEntry(packetResponseCreator, ContextFor(records[next].PlayerId), records[next].Payload));
+                        queue.Enqueue(new ReplayRecordedPacketEntry(packetResponseCreator, contexts,
+                            records[next].PlayerId, records[next].Payload));
                         replayed++;
                     }
                     next++;
                 }
                 GameUpdater.Update();
-                foreach (var disconnectedPlayerId in pendingDisconnects)
-                {
-                    contexts.TryGetValue(disconnectedPlayerId, out var disconnectedContext);
-                    PlayerConnectionBinding.Unregister(disconnectedPlayerId, disconnectedContext?.EventSink, connectionRegistry, eventProvider);
-                    contexts.Remove(disconnectedPlayerId);
-                }
             }
 
             var json = provider.GetRequiredService<AssembleSaveJsonText>().AssembleSaveJson();
@@ -101,25 +93,6 @@ namespace Server.Boot.Replay
             return new ReplayResult(loadedTick, GameUpdater.CurrentTick, replayed, inRange, excluded, json);
 
             #region Internal
-
-            // 記録された送り手ごとに接続を復元する。nullはハンドシェイク前の未紐づけ
-            // Restore a connection per recorded sender; null denotes an unbound sender before handshake
-            PacketResponseContext ContextFor(int? playerId)
-            {
-                // 未紐づけレコードは別接続かもしれないため、先のハンドシェイク結果を引き継がない
-                // Unbound records may come from different connections, so never inherit an earlier handshake
-                if (!playerId.HasValue) return new PacketResponseContext(null);
-                if (contexts.TryGetValue(playerId.Value, out var existing)) return existing;
-                var created = new PacketResponseContext(null);
-                if (!PlayerConnectionBinding.TryBind(playerId.Value, created, connectionRegistry, eventProvider))
-                {
-                    var reason = $"再生接続のバインドに失敗しました playerId:{playerId.Value}";
-                    Debug.LogError(reason);
-                    throw new InvalidOperationException(reason);
-                }
-                contexts.Add(playerId.Value, created);
-                return created;
-            }
 
             // 渡されたログが再生区間をどれだけ覆っているかを必ず出す。0件再生を「一致しなかった＝非決定性」と誤読させないため
             // Always report how much of the replay interval the given log covers, so a zero-packet replay is not misread as non-determinism

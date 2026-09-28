@@ -13,7 +13,9 @@ namespace Game.SaveLoad.Snapshot
     {
         private const int UnboundSenderPlayerId = 0;
         internal const int SegmentMagic = 0x504B544C;
-        internal const int SegmentVersion = 1;
+        // 版2はパケットと切断のtick末尾FIFO順を表す。版1の切断tickを同じ意味で再生しない
+        // Version 2 records tick-end FIFO order; version 1 disconnect ticks must not be replayed as that order
+        internal const int SegmentVersion = 2;
         private readonly object _lock = new();
         private readonly ReceivedPacketLogCaptureState _captureState = new();
         private ReceivedPacketLogSegments _segments = new(null);
