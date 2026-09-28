@@ -70,12 +70,8 @@ namespace Client.Localization
             IReadOnlyList<ModId> orderedModIds,
             IReadOnlyDictionary<string, string> masterSourceTexts)
         {
-            var candidate = VanillaLocalizationDictionaryFactory.Create();
-            ModLocalizationMerger.Merge(modsResource, orderedModIds, candidate);
-
-            // mod Sourceの後へMaster正本を重ね、空原文も欠落として確定する
-            // Overlay canonical Master after mod Source and finalize empty sources as omissions
-            OverlayMasterSourceTexts(candidate, masterSourceTexts);
+            var candidate = GameLocalizationDictionaryComposer.Compose(
+                modsResource, orderedModIds, masterSourceTexts);
 
             // 全合成成功後にfreeze済みsnapshot参照を一度だけ公開する
             // Publish the frozen snapshot reference once only after composition fully succeeds
@@ -87,18 +83,7 @@ namespace Client.Localization
             LocalizationDictionaryCandidate candidate,
             IReadOnlyDictionary<string, string> masterSourceTexts)
         {
-            foreach (var sourceText in masterSourceTexts)
-            {
-                // 空Masterはmod由来Sourceを残さずcanonical欠落にする
-                // Empty Master removes mod Source so the canonical value remains missing
-                if (string.IsNullOrEmpty(sourceText.Value))
-                {
-                    candidate.SourceTexts.Remove(sourceText.Key);
-                    continue;
-                }
-
-                candidate.SourceTexts[sourceText.Key] = sourceText.Value;
-            }
+            MasterSourceTextOverlay.Apply(candidate, masterSourceTexts);
         }
 
         public static bool TrySetLanguage(string languageCode)
@@ -119,6 +104,28 @@ namespace Client.Localization
             return true;
         }
 
+        // 有効な保存値だけをプレイヤー自身の選択とみなす
+        // Only a selectable persisted value counts as the player's choice
+        public static bool HasChosenLanguage()
+        {
+            var languages = Volatile.Read(ref publishedSnapshot).Languages;
+            return LocalizeUnchosenLanguage.HasChosenLanguage(languages);
+        }
+
+        // 未選択時だけ一時適用し、保存値は作らない
+        // Apply temporarily only when unchosen, without persisting
+        public static bool TryApplyUnchosenLanguage(string languageCode)
+        {
+            var languages = Volatile.Read(ref publishedSnapshot).Languages;
+            return LocalizeUnchosenLanguage.TryApply(languageCode, languages);
+        }
+
+        internal static void SetCurrentLanguageWithoutPersisting(string languageCode)
+        {
+            currentLanguageCode = languageCode;
+            onLanguageChangedSubject.OnNext(Unit.Default);
+        }
+
         public static string GetCurrentLanguageCode()
         {
             return currentLanguageCode;
@@ -126,13 +133,7 @@ namespace Client.Localization
 
         public static List<string> GetLanguageCodes()
         {
-            var languageCodes = new List<string>();
-            foreach (var languageCode in VanillaLocalizationTable.LanguageCodes)
-            {
-                languageCodes.Add(languageCode);
-            }
-
-            return languageCodes;
+            return VanillaLocalizationDictionaryFactory.GetLanguageCodes();
         }
 
         public static long GetDictionaryRevision()
