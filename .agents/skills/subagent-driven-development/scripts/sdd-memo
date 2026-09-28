@@ -26,7 +26,7 @@ if [ -d "$logs/.git" ] || [ -f "$logs/.git" ]; then
   dir="$logs/harness/sdd/$slug"
 else
   # 記録repoが無い環境ではworktree内へ退避する（worktree削除で消える点に注意）
-  echo "sdd-memo: 記録repoが見つかりません（$logs）。worktree内へ退避します" >&2
+  echo "sdd-memo: 記録repoが見つかりません（${logs}）。worktree内へ退避します" >&2
   dir=$("$(cd "$(dirname "$0")" && pwd)/sdd-workspace")
 fi
 
