@@ -51,11 +51,11 @@ namespace Client.Tests.Starter
             Assert.AreEqual(string.Empty, lines[0]);
 
             var elapsed = stopwatch.Elapsed.ToString();
-            Assert.AreEqual(LocalizationTextInterpolator.GetFormatted(LocalizationKeys.Ui.Loading.ServerConnected, new[] { elapsed }), lines[1]);
+            Assert.AreEqual(Localize.GetFormatted(LocalizationKeys.Ui.Loading.ServerConnected, new[] { elapsed }), lines[1]);
 
             // {p0}にチャンク数、{p1}に経過時間が入る順序を固定する
             // Pins that {p0} takes the chunk count and {p1} the elapsed time
-            Assert.AreEqual(LocalizationTextInterpolator.GetFormatted(LocalizationKeys.Ui.Loading.TerrainReady, new[] { "3", elapsed }), lines[2]);
+            Assert.AreEqual(Localize.GetFormatted(LocalizationKeys.Ui.Loading.TerrainReady, new[] { "3", elapsed }), lines[2]);
             StringAssert.Contains("3", lines[2]);
         }
     }

@@ -45,6 +45,11 @@ namespace Client.Localization
             return LocalizationTextResolver.Resolve(snapshot, currentLanguageCode, key.Key);
         }
 
+        public static string GetFormatted(LocalizationKey key, IReadOnlyList<string> textParams)
+        {
+            return LocalizationTextInterpolator.Interpolate(Get(key), textParams);
+        }
+
         // TextMeshProLocalizeのInspector入力キー専用のレガシー経路（型付きキーはGet/GetContent）
         // Legacy path used only by TextMeshProLocalize's Inspector keys; typed keys use Get/GetContent
         public static string GetLegacy(string rawKey)
@@ -126,37 +131,16 @@ namespace Client.Localization
             long expectedRevision,
             out IReadOnlyDictionary<string, string> dictionary)
         {
-            var snapshot = Volatile.Read(ref publishedSnapshot);
-
-            // revisionと辞書を同じsnapshotから検証し、HTTP応答の異世代混在を防ぐ
-            // Validate revision and dictionary from one snapshot to prevent mixed HTTP generations
-            if (snapshot.Revision == expectedRevision &&
-                snapshot.Languages.TryGetValue(languageCode, out var values))
-            {
-                dictionary = values;
-                return true;
-            }
-
-            dictionary = null;
-            return false;
+            return Volatile.Read(ref publishedSnapshot)
+                .TryGetDictionary(languageCode, expectedRevision, out dictionary);
         }
 
         public static bool TryGetSourceTexts(
             long expectedRevision,
             out IReadOnlyDictionary<string, string> sourceTexts)
         {
-            var snapshot = Volatile.Read(ref publishedSnapshot);
-
-            // 原文も同じsnapshotでrevisionを検証し、実言語と同じ世代保証で配信する
-            // Source texts validate the revision on the same snapshot for the same generation guarantee
-            if (snapshot.Revision == expectedRevision)
-            {
-                sourceTexts = snapshot.SourceTexts;
-                return true;
-            }
-
-            sourceTexts = null;
-            return false;
+            return Volatile.Read(ref publishedSnapshot)
+                .TryGetSourceTexts(expectedRevision, out sourceTexts);
         }
 
         private static void PublishSnapshot(LocalizationDictionaryCandidate candidate)
