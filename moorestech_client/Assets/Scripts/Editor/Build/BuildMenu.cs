@@ -23,20 +23,29 @@ namespace Client.Editor.Build
             BuildInteractive(BuildTarget.StandaloneOSX, AsksDevelopmentBuild());
         }
 
-        // 展示会などの配布用。Development/Releaseを聞かずRelease固定で焼く
-        // For distribution such as exhibitions: no Development prompt, always Release
-        [MenuItem("moorestech/Build/MacOsReleaseLocalBuild")]
-        public static void MacOsReleaseLocalBuild()
+        // 再起動ループ同梱・Release固定
+        // Bundles the restart loop, always Release
+        [MenuItem("moorestech/Build/MacOsExhibitionBuild")]
+        public static void MacOsExhibitionBuild()
         {
-            BuildReleaseLocalInteractive(BuildTarget.StandaloneOSX);
+            var outputDirectory = SelectOutputDirectory(BuildTarget.StandaloneOSX);
+            if (outputDirectory == null) return;
+
+            ReportOutcome(BuildPipeline.Execute(PlayerBuildRequest.ForExhibition(outputDirectory)), outputDirectory);
         }
 
-        // プレイテスト配布用のWindows成果物。契約はmac版と同一
-        // The Windows artifact for playtest distribution; same contract as the mac entry
-        [MenuItem("moorestech/Build/WindowsReleaseLocalBuild")]
-        public static void WindowsReleaseLocalBuild()
+        // 手元焼き。無人入口と同用途
+        // Manual bake; same purpose as the unattended entry
+        [MenuItem("moorestech/Build/WindowsSteamPlaytestBuild")]
+        public static void WindowsSteamPlaytestBuild()
         {
-            BuildReleaseLocalInteractive(BuildTarget.StandaloneWindows64);
+            BuildSteamPlaytestInteractive(BuildTarget.StandaloneWindows64);
+        }
+
+        [MenuItem("moorestech/Build/MacOsSteamPlaytestBuild")]
+        public static void MacOsSteamPlaytestBuild()
+        {
+            BuildSteamPlaytestInteractive(BuildTarget.StandaloneOSX);
         }
 
         [MenuItem("moorestech/Build/LinuxBuild")]
@@ -68,26 +77,19 @@ namespace Client.Editor.Build
             var outputDirectory = SelectOutputDirectory(buildTarget);
             if (outputDirectory == null) return;
 
-            // 開発用: 同梱・出所の問題はCIと同じく警告で続行する。strictは配布入口（ReleaseLocalBuildCli.CreateRequest）に限る
-            // Development use: bundling/origin problems warn and continue like CI; strict is reserved for the distribution entry (ReleaseLocalBuildCli.CreateRequest)
-            var outcome = BuildPipeline.Execute(new PlayerBuildRequest
-            {
-                Target = buildTarget,
-                OutputDirectory = outputDirectory,
-                IsDevelopmentBuild = isDevelopmentBuild,
-                IsStrictBundling = false,
-                BundleLocalGameData = true,
-            });
+            // 開発用は同梱失敗を警告で続行
+            // Dev builds warn and continue on bundling failures
+            var outcome = BuildPipeline.Execute(PlayerBuildRequest.ForLocalDevelopment(buildTarget, outputDirectory, isDevelopmentBuild));
 
             ReportOutcome(outcome, outputDirectory);
         }
 
-        private static void BuildReleaseLocalInteractive(BuildTarget buildTarget)
+        private static void BuildSteamPlaytestInteractive(BuildTarget buildTarget)
         {
             var outputDirectory = SelectOutputDirectory(buildTarget);
             if (outputDirectory == null) return;
 
-            ReportOutcome(BuildPipeline.Execute(ReleaseLocalBuildCli.CreateRequest(buildTarget, outputDirectory)), outputDirectory);
+            ReportOutcome(BuildPipeline.Execute(PlayerBuildRequest.ForSteamPlaytest(buildTarget, outputDirectory)), outputDirectory);
         }
 
         // 出力先を選択する（前回パスを記憶）。キャンセル時はnull
@@ -111,11 +113,20 @@ namespace Client.Editor.Build
                 case PlayerBuildOutcome.Succeeded:
                     EditorUtility.RevealInFinder(outputDirectory);
                     break;
+                case PlayerBuildOutcome.BuildTargetSwitchFailed:
+                    EditorUtility.DisplayDialog("Build Failed", "ビルドターゲットの切り替えに失敗しました。Consoleのエラーを確認してください。", "OK");
+                    break;
+                case PlayerBuildOutcome.MacArchitecturePinFailed:
+                    EditorUtility.DisplayDialog("Build Failed", "Macのarm64固定に失敗しました。Consoleのエラーを確認してください。", "OK");
+                    break;
                 case PlayerBuildOutcome.AddressablesBuildFailed:
                     EditorUtility.DisplayDialog("Build Failed", "Addressablesのビルドに失敗しました。Consoleのエラーを確認してください。", "OK");
                     break;
                 case PlayerBuildOutcome.PlayerBuildFailed:
                     EditorUtility.DisplayDialog("Build Failed", "Playerのビルドに失敗しました。Consoleのエラーを確認してください。", "OK");
+                    break;
+                case PlayerBuildOutcome.MacSigningFailed:
+                    EditorUtility.DisplayDialog("Build Failed", "Mac成果物のad-hoc署名に失敗しました。Consoleのエラーを確認してください。", "OK");
                     break;
             }
         }

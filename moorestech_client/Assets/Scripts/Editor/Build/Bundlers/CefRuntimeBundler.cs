@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using Client.ExternalProcess;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEngine;
@@ -75,6 +76,15 @@ namespace Client.Editor.Build.Bundlers
 
                 var helperDestination = Path.Combine(Path.GetDirectoryName(dylibPaths[0]), "cef-unity-server.app");
                 var copiedFileCount = DirectoryProcessor.CopyAndReplace(helperSource, helperDestination, NoExcludedFileNames);
+
+                // コピーで実行権が落ちると成果物検査で止まる
+                // A dropped executable bit stops the artifact check
+                var copiedHelperExecutable = Path.Combine(helperDestination, "Contents", "MacOS", "cef-unity-server");
+                if (!EditorProcessRunner.MarkExecutable(copiedHelperExecutable, Application.dataPath))
+                {
+                    Fail($"chmod failed for CEF helper: {copiedHelperExecutable}");
+                    return;
+                }
                 Debug.Log($"[CefRuntimeBundler] bundled mac helper: {copiedFileCount} files at {helperDestination}");
             }
 

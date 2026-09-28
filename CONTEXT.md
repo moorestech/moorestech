@@ -454,8 +454,16 @@ _Avoid_: ユーザー名, アカウント名
 _Avoid_: レポート, ダッシュボード, サマリー
 
 **配布ビルド**:
-Mac mini が master の指定コミットから焼き、Steam ベータブランチへ上げる Windows の Release ビルド。
+Mac mini が master の指定コミットから焼き、Steam ベータブランチへ上げる Windows と Mac（Apple Silicon）の Release ビルド。両 OS は1つの Steam ビルドに入る。
 _Avoid_: 本番ビルド, リリース, パッケージ
+
+**ビルド用途**:
+Player ビルドの目的（CI・開発・展示会・Steam 配布）。strict 検査・ゲームデータ同梱・展示会用スクリプト同梱は用途だけから決まる。
+_Avoid_: ビルドモード, ビルド種別, プロファイル
+
+**展示会ビルド**:
+展示会ブースの Mac で回す Release ビルド。再起動ループ `start-gamescom-loop.command` を同梱する点だけが配布ビルドと違う。
+_Avoid_: イベントビルド, 出展ビルド
 
 **検証機**:
 配布ビルドの通し検証を Mac mini から自動実行する自宅の Windows PC。

@@ -1,8 +1,8 @@
-using System.Diagnostics;
 using System.IO;
+using Client.ExternalProcess;
+using UnityEditor;
 using UnityEditor.Build;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
 
 namespace Client.Editor.Build.Bundlers
 {
@@ -14,15 +14,22 @@ namespace Client.Editor.Build.Bundlers
     {
         private const string ScriptFileName = "start-gamescom-loop.command";
 
-        public static void Bundle(string outputDirectory, bool isStrict)
+        public static void Bundle(BuildTarget target, string outputDirectory, bool isStrict)
         {
+            // ForExhibitionがMacへ固定するため到達しない保険。破られたら他OSへ.commandが混ざる
+            // Unreachable insurance because ForExhibition fixes the target to Mac; breaking it would leak a .command into another OS
+            if (target != BuildTarget.StandaloneOSX)
+            {
+                Fail($"exhibition launch script is Mac-only, skipped for {target}");
+                return;
+            }
+
             // 正本はリポジトリの scripts/event
             // The source of truth is scripts/event in this repository
             var sourcePath = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "scripts", "event", ScriptFileName));
             if (!File.Exists(sourcePath))
             {
-                if (isStrict) throw new BuildFailedException($"[EventLoopScriptBundler] launch script is missing: {sourcePath}");
-                Debug.LogWarning($"[EventLoopScriptBundler] launch script is missing: {sourcePath}");
+                Fail($"launch script is missing: {sourcePath}");
                 return;
             }
 
@@ -31,20 +38,19 @@ namespace Client.Editor.Build.Bundlers
 
             // コピー直後は実行権が落ちるため付け直す（ダブルクリック起動の前提）
             // The copy drops the executable bit, so restore it because the booth launches it by double-click
-            MarkExecutable(destinationPath, isStrict);
+            if (!EditorProcessRunner.MarkExecutable(destinationPath, Application.dataPath))
+                Fail($"chmod failed: {destinationPath}");
             Debug.Log($"[EventLoopScriptBundler] bundled launch script: {destinationPath}");
-        }
 
-        private static void MarkExecutable(string filePath, bool isStrict)
-        {
-            // 外部プロセス境界: .NET Standard 2.1にパーミッション付与APIが無いためchmodへ委譲する
-            // External process boundary: .NET Standard 2.1 has no permission API, so delegate to chmod
-            var process = Process.Start(new ProcessStartInfo("/bin/chmod", $"+x \"{filePath}\"") { UseShellExecute = false });
-            process.WaitForExit();
-            if (process.ExitCode == 0) return;
+            #region Internal
 
-            if (isStrict) throw new BuildFailedException($"[EventLoopScriptBundler] chmod failed: {filePath}");
-            Debug.LogWarning($"[EventLoopScriptBundler] chmod failed: {filePath}");
+            void Fail(string message)
+            {
+                if (isStrict) throw new BuildFailedException("[EventLoopScriptBundler] " + message);
+                Debug.LogWarning("[EventLoopScriptBundler] " + message);
+            }
+
+            #endregion
         }
     }
 }

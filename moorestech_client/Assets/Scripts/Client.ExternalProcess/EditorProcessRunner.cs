@@ -3,10 +3,9 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
-using Client.WebUiHost.Common;
 using Debug = UnityEngine.Debug;
 
-namespace Client.WebUiHost.Editor
+namespace Client.ExternalProcess
 {
     /// <summary>
     /// ビルド工程用の同期外部プロセス実行（env汚染除去・出力排水込み）
@@ -17,6 +16,13 @@ namespace Client.WebUiHost.Editor
         // 起動失敗（プロセスが生成できなかった）を表す終了コード
         // Exit code representing spawn failure (process could not be created)
         private const int SpawnFailureExitCode = -1;
+
+        // 実行権付与は呼び出し側ごとに書き写さない。.NET Standard 2.1にパーミッション付与APIが無いため外部コマンドへ委譲する
+        // Callers never copy this: .NET Standard 2.1 has no permission API, so granting the executable bit delegates to an external command
+        public static bool MarkExecutable(string filePath, string workingDirectory)
+        {
+            return Run("/bin/chmod", $"+x \"{filePath}\"", workingDirectory, "") == 0;
+        }
 
         public static int Run(string fileName, string arguments, string workingDirectory, string prependPathDirectory)
         {

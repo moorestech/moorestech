@@ -61,6 +61,11 @@ namespace Client.Game.InGame.UI.UIState.State
             _cameraPolicyService.RestoreAfterApplicationFocus();
         }
 
+        public bool LocksPlayerMovement()
+        {
+            return true;
+        }
+
         public IReadOnlyList<KeyHint> GetKeyHints()
         {
             return BuildMenuStateHints.Hints;
