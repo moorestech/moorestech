@@ -9,7 +9,7 @@ namespace Client.Game.InGame.Train.View
 {
     /// <summary>
     ///     列車スナップショットを初期化時にキャッシュへ流し込むアプライヤー
-    ///     Applies the initial train snapshots to the local cache and can be reused for resync
+    ///     Applies the initial train snapshots to the local cache
     /// </summary>
     public sealed class TrainUnitSnapshotApplier
     {
