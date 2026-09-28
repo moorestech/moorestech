@@ -1,4 +1,5 @@
 using System.Collections;
+using Client.Game.InGame.Train.Network;
 using Client.Tests.TrainSynchronization;
 using NUnit.Framework;
 using UnityEditor;
@@ -11,17 +12,30 @@ namespace Client.Tests.EditModeInPlayingTest
     public sealed class TrainSynchronizationWaitingPlayTest
     {
         [UnityTest]
-        public IEnumerator SnapshotThenSilence_KeepsFramesRunning_AndSavesOnlyAfterObservedLag()
+        public IEnumerator SnapshotThenSilence_KeepsFramesRunning_AndSavesConfirmedSequenceGap()
         {
             EnterPlayModeUtil();
             yield return new EnterPlayMode(expectDomainReload: true);
             LogAssert.ignoreFailingMessages = true;
 
+            // 同じsnapshotでhashが既着なら進まないことにより、初回の通常予算ゼロを確かめる。
+            // Verify zero initial normal budget by showing an available hash does not advance the same snapshot.
+            const uint snapshotTick = 1000;
+            using (var buffered = new TrainSynchronizationTestContext())
+            {
+                buffered.ApplyInitialSnapshot(snapshotTick);
+                var initialId = buffered.State.GetAppliedTickUnifiedId();
+                buffered.Buffer.EnqueueHash(uint.MaxValue, uint.MaxValue, snapshotTick, 1);
+                buffered.Simulator.Tick();
+                Assert.That(buffered.State.GetAppliedTickUnifiedId(), Is.EqualTo(initialId));
+                Assert.That(buffered.Diagnostics.IsWaiting, Is.False);
+                Assert.That(buffered.Reports(), Is.Empty);
+            }
+
             using (var context = new TrainSynchronizationTestContext())
             {
                 // 大きいsnapshot tickで通常ループ予算がゼロになる経路を通す。
                 // Use a large snapshot tick to exercise the zero normal-loop-budget path.
-                const uint snapshotTick = 500000;
                 context.ApplyInitialSnapshot(snapshotTick);
                 var initialId = context.State.GetAppliedTickUnifiedId();
                 var initialFrame = Time.frameCount;
@@ -36,19 +50,19 @@ namespace Client.Tests.EditModeInPlayingTest
                 Assert.That(context.State.GetAppliedTickUnifiedId(), Is.EqualTo(initialId));
                 Assert.That(context.Reports(), Is.Empty);
 
-                // 実際の後続受信が閾値へ到達した時点だけで、最初の欠落位置を保存する。
-                // Save the original missing position only when an actual later arrival reaches the threshold.
-                context.Buffer.EnqueueHash(uint.MaxValue, uint.MaxValue, snapshotTick + 199, 1);
-                context.Simulator.Tick();
-                Assert.That(context.Reports(), Is.Empty);
-                context.Buffer.EnqueueHash(uint.MaxValue, uint.MaxValue, snapshotTick + 200, 1);
+                // 同tickの後続連番を受信して欠番が確定した時点で保存する。
+                // Save as soon as a later sequence in the same tick confirms the missing ordered message.
+                context.Buffer.EnqueueHash(uint.MaxValue, uint.MaxValue, snapshotTick, 2);
                 context.Simulator.Tick();
                 var report = context.ReadReport();
                 Assert.That((ulong)report["ExpectedId"], Is.EqualTo(initialId + 1));
                 Assert.That((uint)report["TickGapAtOnset"], Is.Zero);
-                Assert.That((uint)report["TickGapAtCapture"], Is.EqualTo(200));
-                context.Buffer.EnqueueHash(uint.MaxValue, uint.MaxValue, snapshotTick, 1);
+                Assert.That((uint)report["TickGapAtCapture"], Is.Zero);
+                Assert.That((string)report["CaptureReason"], Is.EqualTo("ConfirmedOrderedGap"));
+                var applied = false;
+                context.Buffer.EnqueueEvent("test:late-event", snapshotTick, 1, TrainTickBufferedEvent.Create(() => applied = true));
                 context.Simulator.Tick();
+                Assert.That(applied, Is.True);
                 Assert.That(context.State.GetTick(), Is.EqualTo(snapshotTick + 1));
             }
 

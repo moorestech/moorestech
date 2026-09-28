@@ -1,10 +1,12 @@
 using System;
 using System.IO;
 using System.Text.RegularExpressions;
+using Client.Game.InGame.Train.Network;
 using Client.Game.InGame.Train.Network.Diagnostics;
 using Client.Game.InGame.Train.Unit;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
+using Server.Event.EventReceive;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -21,25 +23,23 @@ namespace Client.Tests.TrainSynchronization
         public void TearDown() => _context.Dispose();
 
         [Test]
-        public void ReceivedTickGap_SavesAt200WithFrozenOnsetAndBoundedRecentHistory()
+        public void ConfirmedGap_SavesWithFrozenOnsetAndBoundedRecentHistory()
         {
             _context.InitializeDiagnostics(10);
             var expected = _context.State.GetAppliedTickUnifiedId() + 1;
             _context.Diagnostics.RecordReceived("before", 10, 0);
-            _context.Diagnostics.RecordMissingOrderedMessage(expected);
-            _context.Diagnostics.RecordReceived("Hash", 209, 1);
             _context.Diagnostics.RecordMissingOrderedMessage(expected);
             Assert.That(_context.Reports(), Is.Empty);
 
             // 上書き・古い到着で履歴が循環しても初回の証拠は保持する。
             // Keep onset evidence even after stale and duplicate arrivals wrap recent history.
             for (var i = 0; i < 300; i++) _context.Diagnostics.RecordReceived("stale", 9, (uint)i);
-            _context.Diagnostics.RecordReceived("Hash", 210, 2);
+            _context.Diagnostics.RecordReceived("Hash", 10, 2);
             _context.Diagnostics.RecordMissingOrderedMessage(expected);
             var report = _context.ReadReport();
-            Assert.That((string)report["CaptureReason"], Is.EqualTo("ReceivedTickGap"));
+            Assert.That((string)report["CaptureReason"], Is.EqualTo("ConfirmedOrderedGap"));
             Assert.That((uint)report["TickGapAtOnset"], Is.Zero);
-            Assert.That((uint)report["TickGapAtCapture"], Is.EqualTo(200));
+            Assert.That((uint)report["TickGapAtCapture"], Is.Zero);
             Assert.That((ulong)report["ExpectedId"], Is.EqualTo(expected));
             Assert.That((uint)report["ExpectedTick"], Is.EqualTo(10));
             Assert.That((uint)report["ExpectedSequenceId"], Is.EqualTo(1));
@@ -52,20 +52,21 @@ namespace Client.Tests.TrainSynchronization
         }
 
         [Test]
-        public void Saving_RequiresInitialSuccessAndObservedFutureTickGap()
+        public void MissingMessageSaving_RequiresInitialSuccessAndLaterArrival()
         {
             _context.Diagnostics.RecordMissingOrderedMessage(1);
             _context.Diagnostics.RecordReceived("Hash", 200, 1);
+            _context.Diagnostics.RecordMissingOrderedMessage(1);
             Assert.That(_context.Reports(), Is.Empty);
-            _context.InitializeDiagnostics(200);
+            _context.InitializeDiagnostics(201);
             var expected = _context.State.GetAppliedTickUnifiedId() + 1;
             for (var i = 0; i < 10000; i++) _context.Diagnostics.RecordMissingOrderedMessage(expected);
             Assert.That(_context.Reports(), Is.Empty);
-            _context.Diagnostics.RecordReceived("Hash", 400, 1);
+            _context.Diagnostics.RecordReceived("Hash", 201, 2);
             _context.Diagnostics.RecordMissingOrderedMessage(expected);
             var report = _context.ReadReport();
-            Assert.That((string)report["CaptureReason"], Is.EqualTo("ReceivedTickGap"));
-            Assert.That((uint)report["TickGapAtCapture"], Is.EqualTo(200));
+            Assert.That((string)report["CaptureReason"], Is.EqualTo("ConfirmedOrderedGap"));
+            Assert.That((uint)report["TickGapAtCapture"], Is.Zero);
         }
 
         [Test]
@@ -108,6 +109,22 @@ namespace Client.Tests.TrainSynchronization
             Assert.That((uint)history[0]["Tick"], Is.EqualTo(9));
             Assert.That((uint)history[2]["SequenceId"], Is.EqualTo(3));
             Assert.That((uint)history[3]["SequenceId"], Is.EqualTo(3));
+        }
+
+        [Test]
+        public void BufferedEventHistory_RetainsDistinctProtocolTags()
+        {
+            _context.InitializeDiagnostics(10);
+            // 共通のラッパー型でも、受信したプロトコル種別を区別する。
+            // Distinguish received protocol tags even when events share one wrapper type.
+            var first = TrainTickBufferedEvent.Create(() => { });
+            var second = TrainTickBufferedEvent.Create(() => { });
+            _context.Buffer.EnqueueEvent(RailNodeCreatedEventPacket.EventTag, 10, 2, first);
+            _context.Buffer.EnqueueEvent(TrainUnitSnapshotEventPacket.EventTag, 10, 3, second);
+            Assert.That(_context.Gate.CanAdvanceTick(_context.State.GetAppliedTickUnifiedId() + 1), Is.False);
+            var history = (JArray)_context.ReadReport()["RecentHistory"];
+            Assert.That((string)history[0]["Kind"], Is.EqualTo(RailNodeCreatedEventPacket.EventTag));
+            Assert.That((string)history[1]["Kind"], Is.EqualTo(TrainUnitSnapshotEventPacket.EventTag));
         }
 
         [Test]

@@ -27,9 +27,9 @@ namespace Client.Game.InGame.Train.Network
 
         // イベントを未来tickキューへ積む。
         // Queue a pre-simulation event only when its tick is still in the future.
-        public void EnqueueEvent(uint serverTick, uint tickSequenceId, ITrainTickBufferedEvent bufferedEvent)
+        public void EnqueueEvent(string eventTag, uint serverTick, uint tickSequenceId, ITrainTickBufferedEvent bufferedEvent)
         {
-            _diagnostics.RecordReceived(bufferedEvent?.GetType().Name ?? "NullEvent", serverTick, tickSequenceId);
+            _diagnostics.RecordReceived(eventTag, serverTick, tickSequenceId);
             if (bufferedEvent == null)
             {
                 Debug.LogWarning($"[TrainUnitFutureMessageBuffer] Ignored null event: {serverTick}_{tickSequenceId}");

@@ -18,6 +18,7 @@ namespace Client.Game.InGame.Train.Network.Diagnostics
         public uint TickGapAtOnset;
         public uint TickGapAtCapture;
         public string WaitingReason;
+        public string WaitingReasonAtCapture;
         public string CaptureReason;
         public TrainSynchronizationHashComparison HashComparison;
         public TrainSynchronizationReceiveRecord[] OnsetHistory;

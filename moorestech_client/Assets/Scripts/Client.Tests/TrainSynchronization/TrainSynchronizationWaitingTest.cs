@@ -33,11 +33,13 @@ namespace Client.Tests.TrainSynchronization
             var laterEvent = new CountingEvent();
             if (scenario == "FutureHash") _context.Buffer.EnqueueHash(uint.MaxValue, uint.MaxValue, 11, 1);
             if (scenario == "SameTickGap") _context.Buffer.EnqueueHash(uint.MaxValue, uint.MaxValue, 10, 2);
-            if (scenario == "FutureEvent") _context.Buffer.EnqueueEvent(11, 1, laterEvent);
+            if (scenario == "FutureEvent") _context.Buffer.EnqueueEvent("test:event", 11, 1, laterEvent);
+            Assert.That(_context.Gate.CanAdvanceTick(before + 1), Is.False);
+            Assert.That(_context.Reports().Length, Is.EqualTo(scenario == "Empty" ? 0 : 1));
             for (var i = 0; i < 1000; i++) Assert.That(_context.Gate.CanAdvanceTick(before + 1), Is.False);
             Assert.That(_context.State.GetAppliedTickUnifiedId(), Is.EqualTo(before));
             Assert.That(laterEvent.AppliedCount, Is.Zero);
-            Assert.That(_context.Reports(), Is.Empty);
+            Assert.That(_context.Reports().Length, Is.EqualTo(scenario == "Empty" ? 0 : 1));
             Assert.That(_context.Warnings.Count, Is.LessThanOrEqualTo(1));
 
             // 必要な順序位置の後着だけが待機を解消する。
@@ -72,6 +74,9 @@ namespace Client.Tests.TrainSynchronization
             for (var i = 0; i < 1000; i++) Assert.That(_context.Gate.CanAdvanceTick(expected), Is.False);
             Assert.That(_context.State.GetAppliedTickUnifiedId(), Is.EqualTo(expected - 1));
             Assert.That(_context.Warnings, Has.Count.EqualTo(1));
+            _context.Buffer.EnqueueHash(uint.MaxValue, uint.MaxValue, 209, 1);
+            Assert.That(_context.Gate.CanAdvanceTick(expected), Is.False);
+            Assert.That(_context.Reports(), Is.Empty);
             _context.Buffer.EnqueueHash(uint.MaxValue, uint.MaxValue, 210, 1);
             Assert.That(_context.Gate.CanAdvanceTick(expected), Is.False);
             var report = _context.ReadReport();
@@ -86,16 +91,35 @@ namespace Client.Tests.TrainSynchronization
         }
 
         [Test]
+        public void MissingThenMismatchingHash_UsesCurrentObservationAndRetainsOnset()
+        {
+            var expected = _context.State.GetAppliedTickUnifiedId() + 1;
+            Assert.That(_context.Gate.CanAdvanceTick(expected), Is.False);
+            _context.Buffer.EnqueueHash(_context.Trains.ComputeCurrentHash() ^ 1, _context.Rail.ComputeCurrentHash(), 10, 1);
+            _context.Buffer.EnqueueHash(uint.MaxValue, uint.MaxValue, 209, 1);
+            Assert.That(_context.Gate.CanAdvanceTick(expected), Is.False);
+            Assert.That(_context.Reports(), Is.Empty);
+            _context.Buffer.EnqueueHash(uint.MaxValue, uint.MaxValue, 210, 1);
+            Assert.That(_context.Gate.CanAdvanceTick(expected), Is.False);
+            var report = _context.ReadReport();
+            Assert.That((string)report["WaitingReason"], Is.EqualTo("MissingOrderedMessage"));
+            Assert.That((string)report["WaitingReasonAtCapture"], Is.EqualTo("HashMismatch"));
+            Assert.That((string)report["CaptureReason"], Is.EqualTo("ReceivedTickGap"));
+            Assert.That((uint)report["TickGapAtOnset"], Is.Zero);
+            Assert.That((uint)report["TickGapAtCapture"], Is.EqualTo(200));
+        }
+
+        [Test]
         public void Simulator_LateEventAppliesBeforeHash_AndDoesNotSkipFutureEvent()
         {
             var missing = new CountingEvent();
             var future = new CountingEvent();
-            _context.Buffer.EnqueueEvent(10, 2, future);
+            _context.Buffer.EnqueueEvent("test:event", 10, 2, future);
             _context.Buffer.EnqueueHash(uint.MaxValue, uint.MaxValue, 10, 3);
             for (var i = 0; i < 1000; i++) _context.Simulator.Tick();
             Assert.That(future.AppliedCount, Is.Zero);
             Assert.That(_context.State.GetTickSequenceId(), Is.Zero);
-            _context.Buffer.EnqueueEvent(10, 1, missing);
+            _context.Buffer.EnqueueEvent("test:event", 10, 1, missing);
             _context.Simulator.Tick();
             Assert.That(missing.AppliedCount, Is.EqualTo(1));
             Assert.That(future.AppliedCount, Is.EqualTo(1));
@@ -112,7 +136,7 @@ namespace Client.Tests.TrainSynchronization
             _context.Buffer.EnqueueHash(uint.MaxValue, uint.MaxValue, 10, 1);
             for (uint tick = 11; tick <= 220; tick++)
             {
-                _context.Buffer.EnqueueEvent(tick, 1, new CountingEvent());
+                _context.Buffer.EnqueueEvent("test:event", tick, 1, new CountingEvent());
                 _context.Buffer.EnqueueHash(uint.MaxValue, uint.MaxValue, tick, 2);
             }
             Assert.That(_context.Warnings, Is.Empty);

@@ -42,7 +42,7 @@ namespace Client.Game.InGame.Train.Network
             if (message == null)
                 return;
             EnqueueHash(message);
-            _futureMessageBuffer.EnqueueEvent(message.ServerTick, message.DiffTickSequenceId, CreateBufferedEvent(message));
+            _futureMessageBuffer.EnqueueEvent(TrainUnitTickDiffBundleEventPacket.EventTag, message.ServerTick, message.DiffTickSequenceId, CreateBufferedEvent(message));
             return;
 
             #region Internal

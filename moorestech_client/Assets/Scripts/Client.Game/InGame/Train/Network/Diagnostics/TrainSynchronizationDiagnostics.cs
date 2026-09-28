@@ -7,9 +7,9 @@ namespace Client.Game.InGame.Train.Network.Diagnostics
 {
     public sealed class TrainSynchronizationDiagnostics
     {
-        // ADR 0071の診断窓。短い通常待ちは保存せず、受信履歴は固定量に保つ。
-        // Diagnostic windows from ADR 0071; avoid saving brief waits and bound receive history.
-        private const uint TickGapThreshold = 200;
+        // ADR 0071のhash不一致の診断窓。欠番確定は即保存し、履歴は固定量に保つ。
+        // Hash-mismatch diagnostic window from ADR 0071; save confirmed gaps immediately and bound history.
+        private const uint HashMismatchTickGapThreshold = 200;
         private const int HistoryCapacity = 256;
         private readonly TrainUnitTickState _tickState;
         private readonly TrainSynchronizationDiagnosticWriter _writer;
@@ -56,22 +56,21 @@ namespace Client.Game.InGame.Train.Network.Diagnostics
 
         internal void RecordMissingOrderedMessage(ulong expectedId)
         {
-            BeginWaiting(expectedId, "MissingOrderedMessage", null);
-            Evaluate();
+            BeginWaiting(expectedId, WaitingObservation.MissingOrderedMessage, null);
+            Evaluate(WaitingObservation.MissingOrderedMessage);
         }
 
         internal void RecordHashMismatch(ulong expectedId, uint localTrain, uint serverTrain, uint localRail, uint serverRail)
         {
             var comparison = new TrainSynchronizationHashComparison(localTrain, serverTrain, localRail, serverRail);
-            BeginWaiting(expectedId, "HashMismatch", comparison);
+            BeginWaiting(expectedId, WaitingObservation.HashMismatch, comparison);
             // 後着hashが不一致だった場合も、欠落から始まった同一待機に値を残す。
             // Retain a late mismatching hash within the same episode that began as a missing message.
             if (_waiting != null && _waiting.HashComparison == null) _waiting.HashComparison = comparison;
-            WarnOnce();
-            Evaluate();
+            Evaluate(WaitingObservation.HashMismatch);
         }
 
-        private void BeginWaiting(ulong expectedId, string reason, TrainSynchronizationHashComparison comparison)
+        private void BeginWaiting(ulong expectedId, WaitingObservation observation, TrainSynchronizationHashComparison comparison)
         {
             if (!_initialized || _waiting != null) return;
             // 初回の期待位置と直前履歴は、以後の到着で上書きしない。
@@ -83,28 +82,37 @@ namespace Client.Game.InGame.Train.Network.Diagnostics
                 AppliedIdAtOnset = _tickState.GetAppliedTickUnifiedId(),
                 LatestReceivedIdAtOnset = _latestReceivedId,
                 TickGapAtOnset = GetTickGap(),
-                WaitingReason = reason,
+                WaitingReason = observation.ToString(),
                 HashComparison = comparison,
                 OnsetHistory = _history.ToArray(),
             };
         }
 
-        private void Evaluate()
+        private void Evaluate(WaitingObservation observation)
         {
             if (_waiting == null || _writeAttempted) return;
-            if (_latestReceivedId > _waiting.ExpectedId) WarnOnce();
+            var hasLaterArrival = _latestReceivedId > _waiting.ExpectedId;
+            if (observation == WaitingObservation.HashMismatch || hasLaterArrival) WarnOnce(observation);
             var gap = GetTickGap();
-            if (gap < TickGapThreshold) return;
+            // 開始理由ではなく現在のgate観測で、欠番とhash不一致の保存条件を選ぶ。
+            // Select the persistence policy using the current gate observation instead of the onset reason.
+            var captureReason = observation switch
+            {
+                WaitingObservation.MissingOrderedMessage when hasLaterArrival => "ConfirmedOrderedGap",
+                WaitingObservation.HashMismatch when gap >= HashMismatchTickGapThreshold => "ReceivedTickGap",
+                _ => null,
+            };
+            if (captureReason == null) return;
 
             // 実受信の乖離だけを保存し、失敗しても同一待機の再書込を抑止する。
             // Save only observed receive lag and suppress repeated writes even after a disk failure.
-            WarnOnce();
             _writeAttempted = true;
             _waiting.CapturedAtUtc = DateTime.UtcNow;
             _waiting.AppliedIdAtCapture = _tickState.GetAppliedTickUnifiedId();
             _waiting.LatestReceivedIdAtCapture = _latestReceivedId;
             _waiting.TickGapAtCapture = gap;
-            _waiting.CaptureReason = "ReceivedTickGap";
+            _waiting.WaitingReasonAtCapture = observation.ToString();
+            _waiting.CaptureReason = captureReason;
             _waiting.RecentHistory = _history.ToArray();
             LastWriteResult = _writer.Write(_waiting);
         }
@@ -116,11 +124,17 @@ namespace Client.Game.InGame.Train.Network.Diagnostics
             return receivedTick > appliedTick ? receivedTick - appliedTick : 0;
         }
 
-        private void WarnOnce()
+        private void WarnOnce(WaitingObservation observation)
         {
             if (_waiting == null || _warned) return;
             _warned = true;
-            Debug.LogWarning($"[TrainSynchronization] Waiting: {_waiting.WaitingReason}, expected={_waiting.ExpectedId >> 32}_{(uint)_waiting.ExpectedId}, applied={_waiting.AppliedIdAtOnset}, latestReceived={_latestReceivedId}");
+            Debug.LogWarning($"[TrainSynchronization] Waiting: {observation}, expected={_waiting.ExpectedId >> 32}_{(uint)_waiting.ExpectedId}, applied={_waiting.AppliedIdAtOnset}, latestReceived={_latestReceivedId}");
+        }
+
+        private enum WaitingObservation
+        {
+            MissingOrderedMessage,
+            HashMismatch,
         }
     }
 }

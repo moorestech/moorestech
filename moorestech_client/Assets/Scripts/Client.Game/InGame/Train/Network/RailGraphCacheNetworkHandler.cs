@@ -55,7 +55,7 @@ namespace Client.Game.InGame.Train.Network
                 {
                     return;
                 }
-                _futureMessageBuffer.EnqueueEvent(message.ServerTick, message.TickSequenceId, CreateBufferedEvent(message));
+                _futureMessageBuffer.EnqueueEvent(RailNodeCreatedEventPacket.EventTag, message.ServerTick, message.TickSequenceId, CreateBufferedEvent(message));
                 return;
 
                 ITrainTickBufferedEvent CreateBufferedEvent(RailNodeCreatedMessagePack messagePack)
@@ -88,7 +88,7 @@ namespace Client.Game.InGame.Train.Network
                 {
                     return;
                 }
-                _futureMessageBuffer.EnqueueEvent(message.ServerTick, message.TickSequenceId, CreateBufferedEvent(message));
+                _futureMessageBuffer.EnqueueEvent(RailNodeRemovedEventPacket.EventTag, message.ServerTick, message.TickSequenceId, CreateBufferedEvent(message));
 
                 ITrainTickBufferedEvent CreateBufferedEvent(RailNodeRemovedMessagePack messagePack)
                 {
