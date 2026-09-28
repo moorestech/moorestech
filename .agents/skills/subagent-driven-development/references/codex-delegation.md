@@ -24,7 +24,7 @@ codexは `workspace-write` サンドボックスで動くので、次はでき�
 - **uloop / Unity**: 起動もコンパイルもできない。`.cs` のコンパイルとUnityテストはClaudeが回す。
 - **ポートの待受**（Playwrightのmock-host、HTTPテスト）: `listen EPERM` で失敗する。e2eとHTTP系テストはClaudeが回す。
 - **`--cd` 外や読み取り専用の場所への書き込み**（例: symlink先の `.agents/skills/`、Beads DB）: codexにはパッチファイルを残させ、Claudeが `git apply` する。
-- **報告ファイル名**: `.superpowers/sdd/` には他計画のtrackedファイル（`task-4-report.md` 等）が混ざっている。codexには固有接頭辞（例: `pmh-`）付きの名前で書かせる。上書きされたら `git checkout --` で戻す。
+- **報告ファイル名**: 報告は `.superpowers/sdd/`（git管理外）に書かせる。git addさせない。同じworktreeで前計画の報告が残っていることがあるので、codexには固有接頭辞（例: `pmh-`）付きの名前で書かせる。
 
 ## codexが戻ったらClaudeがやること
 
