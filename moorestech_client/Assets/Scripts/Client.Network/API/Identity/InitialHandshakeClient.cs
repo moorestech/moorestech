@@ -6,7 +6,7 @@ using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Handshake;
 using UnityEngine;
 
-namespace Client.Network.API
+namespace Client.Network.API.Identity
 {
     internal static class InitialHandshakeClient
     {

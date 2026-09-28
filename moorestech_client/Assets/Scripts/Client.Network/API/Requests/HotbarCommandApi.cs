@@ -1,7 +1,7 @@
 using System;
 using Server.Protocol.PacketResponse;
 
-namespace Client.Network.API
+namespace Client.Network.API.Requests
 {
     internal sealed class HotbarCommandApi
     {

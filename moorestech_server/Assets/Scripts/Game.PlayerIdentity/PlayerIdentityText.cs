@@ -33,10 +33,10 @@ namespace Game.PlayerIdentity
             bool IsSteamBody(string body, out string steamReason)
             {
                 steamReason = null;
-                if (body.Length == 0 || body.Length > MaxSteamIdDigits) steamReason = $"SteamIDの桁数が不正: {identity}";
+                if (body.Length == 0 || MaxSteamIdDigits < body.Length) steamReason = $"SteamIDの桁数が不正: {identity}";
                 foreach (var c in body)
                 {
-                    if (c >= '0' && c <= '9') continue;
+                    if ('0' <= c && c <= '9') continue;
                     steamReason = $"SteamIDに数字以外が含まれる: {identity}";
                 }
                 return steamReason == null;
@@ -48,7 +48,7 @@ namespace Game.PlayerIdentity
                 if (body.Length != DeviceHashLength) deviceReason = $"端末値の長さが不正: {identity}";
                 foreach (var c in body)
                 {
-                    if ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f')) continue;
+                    if (('0' <= c && c <= '9') || ('a' <= c && c <= 'f')) continue;
                     deviceReason = $"端末値に小文字16進以外が含まれる: {identity}";
                 }
                 return deviceReason == null;

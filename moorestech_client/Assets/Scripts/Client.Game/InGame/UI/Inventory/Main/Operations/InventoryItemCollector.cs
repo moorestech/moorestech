@@ -1,19 +1,19 @@
 using System.Linq;
 using Core.Master;
 
-namespace Client.Game.InGame.UI.Inventory.Main
+namespace Client.Game.InGame.UI.Inventory.Main.Operations
 {
     internal static class InventoryItemCollector
     {
         public static void Collect(LocalPlayerInventoryController controller, LocalMoveInventoryType targetType, int targetSlot)
         {
-            // 同種アイテムを所持数の少ない順に集積先へ移す（uGUI ダブルクリックと Web collect の共通実装）
-            // Gather same-type stacks smallest-first into the target; shared by uGUI double-click and web collect
+            // 少ない順に集積移動（uGUI/Web共通）
+            // Gather smallest-first; shared by uGUI/web collect
             var collectTarget = controller.GetItem(targetType, targetSlot);
             if (collectTarget.Id == ItemMaster.EmptyItemId) return;
 
-            // 集積先が結合スロットのときだけ、同じ index を移動元から除外する
-            // Exclude the same index from the sources only when the target is a combined slot
+            // 結合スロット時のみ同index除外
+            // Exclude the same index only when the target is combined
             var isCombinedTarget = targetType == LocalMoveInventoryType.MainOrSub;
             var sourceSlots = controller.LocalPlayerInventory
                 .Select((item, index) => (item, index))

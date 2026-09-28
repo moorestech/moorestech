@@ -16,7 +16,7 @@ def read_json(path, failure):
     try:
         with open(path, encoding="utf-8") as handle:
             return json.load(handle)
-    except (OSError, ValueError) as error:
+    except Exception as error:
         note("%s（%s: %s）" % (failure, type(error).__name__, error))
         return None
 

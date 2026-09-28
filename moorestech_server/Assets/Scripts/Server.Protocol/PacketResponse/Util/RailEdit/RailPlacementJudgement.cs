@@ -2,11 +2,13 @@ using System;
 using System.Collections.Generic;
 using Core.Master;
 
-namespace Server.Protocol.PacketResponse
+namespace Server.Protocol.PacketResponse.Util.RailEdit
 {
     /// <summary>
-    /// レール設置可否の統合判定結果。失敗理由、または採用connectToolと消費素材を保持する
-    /// Aggregated rail placement viability result, exposing the failure reason or the selected connectTool with its consumption materials.
+    /// レール設置判定結果
+    /// Rail placement judgement result
+    /// - 失敗理由、または採用connectTool・消費素材のいずれかを保持
+    /// - Holds either the failure reason, or the selected connectTool with its consumption materials
     /// </summary>
     public readonly struct RailPlacementJudgement
     {

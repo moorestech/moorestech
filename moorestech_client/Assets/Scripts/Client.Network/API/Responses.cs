@@ -8,12 +8,27 @@ using Game.Context;
 using Game.Train.Unit;
 using Mooresmaster.Model.ChallengesModule;
 using Server.Event.EventReceive;
+using Server.Protocol.PacketResponse;
 using Server.Util.MessagePack;
 using UnityEngine;
 using static Server.Protocol.PacketResponse.PlayerInventoryResponseProtocol;
 
 namespace Client.Network.API
 {
+    public class InventoryResponse
+    {
+        public InventoryIdentifierMessagePack Identifier { get; }
+        public List<IItemStack> Items { get; }
+        public InventoryRequestResult Result { get; }
+
+        public InventoryResponse(InventoryIdentifierMessagePack identifier, List<IItemStack> items, InventoryRequestResult result)
+        {
+            Identifier = identifier;
+            Items = items;
+            Result = result;
+        }
+    }
+
     public class PlayerInventoryResponse
     {
         /// <summary>

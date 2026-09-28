@@ -4,16 +4,19 @@ using System.Text;
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.BuildOrigin;
 using Client.PlaytestReceiver.Steam;
+using Game.PlayerIdentity;
 using Mooresmaster.Localization.Generated;
 using UnityEngine;
 
 namespace Client.Starter.Identity
 {
-    // 起動ごとのプレイヤー身元を決める。Steam配布ビルドはSteam、それ以外は端末値（ADR 0073）
-    // Resolves this process's player identity: Steam on Steam distribution builds, the device value otherwise (ADR 0073)
+    // 起動時の身元解決（ADR0073）
+    // Startup identity resolution (ADR 0073)
+    // - Steam配布ビルド=Steam / それ以外=端末値
+    // - Steam distribution build=Steam / otherwise=device value
     public static class LocalPlayerIdentityResolver
     {
-        public static PlayerIdentityResolution ResolveForThisProcess()
+        internal static PlayerIdentityResolution ResolveForThisProcess()
         {
             // 配布の種別は焼き込み値で決め、実行時のSteamの状態では決めない
             // The build kind comes from the baked value, never from runtime Steam state
@@ -26,7 +29,7 @@ namespace Client.Starter.Identity
         {
             if (isSteamDistributionBuild)
             {
-                if (steamReader.TryRead(out var steamId, out var failureReason)) return PlayerIdentityResolution.Success("steam:" + steamId);
+                if (steamReader.TryRead(out var steamId, out var failureReason)) return PlayerIdentityResolution.Success(PlayerIdentityText.SteamPrefix + steamId);
                 return PlayerIdentityResolution.Refused(LocalizationKeys.Ui.Loading.SteamIdentityUnavailable, $"Steam配布ビルドでSteamIDを読めないため開始しない: {failureReason}");
             }
 
@@ -34,7 +37,7 @@ namespace Client.Starter.Identity
             {
                 return PlayerIdentityResolution.Refused(LocalizationKeys.Ui.Loading.DeviceIdentityUnavailable, $"端末の識別子を取得できないため開始しない: '{deviceUniqueIdentifier}'");
             }
-            return PlayerIdentityResolution.Success("device:" + Sha256Hex(deviceUniqueIdentifier));
+            return PlayerIdentityResolution.Success(PlayerIdentityText.DevicePrefix + Sha256Hex(deviceUniqueIdentifier));
 
             #region Internal
 
@@ -66,7 +69,7 @@ namespace Client.Starter.Identity
             RefusalLogReason = refusalLogReason;
         }
 
-        public static PlayerIdentityResolution Success(string identity) => new(true, identity, default, null);
-        public static PlayerIdentityResolution Refused(LocalizationKey localizationKey, string logReason) => new(false, null, localizationKey, logReason);
+        internal static PlayerIdentityResolution Success(string identity) => new(true, identity, default, null);
+        internal static PlayerIdentityResolution Refused(LocalizationKey localizationKey, string logReason) => new(false, null, localizationKey, logReason);
     }
 }

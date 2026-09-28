@@ -7,7 +7,7 @@ using Cysharp.Threading.Tasks;
 using Game.Research;
 using Server.Protocol.PacketResponse;
 
-namespace Client.Network.API
+namespace Client.Network.API.Requests
 {
     internal sealed class ProgressionQueryApi
     {

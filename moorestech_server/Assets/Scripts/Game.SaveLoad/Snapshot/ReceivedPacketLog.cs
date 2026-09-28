@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using Core.Update;
+using Game.SaveLoad.Snapshot.Segments;
 using UnityEngine;
 
 namespace Game.SaveLoad.Snapshot

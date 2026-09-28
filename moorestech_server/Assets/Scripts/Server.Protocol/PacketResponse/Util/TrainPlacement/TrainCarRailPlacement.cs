@@ -36,8 +36,8 @@ namespace Server.Protocol.PacketResponse.Util.TrainPlacement
                 return false;
             }
 
-            // 単一車両の列車編成を生成する(コンテナ装着はTrainCarコンストラクタ内で自動)
-            // Create a single-car train unit (container is attached inside TrainCar constructor).
+            // 単一車両編成生成(コンテナ装着は自動)
+            // Create a single-car train unit (container attached automatically).
             var trainCar = new TrainCar(trainCarMaster, true);
             trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, _railPositionManager, _diagramManager);
             return true;
@@ -108,7 +108,7 @@ namespace Server.Protocol.PacketResponse.Util.TrainPlacement
                 {
                     return false;
                 }
-                if (i == 0 && snapshot.DistanceToNextNode > segmentDistance)
+                if (i == 0 && segmentDistance < snapshot.DistanceToNextNode)
                 {
                     return false;
                 }

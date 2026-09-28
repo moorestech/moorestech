@@ -1,7 +1,7 @@
 using System;
 using Server.Protocol.PacketResponse.Handshake;
 
-namespace Client.Network.API
+namespace Client.Network.API.Identity
 {
     // サーバーがハンドシェイクを拒否した
     // The server rejected the handshake
@@ -9,7 +9,7 @@ namespace Client.Network.API
     {
         public readonly HandshakeRejection Rejection;
 
-        public PlayerHandshakeRejectedException(HandshakeRejection rejection) : base($"ハンドシェイクが拒否されました: {rejection}")
+        internal PlayerHandshakeRejectedException(HandshakeRejection rejection) : base($"ハンドシェイクが拒否されました: {rejection}")
         {
             Rejection = rejection;
         }

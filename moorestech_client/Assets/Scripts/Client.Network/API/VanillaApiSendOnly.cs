@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Client.Network.API.Requests;
 using Core.Master;
 
 using Game.Train.RailPositions;

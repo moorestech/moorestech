@@ -61,13 +61,13 @@ namespace Client.Starter.Initialization
             // One save-generation waiter for the game's lifetime; created before any request so no notice is missed, and handed to DI as the same instance
             var saveGenerationWaiter = new ServerSaveGenerationWaiter(vanillaApi);
 
-            // リモートは内蔵サーバーを持たないため、通信越しに書き出し完了を待つ参加者を立てる
-            // A remote connection owns no embedded server, so register a participant that awaits the flush over the wire
-            if (_proprieties.IsRemoteConnection) GameShutdownEvent.RegisterParticipant(new RemoteServerSaveFlushParticipant(saveGenerationWaiter));
-
             //最初に必要なデータを取得
             // Fetch the initial data bundle
             var handshakeResponse = await vanillaApi.Response.InitialHandShake(identity.Identity, _exitToken);
+
+            // リモートは内蔵サーバーを持たないため、通信越しに書き出し完了を待つ参加者を立てる。ハンドシェイク成功後に限る（拒否経路で未紐づけ接続からの送信を防ぐ）
+            // A remote connection owns no embedded server, so register a participant that awaits the flush over the wire; only after a successful handshake, to keep a rejected connection from sending unbound
+            if (_proprieties.IsRemoteConnection) GameShutdownEvent.RegisterParticipant(new RemoteServerSaveFlushParticipant(saveGenerationWaiter));
 
             _loadingProgressLog.AppendElapsed(LocalizationKeys.Ui.Loading.InitialDataFetched);
 

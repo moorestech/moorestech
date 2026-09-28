@@ -84,7 +84,7 @@ namespace Game.PlayerIdentity
         {
             // 外部セーブの破損は復元前に検出し、既存の対応表を保持する
             // Detect corrupt external save data before restoring, preserving the current table
-            ValidateSave(save);
+            ValidateSave();
             InitializeForNewWorld();
             foreach (var entry in save.Entries)
             {
@@ -101,40 +101,40 @@ namespace Game.PlayerIdentity
                 Debug.LogError($"[PlayerIdentity] 結びつけ候補{_claimCandidatePlayerId.Value}が持ち主未定の一覧に無いため候補を破棄します");
                 _claimCandidatePlayerId = null;
             }
-        }
-
-        private static void ValidateSave(PlayersSaveJsonObject save)
-        {
-            if (save == null || save.Entries == null) throw InvalidSave("players または entries が欠損しています");
-            if (save.NextPlayerId < FirstPlayerId) throw InvalidSave("nextPlayerId は1以上である必要があります");
-
-            // 同一IDや同一身元の重複は別人の状態を上書きするため拒否する
-            // Reject duplicate ids or identities because they would overwrite another player's state
-            var playerIds = new HashSet<int>();
-            var identities = new HashSet<string>(StringComparer.Ordinal);
-            foreach (var entry in save.Entries)
-            {
-                if (entry == null) throw InvalidSave("entries に null が含まれています");
-                if (entry.PlayerId < FirstPlayerId || !playerIds.Add(entry.PlayerId))
-                {
-                    throw InvalidSave($"プレイヤーIDが不正または重複しています: {entry.PlayerId}");
-                }
-                if (entry.PlayerId >= save.NextPlayerId) throw InvalidSave($"nextPlayerId が既存ID以下です: {entry.PlayerId}");
-
-                // nullだけが持ち主未定で、既知の身元は書式と一意性を検査する
-                // Only null denotes an unclaimed player; validate bound identity syntax and uniqueness
-                if (entry.Identity == null) continue;
-                if (!PlayerIdentityText.IsValid(entry.Identity, out var reason)) throw InvalidSave(reason);
-                if (!identities.Add(entry.Identity)) throw InvalidSave($"身元が重複しています: {entry.Identity}");
-            }
 
             #region Internal
 
-            InvalidOperationException InvalidSave(string reason)
+            void ValidateSave()
             {
-                var message = $"[PlayerIdentity] players 節を復元できません: {reason}";
-                Debug.LogError(message);
-                return new InvalidOperationException(message);
+                if (save == null || save.Entries == null) throw InvalidSave("players または entries が欠損しています");
+                if (save.NextPlayerId < FirstPlayerId) throw InvalidSave("nextPlayerId は1以上である必要があります");
+
+                // 同一IDや同一身元の重複は別人の状態を上書きするため拒否する
+                // Reject duplicate ids or identities because they would overwrite another player's state
+                var playerIds = new HashSet<int>();
+                var identities = new HashSet<string>(StringComparer.Ordinal);
+                foreach (var entry in save.Entries)
+                {
+                    if (entry == null) throw InvalidSave("entries に null が含まれています");
+                    if (entry.PlayerId < FirstPlayerId || !playerIds.Add(entry.PlayerId))
+                    {
+                        throw InvalidSave($"プレイヤーIDが不正または重複しています: {entry.PlayerId}");
+                    }
+                    if (save.NextPlayerId <= entry.PlayerId) throw InvalidSave($"nextPlayerId が既存ID以下です: {entry.PlayerId}");
+
+                    // nullだけが持ち主未定で、既知の身元は書式と一意性を検査する
+                    // Only null denotes an unclaimed player; validate bound identity syntax and uniqueness
+                    if (entry.Identity == null) continue;
+                    if (!PlayerIdentityText.IsValid(entry.Identity, out var reason)) throw InvalidSave(reason);
+                    if (!identities.Add(entry.Identity)) throw InvalidSave($"身元が重複しています: {entry.Identity}");
+                }
+
+                InvalidOperationException InvalidSave(string reason)
+                {
+                    var message = $"[PlayerIdentity] players 節を復元できません: {reason}";
+                    Debug.LogError(message);
+                    return new InvalidOperationException(message);
+                }
             }
 
             #endregion

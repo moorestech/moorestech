@@ -5,8 +5,10 @@ using UnityEngine;
 
 namespace Game.SaveLoad.Migration.Steps
 {
-    // 版2→3: 旧ランダムなプレイヤーIDを連番へ振り直し、持ち主未定の players 節を作る（ADR 0073）
-    // V2→V3: renumbers legacy random player ids and builds an all-unclaimed players section (ADR 0073)
+    // V2→V3移行（ADR0073）
+    // V2→V3 migration (ADR 0073)
+    // - 旧ランダムID→連番 / players節は全員持ち主未定で作成
+    // - legacy random id→sequential / players section built all-unclaimed
     public sealed class SaveMigrationStepV2ToV3 : ISaveMigrationStep
     {
         public int FromVersion => 2;
@@ -34,14 +36,18 @@ namespace Game.SaveLoad.Migration.Steps
 
             Debug.Log($"セーブを版2から版3へ変換しました。プレイヤーID振り直し={map.Count}件 結びつけ候補={(candidate.HasValue ? candidate.Value.ToString() : "なし")}");
             return SaveMigrationStepResult.Converted(save);
-        }
 
-        private static SaveMigrationStepResult Fail(string reason)
-        {
-            // 直接実行した場合も拒否理由を残す
-            // Preserve the refusal reason even when the step is called directly
-            Debug.LogWarning($"セーブを版2から版3へ変換できません: {reason}");
-            return SaveMigrationStepResult.Failed(reason);
+            #region Internal
+
+            SaveMigrationStepResult Fail(string reason)
+            {
+                // 直接実行した場合も拒否理由を残す
+                // Preserve the refusal reason even when the step is called directly
+                Debug.LogWarning($"セーブを版2から版3へ変換できません: {reason}");
+                return SaveMigrationStepResult.Failed(reason);
+            }
+
+            #endregion
         }
     }
 }

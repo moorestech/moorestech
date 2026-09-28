@@ -20,7 +20,7 @@ namespace Game.SaveLoad.Migration.Steps.V2ToV3
             ("miningCooldowns", "playerId", false),
         };
 
-        public static bool TryBuildMap(JObject save, out Dictionary<long, int> map, out string reason)
+        internal static bool TryBuildMap(JObject save, out Dictionary<long, int> map, out string reason)
         {
             map = null;
             var oldIds = new SortedSet<long>();
@@ -92,7 +92,7 @@ namespace Game.SaveLoad.Migration.Steps.V2ToV3
             #endregion
         }
 
-        public static void Apply(JObject save, Dictionary<long, int> map)
+        internal static void Apply(JObject save, Dictionary<long, int> map)
         {
             foreach (var (section, key, _) in PlayerIdSections) Rewrite(section, key, false);
             Rewrite("entities", "InstanceId", true);

@@ -1,5 +1,6 @@
 using System;
 using Client.Network.API;
+using Client.Network.API.Identity;
 using Mooresmaster.Localization.Generated;
 using Server.Protocol.PacketResponse.Handshake;
 
@@ -9,8 +10,8 @@ namespace Client.Starter.Identity
     {
         public static LocalizationKey GetKey(Exception exception)
         {
-            // 開始拒否の理由を既存のローディング表示へ対応づける
-            // Map start refusal reasons to the existing loading display
+            // 拒否理由をローディング表示へ対応
+            // Map refusal reasons to the loading display
             return exception switch
             {
                 PlayerStartRefusedException refused => refused.LocalizationKey,

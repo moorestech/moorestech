@@ -10,7 +10,7 @@ using Server.Protocol.PacketResponse;
 using Server.Util.MessagePack;
 using UnityEngine;
 
-namespace Client.Network.API
+namespace Client.Network.API.Requests
 {
     internal sealed class TrainRequestApi
     {
@@ -21,8 +21,8 @@ namespace Client.Network.API
             _packetExchangeManager = packetExchangeManager;
         }
 
-        // train/rail再同期の引き金を送る。snapshot本体はイベント経路で届く
-        // Send the resync trigger; snapshots arrive over the event stream
+        // 再同期の引き金送信。本体はイベントで届く
+        // Send resync trigger; body arrives over the event stream
         public async UniTask<TrainResyncProtocol.ResponseMessagePack> SendTrainResync(bool includeRailGraph, CancellationToken ct)
         {
             var request = new TrainResyncProtocol.RequestMessagePack(includeRailGraph);

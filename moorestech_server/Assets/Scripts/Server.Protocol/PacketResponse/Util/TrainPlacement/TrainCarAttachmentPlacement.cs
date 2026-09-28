@@ -84,8 +84,8 @@ namespace Server.Protocol.PacketResponse.Util.TrainPlacement
             railPosition = null;
             failureType = AttachTrainCarFailureType.InvalidRailPosition;
 
-            // スナップショットを保存形式へ変換して検証する
-            // Convert snapshot to save-data and validate it
+            // スナップショットを変換・検証
+            // Convert snapshot to save-data and validate
             if (snapshot == null)
             {
                 return false;
@@ -96,8 +96,8 @@ namespace Server.Protocol.PacketResponse.Util.TrainPlacement
                 return false;
             }
 
-            // 検証済みデータからRailPositionを復元する
-            // Restore rail position from validated save-data
+            // 検証済みデータからRailPosition復元
+            // Restore RailPosition from validated save-data
             railPosition = RailPositionFactory.Restore(validatedSaveData, _railGraphDatastore);
             return railPosition != null;
         }
@@ -148,7 +148,7 @@ namespace Server.Protocol.PacketResponse.Util.TrainPlacement
                 {
                     return false;
                 }
-                if (i == 0 && snapshot.DistanceToNextNode > segmentDistance)
+                if (i == 0 && segmentDistance < snapshot.DistanceToNextNode)
                 {
                     return false;
                 }

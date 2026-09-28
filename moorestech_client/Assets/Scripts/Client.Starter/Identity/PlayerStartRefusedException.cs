@@ -9,7 +9,7 @@ namespace Client.Starter.Identity
     {
         public readonly LocalizationKey LocalizationKey;
 
-        public PlayerStartRefusedException(LocalizationKey localizationKey, string logReason) : base(logReason)
+        internal PlayerStartRefusedException(LocalizationKey localizationKey, string logReason) : base(logReason)
         {
             LocalizationKey = localizationKey;
         }

@@ -64,8 +64,8 @@ namespace Server.Protocol.PacketResponse.Util.RailEdit
             if (!judgement.IsPlaceable)
                 return ResponseRailConnectionEditMessagePack.CreateFailure(judgement.FailureReason, data.Mode);
 
-            // 成功したらインベントリから引く。RailGraphのRailTypeGuidにはconnectToolGuidを格納する
-            // Consume materials on success; store the connectToolGuid into the RailGraph RailTypeGuid slot
+            // RailTypeGuidにconnectToolGuidを格納
+            // Store connectToolGuid into the RailGraph RailTypeGuid slot
             var connectResult = _commandHandler.TryConnect(data.FromNodeId, data.FromGuid, data.ToNodeId, data.ToGuid, data.ConnectToolGuid);
             if (connectResult)
             {
@@ -101,8 +101,8 @@ namespace Server.Protocol.PacketResponse.Util.RailEdit
                 return ResponseRailConnectionEditMessagePack.CreateFailure(RailConnectionEditFailureReason.NodeInUseByTrain, data.Mode);
             }
 
-            // セグメントに格納されたconnectToolGuidと距離から返却素材を算出する
-            // Compute refund materials from the segment's stored connectToolGuid and length
+            // connectToolGuidと距離から返却素材算出
+            // Compute refund materials from connectToolGuid and length
             var connectToolGuid = ResolveConnectToolGuid(data.FromNodeId, data.ToNodeId);
             var inventory = _playerInventoryDataStore.GetInventoryData(requesterPlayerId).MainOpenableInventory;
             var railLength = GetRailLength(fromNode, toNode);
@@ -117,8 +117,8 @@ namespace Server.Protocol.PacketResponse.Util.RailEdit
 
             var refundStacks = ConnectToolMaterialConsumer.CreateRefundItems(materials);
 
-            // playerインベントリに空きがない場合は削除不可
-            // Abort when there is no inventory space to return the items
+            // インベントリ満杯時は削除不可
+            // Abort when there is no inventory space
             if (0 < refundStacks.Count && !inventory.InsertionCheck(refundStacks))
             {
                 return ResponseRailConnectionEditMessagePack.CreateFailure(RailConnectionEditFailureReason.NotEnoughInventorySpace, data.Mode);
@@ -134,22 +134,26 @@ namespace Server.Protocol.PacketResponse.Util.RailEdit
             }
 
             return ResponseRailConnectionEditMessagePack.Create(disconnectedflag, disconnectedflag ? RailConnectionEditFailureReason.None : RailConnectionEditFailureReason.UnknownError, data.Mode);
-        }
 
-        private bool IsStationInternalEdge(RailNode from, RailNode to)
-        {
-            if (!from.StationRef.HasStation || !to.StationRef.HasStation)
+            #region Internal
+
+            bool IsStationInternalEdge(RailNode from, RailNode to)
             {
-                return false;
+                if (!from.StationRef.HasStation || !to.StationRef.HasStation)
+                {
+                    return false;
+                }
+                return from.StationRef.StationBlockInstanceId.Equals(to.StationRef.StationBlockInstanceId);
             }
-            return from.StationRef.StationBlockInstanceId.Equals(to.StationRef.StationBlockInstanceId);
-        }
 
-        // レール種別（connectToolGuid）をセグメントから解決する
-        // Resolve rail type (connectToolGuid) from the segment data
-        private Guid ResolveConnectToolGuid(int fromNodeId, int toNodeId)
-        {
-            return _railGraphDatastore.TryGetRailSegmentType(fromNodeId, toNodeId, out var connectToolGuid) ? connectToolGuid : Guid.Empty;
+            // レール種別（connectToolGuid）をセグメントから解決する
+            // Resolve rail type (connectToolGuid) from the segment data
+            Guid ResolveConnectToolGuid(int fromNodeId, int toNodeId)
+            {
+                return _railGraphDatastore.TryGetRailSegmentType(fromNodeId, toNodeId, out var connectToolGuid) ? connectToolGuid : Guid.Empty;
+            }
+
+            #endregion
         }
     }
 }

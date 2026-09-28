@@ -10,7 +10,7 @@ using Server.Protocol.PacketResponse.MapData;
 using Server.Util.MessagePack;
 using UnityEngine;
 
-namespace Client.Network.API
+namespace Client.Network.API.Requests
 {
     internal sealed class WorldQueryApi
     {
@@ -28,8 +28,8 @@ namespace Client.Network.API
             return response?.MapObjects;
         }
 
-        // マップレイアウト（spawn/mapObjects/mapVeins）をハンドシェイク時に取得する
-        // Fetch the map layout (spawn/mapObjects/mapVeins) during the handshake
+        // spawn/mapObjects/mapVeinsを取得
+        // Fetch spawn/mapObjects/mapVeins
         public async UniTask<GetMapDataProtocol.ResponseMapDataMessagePack> GetMapData(CancellationToken ct)
         {
             var request = GetMapDataProtocol.RequestMapDataMessagePack.CreateLayoutRequest();

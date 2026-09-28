@@ -6,7 +6,7 @@ using Server.Protocol.PacketResponse;
 using Server.Util.MessagePack;
 using UnityEngine;
 
-namespace Client.Network.API
+namespace Client.Network.API.Requests
 {
     internal sealed class BlockRequestApi
     {
@@ -32,8 +32,8 @@ namespace Client.Network.API
             return await _packetExchangeManager.GetPacketResponse<SetElectricToGearOutputModeResponse>(request, ct);
         }
 
-        // フィルター分岐器の状態取得・設定 (Get/SetMode/SetFilterItem を 1 メソッドで扱う)
-        // Filter splitter state request (single endpoint for Get / SetMode / SetFilterItem)
+        // Get/SetMode/SetFilterItemを統合
+        // Filter splitter state request (single endpoint for Get/SetMode/SetFilterItem)
         public async UniTask<FilterSplitterStateProtocol.FilterSplitterStateResponse> SendFilterSplitterStateRequest(
             FilterSplitterStateProtocol.FilterSplitterStateRequest request, CancellationToken ct)
         {
@@ -55,8 +55,8 @@ namespace Client.Network.API
             return await _packetExchangeManager.GetPacketResponse<BlueprintResponse>(request, ct);
         }
 
-        // 電線延長プロトコルの唯一の送信口。Operationごとの組み立てはRequestのstatic factoryに委ねる
-        // Sole send entry for the wire-extend protocol; per-operation assembly is delegated to the Request's static factories
+        // 電線延長の唯一送信口（組立はRequest側）
+        // Sole send entry for wire-extend; assembly delegated to Request
         public async UniTask<ElectricWireExtendProtocol.ElectricWireExtendResponse> SendElectricWireExtend(
             ElectricWireExtendProtocol.ElectricWireExtendRequest request,
             CancellationToken ct)

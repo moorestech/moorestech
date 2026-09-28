@@ -8,7 +8,7 @@ namespace Game.SaveLoad.Migration.Steps.V2ToV3
     // Picks the legacy player with the most items; ties go to the one farther from spawn, then the smaller new id (user ruling 2026-09-27)
     public static class PlayerClaimCandidateSelector
     {
-        public static int? Select(JObject save, Dictionary<long, int> map)
+        internal static int? Select(JObject save, Dictionary<long, int> map)
         {
             if (map.Count == 0) return null;
 
@@ -42,7 +42,7 @@ namespace Game.SaveLoad.Migration.Steps.V2ToV3
             double DistanceFromSpawn(int newId)
             {
                 var entity = (save["entities"] as JArray)?.OfType<JObject>()
-                    .FirstOrDefault(e => (string)e["Type"] == "va:Player" && (long)e["InstanceId"] == newId);
+                    .FirstOrDefault(e => (string)e["Type"] == PlayerIdRenumbering.PlayerEntityType && (long)e["InstanceId"] == newId);
                 if (entity == null) return 0;
                 var dx = ((double?)entity["X"] ?? spawnX) - spawnX;
                 var dy = ((double?)entity["Y"] ?? spawnY) - spawnY;

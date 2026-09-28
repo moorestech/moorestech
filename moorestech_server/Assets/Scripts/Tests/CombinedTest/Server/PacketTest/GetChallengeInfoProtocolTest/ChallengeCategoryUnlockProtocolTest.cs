@@ -36,23 +36,23 @@ namespace Tests.CombinedTest.Server.PacketTest
             // カテゴリ1のチャレンジをクリアを確認
             Assert.AreEqual(1, gameUnlockState.ChallengeCategoryUnlockStateInfos.Values.Count(c => c.IsUnlocked));
             
-            // 最初はCategory2のチャレンジは開始されていないことを確認
+            // 初期状態でCategory2は未開始
             var messagePack = new RequestChallengeMessagePack();
             var response = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), Tests.Util.BoundPacketContext.Bind(1))[0];
             var challengeInfo = MessagePackSerializer.Deserialize<ResponseChallengeInfoMessagePack>(response);
             
-            // Category2のチャレンジが開始されていないことを確認
+            // Category2は未開始
             var category2CurrentChallenges = challengeInfo.Categories
                 .FirstOrDefault(c => c.ChallengeCategoryGuid == Guid.Parse(Category2Guid))
                 ?.CurrentChallengeGuids ?? new List<Guid>();
             Assert.AreEqual(0, category2CurrentChallenges.Count, "Category2 should have no active challenges initially");
             
-            // Category2がロックされていることを確認（IsUnlockedがfalse）
+            // Category2はロック状態
             var category2Info = challengeInfo.Categories.FirstOrDefault(c => c.ChallengeCategoryGuid == Guid.Parse(Category2Guid));
             Assert.NotNull(category2Info, "Category2 should exist");
             Assert.IsFalse(category2Info.IsUnlocked, "Category2 should be locked initially");
             
-            // Challenge1〜4を順番にクリア（Challenge5の前提条件）
+            // 1〜4を順にクリア（5の前提）
             var challenge1 = currentChallengeInfo.CurrentChallenges.First(c => c.ChallengeMasterElement.ChallengeGuid == Guid.Parse(Challenge1Guid));
             var subject1 = (Subject<IChallengeTask>)challenge1.OnChallengeComplete;
             subject1.OnNext(challenge1);
@@ -77,12 +77,12 @@ namespace Tests.CombinedTest.Server.PacketTest
             var allCurrentChallenges = challengeInfo.Categories.SelectMany(c => c.CurrentChallengeGuids).ToList();
             Assert.IsTrue(allCurrentChallenges.Contains(Guid.Parse(Challenge5Guid)), "Challenge5 should be started");
             
-            // Challenge5をクリア（Category2をアンロック）
+            // 5クリアでCategory2解禁
             var challenge5 = currentChallengeInfo.CurrentChallenges.First(c => c.ChallengeMasterElement.ChallengeGuid == Guid.Parse(Challenge5Guid));
             var subject5 = (Subject<IChallengeTask>)challenge5.OnChallengeComplete;
             subject5.OnNext(challenge5);
             
-            // カテゴリ2のアンロック後、新しくアンロックされたカテゴリの初期チャレンジをチェック
+            // 解禁後の初期チャレンジを確認
             // カテゴリ1とカテゴリ2の両方アンロックされている
             Assert.AreEqual(2, gameUnlockState.ChallengeCategoryUnlockStateInfos.Values.Count(c => c.IsUnlocked));
             Debug.Log($"Checking unlocked categories after Challenge5 completion");
@@ -92,18 +92,18 @@ namespace Tests.CombinedTest.Server.PacketTest
             response = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), Tests.Util.BoundPacketContext.Bind(1))[0];
             challengeInfo = MessagePackSerializer.Deserialize<ResponseChallengeInfoMessagePack>(response);
             
-            // Category2がアンロックされていることを確認
+            // Category2はアンロック済み
             category2Info = challengeInfo.Categories.FirstOrDefault(c => c.ChallengeCategoryGuid == Guid.Parse(Category2Guid));
             Assert.NotNull(category2Info, "Category2 should exist");
             Assert.IsTrue(category2Info.IsUnlocked, "Category2 should be unlocked after completing Challenge5");
             
-            // Category2の最初のチャレンジが開始されていることを確認
+            // Category2の初回が開始
             category2CurrentChallenges = category2Info.CurrentChallengeGuids;
             
             // デバッグ情報を出力
             Debug.Log($"Category2 IsUnlocked: {category2Info.IsUnlocked}");
             Debug.Log($"Category2 Current Challenges Count: {category2CurrentChallenges.Count}");
-            if (category2CurrentChallenges.Count > 0)
+            if (0 < category2CurrentChallenges.Count)
             {
                 Debug.Log($"Category2 Current Challenge GUID: {category2CurrentChallenges[0]}");
             }
@@ -119,7 +119,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(Guid.Parse(Category2Challenge1Guid), category2CurrentChallenges[0], 
                 "Category2's first challenge should be started");
             
-            // Challenge1〜5がすべてクリアされていることを確認
+            // 1〜5すべてクリア
             var allCompletedChallenges = challengeInfo.Categories.SelectMany(c => c.CompletedChallengeGuids).ToList();
             Assert.AreEqual(5, allCompletedChallenges.Count, "All 5 challenges should be completed");
             Assert.IsTrue(allCompletedChallenges.Contains(Guid.Parse(Challenge1Guid)));

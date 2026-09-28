@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using System.Threading;
+using Client.Network.API;
 using Core.Item.Interface;
 using Cysharp.Threading.Tasks;
 using Server.Protocol.PacketResponse;
 using Server.Util.MessagePack;
 
-namespace Client.Network.API
+namespace Client.Network.API.Requests
 {
     internal sealed class InventoryQueryApi
     {
@@ -23,34 +24,24 @@ namespace Client.Network.API
             var request = new InventoryRequestProtocol.RequestInventoryRequestProtocolMessagePack(identifier);
             var response = await _packetExchangeManager.GetPacketResponse<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(request, ct);
             return new InventoryResponse(response.Identifier, CreateStacks(response.Items), response.Result);
-        }
 
-        private List<IItemStack> CreateStacks(ItemMessagePack[] items)
-        {
+            #region Internal
+
             // メッセージパックからアイテムスタックを生成
             // Create item stacks from message pack items
-            var count = items?.Length ?? 0;
-            var stacks = new List<IItemStack>(count);
-            if (items == null) return stacks;
-            foreach (var item in items)
+            List<IItemStack> CreateStacks(ItemMessagePack[] items)
             {
-                stacks.Add(_itemStackFactory.Create(item.Id, item.Count));
+                var count = items?.Length ?? 0;
+                var stacks = new List<IItemStack>(count);
+                if (items == null) return stacks;
+                foreach (var item in items)
+                {
+                    stacks.Add(_itemStackFactory.Create(item.Id, item.Count));
+                }
+                return stacks;
             }
-            return stacks;
-        }
-    }
 
-    public class InventoryResponse
-    {
-        public InventoryIdentifierMessagePack Identifier { get; }
-        public List<IItemStack> Items { get; }
-        public InventoryRequestResult Result { get; }
-
-        public InventoryResponse(InventoryIdentifierMessagePack identifier, List<IItemStack> items, InventoryRequestResult result)
-        {
-            Identifier = identifier;
-            Items = items;
-            Result = result;
+            #endregion
         }
     }
 }

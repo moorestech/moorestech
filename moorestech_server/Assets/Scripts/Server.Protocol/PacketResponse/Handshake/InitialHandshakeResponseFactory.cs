@@ -66,26 +66,29 @@ namespace Server.Protocol.PacketResponse.Handshake
                 .ToArray();
 
             return new InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack(playerPos, ridingTarget, ridingSeatIndex, itemStackLevels, hotbarAssignments, remainingPlacementCounts, playerId);
-        }
 
-        private Vector3MessagePack GetPlayerPosition(EntityInstanceId playerId)
-        {
-            if (_entitiesDatastore.Exists(playerId))
+            #region Internal
+
+            Vector3MessagePack GetPlayerPosition(EntityInstanceId entityInstanceId)
             {
-                // 保存済みの座標を復元する
-                // Restore the saved position
-                var pos = _entitiesDatastore.GetPosition(playerId);
-                return new Vector3MessagePack(pos.x, pos.y, pos.z);
+                if (_entitiesDatastore.Exists(entityInstanceId))
+                {
+                    // 保存済みの座標を復元する
+                    // Restore the saved position
+                    var pos = _entitiesDatastore.GetPosition(entityInstanceId);
+                    return new Vector3MessagePack(pos.x, pos.y, pos.z);
+                }
+
+                var spawnPoint = _worldSettingsDatastore.WorldSpawnPoint;
+                var playerEntity = _entityFactory.CreateEntity(VanillaEntityType.VanillaPlayer, entityInstanceId, spawnPoint);
+                _entitiesDatastore.Add(playerEntity);
+
+                // 新規プレイヤーにはスポーン地点を返す
+                // Return the spawn point for a new player
+                return new Vector3MessagePack(spawnPoint);
             }
 
-            var spawnPoint = _worldSettingsDatastore.WorldSpawnPoint;
-            var playerEntity = _entityFactory.CreateEntity(VanillaEntityType.VanillaPlayer, playerId, spawnPoint);
-            _entitiesDatastore.Add(playerEntity);
-
-            // 新規プレイヤーにはスポーン地点を返す
-            // Return the spawn point for a new player
-            return new Vector3MessagePack(spawnPoint);
+            #endregion
         }
-
     }
 }

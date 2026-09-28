@@ -42,30 +42,34 @@ namespace Game.SaveLoad.Migration.Steps.V2ToV3
                 return false;
             }
             return true;
-        }
 
-        private static bool CoordinatesValid(JObject source, string prefix)
-        {
-            foreach (var axis in new[] { "X", "Y", "Z" })
-            {
-                var token = source[prefix + axis];
-                if (token == null || token.Type == JTokenType.Null) continue;
-                if ((token.Type != JTokenType.Integer && token.Type != JTokenType.Float) ||
-                    !double.TryParse(token.ToString(Formatting.None), NumberStyles.Float, CultureInfo.InvariantCulture, out var value) ||
-                    double.IsNaN(value) || double.IsInfinity(value)) return false;
-            }
-            return true;
-        }
+            #region Internal
 
-        private static bool StacksValid(JToken token)
-        {
-            if (token == null || token.Type == JTokenType.Null) return true;
-            if (token is not JArray stacks) return false;
-            foreach (var stack in stacks)
+            bool CoordinatesValid(JObject source, string prefix)
             {
-                if (!StackValid(stack)) return false;
+                foreach (var axis in new[] { "X", "Y", "Z" })
+                {
+                    var token = source[prefix + axis];
+                    if (token == null || token.Type == JTokenType.Null) continue;
+                    if ((token.Type != JTokenType.Integer && token.Type != JTokenType.Float) ||
+                        !double.TryParse(token.ToString(Formatting.None), NumberStyles.Float, CultureInfo.InvariantCulture, out var value) ||
+                        double.IsNaN(value) || double.IsInfinity(value)) return false;
+                }
+                return true;
             }
-            return true;
+
+            bool StacksValid(JToken token)
+            {
+                if (token == null || token.Type == JTokenType.Null) return true;
+                if (token is not JArray stacks) return false;
+                foreach (var stack in stacks)
+                {
+                    if (!StackValid(stack)) return false;
+                }
+                return true;
+            }
+
+            #endregion
         }
 
         private static bool StackValid(JToken token)
@@ -74,7 +78,7 @@ namespace Game.SaveLoad.Migration.Steps.V2ToV3
             if (token is not JObject stack) return false;
             var count = stack["count"];
             return count?.Type == JTokenType.Integer &&
-                int.TryParse(count.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var value) && value >= 0;
+                int.TryParse(count.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var value) && 0 <= value;
         }
     }
 }

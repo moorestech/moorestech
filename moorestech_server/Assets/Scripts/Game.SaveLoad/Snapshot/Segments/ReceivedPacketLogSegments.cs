@@ -5,7 +5,7 @@ using System.Linq;
 using Game.Paths;
 using UnityEngine;
 
-namespace Game.SaveLoad.Snapshot
+namespace Game.SaveLoad.Snapshot.Segments
 {
     // 区間ファイルの一覧と保持範囲を管理する。呼び出し側のロックで開閉状態を守る
     // Manage segment enumeration and retention; the caller's lock protects open/closed state
@@ -56,31 +56,35 @@ namespace Game.SaveLoad.Snapshot
             foreach (var path in FilePaths())
             {
                 if (!WorldDataDirectory.TryParsePacketLogFromTick(Path.GetFileName(path), out var fromTick)) continue;
-                if (fromTick > oldestSnapshotTick || fromTick == CurrentFromTick) continue;
+                if (oldestSnapshotTick < fromTick || fromTick == CurrentFromTick) continue;
 
                 // 削除した区間と理由を残して、記録の保持範囲を追跡できるようにする
                 // Record the segment and reason so the retained capture range remains auditable
                 Debug.Log($"パケットログ区間を削除しました path:{path} 理由:最古スナップショット{oldestSnapshotTick}より前の区間");
                 DeleteFile(path);
             }
-        }
 
-        private static void DeleteFile(string path)
-        {
+            #region Internal
+
             // ディスク削除は外部境界。失敗はログへ残し、実際のファイル一覧にも残す
             // Disk deletion is an external boundary; failures remain in the log and the actual file listing
-            try
+            void DeleteFile(string path)
             {
-                File.Delete(path);
+                try
+                {
+                    File.Delete(path);
+                }
+                catch (IOException e)
+                {
+                    Debug.LogError($"パケットログ区間の削除に失敗しました path:{path} message:{e.Message}");
+                }
+                catch (UnauthorizedAccessException e)
+                {
+                    Debug.LogError($"パケットログ区間の削除が権限で拒否されました path:{path} message:{e.Message}");
+                }
             }
-            catch (IOException e)
-            {
-                Debug.LogError($"パケットログ区間の削除に失敗しました path:{path} message:{e.Message}");
-            }
-            catch (UnauthorizedAccessException e)
-            {
-                Debug.LogError($"パケットログ区間の削除が権限で拒否されました path:{path} message:{e.Message}");
-            }
+
+            #endregion
         }
     }
 }
