@@ -28,6 +28,13 @@ namespace Client.Game.InGame.BugReport
             RetainedLedgerFileNames = retained;
             IndexReadable = indexReadable;
         }
+
+        // 配置を試みる前に失敗した場合の結果。既定値のままだと後始末がnull参照で落ちる
+        // The result when placement failed before it started; the default value alone would make the cleanup throw
+        internal static RemoteExecBundleLedgerPlacement None(string lastSessionDirectory)
+        {
+            return new RemoteExecBundleLedgerPlacement(lastSessionDirectory, new List<string>(), new List<string>(), false);
+        }
     }
 
     // bugとcrashの箱へ同じ契約で印と台帳を載せる
@@ -38,10 +45,10 @@ namespace Client.Game.InGame.BugReport
         {
             if (!RemoteExecLaunchOption.IsEnabled)
             {
-                manifest.RemoteExec = RemoteExecMark.Disabled();
+                manifest.RemoteExec = RemoteExecManifestMark.Disabled();
                 return;
             }
-            manifest.RemoteExec = RemoteExecMark.Enabled();
+            manifest.RemoteExec = RemoteExecManifestMark.Enabled();
             if (RemoteExecLedger.HasWriteFailure)
                 manifest.AddMissing(BugReportBundleLayout.RemoteExecDirectoryName, "遠隔実行の台帳または実行試行の印を書けなかった");
             // 台帳パスの解決も外部ディスク境界。失敗理由を箱へ載せる
@@ -67,11 +74,11 @@ namespace Client.Game.InGame.BugReport
             // An empty index is the readable fact that no session used remote execution
             if (entries.Count == 0)
             {
-                manifest.RemoteExec = RemoteExecMark.Disabled();
+                manifest.RemoteExec = RemoteExecManifestMark.Disabled();
                 return new RemoteExecBundleLedgerPlacement(lastSessionDirectory, bundled, retained, true);
             }
 
-            manifest.RemoteExec = RemoteExecMark.Enabled();
+            manifest.RemoteExec = RemoteExecManifestMark.Enabled();
             foreach (var entry in entries)
             {
                 // 一覧は検証済みのファイル名だけを含む。コピー失敗は項目ごとに欠損へ残す
@@ -88,7 +95,7 @@ namespace Client.Game.InGame.BugReport
             // An unreadable index never claims "disabled"; it becomes an unknown with its reason in both the bundle and the log
             RemoteExecBundleLedgerPlacement Unknown(string unknownReason, bool indexReadable)
             {
-                manifest.RemoteExec = RemoteExecMark.Unknown(unknownReason);
+                manifest.RemoteExec = RemoteExecManifestMark.Unknown(unknownReason);
                 manifest.AddMissing(BugReportBundleLayout.RemoteExecDirectoryName, unknownReason);
                 return new RemoteExecBundleLedgerPlacement(lastSessionDirectory, bundled, retained, indexReadable);
             }

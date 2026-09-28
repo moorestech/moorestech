@@ -53,7 +53,7 @@ namespace Client.Tests.RemoteExec
             WriteLedger();
             var manifest = new BugReportManifest();
             RemoteExecBundleMark.ApplyForCurrentSession(manifest, _bundle);
-            Assert.AreEqual(RemoteExecMarkState.Disabled, manifest.RemoteExec.State);
+            Assert.AreEqual(RemoteExecManifestMarkState.Disabled, manifest.RemoteExec.State);
             Assert.IsFalse(Directory.Exists(Path.Combine(_bundle, BugReportBundleLayout.RemoteExecDirectoryName)));
             Assert.AreEqual("Disabled", (string)JObject.Parse(manifest.ToJson())["remoteExec"]["state"]);
         }
@@ -78,7 +78,7 @@ namespace Client.Tests.RemoteExec
             RemoteExecLaunchOption.ResolveFromCommandLine(new[] { RemoteExecLaunchOption.Marker });
             var manifest = new BugReportManifest();
             RemoteExecBundleMark.ApplyForCurrentSession(manifest, _bundle);
-            Assert.AreEqual(RemoteExecMarkState.Enabled, manifest.RemoteExec.State);
+            Assert.AreEqual(RemoteExecManifestMarkState.Enabled, manifest.RemoteExec.State);
             Assert.IsEmpty(manifest.RemoteExec.LedgerFiles);
             Assert.IsEmpty(manifest.Missing);
         }
@@ -110,7 +110,7 @@ namespace Client.Tests.RemoteExec
             var manifest = new BugReportManifest();
             WriteLedgerIndex();
             RemoteExecBundleMark.ApplyForSalvagedSessions(manifest, _bundle, _lastSession);
-            Assert.AreEqual(RemoteExecMarkState.Disabled, manifest.RemoteExec.State);
+            Assert.AreEqual(RemoteExecManifestMarkState.Disabled, manifest.RemoteExec.State);
             Assert.IsEmpty(manifest.Missing);
         }
 
@@ -129,7 +129,7 @@ namespace Client.Tests.RemoteExec
             });
             LogAssert.Expect(LogType.Warning, new Regex(failureSignal ? "遠隔実行の台帳または実行試行の印を書けなかった" : "実行試行があったが遠隔実行の台帳が無い"));
             RemoteExecBundleMark.ApplyForSalvagedSessions(manifest, _bundle, _lastSession);
-            Assert.AreEqual(RemoteExecMarkState.Enabled, manifest.RemoteExec.State);
+            Assert.AreEqual(RemoteExecManifestMarkState.Enabled, manifest.RemoteExec.State);
             Assert.IsEmpty(manifest.RemoteExec.LedgerFiles);
             Assert.AreEqual(1, manifest.Missing.Count);
             Assert.AreEqual(BugReportBundleLayout.RemoteExecDirectoryName, manifest.Missing[0].Item);
@@ -146,7 +146,7 @@ namespace Client.Tests.RemoteExec
             LogAssert.Expect(LogType.Warning, new Regex("遠隔実行台帳一覧を読めなかった"));
             LogAssert.Expect(LogType.Warning, new Regex("遠隔実行の台帳一覧を残します"));
             var placement = RemoteExecBundleMark.ApplyForSalvagedSessions(manifest, _bundle, _lastSession);
-            Assert.AreEqual(RemoteExecMarkState.Unknown, manifest.RemoteExec.State);
+            Assert.AreEqual(RemoteExecManifestMarkState.Unknown, manifest.RemoteExec.State);
             StringAssert.Contains("遠隔実行台帳一覧を読めなかった", manifest.RemoteExec.UnknownReason);
             RemoteExecBundleMark.ReleaseBundledLedgers(placement);
             Assert.IsTrue(File.Exists(PreviousSessionRemoteExecLedgers.PathIn(_lastSession)));
@@ -161,7 +161,7 @@ namespace Client.Tests.RemoteExec
             var manifest = new BugReportManifest();
             LogAssert.Expect(LogType.Warning, new Regex("遠隔実行の台帳をコピーできなかった"));
             RemoteExecBundleMark.ApplyForCurrentSession(manifest, _bundle);
-            Assert.AreEqual(RemoteExecMarkState.Enabled, manifest.RemoteExec.State);
+            Assert.AreEqual(RemoteExecManifestMarkState.Enabled, manifest.RemoteExec.State);
             Assert.IsEmpty(manifest.RemoteExec.LedgerFiles);
             Assert.AreEqual(BugReportBundleLayout.RemoteExecDirectoryName, manifest.Missing[0].Item);
         }
@@ -189,7 +189,7 @@ namespace Client.Tests.RemoteExec
         private void AssertCopiedLedger(BugReportManifest manifest, string source)
         {
             var relative = BugReportBundleLayout.RemoteExecDirectoryName + "/" + Path.GetFileName(source);
-            Assert.AreEqual(RemoteExecMarkState.Enabled, manifest.RemoteExec.State);
+            Assert.AreEqual(RemoteExecManifestMarkState.Enabled, manifest.RemoteExec.State);
             CollectionAssert.AreEqual(new[] { relative }, manifest.RemoteExec.LedgerFiles);
             Assert.AreEqual(File.ReadAllText(source), File.ReadAllText(Path.Combine(_bundle, relative)));
             Assert.IsEmpty(manifest.Missing);

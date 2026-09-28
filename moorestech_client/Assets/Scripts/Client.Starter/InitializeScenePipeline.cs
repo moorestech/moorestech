@@ -70,7 +70,10 @@ namespace Client.Starter
             Client.RemoteExec.RemoteExecActivation.ActivateIfRequested(webUiStarted, Client.WebUiHost.Boot.WebUiHost.KestrelPort);
             // 正常終了で遠隔実行の入口を撤去する。終了イベントを知らないClient.RemoteExecへここから配線する
             // A clean exit withdraws the remote-exec entry; Client.RemoteExec does not know the shutdown event, so it is wired from here
-            GameShutdownEvent.OnGameShutdown.Subscribe(_ => Client.RemoteExec.RemoteExecActivation.Deactivate());
+            // 無効な起動は入口を持たないので購読もしない（同じ置き場を使う他プロセスの入口に触る理由が無い）
+            // A disabled boot owns no entry and does not subscribe, having no reason to touch another process's entry in the shared location
+            if (Client.RemoteExec.RemoteExecLaunchOption.IsEnabled)
+                GameShutdownEvent.OnGameShutdown.Subscribe(_ => Client.RemoteExec.RemoteExecActivation.Deactivate());
 
 #if UNITY_EDITOR
             Editor.PlayModeLaunchOverrides.ApplyIfNeeded(_proprieties);

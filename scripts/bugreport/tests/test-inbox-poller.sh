@@ -172,6 +172,16 @@ grep -q "遠隔実行が有効/不明のためランを起こさず退避した"
 [ -d "$INBOX/.remote-exec-held/20260911_190000_rex11111" ] || { echo "NG: 退避先に箱が無い"; exit 1; }
 [ ! -e "$RUNS/20260911_190000_rex11111" ] || { echo "NG: runs へ移動した"; exit 1; }
 
+# 遮断した箱の後ろにある箱は同じ回で処理する（1件の滞留が以後のランを止めない）
+# A box behind a held one is processed in the same pass, so one held box never stalls later runs
+mkdir -p "$INBOX/20260911_210000_rex22222"
+echo '{"description":"x","remoteExec":{"state":"Unknown","unknownReason":"読めなかった","ledgerFiles":[]}}' > "$INBOX/20260911_210000_rex22222/manifest.json"
+touch "$INBOX/20260911_210000_rex22222/READY"
+ready_box 20260911_220000_after111
+poll 2>"$TMP/run11.log"
+[ -d "$INBOX/.remote-exec-held/20260911_210000_rex22222" ] || { echo "NG: 不明の箱が退避されていない"; exit 1; }
+[ -d "$RUNS/20260911_220000_after111" ] || { echo "NG: 遮断箱の後ろの箱が処理されていない"; exit 1; }
+
 mkdir -p "$INBOX/20260911_200000_nomani11"
 touch "$INBOX/20260911_200000_nomani11/READY"
 poll CLAUDE_CALLED_MARKER="$TMP/claude-was-called-nomani" CLAUDE_CMD="$TMP/claude-forbidden" 2>"$TMP/run10.log"

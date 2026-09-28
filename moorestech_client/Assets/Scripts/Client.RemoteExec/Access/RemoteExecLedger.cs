@@ -49,7 +49,7 @@ namespace Client.RemoteExec.Access
         public static RemoteExecOriginMark ReadState(string markDirectory, string ledgerFileName)
         {
             if (ledgerFileName == null) return null;
-            return new RemoteExecOriginMark(ledgerFileName).WithSignals(
+            return new RemoteExecOriginMark(ledgerFileName,
                 File.Exists(Path.Combine(markDirectory, AttemptSignalFileName)),
                 File.Exists(Path.Combine(markDirectory, FailureSignalFileName)));
         }

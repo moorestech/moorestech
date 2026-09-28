@@ -62,7 +62,7 @@ namespace Client.Game.InGame.BugReport
 
         // 常時非null。有効と不明の報告は取り込み側の自動修正と通常集計から除く
         // Always present; ingestion excludes both enabled and unknown reports from automatic fixes and normal counts
-        public RemoteExecMark RemoteExec = RemoteExecMark.Disabled();
+        public RemoteExecManifestMark RemoteExec = RemoteExecManifestMark.Disabled();
 
         // 箱の種別に依らない共通見出し。crash と bug で別々に組み立てていた頃は片方だけ列が欠けても誰も気づけなかった
         // The header every kind of box shares; while crash and bug built it separately, a column missing on one side went unnoticed

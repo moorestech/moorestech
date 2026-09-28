@@ -29,14 +29,14 @@ namespace Client.Tests.RemoteExec
             _signalDirectory = Path.Combine(Path.GetTempPath(), "remote-exec-signal-" + Guid.NewGuid().ToString("N"));
             RemoteExecLedger.Initialize("session_" + DateTime.UtcNow.Ticks, Path.Combine(_signalDirectory, RemoteExecLedger.AttemptSignalFileName));
             _files = new RemoteExecTestFiles();
-            RemoteExecAccessFile.ClearToken();
+            RemoteExecAccessFile.Remove();
         }
 
         [TearDown]
         public void TearDown()
         {
             RemoteExecLaunchOption.ResolveFromCommandLine(Array.Empty<string>());
-            RemoteExecAccessFile.ClearToken();
+            RemoteExecAccessFile.Remove();
             _files.Restore();
             if (Directory.Exists(_signalDirectory)) Directory.Delete(_signalDirectory, true);
         }
@@ -47,9 +47,14 @@ namespace Client.Tests.RemoteExec
             LogAssert.Expect(LogType.Warning, new Regex("--remoteExec が指定された"));
             RemoteExecLaunchOption.ResolveFromCommandLine(new[] { "--remoteExec" });
 
-            LogAssert.Expect(LogType.Error, new Regex("Web UI サーバーが起動していない"));
+            LogAssert.Expect(LogType.Error, new Regex("Web UI サーバーの実ポートが確定していない"));
             RemoteExecActivation.ActivateIfRequested(false, 12345);
+            Assert.IsNull(RemoteExecAccessFile.Token);
 
+            // ポート未確定でもHarmonyを読む前に断る。読んだ後で断ると入口だけ永久に閉じた状態が残る
+            // An unresolved port is refused before Harmony loads; refusing afterwards would leave patching enabled with the entry shut forever
+            LogAssert.Expect(LogType.Error, new Regex("Web UI サーバーの実ポートが確定していない"));
+            RemoteExecActivation.ActivateIfRequested(true, null);
             Assert.IsNull(RemoteExecAccessFile.Token);
         }
 

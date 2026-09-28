@@ -90,22 +90,69 @@ namespace Tests.UnitTest.Server
             Assert.AreEqual(0, action.StoppedCount);
         }
 
-        // 次tickまでに解放されない処理はストールとして記録する。打ち切りはしない
-        // Work not released by the next tick is recorded as a stall and never aborted
+        // 開始と復帰を対でログする。tickを止めた処理はtick自身が進まないため、復帰ログの無い開始ログだけが証跡になる
+        // Entry and return are logged as a pair; an action that froze the tick stops the tick itself, so an entry line without its return line is the only evidence
         [Test]
-        public void 次tickまでに終わらない処理をストールとして記録する()
+        public void tick末尾処理の開始と復帰を対でログする()
         {
             var queue = NewDrainedQueue();
-            var action = new RecordingAction();
-            Assert.IsTrue(queue.TryEnqueue(action));
-            queue.Drain();
-            Assert.IsFalse(queue.IsStalled);
+            Assert.IsTrue(queue.TryEnqueue(new RecordingAction()));
 
-            global::Core.Update.GameUpdater.RestoreCurrentTick(global::Core.Update.GameUpdater.CurrentTick + 1);
-            UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Error,
-                new System.Text.RegularExpressions.Regex("tick末尾の処理が次tickまでに終わりませんでした"));
+            UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Log,
+                new System.Text.RegularExpressions.Regex("tick末尾の処理を開始します action:RecordingAction"));
+            UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Log,
+                new System.Text.RegularExpressions.Regex("tick末尾の処理から復帰しました action:RecordingAction"));
             queue.Drain();
-            Assert.IsTrue(queue.IsStalled);
+        }
+
+        // 返らない処理では復帰ログが出ない（開始ログだけが残る）。Drainは打ち切らない
+        // A non-returning action logs no return line, leaving only its entry line; Drain never aborts it
+        [Test]
+        public void 返らない処理では復帰ログが出ない()
+        {
+            var queue = NewDrainedQueue();
+            var blocking = new BlockingAction();
+            Assert.IsTrue(queue.TryEnqueue(blocking));
+
+            UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Log,
+                new System.Text.RegularExpressions.Regex("tick末尾の処理を開始します action:BlockingAction"));
+            var drain = new System.Threading.Thread(queue.Drain);
+            drain.Start();
+            Assert.IsTrue(blocking.WaitUntilRunning(System.TimeSpan.FromSeconds(5)), "Runへ入っていない");
+            Assert.IsFalse(drain.Join(System.TimeSpan.FromMilliseconds(200)), "返らない処理でDrainが返った");
+
+            blocking.Release();
+            UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Log,
+                new System.Text.RegularExpressions.Regex("tick末尾の処理から復帰しました action:BlockingAction"));
+            Assert.IsTrue(drain.Join(System.TimeSpan.FromSeconds(5)), "解放後もDrainが返らない");
+        }
+
+        // Runから返らない処理。tickスレッドの占有を模す
+        // An action that does not return from Run, standing in for an occupied tick thread
+        private sealed class BlockingAction : IServerThreadAction
+        {
+            private readonly System.Threading.ManualResetEventSlim _running = new(false);
+            private readonly System.Threading.ManualResetEventSlim _release = new(false);
+
+            internal bool WaitUntilRunning(System.TimeSpan timeout)
+            {
+                return _running.Wait(timeout);
+            }
+
+            internal void Release()
+            {
+                _release.Set();
+            }
+
+            public void Run()
+            {
+                _running.Set();
+                _release.Wait();
+            }
+
+            public void OnServerStopped()
+            {
+            }
         }
 
         #region Internal

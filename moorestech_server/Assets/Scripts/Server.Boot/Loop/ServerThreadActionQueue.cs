@@ -11,8 +11,7 @@ namespace Server.Boot.Loop
         private readonly Queue<IServerThreadAction> _pending = new();
         // 受理済みで未解放の処理。Stopはこれを列挙して停止を届ける
         // Admitted work not yet released; Stop enumerates it to deliver the stop notification
-        private readonly Dictionary<IServerThreadAction, ulong> _liveStartTicks = new();
-        private readonly HashSet<IServerThreadAction> _stallReported = new();
+        private readonly HashSet<IServerThreadAction> _admitted = new();
         private bool _stopped;
         private bool _hasDrainedThisLifetime;
 
@@ -23,17 +22,13 @@ namespace Server.Boot.Loop
             get { lock (_gate) return _hasDrainedThisLifetime; }
         }
 
-        // 返らない処理を検知した事実。打ち切りはせず、無音停止だけを防ぐ
-        // Whether a non-returning action was detected; nothing is aborted, only the silence is prevented
-        public bool IsStalled { get; private set; }
-
         public bool TryEnqueue(IServerThreadAction action)
         {
             lock (_gate)
             {
                 if (_stopped || !_hasDrainedThisLifetime) return false;
                 _pending.Enqueue(action);
-                _liveStartTicks[action] = ulong.MaxValue;
+                _admitted.Add(action);
                 return true;
             }
         }
@@ -42,29 +37,18 @@ namespace Server.Boot.Loop
         // Drop a finished action from the admitted set; otherwise it piles up for the server's lifetime
         public void Release(IServerThreadAction action)
         {
-            lock (_gate)
-            {
-                _liveStartTicks.Remove(action);
-                _stallReported.Remove(action);
-            }
+            lock (_gate) _admitted.Remove(action);
         }
 
         public void Drain()
         {
-            var stalled = new List<IServerThreadAction>();
             int count;
             lock (_gate)
             {
                 if (_stopped) return;
                 _hasDrainedThisLifetime = true;
                 count = _pending.Count;
-                CollectStalledLocked(stalled);
             }
-
-            // 返らない処理は打ち切らず記録だけ残す（セーブ確定点が無音で止まるのを防ぐ）
-            // A non-returning action is recorded rather than aborted, so the save-stable point never stops silently
-            foreach (var item in stalled)
-                UnityEngine.Debug.LogError($"[ServerThreadActionQueue] tick末尾の処理が次tickまでに終わりませんでした。セーブ確定点とスナップショットが止まります action:{item.GetType().Name}");
 
             // 排出中の追加は次tickへ送る
             // Leave work added during draining for the next tick
@@ -77,9 +61,14 @@ namespace Server.Boot.Loop
                     item = _pending.Dequeue();
                     // 停止と実行開始を同じ排他状態で確定する。Stopはこの後も同じ項目へ停止を届けられる
                     // Start and stop are decided under one exclusion; Stop can still reach this item afterwards
-                    _liveStartTicks[item] = GameUpdater.CurrentTick;
+                    if (!_admitted.Contains(item)) continue;
                 }
+
+                // 開始と復帰を対で残す。tickを止めた処理はtick自身が進まないので時間では測れず、復帰ログの無い開始ログだけが証跡になる
+                // Log entry and return as a pair; an action that froze the tick cannot be timed by ticks it stopped, so an entry line without its return line is the only evidence
+                UnityEngine.Debug.Log($"[ServerThreadActionQueue] tick末尾の処理を開始します action:{item.GetType().Name} tick:{GameUpdater.CurrentTick}");
                 item.Run();
+                UnityEngine.Debug.Log($"[ServerThreadActionQueue] tick末尾の処理から復帰しました action:{item.GetType().Name} tick:{GameUpdater.CurrentTick}");
             }
         }
 
@@ -92,26 +81,13 @@ namespace Server.Boot.Loop
                 _stopped = true;
                 _hasDrainedThisLifetime = false;
                 _pending.Clear();
-                abandoned.AddRange(_liveStartTicks.Keys);
-                _liveStartTicks.Clear();
-                _stallReported.Clear();
+                abandoned.AddRange(_admitted);
+                _admitted.Clear();
             }
 
             // 未開始・開始済みのどちらにも寿命終了を伝える。どう畳むかは処理自身が決める
             // Tell both unstarted and started work that the lifetime ended; each action decides how to fold
             foreach (var item in abandoned) item.OnServerStopped();
-        }
-
-        private void CollectStalledLocked(List<IServerThreadAction> stalled)
-        {
-            var currentTick = GameUpdater.CurrentTick;
-            foreach (var entry in _liveStartTicks)
-            {
-                if (entry.Value == ulong.MaxValue || currentTick <= entry.Value) continue;
-                if (!_stallReported.Add(entry.Key)) continue;
-                IsStalled = true;
-                stalled.Add(entry.Key);
-            }
         }
     }
 }

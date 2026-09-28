@@ -14,7 +14,7 @@ namespace Client.RemoteExec.Access
         {
         }
 
-        private RemoteExecOriginMark(string ledgerFileName, bool attempted, bool ledgerWriteFailed)
+        public RemoteExecOriginMark(string ledgerFileName, bool attempted, bool ledgerWriteFailed)
         {
             // 台帳名の無い印は「有効なのに台帳の在処が不明」という読めない状態になる
             // A mark without a ledger name would mean "enabled but nobody knows where the ledger is"
@@ -22,11 +22,6 @@ namespace Client.RemoteExec.Access
             LedgerFileName = ledgerFileName;
             Attempted = attempted;
             LedgerWriteFailed = ledgerWriteFailed;
-        }
-
-        public RemoteExecOriginMark WithSignals(bool attempted, bool ledgerWriteFailed)
-        {
-            return new RemoteExecOriginMark(LedgerFileName, attempted, ledgerWriteFailed);
         }
     }
 }

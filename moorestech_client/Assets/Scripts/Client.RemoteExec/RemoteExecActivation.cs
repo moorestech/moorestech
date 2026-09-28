@@ -15,9 +15,11 @@ namespace Client.RemoteExec
                 Debug.Log("[RemoteExec] 起動オプションが無いため遠隔実行は無効です");
                 return;
             }
-            if (!webUiStarted)
+            // 入口を開けるかはHarmonyを読む前に決める。読んだ後で断ると、パッチ能力だけ得て入口が永久に閉じた状態が残る
+            // Whether the entry can open is decided before loading Harmony; refusing afterwards would leave patching enabled with the entry shut forever
+            if (!webUiStarted || kestrelPort == null)
             {
-                Debug.LogError("[RemoteExec] Web UI サーバーが起動していないため遠隔実行を開けません");
+                Debug.LogError($"[RemoteExec] Web UI サーバーの実ポートが確定していないため遠隔実行を開けません started:{webUiStarted} port:{kestrelPort}");
                 return;
             }
 

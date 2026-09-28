@@ -94,6 +94,10 @@ namespace Client.RemoteExec.Run
             using var capture = new RemoteExecLogCapture();
 
             cancellationToken.ThrowIfCancellationRequested();
+            // コンパイルは数百DLLを読むため秒単位かかる。その間のサーバー世代交代で旧キューへ積まないよう取り直す
+            // Compilation takes seconds because it reads hundreds of DLLs, so the queue is re-fetched to avoid enqueueing onto a superseded server
+            if (target == RemoteExecTarget.Server) queue = ServerThreadActionQueueAccess.Current;
+            if (target == RemoteExecTarget.Server && (queue == null || !queue.HasDrainedThisLifetime)) return ServerStopped(capture);
             using var serverInvocation = target == RemoteExecTarget.Server
                 ? new RemoteExecServerInvocation(entry, cancellationToken, queue) : null;
             if (target == RemoteExecTarget.Server && !queue.TryEnqueue(serverInvocation))
