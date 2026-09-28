@@ -16,7 +16,7 @@
 - R4: 最初の待機日時、期待tick/連番、直前の適用位置、最新受信tick、検知時と保存時の乖離、hash比較値、初回待機直前と保存直前の受信履歴を保存する。
 - R5: 既存のtickループ内のhash gateで、後続連番を受信済みなのに期待IDが実バッファにないと検知した場合、1seqの欠番でもその場で保存する。後続がまだ来ない間は待機位置と日時を保持する。hash不一致だけの場合は受信済み最新tickと適用tickの差が200以上で保存する。
 - R6: 同じ未解消の待機では保存・警告を連発しない。短い正常待ちでは診断ファイルを作らない。停止状態は診断の保存成否に依存しない。
-- R7: 履歴は256件を上限とし、初回待機の記録は別に保持する。永久待機時にevent/hash本体を解放し、以後の受信payloadを蓄積しない。保存失敗はログと失敗結果で観測でき、他の処理へ例外を漏らさない。
+- R7: 履歴は256件を上限とし、初回待機の記録は別に保持する。永久待機時にevent/hash本体を解放し、以後の受信payloadを蓄積しない。保存失敗は理由をエラーログに残し、他の処理へ例外を漏らさない。
 - R8: 初回full snapshot適用成功後に診断を有効化する。初回rail→train適用順序・watermark・完了/失敗伝播を維持する。
 
 ## Global Constraints
@@ -32,7 +32,7 @@
 
 **Files (責務):**
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/View/TrainUnitHashVerifier.cs` — hash判定と待機理由通知。
-- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Unit/TrainUnitTickState.cs` — 受信位置、初期化、通常待機と永久待機の状態。
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Unit/TrainUnitTickState.cs` — 既存の最大受信位置をtickとseqの統合IDで保持し、初期化と永久待機の状態を管理する。
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Network/TrainUnitFutureMessageBuffer.cs` — 受信・適用位置の診断通知。並び順・古いメッセージ破棄の意味を維持。
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Network/TrainFullSnapshotEventNetworkHandler.cs` — 初回成功後の診断有効化。
 - Modify: `moorestech_client/Assets/Scripts/Client.Starter/Registration/MainGameInteractionRegistration.cs` — 診断と保存先をDIへ登録。
@@ -71,7 +71,7 @@ if (!_futureMessageBuffer.TryDequeueHashAtTickSequenceId(currentTickUnifiedId, o
 
 - [x] 診断クラスは最初の待機位置とその時点の履歴を固定する。受信履歴は前例 `FrameTickLog` と同じ上限付きQueue（256件）で保持し、保存時の直近履歴も別に記録する。初回snapshot以前の待機では保存しない。
 - [x] 停止条件はgateへ集約する。欠番は後続IDとの比較、hash不一致は200tick差で判定し、診断へ通知する。通常待機の解消は適用通知で記録する。
-- [x] writerは一意な名前のJSONを保存し、成功パスをログへ出す。IO/権限エラーのみ外部境界で捕捉し、失敗理由をログと結果に残す。ファイル書き込み例外でUIや他の更新を止めない。同一エピソードの書き込み試行を毎フレーム繰り返さない。
+- [x] writerは一意な名前のJSONを保存し、成功パスをログへ出す。IO/権限エラーのみ外部境界で捕捉し、失敗理由をエラーログに残す。ファイル書き込み例外でUIや他の更新を止めない。同一エピソードの書き込み試行を毎フレーム繰り返さない。
 - [x] 正常経路・異常経路のテストを追加する。以下を実バッファ/gateで確認し、診断は実際の一時フォルダのJSONを読み戻して検証する。
 
 ```csharp

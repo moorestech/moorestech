@@ -66,7 +66,7 @@ namespace Client.Game.InGame.Train.Network
                 var message = MessagePackSerializer.Deserialize<TrainFullSnapshotEventPacket.RailGraphFullSnapshotEventMessagePack>(payload);
                 if (message.Snapshot != null)
                 {
-                    _tickState.RecordReceivedTickUnifiedId(TrainTickUnifiedIdUtility.CreateTickUnifiedId(message.Snapshot.GraphTick, message.Snapshot.GraphTickSequenceId));
+                    _tickState.SetMaxBufferedTickUnifiedId(TrainTickUnifiedIdUtility.CreateTickUnifiedId(message.Snapshot.GraphTick, message.Snapshot.GraphTickSequenceId));
                     _diagnostics.RecordReceived("RailGraphFullSnapshot", message.Snapshot.GraphTick, message.Snapshot.GraphTickSequenceId);
                 }
                 if (!CanApplyInitialSnapshot()) return;
@@ -89,7 +89,7 @@ namespace Client.Game.InGame.Train.Network
             {
                 var message = MessagePackSerializer.Deserialize<TrainFullSnapshotEventPacket.TrainUnitFullSnapshotEventMessagePack>(payload);
                 _diagnostics.RecordReceived("TrainUnitFullSnapshot", message.ServerTick, message.WatermarkTickSequenceId);
-                _tickState.RecordReceivedTickUnifiedId(TrainTickUnifiedIdUtility.CreateTickUnifiedId(message.ServerTick, message.WatermarkTickSequenceId));
+                _tickState.SetMaxBufferedTickUnifiedId(TrainTickUnifiedIdUtility.CreateTickUnifiedId(message.ServerTick, message.WatermarkTickSequenceId));
                 if (!CanApplyInitialSnapshot()) return;
 
                 // MessagePackのbundleをモデルへ変換してapplierの既存入力型に合わせる

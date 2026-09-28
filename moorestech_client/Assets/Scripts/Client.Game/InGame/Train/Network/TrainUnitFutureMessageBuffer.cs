@@ -30,7 +30,7 @@ namespace Client.Game.InGame.Train.Network
         public void EnqueueEvent(uint serverTick, uint tickSequenceId, ITrainTickBufferedEvent bufferedEvent)
         {
             _diagnostics.RecordReceived(bufferedEvent?.GetType().Name ?? "NullEvent", serverTick, tickSequenceId);
-            _tickState.RecordReceivedTickUnifiedId(TrainTickUnifiedIdUtility.CreateTickUnifiedId(serverTick, tickSequenceId));
+            _tickState.SetMaxBufferedTickUnifiedId(TrainTickUnifiedIdUtility.CreateTickUnifiedId(serverTick, tickSequenceId));
             if (_tickState.IsPermanentlyWaiting) return;
             if (bufferedEvent == null)
             {
@@ -44,7 +44,6 @@ namespace Client.Game.InGame.Train.Network
                 // Drop events already covered.
                 return;
             }
-            _tickState.SetMaxBufferedTicks(serverTick);
             _futureEvents[eventTickUnifiedId] = bufferedEvent;
         }
 
@@ -53,7 +52,7 @@ namespace Client.Game.InGame.Train.Network
         public void EnqueueHash(uint unitsHash, uint railGraphHash, uint serverTick, uint tickSequenceId)
         {
             _diagnostics.RecordReceived("Hash", serverTick, tickSequenceId);
-            _tickState.RecordReceivedTickUnifiedId(TrainTickUnifiedIdUtility.CreateTickUnifiedId(serverTick, tickSequenceId));
+            _tickState.SetMaxBufferedTickUnifiedId(TrainTickUnifiedIdUtility.CreateTickUnifiedId(serverTick, tickSequenceId));
             if (_tickState.IsPermanentlyWaiting) return;
             if (isGetFirstHash == false)
             {
@@ -68,7 +67,6 @@ namespace Client.Game.InGame.Train.Network
                 // Drop hash states already covered.
                 return;
             }
-            _tickState.SetMaxBufferedTicks(serverTick);
             _futureHashStates[messageTickUnifiedId] = (unitsHash, railGraphHash, serverTick, tickSequenceId);
         }
 

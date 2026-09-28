@@ -14,7 +14,6 @@ namespace Client.Game.InGame.Train.Network.Diagnostics
         private TrainSynchronizationDiagnosticReport _waiting;
         private bool _warned;
         private bool _writeAttempted;
-        internal TrainSynchronizationDiagnosticWriteResult LastWriteResult { get; private set; }
 
         public TrainSynchronizationDiagnostics(TrainUnitTickState tickState, TrainSynchronizationDiagnosticWriter writer)
         {
@@ -64,7 +63,7 @@ namespace Client.Game.InGame.Train.Network.Diagnostics
                 WaitingSinceUtc = DateTime.UtcNow,
                 ExpectedId = expectedId,
                 AppliedIdAtOnset = _tickState.GetAppliedTickUnifiedId(),
-                LatestReceivedIdAtOnset = _tickState.LatestReceivedId,
+                LatestReceivedIdAtOnset = _tickState.GetMaxBufferedTickUnifiedId(),
                 WaitingReason = reason,
                 HashComparison = comparison,
                 OnsetHistory = _history.ToArray(),
@@ -82,11 +81,11 @@ namespace Client.Game.InGame.Train.Network.Diagnostics
             _writeAttempted = true;
             _waiting.CapturedAtUtc = DateTime.UtcNow;
             _waiting.AppliedIdAtCapture = _tickState.GetAppliedTickUnifiedId();
-            _waiting.LatestReceivedIdAtCapture = _tickState.LatestReceivedId;
+            _waiting.LatestReceivedIdAtCapture = _tickState.GetMaxBufferedTickUnifiedId();
             _waiting.WaitingReasonAtCapture = observation;
             _waiting.CaptureReason = captureReason;
             _waiting.RecentHistory = _history.ToArray();
-            LastWriteResult = _writer.Write(_waiting);
+            _writer.Write(_waiting);
 
             #region Internal
             void WarnOnce()
@@ -95,7 +94,7 @@ namespace Client.Game.InGame.Train.Network.Diagnostics
                 _warned = true;
                 var hashes = _waiting.HashComparison;
                 var comparison = hashes == null ? "" : $", train(client={hashes.LocalTrainHash}, server={hashes.ServerTrainHash}), rail(client={hashes.LocalRailHash}, server={hashes.ServerRailHash})";
-                Debug.LogWarning($"[TrainSynchronization] Waiting: {observation}, expected={_waiting.ExpectedId >> 32}_{(uint)_waiting.ExpectedId}, applied={_waiting.AppliedIdAtOnset}, latestReceived={_tickState.LatestReceivedId}{comparison}");
+                Debug.LogWarning($"[TrainSynchronization] Waiting: {observation}, expected={_waiting.ExpectedId >> 32}_{(uint)_waiting.ExpectedId}, applied={_waiting.AppliedIdAtOnset}, latestReceived={_tickState.GetMaxBufferedTickUnifiedId()}{comparison}");
             }
             #endregion
         }

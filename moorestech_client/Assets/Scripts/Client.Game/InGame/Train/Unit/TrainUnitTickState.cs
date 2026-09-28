@@ -19,11 +19,9 @@ namespace Client.Game.InGame.Train.Unit
     public sealed class TrainUnitTickState
     {
         private ulong _appliedTickUnifiedId = 0;
-        private uint _maxBufferedTicks = 0;
+        private ulong _maxBufferedTickUnifiedId = 0;
         private SynchronizationPhase _phase;
-        internal ulong LatestReceivedId { get; private set; }
         internal bool IsInitialized => _phase != SynchronizationPhase.AwaitingInitialSnapshot;
-        internal bool IsWaiting => _phase == SynchronizationPhase.WaitingForOrderedMessage;
         internal bool IsPermanentlyWaiting => _phase == SynchronizationPhase.PermanentlyWaiting;
 
         internal void Initialize(ulong appliedId)
@@ -31,18 +29,8 @@ namespace Client.Game.InGame.Train.Unit
             // 初期snapshotの基準を確定してから、順序付き進行を許可する。
             // Establish the initial snapshot baseline before allowing ordered progress.
             RecordAppliedTickUnifiedId(appliedId);
-            RecordReceivedTickUnifiedId(appliedId);
+            SetMaxBufferedTickUnifiedId(appliedId);
             _phase = SynchronizationPhase.Running;
-        }
-
-        internal void RecordReceivedTickUnifiedId(ulong receivedId)
-        {
-            LatestReceivedId = Math.Max(LatestReceivedId, receivedId);
-        }
-
-        internal void RecordWaiting()
-        {
-            _phase = SynchronizationPhase.WaitingForOrderedMessage;
         }
 
         internal void StopPermanently()
@@ -81,17 +69,21 @@ namespace Client.Game.InGame.Train.Unit
                 return;
             }
             _appliedTickUnifiedId = tickUnifiedId;
-            if (IsWaiting) _phase = SynchronizationPhase.Running;
         }
         
-        // バッファー済み最大tick
-        public void SetMaxBufferedTicks(uint maxBufferedTicks)
+        // 受信済みの最大統合IDを保持する。
+        // Retain the highest received unified ID.
+        public void SetMaxBufferedTickUnifiedId(ulong tickUnifiedId)
         {
-            _maxBufferedTicks = Math.Max(_maxBufferedTicks, maxBufferedTicks); 
+            _maxBufferedTickUnifiedId = Math.Max(_maxBufferedTickUnifiedId, tickUnifiedId);
+        }
+        internal ulong GetMaxBufferedTickUnifiedId()
+        {
+            return _maxBufferedTickUnifiedId;
         }
         public uint GetMaxBufferedTicks()
         {
-            return _maxBufferedTicks;
+            return (uint)(_maxBufferedTickUnifiedId >> 32);
         }
 
         public void AdvanceTick()
@@ -104,7 +96,6 @@ namespace Client.Game.InGame.Train.Unit
         {
             AwaitingInitialSnapshot,
             Running,
-            WaitingForOrderedMessage,
             PermanentlyWaiting,
         }
     }

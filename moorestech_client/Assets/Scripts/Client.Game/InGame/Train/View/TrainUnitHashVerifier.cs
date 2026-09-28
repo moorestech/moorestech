@@ -42,8 +42,7 @@ namespace Client.Game.InGame.Train.View
             // Keep waiting for the missing ordered position regardless of later arrivals.
             if (!_futureMessageBuffer.TryDequeueHashAtTickSequenceId(currentTickUnifiedId, out var message))
             {
-                var confirmedGap = currentTickUnifiedId < _tickState.LatestReceivedId;
-                _tickState.RecordWaiting();
+                var confirmedGap = currentTickUnifiedId < _tickState.GetMaxBufferedTickUnifiedId();
                 _diagnostics.RecordMissingOrderedMessage(currentTickUnifiedId, confirmedGap);
                 if (confirmedGap) _futureMessageBuffer.StopRetainingFutureMessages("ConfirmedOrderedGap");
                 return false;
@@ -91,9 +90,8 @@ namespace Client.Game.InGame.Train.View
                     return true;
                 }
                 _lastMismatch = (appliedId, currentTickUnifiedId, message.unitsHash, message.railGraphHash, localTrainHash, localRailGraphHash);
-                var receivedTickGap = (long)(_tickState.LatestReceivedId >> 32) - _tickState.GetTick();
+                var receivedTickGap = (long)(_tickState.GetMaxBufferedTickUnifiedId() >> 32) - _tickState.GetTick();
                 var permanentWait = HashMismatchTickGapThreshold <= receivedTickGap;
-                _tickState.RecordWaiting();
                 _diagnostics.RecordHashMismatch(currentTickUnifiedId, localTrainHash, message.unitsHash,
                     localRailGraphHash, message.railGraphHash, permanentWait);
                 if (permanentWait) _futureMessageBuffer.StopRetainingFutureMessages("HashMismatchReceivedTickGap");
