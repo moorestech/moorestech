@@ -1,67 +1,124 @@
+using System.Collections.Generic;
 using NUnit.Framework;
 using Server.Boot.Loop;
 
 namespace Tests.UnitTest.Server
 {
-    // 世代管理の純粋テスト。PlayModeを要らないためServer.Tests側に置き、Server.Boot自身がClient.Testsへ内部公開する必要をなくす
-    // Pure generation-management tests that need no PlayMode; kept in Server.Tests so Server.Boot no longer needs to expose internals to Client.Tests
+    // キューの寿命管理の純粋テスト。PlayModeを要らないためServer.Tests側に置く
+    // Pure lifetime-management tests for the queue; kept in Server.Tests since they need no PlayMode
     public class ServerThreadActionQueueTest
     {
-        private long _generation;
-
-        [SetUp]
-        public void ResetServerQueue()
+        private sealed class RecordingAction : IServerThreadAction
         {
-            // 自分の世代を開始して即停止し、前のテストが残した寿命に依らず停止状態から始める
-            // Begin and immediately stop an owned generation so each test starts stopped regardless of leftovers
-            _generation = ServerThreadActionQueue.BeginServerThread();
-            ServerThreadActionQueue.Stop(_generation);
-        }
+            internal int RunCount;
+            internal int StoppedCount;
 
-        [TearDown]
-        public void StopOwnedGeneration()
-        {
-            ServerThreadActionQueue.Stop(_generation);
+            public void Run()
+            {
+                RunCount++;
+            }
+
+            public void OnServerStopped()
+            {
+                StoppedCount++;
+            }
         }
 
         [Test]
         public void サーバー終了は待機処理を失敗通知して受付を閉じる()
         {
-            ServerThreadActionQueue.Stop(_generation);
-            ServerThreadActionQueue.Drain();
-            Assert.IsFalse(ServerThreadActionQueue.HasDrainedThisLifetime, "更新スレッド開始前のtickは有効化しない");
+            var queue = new ServerThreadActionQueue();
+            Assert.IsFalse(queue.HasDrainedThisLifetime, "tick末尾が動く前は受付を開かない");
+            Assert.IsFalse(queue.TryEnqueue(new RecordingAction()), "tick末尾が動く前の投入は受け付けない");
 
-            _generation = ServerThreadActionQueue.BeginServerThread();
-            ServerThreadActionQueue.Drain();
-            var ran = false;
-            var stopped = false;
-            Assert.IsTrue(ServerThreadActionQueue.TryEnqueue(() => ran = true, () => stopped = true));
-            ServerThreadActionQueue.Stop(_generation);
+            queue = NewDrainedQueue();
+            var action = new RecordingAction();
+            Assert.IsTrue(queue.TryEnqueue(action));
+            queue.Stop();
 
-            Assert.IsFalse(ran);
-            Assert.IsTrue(stopped);
-            Assert.IsFalse(ServerThreadActionQueue.HasDrainedThisLifetime);
-            Assert.IsFalse(ServerThreadActionQueue.TryEnqueue(() => ran = true, () => stopped = true));
+            Assert.AreEqual(0, action.RunCount);
+            Assert.AreEqual(1, action.StoppedCount);
+            Assert.IsFalse(queue.HasDrainedThisLifetime);
+            Assert.IsFalse(queue.TryEnqueue(action));
         }
 
+        // 旧サーバーのStopは自分のインスタンスだけを閉じる。新サーバーの受付には届かない
+        // An old server's Stop closes only its own instance and never reaches a newer server's admission
         [Test]
-        public void 旧更新スレッドの終了は新サーバーの処理を捨てない()
+        public void 旧サーバーの終了は新サーバーの処理を捨てない()
         {
-            _generation = ServerThreadActionQueue.BeginServerThread();
-            var oldGeneration = _generation;
-            ServerThreadActionQueue.Stop(_generation);
-            _generation = ServerThreadActionQueue.BeginServerThread();
-            ServerThreadActionQueue.Drain();
-            var ran = false;
-            var stopped = false;
-            Assert.IsTrue(ServerThreadActionQueue.TryEnqueue(() => ran = true, () => stopped = true));
+            var oldQueue = NewDrainedQueue();
+            oldQueue.Stop();
+            var queue = NewDrainedQueue();
+            var action = new RecordingAction();
+            Assert.IsTrue(queue.TryEnqueue(action));
 
-            ServerThreadActionQueue.Stop(oldGeneration);
-            Assert.IsTrue(ServerThreadActionQueue.HasDrainedThisLifetime);
-            ServerThreadActionQueue.Drain();
-            Assert.IsTrue(ran);
-            Assert.IsFalse(stopped);
-            ServerThreadActionQueue.Stop(_generation);
+            oldQueue.Stop();
+            Assert.IsTrue(queue.HasDrainedThisLifetime);
+            queue.Drain();
+            Assert.AreEqual(1, action.RunCount);
+            Assert.AreEqual(0, action.StoppedCount);
         }
+
+        // 実行開始後も解放前ならStopが届く。開始済みの処理を停止通知なしで放置しない
+        // Stop still reaches an action that started but has not been released, so no started work is left unnotified
+        [Test]
+        public void 開始済みで未解放の処理にも停止が届く()
+        {
+            var queue = NewDrainedQueue();
+            var action = new RecordingAction();
+            Assert.IsTrue(queue.TryEnqueue(action));
+            queue.Drain();
+            Assert.AreEqual(1, action.RunCount);
+
+            queue.Stop();
+            Assert.AreEqual(1, action.StoppedCount);
+        }
+
+        // 解放済みの処理へは停止を届けない。届けると完了済みの結果を停止で上書きしうる
+        // A released action receives no stop; delivering one could overwrite an already finished outcome
+        [Test]
+        public void 解放済みの処理には停止が届かない()
+        {
+            var queue = NewDrainedQueue();
+            var action = new RecordingAction();
+            Assert.IsTrue(queue.TryEnqueue(action));
+            queue.Drain();
+            queue.Release(action);
+
+            queue.Stop();
+            Assert.AreEqual(0, action.StoppedCount);
+        }
+
+        // 次tickまでに解放されない処理はストールとして記録する。打ち切りはしない
+        // Work not released by the next tick is recorded as a stall and never aborted
+        [Test]
+        public void 次tickまでに終わらない処理をストールとして記録する()
+        {
+            var queue = NewDrainedQueue();
+            var action = new RecordingAction();
+            Assert.IsTrue(queue.TryEnqueue(action));
+            queue.Drain();
+            Assert.IsFalse(queue.IsStalled);
+
+            global::Core.Update.GameUpdater.RestoreCurrentTick(global::Core.Update.GameUpdater.CurrentTick + 1);
+            UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Error,
+                new System.Text.RegularExpressions.Regex("tick末尾の処理が次tickまでに終わりませんでした"));
+            queue.Drain();
+            Assert.IsTrue(queue.IsStalled);
+        }
+
+        #region Internal
+
+        // tick末尾が1度動いた状態のキューを作る。受付はそれまで開かない
+        // Builds a queue whose tick end has run once; admission stays closed until then
+        private static ServerThreadActionQueue NewDrainedQueue()
+        {
+            var queue = new ServerThreadActionQueue();
+            queue.Drain();
+            return queue;
+        }
+
+        #endregion
     }
 }

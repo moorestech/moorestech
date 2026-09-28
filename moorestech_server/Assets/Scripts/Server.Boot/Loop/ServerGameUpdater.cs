@@ -11,7 +11,7 @@ namespace Server.Boot.Loop
         private static readonly TimeSpan FrameInterval = TimeSpan.FromSeconds(GameUpdater.SecondsPerTick);
         
         
-        internal static void StartUpdate(CancellationToken token, long queueGeneration)
+        internal static void StartUpdate(CancellationToken token, ServerThreadActionQueue threadActionQueue)
         {
             var profilerMarker = new ProfilerMarker("GameUpdate");
             
@@ -48,7 +48,7 @@ namespace Server.Boot.Loop
             }
             finally
             {
-                ServerThreadActionQueue.Stop(queueGeneration);
+                threadActionQueue.Stop();
             }
         }
     }

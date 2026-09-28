@@ -170,6 +170,9 @@ namespace Server.Boot.Composition
             // Client operations funnel into one shared FIFO applied in batch at tick end
             services.AddSingleton<TickEndPacketQueue>();
             services.AddSingleton<WorldMutationTickEndUpdater>();
+            // 他スレッド処理のtick末尾キューはサーバー寿命で所有する。世代の引き回しを型から消す
+            // The tick-end queue for other-thread work is owned per server lifetime, removing generation plumbing
+            services.AddSingleton<ServerThreadActionQueue>();
 
             // 乗車コア。実接続レジストリを IPlayerConnectionChecker として共有する。
             // Riding core. Shares the real connection registry as IPlayerConnectionChecker.

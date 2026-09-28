@@ -1,104 +1,117 @@
-using System;
 using System.Collections.Generic;
+using Core.Update;
 
 namespace Server.Boot.Loop
 {
-    // 他スレッドからの処理をサーバーのtick末尾へ渡す
-    // Hand work from other threads to the server tick end
-    public static class ServerThreadActionQueue
+    // 他スレッドからの処理をサーバーのtick末尾へ渡す。1インスタンス＝1サーバー寿命
+    // Hand work from other threads to the server tick end; one instance lives for one server
+    public sealed class ServerThreadActionQueue
     {
-        private sealed class PendingAction
-        {
-            public readonly Action Run;
-            public readonly Action OnStop;
-
-            public PendingAction(Action run, Action onStop)
-            {
-                Run = run;
-                OnStop = onStop;
-            }
-        }
-
-        private static readonly object Gate = new();
-        private static readonly Queue<PendingAction> Pending = new();
-        private static bool _stopped = true;
-        private static bool _hasDrainedThisLifetime;
-        private static long _generation;
+        private readonly object _gate = new();
+        private readonly Queue<IServerThreadAction> _pending = new();
+        // 受理済みで未解放の処理。Stopはこれを列挙して停止を届ける
+        // Admitted work not yet released; Stop enumerates it to deliver the stop notification
+        private readonly Dictionary<IServerThreadAction, ulong> _liveStartTicks = new();
+        private readonly HashSet<IServerThreadAction> _stallReported = new();
+        private bool _stopped;
+        private bool _hasDrainedThisLifetime;
 
         // 現サーバーのtick末尾が実際に動いた場合だけ受け付ける
         // Accept work only after this server has actually run a tick end
-        public static bool HasDrainedThisLifetime
+        public bool HasDrainedThisLifetime
         {
-            get { lock (Gate) return _hasDrainedThisLifetime; }
+            get { lock (_gate) return _hasDrainedThisLifetime; }
         }
 
-        public static bool TryEnqueue(Action run, Action onStop)
+        // 返らない処理を検知した事実。打ち切りはせず、無音停止だけを防ぐ
+        // Whether a non-returning action was detected; nothing is aborted, only the silence is prevented
+        public bool IsStalled { get; private set; }
+
+        public bool TryEnqueue(IServerThreadAction action)
         {
-            lock (Gate)
+            lock (_gate)
             {
                 if (_stopped || !_hasDrainedThisLifetime) return false;
-                Pending.Enqueue(new PendingAction(run, onStop));
+                _pending.Enqueue(action);
+                _liveStartTicks[action] = ulong.MaxValue;
                 return true;
             }
         }
 
-        public static void Drain()
+        // 実行し終えた処理を受理集合から外す。外さないとサーバー寿命の間だけ積み上がる
+        // Drop a finished action from the admitted set; otherwise it piles up for the server's lifetime
+        public void Release(IServerThreadAction action)
         {
+            lock (_gate)
+            {
+                _liveStartTicks.Remove(action);
+                _stallReported.Remove(action);
+            }
+        }
+
+        public void Drain()
+        {
+            var stalled = new List<IServerThreadAction>();
             int count;
-            long generation;
-            lock (Gate)
+            lock (_gate)
             {
                 if (_stopped) return;
                 _hasDrainedThisLifetime = true;
-                generation = _generation;
-                count = Pending.Count;
+                count = _pending.Count;
+                CollectStalledLocked(stalled);
             }
 
-            // 排出中の追加は次tickへ送る。世代が変わった分は新サーバーのDrainに任せる
-            // Leave work added during draining for the next tick; a changed generation is left to the new server's own Drain
+            // 返らない処理は打ち切らず記録だけ残す（セーブ確定点が無音で止まるのを防ぐ）
+            // A non-returning action is recorded rather than aborted, so the save-stable point never stops silently
+            foreach (var item in stalled)
+                UnityEngine.Debug.LogError($"[ServerThreadActionQueue] tick末尾の処理が次tickまでに終わりませんでした。セーブ確定点とスナップショットが止まります action:{item.GetType().Name}");
+
+            // 排出中の追加は次tickへ送る
+            // Leave work added during draining for the next tick
             for (var index = 0; index < count; index++)
             {
-                PendingAction item;
-                lock (Gate)
+                IServerThreadAction item;
+                lock (_gate)
                 {
-                    if (_stopped || generation != _generation || Pending.Count == 0) return;
-                    item = Pending.Dequeue();
+                    if (_stopped || _pending.Count == 0) return;
+                    item = _pending.Dequeue();
+                    // 停止と実行開始を同じ排他状態で確定する。Stopはこの後も同じ項目へ停止を届けられる
+                    // Start and stop are decided under one exclusion; Stop can still reach this item afterwards
+                    _liveStartTicks[item] = GameUpdater.CurrentTick;
                 }
                 item.Run();
             }
         }
 
-        internal static long BeginServerThread()
+        public void Stop()
         {
-            lock (Gate)
+            var abandoned = new List<IServerThreadAction>();
+            lock (_gate)
             {
-                _generation++;
-                _stopped = false;
-                _hasDrainedThisLifetime = false;
-                return _generation;
-            }
-        }
-
-        // 古い更新スレッドの終了では、新しいサーバーの受付を閉じない
-        // An old update thread cannot close the queue of a newer server
-        internal static void Stop(long generation)
-        {
-            var abandoned = new List<PendingAction>();
-            lock (Gate)
-            {
-                if (generation != _generation)
-                {
-                    UnityEngine.Debug.Log($"[ServerThreadActionQueue] 古い世代の停止を無視しました generation:{generation} current:{_generation}");
-                    return;
-                }
+                if (_stopped) return;
                 _stopped = true;
                 _hasDrainedThisLifetime = false;
-                while (0 < Pending.Count) abandoned.Add(Pending.Dequeue());
+                _pending.Clear();
+                abandoned.AddRange(_liveStartTicks.Keys);
+                _liveStartTicks.Clear();
+                _stallReported.Clear();
             }
 
-            // 待機者には寿命終了を伝えて完了させる
-            // Complete waiters with a server-stopped outcome
-            foreach (var item in abandoned) item.OnStop();
+            // 未開始・開始済みのどちらにも寿命終了を伝える。どう畳むかは処理自身が決める
+            // Tell both unstarted and started work that the lifetime ended; each action decides how to fold
+            foreach (var item in abandoned) item.OnServerStopped();
+        }
+
+        private void CollectStalledLocked(List<IServerThreadAction> stalled)
+        {
+            var currentTick = GameUpdater.CurrentTick;
+            foreach (var entry in _liveStartTicks)
+            {
+                if (entry.Value == ulong.MaxValue || currentTick <= entry.Value) continue;
+                if (!_stallReported.Add(entry.Key)) continue;
+                IsStalled = true;
+                stalled.Add(entry.Key);
+            }
         }
     }
 }
