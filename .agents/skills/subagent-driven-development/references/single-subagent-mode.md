@@ -15,7 +15,7 @@ SKILL.md「単一subagent実装モード」の手順詳細・継続再派遣・f
 
 ## 継続再派遣（途中失敗時）
 
-継続再派遣の対象は**途中終了（ステータス `PARTIAL` — コンテキスト枯渇・一部タスクのみ完了）だけ**であり、**上限は2回**である。`NEEDS_CONTEXT` は完了タスク数に関わらず不足コンテキストを回答して再派遣し、**この2回には数えない**。`BLOCKED` は SKILL.md「Implementerのステータス対応」の1〜4に従い、原因が計画自体の誤り（4）なら**継続回数に関わらず即座に人間へエスカレーションする**（継続2回やSDD本体への切替を先に消化しない）。
+継続再派遣の対象は**途中終了（ステータス `PARTIAL` — コンテキスト枯渇・一部タスクのみ完了）だけ**であり、**上限は2回**である。`NEEDS_CONTEXT` は完了タスク数に関わらず不足コンテキストを回答して再派遣し、**この2回には数えない**。`BLOCKED` は SKILL.md「Implementerのステータス対応」の1〜4に従い、原因が計画自体の誤り（4）なら**継続回数に関わらず即座に質問の振り分けへ回す**（[deferred-questions.md](deferred-questions.md)。後続タスクに係るなら人間へ聞く。継続2回やSDD本体への切替を先に消化しない）。
 
 継続の手順: 報告ファイルの `Task N: done <sha7>` 行と `git log <base>..HEAD --oneline` で完了タスクを確定し、残りタスクだけを `[TASK_RANGE]` に列挙した継続subagentを同じテンプレで派遣する（報告ファイルは同じものへ**追記**させる。`## コンテキスト` の書き方は `single-implementer-prompt.md` 末尾）。台帳に `Single-subagent: continuation #k from Task N base <sha7>` を追記する。**`k` は1始まりで、この台帳行の本数がそのまま継続回数である** — `NEEDS_CONTEXT` への回答再派遣と DONE_WITH_CONCERNS の fix 派遣はこの行を書かない（＝数えない）。したがって compaction 後は `continuation #` 行を数えるだけで残り回数が確定する。
 
