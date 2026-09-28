@@ -50,7 +50,7 @@ namespace Game.SaveLoad.Snapshot
             AppendRecord(tick, ReceivedPacketRecordKind.Packet, senderPlayerId, payload);
         }
 
-        public void AppendDisconnect(ulong tick, int playerId)
+        public void AppendDisconnect(ulong tick, int? playerId)
         {
             AppendRecord(tick, ReceivedPacketRecordKind.Disconnect, playerId, Array.Empty<byte>());
         }

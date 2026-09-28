@@ -39,11 +39,18 @@ namespace Server.Boot.Replay
             return created;
         }
 
-        public void Disconnect(int playerId)
+        public void Disconnect(int? playerId)
         {
-            _contexts.TryGetValue(playerId, out var context);
-            PlayerConnectionBinding.Unregister(playerId, context?.EventSink, _connections, _events);
-            _contexts.Remove(playerId);
+            // 未紐づけパケットは使い捨てcontextなので、null切断は解除する状態を持たない
+            // Unbound packets use throwaway contexts, so a null disconnect has no state to remove
+            if (!playerId.HasValue)
+            {
+                Debug.Log("再生した未紐づけ接続の切断には解除対象がありません");
+                return;
+            }
+            _contexts.TryGetValue(playerId.Value, out var context);
+            PlayerConnectionBinding.Unregister(playerId.Value, context?.EventSink, _connections, _events);
+            _contexts.Remove(playerId.Value);
         }
     }
 }

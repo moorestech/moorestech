@@ -73,7 +73,7 @@ namespace Server.Boot.Replay
                 {
                     if (records[next].Kind == ReceivedPacketRecordKind.Disconnect)
                     {
-                        queue.Enqueue(new ReplayDisconnectEntry(contexts, records[next].PlayerId.Value));
+                        queue.Enqueue(new ReplayDisconnectEntry(contexts, records[next].PlayerId));
                     }
                     else if (IsExcludedFromReplay(records[next].Payload)) excluded++;
                     else

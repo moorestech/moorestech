@@ -6,8 +6,8 @@ namespace Server.Protocol
     // Per-connection protocol context. Carries the handshaken playerId to disconnect cleanup.
     public class PacketResponseContext
     {
-        // バインドはメインスレッド、close/読み取りは受信スレッドから呼ばれるため lock で保護する。
-        // Bind runs on the main thread while close/read run on the receive thread, so guard with a lock.
+        // 本番のバインドとcloseはtick末尾FIFOで直列化し、直接呼ぶ境界にも備えてlockを保つ
+        // Production bind and close are serialized by the tick-end FIFO; keep the lock for direct boundary callers
         private readonly object _lock = new();
         private int? _playerId;
         private bool _closed;
@@ -30,8 +30,8 @@ namespace Server.Protocol
             }
         }
 
-        // close済みならバインドを拒否する。handshake処理と切断Cleanupの競合を直列化する要
-        // Refuses to bind once closed; linearizes the handshake vs disconnect-cleanup race
+        // close済みならバインドを拒否する。FIFOで先に来た操作が確定する
+        // Refuse binding after close; the earlier FIFO operation wins
         public bool TryBindPlayerId(int playerId)
         {
             lock (_lock)

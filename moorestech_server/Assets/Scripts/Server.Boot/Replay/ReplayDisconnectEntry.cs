@@ -7,11 +7,11 @@ namespace Server.Boot.Replay
     internal sealed class ReplayDisconnectEntry : ITickEndPacketEntry
     {
         private readonly ReplayConnectionContexts _contexts;
-        private readonly int _playerId;
+        private readonly int? _playerId;
 
         public bool IsActive => true;
 
-        public ReplayDisconnectEntry(ReplayConnectionContexts contexts, int playerId)
+        public ReplayDisconnectEntry(ReplayConnectionContexts contexts, int? playerId)
         {
             _contexts = contexts;
             _playerId = playerId;

@@ -79,7 +79,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             // 壊れた区間を無音で再生すると切断解除が空振りし、接続集合が分岐する
             // Replaying a corrupt segment silently would miss removal and diverge the connection set
             var exception = Assert.Throws<InvalidDataException>(() => ReceivedPacketLogReader.ReadAll(log.SegmentFilePaths()));
-            StringAssert.Contains("切断レコードが不正", exception.Message);
+            StringAssert.Contains("送り手IDが不正", exception.Message);
             Directory.Delete(dir, true);
         }
 

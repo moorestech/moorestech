@@ -12,19 +12,17 @@ namespace Server.Boot.Loop.PacketProcessing
     // Commit disconnects in the packet FIFO so connection state and log order agree
     public sealed class ConnectionDisconnectEntry : ITickEndPacketEntry
     {
-        private readonly int _playerId;
-        private readonly IPlayerEventSink _eventSink;
+        private readonly PacketResponseContext _context;
         private readonly PlayerConnectionRegistry _connections;
         private readonly EventProtocolProvider _events;
         private readonly ReceivedPacketLog _log;
 
         public bool IsActive => true;
 
-        private ConnectionDisconnectEntry(int playerId, IPlayerEventSink eventSink,
+        private ConnectionDisconnectEntry(PacketResponseContext context,
             PlayerConnectionRegistry connections, EventProtocolProvider events, ReceivedPacketLog log)
         {
-            _playerId = playerId;
-            _eventSink = eventSink;
+            _context = context;
             _connections = connections;
             _events = events;
             _log = log;
@@ -34,24 +32,28 @@ namespace Server.Boot.Loop.PacketProcessing
             TickEndPacketQueue queue, PlayerConnectionRegistry connections, EventProtocolProvider events,
             ReceivedPacketLog log)
         {
-            // 受信を先に閉じ、既存パケットの後ろへ切断を積む。Freeze後の投入は次tickへ回る
-            // Close receive first, then enqueue after prior packets; an enqueue after Freeze runs next tick
-            var playerId = context.MarkClosedAndGetPlayerId();
+            // 新規受信だけ止め、未紐づけでも切断を積む。Freeze後なら次tickへ回る
+            // Stop new receives and enqueue even unbound disconnects; after Freeze they run next tick
             receiver.Dispose();
-            if (!playerId.HasValue)
-            {
-                Debug.Log("未紐づけ接続の切断はプレイヤー登録解除を行いません");
-                return;
-            }
-            queue.Enqueue(new ConnectionDisconnectEntry(playerId.Value, context.EventSink, connections, events, log));
+            queue.Enqueue(new ConnectionDisconnectEntry(context, connections, events, log));
         }
 
         public void Process()
         {
-            // 最大1tickは旧接続が接続中に見える。解除と記録は同じtick末尾位置で行う
-            // The old connection can remain visible for one tick; removal and logging share one FIFO position
-            PlayerConnectionBinding.Unregister(_playerId, _eventSink, _connections, _events);
-            _log.AppendDisconnect(GameUpdater.CurrentTick, _playerId);
+            // closeもFIFOで確定する。先行ハンドシェイクが割り当てたIDをここで読む
+            // Close in the FIFO too, reading any ID assigned by an earlier handshake
+            var playerId = _context.MarkClosedAndGetPlayerId();
+            if (playerId.HasValue)
+            {
+                PlayerConnectionBinding.Unregister(playerId.Value, _context.EventSink, _connections, _events);
+                _log.AppendDisconnect(GameUpdater.CurrentTick, playerId.Value);
+                return;
+            }
+
+            // 未紐づけに解除対象はないが、位置を再生できるようnullで記録する
+            // An unbound connection has nothing to remove, but record its FIFO position as null
+            Debug.Log("未紐づけ接続の切断はプレイヤー登録解除を行いません");
+            _log.AppendDisconnect(GameUpdater.CurrentTick, null);
         }
     }
 }
