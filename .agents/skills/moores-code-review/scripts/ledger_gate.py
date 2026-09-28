@@ -18,6 +18,8 @@ stop : plan本文の Modify:/Create: 対象のうち reviewers/moores-*.md の p
        ブロック（自前カウンタ上限2）。旧plan互換: frontmatter `spec:` が解決できる
        場合はspec側の台帳も連結して検査対象に含める（spec廃止・2026-08-05裁定）。
        moores-* reviewer 該当対象が無いplanは台帳欠落でもブロックしない（既存plan互換）。
+       加えて plan の『## 設計検査記録』に配置検査と Phase 2.6 の「実施済み」行が
+       無ければブロックする（Phase 2.6 が黙って飛ばされていた・2026-09-28）。
 """
 from __future__ import annotations
 
@@ -32,6 +34,8 @@ from select_reviewers import parse_yaml_header  # noqa: E402
 
 REVIEWERS_DIR = Path(__file__).resolve().parent.parent / "reviewers"
 LEDGER_HEADING_RE = re.compile(r"^##\s*(判断記録（ADR）|判断台帳)")
+DESIGN_CHECK_HEADING_RE = re.compile(r"^##\s*設計検査記録")
+DESIGN_CHECK_ITEMS = ("配置検査", "Phase 2.6")
 # checkbox・太字・行番号サフィックス付きの表記揺れも拾う（fail-open防止）
 # Also match checkbox/bold variants and strip :line-range suffixes
 TARGET_RE = re.compile(
@@ -84,11 +88,11 @@ def resolve_spec(plan_path: Path, spec_ref: str) -> Path | None:
     return candidate if candidate.is_file() else None
 
 
-def ledger_text(spec_path: Path) -> str:
+def ledger_text(spec_path: Path, heading_re: re.Pattern[str] = LEDGER_HEADING_RE) -> str:
     lines = spec_path.read_text(encoding="utf-8", errors="replace").splitlines()
     start = None
     for i, line in enumerate(lines):
-        if start is None and LEDGER_HEADING_RE.match(line.strip()):
+        if start is None and heading_re.match(line.strip()):
             start = i + 1
         elif start is not None and line.startswith("## "):
             return "\n".join(lines[start:i])
@@ -113,6 +117,15 @@ def missing_entries(plan_path: Path, rules: list[tuple[list[str], list[str]]]) -
     if not ledger.strip():
         return [f"{plan_path.name}: planに判断台帳セクション（## 判断記録（ADR））が無い"]
     return [f"{Path(t).name}（{t}）" for t in gated if Path(t).name not in ledger]
+
+
+def missing_design_checks(plan_path: Path) -> list[str]:
+    # 各検査の行が「実施済み」を含むこと。未実施・行欠落・節欠落はすべて未完了
+    # Each check line must say 実施済み; a missing line or section counts as not done
+    lines = ledger_text(plan_path, DESIGN_CHECK_HEADING_RE).splitlines()
+    return [f"{plan_path.name}: 設計検査記録の『{item}』が実施済みになっていない"
+            for item in DESIGN_CHECK_ITEMS
+            if not any(item in line and "実施済み" in line for line in lines)]
 
 
 def main() -> int:
@@ -147,6 +160,7 @@ def main() -> int:
             return 0
         count = int(blocks_state.read_text()) if blocks_state.is_file() else 0
         if count >= 2:
+            print("ledger-gate: ブロック上限2回に達したため以後は検査せず通す（未解消の可能性あり）", file=sys.stderr)
             return 0
         rules = moores_reviewer_rules()
         problems: list[str] = []
@@ -154,9 +168,19 @@ def main() -> int:
         plans_state.write_text("\n".join(alive) + ("\n" if alive else ""))
         for plan in alive:
             problems.extend(missing_entries(Path(plan), rules))
-        if not problems:
+        design_problems = [m for plan in alive for m in missing_design_checks(Path(plan))]
+        if not problems and not design_problems:
             return 0
         blocks_state.write_text(str(count + 1))
+        if design_problems:
+            print(
+                "ledger-gate: planの設計検査が未完了です: " + " / ".join(design_problems)
+                + " — writing-plansの『設計検査』（spec-architecture-review Phase 1〜2.5と"
+                "Phase 2.6）を実行し、planの『## 設計検査記録』を実施済み・件数・要約1行へ書き換えてください。",
+                file=sys.stderr,
+            )
+        if not problems:
+            return 2
         print(
             "ledger-gate: planのModify/Create対象にmoores-* reviewerのpaths該当ファイルがありますが、"
             "planの判断台帳に未掲載です: " + " / ".join(problems)
