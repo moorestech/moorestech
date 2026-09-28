@@ -13,7 +13,7 @@ public class LocalizationSourcePairContractTest
 {
     [Theory]
     [InlineData("/content/localization.csv", "key,Source,english\nui.menu.close,Close,Close\n")]
-    [InlineData("/content/localization_settings.csv", "lang_name,display_name,steam_api_lang_code\nenglish,English,en\n")]
+    [InlineData("/content/localization_settings.csv", "lang_name,display_name,steam_languages\nenglish,English,english\n")]
     [InlineData("/content/content_keys.csv", "namespace,field,sourceMaster\nitem,name,ItemMaster\n")]
     public void 辞書と設定と宣言表の一部だけならMOORES003を報告する(string path, string text)
     {
