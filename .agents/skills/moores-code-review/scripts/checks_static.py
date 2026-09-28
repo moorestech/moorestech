@@ -19,6 +19,7 @@ from pathlib import Path
 
 from cs_lex import line_comment_body, strip_line
 from patch_util import FileDiff
+from boundary_claims import BOUNDARY_ALLOWLIST
 
 import re
 
@@ -34,28 +35,8 @@ SOURCE_EXTS = (".cs", ".ts", ".tsx")
 MAX_FILE_LINES = 200
 MAX_DIR_FILES = 10
 
-# AGENTS.md が try-catch を許すのは外部境界4種だけ。根拠コメントの「主張内容」をこの表と照合する
-# AGENTS.md permits try-catch only at these 4 external boundaries; the rationale comment's claim is matched here
-BOUNDARY_ALLOWLIST = {
-    "external-process": ("外部プロセス", "プロセス起動", "外部コマンド", "サブプロセス",
-                         "Process.Start", "ProcessStartInfo", "subprocess", "external process"),
-    "network-io": ("ネットワーク", "通信", "WebSocket", "websocket", "ソケット", "Socket",
-                   "socket", "HTTP", "http", "TCP", "network"),
-    "external-json-parse": ("パース", "parse", "Parse", "Deserialize", "デシリアライズ",
-                            "JsonConvert", "JsonSerializer", "外部入力", "外部JSON"),
-    # ディスクIOは2026-09-14にAGENTS.mdへ明記された境界（他プロセスのロック・権限・容量不足）
-    # Disk IO became an explicit boundary in AGENTS.md on 2026-09-14 (foreign locks, permissions, full volume)
-    # 「権限」「ロック」「File.」等の単独語は境界でないtry-catchも通してしまうため、ディスクを名指しする語と複合語だけを許す
-    # Bare words like "権限", "ロック" or "File." would wave through try-catch that is no boundary at all, so only words naming the disk and compounds are allowed
-    "disk-io": ("ディスクIO", "ディスク", "disk", "Disk", "ファイルシステム", "file system",
-                "容量不足", "空き容量", "アクセス権", "書き込み権限", "読み取り権限",
-                "ファイルのロック", "他プロセスのロック", "file lock",
-                "IOException", "UnauthorizedAccessException"),
-    # 外から送られ動的にコンパイル・実行したコードの実行境界（2026-09-28 AGENTS.md 第5類型）
-    # Execution boundary of code sent from outside and compiled/run dynamically (AGENTS.md 5th kind, 2026-09-28)
-    "dynamic-code": ("動的に実行", "動的にコンパイル", "動的コード", "送られたコード",
-                     "dynamically compiled", "dynamically executed", "submitted code"),
-}
+# 許可する5種の外部境界の根拠語は boundary_claims.py に集約する
+# Boundary claim words for all five permitted kinds live in boundary_claims.py
 # 根拠コメントを探す遡り幅（try の直前に置かれた2行セットコメントまで届く距離）
 # Look-back window for the rationale comment (reaches the 2-line comment set placed above `try`)
 RATIONALE_WINDOW = 12
@@ -102,8 +83,8 @@ def _added_line_rules(files: list[FileDiff]) -> list[dict]:
                                              "try-catch は基本禁止。条件分岐/null チェックで代替 (AGENTS.md)。境界である根拠コメントも無い"))
                 elif not claims:
                     findings.append(_finding("try-catch-forbidden", f.path, lineno, text,
-                                             f"try-catch は基本禁止 (AGENTS.md)。根拠コメントはあるが許可された境界4種"
-                                             f"(外部プロセス起動/ネットワーク送受信/外部入力JSONのパース/ディスクIO)のどれも主張していない: 「{comment}」"))
+                                             f"try-catch は基本禁止 (AGENTS.md)。根拠コメントはあるが許可された境界5種"
+                                             f"(外部プロセス起動/ネットワーク送受信/外部入力JSONのパース/ディスクIO/送信コードの動的実行)のどれも主張していない: 「{comment}」"))
             if DEFAULT_ARG_RE.search(code) and "=>" not in code.split("(")[0]:
                 findings.append(_finding("default-argument-forbidden", f.path, lineno, text,
                                          "デフォルト引数は禁止。呼び出し側を変更する (AGENTS.md)"))
@@ -169,7 +150,7 @@ def try_catch_boundary(files: list[FileDiff]) -> list[dict]:
             finding = _finding(
                 "try-catch-boundary", f.path, lineno, text,
                 f"try-catch の根拠コメントが境界 {'/'.join(claims)} を主張している。"
-                f"主張どおりの外部境界か（AGENTS.md 例外3種のどれに当たるか）を実コードで裁定する: 「{comment}」")
+                f"主張どおりの外部境界か（AGENTS.md 例外5種のどれに当たるか）を実コードで裁定する: 「{comment}」")
             finding["comment"] = comment
             finding["boundary_claim"] = claims
             candidates.append(finding)

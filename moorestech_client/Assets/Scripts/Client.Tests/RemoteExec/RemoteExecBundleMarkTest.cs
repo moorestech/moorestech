@@ -151,7 +151,7 @@ namespace Client.Tests.RemoteExec
             LogAssert.Expect(LogType.Warning, new Regex("前回セッションの出所が読めず"));
             RemoteExecBundleMark.ApplyForPreviousSession(manifest, _bundle, null);
             Assert.IsNull(manifest.RemoteExec);
-            Assert.AreEqual("remoteExec", manifest.Missing[0].Item);
+            Assert.AreEqual(BugReportBundleLayout.RemoteExecDirectoryName, manifest.Missing[0].Item);
         }
 
         [Test]

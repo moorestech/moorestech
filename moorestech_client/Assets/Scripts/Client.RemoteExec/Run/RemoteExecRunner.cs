@@ -22,15 +22,15 @@ namespace Client.RemoteExec.Run
 
         // 台帳の対はHTTP入口と直接呼び出しの両方で同じRunnerが所有する
         // The runner owns the ledger pair for both HTTP and direct calls
-        internal static async UniTask<RemoteExecResult> RunAsync(string body, RemoteExecTarget target, CancellationToken cancellationToken, IRemoteExecHttpRunner testRunner)
+        internal static async UniTask<RemoteExecResult> RunAsync(string body, RemoteExecTarget target, CancellationToken cancellationToken, IRemoteExecHttpRunner executionRunner)
         {
             var sequence = RemoteExecLedger.AppendStart(target, body);
             RemoteExecResult result;
-            // 外部から送られ動的に実行するコードの境界で失敗を台帳へ閉じ込める
-            // Isolate failure at the execution boundary for dynamically compiled external code
+            // 外部から送られ動的に実行するコードの第5境界で失敗を台帳へ閉じ込める
+            // Isolate failure at the fifth boundary for dynamically executed submitted code
             try
             {
-                result = testRunner == null ? await ExecuteAsync(body, target, cancellationToken) : await testRunner.RunAsync(body, target, cancellationToken);
+                result = executionRunner == null ? await ExecuteAsync(body, target, cancellationToken) : await executionRunner.RunAsync(body, target, cancellationToken);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -77,8 +77,8 @@ namespace Client.RemoteExec.Run
             // Unity側の参照集合を使うコンパイルも同じスレッドで完了させる
             // Complete compilation with Unity's reference set on that same thread
             RemoteExecCompileOutcome outcome;
-            // Roslynの動的コンパイルとAssembly.Loadは外部送信コードを扱う境界
-            // Roslyn compilation and Assembly.Load form the boundary for submitted external code
+            // Roslynの動的コンパイルとAssembly.Loadは送られたコードの第5境界
+            // Roslyn compilation and Assembly.Load are the fifth boundary for submitted external code
             try { outcome = RemoteExecCompiler.Compile(body); }
             catch (Exception error)
             {
@@ -115,8 +115,8 @@ namespace Client.RemoteExec.Run
                 }
             }
 
-            // 送信されたコードという外部入力の例外を応答へ隔離する
-            // Isolate exceptions from submitted external code into the response
+            // 動的に実行する送信コードの第5境界で例外を応答へ隔離する
+            // Isolate exceptions at the fifth boundary for dynamically executed submitted code
             try
             {
                 object value;
@@ -136,6 +136,10 @@ namespace Client.RemoteExec.Run
                 Debug.LogWarning("[RemoteExec] 実行前の要求を取り消しました");
                 result.Exception = "要求が取り消されました";
                 result.Outcome = RemoteExecOutcome.Rejected;
+            }
+            catch (RemoteExecServerStoppedBeforeStartException)
+            {
+                RejectServerStopped();
             }
             catch (Exception error)
             {

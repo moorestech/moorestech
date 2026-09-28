@@ -38,14 +38,14 @@ if [ "$WINDOWS" = 1 ]; then
     # Avoid cmd.exe quote/pipe interpretation by encoding the PowerShell script
     . "$HERE/lib/verify-ssh.sh"
     ENCODED="$(python3 -c 'import base64,pathlib,sys; print(base64.b64encode(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8").encode("utf-16le")).decode())' "$HERE/windows/remote-exec.ps1")"
-    verify_ssh_remote "powershell -NoProfile -EncodedCommand $ENCODED" < "$TMP/body" || exit 1
+    verify_ssh_remote "powershell -NoProfile -EncodedCommand $ENCODED" < "$TMP/body"
     exit 0
 fi
 
 # HOME差し替え環境でもゲームと同じユーザーディレクトリを参照する
 # Use the game user directory even when a supervisor replaces HOME
-# C# の GameSystemPaths.GameSystemDirectory + RemoteExecAccessFile.DirectoryName/FileName と同じ場所
-# Matches the C# GameSystemPaths.GameSystemDirectory + RemoteExecAccessFile.DirectoryName/FileName
+# C# の GameSystemPaths.RemoteExecDirectory にある access.json と同じ場所
+# Matches access.json in the C# GameSystemPaths.RemoteExecDirectory
 ACCESS="${MOORESTECH_REMOTE_EXEC_ACCESS:-/Users/$(id -un)/Library/Application Support/moorestech/RemoteExec/access.json}"
 python3 "$HERE/lib/remote-exec-access.py" "$ACCESS" > "$TMP/access" || exit 1
 PORT="$(head -n 1 "$TMP/access")"

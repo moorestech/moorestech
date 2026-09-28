@@ -18,6 +18,124 @@ namespace Client.Tests.BugReport
     public sealed class CrashBundleRemoteExecLedgerTest
     {
         [Test]
+        public void 壊れた前世代の台帳一覧は欠損を表明して新しい一覧を書き直す()
+        {
+            var root = Path.Combine(Path.GetTempPath(), "crash-remote-exec-" + Guid.NewGuid().ToString("N"));
+            try
+            {
+                Directory.CreateDirectory(root);
+                PendingCrashReportMark.MarkPending(root);
+                File.WriteAllText(PreviousSessionRemoteExecLedgers.PathIn(root), "{broken");
+                var name = RemoteExecLedgerWriter.FileNameFor(654324, "session_400");
+                var artifacts = PreviousSessionSalvage.Salvage(new PreviousSessionSalvageRequest
+                {
+                    LastSessionDirectory = root,
+                    PreviousSessions = new List<PreviousProcessSession>
+                    {
+                        new PreviousProcessSession
+                        {
+                            ProcessId = 654324,
+                            SessionName = "session_400",
+                            Origin = new SessionOriginSnapshot(null, TestPreviousSessionArtifacts.OriginSteamIdAbsenceReason,
+                                BuildOriginReading.Editor(), name),
+                        },
+                    },
+                });
+                Assert.IsTrue(artifacts.Missing.Any(item => item.Item == BugReportBundleLayout.RemoteExecDirectoryName &&
+                    item.Reason.Contains("前世代の遠隔実行台帳一覧を引き継げなかった")));
+                Assert.IsTrue(PreviousSessionRemoteExecLedgers.TryRead(root, out var entries, out var reason));
+                Assert.IsNull(reason);
+                Assert.AreEqual(name, entries.Single().Name);
+            }
+            finally
+            {
+                if (Directory.Exists(root)) Directory.Delete(root, true);
+            }
+        }
+
+        [Test]
+        public void 連続する複数クラッシュの台帳を未応答起動後の箱へ全て入れREADY後に削除する()
+        {
+            var root = Path.Combine(Path.GetTempPath(), "crash-remote-exec-" + Guid.NewGuid().ToString("N"));
+            var names = new[]
+            {
+                RemoteExecLedgerWriter.FileNameFor(654321, "session_100"),
+                RemoteExecLedgerWriter.FileNameFor(654322, "session_200"),
+            };
+            var paths = names.Select(RemoteExecLedger.PathForFileName).ToArray();
+            var originals = paths.Select(path => File.Exists(path) ? File.ReadAllBytes(path) : null).ToArray();
+            var directoryExisted = Directory.Exists(RemoteExecAccessFile.DirectoryPath);
+            string bundle = null;
+
+            try
+            {
+                Directory.CreateDirectory(RemoteExecAccessFile.DirectoryPath);
+                File.WriteAllText(paths[0], "older ledger");
+                File.WriteAllText(paths[1], "middle ledger");
+                var sessions = new List<PreviousProcessSession>();
+                for (var i = 0; i < names.Length; i++) sessions.Add(new PreviousProcessSession
+                {
+                    ProcessId = 654321 + i,
+                    SessionName = "session_" + (100 * (i + 1)),
+                    Origin = new SessionOriginSnapshot(null, TestPreviousSessionArtifacts.OriginSteamIdAbsenceReason,
+                        BuildOriginReading.Editor(), names[i]),
+                });
+                sessions.Add(new PreviousProcessSession
+                {
+                    ProcessId = 654323,
+                    SessionName = "session_300",
+                    Origin = new SessionOriginSnapshot(null, TestPreviousSessionArtifacts.OriginSteamIdAbsenceReason,
+                        BuildOriginReading.Editor(), null),
+                });
+
+                // 別々の起動で検知したクラッシュを統合し、最新が遠隔実行なしでも古い台帳を保持する
+                // Merge crashes detected on separate launches and keep older ledgers when the newest session disabled remote execution
+                var lastSession = Path.Combine(root, "last-session");
+                PreviousSessionSalvage.Salvage(new PreviousSessionSalvageRequest
+                {
+                    LastSessionDirectory = lastSession,
+                    PreviousSessions = new List<PreviousProcessSession> { sessions[0] },
+                });
+                PreviousSessionSalvage.Salvage(new PreviousSessionSalvageRequest
+                {
+                    LastSessionDirectory = lastSession,
+                    PreviousSessions = new List<PreviousProcessSession> { sessions[1], sessions[2] },
+                });
+                var carried = PreviousSessionSalvage.Salvage(new PreviousSessionSalvageRequest
+                {
+                    LastSessionDirectory = lastSession,
+                });
+                bundle = CrashBundleWriter.Write(carried, "複数の遠隔実行", RepositoryStateProbe.RepositoryRoot,
+                    RepositoryStateProbe.MasterDataRoot);
+                var manifest = JObject.Parse(File.ReadAllText(Path.Combine(bundle, BugReportBundleLayout.ManifestFileName)));
+                Assert.IsNotNull(manifest["remoteExec"]);
+                foreach (var name in names)
+                {
+                    var relative = $"{BugReportBundleLayout.RemoteExecDirectoryName}/{name}";
+                    CollectionAssert.Contains(manifest["remoteExec"]["ledgerFiles"].Select(item => (string)item).ToArray(), relative);
+                    Assert.IsTrue(File.Exists(Path.Combine(bundle, relative)));
+                    Assert.IsFalse(File.Exists(RemoteExecLedger.PathForFileName(name)), "READY箱へ写した台帳が残っている");
+                }
+            }
+            finally
+            {
+                if (bundle != null && Directory.Exists(bundle)) Directory.Delete(bundle, true);
+                if (Directory.Exists(root)) Directory.Delete(root, true);
+                for (var i = 0; i < paths.Length; i++)
+                {
+                    if (originals[i] == null)
+                    {
+                        if (File.Exists(paths[i])) File.Delete(paths[i]);
+                    }
+                    else File.WriteAllBytes(paths[i], originals[i]);
+                }
+                if (!directoryExisted && Directory.Exists(RemoteExecAccessFile.DirectoryPath) &&
+                    Directory.GetFileSystemEntries(RemoteExecAccessFile.DirectoryPath).Length == 0)
+                    Directory.Delete(RemoteExecAccessFile.DirectoryPath);
+            }
+        }
+
+        [Test]
         public void 遠隔実行が有効だった前回セッションの印と台帳が箱へ入る()
         {
             var previousProcessId = Process.GetCurrentProcess().Id + 1;

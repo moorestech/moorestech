@@ -33,7 +33,7 @@ namespace Client.Game.InGame.BugReport
         {
             if (previousOrigin == null)
             {
-                manifest.AddMissing("remoteExec", "前回セッションの出所が読めず、遠隔実行の有効状態が不明");
+                manifest.AddMissing(BugReportBundleLayout.RemoteExecDirectoryName, "前回セッションの出所が読めず、遠隔実行の有効状態が不明");
                 return;
             }
             if (!previousOrigin.RemoteExecEnabled) return;
@@ -48,6 +48,31 @@ namespace Client.Game.InGame.BugReport
             catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e) || e is ArgumentException)
             {
                 manifest.AddMissing(BugReportBundleLayout.RemoteExecDirectoryName, $"前回の台帳パスを解決できなかった: {e.Message}");
+            }
+        }
+
+        // 退避一覧があれば全セッション分を箱へ写し、旧形式の退避物だけ単一出所へ戻す
+        // Copy all salvaged sessions when indexed, falling back to one origin only for older evidence
+        internal static void ApplyForSalvagedSessions(BugReportManifest manifest, string bundleDirectory, string lastSessionDirectory, SessionOriginSnapshot previousOrigin)
+        {
+            if (!PreviousSessionRemoteExecLedgers.TryRead(lastSessionDirectory, out var entries, out var reason))
+            {
+                ApplyForPreviousSession(manifest, bundleDirectory, previousOrigin);
+                return;
+            }
+            if (reason != null)
+            {
+                manifest.AddMissing(BugReportBundleLayout.RemoteExecDirectoryName, reason);
+                return;
+            }
+            if (entries.Count == 0) return;
+            manifest.RemoteExec = new RemoteExecMark();
+            foreach (var entry in entries)
+            {
+                // 一覧は検証済みのファイル名だけを含む。コピー失敗は項目ごとに欠損へ残す
+                // The index contains validated file names; each failed copy declares its own gap
+                if (entry.WriteFailed) manifest.AddMissing(BugReportBundleLayout.RemoteExecDirectoryName, $"{entry.Name}: 遠隔実行の台帳または実行試行の印を書けなかった");
+                CopyLedger(manifest, bundleDirectory, RemoteExecLedger.PathForFileName(entry.Name), entry.Attempted && !entry.WriteFailed);
             }
         }
 
@@ -85,6 +110,25 @@ namespace Client.Game.InGame.BugReport
             var path = RemoteExecLedger.PathForFileName(previousOrigin.RemoteExecLedgerFileName);
             var deletion = BugReportFileOperations.DeleteFile(path);
             if (!deletion.Succeeded) UnityEngine.Debug.LogWarning($"遠隔実行の台帳を整理できませんでした: {deletion.FailureReason}");
+        }
+
+        internal static void ReleaseBundledSalvagedLedgers(BugReportManifest manifest, string lastSessionDirectory, SessionOriginSnapshot previousOrigin)
+        {
+            if (!PreviousSessionRemoteExecLedgers.TryRead(lastSessionDirectory, out var entries, out var reason))
+            {
+                ReleaseBundledPreviousLedger(manifest, previousOrigin);
+                return;
+            }
+            if (reason != null) return;
+            if (manifest.RemoteExec != null) foreach (var entry in entries)
+            {
+                var relative = $"{BugReportBundleLayout.RemoteExecDirectoryName}/{entry.Name}";
+                if (!manifest.RemoteExec.LedgerFiles.Contains(relative)) continue;
+                var deletion = BugReportFileOperations.DeleteFile(RemoteExecLedger.PathForFileName(entry.Name));
+                if (!deletion.Succeeded) UnityEngine.Debug.LogWarning($"遠隔実行の台帳を整理できませんでした: {deletion.FailureReason}");
+            }
+            var indexDeletion = BugReportFileOperations.DeleteFile(PreviousSessionRemoteExecLedgers.PathIn(lastSessionDirectory));
+            if (!indexDeletion.Succeeded) UnityEngine.Debug.LogWarning($"遠隔実行の台帳一覧を整理できませんでした: {indexDeletion.FailureReason}");
         }
     }
 }

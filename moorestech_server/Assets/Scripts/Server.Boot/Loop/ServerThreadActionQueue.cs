@@ -79,11 +79,6 @@ namespace Server.Boot.Loop
             }
         }
 
-        internal static long CurrentGeneration
-        {
-            get { lock (Gate) return _generation; }
-        }
-
         // 古い更新スレッドの終了では、新しいサーバーの受付を閉じない
         // An old update thread cannot close the queue of a newer server
         internal static void Stop(long generation)

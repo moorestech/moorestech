@@ -22,12 +22,22 @@ assert "outcome -ne 'Succeeded'" in script
 body=json.load(sys.stdin)
 assert body == {'code':'return "日本語";\n','target':'server'},body
 Path(os.environ['REX_TEST_ROOT'],'ssh-body.json').write_text(json.dumps(body))
+if os.environ.get('SSH_OUTCOME') == 'CompileFailed':
+    print('{"outcome":"CompileFailed","result":"compile error"}')
+    sys.exit(2)
 print('{"outcome":"Succeeded","result":"日本語"}')
 PY
 chmod +x "$SANDBOX/bin/ssh"
 MOORESTECH_VERIFY_HOST=verify-pc MOORESTECH_VERIFY_USER=moores SSH_BIN="$SANDBOX/bin/ssh" \
     bash "$CLI" --windows --target server - <<< 'return "日本語";' > "$SANDBOX/response"
 [ -f "$SANDBOX/ssh-body.json" ]
+# PowerShell が返す非成功 outcome の終了コード 2 を SSH 越しにも保持する
+# Preserve PowerShell's exit code 2 for a non-successful outcome across SSH
+status=0
+SSH_OUTCOME=CompileFailed MOORESTECH_VERIFY_HOST=verify-pc MOORESTECH_VERIFY_USER=moores SSH_BIN="$SANDBOX/bin/ssh" \
+    bash "$CLI" --windows --target server - <<< 'return "日本語";' > "$SANDBOX/response" 2> "$SANDBOX/error" || status=$?
+[ "$status" = 2 ]
+grep -q '"outcome":"CompileFailed"' "$SANDBOX/response"
 # curlスタブはHTTPを送信せず、ステータスだけを変えて非200の拒否を確かめる
 # The curl stub sends no HTTP and varies only status to check every non-200 rejection
 cat > "$SANDBOX/bin/curl" <<'PY'

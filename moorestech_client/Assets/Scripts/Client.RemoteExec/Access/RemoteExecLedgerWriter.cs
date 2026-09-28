@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Text.RegularExpressions;
 using Client.RemoteExec.Run;
+using Game.Paths;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -23,7 +24,7 @@ namespace Client.RemoteExec.Access
         // The single source of truth for the ledger file name's prefix and extension; change the format here alone
         internal const string FileNamePrefix = "ledger-";
         internal const string FileNameExtension = ".jsonl";
-        internal static readonly string FileNamePattern = $"^{Regex.Escape(FileNamePrefix)}[0-9]+-session_[0-9]+{Regex.Escape(FileNameExtension)}$";
+        internal static readonly string FileNamePattern = $"^{Regex.Escape(FileNamePrefix)}[0-9]+-{Regex.Escape(ProcessSessionName.Prefix)}{ProcessSessionName.NumericSuffixPattern}{Regex.Escape(FileNameExtension)}$";
         private static readonly Regex NameMatcher = new(FileNamePattern, RegexOptions.Compiled);
 
         internal static bool IsLedgerFileName(string fileName)

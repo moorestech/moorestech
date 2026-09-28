@@ -12,7 +12,9 @@ namespace Tests.UnitTest.Server
         [SetUp]
         public void ResetServerQueue()
         {
-            _generation = ServerThreadActionQueue.CurrentGeneration;
+            // 自分の世代を開始して即停止し、前のテストが残した寿命に依らず停止状態から始める
+            // Begin and immediately stop an owned generation so each test starts stopped regardless of leftovers
+            _generation = ServerThreadActionQueue.BeginServerThread();
             ServerThreadActionQueue.Stop(_generation);
         }
 

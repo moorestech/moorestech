@@ -83,8 +83,9 @@ namespace Client.Game.InGame.BugReport.LastSession
 
             // 未応答の印は異常終了を検知した時点で置く。ゲートを出さない起動でも置き、ゲートに答えた起動だけが消す（F04）
             // The pending mark is placed as soon as an unclean exit is detected, even on launches that show no gate, and only an answered gate clears it (F04)
+            var hadPendingReport = PendingCrashReportMark.IsPending(request.LastSessionDirectory);
             if (0 < uncleanSessions.Count) PendingCrashReportMark.MarkPending(request.LastSessionDirectory);
-            var carriesPendingReport = uncleanSessions.Count == 0 && PendingCrashReportMark.IsPending(request.LastSessionDirectory);
+            var carriesPendingReport = uncleanSessions.Count == 0 && hadPendingReport;
 
             // 正常終了で未応答の資料も無ければ前回分は要らない。前世代の退避物も含めて空にし、1世代だけ保持する規律を毎回満たす
             // A clean exit with nothing unanswered needs nothing kept: the previous generation is emptied too, so "keep exactly one generation" holds every boot
@@ -94,10 +95,11 @@ namespace Client.Game.InGame.BugReport.LastSession
                 ClearPreviousGeneration(Path.Combine(request.LastSessionDirectory, BugReportBundleLayout.SnapshotDirectoryName), missing);
                 var originDeletion = BugReportFileOperations.DeleteFile(Path.Combine(request.LastSessionDirectory, PreviousOriginFileName));
                 if (!originDeletion.Succeeded) missing.Report("previousOrigin", $"前世代の出所を消せなかった: {originDeletion.FailureReason}");
+                PreviousSessionRemoteExecLedgers.Clear(request.LastSessionDirectory, missing);
                 return PreviousSessionArtifacts.Clean(request.LastSessionDirectory, exitedCleanlyByProcessId, missing.Items);
             }
 
-            return UncleanSessionSalvage.Collect(request, uncleanSessions, exitedCleanlyByProcessId, carriesPendingReport, missing);
+            return UncleanSessionSalvage.Collect(request, uncleanSessions, exitedCleanlyByProcessId, carriesPendingReport, hadPendingReport, missing);
 
             #region Internal
 

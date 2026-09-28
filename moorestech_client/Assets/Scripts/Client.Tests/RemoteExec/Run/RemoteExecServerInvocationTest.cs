@@ -1,3 +1,4 @@
+using System;
 using System.Reflection;
 using System.Threading;
 using Client.RemoteExec.Run;
@@ -42,6 +43,35 @@ namespace Client.Tests.RemoteExec.Run
 
             // 開始後に待機を打ち切ると、次の要求とログ捕捉が重なる
             // Abandoning the wait after start would overlap log capture with the next request
+            Assert.AreEqual(1, _started);
+            Assert.AreEqual(UniTaskStatus.Pending, completion.Status);
+            _completion.TrySetResult("finished");
+            Assert.AreEqual("finished", completion.GetAwaiter().GetResult());
+        }
+
+        [Test]
+        public void サーバー停止で実行前に落ちた要求は専用の拒否理由を返す()
+        {
+            using var invocation = new RemoteExecServerInvocation(Entry(), CancellationToken.None);
+            var completion = invocation.Completion;
+
+            invocation.StopBeforeStart();
+            invocation.StartOnServerThread();
+
+            Assert.AreEqual(0, _started);
+            var error = Assert.Throws<RemoteExecServerStoppedBeforeStartException>(() => completion.GetAwaiter().GetResult());
+            StringAssert.Contains("内蔵サーバーが終了", error.Message);
+        }
+
+        [Test]
+        public void 開始済み要求への停止通知は実行結果を上書きしない()
+        {
+            using var invocation = new RemoteExecServerInvocation(Entry(), CancellationToken.None);
+            var completion = invocation.Completion;
+
+            invocation.StartOnServerThread();
+            invocation.StopBeforeStart();
+
             Assert.AreEqual(1, _started);
             Assert.AreEqual(UniTaskStatus.Pending, completion.Status);
             _completion.TrySetResult("finished");

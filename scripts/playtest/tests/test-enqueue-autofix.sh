@@ -66,7 +66,7 @@ grep -q '同名のラン記録が既にある' "$TMP/rerun.log" || { echo "NG: �
 # Remote-exec marks refuse ordinary enqueue and allow only explicit force
 REX="$LOGS/harness/playtest/reports/7656005/rex"
 mkdir -p "$REX"
-echo '{"kind":"bug","remoteExec":{"ledgerFiles":[]}}' > "$REX/manifest.json"
+echo '{"kind":"bug","remoteExec":{"ledgerFiles":["remote-exec/session_1.jsonl"]}}' > "$REX/manifest.json"
 echo ready > "$REX/READY"
 set +e; run 7656005 rex 2>"$TMP/rex.log"; code=$?; set -e
 [ "$code" = 6 ] && [ ! -e "$I/rex" ] || { echo "NG: 遠隔実行の箱が拒否されない（exit=$code）"; exit 1; }
@@ -94,4 +94,8 @@ echo '{"kind":"bug","remoteExec":{"ledgerFiles":"bad"}}' > "$BAD/manifest.json"
 set +e; run --force 7656005 bad 2>"$TMP/bad.log"; code=$?; set -e
 [ "$code" = 1 ] && [ ! -e "$I/bad" ] || { echo "NG: 壊れた印を投入した（exit=$code）"; exit 1; }
 grep -q 'remoteExec を読めない' "$TMP/bad.log" || { echo "NG: 壊れた印の理由が無い"; exit 1; }
+echo '{"kind":"bug","remoteExec":{"ledgerFiles":[7]}}' > "$BAD/manifest.json"
+set +e; run --force 7656005 bad 2>"$TMP/bad-element.log"; code=$?; set -e
+[ "$code" = 1 ] && [ ! -e "$I/bad" ] || { echo "NG: 型違いの台帳を投入した（exit=$code）"; exit 1; }
+grep -q 'ledgerFiles\[0\]' "$TMP/bad-element.log" || { echo "NG: 型違いの台帳の理由が無い"; exit 1; }
 echo OK

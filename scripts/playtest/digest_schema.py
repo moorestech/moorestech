@@ -119,11 +119,11 @@ def conform_list(value, element_kind, path):
         return value
     items = []
     for i, element in enumerate(value):
-        if not isinstance(element, dict):
+        if element is None:
             return Invalid(f"{path}[{i}]")
-        conformed = conform(element, element_kind)
+        conformed = conform_value(element, element_kind, None, f"{path}[{i}]")
         if isinstance(conformed, Invalid):
-            return Invalid(f"{path}[{i}].{conformed.path}")
+            return conformed
         items.append(conformed)
     return items
 

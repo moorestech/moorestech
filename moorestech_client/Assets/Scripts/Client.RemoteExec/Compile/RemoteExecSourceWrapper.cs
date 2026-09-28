@@ -17,7 +17,8 @@ namespace Client.RemoteExec.Compile
         {
             var lines = body.Replace("\r\n", "\n").Split('\n');
             var usingCount = 0;
-            var importLines = new bool[lines.Length];
+            var imports = new string[lines.Length];
+            var bodyLines = (string[])lines.Clone();
             var inBlockComment = false;
             while (usingCount < lines.Length && IsLeadingTriviaOrUsing(lines[usingCount]))
             {
@@ -30,14 +31,14 @@ namespace Client.RemoteExec.Compile
             foreach (var item in DefaultUsings) source.Append("using ").Append(item).AppendLine(";");
             for (var index = 0; index < usingCount; index++)
             {
-                if (importLines[index]) source.AppendLine(lines[index]);
+                if (imports[index] != null) source.AppendLine(imports[index]);
             }
             source.Append("public static class ").Append(EntryTypeName)
                 .Append(" { public static async Cysharp.Threading.Tasks.UniTask<object> ")
                 .Append(EntryMethodName).AppendLine("() {");
             source.AppendLine("#line 1");
             for (var index = 0; index < lines.Length; index++)
-                source.AppendLine(index < usingCount && importLines[index] ? string.Empty : lines[index]);
+                source.AppendLine(bodyLines[index]);
 
             // 戻り値の型を常に統一
             // Always unify the return type
@@ -52,33 +53,34 @@ namespace Client.RemoteExec.Compile
             // Scan past leading comments for imports; text inside a block comment is never a directive
             bool IsLeadingTriviaOrUsing(string line)
             {
-                var trimmed = line.Trim();
+                var remaining = line.TrimStart();
+                var prefix = line.Substring(0, line.Length - remaining.Length);
                 if (inBlockComment)
                 {
-                    var end = trimmed.IndexOf("*/", System.StringComparison.Ordinal);
+                    var end = remaining.IndexOf("*/", System.StringComparison.Ordinal);
                     if (end < 0) return true;
                     inBlockComment = false;
-                    return IsCommentTail(trimmed.Substring(end + 2));
+                    prefix += remaining.Substring(0, end + 2);
+                    remaining = remaining.Substring(end + 2).TrimStart();
                 }
-                if (trimmed.StartsWith("/*"))
+                // 同じ行の複数コメントを抜け、残った using だけを移す
+                // Skip multiple comments on one line and lift only the remaining using
+                while (remaining.StartsWith("/*"))
                 {
-                    var end = trimmed.IndexOf("*/", 2, System.StringComparison.Ordinal);
+                    var end = remaining.IndexOf("*/", 2, System.StringComparison.Ordinal);
                     if (end < 0)
                     {
                         inBlockComment = true;
                         return true;
                     }
-                    return IsCommentTail(trimmed.Substring(end + 2));
+                    prefix += remaining.Substring(0, end + 2);
+                    remaining = remaining.Substring(end + 2).TrimStart();
                 }
-                if (trimmed.Length == 0 || trimmed.StartsWith("//")) return true;
-                importLines[usingCount] = UsingDirective.IsMatch(line);
-                return importLines[usingCount];
-            }
-
-            bool IsCommentTail(string tail)
-            {
-                var remaining = tail.Trim();
-                return remaining.Length == 0 || remaining.StartsWith("//");
+                if (remaining.Length == 0 || remaining.StartsWith("//")) return true;
+                if (!UsingDirective.IsMatch(remaining)) return false;
+                imports[usingCount] = remaining;
+                bodyLines[usingCount] = prefix;
+                return true;
             }
 
             #endregion

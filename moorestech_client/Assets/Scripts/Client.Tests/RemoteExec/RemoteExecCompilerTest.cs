@@ -49,6 +49,20 @@ namespace Client.Tests.RemoteExec
         }
 
         [Test]
+        public void 同じ行のブロックコメント後のusingも取り出す()
+        {
+            var outcome = RemoteExecCompiler.Compile("/* first */ /* second */ using System.Text;\nreturn new StringBuilder(\"a\").ToString();");
+            Assert.IsTrue(outcome.Succeeded, string.Join("\n", outcome.Errors));
+        }
+
+        [Test]
+        public void 複数行コメント終了直後のusingも取り出す()
+        {
+            var outcome = RemoteExecCompiler.Compile("/* first\n*/ using System.Text;\nreturn new StringBuilder(\"a\").ToString();");
+            Assert.IsTrue(outcome.Succeeded, string.Join("\n", outcome.Errors));
+        }
+
+        [Test]
         public void ブロックコメント内のusingは名前空間の指定にしない()
         {
             var outcome = RemoteExecCompiler.Compile("/*\nusing Missing.Namespace;\n*/\nusing System.Text;\nreturn new StringBuilder(\"a\").ToString();");

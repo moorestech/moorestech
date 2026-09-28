@@ -6,6 +6,14 @@ using UnityEngine;
 
 namespace Client.RemoteExec.Run
 {
+    internal sealed class RemoteExecServerStoppedBeforeStartException : InvalidOperationException
+    {
+        internal RemoteExecServerStoppedBeforeStartException()
+            : base("内蔵サーバーが終了したため、サーバー側実行を取り消しました")
+        {
+        }
+    }
+
     internal sealed class RemoteExecServerInvocation : IDisposable
     {
         private readonly MethodInfo _entry;
@@ -46,7 +54,11 @@ namespace Client.RemoteExec.Run
 
         internal void StopBeforeStart()
         {
-            _completion.TrySetException(new InvalidOperationException("内蔵サーバーが終了したため、サーバー側実行を取り消しました"));
+            // 停止と開始を排他にし、実行済みの要求の結果を上書きしない
+            // Arbitrate stop against start without replacing the outcome of an invocation already running
+            if (Interlocked.CompareExchange(ref _admissionState, 3, 0) != 0) return;
+            Debug.LogWarning("[RemoteExec] 内蔵サーバー停止により実行前の要求を拒否しました");
+            _completion.TrySetException(new RemoteExecServerStoppedBeforeStartException());
         }
 
         public void Dispose()
