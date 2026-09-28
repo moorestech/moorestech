@@ -32,10 +32,11 @@ namespace Client.Localization
             // 選択不能な保存値は生成済み英語辞書へ戻す
             // Fall back to the generated English dictionary for unselectable persisted values
             var savedLanguageCode = PlayerPrefs.GetString(LanguagePreferenceKey, DefaultLanguageCode);
-            var languages = Volatile.Read(ref publishedSnapshot).Languages;
-            currentLanguageCode = languages.ContainsKey(savedLanguageCode)
+            currentLanguageCode = IsSelectable(savedLanguageCode)
                 ? savedLanguageCode
                 : DefaultLanguageCode;
+            if (savedLanguageCode != currentLanguageCode && PlayerPrefs.HasKey(LanguagePreferenceKey))
+                Debug.LogWarning($"[Localize] saved language {savedLanguageCode} is unavailable; using {DefaultLanguageCode}");
         }
 
         public static string Get(LocalizationKey key)
@@ -58,11 +59,6 @@ namespace Client.Localization
             return LocalizationTextResolver.Resolve(snapshot, currentLanguageCode, key.Key);
         }
 
-        public static string GetFormatted(LocalizationKey key, IReadOnlyList<string> textParams)
-        {
-            return LocalizationTextInterpolator.Interpolate(Get(key), textParams);
-        }
-
         // mod順とMaster原文は呼び出し側が決め、基盤は辞書だけを合成する
         // Callers decide mod order and Master sources; the foundation only composes dictionaries
         public static void MergeGameDictionaries(
@@ -81,52 +77,35 @@ namespace Client.Localization
 
         public static bool TrySetLanguage(string languageCode)
         {
-            // 可否は戻り値だけで表す（外部入力ハンドラがActionResultへ変換する）
-            // Success/failure is expressed only via the return value; handlers map it to ActionResult
-            if (string.IsNullOrEmpty(languageCode)) return false;
-
-            // 公開snapshotの実言語だけを判定基準にする
-            // Judge only against the real languages carried by the published snapshot
-            var languages = Volatile.Read(ref publishedSnapshot).Languages;
-            if (!languages.ContainsKey(languageCode)) return false;
-
-            currentLanguageCode = languageCode;
-            PlayerPrefs.SetString(LanguagePreferenceKey, languageCode);
-            PlayerPrefs.Save();
-            onLanguageChangedSubject.OnNext(Unit.Default);
-            return true;
+            return TryApplyLanguage(languageCode, true);
         }
 
-        // 有効な保存値だけをプレイヤー自身の選択とみなす
-        // Only a selectable persisted value counts as the player's choice
-        public static bool HasChosenLanguage()
+        // 選択済みなら外部の言語ソースを読まない
+        // Do not consult an external language source after the player has chosen
+        public static bool TryApplyUnchosenLanguage(IUnchosenLanguageSource source)
         {
-            var languages = Volatile.Read(ref publishedSnapshot).Languages;
-            return LocalizeUnchosenLanguage.HasChosenLanguage(languages);
-        }
-
-        // 未選択時だけ一時適用し、保存値は作らない
-        // Apply temporarily only when unchosen, without persisting
-        public static bool TryApplyUnchosenLanguage(string languageCode)
-        {
-            var languages = Volatile.Read(ref publishedSnapshot).Languages;
-            return LocalizeUnchosenLanguage.TryApply(languageCode, languages);
-        }
-
-        internal static void SetCurrentLanguageWithoutPersisting(string languageCode)
-        {
-            currentLanguageCode = languageCode;
-            onLanguageChangedSubject.OnNext(Unit.Default);
+            if (PlayerPrefs.HasKey(LanguagePreferenceKey) &&
+                IsSelectable(PlayerPrefs.GetString(LanguagePreferenceKey)))
+            {
+                Debug.Log("[Localize] temporary language rejected: the player already chose a language");
+                return false;
+            }
+            if (source == null)
+            {
+                Debug.LogWarning("[Localize] temporary language rejected: source is null");
+                return false;
+            }
+            if (!source.TryResolveGameLanguage(out var languageCode, out var failureReason))
+            {
+                Debug.LogWarning($"[Localize] temporary language unavailable: {failureReason}");
+                return false;
+            }
+            return TryApplyLanguage(languageCode, false);
         }
 
         public static string GetCurrentLanguageCode()
         {
             return currentLanguageCode;
-        }
-
-        public static List<string> GetLanguageCodes()
-        {
-            return VanillaLocalizationDictionaryFactory.GetLanguageCodes();
         }
 
         public static long GetDictionaryRevision()
@@ -186,6 +165,32 @@ namespace Client.Localization
             Volatile.Write(
                 ref publishedSnapshot,
                 VanillaLocalizationDictionaryFactory.Freeze(candidate, revision));
+        }
+
+        private static bool IsSelectable(string languageCode)
+        {
+            return !string.IsNullOrEmpty(languageCode) &&
+                   Volatile.Read(ref publishedSnapshot).Languages.ContainsKey(languageCode);
+        }
+
+        private static bool TryApplyLanguage(string languageCode, bool persist)
+        {
+            if (!IsSelectable(languageCode))
+            {
+                Debug.LogWarning($"[Localize] language rejected: unsupported code {languageCode ?? "<null>"}");
+                return false;
+            }
+
+            // 保存は明示選択に限り、一時適用も同じイベントで通知する
+            // Persist only explicit choices and notify through the same event for temporary application
+            currentLanguageCode = languageCode;
+            if (persist)
+            {
+                PlayerPrefs.SetString(LanguagePreferenceKey, languageCode);
+                PlayerPrefs.Save();
+            }
+            onLanguageChangedSubject.OnNext(Unit.Default);
+            return true;
         }
     }
 }

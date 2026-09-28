@@ -57,13 +57,13 @@ namespace Client.MainMenu
             var playerId = PlayerPrefs.GetInt(PlayerPrefsKeys.PlayerIdKey);
             if (!InitializeProprieties.TryCreateRemoteConnection(serverIp.text, serverPort.text, playerId, out var properties, out var denyReason))
             {
-                serverConnectPopup.SetText(Localize.GetFormatted(denyReason.Key, denyReason.TextParams));
+                serverConnectPopup.SetText(LocalizationTextInterpolator.GetFormatted(denyReason.Key, denyReason.TextParams));
                 return;
             }
 
             if (!TryProbe(properties, out var failureDetail))
             {
-                serverConnectPopup.SetText(Localize.GetFormatted(LocalizationKeys.Ui.MainMenu.ConnectFailed, new[] { failureDetail }));
+                serverConnectPopup.SetText(LocalizationTextInterpolator.GetFormatted(LocalizationKeys.Ui.MainMenu.ConnectFailed, new[] { failureDetail }));
                 return;
             }
 

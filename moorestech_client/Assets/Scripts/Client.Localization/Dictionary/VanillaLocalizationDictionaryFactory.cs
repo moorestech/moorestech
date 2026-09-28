@@ -6,17 +6,6 @@ namespace Client.Localization
 {
     internal static class VanillaLocalizationDictionaryFactory
     {
-        public static List<string> GetLanguageCodes()
-        {
-            var languageCodes = new List<string>();
-            foreach (var languageCode in VanillaLocalizationTable.LanguageCodes)
-            {
-                languageCodes.Add(languageCode);
-            }
-
-            return languageCodes;
-        }
-
         public static LocalizationDictionaryCandidate Create()
         {
             var languages = new Dictionary<string, Dictionary<string, string>>();

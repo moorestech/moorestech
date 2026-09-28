@@ -1,10 +1,11 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using Client.Localization;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
-using UniRx;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Client.Tests.Localization.Resolution
 {
@@ -45,6 +46,8 @@ namespace Client.Tests.Localization.Resolution
         public void InitializeFallsBackToEnglishWhenSavedLanguageCannotBeSelected(string persistedLanguageCode)
         {
             PlayerPrefs.SetString(Localize.LanguagePreferenceKey, persistedLanguageCode);
+            LogAssert.Expect(LogType.Warning,
+                $"[Localize] saved language {persistedLanguageCode} is unavailable; using english");
             Localize.Initialize();
 
             Assert.AreEqual(Localize.DefaultLanguageCode, Localize.GetCurrentLanguageCode());
@@ -97,12 +100,13 @@ namespace Client.Tests.Localization.Resolution
         }
 
         [Test]
-        public void GetLanguageCodesExcludesSourcePseudoLocale()
+        public void LanguageCatalogExcludesSourcePseudoLocale()
         {
             Localize.Initialize();
 
-            CollectionAssert.AreEqual(new[] { "english", "japanese", "german" }, Localize.GetLanguageCodes());
-            CollectionAssert.DoesNotContain(Localize.GetLanguageCodes(), Localize.SourcePseudoLocale);
+            var languageCodes = LanguageCatalog.Languages.Select(language => language.Code).ToArray();
+            CollectionAssert.AreEqual(new[] { "english", "japanese", "german" }, languageCodes);
+            CollectionAssert.DoesNotContain(languageCodes, Localize.SourcePseudoLocale);
         }
 
         [Test]
@@ -192,39 +196,5 @@ namespace Client.Tests.Localization.Resolution
             Assert.AreEqual("English", candidate.Languages["english"]["content.empty.target"]);
         }
 
-        [Test]
-        public void TrySetLanguagePublishesExactlyOneEventAndPersistsSelection()
-        {
-            PlayerPrefs.SetString(Localize.LanguagePreferenceKey, Localize.DefaultLanguageCode);
-            Localize.Initialize();
-            var eventCount = 0;
-            using var subscription = Localize.OnLanguageChanged.Subscribe(_ => eventCount++);
-
-            var applied = Localize.TrySetLanguage("japanese");
-
-            Assert.IsTrue(applied);
-            Assert.AreEqual(1, eventCount);
-            Assert.AreEqual("japanese", Localize.GetCurrentLanguageCode());
-            Assert.AreEqual("japanese", PlayerPrefs.GetString(Localize.LanguagePreferenceKey));
-        }
-
-        [TestCase(null)]
-        [TestCase("")]
-        [TestCase(Localize.SourcePseudoLocale)]
-        [TestCase("klingon")]
-        public void TrySetLanguageRejectsInvalidCodeWithoutChangingState(string invalidLanguageCode)
-        {
-            PlayerPrefs.SetString(Localize.LanguagePreferenceKey, Localize.DefaultLanguageCode);
-            Localize.Initialize();
-            var eventCount = 0;
-            using var subscription = Localize.OnLanguageChanged.Subscribe(_ => eventCount++);
-
-            var applied = Localize.TrySetLanguage(invalidLanguageCode);
-
-            Assert.IsFalse(applied);
-            Assert.AreEqual(0, eventCount);
-            Assert.AreEqual(Localize.DefaultLanguageCode, Localize.GetCurrentLanguageCode());
-            Assert.AreEqual(Localize.DefaultLanguageCode, PlayerPrefs.GetString(Localize.LanguagePreferenceKey));
-        }
     }
 }

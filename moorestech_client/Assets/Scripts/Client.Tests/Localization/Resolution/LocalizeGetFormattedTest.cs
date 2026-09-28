@@ -13,7 +13,7 @@ namespace Client.Tests.Localization.Resolution
 
             // {p0}キーで埋め込みを確認
             // Verify filling an existing {p0} key
-            var text = Localize.GetFormatted(LocalizationKeys.Ui.Tooltip.PlaceWireCost, new[] { "3" });
+            var text = LocalizationTextInterpolator.GetFormatted(LocalizationKeys.Ui.Tooltip.PlaceWireCost, new[] { "3" });
 
             StringAssert.Contains("3", text);
             StringAssert.DoesNotContain("{p0}", text);
@@ -26,7 +26,7 @@ namespace Client.Tests.Localization.Resolution
 
             // 1個渡すと{p1}が残存する
             // One arg leaves {p1} unmatched
-            var text = Localize.GetFormatted(LocalizationKeys.Ui.Loading.TerrainReady, new[] { "3" });
+            var text = LocalizationTextInterpolator.GetFormatted(LocalizationKeys.Ui.Loading.TerrainReady, new[] { "3" });
 
             StringAssert.Contains("3", text);
             StringAssert.Contains("{p1}", text);

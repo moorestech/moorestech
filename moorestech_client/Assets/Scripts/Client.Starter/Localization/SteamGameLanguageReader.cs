@@ -3,16 +3,11 @@ using Steamworks;
 
 namespace Client.Starter.Localization
 {
-    public interface ISteamGameLanguageReader
-    {
-        bool TryRead(out string steamLanguage, out string failureReason);
-    }
-
     // Steamのゲーム個別言語を読むネイティブ境界
     // Native boundary for Steam's per-game language
-    public sealed class SteamGameLanguageReader : ISteamGameLanguageReader
+    public static class SteamGameLanguageReader
     {
-        public bool TryRead(out string steamLanguage, out string failureReason)
+        public static bool TryRead(out string steamLanguage, out string failureReason)
         {
             // Steamクライアント（外部プロセス）とのネイティブ通信境界。未初期化・dll不在の例外を理由に変換する
             // Native IPC boundary to the Steam client process; convert uninitialized/missing-dll exceptions into a reason

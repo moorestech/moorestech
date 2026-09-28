@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Client.Game.InGame.Mining;
 using Client.Game.InGame.SoundEffect;
 using Client.Game.InGame.UI.ProgressBar;
@@ -124,7 +125,8 @@ namespace Client.Tests.Mining
             context.SetFocusTarget(twoItemTarget);
             var accessCountBeforeSwitch = twoItemTarget.EarnItemGuidsAccessCount;
 
-            var otherLanguageCode = Localize.GetLanguageCodes().Find(code => code != originalLanguageCode);
+            var otherLanguageCode = LanguageCatalog.Languages
+                .Select(language => language.Code).First(code => code != originalLanguageCode);
             Assert.IsTrue(Localize.TrySetLanguage(otherLanguageCode), otherLanguageCode);
 
             Assert.Less(accessCountBeforeSwitch, twoItemTarget.EarnItemGuidsAccessCount);

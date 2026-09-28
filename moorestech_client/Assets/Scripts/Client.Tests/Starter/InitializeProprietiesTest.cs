@@ -103,7 +103,7 @@ namespace Client.Tests.Starter
 
                 // 境界値は{p0}として実文言まで届く
                 // The boundary value reaches the resolved wording through {p0}
-                StringAssert.Contains(expectedBoundary, Localize.GetFormatted(denyReason.Key, denyReason.TextParams));
+                StringAssert.Contains(expectedBoundary, LocalizationTextInterpolator.GetFormatted(denyReason.Key, denyReason.TextParams));
             }
 
             #endregion
