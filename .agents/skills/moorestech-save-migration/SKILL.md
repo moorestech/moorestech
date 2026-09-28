@@ -67,10 +67,11 @@ worldVersion 導入前のセーブと開発者手元のセーブに限った補�
    セーブ形式に触れた全ファイルを**最初に網羅列挙**する（クラッシュを1つずつ潰すのは禁止。ロードは
    最初の失敗ブロックで止まるので、直しても次が出るだけ）。
 2. 対象セーブを Python で読み、`world[].state` のキー別件数と `trainUnits` を集計する。
-3. 揮発 int → GUID の対応は `references/dump_id_maps.cs` を `uloop` で実行して取る。
+3. 揮発 int → GUID の対応は `references/dump_id_maps.cs` を `uloop` で実行して取り、結果 JSON を作業用ディレクトリに
+   保存する（`/tmp` 直下は並列セッションと共有なので避ける）。
    **グローバル `MasterHolder` を使わない**（エディタに別のテスト用マスタが載っていることがある）。
    `ServerDirectory.GetDirectory()` から独立にロードする。
-4. `references/migrate_save_template.py` をベースに変換する。必ず backup → 変換 → 安全スキャン
+4. `references/migrate_save_template.py <id_maps.jsonのパス>` をベースに変換する。必ず backup → 変換 → 安全スキャン
    （全 `world[].state` 値が valid JSON か）→ 書き戻しの順。解決できない id があれば中断する。
 5. 上の「実ロード検証」を行う。
 

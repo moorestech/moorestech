@@ -1,13 +1,13 @@
 """Step 5: moorestech セーブ移行の雛形。
-- /tmp/id_maps.json (dump_id_maps.cs の出力) を読む
+- 第1引数の id_maps.json (dump_id_maps.cs の出力) を読む
 - 形式ごとの t_* 関数を「Step 1 で列挙した変更」に合わせて実装する（下記は実例）
 - backup -> 変換 -> 安全スキャン -> 書き戻し
-使い方: SAVE と stats 対象の形式関数を調整して python3 migrate_save_template.py
+使い方: SAVE と stats 対象の形式関数を調整して python3 migrate_save_template.py <id_maps.jsonのパス>
 """
 import json, os, shutil, datetime, sys, base64, struct
 
 SAVE = os.path.expanduser("~/Library/Application Support/moorestech/saves/save_1.json")
-MAPS = json.load(open("/tmp/id_maps.json"))
+MAPS = json.load(open(sys.argv[1]))
 ITEM, FLUID = MAPS["items"], MAPS["fluids"]
 ITEM_CONST = MAPS.get("itemConst", "Item")
 EMPTY = "00000000-0000-0000-0000-000000000000"
