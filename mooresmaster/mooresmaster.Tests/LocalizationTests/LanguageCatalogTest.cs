@@ -107,6 +107,18 @@ public class LanguageCatalogTest
             LocalizationSettingsParser.Parse(settingsCsv));
     }
 
+    [Theory]
+    [InlineData("spanish; latam")]
+    [InlineData(" spanish;latam")]
+    public void Steam言語に前後空白があれば例外(string steamLanguages)
+    {
+        var settingsCsv =
+            $"lang_name,display_name,steam_languages\nspanish,Español,{steamLanguages}\n";
+
+        Assert.Throws<LocalizationCsvException>(() =>
+            LocalizationSettingsParser.Parse(settingsCsv));
+    }
+
     [Fact]
     public void 同じSteam言語を二つの言語へ対応づけたら例外()
     {

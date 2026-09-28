@@ -17,7 +17,7 @@ namespace Client.Starter.Localization
 
         internal static void Apply(ISteamGameLanguageReader reader)
         {
-            // 選択済みならSteamへ問い合わせず保存値を優先する
+            // 選択済みは保存値優先で戻る
             // Prefer the saved choice without consulting Steam
             if (Localize.HasChosenLanguage()) return;
 
@@ -29,7 +29,14 @@ namespace Client.Starter.Localization
                 return;
             }
 
-            var gameLanguage = SteamLanguageMapping.ToGameLanguage(steamLanguage);
+            // 対応無しは理由記録し現状維持
+            // Log why the mapping failed and keep the current language when unmapped
+            if (!SteamLanguageMapping.TryToGameLanguage(steamLanguage, out var gameLanguage))
+            {
+                Debug.Log($"[SteamStartupLanguage] staying on {Localize.GetCurrentLanguageCode()}: Steam language {steamLanguage} has no mapping in localization_settings.csv");
+                return;
+            }
+
             if (!Localize.TryApplyUnchosenLanguage(gameLanguage))
                 Debug.LogWarning($"[SteamStartupLanguage] could not apply {gameLanguage} for Steam language {steamLanguage}");
         }

@@ -1,7 +1,9 @@
+using System.Text.RegularExpressions;
 using Client.Localization;
 using Client.Starter.Localization;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Client.Tests.Localization
 {
@@ -49,6 +51,7 @@ namespace Client.Tests.Localization
         [Test]
         public void UnreadableSteamStaysEnglish()
         {
+            LogAssert.Expect(LogType.Log, new Regex("staying on"));
             SteamStartupLanguage.Apply(new FixedReader(false, ""));
             Assert.AreEqual(Localize.DefaultLanguageCode, Localize.GetCurrentLanguageCode());
         }
@@ -56,6 +59,7 @@ namespace Client.Tests.Localization
         [Test]
         public void UnmappedSteamLanguageIsEnglish()
         {
+            LogAssert.Expect(LogType.Log, new Regex("staying on"));
             SteamStartupLanguage.Apply(new FixedReader(true, "french"));
             Assert.AreEqual(Localize.DefaultLanguageCode, Localize.GetCurrentLanguageCode());
         }

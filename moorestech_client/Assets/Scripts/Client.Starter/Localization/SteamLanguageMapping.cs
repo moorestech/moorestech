@@ -1,4 +1,3 @@
-using Client.Localization;
 using Mooresmaster.Localization.Generated;
 
 namespace Client.Starter.Localization
@@ -7,17 +6,20 @@ namespace Client.Starter.Localization
     // Map Steam languages to game languages through the CSV catalog
     public static class SteamLanguageMapping
     {
-        public static string ToGameLanguage(string steamLanguage)
+        public static bool TryToGameLanguage(string steamLanguage, out string gameLanguage)
         {
             foreach (var language in LanguageCatalog.Languages)
             {
                 foreach (var candidate in language.SteamLanguages)
                 {
-                    if (candidate == steamLanguage) return language.Code;
+                    if (candidate != steamLanguage) continue;
+                    gameLanguage = language.Code;
+                    return true;
                 }
             }
 
-            return Localize.DefaultLanguageCode;
+            gameLanguage = "";
+            return false;
         }
     }
 }

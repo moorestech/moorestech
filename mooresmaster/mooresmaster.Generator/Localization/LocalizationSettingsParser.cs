@@ -62,8 +62,8 @@ public static class LocalizationSettingsParser
                 throw new LocalizationCsvException("Language setting display name must not be empty");
             }
 
-            // Steam言語は複数指定でき、空要素と重複を入力時に拒否する
-            // Steam languages can be listed; reject empty items and duplicates at input
+            // 空要素と重複のSteam言語を拒否
+            // Reject empty or duplicate Steam languages at input
             var steamLanguagesField = fields[2];
             if (string.IsNullOrWhiteSpace(steamLanguagesField))
             {
@@ -76,6 +76,11 @@ public static class LocalizationSettingsParser
                 if (string.IsNullOrWhiteSpace(steamLanguage))
                 {
                     throw new LocalizationCsvException($"Language setting {code} has an empty Steam language in: {steamLanguagesField}");
+                }
+
+                if (steamLanguage != steamLanguage.Trim())
+                {
+                    throw new LocalizationCsvException($"Language setting {code} has whitespace around Steam language '{steamLanguage}' in: {steamLanguagesField}");
                 }
 
                 if (!seenSteamLanguages.Add(steamLanguage))

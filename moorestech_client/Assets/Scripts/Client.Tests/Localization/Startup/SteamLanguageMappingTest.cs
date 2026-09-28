@@ -1,4 +1,3 @@
-using Client.Localization;
 using Client.Starter.Localization;
 using NUnit.Framework;
 
@@ -11,14 +10,15 @@ namespace Client.Tests.Localization
         [TestCase("german", "german")]
         public void MapsSteamLanguageListedInCatalog(string steamLanguage, string expected)
         {
-            Assert.AreEqual(expected, SteamLanguageMapping.ToGameLanguage(steamLanguage));
+            Assert.IsTrue(SteamLanguageMapping.TryToGameLanguage(steamLanguage, out var gameLanguage));
+            Assert.AreEqual(expected, gameLanguage);
         }
 
         [TestCase("french")]
         [TestCase("")]
-        public void FallsBackToEnglishForUnmappedSteamLanguage(string steamLanguage)
+        public void FailsForUnmappedSteamLanguage(string steamLanguage)
         {
-            Assert.AreEqual(Localize.DefaultLanguageCode, SteamLanguageMapping.ToGameLanguage(steamLanguage));
+            Assert.IsFalse(SteamLanguageMapping.TryToGameLanguage(steamLanguage, out _));
         }
     }
 }

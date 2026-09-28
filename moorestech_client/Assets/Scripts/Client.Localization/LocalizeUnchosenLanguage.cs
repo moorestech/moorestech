@@ -16,7 +16,7 @@ namespace Client.Localization
             string languageCode,
             IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> languages)
         {
-            // 選択済みまたは不正な言語は理由を記録して拒否する
+            // 不正/選択済みは理由付き拒否
             // Reject chosen or invalid languages with a logged reason
             if (HasChosenLanguage(languages))
             {

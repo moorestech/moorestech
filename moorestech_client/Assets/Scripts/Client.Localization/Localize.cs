@@ -79,13 +79,6 @@ namespace Client.Localization
             onLanguageChangedSubject.OnNext(Unit.Default);
         }
 
-        internal static void OverlayMasterSourceTexts(
-            LocalizationDictionaryCandidate candidate,
-            IReadOnlyDictionary<string, string> masterSourceTexts)
-        {
-            MasterSourceTextOverlay.Apply(candidate, masterSourceTexts);
-        }
-
         public static bool TrySetLanguage(string languageCode)
         {
             // 可否は戻り値だけで表す（外部入力ハンドラがActionResultへ変換する）

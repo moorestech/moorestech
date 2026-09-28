@@ -180,7 +180,7 @@ namespace Client.Tests.Localization.Resolution
                 { "content.empty.target", "" },
             };
 
-            Localize.OverlayMasterSourceTexts(candidate, masterSources);
+            MasterSourceTextOverlay.Apply(candidate, masterSources);
             var snapshot = VanillaLocalizationDictionaryFactory.Freeze(candidate, 1);
 
             Assert.IsFalse(candidate.SourceTexts.ContainsKey("content.empty.english"));

@@ -31,7 +31,7 @@ namespace Client.MainMenu
             ShowCurrentLanguage();
             tmpDropdown.onValueChanged.AddListener(OnValueChanged);
 
-            // 他のドロップダウンや起動時適用にも表示を合わせる
+            // 他のUI・起動時適用に追従
             // Follow the other dropdown and startup language application
             Localize.OnLanguageChanged.Subscribe(_ => ShowCurrentLanguage()).AddTo(this);
         }

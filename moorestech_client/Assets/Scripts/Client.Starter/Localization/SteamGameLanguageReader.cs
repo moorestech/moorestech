@@ -14,8 +14,8 @@ namespace Client.Starter.Localization
     {
         public bool TryRead(out string steamLanguage, out string failureReason)
         {
-            // Steam未初期化やdll不在は外部境界の例外として理由に変換する
-            // Convert native failures from uninitialized Steam or missing dll into a reason
+            // Steamクライアント（外部プロセス）とのネイティブ通信境界。未初期化・dll不在の例外を理由に変換する
+            // Native IPC boundary to the Steam client process; convert uninitialized/missing-dll exceptions into a reason
             try
             {
                 steamLanguage = SteamApps.GetCurrentGameLanguage();
