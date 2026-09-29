@@ -27,7 +27,11 @@ namespace Client.Game.InGame.BugReport
         // 2: added serverData (where the server read its masters); without it the reproduction replays different masters
         // 3: worldDefinitionを追加（ADR 0064）
         // 3: added worldDefinition (ADR 0064)
-        public int SchemaVersion = 3;
+        // v4: 遠隔実行の印+台帳追加（ADR 0057）
+        // v4: added remote execution mark + ledgers (ADR 0057)
+        // v5: 印を3状態(Disabled/Enabled/Unknown)の常時非nullへ。不明を無効へ潰さない
+        // v5: the mark became always-present with three states (Disabled/Enabled/Unknown) so unknown is never flattened into disabled
+        public int SchemaVersion = 5;
         public string CreatedAt;
         public string Description;
 
@@ -55,6 +59,10 @@ namespace Client.Game.InGame.BugReport
         public ClientStateSnapshot ClientState;
         public List<MissingItem> Missing = new();
         public double VideoSeconds;
+
+        // 常時非null。有効と不明の報告は取り込み側の自動修正と通常集計から除く
+        // Always present; ingestion excludes both enabled and unknown reports from automatic fixes and normal counts
+        public RemoteExecManifestMark RemoteExec = RemoteExecManifestMark.Disabled();
 
         // 箱の種別に依らない共通見出し。crash と bug で別々に組み立てていた頃は片方だけ列が欠けても誰も気づけなかった
         // The header every kind of box shares; while crash and bug built it separately, a column missing on one side went unnoticed

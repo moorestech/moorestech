@@ -21,7 +21,7 @@ def load_candidate_reports(root: Path) -> tuple[list[dict], dict]:
     Collects un-enqueued bug reports across all time regardless of ingest date; boxes with an unreadable
     ingest.json or manifest.json are logged to stderr and counted, never silently dropped from the candidates"""
     reports: list[dict] = []
-    stats = {"unreadable": 0}
+    stats = {"unreadable": 0, "remoteExec": 0}
     if not root.is_dir():
         return reports, stats
     for ingest_path in sorted(root.glob("*/*/ingest.json")):
@@ -38,6 +38,13 @@ def load_candidate_reports(root: Path) -> tuple[list[dict], dict]:
             stats["unreadable"] += 1
             continue
         if manifest["kind"] != "bug" or (ingest_path.parent / "AUTOFIX_QUEUED").is_file():
+            continue
+        # 有効と不明はどちらも投入候補から外す。不明を通すと遠隔実行のあった箱が自動修正へ流れうる
+        # Both enabled and unknown stay out of the candidates; letting unknown through could feed a remote-exec box into auto-fix
+        state, unknown_reason = schema.remote_exec_state(manifest)
+        if state != schema.REMOTE_EXEC_DISABLED:
+            warn(f"遠隔実行が{'有効' if state == schema.REMOTE_EXEC_ENABLED else '不明'}のセッションを投入候補から除外{f'（{unknown_reason}）' if unknown_reason else ''}", manifest_path)
+            stats["remoteExec"] += 1
             continue
         reports.append({
             "id": meta["id"] or ingest_path.parent.name,
@@ -72,4 +79,6 @@ def format_candidates(candidates: list[dict], stats: dict) -> list[str]:
         lines.append(f"  `scripts/playtest/enqueue-autofix.sh {quoted_steam} {quoted_id}`")
     if stats["unreadable"]:
         lines.append(f"- ⚠ ingest.json/manifest.json を読めず投入候補の判定から除外した箱 {stats['unreadable']}件")
+    if stats["remoteExec"]:
+        lines.append(f"- ⚠ 遠隔実行が有効/不明で投入候補から除外 {stats['remoteExec']}件")
     return lines

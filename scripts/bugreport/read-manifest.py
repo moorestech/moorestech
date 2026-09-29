@@ -71,7 +71,19 @@ for item in data.get("missing") or []:
     else:
         notes.append("報告側が欠損を申告している: %r" % (item,))
 
+# 遠隔実行の印は3状態。無効と読めたときだけ 0 で、有効・不明・契約外は 1（受け側が縮退として扱う）
+# The remote-exec mark has three states: 0 only when it reads as disabled, and 1 for enabled, unknown or off-contract
+remote_exec = "1"
+mark = data.get("remoteExec")
+if isinstance(mark, dict) and mark.get("state") == "Disabled":
+    remote_exec = "0"
+elif not isinstance(mark, dict):
+    notes.append("manifest の remoteExec が無い/辞書でない。遠隔実行の有効状態は不明として扱う")
+elif mark.get("state") != "Enabled":
+    notes.append("manifest の remoteExec.state が不明: %r" % (mark.get("state"),))
+
 values = [
+    ("REMOTE_EXEC", remote_exec),
     ("REPORT_COMMIT", text("repository", "commit")),
     ("REPORT_BRANCH", text("repository", "branch")),
     ("MASTER_COMMIT", text("masterData", "commit")),

@@ -6,15 +6,14 @@ Collects ingested play reports, progress records and auto-fix run results for on
 from __future__ import annotations
 
 import sys
-from collections import Counter
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import digest_schema as schema
 from digest_reporter import reporter_label, tester_label
+from digest_support.progress import aggregate_progress
 
 JST = timezone(timedelta(hours=9))
-REACH_BUCKETS = ((0, 0, "0"), (1, 2, "1-2"), (3, 5, "3-5"), (6, 9, "6-9"))
 # バグ報告の manifest.kind として想定する値。これ以外（空含む）は件数からも警告からも消えないよう別枠で出す
 # The manifest.kind values the digest expects; anything else (including empty) surfaces as its own warning
 KNOWN_KINDS = ("bug", "feedback", "crash")
@@ -84,6 +83,13 @@ def load_reports(root: Path, date: str) -> tuple[list[dict], dict]:
             warn(reason or "manifest.json の型が想定外", box["dir"] / "manifest.json")
             stats["invalidManifest"] += 1
             continue
+        # 有効と不明はどちらも集計から外す。不明を通すと証跡の読めない箱が通常の数字へ混ざる
+        # Both enabled and unknown stay out of the counts; letting unknown through would mix unverifiable boxes into normal figures
+        state, unknown_reason = schema.remote_exec_state(manifest)
+        if state != schema.REMOTE_EXEC_DISABLED:
+            warn(f"遠隔実行が{'有効' if state == schema.REMOTE_EXEC_ENABLED else '不明'}のセッションを集計から除外{f'（{unknown_reason}）' if unknown_reason else ''}", box["dir"])
+            stats["remoteExec"] = stats.get("remoteExec", 0) + 1
+            continue
         reports.append({
             "id": box["meta"]["id"] or box["dir"].name,
             "steamId": box["meta"]["steamId"],
@@ -135,36 +141,14 @@ def load_progress(root: Path, date: str) -> tuple[list[dict], dict]:
             warn(reason, box["dir"] / "record.json")
             stats["invalidRecord"] += 1
             continue
+        # None は不明（キーの無い旧版の記録）。有効と同じく集計から外す
+        # None means unknown (a legacy record without the key) and stays out of the counts just like enabled
+        if record["remoteExec"] is None or record["remoteExec"]:
+            warn(f"遠隔実行が{'有効' if record['remoteExec'] else '不明'}の進行記録を集計から除外", box["dir"])
+            stats["remoteExec"] = stats.get("remoteExec", 0) + 1
+            continue
         records.append(flatten_progress_record(record, box))
     return records, stats
-
-
-def bucket_reached(count: int) -> str:
-    return next((label for low, high, label in REACH_BUCKETS if low <= count <= high), "10+")
-
-
-def aggregate_progress(records: list[dict]) -> dict:
-    """人数・平均プレイ時間・到達段階分布・離脱地点上位を出す。playSeconds が null の記録は
-    セッション数・人数には数えるが平均の分母からは外し、欠落件数を別途返す
-    Produces tester count, mean play time, reached-stage histogram and top drop-off points.
-    Records with a null playSeconds still count toward sessions/testers but not the mean; the
-    missing count is returned separately"""
-    if not records:
-        return {"testers": 0, "sessions": 0, "meanPlaySeconds": None, "playSecondsMissing": 0,
-                "meanResearch": 0.0, "reachBuckets": Counter(), "lastEvents": Counter(),
-                "lastUiStates": Counter(), "endReasons": Counter()}
-    play_seconds = [r["playSeconds"] for r in records if r["playSeconds"] is not None]
-    return {
-        "testers": len({r["steamId"] for r in records if r["steamId"]}),
-        "sessions": len(records),
-        "meanPlaySeconds": (sum(play_seconds) / len(play_seconds)) if play_seconds else None,
-        "playSecondsMissing": len(records) - len(play_seconds),
-        "meanResearch": sum(r["research"] for r in records) / len(records),
-        "reachBuckets": Counter(bucket_reached(r["reached"]) for r in records),
-        "lastEvents": Counter(r["lastEvent"] for r in records),
-        "lastUiStates": Counter(r["lastUiState"] for r in records),
-        "endReasons": Counter(r["endReason"] for r in records),
-    }
 
 
 def load_fix_results(runs_root: Path, date: str) -> tuple[list[dict], dict]:

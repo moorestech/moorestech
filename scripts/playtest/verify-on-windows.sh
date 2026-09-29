@@ -14,7 +14,7 @@ BUILD_LABEL="${1:?usage: verify-on-windows.sh <steamBuildLabel>}"
 playtest_require_build_label "$BUILD_LABEL"
 
 WAKEONLAN_BIN="${WAKEONLAN_BIN:-wakeonlan}"
-SSH_BIN="${SSH_BIN:-ssh}"
+. "$SCRIPT_DIR/lib/verify-ssh.sh"
 SCP_BIN="${SCP_BIN:-scp}"
 SSH_WAIT_TIMEOUT_SECONDS="${SSH_WAIT_TIMEOUT_SECONDS:-600}"
 SSH_POLL_SECONDS="${SSH_POLL_SECONDS:-10}"
@@ -48,7 +48,7 @@ echo "[verify] waiting for ssh (timeout ${SSH_WAIT_TIMEOUT_SECONDS}s)"
 # 経過は実時間の絶対締め切りで測る（ssh自体のConnectTimeout分を見積もりで足すと実時間とずれる）。sleepも残り時間で打ち切る
 # Elapsed time is measured against an absolute wall-clock deadline (estimating ssh's own ConnectTimeout drifts); sleep is capped by the remainder
 deadline=$((SECONDS + SSH_WAIT_TIMEOUT_SECONDS))
-until "$SSH_BIN" -o BatchMode=yes -o ConnectTimeout=5 "$REMOTE" "echo ok" >/dev/null 2>&1; do
+until verify_ssh -o ConnectTimeout=5 "$REMOTE" "echo ok" >/dev/null 2>&1; do
     remaining=$((deadline - SECONDS))
     if [ "$remaining" -le 0 ]; then
         echo "ERROR: 検証機 $MOORESTECH_VERIFY_HOST に ${SSH_WAIT_TIMEOUT_SECONDS}秒以内へ到達できませんでした" >&2
@@ -59,13 +59,13 @@ done
 
 # 検証機側スクリプトは毎回送る（手置きコピーとの版ずれを構造的に消す）
 # The machine-side script is copied every run, structurally removing drift from a hand-placed copy
-"$SSH_BIN" -o BatchMode=yes "$REMOTE" "powershell -NoProfile -Command \"New-Item -ItemType Directory -Force -Path '$REMOTE_ROOT' | Out-Null\""
+verify_ssh_remote "powershell -NoProfile -Command \"New-Item -ItemType Directory -Force -Path '$REMOTE_ROOT' | Out-Null\""
 "$SCP_BIN" -o BatchMode=yes "$SCRIPT_DIR/windows/run-smoke.ps1" "$REMOTE:$REMOTE_ROOT/run-smoke.ps1"
 
 echo "[verify] running smoke on $MOORESTECH_VERIFY_HOST"
 # 引数は二重引用符で囲む。検証機のsshd既定シェルがcmd.exeだと単一引用符は剥がされず、-File が「パス形式が不正」で落ちるうえ終了コード0を返す
 # Arguments use double quotes: under a cmd.exe sshd default shell single quotes are not stripped, so -File fails on the path format yet exits 0
-"$SSH_BIN" -o BatchMode=yes "$REMOTE" \
+verify_ssh_remote \
     "powershell -NoProfile -ExecutionPolicy Bypass -File \"$REMOTE_ROOT/run-smoke.ps1\" -ResultRoot \"$REMOTE_ROOT/results\" -ExpectedBuildLabel \"$BUILD_LABEL\""
 
 # 前回実行の残骸を先に消す。scpは宛先に既存のresultsがあるとその中へ入れ子で置くため、

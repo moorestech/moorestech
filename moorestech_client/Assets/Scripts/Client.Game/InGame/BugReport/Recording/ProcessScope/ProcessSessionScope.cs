@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using System.IO;
+using Game.Paths;
 
 namespace Client.Game.InGame.BugReport.Recording.ProcessScope
 {
@@ -10,7 +11,7 @@ namespace Client.Game.InGame.BugReport.Recording.ProcessScope
     // The layout is <root>/pid_<PID>/session_<utcTicks>/; writers always start in a fresh level, and collection folds every session under a pid (F05)
     public static class ProcessSessionScope
     {
-        public const string SessionDirectoryPrefix = "session_";
+        public const string SessionDirectoryPrefix = ProcessSessionName.Prefix;
 
         private static string _currentSessionName;
         private static long _lastSessionTicks;

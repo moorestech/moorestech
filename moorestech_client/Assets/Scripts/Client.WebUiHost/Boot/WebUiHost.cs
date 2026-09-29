@@ -25,6 +25,10 @@ namespace Client.WebUiHost.Boot
         private static Task _stopTask = Task.CompletedTask;
         public static WebSocketHub Hub => _hub;
 
+        // 未起動はnull。0は実ポート域外の値で、書けば「届かない入口」を正常系の数字として名乗る
+        // Not started is null; 0 is outside the real port range and would pose as a normal value for an unreachable entry
+        public static int? KestrelPort => _kestrel?.ActualPort;
+
         public static string WebUiUrl => _webUiUrl;
         private static string _webUiUrl;
         // exitToken はPlay終了で発火し、Kestrel起動やVite疎通のTask継続がEditModeで再開するのを止める

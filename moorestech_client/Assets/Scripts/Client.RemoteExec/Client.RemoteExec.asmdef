@@ -1,0 +1,14 @@
+{
+    "name": "Client.RemoteExec",
+    "rootNamespace": "Client.RemoteExec",
+    "references": ["UniTask", "Game.Paths", "Server.Boot", "Core.Update"],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

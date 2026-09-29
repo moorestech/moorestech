@@ -97,6 +97,10 @@ namespace Tests.CombinedTest.Server.PacketTest
             ring.Start(600u, 1800u, 16);
             var sink = EventTestUtil.RegisterCaptureSink(provider, RequesterPlayerId);
 
+            // 開始時の基準スナップショットの書き込みは置き場を作り直すため、消す前に書き終えさせる
+            // The start-time baseline write recreates the directory, so let it finish before deleting
+            ring.WaitForPendingWrites();
+
             // 置き場ごと消してパケット記録だけをI/O失敗で止め、スナップショットは書ける状態へ戻す
             // Delete the directory so only packet capture dies on I/O, then restore it so snapshots can still be written
             Directory.Delete(directory.SnapshotDirectory, true);
