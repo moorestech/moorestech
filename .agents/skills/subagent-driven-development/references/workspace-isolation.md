@@ -36,18 +36,18 @@ fi
 # 2. 計画名から取ったslugでタスクブランチ付きworktreeを作る
 # 2. Create a task-branch worktree named after the plan slug
 MAIN=$(git rev-parse --show-toplevel)
-git worktree add -b <task-slug> ~/moorestech-worktrees/<task-slug> <base>
+git worktree add -b <task-slug> ~/hermes-agent/data/worktrees/moorestech/<task-slug> <base>
 
 # 2.5. 退避した変更を隔離worktreeへ復元し、stashは復旧用に保持する
 # 2.5. Restore task changes in the isolated worktree and retain the stash for recovery
 if test -n "${SDD_STASH_COMMIT:-}"; then
-  git -C ~/moorestech-worktrees/<task-slug> stash apply "$SDD_STASH_COMMIT"
-  git -C ~/moorestech-worktrees/<task-slug> status --short
+  git -C ~/hermes-agent/data/worktrees/moorestech/<task-slug> stash apply "$SDD_STASH_COMMIT"
+  git -C ~/hermes-agent/data/worktrees/moorestech/<task-slug> status --short
 fi
 
 # 3. メイン側Unityを閉じてからLibraryをAPFSクローンで複製する
 # 3. Close Unity for the main worktree before cloning its Library via APFS copy-on-write
-cp -Rc "$MAIN/moorestech_client/Library" ~/moorestech-worktrees/<task-slug>/moorestech_client/Library
+cp -Rc "$MAIN/moorestech_client/Library" ~/hermes-agent/data/worktrees/moorestech/<task-slug>/moorestech_client/Library
 ```
 
 ## 注意点

@@ -55,7 +55,7 @@ apply向けpollerはidle検知を行わない（session/subagentsのtranscript�
 `$RUNDIR = $LOGS/harness/pr-independent-review/runs/pr-<番号>/`（再レビューが存在する場合は
 最大のrNを持つ `pr-<番号>-rN/` が最新run。最新runを使う）。
 **$REPO（apply専用worktree）**: このSKILL.mdを実行しているセッションのリポジトリルート
-（`git rev-parse --show-toplevel` の出力。pollerはapplyスロットworktree — `~/moorestech-worktrees/pr-apply` /
+（`git rev-parse --show-toplevel` の出力。pollerはapplyスロットworktree — `~/hermes-agent/data/worktrees/moorestech/pr-apply` /
 `pr-apply-2` 等のスロットプールから空きを1つ選ぶ — をcwdとして起動する。並列applyのためスロットは複数ある）。
 
 `$LOGS` / `$RUNDIR` / `$REPO` は本ドキュメント上のプレースホルダでありシェル変数ではない。
