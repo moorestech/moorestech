@@ -152,3 +152,6 @@ moorestech_client/Assets/StreamingAssets/WebUi.meta
 /.agents/skills/moores-code-review/records/
 /TmpUnityPjt/MapMaking/RestoreManifest/
 /.agents/skills/*/outputs/
+
+# SDDワークスペース（記録はscripts/sdd-archiveで moorestech_logs へ退避する。コミットしない）
+.superpowers/

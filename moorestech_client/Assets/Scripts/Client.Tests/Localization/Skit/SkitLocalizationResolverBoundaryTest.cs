@@ -83,7 +83,7 @@ namespace Client.Tests.Localization.Skit
         {
             Localize.Initialize();
             var previousLanguageCode = Localize.GetCurrentLanguageCode();
-            Localize.TrySetLanguage("japanese");
+            Localize.TrySetChosenLanguage("japanese");
 
             // Skit解決が読む2段だけを実辞書から取り、source段を持つGetContentと突き合わせる
             // Build the two stages skit resolution reads and compare them against GetContent, which has the Source stage
@@ -95,7 +95,7 @@ namespace Client.Tests.Localization.Skit
             var current = scope.Resolve("ui.mainMenu.playLocally", "JSON Source");
             var missing = scope.Resolve("content.missing.name", "JSON Source");
             var missingWithSourceStage = Localize.GetContent(new ContentLocalizationKey("content.missing.name"));
-            Localize.TrySetLanguage(previousLanguageCode);
+            Localize.TrySetChosenLanguage(previousLanguageCode);
 
             Assert.AreEqual("ローカルでプレイ", current);
             Assert.AreEqual("JSON Source", missing);

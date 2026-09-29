@@ -166,7 +166,7 @@ public class LocalizationCodeGeneratorTest
         for (var index = 0; index < csv.LanguageCodes.Length; index++)
         {
             var code = csv.LanguageCodes[index];
-            settings[index] = new LanguageSetting(code, code, code);
+            settings[index] = new LanguageSetting(code, code, new[] { code });
         }
 
         return LocalizationCodeGenerator.Generate(csv, settings, Array.Empty<ContentKeyDefinition>());

@@ -27,7 +27,7 @@ description: 現在のセッションで、独立したタスクからなる実�
 
 1. **ワークスペース隔離（最初のsubagent派遣前・必須）** — 専用worktreeの外でimplementer（単一subagent含む）を派遣しない。例外は「既にworktree内にいる（再利用）」「人間が本体ワーキングツリーでの作業を明示した」の2つだけ。後者は隔離の免除であって担い手の変更ではない。本体でfeatureブランチを切っていても共有されているのはディレクトリなので例外にならない。手順・dirty時の移送・Library複製: [references/workspace-isolation.md](references/workspace-isolation.md)
 2. **最終ブランチ全体レビュー** — 最後のタスク完了の瞬間に moores-code-review を **Skillツール経由**で自動・無条件・確認なしに実行する。「playtestまで」「テストが通るまで」というゴール文言は免除にならない。「推奨します・必要なら実行します」で終えるのはスキップと同じ
-3. **PR作成** — 最終レビュー後、pr-create でPRを作成しセッションを閉じられる状態にするまでが完了。masterとのコンフリクトは解消（実作業はopus subagentへ委譲）してpush。「PRが必要なら作ります」で終えない
+3. **PR作成** — 最終レビュー後、pr-create でPRを作成しセッションを閉じられる状態にするまでが完了。masterとのコンフリクトは解消（実作業はopus subagentへ委譲）してpush。「PRが必要なら作ります」で終えない。PR作成後、worktreeを畳む前に隔離worktree側をcwdにして `scripts/sdd-archive` を実行し、ワークスペース（台帳・ブリーフ・報告）を記録repoへ退避する。ワークスペースはコードrepoへコミットしない
 
 根拠・呼び出し方・所見対応の詳細: [references/controller-gates.md](references/controller-gates.md)
 
@@ -125,5 +125,5 @@ description: 現在のセッションで、独立したタスクからなる実�
 ## ファイル構成
 
 - 派遣テンプレ: [single-implementer-prompt.md](single-implementer-prompt.md) / [implementer-prompt.md](implementer-prompt.md) / [task-reviewer-prompt.md](task-reviewer-prompt.md)。定型は [implementer-contract.md](implementer-contract.md) / [task-reviewer-contract.md](task-reviewer-contract.md) をsubagentが自分で読む
-- scripts: `sdd-workspace`（作業ディレクトリ解決）/ `task-brief`（タスク抽出）/ `review-package`（diff束ね）/ `sdd-memo`（実行メモの場所解決）
+- scripts: `sdd-workspace`（作業ディレクトリ解決）/ `task-brief`（タスク抽出）/ `review-package`（diff束ね）/ `sdd-memo`（実行メモの場所解決）/ `sdd-archive`（worktreeを畳む前のワークスペース退避）
 - references: workspace-isolation.md / controller-gates.md / single-subagent-mode.md / per-task-mode.md / deferred-questions.md（質問の振り分け・実行メモ）/ background.md（根拠・関連スキル）

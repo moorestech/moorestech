@@ -98,7 +98,7 @@ public class ContentKeyCatalogTest
     private static Type CompileContentKeys(string catalogText)
     {
         var csv = LocalizationCsvParser.Parse("key,Source,english\nui.menu.close,Close,Close\n");
-        var settings = new[] { new LanguageSetting("english", "English", "en") };
+        var settings = new[] { new LanguageSetting("english", "English", new[] { "english" }) };
         var code = LocalizationCodeGenerator.Generate(csv, settings, ContentKeyCatalogParser.Parse(catalogText));
 
         return CompileTable(code).Assembly.GetType("Mooresmaster.Localization.Generated.ContentLocalizationKeys")!;

@@ -58,6 +58,10 @@ namespace Game.Paths
         // Holds the previous session's clean-exit marker and salvaged files; read only at boot
         public static string BugReportLastSessionDirectory => Path.Combine(BugReportDirectory, "last-session");
 
+        // 遠隔実行のアクセストークンと台帳の置き場を一箇所で定義する
+        // Define the access token and ledger location for remote execution in one place
+        public static string RemoteExecDirectory => Path.Combine(GameSystemDirectory, "RemoteExec");
+
         // 進行記録の作業中セッションとoutbox。プレイ報告とは別ツリーで持つ（shared-contracts §2）
         // The in-flight progress session and its outbox; kept in a tree separate from play reports (shared-contracts §2)
         public static string ProgressRecordDirectory => Path.Combine(GameSystemDirectory, "ProgressRecords");

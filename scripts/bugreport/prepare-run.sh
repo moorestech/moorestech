@@ -22,7 +22,7 @@ read_manifest() {
   python3 "$HERE/read-manifest.py" "$RUN/manifest.json"
 }
 
-REPORT_COMMIT=""; REPORT_BRANCH=""; MASTER_COMMIT=""; LATEST_TICK=""; WORLD_DEFINITION=""
+REMOTE_EXEC="1"; REPORT_COMMIT=""; REPORT_BRANCH=""; MASTER_COMMIT=""; LATEST_TICK=""; WORLD_DEFINITION=""
 SERVER_DATA_RELATIVE_TO=""; SERVER_DATA_RELATIVE_PATH=""; SERVER_DATA_PATH=""
 manifest_env="$(read_manifest)" || log "manifest の読み取りに失敗した。全項目を空として続行する"
 eval "$manifest_env"
@@ -186,6 +186,7 @@ eval "$world_meta_env"
   printf 'WORLD_NOT_CAPTURED=%q\n' "$WORLD_NOT_CAPTURED"
   printf 'WORLD_MAP_MODE=%q\n' "$WORLD_MAP_MODE"
   printf 'WORLD_SEED=%q\n' "$WORLD_SEED"
+  printf 'REMOTE_EXEC=%q\n' "$REMOTE_EXEC"
   printf 'REPORT_COMMIT=%q\n' "$REPORT_COMMIT"
   printf 'REPORT_BRANCH=%q\n' "$REPORT_BRANCH"
   printf 'LATEST_TICK=%q\n' "$LATEST_TICK"

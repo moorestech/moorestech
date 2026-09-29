@@ -1,0 +1,8 @@
+# GitHub の PR 差分で既定では畳む物（外部の同梱パッケージ・ロックファイル・自動生成コード）。レビュー patch 側の除外の正本は
+# .agents/skills/moores-code-review/scripts/review_diff.py
+# Collapsed by default in GitHub PR diffs (vendored packages, lockfiles, generated code); the review-patch exclusions live in
+# .agents/skills/moores-code-review/scripts/review_diff.py
+moorestech_client/Assets/Packages/** linguist-vendored linguist-generated
+**/packages-lock.json linguist-generated
+**/pnpm-lock.yaml linguist-generated
+**/i18n/generated/** linguist-generated

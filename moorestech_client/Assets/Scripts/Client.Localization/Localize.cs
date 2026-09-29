@@ -23,25 +23,32 @@ namespace Client.Localization
         private static PublishedLocalizationDictionarySnapshot publishedSnapshot;
         private static long dictionaryRevision;
         private static string currentLanguageCode;
+        private static LanguageOrigin currentLanguageOrigin;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void Initialize()
         {
             PublishSnapshot(VanillaLocalizationDictionaryFactory.Create());
 
-            // 選択不能な保存値は生成済み英語辞書へ戻す
-            // Fall back to the generated English dictionary for unselectable persisted values
+            // 選択済み導出はここ1回だけ
+            // Chosen state is derived only here
             var savedLanguageCode = PlayerPrefs.GetString(LanguagePreferenceKey, DefaultLanguageCode);
-            var languages = Volatile.Read(ref publishedSnapshot).Languages;
-            currentLanguageCode = languages.ContainsKey(savedLanguageCode)
-                ? savedLanguageCode
-                : DefaultLanguageCode;
+            var chosen = PlayerPrefs.HasKey(LanguagePreferenceKey) && IsSelectable(savedLanguageCode);
+            currentLanguageCode = chosen ? savedLanguageCode : DefaultLanguageCode;
+            currentLanguageOrigin = chosen ? LanguageOrigin.Chosen : LanguageOrigin.Unchosen;
+            if (!chosen && PlayerPrefs.HasKey(LanguagePreferenceKey))
+                Debug.LogWarning($"[Localize] saved language {savedLanguageCode} is unavailable; using {DefaultLanguageCode}");
         }
 
         public static string Get(LocalizationKey key)
         {
             var snapshot = Volatile.Read(ref publishedSnapshot);
             return LocalizationTextResolver.Resolve(snapshot, currentLanguageCode, key.Key);
+        }
+
+        public static string GetFormatted(LocalizationKey key, IReadOnlyList<string> textParams)
+        {
+            return LocalizationTextInterpolator.Interpolate(Get(key), textParams);
         }
 
         // TextMeshProLocalizeのInspector入力キー専用のレガシー経路（型付きキーはGet/GetContent）
@@ -58,11 +65,6 @@ namespace Client.Localization
             return LocalizationTextResolver.Resolve(snapshot, currentLanguageCode, key.Key);
         }
 
-        public static string GetFormatted(LocalizationKey key, IReadOnlyList<string> textParams)
-        {
-            return LocalizationTextInterpolator.Interpolate(Get(key), textParams);
-        }
-
         // mod順とMaster原文は呼び出し側が決め、基盤は辞書だけを合成する
         // Callers decide mod order and Master sources; the foundation only composes dictionaries
         public static void MergeGameDictionaries(
@@ -70,12 +72,8 @@ namespace Client.Localization
             IReadOnlyList<ModId> orderedModIds,
             IReadOnlyDictionary<string, string> masterSourceTexts)
         {
-            var candidate = VanillaLocalizationDictionaryFactory.Create();
-            ModLocalizationMerger.Merge(modsResource, orderedModIds, candidate);
-
-            // mod Sourceの後へMaster正本を重ね、空原文も欠落として確定する
-            // Overlay canonical Master after mod Source and finalize empty sources as omissions
-            OverlayMasterSourceTexts(candidate, masterSourceTexts);
+            var candidate = GameLocalizationDictionaryComposer.Compose(
+                modsResource, orderedModIds, masterSourceTexts);
 
             // 全合成成功後にfreeze済みsnapshot参照を一度だけ公開する
             // Publish the frozen snapshot reference once only after composition fully succeeds
@@ -83,56 +81,31 @@ namespace Client.Localization
             onLanguageChangedSubject.OnNext(Unit.Default);
         }
 
-        internal static void OverlayMasterSourceTexts(
-            LocalizationDictionaryCandidate candidate,
-            IReadOnlyDictionary<string, string> masterSourceTexts)
+        public static bool TrySetChosenLanguage(string languageCode)
         {
-            foreach (var sourceText in masterSourceTexts)
-            {
-                // 空Masterはmod由来Sourceを残さずcanonical欠落にする
-                // Empty Master removes mod Source so the canonical value remains missing
-                if (string.IsNullOrEmpty(sourceText.Value))
-                {
-                    candidate.SourceTexts.Remove(sourceText.Key);
-                    continue;
-                }
-
-                candidate.SourceTexts[sourceText.Key] = sourceText.Value;
-            }
+            return TryApplyLanguage(languageCode, LanguageOrigin.Chosen);
         }
 
-        public static bool TrySetLanguage(string languageCode)
+        // 選択済みなら外部の言語ソースを読まない
+        // Do not consult an external language source after the player has chosen
+        public static bool TryApplyUnchosenLanguage(IUnchosenLanguageSource source)
         {
-            // 可否は戻り値だけで表す（外部入力ハンドラがActionResultへ変換する）
-            // Success/failure is expressed only via the return value; handlers map it to ActionResult
-            if (string.IsNullOrEmpty(languageCode)) return false;
-
-            // 公開snapshotの実言語だけを判定基準にする
-            // Judge only against the real languages carried by the published snapshot
-            var languages = Volatile.Read(ref publishedSnapshot).Languages;
-            if (!languages.ContainsKey(languageCode)) return false;
-
-            currentLanguageCode = languageCode;
-            PlayerPrefs.SetString(LanguagePreferenceKey, languageCode);
-            PlayerPrefs.Save();
-            onLanguageChangedSubject.OnNext(Unit.Default);
-            return true;
+            if (currentLanguageOrigin == LanguageOrigin.Chosen)
+            {
+                Debug.Log("[Localize] temporary language rejected: the player already chose a language");
+                return false;
+            }
+            if (!source.TryResolveGameLanguage(out var languageCode, out var failureReason))
+            {
+                Debug.LogWarning($"[Localize] temporary language unavailable: {failureReason}");
+                return false;
+            }
+            return TryApplyLanguage(languageCode, LanguageOrigin.Unchosen);
         }
 
         public static string GetCurrentLanguageCode()
         {
             return currentLanguageCode;
-        }
-
-        public static List<string> GetLanguageCodes()
-        {
-            var languageCodes = new List<string>();
-            foreach (var languageCode in VanillaLocalizationTable.LanguageCodes)
-            {
-                languageCodes.Add(languageCode);
-            }
-
-            return languageCodes;
         }
 
         public static long GetDictionaryRevision()
@@ -153,37 +126,16 @@ namespace Client.Localization
             long expectedRevision,
             out IReadOnlyDictionary<string, string> dictionary)
         {
-            var snapshot = Volatile.Read(ref publishedSnapshot);
-
-            // revisionと辞書を同じsnapshotから検証し、HTTP応答の異世代混在を防ぐ
-            // Validate revision and dictionary from one snapshot to prevent mixed HTTP generations
-            if (snapshot.Revision == expectedRevision &&
-                snapshot.Languages.TryGetValue(languageCode, out var values))
-            {
-                dictionary = values;
-                return true;
-            }
-
-            dictionary = null;
-            return false;
+            return Volatile.Read(ref publishedSnapshot)
+                .TryGetDictionary(languageCode, expectedRevision, out dictionary);
         }
 
         public static bool TryGetSourceTexts(
             long expectedRevision,
             out IReadOnlyDictionary<string, string> sourceTexts)
         {
-            var snapshot = Volatile.Read(ref publishedSnapshot);
-
-            // 原文も同じsnapshotでrevisionを検証し、実言語と同じ世代保証で配信する
-            // Source texts validate the revision on the same snapshot for the same generation guarantee
-            if (snapshot.Revision == expectedRevision)
-            {
-                sourceTexts = snapshot.SourceTexts;
-                return true;
-            }
-
-            sourceTexts = null;
-            return false;
+            return Volatile.Read(ref publishedSnapshot)
+                .TryGetSourceTexts(expectedRevision, out sourceTexts);
         }
 
         private static void PublishSnapshot(LocalizationDictionaryCandidate candidate)
@@ -192,6 +144,35 @@ namespace Client.Localization
             Volatile.Write(
                 ref publishedSnapshot,
                 VanillaLocalizationDictionaryFactory.Freeze(candidate, revision));
+        }
+
+        private static bool IsSelectable(string languageCode)
+        {
+            return !string.IsNullOrEmpty(languageCode) &&
+                   Volatile.Read(ref publishedSnapshot).Languages.ContainsKey(languageCode);
+        }
+
+        private static bool TryApplyLanguage(string languageCode, LanguageOrigin origin)
+        {
+            if (!IsSelectable(languageCode))
+            {
+                Debug.LogWarning($"[Localize] language rejected: unsupported code {languageCode ?? "<null>"}");
+                return false;
+            }
+
+            // 明示選択のみ保存、共通イベントで通知
+            // Persist only explicit choices; notify through the shared event
+            currentLanguageCode = languageCode;
+            currentLanguageOrigin = origin;
+            if (origin == LanguageOrigin.Chosen) PersistCurrentLanguage();
+            onLanguageChangedSubject.OnNext(Unit.Default);
+            return true;
+        }
+
+        private static void PersistCurrentLanguage()
+        {
+            PlayerPrefs.SetString(LanguagePreferenceKey, currentLanguageCode);
+            PlayerPrefs.Save();
         }
     }
 }

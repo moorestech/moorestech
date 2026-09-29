@@ -30,8 +30,8 @@ namespace Client.Tests.EventMode
             for (var i = 0; i < SavedEnvKeys.Length; i++) _savedEnvValues[i] = Environment.GetEnvironmentVariable(SavedEnvKeys[i]);
             for (var i = 0; i < SavedEnvKeys.Length; i++) Environment.SetEnvironmentVariable(SavedEnvKeys[i], null);
 
-            // TrySetLanguageは公開snapshotの実言語を判定基準にするため、辞書を張ってから検証する
-            // TrySetLanguage judges against the published snapshot, so the dictionaries must be loaded first
+            // 判定基準は公開snapshotの実言語
+            // Judged against the real languages of the published snapshot
             Localize.Initialize();
         }
 

@@ -86,6 +86,7 @@ namespace Client.Editor.Build
 
             // 動作に必要なCEFランタイムとゲームデータを同梱する
             // Bundle the CEF runtime and game data the player needs to run
+            RemoteExecHarmonyBundler.Bundle(request.Target, report.summary.outputPath, policy.IsStrictBundling);
             CefRuntimeBundler.Bundle(request.Target, report.summary.outputPath, policy.IsStrictBundling);
             FfmpegRuntimeBundler.Bundle(request.Target, report.summary.outputPath, policy.IsStrictBundling);
             if (policy.BundlesLocalGameData)

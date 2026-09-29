@@ -11,8 +11,14 @@ namespace Client.Editor.Build.Bundlers
     {
         public static string Resolve(string playerOutputPath)
         {
-            var dataDirectory = Path.Combine(Path.GetDirectoryName(playerOutputPath), Path.GetFileNameWithoutExtension(playerOutputPath) + "_Data");
-            return Path.Combine(dataDirectory, FfmpegLocator.BundledPluginsRelativeDirectory);
+            return Path.Combine(ResolveDataDirectory(playerOutputPath), FfmpegLocator.BundledPluginsRelativeDirectory);
+        }
+
+        // Windows/Linux player の `<exe>_Data` を組み立てる。macは Contents 配下と別形なので、呼び出し側が分岐する
+        // Builds a Windows/Linux player's `<exe>_Data`; mac uses a different Contents-based layout, so callers branch on target
+        public static string ResolveDataDirectory(string playerOutputPath)
+        {
+            return Path.Combine(Path.GetDirectoryName(playerOutputPath), Path.GetFileNameWithoutExtension(playerOutputPath) + "_Data");
         }
     }
 }

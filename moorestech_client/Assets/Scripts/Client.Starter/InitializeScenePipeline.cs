@@ -7,7 +7,6 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Starter.Identity;
 using Client.Starter.Initialization;
-using Client.Starter.Initialization.WebUi;
 using Client.Starter.Initialization.Progress;
 using Client.Starter.Initialization.Refusal;
 using Cysharp.Threading.Tasks;
@@ -17,6 +16,7 @@ using Server.Boot;
 using Server.Boot.Args;
 using Server.Util.MessagePack;
 using TMPro;
+using UniRx;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.SceneManagement;
@@ -58,11 +58,23 @@ namespace Client.Starter
             // 正規の終了口を通らない終了（エディタのPlay停止）でも、正常終了の印が書かれるようにする
             // Ensures the clean-exit mark is written even for exits that skip the canonical path (an Editor play-stop)
             GameShutdownEvent.InstallUnannouncedExitNotice();
+            // 前回セッションの出所印より先に起動オプションを確定する
+            // Resolve launch arguments before capturing the current session origin
+            Client.RemoteExec.RemoteExecLaunchOption.ResolveFromCommandLine(Environment.GetCommandLineArgs());
             Playtest.PreviousSessionStartupTasks.BeginCurrentSessionMarks();
             // Play終了で各await継続を打ち切る。Task系境界の継続がEditModeで再開しシーンを汚すのを防ぐ
             // Play-mode exit cancels every await so Task-based continuations never resume in EditMode and dirty the scene
             var exitToken = Application.exitCancellationToken;
-            await WebUiStartup.StartAsync(exitToken);
+            var webUiStarted = await Initialization.Boot.WebUiStartup.StartAsync(exitToken);
+            // Web UI の実ポートが確定してから遠隔実行を有効化する
+            // Activate remote exec after the Web UI's actual port is known
+            Client.RemoteExec.RemoteExecActivation.ActivateIfRequested(webUiStarted, Client.WebUiHost.Boot.WebUiHost.KestrelPort);
+            // 正常終了で遠隔実行の入口を撤去する。終了イベントを知らないClient.RemoteExecへここから配線する
+            // A clean exit withdraws the remote-exec entry; Client.RemoteExec does not know the shutdown event, so it is wired from here
+            // 無効な起動は入口を持たないので購読もしない（同じ置き場を使う他プロセスの入口に触る理由が無い）
+            // A disabled boot owns no entry and does not subscribe, having no reason to touch another process's entry in the shared location
+            if (Client.RemoteExec.RemoteExecLaunchOption.IsEnabled)
+                GameShutdownEvent.OnGameShutdown.Subscribe(_ => Client.RemoteExec.RemoteExecActivation.Deactivate());
 
 #if UNITY_EDITOR
             Editor.PlayModeLaunchOverrides.ApplyIfNeeded(_proprieties);

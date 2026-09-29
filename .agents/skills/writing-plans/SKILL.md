@@ -88,8 +88,17 @@ hooks:
 正確な値を逐語的に記載する。すべてのタスクの要件は暗黙的に
 このセクションを含む]
 
+## 設計検査記録
+
+- 配置検査（spec-architecture-review Phase 1〜2.5）: 未実施
+- Phase 2.6（型閉包・重複・ADR矛盾）: 未実施
+
+[実施後の書き方: `実施済み / 違反N件・修正N件 / 要約1行`、Phase 2.6 は `実施済み / 強N・弱N・第3バケツN / 要約1行`]
+
 ---
 ```
+
+**`## 設計検査記録` は検査を終えるたびに書き換える（required）。** 書き始めは `未実施` のまま置き、下の「設計検査」を実行したら `実施済み` と件数・要約1行へ置き換える。0件でも `実施済み / 強0・弱0・第3バケツ0 / 発火なし` と書く（0件と未実施を区別するため）。writing-plans 終了時に ledger-gate がこの2行の `実施済み` を検査し、無ければブロックする
 
 **Final tasks (moorestech, required):** every plan's task list ends with an
 explicit closing task pair — 実行者はこれを無条件に実行する。planから省略しても
@@ -202,9 +211,13 @@ git commit -m "feat: <specific feature>"
 
 問題を見つけたらその場で修正する。再レビューは不要 — 修正して次に進む。Requirementsの行に対応するタスクが見つからなければ、タスクを追加する。
 
-## Simulator Review + 判断記録（ADR）— required, after Self-Review
+## 設計検査 — required, after Self-Review
 
-Self-Review（内容）と spec-architecture-review（構造）を終えたら、Execution Handoff の**前**に必ず:
+Self-Review（内容）の次に、このファイル後半の **spec-architecture-review** を plan に対して実行する。Phase 1〜2.5（配置検査。本体が行い、違反はその場で直す）と **Phase 2.6（型閉包・重複・ADR矛盾。fresh-context subagent に委譲し、発火をユーザーへ質問する）** の両方が対象で、どちらも省略しない。終えたら plan の `## 設計検査記録` の2行を `実施済み` と件数・要約へ書き換える。
+
+## Simulator Review + 判断記録（ADR）— required, after 設計検査
+
+設計検査を終えたら、Execution Handoff の**前**に必ず:
 
 1. **user-simulator スキルを実行する**（reviewモード）— `user-simulator/modes/review/protocol.md` に従いFable判事を起動し、予測レポート（元々の想定/適用済み指摘/要裁定/見なかった領域）を受けてCriticalをインライン修正、要裁定はpreanswerを通してAskUserQuestionへ。設計ADR（`docs/adr/`）とplanの判断記録をcontextに含め、裁定済み事項を蒸し返させない。実行結果の採点を misses.md に記録し、外し（追加指摘/誤検知）は即ハンドオフ発行。
 2. **plan末尾に `## 判断記録（ADR）` を置く** — 設計セッションのADR（`docs/adr/`）へのリンク＋planning中に新たに生じた判断（タスク分割・機構比較・シミュレーター裁定）を追記する。シミュレーター予測を承認させた裁定は出所「シミュレーター予測→ユーザー承認」と書く。
