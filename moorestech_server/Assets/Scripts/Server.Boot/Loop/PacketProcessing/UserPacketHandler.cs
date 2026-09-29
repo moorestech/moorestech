@@ -94,8 +94,8 @@ namespace Server.Boot.Loop.PacketProcessing
             if (_cleaned) return;
             _cleaned = true;
 
-            // 接続集合からの解除は即時、記録とイベント宛先の解除はFIFOで。順序はSchedule側が所有する
-            // Immediate removal from the connection set, FIFO for the record and event-sink removal; Schedule owns that order
+            // 受信スレッドは接続を閉じて切断項目を積むだけ。登録解除と記録はtick末尾で行う
+            // The receive thread only closes and enqueues; tick end removes the binding and records it
             ConnectionDisconnectEntry.Schedule(_packetResponseContext, _receiveQueueProcessor,
                 _tickEndPacketQueue, _connectionRegistry, _eventProtocolProvider, _receivedPacketLog);
             _sendQueueProcessor.Dispose();

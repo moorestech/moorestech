@@ -25,7 +25,11 @@ namespace Game.SaveLoad.Migration.Steps.V2ToV3
             // References to one id in multiple sections share the same sequential id
             map = new Dictionary<long, int>();
             var next = PlayerIdSequence.First;
-            foreach (var oldId in oldIds) map[oldId] = next++;
+            foreach (var oldId in oldIds)
+            {
+                map[oldId] = next;
+                next = PlayerIdSequence.NextAfter(next);
+            }
             reason = null;
             return true;
 

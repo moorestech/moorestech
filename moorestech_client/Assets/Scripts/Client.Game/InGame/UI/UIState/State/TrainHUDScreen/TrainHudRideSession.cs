@@ -100,7 +100,8 @@ namespace Client.Game.InGame.UI.UIState.State.TrainHUDScreen
                 Debug.LogWarning("[TrainHUDScreenState] 乗降要求が処理中のため乗車要求を保留します");
                 return;
             }
-            _cts = new CancellationTokenSource();
+            var requestCts = new CancellationTokenSource();
+            _cts = requestCts;
 
             // RPCが例外で抜けても要求中の印を必ず戻す。残すと以後の乗降要求が恒久的に保留される
             // Always clear the in-flight mark, even when the RPC throws; leaving it would hold every later ride request forever
@@ -109,7 +110,7 @@ namespace Client.Game.InGame.UI.UIState.State.TrainHUDScreen
                 // 受理された座席を表示状態へ反映する
                 // Apply the accepted seat to presentation state
                 var target = RidableIdentifierMessagePack.CreateTrainCarMessage(rideRequest.TargetCarId.AsPrimitive());
-                var response = await ClientContext.VanillaApi.Response.Train.RideAction(RideActionType.Ride, target, _cts.Token);
+                var response = await ClientContext.VanillaApi.Response.Train.RideAction(RideActionType.Ride, target, requestCts.Token);
                 if (response is { Result: RideActionResult.Success })
                 {
                     _rideContext = new RidingPlayerStateContext(target, response.SeatIndex);
@@ -123,7 +124,7 @@ namespace Client.Game.InGame.UI.UIState.State.TrainHUDScreen
             }
             finally
             {
-                ClearInFlightRequest();
+                ClearInFlightRequest(requestCts);
             }
         }
 
@@ -134,23 +135,29 @@ namespace Client.Game.InGame.UI.UIState.State.TrainHUDScreen
                 Debug.LogWarning("[TrainHUDScreenState] 乗降要求が処理中のため降車要求を保留します");
                 return;
             }
-            _cts = new CancellationTokenSource();
+            var requestCts = new CancellationTokenSource();
+            _cts = requestCts;
             try
             {
-                var response = await ClientContext.VanillaApi.Response.Train.RideAction(RideActionType.Dismount, null, _cts.Token);
+                var response = await ClientContext.VanillaApi.Response.Train.RideAction(RideActionType.Dismount, null, requestCts.Token);
                 if (response is { Result: RideActionResult.Success }) ForceDismount();
             }
             finally
             {
-                ClearInFlightRequest();
+                ClearInFlightRequest(requestCts);
             }
         }
 
-        // 乗降要求の後始末はExit()と同じ形に揃える
-        // The in-flight request teardown matches what Exit() does
-        private void ClearInFlightRequest()
+        // 自分が張った要求だけを畳む。HUD再入場後の新しい要求のCTSを前回の継続が壊さないようにする
+        // Fold only the request this call installed, so a stale continuation never destroys a newer request's CTS after the HUD is re-entered
+        private void ClearInFlightRequest(CancellationTokenSource requestCts)
         {
-            _cts?.Dispose();
+            if (!ReferenceEquals(_cts, requestCts))
+            {
+                requestCts.Dispose();
+                return;
+            }
+            _cts.Dispose();
             _cts = null;
         }
 

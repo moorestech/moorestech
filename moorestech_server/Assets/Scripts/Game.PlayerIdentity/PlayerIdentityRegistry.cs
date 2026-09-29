@@ -71,7 +71,7 @@ namespace Game.PlayerIdentity
             }
             else
             {
-                _nextPlayerId++;
+                _nextPlayerId = PlayerIdSequence.NextAfter(assignment.PlayerId);
                 Debug.Log($"[PlayerIdentity] 身元{assignment.Identity}へ新しいプレイヤーID{assignment.PlayerId}を払い出しました");
             }
             _idByIdentity[assignment.Identity] = assignment.PlayerId;
@@ -113,7 +113,7 @@ namespace Game.PlayerIdentity
             void ValidateSave()
             {
                 if (save == null || save.Entries == null) throw InvalidSave("players または entries が欠損しています");
-                if (save.NextPlayerId < PlayerIdSequence.First) throw InvalidSave("nextPlayerId は1以上である必要があります");
+                if (!PlayerIdSequence.IsValid(save.NextPlayerId)) throw InvalidSave("nextPlayerId は1以上である必要があります");
 
                 // 同一IDや同一身元の重複は別人の状態を上書きするため拒否する
                 // Reject duplicate ids or identities because they would overwrite another player's state
@@ -122,7 +122,7 @@ namespace Game.PlayerIdentity
                 foreach (var entry in save.Entries)
                 {
                     if (entry == null) throw InvalidSave("entries に null が含まれています");
-                    if (entry.PlayerId < PlayerIdSequence.First || !playerIds.Add(entry.PlayerId))
+                    if (!PlayerIdSequence.IsValid(entry.PlayerId) || !playerIds.Add(entry.PlayerId))
                     {
                         throw InvalidSave($"プレイヤーIDが不正または重複しています: {entry.PlayerId}");
                     }

@@ -30,6 +30,15 @@ namespace Server.Boot.Replay
             Debug.Log($"再生: 区間開始時点の接続{connectedPlayerIds.Count}件を復元しました");
         }
 
+        // 未紐づけパケットが再生中にハンドシェイクを通すと使い捨てcontextが紐づく。以後の同IDの記録はそのcontextを使う
+        // A replayed unbound packet can complete a handshake and bind its throwaway context; later records for that id reuse it
+        public void AdoptBoundContext(PacketResponseContext context)
+        {
+            if (!context.PlayerId.HasValue) return;
+            if (_contexts.ContainsKey(context.PlayerId.Value)) return;
+            _contexts.Add(context.PlayerId.Value, context);
+        }
+
         public PacketResponseContext ContextFor(int? playerId)
         {
             // 未紐づけレコードは別接続かもしれないため、前のハンドシェイクを引き継がない
@@ -56,8 +65,8 @@ namespace Server.Boot.Replay
                 Debug.Log("再生した未紐づけ接続の切断には解除対象がありません");
                 return;
             }
-            // 区間開始の接続集合を先に復元しているので、紐づいた切断には必ずcontextがある
-            // The segment's connection set is restored up front, so a bound disconnect always has its context
+            // 区間開始の接続集合を復元し、再生中のハンドシェイクも引き取るので、紐づいた切断には必ずcontextがある
+            // With the segment's connection set restored and replayed handshakes adopted, a bound disconnect always has its context
             if (!_contexts.TryGetValue(playerId.Value, out var context))
             {
                 var reason = $"再生: playerId {playerId.Value} の接続が未作成のため解除できません（区間ヘッダの接続集合と記録が食い違っています）";

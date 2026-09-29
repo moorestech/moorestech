@@ -44,11 +44,13 @@ namespace Client.Starter.Identity
                 return PlayerIdentityResolution.Refused(LocalizationKeys.Ui.Loading.SteamIdentityUnavailable, $"Steam配布ビルドでSteamIDを読めないため開始しない: {failureReason}");
             }
 
-            if (string.IsNullOrEmpty(deviceUniqueIdentifier) || deviceUniqueIdentifier == SystemInfo.unsupportedIdentifier)
+            // 端末身元を認める条件と組み立ては報告側と共有する。片方だけ触るとセーブとmanifestの身元が乖離する
+            // The device-identity guard and assembly are shared with the reporting side; touching one alone would split the save's and the manifest's identity
+            if (!LocalDeviceIdentity.TryResolve(deviceUniqueIdentifier, out var deviceIdentity))
             {
                 return PlayerIdentityResolution.Refused(LocalizationKeys.Ui.Loading.DeviceIdentityUnavailable, $"端末の識別子を取得できないため開始しない: '{deviceUniqueIdentifier}'");
             }
-            return PlayerIdentityResolution.Success(PlayerIdentityText.ForDevice(deviceUniqueIdentifier));
+            return PlayerIdentityResolution.Success(deviceIdentity);
         }
     }
 

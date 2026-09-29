@@ -23,7 +23,12 @@ namespace Server.Boot.Replay
 
         public void Process()
         {
-            _creator.GetPacketResponse(_payload, _contexts.ContextFor(_playerId));
+            var context = _contexts.ContextFor(_playerId);
+            _creator.GetPacketResponse(_payload, context);
+
+            // ハンドシェイクは未紐づけの記録として届くので、紐づいた結果を接続表へ引き取る
+            // A handshake arrives as an unbound record, so its resulting binding is adopted into the connection table
+            if (!_playerId.HasValue) _contexts.AdoptBoundContext(context);
         }
     }
 }
