@@ -155,3 +155,4 @@ moorestech_client/Assets/StreamingAssets/WebUi.meta
 
 # SDDワークスペース（記録はscripts/sdd-archiveで moorestech_logs へ退避する。コミットしない）
 .superpowers/
+AGENTS.override.md
