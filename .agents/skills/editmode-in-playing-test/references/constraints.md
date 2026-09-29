@@ -21,7 +21,7 @@ EditModeInPlayingTestは`EnterPlayMode`によるドメインリロードを含�
 
 worktree環境で実行する場合はそのworktree用のUnityを起動する必要がある（uloopは起動中のUnityを対象にする）。
 また、worktreeでは `../moorestech_master` が解決できずマスター読込に失敗するため、
-`moorestech-worktrees/moorestech_master` へのsymlinkが必要。
+`~/hermes-agent/data/worktrees/moorestech/moorestech_master` へのsymlinkが必要。
 
 ## ドメインリロード関連
 

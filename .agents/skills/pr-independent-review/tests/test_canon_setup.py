@@ -29,7 +29,7 @@ def _run(origin: Path, *extra: str) -> subprocess.CompletedProcess:
 def origin(tmp_path: Path) -> Path:
     bare = tmp_path / "remote.git"
     _git(tmp_path, "init", "--bare", "-b", "master", str(bare))
-    work = tmp_path / "origin"
+    work = tmp_path / "repos" / "origin"
     _git(tmp_path, "clone", "-q", str(bare), str(work))
     _git(work, "config", "user.email", "t@t")
     _git(work, "config", "user.name", "t")
@@ -44,7 +44,7 @@ def origin(tmp_path: Path) -> Path:
 
 
 def test_creates_pin_and_reports(origin: Path, tmp_path: Path):
-    parent = tmp_path / "moorestech-worktrees"
+    parent = tmp_path / "worktrees" / "moorestech"
     res = _run(origin)
     assert res.returncode == 0, res.stderr
     out = json.loads(res.stdout)
@@ -78,8 +78,8 @@ def test_skew_is_exit_13_unless_allowed(origin: Path, tmp_path: Path):
 
 
 def test_stale_pin_is_cleaned_and_fresh_pin_kept(origin: Path, tmp_path: Path):
-    parent = tmp_path / "moorestech-worktrees"
-    parent.mkdir()
+    parent = tmp_path / "worktrees" / "moorestech"
+    parent.mkdir(parents=True)
     stale = parent / "skills-canon-deadbeef"
     _git(origin, "worktree", "add", "-q", "--detach", str(stale), "HEAD")
     old = time.time() - 48 * 3600
@@ -93,6 +93,14 @@ def test_stale_pin_is_cleaned_and_fresh_pin_kept(origin: Path, tmp_path: Path):
     out = json.loads(res.stdout)
     assert out["cleaned"] == [str(stale)]
     assert not stale.exists() and fresh.exists()
+
+
+def test_launch_from_worktree_anchors_on_main_clone(origin: Path, tmp_path: Path):
+    linked = tmp_path / "worktrees" / "moorestech" / "task"
+    _git(origin, "worktree", "add", "-q", "--detach", str(linked), "HEAD")
+    res = _run(linked)
+    assert res.returncode == 0, res.stderr
+    assert json.loads(res.stdout)["worktree_parent"] == str(tmp_path / "worktrees" / "moorestech")
 
 
 def test_origin_must_be_a_worktree_root(origin: Path, tmp_path: Path):

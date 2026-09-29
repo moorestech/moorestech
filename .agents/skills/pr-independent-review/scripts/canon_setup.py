@@ -5,8 +5,8 @@ Prepare the canonical tree `$CANON` (a worktree pinned to origin/master) and enf
 使い方 / Usage:
     canon_setup.py --origin <起動元repo> [--allow-skew]
 
-worktree 置き場は `$ORIGIN` の親の `moorestech-worktrees/` に固定する（moores-wt と同じ置き場。repos 直下に散らさない）。
-The worktree home is fixed to `moorestech-worktrees/` beside `$ORIGIN` (same home as moores-wt; never scatter into repos/).
+worktree 置き場は `<clone置き場の親>/worktrees/moorestech/` に固定する（PC共通規約 `…/worktrees/<project>/<name>`。repos 直下に散らさない）。
+The worktree home is fixed to `<parent of the clone dir>/worktrees/moorestech/` (machine-wide `…/worktrees/<project>/<name>`; never scatter into repos/).
 
 stdout に JSON: {"canon", "worktree_parent", "sha8", "origin_master_sha", "skew", "origin_head_sha", "cleaned", "warnings"}
 exit 0  … 用意完了（--allow-skew 付きで skew:true の場合を含む）
@@ -27,7 +27,7 @@ SKILL_REL = os.path.join(".agents", "skills", "pr-independent-review")
 NOVELTY_REL = os.path.join(SKILL_REL, "scripts", "novelty_gate.py")
 SKILL_MD_REL = os.path.join(SKILL_REL, "SKILL.md")
 STALE_SECONDS = 24 * 3600
-WORKTREE_DIR_NAME = "moorestech-worktrees"
+PROJECT_NAME = "moorestech"
 
 
 def git(repo: str, *args: str) -> subprocess.CompletedProcess:
@@ -72,18 +72,26 @@ def clean_stale_pins(origin: str, parent: str, keep: str) -> tuple[list[str], li
     return cleaned, warnings
 
 
+def worktree_parent(origin: str) -> str:
+    # worktree から起動されても本体 clone 基準で決まるよう git common dir から辿る
+    # Resolve from the git common dir so a launch from inside a worktree still anchors on the main clone
+    common = git(origin, "rev-parse", "--path-format=absolute", "--git-common-dir").stdout.strip()
+    clone_home = os.path.dirname(os.path.dirname(os.path.realpath(common)))
+    return os.path.join(os.path.dirname(clone_home), "worktrees", PROJECT_NAME)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--origin", required=True)
     ap.add_argument("--allow-skew", action="store_true")
     args = ap.parse_args()
     origin = os.path.realpath(args.origin)
-    parent = os.path.join(os.path.dirname(origin), WORKTREE_DIR_NAME)
 
     # $ORIGIN の妥当性 / Validate $ORIGIN
     toplevel = git(origin, "rev-parse", "--show-toplevel")
     if toplevel.returncode != 0 or os.path.realpath(toplevel.stdout.strip()) != origin:
         return fail(14, f"$ORIGIN が git 作業ツリーのルートではない: {origin}")
+    parent = worktree_parent(origin)
 
     pin = resolve_pin(origin)
     if pin is None:

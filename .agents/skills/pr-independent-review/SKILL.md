@@ -117,7 +117,7 @@ AskUserQuestion は deny される。ブロックは同一セッション2回で
        python3 <$ORIGINの実値>/.agents/skills/pr-independent-review/scripts/canon_setup.py \
          --origin <$ORIGINの実値>
 
-   stdout の JSON の `canon` が `$CANON` の実値、`worktree_parent`（`$ORIGIN` の親の `moorestech-worktrees/` に固定）が本スキルの作る
+   stdout の JSON の `canon` が `$CANON` の実値、`worktree_parent`（PC共通の `<clone置き場の親>/worktrees/moorestech/` に固定）が本スキルの作る
    worktree の置き場。`$ORIGIN` の隣（repos 直下）へ worktree を作らない（2026-09-29 ユーザー裁定）。`origin_master_sha` は records の `canonical:` に書く。`warnings`（古ピン掃除の失敗）は報告に載せて続行する
 
    | exit | 意味 | 対応 |
