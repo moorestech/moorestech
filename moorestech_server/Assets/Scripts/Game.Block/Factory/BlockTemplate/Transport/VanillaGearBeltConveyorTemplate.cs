@@ -1,3 +1,4 @@
+using Game.Block.Blocks.BeltConveyor.Connection;
 using System.Collections.Generic;
 using Game.Block.Blocks;
 using Game.Block.Blocks.BeltConveyor;
@@ -31,15 +32,15 @@ namespace Game.Block.Factory.BlockTemplate.Transport
                 gearBeltParam.Gear.GearConnects,
                 blockPositionInfo
             );
-            var inventoryConnector = BlockTemplateUtil.CreateInventoryConnector(gearBeltParam.InventoryConnectors, blockPositionInfo);
-            var beltConveyorConnector = new VanillaBeltConveyorBlockInventoryInserter(blockInstanceId, inventoryConnector); 
-            
             var slopeType = gearBeltParam.SlopeType switch
             {
                 GearBeltConveyorBlockParam.SlopeTypeConst.Up => BeltConveyorSlopeType.Up,
                 GearBeltConveyorBlockParam.SlopeTypeConst.Down => BeltConveyorSlopeType.Down,
                 GearBeltConveyorBlockParam.SlopeTypeConst.Straight => BeltConveyorSlopeType.Straight
             };
+            var inventoryConnector = BeltInventoryConnectionContext.Create(gearBeltParam.InventoryConnectors, blockPositionInfo, slopeType);
+            var beltConveyorConnector = new VanillaBeltConveyorBlockInventoryInserter(blockInstanceId, inventoryConnector);
+
             var itemCount = gearBeltParam.BeltConveyorItemCount;
             
             // RPM供給前は搬送を停止させるため、無限大の時間を設定する

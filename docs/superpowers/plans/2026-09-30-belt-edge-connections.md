@@ -83,7 +83,7 @@ Worldの登録/削除操作 → 対象componentのcapture/apply → inventory co
 
 - [ ] 既存BlockConnectorComponent/TryJudgeConnect、両belt template、WorldBlockDatastore、BlockPlaceToConnectionBlockTest/OrderedShapeCandidateConnectionTest/BlockConnectionSaveLoadTestを読む。PR1134のcontext要点を上記制約と照合。
 - [ ] 上表の契約とedgeresolverを実装。正規化edgeと両側4voxelはX/Z回転に対し一意。Flat=全4底辺、slope=搬送軸両端に各入出力高さ。上側選択はportの方向評価より先。
-- [ ] 選択pairの生output/inputを全て評価し（既存CalculateConnectPosToConnectorの同一targetPos上書きに依存しない）、複数コネクタの先頭がshape不適合でも後続適合を拾う。vectorのy成分を無視して許可を広げず、端点高さと方向を整合させる。
+- [ ] 選択pairの生output/inputを全て評価し（既存CalculateConnectPosToConnectorの同一targetPos上書きに依存しない）、複数コネクタの先頭がshape不適合でも後続適合を拾う。端点の物理高さ一致でedge接触を確定し、portの水平入出力方向を評価する。既存direction.yは旧隣接セル指定なので、物理接触済みFlat→lower Down等を通常ベルトだけ拒否する根拠にしない。通常とgearで同じ7状態期待結果になることを検証する。
 - [ ] snapshotの旧新接続差分を全remove→全addの順に反映。source入替・target同一port変更を漏らさない。既存legacy追加をbelt pairだけ抑制しmachines/gear経路を温存。
 - [ ] Worldの設置はfactory後/登録前capture、component辞書登録後apply。撤去は通知前capture、Destroyと全辞書削除後apply。既存通知順を移動しない。Loadはprivate TryAddBlock経由を含める。
 - [ ] 承認済みZ:\belt-edge-patterns-20260930\cases.json/rules.pyから期待結果をテスト資産として固定（実装と同じ計算式をテストで再実装しない）。2401配置×4水平回転、鏡映と非接触空同値、25/256既存サブセットを検証する。
@@ -100,6 +100,4 @@ Worldの登録/削除操作 → 対象componentのcapture/apply → inventory co
 
 ## 判断記録（ADR）
 
-D1〜D10の正本はdocs/adr/0072-belt-edge-connections.mdと同日.decisions。ユーザー承認済み要件はR1〜R6/R9/R10。具象API/配置/既存generic引数を残したinstance context導入はagent前提（機械側の波及を抑え、PR1134のGetOverride責務を満たす）。現在branch基点はユーザー指定であり、writing-plans既定origin/masterより優先する。通常/高速/gear/分岐器へ共通edge規則を適用するのはagent前提。ユーザーへ例外の有無を任意照合し、待機後にこの前提を明示した。回答が来れば反映する。
-
-
+D1〜D11の正本はdocs/adr/0072-belt-edge-connections.mdと同日.decisions。ユーザー承認済み要件はR1〜R6/R9/R10。具象API/配置/既存generic引数を残したinstance context導入はagent前提（機械側の波及を抑え、PR1134のGetOverride責務を満たす）。現在branch基点はユーザー指定であり、writing-plans既定origin/masterより優先する。通常/高速/gear/分岐器・側面入力へ共通edge規則を適用する。出所: ユーザー裁定2026-09-30「全種類・分岐器にも共通で適用」（D11）。

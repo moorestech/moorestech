@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
-using Core.Master;
+using Game.Block.Component.ConnectionContext;
+using Game.Block.Interface.Component.WorldMutation;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Component.ConnectJudge;
@@ -14,13 +15,11 @@ using UnityEngine;
 namespace Game.Block.Component
 {
     [DisallowMultiple]
-    public class BlockConnectorComponent<TTarget, TConnectJudge> : IBlockConnectorComponent<TTarget>
+    public class BlockConnectorComponent<TTarget, TConnectJudge> : IBlockConnectorComponent<TTarget>, IBlockWorldMutationParticipant
         where TTarget : IBlockComponent
         where TConnectJudge : IConnectorConnectJudge, new()
     {
-        // ドメイン固有の追加接続判定（型パラメータで束縛され、両側ブロックで同一が保証される）
-        // Domain-specific extra judge (bound by type parameter, guaranteed identical on both sides)
-        private static readonly TConnectJudge Judge = new TConnectJudge();
+        internal IConnectorContext Context { get; }
 
         public IReadOnlyDictionary<TTarget, ConnectedInfo> ConnectedTargets => _connectedTargets;
         private readonly Dictionary<TTarget, ConnectedInfo> _connectedTargets = new();
@@ -37,7 +36,12 @@ namespace Game.Block.Component
         private readonly Dictionary<Vector3Int, (Vector3Int position, IBlockConnector connector)> _outputTargetToOutputConnector;
 
         public BlockConnectorComponent(IReadOnlyList<IBlockConnector> inputConnectors, IReadOnlyList<IBlockConnector> outputConnectors, BlockPositionInfo blockPositionInfo)
+            : this(inputConnectors, outputConnectors, blockPositionInfo, new DefaultConnectorContext()) { }
+
+        internal BlockConnectorComponent(IReadOnlyList<IBlockConnector> inputConnectors, IReadOnlyList<IBlockConnector> outputConnectors,
+            BlockPositionInfo blockPositionInfo, IConnectorContext context)
         {
+            Context = context;
             var worldBlockUpdateEvent = ServerContext.WorldBlockUpdateEvent;
 
             _blockPositionInfo = blockPositionInfo;
@@ -79,11 +83,14 @@ namespace Game.Block.Component
             if (!worldBlockDatastore.TryGetBlock<TTarget>(outputTargetPos, out var targetComponent)) return;
 
             var targetBlock = ServerContext.WorldBlockDatastore.GetBlock(outputTargetPos);
+            // 専用コンテキストの対象はWorld変更境界で接続する
+            // Context-owned pairs are connected at the world mutation boundary
+            if (Context.HandlesOverride(targetBlock)) return;
 
             // 位置一致した候補を全て評価し、最初に通る組を採用する
             // Evaluate all position-matched candidates and use the first valid pair
             if (!targetConnector._inputConnectPoss.TryGetValue(outputTargetPos, out var targetAcceptedCells)) return;
-            if (!TryJudgeConnectorPair(_outputTargetToOutputConnector[outputTargetPos], targetAcceptedCells, _blockPositionInfo, targetBlock.BlockPositionInfo, out var selfConnector, out var targetElementConnector)) return;
+            if (!ConnectorPairJudge<TConnectJudge>.TryJudgeConnectorPair(_outputTargetToOutputConnector[outputTargetPos], targetAcceptedCells, _blockPositionInfo, targetBlock.BlockPositionInfo, out var selfConnector, out var targetElementConnector)) return;
 
             // 接続元ブロックと接続先ブロックを接続
             // Connect source block to target block
@@ -94,85 +101,28 @@ namespace Game.Block.Component
             }
         }
 
-        /// <summary>
-        ///     2ブロックのコネクタ定義から、実際に噛み合うセル対を1組だけ解く。サーバーの実接続とクライアントのプレビューが同じ規則で解くための正本
-        ///     Resolves the single meshing cell pair from two blocks' connector definitions; the one rule both the server's real connection and the client's preview use
-        /// </summary>
         public static bool TryJudgeConnect(
             IReadOnlyList<IBlockConnector> selfOutputConnectors, BlockPositionInfo selfPositionInfo,
             IReadOnlyList<IBlockConnector> targetInputConnectors, BlockPositionInfo targetPositionInfo,
             out Vector3Int selfConnectorCell, out Vector3Int targetConnectorCell)
         {
-            selfConnectorCell = Vector3Int.zero;
-            targetConnectorCell = Vector3Int.zero;
-
-            var selfOutputs = BlockConnectorConnectPositionCalculator.CalculateConnectPosToConnector(selfOutputConnectors, selfPositionInfo);
-            var targetInputs = BlockConnectorConnectPositionCalculator.CalculateConnectorToConnectPosList(targetInputConnectors, targetPositionInfo);
-
-            foreach (var (outputTargetPos, selfOutput) in selfOutputs)
-            {
-                if (!targetInputs.TryGetValue(outputTargetPos, out var targetAcceptedCells)) continue;
-                if (!TryJudgeConnectorPair(selfOutput, targetAcceptedCells, selfPositionInfo, targetPositionInfo, out _, out _)) continue;
-
-                selfConnectorCell = selfOutput.position;
-                targetConnectorCell = outputTargetPos;
-                return true;
-            }
-
-            return false;
+            return ConnectorPairJudge<TConnectJudge>.TryJudgeConnect(selfOutputConnectors, selfPositionInfo,
+                targetInputConnectors, targetPositionInfo, out selfConnectorCell, out targetConnectorCell);
         }
 
-        private static bool TryJudgeConnectorPair(
-            (Vector3Int position, IBlockConnector connector) outputConnector,
-            List<(Vector3Int position, IBlockConnector connector)> targetAcceptedCells,
-            BlockPositionInfo selfPositionInfo, BlockPositionInfo targetPositionInfo,
-            out IBlockConnector validSelfConnector, out IBlockConnector validTargetConnector)
+        public IBlockWorldMutation CaptureWorldMutation() => Context.CaptureWorldMutation();
+
+        // 差分の適用先は既存辞書を保持する
+        // Apply deltas without replacing the existing dictionary
+        internal void RemoveConnection(TTarget target) => _connectedTargets.Remove(target);
+        internal void SetConnection(TTarget target, ConnectedInfo connection)
         {
-            validSelfConnector = null;
-            validTargetConnector = null;
-
-            // 形状互換表とドメイン判定の両方を通る候補を探す
-            // Find a candidate that passes both the shape table and domain judge
-            foreach (var candidate in CollectPositionMatchedCandidates())
+            if (IsDestroy)
             {
-                if (!MasterHolder.BlockMaster.CanConnectConnectorShapes(candidate.selfConnector?.ShapeGuid, candidate.targetConnector?.ShapeGuid)) continue;
-
-                var judgeContext = new ConnectJudgeContext(candidate.selfConnector, candidate.targetConnector, selfPositionInfo, targetPositionInfo);
-                if (!Judge.CanConnect(judgeContext)) continue;
-
-                validSelfConnector = candidate.selfConnector;
-                validTargetConnector = candidate.targetConnector;
-                return true;
+                Debug.LogError("Cannot connect a destroyed source component.");
+                return;
             }
-
-            return false;
-
-            #region Internal
-
-            List<(IBlockConnector selfConnector, IBlockConnector targetConnector)> CollectPositionMatchedCandidates()
-            {
-                var candidates = new List<(IBlockConnector selfConnector, IBlockConnector targetConnector)>();
-
-                // 方向無制限入力では自側コネクタだけを確定する
-                // For unrestricted input, resolve only the source connector
-                if (targetAcceptedCells == null)
-                {
-                    candidates.Add((outputConnector.connector, null));
-                    return candidates;
-                }
-
-                // 同じ位置にある全ての候補ペアを評価対象に残す
-                // Keep every candidate pair at the same connector position
-                foreach (var target in targetAcceptedCells)
-                {
-                    if (target.position != outputConnector.position) continue;
-                    candidates.Add((outputConnector.connector, target.connector));
-                }
-
-                return candidates;
-            }
-
-            #endregion
+            _connectedTargets[target] = connection;
         }
 
         private void OnRemoveBlock(BlockRemoveProperties updateProperties)
