@@ -156,3 +156,5 @@ partialは禁止。如何なる条件でもpartialを絶対に使ってはいけ
 treeにログを残すためにマージは通常のマージコミットを使うSquash and mergeは使用しない
 本repoはbd(Beads)でタスク・設計検討・学びを管理する。使い方と概況はセッション開始時にhookが注入する（詳細ワークフローは`.agents/skills/beads/SKILL.md`）。派生発見は`--parent`や`bd dep`で系譜を残す
 ハーネス内蔵のタスクリストは当該ターンの実行チェックリスト用途に限る
+
+@CLAUDE.local.macmini.md
