@@ -53,6 +53,15 @@ namespace Tests.UnitTest.Game.BeltConnection
                 Assert.IsTrue(BeltInventoryConnectionContext.TryGetContext(vertical, out var context));
                 Assert.AreEqual(0, context.Edges.Count);
                 Assert.AreEqual(0, BeltEdgeTestWorld.Connector(vertical).ConnectedTargets.Count, "Vertical belt must not connect to itself or another belt.");
+                // 空edgeで絞り込む前に全sourceの実辞書を検査する
+                // Inspect every source dictionary before filtering by physical edges
+                foreach (var slot in BeltEdgeTestWorld.Slots)
+                {
+                    var block = world.World.GetBlock(world.Position(slot));
+                    if (block == null) continue;
+                    Assert.IsFalse(BeltEdgeTestWorld.Connector(block).ConnectedTargets.Values.Any(info => ReferenceEquals(info.TargetBlock, vertical)),
+                        $"{slot} must not have an incoming connection to the vertical belt.");
+                }
                 world.AssertEdges(expected, "vertical upper candidate excluded");
 
                 // 除外した上側の撤去でも既存接続は維持する

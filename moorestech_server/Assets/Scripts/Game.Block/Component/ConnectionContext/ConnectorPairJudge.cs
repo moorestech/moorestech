@@ -9,6 +9,8 @@ namespace Game.Block.Component.ConnectionContext
 {
     internal static class ConnectorPairJudge<TConnectJudge> where TConnectJudge : IConnectorConnectJudge, new()
     {
+        // ドメイン固有の追加接続判定（型パラメータで束縛され、両側ブロックで同一が保証される）
+        // Domain-specific extra judge (bound by type parameter, guaranteed identical on both sides)
         private static readonly TConnectJudge Judge = new();
         /// <summary>
         ///     2ブロックのコネクタ定義から、実際に噛み合うセル対を1組だけ解く。サーバーの実接続とクライアントのプレビューが同じ規則で解くための正本
