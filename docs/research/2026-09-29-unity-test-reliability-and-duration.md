@@ -75,6 +75,8 @@
 3. **ワールド準備を再利用する。** 地形生成自体を検証しない反復プレイは既存の `PLAYTEST_WORLD_DIRECTORY`・`PLAYTEST_MAP_MODE`・`PLAYTEST_SEED` で同じ world と terrain visual cache を使う。地形生成・初回起動・セーブ移行が検証対象なら新規 world で測る。複数の UI 操作や assertion は状態のつながった一つのシナリオにまとめ、不要な Stop→Play 回数を減らす。
 4. **安全性を守って比較する。** PlayMode 間でゲーム状態を持ち越すと既知の NRE と沈黙 timeout が起きるため、独立したシナリオの前の Stop は維持する。Domain Reload を一律無効にする案は mod と static の初期化を変えうるので、速さだけで採用しない。まず上記の固定費削減でどれだけ短くなるか測る。
 
+現設定 `moorestech_client/ProjectSettings/EditorSettings.asset` は `m_EnterPlayModeOptionsEnabled: 1`、`m_EnterPlayModeOptions: 0` で、Unity 6 の [EnterPlayModeOptions.None](https://docs.unity3d.com/ja/current/ScriptReference/EnterPlayModeOptions.None.html) に当たる。つまり Domain と Scene の両方を再読み込みしている。Unity 標準の [DisableDomainReload](https://docs.unity3d.com/ja/current/ScriptReference/EnterPlayModeOptions.DisableDomainReload.html)／DisableSceneReload は具体的な高速化候補。ただし録画テスト入口 `PlaytestBoot.HookAfterDomainReload()` は Domain Reload 後の購読復元に依存するため、設定を全体へそのまま適用すると `ready.marker` が出ない故障が起こりうる。手動 Play と録画フローを別々に検証し、既存初期化の修正を含めて比較する。**いま使える短縮法**は、同じワールドを調べ続ける間は PlayMode を維持して Pause／Resume し、録画シナリオの再起動が必要なら固定 world の cache hit を使うこと。C# 編集後のコンパイルや独立したシナリオの初期状態確認には新しい Play が必要。
+
 ## 制約
 
 この調査で Unity Editor を新規起動して再現実験は行っていない。多数の CI 実行の観測調査であり、個別のハング機構を再現で確定したものではない。GitHub Actions の `cancelled` 14 件には PR 更新による正常な旧実行キャンセルが混ざるため失敗率の分母から除外した。09-26 以降の改善は修正後の観測として有力だが、PR 内容・実行負荷も変わっており、因果効果を単独で証明する比較実験ではない。ローカルテストプレイの短縮量は計画段階であり、上の 5〜10 回比較で初めて見積もれる。
