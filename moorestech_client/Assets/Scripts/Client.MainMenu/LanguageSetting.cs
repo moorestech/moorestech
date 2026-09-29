@@ -1,27 +1,36 @@
 ﻿using Client.Localization;
 using TMPro;
+using UniRx;
 using UnityEngine;
 
 namespace Client.MainMenu
 {
+    // 母国語表記で並べ、別経路の言語変更にも追従する
+    // List native names and follow language changes made elsewhere
     public class LanguageSetting : MonoBehaviour
     {
         [SerializeField] private TMP_Dropdown tmpDropdown;
-        
+
         private void Start()
         {
             tmpDropdown.ClearOptions();
-            var languageCodes = Localize.GetLanguageCodes();
-            tmpDropdown.AddOptions(languageCodes);
-            tmpDropdown.value = languageCodes.IndexOf(Localize.GetCurrentLanguageCode());
+            tmpDropdown.AddOptions(LanguageSelection.GetDisplayNames());
+            ShowCurrentLanguage();
             tmpDropdown.onValueChanged.AddListener(OnValueChanged);
+
+            // 他のUI・起動時適用に追従
+            // Follow the other dropdown and startup language application
+            Localize.OnLanguageChanged.Subscribe(_ => ShowCurrentLanguage()).AddTo(this);
         }
-        
+
+        private void ShowCurrentLanguage()
+        {
+            tmpDropdown.SetValueWithoutNotify(LanguageSelection.GetCurrentIndex());
+        }
+
         private void OnValueChanged(int index)
         {
-            // 選択肢は選択可能な言語だけなので可否の戻り値は捨ててよい
-            // Options contain only selectable languages, so the result can be discarded
-            Localize.TrySetLanguage(Localize.GetLanguageCodes()[index]);
+            LanguageSelection.TrySetByIndex(index);
         }
     }
 }

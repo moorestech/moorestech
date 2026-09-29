@@ -6,7 +6,7 @@ namespace Client.Localization
     // Fills a dictionary template's {p0} placeholders
     internal static class LocalizationTextInterpolator
     {
-        public static string Interpolate(string template, IReadOnlyList<string> textParams)
+        internal static string Interpolate(string template, IReadOnlyList<string> textParams)
         {
             var text = template;
             for (var index = 0; index < textParams.Count; index++)

@@ -20,13 +20,13 @@ internal static class LanguageCatalogCodeEmitter
         builder.AppendLine("    {");
         builder.AppendLine("        public readonly string Code;");
         builder.AppendLine("        public readonly string DisplayName;");
-        builder.AppendLine("        public readonly string SteamApiLangCode;");
+        builder.AppendLine("        public readonly IReadOnlyList<string> SteamLanguages;");
         builder.AppendLine();
-        builder.AppendLine("        public LanguageInfo(string code, string displayName, string steamApiLangCode)");
+        builder.AppendLine("        public LanguageInfo(string code, string displayName, string[] steamLanguages)");
         builder.AppendLine("        {");
         builder.AppendLine("            Code = code;");
         builder.AppendLine("            DisplayName = displayName;");
-        builder.AppendLine("            SteamApiLangCode = steamApiLangCode;");
+        builder.AppendLine("            SteamLanguages = System.Array.AsReadOnly(steamLanguages);");
         builder.AppendLine("        }");
         builder.AppendLine("    }");
         builder.AppendLine();
@@ -36,8 +36,9 @@ internal static class LanguageCatalogCodeEmitter
         builder.AppendLine("        {");
         foreach (var setting in settings)
         {
+            var steamLanguages = string.Join(", ", Array.ConvertAll(setting.SteamLanguages, language => $"\"{LocalizationCodeSyntax.Escape(language)}\""));
             builder.AppendLine(
-                $"            new LanguageInfo(\"{LocalizationCodeSyntax.Escape(setting.Code)}\", \"{LocalizationCodeSyntax.Escape(setting.DisplayName)}\", \"{LocalizationCodeSyntax.Escape(setting.SteamApiLangCode)}\"),");
+                $"            new LanguageInfo(\"{LocalizationCodeSyntax.Escape(setting.Code)}\", \"{LocalizationCodeSyntax.Escape(setting.DisplayName)}\", new string[] {{ {steamLanguages} }}),");
         }
 
         builder.AppendLine("        };");

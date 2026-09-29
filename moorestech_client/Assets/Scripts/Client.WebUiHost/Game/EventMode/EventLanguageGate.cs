@@ -39,7 +39,7 @@ namespace Client.WebUiHost.Game.EventMode
         internal EventLanguageSelectionResult TrySelectLanguage(string languageCode)
         {
             if (!IsWaitingSelection) return EventLanguageSelectionResult.AlreadySelected;
-            if (!Localize.TrySetLanguage(languageCode)) return EventLanguageSelectionResult.UnknownLanguage;
+            if (!Localize.TrySetChosenLanguage(languageCode)) return EventLanguageSelectionResult.UnknownLanguage;
 
             IsWaitingSelection = false;
             _onWaitingChanged.OnNext(Unit.Default);
