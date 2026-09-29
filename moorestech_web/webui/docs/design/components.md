@@ -1,9 +1,9 @@
-# Web UI コンポーネント別仕様（webui-design §8）
+# Web UI コンポーネント別仕様（ref-webui-design §8）
 
-`.agents/skills/webui-design/SKILL.md` の §8 を移設したもの。節番号は SKILL・ADR・.decisions・e2e・CSS コメントからの参照を保つため元のまま維持する。
+`.agents/skills/ref-webui-design/SKILL.md` の §8 を移設したもの。節番号は SKILL・ADR・.decisions・e2e・CSS コメントからの参照を保つため元のまま維持する。
 SKILL の大原則（ホワイトリスト）はこの文書にも及ぶ。既存コンポーネントを触る・同種を新設するときは該当節を読み、ここに無い表現は先にこの文書を更新して裁定を取る。
 
-This is §8 of the webui-design skill, moved out of the skill. Section numbers are kept so existing references from the skill, ADRs, .decisions, e2e and CSS comments still resolve.
+This is §8 of the ref-webui-design skill, moved out of the skill. Section numbers are kept so existing references from the skill, ADRs, .decisions, e2e and CSS comments still resolve.
 The skill's whitelist principle covers this document too: read the relevant section before touching or adding a component, and update this document (with a ruling) before introducing anything not written here.
 
 ## 8. 通知・情報表示

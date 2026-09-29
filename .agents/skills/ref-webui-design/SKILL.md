@@ -1,5 +1,5 @@
 ---
-name: webui-design
+name: ref-webui-design
 description: |
   moorestech Web UI（moorestech_web/webui）のデザイン哲学。見た目・構造のホワイトリスト。
   Use when: 1.moorestech_web/webui配下のコードを読む・書く・レビューする時 2.新しいパネル・モーダル・HUD・コンポーネントを追加する時

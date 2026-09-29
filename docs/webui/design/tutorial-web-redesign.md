@@ -293,6 +293,6 @@ DOM方式、C2統合、ワールド空間系のUnity残置は技術的に決定�
 - **座標の正は Unity。** `WorldPinScreenProjection`（`Client.Game/InGame/Tutorial/Presentation/`）が `Camera.WorldToViewportPoint` とカメラローカル軸投影（HudArrow と同じ手法）でワールド座標を「正規化スクリーン座標（0..1、左上原点）+ 画面内外 + 画面中心からの方向ベクトル（CSS軸、+Y下）」へ毎フレーム射影する。
 - `WorldPinStateStore` が射影結果を保持し、ε（0.002）未満の揺れを配信抑制したうえで `tutorial.world_pins` topic（`WorldPinTopic`）から revision 付き完全 snapshot を配信する。
 - 最寄り MapObject 探索・カメラ追従などワールド探索はこれまで通り Unity（`MapObjectPin`）が担い、Web モードでは 3D 表示（TMP ピン・uGUI HudArrow）を抑止して射影値だけを push する。
-- Web 側は `features/tutorial/WorldPinOverlay` が受信値を描くだけで 3D 射影の知識を持たない。画面内は下向きマーカー+ラベル、画面外は `--world-pin-edge-margin` 固定長で画面端へクランプした方向シェブロンを描く（様式は webui-design §8.8）。
+- Web 側は `features/tutorial/WorldPinOverlay` が受信値を描くだけで 3D 射影の知識を持たない。画面内は下向きマーカー+ラベル、画面外は `--world-pin-edge-margin` 固定長で画面端へクランプした方向シェブロンを描く（様式は ref-webui-design §8.8）。
 - DOM ハイライトの anchor/ack モデルと異なり、ピンは DOM 対象を持たないため ack は無い。チュートリアル lifecycle（Apply/Complete）との整合ルールは §3.4 のまま適用する。
 - 検証: C#/TS 共有の WireFixture（`world_pins.json`）と Playwright（`e2e/tests/system/worldPin.spec.ts`: 画面内座標一致・追従・画面端クランプ・斜めクランプ・消灯）。
