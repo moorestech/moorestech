@@ -122,7 +122,7 @@ apply向けpollerはidle検知を行わない（session/subagentsのtranscript�
 
 対象findingが1件以上ある場合のみ実行する（Step 2で0件なら本Stepはスキップ）。
 
-PR headへcheckoutする前に、今回実行するスキル正本のコミットSHAを記録し、必要なスクリプトと参照ファイル一式をcheckout対象とは別の固定SHAの場所へ確保する。古いPRではスロット内のスキルが消失・旧版化するため、以後の実行パスはその固定場所の絶対パスを使い、処理対象repoには `$REPO` を明示する。同じスロット内を指す絶対パスだけではcheckoutによる消失を防げない。
+PR headへのcheckout前にスキル正本SHAを記録し、必要なスクリプト・参照ファイルをcheckout対象外の固定SHAへ確保。以後その絶対パスを使い、対象repoを `$REPO` で明示。
 
 1. **前回の残骸を無条件に破棄する**。ここはapply専用worktreeであり、他セッションの作業物は存在しない
    （前回applyの未pushな変更・Unityが書いた痕跡しか残らず、どちらも残す価値がない。メインクローンで
@@ -225,7 +225,7 @@ subagentの報告（コンフリクトなし／解消済み／解消不能）へ
 - 全commit後、PRブランチへpushする: `git -C <$REPOの実値> push origin HEAD:<headRefName>`。
   **push先は常にPRのheadRefName**。`git push origin HEAD:master` 等のmasterへの直接pushは禁止
 - pushした各commitのSHAとsubjectを控えておく（Step 7の `pushed_commits` に使う）
-- pushがnon-fast-forwardで拒否された場合は、PRの最新headをfetchし、作業開始後に追加されたコミットを確認する。PRが引き続きOPENで同じheadブランチを指していることを確認してから、リモートheadを作業HEADへマージする。masterとの衝突確認だけでは、この競合は防げない。マージ後は変更に応じてStep 5の検証を再実行して通常pushする。強制pushでリモートの追加コミットを消さない。追加変更が裁定と矛盾する場合は、理由を記録して失敗終了する。
+- pushがnon-fast-forwardなら最新PR headをfetch。追加コミットとPRのOPEN・headブランチを確認し、リモートheadをマージ→Step 5再検証→通常push。強制push禁止。裁定と矛盾すれば理由を記録して失敗終了。
 
 ## Step 7: 出力
 

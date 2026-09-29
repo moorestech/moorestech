@@ -68,7 +68,7 @@ Playwright スクリプトで次を出力する:
 - `getComputedStyle()` … 実際に効いている値（トークンの解決結果）
 - `dataset.state` / `display` … Mantineの内部状態（スクロールバー等）
 
-JSが `getComputedStyle(...).getPropertyValue(...)` と `parseFloat` で読む寸法トークンは、単一のpx値に保つ。カスタムプロパティの `calc(...)` はこの読み方では数値に評価されず、NaNになる。式へ変更する前に読取側を検索し、必要なら単一px値のトークンへ分けてJS側で合成する。現行の `labelGapToken.ts` と `highlightGlowToken.ts` もこの制約を持つ。
+`getComputedStyle(...).getPropertyValue(...)`＋`parseFloat` で読む寸法トークンは単一px値。`calc(...)` 化前に読取側を探し、必要ならpxトークンを分けてJSで合成。`labelGapToken.ts`／`highlightGlowToken.ts` も対象。
 
 原因候補が複数あるときは **ablation** で切る。要素を1つずつ `display:none` にする／変数を1つずつ変える／値を0.1px刻みでスイープして、症状が消える点を見つける。
 
@@ -89,15 +89,15 @@ JSが `getComputedStyle(...).getPropertyValue(...)` と `parseFloat` で読む�
 `pnpm lint` / `pnpm test` / `pnpm test:e2e` を通し、§10 の目視QAチェック項目を実施する。
 **挙動を固定していた既存 e2e があれば、裁定に合わせて反転させる**（古い assertion を残したまま実装だけ変えない）。
 
-- 英語の表示文言を期待するe2eでは、各テストで `setTopicScenario(page, "english")` によりロケールを明示する。mock-host の localization topic の既定値は `japanese`。文言不一致で落ちたら、ポートや接続を疑う前にロケールの設定と反映を確認する。
-- ScrollAreaの「件数が増えても表示領域の高さが変わらない」を検証するときは、固定高パネルのboundingBoxではなく、実際のScrollArea視口の `clientHeight` を増加前後で比較する。併せて `scrollHeight - clientHeight` が非溢れから溢れへ変わることを確認する。前例は `e2e/support/layoutAssertions.ts` の `expectScrollsOnlyWhenOverflowing`。外枠の固定高だけを測って内部視口の潰れを見逃さない。
-- Playwrightで遷移後の可視性・opacityを検証するときは、`toBeVisible`・`toHaveCSS`等の自動リトライmatcherを使う。`evaluate`で採った瞬間値への単発`toBe`は、アニメーション途中を拾って偽陰性になる。トークンに追従する寸法の関係を検証するときは、期待するpx値を複製せず、`getComputedStyle()`で解決済みの寸法・間隔を取得して実測矩形と比較する。固定値そのものが仕様の場合は、その値の検証を別に保つ。
-- topic到着を契機に初期選択・中央寄せなどを一度だけ行うUIでは、完成した状態だけをfixtureにしない。サーバー状態が未着の初回payloadを先に配信し、その後に有効な状態を配信する順序を再現する。初回payloadの受信と必要データの準備完了を区別し、未着状態で一度きりの初期化を消費しないことを確認する。
-- 受信スキーマにZodの`transform`を追加・変更した場合は、変換前のwire payloadを`deliverTopicPayload`へ渡し、ストアに変換後の値が入ることを入口テストで確認する。スキーマ単体の成功や、変換後の値をストアへ直接渡すテストだけでは、検証後に生payloadを格納する誤りを検出できない。
+- 英語文言を期待するe2eは各テストで `setTopicScenario(page, "english")` を指定。不一致時はロケール設定・反映を先に確認。mock-host既定は `japanese`。
+- ScrollAreaの高さ不変は件数増加前後の視口 `clientHeight` で比較し、`scrollHeight - clientHeight` の非溢れ→溢れも確認。前例: `e2e/support/layoutAssertions.ts` の `expectScrollsOnlyWhenOverflowing`。
+- Playwrightの遷移後の可視性・opacityは `toBeVisible`・`toHaveCSS` で検証。トークン連動の寸法は `getComputedStyle()` の解決値と実測矩形を比較。固定値が仕様なら別途検証。
+- topic到着時に一度だけ初期選択・中央寄せするUIは、未着の初回payload→有効状態をfixtureで再現。未着時に初期化を消費しないか確認。
+- 受信Zodスキーマの`transform`追加・変更時は変換前のwire payloadを`deliverTopicPayload`へ渡し、変換後の値がストアに入る入口テストを行う。
 
 ### 0.6 後片付け
 
-起動時に tunnel・vite・mock-host のPIDまたは実行セッションIDを控える。終了時は自分が起動したプロセスであることを確認し、そのプロセスだけを停止する。サービス名による `pkill -f` は別セッションや本番の同名プロセスを巻き込むため使わない。検証をsubagentへ委譲する場合も、この停止対象の制約を渡す。停止後、`moores-wt rm` で worktree を削除する。
+起動時に tunnel・vite・mock-host のPID／セッションIDを記録。終了時は所有を確認して自分の分だけ停止。`pkill -f` 禁止。subagentにも伝え、停止後に `moores-wt rm`。
 
 ---
 
@@ -128,7 +128,7 @@ JSが `getComputedStyle(...).getPropertyValue(...)` と `parseFloat` で読む�
 - **`.viewportOverlay` は `pointer-events: none`。** 配下へ置く操作可能要素（ホットバーのスロット列・装備HUD）は `pointer-events: auto` を明示する。忘れると操作が死ぬ。
 - **第三の所属として背面viewport族がある**（ADR 0017）。`.viewport` 直下・`.stage` の裏（`--z-viewport-behind-stage`）に置く。stage族でもviewport族でもなく、`--ui-scale` は自前で掛ける（通知は掛けている・§8）。現状の唯一の利用者は通知（§8）。
 - 基準解像度1280×720では stage と viewport が一致するため、族の移動だけでは描画結果が変わらない。
-- `--ui-scale` を掛ける層を新設・移動するときは、Portal先も含め、配下が参照する寸法トークンの `vw` / `vh` を検索する。これらは実viewportですでに拡大した長さへさらにscaleが掛かるため、内容寸法にはstage座標の固定長を使う。1280×720だけでなく異なる解像度でも実寸を測る。現行の `tokens.css` の `--notification-width: 256px` が前例。
+- `--ui-scale` 適用層の新設・移動時はPortal先も含め `vw` / `vh` を検索。内容寸法はstage座標の固定長を使い、1280×720以外でも実測。前例: `tokens.css` の `--notification-width: 256px`。
 
 ## 2. パネル — GamePanel を使い回す
 
@@ -212,7 +212,7 @@ JSが `getComputedStyle(...).getPropertyValue(...)` と `parseFloat` で読む�
   5. シアンの下向きシェブロン=送り待ちマーカー（uGUI `nav_arrow.png` 由来。**スキット会話窓限定**・§8.12。光彩は付けない）
   6. 黄黒の斜線警告帯（uGUI `delete bar.png` 由来。**削除モードの画面上下端限定**・§8.15。画像は移植せずCSS反復グラデーションで再現する）
 - 新しい装飾モチーフ（光彩、パーティクル、角丸カード、ドロップシャドウの多用等）を増やさない。
-- ハイライトのクリップは `shared/tutorialAnchor/ancestorClip.ts` の `clipPathInset` を前例にする。`inset(0px)` でもborder box外のグローは切れるため、クリップ不要な辺には実際のグロー幅に対応する負のinsetを残す。実測テストでcomputed `clip-path`を読む場合は、CSS短縮形の1〜4値を展開する（前例: `e2e/tests/system/tutorialHighlightClip.spec.ts`）。4値固定の正規表現で判定しない。
+- ハイライトのクリップは `shared/tutorialAnchor/ancestorClip.ts` の `clipPathInset` に従い、不要な辺にグロー幅分の負のinsetを残す。computed `clip-path` は1〜4値を展開して実測（`e2e/tests/system/tutorialHighlightClip.spec.ts`）。
 - 装飾アニメーションは基本入れない。トランジションを入れる場合もe2eが同期検証できること（モーダルは duration 0）。
   - **例外は通知の出入り（§8）と、チュートリアル誘導の脈動（§8.8/§8.17/§8.19・ADR 0039）**。通知は入場＝左から `--notification-shift` のスライド＋フェード、退場＝その逆再生で、色相・形・光彩は動かさない。
   - アニメーションを足す場合、テスト時に尺をゼロへ落とす抜け道は作らない（実挙動と乖離するため）。計算値の `animation-name` はCSS Modulesがハッシュ化するので、e2eでは部分一致で照合する。

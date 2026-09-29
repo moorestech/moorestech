@@ -109,8 +109,8 @@ namespace Tests.CombinedTest.{Layer}
 ### 2. 必須ルール
 
 - **テスト用IDは `ForUnitTestModBlockId` / `ForUnitTestItemId` から取得** - マジックナンバー禁止
-- **書き込み・展開する一時ディレクトリはテスト実行ごとに分離する**。コミットSHAや固定名だけでは別worktreeの並行テストと共有されるため、`Path.GetTempPath()` 配下に `Guid.NewGuid()` を含むディレクトリを作り、そのパスを保持して終了時に自分の分だけ削除する。ディレクトリの存在だけを展開完了の証拠にしない。サーバー側の前例は `Tests/UnitTest/Mod/ModGetConfigStringTest.cs`。
-- **生成IDのログを正規表現で検証するときは負数を許す**。`BlockInstanceId.Create()` は `GameRandom.NextInt()` の符号付きintを使う。生成IDは `-?\d+` で照合し、マスタのBlockIdとブロック実体のBlockInstanceIdを混同しない。
+- **一時ディレクトリは実行ごとに分離**。`Path.GetTempPath()` 配下に `Guid.NewGuid()` で作り、終了時に自分の分だけ削除。固定名・コミットSHA禁止。存在だけで展開完了とみなさない。前例: `Tests/UnitTest/Mod/ModGetConfigStringTest.cs`。
+- **生成IDのログ検証は負数を許す**。`BlockInstanceId.Create()` の生成IDは負数もあり得るため `-?\d+` で照合。マスタのBlockIdとBlockInstanceIdを区別。
 - **コメントは日英2行セット** で記述
 - **try-catch禁止** - 条件分岐で対応
 - **デフォルト引数禁止** - 呼び出し側を変更

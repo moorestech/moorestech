@@ -41,7 +41,7 @@ Workflow の返り値を報告へ転記する前に、`systems.planned` が `che
 
 1回のレビューが作る生成物（patch・context・codex監査プロンプト3本・check_all出力・chunks・最終diff・最終detchecks）は
 **すべて** `$LOGS/harness/moores-code-review/runs/<ts>/` 配下に置く。以下これを `$RUNDIR` と呼ぶ
-（`$LOGS` は記録repo `../moorestech_logs`。`<ts>` は `YYYY-MM-DD-HHMM-<ブランチslug>-<UUID>` とし、レビュー実行ごとに新規採番する。同じ分・同じブランチの並行レビューでも共有しない。既存ディレクトリを再利用するのは、同じレビューの中断復旧時だけ。）
+（`$LOGS`＝`../moorestech_logs`。`<ts>`＝レビューごとに新規 `YYYY-MM-DD-HHMM-<ブランチslug>-<UUID>`。既存ディレクトリ再利用は同一レビューの中断復旧時のみ。）
 
     mkdir -p <$RUNDIRの実値>
 
@@ -92,7 +92,7 @@ Workflow の返り値を報告へ転記する前に、`systems.planned` が `che
 
    report-only（pr-independent-review）では `--report-only --detchecks <detchecks.json>` を足す。
 
-   `build_workflow_args.py` は `--run-dir` 配下の `workflow-args.json` を自身で書き、標準出力には生成先パスだけを返す。同じファイルへ `> workflow-args.json` でリダイレクトするとJSONが壊れるため、リダイレクトせず実行する。正常終了後、生成されたファイルのJSONをWorkflowの `args` に渡す。
+   `build_workflow_args.py` は `--run-dir` に `workflow-args.json` を生成。`> workflow-args.json` 禁止。正常終了後、JSONをWorkflowの `args` へ渡す。
 
 ## Step 3.5〜6.5: Workflow で実行
 

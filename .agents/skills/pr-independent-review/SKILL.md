@@ -223,7 +223,7 @@ Step 10 の付与条件を確認する。
     python3 <$CANONの実値>/.agents/skills/pr-independent-review/scripts/make_patch.py \
       --prwt <$PRWTの実値> --origin <$ORIGINの実値> --pr <番号> --base-ref <BASE_REF> --out <$RUNDIRの実値>/patch.diff
 
-production APIのシグネチャ・引数の意味・前提条件を変更するPRでは、patch生成後に変更APIの呼び出し元を除外域も含めて検索する。特に`unity-playmode-recorded-playtest`配下の`.cs`はpatchから除外されるため、追従漏れを別途確認する。この確認は呼び出しの互換性・挙動だけを対象とし、除外されたシナリオへプロダクトコードの規約レビューを再適用しない。
+production APIのシグネチャ・引数・前提条件を変えるPRは、patch生成後に除外域も含め呼び出し元を検索。特に`unity-playmode-recorded-playtest`配下の`.cs`。除外域は互換性・挙動だけ確認。
 
 スクリプトが固定フラグ（`-c core.quotepath=false --no-color --no-ext-diff --no-textconv --text --no-renames`。ユーザー側git設定が
 patchを静かに痩せさせないため）と固定の除外（Unityアセット・画像・プレイテストシナリオの `.cs`。yml/jsonは残す。
