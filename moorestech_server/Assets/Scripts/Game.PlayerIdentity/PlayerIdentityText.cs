@@ -1,4 +1,6 @@
 using System;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Game.PlayerIdentity
 {
@@ -10,6 +12,15 @@ namespace Game.PlayerIdentity
         public const string DevicePrefix = "device:";
         private const int MaxSteamIdDigits = 20;
         private const int DeviceHashLength = 64;
+
+        // 端末身元の作り方の正本。生の端末識別子をサーバーやセーブへ出さないためハッシュ化する
+        // The single source for building a device identity; hashed so the raw device identifier never reaches a server or a save
+        public static string ForDevice(string deviceUniqueIdentifier)
+        {
+            using var sha = SHA256.Create();
+            var hash = sha.ComputeHash(Encoding.UTF8.GetBytes(deviceUniqueIdentifier));
+            return DevicePrefix + BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
+        }
 
         public static bool IsValid(string identity, out string reason)
         {

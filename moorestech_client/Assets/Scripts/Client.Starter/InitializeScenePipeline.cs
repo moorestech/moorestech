@@ -91,6 +91,15 @@ namespace Client.Starter
             loadingStopwatch.Start();
             var loadingProgressLog = new LoadingProgressLog(loadingLog, loadingStopwatch);
 
+            // 身元が決まらなければアセットも読まずに拒否を出す。身元解決の呼び出し口はここ1つ
+            // Refuse before loading any asset when the identity cannot be resolved; this is the only call site that resolves it
+            var identity = LocalPlayerIdentityResolver.ResolveForThisProcess();
+            if (identity.Refusal.HasValue)
+            {
+                await InitializationFailurePresenter.ShowRefusalAsync(identity.Refusal.Value, loadingProgressLog, exitToken);
+                return;
+            }
+
             // Addressablesを初期化する
             // Initialize Addressables
             var initializeHandle = Addressables.InitializeAsync();
@@ -110,11 +119,10 @@ namespace Client.Starter
 
             // サーバー接続とアセットロードを並列実行し結果を受け取る
             // Run server connection and asset load in parallel and collect results
-            var serverInitializer = new ServerConnectionInitializer(_proprieties, loadingProgressLog, exitToken);
+            var serverInitializer = new ServerConnectionInitializer(_proprieties, loadingProgressLog, identity.Identity, exitToken);
             var modAssetLoader = new ModAssetLoader(serverDirectory, missingBlockIdObject, blockIconImagePhotographer, trainCarIconTargets, loadingProgressLog);
 
             ServerConnectionResult serverResult;
-            Client.Network.API.Identity.PlayerStartRefusal? pendingRefusal = null;
             ModAssetLoadResult assetResult;
             // 辞書・通信・読込の外部境界を隔離する
             // Isolate the external boundaries for mod dictionaries, communication, and asset loading
@@ -128,12 +136,7 @@ namespace Client.Starter
                 // 失敗をログとUIへ出し、文言を読ませてからメインメニューへ戻す
                 // Log the failure, surface it in the UI, and return to the main menu after the message is readable
                 Debug.LogError($"初期化処理中にエラーが発生しました: {e.GetType()} {e.Message}\n{e.StackTrace}");
-                if (pendingRefusal.HasValue)
-                {
-                    await InitializationFailurePresenter.ShowRefusalAsync(pendingRefusal.Value, loadingProgressLog);
-                    return;
-                }
-                await InitializationFailurePresenter.ShowInitializationFailedAsync(loadingProgressLog);
+                await InitializationFailurePresenter.ShowInitializationFailedAsync(loadingProgressLog, exitToken);
                 return;
             }
 
@@ -141,7 +144,7 @@ namespace Client.Starter
             // Surface an expected refusal after assets finish, before any context uses the absent connection
             if (serverResult.Refusal.HasValue)
             {
-                await InitializationFailurePresenter.ShowRefusalAsync(serverResult.Refusal.Value, loadingProgressLog);
+                await InitializationFailurePresenter.ShowRefusalAsync(serverResult.Refusal.Value, loadingProgressLog, exitToken);
                 return;
             }
 
@@ -167,11 +170,10 @@ namespace Client.Starter
             async UniTask<ServerConnectionResult> ConnectServerThenFetchTerrainAsync()
             {
                 var connectionResult = await serverInitializer.RunAsync();
-                if (connectionResult.Refusal.HasValue)
-                {
-                    pendingRefusal = connectionResult.Refusal;
-                    return connectionResult;
-                }
+
+                // 拒否は結果そのものが運ぶ。外側の変数へ写すと真実が2つになる
+                // The refusal travels in the result itself; copying it into an outer variable would create a second truth
+                if (connectionResult.Refusal.HasValue) return connectionResult;
                 var fetchedChunkCount = await new TerrainDataFetcher(connectionResult.VanillaApi.Response, exitToken).RunAsync(connectionResult.HandshakeResponse.MapLayout);
                 loadingProgressLog.AppendElapsed(LocalizationKeys.Ui.Loading.TerrainReady, fetchedChunkCount.ToString());
                 return connectionResult;

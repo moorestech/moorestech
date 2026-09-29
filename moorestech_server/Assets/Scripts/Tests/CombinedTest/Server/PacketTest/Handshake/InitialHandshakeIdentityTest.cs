@@ -94,9 +94,9 @@ namespace Tests.CombinedTest.Server.PacketTest.Handshake
             LogAssert.Expect(LogType.Warning, new Regex("接続中"));
             var second = Handshake(context, "steam:2");
 
-            // 付け替えを拒否し、切断時の解除対象も元のIDに保つ
-            // Reject rebinding and preserve the original id used by disconnect cleanup
-            Assert.AreEqual(HandshakeRejection.AlreadyConnected, second.Rejection);
+            // 付け替えを拒否し、切断時の解除対象も元のIDに保つ。別接続の競合とは別の理由コードで返す
+            // Reject rebinding and preserve the original id used by disconnect cleanup, with its own code apart from a rival connection
+            Assert.AreEqual(HandshakeRejection.AlreadyHandshaked, second.Rejection);
             Assert.AreEqual(first.Accepted.PlayerId, context.PlayerId);
             Assert.IsFalse(_provider.GetRequiredService<PlayerIdentityRegistry>().GetSaveJsonObject().Entries.Exists(entry => entry.Identity == "steam:2"));
         }

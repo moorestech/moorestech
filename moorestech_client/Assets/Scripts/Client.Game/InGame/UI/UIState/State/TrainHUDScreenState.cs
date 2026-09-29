@@ -34,7 +34,7 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly Subject<Unit> _onPresentationChanged = new();
         private int _lastBranchCandidateCount;
 
-        public bool IsRiding => _rideSession.RideContext != null && !_rideSession.IsDismountTrain;
+        public bool IsRiding => _rideSession.IsRiding;
         public NestedPauseSubStateEnum SubState => _subStateController.CurrentState;
         public int BranchCandidateCount => _branchRoutePreviewController.BranchCandidateCount;
         public int SelectedBranchIndex { get; private set; }
@@ -46,7 +46,7 @@ namespace Client.Game.InGame.UI.UIState.State
         {
             _playerStateController = playerStateController;
             _rideSession = new TrainHudRideSession(playerStateController);
-            _rideSession.OnChanged.Subscribe(_ => _onPresentationChanged.OnNext(Unit.Default));
+            _rideSession.OnRidingStateChanged.Subscribe(_ => _onPresentationChanged.OnNext(Unit.Default));
             _trainUnitClientCache = trainUnitClientCache;
             _subStateController = new NestedPauseSubStateController(new TrainHudGameScreenSubState(inGameCameraController), pauseMenuStateService);
             _subStateController.OnStateChanged.Subscribe(_ => _onPresentationChanged.OnNext(Unit.Default));
@@ -61,18 +61,18 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public UITransitContext GetNextUpdate()
         {
-            if (_rideSession.IsDismountTrain)
+            if (_rideSession.IsDismounted)
             {
                 return new UITransitContext(UIStateEnum.GameScreen);
             }
 
             // まだ乗車が完了していないのであれば何もしない
             // If riding is not yet completed, do nothing.
-            if (_rideSession.RideContext == null) return null;
+            if (!_rideSession.IsRiding) return null;
 
             // 対象車両が消えたら強制降車
             // Force dismount if the target car has disappeared.
-            if (!TryGetRidingTrainCarId(out var ridingTrainCarId) || !_trainUnitClientCache.TryGetCarSnapshot(ridingTrainCarId, out var ridingTrainUnit, out _, out _, out _))
+            if (!_rideSession.TryGetRidingTrainCarId(out var ridingTrainCarId) || !_trainUnitClientCache.TryGetCarSnapshot(ridingTrainCarId, out var ridingTrainUnit, out _, out _, out _))
             {
                 _rideSession.ForceDismount();
                 return new UITransitContext(UIStateEnum.GameScreen);
@@ -149,24 +149,6 @@ namespace Client.Game.InGame.UI.UIState.State
         public bool RequestClosePauseMenu()
         {
             return _subStateController.RequestClosePauseMenu();
-        }
-
-        private bool TryGetRidingTrainCarId(out TrainCarInstanceId trainCarInstanceId)
-        {
-            trainCarInstanceId = default;
-            if (_rideSession.RideContext == null || !_rideSession.RideContext.TryGetTarget(out var target))
-            {
-                return false;
-            }
-
-            // TrainHUD は TrainCar ridable だけを操作対象として扱う
-            // TrainHUD handles only TrainCar ridables as controllable targets
-            if (target.RidableType != RidableType.TrainCar)
-            {
-                return false;
-            }
-            trainCarInstanceId = new TrainCarInstanceId(target.TrainCarInstanceId);
-            return true;
         }
     }
 }

@@ -1,7 +1,6 @@
 using System.Threading;
 using Core.Item.Interface;
 using Cysharp.Threading.Tasks;
-using Mooresmaster.Localization.Generated;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Handshake;
 using UnityEngine;
@@ -24,17 +23,22 @@ namespace Client.Network.API.Identity
             var request = new InitialHandshakeProtocol.RequestInitialHandshakeMessagePack(playerIdentity);
             var initialHandShake = await packetExchangeManager.GetPacketResponse<InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack>(request, ct);
 
+            // タイムアウト・デシリアライズ失敗はnullで返る。そのまま参照すると起動が無言でNREで落ちる
+            // A timeout or a failed deserialization returns null; dereferencing it would drop the boot into a silent NRE
+            if (initialHandShake == null)
+            {
+                return Refuse("ハンドシェイク応答が届きませんでした（タイムアウトまたはデシリアライズ失敗）");
+            }
+
             // 拒否応答からは初期データ取得へ進まない
             // Do not fetch initial data after a rejected handshake
             if (initialHandShake.Rejection != HandshakeRejection.None)
             {
-                return new InitialHandshakeAttempt(null, CreateRefusal(initialHandShake.Rejection));
+                return InitialHandshakeAttempt.Refused(initialHandShake.Rejection, $"ハンドシェイクが拒否されました: {initialHandShake.Rejection}");
             }
             if (initialHandShake.Accepted == null)
             {
-                const string reason = "ハンドシェイクが成功を返しましたが受理データがありません";
-                Debug.LogError(reason);
-                return new InitialHandshakeAttempt(null, new PlayerStartRefusal(LocalizationKeys.Ui.Loading.HandshakeProtocolError, reason));
+                return Refuse("ハンドシェイクが成功を返しましたが受理データがありません");
             }
 
             // ハンドシェイクに同梱されたスタックレベルを先に適用（インベントリ等のItemStack生成前に上限を正すため）
@@ -56,27 +60,16 @@ namespace Client.Network.API.Identity
                 api.Progression.GetResearchNodeStates(ct),
                 api.World.GetMapData(ct));
 
-            return new InitialHandshakeAttempt(new InitialHandshakeResponse(initialHandShake, responses), null);
-        }
-
-        private static PlayerStartRefusal CreateRefusal(HandshakeRejection rejection)
-        {
-            var reason = $"ハンドシェイクが拒否されました: {rejection}";
-            var key = rejection switch
-            {
-                HandshakeRejection.AlreadyConnected => LocalizationKeys.Ui.Loading.PlayerAlreadyConnected,
-                HandshakeRejection.InvalidIdentity => LocalizationKeys.Ui.Loading.InitializationFailed,
-                HandshakeRejection.ConnectionClosed => LocalizationKeys.Ui.Loading.InitializationFailed,
-                _ => UnknownRejection(),
-            };
-            return new PlayerStartRefusal(key, reason);
+            return InitialHandshakeAttempt.Succeeded(new InitialHandshakeResponse(initialHandShake, responses));
 
             #region Internal
 
-            LocalizationKey UnknownRejection()
+            // 拒否コードを持たない不整合はNoneで返し、理由だけを上位へ渡す
+            // A mismatch with no rejection code returns None and hands only the reason upstairs
+            InitialHandshakeAttempt Refuse(string reason)
             {
-                Debug.LogError($"未知のハンドシェイク拒否コードを受信しました: {(int)rejection}");
-                return LocalizationKeys.Ui.Loading.HandshakeProtocolError;
+                Debug.LogError(reason);
+                return InitialHandshakeAttempt.Refused(HandshakeRejection.None, reason);
             }
 
             #endregion

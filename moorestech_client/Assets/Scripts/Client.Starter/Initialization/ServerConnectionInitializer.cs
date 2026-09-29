@@ -4,10 +4,10 @@ using System.Threading.Tasks;
 using Client.Game.Common;
 using Client.Game.InGame.BugReport.LastSession;
 using Client.Network;
-using Client.Starter.Identity;
 using Client.Network.API;
 using Client.Network.API.Identity;
 using Client.Network.Settings;
+using Client.Starter.Initialization.Refusal;
 using Cysharp.Threading.Tasks;
 using Server.Boot;
 using Server.Boot.Args;
@@ -25,25 +25,21 @@ namespace Client.Starter.Initialization
     {
         private readonly InitializeProprieties _proprieties;
         private readonly LoadingProgressLog _loadingProgressLog;
+        private readonly string _playerIdentity;
         private readonly CancellationToken _exitToken;
 
-        public ServerConnectionInitializer(InitializeProprieties proprieties, LoadingProgressLog loadingProgressLog, CancellationToken exitToken)
+        // 身元は呼び出し側が先に確定させる。ここで再解決すると解決の呼び出し口が2つに割れる
+        // The caller resolves the identity first; resolving again here would split the resolution into two call sites
+        public ServerConnectionInitializer(InitializeProprieties proprieties, LoadingProgressLog loadingProgressLog, string playerIdentity, CancellationToken exitToken)
         {
             _proprieties = proprieties;
             _loadingProgressLog = loadingProgressLog;
+            _playerIdentity = playerIdentity;
             _exitToken = exitToken;
         }
 
         public async UniTask<ServerConnectionResult> RunAsync()
         {
-            // 身元が決まらなければ接続もサーバー起動もしない
-            // Resolve identity before connecting or starting the server
-            var identity = LocalPlayerIdentityResolver.ResolveForThisProcess();
-            if (identity.Refusal.HasValue)
-            {
-                return new ServerConnectionResult { Refusal = identity.Refusal };
-            }
-
             //サーバーとの接続を確立
             var serverCommunicator = await ConnectionToServer();
 
@@ -63,11 +59,11 @@ namespace Client.Starter.Initialization
 
             //最初に必要なデータを取得
             // Fetch the initial data bundle
-            var handshakeAttempt = await vanillaApi.Response.InitialHandShake(identity.Identity, _exitToken);
-            if (handshakeAttempt.Refusal.HasValue)
+            var handshakeAttempt = await vanillaApi.Response.InitialHandShake(_playerIdentity, _exitToken);
+            if (handshakeAttempt.IsRefused)
             {
                 serverCommunicator.Close();
-                return new ServerConnectionResult { Refusal = handshakeAttempt.Refusal };
+                return ServerConnectionResult.Refused(HandshakeRejectionDisplay.ToRefusal(handshakeAttempt));
             }
             var handshakeResponse = handshakeAttempt.Response;
 
@@ -77,7 +73,7 @@ namespace Client.Starter.Initialization
 
             _loadingProgressLog.AppendElapsed(LocalizationKeys.Ui.Loading.InitialDataFetched);
 
-            return new ServerConnectionResult { PlayerConnectionSetting = new PlayerConnectionSetting(handshakeResponse.PlayerId), VanillaApi = vanillaApi, HandshakeResponse = handshakeResponse, SaveGenerationWaiter = saveGenerationWaiter };
+            return ServerConnectionResult.Connected(new PlayerConnectionSetting(handshakeResponse.PlayerId), vanillaApi, handshakeResponse, saveGenerationWaiter);
 
             #region Internal
 
@@ -138,15 +134,36 @@ namespace Client.Starter.Initialization
     }
 
     /// <summary>
-    /// サーバー接続初期化の結果
-    /// Result of the server connection initialization
+    /// サーバー接続初期化の結果。拒否と接続成立のどちらかを生成口で決める
+    /// Result of the server connection initialization; the factory decides between a refusal and an established connection
     /// </summary>
     public class ServerConnectionResult
     {
-        public PlayerStartRefusal? Refusal;
-        public PlayerConnectionSetting PlayerConnectionSetting;
-        public VanillaApi VanillaApi;
-        public InitialHandshakeResponse HandshakeResponse;
-        public ServerSaveGenerationWaiter SaveGenerationWaiter;
+        public readonly PlayerStartRefusal? Refusal;
+        public readonly PlayerConnectionSetting PlayerConnectionSetting;
+        public readonly VanillaApi VanillaApi;
+        public readonly InitialHandshakeResponse HandshakeResponse;
+        public readonly ServerSaveGenerationWaiter SaveGenerationWaiter;
+
+        private ServerConnectionResult(PlayerStartRefusal? refusal, PlayerConnectionSetting playerConnectionSetting,
+            VanillaApi vanillaApi, InitialHandshakeResponse handshakeResponse, ServerSaveGenerationWaiter saveGenerationWaiter)
+        {
+            Refusal = refusal;
+            PlayerConnectionSetting = playerConnectionSetting;
+            VanillaApi = vanillaApi;
+            HandshakeResponse = handshakeResponse;
+            SaveGenerationWaiter = saveGenerationWaiter;
+        }
+
+        public static ServerConnectionResult Refused(PlayerStartRefusal refusal)
+        {
+            return new ServerConnectionResult(refusal, null, null, null, null);
+        }
+
+        public static ServerConnectionResult Connected(PlayerConnectionSetting playerConnectionSetting, VanillaApi vanillaApi,
+            InitialHandshakeResponse handshakeResponse, ServerSaveGenerationWaiter saveGenerationWaiter)
+        {
+            return new ServerConnectionResult(null, playerConnectionSetting, vanillaApi, handshakeResponse, saveGenerationWaiter);
+        }
     }
 }

@@ -1,10 +1,7 @@
-using System;
-using System.Security.Cryptography;
-using System.Text;
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.BuildOrigin;
 using Client.PlaytestReceiver.Steam;
-using Client.Network.API.Identity;
+using Client.Starter.Initialization.Refusal;
 using Game.PlayerIdentity;
 using Mooresmaster.Localization.Generated;
 using UnityEngine;
@@ -31,13 +28,17 @@ namespace Client.Starter.Identity
             {
                 return PlayerIdentityResolution.Refused(LocalizationKeys.Ui.Loading.BuildOriginUnavailable, $"build-info を読めないため身元を決められません: {origin.MissingReason}");
             }
-            var isSteamDistribution = origin.Kind == BuildOriginKind.BakedBuild && !string.IsNullOrEmpty(origin.BuildInfo.SteamBuildLabel);
-            return Resolve(isSteamDistribution, steamReader, deviceUniqueIdentifier);
+            // 焼き込みビルドでSteamラベルを持つときだけSteam身元。新しいBuildOriginKindを足せばここで網羅漏れが見える
+            // Only a baked build carrying a Steam label uses the Steam identity; a new BuildOriginKind surfaces its gap right here
+            var source = origin.Kind == BuildOriginKind.BakedBuild && !string.IsNullOrEmpty(origin.BuildInfo.SteamBuildLabel)
+                ? PlayerIdentitySource.SteamDistribution
+                : PlayerIdentitySource.Device;
+            return Resolve(source, steamReader, deviceUniqueIdentifier);
         }
 
-        public static PlayerIdentityResolution Resolve(bool isSteamDistributionBuild, IPlaytestLocalSteamIdReader steamReader, string deviceUniqueIdentifier)
+        internal static PlayerIdentityResolution Resolve(PlayerIdentitySource source, IPlaytestLocalSteamIdReader steamReader, string deviceUniqueIdentifier)
         {
-            if (isSteamDistributionBuild)
+            if (source == PlayerIdentitySource.SteamDistribution)
             {
                 if (steamReader.TryRead(out var steamId, out var failureReason)) return PlayerIdentityResolution.Success(PlayerIdentityText.SteamPrefix + steamId);
                 return PlayerIdentityResolution.Refused(LocalizationKeys.Ui.Loading.SteamIdentityUnavailable, $"Steam配布ビルドでSteamIDを読めないため開始しない: {failureReason}");
@@ -47,20 +48,7 @@ namespace Client.Starter.Identity
             {
                 return PlayerIdentityResolution.Refused(LocalizationKeys.Ui.Loading.DeviceIdentityUnavailable, $"端末の識別子を取得できないため開始しない: '{deviceUniqueIdentifier}'");
             }
-            return PlayerIdentityResolution.Success(PlayerIdentityText.DevicePrefix + Sha256Hex(deviceUniqueIdentifier));
-
-            #region Internal
-
-            // 生の端末識別子をサーバーやセーブへ出さないためハッシュ化する
-            // Hash so the raw device identifier never reaches a server or a save
-            string Sha256Hex(string text)
-            {
-                using var sha = SHA256.Create();
-                var hash = sha.ComputeHash(Encoding.UTF8.GetBytes(text));
-                return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
-            }
-
-            #endregion
+            return PlayerIdentityResolution.Success(PlayerIdentityText.ForDevice(deviceUniqueIdentifier));
         }
     }
 

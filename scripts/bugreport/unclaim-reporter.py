@@ -21,34 +21,6 @@ def read_json(path, failure):
         return None
 
 
-def item_count(save, player_id):
-    inventories = save.get("playerInventory", [])
-    if not isinstance(inventories, list):
-        raise ValueError("playerInventory が配列でない")
-    inventory = next((entry for entry in inventories
-                      if isinstance(entry, dict) and entry.get("PlayerId") == player_id), {})
-    stacks = []
-    for key in ("MainInventoryItems", "EquipmentInventoryItems"):
-        items = inventory.get(key) or []
-        if not isinstance(items, list):
-            raise ValueError("%s が配列でない" % key)
-        stacks.extend(items)
-    grab = inventory.get("GrabInventoryItems")
-    if isinstance(grab, dict):
-        stacks.append(grab)
-    # メイン・装備・つかみ中を合算し、壊れた個数から候補を推測しない
-    # Sum main, equipment and held stacks without guessing a candidate from corrupt counts
-    total = 0
-    for stack in stacks:
-        if not isinstance(stack, dict):
-            raise ValueError("プレイヤー%dのアイテム要素がオブジェクトでない" % player_id)
-        count = stack.get("count", 0)
-        if type(count) is not int or count < 0:
-            raise ValueError("プレイヤー%dのアイテム個数が不正" % player_id)
-        total += count
-    return total
-
-
 def main(save_path, manifest_path):
     save = read_json(save_path, "save.json を読めないため報告者の付け替えをしない")
     if not isinstance(save, dict):
@@ -67,35 +39,25 @@ def main(save_path, manifest_path):
         note("players のプレイヤーIDが不正なため報告者の付け替えをしない")
         return 1
 
-    # manifest の身元が一致するときは持ち物数より優先する
-    # Prefer the manifest identity over inventory size when it matches
+    # 報告者は manifest の身元で厳密に引く。裏付けの無い推測で他人の状態を持ち主未定へ戻さない
+    # The reporter is identified by exactly matching a manifest identity; no unbacked guess sends another player's state back to unclaimed
     manifest = read_json(manifest_path, "manifest.json を読めない。報告者の身元なしとして扱う")
-    steam_id = manifest.get("steamId") if isinstance(manifest, dict) else None
-    target = None
+    manifest = manifest if isinstance(manifest, dict) else {}
+    steam_id = manifest.get("steamId")
+    identity = None
     if isinstance(steam_id, str) and steam_id:
         identity = "steam:" + steam_id
-        target = next((entry for entry in entries if entry.get("identity") == identity), None)
-        if target is None:
-            note("報告者の身元 %s に結びつくプレイヤーが無いため付け替えしない" % identity)
-            return 1
     else:
-        note("manifest に steamId が無い。端末身元の持ち物総数で選ぶ")
-
-    # ADRの対象は端末身元のみ。同数ならIDで決めて再現を安定させる
-    # ADR fallback covers device identities only; break inventory ties by ID for stable reproduction
+        device_identity = manifest.get("deviceIdentity")
+        if isinstance(device_identity, str) and device_identity:
+            identity = device_identity
+    if identity is None:
+        note("manifest に steamId も deviceIdentity も無いため報告者の付け替えをしない")
+        return 1
+    target = next((entry for entry in entries if entry.get("identity") == identity), None)
     if target is None:
-        bound = [entry for entry in entries if isinstance(entry.get("identity"), str)
-                 and entry["identity"].startswith("device:")]
-        if not bound:
-            note("端末身元に結びついたプレイヤーが居ないため付け替えしない")
-            return 1
-        # 外部JSONの個数を検証し、壊れた入力では候補変更を保留する
-        # Validate external JSON counts and withhold candidate changes for corrupt input
-        try:
-            target = min(bound, key=lambda entry: (-item_count(save, entry["playerId"]), entry["playerId"]))
-        except ValueError as error:
-            note("持ち物総数を読めないため報告者の付け替えをしない（%s）" % error)
-            return 1
+        note("報告者の身元 %s に結びつくプレイヤーが無いため付け替えしない" % identity)
+        return 1
 
     previous_identity = target["identity"]
     target["identity"] = None
