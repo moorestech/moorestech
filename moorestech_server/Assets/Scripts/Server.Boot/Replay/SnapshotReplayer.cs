@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Core.Update;
+using Game.PlayerConnection;
 using Game.Paths;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
@@ -9,6 +10,7 @@ using Game.SaveLoad.Snapshot;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Boot.Loop.PacketProcessing;
+using Server.Event;
 using Server.Protocol;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
@@ -54,23 +56,34 @@ namespace Server.Boot.Replay
             var records = ReceivedPacketLogReader.ReadAll(request.PacketLogFilePaths);
             var inRange = ReportPacketLogCoverage(records, loadedTick, request.TargetTick);
             var queue = provider.GetRequiredService<TickEndPacketQueue>();
-            var context = new PacketResponseContext(null);
+            var connectionRegistry = provider.GetRequiredService<PlayerConnectionRegistry>();
+            var eventProvider = provider.GetRequiredService<EventProtocolProvider>();
+            var contexts = new ReplayConnectionContexts(connectionRegistry, eventProvider);
+
+            // スナップショット時点の接続集合を先に復元する。無いとIsConnected依存のロジックが本番と分岐する
+            // Restore the connection set as of the snapshot first; without it IsConnected-dependent logic diverges from production
+            contexts.PrewarmConnections(ReceivedPacketLogReader.ReadConnectedPlayerIdsAt(request.PacketLogFilePaths, loadedTick + 1));
             var replayed = 0;
             var excluded = 0;
             var next = 0;
 
-            // 記録tick == 次のtick のパケットを積んでから Update する。tick末尾でまとめて処理される
-            // Enqueue packets whose recorded tick equals the next tick, then Update; they are processed together at tick end
+            // 同tickのパケットと切断を記録順に積み、本番と同じtick末尾FIFOで処理する
+            // Enqueue packets and disconnects in record order for the same tick-end FIFO as production
             while (GameUpdater.CurrentTick < request.TargetTick)
             {
                 var nextTick = GameUpdater.CurrentTick + 1;
                 while (next < records.Count && records[next].Tick < nextTick) next++;
                 while (next < records.Count && records[next].Tick == nextTick)
                 {
-                    if (IsExcludedFromReplay(records[next].Payload)) excluded++;
+                    if (records[next].Kind == ReceivedPacketRecordKind.Disconnect)
+                    {
+                        queue.Enqueue(new ReplayDisconnectEntry(contexts, records[next].PlayerId));
+                    }
+                    else if (IsExcludedFromReplay(records[next].Payload)) excluded++;
                     else
                     {
-                        queue.Enqueue(new ReplayPacketEntry(packetResponseCreator, context, records[next].Payload));
+                        queue.Enqueue(new ReplayRecordedPacketEntry(packetResponseCreator, contexts,
+                            records[next].PlayerId, records[next].Payload));
                         replayed++;
                     }
                     next++;

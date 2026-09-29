@@ -87,7 +87,7 @@ return PlaytestRunner.Run("train-run-hash-check", options, async p =>
         var trainLength = TrainLengthConverter.ToRailUnits(carMaster.Length);
         var runDistance = 38 * 1024;
         var railPosition = new RailPosition(new List<IRailNode> { railB.FrontNode, railA.FrontNode }, trainLength, runDistance);
-        var placeResponse = await ClientContext.VanillaApi.Response.PlaceTrainOnRail(railPosition, trainCarGuid, CancellationToken.None);
+        var placeResponse = await ClientContext.VanillaApi.Response.Train.PlaceTrainOnRail(railPosition, trainCarGuid, CancellationToken.None);
         p.Assert(placeResponse != null && placeResponse.Success, $"車両設置プロトコル成功 (failure={placeResponse?.FailureType})");
 
         await p.Until(() => SpawnedCar() != null, 15f, "TrainCarEntityObjectのクライアント出現");

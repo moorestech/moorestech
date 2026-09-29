@@ -10,7 +10,9 @@ using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Game.PlayerIdentity;
 using NUnit.Framework;
+using Tests.Util.PlayerIdentity;
 using Server.Event.EventReceive;
 using Server.Protocol;
 using Server.Protocol.PacketResponse;
@@ -27,8 +29,6 @@ namespace Tests.CombinedTest.Server.PacketTest.Construction
     /// </summary>
     public class ConstructionPayerWalletTest
     {
-        private const int PayerPlayerId = 11;
-        private const int RemoverPlayerId = 12;
         private static readonly Guid Material1Guid = Guid.Parse("00000000-0000-0000-1234-000000000003");
         private static readonly Guid Material2Guid = Guid.Parse("00000000-0000-0000-1234-000000000004");
         private static readonly Vector3Int PlacePosition = new(10, 0);
@@ -37,31 +37,33 @@ namespace Tests.CombinedTest.Server.PacketTest.Construction
         public void 別プレイヤーが撤去しても財布は設置者へ戻り返却物は撤去者へ渡る()
         {
             var (packet, serviceProvider) = CreateServer();
+            var payerPlayerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<PlayerIdentityRegistry>(), "steam:1").PlayerId;
+            var removerPlayerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<PlayerIdentityRegistry>(), "steam:2").PlayerId;
             var belt = ForUnitTestModBlockId.GearBeltConveyor;
             UnlockBlock(serviceProvider, belt);
-            var payerInventory = GetPlayerInventory(serviceProvider, PayerPlayerId);
-            var removerInventory = GetPlayerInventory(serviceProvider, RemoverPlayerId);
+            var payerInventory = GetPlayerInventory(serviceProvider, payerPlayerId);
+            var removerInventory = GetPlayerInventory(serviceProvider, removerPlayerId);
             SetItem(payerInventory, 0, Material1Guid, 1);
             SetItem(payerInventory, 1, Material2Guid, 1);
-            var payerSink = EventTestUtil.RegisterCaptureSink(serviceProvider, PayerPlayerId);
-            var removerSink = EventTestUtil.RegisterCaptureSink(serviceProvider, RemoverPlayerId);
+            var payerSink = EventTestUtil.RegisterCaptureSink(serviceProvider, payerPlayerId);
+            var removerSink = EventTestUtil.RegisterCaptureSink(serviceProvider, removerPlayerId);
             var lookup = serviceProvider.GetService<IRemainingPlacementCountLookup>();
 
-            Place(packet, PayerPlayerId, belt);
+            Place(packet, payerPlayerId, belt);
 
             // 設置で減るのは設置者の財布だけで、通知も設置者へ1通だけ届く
             // Only the payer's wallet moves, and the single notification goes to the payer alone
-            Assert.AreEqual(2, lookup.GetRemainingCount(PayerPlayerId, belt));
-            Assert.AreEqual(0, lookup.GetRemainingCount(RemoverPlayerId, belt));
+            Assert.AreEqual(2, lookup.GetRemainingCount(payerPlayerId, belt));
+            Assert.AreEqual(0, lookup.GetRemainingCount(removerPlayerId, belt));
             Assert.AreEqual(new[] { 2 }, TakeRemainingCounts(payerSink));
             Assert.IsEmpty(TakeRemainingCounts(removerSink));
 
-            Remove(packet, RemoverPlayerId);
+            Remove(packet, removerPlayerId);
 
             // 撤去+1でNに達し設置者の財布が凝縮、撤去者の財布は動かない
             // The return reaches one set's worth and condenses the payer's wallet; the remover's wallet never moves
-            Assert.AreEqual(0, lookup.GetRemainingCount(PayerPlayerId, belt));
-            Assert.AreEqual(0, lookup.GetRemainingCount(RemoverPlayerId, belt));
+            Assert.AreEqual(0, lookup.GetRemainingCount(payerPlayerId, belt));
+            Assert.AreEqual(0, lookup.GetRemainingCount(removerPlayerId, belt));
             Assert.AreEqual(new[] { 0 }, TakeRemainingCounts(payerSink));
             Assert.IsEmpty(TakeRemainingCounts(removerSink));
 
@@ -76,25 +78,27 @@ namespace Tests.CombinedTest.Server.PacketTest.Construction
         public void セーブロードをまたいでも課金元の財布へ戻る()
         {
             var (packet, serviceProvider) = CreateServer();
+            var payerPlayerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<PlayerIdentityRegistry>(), "steam:1").PlayerId;
+            var removerPlayerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<PlayerIdentityRegistry>(), "steam:2").PlayerId;
             var belt = ForUnitTestModBlockId.GearBeltConveyor;
             UnlockBlock(serviceProvider, belt);
-            SetItem(GetPlayerInventory(serviceProvider, PayerPlayerId), 0, Material1Guid, 1);
-            SetItem(GetPlayerInventory(serviceProvider, PayerPlayerId), 1, Material2Guid, 1);
-            Place(packet, PayerPlayerId, belt);
+            SetItem(GetPlayerInventory(serviceProvider, payerPlayerId), 0, Material1Guid, 1);
+            SetItem(GetPlayerInventory(serviceProvider, payerPlayerId), 1, Material2Guid, 1);
+            Place(packet, payerPlayerId, belt);
             var saveJson = serviceProvider.GetService<AssembleSaveJsonText>().AssembleSaveJson();
 
             var (loadedPacket, loadedServiceProvider) = CreateServer();
             (loadedServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(saveJson);
             var loadedLookup = loadedServiceProvider.GetService<IRemainingPlacementCountLookup>();
-            Assert.AreEqual(2, loadedLookup.GetRemainingCount(PayerPlayerId, belt));
+            Assert.AreEqual(2, loadedLookup.GetRemainingCount(payerPlayerId, belt));
 
-            Remove(loadedPacket, RemoverPlayerId);
+            Remove(loadedPacket, removerPlayerId);
 
             // 課金元の記録がロードされているので、別プレイヤーの撤去でも設置者の財布が凝縮する
             // The payer record survives the load, so a stranger's removal still condenses the placer's wallet
-            Assert.AreEqual(0, loadedLookup.GetRemainingCount(PayerPlayerId, belt));
-            Assert.AreEqual(0, loadedLookup.GetRemainingCount(RemoverPlayerId, belt));
-            Assert.AreEqual(1, GetItemCount(GetPlayerInventory(loadedServiceProvider, RemoverPlayerId), Material1Guid));
+            Assert.AreEqual(0, loadedLookup.GetRemainingCount(payerPlayerId, belt));
+            Assert.AreEqual(0, loadedLookup.GetRemainingCount(removerPlayerId, belt));
+            Assert.AreEqual(1, GetItemCount(GetPlayerInventory(loadedServiceProvider, removerPlayerId), Material1Guid));
         }
 
         private static void Place(PacketResponseCreator packet, int playerId, BlockId blockId)
@@ -109,14 +113,14 @@ namespace Tests.CombinedTest.Server.PacketTest.Construction
                     BlockId = blockId,
                 },
             };
-            var payload = MessagePackSerializer.Serialize(new PlaceBlockProtocol.SendPlaceBlockProtocolMessagePack(playerId, placeInfos));
-            packet.GetPacketResponse(payload, new PacketResponseContext(null));
+            var payload = MessagePackSerializer.Serialize(new PlaceBlockProtocol.SendPlaceBlockProtocolMessagePack(placeInfos));
+            packet.GetPacketResponse(payload, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(playerId));
         }
 
         private static void Remove(PacketResponseCreator packet, int playerId)
         {
-            var payload = MessagePackSerializer.Serialize(new RemoveBlockProtocol.RemoveBlockProtocolMessagePack(playerId, PlacePosition));
-            packet.GetPacketResponse(payload, new PacketResponseContext(null));
+            var payload = MessagePackSerializer.Serialize(new RemoveBlockProtocol.RemoveBlockProtocolMessagePack(PlacePosition));
+            packet.GetPacketResponse(payload, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(playerId));
         }
 
         private static IOpenableInventory GetPlayerInventory(ServiceProvider serviceProvider, int playerId)

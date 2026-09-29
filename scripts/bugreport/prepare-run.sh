@@ -31,6 +31,7 @@ eval "$manifest_env"
 # Every restoration shortfall becomes a flag here, so the agent only has to read this one set in run.env
 WORKTREE="$WORKTREES/bugfix-$ID"; COMMIT_MISSING=0; DIFF_APPLY_FAILED=0; DIFF_ABSENT=0; UNTRACKED_FAILED=0
 MASTER_FAILED=0; MASTER_DIFF_APPLY_FAILED=0; MASTER_DIFF_ABSENT=0; MASTER_UNTRACKED_FAILED=0; MASTER_WORKTREE=""
+REPORTER_UNCLAIM_FAILED=0
 # 既存の worktree は消さずに失敗させる（他ランの作業物を巻き込まないため）
 # Never delete an existing worktree; fail instead so another run's work is not destroyed
 [ -e "$WORKTREE" ] && { log "worktree が既に存在する。二重準備を避けて中断: $WORKTREE"; exit 1; }
@@ -147,7 +148,14 @@ elif [ -z "$LATEST_TICK" ]; then
   log "スナップショットの tick が無いため save.json を置けない。固定ワールド起動はできない"
 elif [ -f "$RUN/snapshots/tick_$LATEST_TICK.json" ]; then
   mkdir -p "$WORLD_DIR"
-  cp "$RUN/snapshots/tick_$LATEST_TICK.json" "$WORLD_DIR/save.json" || log "save.json のコピーに失敗した。固定ワールド起動はできない"
+  if cp "$RUN/snapshots/tick_$LATEST_TICK.json" "$WORLD_DIR/save.json"; then
+    # 開発機が報告者のプレイヤーとして入れるよう候補へ戻す
+    # Unclaim the reporter so the developer joins as that player
+    python3 "$HERE/unclaim-reporter.py" "$WORLD_DIR/save.json" "$RUN/manifest.json" 2>&1 | while IFS= read -r line; do log "$line"; done \
+      || { REPORTER_UNCLAIM_FAILED=1; log "報告者の付け替えに失敗した。未付け替えのまま続行する"; }
+  else
+    log "save.json のコピーに失敗した。固定ワールド起動はできない"
+  fi
 else
   log "tick に対応するスナップショットファイルが無いため save.json を置けない: $RUN/snapshots/tick_$LATEST_TICK.json"
 fi
@@ -190,5 +198,6 @@ eval "$world_meta_env"
   printf 'MASTER_DIFF_APPLY_FAILED=%q\n' "$MASTER_DIFF_APPLY_FAILED"
   printf 'MASTER_DIFF_ABSENT=%q\n' "$MASTER_DIFF_ABSENT"
   printf 'MASTER_UNTRACKED_FAILED=%q\n' "$MASTER_UNTRACKED_FAILED"
+  printf 'REPORTER_UNCLAIM_FAILED=%q\n' "$REPORTER_UNCLAIM_FAILED"
 } > "$RUN/run.env"
 log "prepared: $RUN/run.env"

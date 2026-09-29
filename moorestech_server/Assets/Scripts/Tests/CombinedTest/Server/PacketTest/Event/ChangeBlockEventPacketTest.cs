@@ -1,3 +1,4 @@
+using Tests.Util.EnergySystem;
 using System.Collections.Generic;
 using Core.Master;
 using Core.Update;

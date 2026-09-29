@@ -12,8 +12,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 {
     public class CraftCompletedEventPacketTest
     {
-        private const int PlayerId = 0;
-        private const int OtherPlayerId = 1;
+        private const int PlayerId = 1;
+        private const int OtherPlayerId = 2;
         private const int CraftRecipeId = 1;
 
         // 成立したクラフトだけが、作った本人へレシピ付きで1件届く
@@ -47,7 +47,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlayerId);
 
             var craftRecipeGuid = MasterHolder.CraftRecipeMaster.CraftRecipes.Data[CraftRecipeId].CraftRecipeGuid;
-            packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(PlayerId, craftRecipeGuid)), new PacketResponseContext(null));
+            packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(craftRecipeGuid)), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
 
             Assert.IsFalse(sink.TakeAll().Any(e => e.Tag == CraftCompletedEventPacket.EventTag));
         }

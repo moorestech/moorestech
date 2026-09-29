@@ -46,7 +46,7 @@ namespace Client.Game.InGame.BugReport.Capture
 
         public async UniTask<BugReportServerCaptureRequest> RequestServerCapture()
         {
-            var response = await ClientContext.VanillaApi.Response.RequestBugReportCapture(CancellationToken.None);
+            var response = await ClientContext.VanillaApi.Response.World.RequestBugReportCapture(CancellationToken.None);
             if (response == null) return new BugReportServerCaptureRequest(false, 0, "サーバーから応答が返らなかった");
             return new BugReportServerCaptureRequest(response.Accepted, response.RequestedCaptureId, response.RejectedReason);
         }

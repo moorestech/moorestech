@@ -31,12 +31,12 @@ namespace Tests.CombinedTest.Server.PacketTest
             SetItem(inventory, 1, Material2Guid, 2);
             var lookup = serviceProvider.GetService<IRemainingPlacementCountLookup>();
 
-            packet.GetPacketResponse(CreatePlaceBlockPayload(belt, (10, 0)), new PacketResponseContext(null));
+            packet.GetPacketResponse(CreatePlaceBlockPayload(belt, (10, 0)), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
             Assert.AreEqual(1, GetItemCount(inventory, Material1Guid));
             Assert.AreEqual(2, lookup.GetRemainingCount(PlayerId, belt));
 
-            packet.GetPacketResponse(CreatePlaceBlockPayload(belt, (11, 0)), new PacketResponseContext(null));
-            packet.GetPacketResponse(CreatePlaceBlockPayload(belt, (12, 0)), new PacketResponseContext(null));
+            packet.GetPacketResponse(CreatePlaceBlockPayload(belt, (11, 0)), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
+            packet.GetPacketResponse(CreatePlaceBlockPayload(belt, (12, 0)), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
             Assert.AreEqual(1, GetItemCount(inventory, Material1Guid));
             Assert.AreEqual(1, GetItemCount(inventory, Material2Guid));
             Assert.AreEqual(0, lookup.GetRemainingCount(PlayerId, belt));
@@ -50,7 +50,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var belt = ForUnitTestModBlockId.GearBeltConveyor;
             UnlockBlock(serviceProvider, belt);
 
-            packet.GetPacketResponse(CreatePlaceBlockPayload(belt, (10, 0)), new PacketResponseContext(null));
+            packet.GetPacketResponse(CreatePlaceBlockPayload(belt, (10, 0)), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
 
             Assert.IsFalse(ServerContext.WorldBlockDatastore.Exists(new Vector3Int(10, 0)));
             Assert.AreEqual(0, serviceProvider.GetService<IRemainingPlacementCountLookup>().GetRemainingCount(PlayerId, belt));
@@ -67,8 +67,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             SetItem(inventory, 1, Material2Guid, 1);
             var lookup = serviceProvider.GetService<IRemainingPlacementCountLookup>();
 
-            packet.GetPacketResponse(CreatePlaceBlockPayload(straight, (10, 0)), new PacketResponseContext(null));
-            packet.GetPacketResponse(CreatePlaceBlockPayload(ForUnitTestModBlockId.TestGearBeltConveyorUp, (11, 0)), new PacketResponseContext(null));
+            packet.GetPacketResponse(CreatePlaceBlockPayload(straight, (10, 0)), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
+            packet.GetPacketResponse(CreatePlaceBlockPayload(ForUnitTestModBlockId.TestGearBeltConveyorUp, (11, 0)), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
 
             Assert.IsTrue(ServerContext.WorldBlockDatastore.Exists(new Vector3Int(11, 0)));
             Assert.AreEqual(0, GetItemCount(inventory, Material1Guid));
@@ -88,7 +88,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             SetItem(inventory, 0, Material1Guid, 2);
             SetItem(inventory, 1, Material2Guid, 2);
 
-            packet.GetPacketResponse(CreatePlaceBlockPayload(belt, (10, 0), (11, 0), (12, 0), (13, 0), (14, 0)), new PacketResponseContext(null));
+            packet.GetPacketResponse(CreatePlaceBlockPayload(belt, (10, 0), (11, 0), (12, 0), (13, 0), (14, 0)), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
 
             // 5本=1セット+2本目開始→2セット消費・残1
             // Five cells = one full set (3) + the start of a second set → two sets consumed, one remaining

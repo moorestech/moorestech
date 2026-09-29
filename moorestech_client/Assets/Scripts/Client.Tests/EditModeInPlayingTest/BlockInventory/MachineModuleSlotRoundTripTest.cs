@@ -80,25 +80,24 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 // Give the player a module item and locate the main inventory slot it landed in.
                 await GiveItem(ModuleItemName, 1);
                 var moduleItemId = FindItemId(ModuleItemName);
-                var playerId = ClientContext.PlayerConnectionSetting.PlayerId;
-                var playerInventory = await ClientContext.VanillaApi.Response.GetMyPlayerInventory(CancellationToken.None);
+                var playerInventory = await ClientContext.VanillaApi.Response.Inventory.GetMyPlayerInventory(CancellationToken.None);
                 var mainSlot = playerInventory.MainInventory.FindIndex(item => item.Id == moduleItemId);
                 Assert.GreaterOrEqual(mainSlot, 0, "module item not found in player main inventory");
 
                 // 既存の移動プロトコル（InventoryType.Block＋スロット番号）でモジュールスロットへ装着する
                 // Equip into the module slot via the existing move protocol (InventoryType.Block + slot number).
                 ClientContext.VanillaApi.SendOnly.ItemMove(1, ItemMoveType.SwapSlot,
-                    InventoryIdentifierMessagePack.CreateMainMessage(playerId), mainSlot,
+                    InventoryIdentifierMessagePack.CreateMainMessage(), mainSlot,
                     InventoryIdentifierMessagePack.CreateBlockMessage(pos), ModuleRangeStart);
 
                 // 既存のインベントリ取得プロトコルへ装着が反映されるまでポーリングして確認
                 // Poll the existing inventory request protocol until the equip is reflected.
                 var blockIdentifier = InventoryIdentifierMessagePack.CreateBlockMessage(pos);
-                var inventoryResponse = await ClientContext.VanillaApi.Response.GetInventory(blockIdentifier, CancellationToken.None);
+                var inventoryResponse = await ClientContext.VanillaApi.Response.Inventory.GetInventory(blockIdentifier, CancellationToken.None);
                 for (var i = 0; i < 30 && inventoryResponse.Items[ModuleRangeStart].Id != moduleItemId; i++)
                 {
                     await UniTask.Delay(100);
-                    inventoryResponse = await ClientContext.VanillaApi.Response.GetInventory(blockIdentifier, CancellationToken.None);
+                    inventoryResponse = await ClientContext.VanillaApi.Response.Inventory.GetInventory(blockIdentifier, CancellationToken.None);
                 }
                 Assert.AreEqual(InputSlotCount + OutputSlotCount + ModuleSlotCount, inventoryResponse.Items.Count, "request protocol slot count mismatch");
                 Assert.AreEqual(moduleItemId, inventoryResponse.Items[ModuleRangeStart].Id, "module not equipped into the module slot");

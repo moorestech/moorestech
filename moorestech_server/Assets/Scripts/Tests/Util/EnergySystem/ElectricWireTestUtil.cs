@@ -9,7 +9,7 @@ using Tests.Module;
 using Tests.Module.TestMod;
 using UnityEngine;
 
-namespace Tests.Util
+namespace Tests.Util.EnergySystem
 {
     /// <summary>
     /// テストで2つのブロックをワイヤー接続するユーティリティ。範囲スキャンの代わりに明示接続を張る

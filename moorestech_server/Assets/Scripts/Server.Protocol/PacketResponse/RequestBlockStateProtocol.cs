@@ -21,7 +21,7 @@ namespace Server.Protocol.PacketResponse
             _changeBlockStateEventPacket = serviceProvider.GetService<ChangeBlockStateEventPacket>();
         }
         
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var request = MessagePackSerializer.Deserialize<RequestBlockStateProtocolMessagePack>(payload);
             

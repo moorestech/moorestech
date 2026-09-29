@@ -5,9 +5,10 @@ using Client.Common;
 using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
-using Client.Network.Settings;
+using Client.Starter.Identity;
 using Client.Starter.Initialization;
 using Client.Starter.Initialization.Progress;
+using Client.Starter.Initialization.Refusal;
 using Cysharp.Threading.Tasks;
 using Game.Context;
 using Mooresmaster.Localization.Generated;
@@ -32,7 +33,7 @@ namespace Client.Starter
         [SerializeField] private BlockIconImagePhotographer blockIconImagePhotographer;
         [SerializeField] private BlockGameObject missingBlockIdObject;
         [SerializeField] private TMP_Text loadingLog;
-        private InitializeProprieties _proprieties = InitializeProprieties.CreateLocalServer(null);
+        private InitializeProprieties _proprieties = InitializeProprieties.CreateLocalServer();
 
         public void SetProperty(InitializeProprieties proprieties)
         {
@@ -90,6 +91,15 @@ namespace Client.Starter
             loadingStopwatch.Start();
             var loadingProgressLog = new LoadingProgressLog(loadingLog, loadingStopwatch);
 
+            // 身元が決まらなければアセットも読まずに拒否を出す。身元解決の呼び出し口はここ1つ
+            // Refuse before loading any asset when the identity cannot be resolved; this is the only call site that resolves it
+            var identity = LocalPlayerIdentityResolver.ResolveForThisProcess();
+            if (identity.Refusal.HasValue)
+            {
+                await InitializationFailurePresenter.ShowRefusalAsync(identity.Refusal.Value, loadingProgressLog, exitToken);
+                return;
+            }
+
             // Addressablesを初期化する
             // Initialize Addressables
             var initializeHandle = Addressables.InitializeAsync();
@@ -107,11 +117,9 @@ namespace Client.Starter
             var trainCarIconTargets = await ModAssetLoader.PreloadTrainCarIconTargetsAsync();
             Debug.Log($"[InitializeScenePipeline] train car preload completed {loadingStopwatch.Elapsed}");
 
-            var playerConnectionSetting = new PlayerConnectionSetting(_proprieties.PlayerId);
-
             // サーバー接続とアセットロードを並列実行し結果を受け取る
             // Run server connection and asset load in parallel and collect results
-            var serverInitializer = new ServerConnectionInitializer(_proprieties, loadingProgressLog, playerConnectionSetting, exitToken);
+            var serverInitializer = new ServerConnectionInitializer(_proprieties, loadingProgressLog, identity.Identity, exitToken);
             var modAssetLoader = new ModAssetLoader(serverDirectory, missingBlockIdObject, blockIconImagePhotographer, trainCarIconTargets, loadingProgressLog);
 
             ServerConnectionResult serverResult;
@@ -128,21 +136,22 @@ namespace Client.Starter
                 // 失敗をログとUIへ出し、文言を読ませてからメインメニューへ戻す
                 // Log the failure, surface it in the UI, and return to the main menu after the message is readable
                 Debug.LogError($"初期化処理中にエラーが発生しました: {e.GetType()} {e.Message}\n{e.StackTrace}");
+                await InitializationFailurePresenter.ShowInitializationFailedAsync(loadingProgressLog, exitToken);
+                return;
+            }
 
-                // 起動済みの内蔵サーバーを道連れに畳む。残すと同一セーブへ書く権威が二重になる
-                // Fold the embedded server that already started; leaving it doubles the authority writing the same save
-                GameShutdownEvent.FireGameShutdown(GameShutdownReason.InitializationFailed);
-
-                loadingProgressLog.Append(LocalizationKeys.Ui.Loading.InitializationFailed);
-                await UniTask.Delay(2000);
-                SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
+            // アセットロード完了後に通常の開始拒否を表示し、接続未成立の結果を後段へ渡さない
+            // Surface an expected refusal after assets finish, before any context uses the absent connection
+            if (serverResult.Refusal.HasValue)
+            {
+                await InitializationFailurePresenter.ShowRefusalAsync(serverResult.Refusal.Value, loadingProgressLog, exitToken);
                 return;
             }
 
             // 取得結果から通信フォーマッタと静的コンテキストを初期化する
             // Initialize the message formatter and static context from the collected results
             MessagePackInitializer.Initialize();
-            new ClientContext(assetResult.BlockGameObjectPrefabContainer, assetResult.ItemImageContainer, assetResult.BlockImageContainer, assetResult.TrainCarImageContainer, assetResult.ConnectToolImageContainer, assetResult.FluidImageContainer, playerConnectionSetting, serverResult.VanillaApi);
+            new ClientContext(assetResult.BlockGameObjectPrefabContainer, assetResult.ItemImageContainer, assetResult.BlockImageContainer, assetResult.TrainCarImageContainer, assetResult.ConnectToolImageContainer, assetResult.FluidImageContainer, serverResult.PlayerConnectionSetting, serverResult.VanillaApi);
 
             // シーンロードは全アセットロード完了後に直列実行する
             // Load the scene serially, after every asset load has finished
@@ -161,6 +170,10 @@ namespace Client.Starter
             async UniTask<ServerConnectionResult> ConnectServerThenFetchTerrainAsync()
             {
                 var connectionResult = await serverInitializer.RunAsync();
+
+                // 拒否は結果そのものが運ぶ。外側の変数へ写すと真実が2つになる
+                // The refusal travels in the result itself; copying it into an outer variable would create a second truth
+                if (connectionResult.Refusal.HasValue) return connectionResult;
                 var fetchedChunkCount = await new TerrainDataFetcher(connectionResult.VanillaApi.Response, exitToken).RunAsync(connectionResult.HandshakeResponse.MapLayout);
                 loadingProgressLog.AppendElapsed(LocalizationKeys.Ui.Loading.TerrainReady, fetchedChunkCount.ToString());
                 return connectionResult;

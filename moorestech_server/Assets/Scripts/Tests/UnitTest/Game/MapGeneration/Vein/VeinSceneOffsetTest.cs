@@ -4,7 +4,7 @@ using Game.MapGeneration.Pipeline.Stages;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace Tests.UnitTest.Game.MapGeneration
+namespace Tests.UnitTest.Game.MapGeneration.Vein
 {
     // シーン座標化でAABBのサイズが変わらないことを固定する。Min/Maxを独立に丸めると偶奇差で1ずれる。
     // Pins that the scene-space shift never changes an AABB's size; rounding Min and Max apart drifts by one on mixed parity.

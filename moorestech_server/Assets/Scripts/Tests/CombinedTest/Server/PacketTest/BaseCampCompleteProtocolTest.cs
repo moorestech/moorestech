@@ -46,8 +46,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.IsTrue(baseCampComponent.IsCompleted());
             
             // 納品完了プロトコルを送信
-            var completeRequest = MessagePackSerializer.Serialize(new CompleteBaseCampProtocol.CompleteBaseCampProtocolMessagePack(1, position));
-            packetResponse.GetPacketResponse(completeRequest, new PacketResponseContext(null));
+            var completeRequest = MessagePackSerializer.Serialize(new CompleteBaseCampProtocol.CompleteBaseCampProtocolMessagePack(position));
+            packetResponse.GetPacketResponse(completeRequest, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1));
             
             // ブロックが変換されたことを確認
             var transformedBlock = worldBlockDatastore.GetBlock(position);

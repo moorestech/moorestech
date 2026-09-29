@@ -34,8 +34,7 @@ namespace Client.Starter
             {
                 SceneManager.sceneLoaded -= OnGameInitializerSceneLoaded;
                 var starter = Object.FindObjectOfType<InitializeScenePipeline>();
-                var playerId = PlayerPrefs.HasKey(PlayerPrefsKeys.PlayerIdKey) ? PlayerPrefs.GetInt(PlayerPrefsKeys.PlayerIdKey) : (int?)null;
-                starter.SetProperty(InitializeProprieties.CreateLocalServer(playerId));
+                starter.SetProperty(InitializeProprieties.CreateLocalServer());
             }
 
             #endregion

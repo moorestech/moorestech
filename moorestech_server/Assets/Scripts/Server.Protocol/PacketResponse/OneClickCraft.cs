@@ -29,25 +29,25 @@ namespace Server.Protocol.PacketResponse
         }
 
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var data = MessagePackSerializer.Deserialize<RequestOneClickCraftProtocolMessagePack>(payload);
 
             var craftConfig = MasterHolder.CraftRecipeMaster.GetCraftRecipe(data.CraftRecipeGuid);
             //プレイヤーインベントリを取得
-            var playerInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId);
+            var playerInventory = _playerInventoryDataStore.GetInventoryData(requesterPlayerId);
             var mainInventory = playerInventory.MainOpenableInventory;
 
             // 不可理由を判別し通知して中断
             // Identify the reason, notify, and abort
             if (!CanInsertResult())
             {
-                _notificationService.Notify(data.PlayerId, NotificationMessagePack.CreateOperationDenied("denied.craftResultFull", Array.Empty<string>()));
+                _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.craftResultFull", Array.Empty<string>()));
                 return null;
             }
             if (!HasRequiredItems())
             {
-                _notificationService.Notify(data.PlayerId, NotificationMessagePack.CreateOperationDenied("denied.craftMaterialShortage", Array.Empty<string>()));
+                _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.craftMaterialShortage", Array.Empty<string>()));
                 return null;
             }
 
@@ -59,7 +59,7 @@ namespace Server.Protocol.PacketResponse
             var resultItem = ServerContext.ItemStackFactory.Create(craftConfig.CraftResultItemGuid, craftConfig.CraftResultCount);
             playerInventory.MainOpenableInventory.InsertItem(resultItem);
 
-            _craftEvent.InvokeCraftItem(data.PlayerId, craftConfig);
+            _craftEvent.InvokeCraftItem(requesterPlayerId, craftConfig);
 
             return null;
 
@@ -166,15 +166,13 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class RequestOneClickCraftProtocolMessagePack : ProtocolMessagePackBase
         {
-            [Key(2)] public int PlayerId { get; set; }
             
             [Key(3)] public string CraftRecipeGuidStr { get; set; }
             [IgnoreMember] public Guid CraftRecipeGuid => Guid.Parse(CraftRecipeGuidStr);
             
-            public RequestOneClickCraftProtocolMessagePack(int playerId, Guid craftRecipeGuid)
+            public RequestOneClickCraftProtocolMessagePack(Guid craftRecipeGuid)
             {
                 Tag = ProtocolTag;
-                PlayerId = playerId;
                 CraftRecipeGuidStr = craftRecipeGuid.ToString();
             }
             

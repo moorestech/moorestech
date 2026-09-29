@@ -7,6 +7,7 @@ using Game.SaveLoad.Interface;
 using Game.SaveLoad.Snapshot;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
+using Tests.Util.PlayerIdentity;
 using Server.Boot;
 using Server.Boot.Loop.PacketProcessing;
 using Server.Boot.Replay;
@@ -14,13 +15,14 @@ using MessagePack;
 using Server.Protocol;
 using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
+using Tests.CombinedTest.Server.Replay.SnapshotReplayDeterminismTest;
 using static Tests.CombinedTest.Server.PacketTest.PlaceBlockProtocolTestSupport;
 
 namespace Tests.CombinedTest.Server.Replay
 {
     // スナップショットkからパケットを流し直すとk+1と一致する。これが再生の忠実性の唯一の検査
     // Replaying packets from snapshot k must reproduce snapshot k+1; this is the only fidelity check for replay
-    public class SnapshotReplayDeterminismTest
+    public class SnapshotReplayDeterminismIntegrationTest : SnapshotReplayDeterminismTestBase
     {
         [Test]
         public void スナップショットkから再生するとk_plus_1と一致する()
@@ -45,13 +47,14 @@ namespace Tests.CombinedTest.Server.Replay
                 GameRandom.Reseed(2026UL);
                 GameUpdater.RestoreCurrentTick(0);
                 ring.Start(10u, 30u, 16);
+                var context = BoundPacketContext.Handshake(packet, "steam:1", out var playerId);
+                Assert.AreEqual(PlayerId, playerId);
                 GrantRequiredItems(provider, ForUnitTestModBlockId.BlockId, 3);
                 GrantRequiredItems(provider, ForUnitTestModBlockId.ChestId, 1);
                 UnlockBlock(provider, ForUnitTestModBlockId.ChestId);
 
                 // tick末尾で処理される経路（ログ点）を通すため、受信プロセッサ相当の処理をtick中に行う
                 // Route packets through the tick-end path (the log point), as the receive processor would
-                var context = new PacketResponseContext(null);
                 var queue = provider.GetRequiredService<TickEndPacketQueue>();
                 void Send(byte[] payload) => queue.Enqueue(new RecordedLivePacketEntry(packet, context, payload, packetLog));
 
@@ -118,11 +121,12 @@ namespace Tests.CombinedTest.Server.Replay
                 GameRandom.Reseed(2026UL);
                 GameUpdater.RestoreCurrentTick(0);
                 ring.Start(10u, 30u, 16);
+                var context = BoundPacketContext.Handshake(packet, "steam:1", out var playerId);
+                Assert.AreEqual(PlayerId, playerId);
                 GrantRequiredItems(provider, ForUnitTestModBlockId.ChestId, 1);
                 UnlockBlock(provider, ForUnitTestModBlockId.ChestId);
                 SnapshotReplayWorldFixture.BuildMovingWorld();
 
-                var context = new PacketResponseContext(null);
                 var queue = provider.GetRequiredService<TickEndPacketQueue>();
 
                 for (var tick = 1; tick <= 45; tick++)
@@ -164,87 +168,6 @@ namespace Tests.CombinedTest.Server.Replay
             {
                 packetLog.Stop();
                 Directory.Delete(saveRoot, true);
-            }
-        }
-
-        // 記録済みのセーブ／即時取得要求を再生でそのまま実行すると、再生用の一時セーブを上書きし常時記録まで走り出す
-        // Running recorded save / immediate-capture requests during replay overwrites the temporary save and even starts always-on capture
-        [Test]
-        public void 記録されたセーブと即時取得の要求は再生対象から外れる()
-        {
-            var saveRoot = Path.Combine(Path.GetTempPath(), $"moorestech-replay-{Guid.NewGuid():N}");
-            var savePath = Path.Combine(saveRoot, "save.json");
-            var options = new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory)
-            {
-                worldDataDirectory = WorldDataDirectory.FromServerDataMap(TestModDirectory.ForUnitTestModDirectory, savePath),
-            };
-            var (packet, provider) = new MoorestechServerDIContainerGenerator().Create(options);
-            var directory = provider.GetRequiredService<WorldDataDirectory>();
-            var ring = provider.GetRequiredService<WorldSnapshotRing>();
-            var packetLog = provider.GetRequiredService<ReceivedPacketLog>();
-
-            try
-            {
-                provider.GetRequiredService<IWorldSaveDataLoader>().LoadOrInitialize();
-
-                GameRandom.Reseed(2026UL);
-                GameUpdater.RestoreCurrentTick(0);
-                ring.Start(10u, 30u, 16);
-
-                var context = new PacketResponseContext(null);
-                context.TryBindPlayerId(0);
-                var queue = provider.GetRequiredService<TickEndPacketQueue>();
-                var savePayload = MessagePackSerializer.Serialize(new SaveProtocol.SaveProtocolMessagePack());
-                var capturePayload = MessagePackSerializer.Serialize(BugReportCaptureProtocol.BugReportCaptureRequest.CreateCaptureNowRequest());
-
-                for (var tick = 1; tick <= 25; tick++)
-                {
-                    if (tick == 13) queue.Enqueue(new RecordedLivePacketEntry(packet, context, savePayload, packetLog));
-                    if (tick == 14) queue.Enqueue(new RecordedLivePacketEntry(packet, context, capturePayload, packetLog));
-                    GameUpdater.UpdateOneTick();
-                }
-                ring.WaitForPendingWrites();
-
-                var segments = packetLog.SegmentFilePaths().ToList();
-                var result = SnapshotReplayer.Replay(new ReplayRequest(TestModDirectory.ForUnitTestModDirectory, directory, directory.SnapshotFilePath(10), segments, 20));
-
-                Assert.AreEqual(2, result.ExcludedPacketCount, "セーブと即時取得の要求が再生対象から外れていない");
-                Assert.AreEqual(0, result.ReplayedPacketCount, "再生対象から外した要求が流し直されている");
-
-                // 区間に記録が1件も無いと不一致を非決定性と誤読する。覆っていたことを結果からも確かめる
-                // A zero-record interval would make a mismatch look like non-determinism, so the coverage is checked from the result too
-                Assert.AreEqual(2, result.InRangePacketCount, "区間に含まれる記録件数が結果に載っていない");
-            }
-            finally
-            {
-                packetLog.Stop();
-                Directory.Delete(saveRoot, true);
-            }
-        }
-
-        // 稼働中の受信経路（ReceiveQueueProcessor）を模し、処理tickで常時記録へ追記してから応答を作る
-        // Mimics the live receive path (ReceiveQueueProcessor): append to capture at the processing tick, then produce the response
-        private sealed class RecordedLivePacketEntry : ITickEndPacketEntry
-        {
-            private readonly PacketResponseCreator _packetResponseCreator;
-            private readonly PacketResponseContext _context;
-            private readonly byte[] _payload;
-            private readonly ReceivedPacketLog _packetLog;
-
-            public bool IsActive => true;
-
-            public RecordedLivePacketEntry(PacketResponseCreator packetResponseCreator, PacketResponseContext context, byte[] payload, ReceivedPacketLog packetLog)
-            {
-                _packetResponseCreator = packetResponseCreator;
-                _context = context;
-                _payload = payload;
-                _packetLog = packetLog;
-            }
-
-            public void Process()
-            {
-                _packetLog.Append(GameUpdater.CurrentTick, _payload);
-                _packetResponseCreator.GetPacketResponse(_payload, _context);
             }
         }
     }

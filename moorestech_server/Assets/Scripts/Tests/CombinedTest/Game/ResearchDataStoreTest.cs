@@ -162,92 +162,17 @@ namespace Tests.CombinedTest.Game
         }
         
         
-        // 保存、ロードテスト
-        [Test]
-        public void SaveLoadTest()
-        {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-
-            // Research 1と2を完了させる
-            CompleteResearchForTest(serviceProvider, Research1Guid);
-            CompleteResearchForTest(serviceProvider, Research2Guid);
-            
-            // なにもクリアしていない状態でセーブ
-            // Save without clearing anything
-            var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
-            var saveJson = assembleSaveJsonText.AssembleSaveJson();
-            
-            // ロード
-            // load
-            var (_, loadServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            (loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(saveJson);
-            
-            var researchDataStore = loadServiceProvider.GetService<IResearchDataStore>();
-            
-            // Research 1, 2が完了していることを確認
-            // Check that Research 1 and 2 are completed
-            Assert.IsTrue(researchDataStore.IsResearchCompleted(Research1Guid));
-            Assert.IsTrue(researchDataStore.IsResearchCompleted(Research2Guid));
-        }
-
-        [Test]
-        public void GetResearchNodeStatesReflectRequirements()
-        {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-
-            var researchDataStore = serviceProvider.GetService<IResearchDataStore>();
-            var inventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
-
-            var initialStates = researchDataStore.GetResearchNodeStates(PlayerId);
-            Assert.AreEqual(ResearchNodeState.UnresearchableNotEnoughItem, initialStates[Research1Guid]);
-            Assert.AreEqual(ResearchNodeState.UnresearchableAllReasons, initialStates[Research2Guid]);
-            Assert.AreEqual(ResearchNodeState.UnresearchableAllReasons, initialStates[Research3Guid]);
-            Assert.AreEqual(ResearchNodeState.UnresearchableNotEnoughItem, initialStates[Research4Guid]);
-
-            InsertRequiredItems(Research1Guid);
-            var readyForFirstResearch = researchDataStore.GetResearchNodeStates(PlayerId);
-            Assert.AreEqual(ResearchNodeState.Researchable, readyForFirstResearch[Research1Guid]);
-            Assert.AreEqual(ResearchNodeState.UnresearchableNotEnoughPreNode, readyForFirstResearch[Research2Guid]);
-            Assert.AreEqual(ResearchNodeState.UnresearchableAllReasons, readyForFirstResearch[Research3Guid]);
-
-            Assert.IsTrue(researchDataStore.CompleteResearch(Research1Guid, PlayerId));
-
-            var afterFirstResearch = researchDataStore.GetResearchNodeStates(PlayerId);
-            Assert.AreEqual(ResearchNodeState.Completed, afterFirstResearch[Research1Guid]);
-            Assert.AreEqual(ResearchNodeState.UnresearchableNotEnoughItem, afterFirstResearch[Research2Guid]);
-            Assert.AreEqual(ResearchNodeState.UnresearchableAllReasons, afterFirstResearch[Research3Guid]);
-            Assert.AreEqual(ResearchNodeState.UnresearchableNotEnoughItem, afterFirstResearch[Research4Guid]);
-
-            InsertRequiredItems(Research2Guid);
-            var afterSecondItems = researchDataStore.GetResearchNodeStates(PlayerId);
-            Assert.AreEqual(ResearchNodeState.Researchable, afterSecondItems[Research2Guid]);
-            Assert.AreEqual(ResearchNodeState.UnresearchableAllReasons, afterSecondItems[Research3Guid]);
-
-            InsertRequiredItems(Research4Guid);
-            var afterFourthItems = researchDataStore.GetResearchNodeStates(PlayerId);
-            Assert.AreEqual(ResearchNodeState.Researchable, afterFourthItems[Research4Guid]);
-
-            #region Internal
-
-            void InsertRequiredItems(Guid researchGuid)
-            {
-                var researchElement = MasterHolder.ResearchMaster.GetResearch(researchGuid);
-                foreach (var consumeItem in researchElement.ConsumeItems)
-                {
-                    var item = ServerContext.ItemStackFactory.Create(consumeItem.ItemGuid, consumeItem.ItemCount);
-                    inventory.MainOpenableInventory.InsertItem(item);
-                }
-            }
-
-            #endregion
-        }
-
         public static void CompleteResearchForTest(ServiceProvider serviceProvider, Guid researchGuid)
+        {
+            CompleteResearchForTest(serviceProvider, researchGuid, PlayerId);
+        }
+
+        public static void CompleteResearchForTest(ServiceProvider serviceProvider, Guid researchGuid, int playerId)
         {
             // 必要なサービスを取得
             // Get necessary services
             var researchDataStore = serviceProvider.GetService<IResearchDataStore>();
-            var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
+            var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId);
             
             // 研究完了に必要なアイテムを追加
             // Add items required to complete the research
@@ -260,7 +185,7 @@ namespace Tests.CombinedTest.Game
 
             // 研究を完了させる
             // Complete the research
-            var result = researchDataStore.CompleteResearch(researchGuid, PlayerId);
+            var result = researchDataStore.CompleteResearch(researchGuid, playerId);
             Assert.IsTrue(result);
         }
     }

@@ -20,13 +20,13 @@ namespace Server.Protocol.PacketResponse
             _trainFullSnapshotEventPacket = serviceProvider.GetService<TrainFullSnapshotEventPacket>();
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var data = MessagePackSerializer.Deserialize<RequestMessagePack>(payload);
                 
             // データはイベント経由で送る
             // Data is sent over the event stream
-            _trainFullSnapshotEventPacket.PushFullSnapshots(context.PlayerId.Value, data.IncludeRailGraph);
+            _trainFullSnapshotEventPacket.PushFullSnapshots(requesterPlayerId, data.IncludeRailGraph);
 
             return new ResponseMessagePack(true);
         }

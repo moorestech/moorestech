@@ -12,7 +12,7 @@ using UnityEngine;
 
 using Tests.Util;
 
-namespace Tests.UnitTest.Core.Block
+namespace Tests.UnitTest.Game.SaveLoad
 {
     /// <summary>
     /// This test class verifies the save and load functionality of the ElectricMiner block.

@@ -40,8 +40,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var unrelatedSink = EventTestUtil.RegisterCaptureSink(provider, UnrelatedPlayerId);
 
             var request = MessagePackSerializer.Serialize(BugReportCaptureProtocol.BugReportCaptureRequest.CreateCaptureNowRequest());
-            var context = new PacketResponseContext(null);
-            context.TryBindPlayerId(RequesterPlayerId);
+            var context = Tests.Util.PlayerIdentity.BoundPacketContext.Bind(RequesterPlayerId);
             var responseBytes = packet.GetPacketResponse(request, context);
             var response = MessagePackSerializer.Deserialize<BugReportCaptureProtocol.BugReportCaptureResponse>(responseBytes[0]);
             Assert.IsTrue(response.Accepted, "常時記録が有効なのに要求が受理されていない");
@@ -105,13 +104,12 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Delete the directory so only packet capture dies on I/O, then restore it so snapshots can still be written
             Directory.Delete(directory.SnapshotDirectory, true);
             LogAssert.Expect(LogType.Error, new Regex("^パケットログの区間切り替えに失敗しました"));
-            packetLog.Rotate(11);
+            packetLog.Rotate(11, Array.Empty<int>());
             Assert.IsFalse(packetLog.IsActive, "パケット記録が止まっていない");
             Directory.CreateDirectory(directory.SnapshotDirectory);
 
             var request = MessagePackSerializer.Serialize(BugReportCaptureProtocol.BugReportCaptureRequest.CreateCaptureNowRequest());
-            var context = new PacketResponseContext(null);
-            context.TryBindPlayerId(RequesterPlayerId);
+            var context = Tests.Util.PlayerIdentity.BoundPacketContext.Bind(RequesterPlayerId);
             packet.GetPacketResponse(request, context);
 
             GameUpdater.UpdateOneTick();
@@ -142,14 +140,11 @@ namespace Tests.CombinedTest.Server.PacketTest
             var ring = provider.GetRequiredService<WorldSnapshotRing>();
             GameUpdater.RestoreCurrentTick(10);
             ring.Start(600u, 1800u, 16);
-            LogAssert.Expect(LogType.Warning, new Regex("プレイヤーが確定していない接続のため即時スナップショット要求を受け付けられません"));
+            LogAssert.Expect(LogType.Warning, new Regex("未紐づけ"));
 
             var request = MessagePackSerializer.Serialize(BugReportCaptureProtocol.BugReportCaptureRequest.CreateCaptureNowRequest());
             var responseBytes = packet.GetPacketResponse(request, new PacketResponseContext(null));
-            var response = MessagePackSerializer.Deserialize<BugReportCaptureProtocol.BugReportCaptureResponse>(responseBytes[0]);
-
-            Assert.IsFalse(response.Accepted, "要求元が分からない接続からの要求が受理されている");
-            Assert.IsNotEmpty(response.RejectedReason, "拒否の理由が要求元へ返っていない");
+            Assert.IsEmpty(responseBytes, "未紐づけの要求が共通ゲートを通過している");
             ring.Stop();
             Directory.Delete(Path.GetDirectoryName(savePath), true);
         }

@@ -1,4 +1,5 @@
-﻿using System;
+using Server.Protocol.PacketResponse.Util.InventoryService;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Item.Interface;
@@ -22,13 +23,15 @@ namespace Server.Protocol.PacketResponse
         public const string ProtocolTag = "va:invReq";
 
         private readonly ITrainUnitLookupDatastore _trainUnitLookupDatastore;
+        private readonly OpenableInventoryResolver _inventoryResolver;
 
         public InventoryRequestProtocol(ServiceProvider serviceProvider)
         {
             _trainUnitLookupDatastore = serviceProvider.GetService<ITrainUnitLookupDatastore>();
+            _inventoryResolver = serviceProvider.GetService<OpenableInventoryResolver>();
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             // リクエストをデシリアライズ
             // Deserialize request
@@ -60,7 +63,7 @@ namespace Server.Protocol.PacketResponse
                 if (!datastore.ExistsComponent<IOpenableBlockInventoryComponent>(position))
                     return ResponseInventoryRequestProtocolMessagePack.CreateContainerNotFound(InventoryType.Block, identifier);
 
-                var items = datastore.GetBlock<IOpenableBlockInventoryComponent>(position).InventoryItems;
+                var items = _inventoryResolver.Resolve(identifier, requesterPlayerId).InventoryItems;
                 return ResponseInventoryRequestProtocolMessagePack.CreateSuccess(InventoryType.Block, identifier, items);
             }
 
@@ -74,8 +77,8 @@ namespace Server.Protocol.PacketResponse
 
                 // 列車カーのインベントリを生成
                 // Build the train car inventory
-                if (trainCar.Container is ItemTrainCarContainer container)
-                    return ResponseInventoryRequestProtocolMessagePack.CreateSuccess(InventoryType.Train, identifier, container.InventoryItems.ToArray());
+                if (trainCar.Container is ItemTrainCarContainer)
+                    return ResponseInventoryRequestProtocolMessagePack.CreateSuccess(InventoryType.Train, identifier, _inventoryResolver.Resolve(identifier, requesterPlayerId).InventoryItems.ToArray());
                 return ResponseInventoryRequestProtocolMessagePack.CreateContainerNotFound(InventoryType.Train, identifier);
             }
 

@@ -122,7 +122,21 @@ namespace Client.Game.InGame.BugReport
                 return BuildOriginReading.WithoutInfo(absentReason);
             }
 
-            var buildInfo = BuildInfoJson.Parse(File.ReadAllText(path));
+            // ディスク読みは外部境界（ロック・権限・容量）。読めない出所は起動を落とさず「出所不明」へ畳む
+            // The disk read is an external boundary (locks, permissions, capacity); an unreadable origin folds into "unknown" instead of failing the boot
+            string json;
+            try
+            {
+                json = File.ReadAllText(path);
+            }
+            catch (Exception e)
+            {
+                var unreadableReason = $"配布ビルドの build-info.json を読めないため出所が不明 path:{path} message:{e.Message}";
+                Debug.LogError(unreadableReason);
+                return BuildOriginReading.WithoutInfo(unreadableReason);
+            }
+
+            var buildInfo = BuildInfoJson.Parse(json);
             if (buildInfo == null) return BuildOriginReading.WithoutInfo($"配布ビルドの build-info.json を解釈できないため出所が不明 path:{path}");
             return BuildOriginReading.Baked(buildInfo);
         }

@@ -30,15 +30,11 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly TrainRidingInputSender _trainRidingInputSender = new();
         private readonly TrainBranchRoutePreviewController _branchRoutePreviewController = new();
 
-        private bool _isDismountTrain = false;
-        private RidingPlayerStateContext _rideContext;
-
-        private IDisposable _eventSubscription;
-        private CancellationTokenSource _cts;
+        private readonly TrainHudRideSession _rideSession;
         private readonly Subject<Unit> _onPresentationChanged = new();
         private int _lastBranchCandidateCount;
 
-        public bool IsRiding => _rideContext != null && !_isDismountTrain;
+        public bool IsRiding => _rideSession.IsRiding;
         public NestedPauseSubStateEnum SubState => _subStateController.CurrentState;
         public int BranchCandidateCount => _branchRoutePreviewController.BranchCandidateCount;
         public int SelectedBranchIndex { get; private set; }
@@ -49,6 +45,8 @@ namespace Client.Game.InGame.UI.UIState.State
         public TrainHUDScreenState(PlayerStateController playerStateController, TrainUnitClientCache trainUnitClientCache, InGameCameraController inGameCameraController, PauseMenuStateService pauseMenuStateService)
         {
             _playerStateController = playerStateController;
+            _rideSession = new TrainHudRideSession(playerStateController);
+            _rideSession.OnRidingStateChanged.Subscribe(_ => _onPresentationChanged.OnNext(Unit.Default));
             _trainUnitClientCache = trainUnitClientCache;
             _subStateController = new NestedPauseSubStateController(new TrainHudGameScreenSubState(inGameCameraController), pauseMenuStateService);
             _subStateController.OnStateChanged.Subscribe(_ => _onPresentationChanged.OnNext(Unit.Default));
@@ -56,100 +54,27 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public void OnEnter(UITransitContext context)
         {
-            // 入れ子サブステートを初期化（GameScreenから開始）
-            // Initialize the nested sub-state controller (starts at GameScreen).
             _subStateController.StartSubState();
-            
-            // サーバー強制降車イベントを購読する。HUDに居る間だけ反映
-            // Subscribe to server-forced dismount events; only applied while this HUD is active.
-            _eventSubscription = ClientContext.VanillaApi.Event.SubscribeEventResponse(RidingStateEventPacket.EventTag, OnRidingStateEventReceived);
-            
-            _rideContext = null;
-            _isDismountTrain = false;
             _trainRidingInputSender.Reset();
-            
-            // 初期値として乗車完了済みの場合は即時反映
-            // If the player is already riding at the time of entering, reflect that immediately.
-            if (context.TryGetContext<InitialRideTrainCarRequest>(out var rideRequest))
-            {
-                var target = RidableIdentifierMessagePack.CreateTrainCarMessage(rideRequest.TargetCarId.AsPrimitive());
-                _rideContext = new RidingPlayerStateContext(target, rideRequest.SeatIndex);
-                _playerStateController.SetState(PlayerStateEnum.Riding, _rideContext);
-                _onPresentationChanged.OnNext(Unit.Default);
-                return;
-            }
-
-            // サーバー側に乗車リクエストを送る
-            // Send a ride request to the server.
-            SendRideRequestAsync().Forget(LogRpcFault);
-
-
-            #region Internal
-            
-            async UniTask SendRideRequestAsync()
-            {
-                if(_cts  != null) return;
-                
-                var rideRequest = context.GetContext<RideTrainCarRequest>();
-                
-                _cts  = new CancellationTokenSource();
-                var target = RidableIdentifierMessagePack.CreateTrainCarMessage(rideRequest.TargetCarId.AsPrimitive());
-                var response = await ClientContext.VanillaApi.Response.RideAction(RideActionType.Ride, target, _cts.Token);
-                
-                if (response is { Result: RideActionResult.Success })
-                {
-                    // 乗車を実行
-                    // Execute riding.
-                    var rideTarget = RidableIdentifierMessagePack.CreateTrainCarMessage(rideRequest.TargetCarId.AsPrimitive());
-                    _rideContext = new RidingPlayerStateContext(rideTarget, response.SeatIndex);
-                    _playerStateController.SetState(PlayerStateEnum.Riding, _rideContext);
-                    _onPresentationChanged.OnNext(Unit.Default);
-                }
-                else
-                {
-                    // 乗車できなかったのでGameScreenに戻る
-                    // Failed to ride, bounce back
-                    _isDismountTrain = true;
-                    _onPresentationChanged.OnNext(Unit.Default);
-                }
-                
-                _cts = null;
-            }
-                
-            // サーバー起因の強制降車を反映
-            // Reflect server-forced dismounts.
-            void OnRidingStateEventReceived(byte[] payload)
-            {
-                var message = MessagePackSerializer.Deserialize<RidingStateEventMessagePack>(payload);
-                if (message.PlayerId != ClientContext.PlayerConnectionSetting.PlayerId) return;
-
-                // 降車とゲームスクリーンへの遷移
-                // Dismount and transition to GameScreen.
-                if (message.StateType == RidingStateEventType.Dismount)
-                {
-                    _isDismountTrain = true;
-                }
-            }
-
-            #endregion
+            _rideSession.Enter(context);
         }
 
         public UITransitContext GetNextUpdate()
         {
-            if (_isDismountTrain)
+            if (_rideSession.IsDismounted)
             {
                 return new UITransitContext(UIStateEnum.GameScreen);
             }
 
             // まだ乗車が完了していないのであれば何もしない
             // If riding is not yet completed, do nothing.
-            if (_rideContext == null) return null;
+            if (!_rideSession.IsRiding) return null;
 
             // 対象車両が消えたら強制降車
             // Force dismount if the target car has disappeared.
-            if (!TryGetRidingTrainCarId(out var ridingTrainCarId) || !_trainUnitClientCache.TryGetCarSnapshot(ridingTrainCarId, out var ridingTrainUnit, out _, out _, out _))
+            if (!_rideSession.TryGetRidingTrainCarId(out var ridingTrainCarId) || !_trainUnitClientCache.TryGetCarSnapshot(ridingTrainCarId, out var ridingTrainUnit, out _, out _, out _))
             {
-                _isDismountTrain = true;
+                _rideSession.ForceDismount();
                 return new UITransitContext(UIStateEnum.GameScreen);
             }
                 
@@ -176,44 +101,18 @@ namespace Client.Game.InGame.UI.UIState.State
             // Only process dismount and train control input on the GameScreen.
             if (HybridInput.GetKeyDown(KeyCode.E))
             {
-                SendDismountRequestAsync().Forget(LogRpcFault);
+                _rideSession.RequestDismount();
             }
 
             _trainRidingInputSender.Update();
 
             return null;
 
-            #region Internal
-
-            async UniTask SendDismountRequestAsync()
-            {
-                if (_cts != null) return;
-                
-                _cts  = new CancellationTokenSource();
-                
-                var response = await ClientContext.VanillaApi.Response.RideAction(RideActionType.Dismount, null, _cts.Token);
-                if (response is { Result: RideActionResult.Success })
-                {
-                    // 降車したので GameScreen へ
-                    // Successfully dismounted, transition to GameScreen.
-                    _isDismountTrain = true;
-                }
-                
-                _cts = null;
-            }
-            
-            #endregion
         }
 
         public void OnExit()
         {
-            _eventSubscription?.Dispose();
-            _eventSubscription = null;
-
-            _cts?.Cancel();
-            _cts?.Dispose();
-            _cts = null;
-            _rideContext = null;
+            _rideSession.Exit();
 
             // 入れ子サブステートを終了（必要に応じてポーズメニューを閉じる）
             // Tear down the nested sub-state (closes the pause menu if it is open).
@@ -250,31 +149,6 @@ namespace Client.Game.InGame.UI.UIState.State
         public bool RequestClosePauseMenu()
         {
             return _subStateController.RequestClosePauseMenu();
-        }
-
-        // fire-and-forget RPC の例外を UnobservedTaskException 経由 log のみに頼らず明示的に拾う。
-        // Surface fire-and-forget RPC exceptions explicitly instead of relying on UnobservedTaskException.
-        private static void LogRpcFault(Exception exception)
-        {
-            Debug.LogWarning($"[TrainHUDScreenState] RPC fault: {exception}");
-        }
-
-        private bool TryGetRidingTrainCarId(out TrainCarInstanceId trainCarInstanceId)
-        {
-            trainCarInstanceId = default;
-            if (_rideContext == null || !_rideContext.TryGetTarget(out var target))
-            {
-                return false;
-            }
-
-            // TrainHUD は TrainCar ridable だけを操作対象として扱う
-            // TrainHUD handles only TrainCar ridables as controllable targets
-            if (target.RidableType != RidableType.TrainCar)
-            {
-                return false;
-            }
-            trainCarInstanceId = new TrainCarInstanceId(target.TrainCarInstanceId);
-            return true;
         }
     }
 }

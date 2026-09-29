@@ -35,7 +35,7 @@ namespace Server.Protocol.PacketResponse
             _notificationService = serviceProvider.GetService<NotificationService>();
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             // リクエストの復元
             // Deserialize request payload
@@ -60,13 +60,13 @@ namespace Server.Protocol.PacketResponse
 
             // 返却先プレイヤーインベントリに空きがあるか確認する。入らない場合は削除自体を中止する
             // Verify the player inventory can hold every refund item; abort the removal otherwise.
-            var playerMainInventory = _playerInventoryDataStore.GetInventoryData(request.PlayerId).MainOpenableInventory;
+            var playerMainInventory = _playerInventoryDataStore.GetInventoryData(requesterPlayerId).MainOpenableInventory;
             if (!playerMainInventory.InsertionCheck(refundItems))
             {
                 Debug.LogWarning($"Remove train car aborted. Player inventory is full. \ncarId: {trainCarInstanceId}");
                 // 高価な車両が無言で消えない事故を防ぐため満杯を通知する
                 // Notify inventory-full so an expensive car never silently refuses to be removed
-                _notificationService.Notify(request.PlayerId, NotificationMessagePack.CreateOperationDenied("denied.removeTrainCarInventoryFull", Array.Empty<string>()));
+                _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.removeTrainCarInventoryFull", Array.Empty<string>()));
                 return null;
             }
 
@@ -156,7 +156,6 @@ namespace Server.Protocol.PacketResponse
         public class RemoveTrainCarRequestMessagePack : ProtocolMessagePackBase
         {
             [Key(2)] public long TrainCarInstanceId { get; set; }
-            [Key(3)] public int PlayerId { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public RemoveTrainCarRequestMessagePack()
@@ -164,11 +163,10 @@ namespace Server.Protocol.PacketResponse
                 Tag = ProtocolTag;
             }
 
-            public RemoveTrainCarRequestMessagePack(long trainCarInstanceId, int playerId)
+            public RemoveTrainCarRequestMessagePack(long trainCarInstanceId)
             {
                 Tag = ProtocolTag;
                 TrainCarInstanceId = trainCarInstanceId;
-                PlayerId = playerId;
             }
         }
     }

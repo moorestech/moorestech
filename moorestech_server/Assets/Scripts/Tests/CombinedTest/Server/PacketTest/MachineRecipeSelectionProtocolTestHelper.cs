@@ -43,10 +43,11 @@ namespace Tests.CombinedTest.Server.PacketTest
 
         public static MachineRecipeSelectionProtocol.MachineRecipeSelectionResponse Send(
             PacketResponseCreator packet,
+            int requesterPlayerId,
             MachineRecipeSelectionProtocol.MachineRecipeSelectionRequest request)
         {
             var payload = MessagePackSerializer.Serialize(request);
-            var responseBytes = packet.GetPacketResponse(payload, new PacketResponseContext(null))[0];
+            var responseBytes = packet.GetPacketResponse(payload, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(requesterPlayerId))[0];
             return MessagePackSerializer.Deserialize<MachineRecipeSelectionProtocol.MachineRecipeSelectionResponse>(responseBytes);
         }
     }

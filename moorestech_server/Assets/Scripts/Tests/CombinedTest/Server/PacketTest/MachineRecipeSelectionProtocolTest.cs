@@ -33,7 +33,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data[0];
             var block = PlaceMachine(recipe.BlockGuid, MachinePos);
 
-            var response = Send(packet, MachineRecipeSelectionProtocol.MachineRecipeSelectionRequest.CreateSetRecipeRequest(MachinePos, recipe.MachineRecipeGuid, PlayerId));
+            var response = Send(packet, PlayerId, MachineRecipeSelectionProtocol.MachineRecipeSelectionRequest.CreateSetRecipeRequest(MachinePos, recipe.MachineRecipeGuid));
 
             Assert.IsTrue(response.Success);
             Assert.AreEqual(MachineRecipeSelectionProtocol.MachineRecipeSelectionFailureReason.None, response.FailureReason);
@@ -48,9 +48,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             var (packet, _) = CreateServer();
             var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data[0];
             var block = PlaceMachine(recipe.BlockGuid, MachinePos);
-            Send(packet, MachineRecipeSelectionProtocol.MachineRecipeSelectionRequest.CreateSetRecipeRequest(MachinePos, recipe.MachineRecipeGuid, PlayerId));
+            Send(packet, PlayerId, MachineRecipeSelectionProtocol.MachineRecipeSelectionRequest.CreateSetRecipeRequest(MachinePos, recipe.MachineRecipeGuid));
 
-            var response = Send(packet, MachineRecipeSelectionProtocol.MachineRecipeSelectionRequest.CreateClearRequest(MachinePos, PlayerId));
+            var response = Send(packet, PlayerId, MachineRecipeSelectionProtocol.MachineRecipeSelectionRequest.CreateClearRequest(MachinePos));
 
             Assert.IsTrue(response.Success);
             Assert.AreEqual(MachineRecipeSelectionProtocol.MachineRecipeSelectionFailureReason.None, response.FailureReason);
@@ -74,7 +74,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.IsNotNull(recipeB, "テストモッドに2種類以上の機械ブロックのレシピが必要");
             var block = PlaceMachine(recipeA.BlockGuid, MachinePos);
 
-            var response = Send(packet, MachineRecipeSelectionProtocol.MachineRecipeSelectionRequest.CreateSetRecipeRequest(MachinePos, recipeB.MachineRecipeGuid, PlayerId));
+            var response = Send(packet, PlayerId, MachineRecipeSelectionProtocol.MachineRecipeSelectionRequest.CreateSetRecipeRequest(MachinePos, recipeB.MachineRecipeGuid));
 
             Assert.IsFalse(response.Success);
             Assert.AreEqual(MachineRecipeSelectionProtocol.MachineRecipeSelectionFailureReason.RecipeBlockMismatch, response.FailureReason);
@@ -90,7 +90,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.IsNotNull(lockedRecipe, "テストモッドにinitialUnlocked:falseのレシピが必要（Task 1）");
             var block = PlaceMachine(lockedRecipe.BlockGuid, MachinePos);
 
-            var response = Send(packet, MachineRecipeSelectionProtocol.MachineRecipeSelectionRequest.CreateSetRecipeRequest(MachinePos, lockedRecipe.MachineRecipeGuid, PlayerId));
+            var response = Send(packet, PlayerId, MachineRecipeSelectionProtocol.MachineRecipeSelectionRequest.CreateSetRecipeRequest(MachinePos, lockedRecipe.MachineRecipeGuid));
 
             Assert.IsFalse(response.Success);
             Assert.AreEqual(MachineRecipeSelectionProtocol.MachineRecipeSelectionFailureReason.RecipeLocked, response.FailureReason);
@@ -105,7 +105,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data[0];
             PlaceMachine(recipe.BlockGuid, MachinePos);
 
-            var response = Send(packet, MachineRecipeSelectionProtocol.MachineRecipeSelectionRequest.CreateSetRecipeRequest(MachinePos, Guid.NewGuid(), PlayerId));
+            var response = Send(packet, PlayerId, MachineRecipeSelectionProtocol.MachineRecipeSelectionRequest.CreateSetRecipeRequest(MachinePos, Guid.NewGuid()));
 
             Assert.IsFalse(response.Success);
             Assert.AreEqual(MachineRecipeSelectionProtocol.MachineRecipeSelectionFailureReason.InvalidRecipe, response.FailureReason);
@@ -118,7 +118,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, MachinePos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data[0];
 
-            var response = Send(packet, MachineRecipeSelectionProtocol.MachineRecipeSelectionRequest.CreateSetRecipeRequest(MachinePos, recipe.MachineRecipeGuid, PlayerId));
+            var response = Send(packet, PlayerId, MachineRecipeSelectionProtocol.MachineRecipeSelectionRequest.CreateSetRecipeRequest(MachinePos, recipe.MachineRecipeGuid));
 
             Assert.IsFalse(response.Success);
             Assert.AreEqual(MachineRecipeSelectionProtocol.MachineRecipeSelectionFailureReason.NotMachine, response.FailureReason);
@@ -130,7 +130,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var (packet, _) = CreateServer();
             var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data[0];
 
-            var response = Send(packet, MachineRecipeSelectionProtocol.MachineRecipeSelectionRequest.CreateSetRecipeRequest(new Vector3Int(999, 0, 999), recipe.MachineRecipeGuid, PlayerId));
+            var response = Send(packet, PlayerId, MachineRecipeSelectionProtocol.MachineRecipeSelectionRequest.CreateSetRecipeRequest(new Vector3Int(999, 0, 999), recipe.MachineRecipeGuid));
 
             Assert.IsFalse(response.Success);
             Assert.AreEqual(MachineRecipeSelectionProtocol.MachineRecipeSelectionFailureReason.BlockNotFound, response.FailureReason);
@@ -149,7 +149,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // レシピ選択済み・加工中の状態を作る
             // Build a state where the recipe is selected and processing is in progress
-            Send(packet, MachineRecipeSelectionProtocol.MachineRecipeSelectionRequest.CreateSetRecipeRequest(MachinePos, recipe.MachineRecipeGuid, PlayerId));
+            Send(packet, PlayerId, MachineRecipeSelectionProtocol.MachineRecipeSelectionRequest.CreateSetRecipeRequest(MachinePos, recipe.MachineRecipeGuid));
             foreach (var inputItem in recipe.InputItems)
             {
                 blockInventory.InsertItem(ServerContext.ItemStackFactory.Create(inputItem.ItemGuid, inputItem.Count));
@@ -177,7 +177,7 @@ namespace Tests.CombinedTest.Server.PacketTest
                 mainInventory.SetItem(i, ServerContext.ItemStackFactory.Create(playerFillerId, playerFillerMaxStack));
             }
 
-            var response = Send(packet, MachineRecipeSelectionProtocol.MachineRecipeSelectionRequest.CreateSetRecipeRequest(MachinePos, next.MachineRecipeGuid, PlayerId));
+            var response = Send(packet, PlayerId, MachineRecipeSelectionProtocol.MachineRecipeSelectionRequest.CreateSetRecipeRequest(MachinePos, next.MachineRecipeGuid));
 
             Assert.IsFalse(response.Success);
             Assert.AreEqual(MachineRecipeSelectionProtocol.MachineRecipeSelectionFailureReason.RefundFailed, response.FailureReason);

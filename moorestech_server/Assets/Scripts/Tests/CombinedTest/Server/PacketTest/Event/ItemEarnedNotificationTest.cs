@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using Core.Item;
 using Core.Master;
@@ -23,21 +23,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
     ///     手掘りの獲得はItemEarned通知で飛ぶ
     ///     Verifies that hand-mining rewards are pushed as ItemEarned notifications
     /// </summary>
-    public class ItemEarnedNotificationTest
+    public class ItemEarnedNotificationTest : ItemEarnedNotificationTestBase
     {
-        private const int PlayerId = 0;
-
-        // 素手一撃で破壊できるPickUp型mapObject
-        // A PickUp-type mapObject destroyed by a single bare-handed hit
-        private static readonly Guid PickUpMapObjectGuid = Guid.Parse("8c0e1339-be75-4690-99cd-58b5385a17cd");
-        private static readonly Guid IronVeinGuid = Guid.Parse("11111111-0000-0000-0000-000000000001");
-        private static readonly Vector3Int InsideIronVein = new(0, 5, 0);
-        private static readonly Guid ToolItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
-
-        // 空きを潰すための獲得アイテムとは別のアイテム
-        // A different item used to fill the inventory
-        private static readonly Guid FillerItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000002");
-        private const double ExpectedAttackSpeed = 0.2;
 
         [Test]
         public void MapObject採掘の獲得はアイテムごとに1本の通知として飛ぶ()
@@ -117,106 +104,6 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             SendMapObjectMining(packet, mapObject.InstanceId);
 
             Assert.AreEqual(0, TakeNotifications(sink, NotificationCategory.OperationDenied).Count);
-        }
-
-        [Test]
-        public void Vein手掘りの獲得も通知として飛ぶ()
-        {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var playerInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
-            EquipTool(playerInventory);
-            var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlayerId);
-
-            SendVeinMining(packet);
-
-            // veinは1振り1ドロップでCount1
-            // A vein drops one item per swing, so Count is 1
-            var notifications = TakeItemEarnedNotifications(sink);
-            Assert.AreEqual(1, notifications.Count);
-            Assert.AreEqual(1, notifications[0].Count);
-
-            var veinItemGuid = ((ItemVeinParam)MasterHolder.MapVeinMaster.GetElementOrNull(IronVeinGuid).VeinParam).ItemGuid;
-            Assert.AreEqual(MasterHolder.ItemMaster.GetItemId(veinItemGuid), notifications[0].ItemId);
-        }
-
-        [Test]
-        public void 獲得通知はクールダウンで握り潰されず連続採掘のたびに飛ぶ()
-        {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var playerInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
-            EquipTool(playerInventory);
-            var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlayerId);
-
-            // クールダウン3秒内の2連打も通る
-            // Two swings inside the 3s cooldown both reach the wire
-            SendVeinMining(packet);
-            GameUpdater.RunFrames(GameUpdater.SecondsToTicks(ExpectedAttackSpeed) + 1);
-            SendVeinMining(packet);
-
-            Assert.AreEqual(2, TakeItemEarnedNotifications(sink).Count);
-        }
-
-        private void SendMapObjectMining(PacketResponseCreator packet, int instanceId)
-        {
-            var messagePack = MiningProtocol.MiningProtocolMessagePack.CreateMapObjectRequest(PlayerId, instanceId);
-            packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), new PacketResponseContext(null));
-        }
-
-        private void SendVeinMining(PacketResponseCreator packet)
-        {
-            var messagePack = MiningProtocol.MiningProtocolMessagePack.CreateVeinRequest(PlayerId, IronVeinGuid, InsideIronVein);
-            packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), new PacketResponseContext(null));
-        }
-
-        // 指定アイテムの空きだけを残して他スロットを別アイテムで埋める
-        // Fills every other slot with a different item, leaving free space only for the given item
-        private void FillInventoryLeavingFreeSpace(PlayerInventoryData playerInventory, ItemId itemId, int freeSpace)
-        {
-            var mainInventory = playerInventory.MainOpenableInventory;
-            var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(itemId);
-            Assert.Greater(maxStack, freeSpace);
-            mainInventory.SetItem(0, itemId, maxStack - freeSpace);
-
-            var fillerItemId = MasterHolder.ItemMaster.GetItemId(FillerItemGuid);
-            var fillerMaxStack = ItemStackLevelDataStore.Instance.GetMaxStack(fillerItemId);
-            for (var slot = 1; slot < mainInventory.GetSlotSize(); slot++) mainInventory.SetItem(slot, fillerItemId, fillerMaxStack);
-        }
-
-        private void EquipTool(PlayerInventoryData playerInventory)
-        {
-            playerInventory.EquipmentInventory.SetItem(0, MasterHolder.ItemMaster.GetItemId(ToolItemGuid), 1);
-            playerInventory.EquipmentInventory.SetSelectedEquipmentIndex(0);
-        }
-
-        private System.Collections.Generic.List<NotificationMessagePack> TakeItemEarnedNotifications(CapturedEventSink sink)
-        {
-            return TakeNotifications(sink, NotificationCategory.ItemEarned);
-        }
-
-        private System.Collections.Generic.List<NotificationMessagePack> TakeNotifications(CapturedEventSink sink, NotificationCategory category)
-        {
-            return sink.TakeAll().
-                Where(captured => captured.Tag == NotificationService.EventTag).
-                Select(captured => MessagePackSerializer.Deserialize<NotificationMessagePack>(captured.Payload)).
-                Where(notification => notification.Category == category).
-                ToList();
-        }
-
-        /// <summary>
-        ///     採掘設定は判別子の内側にあるため、採掘できる個体としてほどいてから読む
-        ///     The mining settings live inside the discriminator, so they are unwrapped as a minable object first
-        /// </summary>
-        private static IMinableMapObjectParam GetMinableParam(Guid mapObjectGuid)
-        {
-            return (IMinableMapObjectParam)MasterHolder.MapObjectMaster.GetMapObjectElement(mapObjectGuid).MiningParam;
-        }
-
-        private int CountMainInventoryItem(ServiceProvider serviceProvider, ItemId itemId)
-        {
-            var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
-            return Enumerable.Range(0, mainInventory.GetSlotSize()).
-                Where(slot => mainInventory.GetItem(slot).Id == itemId).
-                Sum(slot => mainInventory.GetItem(slot).Count);
         }
     }
 }

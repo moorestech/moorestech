@@ -18,11 +18,11 @@ namespace Server.Protocol.PacketResponse
             _trainUpdateService = trainUpdateService;
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var input = MessagePackSerializer.Deserialize<TrainCarRidingInputMessagePack>(payload);
             _inputBuffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(
-                input.PlayerId,
+                requesterPlayerId,
                 _trainUpdateService.GetCurrentTick(),
                 input.MoveForward,
                 input.SelectPreviousBranch,
@@ -34,7 +34,6 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class TrainCarRidingInputMessagePack : ProtocolMessagePackBase
         {
-            [Key(2)] public int PlayerId { get; set; }
             [Key(3)] public bool MoveForward { get; set; }
             [Key(4)] public bool MoveBackward { get; set; }
             [Key(5)] public bool SelectPreviousBranch { get; set; }
@@ -46,10 +45,9 @@ namespace Server.Protocol.PacketResponse
                 Tag = ProtocolTag;
             }
 
-            public TrainCarRidingInputMessagePack(int playerId, bool moveForward, bool moveBackward, bool selectPreviousBranch, bool selectNextBranch)
+            public TrainCarRidingInputMessagePack(bool moveForward, bool moveBackward, bool selectPreviousBranch, bool selectNextBranch)
             {
                 Tag = ProtocolTag;
-                PlayerId = playerId;
                 MoveForward = moveForward;
                 MoveBackward = moveBackward;
                 SelectPreviousBranch = selectPreviousBranch;

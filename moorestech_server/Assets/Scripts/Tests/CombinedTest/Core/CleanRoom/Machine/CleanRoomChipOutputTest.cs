@@ -1,3 +1,4 @@
+using Tests.Util.EnergySystem;
 using Core.Inventory;
 using Core.Master;
 using Core.Update;
@@ -15,7 +16,7 @@ using Tests.Util;
 using UnityEngine;
 using Newtonsoft.Json;
 
-namespace Tests.CombinedTest.Core.CleanRoom
+namespace Tests.CombinedTest.Core.CleanRoom.Machine
 {
     public class CleanRoomChipOutputTest
     {

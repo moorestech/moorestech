@@ -1,8 +1,5 @@
-using System;
 using System.IO;
 using System.Text.RegularExpressions;
-using Game.Block.Interface;
-using Game.Context;
 using Game.Paths;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
@@ -11,8 +8,6 @@ using Game.SaveLoad.Migration;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
-using Server.Boot;
-using Tests.Module.TestMod;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -110,13 +105,14 @@ namespace Tests.CombinedTest.Game
             Assert.IsFalse(File.Exists(archive.BackupSaveJsonPath(1)), "現在版のセーブが版1として退避されています");
         }
 
-        // 版1と記された既存セーブ（形式は既に版2相当）が、3項目を上書きされずに版2へ上がること
-        // An existing save labelled version 1 whose shape is already version 2 must reach version 2 with the three fields untouched
+        // 版1と記された既存セーブ（players以外は現行版相当）が、3項目を上書きされずに現行版へ上がること
+        // An existing save labelled version 1 whose fields except players already match the current shape must reach the current version with the three fields untouched
         [Test]
-        public void 版1のセーブは3項目を保ったまま版2へ上がり実ロードできるTest()
+        public void 版1のセーブは3項目を保ったまま現行版へ上がり実ロードできるTest()
         {
             var save = SaveLoadPreparerTestFixture.BuildSaveJson();
             save["worldVersion"] = 1;
+            save.Remove("players");
             save["currentTick"] = 4321;
 
             var (_, preparer) = SaveLoadPreparerTestFixture.CreatePreparer(_archiveRoot);
@@ -140,6 +136,7 @@ namespace Tests.CombinedTest.Game
         {
             var save = SaveLoadPreparerTestFixture.BuildSaveJson();
             save["worldVersion"] = 1;
+            save.Remove("players");
             var originalText = save.ToString();
 
             var (_, preparer) = SaveLoadPreparerTestFixture.CreatePreparer(_archiveRoot);
@@ -157,87 +154,14 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(originalText, File.ReadAllText(backupPath));
         }
 
-        // 未来版のセーブで新規ワールド作成へ落ちないこと。落ちるとautosaveが原本を古い形式で上書きする
-        // A future-version save must not fall through to world creation; it would let autosave overwrite the original in the old format
+        // DIが実連鎖（V1→V2→V3）を配線していること。積み忘れると版1が永久にロードできない
+        // The container must wire the real chain with both migration steps; forgetting it leaves version 1 unloadable forever
         [Test]
-        public void 未来版のセーブでは起動が中断され新規ワールドが作られないTest()
-        {
-            var saveJsonFilePath = Path.Combine(_archiveRoot, "save.json");
-            var save = SaveLoadPreparerTestFixture.BuildSaveJson();
-            save["worldVersion"] = 999;
-            Directory.CreateDirectory(_archiveRoot);
-            File.WriteAllText(saveJsonFilePath, save.ToString());
-
-            LogAssert.Expect(LogType.Error, new Regex("^セーブをロードできません"));
-            LogAssert.Expect(LogType.Error, new Regex("^セーブファイルパス"));
-
-            var options = new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory)
-            {
-                worldDataDirectory = WorldDataDirectory.FromServerDataMap(TestModDirectory.ForUnitTestModDirectory, saveJsonFilePath),
-            };
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(options);
-
-            var exception = Assert.Throws<Exception>(() => serviceProvider.GetService<IWorldSaveDataLoader>().LoadOrInitialize());
-            StringAssert.Contains("999", exception.Message);
-        }
-
-        // LoadOrInitializeという本番の結線そのもので検証する。preparer.Prepare→loader.Loadの手組みでは
-        // 「Prepareの出力ではなく生JSONをLoadに渡す」という配線側の退行を検出できない
-        // Verified through the real LoadOrInitialize wiring; a hand-wired preparer.Prepare→loader.Load in the test
-        // would miss a wiring regression where Load is fed the raw JSON instead of Prepare's output
-        [Test]
-        public void 版1のセーブはLoadOrInitializeで実際にロードできるTest()
-        {
-            var saveJsonFilePath = Path.Combine(_archiveRoot, "save.json");
-            var save = SaveLoadPreparerTestFixture.BuildSaveJson();
-            save["worldVersion"] = 1;
-            // 版1が本来欠く3項目を落とす。生JSONを直接LoadすればcurrentTickが無く即例外になるため、
-            // 通ること自体がPrepareの出力（変換で補填済み）が使われている証拠になる
-            // Drop the three fields a real version-1 save lacks; the raw JSON would throw immediately on Load
-            // (missing currentTick), so success here proves Prepare's backfilled output is what gets loaded
-            save.Remove("currentTick");
-            save.Remove("randomState");
-            save.Remove("miningCooldowns");
-            Directory.CreateDirectory(_archiveRoot);
-            File.WriteAllText(saveJsonFilePath, save.ToString());
-
-            var options = new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory)
-            {
-                worldDataDirectory = WorldDataDirectory.FromServerDataMap(TestModDirectory.ForUnitTestModDirectory, saveJsonFilePath),
-            };
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(options);
-
-            Assert.DoesNotThrow(() => serviceProvider.GetService<IWorldSaveDataLoader>().LoadOrInitialize());
-        }
-
-        // 同じくLoadOrInitializeの本番結線で検証する。マスタに無いblockGuidは生JSONのままLoadすれば解決時に例外になる
-        // Also verified through the real LoadOrInitialize wiring; a blockGuid absent from the master throws on Load if the raw JSON is used
-        [Test]
-        public void 欠損ブロック入りのセーブはLoadOrInitializeで除去後に実ロードできるTest()
-        {
-            var saveJsonFilePath = Path.Combine(_archiveRoot, "save.json");
-            var save = SaveLoadPreparerTestFixture.BuildSaveJson();
-            ((JArray)save["world"]).Add(SaveLoadPreparerTestFixture.MissingBlock(987662, 82));
-            Directory.CreateDirectory(_archiveRoot);
-            File.WriteAllText(saveJsonFilePath, save.ToString());
-
-            var options = new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory)
-            {
-                worldDataDirectory = WorldDataDirectory.FromServerDataMap(TestModDirectory.ForUnitTestModDirectory, saveJsonFilePath),
-            };
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(options);
-
-            Assert.DoesNotThrow(() => serviceProvider.GetService<IWorldSaveDataLoader>().LoadOrInitialize());
-            Assert.IsFalse(ServerContext.WorldBlockDatastore.BlockMasterDictionary.ContainsKey(new BlockInstanceId(987662)));
-        }
-
-        // DIが実連鎖（V1→V2を1本積んだもの）を配線していること。積み忘れると版1が永久にロードできない
-        // The container must wire the real chain with the V1-to-V2 step; forgetting it leaves version 1 unloadable forever
-        [Test]
-        public void DIから解決した連鎖が版1のセーブを版2へ上げるTest()
+        public void DIから解決した連鎖が版1のセーブを現行版へ上げるTest()
         {
             var save = SaveLoadPreparerTestFixture.BuildSaveJson();
             save["worldVersion"] = 1;
+            save.Remove("players");
 
             var result = SaveLoadPreparerTestFixture.CreateContainer().GetService<SaveMigrationChain>().Migrate(save);
 

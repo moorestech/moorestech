@@ -21,7 +21,7 @@ namespace Server.Protocol.PacketResponse
             _energySegmentDatastore = serviceProvider.GetService<IElectricWireNetworkLookup>();
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var request = MessagePackSerializer.Deserialize<RequestGetElectricNetworkInfoMessagePack>(payload);
 

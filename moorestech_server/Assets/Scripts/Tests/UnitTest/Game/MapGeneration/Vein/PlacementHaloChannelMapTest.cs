@@ -1,7 +1,7 @@
 using Game.MapGeneration.Pipeline.Tiling;
 using NUnit.Framework;
 
-namespace Tests.UnitTest.Game.MapGeneration
+namespace Tests.UnitTest.Game.MapGeneration.Vein
 {
     public class PlacementHaloChannelMapTest
     {

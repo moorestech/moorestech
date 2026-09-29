@@ -38,6 +38,7 @@
         "Game.Block.Interface",
         "Client.PlaytestReceiver",
         "com.rlabrecque.steamworks.net",
+        "Game.PlayerIdentity",
         "Client.RemoteExec"
     ],
     "includePlatforms": [],

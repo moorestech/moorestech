@@ -71,7 +71,8 @@
         "Game.Blueprint",
         "Game.PlacementTarget",
         "Game.Hotbar",
-        "Game.Construction"
+        "Game.Construction",
+        "Game.PlayerIdentity"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

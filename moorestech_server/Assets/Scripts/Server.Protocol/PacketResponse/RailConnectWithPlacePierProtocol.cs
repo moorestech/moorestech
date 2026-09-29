@@ -45,10 +45,10 @@ namespace Server.Protocol.PacketResponse
             _constructionWallet = serviceProvider.GetService<ConstructionWalletService>();
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var request = MessagePackSerializer.Deserialize<RailConnectWithPlacePierRequest>(payload);
-            var inventory = _playerInventoryDataStore.GetInventoryData(request.PlayerId).MainOpenableInventory;
+            var inventory = _playerInventoryDataStore.GetInventoryData(requesterPlayerId).MainOpenableInventory;
             var placePosition = (Vector3Int)request.PierPlaceInfo.Position;
 
             // fromNodeの解決と設置先の空き確認
@@ -70,7 +70,7 @@ namespace Server.Protocol.PacketResponse
             var blockId = request.PierBlockId;
             var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
             if (blockMaster.BlockParam is not TrainRailBlockParam) return RailConnectWithPlacePierResponse.CreateFailedResponse();
-            var placementPlan = _constructionWallet.PlanPlacement(blockMaster, request.PlayerId);
+            var placementPlan = _constructionWallet.PlanPlacement(blockMaster, requesterPlayerId);
             var pierItemCounts = placementPlan.ItemsToConsume;
             if (!ConstructionCostService.HasRequiredItems(pierItemCounts, inventory.InventoryItems)) return RailConnectWithPlacePierResponse.CreateFailedResponse();
 
@@ -146,7 +146,6 @@ namespace Server.Protocol.PacketResponse
             [Key(2)] public int FromNodeId { get; set; }
             [Key(3)] public Guid FromGuid { get; set; }
             [Key(4)] public PlaceInfoMessagePack PierPlaceInfo { get; set; }
-            [Key(5)] public int PlayerId { get; set; }
             [Key(6)] public int PierBlockIdInt { get; set; }
             [Key(7)] public Guid ConnectToolGuid { get; set; }
 
@@ -158,11 +157,10 @@ namespace Server.Protocol.PacketResponse
                 Tag = RailConnectWithPlacePierProtocol.Tag;
             }
 
-            public static RailConnectWithPlacePierRequest Create(int playerId, int fromNodeId, Guid fromGuid, BlockId pierBlockId, PlaceInfo placeInfo, Guid connectToolGuid)
+            public static RailConnectWithPlacePierRequest Create(int fromNodeId, Guid fromGuid, BlockId pierBlockId, PlaceInfo placeInfo, Guid connectToolGuid)
             {
                 return new RailConnectWithPlacePierRequest
                 {
-                    PlayerId = playerId,
                     FromNodeId = fromNodeId,
                     FromGuid = fromGuid,
                     PierBlockIdInt = pierBlockId.AsPrimitive(),
