@@ -236,6 +236,7 @@ Self-Review（内容）の次に、このファイル後半の **spec-architectu
    planが完成し`docs/superpowers/plans/<filename>.md`に保存されました。新規セッションを開き、以下を貼り付けて実装を開始してください:
 
    ```
+   <タスク概要（20〜30字程度の体言止め。例: iOSアプリの入力フィールド改善）>
    subagent-driven-development スキルを使って、以下の実装planを実行してください。
 
    - plan: docs/superpowers/plans/<filename>.md
@@ -245,6 +246,8 @@ Self-Review（内容）の次に、このファイル後半の **spec-architectu
    - planの最終タスク群（moores-code-reviewによる全ブランチレビュー→pr-createでPR作成・コンフリクト解消まで）は省略不可です。PRが作成されセッションを閉じられる状態になるまで完了扱いにしないでください
    ```
    ````
+
+   1行目は必ずタスク概要にする。新規セッションのstatuslineには最初のユーザー発話の先頭行が出るため、ここにタスク名が無いと並走セッションのどれが何のタスクか見分けられない。スキル名やplanパスを1行目に置かない。
 
 このセッション内で本体が直接タスクを順次実行することは、ユーザーが明示的に希望した場合のみ行う。自分から選択肢として提示しない（既定は subagent-driven-development の規模ゲートが選ぶモードである）。
 
