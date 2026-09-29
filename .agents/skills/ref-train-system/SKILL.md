@@ -1,5 +1,5 @@
 ---
-name: train-system
+name: ref-train-system
 description: >
   Train/rail system reference covering network sync flows, event implementation, tick simulation,
   save/load, core invariants, and test prioritization under unified TickUnifiedId ordering and
