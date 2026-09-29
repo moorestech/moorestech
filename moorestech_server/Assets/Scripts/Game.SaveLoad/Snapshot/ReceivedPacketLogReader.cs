@@ -69,7 +69,11 @@ namespace Game.SaveLoad.Snapshot
         private static bool TryReadHeader(BinaryReader reader, string path, out ReceivedPacketLogSegmentHeader header)
         {
             header = default;
-            if (reader.BaseStream.Length < sizeof(int) * 2 ||
+
+            // 見出しが途中で切れた区間（書き出し中の異常終了）は、読み進める前に読み飛ばす
+            // A segment whose header is truncated (a crash mid-write) is skipped before any further read
+            const int headerLength = sizeof(int) * 2 + sizeof(ulong) + sizeof(int);
+            if (reader.BaseStream.Length < headerLength ||
                 reader.ReadInt32() != ReceivedPacketLog.SegmentMagic ||
                 reader.ReadInt32() != ReceivedPacketLog.SegmentVersion)
             {
@@ -80,6 +84,8 @@ namespace Game.SaveLoad.Snapshot
             var fromTick = reader.ReadUInt64();
             var connectedCount = reader.ReadInt32();
             if (connectedCount < 0) throw new InvalidDataException($"パケットログ区間の接続中ID件数が負です path:{path} count:{connectedCount}");
+            if (reader.BaseStream.Length - reader.BaseStream.Position < (long)connectedCount * sizeof(int))
+                throw new InvalidDataException($"パケットログ区間の接続中ID一覧が途中で切れています path:{path} count:{connectedCount}");
             var connectedPlayerIds = new int[connectedCount];
             for (var i = 0; i < connectedCount; i++)
             {
