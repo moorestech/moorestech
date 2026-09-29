@@ -77,7 +77,7 @@ namespace Server.Boot.Loop.PacketProcessing
 
                     // 送信が壊れた接続はもう相手へ届かない。受信側のReceiveも抜けさせて通常の切断処理へ流す
                     // A connection whose send broke can no longer reach the peer, so unblock its Receive and let the normal disconnect path run
-                    ShutdownSocket();
+                    ShutdownForReceive();
                 }
             }
 
@@ -85,12 +85,13 @@ namespace Server.Boot.Loop.PacketProcessing
 
             // ソケット操作は外部境界。既に閉じている接続への操作は例外になるため隔離し、理由だけ残して進む
             // Socket operations are an external boundary; acting on an already-closed connection throws, so isolate it and move on with the reason logged
-            void ShutdownSocket()
+            // Closeはここで呼ばない。受信スレッドのReceiveがObjectDisposedExceptionで抜けると相手方の障害が内部バグとして記録される
+            // Close is not called here; a Receive failing with ObjectDisposedException would log the peer's fault as an internal bug
+            void ShutdownForReceive()
             {
                 try
                 {
                     _client.Shutdown(SocketShutdown.Both);
-                    _client.Close();
                 }
                 catch (Exception shutdownException)
                 {

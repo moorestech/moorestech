@@ -65,15 +65,13 @@ namespace Server.Boot.Replay
                 Debug.Log("再生した未紐づけ接続の切断には解除対象がありません");
                 return;
             }
-            // 区間開始の接続集合を復元し、再生中のハンドシェイクも引き取るので、紐づいた切断には必ずcontextがある
-            // With the segment's connection set restored and replayed handshakes adopted, a bound disconnect always has its context
+            // 区間ヘッダの接続集合が剪定・旧版で欠けていると解除対象を持たない。読み側の警告と重大度を揃えて縮退する
+            // A pruned or older segment header leaves nothing to remove here; degrade at the same severity the reader uses
             if (!_contexts.TryGetValue(playerId.Value, out var context))
             {
-                var reason = $"再生: playerId {playerId.Value} の接続が未作成のため解除できません（区間ヘッダの接続集合と記録が食い違っています）";
-                Debug.LogError(reason);
-                throw new InvalidOperationException(reason);
+                Debug.LogError($"再生: playerId {playerId.Value} の接続が未作成のため解除対象がありません（区間ヘッダの接続集合が欠けている可能性があります）");
             }
-            PlayerConnectionBinding.Unregister(playerId.Value, context.EventSink, _connections, _events);
+            PlayerConnectionBinding.Unregister(playerId.Value, context?.EventSink, _connections, _events);
             _contexts.Remove(playerId.Value);
         }
     }

@@ -17,10 +17,9 @@ namespace Server.Boot.Loop
         // Default port when unspecified; passing 0 makes the OS assign a free port
         private const int DefaultPort = 11564;
 
-        // 無通信30秒で死活確認を始め、5秒間隔で再送する
-        // Start probing after 30 seconds of silence and retry every 5 seconds
-        private const int KeepAliveIdleMilliseconds = 30_000;
-        private const int KeepAliveIntervalMilliseconds = 5_000;
+        // keep-aliveの間隔はOS既定のまま（数時間）。接続ごとに出すとログが埋まるので断り書きは1度だけ出す
+        // The keep-alive interval stays at the OS default (hours); the caveat is logged once, since per-connection logging would bury the log
+        private static bool _keepAliveDefaultIntervalLogged;
 
         public static Socket CreateBoundListener(int? argPort)
         {
@@ -70,26 +69,27 @@ namespace Server.Boot.Loop
 
             #region Internal
 
-            // ソケット設定は外部境界。プラットフォームがIOControlを拒む場合でも受け入れそのものは続ける
-            // Socket options are an external boundary; acceptance continues even when a platform refuses IOControl
             void EnableKeepAlive(Socket client)
             {
+                // ソケット設定は外部境界。設定できない環境でも受け入れそのものは続ける
+                // Socket options are an external boundary; acceptance continues even where they cannot be set
                 try
                 {
                     client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
-
-                    // OS既定の2時間は長すぎる。keepAliveTime/Intervalを秒指定へ縮めて数十秒で死活が出るようにする
-                    // The OS default of two hours is too long, so shorten keepAliveTime/Interval to surface a dead peer within tens of seconds
-                    var keepAliveValues = new byte[sizeof(uint) * 3];
-                    BitConverter.GetBytes(1u).CopyTo(keepAliveValues, 0);
-                    BitConverter.GetBytes((uint)KeepAliveIdleMilliseconds).CopyTo(keepAliveValues, sizeof(uint));
-                    BitConverter.GetBytes((uint)KeepAliveIntervalMilliseconds).CopyTo(keepAliveValues, sizeof(uint) * 2);
-                    client.IOControl(IOControlCode.KeepAliveValues, keepAliveValues, null);
                 }
                 catch (Exception e)
                 {
-                    Debug.LogWarning($"接続のkeep-alive設定に失敗しました。放置接続の死活検知が遅くなります: {e.Message}");
+                    Debug.LogWarning($"接続のkeep-alive有効化に失敗しました。放置接続の死活検知が効きません: {e.Message}");
+                    return;
                 }
+
+                // 間隔の短縮はこのランタイムでは指定できない（TcpKeepAliveTime/Interval が無く、IOControlのKeepAliveValuesはWindows専用）
+                // Shortening the interval is not expressible on this runtime: TcpKeepAliveTime/Interval are absent and IOControl's KeepAliveValues is Windows-only
+                // 検知はOS既定（数時間）まで遅れる。その間は落ちた端末と同じ身元の再接続がAlreadyConnectedで拒否される
+                // Detection is therefore delayed to the OS default (hours); until then a dead peer's identity is refused with AlreadyConnected
+                if (_keepAliveDefaultIntervalLogged) return;
+                _keepAliveDefaultIntervalLogged = true;
+                Debug.Log("接続のkeep-aliveはOS既定の間隔（数時間）で動きます。送信の無い放置接続の死活検知はそれまで遅れます");
             }
 
             #endregion
