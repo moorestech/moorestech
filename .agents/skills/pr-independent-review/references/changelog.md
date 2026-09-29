@@ -9,6 +9,7 @@ SKILL.md 本文の規則がどの事故・裁定から生まれたかの台帳�
 | `$CANON` を「この SKILL.md が置かれている tree」にしない | 2026-08-05 実測。メイン worktree は他セッションが実装作業中で、レビュー実行中にブランチが切り替わった |
 | `$ORIGIN` で `gh pr checkout` を実行しない | 2026-08-05 に実際に発生。cwd の worktree のブランチが切り替わり、メイン worktree が他セッションの作業ブランチから引き剥がされた |
 | PR ごとに worktree を1つ作り使い回さない | ユーザー裁定 2026-08-05。並行レビューの奪い合いで、修正作業中のツリーを次のレビューが `reset --hard` で消した |
+| worktree の置き場を `canon_setup.py` の `worktree_parent`（`$ORIGIN` 親の `moorestech-worktrees/`）に固定する | 2026-09-29 ユーザー裁定。親ディレクトリをエージェントの解釈に任せた結果、repos 直下と `moorestech-pr-review-baseline-worktrees/` に計29本が散らばり掃除から漏れた |
 | MERGED PR の BASE_REF は `<mergeCommit>^1` | PR #1041 実測。`origin/<base>` を使うと merge-base が HEAD 自身になり、patch 空・novelty 全空・exit 0 の沈黙故障で verdict が「自動マージ可」に化けた |
 | `<mergeCommit>` は `.mergeCommit.oid` の SHA へ展開する | `gh pr view --json mergeCommit` はオブジェクトを返す。そのまま渡すと `unknown revision` |
 | patch 生成のフラグ省略禁止 | ユーザー側 git 設定（quotepath / color / ext-diff / textconv / renames）が patch を静かに痩せさせ、決定論チェックとレンズの判定が外れる |

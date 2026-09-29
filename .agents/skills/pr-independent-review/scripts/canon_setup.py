@@ -3,9 +3,12 @@
 Prepare the canonical tree `$CANON` (a worktree pinned to origin/master) and enforce the former prose guards via exit codes.
 
 使い方 / Usage:
-    canon_setup.py --origin <起動元repo> --parent <worktree親ディレクトリ> [--allow-skew]
+    canon_setup.py --origin <起動元repo> [--allow-skew]
 
-stdout に JSON: {"canon", "sha8", "origin_master_sha", "skew", "origin_head_sha", "cleaned", "warnings"}
+worktree 置き場は `$ORIGIN` の親の `moorestech-worktrees/` に固定する（moores-wt と同じ置き場。repos 直下に散らさない）。
+The worktree home is fixed to `moorestech-worktrees/` beside `$ORIGIN` (same home as moores-wt; never scatter into repos/).
+
+stdout に JSON: {"canon", "worktree_parent", "sha8", "origin_master_sha", "skew", "origin_head_sha", "cleaned", "warnings"}
 exit 0  … 用意完了（--allow-skew 付きで skew:true の場合を含む）
 exit 10 … origin/master の fetch / rev-parse 失敗
 exit 11 … worktree add 失敗
@@ -24,6 +27,7 @@ SKILL_REL = os.path.join(".agents", "skills", "pr-independent-review")
 NOVELTY_REL = os.path.join(SKILL_REL, "scripts", "novelty_gate.py")
 SKILL_MD_REL = os.path.join(SKILL_REL, "SKILL.md")
 STALE_SECONDS = 24 * 3600
+WORKTREE_DIR_NAME = "moorestech-worktrees"
 
 
 def git(repo: str, *args: str) -> subprocess.CompletedProcess:
@@ -71,11 +75,10 @@ def clean_stale_pins(origin: str, parent: str, keep: str) -> tuple[list[str], li
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--origin", required=True)
-    ap.add_argument("--parent", required=True)
     ap.add_argument("--allow-skew", action="store_true")
     args = ap.parse_args()
     origin = os.path.realpath(args.origin)
-    parent = os.path.realpath(args.parent)
+    parent = os.path.join(os.path.dirname(origin), WORKTREE_DIR_NAME)
 
     # $ORIGIN の妥当性 / Validate $ORIGIN
     toplevel = git(origin, "rev-parse", "--show-toplevel")
@@ -114,6 +117,7 @@ def main() -> int:
     origin_head = git(origin, "rev-parse", "HEAD").stdout.strip()
     result = {
         "canon": canon,
+        "worktree_parent": parent,
         "sha8": sha8,
         "origin_master_sha": full_sha,
         "skew": skew,

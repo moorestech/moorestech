@@ -18,9 +18,9 @@ def _git(repo: Path, *args: str) -> str:
     return subprocess.run(["git", "-C", str(repo), *args], check=True, capture_output=True, text=True).stdout
 
 
-def _run(origin: Path, parent: Path, *extra: str) -> subprocess.CompletedProcess:
+def _run(origin: Path, *extra: str) -> subprocess.CompletedProcess:
     return subprocess.run(
-        [sys.executable, str(SCRIPT), "--origin", str(origin), "--parent", str(parent), *extra],
+        [sys.executable, str(SCRIPT), "--origin", str(origin), *extra],
         capture_output=True, text=True,
     )
 
@@ -44,42 +44,41 @@ def origin(tmp_path: Path) -> Path:
 
 
 def test_creates_pin_and_reports(origin: Path, tmp_path: Path):
-    parent = tmp_path / "wts"
-    res = _run(origin, parent)
+    parent = tmp_path / "moorestech-worktrees"
+    res = _run(origin)
     assert res.returncode == 0, res.stderr
     out = json.loads(res.stdout)
     sha8 = _git(origin, "rev-parse", "--short=8", "origin/master").strip()
     assert out["canon"] == str(parent / f"skills-canon-{sha8}")
+    assert out["worktree_parent"] == str(parent)
     assert out["skew"] is False and out["cleaned"] == []
     assert (Path(out["canon"]) / ".last-used").exists()
     assert (Path(out["canon"]) / NOVELTY).exists()
 
 
 def test_reuses_existing_pin_without_touching_it(origin: Path, tmp_path: Path):
-    parent = tmp_path / "wts"
-    first = json.loads(_run(origin, parent).stdout)
+    first = json.loads(_run(origin).stdout)
     marker = Path(first["canon"]) / "marker.txt"
     marker.write_text("kept")
-    second = _run(origin, parent)
+    second = _run(origin)
     assert second.returncode == 0, second.stderr
     assert json.loads(second.stdout)["canon"] == first["canon"]
     assert marker.read_text() == "kept"
 
 
 def test_skew_is_exit_13_unless_allowed(origin: Path, tmp_path: Path):
-    parent = tmp_path / "wts"
-    assert _run(origin, parent).returncode == 0
+    assert _run(origin).returncode == 0
     (origin / SKILL_MD).write_text("# skill (unmerged local edit)\n")
-    res = _run(origin, parent)
+    res = _run(origin)
     assert res.returncode == 13
     assert json.loads(res.stdout)["skew"] is True
-    allowed = _run(origin, parent, "--allow-skew")
+    allowed = _run(origin, "--allow-skew")
     assert allowed.returncode == 0
     assert json.loads(allowed.stdout)["skew"] is True
 
 
 def test_stale_pin_is_cleaned_and_fresh_pin_kept(origin: Path, tmp_path: Path):
-    parent = tmp_path / "wts"
+    parent = tmp_path / "moorestech-worktrees"
     parent.mkdir()
     stale = parent / "skills-canon-deadbeef"
     _git(origin, "worktree", "add", "-q", "--detach", str(stale), "HEAD")
@@ -89,7 +88,7 @@ def test_stale_pin_is_cleaned_and_fresh_pin_kept(origin: Path, tmp_path: Path):
     fresh = parent / "skills-canon-cafebabe"
     _git(origin, "worktree", "add", "-q", "--detach", str(fresh), "HEAD")
     (fresh / ".last-used").write_text("")
-    res = _run(origin, parent)
+    res = _run(origin)
     assert res.returncode == 0, res.stderr
     out = json.loads(res.stdout)
     assert out["cleaned"] == [str(stale)]
@@ -97,7 +96,7 @@ def test_stale_pin_is_cleaned_and_fresh_pin_kept(origin: Path, tmp_path: Path):
 
 
 def test_origin_must_be_a_worktree_root(origin: Path, tmp_path: Path):
-    res = _run(origin / ".agents", tmp_path / "wts")
+    res = _run(origin / ".agents")
     assert res.returncode == 14
 
 
@@ -105,5 +104,5 @@ def test_missing_novelty_gate_is_exit_12(origin: Path, tmp_path: Path):
     _git(origin, "rm", "-q", str(NOVELTY))
     _git(origin, "commit", "-q", "-m", "drop gate")
     _git(origin, "push", "-q", "origin", "master")
-    res = _run(origin, tmp_path / "wts")
+    res = _run(origin)
     assert res.returncode == 12
