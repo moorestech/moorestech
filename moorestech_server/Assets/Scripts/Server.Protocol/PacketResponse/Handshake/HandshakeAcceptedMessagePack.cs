@@ -18,9 +18,6 @@ namespace Server.Protocol.PacketResponse.Handshake
         [Key(5)] public Guid[] HotbarAssignments { get; set; }
         [Key(6)] public RemainingPlacementCountChangedEventPacket.RemainingPlacementCountMessagePack[] RemainingPlacementCounts { get; set; }
 
-        [IgnoreMember] public bool HasRidingState => RidingTarget != null;
-        [IgnoreMember] public InitialHandshakeRidingStateType RidingStateType => HasRidingState ? InitialHandshakeRidingStateType.Restored : InitialHandshakeRidingStateType.None;
-
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public HandshakeAcceptedMessagePack() { }
 

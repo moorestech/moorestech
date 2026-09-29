@@ -22,6 +22,14 @@ namespace Server.Boot.Replay
             _events = events;
         }
 
+        // 区間開始時点で接続中だったIDを、世界を進める前に本番と同じ順序で登録する
+        // Register the ids connected at the segment's start before advancing the world, in the same order production would
+        public void PrewarmConnections(IReadOnlyCollection<int> connectedPlayerIds)
+        {
+            foreach (var playerId in connectedPlayerIds) ContextFor(playerId);
+            Debug.Log($"再生: 区間開始時点の接続{connectedPlayerIds.Count}件を復元しました");
+        }
+
         public PacketResponseContext ContextFor(int? playerId)
         {
             // 未紐づけレコードは別接続かもしれないため、前のハンドシェイクを引き継がない
@@ -48,8 +56,15 @@ namespace Server.Boot.Replay
                 Debug.Log("再生した未紐づけ接続の切断には解除対象がありません");
                 return;
             }
-            _contexts.TryGetValue(playerId.Value, out var context);
-            PlayerConnectionBinding.Unregister(playerId.Value, context?.EventSink, _connections, _events);
+            // 区間開始の接続集合を先に復元しているので、紐づいた切断には必ずcontextがある
+            // The segment's connection set is restored up front, so a bound disconnect always has its context
+            if (!_contexts.TryGetValue(playerId.Value, out var context))
+            {
+                var reason = $"再生: playerId {playerId.Value} の接続が未作成のため解除できません（区間ヘッダの接続集合と記録が食い違っています）";
+                Debug.LogError(reason);
+                throw new InvalidOperationException(reason);
+            }
+            PlayerConnectionBinding.Unregister(playerId.Value, context.EventSink, _connections, _events);
             _contexts.Remove(playerId.Value);
         }
     }

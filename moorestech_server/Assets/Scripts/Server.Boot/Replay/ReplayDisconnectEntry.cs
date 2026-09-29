@@ -9,8 +9,6 @@ namespace Server.Boot.Replay
         private readonly ReplayConnectionContexts _contexts;
         private readonly int? _playerId;
 
-        public bool IsActive => true;
-
         public ReplayDisconnectEntry(ReplayConnectionContexts contexts, int? playerId)
         {
             _contexts = contexts;

@@ -45,7 +45,7 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class RequestCompleteResearchMessagePack : ProtocolMessagePackBase
         {
-            [Key(2)] public string ResearchGuidStr { get; set; }
+            [Key(3)] public string ResearchGuidStr { get; set; }
             [IgnoreMember] public Guid ResearchGuid => Guid.Parse(ResearchGuidStr);
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]

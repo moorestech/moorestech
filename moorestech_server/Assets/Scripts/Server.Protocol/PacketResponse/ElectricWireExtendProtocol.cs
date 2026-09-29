@@ -51,8 +51,8 @@ namespace Server.Protocol.PacketResponse
             [Key(3)] public Vector3IntMessagePack FromPos { get; set; }
             [Key(4)] public Vector3IntMessagePack ToPos { get; set; }
             [Key(5)] public PlaceInfoMessagePack PolePlaceInfo { get; set; }
-            [Key(6)] public int PoleBlockIdInt { get; set; }
-            [Key(7)] public Guid ConnectToolGuid { get; set; }
+            [Key(7)] public int PoleBlockIdInt { get; set; }
+            [Key(8)] public Guid ConnectToolGuid { get; set; }
 
             [IgnoreMember] public Vector3Int FromPosVector => FromPos;
             [IgnoreMember] public Vector3Int ToPosVector => ToPos;

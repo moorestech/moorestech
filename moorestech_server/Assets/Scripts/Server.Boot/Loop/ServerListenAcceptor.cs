@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using Game.PlayerConnection;
@@ -15,6 +16,11 @@ namespace Server.Boot.Loop
         // ポート未指定時の既定値。0を指定するとOSが空きポートを採番する
         // Default port when unspecified; passing 0 makes the OS assign a free port
         private const int DefaultPort = 11564;
+
+        // 無通信30秒で死活確認を始め、5秒間隔で再送する
+        // Start probing after 30 seconds of silence and retry every 5 seconds
+        private const int KeepAliveIdleMilliseconds = 30_000;
+        private const int KeepAliveIntervalMilliseconds = 5_000;
 
         public static Socket CreateBoundListener(int? argPort)
         {
@@ -46,6 +52,10 @@ namespace Server.Boot.Loop
                 var client = listener.Accept();
                 Debug.Log("接続確立");
 
+                // 送信の無い放置接続でもOSが死活を確かめる。無いと落ちた端末の身元がサーバー再起動まで接続中のまま残る
+                // Keep-alive lets the OS probe an idle connection; without it a dead peer's identity stays "connected" until the server restarts
+                EnableKeepAlive(client);
+
                 // 送信・受信キュープロセッサを作成
                 var sendQueueProcessor = new SendQueueProcessor(client);
                 var packetResponseContext = new PacketResponseContext(sendQueueProcessor);
@@ -57,6 +67,32 @@ namespace Server.Boot.Loop
                 receiveThread.Name = "[moorestech] 受信スレッド";
                 receiveThread.Start();
             }
+
+            #region Internal
+
+            // ソケット設定は外部境界。プラットフォームがIOControlを拒む場合でも受け入れそのものは続ける
+            // Socket options are an external boundary; acceptance continues even when a platform refuses IOControl
+            void EnableKeepAlive(Socket client)
+            {
+                try
+                {
+                    client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
+
+                    // OS既定の2時間は長すぎる。keepAliveTime/Intervalを秒指定へ縮めて数十秒で死活が出るようにする
+                    // The OS default of two hours is too long, so shorten keepAliveTime/Interval to surface a dead peer within tens of seconds
+                    var keepAliveValues = new byte[sizeof(uint) * 3];
+                    BitConverter.GetBytes(1u).CopyTo(keepAliveValues, 0);
+                    BitConverter.GetBytes((uint)KeepAliveIdleMilliseconds).CopyTo(keepAliveValues, sizeof(uint));
+                    BitConverter.GetBytes((uint)KeepAliveIntervalMilliseconds).CopyTo(keepAliveValues, sizeof(uint) * 2);
+                    client.IOControl(IOControlCode.KeepAliveValues, keepAliveValues, null);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogWarning($"接続のkeep-alive設定に失敗しました。放置接続の死活検知が遅くなります: {e.Message}");
+                }
+            }
+
+            #endregion
         }
     }
 }

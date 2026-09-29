@@ -131,8 +131,7 @@ namespace Client.Tests.EditModeInPlayingTest.Util
                 throw new ArgumentException($"Item not found: {itemName}");
             }
             
-            var playerId = ClientContext.PlayerConnectionSetting.PlayerId;
-            var command = $"{SendCommandProtocol.GiveCommand} {playerId} {giveItemId} {count}";
+            var command = $"{SendCommandProtocol.GiveCommand} {giveItemId} {count}";
             ClientContext.VanillaApi.SendOnly.SendCommand(command);
             
             await UniTask.Delay(1000);

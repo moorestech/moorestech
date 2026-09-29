@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Core.Update;
 using Game.SaveLoad.Snapshot.Segments;
 using UnityEngine;
@@ -13,9 +14,9 @@ namespace Game.SaveLoad.Snapshot
     {
         private const int UnboundSenderPlayerId = 0;
         internal const int SegmentMagic = 0x504B544C;
-        // 版2はパケットと切断のtick末尾FIFO順を表す。版1の切断tickを同じ意味で再生しない
-        // Version 2 records tick-end FIFO order; version 1 disconnect ticks must not be replayed as that order
-        internal const int SegmentVersion = 2;
+        // 版3は区間ヘッダに開始tickと開始時点の接続中IDを持つ。版2以前は接続集合を復元できず再生が本番と分岐する
+        // Version 3 carries the start tick and the connected ids at that tick; earlier versions cannot restore the connection set and make replay diverge
+        internal const int SegmentVersion = 3;
         private readonly object _lock = new();
         private readonly ReceivedPacketLogCaptureState _captureState = new();
         private ReceivedPacketLogSegments _segments = new(null);
@@ -25,7 +26,7 @@ namespace Game.SaveLoad.Snapshot
         public string DegradeReason => _captureState.DegradeReason;
         public ulong DegradedAtTick => _captureState.DegradedAtTick;
 
-        public void Start(string directory, ulong fromTick)
+        public void Start(string directory, ulong fromTick, IReadOnlyCollection<int> connectedPlayerIds)
         {
             _segments = new ReceivedPacketLogSegments(directory);
 
@@ -41,7 +42,7 @@ namespace Game.SaveLoad.Snapshot
                 return;
             }
 
-            if (!TryRotate(fromTick)) return;
+            if (!TryRotate(fromTick, connectedPlayerIds)) return;
             _captureState.Start();
         }
 
@@ -136,17 +137,17 @@ namespace Game.SaveLoad.Snapshot
             }
         }
 
-        public void Rotate(ulong fromTick)
+        public void Rotate(ulong fromTick, IReadOnlyCollection<int> connectedPlayerIds)
         {
             // 停止済み・縮退済みのまま区間を作り直すと、記録されないファイルだけがディスクに増える
             // Recreating a segment after a stop or a degradation would leave files on disk that nothing ever writes to
             if (!IsActive) return;
-            TryRotate(fromTick);
+            TryRotate(fromTick, connectedPlayerIds);
         }
 
         // 区間の切り替えは外部境界（FileStream生成）。失敗したら記録を止めるだけにして、呼び出し元のtick処理は続けさせる
         // Switching segments opens a FileStream at an external boundary; on failure only capture stops, and the caller's tick work continues
-        private bool TryRotate(ulong fromTick)
+        private bool TryRotate(ulong fromTick, IReadOnlyCollection<int> connectedPlayerIds)
         {
             lock (_lock)
             {
@@ -159,6 +160,13 @@ namespace Game.SaveLoad.Snapshot
                     _writer = new BinaryWriter(new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Read));
                     _writer.Write(SegmentMagic);
                     _writer.Write(SegmentVersion);
+
+                    // 区間の開始tickと、その時点で接続中だったIDを見出しへ書く。再生は世界を進める前にこれで接続を復元する
+                    // Write the segment's start tick and the ids connected at that moment; replay restores those connections before advancing the world
+                    _writer.Write(fromTick);
+                    var connectedIds = connectedPlayerIds == null ? Array.Empty<int>() : connectedPlayerIds.OrderBy(id => id).ToArray();
+                    _writer.Write(connectedIds.Length);
+                    foreach (var playerId in connectedIds) _writer.Write(playerId);
                     _segments.MarkOpened(fromTick);
                     return true;
                 }

@@ -41,15 +41,19 @@ namespace Server.Protocol.PacketResponse.Util.TrainPlacement
             var trainCar = new TrainCar(trainCarMaster, true);
             trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, _railPositionManager, _diagramManager);
             return true;
-        }
 
-        private bool TryRestoreRailPosition(RailPositionSnapshotMessagePack snapshot, int expectedLength,
-            out RailPosition position, out PlaceTrainCarFailureType failureType)
-        {
-            var valid = RailPositionSnapshotValidator.TryValidate(snapshot, expectedLength, _railGraphDatastore,
-                out position, out var railNotFound);
-            failureType = railNotFound ? PlaceTrainCarFailureType.RailNotFound : PlaceTrainCarFailureType.InvalidRailPosition;
-            return valid;
+            #region Internal
+
+            bool TryRestoreRailPosition(RailPositionSnapshotMessagePack snapshot, int restoreExpectedLength,
+                out RailPosition position, out PlaceTrainCarFailureType restoreFailureType)
+            {
+                var valid = RailPositionSnapshotValidator.TryValidate(snapshot, restoreExpectedLength, _railGraphDatastore,
+                    out position, out var railNotFound);
+                restoreFailureType = railNotFound ? PlaceTrainCarFailureType.RailNotFound : PlaceTrainCarFailureType.InvalidRailPosition;
+                return valid;
+            }
+
+            #endregion
         }
     }
 }

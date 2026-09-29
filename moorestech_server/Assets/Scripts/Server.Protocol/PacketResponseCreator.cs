@@ -12,7 +12,10 @@ namespace Server.Protocol
     public class PacketResponseCreator
     {
         private readonly Dictionary<string, IPacketResponse> _packetResponseDictionary = new();
-        private readonly Dictionary<string, IHandshakePacketResponse> _handshakeResponseDictionary = new();
+
+        // ハンドシェイクは実装1本きりで、接続コンテキストを受ける唯一の経路なので辞書へ均さず直接持つ
+        // The handshake has a single implementation and is the only path taking the connection context, so it is held directly rather than in a dictionary
+        private readonly InitialHandshakeProtocol _initialHandshake;
         
         //TODO この辺もDIコンテナに載せる?こういうパケット周りめっちゃなんとかしたい
         // TODO should packet registration also be moved into the DI container?
@@ -22,7 +25,7 @@ namespace Server.Protocol
             // Acquire train-related services required for packet creation
             var trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
             var trainCarRidingInputBuffer = serviceProvider.GetService<TrainCarRidingInputBuffer>();
-            _handshakeResponseDictionary.Add(InitialHandshakeProtocol.ProtocolTag, new InitialHandshakeProtocol(serviceProvider));
+            _initialHandshake = new InitialHandshakeProtocol(serviceProvider);
             _packetResponseDictionary.Add(RequestWorldDataProtocol.ProtocolTag, new RequestWorldDataProtocol(serviceProvider));
             _packetResponseDictionary.Add(PlayerInventoryResponseProtocol.ProtocolTag, new PlayerInventoryResponseProtocol(serviceProvider));
             _packetResponseDictionary.Add(SetPlayerCoordinateProtocol.ProtocolTag, new SetPlayerCoordinateProtocol(serviceProvider));
@@ -85,9 +88,9 @@ namespace Server.Protocol
                 request = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(payload);
                 // 身元未確定の接続から届く操作は送り手を決められないため破棄する
                 // Drop operations before the connection identifies their sender
-                if (_handshakeResponseDictionary.TryGetValue(request.Tag, out var handshake))
+                if (request.Tag == InitialHandshakeProtocol.ProtocolTag)
                 {
-                    response = handshake.GetResponse(payload, context);
+                    response = _initialHandshake.GetResponse(payload, context);
                 }
                 else if (!context.PlayerId.HasValue)
                 {

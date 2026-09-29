@@ -74,8 +74,31 @@ namespace Server.Boot.Loop.PacketProcessing
                 {
                     Debug.LogError("送信スレッドでエラーが発生しました");
                     Debug.LogException(e);
+
+                    // 送信が壊れた接続はもう相手へ届かない。受信側のReceiveも抜けさせて通常の切断処理へ流す
+                    // A connection whose send broke can no longer reach the peer, so unblock its Receive and let the normal disconnect path run
+                    ShutdownSocket();
                 }
             }
+
+            #region Internal
+
+            // ソケット操作は外部境界。既に閉じている接続への操作は例外になるため隔離し、理由だけ残して進む
+            // Socket operations are an external boundary; acting on an already-closed connection throws, so isolate it and move on with the reason logged
+            void ShutdownSocket()
+            {
+                try
+                {
+                    _client.Shutdown(SocketShutdown.Both);
+                    _client.Close();
+                }
+                catch (Exception shutdownException)
+                {
+                    Debug.LogWarning($"送信失敗後のソケット終了に失敗しました: {shutdownException.Message}");
+                }
+            }
+
+            #endregion
         }
 
         private void SendAll(byte[] data)

@@ -12,8 +12,6 @@ namespace Server.Boot.Replay
         private readonly int? _playerId;
         private readonly byte[] _payload;
 
-        public bool IsActive => true;
-
         public ReplayRecordedPacketEntry(PacketResponseCreator creator, ReplayConnectionContexts contexts,
             int? playerId, byte[] payload)
         {

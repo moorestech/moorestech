@@ -32,8 +32,6 @@ namespace Tests.CombinedTest.Server.Replay.SnapshotReplayDeterminismTest
             private readonly byte[] _payload;
             private readonly ReceivedPacketLog _packetLog;
 
-            public bool IsActive => true;
-
             public RecordedLivePacketEntry(PacketResponseCreator packetResponseCreator, PacketResponseContext context, byte[] payload, ReceivedPacketLog packetLog)
             {
                 _packetResponseCreator = packetResponseCreator;

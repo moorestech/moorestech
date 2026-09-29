@@ -3,31 +3,32 @@ using Game.PlayerConnection;
 using Game.SaveLoad.Snapshot;
 using Server.Event;
 using Server.Protocol;
-using Server.Protocol.PacketResponse.Util.Handshake;
 using UnityEngine;
 
 namespace Server.Boot.Loop.PacketProcessing
 {
-    // 切断をパケットと同じFIFOで確定し、接続集合とログの順序を一致させる
-    // Commit disconnects in the packet FIFO so connection state and log order agree
+    // 記録とイベント宛先の解除をパケットと同じFIFOで確定し、ログの順序を受信順に合わせる
+    // Commit the record and the event-sink removal in the packet FIFO so the log order follows arrival order
+    // 接続集合からの解除は受信スレッドで即時に済ませる。tick末尾まで遅らせると切断済みの身元が接続中に見える
+    // Removal from the connection set happens synchronously on the receive thread; deferring it would show a closed identity as connected
     public sealed class ConnectionDisconnectEntry : ITickEndPacketEntry
     {
-        private readonly PacketResponseContext _context;
-        private readonly PlayerConnectionRegistry _connections;
+        private readonly IPlayerEventSink _eventSink;
+        private readonly int? _playerId;
         private readonly EventProtocolProvider _events;
         private readonly ReceivedPacketLog _log;
 
-        public bool IsActive => true;
-
-        private ConnectionDisconnectEntry(PacketResponseContext context,
-            PlayerConnectionRegistry connections, EventProtocolProvider events, ReceivedPacketLog log)
+        private ConnectionDisconnectEntry(IPlayerEventSink eventSink, int? playerId,
+            EventProtocolProvider events, ReceivedPacketLog log)
         {
-            _context = context;
-            _connections = connections;
+            _eventSink = eventSink;
+            _playerId = playerId;
             _events = events;
             _log = log;
         }
 
+        // 接続の後始末の唯一の入口。同期で行う解除とFIFOへ積む記録の順序をここだけが決める
+        // The single entry for tearing a connection down; only this decides what unregisters now and what goes onto the FIFO
         public static void Schedule(PacketResponseContext context, ReceiveQueueProcessor receiver,
             TickEndPacketQueue queue, PlayerConnectionRegistry connections, EventProtocolProvider events,
             ReceivedPacketLog log)
@@ -35,18 +36,20 @@ namespace Server.Boot.Loop.PacketProcessing
             // 新規受信だけ止め、未紐づけでも切断を積む。Freeze後なら次tickへ回る
             // Stop new receives and enqueue even unbound disconnects; after Freeze they run next tick
             receiver.Dispose();
-            queue.Enqueue(new ConnectionDisconnectEntry(context, connections, events, log));
+
+            // 接続集合からの解除は即時。tick末尾へ遅らせるとIsConnectedが切断済みの身元を接続中と答える
+            // Removal from the connection set happens now; deferring it would make IsConnected call a closed identity connected
+            var playerId = context.MarkClosedAndGetPlayerId();
+            if (playerId.HasValue) connections.Unregister(playerId.Value);
+            queue.Enqueue(new ConnectionDisconnectEntry(context.EventSink, playerId, events, log));
         }
 
         public void Process()
         {
-            // closeもFIFOで確定する。先行ハンドシェイクが割り当てたIDをここで読む
-            // Close in the FIFO too, reading any ID assigned by an earlier handshake
-            var playerId = _context.MarkClosedAndGetPlayerId();
-            if (playerId.HasValue)
+            if (_playerId.HasValue)
             {
-                PlayerConnectionBinding.Unregister(playerId.Value, _context.EventSink, _connections, _events);
-                _log.AppendDisconnect(GameUpdater.CurrentTick, playerId.Value);
+                _events.UnregisterPlayer(_playerId.Value, _eventSink);
+                _log.AppendDisconnect(GameUpdater.CurrentTick, _playerId.Value);
                 return;
             }
 

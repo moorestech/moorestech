@@ -104,7 +104,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Delete the directory so only packet capture dies on I/O, then restore it so snapshots can still be written
             Directory.Delete(directory.SnapshotDirectory, true);
             LogAssert.Expect(LogType.Error, new Regex("^パケットログの区間切り替えに失敗しました"));
-            packetLog.Rotate(11);
+            packetLog.Rotate(11, Array.Empty<int>());
             Assert.IsFalse(packetLog.IsActive, "パケット記録が止まっていない");
             Directory.CreateDirectory(directory.SnapshotDirectory);
 

@@ -133,7 +133,7 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class SendPlaceBlockProtocolMessagePack : ProtocolMessagePackBase
         {
-            [Key(2)] public List<PlaceInfoMessagePack> PlacePositions { get; set; }
+            [Key(3)] public List<PlaceInfoMessagePack> PlacePositions { get; set; }
 
             public SendPlaceBlockProtocolMessagePack(List<PlaceInfo> placeInfos)
             {

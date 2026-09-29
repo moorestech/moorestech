@@ -160,13 +160,13 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class MiningProtocolMessagePack : ProtocolMessagePackBase
         {
-            [Key(2)] public MiningTargetType TargetType { get; set; }
-            [Key(3)] public int InstanceId { get; set; }
-            [Key(4)] public Vector3IntMessagePack VeinPosition { get; set; }
+            [Key(3)] public MiningTargetType TargetType { get; set; }
+            [Key(4)] public int InstanceId { get; set; }
+            [Key(5)] public Vector3IntMessagePack VeinPosition { get; set; }
 
             // 同座標に重なる別鉱脈を掘り分ける
             // Separates veins overlapping the same cell
-            [Key(5)] public Guid VeinGuid { get; set; }
+            [Key(6)] public Guid VeinGuid { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public MiningProtocolMessagePack() { }

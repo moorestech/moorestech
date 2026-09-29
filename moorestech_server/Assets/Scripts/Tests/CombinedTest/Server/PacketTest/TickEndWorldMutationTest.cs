@@ -110,8 +110,6 @@ namespace Tests.CombinedTest.Server.PacketTest
             private readonly PacketResponseCreator _packet;
             private readonly byte[] _payload;
             public readonly List<byte[]> Responses = new();
-            public bool IsActive => true;
-
             public ProtocolEntry(PacketResponseCreator packet, byte[] payload)
             {
                 _packet = packet;

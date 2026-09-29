@@ -42,7 +42,7 @@ namespace Tests.CombinedTest.Game
         public void ワイヤー接続がセーブロードで復元される()
         {
             var (_, saveServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var playerId = PlayerIdentityTestHelper.Register(saveServiceProvider.GetRequiredService<IPlayerIdentityRegistry>(), "steam:1").PlayerId;
+            var playerId = PlayerIdentityTestHelper.Register(saveServiceProvider.GetRequiredService<PlayerIdentityRegistry>(), "steam:1").PlayerId;
             var wireItemId = MasterHolder.ItemMaster.GetItemId(WireItemGuid);
             saveServiceProvider.GetService<IGameUnlockStateDataController>().UnlockConnectTool(ConnectToolGuid);
 

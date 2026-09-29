@@ -41,11 +41,11 @@ namespace Tests.CombinedTest.Server.Replay.SnapshotReplayDeterminismTest
                 GameUpdater.RestoreCurrentTick(0);
                 File.WriteAllText(savePath, provider.GetRequiredService<AssembleSaveJsonText>().AssembleSaveJson());
                 var queue = provider.GetRequiredService<TickEndPacketQueue>();
-                var connections = (PlayerConnectionRegistry)provider.GetRequiredService<IPlayerConnectionChecker>();
+                var connections = provider.GetRequiredService<PlayerConnectionRegistry>();
                 var events = provider.GetRequiredService<EventProtocolProvider>();
                 var firstContext = new PacketResponseContext(null);
                 var firstReceiver = socket.CreateReceiver(creator, firstContext, queue, log);
-                log.Start(Path.Combine(root, "packets"), 1);
+                log.Start(Path.Combine(root, "packets"), 1, Array.Empty<int>());
 
                 // 受信スレッドがハンドシェイクを積んで直ちに切れても、FIFO内では受理後に解除する
                 // Even if receive closes immediately after enqueue, the FIFO accepts then disconnects
@@ -104,11 +104,11 @@ namespace Tests.CombinedTest.Server.Replay.SnapshotReplayDeterminismTest
                 GameUpdater.RestoreCurrentTick(0);
                 File.WriteAllText(savePath, provider.GetRequiredService<AssembleSaveJsonText>().AssembleSaveJson());
                 var queue = provider.GetRequiredService<TickEndPacketQueue>();
-                var connections = (PlayerConnectionRegistry)provider.GetRequiredService<IPlayerConnectionChecker>();
+                var connections = provider.GetRequiredService<PlayerConnectionRegistry>();
                 var events = provider.GetRequiredService<EventProtocolProvider>();
                 var unbound = new PacketResponseContext(null);
                 var receiver = socket.CreateReceiver(creator, unbound, queue, log);
-                log.Start(Path.Combine(root, "packets"), 1);
+                log.Start(Path.Combine(root, "packets"), 1, Array.Empty<int>());
                 ConnectionDisconnectEntry.Schedule(unbound, receiver, queue, connections, events, log);
                 GameUpdater.Update();
 

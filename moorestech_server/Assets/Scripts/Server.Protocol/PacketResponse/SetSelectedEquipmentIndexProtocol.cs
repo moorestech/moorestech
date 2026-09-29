@@ -38,7 +38,7 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class SetSelectedEquipmentIndexMessagePack : ProtocolMessagePackBase
         {
-            [Key(2)] public int SelectedIndex { get; set; }
+            [Key(3)] public int SelectedIndex { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public SetSelectedEquipmentIndexMessagePack() { Tag = ProtocolTag; }

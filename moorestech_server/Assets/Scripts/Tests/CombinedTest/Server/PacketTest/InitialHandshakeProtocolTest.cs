@@ -52,7 +52,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 切断後に同じ身元で入り直し、保存座標を復元する
             // Reconnect with the same identity after disconnecting and restore the position
             var disconnectedPlayerId = context.MarkClosedAndGetPlayerId().Value;
-            ((PlayerConnectionRegistry)serviceProvider.GetService<IPlayerConnectionChecker>()).Unregister(disconnectedPlayerId);
+            serviceProvider.GetRequiredService<PlayerConnectionRegistry>().Unregister(disconnectedPlayerId);
             response = packet.GetPacketResponse(GetHandshakePacket(), new PacketResponseContext(null))[0];
             handShakeResponse =
                 MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(response);

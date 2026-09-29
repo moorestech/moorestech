@@ -146,8 +146,8 @@ namespace Server.Protocol.PacketResponse
             [Key(2)] public int FromNodeId { get; set; }
             [Key(3)] public Guid FromGuid { get; set; }
             [Key(4)] public PlaceInfoMessagePack PierPlaceInfo { get; set; }
-            [Key(5)] public int PierBlockIdInt { get; set; }
-            [Key(6)] public Guid ConnectToolGuid { get; set; }
+            [Key(6)] public int PierBlockIdInt { get; set; }
+            [Key(7)] public Guid ConnectToolGuid { get; set; }
 
             [IgnoreMember] public BlockId PierBlockId => new(PierBlockIdInt);
 

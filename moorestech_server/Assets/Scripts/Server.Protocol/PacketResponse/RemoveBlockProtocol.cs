@@ -142,7 +142,7 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class RemoveBlockProtocolMessagePack : ProtocolMessagePackBase
         {
-            [Key(2)] public Vector3IntMessagePack Pos { get; set; }
+            [Key(3)] public Vector3IntMessagePack Pos { get; set; }
             
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public RemoveBlockProtocolMessagePack() { }

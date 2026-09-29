@@ -36,7 +36,7 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class PlayerCoordinateSendProtocolMessagePack : ProtocolMessagePackBase
         {
-            [Key(2)] public Vector3MessagePack Pos { get; set; }
+            [Key(3)] public Vector3MessagePack Pos { get; set; }
             
             public PlayerCoordinateSendProtocolMessagePack(Vector3 pos)
             {

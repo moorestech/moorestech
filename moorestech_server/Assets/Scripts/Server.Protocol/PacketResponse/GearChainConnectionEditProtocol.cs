@@ -58,7 +58,7 @@ namespace Server.Protocol.PacketResponse
             [Key(2)] public Vector3IntMessagePack PosA { get; set; }
             [Key(3)] public Vector3IntMessagePack PosB { get; set; }
             [Key(4)] public ChainEditMode Mode { get; set; }
-            [Key(5)] public Guid ConnectToolGuid { get; set; }
+            [Key(6)] public Guid ConnectToolGuid { get; set; }
 
             [IgnoreMember] public Vector3Int PosAVector => PosA;
             [IgnoreMember] public Vector3Int PosBVector => PosB;

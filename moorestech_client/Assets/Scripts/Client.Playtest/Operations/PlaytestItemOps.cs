@@ -46,7 +46,7 @@ namespace Client.Playtest.Operations
 
             // 本番のgiveコマンド経路で付与し、サーバー在庫への反映を条件待機する
             // Grant via the production give-command path and poll until the server inventory reflects it
-            var command = $"{SendCommandProtocol.GiveCommand} {playerId} {itemId.AsPrimitive()} {count}";
+            var command = $"{SendCommandProtocol.GiveCommand} {itemId.AsPrimitive()} {count}";
             ClientContext.VanillaApi.SendOnly.SendCommand(command);
 
             var startTime = Time.realtimeSinceStartup;

@@ -1,4 +1,5 @@
 using System.Linq;
+using Game.PlayerIdentity;
 using Game.SaveLoad.Migration.Steps.V2ToV3;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -11,7 +12,6 @@ namespace Game.SaveLoad.Migration.Steps
     // - legacy random id→sequential / players section built all-unclaimed
     public sealed class SaveMigrationStepV2ToV3 : ISaveMigrationStep
     {
-        internal const int FirstMigratedPlayerId = 1;
         public int FromVersion => 2;
 
         public SaveMigrationStepResult Migrate(JObject save)
@@ -28,9 +28,13 @@ namespace Game.SaveLoad.Migration.Steps
             // Choose the candidate from the renumbered sections
             var candidate = PlayerClaimCandidateSelector.Select(save, map);
             var entries = new JArray(map.Values.OrderBy(id => id).Select(id => new JObject { ["playerId"] = id, ["identity"] = null }));
+
+            // 空の対応表では払い出し済みIDが無いので基点をそのまま次のIDにする
+            // With an empty map no id was assigned, so the origin itself is the next id
+            var nextPlayerId = map.Count == 0 ? PlayerIdSequence.First : PlayerIdSequence.NextAfter(map.Values.Max());
             save["players"] = new JObject
             {
-                ["nextPlayerId"] = map.Count + FirstMigratedPlayerId,
+                ["nextPlayerId"] = nextPlayerId,
                 ["claimCandidatePlayerId"] = candidate.HasValue ? new JValue(candidate.Value) : JValue.CreateNull(),
                 ["entries"] = entries,
             };

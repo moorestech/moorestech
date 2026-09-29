@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Core.Master;
 using Game.Context;
-using Game.PlayerIdentity;
 using Game.PlayerInventory.Interface;
 using Game.Train.Event;
 using Game.Train.Unit;
@@ -27,7 +26,6 @@ namespace Server.Protocol.PacketResponse
         public const string AddFuelToAllTrainCarsCommand = "addFuelToAllTrainCarsCommand";
 
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
-        private readonly IPlayerIdentityRegistry _playerIdentityRegistry;
         private readonly IWorldSettingsDatastore _worldSettingsDatastore;
         private readonly TrainUpdateService _trainUpdateService;
         private readonly ITrainUnitLookupDatastore _trainUnitLookupDatastore;
@@ -36,7 +34,6 @@ namespace Server.Protocol.PacketResponse
         public SendCommandProtocol(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
-            _playerIdentityRegistry = serviceProvider.GetRequiredService<IPlayerIdentityRegistry>();
             _worldSettingsDatastore = serviceProvider.GetService<IWorldSettingsDatastore>();
             _trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
             _trainUnitLookupDatastore = serviceProvider.GetService<ITrainUnitLookupDatastore>();
@@ -52,21 +49,19 @@ namespace Server.Protocol.PacketResponse
             //他のコマンドを実装する場合、この実装方法をやめる
             if (command[0] == GiveCommand)
             {
-                var playerId = int.Parse(command[1]);
-                if (!IsRegisteredPlayer(playerId)) return null;
-                var inventory = _playerInventoryDataStore.GetInventoryData(playerId);
+                // 対象は常に要求元。自己申告のIDは受け取らない（ADR 0073）
+                // The target is always the requester; no self-declared id is accepted (ADR 0073)
+                var inventory = _playerInventoryDataStore.GetInventoryData(requesterPlayerId);
                 
-                var itemId = new ItemId(int.Parse(command[2]));
-                var count = int.Parse(command[3]);
+                var itemId = new ItemId(int.Parse(command[1]));
+                var count = int.Parse(command[2]);
                 
                 var item = ServerContext.ItemStackFactory.Create(itemId, count);
                 inventory.MainOpenableInventory.InsertItem(item);
             }
             else if (command[0] == ClearInventoryCommand)
             {
-                var playerId = int.Parse(command[1]);
-                if (!IsRegisteredPlayer(playerId)) return null;
-                var inventory = _playerInventoryDataStore.GetInventoryData(playerId);
+                var inventory = _playerInventoryDataStore.GetInventoryData(requesterPlayerId);
                 for (var i = 0; i < inventory.MainOpenableInventory.InventoryItems.Count; i++)
                 {
                     inventory.MainOpenableInventory.SetItem(i, ServerContext.ItemStackFactory.CreatEmpty());
@@ -121,17 +116,6 @@ namespace Server.Protocol.PacketResponse
             }
 
             return null;
-
-            #region Internal
-
-            bool IsRegisteredPlayer(int playerId)
-            {
-                if (_playerIdentityRegistry.IsRegisteredPlayerId(playerId)) return true;
-                Debug.LogWarning($"[SendCommand] 未登録プレイヤーID{playerId}のインベントリ操作を拒否します");
-                return false;
-            }
-
-            #endregion
         }
 
         [MessagePackObject]

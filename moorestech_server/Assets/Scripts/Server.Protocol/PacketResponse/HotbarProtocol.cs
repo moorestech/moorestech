@@ -47,10 +47,10 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class HotbarProtocolMessagePack : ProtocolMessagePackBase
         {
-            [Key(2)] public HotbarOperation Operation { get; set; }
-            [Key(3)] public int Slot { get; set; }
-            [Key(4)] public Guid TargetId { get; set; }
-            [Key(5)] public int SlotB { get; set; }
+            [Key(3)] public HotbarOperation Operation { get; set; }
+            [Key(4)] public int Slot { get; set; }
+            [Key(5)] public Guid TargetId { get; set; }
+            [Key(6)] public int SlotB { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public HotbarProtocolMessagePack() { Tag = ProtocolTag; }

@@ -39,6 +39,11 @@ description: |
 
 `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/` に新規ファイルを作成。
 
+`IPacketResponse.GetResponse` は接続に紐づいた `requesterPlayerId` を受け取る（自己申告のplayerIdをペイロードへ載せない）。
+既存フィールドを削除しても後続の `[Key(n)]` は詰め直さず欠番のまま残す（詰め直すと旧パケットログの再生で値が黙って化ける）。
+`PacketResponseContext` そのものを受けるのは接続へIDを紐づけるハンドシェイク（`InitialHandshakeProtocol`）だけで、
+これは `PacketResponseCreator` が専用の分岐で呼ぶ。通常のプロトコルはcontextを受け取らない。
+
 ```csharp
 using System;
 using System.Collections.Generic;
@@ -58,10 +63,9 @@ namespace Server.Protocol.PacketResponse
             _dependency = serviceProvider.GetService<ISomeDependency>();
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var data = MessagePackSerializer.Deserialize<YourRequestMessagePack>(payload);
-            var requesterPlayerId = context.PlayerId.Value;
             // ビジネスロジック
             return new YourResponseMessagePack(/* result */);
         }

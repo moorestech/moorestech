@@ -11,7 +11,9 @@ using static Server.Event.EventReceive.ItemStackLevelUnlockEventPacket;
 
 namespace Server.Protocol.PacketResponse
 {
-    public class InitialHandshakeProtocol : IHandshakePacketResponse
+    // 接続へIDを紐づけるため、唯一このプロトコルだけが接続コンテキストを受け取る
+    // Only this protocol receives the connection context, because it binds the assigned player id to the connection
+    public class InitialHandshakeProtocol
     {
         public const string ProtocolTag = "va:initialHandshake";
         private readonly InitialHandshakeBinding _binding;
@@ -81,11 +83,5 @@ namespace Server.Protocol.PacketResponse
                 return new ResponseInitialHandshakeMessagePack(rejection);
             }
         }
-    }
-
-    public enum InitialHandshakeRidingStateType : byte
-    {
-        None,
-        Restored,
     }
 }

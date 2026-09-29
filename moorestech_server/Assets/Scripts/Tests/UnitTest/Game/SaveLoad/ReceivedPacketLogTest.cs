@@ -16,10 +16,10 @@ namespace Tests.UnitTest.Game.SaveLoad
         {
             var dir = Path.Combine(Path.GetTempPath(), $"moorestech-packetlog-{Guid.NewGuid():N}");
             var log = new ReceivedPacketLog();
-            log.Start(dir, 1);
+            log.Start(dir, 1, Array.Empty<int>());
             log.Append(1, 2, new byte[] { 1 });
             log.Append(1, null, new byte[] { 2 });
-            log.Rotate(2);
+            log.Rotate(2, Array.Empty<int>());
             log.Append(2, 7, new byte[] { 3 });
             log.Stop();
 
@@ -36,10 +36,10 @@ namespace Tests.UnitTest.Game.SaveLoad
         {
             var dir = Path.Combine(Path.GetTempPath(), $"moorestech-packetlog-{Guid.NewGuid():N}");
             var log = new ReceivedPacketLog();
-            log.Start(dir, 1);
+            log.Start(dir, 1, Array.Empty<int>());
             log.Append(1, 1, new byte[] { 1, 2, 3 });
             log.Append(3, 1, new byte[] { 9 });
-            log.Rotate(4);
+            log.Rotate(4, Array.Empty<int>());
             log.Append(4, 1, new byte[] { 4, 4 });
             log.Flush();
 
@@ -57,7 +57,7 @@ namespace Tests.UnitTest.Game.SaveLoad
         {
             var dir = Path.Combine(Path.GetTempPath(), $"moorestech-packetlog-{Guid.NewGuid():N}");
             var log = new ReceivedPacketLog();
-            log.Start(dir, 1);
+            log.Start(dir, 1, Array.Empty<int>());
             log.AppendDisconnect(2, 3);
             log.Stop();
 
@@ -72,7 +72,7 @@ namespace Tests.UnitTest.Game.SaveLoad
         {
             var dir = Path.Combine(Path.GetTempPath(), $"moorestech-packetlog-{Guid.NewGuid():N}");
             var log = new ReceivedPacketLog();
-            log.Start(dir, 1);
+            log.Start(dir, 1, Array.Empty<int>());
             log.AppendDisconnect(2, -7);
             log.Stop();
 
@@ -88,7 +88,7 @@ namespace Tests.UnitTest.Game.SaveLoad
         {
             var dir = Path.Combine(Path.GetTempPath(), $"moorestech-packetlog-{Guid.NewGuid():N}");
             var log = new ReceivedPacketLog();
-            log.Start(dir, 2);
+            log.Start(dir, 2, Array.Empty<int>());
             log.Append(2, 1, new byte[] { 42 });
             log.Stop();
             var newPath = log.SegmentFilePaths()[0];
@@ -121,10 +121,10 @@ namespace Tests.UnitTest.Game.SaveLoad
         {
             var dir = Path.Combine(Path.GetTempPath(), $"moorestech-packetlog-{Guid.NewGuid():N}");
             var log = new ReceivedPacketLog();
-            log.Start(dir, 1);
-            log.Rotate(11);
-            log.Rotate(21);
-            log.Rotate(31);
+            log.Start(dir, 1, Array.Empty<int>());
+            log.Rotate(11, Array.Empty<int>());
+            log.Rotate(21, Array.Empty<int>());
+            log.Rotate(31, Array.Empty<int>());
             log.DeleteSegmentsBefore(20);
 
             var names = log.SegmentFilePaths().Select(Path.GetFileName).OrderBy(n => n).ToArray();
@@ -139,14 +139,14 @@ namespace Tests.UnitTest.Game.SaveLoad
         {
             var dir = Path.Combine(Path.GetTempPath(), $"moorestech-packetlog-{Guid.NewGuid():N}");
             var log = new ReceivedPacketLog();
-            log.Start(dir, 1);
+            log.Start(dir, 1, Array.Empty<int>());
             Assert.IsTrue(log.IsActive);
 
             // 置き場ごと消して、区間ファイルを開けない状態を作る
             // Remove the directory so the segment file can no longer be opened
             Directory.Delete(dir, true);
             LogAssert.Expect(LogType.Error, new Regex("^パケットログの区間切り替えに失敗しました"));
-            Assert.DoesNotThrow(() => log.Rotate(11), "区間切り替えの失敗が呼び出し元へ伝播している");
+            Assert.DoesNotThrow(() => log.Rotate(11, Array.Empty<int>()), "区間切り替えの失敗が呼び出し元へ伝播している");
             Assert.IsFalse(log.IsActive, "記録が止まっていない");
 
             LogAssert.Expect(LogType.Log, new Regex("^パケットログは未開始のため記録しません"));
@@ -174,7 +174,7 @@ namespace Tests.UnitTest.Game.SaveLoad
         {
             var dir = Path.Combine(Path.GetTempPath(), $"moorestech-packetlog-{Guid.NewGuid():N}");
             var log = new ReceivedPacketLog();
-            log.Start(dir, 1);
+            log.Start(dir, 1, Array.Empty<int>());
             log.Append(1, 1, new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 });
             log.Stop();
 

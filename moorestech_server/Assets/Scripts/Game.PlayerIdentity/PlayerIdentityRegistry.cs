@@ -7,29 +7,35 @@ namespace Game.PlayerIdentity
 {
     // ワールド単位の身元→プレイヤーIDの対応表。連番で払い出し欠番は再利用しない
     // Per-world identity-to-player-id table; ids are sequential and never reused
-    public class PlayerIdentityRegistry : IPlayerIdentityRegistry
+    public class PlayerIdentityRegistry : IPlayerIdentityLookup, IPlayerIdentityMutation
     {
-        private const int FirstPlayerId = 1;
-
         private readonly Dictionary<string, int> _idByIdentity = new();
         private readonly SortedSet<int> _unclaimedPlayerIds = new();
-        private int _nextPlayerId = FirstPlayerId;
+        private int _nextPlayerId = PlayerIdSequence.First;
         private int? _claimCandidatePlayerId;
+
+        // Commitごとに進む対応表の世代。下見が確定に追い越されたことを検出する
+        // The table generation, advanced on every commit, detecting a preview overtaken by another commit
+        private int _generation;
 
         public void InitializeForNewWorld()
         {
             _idByIdentity.Clear();
             _unclaimedPlayerIds.Clear();
-            _nextPlayerId = FirstPlayerId;
+            _nextPlayerId = PlayerIdSequence.First;
             _claimCandidatePlayerId = null;
+
+            // 対応表を作り直したので、初期化前に取った下見は確定できない
+            // The table was rebuilt, so a preview taken before this cannot be committed
+            _generation++;
         }
 
         // 接続確定前に候補を読む。対応表も次のIDも変更しない
         // Read the candidate before binding without changing the table or next id
         public PlayerIdAssignment PreviewAssignment(string identity)
         {
-            if (_idByIdentity.TryGetValue(identity, out var knownId)) return new PlayerIdAssignment(knownId, PlayerIdAssignmentKind.Known, identity);
-            if (_claimCandidatePlayerId.HasValue) return new PlayerIdAssignment(_claimCandidatePlayerId.Value, PlayerIdAssignmentKind.ClaimedCandidate, identity);
+            if (_idByIdentity.TryGetValue(identity, out var knownId)) return new PlayerIdAssignment(knownId, PlayerIdAssignmentKind.Known, identity, _generation);
+            if (_claimCandidatePlayerId.HasValue) return new PlayerIdAssignment(_claimCandidatePlayerId.Value, PlayerIdAssignmentKind.ClaimedCandidate, identity, _generation);
 
             // 次のIDを保存できない場合は負数へ周回させない
             // Never wrap into negative ids when the next id can no longer be saved
@@ -39,11 +45,20 @@ namespace Game.PlayerIdentity
                 Debug.LogError(reason);
                 throw new InvalidOperationException(reason);
             }
-            return new PlayerIdAssignment(_nextPlayerId, PlayerIdAssignmentKind.NewlyAssigned, identity);
+            return new PlayerIdAssignment(_nextPlayerId, PlayerIdAssignmentKind.NewlyAssigned, identity, _generation);
         }
 
         public void Commit(PlayerIdAssignment assignment)
         {
+            // 別の確定が割り込んだ下見は同じIDを二重に払い出すため、世代不一致で拒否する
+            // A preview another commit overtook would hand out the same id twice, so a generation mismatch is refused
+            if (assignment.Generation != _generation)
+            {
+                var staleReason = $"[PlayerIdentity] 対応表が更新された後の下見をCommitできません 下見世代:{assignment.Generation} 現世代:{_generation} 身元:{assignment.Identity}";
+                Debug.LogError(staleReason);
+                throw new InvalidOperationException(staleReason);
+            }
+            _generation++;
             if (assignment.Kind == PlayerIdAssignmentKind.Known) return;
 
             // 旧セーブ・再現用の候補は最初の未知の身元にだけ渡す
@@ -64,13 +79,8 @@ namespace Game.PlayerIdentity
 
         public bool IsRegisteredPlayerId(long playerId)
         {
-            if (!IsValidPlayerId(playerId)) return false;
+            if (!PlayerIdSequence.IsValid(playerId)) return false;
             return _idByIdentity.ContainsValue((int)playerId) || _unclaimedPlayerIds.Contains((int)playerId);
-        }
-
-        public static bool IsValidPlayerId(long playerId)
-        {
-            return playerId >= FirstPlayerId && playerId <= int.MaxValue;
         }
 
         public PlayersSaveJsonObject GetSaveJsonObject()
@@ -103,7 +113,7 @@ namespace Game.PlayerIdentity
             void ValidateSave()
             {
                 if (save == null || save.Entries == null) throw InvalidSave("players または entries が欠損しています");
-                if (save.NextPlayerId < FirstPlayerId) throw InvalidSave("nextPlayerId は1以上である必要があります");
+                if (save.NextPlayerId < PlayerIdSequence.First) throw InvalidSave("nextPlayerId は1以上である必要があります");
 
                 // 同一IDや同一身元の重複は別人の状態を上書きするため拒否する
                 // Reject duplicate ids or identities because they would overwrite another player's state
@@ -112,7 +122,7 @@ namespace Game.PlayerIdentity
                 foreach (var entry in save.Entries)
                 {
                     if (entry == null) throw InvalidSave("entries に null が含まれています");
-                    if (entry.PlayerId < FirstPlayerId || !playerIds.Add(entry.PlayerId))
+                    if (entry.PlayerId < PlayerIdSequence.First || !playerIds.Add(entry.PlayerId))
                     {
                         throw InvalidSave($"プレイヤーIDが不正または重複しています: {entry.PlayerId}");
                     }

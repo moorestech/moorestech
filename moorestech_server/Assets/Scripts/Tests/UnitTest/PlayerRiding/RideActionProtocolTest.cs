@@ -63,8 +63,7 @@ namespace Tests.UnitTest.PlayerRiding
 
         private static void RegisterPlayer(TrainTestEnvironment environment, int playerId)
         {
-            var connectionChecker = environment.ServiceProvider.GetService<IPlayerConnectionChecker>();
-            ((PlayerConnectionRegistry)connectionChecker).Register(playerId);
+            environment.ServiceProvider.GetRequiredService<PlayerConnectionRegistry>().Register(playerId);
         }
     }
 }

@@ -113,8 +113,8 @@ namespace Server.Protocol.PacketResponse
             [Key(2)] public bool HasFromPole { get; set; }
             [Key(3)] public Vector3IntMessagePack FromPolePos { get; set; }
             [Key(4)] public PlaceInfoMessagePack PolePlaceInfo { get; set; }
-            [Key(5)] public int PoleBlockIdInt { get; set; }
-            [Key(6)] public Guid ConnectToolGuid { get; set; }
+            [Key(6)] public int PoleBlockIdInt { get; set; }
+            [Key(7)] public Guid ConnectToolGuid { get; set; }
 
             [IgnoreMember] public Vector3Int FromPolePosVector => FromPolePos;
             [IgnoreMember] public BlockId PoleBlockId => new(PoleBlockIdInt);

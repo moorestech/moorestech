@@ -100,7 +100,7 @@ namespace Server.Protocol.PacketResponse
             [Key(4)] public int ToNodeId { get; set; }
             [Key(5)] public Guid ToGuid { get; set; }
             [Key(6)] public RailEditMode Mode { get; set; }
-            [Key(7)] public Guid ConnectToolGuid { get; set; }
+            [Key(8)] public Guid ConnectToolGuid { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public RailConnectionEditRequest() { Tag = RailConnectionEditProtocol.Tag; }

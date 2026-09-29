@@ -1,12 +1,13 @@
 using System.Collections.Generic;
 using System.Linq;
+using Game.SaveLoad.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Game.SaveLoad.Migration.Steps.V2ToV3
 {
     // 持ち物総数が最大の旧プレイヤーを結びつけ候補に選ぶ。同数はスポーンから遠い方、次に新IDが小さい方（ユーザー裁定 2026-09-27）
     // Picks the legacy player with the most items; ties go to the one farther from spawn, then the smaller new id (user ruling 2026-09-27)
-    public static class PlayerClaimCandidateSelector
+    internal static class PlayerClaimCandidateSelector
     {
         internal static int? Select(JObject save, Dictionary<long, int> map)
         {
@@ -30,7 +31,7 @@ namespace Game.SaveLoad.Migration.Steps.V2ToV3
             // Reads the already-renumbered sections by new id; stacks are itemGuid/count
             long CountItems(int newId)
             {
-                var inventory = (save["playerInventory"] as JArray)?.OfType<JObject>().FirstOrDefault(p => (int)p["PlayerId"] == newId);
+                var inventory = (save[PlayerScopedSaveSections.PlayerInventory] as JArray)?.OfType<JObject>().FirstOrDefault(p => (int)p[PlayerScopedSaveSections.PlayerIdKey] == newId);
                 if (inventory == null) return 0;
                 var stacks = new List<JToken>();
                 if (inventory["MainInventoryItems"] is JArray main) stacks.AddRange(main);
@@ -41,8 +42,8 @@ namespace Game.SaveLoad.Migration.Steps.V2ToV3
 
             double? DistanceFromSpawn(int newId)
             {
-                var entity = (save["entities"] as JArray)?.OfType<JObject>()
-                    .FirstOrDefault(e => (string)e["Type"] == PlayerIdRenumbering.PlayerEntityType && (long)e["InstanceId"] == newId);
+                var entity = (save[PlayerScopedSaveSections.Entities] as JArray)?.OfType<JObject>()
+                    .FirstOrDefault(e => (string)e["Type"] == PlayerScopedSaveSections.PlayerEntityType && (long)e[PlayerScopedSaveSections.EntityInstanceIdKey] == newId);
                 if (entity == null || !spawnX.HasValue || !spawnY.HasValue || !spawnZ.HasValue) return null;
                 var x = (double?)entity["X"];
                 var y = (double?)entity["Y"];

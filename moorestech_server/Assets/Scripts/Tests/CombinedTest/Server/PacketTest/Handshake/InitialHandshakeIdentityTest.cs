@@ -41,7 +41,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Handshake
             Assert.AreEqual(first.Accepted.PlayerId, context.PlayerId);
             var playerId = context.MarkClosedAndGetPlayerId().Value;
             _provider.GetRequiredService<EventProtocolProvider>().UnregisterPlayer(playerId, context.EventSink);
-            ((PlayerConnectionRegistry)_provider.GetRequiredService<IPlayerConnectionChecker>()).Unregister(playerId);
+            _provider.GetRequiredService<PlayerConnectionRegistry>().Unregister(playerId);
 
             // 再接続では同じIDを返し、別の身元だけ次のIDを受け取る
             // Reconnection keeps the id; only another identity receives the next one

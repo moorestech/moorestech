@@ -44,6 +44,19 @@ namespace Server.Protocol.PacketResponse.Util.TrainPlacement
             if (!attachingCar.IsFacingForward)
                 attachingRailPosition.Reverse();
             return true;
+
+            #region Internal
+
+            bool TryRestoreRailPosition(RailPositionSnapshotMessagePack snapshot, int restoreExpectedLength,
+                out RailPosition position, out AttachTrainCarFailureType restoreFailureType)
+            {
+                var valid = RailPositionSnapshotValidator.TryValidate(snapshot, restoreExpectedLength, _railGraphDatastore,
+                    out position, out var railNotFound);
+                restoreFailureType = railNotFound ? AttachTrainCarFailureType.RailNotFound : AttachTrainCarFailureType.InvalidRailPosition;
+                return valid;
+            }
+
+            #endregion
         }
 
         internal bool TryAttachToTargetTrain(TrainUnit targetTrain, TrainCar car, RailPosition railPosition, bool attachToTargetTrainHead)
@@ -73,15 +86,6 @@ namespace Server.Protocol.PacketResponse.Util.TrainPlacement
             }
             targetTrain.AttachCarToRear(car, railPosition);
             return true;
-        }
-
-        private bool TryRestoreRailPosition(RailPositionSnapshotMessagePack snapshot, int expectedLength,
-            out RailPosition position, out AttachTrainCarFailureType failureType)
-        {
-            var valid = RailPositionSnapshotValidator.TryValidate(snapshot, expectedLength, _railGraphDatastore,
-                out position, out var railNotFound);
-            failureType = railNotFound ? AttachTrainCarFailureType.RailNotFound : AttachTrainCarFailureType.InvalidRailPosition;
-            return valid;
         }
     }
 }

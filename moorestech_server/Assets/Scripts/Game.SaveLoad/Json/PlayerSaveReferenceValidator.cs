@@ -10,23 +10,23 @@ namespace Game.SaveLoad.Json
     // Reject player state whose ID is absent from the identity registry before loading it
     internal static class PlayerSaveReferenceValidator
     {
-        internal static void Validate(WorldSaveAllInfo save, IPlayerIdentityRegistry identities)
+        internal static void Validate(WorldSaveAllInfo save, IPlayerIdentityLookup identities)
         {
             if (save.Inventory != null)
-                foreach (var entry in save.Inventory) Check(entry.PlayerId, "playerInventory");
+                foreach (var entry in save.Inventory) Check(entry.PlayerId, PlayerScopedSaveSections.PlayerInventory);
             if (save.Entities != null)
                 foreach (var entry in save.Entities)
-                    if (entry.Type == VanillaEntityType.VanillaPlayer) Check(entry.InstanceId, "entities");
+                    if (entry.Type == VanillaEntityType.VanillaPlayer) Check(entry.InstanceId, PlayerScopedSaveSections.Entities);
             if (save.PlayerRidingStates != null)
-                foreach (var entry in save.PlayerRidingStates) Check(entry.PlayerId, "playerRidingStates");
+                foreach (var entry in save.PlayerRidingStates) Check(entry.PlayerId, PlayerScopedSaveSections.PlayerRidingStates);
             if (save.HotbarAssignments != null)
-                foreach (var entry in save.HotbarAssignments) Check(entry.PlayerId, "hotbarAssignments");
+                foreach (var entry in save.HotbarAssignments) Check(entry.PlayerId, PlayerScopedSaveSections.HotbarAssignments);
             if (save.RemainingPlacementCounts != null)
-                foreach (var entry in save.RemainingPlacementCounts) Check(entry.PlayerId, "remainingPlacementCounts");
+                foreach (var entry in save.RemainingPlacementCounts) Check(entry.PlayerId, PlayerScopedSaveSections.RemainingPlacementCounts);
             if (save.ConstructionPayers != null)
-                foreach (var entry in save.ConstructionPayers) Check(entry.PlayerId, "constructionPayers");
+                foreach (var entry in save.ConstructionPayers) Check(entry.PlayerId, PlayerScopedSaveSections.ConstructionPayers);
             if (save.MiningCooldowns != null)
-                foreach (var entry in save.MiningCooldowns) Check(entry.PlayerId, "miningCooldowns");
+                foreach (var entry in save.MiningCooldowns) Check(entry.PlayerId, PlayerScopedSaveSections.MiningCooldowns);
 
             #region Internal
 

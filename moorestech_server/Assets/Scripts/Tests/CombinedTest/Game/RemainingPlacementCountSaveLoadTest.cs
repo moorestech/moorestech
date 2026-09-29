@@ -17,7 +17,7 @@ namespace Tests.CombinedTest.Game
         public void セーブしてロードすると残り設置数が復元される()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var playerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<IPlayerIdentityRegistry>(), "steam:1").PlayerId;
+            var playerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<PlayerIdentityRegistry>(), "steam:1").PlayerId;
             var store = serviceProvider.GetService<RemainingPlacementCountDataStore>();
             var wallet = ForUnitTestModBlockId.GearBeltConveyor;
             store.Refill(playerId, wallet, 3);

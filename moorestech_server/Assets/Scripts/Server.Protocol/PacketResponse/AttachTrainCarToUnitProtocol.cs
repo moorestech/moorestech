@@ -114,8 +114,8 @@ namespace Server.Protocol.PacketResponse
             [Key(2)] public TrainUnitInstanceId TargetTrainUnitInstanceId { get; set; }
             [Key(3)] public RailPositionSnapshotMessagePack RailPosition { get; set; }
             [Key(4)] public Guid TrainCarGuid { get; set; }
-            [Key(5)] public bool AttachCarFacingForward { get; set; }
-            [Key(6)] public bool AttachToTargetTrainHead { get; set; }
+            [Key(6)] public bool AttachCarFacingForward { get; set; }
+            [Key(7)] public bool AttachToTargetTrainHead { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public AttachTrainCarToUnitRequestMessagePack()

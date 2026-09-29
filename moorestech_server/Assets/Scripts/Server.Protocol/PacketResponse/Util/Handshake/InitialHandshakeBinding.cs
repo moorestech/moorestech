@@ -9,14 +9,16 @@ namespace Server.Protocol.PacketResponse.Util.Handshake
 {
     internal sealed class InitialHandshakeBinding
     {
-        private readonly IPlayerIdentityRegistry _identities;
+        private readonly IPlayerIdentityLookup _identityLookup;
+        private readonly IPlayerIdentityMutation _identityMutation;
         private readonly PlayerConnectionRegistry _connections;
         private readonly EventProtocolProvider _events;
 
         internal InitialHandshakeBinding(ServiceProvider provider)
         {
-            _identities = provider.GetRequiredService<IPlayerIdentityRegistry>();
-            _connections = (PlayerConnectionRegistry)provider.GetRequiredService<IPlayerConnectionChecker>();
+            _identityLookup = provider.GetRequiredService<IPlayerIdentityLookup>();
+            _identityMutation = provider.GetRequiredService<IPlayerIdentityMutation>();
+            _connections = provider.GetRequiredService<PlayerConnectionRegistry>();
             _events = provider.GetRequiredService<EventProtocolProvider>();
         }
 
@@ -33,12 +35,12 @@ namespace Server.Protocol.PacketResponse.Util.Handshake
             if (context.PlayerId.HasValue)
             {
                 Debug.LogWarning("[InitialHandshake] 接続中の接続に対する再ハンドシェイクを拒否");
-                return HandshakeRejection.AlreadyConnected;
+                return HandshakeRejection.AlreadyHandshaked;
             }
 
             // 採番前に既存接続を確認し、その接続のイベント宛先を保護する
             // Check existing connections before assignment to preserve their event destination
-            var assignment = _identities.PreviewAssignment(identity);
+            var assignment = _identityLookup.PreviewAssignment(identity);
             if (assignment.Kind == PlayerIdAssignmentKind.Known && _connections.IsConnected(assignment.PlayerId))
             {
                 Debug.LogWarning($"[InitialHandshake] 身元{identity}(プレイヤー{assignment.PlayerId})は接続中のため後からの接続を拒否");
@@ -56,7 +58,7 @@ namespace Server.Protocol.PacketResponse.Util.Handshake
 
             // ハンドシェイクはメインスレッドで直列処理されるため候補は確定まで変わらない
             // Handshakes run serially on the main thread, keeping the preview stable until assignment
-            _identities.Commit(assignment);
+            _identityMutation.Commit(assignment);
             return HandshakeRejection.None;
         }
     }

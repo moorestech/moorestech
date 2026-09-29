@@ -102,7 +102,7 @@ namespace Server.Boot
 
             var cancellationToken = new CancellationTokenSource();
             var token = cancellationToken.Token;
-            var connectionRegistry = (PlayerConnectionRegistry)serviceProvider.GetService<IPlayerConnectionChecker>();
+            var connectionRegistry = serviceProvider.GetRequiredService<PlayerConnectionRegistry>();
             var eventProtocolProvider = serviceProvider.GetService<EventProtocolProvider>();
             var tickEndPacketQueue = serviceProvider.GetRequiredService<TickEndPacketQueue>();
             var receivedPacketLog = serviceProvider.GetRequiredService<ReceivedPacketLog>();

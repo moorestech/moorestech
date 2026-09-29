@@ -154,7 +154,7 @@ namespace Tests.CombinedTest.Game
         public void 採掘クールダウンがセーブロードで復元される()
         {
             var (_, saveProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var playerId = PlayerIdentityTestHelper.Register(saveProvider.GetRequiredService<IPlayerIdentityRegistry>(), "steam:1").PlayerId;
+            var playerId = PlayerIdentityTestHelper.Register(saveProvider.GetRequiredService<PlayerIdentityRegistry>(), "steam:1").PlayerId;
             GameUpdater.RestoreCurrentTick(1000);
             saveProvider.GetRequiredService<MiningCooldownService>().RecordAttack(playerId);
             var json = saveProvider.GetRequiredService<AssembleSaveJsonText>().AssembleSaveJson();

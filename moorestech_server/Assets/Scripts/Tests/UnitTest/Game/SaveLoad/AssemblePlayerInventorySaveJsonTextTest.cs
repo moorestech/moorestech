@@ -26,7 +26,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var itemStackFactory = ServerContext.ItemStackFactory;
             var assembleJsonText = saveServiceProvider.GetService<AssembleSaveJsonText>();
             
-            var playerEntityId = PlayerIdentityTestHelper.Register(saveServiceProvider.GetRequiredService<IPlayerIdentityRegistry>(), "steam:1").PlayerId;
+            var playerEntityId = PlayerIdentityTestHelper.Register(saveServiceProvider.GetRequiredService<PlayerIdentityRegistry>(), "steam:1").PlayerId;
             
             //プレイヤーインベントリの作成
             var inventory = playerInventory.GetInventoryData(playerEntityId);
@@ -88,7 +88,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var random = new Random(seed);
             for (var i = 0; i < 20; i++)
             {
-                var playerId = PlayerIdentityTestHelper.Register(saveServiceProvider.GetRequiredService<IPlayerIdentityRegistry>(), $"steam:{i + 1}").PlayerId;
+                var playerId = PlayerIdentityTestHelper.Register(saveServiceProvider.GetRequiredService<PlayerIdentityRegistry>(), $"steam:{i + 1}").PlayerId;
                 playerItems.Add(playerId, CreateSetItems(random, itemStackFactory));
             }
             

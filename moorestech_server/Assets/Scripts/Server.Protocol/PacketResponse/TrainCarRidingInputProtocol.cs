@@ -34,10 +34,10 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class TrainCarRidingInputMessagePack : ProtocolMessagePackBase
         {
-            [Key(2)] public bool MoveForward { get; set; }
-            [Key(3)] public bool MoveBackward { get; set; }
-            [Key(4)] public bool SelectPreviousBranch { get; set; }
-            [Key(5)] public bool SelectNextBranch { get; set; }
+            [Key(3)] public bool MoveForward { get; set; }
+            [Key(4)] public bool MoveBackward { get; set; }
+            [Key(5)] public bool SelectPreviousBranch { get; set; }
+            [Key(6)] public bool SelectNextBranch { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public TrainCarRidingInputMessagePack()

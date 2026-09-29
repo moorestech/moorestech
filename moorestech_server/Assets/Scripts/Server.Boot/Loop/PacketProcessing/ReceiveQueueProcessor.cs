@@ -69,8 +69,6 @@ namespace Server.Boot.Loop.PacketProcessing
             private readonly ReceiveQueueProcessor _owner;
             private readonly byte[] _packet;
 
-            public bool IsActive => true;
-
             public ReceivedPacketEntry(ReceiveQueueProcessor owner, byte[] packet)
             {
                 _owner = owner;

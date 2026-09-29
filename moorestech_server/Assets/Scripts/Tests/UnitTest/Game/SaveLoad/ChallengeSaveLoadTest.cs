@@ -98,7 +98,7 @@ namespace Tests.UnitTest.Game.SaveLoad
                 Assert.IsNotNull(challenge);
             }
             
-            var playerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<IPlayerIdentityRegistry>(), "steam:1").PlayerId;
+            var playerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<PlayerIdentityRegistry>(), "steam:1").PlayerId;
 
             // クラフトのチャレンジをクリアする
             // Clear the craft challenge
@@ -158,7 +158,7 @@ namespace Tests.UnitTest.Game.SaveLoad
                 Assert.IsNotNull(challenge);
             }
 
-            var playerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<IPlayerIdentityRegistry>(), "steam:1").PlayerId;
+            var playerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<PlayerIdentityRegistry>(), "steam:1").PlayerId;
 
             // クラフトのチャレンジをクリアする
             // Clear the craft challenge

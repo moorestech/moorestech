@@ -61,7 +61,7 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class CompleteBaseCampProtocolMessagePack : ProtocolMessagePackBase
         {
-            [Key(2)] public Vector3IntMessagePack Position { get; set; }
+            [Key(3)] public Vector3IntMessagePack Position { get; set; }
             
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public CompleteBaseCampProtocolMessagePack() { }

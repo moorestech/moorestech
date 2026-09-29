@@ -1,39 +1,30 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using Game.PlayerIdentity;
+using Game.SaveLoad.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Game.SaveLoad.Migration.Steps.V2ToV3
 {
     // 旧IDの検査を全節で済ませてから、昇順の連番へ一括で写す
     // Validate legacy ids across every section before applying ascending sequential ids
-    public static class PlayerIdRenumbering
+    internal static class PlayerIdRenumbering
     {
-        internal const string PlayerEntityType = "va:Player";
-        private static readonly (string section, string key, bool allowDuplicateIds)[] PlayerIdSections =
-        {
-            ("playerInventory", "PlayerId", false),
-            ("playerRidingStates", "PlayerId", false),
-            ("hotbarAssignments", "PlayerId", false),
-            ("remainingPlacementCounts", "PlayerId", false),
-            ("constructionPayers", "PlayerId", true),
-            ("miningCooldowns", "playerId", false),
-        };
-
         internal static bool TryBuildMap(JObject save, out Dictionary<long, int> map, out string reason)
         {
             map = null;
             var oldIds = new SortedSet<long>();
-            foreach (var (section, key, allowDuplicateIds) in PlayerIdSections)
+            foreach (var section in PlayerScopedSaveSections.All)
             {
-                if (!TryCollect(section, key, false, allowDuplicateIds, out reason)) return false;
+                if (!TryCollect(section.Name, section.Key, false, section.AllowDuplicateIds, out reason)) return false;
             }
-            if (!TryCollect("entities", "InstanceId", true, false, out reason)) return false;
+            if (!TryCollect(PlayerScopedSaveSections.Entities, PlayerScopedSaveSections.EntityInstanceIdKey, true, false, out reason)) return false;
 
             // 同じIDを参照する複数の節は、同じ連番に結びつける
             // References to one id in multiple sections share the same sequential id
             map = new Dictionary<long, int>();
-            var next = SaveMigrationStepV2ToV3.FirstMigratedPlayerId;
+            var next = PlayerIdSequence.First;
             foreach (var oldId in oldIds) map[oldId] = next++;
             reason = null;
             return true;
@@ -68,7 +59,7 @@ namespace Game.SaveLoad.Migration.Steps.V2ToV3
                             collectReason = "entities の Type が文字列でない";
                             return false;
                         }
-                        if ((string)obj["Type"] != PlayerEntityType) continue;
+                        if ((string)obj["Type"] != PlayerScopedSaveSections.PlayerEntityType) continue;
                     }
 
                     // JSON整数はlongを超え得るため、キャスト前に範囲を検査する
@@ -94,8 +85,8 @@ namespace Game.SaveLoad.Migration.Steps.V2ToV3
 
         internal static void Apply(JObject save, Dictionary<long, int> map)
         {
-            foreach (var (section, key, _) in PlayerIdSections) Rewrite(section, key, false);
-            Rewrite("entities", "InstanceId", true);
+            foreach (var section in PlayerScopedSaveSections.All) Rewrite(section.Name, section.Key, false);
+            Rewrite(PlayerScopedSaveSections.Entities, PlayerScopedSaveSections.EntityInstanceIdKey, true);
 
             #region Internal
 
@@ -106,7 +97,7 @@ namespace Game.SaveLoad.Migration.Steps.V2ToV3
                 if (save[section] is not JArray array) return;
                 foreach (var obj in array.OfType<JObject>())
                 {
-                    if (onlyPlayerEntities && (string)obj["Type"] != PlayerEntityType) continue;
+                    if (onlyPlayerEntities && (string)obj["Type"] != PlayerScopedSaveSections.PlayerEntityType) continue;
                     obj[key] = map[(long)obj[key]];
                 }
             }

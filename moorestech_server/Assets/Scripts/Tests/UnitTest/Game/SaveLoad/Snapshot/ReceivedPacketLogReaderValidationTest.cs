@@ -13,7 +13,7 @@ namespace Tests.UnitTest.Game.SaveLoad.Snapshot
         {
             var dir = Path.Combine(Path.GetTempPath(), $"moorestech-invalid-packet-{Guid.NewGuid():N}");
             var log = new ReceivedPacketLog();
-            log.Start(dir, 1);
+            log.Start(dir, 1, Array.Empty<int>());
             log.Append(2, -7, new byte[] { 1 });
             log.Stop();
 
@@ -29,7 +29,7 @@ namespace Tests.UnitTest.Game.SaveLoad.Snapshot
         {
             var dir = Path.Combine(Path.GetTempPath(), $"moorestech-unbound-disconnect-{Guid.NewGuid():N}");
             var log = new ReceivedPacketLog();
-            log.Start(dir, 1);
+            log.Start(dir, 1, Array.Empty<int>());
             log.AppendDisconnect(2, null);
             log.Stop();
 

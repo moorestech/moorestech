@@ -21,7 +21,7 @@ namespace Tests.CombinedTest.Game.Research
         public void SaveLoadTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var playerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<IPlayerIdentityRegistry>(), "steam:1").PlayerId;
+            var playerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<PlayerIdentityRegistry>(), "steam:1").PlayerId;
 
             // Research 1と2を完了させる
             CompleteResearchForTest(serviceProvider, Research1Guid, playerId);

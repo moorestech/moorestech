@@ -167,7 +167,7 @@ namespace Server.Protocol.PacketResponse
         public class RequestOneClickCraftProtocolMessagePack : ProtocolMessagePackBase
         {
             
-            [Key(2)] public string CraftRecipeGuidStr { get; set; }
+            [Key(3)] public string CraftRecipeGuidStr { get; set; }
             [IgnoreMember] public Guid CraftRecipeGuid => Guid.Parse(CraftRecipeGuidStr);
             
             public RequestOneClickCraftProtocolMessagePack(Guid craftRecipeGuid)

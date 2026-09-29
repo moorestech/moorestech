@@ -58,11 +58,11 @@ namespace Tests.CombinedTest.Server.Replay.SnapshotReplayDeterminismTest
                 var ride = MessagePackSerializer.Serialize(new RideActionProtocol.RequestRideActionMessagePack(RideActionType.Ride, target));
                 var dismount = MessagePackSerializer.Serialize(new RideActionProtocol.RequestRideActionMessagePack(RideActionType.Dismount, target));
                 var queue = provider.GetRequiredService<TickEndPacketQueue>();
-                var connections = (PlayerConnectionRegistry)provider.GetRequiredService<IPlayerConnectionChecker>();
+                var connections = provider.GetRequiredService<PlayerConnectionRegistry>();
                 var events = provider.GetRequiredService<EventProtocolProvider>();
                 var firstReceiver = socket.CreateReceiver(creator, first, queue, log);
                 var secondReceiver = socket.CreateReceiver(creator, second, queue, log);
-                log.Start(Path.Combine(root, "packets"), 1);
+                log.Start(Path.Combine(root, "packets"), 1, Array.Empty<int>());
 
                 // Freeze済みの処理中に切断を積み、同tickの後続乗車では旧接続を維持する
                 // Enqueue the close during frozen processing, keeping the old connection for later packets in that tick
@@ -110,8 +110,6 @@ namespace Tests.CombinedTest.Server.Replay.SnapshotReplayDeterminismTest
             private readonly PlayerConnectionRegistry _connections;
             private readonly EventProtocolProvider _events;
             private readonly ReceivedPacketLog _log;
-
-            public bool IsActive => true;
 
             public ScheduleDisconnectEntry(PacketResponseContext context, ReceiveQueueProcessor receiver,
                 TickEndPacketQueue queue, PlayerConnectionRegistry connections, EventProtocolProvider events,

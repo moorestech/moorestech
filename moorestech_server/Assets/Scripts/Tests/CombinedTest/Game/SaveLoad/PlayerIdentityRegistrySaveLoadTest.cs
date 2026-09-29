@@ -20,7 +20,7 @@ namespace Tests.CombinedTest.Game.SaveLoad
         {
             var saveProvider = SaveLoadPreparerTestFixture.CreateContainer();
             var registry = saveProvider.GetRequiredService<PlayerIdentityRegistry>();
-            Assert.AreSame(registry, saveProvider.GetRequiredService<IPlayerIdentityRegistry>());
+            Assert.AreSame(registry, saveProvider.GetRequiredService<PlayerIdentityRegistry>());
             PlayerIdentityTestHelper.Register(registry, "steam:1");
             PlayerIdentityTestHelper.Register(registry, "steam:2");
             var json = saveProvider.GetRequiredService<AssembleSaveJsonText>().AssembleSaveJson();

@@ -41,7 +41,7 @@ namespace Tests.CombinedTest.Server.Replay.SnapshotReplayDeterminismTest
                 provider.GetRequiredService<IWorldSaveDataLoader>().LoadOrInitialize();
                 GameUpdater.RestoreCurrentTick(0);
                 File.WriteAllText(snapshotPath, provider.GetRequiredService<AssembleSaveJsonText>().AssembleSaveJson());
-                log.Start(Path.Combine(root, "packets"), 1);
+                log.Start(Path.Combine(root, "packets"), 1, Array.Empty<int>());
                 var handshake = MessagePackSerializer.Serialize(
                     new InitialHandshakeProtocol.RequestInitialHandshakeMessagePack("steam:1"));
                 log.Append(1, null, handshake);
@@ -95,7 +95,7 @@ namespace Tests.CombinedTest.Server.Replay.SnapshotReplayDeterminismTest
                 GameUpdater.RestoreCurrentTick(0);
                 provider.GetRequiredService<IGameUnlockStateDataController>().UnlockBlock(target);
                 File.WriteAllText(snapshotPath, provider.GetRequiredService<AssembleSaveJsonText>().AssembleSaveJson());
-                log.Start(Path.Combine(root, "packets"), 1);
+                log.Start(Path.Combine(root, "packets"), 1, Array.Empty<int>());
 
                 // 最初の未紐づけ接続は確定するが、次の未紐づけ接続は引き継がない
                 // The first unbound connection binds, but the next unbound connection must not inherit it

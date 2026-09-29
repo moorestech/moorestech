@@ -52,8 +52,6 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Register the train to TrainUpdateService
             environment.GetITrainUnitMutationDatastore().RegisterTrain(trainUnit);
 
-            // インベントリにアイテムをセット
-            // Set items in the inventory
             var itemFactory = ServerContext.ItemStackFactory;
             itemContainer.SetItem(0, itemFactory.Create(new ItemId(1), 7));
             itemContainer.SetItem(1, itemFactory.Create(new ItemId(2), 3));

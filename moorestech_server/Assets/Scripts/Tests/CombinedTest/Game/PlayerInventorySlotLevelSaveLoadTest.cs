@@ -20,7 +20,7 @@ namespace Tests.CombinedTest.Game
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var store = serviceProvider.GetService<IPlayerInventorySlotLevelDataStore>();
-            var playerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<IPlayerIdentityRegistry>(), "steam:1").PlayerId;
+            var playerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<PlayerIdentityRegistry>(), "steam:1").PlayerId;
             var inventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId);
 
             store.UnlockLevel(1);
@@ -44,7 +44,7 @@ namespace Tests.CombinedTest.Game
         public void LoadLegacySaveWithoutLevelKeepsItemsTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var playerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<IPlayerIdentityRegistry>(), "steam:1").PlayerId;
+            var playerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<PlayerIdentityRegistry>(), "steam:1").PlayerId;
             var inventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId);
             inventory.MainOpenableInventory.SetItem(44, new ItemId(1), 8);
             var saveJson = serviceProvider.GetService<AssembleSaveJsonText>().AssembleSaveJson();

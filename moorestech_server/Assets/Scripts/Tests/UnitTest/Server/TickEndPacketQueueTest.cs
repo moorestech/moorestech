@@ -38,32 +38,15 @@ namespace Tests.UnitTest.Server
             CollectionAssert.AreEqual(new[] { "first", "next" }, log);
         }
 
-        [Test]
-        public void 切断済み接続のパケットは実行しない()
-        {
-            var queue = new TickEndPacketQueue();
-            var log = new List<string>();
-            queue.Enqueue(new FakeEntry("inactive", log, false));
-
-            queue.FreezeCurrentPackets();
-            queue.ProcessFrozenPackets();
-
-            CollectionAssert.IsEmpty(log);
-        }
-
         private sealed class FakeEntry : ITickEndPacketEntry
         {
             private readonly string _name;
             private readonly List<string> _log;
-            public bool IsActive { get; }
 
-            public FakeEntry(string name, List<string> log) : this(name, log, true) { }
-
-            public FakeEntry(string name, List<string> log, bool isActive)
+            public FakeEntry(string name, List<string> log)
             {
                 _name = name;
                 _log = log;
-                IsActive = isActive;
             }
 
             public void Process()

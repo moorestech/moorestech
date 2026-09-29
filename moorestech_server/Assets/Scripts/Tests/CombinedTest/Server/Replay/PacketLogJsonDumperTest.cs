@@ -17,7 +17,7 @@ namespace Tests.CombinedTest.Server.Replay
         {
             var dir = Path.Combine(Path.GetTempPath(), $"moorestech-dump-{Guid.NewGuid():N}");
             var log = new ReceivedPacketLog();
-            log.Start(dir, 1);
+            log.Start(dir, 1, Array.Empty<int>());
             log.Append(5, 2, MessagePackSerializer.Serialize(new SaveProtocol.SaveProtocolMessagePack()));
             log.Append(7, null, MessagePackSerializer.Serialize(BugReportCaptureProtocol.BugReportCaptureRequest.CreateCaptureNowRequest()));
             log.Flush();

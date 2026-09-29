@@ -33,7 +33,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         public static (PacketResponseCreator packet, ServiceProvider serviceProvider) CreateServer()
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<IPlayerIdentityRegistry>(), "steam:1");
+            PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<PlayerIdentityRegistry>(), "steam:1");
             return (packet, serviceProvider);
         }
 

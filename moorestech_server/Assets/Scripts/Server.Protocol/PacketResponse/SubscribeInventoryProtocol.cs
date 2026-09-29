@@ -58,8 +58,8 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class SubscribeInventoryRequestMessagePack : ProtocolMessagePackBase
         {
-            [Key(2)] public InventoryIdentifierMessagePack Identifier { get; set; }
-            [Key(3)] public bool IsSubscribe { get; set; }
+            [Key(4)] public InventoryIdentifierMessagePack Identifier { get; set; }
+            [Key(5)] public bool IsSubscribe { get; set; }
             
             
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]

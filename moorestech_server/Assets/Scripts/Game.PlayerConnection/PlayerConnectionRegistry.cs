@@ -46,5 +46,15 @@ namespace Game.PlayerConnection
                 return _connectedPlayerIds.Contains(playerId);
             }
         }
+
+        // 呼び出し側が走査する間に集合が変わらないよう複製を返す
+        // Returns a copy so the set cannot change while the caller iterates it
+        public IReadOnlyCollection<int> ConnectedPlayerIds()
+        {
+            lock (_lock)
+            {
+                return new List<int>(_connectedPlayerIds);
+            }
+        }
     }
 }

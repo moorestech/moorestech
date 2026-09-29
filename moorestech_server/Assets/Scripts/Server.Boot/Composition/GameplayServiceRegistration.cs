@@ -139,7 +139,8 @@ namespace Server.Boot.Composition
             // 身元レジストリは保存側と接続側で同じ実体を共有する
             // Save and connection services share the same identity registry
             services.AddSingleton<PlayerIdentityRegistry>();
-            services.AddSingleton<IPlayerIdentityRegistry>(provider => provider.GetRequiredService<PlayerIdentityRegistry>());
+            services.AddSingleton<IPlayerIdentityLookup>(provider => provider.GetRequiredService<PlayerIdentityRegistry>());
+            services.AddSingleton<IPlayerIdentityMutation>(provider => provider.GetRequiredService<PlayerIdentityRegistry>());
             services.AddSingleton<HotbarAssignmentDatastore>();
             services.AddSingleton<IHotbarAssignmentLookup>(provider => provider.GetRequiredService<HotbarAssignmentDatastore>());
             services.AddSingleton<IHotbarAssignmentMutation>(provider => provider.GetRequiredService<HotbarAssignmentDatastore>());
@@ -181,7 +182,8 @@ namespace Server.Boot.Composition
 
             // 乗車コア。実接続レジストリを IPlayerConnectionChecker として共有する。
             // Riding core. Shares the real connection registry as IPlayerConnectionChecker.
-            services.AddSingleton<IPlayerConnectionChecker, PlayerConnectionRegistry>();
+            services.AddSingleton<PlayerConnectionRegistry>();
+            services.AddSingleton<IPlayerConnectionChecker>(provider => provider.GetRequiredService<PlayerConnectionRegistry>());
             services.AddSingleton<RidableResolver>();
             services.AddSingleton<IPlayerRidingDatastore, PlayerRidingDatastore>();
             services.AddSingleton<RemovedRidableRidingHandler>();

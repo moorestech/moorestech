@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using Core.Update;
 using Game.Paths;
+using Game.PlayerConnection;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
 using Game.SaveLoad.Writer;
@@ -30,6 +31,10 @@ namespace Game.SaveLoad.Snapshot
         private readonly SaveWriteWorker _worker;
         private readonly WorldDataDirectory _directory;
         private readonly ReceivedPacketLog _packetLog;
+
+        // 区間の開始時点の接続集合を見出しへ書くために読む。接続状態を変える権は持たない
+        // Read to write the connection set at a segment's start into its header; it never changes connection state
+        private readonly IPlayerConnectionChecker _connections;
         private readonly SnapshotGenerationRetention _retention;
         private readonly Subject<SnapshotWritten> _onSnapshotWritten = new();
         private readonly Dictionary<ulong, List<long>> _requestIdsByTick = new();
@@ -47,12 +52,13 @@ namespace Game.SaveLoad.Snapshot
         private ulong _nextPeriodicTick;
         private long _immediateRequestCounter;
 
-        public WorldSnapshotRing(AssembleSaveJsonText assembler, SaveWriteWorker worker, WorldDataDirectory directory, ReceivedPacketLog packetLog)
+        public WorldSnapshotRing(AssembleSaveJsonText assembler, SaveWriteWorker worker, WorldDataDirectory directory, ReceivedPacketLog packetLog, IPlayerConnectionChecker connections)
         {
             _assembler = assembler;
             _worker = worker;
             _directory = directory;
             _packetLog = packetLog;
+            _connections = connections;
             _retention = new SnapshotGenerationRetention(directory, packetLog);
         }
 
@@ -81,7 +87,7 @@ namespace Game.SaveLoad.Snapshot
             // 前セッションのtickは今回の剪定対象にならず残り続け、区間ファイルは再生へ異セッションのパケットを混ぜる
             // Previous-session ticks never enter this session's pruning, and their segments would mix foreign packets into replay
             SnapshotDirectoryCleaner.DeletePreviousSessionFiles(_directory.SnapshotDirectory);
-            _packetLog.Start(_directory.SnapshotDirectory, GameUpdater.CurrentTick + 1);
+            _packetLog.Start(_directory.SnapshotDirectory, GameUpdater.CurrentTick + 1, _connections.ConnectedPlayerIds());
             IsActive = true;
             // 基準スナップショットを開始tickで取る。無いと最初の周期までの区間は再生の出発点を持たない
             // Take the baseline snapshot at the start tick; without it the span up to the first period has no point to replay from
@@ -127,7 +133,7 @@ namespace Game.SaveLoad.Snapshot
 
                 // Rotate が内部で flush してから区間を切り替えるので、ここで重ねてflushしない
                 // Rotate flushes before switching segments, so no extra flush belongs here
-                _packetLog.Rotate(tick + 1);
+                _packetLog.Rotate(tick + 1, _connections.ConnectedPlayerIds());
 
                 // 周期の期日に乗った取り込みは周期世代。即時要求が同じtickに重なっても保持時間の保証側へ数える
                 // A capture landing on a periodic due date is a periodic generation, even when an immediate request rides the same tick

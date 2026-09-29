@@ -30,7 +30,7 @@ namespace Tests.CombinedTest.Game
         public void SaveLoadRestoresHotbarAssignmentsTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var playerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<IPlayerIdentityRegistry>(), "steam:1").PlayerId;
+            var playerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<PlayerIdentityRegistry>(), "steam:1").PlayerId;
             var datastore = serviceProvider.GetService<HotbarAssignmentDatastore>();
             var blockGuid = ResolvableBlockGuid();
             serviceProvider.GetService<IGameUnlockStateDataController>().UnlockBlock(blockGuid);
@@ -52,7 +52,7 @@ namespace Tests.CombinedTest.Game
         public void ReadingAssignmentsDoesNotPersistAnEmptyRecordTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var playerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<IPlayerIdentityRegistry>(), "steam:1").PlayerId;
+            var playerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<PlayerIdentityRegistry>(), "steam:1").PlayerId;
             var datastore = serviceProvider.GetService<HotbarAssignmentDatastore>();
 
             var assignments = datastore.GetAssignments(playerId);
@@ -67,7 +67,7 @@ namespace Tests.CombinedTest.Game
         public void DeletingBlueprintPrunesOnlyItsAssignmentTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var playerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<IPlayerIdentityRegistry>(), "steam:1").PlayerId;
+            var playerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<PlayerIdentityRegistry>(), "steam:1").PlayerId;
             var blueprintDatastore = serviceProvider.GetService<IBlueprintDatastore>();
             var datastore = serviceProvider.GetService<HotbarAssignmentDatastore>();
             var unlockState = serviceProvider.GetService<IGameUnlockStateDataController>();

@@ -62,11 +62,11 @@ namespace Tests.CombinedTest.Server.Replay.SnapshotReplayDeterminismTest
                 var ride = MessagePackSerializer.Serialize(new RideActionProtocol.RequestRideActionMessagePack(RideActionType.Ride, target));
                 var dismount = MessagePackSerializer.Serialize(new RideActionProtocol.RequestRideActionMessagePack(RideActionType.Dismount, target));
                 var queue = provider.GetRequiredService<TickEndPacketQueue>();
-                var connections = (PlayerConnectionRegistry)provider.GetRequiredService<IPlayerConnectionChecker>();
+                var connections = provider.GetRequiredService<PlayerConnectionRegistry>();
                 var events = provider.GetRequiredService<EventProtocolProvider>();
                 var firstReceiver = socket.CreateReceiver(packet, first, queue, log);
                 var secondReceiver = socket.CreateReceiver(packet, second, queue, log);
-                log.Start(Path.Combine(root, "packets"), 1);
+                log.Start(Path.Combine(root, "packets"), 1, Array.Empty<int>());
                 firstReceiver.EnqueuePacket(ride);
                 secondReceiver.EnqueuePacket(ride);
 
