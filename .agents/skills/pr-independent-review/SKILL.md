@@ -223,6 +223,8 @@ Step 10 の付与条件を確認する。
     python3 <$CANONの実値>/.agents/skills/pr-independent-review/scripts/make_patch.py \
       --prwt <$PRWTの実値> --origin <$ORIGINの実値> --pr <番号> --base-ref <BASE_REF> --out <$RUNDIRの実値>/patch.diff
 
+production APIのシグネチャ・引数・前提条件を変えるPRは、patch生成後に除外域も含め呼び出し元を検索。特に`unity-playmode-recorded-playtest`配下の`.cs`。除外域は互換性・挙動だけ確認。
+
 スクリプトが固定フラグ（`-c core.quotepath=false --no-color --no-ext-diff --no-textconv --text --no-renames`。ユーザー側git設定が
 patchを静かに痩せさせないため）と固定の除外（Unityアセット・画像・プレイテストシナリオの `.cs`。yml/jsonは残す。
 moores-code-review Step 1と同一のpathspec）で `<BASE_REF>...HEAD` の差分を書き、次を終了コードで裁く:

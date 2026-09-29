@@ -68,6 +68,8 @@ Playwright スクリプトで次を出力する:
 - `getComputedStyle()` … 実際に効いている値（トークンの解決結果）
 - `dataset.state` / `display` … Mantineの内部状態（スクロールバー等）
 
+`getComputedStyle(...).getPropertyValue(...)`＋`parseFloat` で読む寸法トークンは単一px値。`calc(...)` 化前に読取側を探し、必要ならpxトークンを分けてJSで合成。`labelGapToken.ts`／`highlightGlowToken.ts` も対象。
+
 原因候補が複数あるときは **ablation** で切る。要素を1つずつ `display:none` にする／変数を1つずつ変える／値を0.1px刻みでスイープして、症状が消える点を見つける。
 
 > 実例（2026-08-22 CRAFT RECIPE一覧）: 「黒い枠線」は `type="always"` が描いた**つまみ幅0の水平スクロールバー**（`scrollWidth === clientWidth` で溢れゼロ）、「不要なスクロール」は個数バッジの5px はみ出し（`.count` を消すと `scrollHeight - clientHeight` が 5→0）だった。どちらも見ただけでは特定できず、実測とablationで初めて確定した。
@@ -87,9 +89,15 @@ Playwright スクリプトで次を出力する:
 `pnpm lint` / `pnpm test` / `pnpm test:e2e` を通し、§10 の目視QAチェック項目を実施する。
 **挙動を固定していた既存 e2e があれば、裁定に合わせて反転させる**（古い assertion を残したまま実装だけ変えない）。
 
+- 英語文言を期待するe2eは各テストで `setTopicScenario(page, "english")` を指定。不一致時はロケール設定・反映を先に確認。mock-host既定は `japanese`。
+- ScrollAreaの高さ不変は件数増加前後の視口 `clientHeight` で比較し、`scrollHeight - clientHeight` の非溢れ→溢れも確認。前例: `e2e/support/layoutAssertions.ts` の `expectScrollsOnlyWhenOverflowing`。
+- Playwrightの遷移後の可視性・opacityは `toBeVisible`・`toHaveCSS` で検証。トークン連動の寸法は `getComputedStyle()` の解決値と実測矩形を比較。固定値が仕様なら別途検証。
+- topic到着時に一度だけ初期選択・中央寄せするUIは、未着の初回payload→有効状態をfixtureで再現。未着時に初期化を消費しないか確認。
+- 受信Zodスキーマの`transform`追加・変更時は変換前のwire payloadを`deliverTopicPayload`へ渡し、変換後の値がストアに入る入口テストを行う。
+
 ### 0.6 後片付け
 
-tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除する。
+起動時に tunnel・vite・mock-host のPID／セッションIDを記録。終了時は所有を確認して自分の分だけ停止。`pkill -f` 禁止。subagentにも伝え、停止後に `moores-wt rm`。
 
 ---
 
@@ -120,6 +128,7 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
 - **`.viewportOverlay` は `pointer-events: none`。** 配下へ置く操作可能要素（ホットバーのスロット列・装備HUD）は `pointer-events: auto` を明示する。忘れると操作が死ぬ。
 - **第三の所属として背面viewport族がある**（ADR 0017）。`.viewport` 直下・`.stage` の裏（`--z-viewport-behind-stage`）に置く。stage族でもviewport族でもなく、`--ui-scale` は自前で掛ける（通知は掛けている・§8）。現状の唯一の利用者は通知（§8）。
 - 基準解像度1280×720では stage と viewport が一致するため、族の移動だけでは描画結果が変わらない。
+- `--ui-scale` 適用層の新設・移動時はPortal先も含め `vw` / `vh` を検索。内容寸法はstage座標の固定長を使い、1280×720以外でも実測。前例: `tokens.css` の `--notification-width: 256px`。
 
 ## 2. パネル — GamePanel を使い回す
 
@@ -203,6 +212,7 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
   5. シアンの下向きシェブロン=送り待ちマーカー（uGUI `nav_arrow.png` 由来。**スキット会話窓限定**・§8.12。光彩は付けない）
   6. 黄黒の斜線警告帯（uGUI `delete bar.png` 由来。**削除モードの画面上下端限定**・§8.15。画像は移植せずCSS反復グラデーションで再現する）
 - 新しい装飾モチーフ（光彩、パーティクル、角丸カード、ドロップシャドウの多用等）を増やさない。
+- ハイライトのクリップは `shared/tutorialAnchor/ancestorClip.ts` の `clipPathInset` に従い、不要な辺にグロー幅分の負のinsetを残す。computed `clip-path` は1〜4値を展開して実測（`e2e/tests/system/tutorialHighlightClip.spec.ts`）。
 - 装飾アニメーションは基本入れない。トランジションを入れる場合もe2eが同期検証できること（モーダルは duration 0）。
   - **例外は通知の出入り（§8）と、チュートリアル誘導の脈動（§8.8/§8.17/§8.19・ADR 0039）**。通知は入場＝左から `--notification-shift` のスライド＋フェード、退場＝その逆再生で、色相・形・光彩は動かさない。
   - アニメーションを足す場合、テスト時に尺をゼロへ落とす抜け道は作らない（実挙動と乖離するため）。計算値の `animation-name` はCSS Modulesがハッシュ化するので、e2eでは部分一致で照合する。
