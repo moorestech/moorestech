@@ -236,6 +236,7 @@ Self-Review（内容）の次に、このファイル後半の **spec-architectu
    planが完成し`docs/superpowers/plans/<filename>.md`に保存されました。新規セッションを開き、以下を貼り付けて実装を開始してください:
 
    ```
+   <1行目は必ずこれにスキル名やplanパスを1行目に置かない。タスク概要（20〜30字程度の体言止め。例: iOSアプリの入力フィールド改善）>
    subagent-driven-development スキルを使って、以下の実装planを実行してください。
 
    - plan: docs/superpowers/plans/<filename>.md
