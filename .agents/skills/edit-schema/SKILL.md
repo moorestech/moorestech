@@ -96,7 +96,9 @@ implementationInterface:
 
 ## プロパティのリネーム・削除時のJSONデータ更新
 
-スキーマのプロパティ名を変更・削除した場合はすべてのJSONデータを更新する。漏れるとCIで `MooresmasterLoaderException` が出る。
+スキーマのプロパティ名を変更・削除した場合と、必須プロパティを追加した場合はすべてのJSONデータを更新する。漏れるとCIで `MooresmasterLoaderException` が出る。
+
+YAMLの`default:`はエディタ用の既定値であり、生成ローダーは欠損した必須キーを補完しない。下記のJSONファイル群に加え、C#テスト内の文字列リテラル・`JObject`／`JArray`構築・JSON生成ヘルパーで組み立てるインラインJSONも検索して更新する。`*.json`だけの検索ではこれらを取り逃がす。
 
 **JSONデータ配置先：**
 - `moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/`
@@ -108,6 +110,8 @@ implementationInterface:
 grep -r '"旧プロパティ名"' --include='*.json' . ../moorestech_master/
 ```
 
+検証結果には、使用したスキーマのコミットと、ロードしたJSONの実パス・コミットを組で記録する。`TestModDirectory.ForUnitTestModDirectory` はrepo内フィクスチャを指すため、そのテストの成功だけでは出荷マスタの整合性を証明できない。スキーマ変更時はフィクスチャに加え、外部リビジョンのピンが指す出荷マスタも変更後のコードでロードし、組み合わせごとに結果を確認する。
+
 ## プロパティ追加時の生成コンストラクタ破壊
 
 プロパティを追加すると（`optional: true` でも）、SourceGenerator が生成する要素クラス（例 `BlockMasterElement`）の**コンストラクタに必須の末尾引数が1つ増える**。手書きで `new XxxMasterElement(...)` している箇所（主にテスト）は CS7036 になるので、末尾に引数を足す。JSONローダー経由のロードは影響を受けない。
@@ -116,6 +120,8 @@ grep -r '"旧プロパティ名"' --include='*.json' . ../moorestech_master/
 grep -rn 'new <要素クラス名>(' --include='*.cs' moorestech_server moorestech_client | grep -v '/obj/'
 ```
 生成順は `PropertyTable` 順なので、**末尾プロパティとして足す**と既存の引数順が崩れず差分が最小になる。
+
+例外を期待する既存テストは、新しい必須キーの欠落だけで成功していないか確認する。正常な入力へ追加キーを揃えてから対象の異常だけを作り、例外の内容が本来検証したい違反を指すことまで確かめる。エラー内の配列添字だけで実データ由来と判断せず、テストで組み立てた入力も調べる。
 
 CIはクライアントプロジェクトからEditModeテストを実行する。スキーマ変更の影響テストはクライアントのproject-pathで回す。
 
