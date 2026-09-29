@@ -12,6 +12,13 @@ import path from "node:path";
 const DEFAULT_MODEL = "gpt-6-astra";
 const DEFAULT_EFFORT = "medium";
 
+// 短縮ティア名(astra/sol/luna)をフル ID へ正規化する(codex-audit.mjs と同じ)
+// codex は短縮名を解決できず誤解を招く HTTP 400("ChatGPT account で非対応")を返すため
+function normalizeModel(model) {
+  const tierToFullId = { astra: "gpt-6-astra", sol: "gpt-6-sol", luna: "gpt-6-luna" };
+  return tierToFullId[model] ?? model;
+}
+
 function usage() {
   console.error(`Usage:
   node codex-open-questions.mjs generate --brief <file> [--cwd <dir>] [--model M] [--effort E] [--out <json>]
@@ -33,6 +40,7 @@ function parseArgs(argv) {
     i++;
   }
   if (!["generate", "filter"].includes(opts.mode)) usage();
+  opts.model = normalizeModel(opts.model);
   return opts;
 }
 
