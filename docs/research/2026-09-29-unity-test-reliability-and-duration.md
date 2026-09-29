@@ -62,6 +62,19 @@
 3. **軽い PlayMode shard の統合を比較実験する。** 9 shard は待ち時間を短くする一方、今回の成功例では 47.1 runner 分を NUnit 開始前に使った。`client-play-1/2/3` のような少数テスト shard を 1〜2 本へ統合した候補を、同一コミット・同条件で現行 9 shard と比較する。指標は壁時計、runner 分、テスト網羅、順序依存、ハング率。単純な 3→1 なら起動回数は減るが、テスト間干渉の実測前に恒久変更しない。
 4. **ローカルの失敗率を測れる形にする。** `uloop run-tests` の呼び出し単位で開始・終了時刻、対象フィルタ、テスト数、NUnit failure、domain reload 中、timeout、Editor 接続失敗を記録する。現状のセッション transcript から呼び出しの重複や中断を除いた分母は復元しにくい。CI とローカルの率を混ぜずに比較できる台帳が必要。
 
+## 通常のローカルテストプレイを短縮する計画
+
+前節の shard 統合は CI 専用で、手元で Unity の Play を押してゲームを操作する時間には効かない。ローカルでは「新規 worktree と Editor 起動」「スクリプトの import・compile」「Edit→Play 遷移」「ゲームが操作可能になるまで」「実際の検証操作」を別々に測る。`moores-wt new` は Library と非公開アセットをコピーして Editor を起動するため、既存のローカル手順では一回約3分強。起動済み Editor で Play する場合はこの費用を再度払わない。
+
+録画付きの [`run-scenario.sh`](../../.agents/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh) は毎回 [`preflight.sh`](../../.agents/skills/unity-playmode-recorded-playtest/scripts/preflight.sh) で疎通・コンパイル・master 実在・マスタロードを確認し、Play 後に `ready.marker` を待つ。スキルの記録では preflight 約30秒、ready 約15〜30秒、その後にシナリオ本体が続く。これは普通の手動 Play とも `uloop run-tests` とも別の経路である。過去のセッションログの複合 shell コマンドは複数操作・sleep・待機を一括で含むため、単独の Play 時間として中央値を出すと誤る。今ある記録だけから「手動 Play 自体が遅い」とは断定できない。
+
+短縮は次の順で進める。
+
+1. **実測を先に取る。** 同じ worktree・同じ Editor で手動 Play と録画シナリオを各 5〜10 回測り、Editor 起動、compile、Play 状態遷移、`ready.marker`／GameScreen 到達、操作完了を時刻付きで記録する。初回と2回目以降、スクリプト変更あり／なし、固定 world の cache hit／miss を分けて p50・p90 を出す。ドメインリロード・切断・失敗も同じ母集団に含める。
+2. **再起動と再準備を減らす。** 同じタスクの複数確認は起動済みの worktree Editor で行い、変更のないシナリオを毎回新しい worktree や Editor で実行しない。録画フローの preflight は、入力が変わっていないことを検証できる場合に限り、同じ Editor セッションで成功済みの compile とマスタロードを再利用する。ソース、asmdef、master pin、Editor の domain reload が変われば無効化する。短縮量と見逃しがないことは比較実験で確認する。
+3. **ワールド準備を再利用する。** 地形生成自体を検証しない反復プレイは既存の `PLAYTEST_WORLD_DIRECTORY`・`PLAYTEST_MAP_MODE`・`PLAYTEST_SEED` で同じ world と terrain visual cache を使う。地形生成・初回起動・セーブ移行が検証対象なら新規 world で測る。複数の UI 操作や assertion は状態のつながった一つのシナリオにまとめ、不要な Stop→Play 回数を減らす。
+4. **安全性を守って比較する。** PlayMode 間でゲーム状態を持ち越すと既知の NRE と沈黙 timeout が起きるため、独立したシナリオの前の Stop は維持する。Domain Reload を一律無効にする案は mod と static の初期化を変えうるので、速さだけで採用しない。まず上記の固定費削減でどれだけ短くなるか測る。
+
 ## 制約
 
-この調査で Unity Editor を新規起動して再現実験は行っていない。多数の CI 実行の観測調査であり、個別のハング機構を再現で確定したものではない。GitHub Actions の `cancelled` 14 件には PR 更新による正常な旧実行キャンセルが混ざるため失敗率の分母から除外した。09-26 以降の改善は修正後の観測として有力だが、PR 内容・実行負荷も変わっており、因果効果を単独で証明する比較実験ではない。
+この調査で Unity Editor を新規起動して再現実験は行っていない。多数の CI 実行の観測調査であり、個別のハング機構を再現で確定したものではない。GitHub Actions の `cancelled` 14 件には PR 更新による正常な旧実行キャンセルが混ざるため失敗率の分母から除外した。09-26 以降の改善は修正後の観測として有力だが、PR 内容・実行負荷も変わっており、因果効果を単独で証明する比較実験ではない。ローカルテストプレイの短縮量は計画段階であり、上の 5〜10 回比較で初めて見積もれる。
