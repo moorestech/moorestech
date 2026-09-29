@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Core.Master;
 using Game.Block.Blocks.BeltConveyor.Connection;
@@ -10,7 +9,6 @@ using Game.Block.Interface.Component;
 using Game.Block.Interface.Component.ConnectJudge;
 using Game.Context;
 using Game.World.Interface.DataStore;
-using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -35,9 +33,6 @@ namespace Tests.UnitTest.Game.BeltConnection
             _rotation = rotation;
             Edge = new BeltEdge(Position("UL"), rotation.ConvertLocalCell(Vector3Int.forward), 0);
         }
-
-        internal static JToken Read(string name) => JToken.Parse(File.ReadAllText(Path.Combine(
-            TestModDirectory.ForUnitTestModDirectory, "../../../Tests/UnitTest/Game/BeltConnection/Data", name)));
 
         internal Vector3Int Position(string slot)
         {

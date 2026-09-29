@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Block.Interface;
-using Newtonsoft.Json.Linq;
+using Tests.UnitTest.Game.BeltConnection.Fixtures;
 using NUnit.Framework;
 
 namespace Tests.UnitTest.Game.BeltConnection
@@ -20,12 +20,12 @@ namespace Tests.UnitTest.Game.BeltConnection
         public void Approved2401Patterns(bool gear, BlockDirection direction)
         {
             var world = new BeltEdgeTestWorld(gear, direction);
-            var cases = (JArray)BeltEdgeTestWorld.Read("cases.json");
-            Assert.AreEqual(2401, cases.Count);
+            var cases = ApprovedBeltPatterns.All().ToArray();
+            Assert.AreEqual(2401, cases.Length);
             foreach (var row in cases)
             {
-                var id = (string)row["id"];
-                var expected = row["edges"].Select(e => (string)e[0] + ">" + (string)e[1]).ToArray();
+                var id = row.Id;
+                var expected = row.Connections.Select(e => e.ToString()).ToArray();
                 Check(id, expected);
             }
 
@@ -46,9 +46,9 @@ namespace Tests.UnitTest.Game.BeltConnection
             var world = new BeltEdgeTestWorld(false, BlockDirection.North);
             var reverse = new[] { 0, 4, 5, 6, 1, 2, 3 };
             var swapped = new[] { 1, 0, 3, 2 };
-            foreach (var row in BeltEdgeTestWorld.Read("cases.json"))
+            foreach (var row in ApprovedBeltPatterns.All())
             {
-                var id = (string)row["id"];
+                var id = row.Id;
                 // 固定された期待結果を鏡映し、実装の判定式は複製しない
                 // Mirror the fixed expectation without reproducing the implementation's rules
                 for (var i = 0; i < 4; i++)
@@ -56,13 +56,13 @@ namespace Tests.UnitTest.Game.BeltConnection
                     var code = reverse[id[swapped[i]] - '0'];
                     if (code != 0) world.Place(BeltEdgeTestWorld.Slots[i], code);
                 }
-                var expected = row["edges"].Select(e => Swap((string)e[0]) + ">" + Swap((string)e[1])).ToArray();
+                var expected = row.Connections.Select(e => Swap(e.Source.ToString()) + ">" + Swap(e.Target.ToString())).ToArray();
                 world.AssertEdges(expected, id + " mirrored");
                 world.Clear();
 
                 for (var i = 0; i < 4; i++)
-                    if (row["touching"].Values<string>().Contains(BeltEdgeTestWorld.Slots[i])) world.Place(BeltEdgeTestWorld.Slots[i], id[i] - '0');
-                expected = row["edges"].Select(e => (string)e[0] + ">" + (string)e[1]).ToArray();
+                    if (row.TouchingSlots.Contains((BeltTestSlot)i)) world.Place(BeltEdgeTestWorld.Slots[i], id[i] - '0');
+                expected = row.Connections.Select(e => e.ToString()).ToArray();
                 world.AssertEdges(expected, id + " non-touching cleared");
                 world.Clear();
             }
@@ -87,20 +87,15 @@ namespace Tests.UnitTest.Game.BeltConnection
         public void Original256And25DiagramExpectations()
         {
             var world = new BeltEdgeTestWorld(false, BlockDirection.North);
-            var oracle = BeltEdgeTestWorld.Read("original_256_expected.json");
-            var kinds = new Dictionary<string, int> { ["Empty"] = 0, ["Flat"] = 1, ["Up"] = 2, ["Down"] = 3 };
-            foreach (var row in oracle["cases"].Concat(oracle["diagramCases"]))
+            var cases = OriginalBeltPatterns.Cases().ToArray();
+            var diagrams = OriginalBeltPatterns.Diagrams().ToArray();
+            Assert.AreEqual(256, cases.Length);
+            Assert.AreEqual(25, diagrams.Length);
+            foreach (var row in cases.Concat(diagrams))
             {
-                var names = new[] { "upperSource", "upperTarget", "lowerSource", "lowerTarget" };
                 for (var i = 0; i < 4; i++)
-                {
-                    var code = kinds[(string)row[names[i]]];
-                    if (code != 0) world.Place(BeltEdgeTestWorld.Slots[i], code);
-                }
-                var expected = new List<string>();
-                if ((string)row["source"] != null)
-                    expected.Add(((string)row["source"] == "Upper" ? "UL" : "LL") + ">" + ((string)row["target"] == "Upper" ? "UR" : "LR"));
-                world.AssertEdges(expected, row.ToString());
+                    if (row.Id[i] != '0') world.Place(BeltEdgeTestWorld.Slots[i], row.Id[i] - '0');
+                world.AssertEdges(row.Connections.Select(e => e.ToString()), row.Id);
                 world.Clear();
             }
         }
