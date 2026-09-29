@@ -13,7 +13,7 @@ namespace Game.Block.Blocks.BeltConveyor.Connection
             // 正側セルと正向き法線で同じedgeを正規化する
             // Normalize the edge using its positive-side cell and positive normal
             Normal = new Vector3Int(Math.Abs(outward.x), 0, Math.Abs(outward.z));
-            PositiveCell = cell + (outward.x + outward.z > 0 ? Normal : Vector3Int.zero);
+            PositiveCell = cell + (0 < outward.x + outward.z ? Normal : Vector3Int.zero);
             PositiveCell = new Vector3Int(PositiveCell.x, height, PositiveCell.z);
         }
 

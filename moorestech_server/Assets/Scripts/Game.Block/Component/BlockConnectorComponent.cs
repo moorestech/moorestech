@@ -19,7 +19,7 @@ namespace Game.Block.Component
         where TTarget : IBlockComponent
         where TConnectJudge : IConnectorConnectJudge, new()
     {
-        internal IConnectorContext Context { get; }
+        internal IConnectorContext<TTarget> Context { get; }
 
         public IReadOnlyDictionary<TTarget, ConnectedInfo> ConnectedTargets => _connectedTargets;
         private readonly Dictionary<TTarget, ConnectedInfo> _connectedTargets = new();
@@ -36,10 +36,10 @@ namespace Game.Block.Component
         private readonly Dictionary<Vector3Int, (Vector3Int position, IBlockConnector connector)> _outputTargetToOutputConnector;
 
         public BlockConnectorComponent(IReadOnlyList<IBlockConnector> inputConnectors, IReadOnlyList<IBlockConnector> outputConnectors, BlockPositionInfo blockPositionInfo)
-            : this(inputConnectors, outputConnectors, blockPositionInfo, new DefaultConnectorContext()) { }
+            : this(inputConnectors, outputConnectors, blockPositionInfo, new DefaultConnectorContext<TTarget>()) { }
 
         internal BlockConnectorComponent(IReadOnlyList<IBlockConnector> inputConnectors, IReadOnlyList<IBlockConnector> outputConnectors,
-            BlockPositionInfo blockPositionInfo, IConnectorContext context)
+            BlockPositionInfo blockPositionInfo, IConnectorContext<TTarget> context)
         {
             Context = context;
             var worldBlockUpdateEvent = ServerContext.WorldBlockUpdateEvent;

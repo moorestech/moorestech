@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Block.Interface;
@@ -69,6 +70,17 @@ namespace Tests.UnitTest.Game.BeltConnection
             #region Internal
             string Swap(string slot) => slot.Substring(0, 1) + (slot[1] == 'L' ? "R" : "L");
             #endregion
+        }
+
+        [TestCase(-1)]
+        [TestCase(0)]
+        [TestCase(7)]
+        [TestCase(int.MaxValue)]
+        public void PlacementRejectsUndefinedOccupiedState(int code)
+        {
+            var world = new BeltEdgeTestWorld(false, BlockDirection.North);
+            Assert.Throws<ArgumentOutOfRangeException>(() => world.Place("UL", code));
+            Assert.AreEqual(0, world.World.BlockMasterDictionary.Count);
         }
 
         [Test]

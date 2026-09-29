@@ -18,6 +18,7 @@
 - R8: 平行の側面入力は実際の入出力port方向で評価。ベルトの輸送正面方向とedgeでの入出力方向を混同しない。
 - R9: 新ブランチcodex/belt-edge-connections、base14c9f4b。稼働中checkoutは変更せず、PR/pushなし。全作業をコミットする。
 - R10: segment本体・GPU・速度・フィルタ・save形式・外部master repoは変更しない。
+- R11: 真上・真下姿勢（Up*/Down*）は全ベルト種類・分岐器でベルト間edgeを持たず、除外理由をログへ出す。機械との既存接続は維持する（ユーザー裁定D12）。
 
 ## Global Constraints
 
@@ -79,7 +80,7 @@ Worldの登録/削除操作 → 対象componentのcapture/apply → inventory co
 
 ## Task 1: edge判定とワールド差分更新を一体で実装
 
-**Files:** 上のFiles表。**受入:** R1〜R10。
+**Files:** 上のFiles表。**受入:** R1〜R11。
 
 - [ ] 既存BlockConnectorComponent/TryJudgeConnect、両belt template、WorldBlockDatastore、BlockPlaceToConnectionBlockTest/OrderedShapeCandidateConnectionTest/BlockConnectionSaveLoadTestを読む。PR1134のcontext要点を上記制約と照合。
 - [ ] 上表の契約とedgeresolverを実装。正規化edgeと両側4voxelはX/Z回転に対し一意。Flat=全4底辺、slope=搬送軸両端に各入出力高さ。上側選択はportの方向評価より先。
@@ -100,4 +101,6 @@ Worldの登録/削除操作 → 対象componentのcapture/apply → inventory co
 
 ## 判断記録（ADR）
 
-D1〜D11の正本はdocs/adr/0072-belt-edge-connections.mdと同日.decisions。ユーザー承認済み要件はR1〜R6/R9/R10。具象API/配置/既存generic引数を残したinstance context導入はagent前提（機械側の波及を抑え、PR1134のGetOverride責務を満たす）。現在branch基点はユーザー指定であり、writing-plans既定origin/masterより優先する。通常/高速/gear/分岐器・側面入力へ共通edge規則を適用する。出所: ユーザー裁定2026-09-30「全種類・分岐器にも共通で適用」（D11）。
+D1〜D12の正本はdocs/adr/0072-belt-edge-connections.mdと同日.decisions。ユーザー承認済み要件はR1〜R6/R9〜R11。具象API/配置/既存generic引数を残したinstance context導入はagent前提（機械側の波及を抑え、PR1134のGetOverride責務を満たす）。現在branch基点はユーザー指定であり、writing-plans既定origin/masterより優先する。通常/高速/gear/分岐器・側面入力へ共通edge規則を適用する。出所: ユーザー裁定2026-09-30「全種類・分岐器にも共通で適用」（D11）。
+
+D4の接触・上側優先はユーザー発言を根拠とし、選択後のfallbackを含む境界例は承認済み7状態2401画像の期待結果に基づく。D6のWorld明示駆動はユーザー提案・承認、ロードを既存TryAddBlockへ通す実装はコード前例からの判断である。真上下姿勢の空edge化・理由ログ・機械互換テストはD12を満たす実装方法として選択する。

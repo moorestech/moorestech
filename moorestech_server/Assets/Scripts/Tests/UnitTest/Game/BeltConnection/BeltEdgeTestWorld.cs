@@ -46,11 +46,14 @@ namespace Tests.UnitTest.Game.BeltConnection
             // Rotate cell centers before converting back to integer cells
             var center = new Vector3(0.5f, 0, index % 2 == 0 ? -0.5f : 0.5f);
             var rotated = _rotation.GetRotation() * center;
-            return new Vector3Int(Mathf.FloorToInt(rotated.x + 0.0001f), index >= 2 ? -1 : 0, Mathf.FloorToInt(rotated.z + 0.0001f));
+            return new Vector3Int(Mathf.FloorToInt(rotated.x + 0.0001f), 2 <= index ? -1 : 0, Mathf.FloorToInt(rotated.z + 0.0001f));
         }
 
         internal IBlock Place(string slot, int code)
         {
+            // 承認済みfixtureの占有状態だけを配置する
+            // Place only occupied states defined by the approved fixture
+            if (code < 1 || 6 < code) throw new ArgumentOutOfRangeException(nameof(code), code, "Occupied belt state codes must be 1 through 6.");
             var kind = (code - 1) % 3;
             BlockId id = _gear ? kind switch
             {

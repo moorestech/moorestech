@@ -12,7 +12,7 @@ using Mooresmaster.Model.InventoryConnectsModule;
 
 namespace Game.Block.Blocks.BeltConveyor.Connection
 {
-    internal sealed class BeltInventoryConnectionContext : IConnectorContext
+    internal sealed class BeltInventoryConnectionContext : IConnectorContext<IBlockInventory>
     {
         internal readonly BlockPositionInfo Position;
         internal readonly BeltConveyorSlopeType Slope;
