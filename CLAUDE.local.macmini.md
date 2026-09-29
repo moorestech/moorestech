@@ -46,3 +46,10 @@ moores-wt status [--json]
 - 通す: linked worktree内の同操作、`git -C <worktree>` 経由、`status`/`log`/`fetch`/`branch --list|-d`/`checkout -- <path>`/`worktree add`、moorestech以外のrepo
 - 上書き: `MOORES_MAIN_WT_OK=1` をコマンドに前置（低リスク作業で本当にメイン上で実行する場合のみ）
 - 理由: cmuxは全セッションをメインワークツリーのcwdで起こすため、`moores-wt new` を踏まないセッションはそのままメインで作業してしまう
+
+# その他
+
+- 調査・壁打ち・文書閲覧以外は毎回 `moores-wt new <branch>` で専用worktreeを作る。手動の `git worktree add`、本体でのbranch切替、`MOORES_MAIN_WT_OK=1`、worktree再利用は禁止。PR作成後または打切り時に `moores-wt rm <name>`。
+
+- Unityは自分のworktreeのEditorだけを使う。起動・停止前に `moores-wt status` で所有者を確認する。本体Editorが原因で `moores-wt new` が拒否されたら、他者のEditorを落とさず、`--force` も使わず、終了を待つ。Unity作業をsubagentへ渡す前に自分のEditor起動とcompile疎通を確認する。
+- 「よしなに」「進められるだけ」の委任では実装前の独自承認待ちを挟まない。止まるのは解決不能な障害か破壊的・不可逆な操作だけ。`.decisions/` には明示されたユーザー裁定だけを記録し、仮定・未決事項は報告かbd noteへ記す。未実測のplan項目に `[x]` を付けない。
