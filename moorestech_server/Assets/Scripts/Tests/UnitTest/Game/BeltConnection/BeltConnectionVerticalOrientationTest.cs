@@ -74,7 +74,7 @@ namespace Tests.UnitTest.Game.BeltConnection
 
         [TestCase(false)]
         [TestCase(true)]
-        public void VerticalBeltKeepsItsLegacyChestConnection(bool chestFirst)
+        public void VerticalBeltHasNoSharedEdgeWithChest(bool chestFirst)
         {
             var world = new BeltEdgeTestWorld(false, BlockDirection.North);
             if (chestFirst) PlaceChest();
@@ -83,7 +83,8 @@ namespace Tests.UnitTest.Game.BeltConnection
                 Array.Empty<BlockCreateParam>(), out var belt));
             if (!chestFirst) PlaceChest();
             var chest = world.World.GetBlock(Vector3Int.up);
-            Assert.AreSame(chest, BeltEdgeTestWorld.Connector(belt).ConnectedTargets.Single().Value.TargetBlock);
+            Assert.IsEmpty(BeltEdgeTestWorld.Connector(belt).ConnectedTargets);
+            Assert.IsEmpty(BeltEdgeTestWorld.Connector(chest).ConnectedTargets);
             world.World.RemoveBlock(Vector3Int.zero, BlockRemoveReason.ManualRemove);
             world.World.RemoveBlock(Vector3Int.up, BlockRemoveReason.ManualRemove);
 

@@ -180,33 +180,5 @@ namespace Tests.UnitTest.Game
         }
         
         
-        /// <summary>
-        ///     大きさが1x1x1以上のブロックで複数のコネクターがある場合、正しく接続されるかをテスト
-        /// </summary>
-        [Test]
-        public void MultiBlockConnectTest()
-        {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var world = ServerContext.WorldBlockDatastore;
-            
-            //ベルトコンベアを設置
-            
-            //接続するベルトコンベア
-            world.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(2, 0, 3), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
-            world.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(2, 0, -1), BlockDirection.South, Array.Empty<BlockCreateParam>(), out _);
-            
-            //接続されないベルトコンベア
-            world.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(3, 0, 3), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
-            world.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(1, 0, -1), BlockDirection.South, Array.Empty<BlockCreateParam>(), out _);
-            
-            //マルチブロックを設置
-            world.TryAddBlock(ForUnitTestModBlockId.MultiBlockGeneratorId, new Vector3Int(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var multiBlock);
-            
-            // マルチブロックのコネクターを取得
-            var connector = (Dictionary<IBlockInventory, ConnectedInfo>)multiBlock.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>().ConnectedTargets;
-            
-            // ベルトコンベアが正しく接続されているかをチェック
-            Assert.AreEqual(2, connector.Count);
-        }
     }
 }

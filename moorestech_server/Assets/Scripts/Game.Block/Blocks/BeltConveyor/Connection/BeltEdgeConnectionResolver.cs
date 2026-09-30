@@ -36,6 +36,9 @@ namespace Game.Block.Blocks.BeltConveyor.Connection
             {
                 BeltInventoryConnectionContext.TryGetContext(source, out var sourceContext);
                 BeltInventoryConnectionContext.TryGetContext(target, out var targetContext);
+                // 機械同士の接続は既存経路だけが所有する
+                // Leave machine-to-machine connections exclusively owned by the existing path
+                if (!sourceContext.IsBelt && !targetContext.IsBelt) return false;
                 // 山と谷は接触しても搬送面が連続しない
                 // Peaks and valleys do not form a continuous transport surface
                 if (sourceContext.Slope == BeltConveyorSlopeType.Up && targetContext.Slope == BeltConveyorSlopeType.Down ||
@@ -46,10 +49,10 @@ namespace Game.Block.Blocks.BeltConveyor.Connection
                 if (sourceContext.Outputs == null || targetContext.Inputs == null) return false;
                 foreach (var output in sourceContext.Outputs)
                 {
-                    if (output.Directions == null || !FacesEdge(output, sourceContext.Position, outward)) continue;
+                    if (output.Directions == null || !FacesEdge(output, sourceContext, edge, outward, false)) continue;
                     foreach (var input in targetContext.Inputs)
                     {
-                        if (!FacesEdge(input, targetContext.Position, -outward)) continue;
+                        if (!FacesEdge(input, targetContext, edge, -outward, true)) continue;
                         if (!MasterHolder.BlockMaster.CanConnectConnectorShapes(output.ShapeGuid, input.ShapeGuid)) continue;
                         connections.Add(new BeltEdgeConnection(source, target, output, input));
                         return true;
@@ -60,8 +63,10 @@ namespace Game.Block.Blocks.BeltConveyor.Connection
             #endregion
         }
 
-        private static bool FacesEdge(IBlockConnector port, BlockPositionInfo position, Vector3Int outward)
+        private static bool FacesEdge(IBlockConnector port, BeltInventoryConnectionContext context, BeltEdge edge, Vector3Int outward, bool isInput)
         {
+            if (!context.IsBelt) return MachineInventoryEdgePorts.FacesEdge(port, context.Position, edge, outward, isInput);
+            var position = context.Position;
             // 高さは実形状端点で確定済み。旧セル指定のyではなく水平の入出力方向を読む
             // Physical endpoints already establish height; read horizontal flow rather than the old cell-address y
             if (position.ConvertBlockLocalToWorldCell(port.Offset) != position.OriginalPos) return false;
