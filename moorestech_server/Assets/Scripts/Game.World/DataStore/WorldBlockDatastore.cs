@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Core.Master;
 using Game.Block.Interface;
@@ -54,12 +54,10 @@ namespace Game.World.DataStore
         {
             return GetBlockData(pos)?.Block;
         }
-        
         public IBlock GetBlock(IBlockComponent component)
         {
             return _blockComponentDictionary.GetValueOrDefault(component);
         }
-        
         public WorldBlockData GetOriginPosBlock(Vector3Int pos)
         {
             return _originCoordinateDictionary.TryGetValue(pos, out var entityId)
@@ -72,7 +70,6 @@ namespace Game.World.DataStore
             //TODO ブロックないときの処理どうしよう
             return block?.BlockPositionInfo.BlockDirection ?? BlockDirection.North;
         }
-        
         public IBlock GetBlock(BlockInstanceId blockInstanceId)
         {
             return _blockMasterDictionary.TryGetValue(blockInstanceId, out var data) ? data.Block : null;
@@ -154,10 +151,21 @@ namespace Game.World.DataStore
         }
         
         #region Save&Load
-        
         public List<BlockJsonObject> GetSaveJsonObject()
         {
-            return WorldBlockSaveData.Capture(_blockMasterDictionary);
+            var list = new List<BlockJsonObject>();
+            foreach (KeyValuePair<BlockInstanceId, WorldBlockData> block in _blockMasterDictionary)
+                list.Add(new BlockJsonObject(
+                    block.Value.BlockPositionInfo.OriginalPos,
+                    block.Value.Block.BlockGuid.ToString(),
+                    block.Value.Block.BlockInstanceId.AsPrimitive(),
+                    block.Value.Block.GetSaveState(),
+                    (int)block.Value.BlockPositionInfo.BlockDirection));
+
+            // Dictionaryの列挙順は削除跡の再利用で変わる。添字位置で突き合わせる比較器のため保存側で正準化する
+            // Dictionary order shifts as removed slots get reused, so canonicalize here for comparers that match by index
+            list.Sort((left, right) => left.InstanceId.CompareTo(right.InstanceId));
+            return list;
         }
         
         //TODO ここに書くべきではないのでは？セーブも含めてこの処理は別で書くべきだと思う
@@ -187,7 +195,6 @@ namespace Game.World.DataStore
                 }
             }
         }
-        
         #endregion
     }
 }

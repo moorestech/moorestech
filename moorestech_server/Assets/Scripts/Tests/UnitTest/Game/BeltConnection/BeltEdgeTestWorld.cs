@@ -9,9 +9,11 @@ using Game.Block.Interface.Component;
 using Game.Block.Interface.Component.ConnectJudge;
 using Game.Context;
 using Game.World.Interface.DataStore;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
+using Tests.UnitTest.Game.BeltConnection.Fixtures;
 using UnityEngine;
 
 namespace Tests.UnitTest.Game.BeltConnection
@@ -27,7 +29,8 @@ namespace Tests.UnitTest.Game.BeltConnection
 
         internal BeltEdgeTestWorld(bool gear, BlockDirection rotation)
         {
-            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var (_, services) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            BeltTestMaster.Load(services.GetRequiredService<MasterJsonFileContainer>());
             World = ServerContext.WorldBlockDatastore;
             _gear = gear;
             _rotation = rotation;
@@ -58,8 +61,8 @@ namespace Tests.UnitTest.Game.BeltConnection
             } : kind switch
             {
                 0 => ForUnitTestModBlockId.BeltConveyorId,
-                1 => ForUnitTestModBlockId.TestBeltConveyorUp,
-                _ => ForUnitTestModBlockId.TestBeltConveyorDown
+                1 => BeltTestMaster.Up,
+                _ => BeltTestMaster.Down
             };
             var direction = code <= 3 ? _rotation : _rotation.HorizonRotation().HorizonRotation();
             Assert.IsTrue(World.TryAddBlock(id, Position(slot), direction, Array.Empty<BlockCreateParam>(), out var block));

@@ -15,13 +15,19 @@ namespace Tests.UnitTest.Game.BeltConnection.Machine
         {
             var testWorld = new BeltEdgeTestWorld(false, BlockDirection.North);
             var world = testWorld.World;
+            var outputs = new[]
+            {
+                MachinePortTestTemplate.Output(new Vector3Int(2, 0, 1), new[] { Vector3Int.forward }, null),
+                MachinePortTestTemplate.Output(new Vector3Int(2, 0, 0), new[] { Vector3Int.back }, null)
+            };
+            MachinePortTestTemplate.Install(new InventoryConnects(null, outputs), new Vector3Int(3, 1, 2));
             // 複数の外面ポートには隣接するベルトだけを接続する
             // Connect only the adjacent belts to multiple exterior port faces
             world.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(2, 0, 2), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var front);
             world.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(2, 0, -1), BlockDirection.South, Array.Empty<BlockCreateParam>(), out var back);
             world.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(3, 0, 3), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             world.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(1, 0, -1), BlockDirection.South, Array.Empty<BlockCreateParam>(), out _);
-            world.TryAddBlock(ForUnitTestModBlockId.MultiBlockGeneratorId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var machine);
+            var machine = MachinePortTestTemplate.Place(testWorld, Vector3Int.zero, BlockDirection.North);
             CollectionAssert.AreEquivalent(new[] { front, back }, BeltEdgeTestWorld.Connector(machine).ConnectedTargets.Values.Select(info => info.TargetBlock));
         }
 

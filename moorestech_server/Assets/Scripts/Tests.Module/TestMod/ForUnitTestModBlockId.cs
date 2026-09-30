@@ -15,8 +15,6 @@ namespace Tests.Module.TestMod
         public static BlockId MachineId => GetBlock("00000000-0000-0000-0000-000000000001");
         public static BlockId BlockId => GetBlock("00000000-0000-0000-0000-000000000002");
         public static BlockId BeltConveyorId => GetBlock("00000000-0000-0000-0000-000000000003");
-        public static BlockId TestBeltConveyorUp => GetBlock("00000000-0000-0000-0000-0000000000a3");
-        public static BlockId TestBeltConveyorDown => GetBlock("00000000-0000-0000-0000-0000000000a4");
         public static BlockId ElectricPoleId => GetBlock("00000000-0000-0000-0000-000000000004");
         public static BlockId LockedElectricPoleId => GetBlock("00000000-0000-0000-0000-000000000101");
         public static BlockId GeneratorId => GetBlock("00000000-0000-0000-0000-000000000005");

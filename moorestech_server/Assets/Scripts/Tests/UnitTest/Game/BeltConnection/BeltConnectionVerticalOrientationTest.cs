@@ -7,6 +7,7 @@ using Game.Block.Blocks.BeltConveyor.Connection;
 using Game.Block.Interface;
 using NUnit.Framework;
 using Tests.Module.TestMod;
+using Tests.UnitTest.Game.BeltConnection.Fixtures;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -100,8 +101,8 @@ namespace Tests.UnitTest.Game.BeltConnection
         private static BlockId GetBlockId(BeltKind kind) => kind switch
         {
             BeltKind.NormalFlat => ForUnitTestModBlockId.BeltConveyorId,
-            BeltKind.NormalUp => ForUnitTestModBlockId.TestBeltConveyorUp,
-            BeltKind.NormalDown => ForUnitTestModBlockId.TestBeltConveyorDown,
+            BeltKind.NormalUp => BeltTestMaster.Up,
+            BeltKind.NormalDown => BeltTestMaster.Down,
             BeltKind.GearFlat => ForUnitTestModBlockId.GearBeltConveyor,
             BeltKind.GearUp => ForUnitTestModBlockId.TestGearBeltConveyorUp,
             BeltKind.GearDown => ForUnitTestModBlockId.TestGearBeltConveyorDown,

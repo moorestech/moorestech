@@ -890,7 +890,7 @@
               "offset": [
                 2,
                 0,
-                1
+                2
               ],
               "directions": [
                 [
@@ -5337,162 +5337,6 @@
       "category": "テスト",
       "subCategory": "ElectricPump",
       "placementsPerCost": 1
-    },
-    {
-      "modelTransform": {
-        "scale": [
-          1,
-          1,
-          1
-        ],
-        "rotation": [
-          0,
-          0,
-          0
-        ],
-        "position": [
-          0,
-          0,
-          0
-        ]
-      },
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
-      "name": "TestBeltConveyorUp",
-      "blockType": "BeltConveyor",
-      "blockParam": {
-        "timeOfItemEnterToExit": 2,
-        "beltConveyorItemCount": 4,
-        "inventoryConnectors": {
-          "inputConnects": [
-            {
-              "connectorGuid": "a1a1a1a1-0000-0000-0000-000000000001",
-              "offset": [
-                0,
-                0,
-                0
-              ],
-              "directions": [
-                [
-                  0,
-                  0,
-                  -1
-                ],
-                [
-                  0,
-                  -1,
-                  -1
-                ]
-              ]
-            }
-          ],
-          "outputConnects": [
-            {
-              "connectorGuid": "a1a1a1a1-0000-0000-0000-000000000002",
-              "offset": [
-                0,
-                0,
-                0
-              ],
-              "directions": [
-                [
-                  0,
-                  1,
-                  1
-                ]
-              ]
-            }
-          ]
-        },
-        "slopeType": "Up"
-      },
-      "blockGuid": "00000000-0000-0000-0000-0000000000a3",
-      "initialUnlocked": true,
-      "category": "テスト",
-      "subCategory": "BeltConveyor",
-      "placementsPerCost": 1,
-      "openable": false
-    },
-    {
-      "modelTransform": {
-        "scale": [
-          1,
-          1,
-          1
-        ],
-        "rotation": [
-          0,
-          0,
-          0
-        ],
-        "position": [
-          0,
-          0,
-          0
-        ]
-      },
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
-      "name": "TestBeltConveyorDown",
-      "blockType": "BeltConveyor",
-      "blockParam": {
-        "timeOfItemEnterToExit": 2,
-        "beltConveyorItemCount": 4,
-        "inventoryConnectors": {
-          "inputConnects": [
-            {
-              "connectorGuid": "a2a2a2a2-0000-0000-0000-000000000001",
-              "offset": [
-                0,
-                0,
-                0
-              ],
-              "directions": [
-                [
-                  0,
-                  1,
-                  -1
-                ]
-              ]
-            }
-          ],
-          "outputConnects": [
-            {
-              "connectorGuid": "a2a2a2a2-0000-0000-0000-000000000002",
-              "offset": [
-                0,
-                0,
-                0
-              ],
-              "directions": [
-                [
-                  0,
-                  0,
-                  1
-                ],
-                [
-                  0,
-                  -1,
-                  1
-                ]
-              ]
-            }
-          ]
-        },
-        "slopeType": "Down"
-      },
-      "blockGuid": "00000000-0000-0000-0000-0000000000a4",
-      "initialUnlocked": true,
-      "category": "テスト",
-      "subCategory": "BeltConveyor",
-      "placementsPerCost": 1,
-      "openable": false
     }
   ],
   "connectorSettings": {
@@ -5519,9 +5363,7 @@
   },
   "beltConveyorFamilies": [
     {
-      "straightBlockGuid": "00000000-0000-0000-0000-000000000003",
-      "upBlockGuid": "00000000-0000-0000-0000-0000000000a3",
-      "downBlockGuid": "00000000-0000-0000-0000-0000000000a4"
+      "straightBlockGuid": "00000000-0000-0000-0000-000000000003"
     },
     {
       "straightBlockGuid": "00000000-0000-0000-0000-000000000030"
