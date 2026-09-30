@@ -113,15 +113,7 @@ namespace Game.Block.Component
         // 差分の適用先は既存辞書を保持する
         // Apply deltas without replacing the existing dictionary
         internal void RemoveConnection(TTarget target) => _connectedTargets.Remove(target);
-        internal void SetConnection(TTarget target, ConnectedInfo connection)
-        {
-            if (IsDestroy)
-            {
-                Debug.LogError("Cannot connect a destroyed source component.");
-                return;
-            }
-            _connectedTargets[target] = connection;
-        }
+        internal void SetConnection(TTarget target, ConnectedInfo connection) => _connectedTargets[target] = connection;
 
         private void OnRemoveBlock(BlockRemoveProperties updateProperties)
         {

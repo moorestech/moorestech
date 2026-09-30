@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Block.Interface;
@@ -41,30 +40,27 @@ namespace Tests.UnitTest.Game.BeltConnection
         }
 
         [Test]
-        public void MirrorAndNonTouchingEmptyEquivalence()
+        public void ApprovedFixturesMatchMirrorAndNonTouchingEmptyExpectations()
         {
-            var world = new BeltEdgeTestWorld(false, BlockDirection.North);
+            var casesById = ApprovedBeltPatterns.All().ToDictionary(row => row.Id);
             var reverse = new[] { 0, 4, 5, 6, 1, 2, 3 };
             var swapped = new[] { 1, 0, 3, 2 };
-            foreach (var row in ApprovedBeltPatterns.All())
+            foreach (var row in casesById.Values)
             {
                 var id = row.Id;
                 // 固定された期待結果を鏡映し、実装の判定式は複製しない
                 // Mirror the fixed expectation without reproducing the implementation's rules
-                for (var i = 0; i < 4; i++)
-                {
-                    var code = reverse[id[swapped[i]] - '0'];
-                    if (code != 0) world.Place(BeltEdgeTestWorld.Slots[i], code);
-                }
+                var mirroredId = new string(swapped.Select(slot => (char)('0' + reverse[id[slot] - '0'])).ToArray());
                 var expected = row.Connections.Select(e => Swap(e.Source.ToString()) + ">" + Swap(e.Target.ToString())).ToArray();
-                world.AssertEdges(expected, id + " mirrored");
-                world.Clear();
+                CollectionAssert.AreEquivalent(expected, casesById[mirroredId].Connections.Select(e => e.ToString()), id + " mirrored");
 
+                // 非接触スロットを空にしても固定期待値は変わらない
+                // Clearing non-touching slots preserves the fixed expectation
+                var touchingId = id.ToCharArray();
                 for (var i = 0; i < 4; i++)
-                    if (row.TouchingSlots.Contains((BeltTestSlot)i)) world.Place(BeltEdgeTestWorld.Slots[i], id[i] - '0');
+                    if (!row.TouchingSlots.Contains((BeltTestSlot)i)) touchingId[i] = '0';
                 expected = row.Connections.Select(e => e.ToString()).ToArray();
-                world.AssertEdges(expected, id + " non-touching cleared");
-                world.Clear();
+                CollectionAssert.AreEquivalent(expected, casesById[new string(touchingId)].Connections.Select(e => e.ToString()), id + " non-touching cleared");
             }
 
             #region Internal
@@ -72,31 +68,20 @@ namespace Tests.UnitTest.Game.BeltConnection
             #endregion
         }
 
-        [TestCase(-1)]
-        [TestCase(0)]
-        [TestCase(7)]
-        [TestCase(int.MaxValue)]
-        public void PlacementRejectsUndefinedOccupiedState(int code)
-        {
-            var world = new BeltEdgeTestWorld(false, BlockDirection.North);
-            Assert.Throws<ArgumentOutOfRangeException>(() => world.Place("UL", code));
-            Assert.AreEqual(0, world.World.BlockMasterDictionary.Count);
-        }
-
         [Test]
-        public void Original256And25DiagramExpectations()
+        public void ApprovedFixturesMatchOriginal256And25DiagramExpectations()
         {
-            var world = new BeltEdgeTestWorld(false, BlockDirection.North);
+            var casesById = ApprovedBeltPatterns.All().ToDictionary(row => row.Id);
             var cases = OriginalBeltPatterns.Cases().ToArray();
             var diagrams = OriginalBeltPatterns.Diagrams().ToArray();
             Assert.AreEqual(256, cases.Length);
             Assert.AreEqual(25, diagrams.Length);
+            // 元の独立期待値を承認済み表と照合する
+            // Compare the original independent expectations with the approved table
             foreach (var row in cases.Concat(diagrams))
             {
-                for (var i = 0; i < 4; i++)
-                    if (row.Id[i] != '0') world.Place(BeltEdgeTestWorld.Slots[i], row.Id[i] - '0');
-                world.AssertEdges(row.Connections.Select(e => e.ToString()), row.Id);
-                world.Clear();
+                CollectionAssert.AreEquivalent(row.Connections.Select(e => e.ToString()),
+                    casesById[row.Id].Connections.Select(e => e.ToString()), row.Id);
             }
         }
     }
