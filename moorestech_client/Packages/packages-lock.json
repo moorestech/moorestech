@@ -486,7 +486,7 @@
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "3278610c29ed7835b40d778e30f2905162ce9f86"
+      "hash": "7966ac5c84c535d5511e4dd1d0c5cf8036a89381"
     },
     "tech.moores.server": {
       "version": "file:../../moorestech_server/Assets/Scripts",
