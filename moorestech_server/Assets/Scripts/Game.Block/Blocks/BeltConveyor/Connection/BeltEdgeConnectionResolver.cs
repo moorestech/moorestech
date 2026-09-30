@@ -9,7 +9,7 @@ namespace Game.Block.Blocks.BeltConveyor.Connection
 {
     internal static class BeltEdgeConnectionResolver
     {
-        internal static void Resolve(IWorldBlockDatastore world, BeltEdge edge, List<BeltEdgeConnection> connections)
+        internal static void Resolve(IWorldBlockDatastore world, BeltEdge edge, IBlock removingBlock, List<BeltEdgeConnection> connections)
         {
             // 接触する上側を先に選び、不成立でも下側へ戻らない
             // Select touching upper blocks first; an invalid pair never falls back to lower blocks
@@ -26,7 +26,7 @@ namespace Game.Block.Blocks.BeltConveyor.Connection
                 foreach (var cell in new[] { upper, upper + Vector3Int.down })
                 {
                     var block = world.GetBlock(cell);
-                    if (block == null || !BeltInventoryConnectionContext.TryGetContext(block, out var context)) continue;
+                    if (block == null || ReferenceEquals(block, removingBlock) || !BeltInventoryConnectionContext.TryGetContext(block, out var context)) continue;
                     if (context.Edges.Contains(edge)) return block;
                 }
                 return null;

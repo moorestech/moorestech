@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Game.Block.Blocks.BeltConveyor.Connection;
 using Game.Block.Interface;
 using Mooresmaster.Model.InventoryConnectsModule;
 using NUnit.Framework;
@@ -70,11 +71,11 @@ namespace Tests.UnitTest.Game.BeltConnection
             var source = world.Place("UL", 1);
             world.Place("UR", 1);
             var connector = BeltEdgeTestWorld.Connector(source);
-            var mutation = connector.CaptureWorldMutation();
+            BeltInventoryConnectionContext.TryGetContext(source, out var context);
             // 同じtargetでも異なるport実体へ切り替える
             // Switch to a different port instance even when the target stays the same
             outputs[0] = Output(null, new[] { Vector3Int.forward });
-            mutation.ApplyAfterMutation();
+            context.ApplyOverride(null);
             Assert.AreSame(outputs[0], connector.ConnectedTargets.Single().Value.SelfConnector);
             world.Clear();
         }

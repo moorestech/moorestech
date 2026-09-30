@@ -98,7 +98,7 @@ namespace Tests.UnitTest.Game.BeltConnection
             }
             CollectionAssert.AreEquivalent(expected, actual, label);
             var resolved = new List<BeltEdgeConnection>();
-            BeltEdgeConnectionResolver.Resolve(World, Edge, resolved);
+            BeltEdgeConnectionResolver.Resolve(World, Edge, null, resolved);
             Assert.AreEqual(actual.Count, resolved.Count, label + " resolver count");
         }
 

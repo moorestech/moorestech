@@ -35,7 +35,6 @@ namespace Game.World.DataStore
             if (!_blockMasterDictionary.ContainsKey(entityId)) return false;
             
             var data = _blockMasterDictionary[entityId];
-            var mutation = new WorldBlockConnectionMutation(data.Block);
             ((WorldBlockUpdateEvent)ServerContext.WorldBlockUpdateEvent).OnBlockRemoveEventInvoke(pos, data, reason);
 
             foreach (var component in data.Block.ComponentManager.GetComponents<IBlockComponent>())
@@ -47,17 +46,18 @@ namespace Game.World.DataStore
                 _coordinateDictionary.Remove(position);
 
             _originCoordinateDictionary.Remove(data.BlockPositionInfo.OriginalPos);
-            mutation.ApplyAfterMutation();
             return true;
         }
         public IBlock GetBlock(Vector3Int pos)
         {
             return GetBlockData(pos)?.Block;
         }
+        
         public IBlock GetBlock(IBlockComponent component)
         {
             return _blockComponentDictionary.GetValueOrDefault(component);
         }
+        
         public WorldBlockData GetOriginPosBlock(Vector3Int pos)
         {
             return _originCoordinateDictionary.TryGetValue(pos, out var entityId)
@@ -70,6 +70,7 @@ namespace Game.World.DataStore
             //TODO ブロックないときの処理どうしよう
             return block?.BlockPositionInfo.BlockDirection ?? BlockDirection.North;
         }
+        
         public IBlock GetBlock(BlockInstanceId blockInstanceId)
         {
             return _blockMasterDictionary.TryGetValue(blockInstanceId, out var data) ? data.Block : null;
@@ -109,7 +110,6 @@ namespace Game.World.DataStore
                 return false;
             }
 
-            var mutation = new WorldBlockConnectionMutation(block);
             var data = new WorldBlockData(block, pos, blockDirection);
             _blockMasterDictionary.Add(block.BlockInstanceId, data);
             foreach (var position in block.BlockPositionInfo.EnumeratePositions())
@@ -120,7 +120,6 @@ namespace Game.World.DataStore
             block.BlockStateChange.Subscribe(state => { _onBlockStateChange.OnNext((state, data)); });
             foreach (var component in block.ComponentManager.GetComponents<IBlockComponent>())
                 _blockComponentDictionary.Add(component, block);
-            mutation.ApplyAfterMutation();
 
             return true;
         }
@@ -151,6 +150,7 @@ namespace Game.World.DataStore
         }
         
         #region Save&Load
+        
         public List<BlockJsonObject> GetSaveJsonObject()
         {
             var list = new List<BlockJsonObject>();
@@ -161,7 +161,7 @@ namespace Game.World.DataStore
                     block.Value.Block.BlockInstanceId.AsPrimitive(),
                     block.Value.Block.GetSaveState(),
                     (int)block.Value.BlockPositionInfo.BlockDirection));
-
+            
             // Dictionaryの列挙順は削除跡の再利用で変わる。添字位置で突き合わせる比較器のため保存側で正準化する
             // Dictionary order shifts as removed slots get reused, so canonicalize here for comparers that match by index
             list.Sort((left, right) => left.InstanceId.CompareTo(right.InstanceId));
@@ -195,6 +195,7 @@ namespace Game.World.DataStore
                 }
             }
         }
+        
         #endregion
     }
 }

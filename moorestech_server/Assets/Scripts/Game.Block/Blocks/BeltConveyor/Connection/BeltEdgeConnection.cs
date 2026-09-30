@@ -14,10 +14,14 @@ namespace Game.Block.Blocks.BeltConveyor.Connection
         internal readonly ConnectedInfo Info;
 
         internal BeltEdgeConnection(IBlock source, IBlock target, IBlockConnector output, IBlockConnector input)
+            : this(source.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>(),
+                target.ComponentManager.GetComponent<IBlockInventory>(), new ConnectedInfo(output, input, target)) { }
+
+        internal BeltEdgeConnection(BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> source, IBlockInventory target, ConnectedInfo info)
         {
-            Source = source.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>();
-            Target = target.ComponentManager.GetComponent<IBlockInventory>();
-            Info = new ConnectedInfo(output, input, target);
+            Source = source;
+            Target = target;
+            Info = info;
         }
 
         // portの実体も比較し、同じtargetへのport差替を検出する

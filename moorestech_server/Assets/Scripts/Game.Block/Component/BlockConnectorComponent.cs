@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Game.Block.Component.ConnectionContext;
-using Game.Block.Interface.Component.WorldMutation;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Component.ConnectJudge;
@@ -15,7 +14,7 @@ using UnityEngine;
 namespace Game.Block.Component
 {
     [DisallowMultiple]
-    public class BlockConnectorComponent<TTarget, TConnectJudge> : IBlockConnectorComponent<TTarget>, IBlockWorldMutationParticipant
+    public class BlockConnectorComponent<TTarget, TConnectJudge> : IBlockConnectorComponent<TTarget>
         where TTarget : IBlockComponent
         where TConnectJudge : IConnectorConnectJudge, new()
     {
@@ -63,6 +62,7 @@ namespace Game.Block.Component
 
         public void Destroy()
         {
+            Context.Dispose();
             _connectedTargets.Clear();
             _blockUpdateEvents.ForEach(x => x.Dispose());
             _blockUpdateEvents.Clear();
@@ -83,8 +83,8 @@ namespace Game.Block.Component
             if (!worldBlockDatastore.TryGetBlock<TTarget>(outputTargetPos, out var targetComponent)) return;
 
             var targetBlock = ServerContext.WorldBlockDatastore.GetBlock(outputTargetPos);
-            // 専用コンテキストの対象はWorld変更境界で接続する
-            // Context-owned pairs are connected at the world mutation boundary
+            // 専用コンテキストがedge単位で接続する
+            // The specialized context owns connections at shared edges
             if (Context.HandlesOverride(targetBlock)) return;
 
             // 位置一致した候補を全て評価し、最初に通る組を採用する
@@ -109,8 +109,6 @@ namespace Game.Block.Component
             return ConnectorPairJudge<TConnectJudge>.TryJudgeConnect(selfOutputConnectors, selfPositionInfo,
                 targetInputConnectors, targetPositionInfo, out selfConnectorCell, out targetConnectorCell);
         }
-
-        public IBlockWorldMutation CaptureWorldMutation() => Context.CaptureWorldMutation();
 
         // 差分の適用先は既存辞書を保持する
         // Apply deltas without replacing the existing dictionary

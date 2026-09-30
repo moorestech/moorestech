@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
+using Core.Master;
 using Game.Block.Blocks;
 using Game.Block.Factory;
 using Game.Block.Factory.BlockTemplate;
@@ -9,6 +11,8 @@ using Game.Block.Interface.Component;
 using Game.Context;
 using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.InventoryConnectsModule;
+using Mod.Config;
+using Newtonsoft.Json.Linq;
 using Tests.Module;
 using Tests.Module.TestMod;
 using UnityEngine;
@@ -28,6 +32,16 @@ namespace Tests.UnitTest.Game.BeltConnection.Machine
 
         internal static void Install(InventoryConnects ports, Vector3Int size)
         {
+            // 占有セル通知も同じマスタサイズで検証する
+            // Exercise occupied-cell notifications with the same master size
+            var container = ServerContext.GetService<MasterJsonFileContainer>();
+            var fileName = new JsonFileName("blocks");
+            var json = JObject.Parse(container.ConfigJsons[0].JsonContents[fileName]);
+            var guid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.ChestId).BlockGuid;
+            json["data"].Single(block => (Guid)block["blockGuid"] == guid)["blockSize"] = new JArray(size.x, size.y, size.z);
+            container.ConfigJsons[0].JsonContents[fileName] = json.ToString();
+            MasterHolder.Load(container);
+
             // 実マスタを変更せず、任意の面を持つ機械を登録境界で試す
             // Exercise machine faces at the registration boundary without editing production masters
             var field = typeof(BlockFactory).GetField("_vanillaIBlockTemplates", BindingFlags.Instance | BindingFlags.NonPublic);

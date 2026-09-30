@@ -2,12 +2,12 @@ using System.Collections.Generic;
 using System.Linq;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
-using Game.Block.Interface.Component.WorldMutation;
+using Game.Block.Blocks.BeltConveyor.Connection;
 using NUnit.Framework;
 
 namespace Tests.UnitTest.Game.BeltConnection
 {
-    public class BeltEdgeMutationTest
+    public class BeltEdgeConnectionUpdateTest
     {
         [Test]
         public void EveryPlacementOrderConvergesAndRemovalRestoresThirdPartySource()
@@ -57,7 +57,8 @@ namespace Tests.UnitTest.Game.BeltConnection
             Assert.IsTrue(enumerator.MoveNext());
             // 同一接続は辞書versionを進めず、その場で維持する
             // Identical connections preserve the dictionary version in place
-            connector.CaptureWorldMutation().ApplyAfterMutation();
+            BeltInventoryConnectionContext.TryGetContext(source, out var context);
+            context.ApplyOverride(null);
             world.Place("LL", 2);
             world.Remove("LL");
             Assert.AreSame(dictionary, connector.ConnectedTargets);
@@ -74,13 +75,13 @@ namespace Tests.UnitTest.Game.BeltConnection
             first.Place("LL", 2);
             first.Place("LR", 3);
             var save = first.World.GetSaveJsonObject();
-            var snapshot = BeltEdgeTestWorld.Connector(first.World.GetBlock(first.Position("UL"))).CaptureWorldMutation();
+            BeltInventoryConnectionContext.TryGetContext(first.World.GetBlock(first.Position("UL")), out var firstContext);
             var second = new BeltEdgeTestWorld(false, BlockDirection.North);
             second.Place("LL", 2);
             second.Place("UR", 1);
-            // 旧worldのsnapshotを新world作成後に適用しても新worldへ触れない
-            // Applying an old-world snapshot after creating another world cannot touch the new world
-            snapshot.ApplyAfterMutation();
+            // 旧worldの再判定で新worldへ触れない
+            // Reevaluating the old world cannot affect the new world
+            firstContext.ApplyOverride(null);
             second.AssertEdges(new[] { "LL>UR" }, "isolated world");
             second.Clear();
             save.Reverse();
