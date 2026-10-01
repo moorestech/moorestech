@@ -34,24 +34,36 @@ test("Tabはブラウザのフォーカスを動かさない", async ({ page }) 
   expect(await activeTagName()).toBe(before);
 });
 
-test("ボタンにフォーカスしてSpaceを押してもclickしない", async ({ page }) => {
+test("ボタンにフォーカスしてSpaceを押してもclickせずキーハンドラにも届かない", async ({ page }) => {
   await setUiState(page, "PlayerInventory");
   await page.goto("/");
   await expect(page.getByTestId("app-stage")).toBeVisible();
   await page.evaluate(() => {
+    const probe = window as unknown as { __probeClicks: number; __probeKeys: string[] };
     const button = document.createElement("button");
     button.id = "space-probe-button";
     button.textContent = "probe";
-    (window as unknown as { __probeClicks: number }).__probeClicks = 0;
-    button.addEventListener("click", () => { (window as unknown as { __probeClicks: number }).__probeClicks += 1; });
+    probe.__probeClicks = 0;
+    probe.__probeKeys = [];
+    button.addEventListener("click", () => { probe.__probeClicks += 1; });
+    button.addEventListener("keydown", (event) => { probe.__probeKeys.push(event.key); });
     document.body.appendChild(button);
     button.focus();
   });
+  const readProbe = () => page.evaluate(() => {
+    const probe = window as unknown as { __probeClicks: number; __probeKeys: string[] };
+    return { clicks: probe.__probeClicks, keys: probe.__probeKeys };
+  });
 
-  // Spaceはジャンプ専用なのでボタン押下の既定動作を封じる
-  // Space is jump-only, so the button-press default is suppressed
+  // Spaceはジャンプ専用なのでボタン押下の既定動作も要素のキーハンドラも封じる
+  // Space is jump-only, so both the button-press default and the element's key handlers are cut off
   await page.keyboard.press("Space");
-  expect(await page.evaluate(() => (window as unknown as { __probeClicks: number }).__probeClicks)).toBe(0);
+  expect(await readProbe()).toEqual({ clicks: 0, keys: [] });
+
+  // Enterは従来どおり要素まで届く
+  // Enter still reaches the element as before
+  await page.keyboard.press("Enter");
+  expect((await readProbe()).keys).toEqual(["Enter"]);
 });
 
 test("checkboxではSpaceでトグルせず、contenteditableには空白が入る", async ({ page }) => {

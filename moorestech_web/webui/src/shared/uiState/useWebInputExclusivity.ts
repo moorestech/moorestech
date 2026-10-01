@@ -27,6 +27,9 @@ export function useWebInputExclusivity() {
       // Tab and Space outside text fields fight game controls, so their defaults are suppressed
       if (suppressesBrowserDefaultKey(event.key, document.activeElement)) {
         event.preventDefault();
+        // Spaceはジャンプ専用なので、Reactのキーハンドラ（スキット送り等）まで届けない
+        // Space is jump-only, so it never reaches React key handlers such as skit advance
+        if (event.key === " ") event.stopPropagation();
         return;
       }
       if (event.key !== "Escape" || !state.textInputFocused) return;
