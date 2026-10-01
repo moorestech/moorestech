@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using Client.Game.Common;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Train.Unit;
+using Client.Game.InGame.Train.Network.Diagnostics;
 using Client.Game.InGame.Train.View;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
 using Game.Train.Unit;
 using MessagePack;
 using Server.Event.EventReceive;
-using UniRx;
 using VContainer.Unity;
 using Debug = UnityEngine.Debug;
 
@@ -22,13 +22,10 @@ namespace Client.Game.InGame.Train.Network
         private readonly RailGraphSnapshotApplier _railGraphSnapshotApplier;
         private readonly TrainUnitSnapshotApplier _trainSnapshotApplier;
         private readonly TrainUnitFutureMessageBuffer _futureMessageBuffer;
-        private readonly Subject<ulong> _onFullSnapshotApplied = new();
+        private readonly TrainSynchronizationDiagnostics _diagnostics;
+        private readonly TrainUnitTickState _tickState;
         private IDisposable _railSubscription;
         private IDisposable _trainSubscription;
-
-        // full snapshot適用完了通知（resyncゲート解除に使用）
-        // Notifies full-snapshot application completion (used to release the resync gate)
-        public IObservable<ulong> OnFullSnapshotApplied => _onFullSnapshotApplied;
 
         // 適用完了の通知口。タスクを所有しないため完了ソースで表し、trainUnit適用で満了・rail/train片方の失敗で失格になる
         // Completion source for the apply: owning no task, it is fulfilled by the trainUnit apply and failed by either side
@@ -42,11 +39,15 @@ namespace Client.Game.InGame.Train.Network
         public TrainFullSnapshotEventNetworkHandler(
             RailGraphSnapshotApplier railGraphSnapshotApplier,
             TrainUnitSnapshotApplier trainSnapshotApplier,
-            TrainUnitFutureMessageBuffer futureMessageBuffer)
+            TrainUnitFutureMessageBuffer futureMessageBuffer,
+            TrainSynchronizationDiagnostics diagnostics,
+            TrainUnitTickState tickState)
         {
             _railGraphSnapshotApplier = railGraphSnapshotApplier;
             _trainSnapshotApplier = trainSnapshotApplier;
             _futureMessageBuffer = futureMessageBuffer;
+            _diagnostics = diagnostics;
+            _tickState = tickState;
         }
 
         public void Initialize()
@@ -63,6 +64,12 @@ namespace Client.Game.InGame.Train.Network
             try
             {
                 var message = MessagePackSerializer.Deserialize<TrainFullSnapshotEventPacket.RailGraphFullSnapshotEventMessagePack>(payload);
+                if (message.Snapshot != null)
+                {
+                    _tickState.SetMaxBufferedTickUnifiedId(TrainTickUnifiedIdUtility.CreateTickUnifiedId(message.Snapshot.GraphTick, message.Snapshot.GraphTickSequenceId));
+                    _diagnostics.RecordReceived("RailGraphFullSnapshot", message.Snapshot.GraphTick, message.Snapshot.GraphTickSequenceId);
+                }
+                if (!CanApplyInitialSnapshot()) return;
                 _railGraphSnapshotApplier.ApplySnapshot(message.Snapshot);
             }
             catch (Exception applyException)
@@ -81,6 +88,9 @@ namespace Client.Game.InGame.Train.Network
             try
             {
                 var message = MessagePackSerializer.Deserialize<TrainFullSnapshotEventPacket.TrainUnitFullSnapshotEventMessagePack>(payload);
+                _diagnostics.RecordReceived("TrainUnitFullSnapshot", message.ServerTick, message.WatermarkTickSequenceId);
+                _tickState.SetMaxBufferedTickUnifiedId(TrainTickUnifiedIdUtility.CreateTickUnifiedId(message.ServerTick, message.WatermarkTickSequenceId));
+                if (!CanApplyInitialSnapshot()) return;
 
                 // MessagePackのbundleをモデルへ変換してapplierの既存入力型に合わせる
                 // Convert bundles to models to reuse the applier's existing input type
@@ -99,10 +109,13 @@ namespace Client.Game.InGame.Train.Network
                 _futureMessageBuffer.DiscardEventsAtOrBelow(watermarkId);
                 _futureMessageBuffer.DiscardHashesOlderThan(watermarkId);
 
-                // 適用完了を先に確定させる。OnNextは購読者を同期実行するため、購読者の例外で起動が失敗扱いになるのを防ぐ
-                // Settle the apply first: OnNext runs subscribers synchronously, so a subscriber throwing must not mark startup as failed
-                _initialApplyCompletion.TrySetResult();
-                _onFullSnapshotApplied.OnNext(watermarkId);
+                // 同期継続が走る完了通知より先に、runtimeの初期状態を確定する。
+                // Establish runtime initialization before completion can execute synchronous continuations.
+                if (_initialApplyCompletion.Task.Status == UniTaskStatus.Pending)
+                {
+                    _tickState.Initialize(watermarkId);
+                    _initialApplyCompletion.TrySetResult();
+                }
             }
             catch (Exception applyException)
             {
@@ -111,6 +124,16 @@ namespace Client.Game.InGame.Train.Network
                 _initialApplyCompletion.TrySetException(applyException);
                 Debug.LogError($"[TrainFullSnapshot] trainUnitの適用に失敗しました: {applyException}");
             }
+        }
+
+        private bool CanApplyInitialSnapshot()
+        {
+            if (_initialApplyCompletion.Task.Status == UniTaskStatus.Pending) return true;
+            // 失敗・恒久停止の理由は通知済み。完了済みsnapshotの再適用だけを説明する。
+            // Failure and permanent-stop reasons were already logged; explain only completed-snapshot rejection.
+            if (_initialApplyCompletion.Task.Status == UniTaskStatus.Succeeded && !_tickState.IsPermanentlyWaiting)
+                Debug.LogWarning("[TrainFullSnapshot] Ignored full snapshot after initial synchronization completed.");
+            return false;
         }
 
         public void Dispose()

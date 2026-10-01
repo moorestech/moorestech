@@ -1,99 +1,54 @@
-using System;
-using System.Threading;
-using Client.Game.InGame.Context;
 using Client.Game.InGame.Train.Network;
+using Client.Game.InGame.Train.Network.Diagnostics;
 using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.Train.Unit;
-using Cysharp.Threading.Tasks;
-using UniRx;
-using UnityEngine;
 
 namespace Client.Game.InGame.Train.View
 {
-    // Train/Railのhash gate判定と不整合時リシンクを担当する
-    // Handles train/rail hash gate checks and resync on mismatch.
-    public sealed class TrainUnitHashVerifier : ITrainUnitHashTickGate, IDisposable
+    // Train/Railのhash gate判定を担当する
+    // Handles train/rail hash gate checks.
+    public sealed class TrainUnitHashVerifier : ITrainUnitHashTickGate
     {
+        private const uint HashMismatchTickGapThreshold = 200;
         private readonly TrainUnitFutureMessageBuffer _futureMessageBuffer;
         private readonly TrainUnitClientCache _trainCache;
         private readonly RailGraphClientCache _railGraphCache;
         private readonly TrainUnitTickState _tickState;
-        private readonly IDisposable _fullSnapshotSubscription;
-        private CancellationTokenSource _resyncCancellation;
-        private int _resyncInProgress;
+        private readonly TrainSynchronizationDiagnostics _diagnostics;
+        private (ulong AppliedId, ulong ExpectedId, uint ServerTrain, uint ServerRail, uint LocalTrain, uint LocalRail)? _lastMismatch;
 
         public TrainUnitHashVerifier(
-            TrainFullSnapshotEventNetworkHandler fullSnapshotEventNetworkHandler,
             TrainUnitFutureMessageBuffer futureMessageBuffer,
             TrainUnitClientCache trainCache,
             RailGraphClientCache railGraphCache,
-            TrainUnitTickState tickState)
+            TrainUnitTickState tickState,
+            TrainSynchronizationDiagnostics diagnostics)
         {
             _futureMessageBuffer = futureMessageBuffer;
             _trainCache = trainCache;
             _railGraphCache = railGraphCache;
             _tickState = tickState;
-
-            // full snapshot適用完了でresyncゲートを解除する（適用自体はhandlerが担う）
-            // Release the resync gate on full-snapshot application; the handler owns the apply itself
-            _fullSnapshotSubscription = fullSnapshotEventNetworkHandler.OnFullSnapshotApplied.Subscribe(_ => ReleaseResyncGate());
-        }
-
-        private void ReleaseResyncGate()
-        {
-            var cts = Interlocked.Exchange(ref _resyncCancellation, null);
-            cts?.Dispose();
-            Interlocked.Exchange(ref _resyncInProgress, 0);
-        }
-
-        public void Dispose()
-        {
-            _fullSnapshotSubscription?.Dispose();
-            CancelResync();
-
-            #region Internal
-
-            void CancelResync()
-            {
-                // 終了時に進行中の再同期処理をキャンセルする
-                // Cancel any in-flight resync operation during shutdown
-                var cts = Interlocked.Exchange(ref _resyncCancellation, null);
-                if (cts == null)
-                    return;
-                cts.Cancel();
-                cts.Dispose();
-                Interlocked.Exchange(ref _resyncInProgress, 0);
-            }
-
-            #endregion
+            _diagnostics = diagnostics;
         }
 
         public bool CanAdvanceTick(ulong currentTickUnifiedId)
         {
-            // 再同期中はtick進行を止める
-            // Stop simulation advance while resync is in progress
-            if (Interlocked.CompareExchange(ref _resyncInProgress, 0, 0) == 1)
-                return false;
+            if (!_tickState.IsInitialized || _tickState.IsPermanentlyWaiting) return false;
             // 古いhashはバッファから捨てる
             // Discard any stale hashes that are older than the current tick
             _futureMessageBuffer.DiscardHashesOlderThan(currentTickUnifiedId);
             
-            // このtickにメッセージがなく将来tickにメッセージがある場合このtickのメッセージは送られてこない可能性が非常に高い。なのでTickを強制的に進めることにする
-            // If there is no message for the current tick but there are messages for future ticks, it's likely that the current tick's message won't arrive. In that case, we will force advance the tick.
+            // 後続の到着にかかわらず、欠けた順序位置を待ち続ける。
+            // Keep waiting for the missing ordered position regardless of later arrivals.
             if (!_futureMessageBuffer.TryDequeueHashAtTickSequenceId(currentTickUnifiedId, out var message))
             {
-                // バッファが空なら次バンドル待ちの正常状態なので警告しない
-                // An empty buffer just means waiting for the next bundle, so stay silent
-                if (!_futureMessageBuffer.TryGetFirstHashTickUnifiedId(out var firstBufferedTickUnifiedId))
-                    return false;
-                Debug.LogWarning(
-                    $"tick force slip! expected={currentTickUnifiedId >> 32}_{(uint)currentTickUnifiedId}, " +
-                    $"firstBuffered={firstBufferedTickUnifiedId >> 32}_{(uint)firstBufferedTickUnifiedId}");
-                return true;
+                var confirmedGap = currentTickUnifiedId < _tickState.GetMaxBufferedTickUnifiedId();
+                _diagnostics.RecordMissingOrderedMessage(currentTickUnifiedId, confirmedGap);
+                if (confirmedGap) _futureMessageBuffer.StopRetainingFutureMessages("ConfirmedOrderedGap");
+                return false;
             }
             
-            var isVerified = ValidateCurrentTickHash();
-            return isVerified && Interlocked.CompareExchange(ref _resyncInProgress, 0, 0) == 0;
+            return ValidateCurrentTickHash();
 
             #region Internal
 
@@ -101,29 +56,45 @@ namespace Client.Game.InGame.Train.View
             {
                 if (IsDummyHash(message))
                 {
+                    _lastMismatch = null;
                     _tickState.RecordAppliedTickUnifiedId(currentTickUnifiedId);
+                    _diagnostics.RecordApplied(currentTickUnifiedId);
                     return true;
                 }
 
                 // 同一tickでTrain/Railのローカルhashを照合する
                 // Compare local train/rail hashes on the same tick
-                var localTrainHash = _trainCache.ComputeCurrentHash();
-                var localRailGraphHash = _railGraphCache.ComputeCurrentHash();
+                uint localTrainHash;
+                uint localRailGraphHash;
+                var appliedId = _tickState.GetAppliedTickUnifiedId();
+                // 初期同期後の状態変更は順序付き適用だけなので、同じ適用位置・入力hashなら前回不一致を再利用する。
+                // After initial sync, only ordered applies change state, so reuse mismatches at the same applied position and input hashes.
+                if (_lastMismatch is { } previous && previous.AppliedId == appliedId && previous.ExpectedId == currentTickUnifiedId &&
+                    previous.ServerTrain == message.unitsHash && previous.ServerRail == message.railGraphHash)
+                {
+                    localTrainHash = previous.LocalTrain;
+                    localRailGraphHash = previous.LocalRail;
+                }
+                else
+                {
+                    localTrainHash = _trainCache.ComputeCurrentHash();
+                    localRailGraphHash = _railGraphCache.ComputeCurrentHash();
+                }
                 var isTrainMismatch = localTrainHash != message.unitsHash;
                 var isRailGraphMismatch = localRailGraphHash != message.railGraphHash;
                 if (!isTrainMismatch && !isRailGraphMismatch)
                 {
+                    _lastMismatch = null;
                     _tickState.RecordAppliedTickUnifiedId(currentTickUnifiedId);
+                    _diagnostics.RecordApplied(currentTickUnifiedId);
                     return true;
                 }
-                Debug.LogWarning(
-                    $"[TrainUnitHashVerifier] Hash mismatch detected. tick={_tickState.GetTick()}, " +
-                    $"train(client={localTrainHash}, server={message.unitsHash}), " +
-                    $"rail(client={localRailGraphHash}, server={message.railGraphHash}), " +
-                    $"tickSequenceId={message.tickSequenceId}. Requesting snapshot.");
-                if (Interlocked.CompareExchange(ref _resyncInProgress, 1, 0) == 1)
-                    return false;
-                RequestResyncAsync(isRailGraphMismatch).Forget();
+                _lastMismatch = (appliedId, currentTickUnifiedId, message.unitsHash, message.railGraphHash, localTrainHash, localRailGraphHash);
+                var receivedTickGap = (long)(_tickState.GetMaxBufferedTickUnifiedId() >> 32) - _tickState.GetTick();
+                var permanentWait = HashMismatchTickGapThreshold <= receivedTickGap;
+                _diagnostics.RecordHashMismatch(currentTickUnifiedId, localTrainHash, message.unitsHash,
+                    localRailGraphHash, message.railGraphHash, permanentWait);
+                if (permanentWait) _futureMessageBuffer.StopRetainingFutureMessages("HashMismatchReceivedTickGap");
                 return false;
                 
                 bool IsDummyHash((uint unitsHash, uint railGraphHash, uint serverTick, uint tickSequenceId) hashState)
@@ -133,27 +104,6 @@ namespace Client.Game.InGame.Train.View
                 }
             }
 
-            async UniTask RequestResyncAsync(bool includeRailGraph)
-            {
-                var api = ClientContext.VanillaApi.Response;
-                var cts = new CancellationTokenSource();
-                _resyncCancellation = cts;
-
-                // 引き金だけ送る。snapshotはイベント経路で届き、適用完了通知でゲートが解除される
-                // Send only the trigger; the snapshot arrives via the event stream and releases the gate on apply
-                var ackResult = await api.Train.SendTrainResync(includeRailGraph, cts.Token).SuppressCancellationThrow();
-                if (ackResult.IsCanceled || ackResult.Result == null)
-                {
-                    // ack失敗時は自要求が現役の場合のみゲート解放。後続resync要求の状態を旧要求が壊さないため
-                    // On ack failure release only if this request still owns the gate; never clobber a newer resync
-                    if (Interlocked.CompareExchange(ref _resyncCancellation, null, cts) == cts)
-                    {
-                        Debug.LogWarning("[TrainUnitHashVerifier] Resync trigger failed. Releasing gate for retry.");
-                        cts.Dispose();
-                        Interlocked.Exchange(ref _resyncInProgress, 0);
-                    }
-                }
-            }
             #endregion
         }
     }

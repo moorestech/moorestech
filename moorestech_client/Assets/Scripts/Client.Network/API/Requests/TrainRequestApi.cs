@@ -21,14 +21,6 @@ namespace Client.Network.API.Requests
             _packetExchangeManager = packetExchangeManager;
         }
 
-        // 再同期の引き金送信。本体はイベントで届く
-        // Send resync trigger; body arrives over the event stream
-        public async UniTask<TrainResyncProtocol.ResponseMessagePack> SendTrainResync(bool includeRailGraph, CancellationToken ct)
-        {
-            var request = new TrainResyncProtocol.RequestMessagePack(includeRailGraph);
-            return await _packetExchangeManager.GetPacketResponse<TrainResyncProtocol.ResponseMessagePack>(request, ct);
-        }
-
         public async UniTask<PlaceTrainCarOnRailProtocol.PlaceTrainOnRailResponseMessagePack> PlaceTrainOnRail(RailPosition railPosition, Guid trainCarGuid, CancellationToken ct)
         {
             // 列車設置のレスポンスを取得する
