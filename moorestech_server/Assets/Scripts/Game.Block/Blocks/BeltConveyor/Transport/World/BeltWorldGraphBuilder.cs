@@ -18,13 +18,6 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
             {
                 var block = data.Block;
                 if (!block.ComponentManager.TryGetComponent<VanillaBeltConveyorComponent>(out var belt)) continue;
-                // 上下姿勢の在庫はcomponentの保存領域に保持する。
-                // Retain unsupported vertical inventories in the component's pending storage.
-                if (!BeltTransportDirections.IsHorizontal(belt.Position))
-                {
-                    Debug.Log($"Belt transport excludes vertical orientation: {belt.Position.BlockDirection} at {belt.Position.OriginalPos}.");
-                    continue;
-                }
                 var position = block.BlockPositionInfo.OriginalPos;
                 graph.Components.Add(belt.CellId, belt);
                 graph.Cells.Add(new BeltNetworkCell(belt.CellId, position.x, position.y, position.z, belt.Speed,

@@ -1,9 +1,7 @@
-using System;
 using Client.Game.Common;
 using Core.BeltTransport;
 using Cysharp.Threading.Tasks;
 using UniRx;
-using UnityEngine;
 namespace Client.Game.InGame.BeltTransport
 {
     public sealed class BeltItemRenderer : IInitialEventApplyWaitTarget
@@ -26,20 +24,10 @@ namespace Client.Game.InGame.BeltTransport
         }
         public async UniTask WaitForInitialApplyAsync()
         {
-            _network.ThrowIfFailed();
-            // バッファ再生中に追加された生成も待ち、受信失敗時はロード待ちを打ち切る。
-            // Include creations added during buffered replay and stop waiting when reception fails.
-            await UniTask.WhenAny(WaitForViewsAsync(), _network.WaitForFailureAsync(), _views.WaitForFailureAsync());
-            _network.ThrowIfFailed();
-            if (_views.FailureReason != null) throw new InvalidOperationException(_views.FailureReason);
-
-            #region Internal
-            async UniTask WaitForViewsAsync()
-            {
-                await _initial;
-                await _views.WaitForPendingAsync();
-            }
-            #endregion
+            // バッファ再生で追加された初回表示も完了まで待つ。
+            // Wait for initial views added while buffered events were replayed.
+            await _initial;
+            await _views.WaitForPendingAsync();
         }
     }
 }

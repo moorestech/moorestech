@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using Client.Common.Asset;
+using Client.Game.InGame.Context;
 using Client.Game.InGame.Entity.Object;
 using Client.Network.API;
 using Core.Master;
@@ -9,34 +12,56 @@ namespace Client.Game.InGame.Entity.Factory
 {
     public sealed class BeltConveyorItemEntityObjectFactory : IEntityObjectFactory
     {
-        private readonly IBeltItemPrefabLoader _prefabs;
-        public BeltConveyorItemEntityObjectFactory(IBeltItemPrefabLoader prefabs) { _prefabs = prefabs; }
+        private const string DefaultItemPrefabPath = "Vanilla/Game/ItemEntity";
+        private readonly Dictionary<ItemId, GameObject> _customModelPrefabs = new();
+        private GameObject _defaultItemPrefab;
         public async UniTask<IEntityObject> CreateEntity(Transform parent, EntityResponse entity)
         {
             var state = MessagePackSerializer.Deserialize<BeltConveyorItemEntityStateMessagePack>(entity.EntityData);
-            var result = await CreateItem(parent, entity.InstanceId, new ItemId(state.ItemId), entity.Position);
-            if (!result.Succeeded) throw new System.InvalidOperationException(result.FailureReason);
-            return result.View;
+            return await CreateItem(parent, entity.InstanceId, new ItemId(state.ItemId), entity.Position);
         }
-        public async UniTask<BeltItemCreationResult> CreateItem(Transform parent, long identity, ItemId itemId, Vector3 position)
+        public async UniTask<IEntityObject> CreateItem(Transform parent, long identity, ItemId itemId, Vector3 position)
         {
-            var loaded = await _prefabs.LoadAsync(itemId);
-            if (!loaded.Succeeded) return BeltItemCreationResult.Missing(loaded.FailureReason);
-            var asset = loaded.Prefab;
-            // 非表示の親の下で生成し、初期化直後から同じ表示状態を継承する。
-            // Instantiate under the existing parent to inherit its visibility immediately.
-            var instance = UnityEngine.Object.Instantiate(asset.Prefab, position, Quaternion.identity, parent);
-            IEntityObject view;
-            if (asset.CustomModel) view = instance.AddComponent<CustomModelBeltConveyorItemEntityObject>();
-            else
+            // 既存のモデル指定とテクスチャ表示を共通の生成処理へ渡す。
+            // Use the existing custom-model and texture rendering paths for item creation.
+            var master = MasterHolder.ItemMaster.GetItemMaster(itemId);
+            var path = master.AddressablePaths?.EntityModel;
+            if (!string.IsNullOrEmpty(path))
             {
-                var textured = instance.GetComponent<BeltConveyorItemEntityObject>();
-                textured.SetTexture(asset.Texture, itemId);
-                view = textured;
+                if (!_customModelPrefabs.TryGetValue(itemId, out var prefab))
+                {
+                    var loaded = await AddressableLoader.LoadAsync<GameObject>(path);
+                    if (loaded?.Asset == null)
+                    {
+                        Debug.LogError($"Failed to load custom entity model: {path}. Falling back to texture-based display.");
+                        return await CreateTextureItem();
+                    }
+                    prefab = loaded.Asset;
+                    _customModelPrefabs[itemId] = prefab;
+                }
+                var instance = UnityEngine.Object.Instantiate(prefab, position, Quaternion.identity, parent);
+                var view = instance.AddComponent<CustomModelBeltConveyorItemEntityObject>();
+                view.Initialize(identity);
+                view.SetDirectPosition(position);
+                return view;
             }
-            view.Initialize(identity);
-            view.SetDirectPosition(position);
-            return BeltItemCreationResult.Created(view);
+            return await CreateTextureItem();
+
+            #region Internal
+            async UniTask<IEntityObject> CreateTextureItem()
+            {
+                // シーン既存の親へ生成し、表示状態も引き継ぐ。
+                // Instantiate under the existing scene parent and inherit its visibility.
+                if (_defaultItemPrefab == null)
+                    _defaultItemPrefab = await AddressableLoader.LoadAsyncDefault<GameObject>(DefaultItemPrefabPath);
+                var instance = UnityEngine.Object.Instantiate(_defaultItemPrefab, position, Quaternion.identity, parent);
+                var view = instance.GetComponent<BeltConveyorItemEntityObject>();
+                view.Initialize(identity);
+                view.SetTexture(ClientContext.ItemImageContainer.GetItemView(itemId)?.ItemTexture, itemId);
+                view.SetDirectPosition(position);
+                return view;
+            }
+            #endregion
         }
     }
 }

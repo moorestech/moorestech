@@ -12,11 +12,6 @@ namespace Client.Game.InGame.BeltTransport
         private readonly IBeltItemViewFactory _factory;
         private readonly Dictionary<Guid, DesiredItem> _desired = new();
         private readonly Dictionary<Guid, IEntityObject> _views = new();
-        private readonly HashSet<Guid> _creating = new();
-        private readonly HashSet<Guid> _missing = new();
-        private readonly UniTaskCompletionSource _failed = new();
-        public string FailureReason { get; private set; }
-        internal UniTask WaitForFailureAsync() => _failed.Task;
         private readonly Dictionary<Guid, Task> _pendingTasks = new();
         public BeltItemViewStore(IBeltItemViewFactory factory) { _factory = factory; }
         public async UniTask ApplyAsync(BeltNetworkSnapshot snapshot)
@@ -36,7 +31,7 @@ namespace Client.Game.InGame.BeltTransport
             foreach (var pair in _desired)
             {
                 if (_views.TryGetValue(pair.Key, out var view)) view.SetDirectPosition(pair.Value.Position);
-                else if (!_missing.Contains(pair.Key) && _creating.Add(pair.Key))
+                else if (!_pendingTasks.ContainsKey(pair.Key))
                 {
                     // 起動待ちと更新側が同時に待てる共有Taskを一度だけ作る。
                     // Convert once to a shared Task for concurrent startup and update waiters.
@@ -50,32 +45,14 @@ namespace Client.Game.InGame.BeltTransport
             #region Internal
             async UniTask CreateAsync(Guid id, DesiredItem requested)
             {
-                var result = await _factory.CreateAsync(id, new ItemId(requested.ItemId), requested.Position);
-                _creating.Remove(id);
+                var view = await _factory.CreateAsync(id, new ItemId(requested.ItemId), requested.Position);
                 _pendingTasks.Remove(id);
-                // 非同期処理の成否より、現在の表示対象を優先する。
-                // Resolve asynchronous completion against the currently desired identities first.
+                // 生成中に搬出されたアイテムを表示へ戻さない。
+                // Do not restore a view for an item that departed during creation.
                 if (!_desired.TryGetValue(id, out var latest))
                 {
-                    UnityEngine.Debug.Log($"Belt item {id} departed while its view was loading; discarded completion. Load result: {result.FailureReason ?? "ready"}");
-                    if (result.Succeeded) result.View.Destroy();
-                    return;
-                }
-                // 欠損GUIDを保持し、次tickで同じロードを繰り返さない。
-                // Retain missing identities to avoid retrying the same load on subsequent ticks.
-                if (!result.Succeeded)
-                {
-                    _missing.Add(id);
-                    FailureReason = $"Belt item {id} could not be rendered: {result.FailureReason}";
-                    UnityEngine.Debug.LogError(FailureReason);
-                    _failed.TrySetResult();
-                    return;
-                }
-                var view = result.View;
-                if (latest.ItemId != requested.ItemId)
-                {
                     view.Destroy();
-                    throw new InvalidOperationException($"Belt identity {id} changed item type during creation.");
+                    return;
                 }
                 view.SetDirectPosition(latest.Position);
                 _views.Add(id, view);

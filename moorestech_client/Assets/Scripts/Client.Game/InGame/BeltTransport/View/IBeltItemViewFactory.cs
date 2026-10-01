@@ -1,4 +1,3 @@
-using Client.Game.InGame.Entity.Factory;
 using System;
 using Client.Game.InGame.Entity;
 using Core.Master;
@@ -8,6 +7,6 @@ namespace Client.Game.InGame.BeltTransport
 {
     public interface IBeltItemViewFactory
     {
-        UniTask<BeltItemCreationResult> CreateAsync(Guid identity, ItemId itemId, Vector3 position);
+        UniTask<IEntityObject> CreateAsync(Guid identity, ItemId itemId, Vector3 position);
     }
 }

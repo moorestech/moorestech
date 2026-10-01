@@ -30,9 +30,7 @@ namespace Client.Tests.BeltTransport
                 new BeltCellItemsChange(4, new[] { state }), new BeltTopologyChange(new[] { cell }, new[] { 8 }, new[] { edge }, new[] { edge }, new[] { state }) };
             var output = new BeltOutputResult(4, 9, 3, BeltDirection.Right, 32, true, item);
             var tick = new BeltTickMessagePack(new BeltTickDifference(124, changes, new[] { output }, changes));
-            var received = BeltTickDecoder.Decode(MessagePackSerializer.Serialize(tick));
-            Assert.IsTrue(received.Succeeded, received.FailureReason);
-            var decoded = received.Difference;
+            var decoded = RoundTrip(tick).ToCore();
             Assert.AreEqual(124, decoded.Tick);
             CollectionAssert.AreEqual(new[] { output }, decoded.Outputs);
             Assert.AreEqual(32, ((BeltSpeedChange)decoded.BeforeTick[0]).Speeds[0].Speed);

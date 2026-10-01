@@ -4,14 +4,11 @@ using System.Linq;
 using Client.Game.InGame.BeltTransport;
 using Core.BeltTransport;
 using Core.Master;
-using Core.Update;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Blocks.BeltConveyor.Transport;
 using Game.Block.Interface;
-using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
-using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -22,46 +19,8 @@ using Tests.Module.TestMod;
 using UnityEngine;
 namespace Client.Tests.BeltTransport
 {
-    public sealed class BeltSurfaceAndOrientationTest
+    public sealed class BeltSurfacePositionTest
     {
-        [TestCase(false, false, BlockDirection.UpNorth)]
-        [TestCase(false, true, BlockDirection.UpNorth)]
-        [TestCase(true, false, BlockDirection.DownWest)]
-        [TestCase(true, true, BlockDirection.DownWest)]
-        public void VerticalBeltPreservesPendingInventoryAcrossSaveAndCommittedTicksTest(bool gear, bool legacy, BlockDirection direction)
-        {
-            var services = CreateWorld();
-            var id = gear ? ForUnitTestModBlockId.GearBeltConveyor : ForUnitTestModBlockId.BeltConveyorId;
-            var block = Place(id, Vector3Int.zero, direction);
-            var belt = block.GetComponent<VanillaBeltConveyorComponent>();
-            var stack = ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 1);
-            belt.SetItem(0, stack);
-            var transport = services.GetRequiredService<BeltWorldTransport>();
-            Assert.DoesNotThrow(transport.Initialize);
-            Assert.IsEmpty(transport.CaptureCommittedSnapshot().Snapshot.Cells);
-            Assert.AreEqual(1, belt.InsertItem(stack, InsertItemContext.Empty).Count);
-            Assert.IsFalse(belt.InsertionCheck(new List<Core.Item.Interface.IItemStack> { stack }));
-            Assert.AreEqual(stack.ItemInstanceId, belt.GetItem(0).ItemInstanceId);
-            var world = JArray.FromObject(ServerContext.WorldBlockDatastore.GetSaveJsonObject());
-            string key = typeof(VanillaBeltConveyorComponent).FullName;
-            if (legacy)
-            {
-                var savedStack = world[0]["state"][key]["items"][0]["itemStack"].DeepClone();
-                world[0]["state"][key] = new JObject { ["legacyItems"] = new JArray(new JObject { ["itemStack"] = savedStack, ["remainingSeconds"] = 0.5 }) };
-            }
-            var loadedServices = CreateWorld();
-            ServerContext.WorldBlockDatastore.LoadBlockDataList(world.ToObject<List<BlockJsonObject>>());
-            var loadedTransport = loadedServices.GetRequiredService<BeltWorldTransport>();
-            var loaded = ServerContext.WorldBlockDatastore.GetBlock(Vector3Int.zero).GetComponent<VanillaBeltConveyorComponent>();
-            Assert.DoesNotThrow(loadedTransport.Initialize);
-            for (int tick = 0; tick < 3; tick++) GameUpdater.UpdateOneTick();
-            Assert.IsEmpty(loadedTransport.CaptureCommittedSnapshot().Snapshot.Cells);
-            Assert.AreEqual(stack.Id, loaded.GetItem(0).Id);
-            Assert.AreEqual(1, loaded.GetItem(0).Count);
-            if (!legacy) Assert.AreEqual(stack.ItemInstanceId, loaded.GetItem(0).ItemInstanceId);
-            Assert.AreEqual(1, ((BeltCellSaveState)loaded.GetSaveState()).Items.Count);
-        }
-
         [TestCase(true, true)]
         [TestCase(true, false)]
         [TestCase(false, true)]
@@ -110,6 +69,15 @@ namespace Client.Tests.BeltTransport
                 Assert.That(position.z, Is.EqualTo(origin.Z + 0.5f - (buffer ? 0f : 1f - progress / 256f)).Within(0.0001f));
             }
             #endregion
+        }
+        [TestCase(BeltDirection.Left, 64, -0.75f)]
+        [TestCase(BeltDirection.Right, 192, 0.25f)]
+        public void SideEntryChangesHorizontalPositionTest(BeltDirection entry, int progress, float x)
+        {
+            var state = BeltTestState.Snapshot(progress, 0, true);
+            var item = new BeltCellItemState(1, progress, entry, 0, state.Items[0].Item, false);
+            var position = BeltItemPosition.Calculate(state, item);
+            Assert.AreEqual(new Vector3(-1.5f + x, 3.35f, 4.5f), position);
         }
         private static ServiceProvider CreateWorld()
         {

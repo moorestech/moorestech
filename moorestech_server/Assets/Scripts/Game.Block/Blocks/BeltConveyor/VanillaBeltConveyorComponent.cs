@@ -66,12 +66,7 @@ namespace Game.Block.Blocks.BeltConveyor
         }
 
         public bool InsertionCheck(List<IItemStack> stacks) => stacks.Count == 1 && stacks[0].Count == 1 && CanInsert();
-        private bool CanInsert()
-        {
-            if (BeltTransportDirections.IsHorizontal(Position)) return transport == null ? pending.Count == 0 : transport.CanInsert(CellId);
-            UnityEngine.Debug.LogWarning($"Belt {CellId} rejects input: vertical orientation {Position.BlockDirection} has no transport path.");
-            return false;
-        }
+        private bool CanInsert() => transport == null ? pending.Count == 0 : transport.CanInsert(CellId);
         public int GetSlotSize() => transport == null ? (connectors.OutputConnects != null && 1 < connectors.OutputConnects.Length ? 2 : 1) : transport.GetSlotSize(CellId);
         public IItemStack GetItem(int slot)
         {
@@ -133,13 +128,6 @@ namespace Game.Block.Blocks.BeltConveyor
 
         internal BeltDirection FindInputDirection(Guid? connectorGuid)
         {
-            // 非参加姿勢の保存には固定方向を使い、水平変換しない。
-            // Use a storage-only direction for unsupported orientations without horizontal conversion.
-            if (!BeltTransportDirections.IsHorizontal(Position))
-            {
-                UnityEngine.Debug.Log($"Belt {CellId} keeps vertical inventory in pending storage with canonical entry direction.");
-                return BeltDirection.Back;
-            }
             foreach (var connector in connectors.InputConnects)
             {
                 if (connector.ConnectorGuid != connectorGuid || connector.Directions == null) continue;
