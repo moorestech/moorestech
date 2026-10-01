@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Linq;
 using Client.Tests.EventMode;
 using Game.Paths;
 using UnityEditor;
@@ -23,9 +22,9 @@ namespace Client.Tests.EditModeInPlayingTest
         private const string TemporaryWorldDirectoryKey = "EventModeAutoStartBootEnvironment_TemporaryWorldDirectory";
         private const string PreparedMarkerKey = "EventModeAutoStartBootEnvironment_Prepared";
 
-        // 出展モードの有効化キーと既定ワールドの置き場キーを、まとめて退避・復元する
-        // Save and restore the exhibition enabling keys together with the default world location key
-        private static readonly string[] SavedEnvKeys = EventModeTestEnvironment.ExhibitionEnableKeys.Append(GameSystemPaths.DefaultWorldDirectoryOverrideEnvKey).ToArray();
+        // 既定ワールドの置き場の上書き値。SessionStateはnullを持てず、空文字はSet側で解除として扱われる
+        // The prior default world override; SessionState cannot hold null and Set treats an empty string as clearing
+        private const string PreviousWorldDirectoryOverrideKey = "EventModeAutoStartBootEnvironment_PreviousWorldDirectoryOverride";
 
         // Prepareが既定ワールドの置き場として向けた一時ディレクトリ
         // The temporary directory Prepare pointed the default world at
@@ -37,7 +36,8 @@ namespace Client.Tests.EditModeInPlayingTest
         {
             // 戻す値を置いてから印を立てる。印の無いRestoreは環境を書き換えない
             // Store what to restore before marking; a Restore without the mark rewrites nothing
-            EventModeTestEnvironment.SaveToSession(PreviousEnvValuePrefix, SavedEnvKeys);
+            EventModeTestEnvironment.SaveToSession(PreviousEnvValuePrefix, EventModeTestEnvironment.ExhibitionEnableKeys);
+            SessionState.SetString(PreviousWorldDirectoryOverrideKey, GameSystemPaths.GetDefaultWorldDirectoryOverride() ?? "");
             var previousStartScene = EditorSceneManager.playModeStartScene;
             SessionState.SetString(PreviousStartScenePathKey, previousStartScene == null ? "" : AssetDatabase.GetAssetPath(previousStartScene));
             var temporaryWorldDirectory = Path.Combine(Path.GetTempPath(), $"moorestech_event_mode_autostart_test_{Guid.NewGuid()}");
@@ -48,9 +48,9 @@ namespace Client.Tests.EditModeInPlayingTest
             // Pin the start scene regardless of the open scene so the AfterSceneLoad hook runs in MainMenu
             EditorSceneManager.playModeStartScene = AssetDatabase.LoadAssetAtPath<SceneAsset>(MainMenuScenePath);
 
-            // 環境変数はプロセスに残るため、ドメインリロード後の起動フックと内蔵サーバーからも読める
-            // Env vars live in the process, so the boot hook and the embedded server read them after the domain reload
-            Environment.SetEnvironmentVariable(GameSystemPaths.DefaultWorldDirectoryOverrideEnvKey, temporaryWorldDirectory);
+            // 上書きはプロセス環境変数に載るため、ドメインリロード後の起動フックと内蔵サーバーからも読める
+            // The override rides on a process env var, so the boot hook and the embedded server read it after the domain reload
+            GameSystemPaths.SetDefaultWorldDirectoryOverride(temporaryWorldDirectory);
             EventModeTestEnvironment.EnableExhibitionMode();
         }
 
@@ -67,7 +67,9 @@ namespace Client.Tests.EditModeInPlayingTest
             }
             SessionState.EraseBool(PreparedMarkerKey);
 
-            EventModeTestEnvironment.RestoreFromSession(PreviousEnvValuePrefix, SavedEnvKeys);
+            EventModeTestEnvironment.RestoreFromSession(PreviousEnvValuePrefix, EventModeTestEnvironment.ExhibitionEnableKeys);
+            GameSystemPaths.SetDefaultWorldDirectoryOverride(SessionState.GetString(PreviousWorldDirectoryOverrideKey, ""));
+            SessionState.EraseString(PreviousWorldDirectoryOverrideKey);
             var previousStartScenePath = SessionState.GetString(PreviousStartScenePathKey, "");
             EditorSceneManager.playModeStartScene = previousStartScenePath == "" ? null : AssetDatabase.LoadAssetAtPath<SceneAsset>(previousStartScenePath);
             SessionState.EraseString(PreviousStartScenePathKey);

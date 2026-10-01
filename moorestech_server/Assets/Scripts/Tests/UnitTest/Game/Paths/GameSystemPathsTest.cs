@@ -50,10 +50,10 @@ namespace Tests.UnitTest.Game.Paths
         [Test]
         public void 上書きキーで既定ワールドの読み書きと削除が一時ディレクトリへ向く()
         {
-            var previousOverride = Environment.GetEnvironmentVariable(GameSystemPaths.DefaultWorldDirectoryOverrideEnvKey);
+            var previousOverride = GameSystemPaths.GetDefaultWorldDirectoryOverride();
             var temporaryWorldDirectory = Path.Combine(Path.GetTempPath(), $"moorestech_default_world_override_test_{Guid.NewGuid()}");
             Directory.CreateDirectory(temporaryWorldDirectory);
-            Environment.SetEnvironmentVariable(GameSystemPaths.DefaultWorldDirectoryOverrideEnvKey, temporaryWorldDirectory);
+            GameSystemPaths.SetDefaultWorldDirectoryOverride(temporaryWorldDirectory);
 
             // 失敗しても上書きを戻す。残すと後続テストの既定ワールドがずれる
             // Restore the override even on failure; leaving it would shift later tests' default world
@@ -66,7 +66,7 @@ namespace Tests.UnitTest.Game.Paths
             }
             finally
             {
-                Environment.SetEnvironmentVariable(GameSystemPaths.DefaultWorldDirectoryOverrideEnvKey, previousOverride);
+                GameSystemPaths.SetDefaultWorldDirectoryOverride(previousOverride);
                 if (Directory.Exists(temporaryWorldDirectory)) Directory.Delete(temporaryWorldDirectory, true);
             }
         }

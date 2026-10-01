@@ -23,7 +23,7 @@ namespace Game.Paths
         // Env key that relocates the default world from the launch environment (precedent: DebugParametersCacheDirectory); unset means Saves/world_1
         // プロセス環境変数なのでドメインリロードを跨いで効き、プロセスと共に消えるため残置しない
         // Being a process env var it survives domain reloads and dies with the process, so it is never left behind
-        public const string DefaultWorldDirectoryOverrideEnvKey = "MOORESTECH_DEFAULT_WORLD_DIRECTORY";
+        private const string DefaultWorldDirectoryOverrideEnvKey = "MOORESTECH_DEFAULT_WORLD_DIRECTORY";
 
         public static string GameSystemDirectory
         {
@@ -50,9 +50,22 @@ namespace Game.Paths
         {
             get
             {
-                var overrideDirectory = Environment.GetEnvironmentVariable(DefaultWorldDirectoryOverrideEnvKey);
+                var overrideDirectory = GetDefaultWorldDirectoryOverride();
                 return string.IsNullOrEmpty(overrideDirectory) ? GetSaveFilePath(DefaultWorldName) : overrideDirectory;
             }
+        }
+
+        public static string GetDefaultWorldDirectoryOverride()
+        {
+            return Environment.GetEnvironmentVariable(DefaultWorldDirectoryOverrideEnvKey);
+        }
+
+        // 既定ワールドの置き場を差し替える。null・空文字で解除
+        // Relocates the default world; null or empty clears the override
+        public static void SetDefaultWorldDirectoryOverride(string directoryPath)
+        {
+            var value = string.IsNullOrEmpty(directoryPath) ? null : directoryPath;
+            Environment.SetEnvironmentVariable(DefaultWorldDirectoryOverrideEnvKey, value);
         }
 
         // サーバーから受け取った派生データの置き場。削除しても再取得で復元される
