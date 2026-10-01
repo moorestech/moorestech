@@ -8,8 +8,8 @@ namespace Core.BeltTransport
         internal readonly List<BeltNetworkConnection> Inputs = new List<BeltNetworkConnection>();
         internal readonly List<BeltNetworkConnection> Outputs = new List<BeltNetworkConnection>();
         internal bool Assigned;
-        internal BeltSegmentKind Kind => Inputs.Count > 1 ? BeltSegmentKind.Merge
-            : Outputs.Count > 1 ? BeltSegmentKind.Branch : BeltSegmentKind.Normal;
+        internal BeltSegmentKind Kind => 1 < Inputs.Count ? BeltSegmentKind.Merge
+            : 1 < Outputs.Count ? BeltSegmentKind.Branch : BeltSegmentKind.Normal;
 
         internal BeltTopologyNode(BeltNetworkCell cell) { Cell = cell; }
     }

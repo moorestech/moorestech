@@ -19,7 +19,7 @@ namespace Tests.UnitTest.Core.BeltTransport
             var cells = new[] { Cell(1, 0, 0, 0, 64), Cell(2, 0, 1, 1, 64), Cell(3, 1, 1, 1, 64), Cell(4, 2, 1, 1, 32) };
             var edges = new[] { Edge(1, 2, BeltDirection.Front), Edge(2, 3, BeltDirection.Right), Edge(3, 4, BeltDirection.Right) };
             network.Rebuild(cells, edges, Array.Empty<BeltCellItemState>());
-            Assert.AreEqual(2, network.Paths.Count);
+            Assert.AreSame(network.GetPath(1), network.GetPath(2));
             Assert.AreEqual(3, network.GetPath(1).Cells.Length);
             Assert.AreSame(network.GetPath(1), network.GetPath(3));
             Assert.AreNotSame(network.GetPath(3), network.GetPath(4));
@@ -32,9 +32,9 @@ namespace Tests.UnitTest.Core.BeltTransport
             var cells = new[] { Cell(1, 1, 0, 1, 64), Cell(2, 0, 0, 1, 64), Cell(3, 0, 0, 0, 64), Cell(4, 1, 0, 0, 64) };
             network.Rebuild(cells, new[] { Edge(1, 2, BeltDirection.Left), Edge(2, 3, BeltDirection.Back),
                 Edge(3, 4, BeltDirection.Right), Edge(4, 1, BeltDirection.Front) }, Array.Empty<BeltCellItemState>());
-            Assert.AreEqual(1, network.Paths.Count);
-            Assert.AreEqual(3, network.Paths[0].Cells[0].Id);
-            Assert.AreSame(network.Paths[0].Segment, network.Paths[0].Segment.Output);
+            foreach (var cell in cells) Assert.AreSame(network.GetPath(3), network.GetPath(cell.Id));
+            Assert.AreEqual(3, network.GetPath(3).Cells[0].Id);
+            Assert.AreSame(network.GetPath(3).Segment, network.GetPath(3).Segment.Output);
         }
 
         [Test]
@@ -108,7 +108,7 @@ namespace Tests.UnitTest.Core.BeltTransport
         }
 
         internal static BeltNetworkCell Cell(int id, int x, int y, int z, int speed) =>
-            new BeltNetworkCell(id, x, y, z, speed, "same-profile", BeltDirection.Front);
+            new BeltNetworkCell(id, x, y, z, speed, "same-profile", BeltDirection.Front, new BeltCellSurfaceProfile(0, 0));
         internal static BeltNetworkConnection Edge(int source, int target, BeltDirection direction) =>
             new BeltNetworkConnection(source, target, true, true, direction, 0);
     }

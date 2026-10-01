@@ -76,11 +76,16 @@ namespace Game.Block.Blocks.BeltConveyor
         }
 
         public bool InsertionCheck(List<IItemStack> stacks) => stacks.Count == 1 && stacks[0].Count == 1 && CanInsert();
-        private bool CanInsert() => transport == null ? pending.Count == 0 : transport.CanInsert(CellId);
-        public int GetSlotSize() => transport == null ? (connectors.OutputConnects != null && connectors.OutputConnects.Length > 1 ? 2 : 1) : transport.GetSlotSize(CellId);
+        private bool CanInsert()
+        {
+            if (BeltTransportDirections.IsHorizontal(Position)) return transport == null ? pending.Count == 0 : transport.CanInsert(CellId);
+            UnityEngine.Debug.LogWarning($"Belt {CellId} rejects input: vertical orientation {Position.BlockDirection} has no transport path.");
+            return false;
+        }
+        public int GetSlotSize() => transport == null ? (connectors.OutputConnects != null && 1 < connectors.OutputConnects.Length ? 2 : 1) : transport.GetSlotSize(CellId);
         public IItemStack GetItem(int slot)
         {
-            if (slot < 0 || slot >= GetSlotSize()) throw new ArgumentOutOfRangeException(nameof(slot));
+            if (slot < 0 || GetSlotSize() <= slot) throw new ArgumentOutOfRangeException(nameof(slot));
             foreach (var item in CaptureItems())
                 if (item.IsBuffer == (slot == 1)) return GetStack(item.Item.Guid);
             return ServerContext.ItemStackFactory.CreatEmpty();
@@ -89,17 +94,17 @@ namespace Game.Block.Blocks.BeltConveyor
         public void SetItem(int slot, IItemStack stack)
         {
             BlockException.CheckDestroy(this);
-            if (slot < 0 || slot >= GetSlotSize()) throw new ArgumentOutOfRangeException(nameof(slot));
+            if (slot < 0 || GetSlotSize() <= slot) throw new ArgumentOutOfRangeException(nameof(slot));
             var items = new List<BeltCellItemState>(CaptureItems());
             // slotを走行列とbufferへ固定し、空いた走行slotへbufferを詰めない。
             // Keep running and buffer slots fixed instead of compacting a lone buffer into slot zero.
-            for (int index = items.Count - 1; index >= 0; index--)
+            for (int index = items.Count - 1; 0 <= index; index--)
                 if (items[index].IsBuffer == (slot == 1)) items.RemoveAt(index);
-            if (stack.Count > 0)
+            if (0 < stack.Count)
             {
                 var single = stack.Count == 1 ? stack : stack.SubItem(stack.Count - 1);
                 var item = new BeltItem(BeltTransportIdentity.ToGuid(single.ItemInstanceId), single.Id.AsPrimitive());
-                items.Add(new BeltCellItemState(CellId, 256, BeltTransportDirections.Opposite(BeltTransportDirections.Forward(Position)), 0, item, slot == 1));
+                items.Add(new BeltCellItemState(CellId, 256, FindInputDirection(null), 0, item, slot == 1));
                 if (transport == null) pendingStacks[item.Guid] = single;
                 else transport.RegisterStack(item.Guid, single);
             }
@@ -132,6 +137,13 @@ namespace Game.Block.Blocks.BeltConveyor
 
         internal BeltDirection FindInputDirection(Guid? connectorGuid)
         {
+            // 非参加姿勢の保存には固定方向を使い、水平変換しない。
+            // Use a storage-only direction for unsupported orientations without horizontal conversion.
+            if (!BeltTransportDirections.IsHorizontal(Position))
+            {
+                UnityEngine.Debug.Log($"Belt {CellId} keeps vertical inventory in pending storage with canonical entry direction.");
+                return BeltDirection.Back;
+            }
             foreach (var connector in connectors.InputConnects)
             {
                 if (connector.ConnectorGuid != connectorGuid || connector.Directions == null) continue;

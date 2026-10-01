@@ -45,7 +45,11 @@ namespace Client.Tests.BeltTransport
             {
                 GameUpdater.UpdateOneTick();
                 foreach (var packet in sink.TakeAll().Where(p => p.Tag == BeltTickCompletedEventPacket.EventTag))
-                { replica.Receive(MessagePackSerializer.Deserialize<BeltTickMessagePack>(packet.Payload).ToCore()); count++; }
+                {
+                    var decoded = BeltTickDecoder.Decode(packet.Payload);
+                    Assert.IsTrue(decoded.Succeeded, decoded.FailureReason);
+                    replica.Receive(decoded.Difference); count++;
+                }
                 Assert.AreEqual(transport.CompletedTick, replica.Tick);
                 CollectionAssert.AreEqual(transport.CaptureCommittedSnapshot().Snapshot.Items, replica.Snapshot.Items);
             }

@@ -12,7 +12,7 @@ namespace Core.BeltTransport
         BeltItem item;
         int outputMask, outputOrder;
 
-        public BeltConveyorSegment Segment { get; }
+        private BeltConveyorSegment Segment { get; }
         public bool HasItem { get; private set; }
         internal int PriorityOrder => outputOrder;
 
@@ -53,7 +53,7 @@ namespace Core.BeltTransport
         {
             // 停止中のbufferは合流予約を占有しない。
             // A stopped buffer must not reserve a merge input.
-            return HasItem && Segment.TickSpeed > 0 && BeltPriority.FirstConnected(outputOrder, outputMask)
+            return HasItem && 0 < Segment.TickSpeed && BeltPriority.FirstConnected(outputOrder, outputMask)
                 == (int)BeltDirections.Opposite(inputDirection);
         }
 

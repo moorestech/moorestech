@@ -11,14 +11,18 @@ namespace Client.Game.InGame.Entity.Factory
     {
         private readonly IBeltItemPrefabLoader _prefabs;
         public BeltConveyorItemEntityObjectFactory(IBeltItemPrefabLoader prefabs) { _prefabs = prefabs; }
-        public UniTask<IEntityObject> CreateEntity(Transform parent, EntityResponse entity)
+        public async UniTask<IEntityObject> CreateEntity(Transform parent, EntityResponse entity)
         {
             var state = MessagePackSerializer.Deserialize<BeltConveyorItemEntityStateMessagePack>(entity.EntityData);
-            return CreateItem(parent, entity.InstanceId, new ItemId(state.ItemId), entity.Position);
+            var result = await CreateItem(parent, entity.InstanceId, new ItemId(state.ItemId), entity.Position);
+            if (!result.Succeeded) throw new System.InvalidOperationException(result.FailureReason);
+            return result.View;
         }
-        public async UniTask<IEntityObject> CreateItem(Transform parent, long identity, ItemId itemId, Vector3 position)
+        public async UniTask<BeltItemCreationResult> CreateItem(Transform parent, long identity, ItemId itemId, Vector3 position)
         {
-            var asset = await _prefabs.LoadAsync(itemId);
+            var loaded = await _prefabs.LoadAsync(itemId);
+            if (!loaded.Succeeded) return BeltItemCreationResult.Missing(loaded.FailureReason);
+            var asset = loaded.Prefab;
             // 非表示の親の下で生成し、初期化直後から同じ表示状態を継承する。
             // Instantiate under the existing parent to inherit its visibility immediately.
             var instance = UnityEngine.Object.Instantiate(asset.Prefab, position, Quaternion.identity, parent);
@@ -32,7 +36,7 @@ namespace Client.Game.InGame.Entity.Factory
             }
             view.Initialize(identity);
             view.SetDirectPosition(position);
-            return view;
+            return BeltItemCreationResult.Created(view);
         }
     }
 }

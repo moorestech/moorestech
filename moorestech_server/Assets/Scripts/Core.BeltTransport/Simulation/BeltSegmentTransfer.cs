@@ -41,7 +41,7 @@ namespace Core.BeltTransport
         // The source commits while target mutation remains deferred.
         internal bool TryReceive(int entryLength, in BeltItem value)
         {
-            if (entryLength > offer) return false;
+            if (offer < entryLength) return false;
             length = entryLength;
             item = value;
             return true;
@@ -51,7 +51,7 @@ namespace Core.BeltTransport
         // Apply committed input after target advancement.
         internal void Apply()
         {
-            if (length > 0) target.ReceiveTransferred(length, item);
+            if (0 < length) target.ReceiveTransferred(length, item);
         }
     }
 }

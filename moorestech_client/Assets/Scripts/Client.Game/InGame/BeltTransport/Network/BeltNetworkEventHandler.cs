@@ -34,19 +34,17 @@ namespace Client.Game.InGame.BeltTransport
                 Debug.LogError("Belt tick rejected because synchronization has already failed.");
                 return;
             }
-            // 外部パケット境界で破損を隔離し、起動待機にも失敗を伝える。
-            // Isolate malformed external packets and propagate failure to startup waiting.
-            try
+            // 外部入力の復号・検証を完了してから内部の再現処理を呼ぶ。
+            // Complete external decoding and validation before invoking internal replay.
+            var decoded = BeltTickDecoder.Decode(payload);
+            if (!decoded.Succeeded)
             {
-                var message = MessagePackSerializer.Deserialize<BeltTickMessagePack>(payload);
-                Replica.Receive(message.ToCore());
-            }
-            catch (Exception error)
-            {
-                _failure = error;
+                _failure = new InvalidOperationException(decoded.FailureReason);
                 _failed.TrySetResult();
-                Debug.LogError($"Belt transport packet failed: {error}");
+                Debug.LogError($"Belt transport packet failed: {decoded.FailureReason}");
+                return;
             }
+            Replica.Receive(decoded.Difference);
         }
     }
 }

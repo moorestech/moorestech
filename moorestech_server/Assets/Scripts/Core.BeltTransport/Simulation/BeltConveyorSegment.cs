@@ -28,7 +28,7 @@ namespace Core.BeltTransport
         {
             // 占有長が整数範囲を超えない容量に制限する。
             // Bound capacity so occupied length fits in an integer.
-            if (capacity <= 0 || capacity > (int.MaxValue - (BeltConstants.ItemWidth - 1)) / BeltConstants.ItemWidth ||
+            if (capacity <= 0 || (int.MaxValue - (BeltConstants.ItemWidth - 1)) / BeltConstants.ItemWidth < capacity ||
                 (kind == BeltSegmentKind.Merge && capacity != 1))
                 throw new ArgumentOutOfRangeException(nameof(capacity));
             if (kind != BeltSegmentKind.Normal && kind != BeltSegmentKind.Merge && kind != BeltSegmentKind.Branch)
@@ -41,16 +41,16 @@ namespace Core.BeltTransport
             // 新規生成は向きから初期化し、ロードは保存順を使う。
             // Initialize from orientation or restore the saved priority order.
             inputs = new BeltSegmentInputs(kind == BeltSegmentKind.Merge
-                ? (priorityOrder >= 0 ? priorityOrder : BeltPriority.Create(BeltDirections.Opposite(forwardDirection))) : 0);
+                ? (0 <= priorityOrder ? priorityOrder : BeltPriority.Create(BeltDirections.Opposite(forwardDirection))) : 0);
             if (kind != BeltSegmentKind.Normal)
                 Buffer = new BeltBuffer(this, kind == BeltSegmentKind.Branch
-                    ? (priorityOrder >= 0 ? priorityOrder : BeltPriority.Create(forwardDirection))
+                    ? (0 <= priorityOrder ? priorityOrder : BeltPriority.Create(forwardDirection))
                     : (int)forwardDirection);
         }
 
         public void SetSpeed(int speed)
         {
-            if (speed < 0 || speed > BeltConstants.ItemWidth / 2)
+            if (speed < 0 || BeltConstants.ItemWidth / 2 < speed)
                 throw new ArgumentOutOfRangeException(nameof(speed));
             Speed = speed;
         }
@@ -77,13 +77,13 @@ namespace Core.BeltTransport
             // 搬入拒否は通常の流量制御。成功時だけ順序を更新する。
             // Rejection is normal flow control; rotate priority only on success.
             int offer = GetOffer(direction);
-            if (length > offer) return false;
+            if (offer < length) return false;
             queue.EnqueueTail(offer - length, item);
             if (Kind == BeltSegmentKind.Merge) { inputs.CompleteInput(direction); InputDirection = direction; }
             return true;
         }
 
-        public bool TryGetOutput(BeltDirection direction) => OutputLength > 0;
+        public bool TryGetOutput(BeltDirection direction) => 0 < OutputLength;
         internal void BeginTick() => TickSpeed = Speed;
         internal void RestoreInputDirection(BeltDirection direction) => InputDirection = direction;
         internal void ResolveInput() => inputs.Resolve(Count != 0);
@@ -116,7 +116,7 @@ namespace Core.BeltTransport
             // Output success also determines follower movement.
             bool sent = false;
             int length = OutputLength;
-            if (length > 0 && Output != null)
+            if (0 < length && Output != null)
                 sent = deferredOutput != null
                     ? deferredOutput.TryReceive(length, queue.HeadItem)
                     : Output.TryReceive(BeltDirections.Opposite(outputDirection), length, queue.HeadItem);

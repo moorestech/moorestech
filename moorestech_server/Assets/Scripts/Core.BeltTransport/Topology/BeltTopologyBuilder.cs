@@ -58,11 +58,10 @@ namespace Core.BeltTransport
                 var forward = tail.Kind == BeltSegmentKind.Merge && tail.Outputs.Count == 1 ? tail.Outputs[0].Direction : tail.Cell.Forward;
                 paths.Add(new BeltTransportPath(chain.ToArray(), tail.Kind, priority, forward, tail.Outputs));
             }
+            bool SameSpeed(BeltTopologyNode first, BeltTopologyNode second) =>
+                first.Cell.SpeedProfile == second.Cell.SpeedProfile && first.Cell.Speed == second.Cell.Speed;
             #endregion
         }
-
-        private static bool SameSpeed(BeltTopologyNode first, BeltTopologyNode second) =>
-            first.Cell.SpeedProfile == second.Cell.SpeedProfile && first.Cell.Speed == second.Cell.Speed;
 
         private static int Compare(BeltTopologyNode first, BeltTopologyNode second)
         {

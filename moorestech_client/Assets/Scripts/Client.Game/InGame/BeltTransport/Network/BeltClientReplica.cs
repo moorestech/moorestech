@@ -24,7 +24,7 @@ namespace Client.Game.InGame.BeltTransport
                 return;
             }
             _pending.Add(difference.Tick, difference);
-            if (difference.Tick > Tick + 1) Debug.LogWarning($"Belt transport waiting for tick {Tick + 1}; received {difference.Tick}.");
+            if (Tick + 1 < difference.Tick) Debug.LogWarning($"Belt transport waiting for tick {Tick + 1}; received {difference.Tick}.");
             bool advanced = false;
             while (_pending.TryGetValue(Tick + 1, out var next))
             {

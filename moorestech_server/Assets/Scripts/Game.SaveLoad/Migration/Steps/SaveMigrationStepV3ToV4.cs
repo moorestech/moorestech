@@ -39,29 +39,32 @@ namespace Game.SaveLoad.Migration.Steps
                 conversion.State[BeltSaveKey] = new JObject { ["legacyItems"] = conversion.Items.DeepClone() };
             Debug.Log($"Migrated belt state V3 to V4: wrapped {conversions.Count} blocks.");
             return SaveMigrationStepResult.Converted(save);
-        }
 
-        private static bool TryReadLegacyItem(JToken token, out JObject item, out string reason)
-        {
-            item = token as JObject;
-            reason = null;
-            if (item != null) return true;
-            if (token.Type != JTokenType.String) { reason = "Legacy belt item must contain JSON object text."; return false; }
-            // 外部入力JSONの解析境界を隔離し、失敗は結果に残す。
-            // Isolate the external input JSON parsing boundary and return an explicit failure.
-            try { item = JObject.Parse((string)token); return true; }
-            catch (JsonException exception)
+            #region Internal
+            bool TryReadLegacyItem(JToken token, out JObject item, out string reason)
             {
-                reason = $"Legacy belt item JSON could not be parsed: {exception.Message}";
-                Debug.LogWarning(reason);
-                return false;
+                item = token as JObject;
+                reason = null;
+                if (item != null) return true;
+                if (token.Type != JTokenType.String) { reason = "Legacy belt item must contain JSON object text."; return false; }
+                // 外部入力JSONの解析境界を隔離し、失敗は結果に残す。
+                // Isolate the external input JSON parsing boundary and return an explicit failure.
+                try { item = JObject.Parse((string)token); return true; }
+                catch (JsonException exception)
+                {
+                    reason = $"Legacy belt item JSON could not be parsed: {exception.Message}";
+                    Debug.LogWarning(reason);
+                    return false;
+                }
             }
+
+            SaveMigrationStepResult Fail(string reason)
+            {
+                Debug.LogWarning($"Cannot migrate belt state V3 to V4: {reason}");
+                return SaveMigrationStepResult.Failed(reason);
+            }
+            #endregion
         }
 
-        private static SaveMigrationStepResult Fail(string reason)
-        {
-            Debug.LogWarning($"Cannot migrate belt state V3 to V4: {reason}");
-            return SaveMigrationStepResult.Failed(reason);
-        }
     }
 }

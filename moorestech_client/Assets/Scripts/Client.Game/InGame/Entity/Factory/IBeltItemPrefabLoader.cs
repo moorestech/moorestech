@@ -4,6 +4,6 @@ namespace Client.Game.InGame.Entity.Factory
 {
     public interface IBeltItemPrefabLoader
     {
-        UniTask<BeltItemPrefab> LoadAsync(ItemId itemId);
+        UniTask<BeltItemPrefabLoadResult> LoadAsync(ItemId itemId);
     }
 }

@@ -63,8 +63,8 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
                     Debug.LogWarning($"Skipped pruned belt item: cell={component.CellId}, instance={savedItem.InstanceId}");
                     return;
                 }
-                if (savedItem.ItemStack.Count != 1 || savedItem.Progress < 1 || savedItem.Progress > 256 ||
-                    savedItem.EntryDirection < 0 || savedItem.EntryDirection > 3 || Math.Abs(savedItem.EntryHeight) > 1)
+                if (savedItem.ItemStack.Count != 1 || savedItem.Progress < 1 || 256 < savedItem.Progress ||
+                    savedItem.EntryDirection < 0 || 3 < savedItem.EntryDirection || 1 < Math.Abs(savedItem.EntryHeight))
                     throw new ArgumentException($"Invalid belt item state: cell={component.CellId}, instance={savedItem.InstanceId}");
                 var id = MasterHolder.ItemMaster.GetItemId(savedItem.ItemStack.ItemGuid);
                 var stack = ServerContext.ItemStackFactory.Create(id, 1, new ItemInstanceId(savedItem.InstanceId));

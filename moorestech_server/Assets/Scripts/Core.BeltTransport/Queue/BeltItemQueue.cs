@@ -39,7 +39,7 @@ namespace Core.BeltTransport
         internal void EnqueueTail(int gap, in BeltItem item)
         {
             int p = head + count;
-            if (p >= n) p -= n;
+            if (n <= p) p -= n;
             items[p] = item;
             SetPhysicalGap(p, gap);
             // 密着した末尾を既存ブロックへ結合する。
@@ -69,11 +69,11 @@ namespace Core.BeltTransport
             if (sent)
             {
                 DequeueHead();
-                if (count > 0)
+                if (0 < count)
                     SetPhysicalGap(head, gaps[head] - tickSpeed);
                 return;
             }
-            if (gapToExit >= tickSpeed)
+            if (tickSpeed <= gapToExit)
             {
                 SetPhysicalGap(head, gapToExit - tickSpeed);
                 return;
@@ -83,10 +83,10 @@ namespace Core.BeltTransport
             // 出口で先頭を止め、後続の隙間を詰める。
             // Clamp the head and close the following block gaps.
             if (gaps[head] != 0) SetPhysicalGap(head, 0);
-            while (blockSizes[head] < count && remaining > 0)
+            while (blockSizes[head] < count && 0 < remaining)
             {
                 int phys = head + blockSizes[head];
-                if (phys >= n) phys -= n;
+                if (n <= phys) phys -= n;
                 int gap = gaps[phys];
                 if (gap <= remaining)
                 {
@@ -96,7 +96,7 @@ namespace Core.BeltTransport
                     // Merge contiguous blocks across the closed gap.
                     int size = blockSizes[phys];
                     int tail = phys + size - 1;
-                    if (tail >= n) tail -= n;
+                    if (n <= tail) tail -= n;
                     blockSizes[head] += size;
                     blockSizes[tail] = blockSizes[head];
                 }
@@ -119,12 +119,12 @@ namespace Core.BeltTransport
             count--;
             // 先頭削除だけでは後続の絶対位置を変えない。
             // Preserve follower positions when removing only the head.
-            if (count > 0)
+            if (0 < count)
                 SetPhysicalGap(head, gaps[head] + gapToExit + BeltConstants.ItemWidth);
-            if (size > 0)
+            if (0 < size)
             {
                 int tail = head + size - 1;
-                if (tail >= n) tail -= n;
+                if (n <= tail) tail -= n;
                 blockSizes[head] = blockSizes[tail] = size;
             }
         }

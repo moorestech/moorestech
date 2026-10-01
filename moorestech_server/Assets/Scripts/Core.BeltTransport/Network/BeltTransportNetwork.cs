@@ -12,7 +12,6 @@ namespace Core.BeltTransport
         private BeltNetworkConnection[] connections = new BeltNetworkConnection[0];
         private BeltTransportPath[] paths = new BeltTransportPath[0];
         private BeltSimulation simulation = new BeltSimulation(new BeltConveyorSegment[0]);
-        public IReadOnlyList<BeltTransportPath> Paths => paths;
 
         public BeltTransportNetwork(IBeltExternalReceiverFactory receivers, IBeltItemDropObserver dropObserver)
         {
@@ -57,7 +56,7 @@ namespace Core.BeltTransport
         public bool CanInsert(int cellId)
         {
             var path = pathsByCell[cellId];
-            return path.Cells[0].Id == cellId && path.Segment.Kind != BeltSegmentKind.Merge && path.Segment.GetOffer(BeltDirection.None) > 0;
+            return path.Cells[0].Id == cellId && path.Segment.Kind != BeltSegmentKind.Merge && 0 < path.Segment.GetOffer(BeltDirection.None);
         }
 
         public void ReplaceCellItems(int cellId, BeltCellItemState[] replacement)

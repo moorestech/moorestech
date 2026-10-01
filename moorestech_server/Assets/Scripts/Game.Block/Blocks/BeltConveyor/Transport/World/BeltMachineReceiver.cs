@@ -23,7 +23,7 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
             if (!owner.Network.GetPath(edge.SourceId).Segment.Buffer.TryGetItem(out var item)) return 0;
             var stack = owner.GetStack(item.Guid);
             if (connection.Target.InsertionCheck(new List<IItemStack> { stack })) offer = BeltConstants.ItemWidth;
-            if (offer > 0) owner.RecordOutput(new BeltOutputResult(edge.SourceId, edge.TargetId, stage, edge.Direction, offer, false, item));
+            if (0 < offer) owner.RecordOutput(new BeltOutputResult(edge.SourceId, edge.TargetId, stage, edge.Direction, offer, false, item));
             return offer;
         }
         public bool TryReceive(BeltDirection direction, int length, in BeltItem item)

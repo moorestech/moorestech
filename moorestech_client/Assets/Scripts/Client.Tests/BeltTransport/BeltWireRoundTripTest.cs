@@ -12,7 +12,7 @@ namespace Client.Tests.BeltTransport
         {
             // 停止境界・坂の搬入・buffer・優先順位を初期パケットに含める。
             // Include stopped boundaries, slope entry, buffers and priority in the initial packet.
-            var cell = new BeltNetworkCell(4, -2, 3, 7, 0, "gear:0.25:32:1", BeltDirection.Right);
+            var cell = new BeltNetworkCell(4, -2, 3, 7, 0, "gear:0.25:32:1", BeltDirection.Right, new BeltCellSurfaceProfile(0.1f, 1.1f));
             var item = new BeltItem(BeltTestState.Identity, 17);
             var state = new BeltCellItemState(4, 128, BeltDirection.Left, 1, item, true);
             var edge = new BeltNetworkConnection(4, 9, true, false, BeltDirection.Right, -1);
@@ -29,7 +29,9 @@ namespace Client.Tests.BeltTransport
                 new BeltCellItemsChange(4, new[] { state }), new BeltTopologyChange(new[] { cell }, new[] { 8 }, new[] { edge }, new[] { edge }, new[] { state }) };
             var output = new BeltOutputResult(4, 9, 3, BeltDirection.Right, 32, true, item);
             var tick = new BeltTickMessagePack(new BeltTickDifference(124, changes, new[] { output }, changes));
-            var decoded = RoundTrip(tick).ToCore();
+            var received = BeltTickDecoder.Decode(MessagePackSerializer.Serialize(tick));
+            Assert.IsTrue(received.Succeeded, received.FailureReason);
+            var decoded = received.Difference;
             Assert.AreEqual(124, decoded.Tick);
             CollectionAssert.AreEqual(new[] { output }, decoded.Outputs);
             Assert.AreEqual(32, ((BeltSpeedChange)decoded.BeforeTick[0]).Speeds[0].Speed);

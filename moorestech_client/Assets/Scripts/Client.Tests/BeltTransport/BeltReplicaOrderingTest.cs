@@ -31,8 +31,8 @@ namespace Client.Tests.BeltTransport
         {
             var state = BeltTestState.Snapshot(progress, 0, true);
             var item = new BeltCellItemState(1, progress, entry, height, state.Items[0].Item, false);
-            var position = BeltItemPosition.Calculate(state.Cells[0], item);
-            Assert.AreEqual(new Vector3(-1.5f + x, 3.35f + height * (1f - progress / 256f), 4.5f + z), position);
+            var position = BeltItemPosition.Calculate(state, item);
+            Assert.AreEqual(new Vector3(-1.5f + x, 3.35f, 4.5f + z), position);
         }
     }
 }

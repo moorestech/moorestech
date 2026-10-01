@@ -1,3 +1,4 @@
+using Client.Game.InGame.Entity.Factory;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -26,7 +27,7 @@ namespace Client.Tests.BeltTransport
             var factory = new DelayedFactory();
             var renderer = new BeltItemRenderer(handler, factory);
             renderer.Initialize();
-            factory.Pending[0].TrySetResult(new View());
+            factory.Pending[0].TrySetResult(BeltItemCreationResult.Created(new View()));
             // 初回生成の後、バッファ再生で別GUIDの生成が始まる状況を作る。
             // Start another identity during buffered replay after the first creation completed.
             var item = new BeltCellItemState(1, 256, BeltDirection.Back, 0, new BeltItem(new Guid("00000002-0000-0000-0000-000000000000"), 1), false);
@@ -37,7 +38,7 @@ namespace Client.Tests.BeltTransport
             if (wait.Status == UniTaskStatus.Faulted) wait.GetAwaiter().GetResult();
             Assert.AreEqual(UniTaskStatus.Pending, wait.Status);
             Assert.AreEqual(2, factory.Pending.Count);
-            factory.Pending[1].TrySetResult(new View());
+            factory.Pending[1].TrySetResult(BeltItemCreationResult.Created(new View()));
             await wait;
         });
         [Test]
@@ -55,13 +56,13 @@ namespace Client.Tests.BeltTransport
             events.Dispatch(BeltTickCompletedEventPacket.EventTag, new byte[] { 0xc1 });
             Assert.AreEqual(UniTaskStatus.Faulted, wait.Status);
             Assert.Throws<InvalidOperationException>(() => wait.GetAwaiter().GetResult());
-            factory.Pending[0].TrySetResult(new View());
+            factory.Pending[0].TrySetResult(BeltItemCreationResult.Created(new View()));
         }
         private sealed class DelayedFactory : IBeltItemViewFactory
         {
-            internal readonly List<UniTaskCompletionSource<IEntityObject>> Pending = new();
-            public UniTask<IEntityObject> CreateAsync(Guid id, ItemId item, Vector3 position)
-            { var task = new UniTaskCompletionSource<IEntityObject>(); Pending.Add(task); return task.Task; }
+            internal readonly List<UniTaskCompletionSource<BeltItemCreationResult>> Pending = new();
+            public UniTask<BeltItemCreationResult> CreateAsync(Guid id, ItemId item, Vector3 position)
+            { var task = new UniTaskCompletionSource<BeltItemCreationResult>(); Pending.Add(task); return task.Task; }
         }
         private sealed class View : IEntityObject
         {

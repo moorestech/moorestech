@@ -32,7 +32,7 @@ namespace Client.Tests.BeltTransport
             }
             var factory = new BeltConveyorItemEntityObjectFactory(new Prefabs(new BeltItemPrefab(prefab, texture, custom)));
             var position = new Vector3(-1.5f, 3.85f, 4f);
-            var view = factory.CreateItem(parent.transform, 17, new ItemId(custom ? 991 : 992), position).GetAwaiter().GetResult();
+            var view = factory.CreateItem(parent.transform, 17, new ItemId(custom ? 991 : 992), position).GetAwaiter().GetResult().View;
             var instance = ((Component)view).gameObject;
             Assert.AreEqual(17, view.EntityId);
             Assert.AreEqual(position, instance.transform.position);
@@ -52,7 +52,7 @@ namespace Client.Tests.BeltTransport
         {
             private readonly BeltItemPrefab _prefab;
             internal Prefabs(BeltItemPrefab prefab) { _prefab = prefab; }
-            public UniTask<BeltItemPrefab> LoadAsync(ItemId itemId) => UniTask.FromResult(_prefab);
+            public UniTask<BeltItemPrefabLoadResult> LoadAsync(ItemId itemId) => UniTask.FromResult(BeltItemPrefabLoadResult.Ready(_prefab));
         }
     }
 }

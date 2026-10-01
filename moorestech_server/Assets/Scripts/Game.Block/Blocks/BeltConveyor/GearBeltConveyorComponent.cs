@@ -28,33 +28,35 @@ namespace Game.Block.Blocks.BeltConveyor
             _beltConveyorComponent.OnItemsChanged.Subscribe(_ => UpdateTorqueRequestRate());
             OnChangeBlockState.Subscribe(_ => UpdateSpeed());
             UpdateTorqueRequestRate();
-        }
 
-        // 軸の実RPMから速度を求め、空ベルトの要求トルク倍率を掛けない。
-        // Derive speed from actual shaft RPM without multiplying the empty-belt torque request rate.
-        private void UpdateSpeed()
-        {
-            BlockException.CheckDestroy(this);
-
-            // 稼働率0（停止・RPM不足）なら搬送を止める
-            // Stop transport when the operating rate is zero (stopped or insufficient RPM)
-            var rpm = CurrentRpm.AsPrimitive();
-            var operatingRate = _consumption.BaseRpm <= 0 || rpm < _consumption.MinimumRpm ? 0 : rpm / _consumption.BaseRpm;
-            if (operatingRate <= 0f)
+            #region Internal
+            // 軸の実RPMから速度を求め、空ベルトの要求トルク倍率を掛けない。
+            // Derive speed from actual shaft RPM without multiplying the empty-belt torque request rate.
+            void UpdateSpeed()
             {
-                _beltConveyorComponent.SetTicksOfItemEnterToExit(uint.MaxValue);
-                return;
-            }
+                BlockException.CheckDestroy(this);
 
-            var transitSeconds = _timeOfItemEnterToExit / operatingRate;
-            if (transitSeconds <= 0)
-            {
-                _beltConveyorComponent.SetTicksOfItemEnterToExit(uint.MaxValue);
-                return;
-            }
+                // 稼働率0（停止・RPM不足）なら搬送を止める
+                // Stop transport when the operating rate is zero (stopped or insufficient RPM)
+                var rpm = CurrentRpm.AsPrimitive();
+                var operatingRate = _consumption.BaseRpm <= 0 || rpm < _consumption.MinimumRpm ? 0 : rpm / _consumption.BaseRpm;
+                if (operatingRate <= 0f)
+                {
+                    _beltConveyorComponent.SetTicksOfItemEnterToExit(uint.MaxValue);
+                    return;
+                }
 
-            var ticks = GameUpdater.SecondsToTicks(transitSeconds);
-            _beltConveyorComponent.SetTicksOfItemEnterToExit(ticks);
+                var transitSeconds = _timeOfItemEnterToExit / operatingRate;
+                if (transitSeconds <= 0)
+                {
+                    _beltConveyorComponent.SetTicksOfItemEnterToExit(uint.MaxValue);
+                    return;
+                }
+
+                var ticks = GameUpdater.SecondsToTicks(transitSeconds);
+                _beltConveyorComponent.SetTicksOfItemEnterToExit(ticks);
+            }
+            #endregion
         }
 
         private void UpdateTorqueRequestRate()

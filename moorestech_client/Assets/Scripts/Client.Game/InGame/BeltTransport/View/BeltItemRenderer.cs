@@ -11,7 +11,6 @@ namespace Client.Game.InGame.BeltTransport
         private readonly BeltNetworkEventHandler _network;
         private readonly BeltItemViewStore _views;
         private UniTask _initial;
-        private Exception _failure;
         public BeltItemRenderer(BeltNetworkEventHandler network, IBeltItemViewFactory factory)
         { _network = network; _views = new BeltItemViewStore(factory); }
         public void Initialize()
@@ -26,22 +25,18 @@ namespace Client.Game.InGame.BeltTransport
             _network.ThrowIfFailed();
             // バッファ再生中に追加された生成も待ち、受信失敗時はロード待ちを打ち切る。
             // Include creations added during buffered replay and stop waiting when reception fails.
-            await UniTask.WhenAny(WaitForViewsAsync(), _network.WaitForFailureAsync());
+            await UniTask.WhenAny(WaitForViewsAsync(), _network.WaitForFailureAsync(), _views.WaitForFailureAsync());
             _network.ThrowIfFailed();
-            if (_failure != null) throw new InvalidOperationException("Belt item rendering failed.", _failure);
+            if (_views.FailureReason != null) throw new InvalidOperationException(_views.FailureReason);
+
+            #region Internal
+            async UniTask WaitForViewsAsync()
+            {
+                await _initial;
+                await _views.WaitForPendingAsync();
+            }
+            #endregion
         }
-        private async UniTask WaitForViewsAsync()
-        {
-            await _initial;
-            await _views.WaitForPendingAsync();
-        }
-        private void Apply(BeltNetworkSnapshot snapshot) => ApplyAsync(snapshot).Forget();
-        private async UniTask ApplyAsync(BeltNetworkSnapshot snapshot)
-        {
-            // Addressables非同期ロード境界の失敗を表示し、初期待機にも伝える。
-            // Report failures at the asynchronous Addressables boundary and fail startup waiting.
-            try { await _views.ApplyAsync(snapshot); }
-            catch (Exception error) { _failure = error; Debug.LogError($"Belt item rendering failed: {error}"); }
-        }
+        private void Apply(BeltNetworkSnapshot snapshot) => _views.ApplyAsync(snapshot).Forget();
     }
 }

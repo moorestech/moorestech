@@ -14,9 +14,10 @@ namespace Server.Util.MessagePack.BeltTransport
         [Key(4)] public int Speed { get; }
         [Key(5)] public string SpeedProfile { get; }
         [Key(6)] public BeltDirection Forward { get; }
+        [Key(7)] public BeltCellSurfaceMessagePack Surface { get; }
 
         [SerializationConstructor]
-        public BeltCellMessagePack(int id, int x, int y, int z, int speed, string speedProfile, BeltDirection forward)
+        public BeltCellMessagePack(int id, int x, int y, int z, int speed, string speedProfile, BeltDirection forward, BeltCellSurfaceMessagePack surface)
         {
             Id = id;
             X = x;
@@ -24,7 +25,7 @@ namespace Server.Util.MessagePack.BeltTransport
             Z = z;
             Speed = speed;
             SpeedProfile = speedProfile;
-            Forward = forward;
+            Forward = forward; Surface = surface;
         }
         [Obsolete("Reserved for MessagePack.")]
         public BeltCellMessagePack() { }
@@ -37,9 +38,9 @@ namespace Server.Util.MessagePack.BeltTransport
             Z = value.Z;
             Speed = value.Speed;
             SpeedProfile = value.SpeedProfile;
-            Forward = value.Forward;
+            Forward = value.Forward; Surface = new(value.Surface);
         }
 
-        public BeltNetworkCell ToCore() => new(Id, X, Y, Z, Speed, SpeedProfile, Forward);
+        public BeltNetworkCell ToCore() => new(Id, X, Y, Z, Speed, SpeedProfile, Forward, Surface.ToCore());
     }
 }

@@ -18,10 +18,22 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
             {
                 var block = data.Block;
                 if (!block.ComponentManager.TryGetComponent<VanillaBeltConveyorComponent>(out var belt)) continue;
+                // 上下姿勢の在庫はcomponentの保存領域に保持する。
+                // Retain unsupported vertical inventories in the component's pending storage.
+                if (!BeltTransportDirections.IsHorizontal(belt.Position))
+                {
+                    Debug.Log($"Belt transport excludes vertical orientation: {belt.Position.BlockDirection} at {belt.Position.OriginalPos}.");
+                    continue;
+                }
                 var position = block.BlockPositionInfo.OriginalPos;
                 graph.Components.Add(belt.CellId, belt);
                 graph.Cells.Add(new BeltNetworkCell(belt.CellId, position.x, position.y, position.z, belt.Speed,
-                    belt.SpeedProfile, BeltTransportDirections.Forward(block.BlockPositionInfo)));
+                    belt.SpeedProfile, BeltTransportDirections.Forward(block.BlockPositionInfo), belt.SlopeType switch
+                    {
+                        BeltConveyorSlopeType.Up => new BeltCellSurfaceProfile(0.1f, 1.1f),
+                        BeltConveyorSlopeType.Down => new BeltCellSurfaceProfile(1.1f, 0.1f),
+                        _ => new BeltCellSurfaceProfile(0, 0)
+                    }));
             }
 
             // 接続resolverが確定したportだけを共有グラフへ写す。
@@ -52,7 +64,7 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
             var inputCounts = new Dictionary<int, int>();
             foreach (var edge in graph.Edges)
                 if (edge.TargetIsBelt) inputCounts[edge.TargetId] = inputCounts.TryGetValue(edge.TargetId, out var count) ? count + 1 : 1;
-            for (int i = graph.Edges.Count - 1; i >= 0; i--)
+            for (int i = graph.Edges.Count - 1; 0 <= i; i--)
             {
                 var edge = graph.Edges[i];
                 if (edge.SourceIsBelt || !edge.TargetIsBelt || inputCounts[edge.TargetId] <= 1) continue;

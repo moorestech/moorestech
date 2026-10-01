@@ -39,7 +39,7 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
             var items = GatherPending();
             var priorities = new List<BeltCellPriority>();
             foreach (var component in graph.Components.Values)
-                if (component.LoadedPriority >= 0) priorities.Add(new BeltCellPriority(component.CellId, component.LoadedPriority));
+                if (0 <= component.LoadedPriority) priorities.Add(new BeltCellPriority(component.CellId, component.LoadedPriority));
             Network.Restore(new BeltNetworkSnapshot(graph.Cells.ToArray(), graph.Edges.ToArray(), items, priorities.ToArray()));
             foreach (var component in graph.Components.Values) component.Bind(this);
             initialized = true; dirty = false; CompletedTick = GameUpdater.CurrentTick;
@@ -74,7 +74,7 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
                 graph = BeltWorldGraphBuilder.Capture(world);
                 var addedItems = GatherPending();
                 var change = BeltTopologyChange.Between(previous, graph.Cells.ToArray(), graph.Edges.ToArray(), addedItems);
-                if (change.ChangedCells.Length + change.RemovedCells.Length + change.AddedConnections.Length + change.RemovedConnections.Length + addedItems.Length > 0)
+                if (0 < change.ChangedCells.Length + change.RemovedCells.Length + change.AddedConnections.Length + change.RemovedConnections.Length + addedItems.Length)
                 {
                     Network.Rebuild(graph.Cells.ToArray(), graph.Edges.ToArray(), addedItems);
                     foreach (var component in graph.Components.Values) component.Bind(this);
