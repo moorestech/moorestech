@@ -39,7 +39,8 @@
         "Client.PlaytestReceiver",
         "com.rlabrecque.steamworks.net",
         "Game.PlayerIdentity",
-        "Client.RemoteExec"
+        "Client.RemoteExec",
+        "Client.Input"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

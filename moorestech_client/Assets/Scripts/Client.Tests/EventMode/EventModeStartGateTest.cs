@@ -19,16 +19,15 @@ namespace Client.Tests.EventMode
     {
         private const int IdleTimeoutSeconds = 180;
 
-        private static readonly string[] SavedEnvKeys = { EventExhibitionSettings.EnableEnvKey, EventExhibitionSettings.EditorOptInEnvKey };
-        private readonly string[] _savedEnvValues = new string[SavedEnvKeys.Length];
+        private string[] _savedEnvValues;
 
         [SetUp]
         public void SetUp()
         {
             // イベントモード変数を退避し固定する
             // Save env vars and pin to normal mode.
-            for (var i = 0; i < SavedEnvKeys.Length; i++) _savedEnvValues[i] = Environment.GetEnvironmentVariable(SavedEnvKeys[i]);
-            for (var i = 0; i < SavedEnvKeys.Length; i++) Environment.SetEnvironmentVariable(SavedEnvKeys[i], null);
+            _savedEnvValues = EventModeTestEnvironment.Capture(EventModeTestEnvironment.ExhibitionEnableKeys);
+            EventModeTestEnvironment.DisableExhibitionMode();
 
             // 判定基準は公開snapshotの実言語
             // Judged against the real languages of the published snapshot
@@ -40,7 +39,7 @@ namespace Client.Tests.EventMode
         {
             // 退避した値へ正確に書き戻す
             // Write the saved values back exactly
-            for (var i = 0; i < SavedEnvKeys.Length; i++) Environment.SetEnvironmentVariable(SavedEnvKeys[i], _savedEnvValues[i]);
+            EventModeTestEnvironment.Restore(EventModeTestEnvironment.ExhibitionEnableKeys, _savedEnvValues);
         }
 
         [Test]
