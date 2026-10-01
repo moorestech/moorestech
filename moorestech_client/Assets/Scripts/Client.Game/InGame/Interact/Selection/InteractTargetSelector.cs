@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Client.Common;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.Player;
 using UnityEngine;
@@ -12,13 +11,7 @@ namespace Client.Game.InGame.Interact.Selection
     /// </summary>
     public class InteractTargetSelector : IInteractTargetSelector
     {
-        public const float InteractDistance = 2f;
-
-        private const int InitialOverlapBufferSize = 64;
-
-        private static readonly int InteractLayerMask = LayerConst.BlockOnlyLayerMask | LayerConst.MapObjectOnlyLayerMask;
-
-        private Collider[] _overlapBuffer = new Collider[InitialOverlapBufferSize];
+        private Collider[] _overlapBuffer = new Collider[InteractOverlap.InitialBufferSize];
 
         private readonly List<NearbyCandidate> _candidates = new();
 
@@ -44,9 +37,9 @@ namespace Client.Game.InGame.Interact.Selection
 
             // カメラ後退分を足した距離まで撃ち、到達判定はプレイヤーから測る
             // The ray spans the camera pull-back plus the reach, while the reach itself is measured from the player
-            var rayDistance = Vector3.Distance(camera.transform.position, playerPosition) + InteractDistance;
-            if (BlockClickDetectUtil.TryGetFrontmostSolidHit(InteractLayerMask, rayDistance, out var hit) &&
-                Vector3.Distance(playerPosition, hit.point) <= InteractDistance)
+            var rayDistance = Vector3.Distance(camera.transform.position, playerPosition) + InteractOverlap.InteractDistance;
+            if (BlockClickDetectUtil.TryGetFrontmostSolidHit(InteractOverlap.InteractLayerMask, rayDistance, out var hit) &&
+                Vector3.Distance(playerPosition, hit.point) <= InteractOverlap.InteractDistance)
             {
                 // 手の届く実体は対象外でもそこで確定させる。近傍へ落とすと遮蔽物越しに機械を開ける
                 // A solid within reach settles the frame even when it is no target; falling through would open a machine through the wall
@@ -57,7 +50,7 @@ namespace Client.Game.InGame.Interact.Selection
                 return _selection;
             }
 
-            var hitCount = OverlapNearby(playerPosition);
+            var hitCount = InteractOverlap.OverlapNearby(playerPosition, ref _overlapBuffer);
             for (var index = 0; index < hitCount; index++)
             {
                 if (!InteractableResolver.TryResolve(_overlapBuffer[index], playerPosition, out var candidate, out var candidatePoint)) continue;
@@ -71,19 +64,6 @@ namespace Client.Game.InGame.Interact.Selection
             return _selection;
 
             #region Internal
-
-            // 飽和したまま返すと取りこぼした候補次第で選定が変わるため、バッファを倍にして採り直す
-            // A saturated buffer would make the pick depend on which candidates were dropped, so it is doubled and re-queried
-            int OverlapNearby(Vector3 center)
-            {
-                while (true)
-                {
-                    var count = Physics.OverlapSphereNonAlloc(center, InteractDistance, _overlapBuffer, InteractLayerMask);
-                    if (count < _overlapBuffer.Length) return count;
-
-                    _overlapBuffer = new Collider[_overlapBuffer.Length * 2];
-                }
-            }
 
             bool ContainsCandidate(IInteractable interactable)
             {

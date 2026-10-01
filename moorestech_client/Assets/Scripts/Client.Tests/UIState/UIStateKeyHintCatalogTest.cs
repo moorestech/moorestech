@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.PlaceBlock;
+using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Game.InGame.UI.UIState.State.TrainHUDScreen;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;

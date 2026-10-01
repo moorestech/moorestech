@@ -87,7 +87,7 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public bool LocksPlayerMovement()
         {
-            return true;
+            return false;
         }
 
         public IReadOnlyList<KeyHint> GetKeyHints()

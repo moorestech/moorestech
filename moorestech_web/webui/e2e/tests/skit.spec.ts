@@ -37,6 +37,29 @@ test("blocking skit reveals, advances, and selects by choiceId", async ({ page }
   }).toEqual({ sessionId: "blocking-1", sceneRevision: 2, choiceId: "route-b" });
 });
 
+test("会話窓にフォーカスがあってもSpaceでは送らずEnterで送る", async ({ page }) => {
+  const advanceCountBefore = (await payloadsOf(page, "skit.advance")).length;
+  await page.goto("/");
+  await setSkitStage(page, "text");
+  const skit = page.getByTestId("blocking-skit");
+  await expect(skit).toBeVisible();
+
+  // クリックで全文表示し、会話窓へフォーカスを残す
+  // Reveal the full text with a click, leaving focus on the window
+  await skit.click();
+  await expect(skit).toContainText("Blocking message");
+  await skit.focus();
+
+  // Spaceはジャンプ専用なので台詞を送らない
+  // Space is jump-only and never advances the line
+  await page.keyboard.press("Space");
+  await expect(page.getByRole("button", { name: "Route B" })).toHaveCount(0);
+  expect((await payloadsOf(page, "skit.advance")).length).toBe(advanceCountBefore);
+
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("button", { name: "Route B" })).toBeVisible();
+});
+
 test("横長画面で会話帯を全幅に広げツールを実画面右上へ固定する", async ({ page }) => {
   await page.setViewportSize({ width: 2432, height: 786 });
   await page.goto("/");

@@ -1,19 +1,27 @@
 using System.Collections.Generic;
+using Client.Game.InGame.Train.View.Object.Core;
 using Client.Game.InGame.UI.Inventory.Train;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Network.API;
+using Client.Tests.Common;
 using Core.Item.Interface;
 using Game.Context;
+using Game.Train.Unit;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol.PacketResponse;
 using Server.Util.MessagePack;
 using Tests.Module.TestMod;
+using UnityEngine;
 
 namespace Client.Tests.UIState.Models
 {
     public class SubInventorySourceModelTest
     {
+        // モデル化だけを見るテストなので、到達判定で引かれない空の登録簿を渡す
+        // These tests only cover model building, so an empty registry the reach check never consults is passed
+        private readonly TrainCarViewRegistryFake _trainCarViewRegistry = new();
+
         [SetUp]
         public void SetUp()
         {
@@ -25,7 +33,7 @@ namespace Client.Tests.UIState.Models
         {
             var identifier = InventoryIdentifierMessagePack.CreateTrainMessage(7);
             var response = new InventoryResponse(identifier, new List<IItemStack>(), InventoryRequestResult.ContainerNotFound);
-            var source = new TrainSubInventorySource(7);
+            var source = new TrainSubInventorySource(new TrainCarInstanceId(7), _trainCarViewRegistry);
 
             var model = source.CreateModel(response);
 
@@ -38,7 +46,7 @@ namespace Client.Tests.UIState.Models
         {
             var identifier = InventoryIdentifierMessagePack.CreateTrainMessage(7);
             var items = new List<IItemStack> { ServerContext.ItemStackFactory.CreatEmpty(), ServerContext.ItemStackFactory.CreatEmpty() };
-            var source = new TrainSubInventorySource(7);
+            var source = new TrainSubInventorySource(new TrainCarInstanceId(7), _trainCarViewRegistry);
 
             var model = source.CreateModel(new InventoryResponse(identifier, items, InventoryRequestResult.Success));
 
@@ -51,7 +59,7 @@ namespace Client.Tests.UIState.Models
         {
             var identifier = InventoryIdentifierMessagePack.CreateTrainMessage(7);
             var items = new List<IItemStack> { ServerContext.ItemStackFactory.CreatEmpty() };
-            var source = new TrainSubInventorySource(7);
+            var source = new TrainSubInventorySource(new TrainCarInstanceId(7), _trainCarViewRegistry);
             source.CreateModel(new InventoryResponse(identifier, new List<IItemStack>(), InventoryRequestResult.ContainerNotFound));
 
             var model = source.CreateModel(new InventoryResponse(identifier, items, InventoryRequestResult.Success));

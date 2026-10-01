@@ -53,7 +53,7 @@ namespace Client.Tests.Map
         {
             // カメラがコライダー内部に入るとUnityはそのコライダーへレイを当てないため、インタラクトで届く距離より太いレイターゲットは狙えなくなる
             // Unity never hits a collider from inside it, so a ray target wider than the camera can get is impossible to aim at
-            var allowedReach = InteractTargetSelector.InteractDistance + CameraDistance;
+            var allowedReach = InteractOverlap.InteractDistance + CameraDistance;
 
             // 全species分の失敗を集めループ内でAssertを投げない（最初の1件で止まらず116件分を1回で見せる）
             // Failures are collected across every species instead of throwing inside the loop, so all 116 show up in one run instead of stopping at the first

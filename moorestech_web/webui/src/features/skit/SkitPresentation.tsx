@@ -66,7 +66,7 @@ export function SkitPresentation({ interactive }: { interactive: boolean }) {
   };
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (event.key !== "Enter" && event.key !== " ") return;
+    if (event.key !== "Enter") return;
     event.preventDefault();
     handleTextIntent();
   };

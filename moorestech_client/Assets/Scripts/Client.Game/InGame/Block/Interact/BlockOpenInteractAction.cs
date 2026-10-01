@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client.Game.InGame.Context;
 using Client.Game.InGame.Interact;
 using Client.Game.InGame.Interact.Tap;
 using Client.Game.InGame.UI.UIState;
@@ -31,7 +32,10 @@ namespace Client.Game.InGame.Block.Interact
 
         public InteractExecuteResult Execute()
         {
-            var container = UITransitContextContainer.Create<ISubInventorySource>(new BlockSubInventorySource(_blockGameObject));
+            // 開いた位置だけを渡し、表示は毎回datastoreから引き直させる
+            // Hand over the opened position alone so the view is re-resolved from the datastore every time
+            var source = new BlockSubInventorySource(ClientDIContext.BlockGameObjectDataStore, _blockGameObject.BlockPosInfo.OriginalPos);
+            var container = UITransitContextContainer.Create<ISubInventorySource>(source);
             return InteractExecuteResult.Transit(new UITransitContext(UIStateEnum.SubInventory, container));
         }
     }

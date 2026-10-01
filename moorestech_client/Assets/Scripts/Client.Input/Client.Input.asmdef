@@ -2,7 +2,8 @@
   "name": "Client.Input",
   "rootNamespace": "",
   "references": [
-    "Unity.InputSystem"
+    "Unity.InputSystem",
+    "UniRx"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

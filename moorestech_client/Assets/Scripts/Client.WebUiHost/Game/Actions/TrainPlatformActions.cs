@@ -30,7 +30,8 @@ namespace Client.WebUiHost.Game.Actions
             if (mode == null) return ActionResult.Fail("invalid_mode");
             if (_subInventoryState.CurrentSubInventorySource is not BlockSubInventorySource source)
                 return ActionResult.Fail("block_not_open");
-            if (!IsTrainPlatform(source.BlockTypeName)) return ActionResult.Fail("invalid_block_type");
+            if (!source.TryGetBlockIdentity(out _, out var blockTypeName)) return ActionResult.Fail("block_not_open");
+            if (!IsTrainPlatform(blockTypeName)) return ActionResult.Fail("invalid_block_type");
 
             // StateDetailを表示の正本にする
             // Send the target through the existing protocol and keep the later StateDetail as the view source of truth

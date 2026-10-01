@@ -8,5 +8,6 @@ namespace Client.Game.InGame.Player
     {
         Ui,
         Debug,
+        TextInput,
     }
 }
