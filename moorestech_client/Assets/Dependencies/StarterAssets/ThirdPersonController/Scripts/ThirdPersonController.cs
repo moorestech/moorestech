@@ -101,7 +101,11 @@ namespace StarterAssets
 		// 移動ロックは自クラスの状態として持つ。入力受付フラグの外部読みに寄せない
 		// Keep the movement lock as this class's own state instead of reading the input-enable flag from outside
 		private bool _movementLocked;
-        
+
+		// 飛行の物理は委譲先が持つ。発動の判定は外側（Client.Game）が行う
+		// Flight physics live in the delegate; activation is decided outside (Client.Game)
+		private readonly PlayerFlightMotion _flightMotion = new();
+
         public void Initialize()
         {
             _hasAnimator = _animator;
@@ -133,11 +137,36 @@ namespace StarterAssets
             _input.SetInputEnable(value);
         }
 
+        public void SetFlying(bool isFlying)
+        {
+            // 入るときはその場に浮き、抜けるときは縦速度0から落ち始める
+            // Hover in place on entry and start falling from zero vertical speed on exit
+            _flightMotion.SetFlying(isFlying);
+            _verticalVelocity = 0.0f;
+            _input.jump = false;
+
+            // ジャンプ・落下の姿勢は重力処理でしか更新されないため、入退の瞬間に下ろしておく
+            // Jump/fall poses are only updated by the gravity step, so clear them on every switch
+            if (_hasAnimator)
+            {
+                _animator.SetBool(_animIDJump, false);
+                _animator.SetBool(_animIDFreeFall, false);
+            }
+        }
+
+        public void SetFlightVerticalInput(float verticalInput)
+        {
+            _flightMotion.SetVerticalInput(verticalInput);
+        }
+
 		private void Update()
 		{
-			JumpAndGravity();
+			// 飛行中は重力とジャンプを止め、押されたジャンプも捨てる
+			// While flying, skip gravity and jumping, and drop any pressed jump
+			if (_flightMotion.IsFlying) _input.jump = false;
+			else JumpAndGravity();
 			GroundedCheck();
-            Move(); 
+            Move();
 		}
 
 		private void LateUpdate()
@@ -186,8 +215,10 @@ namespace StarterAssets
 
 		private void Move()
 		{
-			// set target speed based on move speed, sprint speed and if sprint is pressed
-			float targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
+			// 飛行中は走りを基準にした飛行速度、通常時は歩き/走り
+			// Use the sprint-based flight speed while flying, otherwise walk/sprint
+			float flightSpeed = _flightMotion.ResolveSpeed(_input.sprint, SprintSpeed);
+			float targetSpeed = _flightMotion.IsFlying ? flightSpeed : (_input.sprint ? SprintSpeed : MoveSpeed);
 
 			// a simplistic acceleration and deceleration designed to be easy to remove, replace, or iterate upon
 
@@ -206,6 +237,12 @@ namespace StarterAssets
 			if (_movementLocked)
 			{
 				_speed = 0.0f;
+			}
+			// 飛行中は加減速せず、押している間だけ目標速度で動く
+			// While flying, skip acceleration and move at the target speed only while keys are held
+			else if (_flightMotion.IsFlying)
+			{
+				_speed = targetSpeed * inputMagnitude;
 			}
 			// accelerate or decelerate to target speed
 			else if (currentHorizontalSpeed < targetSpeed - speedOffset || targetSpeed + speedOffset < currentHorizontalSpeed)
@@ -264,8 +301,12 @@ namespace StarterAssets
 			// Delegate platform follow handling to the service
 			_platformFollowService.ApplyPlatformFollow(Grounded, GroundedOffset, GroundedRadius, GroundLayers);
 
+			// 飛行中の縦速度はQ/E入力、通常時は重力で積算した値
+			// Vertical speed comes from Q/E while flying, otherwise from integrated gravity
+			float verticalVelocity = _flightMotion.IsFlying ? _flightMotion.ResolveVerticalVelocity(flightSpeed, _movementLocked) : _verticalVelocity;
+
 			// move the player
-			_controller.Move(targetDirection.normalized * (_speed * Time.deltaTime) + new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
+			_controller.Move(targetDirection.normalized * (_speed * Time.deltaTime) + new Vector3(0.0f, verticalVelocity, 0.0f) * Time.deltaTime);
 
 			// update animator if using character
 			if (_hasAnimator)
