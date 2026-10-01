@@ -12,6 +12,7 @@ namespace Core.BeltTransport
             receivers = new BeltReplayReceiverFactory();
             Network = new BeltTransportNetwork(receivers, dropObserver);
             Network.Restore(snapshot);
+            Network.DrainOccupancyChanges();
         }
         public void Apply(BeltTickDifference difference)
         {
@@ -22,6 +23,7 @@ namespace Core.BeltTransport
             receivers.SetResults(difference.Outputs);
             Network.Tick();
             foreach (var change in difference.AfterTick) change.Apply(Network);
+            Network.DrainOccupancyChanges();
             Tick = difference.Tick;
         }
     }

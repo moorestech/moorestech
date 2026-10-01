@@ -47,8 +47,8 @@ namespace Tests.CombinedTest.Core
             var beltConveyorComponent = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
             beltConveyorComponent.InsertItem(item, InsertItemContext.Empty);
             
-            // resolverの実接続と中央tickで搬送完了を待つ。
-            // Use resolved connections and bounded central ticks to wait for delivery.
+            // 中央tickで実搬送の完了待機。
+            // Wait for resolved transport with bounded central ticks.
             for (int tick = 0; tick < 100 && !chestComponent.GetItem(0).Equals(item); tick++) GameUpdater.UpdateOneTick();
 
             Assert.True(chestComponent.GetItem(0).Equals(item));

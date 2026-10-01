@@ -4,6 +4,7 @@ namespace Core.BeltTransport
 {
     public sealed class BeltTransportNetwork
     {
+        private readonly BeltCellOccupancy occupancy = new BeltCellOccupancy();
         private readonly IBeltExternalReceiverFactory receivers;
         private readonly IBeltItemDropObserver dropObserver;
         private readonly Dictionary<int, BeltTransportPath> pathsByCell = new Dictionary<int, BeltTransportPath>();
@@ -34,6 +35,7 @@ namespace Core.BeltTransport
         }
 
         public void Tick() => simulation.Tick();
+        public IReadOnlyDictionary<int, int> DrainOccupancyChanges() => occupancy.DrainChanges();
         public BeltTransportPath GetPath(int cellId) => pathsByCell[cellId];
 
         public void SetSpeeds(BeltCellSpeed[] speeds)
@@ -105,9 +107,10 @@ namespace Core.BeltTransport
         {
             // 全経路を作ってから接続し、旧経路の位置を復元する。
             // Build every path before wiring ports and restoring old positions.
+            occupancy.ReleasePaths();
             cells = (BeltNetworkCell[])newCells.Clone();
             connections = (BeltNetworkConnection[])newConnections.Clone();
-            paths = BeltTopologyBuilder.Build(cells, connections, priorities);
+            paths = BeltTopologyBuilder.Build(cells, connections, priorities, occupancy);
             pathsByCell.Clear();
             cellsById.Clear();
             var segments = new List<BeltConveyorSegment>();

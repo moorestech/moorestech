@@ -72,23 +72,30 @@ namespace Tests.CombinedTest.Core.Transport.Segment
             var (_, loadedServices) = new MoorestechServerDIContainerGenerator().Create(options);
             loadedServices.GetRequiredService<IWorldSaveDataLoader>().LoadOrInitialize();
             var loaded = loadedServices.GetRequiredService<BeltWorldTransport>();
+            int firstChanges = 0, secondChanges = 0;
+            ServerContext.WorldBlockDatastore.GetBlock(new BlockInstanceId(first.CellId)).GetComponent<VanillaBeltConveyorComponent>().OnItemsChanged.Subscribe(_ => firstChanges++);
+            ServerContext.WorldBlockDatastore.GetBlock(new BlockInstanceId(second.CellId)).GetComponent<VanillaBeltConveyorComponent>().OnItemsChanged.Subscribe(_ => secondChanges++);
             if (!captureBeforeTick) GameUpdater.UpdateOneTick();
             var committed = loaded.CaptureCommittedSnapshot();
             Assert.AreEqual(2, committed.Snapshot.Items.Length);
+            Assert.AreEqual(1, firstChanges); Assert.AreEqual(1, secondChanges);
             CollectionAssert.AreEquivalent(new[] { 101L, 102L }, Array.ConvertAll(committed.Snapshot.Items, x => BeltTransportIdentity.ToItemInstanceId(x.Item.Guid).AsPrimitive()));
             var replay = new BeltNetworkReplay(committed.Tick, committed.Snapshot, this);
             loaded.OnTickCompleted.Subscribe(difference => replay.Apply(Tests.Util.BeltTransport.BeltWireRoundTrip.Tick(difference)));
             GameUpdater.RunFrames(10);
             Assert.AreEqual(2, loaded.Network.CaptureItems().Length);
             CollectionAssert.AreEqual(loaded.Network.CaptureItems(), replay.Network.CaptureItems());
+
+            #region Internal
+            void Seed(VanillaBeltConveyorComponent belt, long id)
+            {
+                var stack = ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 1, new ItemInstanceId(id));
+                BeltCellSaveCodec.Load(belt, new BeltCellSaveState { PriorityOrder = 0, Items = new List<BeltCellSavedItem> {
+                    new BeltCellSavedItem { ItemStack = new ItemStackSaveJsonObject(stack), InstanceId = id,
+                        Progress = 128, EntryDirection = (int)BeltDirection.Back, EntryHeight = 0 } } }, 0.4);
+            }
+            #endregion
         }
 
-        private static void Seed(VanillaBeltConveyorComponent belt, long id)
-        {
-            var stack = ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 1, new ItemInstanceId(id));
-            BeltCellSaveCodec.Load(belt, new BeltCellSaveState { PriorityOrder = 0, Items = new List<BeltCellSavedItem> {
-                new BeltCellSavedItem { ItemStack = new ItemStackSaveJsonObject(stack), InstanceId = id,
-                    Progress = 128, EntryDirection = (int)BeltDirection.Back, EntryHeight = 0 } } }, 0.4);
-        }
     }
 }

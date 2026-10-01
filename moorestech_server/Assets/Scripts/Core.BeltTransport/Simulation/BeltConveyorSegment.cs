@@ -25,6 +25,10 @@ namespace Core.BeltTransport
 
         public BeltConveyorSegment(int capacity, int speed, BeltSegmentKind kind,
             int priorityOrder, BeltDirection forwardDirection)
+            : this(capacity, speed, kind, priorityOrder, forwardDirection, UntrackedBeltMovement.Instance) { }
+
+        internal BeltConveyorSegment(int capacity, int speed, BeltSegmentKind kind,
+            int priorityOrder, BeltDirection forwardDirection, IBeltItemMovementObserver movement)
         {
             // 占有長が整数範囲を超えない容量に制限する。
             // Bound capacity so occupied length fits in an integer.
@@ -36,7 +40,7 @@ namespace Core.BeltTransport
             Capacity = capacity;
             Kind = kind;
             SetSpeed(speed);
-            queue = new BeltItemQueue(capacity);
+            queue = new BeltItemQueue(capacity, movement);
 
             // 新規生成は向きから初期化し、ロードは保存順を使う。
             // Initialize from orientation or restore the saved priority order.
@@ -45,14 +49,16 @@ namespace Core.BeltTransport
             if (kind != BeltSegmentKind.Normal)
                 Buffer = new BeltBuffer(this, kind == BeltSegmentKind.Branch
                     ? (0 <= priorityOrder ? priorityOrder : BeltPriority.Create(forwardDirection))
-                    : (int)forwardDirection);
-        }
+                    : (int)forwardDirection, movement);
 
-        private void SetSpeed(int speed)
-        {
-            if (speed < 0 || BeltConstants.ItemWidth / 2 < speed)
-                throw new ArgumentOutOfRangeException(nameof(speed));
-            Speed = speed;
+            #region Internal
+            void SetSpeed(int speed)
+            {
+                if (speed < 0 || BeltConstants.ItemWidth / 2 < speed)
+                    throw new ArgumentOutOfRangeException(nameof(speed));
+                Speed = speed;
+            }
+            #endregion
         }
 
         public void ConnectTo(IBeltReceiver target, BeltDirection direction)

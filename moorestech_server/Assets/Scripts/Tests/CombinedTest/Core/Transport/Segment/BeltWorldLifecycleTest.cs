@@ -128,8 +128,8 @@ namespace Tests.CombinedTest.Core.Transport.Segment
             var expected = transport.Network.CaptureItems();
             var text = JsonConvert.SerializeObject(ServerContext.WorldBlockDatastore.GetSaveJsonObject());
 
-            // 世界へ再ロードし、bufferと方向順序を実コンポーネントで検証する。
-            // Reload into a world and verify buffer and priority through real components.
+            // 実在庫のバッファと順序を検証。
+            // Verify buffer and priority through real inventory components.
             var loadedTransport = CreateWorld();
             ServerContext.WorldBlockDatastore.LoadBlockDataList(JsonConvert.DeserializeObject<List<BlockJsonObject>>(text));
             loadedTransport.Initialize();

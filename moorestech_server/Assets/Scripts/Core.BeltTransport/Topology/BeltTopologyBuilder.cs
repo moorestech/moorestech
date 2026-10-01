@@ -5,7 +5,7 @@ namespace Core.BeltTransport
     internal static class BeltTopologyBuilder
     {
         internal static BeltTransportPath[] Build(BeltNetworkCell[] cells, BeltNetworkConnection[] connections,
-            IReadOnlyDictionary<int, int> priorities)
+            IReadOnlyDictionary<int, int> priorities, BeltCellOccupancy occupancy)
         {
             var nodes = new Dictionary<int, BeltTopologyNode>();
             var ordered = new List<BeltTopologyNode>();
@@ -56,7 +56,7 @@ namespace Core.BeltTransport
                 }
                 int priority = priorities.TryGetValue(tail.Cell.Id, out var saved) ? saved : -1;
                 var forward = tail.Kind == BeltSegmentKind.Merge && tail.Outputs.Count == 1 ? tail.Outputs[0].Direction : tail.Cell.Forward;
-                paths.Add(new BeltTransportPath(chain.ToArray(), tail.Kind, priority, forward, tail.Outputs));
+                paths.Add(new BeltTransportPath(chain.ToArray(), tail.Kind, priority, forward, tail.Outputs, occupancy));
             }
             bool SameSpeed(BeltTopologyNode first, BeltTopologyNode second) =>
                 first.Cell.SpeedProfile == second.Cell.SpeedProfile && first.Cell.Speed == second.Cell.Speed;

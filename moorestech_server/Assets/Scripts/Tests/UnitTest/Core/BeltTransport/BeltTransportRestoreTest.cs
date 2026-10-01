@@ -17,8 +17,8 @@ namespace Tests.UnitTest.Core.BeltTransport
             for (int tick = 0; tick < 17; tick++) simulation.Tick();
             var restored = new BeltConveyorSegment[original.Length];
 
-            // 保存された速度・優先順・列・bufferから再構成する。
-            // Reconstruct from saved speed, priority, queue, and buffer state.
+            // 速度・順序・列・バッファを復元。
+            // Restore speed, priority, queue and buffer state.
             for (int i = 0; i < original.Length; i++)
             {
                 var source = original[i];
@@ -44,6 +44,20 @@ namespace Tests.UnitTest.Core.BeltTransport
                     Assert.AreEqual(first, second);
                 }
             }
+
+            #region Internal
+            BeltConveyorSegment[] BuildNetwork()
+            {
+                var result = new BeltConveyorSegment[Configuration.Length];
+                for (int i = 0; i < result.Length; i++)
+                    result[i] = Create(Configuration[i].Capacity, Configuration[i].Speed, Configuration[i].Kind);
+                Connect(result);
+                result[1].Buffer.RestoreItem(Item(1));
+                result[2].RestoreItems(new[] { new BeltItemState(Item(2), 0), new BeltItemState(Item(3), 300) });
+                result[3].RestoreItems(new[] { new BeltItemState(Item(4), 128), new BeltItemState(Item(5), 600) });
+                return result;
+            }
+            #endregion
         }
 
         [Test]
@@ -68,18 +82,19 @@ namespace Tests.UnitTest.Core.BeltTransport
                 }
                 Assert.AreEqual(3, total);
             }
-        }
 
-        private static BeltConveyorSegment[] BuildNetwork()
-        {
-            var result = new BeltConveyorSegment[Configuration.Length];
-            for (int i = 0; i < result.Length; i++)
-                result[i] = Create(Configuration[i].Capacity, Configuration[i].Speed, Configuration[i].Kind);
-            Connect(result);
-            result[1].Buffer.RestoreItem(Item(1));
-            result[2].RestoreItems(new[] { new BeltItemState(Item(2), 0), new BeltItemState(Item(3), 300) });
-            result[3].RestoreItems(new[] { new BeltItemState(Item(4), 128), new BeltItemState(Item(5), 600) });
-            return result;
+            #region Internal
+            BeltConveyorSegment[] CreateCycle()
+            {
+                var result = new[] { Create(2, 32, BeltSegmentKind.Normal), Create(2, 64, BeltSegmentKind.Normal), Create(2, 128, BeltSegmentKind.Normal) };
+                for (int i = 0; i < result.Length; i++)
+                {
+                    result[i].ConnectTo(result[(i + 1) % result.Length], BeltDirection.Front);
+                    result[i].RestoreItems(new[] { new BeltItemState(Item(i + 1), i * 64) });
+                }
+                return result;
+            }
+            #endregion
         }
 
         private static void Connect(BeltConveyorSegment[] network)
@@ -91,15 +106,5 @@ namespace Tests.UnitTest.Core.BeltTransport
             network[3].ConnectTo(network[0], BeltDirection.Left);
         }
 
-        private static BeltConveyorSegment[] CreateCycle()
-        {
-            var result = new[] { Create(2, 32, BeltSegmentKind.Normal), Create(2, 64, BeltSegmentKind.Normal), Create(2, 128, BeltSegmentKind.Normal) };
-            for (int i = 0; i < result.Length; i++)
-            {
-                result[i].ConnectTo(result[(i + 1) % result.Length], BeltDirection.Front);
-                result[i].RestoreItems(new[] { new BeltItemState(Item(i + 1), i * 64) });
-            }
-            return result;
-        }
     }
 }

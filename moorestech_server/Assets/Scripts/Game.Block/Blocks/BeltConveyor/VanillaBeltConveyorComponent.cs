@@ -20,7 +20,6 @@ namespace Game.Block.Blocks.BeltConveyor
         private readonly Dictionary<Guid, IItemStack> pendingStacks = new Dictionary<Guid, IItemStack>();
         private readonly Subject<Unit> itemsChanged = new Subject<Unit>();
         private BeltWorldTransport transport;
-        private int loadedPriority = -1;
         public int CellId { get; }
         public BlockPositionInfo Position { get; }
         public int Speed { get; private set; }
@@ -29,8 +28,8 @@ namespace Game.Block.Blocks.BeltConveyor
         public bool IsDestroy { get; private set; }
         public string SaveKey => typeof(VanillaBeltConveyorComponent).FullName;
         public IObservable<Unit> OnItemsChanged => itemsChanged;
-        internal int PriorityOrder => transport == null ? loadedPriority : transport.GetPriority(CellId);
-        internal int LoadedPriority => loadedPriority;
+        internal int PriorityOrder => transport == null ? LoadedPriority : transport.GetPriority(CellId);
+        internal int LoadedPriority { get; private set; } = -1;
         internal IReadOnlyDictionary<Guid, IItemStack> PendingStacks => pendingStacks;
 
         public VanillaBeltConveyorComponent(BlockInstanceId id, BlockPositionInfo position, double transitSeconds,
@@ -39,6 +38,8 @@ namespace Game.Block.Blocks.BeltConveyor
             CellId = id.AsPrimitive(); Position = position; SlopeType = slope;
             this.connectors = connectors;
             SpeedProfile = speedProfile;
+            // RPM供給前の歯車搬送を防ぐ。
+            // Prevent gear transport before RPM is supplied.
             SetTicksOfItemEnterToExit(gear ? uint.MaxValue : GameUpdater.SecondsToTicks(transitSeconds));
             if (componentStates != null) BeltCellSaveCodec.Load(this, componentStates[SaveKey], transitSeconds);
         }
@@ -108,9 +109,15 @@ namespace Game.Block.Blocks.BeltConveyor
                 if (transport == null) pendingStacks[item.Guid] = single;
                 else transport.RegisterStack(item.Guid, single);
             }
-            if (transport == null) { pending.Clear(); pending.AddRange(items); }
+            if (transport == null)
+            {
+                // 未接続在庫も個数の変化だけを即時通知する。
+                // Pending inventory also pushes only count changes immediately.
+                int before = pending.Count;
+                pending.Clear(); pending.AddRange(items);
+                if (before != pending.Count) itemsChanged.OnNext(Unit.Default);
+            }
             else transport.ReplaceCellItems(CellId, items.ToArray());
-            itemsChanged.OnNext(Unit.Default);
         }
 
         public void SetTicksOfItemEnterToExit(uint ticks)
@@ -123,7 +130,7 @@ namespace Game.Block.Blocks.BeltConveyor
         public object GetSaveState() => BeltCellSaveCodec.Capture(this);
         internal BeltCellItemState[] CaptureItems() => transport == null ? pending.ToArray() : transport.CaptureCell(CellId);
         internal IItemStack GetStack(Guid id) => transport == null ? pendingStacks[id] : transport.GetStack(id);
-        internal void SetLoadedPriority(int priority) => loadedPriority = priority;
+        internal void SetLoadedPriority(int priority) => LoadedPriority = priority;
         internal void AddPending(BeltCellItemState item, IItemStack stack)
         {
             pending.Add(item); pendingStacks[item.Item.Guid] = stack;

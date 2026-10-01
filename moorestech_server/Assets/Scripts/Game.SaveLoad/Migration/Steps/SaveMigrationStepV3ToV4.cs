@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -30,6 +31,15 @@ namespace Game.SaveLoad.Migration.Steps
                     if (parsed["itemStack"]?.Type == JTokenType.Null) continue;
                     if (parsed["itemStack"] is not JObject || parsed["remainingSeconds"]?.Type is not (JTokenType.Float or JTokenType.Integer))
                         return Fail("A legacy belt item lacks its itemStack or remainingSeconds.");
+                    // 任意GUIDの欠損は許可し、不正値はruntimeへ渡さない。
+                    // Allow absent optional GUIDs and reject invalid values before runtime loading.
+                    foreach (string key in new[] { "sourceConnectorGuid", "goalConnectorGuid" })
+                    {
+                        var connector = parsed[key];
+                        if (connector != null && connector.Type != JTokenType.Null &&
+                            (connector.Type is not (JTokenType.String or JTokenType.Guid) || !Guid.TryParse(connector.ToString(), out _)))
+                            return Fail($"Legacy belt item {key} must be a GUID or null.");
+                    }
                 }
                 conversions.Add((state, items));
             }

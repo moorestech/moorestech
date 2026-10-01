@@ -14,7 +14,6 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
         private readonly IWorldBlockDatastore world;
         private readonly Dictionary<Guid, IItemStack> stacks = new Dictionary<Guid, IItemStack>();
         private readonly SortedDictionary<int, int> pendingSpeeds = new SortedDictionary<int, int>();
-        private readonly Dictionary<int, int> counts = new Dictionary<int, int>();
         private readonly BeltTransportJournal journal = new BeltTransportJournal();
         private readonly Subject<BeltTickDifference> differences = new Subject<BeltTickDifference>();
         private BeltWorldGraph graph;
@@ -83,8 +82,8 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
                 dirty = false;
                 PublishOccupancy();
             }
-            // 搬出・破棄済みのpayloadを確定境界で解放する。
-            // Release payloads for departed items at the committed boundary.
+            // 確定境界で搬出済みpayloadを解放。
+            // Release departed payloads at the committed boundary.
             var live = new HashSet<Guid>();
             foreach (var item in Network.CaptureItems()) live.Add(item.Item.Guid);
             foreach (var id in new List<Guid>(stacks.Keys)) if (!live.Contains(id)) stacks.Remove(id);
@@ -173,16 +172,10 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
         }
         private void PublishOccupancy()
         {
-            var updated = new Dictionary<int, int>();
-            foreach (var item in Network.CaptureItems()) updated[item.CellId] = updated.TryGetValue(item.CellId, out var count) ? count + 1 : 1;
-            foreach (var pair in graph.Components)
-            {
-                int before = counts.TryGetValue(pair.Key, out var previous) ? previous : 0;
-                int after = updated.TryGetValue(pair.Key, out var current) ? current : 0;
-                if (before != after) pair.Value.NotifyItemsChanged();
-            }
-            counts.Clear();
-            foreach (var pair in updated) counts.Add(pair.Key, pair.Value);
+            // 操作中に記録した非ゼロ差分だけを既存境界で通知する。
+            // Publish only nonzero operation-recorded changes at the existing boundary.
+            foreach (var pair in Network.DrainOccupancyChanges())
+                if (graph.Components.TryGetValue(pair.Key, out var component)) component.NotifyItemsChanged();
         }
     }
 }

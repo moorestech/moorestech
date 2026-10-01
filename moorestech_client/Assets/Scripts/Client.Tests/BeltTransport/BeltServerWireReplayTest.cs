@@ -41,8 +41,8 @@ namespace Client.Tests.BeltTransport
             source.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 3));
             int count = 0, notifications = 0;
             using var subscription = replica.OnStateChanged.Subscribe(_ => notifications++);
-            // 実際の機械搬入と搬出をパケット往復後の共有CPUで再現する。
-            // Replay actual machine input/output after the production packet round trip.
+            // 実搬送をwire往復後にCPU再現。
+            // Replay actual transport on the CPU after the wire round trip.
             for (int i = 0; i < 250; i++)
             {
                 GameUpdater.UpdateOneTick();

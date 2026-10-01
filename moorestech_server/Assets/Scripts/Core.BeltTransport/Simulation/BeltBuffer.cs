@@ -10,17 +10,19 @@ namespace Core.BeltTransport
         readonly IBeltReceiver[] outputs = new IBeltReceiver[4];
         readonly int priorityCount;
         BeltItem item;
-        int outputMask, outputOrder;
+        int outputMask;
 
         private BeltConveyorSegment Segment { get; }
         public bool HasItem { get; private set; }
-        internal int PriorityOrder => outputOrder;
+        internal int PriorityOrder { get; private set; }
+        private readonly IBeltItemMovementObserver movement;
 
-        internal BeltBuffer(BeltConveyorSegment segment, int priorityOrder)
+        internal BeltBuffer(BeltConveyorSegment segment, int priorityOrder, IBeltItemMovementObserver movement)
         {
+            this.movement = movement;
             Segment = segment;
             priorityCount = segment.Kind == BeltSegmentKind.Branch ? 3 : 1;
-            outputOrder = priorityOrder;
+            PriorityOrder = priorityOrder;
         }
 
         /// <summary>tick境界で保持中のアイテムを読み取る。</summary>
@@ -35,6 +37,7 @@ namespace Core.BeltTransport
         {
             this.item = item;
             HasItem = true;
+            movement.Insert(0);
         }
 
         /// <summary>搬出先と接続方向を登録する。3方向の優先順序は維持する。</summary>
@@ -45,7 +48,7 @@ namespace Core.BeltTransport
             target.AttachInput(this, BeltDirections.Opposite(outputDirection));
             outputs[(int)outputDirection] = target;
             outputMask |= 1 << (int)outputDirection;
-            if (priorityCount == 1) outputOrder = (int)outputDirection;
+            if (priorityCount == 1) PriorityOrder = (int)outputDirection;
         }
 
         /// <summary>段階2では、接続済み方向のうち最優先の出力だけを提示する。</summary>
@@ -53,7 +56,7 @@ namespace Core.BeltTransport
         {
             // 停止中のbufferは合流予約を占有しない。
             // A stopped buffer must not reserve a merge input.
-            return HasItem && 0 < Segment.TickSpeed && BeltPriority.FirstConnected(outputOrder, outputMask)
+            return HasItem && 0 < Segment.TickSpeed && BeltPriority.FirstConnected(PriorityOrder, outputMask)
                 == (int)BeltDirections.Opposite(inputDirection);
         }
 
@@ -63,6 +66,7 @@ namespace Core.BeltTransport
             if (!Segment.CollectForBuffer(out var collected)) return;
             item = collected;
             HasItem = true;
+            movement.Insert(0);
         }
 
         /// <summary>段階3。搬出成功方向を優先順序の末尾へ移す。</summary>
@@ -71,7 +75,7 @@ namespace Core.BeltTransport
             if (!HasItem || Segment.TickSpeed == 0) return;
             for (int offset = 0; offset < priorityCount; offset++)
             {
-                BeltDirection direction = (BeltDirection)BeltPriority.Direction(outputOrder, offset);
+                BeltDirection direction = (BeltDirection)BeltPriority.Direction(PriorityOrder, offset);
                 if ((outputMask & (1 << (int)direction)) == 0) continue;
                 var target = outputs[(int)direction];
                 BeltDirection inputDirection = BeltDirections.Opposite(direction);
@@ -79,9 +83,10 @@ namespace Core.BeltTransport
                 if (length <= 0 || !target.TryReceive(inputDirection, length, item)) continue;
                 // 成功した方向だけを末尾へ送る。
                 // Move only the successful direction to the end.
+                movement.Remove(0);
                 item = default;
                 HasItem = false;
-                if (priorityCount == 3) outputOrder = BeltPriority.MoveLast(outputOrder, (int)direction);
+                if (priorityCount == 3) PriorityOrder = BeltPriority.MoveLast(PriorityOrder, (int)direction);
                 return;
             }
         }

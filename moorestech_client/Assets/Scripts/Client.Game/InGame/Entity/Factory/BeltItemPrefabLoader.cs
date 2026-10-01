@@ -11,10 +11,12 @@ namespace Client.Game.InGame.Entity.Factory
         private const string DefaultItemPrefabPath = "Vanilla/Game/ItemEntity";
         private readonly Dictionary<ItemId, GameObject> _customModels = new();
         private GameObject _defaultPrefab;
+        internal BeltItemPrefabLoader() { }
+
         public async UniTask<BeltItemPrefabLoadResult> LoadAsync(ItemId itemId)
         {
-            // 既存masterのモデル指定を優先し、ロード済みPrefabを共有する。
-            // Prefer the existing master model setting and share loaded prefabs.
+            // 指定モデルとPrefabを共有する。
+            // Share the configured model and loaded prefabs.
             var master = MasterHolder.ItemMaster.GetItemMaster(itemId);
             var path = master.AddressablePaths?.EntityModel;
             if (!string.IsNullOrEmpty(path))
@@ -28,8 +30,8 @@ namespace Client.Game.InGame.Entity.Factory
                 }
                 Debug.LogError($"Failed to load custom entity model: {path}. Falling back to texture-based display.");
             }
-            // 標準表示も従来のPrefabとアイテム画像を使う。
-            // Standard items retain the existing prefab and item image.
+            // 標準Prefabと画像を使用。
+            // Use the default prefab and item image.
             if (_defaultPrefab == null) _defaultPrefab = await AddressableLoader.LoadAsyncDefault<GameObject>(DefaultItemPrefabPath);
             // 外部Addressables結果の欠損を、生成処理に入る前に表明する。
             // Represent a missing external Addressables result before entering object creation.

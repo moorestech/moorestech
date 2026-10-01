@@ -22,6 +22,38 @@ namespace Tests.UnitTest.Game.SaveLoad.BeltTransport
     public class BeltLegacyWorldLoadTest
     {
         [Test]
+        public void MalformedLegacyConnectorStopsAtMigrationBoundaryTest()
+        {
+            string directory = Path.Combine(Path.GetTempPath(), "belt-invalid-guid-" + Guid.NewGuid().ToString("N"));
+            string path = Path.Combine(directory, "save.json");
+            var options = new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory) {
+                worldDataDirectory = WorldDataDirectory.FromServerDataMap(TestModDirectory.ForUnitTestModDirectory, path) };
+            var (_, services) = new MoorestechServerDIContainerGenerator().Create(options);
+            services.GetRequiredService<IWorldSaveDataLoader>().LoadOrInitialize();
+            Place(ForUnitTestModBlockId.BeltConveyorId, 0, 0, BlockDirection.North);
+            var save = JObject.Parse(services.GetRequiredService<AssembleSaveJsonText>().AssembleSaveJson());
+            save["worldVersion"] = 3;
+            save["world"][0]["state"][typeof(VanillaBeltConveyorComponent).FullName] = new JArray(new JObject {
+                ["itemStack"] = new JObject { ["itemGuid"] = MasterHolder.ItemMaster.GetItemMaster(ForUnitTestItemId.ItemId1).ItemGuid.ToString(), ["count"] = 1 },
+                ["remainingSeconds"] = 0.25, ["sourceConnectorGuid"] = "not-a-guid" }.ToString(Formatting.None));
+            Directory.CreateDirectory(directory);
+            File.WriteAllText(path, save.ToString(Formatting.None));
+
+            // 実ロードで移行拒否を確認し、runtime変換へ到達させない。
+            // Verify migration refusal through real loading before runtime conversion.
+            var (_, loadedServices) = new MoorestechServerDIContainerGenerator().Create(options);
+            UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Error, new System.Text.RegularExpressions.Regex("V3からV4.*sourceConnectorGuid"));
+            UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Error, new System.Text.RegularExpressions.Regex("cause=StepFailed"));
+            UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Error, new System.Text.RegularExpressions.Regex("セーブファイルパス"));
+            var exception = Assert.Throws<Exception>(() => loadedServices.GetRequiredService<IWorldSaveDataLoader>().LoadOrInitialize());
+            UnityEngine.Debug.Log("Malformed connector load result: " + exception.Message);
+            Assert.That(exception.Message, Does.Contain("StepFailed"));
+            Assert.That(exception.Message, Does.Contain("sourceConnectorGuid"));
+            Assert.AreEqual(0, ServerContext.WorldBlockDatastore.BlockMasterDictionary.Count);
+            Assert.AreEqual(save.ToString(Formatting.None), File.ReadAllText(path), "Blocked loading must preserve the original V3 save.");
+        }
+
+        [Test]
         public void VersionThreeWorldLoadsThroughMigrationAndPrunesMissingItemTest()
         {
             string directory = Path.Combine(Path.GetTempPath(), "belt-migration-" + Guid.NewGuid().ToString("N"));

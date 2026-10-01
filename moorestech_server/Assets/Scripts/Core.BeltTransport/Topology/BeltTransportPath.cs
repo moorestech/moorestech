@@ -9,10 +9,10 @@ namespace Core.BeltTransport
         internal readonly List<BeltNetworkConnection> Outputs;
 
         internal BeltTransportPath(BeltNetworkCell[] cells, BeltSegmentKind kind, int priority, BeltDirection forward,
-            List<BeltNetworkConnection> outputs)
+            List<BeltNetworkConnection> outputs, BeltCellOccupancy occupancy)
         {
             Cells = cells;
-            Segment = new BeltConveyorSegment(cells.Length, cells[0].Speed, kind, priority, forward);
+            Segment = new BeltConveyorSegment(cells.Length, cells[0].Speed, kind, priority, forward, new BeltPathOccupancy(cells, occupancy));
             Outputs = outputs;
         }
 

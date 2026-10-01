@@ -11,8 +11,8 @@ namespace Client.Tests.BeltTransport
         [Test]
         public void SnapshotAndEveryBoundaryVariantRoundTripTest()
         {
-            // 停止境界・坂の搬入・buffer・優先順位を初期パケットに含める。
-            // Include stopped boundaries, slope entry, buffers and priority in the initial packet.
+            // 停止・坂・バッファ・優先順を同梱。
+            // Include stopped boundaries, slope entry, buffers and priority.
             var cell = new BeltNetworkCell(4, -2, 3, 7, 0, "gear:0.25:32:1", BeltDirection.Right, new BeltCellSurfaceProfile(0.1f, 1.1f));
             var item = new BeltItem(BeltTestState.Identity, 17);
             var state = new BeltCellItemState(4, 128, BeltDirection.Left, 1, item, true);

@@ -94,6 +94,9 @@ namespace Tests.CombinedTest.Core.Transport.Segment
             Assert.AreEqual(first.Speed, second.Speed);
             Assert.AreSame(transport.Network.GetPath(first.CellId), transport.Network.GetPath(second.CellId));
             var before = transport.Network.CaptureItems();
+            int firstChanges = 0, secondChanges = 0;
+            first.OnItemsChanged.Subscribe(_ => firstChanges++);
+            second.OnItemsChanged.Subscribe(_ => secondChanges++);
 
             // 需要超過の実停止はRPMに反映され、両方の搬送を止める。
             // A real demand blackout is reflected by RPM and stops both conveyors.
@@ -102,6 +105,7 @@ namespace Tests.CombinedTest.Core.Transport.Segment
             Assert.AreEqual(0, first.Speed);
             Assert.AreEqual(0, second.Speed);
             CollectionAssert.AreEqual(before, transport.Network.CaptureItems());
+            Assert.AreEqual(0, firstChanges); Assert.AreEqual(0, secondChanges);
         }
 
         [Test]

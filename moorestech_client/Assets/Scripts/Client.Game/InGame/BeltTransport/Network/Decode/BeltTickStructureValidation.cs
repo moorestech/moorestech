@@ -73,6 +73,7 @@ namespace Client.Game.InGame.BeltTransport
                 {
                     if (connections == null) return "Topology connections are missing.";
                     var seen = new HashSet<(int, int, bool, bool, BeltDirection, int)>();
+                    var inputs = new Dictionary<int, HashSet<BeltDirection>>();
                     foreach (var edge in connections)
                     {
                         if (edge == null || !Direction(edge.Direction) || (!edge.SourceIsBelt && !edge.TargetIsBelt) ||
@@ -81,6 +82,14 @@ namespace Client.Game.InGame.BeltTransport
                         // Reject identical edges within each array while allowing an edge in both added and removed arrays.
                         if (!seen.Add((edge.SourceId, edge.TargetId, edge.SourceIsBelt, edge.TargetIsBelt, edge.Direction, edge.EntryHeight)))
                             return "Duplicate topology connection.";
+                        // 実Attach対象は3方向までとし、同じ入力portを共有させない。
+                        // Actual attachments allow three directions and cannot share an input port.
+                        if (edge.SourceIsBelt && edge.TargetIsBelt)
+                        {
+                            if (!inputs.TryGetValue(edge.TargetId, out var ports)) inputs.Add(edge.TargetId, ports = new HashSet<BeltDirection>());
+                            if (!ports.Add(edge.Direction)) return "Multiple sources share a belt input port.";
+                            if (3 < ports.Count) return "A belt has more than three input ports.";
+                        }
                     }
                     return null;
                 }
@@ -89,10 +98,11 @@ namespace Client.Game.InGame.BeltTransport
                     float.IsFinite(cell.Surface.InputHeight) && float.IsFinite(cell.Surface.OutputHeight);
                 #endregion
             }
+            bool Speed(int value) => 0 <= value && value <= BeltConstants.ItemWidth / 2;
+            bool Direction(BeltDirection direction) => BeltDirection.Front <= direction && direction <= BeltDirection.Right;
+            bool Item(BeltItemMessagePack item) => item != null && item.Guid != Guid.Empty && 0 < item.ItemId.AsPrimitive();
             #endregion
         }
-        private static bool Speed(int value) => 0 <= value && value <= BeltConstants.ItemWidth / 2;
-        private static bool Direction(BeltDirection direction) => BeltDirection.Front <= direction && direction <= BeltDirection.Right;
-        private static bool Item(BeltItemMessagePack item) => item != null && item.Guid != Guid.Empty && 0 < item.ItemId.AsPrimitive();
+
     }
 }
