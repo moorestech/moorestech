@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Ground;
+using Client.Game.InGame.Player.FlyMode;
 using StarterAssets;
 using UnityEngine;
 
@@ -27,6 +28,7 @@ namespace Client.Game.InGame.Player
         private readonly PlayerModelVisibility _modelVisibility = new();
         private readonly HashSet<PlayerMovementLockReason> _movementLocks = new();
         private PlayerRideFollow _rideFollow;
+        private PlayerFlyModeController _flyMode;
         private bool _isModelVisible = true;
         private Vector3 worldSpawnPosition;
         private Vector3 initialPlayerPosition;
@@ -38,6 +40,11 @@ namespace Client.Game.InGame.Player
         {
             controller.Initialize();
             _rideFollow = new PlayerRideFollow(transform, GetComponent<CharacterController>(), controller);
+            _flyMode = new PlayerFlyModeController(controller);
+
+            // 生成直後の操作可否を移動とフライの双方へ揃えておく
+            // Sync the initial controllability to both movement and fly mode right after construction
+            ApplyMovementLock();
 
             // 落下復帰先はワールドのスポーン地点。地形はランタイム構築なのでシーン配置のマーカーは当てにできない
             // Fall recovery targets the world spawn; terrain is built at runtime so a scene-authored marker cannot be trusted
@@ -58,6 +65,14 @@ namespace Client.Game.InGame.Player
             SetPlayerPosition(initialPlayerPosition);
             controller.enabled = true;
             isRuntimeStarted = true;
+        }
+
+        private void Update()
+        {
+            // 地形構築前は動かさない
+            // Stay still before terrain exists
+            if (!isRuntimeStarted) return;
+            _flyMode.ManualUpdate(Time.unscaledTime);
         }
 
         private void LateUpdate()
@@ -131,7 +146,12 @@ namespace Client.Game.InGame.Player
         {
             // 乗車中の停止は追従状態が正。別フラグへ写すと二重管理になる
             // The follow state is the authority for the riding stop; a separate flag would duplicate it
-            controller.SetControllable(_movementLocks.Count == 0 && !_rideFollow.IsFollowing());
+            var isControllable = _movementLocks.Count == 0 && !_rideFollow.IsFollowing();
+
+            // 移動とフライの双方へ変化時に渡す
+            // Push to both movement and fly mode on every change
+            controller.SetControllable(isControllable);
+            _flyMode.SetControllable(isControllable);
         }
 
         public void SetModelVisible(bool visible)
