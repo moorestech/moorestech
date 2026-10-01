@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -20,10 +21,12 @@ namespace Game.SaveLoad.Migration.Steps
                 if (token is not JObject block || block["state"] is not JObject state) return Fail("Block state must be an object.");
                 var value = state[BeltSaveKey];
                 if (value == null) continue;
-                // 適用済みの包みは再実行でもそのまま保つ。
-                // Preserve an already migrated wrapper on repeated application.
-                if (value is JObject wrapped && wrapped["legacyItems"] is JArray) continue;
-                if (value is not JArray items) return Fail($"Belt state on block {block["instanceId"]} must be an array.");
+                // 包み済み配列も同じ検証を通し、再包装はしない。
+                // Validate wrapped arrays through the same boundary without wrapping them again.
+                var items = value as JArray;
+                bool needsWrapping = items != null;
+                if (!needsWrapping && value is JObject wrapped) items = wrapped["legacyItems"] as JArray;
+                if (items == null) return Fail($"Belt state on block {block["instanceId"]} must be an array or legacyItems wrapper.");
                 foreach (var item in items)
                 {
                     if (item.Type == JTokenType.Null) continue;
@@ -31,6 +34,11 @@ namespace Game.SaveLoad.Migration.Steps
                     if (parsed["itemStack"]?.Type == JTokenType.Null) continue;
                     if (parsed["itemStack"] is not JObject || parsed["remainingSeconds"]?.Type is not (JTokenType.Float or JTokenType.Integer))
                         return Fail("A legacy belt item lacks its itemStack or remainingSeconds.");
+                    // 旧slotは1個で、0個は既存の欠損除去経路へ渡す。
+                    // Legacy slots hold one item; zero-count entries retain the existing pruning path.
+                    var count = parsed["itemStack"]["count"];
+                    if (count?.Type != JTokenType.Integer || !int.TryParse(count.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int amount) || amount < 0 || 1 < amount)
+                        return Fail("Legacy belt itemStack count must be the integer 0 or 1.");
                     // 任意GUIDの欠損は許可し、不正値はruntimeへ渡さない。
                     // Allow absent optional GUIDs and reject invalid values before runtime loading.
                     foreach (string key in new[] { "sourceConnectorGuid", "goalConnectorGuid" })
@@ -41,7 +49,7 @@ namespace Game.SaveLoad.Migration.Steps
                             return Fail($"Legacy belt item {key} must be a GUID or null.");
                     }
                 }
-                conversions.Add((state, items));
+                if (needsWrapping) conversions.Add((state, items));
             }
             // 秒数とコネクターはロード時に実マスタで位置へ変換する。
             // Runtime loading maps seconds and connectors with the actual master.
