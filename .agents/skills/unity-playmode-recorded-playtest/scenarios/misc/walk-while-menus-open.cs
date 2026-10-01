@@ -112,4 +112,9 @@ return PlaytestRunner.Run("walk-while-menus-open", options, async p =>
     SemanticInput.KeyUp(Key.S);
     p.Assert(InteractTargetSelector.InteractDistance - 0.1f < closedDistance, $"閉じたのは手の届く範囲を出た時 ({closedDistance:F2}m)");
     await p.Screenshot("02-closed-out-of-reach");
+
+    // 録画は終了直前の約2秒が欠けるため、閉じた場面が動画に残るよう末尾で待つ
+    // The recording drops roughly the last 2 seconds, so hold at the end to keep the close on video
+    p.Note("機械UIが閉じたゲーム画面のまま待つ");
+    await p.WaitSeconds(3f);
 });
