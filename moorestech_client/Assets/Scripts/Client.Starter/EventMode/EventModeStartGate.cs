@@ -1,4 +1,5 @@
 using System.Threading;
+using Client.Input;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Game.EventMode;
 using Cysharp.Threading.Tasks;
@@ -39,7 +40,19 @@ namespace Client.Starter.EventMode
                 return;
             }
 
+            // 来場者が言語ボタンを押せるよう待機中は実カーソルを出す。選択後のロックはGameScreenStateの入場が担う
+            // Show the real cursor while waiting so visitors can press a language button; GameScreenState re-locks it after the choice
+            ShowCursorAfterSceneStartAsync(ct).Forget();
+
             await AwaitSelectionThenArmAsync(gate, settings.IdleTimeoutSeconds, armer, ct);
+        }
+
+        // 待機開始はsceneLoaded内でGameStateController.Start()より先に走り、Startがカーソルをロックする。1フレーム待って後勝ちにする
+        // The wait starts inside sceneLoaded, before GameStateController.Start() locks the cursor, so wait one frame to win last
+        internal static async UniTask ShowCursorAfterSceneStartAsync(CancellationToken ct)
+        {
+            await UniTask.NextFrame(ct);
+            InputManager.MouseCursorVisible(true);
         }
 
         // 「選択を待ってから武装する」順序がこのゲートの契約そのものなので、順序だけを切り出して押さえる
