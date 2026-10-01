@@ -31,18 +31,18 @@ namespace Game.Block.Blocks.Pump
         // Amount pushed to the targets in the previous Update; it is not saved, so the first tick after a load starts at zero (the idle basis)
         public double PushedAmountLastUpdate { get; private set; }
         private readonly FluidContainer _tank;
-        private readonly BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> _fluidConnector;
+        private readonly BlockConnectorComponent<IFluidInventory, DefaultContext<IFluidInventory>> _fluidConnector;
         private readonly Subject<Unit> _onChangeBlockState = new();
 
         public IObservable<Unit> OnChangeBlockState => _onChangeBlockState;
 
-        public PumpFluidOutputComponent(float capacity, BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> fluidConnector)
+        public PumpFluidOutputComponent(float capacity, BlockConnectorComponent<IFluidInventory, DefaultContext<IFluidInventory>> fluidConnector)
         {
             _tank = new FluidContainer(capacity);
             _fluidConnector = fluidConnector;
         }
 
-        public PumpFluidOutputComponent(Dictionary<string, object> componentStates, float capacity, BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> fluidConnector) : this(capacity, fluidConnector)
+        public PumpFluidOutputComponent(Dictionary<string, object> componentStates, float capacity, BlockConnectorComponent<IFluidInventory, DefaultContext<IFluidInventory>> fluidConnector) : this(capacity, fluidConnector)
         {
             if (!BlockComponentStateReader.TryRead<FluidContainerSaveJsonObject>(componentStates, SaveKey, out var json))
             {

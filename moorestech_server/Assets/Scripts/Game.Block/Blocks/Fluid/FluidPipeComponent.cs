@@ -28,7 +28,7 @@ namespace Game.Block.Blocks.Fluid
         // シミュレーションが読む流体状態と、トポロジ構築に使う接続
         // Fluid state read by the simulation and connections used for topology building
         public readonly FluidSimNode Node;
-        public readonly BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> Connector;
+        public readonly BlockConnectorComponent<IFluidInventory, DefaultContext<IFluidInventory>> Connector;
 
         public Vector3Int Position => Node.Position;
 
@@ -38,7 +38,7 @@ namespace Game.Block.Blocks.Fluid
         // Loaded initial face velocities (canonical direction → velocity), consumed by the first topology rebuild
         private Dictionary<Vector3Int, double> _loadedFaceVelocities;
 
-        public FluidPipeComponent(BlockPositionInfo blockPositionInfo, BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> connectorComponent, float capacity, Dictionary<string, object> componentStates)
+        public FluidPipeComponent(BlockPositionInfo blockPositionInfo, BlockConnectorComponent<IFluidInventory, DefaultContext<IFluidInventory>> connectorComponent, float capacity, Dictionary<string, object> componentStates)
         {
             Node = new FluidSimNode(blockPositionInfo.OriginalPos, capacity);
             Connector = connectorComponent;
