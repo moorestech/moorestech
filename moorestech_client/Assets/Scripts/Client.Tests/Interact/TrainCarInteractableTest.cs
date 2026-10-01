@@ -83,8 +83,10 @@ namespace Client.Tests.Interact
 
         private static TrainCarInteractable AttachTrainCarInteractable(TrainCarEntityObject trainCarEntityObject)
         {
+            var registry = new TrainCarViewRegistryFake();
+            registry.Register(trainCarEntityObject);
             var interactable = trainCarEntityObject.gameObject.AddComponent<TrainCarInteractable>();
-            interactable.Initialize(trainCarEntityObject, TrainCarObjectDatastoreTestUtil.AttachRegistered(trainCarEntityObject));
+            interactable.Initialize(trainCarEntityObject, registry);
             trainCarEntityObject.SetInteractable(interactable);
             return interactable;
         }

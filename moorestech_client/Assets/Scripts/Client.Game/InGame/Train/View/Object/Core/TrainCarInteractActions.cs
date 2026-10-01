@@ -17,21 +17,21 @@ namespace Client.Game.InGame.Train.View.Object.Core
     internal class TrainCarOpenInventoryInteractAction : ITapInteractAction
     {
         private readonly TrainCarEntityObject _trainCar;
-        private readonly TrainCarObjectDatastore _trainCarObjectDatastore;
+        private readonly ITrainCarViewRegistry _trainCarViewRegistry;
 
         public InputKey Key => InputManager.Playable.Interact;
         public LocalizationKey HintKey => LocalizationKeys.Ui.Tooltip.InteractOpenTrainInventory;
         public IReadOnlyList<string> HintParams => Array.Empty<string>();
 
-        internal TrainCarOpenInventoryInteractAction(TrainCarEntityObject trainCar, TrainCarObjectDatastore trainCarObjectDatastore)
+        internal TrainCarOpenInventoryInteractAction(TrainCarEntityObject trainCar, ITrainCarViewRegistry trainCarViewRegistry)
         {
             _trainCar = trainCar;
-            _trainCarObjectDatastore = trainCarObjectDatastore;
+            _trainCarViewRegistry = trainCarViewRegistry;
         }
 
         public InteractExecuteResult Execute()
         {
-            var container = UITransitContextContainer.Create<ISubInventorySource>(new TrainSubInventorySource(_trainCar.TrainCarInstanceId, _trainCarObjectDatastore));
+            var container = UITransitContextContainer.Create<ISubInventorySource>(new TrainSubInventorySource(_trainCar.TrainCarInstanceId, _trainCarViewRegistry));
             return InteractExecuteResult.Transit(new UITransitContext(UIStateEnum.SubInventory, container));
         }
     }

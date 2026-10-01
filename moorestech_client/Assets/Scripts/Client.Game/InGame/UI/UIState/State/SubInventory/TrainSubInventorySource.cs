@@ -20,12 +20,12 @@ namespace Client.Game.InGame.UI.UIState.State.SubInventory
         public TrainInventoryMessageType? LastOpenMessage { get; private set; }
 
         private readonly TrainCarInstanceId _trainCarInstanceId;
-        private readonly TrainCarObjectDatastore _trainCarObjectDatastore;
+        private readonly ITrainCarViewRegistry _trainCarViewRegistry;
 
-        public TrainSubInventorySource(TrainCarInstanceId trainCarInstanceId, TrainCarObjectDatastore trainCarObjectDatastore)
+        public TrainSubInventorySource(TrainCarInstanceId trainCarInstanceId, ITrainCarViewRegistry trainCarViewRegistry)
         {
             _trainCarInstanceId = trainCarInstanceId;
-            _trainCarObjectDatastore = trainCarObjectDatastore;
+            _trainCarViewRegistry = trainCarViewRegistry;
             InventoryIdentifier = InventoryIdentifierMessagePack.CreateTrainMessage(trainCarInstanceId.AsPrimitive());
         }
 
@@ -33,14 +33,16 @@ namespace Client.Game.InGame.UI.UIState.State.SubInventory
         {
             // 再同期や連結で車両の表示が作り直されるため、開いた瞬間の参照ではなくIDから今の表示を引く
             // Resync and coupling rebuild car views, so resolve the current view by ID instead of the reference held at open
-            if (!_trainCarObjectDatastore.TryGetEntity(_trainCarInstanceId, out var trainCarEntityObject))
+            if (!_trainCarViewRegistry.TryGetEntity(_trainCarInstanceId, out var trainCarEntityObject))
             {
                 reachTarget = null;
                 return false;
             }
 
+            // 面が未装填の車両を true で返すと呼び出し側が毎フレームnullを触る
+            // Returning true for a car whose face is not stocked yet would hand the caller a null every frame
             reachTarget = trainCarEntityObject.Interactable;
-            return true;
+            return reachTarget != null;
         }
 
         public SubInventoryModel CreateModel(InventoryResponse inventoryResponse)

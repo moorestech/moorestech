@@ -3,6 +3,7 @@ using Client.Game.InGame.Train.View.Object.Core;
 using Client.Game.InGame.UI.Inventory.Train;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Network.API;
+using Client.Tests.Common;
 using Core.Item.Interface;
 using Game.Context;
 using Game.Train.Unit;
@@ -17,21 +18,14 @@ namespace Client.Tests.UIState.Models
 {
     public class SubInventorySourceModelTest
     {
-        // モデル化だけを見るテストなので、到達判定で引かれない空のdatastoreを渡す
-        // These tests only cover model building, so an empty datastore the reach check never consults is passed
-        private TrainCarObjectDatastore _trainCarObjectDatastore;
+        // モデル化だけを見るテストなので、到達判定で引かれない空の登録簿を渡す
+        // These tests only cover model building, so an empty registry the reach check never consults is passed
+        private readonly TrainCarViewRegistryFake _trainCarViewRegistry = new();
 
         [SetUp]
         public void SetUp()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            _trainCarObjectDatastore = new GameObject(nameof(SubInventorySourceModelTest)).AddComponent<TrainCarObjectDatastore>();
-        }
-
-        [TearDown]
-        public void TearDown()
-        {
-            Object.DestroyImmediate(_trainCarObjectDatastore.gameObject);
         }
 
         [Test]
@@ -39,7 +33,7 @@ namespace Client.Tests.UIState.Models
         {
             var identifier = InventoryIdentifierMessagePack.CreateTrainMessage(7);
             var response = new InventoryResponse(identifier, new List<IItemStack>(), InventoryRequestResult.ContainerNotFound);
-            var source = new TrainSubInventorySource(new TrainCarInstanceId(7), _trainCarObjectDatastore);
+            var source = new TrainSubInventorySource(new TrainCarInstanceId(7), _trainCarViewRegistry);
 
             var model = source.CreateModel(response);
 
@@ -52,7 +46,7 @@ namespace Client.Tests.UIState.Models
         {
             var identifier = InventoryIdentifierMessagePack.CreateTrainMessage(7);
             var items = new List<IItemStack> { ServerContext.ItemStackFactory.CreatEmpty(), ServerContext.ItemStackFactory.CreatEmpty() };
-            var source = new TrainSubInventorySource(new TrainCarInstanceId(7), _trainCarObjectDatastore);
+            var source = new TrainSubInventorySource(new TrainCarInstanceId(7), _trainCarViewRegistry);
 
             var model = source.CreateModel(new InventoryResponse(identifier, items, InventoryRequestResult.Success));
 
@@ -65,7 +59,7 @@ namespace Client.Tests.UIState.Models
         {
             var identifier = InventoryIdentifierMessagePack.CreateTrainMessage(7);
             var items = new List<IItemStack> { ServerContext.ItemStackFactory.CreatEmpty() };
-            var source = new TrainSubInventorySource(new TrainCarInstanceId(7), _trainCarObjectDatastore);
+            var source = new TrainSubInventorySource(new TrainCarInstanceId(7), _trainCarViewRegistry);
             source.CreateModel(new InventoryResponse(identifier, new List<IItemStack>(), InventoryRequestResult.ContainerNotFound));
 
             var model = source.CreateModel(new InventoryResponse(identifier, items, InventoryRequestResult.Success));

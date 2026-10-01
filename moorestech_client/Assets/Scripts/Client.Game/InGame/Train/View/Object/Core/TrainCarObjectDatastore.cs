@@ -6,7 +6,7 @@ using VContainer;
 
 namespace Client.Game.InGame.Train.View.Object.Core
 {
-    public class TrainCarObjectDatastore : MonoBehaviour, ISkitWorldObjectControl
+    public class TrainCarObjectDatastore : MonoBehaviour, ISkitWorldObjectControl, ITrainCarViewRegistry
     {
         private readonly Dictionary<TrainCarInstanceId, TrainCarEntityObject> _entities = new();
 
@@ -42,8 +42,8 @@ namespace Client.Game.InGame.Train.View.Object.Core
         {
             // full snapshotではcache側のunit差し替えに合わせてviewも全再生成する
             // Recreate all views on full snapshots to match replaced cached train units
-            var removeIds = CollectEntityIds();
-            RemoveEntities(removeIds);
+            var previousPoses = CollectEntityPoses();
+            RemoveEntities(CollectEntityIds());
 
             // 最新snapshotに含まれるcarだけを同期生成する
             // Synchronously create only cars contained in the latest snapshot
@@ -58,8 +58,35 @@ namespace Client.Game.InGame.Train.View.Object.Core
                 {
                     var carSnapshot = cars[j];
                     CreateTrainEntityIfMissing(carSnapshot);
+                    RestorePose(carSnapshot.TrainCarInstanceId);
                 }
             }
+
+            #region Internal
+
+            Dictionary<TrainCarInstanceId, (Vector3 Position, Quaternion Rotation)> CollectEntityPoses()
+            {
+                var poses = new Dictionary<TrainCarInstanceId, (Vector3, Quaternion)>(_entities.Count);
+                foreach (var entry in _entities)
+                {
+                    if (entry.Value == null) continue;
+                    poses[entry.Key] = (entry.Value.transform.position, entry.Value.transform.rotation);
+                }
+                return poses;
+            }
+
+            // 生成直後は原点に居るため、姿勢が適用される次フレームまで物理問い合わせが全て原点で答えてしまう
+            // A freshly created view sits at the origin, so every physics query answers from the origin until pose is applied next frame
+            void RestorePose(TrainCarInstanceId trainCarInstanceId)
+            {
+                if (!previousPoses.TryGetValue(trainCarInstanceId, out var pose)) return;
+                if (!_entities.TryGetValue(trainCarInstanceId, out var entity) || entity == null) return;
+
+                entity.transform.SetPositionAndRotation(pose.Position, pose.Rotation);
+                Physics.SyncTransforms();
+            }
+
+            #endregion
         }
 
         public bool RemoveTrainEntity(TrainCarInstanceId trainCarInstanceId)
