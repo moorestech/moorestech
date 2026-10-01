@@ -87,6 +87,9 @@ https://github.com/rpgwhitelock/AllSkyFree_Godot
 Noto Sans Japanese
 https://fonts.google.com/noto/specimen/Noto+Sans+JP
 
+Noto Sans Korean
+https://fonts.google.com/noto/specimen/Noto+Sans+KR
+
 Noto Sans
 https://fonts.google.com/noto/specimen/Noto+Sans
 
