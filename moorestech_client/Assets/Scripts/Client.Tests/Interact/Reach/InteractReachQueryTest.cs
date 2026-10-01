@@ -11,6 +11,8 @@ namespace Client.Tests.Interact.Reach
     /// </summary>
     public class InteractReachQueryTest : InteractTargetSelectorTestFixture
     {
+        private const float BoundaryMargin = 0.05f;
+
         [Test]
         public void ブロックはインタラクト距離内なら届き外なら届かない()
         {
@@ -22,14 +24,19 @@ namespace Client.Tests.Interact.Reach
         }
 
         [Test]
-        public void インタラクト距離の境界の内側は届き外側は届かない()
+        public void 対象の面からインタラクト距離の内側は届き外側は届かない()
         {
-            var inside = CreateOpenableBlockTarget(new Vector3(InteractTargetSelector.InteractDistance - 0.1f, 0f, 0f));
-            var outside = CreateOpenableBlockTarget(new Vector3(0f, 0f, InteractTargetSelector.InteractDistance + 0.1f));
+            var block = CreateOpenableBlockTarget(Vector3.zero);
             var query = new InteractReachQuery();
 
-            Assert.IsTrue(query.IsWithinReach(inside, Vector3.zero));
-            Assert.IsFalse(query.IsWithinReach(outside, Vector3.zero));
+            // 当たり判定の大きさに依らないよう、自機側を向いた面からの距離で境界を挟む
+            // Bracket the boundary by distance from the face toward the player so the collider size never matters
+            var faceX = block.GetComponentInChildren<Collider>().bounds.min.x;
+            var insidePosition = new Vector3(faceX - (InteractTargetSelector.InteractDistance - BoundaryMargin), 0f, 0f);
+            var outsidePosition = new Vector3(faceX - (InteractTargetSelector.InteractDistance + BoundaryMargin), 0f, 0f);
+
+            Assert.IsTrue(query.IsWithinReach(block, insidePosition));
+            Assert.IsFalse(query.IsWithinReach(block, outsidePosition));
         }
 
         [Test]

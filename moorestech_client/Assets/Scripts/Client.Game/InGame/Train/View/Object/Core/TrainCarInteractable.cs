@@ -22,11 +22,11 @@ namespace Client.Game.InGame.Train.View.Object.Core
         // Before Initialize stocks the actions there is nothing to do, so it is not a candidate
         public bool IsInteractAvailable => 0 < Actions.Count;
 
-        internal void Initialize(TrainCarEntityObject trainCarEntityObject)
+        internal void Initialize(TrainCarEntityObject trainCarEntityObject, TrainCarObjectDatastore trainCarObjectDatastore)
         {
             Actions = new ITapInteractAction[]
             {
-                new TrainCarOpenInventoryInteractAction(trainCarEntityObject),
+                new TrainCarOpenInventoryInteractAction(trainCarEntityObject, trainCarObjectDatastore),
                 new TrainCarRideInteractAction(trainCarEntityObject),
             };
         }

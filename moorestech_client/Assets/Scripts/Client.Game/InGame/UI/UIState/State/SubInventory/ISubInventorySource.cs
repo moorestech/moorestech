@@ -20,9 +20,9 @@ namespace Client.Game.InGame.UI.UIState.State.SubInventory
         SubInventoryModel CreateModel(InventoryResponse inventoryResponse);
 
         /// <summary>
-        /// 開いた世界の対象。離れたら閉じる判定に使う
-        /// The world target this inventory was opened from, used to close it once out of reach
+        /// 開いた世界の対象を今の表示から引き直す。離れたら閉じる判定に使い、表示が消えていればfalse
+        /// Re-resolve the world target this inventory was opened from against the current view; false once that view is gone
         /// </summary>
-        IInteractable ReachTarget { get; }
+        bool TryGetReachTarget(out IInteractable reachTarget);
     }
 }

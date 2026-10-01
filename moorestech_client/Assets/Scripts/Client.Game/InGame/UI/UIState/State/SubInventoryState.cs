@@ -3,7 +3,6 @@ using System;
 using System.Threading;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
-using Client.Game.InGame.Interact.Selection;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Main;
@@ -28,7 +27,7 @@ namespace Client.Game.InGame.UI.UIState.State
     {
         private readonly LocalPlayerInventoryController _localPlayerInventoryController;
         private readonly RightShortPressInputService _rightShortPressInputService;
-        private readonly InteractReachQuery _reachQuery = new();
+        private readonly SubInventoryOutOfReachDetector _outOfReachDetector = new();
 
         private CancellationTokenSource _loadInventoryCts;
         private bool _shouldClose = false;
@@ -96,18 +95,7 @@ namespace Client.Game.InGame.UI.UIState.State
             {
                 if (CurrentSubInventorySource == null) return false;
                 var playerPosition = PlayerSystemContainer.Instance.PlayerObjectController.Position;
-                var isWithinReach = _reachQuery.IsWithinReach(CurrentSubInventorySource.ReachTarget, playerPosition);
-                if (isWithinReach) return false;
-
-                // 無言で閉じると原因を辿れないため、対象のIDと消失/範囲外の別を残す
-                // Closing silently leaves no trail, so log the target ID and whether it vanished or is merely out of range
-                var identifier = CurrentSubInventorySource.InventoryIdentifier;
-                // 破棄済みComponentのメンバーは例外を投げるため、読まずにUnityのfake-nullで判定する
-                // Members of a destroyed Component throw, so detect destruction via Unity fake-null without reading them
-                var isTargetDestroyed = CurrentSubInventorySource.ReachTarget is UnityEngine.Object reachTargetObject && reachTargetObject == null;
-                var cause = isTargetDestroyed ? "target destroyed" : $"out of range or not interactable (interactAvailable={CurrentSubInventorySource.ReachTarget.IsInteractAvailable})";
-                Debug.Log($"SubInventory auto-closed: {cause}. source={CurrentSubInventorySource.GetType().Name}, inventory={identifier.InventoryType}, blockPosition={identifier.BlockPosition}, trainCarInstanceId={identifier.TrainCarInstanceId}, playerPosition={playerPosition}");
-                return true;
+                return _outOfReachDetector.IsOutOfReach(CurrentSubInventorySource, playerPosition);
             }
 
             #endregion

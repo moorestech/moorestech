@@ -19,7 +19,6 @@ namespace Client.Game.InGame.UI.UIState.State.SubInventory
         public Guid BlockGuid => _blockGameObject.BlockMasterElement.BlockGuid;
         public string BlockTypeName => _blockGameObject.BlockMasterElement.BlockType;
         public Vector3Int BlockPosition => _blockGameObject.BlockPosInfo.OriginalPos;
-        public IInteractable ReachTarget => _blockGameObject.Interactable;
 
         private readonly BlockGameObject _blockGameObject;
 
@@ -27,6 +26,14 @@ namespace Client.Game.InGame.UI.UIState.State.SubInventory
         {
             _blockGameObject = blockGameObject;
             InventoryIdentifier = InventoryIdentifierMessagePack.CreateBlockMessage(blockGameObject.BlockPosInfo.OriginalPos);
+        }
+
+        public bool TryGetReachTarget(out IInteractable reachTarget)
+        {
+            // 撤去でブロックの表示が破棄されたら引けない
+            // Once removal destroys the block view there is nothing to resolve
+            reachTarget = _blockGameObject == null ? null : _blockGameObject.Interactable;
+            return reachTarget != null;
         }
 
         public SubInventoryModel CreateModel(InventoryResponse inventoryResponse)

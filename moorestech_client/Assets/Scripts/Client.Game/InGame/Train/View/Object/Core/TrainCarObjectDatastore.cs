@@ -17,7 +17,7 @@ namespace Client.Game.InGame.Train.View.Object.Core
         {
             // datastoreはfactoryを保持し、表示状態そのものは管理しない
             // The datastore holds the factory and does not manage visual state
-            _carObjectFactory = new TrainCarObjectFactory();
+            _carObjectFactory = new TrainCarObjectFactory(this);
         }
 
         // 車両viewは自身の配下に生成されるため、スキット中は根ごと消す

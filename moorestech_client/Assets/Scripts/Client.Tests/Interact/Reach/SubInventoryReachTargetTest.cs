@@ -1,12 +1,14 @@
+using Client.Game.InGame.Train.View.Object.Core;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
+using Client.Tests.Common;
 using NUnit.Framework;
 using UnityEngine;
 
 namespace Client.Tests.Interact.Reach
 {
     /// <summary>
-    ///     Fで開くアクションが、開いた対象そのものを到達判定の対象として運ぶことを検証
-    ///     Verifies the F-open actions carry the opened target itself as the reach target
+    ///     Fで開くアクションが、開いた対象そのものを到達判定の対象として引けることを検証
+    ///     Verifies the F-open actions resolve the opened target itself as the reach target
     /// </summary>
     public class SubInventoryReachTargetTest : InteractTargetSelectorTestFixture
     {
@@ -17,7 +19,8 @@ namespace Client.Tests.Interact.Reach
 
             var source = block.Actions[0].Execute().TransitContext.GetContext<ISubInventorySource>();
 
-            Assert.AreSame(block, source.ReachTarget);
+            Assert.IsTrue(source.TryGetReachTarget(out var reachTarget));
+            Assert.AreSame(block, reachTarget);
         }
 
         [Test]
@@ -29,7 +32,37 @@ namespace Client.Tests.Interact.Reach
             // Actions[0] is F = car inventory, per the order in TrainCarInteractable.Initialize
             var source = car.Actions[0].Execute().TransitContext.GetContext<ISubInventorySource>();
 
-            Assert.AreSame(car, source.ReachTarget);
+            Assert.IsTrue(source.TryGetReachTarget(out var reachTarget));
+            Assert.AreSame(car, reachTarget);
+        }
+
+        [Test]
+        public void 車両の表示が作り直されると同じIDの新しい面を到達判定の対象にする()
+        {
+            var openedCar = CreateTrainCarTarget(new Vector3(1f, 0f, 0f));
+            var openedEntity = openedCar.GetComponent<TrainCarEntityObject>();
+            var datastore = openedCar.GetComponent<TrainCarObjectDatastore>();
+            var source = openedCar.Actions[0].Execute().TransitContext.GetContext<ISubInventorySource>();
+
+            // 再同期で旧viewが破棄され、同じIDで新しいviewが登録される
+            // A resync destroys the old view and registers a new one under the same ID
+            var rebuiltCar = CreateTrainCarTarget(new Vector3(1f, 0f, 0f));
+            TrainCarObjectDatastoreTestUtil.Register(datastore, openedEntity.TrainCarInstanceId, rebuiltCar.GetComponent<TrainCarEntityObject>());
+
+            Assert.IsTrue(source.TryGetReachTarget(out var reachTarget));
+            Assert.AreSame(rebuiltCar, reachTarget);
+        }
+
+        [Test]
+        public void 車両の表示が登録から消えると到達判定の対象を引けない()
+        {
+            var car = CreateTrainCarTarget(new Vector3(1f, 0f, 0f));
+            var entity = car.GetComponent<TrainCarEntityObject>();
+            var source = car.Actions[0].Execute().TransitContext.GetContext<ISubInventorySource>();
+
+            TrainCarObjectDatastoreTestUtil.Unregister(car.GetComponent<TrainCarObjectDatastore>(), entity.TrainCarInstanceId);
+
+            Assert.IsFalse(source.TryGetReachTarget(out _));
         }
     }
 }

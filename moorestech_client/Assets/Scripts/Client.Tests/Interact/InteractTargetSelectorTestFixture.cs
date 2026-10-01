@@ -175,8 +175,9 @@ namespace Client.Tests.Interact
 
             var entityObject = carObject.AddComponent<TrainCarEntityObject>();
             entityObject.Initialize(TrainCarInstanceId.Create(), null);
+            var datastore = TrainCarObjectDatastoreTestUtil.AttachRegistered(entityObject);
             var interactable = carObject.AddComponent<TrainCarInteractable>();
-            interactable.Initialize(entityObject);
+            interactable.Initialize(entityObject, datastore);
             entityObject.SetInteractable(interactable);
 
             // メッシュ子はDefaultレイヤなのでレイにも近傍探索にも掛からない
