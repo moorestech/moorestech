@@ -1,3 +1,4 @@
+using Server.Util.MessagePack.BeltTransport;
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Control;
@@ -80,7 +81,8 @@ namespace Client.DebugSystem
                     unlockState,
                     playedSkitIds,
                     researchNodeStates,
-                    mapLayout);
+                    mapLayout,
+                    new BeltSnapshotMessagePack(0, Array.Empty<BeltCellMessagePack>(), Array.Empty<BeltConnectionMessagePack>(), Array.Empty<BeltCellItemMessagePack>(), Array.Empty<BeltPriorityMessagePack>()));
                 
                 return new InitialHandshakeResponse(handshake, responses);
             }

@@ -2,6 +2,7 @@
   "name": "Server.Protocol",
   "rootNamespace": "",
   "references": [
+        "Core.BeltTransport",
     "MessagePack.Annotations",
     "Common.Debug",
     "Core.Util",

@@ -35,8 +35,8 @@ namespace Tests.CombinedTest.Core.Transport.Segment
             GameUpdater.UpdateOneTick();
             Assert.AreEqual(fixedBelt.Speed, gear.Speed);
             Assert.AreNotSame(transport.Network.GetPath(fixedBelt.CellId), transport.Network.GetPath(gear.CellId));
-            var replay = new BeltNetworkReplay(transport.CompletedTick, transport.CaptureSnapshot(), this);
-            transport.OnTickCompleted.Subscribe(replay.Apply);
+            var replay = new BeltNetworkReplay(transport.CompletedTick, transport.CaptureCommittedSnapshot().Snapshot, this);
+            transport.OnTickCompleted.Subscribe(difference => replay.Apply(Tests.Util.BeltTransport.BeltWireRoundTrip.Tick(difference)));
             fixedBelt.InsertItem(ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 1), InsertItemContext.Empty);
 
             // 一方だけ停止しても固定速セルとアイテム進行を巻き込まない。
@@ -65,8 +65,8 @@ namespace Tests.CombinedTest.Core.Transport.Segment
             second.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId2, 1));
             transport.Initialize();
             Assert.AreNotSame(transport.Network.GetPath(first.CellId), transport.Network.GetPath(second.CellId));
-            var replay = new BeltNetworkReplay(transport.CompletedTick, transport.CaptureSnapshot(), this);
-            transport.OnTickCompleted.Subscribe(replay.Apply);
+            var replay = new BeltNetworkReplay(transport.CompletedTick, transport.CaptureCommittedSnapshot().Snapshot, this);
+            transport.OnTickCompleted.Subscribe(difference => replay.Apply(Tests.Util.BeltTransport.BeltWireRoundTrip.Tick(difference)));
             generator.SetGenerateTorque(100f);
             GameUpdater.UpdateOneTick();
             Assert.AreEqual(32, first.Speed);

@@ -1,62 +1,35 @@
-using Game.Block.Blocks.BeltConveyor.Connection;
 using System;
-using System.Collections.Generic;
-using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.BeltConveyor;
-using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
-using Game.Block.Interface.Component.ConnectJudge;
 using Game.Block.Interface.Extension;
 using Game.Context;
-using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Server.Boot;
-using Tests.Module;
 using Tests.Module.TestMod;
 using UnityEngine;
-
 namespace Tests.CombinedTest.Core
 {
     public class BlockSystemTickUpdateTest
     {
         [Test]
-        public void TickUpdateDrivesBeltComponentWithoutGameUpdaterObservable()
+        public void CentralTickDrivesSegmentWithoutLegacyPerBlockPhysicsTest()
         {
-            // 中央tick駆動と同じ経路でベルトブロックを構築する
-            // Build a belt block through the same path used by central tick driving
-            new MoorestechServerDIContainerGenerator().Create(
-                new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var belt = ServerContext.BlockFactory.Create(
-                ForUnitTestModBlockId.BeltConveyorId,
-                new BlockInstanceId(int.MaxValue),
-                new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one));
-            var beltComponent = belt.GetComponent<VanillaBeltConveyorComponent>();
-            var output = new DummyBlockInventory();
-
-            // 搬出先を接続して1アイテムをベルトへ投入する
-            // Connect an output and insert one item into the belt
-            var connectedTargets = (Dictionary<IBlockInventory, ConnectedInfo>)belt
-                .GetComponent<BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext>>()
-                .ConnectedTargets;
-            connectedTargets.Add(output, new ConnectedInfo());
-            var item = ServerContext.ItemStackFactory.Create(new ItemId(1), 1);
-            var remainder = beltComponent.InsertItem(item, InsertItemContext.Empty);
-            Assert.AreEqual(ItemMaster.EmptyItemId, remainder.Id);
-
-            // GameUpdaterを使わずBlockSystemの公開tick入口だけで搬送を進める
-            // Advance transport only through BlockSystem's public tick entry without GameUpdater
-            var beltParam = (BeltConveyorBlockParam)MasterHolder.BlockMaster
-                .GetBlockMaster(ForUnitTestModBlockId.BeltConveyorId)
-                .BlockParam;
-            var maxTicks = (int)GameUpdater.SecondsToTicks(beltParam.TimeOfItemEnterToExit) + 2;
-            for (var tick = 0; tick < maxTicks && !output.IsItemExists; tick++)
-            {
-                belt.TickUpdate();
-            }
-
-            Assert.True(output.IsItemExists);
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var belt);
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, Vector3Int.forward, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var chest);
+            var facade = belt.GetComponent<VanillaBeltConveyorComponent>();
+            facade.InsertItem(ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 1), InsertItemContext.Empty);
+            var inventory = chest.GetComponent<IBlockInventory>();
+            // 単体block tickでは二重進行せず、中央tickだけがsegmentを進める。
+            // Per-block ticks cannot double-advance transport; only central ticks advance the segment.
+            var remaining = facade.BeltConveyorItems[0].RemainingTicks;
+            for (int tick = 0; tick < 100; tick++) belt.TickUpdate();
+            Assert.AreEqual(remaining, facade.BeltConveyorItems[0].RemainingTicks);
+            Assert.AreEqual(0, inventory.GetItem(0).Count);
+            for (int tick = 0; tick < 100 && inventory.GetItem(0).Count == 0; tick++) GameUpdater.UpdateOneTick();
+            Assert.AreEqual(1, inventory.GetItem(0).Count);
         }
     }
 }

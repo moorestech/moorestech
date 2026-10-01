@@ -120,7 +120,7 @@ namespace Client.Tests.UIState
             };
 #pragma warning restore CS0618
 
-            return new InitialHandshakeResponse(initialHandshake, (null, null, inventory, null, null, null, null, null));
+            return new InitialHandshakeResponse(initialHandshake, (null, null, inventory, null, null, null, null, null, null));
         }
 
         protected MouseCursorTooltipState CreateMouseCursorTooltip() => new();

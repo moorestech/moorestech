@@ -15,29 +15,13 @@ namespace Server.Protocol.PacketResponse
     public class RequestWorldDataProtocol : IPacketResponse
     {
         public const string ProtocolTag = "va:getWorldData";
-        public const float ItemVisibilityDistance = 20f;
-
-        private readonly IEntityFactory _entityFactory;
-        private readonly IEntitiesDatastore _entitiesDatastore;
-
-        public RequestWorldDataProtocol(ServiceProvider serviceProvider)
-        {
-            _entityFactory = serviceProvider.GetService<IEntityFactory>();
-            _entitiesDatastore = serviceProvider.GetService<IEntitiesDatastore>();
-        }
+        public RequestWorldDataProtocol(ServiceProvider serviceProvider) { }
 
         public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             // リクエストを読み、接続のプレイヤー位置を使う
             // Read the request and use the position of the bound player
             var request = MessagePackSerializer.Deserialize<RequestWorldDataMessagePack>(payload);
-
-            // プレイヤー位置を取得
-            // Get player position
-            var playerEntityId = new EntityInstanceId(requesterPlayerId);
-            var playerPosition = _entitiesDatastore.Exists(playerEntityId)
-                ? _entitiesDatastore.GetPosition(playerEntityId)
-                : Vector3.zero;
 
             // ブロック収集（既存処理）
             // Collect blocks (existing logic)
@@ -51,13 +35,9 @@ namespace Server.Protocol.PacketResponse
                 blockResult.Add(new BlockDataMessagePack(block.BlockId, pos, blockDirection, block.BlockInstanceId));
             }
 
-            // エンティティ収集（距離フィルタリング付き）
-            // Collect entities with distance filtering
-            var entities = new List<EntityMessagePack>();
-            var items = CollectBeltConveyorItems.CollectItemFromWorld(_entityFactory, playerPosition, ItemVisibilityDistance);
-            entities.AddRange(items.Select(item => new EntityMessagePack(item)));
-
-            return new ResponseWorldDataMessagePack(blockResult.ToArray(), entities.ToArray());
+            // ベルトの表示状態は初期snapshotとtick差分の専用経路で送る。
+            // Belt display state uses its initial snapshot and tick-difference stream.
+            return new ResponseWorldDataMessagePack(blockResult.ToArray(), Array.Empty<EntityMessagePack>());
         }
 
 

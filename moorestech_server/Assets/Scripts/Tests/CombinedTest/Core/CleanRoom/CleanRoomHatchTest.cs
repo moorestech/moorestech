@@ -78,15 +78,17 @@ namespace Tests.CombinedTest.Core.CleanRoom
             var beltComponent = belt.GetComponent<VanillaBeltConveyorComponent>();
             var itemStackFactory = ServerContext.ItemStackFactory;
             var lastBeltRemain = 0;
-            for (var i = 0; i < 100; i++)
+            var hatchInventory = hatch.GetComponent<IBlockInventory>();
+            var probe = new List<IItemStack> { itemStackFactory.Create(new ItemId(2), 1) };
+            for (var i = 0; i < 10000; i++)
             {
                 lastBeltRemain = beltComponent.InsertItem(itemStackFactory.Create(new ItemId(1), 1), InsertItemContext.Empty).Count;
                 GameUpdater.UpdateOneTick();
+                if (lastBeltRemain == 1 && !hatchInventory.InsertionCheck(probe)) break;
             }
 
             // ハッチの中継バッファ4スタックが埋まり、以後の挿入は差し戻される
             // The 4-stack transit buffer is full, so further inserts bounce back
-            var hatchInventory = hatch.GetComponent<IBlockInventory>();
             Assert.IsFalse(hatchInventory.InsertionCheck(new List<IItemStack> { itemStackFactory.Create(new ItemId(2), 1) }));
             var bounced = hatchInventory.InsertItem(itemStackFactory.Create(new ItemId(2), 3), InsertItemContext.Empty);
             Assert.AreEqual(2, bounced.Id.AsPrimitive());

@@ -85,6 +85,9 @@ namespace Client.Starter.Registration
             // Register event-driven presenters and index caches
             builder.RegisterEntryPoint<CommonMachineBlockStateChangeProcessor>();
             builder.RegisterEntryPoint<WorldDataHandler>();
+            builder.RegisterEntryPoint<Client.Game.InGame.BeltTransport.BeltNetworkEventHandler>().AsSelf();
+            builder.Register<Client.Game.InGame.BeltTransport.BeltItemViewFactory>(Lifetime.Singleton).As<Client.Game.InGame.BeltTransport.IBeltItemViewFactory>();
+            builder.Register<Client.Game.InGame.BeltTransport.BeltItemRenderer>(Lifetime.Singleton).AsSelf().As<Client.Game.Common.IInitialEventApplyWaitTarget>();
             builder.Register<ColliderDistanceCullingManager>(Lifetime.Singleton).AsSelf().As<ITickable>();
             builder.RegisterEntryPoint<BlockColliderCullingRegisterService>();
             builder.RegisterEntryPoint<PlayerPositionSender>().AsSelf();

@@ -2,6 +2,8 @@
   "name": "Server.Event",
   "rootNamespace": "",
   "references": [
+        "Core.BeltTransport",
+    "Game.Block",
     "MessagePack.Annotations",
     "MessagePack",
     "Core.Inventory",
@@ -38,3 +40,4 @@
   "versionDefines": [],
   "noEngineReferences": false
 }
+

@@ -58,7 +58,10 @@ namespace Client.Network.API.Identity
                 api.Progression.GetUnlockState(ct),
                 api.Progression.GetPlayedSkitIds(ct),
                 api.Progression.GetResearchNodeStates(ct),
-                api.World.GetMapData(ct));
+                api.World.GetMapData(ct),
+                api.World.GetBeltSnapshot(ct));
+
+            if (responses.Item9 == null) return Refuse("ベルト初期状態を取得できませんでした。");
 
             return InitialHandshakeAttempt.Succeeded(new InitialHandshakeResponse(initialHandShake, responses));
 

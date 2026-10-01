@@ -54,6 +54,7 @@ namespace Client.Starter.Initialization
             var resolver = starter.StartGame(_serverResult.HandshakeResponse, _serverResult.SaveGenerationWaiter, _collectsPlaytestRecords);
             new ClientDIContext(new DIContainer(resolver));
             WebUiHost.Game.WebUiGameBinder.Bind();
+            resolver.Resolve<Client.Game.InGame.BeltTransport.BeltItemRenderer>().Initialize();
 
             // ホットバー初期割当はhandshakeへ同梱済み。メインインベントリと同様イベント購読開始前に適用する
             // The initial hotbar assignments ride along with the handshake; applied before event dispatch starts, same as the main inventory

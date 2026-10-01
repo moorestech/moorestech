@@ -21,7 +21,7 @@ namespace Client.Tests.Map.Vein
                 new List<MapObjectLayoutMessagePack>(), new List<VeinLayoutMessagePack>(veinLayouts), TerrainTransferMeta.CreateWithoutWorldDirectory(), string.Empty);
             var handshake = new InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack(new Server.Protocol.PacketResponse.Handshake.HandshakeAcceptedMessagePack(new Vector3MessagePack(Vector3.zero), null, -1, null, null, null, 1));
 
-            return new MapVeinAabbRegistry(new InitialHandshakeResponse(handshake, (default, default, default, default, default, default, default, mapLayout)));
+            return new MapVeinAabbRegistry(new InitialHandshakeResponse(handshake, (default, default, default, default, default, default, default, mapLayout, default)));
         }
 
         // 種別絞り込みは範囲表示テストが種別別マテリアルを検証するために使う

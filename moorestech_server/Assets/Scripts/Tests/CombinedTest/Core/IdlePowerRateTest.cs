@@ -130,7 +130,7 @@ namespace Tests.CombinedTest.Core
             // アイテムが載るとイベントで搬送中としてフル要求に戻る
             // Once an item is on the belt, the event makes it active and requests full torque
             var item = ServerContext.ItemStackFactory.Create(new ItemId(1), 1);
-            belt.InsertItem(item, InsertItemContext.Empty);
+            Assert.AreEqual(0, belt.InsertItem(item, InsertItemContext.Empty).Count);
             Assert.AreEqual(fullTorque, gear.GetRequiredTorque(baseRpm, true).AsPrimitive(), 0.0001f);
         }
 

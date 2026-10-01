@@ -77,7 +77,7 @@ namespace Tests.CombinedTest.Core.Transport.Segment
             Assert.AreEqual(2, committed.Snapshot.Items.Length);
             CollectionAssert.AreEquivalent(new[] { 101L, 102L }, Array.ConvertAll(committed.Snapshot.Items, x => BeltTransportIdentity.ToItemInstanceId(x.Item.Guid).AsPrimitive()));
             var replay = new BeltNetworkReplay(committed.Tick, committed.Snapshot, this);
-            loaded.OnTickCompleted.Subscribe(replay.Apply);
+            loaded.OnTickCompleted.Subscribe(difference => replay.Apply(Tests.Util.BeltTransport.BeltWireRoundTrip.Tick(difference)));
             GameUpdater.RunFrames(10);
             Assert.AreEqual(2, loaded.Network.CaptureItems().Length);
             CollectionAssert.AreEqual(loaded.Network.CaptureItems(), replay.Network.CaptureItems());

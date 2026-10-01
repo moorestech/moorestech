@@ -70,6 +70,7 @@ namespace Game.Block.Blocks.BeltConveyor
             {
                 AddPending(new BeltCellItemState(CellId, 1, direction, 0, item, false), single);
                 accepted = true;
+                itemsChanged.OnNext(Unit.Default);
             }
             return accepted ? stack.SubItem(1) : stack;
         }

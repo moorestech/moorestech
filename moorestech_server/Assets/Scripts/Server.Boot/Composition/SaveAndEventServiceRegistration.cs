@@ -149,6 +149,7 @@ namespace Server.Boot.Composition
             services.AddSingleton<RailNodeCreatedEventPacket>();
             services.AddSingleton<RailConnectionCreatedEventPacket>();
             services.AddSingleton<TrainUnitTickDiffBundleEventPacket>();
+            services.AddSingleton<BeltTickCompletedEventPacket>();
             services.AddSingleton<TrainUnitSnapshotEventPacket>();
             services.AddSingleton<TrainFullSnapshotEventPacket>();
             services.AddSingleton<RailNodeRemovedEventPacket>();

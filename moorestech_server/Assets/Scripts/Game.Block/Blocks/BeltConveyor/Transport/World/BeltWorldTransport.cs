@@ -93,7 +93,6 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
             differences.OnNext(journal.Complete(CompletedTick));
         }
 
-        public BeltNetworkSnapshot CaptureSnapshot() => CaptureCommittedSnapshot().Snapshot;
         public BeltCommittedSnapshot CaptureCommittedSnapshot()
         {
             Initialize();

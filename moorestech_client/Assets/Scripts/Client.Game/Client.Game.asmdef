@@ -2,6 +2,7 @@
     "name": "Client.Game",
     "rootNamespace": "",
     "references": [
+        "Core.BeltTransport",
         "moorestechServer",
         "ClassLibrary",
         "Core.ConfigJson",

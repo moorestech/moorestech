@@ -47,8 +47,8 @@ namespace Game.SaveLoad.Migration.Steps
             reason = null;
             if (item != null) return true;
             if (token.Type != JTokenType.String) { reason = "Legacy belt item must contain JSON object text."; return false; }
-            // 外部保存データのJSON解析だけを隔離し、失敗は結果に残す。
-            // Isolate external save JSON parsing and return an explicit failure.
+            // 外部入力JSONの解析境界を隔離し、失敗は結果に残す。
+            // Isolate the external input JSON parsing boundary and return an explicit failure.
             try { item = JObject.Parse((string)token); return true; }
             catch (JsonException exception)
             {

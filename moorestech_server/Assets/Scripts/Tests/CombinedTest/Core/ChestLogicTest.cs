@@ -38,7 +38,7 @@ namespace Tests.CombinedTest.Core
 
             // チェストブロックの配置
             // Place the chest block
-            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, Vector3Int.one, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var chest);
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, 1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var chest);
             var chestComponent = chest.GetComponent<VanillaChestComponent>();
 
             // ベルトコンベアブロックの配置
@@ -47,12 +47,10 @@ namespace Tests.CombinedTest.Core
             var beltConveyorComponent = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
             beltConveyorComponent.InsertItem(item, InsertItemContext.Empty);
             
-            var beltConnectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext>>().ConnectedTargets;
-            beltConnectInventory.Add(chestComponent, new ConnectedInfo());
-            
-            
-            while (!chestComponent.GetItem(0).Equals(item)) GameUpdater.UpdateOneTick();
-            
+            // resolverの実接続と中央tickで搬送完了を待つ。
+            // Use resolved connections and bounded central ticks to wait for delivery.
+            for (int tick = 0; tick < 100 && !chestComponent.GetItem(0).Equals(item); tick++) GameUpdater.UpdateOneTick();
+
             Assert.True(chestComponent.GetItem(0).Equals(item));
         }
         
@@ -65,7 +63,7 @@ namespace Tests.CombinedTest.Core
 
             // チェストブロックの配置
             // Place the chest block
-            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, Vector3Int.one, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var chest);
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, -1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var chest);
             var chestComponent = chest.GetComponent<VanillaChestComponent>();
 
             // ベルトコンベアブロックの配置
@@ -75,8 +73,6 @@ namespace Tests.CombinedTest.Core
             
             chestComponent.SetItem(0, new ItemId(1), 1);
             
-            var chestConnectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)chest.GetComponent<BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext>>().ConnectedTargets;
-            chestConnectInventory.Add(beltConveyorComponent, new ConnectedInfo());
             GameUpdater.UpdateOneTick();
             
             

@@ -84,8 +84,8 @@ namespace Tests.CombinedTest.Core.Transport.Segment
             first.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 1));
             last.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId2, 1));
             transport.Initialize();
-            var replay = new BeltNetworkReplay(transport.CompletedTick, transport.CaptureSnapshot(), this);
-            transport.OnTickCompleted.Subscribe(replay.Apply);
+            var replay = new BeltNetworkReplay(transport.CompletedTick, transport.CaptureCommittedSnapshot().Snapshot, this);
+            transport.OnTickCompleted.Subscribe(difference => replay.Apply(Tests.Util.BeltTransport.BeltWireRoundTrip.Tick(difference)));
             ulong startTick = GameUpdater.CurrentTick;
             GameUpdater.TickEndUpdates.Add(Mutate);
             for (int tick = 0; tick < 3; tick++)
