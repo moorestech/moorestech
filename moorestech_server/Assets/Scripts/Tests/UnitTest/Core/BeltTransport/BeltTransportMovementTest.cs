@@ -10,8 +10,8 @@ namespace Tests.UnitTest.Core.BeltTransport
         [Test]
         public void FullSelfConnectedLoopStopsTest()
         {
-            var loop = Create(3, 128, BeltSegmentKind.Normal);
-            loop.ConnectTo(loop, BeltDirection.Front);
+            var network = CreateNetwork(new[] { (3, 128) }, new[] { (0, 0, BeltDirection.Front) });
+            var loop = Segment(network, 0);
             var initial = new[] { new BeltItemState(Item(1), 0), new BeltItemState(Item(2), 256), new BeltItemState(Item(3), 512) };
             loop.RestoreItems(initial);
             var simulation = new BeltSimulation(new[] { loop });
@@ -25,8 +25,8 @@ namespace Tests.UnitTest.Core.BeltTransport
         [Test]
         public void SelfConnectedLoopWrapsAndPreservesIdentityTest()
         {
-            var loop = Create(3, 64, BeltSegmentKind.Normal);
-            loop.ConnectTo(loop, BeltDirection.Front);
+            var network = CreateNetwork(new[] { (3, 64) }, new[] { (0, 0, BeltDirection.Front) });
+            var loop = Segment(network, 0);
             loop.RestoreItems(new[] { new BeltItemState(Item(1), 0) });
             var simulation = new BeltSimulation(new[] { loop });
             simulation.Tick();
@@ -43,9 +43,9 @@ namespace Tests.UnitTest.Core.BeltTransport
         [TestCase(32, 128)]
         public void SegmentBoundaryUsesSourceSpeedAndDefersTargetMovementTest(int sourceSpeed, int targetSpeed)
         {
-            var source = Create(1, sourceSpeed, BeltSegmentKind.Normal);
-            var target = Create(2, targetSpeed, BeltSegmentKind.Normal);
-            source.ConnectTo(target, BeltDirection.Front);
+            var network = CreateNetwork(new[] { (1, sourceSpeed), (2, targetSpeed) }, new[] { (0, 1, BeltDirection.Front) });
+            var source = Segment(network, 0);
+            var target = Segment(network, 1);
             source.RestoreItems(new[] { new BeltItemState(Item(1), 0) });
             var simulation = new BeltSimulation(new[] { target, source });
             simulation.Tick();
@@ -58,9 +58,9 @@ namespace Tests.UnitTest.Core.BeltTransport
         [Test]
         public void SpaceCreatedDuringMovementIsAvailableNextTickTest()
         {
-            var source = Create(1, 64, BeltSegmentKind.Normal);
-            var target = Create(2, 64, BeltSegmentKind.Normal);
-            source.ConnectTo(target, BeltDirection.Front);
+            var network = CreateNetwork(new[] { (1, 64), (2, 64) }, new[] { (0, 1, BeltDirection.Front) });
+            var source = Segment(network, 0);
+            var target = Segment(network, 1);
             source.RestoreItems(new[] { new BeltItemState(Item(1), 0) });
             target.RestoreItems(new[] { new BeltItemState(Item(2), 256) });
             var simulation = new BeltSimulation(new[] { target, source });
@@ -78,7 +78,8 @@ namespace Tests.UnitTest.Core.BeltTransport
         [Test]
         public void BlockedHeadCompactsFollowingBlocksTest()
         {
-            var belt = Create(4, 64, BeltSegmentKind.Normal);
+            var network = CreateNetwork(new[] { (4, 64) }, Array.Empty<(int, int, BeltDirection)>());
+            var belt = Segment(network, 0);
             belt.RestoreItems(new[] { new BeltItemState(Item(1), 0), new BeltItemState(Item(2), 280), new BeltItemState(Item(3), 600) });
             var simulation = new BeltSimulation(new[] { belt });
             simulation.Tick();
@@ -91,7 +92,7 @@ namespace Tests.UnitTest.Core.BeltTransport
         [TestCase(129)]
         public void InvalidSpeedRejectedTest(int speed)
         {
-            Assert.Throws<ArgumentOutOfRangeException>(() => Create(1, speed, BeltSegmentKind.Normal));
+            Assert.Throws<ArgumentOutOfRangeException>(() => CreateNetwork(new[] { (1, speed) }, Array.Empty<(int, int, BeltDirection)>()));
         }
     }
 }

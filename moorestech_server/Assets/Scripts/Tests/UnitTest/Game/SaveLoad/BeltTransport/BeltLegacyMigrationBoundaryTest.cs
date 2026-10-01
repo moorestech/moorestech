@@ -30,7 +30,7 @@ namespace Tests.UnitTest.Game.SaveLoad.BeltTransport
         [Test]
         public void FourSlotDiskLoadRestoresExitNearestHeadAndLogsCollisionsTest()
         {
-            var fixture = CreateFixture(1, 4, false, false);
+            var fixture = CreateFixture(1, 4, false, false, null);
             var (_, services) = new MoorestechServerDIContainerGenerator().Create(fixture.Options);
             services.GetRequiredService<IWorldSaveDataLoader>().LoadOrInitialize();
             var belt = ServerContext.WorldBlockDatastore.GetBlock(fixture.BlockId).GetComponent<VanillaBeltConveyorComponent>();
@@ -68,7 +68,7 @@ namespace Tests.UnitTest.Game.SaveLoad.BeltTransport
         [TestCase(true, 2, false)]
         public void InvalidLegacyShapeIsBlockedBeforeRuntimeTest(bool wrapped, int count, bool invalidGuid)
         {
-            var fixture = CreateFixture(count, 1, wrapped, invalidGuid);
+            var fixture = CreateFixture(count, 1, wrapped, invalidGuid, null);
             var (_, services) = new MoorestechServerDIContainerGenerator().Create(fixture.Options);
             LogAssert.Expect(LogType.Error, new Regex("V3からV4へ変換できませんでした"));
             LogAssert.Expect(LogType.Error, new Regex("cause=StepFailed"));
@@ -87,7 +87,7 @@ namespace Tests.UnitTest.Game.SaveLoad.BeltTransport
         [TestCase(true, 1)]
         public void ValidRawAndWrappedLegacyPayloadsLoadTest(bool wrapped, int count)
         {
-            var fixture = CreateFixture(count, 1, wrapped, false);
+            var fixture = CreateFixture(count, 1, wrapped, false, null);
             var (_, services) = new MoorestechServerDIContainerGenerator().Create(fixture.Options);
             services.GetRequiredService<IWorldSaveDataLoader>().LoadOrInitialize();
             var snapshot = services.GetRequiredService<BeltWorldTransport>().CaptureCommittedSnapshot();
@@ -96,7 +96,38 @@ namespace Tests.UnitTest.Game.SaveLoad.BeltTransport
             Assert.AreEqual(fixture.Original, File.ReadAllText(Path.Combine(Path.GetDirectoryName(fixture.Path), "backup", "3", "save.json")));
         }
 
-        private static (MoorestechServerDIContainerOptions Options, string Path, string Original, BlockInstanceId BlockId) CreateFixture(int count, int slots, bool wrapped, bool invalidGuid)
+        [TestCase(false, 1, "not-a-guid", true)]
+        [TestCase(true, 1, "not-a-guid", true)]
+        [TestCase(false, 0, "not-a-guid", false)]
+        [TestCase(true, 0, "not-a-guid", false)]
+        [TestCase(false, 1, "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee", false)]
+        [TestCase(true, 1, "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee", false)]
+        public void LegacyItemGuidIsValidatedOnlyForPositiveCountTest(bool wrapped, int count, string itemGuid, bool blocked)
+        {
+            var fixture = CreateFixture(count, 1, wrapped, false, itemGuid);
+            var (_, services) = new MoorestechServerDIContainerGenerator().Create(fixture.Options);
+            // 正数の不正GUIDは移行境界で止め、原本と空worldを保つ。
+            // Reject malformed positive-count GUIDs at migration while preserving the source and empty world.
+            if (blocked)
+            {
+                LogAssert.Expect(LogType.Error, new Regex("V3からV4へ変換できませんでした"));
+                LogAssert.Expect(LogType.Error, new Regex("cause=StepFailed"));
+                LogAssert.Expect(LogType.Error, new Regex("セーブファイルパス"));
+                var failure = Assert.Throws<Exception>(() => services.GetRequiredService<IWorldSaveDataLoader>().LoadOrInitialize());
+                Assert.That(failure.Message, Does.Contain("StepFailed"));
+                Assert.That(failure.Message, Does.Contain("itemGuid"));
+                Assert.AreEqual(0, ServerContext.WorldBlockDatastore.BlockMasterDictionary.Count);
+            }
+            else
+            {
+                services.GetRequiredService<IWorldSaveDataLoader>().LoadOrInitialize();
+                Assert.IsEmpty(services.GetRequiredService<BeltWorldTransport>().CaptureCommittedSnapshot().Snapshot.Items);
+                Assert.AreEqual(fixture.Original, File.ReadAllText(Path.Combine(Path.GetDirectoryName(fixture.Path), "backup", "3", "save.json")));
+            }
+            Assert.AreEqual(fixture.Original, File.ReadAllText(fixture.Path));
+        }
+
+        private static (MoorestechServerDIContainerOptions Options, string Path, string Original, BlockInstanceId BlockId) CreateFixture(int count, int slots, bool wrapped, bool invalidGuid, string itemGuid)
         {
             string directory = Path.Combine(Path.GetTempPath(), "belt-legacy-boundary-" + Guid.NewGuid().ToString("N"));
             string path = Path.Combine(directory, "save.json");
@@ -114,7 +145,7 @@ namespace Tests.UnitTest.Game.SaveLoad.BeltTransport
             // Use real master GUIDs in the JSON-string array produced by the old serializer.
             for (int slot = 0; slot < slots; slot++)
                 items.Add(new JObject {
-                    ["itemStack"] = new JObject { ["itemGuid"] = MasterHolder.ItemMaster.GetItemMaster(ForUnitTestItemId.ItemId1).ItemGuid.ToString(), ["count"] = count },
+                    ["itemStack"] = new JObject { ["itemGuid"] = itemGuid ?? MasterHolder.ItemMaster.GetItemMaster(ForUnitTestItemId.ItemId1).ItemGuid.ToString(), ["count"] = count },
                     ["remainingSeconds"] = param.TimeOfItemEnterToExit * slot / 4,
                     ["sourceConnectorGuid"] = invalidGuid ? "not-a-guid" : param.InventoryConnectors.InputConnects[0].ConnectorGuid.ToString(),
                     ["goalConnectorGuid"] = param.InventoryConnectors.OutputConnects[0].ConnectorGuid.ToString() }.ToString(Formatting.None));

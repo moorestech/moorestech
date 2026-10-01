@@ -39,6 +39,11 @@ namespace Game.SaveLoad.Migration.Steps
                     var count = parsed["itemStack"]["count"];
                     if (count?.Type != JTokenType.Integer || !int.TryParse(count.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int amount) || amount < 0 || 1 < amount)
                         return Fail("Legacy belt itemStack count must be the integer 0 or 1.");
+                    // 空stackは既存どおり除去し、正数の識別子をロード前に検証する。
+                    // Preserve empty-stack pruning and validate positive-count identities before loading.
+                    var itemGuid = parsed["itemStack"]["itemGuid"];
+                    if (0 < amount && (itemGuid == null || itemGuid.Type is not (JTokenType.String or JTokenType.Guid) || !Guid.TryParse(itemGuid.ToString(), out _)))
+                        return Fail("Legacy positive-count belt itemStack itemGuid must be a GUID.");
                     // 任意GUIDの欠損は許可し、不正値はruntimeへ渡さない。
                     // Allow absent optional GUIDs and reject invalid values before runtime loading.
                     foreach (string key in new[] { "sourceConnectorGuid", "goalConnectorGuid" })

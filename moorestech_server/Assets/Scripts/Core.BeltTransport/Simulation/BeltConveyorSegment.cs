@@ -23,10 +23,6 @@ namespace Core.BeltTransport
         internal int TickSpeed { get; private set; }
         internal BeltDirection InputDirection { get; private set; } = BeltDirection.None;
 
-        public BeltConveyorSegment(int capacity, int speed, BeltSegmentKind kind,
-            int priorityOrder, BeltDirection forwardDirection)
-            : this(capacity, speed, kind, priorityOrder, forwardDirection, UntrackedBeltMovement.Instance) { }
-
         internal BeltConveyorSegment(int capacity, int speed, BeltSegmentKind kind,
             int priorityOrder, BeltDirection forwardDirection, IBeltItemMovementObserver movement)
         {

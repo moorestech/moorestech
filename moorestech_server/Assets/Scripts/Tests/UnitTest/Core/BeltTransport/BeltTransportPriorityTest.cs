@@ -9,11 +9,11 @@ namespace Tests.UnitTest.Core.BeltTransport
         [Test]
         public void StoppedBufferCannotReserveMergeTest()
         {
-            var stopped = Create(1, 0, BeltSegmentKind.Branch);
-            var moving = Create(1, 64, BeltSegmentKind.Normal);
-            var merge = Create(1, 64, BeltSegmentKind.Merge);
-            stopped.Buffer.ConnectTo(merge, BeltDirection.Front);
-            moving.ConnectTo(merge, BeltDirection.Right);
+            var network = CreateNetwork(new[] { (1, 0), (1, 64), (1, 64) },
+                new[] { (0, 2, BeltDirection.Front), (0, -1, BeltDirection.Left), (1, 2, BeltDirection.Right) });
+            var stopped = Segment(network, 0);
+            var moving = Segment(network, 1);
+            var merge = Segment(network, 2);
             stopped.Buffer.RestoreItem(Item(1));
             moving.RestoreItems(new[] { new BeltItemState(Item(2), 0) });
             var simulation = new BeltSimulation(new[] { stopped, moving, merge });
@@ -30,11 +30,11 @@ namespace Tests.UnitTest.Core.BeltTransport
         [Test]
         public void MergeUsesDirectionPriorityInsteadOfRegistrationOrderTest()
         {
-            var side = Create(1, 64, BeltSegmentKind.Normal);
-            var straight = Create(1, 64, BeltSegmentKind.Normal);
-            var merge = Create(1, 64, BeltSegmentKind.Merge);
-            side.ConnectTo(merge, BeltDirection.Right);
-            straight.ConnectTo(merge, BeltDirection.Front);
+            var network = CreateNetwork(new[] { (1, 64), (1, 64), (1, 64) },
+                new[] { (0, 2, BeltDirection.Right), (1, 2, BeltDirection.Front) });
+            var side = Segment(network, 0);
+            var straight = Segment(network, 1);
+            var merge = Segment(network, 2);
             side.RestoreItems(new[] { new BeltItemState(Item(1), 0) });
             straight.RestoreItems(new[] { new BeltItemState(Item(2), 0) });
             var simulation = new BeltSimulation(new[] { side, straight, merge });
@@ -52,13 +52,12 @@ namespace Tests.UnitTest.Core.BeltTransport
         [Test]
         public void BranchMovesOnlySuccessfulDirectionToEndTest()
         {
-            var branch = Create(1, 64, BeltSegmentKind.Branch);
-            var front = Create(1, 0, BeltSegmentKind.Normal);
-            var left = Create(1, 0, BeltSegmentKind.Normal);
-            var right = Create(1, 0, BeltSegmentKind.Normal);
-            branch.Buffer.ConnectTo(front, BeltDirection.Front);
-            branch.Buffer.ConnectTo(left, BeltDirection.Left);
-            branch.Buffer.ConnectTo(right, BeltDirection.Right);
+            var network = CreateNetwork(new[] { (1, 64), (1, 0), (1, 0), (1, 0) },
+                new[] { (0, 1, BeltDirection.Front), (0, 2, BeltDirection.Left), (0, 3, BeltDirection.Right) });
+            var branch = Segment(network, 0);
+            var front = Segment(network, 1);
+            var left = Segment(network, 2);
+            var right = Segment(network, 3);
             front.RestoreItems(new[] { new BeltItemState(Item(1), 0) });
             left.RestoreItems(new[] { new BeltItemState(Item(2), 0) });
             branch.Buffer.RestoreItem(Item(3));
@@ -79,11 +78,11 @@ namespace Tests.UnitTest.Core.BeltTransport
         [Test]
         public void BranchSuccessfulMiddleDirectionMovesAfterDisconnectedDirectionTest()
         {
-            var branch = Create(1, 64, BeltSegmentKind.Branch);
-            var front = Create(1, 0, BeltSegmentKind.Normal);
-            var left = Create(1, 0, BeltSegmentKind.Normal);
-            branch.Buffer.ConnectTo(front, BeltDirection.Front);
-            branch.Buffer.ConnectTo(left, BeltDirection.Left);
+            var network = CreateNetwork(new[] { (1, 64), (1, 0), (1, 0) },
+                new[] { (0, 1, BeltDirection.Front), (0, 2, BeltDirection.Left) });
+            var branch = Segment(network, 0);
+            var front = Segment(network, 1);
+            var left = Segment(network, 2);
             front.RestoreItems(new[] { new BeltItemState(Item(1), 0) });
             branch.Buffer.RestoreItem(Item(2));
             new BeltSimulation(new[] { branch, front, left }).Tick();
@@ -97,9 +96,10 @@ namespace Tests.UnitTest.Core.BeltTransport
         [Test]
         public void BufferFullAtCollectionWaitsUntilNextTickToCollectAgainTest()
         {
-            var branch = Create(1, 64, BeltSegmentKind.Branch);
-            var target = Create(3, 64, BeltSegmentKind.Normal);
-            branch.Buffer.ConnectTo(target, BeltDirection.Front);
+            var network = CreateNetwork(new[] { (1, 64), (3, 64) },
+                new[] { (0, 1, BeltDirection.Front), (0, -1, BeltDirection.Left) });
+            var branch = Segment(network, 0);
+            var target = Segment(network, 1);
             branch.Buffer.RestoreItem(Item(1));
             branch.RestoreItems(new[] { new BeltItemState(Item(2), 0) });
             var simulation = new BeltSimulation(new[] { branch, target });
@@ -117,9 +117,10 @@ namespace Tests.UnitTest.Core.BeltTransport
         [Test]
         public void BufferCollectionAndNormalInputAdvanceInSameTickTest()
         {
-            var branch = Create(2, 64, BeltSegmentKind.Branch);
-            var target = Create(2, 32, BeltSegmentKind.Normal);
-            branch.Buffer.ConnectTo(target, BeltDirection.Front);
+            var network = CreateNetwork(new[] { (2, 64), (2, 32) },
+                new[] { (0, 1, BeltDirection.Front), (0, -1, BeltDirection.Left) });
+            var branch = Segment(network, 0);
+            var target = Segment(network, 1);
             branch.RestoreItems(new[] { new BeltItemState(Item(1), 32), new BeltItemState(Item(2), 320) });
             new BeltSimulation(new[] { branch, target }).Tick();
             Assert.AreEqual(256, branch.CaptureItems()[0].DistanceToExit);
