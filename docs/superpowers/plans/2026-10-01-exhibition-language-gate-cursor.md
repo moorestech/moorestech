@@ -126,4 +126,12 @@ ShowCursorAfterSceneStartAsync(ct).Forget();
 
 ## 実測メモ
 
-（Task 1 完了時に追記）
+Task 1 実測（2026-10-01・worktree の自前 Editor）:
+
+- Step 2（EditMode）: execute-dynamic-code で `Cursor.lockState = Locked; Cursor.visible = false` を書き、同じ呼び出し内と次の呼び出し（後続のEditorフレーム）で読み返すと両方 `visible=False lock=Locked`。→ **EditMode可**。
+- Step 3（赤の再現）: Editor プロセスへ `MOORESTECH_EVENT_MODE=1` と `MOORESTECH_EVENT_MODE_EDITOR=1`（Editor では opt-in 必須）を設定し MainMenu で Play。ゲート待機中（MainGame がアクティブ、`event_mode.language_gate` topic の snapshot が `{"waiting":true}`、WebUiHost.Hub 非null）に `Cursor.visible=False` / `lockState=Locked` / `GameStateController.CurrentState=InGame`。**赤を再現**。
+- Step 4: PlayMode 中に `Locked` が読めた。→ **PlayMode可**。よって Task 2 は EditModeInPlayingTest を採る。
+- 再現経路の注記（plan と違った点）:
+  - 新規 worktree には同梱 Node（`moorestech_web/node`）と `webui/node_modules` が無く、WebUiHost が起動せず `hub == null` の縮退（英語で即開始・ゲート無し）になった。`moorestech_web/setup.sh` と `pnpm install --frozen-lockfile` で用意してから再現した。
+  - Editor で MainMenu から Play すると `EventModeAutoStart` の `StartLocalGame` が `[PlaytestTitleGates] InitializeScenePipeline refused: the title gates never started` で断られ MainMenu へ戻った（タイトルの列はその後 `Passed` になる）。2回とも同じ。タイトル列通過後に execute-dynamic-code で `LocalGameLauncher.StartLocalGame()` を呼んで MainGame へ進めた。配布ビルドでも同じ断りが起きるかは Task 3 Step 3 で確認する。
+  - ゲート待機中は `UIStateControl.Update`（UIStateControl.cs:54）と `ThirdPersonController`（:173/:309）が毎フレーム NullReferenceException を出していた（修正前から存在。本件の範囲外として記録のみ）。
