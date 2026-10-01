@@ -135,3 +135,13 @@ Task 1 実測（2026-10-01・worktree の自前 Editor）:
   - 新規 worktree には同梱 Node（`moorestech_web/node`）と `webui/node_modules` が無く、WebUiHost が起動せず `hub == null` の縮退（英語で即開始・ゲート無し）になった。`moorestech_web/setup.sh` と `pnpm install --frozen-lockfile` で用意してから再現した。
   - Editor で MainMenu から Play すると `EventModeAutoStart` の `StartLocalGame` が `[PlaytestTitleGates] InitializeScenePipeline refused: the title gates never started` で断られ MainMenu へ戻った（タイトルの列はその後 `Passed` になる）。2回とも同じ。タイトル列通過後に execute-dynamic-code で `LocalGameLauncher.StartLocalGame()` を呼んで MainGame へ進めた。配布ビルドでも同じ断りが起きるかは Task 3 Step 3 で確認する。
   - ゲート待機中は `UIStateControl.Update`（UIStateControl.cs:54）と `ThirdPersonController`（:173/:309）が毎フレーム NullReferenceException を出していた（修正前から存在。本件の範囲外として記録のみ）。
+
+Task 3 実測（2026-10-01・修正 `fae1980e9` 入り）:
+
+- Step 1（Editor PlayMode・出展モード）: ゲート待機中（topic `{"waiting":true}`、MainGameアクティブ、`GameStateController.CurrentState=InGame`）に `Cursor.visible=True` / `lockState=None`。execute-dynamic-code で `event_mode.select_language` アクションを現行言語で実行 → 導入スキットへ（Skit中は既存どおり表示）→ `SkitPresentationStateStore.TrySkip` でスキットを飛ばすと `GameScreen` 入場で `visible=False` / `Locked`。録画DSLに出展ゲート操作は無いため execute-dynamic-code で代替した。
+- Step 1 追加（選択が NextFrame より先に完了する競合）: 毎フレーム `PlayerLoopTiming.Initialization` で topic を監視し、待機が見えた最初のフレームで選択させた。選択フレーム（489）では `Locked`（NextFrame 未到達）、次フレーム（490）以降は Skit で表示、スキット後の `GameScreen` で `Locked` のまま。ロックは `RestoreLoginState`（初期snapshot・地形構築・スキットの後）で起こるため、表示のプッシュがロック後へ後勝ちする経路は観測されなかった。
+- Step 2（ログ）: 検証区間の警告語ヒットは `InitializeScenePipeline refused: the title gates never started`（下記の既存事象）と `Script error: OnTerrainChanged`（既存）のみ。ゲート待機中は毎フレーム `UIStateControl.Update:54` / `ThirdPersonController:173,309` の NullReferenceException が出る（修正前の Task 1 でも同じ。本件の変更とは無関係）。
+- Step 3（出展ビルド実機）: `PlayerBuildRequest.ForExhibition` で batchmode ビルド（Succeeded・15分）→ `MOORESTECH_EVENT_MODE=1 MOORESTECH_EVENT_LANGUAGE=german` で単発起動（ループスクリプトと同じ環境変数。無限ループは回さず）。
+  - **ビルドでも `EventModeAutoStart` が `InitializeScenePipeline refused: the title gates never started` で断られ、MainMenu（ドイツ語UI・言語ドロップダウン付き）に戻った。** 出展モードの自動開始が機能していない別の不具合（本planの前提「EventModeAutoStart が即座に抜ける」と矛盾）。MainMenu 上ではカーソルは表示されていた。
+  - MainMenu の「Lokal spielen」を cliclick で押して MainGame へ進めると、WebUI の言語選択ゲート（English/日本語/Deutsch/한국어）でカーソルが表示され、マウス移動に追従し English ボタンにホバーした（`screencapture -C` で確認）。English を押すとスキットが始まり、スキップ後のゲーム画面ではカーソルが非表示（ロック）になった。
+  - 実マウスの物理操作ではなく cliclick の合成入力での確認。
