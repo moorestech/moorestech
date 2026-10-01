@@ -19,6 +19,12 @@ namespace Game.Paths
         // The default world name at boot; single source of truth
         public const string DefaultWorldName = "world_1";
 
+        // 既定ワールドの置き場を起動環境から差し替えるキー（前例: DebugParametersCacheDirectory）。未設定ならSaves/world_1
+        // Env key that relocates the default world from the launch environment (precedent: DebugParametersCacheDirectory); unset means Saves/world_1
+        // プロセス環境変数なのでドメインリロードを跨いで効き、プロセスと共に消えるため残置しない
+        // Being a process env var it survives domain reloads and dies with the process, so it is never left behind
+        public const string DefaultWorldDirectoryOverrideEnvKey = "MOORESTECH_DEFAULT_WORLD_DIRECTORY";
+
         public static string GameSystemDirectory
         {
             get
@@ -37,7 +43,17 @@ namespace Game.Paths
         public static string TmpFileDirectory => DirectoryCreator(GameSystemDirectory, "Tmp");
         public static string ExtractedModDirectory => DirectoryCreator(TmpFileDirectory, "ExtractedMods");
         public static string SaveFileDirectory => DirectoryCreator(GameSystemDirectory, "Saves");
-        public static string DefaultWorldDirectory => GetSaveFilePath(DefaultWorldName);
+
+        // 内蔵サーバーの既定ワールドと既定ワールドの削除が共に読む唯一の窓口
+        // The single window read by both the embedded server's default world and the default-world deletion
+        public static string DefaultWorldDirectory
+        {
+            get
+            {
+                var overrideDirectory = Environment.GetEnvironmentVariable(DefaultWorldDirectoryOverrideEnvKey);
+                return string.IsNullOrEmpty(overrideDirectory) ? GetSaveFilePath(DefaultWorldName) : overrideDirectory;
+            }
+        }
 
         // サーバーから受け取った派生データの置き場。削除しても再取得で復元される
         // Holds data derived from the server; deleting it only forces a re-fetch

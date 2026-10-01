@@ -65,11 +65,14 @@ namespace Client.Starter.EventMode
             // The title sequence starts in the title composition root's Start, later than this AfterSceneLoad hook; starting without waiting is refused as "not started" and bounced to the menu
             async UniTask StartWhenTitleGatesPassAsync()
             {
-                // 期限切れは列が始まらない配線不良。ワールドを消さずメインメニューに留める（fail-closed）
-                // Expiry means the sequence never started (a wiring fault); stay on the main menu without wiping the world (fail closed)
-                if (!await PlaytestTitleGates.WaitUntilPassedWithinUnattendedDeadlineAsync(Application.exitCancellationToken))
+                // 期限切れは起動失敗。メニューに残すと前の来場者のワールドで遊べ、ブースも止まるので、ワールドを消さずに終了する
+                // Expiry is a failed boot; staying on the menu would let a visitor resume the previous world and stall the booth, so quit without wiping
+                if (!await PlaytestTitleGates.WaitUntilPassedWithinDeadlineAsync(PlaytestTitleGates.UnattendedPassTimeoutSeconds, Application.exitCancellationToken))
                 {
-                    Debug.LogError($"EventModeAutoStart: title gates did not pass within {PlaytestTitleGates.UnattendedPassTimeoutSeconds}s (the title composition root may not have started the sequence); not wiping the world and not auto-starting");
+                    Debug.LogError($"EventModeAutoStart: title gates did not pass within {PlaytestTitleGates.UnattendedPassTimeoutSeconds}s (the title composition root may not have started the sequence); quitting without wiping the world so the loop script restarts the game");
+                    // 出展のループスクリプトが終了を検知して再起動する前提（Editorでは無効）
+                    // Relies on the exhibition loop script restarting the game on exit (no-op in the Editor)
+                    Application.Quit();
                     return;
                 }
 

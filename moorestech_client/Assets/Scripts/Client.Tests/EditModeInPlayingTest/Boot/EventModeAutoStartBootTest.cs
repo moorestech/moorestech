@@ -1,6 +1,8 @@
 using System.Collections;
+using System.IO;
 using Client.Common;
 using Cysharp.Threading.Tasks;
+using Game.Paths;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -31,8 +33,8 @@ namespace Client.Tests.EditModeInPlayingTest
 
         private const string ReachedMainGame = "reachedMainGame";
 
-        // 正常・失敗・打ち切りのどの経路でも開発機のワールドと環境を戻す
-        // Restore the developer's world and environment on every path: pass, failure or abort
+        // 正常・失敗・打ち切りのどの経路でも環境を戻し、一時ワールドを消す
+        // Restore the environment and remove the temporary world on every path: pass, failure or abort
         [UnityTearDown]
         public IEnumerator TearDown()
         {
@@ -82,7 +84,11 @@ namespace Client.Tests.EditModeInPlayingTest
                     var activeSceneName = SceneManager.GetActiveScene().name;
                     if (activeSceneName == SceneConstant.MainGameSceneName)
                     {
-                        SessionState.SetString(OutcomeKey, ReachedMainGame);
+                        // 開発機のworld_1ではなく一時ディレクトリにワールドが作られたことも観測する
+                        // Also observe that the world was created in the temporary directory, not the developer's world_1
+                        var worldDirectory = GameSystemPaths.DefaultWorldDirectory;
+                        var usedTemporaryWorld = worldDirectory == EventModeAutoStartBootEnvironment.TemporaryWorldDirectory && Directory.Exists(worldDirectory);
+                        SessionState.SetString(OutcomeKey, usedTemporaryWorld ? ReachedMainGame : $"reached MainGame but the world was not created in the temporary directory (default world: {worldDirectory})");
                         return;
                     }
 

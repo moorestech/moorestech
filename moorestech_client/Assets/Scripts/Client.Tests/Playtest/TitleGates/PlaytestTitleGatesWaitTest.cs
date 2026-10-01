@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using System.IO;
 using System.Threading;
 using Client.Game.InGame.BugReport.Playtest;
@@ -8,13 +10,22 @@ using Client.Tests.BugReport;
 using Client.Tests.PlaytestReceiver;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
+using UnityEngine.TestTools;
 
 namespace Client.Tests.Playtest.TitleGates
 {
-    // 無人の開始役（smoke）がタイトルの列の始動と通過を待てることを押さえる
-    // Pins that an unattended starter (the smoke run) can wait for the title sequence to start and pass
+    // 無人の開始役（smoke・出展モード）がタイトルの列の始動と通過を待て、列が始まらなければ期限で諦めることを押さえる
+    // Pins that an unattended starter (smoke, exhibition mode) can wait for the title sequence to pass, and gives up at the deadline when it never starts
     public class PlaytestTitleGatesWaitTest
     {
+        // 期限切れの判定に使う短い期限秒
+        // Short deadline in seconds for the expiry check
+        private const float ShortDeadlineSeconds = 0.2f;
+
+        // 期限より十分長い観測上限秒。これを超えたら期限が効いていない
+        // Observation limit well beyond the deadline; exceeding it means the deadline is not honored
+        private const float ObservationLimitSeconds = 5f;
+
         private bool _consentExisted;
 
         [SetUp]
@@ -67,5 +78,18 @@ namespace Client.Tests.Playtest.TitleGates
 
             Assert.AreEqual(UniTaskStatus.Succeeded, wait.Status);
         }
+
+        // 列が始まらない（タイトル合成ルートが動かない配線不良）と、渡した期限で偽を返す。出展モードはこれを見てプロセスを終了する
+        // When the sequence never starts (a wiring fault where the title composition root does not run), it returns false at the given deadline; exhibition mode quits the process on it
+        [UnityTest]
+        public IEnumerator 列が始まらなければ渡した期限で偽を返す() => UniTask.ToCoroutine(async () =>
+        {
+            var wait = PlaytestTitleGates.WaitUntilPassedWithinDeadlineAsync(ShortDeadlineSeconds, CancellationToken.None);
+            var observationLimit = UniTask.Delay(TimeSpan.FromSeconds(ObservationLimitSeconds), DelayType.Realtime);
+
+            var (waitFinishedFirst, passed) = await UniTask.WhenAny(wait, observationLimit);
+            Assert.IsTrue(waitFinishedFirst, $"{ShortDeadlineSeconds}秒の期限を渡したのに{ObservationLimitSeconds}秒以内に待ちが解けなかった");
+            Assert.IsFalse(passed, "列が始まっていないのに通過扱いになった");
+        });
     }
 }

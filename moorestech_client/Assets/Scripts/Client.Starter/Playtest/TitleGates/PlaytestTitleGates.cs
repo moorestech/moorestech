@@ -123,12 +123,12 @@ namespace Client.Starter.Playtest.TitleGates
             await sequence.Step.Where(static step => step == PlaytestTitleGateStep.Passed).ToUniTask(true, ct);
         }
 
-        // 無人の開始役（smoke・出展モード）が期限付きで通過を待つ。期限切れは偽を返し、理由のログは開始役が自分の文脈で出す
-        // An unattended starter (smoke, exhibition mode) waits for the pass with a deadline; on expiry it returns false and the starter logs the reason in its own context
-        internal static async UniTask<bool> WaitUntilPassedWithinUnattendedDeadlineAsync(CancellationToken ct)
+        // 無人の開始役（smoke・出展モード）が期限付きで通過を待つ。期限は開始役が渡し、期限切れは偽を返す。理由のログは開始役が自分の文脈で出す
+        // An unattended starter (smoke, exhibition mode) waits for the pass with a deadline it passes in; expiry returns false and the starter logs the reason in its own context
+        internal static async UniTask<bool> WaitUntilPassedWithinDeadlineAsync(float deadlineSeconds, CancellationToken ct)
         {
             var passed = WaitUntilPassedAsync(ct);
-            var deadline = UniTask.Delay(TimeSpan.FromSeconds(UnattendedPassTimeoutSeconds), DelayType.Realtime, cancellationToken: ct);
+            var deadline = UniTask.Delay(TimeSpan.FromSeconds(deadlineSeconds), DelayType.Realtime, cancellationToken: ct);
             return await UniTask.WhenAny(passed, deadline) == 0;
         }
 

@@ -76,7 +76,7 @@ namespace Client.Starter.PlaytestSmoke
 
             // タイトルの確認の通過を待ってから開始する。先に始めると初期化が「確認が未開始」で断りメニューへ戻す
             // Start only after the title gates pass; starting earlier makes initialization refuse as "not started" and bounce to the menu
-            if (!await PlaytestTitleGates.WaitUntilPassedWithinUnattendedDeadlineAsync(Application.exitCancellationToken))
+            if (!await PlaytestTitleGates.WaitUntilPassedWithinDeadlineAsync(PlaytestTitleGates.UnattendedPassTimeoutSeconds, Application.exitCancellationToken))
             {
                 Fail(settings, "title-gates", $"title gates did not pass within {PlaytestTitleGates.UnattendedPassTimeoutSeconds}s (the title composition root may not have started the sequence)");
                 return;

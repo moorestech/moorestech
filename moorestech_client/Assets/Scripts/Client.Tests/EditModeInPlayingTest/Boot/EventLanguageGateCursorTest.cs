@@ -1,8 +1,7 @@
-using System;
 using System.Collections;
 using Client.Common;
 using Client.Game.Common;
-using Client.Starter.EventMode;
+using Client.Tests.EventMode;
 using Client.Tests.WebUi.Gate;
 using Client.WebUiHost.Game.EventMode;
 using Cysharp.Threading.Tasks;
@@ -34,8 +33,6 @@ namespace Client.Tests.EditModeInPlayingTest
         // MainGameのStart()と後続の初回フレームを確実に越えるための待ちフレーム数
         // Frames to advance so MainGame's Start() and the following first frames have surely run
         private const int SettleFrameCount = 10;
-
-        private static readonly string[] EventModeEnvKeys = { EventExhibitionSettings.EnableEnvKey, EventExhibitionSettings.EditorOptInEnvKey };
 
         // 打ち切りでPlayに残ると次のテストのEnterPlayModeと競合するため、必ずPlayを抜ける
         // Always leave Play, since staying in it after an abort would clash with the next test's EnterPlayMode
@@ -74,9 +71,8 @@ namespace Client.Tests.EditModeInPlayingTest
             {
                 // 出展モードはPlay突入後に有効化する。突入前だとMainMenu起点のEventModeAutoStartが開発機のワールドを消し得る
                 // Enable exhibition mode after entering Play; before it, EventModeAutoStart from MainMenu could wipe the developer's world
-                var savedEnvValues = new string[EventModeEnvKeys.Length];
-                for (var i = 0; i < EventModeEnvKeys.Length; i++) savedEnvValues[i] = Environment.GetEnvironmentVariable(EventModeEnvKeys[i]);
-                for (var i = 0; i < EventModeEnvKeys.Length; i++) Environment.SetEnvironmentVariable(EventModeEnvKeys[i], "1");
+                var savedEnvValues = EventModeTestEnvironment.Capture(EventModeTestEnvironment.ExhibitionEnableKeys);
+                EventModeTestEnvironment.EnableExhibitionMode();
 
                 // 初期化完了の発火を記録し、ゲートを越えて進んだ状態で緑にならないようにする
                 // Record the initialization signal so the test never goes green after passing the gate
@@ -106,7 +102,7 @@ namespace Client.Tests.EditModeInPlayingTest
                 finally
                 {
                     initializedSubscription.Dispose();
-                    for (var i = 0; i < EventModeEnvKeys.Length; i++) Environment.SetEnvironmentVariable(EventModeEnvKeys[i], savedEnvValues[i]);
+                    EventModeTestEnvironment.Restore(EventModeTestEnvironment.ExhibitionEnableKeys, savedEnvValues);
                 }
             }
 

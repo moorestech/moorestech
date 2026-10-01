@@ -1,8 +1,8 @@
 using System;
 using System.IO;
-using Client.Starter.EventMode;
+using System.Linq;
+using Client.Tests.EventMode;
 using Game.Paths;
-using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -10,79 +10,71 @@ using UnityEngine;
 namespace Client.Tests.EditModeInPlayingTest
 {
     /// <summary>
-    /// 出展モードの自動開始を本物の起動フックで走らせるための前後処理。自動開始は既定ワールドを消すので、開発機のワールドを同じSavesの退避名へ動かして守る。
-    /// 状態はドメインリロードを跨ぐため、復元に要る値はSessionStateに置く。前回の中断で退避名が残っていれば上書きせずに止める。
-    /// Set-up and tear-down for running the exhibition auto start through its real boot hook. The auto start wipes the default world, so the developer's world is moved to a backup name inside the same Saves and protected.
-    /// The state crosses domain reloads, so what restoring needs lives in SessionState; a backup left by an earlier interrupted run stops the test instead of being overwritten.
+    /// 出展モードの自動開始を本物の起動フックで走らせるための前後処理。自動開始は既定ワールドを消すので、既定ワールドの置き場を起動環境の上書きキーで一時ディレクトリへ向け、開発機のSaves/world_1には触れない。
+    /// 状態はドメインリロードを跨ぐため、復元に要る値はSessionStateに置く。
+    /// Set-up and tear-down for running the exhibition auto start through its real boot hook. The auto start wipes the default world, so the default world is pointed at a temporary directory through the launch-environment override key and the developer's Saves/world_1 is never touched.
+    /// The state crosses domain reloads, so what restoring needs lives in SessionState.
     /// </summary>
     public static class EventModeAutoStartBootEnvironment
     {
         private const string MainMenuScenePath = "Assets/Scenes/Game/MainMenu.unity";
-        private const string BackupSuffix = ".event-mode-autostart-test-backup";
         private const string PreviousStartScenePathKey = "EventModeAutoStartBootEnvironment_PreviousStartScenePath";
         private const string PreviousEnvValuePrefix = "EventModeAutoStartBootEnvironment_PreviousEnv_";
+        private const string TemporaryWorldDirectoryKey = "EventModeAutoStartBootEnvironment_TemporaryWorldDirectory";
         private const string PreparedMarkerKey = "EventModeAutoStartBootEnvironment_Prepared";
-        private const string UnsetMarker = "\u0000unset";
 
-        private static readonly string[] EventModeEnvKeys = { EventExhibitionSettings.EnableEnvKey, EventExhibitionSettings.EditorOptInEnvKey };
+        // 出展モードの有効化キーと既定ワールドの置き場キーを、まとめて退避・復元する
+        // Save and restore the exhibition enabling keys together with the default world location key
+        private static readonly string[] SavedEnvKeys = EventModeTestEnvironment.ExhibitionEnableKeys.Append(GameSystemPaths.DefaultWorldDirectoryOverrideEnvKey).ToArray();
 
-        private static string BackupDirectory => GameSystemPaths.DefaultWorldDirectory + BackupSuffix;
+        // Prepareが既定ワールドの置き場として向けた一時ディレクトリ
+        // The temporary directory Prepare pointed the default world at
+        public static string TemporaryWorldDirectory => SessionState.GetString(TemporaryWorldDirectoryKey, "");
 
-        // Play突入前に呼ぶ。起動シーンをMainMenuにし、出展モードを有効にし、開発機のワールドを退避する
-        // Call before entering Play: start from MainMenu, enable exhibition mode and move the developer's world aside
+        // Play突入前に呼ぶ。起動シーンをMainMenuにし、既定ワールドを一時ディレクトリへ向け、出展モードを有効にする
+        // Call before entering Play: start from MainMenu, point the default world at a temporary directory and enable exhibition mode
         public static void Prepare()
         {
-            // 退避名が残っているのは前回の中断。開発機のワールドの可能性があるので上書きしない
-            // A leftover backup means an earlier interrupted run; it may hold the developer's world, so it is never overwritten
-            Assert.IsFalse(Directory.Exists(BackupDirectory), $"前回の中断で退避ワールドが残っている。中身を確認して手で戻すか消すこと: {BackupDirectory}");
-            // 退避の直前に印を立てる。印が無いRestoreは開発機のワールドを消さない
-            // Mark just before the move; a Restore without the mark never deletes the developer's world
+            // 戻す値を置いてから印を立てる。印の無いRestoreは環境を書き換えない
+            // Store what to restore before marking; a Restore without the mark rewrites nothing
+            EventModeTestEnvironment.SaveToSession(PreviousEnvValuePrefix, SavedEnvKeys);
+            var previousStartScene = EditorSceneManager.playModeStartScene;
+            SessionState.SetString(PreviousStartScenePathKey, previousStartScene == null ? "" : AssetDatabase.GetAssetPath(previousStartScene));
+            var temporaryWorldDirectory = Path.Combine(Path.GetTempPath(), $"moorestech_event_mode_autostart_test_{Guid.NewGuid()}");
+            SessionState.SetString(TemporaryWorldDirectoryKey, temporaryWorldDirectory);
             SessionState.SetBool(PreparedMarkerKey, true);
-            if (Directory.Exists(GameSystemPaths.DefaultWorldDirectory)) Directory.Move(GameSystemPaths.DefaultWorldDirectory, BackupDirectory);
 
             // 起動フック（AfterSceneLoad）がMainMenuで走るよう、開いているシーンに依存せず起動シーンを固定する
             // Pin the start scene regardless of the open scene so the AfterSceneLoad hook runs in MainMenu
-            var previousStartScene = EditorSceneManager.playModeStartScene;
-            SessionState.SetString(PreviousStartScenePathKey, previousStartScene == null ? "" : AssetDatabase.GetAssetPath(previousStartScene));
             EditorSceneManager.playModeStartScene = AssetDatabase.LoadAssetAtPath<SceneAsset>(MainMenuScenePath);
 
-            // 環境変数はプロセスに残るためドメインリロード後の起動フックからも読める
-            // Env vars live in the process, so the boot hook reads them after the domain reload
-            foreach (var key in EventModeEnvKeys)
-            {
-                SessionState.SetString(PreviousEnvValuePrefix + key, Environment.GetEnvironmentVariable(key) ?? UnsetMarker);
-                Environment.SetEnvironmentVariable(key, "1");
-            }
+            // 環境変数はプロセスに残るため、ドメインリロード後の起動フックと内蔵サーバーからも読める
+            // Env vars live in the process, so the boot hook and the embedded server read them after the domain reload
+            Environment.SetEnvironmentVariable(GameSystemPaths.DefaultWorldDirectoryOverrideEnvKey, temporaryWorldDirectory);
+            EventModeTestEnvironment.EnableExhibitionMode();
         }
 
-        // Play終了後に呼ぶ。テストが作ったワールドを捨てて開発機のワールドを戻し、起動シーンと環境変数を元へ戻す
-        // Call after leaving Play: drop the world the test made, bring the developer's world back and restore the start scene and env vars
+        // Play終了後に呼ぶ。環境変数と起動シーンを戻し、テストが使った一時ワールドを消す
+        // Call after leaving Play: restore the env vars and start scene, then remove the temporary world the test used
         public static void Restore()
         {
-            // Prepareが退避に届く前に落ちた場合、現在のワールドは開発機のものなので何もしない
-            // If Prepare failed before reaching the move, the current world is the developer's, so do nothing
+            // Prepareが印を立てる前に落ちた場合は戻す値が無いので、開発者の環境を書き換えない
+            // If Prepare failed before marking there is nothing to restore, so the developer's environment is left as it is
             if (!SessionState.GetBool(PreparedMarkerKey, false))
             {
-                Debug.Log("EventModeAutoStartBootEnvironment: Restore skipped because Prepare did not reach the world backup");
+                Debug.Log("EventModeAutoStartBootEnvironment: Restore skipped because Prepare did not finish storing the values to restore");
                 return;
             }
             SessionState.EraseBool(PreparedMarkerKey);
 
-            foreach (var key in EventModeEnvKeys)
-            {
-                var previous = SessionState.GetString(PreviousEnvValuePrefix + key, UnsetMarker);
-                Environment.SetEnvironmentVariable(key, previous == UnsetMarker ? null : previous);
-                SessionState.EraseString(PreviousEnvValuePrefix + key);
-            }
-
+            EventModeTestEnvironment.RestoreFromSession(PreviousEnvValuePrefix, SavedEnvKeys);
             var previousStartScenePath = SessionState.GetString(PreviousStartScenePathKey, "");
             EditorSceneManager.playModeStartScene = previousStartScenePath == "" ? null : AssetDatabase.LoadAssetAtPath<SceneAsset>(previousStartScenePath);
             SessionState.EraseString(PreviousStartScenePathKey);
 
-            // 退避が無い（元々ワールドが無かった）場合も、テストが作ったワールドは残さない
-            // Even without a backup (no world existed), the world the test created is not left behind
-            GameSystemPaths.DeleteDefaultWorldDirectory();
-            if (Directory.Exists(BackupDirectory)) Directory.Move(BackupDirectory, GameSystemPaths.DefaultWorldDirectory);
+            var temporaryWorldDirectory = SessionState.GetString(TemporaryWorldDirectoryKey, "");
+            SessionState.EraseString(TemporaryWorldDirectoryKey);
+            if (Directory.Exists(temporaryWorldDirectory)) Directory.Delete(temporaryWorldDirectory, true);
         }
     }
 }
