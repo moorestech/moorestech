@@ -105,7 +105,7 @@ namespace Client.Tests.Localization.Resolution
             Localize.Initialize();
 
             var languageCodes = LanguageCatalog.Languages.Select(language => language.Code).ToArray();
-            CollectionAssert.AreEqual(new[] { "english", "japanese", "german" }, languageCodes);
+            CollectionAssert.AreEqual(new[] { "english", "japanese", "german", "korean" }, languageCodes);
             CollectionAssert.DoesNotContain(languageCodes, Localize.SourcePseudoLocale);
         }
 
