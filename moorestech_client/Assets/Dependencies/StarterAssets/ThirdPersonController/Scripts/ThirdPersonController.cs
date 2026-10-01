@@ -159,6 +159,11 @@ namespace StarterAssets
             _flightMotion.SetVerticalInput(verticalInput);
         }
 
+        public bool IsFlying()
+        {
+            return _flightMotion.IsFlying;
+        }
+
 		private void Update()
 		{
 			// 飛行中は重力とジャンプを止め、押されたジャンプも捨てる
@@ -303,7 +308,7 @@ namespace StarterAssets
 
 			// 飛行中の縦速度はQ/E入力、通常時は重力で積算した値
 			// Vertical speed comes from Q/E while flying, otherwise from integrated gravity
-			float verticalVelocity = _flightMotion.IsFlying ? _flightMotion.ResolveVerticalVelocity(flightSpeed, _movementLocked) : _verticalVelocity;
+			float verticalVelocity = _flightMotion.ResolveVerticalVelocity(_verticalVelocity, flightSpeed, _movementLocked);
 
 			// move the player
 			_controller.Move(targetDirection.normalized * (_speed * Time.deltaTime) + new Vector3(0.0f, verticalVelocity, 0.0f) * Time.deltaTime);

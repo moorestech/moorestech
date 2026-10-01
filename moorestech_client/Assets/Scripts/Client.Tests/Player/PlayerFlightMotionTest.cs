@@ -27,10 +27,19 @@ namespace Client.Tests.Player
             motion.SetFlying(true);
 
             motion.SetVerticalInput(1f);
-            Assert.AreEqual(45f, motion.ResolveVerticalVelocity(45f, false), 0.0001f);
+            Assert.AreEqual(45f, motion.ResolveVerticalVelocity(-3f, 45f, false), 0.0001f);
 
             motion.SetVerticalInput(-1f);
-            Assert.AreEqual(-15f, motion.ResolveVerticalVelocity(15f, false), 0.0001f);
+            Assert.AreEqual(-15f, motion.ResolveVerticalVelocity(-3f, 15f, false), 0.0001f);
+        }
+
+        [Test]
+        public void 非飛行時は重力で積算した縦速度をそのまま返す()
+        {
+            var motion = new PlayerFlightMotion();
+            motion.SetVerticalInput(1f);
+
+            Assert.AreEqual(-3f, motion.ResolveVerticalVelocity(-3f, 15f, false), 0.0001f);
         }
 
         [Test]
@@ -40,7 +49,7 @@ namespace Client.Tests.Player
             motion.SetFlying(true);
             motion.SetVerticalInput(1f);
 
-            Assert.AreEqual(0f, motion.ResolveVerticalVelocity(15f, true), 0.0001f);
+            Assert.AreEqual(0f, motion.ResolveVerticalVelocity(-3f, 15f, true), 0.0001f);
         }
 
         [Test]
@@ -53,7 +62,7 @@ namespace Client.Tests.Player
             motion.SetFlying(false);
             motion.SetFlying(true);
 
-            Assert.AreEqual(0f, motion.ResolveVerticalVelocity(15f, false), 0.0001f);
+            Assert.AreEqual(0f, motion.ResolveVerticalVelocity(-3f, 15f, false), 0.0001f);
         }
     }
 }

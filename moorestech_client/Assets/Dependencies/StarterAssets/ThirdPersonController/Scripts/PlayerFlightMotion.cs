@@ -32,8 +32,12 @@ namespace StarterAssets
             return sprintSpeed * (sprint ? FlightSprintSpeedMultiplier : FlightSpeedMultiplier);
         }
 
-        public float ResolveVerticalVelocity(float flightSpeed, bool movementLocked)
+        public float ResolveVerticalVelocity(float gravityVerticalVelocity, float flightSpeed, bool movementLocked)
         {
+            // 非飛行時は重力で積算した値をそのまま使う
+            // Outside flight, keep the gravity-integrated value as is
+            if (!IsFlying) return gravityVerticalVelocity;
+
             // 移動ロック中は水平と同じく上下も止める
             // Halt vertical motion while locked, same as horizontal
             return movementLocked ? 0f : _verticalInput * flightSpeed;

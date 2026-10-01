@@ -9,31 +9,38 @@ namespace Client.Game.InGame.Player.FlyMode
     // Drives entering/leaving the debug fly mode and pushes vertical input to ThirdPersonController
     public class PlayerFlyModeController
     {
-        private const int EnterTapCount = 4;
-        private const int ExitTapCount = 2;
-
-        public bool IsFlying { get; private set; }
-
         private readonly ThirdPersonController _controller;
         private readonly SpaceTapSequence _tapSequence = new();
+        private bool _isControllable = true;
 
         public PlayerFlyModeController(ThirdPersonController controller)
         {
             _controller = controller;
         }
 
-        public void ManualUpdate(bool isControllable, float unscaledTime)
+        public void SetControllable(bool isControllable)
         {
-            // 操作不可の間は連打を数えず、途中の連打も捨てる
-            // While uncontrollable, ignore taps and discard any partial sequence
-            if (!isControllable)
+            _isControllable = isControllable;
+            if (isControllable) return;
+
+            // 操作不可へ移る瞬間に途中の連打と上下入力を捨て、復帰時に持ち越さない
+            // Drop the partial taps and vertical input when control is lost so neither survives the return
+            _tapSequence.Reset();
+            _controller.SetFlightVerticalInput(0f);
+        }
+
+        public void ManualUpdate(float unscaledTime)
+        {
+            // 操作不可の間は連打を数えず、押下だけ理由をログへ残す
+            // While uncontrollable, ignore taps and log the reason only on the press frame
+            if (!_isControllable)
             {
-                _tapSequence.Reset();
+                if (InputManager.Player.Jump.GetKeyDown) Debug.Log("[FlyMode] Space ignored: player is not controllable (movement lock or riding)");
                 return;
             }
 
             if (InputManager.Player.Jump.GetKeyDown) HandleSpaceTap();
-            if (IsFlying) _controller.SetFlightVerticalInput(ReadVerticalInput());
+            if (_controller.IsFlying()) _controller.SetFlightVerticalInput(ReadVerticalInput());
 
             #region Internal
 
@@ -42,8 +49,9 @@ namespace Client.Game.InGame.Player.FlyMode
                 // 飛行中は2連打で解除、通常時は4連打で発動
                 // Two taps leave while flying, four taps enter otherwise
                 var tapCount = _tapSequence.RegisterTap(unscaledTime);
-                if (IsFlying && tapCount >= ExitTapCount) SetFlying(false);
-                else if (!IsFlying && tapCount >= EnterTapCount) TryEnter();
+                var isFlying = _controller.IsFlying();
+                if (isFlying && DebugConst.FlyModeExitTapCount <= tapCount) SetFlying(false);
+                else if (!isFlying && DebugConst.FlyModeEnterTapCount <= tapCount) TryEnter();
             }
 
             void TryEnter()
@@ -53,10 +61,19 @@ namespace Client.Game.InGame.Player.FlyMode
                 if (!DebugParameters.GetValueOrDefaultBool(DebugConst.FlyModeKey))
                 {
                     _tapSequence.Reset();
-                    Debug.Log($"[FlyMode] Space x{EnterTapCount} ignored: debug sheet toggle '{DebugConst.FlyModeLabel}' is off");
+                    Debug.Log($"[FlyMode] Space x{DebugConst.FlyModeEnterTapCount} ignored: debug sheet toggle '{DebugConst.FlyModeLabel}' is off");
                     return;
                 }
                 SetFlying(true);
+            }
+
+            void SetFlying(bool isFlying)
+            {
+                // 入退のたびに連打を数え直し、ログに残す
+                // Restart the tap count on every switch and log it
+                _tapSequence.Reset();
+                _controller.SetFlying(isFlying);
+                Debug.Log(isFlying ? "[FlyMode] Entered fly mode" : "[FlyMode] Left fly mode");
             }
 
             float ReadVerticalInput()
@@ -70,16 +87,6 @@ namespace Client.Game.InGame.Player.FlyMode
             }
 
             #endregion
-        }
-
-        private void SetFlying(bool isFlying)
-        {
-            // 入退のたびに連打を数え直し、ログに残す
-            // Restart the tap count on every switch and log it
-            IsFlying = isFlying;
-            _tapSequence.Reset();
-            _controller.SetFlying(isFlying);
-            Debug.Log(isFlying ? "[FlyMode] Entered fly mode" : "[FlyMode] Left fly mode");
         }
     }
 }
