@@ -6,7 +6,7 @@ export type ActiveLayer = "modal" | "blockInventory" | "research" | "buildMenu" 
 
 export type WebInputState = { pointerOverUi: boolean; textInputFocused: boolean };
 
-const textInputSelector = "input:not([type='button']):not([type='submit']):not([type='reset']), textarea, [contenteditable='true']";
+const textInputSelector = "input:not([type='button']):not([type='submit']):not([type='reset']):not([type='checkbox']):not([type='radio']):not([type='range']), textarea, [contenteditable]:not([contenteditable='false'])";
 
 // 透明サーフェス自身だけを貫通対象とし、その子の実UIは捕捉する
 // Treat only the transparent surface itself as pass-through; real UI descendants capture input

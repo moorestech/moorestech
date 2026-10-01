@@ -96,7 +96,18 @@ namespace Client.Game.InGame.UI.UIState.State
             {
                 if (CurrentSubInventorySource == null) return false;
                 var playerPosition = PlayerSystemContainer.Instance.PlayerObjectController.Position;
-                return !_reachQuery.IsWithinReach(CurrentSubInventorySource.ReachTarget, playerPosition);
+                var isWithinReach = _reachQuery.IsWithinReach(CurrentSubInventorySource.ReachTarget, playerPosition);
+                if (isWithinReach) return false;
+
+                // 無言で閉じると原因を辿れないため、対象のIDと消失/範囲外の別を残す
+                // Closing silently leaves no trail, so log the target ID and whether it vanished or is merely out of range
+                var identifier = CurrentSubInventorySource.InventoryIdentifier;
+                // 破棄済みComponentのメンバーは例外を投げるため、読まずにUnityのfake-nullで判定する
+                // Members of a destroyed Component throw, so detect destruction via Unity fake-null without reading them
+                var isTargetDestroyed = CurrentSubInventorySource.ReachTarget is UnityEngine.Object reachTargetObject && reachTargetObject == null;
+                var cause = isTargetDestroyed ? "target destroyed" : $"out of range or not interactable (interactAvailable={CurrentSubInventorySource.ReachTarget.IsInteractAvailable})";
+                Debug.Log($"SubInventory auto-closed: {cause}. source={CurrentSubInventorySource.GetType().Name}, inventory={identifier.InventoryType}, blockPosition={identifier.BlockPosition}, trainCarInstanceId={identifier.TrainCarInstanceId}, playerPosition={playerPosition}");
+                return true;
             }
 
             #endregion

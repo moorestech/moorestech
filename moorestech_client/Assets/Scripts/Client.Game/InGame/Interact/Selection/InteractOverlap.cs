@@ -9,13 +9,13 @@ namespace Client.Game.InGame.Interact.Selection
     /// </summary>
     public static class InteractOverlap
     {
-        public const int InitialBufferSize = 64;
+        internal const int InitialBufferSize = 64;
 
-        public static readonly int InteractLayerMask = LayerConst.BlockOnlyLayerMask | LayerConst.MapObjectOnlyLayerMask;
+        internal static readonly int InteractLayerMask = LayerConst.BlockOnlyLayerMask | LayerConst.MapObjectOnlyLayerMask;
 
         // 飽和したまま返すと取りこぼした候補次第で結果が変わるため、バッファを倍にして採り直す
         // A saturated buffer would make the result depend on which colliders were dropped, so it is doubled and re-queried
-        public static int OverlapNearby(Vector3 center, ref Collider[] buffer)
+        internal static int OverlapNearby(Vector3 center, ref Collider[] buffer)
         {
             while (true)
             {
