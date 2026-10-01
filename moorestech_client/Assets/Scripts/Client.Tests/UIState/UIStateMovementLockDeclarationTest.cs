@@ -12,7 +12,7 @@ namespace Client.Tests.UIState
     public class UIStateMovementLockDeclarationTest
     {
         [Test]
-        public void メニュー画面だけが自機の移動を止めると宣言している()
+        public void ポーズメニューだけが自機の移動を止めると宣言している()
         {
             // 定数を返す画面の全件表。画面を足すと突き合わせが必ず落ちて宣言の見直しを強制する
             // The full table for constant-returning screens; adding a screen always fails the match and forces a review
@@ -22,12 +22,12 @@ namespace Client.Tests.UIState
                 { typeof(PlaceBlockState), false },
                 { typeof(DeleteObjectState), false },
                 { typeof(DebugBlockInfoState), false },
-                { typeof(PlayerInventoryState), true },
-                { typeof(SubInventoryState), true },
+                { typeof(PlayerInventoryState), false },
+                { typeof(SubInventoryState), false },
                 { typeof(PauseMenuState), true },
-                { typeof(ChallengeListState), true },
-                { typeof(ResearchTreeState), true },
-                { typeof(BuildMenuState), true },
+                { typeof(ChallengeListState), false },
+                { typeof(ResearchTreeState), false },
+                { typeof(BuildMenuState), false },
             };
 
             // 画面の集合はUIStateDictionaryの登録が正。列挙と個数が揃っていることを先に確かめる
