@@ -105,11 +105,11 @@ return PlaytestRunner.Run("walk-while-menus-open", options, async p =>
     // 閉じた理由が距離であることを残すため、開いた時と閉じた時の表面距離を記録する
     // Record the surface distance at open and at close so the close is attributable to distance
     var openedDistance = DistanceToOvenSurface();
-    p.Assert(openedDistance < InteractTargetSelector.InteractDistance, $"開いた位置は手の届く範囲 ({openedDistance:F2}m)");
+    p.Assert(openedDistance < InteractOverlap.InteractDistance, $"開いた位置は手の届く範囲 ({openedDistance:F2}m)");
     SemanticInput.KeyDown(Key.S);
     await p.Until(() => p.CurrentUiState == UIStateEnum.GameScreen, 5f, "離れると機械UIが閉じる");
     var closedDistance = DistanceToOvenSurface();
     SemanticInput.KeyUp(Key.S);
-    p.Assert(InteractTargetSelector.InteractDistance - 0.1f < closedDistance, $"閉じたのは手の届く範囲を出た時 ({closedDistance:F2}m)");
+    p.Assert(InteractOverlap.InteractDistance - 0.1f < closedDistance, $"閉じたのは手の届く範囲を出た時 ({closedDistance:F2}m)");
     await p.Screenshot("02-closed-out-of-reach");
 });

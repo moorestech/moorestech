@@ -11,8 +11,6 @@ namespace Client.Game.InGame.Interact.Selection
     /// </summary>
     public class InteractTargetSelector : IInteractTargetSelector
     {
-        public const float InteractDistance = 2f;
-
         private Collider[] _overlapBuffer = new Collider[InteractOverlap.InitialBufferSize];
 
         private readonly List<NearbyCandidate> _candidates = new();
@@ -39,9 +37,9 @@ namespace Client.Game.InGame.Interact.Selection
 
             // カメラ後退分を足した距離まで撃ち、到達判定はプレイヤーから測る
             // The ray spans the camera pull-back plus the reach, while the reach itself is measured from the player
-            var rayDistance = Vector3.Distance(camera.transform.position, playerPosition) + InteractDistance;
+            var rayDistance = Vector3.Distance(camera.transform.position, playerPosition) + InteractOverlap.InteractDistance;
             if (BlockClickDetectUtil.TryGetFrontmostSolidHit(InteractOverlap.InteractLayerMask, rayDistance, out var hit) &&
-                Vector3.Distance(playerPosition, hit.point) <= InteractDistance)
+                Vector3.Distance(playerPosition, hit.point) <= InteractOverlap.InteractDistance)
             {
                 // 手の届く実体は対象外でもそこで確定させる。近傍へ落とすと遮蔽物越しに機械を開ける
                 // A solid within reach settles the frame even when it is no target; falling through would open a machine through the wall

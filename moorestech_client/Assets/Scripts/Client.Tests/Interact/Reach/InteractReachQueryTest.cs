@@ -32,8 +32,8 @@ namespace Client.Tests.Interact.Reach
             // 当たり判定の大きさに依らないよう、自機側を向いた面からの距離で境界を挟む
             // Bracket the boundary by distance from the face toward the player so the collider size never matters
             var faceX = block.GetComponentInChildren<Collider>().bounds.min.x;
-            var insidePosition = new Vector3(faceX - (InteractTargetSelector.InteractDistance - BoundaryMargin), 0f, 0f);
-            var outsidePosition = new Vector3(faceX - (InteractTargetSelector.InteractDistance + BoundaryMargin), 0f, 0f);
+            var insidePosition = new Vector3(faceX - (InteractOverlap.InteractDistance - BoundaryMargin), 0f, 0f);
+            var outsidePosition = new Vector3(faceX - (InteractOverlap.InteractDistance + BoundaryMargin), 0f, 0f);
 
             Assert.IsTrue(query.IsWithinReach(block, insidePosition));
             Assert.IsFalse(query.IsWithinReach(block, outsidePosition));

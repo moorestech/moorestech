@@ -35,7 +35,7 @@ namespace Client.Tests.Interact.Reach
             PlayerObject.transform.position = Vector3.zero;
             Assert.IsNull(state.GetNextUpdate(), "届く位置では閉じない");
 
-            PlayerObject.transform.position = new Vector3(-InteractTargetSelector.InteractDistance - 1f, 0f, 0f);
+            PlayerObject.transform.position = new Vector3(-InteractOverlap.InteractDistance - 1f, 0f, 0f);
             Assert.AreEqual(UIStateEnum.GameScreen, state.GetNextUpdate()?.NextStateEnum);
         }
 
