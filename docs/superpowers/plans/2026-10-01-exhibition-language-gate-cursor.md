@@ -152,3 +152,10 @@ Task 3 実測（2026-10-01・修正 `fae1980e9` 入り）:
 - 回帰テスト `EventModeAutoStartBootTest`（EditModeInPlayingTest）: `playModeStartScene` を MainMenu にして本物の起動フックで起動し、MainGame へ届くことを確かめる。開発機の `Saves/world_1` は同じ Saves 内の退避名へ動かして守り、Play 終了後に戻す。修正前は「returned to MainMenu (reloaded at 0.02s)」で赤、修正後は緑。
 - 出展ビルド実機（Editor から `ForExhibition` で再ビルド）: `MOORESTECH_EVENT_MODE=1 MOORESTECH_EVENT_LANGUAGE=german` での単発起動と、同梱の `start-gamescom-loop.command` そのものでの起動の両方で、クリック無しで MainGame の言語選択ゲートへ到達し、カーソル表示を確認した。単発起動では English 選択 → スキット → スキップ後のゲーム画面でカーソル非表示（ロック）も確認した。Player.log に refused は 0 件。新規エラーは無く、既存の毎フレーム NRE（UIStateControl/ThirdPersonController）と CEF の署名検証ログだけだった。
 - 起動言語 german は「player already chose a language」で拒否された（開発機に選択済み言語が残っているため。既存挙動）。
+
+レビュー裁定 D1/D2 の反映（2026-10-01）:
+
+- D1（保存先の差し替え）: `GameSystemPaths.DefaultWorldDirectory` が環境変数 `MOORESTECH_DEFAULT_WORLD_DIRECTORY` を読むようにした。前例は `DebugParametersCacheDirectory` の `MOORESTECH_DEBUG_CACHE_DIR`。内蔵サーバーの既定ワールド（`StartServerSettings.WorldDirectory` の既定値）と `DeleteDefaultWorldDirectory` の両方がここを通る。`EventModeAutoStartBootEnvironment` からは world_1 の退避と書き戻しを外した。今は一時ディレクトリを指し、終わったら消すだけ。テストでは MainGame への到達に加え、ワールドが一時ディレクトリに作られたことも確かめる。テスト実行の前後で開発機の `Saves/world_1` を比べ、全31ファイルの md5 と `ls -lTR` が一致し、mtime は 14:22:04 のままだった。
+- 出展モード用の環境変数の退避・"1"・復元は、テスト側の `EventModeTestEnvironment` に一本化した。対象は Cursor / AutoStartBoot / StartGate の3テスト。
+- D2（期限切れでの終了）: `WaitUntilPassedWithinDeadlineAsync(float, ct)` に一般化した。smoke と出展は `UnattendedPassTimeoutSeconds` を渡す。出展で期限が切れたときは、ワールドを消さずに LogError を出してから `Application.Quit()` する。期限切れのテスト（0.2秒の期限で false が返る）は、引数を無視する仮実装でアサーションが失敗する（赤）ことを確かめてから緑にした。
+- 焦点テスト `EventMode|EventLanguageGate|PlaytestTitleGates|StandalonePlaytestSmoke|GameSystemPathsTest|CliConvertTest`（EditMode）は 132/132 Passed（start-time 07:46:20Z）。
