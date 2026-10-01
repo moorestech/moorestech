@@ -8,6 +8,7 @@ namespace Client.Tests.Localization
         [TestCase("english", "english")]
         [TestCase("japanese", "japanese")]
         [TestCase("german", "german")]
+        [TestCase("koreana", "korean")]
         public void MapsSteamLanguageListedInCatalog(string steamLanguage, string expected)
         {
             Assert.IsTrue(SteamLanguageMapping.TryToGameLanguage(steamLanguage, out var gameLanguage));
