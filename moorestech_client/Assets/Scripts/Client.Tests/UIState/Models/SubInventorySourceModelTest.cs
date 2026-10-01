@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client.Game.InGame.Interact;
 using Client.Game.InGame.UI.Inventory.Train;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Network.API;
@@ -9,6 +10,7 @@ using Server.Boot;
 using Server.Protocol.PacketResponse;
 using Server.Util.MessagePack;
 using Tests.Module.TestMod;
+using UnityEngine;
 
 namespace Client.Tests.UIState.Models
 {
@@ -25,7 +27,7 @@ namespace Client.Tests.UIState.Models
         {
             var identifier = InventoryIdentifierMessagePack.CreateTrainMessage(7);
             var response = new InventoryResponse(identifier, new List<IItemStack>(), InventoryRequestResult.ContainerNotFound);
-            var source = new TrainSubInventorySource(7);
+            var source = new TrainSubInventorySource(7, new UnusedReachTarget());
 
             var model = source.CreateModel(response);
 
@@ -38,7 +40,7 @@ namespace Client.Tests.UIState.Models
         {
             var identifier = InventoryIdentifierMessagePack.CreateTrainMessage(7);
             var items = new List<IItemStack> { ServerContext.ItemStackFactory.CreatEmpty(), ServerContext.ItemStackFactory.CreatEmpty() };
-            var source = new TrainSubInventorySource(7);
+            var source = new TrainSubInventorySource(7, new UnusedReachTarget());
 
             var model = source.CreateModel(new InventoryResponse(identifier, items, InventoryRequestResult.Success));
 
@@ -51,13 +53,22 @@ namespace Client.Tests.UIState.Models
         {
             var identifier = InventoryIdentifierMessagePack.CreateTrainMessage(7);
             var items = new List<IItemStack> { ServerContext.ItemStackFactory.CreatEmpty() };
-            var source = new TrainSubInventorySource(7);
+            var source = new TrainSubInventorySource(7, new UnusedReachTarget());
             source.CreateModel(new InventoryResponse(identifier, new List<IItemStack>(), InventoryRequestResult.ContainerNotFound));
 
             var model = source.CreateModel(new InventoryResponse(identifier, items, InventoryRequestResult.Success));
 
             Assert.IsNull(source.LastOpenMessage);
             Assert.AreEqual(1, model.Count);
+        }
+
+        // モデル化だけを見るテストなので到達判定の対象は使われない
+        // These tests only cover model building, so the reach target is never consulted
+        private class UnusedReachTarget : IInteractable
+        {
+            public GameObject GameObject => null;
+            public bool IsInteractAvailable => false;
+            public void SetHighlighted(bool highlighted) { }
         }
     }
 }

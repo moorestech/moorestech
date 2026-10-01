@@ -1,9 +1,10 @@
 using System.Collections.Generic;
-using Mooresmaster.Localization.Generated;
 using System;
 using System.Threading;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
+using Client.Game.InGame.Interact.Selection;
+using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.UIState.State.CancelInput;
@@ -27,6 +28,7 @@ namespace Client.Game.InGame.UI.UIState.State
     {
         private readonly LocalPlayerInventoryController _localPlayerInventoryController;
         private readonly RightShortPressInputService _rightShortPressInputService;
+        private readonly InteractReachQuery _reachQuery = new();
 
         private CancellationTokenSource _loadInventoryCts;
         private bool _shouldClose = false;
@@ -79,12 +81,25 @@ namespace Client.Game.InGame.UI.UIState.State
         public UITransitContext GetNextUpdate()
         {
             var isRightShortPressed = _rightShortPressInputService.TryConsumeShortPressOutsideUi();
-            if (_shouldClose || InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.OpenInventory.GetKeyDown || isRightShortPressed)
+            if (_shouldClose || InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.OpenInventory.GetKeyDown || isRightShortPressed || IsOutOfReach())
             {
                 return new UITransitContext(UIStateEnum.GameScreen);
             }
 
             return null;
+
+            #region Internal
+
+            // 自機も列車も動くため毎フレーム測る。距離はFで開くときと同じ近傍探索で決める
+            // Both the player and trains move, so it is measured every frame with the same nearby query F-open uses
+            bool IsOutOfReach()
+            {
+                if (CurrentSubInventorySource == null) return false;
+                var playerPosition = PlayerSystemContainer.Instance.PlayerObjectController.Position;
+                return !_reachQuery.IsWithinReach(CurrentSubInventorySource.ReachTarget, playerPosition);
+            }
+
+            #endregion
         }
 
         public void OnEnter(UITransitContext context)
@@ -173,17 +188,5 @@ namespace Client.Game.InGame.UI.UIState.State
         {
             return SubInventoryStateHints.Hints;
         }
-    }
-
-    internal static class SubInventoryStateHints
-    {
-        public static readonly IReadOnlyList<KeyHint> Hints = new[]
-        {
-            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.Tab, LocalizationKeys.Ui.KeyHint.Text.Close),
-            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.ShiftLeftClick, LocalizationKeys.Ui.KeyHint.Text.BulkMove),
-            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.RightClick, LocalizationKeys.Ui.KeyHint.Text.HalveOrPlaceOne),
-            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.LeftDrag, LocalizationKeys.Ui.KeyHint.Text.DistributeEvenly),
-            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.DoubleClick, LocalizationKeys.Ui.KeyHint.Text.GatherSameItem),
-        };
     }
 }

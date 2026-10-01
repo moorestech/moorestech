@@ -1,5 +1,6 @@
 using System;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.Interact;
 using Client.Game.InGame.UI.Inventory;
 using Client.Network.API;
 using Game.PlayerInventory.Interface.Subscription;
@@ -18,6 +19,7 @@ namespace Client.Game.InGame.UI.UIState.State.SubInventory
         public Guid BlockGuid => _blockGameObject.BlockMasterElement.BlockGuid;
         public string BlockTypeName => _blockGameObject.BlockMasterElement.BlockType;
         public Vector3Int BlockPosition => _blockGameObject.BlockPosInfo.OriginalPos;
+        public IInteractable ReachTarget => _blockGameObject.Interactable;
 
         private readonly BlockGameObject _blockGameObject;
 

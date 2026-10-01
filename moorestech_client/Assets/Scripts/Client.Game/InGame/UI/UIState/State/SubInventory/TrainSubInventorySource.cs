@@ -1,3 +1,4 @@
+using Client.Game.InGame.Interact;
 using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Train;
 using Client.Network.API;
@@ -16,9 +17,12 @@ namespace Client.Game.InGame.UI.UIState.State.SubInventory
         // Why the latest open attempt failed; null means the inventory opened normally
         public TrainInventoryMessageType? LastOpenMessage { get; private set; }
 
-        public TrainSubInventorySource(long trainCarInstanceId)
+        public IInteractable ReachTarget { get; }
+
+        public TrainSubInventorySource(long trainCarInstanceId, IInteractable reachTarget)
         {
             TrainCarInstanceId = trainCarInstanceId;
+            ReachTarget = reachTarget;
             InventoryIdentifier = InventoryIdentifierMessagePack.CreateTrainMessage(trainCarInstanceId);
         }
 
