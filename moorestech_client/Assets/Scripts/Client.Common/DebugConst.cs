@@ -28,6 +28,9 @@ namespace Client.Game
         // Key lives in Common.Debug.DebugParameterKeys because the server reads it too
         public const string FreeBlockPlacementLabel = "Free block placement (no item cost)";
 
+        public const string FlyModeLabel = "Fly mode (Space x4 / x2)";
+        public const string FlyModeKey = "FlyMode";
+
         public const string FpsLimitLabel = "FPS Limit";
         public const string FpsLimitKey = "FpsLimit";
     }
