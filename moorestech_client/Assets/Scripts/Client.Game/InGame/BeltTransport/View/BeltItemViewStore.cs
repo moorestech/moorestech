@@ -16,7 +16,7 @@ namespace Client.Game.InGame.BeltTransport
         private readonly HashSet<Guid> _missing = new();
         private readonly UniTaskCompletionSource _failed = new();
         public string FailureReason { get; private set; }
-        public UniTask WaitForFailureAsync() => _failed.Task;
+        internal UniTask WaitForFailureAsync() => _failed.Task;
         private readonly Dictionary<Guid, Task> _pendingTasks = new();
         public BeltItemViewStore(IBeltItemViewFactory factory) { _factory = factory; }
         public async UniTask ApplyAsync(BeltNetworkSnapshot snapshot)
@@ -53,6 +53,14 @@ namespace Client.Game.InGame.BeltTransport
                 var result = await _factory.CreateAsync(id, new ItemId(requested.ItemId), requested.Position);
                 _creating.Remove(id);
                 _pendingTasks.Remove(id);
+                // 非同期処理の成否より、現在の表示対象を優先する。
+                // Resolve asynchronous completion against the currently desired identities first.
+                if (!_desired.TryGetValue(id, out var latest))
+                {
+                    UnityEngine.Debug.Log($"Belt item {id} departed while its view was loading; discarded completion. Load result: {result.FailureReason ?? "ready"}");
+                    if (result.Succeeded) result.View.Destroy();
+                    return;
+                }
                 // 欠損GUIDを保持し、次tickで同じロードを繰り返さない。
                 // Retain missing identities to avoid retrying the same load on subsequent ticks.
                 if (!result.Succeeded)
@@ -64,12 +72,6 @@ namespace Client.Game.InGame.BeltTransport
                     return;
                 }
                 var view = result.View;
-                if (!_desired.TryGetValue(id, out var latest))
-                {
-                    UnityEngine.Debug.Log($"Belt item {id} departed while its view was loading; discarded completed view.");
-                    view.Destroy();
-                    return;
-                }
                 if (latest.ItemId != requested.ItemId)
                 {
                     view.Destroy();

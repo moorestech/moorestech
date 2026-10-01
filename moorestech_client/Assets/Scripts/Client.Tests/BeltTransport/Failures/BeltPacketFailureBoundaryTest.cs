@@ -37,6 +37,28 @@ namespace Client.Tests.BeltTransport
             Assert.AreEqual(32, handler.Replica.Snapshot.Cells[0].Speed);
             Assert.AreEqual(1, handler.Replica.Snapshot.Items[0].Progress);
         }
+        [TestCase(false)]
+        [TestCase(true)]
+        public void DuplicateTopologyEdgesAreRejectedBeforeValidSpeedChangeTest(bool removed)
+        {
+            var events = new CapturingVanillaApiEvent();
+            var handler = new BeltNetworkEventHandler(BeltInitialEventBufferTest.Initial(), events);
+            var edge = new BeltConnectionMessagePack(1, 2, true, true, BeltDirection.Front, 0);
+            var duplicates = new[] { edge, edge, edge, edge };
+            var cell = new BeltCellMessagePack(new BeltNetworkCell(2, -2, 3, 5, 32, "fixed:1", BeltDirection.Front, new BeltCellSurfaceProfile(0, 0)));
+            var topology = new BeltTopologyChangeMessagePack(new[] { cell }, Array.Empty<int>(),
+                removed ? Array.Empty<BeltConnectionMessagePack>() : duplicates,
+                removed ? duplicates : Array.Empty<BeltConnectionMessagePack>(), Array.Empty<BeltCellItemMessagePack>());
+            var packet = new BeltTickMessagePack(11, new BeltChangeMessagePack[] { new BeltSpeedChangeMessagePack(new[] { new BeltSpeedMessagePack(1, 64) }) },
+                Array.Empty<BeltOutputMessagePack>(), new BeltChangeMessagePack[] { topology });
+            LogAssert.Expect(LogType.Error, new Regex("Belt transport packet failed:"));
+            Assert.DoesNotThrow(() => events.Dispatch(BeltTickCompletedEventPacket.EventTag, MessagePackSerializer.Serialize(packet)));
+            Assert.Throws<InvalidOperationException>(handler.ThrowIfFailed);
+            Assert.AreEqual(1, handler.Replica.Snapshot.Cells.Length);
+            Assert.AreEqual(32, handler.Replica.Snapshot.Cells[0].Speed);
+            Assert.AreEqual(1, handler.Replica.Snapshot.Items[0].Progress);
+            Assert.AreEqual(BeltTestState.Identity, handler.Replica.Snapshot.Items[0].Item.Guid);
+        }
         [Test]
         public void InternalNotificationFailureIsNotReclassifiedAsPacketFailureTest()
         {

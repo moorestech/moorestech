@@ -101,6 +101,26 @@ namespace Client.Tests.BeltTransport
             Assert.Throws<InvalidOperationException>(() => wait.GetAwaiter().GetResult());
             factory.Pending[0].TrySetResult(BeltItemCreationResult.Created(new View()));
         }
+        [UnityTest]
+        public IEnumerator DepartedMissingViewDoesNotFailEmptyStartupTest() => UniTask.ToCoroutine(async () =>
+        {
+            var events = new CapturingVanillaApiEvent();
+            var handler = new BeltNetworkEventHandler(BeltInitialEventBufferTest.Initial(), events);
+            var factory = new DelayedFactory();
+            var renderer = new BeltItemRenderer(handler, factory);
+            renderer.Initialize();
+            var wait = renderer.WaitForInitialApplyAsync();
+            var change = new BeltCellItemsChange(1, Array.Empty<BeltCellItemState>());
+            var tick = new BeltTickDifference(11, Array.Empty<BeltBoundaryChange>(), Array.Empty<BeltOutputResult>(), new BeltBoundaryChange[] { change });
+            events.Dispatch(BeltTickCompletedEventPacket.EventTag, MessagePackSerializer.Serialize(new BeltTickMessagePack(tick)));
+            Assert.IsEmpty(handler.Replica.Snapshot.Items);
+            Assert.AreEqual(UniTaskStatus.Pending, wait.Status);
+            factory.Pending[0].TrySetResult(BeltItemCreationResult.Missing("Departed fixture missing"));
+            // 成功側のTaskアダプター再開を待ち、既知の失敗なら例外で検査を落とす。
+            // Await the success-path Task adapter; a retained failure still fails this test by exception.
+            await wait.Timeout(TimeSpan.FromSeconds(1));
+            Assert.IsEmpty(handler.Replica.Snapshot.Items);
+        });
         private sealed class View : IEntityObject
         {
             public long EntityId => 0;

@@ -1,3 +1,4 @@
+using Client.Game.InGame.BeltTransport;
 using System;
 using Core.BeltTransport;
 using MessagePack;

@@ -2,9 +2,9 @@ namespace Client.Game.InGame.Entity.Factory
 {
     public sealed class BeltItemPrefabLoadResult
     {
-        public BeltItemPrefab Prefab { get; }
-        public string FailureReason { get; }
-        public bool Succeeded => FailureReason == null;
+        internal BeltItemPrefab Prefab { get; }
+        internal string FailureReason { get; }
+        internal bool Succeeded => FailureReason == null;
         private BeltItemPrefabLoadResult(BeltItemPrefab prefab, string failureReason)
         { Prefab = prefab; FailureReason = failureReason; }
         public static BeltItemPrefabLoadResult Ready(BeltItemPrefab prefab) => new(prefab, null);

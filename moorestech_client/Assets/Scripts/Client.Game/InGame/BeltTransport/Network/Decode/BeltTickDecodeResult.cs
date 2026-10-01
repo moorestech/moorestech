@@ -1,5 +1,5 @@
 using Core.BeltTransport;
-namespace Server.Util.MessagePack.BeltTransport
+namespace Client.Game.InGame.BeltTransport
 {
     public sealed class BeltTickDecodeResult
     {

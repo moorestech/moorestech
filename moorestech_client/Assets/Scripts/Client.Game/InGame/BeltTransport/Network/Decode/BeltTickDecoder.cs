@@ -1,5 +1,6 @@
+using Server.Util.MessagePack.BeltTransport;
 using MessagePack;
-namespace Server.Util.MessagePack.BeltTransport
+namespace Client.Game.InGame.BeltTransport
 {
     public static class BeltTickDecoder
     {
