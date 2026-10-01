@@ -21,6 +21,7 @@ namespace Core.BeltTransport
         public int PriorityOrder => Kind == BeltSegmentKind.Merge ? inputs.PriorityOrder
             : Kind == BeltSegmentKind.Branch ? Buffer.PriorityOrder : 0;
         internal int TickSpeed { get; private set; }
+        internal BeltDirection InputDirection { get; private set; } = BeltDirection.None;
 
         public BeltConveyorSegment(int capacity, int speed, BeltSegmentKind kind,
             int priorityOrder, BeltDirection forwardDirection)
@@ -78,12 +79,13 @@ namespace Core.BeltTransport
             int offer = GetOffer(direction);
             if (length > offer) return false;
             queue.EnqueueTail(offer - length, item);
-            if (Kind == BeltSegmentKind.Merge) inputs.CompleteInput(direction);
+            if (Kind == BeltSegmentKind.Merge) { inputs.CompleteInput(direction); InputDirection = direction; }
             return true;
         }
 
         public bool TryGetOutput(BeltDirection direction) => OutputLength > 0;
         internal void BeginTick() => TickSpeed = Speed;
+        internal void RestoreInputDirection(BeltDirection direction) => InputDirection = direction;
         internal void ResolveInput() => inputs.Resolve(Count != 0);
 
         internal BeltSegmentTransfer CacheTransfer()

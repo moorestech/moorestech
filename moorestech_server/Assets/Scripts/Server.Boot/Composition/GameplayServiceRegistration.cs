@@ -1,3 +1,4 @@
+using Game.Block.Blocks.BeltConveyor.Transport;
 using System.IO;
 using Core.Item;
 using Core.Item.Interface;
@@ -107,6 +108,7 @@ namespace Server.Boot.Composition
             var railGraphDatastore = initializerProvider.GetService<RailGraphDatastore>();
             var trainUnitDatastore = initializerProvider.GetService<TrainUnitDatastore>();
             services.AddSingleton(initializerProvider.GetService<IWorldBlockDatastore>());
+            services.AddSingleton(initializerProvider.GetRequiredService<IWorldBlockUpdateEvent>());
             services.AddSingleton(initializerProvider.GetService<GearNetworkDatastore>());
             services.AddSingleton<IGearNetworkDatastore>(provider => provider.GetRequiredService<GearNetworkDatastore>());
             services.AddSingleton(initializerProvider.GetService<FluidNetworkDatastore>());
@@ -170,6 +172,7 @@ namespace Server.Boot.Composition
             services.AddSingleton<ElectricTickUpdater>();
             services.AddSingleton<GearTickUpdater>();
             services.AddSingleton<FluidTickUpdater>();
+            services.AddSingleton<BeltWorldTransport>();
             services.AddSingleton<MasterTickUpdater>();
             services.AddSingleton<IBlockRemovalReservationService, BlockRemovalReservationService>();
             // クライアント操作は全接続共通FIFOへ集め、tick末尾に一括適用する

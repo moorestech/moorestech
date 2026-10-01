@@ -3,6 +3,7 @@
     "rootNamespace": "",
     "references": [
         "Core.Item.Interface",
+        "Core.BeltTransport",
         "Game.Block.Interface",
         "Core.Update",
         "Core.Inventory",

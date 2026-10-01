@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using Core.BeltTransport;
 using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
-using Game.Block.Blocks.Connector;
+using Game.Block.Blocks.BeltConveyor.Transport;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
@@ -12,284 +13,131 @@ using UniRx;
 
 namespace Game.Block.Blocks.BeltConveyor
 {
-    /// <summary>
-    ///     アイテムの搬出入とインベントリの管理を行う
-    /// </summary>
-    public class VanillaBeltConveyorComponent : IBlockInventory, IBlockSaveState, IItemCollectableBeltConveyor, IUpdatableBlockComponent
+    public sealed class VanillaBeltConveyorComponent : IBlockInventory, IBlockSaveState, IItemCollectableBeltConveyor
     {
+        private readonly InventoryConnects connectors;
+        private readonly List<BeltCellItemState> pending = new List<BeltCellItemState>();
+        private readonly Dictionary<Guid, IItemStack> pendingStacks = new Dictionary<Guid, IItemStack>();
+        private readonly Subject<Unit> itemsChanged = new Subject<Unit>();
+        private BeltWorldTransport transport;
+        private int loadedPriority = -1;
+        public int CellId { get; }
+        public BlockPositionInfo Position { get; }
+        public int Speed { get; private set; }
+        public string SpeedProfile { get; }
         public BeltConveyorSlopeType SlopeType { get; }
-        public IReadOnlyList<IOnBeltConveyorItem> BeltConveyorItems => _inventoryItems;
-        public IObservable<Unit> OnItemsChanged => _onItemsChanged;
-        private readonly VanillaBeltConveyorInventoryItem[] _inventoryItems;
-        private readonly Subject<Unit> _onItemsChanged = new();
+        public bool IsDestroy { get; private set; }
+        public string SaveKey => typeof(VanillaBeltConveyorComponent).FullName;
+        public IObservable<Unit> OnItemsChanged => itemsChanged;
+        internal int PriorityOrder => transport == null ? loadedPriority : transport.GetPriority(CellId);
+        internal int LoadedPriority => loadedPriority;
+        internal IReadOnlyDictionary<Guid, IItemStack> PendingStacks => pendingStacks;
 
-        private readonly IBeltConveyorBlockInventoryInserter _blockInventoryInserter;
-        private readonly int _inventoryItemNum;
-
-        // ベルトコンベアにアイテムが入って出るまでのtick数
-        // Ticks for item to enter and exit the belt conveyor
-        private uint _ticksOfItemEnterToExit;
-
-        public VanillaBeltConveyorComponent(int inventoryItemNum, float timeOfItemEnterToExitSeconds, IBeltConveyorBlockInventoryInserter blockInventoryInserter, BeltConveyorSlopeType slopeType)
+        public VanillaBeltConveyorComponent(BlockInstanceId id, BlockPositionInfo position, double transitSeconds,
+            bool gear, string speedProfile, BeltConveyorSlopeType slope, InventoryConnects connectors, Dictionary<string, object> componentStates)
         {
-            SlopeType = slopeType;
-            _inventoryItemNum = inventoryItemNum;
-            _ticksOfItemEnterToExit = GameUpdater.SecondsToTicks(timeOfItemEnterToExitSeconds);
-            _blockInventoryInserter = blockInventoryInserter;
-
-            _inventoryItems = new VanillaBeltConveyorInventoryItem[inventoryItemNum];
+            CellId = id.AsPrimitive(); Position = position; SlopeType = slope;
+            this.connectors = connectors;
+            SpeedProfile = speedProfile;
+            SetTicksOfItemEnterToExit(gear ? uint.MaxValue : GameUpdater.SecondsToTicks(transitSeconds));
+            if (componentStates != null) BeltCellSaveCodec.Load(this, componentStates[SaveKey], transitSeconds);
         }
 
-        public VanillaBeltConveyorComponent(Dictionary<string, object> componentStates, int inventoryItemNum, float timeOfItemEnterToExitSeconds, IBeltConveyorBlockInventoryInserter blockInventoryInserter, BeltConveyorSlopeType slopeType, InventoryConnects inventoryConnectors) :
-            this(inventoryItemNum, timeOfItemEnterToExitSeconds, blockInventoryInserter, slopeType)
+        public IReadOnlyList<IOnBeltConveyorItem> BeltConveyorItems
         {
-            var itemJsons = BlockComponentStateReader.Read<List<string>>(componentStates, SaveKey);
-            for (var i = 0; i < itemJsons.Count && i < inventoryItemNum; i++)
+            get
             {
-                if (itemJsons[i] != null)
-                {
-                    _inventoryItems[i] = VanillaBeltConveyorInventoryItem.LoadItem(itemJsons[i], inventoryConnectors, _ticksOfItemEnterToExit);
-                    NotifyItemsChanged();
-                }
+                var result = new List<IOnBeltConveyorItem>();
+                foreach (var item in CaptureItems())
+                    result.Add(new BeltSegmentItemView(item, connectors.InputConnects?[0], connectors.OutputConnects?[0]));
+                return result;
             }
         }
 
-        public IItemStack InsertItem(IItemStack itemStack, InsertItemContext context)
+        public IItemStack InsertItem(IItemStack stack, InsertItemContext context)
         {
             BlockException.CheckDestroy(this);
-
-            // 挿入可能スロットを決定する
-            // Decide which slot can accept the item
-            var insertIndex = GetInsertIndex();
-            if (insertIndex < 0) return itemStack;
-
-            var checkItems = new List<IItemStack> { ServerContext.ItemStackFactory.Create(itemStack.Id, 1, itemStack.ItemInstanceId) };
-
-            // GoalConnectorを取得する
-            // Get GoalConnector
-            var goalConnector = _blockInventoryInserter.GetNextGoalConnector(checkItems);
-
-            // コネクターが存在するのにGoalConnectorがない場合は挿入を拒否する
-            // Reject insertion when connectors exist but no valid GoalConnector
-            if (_blockInventoryInserter.HasAnyConnector && goalConnector == null) return itemStack;
-
-            // 挿入先コネクター（TargetConnector）をアイテムの開始位置として設定
-            // Set target connector as item's start position
-            var startConnector = context.TargetConnector;
-            _inventoryItems[insertIndex] = new VanillaBeltConveyorInventoryItem(itemStack.Id, itemStack.ItemInstanceId, startConnector, goalConnector, _ticksOfItemEnterToExit);
-            NotifyItemsChanged();
-
-            // 挿入したのでアイテムを減らして返す
-            // Return item with count reduced by 1
-            return itemStack.SubItem(1);
-            
-            #region Internal
-            
-            int GetInsertIndex()
+            if (stack.Count == 0 || !CanInsert()) return stack;
+            if (transport != null && context.TargetConnector != null && !transport.HasInput(CellId, context.SourceBlockInstanceId.AsPrimitive())) return stack;
+            // 分割も既存stackの操作へ委譲してメタデータを保つ。
+            // Split through the existing stack operation to preserve metadata.
+            var single = stack.Count == 1 ? stack : stack.SubItem(stack.Count - 1);
+            var direction = FindInputDirection(context.TargetConnector?.ConnectorGuid);
+            var item = new BeltItem(BeltTransportIdentity.ToGuid(single.ItemInstanceId), single.Id.AsPrimitive());
+            bool accepted;
+            if (transport != null) accepted = transport.TryInsert(CellId, direction, 1, item, single);
+            else
             {
-                // コネクターがある場合は空きスロットを探す
-                // Find any empty slot when connectors exist
-                if (_blockInventoryInserter.HasAnyConnector)
-                {
-                    for (var i = _inventoryItems.Length - 1; i >= 0; i--)
-                    {
-                        if (_inventoryItems[i] == null) return i;
-                    }
-                    return -1;
-                }
-                
-                // コネクターがない場合は入口スロットのみを許可する
-                // When no connector, allow only the entry slot
-                if (_inventoryItems[^1] == null) return _inventoryItems.Length - 1;
-                return -1;
+                AddPending(new BeltCellItemState(CellId, 1, direction, 0, item, false), single);
+                accepted = true;
             }
-            
-            #endregion
-        }
-        
-        public bool InsertionCheck(List<IItemStack> itemStacks)
-        {
-            BlockException.CheckDestroy(this);
-
-            // 挿入スロットが1個かどうか
-            // Check if input is exactly one item
-            if (itemStacks.Count != 1 || itemStacks[0].Count != 1) return false;
-
-            // 接続先がない場合は入口スロットのみ確認する
-            // When no connectors, check only entry slot
-            if (!_blockInventoryInserter.HasAnyConnector) return _inventoryItems[^1] == null;
-
-            // 接続先がある場合は常に受け入れ可能（詰まりを許容する）
-            // When connectors exist, always accept (allow clogging)
-            return true;
+            return accepted ? stack.SubItem(1) : stack;
         }
 
-        public int GetSlotSize()
-        {
-            BlockException.CheckDestroy(this);
-            
-            return _inventoryItems.Length;
-        }
-        
+        public bool InsertionCheck(List<IItemStack> stacks) => stacks.Count == 1 && stacks[0].Count == 1 && CanInsert();
+        private bool CanInsert() => transport == null ? pending.Count == 0 : transport.CanInsert(CellId);
+        public int GetSlotSize() => transport == null ? (connectors.OutputConnects != null && connectors.OutputConnects.Length > 1 ? 2 : 1) : transport.GetSlotSize(CellId);
         public IItemStack GetItem(int slot)
         {
-            BlockException.CheckDestroy(this);
-            
-            var itemStackFactory = ServerContext.ItemStackFactory;
-            if (_inventoryItems[slot] == null) return itemStackFactory.CreatEmpty();
-            return itemStackFactory.Create(_inventoryItems[slot].ItemId, 1);
+            if (slot < 0 || slot >= GetSlotSize()) throw new ArgumentOutOfRangeException(nameof(slot));
+            foreach (var item in CaptureItems())
+                if (item.IsBuffer == (slot == 1)) return GetStack(item.Item.Guid);
+            return ServerContext.ItemStackFactory.CreatEmpty();
         }
-        
-        public void SetItem(int slot, IItemStack itemStack)
-        {
-            BlockException.CheckDestroy(this);
 
-            //TODO lockすべき？？
-            var goalConnector = _blockInventoryInserter?.GetNextGoalConnector(new List<IItemStack> { itemStack });
-            _inventoryItems[slot] = new VanillaBeltConveyorInventoryItem(itemStack.Id, itemStack.ItemInstanceId, null, goalConnector, _ticksOfItemEnterToExit);
-            NotifyItemsChanged();
-        }
-        
-        public bool IsDestroy { get; private set; }
-        public void Destroy()
-        {
-            IsDestroy = true;
-        }
-        
-        public string SaveKey { get; } = typeof(VanillaBeltConveyorComponent).FullName;
-        public object GetSaveState()
+        public void SetItem(int slot, IItemStack stack)
         {
             BlockException.CheckDestroy(this);
-            
-            var saveItems = new List<string>();
-            foreach (var t in _inventoryItems)
+            if (slot < 0 || slot >= GetSlotSize()) throw new ArgumentOutOfRangeException(nameof(slot));
+            var items = new List<BeltCellItemState>(CaptureItems());
+            // slotを走行列とbufferへ固定し、空いた走行slotへbufferを詰めない。
+            // Keep running and buffer slots fixed instead of compacting a lone buffer into slot zero.
+            for (int index = items.Count - 1; index >= 0; index--)
+                if (items[index].IsBuffer == (slot == 1)) items.RemoveAt(index);
+            if (stack.Count > 0)
             {
-                saveItems.Add(t?.GetSaveJsonString());
+                var single = stack.Count == 1 ? stack : stack.SubItem(stack.Count - 1);
+                var item = new BeltItem(BeltTransportIdentity.ToGuid(single.ItemInstanceId), single.Id.AsPrimitive());
+                items.Add(new BeltCellItemState(CellId, 256, BeltTransportDirections.Opposite(BeltTransportDirections.Forward(Position)), 0, item, slot == 1));
+                if (transport == null) pendingStacks[item.Guid] = single;
+                else transport.RegisterStack(item.Guid, single);
             }
-            
-            return saveItems;
-        }
-        
-        /// <summary>
-        ///     アイテムの搬出判定を行う
-        ///     判定はUpdateで毎フレーム行われる
-        ///     TODO 個々のマルチスレッド対応もいい感じにやりたい
-        /// </summary>
-        public void Update()
-        {
-            BlockException.CheckDestroy(this);
-
-            //TODO lockすべき？？
-            var count = _inventoryItems.Length;
-
-            for (var i = 0; i < count; i++)
-            {
-                var item = _inventoryItems[i];
-                if (item == null) continue;
-
-                // コネクターの存在確認とフォールバック処理
-                // Validate connector and fallback if necessary
-                ValidateAndUpdateGoalConnector(item);
-
-                // 次のインデックスに入れる時間かどうかをチェックする（tick単位）
-                // Check if it's time to move to next index (in ticks)
-                var ticksPerSlot = _ticksOfItemEnterToExit / (uint)_inventoryItemNum;
-                var nextIndexStartTicks = (uint)i * ticksPerSlot;
-                var isNextInsertable = item.RemainingTicks <= nextIndexStartTicks;
-
-                // 次に空きがあれば次に移動する
-                // Move to next slot if available
-                var didMove = false;
-                if (isNextInsertable && i != 0)
-                {
-                    if (_inventoryItems[i - 1] == null)
-                    {
-                        _inventoryItems[i - 1] = item;
-                        _inventoryItems[i] = null;
-                        NotifyItemsChanged();
-                        didMove = true;
-                    }
-                }
-
-                // 最後のアイテムの場合は接続先に渡す
-                // Pass to connected block if item reached the end
-                if (i == 0 && item.RemainingTicks == 0)
-                {
-                    var insertItem = ServerContext.ItemStackFactory.Create(item.ItemId, 1, item.ItemInstanceId);
-
-                    var output = _blockInventoryInserter.InsertItem(insertItem, item.GoalConnector);
-
-                    // 渡した結果がnullItemだったらそのアイテムを消す
-                    // Remove item if successfully inserted
-                    if (output.Id == ItemMaster.EmptyItemId)
-                    {
-                        _inventoryItems[i] = null;
-                        NotifyItemsChanged();
-                    }
-
-                    continue;
-                }
-
-                // 前のスロットが詰まっているかどうかを判定する（移動した場合は除く）
-                // Check if blocked by previous slot (exclude if just moved)
-                var isBlockedByPreviousSlot = !didMove && i != 0 && _inventoryItems[i - 1] != null && isNextInsertable;
-
-                // 残りtick数を減らす（詰まっていない場合のみ）
-                // Decrease remaining ticks (only when not blocked)
-                if (!isBlockedByPreviousSlot)
-                {
-                    if (item.RemainingTicks > 0)
-                    {
-                        item.RemainingTicks--;
-                    }
-                }
-            }
-
-            #region Internal
-
-            void ValidateAndUpdateGoalConnector(VanillaBeltConveyorInventoryItem targetItem)
-            {
-                // 全てのコネクターがなくなった場合は現在の設定を保持
-                // Keep current setting if all connectors are gone
-                if (_blockInventoryInserter.ConnectedCount == 0) return;
-
-                // 現在のGoalConnectorが無効なら、Guid解決を試してからフォールバック
-                // Resolve by Guid before fallback when current GoalConnector is invalid
-                if (_blockInventoryInserter.IsValidGoalConnector(targetItem.GoalConnector)) return;
-
-                // 挿入可能な接続先を探す（インデックスを進めない）
-                // Find insertable connector (without advancing index)
-                var checkItems = new List<IItemStack> { ServerContext.ItemStackFactory.Create(targetItem.ItemId, 1, targetItem.ItemInstanceId) };
-                var goalConnector = _blockInventoryInserter.PeekNextGoalConnector(checkItems);
-                if (goalConnector == null) return;
-                targetItem.SetGoalConnector(goalConnector);
-            }
-
-            #endregion
+            if (transport == null) { pending.Clear(); pending.AddRange(items); }
+            else transport.ReplaceCellItems(CellId, items.ToArray());
+            itemsChanged.OnNext(Unit.Default);
         }
 
-        /// <summary>
-        /// ベルトコンベアの速度をtick単位で設定
-        /// Set belt conveyor speed in ticks
-        /// </summary>
         public void SetTicksOfItemEnterToExit(uint ticks)
         {
-            _ticksOfItemEnterToExit = ticks;
-
-            // 有効な速度が設定された場合、停止中に投入されたアイテムのtickを更新
-            // When valid speed is set, update ticks of items inserted while stopped
-            if (ticks != 0 && ticks != uint.MaxValue)
-            {
-                foreach (var item in _inventoryItems)
-                {
-                    item?.UpdateTicksForSpeedChange(ticks);
-                }
-            }
+            int previous = Speed;
+            Speed = ticks == uint.MaxValue || ticks == 0 ? 0 : Math.Max(1, Math.Min(128, (int)Math.Round(256d / ticks)));
+            if (transport != null && previous != Speed) transport.ChangeSpeed(CellId, Speed);
         }
-
-        private void NotifyItemsChanged()
+        public void Destroy() => IsDestroy = true;
+        public object GetSaveState() => BeltCellSaveCodec.Capture(this);
+        internal BeltCellItemState[] CaptureItems() => transport == null ? pending.ToArray() : transport.CaptureCell(CellId);
+        internal IItemStack GetStack(Guid id) => transport == null ? pendingStacks[id] : transport.GetStack(id);
+        internal void SetLoadedPriority(int priority) => loadedPriority = priority;
+        internal void AddPending(BeltCellItemState item, IItemStack stack)
         {
-            _onItemsChanged.OnNext(Unit.Default);
+            pending.Add(item); pendingStacks[item.Item.Guid] = stack;
+        }
+        internal void Bind(BeltWorldTransport owner)
+        {
+            transport = owner;
+            pending.Clear(); pendingStacks.Clear();
+        }
+        internal void NotifyItemsChanged() => itemsChanged.OnNext(Unit.Default);
+
+        internal BeltDirection FindInputDirection(Guid? connectorGuid)
+        {
+            foreach (var connector in connectors.InputConnects)
+            {
+                if (connector.ConnectorGuid != connectorGuid || connector.Directions == null) continue;
+                foreach (var local in connector.Directions)
+                    if (local.x != 0 || local.z != 0) return BeltTransportDirections.FromVector(Position.BlockDirection.ConvertLocalCell(local));
+            }
+            return BeltTransportDirections.Opposite(BeltTransportDirections.Forward(Position));
         }
     }
 }

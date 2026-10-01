@@ -1,3 +1,4 @@
+using Game.Block.Blocks.BeltConveyor.Transport;
 using Core.Item;
 using Core.Master;
 using Core.Update;
@@ -82,6 +83,7 @@ namespace Server.Boot
 
             // 全世界変更の確定後が唯一のセーブ可能な安定点（仕様2.1⑦）。将来の初回snapshot取得もこの位置に登録する
             // The point after every world mutation commits is the only save-stable boundary (spec 2.1-7); future initial-snapshot capture also registers here
+            GameUpdater.FinalTickEndUpdates.Add(serviceProvider.GetRequiredService<BeltWorldTransport>().CompleteTick);
             GameUpdater.FinalTickEndUpdates.Add(serviceProvider.GetRequiredService<WorldSaveCoordinator>().SaveIfRequested);
 
             // 常時記録のスナップショットはセーブと同じ安定点で取る（Startされるまで何もしない）

@@ -29,11 +29,11 @@ namespace Tests.CombinedTest.Game
             
             //インプットチェストにアイテムを2つ入れる
             var inputChestComponent = inputChest.GetComponent<VanillaChestComponent>();
-            inputChestComponent.SetItem(0, new ItemId(1), 2);
+            inputChestComponent.SetItem(0, ForUnitTestItemId.ItemId1, 2);
             
-            //ベルトコンベアのアイテムが出てから入るまでの6秒間アップデートする
-            var now = DateTime.Now;
-            while (DateTime.Now - now < TimeSpan.FromSeconds(5)) GameUpdater.UpdateOneTick();
+            // 機械搬入と搬出を決定的なtick数で進める。
+            // Advance machine input and output with a deterministic tick count.
+            GameUpdater.RunFrames(200);
             
             //アイテムが出ているか確認
             Assert.AreEqual(0, inputChestComponent.GetItem(0).Count);

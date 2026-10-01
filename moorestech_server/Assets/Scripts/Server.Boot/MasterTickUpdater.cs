@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Game.Block.Blocks.BeltConveyor.Transport;
 using Game.Block.Blocks.Fluid;
 using Game.EnergySystem;
 using Game.Gear.Common;
@@ -19,6 +20,7 @@ namespace Server.Boot
         private readonly FluidTickUpdater _fluidTickUpdater;
         private readonly TrainUpdateService _trainUpdateService;
         private readonly IWorldBlockDatastore _worldBlockDatastore;
+        private readonly BeltWorldTransport _beltTransport;
 
         // 正準順の反復に使う再利用バッファ。毎tickの確保を避ける
         // Reusable buffer for the canonical-order iteration, avoiding a per-tick allocation
@@ -32,7 +34,8 @@ namespace Server.Boot
             GearTickUpdater gearTickUpdater,
             FluidTickUpdater fluidTickUpdater,
             TrainUpdateService trainUpdateService,
-            IWorldBlockDatastore worldBlockDatastore)
+            IWorldBlockDatastore worldBlockDatastore,
+            BeltWorldTransport beltTransport)
         {
             _electricWireNetworkDatastore = electricWireNetworkDatastore;
             _gearNetworkDatastore = gearNetworkDatastore;
@@ -42,6 +45,7 @@ namespace Server.Boot
             _fluidTickUpdater = fluidTickUpdater;
             _trainUpdateService = trainUpdateService;
             _worldBlockDatastore = worldBlockDatastore;
+            _beltTransport = beltTransport;
         }
 
         public void Update()
@@ -66,7 +70,12 @@ namespace Server.Boot
 
             // 設置・破壊はtick末尾で確定するため、この反復中に増減は起きない
             // Placement and removal settle at tick end, so the collection never mutates during this iteration
+            _beltTransport.BeginTick();
+            // 歯車網の変化通知で届いた速度を確定してから搬送を進める。
+            // Latch speeds pushed by gear-network changes before advancing transport.
+            _beltTransport.LatchSpeeds();
             foreach (var blockData in _tickOrderedBlocks) blockData.Block.TickUpdate();
+            _beltTransport.Advance();
         }
     }
 }

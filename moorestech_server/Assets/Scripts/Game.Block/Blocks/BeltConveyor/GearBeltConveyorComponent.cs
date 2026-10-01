@@ -10,11 +10,12 @@ using UniRx;
 
 namespace Game.Block.Blocks.BeltConveyor
 {
-    public class GearBeltConveyorComponent : GearEnergyTransformer, IUpdatableBlockComponent
+    public class GearBeltConveyorComponent : GearEnergyTransformer
     {
         private readonly VanillaBeltConveyorComponent _beltConveyorComponent;
         private readonly double _timeOfItemEnterToExit;
         private readonly float _idleTorqueRate;
+        private readonly GearConsumption _consumption;
 
         public GearBeltConveyorComponent(VanillaBeltConveyorComponent beltConveyorComponent, BlockInstanceId entityId, double timeOfItemEnterToExit, GearConsumption gearConsumption, BlockConnectorComponent<IGearEnergyTransformer, GearContext> blockConnectorComponent)
             : base(gearConsumption, entityId, blockConnectorComponent)
@@ -22,20 +23,23 @@ namespace Game.Block.Blocks.BeltConveyor
             _beltConveyorComponent = beltConveyorComponent;
             _timeOfItemEnterToExit = timeOfItemEnterToExit;
             _idleTorqueRate = gearConsumption.IdlePowerRate;
+            _consumption = gearConsumption;
 
             _beltConveyorComponent.OnItemsChanged.Subscribe(_ => UpdateTorqueRequestRate());
+            OnChangeBlockState.Subscribe(_ => UpdateSpeed());
             UpdateTorqueRequestRate();
         }
 
-        // 毎tick、導出した稼働率（RPM比 × torqueRate）で搬送時間を更新する。GearTickUpdaterがnetwork状態を先に書くため導出値は最新
-        // Update transit time each tick from the derived operating rate; GearTickUpdater writes network state first, so the derived value is current
-        public void Update()
+        // 軸の実RPMから速度を求め、空ベルトの要求トルク倍率を掛けない。
+        // Derive speed from actual shaft RPM without multiplying the empty-belt torque request rate.
+        private void UpdateSpeed()
         {
             BlockException.CheckDestroy(this);
 
             // 稼働率0（停止・RPM不足）なら搬送を止める
             // Stop transport when the operating rate is zero (stopped or insufficient RPM)
-            var operatingRate = GetCurrentOperatingRate();
+            var rpm = CurrentRpm.AsPrimitive();
+            var operatingRate = _consumption.BaseRpm <= 0 || rpm < _consumption.MinimumRpm ? 0 : rpm / _consumption.BaseRpm;
             if (operatingRate <= 0f)
             {
                 _beltConveyorComponent.SetTicksOfItemEnterToExit(uint.MaxValue);

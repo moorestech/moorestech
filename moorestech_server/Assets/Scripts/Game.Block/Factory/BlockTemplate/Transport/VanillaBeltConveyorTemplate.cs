@@ -2,6 +2,7 @@ using Game.Block.Blocks.BeltConveyor.Connection;
 using System.Collections.Generic;
 using Game.Block.Blocks;
 using Game.Block.Blocks.BeltConveyor;
+using Game.Block.Blocks.BeltConveyor.Transport;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Mooresmaster.Model.BlocksModule;
@@ -32,13 +33,9 @@ namespace Game.Block.Factory.BlockTemplate.Transport
                 BeltConveyorBlockParam.SlopeTypeConst.Straight => BeltConveyorSlopeType.Straight
             };
             var connectorComponent = BeltInventoryConnectionContext.Create(beltParam.InventoryConnectors, blockPositionInfo, slopeType);
-            var beltConveyorConnector = new VanillaBeltConveyorBlockInventoryInserter(blockInstanceId, connectorComponent);
-            var itemCount = beltParam.BeltConveyorItemCount;
-            var time = beltParam.TimeOfItemEnterToExit;
             
-            var beltComponent = componentStates == null ? 
-                new VanillaBeltConveyorComponent(itemCount, time, beltConveyorConnector, slopeType) : 
-                new VanillaBeltConveyorComponent(componentStates, itemCount, time, beltConveyorConnector, slopeType, beltParam.InventoryConnectors);
+            var beltComponent = new VanillaBeltConveyorComponent(blockInstanceId, blockPositionInfo, beltParam.TimeOfItemEnterToExit,
+                false, BeltTransportSpeedProfile.Fixed(beltParam.TimeOfItemEnterToExit), slopeType, beltParam.InventoryConnectors, componentStates);
             
             
             var components = new List<IBlockComponent>
