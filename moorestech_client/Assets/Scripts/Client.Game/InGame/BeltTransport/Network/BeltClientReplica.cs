@@ -11,7 +11,7 @@ namespace Client.Game.InGame.BeltTransport
         private readonly SortedDictionary<ulong, BeltTickDifference> _pending = new();
         private readonly Subject<BeltNetworkSnapshot> _changed = new();
         public IObservable<BeltNetworkSnapshot> OnStateChanged => _changed;
-        public ulong Tick => _replay.Tick;
+        private ulong Tick => _replay.Tick;
         public BeltNetworkSnapshot Snapshot => _replay.Network.Capture();
         public BeltClientReplica(BeltCommittedSnapshot initial) { _replay = new(initial.Tick, initial.Snapshot, this); }
         public void Receive(BeltTickDifference difference)

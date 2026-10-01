@@ -24,7 +24,7 @@ namespace Tests.UnitTest.Core.BeltTransport
             Assert.AreEqual(Item(2), merge.CaptureItems()[0].Item);
             Assert.IsTrue(stopped.Buffer.TryGetItem(out var held));
             Assert.AreEqual(Item(1), held);
-            Assert.AreEqual(0, moving.Count);
+            Assert.AreEqual(0, moving.CaptureItems().Length);
         }
 
         [Test]
@@ -108,9 +108,9 @@ namespace Tests.UnitTest.Core.BeltTransport
             // Emptying in stage three does not rerun stage one collection.
             simulation.Tick();
             Assert.IsFalse(branch.Buffer.HasItem);
-            Assert.AreEqual(1, branch.Count);
+            Assert.AreEqual(1, branch.CaptureItems().Length);
             simulation.Tick();
-            Assert.AreEqual(0, branch.Count);
+            Assert.AreEqual(0, branch.CaptureItems().Length);
             Assert.IsTrue(branch.Buffer.HasItem);
         }
 

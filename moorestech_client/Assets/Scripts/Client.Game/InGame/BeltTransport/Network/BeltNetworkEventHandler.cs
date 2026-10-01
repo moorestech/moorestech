@@ -14,7 +14,7 @@ namespace Client.Game.InGame.BeltTransport
         public BeltClientReplica Replica { get; }
         private Exception _failure;
         private readonly UniTaskCompletionSource _failed = new();
-        public UniTask WaitForFailureAsync() => _failed.Task;
+        internal UniTask WaitForFailureAsync() => _failed.Task;
         public BeltNetworkEventHandler(InitialHandshakeResponse initial, IVanillaApiEvent events)
         {
             Replica = new BeltClientReplica(initial.BeltSnapshot.ToCore());

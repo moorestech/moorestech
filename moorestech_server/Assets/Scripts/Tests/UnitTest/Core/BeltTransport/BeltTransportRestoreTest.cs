@@ -6,6 +6,9 @@ namespace Tests.UnitTest.Core.BeltTransport
 {
     public class BeltTransportRestoreTest
     {
+        private static readonly (int Capacity, int Speed, BeltSegmentKind Kind)[] Configuration = {
+            (1, 64, BeltSegmentKind.Merge), (2, 64, BeltSegmentKind.Branch),
+            (3, 64, BeltSegmentKind.Normal), (4, 32, BeltSegmentKind.Normal) };
         [Test]
         public void CapturedSnapshotReplaysExactlyAfterRestoreTest()
         {
@@ -19,7 +22,7 @@ namespace Tests.UnitTest.Core.BeltTransport
             for (int i = 0; i < original.Length; i++)
             {
                 var source = original[i];
-                restored[i] = new BeltConveyorSegment(source.Capacity, source.Speed, source.Kind, source.PriorityOrder, BeltDirection.Front);
+                restored[i] = new BeltConveyorSegment(Configuration[i].Capacity, Configuration[i].Speed, Configuration[i].Kind, source.PriorityOrder, BeltDirection.Front);
                 restored[i].RestoreItems(source.CaptureItems());
                 if (source.Buffer != null && source.Buffer.TryGetItem(out var item)) restored[i].Buffer.RestoreItem(item);
             }
@@ -61,7 +64,7 @@ namespace Tests.UnitTest.Core.BeltTransport
                 for (int i = 0; i < forward.Length; i++)
                 {
                     CollectionAssert.AreEqual(forward[i].CaptureItems(), reverse[i].CaptureItems());
-                    total += forward[i].Count;
+                    total += forward[i].CaptureItems().Length;
                 }
                 Assert.AreEqual(3, total);
             }
@@ -69,8 +72,9 @@ namespace Tests.UnitTest.Core.BeltTransport
 
         private static BeltConveyorSegment[] BuildNetwork()
         {
-            var result = new[] { Create(1, 64, BeltSegmentKind.Merge), Create(2, 64, BeltSegmentKind.Branch),
-                Create(3, 64, BeltSegmentKind.Normal), Create(4, 32, BeltSegmentKind.Normal) };
+            var result = new BeltConveyorSegment[Configuration.Length];
+            for (int i = 0; i < result.Length; i++)
+                result[i] = Create(Configuration[i].Capacity, Configuration[i].Speed, Configuration[i].Kind);
             Connect(result);
             result[1].Buffer.RestoreItem(Item(1));
             result[2].RestoreItems(new[] { new BeltItemState(Item(2), 0), new BeltItemState(Item(3), 300) });

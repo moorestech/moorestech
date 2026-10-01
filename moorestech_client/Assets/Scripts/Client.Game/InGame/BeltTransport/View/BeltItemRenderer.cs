@@ -19,6 +19,10 @@ namespace Client.Game.InGame.BeltTransport
             // Start rendering after ClientContext is ready and route later states to the same owner.
             _network.Replica.OnStateChanged.Subscribe(Apply);
             _initial = _views.ApplyAsync(_network.Replica.Snapshot).Preserve();
+
+            #region Internal
+            void Apply(BeltNetworkSnapshot snapshot) => _views.ApplyAsync(snapshot).Forget();
+            #endregion
         }
         public async UniTask WaitForInitialApplyAsync()
         {
@@ -37,6 +41,5 @@ namespace Client.Game.InGame.BeltTransport
             }
             #endregion
         }
-        private void Apply(BeltNetworkSnapshot snapshot) => _views.ApplyAsync(snapshot).Forget();
     }
 }

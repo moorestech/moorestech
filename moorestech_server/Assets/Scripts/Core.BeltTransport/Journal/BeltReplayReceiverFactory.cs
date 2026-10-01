@@ -1,10 +1,10 @@
 using System;
 namespace Core.BeltTransport
 {
-    public sealed class BeltReplayReceiverFactory : IBeltExternalReceiverFactory
+    internal sealed class BeltReplayReceiverFactory : IBeltExternalReceiverFactory
     {
         private BeltOutputResult[] outputs = new BeltOutputResult[0];
-        public void SetResults(BeltOutputResult[] results) => outputs = results;
+        internal void SetResults(BeltOutputResult[] results) => outputs = results;
         public IBeltReceiver Create(BeltNetworkConnection connection, int stage) => new Receiver(this, connection.SourceId, connection.TargetId, stage, connection.Direction);
         private sealed class Receiver : IBeltReceiver
         {

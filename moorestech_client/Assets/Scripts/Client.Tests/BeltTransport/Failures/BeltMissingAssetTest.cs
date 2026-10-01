@@ -37,10 +37,9 @@ namespace Client.Tests.BeltTransport
             var factory = new DelayedFactory();
             var store = new BeltItemViewStore(factory);
             var initial = store.ApplyAsync(BeltTestState.Snapshot(1, 0, true));
-            var pendingWait = store.WaitForPendingAsync();
             LogAssert.Expect(LogType.Error, new Regex("Belt item .* could not be rendered: Missing fixture prefab"));
             factory.Pending[0].TrySetResult(BeltItemCreationResult.Missing("Missing fixture prefab"));
-            await initial; await pendingWait;
+            await initial;
             Assert.IsNotNull(store.FailureReason);
             // 失敗も所有状態を解除し、同GUIDの反復通知ではロードし直さない。
             // Release ownership after failure without retrying on repeated identity notifications.
@@ -76,6 +75,31 @@ namespace Client.Tests.BeltTransport
             LogAssert.Expect(LogType.Error, new Regex("Belt item .* could not be rendered: Missing fixture prefab"));
             factory.Pending[buffered ? 1 : 0].TrySetResult(BeltItemCreationResult.Missing("Missing fixture prefab"));
             Assert.Throws<InvalidOperationException>(() => wait.GetAwaiter().GetResult());
+        }
+        [Test]
+        public void BufferedMissingViewInterruptsWhileInitialAssetIsStillPendingTest()
+        {
+            var events = new CapturingVanillaApiEvent();
+            var handler = new BeltNetworkEventHandler(BeltInitialEventBufferTest.Initial(), events);
+            var factory = new DelayedFactory();
+            var renderer = new BeltItemRenderer(handler, factory);
+            renderer.Initialize();
+            var wait = renderer.WaitForInitialApplyAsync();
+            var item = new BeltCellItemState(1, 256, BeltDirection.Back, 0, new BeltItem(new Guid("00000002-0000-0000-0000-000000000000"), 1), false);
+            var change = new BeltCellItemsChange(1, new[] { item });
+            var tick = new BeltTickDifference(11, Array.Empty<BeltBoundaryChange>(), Array.Empty<BeltOutputResult>(), new BeltBoundaryChange[] { change });
+            events.Dispatch(BeltTickCompletedEventPacket.EventTag, MessagePackSerializer.Serialize(new BeltTickMessagePack(tick)));
+            Assert.AreEqual(2, factory.Pending.Count);
+            Assert.AreEqual(UniTaskStatus.Pending, factory.Pending[0].Task.Status);
+            Assert.AreEqual(UniTaskStatus.Pending, wait.Status);
+            // 初回Aを完了させず、後続Bの欠損だけで待機を失敗させる。
+            // Fail startup from missing buffered B without completing initial A.
+            LogAssert.Expect(LogType.Error, new Regex("Belt item .* could not be rendered: Buffered fixture missing"));
+            factory.Pending[1].TrySetResult(BeltItemCreationResult.Missing("Buffered fixture missing"));
+            Assert.AreEqual(UniTaskStatus.Pending, factory.Pending[0].Task.Status);
+            Assert.AreEqual(UniTaskStatus.Faulted, wait.Status);
+            Assert.Throws<InvalidOperationException>(() => wait.GetAwaiter().GetResult());
+            factory.Pending[0].TrySetResult(BeltItemCreationResult.Created(new View()));
         }
         private sealed class View : IEntityObject
         {

@@ -35,7 +35,7 @@ namespace Tests.CombinedTest.Core.Transport.Segment
             GameUpdater.UpdateOneTick();
             Assert.AreEqual(fixedBelt.Speed, gear.Speed);
             Assert.AreNotSame(transport.Network.GetPath(fixedBelt.CellId), transport.Network.GetPath(gear.CellId));
-            var replay = new BeltNetworkReplay(transport.CompletedTick, transport.CaptureCommittedSnapshot().Snapshot, this);
+            var replay = new BeltNetworkReplay(transport.CaptureCommittedSnapshot().Tick, transport.CaptureCommittedSnapshot().Snapshot, this);
             transport.OnTickCompleted.Subscribe(difference => replay.Apply(Tests.Util.BeltTransport.BeltWireRoundTrip.Tick(difference)));
             fixedBelt.InsertItem(ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 1), InsertItemContext.Empty);
 
@@ -43,8 +43,8 @@ namespace Tests.CombinedTest.Core.Transport.Segment
             // Stopping one cell must not freeze the fixed-speed cell or its item.
             generator.SetGenerateTorque(0f);
             GameUpdater.UpdateOneTick();
-            Assert.AreEqual(0, transport.Network.GetPath(gear.CellId).Segment.Speed);
-            Assert.AreEqual(fixedBelt.Speed, transport.Network.GetPath(fixedBelt.CellId).Segment.Speed);
+            Assert.AreEqual(0, transport.Network.GetPath(gear.CellId).Cells[0].Speed);
+            Assert.AreEqual(fixedBelt.Speed, transport.Network.GetPath(fixedBelt.CellId).Cells[0].Speed);
             Assert.AreNotSame(transport.Network.GetPath(fixedBelt.CellId), transport.Network.GetPath(gear.CellId));
             Assert.Greater(fixedBelt.BeltConveyorItems[0].TotalTicks - fixedBelt.BeltConveyorItems[0].RemainingTicks, 1);
             CollectionAssert.AreEqual(transport.Network.CaptureItems(), replay.Network.CaptureItems());
@@ -65,7 +65,7 @@ namespace Tests.CombinedTest.Core.Transport.Segment
             second.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId2, 1));
             transport.Initialize();
             Assert.AreNotSame(transport.Network.GetPath(first.CellId), transport.Network.GetPath(second.CellId));
-            var replay = new BeltNetworkReplay(transport.CompletedTick, transport.CaptureCommittedSnapshot().Snapshot, this);
+            var replay = new BeltNetworkReplay(transport.CaptureCommittedSnapshot().Tick, transport.CaptureCommittedSnapshot().Snapshot, this);
             transport.OnTickCompleted.Subscribe(difference => replay.Apply(Tests.Util.BeltTransport.BeltWireRoundTrip.Tick(difference)));
             generator.SetGenerateTorque(100f);
             GameUpdater.UpdateOneTick();

@@ -60,15 +60,16 @@ namespace Core.BeltTransport
             }
             bool SameSpeed(BeltTopologyNode first, BeltTopologyNode second) =>
                 first.Cell.SpeedProfile == second.Cell.SpeedProfile && first.Cell.Speed == second.Cell.Speed;
+
+            int Compare(BeltTopologyNode first, BeltTopologyNode second)
+            {
+                int x = first.Cell.X.CompareTo(second.Cell.X);
+                if (x != 0) return x;
+                int y = first.Cell.Y.CompareTo(second.Cell.Y);
+                return y != 0 ? y : first.Cell.Z.CompareTo(second.Cell.Z);
+            }
             #endregion
         }
 
-        private static int Compare(BeltTopologyNode first, BeltTopologyNode second)
-        {
-            int x = first.Cell.X.CompareTo(second.Cell.X);
-            if (x != 0) return x;
-            int y = first.Cell.Y.CompareTo(second.Cell.Y);
-            return y != 0 ? y : first.Cell.Z.CompareTo(second.Cell.Z);
-        }
     }
 }

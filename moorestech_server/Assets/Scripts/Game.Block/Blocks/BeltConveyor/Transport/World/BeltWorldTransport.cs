@@ -21,7 +21,7 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
         private BeltCommittedSnapshot committed;
         private bool initialized, dirty;
         internal BeltTransportNetwork Network { get; }
-        public ulong CompletedTick { get; private set; }
+        private ulong CompletedTick;
         public IObservable<BeltTickDifference> OnTickCompleted => differences;
 
         public BeltWorldTransport(IWorldBlockDatastore world, IWorldBlockUpdateEvent changes)

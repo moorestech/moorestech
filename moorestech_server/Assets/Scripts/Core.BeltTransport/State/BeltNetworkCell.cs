@@ -13,6 +13,6 @@ namespace Core.BeltTransport
             Speed = speed; SpeedProfile = speedProfile; Forward = forward; Surface = surface;
         }
 
-        public BeltNetworkCell WithSpeed(int speed) => new BeltNetworkCell(Id, X, Y, Z, speed, SpeedProfile, Forward, Surface);
+        internal BeltNetworkCell WithSpeed(int speed) => new BeltNetworkCell(Id, X, Y, Z, speed, SpeedProfile, Forward, Surface);
     }
 }

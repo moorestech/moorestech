@@ -34,7 +34,15 @@ namespace Tests.UnitTest.Core.BeltTransport
                 Edge(3, 4, BeltDirection.Right), Edge(4, 1, BeltDirection.Front) }, Array.Empty<BeltCellItemState>());
             foreach (var cell in cells) Assert.AreSame(network.GetPath(3), network.GetPath(cell.Id));
             Assert.AreEqual(3, network.GetPath(3).Cells[0].Id);
-            Assert.AreSame(network.GetPath(3).Segment, network.GetPath(3).Segment.Output);
+            Assert.IsTrue(network.TryInsert(3, BeltDirection.Back, 256, Item(1)));
+            foreach (int nextCell in new[] { 4, 1, 2, 3 })
+            {
+                for (int tick = 0; tick < 4; tick++) network.Tick();
+                var item = network.CaptureItems()[0];
+                Assert.AreEqual(nextCell, item.CellId);
+                Assert.AreEqual(256, item.Progress);
+                Assert.AreEqual(Item(1), item.Item);
+            }
         }
 
         [Test]

@@ -54,7 +54,7 @@ namespace Tests.CombinedTest.Core.Transport.Segment
             GameUpdater.TickEndUpdates.Add(CaptureAndPlace);
             GameUpdater.UpdateOneTick();
             CollectionAssert.AreEqual(transport.Network.CaptureItems(), replay.Network.CaptureItems());
-            Assert.AreEqual(transport.CompletedTick, replay.Tick);
+            Assert.AreEqual(transport.CaptureCommittedSnapshot().Tick, replay.Tick);
             Assert.AreEqual(2, transport.CaptureCommittedSnapshot().Snapshot.Cells.Length);
 
             #region Internal
@@ -84,7 +84,7 @@ namespace Tests.CombinedTest.Core.Transport.Segment
             first.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 1));
             last.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId2, 1));
             transport.Initialize();
-            var replay = new BeltNetworkReplay(transport.CompletedTick, transport.CaptureCommittedSnapshot().Snapshot, this);
+            var replay = new BeltNetworkReplay(transport.CaptureCommittedSnapshot().Tick, transport.CaptureCommittedSnapshot().Snapshot, this);
             transport.OnTickCompleted.Subscribe(difference => replay.Apply(Tests.Util.BeltTransport.BeltWireRoundTrip.Tick(difference)));
             ulong startTick = GameUpdater.CurrentTick;
             GameUpdater.TickEndUpdates.Add(Mutate);

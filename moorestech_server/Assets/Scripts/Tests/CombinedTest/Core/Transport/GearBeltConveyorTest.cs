@@ -48,7 +48,7 @@ namespace Tests.CombinedTest.Core.Transport
         public void ItemInsertedWhileStoppedShouldTransportAfterSpeedRecovery()
         {
             var (transport, belt, output, generator) = CreatePoweredBelt();
-            var replay = new BeltNetworkReplay(transport.CompletedTick, transport.CaptureCommittedSnapshot().Snapshot, this);
+            var replay = new BeltNetworkReplay(transport.CaptureCommittedSnapshot().Tick, transport.CaptureCommittedSnapshot().Snapshot, this);
             transport.OnTickCompleted.Subscribe(difference => replay.Apply(Tests.Util.BeltTransport.BeltWireRoundTrip.Tick(difference)));
             generator.SetGenerateTorque(0f);
             belt.InsertItem(ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 1), InsertItemContext.Empty);

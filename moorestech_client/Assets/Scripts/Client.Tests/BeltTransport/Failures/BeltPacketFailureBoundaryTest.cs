@@ -33,7 +33,7 @@ namespace Client.Tests.BeltTransport
             LogAssert.Expect(LogType.Error, new Regex("Belt transport packet failed:"));
             events.Dispatch(BeltTickCompletedEventPacket.EventTag, MessagePackSerializer.Serialize(packet));
             Assert.Throws<InvalidOperationException>(handler.ThrowIfFailed);
-            Assert.AreEqual(10, handler.Replica.Tick);
+            Assert.AreEqual(BeltTestState.Identity, handler.Replica.Snapshot.Items[0].Item.Guid);
             Assert.AreEqual(32, handler.Replica.Snapshot.Cells[0].Speed);
             Assert.AreEqual(1, handler.Replica.Snapshot.Items[0].Progress);
         }
@@ -46,7 +46,7 @@ namespace Client.Tests.BeltTransport
             var payload = MessagePackSerializer.Serialize(new BeltTickMessagePack(BeltTestState.Tick(11)));
             Assert.Throws<InvalidOperationException>(() => events.Dispatch(BeltTickCompletedEventPacket.EventTag, payload));
             Assert.DoesNotThrow(handler.ThrowIfFailed);
-            Assert.AreEqual(11, handler.Replica.Tick);
+            Assert.AreEqual(33, handler.Replica.Snapshot.Items[0].Progress);
         }
     }
 }

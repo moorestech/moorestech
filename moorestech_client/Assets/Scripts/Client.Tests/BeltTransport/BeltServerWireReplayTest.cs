@@ -1,3 +1,4 @@
+using UniRx;
 using System;
 using System.Linq;
 using Client.Game.InGame.BeltTransport;
@@ -38,7 +39,8 @@ namespace Client.Tests.BeltTransport
             response = BeltWireRoundTripTest.RoundTrip(response);
             var replica = new BeltClientReplica(response.Snapshot.ToCore());
             source.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 3));
-            int count = 0;
+            int count = 0, notifications = 0;
+            using var subscription = replica.OnStateChanged.Subscribe(_ => notifications++);
             // 実際の機械搬入と搬出をパケット往復後の共有CPUで再現する。
             // Replay actual machine input/output after the production packet round trip.
             for (int i = 0; i < 250; i++)
@@ -50,7 +52,8 @@ namespace Client.Tests.BeltTransport
                     Assert.IsTrue(decoded.Succeeded, decoded.FailureReason);
                     replica.Receive(decoded.Difference); count++;
                 }
-                Assert.AreEqual(transport.CompletedTick, replica.Tick);
+                Assert.AreEqual(count, notifications);
+                Assert.AreEqual(response.Snapshot.Tick + (ulong)count, transport.CaptureCommittedSnapshot().Tick);
                 CollectionAssert.AreEqual(transport.CaptureCommittedSnapshot().Snapshot.Items, replica.Snapshot.Items);
             }
             Assert.AreEqual(250, count);

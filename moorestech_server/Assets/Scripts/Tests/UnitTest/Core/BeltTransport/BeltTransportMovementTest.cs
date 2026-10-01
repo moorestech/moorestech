@@ -49,7 +49,7 @@ namespace Tests.UnitTest.Core.BeltTransport
             source.RestoreItems(new[] { new BeltItemState(Item(1), 0) });
             var simulation = new BeltSimulation(new[] { target, source });
             simulation.Tick();
-            Assert.AreEqual(0, source.Count);
+            Assert.AreEqual(0, source.CaptureItems().Length);
             Assert.AreEqual(512 - sourceSpeed, target.CaptureItems()[0].DistanceToExit);
             simulation.Tick();
             Assert.AreEqual(512 - sourceSpeed - targetSpeed, target.CaptureItems()[0].DistanceToExit);
@@ -68,10 +68,10 @@ namespace Tests.UnitTest.Core.BeltTransport
             // 前進で生まれる空きを同tickの搬送に使わない。
             // New space from movement is unavailable within the same tick.
             simulation.Tick();
-            Assert.AreEqual(1, source.Count);
+            Assert.AreEqual(1, source.CaptureItems().Length);
             Assert.AreEqual(192, target.CaptureItems()[0].DistanceToExit);
             simulation.Tick();
-            Assert.AreEqual(0, source.Count);
+            Assert.AreEqual(0, source.CaptureItems().Length);
             Assert.AreEqual(448, target.CaptureItems()[1].DistanceToExit);
         }
 
@@ -92,8 +92,6 @@ namespace Tests.UnitTest.Core.BeltTransport
         public void InvalidSpeedRejectedTest(int speed)
         {
             Assert.Throws<ArgumentOutOfRangeException>(() => Create(1, speed, BeltSegmentKind.Normal));
-            var belt = Create(1, 64, BeltSegmentKind.Normal);
-            Assert.Throws<ArgumentOutOfRangeException>(() => belt.SetSpeed(speed));
         }
     }
 }

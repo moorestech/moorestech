@@ -31,7 +31,7 @@ namespace Tests.CombinedTest.Core.Transport.Segment
             var second = Place(ForUnitTestModBlockId.BeltConveyorId, 0, 2, BlockDirection.North);
             var target = Place(ForUnitTestModBlockId.ChestId, 0, 3, BlockDirection.North).GetComponent<IBlockInventory>();
             transport.Initialize();
-            var replay = new BeltNetworkReplay(transport.CompletedTick, transport.CaptureCommittedSnapshot().Snapshot, this);
+            var replay = new BeltNetworkReplay(transport.CaptureCommittedSnapshot().Tick, transport.CaptureCommittedSnapshot().Snapshot, this);
             transport.OnTickCompleted.Subscribe(difference => replay.Apply(Tests.Util.BeltTransport.BeltWireRoundTrip.Tick(difference)));
             source.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 3));
 
@@ -59,7 +59,7 @@ namespace Tests.CombinedTest.Core.Transport.Segment
             side.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId2, 1));
             transport.Initialize();
             Assert.AreEqual(BeltSegmentKind.Merge, transport.Network.GetPath(merge.BlockInstanceId.AsPrimitive()).Segment.Kind);
-            var replay = new BeltNetworkReplay(transport.CompletedTick, transport.CaptureCommittedSnapshot().Snapshot, this);
+            var replay = new BeltNetworkReplay(transport.CaptureCommittedSnapshot().Tick, transport.CaptureCommittedSnapshot().Snapshot, this);
             transport.OnTickCompleted.Subscribe(difference => replay.Apply(Tests.Util.BeltTransport.BeltWireRoundTrip.Tick(difference)));
             source.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 2));
             for (int tick = 0; tick < 250; tick++) GameUpdater.UpdateOneTick();

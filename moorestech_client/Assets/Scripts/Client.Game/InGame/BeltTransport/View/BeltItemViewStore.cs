@@ -80,7 +80,7 @@ namespace Client.Game.InGame.BeltTransport
             }
             #endregion
         }
-        public UniTask WaitForPendingAsync() => Task.WhenAll(_pendingTasks.Values).AsUniTask();
+        internal UniTask WaitForPendingAsync() => Task.WhenAll(_pendingTasks.Values).AsUniTask();
 
         private readonly struct DesiredItem
         {

@@ -14,10 +14,10 @@ namespace Core.BeltTransport
         private int OutputLength => Count == 0 ? 0 : TickSpeed - queue.HeadGap;
         public BeltSegmentKind Kind { get; }
         public BeltBuffer Buffer { get; }
-        public IBeltReceiver Output { get; private set; }
-        public int Capacity { get; }
-        public int Count => queue.Count;
-        public int Speed { get; private set; }
+        private IBeltReceiver Output;
+        private int Capacity { get; }
+        private int Count => queue.Count;
+        private int Speed;
         public int PriorityOrder => Kind == BeltSegmentKind.Merge ? inputs.PriorityOrder
             : Kind == BeltSegmentKind.Branch ? Buffer.PriorityOrder : 0;
         internal int TickSpeed { get; private set; }
@@ -48,7 +48,7 @@ namespace Core.BeltTransport
                     : (int)forwardDirection);
         }
 
-        public void SetSpeed(int speed)
+        private void SetSpeed(int speed)
         {
             if (speed < 0 || BeltConstants.ItemWidth / 2 < speed)
                 throw new ArgumentOutOfRangeException(nameof(speed));
