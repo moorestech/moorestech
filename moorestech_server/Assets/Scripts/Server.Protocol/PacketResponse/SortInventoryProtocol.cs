@@ -25,13 +25,13 @@ namespace Server.Protocol.PacketResponse
             _openableInventoryResolver = serviceProvider.GetService<OpenableInventoryResolver>();
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var data = MessagePackSerializer.Deserialize<SortInventoryProtocolMessagePack>(payload);
 
             // 対象インベントリを解決（存在しなければ何もしない）
             // Resolve the target inventory; do nothing if it cannot be found.
-            var inventory = _openableInventoryResolver.Resolve(data.Target);
+            var inventory = _openableInventoryResolver.Resolve(data.Target, requesterPlayerId);
             if (inventory == null) return null;
 
             // 除外スロット宣言時は除外

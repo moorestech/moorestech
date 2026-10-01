@@ -20,7 +20,7 @@ namespace Server.Protocol.PacketResponse
             _worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
         }
         
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var data = MessagePackSerializer.Deserialize<RequestDebugBlockInfoRequestProtocolMessagePack>(payload);
             

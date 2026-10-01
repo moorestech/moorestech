@@ -83,9 +83,18 @@ namespace Client.Game.InGame.BugReport.LastSession
 
             // リポジトリ状態とマスタの出所は bug の箱と同じ経路で入れる。crash だけ null だと再現側が別コミットで再生する
             // The repository state and master origin go through the same path as a bug box; leaving them null only for crash replays a different commit
+            // 台帳の元パス解決にもディスクIOがある。失敗を箱の欠損へ隔離し、起動ゲートは続ける
+            // Ledger source-path resolution also performs disk IO; isolate failures in the bundle so the startup gate continues
+            var ledgerPlacement = RemoteExecBundleLedgerPlacement.None(artifacts.LastSessionDirectory);
+            try { ledgerPlacement = RemoteExecBundleMark.ApplyForSalvagedSessions(manifest, directory, artifacts.LastSessionDirectory); }
+            catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e)) { manifest.AddMissing(BugReportBundleLayout.RemoteExecDirectoryName, $"台帳の元パスを解決できなかった: {e.Message}"); }
             BugReportRepositoryFiles.Write(directory, manifest, buildOrigin, repositoryRoot, masterDataRoot);
 
-            if (BugReportOutbox.TryFinishBundle(directory, manifest)) return directory;
+            if (BugReportOutbox.TryFinishBundle(directory, manifest))
+            {
+                RemoteExecBundleMark.ReleaseBundledLedgers(ledgerPlacement);
+                return directory;
+            }
 
             // 箱を閉じられなければ退避物を last-session へ戻す。戻さないと再送が空の退避元を素通りし、中身の無い箱をREADY付きで出荷する
             // A box that cannot be closed gives the salvage back to last-session; otherwise a retry sails past the emptied source and ships an empty box with READY on it

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
 using Game.UnlockState;
+using Server.Protocol.PacketResponse.Util.UnlockState;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using UnityEngine;
@@ -20,116 +21,11 @@ namespace Server.Protocol.PacketResponse
             gameUnlockStateData = serviceProvider.GetService<IGameUnlockStateDataController>();
         }
         
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
-            var infos = gameUnlockStateData.CraftRecipeUnlockStateInfos;
-            
-            var lockedCraftRecipe = new List<string>();
-            var unlockedCraftRecipe = new List<string>();
-            foreach (var craftRecipe in gameUnlockStateData.CraftRecipeUnlockStateInfos.Values)
-            {
-                if (craftRecipe.IsUnlocked)
-                {
-                    unlockedCraftRecipe.Add(craftRecipe.CraftRecipeGuid.ToString());
-                }
-                else
-                {
-                    lockedCraftRecipe.Add(craftRecipe.CraftRecipeGuid.ToString());
-                }
-            }
-            
-            var lockedItem = new List<int>();
-            var unlockedItem = new List<int>();
-            foreach (var item in gameUnlockStateData.ItemUnlockStateInfos.Values)
-            {
-                if (item.IsUnlocked)
-                {
-                    unlockedItem.Add(item.ItemId.AsPrimitive());
-                }
-                else
-                {
-                    lockedItem.Add(item.ItemId.AsPrimitive());
-                }
-            }
-
-            // Get challenge unlock states
-            var lockedChallengeCategory = new List<string>();
-            var unlockedChallengeCategory = new List<string>();
-            foreach (var challenge in gameUnlockStateData.ChallengeCategoryUnlockStateInfos.Values)
-            {
-                if (challenge.IsUnlocked)
-                {
-                    unlockedChallengeCategory.Add(challenge.ChallengeCategoryGuid.ToString());
-                }
-                else
-                {
-                    lockedChallengeCategory.Add(challenge.ChallengeCategoryGuid.ToString());
-                }
-            }
-            
-            // 機械レシピのアンロック状態を取得
-            // Get machine recipe unlock states
-            var lockedMachineRecipe = new List<string>();
-            var unlockedMachineRecipe = new List<string>();
-            foreach (var machineRecipe in gameUnlockStateData.MachineRecipeUnlockStateInfos.Values)
-            {
-                if (machineRecipe.IsUnlocked)
-                {
-                    unlockedMachineRecipe.Add(machineRecipe.MachineRecipeGuid.ToString());
-                }
-                else
-                {
-                    lockedMachineRecipe.Add(machineRecipe.MachineRecipeGuid.ToString());
-                }
-            }
-
-            // ブロックと列車車両のアンロック状態を取得
-            // Get block and train car unlock states
-            var lockedBlock = new List<string>();
-            var unlockedBlock = new List<string>();
-            foreach (var block in gameUnlockStateData.BlockUnlockStateInfos.Values)
-            {
-                if (block.IsUnlocked) unlockedBlock.Add(block.BlockGuid.ToString());
-                else lockedBlock.Add(block.BlockGuid.ToString());
-            }
-
-            var lockedTrainCar = new List<string>();
-            var unlockedTrainCar = new List<string>();
-            foreach (var trainCar in gameUnlockStateData.TrainCarUnlockStateInfos.Values)
-            {
-                if (trainCar.IsUnlocked) unlockedTrainCar.Add(trainCar.TrainCarGuid.ToString());
-                else lockedTrainCar.Add(trainCar.TrainCarGuid.ToString());
-            }
-
-            // 接続ツールのアンロック状態を取得
-            // Get connect tool unlock states
-            var lockedConnectTool = new List<string>();
-            var unlockedConnectTool = new List<string>();
-            foreach (var connectTool in gameUnlockStateData.ConnectToolUnlockStateInfos.Values)
-            {
-                if (connectTool.IsUnlocked) unlockedConnectTool.Add(connectTool.ConnectToolGuid.ToString());
-                else lockedConnectTool.Add(connectTool.ConnectToolGuid.ToString());
-            }
-
-            return new ResponseGameUnlockStateProtocolMessagePack(
-                unlockedCraftRecipeGuidsStr: unlockedCraftRecipe,
-                lockedCraftRecipeGuidsStr: lockedCraftRecipe,
-                lockedItemIdsInt: lockedItem,
-                unlockedItemIdsInt: unlockedItem,
-                lockedChallengeCategoryGuidsStr: lockedChallengeCategory,
-                unlockedChallengeCategoryGuidsStr: unlockedChallengeCategory,
-                lockedMachineRecipeGuidsStr: lockedMachineRecipe,
-                unlockedMachineRecipeGuidsStr: unlockedMachineRecipe,
-                lockedBlockGuidsStr: lockedBlock,
-                unlockedBlockGuidsStr: unlockedBlock,
-                lockedTrainCarGuidsStr: lockedTrainCar,
-                unlockedTrainCarGuidsStr: unlockedTrainCar,
-                lockedConnectToolGuidsStr: lockedConnectTool,
-                unlockedConnectToolGuidsStr: unlockedConnectTool,
-                isBlueprintUnlocked: gameUnlockStateData.IsBlueprintUnlocked);
+            return GameUnlockStateResponseFactory.Create(gameUnlockStateData);
         }
-        
-        
+
         [MessagePackObject]
         public class RequestGameUnlockStateProtocolMessagePack : ProtocolMessagePackBase
         {

@@ -10,7 +10,9 @@ using Game.UnlockState;
 using Game.UnlockState.States;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Game.PlayerIdentity;
 using NUnit.Framework;
+using Tests.Util.PlayerIdentity;
 using Server.Boot;
 using Server.Protocol;
 using Server.Protocol.PacketResponse;
@@ -26,11 +28,13 @@ namespace Tests.CombinedTest.Server.PacketTest
     /// </summary>
     public static class PlaceBlockProtocolTestSupport
     {
-        public const int PlayerId = 3;
+        public const int PlayerId = 1;
 
         public static (PacketResponseCreator packet, ServiceProvider serviceProvider) CreateServer()
         {
-            return new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<PlayerIdentityRegistry>(), "steam:1");
+            return (packet, serviceProvider);
         }
 
         public static IOpenableInventory GetInventory(ServiceProvider serviceProvider)
@@ -73,7 +77,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
         public static byte[] CreatePlacePayload(List<PlaceInfo> placeInfos)
         {
-            return MessagePackSerializer.Serialize(new PlaceBlockProtocol.SendPlaceBlockProtocolMessagePack(PlayerId, placeInfos));
+            return MessagePackSerializer.Serialize(new PlaceBlockProtocol.SendPlaceBlockProtocolMessagePack(placeInfos));
         }
 
         public static void GrantRequiredItems(ServiceProvider serviceProvider, BlockId blockId, int costSets)

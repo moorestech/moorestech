@@ -72,7 +72,7 @@ namespace Client.Starter.StandaloneQa
                 AutoSave = false,
             };
 
-            var proprieties = InitializeProprieties.CreateLocalServer(null);
+            var proprieties = InitializeProprieties.CreateLocalServer();
             proprieties.CreateLocalServerArgs = CliConvert.Serialize(serverSettings);
             return proprieties;
         }

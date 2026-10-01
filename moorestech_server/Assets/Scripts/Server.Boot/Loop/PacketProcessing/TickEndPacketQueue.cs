@@ -28,7 +28,6 @@ namespace Server.Boot.Loop.PacketProcessing
             for (var i = 0; i < _frozenCount; i++)
             {
                 if (!_queue.TryDequeue(out var entry)) break;
-                if (!entry.IsActive) continue;
                 entry.Process();
             }
             _frozenCount = 0;

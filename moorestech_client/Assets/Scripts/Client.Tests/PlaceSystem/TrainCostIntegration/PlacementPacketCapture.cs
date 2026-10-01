@@ -42,7 +42,7 @@ namespace Client.Tests.PlaceSystem.TrainCostIntegration
             TestReflection.SetField(exchange, "_packetSender", sender);
             TestReflection.SetField(exchange, "_responseWaiters", new Dictionary<int, ResponseWaiter>());
             TestReflection.SetField(exchange, "_eventPacketSubject", _events);
-            Api = new VanillaApi(exchange, sender, _communicator, new PlayerConnectionSetting(1));
+            Api = new VanillaApi(exchange, sender, _communicator);
 
             // 空要求を送って観測系自体が働くことを先に固定する
             // Prove the capture works before asserting that placement emits no request

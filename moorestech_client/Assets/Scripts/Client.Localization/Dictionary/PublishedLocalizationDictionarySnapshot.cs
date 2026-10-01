@@ -20,5 +20,38 @@ namespace Client.Localization
             Languages = languages;
             SourceTexts = sourceTexts;
         }
+
+        public bool TryGetDictionary(
+            string languageCode,
+            long expectedRevision,
+            out IReadOnlyDictionary<string, string> dictionary)
+        {
+            // revisionと辞書を同じsnapshotから検証し、HTTP応答の異世代混在を防ぐ
+            // Validate revision and dictionary from one snapshot to prevent mixed HTTP generations
+            if (Revision == expectedRevision && Languages.TryGetValue(languageCode, out var values))
+            {
+                dictionary = values;
+                return true;
+            }
+
+            dictionary = null;
+            return false;
+        }
+
+        public bool TryGetSourceTexts(
+            long expectedRevision,
+            out IReadOnlyDictionary<string, string> sourceTexts)
+        {
+            // 原文も同じsnapshotでrevisionを検証し、実言語と同じ世代保証で配信する
+            // Source texts validate the revision on the same snapshot for the same generation guarantee
+            if (Revision == expectedRevision)
+            {
+                sourceTexts = SourceTexts;
+                return true;
+            }
+
+            sourceTexts = null;
+            return false;
+        }
     }
 }

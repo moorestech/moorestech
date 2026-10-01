@@ -66,6 +66,8 @@ gh issue view <N> --json title,body,labels
 抜粋だけで原因が特定できない場合のみ、ジョブURLから `gh run view <run-id> --log-failed`
 で該当ジョブのログ全体を辿る。
 
+複数PR・シャード同時失敗時はUnity起動前後を切り分ける。起動前なら共通Actions処理、直前の成功・失敗runの `Download action repository ... (SHA:...)` と失敗stepを比較。認証・取得・runner環境も調査。
+
 ## Step 2: 作業場所の用意
 
 ```bash
@@ -81,6 +83,8 @@ moores-wt new fix/daily-build-<N> --no-editor
 「どのPRの変更が怪しいか当たりを付ける材料」であって、そのPRを revert するためのもの
 ではない。エラーが指すファイルを直接直すのが基本。HARD GATE のとおり、修復対象は
 ビルドを赤くしている原因のみに限定する。
+
+CI固有とする前に本番影響を確認。Unity shardの停止・時間切れはジョブ／テストstepの制限時間と他ブランチの停止箇所を比較。共通失敗だけでflakeとしない。権限・所有者・パス起因なら本番も確認し、`Ignore` で隠さない。
 
 ## Step 4: ローカル検証
 

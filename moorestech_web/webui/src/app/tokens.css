@@ -251,24 +251,24 @@
   /* 画面外矢印を画面端からこの固定長だけ内側にクランプする */
   /* Clamp off-screen arrows this fixed length inside the screen edge */
   --world-pin-edge-margin: 40px;
-  /* D&D説明のドラッグガイド矢印の寸法と1周期の長さ（webui-design §8.17） */
-  /* Size and one-cycle duration of the D&D drag guide arrow (webui-design §8.17) */
+  /* D&D説明のドラッグガイド矢印の寸法と1周期の長さ（ref-webui-design §8.17） */
+  /* Size and one-cycle duration of the D&D drag guide arrow (ref-webui-design §8.17) */
   --tutorial-drag-guide-size: 56px;
   --tutorial-drag-guide-duration: 3200ms;
-  /* 枠線ハイライトの文言ラベルの間隔（webui-design §8.17） */
-  /* Gap for an outline highlight's text label (webui-design §8.17) */
+  /* 枠線ハイライトの文言ラベルの間隔（ref-webui-design §8.17） */
+  /* Gap for an outline highlight's text label (ref-webui-design §8.17) */
   --tutorial-highlight-label-gap: 4px;
   /* ラベル面のpaddingと文字サイズ。ワールドピンのラベルと枠線ラベルが共有する */
   /* Label-face padding and font size shared by the world-pin label and the outline label */
   --label-face-padding: 4px 10px;
   --label-face-font-size: 14px;
-  /* keyControlヒントHUDのホットバー床からの間隔・縦積み間隔・kbdとの間隔（webui-design §8.19。文字様式は--key-hint-*を使う） */
-  /* Gap above the hotbar floor, vertical stack gap, and kbd gap for the keyControl hint HUD (webui-design §8.19; text style uses --key-hint-*) */
+  /* keyControlヒントHUDのホットバー床からの間隔・縦積み間隔・kbdとの間隔（ref-webui-design §8.19。文字様式は--key-hint-*を使う） */
+  /* Gap above the hotbar floor, vertical stack gap, and kbd gap for the keyControl hint HUD (ref-webui-design §8.19; text style uses --key-hint-*) */
   --tutorial-key-hint-hotbar-gap: 72px;
   --tutorial-key-hint-gap: 6px;
   --tutorial-key-hint-kbd-gap: 10px;
-  /* keyControlヒントはワールド上に面無しで浮くため白では埋もれる。原色赤で文字色を立てる（webui-design §8.19） */
-  /* The keyControl hint floats faceless over the world and drowns in white, so it uses the attention red (webui-design §8.19) */
+  /* keyControlヒントはワールド上に面無しで浮くため白では埋もれる。原色赤で文字色を立てる（ref-webui-design §8.19） */
+  /* The keyControl hint floats faceless over the world and drowns in white, so it uses the attention red (ref-webui-design §8.19) */
   --tutorial-key-hint-color: var(--tutorial-attention-red);
   /* ドラッグガイド矢印を世界背景から分離する最小限の影（world-pin矢印と同族） */
   /* Minimal shadow separating the drag guide arrow from the world background, same family as the world-pin arrow */

@@ -3,6 +3,8 @@ using System.Reflection;
 using Client.Game.Common;
 using Client.Game.InGame.BugReport.LastSession;
 using Client.Game.InGame.BugReport.Recording.ProcessScope;
+using Client.RemoteExec;
+using Client.RemoteExec.Access;
 using Client.Starter.Playtest;
 using NUnit.Framework;
 using UniRx;
@@ -51,6 +53,30 @@ namespace Client.Tests.Starter
             Assert.IsTrue(record.ExitedCleanly);
             Assert.IsFalse(record.ShutdownStalled);
             Assert.IsNotNull(record.Origin);
+        }
+
+        // 箱へ印を載せる配線を守る。起動フラグと書き込まれた開始印の対応が壊れても他のテストは緑のままなので専用に固定する
+        // Pins the wiring from the launch flag to the written start mark; the other tests stay green even if this correspondence breaks, so it needs its own case
+        [Test]
+        public void BeginCurrentSessionMarks_起動フラグが有効な開始印の遠隔実行印を書く()
+        {
+            RemoteExecLaunchOption.ResolveFromCommandLine(new[] { RemoteExecLaunchOption.Marker });
+            try
+            {
+                PreviousSessionStartupTasks.BeginCurrentSessionMarks();
+                var session = ProcessSessionScope.CurrentSessionName;
+                _sessions.Add(session);
+                var processId = RecordingProcessDirectories.CurrentProcessId();
+
+                var record = CleanExitMarker.ConsumeSessionMarks(processId, session);
+                Assert.IsNotNull(record.Origin, record.OriginMissingReason);
+                Assert.IsNotNull(record.Origin.RemoteExec, "起動フラグ有効なのに開始印へ遠隔実行の印が無い");
+                Assert.AreEqual(RemoteExecLedger.CurrentFileName, record.Origin.RemoteExec.LedgerFileName);
+            }
+            finally
+            {
+                RemoteExecLaunchOption.ResolveFromCommandLine(new string[0]);
+            }
         }
 
         [Test]

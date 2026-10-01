@@ -22,13 +22,8 @@ using Server.Protocol;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
-    public class RequestBlockInventoryTest
+    public class RequestBlockInventoryTest : RequestBlockInventoryTestBase
     {
-        private const int InputSlotNum = 2;
-        private const int OutPutSlotNum = 3;
-        // モジュールスロットは第3レンジとして統合スロット数に含まれる
-        // Module slots are included in the unified slot count as the third range
-        private const int ModuleSlotNum = 4;
 
         //通常の機械のテスト
         [Test]
@@ -51,7 +46,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             machineComponent.SetItem(recipe.InputItems.Length, itemStackFactory.Create(output0, 5));
 
             //レスポンスの取得
-            var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(packet.GetPacketResponse(RequestBlock(new Vector3Int(5, 10)), new PacketResponseContext(null))[0]);
+            var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(packet.GetPacketResponse(RequestBlock(new Vector3Int(5, 10)), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1))[0]);
 
             Assert.AreEqual(InputSlotNum + OutPutSlotNum + ModuleSlotNum, data.Items.Length); // slot num
 
@@ -75,7 +70,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var position = new Vector3Int(10, 20, 0);
             TrainTestHelper.PlaceBlock(environment, ForUnitTestModBlockId.TestTrainItemPlatform, position, BlockDirection.North);
 
-            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestBlock(position), new PacketResponseContext(null))[0];
+            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestBlock(position), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1))[0];
             var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(responseBytes);
             var param = (TrainItemPlatformBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainItemPlatform).BlockParam;
 
@@ -94,7 +89,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var position = new Vector3Int(30, 20, 0);
             TrainTestHelper.PlaceBlock(environment, ForUnitTestModBlockId.TestTrainStation, position, BlockDirection.North);
 
-            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestBlock(position), new PacketResponseContext(null))[0];
+            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestBlock(position), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1))[0];
             var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(responseBytes);
             var param = (TrainStationBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainStation).BlockParam;
 
@@ -112,7 +107,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var environment = TrainTestHelper.CreateEnvironment();
             var position = new Vector3Int(999, 20, 0);
 
-            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestBlock(position), new PacketResponseContext(null))[0];
+            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestBlock(position), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1))[0];
             var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(responseBytes);
 
             Assert.AreEqual(InventoryType.Block, data.InventoryType);
@@ -129,102 +124,12 @@ namespace Tests.CombinedTest.Server.PacketTest
             var position = new Vector3Int(40, 20, 0);
             TrainTestHelper.PlaceBlock(environment, ForUnitTestModBlockId.TestTrainRail, position, BlockDirection.North);
 
-            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestBlock(position), new PacketResponseContext(null))[0];
+            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestBlock(position), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1))[0];
             var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(responseBytes);
 
             Assert.AreEqual(InventoryType.Block, data.InventoryType);
             Assert.AreEqual(InventoryRequestResult.ContainerNotFound, data.Result);
             Assert.AreEqual(0, data.Items.Length);
-        }
-
-        private byte[] RequestBlock(Vector3Int pos)
-        {
-            var identifier = InventoryIdentifierMessagePack.CreateBlockMessage(pos);
-            return MessagePackSerializer.Serialize(new InventoryRequestProtocol.RequestInventoryRequestProtocolMessagePack(identifier));
-        }
-
-        [Test]
-        public void TrainInventoryRequest()
-        {
-            // テスト環境を構築
-            // Build test environment
-            var environment = TrainTestHelper.CreateEnvironment();
-            var railA = TrainTestHelper.PlaceRail(environment, new Vector3Int(0, 0, 0), BlockDirection.North);
-            var railB = TrainTestHelper.PlaceRail(environment, new Vector3Int(100, 0, 0), BlockDirection.North);
-
-            railA.FrontNode.ConnectNode(railB.FrontNode, 10);
-            railB.BackNode.ConnectNode(railA.BackNode, 10);
-            railB.FrontNode.ConnectNode(railA.FrontNode, 10);
-            railA.BackNode.ConnectNode(railB.BackNode, 10);
-
-            // 列車とインベントリを準備
-            // Prepare train and its inventory
-            var frontNode = railB.FrontNode;
-            var backNode = railA.FrontNode;
-            var distance = Mathf.Max(1, frontNode.GetDistanceToNode(backNode));
-            var railPosition = new RailPosition(new List<IRailNode> { frontNode, backNode }, distance, 0);
-            var (trainCar, itemContainer) = TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 400000, 3, distance, true);
-            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
-
-            // 列車をTrainUpdateServiceに登録
-            // Register the train to TrainUpdateService
-            environment.GetITrainUnitMutationDatastore().RegisterTrain(trainUnit);
-
-            // インベントリにアイテムをセット
-            // Set items in the inventory
-            var itemFactory = ServerContext.ItemStackFactory;
-            itemContainer.SetItem(0, itemFactory.Create(new ItemId(1), 7));
-            itemContainer.SetItem(1, itemFactory.Create(new ItemId(2), 3));
-
-            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestTrain(trainCar.TrainCarInstanceId), new PacketResponseContext(null))[0];
-            var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(responseBytes);
-
-            Assert.AreEqual(InventoryType.Train, data.InventoryType); // inventory type
-            Assert.AreEqual(InventoryRequestResult.Success, data.Result); // request result
-            Assert.AreEqual(3, data.Items.Length); // slot count
-            Assert.AreEqual(1, data.Items[0].Id.AsPrimitive());
-            Assert.AreEqual(7, data.Items[0].Count);
-            Assert.AreEqual(2, data.Items[1].Id.AsPrimitive());
-            Assert.AreEqual(3, data.Items[1].Count);
-        }
-
-        [Test]
-        public void TrainInventoryRequestWithoutContainer()
-        {
-            // コンテナを持たない列車を登録
-            // Register a train without an item container
-            var environment = TrainTestHelper.CreateEnvironment();
-            var railA = TrainTestHelper.PlaceRail(environment, new Vector3Int(0, 0, 0), BlockDirection.North);
-            var railB = TrainTestHelper.PlaceRail(environment, new Vector3Int(100, 0, 0), BlockDirection.North);
-
-            railA.FrontNode.ConnectNode(railB.FrontNode, 10);
-            railB.BackNode.ConnectNode(railA.BackNode, 10);
-            railB.FrontNode.ConnectNode(railA.FrontNode, 10);
-            railA.BackNode.ConnectNode(railB.BackNode, 10);
-
-            var frontNode = railB.FrontNode;
-            var backNode = railA.FrontNode;
-            var distance = Mathf.Max(1, frontNode.GetDistanceToNode(backNode));
-            var railPosition = new RailPosition(new List<IRailNode> { frontNode, backNode }, distance, 0);
-            var trainCar = TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 400000, 3, distance, true).trainCar;
-            trainCar.SetContainer(null);
-            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
-            environment.GetITrainUnitMutationDatastore().RegisterTrain(trainUnit);
-
-            // コンテナなしが空インベントリとは別の結果として返ることを確認
-            // Verify that missing container is returned separately from an empty inventory
-            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestTrain(trainCar.TrainCarInstanceId), new PacketResponseContext(null))[0];
-            var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(responseBytes);
-
-            Assert.AreEqual(InventoryType.Train, data.InventoryType);
-            Assert.AreEqual(InventoryRequestResult.ContainerNotFound, data.Result);
-            Assert.AreEqual(0, data.Items.Length);
-        }
-
-        private byte[] RequestTrain(TrainCarInstanceId trainCarInstanceId)
-        {
-            var identifier = InventoryIdentifierMessagePack.CreateTrainMessage(trainCarInstanceId.AsPrimitive());
-            return MessagePackSerializer.Serialize(new InventoryRequestProtocol.RequestInventoryRequestProtocolMessagePack(identifier));
         }
     }
 }

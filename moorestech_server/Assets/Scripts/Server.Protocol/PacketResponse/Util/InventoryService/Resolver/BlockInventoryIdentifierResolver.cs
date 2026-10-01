@@ -16,7 +16,7 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService.Resolver
             _worldBlockDatastore = worldBlockDatastore;
         }
 
-        public IOpenableInventory Resolve(InventoryIdentifierMessagePack identifier)
+        public IOpenableInventory Resolve(InventoryIdentifierMessagePack identifier, int requesterPlayerId)
         {
             // ブロック座標から開けるインベントリコンポーネントを探す
             // Find the openable inventory component from the block position.

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Game.Entity.Interface;
 using MessagePack;
@@ -22,12 +22,12 @@ namespace Server.Protocol.PacketResponse
             _entitiesDatastore = serviceProvider.GetService<IEntitiesDatastore>();
         }
         
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var data = MessagePackSerializer.Deserialize<PlayerCoordinateSendProtocolMessagePack>(payload);
             
             //プレイヤーの座標を更新する
-            _entitiesDatastore.SetPosition(new EntityInstanceId(data.PlayerId), data.Pos.Vector3);
+            _entitiesDatastore.SetPosition(new EntityInstanceId(requesterPlayerId), data.Pos.Vector3);
             
             return null;
         }
@@ -36,13 +36,11 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class PlayerCoordinateSendProtocolMessagePack : ProtocolMessagePackBase
         {
-            [Key(2)] public int PlayerId { get; set; }
             [Key(3)] public Vector3MessagePack Pos { get; set; }
             
-            public PlayerCoordinateSendProtocolMessagePack(int playerId, Vector3 pos)
+            public PlayerCoordinateSendProtocolMessagePack(Vector3 pos)
             {
                 Tag = ProtocolTag;
-                PlayerId = playerId;
                 Pos = new Vector3MessagePack(pos);
             }
             

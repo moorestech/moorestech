@@ -45,5 +45,12 @@ namespace Client.Game.InGame.UI.UIState.State.Skit
         {
             return Array.Empty<KeyHint>();
         }
+        
+        // スキット再生中の移動は従来どおり許す。会話UIは背景をディムしない
+        // Movement stays allowed while the skit plays; the dialogue UI does not dim the background
+        public bool LocksPlayerMovement()
+        {
+            return false;
+        }
     }
 }

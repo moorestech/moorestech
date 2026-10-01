@@ -21,7 +21,7 @@ return PlaytestRunner.Run("generated-world-5x5-terrain-survey", options, async p
 
     // 1: ワールドメタ。25タイルで来ていなければ以降の境界調査に意味が無い
     // 1: World meta; without 25 tiles arriving, none of the seam survey below means anything
-    var mapLayout = await ClientContext.VanillaApi.Response.GetMapData(default);
+    var mapLayout = await ClientContext.VanillaApi.Response.World.GetMapData(default);
     var meta = mapLayout.TerrainMeta;
     p.Note($"meta mapMode={meta.MapMode} tiles={meta.TerrainTileCount} resolution={meta.TerrainResolution} seed={meta.WorldSeed} sceneOrigin=({meta.SceneOrigin.X},{meta.SceneOrigin.Y}) noiseOrigin=({meta.NoiseOrigin.X},{meta.NoiseOrigin.Y})");
     p.Assert(meta.MapMode == "generated", "generatedモードで起動している");

@@ -15,11 +15,11 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService.Resolver
             _playerInventoryDataStore = playerInventoryDataStore;
         }
 
-        public IOpenableInventory Resolve(InventoryIdentifierMessagePack identifier)
+        public IOpenableInventory Resolve(InventoryIdentifierMessagePack identifier, int requesterPlayerId)
         {
-            // 識別子内のPlayerIdから装備インベントリを取得する
-            // Get the equipment inventory from the player id in the identifier.
-            return _playerInventoryDataStore.GetInventoryData(identifier.PlayerId).EquipmentInventory;
+            // 接続に紐づくPlayerIdから装備インベントリを取得する
+            // Get the equipment inventory from the player id bound to the connection.
+            return _playerInventoryDataStore.GetInventoryData(requesterPlayerId).EquipmentInventory;
         }
     }
 }

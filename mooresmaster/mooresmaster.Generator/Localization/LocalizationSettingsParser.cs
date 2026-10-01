@@ -3,11 +3,11 @@ using Mooresmaster.LocalizationCsv;
 
 namespace mooresmaster.Generator.Localization;
 
-public record LanguageSetting(string Code, string DisplayName, string SteamApiLangCode)
+public record LanguageSetting(string Code, string DisplayName, string[] SteamLanguages)
 {
     public readonly string Code = Code;
     public readonly string DisplayName = DisplayName;
-    public readonly string SteamApiLangCode = SteamApiLangCode;
+    public readonly string[] SteamLanguages = SteamLanguages;
 }
 
 public static class LocalizationSettingsParser
@@ -28,16 +28,17 @@ public static class LocalizationSettingsParser
         if (header.Count != ColumnCount ||
             header[0] != "lang_name" ||
             header[1] != "display_name" ||
-            header[2] != "steam_api_lang_code")
+            header[2] != "steam_languages")
         {
             throw new LocalizationCsvException(
-                "localization_settings.csv header must contain lang_name, display_name, and steam_api_lang_code columns");
+                "localization_settings.csv header must contain lang_name, display_name, and steam_languages columns");
         }
 
         // 言語コードを一意な設定行へ写像
         // Map language codes to unique setting rows
         var settings = new LanguageSetting[records.Count - 1];
         var seenCodes = new HashSet<string>();
+        var seenSteamLanguages = new HashSet<string>();
         for (var recordIndex = 1; recordIndex < records.Count; recordIndex++)
         {
             var fields = records[recordIndex];
@@ -61,18 +62,41 @@ public static class LocalizationSettingsParser
                 throw new LocalizationCsvException("Language setting display name must not be empty");
             }
 
-            var steamApiLangCode = fields[2];
-            if (string.IsNullOrWhiteSpace(steamApiLangCode))
-            {
-                throw new LocalizationCsvException("Language setting Steam API language code must not be empty");
-            }
-
+            // コード重複はSteam列より先に
+            // Report duplicated codes first
             if (!seenCodes.Add(code))
             {
                 throw new LocalizationCsvException($"Duplicated language setting code: {code}");
             }
 
-            settings[recordIndex - 1] = new LanguageSetting(code, displayName, steamApiLangCode);
+            // 空要素と重複のSteam言語を拒否
+            // Reject empty or duplicate Steam languages at input
+            var steamLanguagesField = fields[2];
+            if (string.IsNullOrWhiteSpace(steamLanguagesField))
+            {
+                throw new LocalizationCsvException("Language setting Steam languages must not be empty");
+            }
+
+            var steamLanguages = steamLanguagesField.Split(';');
+            foreach (var steamLanguage in steamLanguages)
+            {
+                if (string.IsNullOrWhiteSpace(steamLanguage))
+                {
+                    throw new LocalizationCsvException($"Language setting {code} has an empty Steam language in: {steamLanguagesField}");
+                }
+
+                if (steamLanguage != steamLanguage.Trim())
+                {
+                    throw new LocalizationCsvException($"Language setting {code} has whitespace around Steam language '{steamLanguage}' in: {steamLanguagesField}");
+                }
+
+                if (!seenSteamLanguages.Add(steamLanguage))
+                {
+                    throw new LocalizationCsvException($"Steam language {steamLanguage} is mapped to more than one language");
+                }
+            }
+
+            settings[recordIndex - 1] = new LanguageSetting(code, displayName, steamLanguages);
         }
 
         return settings;

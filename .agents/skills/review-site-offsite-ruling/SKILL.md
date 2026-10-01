@@ -54,7 +54,7 @@ HOME=/Users/sakastudio gh pr view <番号> --repo moorestech/moorestech --json l
 
 `decision` は案キー（`A`〜`F`）・`other`・`reject` の3系統で、**`reject` 以外はすべて「採用」として
 無人apply（`/pr-adjudicated-apply`）の対象になる**。poller は `completed:true` を見た次のtick（120秒間隔）で
-採用件数を数え、1件でもあれば apply スロット（`~/moorestech-worktrees/pr-apply` / `pr-apply-2`）を
+採用件数を数え、1件でもあれば apply スロット（`~/hermes-agent/data/worktrees/moorestech/pr-apply` / `pr-apply-2`）を
 `origin/master` へリセットし、そこを cwd に cmux ワークスペースで対話モード claude を
 `/pr-adjudicated-apply <番号>` 付きでフォアグラウンド起動する（ADR 0023。2026-08-20 までは `claude -p` だった）。
 つまり decision の選択は「文書上の意味」ではなく「誰が直すか」の指定である。

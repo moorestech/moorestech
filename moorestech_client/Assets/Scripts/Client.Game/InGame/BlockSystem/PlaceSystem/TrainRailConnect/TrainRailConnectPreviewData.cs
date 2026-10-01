@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Server.Protocol.PacketResponse;
+using Server.Protocol.PacketResponse.Util.RailEdit;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect

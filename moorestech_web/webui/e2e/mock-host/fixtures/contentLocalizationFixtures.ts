@@ -132,9 +132,12 @@ const english = {
 
 // germanは本番と同じくenglish複写（.decisions/2026-08-25-german.jsonはenglish複写でlocaleとnameだけ独語にする）
 // german mirrors production by copying english (.decisions/2026-08-25)
+// koreanは本番では全訳だが、mockでは言語ごとの訳文差を検証しないためenglishで代用する
+// korean is fully translated in production, but the mock does not verify per-language text so english stands in
 export const contentLocalizationDictionaries: Record<string, Record<string, string>> = {
   source,
   english,
   japanese: source,
   german: english,
+  korean: english,
 };

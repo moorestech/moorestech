@@ -6,7 +6,7 @@ using Game.MapGeneration.Pipeline.Runtime;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace Tests.UnitTest.Game.MapGeneration
+namespace Tests.UnitTest.Game.MapGeneration.Placement
 {
     // texturePngPath → 画素への展開と、手書きバイリニアが Unity の GetPixelBilinear と一致することを固定する。
     // 移植元は Texture2D.GetPixelBilinear をそのまま呼んでいたので、一致こそが移植の忠実性そのもの。

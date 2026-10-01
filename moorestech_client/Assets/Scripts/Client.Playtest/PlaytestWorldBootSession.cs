@@ -43,7 +43,7 @@ namespace Client.Playtest
                 AutoSave = false,
             };
 
-            proprieties = InitializeProprieties.CreateLocalServer(null);
+            proprieties = InitializeProprieties.CreateLocalServer();
             proprieties.CreateLocalServerArgs = CliConvert.Serialize(settings);
             return true;
         }

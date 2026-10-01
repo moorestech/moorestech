@@ -12,6 +12,7 @@ namespace Client.Network.API
 {
     public class InitialHandshakeResponse
     {
+        public int PlayerId { get; }
         public Vector3 PlayerPos { get; }
         public WorldDataResponse WorldData { get; }
         public List<MapObjectsInfoMessagePack> MapObjects { get; }
@@ -44,7 +45,8 @@ namespace Client.Network.API
                 Dictionary<Guid, ResearchNodeState> researchNodeStates,
                 ResponseMapDataMessagePack mapLayout) responses)
         {
-            PlayerPos = initialHandshake.PlayerPos;
+            PlayerId = initialHandshake.Accepted.PlayerId;
+            PlayerPos = initialHandshake.Accepted.PlayerPos;
             WorldData = responses.worldData;
             MapObjects = responses.mapObjects;
             Inventory = responses.inventory;
@@ -52,11 +54,11 @@ namespace Client.Network.API
             UnlockState = responses.unlockState;
             PlayedSkitIds = responses.playedSkitIds;
             ResearchNodeStates = responses.researchNodeStates;
-            RidingTarget = initialHandshake.RidingTarget;
-            RidingSeatIndex = initialHandshake.RidingSeatIndex;
+            RidingTarget = initialHandshake.Accepted.RidingTarget;
+            RidingSeatIndex = initialHandshake.Accepted.RidingSeatIndex;
             MapLayout = responses.mapLayout;
-            HotbarAssignments = initialHandshake.HotbarAssignments;
-            RemainingPlacementCounts = initialHandshake.RemainingPlacementCounts;
+            HotbarAssignments = initialHandshake.Accepted.HotbarAssignments;
+            RemainingPlacementCounts = initialHandshake.Accepted.RemainingPlacementCounts;
         }
     }
 }

@@ -3,7 +3,6 @@ using Game.SaveLoad.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Event;
-using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -22,21 +21,12 @@ namespace Server.Protocol.PacketResponse
             _requesterRegistry = serviceProvider.GetRequiredService<BugReportCaptureRequesterRegistry>();
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             MessagePackSerializer.Deserialize<BugReportCaptureRequest>(payload);
 
-            // 完了は要求元1人へ返すので、プレイヤーが確定していない接続からは受け付けない
-            // The completion goes back to the single requester, so a connection with no bound player is refused
-            if (!context.PlayerId.HasValue)
-            {
-                const string reason = "プレイヤーが確定していない接続のため即時スナップショット要求を受け付けられません";
-                Debug.LogWarning(reason);
-                return new BugReportCaptureResponse(false, 0, reason);
-            }
-
             var result = _snapshotCaptureRequest.RequestImmediateSnapshot();
-            if (result.Accepted) _requesterRegistry.Remember(result.RequestId, context.PlayerId.Value);
+            if (result.Accepted) _requesterRegistry.Remember(result.RequestId, requesterPlayerId);
             return new BugReportCaptureResponse(result.Accepted, result.RequestId, result.RejectedReason);
         }
 

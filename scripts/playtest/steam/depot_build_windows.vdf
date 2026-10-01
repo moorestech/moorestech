@@ -1,7 +1,7 @@
 "DepotBuild"
 {
-	"DepotID" "__DEPOT_ID__"
-	"contentroot" "__CONTENT_ROOT__"
+	"DepotID" "__DEPOT_ID_WINDOWS__"
+	"contentroot" "__CONTENT_ROOT_WINDOWS__"
 
 	"FileMapping"
 	{

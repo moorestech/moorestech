@@ -150,6 +150,16 @@ class TryCatchBoundaryTest(unittest.TestCase):
         self.assertEqual(1, len(candidates))
         self.assertEqual(["network-io"], candidates[0]["boundary_claim"])
 
+    def test_dynamic_code_claim_is_classified_without_json_claim(self):
+        # 送信コードの動的実行境界（AGENTS.md 第5類型）は JSON パースへ誤分類せず dynamic-code として裁定へ回す
+        # The dynamic-execution boundary (AGENTS.md 5th kind) goes to adjudication as dynamic-code, not JSON parse
+        for words in ("動的コンパイル", "送信されたコード", "submitted external code"):
+            source = _patch(f"// {words} の例外を応答へ閉じ込める\n"
+                            "// Contain the exception in the response\n"
+                            "try { Run(); } catch (Exception e) { Fail(e); }")
+            self.assertNotIn("try-catch-forbidden", _confirmed_rules(source))
+            self.assertEqual(["dynamic-code"], _candidates(source)[0]["boundary_claim"])
+
     def test_candidate_is_not_silently_dropped(self):
         # candidate は「消えた」ではなく「裁定行き」。件数が0なら verifier が起動されず免除と同義になる
         # A candidate means "goes to adjudication", not "gone"; zero candidates would silently equal an exemption

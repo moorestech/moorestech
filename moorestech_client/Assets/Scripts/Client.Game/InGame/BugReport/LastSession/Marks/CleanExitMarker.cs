@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using Client.Game.InGame.BugReport.DiskOperations;
 using Client.Game.InGame.BugReport.Recording.ProcessScope;
+using Client.RemoteExec.Access;
 using Game.Paths;
 using UnityEngine;
 
@@ -26,6 +27,11 @@ namespace Client.Game.InGame.BugReport.LastSession
         private static string SessionMarkDirectory(int processId, string sessionName)
         {
             return ProcessSessionScope.SessionDirectoryFor(MarksRoot, processId, sessionName);
+        }
+
+        internal static string RemoteExecAttemptSignalPath(int processId, string sessionName)
+        {
+            return Path.Combine(SessionMarkDirectory(processId, sessionName), RemoteExecLedger.AttemptSignalFileName);
         }
 
         private static string StartedMarkerPath(int processId, string sessionName)

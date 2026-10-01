@@ -4,7 +4,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace Tests.UnitTest.Game.MapGeneration
+namespace Tests.UnitTest.Game.MapGeneration.Spawn
 {
     // 探索無効とフォールバックはどちらもオフセット0を返すため、出力だけでは経路を区別できない。
     // Disabled search and fallback both yield a zero offset, so the outputs alone cannot tell the paths apart.

@@ -55,7 +55,7 @@ apply向けpollerはidle検知を行わない（session/subagentsのtranscript�
 `$RUNDIR = $LOGS/harness/pr-independent-review/runs/pr-<番号>/`（再レビューが存在する場合は
 最大のrNを持つ `pr-<番号>-rN/` が最新run。最新runを使う）。
 **$REPO（apply専用worktree）**: このSKILL.mdを実行しているセッションのリポジトリルート
-（`git rev-parse --show-toplevel` の出力。pollerはapplyスロットworktree — `~/moorestech-worktrees/pr-apply` /
+（`git rev-parse --show-toplevel` の出力。pollerはapplyスロットworktree — `~/hermes-agent/data/worktrees/moorestech/pr-apply` /
 `pr-apply-2` 等のスロットプールから空きを1つ選ぶ — をcwdとして起動する。並列applyのためスロットは複数ある）。
 
 `$LOGS` / `$RUNDIR` / `$REPO` は本ドキュメント上のプレースホルダでありシェル変数ではない。
@@ -121,6 +121,8 @@ apply向けpollerはidle検知を行わない（session/subagentsのtranscript�
 ## Step 3: 作業ブランチ準備
 
 対象findingが1件以上ある場合のみ実行する（Step 2で0件なら本Stepはスキップ）。
+
+PR headへのcheckout前にスキル正本SHAを記録し、必要なスクリプト・参照ファイルをcheckout対象外の固定SHAへ確保。以後その絶対パスを使い、対象repoを `$REPO` で明示。
 
 1. **前回の残骸を無条件に破棄する**。ここはapply専用worktreeであり、他セッションの作業物は存在しない
    （前回applyの未pushな変更・Unityが書いた痕跡しか残らず、どちらも残す価値がない。メインクローンで
@@ -223,6 +225,7 @@ subagentの報告（コンフリクトなし／解消済み／解消不能）へ
 - 全commit後、PRブランチへpushする: `git -C <$REPOの実値> push origin HEAD:<headRefName>`。
   **push先は常にPRのheadRefName**。`git push origin HEAD:master` 等のmasterへの直接pushは禁止
 - pushした各commitのSHAとsubjectを控えておく（Step 7の `pushed_commits` に使う）
+- pushがnon-fast-forwardなら最新PR headをfetch。追加コミットとPRのOPEN・headブランチを確認し、リモートheadをマージ→Step 5再検証→通常push。強制push禁止。裁定と矛盾すれば理由を記録して失敗終了。
 
 ## Step 7: 出力
 

@@ -21,7 +21,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // va:mapData Layoutをリクエストしてレスポンスを取得
             // Request va:mapData Layout and obtain the response
             var request = RequestMapDataMessagePack.CreateLayoutRequest();
-            var responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(request), new PacketResponseContext(null))[0];
+            var responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(request), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1))[0];
             var response = MessagePackSerializer.Deserialize<ResponseMapDataMessagePack>(responseBytes);
 
             // Spawnがmap.jsonのdefaultSpawnPointと一致することを検証
@@ -146,7 +146,7 @@ namespace Tests.CombinedTest.Server.PacketTest
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
             var request = RequestMapDataMessagePack.CreateLayoutRequest();
-            var responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(request), new PacketResponseContext(null))[0];
+            var responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(request), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1))[0];
             var response = MessagePackSerializer.Deserialize<ResponseMapDataMessagePack>(responseBytes);
 
             Assert.IsTrue(0 < response.MapObjects.Count);

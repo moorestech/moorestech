@@ -53,25 +53,47 @@ namespace Client.Tests.EventMode
             Assert.AreEqual("german", Localize.GetCurrentLanguageCode());
         }
 
+        // 未指定はSteam言語を潰さない
+        // Unset never overwrites Steam's language
         [Test]
-        public void ApplyLaunchLanguage_Unset_AppliesDefaultWithoutError()
+        public void ApplyLaunchLanguage_Unset_LeavesUnchosenLanguageUntouched()
         {
-            Localize.TrySetLanguage("japanese");
+            PlayerPrefs.DeleteKey(Localize.LanguagePreferenceKey);
+            Localize.Initialize();
+            Assert.IsTrue(Localize.TryApplyUnchosenLanguage(new FixedUnchosenSource("japanese")));
 
             EventModeAutoStart.ApplyLaunchLanguage(SettingsWithLanguage(null));
 
-            Assert.AreEqual(Localize.DefaultLanguageCode, Localize.GetCurrentLanguageCode());
+            Assert.AreEqual("japanese", Localize.GetCurrentLanguageCode());
+            Assert.IsFalse(PlayerPrefs.HasKey(Localize.LanguagePreferenceKey));
         }
 
         [Test]
-        public void ApplyLaunchLanguage_UnknownCode_FallsBackToDefaultAndLogsError()
+        public void ApplyLaunchLanguage_UnknownCode_KeepsCurrentLanguageAndLogsError()
         {
-            Localize.TrySetLanguage("japanese");
+            Localize.TrySetChosenLanguage("japanese");
             LogAssert.Expect(LogType.Error, new Regex($"unknown {EventExhibitionSettings.LanguageEnvKey}=germn"));
 
             EventModeAutoStart.ApplyLaunchLanguage(SettingsWithLanguage("germn"));
 
-            Assert.AreEqual(Localize.DefaultLanguageCode, Localize.GetCurrentLanguageCode());
+            Assert.AreEqual("japanese", Localize.GetCurrentLanguageCode());
+        }
+
+        private sealed class FixedUnchosenSource : IUnchosenLanguageSource
+        {
+            private readonly string languageCode;
+
+            public FixedUnchosenSource(string languageCode)
+            {
+                this.languageCode = languageCode;
+            }
+
+            public bool TryResolveGameLanguage(out string resolvedCode, out string failureReason)
+            {
+                resolvedCode = languageCode;
+                failureReason = "";
+                return true;
+            }
         }
     }
 }

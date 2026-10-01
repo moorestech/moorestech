@@ -2,6 +2,7 @@ using Client.Game.Common;
 using Client.Game.InGame.BugReport.BuildOrigin;
 using Client.Game.InGame.BugReport.LastSession;
 using Client.Game.InGame.BugReport.Recording.ProcessScope;
+using Client.RemoteExec.Access;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 
@@ -31,7 +32,7 @@ namespace Client.Tests.BugReport
         [Test]
         public void 正常終了の印があれば前回は正常終了と判定し印ごと消える()
         {
-            CleanExitMarker.MarkSessionStarted(TestProcessId, OlderSessionName, new SessionOriginSnapshot("steam-1", null, BuildOriginReading.Editor()));
+            CleanExitMarker.MarkSessionStarted(TestProcessId, OlderSessionName, new SessionOriginSnapshot("steam-1", null, BuildOriginReading.Editor(), null));
             CleanExitMarker.MarkExitIntent(TestProcessId, OlderSessionName);
             CleanExitMarker.MarkCleanExit(TestProcessId, OlderSessionName);
 
@@ -53,7 +54,7 @@ namespace Client.Tests.BugReport
         [Test]
         public void 開始の印だけが残っていれば前回は異常終了と判定する()
         {
-            CleanExitMarker.MarkSessionStarted(TestProcessId, OlderSessionName, new SessionOriginSnapshot(null, "テストで差し込まれていないSteamID", BuildOriginReading.Editor()));
+            CleanExitMarker.MarkSessionStarted(TestProcessId, OlderSessionName, new SessionOriginSnapshot(null, "テストで差し込まれていないSteamID", BuildOriginReading.Editor(), null));
 
             Assert.IsTrue(ContainsMarked(OlderSessionName));
             var record = CleanExitMarker.ConsumeSessionMarks(TestProcessId, OlderSessionName);
@@ -66,7 +67,7 @@ namespace Client.Tests.BugReport
         [Test]
         public void 終了の意思表明だけで書き出し完了の印が無ければ終了処理中の停止として数える()
         {
-            CleanExitMarker.MarkSessionStarted(TestProcessId, OlderSessionName, new SessionOriginSnapshot(null, "テストで差し込まれていないSteamID", BuildOriginReading.Editor()));
+            CleanExitMarker.MarkSessionStarted(TestProcessId, OlderSessionName, new SessionOriginSnapshot(null, "テストで差し込まれていないSteamID", BuildOriginReading.Editor(), null));
             CleanExitMarker.MarkExitIntent(TestProcessId, OlderSessionName);
 
             var record = CleanExitMarker.ConsumeSessionMarks(TestProcessId, OlderSessionName);
@@ -79,7 +80,7 @@ namespace Client.Tests.BugReport
         [Test]
         public void 生存している他pidの印は回収の対象にならず消えない()
         {
-            CleanExitMarker.MarkSessionStarted(TestProcessId, OlderSessionName, new SessionOriginSnapshot(null, "テストで差し込まれていないSteamID", BuildOriginReading.Editor()));
+            CleanExitMarker.MarkSessionStarted(TestProcessId, OlderSessionName, new SessionOriginSnapshot(null, "テストで差し込まれていないSteamID", BuildOriginReading.Editor(), null));
 
             var scan = PreviousProcessScanner.Scan(0, CurrentSessionName, new RecordingProcessTakeover(), CleanExitMarker.MarkedSessions(), new[] { TestProcessId });
 
@@ -92,8 +93,8 @@ namespace Client.Tests.BugReport
         [Test]
         public void 自pidの今回以外のセッションは前回として数え今回のセッションは数えない()
         {
-            CleanExitMarker.MarkSessionStarted(TestProcessId, OlderSessionName, new SessionOriginSnapshot(null, "テストで差し込まれていないSteamID", BuildOriginReading.Editor()));
-            CleanExitMarker.MarkSessionStarted(TestProcessId, CurrentSessionName, new SessionOriginSnapshot(null, "テストで差し込まれていないSteamID", BuildOriginReading.Editor()));
+            CleanExitMarker.MarkSessionStarted(TestProcessId, OlderSessionName, new SessionOriginSnapshot(null, "テストで差し込まれていないSteamID", BuildOriginReading.Editor(), null));
+            CleanExitMarker.MarkSessionStarted(TestProcessId, CurrentSessionName, new SessionOriginSnapshot(null, "テストで差し込まれていないSteamID", BuildOriginReading.Editor(), null));
 
             var scan = PreviousProcessScanner.Scan(TestProcessId, CurrentSessionName, new RecordingProcessTakeover(), CleanExitMarker.MarkedSessions(), new[] { TestProcessId });
 
@@ -106,6 +107,7 @@ namespace Client.Tests.BugReport
         public void 意図的な終了以外は終了の印を書かない()
         {
             CleanExitMarkWriter.InstallAtStartup(TestProcessId, CurrentSessionName);
+            StringAssert.Contains("-" + CurrentSessionName + ".jsonl", RemoteExecLedger.CurrentFileName);
 
             // 初期化失敗でメインメニューへ戻る経路は、拾いたいクラッシュ側。ここで印を書くと録画が次回起動で捨てられる
             // The fold-up to the main menu after a failed initialization is the crash side; a mark here would discard the recording at the next boot

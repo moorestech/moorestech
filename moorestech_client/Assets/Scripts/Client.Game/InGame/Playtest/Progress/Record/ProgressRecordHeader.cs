@@ -25,6 +25,9 @@ namespace Client.Game.InGame.Playtest.Progress.Record
         public string SteamId;
         public BuildInfo BuildInfo;
         public string SessionStart;
+        // 遠隔実行の有効状態は開始時に固定し、異常終了後もヘッダから復元する。nullは不明（キーの無い旧版の記録）
+        // Capture remote execution at start so recovery can restore it from the header; null means unknown (a legacy record without the key)
+        public bool? RemoteExec;
         public string WorldCreatedAt;
         public double? TotalPlaySecondsAtStart;
 

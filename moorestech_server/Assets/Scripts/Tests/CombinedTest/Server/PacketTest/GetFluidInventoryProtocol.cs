@@ -60,7 +60,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // プロトコル経由で液体を取得
             var request = MessagePackSerializer.Serialize(new GetFluidInventoryRequestMessagePack(Vector3Int.zero));
-            var response = packet.GetPacketResponse(request, new PacketResponseContext(null))[0];
+            var response = packet.GetPacketResponse(request, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1))[0];
             var data = MessagePackSerializer.Deserialize<GetFluidInventoryResponseMessagePack>(response);
 
             // 機械の液体とプロトコルで取得した液体を比較（拒否されたfluid3は含まれない）
@@ -97,7 +97,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             // プロトコル経由で液体を取得
             var request = MessagePackSerializer.Serialize(new GetFluidInventoryRequestMessagePack(Vector3Int.zero));
-            var response = packet.GetPacketResponse(request, new PacketResponseContext(null))[0];
+            var response = packet.GetPacketResponse(request, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1))[0];
             var data = MessagePackSerializer.Deserialize<GetFluidInventoryResponseMessagePack>(response);
             
             // 蒸気タンクの内容を確認
@@ -126,7 +126,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             // プロトコル経由で液体を取得
             var request = MessagePackSerializer.Serialize(new GetFluidInventoryRequestMessagePack(Vector3Int.zero));
-            var response = packet.GetPacketResponse(request, new PacketResponseContext(null))[0];
+            var response = packet.GetPacketResponse(request, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1))[0];
             var data = MessagePackSerializer.Deserialize<GetFluidInventoryResponseMessagePack>(response);
             
             // パイプの液体を確認

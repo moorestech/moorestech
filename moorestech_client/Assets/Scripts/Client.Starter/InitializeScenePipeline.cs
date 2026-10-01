@@ -5,9 +5,10 @@ using Client.Common;
 using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
-using Client.Network.Settings;
+using Client.Starter.Identity;
 using Client.Starter.Initialization;
 using Client.Starter.Initialization.Progress;
+using Client.Starter.Initialization.Refusal;
 using Cysharp.Threading.Tasks;
 using Game.Context;
 using Mooresmaster.Localization.Generated;
@@ -15,6 +16,7 @@ using Server.Boot;
 using Server.Boot.Args;
 using Server.Util.MessagePack;
 using TMPro;
+using UniRx;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.SceneManagement;
@@ -31,7 +33,7 @@ namespace Client.Starter
         [SerializeField] private BlockIconImagePhotographer blockIconImagePhotographer;
         [SerializeField] private BlockGameObject missingBlockIdObject;
         [SerializeField] private TMP_Text loadingLog;
-        private InitializeProprieties _proprieties = InitializeProprieties.CreateLocalServer(null);
+        private InitializeProprieties _proprieties = InitializeProprieties.CreateLocalServer();
 
         public void SetProperty(InitializeProprieties proprieties)
         {
@@ -56,27 +58,23 @@ namespace Client.Starter
             // 正規の終了口を通らない終了（エディタのPlay停止）でも、正常終了の印が書かれるようにする
             // Ensures the clean-exit mark is written even for exits that skip the canonical path (an Editor play-stop)
             GameShutdownEvent.InstallUnannouncedExitNotice();
+            // 前回セッションの出所印より先に起動オプションを確定する
+            // Resolve launch arguments before capturing the current session origin
+            Client.RemoteExec.RemoteExecLaunchOption.ResolveFromCommandLine(Environment.GetCommandLineArgs());
             Playtest.PreviousSessionStartupTasks.BeginCurrentSessionMarks();
             // Play終了で各await継続を打ち切る。Task系境界の継続がEditModeで再開しシーンを汚すのを防ぐ
             // Play-mode exit cancels every await so Task-based continuations never resume in EditMode and dirty the scene
             var exitToken = Application.exitCancellationToken;
-            // ---- Web UI サーバーの起動（最序盤）----
-            // GameShutdownEvent の購読は WebUiHost 側で 1 度だけ張られる
-            // ---- Web UI server bootstrap (earliest phase) ----
-            // The GameShutdownEvent subscription is installed once inside WebUiHost itself
-            //
-            // 起動失敗でも継続、UIはWeb一本のため非表示
-            // Web UI startup failure does not block gameplay, but the screen UI is web-only so nothing is shown
-            try
-            {
-                await Client.WebUiHost.Boot.WebUiHost.StartAsync(exitToken);
-            }
-            catch (Exception e) when (e is not OperationCanceledException)
-            {
-                // WebUI 無しでゲーム続行。外部プロセス境界の起動失敗を隔離して再試行可能にする
-                // Continue without WebUI; isolate external-process startup failures and keep retries possible
-                Debug.LogWarning($"[WebUiHost] start skipped: {e.Message}");
-            }
+            var webUiStarted = await Initialization.Boot.WebUiStartup.StartAsync(exitToken);
+            // Web UI の実ポートが確定してから遠隔実行を有効化する
+            // Activate remote exec after the Web UI's actual port is known
+            Client.RemoteExec.RemoteExecActivation.ActivateIfRequested(webUiStarted, Client.WebUiHost.Boot.WebUiHost.KestrelPort);
+            // 正常終了で遠隔実行の入口を撤去する。終了イベントを知らないClient.RemoteExecへここから配線する
+            // A clean exit withdraws the remote-exec entry; Client.RemoteExec does not know the shutdown event, so it is wired from here
+            // 無効な起動は入口を持たないので購読もしない（同じ置き場を使う他プロセスの入口に触る理由が無い）
+            // A disabled boot owns no entry and does not subscribe, having no reason to touch another process's entry in the shared location
+            if (Client.RemoteExec.RemoteExecLaunchOption.IsEnabled)
+                GameShutdownEvent.OnGameShutdown.Subscribe(_ => Client.RemoteExec.RemoteExecActivation.Deactivate());
 
 #if UNITY_EDITOR
             Editor.PlayModeLaunchOverrides.ApplyIfNeeded(_proprieties);
@@ -92,6 +90,15 @@ namespace Client.Starter
             var loadingStopwatch = new Stopwatch();
             loadingStopwatch.Start();
             var loadingProgressLog = new LoadingProgressLog(loadingLog, loadingStopwatch);
+
+            // 身元が決まらなければアセットも読まずに拒否を出す。身元解決の呼び出し口はここ1つ
+            // Refuse before loading any asset when the identity cannot be resolved; this is the only call site that resolves it
+            var identity = LocalPlayerIdentityResolver.ResolveForThisProcess();
+            if (identity.Refusal.HasValue)
+            {
+                await InitializationFailurePresenter.ShowRefusalAsync(identity.Refusal.Value, loadingProgressLog, exitToken);
+                return;
+            }
 
             // Addressablesを初期化する
             // Initialize Addressables
@@ -110,11 +117,9 @@ namespace Client.Starter
             var trainCarIconTargets = await ModAssetLoader.PreloadTrainCarIconTargetsAsync();
             Debug.Log($"[InitializeScenePipeline] train car preload completed {loadingStopwatch.Elapsed}");
 
-            var playerConnectionSetting = new PlayerConnectionSetting(_proprieties.PlayerId);
-
             // サーバー接続とアセットロードを並列実行し結果を受け取る
             // Run server connection and asset load in parallel and collect results
-            var serverInitializer = new ServerConnectionInitializer(_proprieties, loadingProgressLog, playerConnectionSetting, exitToken);
+            var serverInitializer = new ServerConnectionInitializer(_proprieties, loadingProgressLog, identity.Identity, exitToken);
             var modAssetLoader = new ModAssetLoader(serverDirectory, missingBlockIdObject, blockIconImagePhotographer, trainCarIconTargets, loadingProgressLog);
 
             ServerConnectionResult serverResult;
@@ -131,21 +136,22 @@ namespace Client.Starter
                 // 失敗をログとUIへ出し、文言を読ませてからメインメニューへ戻す
                 // Log the failure, surface it in the UI, and return to the main menu after the message is readable
                 Debug.LogError($"初期化処理中にエラーが発生しました: {e.GetType()} {e.Message}\n{e.StackTrace}");
+                await InitializationFailurePresenter.ShowInitializationFailedAsync(loadingProgressLog, exitToken);
+                return;
+            }
 
-                // 起動済みの内蔵サーバーを道連れに畳む。残すと同一セーブへ書く権威が二重になる
-                // Fold the embedded server that already started; leaving it doubles the authority writing the same save
-                GameShutdownEvent.FireGameShutdown(GameShutdownReason.InitializationFailed);
-
-                loadingProgressLog.Append(LocalizationKeys.Ui.Loading.InitializationFailed);
-                await UniTask.Delay(2000);
-                SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
+            // アセットロード完了後に通常の開始拒否を表示し、接続未成立の結果を後段へ渡さない
+            // Surface an expected refusal after assets finish, before any context uses the absent connection
+            if (serverResult.Refusal.HasValue)
+            {
+                await InitializationFailurePresenter.ShowRefusalAsync(serverResult.Refusal.Value, loadingProgressLog, exitToken);
                 return;
             }
 
             // 取得結果から通信フォーマッタと静的コンテキストを初期化する
             // Initialize the message formatter and static context from the collected results
             MessagePackInitializer.Initialize();
-            new ClientContext(assetResult.BlockGameObjectPrefabContainer, assetResult.ItemImageContainer, assetResult.BlockImageContainer, assetResult.TrainCarImageContainer, assetResult.ConnectToolImageContainer, assetResult.FluidImageContainer, playerConnectionSetting, serverResult.VanillaApi);
+            new ClientContext(assetResult.BlockGameObjectPrefabContainer, assetResult.ItemImageContainer, assetResult.BlockImageContainer, assetResult.TrainCarImageContainer, assetResult.ConnectToolImageContainer, assetResult.FluidImageContainer, serverResult.PlayerConnectionSetting, serverResult.VanillaApi);
 
             // シーンロードは全アセットロード完了後に直列実行する
             // Load the scene serially, after every asset load has finished
@@ -164,6 +170,10 @@ namespace Client.Starter
             async UniTask<ServerConnectionResult> ConnectServerThenFetchTerrainAsync()
             {
                 var connectionResult = await serverInitializer.RunAsync();
+
+                // 拒否は結果そのものが運ぶ。外側の変数へ写すと真実が2つになる
+                // The refusal travels in the result itself; copying it into an outer variable would create a second truth
+                if (connectionResult.Refusal.HasValue) return connectionResult;
                 var fetchedChunkCount = await new TerrainDataFetcher(connectionResult.VanillaApi.Response, exitToken).RunAsync(connectionResult.HandshakeResponse.MapLayout);
                 loadingProgressLog.AppendElapsed(LocalizationKeys.Ui.Loading.TerrainReady, fetchedChunkCount.ToString());
                 return connectionResult;

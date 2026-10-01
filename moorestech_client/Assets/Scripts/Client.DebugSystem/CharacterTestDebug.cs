@@ -42,7 +42,7 @@ namespace Client.DebugSystem
                 // プレイヤーの初期位置をコンテナから取得
                 // Fetch initial player position from the container
                 var playerPos = _playerSystemContainer.transform.position;
-                var handshake = new InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack(new Vector3MessagePack(playerPos), null, -1, Array.Empty<ItemStackLevelUnlockEventPacket.ItemStackLevelMessagePack>(), new Guid[HotbarAssignmentDatastore.SlotCount], Array.Empty<RemainingPlacementCountChangedEventPacket.RemainingPlacementCountMessagePack>());
+                var handshake = new InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack(new Server.Protocol.PacketResponse.Handshake.HandshakeAcceptedMessagePack(new Vector3MessagePack(playerPos), null, -1, Array.Empty<ItemStackLevelUnlockEventPacket.ItemStackLevelMessagePack>(), new Guid[HotbarAssignmentDatastore.SlotCount], Array.Empty<RemainingPlacementCountChangedEventPacket.RemainingPlacementCountMessagePack>(), 1));
                 var worldData = new WorldDataResponse(new List<BlockInfo>(), new List<EntityResponse>());
                 var emptyItem = new ItemMessagePack(ItemMaster.EmptyItemId, 0);
                 var inventory = new PlayerInventoryResponse(new PlayerInventoryResponseProtocol.PlayerInventoryResponseProtocolMessagePack(

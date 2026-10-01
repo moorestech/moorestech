@@ -11,6 +11,7 @@ using Game.Entity.Interface;
 using Game.Hotbar;
 using Game.Map.Interface;
 using Game.Map.Interface.MapObject;
+using Game.PlayerIdentity;
 using Game.PlayerInventory.Interface;
 using Game.PlayerRiding.Interface;
 using Game.Research;
@@ -48,6 +49,7 @@ namespace Game.SaveLoad.Json
         private readonly CleanRoomDatastore _cleanRoomDatastore;
         private readonly IMiningCooldownDatastore _miningCooldownDatastore;
         private readonly SaveBackfilledFieldsRecord _saveBackfilledFieldsRecord;
+        private readonly PlayerIdentityRegistry _playerIdentityRegistry;
 
         public WorldSaveDataRestorer(
             IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore,
@@ -55,7 +57,8 @@ namespace Game.SaveLoad.Json
             IResearchDataStore researchDataStore, TrainSaveLoadService trainSaveLoadService, RailGraphSaveLoadService railGraphSaveLoadService, TrainDockingStateRestorer trainDockingStateRestorer,
             IPlayerRidingDatastore playerRidingDatastore, IBlueprintDatastore blueprintDatastore, HotbarAssignmentDatastore hotbarAssignmentDatastore, RemainingPlacementCountDataStore remainingPlacementCountDataStore, ConstructionPayerDataStore constructionPayerDataStore, ItemStackLevelDataStore itemStackLevelDataStore,
             IPlayerInventorySlotLevelDataStore playerInventorySlotLevelDataStore, CleanRoomDatastore cleanRoomDatastore, IMiningCooldownDatastore miningCooldownDatastore,
-            SaveBackfilledFieldsRecord saveBackfilledFieldsRecord)
+            SaveBackfilledFieldsRecord saveBackfilledFieldsRecord,
+            PlayerIdentityRegistry playerIdentityRegistry)
         {
             _worldBlockDatastore = ServerContext.WorldBlockDatastore;
             _mapObjectDatastore = ServerContext.MapObjectDatastore;
@@ -79,6 +82,7 @@ namespace Game.SaveLoad.Json
             _cleanRoomDatastore = cleanRoomDatastore;
             _miningCooldownDatastore = miningCooldownDatastore;
             _saveBackfilledFieldsRecord = saveBackfilledFieldsRecord;
+            _playerIdentityRegistry = playerIdentityRegistry;
         }
 
         public void Restore(WorldSaveAllInfo load)
@@ -106,6 +110,10 @@ namespace Game.SaveLoad.Json
             _cleanRoomDatastore.RebuildAll();
             _cleanRoomDatastore.Restore(load.CleanRoomRooms);
             _railGraphSaveLoadService.RestoreRailSegments(load.RailSegments ?? new List<RailSegmentSaveData>());
+            // 身元の対応表はプレイヤー状態より先に戻す
+            // Restore the identity table before any player state
+            _playerIdentityRegistry.Load(load.Players);
+            PlayerSaveReferenceValidator.Validate(load, _playerIdentityRegistry);
             _inventoryDataStore.LoadPlayerInventory(load.Inventory);
             _entitiesDatastore.LoadBlockDataList(load.Entities);
             _worldSettingsDatastore.LoadSettingData(load.Setting);
@@ -151,6 +159,7 @@ namespace Game.SaveLoad.Json
                 if (load.RandomState == null) missing.Add("randomState");
                 if (load.MiningCooldowns == null) missing.Add("miningCooldowns");
                 if (load.BackfilledFields == null) missing.Add("backfilledFields");
+                if (load.Players == null) missing.Add("players");
                 if (missing.Count == 0) return;
 
                 var reason = $"セーブに {string.Join(" / ", missing)} がありません。版が古いセーブはマイグレーション連鎖（Game.SaveLoad/Migration）が補填するため、現在版のセーブで欠けているのは手編集による破損です";

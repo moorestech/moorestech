@@ -11,7 +11,7 @@ namespace Client.Tests.Starter
         [Test]
         public void CreateLocalServer_ローカルモードで生成しループバックIPを持つ()
         {
-            var proprieties = InitializeProprieties.CreateLocalServer(null);
+            var proprieties = InitializeProprieties.CreateLocalServer();
 
             // 接続試行しないモードを固定
             // Pin that local never probes
@@ -22,42 +22,29 @@ namespace Client.Tests.Starter
             // Local carries no destination port; a regression back to a fixed value such as 11564 fails here
             Assert.That(proprieties.RemoteServerPort, Is.Null);
 
-            // 未指定時の既定プレイヤーはInitializeProprietiesが解決する
-            // InitializeProprieties resolves the default player when unspecified
-            Assert.That(proprieties.PlayerId, Is.EqualTo(1));
-        }
-
-        [Test]
-        public void CreateLocalServer_プレイヤーID指定時はその値を保持する()
-        {
-            var proprieties = InitializeProprieties.CreateLocalServer(7);
-
-            Assert.That(proprieties.PlayerId, Is.EqualTo(7));
         }
 
         [Test]
         public void CreateRemoteConnection_リモートモードで指定IPとポートを保持する()
         {
-            var proprieties = InitializeProprieties.CreateRemoteConnection("192.168.1.10", 25000, 5);
+            var proprieties = InitializeProprieties.CreateRemoteConnection("192.168.1.10", 25000);
 
             // 明示指定の宛先のみを固定
             // Pin the explicit destination only
             Assert.That(proprieties.IsRemoteConnection, Is.True);
             Assert.That(proprieties.ServerIp, Is.EqualTo("192.168.1.10"));
             Assert.That(proprieties.RemoteServerPort, Is.EqualTo(25000));
-            Assert.That(proprieties.PlayerId, Is.EqualTo(5));
         }
 
         [Test]
         public void TryCreateRemoteConnection_検証を通った入力だけリモート接続になる()
         {
-            var created = InitializeProprieties.TryCreateRemoteConnection("192.168.1.10", "25000", 5, out var proprieties, out _);
+            var created = InitializeProprieties.TryCreateRemoteConnection("192.168.1.10", "25000", out var proprieties, out _);
 
             Assert.That(created, Is.True);
             Assert.That(proprieties.IsRemoteConnection, Is.True);
             Assert.That(proprieties.ServerIp, Is.EqualTo("192.168.1.10"));
             Assert.That(proprieties.RemoteServerPort, Is.EqualTo(25000));
-            Assert.That(proprieties.PlayerId, Is.EqualTo(5));
         }
 
         [Test]
@@ -70,7 +57,7 @@ namespace Client.Tests.Starter
 
             void AssertDenied(string ipText, string portText, LocalizationKey expectedKey)
             {
-                var created = InitializeProprieties.TryCreateRemoteConnection(ipText, portText, 5, out var proprieties, out var denyReason);
+                var created = InitializeProprieties.TryCreateRemoteConnection(ipText, portText, out var proprieties, out var denyReason);
 
                 Assert.That(created, Is.False);
                 Assert.That(proprieties, Is.Null);
@@ -95,7 +82,7 @@ namespace Client.Tests.Starter
 
             void AssertDeniedWithBoundary(string portText, LocalizationKey expectedKey, string expectedBoundary)
             {
-                var created = InitializeProprieties.TryCreateRemoteConnection("192.168.1.10", portText, 5, out var proprieties, out var denyReason);
+                var created = InitializeProprieties.TryCreateRemoteConnection("192.168.1.10", portText, out var proprieties, out var denyReason);
 
                 Assert.That(created, Is.False);
                 Assert.That(proprieties, Is.Null);
@@ -112,8 +99,8 @@ namespace Client.Tests.Starter
         [Test]
         public void TryCreateRemoteConnection_許容範囲の境界ポートは通る()
         {
-            Assert.That(InitializeProprieties.TryCreateRemoteConnection("192.168.1.10", "1025", 5, out _, out _), Is.True);
-            Assert.That(InitializeProprieties.TryCreateRemoteConnection("192.168.1.10", "65535", 5, out _, out _), Is.True);
+            Assert.That(InitializeProprieties.TryCreateRemoteConnection("192.168.1.10", "1025", out _, out _), Is.True);
+            Assert.That(InitializeProprieties.TryCreateRemoteConnection("192.168.1.10", "65535", out _, out _), Is.True);
         }
     }
 }

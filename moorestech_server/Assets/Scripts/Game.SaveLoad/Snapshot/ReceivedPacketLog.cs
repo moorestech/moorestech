@@ -2,9 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using Core.Update;
-using Game.Paths;
+using Game.SaveLoad.Snapshot.Segments;
 using UnityEngine;
 
 namespace Game.SaveLoad.Snapshot
@@ -13,37 +12,23 @@ namespace Game.SaveLoad.Snapshot
     // Appends received packets with their processing tick to segment files; a new segment starts at each snapshot
     public sealed class ReceivedPacketLog
     {
+        private const int UnboundSenderPlayerId = 0;
+        internal const int SegmentMagic = 0x504B544C;
+        // 版3は区間ヘッダに開始tickと開始時点の接続中IDを持つ。版2以前は接続集合を復元できず再生が本番と分岐する
+        // Version 3 carries the start tick and the connected ids at that tick; earlier versions cannot restore the connection set and make replay diverge
+        internal const int SegmentVersion = 3;
         private readonly object _lock = new();
-        private string _directory;
+        private readonly ReceivedPacketLogCaptureState _captureState = new();
+        private ReceivedPacketLogSegments _segments = new(null);
         private BinaryWriter _writer;
-        private ulong _currentSegmentFromTick;
-
-        // 書き込み中の区間があるか。閉じ切っていない区間はバッファ境界で切れているため複製してはいけない
-        // Whether a segment is still open; an unclosed segment ends at a buffer boundary and must never be copied
-        private bool _currentSegmentOpen;
         private bool _inactiveLogged;
-        private int _isActive;
+        public bool IsActive => _captureState.IsActive;
+        public string DegradeReason => _captureState.DegradeReason;
+        public ulong DegradedAtTick => _captureState.DegradedAtTick;
 
-        // 縮退した理由と止めたtick。tickスレッドが書き、取得完了を組む側が別スレッドから読むので可視性を明示する
-        // The degradation reason and the tick it stopped at; the tick thread writes them and the completion builder reads them from another thread
-        private string _degradeReason = string.Empty;
-        private long _degradedAtTick;
-
-        // tickスレッドが追記し、終了経路が別スレッドから止めるので、可視性を明示する
-        // The tick thread appends while shutdown stops it from another thread, so visibility is made explicit
-        public bool IsActive => Volatile.Read(ref _isActive) != 0;
-
-        // 縮退した理由。空なら記録は欠けていない。取得結果に載せないと欠損が「取れた」と申告される
-        // Why capture degraded; empty means nothing is missing. Without this on the capture result a gap is reported as a successful capture
-        public string DegradeReason => Volatile.Read(ref _degradeReason);
-
-        // 記録を止めたtick。縮退していなければ0
-        // The tick capture stopped at; 0 while healthy
-        public ulong DegradedAtTick => (ulong)Volatile.Read(ref _degradedAtTick);
-
-        public void Start(string directory, ulong fromTick)
+        public void Start(string directory, ulong fromTick, IReadOnlyCollection<int> connectedPlayerIds)
         {
-            _directory = directory;
+            _segments = new ReceivedPacketLogSegments(directory);
 
             // ディレクトリ作成は外部境界。記録を始められなくても起動そのものは落とさない
             // Creating the directory is an external boundary; failing to start capture must not fail the boot
@@ -57,11 +42,26 @@ namespace Game.SaveLoad.Snapshot
                 return;
             }
 
-            if (!TryRotate(fromTick)) return;
-            Volatile.Write(ref _isActive, 1);
+            if (!TryRotate(fromTick, connectedPlayerIds)) return;
+            _captureState.Start();
         }
 
-        public void Append(ulong tick, byte[] payload)
+        public void Append(ulong tick, int? senderPlayerId, byte[] payload)
+        {
+            AppendRecord(tick, ReceivedPacketRecordKind.Packet, senderPlayerId, payload);
+        }
+
+        public void AppendDisconnect(ulong tick, int? playerId)
+        {
+            AppendRecord(tick, ReceivedPacketRecordKind.Disconnect, playerId, Array.Empty<byte>());
+        }
+
+        internal static int? DecodeSenderPlayerId(int storedPlayerId)
+        {
+            return storedPlayerId == UnboundSenderPlayerId ? null : storedPlayerId;
+        }
+
+        private void AppendRecord(ulong tick, ReceivedPacketRecordKind kind, int? senderPlayerId, byte[] payload)
         {
             if (!IsActive)
             {
@@ -82,6 +82,8 @@ namespace Game.SaveLoad.Snapshot
                 try
                 {
                     _writer.Write(tick);
+                    _writer.Write((byte)kind);
+                    _writer.Write(senderPlayerId ?? UnboundSenderPlayerId);
                     _writer.Write(payload.Length);
                     _writer.Write(payload);
                 }
@@ -124,28 +126,28 @@ namespace Game.SaveLoad.Snapshot
 
                     // 閉じ切れた区間だけを完成扱いにする。失敗した区間はこのまま書き込み中として扱い複製から外す
                     // Only a segment that closed cleanly counts as complete; a failed one stays open and is kept out of copies
-                    _currentSegmentOpen = false;
+                    _segments.MarkClosed();
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError($"パケットログの終了処理に失敗しました message:{e.Message} 区間{_currentSegmentFromTick}は書き込み中のまま扱います");
+                    Debug.LogError($"パケットログの終了処理に失敗しました message:{e.Message} 区間{_segments.CurrentFromTick}は書き込み中のまま扱います");
                 }
                 _writer = null;
-                Volatile.Write(ref _isActive, 0);
+                _captureState.Stop();
             }
         }
 
-        public void Rotate(ulong fromTick)
+        public void Rotate(ulong fromTick, IReadOnlyCollection<int> connectedPlayerIds)
         {
             // 停止済み・縮退済みのまま区間を作り直すと、記録されないファイルだけがディスクに増える
             // Recreating a segment after a stop or a degradation would leave files on disk that nothing ever writes to
             if (!IsActive) return;
-            TryRotate(fromTick);
+            TryRotate(fromTick, connectedPlayerIds);
         }
 
         // 区間の切り替えは外部境界（FileStream生成）。失敗したら記録を止めるだけにして、呼び出し元のtick処理は続けさせる
         // Switching segments opens a FileStream at an external boundary; on failure only capture stops, and the caller's tick work continues
-        private bool TryRotate(ulong fromTick)
+        private bool TryRotate(ulong fromTick, IReadOnlyCollection<int> connectedPlayerIds)
         {
             lock (_lock)
             {
@@ -154,10 +156,18 @@ namespace Game.SaveLoad.Snapshot
                     _writer?.Flush();
                     _writer?.Dispose();
                     _writer = null;
-                    var path = Path.Combine(_directory, WorldDataDirectory.ReceivedPacketLogFileName(fromTick));
+                    var path = _segments.PathFor(fromTick);
                     _writer = new BinaryWriter(new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Read));
-                    _currentSegmentFromTick = fromTick;
-                    _currentSegmentOpen = true;
+                    _writer.Write(SegmentMagic);
+                    _writer.Write(SegmentVersion);
+
+                    // 区間の開始tickと、その時点で接続中だったIDを見出しへ書く。再生は世界を進める前にこれで接続を復元する
+                    // Write the segment's start tick and the ids connected at that moment; replay restores those connections before advancing the world
+                    _writer.Write(fromTick);
+                    var connectedIds = connectedPlayerIds == null ? Array.Empty<int>() : connectedPlayerIds.OrderBy(id => id).ToArray();
+                    _writer.Write(connectedIds.Length);
+                    foreach (var playerId in connectedIds) _writer.Write(playerId);
+                    _segments.MarkOpened(fromTick);
                     return true;
                 }
                 catch (Exception e)
@@ -172,70 +182,25 @@ namespace Game.SaveLoad.Snapshot
         // Degrade capture alone, holding the reason and the stop tick as state so both the log and the capture result carry them
         private void Degrade(string reason, ulong tick, Exception exception)
         {
-            Volatile.Write(ref _isActive, 0);
             _writer = null;
-
-            // 最初の理由を残す。後続の失敗で上書きすると、記録が止まった本当のきっかけが消える
-            // Keep the first reason; overwriting it with later failures would erase what actually stopped the capture
-            if (Volatile.Read(ref _degradeReason).Length == 0)
-            {
-                Volatile.Write(ref _degradedAtTick, (long)tick);
-                Volatile.Write(ref _degradeReason, reason);
-            }
-            Debug.LogError($"{reason} 以後パケットログの記録を停止します tick:{tick} message:{exception.Message}");
+            _captureState.Degrade(reason, tick, exception);
         }
 
-        // 最古スナップショット以前で始まる区間を消す。書き込み中の区間は残す
-        // Delete segments starting at or before the oldest snapshot; keep the segment being written
         public void DeleteSegmentsBefore(ulong oldestSnapshotTick)
         {
-            foreach (var path in SegmentFilePaths())
-            {
-                if (!WorldDataDirectory.TryParsePacketLogFromTick(Path.GetFileName(path), out var fromTick)) continue;
-                if (fromTick > oldestSnapshotTick || fromTick == _currentSegmentFromTick) continue;
-
-                // 常時記録の削除は後から追跡できる必要があるので、消した区間と理由を必ず残す
-                // Deleting always-on capture must stay auditable, so record which segment went and why
-                Debug.Log($"パケットログ区間を削除しました path:{path} 理由:最古スナップショット{oldestSnapshotTick}より前の区間");
-                DeleteSegmentFile(path);
-            }
+            _segments.DeleteBefore(oldestSnapshotTick);
         }
 
-        // 並びは開始tickの昇順。ファイル名規則と順序の定義は WorldDataDirectory だけが持つ
-        // Ordered by starting tick; the naming rule and the ordering live only in WorldDataDirectory
         public IReadOnlyList<string> SegmentFilePaths()
         {
-            return WorldDataDirectory.EnumeratePacketLogFiles(_directory);
+            return _segments.FilePaths();
         }
 
-        // 閉じ切った区間だけ。書き込み中の区間はバッファ境界で末尾が切れており、複製すると読み側がレコード破損で全滅する
-        // Closed segments only; an open segment ends mid-record at a buffer boundary and a copy of it kills the reader outright
         public IReadOnlyList<string> CompletedSegmentFilePaths()
         {
             lock (_lock)
             {
-                if (!_currentSegmentOpen) return SegmentFilePaths();
-
-                var openSegmentFileName = WorldDataDirectory.ReceivedPacketLogFileName(_currentSegmentFromTick);
-                return SegmentFilePaths().Where(path => Path.GetFileName(path) != openSegmentFileName).ToList();
-            }
-        }
-
-        private static void DeleteSegmentFile(string path)
-        {
-            // ディスク削除は外部境界。消せなくても記録は続けたいので、失敗は出力して次の区間へ進む
-            // Disk deletion is an external boundary; capture must continue, so a failure is logged and the loop moves on
-            try
-            {
-                File.Delete(path);
-            }
-            catch (IOException e)
-            {
-                Debug.LogError($"パケットログ区間の削除に失敗しました path:{path} message:{e.Message}");
-            }
-            catch (UnauthorizedAccessException e)
-            {
-                Debug.LogError($"パケットログ区間の削除が権限で拒否されました path:{path} message:{e.Message}");
+                return _segments.CompletedFilePaths();
             }
         }
     }

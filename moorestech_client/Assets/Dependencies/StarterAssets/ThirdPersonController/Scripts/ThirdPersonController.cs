@@ -97,6 +97,10 @@ namespace StarterAssets
 		private const float _threshold = 0.01f;
 
 		private bool _hasAnimator;
+
+		// 移動ロックは自クラスの状態として持つ。入力受付フラグの外部読みに寄せない
+		// Keep the movement lock as this class's own state instead of reading the input-enable flag from outside
+		private bool _movementLocked;
         
         public void Initialize()
         {
@@ -125,7 +129,8 @@ namespace StarterAssets
         
         public void SetControllable(bool value)
         {
-            _input.inputEnable = value;
+            _movementLocked = !value;
+            _input.SetInputEnable(value);
         }
 
 		private void Update()
@@ -196,8 +201,14 @@ namespace StarterAssets
 			float speedOffset = 0.1f;
 			float inputMagnitude = _input.analogMovement ? _input.move.magnitude : 1f;
 
+			// 操作停止中は水平移動のみ即停止（重力は維持）
+			// Halt horizontal motion only while stopped (gravity unaffected)
+			if (_movementLocked)
+			{
+				_speed = 0.0f;
+			}
 			// accelerate or decelerate to target speed
-			if (currentHorizontalSpeed < targetSpeed - speedOffset || currentHorizontalSpeed > targetSpeed + speedOffset)
+			else if (currentHorizontalSpeed < targetSpeed - speedOffset || targetSpeed + speedOffset < currentHorizontalSpeed)
 			{
 				// creates curved result rather than a linear one giving a more organic speed change
 				// note T in Lerp is clamped, so we don't need to clamp our speed

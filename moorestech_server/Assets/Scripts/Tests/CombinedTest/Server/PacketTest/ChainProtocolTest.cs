@@ -23,7 +23,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 {
     public class ChainProtocolTest
     {
-        private const int PlayerId = 0;
+        private const int PlayerId = 1;
         private static readonly Guid ConnectToolGuid = Guid.Parse("c0000000-0000-0000-0000-000000000003");
         private static readonly Guid ChainMaterialGuid = Guid.Parse("00000000-0000-0000-1234-000000000004");
 
@@ -53,7 +53,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // 接続プロトコルを送信する
             // Send connect protocol
-            var connectBytes = packet.GetPacketResponse(Connect(posA, posB, PlayerId), new PacketResponseContext(null)).First();
+            var connectBytes = packet.GetPacketResponse(Connect(posA, posB, PlayerId), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId)).First();
             var typedConnect = MessagePackSerializer.Deserialize<GearChainConnectionEditProtocol.GearChainConnectionEditResponse>(connectBytes.ToArray());
             Assert.True(typedConnect.IsSuccess);
 
@@ -69,7 +69,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             // 接続要求のメッセージパックを生成する
             // Build connect request message pack
-            return MessagePackSerializer.Serialize(GearChainConnectionEditProtocol.GearChainConnectionEditRequest.CreateConnectRequest(posA, posB, playerId, ConnectToolGuid));
+            return MessagePackSerializer.Serialize(GearChainConnectionEditProtocol.GearChainConnectionEditRequest.CreateConnectRequest(posA, posB, ConnectToolGuid));
         }
     }
 }

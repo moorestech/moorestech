@@ -20,7 +20,7 @@ namespace Server.Protocol.PacketResponse
             _hotbarAssignmentMutation = serviceProvider.GetService<IHotbarAssignmentMutation>();
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var request = MessagePackSerializer.Deserialize<HotbarProtocolMessagePack>(payload);
 
@@ -29,13 +29,13 @@ namespace Server.Protocol.PacketResponse
             switch (request.Operation)
             {
                 case HotbarOperation.Assign:
-                    _hotbarAssignmentMutation.SetAssignment(request.PlayerId, request.Slot, request.TargetId);
+                    _hotbarAssignmentMutation.SetAssignment(requesterPlayerId, request.Slot, request.TargetId);
                     break;
                 case HotbarOperation.Clear:
-                    _hotbarAssignmentMutation.ClearAssignment(request.PlayerId, request.Slot);
+                    _hotbarAssignmentMutation.ClearAssignment(requesterPlayerId, request.Slot);
                     break;
                 case HotbarOperation.Swap:
-                    _hotbarAssignmentMutation.SwapAssignments(request.PlayerId, request.Slot, request.SlotB);
+                    _hotbarAssignmentMutation.SwapAssignments(requesterPlayerId, request.Slot, request.SlotB);
                     break;
             }
 
@@ -47,7 +47,6 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class HotbarProtocolMessagePack : ProtocolMessagePackBase
         {
-            [Key(2)] public int PlayerId { get; set; }
             [Key(3)] public HotbarOperation Operation { get; set; }
             [Key(4)] public int Slot { get; set; }
             [Key(5)] public Guid TargetId { get; set; }
@@ -58,29 +57,28 @@ namespace Server.Protocol.PacketResponse
 
             // Operationごとに必要フィールドのみ設定
             // Private constructor; static factories below set only the fields each Operation needs
-            private HotbarProtocolMessagePack(int playerId, HotbarOperation operation, int slot, Guid targetId, int slotB)
+            private HotbarProtocolMessagePack(HotbarOperation operation, int slot, Guid targetId, int slotB)
             {
                 Tag = ProtocolTag;
-                PlayerId = playerId;
                 Operation = operation;
                 Slot = slot;
                 TargetId = targetId;
                 SlotB = slotB;
             }
 
-            public static HotbarProtocolMessagePack CreateAssignRequest(int playerId, int slot, Guid targetId)
+            public static HotbarProtocolMessagePack CreateAssignRequest(int slot, Guid targetId)
             {
-                return new HotbarProtocolMessagePack(playerId, HotbarOperation.Assign, slot, targetId, 0);
+                return new HotbarProtocolMessagePack(HotbarOperation.Assign, slot, targetId, 0);
             }
 
-            public static HotbarProtocolMessagePack CreateClearRequest(int playerId, int slot)
+            public static HotbarProtocolMessagePack CreateClearRequest(int slot)
             {
-                return new HotbarProtocolMessagePack(playerId, HotbarOperation.Clear, slot, Guid.Empty, 0);
+                return new HotbarProtocolMessagePack(HotbarOperation.Clear, slot, Guid.Empty, 0);
             }
 
-            public static HotbarProtocolMessagePack CreateSwapRequest(int playerId, int slotA, int slotB)
+            public static HotbarProtocolMessagePack CreateSwapRequest(int slotA, int slotB)
             {
-                return new HotbarProtocolMessagePack(playerId, HotbarOperation.Swap, slotA, Guid.Empty, slotB);
+                return new HotbarProtocolMessagePack(HotbarOperation.Swap, slotA, Guid.Empty, slotB);
             }
         }
 

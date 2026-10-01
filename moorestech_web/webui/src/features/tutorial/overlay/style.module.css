@@ -21,8 +21,8 @@
   animation: var(--tutorial-pulse-subtle) var(--tutorial-pulse-duration) ease-in-out infinite;
 }
 
-/* D&D説明のカーソル矢印。fromからtoへの移動をループする（webui-design §8.17） */
-/* Cursor arrow for D&D instruction; loops the move from the from-anchor to the to-anchor (webui-design §8.17) */
+/* D&D説明のカーソル矢印。fromからtoへの移動をループする（ref-webui-design §8.17） */
+/* Cursor arrow for D&D instruction; loops the move from the from-anchor to the to-anchor (ref-webui-design §8.17) */
 .dragGuide {
   position: fixed;
   /* 移動量はアンカー間の実画面距離で与えられるため、矢印自身の寸法だけをstage同率へ揃える */

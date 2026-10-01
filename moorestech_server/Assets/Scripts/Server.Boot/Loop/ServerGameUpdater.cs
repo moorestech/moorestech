@@ -11,37 +11,44 @@ namespace Server.Boot.Loop
         private static readonly TimeSpan FrameInterval = TimeSpan.FromSeconds(GameUpdater.SecondsPerTick);
         
         
-        public static void StartUpdate(CancellationToken token)
+        internal static void StartUpdate(CancellationToken token, ServerThreadActionQueue threadActionQueue)
         {
             var profilerMarker = new ProfilerMarker("GameUpdate");
             
             var stopwatch = new Stopwatch();
             
-            while (!token.IsCancellationRequested)
+            try
             {
-                profilerMarker.Begin();
-                
-                stopwatch.Restart();
-                
-                try
+                while (!token.IsCancellationRequested)
                 {
-                    GameUpdater.Update();
+                    profilerMarker.Begin();
+
+                    stopwatch.Restart();
+
+                    try
+                    {
+                        GameUpdater.Update();
+                    }
+                    catch (Exception ex)
+                    {
+                        UnityEngine.Debug.LogException(ex);
+                    }
+
+                    // 経過時間を測定
+                    var remaining = FrameInterval - stopwatch.Elapsed;
+
+                    // 残りフレーム時間だけ待機
+                    if (TimeSpan.Zero < remaining)
+                    {
+                        Thread.Sleep(remaining);
+                    }
+
+                    profilerMarker.End();
                 }
-                catch (Exception ex)
-                {
-                    UnityEngine.Debug.LogException(ex);
-                }
-                
-                // 経過時間を測定
-                var remaining = FrameInterval - stopwatch.Elapsed;
-                
-                // まだフレーム時間が余っていれば、その分だけ待機
-                if (remaining > TimeSpan.Zero)
-                {
-                    Thread.Sleep(remaining);
-                }
-                
-                profilerMarker.End();
+            }
+            finally
+            {
+                threadActionQueue.Stop();
             }
         }
     }

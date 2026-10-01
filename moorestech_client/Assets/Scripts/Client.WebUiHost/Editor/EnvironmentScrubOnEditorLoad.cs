@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using Client.ExternalProcess;
 using Client.WebUiHost.Common;
 using UnityEditor;
 

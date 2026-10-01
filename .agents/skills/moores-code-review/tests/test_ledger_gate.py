@@ -61,6 +61,26 @@ class LedgerGateTest(unittest.TestCase):
         plan = self.write_plan("# Plan\n\n- Modify: `docs/notes.md`\n")
         self.assertEqual(ledger_gate.missing_entries(plan, RULES), [])
 
+    def test_design_checks_done_passes(self):
+        plan = self.write_plan(
+            "# Plan\n\n## 設計検査記録\n\n- 配置検査（Phase 1〜2.5）: 実施済み / 違反0件 / なし\n"
+            "- Phase 2.6（型閉包）: 実施済み / 強0・弱0・第3バケツ0 / 発火なし\n\n## Task 1\n")
+        self.assertEqual(ledger_gate.missing_design_checks(plan), [])
+
+    def test_design_checks_not_done_blocks(self):
+        plan = self.write_plan(
+            "# Plan\n\n## 設計検査記録\n\n- 配置検査（Phase 1〜2.5）: 実施済み / 違反1件・修正1件 / 層\n"
+            "- Phase 2.6（型閉包）: 未実施\n")
+        problems = ledger_gate.missing_design_checks(plan)
+        self.assertEqual(len(problems), 1)
+        self.assertIn("Phase 2.6", problems[0])
+
+    def test_design_checks_section_missing_blocks_both(self):
+        # 節の外にある「実施済み」は数えない
+        # A 実施済み outside the section must not count
+        plan = self.write_plan("# Plan\n\n- Phase 2.6 実施済みと本文に書いただけ\n\n## Task 1\n")
+        self.assertEqual(len(ledger_gate.missing_design_checks(plan)), 2)
+
 
 if __name__ == "__main__":
     unittest.main()

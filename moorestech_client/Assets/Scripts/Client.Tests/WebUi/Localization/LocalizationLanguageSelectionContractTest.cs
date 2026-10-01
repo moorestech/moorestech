@@ -68,7 +68,8 @@ namespace Client.Tests.WebUi.Localization
                         JArray.Parse(
                             "[{\"code\":\"english\",\"displayName\":\"English\"}," +
                             "{\"code\":\"japanese\",\"displayName\":\"日本語\"}," +
-                            "{\"code\":\"german\",\"displayName\":\"Deutsch\"}]"),
+                            "{\"code\":\"german\",\"displayName\":\"Deutsch\"}," +
+                            "{\"code\":\"korean\",\"displayName\":\"한국어\"}]"),
                         JArray.Parse(body)));
                 }
                 finally

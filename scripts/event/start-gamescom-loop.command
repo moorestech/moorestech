@@ -15,8 +15,8 @@ export MOORESTECH_EVENT_LANGUAGE=german
 # 引数で.appを指定可能。省略時は同ディレクトリのmoorestech.app
 # The .app path can be given as an argument; defaults to moorestech.app beside this script
 APP_PATH="${1:-./moorestech.app}"
-BINARY="$(find "$APP_PATH/Contents/MacOS" -maxdepth 1 -type f 2>/dev/null | head -n 1)"
-if [ -z "$BINARY" ]; then
+BINARY="$APP_PATH/Contents/MacOS/moorestech"
+if [ ! -x "$BINARY" ]; then
   echo "app not found: $APP_PATH"
   exit 1
 fi

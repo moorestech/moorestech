@@ -113,7 +113,10 @@ namespace Client.Tests.UIState
 #pragma warning disable CS0618
             var initialHandshake = new global::Server.Protocol.PacketResponse.InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack
             {
-                PlayerPos = new Vector3MessagePack(Vector3.zero),
+                Accepted = new global::Server.Protocol.PacketResponse.Handshake.HandshakeAcceptedMessagePack
+                {
+                    PlayerPos = new Vector3MessagePack(Vector3.zero),
+                },
             };
 #pragma warning restore CS0618
 

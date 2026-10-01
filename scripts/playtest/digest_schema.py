@@ -22,6 +22,7 @@ from pathlib import Path
 STR = (str,)
 NUMBER = (int, float)
 INT = (int,)
+BOOL = (bool,)
 
 # スキーマ: フィールド名 → (型, 既定値)。型が dict なら入れ子スキーマ、[要素型] ならその要素の list
 # Schema: field name -> (kind, default). A dict kind is a nested schema; [kind] is a list of that kind
@@ -29,9 +30,16 @@ INGEST_SCHEMA = {
     "id": (STR, ""), "steamId": (STR, ""), "readyAt": (STR, ""), "ingestedAt": (STR, ""),
     "steamPersonaName": (STR, ""), "steamProfileUrl": (STR, ""), "steamPersonaMissing": (STR, ""),
 }
+# 遠隔実行の印は3状態。state が読めない箱は不明として扱い、無効側へ落とさない
+# The remote-exec mark has three states; a box whose state is unreadable counts as unknown, never as disabled
+REMOTE_EXEC_DISABLED = "Disabled"
+REMOTE_EXEC_ENABLED = "Enabled"
+REMOTE_EXEC_UNKNOWN = "Unknown"
 MANIFEST_SCHEMA = {
     "kind": (STR, ""), "description": (STR, ""),
-    "buildInfo": ({"steamBuildLabel": (STR, "")}, None),
+    "remoteExec": ({"state": (STR, REMOTE_EXEC_UNKNOWN), "unknownReason": (STR, ""), "ledgerFiles": ([STR], None)},
+                   {"state": REMOTE_EXEC_UNKNOWN}),
+    "buildInfo": ({"steamBuildLabel": (STR, "")}, {"steamBuildLabel": ""}),
 }
 RECORD_SCHEMA = {
     # playSeconds は既定値を None にする（0.0 だと「計測0秒」と「未計測」が区別できず平均へ無言混入する）
@@ -39,6 +47,9 @@ RECORD_SCHEMA = {
     "schemaVersion": (INT, None), "steamId": (STR, ""), "playSeconds": (NUMBER, None), "endReason": (STR, ""), "lastUiState": (STR, ""),
     "reachedChallenges": ([None], None), "completedResearch": ([None], None),
     "events": ([{"type": (STR, "")}], None),
+    # remoteExec は None を残す（False だと「無効だった記録」と「キーの無い旧版の記録」が同じ扱いになる）
+    # remoteExec keeps None: False would conflate "recorded as disabled" with "a legacy record lacking the key"
+    "remoteExec": (BOOL, None),
 }
 FIX_RESULT_SCHEMA = {
     "status": (STR, ""), "pr_number": (INT, None), "base": (STR, ""), "summary": (STR, ""),
@@ -85,10 +96,12 @@ def conform(data: dict, schema: dict) -> dict | Invalid:
 
 
 def conform_value(value, kind, default, path):
-    # null・欠落は既定値。入れ子と list は空の形を既定にする
-    # Null or missing takes the default; nested schemas and lists default to their empty shape
+    # null・欠落は既定値。null 許容の入れ子は None のまま残す
+    # Null or missing takes the default; nullable nested objects remain None
     if value is None:
         if isinstance(kind, dict):
+            if default is None:
+                return None
             return conform({}, kind)
         return [] if isinstance(kind, list) else default
     if isinstance(kind, dict):
@@ -100,7 +113,7 @@ def conform_value(value, kind, default, path):
         return conform_list(value, kind[0], path)
     # bool は int の派生だが数値として受け入れない
     # bool subclasses int but is not accepted as a number
-    if isinstance(value, bool) or not isinstance(value, kind):
+    if (isinstance(value, bool) and kind != BOOL) or not isinstance(value, kind):
         return Invalid(path)
     return value
 
@@ -114,11 +127,11 @@ def conform_list(value, element_kind, path):
         return value
     items = []
     for i, element in enumerate(value):
-        if not isinstance(element, dict):
+        if element is None:
             return Invalid(f"{path}[{i}]")
-        conformed = conform(element, element_kind)
+        conformed = conform_value(element, element_kind, None, f"{path}[{i}]")
         if isinstance(conformed, Invalid):
-            return Invalid(f"{path}[{i}].{conformed.path}")
+            return conformed
         items.append(conformed)
     return items
 
@@ -133,6 +146,18 @@ def read_conformed(path: Path, schema: dict) -> tuple[dict | None, str | None]:
     if isinstance(conformed, Invalid):
         return None, f"型不一致: {conformed.path}"
     return conformed, None
+
+
+def remote_exec_state(manifest: dict) -> tuple[str, str]:
+    """manifest の遠隔実行の印を (state, 理由) にする。契約外の綴りは不明へ寄せる（無効と名乗らせない）
+    Turns the manifest's remote-exec mark into (state, reason); an off-contract spelling becomes unknown, never disabled"""
+    mark = manifest["remoteExec"]
+    state = mark["state"]
+    if state == REMOTE_EXEC_DISABLED or state == REMOTE_EXEC_ENABLED:
+        return state, ""
+    if state == REMOTE_EXEC_UNKNOWN:
+        return state, mark["unknownReason"] or "manifest に remoteExec が無い/理由が空（旧版の箱の可能性）"
+    return REMOTE_EXEC_UNKNOWN, f"remoteExec.state が契約外の値: {state!r}"
 
 
 def record_value_problem(record: dict) -> str | None:

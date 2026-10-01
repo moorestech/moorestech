@@ -21,7 +21,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 {
     public class ChallengeCompletedEventTest
     {
-        private const int PlayerId = 0;
+        private const int PlayerId = 1;
         private const int CraftRecipeId = 1;
         
         [Test]
@@ -50,9 +50,14 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         
         public static void ClearCraftChallenge(PacketResponseCreator packet, ServiceProvider serviceProvider)
         {
+            ClearCraftChallenge(packet, serviceProvider, PlayerId);
+        }
+
+        public static void ClearCraftChallenge(PacketResponseCreator packet, ServiceProvider serviceProvider, int playerId)
+        {
             // クラフトの素材をインベントリに追加
             // Add crafting materials to the inventory
-            var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
+            var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId);
             var craftRecipeElement = MasterHolder.CraftRecipeMaster.CraftRecipes.Data[CraftRecipeId];
             foreach (var requiredItem in craftRecipeElement.RequiredItems)
             {
@@ -62,7 +67,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             // クラフトを実行
             // Execute the craft
-            packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(PlayerId, craftRecipeElement.CraftRecipeGuid)), new PacketResponseContext(null));
+            packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(craftRecipeElement.CraftRecipeGuid)), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(playerId));
         }
         
         [Test]

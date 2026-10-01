@@ -1,3 +1,4 @@
+using Tests.UnitTest.Game.MapGeneration.Spawn;
 using Game.MapGeneration.Facade;
 using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Transfer;

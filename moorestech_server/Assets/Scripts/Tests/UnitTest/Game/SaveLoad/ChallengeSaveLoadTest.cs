@@ -6,12 +6,15 @@ using Game.Challenge;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
 using Microsoft.Extensions.DependencyInjection;
+using Game.PlayerIdentity;
 using NUnit.Framework;
+using Tests.Util.PlayerIdentity;
+using Tests.Util.PlayerIdentity;
 using Server.Boot;
 using Tests.CombinedTest.Server.PacketTest.Event;
 using Tests.Module.TestMod;
 
-namespace Tests.CombinedTest.Game
+namespace Tests.UnitTest.Game.SaveLoad
 {
     public class ChallengeSaveLoadTest
     {
@@ -95,9 +98,11 @@ namespace Tests.CombinedTest.Game
                 Assert.IsNotNull(challenge);
             }
             
+            var playerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<PlayerIdentityRegistry>(), "steam:1").PlayerId;
+
             // クラフトのチャレンジをクリアする
             // Clear the craft challenge
-            ChallengeCompletedEventTest.ClearCraftChallenge(packet, serviceProvider);
+            ChallengeCompletedEventTest.ClearCraftChallenge(packet, serviceProvider, playerId);
             
             // クラフトのチャレンジがクリアされたことを確認する
             // Check that the craft challenge is cleared
@@ -153,9 +158,11 @@ namespace Tests.CombinedTest.Game
                 Assert.IsNotNull(challenge);
             }
 
+            var playerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<PlayerIdentityRegistry>(), "steam:1").PlayerId;
+
             // クラフトのチャレンジをクリアする
             // Clear the craft challenge
-            ChallengeCompletedEventTest.ClearCraftChallenge(packet, serviceProvider);
+            ChallengeCompletedEventTest.ClearCraftChallenge(packet, serviceProvider, playerId);
 
             // 保存する直前の現在のチャレンジを取得
             // Get the current challenge just before saving

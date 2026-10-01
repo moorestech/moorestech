@@ -62,7 +62,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         private static GetGearNetworkInfoProtocol.ResponseGetGearNetworkInfoMessagePack InvokeGetGearNetworkInfo(PacketResponseCreator packet, BlockInstanceId id)
         {
             var request = new GetGearNetworkInfoProtocol.RequestGetGearNetworkInfoMessagePack(id);
-            var responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(request), new PacketResponseContext(null));
+            var responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(request), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1));
             return MessagePackSerializer.Deserialize<GetGearNetworkInfoProtocol.ResponseGetGearNetworkInfoMessagePack>(responseBytes[0]);
         }
     }

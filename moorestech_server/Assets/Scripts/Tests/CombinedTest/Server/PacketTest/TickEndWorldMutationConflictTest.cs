@@ -62,7 +62,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             ServerContext.WorldBlockDatastore.TryAddBlock(
                 ForUnitTestModBlockId.BlockId, position, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             var payload = MessagePackSerializer.Serialize(
-                new RemoveBlockProtocol.RemoveBlockProtocolMessagePack(PlayerId, position));
+                new RemoveBlockProtocol.RemoveBlockProtocolMessagePack(position));
 
             var queue = provider.GetRequiredService<TickEndPacketQueue>();
             queue.Enqueue(new ProtocolEntry(packet, payload));
@@ -78,8 +78,6 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             private readonly PacketResponseCreator _packet;
             private readonly byte[] _payload;
-            public bool IsActive => true;
-
             public ProtocolEntry(PacketResponseCreator packet, byte[] payload)
             {
                 _packet = packet;
@@ -88,7 +86,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             public void Process()
             {
-                _packet.GetPacketResponse(_payload, new PacketResponseContext(null));
+                _packet.GetPacketResponse(_payload, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
             }
         }
     }

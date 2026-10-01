@@ -5,7 +5,7 @@ using Game.MapGeneration.Pipeline.Generators;
 using Game.MapGeneration.Pipeline.Tiling;
 using NUnit.Framework;
 
-namespace Tests.UnitTest.Game.MapGeneration
+namespace Tests.UnitTest.Game.MapGeneration.Placement
 {
     // 樹木配置の密度・フィルタノイズがタイル原点ではなくワールド座標で引かれることを固定する。
     // 乱数種と候補点列を完全に揃えたまま窓原点だけをずらすので、結果が動けばノイズが原点を読んでいる証拠になる。

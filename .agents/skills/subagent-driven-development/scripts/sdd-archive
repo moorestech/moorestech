@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# worktree内のSDDワークスペース（.superpowers/sdd）を記録repoへ退避し、
+# 退避先の絶対パスを標準出力へ表示する。PR作成後・moores-wt rm の前に実行する。
+#
+# ワークスペースを最初から記録repoに置かないのは、implementer（codexの
+# workspace-writeサンドボックス含む）がworktreeの外へ書けないため。
+# 一方worktreeを畳むと報告・台帳が消えるので、コードrepoへコミットせず
+# ここで記録repo `moorestech_logs/harness/sdd/<ブランチslug>/workspace/` へ写す
+# （裁定 .decisions/2026-09-28-SDDの作業記録はコードrepoに置かず記録repoへ退避する.md）。
+#
+# 使い方: sdd-archive（隔離worktree側をcwdにして実行する。何度実行してもよい）
+set -euo pipefail
+
+root=$(git rev-parse --show-toplevel)
+src="$root/.superpowers/sdd"
+main_root=$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")
+logs="$(dirname "$main_root")/moorestech_logs"
+
+branch=$(git rev-parse --abbrev-ref HEAD)
+if [ "$branch" = "HEAD" ]; then
+  branch="detached-$(git rev-parse --short HEAD)"
+fi
+slug=$(printf '%s' "$branch" | tr '/ ' '--')
+
+if [ ! -d "$src" ]; then
+  echo "sdd-archive: ワークスペースがありません（${src}）。退避するものは無いので終了します" >&2
+  exit 0
+fi
+if [ ! -d "$logs/.git" ] && [ ! -f "$logs/.git" ]; then
+  echo "sdd-archive: 記録repoが見つかりません（${logs}）。worktreeを畳むとワークスペースは消えます" >&2
+  exit 1
+fi
+
+# 自己無視の.gitignoreは記録repo側で退避物を無視させてしまうので写さない
+dest="$logs/harness/sdd/$slug/workspace"
+mkdir -p "$dest"
+rsync -a --exclude '.gitignore' "$src/" "$dest/"
+printf '%s\n' "$dest"

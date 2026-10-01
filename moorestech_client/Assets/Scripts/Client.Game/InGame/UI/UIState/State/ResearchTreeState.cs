@@ -50,6 +50,11 @@ namespace Client.Game.InGame.UI.UIState.State
             InputManager.MouseCursorVisible(false);
         }
 
+        public bool LocksPlayerMovement()
+        {
+            return true;
+        }
+
         public IReadOnlyList<KeyHint> GetKeyHints()
         {
             return ResearchTreeStateHints.Hints;

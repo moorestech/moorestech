@@ -153,7 +153,7 @@ public class LocalizationSourceGeneratorTest
         {
             new TestAdditionalText(
                 "/content/localization_settings.csv",
-                "lang_name,display_name,steam_api_lang_code\nenglish,English,en\n"),
+                "lang_name,display_name,steam_languages\nenglish,English,english\n"),
             new TestAdditionalText(
                 "/content/content_keys.csv",
                 "namespace,field,sourceMaster\nitem,name,ItemMaster\n"),

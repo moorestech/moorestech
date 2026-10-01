@@ -21,7 +21,7 @@ namespace Server.Protocol.PacketResponse
         {
         }
         
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var data = MessagePackSerializer.Deserialize<CompleteBaseCampProtocolMessagePack>(payload);
             
@@ -61,16 +61,14 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class CompleteBaseCampProtocolMessagePack : ProtocolMessagePackBase
         {
-            [Key(2)] public int PlayerId { get; set; }
             [Key(3)] public Vector3IntMessagePack Position { get; set; }
             
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public CompleteBaseCampProtocolMessagePack() { }
             
-            public CompleteBaseCampProtocolMessagePack(int playerId, Vector3Int position)
+            public CompleteBaseCampProtocolMessagePack(Vector3Int position)
             {
                 Tag = ProtocolTag;
-                PlayerId = playerId;
                 Position = new Vector3IntMessagePack(position);
             }
         }

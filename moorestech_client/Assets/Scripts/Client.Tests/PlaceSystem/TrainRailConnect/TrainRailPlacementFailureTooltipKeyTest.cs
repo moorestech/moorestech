@@ -9,6 +9,7 @@ using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol.PacketResponse;
+using Server.Protocol.PacketResponse.Util.RailEdit;
 using Tests.Module.TestMod;
 using UnityEngine;
 

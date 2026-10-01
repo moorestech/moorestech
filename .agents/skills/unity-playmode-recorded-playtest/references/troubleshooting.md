@@ -84,6 +84,8 @@ EditModeInPlayingTestを一括実行すると、後半のテストが
 
 ## 6. その他の既知事象
 
+- 新規Editorで `screenshot '...' was not written within 10s` はGame Viewが別タブの背後に隠れている疑い。自worktreeのEditorで `uloop execute-dynamic-code` からGame Viewの `EditorWindow.Focus()` を呼び再実行。該当環境では毎ラン前に実行。
+
 - **機関車は燃料なしで無言停止する**（エラー・警告ログ一切なし）。auto-run有効・IsDocked=False・diagram正常でも
   マスコン計算が0を返しspeed=0のまま。`p.Until(() => train.CurrentSpeed > 0, ...)`が原因不明でタイムアウトしたら
   まず `p.SendCommand("addFuelToAllTrainCarsCommand")` を挟む（2026-07-18実証: これだけでspeed=7.58に）。

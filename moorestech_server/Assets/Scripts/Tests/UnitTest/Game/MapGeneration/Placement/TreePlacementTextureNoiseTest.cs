@@ -4,7 +4,7 @@ using Game.MapGeneration.Pipeline.Tiling;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace Tests.UnitTest.Game.MapGeneration
+namespace Tests.UnitTest.Game.MapGeneration.Placement
 {
     // 樹木配置の「ノイズタイプ None でもテクスチャ源があれば有効」というガードを、公開経路
     // TreePlacementGenerator.GenerateForBiome を通した配置数の差として固定する。

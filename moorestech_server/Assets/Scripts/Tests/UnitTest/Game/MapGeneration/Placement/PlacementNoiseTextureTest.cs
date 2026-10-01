@@ -3,7 +3,7 @@ using Game.MapGeneration.Pipeline.Generators.Util;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace Tests.UnitTest.Game.MapGeneration
+namespace Tests.UnitTest.Game.MapGeneration.Placement
 {
     // PlacementNoise のテクスチャ源のサンプリング規約を固定する。
     // ①4近傍のバイリニア補間であること ②channel の指す成分を読むこと ③U=worldX/幅・V=worldZ/長さであること。

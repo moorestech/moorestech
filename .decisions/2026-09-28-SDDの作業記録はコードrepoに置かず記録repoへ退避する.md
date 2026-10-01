@@ -1,0 +1,4 @@
+決定: SDDのワークスペース（`.superpowers/sdd/` の台帳・ブリーフ・報告・計測物）はコードrepoへコミットしない。作業中はworktree内に置き（ルート `.gitignore` で除外）、PR作成後・worktreeを畳む前に `subagent-driven-development/scripts/sdd-archive` で `moorestech_logs/harness/sdd/<ブランチslug>/workspace/` へ退避する。既にtrackedだった19件は `moorestech_logs/harness/sdd/_formerly-tracked-in-moorestech/` へパス構造を保って移し、本体から削除した
+棄却案: ①現状維持（trackedのまま置き続け、剪定監査の「保留」を「維持」で閉じる） ②最初から記録repoへ書かせる（ユーザーが採った推奨案の字義どおりの形。implementerとcodexのworkspace-writeサンドボックスがworktree外へ書けないため、実装段で退避方式へ置き換えた）
+理由: レビュー実行記録を「コードrepoに置かず ../moorestech_logs/harness/ へ」とするAGENTS.mdの規則から、同種の実行記録が漏れていた。worktreeを畳むと記録が消えるため、エージェントが `git add -f` で本体へコミットしていたのが混入の原因
+リンク: 出所=ユーザー裁定 2026-09-28 原文「推奨： SDD の出力先を moorestech_logs/harness/sdd/ へ変え、repo側は既存の19件を移したうえで .gitignore に入れます。　これで。」／剪定監査 https://review.moores.tech/docs/skill-prune-audit（s11 保留）

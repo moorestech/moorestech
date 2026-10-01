@@ -31,7 +31,7 @@ namespace Client.WebUiHost.Game.Actions
 
             // 選択可否の判定はLocalize側に集約し、結果を失敗契約へ写す
             // Delegate the selectability judgement to Localize and map the result to the failure contract
-            return UniTask.FromResult(Localize.TrySetLanguage(locale)
+            return UniTask.FromResult(Localize.TrySetChosenLanguage(locale)
                 ? ActionResult.Success()
                 : ActionResult.Fail("unknown_locale"));
         }
