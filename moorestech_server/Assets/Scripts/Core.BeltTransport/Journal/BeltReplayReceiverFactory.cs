@@ -13,7 +13,6 @@ namespace Core.BeltTransport
             private readonly BeltDirection direction;
             internal Receiver(BeltReplayReceiverFactory owner, int sourceId, int targetId, int stage, BeltDirection direction)
             { this.owner = owner; this.sourceId = sourceId; this.targetId = targetId; this.stage = stage; this.direction = direction; }
-            public void AttachInput(IBeltSource source, BeltDirection inputDirection) { }
             public int GetOffer(BeltDirection inputDirection)
             {
                 foreach (var result in owner.outputs)

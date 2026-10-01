@@ -41,7 +41,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             // Preserve integer position and identity without reconstructing timers.
             Assert.AreEqual(-42, loaded.GetItem(0).ItemInstanceId.AsPrimitive());
             Assert.AreEqual(item.Id, loaded.GetItem(0).Id);
-            Assert.AreEqual(255u, loaded.BeltConveyorItems[0].RemainingTicks);
+            Assert.AreEqual(1, loaded.CaptureItems()[0].Progress);
             Assert.IsTrue(JToken.DeepEquals(JToken.FromObject(belt.GetSaveState()), JToken.FromObject(loaded.GetSaveState())));
         }
 

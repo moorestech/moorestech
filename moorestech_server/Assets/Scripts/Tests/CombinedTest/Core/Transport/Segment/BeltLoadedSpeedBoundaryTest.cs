@@ -52,8 +52,8 @@ namespace Tests.CombinedTest.Core.Transport.Segment
             Assert.AreEqual(128, first.Speed);
             Assert.AreEqual(32, second.Speed);
             Assert.AreEqual(2, transport.Network.CaptureItems().Length);
-            Assert.AreEqual(0u, first.BeltConveyorItems[0].RemainingTicks);
-            Assert.AreEqual(96u, second.BeltConveyorItems[0].RemainingTicks);
+            Assert.AreEqual(256, first.CaptureItems()[0].Progress);
+            Assert.AreEqual(160, second.CaptureItems()[0].Progress);
             if (stopBeforeLoad)
             {
                 generator.SetGenerateTorque(0f);

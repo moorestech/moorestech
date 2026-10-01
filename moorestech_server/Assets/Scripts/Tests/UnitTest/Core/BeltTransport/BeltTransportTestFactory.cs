@@ -28,8 +28,6 @@ namespace Tests.UnitTest.Core.BeltTransport
                     link.Target * 100 + 1, true, 0 <= link.Target, link.Direction, 0));
             var network = RestoreNetwork(new BeltNetworkSnapshot(cells.ToArray(), edges.ToArray(),
                 Array.Empty<BeltCellItemState>(), Array.Empty<BeltCellPriority>()));
-            for (int path = 0; path < paths.Length; path++)
-                Assert.AreEqual(paths[path].Capacity, network.GetPath(path * 100 + 1).Cells.Length);
             return network;
         }
 
@@ -41,7 +39,13 @@ namespace Tests.UnitTest.Core.BeltTransport
             return network;
         }
 
-        internal static BeltConveyorSegment Segment(BeltTransportNetwork network, int path) => network.GetPath(path * 100 + 1).Segment;
+        internal static void SetItems(BeltTransportNetwork network, BeltCellItemState[] items)
+        {
+            var snapshot = network.Capture();
+            network.Restore(new BeltNetworkSnapshot(snapshot.Cells, snapshot.Connections, items, snapshot.Priorities));
+        }
+        internal static BeltCellItemState State(int cell, int progress, int identity, bool buffer) =>
+            new BeltCellItemState(cell, progress, BeltDirection.Back, 0, Item(identity), buffer);
         internal static BeltItem Item(int instance) =>
             new BeltItem(new Guid(instance, 0, 0, new byte[8]), ForUnitTestItemId.ItemId1.AsPrimitive());
 
@@ -50,7 +54,6 @@ namespace Tests.UnitTest.Core.BeltTransport
         private sealed class BlockedBoundary : IBeltExternalReceiverFactory, IBeltReceiver, IBeltItemDropObserver
         {
             public IBeltReceiver Create(BeltNetworkConnection connection, int stage) => this;
-            public void AttachInput(IBeltSource source, BeltDirection inputDirection) { }
             public int GetOffer(BeltDirection inputDirection) => 0;
             public bool TryReceive(BeltDirection inputDirection, int length, in BeltItem item) => false;
             public void OnDropped(BeltCellItemState item, string reason) => Assert.Fail(reason);

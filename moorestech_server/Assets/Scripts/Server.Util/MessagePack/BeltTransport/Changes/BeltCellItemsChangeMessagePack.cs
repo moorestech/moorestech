@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using Core.BeltTransport;
 using MessagePack;
@@ -15,13 +14,11 @@ namespace Server.Util.MessagePack.BeltTransport
             CellId = cellId;
             Items = items;
         }
-        [Obsolete("Reserved for MessagePack.")]
-        public BeltCellItemsChangeMessagePack() { }
         public BeltCellItemsChangeMessagePack(BeltCellItemsChange value)
         {
             CellId = value.CellId;
             Items = value.Items.Select(v => new BeltCellItemMessagePack(v)).ToArray();
         }
-        public override BeltBoundaryChange ToCore() => new BeltCellItemsChange(CellId, Items.Select(v => v.ToCore()).ToArray());
+        internal override BeltBoundaryChange ToCore() => new BeltCellItemsChange(CellId, Items.Select(v => v.ToCore()).ToArray());
     }
 }

@@ -1,4 +1,3 @@
-using System;
 using Core.BeltTransport;
 using MessagePack;
 namespace Server.Util.MessagePack.BeltTransport
@@ -11,10 +10,8 @@ namespace Server.Util.MessagePack.BeltTransport
         [SerializationConstructor]
         public BeltCellSurfaceMessagePack(float inputHeight, float outputHeight)
         { InputHeight = inputHeight; OutputHeight = outputHeight; }
-        [Obsolete("Reserved for MessagePack.")]
-        public BeltCellSurfaceMessagePack() { }
         public BeltCellSurfaceMessagePack(BeltCellSurfaceProfile value)
         { InputHeight = value.InputHeight; OutputHeight = value.OutputHeight; }
-        public BeltCellSurfaceProfile ToCore() => new(InputHeight, OutputHeight);
+        internal BeltCellSurfaceProfile ToCore() => new(InputHeight, OutputHeight);
     }
 }

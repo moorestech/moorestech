@@ -1,10 +1,10 @@
 // MyBeltConvSegmentのCPU実装をムアステ向けに変更。
-// Adapted from MyBeltConvSegment CPU implementation; see LICENSE.txt.
+// Adapted from MyBeltConvSegment CPU implementation.
 using System;
 
 namespace Core.BeltTransport
 {
-    public sealed class BeltConveyorSegment : IBeltSource, IBeltReceiver
+    internal sealed class BeltConveyorSegment : IBeltSource, IBeltReceiver
     {
         private readonly BeltItemQueue queue;
         private readonly BeltSegmentInputs inputs;
@@ -17,10 +17,9 @@ namespace Core.BeltTransport
         private IBeltReceiver Output;
         private int Capacity { get; }
         private int Count => queue.Count;
-        private int Speed;
         public int PriorityOrder => Kind == BeltSegmentKind.Merge ? inputs.PriorityOrder
             : Kind == BeltSegmentKind.Branch ? Buffer.PriorityOrder : 0;
-        internal int TickSpeed { get; private set; }
+        internal readonly int TickSpeed;
         internal BeltDirection InputDirection { get; private set; } = BeltDirection.None;
 
         internal BeltConveyorSegment(int capacity, int speed, BeltSegmentKind kind,
@@ -35,7 +34,9 @@ namespace Core.BeltTransport
                 throw new ArgumentOutOfRangeException(nameof(kind));
             Capacity = capacity;
             Kind = kind;
-            SetSpeed(speed);
+            if (speed < 0 || BeltConstants.ItemWidth / 2 < speed)
+                throw new ArgumentOutOfRangeException(nameof(speed));
+            TickSpeed = speed;
             queue = new BeltItemQueue(capacity, movement);
 
             // 新規生成は向きから初期化し、ロードは保存順を使う。
@@ -46,27 +47,15 @@ namespace Core.BeltTransport
                 Buffer = new BeltBuffer(this, kind == BeltSegmentKind.Branch
                     ? (0 <= priorityOrder ? priorityOrder : BeltPriority.Create(forwardDirection))
                     : (int)forwardDirection, movement);
-
-            #region Internal
-            void SetSpeed(int speed)
-            {
-                if (speed < 0 || BeltConstants.ItemWidth / 2 < speed)
-                    throw new ArgumentOutOfRangeException(nameof(speed));
-                Speed = speed;
-            }
-            #endregion
         }
 
-        public void ConnectTo(IBeltReceiver target, BeltDirection direction)
+        internal void ConnectTo(IBeltReceiver target, BeltDirection direction)
         {
-            // 両端に同じ接続を反対方向として登録する。
-            // Register both ends using opposite directions.
-            target.AttachInput(this, BeltDirections.Opposite(direction));
             outputDirection = direction;
             Output = target;
         }
 
-        public void AttachInput(IBeltSource source, BeltDirection direction) => inputs.Attach(source, direction);
+        internal void AttachInput(IBeltSource source, BeltDirection direction) => inputs.Attach(source, direction);
 
         public int GetOffer(BeltDirection direction)
         {
@@ -86,7 +75,6 @@ namespace Core.BeltTransport
         }
 
         public bool TryGetOutput(BeltDirection direction) => 0 < OutputLength;
-        internal void BeginTick() => TickSpeed = Speed;
         internal void RestoreInputDirection(BeltDirection direction) => InputDirection = direction;
         internal void ResolveInput() => inputs.Resolve(Count != 0);
 
@@ -132,11 +120,11 @@ namespace Core.BeltTransport
 
         // tick境界で出口に近い順の位置を複製する。
         // Capture positions in exit-first order at tick boundaries.
-        public BeltItemState[] CaptureItems() => queue.CaptureItems();
+        internal BeltItemState[] CaptureItems() => queue.CaptureItems();
 
         // 呼び出し側が距離と間隔を確定した列を空のsegmentへ復元する。
         // Restore caller-validated distances and spacing into an empty segment.
-        public void RestoreItems(BeltItemState[] states)
+        internal void RestoreItems(BeltItemState[] states)
         {
             foreach (var state in states)
                 queue.EnqueueTail(state.DistanceToExit - queue.TotalLength, state.Item);

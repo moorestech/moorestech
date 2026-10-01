@@ -9,8 +9,8 @@ namespace Server.Util.MessagePack.BeltTransport
     [Union(3, typeof(BeltTopologyChangeMessagePack))]
     public abstract class BeltChangeMessagePack
     {
-        public abstract BeltBoundaryChange ToCore();
-        public static BeltChangeMessagePack FromCore(BeltBoundaryChange change) => change switch
+        internal abstract BeltBoundaryChange ToCore();
+        internal static BeltChangeMessagePack FromCore(BeltBoundaryChange change) => change switch
         {
             BeltSpeedChange speed => new BeltSpeedChangeMessagePack(speed),
             BeltInputChange input => new BeltInputChangeMessagePack(input),

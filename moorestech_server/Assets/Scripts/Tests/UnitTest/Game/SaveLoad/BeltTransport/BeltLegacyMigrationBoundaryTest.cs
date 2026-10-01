@@ -34,7 +34,7 @@ namespace Tests.UnitTest.Game.SaveLoad.BeltTransport
             var (_, services) = new MoorestechServerDIContainerGenerator().Create(fixture.Options);
             services.GetRequiredService<IWorldSaveDataLoader>().LoadOrInitialize();
             var belt = ServerContext.WorldBlockDatastore.GetBlock(fixture.BlockId).GetComponent<VanillaBeltConveyorComponent>();
-            Assert.AreEqual(4, belt.BeltConveyorItems.Count);
+            Assert.AreEqual(4, belt.CaptureItems().Length);
             var mapped = belt.CaptureItems();
             var mappedProgress = Array.ConvertAll(mapped, item => item.Progress);
             CollectionAssert.AreEqual(new[] { 256, 192, 128, 64 }, mappedProgress);

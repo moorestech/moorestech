@@ -115,16 +115,8 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
             return false;
         }
         internal bool CanInsert(int cellId) => Network.CanInsert(cellId);
-        internal int GetSlotSize(int cellId)
-        {
-            var path = Network.GetPath(cellId);
-            return path.Cells[path.Cells.Length - 1].Id == cellId && path.Segment.Buffer != null ? 2 : 1;
-        }
-        internal int GetPriority(int cellId)
-        {
-            var path = Network.GetPath(cellId);
-            return path.Cells[path.Cells.Length - 1].Id == cellId ? path.Segment.PriorityOrder : 0;
-        }
+        internal int GetSlotSize(int cellId) => Network.GetSlotSize(cellId);
+        internal int GetPriority(int cellId) => Network.GetPriority(cellId);
         internal BeltCellItemState[] CaptureCell(int cellId)
         {
             var result = new List<BeltCellItemState>();

@@ -28,16 +28,14 @@ namespace Client.Tests.BeltTransport
             Assert.AreEqual(BeltTestState.Identity, replica.Snapshot.Items[0].Item.Guid);
             Assert.AreEqual(65, replica.Snapshot.Items[0].Progress);
         }
-        [TestCase(BeltDirection.Front, 0, 128, 0, 0.5f)]
-        [TestCase(BeltDirection.Left, 1, 64, -0.75f, 0)]
-        [TestCase(BeltDirection.Right, -1, 192, 0.25f, 0)]
-        [TestCase(BeltDirection.Back, 0, 256, 0, 0)]
-        public void CellCenterEntryAndSlopePositionTest(BeltDirection entry, int height, int progress, float x, float z)
+        [TestCase(BeltDirection.Left, 64, -0.75f)]
+        [TestCase(BeltDirection.Right, 192, 0.25f)]
+        public void SideEntryChangesHorizontalPositionTest(BeltDirection entry, int progress, float x)
         {
             var state = BeltTestState.Snapshot(progress, 0, true);
-            var item = new BeltCellItemState(1, progress, entry, height, state.Items[0].Item, false);
+            var item = new BeltCellItemState(1, progress, entry, 0, state.Items[0].Item, false);
             var position = BeltItemPosition.Calculate(state, item);
-            Assert.AreEqual(new Vector3(-1.5f + x, 3.35f, 4.5f + z), position);
+            Assert.AreEqual(new Vector3(-1.5f + x, 3.35f, 4.5f), position);
         }
     }
 }

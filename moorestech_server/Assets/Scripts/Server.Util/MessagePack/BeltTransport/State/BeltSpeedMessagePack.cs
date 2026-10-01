@@ -1,4 +1,3 @@
-using System;
 using Core.BeltTransport;
 using MessagePack;
 
@@ -16,8 +15,6 @@ namespace Server.Util.MessagePack.BeltTransport
             CellId = cellId;
             Speed = speed;
         }
-        [Obsolete("Reserved for MessagePack.")]
-        public BeltSpeedMessagePack() { }
 
         public BeltSpeedMessagePack(BeltCellSpeed value)
         {
@@ -25,6 +22,6 @@ namespace Server.Util.MessagePack.BeltTransport
             Speed = value.Speed;
         }
 
-        public BeltCellSpeed ToCore() => new(CellId, Speed);
+        internal BeltCellSpeed ToCore() => new(CellId, Speed);
     }
 }

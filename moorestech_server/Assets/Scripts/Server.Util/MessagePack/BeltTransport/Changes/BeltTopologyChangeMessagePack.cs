@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using Core.BeltTransport;
 using MessagePack;
@@ -21,8 +20,6 @@ namespace Server.Util.MessagePack.BeltTransport
             RemovedConnections = removedConnections;
             AddedItems = addedItems;
         }
-        [Obsolete("Reserved for MessagePack.")]
-        public BeltTopologyChangeMessagePack() { }
         public BeltTopologyChangeMessagePack(BeltTopologyChange value)
         {
             ChangedCells = value.ChangedCells.Select(v => new BeltCellMessagePack(v)).ToArray();
@@ -31,7 +28,7 @@ namespace Server.Util.MessagePack.BeltTransport
             RemovedConnections = value.RemovedConnections.Select(v => new BeltConnectionMessagePack(v)).ToArray();
             AddedItems = value.AddedItems.Select(v => new BeltCellItemMessagePack(v)).ToArray();
         }
-        public override BeltBoundaryChange ToCore() => new BeltTopologyChange(ChangedCells.Select(v => v.ToCore()).ToArray(), RemovedCells,
+        internal override BeltBoundaryChange ToCore() => new BeltTopologyChange(ChangedCells.Select(v => v.ToCore()).ToArray(), RemovedCells,
             AddedConnections.Select(v => v.ToCore()).ToArray(), RemovedConnections.Select(v => v.ToCore()).ToArray(), AddedItems.Select(v => v.ToCore()).ToArray());
     }
 }

@@ -1,4 +1,3 @@
-using System;
 using Core.BeltTransport;
 using MessagePack;
 namespace Server.Util.MessagePack.BeltTransport
@@ -22,13 +21,11 @@ namespace Server.Util.MessagePack.BeltTransport
             Item = item;
             IsBuffer = isBuffer;
         }
-        [Obsolete("Reserved for MessagePack.")]
-        public BeltCellItemMessagePack() { }
         public BeltCellItemMessagePack(BeltCellItemState value)
         {
             CellId = value.CellId; Progress = value.Progress; EntryDirection = value.EntryDirection;
             EntryHeight = value.EntryHeight; Item = new(value.Item); IsBuffer = value.IsBuffer;
         }
-        public BeltCellItemState ToCore() => new(CellId, Progress, EntryDirection, EntryHeight, Item.ToCore(), IsBuffer);
+        internal BeltCellItemState ToCore() => new(CellId, Progress, EntryDirection, EntryHeight, Item.ToCore(), IsBuffer);
     }
 }

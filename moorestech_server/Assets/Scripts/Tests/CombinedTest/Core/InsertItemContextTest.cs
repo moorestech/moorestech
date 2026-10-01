@@ -46,7 +46,6 @@ namespace Tests.CombinedTest.Core
             var state = transport.CaptureCommittedSnapshot().Snapshot.Items.Single();
             Assert.AreEqual(global::Core.BeltTransport.BeltDirection.Back, state.EntryDirection);
             Assert.AreEqual(0, state.EntryHeight);
-            Assert.AreEqual(edge.TargetConnector.ConnectorGuid, facade.BeltConveyorItems[0].StartConnector.ConnectorGuid);
         }
         [Test]
         public void ChestThroughBeltUsesLastSenderContextTest()

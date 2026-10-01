@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using Core.BeltTransport;
 using MessagePack;
@@ -21,8 +20,6 @@ namespace Server.Util.MessagePack.BeltTransport
             Items = items;
             Priorities = priorities;
         }
-        [Obsolete("Reserved for MessagePack.")]
-        public BeltSnapshotMessagePack() { }
         public BeltSnapshotMessagePack(BeltCommittedSnapshot value)
         {
             // 確定tickと同じ境界の状態を一括で符号化する。

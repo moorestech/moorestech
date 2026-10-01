@@ -17,8 +17,6 @@ namespace Server.Util.MessagePack.BeltTransport
             Guid = guid;
             ItemId = itemId;
         }
-        [Obsolete("Reserved for MessagePack.")]
-        public BeltItemMessagePack() { }
 
         public BeltItemMessagePack(BeltItem value)
         {
@@ -26,6 +24,6 @@ namespace Server.Util.MessagePack.BeltTransport
             ItemId = new ItemId(value.ItemId);
         }
 
-        public BeltItem ToCore() => new(Guid, ItemId.AsPrimitive());
+        internal BeltItem ToCore() => new(Guid, ItemId.AsPrimitive());
     }
 }

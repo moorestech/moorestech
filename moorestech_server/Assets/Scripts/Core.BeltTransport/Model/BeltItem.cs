@@ -1,5 +1,5 @@
 // MyBeltConvSegmentのCPU実装をムアステ向けに変更。
-// Adapted from MyBeltConvSegment CPU implementation; see LICENSE.txt.
+// Adapted from MyBeltConvSegment CPU implementation.
 using System;
 
 namespace Core.BeltTransport

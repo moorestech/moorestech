@@ -1,11 +1,11 @@
 // MyBeltConvSegmentのCPU実装をムアステ向けに変更。
-// Adapted from MyBeltConvSegment CPU implementation; see LICENSE.txt.
+// Adapted from MyBeltConvSegment CPU implementation.
 using System;
 
 namespace Core.BeltTransport
 {
     /// <summary>合流・分岐segmentの終端にある1アイテムbuffer。</summary>
-    public sealed class BeltBuffer : IBeltSource
+    internal sealed class BeltBuffer : IBeltSource
     {
         readonly IBeltReceiver[] outputs = new IBeltReceiver[4];
         readonly int priorityCount;
@@ -13,7 +13,7 @@ namespace Core.BeltTransport
         int outputMask;
 
         private BeltConveyorSegment Segment { get; }
-        public bool HasItem { get; private set; }
+        internal bool HasItem { get; private set; }
         internal int PriorityOrder { get; private set; }
         private readonly IBeltItemMovementObserver movement;
 
@@ -26,14 +26,14 @@ namespace Core.BeltTransport
         }
 
         /// <summary>tick境界で保持中のアイテムを読み取る。</summary>
-        public bool TryGetItem(out BeltItem item)
+        internal bool TryGetItem(out BeltItem item)
         {
             item = this.item;
             return HasItem;
         }
 
         /// <summary>再生成した空のbufferへ、存続するblockのアイテムを復元する。</summary>
-        public void RestoreItem(in BeltItem item)
+        internal void RestoreItem(in BeltItem item)
         {
             this.item = item;
             HasItem = true;
@@ -41,11 +41,10 @@ namespace Core.BeltTransport
         }
 
         /// <summary>搬出先と接続方向を登録する。3方向の優先順序は維持する。</summary>
-        public void ConnectTo(IBeltReceiver target, BeltDirection outputDirection)
+        internal void ConnectTo(IBeltReceiver target, BeltDirection outputDirection)
         {
             // 未接続方向も含めた優先順序を保つ。
             // Preserve the order including disconnected directions.
-            target.AttachInput(this, BeltDirections.Opposite(outputDirection));
             outputs[(int)outputDirection] = target;
             outputMask |= 1 << (int)outputDirection;
             if (priorityCount == 1) PriorityOrder = (int)outputDirection;

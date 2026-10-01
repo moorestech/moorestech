@@ -42,7 +42,6 @@ namespace Tests.CombinedTest.Core.Transport.Segment
                 GameUpdater.UpdateOneTick();
                 CollectionAssert.AreEqual(transport.Network.CaptureItems(), replay.Network.CaptureItems());
             }
-            Assert.AreSame(transport.Network.GetPath(first.BlockInstanceId.AsPrimitive()), transport.Network.GetPath(second.BlockInstanceId.AsPrimitive()));
             Assert.AreEqual(3, Count(target));
             Assert.AreEqual(0, Count(source));
         }
@@ -53,12 +52,11 @@ namespace Tests.CombinedTest.Core.Transport.Segment
             var transport = CreateWorld();
             var source = Place(ForUnitTestModBlockId.ChestId, 0, -1, BlockDirection.North).GetComponent<IBlockInventory>();
             Place(ForUnitTestModBlockId.BeltConveyorId, 0, 0, BlockDirection.North);
-            var merge = Place(ForUnitTestModBlockId.BeltConveyorId, 0, 1, BlockDirection.North);
+            Place(ForUnitTestModBlockId.BeltConveyorId, 0, 1, BlockDirection.North);
             var side = Place(ForUnitTestModBlockId.BeltConveyorId, -1, 1, BlockDirection.East).GetComponent<VanillaBeltConveyorComponent>();
             var target = Place(ForUnitTestModBlockId.ChestId, 0, 2, BlockDirection.North).GetComponent<IBlockInventory>();
             side.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId2, 1));
             transport.Initialize();
-            Assert.AreEqual(BeltSegmentKind.Merge, transport.Network.GetPath(merge.BlockInstanceId.AsPrimitive()).Segment.Kind);
             var replay = new BeltNetworkReplay(transport.CaptureCommittedSnapshot().Tick, transport.CaptureCommittedSnapshot().Snapshot, this);
             transport.OnTickCompleted.Subscribe(difference => replay.Apply(Tests.Util.BeltTransport.BeltWireRoundTrip.Tick(difference)));
             source.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 2));

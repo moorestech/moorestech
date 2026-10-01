@@ -79,7 +79,7 @@ namespace Tests.CombinedTest.Core.Transport
             var second = ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId2, 2);
             Assert.AreEqual(1, belt.InsertItem(first, InsertItemContext.Empty).Count);
             Assert.AreEqual(2, belt.InsertItem(second, InsertItemContext.Empty).Count);
-            Assert.AreEqual(1, belt.BeltConveyorItems.Count);
+            Assert.AreEqual(1, belt.CaptureItems().Length);
         }
 
         [Test]

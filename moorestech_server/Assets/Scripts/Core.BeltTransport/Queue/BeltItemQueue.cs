@@ -1,5 +1,5 @@
 // MyBeltConvSegmentのCPU実装をムアステ向けに変更。
-// Adapted from MyBeltConvSegment CPU implementation; see LICENSE.txt.
+// Adapted from MyBeltConvSegment CPU implementation.
 namespace Core.BeltTransport
 {
     // 隙間と密着ブロックをリング配列で保持する。

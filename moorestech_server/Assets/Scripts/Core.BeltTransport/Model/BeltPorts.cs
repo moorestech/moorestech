@@ -1,9 +1,9 @@
 // MyBeltConvSegmentのCPU実装をムアステ向けに変更。
-// Adapted from MyBeltConvSegment CPU implementation; see LICENSE.txt.
+// Adapted from MyBeltConvSegment CPU implementation.
 namespace Core.BeltTransport
 {
     /// <summary>合流の予約時に搬出可否を問い合わせる。状態は変更しない。</summary>
-    public interface IBeltSource
+    internal interface IBeltSource
     {
         /// <param name="inputDirection">問い合わせ側から見た搬入元の方向。</param>
         bool TryGetOutput(BeltDirection inputDirection);
@@ -16,8 +16,6 @@ namespace Core.BeltTransport
     /// </summary>
     public interface IBeltReceiver
     {
-        /// <summary>受け入れ側から見た搬入元の方向と、搬入元を登録する。</summary>
-        void AttachInput(IBeltSource source, BeltDirection inputDirection);
         /// <summary>受け入れ可能な進入距離を返す。0以下なら搬入不可。</summary>
         /// <param name="inputDirection">受け入れ側から見た搬入元の方向。</param>
         int GetOffer(BeltDirection inputDirection);
@@ -26,7 +24,7 @@ namespace Core.BeltTransport
         bool TryReceive(BeltDirection inputDirection, int length, in BeltItem item);
     }
 
-    public enum BeltSegmentKind
+    internal enum BeltSegmentKind
     {
         Normal,
         Merge,

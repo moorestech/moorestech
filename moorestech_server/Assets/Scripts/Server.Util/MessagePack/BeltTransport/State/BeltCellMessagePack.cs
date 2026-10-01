@@ -1,4 +1,3 @@
-using System;
 using Core.BeltTransport;
 using MessagePack;
 
@@ -27,8 +26,6 @@ namespace Server.Util.MessagePack.BeltTransport
             SpeedProfile = speedProfile;
             Forward = forward; Surface = surface;
         }
-        [Obsolete("Reserved for MessagePack.")]
-        public BeltCellMessagePack() { }
 
         public BeltCellMessagePack(BeltNetworkCell value)
         {
@@ -41,6 +38,6 @@ namespace Server.Util.MessagePack.BeltTransport
             Forward = value.Forward; Surface = new(value.Surface);
         }
 
-        public BeltNetworkCell ToCore() => new(Id, X, Y, Z, Speed, SpeedProfile, Forward, Surface.ToCore());
+        internal BeltNetworkCell ToCore() => new(Id, X, Y, Z, Speed, SpeedProfile, Forward, Surface.ToCore());
     }
 }

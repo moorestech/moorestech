@@ -1,4 +1,3 @@
-using System;
 using Core.BeltTransport;
 using MessagePack;
 namespace Server.Util.MessagePack.BeltTransport
@@ -24,13 +23,11 @@ namespace Server.Util.MessagePack.BeltTransport
             Succeeded = succeeded;
             Item = item;
         }
-        [Obsolete("Reserved for MessagePack.")]
-        public BeltOutputMessagePack() { }
         public BeltOutputMessagePack(BeltOutputResult value)
         {
             SourceCellId = value.SourceCellId; TargetId = value.TargetId; Stage = value.Stage;
             Direction = value.Direction; Offer = value.Offer; Succeeded = value.Succeeded; Item = new(value.Item);
         }
-        public BeltOutputResult ToCore() => new(SourceCellId, TargetId, Stage, Direction, Offer, Succeeded, Item.ToCore());
+        internal BeltOutputResult ToCore() => new(SourceCellId, TargetId, Stage, Direction, Offer, Succeeded, Item.ToCore());
     }
 }

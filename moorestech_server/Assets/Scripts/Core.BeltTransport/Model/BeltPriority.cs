@@ -1,5 +1,5 @@
 // MyBeltConvSegmentのCPU実装をムアステ向けに変更。
-// Adapted from MyBeltConvSegment CPU implementation; see LICENSE.txt.
+// Adapted from MyBeltConvSegment CPU implementation.
 namespace Core.BeltTransport
 {
     /// <summary>未接続方向も含む3方向を、低位から各2bitで優先順に保持する。</summary>

@@ -29,7 +29,7 @@ namespace Tests.CombinedTest.Core.Transport
             belt.InsertItem(ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 1), InsertItemContext.Empty);
             for (int tick = 0; tick < 100; tick++) GameUpdater.UpdateOneTick();
             Assert.AreEqual(1, output.GetItem(0).Count);
-            Assert.AreEqual(0, belt.BeltConveyorItems.Count);
+            Assert.AreEqual(0, belt.CaptureItems().Length);
         }
 
         [Test]
@@ -53,7 +53,7 @@ namespace Tests.CombinedTest.Core.Transport
             generator.SetGenerateTorque(0f);
             belt.InsertItem(ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 1), InsertItemContext.Empty);
             for (int tick = 0; tick < 5; tick++) GameUpdater.UpdateOneTick();
-            Assert.AreEqual(1, belt.BeltConveyorItems.Count);
+            Assert.AreEqual(1, belt.CaptureItems().Length);
 
             // 速度差分を適用しても初回状態から同じCPU位置を再現する。
             // Speed differences preserve deterministic replay from the initial state.

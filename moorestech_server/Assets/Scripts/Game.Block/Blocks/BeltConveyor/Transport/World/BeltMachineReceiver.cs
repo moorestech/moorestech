@@ -14,13 +14,12 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
         private int offer;
         internal BeltMachineReceiver(BeltWorldTransport owner, BeltNetworkConnection edge, BeltMachineConnection connection, int stage)
         { this.owner = owner; this.edge = edge; this.connection = connection; this.stage = stage; }
-        public void AttachInput(IBeltSource source, BeltDirection direction) { }
         public int GetOffer(BeltDirection direction)
         {
             // bufferの候補アイテムで問い合わせ、成功とは別に記録する。
             // Query using the buffer candidate and record acceptance separately from success.
             offer = 0;
-            if (!owner.Network.GetPath(edge.SourceId).Segment.Buffer.TryGetItem(out var item)) return 0;
+            if (!owner.Network.TryGetBufferedItem(edge.SourceId, out var item)) return 0;
             var stack = owner.GetStack(item.Guid);
             if (connection.Target.InsertionCheck(new List<IItemStack> { stack })) offer = BeltConstants.ItemWidth;
             if (0 < offer) owner.RecordOutput(new BeltOutputResult(edge.SourceId, edge.TargetId, stage, edge.Direction, offer, false, item));

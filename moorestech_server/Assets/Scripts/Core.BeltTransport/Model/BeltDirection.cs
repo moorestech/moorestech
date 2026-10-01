@@ -1,5 +1,5 @@
 // MyBeltConvSegmentのCPU実装をムアステ向けに変更。
-// Adapted from MyBeltConvSegment CPU implementation; see LICENSE.txt.
+// Adapted from MyBeltConvSegment CPU implementation.
 namespace Core.BeltTransport
 {
     /// <summary>接続用の4方向。前は+Y、後は-Y、左は-X、右は+X。</summary>

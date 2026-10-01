@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using Core.BeltTransport;
 using MessagePack;
@@ -13,12 +12,10 @@ namespace Server.Util.MessagePack.BeltTransport
         {
             Speeds = speeds;
         }
-        [Obsolete("Reserved for MessagePack.")]
-        public BeltSpeedChangeMessagePack() { }
         public BeltSpeedChangeMessagePack(BeltSpeedChange value)
         {
             Speeds = value.Speeds.Select(v => new BeltSpeedMessagePack(v)).ToArray();
         }
-        public override BeltBoundaryChange ToCore() => new BeltSpeedChange(Speeds.Select(v => v.ToCore()).ToArray());
+        internal override BeltBoundaryChange ToCore() => new BeltSpeedChange(Speeds.Select(v => v.ToCore()).ToArray());
     }
 }

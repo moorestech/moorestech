@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using Core.BeltTransport;
 using MessagePack;
@@ -19,8 +18,6 @@ namespace Server.Util.MessagePack.BeltTransport
             Outputs = outputs;
             AfterTick = afterTick;
         }
-        [Obsolete("Reserved for MessagePack.")]
-        public BeltTickMessagePack() { }
         public BeltTickMessagePack(BeltTickDifference value)
         {
             // 空の通知もtick完了を表し、前tickの受入結果を引き継がない。

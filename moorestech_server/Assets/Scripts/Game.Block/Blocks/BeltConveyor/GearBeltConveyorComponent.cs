@@ -1,5 +1,4 @@
 using Core.Update;
-using System.Linq;
 using Game.Block.Blocks.Gear;
 using Game.Block.Component;
 using Game.Block.Interface;
@@ -63,7 +62,7 @@ namespace Game.Block.Blocks.BeltConveyor
         {
             // ベルト上のアイテム有無で要求トルク倍率を変更要求する
             // Push the torque request rate based on whether items are on the belt
-            var hasItem = _beltConveyorComponent.BeltConveyorItems.Any(item => item != null);
+            var hasItem = _beltConveyorComponent.CaptureItems().Length != 0;
             SetTorqueRequestRate(hasItem ? 1f : _idleTorqueRate);
         }
     }

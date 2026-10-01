@@ -13,7 +13,7 @@ using UniRx;
 
 namespace Game.Block.Blocks.BeltConveyor
 {
-    public sealed class VanillaBeltConveyorComponent : IBlockInventory, IBlockSaveState, IItemCollectableBeltConveyor
+    public sealed class VanillaBeltConveyorComponent : IBlockInventory, IBlockSaveState
     {
         private readonly InventoryConnects connectors;
         private readonly List<BeltCellItemState> pending = new List<BeltCellItemState>();
@@ -42,17 +42,6 @@ namespace Game.Block.Blocks.BeltConveyor
             // Prevent gear transport before RPM is supplied.
             SetTicksOfItemEnterToExit(gear ? uint.MaxValue : GameUpdater.SecondsToTicks(transitSeconds));
             if (componentStates != null) BeltCellSaveCodec.Load(this, componentStates[SaveKey], transitSeconds);
-        }
-
-        public IReadOnlyList<IOnBeltConveyorItem> BeltConveyorItems
-        {
-            get
-            {
-                var result = new List<IOnBeltConveyorItem>();
-                foreach (var item in CaptureItems())
-                    result.Add(new BeltSegmentItemView(item, connectors.InputConnects?[0], connectors.OutputConnects?[0]));
-                return result;
-            }
         }
 
         public IItemStack InsertItem(IItemStack stack, InsertItemContext context)

@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using Core.BeltTransport;
 using MessagePack;
@@ -19,8 +18,6 @@ namespace Server.Util.MessagePack.BeltTransport
             Length = length;
             Item = item;
         }
-        [Obsolete("Reserved for MessagePack.")]
-        public BeltInputChangeMessagePack() { }
         public BeltInputChangeMessagePack(BeltInputChange value)
         {
             CellId = value.CellId;
@@ -28,6 +25,6 @@ namespace Server.Util.MessagePack.BeltTransport
             Length = value.Length;
             Item = new(value.Item);
         }
-        public override BeltBoundaryChange ToCore() => new BeltInputChange(CellId, Direction, Length, Item.ToCore());
+        internal override BeltBoundaryChange ToCore() => new BeltInputChange(CellId, Direction, Length, Item.ToCore());
     }
 }

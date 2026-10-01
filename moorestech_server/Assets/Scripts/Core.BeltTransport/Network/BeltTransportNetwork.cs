@@ -36,7 +36,19 @@ namespace Core.BeltTransport
 
         public void Tick() => simulation.Tick();
         public IReadOnlyDictionary<int, int> DrainOccupancyChanges() => occupancy.DrainChanges();
-        public BeltTransportPath GetPath(int cellId) => pathsByCell[cellId];
+        public int GetSlotSize(int cellId)
+        {
+            var path = pathsByCell[cellId];
+            return path.Cells[path.Cells.Length - 1].Id == cellId && path.Segment.Buffer != null ? 2 : 1;
+        }
+
+        public int GetPriority(int cellId)
+        {
+            var path = pathsByCell[cellId];
+            return path.Cells[path.Cells.Length - 1].Id == cellId ? path.Segment.PriorityOrder : 0;
+        }
+
+        public bool TryGetBufferedItem(int cellId, out BeltItem item) => pathsByCell[cellId].Segment.Buffer.TryGetItem(out item);
 
         public void SetSpeeds(BeltCellSpeed[] speeds)
         {
@@ -122,7 +134,17 @@ namespace Core.BeltTransport
             foreach (var path in paths)
             foreach (var edge in path.Outputs)
             {
-                IBeltReceiver target = edge.TargetIsBelt ? pathsByCell[edge.TargetId].Segment : receivers.Create(edge, path.Segment.Buffer == null ? 4 : 3);
+                // 合流入力の登録は内部グラフだけで行う。
+                // Register merge inputs only within the internal belt graph.
+                IBeltReceiver target;
+                if (edge.TargetIsBelt)
+                {
+                    var targetSegment = pathsByCell[edge.TargetId].Segment;
+                    IBeltSource source = path.Segment.Buffer == null ? path.Segment : path.Segment.Buffer;
+                    targetSegment.AttachInput(source, BeltDirections.Opposite(edge.Direction));
+                    target = targetSegment;
+                }
+                else target = receivers.Create(edge, path.Segment.Buffer == null ? 4 : 3);
                 if (path.Segment.Buffer == null) path.Segment.ConnectTo(target, edge.Direction);
                 else path.Segment.Buffer.ConnectTo(target, edge.Direction);
             }

@@ -1,18 +1,17 @@
 // MyBeltConvSegmentのCPU実装をムアステ向けに変更。
-// Adapted from MyBeltConvSegment CPU implementation; see LICENSE.txt.
+// Adapted from MyBeltConvSegment CPU implementation.
 using System.Collections.Generic;
 
 namespace Core.BeltTransport
 {
-    public sealed class BeltSimulation
+    internal sealed class BeltSimulation
     {
-        private readonly BeltConveyorSegment[] segments, merges, normal;
+        private readonly BeltConveyorSegment[] merges, normal;
         private readonly BeltSegmentTransfer[] transfers;
         private readonly BeltBuffer[] buffers;
 
         public BeltSimulation(IEnumerable<BeltConveyorSegment> segments)
         {
-            var all = new List<BeltConveyorSegment>();
             var mergeList = new List<BeltConveyorSegment>();
             var normalList = new List<BeltConveyorSegment>();
             var bufferList = new List<BeltBuffer>();
@@ -21,12 +20,10 @@ namespace Core.BeltTransport
             // Preserve caller-defined order when classifying update targets.
             foreach (var segment in segments)
             {
-                all.Add(segment);
                 if (segment.Kind == BeltSegmentKind.Merge) mergeList.Add(segment);
                 if (segment.Kind == BeltSegmentKind.Normal) normalList.Add(segment);
                 else bufferList.Add(segment.Buffer);
             }
-            this.segments = all.ToArray();
             merges = mergeList.ToArray();
             normal = normalList.ToArray();
             transfers = BeltSegmentTransfer.Cache(normal);
@@ -35,9 +32,8 @@ namespace Core.BeltTransport
 
         public void Tick()
         {
-            // 段階0〜2を全件ずつ完了して予約を固定する。
-            // Complete stages zero through two before using reservations.
-            foreach (var segment in segments) segment.BeginTick();
+            // 段階1〜2を全件ずつ完了して予約を固定する。
+            // Complete stages one and two before using reservations.
             foreach (var buffer in buffers) buffer.Collect();
             foreach (var merge in merges) merge.ResolveInput();
 

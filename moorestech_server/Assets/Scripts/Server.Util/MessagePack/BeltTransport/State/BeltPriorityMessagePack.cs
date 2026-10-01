@@ -1,4 +1,3 @@
-using System;
 using Core.BeltTransport;
 using MessagePack;
 
@@ -16,8 +15,6 @@ namespace Server.Util.MessagePack.BeltTransport
             CellId = cellId;
             Order = order;
         }
-        [Obsolete("Reserved for MessagePack.")]
-        public BeltPriorityMessagePack() { }
 
         public BeltPriorityMessagePack(BeltCellPriority value)
         {
@@ -25,6 +22,6 @@ namespace Server.Util.MessagePack.BeltTransport
             Order = value.Order;
         }
 
-        public BeltCellPriority ToCore() => new(CellId, Order);
+        internal BeltCellPriority ToCore() => new(CellId, Order);
     }
 }

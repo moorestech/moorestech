@@ -19,10 +19,10 @@ namespace Tests.UnitTest.Core.BeltTransport
             var cells = new[] { Cell(1, 0, 0, 0, 64), Cell(2, 0, 1, 1, 64), Cell(3, 1, 1, 1, 64), Cell(4, 2, 1, 1, 32) };
             var edges = new[] { Edge(1, 2, BeltDirection.Front), Edge(2, 3, BeltDirection.Right), Edge(3, 4, BeltDirection.Right) };
             network.Rebuild(cells, edges, Array.Empty<BeltCellItemState>());
-            Assert.AreSame(network.GetPath(1), network.GetPath(2));
-            Assert.AreEqual(3, network.GetPath(1).Cells.Length);
-            Assert.AreSame(network.GetPath(1), network.GetPath(3));
-            Assert.AreNotSame(network.GetPath(3), network.GetPath(4));
+            Assert.IsTrue(network.CanInsert(1));
+            Assert.IsFalse(network.CanInsert(2));
+            Assert.IsFalse(network.CanInsert(3));
+            Assert.IsTrue(network.CanInsert(4));
         }
 
         [Test]
@@ -32,8 +32,7 @@ namespace Tests.UnitTest.Core.BeltTransport
             var cells = new[] { Cell(1, 1, 0, 1, 64), Cell(2, 0, 0, 1, 64), Cell(3, 0, 0, 0, 64), Cell(4, 1, 0, 0, 64) };
             network.Rebuild(cells, new[] { Edge(1, 2, BeltDirection.Left), Edge(2, 3, BeltDirection.Back),
                 Edge(3, 4, BeltDirection.Right), Edge(4, 1, BeltDirection.Front) }, Array.Empty<BeltCellItemState>());
-            foreach (var cell in cells) Assert.AreSame(network.GetPath(3), network.GetPath(cell.Id));
-            Assert.AreEqual(3, network.GetPath(3).Cells[0].Id);
+            foreach (var cell in cells) Assert.AreEqual(cell.Id == 3, network.CanInsert(cell.Id));
             Assert.IsTrue(network.TryInsert(3, BeltDirection.Back, 256, Item(1)));
             foreach (int nextCell in new[] { 4, 1, 2, 3 })
             {
@@ -106,11 +105,9 @@ namespace Tests.UnitTest.Core.BeltTransport
                 new BeltCellItemState(3, 256, BeltDirection.Back, 0, Item(4), true) };
             network.Restore(new BeltNetworkSnapshot(cells, edges, items, new[] { new BeltCellPriority(3, 57) }));
             network.SetSpeeds(new[] { new BeltCellSpeed(1, 64), new BeltCellSpeed(2, 32), new BeltCellSpeed(3, 64) });
-            Assert.AreNotSame(network.GetPath(1), network.GetPath(2));
-            Assert.AreEqual(57, network.GetPath(3).Segment.PriorityOrder);
+            Assert.AreEqual(57, network.GetPriority(3));
             network.SetSpeeds(new[] { new BeltCellSpeed(2, 64) });
-            Assert.AreSame(network.GetPath(1), network.GetPath(3));
-            Assert.AreEqual(57, network.GetPath(3).Segment.PriorityOrder);
+            Assert.AreEqual(57, network.GetPriority(3));
             CollectionAssert.AreEquivalent(items, network.CaptureItems());
             Assert.AreEqual(0, dropped.Count);
         }

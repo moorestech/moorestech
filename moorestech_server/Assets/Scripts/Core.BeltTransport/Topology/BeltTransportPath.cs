@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Core.BeltTransport
 {
-    public sealed class BeltTransportPath
+    internal sealed class BeltTransportPath
     {
         public readonly BeltNetworkCell[] Cells;
         public readonly BeltConveyorSegment Segment;

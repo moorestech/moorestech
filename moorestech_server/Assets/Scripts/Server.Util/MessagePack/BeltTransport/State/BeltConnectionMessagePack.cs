@@ -1,4 +1,3 @@
-using System;
 using Core.BeltTransport;
 using MessagePack;
 
@@ -24,8 +23,6 @@ namespace Server.Util.MessagePack.BeltTransport
             Direction = direction;
             EntryHeight = entryHeight;
         }
-        [Obsolete("Reserved for MessagePack.")]
-        public BeltConnectionMessagePack() { }
 
         public BeltConnectionMessagePack(BeltNetworkConnection value)
         {
@@ -37,6 +34,6 @@ namespace Server.Util.MessagePack.BeltTransport
             EntryHeight = value.EntryHeight;
         }
 
-        public BeltNetworkConnection ToCore() => new(SourceId, TargetId, SourceIsBelt, TargetIsBelt, Direction, EntryHeight);
+        internal BeltNetworkConnection ToCore() => new(SourceId, TargetId, SourceIsBelt, TargetIsBelt, Direction, EntryHeight);
     }
 }

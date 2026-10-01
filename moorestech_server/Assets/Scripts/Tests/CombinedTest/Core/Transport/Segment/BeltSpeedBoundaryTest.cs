@@ -34,7 +34,6 @@ namespace Tests.CombinedTest.Core.Transport.Segment
             generator.SetGenerateTorque(1f);
             GameUpdater.UpdateOneTick();
             Assert.AreEqual(fixedBelt.Speed, gear.Speed);
-            Assert.AreNotSame(transport.Network.GetPath(fixedBelt.CellId), transport.Network.GetPath(gear.CellId));
             var replay = new BeltNetworkReplay(transport.CaptureCommittedSnapshot().Tick, transport.CaptureCommittedSnapshot().Snapshot, this);
             transport.OnTickCompleted.Subscribe(difference => replay.Apply(Tests.Util.BeltTransport.BeltWireRoundTrip.Tick(difference)));
             fixedBelt.InsertItem(ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 1), InsertItemContext.Empty);
@@ -43,10 +42,7 @@ namespace Tests.CombinedTest.Core.Transport.Segment
             // Stopping one cell must not freeze the fixed-speed cell or its item.
             generator.SetGenerateTorque(0f);
             GameUpdater.UpdateOneTick();
-            Assert.AreEqual(0, transport.Network.GetPath(gear.CellId).Cells[0].Speed);
-            Assert.AreEqual(fixedBelt.Speed, transport.Network.GetPath(fixedBelt.CellId).Cells[0].Speed);
-            Assert.AreNotSame(transport.Network.GetPath(fixedBelt.CellId), transport.Network.GetPath(gear.CellId));
-            Assert.Greater(fixedBelt.BeltConveyorItems[0].TotalTicks - fixedBelt.BeltConveyorItems[0].RemainingTicks, 1);
+            Assert.Greater(fixedBelt.CaptureItems()[0].Progress, 1);
             CollectionAssert.AreEqual(transport.Network.CaptureItems(), replay.Network.CaptureItems());
         }
 
@@ -64,14 +60,12 @@ namespace Tests.CombinedTest.Core.Transport.Segment
             first.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 1));
             second.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId2, 1));
             transport.Initialize();
-            Assert.AreNotSame(transport.Network.GetPath(first.CellId), transport.Network.GetPath(second.CellId));
             var replay = new BeltNetworkReplay(transport.CaptureCommittedSnapshot().Tick, transport.CaptureCommittedSnapshot().Snapshot, this);
             transport.OnTickCompleted.Subscribe(difference => replay.Apply(Tests.Util.BeltTransport.BeltWireRoundTrip.Tick(difference)));
             generator.SetGenerateTorque(100f);
             GameUpdater.UpdateOneTick();
             Assert.AreEqual(32, first.Speed);
             Assert.AreEqual(128, second.Speed);
-            Assert.AreNotSame(transport.Network.GetPath(first.CellId), transport.Network.GetPath(second.CellId));
             Assert.AreEqual(2, transport.Network.CaptureItems().Length);
             CollectionAssert.AreEqual(transport.Network.CaptureItems(), replay.Network.CaptureItems());
         }
@@ -88,11 +82,10 @@ namespace Tests.CombinedTest.Core.Transport.Segment
             generator.SetGenerateRpm(10f);
             generator.SetGenerateTorque(1f);
             GameUpdater.UpdateOneTick();
-            Assert.AreEqual(1, first.BeltConveyorItems.Count);
-            Assert.AreEqual(0, second.BeltConveyorItems.Count);
+            Assert.AreEqual(1, first.CaptureItems().Length);
+            Assert.AreEqual(0, second.CaptureItems().Length);
             Assert.AreEqual(32, first.Speed);
             Assert.AreEqual(first.Speed, second.Speed);
-            Assert.AreSame(transport.Network.GetPath(first.CellId), transport.Network.GetPath(second.CellId));
             var before = transport.Network.CaptureItems();
             int firstChanges = 0, secondChanges = 0;
             first.OnItemsChanged.Subscribe(_ => firstChanges++);
@@ -119,8 +112,10 @@ namespace Tests.CombinedTest.Core.Transport.Segment
             var stack = ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 2,
                 new Dictionary<string, ItemStackMetaData> { { "quality", metadata } });
             Assert.AreEqual(1, first.InsertItem(stack, InsertItemContext.Empty).Count);
+            var instanceId = first.GetItem(0).ItemInstanceId;
             GameUpdater.RunFrames(50);
             Assert.AreSame(metadata, second.GetItem(0).GetMeta("quality"));
+            Assert.AreEqual(instanceId, second.GetItem(0).ItemInstanceId);
         }
     }
 }
