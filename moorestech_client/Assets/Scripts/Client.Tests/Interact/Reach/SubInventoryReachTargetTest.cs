@@ -7,8 +7,8 @@ using UnityEngine;
 namespace Client.Tests.Interact.Reach
 {
     /// <summary>
-    ///     Fで開くアクションが、開いた対象そのものを到達判定の対象として引けることを検証
-    ///     Verifies the F-open actions resolve the opened target itself as the reach target
+    ///     Fで開いた対象が到達判定の対象として引けることを検証
+    ///     Verifies the F-opened target resolves as the reach target
     /// </summary>
     public class SubInventoryReachTargetTest : InteractTargetSelectorTestFixture
     {
@@ -41,13 +41,12 @@ namespace Client.Tests.Interact.Reach
         {
             var openedCar = CreateTrainCarTarget(new Vector3(1f, 0f, 0f));
             var openedEntity = openedCar.GetComponent<TrainCarEntityObject>();
-            var datastore = openedCar.GetComponent<TrainCarObjectDatastore>();
             var source = openedCar.Actions[0].Execute().TransitContext.GetContext<ISubInventorySource>();
 
             // 再同期で旧viewが破棄され、同じIDで新しいviewが登録される
             // A resync destroys the old view and registers a new one under the same ID
             var rebuiltCar = CreateTrainCarTarget(new Vector3(1f, 0f, 0f));
-            TrainCarObjectDatastoreTestUtil.Register(datastore, openedEntity.TrainCarInstanceId, rebuiltCar.GetComponent<TrainCarEntityObject>());
+            TrainCarViewRegistry.Register(openedEntity.TrainCarInstanceId, rebuiltCar.GetComponent<TrainCarEntityObject>());
 
             Assert.IsTrue(source.TryGetReachTarget(out var reachTarget));
             Assert.AreSame(rebuiltCar, reachTarget);
@@ -60,7 +59,7 @@ namespace Client.Tests.Interact.Reach
             var entity = car.GetComponent<TrainCarEntityObject>();
             var source = car.Actions[0].Execute().TransitContext.GetContext<ISubInventorySource>();
 
-            TrainCarObjectDatastoreTestUtil.Unregister(car.GetComponent<TrainCarObjectDatastore>(), entity.TrainCarInstanceId);
+            TrainCarViewRegistry.Unregister(entity.TrainCarInstanceId);
 
             Assert.IsFalse(source.TryGetReachTarget(out _));
         }

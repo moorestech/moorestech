@@ -28,7 +28,8 @@ namespace Client.WebUiHost.Game.Actions
             if (payload["modeIndex"] is not JValue { Value: long modeIndex }) return ActionResult.Fail("invalid_mode_index");
             if (modeIndex < 0 || int.MaxValue < modeIndex) return ActionResult.Fail("invalid_mode_index");
             if (_subInventoryState.CurrentSubInventorySource is not BlockSubInventorySource source) return ActionResult.Fail("block_not_open");
-            if (source.BlockTypeName != "ElectricToGearGenerator") return ActionResult.Fail("invalid_block_type");
+            if (!source.TryGetBlockIdentity(out _, out var blockTypeName)) return ActionResult.Fail("block_not_open");
+            if (blockTypeName != "ElectricToGearGenerator") return ActionResult.Fail("invalid_block_type");
 
             // 既存protocolで設定する
             // Send the target index through the existing protocol; the later StateDetail topic updates the view

@@ -15,8 +15,8 @@ using UnityEngine.InputSystem;
 namespace Client.Tests.Interact.Reach
 {
     /// <summary>
-    ///     SubInventoryStateが毎フレームの到達判定で閉じる配線を、Fで開いた実ソースで検証
-    ///     Verifies SubInventoryState's per-frame reach close wiring with the real source produced by the F-open action
+    ///     毎フレームの到達判定で閉じる配線を実ソースで検証
+    ///     Verifies the per-frame reach close wiring with the real opened source
     /// </summary>
     public class SubInventoryReachCloseTest : InteractTargetSelectorTestFixture
     {
@@ -74,14 +74,13 @@ namespace Client.Tests.Interact.Reach
         {
             var openedCar = CreateTrainCarTarget(new Vector3(1f, 0f, 0f));
             var openedEntity = openedCar.GetComponent<TrainCarEntityObject>();
-            var datastore = openedCar.GetComponent<TrainCarObjectDatastore>();
             var state = CreateOpenedState(openedCar);
             PlayerObject.transform.position = Vector3.zero;
 
             // 同じ位置・同じIDで新しいviewが登録され、開いた瞬間の旧viewは手の届かない所へ退く
             // A new view is registered at the same place under the same ID while the view held at open moves out of reach
             var rebuiltCar = CreateTrainCarTarget(new Vector3(1f, 0f, 0f));
-            TrainCarObjectDatastoreTestUtil.Register(datastore, openedEntity.TrainCarInstanceId, rebuiltCar.GetComponent<TrainCarEntityObject>());
+            TrainCarViewRegistry.Register(openedEntity.TrainCarInstanceId, rebuiltCar.GetComponent<TrainCarEntityObject>());
             openedCar.transform.position = new Vector3(50f, 0f, 0f);
             Physics.SyncTransforms();
 
@@ -96,7 +95,7 @@ namespace Client.Tests.Interact.Reach
             PlayerObject.transform.position = Vector3.zero;
             Assert.IsNull(state.GetNextUpdate());
 
-            TrainCarObjectDatastoreTestUtil.Unregister(car.GetComponent<TrainCarObjectDatastore>(), car.GetComponent<TrainCarEntityObject>().TrainCarInstanceId);
+            TrainCarViewRegistry.Unregister(car.GetComponent<TrainCarEntityObject>().TrainCarInstanceId);
 
             Assert.AreEqual(UIStateEnum.GameScreen, state.GetNextUpdate()?.NextStateEnum);
         }

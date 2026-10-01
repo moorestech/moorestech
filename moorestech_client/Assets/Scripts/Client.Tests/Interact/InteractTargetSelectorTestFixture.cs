@@ -4,6 +4,7 @@ using System.Linq;
 using Client.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Block.Interact;
+using Client.Game.InGame.Context;
 using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Player;
@@ -33,6 +34,11 @@ namespace Client.Tests.Interact
 
         private readonly List<GameObject> _previousMainCameraObjects = new();
         protected readonly List<GameObject> TargetObjects = new();
+
+        // 開いたインベントリはIDから今の表示を引き直すので、テストでも登録簿を通す
+        // An opened inventory re-resolves its view by ID, so tests go through the registries too
+        protected readonly TrainCarViewRegistryFake TrainCarViewRegistry = new();
+        private GameObject _blockDataStoreObject;
         protected GameObject CameraObject;
         protected GameObject PlayerObject;
         private GameObject _eventSystemObject;
@@ -47,11 +53,20 @@ namespace Client.Tests.Interact
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
             DetachExistingMainCameras();
+            CreateBlockDataStore();
             CreateCamera();
             CreateEventSystem();
             CreatePlayerSystem();
 
             #region Internal
+
+            void CreateBlockDataStore()
+            {
+                // BlockOpenInteractActionが開いた位置から表示を引き直す先なので、空の実datastoreを立てる
+                // BlockOpenInteractAction re-resolves the view by position from here, so stand up an empty real datastore
+                _blockDataStoreObject = new GameObject("BlockGameObjectDataStore");
+                ClientDIContext.BlockGameObjectDataStore = _blockDataStoreObject.AddComponent<BlockGameObjectDataStore>();
+            }
 
             void DetachExistingMainCameras()
             {
@@ -106,6 +121,8 @@ namespace Client.Tests.Interact
             UnityEngine.Object.DestroyImmediate(PlayerObject);
             UnityEngine.Object.DestroyImmediate(_eventSystemObject);
             UnityEngine.Object.DestroyImmediate(CameraObject);
+            UnityEngine.Object.DestroyImmediate(_blockDataStoreObject);
+            ClientDIContext.BlockGameObjectDataStore = null;
 
             // 他テストのMainCameraタグを復元
             // Restore every MainCamera tag owned by another test
@@ -147,7 +164,12 @@ namespace Client.Tests.Interact
             var blockGameObject = blockObject.AddComponent<BlockGameObject>();
             var master = MasterHolder.BlockMaster.Blocks.Data.First(block => block.Name == OpenableBlockName);
             TestReflection.SetField(blockGameObject, "<BlockMasterElement>k__BackingField", master);
-            TestReflection.SetField(blockGameObject, "<BlockPosInfo>k__BackingField", new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one));
+
+            // 位置が索引の鍵になるので、同じテスト内の複数ブロックが別の鍵を持つようにする
+            // The position is the index key, so several blocks in one test must not share it
+            var originalPos = Vector3Int.RoundToInt(position);
+            TestReflection.SetField(blockGameObject, "<BlockPosInfo>k__BackingField", new BlockPositionInfo(originalPos, BlockDirection.North, Vector3Int.one));
+            TestReflection.GetField<Dictionary<Vector3Int, BlockGameObject>>(ClientDIContext.BlockGameObjectDataStore, "_blockObjectsDictionary")[originalPos] = blockGameObject;
 
             var interactable = blockObject.AddComponent<BlockInteractable>();
             interactable.Initialize(blockGameObject);
@@ -175,9 +197,9 @@ namespace Client.Tests.Interact
 
             var entityObject = carObject.AddComponent<TrainCarEntityObject>();
             entityObject.Initialize(TrainCarInstanceId.Create(), null);
-            var datastore = TrainCarObjectDatastoreTestUtil.AttachRegistered(entityObject);
+            TrainCarViewRegistry.Register(entityObject);
             var interactable = carObject.AddComponent<TrainCarInteractable>();
-            interactable.Initialize(entityObject, datastore);
+            interactable.Initialize(entityObject, TrainCarViewRegistry);
             entityObject.SetInteractable(interactable);
 
             // メッシュ子はDefaultレイヤなのでレイにも近傍探索にも掛からない
