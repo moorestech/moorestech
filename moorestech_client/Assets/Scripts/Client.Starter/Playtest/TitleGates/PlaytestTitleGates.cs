@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using Client.Common;
 using Client.Game.InGame.BugReport.LastSession;
@@ -26,6 +27,10 @@ namespace Client.Starter.Playtest.TitleGates
         // 無人の開始役が列の始動を購読で待てるよう、変化を通知する器で持つ
         // Held in a notifying property so an unattended starter can subscribe to the sequence starting
         private static readonly ReactiveProperty<PlaytestTitleGateSequence> _current = new();
+
+        // 無人起動のタイトルの確認は閉じたゲートで即座に通る。これを超えるのは列が始まらない配線不良だけ
+        // Unattended title gates pass at once with closed gates; exceeding this means the sequence never started (a wiring fault)
+        internal const float UnattendedPassTimeoutSeconds = 60f;
 
         // Editorの再生し直しは同じプロセスで起動をやり直すため、再生ごとに未開始へ戻す（前例: PlaytestLaunchProfile）
         // An Editor replay restarts the boot in the same process, so each play returns to "not started" (precedent: PlaytestLaunchProfile)
@@ -116,6 +121,15 @@ namespace Client.Starter.Playtest.TitleGates
         {
             var sequence = await _current.Where(static current => current != null).ToUniTask(true, ct);
             await sequence.Step.Where(static step => step == PlaytestTitleGateStep.Passed).ToUniTask(true, ct);
+        }
+
+        // 無人の開始役（smoke・出展モード）が期限付きで通過を待つ。期限切れは偽を返し、理由のログは開始役が自分の文脈で出す
+        // An unattended starter (smoke, exhibition mode) waits for the pass with a deadline; on expiry it returns false and the starter logs the reason in its own context
+        internal static async UniTask<bool> WaitUntilPassedWithinUnattendedDeadlineAsync(CancellationToken ct)
+        {
+            var passed = WaitUntilPassedAsync(ct);
+            var deadline = UniTask.Delay(TimeSpan.FromSeconds(UnattendedPassTimeoutSeconds), DelayType.Realtime, cancellationToken: ct);
+            return await UniTask.WhenAny(passed, deadline) == 0;
         }
 
         // 組んだ列を現行として据えてから進める唯一の入口。CIはバッチモードで常に無人なので、無人の理由は引数で受けて対話起動もテストで組めるようにする

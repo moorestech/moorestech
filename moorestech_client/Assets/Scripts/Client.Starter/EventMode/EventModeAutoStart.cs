@@ -1,6 +1,9 @@
+using System;
 using Client.Common;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Localization;
+using Client.Starter.Playtest.TitleGates;
+using Cysharp.Threading.Tasks;
 using Game.Paths;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -48,11 +51,43 @@ namespace Client.Starter.EventMode
             // The exhibition auto start has nobody to answer, so it is declared an unattended boot that shows no consent or crash confirmation (D2 adjudication; the unanswered marks remain)
             PlaytestStartGateBypass.DeclareUnattendedProcess("eventModeAutoStart");
 
-            // 起動言語を適用してから、新規生成して同期で開始する（ADR 0070）
-            // Apply the launch language, then regenerate the world and start synchronously (ADR 0070)
+            // 起動言語はメインメニューが出る瞬間から効くよう、待ちより先に同期で適用する
+            // The launch language applies synchronously before the wait so it is in effect from the moment the main menu shows
             ApplyLaunchLanguage(settings);
+
+            // Forgetに吸われた例外も理由付きで残す（前例: StandalonePlaytestSmokeBootstrap）
+            // Exceptions swallowed by Forget are recorded with a reason too (precedent: StandalonePlaytestSmokeBootstrap)
+            StartWhenTitleGatesPassAsync().Forget(LogAutoStartException);
+        }
+
+        // 確認列はタイトル合成ルートのStartで始まり、AfterSceneLoadのここより遅い。待たずに開始すると初期化が「確認が未開始」で断りメニューへ戻す
+        // The title sequence starts in the title composition root's Start, later than this AfterSceneLoad hook; starting without waiting is refused as "not started" and bounced to the menu
+        private static async UniTask StartWhenTitleGatesPassAsync()
+        {
+            // 期限切れは列が始まらない配線不良。ワールドを消さずメインメニューに留める（fail-closed）
+            // Expiry means the sequence never started (a wiring fault); stay on the main menu without wiping the world (fail closed)
+            if (!await PlaytestTitleGates.WaitUntilPassedWithinUnattendedDeadlineAsync(Application.exitCancellationToken))
+            {
+                Debug.LogError($"EventModeAutoStart: title gates did not pass within {PlaytestTitleGates.UnattendedPassTimeoutSeconds}s (the title composition root may not have started the sequence); not wiping the world and not auto-starting");
+                return;
+            }
+
+            // 開始が確定してから消す。断られた時にワールドだけ消える状態を作らない
+            // Wipe only once the start is settled, so a refusal never leaves the world deleted with no game started
             GameSystemPaths.DeleteDefaultWorldDirectory();
             LocalGameLauncher.StartLocalGame();
+        }
+
+        // 終了によるキャンセルも含め、自動開始しなかった理由を必ずログへ出す
+        // Always log why the auto start did not happen, cancellation by application exit included
+        private static void LogAutoStartException(Exception exception)
+        {
+            if (exception is OperationCanceledException)
+            {
+                Debug.Log("EventModeAutoStart: the wait for the title gates was cancelled by application exit; not auto-starting");
+                return;
+            }
+            Debug.LogError($"EventModeAutoStart: the auto start ended with an exception; not auto-starting {exception.GetType()} {exception.Message}");
         }
     }
 }
