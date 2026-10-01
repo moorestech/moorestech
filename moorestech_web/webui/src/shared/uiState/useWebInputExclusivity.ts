@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { sendInputState } from "@/bridge";
-import { isPointerOverWebUi, isTextInputElement, reduceWebInputState, type WebInputState } from "./activeLayer";
+import { isPointerOverWebUi, isTextInputElement, reduceWebInputState, suppressesBrowserDefaultKey, type WebInputState } from "./activeLayer";
 
 // DOMのヒットテストとテキストフォーカスをUnityへ差分通知する
 // Report DOM hit testing and text focus changes to Unity only when state changes
@@ -19,10 +19,13 @@ export function useWebInputExclusivity() {
     const onPointerLeave = () => update({ pointerOverUi: false });
     const onFocusIn = (event: FocusEvent) => update({ textInputFocused: isTextInputElement(event.target) });
     const onFocusOut = () => queueMicrotask(() => update({ textInputFocused: isTextInputElement(document.activeElement) }));
+    const onKeyUp = (event: KeyboardEvent) => {
+      if (suppressesBrowserDefaultKey(event.key, document.activeElement)) event.preventDefault();
+    };
     const onKeyDown = (event: KeyboardEvent) => {
-      // ブラウザのTabフォーカス移動はWeb UIの選択表示とUnityのTab操作の双方と衝突するので既定動作ごと封じる
-      // Native Tab traversal fights both the web UI's own selection rendering and Unity's Tab binding, so its default is suppressed
-      if (event.key === "Tab") {
+      // Tabと文字入力欄以外のSpaceはゲーム操作と衝突するため既定動作ごと封じる
+      // Tab and Space outside text fields fight game controls, so their defaults are suppressed
+      if (suppressesBrowserDefaultKey(event.key, document.activeElement)) {
         event.preventDefault();
         return;
       }
@@ -38,12 +41,14 @@ export function useWebInputExclusivity() {
     document.addEventListener("focusin", onFocusIn, true);
     document.addEventListener("focusout", onFocusOut, true);
     document.addEventListener("keydown", onKeyDown, true);
+    document.addEventListener("keyup", onKeyUp, true);
     return () => {
       document.removeEventListener("pointermove", onPointerMove, true);
       document.documentElement.removeEventListener("pointerleave", onPointerLeave);
       document.removeEventListener("focusin", onFocusIn, true);
       document.removeEventListener("focusout", onFocusOut, true);
       document.removeEventListener("keydown", onKeyDown, true);
+      document.removeEventListener("keyup", onKeyUp, true);
       sendInputState(false, false);
     };
   }, []);

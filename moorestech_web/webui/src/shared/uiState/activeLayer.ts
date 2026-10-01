@@ -24,6 +24,13 @@ export function isTextInputElement(target: EventTarget | null): boolean {
   return target != null && "matches" in target && (target as Element).matches(textInputSelector);
 }
 
+// Tabのフォーカス移動と、文字入力欄以外のSpace（ボタン押下・スクロール）はゲーム操作と衝突するので既定動作を封じる
+// Tab traversal and Space outside text fields (button press, scroll) fight game controls, so their defaults are suppressed
+export function suppressesBrowserDefaultKey(key: string, activeElement: EventTarget | null): boolean {
+  if (key === "Tab") return true;
+  return key === " " && !isTextInputElement(activeElement);
+}
+
 export function reduceWebInputState(state: WebInputState, change: Partial<WebInputState>): WebInputState {
   return { ...state, ...change };
 }

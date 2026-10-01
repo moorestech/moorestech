@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import { deriveActiveLayer, isPointerOverWebUi, isTextInputElement, isWheelPassthrough, reduceWebInputState } from "./activeLayer";
+import { deriveActiveLayer, isPointerOverWebUi, isTextInputElement, isWheelPassthrough, reduceWebInputState, suppressesBrowserDefaultKey } from "./activeLayer";
 
 describe("deriveActiveLayer", () => {
   it("modal があれば block が開いていても modal", () => {
@@ -55,5 +55,25 @@ describe("deriveActiveLayer buildMenu", () => {
   });
   it("modal は buildMenu より優先される", () => {
     expect(deriveActiveLayer({ modalOpen: true, blockInventoryOpen: false, researchOpen: false, buildMenuOpen: true })).toBe("modal");
+  });
+});
+
+describe("suppressesBrowserDefaultKey", () => {
+  const button = { matches: () => false } as unknown as EventTarget;
+  const textInput = { matches: () => true } as unknown as EventTarget;
+
+  it("Tabは文字入力中でも封じる", () => {
+    expect(suppressesBrowserDefaultKey("Tab", button)).toBe(true);
+    expect(suppressesBrowserDefaultKey("Tab", textInput)).toBe(true);
+  });
+  it("Spaceは文字入力欄以外で封じ、ボタンを押させない", () => {
+    expect(suppressesBrowserDefaultKey(" ", button)).toBe(true);
+    expect(suppressesBrowserDefaultKey(" ", null)).toBe(true);
+  });
+  it("文字入力欄のSpaceは空白入力として通す", () => {
+    expect(suppressesBrowserDefaultKey(" ", textInput)).toBe(false);
+  });
+  it("Enterなど他のキーは封じない", () => {
+    expect(suppressesBrowserDefaultKey("Enter", button)).toBe(false);
   });
 });
