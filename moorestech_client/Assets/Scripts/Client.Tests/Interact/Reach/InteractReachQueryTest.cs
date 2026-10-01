@@ -6,8 +6,8 @@ using UnityEngine;
 namespace Client.Tests.Interact.Reach
 {
     /// <summary>
-    ///     開いた対象がまだインタラクト距離内にあるかの判定を検証
-    ///     Verifies whether an opened target is still within the interact distance
+    ///     開いた対象へ届くかと、届かない理由の判別を検証
+    ///     Verifies whether an opened target is reachable and which reason it is not
     /// </summary>
     public class InteractReachQueryTest : InteractTargetSelectorTestFixture
     {
@@ -19,8 +19,8 @@ namespace Client.Tests.Interact.Reach
             var block = CreateOpenableBlockTarget(new Vector3(1.5f, 0f, 0f));
             var query = new InteractReachQuery();
 
-            Assert.IsTrue(query.IsWithinReach(block, Vector3.zero));
-            Assert.IsFalse(query.IsWithinReach(block, new Vector3(-1.5f, 0f, 0f)));
+            Assert.AreEqual(InteractReachResult.Reachable, query.QueryReach(block, Vector3.zero));
+            Assert.AreEqual(InteractReachResult.OutOfRange, query.QueryReach(block, new Vector3(-1.5f, 0f, 0f)));
         }
 
         [Test]
@@ -35,8 +35,8 @@ namespace Client.Tests.Interact.Reach
             var insidePosition = new Vector3(faceX - (InteractOverlap.InteractDistance - BoundaryMargin), 0f, 0f);
             var outsidePosition = new Vector3(faceX - (InteractOverlap.InteractDistance + BoundaryMargin), 0f, 0f);
 
-            Assert.IsTrue(query.IsWithinReach(block, insidePosition));
-            Assert.IsFalse(query.IsWithinReach(block, outsidePosition));
+            Assert.AreEqual(InteractReachResult.Reachable, query.QueryReach(block, insidePosition));
+            Assert.AreEqual(InteractReachResult.OutOfRange, query.QueryReach(block, outsidePosition));
         }
 
         [Test]
@@ -44,14 +44,14 @@ namespace Client.Tests.Interact.Reach
         {
             var car = CreateTrainCarTarget(new Vector3(1.5f, 0f, 0f));
             var query = new InteractReachQuery();
-            Assert.IsTrue(query.IsWithinReach(car, Vector3.zero));
+            Assert.AreEqual(InteractReachResult.Reachable, query.QueryReach(car, Vector3.zero));
 
             // 自機は動かさず対象側だけを動かす
             // Only the target moves while the player stays put
             car.transform.position = new Vector3(5f, 0f, 0f);
             Physics.SyncTransforms();
 
-            Assert.IsFalse(query.IsWithinReach(car, Vector3.zero));
+            Assert.AreEqual(InteractReachResult.OutOfRange, query.QueryReach(car, Vector3.zero));
         }
 
         [Test]
@@ -61,7 +61,7 @@ namespace Client.Tests.Interact.Reach
             CreateOpenableBlockTarget(new Vector3(1f, 0f, 0f));
             var query = new InteractReachQuery();
 
-            Assert.IsFalse(query.IsWithinReach(openedBlock, Vector3.zero));
+            Assert.AreEqual(InteractReachResult.OutOfRange, query.QueryReach(openedBlock, Vector3.zero));
         }
 
         [Test]
@@ -69,13 +69,13 @@ namespace Client.Tests.Interact.Reach
         {
             var block = CreateOpenableBlockTarget(new Vector3(1f, 0f, 0f));
             var query = new InteractReachQuery();
-            Assert.IsTrue(query.IsWithinReach(block, Vector3.zero));
+            Assert.AreEqual(InteractReachResult.Reachable, query.QueryReach(block, Vector3.zero));
 
             // 撤去済みの墓標になると距離内でも候補から外れる
             // Once tombstoned as removed, it leaves the candidates even within distance
             block.GetComponent<BlockGameObject>().MarkUnsearchable();
 
-            Assert.IsFalse(query.IsWithinReach(block, Vector3.zero));
+            Assert.AreEqual(InteractReachResult.NotInteractable, query.QueryReach(block, Vector3.zero));
         }
 
         [Test]
@@ -90,7 +90,7 @@ namespace Client.Tests.Interact.Reach
             Object.DestroyImmediate(block.gameObject);
             Physics.SyncTransforms();
 
-            Assert.IsFalse(query.IsWithinReach(block, Vector3.zero));
+            Assert.AreEqual(InteractReachResult.TargetDestroyed, query.QueryReach(block, Vector3.zero));
         }
     }
 }

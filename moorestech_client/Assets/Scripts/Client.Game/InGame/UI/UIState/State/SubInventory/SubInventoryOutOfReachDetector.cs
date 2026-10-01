@@ -4,8 +4,8 @@ using UnityEngine;
 namespace Client.Game.InGame.UI.UIState.State.SubInventory
 {
     /// <summary>
-    /// 開いたインベントリの対象へ手が届かなくなったかを判定し、閉じる理由をログに残す
-    /// Decides whether the opened inventory's target has left reach and logs why it closes
+    /// 対象が届かなくなったか判定し、理由をログ出力
+    /// Decides whether the opened target has left reach and logs why
     /// </summary>
     public class SubInventoryOutOfReachDetector
     {
@@ -17,22 +17,39 @@ namespace Client.Game.InGame.UI.UIState.State.SubInventory
             // When the view is gone and the target cannot be resolved, nothing is reachable, so close
             if (!source.TryGetReachTarget(out var reachTarget))
             {
-                LogAutoClose(source, playerPosition, "reach target view missing");
+                LogAutoClose("reach target view missing");
                 return true;
             }
 
-            if (_reachQuery.IsWithinReach(reachTarget, playerPosition)) return false;
+            // 無言で閉じると原因を辿れないため、距離・対話不能・破棄を書き分けて残す
+            // Closing silently leaves no trail, so out of range, no longer interactable and destroyed are logged apart
+            switch (_reachQuery.QueryReach(reachTarget, playerPosition))
+            {
+                case InteractReachResult.Reachable:
+                    return false;
+                case InteractReachResult.OutOfRange:
+                    LogAutoClose("out of range");
+                    return true;
+                case InteractReachResult.NotInteractable:
+                    LogAutoClose("target no longer interactable");
+                    return true;
+                case InteractReachResult.TargetDestroyed:
+                    LogAutoClose("target view destroyed");
+                    return true;
+                default:
+                    LogAutoClose("unknown reach result");
+                    return true;
+            }
 
-            // 無言で閉じると原因を辿れないため、対象のIDと範囲外/対話不能の別を残す
-            // Closing silently leaves no trail, so log the target ID and whether it is out of range or no longer interactable
-            LogAutoClose(source, playerPosition, $"out of range or not interactable (interactAvailable={reachTarget.IsInteractAvailable})");
-            return true;
-        }
+            #region Internal
 
-        private static void LogAutoClose(ISubInventorySource source, Vector3 playerPosition, string cause)
-        {
-            var identifier = source.InventoryIdentifier;
-            Debug.Log($"SubInventory auto-closed: {cause}. source={source.GetType().Name}, inventory={identifier.InventoryType}, blockPosition={identifier.BlockPosition}, trainCarInstanceId={identifier.TrainCarInstanceId}, playerPosition={playerPosition}");
+            void LogAutoClose(string cause)
+            {
+                var identifier = source.InventoryIdentifier;
+                Debug.Log($"SubInventory auto-closed: {cause}. source={source.GetType().Name}, inventory={identifier.InventoryType}, blockPosition={identifier.BlockPosition}, trainCarInstanceId={identifier.TrainCarInstanceId}, playerPosition={playerPosition}");
+            }
+
+            #endregion
         }
     }
 }

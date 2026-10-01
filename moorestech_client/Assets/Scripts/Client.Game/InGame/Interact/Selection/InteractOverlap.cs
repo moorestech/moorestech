@@ -4,8 +4,8 @@ using UnityEngine;
 namespace Client.Game.InGame.Interact.Selection
 {
     /// <summary>
-    ///     インタラクト距離内の当たり判定を集める。候補選定と到達判定が同じ距離・レイヤを使うための一元化
-    ///     Collects colliders within the interact distance so selection and reach checks share one distance and layer set
+    ///     候補選定の近傍探索と、インタラクト距離・レイヤの正本
+    ///     The nearby query for candidate selection and the single source of the interact distance and layer set
     /// </summary>
     public static class InteractOverlap
     {
