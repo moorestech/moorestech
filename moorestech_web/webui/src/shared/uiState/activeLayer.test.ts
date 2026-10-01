@@ -1,6 +1,8 @@
+// @vitest-environment jsdom
+
 import { describe, it, expect } from "vitest";
 
-import { deriveActiveLayer, isPointerOverWebUi, isTextInputElement, isWheelPassthrough, reduceWebInputState, suppressesBrowserDefaultKey } from "./activeLayer";
+import { browserDefaultSuppressionFor, deriveActiveLayer, isPointerOverWebUi, isTextInputElement, isWheelPassthrough, reduceWebInputState } from "./activeLayer";
 
 describe("deriveActiveLayer", () => {
   it("modal があれば block が開いていても modal", () => {
@@ -58,22 +60,60 @@ describe("deriveActiveLayer buildMenu", () => {
   });
 });
 
-describe("suppressesBrowserDefaultKey", () => {
+describe("browserDefaultSuppressionFor", () => {
   const button = { matches: () => false } as unknown as EventTarget;
   const textInput = { matches: () => true } as unknown as EventTarget;
 
-  it("Tabは文字入力中でも封じる", () => {
-    expect(suppressesBrowserDefaultKey("Tab", button)).toBe(true);
-    expect(suppressesBrowserDefaultKey("Tab", textInput)).toBe(true);
+  it("Tabは文字入力中でも封じるが、伝播は止めない", () => {
+    expect(browserDefaultSuppressionFor("Tab", button)).toBe("preventDefault");
+    expect(browserDefaultSuppressionFor("Tab", textInput)).toBe("preventDefault");
   });
-  it("Spaceは文字入力欄以外で封じ、ボタンを押させない", () => {
-    expect(suppressesBrowserDefaultKey(" ", button)).toBe(true);
-    expect(suppressesBrowserDefaultKey(" ", null)).toBe(true);
+  it("Spaceは文字入力欄以外で封じ、Reactハンドラへも渡さない", () => {
+    expect(browserDefaultSuppressionFor(" ", button)).toBe("preventDefaultAndStopPropagation");
+    expect(browserDefaultSuppressionFor(" ", null)).toBe("preventDefaultAndStopPropagation");
   });
   it("文字入力欄のSpaceは空白入力として通す", () => {
-    expect(suppressesBrowserDefaultKey(" ", textInput)).toBe(false);
+    expect(browserDefaultSuppressionFor(" ", textInput)).toBe("allow");
   });
   it("Enterなど他のキーは封じない", () => {
-    expect(suppressesBrowserDefaultKey("Enter", button)).toBe(false);
+    expect(browserDefaultSuppressionFor("Enter", button)).toBe("allow");
+  });
+});
+
+// セレクタ文字列を実DOMで評価し、許可リストの網羅と未知typeのfail-closedを押さえる
+// Evaluate the selector string against a real DOM to pin the allowlist and the fail-closed unknown type
+describe("isTextInputElement against real DOM elements", () => {
+  const inputOfType = (type: string | null) => {
+    const element = document.createElement("input");
+    if (type != null) element.setAttribute("type", type);
+    return element;
+  };
+
+  it("文字を打てるinput typeは文字入力欄として数える", () => {
+    for (const type of ["text", "search", "url", "tel", "email", "password", "number", "date", "datetime-local", "month", "week", "time"]) {
+      expect(isTextInputElement(inputOfType(type))).toBe(true);
+    }
+    expect(isTextInputElement(inputOfType(null))).toBe(true);
+    expect(isTextInputElement(document.createElement("textarea"))).toBe(true);
+  });
+
+  it("押すだけのinput typeと未知のtypeは文字入力欄にしない", () => {
+    for (const type of ["button", "submit", "reset", "checkbox", "radio", "range", "color", "file", "image", "hidden", "not-a-real-type"]) {
+      expect(isTextInputElement(inputOfType(type))).toBe(false);
+    }
+    expect(isTextInputElement(document.createElement("button"))).toBe(false);
+    expect(isTextInputElement(document.createElement("div"))).toBe(false);
+  });
+
+  it("contenteditableは有効な値のときだけ文字入力欄になる", () => {
+    const editable = (value: string) => {
+      const element = document.createElement("div");
+      element.setAttribute("contenteditable", value);
+      return element;
+    };
+    expect(isTextInputElement(editable(""))).toBe(true);
+    expect(isTextInputElement(editable("true"))).toBe(true);
+    expect(isTextInputElement(editable("plaintext-only"))).toBe(true);
+    expect(isTextInputElement(editable("false"))).toBe(false);
   });
 });

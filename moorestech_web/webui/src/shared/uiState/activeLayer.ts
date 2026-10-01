@@ -6,7 +6,10 @@ export type ActiveLayer = "modal" | "blockInventory" | "research" | "buildMenu" 
 
 export type WebInputState = { pointerOverUi: boolean; textInputFocused: boolean };
 
-const textInputSelector = "input:not([type='button']):not([type='submit']):not([type='reset']):not([type='checkbox']):not([type='radio']):not([type='range']), textarea, [contenteditable]:not([contenteditable='false'])";
+// 文字入力欄は許可リストで数える。未知のinput typeは文字入力扱いにしない（fail-closed）
+// Text fields are matched by an allowlist, so an unknown input type never counts as typing (fail-closed)
+const textInputSelector =
+  "input:is([type='text'],[type='search'],[type='url'],[type='tel'],[type='email'],[type='password'],[type='number'],[type='date'],[type='datetime-local'],[type='month'],[type='week'],[type='time']), input:not([type]), textarea, [contenteditable=''], [contenteditable='true'], [contenteditable='plaintext-only']";
 
 // 透明サーフェス自身だけを貫通対象とし、その子の実UIは捕捉する
 // Treat only the transparent surface itself as pass-through; real UI descendants capture input
@@ -24,11 +27,16 @@ export function isTextInputElement(target: EventTarget | null): boolean {
   return target != null && "matches" in target && (target as Element).matches(textInputSelector);
 }
 
+// キーごとの封じ方。Spaceだけはゲーム操作専有のためReactハンドラへも渡さない
+// How a key's browser default is suppressed; Space alone is game-exclusive so React handlers never see it
+export type KeyDefaultSuppression = "allow" | "preventDefault" | "preventDefaultAndStopPropagation";
+
 // Tabのフォーカス移動と、文字入力欄以外のSpace（ボタン押下・スクロール）はゲーム操作と衝突するので既定動作を封じる
 // Tab traversal and Space outside text fields (button press, scroll) fight game controls, so their defaults are suppressed
-export function suppressesBrowserDefaultKey(key: string, activeElement: EventTarget | null): boolean {
-  if (key === "Tab") return true;
-  return key === " " && !isTextInputElement(activeElement);
+export function browserDefaultSuppressionFor(key: string, activeElement: EventTarget | null): KeyDefaultSuppression {
+  if (key === "Tab") return "preventDefault";
+  if (key === " " && !isTextInputElement(activeElement)) return "preventDefaultAndStopPropagation";
+  return "allow";
 }
 
 export function reduceWebInputState(state: WebInputState, change: Partial<WebInputState>): WebInputState {

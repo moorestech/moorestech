@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { sendInputState } from "@/bridge";
-import { isPointerOverWebUi, isTextInputElement, reduceWebInputState, suppressesBrowserDefaultKey, type WebInputState } from "./activeLayer";
+import { browserDefaultSuppressionFor, isPointerOverWebUi, isTextInputElement, reduceWebInputState, type WebInputState } from "./activeLayer";
 
 // DOMのヒットテストとテキストフォーカスをUnityへ差分通知する
 // Report DOM hit testing and text focus changes to Unity only when state changes
@@ -19,19 +19,32 @@ export function useWebInputExclusivity() {
     const onPointerLeave = () => update({ pointerOverUi: false });
     const onFocusIn = (event: FocusEvent) => update({ textInputFocused: isTextInputElement(event.target) });
     const onFocusOut = () => queueMicrotask(() => update({ textInputFocused: isTextInputElement(document.activeElement) }));
+    // keydown/keyupが同じ判別値を引くので、封じ方の非対称が生まれない
+    // Both keydown and keyup read the same discriminant, so the two can never drift apart
+    const applySuppression = (event: KeyboardEvent): boolean => {
+      const kind = browserDefaultSuppressionFor(event.key, document.activeElement);
+      switch (kind) {
+        case "allow":
+          return false;
+        case "preventDefault":
+          event.preventDefault();
+          return true;
+        case "preventDefaultAndStopPropagation":
+          event.preventDefault();
+          event.stopPropagation();
+          return true;
+        default: {
+          const exhaustive: never = kind;
+          return exhaustive;
+        }
+      }
+    };
+
     const onKeyUp = (event: KeyboardEvent) => {
-      if (suppressesBrowserDefaultKey(event.key, document.activeElement)) event.preventDefault();
+      applySuppression(event);
     };
     const onKeyDown = (event: KeyboardEvent) => {
-      // Tabと文字入力欄以外のSpaceはゲーム操作と衝突するため既定動作ごと封じる
-      // Tab and Space outside text fields fight game controls, so their defaults are suppressed
-      if (suppressesBrowserDefaultKey(event.key, document.activeElement)) {
-        event.preventDefault();
-        // Spaceはジャンプ専用なので、Reactのキーハンドラ（スキット送り等）まで届けない
-        // Space is jump-only, so it never reaches React key handlers such as skit advance
-        if (event.key === " ") event.stopPropagation();
-        return;
-      }
+      if (applySuppression(event)) return;
       if (event.key !== "Escape" || !state.textInputFocused) return;
       (document.activeElement as HTMLElement | null)?.blur();
       event.preventDefault();
