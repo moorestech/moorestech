@@ -1,3 +1,4 @@
+using Game.Block.Blocks.BeltConveyor.Connection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -41,8 +42,7 @@ namespace Tests.CombinedTest.Core.Transport
             var gearBeltConveyorPosition = new Vector3Int(0, 0, 0);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearBeltConveyor, gearBeltConveyorPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var gearBeltConveyor);
             var beltConveyorComponent = gearBeltConveyor.GetComponent<VanillaBeltConveyorComponent>();
-            var connectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)gearBeltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>().ConnectedTargets;
-            connectInventory.Add(dummy, new ConnectedInfo());
+            var connectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)gearBeltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext>>().ConnectedTargets;
 
             // generatorブロックを作成（baseRpmに合わせたrpmを設定してoperatingRate=1にする）
             // Create generator with rpm matching baseRpm so operatingRate = 1
@@ -62,6 +62,10 @@ namespace Tests.CombinedTest.Core.Transport
             var testGearPosition = new Vector3Int(2, 0, 0);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, testGearPosition, BlockDirection.East, Array.Empty<BlockCreateParam>(), out var testGear);
 
+            // 配置による接続再計算後に、搬送時間検証用の出力先を取り付ける
+            // Attach the transport-timing sink after placement has finished recalculating connections
+            connectInventory.Add(dummy, new ConnectedInfo());
+
             // ギアネットワークを確立するための更新サイクルを実行
             // Run update cycle to establish gear network
             GameUpdater.RunFrames(1);
@@ -76,6 +80,7 @@ namespace Tests.CombinedTest.Core.Transport
             // 期待されるtick数を計算
             // Calculate expected tick count
             var expectedTicks = (int)(duration * GameUpdater.TicksPerSecond);
+            Assert.IsTrue(connectInventory.ContainsKey(dummy), "Transport sink must remain connected before item insertion");
             beltConveyorComponent.InsertItem(item, InsertItemContext.Empty);
 
             // tick数でループ制御（タイムアウト付き）
@@ -113,9 +118,8 @@ namespace Tests.CombinedTest.Core.Transport
             // Prepare the gear belt conveyor and its output
             var gearBeltConveyorPosition = new Vector3Int(0, 0, 0);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearBeltConveyor, gearBeltConveyorPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var gearBeltConveyor);
-            var connectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)gearBeltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>().ConnectedTargets;
+            var connectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)gearBeltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext>>().ConnectedTargets;
             var dummy = new DummyBlockInventory();
-            connectInventory.Add(dummy, new ConnectedInfo());
             
             var beltConveyorComponent = gearBeltConveyor.GetComponent<VanillaBeltConveyorComponent>();
             var gearBeltConveyorComponent = gearBeltConveyor.GetComponent<GearBeltConveyorComponent>();
@@ -125,6 +129,9 @@ namespace Tests.CombinedTest.Core.Transport
             var generatorPosition = new Vector3Int(1, 0, 0);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.East, Array.Empty<BlockCreateParam>(), out var generatorBlock);
             var generator = generatorBlock.GetComponent<global::Game.Block.Blocks.Gear.SimpleGearGeneratorComponent>();
+            // 配置による接続再計算後に、速度検証用の出力先を取り付ける
+            // Attach the speed-test sink after placement has finished recalculating connections
+            connectInventory.Add(dummy, new ConnectedInfo());
             generator.SetGenerateRpm(10f);
             generator.SetGenerateTorque(1f);
             GameUpdater.RunFrames(GameUpdater.SecondsToTicks(0.1));
@@ -141,6 +148,7 @@ namespace Tests.CombinedTest.Core.Transport
             // RPM0の状態でアイテムを挿入する
             // Insert an item while RPM is zero
             var item = itemStackFactory.Create(new ItemId(2), 1);
+            Assert.IsTrue(connectInventory.ContainsKey(dummy), "Transport sink must remain connected before item insertion");
             beltConveyorComponent.InsertItem(item, InsertItemContext.Empty);
             
             // ベルトの速度に相当する時間を超えても搬送されないことを確認する
@@ -173,9 +181,8 @@ namespace Tests.CombinedTest.Core.Transport
             // Prepare the gear belt conveyor and its output
             var gearBeltConveyorPosition = new Vector3Int(0, 0, 0);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearBeltConveyor, gearBeltConveyorPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var gearBeltConveyor);
-            var connectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)gearBeltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>().ConnectedTargets;
+            var connectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)gearBeltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext>>().ConnectedTargets;
             var dummy = new DummyBlockInventory();
-            connectInventory.Add(dummy, new ConnectedInfo());
 
             var beltConveyorComponent = gearBeltConveyor.GetComponent<VanillaBeltConveyorComponent>();
             var gearBeltConveyorComponent = gearBeltConveyor.GetComponent<GearBeltConveyorComponent>();
@@ -185,6 +192,9 @@ namespace Tests.CombinedTest.Core.Transport
             var generatorPosition = new Vector3Int(1, 0, 0);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.East, Array.Empty<BlockCreateParam>(), out var generatorBlock);
             var generator = generatorBlock.GetComponent<global::Game.Block.Blocks.Gear.SimpleGearGeneratorComponent>();
+            // 配置による接続再計算後に、速度検証用の出力先を取り付ける
+            // Attach the speed-test sink after placement has finished recalculating connections
+            connectInventory.Add(dummy, new ConnectedInfo());
             var beltParamForSetup = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearBeltConveyor).BlockParam as GearBeltConveyorBlockParam;
             var baseRpm = (float)beltParamForSetup.GearConsumption.BaseRpm;
             generator.SetGenerateRpm(baseRpm);
@@ -203,6 +213,7 @@ namespace Tests.CombinedTest.Core.Transport
             // 停止中にアイテムを挿入する
             // Insert an item while the belt is stopped
             var item = itemStackFactory.Create(new ItemId(2), 1);
+            Assert.IsTrue(connectInventory.ContainsKey(dummy), "Transport sink must remain connected before item insertion");
             beltConveyorComponent.InsertItem(item, InsertItemContext.Empty);
 
             // アイテムがベルトに載っていることを確認

@@ -1,149 +1,63 @@
-using System;
 using System.Collections.Generic;
 using Game.Block.Component;
-using Game.Block.Component.ConnectionContext;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Component.ConnectJudge;
-using Game.Context;
-using Game.World.Interface.DataStore;
-using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.InventoryConnectsModule;
 using UnityEngine;
-using UniRx;
 
 namespace Game.Block.Blocks.BeltConveyor.Connection
 {
-    internal sealed class BeltInventoryConnectionContext : IConnectorContext<IBlockInventory>
+    public sealed class BeltInventoryConnectionContext : DefaultContext<IBlockInventory>
     {
-        internal readonly BlockPositionInfo Position;
-        internal readonly BeltConveyorSlopeType Slope;
-        internal readonly IReadOnlyList<IBlockConnector> Inputs;
-        internal readonly IReadOnlyList<IBlockConnector> Outputs;
-        internal readonly List<BeltEdge> Edges;
-        internal readonly bool IsBelt;
-        private readonly IWorldBlockDatastore _world;
-        private readonly List<IDisposable> _subscriptions = new();
+        internal static BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext> Create(
+            InventoryConnects ports, BlockPositionInfo position, BeltConveyorSlopeType slope) =>
+            new(new BeltInventoryConnectionData(ports, position, slope, true));
 
-        private BeltInventoryConnectionContext(InventoryConnects ports, BlockPositionInfo position, BeltConveyorSlopeType slope, bool isBelt)
-        {
-            Position = position;
-            Slope = slope;
-            Inputs = ports.InputConnects;
-            Outputs = ports.OutputConnects;
-            IsBelt = isBelt;
-            Edges = isBelt ? BeltEdgeEndpoint.GetEdges(position, slope) : MachineInventoryEdgePorts.GetEdges(ports, position);
-            _world = ServerContext.WorldBlockDatastore;
-            SubscribeToEdgeCells(ServerContext.WorldBlockUpdateEvent);
-        }
+        internal static BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext> CreateMachine(InventoryConnects ports, BlockPositionInfo position) =>
+            new(new BeltInventoryConnectionData(ports, position, BeltConveyorSlopeType.Straight, false));
 
-        internal static BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> Create(
-            InventoryConnects ports, BlockPositionInfo position, BeltConveyorSlopeType slope)
+        public override List<Vector3Int> InitializeAndGetOverridelSubsrcibePositions(IBlockConnectorComponent<IBlockInventory> component,
+            BlockPositionInfo positionInfo, ConnectorContextData data)
         {
-            // 購読開始前に配置情報を渡し、未登録のselfを検索しない
-            // Supply placement before subscriptions start, without looking up the unregistered self
-            var context = new BeltInventoryConnectionContext(ports, position, slope, true);
-            return new BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>(ports.InputConnects, ports.OutputConnects, position, context);
-        }
-
-        internal static BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> CreateMachine(InventoryConnects ports, BlockPositionInfo position)
-        {
-            // 機械のポート面を水平ベルトとして扱う
-            // Treat machine port faces as virtual flat belts
-            var context = new BeltInventoryConnectionContext(ports, position, BeltConveyorSlopeType.Straight, false);
-            return new BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>(ports.InputConnects, ports.OutputConnects, position, context);
-        }
-
-        public bool HandlesOverride(IBlock targetBlock) => TryGetContext(targetBlock, out var target) && (IsBelt || target.IsBelt);
-        internal void ApplyOverride(IBlock removingBlock)
-        {
-            var current = GetCurrentConnections();
-            var desired = GetOverride(removingBlock);
-            // 第三者の旧接続も外してから張り直す
-            // Remove obsolete third-party connections before adding their replacements
-            foreach (var connection in current)
-                if (!desired.Contains(connection)) connection.Source.RemoveConnection(connection.Target);
-            foreach (var connection in desired)
-                if (!current.Contains(connection)) connection.Source.SetConnection(connection.Target, connection.Info);
-        }
-
-        public void Dispose()
-        {
-            foreach (var subscription in _subscriptions) subscription.Dispose();
-            _subscriptions.Clear();
-        }
-
-        private void SubscribeToEdgeCells(IWorldBlockUpdateEvent events)
-        {
-            var cells = new HashSet<Vector3Int>();
-            foreach (var edge in Edges)
-            {
-                cells.Add(edge.UpperCell(false));
-                cells.Add(edge.UpperCell(true));
-                cells.Add(edge.UpperCell(false) + Vector3Int.down);
-                cells.Add(edge.UpperCell(true) + Vector3Int.down);
-            }
-            // 搬出先以外の上側候補の変化も拾う
-            // Observe upper candidates as well as direct output destinations
-            foreach (var cell in cells)
-            {
-                _subscriptions.Add(events.GetBlockPlaceEvent(cell).Subscribe(_ => ApplyOverride(null)));
-                // 撤去通知時は対象がまだworldにいる
-                // Removal is notified while the block is still present in the world
-                _subscriptions.Add(events.GetBlockRemoveEvent(cell).Subscribe(change => ApplyOverride(change.BlockData.Block)));
-            }
-        }
-
-        private HashSet<BeltEdgeConnection> GetCurrentConnections()
-        {
-            var connections = new HashSet<BeltEdgeConnection>();
-            foreach (var edge in Edges)
-            {
-                var blocks = new HashSet<IBlock>();
-                CollectBlock(edge.UpperCell(false), edge, blocks);
-                CollectBlock(edge.UpperCell(true), edge, blocks);
-                CollectBlock(edge.UpperCell(false) + Vector3Int.down, edge, blocks);
-                CollectBlock(edge.UpperCell(true) + Vector3Int.down, edge, blocks);
-                // 共有する4マス内の接続だけを読む
-                // Read only connections between blocks sharing these four cells
-                foreach (var source in blocks)
-                foreach (var target in blocks)
+            var positions = new HashSet<Vector3Int>();
+            if (data is BeltInventoryConnectionData belt)
+                foreach (var edge in belt.Edges)
                 {
-                    if (ReferenceEquals(source, target)) continue;
-                    TryGetContext(source, out var sourceContext);
-                    TryGetContext(target, out var targetContext);
-                    if (!sourceContext.IsBelt && !targetContext.IsBelt) continue;
-                    var connector = source.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>();
-                    var inventory = target.ComponentManager.GetComponent<IBlockInventory>();
-                    if (connector.ConnectedTargets.TryGetValue(inventory, out var info))
-                        connections.Add(new BeltEdgeConnection(connector, inventory, info));
+                    // 自分のedgeの4セルを購読し、第三者の配置でも自分だけを再計算する
+                    // Subscribe to four cells per own edge so third-party placement independently recalculates this source
+                    positions.Add(edge.UpperCell(false));
+                    positions.Add(edge.UpperCell(true));
+                    positions.Add(edge.UpperCell(false) + Vector3Int.down);
+                    positions.Add(edge.UpperCell(true) + Vector3Int.down);
                 }
-            }
-            return connections;
-
-            #region Internal
-            void CollectBlock(Vector3Int cell, BeltEdge edge, HashSet<IBlock> blocks)
-            {
-                var block = _world.GetBlock(cell);
-                if (block != null && TryGetContext(block, out var context) && context.Edges.Contains(edge)) blocks.Add(block);
-            }
-            #endregion
+            return new List<Vector3Int>(positions);
         }
 
-        private List<BeltEdgeConnection> GetOverride(IBlock removingBlock)
+        public override Dictionary<IBlockInventory, ConnectedInfo> GetOverride(Dictionary<IBlockInventory, ConnectedInfo> currentTarget, IBlock targetBlock,
+            ConnectorContextData data, IConnectorWorldLookup world, IBlock removingBlock,
+            Dictionary<IBlockInventory, ConnectedInfo> ordinaryTargets)
         {
+            if (data is not BeltInventoryConnectionData belt) return new Dictionary<IBlockInventory, ConnectedInfo>(ordinaryTargets);
+            var desired = new Dictionary<IBlockInventory, ConnectedInfo>();
+            // 機械同士は通常接続を全て残し、ベルトを含む組だけedgeへ委譲する
+            // Preserve all ordinary machine-to-machine connections and delegate pairs involving belts to edges
+            if (!belt.IsBelt)
+                foreach (var (target, info) in ordinaryTargets)
+                    if (!BeltInventoryConnectionData.TryGet(info.TargetBlock, out var targetData) || !targetData.IsBelt)
+                        desired.Add(target, info);
+
+            var self = world.GetBlock(data.Position.OriginalPos);
+            if (self == null || ReferenceEquals(self, removingBlock)) return desired;
             var connections = new List<BeltEdgeConnection>();
-            foreach (var edge in Edges)
-                BeltEdgeConnectionResolver.Resolve(_world, edge, removingBlock, connections);
-            return connections;
-        }
-
-        internal static bool TryGetContext(IBlock block, out BeltInventoryConnectionContext context)
-        {
-            context = null;
-            if (!block.ComponentManager.TryGetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>(out var connector)) return false;
-            context = connector.Context as BeltInventoryConnectionContext;
-            return context != null;
+            foreach (var edge in belt.Edges)
+                BeltEdgeConnectionResolver.Resolve(world, edge, removingBlock, connections);
+            // resolverが返す両方向のうち自分がsourceの結果だけを採用する
+            // Keep only results whose source is self from the resolver's two possible directions
+            foreach (var connection in connections)
+                if (ReferenceEquals(connection.Source, self) && !desired.ContainsKey(connection.Target))
+                    desired.Add(connection.Target, connection.Info);
+            return desired;
         }
     }
 }

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Core.Master;
 using Game.Block.Interface;
-using Game.World.Interface.DataStore;
+using Game.Block.Interface.Component.ConnectJudge;
 using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 
@@ -9,7 +9,7 @@ namespace Game.Block.Blocks.BeltConveyor.Connection
 {
     internal static class BeltEdgeConnectionResolver
     {
-        internal static void Resolve(IWorldBlockDatastore world, BeltEdge edge, IBlock removingBlock, List<BeltEdgeConnection> connections)
+        internal static void Resolve(IConnectorWorldLookup world, BeltEdge edge, IBlock removingBlock, List<BeltEdgeConnection> connections)
         {
             // 接触する上側を先に選び、不成立でも下側へ戻らない
             // Select touching upper blocks first; an invalid pair never falls back to lower blocks
@@ -26,7 +26,7 @@ namespace Game.Block.Blocks.BeltConveyor.Connection
                 foreach (var cell in new[] { upper, upper + Vector3Int.down })
                 {
                     var block = world.GetBlock(cell);
-                    if (block == null || ReferenceEquals(block, removingBlock) || !BeltInventoryConnectionContext.TryGetContext(block, out var context)) continue;
+                    if (block == null || ReferenceEquals(block, removingBlock) || !BeltInventoryConnectionData.TryGet(block, out var context)) continue;
                     if (context.Edges.Contains(edge)) return block;
                 }
                 return null;
@@ -34,8 +34,8 @@ namespace Game.Block.Blocks.BeltConveyor.Connection
 
             bool TryConnect(IBlock source, IBlock target, Vector3Int outward)
             {
-                BeltInventoryConnectionContext.TryGetContext(source, out var sourceContext);
-                BeltInventoryConnectionContext.TryGetContext(target, out var targetContext);
+                BeltInventoryConnectionData.TryGet(source, out var sourceContext);
+                BeltInventoryConnectionData.TryGet(target, out var targetContext);
                 // 機械同士の接続は既存経路だけが所有する
                 // Leave machine-to-machine connections exclusively owned by the existing path
                 if (!sourceContext.IsBelt && !targetContext.IsBelt) return false;
@@ -63,7 +63,7 @@ namespace Game.Block.Blocks.BeltConveyor.Connection
             #endregion
         }
 
-        private static bool FacesEdge(IBlockConnector port, BeltInventoryConnectionContext context, BeltEdge edge, Vector3Int outward, bool isInput)
+        private static bool FacesEdge(IBlockConnector port, BeltInventoryConnectionData context, BeltEdge edge, Vector3Int outward, bool isInput)
         {
             if (!context.IsBelt) return MachineInventoryEdgePorts.FacesEdge(port, context.Position, edge, outward, isInput);
             var position = context.Position;

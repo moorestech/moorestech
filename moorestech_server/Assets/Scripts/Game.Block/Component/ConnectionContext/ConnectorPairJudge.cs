@@ -1,17 +1,15 @@
 using System.Collections.Generic;
 using Core.Master;
 using Game.Block.Interface;
+using Game.Block.Interface.Component;
 using Game.Block.Interface.Component.ConnectJudge;
 using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 
 namespace Game.Block.Component.ConnectionContext
 {
-    internal static class ConnectorPairJudge<TConnectJudge> where TConnectJudge : IConnectorConnectJudge, new()
+    internal static class ConnectorPairJudge<TTarget> where TTarget : IBlockComponent
     {
-        // ドメイン固有の追加接続判定（型パラメータで束縛され、両側ブロックで同一が保証される）
-        // Domain-specific extra judge (bound by type parameter, guaranteed identical on both sides)
-        private static readonly TConnectJudge Judge = new();
         /// <summary>
         ///     2ブロックのコネクタ定義から、実際に噛み合うセル対を1組だけ解く。サーバーの実接続とクライアントのプレビューが同じ規則で解くための正本
         ///     Resolves the single meshing cell pair from two blocks' connector definitions; the one rule both the server's real connection and the client's preview use
@@ -19,7 +17,7 @@ namespace Game.Block.Component.ConnectionContext
         public static bool TryJudgeConnect(
             IReadOnlyList<IBlockConnector> selfOutputConnectors, BlockPositionInfo selfPositionInfo,
             IReadOnlyList<IBlockConnector> targetInputConnectors, BlockPositionInfo targetPositionInfo,
-            out Vector3Int selfConnectorCell, out Vector3Int targetConnectorCell)
+            IConnectorContext<TTarget> context, out Vector3Int selfConnectorCell, out Vector3Int targetConnectorCell)
         {
             selfConnectorCell = Vector3Int.zero;
             targetConnectorCell = Vector3Int.zero;
@@ -30,7 +28,7 @@ namespace Game.Block.Component.ConnectionContext
             foreach (var (outputTargetPos, selfOutput) in selfOutputs)
             {
                 if (!targetInputs.TryGetValue(outputTargetPos, out var targetAcceptedCells)) continue;
-                if (!TryJudgeConnectorPair(selfOutput, targetAcceptedCells, selfPositionInfo, targetPositionInfo, out _, out _)) continue;
+                if (!TryJudgeConnectorPair(selfOutput, targetAcceptedCells, selfPositionInfo, targetPositionInfo, context, out _, out _)) continue;
 
                 selfConnectorCell = selfOutput.position;
                 targetConnectorCell = outputTargetPos;
@@ -44,7 +42,7 @@ namespace Game.Block.Component.ConnectionContext
             (Vector3Int position, IBlockConnector connector) outputConnector,
             List<(Vector3Int position, IBlockConnector connector)> targetAcceptedCells,
             BlockPositionInfo selfPositionInfo, BlockPositionInfo targetPositionInfo,
-            out IBlockConnector validSelfConnector, out IBlockConnector validTargetConnector)
+            IConnectorContext<TTarget> context, out IBlockConnector validSelfConnector, out IBlockConnector validTargetConnector)
         {
             validSelfConnector = null;
             validTargetConnector = null;
@@ -56,7 +54,7 @@ namespace Game.Block.Component.ConnectionContext
                 if (!MasterHolder.BlockMaster.CanConnectConnectorShapes(candidate.selfConnector?.ShapeGuid, candidate.targetConnector?.ShapeGuid)) continue;
 
                 var judgeContext = new ConnectJudgeContext(candidate.selfConnector, candidate.targetConnector, selfPositionInfo, targetPositionInfo);
-                if (!Judge.CanConnect(judgeContext)) continue;
+                if (!context.CanConnect(judgeContext)) continue;
 
                 validSelfConnector = candidate.selfConnector;
                 validTargetConnector = candidate.targetConnector;

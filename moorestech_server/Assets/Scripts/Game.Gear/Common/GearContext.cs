@@ -9,9 +9,9 @@ namespace Game.Gear.Common
     ///     歯車ドメインの接続判定。双方の噛み合い軸（meshingAxis）がワールド空間で平行なときのみ接続を許可する
     ///     Gear-domain judge; allows connection only when both meshing axes are parallel in world space
     /// </summary>
-    public class GearConnectJudge : IConnectorConnectJudge
+    public class GearContext : DefaultContext<IGearEnergyTransformer>
     {
-        public bool CanConnect(ConnectJudgeContext context)
+        public override bool CanConnect(ConnectJudgeContext context)
         {
             // コネクタ未特定（方向無制限経路）は制約なしとして通す
             // Pass when connectors are unresolved (unrestricted-directions path)

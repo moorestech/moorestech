@@ -51,7 +51,7 @@ namespace Tests.UnitTest.Game.BeltConnection
                 var position = world.Position(upperSlot);
                 ExpectOrientationLog(direction);
                 Assert.IsTrue(world.World.TryAddBlock(GetBlockId(kind), position, direction, Array.Empty<BlockCreateParam>(), out var vertical));
-                Assert.IsTrue(BeltInventoryConnectionContext.TryGetContext(vertical, out var context));
+                Assert.IsTrue(BeltInventoryConnectionData.TryGet(vertical, out var context));
                 Assert.AreEqual(0, context.Edges.Count);
                 Assert.AreEqual(0, BeltEdgeTestWorld.Connector(vertical).ConnectedTargets.Count, "Vertical belt must not connect to itself or another belt.");
                 // 空edgeで絞り込む前に全sourceの実辞書を検査する

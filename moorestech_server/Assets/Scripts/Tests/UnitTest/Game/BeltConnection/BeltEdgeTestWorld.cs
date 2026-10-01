@@ -8,6 +8,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Component.ConnectJudge;
 using Game.Context;
+using Game.World;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -22,6 +23,7 @@ namespace Tests.UnitTest.Game.BeltConnection
     {
         internal static readonly string[] Slots = { "UL", "UR", "LL", "LR" };
         internal readonly IWorldBlockDatastore World;
+        private readonly WorldBlockUpdateEvent _events;
         private readonly Dictionary<string, IBlock> _blocks = new();
         private readonly bool _gear;
         private readonly BlockDirection _rotation;
@@ -32,6 +34,7 @@ namespace Tests.UnitTest.Game.BeltConnection
             var (_, services) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             BeltTestMaster.Load(services.GetRequiredService<MasterJsonFileContainer>());
             World = ServerContext.WorldBlockDatastore;
+            _events = (WorldBlockUpdateEvent)ServerContext.WorldBlockUpdateEvent;
             _gear = gear;
             _rotation = rotation;
             Edge = new BeltEdge(Position("UL"), rotation.ConvertLocalCell(Vector3Int.forward), 0);
@@ -76,6 +79,14 @@ namespace Tests.UnitTest.Game.BeltConnection
             Assert.IsTrue(World.RemoveBlock(Position(slot), BlockRemoveReason.ManualRemove));
         }
 
+        // 捕捉済みのworldイベントで、同じ配置の再通知を検証する
+        // Reannounce the same placement using the event source captured with this world
+        internal void ReannouncePlacement(string slot)
+        {
+            var position = Position(slot);
+            _events.OnBlockPlaceEventInvoke(position, World.GetOriginPosBlock(position));
+        }
+
         internal void Clear()
         {
             foreach (var slot in Slots) Remove(slot);
@@ -88,11 +99,11 @@ namespace Tests.UnitTest.Game.BeltConnection
             var actual = new List<string>();
             foreach (var source in _blocks)
             {
-                BeltInventoryConnectionContext.TryGetContext(source.Value, out var context);
+                BeltInventoryConnectionData.TryGet(source.Value, out var context);
                 if (!context.Edges.Contains(Edge)) continue;
                 foreach (var target in Connector(source.Value).ConnectedTargets.Values)
                 {
-                    if (!BeltInventoryConnectionContext.TryGetContext(target.TargetBlock, out var targetContext) || !targetContext.Edges.Contains(Edge)) continue;
+                    if (!BeltInventoryConnectionData.TryGet(target.TargetBlock, out var targetContext) || !targetContext.Edges.Contains(Edge)) continue;
                     actual.Add(source.Key + ">" + _blocks.Single(p => ReferenceEquals(p.Value, target.TargetBlock)).Key);
                 }
             }
@@ -102,7 +113,7 @@ namespace Tests.UnitTest.Game.BeltConnection
             Assert.AreEqual(actual.Count, resolved.Count, label + " resolver count");
         }
 
-        internal static BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> Connector(IBlock block) =>
-            block.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>();
+        internal static BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext> Connector(IBlock block) =>
+            block.ComponentManager.GetComponent<BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext>>();
     }
 }

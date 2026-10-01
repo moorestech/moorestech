@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
+using Game.Block.Interface.Component.ConnectJudge;
 using Game.Block.Interface.State;
 using UnityEngine;
 
 namespace Game.World.Interface.DataStore
 {
-    public interface IWorldBlockDatastore
+    public interface IWorldBlockDatastore : IConnectorWorldLookup
     {
         public IReadOnlyDictionary<BlockInstanceId, WorldBlockData> BlockMasterDictionary { get; }
         
@@ -17,7 +18,6 @@ namespace Game.World.Interface.DataStore
         public bool TryAddBlock(BlockId blockId, Vector3Int position, BlockDirection direction, BlockCreateParam[] createParams, out IBlock block);
         public bool RemoveBlock(Vector3Int pos, BlockRemoveReason reason);
         
-        public IBlock GetBlock(Vector3Int pos);
         public IBlock GetBlock(BlockInstanceId blockInstanceId);
         public IBlock GetBlock(IBlockComponent component);
         

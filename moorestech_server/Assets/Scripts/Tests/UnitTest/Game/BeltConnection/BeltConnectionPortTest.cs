@@ -71,11 +71,10 @@ namespace Tests.UnitTest.Game.BeltConnection
             var source = world.Place("UL", 1);
             world.Place("UR", 1);
             var connector = BeltEdgeTestWorld.Connector(source);
-            BeltInventoryConnectionContext.TryGetContext(source, out var context);
             // 同じtargetでも異なるport実体へ切り替える
             // Switch to a different port instance even when the target stays the same
             outputs[0] = Output(null, new[] { Vector3Int.forward });
-            context.ApplyOverride(null);
+            world.ReannouncePlacement("UL");
             Assert.AreSame(outputs[0], connector.ConnectedTargets.Single().Value.SelfConnector);
             world.Clear();
         }

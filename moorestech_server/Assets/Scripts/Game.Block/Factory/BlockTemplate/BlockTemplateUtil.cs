@@ -23,7 +23,7 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class BlockTemplateUtil
     {
-        public static BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> CreateInventoryConnector(InventoryConnects inventoryConnects, BlockPositionInfo blockPositionInfo)
+        public static BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext> CreateInventoryConnector(InventoryConnects inventoryConnects, BlockPositionInfo blockPositionInfo)
         {
             return BeltInventoryConnectionContext.CreateMachine(inventoryConnects, blockPositionInfo);
         }
@@ -32,7 +32,7 @@ namespace Game.Block.Factory.BlockTemplate
         public static (VanillaMachineInputInventory, VanillaMachineOutputInventory, VanillaMachineModuleInventory) GetMachineIOInventory(
             BlockId blockId, BlockInstanceId blockInstanceId,
             IMachineParam machineParam,
-            BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> blockConnectorComponent,
+            BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext> blockConnectorComponent,
             BlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent)
         {
             var inputSlotCount = machineParam.InputSlotCount;

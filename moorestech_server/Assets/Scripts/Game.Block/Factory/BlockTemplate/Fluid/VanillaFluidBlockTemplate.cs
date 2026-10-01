@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Game.Block.Blocks;
 using Game.Block.Blocks.Fluid;
 using Game.Block.Component;
@@ -27,7 +27,7 @@ namespace Game.Block.Factory.BlockTemplate.Fluid
             var fluidPipeParam = (blockMasterElement.BlockParam as FluidPipeBlockParam)!;
             
             var inventoryConnects = fluidPipeParam.FluidInventoryConnectors;
-            BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> connectorComponent = IFluidInventory.CreateFluidInventoryConnector(inventoryConnects, blockPositionInfo);
+            BlockConnectorComponent<IFluidInventory, DefaultContext<IFluidInventory>> connectorComponent = IFluidInventory.CreateFluidInventoryConnector(inventoryConnects, blockPositionInfo);
             
             var fluidPipeComponent = new FluidPipeComponent(blockPositionInfo, connectorComponent, fluidPipeParam.Capacity, componentStates);
             var saveComponent = new FluidPipeSaveComponent(fluidPipeComponent);

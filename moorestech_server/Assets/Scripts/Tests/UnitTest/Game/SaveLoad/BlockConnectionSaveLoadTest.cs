@@ -1,3 +1,4 @@
+using Game.Block.Blocks.BeltConveyor.Connection;
 using System;
 using System.Linq;
 using Game.Block.Blocks.Machine.Inventory;
@@ -38,7 +39,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             // 設置直後にベルトが機械へ1件接続していることを前提確認する
             // Sanity-check that the belt has exactly one connection to the machine right after placement
-            var savedConnector = belt.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>();
+            var savedConnector = belt.GetComponent<BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext>>();
             Assert.AreEqual(1, savedConnector.ConnectedTargets.Count);
 
             var saveJson = saveServiceProvider.GetService<AssembleSaveJsonText>().AssembleSaveJson();
@@ -52,7 +53,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             // Verify the belt-machine connection is restored after load
             var loadedBelt = ServerContext.WorldBlockDatastore.GetBlock(beltPos);
             var loadedMachineInventory = ServerContext.WorldBlockDatastore.GetBlock(machinePos).GetComponent<VanillaMachineBlockInventoryComponent>();
-            var loadedConnector = loadedBelt.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>();
+            var loadedConnector = loadedBelt.GetComponent<BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext>>();
 
             Assert.AreEqual(1, loadedConnector.ConnectedTargets.Count);
             Assert.AreSame(loadedMachineInventory, loadedConnector.ConnectedTargets.First().Key);

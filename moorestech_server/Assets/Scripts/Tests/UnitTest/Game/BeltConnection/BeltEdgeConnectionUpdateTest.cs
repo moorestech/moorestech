@@ -57,11 +57,13 @@ namespace Tests.UnitTest.Game.BeltConnection
             Assert.IsTrue(enumerator.MoveNext());
             // 同一接続は辞書versionを進めず、その場で維持する
             // Identical connections preserve the dictionary version in place
-            BeltInventoryConnectionContext.TryGetContext(source, out var context);
-            context.ApplyOverride(null);
+            var entry = enumerator.Current;
+            world.ReannouncePlacement("UL");
             world.Place("LL", 2);
             world.Remove("LL");
             Assert.AreSame(dictionary, connector.ConnectedTargets);
+            Assert.AreSame(entry.Value.SelfConnector, dictionary[entry.Key].SelfConnector);
+            Assert.AreSame(entry.Value.TargetConnector, dictionary[entry.Key].TargetConnector);
             Assert.DoesNotThrow(() => enumerator.MoveNext());
             world.Clear();
         }
@@ -75,13 +77,17 @@ namespace Tests.UnitTest.Game.BeltConnection
             first.Place("LL", 2);
             first.Place("LR", 3);
             var save = first.World.GetSaveJsonObject();
-            BeltInventoryConnectionContext.TryGetContext(first.World.GetBlock(first.Position("UL")), out var firstContext);
+            var firstDictionary = BeltEdgeTestWorld.Connector(first.World.GetBlock(first.Position("UL"))).ConnectedTargets;
+            var firstEnumerator = firstDictionary.GetEnumerator();
+            Assert.IsTrue(firstEnumerator.MoveNext());
             var second = new BeltEdgeTestWorld(false, BlockDirection.North);
             second.Place("LL", 2);
             second.Place("UR", 1);
             // 旧worldの再判定で新worldへ触れない
             // Reevaluating the old world cannot affect the new world
-            firstContext.ApplyOverride(null);
+            first.ReannouncePlacement("UL");
+            first.AssertEdges(new[] { "UL>UR" }, "old world preserved");
+            Assert.DoesNotThrow(() => firstEnumerator.MoveNext());
             second.AssertEdges(new[] { "LL>UR" }, "isolated world");
             second.Clear();
             save.Reverse();
