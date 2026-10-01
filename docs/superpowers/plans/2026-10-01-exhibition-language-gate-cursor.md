@@ -145,3 +145,10 @@ Task 3 実測（2026-10-01・修正 `fae1980e9` 入り）:
   - **ビルドでも `EventModeAutoStart` が `InitializeScenePipeline refused: the title gates never started` で断られ、MainMenu（ドイツ語UI・言語ドロップダウン付き）に戻った。** 出展モードの自動開始が機能していない別の不具合（本planの前提「EventModeAutoStart が即座に抜ける」と矛盾）。MainMenu 上ではカーソルは表示されていた。
   - MainMenu の「Lokal spielen」を cliclick で押して MainGame へ進めると、WebUI の言語選択ゲート（English/日本語/Deutsch/한국어）でカーソルが表示され、マウス移動に追従し English ボタンにホバーした（`screencapture -C` で確認）。English を押すとスキットが始まり、スキップ後のゲーム画面ではカーソルが非表示（ロック）になった。
   - 実マウスの物理操作ではなく cliclick の合成入力での確認。
+
+出展モード自動開始の修正（2026-10-01・`4f3b25e20`）:
+
+- 原因: `EventModeAutoStart`（AfterSceneLoad）がタイトル合成ルートの Start より先に `StartLocalGame` を呼び、`InitializeScenePipeline` が「確認が未開始」で断っていた（66877e531 で待ちが外れた）。smoke と同じく `PlaytestTitleGates` の通過を期限付き（60秒）で待ってからワールド削除と開始を行うよう直した。期限と待ち方は `PlaytestTitleGates.WaitUntilPassedWithinUnattendedDeadlineAsync` / `UnattendedPassTimeoutSeconds` に寄せ、smoke と共有した。起動言語の適用は今どおり同期で先に行う。
+- 回帰テスト `EventModeAutoStartBootTest`（EditModeInPlayingTest）: `playModeStartScene` を MainMenu にして本物の起動フックで起動し、MainGame へ届くことを確かめる。開発機の `Saves/world_1` は同じ Saves 内の退避名へ動かして守り、Play 終了後に戻す。修正前は「returned to MainMenu (reloaded at 0.02s)」で赤、修正後は緑。
+- 出展ビルド実機（Editor から `ForExhibition` で再ビルド）: `MOORESTECH_EVENT_MODE=1 MOORESTECH_EVENT_LANGUAGE=german` での単発起動と、同梱の `start-gamescom-loop.command` そのものでの起動の両方で、クリック無しで MainGame の言語選択ゲートへ到達し、カーソル表示を確認した。単発起動では English 選択 → スキット → スキップ後のゲーム画面でカーソル非表示（ロック）も確認した。Player.log に refused は 0 件。新規エラーは無く、既存の毎フレーム NRE（UIStateControl/ThirdPersonController）と CEF の署名検証ログだけだった。
+- 起動言語 german は「player already chose a language」で拒否された（開発機に選択済み言語が残っているため。既存挙動）。
