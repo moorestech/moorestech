@@ -12,8 +12,8 @@ using UnityEngine.InputSystem;
 namespace Client.Tests.Player
 {
     /// <summary>
-    ///     Web UIの文字入力欄にフォーカスがある間は打鍵が移動・ジャンプ・ダッシュに漏れないことを確認
-    ///     Verifies keystrokes never leak into walk, jump or sprint while a Web UI text field owns focus
+    ///     文字入力中の打鍵が移動・ジャンプ・ダッシュに漏れないことを確認
+    ///     Verifies keystrokes never leak into walk, jump or sprint while a text field owns focus
     /// </summary>
     public class TextInputMovementLockTest : InputTestFixture
     {
@@ -21,7 +21,7 @@ namespace Client.Tests.Player
         private Keyboard _keyboard;
         private StarterAssetsInputs _inputs;
         private PlayerObjectController _controller;
-        private Subject<bool> _textInputFocusedChanged;
+        private ReactiveProperty<bool> _textInputFocused;
 
         public override void Setup()
         {
@@ -42,8 +42,8 @@ namespace Client.Tests.Player
             typeof(PlayerObjectController).GetField("controller", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(_controller, thirdPersonController);
             _controller.Initialize(Vector3.zero, Vector3.zero);
 
-            _textInputFocusedChanged = new Subject<bool>();
-            new TextInputMovementLockApplier(_controller).Initialize(_textInputFocusedChanged, false);
+            _textInputFocused = new ReactiveProperty<bool>(false);
+            new TextInputMovementLockApplier(_controller).Initialize(_textInputFocused);
         }
 
         public override void TearDown()
@@ -61,7 +61,7 @@ namespace Client.Tests.Player
             _inputs.SprintInput(true);
             _inputs.JumpInput(true);
 
-            _textInputFocusedChanged.OnNext(true);
+            _textInputFocused.Value = true;
 
             // 検索欄で打ったw・空白・大文字のShiftが歩行・ジャンプ・ダッシュにならない
             // A typed w, space or capitalizing Shift in the search box must not walk, jump or sprint
@@ -74,12 +74,12 @@ namespace Client.Tests.Player
         [Test]
         public void 文字入力を抜けた時点で押しているキーから移動を再開する()
         {
-            _textInputFocusedChanged.OnNext(true);
+            _textInputFocused.Value = true;
             Press(_keyboard.wKey);
             Press(_keyboard.leftShiftKey);
             InputSystem.Update();
 
-            _textInputFocusedChanged.OnNext(false);
+            _textInputFocused.Value = false;
 
             Assert.IsTrue(_inputs.inputEnable);
             Assert.AreEqual(new Vector2(0f, 1f), _inputs.move);
@@ -90,9 +90,9 @@ namespace Client.Tests.Player
         public void 文字入力を抜けてもメニューの停止は残る()
         {
             _controller.SetMovementLock(PlayerMovementLockReason.Ui, true);
-            _textInputFocusedChanged.OnNext(true);
+            _textInputFocused.Value = true;
 
-            _textInputFocusedChanged.OnNext(false);
+            _textInputFocused.Value = false;
 
             Assert.IsFalse(_inputs.inputEnable, "文字入力の解除がポーズメニューの停止まで外した");
         }
@@ -108,28 +108,30 @@ namespace Client.Tests.Player
             typeof(PlayerObjectController).GetField("controller", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(controller, thirdPersonController);
             controller.Initialize(Vector3.zero, Vector3.zero);
 
-            new TextInputMovementLockApplier(controller).Initialize(new Subject<bool>(), true);
+            new TextInputMovementLockApplier(controller).Initialize(new ReactiveProperty<bool>(true));
 
             Assert.IsFalse(inputs.inputEnable);
             Object.DestroyImmediate(playerRoot);
         }
 
         [Test]
-        public void フォーカス状態は値が変わった時だけ通知される()
+        public void フォーカス状態は購読時の現在値と変化した時だけ流れる()
         {
             WebUiInputExclusivity.SetState(false, false);
             var received = new List<bool>();
-            var subscription = WebUiInputExclusivity.OnTextInputFocusedChanged.Subscribe(received.Add);
+            var subscription = WebUiInputExclusivity.TextInputFocused.Subscribe(received.Add);
 
-            // ポインタだけの変化や同値の再送では通知せず、切断時リセットの解除は通知する
-            // Pointer-only changes and same-value resends stay silent; the disconnect reset's release is notified
+            // ポインタだけの変化や同値の再送では流さず、切断時リセットの解除は流す
+            // Pointer-only changes and same-value resends stay silent; the disconnect reset's release is published
             WebUiInputExclusivity.SetState(true, false);
             WebUiInputExclusivity.SetState(true, true);
             WebUiInputExclusivity.SetState(false, true);
             WebUiInputExclusivity.SetState(false, false);
             subscription.Dispose();
 
-            CollectionAssert.AreEqual(new[] { true, false }, received);
+            // 購読した瞬間に現在値のfalseが届くので先頭に乗る
+            // The current value false arrives the moment of subscribing, so it leads the sequence
+            CollectionAssert.AreEqual(new[] { false, true, false }, received);
         }
     }
 }
