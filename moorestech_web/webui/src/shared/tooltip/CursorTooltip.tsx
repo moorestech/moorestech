@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { Paper, Portal } from "@mantine/core";
 import { Topics, useTopic, type TooltipLine, type VisibleTooltipData } from "@/bridge";
 import { buildPositionalInterpolationValues, translateExternalKey, useI18n, type InterpolationValues, type TranslationKey } from "@/shared/i18n";
@@ -8,7 +8,9 @@ import styles from "./style.module.css";
 export function CursorTooltip() {
   const data = useTopic(Topics.tooltip);
   const { locale, t } = useI18n();
-  const elementRef = useRef<HTMLDivElement>(null);
+  // Portal は子を1描画遅れて出すため、要素の付与そのものを位置計算のきっかけにする（ADR 0074）
+  // Portal mounts children one render late, so the element attaching itself triggers the position calculation (ADR 0074)
+  const [element, setElement] = useState<HTMLDivElement | null>(null);
   const [pointer, setPointer] = useState({ x: 0, y: 0 });
   const [position, setPosition] = useState({ x: 12, y: 12 });
 
@@ -24,18 +26,17 @@ export function CursorTooltip() {
   const text = lines.join("\n");
 
   useLayoutEffect(() => {
-    const element = elementRef.current;
     if (!element) return;
     // offsetWidthはtransform前の実装寸法なので、--ui-scale拡縮後の実寸を返すrectで画面端を判定する
     // offsetWidth is the pre-transform layout size, so the rect's post-scale dimensions decide the screen-edge clamp
     const rect = element.getBoundingClientRect();
     setPosition(clampTooltipPosition(pointer.x, pointer.y, rect.width, rect.height, window.innerWidth, window.innerHeight));
-  }, [pointer, data, text, locale]);
+  }, [element, pointer, data, text, locale]);
 
   if (!data?.visible) return null;
   return (
     <Portal>
-      <Paper ref={elementRef} className={styles.tooltip} data-testid="cursor-tooltip" style={{ left: position.x, top: position.y }}>
+      <Paper ref={setElement} className={styles.tooltip} data-testid="cursor-tooltip" style={{ left: position.x, top: position.y }}>
         {lines.map((line, index) => (
           <div key={index} data-testid="cursor-tooltip-line">{line}</div>
         ))}

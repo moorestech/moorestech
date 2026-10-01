@@ -9,14 +9,25 @@ const testState = vi.hoisted(() => ({
   data: {
     visible: true,
     lines: [{ textKey: "ui.mainMenu.playLocally", textParams: [] as string[] }],
-  },
-  clamp: vi.fn(() => ({ x: 12, y: 12 })),
+  } as { visible: boolean; lines: { textKey: string; textParams: string[] }[] },
+  // 渡された pointer に応じた値を返し、どの pointer で計算したかを描画結果から読めるようにする
+  // Return a pointer-dependent value so the rendered style reveals which pointer the calculation used
+  clamp: vi.fn((x: number, y: number) => ({ x: x + 12, y: y + 12 })),
 }));
 
-vi.mock("@mantine/core", () => ({
-  Paper: forwardRef((props: Record<string, unknown>, ref) => createElement("div", { ...props, ref })),
-  Portal: ({ children }: { children: unknown }) => children,
-}));
+// 本物の Portal と同じく初回描画では子を出さず、layout effect の後に出す
+// Like the real Portal, render nothing on the first pass and the children only after a layout effect
+vi.mock("@mantine/core", async () => {
+  const { useLayoutEffect, useState } = await import("react");
+  return {
+    Paper: forwardRef((props: Record<string, unknown>, ref) => createElement("div", { ...props, ref })),
+    Portal: ({ children }: { children: unknown }) => {
+      const [mounted, setMounted] = useState(false);
+      useLayoutEffect(() => setMounted(true), []);
+      return mounted ? children : null;
+    },
+  };
+});
 vi.mock("@/bridge", () => ({
   Topics: { tooltip: "ui.tooltip" },
   useTopic: () => testState.data,
@@ -120,5 +131,37 @@ describe("CursorTooltip", () => {
     // Pin not just that it recalculated but the measured size and viewport values handed to clamp
     expect(testState.clamp.mock.calls.length).toBeGreaterThan(initialCalls);
     expect(testState.clamp).toHaveBeenLastCalledWith(0, 0, 120, 40, 1280, 720);
+  });
+
+  it("positions from the latest pointer when the tooltip first appears without further pointer moves", () => {
+    let pointerMove: ((event: { clientX: number; clientY: number }) => void) | undefined;
+    vi.stubGlobal("window", {
+      addEventListener: vi.fn((type: string, listener: (event: { clientX: number; clientY: number }) => void) => {
+        if (type === "pointermove") pointerMove = listener;
+      }),
+      removeEventListener: vi.fn(),
+      innerWidth: 1280,
+      innerHeight: 720,
+    });
+    testState.data = { visible: false, lines: [] };
+    // pointermove リスナーを登録する useEffect を流すため、生成を act で包む
+    // Wrap creation in act so the useEffect that registers the pointermove listener is flushed
+    let renderer!: ReturnType<typeof create>;
+    act(() => {
+      renderer = create(createElement(CursorTooltip), {
+        createNodeMock: () => ({ getBoundingClientRect: () => ({ width: 120, height: 40 }) }),
+      });
+    });
+
+    // 非表示中にロック前ワープの中央座標だけが届き、その後は pointermove が来ない状況を再現する
+    // Reproduce only the pre-lock centered warp arriving while hidden, with no pointermove afterwards
+    act(() => pointerMove?.({ clientX: 640, clientY: 360 }));
+    act(() => {
+      testState.data = { visible: true, lines: [{ textKey: "ui.mainMenu.playLocally", textParams: [] }] };
+      renderer.update(createElement(CursorTooltip));
+    });
+
+    expect(testState.clamp).toHaveBeenLastCalledWith(640, 360, 120, 40, 1280, 720);
+    expect(renderer.root.findByProps({ "data-testid": "cursor-tooltip" }).props.style).toEqual({ left: 652, top: 372 });
   });
 });
