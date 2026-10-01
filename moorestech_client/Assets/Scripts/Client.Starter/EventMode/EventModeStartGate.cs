@@ -49,7 +49,7 @@ namespace Client.Starter.EventMode
 
         // 待機開始はsceneLoaded内でGameStateController.Start()より先に走り、Startがカーソルをロックする。1フレーム待って後勝ちにする
         // The wait starts inside sceneLoaded, before GameStateController.Start() locks the cursor, so wait one frame to win last
-        internal static async UniTask ShowCursorAfterSceneStartAsync(CancellationToken ct)
+        private static async UniTask ShowCursorAfterSceneStartAsync(CancellationToken ct)
         {
             await UniTask.NextFrame(ct);
             InputManager.MouseCursorVisible(true);

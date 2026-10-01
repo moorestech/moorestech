@@ -21,8 +21,8 @@ namespace Client.Tests.EditModeInPlayingTest
     [Category("CiShardClientPlay2")]
     public class EventModeAutoStartBootTest
     {
-        // 実データの内蔵サーバー起動を含めてMainGameへ届くまでの上限秒数
-        // Seconds allowed to reach MainGame, including booting the embedded server on real data
+        // 内蔵サーバー起動込みの到達上限秒
+        // Seconds limit to reach MainGame incl. server boot
         private const float ReachMainGameTimeoutSeconds = 300f;
 
         // ドメインリロードを跨いでPlay中の観測結果をPlay終了後の判定へ渡すキー
@@ -30,6 +30,16 @@ namespace Client.Tests.EditModeInPlayingTest
         private const string OutcomeKey = "EventModeAutoStartBootTest_Outcome";
 
         private const string ReachedMainGame = "reachedMainGame";
+
+        // 正常・失敗・打ち切りのどの経路でも開発機のワールドと環境を戻す
+        // Restore the developer's world and environment on every path: pass, failure or abort
+        [UnityTearDown]
+        public IEnumerator TearDown()
+        {
+            if (EditorApplication.isPlaying) yield return new ExitPlayMode();
+            EventModeAutoStartBootEnvironment.Restore();
+            SessionState.SetBool("DebugObjectsBootstrap_Disabled", false);
+        }
 
         // 到達待ちの上限より長く取り、Play終了後の復元と判定まで打ち切られないようにする
         // Longer than the reach deadline so the restore and verdict after Play are never cut off
@@ -54,11 +64,8 @@ namespace Client.Tests.EditModeInPlayingTest
             // Leave without choosing a language; the play-exit cancellation ends the wait
             yield return new ExitPlayMode();
 
-            // 判定より先に開発機のワールドと環境を戻す。Play中に断言すると復元が飛ばされる
-            // Restore the developer's world and environment before judging; asserting inside Play would skip the restore
-            EventModeAutoStartBootEnvironment.Restore();
-            SessionState.SetBool("DebugObjectsBootstrap_Disabled", false);
-
+            // 復元はTearDownが担う。ここで断言が落ちても復元は走る
+            // The TearDown restores, so a failing assert here still restores
             var outcome = SessionState.GetString(OutcomeKey, "");
             SessionState.EraseString(OutcomeKey);
             Assert.AreEqual(ReachedMainGame, outcome, "出展モードの自動開始がMainGameへ届かなかった");

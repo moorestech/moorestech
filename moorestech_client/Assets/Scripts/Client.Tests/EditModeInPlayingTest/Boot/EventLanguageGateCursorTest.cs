@@ -27,8 +27,8 @@ namespace Client.Tests.EditModeInPlayingTest
     [Category("CiShardClientPlay2")]
     public class EventLanguageGateCursorTest
     {
-        // MainGameがアクティブになるまで待つ上限フレーム数
-        // Frame budget for waiting until MainGame becomes active
+        // MainGame待ちの上限フレーム
+        // Frame limit for waiting on MainGame
         private const int MainGameWaitFrameLimit = 10000;
 
         // MainGameのStart()と後続の初回フレームを確実に越えるための待ちフレーム数
@@ -36,6 +36,14 @@ namespace Client.Tests.EditModeInPlayingTest
         private const int SettleFrameCount = 10;
 
         private static readonly string[] EventModeEnvKeys = { EventExhibitionSettings.EnableEnvKey, EventExhibitionSettings.EditorOptInEnvKey };
+
+        // 打ち切りでPlayに残ると次のテストのEnterPlayModeと競合するため、必ずPlayを抜ける
+        // Always leave Play, since staying in it after an abort would clash with the next test's EnterPlayMode
+        [UnityTearDown]
+        public IEnumerator TearDown()
+        {
+            if (EditorApplication.isPlaying) yield return new ExitPlayMode();
+        }
 
         [UnityTest]
         public IEnumerator 言語選択ゲートの待機中はマウスカーソルが見えている()
@@ -90,8 +98,8 @@ namespace Client.Tests.EditModeInPlayingTest
                     Assert.IsFalse(gameInitialized, "言語を選んでいないのに初期化が完了した");
                     StartGateTopicAssert.AssertWaiting(hub, EventLanguageGateTopic.TopicName, true);
 
-                    // 待機中は来場者が言語ボタンを押せるよう実カーソルが見えている
-                    // While waiting, the real cursor is visible so visitors can press a language button
+                    // 待機中は実カーソルが見える
+                    // The real cursor is visible while waiting
                     Assert.IsTrue(Cursor.visible, "言語選択ゲートの待機中にカーソルが非表示");
                     Assert.AreEqual(CursorLockMode.None, Cursor.lockState, "言語選択ゲートの待機中にカーソルがロックされている");
                 }

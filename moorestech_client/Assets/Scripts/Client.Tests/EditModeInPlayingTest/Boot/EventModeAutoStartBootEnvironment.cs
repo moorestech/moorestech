@@ -5,6 +5,7 @@ using Game.Paths;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.SceneManagement;
+using UnityEngine;
 
 namespace Client.Tests.EditModeInPlayingTest
 {
@@ -20,6 +21,7 @@ namespace Client.Tests.EditModeInPlayingTest
         private const string BackupSuffix = ".event-mode-autostart-test-backup";
         private const string PreviousStartScenePathKey = "EventModeAutoStartBootEnvironment_PreviousStartScenePath";
         private const string PreviousEnvValuePrefix = "EventModeAutoStartBootEnvironment_PreviousEnv_";
+        private const string PreparedMarkerKey = "EventModeAutoStartBootEnvironment_Prepared";
         private const string UnsetMarker = "\u0000unset";
 
         private static readonly string[] EventModeEnvKeys = { EventExhibitionSettings.EnableEnvKey, EventExhibitionSettings.EditorOptInEnvKey };
@@ -33,6 +35,9 @@ namespace Client.Tests.EditModeInPlayingTest
             // 退避名が残っているのは前回の中断。開発機のワールドの可能性があるので上書きしない
             // A leftover backup means an earlier interrupted run; it may hold the developer's world, so it is never overwritten
             Assert.IsFalse(Directory.Exists(BackupDirectory), $"前回の中断で退避ワールドが残っている。中身を確認して手で戻すか消すこと: {BackupDirectory}");
+            // 退避の直前に印を立てる。印が無いRestoreは開発機のワールドを消さない
+            // Mark just before the move; a Restore without the mark never deletes the developer's world
+            SessionState.SetBool(PreparedMarkerKey, true);
             if (Directory.Exists(GameSystemPaths.DefaultWorldDirectory)) Directory.Move(GameSystemPaths.DefaultWorldDirectory, BackupDirectory);
 
             // 起動フック（AfterSceneLoad）がMainMenuで走るよう、開いているシーンに依存せず起動シーンを固定する
@@ -54,6 +59,15 @@ namespace Client.Tests.EditModeInPlayingTest
         // Call after leaving Play: drop the world the test made, bring the developer's world back and restore the start scene and env vars
         public static void Restore()
         {
+            // Prepareが退避に届く前に落ちた場合、現在のワールドは開発機のものなので何もしない
+            // If Prepare failed before reaching the move, the current world is the developer's, so do nothing
+            if (!SessionState.GetBool(PreparedMarkerKey, false))
+            {
+                Debug.Log("EventModeAutoStartBootEnvironment: Restore skipped because Prepare did not reach the world backup");
+                return;
+            }
+            SessionState.EraseBool(PreparedMarkerKey);
+
             foreach (var key in EventModeEnvKeys)
             {
                 var previous = SessionState.GetString(PreviousEnvValuePrefix + key, UnsetMarker);

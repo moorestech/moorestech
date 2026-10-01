@@ -58,36 +58,40 @@ namespace Client.Starter.EventMode
             // Forgetに吸われた例外も理由付きで残す（前例: StandalonePlaytestSmokeBootstrap）
             // Exceptions swallowed by Forget are recorded with a reason too (precedent: StandalonePlaytestSmokeBootstrap)
             StartWhenTitleGatesPassAsync().Forget(LogAutoStartException);
-        }
 
-        // 確認列はタイトル合成ルートのStartで始まり、AfterSceneLoadのここより遅い。待たずに開始すると初期化が「確認が未開始」で断りメニューへ戻す
-        // The title sequence starts in the title composition root's Start, later than this AfterSceneLoad hook; starting without waiting is refused as "not started" and bounced to the menu
-        private static async UniTask StartWhenTitleGatesPassAsync()
-        {
-            // 期限切れは列が始まらない配線不良。ワールドを消さずメインメニューに留める（fail-closed）
-            // Expiry means the sequence never started (a wiring fault); stay on the main menu without wiping the world (fail closed)
-            if (!await PlaytestTitleGates.WaitUntilPassedWithinUnattendedDeadlineAsync(Application.exitCancellationToken))
+            #region Internal
+
+            // 確認列はタイトル合成ルートのStartで始まり、AfterSceneLoadのここより遅い。待たずに開始すると初期化が「確認が未開始」で断りメニューへ戻す
+            // The title sequence starts in the title composition root's Start, later than this AfterSceneLoad hook; starting without waiting is refused as "not started" and bounced to the menu
+            async UniTask StartWhenTitleGatesPassAsync()
             {
-                Debug.LogError($"EventModeAutoStart: title gates did not pass within {PlaytestTitleGates.UnattendedPassTimeoutSeconds}s (the title composition root may not have started the sequence); not wiping the world and not auto-starting");
-                return;
+                // 期限切れは列が始まらない配線不良。ワールドを消さずメインメニューに留める（fail-closed）
+                // Expiry means the sequence never started (a wiring fault); stay on the main menu without wiping the world (fail closed)
+                if (!await PlaytestTitleGates.WaitUntilPassedWithinUnattendedDeadlineAsync(Application.exitCancellationToken))
+                {
+                    Debug.LogError($"EventModeAutoStart: title gates did not pass within {PlaytestTitleGates.UnattendedPassTimeoutSeconds}s (the title composition root may not have started the sequence); not wiping the world and not auto-starting");
+                    return;
+                }
+
+                // 開始が確定してから消す。断られた時にワールドだけ消える状態を作らない
+                // Wipe only once the start is settled, so a refusal never leaves the world deleted with no game started
+                GameSystemPaths.DeleteDefaultWorldDirectory();
+                LocalGameLauncher.StartLocalGame();
             }
 
-            // 開始が確定してから消す。断られた時にワールドだけ消える状態を作らない
-            // Wipe only once the start is settled, so a refusal never leaves the world deleted with no game started
-            GameSystemPaths.DeleteDefaultWorldDirectory();
-            LocalGameLauncher.StartLocalGame();
-        }
-
-        // 終了によるキャンセルも含め、自動開始しなかった理由を必ずログへ出す
-        // Always log why the auto start did not happen, cancellation by application exit included
-        private static void LogAutoStartException(Exception exception)
-        {
-            if (exception is OperationCanceledException)
+            // 終了によるキャンセルも含め、自動開始しなかった理由を必ずログへ出す
+            // Always log why the auto start did not happen, cancellation by application exit included
+            void LogAutoStartException(Exception exception)
             {
-                Debug.Log("EventModeAutoStart: the wait for the title gates was cancelled by application exit; not auto-starting");
-                return;
+                if (exception is OperationCanceledException)
+                {
+                    Debug.Log("EventModeAutoStart: the wait for the title gates was cancelled by application exit; not auto-starting");
+                    return;
+                }
+                Debug.LogError($"EventModeAutoStart: the auto start ended with an exception; not auto-starting {exception.GetType()} {exception.Message}");
             }
-            Debug.LogError($"EventModeAutoStart: the auto start ended with an exception; not auto-starting {exception.GetType()} {exception.Message}");
+
+            #endregion
         }
     }
 }
