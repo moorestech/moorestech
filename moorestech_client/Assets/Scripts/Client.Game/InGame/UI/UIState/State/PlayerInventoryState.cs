@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Mooresmaster.Localization.Generated;
 using System.Threading;
 using Client.Game.InGame.Context;
@@ -71,7 +71,7 @@ namespace Client.Game.InGame.UI.UIState.State
         /// </summary>
         private async UniTask UpdatePlayerInventory(CancellationToken ct)
         {
-            var invResponse = await ClientContext.VanillaApi.Response.GetMyPlayerInventory(ct);
+            var invResponse = await ClientContext.VanillaApi.Response.Inventory.GetMyPlayerInventory(ct);
 
             ApplyInventoryResponse(invResponse);
         }
@@ -83,6 +83,11 @@ namespace Client.Game.InGame.UI.UIState.State
             _localPlayerInventoryController.SetMainInventory(response.MainInventory);
             _localPlayerInventoryController.SetGrabItem(response.GrabItem);
             _localPlayerEquipment.Initialize(response.Equipment, response.SelectedEquipmentIndex);
+        }
+
+        public bool LocksPlayerMovement()
+        {
+            return true;
         }
 
         public IReadOnlyList<KeyHint> GetKeyHints()

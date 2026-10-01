@@ -53,6 +53,30 @@ namespace Client.Game.InGame.BugReport.DiskOperations
             }
         }
 
+        // 原子書込の規律は1本に畳む。tmpの掃除も欠損の文言もここだけを直せば揃う
+        // One place owns the atomic-write discipline, so the tmp cleanup and the gap wording are fixed here alone
+        public static SalvageOperationResult WriteTextAtomically(string path, string text)
+        {
+            var temporaryPath = path + ".tmp";
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(path));
+                // 容量不足でも既存のファイルを壊さない
+                // Preserve the existing file even when disk space runs out
+                File.WriteAllText(temporaryPath, text);
+                if (File.Exists(path)) File.Replace(temporaryPath, path, null);
+                else File.Move(temporaryPath, path);
+                return SalvageOperationResult.Success();
+            }
+            catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e))
+            {
+                // 書きかけのtmpを残すと次回の置き換えがそれを正本と取り違える
+                // A leftover tmp would be mistaken for the real file by the next replacement
+                DeleteFile(temporaryPath);
+                return SalvageOperationResult.Failure($"書き出しに失敗した {path}: {e.Message}");
+            }
+        }
+
         public static SalvageOperationResult ReadText(string path, out string text)
         {
             text = null;

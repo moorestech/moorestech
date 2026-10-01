@@ -7,10 +7,13 @@ using Game.Block.Interface;
 using Game.Construction;
 using Game.Context;
 using Game.Hotbar;
+using Game.PlayerIdentity;
+using Newtonsoft.Json.Linq;
 using Game.PlayerInventory.Interface;
 using Game.SaveLoad.Json;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
+using Tests.Util.PlayerIdentity;
 using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
@@ -46,6 +49,27 @@ namespace Tests.CombinedTest.Game
             var instanceIds = captured.World.Select(block => block.InstanceId).ToArray();
             Assert.AreEqual(8, instanceIds.Length, "検査対象のブロックが想定数だけ保存されていない");
             CollectionAssert.AreEqual(instanceIds.OrderBy(id => id).ToArray(), instanceIds, "保存されるブロックの並びが正準化されていない");
+        }
+
+        [Test]
+        public void 身元の対応表は登録順によらずプレイヤーID昇順で保存されるTest()
+        {
+            var (_, provider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var registry = provider.GetRequiredService<PlayerIdentityRegistry>();
+
+            // 対応表の挿入順を逆にして、昇順が偶然成立することを防ぐ
+            // Reverse insertion order so ascending order cannot pass accidentally
+            registry.Load(new PlayersSaveJsonObject(4, null, new List<PlayerIdentityEntryJsonObject>
+            {
+                new(3, "steam:3"), new(2, "steam:2"), new(1, "steam:1"),
+            }));
+            PlayerIdentityTestHelper.Register(registry, "steam:3");
+            PlayerIdentityTestHelper.Register(registry, "steam:2");
+            PlayerIdentityTestHelper.Register(registry, "steam:1");
+
+            var save = JObject.Parse(provider.GetRequiredService<AssembleSaveJsonText>().AssembleSaveJson());
+            var ids = save["players"]["entries"].Select(entry => (int)entry["playerId"]).ToArray();
+            CollectionAssert.AreEqual(new[] { 1, 2, 3 }, ids);
         }
 
         // 再接続や退出後の再参加でプレイヤー鍵のDictionaryは挿入順が入れ替わる。並びが変わると比較器が実在しない差分を並べる

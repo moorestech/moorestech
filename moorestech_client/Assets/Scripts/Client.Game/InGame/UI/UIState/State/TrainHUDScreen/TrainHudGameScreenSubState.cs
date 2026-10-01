@@ -42,6 +42,13 @@ namespace Client.Game.InGame.UI.UIState.State.TrainHUDScreen
         {
             return TrainHudGameScreenSubStateHints.Hints;
         }
+
+        // WASDは列車操作に使うので自機は止める。乗車RPCの応答待ちの間も歩かせない
+        // WASD drives the train here, so the player stops; this also covers the wait for the ride RPC response
+        public bool LocksPlayerMovement()
+        {
+            return true;
+        }
     }
 
     internal static class TrainHudGameScreenSubStateHints

@@ -102,7 +102,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         private static byte[] CreateRemovePayload(Vector3Int position)
         {
             return MessagePackSerializer.Serialize(
-                new RemoveBlockProtocol.RemoveBlockProtocolMessagePack(PlayerId, position));
+                new RemoveBlockProtocol.RemoveBlockProtocolMessagePack(position));
         }
 
         private sealed class ProtocolEntry : ITickEndPacketEntry
@@ -110,8 +110,6 @@ namespace Tests.CombinedTest.Server.PacketTest
             private readonly PacketResponseCreator _packet;
             private readonly byte[] _payload;
             public readonly List<byte[]> Responses = new();
-            public bool IsActive => true;
-
             public ProtocolEntry(PacketResponseCreator packet, byte[] payload)
             {
                 _packet = packet;
@@ -120,7 +118,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             public void Process()
             {
-                Responses.AddRange(_packet.GetPacketResponse(_payload, new PacketResponseContext(null)));
+                Responses.AddRange(_packet.GetPacketResponse(_payload, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId)));
             }
         }
     }

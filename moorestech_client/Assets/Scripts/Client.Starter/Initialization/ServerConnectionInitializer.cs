@@ -5,7 +5,9 @@ using Client.Game.Common;
 using Client.Game.InGame.BugReport.LastSession;
 using Client.Network;
 using Client.Network.API;
+using Client.Network.API.Identity;
 using Client.Network.Settings;
+using Client.Starter.Initialization.Refusal;
 using Cysharp.Threading.Tasks;
 using Server.Boot;
 using Server.Boot.Args;
@@ -23,14 +25,16 @@ namespace Client.Starter.Initialization
     {
         private readonly InitializeProprieties _proprieties;
         private readonly LoadingProgressLog _loadingProgressLog;
-        private readonly PlayerConnectionSetting _playerConnectionSetting;
+        private readonly string _playerIdentity;
         private readonly CancellationToken _exitToken;
 
-        public ServerConnectionInitializer(InitializeProprieties proprieties, LoadingProgressLog loadingProgressLog, PlayerConnectionSetting playerConnectionSetting, CancellationToken exitToken)
+        // 身元は呼び出し側が先に確定させる。ここで再解決すると解決の呼び出し口が2つに割れる
+        // The caller resolves the identity first; resolving again here would split the resolution into two call sites
+        public ServerConnectionInitializer(InitializeProprieties proprieties, LoadingProgressLog loadingProgressLog, string playerIdentity, CancellationToken exitToken)
         {
             _proprieties = proprieties;
             _loadingProgressLog = loadingProgressLog;
-            _playerConnectionSetting = playerConnectionSetting;
+            _playerIdentity = playerIdentity;
             _exitToken = exitToken;
         }
 
@@ -47,23 +51,29 @@ namespace Client.Starter.Initialization
             Task.Run(() => serverCommunicator.StartCommunicat(exchangeManager));
 
             //Vanilla APIの作成
-            var vanillaApi = new VanillaApi(exchangeManager, packetSender, serverCommunicator, _playerConnectionSetting);
+            var vanillaApi = new VanillaApi(exchangeManager, packetSender, serverCommunicator);
 
             // セーブ世代の待ち手はゲーム寿命で1つ。完了通知を取りこぼさないよう最初の要求より前に作り、DIへも同じ個体を渡す
             // One save-generation waiter for the game's lifetime; created before any request so no notice is missed, and handed to DI as the same instance
             var saveGenerationWaiter = new ServerSaveGenerationWaiter(vanillaApi);
 
-            // リモートは内蔵サーバーを持たないため、通信越しに書き出し完了を待つ参加者を立てる
-            // A remote connection owns no embedded server, so register a participant that awaits the flush over the wire
-            if (_proprieties.IsRemoteConnection) GameShutdownEvent.RegisterParticipant(new RemoteServerSaveFlushParticipant(saveGenerationWaiter));
-
             //最初に必要なデータを取得
             // Fetch the initial data bundle
-            var handshakeResponse = await vanillaApi.Response.InitialHandShake(_playerConnectionSetting.PlayerId, _exitToken);
+            var handshakeAttempt = await vanillaApi.Response.InitialHandShake(_playerIdentity, _exitToken);
+            if (handshakeAttempt.IsRefused)
+            {
+                serverCommunicator.Close();
+                return ServerConnectionResult.Refused(HandshakeRejectionDisplay.ToRefusal(handshakeAttempt));
+            }
+            var handshakeResponse = handshakeAttempt.Response;
+
+            // リモートは内蔵サーバーを持たないため、通信越しに書き出し完了を待つ参加者を立てる。ハンドシェイク成功後に限る（拒否経路で未紐づけ接続からの送信を防ぐ）
+            // A remote connection owns no embedded server, so register a participant that awaits the flush over the wire; only after a successful handshake, to keep a rejected connection from sending unbound
+            if (_proprieties.IsRemoteConnection) GameShutdownEvent.RegisterParticipant(new RemoteServerSaveFlushParticipant(saveGenerationWaiter));
 
             _loadingProgressLog.AppendElapsed(LocalizationKeys.Ui.Loading.InitialDataFetched);
 
-            return new ServerConnectionResult { VanillaApi = vanillaApi, HandshakeResponse = handshakeResponse, SaveGenerationWaiter = saveGenerationWaiter };
+            return ServerConnectionResult.Connected(new PlayerConnectionSetting(handshakeResponse.PlayerId), vanillaApi, handshakeResponse, saveGenerationWaiter);
 
             #region Internal
 
@@ -124,13 +134,36 @@ namespace Client.Starter.Initialization
     }
 
     /// <summary>
-    /// サーバー接続初期化の結果
-    /// Result of the server connection initialization
+    /// サーバー接続初期化の結果。拒否と接続成立のどちらかを生成口で決める
+    /// Result of the server connection initialization; the factory decides between a refusal and an established connection
     /// </summary>
     public class ServerConnectionResult
     {
-        public VanillaApi VanillaApi;
-        public InitialHandshakeResponse HandshakeResponse;
-        public ServerSaveGenerationWaiter SaveGenerationWaiter;
+        public readonly PlayerStartRefusal? Refusal;
+        public readonly PlayerConnectionSetting PlayerConnectionSetting;
+        public readonly VanillaApi VanillaApi;
+        public readonly InitialHandshakeResponse HandshakeResponse;
+        public readonly ServerSaveGenerationWaiter SaveGenerationWaiter;
+
+        private ServerConnectionResult(PlayerStartRefusal? refusal, PlayerConnectionSetting playerConnectionSetting,
+            VanillaApi vanillaApi, InitialHandshakeResponse handshakeResponse, ServerSaveGenerationWaiter saveGenerationWaiter)
+        {
+            Refusal = refusal;
+            PlayerConnectionSetting = playerConnectionSetting;
+            VanillaApi = vanillaApi;
+            HandshakeResponse = handshakeResponse;
+            SaveGenerationWaiter = saveGenerationWaiter;
+        }
+
+        public static ServerConnectionResult Refused(PlayerStartRefusal refusal)
+        {
+            return new ServerConnectionResult(refusal, null, null, null, null);
+        }
+
+        public static ServerConnectionResult Connected(PlayerConnectionSetting playerConnectionSetting, VanillaApi vanillaApi,
+            InitialHandshakeResponse handshakeResponse, ServerSaveGenerationWaiter saveGenerationWaiter)
+        {
+            return new ServerConnectionResult(null, playerConnectionSetting, vanillaApi, handshakeResponse, saveGenerationWaiter);
+        }
     }
 }

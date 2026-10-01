@@ -115,9 +115,10 @@ AskUserQuestion は deny される。ブロックは同一セッション2回で
    24時間使われていない古ピンの掃除・`novelty_gate.py` の実在確認・SKILL.md同一性ガードを1コマンドで行い、終了コードで裁く）:
 
        python3 <$ORIGINの実値>/.agents/skills/pr-independent-review/scripts/canon_setup.py \
-         --origin <$ORIGINの実値> --parent <worktree親ディレクトリ>
+         --origin <$ORIGINの実値>
 
-   stdout の JSON の `canon` が `$CANON` の実値。`origin_master_sha` は records の `canonical:` に書く。`warnings`（古ピン掃除の失敗）は報告に載せて続行する
+   stdout の JSON の `canon` が `$CANON` の実値、`worktree_parent`（PC共通の `<clone置き場の親>/worktrees/moorestech/` に固定）が本スキルの作る
+   worktree の置き場。`$ORIGIN` の隣（repos 直下）へ worktree を作らない（2026-09-29 ユーザー裁定）。`origin_master_sha` は records の `canonical:` に書く。`warnings`（古ピン掃除の失敗）は報告に載せて続行する
 
    | exit | 意味 | 対応 |
    | --- | --- | --- |
@@ -130,7 +131,7 @@ AskUserQuestion は deny される。ブロックは同一セッション2回で
 
 上の3treeのどれでもない専用worktreeを新たに切ってそこで完結させる:
 
-    git -C <$ORIGINの実値> worktree add <worktree親ディレクトリ>/skill-<用件> -b chore/<用件> origin/master
+    git -C <$ORIGINの実値> worktree add <worktree_parentの実値>/skill-<用件> -b chore/<用件> origin/master
 
 - 作業後に `git -C <$ORIGINの実値> status --porcelain -- <触れたパス>` が**空**であることを確かめる（撤収確認）
 - **その改修はmasterへマージされるまで測定器に入らない**（`$CANON` はmasterのSHAからピンされる）。
@@ -180,7 +181,7 @@ Step 10 の付与条件を確認する。
 
 **worktreeはPRごとに1つ作り、レビューからpushまでそこで完結させる**（ユーザー裁定 2026-08-05）。共用の使い回しworktreeにしない。
 
-- **場所**: `skills-canon-<sha8>` と同じ親ディレクトリの `pr-<番号>`
+- **場所**: `<worktree_parentの実値>/pr-<番号>`（`skills-canon-<sha8>` と同じ親）
 - **無ければ作る**:
 
       git -C <$ORIGINの実値> fetch origin "+refs/heads/<headRefName>:refs/remotes/origin/<headRefName>"
@@ -222,6 +223,8 @@ Step 10 の付与条件を確認する。
 
     python3 <$CANONの実値>/.agents/skills/pr-independent-review/scripts/make_patch.py \
       --prwt <$PRWTの実値> --origin <$ORIGINの実値> --pr <番号> --base-ref <BASE_REF> --out <$RUNDIRの実値>/patch.diff
+
+production APIのシグネチャ・引数・前提条件を変えるPRは、patch生成後に除外域も含め呼び出し元を検索。特に`unity-playmode-recorded-playtest`配下の`.cs`。除外域は互換性・挙動だけ確認。
 
 スクリプトが固定フラグ（`-c core.quotepath=false --no-color --no-ext-diff --no-textconv --text --no-renames`。ユーザー側git設定が
 patchを静かに痩せさせないため）と固定の除外（Unityアセット・画像・プレイテストシナリオの `.cs`。yml/jsonは残す。

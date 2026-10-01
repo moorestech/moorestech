@@ -7,6 +7,6 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService.Resolver
     {
         InventoryType InventoryType { get; }
         
-        IOpenableInventory Resolve(InventoryIdentifierMessagePack identifier);
+        IOpenableInventory Resolve(InventoryIdentifierMessagePack identifier, int requesterPlayerId);
     }
 }

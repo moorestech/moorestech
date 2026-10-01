@@ -9,7 +9,9 @@ using Game.SaveLoad.Json.WorldVersions;
 using Microsoft.Extensions.DependencyInjection;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
+using Game.PlayerIdentity;
 using NUnit.Framework;
+using Tests.Util.PlayerIdentity;
 using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
@@ -19,7 +21,6 @@ namespace Tests.CombinedTest.Game
 {
     public class SaveTickAndRandomStateTest
     {
-        private const int PlayerId = 7;
         private const double AttackSpeedSeconds = 2.0;
 
 
@@ -80,6 +81,7 @@ namespace Tests.CombinedTest.Game
         {
             var save = SaveLoadPreparerTestFixture.BuildSaveJson();
             save["worldVersion"] = 1;
+            save.Remove("players");
             save.Remove("currentTick");
             save.Remove("randomState");
             save.Remove("miningCooldowns");
@@ -152,21 +154,22 @@ namespace Tests.CombinedTest.Game
         public void 採掘クールダウンがセーブロードで復元される()
         {
             var (_, saveProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var playerId = PlayerIdentityTestHelper.Register(saveProvider.GetRequiredService<PlayerIdentityRegistry>(), "steam:1").PlayerId;
             GameUpdater.RestoreCurrentTick(1000);
-            saveProvider.GetRequiredService<MiningCooldownService>().RecordAttack(PlayerId);
+            saveProvider.GetRequiredService<MiningCooldownService>().RecordAttack(playerId);
             var json = saveProvider.GetRequiredService<AssembleSaveJsonText>().AssembleSaveJson();
 
             var (_, loadProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var cooldownService = loadProvider.GetRequiredService<MiningCooldownService>();
-            Assert.IsFalse(cooldownService.IsInCooldown(PlayerId, AttackSpeedSeconds), "ロード前から採掘クールダウンが載っている");
+            Assert.IsFalse(cooldownService.IsInCooldown(playerId, AttackSpeedSeconds), "ロード前から採掘クールダウンが載っている");
 
             (loadProvider.GetRequiredService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(json);
-            Assert.IsTrue(cooldownService.IsInCooldown(PlayerId, AttackSpeedSeconds), "最終採掘tickが復元されていない");
+            Assert.IsTrue(cooldownService.IsInCooldown(playerId, AttackSpeedSeconds), "最終採掘tickが復元されていない");
 
             // クールダウンが明けるところまで進めれば、復元した値が時刻と噛み合っていることまで見える
             // Advancing past the cooldown shows the restored value actually lines up with the clock
             GameUpdater.RestoreCurrentTick(GameUpdater.CurrentTick + GameUpdater.SecondsToTicks(AttackSpeedSeconds));
-            Assert.IsFalse(cooldownService.IsInCooldown(PlayerId, AttackSpeedSeconds), "復元したクールダウンが明けない");
+            Assert.IsFalse(cooldownService.IsInCooldown(playerId, AttackSpeedSeconds), "復元したクールダウンが明けない");
         }
     }
 }

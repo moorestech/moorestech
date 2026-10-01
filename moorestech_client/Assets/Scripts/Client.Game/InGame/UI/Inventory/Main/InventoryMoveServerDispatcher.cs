@@ -18,9 +18,8 @@ namespace Client.Game.InGame.UI.Inventory.Main
         {
             // 結合スロットをサーバーの識別子とスロットへ変換して送信する
             // Convert combined slots into server identifiers/slots, then send
-            var playerId = ClientContext.PlayerConnectionSetting.PlayerId;
-            var fromCoordinate = ToServerCoordinate(subInventory, mainSlotCount, playerId, from, fromSlot);
-            var toCoordinate = ToServerCoordinate(subInventory, mainSlotCount, playerId, to, toSlot);
+            var fromCoordinate = ToServerCoordinate(subInventory, mainSlotCount, from, fromSlot);
+            var toCoordinate = ToServerCoordinate(subInventory, mainSlotCount, to, toSlot);
             ClientContext.VanillaApi.SendOnly.ItemMove(count, ItemMoveType.SwapSlot, fromCoordinate.identifier, fromCoordinate.serverSlot, toCoordinate.identifier, toCoordinate.serverSlot);
         }
 
@@ -28,7 +27,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
         ///     ローカル座標（結合スロット / grab / 装備スロット）をサーバーの識別子とスロットへ変換する純粋関数
         ///     Pure conversion from a local coordinate (combined slot / grab / equipment slot) to a server identifier and slot
         /// </summary>
-        public static (InventoryIdentifierMessagePack identifier, int serverSlot) ToServerCoordinate(ISubInventory subInventory, int mainSlotCount, int playerId, LocalMoveInventoryType localType, int localSlot)
+        public static (InventoryIdentifierMessagePack identifier, int serverSlot) ToServerCoordinate(ISubInventory subInventory, int mainSlotCount, LocalMoveInventoryType localType, int localSlot)
         {
             switch (localType)
             {
@@ -36,14 +35,14 @@ namespace Client.Game.InGame.UI.Inventory.Main
                     // 結合スロットは mainSlotCount を境にメインとサブへ割り振る
                     // The combined slot splits into main and sub at the mainSlotCount boundary
                     return localSlot < mainSlotCount
-                        ? (CreateMainMessage(playerId), localSlot)
+                        ? (CreateMainMessage(), localSlot)
                         : (subInventory.ISubInventoryIdentifier.ToMessagePack(), localSlot - mainSlotCount);
                 case LocalMoveInventoryType.Grab:
-                    return (CreateGrabMessage(playerId), 0);
+                    return (CreateGrabMessage(), 0);
                 case LocalMoveInventoryType.Equipment:
                     // 装備は結合スロットではないため、ローカルスロットがそのままサーバースロットになる
                     // Equipment is not a combined slot, so the local slot is the server slot as-is
-                    return (CreateEquipmentMessage(playerId), localSlot);
+                    return (CreateEquipmentMessage(), localSlot);
                 default:
                     throw new ArgumentOutOfRangeException(nameof(localType), localType, null);
             }

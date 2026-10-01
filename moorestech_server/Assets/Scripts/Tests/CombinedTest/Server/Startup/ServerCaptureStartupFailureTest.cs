@@ -15,7 +15,7 @@ using Tests.Module.TestMod;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace Tests.CombinedTest.Server
+namespace Tests.CombinedTest.Server.Startup
 {
     public class ServerCaptureStartupFailureTest
     {

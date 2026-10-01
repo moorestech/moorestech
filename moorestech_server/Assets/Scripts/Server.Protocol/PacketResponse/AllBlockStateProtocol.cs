@@ -15,7 +15,7 @@ namespace Server.Protocol.PacketResponse
         {
         }
         
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var stateList = new List<BlockStateMessagePack>();
             foreach (var block in ServerContext.WorldBlockDatastore.BlockMasterDictionary.Values)

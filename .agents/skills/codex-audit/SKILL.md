@@ -1,6 +1,6 @@
 ---
 name: codex-audit
-description: "Codex CLI（GPT-5.6 Sol/Terra/Luna）を外部AI監査人として使い、画像・コード・パラメータを渡して第三者評価または改善相談を行う汎用ワークフロー。画像は任意（省略可）。デフォルトはフラッグシップの gpt-5.6-sol。\n\nUse When:\n- 自分の成果物を第三者視点でレビューしてほしい\n- UI/地形/デザインなどビジュアル成果物の品質を外部AIに評価させたい\n- アルゴリズムや設計方針を外部AIに相談したい\n- 「外部監査して」「codexに聞いて」「監査人に相談」「第三者レビュー」と言われた\n- 自分と外部の判断を突き合わせて精度を上げたい\n- 「codexにも質問を出させて、残った質問だけ」「重複しない質問だけcodexから」「codexの未回答の裁定事項を洗い出して」と言われた（設計インタビュー後に scripts/codex-open-questions.mjs の generate→filter 二段階で、既に答えた質問を除いた Codex 独自の質問だけを提示する）"
+description: "Codex CLI（GPT-6 Astra/Sol/Luna）を外部AI監査人として使い、画像・コード・パラメータを渡して第三者評価または改善相談を行う汎用ワークフロー。画像は任意（省略可）。デフォルトは最上位の gpt-6-astra。\n\nUse When:\n- 自分の成果物を第三者視点でレビューしてほしい\n- UI/地形/デザインなどビジュアル成果物の品質を外部AIに評価させたい\n- アルゴリズムや設計方針を外部AIに相談したい\n- 「外部監査して」「codexに聞いて」「監査人に相談」「第三者レビュー」と言われた\n- 自分と外部の判断を突き合わせて精度を上げたい\n- 「codexにも質問を出させて、残った質問だけ」「重複しない質問だけcodexから」「codexの未回答の裁定事項を洗い出して」と言われた（設計インタビュー後に scripts/codex-open-questions.mjs の generate→filter 二段階で、既に答えた質問を除いた Codex 独自の質問だけを提示する）"
 ---
 
 # Codex Audit — 外部AI監査・相談ワークフロー
@@ -13,7 +13,7 @@ description: "Codex CLI（GPT-5.6 Sol/Terra/Luna）を外部AI監査人として
 - **観察力の補強** — 画像の細部や矛盾を第三者の目で拾ってもらう
 - **相談相手** — 行き詰まったとき、アルゴリズム・パラメータ・設計の改善方針を議論できる
 
-**自分の判断と外部監査が矛盾したら、原則として外部監査を優先する**。自信過剰を防ぐためのガードレール。
+**自分の判断と外部監査が矛盾したら、実物（コード・画像・ログ）で確かめて決める。確かめられないときは外部側に倒す**。自信過剰を防ぎつつ、監査側の誤りをそのまま採用しないためのガードレール。
 
 ## 前提条件
 
@@ -21,22 +21,23 @@ description: "Codex CLI（GPT-5.6 Sol/Terra/Luna）を外部AI監査人として
 - Node.js が利用可能（スクリプトはピュア Node、npm 依存なし）
 - スキル同梱の `scripts/codex-audit.mjs` をそのまま使う
 
-## モデル選択（GPT-5.6 ファミリー）
+## モデル選択（GPT-6 ファミリー）
 
-Codex で使えるモデルは GPT-5.6 世代の 3 ティア。番号（5.6）が世代、Sol/Terra/Luna が能力ティアを表す。
+Codex で使えるモデルは GPT-6 世代の 3 ティア（正は `~/.codex/models_cache.json`）。
 
-| モデルID | ティア | 価格（$/1M tok 入力/出力） | 位置づけ |
+| モデルID | ティア | 位置づけ(codex の models_cache の説明) | effort |
 |---|---|---|---|
-| `gpt-5.6-sol` | フラッグシップ | $5 / $30 | コーディング・レビュー等で最高性能 |
-| `gpt-5.6-terra` | バランス | $2.50 / $15 | 日常作業向けの中間ティア |
-| `gpt-5.6-luna` | 高速・低価格 | $1 / $6 | 軽量・高速応答向け |
+| `gpt-6-astra` | 最上位 | Frontier intelligence for the most demanding work | low〜ultra |
+| `gpt-6-sol` | 主力 | Workhorse model for coding and everyday work | low〜ultra |
+| `gpt-6-luna` | 高速・低価格 | Fast and affordable model for easier tasks | low〜max |
 
-**使い分けの原則：基本は Sol。** レビュー・監査・設計相談など複雑で高度な判断が必要なタスクは常に `gpt-5.6-sol` を使う（ラッパーのデフォルトもこれ）。ユーザーが「低コストで」「terraで」と**明示的に指定したときのみ** `--model gpt-5.6-terra` に切り替える。Luna は監査用途では使わない（軽量応答向けで第三者監査の精度が出ない）。
+
+**使い分けの原則：監査は Astra。** レビュー・監査・設計相談など複雑で高度な判断が必要なタスクは `gpt-6-astra` を使う（ラッパーのデフォルトもこれ。ユーザー裁定 2026-09-24「実装=sol、監査=astra」）。ユーザーが「低コストで」「solで」と**明示的に指定したときのみ** `--model gpt-6-sol` に切り替える。Luna は監査用途では使わない（軽量応答向けで第三者監査の精度が出ない）。
 
 `~/.codex/config.toml` のデフォルトモデルに依存しないよう、ラッパーは常に `-m` を明示的に渡す。
 
-> **必ずフル ID を使う（`gpt-5.6-sol`）。短縮名 `sol`/`terra`/`luna` は使わない。**
-> `codex exec -m sol` のように短縮名を渡すと codex が解決に失敗し、`warning: Model metadata for 'sol' not found` の後に **HTTP 400 `"The 'sol' model is not supported when using Codex with a ChatGPT account."`** を返す。このエラーは「アカウント制約で sol が使えない」と誤読しやすいが、**真因は短縮名でありアカウントの問題ではない**（同一アカウントで `gpt-5.6-sol` は正常動作する）。この 400 を見たらアカウント設定を疑う前にモデル名がフル ID か確認すること。ラッパー（`codex-audit.mjs` / `codex-implement.mjs`）は `--model sol` を渡しても内部でフル ID に正規化するので安全。素の `codex exec` を直叩きする時だけ注意。
+> **必ずフル ID を使う（`gpt-6-astra`）。短縮名 `astra`/`sol`/`luna` は使わない。**
+> `codex exec -m sol` のように短縮名を渡すと codex が解決に失敗し、`warning: Model metadata for 'sol' not found` の後に **HTTP 400 `"The 'sol' model is not supported when using Codex with a ChatGPT account."`** を返す。このエラーは「アカウント制約で sol が使えない」と誤読しやすいが、**真因は短縮名でありアカウントの問題ではない**（同一アカウントでフル ID は正常動作する）。この 400 を見たらアカウント設定を疑う前にモデル名がフル ID か確認すること。ラッパー（`codex-audit.mjs` / `codex-open-questions.mjs` / `codex-implement.mjs`）は `--model sol` を渡しても内部でフル ID に正規化するので安全。素の `codex exec` を直叩きする時だけ注意。
 
 ## モード選択
 
@@ -51,20 +52,22 @@ Codex で使えるモデルは GPT-5.6 世代の 3 ティア。番号（5.6）�
 ## 呼び出し方法
 
 ```bash
-# 新規セッション（画像あり評価）— デフォルトで gpt-5.6-sol を使用
+# 新規セッション（画像あり評価）— デフォルトで gpt-6-astra を使用
 node .agents/skills/codex-audit/scripts/codex-audit.mjs <画像> [画像2 ...] --ask "..."
 
 # 新規セッション（画像なし相談）
 node .agents/skills/codex-audit/scripts/codex-audit.mjs --ask "..."
 
-# 低コストをユーザーが明示した場合のみ terra を指定
-node .agents/skills/codex-audit/scripts/codex-audit.mjs --ask "..." --model gpt-5.6-terra
+# 低コストをユーザーが明示した場合のみ sol を指定
+node .agents/skills/codex-audit/scripts/codex-audit.mjs --ask "..." --model gpt-6-sol
 
 # セッション再開（画像ありなし問わず）
 node .agents/skills/codex-audit/scripts/codex-audit.mjs [画像 ...] --ask "..." --session <UUID>
 ```
 
-初回呼び出し後、**stderr** に `--session <UUID> を指定してください` が出る。stdout ではないので注意。以降は同一セッションに再利用する。stdout には監査人からの回答本文が入る。
+監査人は `-s read-only` で起動する（コマンド実行・ファイル読み取りはできるが書き込みはできない）。検証用スクリプトの作成など書き込みが要る作業は codex-implement に任せる。
+
+初回呼び出し後、**stderr** に `--session <UUID> を指定してください` が出る（stdout ではない。`2>&1` でマージしていないと見落とす）。以降は同一セッションに再利用する。stdout には監査人からの回答本文が入る。
 
 ## プロンプト（`--ask`）の書き方
 
@@ -77,24 +80,6 @@ node .agents/skills/codex-audit/scripts/codex-audit.mjs [画像 ...] --ask "..."
 - **背景** — 対象が何で、どういう制約下にあるか
 - **現在の状態** — パラメータ値、設定、試した変更履歴
 - **出力形式** — A〜F 評価、◯△×、自由記述、コード例含む、等
-
-### 評価モード例
-
-```
---ask "【評価基準】スマートフォン向けランディングページのヒーローセクション。
-ターゲットは20-30代、洗練された印象と即座のCTA認識が重要。
-【確認観点】CTAボタンの視認性、見出しの情報優先度、余白バランス、
-ファーストビューで訴求が伝わるか。1〜5段階で項目別に評価してほしい。"
-```
-
-### 相談モード例
-
-```
---ask "【背景】キャッシュ戦略で悩んでいる。リクエスト毎にDB問い合わせしてレイテンシが出ている。
-【現在の実装】Redis 未導入、アプリ内メモリキャッシュ（LRU 1000件、TTL 5分）を検討中。
-【相談内容】書き込みが1分に数十回発生する前提で、キャッシュ無効化戦略をどう設計すべきか。
-トレードオフを整理して推奨案を提示してほしい。関連ファイル: src/cache/, src/api/handlers/"
-```
 
 ### 監査人にコードを読ませる
 
@@ -122,42 +107,18 @@ node .agents/skills/codex-audit/scripts/codex-audit.mjs [画像 ...] --ask "..."
 5. 目標品質到達までループ
 6. 到達後にユーザーに報告
 
-**自身の目視と外部監査が矛盾する場合は外部監査を優先**。
+**自身の目視と外部監査が矛盾したら、実物で確かめて決める。確かめられないときは外部側に倒す**。
 
 ## Gotchas
 
-- **`--ask` は必須。画像は任意。** 画像を省略しても `--ask` だけで相談モードとして動作する
-- **セッション ID は stderr に出る。** `2>&1` でマージしていないと見落とす
-- **同一セッションで画像ありと画像なしを混在可能。** 評価 → 相談 → 評価 と自由に切り替えられる
 - **大きな画像**（10MB超など）を直接渡すと codex 側で処理できない場合がある。必要なら事前に `sips` や `ffmpeg` で 2048px / JPEG 品質 85 程度に落としておく
-- **複数画像を渡すと監査人は画像間の比較も行う。** before/after、参考と出力、等で有用
-- **画像に写っていないものは評価不能。** 「画面外の要素」を評価してほしいならフレームに入るスクショを渡す
 - **監査人が「一貫した評価」を維持するのは指示がある場合のみ。** 評価基準を固定したいならプロンプトに明示的に「前回と同じ基準で」と書く
-- **"相談"は有効な使い方。** 評価だけでなく「どう改善すべきか」を議論できる。ソクラテス式に仮説を投げて検証してもらうのもよい
 - **セッション ID の取り違え**: 複数テーマを並行監査していると ID を混同する。テーマごとにメモを分ける
 - **セッション途中のモデル切り替えは避ける。** resume 時も `-m` が渡るため、途中で `--model` を変えると同一セッション内でモデルが替わり評価の一貫性が崩れる。モデルを変えるなら新規セッションで
 
-## 典型ワークフロー
-
-```
-1. 成果物を生成（UI レンダー、画像出力、コード変更、等）
-2. （画像ありモードなら）スクリーンショット取得
-3. 新規セッションで評価
-   → node .agents/skills/codex-audit/scripts/codex-audit.mjs [画像] --ask "【評価基準】...【確認観点】..."
-   → stderr からセッション ID を取得・記録
-4. 結果が目標品質未満なら「足りないもの」を読む
-5. 必要なら同セッションで相談
-   → --ask "【相談】この指摘について、具体的にどのパラメータを..." --session <UUID>
-6. 修正 → 再生成 → 再スクショ
-7. 同セッションで再評価
-   → [新画像] --ask "修正後。前回からの改善点と残課題を..." --session <UUID>
-8. 目標到達までループ
-9. 達成後にユーザーへ報告
-```
-
 ## Available scripts
 
-- `scripts/codex-audit.mjs` — Codex CLI をラップし、画像あり/なしの両モード・`--model` 指定（デフォルト gpt-5.6-sol）・JSONL 結果パース・セッション ID 案内を担う自己完結スクリプト。npm 依存なし。実行: `node .agents/skills/codex-audit/scripts/codex-audit.mjs --help`
+- `scripts/codex-audit.mjs` — Codex CLI をラップし、画像あり/なしの両モード・`--model` 指定（デフォルト gpt-6-astra）・JSONL 結果パース・セッション ID 案内を担う自己完結スクリプト。npm 依存なし。実行: `node .agents/skills/codex-audit/scripts/codex-audit.mjs --help`
 
 ## 未回答質問だけを出す二段階（並行設計インタビューの重複質問対策）
 
@@ -166,8 +127,8 @@ Claude と Codex を同じ設計課題で並行させると、構造の分岐（
 読ませるだけだと探索がレビューに退化して消える。これを両立させる手順が `scripts/codex-open-questions.mjs`。
 
 1. **generate（文書を見せずに質問生成）** — 依頼原文＋既知の事実だけを brief にして、設計文書が無い
-   隔離 worktree（`git worktree add --detach <dir> <文書を書く前の commit>`。`data/projects` 等の NSFW を含む
-   領域は worktree 内で `rm -rf` してから渡す）を `--cwd` に指定する。
+   隔離 worktree（`git worktree add --detach <dir> <文書を書く前の commit>`。機密・無関係な領域は
+   worktree 内で `rm -rf` してから渡す）を `--cwd` に指定する。
    ```bash
    node .agents/skills/codex-audit/scripts/codex-open-questions.mjs generate \
      --brief brief.txt --cwd /path/to/isolated-worktree --out q1.json      # stderr に thread id
@@ -185,13 +146,10 @@ Claude と Codex を同じ設計課題で並行させると、構造の分岐（
 4. `remaining` だけをユーザーへ提示する（grilling 同様 1 問ずつ）。`answered` の対応表は ADR の出所欄と
    突き合わせて転記ミスが無いか確認する。
 
-実測（2026-09-08, tara-tari-studio ボイス機能, gpt-6-astra medium）: generate 14 問 → filter で 6 問が
-先行裁定 10 件に正しく対応付き、8 問が残った（照合する台本の版・録音内の話者数・収録順と部分収録・
-同一録音内の複数テイク・非言語音声・音の仕上げ・保持期間・想定録音長）。残った 8 問はいずれも先行
-インタビューが聞いておらず、計画側で agent 前提として埋めていた箇所だった。
+実測では generate 14 問のうち 8 問が filter 後も残り、いずれも先行インタビューが聞かずに agent 前提で埋めていた箇所だった。
 
 Gotchas:
 - `codex exec` は stdin が TTY でないと `Reading additional input from stdin...` で止まる。スクリプトは
   stdin を ignore にしている。素で叩くときは `< /dev/null` を付ける
 - `resume` には `-s` が効かないので `-c 'sandbox_mode="read-only"'` で渡す（ラッパーが対応済み）
-- 既定モデルは `gpt-6-astra` / effort `medium`。`--model` `--effort` で変更可。thread 途中でモデルを変えない
+- 既定モデルは `gpt-6-astra` / effort `medium`。`--model` `--effort` で変更可

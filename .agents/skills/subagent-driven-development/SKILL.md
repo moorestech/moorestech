@@ -9,7 +9,26 @@ description: 現在のセッションで、独立したタスクからなる実�
 
 - **核となる原則:** 本体は実装を書かない。subagentにはセッション履歴を継承させず、必要なコンテキストだけをファイルで渡す。本体コンテキストは調整作業のために温存する
 - **実行環境別の手順(最初に読む):** Claude Code は [references/runtime-claude.md](references/runtime-claude.md) を読め。Codex は [references/runtime-codex.md](references/runtime-codex.md) を読め。派遣・待ち・生存確認の具体的なやり方はそこにだけ書く
-- **継続実行:** タスクの合間に「続けてよいですか？」と確認しない。止まってよいのは解決できないBLOCKED・真に進行を妨げる曖昧さ・全タスク完了のみ
+- **継続実行:** タスクの合間に「続けてよいですか？」と確認しない。途中で止まってよいのは、解決できないBLOCKED・後続タスクに係る質問（下記）・取り返しのつかない操作や隔離の安全確認だけ
+
+## 質問は最後にまとめる
+
+人間にしか決められない質問が生じても、原則その場では聞かない。推奨案で進め、実行メモに書き溜め、最後に1回でまとめて聞く。
+
+- **既定で進める:** 既定が外れても、直しがその質問の生じた1タスクの変更範囲に閉じる質問。推奨案を選び、メモの質問欄へ「質問・採った既定・理由・外れた場合の手戻り」を書いて進む
+- **途中で聞く:** 答えがそのタスクより後のタスクの設計・インターフェース・データ形式を決める質問だけ（既定が外れると後続タスクごとやり直しになる）。その質問に依存しないことが明らかなタスクを先に済ませ、聞くときは溜まっている質問も全部いっしょに出す
+- **実行メモ:** `scripts/sdd-memo` が表示するパス（記録repoの `harness/sdd/<ブランチslug>/memo.md`）に、現在地と質問を書く。派遣の前後・質問の発生時・ゲート通過時に更新する。非常に簡易でよい。worktree内や `/tmp` には置かない（消える）
+
+振り分けの基準・メモの書式・最後の出し方: [references/deferred-questions.md](references/deferred-questions.md)
+
+## 報告された症状が消えていなければ止まる
+
+計画がユーザー報告の不具合を直すものなら、実装後に報告の症状が消えたことを実際の経路で確かめ、証拠（ログの行・スクショ・観測した値）を残す。症状が残る・一部の経路で残るときは:
+
+- 推奨案で進めない。「質問は最後にまとめる」の既定で進める対象外で、/goal 等の「PRまで」というゴール文言より優先する
+- 残る理由を書くなら原因の札（実測＋証拠／推測。moores-grill-with-docs §1.2 と同じ）を付ける
+- 残件を別タスクへ回すにはユーザーの明示の了承が要る。質問返し（「詳しく教えて」等）は了承ではなく未回答として扱い、説明して聞き直す
+- 回した場合は PR のタイトルと本文に「未修正の経路」を明記する
 
 ## 必須ゲート（3つ）
 
@@ -17,7 +36,7 @@ description: 現在のセッションで、独立したタスクからなる実�
 
 1. **ワークスペース隔離（最初のsubagent派遣前・必須）** — 専用worktreeの外でimplementer（単一subagent含む）を派遣しない。例外は「既にworktree内にいる（再利用）」「人間が本体ワーキングツリーでの作業を明示した」の2つだけ。後者は隔離の免除であって担い手の変更ではない。本体でfeatureブランチを切っていても共有されているのはディレクトリなので例外にならない。手順・dirty時の移送・Library複製: [references/workspace-isolation.md](references/workspace-isolation.md)
 2. **最終ブランチ全体レビュー** — 最後のタスク完了の瞬間に moores-code-review を **Skillツール経由**で自動・無条件・確認なしに実行する。「playtestまで」「テストが通るまで」というゴール文言は免除にならない。「推奨します・必要なら実行します」で終えるのはスキップと同じ
-3. **PR作成** — 最終レビュー後、pr-create でPRを作成しセッションを閉じられる状態にするまでが完了。masterとのコンフリクトは解消（実作業はopus subagentへ委譲）してpush。「PRが必要なら作ります」で終えない
+3. **PR作成** — 最終レビュー後、pr-create でPRを作成しセッションを閉じられる状態にするまでが完了。masterとのコンフリクトは解消（実作業はopus subagentへ委譲）してpush。「PRが必要なら作ります」で終えない。PR作成後、worktreeを畳む前に隔離worktree側をcwdにして `scripts/sdd-archive` を実行し、ワークスペース（台帳・ブリーフ・報告）を記録repoへ退避する。ワークスペースはコードrepoへコミットしない
 
 根拠・呼び出し方・所見対応の詳細: [references/controller-gates.md](references/controller-gates.md)
 
@@ -41,8 +60,9 @@ description: 現在のセッションで、独立したタスクからなる実�
 
 1. 台帳を確認する: `cat "$(git rev-parse --show-toplevel)/.superpowers/sdd/progress.md"`。完了記載のタスクは再派遣せず、完了マークの無い最初のタスクから再開する
 2. ワークスペース隔離（ゲート1）
-3. 計画を一度読み、**事前計画レビュー**を行う: タスク間・Global Constraintsとの矛盾、レビュー基準で欠陥になる義務付け、`moores-code-review/references/moores-reviewer-digest.md` 違反を一括で人間へ提示する（問題なければ無言で進む）。詳細: controller-gates.md
-4. 規模判定を1行で声に出す
+3. 隔離worktree側をcwdにして `scripts/sdd-memo` を実行し、実行メモに計画のパスと現在地を書く。既存のメモに未回答の質問があれば引き継ぐ
+4. 計画を一度読み、**事前計画レビュー**を行う: タスク間・Global Constraintsとの矛盾、レビュー基準で欠陥になる義務付け、`moores-code-review/references/moores-reviewer-digest.md` 違反を洗い出す。後続タスクに係るものは一括で人間へ提示し、係らないものは推奨案で進めてメモへ書く（問題なければ無言で進む）。詳細: controller-gates.md
+5. 規模判定を1行で声に出す
 
 ## 単一subagent実装モード（閾値未満）
 
@@ -52,7 +72,7 @@ description: 現在のセッションで、独立したタスクからなる実�
 4. ステータスに対応する（下表）。DONE なら報告ファイルの `Task N: done` 行が `[TASK_RANGE]` を全て覆い、`git log <base>..HEAD` の `Task N:` コミットと一致することを確認する
 5. 台帳へ `Single-subagent: complete (commits <base7>..<head7>)` を書き、ゲート2 → ゲート3 へ進む。タスクレビュアーは派遣しない
 
-- **継続再派遣は PARTIAL のみ・上限2回。** NEEDS_CONTEXT は回答して再派遣し数えない。BLOCKED の原因が計画欠陥なら回数に関わらず即座に人間へエスカレーション。2回で終わらなければ規模誤判定とみなし、残りをSDD本体へ切り替えて台帳に `Single-subagent: switched to SDD per-task at Task N (continuations 2)` を書く
+- **継続再派遣は PARTIAL のみ・上限2回。** NEEDS_CONTEXT は回答して再派遣し数えない。BLOCKED の原因が計画欠陥なら回数に関わらず即座に質問の振り分け（上記）へ回す。2回で終わらなければ規模誤判定とみなし、残りをSDD本体へ切り替えて台帳に `Single-subagent: switched to SDD per-task at Task N (continuations 2)` を書く
 - 計画のチェックボックス（`- [ ]`）は誰も更新しない。進捗の正は報告ファイルの `Task N: done` 行と台帳
 - 継続手順・DONE_WITH_CONCERNS の fix 経路・compaction後の復旧: [references/single-subagent-mode.md](references/single-subagent-mode.md)
 
@@ -76,10 +96,10 @@ description: 現在のセッションで、独立したタスクからなる実�
 | ステータス | 対応 |
 | --- | --- |
 | DONE | SDD本体: review-package → タスクレビュアー。単一モード: 網羅突合 → 台帳完了行 → 最終レビュー |
-| DONE_WITH_CONCERNS | 懸念を読む。正しさ・スコープに関するものなら対処してからレビューへ（単一モードは網羅突合の後、単一fix subagent・opus。継続回数に数えない）。単なる所見ならメモして進む |
+| DONE_WITH_CONCERNS | 懸念を読む。正しさ・スコープに関するものなら対処してからレビューへ（単一モードは網羅突合の後、単一fix subagent・opus。継続回数に数えない）。単なる所見ならメモして進む。人間の判断が要る懸念（計画に無い仕様の選択など）は質問の振り分けへ回す |
 | PARTIAL（単一モードのみ） | 報告ファイルと `git log` で完了タスクを確定し、残りだけを継続再派遣する。継続上限2回に数える唯一のステータス |
-| NEEDS_CONTEXT | 不足コンテキストを回答して再派遣する。上限なし |
-| BLOCKED | ①コンテキスト不足 → 補って同モデルで再派遣 ②推論不足 → 上位モデル ③大きすぎ → 分割 ④計画自体の誤り → 人間へエスカレーション。変更なしで同じモデルに再試行させない |
+| NEEDS_CONTEXT | 不足コンテキストを回答して再派遣する。上限なし。計画・ADR・前例から答えが出ないものは質問の振り分けへ回し、既定で進めるなら推奨案を回答として渡す |
+| BLOCKED | ①コンテキスト不足 → 補って同モデルで再派遣 ②推論不足 → 上位モデル ③大きすぎ → 分割 ④計画自体の誤り → 質問の振り分けへ（後続タスクに係るなら人間へ聞く。閉じるなら推奨案で進めメモへ）。変更なしで同じモデルに再試行させない |
 
 ## 進捗台帳（`.superpowers/sdd/progress.md`）
 
@@ -89,6 +109,7 @@ description: 現在のセッションで、独立したタスクからなる実�
 - 単一モード: `dispatched` / `continuation #k from Task N base <sha7>`（PARTIAL継続のみ。この行数がそのまま継続回数） / `switched to SDD per-task …` / `complete`
 - 単一モードの復旧順: **台帳 → 元subagentの生存確認（手段は runtime-*.md。生きていれば結果を待つ） → 報告ファイル → `git log`**。`dispatched` だけで `complete` が無いとき、生存確認なしに再派遣しない（死亡と決めつけて再派遣し同一worktreeを二重編集した実事故がある）
 - `git clean -fdx` は台帳を消す。発生したら `git log` から復旧する
+- 実行メモは台帳の代わりにならない（人間向けの現在地と質問の置き場）。compaction後は台帳と併せてメモも読み、未回答の質問を引き継ぐ
 
 ## モデル選定
 
@@ -108,9 +129,11 @@ description: 現在のセッションで、独立したタスクからなる実�
 - レビュアーに「フラグを立てるな」「最大でもMinor」と先取り判断させる／diffファイルなしでレビュアーを派遣する
 - implementerの自己レビューを実レビュー（SDD本体はタスクレビュー、単一モードは最終レビュー）の代替にする／subagentの質問を無視する／手動で直す（コンテキスト汚染）
 - 台帳が完了とマークしたタスクを再派遣する
+- 後続タスクに係らない質問で途中停止する／既定で進めた判断をメモに書かずに進む／溜めた質問を最後に出さずに終える
+- 報告された症状が実測で残っているのに、了承なしで残件を別タスクへ回して PR を「修正」として出す
 
 ## ファイル構成
 
 - 派遣テンプレ: [single-implementer-prompt.md](single-implementer-prompt.md) / [implementer-prompt.md](implementer-prompt.md) / [task-reviewer-prompt.md](task-reviewer-prompt.md)。定型は [implementer-contract.md](implementer-contract.md) / [task-reviewer-contract.md](task-reviewer-contract.md) をsubagentが自分で読む
-- scripts: `sdd-workspace`（作業ディレクトリ解決）/ `task-brief`（タスク抽出）/ `review-package`（diff束ね）
-- references: workspace-isolation.md / controller-gates.md / single-subagent-mode.md / per-task-mode.md / background.md（根拠・関連スキル）
+- scripts: `sdd-workspace`（作業ディレクトリ解決）/ `task-brief`（タスク抽出）/ `review-package`（diff束ね）/ `sdd-memo`（実行メモの場所解決）/ `sdd-archive`（worktreeを畳む前のワークスペース退避）
+- references: workspace-isolation.md / controller-gates.md / single-subagent-mode.md / per-task-mode.md / deferred-questions.md（質問の振り分け・実行メモ）/ background.md（根拠・関連スキル）

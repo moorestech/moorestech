@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Core.Master;
 using Game.Context;
@@ -40,7 +40,7 @@ namespace Server.Protocol.PacketResponse
             _trainUnitSnapshotNotifyEvent = serviceProvider.GetService<ITrainUnitSnapshotNotifyEvent>();
         }
         
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var data = MessagePackSerializer.Deserialize<SendCommandProtocolMessagePack>(payload);
             
@@ -49,17 +49,19 @@ namespace Server.Protocol.PacketResponse
             //他のコマンドを実装する場合、この実装方法をやめる
             if (command[0] == GiveCommand)
             {
-                var inventory = _playerInventoryDataStore.GetInventoryData(int.Parse(command[1]));
+                // 対象は常に要求元。自己申告のIDは受け取らない（ADR 0073）
+                // The target is always the requester; no self-declared id is accepted (ADR 0073)
+                var inventory = _playerInventoryDataStore.GetInventoryData(requesterPlayerId);
                 
-                var itemId = new ItemId(int.Parse(command[2]));
-                var count = int.Parse(command[3]);
+                var itemId = new ItemId(int.Parse(command[1]));
+                var count = int.Parse(command[2]);
                 
                 var item = ServerContext.ItemStackFactory.Create(itemId, count);
                 inventory.MainOpenableInventory.InsertItem(item);
             }
             else if (command[0] == ClearInventoryCommand)
             {
-                var inventory = _playerInventoryDataStore.GetInventoryData(int.Parse(command[1]));
+                var inventory = _playerInventoryDataStore.GetInventoryData(requesterPlayerId);
                 for (var i = 0; i < inventory.MainOpenableInventory.InventoryItems.Count; i++)
                 {
                     inventory.MainOpenableInventory.SetItem(i, ServerContext.ItemStackFactory.CreatEmpty());

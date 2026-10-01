@@ -23,17 +23,17 @@ namespace Server.Protocol.PacketResponse
             _notificationService = serviceProvider.GetService<NotificationService>();
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             // 要求データをデシリアライズし切断を実行する
             // Deserialize the request and run the disconnect
             var request = MessagePackSerializer.Deserialize<ElectricWireDisconnectRequest>(payload);
-            var success = ElectricWireSystemUtil.TryDisconnect(request.PosAVector, request.PosBVector, request.PlayerId, out var failureReason);
+            var success = ElectricWireSystemUtil.TryDisconnect(request.PosAVector, request.PosBVector, requesterPlayerId, out var failureReason);
 
             // 送信はSendOnlyで応答を待たないため、切断拒否は通知でプレイヤーへ返す
             // The client sends this without awaiting a response, so a refused disconnect is surfaced through a notification
             if (!success)
-                _notificationService.Notify(request.PlayerId, NotificationMessagePack.CreateOperationDenied($"denied.electricWireDisconnect.{failureReason}", Array.Empty<string>()));
+                _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied($"denied.electricWireDisconnect.{failureReason}", Array.Empty<string>()));
 
             return new ElectricWireDisconnectResponse(success, failureReason);
         }
@@ -43,7 +43,6 @@ namespace Server.Protocol.PacketResponse
         {
             [Key(2)] public Vector3IntMessagePack PosA { get; set; }
             [Key(3)] public Vector3IntMessagePack PosB { get; set; }
-            [Key(4)] public int PlayerId { get; set; }
 
             [IgnoreMember] public Vector3Int PosAVector => PosA;
             [IgnoreMember] public Vector3Int PosBVector => PosB;
@@ -51,14 +50,13 @@ namespace Server.Protocol.PacketResponse
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public ElectricWireDisconnectRequest() { Tag = ElectricWireDisconnectProtocol.Tag; }
 
-            public static ElectricWireDisconnectRequest CreateDisconnectRequest(Vector3Int posA, Vector3Int posB, int playerId)
+            public static ElectricWireDisconnectRequest CreateDisconnectRequest(Vector3Int posA, Vector3Int posB)
             {
                 return new ElectricWireDisconnectRequest
                 {
                     Tag = ElectricWireDisconnectProtocol.Tag,
                     PosA = new Vector3IntMessagePack(posA),
                     PosB = new Vector3IntMessagePack(posB),
-                    PlayerId = playerId,
                 };
             }
         }

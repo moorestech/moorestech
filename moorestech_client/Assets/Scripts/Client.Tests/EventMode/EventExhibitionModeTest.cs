@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Client.Common;
 using Client.Starter.EventMode;
 using NUnit.Framework;
@@ -7,24 +8,22 @@ namespace Client.Tests.EventMode
 {
     public class EventExhibitionModeTest
     {
-
-        private static readonly string[] SavedEnvKeys = { EventExhibitionSettings.EnableEnvKey, EventExhibitionSettings.EditorOptInEnvKey, EventExhibitionSettings.IdleTimeoutEnvKey, EventExhibitionSettings.LanguageEnvKey };
-        private readonly string[] savedEnvValues = new string[SavedEnvKeys.Length];
+        // 有効化キーは共通の集合から取り、有効化キーが増えても退避漏れが起きないようにする
+        // Take the enabling keys from the shared set so a new enabling key is never left unsaved
+        private static readonly string[] SavedEnvKeys = EventModeTestEnvironment.ExhibitionEnableKeys
+            .Concat(new[] { EventExhibitionSettings.IdleTimeoutEnvKey, EventExhibitionSettings.LanguageEnvKey }).ToArray();
+        private string[] savedEnvValues;
 
         [SetUp]
         public void SetUp()
         {
-            // テスト前の環境変数を退避する
-            // Save env vars as they were before the test
-            for (var i = 0; i < SavedEnvKeys.Length; i++) savedEnvValues[i] = Environment.GetEnvironmentVariable(SavedEnvKeys[i]);
+            savedEnvValues = EventModeTestEnvironment.Capture(SavedEnvKeys);
         }
 
         [TearDown]
         public void TearDown()
         {
-            // 退避した値へ正確に書き戻す
-            // Write the saved values back exactly
-            for (var i = 0; i < SavedEnvKeys.Length; i++) Environment.SetEnvironmentVariable(SavedEnvKeys[i], savedEnvValues[i]);
+            EventModeTestEnvironment.Restore(SavedEnvKeys, savedEnvValues);
         }
 
         private static EventExhibitionSettings Parse(string enable, string idleTimeout, string editorOptIn, bool isEditor)

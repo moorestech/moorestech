@@ -44,8 +44,7 @@ namespace Client.DebugSystem
             rootPage.AddSwitch(false, "Runtime Hierarchy Inspector", valueChanged: active => runtimeHierarchyInspector.SetActive(active));
             rootPage.AddButton("Clear Inventory", clicked: () =>
             {
-                var command = $"{SendCommandProtocol.ClearInventoryCommand} {ClientContext.PlayerConnectionSetting.PlayerId}";
-                ClientContext.VanillaApi.SendOnly.SendCommand(command);
+                ClientContext.VanillaApi.SendOnly.SendCommand(SendCommandProtocol.ClearInventoryCommand);
             });
             rootPage.AddButton("Get Play Time", clicked: () =>
             {

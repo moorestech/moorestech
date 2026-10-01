@@ -14,6 +14,7 @@ namespace Game.Paths
         public const string WorldDirectoryName = "world";
         public const string ManifestFileName = "manifest.json";
         public const string RepositoryDirectoryName = "repo";
+        public const string RemoteExecDirectoryName = "remote-exec";
         public const string LogsDirectoryName = "logs";
         public const string UnityLogFileName = "unity.log";
         public const string VideoFileName = "video.mp4";

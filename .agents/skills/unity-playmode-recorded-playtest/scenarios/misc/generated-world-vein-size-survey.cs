@@ -18,7 +18,7 @@ return PlaytestRunner.Run("generated-world-vein-size-survey", options, async p =
 {
     p.Note("generatedワールドの鉱脈調査を開始する");
 
-    var mapLayout = await ClientContext.VanillaApi.Response.GetMapData(default);
+    var mapLayout = await ClientContext.VanillaApi.Response.World.GetMapData(default);
     p.Assert(mapLayout.TerrainMeta.MapMode == "generated", "generatedモードで起動している");
 
     var veins = mapLayout.MapVeins;

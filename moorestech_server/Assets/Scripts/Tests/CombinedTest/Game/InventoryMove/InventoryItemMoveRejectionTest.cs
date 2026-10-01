@@ -77,7 +77,7 @@ namespace Tests.CombinedTest.Game.InventoryMove
             // The rejection log carries the actual position, player, both stacks, and the binding's rejection reason
             var expectedLog = $"[InventoryItemMoveProtocol] Move rejected: result=RejectedByDestination player={PlayerId} from=Main(player={PlayerId})[0] fromItemId={setup.UnboundItemId} fromCount=3 fromReason=Allowed to=Block{new Vector3IntMessagePack(Vector3Int.one)}[0] toItemId={ItemMaster.EmptyItemId} toCount=0 toReason={MachineSlotPlacementCheck.ItemNotBoundToSlot} requestedCount=3";
             LogAssert.Expect(LogType.Warning, new Regex($"^{Regex.Escape(expectedLog)}$"));
-            SendMove(setup.Packet, 3, InventoryIdentifierMessagePack.CreateMainMessage(PlayerId), InventoryIdentifierMessagePack.CreateBlockMessage(Vector3Int.one));
+            SendMove(setup.Packet, 3, InventoryIdentifierMessagePack.CreateMainMessage(), InventoryIdentifierMessagePack.CreateBlockMessage(Vector3Int.one));
 
             Assert.AreEqual(0, setup.BlockInventory.GetItem(0).Count, "束縛外アイテムは機械の入力スロットへ入らない");
             Assert.AreEqual(ServerContext.ItemStackFactory.Create(setup.UnboundItemId, 3), setup.PlayerInventory.GetItem(0), "拒否されたアイテムはプレイヤー側に残る");
@@ -93,7 +93,7 @@ namespace Tests.CombinedTest.Game.InventoryMove
             setup.PlayerInventory.SetItem(0, ServerContext.ItemStackFactory.Create(setup.UnboundItemId, 3));
 
             LogAssert.Expect(LogType.Warning, new Regex($"^{Regex.Escape("[InventoryItemMoveProtocol] Move rejected: result=RejectedPartialSwap ")}"));
-            SendMove(setup.Packet, 1, InventoryIdentifierMessagePack.CreateMainMessage(PlayerId), InventoryIdentifierMessagePack.CreateBlockMessage(Vector3Int.one));
+            SendMove(setup.Packet, 1, InventoryIdentifierMessagePack.CreateMainMessage(), InventoryIdentifierMessagePack.CreateBlockMessage(Vector3Int.one));
 
             Assert.AreEqual(new[] { "denied.inventoryMovePartialSwap" }, TakeDeniedMessageIds(sink));
         }
@@ -144,8 +144,7 @@ namespace Tests.CombinedTest.Game.InventoryMove
 
         private static void SendMove(PacketResponseCreator packet, int count, InventoryIdentifierMessagePack from, InventoryIdentifierMessagePack to)
         {
-            var context = new PacketResponseContext(null);
-            context.TryBindPlayerId(PlayerId);
+            var context = Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId);
             var payload = MessagePackSerializer.Serialize(new InventoryItemMoveProtocolMessagePack(count, ItemMoveType.SwapSlot, from, 0, to, 0));
             packet.GetPacketResponse(payload, context);
         }

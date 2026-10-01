@@ -41,7 +41,7 @@ Workflow の返り値を報告へ転記する前に、`systems.planned` が `che
 
 1回のレビューが作る生成物（patch・context・codex監査プロンプト3本・check_all出力・chunks・最終diff・最終detchecks）は
 **すべて** `$LOGS/harness/moores-code-review/runs/<ts>/` 配下に置く。以下これを `$RUNDIR` と呼ぶ
-（`$LOGS` は記録repo `../moorestech_logs`。`<ts>` は `YYYY-MM-DD-HHMM` 形式でレビュー1回につき1つ）。
+（`$LOGS`＝`../moorestech_logs`。`<ts>`＝レビューごとに新規 `YYYY-MM-DD-HHMM-<ブランチslug>-<UUID>`。既存ディレクトリ再利用は同一レビューの中断復旧時のみ。）
 
     mkdir -p <$RUNDIRの実値>
 
@@ -58,15 +58,21 @@ Workflow の返り値を報告へ転記する前に、`systems.planned` が `che
 
 セッション文脈（何を作業したか・どんな裁定があったか）を知るのは本体だけなので、この Step は委譲できない。
 
-1. **作業範囲を特定** — このセッションで生成・変更した成果物をコミット範囲・staged・unstagedから確定し、統合unified diffを `<$RUNDIRの実値>/patch.diff` に書く（**PATCH_PATH**）。`git diff <base>^..<last>` + `git diff --cached` + `git diff` を連結。ユーザーがレビュー範囲を明示したらそれを優先。
-   - **プレイテストシナリオの除外（省略禁止）** — 各 `git diff` に必ず次のpathspecを付け、
-     `unity-playmode-recorded-playtest` 配下の `.cs` をpatchへ入れない:
+1. **作業範囲を特定** — このセッションで生成・変更した成果物をコミット範囲・staged・unstagedから確定し、統合unified diffを `<$RUNDIRの実値>/patch.diff` に書く（**PATCH_PATH**）。ユーザーがレビュー範囲を明示したらそれを優先。
+   - **diff は必ず `scripts/review_diff.py` 経由で取る（素の `git diff` 禁止）** — 引数は `git diff` にそのまま渡り、レビューに入れないパスの除外が必ず付く:
 
-         -- . ':(exclude,glob)**/unity-playmode-recorded-playtest/**/*.cs'
+         python3 .claude/skills/moores-code-review/scripts/review_diff.py <base>^..<last> >  <PATCH_PATH>
+         python3 .claude/skills/moores-code-review/scripts/review_diff.py --cached       >> <PATCH_PATH>
+         python3 .claude/skills/moores-code-review/scripts/review_diff.py                >> <PATCH_PATH>
 
-     シナリオは実プレイを踏ませるための使い捨ての操作台本であり、プロダクトコードの規約（重複排除・
+     除外の正本は `review_diff.py` の1箇所で、pr-independent-review の `make_patch.py` も同じものを使う。外すのは
+     手を入れない外部物（NuGet の同梱パッケージ・ロックファイル）・生成物（DO NOT EDIT の自動生成コード）・バイナリ・
+     Unity のシリアライズ資産・`unity-playmode-recorded-playtest` 配下の `.cs`。NuGet を足す PR ではパッケージ本体だけで
+     数万行・数十MBになり、レビューが埋もれる（PR#1436 で +14万行のうち14万行がパッケージだった）。
+     プレイテストシナリオは実プレイを踏ませるための使い捨ての操作台本であり、プロダクトコードの規約（重複排除・
      命名・行数）で裁く対象ではない。指摘しても設計判断の裁定コストだけが増える
-     （ユーザー裁定 2026-08-16 / PR#1137-F12）。`Client.Playtest` のDSL本体はこのパス外なので通常どおり見る
+     （ユーザー裁定 2026-08-16 / PR#1137-F12）。`Client.Playtest` のDSL本体はこのパス外なので通常どおり見る。
+     `Assets/Dependencies` の `.cs` はチームが手を入れるので外さない
 2. **4カテゴリcontextを書く** — `<$RUNDIRの実値>/context.md`（**USER_PROMPT_PATH**）に埋める。埋め忘れるとreviewerがfalse-positiveを量産する:
    - **目指す（ゴール）** / **目指さない（非目標）** / **許容するトレードオフ** / **尊重すべき制約**
    - **4カテゴリは必ず `##` 見出しで書く**（太字箇条書き形式は出所ラベル検査の対象外になり沈黙故障する。見出しゼロはfail-closedでconfirmedになる）。
@@ -85,6 +91,8 @@ Workflow の返り値を報告へ転記する前に、`systems.planned` が `che
        python3 .claude/skills/moores-code-review/scripts/build_workflow_args.py --run-dir <$RUNDIRの実値> --patch "<PATCH_PATH>" --context "<USER_PROMPT_PATH>" --repo-root "$(pwd)" --base-ref <base SHA>
 
    report-only（pr-independent-review）では `--report-only --detchecks <detchecks.json>` を足す。
+
+   `build_workflow_args.py` は `--run-dir` に `workflow-args.json` を生成。`> workflow-args.json` 禁止。正常終了後、JSONをWorkflowの `args` へ渡す。
 
 ## Step 3.5〜6.5: Workflow で実行
 

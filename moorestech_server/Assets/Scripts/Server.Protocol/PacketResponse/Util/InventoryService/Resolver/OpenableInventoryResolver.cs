@@ -38,12 +38,12 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
             #endregion
         }
 
-        public IOpenableInventory Resolve(InventoryIdentifierMessagePack inventoryIdentifier)
+        public IOpenableInventory Resolve(InventoryIdentifierMessagePack inventoryIdentifier, int requesterPlayerId)
         {
             if (inventoryIdentifier == null) return null;
 
             return _resolvers.TryGetValue(inventoryIdentifier.InventoryType, out var resolver)
-                ? resolver.Resolve(inventoryIdentifier)
+                ? resolver.Resolve(inventoryIdentifier, requesterPlayerId)
                 : null;
         }
     }

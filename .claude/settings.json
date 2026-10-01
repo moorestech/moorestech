@@ -72,10 +72,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PROJECT_DIR}/.dev-hooks/decisions-index.mjs\""
-          },
-          {
-            "type": "command",
             "command": "node \"${CLAUDE_PROJECT_DIR}/.dev-hooks/beads-prime.mjs\""
           }
         ]

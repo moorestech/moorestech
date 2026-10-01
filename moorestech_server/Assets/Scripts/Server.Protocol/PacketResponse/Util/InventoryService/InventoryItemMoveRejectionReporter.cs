@@ -21,7 +21,7 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
             _notificationService = notificationService;
         }
 
-        public void Report(InventoryItemMoveResult result, int? playerId, InventoryIdentifierMessagePack fromIdentifier, IOpenableInventory fromInventory, int fromSlot, InventoryIdentifierMessagePack toIdentifier, IOpenableInventory toInventory, int toSlot, int requestedCount)
+        public void Report(InventoryItemMoveResult result, int requesterPlayerId, InventoryIdentifierMessagePack fromIdentifier, IOpenableInventory fromInventory, int fromSlot, InventoryIdentifierMessagePack toIdentifier, IOpenableInventory toInventory, int toSlot, int requestedCount)
         {
             // 拒否は書き込みを伴わないので、現在の中身がそのまま拒否されたスタックになる
             // A rejection writes nothing, so the current contents are exactly the rejected stacks
@@ -29,17 +29,14 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
             var toItem = toInventory.GetItem(toSlot);
             var toReason = DescribePlacement(toInventory, toSlot, fromItem);
             var fromReason = DescribePlacement(fromInventory, fromSlot, toItem);
-            Debug.LogWarning($"[InventoryItemMoveProtocol] Move rejected: result={result} player={playerId?.ToString() ?? "unbound"} from={FormatIdentifier(fromIdentifier)}[{fromSlot}] fromItemId={fromItem.Id} fromCount={fromItem.Count} fromReason={fromReason} to={FormatIdentifier(toIdentifier)}[{toSlot}] toItemId={toItem.Id} toCount={toItem.Count} toReason={toReason} requestedCount={requestedCount}");
+            Debug.LogWarning($"[InventoryItemMoveProtocol] Move rejected: result={result} player={requesterPlayerId} from={FormatIdentifier(fromIdentifier)}[{fromSlot}] fromItemId={fromItem.Id} fromCount={fromItem.Count} fromReason={fromReason} to={FormatIdentifier(toIdentifier)}[{toSlot}] toItemId={toItem.Id} toCount={toItem.Count} toReason={toReason} requestedCount={requestedCount}");
 
-            // 接続にプレイヤーが紐付いていなければ通知先が無いのでログのみ
-            // Without a player bound to the connection there is no notification target, so only the log remains
-            if (!playerId.HasValue) return;
             if (result == InventoryItemMoveResult.RejectedPartialSwap)
             {
-                _notificationService.Notify(playerId.Value, NotificationMessagePack.CreateOperationDenied("denied.inventoryMovePartialSwap", Array.Empty<string>()));
+                _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.inventoryMovePartialSwap", Array.Empty<string>()));
                 return;
             }
-            _notificationService.Notify(playerId.Value, NotificationMessagePack.CreateOperationDenied("denied.inventoryMoveSlotRejected", Array.Empty<string>()));
+            _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.inventoryMoveSlotRejected", Array.Empty<string>()));
 
             #region Internal
 
@@ -57,7 +54,7 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
                 {
                     InventoryType.Block => $"Block{identifier.BlockPosition}",
                     InventoryType.Train => $"Train({identifier.TrainCarInstanceId})",
-                    _ => $"{identifier.InventoryType}(player={identifier.PlayerId})",
+                    _ => $"{identifier.InventoryType}(player={requesterPlayerId})",
                 };
             }
 

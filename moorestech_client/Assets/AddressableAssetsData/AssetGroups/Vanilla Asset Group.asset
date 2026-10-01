@@ -350,6 +350,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 24409135f631a404ab144dd06414fe21
+    m_Address: Vanilla/Skit/i18n/korean
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 244f7a47d84684c078293da23c469b6f
     m_Address: Vanilla/Block/Asphalt_Foundation
     m_ReadOnly: 0

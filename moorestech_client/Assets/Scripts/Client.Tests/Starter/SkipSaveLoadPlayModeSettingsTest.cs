@@ -29,7 +29,7 @@ namespace Client.Tests.Starter
         public void フラグ有効時はAutoSaveを無効化する()
         {
             SessionState.SetBool(SkipSaveLoadPlayModeSettings.SessionStateKey, true);
-            var proprieties = InitializeProprieties.CreateLocalServer(null);
+            var proprieties = InitializeProprieties.CreateLocalServer();
 
             SkipSaveLoadPlayModeSettings.ApplyIfNeeded(proprieties);
 
@@ -41,7 +41,7 @@ namespace Client.Tests.Starter
         [Test]
         public void フラグ無効時は起動引数を変更しない()
         {
-            var proprieties = InitializeProprieties.CreateLocalServer(null);
+            var proprieties = InitializeProprieties.CreateLocalServer();
             var original = new StartServerSettings
             {
                 WorldDirectory = "/tmp/moorestech-test-world",

@@ -5,7 +5,7 @@ using System.Reflection;
 using Game.Block.Interface;
 using Game.EnergySystem;
 
-namespace Tests.Util
+namespace Tests.Util.EnergySystem
 {
     // EnergySystemの非公開構築APIと適用済み状態をテスト側だけから観測する
     // Observes non-public EnergySystem construction APIs and applied state from tests only

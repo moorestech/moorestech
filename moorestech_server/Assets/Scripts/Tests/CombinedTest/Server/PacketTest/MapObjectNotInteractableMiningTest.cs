@@ -21,7 +21,7 @@ namespace Tests.CombinedTest.Server.PacketTest
     /// </summary>
     public class MapObjectNotInteractableMiningTest
     {
-        private const int PlayerId = 0;
+        private const int PlayerId = 1;
 
         // テストマスタの装飾物。配置には無いので直接構築する
         // The decoration in the test master; it has no placement, so it is constructed directly
@@ -54,13 +54,13 @@ namespace Tests.CombinedTest.Server.PacketTest
             var decoration = new VanillaStaticMapObject(101, DecorationMapObjectGuid, false, 10, Vector3.zero);
             ServerContext.MapObjectDatastore.Add(decoration);
             var miningProtocol = new MiningProtocol(serviceProvider);
-            var messagePack = MiningProtocol.MiningProtocolMessagePack.CreateMapObjectRequest(PlayerId, decoration.InstanceId);
+            var messagePack = MiningProtocol.MiningProtocolMessagePack.CreateMapObjectRequest(decoration.InstanceId);
             var payload = MessagePackSerializer.Serialize(messagePack);
 
             // PacketResponseCreatorの例外catchを経由せず直接呼び、ArgumentOutOfRangeExceptionが起きないことを確かめる
             // Call directly, bypassing PacketResponseCreator's exception catch, to confirm no ArgumentOutOfRangeException occurs
             ProtocolMessagePackBase response = null;
-            Assert.DoesNotThrow(() => response = miningProtocol.GetResponse(payload, new PacketResponseContext(null)));
+            Assert.DoesNotThrow(() => response = miningProtocol.GetResponse(payload, PlayerId));
 
             Assert.IsNull(response);
             Assert.IsFalse(decoration.IsDestroyed);

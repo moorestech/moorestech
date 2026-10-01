@@ -25,10 +25,8 @@ using Server.Protocol;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
-    public class RemoveBlockProtocolTest
+    public class RemoveBlockProtocolTest : RemoveBlockProtocolTestBase
     {
-        private const int MachineBlockId = 1;
-        private const int PlayerId = 0;
         
         [Test]
         public void RemoveTest()
@@ -54,7 +52,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // プロトコルを使ってブロックを削除
             // Remove block using protocol
-            var response = GetRemoveBlockResponse(packet.GetPacketResponse(RemoveBlock(new Vector3Int(0, 0), PlayerId), new PacketResponseContext(null)));
+            var response = GetRemoveBlockResponse(packet.GetPacketResponse(RemoveBlock(new Vector3Int(0, 0)), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId)));
             Assert.True(response.Success);
             Assert.AreEqual(RemoveBlockFailureReason.None, response.FailureReason);
 
@@ -109,7 +107,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // プロトコルを使ってブロックを削除
             // Try to remove block using protocol
-            var response = GetRemoveBlockResponse(packet.GetPacketResponse(RemoveBlock(new Vector3Int(0, 0), PlayerId), new PacketResponseContext(null)));
+            var response = GetRemoveBlockResponse(packet.GetPacketResponse(RemoveBlock(new Vector3Int(0, 0)), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId)));
             Assert.False(response.Success);
             Assert.AreEqual(RemoveBlockFailureReason.Unknown, response.FailureReason);
 
@@ -158,92 +156,13 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             
             //プロトコルを使ってブロックを削除
-            var response = GetRemoveBlockResponse(packet.GetPacketResponse(RemoveBlock(new Vector3Int(0, 0), PlayerId), new PacketResponseContext(null)));
+            var response = GetRemoveBlockResponse(packet.GetPacketResponse(RemoveBlock(new Vector3Int(0, 0)), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId)));
             Assert.False(response.Success);
             Assert.AreEqual(RemoveBlockFailureReason.Unknown, response.FailureReason);
             
             
             //ブロックが削除できていないことを検証
             Assert.True(worldBlock.Exists(new Vector3Int(0, 0)));
-        }
-
-        [Test]
-        public void TrainRailBlockInUseByTrainCannotBeRemovedTest()
-        {
-            var environment = TrainTestHelper.CreateEnvironment();
-            var worldBlock = environment.WorldBlockDatastore;
-            var railPos = new Vector3Int(0, 0, 0);
-
-            // 列車が保持するノードを含む橋脚を準備する
-            // Prepare a pier whose node is held by a train position.
-            var railA = TrainTestHelper.PlaceRail(environment, railPos, BlockDirection.East, out _);
-            var railB = TrainTestHelper.PlaceRail(environment, new Vector3Int(1, 0, 0), BlockDirection.East);
-            ConnectBidirectional(railA, railB, 100);
-
-            // RailPositionを登録して手動削除ガードの監視対象にする
-            // Register a RailPosition so the manual removal guard can observe it.
-            CreateTrainOnNode(environment, railA.FrontNode);
-            var response = GetRemoveBlockResponse(environment.PacketResponseCreator.GetPacketResponse(RemoveBlock(railPos, PlayerId), new PacketResponseContext(null)));
-            Assert.False(response.Success);
-            Assert.AreEqual(RemoveBlockFailureReason.NodeInUseByTrain, response.FailureReason);
-
-            // ブロックとレール接続が残り、橋脚削除で列車位置が壊れないことを確認する
-            // Verify the block and rail connection remain so train position is preserved.
-            Assert.True(worldBlock.Exists(railPos));
-            Assert.AreNotEqual(-1, railA.FrontNode.GetDistanceToNode(railB.FrontNode));
-        }
-
-        [Test]
-        public void TrainRailBlockWithoutTrainCanBeRemovedTest()
-        {
-            var environment = TrainTestHelper.CreateEnvironment();
-            var worldBlock = environment.WorldBlockDatastore;
-            var railPos = new Vector3Int(0, 0, 0);
-
-            // 列車に使われていない橋脚は通常どおり削除できる
-            // A pier unused by trains can still be removed normally.
-            TrainTestHelper.PlaceRail(environment, railPos, BlockDirection.East);
-            var response = GetRemoveBlockResponse(environment.PacketResponseCreator.GetPacketResponse(RemoveBlock(railPos, PlayerId), new PacketResponseContext(null)));
-            Assert.True(response.Success);
-            Assert.AreEqual(RemoveBlockFailureReason.None, response.FailureReason);
-
-            Assert.False(worldBlock.Exists(railPos));
-        }
-        
-        
-        private byte[] RemoveBlock(Vector3Int pos, int playerId)
-        {
-            return MessagePackSerializer.Serialize(new RemoveBlockProtocolMessagePack(playerId, pos));
-        }
-
-        private static RemoveBlockResponseMessagePack GetRemoveBlockResponse(List<byte[]> responsePackets)
-        {
-            Assert.AreEqual(1, responsePackets.Count);
-            return MessagePackSerializer.Deserialize<RemoveBlockResponseMessagePack>(responsePackets[0]);
-        }
-
-        private static void ConnectBidirectional(RailComponent from, RailComponent to, int distance)
-        {
-            // 表裏の方向ペアを接続し、通常のレール接続と同じ形にする
-            // Connect both directional pairs to mirror normal rail connection shape.
-            from.FrontNode.ConnectNode(to.FrontNode, distance);
-            to.FrontNode.ConnectNode(from.FrontNode, distance);
-            to.BackNode.ConnectNode(from.BackNode, distance);
-            from.BackNode.ConnectNode(to.BackNode, distance);
-        }
-
-        private static TrainUnit CreateTrainOnNode(TrainTestEnvironment environment, IRailNode node)
-        {
-            var (trainCar, _) = TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 0, 1, 0, true);
-            var railPosition = new RailPosition(new List<IRailNode> { node }, trainCar.Length, 0);
-
-            // TrainUnit生成時にTrainRailPositionManagerへRailPositionが登録される
-            // TrainUnit construction registers the RailPosition with TrainRailPositionManager.
-            return new TrainUnit(
-                railPosition,
-                new List<TrainCar> { trainCar },
-                environment.GetTrainRailPositionManager(),
-                environment.GetTrainDiagramManager());
         }
     }
 }

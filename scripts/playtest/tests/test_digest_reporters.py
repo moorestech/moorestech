@@ -9,7 +9,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from digest_fixture import SCRIPTS, TARGET_DATE, build_fixture, run_digest, write_json
+from digest_fixture import DISABLED_MARK, SCRIPTS, TARGET_DATE, build_fixture, run_digest, write_json
 
 sys.path.insert(0, str(SCRIPTS))
 import digest
@@ -78,7 +78,7 @@ class DigestReporterTest(unittest.TestCase):
         old_bug = self.root / "harness/playtest/reports/7656005/20260905_100000_oldbug"
         write_json(old_bug / "ingest.json", {"kind": "report", "steamId": "7656005",
                                              "id": "20260905_100000_oldbug", "readyAt": "2026-09-05T05:00:00Z"})
-        write_json(old_bug / "manifest.json", {"kind": "bug", "description": "対象日より前の未投入バグ"})
+        write_json(old_bug / "manifest.json", {"kind": "bug", "remoteExec": DISABLED_MARK, "description": "対象日より前の未投入バグ"})
         candidates, _stats = dcand.load_candidate_reports(self.root / "harness/playtest/reports")
         self.assertIn("20260905_100000_oldbug", {c["id"] for c in candidates})
         out = self.digest()
@@ -105,7 +105,7 @@ class DigestReporterTest(unittest.TestCase):
         box = self.root / "harness/playtest/progress/7656001/20260912_150000_pg3"
         write_json(box / "ingest.json", {"steamId": "7656001", "steamPersonaName": "Updated",
                                          "readyAt": "2026-09-12T09:30:00Z"})
-        write_json(box / "record.json", {"schemaVersion": 1, "steamId": "7656001", "playSeconds": 1})
+        write_json(box / "record.json", {"schemaVersion": 1, "steamId": "7656001", "remoteExec": False, "playSeconds": 1})
         line = next(line for line in self.digest().splitlines() if line.startswith("- テスター: "))
         self.assertEqual(line.count("SteamID 7656001"), 1)
         self.assertIn("Updated（SteamID 7656001）", line)

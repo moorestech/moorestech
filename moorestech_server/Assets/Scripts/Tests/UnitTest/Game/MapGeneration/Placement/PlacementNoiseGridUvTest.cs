@@ -3,7 +3,7 @@ using Game.MapGeneration.Pipeline.Generators.Util;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace Tests.UnitTest.Game.MapGeneration
+namespace Tests.UnitTest.Game.MapGeneration.Placement
 {
     // テクスチャノイズの UV 正規化基準が「タイル1枚」ではなく「格子全体」であることを固定する。
     // タイル幅で割ると2枚目以降の worldX が UV=1 を超え、GetPixelBilinear が常時 Clamp に落ちて

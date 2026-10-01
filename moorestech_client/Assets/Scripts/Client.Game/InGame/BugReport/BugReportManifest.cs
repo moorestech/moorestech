@@ -27,7 +27,11 @@ namespace Client.Game.InGame.BugReport
         // 2: added serverData (where the server read its masters); without it the reproduction replays different masters
         // 3: worldDefinitionを追加（ADR 0064）
         // 3: added worldDefinition (ADR 0064)
-        public int SchemaVersion = 3;
+        // v4: 遠隔実行の印+台帳追加（ADR 0057）
+        // v4: added remote execution mark + ledgers (ADR 0057)
+        // v5: 印を3状態(Disabled/Enabled/Unknown)の常時非nullへ。不明を無効へ潰さない
+        // v5: the mark became always-present with three states (Disabled/Enabled/Unknown) so unknown is never flattened into disabled
+        public int SchemaVersion = 5;
         public string CreatedAt;
         public string Description;
 
@@ -38,6 +42,10 @@ namespace Client.Game.InGame.BugReport
         // 送り手のSteamIDと配布ビルドの出所。取れなければ空文字でなくnullで、理由は missing 列に残す。Editorなら buildInfo は null
         // The sender's SteamID and the build origin; null rather than an empty string when unavailable with the reason in missing, and null buildInfo in the Editor
         public string SteamId;
+
+        // この端末の身元（device:<64hex>）。SteamIDの無い報告の報告者特定はこれを厳密一致で引く
+        // This machine's identity (device:<64hex>); a report without a SteamID identifies its reporter by matching this exactly
+        public string DeviceIdentity;
         public BuildInfo BuildInfo;
         public string Platform;
         public bool IsEditor;
@@ -56,6 +64,10 @@ namespace Client.Game.InGame.BugReport
         public List<MissingItem> Missing = new();
         public double VideoSeconds;
 
+        // 常時非null。有効と不明の報告は取り込み側の自動修正と通常集計から除く
+        // Always present; ingestion excludes both enabled and unknown reports from automatic fixes and normal counts
+        public RemoteExecManifestMark RemoteExec = RemoteExecManifestMark.Disabled();
+
         // 箱の種別に依らない共通見出し。crash と bug で別々に組み立てていた頃は片方だけ列が欠けても誰も気づけなかった
         // The header every kind of box shares; while crash and bug built it separately, a column missing on one side went unnoticed
         public static BugReportManifest CreateHeader(string description, PlaytestReportKind kind, string steamId, string steamIdAbsenceReason, BuildOriginReading buildOrigin)
@@ -66,6 +78,7 @@ namespace Client.Game.InGame.BugReport
                 Description = description,
                 Kind = PlaytestReportKindText.ToContractText(kind),
                 SteamId = string.IsNullOrEmpty(steamId) ? null : steamId,
+                DeviceIdentity = LocalDeviceIdentity.Resolve(),
                 BuildInfo = buildOrigin.BuildInfo,
                 Platform = Application.platform.ToString(),
                 IsEditor = Application.isEditor,
@@ -74,6 +87,10 @@ namespace Client.Game.InGame.BugReport
             // 空文字のSteamIDは「識別子が空の実テスター」に読める。nullで出し、取れなかった事実を欠損列へ残す（F02）
             // An empty SteamID reads as a real tester with a blank id; it goes out as null with the gap declared in missing (F02)
             if (manifest.SteamId == null) manifest.AddMissing("steamId", steamIdAbsenceReason);
+
+            // 身元が両方欠けた報告は報告者を特定できない。推測で付け替えさせないため欠損として出す
+            // A report missing both identities cannot name its reporter, so the gap is declared instead of letting a guess stand in
+            if (manifest.DeviceIdentity == null) manifest.AddMissing("deviceIdentity", LocalDeviceIdentity.UnavailableReason);
             return manifest;
         }
 

@@ -1,3 +1,4 @@
+using Tests.UnitTest.Game.MapGeneration.Spawn;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Game.MapGeneration.Pipeline;

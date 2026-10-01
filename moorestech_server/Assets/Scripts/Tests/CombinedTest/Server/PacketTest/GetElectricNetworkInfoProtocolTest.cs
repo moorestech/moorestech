@@ -1,3 +1,4 @@
+using Tests.Util.EnergySystem;
 using System;
 using Core.Update;
 using Game.Block.Interface;
@@ -102,7 +103,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         private static GetElectricNetworkInfoProtocol.ResponseGetElectricNetworkInfoMessagePack InvokeGetElectricNetworkInfo(PacketResponseCreator packet, BlockInstanceId id)
         {
             var request = new GetElectricNetworkInfoProtocol.RequestGetElectricNetworkInfoMessagePack(id);
-            var responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(request), new PacketResponseContext(null));
+            var responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(request), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1));
             return MessagePackSerializer.Deserialize<GetElectricNetworkInfoProtocol.ResponseGetElectricNetworkInfoMessagePack>(responseBytes[0]);
         }
 

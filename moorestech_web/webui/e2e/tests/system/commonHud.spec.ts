@@ -87,6 +87,24 @@ test("ツールチップは複数行を順序どおり縦積みで表示する",
   await expect(lines.nth(1)).toHaveText("遠すぎます");
 });
 
+test("ツールチップは非表示中に届いたpointer位置へ初回表示から出る", async ({ page }) => {
+  await setUiState(page, "GameScreen");
+  await page.goto("/");
+  // Appのマウントを待ってからpointerを送る
+  // Wait for App to mount before sending the pointer
+  await expect(page.locator('[data-tutorial-anchor~="game.crosshair"]')).toBeVisible();
+  // 非表示中にロック前ワープの中央座標だけが届き、表示後はpointermoveが来ない実プレイの状況を再現する
+  // Reproduce real play: only the pre-lock centered warp arrives while hidden, and no pointermove follows the show
+  await page.mouse.move(640, 360);
+  await setTopicScenario(page, "tooltip");
+
+  const tooltip = page.getByTestId("cursor-tooltip");
+  await expect(tooltip).toBeVisible();
+  const box = await tooltip.boundingBox();
+  expect(box?.x).toBeGreaterThan(600);
+  expect(box?.y).toBeGreaterThan(330);
+});
+
 test("ui.visibility=falseでPortalを含む全UIを退避し復帰する", async ({ page }) => {
   await setTopicScenario(page, "tooltip");
   await page.goto("/");

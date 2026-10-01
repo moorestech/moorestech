@@ -19,8 +19,8 @@ playtest_require_build_label() {
 # Check every required env before building; the check-machine/receiver env must be checked here too or it fails after upload
 release_require_env() {
     local missing="" name
-    for name in MOORESTECH_STEAM_USER MOORESTECH_STEAM_DEPOT_ID MOORESTECH_VERIFY_HOST MOORESTECH_VERIFY_USER \
-        MOORESTECH_VERIFY_MAC PLAYTEST_ADMIN_KEY; do
+    for name in MOORESTECH_STEAM_USER MOORESTECH_STEAM_DEPOT_ID_WINDOWS MOORESTECH_STEAM_DEPOT_ID_MAC MOORESTECH_VERIFY_HOST \
+        MOORESTECH_VERIFY_USER MOORESTECH_VERIFY_MAC PLAYTEST_ADMIN_KEY; do
         [ -n "${!name:-}" ] || missing="$missing $name"
     done
     if [ -n "$missing" ]; then
@@ -28,9 +28,20 @@ release_require_env() {
         exit 2
     fi
     # depot id は VDF へそのまま埋め込むため数字だけを許す
-    # The depot id is embedded verbatim into the VDF, so only digits are allowed
-    if ! printf '%s' "$MOORESTECH_STEAM_DEPOT_ID" | grep -Eq '^[0-9]+$' || [ "$(printf '%s' "$MOORESTECH_STEAM_DEPOT_ID" | wc -l)" -ne 0 ]; then
-        echo "ERROR: MOORESTECH_STEAM_DEPOT_ID は数字のみを許可します" >&2
+    # Depot ids are embedded verbatim into the VDF, so only digits are allowed
+    for name in MOORESTECH_STEAM_DEPOT_ID_WINDOWS MOORESTECH_STEAM_DEPOT_ID_MAC; do
+        if ! printf '%s' "${!name}" | grep -Eq '^[0-9]+$' || [ "$(printf '%s' "${!name}" | wc -l)" -ne 0 ]; then
+            echo "ERROR: ${name} は数字のみを許可します" >&2
+            exit 2
+        fi
+    done
+    # 2つのdepotが同じIDだとVDFでキーが衝突するため、値が別物であることも見る
+    # The two depots must differ, or the VDF ends up with a duplicate key
+    local windows_depot_number mac_depot_number
+    windows_depot_number="$(printf '%s' "$MOORESTECH_STEAM_DEPOT_ID_WINDOWS" | sed 's/^0*//')"
+    mac_depot_number="$(printf '%s' "$MOORESTECH_STEAM_DEPOT_ID_MAC" | sed 's/^0*//')"
+    if [ "$windows_depot_number" = "$mac_depot_number" ]; then
+        echo "ERROR: MOORESTECH_STEAM_DEPOT_ID_WINDOWS と MOORESTECH_STEAM_DEPOT_ID_MAC は別のdepotを指す必要があります" >&2
         exit 2
     fi
 }
@@ -121,19 +132,24 @@ EOF
     export MOORESTECH_MASTER_DATA_ROOT="$MASTER_DATA_ROOT"
 }
 
-# 非公開アセット（ffmpeg の正本）がピンどおりで、ffmpeg 実体と LICENSE が揃うことを確かめる（strict ビルドが後で落ちないように）
-# Confirm the private assets (ffmpeg's source) match the pin and the real ffmpeg plus LICENSE exist, so strict build never fails late
+# 非公開アセットがピンどおりで、Windows/Mac の ffmpeg 実体と LICENSE が揃うことを確かめる
+# Confirm the private assets match the pin and both Windows/Mac ffmpeg binaries and licenses exist
 release_require_private_assets() {
-    local worktree="$1" pin_fields private_root ffmpeg_dir
+    local worktree="$1" pin_fields private_root
     pin_fields="$(release_read_pin "$worktree" moorestech_client_private)"
     private_root="$worktree/$(printf '%s\n' "$pin_fields" | sed -n 1p)"
     release_require_pinned_clean_checkout "非公開アセット" "$private_root" "$(printf '%s\n' "$pin_fields" | sed -n 2p)"
-    ffmpeg_dir="$private_root/ffmpeg/win-x64"
-    # LFS 未解決の殻は CefLfsPointer と同じく「1024バイト以下で先頭が version https://git-lfs」で判定する
-    # An unresolved LFS husk is detected like CefLfsPointer: at most 1024 bytes and starting with "version https://git-lfs"
-    if [ ! -f "$ffmpeg_dir/ffmpeg.exe" ] || { [ "$(wc -c <"$ffmpeg_dir/ffmpeg.exe")" -le 1024 ] &&
-        [ "$(head -c 23 "$ffmpeg_dir/ffmpeg.exe")" = "version https://git-lfs" ]; }; then
-        echo "ERROR: ffmpeg の実体が無いか LFS ポインタのままです: ${ffmpeg_dir}/ffmpeg.exe（git lfs pull を確認してください）" >&2
+    release_require_ffmpeg_source "$private_root/ffmpeg/win-x64" ffmpeg.exe
+    release_require_ffmpeg_source "$private_root/ffmpeg/macos-arm64" ffmpeg
+}
+
+# ffmpeg実体とLICENSEを検査する。LFS判定はCefLfsPointerと同じ1024バイト以下・先頭version https://git-lfs
+# Check ffmpeg and LICENSE; match CefLfsPointer's 1024-byte LFS threshold and version https://git-lfs prefix
+release_require_ffmpeg_source() {
+    local ffmpeg_dir="$1" executable="$2"
+    if [ ! -f "$ffmpeg_dir/$executable" ] || { [ "$(wc -c <"$ffmpeg_dir/$executable")" -le 1024 ] &&
+        [ "$(head -c 23 "$ffmpeg_dir/$executable")" = "version https://git-lfs" ]; }; then
+        echo "ERROR: ffmpeg の実体が無いか LFS ポインタのままです: ${ffmpeg_dir}/${executable}（git lfs pull を確認してください）" >&2
         exit 3
     fi
     if [ ! -f "$ffmpeg_dir/LICENSE" ]; then

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Client.Game.InGame.Mining;
 using Client.Game.InGame.SoundEffect;
 using Client.Game.InGame.UI.ProgressBar;
@@ -124,12 +125,13 @@ namespace Client.Tests.Mining
             context.SetFocusTarget(twoItemTarget);
             var accessCountBeforeSwitch = twoItemTarget.EarnItemGuidsAccessCount;
 
-            var otherLanguageCode = Localize.GetLanguageCodes().Find(code => code != originalLanguageCode);
-            Assert.IsTrue(Localize.TrySetLanguage(otherLanguageCode), otherLanguageCode);
+            var otherLanguageCode = LanguageCatalog.Languages
+                .Select(language => language.Code).First(code => code != originalLanguageCode);
+            Assert.IsTrue(Localize.TrySetChosenLanguage(otherLanguageCode), otherLanguageCode);
 
             Assert.Less(accessCountBeforeSwitch, twoItemTarget.EarnItemGuidsAccessCount);
 
-            Localize.TrySetLanguage(originalLanguageCode);
+            Localize.TrySetChosenLanguage(originalLanguageCode);
             UnityEngine.Object.DestroyImmediate(twoItemObject);
         }
 

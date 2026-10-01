@@ -23,6 +23,7 @@ namespace Client.Game.InGame.UI.UIState.State
         // Window for the web side to publish the nested state
         public NestedPauseSubStateEnum SubState => _subStateController.CurrentState;
         public IObservable<Unit> OnPresentationChanged => _onPresentationChanged;
+        public IObservable<NestedPauseSubStateEnum> OnSubStateChanged => _subStateController.OnStateChanged;
 
         public SkitState(SkitManager skitManager, PauseMenuStateService pauseMenuStateService)
         {
@@ -30,12 +31,12 @@ namespace Client.Game.InGame.UI.UIState.State
             // 所有者専用の入れ子ステートマシンなのでDI登録せずここでnewする（前例: TrainHUDScreenState）
             // A nested state machine owned exclusively here, so it is newed directly instead of DI-registered (precedent: TrainHUDScreenState)
             _subStateController = new NestedPauseSubStateController(new SkitGameScreenSubState(skitManager), pauseMenuStateService);
-            _subStateController.OnStateChanged.Subscribe(OnSubStateChanged);
+            _subStateController.OnStateChanged.Subscribe(ApplySubStateToPresentation);
         }
         
         // ポーズ中はスキットの入力口をstore側で閉じる。可否の正はAllowedIntentsのまま1箇所に保つ
         // Pausing closes the skit's input paths in the store, keeping AllowedIntents the single authority
-        private void OnSubStateChanged(NestedPauseSubStateEnum subState)
+        private void ApplySubStateToPresentation(NestedPauseSubStateEnum subState)
         {
             SkitPresentationStateStore.Instance.SetInputSuspended(subState == NestedPauseSubStateEnum.PauseMenuScreen);
             _onPresentationChanged.OnNext(Unit.Default);
@@ -82,6 +83,13 @@ namespace Client.Game.InGame.UI.UIState.State
             return _subStateController.RequestClosePauseMenu();
         }
         
+        // 表示中のサブステートが宣言した移動可否をそのまま返す
+        // Return the movement lock declared by whichever sub-state is currently showing
+        public bool LocksPlayerMovement()
+        {
+            return _subStateController.CurrentSubStateLocksPlayerMovement();
+        }
+
         // 表示中のサブステートが宣言したヒントをそのまま返す
         // Return the hints declared by whichever sub-state is currently showing
         public IReadOnlyList<KeyHint> GetKeyHints()

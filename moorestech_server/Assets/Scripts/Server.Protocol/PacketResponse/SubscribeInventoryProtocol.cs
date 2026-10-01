@@ -21,7 +21,7 @@ namespace Server.Protocol.PacketResponse
             _inventorySubscriptionStore = serviceProvider.GetService<IInventorySubscriptionStore>();
         }
         
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var data = MessagePackSerializer.Deserialize<SubscribeInventoryRequestMessagePack>(payload);
             
@@ -30,11 +30,11 @@ namespace Server.Protocol.PacketResponse
             var identifier = ConvertIdentifier(data.Identifier);
             if (data.IsSubscribe)
             {
-                _inventorySubscriptionStore.Subscribe(data.PlayerId, identifier);
+                _inventorySubscriptionStore.Subscribe(requesterPlayerId, identifier);
             }
             else
             {
-                _inventorySubscriptionStore.Unsubscribe(data.PlayerId, identifier);
+                _inventorySubscriptionStore.Unsubscribe(requesterPlayerId, identifier);
             }
             
             return null;
@@ -58,7 +58,6 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class SubscribeInventoryRequestMessagePack : ProtocolMessagePackBase
         {
-            [Key(2)] public int PlayerId { get; set; }
             [Key(4)] public InventoryIdentifierMessagePack Identifier { get; set; }
             [Key(5)] public bool IsSubscribe { get; set; }
             
@@ -66,10 +65,9 @@ namespace Server.Protocol.PacketResponse
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public SubscribeInventoryRequestMessagePack() { }
             
-            public SubscribeInventoryRequestMessagePack(int playerId, InventoryIdentifierMessagePack identifier, bool isSubscribe)
+            public SubscribeInventoryRequestMessagePack(InventoryIdentifierMessagePack identifier, bool isSubscribe)
             {
                 Tag = ProtocolTag;
-                PlayerId = playerId;
                 Identifier = identifier;
                 IsSubscribe = isSubscribe;
             }

@@ -190,7 +190,7 @@ return PlaytestRunner.Run("pause-menu-hierarchy", options, async p =>
         p.ServerService<IGameUnlockStateDataController>().UnlockTrainCar(master.TrainCarGuid);
         foreach (var required in master.RequiredItems) p.GiveItemDirect(MasterHolder.ItemMaster.GetItemMaster(required.ItemGuid).Name, required.Count);
         var position = new RailPosition(new List<IRailNode> { railA.BackNode, railB.BackNode }, TrainLengthConverter.ToRailUnits(master.Length), 0);
-        var response = await ClientContext.VanillaApi.Response.PlaceTrainOnRail(position, master.TrainCarGuid, CancellationToken.None);
+        var response = await ClientContext.VanillaApi.Response.Train.PlaceTrainOnRail(position, master.TrainCarGuid, CancellationToken.None);
         p.Assert(response != null && response.Success, "乗車用の列車を本番プロトコルで配置できる");
         TrainCarEntityObject Spawned() => Object.FindObjectsByType<TrainCarEntityObject>(FindObjectsSortMode.None).FirstOrDefault();
         await p.Until(() => Spawned() != null, 15f, "乗車用列車のクライアント表示");

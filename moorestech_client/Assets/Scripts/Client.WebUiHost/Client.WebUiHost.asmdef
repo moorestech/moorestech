@@ -29,7 +29,9 @@
         "UniTask",
         "VContainer",
         "Game.PlacementTarget",
-        "Client.PlaytestReceiver"
+        "Client.PlaytestReceiver",
+        "Client.RemoteExec",
+        "Client.ExternalProcess"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

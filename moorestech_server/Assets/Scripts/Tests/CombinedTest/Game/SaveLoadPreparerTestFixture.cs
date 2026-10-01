@@ -4,6 +4,7 @@ using Game.Block.Interface;
 using Game.Context;
 using Game.Paths;
 using Game.PlayerInventory.Interface;
+using Game.PlayerIdentity;
 using Game.SaveLoad.Json;
 using Game.SaveLoad.Json.WorldVersions;
 using Game.SaveLoad.Migration;
@@ -12,6 +13,7 @@ using Game.SaveLoad.Pruning;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
+using Tests.Util.PlayerIdentity;
 using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
@@ -32,7 +34,7 @@ namespace Tests.CombinedTest.Game
         {
             var reportStore = new MissingMasterPruneReportStore();
             var preparer = new SaveLoadPreparer(
-                SaveMigrationChain.ForCurrentVersion(new ISaveMigrationStep[] { new SaveMigrationStepV1ToV2() }),
+                SaveMigrationChain.ForCurrentVersion(new ISaveMigrationStep[] { new SaveMigrationStepV1ToV2(), new SaveMigrationStepV2ToV3() }),
                 new MissingMasterPruner(),
                 new SaveArchiveWriter(WorldDataDirectory.FromWorldRoot(archiveRoot)),
                 reportStore);
@@ -57,7 +59,9 @@ namespace Tests.CombinedTest.Game
         {
             var serviceProvider = CreateContainer();
 
-            serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(1);
+            var identities = serviceProvider.GetRequiredService<PlayerIdentityRegistry>();
+            var playerId = PlayerIdentityTestHelper.Register(identities, "steam:1").PlayerId;
+            serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId);
             var placed = ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             Assert.IsTrue(placed, "テストの土台となるチェストの設置に失敗しました");
 

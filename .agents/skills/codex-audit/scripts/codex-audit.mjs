@@ -9,14 +9,14 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { randomBytes } from "node:crypto";
 
-// デフォルトは最上位モデル。低コスト希望が明示された場合のみ gpt-5.6-terra を指定する
-// Default to the flagship model; use gpt-5.6-terra only when low cost is explicitly requested
-const DEFAULT_MODEL = "gpt-5.6-sol";
+// 監査の既定は最上位の gpt-6-astra(ユーザー裁定 2026-09-24)。低コスト明示時は gpt-6-sol
+// Default to the flagship gpt-6-astra; use gpt-6-sol only when low cost is explicitly requested
+const DEFAULT_MODEL = "gpt-6-astra";
 
-// 短縮ティア名(sol/terra/luna)をフル ID へ正規化する
+// 短縮ティア名(astra/sol/luna)をフル ID へ正規化する
 // codex は短縮名を解決できず誤解を招く HTTP 400("ChatGPT account で非対応")を返すため
 function normalizeModel(model) {
-  const tierToFullId = { sol: "gpt-5.6-sol", terra: "gpt-5.6-terra", luna: "gpt-5.6-luna" };
+  const tierToFullId = { astra: "gpt-6-astra", sol: "gpt-6-sol", luna: "gpt-6-luna" };
   return tierToFullId[model] ?? model;
 }
 
@@ -57,7 +57,7 @@ if (parsed.help || process.argv.length <= 2) {
       "",
       "Options:",
       "  --ask <text>     プロンプト本文（必須）。評価基準と確認観点を含めること",
-      `  --model <MODEL>  使用モデル（デフォルト: ${DEFAULT_MODEL}。低コスト明示時は gpt-5.6-terra）`,
+      `  --model <MODEL>  使用モデル（デフォルト: ${DEFAULT_MODEL}。低コスト明示時は gpt-6-sol）`,
       "  --session <ID>   既存セッションを再開する場合のID",
       "  --help, -h       このヘルプを表示",
       "",
@@ -93,11 +93,10 @@ async function runCodexExec({ imagePaths, prompt, sessionId, model }) {
   const outputFile = join(tmpdir(), `codex-audit-${randomBytes(4).toString("hex")}.txt`);
 
   const args = sessionId
-    // codex-cli 0.147.0 で `codex exec --full-auto` は廃止。同等は `-s workspace-write`
-    // （exec は非対話なので承認ポリシーは既定で never）。
+    // 監査人は評価・相談役なので read-only（open-questions と同じ）。書き込みが要る作業は codex-implement へ。
     // resume は -s 非対応なので同じ設定を -c で渡す
-    ? ["exec", "resume", sessionId, prompt, "--json", "-o", outputFile, "-c", 'sandbox_mode="workspace-write"', "-m", model]
-    : ["exec", prompt, "--json", "-o", outputFile, "-s", "workspace-write", "-m", model];
+    ? ["exec", "resume", sessionId, prompt, "--json", "-o", outputFile, "-c", 'sandbox_mode="read-only"', "-m", model]
+    : ["exec", prompt, "--json", "-o", outputFile, "-s", "read-only", "-m", model];
 
   for (const imgPath of imagePaths) {
     args.push("-i", imgPath);

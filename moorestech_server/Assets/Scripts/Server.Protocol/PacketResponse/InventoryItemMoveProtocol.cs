@@ -26,16 +26,16 @@ namespace Server.Protocol.PacketResponse
             _rejectionReporter = new InventoryItemMoveRejectionReporter(serviceProvider.GetService<NotificationService>());
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var data = MessagePackSerializer.Deserialize<InventoryItemMoveProtocolMessagePack>(payload);
 
-            var fromInventory = GetInventory(data.FromInventoryIdentifier);
+            var fromInventory = GetInventory(data.FromInventoryIdentifier, requesterPlayerId);
             if (fromInventory == null) return null;
 
             var fromSlot = data.FromSlot;
 
-            var toInventory = GetInventory(data.ToInventoryIdentifier);
+            var toInventory = GetInventory(data.ToInventoryIdentifier, requesterPlayerId);
             if (toInventory == null) return null;
 
             var toSlot = data.ToSlot;
@@ -48,7 +48,7 @@ namespace Server.Protocol.PacketResponse
                     var result = InventoryItemMoveService.Move(fromInventory, fromSlot, toInventory, toSlot, data.Count);
                     if (result != InventoryItemMoveResult.Moved && result != InventoryItemMoveResult.NoOp)
                     {
-                        _rejectionReporter.Report(result, context.PlayerId, data.FromInventoryIdentifier, fromInventory, fromSlot, data.ToInventoryIdentifier, toInventory, toSlot, data.Count);
+                        _rejectionReporter.Report(result, requesterPlayerId, data.FromInventoryIdentifier, fromInventory, fromSlot, data.ToInventoryIdentifier, toInventory, toSlot, data.Count);
                     }
                     break;
                 case ItemMoveType.InsertSlot:
@@ -59,9 +59,9 @@ namespace Server.Protocol.PacketResponse
             return null;
         }
 
-        private IOpenableInventory GetInventory(InventoryIdentifierMessagePack inventoryIdentifier)
+        private IOpenableInventory GetInventory(InventoryIdentifierMessagePack inventoryIdentifier, int requesterPlayerId)
         {
-            return _openableInventoryResolver.Resolve(inventoryIdentifier);
+            return _openableInventoryResolver.Resolve(inventoryIdentifier, requesterPlayerId);
         }
 
         [MessagePackObject]

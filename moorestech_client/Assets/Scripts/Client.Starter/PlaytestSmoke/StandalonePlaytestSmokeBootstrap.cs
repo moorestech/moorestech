@@ -24,10 +24,6 @@ namespace Client.Starter.PlaytestSmoke
         // The initialization deadline matches the 120 seconds of the StandaloneTerrainQaBootstrap precedent
         private const float GameInitializationTimeoutSeconds = 120f;
 
-        // 無人起動のタイトルの確認は閉じたゲートで即座に通る。これを超えるのは列が始まらない配線不良だけ
-        // Unattended title gates pass at once with closed gates; exceeding this means the sequence never started (a wiring fault)
-        private const float TitleGatesTimeoutSeconds = 60f;
-
         internal static bool IsActive { get; private set; }
         internal static StandalonePlaytestSmokeSettings Settings { get; private set; }
 
@@ -80,11 +76,9 @@ namespace Client.Starter.PlaytestSmoke
 
             // タイトルの確認の通過を待ってから開始する。先に始めると初期化が「確認が未開始」で断りメニューへ戻す
             // Start only after the title gates pass; starting earlier makes initialization refuse as "not started" and bounce to the menu
-            var titleGatesPassed = PlaytestTitleGates.WaitUntilPassedAsync(Application.exitCancellationToken);
-            var titleGatesDeadline = UniTask.Delay(TimeSpan.FromSeconds(TitleGatesTimeoutSeconds), DelayType.Realtime, cancellationToken: Application.exitCancellationToken);
-            if (await UniTask.WhenAny(titleGatesPassed, titleGatesDeadline) != 0)
+            if (!await PlaytestTitleGates.WaitUntilPassedWithinDeadlineAsync(PlaytestTitleGates.UnattendedPassTimeoutSeconds, Application.exitCancellationToken))
             {
-                Fail(settings, "title-gates", $"title gates did not pass within {TitleGatesTimeoutSeconds}s (the title composition root may not have started the sequence)");
+                Fail(settings, "title-gates", $"title gates did not pass within {PlaytestTitleGates.UnattendedPassTimeoutSeconds}s (the title composition root may not have started the sequence)");
                 return;
             }
 

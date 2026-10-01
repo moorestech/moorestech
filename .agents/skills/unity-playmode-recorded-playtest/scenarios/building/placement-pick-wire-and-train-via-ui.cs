@@ -81,7 +81,7 @@ return PlaytestRunner.Run("placement-pick-wire-and-train-via-ui", options, async
     // Place the car via the production protocol and wait for the client-side entity
     var trainLength = TrainLengthConverter.ToRailUnits(carMaster.Length);
     var railPosition = new RailPosition(new List<IRailNode> { railA.BackNode, railB.BackNode }, trainLength, 0);
-    var placeResponse = await ClientContext.VanillaApi.Response.PlaceTrainOnRail(railPosition, trainCarGuid, CancellationToken.None);
+    var placeResponse = await ClientContext.VanillaApi.Response.Train.PlaceTrainOnRail(railPosition, trainCarGuid, CancellationToken.None);
     p.Assert(placeResponse != null && placeResponse.Success, $"車両設置プロトコル成功 (failure={placeResponse?.FailureType})");
     TrainCarEntityObject SpawnedCar() => UnityEngine.Object.FindObjectsByType<TrainCarEntityObject>(FindObjectsSortMode.None).FirstOrDefault();
     await p.Until(() => SpawnedCar() != null, 15f, "TrainCarEntityObjectのクライアント出現");

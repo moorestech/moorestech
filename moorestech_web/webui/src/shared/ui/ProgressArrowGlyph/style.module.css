@@ -19,9 +19,9 @@
   fill: var(--gauge-track);
 }
 /* 充填だけは--gauge-fillでなく正本の白を引き継ぐ。uGUI正本の白矢印がクラフト完了状態の見た目そのものであり、
-   value=1で正本と一致させるため（ユーザー裁定・webui-design §8.13） */
+   value=1で正本と一致させるため（ユーザー裁定・ref-webui-design §8.13） */
 /* The fill keeps the reference white instead of --gauge-fill: uGUI's white arrow *is* the completed-craft look,
-   so value=1 matches the reference (user ruling, webui-design §8.13) */
+   so value=1 matches the reference (user ruling, ref-webui-design §8.13) */
 .fill {
   fill: var(--color-content-primary);
 }
