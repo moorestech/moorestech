@@ -10,14 +10,14 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation
     // Helpers for BeltSimulation tests. Public API only, no reflection
     public static class BeltSimulationTestUtil
     {
-        public static BeltConveyorSegment CreateMerge(int speed, BeltDirection forwardDirection)
+        public static BeltMergeSegment CreateMerge(int speed, BeltDirection forwardDirection)
         {
-            return new BeltConveyorSegment(1, speed, BeltSegmentKind.Merge, BeltPriority.InitializeFromDirection, forwardDirection);
+            return new BeltMergeSegment(speed, BeltPriority.InitializeFromDirection, forwardDirection);
         }
 
-        public static BeltConveyorSegment CreateBranch(int capacity, int speed, int priorityOrder, BeltDirection forwardDirection)
+        public static BeltBranchSegment CreateBranch(int capacity, int speed, int priorityOrder, BeltDirection forwardDirection)
         {
-            return new BeltConveyorSegment(capacity, speed, BeltSegmentKind.Branch, priorityOrder, forwardDirection);
+            return new BeltBranchSegment(capacity, speed, priorityOrder, forwardDirection);
         }
 
         public static long Serial(in BeltItem item)

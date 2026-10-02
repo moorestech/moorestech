@@ -12,11 +12,11 @@ namespace Core.BeltTransport
         private int _outputMask;
         private int _outputOrder;
 
-        public BeltConveyorSegment Segment { get; }
+        public BeltBufferedSegment Segment { get; }
         public bool HasItem { get; private set; }
         internal int PriorityOrder => _outputOrder;
 
-        internal BeltBuffer(BeltConveyorSegment segment, int priorityOrder)
+        internal BeltBuffer(BeltBufferedSegment segment, int priorityOrder)
         {
             // 分岐は3方向を順に試し、合流は唯一の搬出方向だけを持つ
             // A branch tries three directions in order; a merge has its single output direction only

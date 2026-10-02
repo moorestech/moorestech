@@ -216,12 +216,12 @@ namespace Tests.UnitTest.Core.BeltTransport.Connection
             Assert.AreEqual(Order(BeltDirection.Left, BeltDirection.Front, BeltDirection.Back), CreateMerge(Init, BeltDirection.Right).PriorityOrder);
             Assert.AreEqual(saved, CreateMerge(saved, BeltDirection.Front).PriorityOrder);
 
-            var normal = CreateNormal(2, 0);
+            BeltConveyorSegment normal = CreateNormal(2, 0);
             Assert.AreEqual(0, normal.PriorityOrder);
-            Assert.IsNull(normal.Buffer);
+            Assert.IsNotInstanceOf<BeltBufferedSegment>(normal);
         }
 
-        private static void TransferRestored(BeltConveyorSegment segment, long serial)
+        private static void TransferRestored(BeltBufferedSegment segment, long serial)
         {
             segment.Buffer.RestoreItem(MakeItem(serial));
             Transfer(segment.Buffer);

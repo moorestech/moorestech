@@ -87,7 +87,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation.RandomNetwork
             var end = TakeOpenEnd(_random.Next(_openEnds.Count));
             var forward = end.IsBuffer ? end.BufferDirection : _random.Direction();
             var candidates = _random.ShuffledCandidates(forward);
-            var branch = new BeltConveyorSegment(_random.Next(1, 4), _random.Speed(), BeltSegmentKind.Branch,
+            var branch = new BeltBranchSegment(_random.Next(1, 4), _random.Speed(),
                 Order(candidates[0], candidates[1], candidates[2]), forward);
             Segments.Add(branch);
             end.ConnectTo(branch, forward);
@@ -113,7 +113,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation.RandomNetwork
             used |= 1 << (int)forward;
 
             var candidates = _random.ShuffledCandidates(BeltDirections.Opposite(forward));
-            var merge = new BeltConveyorSegment(1, _random.Speed(), BeltSegmentKind.Merge, Order(candidates[0], candidates[1], candidates[2]), forward);
+            var merge = new BeltMergeSegment(_random.Speed(), Order(candidates[0], candidates[1], candidates[2]), forward);
             Segments.Add(merge);
             foreach (var end in ends)
             {
@@ -144,8 +144,8 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation.RandomNetwork
         {
             var index = _openEnds.FindIndex(e => !e.IsBuffer);
             if (index < 0) return;
-            var merge = new BeltConveyorSegment(1, _random.Speed(), BeltSegmentKind.Merge, BeltPriority.InitializeFromDirection, BeltDirection.Front);
-            var branch = new BeltConveyorSegment(_random.Next(1, 4), _random.Speed(), BeltSegmentKind.Branch, BeltPriority.InitializeFromDirection, BeltDirection.Front);
+            var merge = new BeltMergeSegment(_random.Speed(), BeltPriority.InitializeFromDirection, BeltDirection.Front);
+            var branch = new BeltBranchSegment(_random.Next(1, 4), _random.Speed(), BeltPriority.InitializeFromDirection, BeltDirection.Front);
             Segments.Add(merge);
             Segments.Add(branch);
             var toBranch = AddNormal();
@@ -163,7 +163,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation.RandomNetwork
         // Place items below Length so that consecutive distances differ by at least W
         private void RestoreInitialItems(BeltConveyorSegment segment)
         {
-            if (segment.Buffer != null && _random.Next(10) < 3) segment.Buffer.RestoreItem(MakeItem(NewInitialSerial()));
+            if (segment is BeltBufferedSegment buffered && _random.Next(10) < 3) buffered.Buffer.RestoreItem(MakeItem(NewInitialSerial()));
             if (_random.Next(2) == 0) return;
             var states = new List<BeltItemState>();
             for (var distance = _random.Next(0, W); distance < segment.Capacity * W; distance += W + _random.Next(0, 200))
@@ -177,7 +177,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation.RandomNetwork
             return _nextSerial++;
         }
 
-        private BeltConveyorSegment AddNormal()
+        private BeltNormalSegment AddNormal()
         {
             var belt = CreateNormal(_random.Next(1, 5), _random.Speed());
             Segments.Add(belt);

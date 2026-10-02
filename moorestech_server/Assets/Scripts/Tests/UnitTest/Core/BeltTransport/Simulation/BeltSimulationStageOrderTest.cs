@@ -23,7 +23,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation
             branch.Buffer.ConnectTo(front, BeltDirection.Front);
             branch.Buffer.ConnectTo(left, BeltDirection.Left);
             Restore(branch, (1, 10));
-            var simulation = new BeltSimulation(new[] { branch });
+            var simulation = new BeltSimulation(new BeltConveyorSegment[] { branch });
 
             simulation.Tick();
             Assert.AreEqual(0, branch.Count);
@@ -44,7 +44,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation
             branch.Buffer.ConnectTo(left, BeltDirection.Left);
             branch.Buffer.RestoreItem(MakeItem(1));
             Restore(branch, (2, 0));
-            var simulation = new BeltSimulation(new[] { branch });
+            var simulation = new BeltSimulation(new BeltConveyorSegment[] { branch });
 
             simulation.Tick();
             AssertItems(branch, (2, 0));
@@ -68,7 +68,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation
             branch.Buffer.ConnectTo(normal, BeltDirection.Front);
             branch.Buffer.ConnectTo(left, BeltDirection.Left);
             branch.Buffer.RestoreItem(MakeItem(1));
-            var simulation = new BeltSimulation(new[] { branch, normal });
+            var simulation = new BeltSimulation(new BeltConveyorSegment[] { branch, normal });
 
             simulation.Tick();
             Assert.AreEqual(-1, BufferSerial(branch.Buffer));
@@ -85,7 +85,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation
             source.ConnectTo(target, BeltDirection.Front);
             Restore(source, (1, 0));
             Assert.IsTrue(target.TryReceive(BeltDirection.Back, 100, MakeItem(2)));
-            var simulation = new BeltSimulation(new[] { source, target });
+            var simulation = new BeltSimulation(new BeltConveyorSegment[] { source, target });
 
             simulation.Tick();
             AssertItems(source, (1, 0));

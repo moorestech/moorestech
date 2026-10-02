@@ -10,7 +10,9 @@ namespace Core.BeltTransport
     // Rebuild this update list whenever connections or segments change
     public sealed class BeltSimulation
     {
-        private readonly BeltConveyorSegment[] _segments, _merges, _normal;
+        private readonly BeltConveyorSegment[] _segments;
+        private readonly BeltMergeSegment[] _merges;
+        private readonly BeltNormalSegment[] _normal;
         private readonly BeltSegmentTransfer[] _transfers;
         private readonly BeltBuffer[] _buffers;
 
@@ -19,15 +21,15 @@ namespace Core.BeltTransport
             // 合流・通常に分類し、合流・分岐のbufferを集める
             // Classify into merge and normal, collecting the buffers of merges and branches
             var all = new List<BeltConveyorSegment>();
-            var mergeList = new List<BeltConveyorSegment>();
-            var normalList = new List<BeltConveyorSegment>();
+            var mergeList = new List<BeltMergeSegment>();
+            var normalList = new List<BeltNormalSegment>();
             var bufferList = new List<BeltBuffer>();
             foreach (var segment in segments)
             {
                 all.Add(segment);
-                if (segment.Kind == BeltSegmentKind.Merge) mergeList.Add(segment);
-                if (segment.Kind == BeltSegmentKind.Normal) normalList.Add(segment);
-                else bufferList.Add(segment.Buffer);
+                if (segment is BeltMergeSegment merge) mergeList.Add(merge);
+                if (segment is BeltNormalSegment normal) normalList.Add(normal);
+                else if (segment is BeltBufferedSegment buffered) bufferList.Add(buffered.Buffer);
             }
 
             // 通常→通常の接続はここでキャッシュし、tick中に探索しない

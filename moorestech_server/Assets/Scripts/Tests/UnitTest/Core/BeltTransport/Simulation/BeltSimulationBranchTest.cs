@@ -22,7 +22,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation
             branch.Buffer.ConnectTo(front, BeltDirection.Front);
             branch.Buffer.ConnectTo(left, BeltDirection.Left);
             branch.Buffer.ConnectTo(right, BeltDirection.Right);
-            var simulation = new BeltSimulation(new[] { branch });
+            var simulation = new BeltSimulation(new BeltConveyorSegment[] { branch });
 
             // (F,L,R)でFront→(L,R,F)、Left→(R,F,L)
             // (F,L,R): Front → (L,R,F), Left → (R,F,L)
@@ -81,7 +81,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation
             branch.Buffer.ConnectTo(belt, BeltDirection.Front);
             branch.Buffer.ConnectTo(machine, BeltDirection.Right);
             RestorePacked(input, 1, 4);
-            var simulation = new BeltSimulation(new[] { input, branch, belt });
+            var simulation = new BeltSimulation(new BeltConveyorSegment[] { input, branch, belt });
 
             simulation.Tick();
             AssertItems(branch, (1, 128));

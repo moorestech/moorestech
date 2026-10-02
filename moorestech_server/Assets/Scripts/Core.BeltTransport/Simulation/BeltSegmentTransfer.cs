@@ -6,13 +6,13 @@ namespace Core.BeltTransport
     // Per normal-to-normal connection: the stage-4 offer and the settled transfer
     internal sealed class BeltSegmentTransfer
     {
-        private readonly BeltConveyorSegment _target;
+        private readonly BeltNormalSegment _target;
         private readonly BeltDirection _inputDirection;
         private int _offer;
         private int _length;
         private BeltItem _item;
 
-        internal BeltSegmentTransfer(BeltConveyorSegment target, BeltDirection inputDirection)
+        internal BeltSegmentTransfer(BeltNormalSegment target, BeltDirection inputDirection)
         {
             _target = target;
             _inputDirection = inputDirection;
@@ -20,7 +20,7 @@ namespace Core.BeltTransport
 
         // 通常segmentのうち、通常segmentへ搬出するものの接続一覧を作る
         // Build the connection list of normal segments that output into normal segments
-        internal static BeltSegmentTransfer[] Cache(IEnumerable<BeltConveyorSegment> normal)
+        internal static BeltSegmentTransfer[] Cache(IEnumerable<BeltNormalSegment> normal)
         {
             var transfers = new List<BeltSegmentTransfer>();
             foreach (var segment in normal)

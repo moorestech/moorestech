@@ -152,7 +152,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Connection
 
         // 段階4を参照実装の順に実行する。各段階は全件完了してから次へ進む
         // Run stage 4 in the reference order, finishing every item of a phase before the next
-        private static void RunStageFour(params BeltConveyorSegment[] normal)
+        private static void RunStageFour(params BeltNormalSegment[] normal)
         {
             var transfers = CacheTransfers(normal);
             foreach (var transfer in transfers) CaptureOffer(transfer);

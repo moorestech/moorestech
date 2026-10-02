@@ -7,9 +7,9 @@ using NUnit.Framework;
 
 namespace Tests.UnitTest.Core.BeltTransport
 {
-    // BeltConveyorSegmentの非公開メンバーへのリフレクションをこのクラスへ集約する
+    // BeltConveyorSegmentの非公開メンバーへのリフレクションをこのクラスへ集約する。宣言元の基底型で解決する
     // 本体側で名前やシグネチャが変わったら、メンバー名を含む明確な失敗として検出する
-    // Collects all reflection into BeltConveyorSegment's non-public members in this class
+    // Collects all reflection into BeltConveyorSegment's non-public members in this class, resolved on the declaring base type
     // A rename or signature change in production surfaces as a clear failure naming the member
     public static class BeltConveyorSegmentTestUtil
     {
@@ -33,11 +33,9 @@ namespace Tests.UnitTest.Core.BeltTransport
             return new BeltItem(new ItemId(1), new ItemInstanceId(serial), BeltEntryDirection.FromBack);
         }
 
-        // 前方へ搬出する通常segmentを、優先順は向きから初期化して生成する
-        // Create a normal segment facing front, initializing its priority order from the direction
-        public static BeltConveyorSegment CreateNormal(int capacity, int speed)
+        public static BeltNormalSegment CreateNormal(int capacity, int speed)
         {
-            return new BeltConveyorSegment(capacity, speed, BeltSegmentKind.Normal, BeltPriority.InitializeFromDirection, BeltDirection.Front);
+            return new BeltNormalSegment(capacity, speed);
         }
 
         public static void EnqueueTail(BeltConveyorSegment segment, int gap, BeltItem item)

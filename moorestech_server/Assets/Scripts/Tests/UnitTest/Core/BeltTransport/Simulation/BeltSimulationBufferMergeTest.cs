@@ -12,9 +12,9 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation
     // Branch Front goes into the merge's Back input, Left into a machine. The merge's Left input is a normal segment. Merge order starts (Back,Left,Right)
     public class BeltSimulationBufferMergeTest
     {
-        private BeltConveyorSegment _branch;
-        private BeltConveyorSegment _merge;
-        private BeltConveyorSegment _belt;
+        private BeltBranchSegment _branch;
+        private BeltMergeSegment _merge;
+        private BeltNormalSegment _belt;
         private FakeBeltReceiver _machine;
         private FakeBeltReceiver _sink;
         private BeltSimulation _simulation;
@@ -121,7 +121,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation
             _merge.Buffer.ConnectTo(_sink, BeltDirection.Front);
             _branch.Buffer.RestoreItem(MakeItem(1));
             RestorePacked(_belt, 10, 2);
-            _simulation = new BeltSimulation(new[] { _branch, _merge, _belt });
+            _simulation = new BeltSimulation(new BeltConveyorSegment[] { _branch, _merge, _belt });
         }
     }
 }

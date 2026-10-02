@@ -148,13 +148,16 @@ namespace Tests.UnitTest.Core.BeltTransport.Connection
         public void 生成時に容量と種類と速度を検証する()
         {
             var order = BeltPriority.InitializeFromDirection;
-            Assert.Throws<ArgumentOutOfRangeException>(() => new BeltConveyorSegment(2, 0, BeltSegmentKind.Merge, order, BeltDirection.Front));
-            Assert.Throws<ArgumentOutOfRangeException>(() => new BeltConveyorSegment(1, 0, (BeltSegmentKind)3, order, BeltDirection.Front));
-            Assert.Throws<ArgumentOutOfRangeException>(() => new BeltConveyorSegment(1, BeltConstants.MaxSpeed + 1, BeltSegmentKind.Normal, order, BeltDirection.Front));
-            Assert.Throws<ArgumentOutOfRangeException>(() => new BeltConveyorSegment(1, -1, BeltSegmentKind.Normal, order, BeltDirection.Front));
+            // 合流の容量は1固定、種類は型で決まるため、容量と速度だけを引数で検証する
+            // A merge is fixed at one cell and the kind is the type, so only capacity and speed arguments are validated
+            Assert.Throws<ArgumentOutOfRangeException>(() => new BeltBranchSegment(0, 0, order, BeltDirection.Front));
+            Assert.Throws<ArgumentOutOfRangeException>(() => new BeltNormalSegment(1, BeltConstants.MaxSpeed + 1));
+            Assert.Throws<ArgumentOutOfRangeException>(() => new BeltNormalSegment(1, -1));
+            Assert.Throws<ArgumentOutOfRangeException>(() => new BeltMergeSegment(-1, order, BeltDirection.Front));
 
-            Assert.AreEqual(BeltSegmentKind.Merge, new BeltConveyorSegment(1, 0, BeltSegmentKind.Merge, order, BeltDirection.Front).Kind);
-            Assert.AreEqual(BeltSegmentKind.Branch, new BeltConveyorSegment(4, 0, BeltSegmentKind.Branch, order, BeltDirection.Front).Kind);
+            Assert.AreEqual(BeltSegmentKind.Merge, new BeltMergeSegment(0, order, BeltDirection.Front).Kind);
+            Assert.AreEqual(1, new BeltMergeSegment(0, order, BeltDirection.Front).Capacity);
+            Assert.AreEqual(BeltSegmentKind.Branch, new BeltBranchSegment(4, 0, order, BeltDirection.Front).Kind);
             Assert.AreEqual(BeltSegmentKind.Normal, CreateNormal(4, BeltConstants.MaxSpeed).Kind);
         }
     }

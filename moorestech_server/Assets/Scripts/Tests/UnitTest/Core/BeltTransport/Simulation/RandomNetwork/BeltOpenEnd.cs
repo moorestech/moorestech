@@ -6,11 +6,11 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation.RandomNetwork
     // An exit whose target is not decided yet while generating. A normal segment picks any direction; a buffer slot has a fixed one
     public readonly struct BeltOpenEnd
     {
-        public readonly BeltConveyorSegment Normal;
+        public readonly BeltNormalSegment Normal;
         public readonly BeltBuffer Buffer;
         public readonly BeltDirection BufferDirection;
 
-        public BeltOpenEnd(BeltConveyorSegment normal, BeltBuffer buffer, BeltDirection bufferDirection)
+        public BeltOpenEnd(BeltNormalSegment normal, BeltBuffer buffer, BeltDirection bufferDirection)
         {
             Normal = normal;
             Buffer = buffer;

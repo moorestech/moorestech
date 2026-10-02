@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text;
+using Core.BeltTransport;
 using NUnit.Framework;
 using static Tests.UnitTest.Core.BeltTransport.BeltConveyorSegmentTestUtil;
 using static Tests.UnitTest.Core.BeltTransport.Simulation.BeltSimulationTestUtil;
@@ -35,7 +36,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation.RandomNetwork
 
                 // bufferの保持と優先順も比較対象に含める
                 // Include buffer contents and priority order in the comparison
-                if (segment.Buffer != null && segment.Buffer.TryGetItem(out var held))
+                if (segment is BeltBufferedSegment buffered && buffered.Buffer.TryGetItem(out var held))
                 {
                     AddOnce(Serial(held), $"{where} buffer");
                     snapshot.Append("buf#").Append(Serial(held)).Append(' ');

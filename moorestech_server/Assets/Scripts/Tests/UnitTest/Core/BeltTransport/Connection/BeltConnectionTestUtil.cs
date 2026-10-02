@@ -6,9 +6,9 @@ using NUnit.Framework;
 
 namespace Tests.UnitTest.Core.BeltTransport.Connection
 {
-    // 接続・段階別処理のinternalメンバーへのリフレクションをこのクラスへ集約する
+    // 接続・段階別処理のinternalメンバーへのリフレクションをこのクラスへ集約する。各メンバーは宣言元の型で解決する
     // 本体側で名前やシグネチャが変わったら、メンバー名を含む明確な失敗として検出する
-    // Collects all reflection into internal connection and per-stage members in this class
+    // Collects all reflection into internal connection and per-stage members in this class, each resolved on its declaring type
     // A rename or signature change in production surfaces as a clear failure naming the member
     public static class BeltConnectionTestUtil
     {
@@ -26,14 +26,14 @@ namespace Tests.UnitTest.Core.BeltTransport.Connection
         private const string CaptureOfferMethodName = "CaptureOffer";
         private const string ApplyMethodName = "Apply";
 
-        public static BeltConveyorSegment CreateBranch(int capacity, int priorityOrder, BeltDirection forwardDirection)
+        public static BeltBranchSegment CreateBranch(int capacity, int priorityOrder, BeltDirection forwardDirection)
         {
-            return new BeltConveyorSegment(capacity, 0, BeltSegmentKind.Branch, priorityOrder, forwardDirection);
+            return new BeltBranchSegment(capacity, 0, priorityOrder, forwardDirection);
         }
 
-        public static BeltConveyorSegment CreateMerge(int priorityOrder, BeltDirection forwardDirection)
+        public static BeltMergeSegment CreateMerge(int priorityOrder, BeltDirection forwardDirection)
         {
-            return new BeltConveyorSegment(1, 0, BeltSegmentKind.Merge, priorityOrder, forwardDirection);
+            return new BeltMergeSegment(0, priorityOrder, forwardDirection);
         }
 
         // 優先の高い順に3方向を並べた順序値
@@ -45,16 +45,16 @@ namespace Tests.UnitTest.Core.BeltTransport.Connection
 
         // 段階4の前進と搬出を1回実行する
         // Run the stage-4 advance and output once
-        public static void AdvanceAndTransfer(BeltConveyorSegment segment)
+        public static void AdvanceAndTransfer(BeltNormalSegment segment)
         {
-            RequireMethod(typeof(BeltConveyorSegment), AdvanceAndTransferMethodName).Invoke(segment, Array.Empty<object>());
+            RequireMethod(typeof(BeltNormalSegment), AdvanceAndTransferMethodName).Invoke(segment, Array.Empty<object>());
         }
 
         // 段階2の合流予約を1回実行する
         // Run the stage-2 merge reservation once
-        public static void ResolveInput(BeltConveyorSegment segment)
+        public static void ResolveInput(BeltMergeSegment segment)
         {
-            RequireMethod(typeof(BeltConveyorSegment), ResolveInputMethodName).Invoke(segment, Array.Empty<object>());
+            RequireMethod(typeof(BeltMergeSegment), ResolveInputMethodName).Invoke(segment, Array.Empty<object>());
         }
 
         public static int GetTickSpeed(BeltConveyorSegment segment)
@@ -83,18 +83,18 @@ namespace Tests.UnitTest.Core.BeltTransport.Connection
 
         // 通常segmentへの搬出を遅延反映する接続を作る。対象外ならnull
         // Create the deferred connection for output into a normal segment; null when not applicable
-        public static object CacheTransfer(BeltConveyorSegment segment)
+        public static object CacheTransfer(BeltNormalSegment segment)
         {
-            return RequireMethod(typeof(BeltConveyorSegment), CacheTransferMethodName).Invoke(segment, Array.Empty<object>());
+            return RequireMethod(typeof(BeltNormalSegment), CacheTransferMethodName).Invoke(segment, Array.Empty<object>());
         }
 
         // 通常segment一覧から遅延反映する接続一覧を作る
         // Build the deferred connection list from normal segments
-        public static object[] CacheTransfers(BeltConveyorSegment[] normal)
+        public static object[] CacheTransfers(BeltNormalSegment[] normal)
         {
             var transferType = RequireTransferType();
-            var method = transferType.GetMethod(CacheMethodName, NonPublicStaticFlags, null, new[] { typeof(IEnumerable<BeltConveyorSegment>) }, null);
-            Assert.IsNotNull(method, $"{transferType.Name}.{CacheMethodName}(IEnumerable<BeltConveyorSegment>) not found via reflection");
+            var method = transferType.GetMethod(CacheMethodName, NonPublicStaticFlags, null, new[] { typeof(IEnumerable<BeltNormalSegment>) }, null);
+            Assert.IsNotNull(method, $"{transferType.Name}.{CacheMethodName}(IEnumerable<BeltNormalSegment>) not found via reflection");
             var transfers = (Array)method.Invoke(null, new object[] { normal });
             var result = new object[transfers.Length];
             transfers.CopyTo(result, 0);

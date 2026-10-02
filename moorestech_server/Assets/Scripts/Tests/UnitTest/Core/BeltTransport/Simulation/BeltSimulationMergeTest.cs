@@ -26,7 +26,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation
             merge.Buffer.ConnectTo(sink, BeltDirection.Front);
             RestorePacked(back, 10, 4);
             RestorePacked(left, 20, 4);
-            var simulation = new BeltSimulation(new[] { merge, back, left });
+            var simulation = new BeltSimulation(new BeltConveyorSegment[] { merge, back, left });
 
             simulation.Tick();
             AssertItems(merge, (10, 128));
@@ -75,7 +75,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation
             merge.Buffer.ConnectTo(sink, BeltDirection.Front);
             RestorePacked(back, 10, 4);
             RestorePacked(right, 20, 4);
-            var simulation = new BeltSimulation(new[] { merge, back, left, right });
+            var simulation = new BeltSimulation(new BeltConveyorSegment[] { merge, back, left, right });
 
             // (B,L,R)でBack成功→(L,R,B)。Left不可でRight成功→(L,B,R)。Left不可でBack成功→(L,R,B)
             // (B,L,R) Back succeeds → (L,R,B). Left unavailable, Right succeeds → (L,B,R). Left unavailable, Back succeeds → (L,R,B)
