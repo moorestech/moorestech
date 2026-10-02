@@ -5,7 +5,8 @@ namespace Core.BeltTransport
         public readonly ulong Tick;
         public readonly BeltBoundaryChange[] BeforeTick, AfterTick;
         public readonly BeltOutputResult[] Outputs;
-        public BeltTickDifference(ulong tick, BeltBoundaryChange[] beforeTick, BeltOutputResult[] outputs, BeltBoundaryChange[] afterTick)
-        { Tick = tick; BeforeTick = beforeTick; Outputs = outputs; AfterTick = afterTick; }
+        public readonly BeltTickOrder Order;
+        public BeltTickDifference(ulong tick, BeltBoundaryChange[] beforeTick, BeltOutputResult[] outputs, BeltBoundaryChange[] afterTick, BeltTickOrder order)
+        { Tick = tick; BeforeTick = beforeTick; Outputs = outputs; AfterTick = afterTick; Order = order; }
     }
 }

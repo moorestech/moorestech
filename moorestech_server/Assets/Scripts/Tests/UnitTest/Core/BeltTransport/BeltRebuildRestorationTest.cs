@@ -30,7 +30,8 @@ namespace Tests.UnitTest.Core.BeltTransport
             var replay = new BeltNetworkReplay(0, initial, this);
             network.Tick();
             network.Rebuild(nextCells, nextEdges, Array.Empty<BeltCellItemState>());
-            replay.Apply(new BeltTickDifference(1, Array.Empty<BeltBoundaryChange>(), Array.Empty<BeltOutputResult>(), new BeltBoundaryChange[] { change }));
+            replay.Apply(new BeltTickDifference(1, Array.Empty<BeltBoundaryChange>(), Array.Empty<BeltOutputResult>(), new BeltBoundaryChange[] { change },
+                new BeltTickOrder(1, Array.Empty<uint>(), 1, new uint[] { 2 }, 3)));
             var actual = network.CaptureItems()[0];
             Assert.AreEqual(4, actual.CellId); Assert.AreEqual(128, actual.Progress);
             Assert.AreEqual(BeltDirection.Left, actual.EntryDirection, "Choose the lowest surviving entry direction independently of edge order.");

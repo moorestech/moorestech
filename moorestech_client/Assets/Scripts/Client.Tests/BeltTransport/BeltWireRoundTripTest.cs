@@ -29,9 +29,14 @@ namespace Client.Tests.BeltTransport
                 new BeltSpeedChange(new[] { new BeltCellSpeed(4, 32) }), new BeltInputChange(4, BeltDirection.Left, 12, item),
                 new BeltCellItemsChange(4, new[] { state }), new BeltTopologyChange(new[] { cell }, new[] { 8 }, new[] { edge }, new[] { edge }, new[] { state }) };
             var output = new BeltOutputResult(4, 9, 3, BeltDirection.Right, 32, true, item);
-            var tick = new BeltTickMessagePack(new BeltTickDifference(124, changes, new[] { output }, changes));
+            var tick = new BeltTickMessagePack(new BeltTickDifference(124, changes, new[] { output }, changes, BeltTestState.Order(9, changes.Length, changes.Length)));
             var decoded = RoundTrip(tick).ToCore();
             Assert.AreEqual(124, decoded.Tick);
+            Assert.AreEqual(9, decoded.Order.ServerTick);
+            CollectionAssert.AreEqual(tick.BeforeSequenceIds, decoded.Order.BeforeSequenceIds);
+            Assert.AreEqual(tick.SimulationSequenceId, decoded.Order.SimulationSequenceId);
+            CollectionAssert.AreEqual(tick.AfterSequenceIds, decoded.Order.AfterSequenceIds);
+            Assert.AreEqual(tick.CompletedSequenceId, decoded.Order.CompletedSequenceId);
             CollectionAssert.AreEqual(new[] { output }, decoded.Outputs);
             Assert.AreEqual(32, ((BeltSpeedChange)decoded.BeforeTick[0]).Speeds[0].Speed);
             Assert.AreEqual(item, ((BeltInputChange)decoded.BeforeTick[1]).Item);

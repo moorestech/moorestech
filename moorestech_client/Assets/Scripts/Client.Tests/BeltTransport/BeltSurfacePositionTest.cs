@@ -41,8 +41,9 @@ namespace Client.Tests.BeltTransport
             var cell = snapshot.Cells.Single(value => value.Id == slope.BlockInstanceId.AsPrimitive());
             Assert.AreEqual(up ? 0.1f : 1.1f, cell.Surface.InputHeight);
             var replica = new BeltClientReplica(new BeltCommittedSnapshot(10, snapshot));
-            replica.Receive(new BeltTickDifference(11, new BeltBoundaryChange[] { new BeltSpeedChange(new[] { new BeltCellSpeed(cell.Id, 32) }) },
-                Array.Empty<BeltOutputResult>(), Array.Empty<BeltBoundaryChange>()));
+            replica.ApplyChange(11, new BeltSpeedChange(new[] { new BeltCellSpeed(cell.Id, 32) }));
+            replica.Advance(11, Array.Empty<BeltOutputResult>());
+            replica.CompleteTick(11);
             Assert.AreEqual(cell.Surface, replica.Snapshot.Cells.Single(value => value.Id == cell.Id).Surface);
             // p128が共有edgeで、p256とbufferはセル中心面になる。
             // Progress 128 is the shared edge; progress 256 and buffers use the cell center surface.

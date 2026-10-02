@@ -1,5 +1,10 @@
 using System;
 using Core.BeltTransport;
+using System.Linq;
+using Client.Game.InGame.Train.Network;
+using Client.Game.InGame.Train.Network.Diagnostics;
+using Client.Game.InGame.Train.Unit;
+using UnityEngine;
 namespace Client.Tests.BeltTransport
 {
     internal static class BeltTestState
@@ -11,6 +16,19 @@ namespace Client.Tests.BeltTransport
             var items = hasItem ? new[] { new BeltCellItemState(1, progress, BeltDirection.Back, 0, new BeltItem(Identity, 1), false) } : Array.Empty<BeltCellItemState>();
             return new BeltNetworkSnapshot(cells, Array.Empty<BeltNetworkConnection>(), items, new[] { new BeltCellPriority(1, 0) });
         }
-        internal static BeltTickDifference Tick(ulong tick) => new(tick, Array.Empty<BeltBoundaryChange>(), Array.Empty<BeltOutputResult>(), Array.Empty<BeltBoundaryChange>());
+        internal static BeltTickDifference Tick(ulong tick) => new(tick, Array.Empty<BeltBoundaryChange>(), Array.Empty<BeltOutputResult>(), Array.Empty<BeltBoundaryChange>(), Order((uint)tick, 0, 0));
+        internal static BeltTickOrder Order(uint tick, int beforeCount, int afterCount) => new(tick,
+            Enumerable.Range(1, beforeCount).Select(v => (uint)v).ToArray(), (uint)beforeCount + 1,
+            Enumerable.Range(beforeCount + 2, afterCount).Select(v => (uint)v).ToArray(), (uint)(beforeCount + afterCount + 2));
+        internal static TrainUnitFutureMessageBuffer Buffer(out TrainUnitTickState state)
+        {
+            state = new TrainUnitTickState();
+            return new TrainUnitFutureMessageBuffer(state, new TrainSynchronizationDiagnostics(state, new TrainSynchronizationDiagnosticWriter(Application.temporaryCachePath)));
+        }
+        internal static void FlushTick(TrainUnitFutureMessageBuffer buffer, TrainUnitTickState state, uint tick)
+        {
+            state.RecordAppliedTickUnifiedId(tick, 0);
+            while (buffer.TryFlushEvent(state.GetAppliedTickUnifiedId() + 1)) { }
+        }
     }
 }

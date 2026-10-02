@@ -42,7 +42,9 @@ namespace Client.Game.InGame.Train.View
             // Keep waiting for the missing ordered position regardless of later arrivals.
             if (!_futureMessageBuffer.TryDequeueHashAtTickSequenceId(currentTickUnifiedId, out var message))
             {
-                var confirmedGap = currentTickUnifiedId < _tickState.GetMaxBufferedTickUnifiedId();
+                // 同tickの後続seqはまとめ通知より先着し得る。次tickの到着までは欠落と断定しない。
+                // Later sequences can precede a same-tick bundle; only a later tick confirms a missing position.
+                var confirmedGap = (currentTickUnifiedId >> 32) < _tickState.GetMaxBufferedTicks();
                 _diagnostics.RecordMissingOrderedMessage(currentTickUnifiedId, confirmedGap);
                 if (confirmedGap) _futureMessageBuffer.StopRetainingFutureMessages("ConfirmedOrderedGap");
                 return false;
