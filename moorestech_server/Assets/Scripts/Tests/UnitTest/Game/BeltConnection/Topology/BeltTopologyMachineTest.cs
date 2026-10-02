@@ -64,34 +64,30 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology
         }
 
         [Test]
-        public void TwoMachinesAndBeltFeedSameCell()
+        public void BeltInputExcludesBothMachines()
         {
-            var cells = BuildTwoMachineWorld(new[] { 0, 1, 2, 3 }, out var leftPort, out var rightPort);
+            var cells = BuildTwoMachineWorld(new[] { 0, 1, 2, 3 });
             var merged = Cell(cells, new Vector3Int(0, 0, 1));
 
-            Assert.AreEqual(3, merged.Inputs.Length);
+            // 後ろのベルトがあるので左右の機械からの入力はどちらも外れる
+            // The rear belt is present, so the inputs from both side machines are removed
+            Assert.AreEqual(1, merged.Inputs.Length);
             AssertConnection(merged.Inputs[0], BeltDirection.Back, BeltEntryDirection.FromBack, Belt, new Vector3Int(0, 0, 0));
-            AssertConnection(merged.Inputs[1], BeltDirection.Left, BeltEntryDirection.FromLeft, Machine, new Vector3Int(-1, 0, 1));
-            AssertConnection(merged.Inputs[2], BeltDirection.Right, BeltEntryDirection.FromRight, Machine, new Vector3Int(1, 0, 1));
-            // 左の機械は右向きポート、右の機械は左向きポートから出す
-            // The left machine emits from its right-facing port and the right machine from its left-facing port
-            Assert.AreSame(rightPort, merged.Inputs[1].SourceConnector);
-            Assert.AreSame(leftPort, merged.Inputs[2].SourceConnector);
         }
 
         [Test]
         public void MachinePlacementOrderDoesNotChangeResult()
         {
-            var forward = Signature(BuildTwoMachineWorld(new[] { 0, 1, 2, 3 }, out _, out _));
-            var reverse = Signature(BuildTwoMachineWorld(new[] { 3, 2, 1, 0 }, out _, out _));
+            var forward = Signature(BuildTwoMachineWorld(new[] { 0, 1, 2, 3 }));
+            var reverse = Signature(BuildTwoMachineWorld(new[] { 3, 2, 1, 0 }));
             CollectionAssert.AreEqual(forward, reverse);
         }
 
-        private static List<BeltTopologyCell> BuildTwoMachineWorld(int[] order, out OutputConnectsElement leftPort, out OutputConnectsElement rightPort)
+        private static List<BeltTopologyCell> BuildTwoMachineWorld(int[] order)
         {
             var world = new BeltEdgeTestWorld(false, BlockDirection.North).World;
-            leftPort = MachinePortTestTemplate.Output(Vector3Int.zero, new[] { Vector3Int.left }, null);
-            rightPort = MachinePortTestTemplate.Output(Vector3Int.zero, new[] { Vector3Int.right }, null);
+            var leftPort = MachinePortTestTemplate.Output(Vector3Int.zero, new[] { Vector3Int.left }, null);
+            var rightPort = MachinePortTestTemplate.Output(Vector3Int.zero, new[] { Vector3Int.right }, null);
             MachinePortTestTemplate.Install(new InventoryConnects(null, new[] { leftPort, rightPort }), Vector3Int.one);
 
             // 0:後ろのベルト 1:合流先ベルト 2:左の機械 3:右の機械

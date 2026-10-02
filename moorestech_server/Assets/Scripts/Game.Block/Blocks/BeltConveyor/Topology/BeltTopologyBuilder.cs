@@ -23,8 +23,8 @@ namespace Game.Block.Blocks.BeltConveyor.Topology
             var pendings = new List<PendingConnection>();
             foreach (var data in world.BlockMasterDictionary.Values) CollectConnections(data.Block);
 
-            // 溜めた接続をマスごとのぴったりの配列へ移し、座標順に並べる
-            // Move the collected connections into exactly sized per-cell arrays, then sort cells by position
+            // 溜めた接続をマスごとのぴったりの配列へ移し、機械入力の規則で絞ってから座標順に並べる
+            // Move the collected connections into exactly sized per-cell arrays, apply the machine input rule, then sort cells by position
             var cells = CreateCells();
             cells.Sort(BeltTopologyOrder.Cell);
             return cells;
@@ -118,8 +118,9 @@ namespace Game.Block.Blocks.BeltConveyor.Topology
                     var speed = param is BeltConveyorBlockParam belt ? belt.BeltSpeedPerTick : ((GearBeltConveyorBlockParam)param).BeltSpeedPerTick;
                     Array.Sort(inputs[i], BeltTopologyOrder.Connection);
                     Array.Sort(outputs[i], BeltTopologyOrder.Connection);
+                    var acceptedInputs = BeltTopologyMachineInputRule.Apply(inputs[i]);
                     result.Add(new BeltTopologyCell(block.BlockPositionInfo.OriginalPos, block.BlockInstanceId, block, works[i].Forward, speed, IsSplitter(param),
-                        inputs[i], outputs[i]));
+                        acceptedInputs, outputs[i]));
                 }
                 return result;
             }
