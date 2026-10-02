@@ -51,11 +51,11 @@ namespace Core.BeltTransport
             if (_priorityCount == 1) _outputOrder = (int)outputDirection;
         }
 
-        // 段階2では、接続済み方向のうち最優先の出力だけを提示する
-        // In stage 2, offer only the highest-priority connected output
+        // 段階2では、接続済み方向のうち最優先の出力だけを提示する。そのtickの速度が0なら搬出不可と答える
+        // In stage 2, offer only the highest-priority connected output. Answers no when this tick's speed is 0
         public bool TryGetOutput(BeltDirection inputDirection)
         {
-            return HasItem && BeltPriority.FirstConnected(_outputOrder, _outputMask)
+            return HasItem && Segment.TickSpeed != 0 && BeltPriority.FirstConnected(_outputOrder, _outputMask)
                 == (int)BeltDirections.Opposite(inputDirection);
         }
 

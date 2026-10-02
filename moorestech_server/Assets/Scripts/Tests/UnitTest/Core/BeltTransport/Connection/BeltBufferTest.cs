@@ -191,9 +191,15 @@ namespace Tests.UnitTest.Core.BeltTransport.Connection
             Assert.IsFalse(branch.Buffer.TryGetOutput(BeltDirection.Right));
 
             branch.Buffer.RestoreItem(MakeItem(1));
+            BeginTickAt(branch, 64);
             Assert.IsTrue(branch.Buffer.TryGetOutput(BeltDirection.Right));
             Assert.IsFalse(branch.Buffer.TryGetOutput(BeltDirection.Left));
             Assert.IsFalse(branch.Buffer.TryGetOutput(BeltDirection.Back));
+
+            // そのtickの速度が0なら、最優先方向でも搬出不可と答える
+            // At tick speed 0 it answers no even for the highest-priority direction
+            BeginTickAt(branch, 0);
+            Assert.IsFalse(branch.Buffer.TryGetOutput(BeltDirection.Right));
         }
 
         [Test]

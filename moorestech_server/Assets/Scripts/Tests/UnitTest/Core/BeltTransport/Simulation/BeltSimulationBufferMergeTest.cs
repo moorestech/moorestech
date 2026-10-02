@@ -89,6 +89,23 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation
             Assert.AreEqual(Order(BeltDirection.Left, BeltDirection.Right, BeltDirection.Front), _branch.PriorityOrder);
         }
 
+        [Test]
+        public void 速度0の分岐bufferは段階2で搬出不可と答え合流は次の搬入元を予約する()
+        {
+            Build(Order(BeltDirection.Front, BeltDirection.Left, BeltDirection.Right), true);
+            _branch.SetSpeed(0);
+
+            // 分岐の最優先は合流だが速度0なので候補外。合流はLeftの通常segmentを予約し、#10が進入距離128で入る
+            // The branch's top is the merge, but at speed 0 it is not offered. The merge reserves the Left belt and #10 enters with entry 128
+            _simulation.Tick();
+            AssertItems(_merge, (10, 128));
+            AssertItems(_belt, (11, 128));
+            Assert.AreEqual(1, BufferSerial(_branch.Buffer));
+            Assert.AreEqual(0, _machine.ReceiveAttempts.Count);
+            Assert.AreEqual(Order(BeltDirection.Back, BeltDirection.Right, BeltDirection.Left), _merge.PriorityOrder);
+            Assert.AreEqual(Order(BeltDirection.Front, BeltDirection.Left, BeltDirection.Right), _branch.PriorityOrder);
+        }
+
         // 全segmentの速度128。分岐bufferに#1、通常segmentに#10,#11を密着して置く
         // All speeds 128. #1 in the branch buffer, #10 and #11 packed on the belt
         private void Build(int branchOrder, bool machineAccepts)

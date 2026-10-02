@@ -79,12 +79,12 @@ namespace Tests.UnitTest.Core.BeltTransport.Connection
             var branchToMergeOnly = CreateBranch(1, Init, BeltDirection.Front);
             branchToMergeOnly.Buffer.ConnectTo(mergeWithBranchFirst, BeltDirection.Right);
             branchToMergeOnly.Buffer.RestoreItem(MakeItem(3));
+            BeginTickAt(branchToMergeOnly, 100);
             ResolveInput(mergeWithBranchFirst);
             AssertOnlyReserved(mergeWithBranchFirst, BeltDirection.Left);
 
             // 予約に従って分岐bufferから合流へ搬出できる
             // The branch buffer can then transfer into the merge as reserved
-            BeginTickAt(branchToMergeOnly, 100);
             Transfer(branchToMergeOnly.Buffer);
             Assert.IsFalse(branchToMergeOnly.Buffer.HasItem);
             AssertDistances(mergeWithBranchFirst, W - 100);
