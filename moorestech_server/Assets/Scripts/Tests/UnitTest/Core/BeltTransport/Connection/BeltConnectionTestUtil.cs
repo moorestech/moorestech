@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using Core.BeltTransport;
 using NUnit.Framework;
@@ -18,6 +19,12 @@ namespace Tests.UnitTest.Core.BeltTransport.Connection
         private const string PriorityOrderPropertyName = "PriorityOrder";
         private const string TickSpeedPropertyName = "TickSpeed";
         private const string ResolveInputMethodName = "ResolveInput";
+        private const BindingFlags NonPublicStaticFlags = BindingFlags.NonPublic | BindingFlags.Static;
+        private const string TransferTypeName = "Core.BeltTransport.BeltSegmentTransfer";
+        private const string CacheTransferMethodName = "CacheTransfer";
+        private const string CacheMethodName = "Cache";
+        private const string CaptureOfferMethodName = "CaptureOffer";
+        private const string ApplyMethodName = "Apply";
 
         public static BeltConveyorSegment CreateBranch(int capacity, int priorityOrder, BeltDirection forwardDirection)
         {
@@ -72,6 +79,47 @@ namespace Tests.UnitTest.Core.BeltTransport.Connection
         public static int GetBufferPriorityOrder(BeltBuffer buffer)
         {
             return (int)RequireProperty(typeof(BeltBuffer), PriorityOrderPropertyName).GetValue(buffer);
+        }
+
+        // 通常segmentへの搬出を遅延反映する接続を作る。対象外ならnull
+        // Create the deferred connection for output into a normal segment; null when not applicable
+        public static object CacheTransfer(BeltConveyorSegment segment)
+        {
+            return RequireMethod(typeof(BeltConveyorSegment), CacheTransferMethodName).Invoke(segment, Array.Empty<object>());
+        }
+
+        // 通常segment一覧から遅延反映する接続一覧を作る
+        // Build the deferred connection list from normal segments
+        public static object[] CacheTransfers(BeltConveyorSegment[] normal)
+        {
+            var transferType = RequireTransferType();
+            var method = transferType.GetMethod(CacheMethodName, NonPublicStaticFlags, null, new[] { typeof(IEnumerable<BeltConveyorSegment>) }, null);
+            Assert.IsNotNull(method, $"{transferType.Name}.{CacheMethodName}(IEnumerable<BeltConveyorSegment>) not found via reflection");
+            var transfers = (Array)method.Invoke(null, new object[] { normal });
+            var result = new object[transfers.Length];
+            transfers.CopyTo(result, 0);
+            return result;
+        }
+
+        // 段階4aの空き記録を1接続分実行する
+        // Run the stage-4a offer capture for one connection
+        public static void CaptureOffer(object transfer)
+        {
+            RequireMethod(RequireTransferType(), CaptureOfferMethodName).Invoke(transfer, Array.Empty<object>());
+        }
+
+        // 段階4cの搬入反映を1接続分実行する
+        // Run the stage-4c apply for one connection
+        public static void ApplyTransfer(object transfer)
+        {
+            RequireMethod(RequireTransferType(), ApplyMethodName).Invoke(transfer, Array.Empty<object>());
+        }
+
+        private static Type RequireTransferType()
+        {
+            var type = typeof(BeltConveyorSegment).Assembly.GetType(TransferTypeName);
+            Assert.IsNotNull(type, $"{TransferTypeName} type not found via reflection");
+            return type;
         }
 
         private static MethodInfo RequireMethod(Type type, string name, params Type[] parameterTypes)

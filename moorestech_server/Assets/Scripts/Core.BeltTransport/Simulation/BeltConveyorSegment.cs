@@ -21,6 +21,7 @@ namespace Core.BeltTransport
         private readonly IBeltSource[] _inputs = new IBeltSource[3];
         private BeltDirection _reservedInputDirection = BeltDirection.None;
         private BeltDirection _outputDirection;
+        private BeltSegmentTransfer _deferredOutput;
         private int _inputCount;
         private int _inputOrder;
         private int _inputPorts;
@@ -147,6 +148,16 @@ namespace Core.BeltTransport
             _tickSpeed = Speed;
         }
 
+        // 更新対象の構築時だけ呼ぶ。通常segmentへの搬出だけを段階4の後で反映する接続にする。Outputは実際の接続先のまま
+        // Call only when building the update lists. Only output into a normal segment is deferred; Output stays the real target
+        internal BeltSegmentTransfer CacheTransfer()
+        {
+            var target = Output as BeltConveyorSegment;
+            _deferredOutput = target != null && target.Kind == BeltSegmentKind.Normal
+                ? new BeltSegmentTransfer(target, BeltDirections.Opposite(_outputDirection)) : null;
+            return _deferredOutput;
+        }
+
         // 段階2。空の合流segmentについて、搬入優先順に問い合わせて搬入元1つまたは搬入なしを予約する
         // Stage 2. For an empty merge, query inputs in priority order and reserve one input or none
         internal void ResolveInput()
@@ -183,8 +194,17 @@ namespace Core.BeltTransport
             var sent = false;
             var length = OutputLength;
             if (length > 0 && Output != null)
-                sent = Output.TryReceive(BeltDirections.Opposite(_outputDirection), length, _items[_head]);
+                sent = _deferredOutput != null
+                    ? _deferredOutput.TryReceive(length, _items[_head])
+                    : Output.TryReceive(BeltDirections.Opposite(_outputDirection), length, _items[_head]);
             Advance(sent);
+        }
+
+        // 段階4の全前進完了後、成立済みの通常segment間搬送を進入距離を保って末尾へ反映する
+        // After all stage-4 advances, apply a settled normal-to-normal transfer at the tail keeping its entry length
+        internal void ReceiveTransferred(int length, in BeltItem item)
+        {
+            EnqueueTail(Length - length - TotalLength, item);
         }
 
         // tick境界で、出口に近い順のアイテムと出口までの距離を複製する
