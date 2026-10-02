@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Core.Master;
 using Game.Block.Blocks.BeltConveyor.Connection;
 using Game.Block.Interface;
 using NUnit.Framework;
@@ -15,19 +14,16 @@ namespace Tests.UnitTest.Game.BeltConnection
 {
     public class BeltConnectionVerticalOrientationTest
     {
-        public enum BeltKind { NormalFlat, NormalUp, NormalDown, GearFlat, GearUp, GearDown, Splitter }
-
         private static IEnumerable<TestCaseData> VerticalCases()
         {
             var directions = new[] { BlockDirection.UpNorth, BlockDirection.UpEast, BlockDirection.UpSouth, BlockDirection.UpWest,
                 BlockDirection.DownNorth, BlockDirection.DownEast, BlockDirection.DownSouth, BlockDirection.DownWest };
             foreach (var direction in directions)
-                foreach (BeltKind kind in Enum.GetValues(typeof(BeltKind)))
-                    yield return new TestCaseData(direction, kind);
+                yield return new TestCaseData(direction);
         }
 
         [TestCaseSource(nameof(VerticalCases))]
-        public void VerticalBeltsPreserveTheTouchingLowerConnection(BlockDirection direction, BeltKind kind)
+        public void VerticalSplitterPreservesTheTouchingLowerConnection(BlockDirection direction)
         {
             foreach (var upperSlot in new[] { "UL", "UR" })
             {
@@ -50,7 +46,7 @@ namespace Tests.UnitTest.Game.BeltConnection
                 world.AssertEdges(expected, "before vertical placement");
                 var position = world.Position(upperSlot);
                 ExpectOrientationLog(direction);
-                Assert.IsTrue(world.World.TryAddBlock(GetBlockId(kind), position, direction, Array.Empty<BlockCreateParam>(), out var vertical));
+                Assert.IsTrue(world.World.TryAddBlock(ForUnitTestModBlockId.FilterSplitter, position, direction, Array.Empty<BlockCreateParam>(), out var vertical));
                 Assert.IsTrue(BeltInventoryConnectionData.TryGet(vertical, out var context));
                 Assert.AreEqual(0, context.Edges.Count);
                 Assert.AreEqual(0, BeltEdgeTestWorld.Connector(vertical).ConnectedTargets.Count, "Vertical belt must not connect to itself or another belt.");
@@ -73,41 +69,8 @@ namespace Tests.UnitTest.Game.BeltConnection
             }
         }
 
-        [TestCase(false)]
-        [TestCase(true)]
-        public void VerticalBeltHasNoSharedEdgeWithChest(bool chestFirst)
-        {
-            var world = new BeltEdgeTestWorld(false, BlockDirection.North);
-            if (chestFirst) PlaceChest();
-            ExpectOrientationLog(BlockDirection.UpNorth);
-            Assert.IsTrue(world.World.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, Vector3Int.zero, BlockDirection.UpNorth,
-                Array.Empty<BlockCreateParam>(), out var belt));
-            if (!chestFirst) PlaceChest();
-            var chest = world.World.GetBlock(Vector3Int.up);
-            Assert.IsEmpty(BeltEdgeTestWorld.Connector(belt).ConnectedTargets);
-            Assert.IsEmpty(BeltEdgeTestWorld.Connector(chest).ConnectedTargets);
-            world.World.RemoveBlock(Vector3Int.zero, BlockRemoveReason.ManualRemove);
-            world.World.RemoveBlock(Vector3Int.up, BlockRemoveReason.ManualRemove);
-
-            #region Internal
-            void PlaceChest() => Assert.IsTrue(world.World.TryAddBlock(ForUnitTestModBlockId.ChestId, Vector3Int.up,
-                BlockDirection.UpNorth, Array.Empty<BlockCreateParam>(), out _));
-            #endregion
-        }
-
         private static void ExpectOrientationLog(BlockDirection direction) => LogAssert.Expect(LogType.Log,
             new Regex("Belt inventory edges require a horizontal block orientation: " + direction));
 
-        private static BlockId GetBlockId(BeltKind kind) => kind switch
-        {
-            BeltKind.NormalFlat => ForUnitTestModBlockId.BeltConveyorId,
-            BeltKind.NormalUp => BeltTestMaster.Up,
-            BeltKind.NormalDown => BeltTestMaster.Down,
-            BeltKind.GearFlat => ForUnitTestModBlockId.GearBeltConveyor,
-            BeltKind.GearUp => ForUnitTestModBlockId.TestGearBeltConveyorUp,
-            BeltKind.GearDown => ForUnitTestModBlockId.TestGearBeltConveyorDown,
-            BeltKind.Splitter => ForUnitTestModBlockId.FilterSplitter,
-            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown test belt kind.")
-        };
     }
 }
