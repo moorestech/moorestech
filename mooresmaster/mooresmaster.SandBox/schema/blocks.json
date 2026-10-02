@@ -154,6 +154,10 @@
                       "type": "number",
                       "default": 1
                     },
+                    "beltSpeedPerTick": {
+                      "type": "integer",
+                      "default": 13
+                    },
                     "slopeType": {
                       "type": "string",
                       "enum": [
@@ -568,6 +572,10 @@
                     "beltConveyorSpeed": {
                       "type": "number",
                       "default": 2
+                    },
+                    "beltSpeedPerTick": {
+                      "type": "integer",
+                      "default": 26
                     },
                     "requireTorquePerRpm": {
                       "type": "number",

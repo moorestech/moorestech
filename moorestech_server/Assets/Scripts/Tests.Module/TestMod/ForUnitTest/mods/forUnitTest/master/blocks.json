@@ -189,6 +189,7 @@
       "name": "TestBeltConveyor",
       "blockType": "BeltConveyor",
       "blockParam": {
+        "beltSpeedPerTick": 6,
         "timeOfItemEnterToExit": 2,
         "beltConveyorItemCount": 4,
         "inventoryConnectors": {
@@ -2222,6 +2223,7 @@
       "blockType": "GearBeltConveyor",
       "blockParam": {
         "beltConveyorItemCount": 4,
+        "beltSpeedPerTick": 32,
         "timeOfItemEnterToExit": 0.4,
         "overloadMaxRpm": 10,
         "overloadMaxTorque": 10,
@@ -2326,6 +2328,7 @@
       "blockType": "GearBeltConveyor",
       "blockParam": {
         "beltConveyorItemCount": 4,
+        "beltSpeedPerTick": 32,
         "timeOfItemEnterToExit": 0.4,
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
@@ -4105,6 +4108,7 @@
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
         "baseDestructionProbability": 0,
+        "beltSpeedPerTick": 128,
         "timeOfItemEnterToExit": 0.05,
         "beltConveyorItemCount": 4,
         "gear": {
@@ -4621,6 +4625,7 @@
       "blockType": "GearBeltConveyor",
       "blockParam": {
         "beltConveyorItemCount": 4,
+        "beltSpeedPerTick": 32,
         "timeOfItemEnterToExit": 0.4,
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
@@ -4735,6 +4740,7 @@
       "blockType": "GearBeltConveyor",
       "blockParam": {
         "beltConveyorItemCount": 4,
+        "beltSpeedPerTick": 32,
         "timeOfItemEnterToExit": 0.4,
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,

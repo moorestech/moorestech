@@ -931,6 +931,7 @@
       "name": "直線歯車ベルトコンベア",
       "blockType": "GearBeltConveyor",
       "blockParam": {
+        "beltSpeedPerTick": 1,
         "timeOfItemEnterToExit": 100,
         "beltConveyorItemCount": 4,
         "gear": {
@@ -1086,6 +1087,7 @@
       "name": "上り歯車ベルトコンベア",
       "blockType": "GearBeltConveyor",
       "blockParam": {
+        "beltSpeedPerTick": 1,
         "timeOfItemEnterToExit": 100,
         "beltConveyorItemCount": 4,
         "gear": {
@@ -1191,6 +1193,7 @@
       "name": "下り歯車ベルトコンベア",
       "blockType": "GearBeltConveyor",
       "blockParam": {
+        "beltSpeedPerTick": 1,
         "timeOfItemEnterToExit": 100,
         "beltConveyorItemCount": 4,
         "gear": {
@@ -1970,6 +1973,7 @@
       "openable": false,
       "blockParam": {
         "slopeType": "Straight",
+        "beltSpeedPerTick": 17,
         "timeOfItemEnterToExit": 0.75,
         "beltConveyorItemCount": 6,
         "inventoryConnectors": {
@@ -2056,6 +2060,7 @@
       "openable": false,
       "blockParam": {
         "slopeType": "Up",
+        "beltSpeedPerTick": 17,
         "timeOfItemEnterToExit": 0.75,
         "beltConveyorItemCount": 6,
         "inventoryConnectors": {
@@ -2117,6 +2122,7 @@
       "openable": false,
       "blockParam": {
         "beltConveyorItemCount": 6,
+        "beltSpeedPerTick": 17,
         "timeOfItemEnterToExit": 0.75,
         "slopeType": "Down",
         "inventoryConnectors": {

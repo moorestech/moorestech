@@ -102,6 +102,9 @@ properties:
                 - key: timeOfItemEnterToExit
                   type: number
                   default: 1
+                - key: beltSpeedPerTick
+                  type: integer
+                  default: 13
                 - key: slopeType
                   type: enum
                   options:
@@ -331,6 +334,9 @@ properties:
                 - key: beltConveyorSpeed
                   type: number
                   default: 2
+                - key: beltSpeedPerTick
+                  type: integer
+                  default: 26
                 - key: requireTorquePerRpm
                   type: number
                   default: 2

@@ -257,6 +257,11 @@ properties:
         - key: timeOfItemEnterToExit
           type: number
           default: 1
+        # 1tickに進む距離（1セル=256単位）。1以上128以下（BeltConstants.MaxSpeed）
+        # Distance advanced per tick in 1/256 cell units; must be 1..128 (BeltConstants.MaxSpeed)
+        - key: beltSpeedPerTick
+          type: integer
+          default: 13
         - key: slopeType
           type: enum
           options:
@@ -649,6 +654,11 @@ properties:
         - key: timeOfItemEnterToExit
           type: number
           default: 0.5
+        # 1tickに進む距離（1セル=256単位）。1以上128以下（BeltConstants.MaxSpeed）
+        # Distance advanced per tick in 1/256 cell units; must be 1..128 (BeltConstants.MaxSpeed)
+        - key: beltSpeedPerTick
+          type: integer
+          default: 26
         - key: gearConsumption
           ref: gearConsumption
         - key: slopeType
