@@ -17,7 +17,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation
             // 100→36, next tick it passes the exit by 64-36=28 and goes to the machine
             var belt = CreateNormal(2, 64);
             var machine = new FakeBeltReceiver(W, true);
-            belt.ConnectTo(machine, BeltDirection.Front);
+            belt.ConnectTo(machine, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
             Restore(belt, (1, 100));
             var simulation = new BeltSimulation(new[] { belt });
 
@@ -40,7 +40,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation
             // Follower spacing is 406-100-W=50. Tick1: 36,342; tick2 the head parks at 0 and 28 left closes 50→22; tick3 packs
             var belt = CreateNormal(3, 64);
             var machine = new FakeBeltReceiver(W, false);
-            belt.ConnectTo(machine, BeltDirection.Front);
+            belt.ConnectTo(machine, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
             Restore(belt, (1, 100), (2, 406));
             var simulation = new BeltSimulation(new[] { belt });
 
@@ -68,7 +68,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation
             // Source speed 100, head at 50, so entry 50. It lands at 768-50=718 and moves at speed 30 to 688 next tick
             var source = CreateNormal(2, 100);
             var target = CreateNormal(3, 30);
-            source.ConnectTo(target, BeltDirection.Front);
+            source.ConnectTo(target, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
             Restore(source, (1, 50));
             var simulation = new BeltSimulation(new[] { source, target });
 
@@ -87,8 +87,8 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation
             var source = CreateNormal(2, 100);
             var target = CreateNormal(1, 10);
             var machine = new FakeBeltReceiver(W, true);
-            source.ConnectTo(target, BeltDirection.Front);
-            target.ConnectTo(machine, BeltDirection.Front);
+            source.ConnectTo(target, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
+            target.ConnectTo(machine, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
             Restore(source, (1, 0));
             Restore(target, (2, 5));
             var simulation = new BeltSimulation(new[] { source, target });
@@ -108,7 +108,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation
         {
             var belt = CreateNormal(2, 0);
             var machine = new FakeBeltReceiver(W, true);
-            belt.ConnectTo(machine, BeltDirection.Front);
+            belt.ConnectTo(machine, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
             Restore(belt, (1, 0), (2, 300));
             var simulation = new BeltSimulation(new[] { belt });
 
@@ -132,8 +132,8 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation
             var branch = CreateBranch(1, 0, BeltPriority.InitializeFromDirection, BeltDirection.Front);
             var front = new FakeBeltReceiver(W, true);
             var left = new FakeBeltReceiver(W, true);
-            branch.Buffer.ConnectTo(front, BeltDirection.Front);
-            branch.Buffer.ConnectTo(left, BeltDirection.Left);
+            branch.Buffer.ConnectTo(front, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
+            branch.Buffer.ConnectTo(left, BeltDirection.Left, BeltEntryDirections.Level(BeltDirection.Right));
             Restore(branch, (1, 0));
             var simulation = new BeltSimulation(new[] { branch });
 

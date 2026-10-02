@@ -20,8 +20,8 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation
             var branch = CreateBranch(1, 64, Init, BeltDirection.Front);
             var front = new FakeBeltReceiver(W, true);
             var left = new FakeBeltReceiver(W, true);
-            branch.Buffer.ConnectTo(front, BeltDirection.Front);
-            branch.Buffer.ConnectTo(left, BeltDirection.Left);
+            branch.Buffer.ConnectTo(front, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
+            branch.Buffer.ConnectTo(left, BeltDirection.Left, BeltEntryDirections.Level(BeltDirection.Right));
             Restore(branch, (1, 10));
             var simulation = new BeltSimulation(new BeltConveyorSegment[] { branch });
 
@@ -40,8 +40,8 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation
             var branch = CreateBranch(2, 64, Init, BeltDirection.Front);
             var front = new FakeBeltReceiver(W, true);
             var left = new FakeBeltReceiver(W, false);
-            branch.Buffer.ConnectTo(front, BeltDirection.Front);
-            branch.Buffer.ConnectTo(left, BeltDirection.Left);
+            branch.Buffer.ConnectTo(front, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
+            branch.Buffer.ConnectTo(left, BeltDirection.Left, BeltEntryDirections.Level(BeltDirection.Right));
             branch.Buffer.RestoreItem(MakeItem(1));
             Restore(branch, (2, 0));
             var simulation = new BeltSimulation(new BeltConveyorSegment[] { branch });
@@ -65,8 +65,8 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation
             var branch = CreateBranch(1, 64, Init, BeltDirection.Front);
             var normal = CreateNormal(2, 50);
             var left = new FakeBeltReceiver(W, false);
-            branch.Buffer.ConnectTo(normal, BeltDirection.Front);
-            branch.Buffer.ConnectTo(left, BeltDirection.Left);
+            branch.Buffer.ConnectTo(normal, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
+            branch.Buffer.ConnectTo(left, BeltDirection.Left, BeltEntryDirections.Level(BeltDirection.Right));
             branch.Buffer.RestoreItem(MakeItem(1));
             var simulation = new BeltSimulation(new BeltConveyorSegment[] { branch, normal });
 
@@ -82,7 +82,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation
             // A machine inserts with entry 100 at 3W-100=668. The offer 3W-(d+W) at each stage-4 start goes -156→-28→100
             var source = CreateNormal(1, 64);
             var target = CreateNormal(3, 128);
-            source.ConnectTo(target, BeltDirection.Front);
+            source.ConnectTo(target, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
             Restore(source, (1, 0));
             Assert.IsTrue(target.TryReceive(BeltDirection.Back, 100, MakeItem(2)));
             var simulation = new BeltSimulation(new BeltConveyorSegment[] { source, target });

@@ -62,22 +62,22 @@ namespace Tests.UnitTest.Core.BeltTransport.Connection
             // The branch buffer connects to the merge via Right and the normal via Left; seen from the merge, Left is the branch and Right the normal
             var merge = CreateMerge(Init, BeltDirection.Front);
             var branch = CreateBranch(1, Init, BeltDirection.Front);
-            branch.Buffer.ConnectTo(merge, BeltDirection.Right);
+            branch.Buffer.ConnectTo(merge, BeltDirection.Right, BeltEntryDirections.Level(BeltDirection.Left));
             var normal = CreateNormal(1, 0);
             EnqueueTail(normal, 0, MakeItem(1));
-            normal.ConnectTo(merge, BeltDirection.Left);
+            normal.ConnectTo(merge, BeltDirection.Left, BeltEntryDirections.Level(BeltDirection.Right));
             BeginTickAt(normal, 64);
             branch.Buffer.RestoreItem(MakeItem(2));
 
             // 分岐の最優先接続がFrontの別の搬出先なら、分岐は合流に提示しない
             // When the branch's top connected output is another target at Front, it does not offer to the merge
-            branch.Buffer.ConnectTo(new FakeBeltReceiver(0, false), BeltDirection.Front);
+            branch.Buffer.ConnectTo(new FakeBeltReceiver(0, false), BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
             ResolveInput(merge);
             AssertOnlyReserved(merge, BeltDirection.Right);
 
             var mergeWithBranchFirst = CreateMerge(Init, BeltDirection.Front);
             var branchToMergeOnly = CreateBranch(1, Init, BeltDirection.Front);
-            branchToMergeOnly.Buffer.ConnectTo(mergeWithBranchFirst, BeltDirection.Right);
+            branchToMergeOnly.Buffer.ConnectTo(mergeWithBranchFirst, BeltDirection.Right, BeltEntryDirections.Level(BeltDirection.Left));
             branchToMergeOnly.Buffer.RestoreItem(MakeItem(3));
             BeginTickAt(branchToMergeOnly, 100);
             ResolveInput(mergeWithBranchFirst);

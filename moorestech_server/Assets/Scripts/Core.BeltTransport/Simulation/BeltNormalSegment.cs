@@ -5,6 +5,7 @@ namespace Core.BeltTransport
     public sealed class BeltNormalSegment : BeltConveyorSegment, IBeltSource
     {
         private BeltDirection _outputDirection;
+        private BeltEntryDirection _outputEntryDirection;
         private BeltSegmentTransfer _deferredOutput;
 
         public override BeltSegmentKind Kind => BeltSegmentKind.Normal;
@@ -16,10 +17,13 @@ namespace Core.BeltTransport
 
         // 搬出先を登録し、相手の搬入元へ自分を追加する。相手へは自分の搬出方向の反対を渡す
         // Register the output target and add this segment to its inputs, passing the opposite of our output direction
-        public void ConnectTo(IBeltReceiver target, BeltDirection outputDirection)
+        // entryDirectionは受け入れ側マスから見た12通りの進入方向で、渡すアイテムへ書く
+        // entryDirection is the 12-way entry direction seen from the receiving cell, written into handed-over items
+        public void ConnectTo(IBeltReceiver target, BeltDirection outputDirection, BeltEntryDirection entryDirection)
         {
             target.AttachInput(this, BeltDirections.Opposite(outputDirection));
             _outputDirection = outputDirection;
+            _outputEntryDirection = entryDirection;
             Output = target;
         }
 
@@ -45,9 +49,14 @@ namespace Core.BeltTransport
             var sent = false;
             var length = OutputLength;
             if (length > 0 && Output != null)
+            {
+                // 搬出先のマスへ入るので、渡す複製へ接続の進入方向を書く
+                // The item enters the target's cell, so the handed copy carries the connection's entry direction
+                var item = HeadItem.WithEntryDirection(_outputEntryDirection);
                 sent = _deferredOutput != null
-                    ? _deferredOutput.TryReceive(length, HeadItem)
-                    : Output.TryReceive(BeltDirections.Opposite(_outputDirection), length, HeadItem);
+                    ? _deferredOutput.TryReceive(length, item)
+                    : Output.TryReceive(BeltDirections.Opposite(_outputDirection), length, item);
+            }
             Advance(sent);
         }
 

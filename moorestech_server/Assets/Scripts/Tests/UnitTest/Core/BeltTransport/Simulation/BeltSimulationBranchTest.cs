@@ -19,9 +19,9 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation
             var front = new FakeBeltReceiver(W, true);
             var left = new FakeBeltReceiver(W, true);
             var right = new FakeBeltReceiver(W, true);
-            branch.Buffer.ConnectTo(front, BeltDirection.Front);
-            branch.Buffer.ConnectTo(left, BeltDirection.Left);
-            branch.Buffer.ConnectTo(right, BeltDirection.Right);
+            branch.Buffer.ConnectTo(front, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
+            branch.Buffer.ConnectTo(left, BeltDirection.Left, BeltEntryDirections.Level(BeltDirection.Right));
+            branch.Buffer.ConnectTo(right, BeltDirection.Right, BeltEntryDirections.Level(BeltDirection.Left));
             var simulation = new BeltSimulation(new BeltConveyorSegment[] { branch });
 
             // (F,L,R)でFront→(L,R,F)、Left→(R,F,L)
@@ -77,9 +77,9 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation
             var branch = CreateBranch(1, 128, BeltPriority.InitializeFromDirection, BeltDirection.Front);
             var belt = CreateNormal(2, 64);
             var machine = new FakeBeltReceiver(W, true);
-            input.ConnectTo(branch, BeltDirection.Front);
-            branch.Buffer.ConnectTo(belt, BeltDirection.Front);
-            branch.Buffer.ConnectTo(machine, BeltDirection.Right);
+            input.ConnectTo(branch, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
+            branch.Buffer.ConnectTo(belt, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
+            branch.Buffer.ConnectTo(machine, BeltDirection.Right, BeltEntryDirections.Level(BeltDirection.Left));
             RestorePacked(input, 1, 4);
             var simulation = new BeltSimulation(new BeltConveyorSegment[] { input, branch, belt });
 

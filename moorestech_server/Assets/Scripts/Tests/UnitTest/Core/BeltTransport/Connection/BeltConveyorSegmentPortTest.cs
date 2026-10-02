@@ -60,7 +60,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Connection
         {
             var segment = CreateNormal(1, 0);
             var receiver = new FakeBeltReceiver(W, true);
-            segment.ConnectTo(receiver, BeltDirection.Right);
+            segment.ConnectTo(receiver, BeltDirection.Right, BeltEntryDirections.Level(BeltDirection.Left));
             Assert.AreSame(receiver, segment.Output);
             Assert.AreEqual(1, receiver.AttachedInputs.Count);
             Assert.AreSame(segment, receiver.AttachedInputs[0].Source);
@@ -74,7 +74,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Connection
             EnqueueTail(segment, 30, MakeItem(1));
             EnqueueTail(segment, 10, MakeItem(2));
             var receiver = new FakeBeltReceiver(W, true);
-            segment.ConnectTo(receiver, BeltDirection.Right);
+            segment.ConnectTo(receiver, BeltDirection.Right, BeltEntryDirections.Level(BeltDirection.Left));
 
             BeginTickAt(segment, 100);
             AdvanceAndTransfer(segment);
@@ -95,7 +95,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Connection
             EnqueueTail(segment, 50, MakeItem(2));
             EnqueueTail(segment, 200, MakeItem(3));
             var receiver = new FakeBeltReceiver(W, false);
-            segment.ConnectTo(receiver, BeltDirection.Front);
+            segment.ConnectTo(receiver, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
 
             BeginTickAt(segment, 100);
             AdvanceAndTransfer(segment);
@@ -111,7 +111,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Connection
             var segment = CreateNormal(2, 0);
             EnqueueTail(segment, 100, MakeItem(1));
             var receiver = new FakeBeltReceiver(W, true);
-            segment.ConnectTo(receiver, BeltDirection.Front);
+            segment.ConnectTo(receiver, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
 
             // 速度が出口までの距離ちょうどなら進入距離0で搬出しない
             // A speed exactly equal to the distance gives entry length 0 and no output

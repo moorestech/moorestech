@@ -60,9 +60,9 @@ namespace Tests.UnitTest.Core.BeltTransport.Connection
             var front = new FakeBeltReceiver(W, true);
             var back = new FakeBeltReceiver(W, true);
             var left = new FakeBeltReceiver(W, true);
-            branch.Buffer.ConnectTo(front, BeltDirection.Front);
-            branch.Buffer.ConnectTo(back, BeltDirection.Back);
-            branch.Buffer.ConnectTo(left, BeltDirection.Left);
+            branch.Buffer.ConnectTo(front, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
+            branch.Buffer.ConnectTo(back, BeltDirection.Back, BeltEntryDirections.Level(BeltDirection.Front));
+            branch.Buffer.ConnectTo(left, BeltDirection.Left, BeltEntryDirections.Level(BeltDirection.Right));
             Assert.AreSame(branch.Buffer, front.AttachedInputs[0].Source);
             Assert.AreEqual(BeltDirection.Right, left.AttachedInputs[0].Direction);
             BeginTickAt(branch, 100);
@@ -100,8 +100,8 @@ namespace Tests.UnitTest.Core.BeltTransport.Connection
             var branch = CreateBranch(1, Init, BeltDirection.Front);
             var right = new FakeBeltReceiver(30, true);
             var left = new FakeBeltReceiver(0, true);
-            branch.Buffer.ConnectTo(right, BeltDirection.Right);
-            branch.Buffer.ConnectTo(left, BeltDirection.Left);
+            branch.Buffer.ConnectTo(right, BeltDirection.Right, BeltEntryDirections.Level(BeltDirection.Left));
+            branch.Buffer.ConnectTo(left, BeltDirection.Left, BeltEntryDirections.Level(BeltDirection.Right));
             BeginTickAt(branch, 100);
 
             TransferRestored(branch, 1);
@@ -122,7 +122,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Connection
         {
             var branch = CreateBranch(1, Init, BeltDirection.Front);
             var front = new FakeBeltReceiver(W, true);
-            branch.Buffer.ConnectTo(front, BeltDirection.Front);
+            branch.Buffer.ConnectTo(front, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
             BeginTickAt(branch, 0);
             Assert.AreEqual(0, GetTickSpeed(branch));
 
@@ -137,7 +137,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Connection
             var merge = CreateMerge(Init, BeltDirection.Right);
             Assert.AreEqual((int)BeltDirection.Right, GetBufferPriorityOrder(merge.Buffer));
             var left = new FakeBeltReceiver(W, true);
-            merge.Buffer.ConnectTo(left, BeltDirection.Left);
+            merge.Buffer.ConnectTo(left, BeltDirection.Left, BeltEntryDirections.Level(BeltDirection.Right));
             Assert.AreEqual((int)BeltDirection.Left, GetBufferPriorityOrder(merge.Buffer));
             BeginTickAt(merge, 64);
 
@@ -155,7 +155,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Connection
             // Enters an offer of 256 by speed 100; the second stays held because the target's offer is negative
             var branch = CreateBranch(1, Init, BeltDirection.Front);
             var normal = CreateNormal(1, 0);
-            branch.Buffer.ConnectTo(normal, BeltDirection.Front);
+            branch.Buffer.ConnectTo(normal, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
             BeginTickAt(branch, 100);
             TransferRestored(branch, 1);
             AssertDistances(normal, W - 100);
@@ -186,8 +186,8 @@ namespace Tests.UnitTest.Core.BeltTransport.Connection
             // 初期順(Front,Left,Right)でFrontは未接続なので、最優先はLeft
             // Initial order (Front,Left,Right) with Front unconnected, so Left is the highest priority
             var branch = CreateBranch(1, Init, BeltDirection.Front);
-            branch.Buffer.ConnectTo(new FakeBeltReceiver(W, true), BeltDirection.Right);
-            branch.Buffer.ConnectTo(new FakeBeltReceiver(0, false), BeltDirection.Left);
+            branch.Buffer.ConnectTo(new FakeBeltReceiver(W, true), BeltDirection.Right, BeltEntryDirections.Level(BeltDirection.Left));
+            branch.Buffer.ConnectTo(new FakeBeltReceiver(0, false), BeltDirection.Left, BeltEntryDirections.Level(BeltDirection.Right));
             Assert.IsFalse(branch.Buffer.TryGetOutput(BeltDirection.Right));
 
             branch.Buffer.RestoreItem(MakeItem(1));

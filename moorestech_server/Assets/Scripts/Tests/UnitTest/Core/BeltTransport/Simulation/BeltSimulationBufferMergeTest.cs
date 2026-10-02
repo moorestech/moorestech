@@ -115,10 +115,10 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation
             _belt = CreateNormal(2, 128);
             _machine = new FakeBeltReceiver(W, machineAccepts);
             _sink = new FakeBeltReceiver(W, true);
-            _branch.Buffer.ConnectTo(_merge, BeltDirection.Front);
-            _branch.Buffer.ConnectTo(_machine, BeltDirection.Left);
-            _belt.ConnectTo(_merge, BeltDirection.Right);
-            _merge.Buffer.ConnectTo(_sink, BeltDirection.Front);
+            _branch.Buffer.ConnectTo(_merge, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
+            _branch.Buffer.ConnectTo(_machine, BeltDirection.Left, BeltEntryDirections.Level(BeltDirection.Right));
+            _belt.ConnectTo(_merge, BeltDirection.Right, BeltEntryDirections.Level(BeltDirection.Left));
+            _merge.Buffer.ConnectTo(_sink, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
             _branch.Buffer.RestoreItem(MakeItem(1));
             RestorePacked(_belt, 10, 2);
             _simulation = new BeltSimulation(new BeltConveyorSegment[] { _branch, _merge, _belt });

@@ -7,6 +7,7 @@ namespace Core.BeltTransport
     public sealed class BeltBuffer : IBeltSource
     {
         private readonly IBeltReceiver[] _outputs = new IBeltReceiver[4];
+        private readonly BeltEntryDirection[] _outputEntryDirections = new BeltEntryDirection[4];
         private readonly int _priorityCount;
         private BeltItem _item;
         private int _outputMask;
@@ -43,10 +44,13 @@ namespace Core.BeltTransport
 
         // 搬出先と接続方向を登録する。3方向の優先順は維持し、合流は唯一の方向を順序にする
         // Register an output and its direction. Keeps the three-direction order; a merge uses its only direction as the order
-        public void ConnectTo(IBeltReceiver target, BeltDirection outputDirection)
+        // entryDirectionは受け入れ側マスから見た12通りの進入方向で、この方向へ渡すアイテムへ書く
+        // entryDirection is the 12-way entry direction seen from the receiving cell, written into items handed this way
+        public void ConnectTo(IBeltReceiver target, BeltDirection outputDirection, BeltEntryDirection entryDirection)
         {
             target.AttachInput(this, BeltDirections.Opposite(outputDirection));
             _outputs[(int)outputDirection] = target;
+            _outputEntryDirections[(int)outputDirection] = entryDirection;
             _outputMask |= 1 << (int)outputDirection;
             if (_priorityCount == 1) _outputOrder = (int)outputDirection;
         }
@@ -83,7 +87,12 @@ namespace Core.BeltTransport
                 // The entry length is the smaller of the source segment's speed and the target's offer
                 var inputDirection = BeltDirections.Opposite(direction);
                 var length = Math.Min(Segment.TickSpeed, target.GetOffer(inputDirection));
-                if (length <= 0 || !target.TryReceive(inputDirection, length, _item)) continue;
+                if (length <= 0) continue;
+
+                // 搬出先のマスへ入るので、渡す複製へこの方向の進入方向を書く
+                // The item enters the target's cell, so the handed copy carries this direction's entry direction
+                var item = _item.WithEntryDirection(_outputEntryDirections[(int)direction]);
+                if (!target.TryReceive(inputDirection, length, item)) continue;
                 _item = default;
                 HasItem = false;
                 if (_priorityCount == 3) _outputOrder = BeltPriority.MoveLast(_outputOrder, (int)direction);

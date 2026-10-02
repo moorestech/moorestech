@@ -18,7 +18,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Connection
             EnqueueTail(source, 30, MakeItem(1));
             var target = CreateNormal(2, 0);
             EnqueueTail(target, 100, MakeItem(2));
-            source.ConnectTo(target, BeltDirection.Front);
+            source.ConnectTo(target, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
 
             BeginTickAt(source, 100);
             BeginTickAt(target, 50);
@@ -37,7 +37,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Connection
             EnqueueTail(source, 0, MakeItem(1));
             var target = CreateNormal(2, 0);
             EnqueueTail(target, 160, MakeItem(2));
-            source.ConnectTo(target, BeltDirection.Front);
+            source.ConnectTo(target, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
 
             BeginTickAt(source, 100);
             BeginTickAt(target, 50);
@@ -56,8 +56,8 @@ namespace Tests.UnitTest.Core.BeltTransport.Connection
             var target = CreateNormal(1, 0);
             EnqueueTail(target, 0, MakeItem(2));
             var machine = new FakeBeltReceiver(W, true);
-            source.ConnectTo(target, BeltDirection.Front);
-            target.ConnectTo(machine, BeltDirection.Front);
+            source.ConnectTo(target, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
+            target.ConnectTo(machine, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
 
             BeginTickAt(source, 100);
             BeginTickAt(target, 100);
@@ -83,7 +83,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Connection
             var loop = CreateNormal(4, 0);
             EnqueueTail(loop, 0, MakeItem(1));
             EnqueueTail(loop, W, MakeItem(2));
-            loop.ConnectTo(loop, BeltDirection.Front);
+            loop.ConnectTo(loop, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
 
             BeginTickAt(loop, 100);
             RunStageFour(loop);
@@ -107,7 +107,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Connection
             var loop = CreateNormal(2, 0);
             EnqueueTail(loop, 0, MakeItem(1));
             EnqueueTail(loop, 0, MakeItem(2));
-            loop.ConnectTo(loop, BeltDirection.Left);
+            loop.ConnectTo(loop, BeltDirection.Left, BeltEntryDirections.Level(BeltDirection.Right));
 
             for (var tick = 0; tick < 3; tick++)
             {
@@ -122,14 +122,14 @@ namespace Tests.UnitTest.Core.BeltTransport.Connection
         public void 合流や機械への搬出は遅延しない()
         {
             var toNormal = CreateNormal(1, 0);
-            toNormal.ConnectTo(CreateNormal(1, 0), BeltDirection.Front);
+            toNormal.ConnectTo(CreateNormal(1, 0), BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
             var toMerge = CreateNormal(1, 0);
             var merge = CreateMerge(BeltPriority.InitializeFromDirection, BeltDirection.Front);
-            toMerge.ConnectTo(merge, BeltDirection.Front);
+            toMerge.ConnectTo(merge, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
             var toBranch = CreateNormal(1, 0);
-            toBranch.ConnectTo(CreateBranch(1, BeltPriority.InitializeFromDirection, BeltDirection.Front), BeltDirection.Front);
+            toBranch.ConnectTo(CreateBranch(1, BeltPriority.InitializeFromDirection, BeltDirection.Front), BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
             var toMachine = CreateNormal(1, 0);
-            toMachine.ConnectTo(new FakeBeltReceiver(W, true), BeltDirection.Front);
+            toMachine.ConnectTo(new FakeBeltReceiver(W, true), BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
             var unconnected = CreateNormal(1, 0);
 
             Assert.IsNotNull(CacheTransfer(toNormal));

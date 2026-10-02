@@ -132,10 +132,10 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation.RandomNetwork
             for (var i = _random.Next(0, 3); i > 0; i--)
             {
                 var next = AddNormal();
-                last.ConnectTo(next, BeltDirection.Front);
+                last.ConnectTo(next, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
                 last = next;
             }
-            last.ConnectTo(first, BeltDirection.Front);
+            last.ConnectTo(first, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
         }
 
         // 通常segment→合流(Left)→通常→分岐→通常→合流(Back)の輪。分岐の横出口は外へ開く
@@ -151,10 +151,10 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation.RandomNetwork
             var toBranch = AddNormal();
             var toMerge = AddNormal();
             TakeOpenEnd(index).ConnectTo(merge, BeltDirection.Right);
-            merge.Buffer.ConnectTo(toBranch, BeltDirection.Front);
-            toBranch.ConnectTo(branch, BeltDirection.Front);
-            branch.Buffer.ConnectTo(toMerge, BeltDirection.Front);
-            toMerge.ConnectTo(merge, BeltDirection.Front);
+            merge.Buffer.ConnectTo(toBranch, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
+            toBranch.ConnectTo(branch, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
+            branch.Buffer.ConnectTo(toMerge, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
+            toMerge.ConnectTo(merge, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
             _openEnds.Add(new BeltOpenEnd(null, branch.Buffer, BeltDirection.Left));
             if (_random.Next(2) == 0) _openEnds.Add(new BeltOpenEnd(null, branch.Buffer, BeltDirection.Right));
         }

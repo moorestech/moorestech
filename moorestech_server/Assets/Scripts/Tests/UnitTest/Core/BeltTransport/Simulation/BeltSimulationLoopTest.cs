@@ -15,7 +15,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation
             // 周長4W=1024、速度64。tick1: 空き1024-(512+W)=256に進入距離64で入り1024-64=960、#2は512-64=448
             // Circumference 4W=1024, speed 64. Tick1: entry 64 fits the offer 1024-(512+W)=256, landing at 960; #2 at 448
             var loop = CreateNormal(4, 64);
-            loop.ConnectTo(loop, BeltDirection.Front);
+            loop.ConnectTo(loop, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
             Restore(loop, (1, 0), (2, 2 * W));
             var simulation = new BeltSimulation(new[] { loop });
 
@@ -37,7 +37,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation
         public void 完全に満杯の輪は空き0で動かない()
         {
             var loop = CreateNormal(2, 64);
-            loop.ConnectTo(loop, BeltDirection.Front);
+            loop.ConnectTo(loop, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
             RestorePacked(loop, 1, 2);
             var simulation = new BeltSimulation(new[] { loop });
 
@@ -52,8 +52,8 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation
             // A(2 cells, speed 64) → B(2 cells, speed 32) → A. Tick1: 100→36. Tick2: entry 64-36=28 lands at 512-28=484 in B
             var a = CreateNormal(2, 64);
             var b = CreateNormal(2, 32);
-            a.ConnectTo(b, BeltDirection.Front);
-            b.ConnectTo(a, BeltDirection.Front);
+            a.ConnectTo(b, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
+            b.ConnectTo(a, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
             Restore(a, (1, 100));
             var simulation = new BeltSimulation(new[] { a, b });
 

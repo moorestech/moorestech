@@ -21,9 +21,9 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation
             var back = CreateNormal(4, 128);
             var left = CreateNormal(4, 128);
             var sink = new FakeBeltReceiver(W, true);
-            back.ConnectTo(merge, BeltDirection.Front);
-            left.ConnectTo(merge, BeltDirection.Right);
-            merge.Buffer.ConnectTo(sink, BeltDirection.Front);
+            back.ConnectTo(merge, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
+            left.ConnectTo(merge, BeltDirection.Right, BeltEntryDirections.Level(BeltDirection.Left));
+            merge.Buffer.ConnectTo(sink, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
             RestorePacked(back, 10, 4);
             RestorePacked(left, 20, 4);
             var simulation = new BeltSimulation(new BeltConveyorSegment[] { merge, back, left });
@@ -69,10 +69,10 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation
             var left = CreateNormal(4, 128);
             var right = CreateNormal(4, 128);
             var sink = new FakeBeltReceiver(W, true);
-            back.ConnectTo(merge, BeltDirection.Front);
-            left.ConnectTo(merge, BeltDirection.Right);
-            right.ConnectTo(merge, BeltDirection.Left);
-            merge.Buffer.ConnectTo(sink, BeltDirection.Front);
+            back.ConnectTo(merge, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
+            left.ConnectTo(merge, BeltDirection.Right, BeltEntryDirections.Level(BeltDirection.Left));
+            right.ConnectTo(merge, BeltDirection.Left, BeltEntryDirections.Level(BeltDirection.Right));
+            merge.Buffer.ConnectTo(sink, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
             RestorePacked(back, 10, 4);
             RestorePacked(right, 20, 4);
             var simulation = new BeltSimulation(new BeltConveyorSegment[] { merge, back, left, right });
