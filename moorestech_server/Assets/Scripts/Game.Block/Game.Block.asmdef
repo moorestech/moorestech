@@ -22,7 +22,8 @@
         "Game.Fluid",
         "Server.Util",
         "ClassLibrary",
-        "Game.UnlockState"
+        "Game.UnlockState",
+        "Core.BeltTransport"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
