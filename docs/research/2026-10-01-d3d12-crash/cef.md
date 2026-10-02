@@ -1,0 +1,98 @@
+# CEF共有texture・fenceと描画失敗の調査
+
+元クラッシュは未再現、原因未確定。本稿はCEF固定sourceと診断試験で確認したことを整理し、元実行への帰属を別に示す。
+CEF基準revisionは `3278610c29ed7835b40d778e30f2905162ce9f86`、非公開証拠の固定点は `5dad531e25f8af56764967643145ae17b3e14a1d`。
+
+## producerとconsumer
+
+WindowsではCEF serverがD3D11側の共有texture poolを持ち、Unity側clientがD3D12 resourceを開く。CEF helperのrenderer/GPU等の役割とserver producerを区別する。
+ffmpegは別の録画childである。ffmpeg ENOMEM・退出はCEF producerの確保失敗・退出・再生成を直接意味しない。
+
+producerは同じ寸法・formatで単一output textureを再使用する。通常のpaintではCopyResource→Flush→Signal要求を行い、成功したhandle/寸法/format/fence値をshared stateへ公開する。
+clientは新shared frame tupleを受け、Unity graphics queueへ共有fence Waitを追加してresourceを採用する。Queue.WaitのCPU returnはGPU完了ではなく、指定値を待つqueue命令の受理である。
+
+## 公開値とGPU完了は別
+
+Signal要求成功後の公開値は、GPUが既にSignalを実行した値とは限らない。公開済み値が永続的に未到達となれば、同queueの後続作業も停止し得る。
+ただしallocation/copy/open/Signalが公開前に失敗しただけでは新しい未到達targetを広告しない。producerの生存や最後のSignal完了を元で測れていない。
+
+失敗時の状態commitとretryにも制約があるが、元OOMからCEF poolのsticky failureを示すログはない。原encoder ENOMEMをこのproducer状態へ変換する直接source経路は見つからなかった。
+
+shared frame番号はproducer公開の識別に使え、managed側のtexture採用counterと同義ではない。native診断では、既に消費したtupleのhandle/browser/寸法/frame/fence値を記録した。
+公開frame番号とfence値の整合、同handleの寸法一致は観測上確認したが、全fieldのatomic snapshotやprotocol全体のatomicityの証明ではない。
+
+## 明示的な逆方向同期の不足
+
+producer→UnityのWaitは、paint Nの書込み後にUnity読取りを並べる。一方、producerのpaint N+1がUnityのpaint N読取り完了後になるという逆方向acknowledgementは、このpool protocolにない。
+単一textureのin-place再使用は静的な同期不足候補である。暗黙同期やUnity側の扱いを含む実際の重なり、resource identity、最初のvalidation errorは未測定で、元GPU停止やClose失敗の証明ではない。
+初期transitionを送るExecuteCommandList戻り値も、以後の全Unity samplingを覆うcompletion fenceではない。
+
+## handleとresource寿命
+
+client cacheはcurrent/previousの2世代を保持し、次の更新で古いpreviousのCOM参照をdropする。これをGPU完了に応じたretirement listとは呼べない。
+producerのresize/dropはlocal shared handleを閉じるが、clientへDuplicateHandleしたhandleを閉じるものではない。固定source全体の対応経路で、古いclient duplicateのCloseHandleは確認できなかった。世代更新でNT handleが残る静的漏れ候補として扱う。
+
+この漏れ候補は毎frameの新handle確保という意味ではない。pool再生成と新handle受信が必要で、通常同寸法paintは同textureを使う。
+またCOM参照dropだけでbacking memoryが直ちに解放されたとも言えない。残存handle、Unity external textureの所有、deferred release、GPU参照の寿命を別に確認する必要がある。
+
+## allocator/list再使用が起きる条件
+
+CEF clientは初期resource状態宣言に単一allocator/listを使い、次の宣言でResetする。直前ExecuteCommandList戻りmarkerを完了判定に使わない。
+この候補が実問題になるには、新handle等の宣言が必要で、その時点で前の関連GPU作業が未完了である必要がある。普通の毎frame receiptや最後のESCだけでReset条件が成立するわけではない。
+
+固定producer poolは寸法/format変更またはtexture未作成でrecreateする。同寸法format変更にはCEF入力color typeが選択するDXGI format categoryの変化が必要で、原ESC/HDR設定からの具体的な発生は未観測。
+managed consumerはexternal textureをBGRA32として作り、同寸法ではnative pointer更新だけを行う。受信formatの変化をこの選択へ反映しない制約はあるが、実際のformat crossingを確認していないため別故障の発生まで認定しない。
+
+原保存client stateにはScreen寸法/fullscreen/CEF browser世代/handle履歴がなく、原resizeや最終新handleを証明できない。録画1280×720はcapture出力契約であって実Screen寸法ではない。
+
+## Unity公開APIのcaller契約
+
+固定C# PlayerLoopからnative受信処理を通り、IUnityGraphicsD3D12v5.ExecuteCommandListを呼ぶ経路がある。公式同版headerはv5をrendering/submission thread用途として規定する。
+ZではCEF呼出しthreadと正式IssuePluginEvent callback threadが異なることを確認した。この契約への懸念は残る。
+
+ただしUnityのAPI実装にはworker forwardingとCPU同期がある。「main threadから呼ぶので全GPU記録がそのthreadで直接行われる」という説明は不正確。
+外部list pointerはstreamへ渡され、16byteのresource state宣言はコピーされる。plugin submissionはresource-state bookkeepingを更新するが、それだけで通常描画listの汚染や競合発生を証明しない。
+
+外部CEF listはCEF側でClose済みとして送る。調べたplugin pathは外部listを直接queueへsubmitし、必要なら別のUnity barrier listを先行させる。原fatalは通常描画のClose相当であり、外部CEF listをUnityが直接二重Closeしたという説明は支持されない。
+禁止された内部回復・配列・二重Close経路を再調査して接続したものではない。元heap欠損により通常描画の失敗listとのidentity bridgeは得られていない。
+
+## 診断版とZの取得範囲
+
+診断版は正規sourceの既存呼出し前後でobject世代、Reset/Close HRESULT、submit戻りmarker、shared tupleを記録した。新しいGPU Wait/Signalや強制stallは追加していない。
+正式IssuePluginEvent callbackでframe fenceを取得・所有し、既存preResetでGetCompletedValueだけを読む設計を追加した。device epochとregistry revision、保持COM identity、sample順序、UINT64_MAX/device removal、欠測を区別する。
+callback lifetimeはDLL pin、load/unload context、close/invalidate、late callback拒否を設けた。finish時はUnity APIをwriterから呼ばず、callback解除・出力完了を欠測判定へ含めた。
+
+Zは取得後のcontrol resize往復によりprior associationを作り、その後Screenshot file completion pending中のresizeを通過した。Screen/CEFの変更と原設定への復元を確認し、原失敗署名は出なかった。
+native traceは6761records、drop0、missing=false、finish/footerあり。configured operation windowはQuit前に閉じ、後続Quitを全native観測したとはしない。
+
+3つのpreReset sampleではcompleted値が直前のreturned marker以上だった。これは数値・identity・順序の観測である。既存ExecuteCommandListのcaller契約の懸念が残るため、個別CEF listの完了やallocator再使用安全性を確定する証拠へ昇格させていない。
+低い値も個別list未完了の証明ではない。frame markerはそのlist単独の完了時刻と同義ではなく、device変更や採取順序が不明なら比較自体が欠測となる。
+
+## diagnostic errorの解釈
+
+Zのnative callbackは2033warningsを記録し、すべてD3D12_MESSAGE_SEVERITY_WARNING（=2）だった。clear-value performance、pipeline-load description mismatch、duplicate store、unbound DSVのcategoryで、記録範囲にCORRUPTION/ERRORはなかった。
+API snapshotの保存22warningsとcallback件数はfilterが異なる。INFO/MESSAGEは本文を省きcounterへ集約し、最後に15322件を記録した。包括的な「GPU完全正常」とは言えない。
+
+初期試験の一部は出力cap/footer欠落で有効な陰性にならなかった。producer-publication停滞を見た試験と正常Zも、異なるcondition/欠測として保存した。
+Chromium paint回数、producer公開番号、client receipt、managed採用数は別段階であり、counter停止をproducer process死亡へ読み替えない。
+
+## binary provenanceと結論
+
+原client DLL、UnityPlayer、Mono候補は保存検証candidateとimage metadataが一致した。現検証CEF server/helper/libcefは現PackageCacheと全file hash一致。
+しかし原producer child binaryのfile hash・完全な元配布buildは未回収で、package-lock一致や現在のpackage bytesだけで原child全byte一致を主張していない。
+
+静的同期不足、allocator完了確認不足、handle寿命候補、thread契約への懸念は、元クラッシュの原因確定とは別である。Zは新しい具体条件での観測を追加したが、原の新handle、producer Signal未完了、最初のinvalid graphics command、失敗listへの接続を回復しなかった。
+これらを未確定として調査を終了し、独立に修正・追跡できる問題と元原因を分けて記録する。
+
+## 非公開証拠索引
+
+以下は非公開repro内からの相対path。固定証拠commitは冒頭の値。
+
+- `investigation-20260929/build-cef-findings.md`
+- `investigation-20260929/cef-bidirectional-lifetime-review.md`
+- `investigation-20260929/cef-external-command-list-static-review.md`
+- `investigation-20260929/cef-native-identity/cef-native-identity-review.md`
+- `investigation-20260929/cef-diagnostic-20260930/provenance/s-reset-trigger-conditions.md`
+- `investigation-20260929/cef-diagnostic-20260930/provenance/t-format-trigger-review.md`
+- `investigation-20260929/cef-diagnostic-20260930/trial-z-result/README.md`
+- `investigation-20260929/cef-diagnostic-20260930/z-causal-followup/`
