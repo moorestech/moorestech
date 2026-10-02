@@ -81,8 +81,7 @@ namespace Client.DebugSystem
                     unlockState,
                     playedSkitIds,
                     researchNodeStates,
-                    mapLayout,
-                    new BeltSnapshotMessagePack(0, Array.Empty<BeltCellMessagePack>(), Array.Empty<BeltConnectionMessagePack>(), Array.Empty<BeltCellItemMessagePack>(), Array.Empty<BeltPriorityMessagePack>()));
+                    mapLayout);
                 
                 return new InitialHandshakeResponse(handshake, responses);
             }

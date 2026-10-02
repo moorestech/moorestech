@@ -22,10 +22,12 @@ namespace Client.Tests.BeltTransport
         {
             var events = new CapturingVanillaApiEvent();
             var buffer = BeltTestState.Buffer(out var state);
-            var handler = new BeltNetworkEventHandler(BeltInitialEventBufferTest.Initial(), events, buffer);
+            var handler = new BeltNetworkEventHandler(events, buffer);
             var factory = new DelayedFactory();
             var renderer = new BeltItemRenderer(handler, factory);
             renderer.Initialize();
+            Assert.IsEmpty(factory.Pending, "Rendering must wait for the pushed initial snapshot.");
+            BeltInitialEventBufferTest.SendInitial(events);
             factory.Pending[0].TrySetResult(new View());
             // 初回生成の後、バッファ再生で別GUIDの生成が始まる状況を作る。
             // Start another identity during buffered replay after the first creation completed.

@@ -15,10 +15,15 @@ namespace Client.Game.InGame.BeltTransport
         {
             // ClientContext完成後に描画を開始し、snapshotより後の通知も同じ所有者へ渡す。
             // Start rendering after ClientContext is ready and route later states to the same owner.
-            _network.Replica.OnStateChanged.Subscribe(Apply);
-            _initial = _views.ApplyAsync(_network.Replica.Snapshot).Preserve();
+            _network.OnStateChanged.Subscribe(Apply);
+            _initial = ApplyInitialAsync().Preserve();
 
             #region Internal
+            async UniTask ApplyInitialAsync()
+            {
+                await _network.WaitForInitialApplyAsync();
+                await _views.ApplyAsync(_network.Replica.Snapshot);
+            }
             void Apply(BeltNetworkSnapshot snapshot) => _views.ApplyAsync(snapshot).Forget();
             #endregion
         }

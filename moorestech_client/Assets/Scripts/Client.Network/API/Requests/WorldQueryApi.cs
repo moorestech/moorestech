@@ -56,12 +56,6 @@ namespace Client.Network.API.Requests
             return await _packetExchangeManager.GetPacketResponse<ResponseMapDataTerrainChunkMessagePack>(request, ct);
         }
 
-        public async UniTask<Server.Util.MessagePack.BeltTransport.BeltSnapshotMessagePack> GetBeltSnapshot(CancellationToken ct)
-        {
-            var response = await _packetExchangeManager.GetPacketResponse<GetBeltSnapshotProtocol.Response>(GetBeltSnapshotProtocol.Request.Create(), ct);
-            return response?.Snapshot;
-        }
-
         public async UniTask<WorldDataResponse> GetWorldData(CancellationToken ct)
         {
             var request = new RequestWorldDataProtocol.RequestWorldDataMessagePack();

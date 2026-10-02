@@ -1,3 +1,6 @@
+using Core.Update;
+using System.Linq;
+using Server.Util.MessagePack.BeltTransport;
 using MessagePack;
 using NUnit.Framework;
 using Server.Boot;
@@ -12,10 +15,10 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 {
     public class TrainFullSnapshotEventPacketTest
     {
-        // handshake処理中にrail→trainの順でfull snapshotがpushされることを確認
-        // Handshake pushes rail then train full snapshots, in that order, before the response returns
+        // 確定tick末尾にrail・belt・trainを同じ境界で送る。
+        // Send rail, belt and train at the same committed tick-end boundary.
         [Test]
-        public void HandshakePushesRailThenTrainSnapshotBeforeResponse()
+        public void HandshakePushesAllSnapshotsAtCommittedTickEnd()
         {
             var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
@@ -25,12 +28,21 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var handshake = MessagePackSerializer.Serialize(new InitialHandshakeProtocol.RequestInitialHandshakeMessagePack("steam:1"));
             var response = packetResponse.GetPacketResponse(handshake, context);
 
-            // GetPacketResponseが返った時点でsinkに両snapshotが積まれている＝応答より先にワイヤへ載る
-            // Both snapshots are already in the sink when the response returns, so they precede it on the wire
             Assert.IsTrue(0 < response.Count);
-            Assert.AreEqual(2, sink.Events.Count);
-            Assert.AreEqual(TrainFullSnapshotEventPacket.RailGraphFullSnapshotEventTag, sink.Events[0].Tag);
-            Assert.AreEqual(TrainFullSnapshotEventPacket.TrainUnitFullSnapshotEventTag, sink.Events[1].Tag);
+            Assert.IsEmpty(sink.Events, "Snapshot publication waits for the committed boundary.");
+            GameUpdater.UpdateOneTick();
+            var initial = sink.Events.Where(packet => packet.Tag == TrainFullSnapshotEventPacket.RailGraphFullSnapshotEventTag ||
+                packet.Tag == TrainFullSnapshotEventPacket.BeltFullSnapshotEventTag || packet.Tag == TrainFullSnapshotEventPacket.TrainUnitFullSnapshotEventTag).ToArray();
+            Assert.AreEqual(3, initial.Length);
+            Assert.AreEqual(TrainFullSnapshotEventPacket.RailGraphFullSnapshotEventTag, initial[0].Tag);
+            Assert.AreEqual(TrainFullSnapshotEventPacket.BeltFullSnapshotEventTag, initial[1].Tag);
+            Assert.AreEqual(TrainFullSnapshotEventPacket.TrainUnitFullSnapshotEventTag, initial[2].Tag);
+            var belt = MessagePackSerializer.Deserialize<BeltSnapshotMessagePack>(initial[1].Payload);
+            var train = MessagePackSerializer.Deserialize<TrainFullSnapshotEventPacket.TrainUnitFullSnapshotEventMessagePack>(initial[2].Payload);
+            Assert.AreEqual(GameUpdater.CurrentTick, belt.Tick);
+            Assert.AreEqual(serviceProvider.GetRequiredService<TrainUpdateService>().GetCurrentTick(), train.ServerTick);
+            Assert.AreEqual(serviceProvider.GetRequiredService<TrainUpdateService>().GetCurrentTickSequenceId(), train.WatermarkTickSequenceId);
+
         }
 
         // snapshot pushがtickSequenceIdを新規消費しないことを確認（seq穴の防止）
@@ -47,6 +59,9 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var handshake = MessagePackSerializer.Serialize(new InitialHandshakeProtocol.RequestInitialHandshakeMessagePack("steam:1"));
             packetResponse.GetPacketResponse(handshake, context);
 
+            Assert.AreEqual(before, trainUpdateService.GetCurrentTickSequenceId());
+            var snapshots = serviceProvider.GetRequiredService<TrainFullSnapshotEventPacket>();
+            snapshots.SendPendingInitialSnapshots();
             Assert.AreEqual(before, trainUpdateService.GetCurrentTickSequenceId());
         }
     }

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using Game.Context;
+using Game.Block.Blocks.BeltConveyor.Transport;
+using Server.Util.MessagePack.BeltTransport;
 using Game.Train.RailGraph;
 using Game.Train.Unit;
 using MessagePack;
@@ -20,31 +22,45 @@ namespace Server.Event.EventReceive
         private readonly IRailGraphDatastore _railGraphDatastore;
         private readonly ITrainUnitLookupDatastore _trainUnitLookupDatastore;
         private readonly TrainUpdateService _trainUpdateService;
+        private readonly BeltWorldTransport _beltTransport;
+        private readonly List<int> _pendingPlayers = new();
+        public const string BeltFullSnapshotEventTag = "va:event:beltFullSnapshot";
 
         public TrainFullSnapshotEventPacket(
             EventProtocolProvider eventProtocolProvider,
             IRailGraphDatastore railGraphDatastore,
             ITrainUnitLookupDatastore trainUnitLookupDatastore,
-            TrainUpdateService trainUpdateService)
+            TrainUpdateService trainUpdateService, BeltWorldTransport beltTransport)
         {
             _eventProtocolProvider = eventProtocolProvider;
             _railGraphDatastore = railGraphDatastore;
             _trainUnitLookupDatastore = trainUnitLookupDatastore;
             _trainUpdateService = trainUpdateService;
+            _beltTransport = beltTransport;
         }
 
         public void Load()
         {
-            // 新規接続の登録完了を購読し、同期的に初期snapshotをpushする（順序契約）
-            // Subscribe registration completion and push initial snapshots synchronously (ordering contract)
-            _eventProtocolProvider.OnPlayerEventStreamRegistered.Subscribe(PushFullSnapshots);
+            // 接続登録を記録し、確定境界で初期snapshotを送る。
+            // Record registrations and send initial snapshots at the committed boundary.
+            _eventProtocolProvider.OnPlayerEventStreamRegistered.Subscribe(playerId => _pendingPlayers.Add(playerId));
         }
 
-        // rail→trainの順で対象プレイヤーへ初期full snapshotをpushする
-        // Push initial full snapshots to the player, rail first and then train
+        public void SendPendingInitialSnapshots()
+        {
+            // 搬送と配置変更の確定後に全初期状態を同じ境界で送る。
+            // Send all initial states at the same boundary after transport and placement mutations commit.
+            foreach (var playerId in _pendingPlayers) PushFullSnapshots(playerId);
+            _pendingPlayers.Clear();
+        }
+
+        // rail→belt→trainの順で対象プレイヤーへ初期full snapshotをpushする
+        // Push initial full snapshots to the player: rail, belt, then train
         private void PushFullSnapshots(int playerId)
         {
             PushRailGraphFullSnapshot(playerId);
+            var beltPayload = MessagePackSerializer.Serialize(new BeltSnapshotMessagePack(_beltTransport.CaptureCommittedSnapshot()));
+            _eventProtocolProvider.AddEvent(playerId, BeltFullSnapshotEventTag, beltPayload);
             PushTrainUnitFullSnapshot(playerId);
 
             #region Internal

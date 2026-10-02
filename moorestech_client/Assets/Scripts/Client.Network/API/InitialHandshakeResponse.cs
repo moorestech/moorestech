@@ -12,7 +12,6 @@ namespace Client.Network.API
 {
     public class InitialHandshakeResponse
     {
-        public Server.Util.MessagePack.BeltTransport.BeltSnapshotMessagePack BeltSnapshot { get; }
         public int PlayerId { get; }
         public Vector3 PlayerPos { get; }
         public WorldDataResponse WorldData { get; }
@@ -44,8 +43,7 @@ namespace Client.Network.API
                 UnlockStateResponse unlockState,
                 List<string> playedSkitIds,
                 Dictionary<Guid, ResearchNodeState> researchNodeStates,
-                ResponseMapDataMessagePack mapLayout,
-                Server.Util.MessagePack.BeltTransport.BeltSnapshotMessagePack beltSnapshot) responses)
+                ResponseMapDataMessagePack mapLayout) responses)
         {
             PlayerId = initialHandshake.Accepted.PlayerId;
             PlayerPos = initialHandshake.Accepted.PlayerPos;
@@ -59,7 +57,6 @@ namespace Client.Network.API
             RidingTarget = initialHandshake.Accepted.RidingTarget;
             RidingSeatIndex = initialHandshake.Accepted.RidingSeatIndex;
             MapLayout = responses.mapLayout;
-            BeltSnapshot = responses.beltSnapshot;
             HotbarAssignments = initialHandshake.Accepted.HotbarAssignments;
             RemainingPlacementCounts = initialHandshake.Accepted.RemainingPlacementCounts;
         }

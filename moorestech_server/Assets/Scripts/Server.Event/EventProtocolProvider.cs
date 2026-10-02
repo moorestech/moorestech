@@ -16,8 +16,8 @@ namespace Server.Event
         private readonly object _lock = new();
         private readonly Subject<int> _playerEventStreamRegistered = new();
 
-        // sink登録完了直後に発火。購読者は同期的にAddEventすること（初期同期の順序契約）
-        // Fires right after registration. Subscribers must AddEvent synchronously (ordering contract).
+        // sink登録完了を通知し、初期snapshotの送信を予約する。
+        // Notify completed sink registration and schedule initial snapshot publication.
         public IObservable<int> OnPlayerEventStreamRegistered => _playerEventStreamRegistered;
 
         public void RegisterPlayer(int playerId, IPlayerEventSink sink)
@@ -31,8 +31,8 @@ namespace Server.Event
                 _sinks[playerId] = sink;
             }
 
-            // 登録完了後に発火し、購読者が初期イベントを同期pushできるようにする
-            // Fire after registration so subscribers can push initial events synchronously
+            // 登録完了を通知し、購読者が初期イベントを予約できるようにする
+            // Notify registration completion so subscribers can schedule initial events
             _playerEventStreamRegistered.OnNext(playerId);
         }
 

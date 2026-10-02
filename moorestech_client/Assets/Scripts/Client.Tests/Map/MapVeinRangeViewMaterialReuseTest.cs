@@ -145,7 +145,7 @@ namespace Client.Tests.Map
                 new List<MapObjectLayoutMessagePack>(), veinLayouts, TerrainTransferMeta.CreateWithoutWorldDirectory(), string.Empty);
             var handshake = new InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack(new Server.Protocol.PacketResponse.Handshake.HandshakeAcceptedMessagePack(new Vector3MessagePack(Vector3.zero), null, -1, null, null, null, 1));
 
-            return new InitialHandshakeResponse(handshake, (default, default, default, default, default, default, default, mapLayout, default));
+            return new InitialHandshakeResponse(handshake, (default, default, default, default, default, default, default, mapLayout));
         }
     }
 }

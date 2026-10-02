@@ -34,20 +34,24 @@ namespace Client.Tests.BeltTransport
         {
             var (_, services) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var transport = services.GetRequiredService<BeltWorldTransport>();
-            var sink = EventTestUtil.RegisterCaptureSink(services, 1);
             var source = Place(ForUnitTestModBlockId.ChestId, 0).GetComponent<IBlockInventory>();
             Place(ForUnitTestModBlockId.BeltConveyorId, 1);
             Place(ForUnitTestModBlockId.BeltConveyorId, 2);
             var target = Place(ForUnitTestModBlockId.ChestId, 3).GetComponent<IBlockInventory>();
             transport.Initialize();
-            var protocol = new GetBeltSnapshotProtocol(services);
-            var response = (GetBeltSnapshotProtocol.Response)protocol.GetResponse(MessagePackSerializer.Serialize(GetBeltSnapshotProtocol.Request.Create()), 1);
-            response = BeltWireRoundTripTest.RoundTrip(response);
+            var sink = EventTestUtil.RegisterCaptureSink(services, 1);
+            GameUpdater.UpdateOneTick();
+            var initialPackets = sink.TakeAll();
+            var snapshotPacket = initialPackets.Single(packet => packet.Tag == TrainFullSnapshotEventPacket.BeltFullSnapshotEventTag);
+            var initialSnapshot = MessagePackSerializer.Deserialize<BeltSnapshotMessagePack>(snapshotPacket.Payload);
+            var trainPacket = initialPackets.Single(packet => packet.Tag == TrainFullSnapshotEventPacket.TrainUnitFullSnapshotEventTag);
+            var trainSnapshot = MessagePackSerializer.Deserialize<TrainFullSnapshotEventPacket.TrainUnitFullSnapshotEventMessagePack>(trainPacket.Payload);
             var buffer = BeltTestState.Buffer(out var state);
+            state.Initialize(((ulong)trainSnapshot.ServerTick << 32) | trainSnapshot.WatermarkTickSequenceId);
             var events = new CapturingVanillaApiEvent();
-            var handshake = new InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack(new HandshakeAcceptedMessagePack(new Vector3MessagePack(Vector3.zero), null, -1, null, null, null, 1));
-            var initial = new InitialHandshakeResponse(handshake, (default, default, default, default, default, default, default, default, response.Snapshot));
-            var handler = new BeltNetworkEventHandler(initial, events, buffer);
+            var handler = new BeltNetworkEventHandler(events, buffer);
+            events.Dispatch(snapshotPacket.Tag, snapshotPacket.Payload);
+            Assert.AreEqual(GameUpdater.CurrentTick, initialSnapshot.Tick);
             var replica = handler.Replica;
             source.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 3));
             int count = 0, notifications = 0, trainTicks = 0, railEvents = 0;
@@ -92,7 +96,7 @@ namespace Client.Tests.BeltTransport
                 count++;
                 Assert.AreEqual(count, trainTicks);
                 Assert.AreEqual(count, notifications);
-                Assert.AreEqual(response.Snapshot.Tick + (ulong)count, transport.CaptureCommittedSnapshot().Tick);
+                Assert.AreEqual(initialSnapshot.Tick + (ulong)count, transport.CaptureCommittedSnapshot().Tick);
                 CollectionAssert.AreEqual(transport.CaptureCommittedSnapshot().Snapshot.Items, replica.Snapshot.Items);
             }
             GameUpdater.TickEndUpdates.Remove(CreateRailNode);

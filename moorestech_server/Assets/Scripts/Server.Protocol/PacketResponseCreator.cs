@@ -26,7 +26,6 @@ namespace Server.Protocol
             var trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
             var trainCarRidingInputBuffer = serviceProvider.GetService<TrainCarRidingInputBuffer>();
             _initialHandshake = new InitialHandshakeProtocol(serviceProvider);
-            _packetResponseDictionary.Add(GetBeltSnapshotProtocol.ProtocolTag, new GetBeltSnapshotProtocol(serviceProvider));
             _packetResponseDictionary.Add(RequestWorldDataProtocol.ProtocolTag, new RequestWorldDataProtocol(serviceProvider));
             _packetResponseDictionary.Add(PlayerInventoryResponseProtocol.ProtocolTag, new PlayerInventoryResponseProtocol(serviceProvider));
             _packetResponseDictionary.Add(SetPlayerCoordinateProtocol.ProtocolTag, new SetPlayerCoordinateProtocol(serviceProvider));
