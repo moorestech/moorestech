@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using Core.BeltTransport;
 using Game.Block.Blocks.BeltConveyor.Topology;
 using Game.Block.Interface;
@@ -7,7 +6,6 @@ using NUnit.Framework;
 using Tests.Module.TestMod;
 using Tests.UnitTest.Game.BeltConnection.Fixtures;
 using UnityEngine;
-using UnityEngine.TestTools;
 using static Tests.UnitTest.Game.BeltConnection.Topology.BeltTopologyTestUtil;
 
 namespace Tests.UnitTest.Game.BeltConnection.Topology
@@ -132,11 +130,10 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology
         }
 
         [Test]
-        public void NonHorizontalBeltIsExcludedWithLog()
+        public void NonHorizontalBeltIsExcludedWithoutWarning()
         {
             var world = new BeltEdgeTestWorld(false, BlockDirection.North).World;
             Place(world, ForUnitTestModBlockId.BeltConveyorId, Vector3Int.zero, BlockDirection.UpNorth);
-            LogAssert.Expect(LogType.Warning, new Regex(@"\[BeltTopology\] Belt .* is excluded: block direction UpNorth is not horizontal"));
             Assert.IsEmpty(BeltTopologyBuilder.Build(world));
         }
 

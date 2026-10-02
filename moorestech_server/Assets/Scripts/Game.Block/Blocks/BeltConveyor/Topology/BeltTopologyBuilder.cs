@@ -48,14 +48,10 @@ namespace Game.Block.Blocks.BeltConveyor.Topology
             {
                 if (!IsBelt(block)) return;
                 var position = block.BlockPositionInfo;
-                // 水平姿勢でないベルトは前方向を持てないので一覧に載せない
-                // A belt without a horizontal orientation has no forward direction, so it is left out
+                // 水平姿勢でないベルトは前方向を持てないので一覧に載せない。プレイヤーが置ける通常の状態なのでログは出さない
+                // A belt without a horizontal orientation has no forward direction and is left out. Players can place it normally, so no log
                 if (position.BlockDirection is not (BlockDirection.North or BlockDirection.East or BlockDirection.South or BlockDirection.West) ||
-                    !BeltTopologyGeometry.TryGetDirection(position.BlockDirection.ConvertLocalCell(Vector3Int.forward), out var forward))
-                {
-                    Debug.LogWarning($"[BeltTopology] Belt {block.BlockInstanceId} at {position.OriginalPos} is excluded: block direction {position.BlockDirection} is not horizontal.");
-                    return;
-                }
+                    !BeltTopologyGeometry.TryGetDirection(position.BlockDirection.ConvertLocalCell(Vector3Int.forward), out var forward)) return;
                 forwards.Add(block.BlockInstanceId, forward);
                 inputs.Add(block.BlockInstanceId, new List<BeltTopologyConnection>());
                 outputs.Add(block.BlockInstanceId, new List<BeltTopologyConnection>());
@@ -72,11 +68,7 @@ namespace Game.Block.Blocks.BeltConveyor.Topology
                     // 機械同士の接続はベルトの接続図に含めない
                     // Machine-to-machine connections are not part of the belt topology
                     if (!sourceIsBelt && !targetIsBelt) continue;
-                    if (sourceIsBelt && !forwards.ContainsKey(source.BlockInstanceId) || targetIsBelt && !forwards.ContainsKey(target.BlockInstanceId))
-                    {
-                        Debug.LogWarning($"[BeltTopology] Connection {source.BlockInstanceId}->{target.BlockInstanceId} is dropped: it touches an excluded non-horizontal belt.");
-                        continue;
-                    }
+                    if (sourceIsBelt && !forwards.ContainsKey(source.BlockInstanceId) || targetIsBelt && !forwards.ContainsKey(target.BlockInstanceId)) continue;
 
                     // 送り側から受け側へのマス差分で水平方向と高さを決める
                     // The cell offset from sender to receiver determines the horizontal direction and height
