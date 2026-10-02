@@ -17,6 +17,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Connection
         private const string TransferMethodName = "Transfer";
         private const string PriorityOrderPropertyName = "PriorityOrder";
         private const string TickSpeedPropertyName = "TickSpeed";
+        private const string ResolveInputMethodName = "ResolveInput";
 
         public static BeltConveyorSegment CreateBranch(int capacity, int priorityOrder, BeltDirection forwardDirection)
         {
@@ -40,6 +41,13 @@ namespace Tests.UnitTest.Core.BeltTransport.Connection
         public static void AdvanceAndTransfer(BeltConveyorSegment segment)
         {
             RequireMethod(typeof(BeltConveyorSegment), AdvanceAndTransferMethodName).Invoke(segment, Array.Empty<object>());
+        }
+
+        // 段階2の合流予約を1回実行する
+        // Run the stage-2 merge reservation once
+        public static void ResolveInput(BeltConveyorSegment segment)
+        {
+            RequireMethod(typeof(BeltConveyorSegment), ResolveInputMethodName).Invoke(segment, Array.Empty<object>());
         }
 
         public static int GetTickSpeed(BeltConveyorSegment segment)

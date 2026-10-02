@@ -19,6 +19,7 @@ namespace Core.BeltTransport
         private int _totalGap;
         private int _tickSpeed;
         private readonly IBeltSource[] _inputs = new IBeltSource[3];
+        private BeltDirection _reservedInputDirection = BeltDirection.None;
         private BeltDirection _outputDirection;
         private int _inputCount;
         private int _inputOrder;
@@ -110,6 +111,10 @@ namespace Core.BeltTransport
         // Free length at the entrance. Negative while the last item still sticks out of the entrance
         public int GetOffer(BeltDirection inputDirection)
         {
+            // 合流は段階2で予約した方向からだけ受け入れる
+            // A merge accepts only from the direction reserved in stage 2
+            if (Kind == BeltSegmentKind.Merge && inputDirection != _reservedInputDirection)
+                return 0;
             return Length - TotalLength;
         }
 
@@ -120,6 +125,13 @@ namespace Core.BeltTransport
             var offer = GetOffer(inputDirection);
             if (length > offer) return false;
             EnqueueTail(offer - length, item);
+
+            // 合流は搬入に成功した方向を優先順の末尾へ移す
+            // A merge moves the succeeded input direction to the end of its order
+            if (Kind == BeltSegmentKind.Merge)
+            {
+                _inputOrder = BeltPriority.MoveLast(_inputOrder, (int)inputDirection);
+            }
             return true;
         }
 
@@ -133,6 +145,23 @@ namespace Core.BeltTransport
         internal void BeginTick()
         {
             _tickSpeed = Speed;
+        }
+
+        // 段階2。空の合流segmentについて、搬入優先順に問い合わせて搬入元1つまたは搬入なしを予約する
+        // Stage 2. For an empty merge, query inputs in priority order and reserve one input or none
+        internal void ResolveInput()
+        {
+            _reservedInputDirection = BeltDirection.None;
+            if (Count != 0) return;
+            for (var offset = 0; offset < 3; offset++)
+            {
+                var direction = (BeltDirection)BeltPriority.Direction(_inputOrder, offset);
+                if ((_inputMask & (1 << (int)direction)) == 0) continue;
+                var port = (_inputPorts >> ((int)direction * 2)) & 3;
+                if (!_inputs[port].TryGetOutput(direction)) continue;
+                _reservedInputDirection = direction;
+                return;
+            }
         }
 
         // 段階1。前進して出口でクランプし、bufferが空で先頭が出口ちょうどなら取り出す
