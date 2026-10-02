@@ -33,7 +33,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology
             AssertConnection(middle.Inputs[0], BeltDirection.Back, BeltEntryDirection.FromBack, Belt, new Vector3Int(0, 0, 0));
             AssertConnection(middle.Outputs[0], BeltDirection.Front, BeltEntryDirection.FromBack, Belt, new Vector3Int(0, 0, 2));
             Assert.IsEmpty(cells[2].Outputs);
-            Assert.AreEqual(1, cells[2].Inputs.Count);
+            Assert.AreEqual(1, cells[2].Inputs.Length);
         }
 
         [Test]
@@ -48,7 +48,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology
             // 右(+X)から西向きベルトが入り、入力は方向値の順(Back→Right)に並ぶ
             // A west-facing belt enters from the right (+X); inputs are ordered by direction value (Back, Right)
             var straight = Cell(cells, new Vector3Int(0, 0, 1));
-            Assert.AreEqual(2, straight.Inputs.Count);
+            Assert.AreEqual(2, straight.Inputs.Length);
             AssertConnection(straight.Inputs[0], BeltDirection.Back, BeltEntryDirection.FromBack, Belt, new Vector3Int(0, 0, 0));
             AssertConnection(straight.Inputs[1], BeltDirection.Right, BeltEntryDirection.FromRight, Belt, new Vector3Int(1, 0, 1));
             var side = Cell(cells, new Vector3Int(1, 0, 1));
@@ -66,7 +66,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology
             Place(world, ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(0, 0, 2), BlockDirection.North);
             var center = Cell(BeltTopologyBuilder.Build(world), new Vector3Int(0, 0, 1));
 
-            Assert.AreEqual(2, center.Inputs.Count);
+            Assert.AreEqual(2, center.Inputs.Length);
             AssertConnection(center.Inputs[0], BeltDirection.Left, BeltEntryDirection.FromLeft, Belt, new Vector3Int(-1, 0, 1));
             AssertConnection(center.Inputs[1], BeltDirection.Right, BeltEntryDirection.FromRight, Belt, new Vector3Int(1, 0, 1));
             AssertConnection(center.Outputs[0], BeltDirection.Front, BeltEntryDirection.FromBack, Belt, new Vector3Int(0, 0, 2));
@@ -88,7 +88,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology
 
             Assert.IsTrue(splitter.IsSplitter);
             Assert.AreEqual(128, splitter.BeltSpeedPerTick);
-            Assert.AreEqual(connectAllOutputs ? 3 : 1, splitter.Outputs.Count);
+            Assert.AreEqual(connectAllOutputs ? 3 : 1, splitter.Outputs.Length);
             AssertConnection(splitter.Outputs[0], BeltDirection.Front, BeltEntryDirection.FromBack, Belt, new Vector3Int(0, 0, 1));
             if (!connectAllOutputs) return;
             AssertConnection(splitter.Outputs[1], BeltDirection.Left, BeltEntryDirection.FromRight, Belt, new Vector3Int(-1, 0, 0));

@@ -28,5 +28,14 @@ namespace Game.Block.Blocks.BeltConveyor.Topology
             if (sourceY < receiverY) return BeltEntryDirections.FromBelow(sourceDirectionFromReceiver);
             return BeltEntryDirections.Level(sourceDirectionFromReceiver);
         }
+
+        // マスの並び順はX→Y→Zの順に比べる
+        // Cells are ordered by comparing X, then Y, then Z
+        public static int ComparePosition(Vector3Int a, Vector3Int b)
+        {
+            if (a.x != b.x) return a.x.CompareTo(b.x);
+            if (a.y != b.y) return a.y.CompareTo(b.y);
+            return a.z.CompareTo(b.z);
+        }
     }
 }

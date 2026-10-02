@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Core.BeltTransport;
 using Game.Block.Interface;
@@ -15,60 +16,38 @@ namespace Game.Block.Blocks.BeltConveyor.Topology
     {
         public static List<BeltTopologyCell> Build(IWorldBlockDatastore world)
         {
-            // 先にベルトのマスを確定し、その後に全ブロックの接続を振り分ける
-            // Fix the belt cells first, then distribute every block's connections
-            var forwards = new Dictionary<BlockInstanceId, BeltDirection>();
-            var inputs = new Dictionary<BlockInstanceId, List<BeltTopologyConnection>>();
-            var outputs = new Dictionary<BlockInstanceId, List<BeltTopologyConnection>>();
-            foreach (var data in world.BlockMasterDictionary.Values) RegisterBelt(data.Block);
-            foreach (var data in world.BlockMasterDictionary.Values) DistributeConnections(data.Block);
+            // 全ブロックを1回だけ走査し、ベルトのマスを見つけ次第登録しながら接続を溜める
+            // Walk every block once, registering belt cells on first sight while collecting connections
+            var cellIndexByBlock = new Dictionary<BlockInstanceId, int>();
+            var works = new List<CellWork>();
+            var pendings = new List<PendingConnection>();
+            foreach (var data in world.BlockMasterDictionary.Values) CollectConnections(data.Block);
 
-            // 配置順や辞書順に依存しないよう座標と方向で並べる
-            // Sort by position and direction so the result never depends on placement or dictionary order
-            var cells = new List<BeltTopologyCell>();
-            foreach (var data in world.BlockMasterDictionary.Values)
-            {
-                var block = data.Block;
-                if (!forwards.TryGetValue(block.BlockInstanceId, out var forward)) continue;
-                var param = block.BlockMasterElement.BlockParam;
-                var speed = param is BeltConveyorBlockParam belt ? belt.BeltSpeedPerTick : ((GearBeltConveyorBlockParam)param).BeltSpeedPerTick;
-                var cellInputs = inputs[block.BlockInstanceId];
-                var cellOutputs = outputs[block.BlockInstanceId];
-                cellInputs.Sort(CompareConnection);
-                cellOutputs.Sort(CompareConnection);
-                cells.Add(new BeltTopologyCell(block.BlockPositionInfo.OriginalPos, block.BlockInstanceId, block, forward, speed, IsSplitter(param),
-                    cellInputs, cellOutputs));
-            }
-            cells.Sort(CompareCell);
+            // 溜めた接続をマスごとのぴったりの配列へ移し、座標順に並べる
+            // Move the collected connections into exactly sized per-cell arrays, then sort cells by position
+            var cells = CreateCells();
+            cells.Sort(BeltTopologyOrder.Cell);
             return cells;
 
             #region Internal
 
-            void RegisterBelt(IBlock block)
+            void CollectConnections(IBlock source)
             {
-                if (!IsBelt(block)) return;
-                var position = block.BlockPositionInfo;
-                // 水平姿勢でないベルトは前方向を持てないので一覧に載せない。プレイヤーが置ける通常の状態なのでログは出さない
-                // A belt without a horizontal orientation has no forward direction and is left out. Players can place it normally, so no log
-                if (position.BlockDirection is not (BlockDirection.North or BlockDirection.East or BlockDirection.South or BlockDirection.West) ||
-                    !BeltTopologyGeometry.TryGetDirection(position.BlockDirection.ConvertLocalCell(Vector3Int.forward), out var forward)) return;
-                forwards.Add(block.BlockInstanceId, forward);
-                inputs.Add(block.BlockInstanceId, new List<BeltTopologyConnection>());
-                outputs.Add(block.BlockInstanceId, new List<BeltTopologyConnection>());
-            }
-
-            void DistributeConnections(IBlock source)
-            {
+                var sourceIsBelt = IsBelt(source);
+                var sourceIndex = -1;
+                if (sourceIsBelt && !TryRegisterBelt(source, out sourceIndex)) return;
                 if (!source.ComponentManager.TryGetComponent<IBlockConnectorComponent<IBlockInventory>>(out var connector)) return;
-                foreach (var (receiverInventory, info) in connector.ConnectedTargets)
+                var targets = connector.ConnectedTargets;
+                if (targets.Count == 0) return;
+                foreach (var (receiverInventory, info) in targets)
                 {
+                    // 機械同士の接続と、向きを持てないベルトへの接続は一覧に含めない
+                    // Skip machine-to-machine connections and connections to belts that cannot have a forward direction
                     var target = info.TargetBlock;
-                    var sourceIsBelt = IsBelt(source);
                     var targetIsBelt = IsBelt(target);
-                    // 機械同士の接続はベルトの接続図に含めない
-                    // Machine-to-machine connections are not part of the belt topology
                     if (!sourceIsBelt && !targetIsBelt) continue;
-                    if (sourceIsBelt && !forwards.ContainsKey(source.BlockInstanceId) || targetIsBelt && !forwards.ContainsKey(target.BlockInstanceId)) continue;
+                    var targetIndex = -1;
+                    if (targetIsBelt && !TryRegisterBelt(target, out targetIndex)) continue;
 
                     // 送り側から受け側へのマス差分で水平方向と高さを決める
                     // The cell offset from sender to receiver determines the horizontal direction and height
@@ -83,12 +62,66 @@ namespace Game.Block.Blocks.BeltConveyor.Topology
                     var entryDirection = BeltTopologyGeometry.GetEntryDirection(inputDirection, sourceCell.y, targetCell.y);
 
                     if (sourceIsBelt)
-                        outputs[source.BlockInstanceId].Add(new BeltTopologyConnection(outputDirection, entryDirection, KindOf(targetIsBelt), target, targetCell,
+                        AddPending(sourceIndex, false, new BeltTopologyConnection(outputDirection, entryDirection, KindOf(targetIsBelt), target, targetCell,
                             info.SelfConnector, info.TargetConnector, receiverInventory));
                     if (targetIsBelt)
-                        inputs[target.BlockInstanceId].Add(new BeltTopologyConnection(inputDirection, entryDirection, KindOf(sourceIsBelt), source, sourceCell,
+                        AddPending(targetIndex, true, new BeltTopologyConnection(inputDirection, entryDirection, KindOf(sourceIsBelt), source, sourceCell,
                             info.SelfConnector, info.TargetConnector, receiverInventory));
                 }
+            }
+
+            bool TryRegisterBelt(IBlock block, out int index)
+            {
+                if (cellIndexByBlock.TryGetValue(block.BlockInstanceId, out index)) return true;
+                var position = block.BlockPositionInfo;
+                // 水平姿勢でないベルトは前方向を持てないので一覧に載せない。プレイヤーが置ける通常の状態なのでログは出さない
+                // A belt without a horizontal orientation has no forward direction and is left out. Players can place it normally, so no log
+                if (position.BlockDirection is not (BlockDirection.North or BlockDirection.East or BlockDirection.South or BlockDirection.West) ||
+                    !BeltTopologyGeometry.TryGetDirection(position.BlockDirection.ConvertLocalCell(Vector3Int.forward), out var forward)) return false;
+                index = works.Count;
+                works.Add(new CellWork(block, forward));
+                cellIndexByBlock.Add(block.BlockInstanceId, index);
+                return true;
+            }
+
+            void AddPending(int cellIndex, bool isInput, BeltTopologyConnection connection)
+            {
+                var work = works[cellIndex];
+                if (isInput) work.InputCount++;
+                else work.OutputCount++;
+                works[cellIndex] = work;
+                pendings.Add(new PendingConnection(cellIndex, isInput, connection));
+            }
+
+            List<BeltTopologyCell> CreateCells()
+            {
+                var inputs = new BeltTopologyConnection[works.Count][];
+                var outputs = new BeltTopologyConnection[works.Count][];
+                var filled = new int[works.Count * 2];
+                for (var i = 0; i < works.Count; i++)
+                {
+                    inputs[i] = works[i].InputCount == 0 ? Array.Empty<BeltTopologyConnection>() : new BeltTopologyConnection[works[i].InputCount];
+                    outputs[i] = works[i].OutputCount == 0 ? Array.Empty<BeltTopologyConnection>() : new BeltTopologyConnection[works[i].OutputCount];
+                }
+                foreach (var pending in pendings)
+                {
+                    var slot = pending.CellIndex * 2 + (pending.IsInput ? 0 : 1);
+                    var array = pending.IsInput ? inputs[pending.CellIndex] : outputs[pending.CellIndex];
+                    array[filled[slot]++] = pending.Connection;
+                }
+
+                var result = new List<BeltTopologyCell>(works.Count);
+                for (var i = 0; i < works.Count; i++)
+                {
+                    var block = works[i].Block;
+                    var param = block.BlockMasterElement.BlockParam;
+                    var speed = param is BeltConveyorBlockParam belt ? belt.BeltSpeedPerTick : ((GearBeltConveyorBlockParam)param).BeltSpeedPerTick;
+                    Array.Sort(inputs[i], BeltTopologyOrder.Connection);
+                    Array.Sort(outputs[i], BeltTopologyOrder.Connection);
+                    result.Add(new BeltTopologyCell(block.BlockPositionInfo.OriginalPos, block.BlockInstanceId, block, works[i].Forward, speed, IsSplitter(param),
+                        inputs[i], outputs[i]));
+                }
+                return result;
             }
 
             #endregion
@@ -125,22 +158,36 @@ namespace Game.Block.Blocks.BeltConveyor.Topology
             return isBelt ? BeltTopologyPartnerKind.Belt : BeltTopologyPartnerKind.Machine;
         }
 
-        private static int CompareCell(BeltTopologyCell a, BeltTopologyCell b)
+        // 構築中のマス1つ分。入出力の件数だけ数え、接続本体は共有の一時リストに置く
+        // One cell under construction; it only counts inputs and outputs while the connections live in one shared buffer
+        private struct CellWork
         {
-            return ComparePosition(a.Position, b.Position);
+            public readonly IBlock Block;
+            public readonly BeltDirection Forward;
+            public int InputCount;
+            public int OutputCount;
+
+            public CellWork(IBlock block, BeltDirection forward)
+            {
+                Block = block;
+                Forward = forward;
+                InputCount = 0;
+                OutputCount = 0;
+            }
         }
 
-        private static int CompareConnection(BeltTopologyConnection a, BeltTopologyConnection b)
+        private readonly struct PendingConnection
         {
-            var byDirection = ((int)a.Direction).CompareTo((int)b.Direction);
-            return byDirection != 0 ? byDirection : ComparePosition(a.PartnerCell, b.PartnerCell);
-        }
+            public readonly int CellIndex;
+            public readonly bool IsInput;
+            public readonly BeltTopologyConnection Connection;
 
-        private static int ComparePosition(Vector3Int a, Vector3Int b)
-        {
-            if (a.x != b.x) return a.x.CompareTo(b.x);
-            if (a.y != b.y) return a.y.CompareTo(b.y);
-            return a.z.CompareTo(b.z);
+            public PendingConnection(int cellIndex, bool isInput, BeltTopologyConnection connection)
+            {
+                CellIndex = cellIndex;
+                IsInput = isInput;
+                Connection = connection;
+            }
         }
     }
 }

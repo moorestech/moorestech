@@ -8,7 +8,7 @@ namespace Game.Block.Blocks.BeltConveyor.Topology
 {
     // 既存の解決済み接続1件を、所有マスから見た向きと受け側の進入方向で表す
     // One existing resolved connection, expressed as the direction from the owning cell and the entry direction at the receiver
-    public sealed class BeltTopologyConnection
+    public readonly struct BeltTopologyConnection
     {
         // 所有マスから見た相手の水平方向
         // Horizontal direction of the partner as seen from the owning cell

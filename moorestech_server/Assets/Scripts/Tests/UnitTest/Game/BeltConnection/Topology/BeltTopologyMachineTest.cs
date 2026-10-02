@@ -69,7 +69,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology
             var cells = BuildTwoMachineWorld(new[] { 0, 1, 2, 3 }, out var leftPort, out var rightPort);
             var merged = Cell(cells, new Vector3Int(0, 0, 1));
 
-            Assert.AreEqual(3, merged.Inputs.Count);
+            Assert.AreEqual(3, merged.Inputs.Length);
             AssertConnection(merged.Inputs[0], BeltDirection.Back, BeltEntryDirection.FromBack, Belt, new Vector3Int(0, 0, 0));
             AssertConnection(merged.Inputs[1], BeltDirection.Left, BeltEntryDirection.FromLeft, Machine, new Vector3Int(-1, 0, 1));
             AssertConnection(merged.Inputs[2], BeltDirection.Right, BeltEntryDirection.FromRight, Machine, new Vector3Int(1, 0, 1));

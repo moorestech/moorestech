@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Core.BeltTransport;
 using Game.Block.Interface;
 using UnityEngine;
@@ -19,11 +18,13 @@ namespace Game.Block.Blocks.BeltConveyor.Topology
         // マスタの出力コネクターが複数ある分配器か（接続数とは無関係）
         // Splitter-type belt with several master output connectors, regardless of how many are connected
         public readonly bool IsSplitter;
-        public readonly IReadOnlyList<BeltTopologyConnection> Inputs;
-        public readonly IReadOnlyList<BeltTopologyConnection> Outputs;
+        // 方向値→相手マス座標の順に並んだ、件数ぴったりの配列
+        // Exactly sized arrays ordered by direction value, then partner cell position
+        public readonly BeltTopologyConnection[] Inputs;
+        public readonly BeltTopologyConnection[] Outputs;
 
         public BeltTopologyCell(Vector3Int position, BlockInstanceId blockInstanceId, IBlock block, BeltDirection forward, int beltSpeedPerTick, bool isSplitter,
-            IReadOnlyList<BeltTopologyConnection> inputs, IReadOnlyList<BeltTopologyConnection> outputs)
+            BeltTopologyConnection[] inputs, BeltTopologyConnection[] outputs)
         {
             Position = position;
             BlockInstanceId = blockInstanceId;
