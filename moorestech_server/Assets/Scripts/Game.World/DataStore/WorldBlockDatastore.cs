@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Core.Master;
 using Game.Block.Interface;
@@ -9,7 +9,6 @@ using Game.Context;
 using Game.World.Interface.DataStore;
 using UniRx;
 using UnityEngine;
-
 namespace Game.World.DataStore
 {
     public class WorldBlockDatastore : IWorldBlockDatastore
@@ -18,7 +17,6 @@ namespace Game.World.DataStore
         private readonly Dictionary<BlockInstanceId, WorldBlockData> _blockMasterDictionary = new(); //ブロックのEntityIdとブロックの紐づけ
         public IObservable<(BlockState state, WorldBlockData blockData)> OnBlockStateChange => _onBlockStateChange;
         private readonly Subject<(BlockState state, WorldBlockData blockData)> _onBlockStateChange = new();
-        
         private readonly Dictionary<IBlockComponent, IBlock> _blockComponentDictionary = new(); //コンポーネントとブロックの紐づけ
         private readonly Dictionary<Vector3Int, BlockInstanceId> _coordinateDictionary = new();
         private readonly Dictionary<Vector3Int, BlockInstanceId> _originCoordinateDictionary = new();
@@ -30,21 +28,16 @@ namespace Game.World.DataStore
         public bool RemoveBlock(Vector3Int pos, BlockRemoveReason reason)
         {
             if (!this.Exists(pos)) return false;
-            
             var entityId = GetEntityId(pos);
             if (!_blockMasterDictionary.ContainsKey(entityId)) return false;
-            
             var data = _blockMasterDictionary[entityId];
             ((WorldBlockUpdateEvent)ServerContext.WorldBlockUpdateEvent).OnBlockRemoveEventInvoke(pos, data, reason);
-
             foreach (var component in data.Block.ComponentManager.GetComponents<IBlockComponent>())
                 _blockComponentDictionary.Remove(component);
-
             data.Block.Destroy();
             _blockMasterDictionary.Remove(entityId);
             foreach (var position in data.BlockPositionInfo.EnumeratePositions())
                 _coordinateDictionary.Remove(position);
-
             _originCoordinateDictionary.Remove(data.BlockPositionInfo.OriginalPos);
             return true;
         }
@@ -52,12 +45,10 @@ namespace Game.World.DataStore
         {
             return GetBlockData(pos)?.Block;
         }
-        
         public IBlock GetBlock(IBlockComponent component)
         {
             return _blockComponentDictionary.GetValueOrDefault(component);
         }
-        
         public WorldBlockData GetOriginPosBlock(Vector3Int pos)
         {
             return _originCoordinateDictionary.TryGetValue(pos, out var entityId)
@@ -70,23 +61,28 @@ namespace Game.World.DataStore
             //TODO ブロックないときの処理どうしよう
             return block?.BlockPositionInfo.BlockDirection ?? BlockDirection.North;
         }
-        
         public IBlock GetBlock(BlockInstanceId blockInstanceId)
         {
             return _blockMasterDictionary.TryGetValue(blockInstanceId, out var data) ? data.Block : null;
         }
-        
         public Vector3Int GetBlockPosition(BlockInstanceId blockInstanceId)
         {
             if (_blockMasterDictionary.TryGetValue(blockInstanceId, out var data)) return data.BlockPositionInfo.OriginalPos;
-            
             throw new Exception("ブロックがありません");
         }
         
         public bool TryAddBlock(BlockId blockId, Vector3Int position, BlockDirection direction, BlockCreateParam[] createParams, out IBlock block)
         {
-            var blockSize = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockSize;
-            var blockPositionInfo = new BlockPositionInfo(position, direction, blockSize);
+            var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
+            // 通常・無料・一括設置に共通の入口で向きの制約を適用する。
+            // Enforce orientation constraints at the shared placement entry.
+            if (!BeltConveyorPlaceFamilyUtil.IsPlacementDirectionAllowed(blockMaster, direction))
+            {
+                Debug.LogWarning($"Belt placement refused: block={blockId}, direction={direction}, position={position}; only horizontal orientations are allowed.");
+                block = null;
+                return false;
+            }
+            var blockPositionInfo = new BlockPositionInfo(position, direction, blockMaster.BlockSize);
             if (IsOverlapExistingBlock(blockPositionInfo))
             {
                 block = null;

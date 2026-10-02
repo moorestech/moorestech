@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using Core.Master;
 using Game.Block.Interface;
 using Game.Context;
 using Game.World.Interface.DataStore;
@@ -17,6 +19,63 @@ namespace Tests.CombinedTest.Server.PacketTest
     /// </summary>
     public class PlaceBlockProtocolBeltFamilyTest
     {
+        [Test]
+        public void BeltPlacementRejectsVerticalOrientationsAndAllowsSingleSlopesTest()
+        {
+            var (packet, services) = CreateServer();
+            int index = 0;
+            foreach (var family in MasterHolder.BlockMaster.Blocks.BeltConveyorFamilies)
+            {
+                var straight = MasterHolder.BlockMaster.GetBlockId(family.StraightBlockGuid);
+                UnlockBlock(services, straight);
+                foreach (var guid in new Guid?[] { family.StraightBlockGuid, family.UpBlockGuid, family.DownBlockGuid })
+                {
+                    if (!guid.HasValue) continue;
+                    var blockId = MasterHolder.BlockMaster.GetBlockId(guid.Value);
+                    GrantRequiredItems(services, blockId, 4);
+                    // 各形状を単独設置し、上下姿勢だけが拒否されることを確認する。
+                    // Place each shape separately and verify that only vertical orientations are rejected.
+                    foreach (BlockDirection direction in Enum.GetValues(typeof(BlockDirection)))
+                    {
+                        var position = new Vector3Int(100 + index++ * 4, 0, 100);
+                        packet.GetPacketResponse(CreatePlacePayload(new List<PlaceInfo>
+                        {
+                            new() { BlockId = blockId, Position = position, Direction = direction },
+                        }), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
+                        bool horizontal = BlockDirection.North <= direction && direction <= BlockDirection.West;
+                        Assert.AreEqual(horizontal, ServerContext.WorldBlockDatastore.Exists(position), $"{blockId}: {direction}");
+                    }
+                }
+            }
+        }
+
+        [Test]
+        public void DirectPlacementRejectsVerticalBeltsAndKeepsOtherBlocksOrientationsTest()
+        {
+            CreateServer();
+            int index = 0;
+            var ids = new[] { ForUnitTestModBlockId.BeltConveyorId, ForUnitTestModBlockId.GearBeltConveyor,
+                ForUnitTestModBlockId.TestGearBeltConveyorUp, ForUnitTestModBlockId.TestGearBeltConveyorDown,
+                ForUnitTestModBlockId.SmallGearBeltConveyor, ForUnitTestModBlockId.GearBeltConveyorSplitter };
+            // 通信を通らない設置にも同じ制約を適用し、worldへ登録しない。
+            // Apply the same constraint to direct placement without registering rejected blocks.
+            foreach (var id in ids)
+            foreach (BlockDirection direction in Enum.GetValues(typeof(BlockDirection)))
+            {
+                var position = new Vector3Int(100 + index++ * 4, 0, 200);
+                bool placed = ServerContext.WorldBlockDatastore.TryAddBlock(id, position, direction, Array.Empty<BlockCreateParam>(), out var block);
+                bool horizontal = BlockDirection.North <= direction && direction <= BlockDirection.West;
+                Assert.AreEqual(horizontal, placed, $"{id}: {direction}");
+                Assert.AreEqual(horizontal, ServerContext.WorldBlockDatastore.Exists(position));
+                if (!horizontal) Assert.IsNull(block);
+            }
+            // ベルト以外の上下姿勢は既存どおり許可する。
+            // Preserve vertical placement for blocks other than belts.
+            foreach (var direction in new[] { BlockDirection.UpNorth, BlockDirection.DownNorth })
+                Assert.IsTrue(ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId,
+                    new Vector3Int(100 + index++ * 4, 0, 200), direction, Array.Empty<BlockCreateParam>(), out _));
+        }
+
         [Test]
         public void セル毎に異なるBlockIdを一括設置できる()
         {

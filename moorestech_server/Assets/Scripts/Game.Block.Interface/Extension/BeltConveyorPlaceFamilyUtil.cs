@@ -10,6 +10,14 @@ namespace Game.Block.Interface.Extension
     /// </summary>
     public static class BeltConveyorPlaceFamilyUtil
     {
+        public static bool IsPlacementDirectionAllowed(BlockMasterElement blockMaster, BlockDirection direction)
+        {
+            // 坂の形状は許可し、ベルト本体の上下姿勢を拒否する。
+            // Allow slope shapes while rejecting vertical belt orientations.
+            return blockMaster.BlockParam is not BeltConveyorBlockParam && blockMaster.BlockParam is not GearBeltConveyorBlockParam
+                || BlockDirection.North <= direction && direction <= BlockDirection.West;
+        }
+
         public static bool TryGetFamily(BlockId blockId, out BeltConveyorFamily family)
         {
             var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockGuid;
