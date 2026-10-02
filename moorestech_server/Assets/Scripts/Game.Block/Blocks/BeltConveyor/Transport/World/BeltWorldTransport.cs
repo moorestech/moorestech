@@ -4,7 +4,6 @@ using Core.BeltTransport;
 using Core.Item.Interface;
 using Core.Update;
 using Game.World.Interface.DataStore;
-using Game.Train.Unit;
 using UniRx;
 using UnityEngine;
 
@@ -15,7 +14,7 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
         private readonly IWorldBlockDatastore world;
         private readonly Dictionary<Guid, IItemStack> stacks = new Dictionary<Guid, IItemStack>();
         private readonly SortedDictionary<int, int> pendingSpeeds = new SortedDictionary<int, int>();
-        private readonly BeltTransportJournal journal;
+        private readonly BeltTransportJournal journal = new BeltTransportJournal();
         private readonly Subject<BeltTickDifference> differences = new Subject<BeltTickDifference>();
         private BeltWorldGraph graph;
         private BeltCommittedSnapshot committed;
@@ -24,10 +23,9 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
         private ulong CompletedTick;
         public IObservable<BeltTickDifference> OnTickCompleted => differences;
 
-        public BeltWorldTransport(IWorldBlockDatastore world, IWorldBlockUpdateEvent changes, TrainUpdateService tickSequence)
+        public BeltWorldTransport(IWorldBlockDatastore world, IWorldBlockUpdateEvent changes)
         {
             this.world = world;
-            journal = new BeltTransportJournal(tickSequence);
             Network = new BeltTransportNetwork(this, this);
             changes.OnBlockPlaceEvent.Subscribe(_ => dirty = true);
             changes.OnBlockRemoveEvent.Subscribe(_ => dirty = true);
@@ -60,7 +58,6 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
         }
         public void Advance()
         {
-            journal.BeginSimulation();
             Network.Tick();
             journal.CompleteSimulation();
             PublishOccupancy();

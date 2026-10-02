@@ -16,24 +16,15 @@ namespace Core.BeltTransport
         }
         public void Apply(BeltTickDifference difference)
         {
-            ValidateNextTick(difference.Tick);
-            foreach (var change in difference.BeforeTick) change.Apply(Network);
-            Advance(difference.Tick, difference.Outputs);
-            foreach (var change in difference.AfterTick) change.Apply(Network);
-            Network.DrainOccupancyChanges();
-        }
-        public void Advance(ulong tick, BeltOutputResult[] outputs)
-        {
             // 初回snapshot以降の連続した確定tickだけを再現する。
             // Replay only consecutive committed ticks after the initial snapshot.
-            ValidateNextTick(tick);
-            receivers.SetResults(outputs);
+            if (difference.Tick != Tick + 1) throw new InvalidOperationException($"Expected belt tick {Tick + 1}, received {difference.Tick}.");
+            foreach (var change in difference.BeforeTick) change.Apply(Network);
+            receivers.SetResults(difference.Outputs);
             Network.Tick();
-            Tick = tick;
-        }
-        private void ValidateNextTick(ulong tick)
-        {
-            if (tick != Tick + 1) throw new InvalidOperationException($"Expected belt tick {Tick + 1}, received {tick}.");
+            foreach (var change in difference.AfterTick) change.Apply(Network);
+            Network.DrainOccupancyChanges();
+            Tick = difference.Tick;
         }
     }
 }

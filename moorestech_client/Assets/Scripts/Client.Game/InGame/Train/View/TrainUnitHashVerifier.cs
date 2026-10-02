@@ -38,13 +38,11 @@ namespace Client.Game.InGame.Train.View
             // Discard any stale hashes that are older than the current tick
             _futureMessageBuffer.DiscardHashesOlderThan(currentTickUnifiedId);
             
-            // 後続の到着にかかわらず、欠けた順序位置を待ち続ける。
-            // Keep waiting for the missing ordered position regardless of later arrivals.
+            // 後続が到着済みなら順序付き通知の欠落を確定する。
+            // Confirm a missing ordered message when a later message has already arrived.
             if (!_futureMessageBuffer.TryDequeueHashAtTickSequenceId(currentTickUnifiedId, out var message))
             {
-                // 同tickの後続seqはまとめ通知より先着し得る。次tickの到着までは欠落と断定しない。
-                // Later sequences can precede a same-tick bundle; only a later tick confirms a missing position.
-                var confirmedGap = (currentTickUnifiedId >> 32) < _tickState.GetMaxBufferedTicks();
+                var confirmedGap = currentTickUnifiedId < _tickState.GetMaxBufferedTickUnifiedId();
                 _diagnostics.RecordMissingOrderedMessage(currentTickUnifiedId, confirmedGap);
                 if (confirmedGap) _futureMessageBuffer.StopRetainingFutureMessages("ConfirmedOrderedGap");
                 return false;

@@ -31,8 +31,8 @@ namespace Client.Tests.BeltTransport
             // Start another identity during buffered replay after the first creation completed.
             var item = new BeltCellItemState(1, 256, BeltDirection.Back, 0, new BeltItem(new Guid("00000002-0000-0000-0000-000000000000"), 1), false);
             var change = new BeltCellItemsChange(1, new[] { item });
-            var tick = new BeltTickDifference(11, Array.Empty<BeltBoundaryChange>(), Array.Empty<BeltOutputResult>(), new BeltBoundaryChange[] { change }, BeltTestState.Order(11, 0, 1));
-            events.Dispatch(BeltTickCompletedEventPacket.EventTag, MessagePackSerializer.Serialize(new BeltTickMessagePack(tick)));
+            var tick = new BeltTickDifference(11, Array.Empty<BeltBoundaryChange>(), Array.Empty<BeltOutputResult>(), new BeltBoundaryChange[] { change });
+            events.Dispatch(BeltTickCompletedEventPacket.EventTag, MessagePackSerializer.Serialize(new BeltTickMessagePack(tick, 11, 1)));
             Assert.AreEqual(1, factory.Pending.Count, "Receipt alone must not create the next tick's item.");
             BeltTestState.FlushTick(buffer, state, 11);
             var wait = renderer.WaitForInitialApplyAsync();
