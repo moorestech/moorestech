@@ -21,14 +21,22 @@ namespace Core.BeltTransport
         private readonly IBeltSource[] _inputs = new IBeltSource[3];
         private BeltDirection _outputDirection;
         private int _inputCount;
+        private int _inputOrder;
         private int _inputPorts;
         private int _inputMask;
         private int Length => Capacity * BeltConstants.ItemWidth;
 
         public BeltSegmentKind Kind { get; }
+        public BeltBuffer Buffer { get; }
         public IBeltReceiver Output { get; private set; }
         public int Capacity { get; }
         public int Count { get; private set; }
+
+        // blockへ保存する方向の優先順。合流は搬入方向、分岐はbufferの搬出方向、通常は0
+        // Direction priority order saved to the block. Input order for a merge, buffer output order for a branch, 0 otherwise
+        public int PriorityOrder => Kind == BeltSegmentKind.Merge ? _inputOrder
+            : Kind == BeltSegmentKind.Branch ? Buffer.PriorityOrder : 0;
+        internal int TickSpeed => _tickSpeed;
         public int Speed { get; private set; }
 
         // 先頭から最後尾アイテムの後端までの占有長。O(1)
@@ -56,6 +64,16 @@ namespace Core.BeltTransport
             Capacity = capacity;
             Speed = speed;
             Kind = kind;
+
+            // 保存値が無ければ、合流は直進側の搬入、分岐は直進の搬出を先頭に初期化する
+            // Without a saved value, a merge starts with the straight input and a branch with the straight output
+            if (kind == BeltSegmentKind.Merge)
+                _inputOrder = priorityOrder >= 0 ? priorityOrder
+                    : BeltPriority.Create(BeltDirections.Opposite(forwardDirection));
+            if (kind == BeltSegmentKind.Merge || kind == BeltSegmentKind.Branch)
+                Buffer = new BeltBuffer(this, kind == BeltSegmentKind.Branch
+                    ? (priorityOrder >= 0 ? priorityOrder : BeltPriority.Create(forwardDirection))
+                    : (int)forwardDirection);
             _gaps = new int[capacity];
             _items = new BeltItem[capacity];
             _blockSizes = new int[capacity];
@@ -115,6 +133,18 @@ namespace Core.BeltTransport
         internal void BeginTick()
         {
             _tickSpeed = Speed;
+        }
+
+        // 段階1。前進して出口でクランプし、bufferが空で先頭が出口ちょうどなら取り出す
+        // Stage 1. Advance clamped at the exit; take the head when the buffer is empty and the head is exactly at the exit
+        internal bool CollectForBuffer(out BeltItem item)
+        {
+            Advance(false);
+            item = default;
+            if (Buffer.HasItem || Count == 0 || _gaps[_head] != 0) return false;
+            item = _items[_head];
+            DequeueHead();
+            return true;
         }
 
         // 段階4。段階3で受け取ったアイテムも含めて前進し、出口を越えた先頭を搬出先へ渡す
