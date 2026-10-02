@@ -6,6 +6,10 @@ namespace Core.BeltTransport
     // The lowest slot has the highest priority. Connection presence is kept in a separate direction bitmask
     public static class BeltPriority
     {
+        // segment生成時にこの値を渡すと、保存値ではなく役割と向きから優先順を初期化する
+        // Passing this on segment creation initializes the order from the role and direction instead of a saved value
+        public const int InitializeFromDirection = -1;
+
         public static int Direction(int order, int rank)
         {
             return (order >> (rank * 2)) & 3;

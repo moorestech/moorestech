@@ -5,10 +5,12 @@ namespace Core.BeltTransport
     // 走行列・隙間・密着ブロックを管理するsegment。speedは0～MaxSpeedで、tick中は固定
     // gapsの先頭は出口までの距離、残りは直前アイテムの後端までの隙間
     // blockSizesは密着ブロックの先頭・末尾でだけ有効。totalGapはgapの合計を差分で維持する
+    // 通常segmentは段階4、合流・分岐segmentはbufferにより段階1で更新する。外部供給と配線変更はtick境界で行う
     // A segment managing the item run, gaps and tightly-packed blocks. Speed is 0..MaxSpeed and fixed during a tick
     // The head gap is the distance to the exit; the others are distances to the previous item's rear
     // blockSizes is valid only at the first and last item of each block. totalGap keeps the sum of gaps incrementally
-    public sealed class BeltConveyorSegment
+    // Normal segments update in stage 4, merge/branch segments in stage 1 via their buffer. Supply and wiring change at tick boundaries
+    public sealed class BeltConveyorSegment : IBeltSource, IBeltReceiver
     {
         private readonly int[] _gaps;
         private readonly BeltItem[] _items;
@@ -16,8 +18,15 @@ namespace Core.BeltTransport
         private int _head;
         private int _totalGap;
         private int _tickSpeed;
+        private readonly IBeltSource[] _inputs = new IBeltSource[3];
+        private BeltDirection _outputDirection;
+        private int _inputCount;
+        private int _inputPorts;
+        private int _inputMask;
         private int Length => Capacity * BeltConstants.ItemWidth;
 
+        public BeltSegmentKind Kind { get; }
+        public IBeltReceiver Output { get; private set; }
         public int Capacity { get; }
         public int Count { get; private set; }
         public int Speed { get; private set; }
@@ -30,15 +39,23 @@ namespace Core.BeltTransport
         // Distance the head passes the exit this tick. Positive means it can be output. 0 when empty
         private int OutputLength => Count == 0 ? 0 : _tickSpeed - _gaps[_head];
 
-        public BeltConveyorSegment(int capacity, int speed)
+        // priorityOrderは未接続方向も含む3方向の順序。InitializeFromDirectionなら役割と向きから初期化する
+        // forwardDirectionは合流の唯一の搬出方向、または分岐の終端マスの直進搬出方向
+        // priorityOrder is the order of three directions including unconnected ones; InitializeFromDirection derives it from the role and direction
+        // forwardDirection is the merge's only output direction, or the straight output direction of the branch's last cell
+        public BeltConveyorSegment(int capacity, int speed, BeltSegmentKind kind, int priorityOrder, BeltDirection forwardDirection)
         {
-            // 占有長がint内に収まる容量だけ許可する
-            // Allow only capacities whose occupied length fits in int
-            if (capacity <= 0 || capacity > (int.MaxValue - (BeltConstants.ItemWidth - 1)) / BeltConstants.ItemWidth)
+            // 占有長がint内に収まる容量だけ許可する。合流は1マス固定
+            // Allow only capacities whose occupied length fits in int. A merge is exactly one cell
+            if (capacity <= 0 || capacity > (int.MaxValue - (BeltConstants.ItemWidth - 1)) / BeltConstants.ItemWidth ||
+                (kind == BeltSegmentKind.Merge && capacity != 1))
                 throw new ArgumentOutOfRangeException(nameof(capacity));
             if (speed < 0 || speed > BeltConstants.MaxSpeed) throw new ArgumentOutOfRangeException(nameof(speed));
+            if (kind != BeltSegmentKind.Normal && kind != BeltSegmentKind.Merge && kind != BeltSegmentKind.Branch)
+                throw new ArgumentOutOfRangeException(nameof(kind));
             Capacity = capacity;
             Speed = speed;
+            Kind = kind;
             _gaps = new int[capacity];
             _items = new BeltItem[capacity];
             _blockSizes = new int[capacity];
@@ -52,11 +69,63 @@ namespace Core.BeltTransport
             Speed = speed;
         }
 
+        // 搬出先を登録し、相手の搬入元へ自分を追加する。相手へは自分の搬出方向の反対を渡す
+        // Register the output target and add this segment to its inputs, passing the opposite of our output direction
+        public void ConnectTo(IBeltReceiver target, BeltDirection outputDirection)
+        {
+            target.AttachInput(this, BeltDirections.Opposite(outputDirection));
+            _outputDirection = outputDirection;
+            Output = target;
+        }
+
+        // 搬入元と接続方向を登録する。方向ごとに搬入元の登録番号を2bitで持ち、優先順は登録順によらない
+        // Register an input and its direction. Each direction keeps the input's slot in 2 bits; priority ignores registration order
+        public void AttachInput(IBeltSource source, BeltDirection inputDirection)
+        {
+            _inputs[_inputCount] = source;
+            _inputPorts |= _inputCount << ((int)inputDirection * 2);
+            _inputMask |= 1 << (int)inputDirection;
+            _inputCount++;
+        }
+
+        // 入口側の空き距離。最後尾が入口からはみ出している間は負
+        // Free length at the entrance. Negative while the last item still sticks out of the entrance
+        public int GetOffer(BeltDirection inputDirection)
+        {
+            return Length - TotalLength;
+        }
+
+        // 空き以下の進入距離なら、進入距離を保って末尾へ追加する
+        // When the entry length fits the offer, append at the tail keeping that entry length
+        public bool TryReceive(BeltDirection inputDirection, int length, in BeltItem item)
+        {
+            var offer = GetOffer(inputDirection);
+            if (length > offer) return false;
+            EnqueueTail(offer - length, item);
+            return true;
+        }
+
+        public bool TryGetOutput(BeltDirection inputDirection)
+        {
+            return OutputLength > 0;
+        }
+
         // 段階0。このtickの速度を固定する
         // Stage 0. Fix the speed used for this tick
         internal void BeginTick()
         {
             _tickSpeed = Speed;
+        }
+
+        // 段階4。段階3で受け取ったアイテムも含めて前進し、出口を越えた先頭を搬出先へ渡す
+        // Stage 4. Advance including items received in stage 3, handing the head past the exit to the output
+        internal void AdvanceAndTransfer()
+        {
+            var sent = false;
+            var length = OutputLength;
+            if (length > 0 && Output != null)
+                sent = Output.TryReceive(BeltDirections.Opposite(_outputDirection), length, _items[_head]);
+            Advance(sent);
         }
 
         // tick境界で、出口に近い順のアイテムと出口までの距離を複製する

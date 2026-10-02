@@ -95,14 +95,14 @@ namespace Tests.UnitTest.Core.BeltTransport
         [Test]
         public void 空の走行列は何もしない()
         {
-            var segment = new BeltConveyorSegment(3, 0);
+            var segment = CreateNormal(3, 0);
             Advance(segment, 128, false);
             AssertDistances(segment);
         }
 
         private static BeltConveyorSegment Build(int capacity, params int[] gaps)
         {
-            var segment = new BeltConveyorSegment(capacity, 0);
+            var segment = CreateNormal(capacity, 0);
             for (var i = 0; i < gaps.Length; i++) EnqueueTail(segment, gaps[i], MakeItem(i + 1));
             return segment;
         }

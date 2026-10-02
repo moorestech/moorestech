@@ -84,7 +84,7 @@ namespace Tests.UnitTest.Core.BeltTransport
 
         private static BeltConveyorSegment Build(int capacity, params int[] gaps)
         {
-            var segment = new BeltConveyorSegment(capacity, 0);
+            var segment = CreateNormal(capacity, 0);
             for (var i = 0; i < gaps.Length; i++) EnqueueTail(segment, gaps[i], MakeItem(i + 1));
             return segment;
         }

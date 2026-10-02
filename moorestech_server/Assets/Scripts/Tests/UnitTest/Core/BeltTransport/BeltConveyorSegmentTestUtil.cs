@@ -33,6 +33,13 @@ namespace Tests.UnitTest.Core.BeltTransport
             return new BeltItem(new ItemId(1), new ItemInstanceId(serial), BeltEntryDirection.FromBack);
         }
 
+        // 前方へ搬出する通常segmentを、優先順は向きから初期化して生成する
+        // Create a normal segment facing front, initializing its priority order from the direction
+        public static BeltConveyorSegment CreateNormal(int capacity, int speed)
+        {
+            return new BeltConveyorSegment(capacity, speed, BeltSegmentKind.Normal, BeltPriority.InitializeFromDirection, BeltDirection.Front);
+        }
+
         public static void EnqueueTail(BeltConveyorSegment segment, int gap, BeltItem item)
         {
             // inパラメータはby-ref型として解決する
@@ -114,7 +121,9 @@ namespace Tests.UnitTest.Core.BeltTransport
             }
         }
 
-        private static void BeginTickAt(BeltConveyorSegment segment, int tickSpeed)
+        // 速度を設定し、段階0としてこのtickの速度を固定する
+        // Set the speed and fix it for this tick as stage 0
+        public static void BeginTickAt(BeltConveyorSegment segment, int tickSpeed)
         {
             segment.SetSpeed(tickSpeed);
             RequireMethod(BeginTickMethodName).Invoke(segment, Array.Empty<object>());

@@ -10,7 +10,7 @@ namespace Tests.UnitTest.Core.BeltTransport
         [Test]
         public void 隙間付きで追加すると出口までの距離と占有長が積み上がる()
         {
-            var segment = new BeltConveyorSegment(4, 0);
+            var segment = CreateNormal(4, 0);
             Assert.AreEqual(4 * W, GetLength(segment));
 
             // 出口から100、密着、30空けて、密着の順に追加する
@@ -38,7 +38,7 @@ namespace Tests.UnitTest.Core.BeltTransport
         [Test]
         public void 空のsegmentは占有長も搬出長も0()
         {
-            var segment = new BeltConveyorSegment(3, 0);
+            var segment = CreateNormal(3, 0);
             Assert.AreEqual(0, segment.Count);
             Assert.AreEqual(0, GetTotalLength(segment));
             Assert.AreEqual(0, GetOutputLength(segment, BeltConstants.MaxSpeed));
@@ -48,7 +48,7 @@ namespace Tests.UnitTest.Core.BeltTransport
         [Test]
         public void 搬出長は速度から出口までの距離を引いた値()
         {
-            var segment = new BeltConveyorSegment(2, 0);
+            var segment = CreateNormal(2, 0);
             EnqueueTail(segment, 50, MakeItem(1));
             Assert.AreEqual(78, GetOutputLength(segment, 128));
             Assert.AreEqual(-10, GetOutputLength(segment, 40));
@@ -57,7 +57,7 @@ namespace Tests.UnitTest.Core.BeltTransport
         [Test]
         public void 捕捉して新しい走行列へ復元すると同じ状態になる()
         {
-            var source = new BeltConveyorSegment(6, 0);
+            var source = CreateNormal(6, 0);
             EnqueueTail(source, 0, MakeItem(1));
             EnqueueTail(source, 0, MakeItem(2));
             EnqueueTail(source, 17, MakeItem(3));
@@ -65,7 +65,7 @@ namespace Tests.UnitTest.Core.BeltTransport
             EnqueueTail(source, 0, MakeItem(5));
             var captured = source.CaptureItems();
 
-            var restored = new BeltConveyorSegment(6, 0);
+            var restored = CreateNormal(6, 0);
             restored.RestoreItems(captured);
             var recaptured = restored.CaptureItems();
 
@@ -84,10 +84,10 @@ namespace Tests.UnitTest.Core.BeltTransport
         public void 容量が範囲外なら例外()
         {
             var maxCapacity = (int.MaxValue - (W - 1)) / W;
-            Assert.Throws<ArgumentOutOfRangeException>(() => new BeltConveyorSegment(0, 0));
-            Assert.Throws<ArgumentOutOfRangeException>(() => new BeltConveyorSegment(-1, 0));
-            Assert.Throws<ArgumentOutOfRangeException>(() => new BeltConveyorSegment(maxCapacity + 1, 0));
-            Assert.AreEqual(1, new BeltConveyorSegment(1, 0).Capacity);
+            Assert.Throws<ArgumentOutOfRangeException>(() => CreateNormal(0, 0));
+            Assert.Throws<ArgumentOutOfRangeException>(() => CreateNormal(-1, 0));
+            Assert.Throws<ArgumentOutOfRangeException>(() => CreateNormal(maxCapacity + 1, 0));
+            Assert.AreEqual(1, CreateNormal(1, 0).Capacity);
         }
     }
 }

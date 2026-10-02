@@ -20,7 +20,7 @@ namespace Tests.UnitTest.Core.BeltTransport
         public void 乱数操作列でリストモデルと一致する(int capacity, int seed)
         {
             var random = new Random(seed);
-            var segment = new BeltConveyorSegment(capacity, 0);
+            var segment = CreateNormal(capacity, 0);
             var model = new List<(long serial, int front)>();
             long nextSerial = 1;
             var dequeuedCount = 0;
@@ -92,7 +92,7 @@ namespace Tests.UnitTest.Core.BeltTransport
                 // 再構築と同じく捕捉した状態を新しい走行列へ復元する
                 // Restore the captured state into a fresh segment as a rebuild does
                 var states = segment.CaptureItems();
-                segment = new BeltConveyorSegment(capacity, 0);
+                segment = CreateNormal(capacity, 0);
                 segment.RestoreItems(states);
             }
 
