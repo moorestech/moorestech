@@ -1,3 +1,4 @@
+using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
 using Client.Game.Common;
 using Client.Game.InGame.Block.Interact;
 using Client.Game.InGame.Context;
@@ -31,12 +32,16 @@ namespace Client.Game.InGame.Block
         
         public void SetRemovePreviewing()
         {
+            // ブロックと巻き込まれる線を赤くする
+            // Preview the block and its attached connections together
             BlockGameObject.SetRemovePreviewing();
+            ClientDIContext.BlockAttachedConnectionResolver.RequestCascadePreview(BlockGameObject);
         }
         
         public void ResetMaterial()
         {
             BlockGameObject.ResetMaterial();
+            ClientDIContext.BlockAttachedConnectionResolver.ReleaseCascadePreview(BlockGameObject);
         }
         
         public bool IsRemovable(out LocalizationKey? deniedReason)
@@ -51,6 +56,14 @@ namespace Client.Game.InGame.Block
             return true;
         }
         
+        public void CollectRemovedObjects(RemovedObjectCollector collector)
+        {
+            // 本体と付随する線を同じUndoへ記録する
+            // Record the block and cascaded connections in the same undo batch
+            collector.Add(RemovedBlock.From(BlockGameObject));
+            ClientDIContext.BlockAttachedConnectionResolver.CollectRemovedConnections(BlockGameObject, collector);
+        }
+
         public void Delete()
         {
             if (_isDeleteRequesting) return;

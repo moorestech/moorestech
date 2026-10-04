@@ -1,3 +1,4 @@
+using Client.Game.InGame.UI.Notification;
 using System.IO;
 using Client.Tests.Inventory;
 using Client.WebUiHost.Boot;
@@ -59,7 +60,7 @@ namespace Client.Tests.WebUi
             // 実topicへサーバー通知を流し、配信形とsnapshot再提示の両方をfixtureで固定する
             // Feed a server notification through the real topic and pin both the wire shape and the snapshot re-serve
             var vanillaApiEvent = new CapturingVanillaApiEvent();
-            var topic = new NotificationTopic(new WebSocketHub(), vanillaApiEvent);
+            var topic = new NotificationTopic(new WebSocketHub(), vanillaApiEvent, new ClientLocalNotificationSource());
             vanillaApiEvent.Dispatch(NotificationService.EventTag, MessagePackSerializer.Serialize(NotificationMessagePack.CreateSaveMigrationPruned(3, 4, 5)));
 
             AssertMatchesFixture(topic.GetSnapshotJsonAsync().GetAwaiter().GetResult(), "notification_save_migration.json");
@@ -71,10 +72,31 @@ namespace Client.Tests.WebUi
             // 除去告知以外は揮発。snapshotへ載せると購読し直しのたびに再表示される
             // Everything but the prune notice is transient; serving it in the snapshot would re-show it on every resubscribe
             var vanillaApiEvent = new CapturingVanillaApiEvent();
-            var topic = new NotificationTopic(new WebSocketHub(), vanillaApiEvent);
+            var topic = new NotificationTopic(new WebSocketHub(), vanillaApiEvent, new ClientLocalNotificationSource());
             vanillaApiEvent.Dispatch(NotificationService.EventTag, MessagePackSerializer.Serialize(NotificationMessagePack.CreateOperationDenied("denied.miningInventoryFull", System.Array.Empty<string>())));
 
             Assert.AreEqual("{}", topic.GetSnapshotJsonAsync().GetAwaiter().GetResult());
+        }
+
+        [Test]
+        public void LocalUndoNotificationIsPublishedAndUnsubscribedOnDispose()
+        {
+            var hub = new WebSocketHub();
+            var source = new ClientLocalNotificationSource();
+            var topic = new NotificationTopic(hub, new CapturingVanillaApiEvent(), source);
+            var message = NotificationMessagePack.CreateOperationDenied("denied.undoRestoreSkipped", new[] { "2" });
+
+            // ローカル拒否も配信されるが再購読では再生しない
+            // Local refusals publish but are not replayed upon resubscription
+            source.Notify(message);
+            Assert.AreEqual(1, hub.GetTopicRevision(NotificationTopic.TopicName));
+            Assert.AreEqual("{}", topic.GetSnapshotJsonAsync().GetAwaiter().GetResult());
+
+            // topicの再登録で古いローカル購読が残らない
+            // Rebinding a topic must not leave its old local subscription active
+            topic.Dispose();
+            source.Notify(message);
+            Assert.AreEqual(1, hub.GetTopicRevision(NotificationTopic.TopicName));
         }
 
         private static void AssertMatchesFixture(object dto, string fixtureName)

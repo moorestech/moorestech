@@ -1,5 +1,5 @@
 using Client.Game.InGame.Block;
-using Game.Block.Blocks.ConnectionLine;
+using Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine;
 using Client.Game.InGame.BlockSystem.StateProcessor.GearPole;
 using Game.Block.Blocks.GearChainPole;
 using Server.Event.EventReceive;
@@ -27,13 +27,13 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
             var state = blockState.GetStateDetail<GearChainPoleStateDetail>(GearChainPoleStateDetail.BlockStateDetailKey);
             if (state == null) return;
 
-            // 接続先InstanceIdを配列に変換
-            // Convert partner instance IDs to array
-            var partnerInstanceIds = ConnectionLinePartnerMessagePack.ToPartnerIds(state.Partners);
+            // 接続先と引いた種類を受け取る
+            // Receive partner IDs and their connect tool kinds
+            var partners = ConnectionLinePartner.FromMessagePacks(state.Partners);
 
             // ライン表示を更新
             // Update line display
-            chainLineView.UpdateConnectionLines(partnerInstanceIds);
+            chainLineView.UpdateConnectionLines(partners);
         }
     }
 }

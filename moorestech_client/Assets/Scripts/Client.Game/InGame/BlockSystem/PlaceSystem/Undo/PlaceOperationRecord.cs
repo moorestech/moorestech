@@ -1,3 +1,4 @@
+using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
 using System.Collections.Generic;
 using System.Threading;
 using Client.Game.InGame.Block;
@@ -45,7 +46,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
         ///     設置の取り消し。同座標同BlockIdの現存セルだけを撤去する（設置失敗・他者変更セルの誤爆防止）
         ///     Undo the placement by removing only cells still holding the same BlockId (avoids nuking failed or replaced cells)
         /// </summary>
-        public async UniTask UndoAsync(BlockGameObjectDataStore blockGameObjectDataStore)
+        public async UniTask UndoAsync(IBlockOccupancyQuery occupancy)
         {
             foreach (var cell in _cells)
             {
@@ -57,7 +58,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
 
             bool IsSameBlockAlive(PlacedCell cell)
             {
-                if (!blockGameObjectDataStore.TryGetBlockGameObject(cell.Position, out var blockGameObject)) return false;
+                if (!ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(cell.Position, out var blockGameObject)) return false;
                 return blockGameObject.BlockId.Equals(cell.BlockId);
             }
 

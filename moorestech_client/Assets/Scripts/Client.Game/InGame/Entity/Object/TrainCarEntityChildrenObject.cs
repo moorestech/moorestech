@@ -1,3 +1,4 @@
+using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
 using Client.Game.Common;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Train.View.Object.Core;
@@ -40,6 +41,12 @@ namespace Client.Game.InGame.Entity.Object
         {
             deniedReason = null;
             return true;
+        }
+
+        // 車両の撤去はUndo対象外（ADR 0076の範囲外）なので何も積まない
+        // Train car removal is outside undo (out of ADR 0076 scope), so nothing is appended
+        public void CollectRemovedObjects(RemovedObjectCollector collector)
+        {
         }
 
         public void Delete()

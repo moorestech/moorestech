@@ -1,3 +1,4 @@
+using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
 using System;
 using Client.Game.Common;
 using Client.Game.InGame.Context;
@@ -35,11 +36,11 @@ namespace Client.Game.InGame.Train.RailGraph
 
         public void SetRemovePreviewing()
         {
-            RailChain.SetRemovePreviewing();
+            RailChainRemovePreview.Of(RailChain).RequestRemovePreview(this);
         }
         public void ResetMaterial()
         {
-            RailChain.ResetMaterial();
+            RailChainRemovePreview.Of(RailChain).ReleaseRemovePreview(this);
         }
         
         public bool IsRemovable(out LocalizationKey? deniedReason)
@@ -59,15 +60,43 @@ namespace Client.Game.InGame.Train.RailGraph
             return canDelete == DeleteDeniedReason.None;
         }
         
+        public void CollectRemovedObjects(RemovedObjectCollector collector)
+        {
+            // レールIDはcanonical区間なのでそのまま記録へ写す。無償区間は設計上記録せず、未同期・駅内部は記録不能として数える
+            // The rail object id is already canonical; free segments are skipped by design, unsynced/station-internal count as unrecordable
+            var (fromId, toId) = RailObjectIdCodec.Decode(RailObjectIdCarrier.GetRailObjectId());
+            var result = RemovedRail.Create(_railGraphClientCache, fromId, toId);
+            switch (result.Outcome)
+            {
+                case RemovedRailCreateOutcome.Created:
+                    collector.Add(result.Rail);
+                    break;
+                case RemovedRailCreateOutcome.FreeSegment:
+                    break;
+                default:
+                    collector.AddUnrecordable($"rail edge {fromId}->{toId}: {result.Outcome}");
+                    break;
+            }
+        }
+
         public void Delete()
         {
             var carrier = RailObjectIdCarrier;
             var railObjectId = carrier.GetRailObjectId();
-            var fromId = unchecked((int)(uint)railObjectId);
-            var toId = unchecked((int)(uint)(railObjectId >> 32));
+            var (fromId, toId) = RailObjectIdCodec.Decode(railObjectId);
             
-            if (!_railGraphClientCache.TryGetNode(fromId, out var fromNode)) return;
-            if (!_railGraphClientCache.TryGetNode(toId, out var toNode)) return;
+            // 未同期の端点で切断できない理由を残す
+            // Report which unsynced endpoint prevents the disconnect request
+            if (!_railGraphClientCache.TryGetNode(fromId, out var fromNode))
+            {
+                Debug.LogWarning($"[RailDelete] endpoint node not found: node={fromId} edge={fromId}->{toId}");
+                return;
+            }
+            if (!_railGraphClientCache.TryGetNode(toId, out var toNode))
+            {
+                Debug.LogWarning($"[RailDelete] endpoint node not found: node={toId} edge={fromId}->{toId}");
+                return;
+            }
             
             ClientContext.VanillaApi.SendOnly.DisconnectRail(fromNode.NodeId, fromNode.NodeGuid, toNode.NodeId, toNode.NodeGuid);
         }
@@ -91,25 +120,16 @@ namespace Client.Game.InGame.Train.RailGraph
             if (RailChain.IsRemoving) return DeleteDeniedReason.Removed;
             
             var railObjectId = RailObjectIdCarrier.GetRailObjectId();
-            var fromId = unchecked((int)(uint)railObjectId);
-            var toId = unchecked((int)(uint)(railObjectId >> 32));
+            var (fromId, toId) = RailObjectIdCodec.Decode(railObjectId);
             
             if (!_railGraphClientCache.TryGetNode(fromId, out var fromNode)) return DeleteDeniedReason.UnknownError;
             if (!_railGraphClientCache.TryGetNode(toId, out var toNode)) return DeleteDeniedReason.UnknownError;
             
-            if (IsStationInternalEdge(fromNode, toNode)) return DeleteDeniedReason.StationInternalEdge;
+            if (RailEdgeClassifier.IsStationInternalEdge(fromNode, toNode)) return DeleteDeniedReason.StationInternalEdge;
             
             return DeleteDeniedReason.None;
         }
         
-        private bool IsStationInternalEdge(IRailNode from, IRailNode to)
-        {
-            if (!from.StationRef.HasStation || !to.StationRef.HasStation)
-            {
-                return false;
-            }
-            return from.StationRef.StationBlockInstanceId.Equals(to.StationRef.StationBlockInstanceId);
-        }
         
         public enum DeleteDeniedReason
         {

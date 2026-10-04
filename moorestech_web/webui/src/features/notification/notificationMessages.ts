@@ -4,6 +4,7 @@ import { L, buildPositionalInterpolationValues, challengeTitleKey, researchNameK
 import type { GameNotification } from "./notificationStore";
 
 const notificationKeys = new Map<string, TranslationKey>([
+  ["denied.undoRestoreSkipped", L.ui.notification.undoRestoreSkipped],
   ["achievement.researchCompleted", L.ui.notification.researchCompleted],
   ["achievement.challengeCompleted", L.ui.notification.challengeCompleted],
   ["achievement.unlockedItem", L.ui.notification.unlockedItem],

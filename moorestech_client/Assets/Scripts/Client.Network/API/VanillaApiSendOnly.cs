@@ -17,12 +17,12 @@ using static Server.Protocol.PacketResponse.TrainCarRidingInputProtocol;
 
 namespace Client.Network.API
 {
-    public class VanillaApiSendOnly
+    public class VanillaApiSendOnly : VanillaConnectionLineCommandApi
     {
         private readonly PacketSender _packetSender;
         public HotbarCommandApi Hotbar { get; }
         
-        public VanillaApiSendOnly(PacketSender packetSender)
+        public VanillaApiSendOnly(PacketSender packetSender) : base(packetSender)
         {
             _packetSender = packetSender;
             Hotbar = new HotbarCommandApi(packetSender);
@@ -156,34 +156,6 @@ namespace Client.Network.API
         public void SubscribeInventory(InventoryIdentifierMessagePack identifier, bool isSubscribe)
         {
             var request = new SubscribeInventoryRequestMessagePack(identifier, isSubscribe);
-            _packetSender.Send(request);
-        }
-
-        /// <summary>
-        /// ギアチェーンポール間の接続を作成する
-        /// Create a connection between GearChainPoles
-        /// </summary>
-        public void ConnectGearChain(Vector3Int posA, Vector3Int posB, Guid connectToolGuid)
-        {
-            var request = GearChainConnectionEditRequest.CreateConnectRequest(posA, posB, connectToolGuid);
-            _packetSender.Send(request);
-        }
-
-        // ポール間の記録済み素材を返す切断を要求する
-        // Request a disconnect that refunds the recorded pole connection materials
-        public void DisconnectGearChain(Vector3Int posA, Vector3Int posB)
-        {
-            var request = GearChainConnectionEditRequest.CreateDisconnectRequest(posA, posB);
-            _packetSender.Send(request);
-        }
-
-        /// <summary>
-        /// 電気系ブロック間の電線を切断する
-        /// Disconnect an electric wire between electric blocks
-        /// </summary>
-        public void DisconnectElectricWire(Vector3Int posA, Vector3Int posB)
-        {
-            var request = ElectricWireDisconnectProtocol.ElectricWireDisconnectRequest.CreateDisconnectRequest(posA, posB);
             _packetSender.Send(request);
         }
 

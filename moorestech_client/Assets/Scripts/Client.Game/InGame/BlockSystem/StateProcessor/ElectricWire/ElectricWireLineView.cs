@@ -10,6 +10,11 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
     {
         private const string WireLinePrefabAddress = "Vanilla/Block/Util/ElectricWireLine";
 
+        protected override ConnectionLineKind GetLineKind()
+        {
+            return ConnectionLineKind.ElectricWire;
+        }
+
         protected override string GetLinePrefabAddress()
         {
             return WireLinePrefabAddress;

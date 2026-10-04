@@ -1,3 +1,4 @@
+using Client.Common;
 using Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine;
 using Client.Game.InGame.Context;
 using Game.Block.Interface;
@@ -12,6 +13,8 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.GearPole
     public class GearChainPoleChainLineViewElement : MonoBehaviour, IConnectionLineViewElement
     {
         private const float LineSpacing = 0.1f;
+        private const int CapsuleDirectionYAxis = 1;
+        private const float ColliderRadius = 0.08f;
 
         [SerializeField] private LineRenderer lineRenderer1;
         [SerializeField] private LineRenderer lineRenderer2;
@@ -24,8 +27,12 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.GearPole
         {
             // BlockGameObjectDataStoreから座標を取得
             // Get positions from BlockGameObjectDataStore
-            if (!ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(startInstanceId, out var startBlock)) return;
-            if (!ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(endInstanceId, out var endBlock)) return;
+            if (!ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(startInstanceId, out var startBlock) ||
+                !ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(endInstanceId, out var endBlock))
+            {
+                Debug.LogWarning($"[GearChainLine] endpoint block not found: from={startInstanceId} to={endInstanceId}");
+                return;
+            }
 
             // ブロックの中心座標を計算
             // Calculate block center positions
@@ -51,6 +58,29 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.GearPole
             lineRenderer2.positionCount = 2;
             lineRenderer2.SetPosition(0, startPos - offset);
             lineRenderer2.SetPosition(1, endPos - offset);
+
+            // 削除ツールが狙えるよう、両端を結ぶトリガーカプセルを接続線レイヤーに置く
+            // Place a trigger capsule spanning both ends on the connection-line layer so the delete tool can aim at it
+            BuildCollider(startPos, endPos);
+
+            #region Internal
+
+            void BuildCollider(Vector3 start, Vector3 end)
+            {
+                var colliderObject = new GameObject("ChainCollider");
+                colliderObject.layer = LayerConst.ConnectionLineLayer;
+                colliderObject.transform.SetParent(transform, false);
+                colliderObject.transform.position = (start + end) * 0.5f;
+                colliderObject.transform.rotation = Quaternion.FromToRotation(Vector3.up, end - start);
+
+                var capsule = colliderObject.AddComponent<CapsuleCollider>();
+                capsule.isTrigger = true;
+                capsule.direction = CapsuleDirectionYAxis;
+                capsule.radius = ColliderRadius;
+                capsule.height = Vector3.Distance(start, end);
+            }
+
+            #endregion
         }
     }
 }

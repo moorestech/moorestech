@@ -129,6 +129,7 @@ ui.notification.gearChainConnectNoItem,Chain connection failed: not enough chain
 ui.notification.itemEarned,{itemName} +{count},{itemName} +{count},{itemName} +{count},{itemName} +{count},{itemName} +{count}
 ui.notification.unknownMessage,Unknown notification: {messageId},Unknown notification: {messageId},不明な通知: {messageId},Unbekannte Benachrichtigung: {messageId},알 수 없는 알림: {messageId}
 ui.notification.saveMigrationMissingMasterPruned,"Removed data missing from this version: {p0} blocks, {p1} item stacks, {p2} research","Removed data missing from this version: {p0} blocks, {p1} item stacks, {p2} research",このバージョンに無くなったデータを取り除きました: ブロック{p0}個・アイテム{p1}枠・研究{p2}件,"Nicht mehr vorhandene Daten entfernt: {p0} Blöcke, {p1} Gegenstandsstapel, {p2} Forschungen","이 버전에 없는 데이터를 제거했습니다: 블록 {p0}개, 아이템 스택 {p1}개, 연구 {p2}개"
+ui.notification.undoRestoreSkipped,Undo could not restore {p0} removed objects,Undo could not restore {p0} removed objects,元に戻せなかった撤去物が{p0}件あります,{p0} entfernte Objekte konnten nicht wiederhergestellt werden,되돌리지 못한 철거물이 {p0}개 있습니다
 ui.pauseMenu.title,Pause Menu,Pause Menu,ポーズメニュー,Pausenmenü,일시정지 메뉴
 ui.pauseMenu.disconnected,Disconnected from server,Disconnected from server,サーバーから切断されました,Verbindung zum Server getrennt,서버와의 연결이 끊어졌습니다
 ui.pauseMenu.settings,Settings,Settings,設定,Einstellungen,설정

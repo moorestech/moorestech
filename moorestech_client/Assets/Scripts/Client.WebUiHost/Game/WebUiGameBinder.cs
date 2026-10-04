@@ -104,7 +104,7 @@ namespace Client.WebUiHost.Game
 
             // 通知トピックを登録
             // Register the notification topic
-            hub.RegisterTopic(NotificationTopic.TopicName, new NotificationTopic(hub, ClientContext.VanillaApi.Event));
+            hub.RegisterTopic(NotificationTopic.TopicName, new NotificationTopic(hub, ClientContext.VanillaApi.Event, ClientDIContext.ClientLocalNotificationSource));
 
             // ゲーム内ツールチップ状態を Web へ接続する
             // Connect the in-game tooltip state to the web

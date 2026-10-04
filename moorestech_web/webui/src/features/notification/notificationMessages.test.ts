@@ -3,6 +3,16 @@ import { L } from "@/shared/i18n";
 import { resolveNotificationKey, resolveNotificationParams, buildInterpolationValues, resolveNotificationText } from "./notificationMessages";
 
 describe("notificationMessages", () => {
+  it("撤去Undoの取りこぼし件数を通知文言へ渡す", () => {
+    expect(resolveNotificationText(
+      { category: "operationDenied", messageId: "denied.undoRestoreSkipped", messageParams: ["2"], itemId: null, id: 1, lifetimeEpoch: 0 },
+      (key: string) => `resolved:${key}`,
+      (itemId: number) => `item:${itemId}`,
+    )).toEqual({
+      key: L.ui.notification.undoRestoreSkipped,
+      values: { messageId: "denied.undoRestoreSkipped", p0: "2" },
+    });
+  });
   it("既知のmessageIdは型付きキーを返す", () => {
     expect(resolveNotificationKey("denied.craftMaterialShortage")).toBe(
       L.ui.notification.craftMaterialShortage,

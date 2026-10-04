@@ -1,3 +1,4 @@
+using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
 using Mooresmaster.Localization.Generated;
 
 namespace Client.Game.InGame.UI.UIState.State
@@ -31,6 +32,10 @@ namespace Client.Game.InGame.UI.UIState.State
         ///     Delete the target object
         /// </summary>
         void Delete();
+
+        // 自身と撤去に巻き込まれる物を削除送信前に記録する
+        // Record self and objects removed alongside it before sending deletion
+        void CollectRemovedObjects(RemovedObjectCollector collector);
 
         /// <summary>
         ///     論理削除対象を一意に表すキー（同一機械・車両・レールedgeの重複選択を排除するため）

@@ -1,3 +1,4 @@
+using Client.Common;
 using Client.Game.InGame.Control;
 using Client.Input;
 using UnityEngine;
@@ -44,7 +45,9 @@ namespace Client.Game.InGame.UI.Tooltip
             
             var mousePosition = InputManager.Playable.ClickPosition.ReadValue<Vector2>();
             var ray = meinCamera.ScreenPointToRay(mousePosition);
-            if (!Physics.Raycast(ray, out var hit, 100)) return false;
+            // 接続線は当たり判定だけでツールチップを持たないため、奥の対象を遮らないよう除外する
+            // Connection lines carry hit colliders but no tooltip, so exclude them to avoid occluding targets behind
+            if (!Physics.Raycast(ray, out var hit, 100, ~LayerConst.ConnectionLineOnlyLayerMask)) return false;
             
             if (!hit.collider.gameObject.TryGetComponent<GameObjectTooltipTarget>(out var enterTarget)) return false;
             

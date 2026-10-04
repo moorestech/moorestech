@@ -10,6 +10,11 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.GearPole
     {
         private const string ChainLinePrefabAddress = "Vanilla/Block/Util/GearChainLine";
 
+        protected override ConnectionLineKind GetLineKind()
+        {
+            return ConnectionLineKind.GearChain;
+        }
+
         protected override string GetLinePrefabAddress()
         {
             return ChainLinePrefabAddress;

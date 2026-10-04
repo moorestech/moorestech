@@ -1,15 +1,14 @@
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
-using Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire;
 using Client.Game.InGame.Control;
 using Client.Input;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
 {
     /// <summary>
-    /// 起点未選択時の挙動。電気系ブロックの起点選択・ワイヤークリック切断・電柱の孤立設置を処理する
-    /// Behavior while no origin is selected: source selection, click-to-disconnect on wires, and isolated pole placement
+    /// 起点未選択時の挙動。電気系ブロックの起点選択・電柱の孤立設置を処理する（切断は削除ツールが担う）
+    /// Behavior while no origin is selected: source selection and isolated pole placement (cutting belongs to the delete tool)
     /// </summary>
     public class ElectricWireEditMode
     {
@@ -21,8 +20,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
         }
 
         /// <summary>
-        /// 起点未選択の1フレーム更新。選択できた起点ブロックを返す（切断・孤立設置・未選択時はnull）
-        /// One-frame update while no origin is selected; returns the newly selected origin block (null on disconnect, isolated placement or none)
+        /// 起点未選択の1フレーム更新。選択できた起点ブロックを返す（孤立設置・未選択時はnull）
+        /// One-frame update while no origin is selected; returns the newly selected origin block (null on isolated placement or none)
         /// </summary>
         public BlockGameObject Update(PlacementFeedback feedback)
         {
@@ -31,14 +30,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
             _context.WirePreview.SetActive(false);
 
             var isClicked = InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi();
-
-            // ワイヤーを優先判定し、クリックでヒットしたら切断する
-            // Prioritize wires; disconnect when one is hit by a click
-            if (isClicked && BlockClickDetectUtil.TryGetCursorOnElectricWire(out var wire))
-            {
-                Disconnect(wire);
-                return null;
-            }
 
             // 電気系ブロックにホバー中はゴーストを消し、クリックで起点として選択する（ExtendMode.ConnectToTargetと同じ規則）
             // While hovering an electric block, hide the ghost and select it as origin on click, matching ExtendMode.ConnectToTarget
@@ -76,18 +67,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
             void HideGhost()
             {
                 _context.PreviewBlockController.SetActive(false);
-            }
-
-            void Disconnect(ElectricWireLineViewElement wireElement)
-            {
-                // 両端Idを座標解決し切断要求を送る
-                // Resolve both endpoint InstanceIds to positions and send the disconnect request
-                if (!_context.BlockDataStore.TryGetBlockGameObject(wireElement.FromId, out var fromBlock)) return;
-                if (!_context.BlockDataStore.TryGetBlockGameObject(wireElement.ToId, out var toBlock)) return;
-
-                var fromPos = fromBlock.BlockPosInfo.OriginalPos;
-                var toPos = toBlock.BlockPosInfo.OriginalPos;
-                _context.RequestSender.Disconnect(fromPos, toPos);
             }
 
             #endregion

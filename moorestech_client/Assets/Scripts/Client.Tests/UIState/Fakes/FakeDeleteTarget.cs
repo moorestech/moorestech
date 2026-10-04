@@ -1,3 +1,5 @@
+using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
+using System.Collections.Generic;
 using Client.Game.Common;
 using Client.Game.InGame.UI.UIState.State;
 using Mooresmaster.Localization.Generated;
@@ -37,9 +39,25 @@ namespace Client.Tests.UIState.Fakes
             return Removable;
         }
 
+        // CollectRemovedObjectsで返す撤去物と記録できなかった理由（未設定なら何も記録しない）
+        // Removed objects and unrecordable reasons reported by CollectRemovedObjects (records nothing when empty)
+        public readonly List<IRemovedObject> RemovedObjects = new();
+        public readonly List<string> UnrecordableReasons = new();
+
+        public void CollectRemovedObjects(RemovedObjectCollector collector)
+        {
+            foreach (var removedObject in RemovedObjects) collector.Add(removedObject);
+            foreach (var reason in UnrecordableReasons) collector.AddUnrecordable(reason);
+        }
+
         public void Delete()
         {
             DeleteCount++;
+
+            // 削除後は端点情報を読めなくなる状況を再現する
+            // Simulate endpoint information becoming unavailable after deletion
+            RemovedObjects.Clear();
+            UnrecordableReasons.Clear();
         }
 
         public object GetDeleteTargetKey()

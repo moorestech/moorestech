@@ -1,3 +1,4 @@
+using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem;
@@ -13,7 +14,7 @@ using UnityEngine;
 
 namespace Client.Game.InGame.Block
 {
-    public class BlockGameObjectDataStore : MonoBehaviour, ISkitBlockObjectControl
+    public class BlockGameObjectDataStore : MonoBehaviour, ISkitBlockObjectControl, IBlockOccupancyQuery
     {
         public IReadOnlyDictionary<Vector3Int, BlockGameObject> BlockGameObjectDictionary => _blockObjectsDictionary;
         private readonly Dictionary<Vector3Int, BlockGameObject> _blockObjectsDictionary = new();
