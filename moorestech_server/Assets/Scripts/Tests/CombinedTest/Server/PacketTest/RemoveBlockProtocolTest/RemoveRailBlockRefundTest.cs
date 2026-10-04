@@ -96,7 +96,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 駅内部の区間はGuid.Emptyで張られるため返却対象にならない
             // Station-internal segments carry Guid.Empty, so they are never refunded
             var station = TrainTestHelper.PlaceBlock(_environment, ForUnitTestModBlockId.TestTrainStation, Vector3Int.zero, BlockDirection.North);
-            Assert.IsTrue(RailRemovalRefundCalculator.TryCreateRefundItems(station, _environment.GetRailGraphDatastore(), out var refundItems));
+            var refundItems = RailRemovalRefundCalculator.CreateRefundItems(station, _environment.GetRailGraphDatastore());
 
             Assert.AreEqual(0, refundItems.Count);
         }
