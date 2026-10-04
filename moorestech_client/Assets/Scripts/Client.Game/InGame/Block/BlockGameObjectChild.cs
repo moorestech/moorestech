@@ -60,7 +60,7 @@ namespace Client.Game.InGame.Block
         {
             // 本体と付随する線を同じUndoへ記録する
             // Record the block and cascaded connections in the same undo batch
-            collector.Add(RemovedBlock.From(BlockGameObject));
+            RemovedBlock.Capture(BlockGameObject, collector);
             ClientDIContext.BlockAttachedConnectionResolver.CollectRemovedConnections(BlockGameObject, collector);
         }
 

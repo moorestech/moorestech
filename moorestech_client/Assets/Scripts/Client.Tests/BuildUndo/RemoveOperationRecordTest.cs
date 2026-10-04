@@ -41,7 +41,7 @@ namespace Client.Tests.BuildUndo
             var currentState = new FakeConnectionLineCurrentState();
             var line = new RemovedConnectionLine(ConnectionLineKind.ElectricWire, posA, posB, guid, currentState);
             var sameLineReversed = new RemovedConnectionLine(ConnectionLineKind.ElectricWire, posB, posA, guid, currentState);
-            var block = new RemovedBlock(posA, ForUnitTestModBlockId.MachineId, BlockDirection.North);
+            var block = new RemovedBlock(posA, ForUnitTestModBlockId.MachineId, BlockDirection.North, Array.Empty<BlockCreateParam>());
             var targets = new List<IDeleteTarget>
             {
                 new FakeDeleteTarget { RemovedObjects = { line } },
@@ -62,7 +62,7 @@ namespace Client.Tests.BuildUndo
             // 占有済みセルは再設置しないが、線の引き直しは送る（サーバーが端点不在を判定する）
             // An occupied cell is not re-placed, but the line restore is still sent (the server judges missing endpoints)
             var guid = Guid.NewGuid();
-            var block = new RemovedBlock(Vector3Int.zero, ForUnitTestModBlockId.MachineId, BlockDirection.North);
+            var block = new RemovedBlock(Vector3Int.zero, ForUnitTestModBlockId.MachineId, BlockDirection.North, Array.Empty<BlockCreateParam>());
             var chain = new RemovedConnectionLine(ConnectionLineKind.GearChain, Vector3Int.zero, new Vector3Int(3, 0, 0), guid, new FakeConnectionLineCurrentState());
             var sender = new FakeRemovalRestoreSender();
             var record = RemoveOperationRecord.CreateFrom(new List<IDeleteTarget> { new FakeDeleteTarget { RemovedObjects = { block, chain } } }, sender);

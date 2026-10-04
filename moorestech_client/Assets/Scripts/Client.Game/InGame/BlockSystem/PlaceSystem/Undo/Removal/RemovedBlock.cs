@@ -1,6 +1,7 @@
 using Server.Protocol.PacketResponse;
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.Block.Removal;
 using Core.Master;
 using Game.Block.Interface;
 using UnityEngine;
@@ -8,25 +9,41 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
 {
     /// <summary>
-    ///     撤去したブロック1つ。復元は占有範囲が空いているときだけ再設置する（CreateParamsは復元不可のため空）
-    ///     One removed block; restored only when its footprint is free (CreateParams cannot be restored, so empty)
+    ///     撤去したブロック1つ。占有範囲が空いていれば記録した生成パラメータで再設置する
+    ///     One removed block; re-placed with captured creation parameters when its footprint is free
     /// </summary>
     public class RemovedBlock : IRemovedObject
     {
         private readonly Vector3Int _position;
         private readonly BlockId _blockId;
         private readonly BlockDirection _direction;
+        private readonly BlockCreateParam[] _createParams;
 
-        public RemovedBlock(Vector3Int position, BlockId blockId, BlockDirection direction)
+        public RemovedBlock(Vector3Int position, BlockId blockId, BlockDirection direction, BlockCreateParam[] createParams)
         {
             _position = position;
             _blockId = blockId;
             _direction = direction;
+            _createParams = createParams;
         }
 
-        public static RemovedBlock From(BlockGameObject block)
+        public static void Capture(BlockGameObject block, RemovedObjectCollector collector)
         {
-            return new RemovedBlock(block.BlockPosInfo.OriginalPos, block.BlockId, block.BlockPosInfo.BlockDirection);
+            // 部品が必要な生成値をまだ持たない場合は、不完全な再設置を記録しない
+            // Do not record an incomplete replacement when a component lacks required creation data
+            var createParams = new List<BlockCreateParam>();
+            foreach (var source in block.GetComponentsInChildren<IBlockRecreateParamSource>(true))
+            {
+                var sourceParams = source.GetBlockRecreateParams();
+                if (sourceParams.Length == 0)
+                {
+                    collector.AddUnrecordable($"block at {block.BlockPosInfo.OriginalPos}: {source.GetType().Name} has no recreate params");
+                    return;
+                }
+                createParams.AddRange(sourceParams);
+            }
+
+            collector.Add(new RemovedBlock(block.BlockPosInfo.OriginalPos, block.BlockId, block.BlockPosInfo.BlockDirection, createParams.ToArray()));
         }
 
         public object RestoreKey => _position;
@@ -49,6 +66,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
                 VerticalDirection = ToVerticalDirection(_direction),
                 BlockId = _blockId,
                 Placeable = true,
+                CreateParams = _createParams,
             });
             return BlockRestoreOutcome.Appended;
         }
