@@ -36,6 +36,25 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
     {
         public static readonly System.Guid TestConnectToolGuid = System.Guid.NewGuid();
 
+        public static GearChainPoleChainConnectInput CreateConnectablePairInput(FakeGearChainPole sourcePole)
+        {
+            // 起点と命中ポールが接続可能な標準入力を作る
+            // Build a standard input where the source and hit pole are connectable
+            var hitPole = new FakeGearChainPole(new Vector3Int(5, 0, 5));
+            var sourcePos = sourcePole.GetBlockPosition();
+            var hitPos = hitPole.GetBlockPosition();
+            return new GearChainPoleChainConnectInput
+            {
+                HitPole = hitPole,
+                SourcePole = sourcePole,
+                ConnectToolGuid = TestConnectToolGuid,
+                SourcePolePos = sourcePos,
+                SourcePoleCenter = sourcePos + new Vector3(0.5f, 0.5f, 0.5f),
+                HitPolePos = hitPos,
+                PoleToPolePreview = new GearChainPoleExtendPreviewData(sourcePos + new Vector3(0.5f, 0.5f, 0.5f), hitPos + new Vector3(0.5f, 0.5f, 0.5f), GearChainPlacementJudgement.Success(default), Array.Empty<ConstructionMaterialShortage>()),
+            };
+        }
+
         public static GearChainPolePlaceExtendInput CreateGhostReadyInput(FakeGearChainPole sourcePole)
         {
             // 標準の評価済み入力を作る

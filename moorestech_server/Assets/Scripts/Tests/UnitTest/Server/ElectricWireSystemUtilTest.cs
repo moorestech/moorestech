@@ -137,7 +137,7 @@ namespace Tests.UnitTest.Server
             var inventory = GiveWire(5);
 
             ElectricWireSystemUtil.TryConnect(posA, posB, PlayerId, ConnectToolGuid, out _);
-            var disconnected = ElectricWireSystemUtil.TryDisconnect(posA, posB, PlayerId, out var error);
+            var disconnected = ElectricWireDisconnectUtil.TryDisconnect(posA, posB, PlayerId, out var error);
 
             Assert.IsTrue(disconnected);
             Assert.AreEqual(ElectricWirePlacementFailureReason.None, error);
@@ -155,7 +155,7 @@ namespace Tests.UnitTest.Server
             var posB = new Vector3Int(3, 0, 0);
             PlaceTwoPoles(posA, posB);
 
-            var disconnected = ElectricWireSystemUtil.TryDisconnect(posA, posB, PlayerId, out var error);
+            var disconnected = ElectricWireDisconnectUtil.TryDisconnect(posA, posB, PlayerId, out var error);
 
             Assert.IsFalse(disconnected);
             Assert.AreEqual(ElectricWirePlacementFailureReason.NotConnected, error);

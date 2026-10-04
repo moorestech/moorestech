@@ -1,7 +1,6 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using Client.Game.InGame.Block;
+using Game.Block.Blocks.ConnectionLine;
 using Game.Block.Blocks.ElectricWire;
 using Game.Block.Interface;
 using Server.Event.EventReceive;
@@ -40,9 +39,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
 
             // 接続先InstanceIdを配列に変換する
             // Convert partner instance IDs to an array
-            var partnerInstanceIds = state.PartnerBlockInstanceIds?
-                .Select(id => new BlockInstanceId(id))
-                .ToArray() ?? Array.Empty<BlockInstanceId>();
+            var partnerInstanceIds = ConnectionLinePartnerMessagePack.ToPartnerIds(state.Partners);
 
             // 接続先ID集合を最新状態へ置き換える
             // Replace the partner ID set with the latest state

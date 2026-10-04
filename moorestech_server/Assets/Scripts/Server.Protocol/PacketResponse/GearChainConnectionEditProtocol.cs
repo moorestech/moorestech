@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Core.Master;
+using Server.Event.Notification;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Protocol.PacketResponse.Util.GearChain;
@@ -13,8 +13,11 @@ namespace Server.Protocol.PacketResponse
     {
         public const string Tag = "va:gearChainConnectionEdit";
 
+        private readonly NotificationService _notificationService;
+
         public GearChainConnectionEditProtocol(ServiceProvider serviceProvider)
         {
+            _notificationService = serviceProvider.GetService<NotificationService>();
         }
 
         public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
@@ -39,10 +42,23 @@ namespace Server.Protocol.PacketResponse
                 switch (data.Mode)
                 {
                     case ChainEditMode.Connect:
-                        success = GearChainSystemUtil.TryConnect(data.PosAVector, data.PosBVector, requesterPlayerId, data.ConnectToolGuid, out error);
+                        success = GearChainSystemUtil.TryConnect(data.PosAVector, data.PosBVector, requesterPlayerId, data.ConnectToolGuid, out var connectFailure);
+                        error = success ? string.Empty : connectFailure.ToString();
+                        // 応答を待たない接続元へ拒否を通知する
+                        // Notify send-only connection callers of refusals
+                        if (!success) _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied($"denied.gearChainConnect.{connectFailure}", Array.Empty<string>()));
+                        break;
+
+                    case ChainEditMode.Disconnect:
+                        success = GearChainSystemUtil.TryDisconnect(data.PosAVector, data.PosBVector, requesterPlayerId, out var disconnectFailure);
+                        error = success ? string.Empty : disconnectFailure.ToString();
+                        // 返却不能などの拒否を要求者へ通知する
+                        // Notify the requester of refusals such as an unfitting refund
+                        if (!success) _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied($"denied.gearChainDisconnect.{disconnectFailure}", Array.Empty<string>()));
                         break;
 
                     default:
+                        Debug.LogWarning($"[GearChainConnectionEdit] Invalid mode: {data.Mode}");
                         return new GearChainConnectionEditResponse(false, "Invalid mode");
                 }
 
@@ -78,6 +94,17 @@ namespace Server.Protocol.PacketResponse
                 };
             }
 
+            public static GearChainConnectionEditRequest CreateDisconnectRequest(Vector3Int posA, Vector3Int posB)
+            {
+                return new GearChainConnectionEditRequest
+                {
+                    Tag = GearChainConnectionEditProtocol.Tag,
+                    PosA = new Vector3IntMessagePack(posA),
+                    PosB = new Vector3IntMessagePack(posB),
+                    Mode = ChainEditMode.Disconnect,
+                    ConnectToolGuid = Guid.Empty,
+                };
+            }
         }
 
         [MessagePackObject]
@@ -99,6 +126,7 @@ namespace Server.Protocol.PacketResponse
         public enum ChainEditMode
         {
             Connect,
+            Disconnect,
         }
     }
 }

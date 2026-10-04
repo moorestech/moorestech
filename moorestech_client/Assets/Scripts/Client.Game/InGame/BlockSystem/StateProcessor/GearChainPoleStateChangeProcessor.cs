@@ -1,9 +1,7 @@
-using System;
-using System.Linq;
 using Client.Game.InGame.Block;
+using Game.Block.Blocks.ConnectionLine;
 using Client.Game.InGame.BlockSystem.StateProcessor.GearPole;
 using Game.Block.Blocks.GearChainPole;
-using Game.Block.Interface;
 using Server.Event.EventReceive;
 using UnityEngine;
 
@@ -31,9 +29,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
 
             // 接続先InstanceIdを配列に変換
             // Convert partner instance IDs to array
-            var partnerInstanceIds = state.PartnerBlockInstanceIds?
-                .Select(id => new BlockInstanceId(id))
-                .ToArray() ?? Array.Empty<BlockInstanceId>();
+            var partnerInstanceIds = ConnectionLinePartnerMessagePack.ToPartnerIds(state.Partners);
 
             // ライン表示を更新
             // Update line display

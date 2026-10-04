@@ -160,6 +160,14 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
 
+        // ポール間の記録済み素材を返す切断を要求する
+        // Request a disconnect that refunds the recorded pole connection materials
+        public void DisconnectGearChain(Vector3Int posA, Vector3Int posB)
+        {
+            var request = GearChainConnectionEditRequest.CreateDisconnectRequest(posA, posB);
+            _packetSender.Send(request);
+        }
+
         /// <summary>
         /// 電気系ブロック間の電線を切断する
         /// Disconnect an electric wire between electric blocks

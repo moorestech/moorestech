@@ -30,6 +30,8 @@ const interpolatedIdEnums = new Map<string, { enumName: string; notSentMembers: 
       notSentMembers: ["None", "OutOfRange", "AlreadyConnected", "ConnectionLimit", "NoWireItem", "NoPoleItem", "PositionOccupied", "InvalidMode", "NotUnlocked", "InsufficientItems"],
     },
   ],
+  ["denied.gearChainDisconnect.", { enumName: "GearChainDisconnectFailureReason", notSentMembers: ["None"] }],
+  ["denied.gearChainConnect.", { enumName: "GearChainPlacementFailureReason", notSentMembers: ["None", "NoPoleItem", "PositionOccupied", "InsufficientItems"] }],
 ]);
 
 function readServerSources(): Map<string, string> {
@@ -96,6 +98,8 @@ describe("サーバー通知idの表網羅", () => {
     expect(ids).toContain("denied.blueprint.NotUnlocked");
     expect(ids).toContain("denied.railEdit.InvalidNode");
     expect(ids).toContain("denied.electricWireDisconnect.InventoryFull");
+    expect(ids).toContain("denied.gearChainDisconnect.InventoryFull");
+    expect(ids).toContain("denied.gearChainConnect.NoItem");
   });
 
   it("通知生成APIの引数は全て分類できる形である", () => {

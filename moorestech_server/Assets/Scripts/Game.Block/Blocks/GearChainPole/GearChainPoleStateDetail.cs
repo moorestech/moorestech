@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using Game.Block.Interface;
+using Game.Block.Blocks.ConnectionLine;
 using MessagePack;
 
 namespace Game.Block.Blocks.GearChainPole
@@ -17,16 +15,14 @@ namespace Game.Block.Blocks.GearChainPole
         public const string BlockStateDetailKey = "GearChainPole";
 
         /// <summary>
-        /// 接続先のブロックインスタンスIDのリスト
-        /// List of connected block instance IDs
+        /// 接続先ごとの同期データ（接続先IDと引いた種類）
+        /// Per-partner sync data (partner id and the tool it was drawn with)
         /// </summary>
-        [Key(0)] public int[] PartnerBlockInstanceIds { get; set; }
+        [Key(0)] public ConnectionLinePartnerMessagePack[] Partners;
 
-        public GearChainPoleStateDetail(IEnumerable<BlockInstanceId> partnerIds)
+        public GearChainPoleStateDetail(ConnectionLinePartnerMessagePack[] partners)
         {
-            // 接続先IDをプリミティブ型の配列に変換する
-            // Convert partner IDs to primitive array
-            PartnerBlockInstanceIds = partnerIds.Select(id => id.AsPrimitive()).ToArray();
+            Partners = partners;
         }
 
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]

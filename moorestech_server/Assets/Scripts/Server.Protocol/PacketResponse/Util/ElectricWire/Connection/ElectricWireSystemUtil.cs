@@ -1,5 +1,5 @@
+using Game.Block.Interface.Component;
 using System;
-using System.Collections.Generic;
 using Core.Inventory;
 using Core.Item.Interface;
 using Core.Master;
@@ -83,8 +83,8 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.Connection
 
             // 接続を確定させる。片方が失敗した場合はロールバックする
             // Finalize the connection; roll back when either side fails
-            var addedA = connectorA.TryAddWireConnection(connectorB.BlockInstanceId, judgement.WireCost);
-            var addedB = addedA && connectorB.TryAddWireConnection(connectorA.BlockInstanceId, judgement.WireCost);
+            var addedA = connectorA.TryAddWireConnection(connectorB.BlockInstanceId, judgement.WireRecord);
+            var addedB = addedA && connectorB.TryAddWireConnection(connectorA.BlockInstanceId, judgement.WireRecord);
             if (!addedA || !addedB)
             {
                 connectorA.TryRemoveWireConnection(connectorB.BlockInstanceId, out _);
@@ -93,7 +93,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.Connection
                 return false;
             }
 
-            ConnectToolMaterialConsumer.Consume(judgement.WireCost.Materials, inventory);
+            ConnectToolMaterialConsumer.Consume(judgement.WireRecord.Materials, inventory);
 
             return true;
         }
@@ -133,49 +133,11 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.Connection
             return total;
         }
 
-        public static bool TryDisconnect(Vector3Int posA, Vector3Int posB, int playerId, out ElectricWirePlacementFailureReason failureReason)
-        {
-            // 接続対象を取得する
-            // Acquire target wire connectors
-            failureReason = ElectricWirePlacementFailureReason.None;
-            if (!TryGetWireConnector(posA, out var connectorA) || !TryGetWireConnector(posB, out var connectorB))
-            {
-                failureReason = ElectricWirePlacementFailureReason.InvalidTarget;
-                return false;
-            }
 
-            // 相互接続でない場合は失敗
-            // Fail when not connected to each other
-            if (!connectorA.ContainsWireConnection(connectorB.BlockInstanceId) || !connectorB.ContainsWireConnection(connectorA.BlockInstanceId))
-            {
-                failureReason = ElectricWirePlacementFailureReason.NotConnected;
-                return false;
-            }
-
-            // 返却アイテムが入らない場合は切断させない（返却消滅の防止）
-            // Reject the disconnect when the refund cannot fit, preventing item loss
-            var cost = connectorA.WireConnections[connectorB.BlockInstanceId].Cost;
-            var inventory = ServerContext.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).MainOpenableInventory;
-            var refundStacks = ConnectToolMaterialConsumer.CreateRefundItems(cost.Materials);
-            if (0 < refundStacks.Count && !inventory.InsertionCheck(refundStacks))
-            {
-                failureReason = ElectricWirePlacementFailureReason.InventoryFull;
-                return false;
-            }
-
-            // 切断し、アイテムを返却する
-            // Disconnect and refund items
-            connectorA.TryRemoveWireConnection(connectorB.BlockInstanceId, out _);
-            connectorB.TryRemoveWireConnection(connectorA.BlockInstanceId, out _);
-            foreach (var refundStack in refundStacks) inventory.InsertItem(refundStack);
-
-
-            return true;
-        }
 
         // 両側にワイヤーを張り、片側が失敗したら自分が追加したエッジだけ戻す。成功時のみtrueを返す
         // Wire both connectors; on failure roll back only the edge this call added. Returns true only on success
-        public static bool TryConnectBothSides(IElectricWireConnector self, IElectricWireConnector target, ElectricWireConnectionCost cost)
+        public static bool TryConnectBothSides(IElectricWireConnector self, IElectricWireConnector target, ConnectionLineRecord cost)
         {
             // 自分側が張れない（既接続・上限）なら既存エッジに触れず失敗させる
             // When the self side cannot add (already connected / full), fail without touching existing edges
