@@ -38,6 +38,12 @@
   出所: agent前提（ブロックUndoの再設置が通常設置経路で素材を再消費する前例 RemoveOperationRecord／AGENTS.md の無音縮退禁止）
 - Undoの記録は端点をワールド座標で持ち、BlockInstanceIdは持たない（再設置でInstanceIdが変わるため）。
   出所: agent前提（ElectricWireDisconnectRequest が座標で端点を指す前例）
+- 電線・歯車チェーンの種類は保存せず、Undo時に自動接続と同じ規則（解放済み・賄える種類のうち最優先）で選ぶ — 棄却。元と別の種類に変わり得る。採択: 接続ごとに引いた種類（ConnectToolGuid）をレールと同じく保存・同期し、セーブ形式変更に伴いCurrentVersionを上げ、旧セーブは保存済み素材から種類を逆引きする移行ステップを足す（逆引き不可は移行失敗）。
+  出所: ユーザー裁定 2026-10-04 選択「接続ごとに種類を保存」
+- 橋脚・駅の撤去で付いていたレールの素材を返却しないまま、Undoの引き直しを無償にする／再消費する（二重払い） — 棄却。採択: 撤去でレールも電線・チェーンと同じく返却し（入りきらなければ撤去拒否）、Undoは通常どおり再消費する。
+  出所: ユーザー裁定 2026-10-04 選択「撤去でレールも返却する」
+- Undoの引き直しは既存の接続経路を再利用する（電線: va:electricWireExtend の既存ブロック接続、チェーン: va:gearChainConnectionEdit の接続）。レールは再設置でノードGuidが振り直されるため、座標同定（ConnectionDestination）で接続する要求を新設する。ブロック再設置は設置要求に「記録した線だけ引く」指定を足して自動接続を止める。
+  出所: agent判断（RailComponent.cs で設置ごとにNodeGuidを新規発行・RailNodeIdAllocatorがId再利用する事実／サーバーのパケット処理がFIFO単一スレッドである事実 TickEndPacketQueue.cs）
 - 列車車両の撤去のUndo復元は本件の範囲外。
   出所: agent前提（ユーザーへの提示範囲がブロック・接続線・レールに限られていた）
 
