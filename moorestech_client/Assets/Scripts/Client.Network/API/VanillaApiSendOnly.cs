@@ -4,6 +4,7 @@ using Client.Network.API.Requests;
 using Core.Master;
 
 using Game.Train.RailPositions;
+using Game.Train.SaveLoad;
 using Game.Train.Unit;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
@@ -40,9 +41,9 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
         
-        public void PlaceBlock(List<PlaceInfo> placePositions)
+        public void PlaceBlock(List<PlaceInfo> placePositions, BlockPlacementWiring wiring)
         {
-            var request = new PlaceBlockProtocol.SendPlaceBlockProtocolMessagePack(placePositions);
+            var request = new PlaceBlockProtocol.SendPlaceBlockProtocolMessagePack(placePositions, wiring);
             _packetSender.Send(request);
         }
 
@@ -122,6 +123,14 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
         
+        // 再設置後の端点を座標で指定して同じ種類のレールを復元する
+        // Restore the same rail type by identifying re-placed endpoints by position
+        public void ConnectRailByDestination(ConnectionDestination from, ConnectionDestination to, Guid connectToolGuid)
+        {
+            var request = new RailConnectByDestinationProtocol.RailConnectByDestinationRequest(from, to, connectToolGuid);
+            _packetSender.Send(request);
+        }
+
         public void PlaceRailWithPier(int fromNodeId, Guid fromGuid, BlockId pierBlockId, PlaceInfo pierPlaceInfo, Guid railTypeGuid)
         {
             var request = RailConnectWithPlacePierProtocol.RailConnectWithPlacePierRequest.Create(fromNodeId, fromGuid, pierBlockId, pierPlaceInfo, railTypeGuid);

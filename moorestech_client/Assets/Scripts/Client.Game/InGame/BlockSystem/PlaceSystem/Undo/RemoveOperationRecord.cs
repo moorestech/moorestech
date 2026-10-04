@@ -69,7 +69,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
                     Placeable = true,
                 });
             }
-            if (placeInfos.Count != 0) ClientContext.VanillaApi.SendOnly.PlaceBlock(placeInfos);
+            if (placeInfos.Count != 0) ClientContext.VanillaApi.SendOnly.PlaceBlock(placeInfos, BlockPlacementWiring.NoAutoConnect);
             return UniTask.CompletedTask;
 
             #region Internal

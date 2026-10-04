@@ -105,6 +105,7 @@ namespace Client.Game.InGame.Block
                 return failureReason switch
                 {
                     RemoveBlockProtocol.RemoveBlockFailureReason.NodeInUseByTrain => LocalizationKeys.Ui.Delete.RailHasVehicle,
+                    RemoveBlockProtocol.RemoveBlockFailureReason.InventoryFull => LocalizationKeys.Ui.Delete.InventoryFull,
                     RemoveBlockProtocol.RemoveBlockFailureReason.Unknown => LocalizationKeys.Ui.Delete.BlockDeleteFailed,
                     _ => null,
                 };

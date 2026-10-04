@@ -189,6 +189,7 @@ ui.delete.railHasVehicle,A vehicle is on this rail.,A vehicle is on this rail.,�
 ui.delete.blockDeleteFailed,Failed to delete the block.,Failed to delete the block.,ブロックを削除できませんでした。,Der Block konnte nicht entfernt werden.,블록을 삭제하지 못했습니다.
 ui.delete.stationInternalRail,Rails inside a station cannot be deleted.,Rails inside a station cannot be deleted.,駅内部のレールは削除できません。,Gleise innerhalb eines Bahnhofs können nicht entfernt werden.,역 내부의 레일은 삭제할 수 없습니다.
 ui.delete.unknownError,Unknown error,Unknown error,不明なエラー,Unbekannter Fehler,알 수 없는 오류
+ui.delete.inventoryFull,Inventory is full. Make room for the refunded items before removing.,Inventory is full. Make room for the refunded items before removing.,インベントリがいっぱいです。返却されるアイテムの空きを作ってから撤去してください。,Das Inventar ist voll. Schaffe Platz für die zurückerstatteten Gegenstände.,인벤토리가 가득 찼습니다. 반환될 아이템의 공간을 확보한 뒤 철거하세요.
 ui.keyHint.key.tab,Tab,Tab,Tab,Tab,Tab
 ui.keyHint.key.b,B,B,B,B,B
 ui.keyHint.key.g,G,G,G,G,G

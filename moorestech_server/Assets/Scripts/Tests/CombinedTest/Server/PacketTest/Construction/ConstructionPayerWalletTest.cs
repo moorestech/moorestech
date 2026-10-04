@@ -113,7 +113,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Construction
                     BlockId = blockId,
                 },
             };
-            var payload = MessagePackSerializer.Serialize(new PlaceBlockProtocol.SendPlaceBlockProtocolMessagePack(placeInfos));
+            var payload = MessagePackSerializer.Serialize(new PlaceBlockProtocol.SendPlaceBlockProtocolMessagePack(placeInfos, BlockPlacementWiring.AutoConnect));
             packet.GetPacketResponse(payload, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(playerId));
         }
 

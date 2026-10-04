@@ -109,7 +109,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Try to remove block using protocol
             var response = GetRemoveBlockResponse(packet.GetPacketResponse(RemoveBlock(new Vector3Int(0, 0)), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId)));
             Assert.False(response.Success);
-            Assert.AreEqual(RemoveBlockFailureReason.Unknown, response.FailureReason);
+            Assert.AreEqual(RemoveBlockFailureReason.InventoryFull, response.FailureReason);
 
             // 新しい仕様：全てのアイテムが入らない場合はブロックは削除されない
             // New spec: Block is not removed if not all items can fit
@@ -158,7 +158,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             //プロトコルを使ってブロックを削除
             var response = GetRemoveBlockResponse(packet.GetPacketResponse(RemoveBlock(new Vector3Int(0, 0)), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId)));
             Assert.False(response.Success);
-            Assert.AreEqual(RemoveBlockFailureReason.Unknown, response.FailureReason);
+            Assert.AreEqual(RemoveBlockFailureReason.InventoryFull, response.FailureReason);
             
             
             //ブロックが削除できていないことを検証
