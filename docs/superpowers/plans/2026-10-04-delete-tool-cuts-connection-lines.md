@@ -23,7 +23,7 @@
 - R9 ブロックのホバー／選択時、一緒に消える電線・チェーン・レールも赤表示する（選択には入れない）。受入: 電柱ホバーで付随線が赤くなり、外すと戻る。
 - R10 削除ツールのUndoは撤去物を同じ抽象で記録し、Ctrl+Zでブロック再設置→線の引き直しを行う。直接切った線・レール、ブロック撤去に巻き込まれた線・レールを含む。重複は除く。受入: 電線を切って Ctrl+Z で同じ種類の線が戻る／電柱を消して Ctrl+Z で電柱と線が戻る／橋脚を消して Ctrl+Z でレールが同じ種類で戻る。
 - R11 Undoの再設置では電線自動接続を発動しない（記録した線だけ引く）。受入: 再設置した電柱の範囲内に別の電気ブロックがあっても線が増えない。
-- R12 Undoの線の引き直しは通常の接続経路で素材を再消費する。失敗（素材不足・端点不在・未解放・上限）はサーバー通知とクライアント `Debug.LogWarning` に出して残りを続ける。既に接続済みの線は何もしない。`Guid.Empty`のレール区間は記録しない。
+- R12 Undoの線の引き直しは通常の接続経路で素材を再消費する。失敗（素材不足・端点不在・未解放・上限）はサーバー通知に、クライアント側で戻せなかった分（占有済み・記録不能）は件数通知 `denied.undoRestoreSkipped` と `Debug.LogWarning` に出して残りを続ける。既に接続済みの線は何もしない。`Guid.Empty`のレール区間は記録しない。
 - スコープ外: 列車車両撤去のUndo復元、駅隣接のレール自動接続の抑止、電線ツール・チェーンツールへの切断操作追加。
 
 ## Global Constraints
@@ -40,17 +40,17 @@
 |---|---|---|---|---|
 | 撤去の返却が入らず撤去拒否（`InventoryFull`、レール返却で頻度増） | インベントリ満杯のプレイヤーが電柱・橋脚・駅を撤去 | カーソルツールチップ `ui.delete.inventoryFull` | しない（空きを作れば通る） | 既存の電線返却と同じ fail-closed。理由表示を新設（P9） |
 | チェーン・電線切断の返却が入らず拒否 | 同上で接続線を切断 | `denied.gearChainDisconnect.InventoryFull`／既存電線通知 | しない（同上） | 既存の電線切断と同じ |
-| Undoの線・ブロックの一部が戻せない（素材不足・未解放・上限・占有） | Ctrl+Z 時のインベントリ・世界状態による | サーバー拒否通知＋開発者ログ `[RemovalRestore]` | しない（履歴は消費済み・手で引き直す） | ユーザー裁定 2026-10-05「できた分だけ戻し残りは通知」 |
+| Undoの線・ブロックの一部が戻せない（素材不足・未解放・上限・占有・記録不能） | Ctrl+Z 時のインベントリ・世界状態による | サーバー側の拒否はサーバー通知、クライアント側のスキップ（占有・記録不能）は件数通知 `denied.undoRestoreSkipped`＋開発者ログ `[RemovalRestore]` | しない（履歴は消費済み・手で引き直す） | ユーザー裁定 2026-10-05「できた分だけ戻し残りは通知」 |
 | 移行ステップが構造の壊れたJSONで `Failed` | 手で壊したセーブ等の異常時のみ | ロード中断（原本は backup/3） | しない | agent判断 P5（通常運用では起きない） |
 
 ## 配置と前例
 
 | 項目 | 配置先 | 前例 |
 |---|---|---|
-| `ElectricWireConnectionRecord` / `GearChainConnectionRecord`（旧 Cost の改名＋種類） | Game.EnergySystem / Game.Block.Interface.Component（旧型と同じ場所） | 旧 `ElectricWireConnectionCost.cs` / `GearChainConnectionCost.cs`、レールの `RailSegment.RailTypeGuid` |
+| `ConnectionLineRecord`（旧 `ElectricWireConnectionCost`・`GearChainConnectionCost` を1型へ統合＋種類） | Game.Block.Interface.Component（旧チェーン型と同じ場所。`Game.EnergySystem.asmdef` は `Game.Block.Interface` を参照済み） | 旧 `ElectricWireConnectionCost.cs` / `GearChainConnectionCost.cs`、レールの `RailSegment.RailTypeGuid` |
 | `ConnectionLinePartnerMessagePack` | Game.Block/Blocks/ConnectionLine | `ElectricWireStateDetail.cs`（状態詳細 MessagePack は Game.Block） |
 | `SaveMigrationStepV3ToV4` | Game.SaveLoad/Migration/Steps | `SaveMigrationStepV2ToV3.cs` |
-| `GearChainDisconnectFailureReason` / `GearChainConnectFailureReason` | Server.Protocol/PacketResponse/Util/GearChain | `ElectricWirePlacementFailureReason` |
+| `GearChainDisconnectFailureReason` / `GearChainPlacementFailureReason` | Server.Protocol/PacketResponse/Util/GearChain | `ElectricWirePlacementFailureReason` |
 | `RailRemovalRefundCalculator` | Server.Protocol/PacketResponse/Util/RailEdit | `RailConnectionEditService.cs`（切断返却の算出） |
 | `BlockPlacementWiring` | `PlacePacketDto.cs`（既存DTOファイルへ追記） | `PlaceInfoMessagePack` |
 | `RailConnectByDestinationProtocol` | Server.Protocol/PacketResponse（IPacketResponse） | `RailConnectionEditProtocol.cs`、登録は `PacketResponseCreator` |
@@ -58,6 +58,14 @@
 | `DeleteTargetHitSelector` / `DeleteTargetRaycaster` | Client.Game/InGame/UI/UIState/State/DragDelete | `BlockClickDetectUtil.TryGetFrontmostSolidHit` |
 | `IRemovedObject` 系・`IRemovalRestoreSender` | Client.Game/InGame/BlockSystem/PlaceSystem/Undo/Removal | `RemoveOperationRecord.cs` / `IBuildOperationRecord.cs` |
 | `BlockAttachedConnectionResolver` | DragDelete、`ClientDIContext` static で参照 | `ClientDIContext.BlockGameObjectDataStore` の static 参照（`ElectricWireLineViewElement.cs`） |
+| `ConnectionLineConnectionJsonObject` / `ConnectionLineRefundItems` | Game.Block/Blocks/ConnectionLine | 旧 `ElectricWireConnectionJsonObject`・`GearChainPoleConnectionJsonObject`、`ElectricWireConnectorComponent.GetRefundItems` |
+| `IGearChainConnectionLookup` / `IGearChainConnectionMutation` | Game.Block/Blocks/GearChainPole | 層マップ「可変DataStoreのアクセス面」（`IItemStackLevelLookup`/`IItemStackLevelUnlocker`） |
+| `RailSegmentPairing` | Game.Train/RailGraph/Utility（サーバー返却とクライアント描画IDの共有正本） | クライアント `TrainRailObjectManager.SelectCanonicalPair`（ここから移設） |
+| `ConnectionLineDestructionCategory` | `Core.Master.BlockMaster`（既定カテゴリー定数の隣）＋クライアント再公開 | `BlockMaster.DefaultDestructionCategory` / `BlockMasterElementExtension.DefaultDestructionCategory` |
+| `BlockDestructionCategoryValidator` | Core.Master/Validator/Block | `ExtractionSettingsValidator.cs`（BlockMasterUtil から切り出した検証） |
+| `RemovePreviewRequests` / `IRemovePreviewable` / `RailChainRemovePreview` | UIState/State（共有）、Train/RailGraph（レール側部品） | 新規（赤プレビューの要求者集合。既存は単一書き手前提の `SetRemovePreviewing/ResetMaterial` のみ） |
+| `DeleteAimFilter` / `DeleteAimResult` | UIState/State/DragDelete | 結果型の前例 `SaveMigrationStepResult`（成功/失敗の factory） |
+| `ClientLocalNotificationSource` | Client.Game/InGame/UI/Notification（`NotificationTopic` が購読） | **新規パターン**（クライアント発の通知の前例が無い。イベントは UniRx `Subject` 公開の標準形） |
 
 データフロー: 入力（削除ツール）→ `DeleteObjectService`（書き手: 選択モデル `DragDeleteSelection`）→ 確定で各 `IDeleteTarget.Delete()` 送信＋ `RemoveOperationRecord` を履歴へ → サーバー状態変化 → 既存の状態詳細イベント → 表示（`ConnectionLineViewBase`）。Undo は履歴の読み手として送信だけを行う。既存フローへの交差点（下流への直接セッター・bool戻りの制御）は足していない。
 
@@ -73,12 +81,12 @@
 | 設置プレビューのレイキャスト（Without_* マスク） | 生きる | 接続線レイヤー除外を維持（Task 8） |
 | カーソルのツールチップ | 生きる（線の奥も遮らない） | Task 8 Step 3b |
 | チェーンツールの接続 | 生きる・失敗が通知されるようになる | Task 4 |
-| 通常設置の電線自動接続 | 生きる | AutoConnect が既定、Undoだけ RecordedOnly（Task 6） |
+| 通常設置の電線自動接続 | 生きる | AutoConnect が既定、Undoだけ NoAutoConnect（Task 6） |
 
 ## 設計検査記録
 
 - 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反1件・修正1件 / チェーン当たり判定がツールチップのレイを遮る退化を Task 8 Step 3b で除外。配置は全て前例どおり
-- Phase 2.6（型閉包・重複・ADR矛盾）: 未実施
+- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強4・弱7・第3バケツ4 / 強4件全て裁定（3件反映・1件はADR文言修正）、弱4件反映・3件据え置き
 
 ---
 
@@ -94,11 +102,15 @@ Task 1→2→3（サーバー記録・移行・同期）→4（チェーン切�
 
 ---
 
-### Task 1 (A1): 接続1本の記録型（Record）へ改名し「引いた種類」を保持・セーブする
+### Task 1 (A1): 電線・チェーン共通の接続記録型（ConnectionLineRecord）へ統合し「引いた種類」を保持・セーブする
 
 **Files:**
-- Rename+Modify: `moorestech_server/Assets/Scripts/Game.EnergySystem/ElectricWire/ElectricWireConnectionCost.cs` → `moorestech_server/Assets/Scripts/Game.EnergySystem/ElectricWire/ElectricWireConnectionRecord.cs`（`git mv`。`.meta` も `git mv` で追従させ、GUIDを保つ）
-- Rename+Modify: `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/GearChainConnectionCost.cs` → `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/GearChainConnectionRecord.cs`（同上）
+- Delete: `moorestech_server/Assets/Scripts/Game.EnergySystem/ElectricWire/ElectricWireConnectionCost.cs`、`moorestech_server/Assets/Scripts/Game.Block.Interface/Component/GearChainConnectionCost.cs`（`git rm`。各 `.meta` も `git rm`）
+- Create: `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/ConnectionLineRecord.cs`（電線・チェーン共通の接続1本の記録。`Game.EnergySystem.asmdef` は `Game.Block.Interface` を参照済みなので電線側から使える）
+- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/ConnectionLine/ConnectionLineConnectionJsonObject.cs`（電線・チェーンのセーブ接続要素を1つの型へ。JSONキーは従来どおり）
+- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/ConnectionLine/ConnectionLineRefundItems.cs`（記録の素材を返却スタックへ展開する正本。電線コンポーネント・チェーン台帳・`ConnectToolMaterialConsumer` が呼ぶ）
+- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/GearChainPole/IGearChainConnectionLookup.cs`、`moorestech_server/Assets/Scripts/Game.Block/Blocks/GearChainPole/IGearChainConnectionMutation.cs`（接続台帳の読み取り面／変更面。裁定 `.decisions/2026-10-05-GearChainConnectionSetは読み取りと変更のinterfaceに分ける.md`）
+- Modify: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/Util/ConnectTool/ConnectToolMaterialConsumer.cs:43-54`（`CreateRefundItems` を正本へ委譲し、返却可否込みの `TryCreateFittingRefund` を追加）
 - Modify: `moorestech_server/Assets/Scripts/Game.EnergySystem/ElectricWire/IElectricWireConnector.cs:20-24`
 - Modify: `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/IGearChainPole.cs:9-10`（＋読み取りAPI 1本追加）
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/ElectricWire/ElectricWireConnectorComponent.cs:27-28,58-86,104-110,131-137`
@@ -125,17 +137,20 @@ Task 1→2→3（サーバー記録・移行・同期）→4（チェーン切�
 - 電線: `Game.EnergySystem/ElectricWire/ElectricWireConnectionCost.cs`、`Game.EnergySystem/ElectricWire/IElectricWireConnector.cs`、`Game.Block/Blocks/ElectricWire/ElectricWireSaveDataJsonObject.cs`、`Game.Block/Blocks/ElectricWire/ElectricWireConnectorComponent.cs`、`Server.Protocol/PacketResponse/Util/ElectricWire/Connection/ElectricWireSystemUtil.cs`、`.../AutoConnect/ElectricWireAutoConnectService.cs`、`.../AutoConnect/ElectricWireAutoConnectPlan.cs`、`.../Placement/ElectricWirePlacementEvaluator.cs`、`.../Placement/ElectricWirePlacementJudgement.cs`、`Tests/UnitTest/Game/FakeWireConnector.cs`、`Tests/Util/EnergySystem/ElectricWireTestUtil.cs`
 - チェーン: `Game.Block.Interface/Component/GearChainConnectionCost.cs`、`Game.Block.Interface/Component/IGearChainPole.cs`、`Game.Block/Blocks/GearChainPole/GearChainPoleSaveDataJsonObject.cs`、`Game.Block/Blocks/GearChainPole/GearChainPoleComponent.cs`、`Server.Protocol/PacketResponse/Util/GearChain/GearChainPlacementEvaluator.cs`、`Tests/UnitTest/Game/SaveLoad/GearChainPoleSaveLoadTest.cs`
 - 付随の改名（型名に連動するメンバー）: `ElectricWirePlacementJudgement.WireCost`→`WireRecord`、`GearChainPlacementJudgement.ChainCost`→`ChainRecord`、`ElectricWirePlacementEvaluator.TryCalculateWireCost`→`TryCreateWireRecord`（呼び出し: `ElectricWireExtendService.cs:137`、`ElectricWireAutoConnectService.cs:85`、クライアント `ElectricWireExtendPreviewCalculator.cs:117`、`ElectricWireAutoConnectToolSelector.cs:80`、テスト `ElectricWirePlacementEvaluatorTest.cs:131`）、`WireConnections` 値タプルの要素名 `Cost`→`Record`
-- コンパイル対象外だが古い参照: `.agents/skills/unity-playmode-recorded-playtest/scenarios/misc/cleanroom-v2.cs:61`（既に存在しない ctor `(ItemId,int)` を使う陳腐化シナリオ。本タスクでは `new ElectricWireConnectionRecord(Guid.Parse("872372d5-2998-4fb7-826c-593ceeafcfb2"), Array.Empty<ConnectToolMaterialCost>())` へ書き換える）
+- コンパイル対象外だが古い参照: `.agents/skills/unity-playmode-recorded-playtest/scenarios/misc/cleanroom-v2.cs:61`（既に存在しない ctor `(ItemId,int)` を使う陳腐化シナリオ。本タスクでは `new ConnectionLineRecord(Guid.Parse("872372d5-2998-4fb7-826c-593ceeafcfb2"), Array.Empty<ConnectToolMaterialCost>())` へ書き換える）
 
 **Interfaces:**
 - Consumes: なし（最初のタスク）
 - Produces:
-  - `Game.EnergySystem.ElectricWireConnectionRecord`（readonly struct）: `ElectricWireConnectionRecord(Guid connectToolGuid, IReadOnlyList<ConnectToolMaterialCost> materials)`、`Guid ConnectToolGuid`、`IReadOnlyList<ConnectToolMaterialCost> Materials`、`int TotalCount`。`Empty` は廃止
-  - `Game.Block.Interface.Component.GearChainConnectionRecord`（同形）
-  - `IElectricWireConnector.WireConnections : IReadOnlyDictionary<BlockInstanceId, (IElectricWireConnector Connector, ElectricWireConnectionRecord Record)>`、`TryAddWireConnection(BlockInstanceId, ElectricWireConnectionRecord)`、`TryRemoveWireConnection(BlockInstanceId, out ElectricWireConnectionRecord)`
-  - `IGearChainPole.TryAddChainConnection(BlockInstanceId, GearChainConnectionRecord)`、`TryRemoveChainConnection(BlockInstanceId, out GearChainConnectionRecord)`、**新設** `bool TryGetChainConnectionRecord(BlockInstanceId partnerId, out GearChainConnectionRecord record)`（A4 の返却前検査が使う）
+  - `Game.Block.Interface.Component.ConnectionLineRecord`（readonly struct。電線・チェーン共通）: `ConnectionLineRecord(Guid connectToolGuid, IReadOnlyList<ConnectToolMaterialCost> materials)`、`Guid ConnectToolGuid`、`IReadOnlyList<ConnectToolMaterialCost> Materials`、`int TotalCount`。旧 `ElectricWireConnectionCost.Empty` は廃止
+  - `Game.Block.Blocks.ConnectionLine.ConnectionLineConnectionJsonObject`: `int TargetBlockInstanceId`、`Guid ConnectToolGuid`（`Required.Always`）、`List<ConnectToolMaterialSaveJsonObject> Materials`、ctor `(int targetBlockInstanceId, ConnectionLineRecord record)`、`ConnectionLineRecord ToConnectionRecord()`
+  - `Game.Block.Blocks.ConnectionLine.ConnectionLineRefundItems.Create(IReadOnlyList<ConnectToolMaterialCost> materials) : List<IItemStack>`
+  - `ConnectToolMaterialConsumer.TryCreateFittingRefund(IReadOnlyList<ConnectToolMaterialCost> materials, IOpenableInventory inventory, out List<IItemStack> refundStacks) : bool`（返却が入らなければfalse。電線・チェーンの切断が共有）
+  - `IGearChainConnectionLookup`（`Count`、`PartnerIds`、`Targets`、`Contains`、`TryGetRecord`、`CreateRefundItems()`、`CreateSaveData()`）／`IGearChainConnectionMutation`（`Add`、`TryRemove`、`Clear`）。`GearChainConnectionSet` が両方を実装し、`GearChainPoleComponent` は読み取りを `_chainLookup`、変更を `_chainMutation` 経由に分ける
+  - `IElectricWireConnector.WireConnections : IReadOnlyDictionary<BlockInstanceId, (IElectricWireConnector Connector, ConnectionLineRecord Record)>`、`TryAddWireConnection(BlockInstanceId, ConnectionLineRecord)`、`TryRemoveWireConnection(BlockInstanceId, out ConnectionLineRecord)`
+  - `IGearChainPole.TryAddChainConnection(BlockInstanceId, ConnectionLineRecord)`、`TryRemoveChainConnection(BlockInstanceId, out ConnectionLineRecord)`、**新設** `bool TryGetChainConnectionRecord(BlockInstanceId partnerId, out ConnectionLineRecord record)`（A4 の返却前検査が使う）
   - `ElectricWireDisconnectUtil.TryDisconnect(Vector3Int posA, Vector3Int posB, int playerId, out ElectricWirePlacementFailureReason failureReason)`（旧 `ElectricWireSystemUtil.TryDisconnect` の移設。挙動不変）
-  - `GearChainConnectionSet`（Game.Block 内部用 public class）: `Count`、`PartnerIds`、`Transformers`、`Contains`、`Add`、`TryRemove`、`TryGetRecord`、`Clear`、`CreateRefundItems()`、`CreateSaveData()`
+  - `GearChainConnectionSet : IGearChainConnectionLookup, IGearChainConnectionMutation`（Game.Block 内部用）
   - セーブ JSON: 電線 `state.ElectricWireConnectorComponent.connections[]` とチェーン `state.GearChainPoleComponent.connections[]` の各要素に `"connectToolGuid": "<Guid>"`（必須。欠けた状態値の読み込みは `JsonSerializationException` で落ちる＝A2 のマイグレーションが必ず埋める）
 
 - [ ] **Step 1: テストを書く**
@@ -265,47 +280,7 @@ namespace Tests.CombinedTest.Game.ElectricWire
 
 - [ ] **Step 2: 実装を書く**
 
-`moorestech_server/Assets/Scripts/Game.EnergySystem/ElectricWire/ElectricWireConnectionRecord.cs`（`git mv` 後に全置換）:
-
-```csharp
-using System;
-using System.Collections.Generic;
-using Core.Master;
-
-namespace Game.EnergySystem
-{
-    /// <summary>
-    /// 電線1本の接続記録。引いた接続ツールの種類と消費した素材を持ち、切断・撤去の返却とUndoの引き直しに使う
-    /// Record of one wire connection: the connect tool it was drawn with and the consumed materials, used for refunds and undo re-drawing
-    /// </summary>
-    public readonly struct ElectricWireConnectionRecord
-    {
-        public readonly Guid ConnectToolGuid;
-        public readonly IReadOnlyList<ConnectToolMaterialCost> Materials;
-
-        public ElectricWireConnectionRecord(Guid connectToolGuid, IReadOnlyList<ConnectToolMaterialCost> materials)
-        {
-            ConnectToolGuid = connectToolGuid;
-            Materials = materials;
-        }
-
-        // プレビュー表示用の総素材数。全素材の消費数を合算する
-        // Total material count for preview display; sums consumption across all materials
-        public int TotalCount
-        {
-            get
-            {
-                if (Materials == null) return 0;
-                var total = 0;
-                foreach (var material in Materials) total += material.Count;
-                return total;
-            }
-        }
-    }
-}
-```
-
-`moorestech_server/Assets/Scripts/Game.Block.Interface/Component/GearChainConnectionRecord.cs`（`git mv` 後に全置換。既存の using を保持）:
+`moorestech_server/Assets/Scripts/Game.Block.Interface/Component/ConnectionLineRecord.cs`（新規。旧 `ElectricWireConnectionCost.cs`・`GearChainConnectionCost.cs` は `git rm`）:
 
 ```csharp
 using System;
@@ -315,15 +290,15 @@ using Core.Master;
 namespace Game.Block.Interface.Component
 {
     /// <summary>
-    /// 歯車チェーン1接続の記録。引いた接続ツールの種類と消費した素材を持ち、切断・撤去の返却とUndoの引き直しに使う
-    /// Record of one gear-chain connection: the connect tool it was drawn with and the consumed materials, used for refunds and undo re-drawing
+    /// 接続線（電線・歯車チェーン）1本の記録。引いた接続ツールの種類と払った素材を持ち、返却とUndoの引き直しに使う
+    /// Record of one connection line (wire or gear chain): the connect tool it was drawn with and the paid materials, used for refunds and undo re-drawing
     /// </summary>
-    public readonly struct GearChainConnectionRecord
+    public readonly struct ConnectionLineRecord
     {
         public readonly Guid ConnectToolGuid;
         public readonly IReadOnlyList<ConnectToolMaterialCost> Materials;
 
-        public GearChainConnectionRecord(Guid connectToolGuid, IReadOnlyList<ConnectToolMaterialCost> materials)
+        public ConnectionLineRecord(Guid connectToolGuid, IReadOnlyList<ConnectToolMaterialCost> materials)
         {
             ConnectToolGuid = connectToolGuid;
             Materials = materials;
@@ -345,35 +320,89 @@ namespace Game.Block.Interface.Component
 }
 ```
 
+電線側（`Game.EnergySystem`）の `IElectricWireConnector.cs`・`ElectricWirePlacementJudgement.cs` 等、旧 `ElectricWireConnectionCost` を使っていたファイルには `using Game.Block.Interface.Component;` を足す。
+
+`moorestech_server/Assets/Scripts/Game.Block/Blocks/ConnectionLine/ConnectionLineRefundItems.cs`（新規。返却スタック展開の正本）:
+
+```csharp
+using System.Collections.Generic;
+using Core.Item.Interface;
+using Core.Master;
+using Game.Context;
+
+namespace Game.Block.Blocks.ConnectionLine
+{
+    /// <summary>
+    /// 接続線の素材を返却スタックへ展開する。電線・チェーンの撤去返却と切断返却が同じ規則を使う
+    /// Expand connection-line materials into refund stacks; removal and disconnect refunds share this one rule
+    /// </summary>
+    public static class ConnectionLineRefundItems
+    {
+        public static List<IItemStack> Create(IReadOnlyList<ConnectToolMaterialCost> materials)
+        {
+            var result = new List<IItemStack>();
+            if (materials == null) return result;
+            foreach (var material in materials)
+            {
+                // 数0と空アイテムは返さない
+                // Skip zero counts and the empty item
+                if (material.Count <= 0 || material.ItemId == ItemMaster.EmptyItemId) continue;
+                result.Add(ServerContext.ItemStackFactory.Create(material.ItemId, material.Count));
+            }
+            return result;
+        }
+    }
+}
+```
+
+`ConnectToolMaterialConsumer.cs` L43-54 の `CreateRefundItems` を置換し、返却可否込みの準備を足す（`using Core.Inventory;`・`using Game.Block.Blocks.ConnectionLine;` を追加）:
+
+```csharp
+        // 返却用のアイテムスタック列を生成する（展開規則は接続線の正本に委ねる）
+        // Create refund item stacks for the given materials (expansion rule delegated to the connection-line definition)
+        public static List<IItemStack> CreateRefundItems(IReadOnlyList<ConnectToolMaterialCost> materials)
+        {
+            return ConnectionLineRefundItems.Create(materials);
+        }
+
+        // 返却スタックを作り、インベントリへ入りきるかを返す。入らなければ切断させない（返却消滅の防止）
+        // Build refund stacks and report whether they fit; callers refuse the disconnect otherwise (prevents item loss)
+        public static bool TryCreateFittingRefund(IReadOnlyList<ConnectToolMaterialCost> materials, IOpenableInventory inventory, out List<IItemStack> refundStacks)
+        {
+            refundStacks = CreateRefundItems(materials);
+            return refundStacks.Count == 0 || inventory.InsertionCheck(refundStacks);
+        }
+```
+
 `IElectricWireConnector.cs` L20-24 を置換:
 
 ```csharp
-        IReadOnlyDictionary<BlockInstanceId, (IElectricWireConnector Connector, ElectricWireConnectionRecord Record)> WireConnections { get; }
+        IReadOnlyDictionary<BlockInstanceId, (IElectricWireConnector Connector, ConnectionLineRecord Record)> WireConnections { get; }
 
         bool ContainsWireConnection(BlockInstanceId partnerId);
-        bool TryAddWireConnection(BlockInstanceId partnerId, ElectricWireConnectionRecord record);
-        bool TryRemoveWireConnection(BlockInstanceId partnerId, out ElectricWireConnectionRecord record);
+        bool TryAddWireConnection(BlockInstanceId partnerId, ConnectionLineRecord record);
+        bool TryRemoveWireConnection(BlockInstanceId partnerId, out ConnectionLineRecord record);
 ```
 
 `IGearChainPole.cs` L9-10 を置換:
 
 ```csharp
-        bool TryAddChainConnection(BlockInstanceId partnerId, GearChainConnectionRecord connectionRecord);
-        bool TryRemoveChainConnection(BlockInstanceId partnerId, out GearChainConnectionRecord record);
+        bool TryAddChainConnection(BlockInstanceId partnerId, ConnectionLineRecord connectionRecord);
+        bool TryRemoveChainConnection(BlockInstanceId partnerId, out ConnectionLineRecord record);
 
         // 切断前の返却検査用に、指定相手との接続記録を読む（無ければfalse）
         // Read the record of the connection to the given partner for the pre-disconnect refund check (false when absent)
-        bool TryGetChainConnectionRecord(BlockInstanceId partnerId, out GearChainConnectionRecord record);
+        bool TryGetChainConnectionRecord(BlockInstanceId partnerId, out ConnectionLineRecord record);
 ```
 
 `ElectricWireConnectorComponent.cs` の置換メンバー（他は無変更）:
 
 ```csharp
-        private readonly Dictionary<BlockInstanceId, (IElectricWireConnector Connector, ElectricWireConnectionRecord Record)> _wireConnections = new();
-        public IReadOnlyDictionary<BlockInstanceId, (IElectricWireConnector Connector, ElectricWireConnectionRecord Record)> WireConnections => _wireConnections;
+        private readonly Dictionary<BlockInstanceId, (IElectricWireConnector Connector, ConnectionLineRecord Record)> _wireConnections = new();
+        public IReadOnlyDictionary<BlockInstanceId, (IElectricWireConnector Connector, ConnectionLineRecord Record)> WireConnections => _wireConnections;
 ```
 ```csharp
-        public bool TryAddWireConnection(BlockInstanceId partnerId, ElectricWireConnectionRecord connectionRecord)
+        public bool TryAddWireConnection(BlockInstanceId partnerId, ConnectionLineRecord connectionRecord)
         {
             // 新しい接続先を記録する
             // Store new partner connection
@@ -391,7 +420,7 @@ namespace Game.Block.Interface.Component
             return true;
         }
 
-        public bool TryRemoveWireConnection(BlockInstanceId partnerId, out ElectricWireConnectionRecord record)
+        public bool TryRemoveWireConnection(BlockInstanceId partnerId, out ConnectionLineRecord record)
         {
             if (!_wireConnections.Remove(partnerId, out var connection))
             {
@@ -404,16 +433,25 @@ namespace Game.Block.Interface.Component
             return true;
         }
 ```
-`GetRefundItems` 内 `var materials = connection.Cost.Materials;` → `var materials = connection.Record.Materials;`。
-`OnPostBlockLoad` 内 `var cost = connection.ToConnectionCost(); _wireConnections.Add(targetId, (connector, cost));` → `var record = connection.ToConnectionRecord(); _wireConnections.Add(targetId, (connector, record));`。
-
-`ElectricWireSaveDataJsonObject.cs` 全体:
+`GetRefundItems` を置換（展開規則は接続線の正本へ。`using Game.Block.Blocks.ConnectionLine;` を追加し、不要になった `Core.Master` 等の using は削除）:
 
 ```csharp
-using System;
+        public IReadOnlyList<IItemStack> GetRefundItems()
+        {
+            // 接続ごとに払った素材を返却スタックへ展開する
+            // Expand each connection's paid materials into refund stacks
+            var refundItems = new List<IItemStack>();
+            foreach (var connection in _wireConnections.Values) refundItems.AddRange(ConnectionLineRefundItems.Create(connection.Record.Materials));
+            return refundItems;
+        }
+```
+`OnPostBlockLoad` 内 `var cost = connection.ToConnectionCost(); _wireConnections.Add(targetId, (connector, cost));` → `var record = connection.ToConnectionRecord(); _wireConnections.Add(targetId, (connector, record));`。
+
+`ElectricWireSaveDataJsonObject.cs` 全体（接続要素は電線・チェーン共通の `ConnectionLineConnectionJsonObject`。JSONキーは従来どおりで、`connectToolGuid` だけが増える）:
+
+```csharp
 using System.Collections.Generic;
-using System.Linq;
-using Core.Master;
+using Game.Block.Blocks.ConnectionLine;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.EnergySystem;
@@ -424,16 +462,16 @@ namespace Game.Block.Blocks.ElectricWire
     public class ElectricWireSaveDataJsonObject
     {
         [JsonProperty("connections")]
-        public List<ElectricWireConnectionJsonObject> Connections { get; set; }
+        public List<ConnectionLineConnectionJsonObject> Connections { get; set; }
 
-        public ElectricWireSaveDataJsonObject(Dictionary<BlockInstanceId, (IElectricWireConnector Connector, ElectricWireConnectionRecord Record)> wireConnections)
+        public ElectricWireSaveDataJsonObject(Dictionary<BlockInstanceId, (IElectricWireConnector Connector, ConnectionLineRecord Record)> wireConnections)
         {
             // 接続をリストに変換する
             // Convert Dictionary to List of ConnectionData
-            Connections = new List<ElectricWireConnectionJsonObject>();
+            Connections = new List<ConnectionLineConnectionJsonObject>();
             foreach (var target in wireConnections)
             {
-                Connections.Add(new ElectricWireConnectionJsonObject(target.Key.AsPrimitive(), target.Value.Record));
+                Connections.Add(new ConnectionLineConnectionJsonObject(target.Key.AsPrimitive(), target.Value.Record));
             }
 
             // Dictionaryの列挙順は削除跡の再利用で変わる。添字位置で突き合わせる比較器のため保存側で正準化する
@@ -441,38 +479,7 @@ namespace Game.Block.Blocks.ElectricWire
             Connections.Sort((left, right) => left.TargetBlockInstanceId.CompareTo(right.TargetBlockInstanceId));
         }
 
-        public ElectricWireSaveDataJsonObject() { Connections = new List<ElectricWireConnectionJsonObject>(); }
-    }
-
-
-    public class ElectricWireConnectionJsonObject
-    {
-        [JsonProperty("targetBlockInstanceId")] public int TargetBlockInstanceId { get; set; }
-
-        // 引いた種類はUndoの引き直しに要る。欠けた旧形はマイグレーションが埋めるので、ここでは必須で読む
-        // The drawn tool is needed for undo re-drawing; the migration fills it for old saves, so it is read as required here
-        [JsonProperty("connectToolGuid", Required = Required.Always)] public Guid ConnectToolGuid { get; set; }
-        [JsonProperty("materials")] public List<ConnectToolMaterialSaveJsonObject> Materials { get; set; }
-
-        public ElectricWireConnectionJsonObject() { Materials = new List<ConnectToolMaterialSaveJsonObject>(); }
-
-        public ElectricWireConnectionJsonObject(int targetBlockInstanceId, ElectricWireConnectionRecord record)
-        {
-            TargetBlockInstanceId = targetBlockInstanceId;
-            ConnectToolGuid = record.ConnectToolGuid;
-            Materials = record.Materials == null
-                ? new List<ConnectToolMaterialSaveJsonObject>()
-                : record.Materials.Select(m => new ConnectToolMaterialSaveJsonObject(m)).ToList();
-        }
-
-        // ロード時に永続値から接続記録を復元する
-        // Restore the connection record from persisted values on load
-        public ElectricWireConnectionRecord ToConnectionRecord()
-        {
-            var materials = (Materials ?? new List<ConnectToolMaterialSaveJsonObject>())
-                .Select(m => m.ToMaterialCost()).ToList();
-            return new ElectricWireConnectionRecord(ConnectToolGuid, materials);
-        }
+        public ElectricWireSaveDataJsonObject() { Connections = new List<ConnectionLineConnectionJsonObject>(); }
     }
 }
 ```
@@ -480,10 +487,8 @@ namespace Game.Block.Blocks.ElectricWire
 `GearChainPoleSaveDataJsonObject.cs` 全体:
 
 ```csharp
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using Core.Master;
+using Game.Block.Blocks.ConnectionLine;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Gear.Common;
@@ -494,16 +499,16 @@ namespace Game.Block.Blocks.GearChainPole
     public class GearChainPoleSaveDataJsonObject
     {
         [JsonProperty("connections")]
-        public List<GearChainPoleConnectionJsonObject> Connections { get; set; }
+        public List<ConnectionLineConnectionJsonObject> Connections { get; set; }
 
-        public GearChainPoleSaveDataJsonObject(IReadOnlyDictionary<BlockInstanceId, (IGearEnergyTransformer Transformer, GearChainConnectionRecord Record)> chainTargets)
+        public GearChainPoleSaveDataJsonObject(IReadOnlyDictionary<BlockInstanceId, (IGearEnergyTransformer Transformer, ConnectionLineRecord Record)> chainTargets)
         {
             // DictionaryからConnectionDataのリストに変換する
             // Convert Dictionary to List of ConnectionData
-            Connections = new List<GearChainPoleConnectionJsonObject>();
+            Connections = new List<ConnectionLineConnectionJsonObject>();
             foreach (var target in chainTargets)
             {
-                Connections.Add(new GearChainPoleConnectionJsonObject(target.Key.AsPrimitive(), target.Value.Record));
+                Connections.Add(new ConnectionLineConnectionJsonObject(target.Key.AsPrimitive(), target.Value.Record));
             }
 
             // Dictionaryの列挙順は削除跡の再利用で変わる。添字位置で突き合わせる比較器のため保存側で正準化する
@@ -511,11 +516,28 @@ namespace Game.Block.Blocks.GearChainPole
             Connections.Sort((left, right) => left.TargetBlockInstanceId.CompareTo(right.TargetBlockInstanceId));
         }
 
-        public GearChainPoleSaveDataJsonObject() { Connections = new List<GearChainPoleConnectionJsonObject>(); }
+        public GearChainPoleSaveDataJsonObject() { Connections = new List<ConnectionLineConnectionJsonObject>(); }
     }
+}
+```
 
+`moorestech_server/Assets/Scripts/Game.Block/Blocks/ConnectionLine/ConnectionLineConnectionJsonObject.cs`（新規。旧 `ElectricWireConnectionJsonObject`・`GearChainPoleConnectionJsonObject` を1つに畳む）:
 
-    public class GearChainPoleConnectionJsonObject
+```csharp
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Core.Master;
+using Game.Block.Interface.Component;
+using Newtonsoft.Json;
+
+namespace Game.Block.Blocks.ConnectionLine
+{
+    /// <summary>
+    /// 電線・チェーンのセーブ上の接続1件。相手・引いた種類・払った素材を持つ
+    /// One saved wire or chain connection: partner, drawn connect tool and paid materials
+    /// </summary>
+    public class ConnectionLineConnectionJsonObject
     {
         [JsonProperty("targetBlockInstanceId")] public int TargetBlockInstanceId { get; set; }
 
@@ -524,9 +546,9 @@ namespace Game.Block.Blocks.GearChainPole
         [JsonProperty("connectToolGuid", Required = Required.Always)] public Guid ConnectToolGuid { get; set; }
         [JsonProperty("materials")] public List<ConnectToolMaterialSaveJsonObject> Materials { get; set; }
 
-        public GearChainPoleConnectionJsonObject() { Materials = new List<ConnectToolMaterialSaveJsonObject>(); }
+        public ConnectionLineConnectionJsonObject() { Materials = new List<ConnectToolMaterialSaveJsonObject>(); }
 
-        public GearChainPoleConnectionJsonObject(int targetBlockInstanceId, GearChainConnectionRecord record)
+        public ConnectionLineConnectionJsonObject(int targetBlockInstanceId, ConnectionLineRecord record)
         {
             TargetBlockInstanceId = targetBlockInstanceId;
             ConnectToolGuid = record.ConnectToolGuid;
@@ -537,12 +559,64 @@ namespace Game.Block.Blocks.GearChainPole
 
         // ロード時に永続値から接続記録を復元する
         // Restore the connection record from persisted values on load
-        public GearChainConnectionRecord ToConnectionRecord()
+        public ConnectionLineRecord ToConnectionRecord()
         {
             var materials = (Materials ?? new List<ConnectToolMaterialSaveJsonObject>())
                 .Select(m => m.ToMaterialCost()).ToList();
-            return new GearChainConnectionRecord(ConnectToolGuid, materials);
+            return new ConnectionLineRecord(ConnectToolGuid, materials);
         }
+    }
+}
+```
+
+（`ConnectToolMaterialSaveJsonObject` は `Game.Block.Interface/Component/ConnectToolMaterialSaveJsonObject.cs` の `Game.Block.Interface.Component` 名前空間にあり、上の using で見える）
+
+`moorestech_server/Assets/Scripts/Game.Block/Blocks/GearChainPole/IGearChainConnectionLookup.cs`（新規。台帳の読み取り面）:
+
+```csharp
+using System.Collections.Generic;
+using Core.Item.Interface;
+using Game.Block.Interface;
+using Game.Block.Interface.Component;
+using Game.Gear.Common;
+
+namespace Game.Block.Blocks.GearChainPole
+{
+    /// <summary>
+    /// チェーン接続台帳の読み取り面。書き換えは IGearChainConnectionMutation だけが行う
+    /// Read surface of the chain connection ledger; only IGearChainConnectionMutation writes
+    /// </summary>
+    public interface IGearChainConnectionLookup
+    {
+        int Count { get; }
+        IEnumerable<BlockInstanceId> PartnerIds { get; }
+        IReadOnlyDictionary<BlockInstanceId, (IGearEnergyTransformer Transformer, ConnectionLineRecord Record)> Targets { get; }
+        bool Contains(BlockInstanceId partnerId);
+        bool TryGetRecord(BlockInstanceId partnerId, out ConnectionLineRecord record);
+        IReadOnlyList<IItemStack> CreateRefundItems();
+        GearChainPoleSaveDataJsonObject CreateSaveData();
+    }
+}
+```
+
+`moorestech_server/Assets/Scripts/Game.Block/Blocks/GearChainPole/IGearChainConnectionMutation.cs`（新規。台帳の変更面）:
+
+```csharp
+using Game.Block.Interface;
+using Game.Block.Interface.Component;
+using Game.Gear.Common;
+
+namespace Game.Block.Blocks.GearChainPole
+{
+    /// <summary>
+    /// チェーン接続台帳の変更面。持ち主のコンポーネントだけが持ち、外へは渡さない
+    /// Mutation surface of the chain connection ledger; held only by the owning component, never handed out
+    /// </summary>
+    public interface IGearChainConnectionMutation
+    {
+        void Add(BlockInstanceId partnerId, IGearEnergyTransformer transformer, ConnectionLineRecord record);
+        bool TryRemove(BlockInstanceId partnerId, out ConnectionLineRecord record);
+        void Clear();
     }
 }
 ```
@@ -552,10 +626,9 @@ namespace Game.Block.Blocks.GearChainPole
 ```csharp
 using System.Collections.Generic;
 using Core.Item.Interface;
-using Core.Master;
+using Game.Block.Blocks.ConnectionLine;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
-using Game.Context;
 using Game.Gear.Common;
 
 namespace Game.Block.Blocks.GearChainPole
@@ -564,25 +637,32 @@ namespace Game.Block.Blocks.GearChainPole
     /// チェーンポール1本が持つチェーン接続の台帳。dirty化と状態通知は持ち主のコンポーネントが行う
     /// Ledger of a pole's chain connections; topology dirtying and state notifications stay with the owning component
     /// </summary>
-    public class GearChainConnectionSet
+    public class GearChainConnectionSet : IGearChainConnectionLookup, IGearChainConnectionMutation
     {
-        private readonly Dictionary<BlockInstanceId, (IGearEnergyTransformer Transformer, GearChainConnectionRecord Record)> _targets = new();
+        private readonly Dictionary<BlockInstanceId, (IGearEnergyTransformer Transformer, ConnectionLineRecord Record)> _targets = new();
 
         public int Count => _targets.Count;
         public IEnumerable<BlockInstanceId> PartnerIds => _targets.Keys;
-        public IReadOnlyDictionary<BlockInstanceId, (IGearEnergyTransformer Transformer, GearChainConnectionRecord Record)> Targets => _targets;
+        public IReadOnlyDictionary<BlockInstanceId, (IGearEnergyTransformer Transformer, ConnectionLineRecord Record)> Targets => _targets;
 
         public bool Contains(BlockInstanceId partnerId)
         {
             return _targets.ContainsKey(partnerId);
         }
 
-        public void Add(BlockInstanceId partnerId, IGearEnergyTransformer transformer, GearChainConnectionRecord record)
+        public bool TryGetRecord(BlockInstanceId partnerId, out ConnectionLineRecord record)
+        {
+            var found = _targets.TryGetValue(partnerId, out var connection);
+            record = found ? connection.Record : default;
+            return found;
+        }
+
+        public void Add(BlockInstanceId partnerId, IGearEnergyTransformer transformer, ConnectionLineRecord record)
         {
             _targets.Add(partnerId, (transformer, record));
         }
 
-        public bool TryRemove(BlockInstanceId partnerId, out GearChainConnectionRecord record)
+        public bool TryRemove(BlockInstanceId partnerId, out ConnectionLineRecord record)
         {
             if (!_targets.Remove(partnerId, out var connection))
             {
@@ -594,34 +674,17 @@ namespace Game.Block.Blocks.GearChainPole
             return true;
         }
 
-        public bool TryGetRecord(BlockInstanceId partnerId, out GearChainConnectionRecord record)
-        {
-            var found = _targets.TryGetValue(partnerId, out var connection);
-            record = found ? connection.Record : default;
-            return found;
-        }
-
         public void Clear()
         {
             _targets.Clear();
         }
 
-        // 撤去時に返す素材を接続ごとに展開する
-        // Expand the materials to refund on removal, per connection
+        // 撤去時に返す素材を接続ごとに展開する（展開規則は接続線の正本）
+        // Expand the materials to refund on removal, per connection (the rule lives in the connection-line definition)
         public IReadOnlyList<IItemStack> CreateRefundItems()
         {
             var refundItems = new List<IItemStack>();
-            foreach (var connection in _targets.Values)
-            {
-                var materials = connection.Record.Materials;
-                if (materials == null) continue;
-                foreach (var material in materials)
-                {
-                    if (material.Count <= 0 || material.ItemId == ItemMaster.EmptyItemId) continue;
-                    refundItems.Add(ServerContext.ItemStackFactory.Create(material.ItemId, material.Count));
-                }
-            }
-
+            foreach (var connection in _targets.Values) refundItems.AddRange(ConnectionLineRefundItems.Create(connection.Record.Materials));
             return refundItems;
         }
 
@@ -633,13 +696,22 @@ namespace Game.Block.Blocks.GearChainPole
 }
 ```
 
-`GearChainPoleComponent.cs` の置換（`_chainTargets` を台帳へ寄せる。using `Core.Item.Interface`/`Core.Master` は不要になれば削除）:
+`GearChainPoleComponent.cs` の置換（`_chainTargets` を台帳へ寄せ、読み取りは `_chainLookup`、変更は `_chainMutation` 経由に分ける。using `Core.Item.Interface`/`Core.Master` は不要になれば削除）:
 
 ```csharp
-        private readonly GearChainConnectionSet _chainConnections = new();
+        // 同じ台帳を読み取り面と変更面に分けて持つ。外へ出してよいのは読み取り面だけ
+        // Hold the one ledger through separate read and mutation surfaces; only the read surface may leave this component
+        private readonly IGearChainConnectionLookup _chainLookup;
+        private readonly IGearChainConnectionMutation _chainMutation;
+```
+コンストラクタ先頭（既存の代入より前）に:
+```csharp
+            var chainConnections = new GearChainConnectionSet();
+            _chainLookup = chainConnections;
+            _chainMutation = chainConnections;
 ```
 ```csharp
-        public bool IsConnectionFull => _chainConnections.Count >= _param.MaxConnectionCount;
+        public bool IsConnectionFull => _chainLookup.Count >= _param.MaxConnectionCount;
 ```
 ```csharp
         public List<GearConnect> GetGearConnects()
@@ -647,30 +719,30 @@ namespace Game.Block.Blocks.GearChainPole
             // コネクタ経由の隣接接続にチェーン接続を加えて返す
             // Return adjacent connections via the connector plus chain connections
             var result = _gearService.GetGearConnects();
-            foreach (var chainTarget in _chainConnections.Targets.Values) result.Add(new GearConnect(chainTarget.Transformer, _chainOption, _chainOption));
+            foreach (var chainTarget in _chainLookup.Targets.Values) result.Add(new GearConnect(chainTarget.Transformer, _chainOption, _chainOption));
 
             return result;
         }
 
         public bool ContainsChainConnection(BlockInstanceId partnerId)
         {
-            return _chainConnections.Contains(partnerId);
+            return _chainLookup.Contains(partnerId);
         }
 
-        public bool TryGetChainConnectionRecord(BlockInstanceId partnerId, out GearChainConnectionRecord record)
+        public bool TryGetChainConnectionRecord(BlockInstanceId partnerId, out ConnectionLineRecord record)
         {
-            return _chainConnections.TryGetRecord(partnerId, out record);
+            return _chainLookup.TryGetRecord(partnerId, out record);
         }
 
-        public bool TryAddChainConnection(BlockInstanceId partnerId, GearChainConnectionRecord connectionRecord)
+        public bool TryAddChainConnection(BlockInstanceId partnerId, ConnectionLineRecord connectionRecord)
         {
             // 新しい接続先を記録する
             // Store new partner connection
-            if (_chainConnections.Contains(partnerId)) return false;
-            if (_chainConnections.Count >= _param.MaxConnectionCount) return false;
+            if (_chainLookup.Contains(partnerId)) return false;
+            if (_chainLookup.Count >= _param.MaxConnectionCount) return false;
             var transformer = ResolveChainTarget(partnerId);
             if (transformer == null) return false;
-            _chainConnections.Add(partnerId, transformer, connectionRecord);
+            _chainMutation.Add(partnerId, transformer, connectionRecord);
             // 接続集合の変更点自身でdirty化し、呼び出し元の再構築漏れを構造的に防ぐ
             // Mark dirty at the mutation itself so no caller can ever forget the rebuild
             ServerContext.GetService<IGearNetworkDatastore>().MarkTopologyDirty();
@@ -678,9 +750,9 @@ namespace Game.Block.Blocks.GearChainPole
             return true;
         }
 
-        public bool TryRemoveChainConnection(BlockInstanceId partnerId, out GearChainConnectionRecord record)
+        public bool TryRemoveChainConnection(BlockInstanceId partnerId, out ConnectionLineRecord record)
         {
-            if (!_chainConnections.TryRemove(partnerId, out record)) return false;
+            if (!_chainMutation.TryRemove(partnerId, out record)) return false;
 
             ServerContext.GetService<IGearNetworkDatastore>().MarkTopologyDirty();
             _onChangeBlockState.OnNext(Unit.Default);
@@ -690,28 +762,28 @@ namespace Game.Block.Blocks.GearChainPole
 ```csharp
         public IReadOnlyList<IItemStack> GetRefundItems()
         {
-            return _chainConnections.CreateRefundItems();
+            return _chainLookup.CreateRefundItems();
         }
 ```
-`OnPostBlockLoad` 内: `_chainTargets.Clear();` → `_chainConnections.Clear();`、`if (_chainTargets.Count >= ...) break;` → `if (_chainConnections.Count >= _param.MaxConnectionCount) break;`、`if (_chainTargets.ContainsKey(targetId)) continue;` → `if (_chainConnections.Contains(targetId)) continue;`、`var cost = connection.ToConnectionCost(); _chainTargets.Add(targetId, (transformer, cost));` → `_chainConnections.Add(targetId, transformer, connection.ToConnectionRecord());`。
-`Destroy` 内: `foreach (var targetId in _chainTargets.Keys.ToList())` → `foreach (var targetId in _chainConnections.PartnerIds.ToList())`、`_chainTargets.Clear();` → `_chainConnections.Clear();`。
-`GetBlockStateDetails` 内: `var partnerIds = _chainTargets.Keys;` → `var partnerIds = _chainConnections.PartnerIds;`（A3 で置換）。
-`GetSaveState` 本体 → `return _chainConnections.CreateSaveData();`。
+`OnPostBlockLoad` 内: `_chainTargets.Clear();` → `_chainMutation.Clear();`、`if (_chainTargets.Count >= ...) break;` → `if (_chainLookup.Count >= _param.MaxConnectionCount) break;`、`if (_chainTargets.ContainsKey(targetId)) continue;` → `if (_chainLookup.Contains(targetId)) continue;`、`var cost = connection.ToConnectionCost(); _chainTargets.Add(targetId, (transformer, cost));` → `_chainMutation.Add(targetId, transformer, connection.ToConnectionRecord());`。
+`Destroy` 内: `foreach (var targetId in _chainTargets.Keys.ToList())` → `foreach (var targetId in _chainLookup.PartnerIds.ToList())`、`_chainTargets.Clear();` → `_chainMutation.Clear();`。
+`GetBlockStateDetails` 内: `var partnerIds = _chainTargets.Keys;` → `var partnerIds = _chainLookup.PartnerIds;`（A3 で置換）。
+`GetSaveState` 本体 → `return _chainLookup.CreateSaveData();`。
 空行2連（L52-53・L111-112・L188-189 等）は1行に詰めて、最終行数が200未満であることを `wc -l` で確認する。
 
 `ElectricWirePlacementJudgement.cs` L13-25:
 
 ```csharp
-        public readonly ElectricWireConnectionRecord WireRecord;
+        public readonly ConnectionLineRecord WireRecord;
 
-        private ElectricWirePlacementJudgement(bool isPlaceable, ElectricWirePlacementFailureReason failureReason, ElectricWireConnectionRecord wireRecord)
+        private ElectricWirePlacementJudgement(bool isPlaceable, ElectricWirePlacementFailureReason failureReason, ConnectionLineRecord wireRecord)
         {
             IsPlaceable = isPlaceable;
             FailureReason = failureReason;
             WireRecord = wireRecord;
         }
 
-        public static ElectricWirePlacementJudgement Success(ElectricWireConnectionRecord wireRecord)
+        public static ElectricWirePlacementJudgement Success(ConnectionLineRecord wireRecord)
         {
             return new ElectricWirePlacementJudgement(true, ElectricWirePlacementFailureReason.None, wireRecord);
         }
@@ -720,41 +792,41 @@ namespace Game.Block.Blocks.GearChainPole
 `ElectricWirePlacementEvaluator.cs` L47-56:
 
 ```csharp
-            return ElectricWirePlacementJudgement.Success(new ElectricWireConnectionRecord(connectToolGuid, materials));
+            return ElectricWirePlacementJudgement.Success(new ConnectionLineRecord(connectToolGuid, materials));
         }
 
         // 種類と距離から電線1本の接続記録を作る。マスタに無い種類はfalse
         // Build one wire's connection record from the tool and distance; false for a tool absent from the master
-        public static bool TryCreateWireRecord(Guid connectToolGuid, float distance, out ElectricWireConnectionRecord record)
+        public static bool TryCreateWireRecord(Guid connectToolGuid, float distance, out ConnectionLineRecord record)
         {
             record = default;
             if (!ConnectToolCostCalculator.TryCalculate(connectToolGuid, distance, out var materials)) return false;
-            record = new ElectricWireConnectionRecord(connectToolGuid, materials);
+            record = new ConnectionLineRecord(connectToolGuid, materials);
             return true;
         }
 ```
 
-`ElectricWireAutoConnectPlan.cs`: 3箇所の `ElectricWireConnectionCost` を `ElectricWireConnectionRecord`、タプル要素名 `Cost` を `Record` に置換:
+`ElectricWireAutoConnectPlan.cs`: 3箇所の `ElectricWireConnectionCost` を `ConnectionLineRecord`、タプル要素名 `Cost` を `Record` に置換:
 
 ```csharp
-        public readonly IReadOnlyList<(BlockInstanceId TargetId, ElectricWireConnectionRecord Record)> Targets;
+        public readonly IReadOnlyList<(BlockInstanceId TargetId, ConnectionLineRecord Record)> Targets;
 ```
 ```csharp
-        private ElectricWireAutoConnectPlan(IReadOnlyList<(BlockInstanceId, ElectricWireConnectionRecord)> targets, Guid connectToolGuid, ElectricWirePlacementFailureReason failureReason, bool isPlaceable)
+        private ElectricWireAutoConnectPlan(IReadOnlyList<(BlockInstanceId, ConnectionLineRecord)> targets, Guid connectToolGuid, ElectricWirePlacementFailureReason failureReason, bool isPlaceable)
 ```
 ```csharp
-        public static ElectricWireAutoConnectPlan Success(IReadOnlyList<(BlockInstanceId, ElectricWireConnectionRecord)> targets, Guid connectToolGuid)
+        public static ElectricWireAutoConnectPlan Success(IReadOnlyList<(BlockInstanceId, ConnectionLineRecord)> targets, Guid connectToolGuid)
 ```
 ```csharp
-            return new ElectricWireAutoConnectPlan(Array.Empty<(BlockInstanceId, ElectricWireConnectionRecord)>(), Guid.Empty, failureReason, false);
+            return new ElectricWireAutoConnectPlan(Array.Empty<(BlockInstanceId, ConnectionLineRecord)>(), Guid.Empty, failureReason, false);
 ```
 
-`ElectricWireAutoConnectService.cs`: L37・L46 の `Array.Empty<(BlockInstanceId, ElectricWireConnectionCost)>()` → `Array.Empty<(BlockInstanceId, ElectricWireConnectionRecord)>()`、L58 の `out List<(BlockInstanceId, ElectricWireConnectionCost)> selectedTargets` → `ElectricWireConnectionRecord`、L78-91:
+`ElectricWireAutoConnectService.cs`: L37・L46 の `Array.Empty<(BlockInstanceId, ElectricWireConnectionCost)>()` → `Array.Empty<(BlockInstanceId, ConnectionLineRecord)>()`、L58 の `out List<(BlockInstanceId, ElectricWireConnectionCost)> selectedTargets` → `ConnectionLineRecord`、L78-91:
 
 ```csharp
-            bool TryBuildTargets(Guid connectToolGuid, out List<(BlockInstanceId, ElectricWireConnectionRecord)> builtTargets, out Dictionary<ItemId, int> requiredByItem)
+            bool TryBuildTargets(Guid connectToolGuid, out List<(BlockInstanceId, ConnectionLineRecord)> builtTargets, out Dictionary<ItemId, int> requiredByItem)
             {
-                builtTargets = new List<(BlockInstanceId, ElectricWireConnectionRecord)>();
+                builtTargets = new List<(BlockInstanceId, ConnectionLineRecord)>();
                 requiredByItem = new Dictionary<ItemId, int>();
 
                 foreach (var candidate in candidates)
@@ -772,7 +844,7 @@ L142-144: `target.Cost` → `target.Record`（2箇所）。
 
 `ElectricWireExtendService.cs` L137: `TryCalculateWireCost(connectToolGuid, distance, out var wireCost)` → `TryCreateWireRecord(connectToolGuid, distance, out var wireCost)`（後続の `wireCost.Materials`・`TryConnectBothSides(..., wireCost)` は型推論のまま通る）。
 
-`ElectricWireSystemUtil.cs`: L86-96 の `judgement.WireCost` → `judgement.WireRecord`（3箇所）、L178 `ElectricWireConnectionCost cost` → `ElectricWireConnectionRecord record`（本体の `cost` も `record` へ）。L136-174 の `TryDisconnect` を丸ごと削除し、新規ファイルへ移す:
+`ElectricWireSystemUtil.cs`: L86-96 の `judgement.WireCost` → `judgement.WireRecord`（3箇所）、L178 `ElectricWireConnectionCost cost` → `ConnectionLineRecord record`（本体の `cost` も `record` へ）。L136-174 の `TryDisconnect` を丸ごと削除し、新規ファイルへ移す:
 
 `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/Util/ElectricWire/Connection/ElectricWireDisconnectUtil.cs`:
 
@@ -814,8 +886,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.Connection
             // Reject the disconnect when the refund cannot fit, preventing item loss
             var record = connectorA.WireConnections[connectorB.BlockInstanceId].Record;
             var inventory = ServerContext.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).MainOpenableInventory;
-            var refundStacks = ConnectToolMaterialConsumer.CreateRefundItems(record.Materials);
-            if (0 < refundStacks.Count && !inventory.InsertionCheck(refundStacks))
+            if (!ConnectToolMaterialConsumer.TryCreateFittingRefund(record.Materials, inventory, out var refundStacks))
             {
                 failureReason = ElectricWirePlacementFailureReason.InventoryFull;
                 return false;
@@ -834,20 +905,20 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.Connection
 （`ElectricWireSystemUtil` 側で使われなくなった using は削除。`TryGetWireConnector` が private なら public にする — エクスプローラ報告では L189 public。）
 `ElectricWireDisconnectProtocol.cs` L31: `ElectricWireSystemUtil.TryDisconnect(` → `ElectricWireDisconnectUtil.TryDisconnect(`。
 
-`GearChainPlacementEvaluator.cs`: L61 → `return GearChainPlacementJudgement.Success(new GearChainConnectionRecord(connectToolGuid, materials));`、L72-84:
+`GearChainPlacementEvaluator.cs`: L61 → `return GearChainPlacementJudgement.Success(new ConnectionLineRecord(connectToolGuid, materials));`、L72-84:
 
 ```csharp
-        public readonly GearChainConnectionRecord ChainRecord;
+        public readonly ConnectionLineRecord ChainRecord;
 
         public bool IsPlaceable => string.IsNullOrEmpty(FailureReason);
 
-        private GearChainPlacementJudgement(string failureReason, GearChainConnectionRecord chainRecord)
+        private GearChainPlacementJudgement(string failureReason, ConnectionLineRecord chainRecord)
         {
             FailureReason = failureReason;
             ChainRecord = chainRecord;
         }
 
-        public static GearChainPlacementJudgement Success(GearChainConnectionRecord chainRecord)
+        public static GearChainPlacementJudgement Success(ConnectionLineRecord chainRecord)
         {
             return new GearChainPlacementJudgement(string.Empty, chainRecord);
         }
@@ -863,17 +934,17 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.Connection
 `ElectricWireAutoConnectToolSelector.cs` L80: `TryCalculateWireCost(connectToolGuid, target.Distance, out var targetCost)` → `TryCreateWireRecord(connectToolGuid, target.Distance, out var targetCost)`。
 
 テスト側の追従:
-- `FakeWireConnector.cs`: 全 `ElectricWireConnectionCost` → `ElectricWireConnectionRecord`、タプル要素名 `Cost` → `Record`。L64 → `var record = new ElectricWireConnectionRecord(Guid.Parse("c0000000-0000-0000-0000-000000000001"), new List<ConnectToolMaterialCost> { new(new ItemId(1), 1) });`（`using System;` 追加）。`TryRemoveWireConnection(..., out ElectricWireConnectionRecord record)` 本体の `cost =` を `record =` に。
+- `FakeWireConnector.cs`: 全 `ElectricWireConnectionCost` → `ConnectionLineRecord`、タプル要素名 `Cost` → `Record`。L64 → `var record = new ConnectionLineRecord(Guid.Parse("c0000000-0000-0000-0000-000000000001"), new List<ConnectToolMaterialCost> { new(new ItemId(1), 1) });`（`using System;` 追加）。`TryRemoveWireConnection(..., out ConnectionLineRecord record)` 本体の `cost =` を `record =` に。
 - `ElectricWireTestUtil.cs` L27:
 ```csharp
             // テスト用の電線ツール種で素材0の接続記録を張る
             // Wire with a zero-material record of the test mod's wire tool
-            var record = new ElectricWireConnectionRecord(TestWireConnectToolGuid, Array.Empty<ConnectToolMaterialCost>());
+            var record = new ConnectionLineRecord(TestWireConnectToolGuid, Array.Empty<ConnectToolMaterialCost>());
             connectorA.TryAddWireConnection(connectorB.BlockInstanceId, record);
             connectorB.TryAddWireConnection(connectorA.BlockInstanceId, record);
 ```
   クラス先頭に `private static readonly Guid TestWireConnectToolGuid = Guid.Parse("c0000000-0000-0000-0000-000000000001");`（`using Core.Master;` を追加）。
-- `GearChainPoleSaveLoadTest.cs` L39 → `var noCost = new GearChainConnectionRecord(Guid.Parse("c0000000-0000-0000-0000-000000000003"), Array.Empty<ConnectToolMaterialCost>());`
+- `GearChainPoleSaveLoadTest.cs` L39 → `var noCost = new ConnectionLineRecord(Guid.Parse("c0000000-0000-0000-0000-000000000003"), Array.Empty<ConnectToolMaterialCost>());`
 - `ElectricWireRemovalTest.cs` L74-75: `.Cost` → `.Record`
 - `ElectricWirePlacementEvaluatorTest.cs`: `judgement.WireCost` → `judgement.WireRecord`、L129-131 のテスト名と呼び出しを `TryCreateWireRecordは距離を切り上げて記録を作る` / `TryCreateWireRecord(ConnectToolGuid, 3.2f, out var cost)` に、末尾に `Assert.AreEqual(ConnectToolGuid, cost.ConnectToolGuid);` を追加
 - `GearChainPlacementEvaluatorTest.cs` L115-116: `judgement.ChainCost` → `judgement.ChainRecord`
@@ -887,8 +958,8 @@ Expected: ErrorCount 0 / 全 PASS。`wc -l` で `GearChainPoleComponent.cs`・`E
 - [ ] **Step 4: コミットする**
 
 ```bash
-git add moorestech_server/Assets/Scripts/Game.EnergySystem/ElectricWire moorestech_server/Assets/Scripts/Game.Block.Interface/Component moorestech_server/Assets/Scripts/Game.Block/Blocks/ElectricWire moorestech_server/Assets/Scripts/Game.Block/Blocks/GearChainPole moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse moorestech_server/Assets/Scripts/Tests moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem .agents/skills/unity-playmode-recorded-playtest/scenarios/misc/cleanroom-v2.cs
-git commit -m "feat(server): 電線・チェーンの接続記録に引いた種類を持たせセーブする"
+git add moorestech_server/Assets/Scripts/Game.EnergySystem/ElectricWire moorestech_server/Assets/Scripts/Game.Block.Interface/Component moorestech_server/Assets/Scripts/Game.Block/Blocks/ElectricWire moorestech_server/Assets/Scripts/Game.Block/Blocks/GearChainPole moorestech_server/Assets/Scripts/Game.Block/Blocks/ConnectionLine moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse moorestech_server/Assets/Scripts/Tests moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem .agents/skills/unity-playmode-recorded-playtest/scenarios/misc/cleanroom-v2.cs
+git commit -m "feat(server): 電線・チェーンの接続記録を1型に統合し引いた種類を持たせセーブする"
 ```
 （`git add -A` は禁止: Unity がmasterピンファイルを書き戻すため。Unity が生成した新規 `.meta` はここで一緒に add する）
 
@@ -900,6 +971,7 @@ git commit -m "feat(server): 電線・チェーンの接続記録に引いた種
 - Modify: `moorestech_server/Assets/Scripts/Game.SaveLoad/Json/WorldVersions/WorldSaveAllInfo.cs:25`（`CurrentVersion = 3` → `4`）
 - Create: `moorestech_server/Assets/Scripts/Game.SaveLoad/Migration/Steps/SaveMigrationStepV3ToV4.cs`
 - Create: `moorestech_server/Assets/Scripts/Game.SaveLoad/Migration/Steps/V3ToV4/ConnectionToolGuidFiller.cs`
+- Create: `moorestech_server/Assets/Scripts/Game.SaveLoad/Migration/Steps/V3ToV4/ConnectionToolGuidFillResult.cs`（補填件数か失敗理由のどちらかを持つ結果。前例 `SaveMigrationStepResult`）
 - Modify: `moorestech_server/Assets/Scripts/Server.Boot/Composition/SaveAndEventServiceRegistration.cs:114`
 - Modify: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/SaveLoadPreparerTestFixture.cs:37`
 - Modify: `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/SaveMigrationChainTest.cs:137`
@@ -916,7 +988,7 @@ git commit -m "feat(server): 電線・チェーンの接続記録に引いた種
 
 **Interfaces:**
 - Consumes: A1 のセーブ JSON 形（`connections[].connectToolGuid` 必須）
-- Produces: `WorldSaveAllInfo.CurrentVersion == 4`、引数なしの `SaveMigrationStepV3ToV4()`、`SaveMigrationStepV3ToV4.ElectricWireConnectToolGuid` / `GearChainConnectToolGuid`（`public static readonly Guid`。テストが参照する）、`ConnectionToolGuidFiller.TryFill(JObject state, string saveKey, Guid connectToolGuid, out int filled, out string failureReason)`
+- Produces: `WorldSaveAllInfo.CurrentVersion == 4`、引数なしの `SaveMigrationStepV3ToV4()`、`SaveMigrationStepV3ToV4.ElectricWireConnectToolGuid` / `GearChainConnectToolGuid`（`public static readonly Guid`。テストが参照する）、`ConnectionToolGuidFiller.Fill(JObject state, string saveKey, Guid connectToolGuid) : ConnectionToolGuidFillResult`（`IsFilled`・`FilledCount`・`FailureReason`、`Filled(int)`/`Failed(string)`）
 
 - [ ] **Step 1: テストを書く**
 
@@ -1154,11 +1226,46 @@ namespace Tests.CombinedTest.Game.SaveLoad
     }
 }
 ```
-（テストmodの接続ツールGuidは `c0…01`/`c0…03` だが、移行は本番の固定Guidを書く。ロード時の記録は素材とGuidを読むだけで、マスタへ照合しない（`ElectricWireConnectionJsonObject.ToConnectionRecord`）。だから、テストmodに無いGuidでもロードは通る。）
+（テストmodの接続ツールGuidは `c0…01`/`c0…03` だが、移行は本番の固定Guidを書く。ロード時の記録は素材とGuidを読むだけで、マスタへ照合しない（`ConnectionLineConnectionJsonObject.ToConnectionRecord`）。だから、テストmodに無いGuidでもロードは通る。）
 
 - [ ] **Step 2: 実装を書く**
 
 `WorldSaveAllInfo.cs` L25: `public const int CurrentVersion = 4;`
+
+`moorestech_server/Assets/Scripts/Game.SaveLoad/Migration/Steps/V3ToV4/ConnectionToolGuidFillResult.cs`:
+
+```csharp
+namespace Game.SaveLoad.Migration.Steps.V3ToV4
+{
+    /// <summary>
+    /// 1ブロックの接続への種類補填の結果。成功なら補填件数、失敗なら辿れなかった理由を持つ
+    /// Result of filling tools into one block's connections: the filled count on success, the unwalkable reason on failure
+    /// </summary>
+    public sealed class ConnectionToolGuidFillResult
+    {
+        public bool IsFilled { get; }
+        public int FilledCount { get; }
+        public string FailureReason { get; }
+
+        private ConnectionToolGuidFillResult(bool isFilled, int filledCount, string failureReason)
+        {
+            IsFilled = isFilled;
+            FilledCount = filledCount;
+            FailureReason = failureReason;
+        }
+
+        public static ConnectionToolGuidFillResult Filled(int filledCount)
+        {
+            return new ConnectionToolGuidFillResult(true, filledCount, null);
+        }
+
+        public static ConnectionToolGuidFillResult Failed(string reason)
+        {
+            return new ConnectionToolGuidFillResult(false, 0, reason);
+        }
+    }
+}
+```
 
 `moorestech_server/Assets/Scripts/Game.SaveLoad/Migration/Steps/V3ToV4/ConnectionToolGuidFiller.cs`:
 
@@ -1174,30 +1281,26 @@ namespace Game.SaveLoad.Migration.Steps.V3ToV4
     /// </summary>
     public static class ConnectionToolGuidFiller
     {
-        public static bool TryFill(JObject state, string saveKey, Guid connectToolGuid, out int filled, out string failureReason)
+        public static ConnectionToolGuidFillResult Fill(JObject state, string saveKey, Guid connectToolGuid)
         {
-            filled = 0;
-            failureReason = null;
-
             // この種の接続を持たないブロックは対象外
             // Blocks without this kind of connection are out of scope
             var componentState = state[saveKey];
-            if (componentState == null || componentState.Type == JTokenType.Null) return true;
+            if (componentState == null || componentState.Type == JTokenType.Null) return ConnectionToolGuidFillResult.Filled(0);
 
             // 辿れない形を素通しすると未変換のまま版4が刻まれ、必須キーの読み込みで後から落ちる
             // Passing an unwalkable shape would stamp version 4 on an unconverted save that later fails on the required key
             if (!(componentState is JObject componentObject) || !(componentObject["connections"] is JArray connections))
             {
-                failureReason = $"state['{saveKey}'].connectionsが配列ではないため種類を書き込めません。 type={componentState.Type}";
-                return false;
+                return ConnectionToolGuidFillResult.Failed($"state['{saveKey}'].connectionsが配列ではないため種類を書き込めません。 type={componentState.Type}");
             }
 
+            var filled = 0;
             foreach (var connectionToken in connections)
             {
                 if (!(connectionToken is JObject connection))
                 {
-                    failureReason = $"state['{saveKey}']の接続要素がオブジェクトではありません。 type={connectionToken.Type}";
-                    return false;
+                    return ConnectionToolGuidFillResult.Failed($"state['{saveKey}']の接続要素がオブジェクトではありません。 type={connectionToken.Type}");
                 }
 
                 // 既に新形式なら上書きしない。塗り潰すと正しい値が無音で消える
@@ -1208,7 +1311,7 @@ namespace Game.SaveLoad.Migration.Steps.V3ToV4
                 filled++;
             }
 
-            return true;
+            return ConnectionToolGuidFillResult.Filled(filled);
         }
     }
 }
@@ -1256,10 +1359,12 @@ namespace Game.SaveLoad.Migration.Steps
 
                 // 電線とチェーンの接続へそれぞれの固定の種類を書き込む
                 // Write each kind's fixed tool into wire and chain connections
-                if (!ConnectionToolGuidFiller.TryFill(state, WireSaveKey, ElectricWireConnectToolGuid, out var wire, out var reason)) return Fail(reason);
-                if (!ConnectionToolGuidFiller.TryFill(state, ChainSaveKey, GearChainConnectToolGuid, out var chain, out reason)) return Fail(reason);
-                wireFilled += wire;
-                chainFilled += chain;
+                var wire = ConnectionToolGuidFiller.Fill(state, WireSaveKey, ElectricWireConnectToolGuid);
+                if (!wire.IsFilled) return Fail(wire.FailureReason);
+                var chain = ConnectionToolGuidFiller.Fill(state, ChainSaveKey, GearChainConnectToolGuid);
+                if (!chain.IsFilled) return Fail(chain.FailureReason);
+                wireFilled += wire.FilledCount;
+                chainFilled += chain.FilledCount;
             }
 
             Debug.Log($"セーブを版3から版4へ変換しました。電線の種類補填={wireFilled}件 チェーンの種類補填={chainFilled}件");
@@ -1311,7 +1416,6 @@ git commit -m "feat(save): 版3→4で電線・チェーンの接続へ線種別
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/ElectricWire/ElectricWireStateDetail.cs:19-30`
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/GearChainPole/GearChainPoleStateDetail.cs:19-30`
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/ElectricWire/ElectricWireConnectorComponent.cs:178`
-- Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/GearChainPole/GearChainConnectionSet.cs`（A1 新設。メソッド1本追加）
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/GearChainPole/GearChainPoleComponent.cs`（`GetBlockStateDetails` の `partnerIds` 行）
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/StateProcessor/ElectricWire/ElectricWireStateChangeProcessor.cs:41-45`
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/StateProcessor/GearChainPoleStateChangeProcessor.cs:32-36`
@@ -1319,11 +1423,12 @@ git commit -m "feat(save): 版3→4で電線・チェーンの接続へ線種別
 - Create (test): `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/ElectricWire/ConnectionLineStateDetailTest.cs`
 
 **Interfaces:**
-- Consumes: A1 の `ElectricWireConnectionRecord.ConnectToolGuid`、`GearChainConnectionSet.Targets`
+- Consumes: A1 の `ConnectionLineRecord.ConnectToolGuid`、`IGearChainConnectionLookup.Targets`
 - Produces:
   - `Game.Block.Blocks.ConnectionLine.ConnectionLinePartnerMessagePack`: `[Key(0)] int PartnerBlockInstanceId`、`[Key(1)] Guid ConnectToolGuid`、public ctor `(int partnerBlockInstanceId, Guid connectToolGuid)` と `[Obsolete]` のデシリアライズ用 ctor
   - `ElectricWireStateDetail.Partners` / `GearChainPoleStateDetail.Partners`: `[Key(0)] ConnectionLinePartnerMessagePack[]`、ctor `(ConnectionLinePartnerMessagePack[] partners)`（旧 `PartnerBlockInstanceIds` は削除）
-  - `GearChainConnectionSet.CreatePartnerMessagePacks() : ConnectionLinePartnerMessagePack[]`
+  - `ConnectionLinePartnerMessagePack.CreateArray<TPeer>(IEnumerable<KeyValuePair<BlockInstanceId, (TPeer Peer, ConnectionLineRecord Record)>> connections) : ConnectionLinePartnerMessagePack[]`（電線・チェーンの状態詳細が共有する生成式）
+  - `ConnectionLinePartnerMessagePack.ToPartnerIds(ConnectionLinePartnerMessagePack[] packs) : BlockInstanceId[]`（null は空配列。クライアントの2つの状態プロセッサが共有。Task 9 で `ConnectionLinePartner.FromMessagePacks` へ置き換わる）
   - クライアントは本タスクでは「Partners → BlockInstanceId[]」へ写すだけ（`ConnectionLineViewBase.UpdateConnectionLines(BlockInstanceId[])` は無変更）。種類を使う表示側の作り替えは契約 8 のクライアント側タスクが行う
 
 - [ ] **Step 1: テストを書く**
@@ -1429,6 +1534,10 @@ namespace Tests.CombinedTest.Game.ElectricWire
 
 ```csharp
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using Game.Block.Interface;
+using Game.Block.Interface.Component;
 using MessagePack;
 
 namespace Game.Block.Blocks.ConnectionLine
@@ -1452,6 +1561,21 @@ namespace Game.Block.Blocks.ConnectionLine
         {
             PartnerBlockInstanceId = partnerBlockInstanceId;
             ConnectToolGuid = connectToolGuid;
+        }
+
+        // 電線・チェーンの接続台帳から同期配列を作る（相手の型は問わない）
+        // Build the sync array from a wire or chain connection ledger (the peer type does not matter)
+        public static ConnectionLinePartnerMessagePack[] CreateArray<TPeer>(IEnumerable<KeyValuePair<BlockInstanceId, (TPeer Peer, ConnectionLineRecord Record)>> connections)
+        {
+            return connections.Select(c => new ConnectionLinePartnerMessagePack(c.Key.AsPrimitive(), c.Value.Record.ConnectToolGuid)).ToArray();
+        }
+
+        // 受信側が接続先IDだけを要るときの写像。未受信(null)は空配列
+        // Map to partner ids when the receiver only needs ids; an absent array (null) becomes empty
+        public static BlockInstanceId[] ToPartnerIds(ConnectionLinePartnerMessagePack[] packs)
+        {
+            if (packs == null) return Array.Empty<BlockInstanceId>();
+            return packs.Select(p => new BlockInstanceId(p.PartnerBlockInstanceId)).ToArray();
         }
     }
 }
@@ -1490,24 +1614,13 @@ namespace Game.Block.Blocks.ConnectionLine
 `ElectricWireConnectorComponent.cs` L178（`using Game.Block.Blocks.ConnectionLine;` 追加）:
 
 ```csharp
-            var stateDetail = new ElectricWireStateDetail(_wireConnections.Select(c => new ConnectionLinePartnerMessagePack(c.Key.AsPrimitive(), c.Value.Record.ConnectToolGuid)).ToArray());
+            var stateDetail = new ElectricWireStateDetail(ConnectionLinePartnerMessagePack.CreateArray(_wireConnections));
 ```
 
-`GearChainConnectionSet.cs` に追加（`using System.Linq;`・`using Game.Block.Blocks.ConnectionLine;`）:
+`GearChainPoleComponent.cs` の `GetBlockStateDetails`（`using Game.Block.Blocks.ConnectionLine;` を追加）:
 
 ```csharp
-        // クライアント同期用に接続先と種類を並べる
-        // List partners and tools for client sync
-        public ConnectionLinePartnerMessagePack[] CreatePartnerMessagePacks()
-        {
-            return _targets.Select(t => new ConnectionLinePartnerMessagePack(t.Key.AsPrimitive(), t.Value.Record.ConnectToolGuid)).ToArray();
-        }
-```
-
-`GearChainPoleComponent.cs` の `GetBlockStateDetails`:
-
-```csharp
-            var stateDetail = new GearChainPoleStateDetail(_chainConnections.CreatePartnerMessagePacks());
+            var stateDetail = new GearChainPoleStateDetail(ConnectionLinePartnerMessagePack.CreateArray(_chainLookup.Targets));
 ```
 （直前の `var partnerIds = ...;` 行を削除）
 
@@ -1516,9 +1629,7 @@ namespace Game.Block.Blocks.ConnectionLine
 ```csharp
             // 接続先InstanceIdを配列に変換する（種類の利用は表示側の作り替えで行う）
             // Convert partner instance IDs to an array (the tool is consumed by the view rework)
-            var partnerInstanceIds = state.Partners?
-                .Select(p => new BlockInstanceId(p.PartnerBlockInstanceId))
-                .ToArray() ?? Array.Empty<BlockInstanceId>();
+            var partnerInstanceIds = ConnectionLinePartnerMessagePack.ToPartnerIds(state.Partners);
 ```
 
 `GearChainPoleStateChangeProcessor.cs` L32-36:
@@ -1526,9 +1637,7 @@ namespace Game.Block.Blocks.ConnectionLine
 ```csharp
             // 接続先InstanceIdを配列に変換
             // Convert partner instance IDs to array
-            var partnerInstanceIds = state.Partners?
-                .Select(p => new BlockInstanceId(p.PartnerBlockInstanceId))
-                .ToArray() ?? Array.Empty<BlockInstanceId>();
+            var partnerInstanceIds = ConnectionLinePartnerMessagePack.ToPartnerIds(state.Partners);
 ```
 
 `GearChainPoleExtendPreviewCalculator.cs` L83（`using System.Linq;` が無ければ追加）:
@@ -1555,9 +1664,14 @@ git commit -m "feat(sync): 電線・チェーンの状態詳細に接続先ご�
 
 **Files:**
 - Create: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/Util/GearChain/GearChainDisconnectFailureReason.cs`
-- Create: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/Util/GearChain/GearChainConnectFailureReason.cs`
+- Create: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/Util/GearChain/GearChainPlacementFailureReason.cs`
 - Modify: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/Util/GearChain/GearChainSystemUtil.cs`（`TryDisconnect` 追加・`TryConnect` の失敗理由を enum 化）
 - Modify: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/GearChainConnectionEditProtocol.cs:14-49,55-80,97-102`
+- Modify: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/Util/GearChain/GearChainPlacementEvaluator.cs`（文字列定数9本と `GearChainPlacementJudgement.FailureReason(string)` を廃し enum 1本へ。裁定 `.decisions/2026-10-05-歯車チェーンの接続失敗理由はenum1本に畳む.md`）
+- Modify: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/GearChainPoleExtendProtocol.cs:50,55,61,67,75,77,84,90,94-99,168-176`（`CreateFailed(GearChainPlacementFailureReason)`。応答 `Error` は `reason.ToString()`）
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/GearChainPoleConnect/Parts/GearChainPoleExtendPreviewCalculator.cs:65,120-150`（`FailureReason` を enum に）
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/GearChainPoleConnect/Parts/GearChainPlacementFailureTooltipKey.cs`（全体。enum で switch）
+- Modify (test, 評価器の enum 化への追従): `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/Chain/GearChainPlacementEvaluatorTest.cs:43,53,63,73,83,93`、`moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/GearChainPoleExtendProtocolTest.cs:76,83,92,105,124,136`、`moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/GearChain/GearChainPoleExtendTestHelper.cs:63,69`、`moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/GearChainPoleConnect/GearChainPoleChainConnectModeTest.cs:166,182,201`、`moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/GearChainPoleConnect/GearChainPoleFrameResultPushTest.cs:43`、`moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/GearChainPoleConnect/GearChainPolePlaceExtendModeFeedbackTest.cs:42,60`、`moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/GearChainPoleConnect/GearChainPlacementFailureTooltipKeyTest.cs:22-24,34-36,45-61,79-91`
 - Modify: `moorestech_client/Assets/Scripts/Client.Network/API/VanillaApiSendOnly.cs:161`（`DisconnectGearChain` 追加）
 - Modify: `moorestech_web/webui/src/features/notification/notificationMessages.ts:48`
 - Modify: `moorestech_web/webui/src/features/notification/notificationServerIdCoverage.test.ts:23-33,98`
@@ -1568,13 +1682,16 @@ git commit -m "feat(sync): 電線・チェーンの状態詳細に接続先ご�
 - Modify (test, `TryConnect` の enum 化への追従): `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Gear/ChainEnergySaveLoadTest.cs:51`、`moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Gear/ChainEnergyTransmissionTest.cs:56`、`moorestech_server/Assets/Scripts/Tests/UnitTest/Game/Chain/GearChainSystemUtilTest/GearChainRemovalTest.cs:52,97-98`、`moorestech_server/Assets/Scripts/Tests/UnitTest/Game/Chain/GearChainSystemUtilTest.cs:46,64,87,111,148-149,155`、Task 1〜3 で作った `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/ElectricWire/ConnectionRecordSaveLoadTest.cs`・`moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/SaveLoad/ConnectToolGuidMigrationLoadTest.cs`・`moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/ElectricWire/ConnectionLineStateDetailTest.cs`
 
 **Interfaces:**
-- Consumes: A1 の `IGearChainPole.TryGetChainConnectionRecord`、`GearChainConnectionRecord.Materials`
+- Consumes: A1 の `IGearChainPole.TryGetChainConnectionRecord`、`ConnectionLineRecord.Materials`
 - Produces:
   - `public enum GearChainDisconnectFailureReason { None, InvalidTarget, NotConnected, InventoryFull }`（`Server.Protocol.PacketResponse.Util.GearChain`）
   - `GearChainSystemUtil.TryDisconnect(Vector3Int posA, Vector3Int posB, int playerId, out GearChainDisconnectFailureReason failureReason)`
   - `GearChainConnectionEditProtocol.ChainEditMode.Disconnect`、`GearChainConnectionEditRequest.CreateDisconnectRequest(Vector3Int posA, Vector3Int posB)`。拒否時は `denied.gearChainDisconnect.{reason}` を NotificationService で要求者へ通知
-  - `public enum GearChainConnectFailureReason { None, InvalidTarget, NotUnlocked, TooFar, AlreadyConnected, ConnectionLimit, NoItem }`（値名は `GearChainPlacementEvaluator` の文字列定数と同じ綴り）
-  - `GearChainSystemUtil.TryConnect(Vector3Int posA, Vector3Int posB, int playerId, Guid connectToolGuid, out GearChainConnectFailureReason failureReason)`（旧 `out string error` を置換）
+  - `public enum GearChainPlacementFailureReason { None, TooFar, AlreadyConnected, ConnectionLimit, NoItem, NoPoleItem, InvalidTarget, PositionOccupied, NotUnlocked, InsufficientItems }`（評価器・延長・接続・クライアントのプレビュー／ツールチップが端から端まで使う唯一の表現。値名は旧文字列定数の値と同じ綴りなので `ToString()` は旧 `Error` と同じ文字列）
+  - `GearChainPlacementJudgement.FailureReason : GearChainPlacementFailureReason`、`IsPlaceable => FailureReason == None`、`Failure(GearChainPlacementFailureReason)`
+  - `GearChainPoleExtendResponse.CreateFailed(GearChainPlacementFailureReason reason)`（`Error = reason.ToString()`）
+  - クライアント `GearChainPoleExtendPreviewData.FailureReason : GearChainPlacementFailureReason`、`GearChainPlacementFailureTooltipKey.ToKey/BuildFailureLines(..., GearChainPlacementFailureReason)`
+  - `GearChainSystemUtil.TryConnect(Vector3Int posA, Vector3Int posB, int playerId, Guid connectToolGuid, out GearChainPlacementFailureReason failureReason)`（旧 `out string error` を置換）
   - `ChainEditMode.Connect` の拒否時は `denied.gearChainConnect.{reason}` を要求者へ通知し、応答 `Error` は `reason.ToString()`（成功時は空文字）。Task 11 の Undo のチェーン引き直し失敗はこの通知でプレイヤーへ届く
   - クライアント `VanillaApiSendOnly.DisconnectGearChain(Vector3Int posA, Vector3Int posB)`（削除ツールの接続線削除対象が使う）
 
@@ -1772,8 +1889,7 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
             // 返却が入らないなら切断させない（返却消滅の防止。電線の切断と同じ順序）
             // Refuse when the refund cannot fit, preventing item loss (same order as the wire disconnect)
             var inventory = ServerContext.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).MainOpenableInventory;
-            var refundStacks = ConnectToolMaterialConsumer.CreateRefundItems(record.Materials);
-            if (0 < refundStacks.Count && !inventory.InsertionCheck(refundStacks))
+            if (!ConnectToolMaterialConsumer.TryCreateFittingRefund(record.Materials, inventory, out var refundStacks))
             {
                 failureReason = GearChainDisconnectFailureReason.InventoryFull;
                 return false;
@@ -1992,44 +2108,124 @@ namespace Tests.CombinedTest.Server.PacketTest.GearChain
 ```
 （`CapturedEventSink` の名前空間は `OperationDeniedNotificationTest.cs` の using に合わせる）
 
-- [ ] **Step 4: 接続失敗を enum 化して通知する実装を書く**
+- [ ] **Step 4: 失敗理由を enum 1本に畳み、接続失敗を通知する実装を書く**
 
-網羅テスト（`notificationServerIdCoverage.test.ts`）が補間idを分類できるのは enum を展開する形だけなので、`GearChainSystemUtil.TryConnect` の `out string error` を enum へ置き換える。現在の失敗文字列（実コード確認済み）は次のとおり:
-- `GearChainSystemUtil.TryConnect` 自身が返すもの: `InvalidTargetError`＋` (foundA=..., foundB=...)` の付記（端点が無い）、`InvalidTargetError`（同一ブロック）、`NotUnlockedError`、`"ConnectionLimit"` リテラル（両側の追加に失敗）
-- `GearChainPlacementEvaluator.EvaluatePlacement` 経由のもの: `TooFarError`、`AlreadyConnectedError`、`ConnectionLimitError`、`NoItemError`
+裁定（`.decisions/2026-10-05-歯車チェーンの接続失敗理由はenum1本に畳む.md`）どおり、`GearChainPlacementEvaluator` の文字列定数9本（`TooFarError` 等）と `GearChainPlacementJudgement.FailureReason(string)` を廃し、評価器・延長プロトコル・接続・クライアントのプレビューとツールチップまで同じ enum で通す（前例 `ElectricWirePlacementFailureReason`）。値名は旧定数の文字列値と同じ綴りにするので、応答の `Error = reason.ToString()` は従来と同じ文字列になる。文字列→enum の写像は書かない。
 
-enum の各値名は、これらの定数の文字列値（`"TooFar"` 等）と一致させる。そのため `reason.ToString()` は従来の `Error` と同じ文字列になる（InvalidTarget の付記だけは消え、開発者ログへ移す）。
-
-`moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/Util/GearChain/GearChainConnectFailureReason.cs`:
+`moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/Util/GearChain/GearChainPlacementFailureReason.cs`:
 
 ```csharp
 namespace Server.Protocol.PacketResponse.Util.GearChain
 {
     /// <summary>
-    /// 歯車チェーン接続の拒否理由。値名は GearChainPlacementEvaluator の文字列定数と同じ綴りにし、通知idの接尾辞にも使う
-    /// Refusal reasons for a gear chain connect; names match GearChainPlacementEvaluator's string constants and suffix notification ids
+    /// 歯車チェーンの接続・延長設置の拒否理由。評価器から応答・通知・クライアントのツールチップまでこの1本で通す
+    /// Refusal reasons for gear chain connect and extend placement; this single enum flows from the evaluator to responses, notifications and client tooltips
     /// </summary>
-    public enum GearChainConnectFailureReason
+    public enum GearChainPlacementFailureReason
     {
         None,
-        InvalidTarget,
-        NotUnlocked,
         TooFar,
         AlreadyConnected,
         ConnectionLimit,
         NoItem,
+        NoPoleItem,
+        InvalidTarget,
+        PositionOccupied,
+        NotUnlocked,
+        InsufficientItems,
     }
 }
 ```
 
-`GearChainSystemUtil.cs` の `TryConnect` を置き換え、評価器の文字列を enum へ写す private メソッドを足す（`using System;` は既存）:
+`GearChainPlacementEvaluator.cs` を置換（定数9本を削除し、判定結果を enum で持つ。`EvaluatePlacement` の判定順は不変）:
 
 ```csharp
-        public static bool TryConnect(Vector3Int posA, Vector3Int posB, int playerId, Guid connectToolGuid, out GearChainConnectFailureReason failureReason)
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Core.Item.Interface;
+using Core.Master;
+using Game.Block.Interface.Component;
+using Game.Construction;
+using Server.Protocol.PacketResponse.Util.ConnectTool;
+using UnityEngine;
+
+namespace Server.Protocol.PacketResponse.Util.GearChain
+{
+    /// <summary>
+    /// 歯車チェーンの接続・延長設置可否を判定する共有ロジック。
+    /// サーバーの実行処理とクライアントのプレビューが同じ判定を呼ぶことで食い違いを構造的に防ぐ。
+    /// Shared judgement logic for gear chain connect and extend placement.
+    /// Server execution and client preview call this same judgement to structurally prevent mismatch.
+    /// </summary>
+    public static class GearChainPlacementEvaluator
+    {
+        /// <summary>
+        /// 距離・既接続・接続数上限・チェーン素材を一括判定する。消費はconnectToolマスタ駆動の複数素材。
+        /// reservedMaterials に建設コスト等の予約分を渡すと、同一アイテムの予約数を必要数へ上乗せして判定する。
+        /// Evaluate distance, existing connection, connection limit and chain materials at once; consumption is connectTool-master driven multi-material.
+        /// Passing reservedMaterials (e.g. construction cost) adds the reserved amount of the same item to the required count.
+        /// </summary>
+        public static GearChainPlacementJudgement EvaluatePlacement(float connectionDistance, float fromMaxConnectionDistance, float toMaxConnectionDistance, bool alreadyConnected, bool anyConnectionFull, Guid connectToolGuid, IEnumerable<IItemStack> inventoryItems, IReadOnlyList<ConnectToolMaterialCost> reservedMaterials)
+        {
+            var stacks = inventoryItems as IItemStack[] ?? inventoryItems.ToArray();
+
+            // 距離が両端の上限のminを超えると不可
+            // Reject when distance exceeds the min of both max distances
+            if (Mathf.Min(fromMaxConnectionDistance, toMaxConnectionDistance) < connectionDistance) return GearChainPlacementJudgement.Failure(GearChainPlacementFailureReason.TooFar);
+
+            // 既に接続済み・接続数の上限はそれぞれ不可
+            // Reject an existing connection and a full connection count
+            if (alreadyConnected) return GearChainPlacementJudgement.Failure(GearChainPlacementFailureReason.AlreadyConnected);
+            if (anyConnectionFull) return GearChainPlacementJudgement.Failure(GearChainPlacementFailureReason.ConnectionLimit);
+
+            // connectToolマスタから複数素材の必要数を算出し、予約分込みで所持が足りるかを共有の正本へ委ねる
+            // Compute the multi-material requirement from the connectTool master and delegate the held-vs-required check to the shared definition
+            if (!ConnectToolCostCalculator.TryCalculate(connectToolGuid, connectionDistance, out var materials)) return GearChainPlacementJudgement.Failure(GearChainPlacementFailureReason.NoItem);
+            if (!ConstructionMaterialAccounting.HasEnough(materials, stacks, reservedMaterials)) return GearChainPlacementJudgement.Failure(GearChainPlacementFailureReason.NoItem);
+
+            return GearChainPlacementJudgement.Success(new ConnectionLineRecord(connectToolGuid, materials));
+        }
+    }
+
+    /// <summary>
+    /// 歯車チェーン設置可否の判定結果。失敗理由または接続記録を保持する
+    /// Judgement result of gear chain placement, holding the failure reason or the connection record
+    /// </summary>
+    public readonly struct GearChainPlacementJudgement
+    {
+        public readonly GearChainPlacementFailureReason FailureReason;
+        public readonly ConnectionLineRecord ChainRecord;
+
+        public bool IsPlaceable => FailureReason == GearChainPlacementFailureReason.None;
+
+        private GearChainPlacementJudgement(GearChainPlacementFailureReason failureReason, ConnectionLineRecord chainRecord)
+        {
+            FailureReason = failureReason;
+            ChainRecord = chainRecord;
+        }
+
+        public static GearChainPlacementJudgement Success(ConnectionLineRecord chainRecord)
+        {
+            return new GearChainPlacementJudgement(GearChainPlacementFailureReason.None, chainRecord);
+        }
+
+        public static GearChainPlacementJudgement Failure(GearChainPlacementFailureReason reason)
+        {
+            return new GearChainPlacementJudgement(reason, default);
+        }
+    }
+}
+```
+
+`GearChainSystemUtil.cs` の `TryConnect` を置き換える（評価器の enum をそのまま返す。`using System;` は既存）:
+
+```csharp
+        public static bool TryConnect(Vector3Int posA, Vector3Int posB, int playerId, Guid connectToolGuid, out GearChainPlacementFailureReason failureReason)
         {
             // 接続対象を取得する
             // Acquire target chain poles
-            failureReason = GearChainConnectFailureReason.None;
+            failureReason = GearChainPlacementFailureReason.None;
             var foundA = TryGetGearChainPole(posA, out var poleA, out _);
             var foundB = TryGetGearChainPole(posB, out var poleB, out _);
             if (!foundA || !foundB)
@@ -2037,13 +2233,13 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
                 // どちらの端点が無いかは通知idに載らないので開発者ログへ残す
                 // Which endpoint is missing does not fit the notification id, so leave it in the developer log
                 Debug.Log($"チェーン接続を拒否: 端点にポールがありません foundA={foundA} foundB={foundB} posA={posA} posB={posB}");
-                failureReason = GearChainConnectFailureReason.InvalidTarget;
+                failureReason = GearChainPlacementFailureReason.InvalidTarget;
                 return false;
             }
 
             if (poleA.BlockInstanceId == poleB.BlockInstanceId)
             {
-                failureReason = GearChainConnectFailureReason.InvalidTarget;
+                failureReason = GearChainPlacementFailureReason.InvalidTarget;
                 return false;
             }
 
@@ -2051,7 +2247,7 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
             // Reject connection requests using a connectTool that is not unlocked
             if (!IsConnectToolUnlocked(connectToolGuid))
             {
-                failureReason = GearChainConnectFailureReason.NotUnlocked;
+                failureReason = GearChainPlacementFailureReason.NotUnlocked;
                 return false;
             }
 
@@ -2063,39 +2259,25 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
             var judgement = GearChainPlacementEvaluator.EvaluatePlacement(connectionDistance, poleA.MaxConnectionDistance, poleB.MaxConnectionDistance, alreadyConnected, poleA.IsConnectionFull || poleB.IsConnectionFull, connectToolGuid, inventory.InventoryItems, null);
             if (!judgement.IsPlaceable)
             {
-                failureReason = ToConnectFailureReason(judgement.FailureReason);
+                failureReason = judgement.FailureReason;
                 return false;
             }
             var record = judgement.ChainRecord;
 
-            // 接続を確定させる
-            // Finalize connection
+            // 接続を確定させる。片側だけ張れた場合は張った分を戻す
+            // Finalize the connection; roll back the half that was added if the other side fails
             var addedA = poleA.TryAddChainConnection(poleB.BlockInstanceId, record);
             var addedB = addedA && poleB.TryAddChainConnection(poleA.BlockInstanceId, record);
             if (!addedA || !addedB)
             {
                 poleA.TryRemoveChainConnection(poleB.BlockInstanceId, out _);
                 poleB.TryRemoveChainConnection(poleA.BlockInstanceId, out _);
-                failureReason = GearChainConnectFailureReason.ConnectionLimit;
+                failureReason = GearChainPlacementFailureReason.ConnectionLimit;
                 return false;
             }
 
             ConnectToolMaterialConsumer.Consume(record.Materials, inventory);
             return true;
-        }
-
-        // 評価器の失敗文字列（延長プロトコルも共有する）を接続の拒否理由へ写す。EvaluatePlacementが返す4種以外は実装の破れ
-        // Map the evaluator's failure strings (shared with the extend protocol) to connect reasons; anything beyond EvaluatePlacement's four is a broken invariant
-        private static GearChainConnectFailureReason ToConnectFailureReason(string evaluatorError)
-        {
-            return evaluatorError switch
-            {
-                GearChainPlacementEvaluator.TooFarError => GearChainConnectFailureReason.TooFar,
-                GearChainPlacementEvaluator.AlreadyConnectedError => GearChainConnectFailureReason.AlreadyConnected,
-                GearChainPlacementEvaluator.ConnectionLimitError => GearChainConnectFailureReason.ConnectionLimit,
-                GearChainPlacementEvaluator.NoItemError => GearChainConnectFailureReason.NoItem,
-                _ => throw new ArgumentOutOfRangeException(nameof(evaluatorError), evaluatorError, "EvaluatePlacementが返さないはずの失敗理由です"),
-            };
         }
 ```
 
@@ -2112,9 +2294,101 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
                         break;
 ```
 
-`TryConnect` の呼び出し側テストを enum へ追従させる（本番の呼び出しは `GearChainConnectionEditProtocol` だけ。`GearChainPoleExtendProtocolTest.cs:119-120` と Task 14 のシナリオは `out _` のため無変更）:
-- `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Gear/ChainEnergySaveLoadTest.cs:51`、`moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Gear/ChainEnergyTransmissionTest.cs:56`、`moorestech_server/Assets/Scripts/Tests/UnitTest/Game/Chain/GearChainSystemUtilTest/GearChainRemovalTest.cs:52,97,98`、`moorestech_server/Assets/Scripts/Tests/UnitTest/Game/Chain/GearChainSystemUtilTest.cs:111,148,149`: `Assert.IsEmpty(<var> ?? string.Empty);` → `Assert.AreEqual(GearChainConnectFailureReason.None, <var>);`
-- `GearChainSystemUtilTest.cs:46` `Assert.AreEqual("TooFar", error);` → `Assert.AreEqual(GearChainConnectFailureReason.TooFar, error);`、`:64`・`:87` `"NoItem"` → `GearChainConnectFailureReason.NoItem`、`:155` `"ConnectionLimit"` → `GearChainConnectFailureReason.ConnectionLimit`
+`GearChainPoleExtendProtocol.cs`: `CreateFailed` を enum 受けにし、8か所の呼び出しを enum へ（`GearChainPlacementEvaluator.XxxError` → `GearChainPlacementFailureReason.Xxx`。L84 は `judgement.FailureReason`、L94-99 の `out var connectError` はそのまま enum で `CreateFailed(connectError)`）:
+
+```csharp
+            public static GearChainPoleExtendResponse CreateFailed(GearChainPlacementFailureReason reason)
+            {
+                return new GearChainPoleExtendResponse
+                {
+                    IsSuccess = false,
+                    Error = reason.ToString(),
+                    PlacedPolePos = new Vector3IntMessagePack(Vector3Int.zero),
+                };
+            }
+```
+（応答の `Error` を読むクライアントコードは無い。`GearChainPoleExtendRequestSender.cs:76-79` は `IsSuccess` と `PlacedPolePos` だけを読む）
+
+クライアント `GearChainPoleExtendPreviewCalculator.cs`: L65 → `if (judgement.FailureReason != GearChainPlacementFailureReason.NoItem) return Array.Empty<ConstructionMaterialShortage>();`。`GearChainPoleExtendPreviewData` の `FailureReason` を enum に（L120-150）:
+
+```csharp
+        public static GearChainPoleExtendPreviewData Invalid => new(Vector3.zero, Vector3.zero, false, false, GearChainPlacementFailureReason.None, Array.Empty<ConstructionMaterialShortage>());
+```
+```csharp
+        // 不可理由。可なら None
+        // Failure reason; None when placeable
+        public readonly GearChainPlacementFailureReason FailureReason;
+```
+```csharp
+        private GearChainPoleExtendPreviewData(Vector3 startPoint, Vector3 endPoint, bool isPlaceable, bool isValid, GearChainPlacementFailureReason failureReason, IReadOnlyList<ConstructionMaterialShortage> materialShortages)
+```
+
+`GearChainPlacementFailureTooltipKey.cs` 全体:
+
+```csharp
+using System;
+using System.Collections.Generic;
+using Client.Game.InGame.UI.Tooltip;
+using Mooresmaster.Localization.Generated;
+using Server.Protocol.PacketResponse.Util.GearChain;
+
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
+{
+    /// <summary>
+    /// 歯車チェーン失敗理由をツールチップキーへ写像
+    /// Maps a gear chain failure reason to a tooltip key
+    /// </summary>
+    public static class GearChainPlacementFailureTooltipKey
+    {
+        // 素材不足は行を作らず不足リストのまま関門へ渡す。行にした瞬間に同一アイテムの畳み込みが効かなくなる
+        // A material shortage is never turned into lines here; it goes to the gate as data, since lines can no longer be folded per item
+        private static bool IsMaterialShortage(GearChainPlacementFailureReason failureReason)
+        {
+            return failureReason == GearChainPlacementFailureReason.NoItem;
+        }
+
+        // チェーン判定が素材不足で落ちたフレームか。判定の中身はこの型の外へ出さない
+        // Whether the chain judgement failed on a material shortage; the judgement itself never leaves this type
+        public static bool IsChainMaterialShortage(GearChainPoleExtendPreviewData chainPreview)
+        {
+            if (!chainPreview.IsValid || chainPreview.IsPlaceable) return false;
+            return IsMaterialShortage(chainPreview.FailureReason);
+        }
+
+        // 可:行なし／素材不足:行なし（関門が出す）／他:理由1行
+        // Placeable: none / material shortage: none (the gate emits it) / otherwise: one reason line
+        public static IReadOnlyList<TooltipLine> BuildFailureLines(bool isPlaceable, GearChainPlacementFailureReason failureReason)
+        {
+            if (isPlaceable) return Array.Empty<TooltipLine>();
+            if (IsMaterialShortage(failureReason)) return Array.Empty<TooltipLine>();
+            return new[] { new TooltipLine(ToKey(failureReason)) };
+        }
+
+        public static LocalizationKey ToKey(GearChainPlacementFailureReason failureReason)
+        {
+            return failureReason switch
+            {
+                GearChainPlacementFailureReason.TooFar => LocalizationKeys.Ui.Tooltip.PlaceGearChainTooFar,
+                GearChainPlacementFailureReason.AlreadyConnected => LocalizationKeys.Ui.Tooltip.PlaceGearChainAlreadyConnected,
+                GearChainPlacementFailureReason.ConnectionLimit => LocalizationKeys.Ui.Tooltip.PlaceGearChainConnectionLimit,
+                // 素材不足(NoItem)は名指しの行を素材ごとに積むためここでは写像しない
+                // Material shortage (NoItem) is not mapped here; it becomes one named line per material
+                // 上記以外（未解放・サーバー側のみの理由）はクライアントの接続判定では発生しないため既定文言へ
+                // Everything else (not-unlocked, server-only reasons) never arises in client connection judgement, so fall back
+                _ => LocalizationKeys.Ui.Tooltip.PlaceGearChainFailed,
+            };
+        }
+    }
+}
+```
+
+`TryConnect`・評価器の呼び出し側テストを enum へ追従させる（本番の `TryConnect` 呼び出しは `GearChainConnectionEditProtocol` と `GearChainPoleExtendProtocol.cs:94` の2か所。後者は上で `CreateFailed(connectError)` が enum を受けるので無改変で通る）:
+- `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Gear/ChainEnergySaveLoadTest.cs:51`、`moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Gear/ChainEnergyTransmissionTest.cs:56`、`moorestech_server/Assets/Scripts/Tests/UnitTest/Game/Chain/GearChainSystemUtilTest/GearChainRemovalTest.cs:52,97,98`、`moorestech_server/Assets/Scripts/Tests/UnitTest/Game/Chain/GearChainSystemUtilTest.cs:111,148,149`: `Assert.IsEmpty(<var> ?? string.Empty);` → `Assert.AreEqual(GearChainPlacementFailureReason.None, <var>);`
+- `GearChainSystemUtilTest.cs:46` `Assert.AreEqual("TooFar", error);` → `Assert.AreEqual(GearChainPlacementFailureReason.TooFar, error);`、`:64`・`:87` `"NoItem"` → `GearChainPlacementFailureReason.NoItem`、`:155` `"ConnectionLimit"` → `GearChainPlacementFailureReason.ConnectionLimit`
+- `GearChainPlacementEvaluatorTest.cs`: `GearChainPlacementEvaluator.XxxError` → `GearChainPlacementFailureReason.Xxx`（L43,53,63,73,83,93）
+- `GearChainPoleExtendTestHelper.cs:63,69`: 引数を `GearChainPlacementFailureReason expectedReason` にし `Assert.AreEqual(expectedReason.ToString(), response.Error);`。`GearChainPoleExtendProtocolTest.cs:76,83,92,124` の引数を enum へ、`:105`・`:136` を `Assert.AreEqual(GearChainPlacementFailureReason.NotUnlocked.ToString(), response.Error);` / `...PositionOccupied.ToString()...`
+- クライアント `GearChainPoleChainConnectModeTest.cs:166,182,201`、`GearChainPoleFrameResultPushTest.cs:43`、`GearChainPolePlaceExtendModeFeedbackTest.cs:42,60`: `GearChainPlacementJudgement.Failure(GearChainPlacementEvaluator.XxxError)` → `GearChainPlacementJudgement.Failure(GearChainPlacementFailureReason.Xxx)`
+- `GearChainPlacementFailureTooltipKeyTest.cs`: 全 `GearChainPlacementEvaluator.XxxError` → `GearChainPlacementFailureReason.Xxx`、L45 のタプル型 `string FailureReason` → `GearChainPlacementFailureReason FailureReason`、L88 `CreateJudgedPreview(string failureReason)` → `CreateJudgedPreview(GearChainPlacementFailureReason failureReason)`
 - Task 1〜3 で作ったテストの失敗メッセージ引数（enum は `string` 引数へ暗黙変換されないため）: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/ElectricWire/ConnectionRecordSaveLoadTest.cs` と `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/SaveLoad/ConnectToolGuidMigrationLoadTest.cs` の `out var chainError), chainError);` → `out var chainError), chainError.ToString());`、`moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/ElectricWire/ConnectionLineStateDetailTest.cs` の `out var error), error);` → `out var error), error.ToString());`
 - 各ファイルに `using Server.Protocol.PacketResponse.Util.GearChain;` が無ければ足す
 
@@ -2143,7 +2417,7 @@ ui.notification.gearChainConnectNoItem,Chain connection failed: not enough chain
 `notificationServerIdCoverage.test.ts` の `interpolatedIdEnums` に、Step 2 の `denied.gearChainDisconnect.` 行の直後へ:
 
 ```ts
-  ["denied.gearChainConnect.", { enumName: "GearChainConnectFailureReason", notSentMembers: ["None"] }],
+  ["denied.gearChainConnect.", { enumName: "GearChainPlacementFailureReason", notSentMembers: ["None", "NoPoleItem", "PositionOccupied", "InsufficientItems"] }],
 ```
 と、走査確認（Step 2 で足した `expect(ids).toContain("denied.gearChainDisconnect.InventoryFull");` の直後）に:
 
@@ -2155,15 +2429,15 @@ ui.notification.gearChainConnectNoItem,Chain connection failed: not enough chain
 
 Run:
 - `uloop launch ./moorestech_client --restart` → `uloop compile --project-path ./moorestech_client`（localization.csv を変えたので、`LocalizationKeys` の無関係キーで CS0117 が出たら force-recompile。記憶: localization-csv-needs-force-recompile）
-- `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "GearChainDisconnectProtocolTest|GearChainConnectDeniedNotificationTest|ChainProtocolTest|OperationDeniedNotificationTest|GearChainSystemUtilTest|GearChainRemovalTest|ChainEnergy|GearChainPoleExtendProtocolTest|ConnectionRecordSaveLoadTest|ConnectToolGuidMigrationLoadTest|ConnectionLineStateDetailTest"`
+- `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "GearChainDisconnectProtocolTest|GearChainConnectDeniedNotificationTest|ChainProtocolTest|OperationDeniedNotificationTest|GearChainSystemUtilTest|GearChainRemovalTest|ChainEnergy|GearChainPoleExtendProtocolTest|GearChainPlacementEvaluatorTest|GearChainPoleChainConnectModeTest|GearChainPoleFrameResultPushTest|GearChainPolePlaceExtendModeFeedbackTest|GearChainPlacementFailureTooltipKeyTest|ConnectionRecordSaveLoadTest|ConnectToolGuidMigrationLoadTest|ConnectionLineStateDetailTest"`
 - `cd moorestech_web/webui && pnpm gen:i18n && pnpm test -- notificationServerIdCoverage localizationKeysFreshness notificationMessages`
 Expected: ErrorCount 0 / Unity 全 PASS / vitest 全 PASS
 
 - [ ] **Step 6: コミットする**
 
 ```bash
-git add moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/GearChain moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Gear moorestech_server/Assets/Scripts/Tests/UnitTest/Game/Chain moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/ElectricWire moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/SaveLoad moorestech_client/Assets/Scripts/Client.Network/API/VanillaApiSendOnly.cs Localization/localization.csv moorestech_web/webui/src/features/notification moorestech_web/webui/src/shared/i18n/generated
-git commit -m "feat(server): 歯車チェーンの返却付き切断を復活し切断・接続の拒否理由を通知する"
+git add moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/GearChain moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/GearChainPoleExtendProtocolTest.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Gear moorestech_server/Assets/Scripts/Tests/UnitTest/Game/Chain moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/GearChainPoleConnect moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/GearChainPoleConnect moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/ElectricWire moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/SaveLoad moorestech_client/Assets/Scripts/Client.Network/API/VanillaApiSendOnly.cs Localization/localization.csv moorestech_web/webui/src/features/notification moorestech_web/webui/src/shared/i18n/generated
+git commit -m "feat: 歯車チェーンの返却付き切断を復活し失敗理由をenum1本に畳んで切断・接続の拒否を通知する"
 ```
 
 ---
@@ -2177,6 +2451,7 @@ git commit -m "feat(server): 歯車チェーンの返却付き切断を復活し
 - 物理レール1本は有向区間の対 `A→B` と `(B^1)→(A^1)` で表される（`RailConnectionCommandHandler.TryConnect`/`ConnectOppositeNodes`、`Game.Train/RailGraph/RailConnectionCommandHandler.cs:30-43,104-114`）。ブロックのノード（Front/Back は互いに `^1`）から出る区間を全部見れば、ブロックに触れる物理レールは必ず1回以上現れる（`Q` 側がブロック内なら `Q^1` もブロック内で、対の区間 `Q^1→P^1` がブロックのノードから出るため）。
 - 駅内部の区間（`RailComponentUtility.cs:76-77`）と駅隣接の自動接続（同:154-155）は `RailNode.ConnectNode(target)` → `Guid.Empty` で張られる（`Game.Train/RailGraph/RailNode.cs:121-124`）。よって `RailTypeGuid == Guid.Empty` の区間は無償扱いで返却しない。
 - レール切断の返却算出は「`TryGetRailSegmentType` → `GetRailLength` → `ConnectToolCostCalculator.TryCalculate` → `ConnectToolMaterialConsumer.CreateRefundItems`」（`Server.Protocol/PacketResponse/Util/RailEdit/RailConnectionEditService.cs:104-118`）。撤去時の返却も同じ部品を呼ぶ。
+- 電線・チェーンの撤去返却はブロック部品の `IGetRefundItemsInfo`（払った素材を部品が保存）で行うが、レールの返却は区間の種類と現在の曲線長から都度算出する必要があり、その算出部品（`ConnectToolCostCalculator`・`RailConnectionEditProtocol.GetRailLength`）が `Server.Protocol` にある。`Game.Train`（`RailComponent`）は `Server.Protocol` を参照できないため、レール返却だけはプロトコル層の `RailRemovalRefundCalculator` に置く（返却方式の非対称はユーザー裁定 2026-10-05「種類＋素材を保存（現状維持）」で据え置き）。
 - `ConnectionDestination` の MessagePack 表現 `ConnectionDestinationMessagePack(ConnectionDestination)` / `ToModel()` が既にある（`Server.Util/MessagePack/RailNodeMessagePack.cs:14-37`）。`IRailGraphProvider.ResolveRailNode(ConnectionDestination)` は未登録なら `null`（`RailGraphDatastore.cs:427-442,541-544`）。
 - `VanillaApiSendOnly.PlaceBlock` の呼び出し元は3つ（`PlaceBlockProtocolSender.cs:33`、`RemoveOperationRecord.cs:72`、テスト `PlacementPacketCapture.cs:49`）。`SendPlaceBlockProtocolMessagePack` のサーバー側直接生成は `VanillaApiSendOnly.cs:45` とテスト3か所（`PlaceBlockProtocolTestSupport.cs:80`、`ElectricWireAutoConnectPlaceTestBase.cs:84`、`ConstructionPayerWalletTest.cs:116`）。
 
@@ -2186,6 +2461,8 @@ git commit -m "feat(server): 歯車チェーンの返却付き切断を復活し
 
 **Files:**
 - Create: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/Util/RailEdit/RailRemovalRefundCalculator.cs`
+- Create: `moorestech_server/Assets/Scripts/Game.Train/RailGraph/Utility/RailSegmentPairing.cs`（物理レール1本の正規化キーの正本。サーバーの返却と Task 11 のクライアント `RailObjectIdCodec` が共有する）
+- Test: `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/Train/RailSegmentPairingTest.cs`
 - Modify: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/RemoveBlockProtocol.cs:1-34`（using・フィールド・ctor）, `:50`（返却が入らない拒否理由）, `:104-130`（`GetRefundItems`）, `:183-188`（`RemoveBlockFailureReason`）
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Block/BlockGameObjectChild.cs:103-111`（`GetRemoveDeniedReasonKey`）
 - Modify: `Localization/localization.csv:182` の直後（`ui.delete.inventoryFull` 行を追加）
@@ -2193,6 +2470,7 @@ git commit -m "feat(server): 歯車チェーンの返却付き切断を復活し
 
 **Interfaces:**
 - Consumes: 既存 `IRailGraphDatastore.GetConnectedNodesWithDistance(IRailNode)` / `TryGetRailSegmentType(int, int, out Guid)`、`RailConnectionEditProtocol.GetRailLength(IRailNode, IRailNode)`、`ConnectToolCostCalculator.TryCalculate(Guid, float, out IReadOnlyList<ConnectToolMaterialCost>)`、`ConnectToolMaterialConsumer.CreateRefundItems(IReadOnlyList<ConnectToolMaterialCost>)`
+- Produces: `Game.Train.RailGraph.Utility.RailSegmentPairing.SelectCanonicalPair(int fromNodeId, int toNodeId) : (int canonicalFrom, int canonicalTo)`（A→B と対の (B^1)→(A^1) のうち起点Idが小さい方。同値なら A→B。クライアントの既存 `TrainRailObjectManager.SelectCanonicalPair` と同じ規則をここへ移す）
 - Produces: `public static List<IItemStack> RailRemovalRefundCalculator.CreateRefundItems(IBlock block, IRailGraphDatastore railGraphDatastore)`（`Server.Protocol.PacketResponse.Util.RailEdit` 名前空間。ブロックの全 `RailComponent` ノードに接する有償区間を物理1本1回で返却アイテム化。レールを持たないブロックは空リスト）。クライアント側 Undo（契約 11）が「巻き込みレールの引き直しは通常どおり再消費」を前提にできる
 - Produces: `RemoveBlockProtocol.RemoveBlockFailureReason.InventoryFull`（返却アイテムがインベントリへ入りきらない撤去の拒否理由）、ローカライズキー `LocalizationKeys.Ui.Delete.InventoryFull`（`ui.delete.inventoryFull`）
 
@@ -2359,7 +2637,69 @@ namespace Tests.CombinedTest.Server.PacketTest
 }
 ```
 
+`moorestech_server/Assets/Scripts/Tests/UnitTest/Game/Train/RailSegmentPairingTest.cs`:
+
+```csharp
+using Game.Train.RailGraph.Utility;
+using NUnit.Framework;
+
+namespace Tests.UnitTest.Game.Train
+{
+    // 物理レール1本の向き違い2区間が同じキーになり、別のレールとは衝突しないことを確かめる
+    // Both directed edges of one physical rail map to one key, and different rails never collide
+    public class RailSegmentPairingTest
+    {
+        [Test]
+        public void 向き違いの対は同じキーになる()
+        {
+            // A=4→B=7 の対は (7^1)→(4^1) = 6→5
+            // The pair of A=4→B=7 is (7^1)→(4^1) = 6→5
+            Assert.AreEqual((4, 7), RailSegmentPairing.SelectCanonicalPair(4, 7));
+            Assert.AreEqual((4, 7), RailSegmentPairing.SelectCanonicalPair(6, 5));
+        }
+
+        [Test]
+        public void 起点が同値の自己対は自分自身を返す()
+        {
+            // from == to^1 のとき対は自分と同じ区間になる
+            // When from == to^1 the pair is the same edge
+            Assert.AreEqual((2, 3), RailSegmentPairing.SelectCanonicalPair(2, 3));
+        }
+
+        [Test]
+        public void 別のレールは別のキーになる()
+        {
+            Assert.AreNotEqual(RailSegmentPairing.SelectCanonicalPair(4, 7), RailSegmentPairing.SelectCanonicalPair(4, 9));
+        }
+    }
+}
+```
+
 - [ ] **Step 2: 返却算出を新設する**
+
+`moorestech_server/Assets/Scripts/Game.Train/RailGraph/Utility/RailSegmentPairing.cs`（新規）:
+
+```csharp
+namespace Game.Train.RailGraph.Utility
+{
+    /// <summary>
+    /// 物理レール1本を表す有向区間の対（A→B と (B^1)→(A^1)）を1つのキーへ正規化する正本
+    /// Canonical normalization of the directed-edge pair (A→B and (B^1)→(A^1)) that represents one physical rail
+    /// </summary>
+    public static class RailSegmentPairing
+    {
+        // 起点Idが小さい方を正とし、同値なら A→B を返す（同値のときは対が自分自身と一致する）
+        // The pair with the smaller start id is canonical; ties return A→B (on a tie the pair equals itself)
+        public static (int canonicalFrom, int canonicalTo) SelectCanonicalPair(int fromNodeId, int toNodeId)
+        {
+            var pairedFrom = toNodeId ^ 1;
+            var pairedTo = fromNodeId ^ 1;
+            return fromNodeId <= pairedFrom ? (fromNodeId, toNodeId) : (pairedFrom, pairedTo);
+        }
+    }
+}
+```
+
 
 `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/Util/RailEdit/RailRemovalRefundCalculator.cs`:
 
@@ -2370,6 +2710,7 @@ using Core.Item.Interface;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
 using Game.Train.RailGraph;
+using Game.Train.RailGraph.Utility;
 using Server.Protocol.PacketResponse.Util.ConnectTool;
 using UnityEngine;
 
@@ -2402,7 +2743,7 @@ namespace Server.Protocol.PacketResponse.Util.RailEdit
             {
                 foreach (var (target, _) in railGraphDatastore.GetConnectedNodesWithDistance(node))
                 {
-                    if (!countedRails.Add(ToPhysicalRailKey(node.NodeId, target.NodeId))) continue;
+                    if (!countedRails.Add(RailSegmentPairing.SelectCanonicalPair(node.NodeId, target.NodeId))) continue;
                     AddRefundOfSegment(node, target);
                 }
             }
@@ -2424,16 +2765,6 @@ namespace Server.Protocol.PacketResponse.Util.RailEdit
                 }
 
                 refundItems.AddRange(ConnectToolMaterialConsumer.CreateRefundItems(materials));
-            }
-
-            // A→B と対の (B^1)→(A^1) を同じ物理レールとして同一キーに正規化する
-            // Normalize A→B and its paired (B^1)→(A^1) to one key for the same physical rail
-            static (int, int) ToPhysicalRailKey(int fromNodeId, int toNodeId)
-            {
-                var pairedFrom = toNodeId ^ 1;
-                var pairedTo = fromNodeId ^ 1;
-                var isDirectSmaller = fromNodeId < pairedFrom || (fromNodeId == pairedFrom && toNodeId <= pairedTo);
-                return isDirectSmaller ? (fromNodeId, toNodeId) : (pairedFrom, pairedTo);
             }
 
             #endregion
@@ -2518,7 +2849,7 @@ Run: `uloop compile --project-path ./moorestech_client --force-recompile true --
 
 - [ ] **Step 5: コンパイルしテストを実行して通ることを確認する**
 
-Run: `uloop compile --project-path ./moorestech_client --force-recompile true --wait-for-domain-reload true` → `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "RemoveRailBlockRefundTest|RemoveTrainRailBlockProtocolTest|RemoveBlockRefundTest|RemoveBlockProtocolTest|DragDeleteDenyReasonTest"`
+Run: `uloop compile --project-path ./moorestech_client --force-recompile true --wait-for-domain-reload true` → `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "RailSegmentPairingTest|RemoveRailBlockRefundTest|RemoveTrainRailBlockProtocolTest|RemoveBlockRefundTest|RemoveBlockProtocolTest|DragDeleteDenyReasonTest"`
 Expected: ErrorCount 0 / 全件 PASS（既存の撤去系テストが壊れていないこと）
 
 webui の文言網羅を見ているテストがあれば同時に確かめる（csv 行追加のみなので通常は無影響）:
@@ -2528,14 +2859,14 @@ Expected: PASS
 - [ ] **Step 6: コミットする**
 
 ```bash
-git add moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/Util/RailEdit/RailRemovalRefundCalculator.cs moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/RemoveBlockProtocol.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/RemoveBlockProtocolTest/RemoveRailBlockRefundTest.cs moorestech_client/Assets/Scripts/Client.Game/InGame/Block/BlockGameObjectChild.cs Localization/localization.csv
+git add moorestech_server/Assets/Scripts/Game.Train/RailGraph/Utility/RailSegmentPairing.cs moorestech_server/Assets/Scripts/Tests/UnitTest/Game/Train/RailSegmentPairingTest.cs moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/Util/RailEdit/RailRemovalRefundCalculator.cs moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/RemoveBlockProtocol.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/RemoveBlockProtocolTest/RemoveRailBlockRefundTest.cs moorestech_client/Assets/Scripts/Client.Game/InGame/Block/BlockGameObjectChild.cs Localization/localization.csv
 git commit -m "feat: 橋脚・駅の撤去でレール素材を返却し、返却が入らない撤去はInventoryFullで拒否する"
 ```
 （.meta は Unity が生成したものを同じコミットへ含める。手書きしない）
 
 ---
 
-### Task 6 (B2): 設置要求に配線方式（自動接続／記録どおりのみ）を持たせる
+### Task 6 (B2): 設置要求に配線方式（電線自動接続あり／なし）を持たせる
 
 **Files:**
 - Modify: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/PlacePacketDto.cs`（末尾へ enum 追加）
@@ -2547,15 +2878,16 @@ git commit -m "feat: 橋脚・駅の撤去でレール素材を返却し、返�
 - Modify: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/PlaceBlockProtocolTestSupport.cs:78-81`
 - Modify: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/ElectricWireAutoConnectPlaceTest/ElectricWireAutoConnectPlaceTestBase.cs:72-86`
 - Modify: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/Construction/ConstructionPayerWalletTest.cs:116`
-- Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/ElectricWireAutoConnectPlaceTest/PlaceBlockRecordedOnlyWiringTest.cs`
+- Modify: `.agents/skills/unity-playmode-recorded-playtest/scenarios/building/free-placement-locked-block.cs:71`（録画シナリオは実行時コンパイルのため1引数呼び出しのままだと落ちる。`grep -rn "\.PlaceBlock(" .agents/skills/unity-playmode-recorded-playtest/scenarios` の該当はこの1件のみ）
+- Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/ElectricWireAutoConnectPlaceTest/PlaceBlockNoAutoConnectWiringTest.cs`
 
 **Interfaces:**
 - Consumes: なし（既存の `ElectricWireAutoConnectService` をそのまま使う）
 - Produces:
-  - `public enum BlockPlacementWiring { AutoConnect, RecordedOnly }`（名前空間 `Server.Protocol.PacketResponse`、`PlacePacketDto.cs`）
+  - `public enum BlockPlacementWiring { AutoConnect, NoAutoConnect }`（名前空間 `Server.Protocol.PacketResponse`、`PlacePacketDto.cs`）
   - `PlaceBlockProtocol.SendPlaceBlockProtocolMessagePack(List<PlaceInfo> placeInfos, BlockPlacementWiring wiring)`、`[Key(4)] public BlockPlacementWiring Wiring`
   - クライアント `VanillaApiSendOnly.PlaceBlock(List<PlaceInfo> placePositions, BlockPlacementWiring wiring)`
-  - `RemoveOperationRecord.UndoAsync` は `BlockPlacementWiring.RecordedOnly` で送る（契約 11 の Undo 再設計タスクはこの呼び方を引き継ぐ）
+  - `RemoveOperationRecord.UndoAsync` は `BlockPlacementWiring.NoAutoConnect` で送る（契約 11 の Undo 再設計タスクはこの呼び方を引き継ぐ）
 
 - [ ] **Step 1: テストを書く**
 
@@ -2585,7 +2917,7 @@ git commit -m "feat: 橋脚・駅の撤去でレール素材を返却し、返�
         }
 ```
 
-新規 `PlaceBlockRecordedOnlyWiringTest.cs`:
+新規 `PlaceBlockNoAutoConnectWiringTest.cs`:
 
 ```csharp
 using System;
@@ -2600,13 +2932,13 @@ using UnityEngine;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
-    public class PlaceBlockRecordedOnlyWiringTest : ElectricWireAutoConnectPlaceTestBase
+    public class PlaceBlockNoAutoConnectWiringTest : ElectricWireAutoConnectPlaceTestBase
     {
         [Test]
         public void 記録どおりのみで設置すると範囲内に機械があっても電線を張らず消費もしない()
         {
             // 電柱の機械範囲内に機械を置き、電線を持たせた状態で電柱を記録どおりのみで設置する
-            // Put a machine in the pole's machine range and place the pole with RecordedOnly while holding wires
+            // Put a machine in the pole's machine range and place the pole with NoAutoConnect while holding wires
             var (packet, serviceProvider) = CreateServer();
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(1, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var machine);
@@ -2614,7 +2946,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var inventory = SetupWire(serviceProvider, 5);
             UnlockBlock(serviceProvider, ForUnitTestModBlockId.ElectricPoleId);
             GrantRequiredItems(serviceProvider, ForUnitTestModBlockId.ElectricPoleId);
-            PlaceBlockWithWiring(packet, ForUnitTestModBlockId.ElectricPoleId, Vector3Int.zero, BlockPlacementWiring.RecordedOnly);
+            PlaceBlockWithWiring(packet, ForUnitTestModBlockId.ElectricPoleId, Vector3Int.zero, BlockPlacementWiring.NoAutoConnect);
 
             var pole = worldBlockDatastore.GetBlock(Vector3Int.zero);
             Assert.IsNotNull(pole);
@@ -2627,7 +2959,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         public void 記録どおりのみなら電線ゼロでも電線不足で拒否されない()
         {
             // 自動接続なら電線不足で拒否される配置でも、記録どおりのみは設置される
-            // A layout that auto-connect rejects for wire shortage is still placed under RecordedOnly
+            // A layout that auto-connect rejects for wire shortage is still placed under NoAutoConnect
             var (packet, serviceProvider) = CreateServer();
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(1, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
@@ -2635,7 +2967,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             SetupWire(serviceProvider, 0);
             UnlockBlock(serviceProvider, ForUnitTestModBlockId.ElectricPoleId);
             GrantRequiredItems(serviceProvider, ForUnitTestModBlockId.ElectricPoleId);
-            PlaceBlockWithWiring(packet, ForUnitTestModBlockId.ElectricPoleId, Vector3Int.zero, BlockPlacementWiring.RecordedOnly);
+            PlaceBlockWithWiring(packet, ForUnitTestModBlockId.ElectricPoleId, Vector3Int.zero, BlockPlacementWiring.NoAutoConnect);
 
             Assert.IsTrue(worldBlockDatastore.Exists(Vector3Int.zero));
         }
@@ -2649,13 +2981,13 @@ namespace Tests.CombinedTest.Server.PacketTest
 
 ```csharp
     /// <summary>
-    ///     設置時の電線の張り方。AutoConnectは通常設置の自動接続、RecordedOnlyは自動接続を行わず後続の明示接続に任せる（Undo再設置用）
-    ///     How wires are laid on placement: AutoConnect runs the normal auto-connect, RecordedOnly skips it and leaves wiring to explicit follow-up connects (undo re-placement)
+    ///     設置時の電線の張り方。AutoConnectは通常設置の自動接続、NoAutoConnectは電線の自動接続を行わず後続の明示接続に任せる（Undo再設置用）
+    ///     How wires are laid on placement: AutoConnect runs the normal auto-connect, NoAutoConnect skips electric auto-connect and leaves wiring to explicit follow-up connects (undo re-placement)
     /// </summary>
     public enum BlockPlacementWiring
     {
         AutoConnect,
-        RecordedOnly,
+        NoAutoConnect,
     }
 ```
 
@@ -2663,7 +2995,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
 ```csharp
                 // 自動接続設置の電気ブロックだけ事前検証し、電線不足ならスキップする（記録どおりのみは配線を後続の明示接続に任せる）
-                // Pre-validate only auto-connect electric placements; RecordedOnly leaves wiring to explicit follow-up connects
+                // Pre-validate only auto-connect electric placements; NoAutoConnect leaves wiring to explicit follow-up connects
                 var isAutoConnectElectric = data.Wiring == BlockPlacementWiring.AutoConnect && ElectricWireBlockParamResolver.TryGetWireRangeParam(blockMaster.BlockParam, out _, out _, out _);
                 var plan = default(ElectricWireAutoConnectPlan);
                 if (isAutoConnectElectric)
@@ -2725,7 +3057,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 `RemoveOperationRecord.cs:72`（Undo再設置は自動接続を止め、記録した線だけを後で引き直す。裁定 `.decisions/2026-10-04-Undoの再設置では自動接続を止め記録した線だけ引き直す.md`）:
 
 ```csharp
-            if (placeInfos.Count != 0) ClientContext.VanillaApi.SendOnly.PlaceBlock(placeInfos, BlockPlacementWiring.RecordedOnly);
+            if (placeInfos.Count != 0) ClientContext.VanillaApi.SendOnly.PlaceBlock(placeInfos, BlockPlacementWiring.NoAutoConnect);
 ```
 
 `PlacementPacketCapture.cs:49`:
@@ -2749,17 +3081,23 @@ namespace Tests.CombinedTest.Server.PacketTest
             var payload = MessagePackSerializer.Serialize(new PlaceBlockProtocol.SendPlaceBlockProtocolMessagePack(placeInfos, BlockPlacementWiring.AutoConnect));
 ```
 
+`.agents/skills/unity-playmode-recorded-playtest/scenarios/building/free-placement-locked-block.cs:71`（シナリオ先頭の using に `Server.Protocol.PacketResponse` が無ければ足す）:
+
+```csharp
+        ClientContext.VanillaApi.SendOnly.PlaceBlock(new List<PlaceInfo> { placeInfo }, BlockPlacementWiring.AutoConnect);
+```
+
 （各ファイルに `using Server.Protocol.PacketResponse;` が無ければ足す。`PlaceInfo` を使っている箇所は既に同名前空間を参照している）
 
 - [ ] **Step 4: コンパイルしテストを実行して通ることを確認する**
 
-Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "PlaceBlockRecordedOnlyWiringTest|ElectricWireAutoConnect|PlaceBlockProtocol|ConstructionPayerWalletTest|PlacementPacketCapture|TrainPierPlacementEntryCostTest"`
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "PlaceBlockNoAutoConnectWiringTest|ElectricWireAutoConnect|PlaceBlockProtocol|ConstructionPayerWalletTest|PlacementPacketCapture|TrainPierPlacementEntryCostTest"`
 Expected: ErrorCount 0 / 全件 PASS
 
 - [ ] **Step 5: コミットする**
 
 ```bash
-git add moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/PlacePacketDto.cs moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/PlaceBlockProtocol.cs moorestech_client/Assets/Scripts/Client.Network/API/VanillaApiSendOnly.cs moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Util/PlaceBlockProtocolSender.cs moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Undo/RemoveOperationRecord.cs moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/TrainCostIntegration/PlacementPacketCapture.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/PlaceBlockProtocolTestSupport.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/ElectricWireAutoConnectPlaceTest/ moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/Construction/ConstructionPayerWalletTest.cs
+git add moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/PlacePacketDto.cs moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/PlaceBlockProtocol.cs moorestech_client/Assets/Scripts/Client.Network/API/VanillaApiSendOnly.cs moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Util/PlaceBlockProtocolSender.cs moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Undo/RemoveOperationRecord.cs moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/TrainCostIntegration/PlacementPacketCapture.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/PlaceBlockProtocolTestSupport.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/ElectricWireAutoConnectPlaceTest/ moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/Construction/ConstructionPayerWalletTest.cs .agents/skills/unity-playmode-recorded-playtest/scenarios/building/free-placement-locked-block.cs
 git commit -m "feat: 設置要求に配線方式を持たせUndo再設置では電線の自動接続を止める"
 ```
 
@@ -3095,12 +3433,12 @@ git commit -m "feat: 座標で同定したレール端点同士を接続する�
 前提: サーバー側タスク（契約 1〜7）が先に入っていること。特に以下を消費する:
 - `Game.Block.Blocks.ConnectionLine.ConnectionLinePartnerMessagePack`（`[Key(0)] int PartnerBlockInstanceId`, `[Key(1)] Guid ConnectToolGuid`）
 - `ElectricWireStateDetail.Partners` / `GearChainPoleStateDetail.Partners`（`ConnectionLinePartnerMessagePack[]`）
-- `BlockPlacementWiring { AutoConnect, RecordedOnly }` と `VanillaApiSendOnly.PlaceBlock(List<PlaceInfo>, BlockPlacementWiring)`
+- `BlockPlacementWiring { AutoConnect, NoAutoConnect }` と `VanillaApiSendOnly.PlaceBlock(List<PlaceInfo>, BlockPlacementWiring)`
 - `VanillaApiSendOnly.ConnectRailByDestination(ConnectionDestination from, ConnectionDestination to, Guid connectToolGuid)`
 - `VanillaApiSendOnly.DisconnectGearChain(Vector3Int posA, Vector3Int posB)`（Task A4 が定義。本群は消費のみ）
 - `ConnectionLinePartnerMessagePack` の ctor `(int partnerBlockInstanceId, Guid connectToolGuid)` とフィールド `PartnerBlockInstanceId` / `ConnectToolGuid`（Task A3）
 - Task A3 は状態処理側で `Partners` を一旦 `BlockInstanceId[]` へ写すだけにしてある。本群 Task C2 がその写しを `ConnectionLinePartner` へ置き換える
-- Task B2 は `RemoveOperationRecord.cs:72` を `PlaceBlock(placeInfos, BlockPlacementWiring.RecordedOnly)` へ書き換え済み。本群 Task C4 はこのファイルを全面書き換えし、その呼び出しを `VanillaRemovalRestoreSender.PlaceBlocks` へ移す
+- Task B2 は `RemoveOperationRecord.cs:72` を `PlaceBlock(placeInfos, BlockPlacementWiring.NoAutoConnect)` へ書き換え済み。本群 Task C4 はこのファイルを全面書き換えし、その呼び出しを `VanillaRemovalRestoreSender.PlaceBlocks` へ移す
 - Task B は `BlockGameObjectChild` の撤去拒否理由の写像に `InventoryFull → ui.delete.inventoryFull` を足す。本群の `BlockGameObjectChild` 変更（C4・C5）は `SetRemovePreviewing` / `ResetMaterial` / `CollectRemovedObjects` の3メソッドだけで、`GetRemoveDeniedReasonKey` には触れない
 
 パス略記: `C = moorestech_client/Assets/Scripts`。Files節はリポジトリ相対で書く。
@@ -3219,7 +3557,14 @@ git commit -m "refactor(client): ElectricWireレイヤーを接続線共通のCo
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/StateProcessor/ConnectionLine/ConnectionLinePartner.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/StateProcessor/ConnectionLine/ConnectionLineDeleteTarget.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/StateProcessor/ConnectionLine/ConnectionLineRegistry.cs`
-- Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DestructionCategories.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/IRemovePreviewable.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/RemovePreviewRequests.cs`（赤プレビューの要求者集合。電線・チェーン・レールが共有する唯一の書き手判定。裁定 `.decisions/2026-10-05-計画の弱発火4件を拾い残り3件は据え置く.md` (1)）
+- Modify: `moorestech_server/Assets/Scripts/Core.Master/BlockMaster.cs:20-23`（`ConnectionLineDestructionCategory` 定数を既定カテゴリーの隣へ）
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/Common/BlockMasterElementExtension.cs:8-10`（クライアントへ再公開）
+- Create: `moorestech_server/Assets/Scripts/Core.Master/Validator/Block/BlockDestructionCategoryValidator.cs`（既存の破壊カテゴリ検証を `BlockMasterUtil.cs` から移し、予約キー `connectionLine` の衝突検出を足す）
+- Modify: `moorestech_server/Assets/Scripts/Core.Master/Validator/BlockMasterUtil.cs:17,243-272`（ローカル関数を削除し新検証の呼び出しへ。403行の既存ファイルを約30行縮める）
+- Test: `moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Block/BlockDestructionCategoryReservedKeyTest.cs`
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/ConnectionLine/RemovePreviewRequestsTest.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/StateProcessor/ConnectionLine/ConnectionLineViewBase.cs:17-111`
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/StateProcessor/ElectricWire/ElectricWireLineView.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/StateProcessor/GearPole/GearChainPoleChainLineView.cs`
@@ -3236,10 +3581,11 @@ git commit -m "refactor(client): ElectricWireレイヤーを接続線共通のCo
 - Produces:
   - `public enum ConnectionLineKind { ElectricWire, GearChain }`
   - `public readonly struct ConnectionLinePartner { BlockInstanceId PartnerId; Guid ConnectToolGuid; static ConnectionLinePartner[] FromMessagePacks(ConnectionLinePartnerMessagePack[] packs) }`
-  - `public class ConnectionLineDeleteTarget : MonoBehaviour, IDeleteTarget, IRemovePreviewable` — `void Initialize(BlockInstanceId fromId, BlockInstanceId toId, Guid connectToolGuid, ConnectionLineKind kind, ConnectionLineRegistry registry)`、`BlockInstanceId FromId`、`BlockInstanceId ToId`、`Guid ConnectToolGuid`、`ConnectionLineKind Kind`（いずれも `{ get; private set; }`）
+  - `public class ConnectionLineDeleteTarget : MonoBehaviour, IDeleteTarget, IRemovePreviewable` — `void Initialize(BlockInstanceId fromId, BlockInstanceId toId, Guid connectToolGuid, ConnectionLineKind kind, ConnectionLineRegistry registry)`、`BlockInstanceId FromId`、`BlockInstanceId ToId`、`Guid ConnectToolGuid`、`ConnectionLineKind Kind`（いずれも `{ get; private set; }`）、`bool TryResolveEndpointPositions(out Vector3Int fromPos, out Vector3Int toPos)`（両端ブロック座標の解決。`Delete` と Task 11 の `CollectRemovedObjects` が共有）。`IDeleteTarget.SetRemovePreviewing()`/`ResetMaterial()` は自分自身を要求者として `RequestRemovePreview(this)`/`ReleaseRemovePreview(this)` を呼ぶ
   - `public class ConnectionLineRegistry` — `void Register(ConnectionLineDeleteTarget line)`、`void Unregister(ConnectionLineDeleteTarget line)`、`IReadOnlyList<ConnectionLineDeleteTarget> GetLinesAttachedTo(BlockInstanceId blockId)`
-  - `public interface IRemovePreviewable { void SetRemovePreviewing(); void ResetMaterial(); }`（`C/Client.Game/InGame/UI/UIState/State/IRemovePreviewable.cs`）
-  - `public static class DestructionCategories { public const string ConnectionLine = "connectionLine"; }`
+  - `public interface IRemovePreviewable { void RequestRemovePreview(object requester); void ReleaseRemovePreview(object requester); }`（`C/Client.Game/InGame/UI/UIState/State/IRemovePreviewable.cs`。誰かが要求している間は赤、最後の要求が外れたら戻る）
+  - `public class RemovePreviewRequests { bool Add(object requester); bool Remove(object requester); }`（`Add` は最初の要求で true＝赤を付ける合図、`Remove` は最後の要求が外れたとき true＝戻す合図）
+  - `Core.Master.BlockMaster.ConnectionLineDestructionCategory = "connectionLine"`（既定カテゴリー `DefaultDestructionCategory` の隣）、クライアント再公開 `Client.Game.Common.BlockMasterElementExtension.ConnectionLineDestructionCategory`。マスタの `blockDestructionCategories[].categoryKey` がこの値と一致したら BlockMaster 検証で拒否する
   - `ConnectionLineViewBase<TElement>.UpdateConnectionLines(IReadOnlyList<ConnectionLinePartner> partners)` と `protected abstract ConnectionLineKind GetLineKind()`
   - `ClientDIContext.ConnectionLineRegistry`（static, `{ get; private set; }`）
 
@@ -3293,7 +3639,7 @@ namespace Client.Tests.ConnectionLine
             var line = new GameObject("Line").AddComponent<ConnectionLineDeleteTarget>();
             line.Initialize(new BlockInstanceId(1), new BlockInstanceId(2), Guid.NewGuid(), ConnectionLineKind.GearChain, registry);
 
-            Assert.AreEqual(Client.Game.InGame.UI.UIState.State.DestructionCategories.ConnectionLine, line.GetDestructionCategory());
+            Assert.AreEqual(Client.Game.Common.BlockMasterElementExtension.ConnectionLineDestructionCategory, line.GetDestructionCategory());
             Assert.IsTrue(line.IsRemovable(out var reason));
             Assert.IsFalse(reason.HasValue);
             UnityEngine.Object.DestroyImmediate(line.gameObject);
@@ -3339,6 +3685,102 @@ namespace Client.Tests.ConnectionLine
             // 接続ゼロのブロックはnull配列で届き得るため空として扱う
             // A block with no connections may arrive as a null array, treated as empty
             Assert.AreEqual(0, ConnectionLinePartner.FromMessagePacks(null).Length);
+        }
+    }
+}
+```
+
+`moorestech_client/Assets/Scripts/Client.Tests/ConnectionLine/RemovePreviewRequestsTest.cs`:
+
+```csharp
+using Client.Game.InGame.UI.UIState.State;
+using NUnit.Framework;
+
+namespace Client.Tests.ConnectionLine
+{
+    /// <summary>
+    ///     赤プレビューは要求者が残っている間は外れないことを検証する（巻き込み表示が他者の赤を消さない）
+    ///     Verifies the red preview stays while any requester remains (a cascade reset never clears someone else's red)
+    /// </summary>
+    public class RemovePreviewRequestsTest
+    {
+        [Test]
+        public void RedStaysUntilTheLastRequesterReleases()
+        {
+            var requests = new RemovePreviewRequests();
+            var ownHover = new object();
+            var cascadingPole = new object();
+
+            // 最初の要求だけが「赤を付ける」合図になる
+            // Only the first request signals "apply red"
+            Assert.IsTrue(requests.Add(ownHover));
+            Assert.IsFalse(requests.Add(cascadingPole));
+
+            // 電柱側の解除では戻らず、最後の要求者の解除で戻る
+            // The pole's release does not reset; the last requester's release does
+            Assert.IsFalse(requests.Remove(cascadingPole));
+            Assert.IsTrue(requests.Remove(ownHover));
+        }
+
+        [Test]
+        public void DuplicateAndUnknownRequestsAreIgnored()
+        {
+            // 同じ要求者の二重要求・未登録の解除は状態を変えない
+            // A duplicate request or an unknown release changes nothing
+            var requests = new RemovePreviewRequests();
+            var requester = new object();
+            Assert.IsTrue(requests.Add(requester));
+            Assert.IsFalse(requests.Add(requester));
+            Assert.IsFalse(requests.Remove(new object()));
+            Assert.IsTrue(requests.Remove(requester));
+            Assert.IsFalse(requests.Remove(requester));
+        }
+    }
+}
+```
+
+`moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Block/BlockDestructionCategoryReservedKeyTest.cs`:
+
+```csharp
+using System.IO;
+using Core.Master;
+using Core.Master.Validator;
+using Newtonsoft.Json.Linq;
+using NUnit.Framework;
+using Server.Boot;
+using Tests.Module.TestMod;
+
+namespace Tests.UnitTest.Core.Block
+{
+    /// <summary>
+    ///     接続線用に予約した破壊カテゴリーキーをマスタが使うと検証で弾かれることを確かめる
+    ///     Verifies the master is rejected when it uses the destruction category key reserved for connection lines
+    /// </summary>
+    public class BlockDestructionCategoryReservedKeyTest
+    {
+        [Test]
+        public void ReservedConnectionLineKeyIsRejected()
+        {
+            // 依存マスタを既存の有効Modで初期化し、blocks.jsonのカテゴリーキーだけをテスト内で差し替える
+            // Initialize dependency masters from the valid mod and replace only the category key in the in-test blocks.json
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var blocksJsonPath = Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods", "forUnitTest", "master", "blocks.json");
+            var blocksJToken = JToken.Parse(File.ReadAllText(blocksJsonPath));
+            blocksJToken["blockDestructionCategories"][0]["categoryKey"] = BlockMaster.ConnectionLineDestructionCategory;
+
+            var isValid = BlockMasterUtil.Validate(new BlockMaster(blocksJToken).Blocks, out var errorLogs);
+
+            Assert.IsFalse(isValid);
+            StringAssert.Contains($"uses the reserved key {BlockMaster.ConnectionLineDestructionCategory}", errorLogs);
+        }
+
+        [Test]
+        public void ExistingCategoriesPassValidation()
+        {
+            // 既存のテストmodのカテゴリー定義は予約キーと衝突しない
+            // The test mod's existing category definitions do not collide with the reserved key
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            Assert.IsTrue(BlockMasterUtil.Validate(MasterHolder.BlockMaster.Blocks, out var errorLogs), errorLogs);
         }
     }
 }
@@ -3416,27 +3858,121 @@ namespace Client.Game.InGame.UI.UIState.State
     /// </summary>
     public interface IRemovePreviewable
     {
-        void SetRemovePreviewing();
-        void ResetMaterial();
+        // 要求者ごとに赤を求める。誰かが求めている間は赤のまま
+        // Request red per requester; it stays red while anyone still requests it
+        void RequestRemovePreview(object requester);
+        void ReleaseRemovePreview(object requester);
     }
 }
 ```
 
-`DestructionCategories.cs`:
+`RemovePreviewRequests.cs`（`C/Client.Game/InGame/UI/UIState/State/RemovePreviewRequests.cs`）:
 
 ```csharp
+using System.Collections.Generic;
+
 namespace Client.Game.InGame.UI.UIState.State
 {
     /// <summary>
-    ///     クライアント側で定める破壊カテゴリー（マスタ由来のブロックカテゴリーとは別枠）
-    ///     Destruction categories defined client-side (separate from master-driven block categories)
+    ///     1つの表示対象に赤プレビューを求めている要求者の集合。自分のホバー・選択と、撤去ブロックの巻き込み表示が同時に求め得る
+    ///     Set of requesters wanting the red preview on one display target; own hover/selection and a removed block's cascade may request at once
     /// </summary>
-    public static class DestructionCategories
+    public class RemovePreviewRequests
     {
-        public const string ConnectionLine = "connectionLine";
+        private readonly HashSet<object> _requesters = new();
+
+        // 最初の要求でだけtrue（赤を付ける合図）
+        // True only on the first request (signal to apply red)
+        public bool Add(object requester)
+        {
+            return _requesters.Add(requester) && _requesters.Count == 1;
+        }
+
+        // 最後の要求が外れたときだけtrue（赤を戻す合図）
+        // True only when the last request is released (signal to reset)
+        public bool Remove(object requester)
+        {
+            return _requesters.Remove(requester) && _requesters.Count == 0;
+        }
     }
 }
 ```
+
+`BlockMaster.cs` L20-23 の既定カテゴリー定数の直後に追加:
+
+```csharp
+        // 接続線（電線・歯車チェーン）の破壊カテゴリー。ブロックではないのでマスタの定義には現れず、予約キーとして検証で衝突を弾く
+        // Destruction category for connection lines (wires, gear chains); never in master definitions, so validation rejects it as a reserved key
+        public const string ConnectionLineDestructionCategory = "connectionLine";
+```
+
+`BlockMasterElementExtension.cs` の既定カテゴリー再公開の直後に追加:
+
+```csharp
+        // 接続線の破壊カテゴリー。単一の定義元はCore.MasterのBlockMasterが持つ
+        // Connection-line destruction category; the single source of truth lives in Core.Master's BlockMaster
+        public const string ConnectionLineDestructionCategory = BlockMaster.ConnectionLineDestructionCategory;
+```
+
+`moorestech_server/Assets/Scripts/Core.Master/Validator/Block/BlockDestructionCategoryValidator.cs`（新規。`BlockMasterUtil.cs` L243-272 のローカル関数 `BlockDestructionCategoryValidation` をここへ移し、予約キー検査を足す。`ExistsBlockGuid` は `MasterHolder.BlockMaster` を使わず定義済みブロックの Guid 集合で判定する）:
+
+```csharp
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Mooresmaster.Model.BlocksModule;
+
+namespace Core.Master.Validator.Block
+{
+    /// <summary>
+    ///     破壊カテゴリ定義の検証。blockGuidの実在・複数カテゴリへの重複登録・予約キーとの衝突を弾く
+    ///     Validates destruction category definitions: block guid existence, duplicate registration and collisions with reserved keys
+    /// </summary>
+    public static class BlockDestructionCategoryValidator
+    {
+        public static string Validate(Blocks blocks)
+        {
+            var logs = "";
+            var definedBlockGuids = new HashSet<Guid>(blocks.Data.Select(block => block.BlockGuid));
+            var assignedCategoryByBlockGuid = new Dictionary<Guid, string>();
+            foreach (var category in blocks.BlockDestructionCategories)
+            {
+                // 接続線用の予約キーをマスタが使うと、ブロックと接続線が同じドラッグで混ざってしまう
+                // A master using the connection-line key would let blocks and lines mix in one drag
+                if (category.CategoryKey == BlockMaster.ConnectionLineDestructionCategory)
+                {
+                    logs += $"[BlockMaster] DestructionCategory uses the reserved key {BlockMaster.ConnectionLineDestructionCategory}\n";
+                }
+
+                foreach (var target in category.TargetBlocks)
+                {
+                    // foreignKeyは自動生成されないため参照先の実在を手動で確認する
+                    // foreignKey validation is not auto-generated, so verify the referenced block exists
+                    if (!definedBlockGuids.Contains(target.BlockGuid))
+                    {
+                        logs += $"[BlockMaster] DestructionCategory:{category.CategoryKey} has invalid BlockGuid:{target.BlockGuid}\n";
+                    }
+
+                    // 逆引きは1ブロック1カテゴリ前提。重複するとロード順で結果が変わるため弾く
+                    // The reverse lookup assumes one category per block; duplicates make the result order-dependent
+                    if (assignedCategoryByBlockGuid.TryGetValue(target.BlockGuid, out var existingCategory))
+                    {
+                        logs += $"[BlockMaster] BlockGuid:{target.BlockGuid} is assigned to multiple destruction categories ({existingCategory}, {category.CategoryKey})\n";
+                    }
+                    else
+                    {
+                        assignedCategoryByBlockGuid.Add(target.BlockGuid, category.CategoryKey);
+                    }
+                }
+            }
+
+            return logs;
+        }
+    }
+}
+```
+
+`BlockMasterUtil.cs`: L17 `errorLogs += BlockDestructionCategoryValidation();` → `errorLogs += BlockDestructionCategoryValidator.Validate(blocks);`（`using Core.Master.Validator.Block;` を追加）、L243-272 のローカル関数 `BlockDestructionCategoryValidation` を削除。既存の `ExistsBlockGuid`（L367-370）は `Array.Exists(blocks.Data, b => b.BlockGuid == blockGuid)` で、新ファイルの Guid 集合照合と同じ判定。`BlockMasterUtil` 内に他の呼び出し元が残るので `ExistsBlockGuid` 自体は残す。
 
 `ConnectionLineRegistry.cs`:
 
@@ -3497,6 +4033,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
 ```csharp
 using System;
 using Client.Common;
+using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState.State;
@@ -3517,6 +4054,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
         public Guid ConnectToolGuid { get; private set; }
         public ConnectionLineKind Kind { get; private set; }
 
+        private readonly RemovePreviewRequests _removePreviewRequests = new();
         private ConnectionLineRegistry _registry;
         private RendererMaterialReplacerController _materialReplacer;
 
@@ -3530,8 +4068,22 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
             _registry.Register(this);
         }
 
+        // 自分のホバー・選択は自分自身を要求者として赤を求める
+        // Own hover/selection requests red with this component as the requester
         public void SetRemovePreviewing()
         {
+            RequestRemovePreview(this);
+        }
+
+        public void ResetMaterial()
+        {
+            ReleaseRemovePreview(this);
+        }
+
+        public void RequestRemovePreview(object requester)
+        {
+            if (!_removePreviewRequests.Add(requester)) return;
+
             // レンダラーはSetLine後に揃うため、置換器は初回プレビュー時に作る
             // Renderers are complete only after SetLine, so build the replacer on the first preview
             _materialReplacer ??= new RendererMaterialReplacerController(gameObject);
@@ -3539,9 +4091,26 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
             _materialReplacer.SetColor(MaterialConst.PreviewColorPropertyName, MaterialConst.NotPlaceableColor);
         }
 
-        public void ResetMaterial()
+        // 最後の要求者が外れたときだけ元へ戻す（巻き込み表示の解除が他者の赤を消さない）
+        // Reset only when the last requester leaves (a cascade release never clears someone else's red)
+        public void ReleaseRemovePreview(object requester)
         {
+            if (!_removePreviewRequests.Remove(requester)) return;
             _materialReplacer?.ResetMaterial();
+        }
+
+        // 両端ブロックの座標を解決する（切断送信とUndo記録が共有）
+        // Resolve both endpoint block positions (shared by the disconnect send and the undo record)
+        public bool TryResolveEndpointPositions(out Vector3Int fromPos, out Vector3Int toPos)
+        {
+            fromPos = default;
+            toPos = default;
+            var store = ClientDIContext.BlockGameObjectDataStore;
+            if (!store.TryGetBlockGameObject(FromId, out var fromBlock) || !store.TryGetBlockGameObject(ToId, out var toBlock)) return false;
+
+            fromPos = fromBlock.BlockPosInfo.OriginalPos;
+            toPos = toBlock.BlockPosInfo.OriginalPos;
+            return true;
         }
 
         // 切断可否はサーバーが判定し拒否は通知で返るため、クライアントでは常に削除可とする
@@ -3556,15 +4125,12 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
         {
             // 両端ブロックの座標を解決して種類ごとの切断要求を送る
             // Resolve both endpoint positions and send the per-kind disconnect request
-            var store = ClientDIContext.BlockGameObjectDataStore;
-            if (!store.TryGetBlockGameObject(FromId, out var fromBlock) || !store.TryGetBlockGameObject(ToId, out var toBlock))
+            if (!TryResolveEndpointPositions(out var fromPos, out var toPos))
             {
                 Debug.LogWarning($"[ConnectionLineDelete] endpoint block not found: from={FromId} to={ToId}");
                 return;
             }
 
-            var fromPos = fromBlock.BlockPosInfo.OriginalPos;
-            var toPos = toBlock.BlockPosInfo.OriginalPos;
             switch (Kind)
             {
                 case ConnectionLineKind.ElectricWire:
@@ -3587,7 +4153,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
 
         public string GetDestructionCategory()
         {
-            return DestructionCategories.ConnectionLine;
+            return BlockMasterElementExtension.ConnectionLineDestructionCategory;
         }
 
         private void OnDestroy()
@@ -3736,13 +4302,13 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
 
 - [ ] **Step 3: コンパイルしテストを実行する**
 
-Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.ConnectionLine\."`
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.ConnectionLine\.|BlockDestructionCategoryReservedKeyTest|BlockDestructionCategoryMasterDataTest|DragDeleteSelectionCategoryTest"`（新規 `.cs` を足したので先に `uloop launch ./moorestech_client --restart`）
 Expected: ErrorCount 0 / 4 tests PASS
 
 - [ ] **Step 4: コミットする**
 
 ```bash
-git add moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/StateProcessor moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DestructionCategories.cs moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/IRemovePreviewable.cs moorestech_client/Assets/Scripts/Client.Game/InGame/Context/ClientDIContext.cs moorestech_client/Assets/Scripts/Client.Starter/Registration/MainGameInteractionRegistration.cs moorestech_client/Assets/Scripts/Client.Tests/ConnectionLine
+git add moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/StateProcessor moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/RemovePreviewRequests.cs moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/IRemovePreviewable.cs moorestech_client/Assets/Scripts/Client.Game/Common/BlockMasterElementExtension.cs moorestech_server/Assets/Scripts/Core.Master/BlockMaster.cs moorestech_server/Assets/Scripts/Core.Master/Validator moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Block/BlockDestructionCategoryReservedKeyTest.cs moorestech_client/Assets/Scripts/Client.Game/InGame/Context/ClientDIContext.cs moorestech_client/Assets/Scripts/Client.Starter/Registration/MainGameInteractionRegistration.cs moorestech_client/Assets/Scripts/Client.Tests/ConnectionLine
 git commit -m "feat(client): 電線・歯車チェーンを共通の削除対象として当たり判定と索引を持たせる"
 ```
 
@@ -3752,21 +4318,26 @@ git commit -m "feat(client): 電線・歯車チェーンを共通の削除対象
 
 **Files:**
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DeleteTargetHitSelector.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DeleteAimFilter.cs`（照準の絞り込み条件の判別union。裁定 `.decisions/2026-10-05-削除ツールの照準条件は判別unionで表す.md`）
+- Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DeleteAimResult.cs`（照準結果と外れた理由）
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/Control/DeleteTargetRaycaster.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Control/BlockClickDetectUtil.cs:79-134`（レイキャスト本体を公開ヘルパーへ切り出し）
-- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DragDeleteSelection.cs:22,93`（`SessionCategory` 公開）
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DragDeleteSelection.cs:20-22,35,64,73-77,87,106`（`string _sessionCategory`(null=未固定) を `DeleteAimFilter _sessionFilter` へ置換し `AimFilter` で公開）
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DeleteObjectService.cs:33`
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/UIState/DeleteTargetHitSelectorTest.cs`
-- Test: `moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDeleteSelectionCategoryTest.cs`（SessionCategory ケース追加）
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDeleteSelectionCategoryTest.cs`（AimFilter ケース追加）
 
 **Interfaces:**
-- Consumes: Task C1 `LayerConst.ConnectionLineLayer` / `ConnectionLineOnlyLayerMask`、Task C2 `DestructionCategories.ConnectionLine`
+- Consumes: Task C1 `LayerConst.ConnectionLineLayer` / `ConnectionLineOnlyLayerMask`、Task C2 `BlockMasterElementExtension.ConnectionLineDestructionCategory` と `ConnectionLineDeleteTarget.FromCollider`（本タスクで追加）
 - Produces:
   - `public readonly struct DeleteTargetHit { float Distance; IDeleteTarget Target; }`
-  - `public static class DeleteTargetHitSelector { static bool TrySelect(IReadOnlyList<DeleteTargetHit> hits, string requiredCategory, out IDeleteTarget target) }` — requiredCategory が null なら最前面（最前面が非対象なら false）、非 null ならそのカテゴリーの最前面
-  - `public static class DeleteTargetRaycaster { static bool TryGetCursorOnDeleteTarget(string requiredCategory, out IDeleteTarget target) }`
-  - `BlockClickDetectUtil.RaycastAimAll(int layerMask, float maxDistance, out Ray ray)` は作らず、`public static int RaycastAimAll(int layerMask, float maxDistance, out RaycastHit[] hits)`（hits は共有バッファ。戻り値件数まで有効。カメラが無ければ 0）
-  - `DragDeleteSelection.SessionCategory`（`string`, 未固定は null）
+  - `public readonly struct DeleteAimFilter { static DeleteAimFilter Frontmost; static DeleteAimFilter Category(string categoryKey); bool IsCategoryRequired; bool Accepts(IDeleteTarget target) }`（null を合図に使わない。`Frontmost.Accepts` は常に true、`Category(key).Accepts` はカテゴリー一致のみ true）
+  - `public enum DeleteAimOutcome { Found, NothingHit, OccludedByNonTarget, NoTargetOfCategory }`、`public readonly struct DeleteAimResult { DeleteAimOutcome Outcome; IDeleteTarget Target; bool IsFound; static Found(IDeleteTarget); static Missed(DeleteAimOutcome) }`
+  - `public static class DeleteTargetHitSelector { static DeleteAimResult Select(IReadOnlyList<DeleteTargetHit> hits, DeleteAimFilter filter) }` — Frontmost は最前面（最前面が非対象なら `OccludedByNonTarget`）、Category はそのカテゴリーの最前面（無ければ `NoTargetOfCategory`）、ヒット0件は `NothingHit`
+  - `public static class DeleteTargetRaycaster { static DeleteAimResult AimAt(DeleteAimFilter filter) }`
+  - `BlockClickDetectUtil.TryCreateAimRay(out Ray ray)`（照準レイ生成の正本。カメラが無ければ false）と `public static int RaycastAimAll(int layerMask, float maxDistance, out RaycastHit[] hits)`（hits は共有バッファ。戻り値件数まで有効。カメラが無ければ 0）
+  - `ConnectionLineDeleteTarget.FromCollider(Collider collider) : ConnectionLineDeleteTarget`（接続線コライダーから線本体を引く正本。照準と Task 13 のスポイトが共有）
+  - `DragDeleteSelection.AimFilter : DeleteAimFilter`（未固定・確定後・キャンセル後は `Frontmost`）
 
 - [ ] **Step 1: テストを書く**
 
@@ -3774,7 +4345,7 @@ git commit -m "feat(client): 電線・歯車チェーンを共通の削除対象
 
 ```csharp
 using System.Collections.Generic;
-using Client.Game.InGame.UI.UIState.State;
+using Client.Game.Common;
 using Client.Game.InGame.UI.UIState.State.DragDelete;
 using Client.Tests.UIState.Fakes;
 using NUnit.Framework;
@@ -3782,83 +4353,179 @@ using NUnit.Framework;
 namespace Client.Tests.UIState
 {
     /// <summary>
-    ///     照準ヒット列から削除対象を選ぶ規則（最前面／カテゴリー指定時はその中の最前面）を検証する
-    ///     Verifies picking a delete target from aim hits (frontmost / frontmost within a required category)
+    ///     照準ヒット列から削除対象を選ぶ規則（最前面／カテゴリー指定時はその中の最前面）と外れた理由を検証する
+    ///     Verifies picking a delete target from aim hits (frontmost / frontmost within a required category) and the miss reasons
     /// </summary>
     public class DeleteTargetHitSelectorTest
     {
         [Test]
-        public void WithoutCategoryPicksFrontmost()
+        public void FrontmostPicksNearest()
         {
             // 電線がブロックの手前なら電線を取る
             // A wire in front of a block wins
-            var wire = new FakeDeleteTarget { Category = DestructionCategories.ConnectionLine };
+            var wire = new FakeDeleteTarget { Category = BlockMasterElementExtension.ConnectionLineDestructionCategory };
             var block = new FakeDeleteTarget { Category = "default" };
             var hits = new List<DeleteTargetHit> { new(5f, block), new(2f, wire) };
 
-            Assert.IsTrue(DeleteTargetHitSelector.TrySelect(hits, null, out var target));
-            Assert.AreSame(wire, target);
+            var result = DeleteTargetHitSelector.Select(hits, DeleteAimFilter.Frontmost);
+            Assert.AreEqual(DeleteAimOutcome.Found, result.Outcome);
+            Assert.AreSame(wire, result.Target);
         }
 
         [Test]
-        public void WithCategorySkipsNearerOtherCategory()
+        public void CategorySkipsNearerOtherCategory()
         {
             // ブロックのドラッグ中は手前の電線を飛ばして奥のブロックを取る
             // During a block drag, skip the nearer wire and take the block behind it
-            var wire = new FakeDeleteTarget { Category = DestructionCategories.ConnectionLine };
+            var wire = new FakeDeleteTarget { Category = BlockMasterElementExtension.ConnectionLineDestructionCategory };
             var block = new FakeDeleteTarget { Category = "default" };
             var hits = new List<DeleteTargetHit> { new(2f, wire), new(5f, block) };
 
-            Assert.IsTrue(DeleteTargetHitSelector.TrySelect(hits, "default", out var target));
-            Assert.AreSame(block, target);
+            var result = DeleteTargetHitSelector.Select(hits, DeleteAimFilter.Category("default"));
+            Assert.AreEqual(DeleteAimOutcome.Found, result.Outcome);
+            Assert.AreSame(block, result.Target);
         }
 
         [Test]
-        public void WithoutCategoryFrontmostNonTargetOccludes()
+        public void FrontmostNonTargetOccludes()
         {
             // 最前面が削除対象でない物体なら奥は拾わない（従来の遮蔽規則）
             // A non-target frontmost hit occludes what is behind (existing occlusion rule)
             var block = new FakeDeleteTarget { Category = "default" };
             var hits = new List<DeleteTargetHit> { new(1f, null), new(5f, block) };
 
-            Assert.IsFalse(DeleteTargetHitSelector.TrySelect(hits, null, out _));
+            Assert.AreEqual(DeleteAimOutcome.OccludedByNonTarget, DeleteTargetHitSelector.Select(hits, DeleteAimFilter.Frontmost).Outcome);
         }
 
         [Test]
-        public void EmptyHitsSelectNothing()
+        public void CategoryWithoutMatchReportsNoTargetOfCategory()
         {
-            // ヒット0件は対象なし
-            // Zero hits select nothing
-            Assert.IsFalse(DeleteTargetHitSelector.TrySelect(new List<DeleteTargetHit>(), null, out _));
-            Assert.IsFalse(DeleteTargetHitSelector.TrySelect(new List<DeleteTargetHit>(), "default", out _));
+            // 指定カテゴリーの対象が1件も無ければ理由付きで外れる
+            // With no target of the required category, it misses with a reason
+            var wire = new FakeDeleteTarget { Category = BlockMasterElementExtension.ConnectionLineDestructionCategory };
+            var hits = new List<DeleteTargetHit> { new(2f, wire) };
+
+            Assert.AreEqual(DeleteAimOutcome.NoTargetOfCategory, DeleteTargetHitSelector.Select(hits, DeleteAimFilter.Category("default")).Outcome);
+        }
+
+        [Test]
+        public void EmptyHitsReportNothingHit()
+        {
+            // ヒット0件はどちらの条件でも NothingHit
+            // Zero hits are NothingHit under either filter
+            Assert.AreEqual(DeleteAimOutcome.NothingHit, DeleteTargetHitSelector.Select(new List<DeleteTargetHit>(), DeleteAimFilter.Frontmost).Outcome);
+            Assert.AreEqual(DeleteAimOutcome.NothingHit, DeleteTargetHitSelector.Select(new List<DeleteTargetHit>(), DeleteAimFilter.Category("default")).Outcome);
         }
     }
 }
 ```
 
-`DragDeleteSelectionCategoryTest.cs` に追加:
+`DragDeleteSelectionCategoryTest.cs` に追加（`using Client.Game.InGame.UI.UIState.State.DragDelete;` は既存）:
 
 ```csharp
         [Test]
-        public void SessionCategoryIsFixedByFirstTargetAndClearedOnNewDrag()
+        public void AimFilterIsFixedByFirstTargetAndResetOnNewDrag()
         {
-            // 最初の対象でセッションカテゴリーが固定され、新しいドラッグで解除される
-            // The first target fixes the session category and a new drag clears it
+            // 最初の対象で照準条件がそのカテゴリーに固定され、新しいドラッグで最前面へ戻る
+            // The first target fixes the aim filter to its category and a new drag resets it to frontmost
             var selection = CreateSelection();
             selection.BeginDrag();
-            Assert.IsNull(selection.SessionCategory);
+            Assert.IsFalse(selection.AimFilter.IsCategoryRequired);
 
-            selection.TryAddTarget(new FakeDeleteTarget { Removable = true, Category = "connectionLine" }, out _);
-            Assert.AreEqual("connectionLine", selection.SessionCategory);
+            var line = new FakeDeleteTarget { Removable = true, Category = "connectionLine" };
+            selection.TryAddTarget(line, out _);
+            Assert.IsTrue(selection.AimFilter.IsCategoryRequired);
+            Assert.IsTrue(selection.AimFilter.Accepts(line));
+            Assert.IsFalse(selection.AimFilter.Accepts(new FakeDeleteTarget { Category = "default" }));
 
             selection.BeginDrag();
-            Assert.IsNull(selection.SessionCategory);
+            Assert.IsFalse(selection.AimFilter.IsCategoryRequired);
         }
 ```
 
 （`CreateSelection()` は Task C4 で導入するテスト内ヘルパー。C3 を C4 より先に実装する場合は `new DragDeleteSelection(new BuildOperationHistory())` を直接書き、C4 で置換する。）
 
 - [ ] **Step 2: 実装を書く**
+
+`DeleteAimFilter.cs`:
+
+```csharp
+namespace Client.Game.InGame.UI.UIState.State.DragDelete
+{
+    /// <summary>
+    ///     削除ツールの照準の絞り込み条件。最前面か、指定カテゴリーの最前面かの2択（nullを合図に使わない）
+    ///     Aim filter of the delete tool: plain frontmost, or frontmost within a category (null is never used as a signal)
+    /// </summary>
+    public readonly struct DeleteAimFilter
+    {
+        public static DeleteAimFilter Frontmost => new(false, string.Empty);
+
+        public static DeleteAimFilter Category(string categoryKey)
+        {
+            return new DeleteAimFilter(true, categoryKey);
+        }
+
+        public bool IsCategoryRequired { get; }
+        private readonly string _categoryKey;
+
+        private DeleteAimFilter(bool isCategoryRequired, string categoryKey)
+        {
+            IsCategoryRequired = isCategoryRequired;
+            _categoryKey = categoryKey;
+        }
+
+        // 最前面条件は何でも受け、カテゴリー条件は一致したものだけ受ける
+        // Frontmost accepts anything; a category filter accepts only matching targets
+        public bool Accepts(IDeleteTarget target)
+        {
+            if (!IsCategoryRequired) return true;
+            return target.GetDestructionCategory() == _categoryKey;
+        }
+    }
+}
+```
+
+`DeleteAimResult.cs`:
+
+```csharp
+namespace Client.Game.InGame.UI.UIState.State.DragDelete
+{
+    /// <summary>
+    ///     照準の結果。外れた場合は理由を持つ（照準の外れは毎フレームの通常状態なのでログは出さない）
+    ///     Aim result; carries the reason on a miss (a miss is the normal per-frame state, so it is not logged)
+    /// </summary>
+    public enum DeleteAimOutcome
+    {
+        Found,
+        NothingHit,
+        OccludedByNonTarget,
+        NoTargetOfCategory,
+    }
+
+    public readonly struct DeleteAimResult
+    {
+        public DeleteAimOutcome Outcome { get; }
+        public IDeleteTarget Target { get; }
+        public bool IsFound => Outcome == DeleteAimOutcome.Found;
+
+        private DeleteAimResult(DeleteAimOutcome outcome, IDeleteTarget target)
+        {
+            Outcome = outcome;
+            Target = target;
+        }
+
+        public static DeleteAimResult Found(IDeleteTarget target)
+        {
+            return new DeleteAimResult(DeleteAimOutcome.Found, target);
+        }
+
+        public static DeleteAimResult Missed(DeleteAimOutcome outcome)
+        {
+            return new DeleteAimResult(outcome, null);
+        }
+    }
+}
+```
 
 `DeleteTargetHitSelector.cs`:
 
@@ -3884,33 +4551,36 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
     }
 
     /// <summary>
-    ///     ヒット列から削除対象を選ぶ。カテゴリー未指定は最前面、指定時はそのカテゴリーの最前面
-    ///     Picks a delete target from hits: frontmost when no category is required, frontmost of that category otherwise
+    ///     ヒット列から削除対象を選ぶ。最前面条件は最前面、カテゴリー条件はそのカテゴリーの最前面
+    ///     Picks a delete target from hits: frontmost under the frontmost filter, frontmost of the category under a category filter
     /// </summary>
     public static class DeleteTargetHitSelector
     {
-        public static bool TrySelect(IReadOnlyList<DeleteTargetHit> hits, string requiredCategory, out IDeleteTarget target)
+        public static DeleteAimResult Select(IReadOnlyList<DeleteTargetHit> hits, DeleteAimFilter filter)
         {
-            target = null;
-            var bestDistance = float.MaxValue;
-            var found = false;
+            if (hits.Count == 0) return DeleteAimResult.Missed(DeleteAimOutcome.NothingHit);
 
+            var bestDistance = float.MaxValue;
+            IDeleteTarget best = null;
+            var hasBest = false;
             foreach (var hit in hits)
             {
                 if (bestDistance <= hit.Distance) continue;
 
-                // カテゴリー指定時は非対象・別カテゴリーを貫通する
-                // With a required category, pass through non-targets and other categories
-                if (requiredCategory != null && (hit.Target == null || hit.Target.GetDestructionCategory() != requiredCategory)) continue;
+                // カテゴリー条件では非対象・別カテゴリーを貫通する
+                // Under a category filter, pass through non-targets and other categories
+                if (filter.IsCategoryRequired && (hit.Target == null || !filter.Accepts(hit.Target))) continue;
 
                 bestDistance = hit.Distance;
-                target = hit.Target;
-                found = true;
+                best = hit.Target;
+                hasBest = true;
             }
 
-            // 未指定で最前面が非対象なら遮蔽として何も選ばない
-            // Without a category, a non-target frontmost hit occludes everything
-            return found && target != null;
+            // 最前面条件で最前面が非対象なら遮蔽、カテゴリー条件で該当が無ければその旨を返す
+            // Under frontmost a non-target frontmost hit occludes; under a category, report that nothing matched
+            if (!hasBest) return DeleteAimResult.Missed(DeleteAimOutcome.NoTargetOfCategory);
+            if (best == null) return DeleteAimResult.Missed(DeleteAimOutcome.OccludedByNonTarget);
+            return DeleteAimResult.Found(best);
         }
     }
 }
@@ -3926,12 +4596,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         public static int RaycastAimAll(int layerMask, float maxDistance, out RaycastHit[] hits)
         {
             hits = HitBuffer;
-            var camera = Camera.main;
-            if (camera == null) return 0;
-
-            // 照準座標はAimPointProviderで視点モードに応じて一元解決する
-            // The aim point is resolved centrally by AimPointProvider per view mode
-            var ray = camera.ScreenPointToRay(AimPointProvider.GetAimScreenPoint());
+            if (!TryCreateAimRay(out var ray)) return 0;
 
             // 飽和したまま返すと手前のヒットを取りこぼすため、バッファを倍にして採り直す
             // A saturated buffer could drop the nearest hit, so it is doubled and re-queried
@@ -3946,6 +4611,21 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         }
 ```
 
+照準レイ生成の正本も同ファイルへ足す（`RaycastAimAll` と Task 13 の `GetCursorOnConnectionLine` が共有）:
+
+```csharp
+        // 照準レイを作る。照準座標はAimPointProviderで視点モードに応じて一元解決する（カメラが無ければfalse）
+        // Build the aim ray; the aim point is resolved centrally by AimPointProvider per view mode (false without a camera)
+        public static bool TryCreateAimRay(out Ray ray)
+        {
+            ray = default;
+            var camera = Camera.main;
+            if (camera == null) return false;
+            ray = camera.ScreenPointToRay(AimPointProvider.GetAimScreenPoint());
+            return true;
+        }
+```
+
 `TryGetFrontmostSolidHit` は先頭のカメラ取得〜`RaycastNonAlloc` 呼び出しを `var hitCount = RaycastAimAll(layerMask, maxDistance, out var hits);` に置換し、ループ内の `HitBuffer[index]` を `hits[index]` にする（`#region Internal` は不要になるので削除）。`QueryTriggerInteraction.Collide` は `m_QueriesHitTriggers: 1`（`ProjectSettings/DynamicsManager.asset:15`）の現状と同じ挙動を明示するだけで、既存呼び出しの結果は変わらない。
 
 `DeleteTargetRaycaster.cs`（`C/Client.Game/InGame/Control/DeleteTargetRaycaster.cs`）:
@@ -3954,6 +4634,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
 using System.Collections.Generic;
 using Client.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
+using Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.DragDelete;
 using UnityEngine;
@@ -3961,15 +4642,15 @@ using UnityEngine;
 namespace Client.Game.InGame.Control
 {
     /// <summary>
-    ///     削除ツールの照準解決。ブロック層と接続線層を1本のレイで見て、カテゴリー条件付きで対象を選ぶ
-    ///     Delete-tool aim resolution: one ray over block and connection-line layers, picking a target under an optional category
+    ///     削除ツールの照準解決。ブロック層と接続線層を1本のレイで見て、照準条件で対象を選ぶ
+    ///     Delete-tool aim resolution: one ray over block and connection-line layers, picking a target under the aim filter
     /// </summary>
     public static class DeleteTargetRaycaster
     {
         private const float RayDistance = 100f;
         private static readonly List<DeleteTargetHit> HitCandidates = new();
 
-        public static bool TryGetCursorOnDeleteTarget(string requiredCategory, out IDeleteTarget target)
+        public static DeleteAimResult AimAt(DeleteAimFilter filter)
         {
             var mask = LayerConst.BlockOnlyLayerMask | LayerConst.ConnectionLineOnlyLayerMask;
             var hitCount = BlockClickDetectUtil.RaycastAimAll(mask, RayDistance, out var hits);
@@ -3984,7 +4665,7 @@ namespace Client.Game.InGame.Control
                 HitCandidates.Add(new DeleteTargetHit(hits[i].distance, ResolveTarget(collider)));
             }
 
-            return DeleteTargetHitSelector.TrySelect(HitCandidates, requiredCategory, out target);
+            return DeleteTargetHitSelector.Select(HitCandidates, filter);
 
             #region Internal
 
@@ -3992,7 +4673,7 @@ namespace Client.Game.InGame.Control
             // Connection-line colliders sit under the line, while blocks/rails/cars keep the target on self or children as before
             static IDeleteTarget ResolveTarget(Collider collider)
             {
-                if (collider.gameObject.layer == LayerConst.ConnectionLineLayer) return collider.GetComponentInParent<IDeleteTarget>();
+                if (collider.gameObject.layer == LayerConst.ConnectionLineLayer) return ConnectionLineDeleteTarget.FromCollider(collider);
                 return collider.gameObject.GetComponentInChildren<IDeleteTarget>();
             }
 
@@ -4002,26 +4683,46 @@ namespace Client.Game.InGame.Control
 }
 ```
 
-`DragDeleteSelection.cs`: `private string _sessionCategory;` を `public string SessionCategory { get; private set; }` に畳み、ファイル内の `_sessionCategory` 参照（BeginDrag・TryAddTarget・IsCategoryCompatible・CancelSelection・CommitDelete）をすべて `SessionCategory` に置換する。コメントは「最初に選択したブロックの破壊カテゴリーをセッションのカテゴリーとして固定する（未選択時はnull）。照準のカテゴリー条件にも使う」へ更新。
+`ConnectionLineDeleteTarget.cs` に追加（接続線コライダー→線本体の解決の正本）:
+
+```csharp
+        // 当たり判定は線本体の子オブジェクトにあるため親を辿って本体を得る（線でなければnull）
+        // Hit colliders live on child objects of the line, so climb to the parent for the line itself (null when not a line)
+        public static ConnectionLineDeleteTarget FromCollider(Collider collider)
+        {
+            return collider.GetComponentInParent<ConnectionLineDeleteTarget>();
+        }
+```
+
+`DragDeleteSelection.cs`: `private string _sessionCategory;`（null=未固定）を判別unionへ置換し、照準へ公開する:
+
+```csharp
+        // 最初に選択した対象の破壊カテゴリーでセッションを固定する。未固定は最前面条件で、照準の絞り込みにもそのまま使う
+        // Fix the session to the first selected target's category; unfixed is the frontmost filter, also used directly as the aim filter
+        private DeleteAimFilter _sessionFilter = DeleteAimFilter.Frontmost;
+        public DeleteAimFilter AimFilter => _sessionFilter;
+```
+- `BeginDrag`（L35）・`CancelSelection`（L87）・`CommitDelete`（L106）の `_sessionCategory = null;` → `_sessionFilter = DeleteAimFilter.Frontmost;`
+- `TryAddTarget`（L64）の `_sessionCategory ??= target.GetDestructionCategory();` → `if (!_sessionFilter.IsCategoryRequired) _sessionFilter = DeleteAimFilter.Category(target.GetDestructionCategory());`
+- `IsCategoryCompatible`（L73-77）の本体 → `return _sessionFilter.Accepts(target);`
 
 `DeleteObjectService.Update` の33行目を置換:
 
 ```csharp
-            // カーソル下の削除対象を取得する。ドラッグ中は固定カテゴリーの最前面、それ以外は最前面
-            // Resolve the hovered target: frontmost of the fixed category while dragging, plain frontmost otherwise
-            var requiredCategory = _isDragging ? _selection.SessionCategory : null;
-            DeleteTargetRaycaster.TryGetCursorOnDeleteTarget(requiredCategory, out var hovered);
+            // カーソル下の削除対象を取得する。選択が固定したカテゴリーがあればその最前面、無ければ最前面（ドラッグ外・確定後・キャンセル後は常に最前面）
+            // Resolve the hovered target: frontmost of the selection's fixed category if any, else plain frontmost (always frontmost outside a drag, after commit or cancel)
+            var hovered = DeleteTargetRaycaster.AimAt(_selection.AimFilter).Target;
 ```
 
 - [ ] **Step 3: コンパイルしテストを実行する**
 
-Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.UIState\.(DeleteTargetHitSelectorTest|DragDeleteSelection)"`
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.UIState\.(DeleteTargetHitSelectorTest|DragDeleteSelection)"`（新規 `.cs` を足したので先に `uloop launch ./moorestech_client --restart`）
 Expected: ErrorCount 0 / PASS（既存 DragDeleteSelection 系も含め全件）
 
 - [ ] **Step 4: コミットする**
 
 ```bash
-git add moorestech_client/Assets/Scripts/Client.Game/InGame/Control moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete moorestech_client/Assets/Scripts/Client.Tests/UIState/DeleteTargetHitSelectorTest.cs moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDeleteSelectionCategoryTest.cs
+git add moorestech_client/Assets/Scripts/Client.Game/InGame/Control moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/StateProcessor/ConnectionLine/ConnectionLineDeleteTarget.cs moorestech_client/Assets/Scripts/Client.Tests/UIState/DeleteTargetHitSelectorTest.cs moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDeleteSelectionCategoryTest.cs
 git commit -m "feat(client): 削除ツールの照準を最前面かつドラッグ中は同カテゴリーの最前面で解決する"
 ```
 
@@ -4037,9 +4738,19 @@ git commit -m "feat(client): 削除ツールの照準を最前面かつドラッ
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Undo/Removal/RemovedConnectionLine.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Undo/Removal/RemovedRail.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Undo/Removal/VanillaRemovalRestoreSender.cs`
-- Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/RailGraph/RailObjectIdCodec.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Undo/Removal/RemovedObjectCollector.cs`（撤去物と「記録できなかった物」の件数を集める）
+- Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Undo/Removal/RemovedRailCreateResult.cs`（レール記録の結果と記録しない理由）
+- Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/Notification/ClientLocalNotificationSource.cs`（クライアント側で決まる拒否をサーバー通知と同じ表示面へ流す。前例が無い新規パターン。裁定 `.decisions/2026-10-05-計画の弱発火4件を拾い残り3件は据え置く.md` (2)）
+- Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/Notification/NotificationTopic.cs:26-31,46-75`（ローカル通知も同じ中継で配る）
+- Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/WebUiGameBinder.cs:107`
+- Modify: `moorestech_client/Assets/Scripts/Client.Tests/WebUi/WireContractNotificationTest.cs:62,74`（`NotificationTopic` の第3引数）
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Context/ClientDIContext.cs`（`ClientLocalNotificationSource` の static 参照）
+- Modify: `moorestech_web/webui/src/features/notification/notificationMessages.ts`（`denied.undoRestoreSkipped`）
+- Modify: `Localization/localization.csv`（`ui.notification.undoRestoreSkipped` 行）
+- Regenerate: `moorestech_web/webui/src/shared/i18n/generated/*`（`pnpm gen:i18n`）
+- Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/RailGraph/RailObjectIdCodec.cs`（canonical 区間の選択は Task 5 の `Game.Train.RailGraph.Utility.RailSegmentPairing` を呼ぶ。サーバーの返却キーと同じ規則を1か所に保つ）
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/RailGraph/RailEdgeClassifier.cs`
-- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Undo/RemoveOperationRecord.cs`（全面書き換え。Task B2 が72行目に入れた `RecordedOnly` 送信は `VanillaRemovalRestoreSender.PlaceBlocks` へ移る）
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Undo/RemoveOperationRecord.cs`（全面書き換え。Task B2 が72行目に入れた `NoAutoConnect` 送信は `VanillaRemovalRestoreSender.PlaceBlocks` へ移る）
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Undo/IBuildOperationRecord.cs`（引数型を `IBlockOccupancyQuery` へ）
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Undo/PlaceOperationRecord.cs`（`UndoAsync` 引数型の追従のみ。BlockRemove は従来どおり `ClientContext` 経由）
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Undo/BuildUndoService.cs:18,48`
@@ -4047,7 +4758,7 @@ git commit -m "feat(client): 削除ツールの照準を最前面かつドラッ
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/IDeleteTarget.cs`（`CollectRemovedObjects` 追加）
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Block/BlockGameObjectChild.cs`（`CollectRemovedObjects`。付随線は Task C5）
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/RailGraph/DeleteTargetRail.cs`
-- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/RailGraph/TrainRailObjectManager.cs:199-210`（canonical 計算を RailObjectIdCodec へ移す）
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/RailGraph/TrainRailObjectManager.cs:99-100,126-127,199-210`（private static `SelectCanonicalPair`/`ComputeRailObjectId` を削除し、呼び出しを `RailSegmentPairing.SelectCanonicalPair`（`using Game.Train.RailGraph.Utility;`）と `RailObjectIdCodec.ComputeRailObjectId` へ置換）
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Entity/Object/TrainCarEntityChildrenObject.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/StateProcessor/ConnectionLine/ConnectionLineDeleteTarget.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DragDeleteSelection.cs:24-27,92-112`
@@ -4063,16 +4774,19 @@ git commit -m "feat(client): 削除ツールの照準を最前面かつドラッ
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/BuildUndo/RemovedRailTest.cs`
 
 **Interfaces:**
-- Consumes: Task C2 `ConnectionLineDeleteTarget`（FromId/ToId/ConnectToolGuid/Kind）、`ConnectionLineKind`。Task B2 `Server.Protocol.PacketResponse.BlockPlacementWiring.RecordedOnly` / `VanillaApiSendOnly.PlaceBlock(List<PlaceInfo>, BlockPlacementWiring)`、Task B3 `VanillaApiSendOnly.ConnectRailByDestination(ConnectionDestination, ConnectionDestination, Guid)`（同方向に接続済みなら無課金で成功）
+- Consumes: Task C2 `ConnectionLineDeleteTarget`（FromId/ToId/ConnectToolGuid/Kind）、`ConnectionLineKind`。Task B2 `Server.Protocol.PacketResponse.BlockPlacementWiring.NoAutoConnect` / `VanillaApiSendOnly.PlaceBlock(List<PlaceInfo>, BlockPlacementWiring)`、Task B3 `VanillaApiSendOnly.ConnectRailByDestination(ConnectionDestination, ConnectionDestination, Guid)`（同方向に接続済みなら無課金で成功）
 - Produces:
-  - `public interface IRemovedObject { object RestoreKey { get; } void AppendBlockRestore(List<PlaceInfo> placeInfos, IBlockOccupancyQuery occupancy); void SendConnectionRestore(IRemovalRestoreSender sender); }`
-  - `public interface IRemovalRestoreSender { void PlaceBlocks(List<PlaceInfo> placeInfos); void ConnectElectricWire(Vector3Int posA, Vector3Int posB, Guid connectToolGuid); void ConnectGearChain(Vector3Int posA, Vector3Int posB, Guid connectToolGuid); void ConnectRail(ConnectionDestination from, ConnectionDestination to, Guid connectToolGuid); }`
+  - `public interface IRemovedObject { object RestoreKey { get; } BlockRestoreOutcome AppendBlockRestore(List<PlaceInfo> placeInfos, IBlockOccupancyQuery occupancy); void SendConnectionRestore(IRemovalRestoreSender sender); }`、`public enum BlockRestoreOutcome { NotABlock, Appended, SkippedOccupied }`
+  - `public interface IRemovalRestoreSender { void PlaceBlocks(List<PlaceInfo> placeInfos); void ConnectElectricWire(Vector3Int posA, Vector3Int posB, Guid connectToolGuid); void ConnectGearChain(Vector3Int posA, Vector3Int posB, Guid connectToolGuid); void ConnectRail(ConnectionDestination from, ConnectionDestination to, Guid connectToolGuid); void NotifyRestoreSkipped(int skippedCount); }`（`NotifyRestoreSkipped` はクライアント側で戻せなかった件数をプレイヤーへ知らせる）
+  - `public class RemovedObjectCollector { void Add(IRemovedObject removed); void AddUnrecordable(string reason); IReadOnlyList<IRemovedObject> Objects; int UnrecordableCount }`（`AddUnrecordable` は理由を `Debug.LogWarning("[RemovalRestore] unrecordable: ...")` へ出して数える）
+  - `public enum RemovedRailCreateOutcome { Created, NodeNotSynced, StationInternal, FreeSegment }`、`public readonly struct RemovedRailCreateResult { RemovedRailCreateOutcome Outcome; RemovedRail Rail; }`（`FreeSegment`＝種類Emptyの無償区間は設計上記録しない。`NodeNotSynced` は記録できなかった物として数える）
+  - `public class ClientLocalNotificationSource { IObservable<NotificationMessagePack> OnNotification; void Notify(NotificationMessagePack message); }`（UniRx `Subject` を private 保持）、`ClientDIContext.ClientLocalNotificationSource`（static）
   - `public interface IBlockOccupancyQuery { bool IsOverlapPositionInfo(BlockPositionInfo target); }`
-  - `RemovedBlock.From(BlockGameObject block)`、`new RemovedConnectionLine(ConnectionLineKind kind, Vector3Int posA, Vector3Int posB, Guid connectToolGuid)`、`RemovedRail.TryCreate(RailGraphClientCache cache, int canonicalFrom, int canonicalTo, out RemovedRail removed)`
-  - `IDeleteTarget.CollectRemovedObjects(ICollection<IRemovedObject> removed)`
+  - `RemovedBlock.From(BlockGameObject block)`、`new RemovedConnectionLine(ConnectionLineKind kind, Vector3Int posA, Vector3Int posB, Guid connectToolGuid)`、`RemovedRail.Create(RailGraphClientCache cache, int canonicalFrom, int canonicalTo) : RemovedRailCreateResult`
+  - `IDeleteTarget.CollectRemovedObjects(RemovedObjectCollector collector)`
   - `RemoveOperationRecord.CreateFrom(IReadOnlyList<IDeleteTarget> targets, IRemovalRestoreSender sender)`、`bool HasRemovedObjects`
   - `DragDeleteSelection(BuildOperationHistory history, IRemovalRestoreSender restoreSender)`、`DeleteObjectService(BuildOperationHistory, IMouseCursorTooltip, IRemovalRestoreSender)`、`DeleteObjectState(IRemovalRestoreSender restoreSender, UiStateCameraPolicyService, BuildOperationHistory, BuildUndoService, PlacementTargetPickService, RightShortPressInputService, IMouseCursorTooltip)`
-  - `RailObjectIdCodec.SelectCanonicalPair(int fromNodeId, int toNodeId)` / `ComputeRailObjectId(int, int)` / `Decode(ulong railObjectId)`（public static）
+  - `RailObjectIdCodec.ComputeRailObjectId(int, int)` / `Decode(ulong railObjectId)`（public static。canonical 選択は `RailSegmentPairing.SelectCanonicalPair` を直接呼ぶ）
   - `RailEdgeClassifier.IsStationInternalEdge(IRailNode from, IRailNode to)`（public static）
   - `VanillaApiSendOnly.ConnectElectricWire(Vector3Int posA, Vector3Int posB, Guid connectToolGuid)`
 
@@ -4118,6 +4832,11 @@ namespace Client.Tests.BuildUndo
         public void ConnectRail(ConnectionDestination from, ConnectionDestination to, Guid connectToolGuid)
         {
             Sent.Add($"rail:{(Vector3Int)from.blockPosition}-{(Vector3Int)to.blockPosition}:{connectToolGuid}");
+        }
+
+        public void NotifyRestoreSkipped(int skippedCount)
+        {
+            Sent.Add($"skipped:{skippedCount}");
         }
     }
 }
@@ -4184,14 +4903,29 @@ namespace Client.Tests.BuildUndo
 
             record.UndoAsync(new FakeOccupancy(true)).Forget();
 
-            CollectionAssert.AreEqual(new[] { $"chain:{Vector3Int.zero}-{new Vector3Int(3, 0, 0)}:{guid}" }, sender.Sent);
+            CollectionAssert.AreEqual(new[] { $"chain:{Vector3Int.zero}-{new Vector3Int(3, 0, 0)}:{guid}", "skipped:1" }, sender.Sent);
+        }
+
+        [Test]
+        public void UnrecordableObjectsAreNotifiedOnUndo()
+        {
+            // 撤去時に記録できなかった物も、Undo時にプレイヤーへ件数で知らせる
+            // Objects that could not be recorded at removal are also reported to the player by count on undo
+            var target = new FakeDeleteTarget { UnrecordableReasons = { "rail node not synced" } };
+            var sender = new FakeRemovalRestoreSender();
+            var record = RemoveOperationRecord.CreateFrom(new List<IDeleteTarget> { target }, sender);
+
+            Assert.IsTrue(record.HasRemovedObjects);
+            record.UndoAsync(new FakeOccupancy(false)).Forget();
+
+            CollectionAssert.AreEqual(new[] { "skipped:1" }, sender.Sent);
         }
 
         [Test]
         public void TargetsWithoutRemovedObjectsYieldEmptyRecord()
         {
-            // 列車のように何も記録しない対象だけなら履歴に積まない
-            // Only targets recording nothing (like trains) produce no history entry
+            // 列車のように何も記録しない対象だけなら履歴に積まない（記録できなかった物も無い）
+            // Only targets recording nothing (like trains), with nothing unrecordable either, produce no history entry
             var record = RemoveOperationRecord.CreateFrom(new List<IDeleteTarget> { new FakeDeleteTarget() }, new FakeRemovalRestoreSender());
             Assert.IsFalse(record.HasRemovedObjects);
         }
@@ -4235,8 +4969,9 @@ namespace Client.Tests.BuildUndo
             var cache = CreateTwoPierCache(railType);
             var sender = new FakeRemovalRestoreSender();
 
-            Assert.IsTrue(RemovedRail.TryCreate(cache, 0, 2, out var removed));
-            removed.SendConnectionRestore(sender);
+            var result = RemovedRail.Create(cache, 0, 2);
+            Assert.AreEqual(RemovedRailCreateOutcome.Created, result.Outcome);
+            result.Rail.SendConnectionRestore(sender);
 
             CollectionAssert.AreEqual(new[] { $"rail:{new Vector3Int(0, 0, 0)}-{new Vector3Int(10, 0, 0)}:{railType}" }, sender.Sent);
         }
@@ -4247,7 +4982,7 @@ namespace Client.Tests.BuildUndo
             // 駅内部・駅隣接の自動レール（種類Empty）は記録しない（駅の再設置で自動的に戻る）
             // Station-internal / station-adjacent auto rails (Empty type) are not recorded (station re-placement restores them)
             var cache = CreateTwoPierCache(Guid.Empty);
-            Assert.IsFalse(RemovedRail.TryCreate(cache, 0, 2, out _));
+            Assert.AreEqual(RemovedRailCreateOutcome.FreeSegment, RemovedRail.Create(cache, 0, 2).Outcome);
         }
 
         [Test]
@@ -4255,7 +4990,7 @@ namespace Client.Tests.BuildUndo
         {
             // 未同期のノードを指す区間は記録しない
             // An edge pointing at an unsynced node is not recorded
-            Assert.IsFalse(RemovedRail.TryCreate(RailGraphClientCache.CreateForEditorTest(), 0, 2, out _));
+            Assert.AreEqual(RemovedRailCreateOutcome.NodeNotSynced, RemovedRail.Create(RailGraphClientCache.CreateForEditorTest(), 0, 2).Outcome);
         }
 
         private static RailGraphClientCache CreateTwoPierCache(Guid railType)
@@ -4281,13 +5016,15 @@ namespace Client.Tests.BuildUndo
 `FakeDeleteTarget.cs` に追加:
 
 ```csharp
-        // CollectRemovedObjectsで返す撤去物（未設定なら何も記録しない）
-        // Removed objects reported by CollectRemovedObjects (records nothing when empty)
+        // CollectRemovedObjectsで返す撤去物と記録できなかった理由（未設定なら何も記録しない）
+        // Removed objects and unrecordable reasons reported by CollectRemovedObjects (records nothing when empty)
         public readonly List<IRemovedObject> RemovedObjects = new();
+        public readonly List<string> UnrecordableReasons = new();
 
-        public void CollectRemovedObjects(ICollection<IRemovedObject> removed)
+        public void CollectRemovedObjects(RemovedObjectCollector collector)
         {
-            foreach (var removedObject in RemovedObjects) removed.Add(removedObject);
+            foreach (var removedObject in RemovedObjects) collector.Add(removedObject);
+            foreach (var reason in UnrecordableReasons) collector.AddUnrecordable(reason);
         }
 ```
 
@@ -4320,13 +5057,24 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
         // Logical key preventing the same thing from being restored twice
         object RestoreKey { get; }
 
-        // ブロック相: 再設置すべきセルを積む（ブロック以外は何もしない）
-        // Block phase: append the cell to re-place (non-blocks do nothing)
-        void AppendBlockRestore(List<PlaceInfo> placeInfos, IBlockOccupancyQuery occupancy);
+        // ブロック相: 再設置すべきセルを積む。ブロック以外はNotABlock、占有で戻せなければSkippedOccupied
+        // Block phase: append the cell to re-place; non-blocks return NotABlock, an occupied footprint returns SkippedOccupied
+        BlockRestoreOutcome AppendBlockRestore(List<PlaceInfo> placeInfos, IBlockOccupancyQuery occupancy);
 
         // 接続相: ブロック再設置の送信後に線の引き直しを送る（ブロックは何もしない）
         // Connection phase: send the line restore after the block re-place has been sent (blocks do nothing)
         void SendConnectionRestore(IRemovalRestoreSender sender);
+    }
+
+    /// <summary>
+    ///     ブロック相1件の結果
+    ///     Outcome of one block-phase append
+    /// </summary>
+    public enum BlockRestoreOutcome
+    {
+        NotABlock,
+        Appended,
+        SkippedOccupied,
     }
 }
 ```
@@ -4352,6 +5100,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
         void ConnectElectricWire(Vector3Int posA, Vector3Int posB, Guid connectToolGuid);
         void ConnectGearChain(Vector3Int posA, Vector3Int posB, Guid connectToolGuid);
         void ConnectRail(ConnectionDestination from, ConnectionDestination to, Guid connectToolGuid);
+
+        // クライアント側で戻せなかった件数（占有済み・記録不能）をプレイヤーへ知らせる。サーバー側の拒否はサーバーが通知する
+        // Tell the player how many things the client could not restore (occupied / unrecordable); server-side refusals are notified by the server
+        void NotifyRestoreSkipped(int skippedCount);
     }
 }
 ```
@@ -4409,15 +5161,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
 
         public object RestoreKey => _position;
 
-        public void AppendBlockRestore(List<PlaceInfo> placeInfos, IBlockOccupancyQuery occupancy)
+        public BlockRestoreOutcome AppendBlockRestore(List<PlaceInfo> placeInfos, IBlockOccupancyQuery occupancy)
         {
-            // 占有中のセルは再設置しない（撤去失敗・他者設置セルを除外）。理由はログへ残す
-            // Skip occupied cells (failed removals or rebuilt cells) and log why
+            // 占有中のセルは再設置しない（撤去失敗・他者設置セルを除外）。理由はログへ残し、件数はプレイヤー通知へ回る
+            // Skip occupied cells (failed removals or rebuilt cells); log why, and the count goes to the player notification
             var blockSize = MasterHolder.BlockMaster.GetBlockMaster(_blockId).BlockSize;
             if (occupancy.IsOverlapPositionInfo(new BlockPositionInfo(_position, _direction, blockSize)))
             {
                 Debug.LogWarning($"[RemovalRestore] skip re-place: footprint occupied at {_position}");
-                return;
+                return BlockRestoreOutcome.SkippedOccupied;
             }
 
             placeInfos.Add(new PlaceInfo
@@ -4428,6 +5180,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
                 BlockId = _blockId,
                 Placeable = true,
             });
+            return BlockRestoreOutcome.Appended;
         }
 
         public void SendConnectionRestore(IRemovalRestoreSender sender)
@@ -4482,8 +5235,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
 
         public object RestoreKey => (_kind, _posA, _posB);
 
-        public void AppendBlockRestore(List<PlaceInfo> placeInfos, IBlockOccupancyQuery occupancy)
+        public BlockRestoreOutcome AppendBlockRestore(List<PlaceInfo> placeInfos, IBlockOccupancyQuery occupancy)
         {
+            return BlockRestoreOutcome.NotABlock;
         }
 
         public void SendConnectionRestore(IRemovalRestoreSender sender)
@@ -4539,23 +5293,25 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
             _railTypeGuid = railTypeGuid;
         }
 
-        // canonical化済みの区間から作る。駅内部・種類Empty（駅隣接の自動レール等）・未同期ノードは記録しない
-        // Build from a canonical edge; station-internal, Empty-typed (e.g. station-adjacent auto rails) and unsynced edges are not recorded
-        public static bool TryCreate(RailGraphClientCache cache, int canonicalFrom, int canonicalTo, out RemovedRail removed)
+        // canonical化済みの区間から作る。記録しない理由（未同期・駅内部・種類Emptyの無償区間）を結果で区別する
+        // Build from a canonical edge; the result distinguishes why it is not recorded (unsynced, station-internal, Empty-typed free segment)
+        public static RemovedRailCreateResult Create(RailGraphClientCache cache, int canonicalFrom, int canonicalTo)
         {
-            removed = null;
-            if (!cache.TryGetNode(canonicalFrom, out var fromNode) || !cache.TryGetNode(canonicalTo, out var toNode)) return false;
-            if (RailEdgeClassifier.IsStationInternalEdge(fromNode, toNode)) return false;
-            if (!cache.TryGetRailType(canonicalFrom, canonicalTo, out var railTypeGuid) || railTypeGuid == Guid.Empty) return false;
+            if (!cache.TryGetNode(canonicalFrom, out var fromNode) || !cache.TryGetNode(canonicalTo, out var toNode)) return RemovedRailCreateResult.NotCreated(RemovedRailCreateOutcome.NodeNotSynced);
+            if (RailEdgeClassifier.IsStationInternalEdge(fromNode, toNode)) return RemovedRailCreateResult.NotCreated(RemovedRailCreateOutcome.StationInternal);
 
-            removed = new RemovedRail(fromNode.ConnectionDestination, toNode.ConnectionDestination, railTypeGuid);
-            return true;
+            // 種類Emptyは駅隣接の自動レール等の無償区間。駅の再設置で自動的に戻るので記録しない
+            // Empty-typed edges are free segments such as station-adjacent auto rails; station re-placement restores them, so they are not recorded
+            if (!cache.TryGetRailType(canonicalFrom, canonicalTo, out var railTypeGuid) || railTypeGuid == Guid.Empty) return RemovedRailCreateResult.NotCreated(RemovedRailCreateOutcome.FreeSegment);
+
+            return RemovedRailCreateResult.Created(new RemovedRail(fromNode.ConnectionDestination, toNode.ConnectionDestination, railTypeGuid));
         }
 
         public object RestoreKey => (_from, _to);
 
-        public void AppendBlockRestore(List<PlaceInfo> placeInfos, IBlockOccupancyQuery occupancy)
+        public BlockRestoreOutcome AppendBlockRestore(List<PlaceInfo> placeInfos, IBlockOccupancyQuery occupancy)
         {
+            return BlockRestoreOutcome.NotABlock;
         }
 
         public void SendConnectionRestore(IRemovalRestoreSender sender)
@@ -4568,6 +5324,81 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
 
 （`IRailNode.ConnectionDestination` は `S/Game.Train/RailGraph/IRailNode.cs:14` に実在。）
 
+`RemovedRailCreateResult.cs`:
+
+```csharp
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
+{
+    /// <summary>
+    ///     レール区間を撤去記録にした結果。作れなかった理由を区別する（FreeSegmentは設計上の対象外、NodeNotSyncedは記録不能）
+    ///     Result of turning a rail edge into a removal record; distinguishes why it was not created (FreeSegment is out of scope by design, NodeNotSynced is unrecordable)
+    /// </summary>
+    public enum RemovedRailCreateOutcome
+    {
+        Created,
+        NodeNotSynced,
+        StationInternal,
+        FreeSegment,
+    }
+
+    public readonly struct RemovedRailCreateResult
+    {
+        public RemovedRailCreateOutcome Outcome { get; }
+        public RemovedRail Rail { get; }
+
+        private RemovedRailCreateResult(RemovedRailCreateOutcome outcome, RemovedRail rail)
+        {
+            Outcome = outcome;
+            Rail = rail;
+        }
+
+        public static RemovedRailCreateResult Created(RemovedRail rail)
+        {
+            return new RemovedRailCreateResult(RemovedRailCreateOutcome.Created, rail);
+        }
+
+        public static RemovedRailCreateResult NotCreated(RemovedRailCreateOutcome outcome)
+        {
+            return new RemovedRailCreateResult(outcome, null);
+        }
+    }
+}
+```
+
+`RemovedObjectCollector.cs`:
+
+```csharp
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
+{
+    /// <summary>
+    ///     撤去直前に各削除対象から撤去物を集める。記録できなかった物は理由をログへ出して件数だけ数える
+    ///     Collects removed objects from each delete target right before removal; unrecordable things are logged with a reason and only counted
+    /// </summary>
+    public class RemovedObjectCollector
+    {
+        private readonly List<IRemovedObject> _objects = new();
+        public IReadOnlyList<IRemovedObject> Objects => _objects;
+        public int UnrecordableCount { get; private set; }
+
+        public void Add(IRemovedObject removed)
+        {
+            _objects.Add(removed);
+        }
+
+        // 復元先を持てない物。Undo時にプレイヤーへ件数で知らせる
+        // Something with no restore target; reported to the player by count on undo
+        public void AddUnrecordable(string reason)
+        {
+            Debug.LogWarning($"[RemovalRestore] unrecordable: {reason}");
+            UnrecordableCount++;
+        }
+    }
+}
+```
+
 `VanillaRemovalRestoreSender.cs`:
 
 ```csharp
@@ -4576,6 +5407,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.Context;
 using Core.Master;
 using Game.Train.SaveLoad;
+using Server.Event.Notification;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 
@@ -4591,7 +5423,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
         // Undo re-placement suppresses auto-connect; only recorded lines are re-drawn afterwards
         public void PlaceBlocks(List<PlaceInfo> placeInfos)
         {
-            ClientContext.VanillaApi.SendOnly.PlaceBlock(placeInfos, BlockPlacementWiring.RecordedOnly);
+            ClientContext.VanillaApi.SendOnly.PlaceBlock(placeInfos, BlockPlacementWiring.NoAutoConnect);
         }
 
         public void ConnectElectricWire(Vector3Int posA, Vector3Int posB, Guid connectToolGuid)
@@ -4607,6 +5439,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
         public void ConnectRail(ConnectionDestination from, ConnectionDestination to, Guid connectToolGuid)
         {
             ClientContext.VanillaApi.SendOnly.ConnectRailByDestination(from, to, connectToolGuid);
+        }
+
+        // サーバー通知と同じ表示面へクライアント側の取りこぼし件数を流す
+        // Push the client-side skipped count onto the same display surface as server notifications
+        public void NotifyRestoreSkipped(int skippedCount)
+        {
+            ClientDIContext.ClientLocalNotificationSource.Notify(NotificationMessagePack.CreateOperationDenied("denied.undoRestoreSkipped", new[] { skippedCount.ToString() }));
         }
     }
 }
@@ -4646,45 +5485,55 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
     public class RemoveOperationRecord : IBuildOperationRecord
     {
         private readonly List<IRemovedObject> _removedObjects;
+        private readonly int _unrecordableCount;
         private readonly IRemovalRestoreSender _sender;
 
-        private RemoveOperationRecord(List<IRemovedObject> removedObjects, IRemovalRestoreSender sender)
+        private RemoveOperationRecord(List<IRemovedObject> removedObjects, int unrecordableCount, IRemovalRestoreSender sender)
         {
             _removedObjects = removedObjects;
+            _unrecordableCount = unrecordableCount;
             _sender = sender;
         }
 
-        // 空バッチをPushしないためのガード
-        // Guard against pushing an empty batch
-        public bool HasRemovedObjects => 0 < _removedObjects.Count;
+        // 空バッチをPushしないためのガード。記録できなかった物だけでも、Undo時に通知するため積む
+        // Guard against pushing an empty batch; a batch of only unrecordable things is still pushed so undo can report them
+        public bool HasRemovedObjects => 0 < _removedObjects.Count || 0 < _unrecordableCount;
 
         // 撤去直前の各対象から撤去物を集め、論理キーで重複排除する
         // Collect removed objects from every target right before removal, deduped by logical key
         public static RemoveOperationRecord CreateFrom(IReadOnlyList<IDeleteTarget> targets, IRemovalRestoreSender sender)
         {
-            var collected = new List<IRemovedObject>();
-            foreach (var target in targets) target.CollectRemovedObjects(collected);
+            var collector = new RemovedObjectCollector();
+            foreach (var target in targets) target.CollectRemovedObjects(collector);
 
             var seenKeys = new HashSet<object>();
             var unique = new List<IRemovedObject>();
-            foreach (var removedObject in collected)
+            foreach (var removedObject in collector.Objects)
             {
                 if (seenKeys.Add(removedObject.RestoreKey)) unique.Add(removedObject);
             }
-            return new RemoveOperationRecord(unique, sender);
+            return new RemoveOperationRecord(unique, collector.UnrecordableCount, sender);
         }
 
         public UniTask UndoAsync(IBlockOccupancyQuery occupancy)
         {
-            // ブロック相: 空いているセルを1バッチで再設置する
-            // Block phase: re-place free cells in one batch
+            // ブロック相: 空いているセルを1バッチで再設置し、占有で戻せなかった数を数える
+            // Block phase: re-place free cells in one batch and count those blocked by occupancy
             var placeInfos = new List<PlaceInfo>();
-            foreach (var removedObject in _removedObjects) removedObject.AppendBlockRestore(placeInfos, occupancy);
+            var skippedCount = _unrecordableCount;
+            foreach (var removedObject in _removedObjects)
+            {
+                if (removedObject.AppendBlockRestore(placeInfos, occupancy) == BlockRestoreOutcome.SkippedOccupied) skippedCount++;
+            }
             if (placeInfos.Count != 0) _sender.PlaceBlocks(placeInfos);
 
             // 接続相: 再設置の後に線を引き直す（サーバーFIFOで再設置が先に適用される）
             // Connection phase: re-draw lines after the re-place (server FIFO applies the re-place first)
             foreach (var removedObject in _removedObjects) removedObject.SendConnectionRestore(_sender);
+
+            // クライアント側で戻せなかった分はプレイヤーへ件数で知らせる（裁定: できた分だけ戻し残りは通知）
+            // Report what the client could not restore to the player by count (ruling: restore what we can, notify the rest)
+            if (0 < skippedCount) _sender.NotifyRestoreSkipped(skippedCount);
             return UniTask.CompletedTask;
         }
     }
@@ -4700,15 +5549,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
         ///     撤去で消えるものをUndo用に積む（自身と、巻き込みで消える接続線・レール）。何も復元しない対象は積まない
         ///     Append what this removal makes disappear for undo (self plus cascaded lines/rails); targets with nothing to restore append nothing
         /// </summary>
-        void CollectRemovedObjects(ICollection<IRemovedObject> removed);
+        void CollectRemovedObjects(RemovedObjectCollector collector);
 ```
 
 `BlockGameObjectChild.cs` に追加（付随線の収集は Task C5 で追記）:
 
 ```csharp
-        public void CollectRemovedObjects(ICollection<IRemovedObject> removed)
+        public void CollectRemovedObjects(RemovedObjectCollector collector)
         {
-            removed.Add(RemovedBlock.From(BlockGameObject));
+            collector.Add(RemovedBlock.From(BlockGameObject));
         }
 ```
 
@@ -4717,7 +5566,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
 ```csharp
         // 車両の撤去はUndo対象外（ADR 0076の範囲外）なので何も積まない
         // Train car removal is outside undo (out of ADR 0076 scope), so nothing is appended
-        public void CollectRemovedObjects(ICollection<IRemovedObject> removed)
+        public void CollectRemovedObjects(RemovedObjectCollector collector)
         {
         }
 ```
@@ -4725,40 +5574,30 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
 `ConnectionLineDeleteTarget.cs` に追加:
 
 ```csharp
-        public void CollectRemovedObjects(ICollection<IRemovedObject> removed)
+        public void CollectRemovedObjects(RemovedObjectCollector collector)
         {
-            // 端点ブロックが解決できない線は復元先を持てないためログを残して積まない
-            // A line whose endpoints cannot be resolved has no restore target, so log and skip
-            var store = ClientDIContext.BlockGameObjectDataStore;
-            if (!store.TryGetBlockGameObject(FromId, out var fromBlock) || !store.TryGetBlockGameObject(ToId, out var toBlock))
+            // 端点ブロックが解決できない線は復元先を持てないため記録不能として数える
+            // A line whose endpoints cannot be resolved has no restore target, so count it as unrecordable
+            if (!TryResolveEndpointPositions(out var fromPos, out var toPos))
             {
-                Debug.LogWarning($"[RemovalRestore] skip line record: endpoint block not found from={FromId} to={ToId}");
+                collector.AddUnrecordable($"line endpoint block not found from={FromId} to={ToId}");
                 return;
             }
-            removed.Add(new RemovedConnectionLine(Kind, fromBlock.BlockPosInfo.OriginalPos, toBlock.BlockPosInfo.OriginalPos, ConnectToolGuid));
+            collector.Add(new RemovedConnectionLine(Kind, fromPos, toPos, ConnectToolGuid));
         }
 ```
 
-`RailObjectIdCodec.cs`（`TrainRailObjectManager` の private static 2本を移設し、manager 側は呼ぶだけにする。manager は 211 行→200 行未満へ縮む）:
+`RailObjectIdCodec.cs`（`TrainRailObjectManager` の private static `SelectCanonicalPair`/`ComputeRailObjectId` を廃し、canonical 選択は Task 5 の `RailSegmentPairing.SelectCanonicalPair`（サーバーの返却キーと同じ正本。同値時も同じ規則）を、ID符号化はここを呼ぶ。manager は 211 行→200 行未満へ縮む）:
 
 ```csharp
 namespace Client.Game.InGame.Train.RailGraph
 {
     /// <summary>
-    ///     レール描画1本を表すID（canonicalな区間ペア）の符号化・復号
-    ///     Encode/decode the id of one drawn rail (canonical edge pair)
+    ///     レール描画1本を表すID（canonicalな区間ペア）の符号化・復号。canonical の選択は RailSegmentPairing が正本
+    ///     Encode/decode the id of one drawn rail (canonical edge pair); RailSegmentPairing owns the canonical choice
     /// </summary>
     public static class RailObjectIdCodec
     {
-        // A→B と逆向き (B^1)→(A^1) のうち小さい起点の方を正とする
-        // Of A->B and its opposite (B^1)->(A^1), the one with the smaller start is canonical
-        public static (int canonicalFrom, int canonicalTo) SelectCanonicalPair(int fromNodeId, int toNodeId)
-        {
-            var alternateFrom = toNodeId ^ 1;
-            var alternateTo = fromNodeId ^ 1;
-            return fromNodeId <= alternateFrom ? (fromNodeId, toNodeId) : (alternateFrom, alternateTo);
-        }
-
         public static ulong ComputeRailObjectId(int canonicalFrom, int canonicalTo)
         {
             return (ulong)canonicalFrom + ((ulong)canonicalTo << 32);
@@ -4797,17 +5636,23 @@ namespace Client.Game.InGame.Train.RailGraph
 `DeleteTargetRail.cs`: `Delete()` と `CanDelete()` の `fromId/toId` 復号を `RailObjectIdCodec.Decode(railObjectId)` に置換、`IsStationInternalEdge` を削除して `RailEdgeClassifier.IsStationInternalEdge` を呼ぶ。追加:
 
 ```csharp
-        public void CollectRemovedObjects(ICollection<IRemovedObject> removed)
+        public void CollectRemovedObjects(RemovedObjectCollector collector)
         {
-            // レールIDはcanonical区間なのでそのまま記録へ写す
-            // The rail object id is already canonical, so map it straight into a record
+            // レールIDはcanonical区間なのでそのまま記録へ写す。無償区間は設計上記録せず、未同期・駅内部は記録不能として数える
+            // The rail object id is already canonical; free segments are skipped by design, unsynced/station-internal count as unrecordable
             var (fromId, toId) = RailObjectIdCodec.Decode(RailObjectIdCarrier.GetRailObjectId());
-            if (!RemovedRail.TryCreate(_railGraphClientCache, fromId, toId, out var removedRail))
+            var result = RemovedRail.Create(_railGraphClientCache, fromId, toId);
+            switch (result.Outcome)
             {
-                Debug.LogWarning($"[RemovalRestore] skip rail record: edge {fromId}->{toId} is not restorable");
-                return;
+                case RemovedRailCreateOutcome.Created:
+                    collector.Add(result.Rail);
+                    break;
+                case RemovedRailCreateOutcome.FreeSegment:
+                    break;
+                default:
+                    collector.AddUnrecordable($"rail edge {fromId}->{toId}: {result.Outcome}");
+                    break;
             }
-            removed.Add(removedRail);
         }
 ```
 
@@ -4832,7 +5677,7 @@ namespace Client.Game.InGame.Train.RailGraph
             }
 
             _selectedTargets.Clear();
-            SessionCategory = null;
+            _sessionFilter = DeleteAimFilter.Frontmost;
 
             // Ctrl+Z用のUndo履歴を記録（空バッチはPushしない）
             // Record the undo history for Ctrl+Z (skip empty batches)
@@ -4842,18 +5687,96 @@ namespace Client.Game.InGame.Train.RailGraph
 
 `DeleteObjectService` のコンストラクタを `DeleteObjectService(BuildOperationHistory buildOperationHistory, IMouseCursorTooltip tooltip, IRemovalRestoreSender restoreSender)` にして `new DragDeleteSelection(buildOperationHistory, restoreSender)`。`DeleteObjectState` の第1引数 `RailGraphClientCache cache`（未使用）を `IRemovalRestoreSender restoreSender` に置き換え、`new DeleteObjectService(buildOperationHistory, tooltip, restoreSender)`。`using Client.Game.InGame.Train.RailGraph;` が不要になれば外す。
 
-`MainGameInteractionRegistration.cs` に `builder.Register<VanillaRemovalRestoreSender>(Lifetime.Singleton).As<IRemovalRestoreSender>();`
+`MainGameInteractionRegistration.cs` に `builder.Register<VanillaRemovalRestoreSender>(Lifetime.Singleton).As<IRemovalRestoreSender>();`、`builder.Register<ClientLocalNotificationSource>(Lifetime.Singleton);`
+
+`moorestech_client/Assets/Scripts/Client.Game/InGame/UI/Notification/ClientLocalNotificationSource.cs`（新規。クライアント側で決まる拒否をサーバー通知と同じ表示面へ流す口。前例が無いため新規パターンとしてレビュー注目点に挙げる）:
+
+```csharp
+using System;
+using Server.Event.Notification;
+using UniRx;
+
+namespace Client.Game.InGame.UI.Notification
+{
+    /// <summary>
+    ///     クライアント側だけで決まる拒否・取りこぼしを、サーバー通知と同じ通知表示へ流す発行元
+    ///     Publisher pushing client-only refusals and skips onto the same notification display as server notifications
+    /// </summary>
+    public class ClientLocalNotificationSource
+    {
+        private readonly Subject<NotificationMessagePack> _onNotification = new();
+        public IObservable<NotificationMessagePack> OnNotification => _onNotification;
+
+        public void Notify(NotificationMessagePack message)
+        {
+            _onNotification.OnNext(message);
+        }
+    }
+}
+```
+
+`ClientDIContext.cs` に `public static ClientLocalNotificationSource ClientLocalNotificationSource { get; private set; }` を追加し、コンストラクタで `ClientLocalNotificationSource = diContainer.DIContainerResolver.Resolve<ClientLocalNotificationSource>();`（`using Client.Game.InGame.UI.Notification;`）。
+
+`NotificationTopic.cs`: コンストラクタにローカル発行元を受け、サーバー通知と同じ処理へ合流させる（受信処理は `NotificationMessagePack` を受ける `Publish` へ分ける）:
+
+```csharp
+        private readonly IDisposable _localSubscription;
+
+        public NotificationTopic(WebSocketHub hub, IVanillaApiEvent vanillaApiEvent, ClientLocalNotificationSource localNotificationSource)
+        {
+            _hub = hub;
+            _subscription = vanillaApiEvent.SubscribeEventResponse(NotificationService.EventTag, OnNotification);
+
+            // クライアント側で決まる拒否も同じ中継・同じ表で表示する
+            // Client-side refusals go through the same relay and the same table
+            _localSubscription = localNotificationSource.OnNotification.Subscribe(Publish);
+        }
+```
+```csharp
+        public void Dispose()
+        {
+            _subscription.Dispose();
+            _localSubscription.Dispose();
+        }
+
+        private void OnNotification(byte[] payload)
+        {
+            Publish(MessagePackSerializer.Deserialize<NotificationMessagePack>(payload));
+        }
+```
+既存 `OnNotification` の本体（`var message = ...` 以降）は `private void Publish(NotificationMessagePack message)` へそのまま移す（`using Client.Game.InGame.UI.Notification;`・`using UniRx;` を追加）。
+
+`WebUiGameBinder.cs:107`:
+
+```csharp
+            hub.RegisterTopic(NotificationTopic.TopicName, new NotificationTopic(hub, ClientContext.VanillaApi.Event, ClientDIContext.ClientLocalNotificationSource));
+```
+
+`WireContractNotificationTest.cs:62,74`: `new NotificationTopic(new WebSocketHub(), vanillaApiEvent)` → `new NotificationTopic(new WebSocketHub(), vanillaApiEvent, new ClientLocalNotificationSource())`。
+
+`Localization/localization.csv`（`ui.notification.` 行の並びの末尾へ。列: key,Source,english,japanese,german,korean）:
+
+```csv
+ui.notification.undoRestoreSkipped,Undo could not restore {p0} removed objects,Undo could not restore {p0} removed objects,元に戻せなかった撤去物が{p0}件あります,{p0} entfernte Objekte konnten nicht wiederhergestellt werden,되돌리지 못한 철거물이 {p0}개 있습니다
+```
+
+`notificationMessages.ts` の `notificationKeys` へ:
+
+```ts
+  ["denied.undoRestoreSkipped", L.ui.notification.undoRestoreSkipped],
+```
+（クライアント発行のidなので `notificationServerIdCoverage.test.ts` の走査対象外。表に載せれば `resolveNotificationKey` で解決する）
 
 - [ ] **Step 3: コンパイルしテストを実行する**
 
-Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.(BuildUndo|UIState)\."`
-Expected: ErrorCount 0 / PASS（RemoveOperationRecordTest 3件・RemovedRailTest 3件＋既存 BuildOperationHistoryTest・DragDelete 系・UIState 系）
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.(BuildUndo|UIState|WebUi)\."`（新規 `.cs` を足したので先に `uloop launch ./moorestech_client --restart`。csv を変えたので `uloop compile --project-path ./moorestech_client --force-recompile true --wait-for-domain-reload true`）→ `cd moorestech_web/webui && pnpm gen:i18n && pnpm test -- notificationMessages notificationServerIdCoverage localizationKeysFreshness`
+Expected: ErrorCount 0 / PASS（RemoveOperationRecordTest 4件・RemovedRailTest 3件＋既存 BuildOperationHistoryTest・DragDelete 系・UIState 系）
 
 - [ ] **Step 4: コミットする**
 
 ```bash
-git add moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Undo moorestech_client/Assets/Scripts/Client.Game/InGame/Block moorestech_client/Assets/Scripts/Client.Game/InGame/Train/RailGraph moorestech_client/Assets/Scripts/Client.Game/InGame/Entity/Object/TrainCarEntityChildrenObject.cs moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/StateProcessor/ConnectionLine/ConnectionLineDeleteTarget.cs moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State moorestech_client/Assets/Scripts/Client.Network/API/VanillaApiSendOnly.cs moorestech_client/Assets/Scripts/Client.Starter/Registration/MainGameInteractionRegistration.cs moorestech_client/Assets/Scripts/Client.Tests
-git commit -m "feat(client): 撤去Undoをブロック・接続線・レール共通のIRemovedObjectで記録し復元する"
+git add moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Undo moorestech_client/Assets/Scripts/Client.Game/InGame/Block moorestech_client/Assets/Scripts/Client.Game/InGame/Train/RailGraph moorestech_client/Assets/Scripts/Client.Game/InGame/Entity/Object/TrainCarEntityChildrenObject.cs moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/StateProcessor/ConnectionLine/ConnectionLineDeleteTarget.cs moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State moorestech_client/Assets/Scripts/Client.Network/API/VanillaApiSendOnly.cs moorestech_client/Assets/Scripts/Client.Starter/Registration/MainGameInteractionRegistration.cs moorestech_client/Assets/Scripts/Client.Tests moorestech_client/Assets/Scripts/Client.Game/InGame/UI/Notification moorestech_client/Assets/Scripts/Client.Game/InGame/Context/ClientDIContext.cs moorestech_client/Assets/Scripts/Client.WebUiHost/Game Localization/localization.csv moorestech_web/webui/src/features/notification moorestech_web/webui/src/shared/i18n/generated
+git commit -m "feat(client): 撤去Undoをブロック・接続線・レール共通のIRemovedObjectで記録し、戻せなかった件数を通知する"
 ```
 
 ---
@@ -4864,17 +5787,19 @@ git commit -m "feat(client): 撤去Undoをブロック・接続線・レール�
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/AttachedRailEdgeEnumerator.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/BlockAttachedConnectionResolver.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/RailGraph/TrainRailObjectManager.cs`（`TryGetRailChain` 追加）
-- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/RailGraph/BezierRailChain.cs:14`（`IRemovePreviewable` 実装宣言のみ。既存 `SetRemovePreviewing`/`ResetMaterial` で満たす）
+- Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/RailGraph/RailChainRemovePreview.cs`（レール1本の赤プレビュー要求者を数える部品。`BezierRailChain` の GameObject に実行時に付き、`BezierRailChain.cs`（319行の既存ファイル）自体は触らない）
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/RailGraph/DeleteTargetRail.cs:36-43`（赤表示を `RailChainRemovePreview` 経由へ）
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Block/BlockGameObjectChild.cs`（SetRemovePreviewing / ResetMaterial / CollectRemovedObjects）
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Context/ClientDIContext.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Starter/Registration/MainGameInteractionRegistration.cs`
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/UIState/AttachedRailEdgeEnumeratorTest.cs`
 
 **Interfaces:**
-- Consumes: Task C2 `ConnectionLineRegistry.GetLinesAttachedTo`、`IRemovePreviewable`、Task C4 `RemovedRail.TryCreate`、`RailObjectIdCodec`、`IRemovedObject`
+- Consumes: Task C2 `ConnectionLineRegistry.GetLinesAttachedTo`、`IRemovePreviewable`、`RemovePreviewRequests`、Task C4 `RemovedRail.Create`、`RemovedObjectCollector`、`RailObjectIdCodec`
 - Produces:
   - `public static class AttachedRailEdgeEnumerator { static void Collect(RailGraphClientCache cache, Vector3Int blockPosition, ICollection<(int canonicalFrom, int canonicalTo)> edges) }`
-  - `public class BlockAttachedConnectionResolver` — ctor `(ConnectionLineRegistry registry, RailGraphClientCache railCache)`、`void SetRemovePreviewing(BlockGameObject block)`、`void ResetMaterial(BlockGameObject block)`、`void CollectRemovedConnections(BlockGameObject block, ICollection<IRemovedObject> removed)`
+  - `public class BlockAttachedConnectionResolver` — ctor `(ConnectionLineRegistry registry, RailGraphClientCache railCache)`、`void RequestCascadePreview(BlockGameObject block)`、`void ReleaseCascadePreview(BlockGameObject block)`（要求者はそのブロック。線・レール自身のホバー／選択の赤は消さない）、`void CollectRemovedConnections(BlockGameObject block, RemovedObjectCollector collector)`
+  - `public class RailChainRemovePreview : MonoBehaviour, IRemovePreviewable` — `static RailChainRemovePreview Of(BezierRailChain chain)`（無ければ付ける）。最初の要求で `chain.SetRemovePreviewing()`、最後の解除で `chain.ResetMaterial()`
   - `TrainRailObjectManager.TryGetRailChain(ulong railObjectId, out BezierRailChain chain)`
   - `ClientDIContext.BlockAttachedConnectionResolver`（static, `{ get; private set; }`）
 
@@ -4951,6 +5876,7 @@ namespace Client.Tests.UIState
 ```csharp
 using System.Collections.Generic;
 using Client.Game.InGame.Train.RailGraph;
+using Game.Train.RailGraph.Utility;
 using UnityEngine;
 
 namespace Client.Game.InGame.UI.UIState.State.DragDelete
@@ -4975,13 +5901,68 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
                 // Outgoing edges cover both directions (an incoming edge is the opposite node's outgoing one)
                 foreach (var (targetId, _) in cache.ConnectNodes[nodeId])
                 {
-                    var canonical = RailObjectIdCodec.SelectCanonicalPair(nodeId, targetId);
+                    var canonical = RailSegmentPairing.SelectCanonicalPair(nodeId, targetId);
                     if (seen.Add(canonical)) edges.Add(canonical);
                 }
             }
         }
     }
 }
+```
+
+`RailChainRemovePreview.cs`（`C/Client.Game/InGame/Train/RailGraph/RailChainRemovePreview.cs`）:
+
+```csharp
+using Client.Game.InGame.UI.UIState.State;
+using UnityEngine;
+
+namespace Client.Game.InGame.Train.RailGraph
+{
+    /// <summary>
+    ///     レール1本の赤プレビューを要求者ごとに数え、最初の要求で赤く・最後の解除で戻す（電線・チェーンと同じ規則）
+    ///     Counts red-preview requesters for one rail; reddens on the first request and resets on the last release (same rule as wires/chains)
+    /// </summary>
+    public class RailChainRemovePreview : MonoBehaviour, IRemovePreviewable
+    {
+        private readonly RemovePreviewRequests _requests = new();
+        private BezierRailChain _chain;
+
+        // チェーンのGameObjectに1つだけ付ける（プレハブを変えずに済むよう実行時に付与）
+        // Attach exactly one per chain GameObject (added at runtime so the prefab stays untouched)
+        public static RailChainRemovePreview Of(BezierRailChain chain)
+        {
+            var preview = chain.GetComponent<RailChainRemovePreview>();
+            if (preview != null) return preview;
+
+            preview = chain.gameObject.AddComponent<RailChainRemovePreview>();
+            preview._chain = chain;
+            return preview;
+        }
+
+        public void RequestRemovePreview(object requester)
+        {
+            if (_requests.Add(requester)) _chain.SetRemovePreviewing();
+        }
+
+        public void ReleaseRemovePreview(object requester)
+        {
+            if (_requests.Remove(requester)) _chain.ResetMaterial();
+        }
+    }
+}
+```
+
+`DeleteTargetRail.cs` L36-43 を置換（自分のホバー・選択も要求者の1人として数える）:
+
+```csharp
+        public void SetRemovePreviewing()
+        {
+            RailChainRemovePreview.Of(RailChain).RequestRemovePreview(this);
+        }
+        public void ResetMaterial()
+        {
+            RailChainRemovePreview.Of(RailChain).ReleaseRemovePreview(this);
+        }
 ```
 
 `BlockAttachedConnectionResolver.cs`:
@@ -5004,9 +5985,9 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         private readonly ConnectionLineRegistry _registry;
         private readonly RailGraphClientCache _railCache;
 
-        // ブロックごとに赤くした付随物を覚え、外すときは同じ集合を戻す（その間に増減した線を取り違えない）
-        // Remember what each block reddened so reset restores the same set (lines changed meanwhile are not confused)
-        private readonly Dictionary<BlockGameObject, List<IRemovePreviewable>> _previewing = new();
+        // ブロックごとに赤を求めた付随物を覚え、解除は同じ集合へ行う（その間に増減した線を取り違えない）
+        // Remember what each block requested red on, and release exactly that set (lines changed meanwhile are not confused)
+        private readonly Dictionary<BlockGameObject, List<IRemovePreviewable>> _requested = new();
         private readonly List<(int canonicalFrom, int canonicalTo)> _edgeBuffer = new();
 
         public BlockAttachedConnectionResolver(ConnectionLineRegistry registry, RailGraphClientCache railCache)
@@ -5015,39 +5996,45 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             _railCache = railCache;
         }
 
-        public void SetRemovePreviewing(BlockGameObject block)
+        // 要求者はブロック自身。線・レールが自分でホバー・選択されていても、その赤は相手側の要求として残る
+        // The requester is the block itself; a line/rail hovered or selected on its own keeps its red as that other request
+        public void RequestCascadePreview(BlockGameObject block)
         {
-            if (_previewing.ContainsKey(block)) return;
+            if (_requested.ContainsKey(block)) return;
 
-            var previewed = new List<IRemovePreviewable>();
-            foreach (var line in _registry.GetLinesAttachedTo(block.BlockInstanceId)) previewed.Add(line);
+            var targets = new List<IRemovePreviewable>();
+            foreach (var line in _registry.GetLinesAttachedTo(block.BlockInstanceId)) targets.Add(line);
             foreach (var edge in CollectRailEdges(block))
             {
-                if (TrainRailObjectManager.Instance.TryGetRailChain(RailObjectIdCodec.ComputeRailObjectId(edge.canonicalFrom, edge.canonicalTo), out var chain)) previewed.Add(chain);
+                if (TrainRailObjectManager.Instance.TryGetRailChain(RailObjectIdCodec.ComputeRailObjectId(edge.canonicalFrom, edge.canonicalTo), out var chain)) targets.Add(RailChainRemovePreview.Of(chain));
             }
 
-            foreach (var target in previewed) target.SetRemovePreviewing();
-            _previewing[block] = previewed;
+            foreach (var target in targets) target.RequestRemovePreview(block);
+            _requested[block] = targets;
         }
 
-        public void ResetMaterial(BlockGameObject block)
+        public void ReleaseCascadePreview(BlockGameObject block)
         {
-            if (!_previewing.Remove(block, out var previewed)) return;
-            foreach (var target in previewed)
+            if (!_requested.Remove(block, out var targets)) return;
+            foreach (var target in targets)
             {
                 // 赤表示中に線が切れて破棄済みのことがある
                 // A line may have been destroyed while red
                 if (target is UnityEngine.Object unityObject && unityObject == null) continue;
-                target.ResetMaterial();
+                target.ReleaseRemovePreview(block);
             }
         }
 
-        public void CollectRemovedConnections(BlockGameObject block, ICollection<IRemovedObject> removed)
+        public void CollectRemovedConnections(BlockGameObject block, RemovedObjectCollector collector)
         {
-            foreach (var line in _registry.GetLinesAttachedTo(block.BlockInstanceId)) line.CollectRemovedObjects(removed);
+            foreach (var line in _registry.GetLinesAttachedTo(block.BlockInstanceId)) line.CollectRemovedObjects(collector);
             foreach (var edge in CollectRailEdges(block))
             {
-                if (RemovedRail.TryCreate(_railCache, edge.canonicalFrom, edge.canonicalTo, out var removedRail)) removed.Add(removedRail);
+                // 無償区間（駅隣接の自動レール等）は駅の再設置で戻るので記録しない。未同期・駅内部は記録不能として数える
+                // Free segments (e.g. station-adjacent auto rails) return with station re-placement, so skip; unsynced/station-internal count as unrecordable
+                var result = RemovedRail.Create(_railCache, edge.canonicalFrom, edge.canonicalTo);
+                if (result.Outcome == RemovedRailCreateOutcome.Created) collector.Add(result.Rail);
+                else if (result.Outcome != RemovedRailCreateOutcome.FreeSegment && result.Outcome != RemovedRailCreateOutcome.StationInternal) collector.AddUnrecordable($"cascaded rail {edge.canonicalFrom}->{edge.canonicalTo}: {result.Outcome}");
             }
         }
 
@@ -5061,7 +6048,9 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
 }
 ```
 
-`TrainRailObjectManager.cs` に追加（`SelectCanonicalPair`/`ComputeRailObjectId` は Task C4 で `RailObjectIdCodec` へ移設済み）:
+（駅撤去の巻き込みで駅内部の区間は駅ブロックそのものの一部なので、駅の再設置で戻る。よって巻き込み収集では `StationInternal` も記録不能に数えない。直接選択した駅内部レールは `DeleteTargetRail.IsRemovable` が拒否するため記録経路に来ない）
+
+`TrainRailObjectManager.cs` に追加（canonical 選択は Task 5 の `RailSegmentPairing`、ID符号化は Task C4 の `RailObjectIdCodec` を使う）:
 
 ```csharp
         // 描画中のレール1本をIDから引く（巻き込み赤表示用）
@@ -5075,31 +6064,31 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         }
 ```
 
-`BezierRailChain` の宣言を `public class BezierRailChain : MonoBehaviour, IRemovePreviewable` にする（既存 public `SetRemovePreviewing()`/`ResetMaterial()` が満たす。ファイルは既に 200 行超の既存ファイルで、本タスクは宣言1行のみの変更）。
+`BezierRailChain.cs` は変更しない（赤プレビューの数え上げは `RailChainRemovePreview` が持ち、既存 public `SetRemovePreviewing()`/`ResetMaterial()` を呼ぶだけ。319行の既存ファイルに触れないので分割も要らない）。
 
 `BlockGameObjectChild.cs` の3メソッドを置換:
 
 ```csharp
         public void SetRemovePreviewing()
         {
-            // ブロック本体と、一緒に消える接続線・レールを赤くする
-            // Redden the block and the lines/rails that vanish with it
+            // ブロック本体と、一緒に消える接続線・レールを赤くする（線・レールにはブロックを要求者として求める）
+            // Redden the block and the lines/rails that vanish with it (requesting red on them with the block as requester)
             BlockGameObject.SetRemovePreviewing();
-            ClientDIContext.BlockAttachedConnectionResolver.SetRemovePreviewing(BlockGameObject);
+            ClientDIContext.BlockAttachedConnectionResolver.RequestCascadePreview(BlockGameObject);
         }
 
         public void ResetMaterial()
         {
             BlockGameObject.ResetMaterial();
-            ClientDIContext.BlockAttachedConnectionResolver.ResetMaterial(BlockGameObject);
+            ClientDIContext.BlockAttachedConnectionResolver.ReleaseCascadePreview(BlockGameObject);
         }
 
-        public void CollectRemovedObjects(ICollection<IRemovedObject> removed)
+        public void CollectRemovedObjects(RemovedObjectCollector collector)
         {
             // ブロック本体と、巻き込みで消える接続線・レールを同じ撤去物として積む
             // Append the block and the cascaded lines/rails as removed objects of the same kind
-            removed.Add(RemovedBlock.From(BlockGameObject));
-            ClientDIContext.BlockAttachedConnectionResolver.CollectRemovedConnections(BlockGameObject, removed);
+            collector.Add(RemovedBlock.From(BlockGameObject));
+            ClientDIContext.BlockAttachedConnectionResolver.CollectRemovedConnections(BlockGameObject, collector);
         }
 ```
 
@@ -5107,8 +6096,8 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
 
 - [ ] **Step 3: コンパイルしテストを実行する**
 
-Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Client.Tests.UIState.AttachedRailEdgeEnumeratorTest"`
-Expected: ErrorCount 0 / 2 PASS
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.(UIState\.AttachedRailEdgeEnumeratorTest|ConnectionLine\.RemovePreviewRequestsTest|BuildUndo\.)"`（新規 `.cs` を足したので先に `uloop launch ./moorestech_client --restart`）
+Expected: ErrorCount 0 / 全 PASS
 
 - [ ] **Step 4: コミットする**
 
@@ -5124,16 +6113,17 @@ git commit -m "feat(client): ブロック撤去で巻き込まれる接続線・
 **Files:**
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/ElectricWireConnect/Modes/ElectricWireEditMode.cs:10-13,33-40,79-91`
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/ElectricWireConnect/Parts/ElectricWireExtendRequestSender.cs:78-81`（`Disconnect` 削除）
-- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Control/BlockClickDetectUtil.cs:36-51`（`TryGetCursorOnElectricWire` → `TryGetCursorOnConnectionLine`）
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Control/BlockClickDetectUtil.cs:36-51`（`TryGetCursorOnElectricWire` → `GetCursorOnConnectionLine`）
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/PlacementPick/PlacementTargetPickService.cs:36-53`
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/ConnectTool/ConnectionLinePickResolverTest.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/PlacementPick/ConnectionLinePickResolver.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/PlacementPick/ConnectionLinePickResult.cs`（スポイトの結果と不成立の理由）
 
 **Interfaces:**
-- Consumes: Task C2 `ConnectionLineDeleteTarget.ConnectToolGuid`、Task C1 `LayerConst.ConnectionLineOnlyLayerMask`
+- Consumes: Task C2 `ConnectionLineDeleteTarget.ConnectToolGuid`、Task C1 `LayerConst.ConnectionLineOnlyLayerMask`、Task C3 `BlockClickDetectUtil.TryCreateAimRay` と `ConnectionLineDeleteTarget.FromCollider`
 - Produces:
-  - `BlockClickDetectUtil.TryGetCursorOnConnectionLine(out ConnectionLineDeleteTarget line)`（旧 `TryGetCursorOnElectricWire` は削除）
-  - `public static class ConnectionLinePickResolver { static bool TryResolvePickTarget(Guid lineConnectToolGuid, IGameUnlockStateData unlockState, out IPlacementTarget target) }`
+  - `BlockClickDetectUtil.GetCursorOnConnectionLine() : ConnectionLineAimResult`（`Found`/`NoCamera`/`NothingHit`/`NotALine` と線。旧 `TryGetCursorOnElectricWire` は削除。照準レイは `TryCreateAimRay`、コライダー解決は `ConnectionLineDeleteTarget.FromCollider` を呼ぶ）
+  - `public static class ConnectionLinePickResolver { static ConnectionLinePickResult Resolve(Guid lineConnectToolGuid, IGameUnlockStateData unlockState) }`（`Picked`/`UnknownTool`/`Locked` と対象）
 
 - [ ] **Step 1: テストを書く**
 
@@ -5142,6 +6132,7 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
+using Core.Master;
 using Game.UnlockState;
 using Game.UnlockState.States;
 using NUnit.Framework;
@@ -5160,10 +6151,10 @@ namespace Client.Tests.PlaceSystem.ConnectTool
             // 線の種類が解放済みならその種類の接続ツールを選ぶ
             // An unlocked line tool is picked as-is
             var guid = Guid.NewGuid();
-            var unlockState = new FakeUnlockState(guid, true);
+            var result = ConnectionLinePickResolver.Resolve(guid, new FakeUnlockState(guid, true));
 
-            Assert.IsTrue(ConnectionLinePickResolver.TryResolvePickTarget(guid, unlockState, out var target));
-            Assert.AreEqual(guid, ((ConnectToolPlacementTarget)target).ConnectToolGuid);
+            Assert.AreEqual(ConnectionLinePickOutcome.Picked, result.Outcome);
+            Assert.AreEqual(guid, ((ConnectToolPlacementTarget)result.Target).ConnectToolGuid);
         }
 
         [Test]
@@ -5172,15 +6163,86 @@ namespace Client.Tests.PlaceSystem.ConnectTool
             // 未解放の種類はスポイト自体を不成立にする
             // A locked tool makes the eyedropper fail
             var guid = Guid.NewGuid();
-            Assert.IsFalse(ConnectionLinePickResolver.TryResolvePickTarget(guid, new FakeUnlockState(guid, false), out _));
+            Assert.AreEqual(ConnectionLinePickOutcome.Locked, ConnectionLinePickResolver.Resolve(guid, new FakeUnlockState(guid, false)).Outcome);
+        }
+
+        [Test]
+        public void ToolAbsentFromUnlockStateIsUnknown()
+        {
+            // 解放状態に無い種類（マスタから消えた等）は理由を分けて不成立にする
+            // A tool absent from the unlock state (e.g. removed from the master) fails with its own reason
+            Assert.AreEqual(ConnectionLinePickOutcome.UnknownTool, ConnectionLinePickResolver.Resolve(Guid.NewGuid(), new FakeUnlockState(Guid.NewGuid(), true)).Outcome);
+        }
+
+        /// <summary>
+        ///     接続ツールの解放状態だけを差し込むテスト用スタブ（前例: CraftActionTest.StubUnlockStateData）
+        ///     Test stub injecting only connect-tool unlock state (precedent: CraftActionTest.StubUnlockStateData)
+        /// </summary>
+        private class FakeUnlockState : IGameUnlockStateData
+        {
+            public FakeUnlockState(Guid connectToolGuid, bool isUnlocked)
+            {
+                ConnectToolUnlockStateInfos = new Dictionary<Guid, ConnectToolUnlockStateInfo> { { connectToolGuid, new ConnectToolUnlockStateInfo(connectToolGuid, isUnlocked) } };
+            }
+
+            public IReadOnlyDictionary<Guid, CraftRecipeUnlockStateInfo> CraftRecipeUnlockStateInfos { get; } = new Dictionary<Guid, CraftRecipeUnlockStateInfo>();
+            public IReadOnlyDictionary<ItemId, ItemUnlockStateInfo> ItemUnlockStateInfos { get; } = new Dictionary<ItemId, ItemUnlockStateInfo>();
+            public IReadOnlyDictionary<Guid, ChallengeCategoryUnlockStateInfo> ChallengeCategoryUnlockStateInfos { get; } = new Dictionary<Guid, ChallengeCategoryUnlockStateInfo>();
+            public IReadOnlyDictionary<Guid, MachineRecipeUnlockStateInfo> MachineRecipeUnlockStateInfos { get; } = new Dictionary<Guid, MachineRecipeUnlockStateInfo>();
+            public IReadOnlyDictionary<Guid, BlockUnlockStateInfo> BlockUnlockStateInfos { get; } = new Dictionary<Guid, BlockUnlockStateInfo>();
+            public IReadOnlyDictionary<Guid, TrainCarUnlockStateInfo> TrainCarUnlockStateInfos { get; } = new Dictionary<Guid, TrainCarUnlockStateInfo>();
+            public IReadOnlyDictionary<Guid, ConnectToolUnlockStateInfo> ConnectToolUnlockStateInfos { get; }
+            public bool IsBlueprintUnlocked { get; } = false;
         }
     }
 }
 ```
 
-（`FakeUnlockState` は `IGameUnlockStateData` のテスト実装。既存テストに同等の fake があればそれを使い（`grep -rn ": IGameUnlockStateData" moorestech_client/Assets/Scripts/Client.Tests`）、無ければこのテストファイル内に `ConnectToolUnlockStateInfos` だけを返す private class として定義する。）
+（既存のスタブは各テストクラスの private class なので共有せず、同じ形でこのテスト内に持つ）
 
 - [ ] **Step 2: 実装を書く**
+
+`ConnectionLinePickResult.cs`:
+
+```csharp
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
+
+namespace Client.Game.InGame.UI.UIState.State.PlacementPick
+{
+    /// <summary>
+    ///     接続線スポイトの結果。不成立の理由（種類が解放状態に無い／未解放）を区別する
+    ///     Result of the connection-line eyedropper; distinguishes why it failed (tool unknown to the unlock state / locked)
+    /// </summary>
+    public enum ConnectionLinePickOutcome
+    {
+        Picked,
+        UnknownTool,
+        Locked,
+    }
+
+    public readonly struct ConnectionLinePickResult
+    {
+        public ConnectionLinePickOutcome Outcome { get; }
+        public IPlacementTarget Target { get; }
+
+        private ConnectionLinePickResult(ConnectionLinePickOutcome outcome, IPlacementTarget target)
+        {
+            Outcome = outcome;
+            Target = target;
+        }
+
+        public static ConnectionLinePickResult Picked(IPlacementTarget target)
+        {
+            return new ConnectionLinePickResult(ConnectionLinePickOutcome.Picked, target);
+        }
+
+        public static ConnectionLinePickResult Failed(ConnectionLinePickOutcome outcome)
+        {
+            return new ConnectionLinePickResult(outcome, null);
+        }
+    }
+}
+```
 
 `ConnectionLinePickResolver.cs`:
 
@@ -5197,56 +6259,89 @@ namespace Client.Game.InGame.UI.UIState.State.PlacementPick
     /// </summary>
     public static class ConnectionLinePickResolver
     {
-        public static bool TryResolvePickTarget(Guid lineConnectToolGuid, IGameUnlockStateData unlockState, out IPlacementTarget target)
+        public static ConnectionLinePickResult Resolve(Guid lineConnectToolGuid, IGameUnlockStateData unlockState)
         {
-            target = null;
+            // 解放状態に無い種類・未解放の種類はスポイト自体を不成立にし、理由を分ける（Guid.Emptyを下流へ流さない）
+            // An unknown or locked tool fails the eyedropper with distinct reasons (never pass Guid.Empty downstream)
+            if (!unlockState.ConnectToolUnlockStateInfos.TryGetValue(lineConnectToolGuid, out var info)) return ConnectionLinePickResult.Failed(ConnectionLinePickOutcome.UnknownTool);
+            if (!info.IsUnlocked) return ConnectionLinePickResult.Failed(ConnectionLinePickOutcome.Locked);
 
-            // 未解放の種類はスポイト自体を不成立にする（Guid.Emptyを下流へ流さない）
-            // A locked tool fails the eyedropper itself (never pass Guid.Empty downstream)
-            if (!unlockState.ConnectToolUnlockStateInfos.TryGetValue(lineConnectToolGuid, out var info) || !info.IsUnlocked) return false;
-
-            target = new ConnectToolPlacementTarget(lineConnectToolGuid);
-            return true;
+            return ConnectionLinePickResult.Picked(new ConnectToolPlacementTarget(lineConnectToolGuid));
         }
     }
 }
 ```
 
-`BlockClickDetectUtil.cs` の `TryGetCursorOnElectricWire` を置換:
+`BlockClickDetectUtil.cs` の `TryGetCursorOnElectricWire` を置換し、結果型を同ファイル末尾（クラスの外）に置く:
 
 ```csharp
-        public static bool TryGetCursorOnConnectionLine(out ConnectionLineDeleteTarget line)
+        public static ConnectionLineAimResult GetCursorOnConnectionLine()
         {
-            line = null;
-
-            var camera = Camera.main;
-            if (camera == null) return false;
+            // 照準レイの生成とコライダー→線本体の解決は正本を呼ぶ（Task 10）
+            // Ray creation and collider-to-line resolution call their single definitions (Task 10)
+            if (!TryCreateAimRay(out var ray)) return ConnectionLineAimResult.Missed(ConnectionLineAimOutcome.NoCamera);
 
             // 接続線は専用レイヤのため単独Raycastで判定する
             // Connection lines live on a dedicated layer, so probe them with their own raycast
-            var ray = camera.ScreenPointToRay(AimPointProvider.GetAimScreenPoint());
-            if (!Physics.Raycast(ray, out var hit, 100, LayerConst.ConnectionLineOnlyLayerMask)) return false;
+            if (!Physics.Raycast(ray, out var hit, RayDistance, LayerConst.ConnectionLineOnlyLayerMask, QueryTriggerInteraction.Collide)) return ConnectionLineAimResult.Missed(ConnectionLineAimOutcome.NothingHit);
 
-            // コライダーは線本体の子のため親を辿る
-            // Colliders are children of the line, so climb to the parent
-            line = hit.collider.GetComponentInParent<ConnectionLineDeleteTarget>();
-            return line != null;
+            var line = ConnectionLineDeleteTarget.FromCollider(hit.collider);
+            return line == null ? ConnectionLineAimResult.Missed(ConnectionLineAimOutcome.NotALine) : ConnectionLineAimResult.Found(line);
         }
 ```
+```csharp
+    /// <summary>
+    ///     接続線への照準結果。外れた理由を区別する（スポイトの外れは通常操作なのでログは出さない）
+    ///     Aim result on a connection line; distinguishes why it missed (an eyedropper miss is normal, so it is not logged)
+    /// </summary>
+    public enum ConnectionLineAimOutcome
+    {
+        Found,
+        NoCamera,
+        NothingHit,
+        NotALine,
+    }
 
-（`using Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire;` を `...StateProcessor.ConnectionLine;` へ。）
+    public readonly struct ConnectionLineAimResult
+    {
+        public ConnectionLineAimOutcome Outcome { get; }
+        public ConnectionLineDeleteTarget Line { get; }
 
-`PlacementTargetPickService.cs`: コメント「電線→列車→ブロックの順」を「接続線→列車→ブロックの順（線は細いため最優先で拾う）」へ、`TryPickElectricWire` を次に置換し、呼び出し側も `TryPickConnectionLine` に改名:
+        private ConnectionLineAimResult(ConnectionLineAimOutcome outcome, ConnectionLineDeleteTarget line)
+        {
+            Outcome = outcome;
+            Line = line;
+        }
+
+        public static ConnectionLineAimResult Found(ConnectionLineDeleteTarget line)
+        {
+            return new ConnectionLineAimResult(ConnectionLineAimOutcome.Found, line);
+        }
+
+        public static ConnectionLineAimResult Missed(ConnectionLineAimOutcome outcome)
+        {
+            return new ConnectionLineAimResult(outcome, null);
+        }
+    }
+```
+
+（`using Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire;` を `...StateProcessor.ConnectionLine;` へ。`RayDistance` は同クラスの既存 `private const float RayDistance = 100f;`）
+
+`PlacementTargetPickService.cs`（`using UnityEngine;` を追加。`ConnectionLineAimOutcome` は `Client.Game.InGame.Control` 名前空間で既存 using が通る）: コメント「電線→列車→ブロックの順」を「接続線→列車→ブロックの順（線は細いため最優先で拾う）」へ、`TryPickElectricWire` を次に置換し、呼び出し側も `TryPickConnectionLine` に改名:
 
 ```csharp
             bool TryPickConnectionLine(out IPlacementTarget target)
             {
                 target = null;
-                if (!BlockClickDetectUtil.TryGetCursorOnConnectionLine(out var line)) return false;
+                var aim = BlockClickDetectUtil.GetCursorOnConnectionLine();
+                if (aim.Outcome != ConnectionLineAimOutcome.Found) return false;
 
-                // 線を引いた種類そのものをスポイトする（未解放なら不成立）
-                // Pick the exact tool the line was drawn with (fails when locked)
-                return ConnectionLinePickResolver.TryResolvePickTarget(line.ConnectToolGuid, _gameUnlockStateData, out target);
+                // 線を引いた種類そのものをスポイトする。解放状態に無い種類は異常なので理由をログへ出し、未解放は通常の不成立
+                // Pick the exact tool the line was drawn with; an unknown tool is abnormal and logged, a locked tool is an ordinary miss
+                var pick = ConnectionLinePickResolver.Resolve(aim.Line.ConnectToolGuid, _gameUnlockStateData);
+                if (pick.Outcome == ConnectionLinePickOutcome.UnknownTool) Debug.LogWarning($"[PlacementPick] line tool not in unlock state: {aim.Line.ConnectToolGuid}");
+                target = pick.Target;
+                return pick.Outcome == ConnectionLinePickOutcome.Picked;
             }
 ```
 
@@ -5262,7 +6357,7 @@ namespace Client.Game.InGame.UI.UIState.State.PlacementPick
 - [ ] **Step 3: コンパイルしテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.PlaceSystem\.(ConnectTool|ElectricWireConnect)\."`
-Expected: ErrorCount 0 / PASS。加えて `grep -rn "TryGetCursorOnElectricWire\|RequestSender.Disconnect" moorestech_client/Assets/Scripts` が0件。
+Expected: ErrorCount 0 / PASS。加えて `grep -rn "TryGetCursorOnElectricWire\|RequestSender.Disconnect\|TryResolvePickTarget" moorestech_client/Assets/Scripts` が0件。
 
 - [ ] **Step 4: コミットする**
 
@@ -5280,7 +6375,7 @@ git commit -m "feat(client): 電線ツールのクリック切断を廃止し接
 使う実APIの確認結果（推測なし）:
 - クライアントの座標引き: `BlockGameObjectDataStore.TryGetBlockGameObject(Vector3Int, out BlockGameObject)`（`C/Client.Game/InGame/Block/BlockGameObjectDataStore.cs:47`）
 - サーバーのブロック部品: `IBlock.TryGetComponent<T>(out T)` 拡張（`S/Game.Block.Interface/Extension/BlockExtension.cs:23`）、`p.GetBlock(pos)`（`PlaytestDriver.cs:90`）
-- チェーン接続の有無と種類: `IGearChainPole.ContainsChainConnection(BlockInstanceId)`（既存）と Task A1 が新設する `IGearChainPole.TryGetChainConnectionRecord(BlockInstanceId, out GearChainConnectionRecord)`（`.ConnectToolGuid`）。接続数メンバーは使わない
+- チェーン接続の有無と種類: `IGearChainPole.ContainsChainConnection(BlockInstanceId)`（既存）と Task A1 が新設する `IGearChainPole.TryGetChainConnectionRecord(BlockInstanceId, out ConnectionLineRecord)`（`.ConnectToolGuid`）。接続数メンバーは使わない
 - 電線の種類: Task A1 の `IElectricWireConnector.WireConnections[partner].Record.ConnectToolGuid`
 - レール接続と種類: `RailComponent.FrontNode/BackNode`（`train-rail-connect-via-ui.cs:65-71` と同じ）、`IRailNode.ConnectedNodes`、`RailNode.NodeId`、`p.ServerService<RailGraphDatastore>().TryGetRailSegmentType(int, int, out Guid)`（`S/Game.Train/RailGraph/RailGraphDatastore.cs:111`、DI 登録 `ServerContextRegistration.cs:100`）
 - 接続ツールGuidの名前引き: `MasterHolder.ConnectToolMaster.All`（`PlaytestHotbarOps.cs:79-85` と同じ）
@@ -5289,7 +6384,7 @@ git commit -m "feat(client): 電線ツールのクリック切断を廃止し接
 - Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/connect/delete-tool-cut-and-undo-connection-lines.cs`
 
 **Interfaces:**
-- Consumes: Task C1〜C6、Task A1（Record.ConnectToolGuid / TryGetChainConnectionRecord）、A4（チェーン切断）、B1（橋脚撤去のレール返却）、B2（RecordedOnly）、B3（座標同定のレール接続）
+- Consumes: Task C1〜C6、Task A1（Record.ConnectToolGuid / TryGetChainConnectionRecord）、A4（チェーン切断）、B1（橋脚撤去のレール返却）、B2（NoAutoConnect）、B3（座標同定のレール接続）
 - Produces: 録画・result.json・スクショ（run ディレクトリ）
 
 - [ ] **Step 1: シナリオを書く**
@@ -5618,9 +6713,18 @@ git commit -m "test(playtest): 削除ツールの接続線切断と撤去Undo（
 
 ---
 
+## 本PR外のリファクタ提案（第3バケツ）
+
+Phase 2.6 検査6の最終行（同役割の既存実装が plan 外にある）。plan のタスクには足さない。着手可否は人間が決める。
+
+- 既存 `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/Util/RailEdit/RailConnectionEditService.cs`（L139-146 のローカル関数 `IsStationInternalEdge`）／新設 `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/RailGraph/RailEdgeClassifier.cs`／同じ述語 `HasStation && StationBlockInstanceId.Equals` をサーバーの切断判定とクライアントの削除可否の両方に持つ
+- 既存 `RailConnectionEditService.cs`（L104-118 の切断時返却算出）／新設 `RailRemovalRefundCalculator`（区間返却）／「種類Guid → `GetRailLength` → Empty か算出不能なら返却なし → `CreateRefundItems`」という同じ区間返却の導出
+- 既存 `moorestech_server/Assets/Scripts/Game.PlacementTarget/PlacementTargetCatalog.cs`（L129 `IsAssignable`、L151-164）と `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/ConnectTool/ConnectToolCatalog.cs`（L51）／新設 `ConnectionLinePickResolver.Resolve`／接続ツールGuidの解放判定 `ConnectToolUnlockStateInfos.TryGetValue && IsUnlocked`
+- （本PR内で解消済み）既存 `ConnectToolMaterialConsumer.CreateRefundItems` と新設チェーン台帳の返却展開の重複は、弱発火「重複した導出を1本化」の反映で正本 `ConnectionLineRefundItems.Create` へ寄せ、`ConnectToolMaterialConsumer.CreateRefundItems` は委譲だけにした（Task 1）
+
 ## 判断記録（ADR）
 
-設計ADR: `docs/adr/0076-delete-tool-cuts-connection-lines-and-undo-restores-removed-objects.md`（設計セッションの裁定と出所はADR側が正。ここでは書き換えない）。裁定記録: `.decisions/2026-10-04-*.md`（10件）。
+設計ADR: `docs/adr/0076-delete-tool-cuts-connection-lines-and-undo-restores-removed-objects.md`（設計セッションの裁定と出所はADR側が正。ここでは書き換えない）。裁定記録: `.decisions/2026-10-04-*.md`・`.decisions/2026-10-05-*.md`。
 
 planning 中に新たに生じた判断:
 
@@ -5629,21 +6733,31 @@ planning 中に新たに生じた判断:
 | P1 | 電線・チェーンは接続ごとに ConnectToolGuid を保存・同期する（セーブv4） | ユーザー裁定 2026-10-04 選択「接続ごとに種類を保存」 |
 | P2 | 旧セーブの線は線種別ごとの唯一の種類を固定定数で割り当てる（素材を見ない・失敗しない） | ユーザー裁定 2026-10-04 選択「線種別ごとの唯一の種類を割り当て」 |
 | P3 | 橋脚・駅撤去で付いていたレールも返却する | ユーザー裁定 2026-10-04 選択「撤去でレールも返却する」 |
-| P4 | 接続1本の型を `ElectricWireConnectionCost`/`GearChainConnectionCost` から `...Record` へ改名し種類を持たせる。`Empty` は廃止 | agent判断（名前を実処理と一致させる規約） |
+| P4 | 接続1本の型を `ElectricWireConnectionCost`/`GearChainConnectionCost` から電線・チェーン共通の `ConnectionLineRecord` 1型へ統合し種類を持たせる（配置は `Game.Block.Interface.Component`。`Game.EnergySystem.asmdef` は `Game.Block.Interface` を参照済み）。`Empty` は廃止。セーブ接続要素も `ConnectionLineConnectionJsonObject` 1型に畳む | agent判断（user-simulator review 指摘・名前を実処理と一致させる規約・ユーザー裁定 2026-10-04「歯車チェーンも、適切に共通化する」） |
 | P5 | 移行ステップは構造の壊れたJSON（配列・オブジェクトでない）だけ `Failed`。素通しすると未変換のまま版4が刻まれ `Required.Always` で落ちるため | agent判断（save-migration スキル「ステップは冪等・JObjectだけで書く」） |
-| P6 | チェーン切断の理由は `out string` でなく `GearChainDisconnectFailureReason` enum（webui の通知id網羅テストが補間idを enum 展開でしか分類できないため） | agent判断（`notificationServerIdCoverage.test.ts:23-33`） |
+| P6 | チェーン切断の理由は `out string` でなく `GearChainDisconnectFailureReason` enum（webui の通知id網羅テストが補間idを enum 展開でしか分類できないため）。接続・延長の理由 `GearChainPlacementFailureReason` とは別 enum に保つ（理由集合が InvalidTarget 以外重ならず、同じ理由の二重表現ではない） | agent判断（`notificationServerIdCoverage.test.ts:23-33`） |
 | P7 | `IGearChainPole.TryGetChainConnectionRecord` を追加（返却の InsertionCheck を除去前に行うため） | agent判断（電線 TryDisconnect の順序の前例） |
-| P8 | 200行超の既存ファイルを分割: `GearChainPoleComponent.cs`→`GearChainConnectionSet.cs`、`ElectricWireSystemUtil.cs`→`ElectricWireDisconnectUtil.cs`、`TrainRailObjectManager.cs`→`RailObjectIdCodec.cs` | agent判断（AGENTS.md 200行規約） |
+| P8 | 200行超の既存ファイルを分割: `GearChainPoleComponent.cs`→`GearChainConnectionSet.cs`、`ElectricWireSystemUtil.cs`→`ElectricWireDisconnectUtil.cs`、`TrainRailObjectManager.cs`→`RailObjectIdCodec.cs`＋`RailSegmentPairing`、`BlockMasterUtil.cs`（403行）は本PRの関心（破壊カテゴリ検証）だけを `BlockDestructionCategoryValidator.cs` へ移して縮める（全体分割は本PR外）。`BezierRailChain.cs`（319行）は赤プレビューの数え上げを別部品 `RailChainRemovePreview` に持たせて触らないため分割不要 | agent判断（AGENTS.md 200行規約、user-simulator review 指摘） |
 | P9 | 撤去の返却が入らないときの拒否理由を `RemoveBlockFailureReason.InventoryFull`／`ui.delete.inventoryFull` として新設（従来は Unknown で理由が出ない） | agent判断（無音縮退禁止・レール返却で満杯拒否が増えるため） |
-| P10 | 設置要求に `BlockPlacementWiring { AutoConnect, RecordedOnly }` を持たせ、Undoだけ RecordedOnly。駅隣接のレール自動接続は抑止しない | agent判断（ADR 0076 の「Undo再設置では自動接続を止める」裁定の実装形。対象は電線自動接続のみと裁定文が述べるため） |
+| P10 | 設置要求に `BlockPlacementWiring { AutoConnect, NoAutoConnect }` を持たせ、Undoだけ NoAutoConnect。駅隣接のレール自動接続は抑止しない | ユーザー裁定 2026-10-05 選択「止めない（電線だけ止める）」（値名 `NoAutoConnect` はサーバーの実処理名に合わせた agent判断・user-simulator review 指摘） |
 | P11 | 座標同定のレール接続 `va:railConnectByDestination` を新設し応答なし（null）。接続処理は `RailConnectionEditService.ExecuteEdit` を呼ぶだけで複製しない。既接続は無消費で何もしない | agent判断（再設置でNodeGuidが振り直される事実 `RailComponent.cs:44-45`、Id再利用 `RailNodeIdAllocator`） |
 | P12 | `Guid.Empty` のレール区間（駅内部・駅隣接自動）は返却もUndo記録もしない | agent判断（`RailNode.ConnectNode` が Empty で張る事実 `RailNode.cs:121-124`） |
 | P13 | 線の引き直しは電線も SendOnly（`SendOnly.ConnectElectricWire` 新設）。Response経路は電線ツールの世代管理と競合するため | agent判断（前例 `VanillaApiSendOnly.ConnectGearChain`） |
-| P14 | Undo記録は `IRemovedObject` の2相メソッド（`AppendBlockRestore`／`SendConnectionRestore`）。電線とチェーンは `RemovedConnectionLine(ConnectionLineKind, …)` 1クラス | agent判断（ブロックは1回の PlaceBlock にまとめる既存形 `RemoveOperationRecord.cs:72`、削除対象と対称） |
+| P14 | Undo記録は `IRemovedObject` の2相メソッド（`AppendBlockRestore`→`BlockRestoreOutcome`／`SendConnectionRestore`）。電線とチェーンは `RemovedConnectionLine(ConnectionLineKind, …)` 1クラス。収集は `RemovedObjectCollector`（記録不能を理由付きで数える） | agent判断（ブロックは1回の PlaceBlock にまとめる既存形 `RemoveOperationRecord.cs:72`、削除対象と対称） |
 | P15 | 線の削除対象キーはコンポーネント自身（線は小さいId側に1本だけ生成される `ConnectionLineViewBase.cs:81-84`）。Undoの重複排除は kind＋正規化座標 | agent判断 |
 | P16 | Unityレイヤー "ElectricWire" を "ConnectionLine" へ `uloop execute-dynamic-code` で改名（チェーンも同じレイヤーへ） | agent判断（名前を実処理と一致させる・テキスト編集禁止規約） |
-| P17 | 照準の解決は純関数 `DeleteTargetHitSelector` と薄い `DeleteTargetRaycaster` に分け、`BlockClickDetectUtil` には共有レイキャストだけ足す | agent判断（テスト可能性） |
+| P17 | 照準の解決は純関数 `DeleteTargetHitSelector` と薄い `DeleteTargetRaycaster` に分け、`BlockClickDetectUtil` には照準レイ生成の正本 `TryCreateAimRay` と共有レイキャストだけ足す。照準・スポイトの外れは毎フレームの通常状態なので理由は結果型で返すがログは出さない（スポイトで種類が解放状態に無い異常だけログ） | agent判断（テスト可能性） |
 | P18 | `BlockAttachedConnectionResolver` は `ClientDIContext` の static 経由で `BlockGameObjectChild` から使う | agent判断（前例 `ClientDIContext.BlockGameObjectDataStore` を `ElectricWireLineViewElement` が static 参照） |
 | P19 | `IBuildOperationRecord.UndoAsync` の引数を `IBlockOccupancyQuery` へ、`DeleteObjectState` の未使用 `RailGraphClientCache` 引数を `IRemovalRestoreSender` へ置換（テスト3か所更新） | agent判断（テスト可能性・未使用引数の削除） |
 | P21 | Undoの部分失敗はできた分だけ戻し、失敗分は通知して履歴は消費する | ユーザー裁定 2026-10-05 選択「できた分だけ戻し残りは通知」 |
+| P22 | 削除ツールの照準条件は string＋null でなく判別union `DeleteAimFilter`（Frontmost / Category）で表し、`DragDeleteSelection.AimFilter` で公開する | ユーザー裁定 2026-10-05 選択「判別union 1本に畳む」 |
+| P23 | `GearChainConnectionSet` を `IGearChainConnectionLookup`／`IGearChainConnectionMutation` に分け、コンポーネントは読み取りと変更を別フィールドで持つ | ユーザー裁定 2026-10-05 選択「分ける」 |
+| P24 | 歯車チェーンの接続・延長の失敗理由を `GearChainPlacementFailureReason` 1本で評価器・延長/接続プロトコル・クライアントのプレビュー／ツールチップまで通す（評価器の文字列定数と `FailureReason(string)` を廃止。応答 `Error` は `ToString()`） | ユーザー裁定 2026-10-05 選択「enum 1本に畳む」 |
+| P25 | 弱発火4件を反映: 赤プレビューを要求者集合 `RemovePreviewRequests` で数え巻き込み解除が他者の赤を消さない／Undoのクライアント側スキップ（占有・記録不能）を `ClientLocalNotificationSource` 経由でプレイヤー通知 `denied.undoRestoreSkipped`／重複導出を正本へ（`TryCreateFittingRefund`・`ConnectionLineRefundItems`・`TryResolveEndpointPositions`・`RailSegmentPairing`・`TryCreateAimRay`・`ConnectionLineDeleteTarget.FromCollider`・`ConnectionLinePartnerMessagePack.CreateArray/ToPartnerIds`・`ConnectionLineConnectionJsonObject.ToConnectionRecord`）／複数の失敗理由を持つ Try を結果型へ（`ConnectionToolGuidFillResult`・`DeleteAimResult`・`RemovedRailCreateResult`・`ConnectionLinePickResult`・`ConnectionLineAimResult`） | ユーザー裁定 2026-10-05 選択「赤プレビューの書き手を1本化, 占有スキップもプレイヤーへ通知, 重複した導出を1本化, Tryの失敗理由を型で区別」 |
+| P26 | 弱発火のうち「空文字で成功を表す形」（P24 で解消）・「契約型を Interface 層へ移す」（既存 StateDetail/PlacePacketDto の前例どおり）・「Try の戻り値を捨てる既存箇所」は据え置く | ユーザー裁定 2026-10-05「このままでよい」（弱発火の一括質問で選ばなかった項目） |
+| P27 | 電線・チェーンの接続記録は種類と払った素材の両方を保存し、返却は払った素材（レールは種類のみ保存・長さ×現単価で返却する非対称を残す） | ユーザー裁定 2026-10-05 選択「種類＋素材を保存（現状維持）」 |
+| P28 | 破壊カテゴリーキー `connectionLine` は `BlockMaster.ConnectionLineDestructionCategory`（既定カテゴリーの隣）に置き、マスタの `categoryKey` との衝突を BlockMaster 検証で拒否する | agent判断（user-simulator review 指摘。既存定数の置き場の前例 `BlockMaster.DefaultDestructionCategory`） |
+| P29 | 撤去返却のレールだけ `Server.Protocol` の `RailRemovalRefundCalculator` に置く（`Game.Train` は `ConnectToolCostCalculator`/`GetRailLength` のある `Server.Protocol` を参照できない） | agent判断（user-simulator review 指摘への説明。B群前提事実に明記） |
+| P30 | クライアント発の通知の前例が無いため、`ClientLocalNotificationSource`（UniRx `Subject`）を新設し `NotificationTopic` が購読してサーバー通知と同じ表で表示する | agent判断（新規パターン。レビュー注目点） |
+| P31 | 録画シナリオ `free-placement-locked-block.cs:71` の1引数 `PlaceBlock` を `AutoConnect` 指定へ更新（実行時コンパイルのため Unity コンパイルでは検出されない） | agent判断（user-simulator review 指摘） |
 | P20 | 通し検証は unityプレイ録画テスト（EditModeInPlayingTest でなく。既存 `build-undo-ctrl-z.cs` と `train-rail-connect-via-ui.cs` の操作を再利用）。駅撤去のUndoは録画対象外とし Task 15 で起票 | agent判断（入力・カメラ・Undoキーを含むランタイム挙動のため） |
