@@ -14,7 +14,7 @@ namespace Game.SaveLoad.Migration.Steps.V3ToV4
             // この種の接続を持たないブロックは対象外
             // Blocks without this kind of connection are out of scope
             var componentState = state[saveKey];
-            if (componentState == null) return ConnectionToolGuidFillResult.Filled(0);
+            if (componentState == null || componentState.Type == JTokenType.Null) return ConnectionToolGuidFillResult.Filled(0);
 
             // 辿れない形を素通しすると未変換のまま版4が刻まれ、必須キーの読み込みで後から落ちる
             // Passing an unwalkable shape would stamp version 4 on an unconverted save that later fails on the required key

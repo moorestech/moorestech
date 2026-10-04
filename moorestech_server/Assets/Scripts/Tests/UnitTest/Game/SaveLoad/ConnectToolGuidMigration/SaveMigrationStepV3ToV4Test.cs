@@ -83,11 +83,21 @@ namespace Tests.UnitTest.Game.SaveLoad.ConnectToolGuidMigration
         [Test]
         public void 接続を持たないブロックは素通しされるTest()
         {
-            var save = Save(JObject.Parse("{\"blockGuid\":\"x\",\"state\":{\"ChestComponent\":{}}}"), JObject.Parse("{\"blockGuid\":\"y\",\"state\":{}}"), JObject.Parse("{\"blockGuid\":\"z\"}"), JObject.Parse("{\"state\":null}"));
+            var save = Save(
+                JObject.Parse("{\"blockGuid\":\"x\",\"state\":{\"ChestComponent\":{}}}"),
+                JObject.Parse("{\"blockGuid\":\"y\",\"state\":{}}"),
+                JObject.Parse("{\"blockGuid\":\"z\"}"),
+                JObject.Parse("{\"state\":null}"),
+                JObject.Parse("{\"state\":{\"ElectricWireConnectorComponent\":null}}"),
+                JObject.Parse("{\"state\":{\"GearChainPoleComponent\":null}}"));
+            var original = save.DeepClone();
 
             var result = new SaveMigrationStepV3ToV4().Migrate(save);
 
             Assert.IsTrue(result.IsConverted, result.FailureReason);
+            Assert.IsTrue(JToken.DeepEquals(original, result.Save));
+            Assert.AreEqual(JTokenType.Null, result.Save["world"][4]["state"][WireSaveKey].Type);
+            Assert.AreEqual(JTokenType.Null, result.Save["world"][5]["state"][ChainSaveKey].Type);
         }
 
         [Test]
@@ -119,7 +129,6 @@ namespace Tests.UnitTest.Game.SaveLoad.ConnectToolGuidMigration
         // Refuse unwalkable external data without advancing its version
         [TestCase("{\"world\":[null]}")]
         [TestCase("{\"world\":[{\"state\":[]}]}")]
-        [TestCase("{\"world\":[{\"state\":{\"ElectricWireConnectorComponent\":null}}]}")]
         [TestCase("{\"world\":[{\"state\":{\"GearChainPoleComponent\":[]}}]}")]
         [TestCase("{\"world\":[{\"state\":{\"ElectricWireConnectorComponent\":{}}}]}")]
         [TestCase("{\"world\":[{\"state\":{\"GearChainPoleComponent\":{\"connections\":[null]}}}]}")]
