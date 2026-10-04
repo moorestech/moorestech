@@ -40,9 +40,9 @@ namespace Client.Tests.ConnectionLine
             Assert.AreSame(line, registry.GetLinesAttachedTo(new BlockInstanceId(2))[0]);
             Assert.AreEqual(0, registry.GetLinesAttachedTo(new BlockInstanceId(3)).Count);
 
-            // 破棄で索引から外れる
-            // Destruction removes the line from the registry
-            UnityEngine.Object.DestroyImmediate(line.gameObject);
+            // 登録解除で索引から外れる（EditModeではOnDestroyが呼ばれないため経路を直接叩く）
+            // Unregistering removes the line; EditMode skips OnDestroy, so call the path directly
+            registry.Unregister(line);
             Assert.AreEqual(0, registry.GetLinesAttachedTo(new BlockInstanceId(1)).Count);
             Assert.AreEqual(0, registry.GetLinesAttachedTo(new BlockInstanceId(2)).Count);
         }
@@ -73,9 +73,9 @@ namespace Client.Tests.ConnectionLine
             chain.Initialize(new BlockInstanceId(3), new BlockInstanceId(2), Guid.NewGuid(), ConnectionLineKind.GearChain, registry);
             Assert.AreEqual(2, registry.GetLinesAttachedTo(new BlockInstanceId(2)).Count);
 
-            // 片方の破棄で共有端点の他の線を消さない
-            // Destroying one line preserves the other at the shared endpoint
-            UnityEngine.Object.DestroyImmediate(wire.gameObject);
+            // 片方の登録解除で共有端点の他の線を消さない
+            // Unregistering one line preserves the other at the shared endpoint
+            registry.Unregister(wire);
             Assert.IsEmpty(registry.GetLinesAttachedTo(new BlockInstanceId(1)));
             Assert.AreSame(chain, registry.GetLinesAttachedTo(new BlockInstanceId(2))[0]);
             Assert.AreSame(chain, registry.GetLinesAttachedTo(new BlockInstanceId(3))[0]);
