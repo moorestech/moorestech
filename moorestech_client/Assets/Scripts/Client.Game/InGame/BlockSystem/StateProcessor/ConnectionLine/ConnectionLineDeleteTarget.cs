@@ -109,7 +109,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
                 collector.AddUnrecordable($"line endpoint block not found from={FromId} to={ToId}");
                 return;
             }
-            collector.Add(new RemovedConnectionLine(Kind, fromPos, toPos, ConnectToolGuid));
+            collector.Add(new RemovedConnectionLine(Kind, fromPos, toPos, ConnectToolGuid, ClientDIContext.ConnectionLineCurrentState));
         }
 
         public void Delete()
@@ -121,10 +121,10 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
             switch (Kind)
             {
                 case ConnectionLineKind.ElectricWire:
-                    ClientContext.VanillaApi.SendOnly.DisconnectElectricWire(fromPos, toPos);
+                    ClientContext.VanillaApi.SendOnly.ConnectionLine.DisconnectElectricWire(fromPos, toPos);
                     break;
                 case ConnectionLineKind.GearChain:
-                    ClientContext.VanillaApi.SendOnly.DisconnectGearChain(fromPos, toPos);
+                    ClientContext.VanillaApi.SendOnly.ConnectionLine.DisconnectGearChain(fromPos, toPos);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(Kind), Kind, null);

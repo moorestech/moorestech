@@ -82,6 +82,21 @@ namespace Client.Tests.ConnectionLine
             Assert.AreEqual(1, registry.GetLinesAttachedTo(new BlockInstanceId(2)).Count);
         }
 
+        [Test]
+        public void HasLineBetweenChecksBothEndpointsAndKind()
+        {
+            // 読み取り面は端点順に依らず線種まで照合する
+            // The read query checks line kind regardless of endpoint order
+            var registry = new ConnectionLineRegistry();
+            var line = CreateLine();
+            line.Initialize(new BlockInstanceId(1), new BlockInstanceId(2), Guid.NewGuid(), ConnectionLineKind.ElectricWire, registry);
+
+            Assert.IsTrue(registry.HasLineBetween(new BlockInstanceId(1), new BlockInstanceId(2), ConnectionLineKind.ElectricWire));
+            Assert.IsTrue(registry.HasLineBetween(new BlockInstanceId(2), new BlockInstanceId(1), ConnectionLineKind.ElectricWire));
+            Assert.IsFalse(registry.HasLineBetween(new BlockInstanceId(1), new BlockInstanceId(2), ConnectionLineKind.GearChain));
+            Assert.IsFalse(registry.HasLineBetween(new BlockInstanceId(1), new BlockInstanceId(3), ConnectionLineKind.ElectricWire));
+        }
+
         private ConnectionLineDeleteTarget CreateLine()
         {
             var gameObject = new GameObject("Line");

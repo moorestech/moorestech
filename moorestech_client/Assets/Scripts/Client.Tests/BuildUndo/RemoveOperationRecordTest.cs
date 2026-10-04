@@ -38,8 +38,9 @@ namespace Client.Tests.BuildUndo
             var guid = Guid.NewGuid();
             var posA = new Vector3Int(0, 0, 0);
             var posB = new Vector3Int(5, 0, 0);
-            var line = new RemovedConnectionLine(ConnectionLineKind.ElectricWire, posA, posB, guid);
-            var sameLineReversed = new RemovedConnectionLine(ConnectionLineKind.ElectricWire, posB, posA, guid);
+            var currentState = new FakeConnectionLineCurrentState();
+            var line = new RemovedConnectionLine(ConnectionLineKind.ElectricWire, posA, posB, guid, currentState);
+            var sameLineReversed = new RemovedConnectionLine(ConnectionLineKind.ElectricWire, posB, posA, guid, currentState);
             var block = new RemovedBlock(posA, ForUnitTestModBlockId.MachineId, BlockDirection.North);
             var targets = new List<IDeleteTarget>
             {
@@ -62,7 +63,7 @@ namespace Client.Tests.BuildUndo
             // An occupied cell is not re-placed, but the line restore is still sent (the server judges missing endpoints)
             var guid = Guid.NewGuid();
             var block = new RemovedBlock(Vector3Int.zero, ForUnitTestModBlockId.MachineId, BlockDirection.North);
-            var chain = new RemovedConnectionLine(ConnectionLineKind.GearChain, Vector3Int.zero, new Vector3Int(3, 0, 0), guid);
+            var chain = new RemovedConnectionLine(ConnectionLineKind.GearChain, Vector3Int.zero, new Vector3Int(3, 0, 0), guid, new FakeConnectionLineCurrentState());
             var sender = new FakeRemovalRestoreSender();
             var record = RemoveOperationRecord.CreateFrom(new List<IDeleteTarget> { new FakeDeleteTarget { RemovedObjects = { block, chain } } }, sender);
 
@@ -70,6 +71,44 @@ namespace Client.Tests.BuildUndo
             record.UndoAsync(new FakeOccupancy(true)).GetAwaiter().GetResult();
 
             CollectionAssert.AreEqual(new[] { $"chain:{Vector3Int.zero}-{new Vector3Int(3, 0, 0)}:{guid}", "skipped:1" }, sender.Sent);
+        }
+
+        [TestCase(ConnectionLineKind.ElectricWire)]
+        [TestCase(ConnectionLineKind.GearChain)]
+        public void ExistingConnectionIsNotSentAgain(ConnectionLineKind kind)
+        {
+            // 撤去が拒否されて線が残った場合、Undoは既接続へ要求を送らない
+            // If removal was denied and the line remains, undo sends no duplicate request
+            var posA = Vector3Int.zero;
+            var posB = new Vector3Int(3, 0, 0);
+            var currentState = new FakeConnectionLineCurrentState();
+            currentState.SetConnected(kind, posB, posA);
+            var line = new RemovedConnectionLine(kind, posA, posB, Guid.NewGuid(), currentState);
+            var sender = new FakeRemovalRestoreSender();
+            var record = RemoveOperationRecord.CreateFrom(new List<IDeleteTarget> { new FakeDeleteTarget { RemovedObjects = { line } } }, sender);
+
+            record.UndoAsync(new FakeOccupancy(false)).GetAwaiter().GetResult();
+
+            Assert.IsEmpty(sender.Sent);
+        }
+
+        [Test]
+        public void ConnectionOfAnotherKindDoesNotSuppressRestore()
+        {
+            // 同じ端点でもチェーンがあるだけなら電線の復元は送る
+            // A chain at the same endpoints does not suppress a wire restore
+            var posA = Vector3Int.zero;
+            var posB = Vector3Int.right;
+            var currentState = new FakeConnectionLineCurrentState();
+            currentState.SetConnected(ConnectionLineKind.GearChain, posA, posB);
+            var tool = Guid.NewGuid();
+            var line = new RemovedConnectionLine(ConnectionLineKind.ElectricWire, posA, posB, tool, currentState);
+            var sender = new FakeRemovalRestoreSender();
+            var record = RemoveOperationRecord.CreateFrom(new List<IDeleteTarget> { new FakeDeleteTarget { RemovedObjects = { line } } }, sender);
+
+            record.UndoAsync(new FakeOccupancy(false)).GetAwaiter().GetResult();
+
+            CollectionAssert.AreEqual(new[] { $"wire:{posA}-{posB}:{tool}" }, sender.Sent);
         }
 
         [Test]

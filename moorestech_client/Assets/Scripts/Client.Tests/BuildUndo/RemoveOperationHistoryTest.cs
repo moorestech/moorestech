@@ -21,7 +21,7 @@ namespace Client.Tests.BuildUndo
             var selection = new DragDeleteSelection(history, sender);
             var tool = Guid.NewGuid();
             var target = new FakeDeleteTarget { Removable = true };
-            target.RemovedObjects.Add(new RemovedConnectionLine(ConnectionLineKind.ElectricWire, Vector3Int.zero, Vector3Int.right, tool));
+            target.RemovedObjects.Add(new RemovedConnectionLine(ConnectionLineKind.ElectricWire, Vector3Int.zero, Vector3Int.right, tool, new FakeConnectionLineCurrentState()));
 
             // 確定で対象の情報が消えても、先に記録した線を復元する
             // Restore the captured line even when commit erases the target's data

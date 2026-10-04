@@ -12,20 +12,21 @@ using Server.Util.MessagePack;
 using UnityEngine;
 using static Server.Protocol.PacketResponse.RailConnectionEditProtocol;
 using static Server.Protocol.PacketResponse.SubscribeInventoryProtocol;
-using static Server.Protocol.PacketResponse.GearChainConnectionEditProtocol;
 using static Server.Protocol.PacketResponse.TrainCarRidingInputProtocol;
 
 namespace Client.Network.API
 {
-    public class VanillaApiSendOnly : VanillaConnectionLineCommandApi
+    public class VanillaApiSendOnly
     {
         private readonly PacketSender _packetSender;
         public HotbarCommandApi Hotbar { get; }
+        public ConnectionLineCommandApi ConnectionLine { get; }
         
-        public VanillaApiSendOnly(PacketSender packetSender) : base(packetSender)
+        public VanillaApiSendOnly(PacketSender packetSender)
         {
             _packetSender = packetSender;
             Hotbar = new HotbarCommandApi(packetSender);
+            ConnectionLine = new ConnectionLineCommandApi(packetSender);
         }
         
         

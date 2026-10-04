@@ -5,13 +5,13 @@ using static Server.Protocol.PacketResponse.GearChainConnectionEditProtocol;
 
 namespace Client.Network.API.Requests
 {
-    // 接続線の送信APIをまとめ、SendOnlyの公開メソッドを維持する
-    // Group connection-line sends while preserving the public SendOnly methods
-    public class VanillaConnectionLineCommandApi
+    // 電線と歯車チェーンの送信要求をまとめる
+    // Group request sends for electric wires and gear chains
+    public sealed class ConnectionLineCommandApi
     {
         private readonly PacketSender _packetSender;
 
-        protected VanillaConnectionLineCommandApi(PacketSender packetSender)
+        public ConnectionLineCommandApi(PacketSender packetSender)
         {
             _packetSender = packetSender;
         }
