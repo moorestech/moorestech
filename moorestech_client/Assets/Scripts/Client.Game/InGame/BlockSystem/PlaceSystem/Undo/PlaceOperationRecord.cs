@@ -51,7 +51,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
             foreach (var cell in _cells)
             {
                 if (!IsSameBlockAlive(cell)) continue;
-                await ClientContext.VanillaApi.Response.Block.BlockRemove(cell.Position, CancellationToken.None);
+                var response = await ClientContext.VanillaApi.Response.Block.BlockRemove(cell.Position, CancellationToken.None);
+                if (!response.Success) Debug.LogWarning($"[PlaceUndo] remove refused: {response.FailureReason} at {cell.Position}");
             }
 
             #region Internal

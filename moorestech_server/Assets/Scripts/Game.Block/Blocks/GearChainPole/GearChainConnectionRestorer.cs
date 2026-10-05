@@ -31,7 +31,7 @@ namespace Game.Block.Blocks.GearChainPole
                     Debug.LogWarning($"[GearChain] Duplicate saved connection: {ownerId} -> {partnerId}");
                     continue;
                 }
-                if (lookup.Count >= maxConnectionCount)
+                if (maxConnectionCount <= lookup.Count)
                 {
                     Debug.LogWarning($"[GearChain] Saved connections exceed limit: {ownerId}, limit={maxConnectionCount}");
                     break;

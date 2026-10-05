@@ -1,3 +1,4 @@
+using Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,7 +35,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
 
             // 既接続かをクライアントのステートで判定
             // Determine existing connection from client-side state
-            var alreadyConnected = fromInfo.PartnerInstanceIds.Contains(toInfo.InstanceId.AsPrimitive());
+            var alreadyConnected = fromInfo.Partners.Any(partner => partner.PartnerId.Equals(toInfo.InstanceId));
 
             var distance = Vector3Int.Distance(fromPos, toPos);
             var judgement = GearChainPlacementEvaluator.EvaluatePlacement(distance, fromInfo.MaxConnectionDistance, toInfo.MaxConnectionDistance, alreadyConnected, fromInfo.IsConnectionFull || toInfo.IsConnectionFull, connectToolGuid, playerInventory, null);
@@ -80,9 +81,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
             // ブロックステートから現在の接続先を取得する（未受信時は0接続とみなす）
             // Read current partners from block state (treat as 0 connections when not received yet)
             var stateDetail = blockObject.GetStateDetail<GearChainPoleStateDetail>(GearChainPoleStateDetail.BlockStateDetailKey);
-            var partnerIds = stateDetail?.Partners?.Select(p => p.PartnerBlockInstanceId).ToArray() ?? System.Array.Empty<int>();
+            var partners = ConnectionLinePartner.FromMessagePacks(stateDetail?.Partners);
 
-            info = new GearChainPoleClientInfo(blockObject.BlockInstanceId, param.MaxConnectionDistance, param.MaxConnectionCount <= partnerIds.Length, partnerIds);
+            info = new GearChainPoleClientInfo(blockObject.BlockInstanceId, param.MaxConnectionDistance, param.MaxConnectionCount <= partners.Length, partners);
             return true;
         }
 
@@ -101,14 +102,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
         public readonly BlockInstanceId InstanceId;
         public readonly float MaxConnectionDistance;
         public readonly bool IsConnectionFull;
-        public readonly int[] PartnerInstanceIds;
+        public readonly ConnectionLinePartner[] Partners;
 
-        public GearChainPoleClientInfo(BlockInstanceId instanceId, float maxConnectionDistance, bool isConnectionFull, int[] partnerInstanceIds)
+        public GearChainPoleClientInfo(BlockInstanceId instanceId, float maxConnectionDistance, bool isConnectionFull, ConnectionLinePartner[] partners)
         {
             InstanceId = instanceId;
             MaxConnectionDistance = maxConnectionDistance;
             IsConnectionFull = isConnectionFull;
-            PartnerInstanceIds = partnerInstanceIds;
+            Partners = partners;
         }
     }
 

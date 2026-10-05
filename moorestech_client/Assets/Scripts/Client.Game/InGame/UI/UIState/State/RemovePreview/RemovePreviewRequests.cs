@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Client.Game.InGame.UI.UIState.State
+namespace Client.Game.InGame.UI.UIState.State.RemovePreview
 {
     /// <summary>
     ///     1つの表示対象に赤プレビューを求めている要求者の集合。自分のホバー・選択と、撤去ブロックの巻き込み表示が同時に求め得る

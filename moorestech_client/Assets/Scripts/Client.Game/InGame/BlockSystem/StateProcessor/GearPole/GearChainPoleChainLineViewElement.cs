@@ -1,4 +1,3 @@
-using Client.Common;
 using Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine;
 using Client.Game.InGame.Context;
 using Game.Block.Interface;
@@ -13,11 +12,18 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.GearPole
     public class GearChainPoleChainLineViewElement : MonoBehaviour, IConnectionLineViewElement
     {
         private const float LineSpacing = 0.1f;
-        private const int CapsuleDirectionYAxis = 1;
         private const float ColliderRadius = 0.08f;
+
+        // 未解決時の再解決を試みる間隔
+        // Interval between resolution retries while unresolved
+        private const float RetryIntervalSeconds = 0.5f;
 
         [SerializeField] private LineRenderer lineRenderer1;
         [SerializeField] private LineRenderer lineRenderer2;
+
+        private BlockInstanceId _startInstanceId;
+        private BlockInstanceId _endInstanceId;
+        private float _retryTimer;
 
         /// <summary>
         /// 接続ラインの位置を設定する
@@ -25,13 +31,35 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.GearPole
         /// </summary>
         public void SetLine(BlockInstanceId startInstanceId, BlockInstanceId endInstanceId)
         {
+            _startInstanceId = startInstanceId;
+            _endInstanceId = endInstanceId;
+
+            // 即座に解決できなければUpdateでの遅延再試行に委ねる
+            // If not resolvable immediately, defer to the retry loop in Update
+            enabled = !TryBuildLine();
+        }
+
+        private void Update()
+        {
+            // 未解決の間のみ一定間隔で相手ブロックの生成を再確認する
+            // While unresolved, periodically recheck whether the partner block has been created
+            _retryTimer -= Time.deltaTime;
+            if (0f < _retryTimer) return;
+            _retryTimer = RetryIntervalSeconds;
+
+            if (TryBuildLine()) enabled = false;
+        }
+
+        // 両端ブロックの解決と線・コライダー構築を試みる。相手が未生成ならfalseを返す
+        // Attempt to resolve both endpoints and build lines and collider; returns false if the partner is not yet created
+        private bool TryBuildLine()
+        {
             // BlockGameObjectDataStoreから座標を取得
             // Get positions from BlockGameObjectDataStore
-            if (!ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(startInstanceId, out var startBlock) ||
-                !ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(endInstanceId, out var endBlock))
+            if (!ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(_startInstanceId, out var startBlock) ||
+                !ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(_endInstanceId, out var endBlock))
             {
-                Debug.LogWarning($"[GearChainLine] endpoint block not found: from={startInstanceId} to={endInstanceId}");
-                return;
+                return false;
             }
 
             // ブロックの中心座標を計算
@@ -61,26 +89,8 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.GearPole
 
             // 削除ツールが狙えるよう、両端を結ぶトリガーカプセルを接続線レイヤーに置く
             // Place a trigger capsule spanning both ends on the connection-line layer so the delete tool can aim at it
-            BuildCollider(startPos, endPos);
-
-            #region Internal
-
-            void BuildCollider(Vector3 start, Vector3 end)
-            {
-                var colliderObject = new GameObject("ChainCollider");
-                colliderObject.layer = LayerConst.ConnectionLineLayer;
-                colliderObject.transform.SetParent(transform, false);
-                colliderObject.transform.position = (start + end) * 0.5f;
-                colliderObject.transform.rotation = Quaternion.FromToRotation(Vector3.up, end - start);
-
-                var capsule = colliderObject.AddComponent<CapsuleCollider>();
-                capsule.isTrigger = true;
-                capsule.direction = CapsuleDirectionYAxis;
-                capsule.radius = ColliderRadius;
-                capsule.height = Vector3.Distance(start, end);
-            }
-
-            #endregion
+            ConnectionLineColliderBuilder.AddCapsule(transform, (startPos + endPos) * 0.5f, endPos - startPos, ColliderRadius, Vector3.Distance(startPos, endPos));
+            return true;
         }
     }
 }

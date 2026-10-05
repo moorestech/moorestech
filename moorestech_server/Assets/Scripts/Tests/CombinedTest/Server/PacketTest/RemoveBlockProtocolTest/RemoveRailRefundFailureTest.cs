@@ -65,7 +65,7 @@ namespace Tests.CombinedTest.Server.PacketTest
                 var response = MessagePackSerializer.Deserialize<RemoveBlockResponseMessagePack>(bytes.ToArray());
                 Assert.IsTrue(response.Success, response.FailureReason.ToString());
                 Assert.AreEqual(RemoveBlockFailureReason.None, response.FailureReason);
-                return inventory.InventoryItems.Where(stack => stack.Count > 0)
+                return inventory.InventoryItems.Where(stack => 0 < stack.Count)
                     .GroupBy(stack => stack.Id).ToDictionary(group => group.Key, group => group.Sum(stack => stack.Count));
             }
 

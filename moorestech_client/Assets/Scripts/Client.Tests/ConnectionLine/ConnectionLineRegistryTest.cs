@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine;
 using Game.Block.Interface;
 using NUnit.Framework;
+using UniRx;
 using UnityEngine;
 
 namespace Client.Tests.ConnectionLine
@@ -95,6 +96,23 @@ namespace Client.Tests.ConnectionLine
             Assert.IsTrue(registry.HasLineBetween(new BlockInstanceId(2), new BlockInstanceId(1), ConnectionLineKind.ElectricWire));
             Assert.IsFalse(registry.HasLineBetween(new BlockInstanceId(1), new BlockInstanceId(2), ConnectionLineKind.GearChain));
             Assert.IsFalse(registry.HasLineBetween(new BlockInstanceId(1), new BlockInstanceId(3), ConnectionLineKind.ElectricWire));
+        }
+
+        [Test]
+        public void RegisterAndUnregisterNotifyBothEndpoints()
+        {
+            // 登録・解除のたびに両端ブロックIdが流れる（巻き込み赤表示が追従する契機）
+            // Each register and unregister emits both endpoint ids (the cue for the cascade red preview to follow)
+            var registry = new ConnectionLineRegistry();
+            var changed = new List<int>();
+            registry.OnLineAttachmentChanged.Subscribe(id => changed.Add(id.AsPrimitive()));
+            var line = CreateLine();
+
+            line.Initialize(new BlockInstanceId(1), new BlockInstanceId(2), Guid.NewGuid(), ConnectionLineKind.ElectricWire, registry);
+            CollectionAssert.AreEqual(new[] { 1, 2 }, changed);
+
+            registry.Unregister(line);
+            CollectionAssert.AreEqual(new[] { 1, 2, 1, 2 }, changed);
         }
 
         private ConnectionLineDeleteTarget CreateLine()

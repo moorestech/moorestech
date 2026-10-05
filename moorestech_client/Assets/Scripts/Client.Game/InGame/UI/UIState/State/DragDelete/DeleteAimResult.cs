@@ -21,7 +21,6 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
     {
         public DeleteAimOutcome Outcome { get; }
         public IDeleteTarget Target { get; }
-        public bool IsFound => Outcome == DeleteAimOutcome.Found;
 
         private DeleteAimResult(DeleteAimOutcome outcome, IDeleteTarget target)
         {

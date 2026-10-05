@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Game.Block.Interface;
+using UniRx;
 
 namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
 {
@@ -12,16 +13,50 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
     {
         private readonly Dictionary<BlockInstanceId, List<ConnectionLineDeleteTarget>> _linesByBlock = new();
 
+        // 線の端点ブロックに付く線が増減したとき、そのブロックIdを流す
+        // Emits the block id whose attached lines were added or removed
+        private readonly Subject<BlockInstanceId> _lineAttachmentChanged = new();
+        public IObservable<BlockInstanceId> OnLineAttachmentChanged => _lineAttachmentChanged;
+
         public void Register(ConnectionLineDeleteTarget line)
         {
-            Add(line.FromId, line);
-            Add(line.ToId, line);
+            Add(line.FromId);
+            Add(line.ToId);
+            _lineAttachmentChanged.OnNext(line.FromId);
+            _lineAttachmentChanged.OnNext(line.ToId);
+
+            #region Internal
+
+            void Add(BlockInstanceId blockId)
+            {
+                if (!_linesByBlock.TryGetValue(blockId, out var lines))
+                {
+                    lines = new List<ConnectionLineDeleteTarget>();
+                    _linesByBlock[blockId] = lines;
+                }
+                lines.Add(line);
+            }
+
+            #endregion
         }
 
         public void Unregister(ConnectionLineDeleteTarget line)
         {
-            Remove(line.FromId, line);
-            Remove(line.ToId, line);
+            Remove(line.FromId);
+            Remove(line.ToId);
+            _lineAttachmentChanged.OnNext(line.FromId);
+            _lineAttachmentChanged.OnNext(line.ToId);
+
+            #region Internal
+
+            void Remove(BlockInstanceId blockId)
+            {
+                if (!_linesByBlock.TryGetValue(blockId, out var lines)) return;
+                lines.Remove(line);
+                if (lines.Count == 0) _linesByBlock.Remove(blockId);
+            }
+
+            #endregion
         }
 
         public IReadOnlyList<ConnectionLineDeleteTarget> GetLinesAttachedTo(BlockInstanceId blockId)
@@ -40,23 +75,6 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
                     line.FromId.Equals(toId) && line.ToId.Equals(fromId)) return true;
             }
             return false;
-        }
-
-        private void Add(BlockInstanceId blockId, ConnectionLineDeleteTarget line)
-        {
-            if (!_linesByBlock.TryGetValue(blockId, out var lines))
-            {
-                lines = new List<ConnectionLineDeleteTarget>();
-                _linesByBlock[blockId] = lines;
-            }
-            lines.Add(line);
-        }
-
-        private void Remove(BlockInstanceId blockId, ConnectionLineDeleteTarget line)
-        {
-            if (!_linesByBlock.TryGetValue(blockId, out var lines)) return;
-            lines.Remove(line);
-            if (lines.Count == 0) _linesByBlock.Remove(blockId);
         }
     }
 }

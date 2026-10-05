@@ -34,8 +34,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
             var createParams = new List<BlockCreateParam>();
             foreach (var source in block.GetComponentsInChildren<IBlockRecreateParamSource>(true))
             {
-                var sourceParams = source.GetBlockRecreateParams();
-                if (sourceParams.Length == 0)
+                if (!source.TryGetBlockRecreateParams(out var sourceParams))
                 {
                     collector.AddUnrecordable($"block at {block.BlockPosInfo.OriginalPos}: {source.GetType().Name} has no recreate params");
                     return;
@@ -69,20 +68,24 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
                 CreateParams = _createParams,
             });
             return BlockRestoreOutcome.Appended;
+
+            #region Internal
+
+            BlockVerticalDirection ToVerticalDirection(BlockDirection direction)
+            {
+                return direction switch
+                {
+                    BlockDirection.UpNorth or BlockDirection.UpEast or BlockDirection.UpSouth or BlockDirection.UpWest => BlockVerticalDirection.Up,
+                    BlockDirection.DownNorth or BlockDirection.DownEast or BlockDirection.DownSouth or BlockDirection.DownWest => BlockVerticalDirection.Down,
+                    _ => BlockVerticalDirection.Horizontal,
+                };
+            }
+
+            #endregion
         }
 
         public void SendConnectionRestore(IRemovalRestoreSender sender)
         {
-        }
-
-        private static BlockVerticalDirection ToVerticalDirection(BlockDirection direction)
-        {
-            return direction switch
-            {
-                BlockDirection.UpNorth or BlockDirection.UpEast or BlockDirection.UpSouth or BlockDirection.UpWest => BlockVerticalDirection.Up,
-                BlockDirection.DownNorth or BlockDirection.DownEast or BlockDirection.DownSouth or BlockDirection.DownWest => BlockVerticalDirection.Down,
-                _ => BlockVerticalDirection.Horizontal,
-            };
         }
     }
 }

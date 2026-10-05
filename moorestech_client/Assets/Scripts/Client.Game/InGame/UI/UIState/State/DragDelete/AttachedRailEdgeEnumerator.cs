@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Train.RailGraph;
 using Game.Train.RailGraph.Utility;
+using Game.Train.SaveLoad;
 using UnityEngine;
 
 namespace Client.Game.InGame.UI.UIState.State.DragDelete
@@ -19,7 +20,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
                 // このブロックに属するノードだけを見る（表裏ノードとも同じブロック座標を持つ）
                 // Only nodes owned by this block (front and back nodes share the block position)
                 var node = cache.Nodes[nodeId];
-                if (node == null || (Vector3Int)node.ConnectionDestination.blockPosition != blockPosition) continue;
+                if (node == null || node.ConnectionDestination.IsDefault() || (Vector3Int)node.ConnectionDestination.blockPosition != blockPosition) continue;
 
                 // 出る辺だけで両向きを網羅できる（入る辺は対向ノードの出る辺）
                 // Outgoing edges cover both directions (an incoming edge is the opposite node's outgoing one)

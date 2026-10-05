@@ -25,7 +25,7 @@ namespace Game.Block.Blocks.GearChainPole
         private readonly GearChainPoleBlockParam _param;
 
         public float MaxConnectionDistance => _param.MaxConnectionDistance;
-        public bool IsConnectionFull => _chainLookup.Count >= _param.MaxConnectionCount;
+        public bool IsConnectionFull => _param.MaxConnectionCount <= _chainLookup.Count;
 
         // チェーン接続と、周辺ギア接続の列挙を担うserviceを保持する
         // Hold chain connections and the service that enumerates adjacent gear connections

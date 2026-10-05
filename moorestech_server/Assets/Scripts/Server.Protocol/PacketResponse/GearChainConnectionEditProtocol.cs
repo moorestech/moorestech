@@ -46,7 +46,11 @@ namespace Server.Protocol.PacketResponse
                         error = success ? string.Empty : connectFailure.ToString();
                         // 応答を待たない接続元へ拒否を通知する
                         // Notify send-only connection callers of refusals
-                        if (!success) _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied($"denied.gearChainConnect.{connectFailure}", Array.Empty<string>()));
+                        if (!success)
+                        {
+                            Debug.LogWarning($"[GearChainConnectionEdit] connect denied: {connectFailure} posA={data.PosAVector} posB={data.PosBVector} player={requesterPlayerId}");
+                            _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied($"denied.gearChainConnect.{connectFailure}", Array.Empty<string>()));
+                        }
                         break;
 
                     case ChainEditMode.Disconnect:
@@ -54,7 +58,11 @@ namespace Server.Protocol.PacketResponse
                         error = success ? string.Empty : disconnectFailure.ToString();
                         // 返却不能などの拒否を要求者へ通知する
                         // Notify the requester of refusals such as an unfitting refund
-                        if (!success) _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied($"denied.gearChainDisconnect.{disconnectFailure}", Array.Empty<string>()));
+                        if (!success)
+                        {
+                            Debug.LogWarning($"[GearChainConnectionEdit] disconnect denied: {disconnectFailure} posA={data.PosAVector} posB={data.PosBVector} player={requesterPlayerId}");
+                            _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied($"denied.gearChainDisconnect.{disconnectFailure}", Array.Empty<string>()));
+                        }
                         break;
 
                     default:

@@ -50,7 +50,7 @@ namespace Tests.CombinedTest.Game.ElectricWire
             Assert.AreEqual(1, detail.Partners.Length);
             Assert.AreEqual(generator.BlockInstanceId.AsPrimitive(), detail.Partners[0].PartnerBlockInstanceId);
             Assert.AreEqual(WireToolGuid, detail.Partners[0].ConnectToolGuid);
-            CollectionAssert.AreEqual(new[] { generator.BlockInstanceId }, ConnectionLinePartnerMessagePack.ToPartnerIds(detail.Partners));
+            CollectionAssert.AreEqual(new[] { generator.BlockInstanceId }, detail.Partners.Select(p => new BlockInstanceId(p.PartnerBlockInstanceId)).ToArray());
             var reverse = ReadDetail<ElectricWireStateDetail>(generator, ElectricWireStateDetail.BlockStateDetailKey);
             Assert.AreEqual(pole.BlockInstanceId.AsPrimitive(), reverse.Partners.Single().PartnerBlockInstanceId);
             Assert.AreEqual(WireToolGuid, reverse.Partners.Single().ConnectToolGuid);
@@ -75,7 +75,7 @@ namespace Tests.CombinedTest.Game.ElectricWire
             Assert.AreEqual(1, detail.Partners.Length);
             Assert.AreEqual(poleB.BlockInstanceId.AsPrimitive(), detail.Partners[0].PartnerBlockInstanceId);
             Assert.AreEqual(ChainToolGuid, detail.Partners[0].ConnectToolGuid);
-            CollectionAssert.AreEqual(new[] { poleB.BlockInstanceId }, ConnectionLinePartnerMessagePack.ToPartnerIds(detail.Partners));
+            CollectionAssert.AreEqual(new[] { poleB.BlockInstanceId }, detail.Partners.Select(p => new BlockInstanceId(p.PartnerBlockInstanceId)).ToArray());
             var reverse = ReadDetail<GearChainPoleStateDetail>(poleB, GearChainPoleStateDetail.BlockStateDetailKey);
             Assert.AreEqual(poleA.BlockInstanceId.AsPrimitive(), reverse.Partners.Single().PartnerBlockInstanceId);
             Assert.AreEqual(ChainToolGuid, reverse.Partners.Single().ConnectToolGuid);

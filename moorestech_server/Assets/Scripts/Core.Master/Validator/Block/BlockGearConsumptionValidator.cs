@@ -33,7 +33,7 @@ namespace Core.Master.Validator.Block
                     error = $"minimumRpm must be >= 0 (got {c.MinimumRpm})";
                     return true;
                 }
-                if (c.MinimumRpm > c.BaseRpm)
+                if (c.BaseRpm < c.MinimumRpm)
                 {
                     error = $"minimumRpm ({c.MinimumRpm}) must be <= baseRpm ({c.BaseRpm})";
                     return true;
@@ -41,14 +41,15 @@ namespace Core.Master.Validator.Block
                 error = null;
                 return false;
             }
-            #endregion
-        }
 
-        private static GearConsumption ExtractGearConsumption(object blockParam)
-        {
-            // gearConsumptionを持つ型の判定はスキーマのIGearConsumptionParamが正本
-            // The schema's IGearConsumptionParam is the authority on which params carry a gearConsumption
-            return blockParam is IGearConsumptionParam gearConsumptionParam ? gearConsumptionParam.GearConsumption : null;
+            GearConsumption ExtractGearConsumption(object blockParam)
+            {
+                // gearConsumptionを持つ型の判定はスキーマのIGearConsumptionParamが正本
+                // The schema's IGearConsumptionParam is the authority on which params carry a gearConsumption
+                return blockParam is IGearConsumptionParam gearConsumptionParam ? gearConsumptionParam.GearConsumption : null;
+            }
+
+            #endregion
         }
     }
 }

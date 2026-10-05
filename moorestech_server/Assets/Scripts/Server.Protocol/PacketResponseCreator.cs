@@ -1,3 +1,4 @@
+using Server.Protocol.PacketResponse.Rail;
 using System;
 using System.Collections.Generic;
 using Game.Train.Event;

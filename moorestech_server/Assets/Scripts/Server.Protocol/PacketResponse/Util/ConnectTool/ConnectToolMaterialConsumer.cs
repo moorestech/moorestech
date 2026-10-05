@@ -38,18 +38,11 @@ namespace Server.Protocol.PacketResponse.Util.ConnectTool
             }
         }
 
-        // 返却用のアイテムスタック列を生成する
-        // Create refund item stacks for the given materials
-        public static List<IItemStack> CreateRefundItems(IReadOnlyList<ConnectToolMaterialCost> materials)
-        {
-            return ConnectionLineRefundItems.Create(materials);
-        }
-
         // 返却が入りきることを切断前に確認する
         // Check the refund fits before disconnecting the line
         public static bool TryCreateFittingRefund(IReadOnlyList<ConnectToolMaterialCost> materials, IOpenableInventory inventory, out List<IItemStack> refundStacks)
         {
-            refundStacks = CreateRefundItems(materials);
+            refundStacks = ConnectionLineRefundItems.Create(materials);
             return refundStacks.Count == 0 || inventory.InsertionCheck(refundStacks);
         }
     }

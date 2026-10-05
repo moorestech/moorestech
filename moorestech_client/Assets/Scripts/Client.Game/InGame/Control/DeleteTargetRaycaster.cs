@@ -14,13 +14,12 @@ namespace Client.Game.InGame.Control
     /// </summary>
     public static class DeleteTargetRaycaster
     {
-        private const float RayDistance = 100f;
         private static readonly List<DeleteTargetHit> HitCandidates = new();
 
         public static DeleteAimResult AimAt(DeleteAimFilter filter)
         {
             var mask = LayerConst.BlockOnlyLayerMask | LayerConst.ConnectionLineOnlyLayerMask;
-            var hitCount = BlockClickDetectUtil.RaycastAimAll(mask, RayDistance, out var hits);
+            var hitCount = BlockClickDetectUtil.RaycastAimAll(mask, BlockClickDetectUtil.AimRayDistance, out var hits);
 
             // 設置ゴーストは貫通し、それ以外のヒットを候補へ積む
             // Pass through placement ghosts and collect every other hit as a candidate

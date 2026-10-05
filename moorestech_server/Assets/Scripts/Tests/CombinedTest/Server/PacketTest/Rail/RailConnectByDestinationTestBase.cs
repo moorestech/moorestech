@@ -1,3 +1,4 @@
+using Server.Protocol.PacketResponse.Rail;
 using System;
 using System.Linq;
 using Core.Inventory;
@@ -84,7 +85,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Rail
             {
                 var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(itemId);
                 Assert.Greater(maxStack, 0);
-                while (remainingCount > 0)
+                while (0 < remainingCount)
                 {
                     Assert.Less(slot, _inventory.GetSlotSize(), "Rail test materials must fit in the inventory");
                     var stackCount = Math.Min(remainingCount, maxStack);

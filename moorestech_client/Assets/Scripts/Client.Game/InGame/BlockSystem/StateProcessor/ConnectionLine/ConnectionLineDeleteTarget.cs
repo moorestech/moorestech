@@ -1,3 +1,4 @@
+using Client.Game.InGame.UI.UIState.State.RemovePreview;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
 using System;
 using Client.Common;
@@ -76,7 +77,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
 
         // 両端ブロックの座標を解決する（切断送信とUndo記録が共有）
         // Resolve both endpoint block positions (shared by the disconnect send and the undo record)
-        public bool TryResolveEndpointPositions(out Vector3Int fromPos, out Vector3Int toPos)
+        private bool TryResolveEndpointPositions(out Vector3Int fromPos, out Vector3Int toPos)
         {
             fromPos = default;
             toPos = default;

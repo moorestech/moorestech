@@ -150,6 +150,7 @@ namespace Client.Starter.Registration
             builder.Register<BuildOperationHistory>(Lifetime.Singleton);
             builder.Register<BuildUndoService>(Lifetime.Singleton);
             builder.Register<VanillaRemovalRestoreSender>(Lifetime.Singleton).As<IRemovalRestoreSender>();
+            builder.Register<ConnectionLineCurrentState>(Lifetime.Singleton).As<IConnectionLineCurrentState>();
             builder.Register<ClientLocalNotificationSource>(Lifetime.Singleton);
             builder.Register<ConnectionLineRegistry>(Lifetime.Singleton);
             builder.Register<BlockAttachedConnectionResolver>(Lifetime.Singleton);

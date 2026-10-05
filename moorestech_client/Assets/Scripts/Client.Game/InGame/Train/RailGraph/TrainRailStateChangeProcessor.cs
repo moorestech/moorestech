@@ -30,12 +30,14 @@ namespace Client.Game.InGame.Train.RailGraph
                 : null;
         }
 
-        public BlockCreateParam[] GetBlockRecreateParams()
+        public bool TryGetBlockRecreateParams(out BlockCreateParam[] createParams)
         {
-            // 初期状態の到着前は記録不能として呼び出し側へ空を返す
-            // Before initial state arrives, return empty so the caller records a failed capture
-            if (_latestStateDetailBytes == null) return Array.Empty<BlockCreateParam>();
-            return new[] { new BlockCreateParam(RailBridgePierComponentStateDetail.StateDetailKey, (byte[])_latestStateDetailBytes.Clone()) };
+            // 初期状態の到着前は記録不能として false を返す
+            // Before initial state arrives, return false so the caller records a failed capture
+            createParams = null;
+            if (_latestStateDetailBytes == null) return false;
+            createParams = new[] { new BlockCreateParam(RailBridgePierComponentStateDetail.StateDetailKey, (byte[])_latestStateDetailBytes.Clone()) };
+            return true;
         }
         
         public void SetPreviewStateDetail(PlaceInfo placeInfo)

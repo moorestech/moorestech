@@ -47,7 +47,7 @@ namespace Client.Game.InGame.UI.Tooltip
             var ray = meinCamera.ScreenPointToRay(mousePosition);
             // 接続線は当たり判定だけでツールチップを持たないため、奥の対象を遮らないよう除外する
             // Connection lines carry hit colliders but no tooltip, so exclude them to avoid occluding targets behind
-            if (!Physics.Raycast(ray, out var hit, 100, ~LayerConst.ConnectionLineOnlyLayerMask)) return false;
+            if (!Physics.Raycast(ray, out var hit, BlockClickDetectUtil.AimRayDistance, Physics.DefaultRaycastLayers & ~LayerConst.ConnectionLineOnlyLayerMask)) return false;
             
             if (!hit.collider.gameObject.TryGetComponent<GameObjectTooltipTarget>(out var enterTarget)) return false;
             

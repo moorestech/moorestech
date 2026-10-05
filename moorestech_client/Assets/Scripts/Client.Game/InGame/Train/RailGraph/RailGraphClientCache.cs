@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Train.Network;
 using Game.Train.SaveLoad;
+using UniRx;
 using UnityEngine;
 
 namespace Client.Game.InGame.Train.RailGraph
@@ -40,6 +41,11 @@ namespace Client.Game.InGame.Train.RailGraph
 
         private RailGraphPathFinder _pathFinder;//ダイクストラ法
 
+        // スナップショット適用後（レール表示の再構築後）に発火する
+        // Fires after a snapshot is applied (after rail displays are rebuilt)
+        private readonly Subject<UniRx.Unit> _rebuilt = new();
+        public IObservable<UniRx.Unit> OnRebuilt => _rebuilt;
+
         private RailGraphClientCache()
         {
             _pathFinder = new RailGraphPathFinder();
@@ -60,6 +66,7 @@ namespace Client.Game.InGame.Train.RailGraph
             // Apply edge information onto adjacency list
             PopulateConnections(snapshot, _connectNodes);
             TrainRailObjectManager.Instance?.OnCacheRebuilt(this);
+            _rebuilt.OnNext(UniRx.Unit.Default);
             #region Internal
 
             void ResetSlots(int requiredCount)

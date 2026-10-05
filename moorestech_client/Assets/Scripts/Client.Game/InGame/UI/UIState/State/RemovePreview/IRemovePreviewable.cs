@@ -1,4 +1,4 @@
-namespace Client.Game.InGame.UI.UIState.State
+namespace Client.Game.InGame.UI.UIState.State.RemovePreview
 {
     /// <summary>
     ///     削除プレビュー（赤表示）の付け外しだけを持つ表示対象

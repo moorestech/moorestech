@@ -17,9 +17,6 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
         // 未解決時の再解決を試みる間隔
         // Interval between resolution retries while unresolved
         private const float RetryIntervalSeconds = 0.5f;
-        // CapsuleColliderのdirectionはローカルY軸を表す1
-        // CapsuleCollider direction value 1 means the local Y axis
-        private const int CapsuleDirectionYAxis = 1;
         [SerializeField] private MeshFilter meshFilter;
 
         private Mesh _generatedMesh;
@@ -93,26 +90,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
             {
                 foreach (var segment in colliderSegments)
                 {
-                    // 専用レイヤに置き、既存のブロック操作レイキャストへの干渉を防ぐ
-                    // Place on the dedicated layer to avoid interfering with existing block-operation raycasts
-                    var colliderObject = new GameObject("WireCollider");
-                    colliderObject.layer = LayerConst.ConnectionLineLayer;
-
-                    var colliderTransform = colliderObject.transform;
-                    colliderTransform.SetParent(transform, false);
-
-                    // カプセルのローカルY軸をセグメント軸方向へ向ける
-                    // Orient the capsule's local Y axis along the segment axis
-                    colliderTransform.position = segment.center;
-                    colliderTransform.rotation = Quaternion.FromToRotation(Vector3.up, segment.up);
-
-                    // トリガー化してプレイヤーとの物理衝突を防ぐ（レイキャストにはヒットする）
-                    // Make it a trigger to avoid physical collision with the player (still hit by raycasts)
-                    var capsule = colliderObject.AddComponent<CapsuleCollider>();
-                    capsule.isTrigger = true;
-                    capsule.direction = CapsuleDirectionYAxis;
-                    capsule.radius = CatenaryWireMeshBuilder.WireRadius;
-                    capsule.height = segment.length;
+                    ConnectionLineColliderBuilder.AddCapsule(transform, segment.center, segment.up, CatenaryWireMeshBuilder.WireRadius, segment.length);
                 }
             }
 

@@ -33,7 +33,10 @@ namespace Server.Protocol.PacketResponse
             // 送信はSendOnlyで応答を待たないため、切断拒否は通知でプレイヤーへ返す
             // The client sends this without awaiting a response, so a refused disconnect is surfaced through a notification
             if (!success)
+            {
+                Debug.LogWarning($"[ElectricWireDisconnect] denied: {failureReason} posA={request.PosAVector} posB={request.PosBVector} player={requesterPlayerId}");
                 _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied($"denied.electricWireDisconnect.{failureReason}", Array.Empty<string>()));
+            }
 
             return new ElectricWireDisconnectResponse(success, failureReason);
         }

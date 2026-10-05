@@ -41,7 +41,7 @@ namespace Client.Game.InGame.Control
 
             // 接続線は専用レイヤのため単独Raycastで判定する
             // Connection lines live on a dedicated layer, so probe them with their own raycast
-            if (!Physics.Raycast(ray, out var hit, RayDistance, LayerConst.ConnectionLineOnlyLayerMask, QueryTriggerInteraction.Collide)) return ConnectionLineAimResult.Missed(ConnectionLineAimOutcome.NothingHit);
+            if (!Physics.Raycast(ray, out var hit, AimRayDistance, LayerConst.ConnectionLineOnlyLayerMask, QueryTriggerInteraction.Collide)) return ConnectionLineAimResult.Missed(ConnectionLineAimOutcome.NothingHit);
 
             var line = ConnectionLineDeleteTarget.FromCollider(hit.collider);
             return line == null ? ConnectionLineAimResult.Missed(ConnectionLineAimOutcome.NotALine) : ConnectionLineAimResult.Found(line);
@@ -53,7 +53,7 @@ namespace Client.Game.InGame.Control
         public static bool TryGetCursorOnComponent<T>(out T component)
         {
             component = default;
-            if (!TryGetFrontmostSolidHit(LayerConst.BlockOnlyLayerMask, RayDistance, out var hit)) return false;
+            if (!TryGetFrontmostSolidHit(LayerConst.BlockOnlyLayerMask, AimRayDistance, out var hit)) return false;
 
             // 最前面ヒットの子要素から解決する
             // Resolve from the frontmost hit's children
@@ -64,7 +64,7 @@ namespace Client.Game.InGame.Control
         public static bool TryGetCursorOnComponentInParent<T>(out T component)
         {
             component = default;
-            if (!TryGetFrontmostSolidHit(LayerConst.BlockOnlyLayerMask, RayDistance, out var hit)) return false;
+            if (!TryGetFrontmostSolidHit(LayerConst.BlockOnlyLayerMask, AimRayDistance, out var hit)) return false;
 
             // 列車の当たり判定コライダーは本体コンポーネントを子に持たないため親方向へ辿る
             // Train hit colliders do not hold the entity component in their children, so climb toward parents
@@ -72,7 +72,7 @@ namespace Client.Game.InGame.Control
             return component is not null;
         }
 
-        private const float RayDistance = 100f;
+        public const float AimRayDistance = 100f;
 
         // 毎フレーム通る経路なので、ヒット配列は使い回してGCを出さない
         // This path runs every frame, so the hit array is reused instead of allocating
@@ -127,7 +127,7 @@ namespace Client.Game.InGame.Control
 
         // 照準レイを作る。照準座標はAimPointProviderで視点モードに応じて一元解決する（カメラが無ければfalse）
         // Build the aim ray; the aim point is resolved centrally by AimPointProvider per view mode (false without a camera)
-        public static bool TryCreateAimRay(out Ray ray)
+        private static bool TryCreateAimRay(out Ray ray)
         {
             ray = default;
             var camera = Camera.main;

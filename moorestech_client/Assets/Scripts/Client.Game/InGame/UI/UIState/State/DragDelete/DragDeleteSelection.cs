@@ -21,8 +21,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
 
         // 最初の対象のカテゴリーで照準を固定する（未固定時は最前面）
         // Fix aim to the first target category; use frontmost while unfixed
-        private DeleteAimFilter _sessionFilter = DeleteAimFilter.Frontmost;
-        public DeleteAimFilter AimFilter => _sessionFilter;
+        public DeleteAimFilter AimFilter { get; private set; } = DeleteAimFilter.Frontmost;
 
         public DragDeleteSelection(BuildOperationHistory buildOperationHistory, IRemovalRestoreSender restoreSender)
         {
@@ -36,7 +35,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         {
             _selectedTargets.Clear();
             _canceled = false;
-            _sessionFilter = DeleteAimFilter.Frontmost;
+            AimFilter = DeleteAimFilter.Frontmost;
         }
 
         // 対象を選択へ追加する。削除可否・カテゴリー整合をまとめて判定し、追加不可なら拒否理由を返す（理由なし拒否はnull）
@@ -65,7 +64,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
 
             // 最初の追加でセッションカテゴリーを固定する
             // Fix the session category on the first added target
-            if (!_sessionFilter.IsCategoryRequired) _sessionFilter = DeleteAimFilter.Category(target.GetDestructionCategory());
+            if (!AimFilter.IsCategoryRequired) AimFilter = DeleteAimFilter.Category(target.GetDestructionCategory());
 
             _selectedTargets.Add(key, target);
             target.SetRemovePreviewing();
@@ -76,7 +75,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         // Whether the target's category can join this session (anything while empty, then same category only)
         private bool IsCategoryCompatible(IDeleteTarget target)
         {
-            return _sessionFilter.Accepts(target);
+            return AimFilter.Accepts(target);
         }
 
         // 選択を全てリセットしてキャンセル状態にする（ESC操作）
@@ -87,7 +86,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
 
             _selectedTargets.Clear();
             _canceled = true;
-            _sessionFilter = DeleteAimFilter.Frontmost;
+            AimFilter = DeleteAimFilter.Frontmost;
         }
 
         // 選択を一括削除し、Ctrl+Z用のUndo履歴も記録する
@@ -109,7 +108,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             }
 
             _selectedTargets.Clear();
-            _sessionFilter = DeleteAimFilter.Frontmost;
+            AimFilter = DeleteAimFilter.Frontmost;
 
             // Ctrl+Z用のUndo履歴を記録（空バッチはPushしない）
             // Record the undo history for Ctrl+Z (skip empty batches)

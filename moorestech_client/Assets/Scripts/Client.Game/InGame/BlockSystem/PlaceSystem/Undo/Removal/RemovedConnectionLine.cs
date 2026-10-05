@@ -29,6 +29,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
             _posB = aFirst ? posB : posA;
             _connectToolGuid = connectToolGuid;
             _currentState = currentState;
+
+            #region Internal
+
+            bool IsOrdered(Vector3Int a, Vector3Int b)
+            {
+                if (a.x != b.x) return a.x < b.x;
+                if (a.y != b.y) return a.y < b.y;
+                return a.z <= b.z;
+            }
+
+            #endregion
         }
 
         public object RestoreKey => (_kind, _posA, _posB);
@@ -42,7 +53,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
         {
             // 既に同じ端点・線種が接続済みならサーバーへ重複要求を送らない
             // Skip the duplicate server request when the same endpoint pair and line kind is already connected
-            if (_currentState.HasConnection(_kind, _posA, _posB)) return;
+            if (_currentState.HasConnection(_kind, _posA, _posB))
+            {
+                Debug.LogWarning($"[RemovalRestore] skip line restore: already connected kind={_kind} {_posA}-{_posB}");
+                return;
+            }
 
             switch (_kind)
             {
@@ -55,13 +70,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
                 default:
                     throw new ArgumentOutOfRangeException(nameof(_kind), _kind, null);
             }
-        }
-
-        private static bool IsOrdered(Vector3Int a, Vector3Int b)
-        {
-            if (a.x != b.x) return a.x < b.x;
-            if (a.y != b.y) return a.y < b.y;
-            return a.z <= b.z;
         }
     }
 }

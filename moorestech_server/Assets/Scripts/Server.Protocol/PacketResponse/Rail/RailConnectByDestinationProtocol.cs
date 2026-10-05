@@ -10,7 +10,7 @@ using Server.Util.MessagePack;
 using UnityEngine;
 using static Server.Protocol.PacketResponse.RailConnectionEditProtocol;
 
-namespace Server.Protocol.PacketResponse
+namespace Server.Protocol.PacketResponse.Rail
 {
     /// <summary>
     ///     ブロック座標で同定したレール端点同士を接続する。再設置でノードId/Guidが変わるUndo復元が使う。応答は返さない

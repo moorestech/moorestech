@@ -34,13 +34,5 @@ namespace Game.Block.Blocks.ConnectionLine
         {
             return connections.Select(c => new ConnectionLinePartnerMessagePack(c.Key.AsPrimitive(), c.Value.Record.ConnectToolGuid)).ToArray();
         }
-
-        // 受信側が接続先IDだけを要るときの写像。未受信(null)は空配列
-        // Map to partner ids when the receiver only needs ids; an absent array (null) becomes empty
-        public static BlockInstanceId[] ToPartnerIds(ConnectionLinePartnerMessagePack[] packs)
-        {
-            if (packs == null) return Array.Empty<BlockInstanceId>();
-            return packs.Select(p => new BlockInstanceId(p.PartnerBlockInstanceId)).ToArray();
-        }
     }
 }

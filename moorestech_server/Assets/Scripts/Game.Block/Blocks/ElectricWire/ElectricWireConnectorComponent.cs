@@ -10,6 +10,7 @@ using Game.EnergySystem;
 using Core.Item.Interface;
 using MessagePack;
 using UniRx;
+using UnityEngine;
 
 namespace Game.Block.Blocks.ElectricWire
 {
@@ -122,12 +123,14 @@ namespace Game.Block.Blocks.ElectricWire
 
             foreach (var connection in data.Connections)
             {
-                if (connection.TargetBlockInstanceId == BlockInstanceId.AsPrimitive()) continue;
-                if (_maxWireConnectionCount <= _wireConnections.Count) break;
+                // 破損した接続は理由を残して復元を見送る
+                // Skip malformed connections with a diagnostic reason
+                if (connection.TargetBlockInstanceId == BlockInstanceId.AsPrimitive()) { Debug.LogWarning($"[ElectricWire] Saved self connection skipped: {BlockInstanceId}"); continue; }
+                if (_maxWireConnectionCount <= _wireConnections.Count) { Debug.LogWarning($"[ElectricWire] Saved connections exceed limit: {BlockInstanceId}, limit={_maxWireConnectionCount}"); break; }
                 var targetId = new BlockInstanceId(connection.TargetBlockInstanceId);
-                if (_wireConnections.ContainsKey(targetId)) continue;
+                if (_wireConnections.ContainsKey(targetId)) { Debug.LogWarning($"[ElectricWire] Duplicate saved connection: {BlockInstanceId} -> {targetId}"); continue; }
                 var connector = ResolveWireTarget(targetId);
-                if (connector == null) continue;
+                if (connector == null) { Debug.LogWarning($"[ElectricWire] Saved connection target missing: {BlockInstanceId} -> {targetId}"); continue; }
                 var record = connection.ToConnectionRecord();
                 _wireConnections.Add(targetId, (connector, record));
             }

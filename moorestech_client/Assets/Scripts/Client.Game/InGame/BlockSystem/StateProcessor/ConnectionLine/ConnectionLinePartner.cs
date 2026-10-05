@@ -13,7 +13,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
         public readonly BlockInstanceId PartnerId;
         public readonly Guid ConnectToolGuid;
 
-        public ConnectionLinePartner(BlockInstanceId partnerId, Guid connectToolGuid)
+        private ConnectionLinePartner(BlockInstanceId partnerId, Guid connectToolGuid)
         {
             PartnerId = partnerId;
             ConnectToolGuid = connectToolGuid;

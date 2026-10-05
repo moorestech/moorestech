@@ -63,8 +63,10 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
             var addedB = addedA && poleB.TryAddChainConnection(poleA.BlockInstanceId, record);
             if (!addedA || !addedB)
             {
-                poleA.TryRemoveChainConnection(poleB.BlockInstanceId, out _);
-                poleB.TryRemoveChainConnection(poleA.BlockInstanceId, out _);
+                // 追加できた側だけ戻す
+                // Roll back only the side that was actually added
+                if (addedA) poleA.TryRemoveChainConnection(poleB.BlockInstanceId, out _);
+                if (addedB) poleB.TryRemoveChainConnection(poleA.BlockInstanceId, out _);
                 failureReason = GearChainPlacementFailureReason.ConnectionLimit;
                 return false;
             }

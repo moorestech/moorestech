@@ -74,7 +74,7 @@ namespace Client.Tests.UIState
             var hits = new List<DeleteTargetHit> { new(9f, far), new(1f, null), new(2f, wire), new(5f, near) };
 
             var result = DeleteTargetHitSelector.Select(hits, DeleteAimFilter.Category("default"));
-            Assert.IsTrue(result.IsFound);
+            Assert.AreEqual(DeleteAimOutcome.Found, result.Outcome);
             Assert.AreSame(near, result.Target);
         }
 

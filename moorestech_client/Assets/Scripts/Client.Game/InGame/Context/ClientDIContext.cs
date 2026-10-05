@@ -24,7 +24,7 @@ namespace Client.Game.InGame.Context
             ClientLocalNotificationSource = diContainer.DIContainerResolver.Resolve<ClientLocalNotificationSource>();
             ConnectionLineRegistry = diContainer.DIContainerResolver.Resolve<ConnectionLineRegistry>();
             BlockGameObjectDataStore = diContainer.DIContainerResolver.Resolve<BlockGameObjectDataStore>();
-            ConnectionLineCurrentState = new ConnectionLineCurrentState(BlockGameObjectDataStore, ConnectionLineRegistry);
+            ConnectionLineCurrentState = diContainer.DIContainerResolver.Resolve<IConnectionLineCurrentState>();
             BlockAttachedConnectionResolver = diContainer.DIContainerResolver.Resolve<BlockAttachedConnectionResolver>();
             BuildOperationHistory = diContainer.DIContainerResolver.Resolve<BuildOperationHistory>();
         }

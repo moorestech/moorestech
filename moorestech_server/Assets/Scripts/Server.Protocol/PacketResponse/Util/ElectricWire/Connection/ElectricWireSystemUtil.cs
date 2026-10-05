@@ -83,12 +83,8 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.Connection
 
             // 接続を確定させる。片方が失敗した場合はロールバックする
             // Finalize the connection; roll back when either side fails
-            var addedA = connectorA.TryAddWireConnection(connectorB.BlockInstanceId, judgement.WireRecord);
-            var addedB = addedA && connectorB.TryAddWireConnection(connectorA.BlockInstanceId, judgement.WireRecord);
-            if (!addedA || !addedB)
+            if (!TryConnectBothSides(connectorA, connectorB, judgement.WireRecord))
             {
-                connectorA.TryRemoveWireConnection(connectorB.BlockInstanceId, out _);
-                connectorB.TryRemoveWireConnection(connectorA.BlockInstanceId, out _);
                 failureReason = ElectricWirePlacementFailureReason.ConnectionLimit;
                 return false;
             }
