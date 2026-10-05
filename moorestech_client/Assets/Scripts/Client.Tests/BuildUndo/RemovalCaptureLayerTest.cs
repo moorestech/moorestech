@@ -115,6 +115,12 @@ namespace Client.Tests.BuildUndo
             back.transform.SetParent(_blockObject.transform);
             back.isFront = false;
             back.Initialize(block);
+            // 初期化対象外の非アクティブ子を撤去解決へ渡さない
+            // Exclude inactive children that block initialization never reached
+            var inactive = new GameObject("InactivePierArea", typeof(BoxCollider));
+            inactive.transform.SetParent(_blockObject.transform);
+            inactive.AddComponent<TrainRailConnectAreaCollider>();
+            inactive.SetActive(false);
             var child = _blockObject.AddComponent<BlockGameObjectChild>();
             child.Init(block);
             var collector = new RemovedObjectCollector();
@@ -128,6 +134,29 @@ namespace Client.Tests.BuildUndo
             var sender = new FakeRemovalRestoreSender();
             collector.Objects[0].SendConnectionRestore(sender);
             CollectionAssert.AreEqual(new[] { $"rail:{origin}-{other}:{railType}" }, sender.Sent);
+        }
+
+        [Test]
+        public void UnsyncedDestinationWarnsWhenUndoRailIsOmitted()
+        {
+            var resolver = new BlockAttachedConnectionResolver(new ConnectionLineRegistry(), RailGraphClientCache.CreateForEditorTest());
+            _blockObject = new GameObject("UnsyncedPier");
+            var block = _blockObject.AddComponent<BlockGameObject>();
+            SetBlockProperty(block, nameof(BlockGameObject.BlockPosInfo),
+                new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one));
+            var area = new GameObject("Front", typeof(BoxCollider)).AddComponent<TrainRailConnectAreaCollider>();
+            area.transform.SetParent(_blockObject.transform);
+            area.isFront = true;
+            area.Initialize(block);
+            var collector = new RemovedObjectCollector();
+
+            // 同じ未同期端点でも赤表示は情報、Undo採取は警告に分ける
+            // Report the same unsynced endpoint as info in preview and warning in undo capture
+            LogAssert.Expect(LogType.Log, new Regex("\\[RemovalPreview\\] rail node not synced yet:.*retry on next topology change"));
+            resolver.RequestCascadePreview(block);
+            LogAssert.Expect(LogType.Warning, new Regex("\\[RemovalCascade\\] rail not recorded for undo: node not synced"));
+            resolver.CollectRemovedConnections(block, collector);
+            Assert.IsEmpty(collector.Objects);
         }
 
         private static void UpsertPier(RailGraphClientCache cache, int frontNodeId, Vector3Int position)

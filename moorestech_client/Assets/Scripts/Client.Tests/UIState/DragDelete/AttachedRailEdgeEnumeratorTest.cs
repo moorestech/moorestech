@@ -40,15 +40,17 @@ namespace Client.Tests.UIState
             cache.UpsertConnection(3, 1, 10, railType, true);
 
             var edgesOfA = new List<(int, int)>();
-            AttachedRailEdgeEnumerator.Collect(cache, Destinations(pierA, 0), edgesOfA);
+            var unsynced = new List<ConnectionDestination>();
+            AttachedRailEdgeEnumerator.Collect(cache, Destinations(pierA, 0), edgesOfA, unsynced);
             var edgesOfB = new List<(int, int)>();
-            AttachedRailEdgeEnumerator.Collect(cache, Destinations(pierB, 0), edgesOfB);
+            AttachedRailEdgeEnumerator.Collect(cache, Destinations(pierB, 0), edgesOfB, unsynced);
 
             // 両側から引いても同じcanonical区間1件になる
             // Either side yields the same single canonical edge
             Assert.AreEqual(1, edgesOfA.Count);
             CollectionAssert.AreEqual(new[] { (0, 2) }, edgesOfA);
             CollectionAssert.AreEqual(edgesOfA, edgesOfB);
+            Assert.IsEmpty(unsynced);
         }
 
         [Test]
@@ -57,8 +59,27 @@ namespace Client.Tests.UIState
             // レールを持たないブロックは何も列挙しない
             // A block with no rails enumerates nothing
             var edges = new List<(int, int)>();
-            AttachedRailEdgeEnumerator.Collect(RailGraphClientCache.CreateForEditorTest(), Array.Empty<ConnectionDestination>(), edges);
+            var unsynced = new List<ConnectionDestination>();
+            AttachedRailEdgeEnumerator.Collect(RailGraphClientCache.CreateForEditorTest(), Array.Empty<ConnectionDestination>(), edges, unsynced);
             Assert.AreEqual(0, edges.Count);
+            Assert.IsEmpty(unsynced);
+        }
+
+        [Test]
+        public void MissingNodeIsReportedAsUnsyncedDestination()
+        {
+            var cache = RailGraphClientCache.CreateForEditorTest();
+            UpsertPier(cache, 0, Vector3Int.zero, 0);
+            var missing = new ConnectionDestination(Vector3Int.right, 0, true);
+            var destinations = new[] { new ConnectionDestination(Vector3Int.zero, 0, true), missing };
+            var edges = new List<(int, int)>();
+            var unsynced = new List<ConnectionDestination>();
+
+            // 同期済み端点は残し、欠けた端点だけを呼び出し元へ返す
+            // Keep synced destinations and return only the missing one to the caller
+            AttachedRailEdgeEnumerator.Collect(cache, destinations, edges, unsynced);
+            Assert.IsEmpty(edges);
+            CollectionAssert.AreEqual(new[] { missing }, unsynced);
         }
 
         [Test]
@@ -76,8 +97,10 @@ namespace Client.Tests.UIState
             var edges = new List<(int, int)>();
             var destinations = new List<ConnectionDestination>(Destinations(Vector3Int.zero, 0));
             destinations.AddRange(Destinations(Vector3Int.zero, 1));
-            AttachedRailEdgeEnumerator.Collect(cache, destinations, edges);
+            var unsynced = new List<ConnectionDestination>();
+            AttachedRailEdgeEnumerator.Collect(cache, destinations, edges, unsynced);
             CollectionAssert.AreEqual(new[] { (0, 2) }, edges);
+            Assert.IsEmpty(unsynced);
         }
 
         [Test]
@@ -100,8 +123,10 @@ namespace Client.Tests.UIState
             // 列挙は指定ブロックの2本だけを返す
             // Enumeration returns only the two rails attached to the requested block
             var edges = new List<(int, int)>();
-            AttachedRailEdgeEnumerator.Collect(cache, Destinations(Vector3Int.zero, 0), edges);
+            var unsynced = new List<ConnectionDestination>();
+            AttachedRailEdgeEnumerator.Collect(cache, Destinations(Vector3Int.zero, 0), edges, unsynced);
             CollectionAssert.AreEquivalent(new[] { (4, 8), (4, 10) }, edges);
+            Assert.IsEmpty(unsynced);
         }
 
         [Test]
@@ -124,7 +149,7 @@ namespace Client.Tests.UIState
             // 橋脚の既存コライダーから端点を得る
             // Read pier endpoints from the existing colliders
             var destinations = new List<ConnectionDestination>();
-            foreach (var area in block.GetComponentsInChildren<IRailComponentConnectAreaCollider>(true))
+            foreach (var area in block.GetComponentsInChildren<IRailComponentConnectAreaCollider>())
                 destinations.Add(area.CreateConnectionDestination());
             CollectionAssert.AreEquivalent(Destinations(position, 0), destinations);
         }
@@ -143,7 +168,7 @@ namespace Client.Tests.UIState
             source.Initialize(block);
 
             var destinations = new List<ConnectionDestination>();
-            foreach (var area in block.GetComponentsInChildren<IRailComponentConnectAreaCollider>(true))
+            foreach (var area in block.GetComponentsInChildren<IRailComponentConnectAreaCollider>())
                 destinations.Add(area.CreateConnectionDestination());
             CollectionAssert.AreEqual(new[] { new ConnectionDestination(position, 1, true) }, destinations);
         }

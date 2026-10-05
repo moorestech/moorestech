@@ -26,6 +26,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         private readonly Dictionary<BlockGameObject, List<IRemovePreviewable>> _requested = new();
         private readonly List<(int canonicalFrom, int canonicalTo)> _edgeBuffer = new();
         private readonly List<ConnectionDestination> _destinationBuffer = new();
+        private readonly List<ConnectionDestination> _unsyncedDestinationBuffer = new();
 
         public BlockAttachedConnectionResolver(ConnectionLineRegistry registry, RailGraphClientCache railCache)
         {
@@ -61,7 +62,12 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         public void CollectRemovedConnections(BlockGameObject block, RemovedObjectCollector collector)
         {
             foreach (var line in _registry.GetLinesAttachedTo(block.BlockInstanceId)) line.CollectRemovedObjects(collector);
-            foreach (var edge in CollectRailEdges(block))
+            var edges = CollectRailEdges(block);
+            // Undo記録から漏れる未同期端点だけ警告する
+            // Warn only for unsynced destinations omitted from the undo record
+            foreach (var destination in _unsyncedDestinationBuffer)
+                UnityEngine.Debug.LogWarning($"[RemovalCascade] rail not recorded for undo: node not synced at {destination}");
+            foreach (var edge in edges)
             {
                 RemovedRail.Capture(_railCache, edge.canonicalFrom, edge.canonicalTo, RemovedRailCaptureContext.Cascade, collector);
             }
@@ -70,13 +76,18 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         private List<IRemovePreviewable> ResolveRailPreviews(BlockGameObject block)
         {
             var previews = new List<IRemovePreviewable>();
-            foreach (var edge in CollectRailEdges(block))
+            var edges = CollectRailEdges(block);
+            // 同期途中の端点は次のトポロジ変化で取り直す
+            // Retry transient destinations on the next topology change
+            foreach (var destination in _unsyncedDestinationBuffer)
+                UnityEngine.Debug.Log($"[RemovalPreview] rail node not synced yet: {destination}; retry on next topology change");
+            foreach (var edge in edges)
             {
                 // 描画対象が未解決なら欠落を記録する
                 // Record a missing preview when the rail cannot be resolved
                 var railObjectId = RailObjectIdCodec.ComputeRailObjectId(edge.canonicalFrom, edge.canonicalTo);
                 if (TrainRailObjectManager.Instance.TryGetRailChain(railObjectId, out var chain)) previews.Add(RailChainRemovePreview.Of(chain));
-                else UnityEngine.Debug.LogWarning($"[RemovalPreview] rail chain not found: edge={edge.canonicalFrom}->{edge.canonicalTo} railObjectId={railObjectId}");
+                else UnityEngine.Debug.Log($"[RemovalPreview] rail chain not ready: edge={edge.canonicalFrom}->{edge.canonicalTo} railObjectId={railObjectId}; retry on next topology change");
             }
             return previews;
         }
@@ -136,9 +147,12 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         {
             _edgeBuffer.Clear();
             _destinationBuffer.Clear();
-            foreach (var area in block.GetComponentsInChildren<IRailComponentConnectAreaCollider>(true))
+            _unsyncedDestinationBuffer.Clear();
+            // BlockGameObject.Initialize と同じく、初期化されない非アクティブ子は対象外にする
+            // Match BlockGameObject.Initialize, which skips inactive children during component initialization
+            foreach (var area in block.GetComponentsInChildren<IRailComponentConnectAreaCollider>())
                 _destinationBuffer.Add(area.CreateConnectionDestination());
-            AttachedRailEdgeEnumerator.Collect(_railCache, _destinationBuffer, _edgeBuffer);
+            AttachedRailEdgeEnumerator.Collect(_railCache, _destinationBuffer, _edgeBuffer, _unsyncedDestinationBuffer);
             return _edgeBuffer;
         }
     }

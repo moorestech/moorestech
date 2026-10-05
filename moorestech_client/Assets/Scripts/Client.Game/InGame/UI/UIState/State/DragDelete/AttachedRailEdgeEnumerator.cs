@@ -12,7 +12,8 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
     /// </summary>
     public static class AttachedRailEdgeEnumerator
     {
-        public static void Collect(RailGraphClientCache cache, IReadOnlyList<ConnectionDestination> destinations, ICollection<(int canonicalFrom, int canonicalTo)> edges)
+        public static void Collect(RailGraphClientCache cache, IReadOnlyList<ConnectionDestination> destinations,
+            ICollection<(int canonicalFrom, int canonicalTo)> edges, ICollection<ConnectionDestination> unsyncedDestinations)
         {
             var seen = new HashSet<(int, int)>();
             foreach (var destination in destinations)
@@ -21,7 +22,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
                 // Gather edges only from synchronized destinations
                 if (!cache.TryGetNodeId(destination, out var nodeId))
                 {
-                    Debug.LogWarning($"[RemovalCascade] rail node not synced: {destination}");
+                    unsyncedDestinations.Add(destination);
                     continue;
                 }
 
