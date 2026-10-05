@@ -24,8 +24,8 @@ using UnityEngine;
 
 namespace Tests.CombinedTest.Game.ElectricWire
 {
-    // 電線・チェーンの接続記録が「引いた種類」をセーブ往復で保つことを検証する
-    // Verify wire and chain connection records keep the connect tool they were drawn with across save/load
+    // 接続記録の種類がセーブ往復で保たれるか検証
+    // Verify connection records keep their tool across save/load
     public class ConnectionRecordSaveLoadTest
     {
         private static readonly Guid WireToolGuid = Guid.Parse("c0000000-0000-0000-0000-000000000001");
@@ -38,8 +38,8 @@ namespace Tests.CombinedTest.Game.ElectricWire
         {
             var saveJson = BuildSave(out var posPole, out var posGenerator, out _, out _);
 
-            // 別ワールドへロードし、電線記録の種類が保存前と一致することを確かめる
-            // Load into a fresh world and check the wire record keeps the same connect tool
+            // 別ワールドへロードし電線の種類を照合
+            // Load into a fresh world and compare the wire's tool
             var loaded = LoadInto(saveJson);
             var pole = ServerContext.WorldBlockDatastore.GetBlock(posPole).GetComponent<IElectricWireConnector>();
             var generator = ServerContext.WorldBlockDatastore.GetBlock(posGenerator).GetComponent<IElectricWireConnector>();
@@ -57,8 +57,8 @@ namespace Tests.CombinedTest.Game.ElectricWire
         {
             var saveJson = BuildSave(out _, out _, out var posChainA, out var posChainB);
 
-            // 別ワールドへロードし、チェーン記録の種類が保存前と一致することを確かめる
-            // Load into a fresh world and check the chain record keeps the same connect tool
+            // 別ワールドへロードしチェーンの種類を照合
+            // Load into a fresh world and compare the chain's tool
             LoadInto(saveJson);
             var poleA = ServerContext.WorldBlockDatastore.GetBlock(posChainA).GetComponent<IGearChainPole>();
             var poleB = ServerContext.WorldBlockDatastore.GetBlock(posChainB).GetComponent<IGearChainPole>();
@@ -102,8 +102,8 @@ namespace Tests.CombinedTest.Game.ElectricWire
             unlock.UnlockConnectTool(WireToolGuid);
             unlock.UnlockConnectTool(ChainToolGuid);
 
-            // 電線は電柱-発電機（距離2）、チェーンはポール2本（距離2）を本番経路で接続する
-            // Connect pole-generator (distance 2) by wire and two poles (distance 2) by chain through the production paths
+            // 本番経路で電柱-発電機とポール2本を接続
+            // Connect pole-generator by wire and two poles by chain via production paths
             posPole = new Vector3Int(0, 0, 0);
             posGenerator = new Vector3Int(2, 0, 0);
             posChainA = new Vector3Int(10, 0, 0);

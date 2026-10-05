@@ -6,8 +6,8 @@ namespace Game.Train.RailGraph.Utility
     /// </summary>
     public static class RailSegmentPairing
     {
-        // 起点Idが小さい方を正とし、同値なら A→B を返す（同値のときは対が自分自身と一致する）
-        // The pair with the smaller start id is canonical; ties return A→B (on a tie the pair equals itself)
+        // 起点Idが小さい方を正とし、同値ならA→B
+        // The smaller start id is canonical; ties return A→B
         public static (int canonicalFrom, int canonicalTo) SelectCanonicalPair(int fromNodeId, int toNodeId)
         {
             var pairedFrom = toNodeId ^ 1;

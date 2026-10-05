@@ -36,15 +36,15 @@ namespace Client.Game.InGame.Train.RailGraph
 
         public void SetRemovePreviewing()
         {
-            // 撤去アニメ後に照準が残っても破棄済みの表示体へ触れない
-            // A lingering aim must not access a rail view destroyed after the removal animation
+            // 撤去後に破棄済み表示体へ触れない
+            // Do not touch a rail view destroyed after removal
             if (RailChain == null) return;
             RailChainRemovePreview.Of(RailChain).RequestRemovePreview(this);
         }
         public void ResetMaterial()
         {
-            // 破棄済み表示体の赤解除は不要で、GetComponentも呼べない
-            // A destroyed rail view needs no reset and cannot be queried for components
+            // 破棄済みの表示体には触れられない
+            // A destroyed rail view cannot be reset or queried
             if (RailChain == null) return;
             RailChainRemovePreview.Of(RailChain).ReleaseRemovePreview(this);
         }

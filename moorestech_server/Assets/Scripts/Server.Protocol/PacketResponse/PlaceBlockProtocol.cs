@@ -104,8 +104,8 @@ namespace Server.Protocol.PacketResponse
                 var placementPlan = _constructionWallet.PlanPlacement(blockMaster, requesterPlayerId);
                 if (!ConstructionCostService.HasRequiredItems(placementPlan.ItemsToConsume, inventory.InventoryItems)) { costShortageCount++; return; }
 
-                // 自動接続指定の電気ブロックだけ配線を事前検証する
-                // Validate wiring only for electric blocks placed with auto-connect
+                // 自動接続の電気ブロックだけ事前検証
+                // Validate wiring only for auto-connect electric blocks
                 var isAutoConnectElectric = data.Wiring == BlockPlacementWiring.AutoConnect && ElectricWireBlockParamResolver.TryGetWireRangeParam(blockMaster.BlockParam, out _, out _, out _);
                 var plan = default(ElectricWireAutoConnectPlan);
                 if (isAutoConnectElectric)

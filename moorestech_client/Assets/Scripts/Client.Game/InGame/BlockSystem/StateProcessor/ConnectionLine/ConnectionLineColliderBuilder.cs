@@ -4,13 +4,13 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
 {
     /// <summary>
-    ///     接続線の当たり判定（接続線レイヤーのトリガーカプセル）を生成する共通部品
-    ///     Shared builder for connection-line hit colliders (trigger capsules on the connection-line layer)
+    ///     接続線の当たり判定を生成する共通部品
+    ///     Shared builder for connection-line hit colliders
     /// </summary>
     public static class ConnectionLineColliderBuilder
     {
-        // CapsuleColliderのdirectionはローカルY軸を表す1
-        // CapsuleCollider direction value 1 means the local Y axis
+        // directionの1はローカルY軸
+        // Direction 1 is the local Y axis
         private const int CapsuleDirectionYAxis = 1;
 
         public static void AddCapsule(Transform parent, Vector3 center, Vector3 axisDir, float radius, float length)
@@ -21,8 +21,8 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
             colliderObject.layer = LayerConst.ConnectionLineLayer;
             colliderObject.transform.SetParent(parent, false);
 
-            // カプセルのローカルY軸を線の軸方向へ向ける
-            // Orient the capsule's local Y axis along the line axis
+            // カプセルのY軸を線方向へ向ける
+            // Orient the capsule's Y axis along the line
             colliderObject.transform.position = center;
             colliderObject.transform.rotation = Quaternion.FromToRotation(Vector3.up, axisDir);
 

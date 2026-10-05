@@ -22,8 +22,8 @@ namespace Core.Master.Validator.Block
 
         internal static string ValidateShapeGuids(Blocks blocks)
         {
-            // コネクタに設定されたshapeGuidの実在を検証（fluid側は形状運用開始時に追加する）
-            // Validate shapeGuid on connectors (fluid-side check to be added when fluids adopt shapes)
+            // shapeGuidの実在を検証
+            // Validate shapeGuid existence on connectors (fluid side to be added later)
             var logs = "";
             foreach (var block in blocks.Data)
             {
@@ -56,8 +56,8 @@ namespace Core.Master.Validator.Block
 
         internal static string ValidateMeshingAxes(Blocks blocks)
         {
-            // 歯車コネクタの噛み合い軸が軸整列単位ベクトルであることを検証する
-            // Validate that gear connector meshing axes are axis-aligned unit vectors
+            // 噛み合い軸が軸整列単位ベクトルか検証
+            // Validate meshing axes are axis-aligned unit vectors
             var logs = "";
             foreach (var block in blocks.Data)
             {

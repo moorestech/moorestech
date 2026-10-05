@@ -22,8 +22,8 @@ namespace Core.Master
         // Destruction category for blocks not listed in any definition; defaults can still be multi-selected together
         public const string DefaultDestructionCategory = "default";
 
-        // 接続線の破壊カテゴリーはマスタ定義で使用不可
-        // The connection-line destruction category is reserved from master definitions
+        // 接続線カテゴリーはマスタで使用不可
+        // Connection-line category is reserved from masters
         public const string ConnectionLineDestructionCategory = "connectionLine";
 
         public readonly Blocks Blocks;

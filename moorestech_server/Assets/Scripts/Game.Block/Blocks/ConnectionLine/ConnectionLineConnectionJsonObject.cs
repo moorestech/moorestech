@@ -7,8 +7,8 @@ using Newtonsoft.Json;
 namespace Game.Block.Blocks.ConnectionLine
 {
     /// <summary>
-    /// 電線・チェーンのセーブ上の接続1件。相手・引いた種類・払った素材を持つ
-    /// One saved wire or chain connection: partner, drawn connect tool and paid materials
+    /// セーブ上の接続1件（相手・種類・払った素材）
+    /// One saved connection: partner, tool and paid materials
     /// </summary>
     public class ConnectionLineConnectionJsonObject
     {

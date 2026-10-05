@@ -6,8 +6,8 @@ using NUnit.Framework;
 namespace Client.Tests.ConnectionLine
 {
     /// <summary>
-    ///     状態詳細の Partners をクライアント表現へ写す変換を検証する
-    ///     Verifies conversion of the state-detail Partners into the client representation
+    ///     Partnersのクライアント表現への変換を検証
+    ///     Verifies Partners conversion to the client form
     /// </summary>
     public class ConnectionLinePartnerTest
     {

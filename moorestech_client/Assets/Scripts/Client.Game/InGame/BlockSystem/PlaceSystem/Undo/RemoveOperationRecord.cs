@@ -8,8 +8,8 @@ using Cysharp.Threading.Tasks;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
 {
     /// <summary>
-    ///     撤去1バッチの楽観記録。ブロック・接続線・レールを同じ IRemovedObject として保持する
-    ///     Optimistic record of one remove batch, holding blocks, lines and rails alike as IRemovedObject
+    ///     撤去1バッチの楽観記録（ブロック・線・レール）
+    ///     Optimistic record of one remove batch (blocks, lines, rails)
     /// </summary>
     public class RemoveOperationRecord : IBuildOperationRecord
     {
@@ -46,8 +46,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
 
         public UniTask UndoAsync(IBlockOccupancyQuery occupancy)
         {
-            // ブロック相: 空いているセルを1バッチで再設置し、占有で戻せなかった数を数える
-            // Block phase: re-place free cells in one batch and count those blocked by occupancy
+            // ブロック相: 空きセルを一括再設置
+            // Block phase: re-place free cells in one batch
             var placeInfos = new List<PlaceInfo>();
             var skippedCount = _unrecordableCount;
             foreach (var removedObject in _removedObjects)

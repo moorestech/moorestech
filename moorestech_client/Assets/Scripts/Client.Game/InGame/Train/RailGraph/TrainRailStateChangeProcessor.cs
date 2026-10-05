@@ -23,8 +23,8 @@ namespace Client.Game.InGame.Train.RailGraph
         {
             Process(blockState.CurrentStateDetail);
 
-            // 表示に適用できた最新の状態を撤去時の生成値として保持する
-            // Retain the latest applied state as the creation value captured on removal
+            // 適用済みの最新状態を撤去時の生成値に保持
+            // Retain the latest applied state as the creation value on removal
             _latestStateDetailBytes = blockState.CurrentStateDetail.TryGetValue(RailBridgePierComponentStateDetail.StateDetailKey, out var bytes)
                 ? (byte[])bytes.Clone()
                 : null;
@@ -32,8 +32,8 @@ namespace Client.Game.InGame.Train.RailGraph
 
         public bool TryGetBlockRecreateParams(out BlockCreateParam[] createParams)
         {
-            // 初期状態の到着前は記録不能として false を返す
-            // Before initial state arrives, return false so the caller records a failed capture
+            // 初期状態の到着前はfalseを返す
+            // Return false before the initial state arrives
             createParams = null;
             if (_latestStateDetailBytes == null) return false;
             createParams = new[] { new BlockCreateParam(RailBridgePierComponentStateDetail.StateDetailKey, (byte[])_latestStateDetailBytes.Clone()) };

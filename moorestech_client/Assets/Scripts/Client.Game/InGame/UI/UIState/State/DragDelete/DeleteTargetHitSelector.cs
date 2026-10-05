@@ -4,8 +4,8 @@ using Client.Game.InGame.UI.UIState.State;
 namespace Client.Game.InGame.UI.UIState.State.DragDelete
 {
     /// <summary>
-    ///     照準レイ上のヒット1件（距離と、解決できた削除対象。非対象の遮蔽物はnull）
-    ///     One aim-ray hit (distance and the resolved delete target; null for a non-target occluder)
+    ///     照準レイ上のヒット1件（距離と削除対象）
+    ///     One aim-ray hit: distance and resolved delete target
     /// </summary>
     public readonly struct DeleteTargetHit
     {

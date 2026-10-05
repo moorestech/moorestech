@@ -105,8 +105,8 @@ namespace Client.Game.InGame.Control
         }
 
         /// <summary>
-        ///     照準レイで指定レイヤーを全件ヒットさせ件数を返す。hitsは共有バッファで戻り値件数までが有効
-        ///     Raycasts all hits on the given layers along the aim ray; hits is a shared buffer valid up to the returned count
+        ///     照準レイで全ヒットし件数を返す。hitsは件数分のみ有効
+        ///     Raycasts all hits along the aim ray; hits is valid up to the count
         /// </summary>
         public static int RaycastAimAll(int layerMask, float maxDistance, out RaycastHit[] hits)
         {
@@ -125,8 +125,8 @@ namespace Client.Game.InGame.Control
             }
         }
 
-        // 照準レイを作る。照準座標はAimPointProviderで視点モードに応じて一元解決する（カメラが無ければfalse）
-        // Build the aim ray; the aim point is resolved centrally by AimPointProvider per view mode (false without a camera)
+        // 照準レイを作る。カメラが無ければfalse
+        // Build the aim ray; false without a camera
         private static bool TryCreateAimRay(out Ray ray)
         {
             ray = default;

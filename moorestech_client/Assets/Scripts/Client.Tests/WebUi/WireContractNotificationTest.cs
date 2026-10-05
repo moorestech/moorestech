@@ -86,14 +86,14 @@ namespace Client.Tests.WebUi
             var topic = new NotificationTopic(hub, new CapturingVanillaApiEvent(), source);
             var message = NotificationMessagePack.CreateOperationDenied("denied.undoRestoreSkipped", new[] { "2" });
 
-            // ローカル拒否も配信されるが再購読では再生しない
-            // Local refusals publish but are not replayed upon resubscription
+            // ローカル拒否は再購読で再生しない
+            // Local refusals are not replayed on resubscription
             source.Notify(message);
             Assert.AreEqual(1, hub.GetTopicRevision(NotificationTopic.TopicName));
             Assert.AreEqual("{}", topic.GetSnapshotJsonAsync().GetAwaiter().GetResult());
 
-            // topicの再登録で古いローカル購読が残らない
-            // Rebinding a topic must not leave its old local subscription active
+            // 再登録で古いローカル購読を残さない
+            // Rebinding a topic leaves no old local subscription
             topic.Dispose();
             source.Notify(message);
             Assert.AreEqual(1, hub.GetTopicRevision(NotificationTopic.TopicName));

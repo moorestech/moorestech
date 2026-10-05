@@ -48,8 +48,8 @@ namespace Server.Protocol.PacketResponse
             // Ask the wallet what to refund (finalized further down)
             var removalPlan = _constructionWallet.PlanRemoval(MasterHolder.BlockMaster.GetBlockMaster(block.BlockId), block.BlockInstanceId, requesterPlayerId);
 
-            // 算出できるレール返却を合算し、返却全体が入る場合だけ撤去する
-            // Include computable rail refunds and remove only if the whole refund fits
+            // レール返却を合算し全額入る時だけ撤去
+            // Sum rail refunds and remove only if the whole refund fits
             var railRefundItems = RailRemovalRefundCalculator.CreateRefundItems(block, _railGraphDatastore);
             if (!TryInsertRefundItems(out var refundItems))
                 return Refuse(RemoveBlockFailureReason.InventoryFull);

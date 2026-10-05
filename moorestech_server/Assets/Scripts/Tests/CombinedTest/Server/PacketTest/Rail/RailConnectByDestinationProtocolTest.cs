@@ -31,8 +31,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Rail
         [Test]
         public void 再設置でノードIdとGuidが変わっても座標から解決して接続できる()
         {
-            // 終点の橋脚を撤去・再設置し、旧Guidが無効になった状態を作る
-            // Remove and re-place the target pier so the old guid becomes invalid
+            // 終点橋脚を再設置し旧Guid無効化
+            // Remove and re-place the target pier to invalidate the old guid
             var destination = _toNode.ConnectionDestination;
             var oldGuid = _toNode.Guid;
             _environment.WorldBlockDatastore.RemoveBlock(ToRailPosition, BlockRemoveReason.ManualRemove);
@@ -67,8 +67,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Rail
         [Test]
         public void 素材不足なら接続せず何も消費しない()
         {
-            // 既存の接続判定（EvaluatePlacement）をそのまま通っていることを確かめる
-            // Verify the existing connect judgement (EvaluatePlacement) is applied as-is
+            // 既存の接続判定を通ることを確認
+            // Verify the existing connect judgement is applied
             var units = CalculateUnits(_fromNode, _toNode);
             SetInventory(units * 12, units * 5 - 1);
 
@@ -84,8 +84,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Rail
         [Test]
         public void 既に接続済みなら二重に消費しない()
         {
-            // 2本分の素材を持たせて2回送り、2回目は消費しないことを確かめる
-            // Hold materials for two rails, send twice, and verify the second send consumes nothing
+            // 2本分持たせ2回送り、2回目は消費しない
+            // Hold two rails of materials, send twice; the second consumes nothing
             var units = CalculateUnits(_fromNode, _toNode);
             SetInventory(units * 24, units * 10);
 

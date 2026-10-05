@@ -6,8 +6,8 @@ using Game.Context;
 namespace Game.Block.Blocks.ConnectionLine
 {
     /// <summary>
-    /// 接続線の素材を返却スタックへ展開する。電線・チェーンの撤去返却と切断返却が同じ規則を使う
-    /// Expand connection-line materials into refund stacks; removal and disconnect refunds share this one rule
+    /// 接続線の素材を返却スタックへ展開する共通部品
+    /// Expands connection-line materials into refund stacks, shared by removal and disconnect
     /// </summary>
     public static class ConnectionLineRefundItems
     {

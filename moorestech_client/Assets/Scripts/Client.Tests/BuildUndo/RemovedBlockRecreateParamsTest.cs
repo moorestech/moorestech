@@ -19,8 +19,8 @@ using UnityEngine.TestTools;
 namespace Client.Tests.BuildUndo
 {
     /// <summary>
-    ///     撤去時に部品の生成パラメータを保持し、Undoの再設置へ渡すことを検証する
-    ///     Verifies that removal captures component creation parameters for undo placement
+    ///     撤去時の生成値保持とUndo再設置への受け渡しを検証
+    ///     Verifies removal captures creation params and passes them to undo
     /// </summary>
     public class RemovedBlockRecreateParamsTest
     {
@@ -53,8 +53,8 @@ namespace Client.Tests.BuildUndo
             });
             var collector = new RemovedObjectCollector();
 
-            // 撤去前の状態を採取し、Undoが送る設置情報まで追跡する
-            // Capture state before removal and trace it through the undo placement request
+            // 撤去前の状態を採取し設置情報まで追跡
+            // Capture state before removal and trace it to the undo request
             RemovedBlock.Capture(block, collector);
             Assert.AreEqual(0, collector.UnrecordableCount);
             Assert.AreEqual(1, collector.Objects.Count);

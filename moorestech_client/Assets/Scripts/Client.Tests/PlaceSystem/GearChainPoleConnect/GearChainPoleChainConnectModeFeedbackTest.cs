@@ -47,8 +47,8 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
         }
 
         [Test]
-        // 素材不足の判定では不足リストが落とし先キー付きの枠へ素通しされる
-        // On a material-shortage judgement the shortage list passes through into the fallback-keyed slot
+        // 素材不足の判定は不足リストを素通しする
+        // Shortage judgement passes the list through to the fallback-keyed slot
         public void MaterialShortageIsRoutedToFallbackSlotTest()
         {
             var sourcePole = new FakeGearChainPole(new Vector3Int(0, 0, 0));
@@ -67,8 +67,8 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
         }
 
         [Test]
-        // 不足が算出できなくても落とし先キーは付き、関門が汎用文言へ落とせる
-        // Even with no computed shortage the fallback key is attached so the gate can emit the generic wording
+        // 不足が算出不能でも落とし先キーは付く
+        // Without a computed shortage the fallback key is still attached
         public void EmptyMaterialShortageStillCarriesFallbackKeyTest()
         {
             var sourcePole = new FakeGearChainPole(new Vector3Int(0, 0, 0));

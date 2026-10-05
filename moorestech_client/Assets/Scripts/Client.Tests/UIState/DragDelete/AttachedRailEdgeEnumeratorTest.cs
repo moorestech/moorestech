@@ -9,16 +9,16 @@ using UnityEngine;
 namespace Client.Tests.UIState
 {
     /// <summary>
-    ///     ブロック座標に付いたレール区間を物理1本＝1件で列挙することを検証する
-    ///     Verifies rail edges attached to a block position are enumerated once per physical rail
+    ///     ブロック座標のレール区間の列挙を検証
+    ///     Verifies rail edges at a block position enumerate once per physical rail
     /// </summary>
     public class AttachedRailEdgeEnumeratorTest
     {
         [Test]
         public void OnePhysicalRailBetweenTwoPiersIsEnumeratedOnce()
         {
-            // 橋脚A(ノード0/1)と橋脚B(ノード2/3)を往復1組で結ぶ
-            // Connect pier A (nodes 0/1) and pier B (nodes 2/3) with one round-trip pair
+            // 橋脚AとBを往復1組で結ぶ
+            // Connect piers A and B with one round-trip pair
             var cache = RailGraphClientCache.CreateForEditorTest();
             var pierA = new Vector3Int(0, 0, 0);
             var pierB = new Vector3Int(10, 0, 0);
@@ -53,8 +53,8 @@ namespace Client.Tests.UIState
         [Test]
         public void TwoDirectionsWithinSameBlockAreDeduplicated()
         {
-            // 同一ブロック内の往復辺も物理1本として扱う
-            // Paired edges within one block still represent one physical rail
+            // 同一ブロック内の往復辺も1本扱い
+            // Paired edges within one block count as one rail
             var cache = RailGraphClientCache.CreateForEditorTest();
             UpsertPier(cache, 0, Vector3Int.zero);
             UpsertPier(cache, 2, Vector3Int.zero);
@@ -70,8 +70,8 @@ namespace Client.Tests.UIState
         [Test]
         public void SparseNodesAndUnrelatedBlocksDoNotHideAttachedBranches()
         {
-            // ノードIDの欠番と無関係な辺を含む分岐を作る
-            // Build branches with gaps in node ids and an unrelated edge
+            // ID欠番と無関係な辺を含む分岐を作る
+            // Build branches with id gaps and an unrelated edge
             var cache = RailGraphClientCache.CreateForEditorTest();
             UpsertPier(cache, 4, Vector3Int.zero);
             UpsertPier(cache, 8, Vector3Int.right);

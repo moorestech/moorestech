@@ -78,8 +78,8 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
                 {
                     if (_activeLines.TryGetValue(partner.PartnerId, out var existing))
                     {
-                        // 同じ相手でも線の種類が変わっていたら作り直す
-                        // Rebuild when the tool kind changed even for the same partner
+                        // 線種が変わっていたら作り直す
+                        // Rebuild when the line kind changed
                         if (existing.GetComponent<ConnectionLineDeleteTarget>().ConnectToolGuid == partner.ConnectToolGuid) continue;
                         Destroy(existing.gameObject);
                         _activeLines.Remove(partner.PartnerId);

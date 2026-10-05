@@ -16,8 +16,8 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void 記録どおりのみで設置すると範囲内に機械があっても電線を張らず消費もしない()
         {
-            // 電柱の機械範囲内に機械を置き、電線を持たせた状態で電柱を記録どおりのみで設置する
-            // Put a machine in the pole's machine range and place the pole with NoAutoConnect while holding wires
+            // 機械範囲の電柱を記録どおりのみで設置
+            // Place a pole in machine range with NoAutoConnect
             var (packet, serviceProvider) = CreateServer();
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(1, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var machine);
@@ -37,8 +37,8 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void 記録どおりのみなら電線ゼロでも電線不足で拒否されない()
         {
-            // 自動接続なら電線不足で拒否される配置でも、記録どおりのみは設置される
-            // A layout that auto-connect rejects for wire shortage is still placed under NoAutoConnect
+            // 電線不足でも記録どおりのみは設置される
+            // NoAutoConnect places even when auto-connect would reject wire shortage
             var (packet, serviceProvider) = CreateServer();
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(1, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);

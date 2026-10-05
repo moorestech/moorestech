@@ -119,14 +119,14 @@ namespace Game.Block.Blocks.GearChainPole
         private readonly Dictionary<string, object> _componentStates;
         public void OnPostBlockLoad()
         {
-            // 全ブロックの生成後に保存した台帳を復元する
-            // Restore the saved ledger after all blocks have been created
+            // 全ブロック生成後に保存台帳を復元
+            // Restore the saved ledger after all blocks are created
             if (_componentStates == null) return;
             if (!BlockComponentStateReader.TryRead<GearChainPoleSaveDataJsonObject>(_componentStates, SaveKey, out var data)) return;
             GearChainConnectionRestorer.Restore(data, BlockInstanceId, _param.MaxConnectionCount, _chainLookup, _chainMutation);
 
-            // 復元した接続を次tick先頭で網へ反映する
-            // Rebuild the network from the restored connections at the next tick head
+            // 復元した接続を次tick先頭で反映
+            // Rebuild the network from restored connections at the next tick head
             ServerContext.GetService<IGearNetworkDatastore>().MarkTopologyDirty();
             _onChangeBlockState.OnNext(Unit.Default);
         }

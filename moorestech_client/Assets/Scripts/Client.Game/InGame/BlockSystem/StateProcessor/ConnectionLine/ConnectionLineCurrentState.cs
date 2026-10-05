@@ -4,8 +4,8 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
 {
     /// <summary>
-    ///     現在の端点座標をブロックIDへ解決し、表示中の接続線索引を照合する
-    ///     Resolves current endpoint positions to block IDs and checks the displayed line index
+    ///     端点座標をブロックIDへ解決し線索引を照合
+    ///     Resolves endpoints to block IDs and checks the line index
     /// </summary>
     public sealed class ConnectionLineCurrentState : IConnectionLineCurrentState
     {

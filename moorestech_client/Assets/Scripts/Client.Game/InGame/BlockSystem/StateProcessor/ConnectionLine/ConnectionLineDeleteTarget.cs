@@ -13,8 +13,8 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
 {
     /// <summary>
-    ///     電線・歯車チェーン共通の削除対象。1本の線＝1つの論理削除単位
-    ///     Delete target shared by electric wires and gear chains; one line = one logical delete unit
+    ///     電線・チェーン共通の削除対象。1線＝1削除単位
+    ///     Delete target shared by wires and chains; one line = one unit
     /// </summary>
     public class ConnectionLineDeleteTarget : MonoBehaviour, IDeleteTarget, IRemovePreviewable
     {
@@ -115,8 +115,8 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
 
         public void Delete()
         {
-            // 両端ブロックの座標を解決して種類ごとの切断要求を送る
-            // Resolve both endpoint positions and send the per-kind disconnect request
+            // 両端を解決して種類別の切断要求を送る
+            // Resolve both ends and send the per-kind disconnect request
             if (!TryResolveEndpointPositions(out var fromPos, out var toPos)) return;
 
             switch (Kind)

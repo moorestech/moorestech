@@ -9,8 +9,8 @@ using Tests.Module.TestMod;
 namespace Tests.UnitTest.Core.Block
 {
     /// <summary>
-    ///     接続線用に予約した破壊カテゴリーキーをマスタが使うと検証で弾かれることを確かめる
-    ///     Verifies the master is rejected when it uses the destruction category key reserved for connection lines
+    ///     予約済みカテゴリーキーの使用が弾かれることを検証
+    ///     Verifies the master is rejected when it uses the reserved category key
     /// </summary>
     public class BlockDestructionCategoryReservedKeyTest
     {
@@ -18,8 +18,8 @@ namespace Tests.UnitTest.Core.Block
         [TestCase(true)]
         public void ReservedConnectionLineKeyIsRejected(bool withoutTargets)
         {
-            // 依存マスタを既存の有効Modで初期化し、blocks.jsonのカテゴリーキーだけをテスト内で差し替える
-            // Initialize dependency masters from the valid mod and replace only the category key in the in-test blocks.json
+            // 有効Modで初期化しキーだけ差し替える
+            // Initialize from the valid mod and replace only the category key
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var blocksJsonPath = Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods", "forUnitTest", "master", "blocks.json");
             var blocksJToken = JToken.Parse(File.ReadAllText(blocksJsonPath));

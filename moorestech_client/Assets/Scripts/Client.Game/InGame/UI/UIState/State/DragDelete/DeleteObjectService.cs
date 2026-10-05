@@ -29,8 +29,8 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             // Reset the denial-reason tooltip at the start of each frame (only our own showing clears, others survive)
             _tooltip.Hide(_tooltipOwner);
 
-            // 固定カテゴリーがあればその最前面、未固定なら全体の最前面を取得する
-            // Resolve the frontmost target within the fixed category, or overall while unfixed
+            // 固定カテゴリー内の最前面を取る
+            // Resolve the frontmost target in the fixed category, or overall if unfixed
             var aim = DeleteTargetRaycaster.AimAt(_selection.AimFilter);
             var hovered = aim.Target;
 
@@ -72,7 +72,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
                 // A canceled drag is inert until the button is released
                 if (!_selection.CanCommit()) return;
 
-                // ドラッグ中に別カテゴリーだけを照準した場合は拒否理由を表示する
+                // 別カテゴリーのみ狙うなら理由を表示
                 // Show the denial when a drag aims only at another category
                 if (hovered == null)
                 {

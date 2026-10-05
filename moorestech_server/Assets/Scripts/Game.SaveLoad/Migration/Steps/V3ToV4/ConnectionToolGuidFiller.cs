@@ -4,8 +4,8 @@ using Newtonsoft.Json.Linq;
 namespace Game.SaveLoad.Migration.Steps.V3ToV4
 {
     /// <summary>
-    /// 1ブロックのstateの中の接続配列へ、渡された種類を書き込む。既に種類がある接続は触らない（冪等）
-    /// Write the given tool into one block state's connection array; connections that already have one stay untouched (idempotent)
+    /// 1ブロックの接続配列へ種類を書く（冪等）
+    /// Write the tool into one block's connection array (idempotent)
     /// </summary>
     public static class ConnectionToolGuidFiller
     {
@@ -31,8 +31,8 @@ namespace Game.SaveLoad.Migration.Steps.V3ToV4
                     return ConnectionToolGuidFillResult.Failed($"state['{saveKey}']の接続要素がオブジェクトではありません。 type={connectionToken.Type}");
                 }
 
-                // 既存値は読めるGuidだけ保持し、必須キーのロード失敗を移行中に止める
-                // Preserve only readable existing GUIDs and stop required-key load failures during migration
+                // 既存値は読めるGuidだけ保持
+                // Preserve only readable existing GUIDs; stop required-key failures
                 var existingTool = connection["connectToolGuid"];
                 if (existingTool != null)
                 {

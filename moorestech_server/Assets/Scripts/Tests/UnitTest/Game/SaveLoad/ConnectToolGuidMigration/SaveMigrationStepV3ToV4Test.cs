@@ -27,7 +27,7 @@ namespace Tests.UnitTest.Game.SaveLoad.ConnectToolGuidMigration
             Assert.AreEqual(SaveMigrationStepV3ToV4.ElectricWireConnectToolGuid, ToolOf(result.Save, 0, WireSaveKey));
             Assert.AreEqual(SaveMigrationStepV3ToV4.GearChainConnectToolGuid, ToolOf(result.Save, 1, ChainSaveKey));
 
-            // 補填済みの再実行で素材や既存の値を変えない
+            // 再実行しても素材と既存値を変えない
             // Repeating the fill must preserve materials and existing values
             var once = result.Save.DeepClone();
             Assert.IsTrue(new SaveMigrationStepV3ToV4().Migrate(result.Save).IsConverted);
@@ -143,8 +143,8 @@ namespace Tests.UnitTest.Game.SaveLoad.ConnectToolGuidMigration
             Assert.AreEqual(3, save["worldVersion"].Value<int>());
         }
 
-        // 不正な既存キーを新版へ通さず、値を消さずに拒否する
-        // Reject an unusable existing key without passing it to the new version or erasing it
+        // 不正な既存キーは通さず消さず拒否する
+        // Reject an unusable existing key without passing it on or erasing it
         [TestCase(WireSaveKey, "null")]
         [TestCase(ChainSaveKey, "null")]
         [TestCase(WireSaveKey, "\"not-a-guid\"")]
@@ -189,7 +189,7 @@ namespace Tests.UnitTest.Game.SaveLoad.ConnectToolGuidMigration
 
         private static Guid ToolOf(JObject save, int blockIndex, string saveKey)
         {
-            // 文字列とGuid型の両トークンを型どおりに読む
+            // 文字列とGuid型の両トークンを読む
             // Read both string and GUID tokens through GUID conversion
             return save["world"][blockIndex]["state"][saveKey]["connections"][0]["connectToolGuid"].ToObject<Guid>();
         }

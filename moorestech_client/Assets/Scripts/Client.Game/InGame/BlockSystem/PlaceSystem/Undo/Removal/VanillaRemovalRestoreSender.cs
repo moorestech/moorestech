@@ -15,8 +15,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
     /// </summary>
     public class VanillaRemovalRestoreSender : IRemovalRestoreSender
     {
-        // Undoの再設置は自動接続を止め、記録した線だけを後続で引き直す
-        // Undo re-placement suppresses auto-connect; only recorded lines are re-drawn afterwards
+        // Undo再設置は自動接続を止め、線だけ引き直す
+        // Undo re-place suppresses auto-connect; only recorded lines are redrawn
         public void PlaceBlocks(List<PlaceInfo> placeInfos)
         {
             ClientContext.VanillaApi.SendOnly.PlaceBlock(placeInfos, BlockPlacementWiring.NoAutoConnect);

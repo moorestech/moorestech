@@ -31,8 +31,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             var from = TrainTestHelper.PlaceRail(environment, Vector3Int.zero, BlockDirection.North).FrontNode;
             var to = TrainTestHelper.PlaceRail(environment, new Vector3Int(10, 0, 0), BlockDirection.North).BackNode;
 
-            // 未接続の同種ブロックを撤去し、建設素材の返却を基準にする
-            // Remove an unconnected block of the same type to establish the construction refund baseline
+            // 未接続の同種を撤去し建設返却を基準にする
+            // Remove an unconnected block of the same type to establish the baseline
             var baselinePosition = new Vector3Int(30, 0, 0);
             TrainTestHelper.PlaceRail(environment, baselinePosition, BlockDirection.North);
             var baselineRefund = RemoveAndMeasureRefund(baselinePosition);
@@ -46,8 +46,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             LogAssert.Expect(LogType.Warning, new Regex(@"\[RailRemovalRefund\] refund skipped: cost not computable\."));
             var refund = RemoveAndMeasureRefund(Vector3Int.zero);
 
-            // ブロック分だけ返り、撤去先のブロックとレール区間が消える
-            // Only the block refund remains, and the removed block and its rail segment disappear
+            // ブロック分だけ返り区間が消える
+            // Only the block refund remains, and the removed block and rail segment disappear
             CollectionAssert.AreEquivalent(baselineRefund, refund);
             Assert.IsFalse(environment.WorldBlockDatastore.Exists(Vector3Int.zero));
             Assert.IsTrue(environment.WorldBlockDatastore.Exists(new Vector3Int(10, 0, 0)));
@@ -57,7 +57,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             Dictionary<ItemId, int> RemoveAndMeasureRefund(Vector3Int position)
             {
-                // 空のインベントリで全アイテムの返却量を測定する
+                // 空のインベントリで全返却量を測定
                 // Measure every refunded item in an empty inventory
                 for (var i = 0; i < inventory.GetSlotSize(); i++) inventory.SetItem(i, ServerContext.ItemStackFactory.CreatEmpty());
                 var request = MessagePackSerializer.Serialize(new RemoveBlockProtocolMessagePack(position));

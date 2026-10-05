@@ -9,8 +9,8 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
 {
     /// <summary>
-    ///     撤去したブロック1つ。占有範囲が空いていれば記録した生成パラメータで再設置する
-    ///     One removed block; re-placed with captured creation parameters when its footprint is free
+    ///     撤去ブロック1つ。空いていれば記録した生成値で再設置
+    ///     One removed block; re-placed with captured params if free
     /// </summary>
     public class RemovedBlock : IRemovedObject
     {
@@ -29,8 +29,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
 
         public static void Capture(BlockGameObject block, RemovedObjectCollector collector)
         {
-            // 部品が必要な生成値をまだ持たない場合は、不完全な再設置を記録しない
-            // Do not record an incomplete replacement when a component lacks required creation data
+            // 生成値が未取得なら再設置を記録しない
+            // Do not record a re-place while creation data is missing
             var createParams = new List<BlockCreateParam>();
             foreach (var source in block.GetComponentsInChildren<IBlockRecreateParamSource>(true))
             {

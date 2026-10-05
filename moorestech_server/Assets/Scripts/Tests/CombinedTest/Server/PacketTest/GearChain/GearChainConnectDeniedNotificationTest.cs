@@ -46,8 +46,8 @@ namespace Tests.CombinedTest.Server.PacketTest.GearChain
                     break;
             }
 
-            // 在庫を持たせても拒否理由が変わらず、失敗では消費しない
-            // Supplying inventory does not change the refusal or consume items on failure
+            // 在庫があっても拒否は変わらず消費もしない
+            // Inventory does not change the refusal; nothing is consumed
             world.Inventory.SetItem(0, ServerContext.ItemStackFactory.Create(world.ChainItemId, reason == GearChainPlacementFailureReason.NoItem ? 9 : 10));
             world.ClearEvents();
             var before = world.CountItem(world.ChainItemId);

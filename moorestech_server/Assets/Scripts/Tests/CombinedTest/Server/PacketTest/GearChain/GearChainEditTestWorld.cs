@@ -55,7 +55,7 @@ namespace Tests.CombinedTest.Server.PacketTest.GearChain
             ChainItemId = MasterHolder.ItemMaster.GetItemId(Guid.Parse("00000000-0000-0000-1234-000000000004"));
             FillerItemId = MasterHolder.ItemMaster.GetItemId(Guid.Parse("00000000-0000-0000-1234-000000000001"));
 
-            // 正規のマスタとポールを使って接続可否を判定させる
+            // 正規のマスタとポールで接続可否を判定
             // Use real masters and poles for connection evaluation
             if (unlockTool) provider.GetRequiredService<IGameUnlockStateDataController>().UnlockConnectTool(ChainToolGuid);
             PlacePole(PosA);

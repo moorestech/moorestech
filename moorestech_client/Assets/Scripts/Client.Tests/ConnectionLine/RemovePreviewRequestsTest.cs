@@ -22,8 +22,8 @@ namespace Client.Tests.ConnectionLine
             Assert.IsTrue(requests.Add(ownHover));
             Assert.IsFalse(requests.Add(cascadingPole));
 
-            // 電柱側の解除では戻らず、最後の要求者の解除で戻る
-            // The pole's release does not reset; the last requester's release does
+            // 電柱側の解除では戻らず最後の解除で戻る
+            // Not reset by the pole's release, only by the last requester's
             Assert.IsFalse(requests.Remove(cascadingPole));
             Assert.IsTrue(requests.Remove(ownHover));
         }
@@ -31,8 +31,8 @@ namespace Client.Tests.ConnectionLine
         [Test]
         public void DuplicateAndUnknownRequestsAreIgnored()
         {
-            // 同じ要求者の二重要求・未登録の解除は状態を変えない
-            // A duplicate request or an unknown release changes nothing
+            // 二重要求・未登録の解除は状態不変
+            // A duplicate request or unknown release changes nothing
             var requests = new RemovePreviewRequests();
             var requester = new object();
             Assert.IsTrue(requests.Add(requester));

@@ -12,7 +12,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         Found,
         NothingHit,
         OccludedByNonTarget,
-        // 対象はあるが固定カテゴリーに一致するものが無い
+        // 対象はあるが固定カテゴリーに合わない
         // Targets exist, but none matches the fixed category
         NoTargetOfCategory,
     }

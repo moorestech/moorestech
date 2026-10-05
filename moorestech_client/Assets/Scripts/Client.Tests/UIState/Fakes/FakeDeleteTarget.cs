@@ -39,8 +39,8 @@ namespace Client.Tests.UIState.Fakes
             return Removable;
         }
 
-        // CollectRemovedObjectsで返す撤去物と記録できなかった理由（未設定なら何も記録しない）
-        // Removed objects and unrecordable reasons reported by CollectRemovedObjects (records nothing when empty)
+        // 返す撤去物と記録不能理由（未設定は記録なし）
+        // Returned removed objects and unrecordable reasons (none records nothing)
         public readonly List<IRemovedObject> RemovedObjects = new();
         public readonly List<string> UnrecordableReasons = new();
 

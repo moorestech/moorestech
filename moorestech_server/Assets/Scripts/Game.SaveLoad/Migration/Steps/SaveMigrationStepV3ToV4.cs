@@ -37,7 +37,7 @@ namespace Game.SaveLoad.Migration.Steps
                 if (stateToken == null || stateToken.Type == JTokenType.Null) continue;
                 if (!(stateToken is JObject state)) return Fail($"world要素のstateがオブジェクトではありません。 type={stateToken.Type}");
 
-                // 電線とチェーンの接続へそれぞれの固定の種類を書き込む
+                // 電線とチェーンへ固定の種類を書き込む
                 // Write each kind's fixed tool into wire and chain connections
                 var wire = ConnectionToolGuidFiller.Fill(state, WireSaveKey, ElectricWireConnectToolGuid);
                 if (!wire.IsFilled) return Fail(wire.FailureReason);

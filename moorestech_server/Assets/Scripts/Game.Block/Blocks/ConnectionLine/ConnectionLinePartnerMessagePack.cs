@@ -8,8 +8,8 @@ using MessagePack;
 namespace Game.Block.Blocks.ConnectionLine
 {
     /// <summary>
-    /// 接続線（電線・歯車チェーン）1本ぶんの同期データ。接続先と引いた種類を運ぶ
-    /// Sync data for one connection line (wire or gear chain): the partner and the tool it was drawn with
+    /// 接続線1本ぶんの同期データ
+    /// Sync data for one connection line
     /// </summary>
     [MessagePackObject]
     public class ConnectionLinePartnerMessagePack

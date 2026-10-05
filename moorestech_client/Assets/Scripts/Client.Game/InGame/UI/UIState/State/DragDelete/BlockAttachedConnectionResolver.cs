@@ -11,8 +11,8 @@ using UniRx;
 namespace Client.Game.InGame.UI.UIState.State.DragDelete
 {
     /// <summary>
-    ///     ブロック撤去に巻き込まれて消える接続線・レールの解決（赤表示とUndo記録）
-    ///     Resolves connection lines and rails that vanish with a block removal (red preview and undo records)
+    ///     ブロック撤去で消える線・レールの解決
+    ///     Resolves lines and rails that vanish with a block removal
     /// </summary>
     public class BlockAttachedConnectionResolver
     {
@@ -29,14 +29,14 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             _registry = registry;
             _railCache = railCache;
 
-            // ホバー中に増減した線・再構築されたレールへ赤表示を追従させる
-            // Keep the red preview following lines added/removed and rails rebuilt while hovering
+            // ホバー中の線・レール増減へ赤表示を追従
+            // Keep the red preview following lines and rails while hovering
             _registry.OnLineAttachmentChanged.Subscribe(RefreshLineTargets);
-            _railCache.OnRebuilt.Subscribe(_ => RefreshRailTargets());
+            _railCache.OnRailTopologyChanged.Subscribe(_ => RefreshRailTargets());
         }
 
-        // 要求者はブロック自身。線・レールが自分でホバー・選択されていても、その赤は相手側の要求として残る
-        // The requester is the block itself; a line/rail hovered or selected on its own keeps its red as that other request
+        // 要求者はブロック自身。線側の赤要求は残る
+        // Requester is the block itself; the line's own red request stays
         public void RequestCascadePreview(BlockGameObject block)
         {
             if (_requested.ContainsKey(block)) return;
@@ -73,8 +73,8 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             var previews = new List<IRemovePreviewable>();
             foreach (var edge in CollectRailEdges(block))
             {
-                // 描画対象が未解決なら赤表示の欠落を記録する
-                // Report missing previews when the rendered rail cannot be resolved
+                // 描画対象が未解決なら欠落を記録する
+                // Record a missing preview when the rail cannot be resolved
                 var railObjectId = RailObjectIdCodec.ComputeRailObjectId(edge.canonicalFrom, edge.canonicalTo);
                 if (TrainRailObjectManager.Instance.TryGetRailChain(railObjectId, out var chain)) previews.Add(RailChainRemovePreview.Of(chain));
                 else UnityEngine.Debug.LogWarning($"[RemovalPreview] rail chain not found: edge={edge.canonicalFrom}->{edge.canonicalTo} railObjectId={railObjectId}");

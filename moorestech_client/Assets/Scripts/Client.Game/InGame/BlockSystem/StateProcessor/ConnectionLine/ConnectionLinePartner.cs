@@ -19,8 +19,8 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
             ConnectToolGuid = connectToolGuid;
         }
 
-        // 状態詳細の配列をクライアント表現へ写す（接続ゼロはnullで届き得る）
-        // Map the state-detail array to client form (zero connections may arrive as null)
+        // 状態詳細配列を写す。接続ゼロはnullも来る
+        // Map the state-detail array; zero connections may arrive as null
         public static ConnectionLinePartner[] FromMessagePacks(ConnectionLinePartnerMessagePack[] packs)
         {
             if (packs == null) return Array.Empty<ConnectionLinePartner>();

@@ -51,8 +51,8 @@ namespace Client.Tests.ConnectionLine
         [Test]
         public void LineCategoryIsConnectionLine()
         {
-            // 接続線はブロックと別の破壊カテゴリーに属する
-            // Connection lines belong to a destruction category separate from blocks
+            // 接続線はブロックと別カテゴリー
+            // Connection lines use a category separate from blocks
             var registry = new ConnectionLineRegistry();
             var line = CreateLine();
             line.Initialize(new BlockInstanceId(1), new BlockInstanceId(2), Guid.NewGuid(), ConnectionLineKind.GearChain, registry);
@@ -74,8 +74,8 @@ namespace Client.Tests.ConnectionLine
             chain.Initialize(new BlockInstanceId(3), new BlockInstanceId(2), Guid.NewGuid(), ConnectionLineKind.GearChain, registry);
             Assert.AreEqual(2, registry.GetLinesAttachedTo(new BlockInstanceId(2)).Count);
 
-            // 片方の登録解除で共有端点の他の線を消さない
-            // Unregistering one line preserves the other at the shared endpoint
+            // 片方の登録解除で他の線を消さない
+            // Unregistering one line keeps the other
             registry.Unregister(wire);
             Assert.IsEmpty(registry.GetLinesAttachedTo(new BlockInstanceId(1)));
             Assert.AreSame(chain, registry.GetLinesAttachedTo(new BlockInstanceId(2))[0]);
@@ -86,8 +86,8 @@ namespace Client.Tests.ConnectionLine
         [Test]
         public void HasLineBetweenChecksBothEndpointsAndKind()
         {
-            // 読み取り面は端点順に依らず線種まで照合する
-            // The read query checks line kind regardless of endpoint order
+            // 読み取りは端点順によらず線種まで照合
+            // Reads match line kind regardless of endpoint order
             var registry = new ConnectionLineRegistry();
             var line = CreateLine();
             line.Initialize(new BlockInstanceId(1), new BlockInstanceId(2), Guid.NewGuid(), ConnectionLineKind.ElectricWire, registry);

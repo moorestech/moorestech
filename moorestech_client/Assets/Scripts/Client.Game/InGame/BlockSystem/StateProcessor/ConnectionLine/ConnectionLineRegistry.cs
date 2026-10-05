@@ -13,8 +13,8 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
     {
         private readonly Dictionary<BlockInstanceId, List<ConnectionLineDeleteTarget>> _linesByBlock = new();
 
-        // 線の端点ブロックに付く線が増減したとき、そのブロックIdを流す
-        // Emits the block id whose attached lines were added or removed
+        // 線が増減した端点のブロックIdを流す
+        // Emits the block id whose lines changed
         private readonly Subject<BlockInstanceId> _lineAttachmentChanged = new();
         public IObservable<BlockInstanceId> OnLineAttachmentChanged => _lineAttachmentChanged;
 
@@ -68,7 +68,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
         {
             foreach (var line in GetLinesAttachedTo(fromId))
             {
-                // 破棄待ちの表示体は現在の接続として扱わない
+                // 破棄待ちの表示体は接続と見なさない
                 // A destroyed view is not a current connection
                 if (line == null || line.Kind != kind) continue;
                 if (line.FromId.Equals(fromId) && line.ToId.Equals(toId) ||

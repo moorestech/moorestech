@@ -23,8 +23,8 @@ namespace Client.Tests.BuildUndo
             var target = new FakeDeleteTarget { Removable = true };
             target.RemovedObjects.Add(new RemovedConnectionLine(ConnectionLineKind.ElectricWire, Vector3Int.zero, Vector3Int.right, tool, new FakeConnectionLineCurrentState()));
 
-            // 確定で対象の情報が消えても、先に記録した線を復元する
-            // Restore the captured line even when commit erases the target's data
+            // 確定で消えても先に記録した線を復元
+            // Restore the captured line even if commit erases the target
             selection.BeginDrag();
             Assert.IsTrue(selection.TryAddTarget(target, out _));
             selection.CommitDelete();

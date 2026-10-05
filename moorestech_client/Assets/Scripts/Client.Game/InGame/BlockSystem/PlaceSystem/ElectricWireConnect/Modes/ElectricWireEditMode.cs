@@ -7,8 +7,8 @@ using Client.Input;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
 {
     /// <summary>
-    /// 起点未選択時の挙動。電気系ブロックの起点選択・電柱の孤立設置を処理する（切断は削除ツールが担う）
-    /// Behavior while no origin is selected: source selection and isolated pole placement (cutting belongs to the delete tool)
+    /// 起点未選択時の挙動（起点選択・孤立設置）
+    /// Behavior with no origin: source selection and isolated placement
     /// </summary>
     public class ElectricWireEditMode
     {
@@ -20,8 +20,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
         }
 
         /// <summary>
-        /// 起点未選択の1フレーム更新。選択できた起点ブロックを返す（孤立設置・未選択時はnull）
-        /// One-frame update while no origin is selected; returns the newly selected origin block (null on isolated placement or none)
+        /// 起点未選択の更新。選択した起点を返す
+        /// Update with no origin; returns the selected origin block
         /// </summary>
         public BlockGameObject Update(PlacementFeedback feedback)
         {

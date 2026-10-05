@@ -33,8 +33,8 @@ namespace Client.Tests.RailGraph
             Object.DestroyImmediate(_chainObject);
             Assert.IsTrue(chain == null);
 
-            // 赤表示と解除のどちらも破棄済みの表示体にアクセスしない
-            // Neither requesting nor releasing red accesses the destroyed view
+            // 赤表示も解除も破棄済みへ触れない
+            // Neither red nor release accesses the destroyed view
             target.SetRemovePreviewing();
             target.ResetMaterial();
         }

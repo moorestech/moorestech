@@ -8,8 +8,8 @@ namespace Client.Game.InGame.Block.Removal
     /// </summary>
     public interface IBlockRecreateParamSource
     {
-        // 初期状態が未着なら false。生成値ゼロ件は成功として true を返す
-        // Returns false while the initial state has not arrived; zero params is a valid success
+        // 初期状態が未着ならfalse。生成値0件はtrue
+        // Returns false before initial state; zero params succeeds
         bool TryGetBlockRecreateParams(out BlockCreateParam[] createParams);
     }
 }

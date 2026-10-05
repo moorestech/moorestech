@@ -54,8 +54,8 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
     }
 
     /// <summary>
-    /// 歯車チェーン設置可否の判定結果。失敗理由またはチェーン接続記録を保持する
-    /// Judgement result of gear chain placement, holding failure reason or chain connection record
+    /// 歯車チェーン設置可否の判定結果
+    /// Judgement result of gear chain placement
     /// </summary>
     public readonly struct GearChainPlacementJudgement
     {

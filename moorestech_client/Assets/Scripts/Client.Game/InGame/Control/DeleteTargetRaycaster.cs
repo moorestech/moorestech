@@ -9,8 +9,8 @@ using UnityEngine;
 namespace Client.Game.InGame.Control
 {
     /// <summary>
-    ///     削除ツールの照準解決。ブロック層と接続線層を1本のレイで見て、照準条件で対象を選ぶ
-    ///     Delete-tool aim resolution: one ray over block and connection-line layers, picking a target under the aim filter
+    ///     削除ツールの照準解決。1本のレイで対象を選ぶ
+    ///     Delete-tool aim resolution: one ray over both layers picks a target
     /// </summary>
     public static class DeleteTargetRaycaster
     {

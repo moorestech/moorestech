@@ -117,8 +117,8 @@ namespace Client.Tests.UIState
         [Test]
         public void AimFilterIsFixedByFirstTargetAndResetOnNewDrag()
         {
-            // 最初の対象で照準条件がそのカテゴリーに固定され、新しいドラッグで最前面へ戻る
-            // The first target fixes the aim filter to its category and a new drag resets it to frontmost
+            // 最初の対象で固定、新ドラッグで解除
+            // The first target fixes the filter; a new drag resets it
             var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
             selection.BeginDrag();
             Assert.IsFalse(selection.AimFilter.IsCategoryRequired);

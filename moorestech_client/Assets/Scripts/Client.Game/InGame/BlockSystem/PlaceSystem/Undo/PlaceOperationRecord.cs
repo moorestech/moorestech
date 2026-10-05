@@ -52,6 +52,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
             {
                 if (!IsSameBlockAlive(cell)) continue;
                 var response = await ClientContext.VanillaApi.Response.Block.BlockRemove(cell.Position, CancellationToken.None);
+                // 応答はタイムアウト・デコード失敗でnullになる外部データ
+                // The response is external data and becomes null on timeout or decode failure
+                if (response == null)
+                {
+                    Debug.LogWarning($"[PlaceUndo] remove got no response (timeout or decode failure) at {cell.Position}");
+                    continue;
+                }
                 if (!response.Success) Debug.LogWarning($"[PlaceUndo] remove refused: {response.FailureReason} at {cell.Position}");
             }
 

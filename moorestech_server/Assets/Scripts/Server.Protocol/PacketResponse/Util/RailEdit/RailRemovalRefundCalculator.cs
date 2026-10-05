@@ -13,8 +13,8 @@ using UnityEngine;
 namespace Server.Protocol.PacketResponse.Util.RailEdit
 {
     /// <summary>
-    ///     レールを持つブロックの撤去で一緒に消えるレール区間の返却アイテムを算出する
-    ///     Computes refund items for the rail segments that vanish when a rail-holding block is removed
+    ///     撤去で消えるレール区間の返却アイテムを算出
+    ///     Computes refund items for rail segments removed with the block
     /// </summary>
     public static class RailRemovalRefundCalculator
     {

@@ -30,8 +30,8 @@ namespace Client.Tests.UIState
         [Test]
         public void CategorySkipsNearerOtherCategory()
         {
-            // ブロックのドラッグ中は手前の電線を飛ばして奥のブロックを取る
-            // During a block drag, skip the nearer wire and take the block behind it
+            // ドラッグ中は手前の電線を飛ばす
+            // During a block drag, skip the nearer wire
             var wire = new FakeDeleteTarget { Category = BlockMasterElementExtension.ConnectionLineDestructionCategory };
             var block = new FakeDeleteTarget { Category = "default" };
             var hits = new List<DeleteTargetHit> { new(2f, wire), new(5f, block) };
@@ -55,8 +55,8 @@ namespace Client.Tests.UIState
         [Test]
         public void CategoryWithoutMatchReportsNoTargetOfCategory()
         {
-            // 指定カテゴリーの対象が1件も無ければ理由付きで外れる
-            // With no target of the required category, it misses with a reason
+            // 指定カテゴリーが無ければ理由付きで外れる
+            // With no target of the category, it misses with a reason
             var wire = new FakeDeleteTarget { Category = BlockMasterElementExtension.ConnectionLineDestructionCategory };
             var hits = new List<DeleteTargetHit> { new(2f, wire) };
 
@@ -66,8 +66,8 @@ namespace Client.Tests.UIState
         [Test]
         public void CategoryPicksNearestMatchingTargetPastNonTarget()
         {
-            // 遮蔽物と別カテゴリーを飛ばし、一致する対象の最前面を選ぶ
-            // Pass non-targets and other categories, then choose the nearest matching target
+            // 遮蔽物と別カテゴリーを飛ばし最前面を選ぶ
+            // Skip occluders and other categories; choose the nearest match
             var near = new FakeDeleteTarget { Category = "default" };
             var far = new FakeDeleteTarget { Category = "default" };
             var wire = new FakeDeleteTarget { Category = BlockMasterElementExtension.ConnectionLineDestructionCategory };
@@ -81,8 +81,8 @@ namespace Client.Tests.UIState
         [Test]
         public void FrontmostAcceptsNonTargetWhileCategoryOnlyAcceptsMatchingTarget()
         {
-            // 未固定は全ヒットを受け、固定時は一致するカテゴリーだけ受ける
-            // Unfixed aim accepts every hit; fixed aim accepts only matching categories
+            // 未固定は全ヒット、固定は一致のみ受ける
+            // Unfixed accepts all hits; fixed accepts only matches
             Assert.IsTrue(DeleteAimFilter.Frontmost.Accepts(null));
             Assert.IsTrue(DeleteAimFilter.Category("default").Accepts(new FakeDeleteTarget { Category = "default" }));
             Assert.IsFalse(DeleteAimFilter.Category("default").Accepts(new FakeDeleteTarget { Category = "foundation" }));
@@ -91,8 +91,8 @@ namespace Client.Tests.UIState
         [Test]
         public void CategoryWithOnlyNonTargetHitsHasNoDragDenial()
         {
-            // 対象でない遮蔽物だけなら異カテゴリーの拒否表示を出さない
-            // Non-target occluders alone must not show an off-category drag denial
+            // 遮蔽物だけなら異カテゴリー拒否を出さない
+            // Occluders alone must not show a category denial
             var hits = new List<DeleteTargetHit> { new(1f, null), new(3f, null) };
             var result = DeleteTargetHitSelector.Select(hits, DeleteAimFilter.Category("default"));
 
@@ -104,8 +104,8 @@ namespace Client.Tests.UIState
         [Test]
         public void OffCategoryTargetBehindNonTargetReportsDragDenial()
         {
-            // 遮蔽物の奥にも別カテゴリーしか無ければ異カテゴリー理由を返す
-            // An off-category target behind an occluder still returns the category denial
+            // 遮蔽物の奥が別カテゴリーなら理由を返す
+            // An off-category target behind an occluder returns the denial
             var wire = new FakeDeleteTarget { Category = BlockMasterElementExtension.ConnectionLineDestructionCategory };
             var hits = new List<DeleteTargetHit> { new(1f, null), new(3f, wire) };
             var result = DeleteTargetHitSelector.Select(hits, DeleteAimFilter.Category("default"));
@@ -120,8 +120,8 @@ namespace Client.Tests.UIState
         [TestCase(DeleteAimOutcome.OccludedByNonTarget)]
         public void OtherAimOutcomesDoNotShowCategoryDenial(DeleteAimOutcome outcome)
         {
-            // 成功・空間・非対象のヒットには異カテゴリー拒否を付けない
-            // Found, empty and non-target aim results do not carry the category denial
+            // 成功・空間・非対象には拒否を付けない
+            // Found, empty and non-target results carry no denial
             var result = outcome == DeleteAimOutcome.Found
                 ? DeleteAimResult.Found(new FakeDeleteTarget())
                 : DeleteAimResult.Missed(outcome);
@@ -131,7 +131,7 @@ namespace Client.Tests.UIState
         [Test]
         public void EmptyHitsReportNothingHit()
         {
-            // ヒット0件はどちらの条件でも NothingHit
+            // 0件はどちらもNothingHit
             // Zero hits are NothingHit under either filter
             Assert.AreEqual(DeleteAimOutcome.NothingHit, DeleteTargetHitSelector.Select(new List<DeleteTargetHit>(), DeleteAimFilter.Frontmost).Outcome);
             Assert.AreEqual(DeleteAimOutcome.NothingHit, DeleteTargetHitSelector.Select(new List<DeleteTargetHit>(), DeleteAimFilter.Category("default")).Outcome);

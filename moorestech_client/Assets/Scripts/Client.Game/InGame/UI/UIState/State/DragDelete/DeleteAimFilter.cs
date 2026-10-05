@@ -2,8 +2,8 @@ using Client.Game.InGame.UI.UIState.State;
 namespace Client.Game.InGame.UI.UIState.State.DragDelete
 {
     /// <summary>
-    ///     削除ツールの照準の絞り込み条件。最前面か、指定カテゴリーの最前面かの2択（nullを合図に使わない）
-    ///     Aim filter of the delete tool: plain frontmost, or frontmost within a category (null is never used as a signal)
+    ///     削除ツール照準の絞り込み条件（最前面か指定カテゴリー）
+    ///     Delete-tool aim filter: frontmost or frontmost in a category
     /// </summary>
     public readonly struct DeleteAimFilter
     {
@@ -23,8 +23,8 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             _categoryKey = categoryKey;
         }
 
-        // 最前面条件は何でも受け、カテゴリー条件は一致したものだけ受ける
-        // Frontmost accepts anything; a category filter accepts only matching targets
+        // 最前面は全て受け、カテゴリー条件は一致のみ受ける
+        // Frontmost accepts all; a category filter accepts only matches
         public bool Accepts(IDeleteTarget target)
         {
             if (!IsCategoryRequired) return true;

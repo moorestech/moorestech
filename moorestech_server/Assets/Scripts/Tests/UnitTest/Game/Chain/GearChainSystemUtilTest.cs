@@ -160,8 +160,8 @@ namespace Tests.UnitTest.Game.Chain
             var poleB = blockB.GetComponent<IGearChainPole>();
             var poleC = blockC.GetComponent<IGearChainPole>();
             
-            // 上限到達と、拒否された接続の両端不在を公開APIで検証する
-            // Verify capacity and absence of the rejected connection at both ends through public APIs
+            // 上限到達と拒否された両端不在を検証
+            // Verify capacity and absence of the rejected connection at both ends
             Assert.IsTrue(poleA.IsConnectionFull);
             Assert.IsFalse(poleA.ContainsChainConnection(blockD.BlockInstanceId));
             Assert.IsFalse(blockD.GetComponent<IGearChainPole>().ContainsChainConnection(blockA.BlockInstanceId));

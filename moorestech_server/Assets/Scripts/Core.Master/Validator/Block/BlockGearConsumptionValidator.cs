@@ -7,8 +7,6 @@ namespace Core.Master.Validator.Block
     {
         internal static string Validate(Blocks blocks)
         {
-            // 全BlockParamのGearConsumptionを検証する
-            // Validate GearConsumption on every block param that has one
             var logs = "";
             foreach (var block in blocks.Data)
             {

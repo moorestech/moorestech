@@ -38,8 +38,8 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
 
         public static GearChainPoleChainConnectInput CreateConnectablePairInput(FakeGearChainPole sourcePole)
         {
-            // 起点と命中ポールが接続可能な標準入力を作る
-            // Build a standard input where the source and hit pole are connectable
+            // 接続可能な標準入力を作る
+            // Build a standard connectable input
             var hitPole = new FakeGearChainPole(new Vector3Int(5, 0, 5));
             var sourcePos = sourcePole.GetBlockPosition();
             var hitPos = hitPole.GetBlockPosition();

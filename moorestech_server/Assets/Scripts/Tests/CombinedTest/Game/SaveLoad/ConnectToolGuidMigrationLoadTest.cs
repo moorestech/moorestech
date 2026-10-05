@@ -27,8 +27,8 @@ using UnityEngine;
 
 namespace Tests.CombinedTest.Game.SaveLoad
 {
-    // 版3（種類なし）のセーブが本番と同じ連鎖で版4へ上がり、線種別の固定の種類が埋まってロードできることを検証する
-    // Verify a version-3 save (no tool) rises to version 4 through the production chain and loads with the fixed per-kind tools
+    // 版3のセーブが版4へ上がりロードできることを検証
+    // Verify a version-3 save rises to version 4 and loads with fixed tools
     public class ConnectToolGuidMigrationLoadTest
     {
         private static readonly Guid WireToolGuid = Guid.Parse("c0000000-0000-0000-0000-000000000001");
@@ -53,8 +53,8 @@ namespace Tests.CombinedTest.Game.SaveLoad
         {
             var save = BuildVersion3Save(out var posPole, out var posGenerator, out var posChainA, out var posChainB);
 
-            // 一時ファイルをDIの実セーブパスに指定し、本番の読み込み入口を通す
-            // Configure a temporary file as the actual DI save path and exercise the production entry point
+            // 一時ファイルを実セーブパスに指定する
+            // Point the DI save path at a temporary file
             var original = save.ToString();
             Directory.CreateDirectory(_archiveRoot);
             var sourcePath = WorldDataDirectory.FromWorldRoot(_archiveRoot).SaveJsonFilePath;
@@ -68,8 +68,8 @@ namespace Tests.CombinedTest.Game.SaveLoad
             Assert.AreEqual(sourcePath, configuredDirectory.SaveJsonFilePath);
             loadProvider.GetRequiredService<IWorldSaveDataLoader>().LoadOrInitialize();
 
-            // ロードは原本を保持し、版3のバックアップと新版で再保存できるワールドを残す
-            // Loading preserves the original, archives version 3, and yields a world serializable in the new version
+            // 原本を保持し新版で再保存できる世界を残す
+            // Loading keeps the original and archives version 3
             Assert.AreEqual(original, File.ReadAllText(sourcePath));
             Assert.AreEqual(original, File.ReadAllText(configuredDirectory.BackupSaveJsonPath(3)));
             var loadedSave = JObject.Parse(loadProvider.GetRequiredService<AssembleSaveJsonText>().AssembleSaveJson());
@@ -100,8 +100,8 @@ namespace Tests.CombinedTest.Game.SaveLoad
         public void 壊れた版3は原本を変更せずロードを拒否する()
         {
             var save = BuildVersion3Save(out _, out _, out _, out _);
-            // 正常な接続の後に壊れた接続を置き、部分変換後の拒否も確認する
-            // Put corruption after valid connections to check refusal after partial conversion
+            // 正常な接続の後に壊れた接続を置く
+            // Put a corrupt connection after valid ones
             ((JArray)save["world"]).Add(new JObject
             {
                 ["state"] = new JObject { ["GearChainPoleComponent"] = new JObject { ["connections"] = new JArray(1) } }

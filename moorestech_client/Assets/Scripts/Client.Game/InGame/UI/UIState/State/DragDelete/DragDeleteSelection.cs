@@ -19,8 +19,8 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         private readonly Dictionary<object, IDeleteTarget> _selectedTargets = new();
         private bool _canceled;
 
-        // 最初の対象のカテゴリーで照準を固定する（未固定時は最前面）
-        // Fix aim to the first target category; use frontmost while unfixed
+        // 最初の対象のカテゴリーで照準を固定
+        // Fix aim to the first target's category
         public DeleteAimFilter AimFilter { get; private set; } = DeleteAimFilter.Frontmost;
 
         public DragDeleteSelection(BuildOperationHistory buildOperationHistory, IRemovalRestoreSender restoreSender)

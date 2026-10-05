@@ -5,16 +5,16 @@ using UnityEngine;
 namespace Client.Game.InGame.Train.RailGraph
 {
     /// <summary>
-    ///     レール1本の赤プレビューを要求者ごとに数え、最初の要求で赤く・最後の解除で戻す（電線・チェーンと同じ規則）
-    ///     Counts red-preview requesters for one rail; reddens on the first request and resets on the last release (same rule as wires/chains)
+    ///     レール1本の赤プレビューを要求者ごとに数える
+    ///     Counts red-preview requesters per rail; red on first, reset on last
     /// </summary>
     public class RailChainRemovePreview : MonoBehaviour, IRemovePreviewable
     {
         private readonly RemovePreviewRequests _requests = new();
         private BezierRailChain _chain;
 
-        // チェーンのGameObjectに1つだけ付ける（プレハブを変えずに済むよう実行時に付与）
-        // Attach exactly one per chain GameObject (added at runtime so the prefab stays untouched)
+        // チェーンのGameObjectに1つだけ実行時付与
+        // Attach one per chain GameObject at runtime, leaving the prefab untouched
         public static RailChainRemovePreview Of(BezierRailChain chain)
         {
             var preview = chain.GetComponent<RailChainRemovePreview>();

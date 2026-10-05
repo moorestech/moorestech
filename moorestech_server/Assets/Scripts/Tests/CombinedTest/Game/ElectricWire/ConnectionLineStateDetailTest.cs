@@ -23,8 +23,8 @@ using UnityEngine;
 
 namespace Tests.CombinedTest.Game.ElectricWire
 {
-    // 電線・チェーンの状態詳細が接続先と引いた種類をクライアントへ運ぶことを検証する
-    // Verify wire and chain state details carry each partner and the tool it was drawn with to the client
+    // 状態詳細が接続先と種類を運ぶことを検証
+    // Verify state details carry each partner and its tool kind
     public class ConnectionLineStateDetailTest
     {
         private int _playerId;

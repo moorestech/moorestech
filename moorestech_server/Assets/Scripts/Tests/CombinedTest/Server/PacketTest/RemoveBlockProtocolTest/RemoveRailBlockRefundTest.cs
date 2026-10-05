@@ -39,7 +39,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         [SetUp]
         public void SetUp()
         {
-            // レール環境と解放済みレールconnectToolを準備する
+            // レール環境と解放済みツールを準備
             // Prepare the rail environment and the unlocked rail connectTool
             _environment = TrainTestHelper.CreateEnvironment();
             _inventory = _environment.ServiceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
@@ -52,7 +52,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         [TestCase(true)]
         public void 橋脚または駅の撤去で付いていたレールの素材が返る(bool station)
         {
-            // 同じ種類の未接続ブロックと比較してレール分だけを測る
+            // 同種の未接続ブロックと比較して差を測る
             // Compare against an unconnected block of the same type to isolate the rail refund
             var blockId = station ? ForUnitTestModBlockId.TestTrainStation : ForUnitTestModBlockId.TestTrainRail;
             var (_, components) = TrainTestHelper.PlaceBlockWithRailComponents(_environment, blockId, Vector3Int.zero, BlockDirection.North);
@@ -62,8 +62,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             var units = CalculateUnits(railA.FrontNode, railB.BackNode);
             ConnectWithTool(railA.FrontNode, railB.BackNode, units);
 
-            // 接続の無い橋脚の撤去で、撤去そのものの返却分（建設コスト）を基準として測る
-            // Measure the removal's own refund (construction cost) on an unconnected pier as the baseline
+            // 未接続橋脚の撤去返却分を基準とする
+            // Measure the removal's own refund on an unconnected pier as the baseline
             var (baseReinforcing, baseIron) = RemoveAndMeasureGain(new Vector3Int(30, 0, 0));
             var (reinforcing, iron) = RemoveAndMeasureGain(Vector3Int.zero);
 
@@ -80,8 +80,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             var units = CalculateUnits(railA.FrontNode, railB.BackNode);
             ConnectWithTool(railA.FrontNode, railB.BackNode, units);
 
-            // 先にA側を撤去してレールを返却させ、B側の撤去では基準分しか返らないことを確かめる
-            // Remove A first so the rail is refunded there; removing B must then return only the baseline
+            // A撤去でレール返却、B撤去は基準分のみ
+            // Remove A first so the rail is refunded; removing B returns only the baseline
             var (baseReinforcing, baseIron) = RemoveAndMeasureGain(new Vector3Int(30, 0, 0));
             RemoveAndMeasureGain(Vector3Int.zero);
             var (reinforcing, iron) = RemoveAndMeasureGain(new Vector3Int(10, 0, 0));
@@ -109,8 +109,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             var units = CalculateUnits(railA.FrontNode, railB.BackNode);
             ConnectWithTool(railA.FrontNode, railB.BackNode, units);
 
-            // 返却素材と重ならない別アイテムの満杯スタックで全スロットを埋める
-            // Fill every slot with full stacks of an unrelated item so the refund cannot merge anywhere
+            // 別アイテムの満杯スタックで全枠を埋める
+            // Fill every slot with full stacks of an unrelated item
             var fillerItemId = MasterHolder.ItemMaster.GetItemId(FillerItemGuid);
             var fillerMaxStack = ItemStackLevelDataStore.Instance.GetMaxStack(fillerItemId);
             for (var i = 0; i < _inventory.GetSlotSize(); i++) _inventory.SetItem(i, ServerContext.ItemStackFactory.Create(fillerItemId, fillerMaxStack));
@@ -135,7 +135,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
         private void ConnectWithTool(RailNode from, RailNode to, int units)
         {
-            // 接続に必要な素材をちょうど持たせ、レールconnectToolで接続する
+            // 必要素材ちょうどでレールを接続する
             // Give exactly the required materials and connect with the rail connectTool
             _inventory.SetItem(0, ServerContext.ItemStackFactory.Create(_reinforcingMaterialId, units * 12));
             _inventory.SetItem(1, ServerContext.ItemStackFactory.Create(_ironPlateId, units * 5));

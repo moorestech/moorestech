@@ -18,7 +18,7 @@ namespace Client.Tests.PlaceSystem.ConnectTool
         [Test]
         public void UnlockedLineToolIsPicked()
         {
-            // 線の種類が解放済みならその種類の接続ツールを選ぶ
+            // 解放済みの線種はそのツールを選ぶ
             // An unlocked line tool is picked as-is
             var guid = Guid.NewGuid();
             var result = ConnectionLinePickResolver.Resolve(guid, new FakeUnlockState(guid, true));

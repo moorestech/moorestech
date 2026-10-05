@@ -44,7 +44,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Rail
         [SetUp]
         public void SetUp()
         {
-            // 接続対象のレール端点と解放済みconnectToolを準備する
+            // レール端点と解放済みツールを準備
             // Prepare rail endpoints and the unlocked connectTool
             _environment = TrainTestHelper.CreateEnvironment();
             var registry = _environment.ServiceProvider.GetRequiredService<PlayerIdentityRegistry>();
@@ -73,7 +73,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Rail
 
         protected void SetInventory(int reinforcingCount, int ironPlateCount)
         {
-            // 2本分の素材もスタック上限を守って複数枠へ分配する
+            // 2本分の素材も上限を守って複数枠へ分配
             // Distribute even a two-rail budget across slots within each stack limit
             var slot = 0;
             AddStacks(_reinforcingMaterialId, reinforcingCount);

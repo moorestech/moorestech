@@ -51,8 +51,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
 
         public void SendConnectionRestore(IRemovalRestoreSender sender)
         {
-            // 既に同じ端点・線種が接続済みならサーバーへ重複要求を送らない
-            // Skip the duplicate server request when the same endpoint pair and line kind is already connected
+            // 接続済みなら重複要求を送らない
+            // Skip duplicate requests when already connected
             if (_currentState.HasConnection(_kind, _posA, _posB))
             {
                 Debug.LogWarning($"[RemovalRestore] skip line restore: already connected kind={_kind} {_posA}-{_posB}");

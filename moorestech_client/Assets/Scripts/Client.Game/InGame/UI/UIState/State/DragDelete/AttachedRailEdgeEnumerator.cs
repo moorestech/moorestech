@@ -17,13 +17,13 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             var seen = new HashSet<(int, int)>();
             for (var nodeId = 0; nodeId < cache.Nodes.Count; nodeId++)
             {
-                // このブロックに属するノードだけを見る（表裏ノードとも同じブロック座標を持つ）
-                // Only nodes owned by this block (front and back nodes share the block position)
+                // このブロックのノードだけを見る
+                // Only nodes owned by this block
                 var node = cache.Nodes[nodeId];
                 if (node == null || node.ConnectionDestination.IsDefault() || (Vector3Int)node.ConnectionDestination.blockPosition != blockPosition) continue;
 
-                // 出る辺だけで両向きを網羅できる（入る辺は対向ノードの出る辺）
-                // Outgoing edges cover both directions (an incoming edge is the opposite node's outgoing one)
+                // 出る辺だけで両向きを網羅できる
+                // Outgoing edges cover both directions
                 foreach (var (targetId, _) in cache.ConnectNodes[nodeId])
                 {
                     var canonical = RailSegmentPairing.SelectCanonicalPair(nodeId, targetId);

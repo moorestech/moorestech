@@ -41,10 +41,10 @@ namespace Client.Game.InGame.Train.RailGraph
 
         private RailGraphPathFinder _pathFinder;//ダイクストラ法
 
-        // スナップショット適用後（レール表示の再構築後）に発火する
-        // Fires after a snapshot is applied (after rail displays are rebuilt)
-        private readonly Subject<UniRx.Unit> _rebuilt = new();
-        public IObservable<UniRx.Unit> OnRebuilt => _rebuilt;
+        // レール網トポロジ変化の適用後に発火する
+        // Fires after the rail topology changes
+        private readonly Subject<UniRx.Unit> _railTopologyChanged = new();
+        public IObservable<UniRx.Unit> OnRailTopologyChanged => _railTopologyChanged;
 
         private RailGraphClientCache()
         {
@@ -66,7 +66,7 @@ namespace Client.Game.InGame.Train.RailGraph
             // Apply edge information onto adjacency list
             PopulateConnections(snapshot, _connectNodes);
             TrainRailObjectManager.Instance?.OnCacheRebuilt(this);
-            _rebuilt.OnNext(UniRx.Unit.Default);
+            _railTopologyChanged.OnNext(UniRx.Unit.Default);
             #region Internal
 
             void ResetSlots(int requiredCount)
@@ -170,6 +170,7 @@ namespace Client.Game.InGame.Train.RailGraph
                 outgoing.Clear();
             }
             RemoveIncomingConnections(nodeId);
+            _railTopologyChanged.OnNext(UniRx.Unit.Default);
         }
 
         // Apply or overwrite an edge diff connecting two nodes
@@ -193,6 +194,7 @@ namespace Client.Game.InGame.Train.RailGraph
             }
             UpsertRailSegment(fromNodeId, toNodeId, distance, railTypeGuid, isDrawable);
             TrainRailObjectManager.Instance?.OnConnectionUpserted(fromNodeId, toNodeId, this);
+            _railTopologyChanged.OnNext(UniRx.Unit.Default);
         }
 
         // Apply an edge removal diff
@@ -205,6 +207,7 @@ namespace Client.Game.InGame.Train.RailGraph
                 return;
             RemoveRailSegment(fromNodeId, toNodeId);
             TrainRailObjectManager.Instance?.OnConnectionRemoved(fromNodeId, toNodeId, this);
+            _railTopologyChanged.OnNext(UniRx.Unit.Default);
         }
 
         // Retrieve IrailNode by RailNodeId

@@ -41,8 +41,8 @@ namespace Server.Protocol.PacketResponse.Rail
 
             void Connect(RailConnectByDestinationRequest data, int playerId)
             {
-                // 外部入力に端点情報が無ければ解決前に拒否する
-                // Reject missing endpoint data at the external input boundary
+                // 端点情報が無ければ解決前に拒否
+                // Reject missing endpoint data before resolving
                 if (data.From?.BlockPosition == null || data.To?.BlockPosition == null)
                 {
                     NotifyDenied(RailConnectionEditFailureReason.InvalidNode);
@@ -60,8 +60,8 @@ namespace Server.Protocol.PacketResponse.Rail
                     return;
                 }
 
-                // 既に繋がっていれば二重課金せず何もしない（駅の隣接自動接続などで先に復元済み）
-                // Already connected: do nothing and charge nothing (e.g. already restored by station adjacency)
+                // 既に接続済みなら何もしない
+                // Already connected: do nothing and charge nothing
                 if (_railGraphDatastore.GetConnectedNodesWithDistance(fromNode).Any(connected => connected.Item1.NodeId == toNode.NodeId))
                 {
                     Debug.Log($"[RailConnectByDestination] already connected, skipped. from={fromNode.NodeId} to={toNode.NodeId}");

@@ -37,8 +37,8 @@ namespace Game.Block.Blocks.GearChainPole
                     break;
                 }
 
-                // 接続相手と保存した種類・素材を同時に復元する
-                // Restore each partner together with the saved tool and materials
+                // 相手と保存した種類・素材を復元
+                // Restore each partner with its saved tool and materials
                 var transformer = ResolveTarget(ownerId, partnerId);
                 if (transformer == null) continue;
                 mutation.Add(partnerId, transformer, connection.ToConnectionRecord());

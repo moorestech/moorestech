@@ -10,16 +10,16 @@ using UnityEngine;
 namespace Client.Tests.BuildUndo
 {
     /// <summary>
-    ///     レール区間の撤去記録が、引いた種類を持つ区間だけを対象にすることを検証する
-    ///     Verifies rail removal records cover only edges carrying the tool kind they were drawn with
+    ///     種類付きレール区間だけを記録対象とすることを検証
+    ///     Verifies rail removal records cover only edges with a drawn tool kind
     /// </summary>
     public class RemovedRailTest
     {
         [Test]
         public void EdgeWithRailTypeIsRecordedAndRestoredByDestination()
         {
-            // 種類付きの区間は両端ConnectionDestinationと種類で引き直す
-            // An edge with a rail type is restored by both ConnectionDestinations and that type
+            // 種類付きは両端と種類で引き直す
+            // A typed edge is restored by both endpoints and its kind
             var railType = Guid.NewGuid();
             var cache = CreateTwoPierCache(railType);
             var sender = new FakeRemovalRestoreSender();
@@ -34,8 +34,8 @@ namespace Client.Tests.BuildUndo
         [Test]
         public void EdgeWithEmptyRailTypeIsNotRecorded()
         {
-            // 駅内部・駅隣接の自動レール（種類Empty）は記録しない（駅の再設置で自動的に戻る）
-            // Station-internal / station-adjacent auto rails (Empty type) are not recorded (station re-placement restores them)
+            // 駅の自動レール(Empty)は記録しない
+            // Station auto rails (Empty kind) are not recorded
             var cache = CreateTwoPierCache(Guid.Empty);
             Assert.AreEqual(RemovedRailCreateOutcome.FreeSegment, RemovedRail.Create(cache, 0, 2).Outcome);
         }
@@ -55,8 +55,8 @@ namespace Client.Tests.BuildUndo
             cache.TryGetNode(0, out var from);
             cache.TryGetNode(2, out var to);
 
-            // 同一駅の内部区間は手動接続の復元対象にしない
-            // Internal edges of one station are never restored as manual connections
+            // 同一駅の内部区間は復元対象外
+            // Internal edges of one station are not restored
             from.StationRef.SetStationReference(new BlockInstanceId(7), Vector3Int.zero, StationNodeRole.Entry, StationNodeSide.Front);
             to.StationRef.SetStationReference(new BlockInstanceId(7), Vector3Int.zero, StationNodeRole.Exit, StationNodeSide.Front);
             Assert.AreEqual(RemovedRailCreateOutcome.StationInternal, RemovedRail.Create(cache, 0, 2).Outcome);

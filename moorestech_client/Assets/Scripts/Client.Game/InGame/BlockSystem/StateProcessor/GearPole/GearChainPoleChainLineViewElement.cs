@@ -34,15 +34,15 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.GearPole
             _startInstanceId = startInstanceId;
             _endInstanceId = endInstanceId;
 
-            // 即座に解決できなければUpdateでの遅延再試行に委ねる
-            // If not resolvable immediately, defer to the retry loop in Update
+            // 即解決できなければUpdateで再試行
+            // If unresolved now, retry in Update
             enabled = !TryBuildLine();
         }
 
         private void Update()
         {
-            // 未解決の間のみ一定間隔で相手ブロックの生成を再確認する
-            // While unresolved, periodically recheck whether the partner block has been created
+            // 未解決の間だけ相手の生成を再確認
+            // While unresolved, periodically recheck partner creation
             _retryTimer -= Time.deltaTime;
             if (0f < _retryTimer) return;
             _retryTimer = RetryIntervalSeconds;
@@ -50,8 +50,8 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.GearPole
             if (TryBuildLine()) enabled = false;
         }
 
-        // 両端ブロックの解決と線・コライダー構築を試みる。相手が未生成ならfalseを返す
-        // Attempt to resolve both endpoints and build lines and collider; returns false if the partner is not yet created
+        // 両端を解決し線とコライダーを構築。未生成ならfalse
+        // Resolve both ends and build line and collider; false if not yet created
         private bool TryBuildLine()
         {
             // BlockGameObjectDataStoreから座標を取得
@@ -87,8 +87,8 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.GearPole
             lineRenderer2.SetPosition(0, startPos - offset);
             lineRenderer2.SetPosition(1, endPos - offset);
 
-            // 削除ツールが狙えるよう、両端を結ぶトリガーカプセルを接続線レイヤーに置く
-            // Place a trigger capsule spanning both ends on the connection-line layer so the delete tool can aim at it
+            // 削除ツール用に両端を結ぶカプセルを置く
+            // Place a capsule spanning both ends for the delete tool
             ConnectionLineColliderBuilder.AddCapsule(transform, (startPos + endPos) * 0.5f, endPos - startPos, ColliderRadius, Vector3.Distance(startPos, endPos));
             return true;
         }

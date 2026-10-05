@@ -47,8 +47,8 @@ namespace Tests.CombinedTest.Server.PacketTest.GearChain
             world.FillInventory();
             var before = world.Inventory.InventoryItems.Select(stack => (stack.Id, stack.Count)).ToArray();
 
-            // 返却拒否で接続記録もインベントリも変えない
-            // A refused refund changes neither connection records nor inventory
+            // 返却拒否で記録もインベントリも不変
+            // A refused refund changes neither records nor inventory
             var response = world.Send(GearChainConnectionEditRequest.CreateDisconnectRequest(PosA, PosB));
             world.AssertDenied(response, "InventoryFull", "denied.gearChainDisconnect.InventoryFull");
             Assert.IsTrue(Pole(PosA).TryGetChainConnectionRecord(Pole(PosB).BlockInstanceId, out var recordA));
@@ -80,8 +80,8 @@ namespace Tests.CombinedTest.Server.PacketTest.GearChain
         public void RefundUsesRecordedMaterialsInsteadOfCurrentToolCost()
         {
             var world = new GearChainEditTestWorld(true);
-            // 保存済みの支払額は現在のマスタ単価とは独立して返す
-            // Refund the saved payment independently of the current master price
+            // 支払額は現在のマスタ単価と独立して返す
+            // Refund the saved payment independent of the current master price
             var materials = new[] { new ConnectToolMaterialCost(world.ChainItemId, 3), new ConnectToolMaterialCost(world.FillerItemId, 2) };
             var record = new ConnectionLineRecord(ChainToolGuid, materials);
             Assert.IsTrue(Pole(PosA).TryAddChainConnection(Pole(PosB).BlockInstanceId, record));
