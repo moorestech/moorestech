@@ -38,9 +38,9 @@ namespace Client.Tests.BuildUndo
             var guid = Guid.NewGuid();
             var posA = new Vector3Int(0, 0, 0);
             var posB = new Vector3Int(5, 0, 0);
-            var currentState = new FakeConnectionLineCurrentState();
-            var line = new RemovedConnectionLine(ConnectionLineKind.ElectricWire, posA, posB, guid, currentState);
-            var sameLineReversed = new RemovedConnectionLine(ConnectionLineKind.ElectricWire, posB, posA, guid, currentState);
+            var commands = new FakeConnectionLineCommands(ConnectionLineKind.ElectricWire);
+            var line = new RemovedConnectionLine(ConnectionLineKind.ElectricWire, posA, posB, guid, commands);
+            var sameLineReversed = new RemovedConnectionLine(ConnectionLineKind.ElectricWire, posB, posA, guid, commands);
             var block = new RemovedBlock(posA, ForUnitTestModBlockId.MachineId, BlockDirection.North, Array.Empty<BlockCreateParam>());
             var targets = new List<IDeleteTarget>
             {
@@ -63,7 +63,7 @@ namespace Client.Tests.BuildUndo
             // An occupied cell is skipped, but the line restore is sent
             var guid = Guid.NewGuid();
             var block = new RemovedBlock(Vector3Int.zero, ForUnitTestModBlockId.MachineId, BlockDirection.North, Array.Empty<BlockCreateParam>());
-            var chain = new RemovedConnectionLine(ConnectionLineKind.GearChain, Vector3Int.zero, new Vector3Int(3, 0, 0), guid, new FakeConnectionLineCurrentState());
+            var chain = new RemovedConnectionLine(ConnectionLineKind.GearChain, Vector3Int.zero, new Vector3Int(3, 0, 0), guid, new FakeConnectionLineCommands(ConnectionLineKind.GearChain));
             var sender = new FakeRemovalRestoreSender();
             var record = RemoveOperationRecord.CreateFrom(new List<IDeleteTarget> { new FakeDeleteTarget { RemovedObjects = { block, chain } } }, sender);
 
@@ -75,21 +75,21 @@ namespace Client.Tests.BuildUndo
 
         [TestCase(ConnectionLineKind.ElectricWire)]
         [TestCase(ConnectionLineKind.GearChain)]
-        public void ExistingConnectionIsNotSentAgain(ConnectionLineKind kind)
+        public void RestoreRequestIsAlwaysSentToServer(ConnectionLineKind kind)
         {
-            // 撤去拒否で線が残れば要求を送らない
-            // If removal was denied and the line remains, send no request
+            // 既接続の判定はサーバーに任せる
+            // Let the server decide whether the line is already connected
             var posA = Vector3Int.zero;
             var posB = new Vector3Int(3, 0, 0);
-            var currentState = new FakeConnectionLineCurrentState();
-            currentState.SetConnected(kind, posB, posA);
-            var line = new RemovedConnectionLine(kind, posA, posB, Guid.NewGuid(), currentState);
+            var tool = Guid.NewGuid();
+            var line = new RemovedConnectionLine(kind, posA, posB, tool, new FakeConnectionLineCommands(kind));
             var sender = new FakeRemovalRestoreSender();
             var record = RemoveOperationRecord.CreateFrom(new List<IDeleteTarget> { new FakeDeleteTarget { RemovedObjects = { line } } }, sender);
 
             record.UndoAsync(new FakeOccupancy(false)).GetAwaiter().GetResult();
 
-            Assert.IsEmpty(sender.Sent);
+            var prefix = kind == ConnectionLineKind.ElectricWire ? "wire" : "chain";
+            CollectionAssert.AreEqual(new[] { $"{prefix}:{posA}-{posB}:{tool}" }, sender.Sent);
         }
 
         [Test]
@@ -99,10 +99,8 @@ namespace Client.Tests.BuildUndo
             // A chain at the same endpoints does not suppress a wire restore
             var posA = Vector3Int.zero;
             var posB = Vector3Int.right;
-            var currentState = new FakeConnectionLineCurrentState();
-            currentState.SetConnected(ConnectionLineKind.GearChain, posA, posB);
             var tool = Guid.NewGuid();
-            var line = new RemovedConnectionLine(ConnectionLineKind.ElectricWire, posA, posB, tool, currentState);
+            var line = new RemovedConnectionLine(ConnectionLineKind.ElectricWire, posA, posB, tool, new FakeConnectionLineCommands(ConnectionLineKind.ElectricWire));
             var sender = new FakeRemovalRestoreSender();
             var record = RemoveOperationRecord.CreateFrom(new List<IDeleteTarget> { new FakeDeleteTarget { RemovedObjects = { line } } }, sender);
 
@@ -128,6 +126,32 @@ namespace Client.Tests.BuildUndo
         }
 
         [Test]
+        public void SameBlockStillPresentIsNotCountedAsSkipped()
+        {
+            var block = new RemovedBlock(Vector3Int.zero, ForUnitTestModBlockId.MachineId, BlockDirection.North, Array.Empty<BlockCreateParam>());
+            var sender = new FakeRemovalRestoreSender();
+            var record = RemoveOperationRecord.CreateFrom(new[] { new FakeDeleteTarget { RemovedObjects = { block } } }, sender);
+
+            record.UndoAsync(new FakeOccupancy(BlockFootprintOccupancy.SameBlockPresent)).GetAwaiter().GetResult();
+            Assert.IsEmpty(sender.Sent);
+        }
+
+        [TestCase(BlockFootprintOccupancy.SameBlockPresent, 0)]
+        [TestCase(BlockFootprintOccupancy.Free, 1)]
+        public void UnrecordableBlockCountsOnlyAfterItHasGone(BlockFootprintOccupancy occupancy, int expectedSkipped)
+        {
+            var target = new FakeDeleteTarget();
+            target.UnrecordableBlocks.Add((Vector3Int.zero, BlockDirection.North, ForUnitTestModBlockId.MachineId, "missing create params"));
+            var sender = new FakeRemovalRestoreSender();
+            LogAssert.Expect(LogType.Warning, "[RemovalRestore] unrecordable: missing create params");
+            var record = RemoveOperationRecord.CreateFrom(new[] { target }, sender);
+
+            record.UndoAsync(new FakeOccupancy(occupancy)).GetAwaiter().GetResult();
+            if (expectedSkipped == 0) Assert.IsEmpty(sender.Sent);
+            else CollectionAssert.AreEqual(new[] { "skipped:1" }, sender.Sent);
+        }
+
+        [Test]
         public void TargetsWithoutRemovedObjectsYieldEmptyRecord()
         {
             // 何も記録しない対象だけなら履歴に積まない
@@ -138,9 +162,16 @@ namespace Client.Tests.BuildUndo
 
         private class FakeOccupancy : IBlockOccupancyQuery
         {
-            private readonly bool _occupied;
-            public FakeOccupancy(bool occupied) { _occupied = occupied; }
-            public bool IsOverlapPositionInfo(BlockPositionInfo target) { return _occupied; }
+            private readonly BlockFootprintOccupancy _occupancy;
+            public FakeOccupancy(bool occupied)
+            {
+                _occupancy = occupied ? BlockFootprintOccupancy.OtherBlock : BlockFootprintOccupancy.Free;
+            }
+            public FakeOccupancy(BlockFootprintOccupancy occupancy) { _occupancy = occupancy; }
+            public BlockFootprintOccupancy GetOccupancy(BlockPositionInfo target, BlockId blockId)
+            {
+                return _occupancy;
+            }
         }
     }
 }

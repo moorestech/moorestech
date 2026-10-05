@@ -1,3 +1,4 @@
+using Core.Master;
 using Game.Block.Interface;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
@@ -8,6 +9,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
     /// </summary>
     public interface IBlockOccupancyQuery
     {
-        bool IsOverlapPositionInfo(BlockPositionInfo target);
+        BlockFootprintOccupancy GetOccupancy(BlockPositionInfo target, BlockId blockId);
+    }
+
+    public enum BlockFootprintOccupancy
+    {
+        Free,
+        SameBlockPresent,
+        OtherBlock,
     }
 }

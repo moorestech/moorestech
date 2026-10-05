@@ -2,10 +2,12 @@ using Client.Game.InGame.UI.UIState.State.RemovePreview;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.Block.Removal;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
 using Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine;
 using Client.Game.InGame.Train.RailGraph;
 using Game.Block.Interface;
+using Game.Train.SaveLoad;
 using UniRx;
 
 namespace Client.Game.InGame.UI.UIState.State.DragDelete
@@ -23,6 +25,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         // Remember what each block requested red on, and release exactly that set (lines changed meanwhile are not confused)
         private readonly Dictionary<BlockGameObject, List<IRemovePreviewable>> _requested = new();
         private readonly List<(int canonicalFrom, int canonicalTo)> _edgeBuffer = new();
+        private readonly List<ConnectionDestination> _destinationBuffer = new();
 
         public BlockAttachedConnectionResolver(ConnectionLineRegistry registry, RailGraphClientCache railCache)
         {
@@ -60,11 +63,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             foreach (var line in _registry.GetLinesAttachedTo(block.BlockInstanceId)) line.CollectRemovedObjects(collector);
             foreach (var edge in CollectRailEdges(block))
             {
-                // 無償区間と駅内部は再設置で戻るため除外し、未同期だけ記録不能とする
-                // Re-placement restores free and station-internal edges; only unsynced edges count as unrecordable
-                var result = RemovedRail.Create(_railCache, edge.canonicalFrom, edge.canonicalTo);
-                if (result.Outcome == RemovedRailCreateOutcome.Created) collector.Add(result.Rail);
-                else if (result.Outcome != RemovedRailCreateOutcome.FreeSegment && result.Outcome != RemovedRailCreateOutcome.StationInternal) collector.AddUnrecordable($"cascaded rail {edge.canonicalFrom}->{edge.canonicalTo}: {result.Outcome}");
+                RemovedRail.Capture(_railCache, edge.canonicalFrom, edge.canonicalTo, RemovedRailCaptureContext.Cascade, collector);
             }
         }
 
@@ -136,7 +135,10 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         private List<(int canonicalFrom, int canonicalTo)> CollectRailEdges(BlockGameObject block)
         {
             _edgeBuffer.Clear();
-            AttachedRailEdgeEnumerator.Collect(_railCache, block.BlockPosInfo.OriginalPos, _edgeBuffer);
+            _destinationBuffer.Clear();
+            foreach (var source in block.GetComponentsInChildren<IBlockRemovalCascadeSource>(true))
+                source.CollectConnectionDestinations(_destinationBuffer);
+            AttachedRailEdgeEnumerator.Collect(_railCache, _destinationBuffer, _edgeBuffer);
             return _edgeBuffer;
         }
     }

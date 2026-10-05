@@ -6,6 +6,7 @@ using Client.Game.InGame.Train.RailGraph;
 using Game.Train.SaveLoad;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Client.Tests.BuildUndo
 {
@@ -15,6 +16,14 @@ namespace Client.Tests.BuildUndo
     /// </summary>
     public class RemovedRailTest
     {
+        private GameObject _railObject;
+
+        [TearDown]
+        public void TearDown()
+        {
+            if (_railObject != null) UnityEngine.Object.DestroyImmediate(_railObject);
+        }
+
         [Test]
         public void EdgeWithRailTypeIsRecordedAndRestoredByDestination()
         {
@@ -24,20 +33,27 @@ namespace Client.Tests.BuildUndo
             var cache = CreateTwoPierCache(railType);
             var sender = new FakeRemovalRestoreSender();
 
-            var result = RemovedRail.Create(cache, 0, 2);
-            Assert.AreEqual(RemovedRailCreateOutcome.Created, result.Outcome);
-            result.Rail.SendConnectionRestore(sender);
+            var collector = new RemovedObjectCollector();
+            RemovedRail.Capture(cache, 0, 2, RemovedRailCaptureContext.Direct, collector);
+            Assert.AreEqual(1, collector.Objects.Count);
+            collector.Objects[0].SendConnectionRestore(sender);
 
             CollectionAssert.AreEqual(new[] { $"rail:{new Vector3Int(0, 0, 0)}-{new Vector3Int(10, 0, 0)}:{railType}" }, sender.Sent);
         }
 
         [Test]
-        public void EdgeWithEmptyRailTypeIsNotRecorded()
+        public void DirectEmptyRailIsCountedButCascadeEmptyRailIsIgnored()
         {
-            // 駅の自動レール(Empty)は記録しない
-            // Station auto rails (Empty kind) are not recorded
+            // 無償レールは直接切断時だけUndo失敗件数へ入れる
+            // A free edge counts as skipped only when directly cut
             var cache = CreateTwoPierCache(Guid.Empty);
-            Assert.AreEqual(RemovedRailCreateOutcome.FreeSegment, RemovedRail.Create(cache, 0, 2).Outcome);
+            var direct = new RemovedObjectCollector();
+            LogAssert.Expect(LogType.Warning, "[RemovalRestore] unrecordable: costless rail 0->2: direct restore unavailable");
+            RemovedRail.Capture(cache, 0, 2, RemovedRailCaptureContext.Direct, direct);
+            Assert.AreEqual(1, direct.UnrecordableCount);
+            var cascade = new RemovedObjectCollector();
+            RemovedRail.Capture(cache, 0, 2, RemovedRailCaptureContext.Cascade, cascade);
+            Assert.AreEqual(0, cascade.UnrecordableCount);
         }
 
         [Test]
@@ -45,7 +61,10 @@ namespace Client.Tests.BuildUndo
         {
             // 未同期のノードを指す区間は記録しない
             // An edge pointing at an unsynced node is not recorded
-            Assert.AreEqual(RemovedRailCreateOutcome.NodeNotSynced, RemovedRail.Create(RailGraphClientCache.CreateForEditorTest(), 0, 2).Outcome);
+            var collector = new RemovedObjectCollector();
+            LogAssert.Expect(LogType.Warning, "[RemovalRestore] unrecordable: rail 0->2: node not synced");
+            RemovedRail.Capture(RailGraphClientCache.CreateForEditorTest(), 0, 2, RemovedRailCaptureContext.Cascade, collector);
+            Assert.AreEqual(1, collector.UnrecordableCount);
         }
 
         [Test]
@@ -59,7 +78,27 @@ namespace Client.Tests.BuildUndo
             // Internal edges of one station are not restored
             from.StationRef.SetStationReference(new BlockInstanceId(7), Vector3Int.zero, StationNodeRole.Entry, StationNodeSide.Front);
             to.StationRef.SetStationReference(new BlockInstanceId(7), Vector3Int.zero, StationNodeRole.Exit, StationNodeSide.Front);
-            Assert.AreEqual(RemovedRailCreateOutcome.StationInternal, RemovedRail.Create(cache, 0, 2).Outcome);
+            var collector = new RemovedObjectCollector();
+            RemovedRail.Capture(cache, 0, 2, RemovedRailCaptureContext.Direct, collector);
+            Assert.IsEmpty(collector.Objects);
+            Assert.AreEqual(0, collector.UnrecordableCount);
+        }
+
+        [Test]
+        public void DeleteTargetRailCapturesDirectEdgeThroughItsCarrier()
+        {
+            var railType = Guid.NewGuid();
+            var cache = CreateTwoPierCache(railType);
+            _railObject = new GameObject("DirectRailTarget");
+            var carrier = _railObject.AddComponent<RailObjectIdCarrier>();
+            carrier.SetRailObjectId(RailObjectIdCodec.ComputeRailObjectId(0, 2));
+            var target = _railObject.AddComponent<DeleteTargetRail>();
+            target.SetRailGraphCache(cache);
+
+            var collector = new RemovedObjectCollector();
+            target.CollectRemovedObjects(collector);
+            Assert.AreEqual(1, collector.Objects.Count);
+            Assert.AreEqual(0, collector.UnrecordableCount);
         }
 
         private static RailGraphClientCache CreateTwoPierCache(Guid railType)

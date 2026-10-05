@@ -36,7 +36,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
             {
                 if (!source.TryGetBlockRecreateParams(out var sourceParams))
                 {
-                    collector.AddUnrecordable($"block at {block.BlockPosInfo.OriginalPos}: {source.GetType().Name} has no recreate params");
+                    collector.AddUnrecordable(block.BlockPosInfo.OriginalPos, block.BlockPosInfo.BlockDirection, block.BlockId, $"block at {block.BlockPosInfo.OriginalPos}: {source.GetType().Name} has no recreate params");
                     return;
                 }
                 createParams.AddRange(sourceParams);
@@ -49,10 +49,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
 
         public BlockRestoreOutcome AppendBlockRestore(List<PlaceInfo> placeInfos, IBlockOccupancyQuery occupancy)
         {
-            // 占有中のセルは再設置しない（撤去失敗・他者設置セルを除外）。理由はログへ残し、件数はプレイヤー通知へ回る
-            // Skip occupied cells (failed removals or rebuilt cells); log why, and the count goes to the player notification
+            // 占有ストアの辞書キーはオリジン座標だけなので、マルチセルとの重なりはBlockSize込みの占有範囲同士で判定する
+            // The occupancy store keys origins only, so multi-cell overlap must be checked footprint-to-footprint with BlockSize
             var blockSize = MasterHolder.BlockMaster.GetBlockMaster(_blockId).BlockSize;
-            if (occupancy.IsOverlapPositionInfo(new BlockPositionInfo(_position, _direction, blockSize)))
+            var state = occupancy.GetOccupancy(new BlockPositionInfo(_position, _direction, blockSize), _blockId);
+            if (state == BlockFootprintOccupancy.SameBlockPresent)
+            {
+                Debug.Log($"[RemovalRestore] block already present at {_position}");
+                return BlockRestoreOutcome.AlreadyPresent;
+            }
+            if (state == BlockFootprintOccupancy.OtherBlock)
             {
                 Debug.LogWarning($"[RemovalRestore] skip re-place: footprint occupied at {_position}");
                 return BlockRestoreOutcome.SkippedOccupied;

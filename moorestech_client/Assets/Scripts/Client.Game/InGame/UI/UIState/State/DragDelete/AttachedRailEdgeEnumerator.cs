@@ -12,15 +12,18 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
     /// </summary>
     public static class AttachedRailEdgeEnumerator
     {
-        public static void Collect(RailGraphClientCache cache, Vector3Int blockPosition, ICollection<(int canonicalFrom, int canonicalTo)> edges)
+        public static void Collect(RailGraphClientCache cache, IReadOnlyList<ConnectionDestination> destinations, ICollection<(int canonicalFrom, int canonicalTo)> edges)
         {
             var seen = new HashSet<(int, int)>();
-            for (var nodeId = 0; nodeId < cache.Nodes.Count; nodeId++)
+            foreach (var destination in destinations)
             {
-                // このブロックのノードだけを見る
-                // Only nodes owned by this block
-                var node = cache.Nodes[nodeId];
-                if (node == null || node.ConnectionDestination.IsDefault() || (Vector3Int)node.ConnectionDestination.blockPosition != blockPosition) continue;
+                // 同期済みの端点だけから区間を集める
+                // Gather edges only from synchronized destinations
+                if (!cache.TryGetNodeId(destination, out var nodeId))
+                {
+                    Debug.LogWarning($"[RemovalCascade] rail node not synced: {destination}");
+                    continue;
+                }
 
                 // 出る辺だけで両向きを網羅できる
                 // Outgoing edges cover both directions

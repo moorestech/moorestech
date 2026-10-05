@@ -1,4 +1,7 @@
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
+using Core.Master;
+using Game.Block.Interface;
+using UnityEngine;
 using System.Collections.Generic;
 using Client.Game.Common;
 using Client.Game.InGame.UI.UIState.State;
@@ -43,11 +46,14 @@ namespace Client.Tests.UIState.Fakes
         // Returned removed objects and unrecordable reasons (none records nothing)
         public readonly List<IRemovedObject> RemovedObjects = new();
         public readonly List<string> UnrecordableReasons = new();
+        public readonly List<(Vector3Int Position, BlockDirection Direction, BlockId BlockId, string Reason)> UnrecordableBlocks = new();
 
         public void CollectRemovedObjects(RemovedObjectCollector collector)
         {
             foreach (var removedObject in RemovedObjects) collector.Add(removedObject);
             foreach (var reason in UnrecordableReasons) collector.AddUnrecordable(reason);
+            foreach (var block in UnrecordableBlocks)
+                collector.AddUnrecordable(block.Position, block.Direction, block.BlockId, block.Reason);
         }
 
         public void Delete()
@@ -58,6 +64,7 @@ namespace Client.Tests.UIState.Fakes
             // Simulate endpoint information becoming unavailable after deletion
             RemovedObjects.Clear();
             UnrecordableReasons.Clear();
+            UnrecordableBlocks.Clear();
         }
 
         public object GetDeleteTargetKey()

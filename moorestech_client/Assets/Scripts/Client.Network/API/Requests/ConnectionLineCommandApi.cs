@@ -26,6 +26,11 @@ namespace Client.Network.API.Requests
             _packetSender.Send(request);
         }
 
+        public void RestoreElectricWire(Vector3Int posA, Vector3Int posB, Guid connectToolGuid)
+        {
+            _packetSender.Send(ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateRestoreConnectRequest(posA, posB, connectToolGuid));
+        }
+
         /// <summary>
         /// ギアチェーンポール間の接続を作成する
         /// Create a connection between GearChainPoles
@@ -34,6 +39,11 @@ namespace Client.Network.API.Requests
         {
             var request = GearChainConnectionEditRequest.CreateConnectRequest(posA, posB, connectToolGuid);
             _packetSender.Send(request);
+        }
+
+        public void RestoreGearChain(Vector3Int posA, Vector3Int posB, Guid connectToolGuid)
+        {
+            _packetSender.Send(GearChainConnectionEditRequest.CreateRestoreConnectRequest(posA, posB, connectToolGuid));
         }
 
         // ポール間の記録済み素材を返す切断を要求する

@@ -134,7 +134,7 @@ namespace Server.Protocol.PacketResponse
         public class SendPlaceBlockProtocolMessagePack : ProtocolMessagePackBase
         {
             [Key(3)] public List<PlaceInfoMessagePack> PlacePositions { get; set; }
-            [Key(4)] public BlockPlacementWiring Wiring;
+            [Key(4)] public BlockPlacementWiring Wiring { get; set; }
 
             public SendPlaceBlockProtocolMessagePack(List<PlaceInfo> placeInfos, BlockPlacementWiring wiring)
             {

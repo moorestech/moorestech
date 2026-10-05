@@ -1,8 +1,8 @@
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
 using System.Collections.Generic;
 using System.Threading;
-using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
+using Game.Block.Interface;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Server.Protocol.PacketResponse;
@@ -37,7 +37,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
             foreach (var info in placeInfos)
             {
                 if (!info.Placeable) continue;
-                cells.Add(new PlacedCell(info.Position, info.BlockId));
+                cells.Add(new PlacedCell(info.Position, info.Direction, info.BlockId));
             }
             return new PlaceOperationRecord(cells);
         }
@@ -50,7 +50,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
         {
             foreach (var cell in _cells)
             {
-                if (!IsSameBlockAlive(cell)) continue;
+                if (!IsSameBlockAlive(cell))
+                {
+                    Debug.Log($"[PlaceUndo] skip cell: same block absent at {cell.Position}");
+                    continue;
+                }
                 var response = await ClientContext.VanillaApi.Response.Block.BlockRemove(cell.Position, CancellationToken.None);
                 // 応答はタイムアウト・デコード失敗でnullになる外部データ
                 // The response is external data and becomes null on timeout or decode failure
@@ -66,8 +70,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
 
             bool IsSameBlockAlive(PlacedCell cell)
             {
-                if (!ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(cell.Position, out var blockGameObject)) return false;
-                return blockGameObject.BlockId.Equals(cell.BlockId);
+                var size = MasterHolder.BlockMaster.GetBlockMaster(cell.BlockId).BlockSize;
+                var footprint = new BlockPositionInfo(cell.Position, cell.Direction, size);
+                return occupancy.GetOccupancy(footprint, cell.BlockId) == BlockFootprintOccupancy.SameBlockPresent;
             }
 
             #endregion
@@ -76,11 +81,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
         private readonly struct PlacedCell
         {
             public readonly Vector3Int Position;
+            public readonly BlockDirection Direction;
             public readonly BlockId BlockId;
 
-            public PlacedCell(Vector3Int position, BlockId blockId)
+            public PlacedCell(Vector3Int position, BlockDirection direction, BlockId blockId)
             {
                 Position = position;
+                Direction = direction;
                 BlockId = blockId;
             }
         }

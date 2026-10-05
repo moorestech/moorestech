@@ -82,7 +82,7 @@ namespace Client.Tests.BuildUndo
             RemovedBlock.Capture(block, collector);
 
             Assert.IsEmpty(collector.Objects);
-            Assert.AreEqual(1, collector.UnrecordableCount);
+            Assert.AreEqual(1, collector.GetUnrecordableBlocks().Count);
         }
 
         private BlockGameObject CreateBlock()
@@ -100,9 +100,9 @@ namespace Client.Tests.BuildUndo
 
         private sealed class EmptyOccupancy : IBlockOccupancyQuery
         {
-            public bool IsOverlapPositionInfo(BlockPositionInfo target)
+            public BlockFootprintOccupancy GetOccupancy(BlockPositionInfo target, BlockId blockId)
             {
-                return false;
+                return BlockFootprintOccupancy.Free;
             }
         }
     }

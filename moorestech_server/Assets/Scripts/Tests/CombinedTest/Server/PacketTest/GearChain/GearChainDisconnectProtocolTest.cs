@@ -16,6 +16,31 @@ namespace Tests.CombinedTest.Server.PacketTest.GearChain
     // Verify disconnect and refund as one operation
     public class GearChainDisconnectProtocolTest
     {
+        [Test]
+        public void RestoreOfExistingChainDoesNotConsumeOrNotify()
+        {
+            var world = new GearChainEditTestWorld(true);
+            world.Connect();
+            var response = world.Send(GearChainConnectionEditRequest.CreateRestoreConnectRequest(PosA, PosB, ChainToolGuid));
+
+            Assert.IsTrue(response.IsSuccess);
+            Assert.AreEqual(0, world.CountItem(world.ChainItemId));
+            Assert.IsEmpty(TakeDenied(world.RequesterSink));
+            Assert.IsEmpty(TakeDenied(world.OtherSink));
+        }
+
+        [Test]
+        public void RestoreOfMissingChainConsumesNormalConnectionCost()
+        {
+            var world = new GearChainEditTestWorld(true);
+            world.Inventory.SetItem(0, ServerContext.ItemStackFactory.Create(world.ChainItemId, 10));
+            var response = world.Send(GearChainConnectionEditRequest.CreateRestoreConnectRequest(PosA, PosB, ChainToolGuid));
+
+            Assert.IsTrue(response.IsSuccess, response.Error);
+            Assert.AreEqual(0, world.CountItem(world.ChainItemId));
+            Assert.IsEmpty(TakeDenied(world.RequesterSink));
+        }
+
         [TestCase(false)]
         [TestCase(true)]
         public void DisconnectRefundsOnceFromEitherEndpoint(bool reverse)

@@ -1,6 +1,7 @@
 using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Game.UnlockState;
+using UnityEngine;
 
 namespace Client.Game.InGame.UI.UIState.State.PlacementPick
 {
@@ -10,14 +11,24 @@ namespace Client.Game.InGame.UI.UIState.State.PlacementPick
     /// </summary>
     public static class ConnectionLinePickResolver
     {
-        public static ConnectionLinePickResult Resolve(Guid lineConnectToolGuid, IGameUnlockStateData unlockState)
+        public static bool TryResolve(Guid lineConnectToolGuid, IGameUnlockStateData unlockState, out IPlacementTarget target)
         {
-            // 未解放の種類はスポイト不成立にする
-            // Locked tool kinds fail the eyedropper with distinct reasons
-            if (!unlockState.ConnectToolUnlockStateInfos.TryGetValue(lineConnectToolGuid, out var info)) return ConnectionLinePickResult.Failed(ConnectionLinePickOutcome.UnknownTool);
-            if (!info.IsUnlocked) return ConnectionLinePickResult.Failed(ConnectionLinePickOutcome.Locked);
+            target = null;
+            // 未知・未解放の種類は理由を残して拾わない
+            // Log why unknown or locked tool kinds cannot be picked
+            if (!unlockState.ConnectToolUnlockStateInfos.TryGetValue(lineConnectToolGuid, out var info))
+            {
+                Debug.LogWarning($"[PlacementPick] line tool not in unlock state: {lineConnectToolGuid}");
+                return false;
+            }
+            if (!info.IsUnlocked)
+            {
+                Debug.LogWarning($"[PlacementPick] line tool locked: {lineConnectToolGuid}");
+                return false;
+            }
 
-            return ConnectionLinePickResult.Picked(new ConnectToolPlacementTarget(lineConnectToolGuid));
+            target = new ConnectToolPlacementTarget(lineConnectToolGuid);
+            return true;
         }
     }
 }

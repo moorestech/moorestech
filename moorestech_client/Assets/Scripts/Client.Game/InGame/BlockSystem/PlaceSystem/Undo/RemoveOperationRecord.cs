@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
 using Client.Game.InGame.UI.UIState.State;
 using Core.Master;
+using Game.Block.Interface;
+using UnityEngine;
 using Cysharp.Threading.Tasks;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
@@ -15,18 +17,20 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
     {
         private readonly List<IRemovedObject> _removedObjects;
         private readonly int _unrecordableCount;
+        private readonly List<RemovedObjectCollector.UnrecordableBlock> _unrecordableBlocks;
         private readonly IRemovalRestoreSender _sender;
 
-        private RemoveOperationRecord(List<IRemovedObject> removedObjects, int unrecordableCount, IRemovalRestoreSender sender)
+        private RemoveOperationRecord(List<IRemovedObject> removedObjects, int unrecordableCount, List<RemovedObjectCollector.UnrecordableBlock> unrecordableBlocks, IRemovalRestoreSender sender)
         {
             _removedObjects = removedObjects;
             _unrecordableCount = unrecordableCount;
+            _unrecordableBlocks = unrecordableBlocks;
             _sender = sender;
         }
 
         // 空バッチをPushしないためのガード。記録できなかった物だけでも、Undo時に通知するため積む
         // Guard against pushing an empty batch; a batch of only unrecordable things is still pushed so undo can report them
-        public bool HasRemovedObjects => 0 < _removedObjects.Count || 0 < _unrecordableCount;
+        public bool HasRemovedObjects => 0 < _removedObjects.Count || 0 < _unrecordableCount || 0 < _unrecordableBlocks.Count;
 
         // 撤去直前の各対象から撤去物を集め、論理キーで重複排除する
         // Collect removed objects from every target right before removal, deduped by logical key
@@ -41,7 +45,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
             {
                 if (seenKeys.Add(removedObject.RestoreKey)) unique.Add(removedObject);
             }
-            return new RemoveOperationRecord(unique, collector.UnrecordableCount, sender);
+            return new RemoveOperationRecord(unique, collector.UnrecordableCount, new List<RemovedObjectCollector.UnrecordableBlock>(collector.GetUnrecordableBlocks()), sender);
         }
 
         public UniTask UndoAsync(IBlockOccupancyQuery occupancy)
@@ -53,6 +57,19 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
             foreach (var removedObject in _removedObjects)
             {
                 if (removedObject.AppendBlockRestore(placeInfos, occupancy) == BlockRestoreOutcome.SkippedOccupied) skippedCount++;
+            }
+            // 記録不能ブロックは撤去に失敗して現存する場合だけ件数から除く
+            // Exclude an unrecordable block only if removal failed and it remains present
+            foreach (var block in _unrecordableBlocks)
+            {
+                var size = MasterHolder.BlockMaster.GetBlockMaster(block.BlockId).BlockSize;
+                var footprint = new BlockPositionInfo(block.Position, block.Direction, size);
+                if (occupancy.GetOccupancy(footprint, block.BlockId) == BlockFootprintOccupancy.SameBlockPresent)
+                {
+                    Debug.Log($"[RemovalRestore] unrecordable block still present at {block.Position}");
+                    continue;
+                }
+                skippedCount++;
             }
             if (placeInfos.Count != 0) _sender.PlaceBlocks(placeInfos);
 

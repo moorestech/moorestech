@@ -64,17 +64,5 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
             return _linesByBlock.TryGetValue(blockId, out var lines) ? lines : Array.Empty<ConnectionLineDeleteTarget>();
         }
 
-        public bool HasLineBetween(BlockInstanceId fromId, BlockInstanceId toId, ConnectionLineKind kind)
-        {
-            foreach (var line in GetLinesAttachedTo(fromId))
-            {
-                // 破棄待ちの表示体は接続と見なさない
-                // A destroyed view is not a current connection
-                if (line == null || line.Kind != kind) continue;
-                if (line.FromId.Equals(fromId) && line.ToId.Equals(toId) ||
-                    line.FromId.Equals(toId) && line.ToId.Equals(fromId)) return true;
-            }
-            return false;
-        }
     }
 }

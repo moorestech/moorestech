@@ -24,12 +24,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
 
         public void ConnectElectricWire(Vector3Int posA, Vector3Int posB, Guid connectToolGuid)
         {
-            ClientContext.VanillaApi.SendOnly.ConnectionLine.ConnectElectricWire(posA, posB, connectToolGuid);
+            ClientContext.VanillaApi.SendOnly.ConnectionLine.RestoreElectricWire(posA, posB, connectToolGuid);
         }
 
         public void ConnectGearChain(Vector3Int posA, Vector3Int posB, Guid connectToolGuid)
         {
-            ClientContext.VanillaApi.SendOnly.ConnectionLine.ConnectGearChain(posA, posB, connectToolGuid);
+            ClientContext.VanillaApi.SendOnly.ConnectionLine.RestoreGearChain(posA, posB, connectToolGuid);
         }
 
         public void ConnectRail(ConnectionDestination from, ConnectionDestination to, Guid connectToolGuid)

@@ -1,6 +1,7 @@
 using Client.Game.InGame.Train.RailGraph;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Client.Tests.RailGraph
 {
@@ -37,6 +38,20 @@ namespace Client.Tests.RailGraph
             // Neither red nor release accesses the destroyed view
             target.SetRemovePreviewing();
             target.ResetMaterial();
+        }
+
+        [Test]
+        public void PreviewAfterEarlyRebuildReturnDoesNotRequireControllerFromRebuildTail()
+        {
+            _chainObject = new GameObject("EmptyRailChain");
+            var chain = _chainObject.AddComponent<BezierRailChain>();
+            LogAssert.Expect(LogType.Warning, "[BezierRailChain] rebuild skipped: module prefab missing");
+            chain.Rebuild();
+
+            // Rebuild早期終了後もプレビューを初期化できる
+            // Preview can initialize even after Rebuild returns early
+            chain.SetRemovePreviewing();
+            chain.ResetMaterial();
         }
     }
 }

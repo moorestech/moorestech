@@ -17,6 +17,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.GearPole
         // 未解決時の再解決を試みる間隔
         // Interval between resolution retries while unresolved
         private const float RetryIntervalSeconds = 0.5f;
+        private const int WarningAfterRetries = 20;
 
         [SerializeField] private LineRenderer lineRenderer1;
         [SerializeField] private LineRenderer lineRenderer2;
@@ -24,6 +25,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.GearPole
         private BlockInstanceId _startInstanceId;
         private BlockInstanceId _endInstanceId;
         private float _retryTimer;
+        private int _failedRetries;
 
         /// <summary>
         /// 接続ラインの位置を設定する
@@ -33,6 +35,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.GearPole
         {
             _startInstanceId = startInstanceId;
             _endInstanceId = endInstanceId;
+            _failedRetries = 0;
 
             // 即解決できなければUpdateで再試行
             // If unresolved now, retry in Update
@@ -47,7 +50,14 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.GearPole
             if (0f < _retryTimer) return;
             _retryTimer = RetryIntervalSeconds;
 
-            if (TryBuildLine()) enabled = false;
+            if (TryBuildLine())
+            {
+                enabled = false;
+                return;
+            }
+            _failedRetries++;
+            if (_failedRetries == WarningAfterRetries)
+                Debug.LogWarning($"[GearChainLine] endpoint unresolved after {_failedRetries} retries: {_startInstanceId}->{_endInstanceId}");
         }
 
         // 両端を解決し線とコライダーを構築。未生成ならfalse

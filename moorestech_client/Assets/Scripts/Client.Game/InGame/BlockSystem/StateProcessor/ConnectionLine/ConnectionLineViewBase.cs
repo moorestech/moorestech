@@ -28,6 +28,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
         // 切断要求の送信先を種別で決める
         // Select the disconnect request by line kind
         protected abstract ConnectionLineKind GetLineKind();
+        protected abstract IConnectionLineCommands GetLineCommands();
 
         public void Initialize(BlockGameObject blockGameObject)
         {
@@ -105,7 +106,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
                 var element = Instantiate(_linePrefab, transform);
                 element.SetLine(_myBlockInstanceId, partner.PartnerId);
                 var deleteTarget = element.gameObject.AddComponent<ConnectionLineDeleteTarget>();
-                deleteTarget.Initialize(_myBlockInstanceId, partner.PartnerId, partner.ConnectToolGuid, GetLineKind(), ClientDIContext.ConnectionLineRegistry);
+                deleteTarget.Initialize(_myBlockInstanceId, partner.PartnerId, partner.ConnectToolGuid, GetLineKind(), ClientDIContext.ConnectionLineRegistry, ClientDIContext.BlockGameObjectDataStore, GetLineCommands());
                 return element;
             }
 

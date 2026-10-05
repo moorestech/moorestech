@@ -9,10 +9,16 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.GearPole
     public class GearChainPoleChainLineView : ConnectionLineViewBase<GearChainPoleChainLineViewElement>
     {
         private const string ChainLinePrefabAddress = "Vanilla/Block/Util/GearChainLine";
+        private readonly IConnectionLineCommands _commands = new GearChainLineCommands();
 
         protected override ConnectionLineKind GetLineKind()
         {
             return ConnectionLineKind.GearChain;
+        }
+
+        protected override IConnectionLineCommands GetLineCommands()
+        {
+            return _commands;
         }
 
         protected override string GetLinePrefabAddress()

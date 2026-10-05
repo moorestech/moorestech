@@ -6,18 +6,30 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
+using Game.Train.SaveLoad;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 
 namespace Client.Game.InGame.Train.RailGraph
 {
-    public class TrainRailStateChangeProcessor : MonoBehaviour, IBlockStateChangeProcessor, IBlockPreviewStateProcessor, IBlockRecreateParamSource
+    public class TrainRailStateChangeProcessor : MonoBehaviour, IBlockStateChangeProcessor, IBlockPreviewStateProcessor, IBlockRecreateParamSource, IBlockRemovalCascadeSource
     {
         [SerializeField] private Transform railModel;
+        private BlockGameObject _blockGameObject;
         private byte[] _latestStateDetailBytes;
         
-        public void Initialize(BlockGameObject blockGameObject) { }
+        public void Initialize(BlockGameObject blockGameObject)
+        {
+            _blockGameObject = blockGameObject;
+        }
+
+        public void CollectConnectionDestinations(List<ConnectionDestination> destinations)
+        {
+            var origin = _blockGameObject.BlockPosInfo.OriginalPos;
+            destinations.Add(new ConnectionDestination(origin, 0, true));
+            destinations.Add(new ConnectionDestination(origin, 0, false));
+        }
         
         public void OnChangeState(BlockStateMessagePack blockState)
         {

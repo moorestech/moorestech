@@ -17,9 +17,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
         private readonly Vector3Int _posA;
         private readonly Vector3Int _posB;
         private readonly Guid _connectToolGuid;
-        private readonly IConnectionLineCurrentState _currentState;
+        private readonly IConnectionLineCommands _commands;
 
-        public RemovedConnectionLine(ConnectionLineKind kind, Vector3Int posA, Vector3Int posB, Guid connectToolGuid, IConnectionLineCurrentState currentState)
+        public RemovedConnectionLine(ConnectionLineKind kind, Vector3Int posA, Vector3Int posB, Guid connectToolGuid, IConnectionLineCommands commands)
         {
             // 端点順に依らず同じキーになるよう正規化する
             // Normalize so the key does not depend on endpoint order
@@ -28,7 +28,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
             _posA = aFirst ? posA : posB;
             _posB = aFirst ? posB : posA;
             _connectToolGuid = connectToolGuid;
-            _currentState = currentState;
+            _commands = commands;
 
             #region Internal
 
@@ -42,6 +42,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
             #endregion
         }
 
+        public static void Capture(ConnectionLineDeleteTarget line, RemovedObjectCollector collector)
+        {
+            // 端点未解決なら復元先が無いため件数に含める
+            // Count a line with unresolved endpoints because it has no restore target
+            if (!line.TryGetRestoreData(out var posA, out var posB))
+            {
+                collector.AddUnrecordable($"line endpoint block not found from={line.FromId} to={line.ToId}");
+                return;
+            }
+            collector.Add(new RemovedConnectionLine(line.Kind, posA, posB, line.ConnectToolGuid, line.GetLineCommands()));
+        }
+
         public object RestoreKey => (_kind, _posA, _posB);
 
         public BlockRestoreOutcome AppendBlockRestore(List<PlaceInfo> placeInfos, IBlockOccupancyQuery occupancy)
@@ -51,25 +63,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
 
         public void SendConnectionRestore(IRemovalRestoreSender sender)
         {
-            // 接続済みなら重複要求を送らない
-            // Skip duplicate requests when already connected
-            if (_currentState.HasConnection(_kind, _posA, _posB))
-            {
-                Debug.LogWarning($"[RemovalRestore] skip line restore: already connected kind={_kind} {_posA}-{_posB}");
-                return;
-            }
-
-            switch (_kind)
-            {
-                case ConnectionLineKind.ElectricWire:
-                    sender.ConnectElectricWire(_posA, _posB, _connectToolGuid);
-                    break;
-                case ConnectionLineKind.GearChain:
-                    sender.ConnectGearChain(_posA, _posB, _connectToolGuid);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(_kind), _kind, null);
-            }
+            _commands.SendRestore(sender, _posA, _posB, _connectToolGuid);
         }
     }
 }

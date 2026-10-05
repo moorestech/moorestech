@@ -31,6 +31,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
     {
         NotABlock,
         Appended,
+        AlreadyPresent,
         SkippedOccupied,
     }
 }

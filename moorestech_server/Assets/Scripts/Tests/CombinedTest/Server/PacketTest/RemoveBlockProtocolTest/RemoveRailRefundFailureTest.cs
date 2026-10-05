@@ -13,6 +13,7 @@ using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Protocol.PacketResponse;
+using Server.Protocol.PacketResponse.Util.RailEdit;
 using Tests.Util;
 using Tests.Util.PlayerIdentity;
 using UnityEngine;
@@ -23,6 +24,18 @@ namespace Tests.CombinedTest.Server.PacketTest
 {
     public class RemoveRailRefundFailureTest
     {
+        [Test]
+        public void 未接続の辺はメタデータ欠落と区別して警告する()
+        {
+            var environment = TrainTestHelper.CreateEnvironment();
+            var from = TrainTestHelper.PlaceRail(environment, Vector3Int.zero, BlockDirection.North).FrontNode;
+            var to = TrainTestHelper.PlaceRail(environment, new Vector3Int(10, 0, 0), BlockDirection.North).BackNode;
+
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[RailRemovalRefund\] refund skipped: edge missing\."));
+            Assert.IsFalse(RailRemovalRefundCalculator.TryCalculateSegmentRefundMaterials(
+                environment.GetRailGraphDatastore(), from, to, out _));
+        }
+
         [Test]
         public void 算出できない種類のレールは警告して返却せずブロックを撤去する()
         {

@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Train.RailGraph;
+using Client.Game.InGame.Block;
+using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect;
 using Client.Game.InGame.UI.UIState.State.DragDelete;
+using Game.Block.Interface;
 using Game.Train.SaveLoad;
 using NUnit.Framework;
 using UnityEngine;
@@ -14,6 +17,14 @@ namespace Client.Tests.UIState
     /// </summary>
     public class AttachedRailEdgeEnumeratorTest
     {
+        private GameObject _pierObject;
+
+        [TearDown]
+        public void TearDown()
+        {
+            if (_pierObject != null) UnityEngine.Object.DestroyImmediate(_pierObject);
+        }
+
         [Test]
         public void OnePhysicalRailBetweenTwoPiersIsEnumeratedOnce()
         {
@@ -22,16 +33,16 @@ namespace Client.Tests.UIState
             var cache = RailGraphClientCache.CreateForEditorTest();
             var pierA = new Vector3Int(0, 0, 0);
             var pierB = new Vector3Int(10, 0, 0);
-            UpsertPier(cache, 0, pierA);
-            UpsertPier(cache, 2, pierB);
+            UpsertPier(cache, 0, pierA, 0);
+            UpsertPier(cache, 2, pierB, 0);
             var railType = Guid.NewGuid();
             cache.UpsertConnection(0, 2, 10, railType, true);
             cache.UpsertConnection(3, 1, 10, railType, true);
 
             var edgesOfA = new List<(int, int)>();
-            AttachedRailEdgeEnumerator.Collect(cache, pierA, edgesOfA);
+            AttachedRailEdgeEnumerator.Collect(cache, Destinations(pierA, 0), edgesOfA);
             var edgesOfB = new List<(int, int)>();
-            AttachedRailEdgeEnumerator.Collect(cache, pierB, edgesOfB);
+            AttachedRailEdgeEnumerator.Collect(cache, Destinations(pierB, 0), edgesOfB);
 
             // 両側から引いても同じcanonical区間1件になる
             // Either side yields the same single canonical edge
@@ -46,7 +57,7 @@ namespace Client.Tests.UIState
             // レールを持たないブロックは何も列挙しない
             // A block with no rails enumerates nothing
             var edges = new List<(int, int)>();
-            AttachedRailEdgeEnumerator.Collect(RailGraphClientCache.CreateForEditorTest(), Vector3Int.one, edges);
+            AttachedRailEdgeEnumerator.Collect(RailGraphClientCache.CreateForEditorTest(), Array.Empty<ConnectionDestination>(), edges);
             Assert.AreEqual(0, edges.Count);
         }
 
@@ -56,14 +67,16 @@ namespace Client.Tests.UIState
             // 同一ブロック内の往復辺も1本扱い
             // Paired edges within one block count as one rail
             var cache = RailGraphClientCache.CreateForEditorTest();
-            UpsertPier(cache, 0, Vector3Int.zero);
-            UpsertPier(cache, 2, Vector3Int.zero);
+            UpsertPier(cache, 0, Vector3Int.zero, 0);
+            UpsertPier(cache, 2, Vector3Int.zero, 1);
             var railType = Guid.NewGuid();
             cache.UpsertConnection(0, 2, 10, railType, true);
             cache.UpsertConnection(3, 1, 10, railType, true);
 
             var edges = new List<(int, int)>();
-            AttachedRailEdgeEnumerator.Collect(cache, Vector3Int.zero, edges);
+            var destinations = new List<ConnectionDestination>(Destinations(Vector3Int.zero, 0));
+            destinations.AddRange(Destinations(Vector3Int.zero, 1));
+            AttachedRailEdgeEnumerator.Collect(cache, destinations, edges);
             CollectionAssert.AreEqual(new[] { (0, 2) }, edges);
         }
 
@@ -73,9 +86,9 @@ namespace Client.Tests.UIState
             // ID欠番と無関係な辺を含む分岐を作る
             // Build branches with id gaps and an unrelated edge
             var cache = RailGraphClientCache.CreateForEditorTest();
-            UpsertPier(cache, 4, Vector3Int.zero);
-            UpsertPier(cache, 8, Vector3Int.right);
-            UpsertPier(cache, 10, Vector3Int.left);
+            UpsertPier(cache, 4, Vector3Int.zero, 0);
+            UpsertPier(cache, 8, Vector3Int.right, 0);
+            UpsertPier(cache, 10, Vector3Int.left, 0);
             var railType = Guid.NewGuid();
             cache.UpsertConnection(4, 8, 10, railType, true);
             cache.UpsertConnection(9, 5, 10, railType, true);
@@ -87,15 +100,56 @@ namespace Client.Tests.UIState
             // 列挙は指定ブロックの2本だけを返す
             // Enumeration returns only the two rails attached to the requested block
             var edges = new List<(int, int)>();
-            AttachedRailEdgeEnumerator.Collect(cache, Vector3Int.zero, edges);
+            AttachedRailEdgeEnumerator.Collect(cache, Destinations(Vector3Int.zero, 0), edges);
             CollectionAssert.AreEquivalent(new[] { (4, 8), (4, 10) }, edges);
         }
 
-        private static void UpsertPier(RailGraphClientCache cache, int frontNodeId, Vector3Int blockPosition)
+        [Test]
+        public void PierProcessorPublishesBothRailDestinations()
+        {
+            _pierObject = new GameObject("PierSource");
+            var block = _pierObject.AddComponent<BlockGameObject>();
+            var position = new Vector3Int(4, 0, 7);
+            typeof(BlockGameObject).GetProperty(nameof(BlockGameObject.BlockPosInfo)).GetSetMethod(true)
+                .Invoke(block, new object[] { new BlockPositionInfo(position, BlockDirection.North, Vector3Int.one) });
+            var processor = _pierObject.AddComponent<TrainRailStateChangeProcessor>();
+            processor.Initialize(block);
+
+            // 橋脚の具体部品だけが自分のレール端点を公開する
+            // Only the concrete pier component publishes its own rail endpoints
+            var destinations = new List<ConnectionDestination>();
+            processor.CollectConnectionDestinations(destinations);
+            CollectionAssert.AreEquivalent(Destinations(position, 0), destinations);
+        }
+
+        [Test]
+        public void StationColliderPublishesItsOwnRailDestination()
+        {
+            _pierObject = new GameObject("StationSource");
+            var block = _pierObject.AddComponent<BlockGameObject>();
+            var position = new Vector3Int(8, 0, 4);
+            typeof(BlockGameObject).GetProperty(nameof(BlockGameObject.BlockPosInfo)).GetSetMethod(true)
+                .Invoke(block, new object[] { new BlockPositionInfo(position, BlockDirection.North, Vector3Int.one) });
+            var source = _pierObject.AddComponent<StationRailConnectAreaCollider>();
+            typeof(StationRailConnectAreaCollider).GetField("railComponentIndex", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+                .SetValue(source, StationrailComponentIndex.Index1);
+            source.Initialize(block);
+
+            var destinations = new List<ConnectionDestination>();
+            source.CollectConnectionDestinations(destinations);
+            CollectionAssert.AreEqual(new[] { new ConnectionDestination(position, 1, true) }, destinations);
+        }
+
+        private static ConnectionDestination[] Destinations(Vector3Int position, int componentIndex)
+        {
+            return new[] { new ConnectionDestination(position, componentIndex, true), new ConnectionDestination(position, componentIndex, false) };
+        }
+
+        private static void UpsertPier(RailGraphClientCache cache, int frontNodeId, Vector3Int blockPosition, int componentIndex)
         {
             var origin = (Vector3)blockPosition;
-            cache.UpsertNode(frontNodeId, Guid.NewGuid(), origin, new ConnectionDestination(blockPosition, 0, true), origin + Vector3.forward, origin + Vector3.back);
-            cache.UpsertNode(frontNodeId + 1, Guid.NewGuid(), origin, new ConnectionDestination(blockPosition, 0, false), origin + Vector3.back, origin + Vector3.forward);
+            cache.UpsertNode(frontNodeId, Guid.NewGuid(), origin, new ConnectionDestination(blockPosition, componentIndex, true), origin + Vector3.forward, origin + Vector3.back);
+            cache.UpsertNode(frontNodeId + 1, Guid.NewGuid(), origin, new ConnectionDestination(blockPosition, componentIndex, false), origin + Vector3.back, origin + Vector3.forward);
         }
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
 using Game.Block.Interface;
 using NUnit.Framework;
 using UniRx;
@@ -35,7 +36,7 @@ namespace Client.Tests.ConnectionLine
             // A registered line is reachable from both endpoints
             var registry = new ConnectionLineRegistry();
             var line = CreateLine();
-            line.Initialize(new BlockInstanceId(1), new BlockInstanceId(2), Guid.NewGuid(), ConnectionLineKind.ElectricWire, registry);
+            InitializeLine(line, new BlockInstanceId(1), new BlockInstanceId(2), ConnectionLineKind.ElectricWire, registry);
 
             Assert.AreSame(line, registry.GetLinesAttachedTo(new BlockInstanceId(1))[0]);
             Assert.AreSame(line, registry.GetLinesAttachedTo(new BlockInstanceId(2))[0]);
@@ -55,7 +56,7 @@ namespace Client.Tests.ConnectionLine
             // Connection lines use a category separate from blocks
             var registry = new ConnectionLineRegistry();
             var line = CreateLine();
-            line.Initialize(new BlockInstanceId(1), new BlockInstanceId(2), Guid.NewGuid(), ConnectionLineKind.GearChain, registry);
+            InitializeLine(line, new BlockInstanceId(1), new BlockInstanceId(2), ConnectionLineKind.GearChain, registry);
 
             Assert.AreEqual(Client.Game.Common.BlockMasterElementExtension.ConnectionLineDestructionCategory, line.GetDestructionCategory());
             Assert.IsTrue(line.IsRemovable(out var reason));
@@ -70,8 +71,8 @@ namespace Client.Tests.ConnectionLine
             var registry = new ConnectionLineRegistry();
             var wire = CreateLine();
             var chain = CreateLine();
-            wire.Initialize(new BlockInstanceId(1), new BlockInstanceId(2), Guid.NewGuid(), ConnectionLineKind.ElectricWire, registry);
-            chain.Initialize(new BlockInstanceId(3), new BlockInstanceId(2), Guid.NewGuid(), ConnectionLineKind.GearChain, registry);
+            InitializeLine(wire, new BlockInstanceId(1), new BlockInstanceId(2), ConnectionLineKind.ElectricWire, registry);
+            InitializeLine(chain, new BlockInstanceId(3), new BlockInstanceId(2), ConnectionLineKind.GearChain, registry);
             Assert.AreEqual(2, registry.GetLinesAttachedTo(new BlockInstanceId(2)).Count);
 
             // 片方の登録解除で他の線を消さない
@@ -84,21 +85,6 @@ namespace Client.Tests.ConnectionLine
         }
 
         [Test]
-        public void HasLineBetweenChecksBothEndpointsAndKind()
-        {
-            // 読み取りは端点順によらず線種まで照合
-            // Reads match line kind regardless of endpoint order
-            var registry = new ConnectionLineRegistry();
-            var line = CreateLine();
-            line.Initialize(new BlockInstanceId(1), new BlockInstanceId(2), Guid.NewGuid(), ConnectionLineKind.ElectricWire, registry);
-
-            Assert.IsTrue(registry.HasLineBetween(new BlockInstanceId(1), new BlockInstanceId(2), ConnectionLineKind.ElectricWire));
-            Assert.IsTrue(registry.HasLineBetween(new BlockInstanceId(2), new BlockInstanceId(1), ConnectionLineKind.ElectricWire));
-            Assert.IsFalse(registry.HasLineBetween(new BlockInstanceId(1), new BlockInstanceId(2), ConnectionLineKind.GearChain));
-            Assert.IsFalse(registry.HasLineBetween(new BlockInstanceId(1), new BlockInstanceId(3), ConnectionLineKind.ElectricWire));
-        }
-
-        [Test]
         public void RegisterAndUnregisterNotifyBothEndpoints()
         {
             // 登録・解除のたびに両端ブロックIdが流れる（巻き込み赤表示が追従する契機）
@@ -108,7 +94,7 @@ namespace Client.Tests.ConnectionLine
             registry.OnLineAttachmentChanged.Subscribe(id => changed.Add(id.AsPrimitive()));
             var line = CreateLine();
 
-            line.Initialize(new BlockInstanceId(1), new BlockInstanceId(2), Guid.NewGuid(), ConnectionLineKind.ElectricWire, registry);
+            InitializeLine(line, new BlockInstanceId(1), new BlockInstanceId(2), ConnectionLineKind.ElectricWire, registry);
             CollectionAssert.AreEqual(new[] { 1, 2 }, changed);
 
             registry.Unregister(line);
@@ -120,6 +106,26 @@ namespace Client.Tests.ConnectionLine
             var gameObject = new GameObject("Line");
             _createdLines.Add(gameObject);
             return gameObject.AddComponent<ConnectionLineDeleteTarget>();
+        }
+
+        private static void InitializeLine(ConnectionLineDeleteTarget line, BlockInstanceId fromId, BlockInstanceId toId, ConnectionLineKind kind, ConnectionLineRegistry registry)
+        {
+            line.Initialize(fromId, toId, Guid.NewGuid(), kind, registry, new StubEndpoints(), new StubCommands());
+        }
+
+        private sealed class StubEndpoints : IConnectionLineEndpointQuery
+        {
+            public bool TryGetPosition(BlockInstanceId instanceId, out Vector3Int position)
+            {
+                position = Vector3Int.zero;
+                return true;
+            }
+        }
+
+        private sealed class StubCommands : IConnectionLineCommands
+        {
+            public void SendDisconnect(Vector3Int posA, Vector3Int posB) { }
+            public void SendRestore(IRemovalRestoreSender sender, Vector3Int posA, Vector3Int posB, Guid connectToolGuid) { }
         }
     }
 }

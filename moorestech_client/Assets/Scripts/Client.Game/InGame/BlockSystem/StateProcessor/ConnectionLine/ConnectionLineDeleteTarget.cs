@@ -4,7 +4,6 @@ using System;
 using Client.Common;
 using Client.Game.Common;
 using Client.Game.InGame.Block;
-using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState.State;
 using Game.Block.Interface;
 using Mooresmaster.Localization.Generated;
@@ -25,15 +24,19 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
 
         private readonly RemovePreviewRequests _removePreviewRequests = new();
         private ConnectionLineRegistry _registry;
+        private IConnectionLineEndpointQuery _endpoints;
+        private IConnectionLineCommands _commands;
         private RendererMaterialReplacerController _materialReplacer;
 
-        public void Initialize(BlockInstanceId fromId, BlockInstanceId toId, Guid connectToolGuid, ConnectionLineKind kind, ConnectionLineRegistry registry)
+        public void Initialize(BlockInstanceId fromId, BlockInstanceId toId, Guid connectToolGuid, ConnectionLineKind kind, ConnectionLineRegistry registry, IConnectionLineEndpointQuery endpoints, IConnectionLineCommands commands)
         {
             FromId = fromId;
             ToId = toId;
             ConnectToolGuid = connectToolGuid;
             Kind = kind;
             _registry = registry;
+            _endpoints = endpoints;
+            _commands = commands;
             _registry.Register(this);
         }
 
@@ -81,15 +84,12 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
         {
             fromPos = default;
             toPos = default;
-            var store = ClientDIContext.BlockGameObjectDataStore;
-            if (!store.TryGetBlockGameObject(FromId, out var fromBlock) || !store.TryGetBlockGameObject(ToId, out var toBlock))
+            if (!_endpoints.TryGetPosition(FromId, out fromPos) || !_endpoints.TryGetPosition(ToId, out toPos))
             {
                 Debug.LogWarning($"[ConnectionLineDelete] endpoint block not found: from={FromId} to={ToId}");
                 return false;
             }
 
-            fromPos = fromBlock.BlockPosInfo.OriginalPos;
-            toPos = toBlock.BlockPosInfo.OriginalPos;
             return true;
         }
 
@@ -105,12 +105,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
         {
             // 端点ブロックが解決できない線は復元先を持てないため記録不能として数える
             // A line whose endpoints cannot be resolved has no restore target, so count it as unrecordable
-            if (!TryResolveEndpointPositions(out var fromPos, out var toPos))
-            {
-                collector.AddUnrecordable($"line endpoint block not found from={FromId} to={ToId}");
-                return;
-            }
-            collector.Add(new RemovedConnectionLine(Kind, fromPos, toPos, ConnectToolGuid, ClientDIContext.ConnectionLineCurrentState));
+            RemovedConnectionLine.Capture(this, collector);
         }
 
         public void Delete()
@@ -119,17 +114,17 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
             // Resolve both ends and send the per-kind disconnect request
             if (!TryResolveEndpointPositions(out var fromPos, out var toPos)) return;
 
-            switch (Kind)
-            {
-                case ConnectionLineKind.ElectricWire:
-                    ClientContext.VanillaApi.SendOnly.ConnectionLine.DisconnectElectricWire(fromPos, toPos);
-                    break;
-                case ConnectionLineKind.GearChain:
-                    ClientContext.VanillaApi.SendOnly.ConnectionLine.DisconnectGearChain(fromPos, toPos);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(Kind), Kind, null);
-            }
+            _commands.SendDisconnect(fromPos, toPos);
+        }
+
+        public bool TryGetRestoreData(out Vector3Int fromPos, out Vector3Int toPos)
+        {
+            return TryResolveEndpointPositions(out fromPos, out toPos);
+        }
+
+        public IConnectionLineCommands GetLineCommands()
+        {
+            return _commands;
         }
 
         // 線は1本ごとに1つのGameObjectなので自身を論理キーにする

@@ -24,18 +24,32 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
             _railTypeGuid = railTypeGuid;
         }
 
-        // canonical化済みの区間から作る。記録しない理由（未同期・駅内部・種類Emptyの無償区間）を結果で区別する
-        // Build from a canonical edge; the result distinguishes why it is not recorded (unsynced, station-internal, Empty-typed free segment)
-        public static RemovedRailCreateResult Create(RailGraphClientCache cache, int canonicalFrom, int canonicalTo)
+        // 直接撤去と巻き込みの違いを反映して採取する
+        // Capture according to whether the edge is deleted directly or by cascade
+        public static void Capture(RailGraphClientCache cache, int canonicalFrom, int canonicalTo, RemovedRailCaptureContext context, RemovedObjectCollector collector)
         {
-            if (!cache.TryGetNode(canonicalFrom, out var fromNode) || !cache.TryGetNode(canonicalTo, out var toNode)) return RemovedRailCreateResult.NotCreated(RemovedRailCreateOutcome.NodeNotSynced);
-            if (RailEdgeClassifier.IsStationInternalEdge(fromNode, toNode)) return RemovedRailCreateResult.NotCreated(RemovedRailCreateOutcome.StationInternal);
+            if (!cache.TryGetNode(canonicalFrom, out var fromNode) || !cache.TryGetNode(canonicalTo, out var toNode))
+            {
+                collector.AddUnrecordable($"rail {canonicalFrom}->{canonicalTo}: node not synced");
+                return;
+            }
+            if (RailEdgeClassifier.IsStationInternalEdge(fromNode, toNode)) return;
 
-            // 種類Emptyは駅隣接の自動レール等の無償区間。駅の再設置で自動的に戻るので記録しない
-            // Empty-typed edges are free segments such as station-adjacent auto rails; station re-placement restores them, so they are not recorded
-            if (!cache.TryGetRailType(canonicalFrom, canonicalTo, out var railTypeGuid) || railTypeGuid == Guid.Empty) return RemovedRailCreateResult.NotCreated(RemovedRailCreateOutcome.FreeSegment);
+            // 種類未同期は復元できず、無償区間は直接切断だけ通知対象にする
+            // Unsynced types cannot be restored; only directly deleted free edges count as skipped
+            if (!cache.TryGetRailType(canonicalFrom, canonicalTo, out var railTypeGuid))
+            {
+                collector.AddUnrecordable($"rail {canonicalFrom}->{canonicalTo}: type not synced");
+                return;
+            }
+            if (railTypeGuid == Guid.Empty)
+            {
+                if (context == RemovedRailCaptureContext.Direct)
+                    collector.AddUnrecordable($"costless rail {canonicalFrom}->{canonicalTo}: direct restore unavailable");
+                return;
+            }
 
-            return RemovedRailCreateResult.Created(new RemovedRail(fromNode.ConnectionDestination, toNode.ConnectionDestination, railTypeGuid));
+            collector.Add(new RemovedRail(fromNode.ConnectionDestination, toNode.ConnectionDestination, railTypeGuid));
         }
 
         public object RestoreKey => (_from, _to);
@@ -49,5 +63,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
         {
             sender.ConnectRail(_from, _to, _railTypeGuid);
         }
+    }
+
+    public enum RemovedRailCaptureContext
+    {
+        Direct,
+        Cascade,
     }
 }

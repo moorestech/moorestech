@@ -1,10 +1,12 @@
+using System.Collections.Generic;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.Block.Removal;
 using Game.Train.SaveLoad;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
 {
-    public class StationRailConnectAreaCollider : MonoBehaviour, IRailComponentConnectAreaCollider
+    public class StationRailConnectAreaCollider : MonoBehaviour, IRailComponentConnectAreaCollider, IBlockRemovalCascadeSource
     {
         // 1番のBackと0番のFrontは駅の内部で繋がっているためこうなる
         // 1 is Back and 0 is Front, as they are connected inside the station.
@@ -29,6 +31,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         {
             var origin = BlockGameObject.BlockPosInfo.OriginalPos;
             return new ConnectionDestination(origin, (int)railComponentIndex, IsFront);
+        }
+
+        public void CollectConnectionDestinations(List<ConnectionDestination> destinations)
+        {
+            destinations.Add(CreateConnectionDestination());
         }
     }
     

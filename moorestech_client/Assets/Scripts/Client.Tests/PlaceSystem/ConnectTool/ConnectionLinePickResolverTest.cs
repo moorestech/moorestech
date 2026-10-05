@@ -6,6 +6,8 @@ using Core.Master;
 using Game.UnlockState;
 using Game.UnlockState.States;
 using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Client.Tests.PlaceSystem.ConnectTool
 {
@@ -21,10 +23,10 @@ namespace Client.Tests.PlaceSystem.ConnectTool
             // 解放済みの線種はそのツールを選ぶ
             // An unlocked line tool is picked as-is
             var guid = Guid.NewGuid();
-            var result = ConnectionLinePickResolver.Resolve(guid, new FakeUnlockState(guid, true));
+            var picked = ConnectionLinePickResolver.TryResolve(guid, new FakeUnlockState(guid, true), out var target);
 
-            Assert.AreEqual(ConnectionLinePickOutcome.Picked, result.Outcome);
-            Assert.AreEqual(guid, ((ConnectToolPlacementTarget)result.Target).ConnectToolGuid);
+            Assert.IsTrue(picked);
+            Assert.AreEqual(guid, ((ConnectToolPlacementTarget)target).ConnectToolGuid);
         }
 
         [Test]
@@ -33,9 +35,9 @@ namespace Client.Tests.PlaceSystem.ConnectTool
             // 未解放の種類はスポイト自体を不成立にする
             // A locked tool makes the eyedropper fail
             var guid = Guid.NewGuid();
-            var result = ConnectionLinePickResolver.Resolve(guid, new FakeUnlockState(guid, false));
-            Assert.AreEqual(ConnectionLinePickOutcome.Locked, result.Outcome);
-            Assert.IsNull(result.Target);
+            LogAssert.Expect(LogType.Warning, $"[PlacementPick] line tool locked: {guid}");
+            Assert.IsFalse(ConnectionLinePickResolver.TryResolve(guid, new FakeUnlockState(guid, false), out var target));
+            Assert.IsNull(target);
         }
 
         [Test]
@@ -43,9 +45,10 @@ namespace Client.Tests.PlaceSystem.ConnectTool
         {
             // 解放状態に無い種類（マスタから消えた等）は理由を分けて不成立にする
             // A tool absent from the unlock state (e.g. removed from the master) fails with its own reason
-            var result = ConnectionLinePickResolver.Resolve(Guid.NewGuid(), new FakeUnlockState(Guid.NewGuid(), true));
-            Assert.AreEqual(ConnectionLinePickOutcome.UnknownTool, result.Outcome);
-            Assert.IsNull(result.Target);
+            var guid = Guid.NewGuid();
+            LogAssert.Expect(LogType.Warning, $"[PlacementPick] line tool not in unlock state: {guid}");
+            Assert.IsFalse(ConnectionLinePickResolver.TryResolve(guid, new FakeUnlockState(Guid.NewGuid(), true), out var target));
+            Assert.IsNull(target);
         }
 
         /// <summary>

@@ -42,6 +42,16 @@ namespace Server.Protocol.PacketResponse
                 switch (data.Mode)
                 {
                     case ChainEditMode.Connect:
+                        // 復元では既接続を無消費・無通知で成功扱いにする
+                        // A restore of an existing connection succeeds without spending or notifying
+                        if (data.IsRestore && GearChainSystemUtil.TryGetGearChainPole(data.PosAVector, out var poleA, out _) &&
+                            GearChainSystemUtil.TryGetGearChainPole(data.PosBVector, out var poleB, out _) &&
+                            poleA.BlockInstanceId != poleB.BlockInstanceId &&
+                            (poleA.ContainsChainConnection(poleB.BlockInstanceId) || poleB.ContainsChainConnection(poleA.BlockInstanceId)))
+                        {
+                            Debug.Log($"[GearChainConnectionEdit] restore already connected: {data.PosAVector}->{data.PosBVector}");
+                            return new GearChainConnectionEditResponse(true, string.Empty);
+                        }
                         success = GearChainSystemUtil.TryConnect(data.PosAVector, data.PosBVector, requesterPlayerId, data.ConnectToolGuid, out var connectFailure);
                         error = success ? string.Empty : connectFailure.ToString();
                         // 応答を待たない接続元へ拒否を通知する
@@ -83,6 +93,7 @@ namespace Server.Protocol.PacketResponse
             [Key(3)] public Vector3IntMessagePack PosB { get; set; }
             [Key(4)] public ChainEditMode Mode { get; set; }
             [Key(6)] public Guid ConnectToolGuid { get; set; }
+            [Key(7)] public bool IsRestore { get; set; }
 
             [IgnoreMember] public Vector3Int PosAVector => PosA;
             [IgnoreMember] public Vector3Int PosBVector => PosB;
@@ -100,6 +111,13 @@ namespace Server.Protocol.PacketResponse
                     Mode = ChainEditMode.Connect,
                     ConnectToolGuid = connectToolGuid,
                 };
+            }
+
+            public static GearChainConnectionEditRequest CreateRestoreConnectRequest(Vector3Int posA, Vector3Int posB, Guid connectToolGuid)
+            {
+                var request = CreateConnectRequest(posA, posB, connectToolGuid);
+                request.IsRestore = true;
+                return request;
             }
 
             public static GearChainConnectionEditRequest CreateDisconnectRequest(Vector3Int posA, Vector3Int posB)

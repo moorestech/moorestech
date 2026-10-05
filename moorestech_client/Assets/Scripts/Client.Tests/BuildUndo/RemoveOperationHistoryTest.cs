@@ -2,6 +2,8 @@ using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
 using Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine;
+using Client.Tests.BuildUndo;
+using Core.Master;
 using Client.Game.InGame.UI.UIState.State.DragDelete;
 using Client.Tests.UIState.Fakes;
 using Cysharp.Threading.Tasks;
@@ -21,7 +23,7 @@ namespace Client.Tests.BuildUndo
             var selection = new DragDeleteSelection(history, sender);
             var tool = Guid.NewGuid();
             var target = new FakeDeleteTarget { Removable = true };
-            target.RemovedObjects.Add(new RemovedConnectionLine(ConnectionLineKind.ElectricWire, Vector3Int.zero, Vector3Int.right, tool, new FakeConnectionLineCurrentState()));
+            target.RemovedObjects.Add(new RemovedConnectionLine(ConnectionLineKind.ElectricWire, Vector3Int.zero, Vector3Int.right, tool, new FakeConnectionLineCommands(ConnectionLineKind.ElectricWire)));
 
             // 確定で消えても先に記録した線を復元
             // Restore the captured line even if commit erases the target
@@ -50,10 +52,10 @@ namespace Client.Tests.BuildUndo
 
         private sealed class NoBlockOccupancy : IBlockOccupancyQuery
         {
-            public bool IsOverlapPositionInfo(BlockPositionInfo target)
+            public BlockFootprintOccupancy GetOccupancy(BlockPositionInfo target, BlockId blockId)
             {
                 Assert.Fail("A connection-only restore must not query block occupancy");
-                return false;
+                return BlockFootprintOccupancy.Free;
             }
         }
     }

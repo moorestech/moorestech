@@ -2,6 +2,7 @@ using Core.Master;
 using Game.Block.Blocks.ConnectionLine;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Core.Item.Interface;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
@@ -24,11 +25,19 @@ namespace Server.Protocol.PacketResponse.Util.RailEdit
         {
             materials = null;
 
+            // 接続自体の欠落と種類メタデータの欠落を別の理由で記録する
+            // Distinguish a missing edge from missing type metadata on an existing edge
+            if (!from.ConnectedNodes.Any(node => node.NodeId == to.NodeId))
+            {
+                Debug.LogWarning($"[RailRemovalRefund] refund skipped: edge missing. from={from.NodeId} to={to.NodeId}");
+                return false;
+            }
+
             // 駅内部・駅隣接の自動接続はGuid.Emptyの無償区間なので返さない
             // Station-internal and adjacency auto links are costless Guid.Empty segments, so skip them
             if (!railGraphDatastore.TryGetRailSegmentType(from.NodeId, to.NodeId, out var connectToolGuid))
             {
-                Debug.LogWarning($"[RailRemovalRefund] refund skipped: segment metadata missing. from={from.NodeId} to={to.NodeId}");
+                Debug.LogWarning($"[RailRemovalRefund] refund skipped: edge exists but segment type metadata missing. from={from.NodeId} to={to.NodeId}");
                 return false;
             }
             if (connectToolGuid == Guid.Empty) return false;

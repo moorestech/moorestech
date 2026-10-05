@@ -45,12 +45,7 @@ namespace Client.Game.InGame.UI.UIState.State.PlacementPick
                 var aim = BlockClickDetectUtil.GetCursorOnConnectionLine();
                 if (aim.Outcome != ConnectionLineAimOutcome.Found) return false;
 
-                // 線を引いた種類そのものをスポイトする。解放状態に無い種類は異常なので理由をログへ出し、未解放は通常の不成立
-                // Pick the exact tool the line was drawn with; an unknown tool is abnormal and logged, a locked tool is an ordinary miss
-                var pick = ConnectionLinePickResolver.Resolve(aim.Line.ConnectToolGuid, _gameUnlockStateData);
-                if (pick.Outcome == ConnectionLinePickOutcome.UnknownTool) Debug.LogWarning($"[PlacementPick] line tool not in unlock state: {aim.Line.ConnectToolGuid}");
-                target = pick.Target;
-                return pick.Outcome == ConnectionLinePickOutcome.Picked;
+                return ConnectionLinePickResolver.TryResolve(aim.Line.ConnectToolGuid, _gameUnlockStateData, out target);
             }
 
             bool TryPickTrainCar(out IPlacementTarget target)

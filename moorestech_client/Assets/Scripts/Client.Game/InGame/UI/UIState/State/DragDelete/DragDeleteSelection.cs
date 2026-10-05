@@ -2,6 +2,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Mooresmaster.Localization.Generated;
+using UnityEngine;
 
 namespace Client.Game.InGame.UI.UIState.State.DragDelete
 {
@@ -82,7 +83,11 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         // Reset all selections and mark as canceled (ESC behavior)
         public void CancelSelection()
         {
-            foreach (var target in _selectedTargets.Values) target.ResetMaterial();
+            foreach (var target in _selectedTargets.Values)
+            {
+                if (target is Object unityTarget && unityTarget == null) continue;
+                target.ResetMaterial();
+            }
 
             _selectedTargets.Clear();
             _canceled = true;
@@ -97,7 +102,16 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
 
             // 削除送信後に端点が消え得るため撤去物を先に記録する
             // Record removed objects before sends can remove their endpoints
-            var committed = new List<IDeleteTarget>(_selectedTargets.Values);
+            var committed = new List<IDeleteTarget>();
+            foreach (var target in _selectedTargets.Values)
+            {
+                if (target is Object unityTarget && unityTarget == null)
+                {
+                    Debug.LogWarning("[DragDelete] selected target was destroyed before commit");
+                    continue;
+                }
+                committed.Add(target);
+            }
             var record = RemoveOperationRecord.CreateFrom(committed, _restoreSender);
             foreach (var target in committed)
             {

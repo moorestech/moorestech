@@ -117,23 +117,15 @@ namespace Game.Block.Blocks.ElectricWire
 
             _wireConnections.Clear();
 
-            // 接続記録を利用して復元する
-            // Restore using connection record information when available
-            if (data.Connections is not { Count: > 0 }) return;
-
-            foreach (var connection in data.Connections)
+            // 空の接続は正常、nullは破損として区別する
+            // Empty connections are valid; null marks malformed save data
+            if (data.Connections == null)
             {
-                // 破損した接続は理由を残して復元を見送る
-                // Skip malformed connections with a diagnostic reason
-                if (connection.TargetBlockInstanceId == BlockInstanceId.AsPrimitive()) { Debug.LogWarning($"[ElectricWire] Saved self connection skipped: {BlockInstanceId}"); continue; }
-                if (_maxWireConnectionCount <= _wireConnections.Count) { Debug.LogWarning($"[ElectricWire] Saved connections exceed limit: {BlockInstanceId}, limit={_maxWireConnectionCount}"); break; }
-                var targetId = new BlockInstanceId(connection.TargetBlockInstanceId);
-                if (_wireConnections.ContainsKey(targetId)) { Debug.LogWarning($"[ElectricWire] Duplicate saved connection: {BlockInstanceId} -> {targetId}"); continue; }
-                var connector = ResolveWireTarget(targetId);
-                if (connector == null) { Debug.LogWarning($"[ElectricWire] Saved connection target missing: {BlockInstanceId} -> {targetId}"); continue; }
-                var record = connection.ToConnectionRecord();
-                _wireConnections.Add(targetId, (connector, record));
+                Debug.LogWarning($"[ElectricWire] Saved connections missing: {BlockInstanceId}");
+                return;
             }
+            if (data.Connections.Count == 0) return;
+            ElectricWireConnectionRestorer.Restore(data, BlockInstanceId, _maxWireConnectionCount, _wireConnections);
 
             // 復元接続をエネルギー網へ反映
             // Reflect restored wire connections into the energy network

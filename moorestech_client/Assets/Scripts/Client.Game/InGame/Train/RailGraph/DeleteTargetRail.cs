@@ -68,21 +68,10 @@ namespace Client.Game.InGame.Train.RailGraph
         
         public void CollectRemovedObjects(RemovedObjectCollector collector)
         {
-            // レールIDはcanonical区間なのでそのまま記録へ写す。無償区間は設計上記録せず、未同期・駅内部は記録不能として数える
-            // The rail object id is already canonical; free segments are skipped by design, unsynced/station-internal count as unrecordable
+            // 直接撤去では無償区間も復元不能件数へ含める
+            // Count directly deleted free segments among unrestorable items
             var (fromId, toId) = RailObjectIdCodec.Decode(RailObjectIdCarrier.GetRailObjectId());
-            var result = RemovedRail.Create(_railGraphClientCache, fromId, toId);
-            switch (result.Outcome)
-            {
-                case RemovedRailCreateOutcome.Created:
-                    collector.Add(result.Rail);
-                    break;
-                case RemovedRailCreateOutcome.FreeSegment:
-                    break;
-                default:
-                    collector.AddUnrecordable($"rail edge {fromId}->{toId}: {result.Outcome}");
-                    break;
-            }
+            RemovedRail.Capture(_railGraphClientCache, fromId, toId, RemovedRailCaptureContext.Direct, collector);
         }
 
         public void Delete()
