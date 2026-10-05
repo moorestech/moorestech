@@ -2,8 +2,8 @@ using Client.Game.InGame.UI.UIState.State.RemovePreview;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.Block;
-using Client.Game.InGame.Block.Removal;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
+using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect;
 using Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine;
 using Client.Game.InGame.Train.RailGraph;
 using Game.Block.Interface;
@@ -136,8 +136,8 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         {
             _edgeBuffer.Clear();
             _destinationBuffer.Clear();
-            foreach (var source in block.GetComponentsInChildren<IBlockRemovalCascadeSource>(true))
-                source.CollectConnectionDestinations(_destinationBuffer);
+            foreach (var area in block.GetComponentsInChildren<IRailComponentConnectAreaCollider>(true))
+                _destinationBuffer.Add(area.CreateConnectionDestination());
             AttachedRailEdgeEnumerator.Collect(_railCache, _destinationBuffer, _edgeBuffer);
             return _edgeBuffer;
         }

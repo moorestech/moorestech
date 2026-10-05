@@ -10,6 +10,8 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
     // Send wire disconnect and restore requests
     public sealed class ElectricWireLineCommands : IConnectionLineCommands
     {
+        public ConnectionLineKind Kind => ConnectionLineKind.ElectricWire;
+
         public void SendDisconnect(Vector3Int posA, Vector3Int posB)
         {
             ClientContext.VanillaApi.SendOnly.ConnectionLine.DisconnectElectricWire(posA, posB);

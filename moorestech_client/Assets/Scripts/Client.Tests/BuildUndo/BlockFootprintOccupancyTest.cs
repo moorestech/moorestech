@@ -4,6 +4,8 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
 using Core.Master;
 using Game.Block.Interface;
 using NUnit.Framework;
+using Server.Boot;
+using Tests.Module.TestMod;
 using UnityEngine;
 
 namespace Client.Tests.BuildUndo
@@ -12,6 +14,12 @@ namespace Client.Tests.BuildUndo
     {
         private GameObject _storeObject;
         private GameObject _blockObject;
+
+        [SetUp]
+        public void SetUp()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+        }
 
         [TearDown]
         public void TearDown()
@@ -27,7 +35,7 @@ namespace Client.Tests.BuildUndo
             _blockObject = new GameObject("PlacedBlock");
             var store = _storeObject.AddComponent<BlockGameObjectDataStore>();
             var block = _blockObject.AddComponent<BlockGameObject>();
-            var blockId = new BlockId(1);
+            var blockId = ForUnitTestModBlockId.MachineId;
             var footprint = new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, new Vector3Int(2, 1, 2));
             typeof(BlockGameObject).GetProperty(nameof(BlockGameObject.BlockId)).GetSetMethod(true).Invoke(block, new object[] { blockId });
             typeof(BlockGameObject).GetProperty(nameof(BlockGameObject.BlockPosInfo)).GetSetMethod(true).Invoke(block, new object[] { footprint });
@@ -36,12 +44,33 @@ namespace Client.Tests.BuildUndo
 
             // 辞書キー一致と占有範囲の重なりを別の結果にする
             // Distinguish an exact origin match from overlapping footprints
-            Assert.AreEqual(BlockFootprintOccupancy.SameBlockPresent, store.GetOccupancy(footprint, blockId));
+            Assert.AreEqual(BlockFootprintOccupancy.SameBlockPresent, store.GetOccupancy(Vector3Int.zero, BlockDirection.North, blockId));
             Assert.AreEqual(BlockFootprintOccupancy.OtherBlock,
-                store.GetOccupancy(new BlockPositionInfo(Vector3Int.right, BlockDirection.North, Vector3Int.one), blockId));
+                store.GetOccupancy(Vector3Int.right, BlockDirection.North, blockId));
             Assert.AreEqual(BlockFootprintOccupancy.Free,
-                store.GetOccupancy(new BlockPositionInfo(new Vector3Int(8, 0, 0), BlockDirection.North, Vector3Int.one), blockId));
+                store.GetOccupancy(new Vector3Int(8, 0, 0), BlockDirection.North, blockId));
 
+        }
+
+        [Test]
+        public void QueryUsesMasterSizeForMultiCellCandidate()
+        {
+            _storeObject = new GameObject("OccupancyStore");
+            _blockObject = new GameObject("PlacedBlock");
+            var store = _storeObject.AddComponent<BlockGameObjectDataStore>();
+            var block = _blockObject.AddComponent<BlockGameObject>();
+            var existingPosition = new Vector3Int(2, 0, 0);
+            var existingId = ForUnitTestModBlockId.MachineId;
+            var existingFootprint = new BlockPositionInfo(existingPosition, BlockDirection.North, Vector3Int.one);
+            typeof(BlockGameObject).GetProperty(nameof(BlockGameObject.BlockId)).GetSetMethod(true).Invoke(block, new object[] { existingId });
+            typeof(BlockGameObject).GetProperty(nameof(BlockGameObject.BlockPosInfo)).GetSetMethod(true).Invoke(block, new object[] { existingFootprint });
+            var blocks = (Dictionary<Vector3Int, BlockGameObject>)store.BlockGameObjectDictionary;
+            blocks.Add(existingPosition, block);
+
+            // MultiBlock の寸法をマスタから読み、離れた原点の重なりを見つける
+            // Read the multi-block size from master data and find overlap across origins
+            Assert.AreEqual(BlockFootprintOccupancy.OtherBlock,
+                store.GetOccupancy(Vector3Int.zero, BlockDirection.North, ForUnitTestModBlockId.MultiBlockGeneratorId));
         }
     }
 }

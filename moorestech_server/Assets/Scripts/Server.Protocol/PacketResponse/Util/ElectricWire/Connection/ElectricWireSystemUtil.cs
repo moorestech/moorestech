@@ -68,7 +68,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.Connection
             // 距離はコスト計算専用。既存接続・所持アイテムを評価に渡す
             // Distance feeds cost only; pass existing connection state and held items to the evaluation
             var distance = Vector3Int.Distance(posA, posB);
-            var alreadyConnected = connectorA.ContainsWireConnection(connectorB.BlockInstanceId) || connectorB.ContainsWireConnection(connectorA.BlockInstanceId);
+            var alreadyConnected = AreConnected(connectorA, connectorB);
             var anyConnectionFull = connectorA.IsWireConnectionFull || connectorB.IsWireConnectionFull;
             var inventory = ServerContext.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).MainOpenableInventory;
 
@@ -155,6 +155,19 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.Connection
 
             connector = block.GetComponent<IElectricWireConnector>();
             return connector != null;
+        }
+
+        public static bool TryGetExistingConnection(Vector3Int posA, Vector3Int posB, out IElectricWireConnector connectorB)
+        {
+            connectorB = null;
+            if (!TryGetWireConnector(posA, out var connectorA) || !TryGetWireConnector(posB, out connectorB)) return false;
+            if (connectorA.BlockInstanceId == connectorB.BlockInstanceId) return false;
+            return AreConnected(connectorA, connectorB);
+        }
+
+        private static bool AreConnected(IElectricWireConnector connectorA, IElectricWireConnector connectorB)
+        {
+            return connectorA.ContainsWireConnection(connectorB.BlockInstanceId) || connectorB.ContainsWireConnection(connectorA.BlockInstanceId);
         }
     }
 }

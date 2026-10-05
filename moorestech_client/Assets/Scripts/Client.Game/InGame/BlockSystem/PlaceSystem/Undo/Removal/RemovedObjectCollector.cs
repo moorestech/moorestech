@@ -33,7 +33,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
             UnrecordableCount++;
         }
 
-        public void AddUnrecordable(Vector3Int position, BlockDirection direction, BlockId blockId, string reason)
+        public void AddUnrecordableBlock(Vector3Int position, BlockDirection direction, BlockId blockId, string reason)
         {
             Debug.LogWarning($"[RemovalRestore] unrecordable: {reason}");
             _unrecordableBlocks.Add(new UnrecordableBlock(position, direction, blockId));

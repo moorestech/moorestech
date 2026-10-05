@@ -15,6 +15,13 @@ namespace Client.Game.InGame.Train.RailGraph
             _controller = null;
         }
 
+        public void Capture(GameObject railObject)
+        {
+            // 設置アニメ開始前に元の材質を確定する
+            // Pin the original materials before placement animation starts
+            _controller = new RendererMaterialReplacerController(railObject);
+        }
+
         public void SetRed(GameObject railObject, bool useGpuDeform, BezierRailChainSegments segments)
         {
             if (useGpuDeform)

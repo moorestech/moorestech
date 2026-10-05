@@ -58,6 +58,7 @@ namespace Client.Tests.ConnectionLine
             var line = CreateLine();
             InitializeLine(line, new BlockInstanceId(1), new BlockInstanceId(2), ConnectionLineKind.GearChain, registry);
 
+            Assert.AreEqual(ConnectionLineKind.GearChain, line.Kind);
             Assert.AreEqual(Client.Game.Common.BlockMasterElementExtension.ConnectionLineDestructionCategory, line.GetDestructionCategory());
             Assert.IsTrue(line.IsRemovable(out var reason));
             Assert.IsFalse(reason.HasValue);
@@ -110,7 +111,7 @@ namespace Client.Tests.ConnectionLine
 
         private static void InitializeLine(ConnectionLineDeleteTarget line, BlockInstanceId fromId, BlockInstanceId toId, ConnectionLineKind kind, ConnectionLineRegistry registry)
         {
-            line.Initialize(fromId, toId, Guid.NewGuid(), kind, registry, new StubEndpoints(), new StubCommands());
+            line.Initialize(fromId, toId, Guid.NewGuid(), registry, new StubEndpoints(), new StubCommands(kind));
         }
 
         private sealed class StubEndpoints : IConnectionLineEndpointQuery
@@ -124,6 +125,8 @@ namespace Client.Tests.ConnectionLine
 
         private sealed class StubCommands : IConnectionLineCommands
         {
+            public ConnectionLineKind Kind { get; }
+            public StubCommands(ConnectionLineKind kind) { Kind = kind; }
             public void SendDisconnect(Vector3Int posA, Vector3Int posB) { }
             public void SendRestore(IRemovalRestoreSender sender, Vector3Int posA, Vector3Int posB, Guid connectToolGuid) { }
         }

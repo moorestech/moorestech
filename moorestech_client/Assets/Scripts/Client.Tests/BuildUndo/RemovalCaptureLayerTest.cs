@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
 using Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine;
+using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.UI.UIState.State.DragDelete;
@@ -59,7 +60,7 @@ namespace Client.Tests.BuildUndo
             _lineObject = new GameObject("AttachedWire");
             var line = _lineObject.AddComponent<ConnectionLineDeleteTarget>();
             var tool = Guid.NewGuid();
-            line.Initialize(new BlockInstanceId(1), new BlockInstanceId(2), tool, ConnectionLineKind.ElectricWire,
+            line.Initialize(new BlockInstanceId(1), new BlockInstanceId(2), tool,
                 registry, new Endpoints(), new FakeConnectionLineCommands(ConnectionLineKind.ElectricWire));
             var collector = new RemovedObjectCollector();
             child.CollectRemovedObjects(collector);
@@ -75,11 +76,10 @@ namespace Client.Tests.BuildUndo
         {
             _lineObject = new GameObject("MissingEndpointWire");
             var line = _lineObject.AddComponent<ConnectionLineDeleteTarget>();
-            line.Initialize(new BlockInstanceId(1), new BlockInstanceId(2), Guid.NewGuid(), ConnectionLineKind.ElectricWire,
+            line.Initialize(new BlockInstanceId(1), new BlockInstanceId(2), Guid.NewGuid(),
                 new ConnectionLineRegistry(), new MissingEndpoints(), new FakeConnectionLineCommands(ConnectionLineKind.ElectricWire));
             var collector = new RemovedObjectCollector();
 
-            LogAssert.Expect(LogType.Warning, new Regex("\\[ConnectionLineDelete\\] endpoint block not found:"));
             LogAssert.Expect(LogType.Warning, new Regex("\\[RemovalRestore\\] unrecordable: line endpoint block not found"));
             line.CollectRemovedObjects(collector);
             Assert.IsEmpty(collector.Objects);
@@ -107,6 +107,14 @@ namespace Client.Tests.BuildUndo
                 new BlockPositionInfo(origin, BlockDirection.North, MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockSize));
             var processor = _blockObject.AddComponent<TrainRailStateChangeProcessor>();
             processor.Initialize(block);
+            var front = new GameObject("PierFront", typeof(BoxCollider)).AddComponent<TrainRailConnectAreaCollider>();
+            front.transform.SetParent(_blockObject.transform);
+            front.isFront = true;
+            front.Initialize(block);
+            var back = new GameObject("PierBack", typeof(BoxCollider)).AddComponent<TrainRailConnectAreaCollider>();
+            back.transform.SetParent(_blockObject.transform);
+            back.isFront = false;
+            back.Initialize(block);
             var child = _blockObject.AddComponent<BlockGameObjectChild>();
             child.Init(block);
             var collector = new RemovedObjectCollector();

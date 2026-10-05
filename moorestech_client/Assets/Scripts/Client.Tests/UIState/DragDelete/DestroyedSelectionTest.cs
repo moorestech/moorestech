@@ -37,6 +37,23 @@ namespace Client.Tests.UIState
             selection.CommitDelete();
             Assert.IsFalse(history.TryPop(out _));
         }
+
+        [Test]
+        public void DestroyedTargetIsLoggedDuringCancel()
+        {
+            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
+            _selectedObject = new GameObject("SelectedRail");
+            var target = _selectedObject.AddComponent<DestroyableDeleteTarget>();
+            selection.BeginDrag();
+            Assert.IsTrue(selection.TryAddTarget(target, out _));
+            Object.DestroyImmediate(_selectedObject);
+
+            // キャンセルで失った対象も理由を記録する
+            // Log a target lost before canceling the selection
+            LogAssert.Expect(LogType.Warning, "[DragDelete] selected target was destroyed before cancel");
+            selection.CancelSelection();
+            Assert.IsFalse(selection.HasSelection());
+        }
     }
 
     public class DestroyableDeleteTarget : MonoBehaviour, IDeleteTarget

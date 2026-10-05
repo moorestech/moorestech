@@ -2,7 +2,6 @@ using Server.Protocol.PacketResponse;
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
 using Client.Game.InGame.UI.UIState.State;
-using Core.Master;
 using Game.Block.Interface;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
@@ -62,9 +61,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
             // Exclude an unrecordable block only if removal failed and it remains present
             foreach (var block in _unrecordableBlocks)
             {
-                var size = MasterHolder.BlockMaster.GetBlockMaster(block.BlockId).BlockSize;
-                var footprint = new BlockPositionInfo(block.Position, block.Direction, size);
-                if (occupancy.GetOccupancy(footprint, block.BlockId) == BlockFootprintOccupancy.SameBlockPresent)
+                if (occupancy.GetOccupancy(block.Position, block.Direction, block.BlockId) == BlockFootprintOccupancy.SameBlockPresent)
                 {
                     Debug.Log($"[RemovalRestore] unrecordable block still present at {block.Position}");
                     continue;

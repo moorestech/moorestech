@@ -10,6 +10,8 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.GearPole
     // Send gear-chain disconnect and restore requests
     public sealed class GearChainLineCommands : IConnectionLineCommands
     {
+        public ConnectionLineKind Kind => ConnectionLineKind.GearChain;
+
         public void SendDisconnect(Vector3Int posA, Vector3Int posB)
         {
             ClientContext.VanillaApi.SendOnly.ConnectionLine.DisconnectGearChain(posA, posB);

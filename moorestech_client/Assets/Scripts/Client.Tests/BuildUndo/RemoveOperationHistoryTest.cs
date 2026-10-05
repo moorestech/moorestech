@@ -23,7 +23,7 @@ namespace Client.Tests.BuildUndo
             var selection = new DragDeleteSelection(history, sender);
             var tool = Guid.NewGuid();
             var target = new FakeDeleteTarget { Removable = true };
-            target.RemovedObjects.Add(new RemovedConnectionLine(ConnectionLineKind.ElectricWire, Vector3Int.zero, Vector3Int.right, tool, new FakeConnectionLineCommands(ConnectionLineKind.ElectricWire)));
+            target.RemovedObjects.Add(new RemovedConnectionLine(Vector3Int.zero, Vector3Int.right, tool, new FakeConnectionLineCommands(ConnectionLineKind.ElectricWire)));
 
             // 確定で消えても先に記録した線を復元
             // Restore the captured line even if commit erases the target
@@ -52,7 +52,7 @@ namespace Client.Tests.BuildUndo
 
         private sealed class NoBlockOccupancy : IBlockOccupancyQuery
         {
-            public BlockFootprintOccupancy GetOccupancy(BlockPositionInfo target, BlockId blockId)
+            public BlockFootprintOccupancy GetOccupancy(Vector3Int origin, BlockDirection direction, BlockId blockId)
             {
                 Assert.Fail("A connection-only restore must not query block occupancy");
                 return BlockFootprintOccupancy.Free;

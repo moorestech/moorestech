@@ -50,7 +50,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
         {
             foreach (var cell in _cells)
             {
-                if (!IsSameBlockAlive(cell))
+                if (occupancy.GetOccupancy(cell.Position, cell.Direction, cell.BlockId) != BlockFootprintOccupancy.SameBlockPresent)
                 {
                     Debug.Log($"[PlaceUndo] skip cell: same block absent at {cell.Position}");
                     continue;
@@ -66,16 +66,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
                 if (!response.Success) Debug.LogWarning($"[PlaceUndo] remove refused: {response.FailureReason} at {cell.Position}");
             }
 
-            #region Internal
-
-            bool IsSameBlockAlive(PlacedCell cell)
-            {
-                var size = MasterHolder.BlockMaster.GetBlockMaster(cell.BlockId).BlockSize;
-                var footprint = new BlockPositionInfo(cell.Position, cell.Direction, size);
-                return occupancy.GetOccupancy(footprint, cell.BlockId) == BlockFootprintOccupancy.SameBlockPresent;
-            }
-
-            #endregion
         }
 
         private readonly struct PlacedCell

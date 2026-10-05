@@ -8,6 +8,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
     // The concrete line kind selects its disconnect and restore requests
     public interface IConnectionLineCommands
     {
+        ConnectionLineKind Kind { get; }
         void SendDisconnect(Vector3Int posA, Vector3Int posB);
         void SendRestore(IRemovalRestoreSender sender, Vector3Int posA, Vector3Int posB, Guid connectToolGuid);
     }

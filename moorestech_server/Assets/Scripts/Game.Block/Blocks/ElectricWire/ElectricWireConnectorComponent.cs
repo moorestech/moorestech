@@ -62,7 +62,7 @@ namespace Game.Block.Blocks.ElectricWire
             // Store new partner connection
             if (_wireConnections.ContainsKey(partnerId)) return false;
             if (_maxWireConnectionCount <= _wireConnections.Count) return false;
-            var connector = ResolveWireTarget(partnerId);
+            var connector = ElectricWireConnectionRestorer.ResolveTarget(BlockInstanceId, partnerId);
             if (connector == null) return false;
             _wireConnections.Add(partnerId, (connector, connectionRecord));
             // 接続集合の変更点自身でdirty化し、呼び出し元の再構築漏れを構造的に防ぐ
@@ -87,16 +87,6 @@ namespace Game.Block.Blocks.ElectricWire
             return true;
         }
 
-        private IElectricWireConnector ResolveWireTarget(BlockInstanceId targetId)
-        {
-            // 接続候補をワールドから解決する
-            // Resolve target connector from world
-            var block = ServerContext.WorldBlockDatastore.GetBlock(targetId);
-            var connector = block?.GetComponent<IElectricWireConnector>();
-            if (connector == null || connector.BlockInstanceId == BlockInstanceId) return null;
-            return connector;
-        }
-
         public IReadOnlyList<IItemStack> GetRefundItems()
         {
             // 接続ごとに払った素材を返却する
@@ -117,15 +107,7 @@ namespace Game.Block.Blocks.ElectricWire
 
             _wireConnections.Clear();
 
-            // 空の接続は正常、nullは破損として区別する
-            // Empty connections are valid; null marks malformed save data
-            if (data.Connections == null)
-            {
-                Debug.LogWarning($"[ElectricWire] Saved connections missing: {BlockInstanceId}");
-                return;
-            }
-            if (data.Connections.Count == 0) return;
-            ElectricWireConnectionRestorer.Restore(data, BlockInstanceId, _maxWireConnectionCount, _wireConnections);
+            if (!ElectricWireConnectionRestorer.Restore(data, BlockInstanceId, _maxWireConnectionCount, _wireConnections)) return;
 
             // 復元接続をエネルギー網へ反映
             // Reflect restored wire connections into the energy network

@@ -100,7 +100,7 @@ namespace Client.Tests.BuildUndo
 
         private sealed class EmptyOccupancy : IBlockOccupancyQuery
         {
-            public BlockFootprintOccupancy GetOccupancy(BlockPositionInfo target, BlockId blockId)
+            public BlockFootprintOccupancy GetOccupancy(Vector3Int origin, BlockDirection direction, BlockId blockId)
             {
                 return BlockFootprintOccupancy.Free;
             }

@@ -85,7 +85,11 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         {
             foreach (var target in _selectedTargets.Values)
             {
-                if (target is Object unityTarget && unityTarget == null) continue;
+                if (target is Object unityTarget && unityTarget == null)
+                {
+                    Debug.LogWarning("[DragDelete] selected target was destroyed before cancel");
+                    continue;
+                }
                 target.ResetMaterial();
             }
 

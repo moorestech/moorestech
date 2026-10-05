@@ -113,6 +113,22 @@ namespace Client.Game.InGame.Train.RailGraph
             remainderSteps -= stepValue;
         }
 
+        public void FillRemainder(float remainder, float moduleLength, float offset, GameObject halfPrefab, GameObject quarterPrefab, GameObject eighthPrefab)
+        {
+            var remainderSteps = Mathf.Clamp(Mathf.CeilToInt(remainder / moduleLength * 8f), 1, 8);
+            var halfLength = GetModuleLength(halfPrefab, _settings.ForwardAxis, _settings.UpAxis, moduleLength * 0.5f);
+            var quarterLength = GetModuleLength(quarterPrefab, _settings.ForwardAxis, _settings.UpAxis, moduleLength * 0.25f);
+            var eighthLength = GetModuleLength(eighthPrefab, _settings.ForwardAxis, _settings.UpAxis, moduleLength * 0.125f);
+            // 長さ別モジュールで終端まで埋める
+            // Cover the end with modules of descending length
+            TryCreatePartialSegment(ref remainderSteps, 4, halfPrefab, halfLength, ref offset);
+            TryCreatePartialSegment(ref remainderSteps, 2, quarterPrefab, quarterLength, ref offset);
+            TryCreatePartialSegment(ref remainderSteps, 1, eighthPrefab, eighthLength, ref offset);
+            TryCreatePartialSegment(ref remainderSteps, 1, eighthPrefab, eighthLength, ref offset);
+            if (remainderSteps > 0)
+                Debug.LogWarning($"[BezierRailChain] 端数を埋められませんでした (残りステップ:{remainderSteps}). 必要な長さのモジュールが揃っているか確認してください。", _settings.Owner);
+        }
+
         public float GetModuleLength(GameObject prefab, Vector3 forwardAxis, Vector3 upAxis, float fallback)
         {
             if (prefab == null) return fallback;

@@ -1,5 +1,6 @@
 using Core.Master;
 using Game.Block.Interface;
+using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
 {
@@ -9,7 +10,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
     /// </summary>
     public interface IBlockOccupancyQuery
     {
-        BlockFootprintOccupancy GetOccupancy(BlockPositionInfo target, BlockId blockId);
+        BlockFootprintOccupancy GetOccupancy(Vector3Int origin, BlockDirection direction, BlockId blockId);
     }
 
     public enum BlockFootprintOccupancy

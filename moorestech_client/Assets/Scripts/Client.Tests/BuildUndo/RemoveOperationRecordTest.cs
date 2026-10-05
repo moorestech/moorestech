@@ -39,8 +39,8 @@ namespace Client.Tests.BuildUndo
             var posA = new Vector3Int(0, 0, 0);
             var posB = new Vector3Int(5, 0, 0);
             var commands = new FakeConnectionLineCommands(ConnectionLineKind.ElectricWire);
-            var line = new RemovedConnectionLine(ConnectionLineKind.ElectricWire, posA, posB, guid, commands);
-            var sameLineReversed = new RemovedConnectionLine(ConnectionLineKind.ElectricWire, posB, posA, guid, commands);
+            var line = new RemovedConnectionLine(posA, posB, guid, commands);
+            var sameLineReversed = new RemovedConnectionLine(posB, posA, guid, commands);
             var block = new RemovedBlock(posA, ForUnitTestModBlockId.MachineId, BlockDirection.North, Array.Empty<BlockCreateParam>());
             var targets = new List<IDeleteTarget>
             {
@@ -63,7 +63,7 @@ namespace Client.Tests.BuildUndo
             // An occupied cell is skipped, but the line restore is sent
             var guid = Guid.NewGuid();
             var block = new RemovedBlock(Vector3Int.zero, ForUnitTestModBlockId.MachineId, BlockDirection.North, Array.Empty<BlockCreateParam>());
-            var chain = new RemovedConnectionLine(ConnectionLineKind.GearChain, Vector3Int.zero, new Vector3Int(3, 0, 0), guid, new FakeConnectionLineCommands(ConnectionLineKind.GearChain));
+            var chain = new RemovedConnectionLine(Vector3Int.zero, new Vector3Int(3, 0, 0), guid, new FakeConnectionLineCommands(ConnectionLineKind.GearChain));
             var sender = new FakeRemovalRestoreSender();
             var record = RemoveOperationRecord.CreateFrom(new List<IDeleteTarget> { new FakeDeleteTarget { RemovedObjects = { block, chain } } }, sender);
 
@@ -82,7 +82,7 @@ namespace Client.Tests.BuildUndo
             var posA = Vector3Int.zero;
             var posB = new Vector3Int(3, 0, 0);
             var tool = Guid.NewGuid();
-            var line = new RemovedConnectionLine(kind, posA, posB, tool, new FakeConnectionLineCommands(kind));
+            var line = new RemovedConnectionLine(posA, posB, tool, new FakeConnectionLineCommands(kind));
             var sender = new FakeRemovalRestoreSender();
             var record = RemoveOperationRecord.CreateFrom(new List<IDeleteTarget> { new FakeDeleteTarget { RemovedObjects = { line } } }, sender);
 
@@ -100,7 +100,7 @@ namespace Client.Tests.BuildUndo
             var posA = Vector3Int.zero;
             var posB = Vector3Int.right;
             var tool = Guid.NewGuid();
-            var line = new RemovedConnectionLine(ConnectionLineKind.ElectricWire, posA, posB, tool, new FakeConnectionLineCommands(ConnectionLineKind.ElectricWire));
+            var line = new RemovedConnectionLine(posA, posB, tool, new FakeConnectionLineCommands(ConnectionLineKind.ElectricWire));
             var sender = new FakeRemovalRestoreSender();
             var record = RemoveOperationRecord.CreateFrom(new List<IDeleteTarget> { new FakeDeleteTarget { RemovedObjects = { line } } }, sender);
 
@@ -168,7 +168,7 @@ namespace Client.Tests.BuildUndo
                 _occupancy = occupied ? BlockFootprintOccupancy.OtherBlock : BlockFootprintOccupancy.Free;
             }
             public FakeOccupancy(BlockFootprintOccupancy occupancy) { _occupancy = occupancy; }
-            public BlockFootprintOccupancy GetOccupancy(BlockPositionInfo target, BlockId blockId)
+            public BlockFootprintOccupancy GetOccupancy(Vector3Int origin, BlockDirection direction, BlockId blockId)
             {
                 return _occupancy;
             }

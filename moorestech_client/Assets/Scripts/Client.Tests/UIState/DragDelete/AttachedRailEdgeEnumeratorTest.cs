@@ -105,20 +105,27 @@ namespace Client.Tests.UIState
         }
 
         [Test]
-        public void PierProcessorPublishesBothRailDestinations()
+        public void PierCollidersPublishBothRailDestinations()
         {
             _pierObject = new GameObject("PierSource");
             var block = _pierObject.AddComponent<BlockGameObject>();
             var position = new Vector3Int(4, 0, 7);
             typeof(BlockGameObject).GetProperty(nameof(BlockGameObject.BlockPosInfo)).GetSetMethod(true)
                 .Invoke(block, new object[] { new BlockPositionInfo(position, BlockDirection.North, Vector3Int.one) });
-            var processor = _pierObject.AddComponent<TrainRailStateChangeProcessor>();
-            processor.Initialize(block);
+            var front = new GameObject("Front", typeof(BoxCollider)).AddComponent<TrainRailConnectAreaCollider>();
+            front.transform.SetParent(_pierObject.transform);
+            front.isFront = true;
+            front.Initialize(block);
+            var back = new GameObject("Back", typeof(BoxCollider)).AddComponent<TrainRailConnectAreaCollider>();
+            back.transform.SetParent(_pierObject.transform);
+            back.isFront = false;
+            back.Initialize(block);
 
-            // 橋脚の具体部品だけが自分のレール端点を公開する
-            // Only the concrete pier component publishes its own rail endpoints
+            // 橋脚の既存コライダーから端点を得る
+            // Read pier endpoints from the existing colliders
             var destinations = new List<ConnectionDestination>();
-            processor.CollectConnectionDestinations(destinations);
+            foreach (var area in block.GetComponentsInChildren<IRailComponentConnectAreaCollider>(true))
+                destinations.Add(area.CreateConnectionDestination());
             CollectionAssert.AreEquivalent(Destinations(position, 0), destinations);
         }
 
@@ -136,7 +143,8 @@ namespace Client.Tests.UIState
             source.Initialize(block);
 
             var destinations = new List<ConnectionDestination>();
-            source.CollectConnectionDestinations(destinations);
+            foreach (var area in block.GetComponentsInChildren<IRailComponentConnectAreaCollider>(true))
+                destinations.Add(area.CreateConnectionDestination());
             CollectionAssert.AreEqual(new[] { new ConnectionDestination(position, 1, true) }, destinations);
         }
 

@@ -8,6 +8,7 @@ namespace Client.Tests.BuildUndo
     public sealed class FakeConnectionLineCommands : IConnectionLineCommands
     {
         private readonly ConnectionLineKind _kind;
+        public ConnectionLineKind Kind => _kind;
 
         public FakeConnectionLineCommands(ConnectionLineKind kind)
         {

@@ -44,10 +44,7 @@ namespace Server.Protocol.PacketResponse
                     case ChainEditMode.Connect:
                         // 復元では既接続を無消費・無通知で成功扱いにする
                         // A restore of an existing connection succeeds without spending or notifying
-                        if (data.IsRestore && GearChainSystemUtil.TryGetGearChainPole(data.PosAVector, out var poleA, out _) &&
-                            GearChainSystemUtil.TryGetGearChainPole(data.PosBVector, out var poleB, out _) &&
-                            poleA.BlockInstanceId != poleB.BlockInstanceId &&
-                            (poleA.ContainsChainConnection(poleB.BlockInstanceId) || poleB.ContainsChainConnection(poleA.BlockInstanceId)))
+                        if (data.IsRestore && GearChainSystemUtil.IsAlreadyConnected(data.PosAVector, data.PosBVector))
                         {
                             Debug.Log($"[GearChainConnectionEdit] restore already connected: {data.PosAVector}->{data.PosBVector}");
                             return new GearChainConnectionEditResponse(true, string.Empty);

@@ -149,24 +149,14 @@ namespace Client.Game.InGame.Train.RailGraph
             }
 
             var remainder = Mathf.Max(0f, _curveLength - offset);
-            if (remainder <= 1e-4f)
-                return;
-
-            // 端数は多めに生成し、終端Clampによる縮小で隙間を吸収する
-            // Generate extra remainder coverage and let end clamping shrink the last segment
-            var remainderSteps = Mathf.Clamp(Mathf.CeilToInt(remainder / moduleLength * 8f), 1, 8);
-            var halfLength = _halfModulePrefab != null ? _segments.GetModuleLength(_halfModulePrefab, _forwardAxis, _upAxis, moduleLength * 0.5f) : moduleLength * 0.5f;
-            var quarterLength = _quarterModulePrefab != null ? _segments.GetModuleLength(_quarterModulePrefab, _forwardAxis, _upAxis, moduleLength * 0.25f) : moduleLength * 0.25f;
-            var eighthLength = _eighthModulePrefab != null ? _segments.GetModuleLength(_eighthModulePrefab, _forwardAxis, _upAxis, moduleLength * 0.125f) : moduleLength * 0.125f;
-            _segments.TryCreatePartialSegment(ref remainderSteps, 4, _halfModulePrefab, halfLength, ref offset);
-            _segments.TryCreatePartialSegment(ref remainderSteps, 2, _quarterModulePrefab, quarterLength, ref offset);
-            _segments.TryCreatePartialSegment(ref remainderSteps, 1, _eighthModulePrefab, eighthLength, ref offset);
-            _segments.TryCreatePartialSegment(ref remainderSteps, 1, _eighthModulePrefab, eighthLength, ref offset);
-            if (remainderSteps > 0)
+            if (remainder > 1e-4f)
             {
-                Debug.LogWarning($"[BezierRailChain] 端数を埋められませんでした (残りステップ:{remainderSteps}). 必要な長さのモジュールが揃っているか確認してください。", this);
+                // 端数は多めに生成し、終端Clampによる縮小で隙間を吸収する
+                // Generate extra remainder coverage and let end clamping shrink the last segment
+                _segments.FillRemainder(remainder, moduleLength, offset, _halfModulePrefab, _quarterModulePrefab, _eighthModulePrefab);
             }
-            
+
+            if (!_useGpuDeform) _removePreview.Capture(gameObject);
         }
 
         private void OnDestroy()

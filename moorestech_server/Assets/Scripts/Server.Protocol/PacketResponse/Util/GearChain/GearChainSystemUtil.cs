@@ -46,7 +46,7 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
             // 距離・既接続・接続数上限・チェーン素材を共有判定で検証する
             // Validate distance, existing connection, connection limit and chain materials via shared judgement
             var connectionDistance = Vector3Int.Distance(posA, posB);
-            var alreadyConnected = poleA.ContainsChainConnection(poleB.BlockInstanceId) || poleB.ContainsChainConnection(poleA.BlockInstanceId);
+            var alreadyConnected = AreConnected(poleA, poleB);
             var inventory = ServerContext.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).MainOpenableInventory;
             var judgement = GearChainPlacementEvaluator.EvaluatePlacement(connectionDistance, poleA.MaxConnectionDistance, poleB.MaxConnectionDistance, alreadyConnected, poleA.IsConnectionFull || poleB.IsConnectionFull, connectToolGuid, inventory.InventoryItems, null);
             if (!judgement.IsPlaceable)
@@ -138,6 +138,18 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
             transformer = block.GetComponent<IGearEnergyTransformer>();
             
             return chainPole != null && transformer != null;
+        }
+
+        public static bool IsAlreadyConnected(Vector3Int posA, Vector3Int posB)
+        {
+            if (!TryGetGearChainPole(posA, out var poleA, out _) || !TryGetGearChainPole(posB, out var poleB, out _)) return false;
+            if (poleA.BlockInstanceId == poleB.BlockInstanceId) return false;
+            return AreConnected(poleA, poleB);
+        }
+
+        private static bool AreConnected(IGearChainPole poleA, IGearChainPole poleB)
+        {
+            return poleA.ContainsChainConnection(poleB.BlockInstanceId) || poleB.ContainsChainConnection(poleA.BlockInstanceId);
         }
 
     }

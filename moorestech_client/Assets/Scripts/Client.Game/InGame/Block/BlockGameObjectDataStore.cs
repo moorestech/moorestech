@@ -152,8 +152,12 @@ namespace Client.Game.InGame.Block
             return false;
         }
 
-        public BlockFootprintOccupancy GetOccupancy(BlockPositionInfo target, BlockId blockId)
+        public BlockFootprintOccupancy GetOccupancy(Vector3Int origin, BlockDirection direction, BlockId blockId)
         {
+            // IDから占有範囲を一箇所で構築する
+            // Build the footprint from the block id in one place
+            var size = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockSize;
+            var target = new BlockPositionInfo(origin, direction, size);
             // 同じブロックが残っていても他ブロックとの重なりを優先する
             // Another overlapping block takes priority even when the original remains
             var sameBlockPresent = false;

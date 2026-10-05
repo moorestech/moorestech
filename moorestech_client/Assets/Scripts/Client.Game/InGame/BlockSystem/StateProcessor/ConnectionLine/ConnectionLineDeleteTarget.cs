@@ -20,7 +20,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
         public BlockInstanceId FromId { get; private set; }
         public BlockInstanceId ToId { get; private set; }
         public Guid ConnectToolGuid { get; private set; }
-        public ConnectionLineKind Kind { get; private set; }
+        public ConnectionLineKind Kind => _commands.Kind;
 
         private readonly RemovePreviewRequests _removePreviewRequests = new();
         private ConnectionLineRegistry _registry;
@@ -28,12 +28,11 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
         private IConnectionLineCommands _commands;
         private RendererMaterialReplacerController _materialReplacer;
 
-        public void Initialize(BlockInstanceId fromId, BlockInstanceId toId, Guid connectToolGuid, ConnectionLineKind kind, ConnectionLineRegistry registry, IConnectionLineEndpointQuery endpoints, IConnectionLineCommands commands)
+        public void Initialize(BlockInstanceId fromId, BlockInstanceId toId, Guid connectToolGuid, ConnectionLineRegistry registry, IConnectionLineEndpointQuery endpoints, IConnectionLineCommands commands)
         {
             FromId = fromId;
             ToId = toId;
             ConnectToolGuid = connectToolGuid;
-            Kind = kind;
             _registry = registry;
             _endpoints = endpoints;
             _commands = commands;
@@ -80,13 +79,12 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
 
         // 両端ブロックの座標を解決する（切断送信とUndo記録が共有）
         // Resolve both endpoint block positions (shared by the disconnect send and the undo record)
-        private bool TryResolveEndpointPositions(out Vector3Int fromPos, out Vector3Int toPos)
+        public bool TryResolveEndpointPositions(out Vector3Int fromPos, out Vector3Int toPos)
         {
             fromPos = default;
             toPos = default;
             if (!_endpoints.TryGetPosition(FromId, out fromPos) || !_endpoints.TryGetPosition(ToId, out toPos))
             {
-                Debug.LogWarning($"[ConnectionLineDelete] endpoint block not found: from={FromId} to={ToId}");
                 return false;
             }
 
@@ -112,14 +110,13 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
         {
             // 両端を解決して種類別の切断要求を送る
             // Resolve both ends and send the per-kind disconnect request
-            if (!TryResolveEndpointPositions(out var fromPos, out var toPos)) return;
+            if (!TryResolveEndpointPositions(out var fromPos, out var toPos))
+            {
+                Debug.LogWarning($"[ConnectionLineDelete] endpoint block not found: from={FromId} to={ToId}");
+                return;
+            }
 
             _commands.SendDisconnect(fromPos, toPos);
-        }
-
-        public bool TryGetRestoreData(out Vector3Int fromPos, out Vector3Int toPos)
-        {
-            return TryResolveEndpointPositions(out fromPos, out toPos);
         }
 
         public IConnectionLineCommands GetLineCommands()

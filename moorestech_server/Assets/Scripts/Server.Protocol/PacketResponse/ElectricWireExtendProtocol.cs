@@ -32,10 +32,7 @@ namespace Server.Protocol.PacketResponse
             // 復元要求だけはサーバーの現状態で既接続を判定し、課金と通知を抑止する
             // Only restore requests check current server connections before charging or notifying
             if (request.IsRestore && request.Operation == ElectricWireExtendOperation.ConnectToExisting &&
-                ElectricWireSystemUtil.TryGetWireConnector(request.FromPosVector, out var fromConnector) &&
-                ElectricWireSystemUtil.TryGetWireConnector(request.ToPosVector, out var toConnector) &&
-                fromConnector.BlockInstanceId != toConnector.BlockInstanceId &&
-                (fromConnector.ContainsWireConnection(toConnector.BlockInstanceId) || toConnector.ContainsWireConnection(fromConnector.BlockInstanceId)))
+                ElectricWireSystemUtil.TryGetExistingConnection(request.FromPosVector, request.ToPosVector, out var toConnector))
             {
                 Debug.Log($"[ElectricWireExtend] restore already connected: {request.FromPosVector}->{request.ToPosVector}");
                 return ElectricWireExtendResponse.CreateSuccess(request.ToPosVector, toConnector.BlockInstanceId.AsPrimitive());
