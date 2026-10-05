@@ -29,8 +29,7 @@ return PlaytestRunner.Run("delete-tool-pier-removal-undo-rail", new PlaytestRunO
     Application.logMessageReceivedThreaded += (condition, _, type) => { if (!condition.StartsWith("[Playtest]") && (type == LogType.Exception || type == LogType.Error || type == LogType.Warning && badTags.Any(condition.Contains))) lock (badLogs) badLogs.Add($"{type}: {condition.Split('\n')[0]}"); };
     ClientContext.VanillaApi.Event.SubscribeEventResponse(NotificationService.EventTag, payload => { var m = MessagePack.MessagePackSerializer.Deserialize<NotificationMessagePack>(payload); if (m.Category == NotificationCategory.OperationDenied) denied.Add(m.MessageId); });
     ClientDIContext.ClientLocalNotificationSource.OnNotification.Subscribe(m => { if (m.Category == NotificationCategory.OperationDenied) denied.Add(m.MessageId); });
-    var resolver = ClientDIContext.DIContainer.DIContainerResolver;
-    var restoreSender = resolver.Resolve<IRemovalRestoreSender>();
+    var restoreSender = ClientDIContext.DIContainer.DIContainerResolver.Resolve<IRemovalRestoreSender>();
     p.Assert(ClientDIContext.ConnectionLineRegistry != null && ClientDIContext.BlockAttachedConnectionResolver != null && restoreSender is VanillaRemovalRestoreSender, "DI: 通知発行元・接続線索引・付随線解決・復元送信器がPlayModeで解決される");
 
     // 在庫の消費と返却を見るため無料設置は切る
@@ -60,8 +59,8 @@ return PlaytestRunner.Run("delete-tool-pier-removal-undo-rail", new PlaytestRunO
     await p.Until(() => RailSignature().Contains("->"), 15f, "準備: 橋脚E-Fがレールで繋がる");
     await p.Hotbar.ExitBuildMode(1);
 
-    // Step 1: 橋脚Eを撤去するとレールも消えて素材が返る。撤去前に同じ経路でレールの撤去記録を作っておく（Step 2bの切り分け用）
-    // Step 1: removing pier E drops its rail with a refund; build the rail removal record beforehand via the same path (for Step 2b)
+    // Step 1: 橋脚Eをホバーで赤表示し、撤去するとレールも消えて素材が返る
+    // Step 1: hover pier E for the red preview; removing it drops its rail with a refund
     await WarpSouthOf(pierE);
     HideMapRocks();
     await p.Screenshot("01-prepared");
@@ -69,9 +68,6 @@ return PlaytestRunner.Run("delete-tool-pier-removal-undo-rail", new PlaytestRunO
     await p.WaitUiState(UIStateEnum.DeleteBar, 10f);
     var railBefore = RailSignature();
     p.Assert(railBefore.Contains(railTool.ToString()), $"Step1: 撤去前のレールはレールツールの種類 {railBefore}");
-    var railCache = resolver.Resolve<Client.Game.InGame.Train.RailGraph.RailGraphClientCache>(); var edges = new List<(int, int)>();
-    AttachedRailEdgeEnumerator.Collect(railCache, pierE, edges);
-    var recordedRail = RemovedRail.Create(railCache, edges[0].Item1, edges[0].Item2).Rail;
     await AimAtBlock(pierE);
     await p.WaitSeconds(0.5f);
     await p.Screenshot("02-hover-pier-rail-red");
@@ -88,21 +84,10 @@ return PlaytestRunner.Run("delete-tool-pier-removal-undo-rail", new PlaytestRunO
     while (Time.realtimeSinceStartup < deadline && RailSignature() != railBefore) await UniTask.Yield();
     p.Assert(p.GetBlock(pierE) != null, "Step2: Ctrl+Zで橋脚Eが再設置される");
     p.Assert(RailSignature() == railBefore, $"Step2: Ctrl+Zでレールが撤去前と同じ種類・往復2辺で戻る 前={railBefore} 後={RailSignature()}");
-    await p.Screenshot("03-after-pier-undo");
+    HideMapRocks();
+    await p.WaitSeconds(0.5f);
+    await p.Screenshot("03-pier-and-rail-restored");
 
-    // Step 2b（Undo失敗時の切り分け）: 橋脚Eを手で置き直し、撤去前に作った同じレール記録を本番送信器で張り直して向きを検証する
-    // Step 2b (isolation when undo fails): re-place pier E by hand and resend the same rail record via the production sender to verify orientation
-    if (p.GetBlock(pierE) == null)
-    {
-        p.Note("Step 2b: 橋脚Eを手で置き直し、撤去記録のレール区間をRailConnectByDestinationで張り直す");
-        await p.PressKey(Key.G);
-        await p.WaitUiState(UIStateEnum.GameScreen, 10f);
-        await PlacePierViaUi(pierE);
-        recordedRail.SendConnectionRestore(restoreSender);
-        await p.Until(() => RailSignature().Contains("->"), 15f, "Step2b: 記録区間の張り直しでレールが戻る");
-        p.Assert(RailSignature() == railBefore, $"Step2b: 記録区間から撤去前と同じ種類・往復2辺で戻る 前={railBefore} 後={RailSignature()}");
-        await p.Screenshot("04-rail-restored-by-record");
-    }
     await p.WaitSeconds(1f);
     p.Assert(denied.Count == 0 && badLogs.Count == 0, $"全区間: 拒否通知・復元失敗・例外ログが無い: {string.Join(" | ", denied.Concat(badLogs))}");
 
