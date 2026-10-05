@@ -109,6 +109,52 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(1, changedCount);
         }
 
+        [Test]
+        public void 設置計画は坂ベルトの財布キーと補充または残数消費を決める()
+        {
+            var query = CreateQuery(out var mutation);
+            var slope = ForUnitTestModBlockId.TestGearBeltConveyorUp;
+            var wallet = ForUnitTestModBlockId.GearBeltConveyor;
+
+            // 空の財布は素材を払い代表キーへ補充
+            // An empty wallet pays materials and refills the representative key
+            Assert.IsTrue(query.TryPlanCell(slope, out var paid));
+            Assert.AreEqual(ConstructionWalletUsage.PaidAndRefilled, paid.Usage);
+            Assert.AreEqual(wallet, paid.WalletBlockId);
+            Assert.AreEqual(3, paid.PlacementsPerCost);
+            Assert.AreEqual(2, paid.ItemsToConsume.Count);
+
+            mutation.Refill(PlayerId, wallet, paid.PlacementsPerCost);
+            mutation.ConsumeOne(PlayerId, wallet);
+            Assert.IsTrue(query.TryPlanCell(slope, out var covered));
+            Assert.AreEqual(ConstructionWalletUsage.CoveredByWallet, covered.Usage);
+            Assert.IsEmpty(covered.ItemsToConsume);
+        }
+
+        [Test]
+        public void 撤去の凝縮境界と返却素材を窓口が決める()
+        {
+            var query = CreateQuery(out var mutation);
+            var slope = ForUnitTestModBlockId.TestGearBeltConveyorUp;
+            var wallet = ForUnitTestModBlockId.GearBeltConveyor;
+
+            // セット未満は財布、到達時だけ素材へ戻す
+            // Return to the wallet below one set and refund materials only at the set boundary
+            Assert.IsFalse(query.WouldCondenseOnReturn(slope));
+            Assert.IsEmpty(query.GetItemsToRefund(slope));
+            mutation.Refill(PlayerId, wallet, 3);
+            mutation.ConsumeOne(PlayerId, wallet);
+            Assert.IsTrue(query.WouldCondenseOnReturn(slope));
+            Assert.AreEqual(2, query.GetItemsToRefund(slope).Count);
+
+            // 財布対象外は設置も撤去も直接素材を使う
+            // Non-wallet blocks use materials directly for both placement and removal
+            Assert.IsFalse(query.UsesWallet(ForUnitTestModBlockId.BlockId));
+            Assert.IsFalse(query.TryPlanCell(ForUnitTestModBlockId.BlockId, out _));
+            Assert.IsFalse(query.WouldCondenseOnReturn(ForUnitTestModBlockId.BlockId));
+            Assert.AreEqual(query.GetItemsToConsume(ForUnitTestModBlockId.BlockId), query.GetItemsToRefund(ForUnitTestModBlockId.BlockId));
+        }
+
         private static ConstructionWalletQuery CreateQuery(out IRemainingPlacementCountMutation mutation)
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));

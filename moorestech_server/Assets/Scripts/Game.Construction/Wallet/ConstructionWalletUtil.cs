@@ -9,28 +9,28 @@ namespace Game.Construction
     /// </summary>
     public static class ConstructionWalletUtil
     {
-        public static BlockId ResolveWalletBlockId(BlockId blockId)
+        internal static BlockId ResolveWalletBlockId(BlockId blockId)
         {
             return BeltConveyorPlaceFamilyUtil.TryGetFamily(blockId, out var family) ? family.StraightBlockId : blockId;
         }
 
         // 財布を通すブロックか（1セット1個は素通り）
         // Whether the block goes through the wallet at all (one placement per set bypasses it)
-        public static bool UsesWallet(int placementsPerCost)
+        internal static bool UsesWallet(int placementsPerCost)
         {
             return 1 < placementsPerCost;
         }
 
         // 残りが1つでもあれば素材を払わず設置できる
         // A non-empty wallet covers the placement without paying materials
-        public static bool IsCoveredByWallet(int remaining)
+        internal static bool IsCoveredByWallet(int remaining)
         {
             return 0 < remaining;
         }
 
         // 撤去+1がNに達するか（達すれば凝縮し財布0へ）
         // Whether returning one reaches placementsPerCost (condenses and resets wallet to zero)
-        public static bool WouldCondense(int remaining, int placementsPerCost)
+        internal static bool WouldCondense(int remaining, int placementsPerCost)
         {
             return placementsPerCost <= remaining + 1;
         }
