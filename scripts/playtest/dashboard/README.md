@@ -1,7 +1,8 @@
 # プレイテストダッシュボード
 
 `moorestech_logs/harness/playtest/`（プレイ報告・進行記録・日次ダイジェスト）と `harness/bug-report/runs/`（自動修正ラン）を読み、
-ブラウザで一覧・絞り込み・詳細確認できるようにする読み取り専用の Web 画面。標準ライブラリのみ（venv 不要）。
+ブラウザで一覧・絞り込み・詳細確認できるようにする Web 画面。標準ライブラリのみ（venv 不要）。
+報告データは読むだけで、書き込むのは人が付ける状態（報告の既読と関連チケットのリンク）だけ。
 
 公開先は `https://review.moores.tech/playtest/`。裁定サイトと同じ named tunnel の ingress に `path: ^/playtest` の行を足して
 `127.0.0.1:8932` へ通し、Cloudflare Access（review.moores.tech のアプリ）で本人以外を弾く。
@@ -17,6 +18,20 @@
 | テスター | 1人1行で最終活動・セッション数・プレイ時間・到達チャレンジ（最奥の名前）・研究数・報告数 |
 | 進行 | チャレンジ到達ファネル（マスタの定義順・到達人数）とセッション一覧。テスターで絞り込み |
 | ダイジェスト | `digests/<日付>.md` を Discord の 1800 文字切り詰め無しで表示。感想全文が混ざるので Markdown として解釈せず素の文章で出し、コピー用ボタンも出さない（感想本文から本物そっくりのコマンドを偽装できるため） |
+
+## 既読と関連チケット
+
+- 既読は報告ごとに**手動で**付け外しする（開いただけでは既読にしない）。一覧の行頭の丸、詳細の「既読にする」、一覧の「表示中の未読N件を既読にする」
+- 関連チケット（Notion・GitHub 等の https URL）は報告詳細で紐付けるか、Mac mini で次を叩く。成功するとチケット側へ貼るビューワー URL を出す
+
+```bash
+scripts/playtest/link-ticket.sh <steamId> <reportId> <チケットURL> <チケット名>   # 紐付け（同じURLは題名だけ更新）
+scripts/playtest/link-ticket.sh --remove <steamId> <reportId> <チケットURL>        # 解除
+```
+
+- エージェント（Hermes 等）がチケットを起票するときは、関連する報告ごとに (1) チケット本文へビューワー URL `https://review.moores.tech/playtest/#/report/<steamId>/<reportId>` を書き、(2) `link-ticket.sh` で紐付ける。関連する報告は `curl -s -H 'Host: 127.0.0.1:8932' http://127.0.0.1:8932/playtest/api/data` の `reports[]`（`description`・`boxSteamId`・`boxId`）から探す
+- 保存先は `moorestech_logs/harness/playtest/dashboard-state.json`（報告箱の外。箱の中に置くとテスターが同名ファイルを送って既読を偽装できるため）。書き手はダッシュボードのサーバー1プロセスだけで、`link-ticket.sh` もサーバー経由で書く
+- 書き込み API（`POST /playtest/api/read`・`/api/links/add`・`/api/links/remove`）は JSON 本文と `X-Playtest-Dashboard: 1` ヘッダを必須にし、Origin があれば許可ホストと照合する（Access の内側でも別サイトからの送信を弾くため）。壊れた状態ファイルは上書きせず 500 を返す
 
 ## 判定規則（ダイジェストと揃える）
 
@@ -38,6 +53,8 @@ master_names.py      チャレンジ・研究の GUID → 表示名（moorestech
 media.py             スクショ・動画・ログの許可リスト配信（Range 対応・safe_segment で検証）
 display_fields.py    表示用項目の緩い読み取り（型違いはログを出して空表示）
 security_headers.py  全応答に付ける CSP・nosniff
+dashboard_state.py   既読・チケットリンクの保存（1ファイル・プロセス内ロック・一時ファイルから置き換え）
+write_api.py         既読・チケットリンクを書き換える POST の受け口（CSRF 対策・報告キー検証）
 static/              index.html・CSS・ES modules（views/ が画面ごと）
 ```
 
@@ -45,7 +62,8 @@ static/              index.html・CSS・ES modules（views/ が画面ごと）
 
 ```bash
 python3 scripts/playtest/dashboard/server.py            # 既定: --port 8932、--logs と --master は repo の兄弟から導出
-python3 scripts/playtest/tests/test_dashboard.py        # テスト
+python3 scripts/playtest/tests/test_dashboard.py        # テスト（読み取り）
+python3 scripts/playtest/tests/test_dashboard_state.py  # テスト（既読・チケットリンクの書き込み）
 ```
 
 Mac mini では always-on supervisor の `playtest-dashboard`（longrun）がメインクローンから起動する。

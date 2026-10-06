@@ -1,6 +1,6 @@
 // 画面をまたいで使う表示部品（ページ見出し・カード・日付まとめ・報告行・状態表示）
 // Display parts shared across views (page header, card, day groups, report rows, status labels)
-import { fmtTime, h, isKnownKind, kindLabel, routeHref, testerName } from "./core.js";
+import { fmtTime, h, isKnownKind, kindLabel, postState, reportKey, routeHref, testerName } from "./core.js";
 
 const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 
@@ -51,7 +51,7 @@ export function dayGroups(rows, dateOf, renderRow, totals) {
 // 報告1行: 本文を主役にし、種別・状態は一覧の文脈で自明でない時だけ出す
 // One report row: the text leads; kind and status appear only when the list context does not already imply them
 export function reportRow(report, show) {
-  return h("li", null, h("a", { class: "row", href: routeHref("report", [report.boxSteamId, report.boxId]) },
+  return h("li", { class: `row-item${report.readAt ? " is-read" : ""}` }, readToggle(report), h("a", { class: "row", href: routeHref("report", [report.boxSteamId, report.boxId]) },
     show.kind ? kindMark(report.kind) : null,
     h("span", { class: "row-text" }, rowText(report)),
     // 右側は固定幅の列にして、録画や状態の有無で行ごとに位置がずれないようにする
@@ -59,9 +59,21 @@ export function reportRow(report, show) {
     h("span", { class: "row-meta" },
       h("span", { class: "media-mark", title: report.media.includes("video.mp4") ? "録画あり" : null },
         report.media.includes("video.mp4") ? "▶" : ""),
+      h("span", { class: "ticket-mark", title: report.links.length ? `関連チケット ${report.links.length}件` : null },
+        report.links.length ? "チケット" : ""),
       h("span", { class: "who" }, testerName(report)),
       h("span", { class: "time" }, fmtTime(report.readyAt)),
       show.status ? h("span", { class: "status-col" }, statusText(report)) : null)));
+}
+
+// 既読の切り替えは手動だけ（開いただけでは既読にしない）。行のリンクの外に置き、押しても詳細へ遷移しない
+// Read marks change only by hand (opening a report does not mark it); the toggle sits outside the row link so it never navigates
+export function readToggle(report) {
+  const label = report.readAt ? "未読に戻す" : "既読にする";
+  return h("button", {
+    type: "button", class: "read-toggle", title: label, "aria-label": label, "aria-pressed": report.readAt ? "true" : "false",
+    onclick: () => postState("read", { ...reportKey(report), read: !report.readAt }, true),
+  });
 }
 
 function rowText(report) {

@@ -1,11 +1,12 @@
 // 報告一覧: 主な絞り込み（投入状態・種別）はタブ型、従の絞り込み（テスター・ビルド・検索）は1行にまとめる
 // Report list: primary filters (status, kind) as segmented tabs, secondary ones (tester, build, search) in one row
 import { card, dayGroups, pageHead, reportRow } from "../components.js";
-import { emptyNote, h, kindLabel, routeHref, testerName } from "../core.js";
+import { emptyNote, h, kindLabel, postState, reportKey, routeHref, testerName } from "../core.js";
 
 // 種別が空（読めない箱）は value="" だと「すべて」と区別できないので専用の値で表す
 // An empty kind (unreadable box) gets its own value, since "" would mean "all"
 const EMPTY_KIND = "(none)";
+const READ_TABS = [["", "既読・未読"], ["unread", "未読"], ["read", "既読"]];
 const TRIAGE_TABS = [["", "すべて"], ["candidate", "未投入"], ["queued", "投入済み"], ["excluded", "除外"], ["broken", "読めない"]];
 
 export function renderReports(data, params) {
@@ -18,6 +19,7 @@ export function renderReports(data, params) {
       segmented("triage", TRIAGE_TABS.map(([value, label]) =>
         [value, label, value ? data.reports.filter((r) => r.triage === value).length : data.reports.length]), params),
       segmented("kind", kindTabs(data.reports), params),
+      segmented("read", READ_TABS.map(([value, label]) => [value, label, data.reports.filter((r) => readMatches(r, value)).length]), params),
       secondaryFilters(data.reports, params, refresh)),
     results);
 }
@@ -27,8 +29,31 @@ function resultCard(reports, params) {
   // 絞り込みで自明になった列は行から外す（同じ札が全行に並ぶと読む量だけ増える）
   // Columns made obvious by the filter are dropped from rows; the same tag on every row only adds reading
   const show = { kind: !params.get("kind"), status: !params.get("triage") };
-  return card("該当する報告", { count: filtered.length },
+  const unread = filtered.filter((r) => !r.readAt);
+  return card("該当する報告", { count: filtered.length, action: unread.length ? markAllRead(unread) : null },
     filtered.length ? dayGroups(filtered, (r) => r.date, (r) => reportRow(r, show), null) : emptyNote("条件に合う報告はありません"));
+}
+
+// 表示中の未読をまとめて既読にする（1件ずつ順に送り、途中で失敗したらそこで止める）
+// Marks every unread report on screen as read, one request at a time, stopping at the first failure
+function markAllRead(unread) {
+  const button = h("button", {
+    type: "button", class: "ghost",
+    onclick: async () => {
+      button.disabled = true;
+      for (const report of unread) {
+        if (!(await postState("read", { ...reportKey(report), read: true }, false))) break;
+      }
+      window.dispatchEvent(new CustomEvent("dashboard:changed", { detail: { redraw: true } }));
+    },
+  }, `表示中の未読${unread.length}件を既読にする`);
+  return button;
+}
+
+function readMatches(report, value) {
+  if (value === "unread") return !report.readAt;
+  if (value === "read") return Boolean(report.readAt);
+  return true;
 }
 
 export function applyFilters(reports, params) {
@@ -38,6 +63,7 @@ export function applyFilters(reports, params) {
     && (!params.get("triage") || r.triage === params.get("triage"))
     && (!params.get("tester") || r.steamId === params.get("tester"))
     && (!params.get("build") || r.buildLabel === params.get("build"))
+    && readMatches(r, params.get("read") || "")
     && (!query || `${r.description || ""} ${r.id} ${r.testerName}`.toLowerCase().includes(query)));
 }
 

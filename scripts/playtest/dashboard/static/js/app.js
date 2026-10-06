@@ -32,7 +32,7 @@ async function load() {
   fillTesterNames(next);
   // 生成時刻は毎回変わるので、中身が変わったときだけ描き直す（動画再生・入力中の画面を壊さない）
   // generatedAt always changes, so redraw only when content changes (keeps playing video and inputs intact)
-  const nextSignature = JSON.stringify([next.reports.map((r) => [r.id, r.triage, r.run?.status]), next.sessions.length, next.digests[0]]);
+  const nextSignature = JSON.stringify([next.reports.map((r) => [r.id, r.triage, r.run?.status, r.readAt, r.links.length]), next.sessions.length, next.digests[0]]);
   const changed = nextSignature !== signature;
   data = next;
   signature = nextSignature;
@@ -108,6 +108,12 @@ async function start() {
     resizeTimer = setTimeout(() => { if (parseRoute().view === "overview") render(); }, 200);
   });
   document.getElementById("reload").addEventListener("click", () => refresh(true));
+  // 既読やリンクを書き込んだ後は、サーバーの保存結果を読み直して描き直す（画面だけ先に変えて食い違わせない）
+  // After writing read marks or links, reload what the server saved and redraw (never let the page drift from storage)
+  window.addEventListener("dashboard:changed", (event) => {
+    if (event.detail.redraw) refresh(true);
+    else load().catch(showError);
+  });
   document.addEventListener("visibilitychange", () => refresh(false));
   setInterval(() => refresh(false), REFRESH_MS);
 }
