@@ -78,6 +78,15 @@ class DashboardCollectTest(unittest.TestCase):
         self.assertIsNone(row["reportTick"])
         self.assertEqual(row["commit"], "")
 
+    def test_non_finite_and_non_dict_display_fields_become_none(self):
+        box = self.add_report("7656005", "20260913_inf", {"kind": "bug", "remoteExec": DISABLED_MARK, "clientState": []})
+        (box / "manifest.json").write_text(
+            '{"kind": "bug", "remoteExec": {"state": "Disabled"}, "videoSeconds": 1e999, "clientState": []}', encoding="utf-8")
+        row = self.reports_by_id()["20260913_inf"]
+        self.assertIsNone(row["videoSeconds"])
+        self.assertEqual(row["uiState"], "")
+        json.dumps(row, allow_nan=False)
+
     def test_commit_falls_back_to_repository(self):
         self.add_report("7656005", "20260913_repo", {"kind": "bug", "remoteExec": DISABLED_MARK,
                                                       "repository": {"commit": "24226d1ac30574f2c74e75cc179f6be4d6884d54"}})

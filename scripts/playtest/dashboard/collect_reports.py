@@ -68,7 +68,9 @@ def read_report_box(box: Path, runs: dict[str, dict]) -> dict:
     manifest, manifest_reason = schema.read_conformed(manifest_path, schema.MANIFEST_SCHEMA)
     if manifest is None:
         return broken(row, manifest_reason or "manifest.json の型が想定外", manifest_path)
-    raw, _ = schema.read_json(manifest_path)
+    # 検証と表示の読み取りの間に書き換わっても落ちないよう、2回目が読めなければ空として扱う
+    # If the file changes between validation and the display read, an unreadable second read counts as empty
+    raw = schema.read_json(manifest_path)[0] or {}
     remote_state, remote_reason = schema.remote_exec_state(manifest)
     return dict(row, kind=manifest["kind"], description=manifest["description"],
                 buildLabel=manifest["buildInfo"]["steamBuildLabel"], remoteExec=remote_state, remoteExecReason=remote_reason,

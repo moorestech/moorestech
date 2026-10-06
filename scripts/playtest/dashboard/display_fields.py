@@ -9,6 +9,7 @@ a mistyped field is logged with its reason and becomes None (never a silent blan
 """
 from __future__ import annotations
 
+import math
 import sys
 from pathlib import Path
 
@@ -18,19 +19,27 @@ def warn(reason: str, path: Path) -> None:
 
 
 def pick(data: dict, dotted: str, kinds: tuple, source: Path):
-    """"a.b.c" 形式のパスで値を取る。欠落は None、型違いはログを出して None
-    Fetches a value by an "a.b.c" path; missing gives None, a type mismatch is logged and gives None"""
+    """"a.b.c" 形式のパスで値を取る。欠落は None、途中の階層や値の型違い・非有限の数値はログを出して None
+    Fetches a value by an "a.b.c" path; missing gives None, while a mistyped level/value or non-finite number is logged and gives None"""
     value = data
     for key in dotted.split("."):
-        if not isinstance(value, dict) or value.get(key) is None:
+        if not isinstance(value, dict):
+            warn(f"表示用の項目 {dotted} の途中が辞書でない（{type(value).__name__}）ため空表示にする", source)
+            return None
+        if value.get(key) is None:
             return None
         value = value[key]
     # bool は int の派生だが数値として扱わない（digest_schema と同じ規則）
     # bool subclasses int but is not treated as a number (same rule as digest_schema)
-    if isinstance(value, kinds) and not (isinstance(value, bool) and bool not in kinds):
-        return value
-    warn(f"表示用の項目 {dotted} の型が想定外（{type(value).__name__}）で空表示にする", source)
-    return None
+    if not isinstance(value, kinds) or (isinstance(value, bool) and bool not in kinds):
+        warn(f"表示用の項目 {dotted} の型が想定外（{type(value).__name__}）で空表示にする", source)
+        return None
+    # json は Infinity/NaN を受理するが、そのまま返すとブラウザの JSON.parse が全体を拒否する
+    # json accepts Infinity/NaN, but passing them on makes the browser's JSON.parse reject the whole payload
+    if isinstance(value, float) and not math.isfinite(value):
+        warn(f"表示用の項目 {dotted} が有限の数でない（{value!r}）ため空表示にする", source)
+        return None
+    return value
 
 
 def pick_strings(data: dict, key: str, source: Path) -> list[str]:

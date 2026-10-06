@@ -43,7 +43,9 @@ def read_progress_box(box: Path) -> tuple[dict | None, str]:
     reason = reason if record is None else schema.record_value_problem(record)
     if reason is not None:
         return None, reason
-    raw, _ = schema.read_json(record_path)
+    # 検証と表示の読み取りの間に書き換わっても落ちないよう、2回目が読めなければ空として扱う
+    # If the file changes between validation and the display read, an unreadable second read counts as empty
+    raw = schema.read_json(record_path)[0] or {}
     events = record["events"]
     ready_at = meta["readyAt"] or meta["ingestedAt"]
     session_start = pick(raw, "sessionStart", (str,), record_path) or ""

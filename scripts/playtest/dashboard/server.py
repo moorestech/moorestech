@@ -101,7 +101,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
         media.send_file(self, target)
 
     def send_json(self, data: dict) -> None:
-        self.send_bytes(json.dumps(data, ensure_ascii=False).encode("utf-8"), "application/json; charset=utf-8", "no-store")
+        self.send_bytes(json.dumps(data, ensure_ascii=False, allow_nan=False).encode("utf-8"), "application/json; charset=utf-8", "no-store")
 
     def send_bytes(self, body: bytes, content_type: str, cache: str) -> None:
         self.send_response(200)
