@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Surface;
 using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Surface;
@@ -26,10 +26,10 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             ledger.Add(new LedgerPlacement("tree", new Vector3(5f, 9f, 5f), Vector3.one,
                 TerrainSurroundEffectType.rockNoBareGround, null));
             var original = ledger.Placements[0];
-            var result = VeinGroundingPlanner.Build(grid, SurfaceEnvelope.GeneratedV5).Apply(grid.Output, ledger);
+            var result = VeinGroundingPlanner.Build(grid, SurfaceEnvelope.GeneratedV5).Apply(ledger);
 
-            // 異種鉱脈の支持が重なる成分では共通底面にする
-            // Use one bottom for connected support across different vein types
+            // 異種鉱脈の支持が重なれば共通底面
+            // Use one bottom when supports of different veins overlap
             int bottom = grid.Output.ItemVeins[0].Min.y;
             Assert.That(grid.Output.FluidVeins[0].Min.y, Is.EqualTo(bottom));
             Assert.That(grid.Output.ItemVeins[0].Max.y - bottom, Is.EqualTo(2));
@@ -77,7 +77,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         {
             var grid = SurfaceGridFixture.Create(1, 17, 32f, 32f, true);
             var ledger = new PlacementLedger();
-            var result = VeinGroundingPlanner.Build(grid, SurfaceEnvelope.GeneratedV5).Apply(grid.Output, ledger);
+            var result = VeinGroundingPlanner.Build(grid, SurfaceEnvelope.GeneratedV5).Apply(ledger);
             Assert.That(result.ComputeDigest(), Is.EqualTo("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"));
         }
 
@@ -89,7 +89,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             for (int x = 0; x < 17; x++) grid.SetHeight(x, z, 600f);
             var ledger = new PlacementLedger();
             AddVein(grid.Output.ItemVeins, 12, 12, 600);
-            var result = VeinGroundingPlanner.Build(grid, SurfaceEnvelope.GeneratedV5).Apply(grid.Output, ledger);
+            var result = VeinGroundingPlanner.Build(grid, SurfaceEnvelope.GeneratedV5).Apply(ledger);
             Assert.That(grid.Output.ItemVeins[0].Min.y, Is.EqualTo(600));
             Assert.That(result.GroundingPads[0].HeightMeters, Is.LessThan(600f));
         }

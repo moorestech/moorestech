@@ -1,4 +1,4 @@
-using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Surface;
 using Game.MapGeneration.Pipeline.Config;
 using UnityEngine;
 
@@ -16,10 +16,7 @@ namespace Game.MapGeneration.Pipeline.Surface
         {
             Output = output;
             Config = config;
-            int stride = config.Resolution - 1;
-            Geometry = new SurfaceLattice(output.SceneOrigin,
-                new Vector2(config.terrainWidth / stride, config.terrainLength / stride),
-                config.gridSizeX * stride + 1, config.gridSizeZ * stride + 1);
+            Geometry = SurfaceLattice.ForWorld(config, output.SceneOrigin);
             _tiles = new TerrainTileOutput[config.gridSizeZ, config.gridSizeX];
 
             // 配列順に依存せず、共有点の所有者をZ→X順に固定する
@@ -30,7 +27,7 @@ namespace Game.MapGeneration.Pipeline.Surface
             for (int i = 0; i < output.Tiles.Count; i++)
             {
                 var tile = output.Tiles[i];
-                if (tile.TileX < 0 || tile.TileX >= config.gridSizeX || tile.TileZ < 0 || tile.TileZ >= config.gridSizeZ ||
+                if (tile.TileX < 0 || config.gridSizeX <= tile.TileX || tile.TileZ < 0 || config.gridSizeZ <= tile.TileZ ||
                     _tiles[tile.TileZ, tile.TileX] != null || tile.Heights.Length != config.Resolution * config.Resolution ||
                     tileLandMasks[i].Length != tile.Heights.Length)
                     throw SurfaceGenerationValidation.Failure(config, $"{tile.TileX},{tile.TileZ}", "Invalid surface tile dimensions or duplicate tile.");
@@ -43,26 +40,60 @@ namespace Game.MapGeneration.Pipeline.Surface
             for (int x = 0; x < config.gridSizeX; x++)
                 ImportTile(x, z, masks[z, x], land);
             Land = new LandCellField(Geometry, land);
+
+            #region Internal
+
+            void ImportTile(int tileX, int tileZ, bool[] mask, bool[] landCells)
+            {
+                int res = Config.Resolution;
+                int stride = res - 1;
+                var tile = _tiles[tileZ, tileX];
+                for (int z = 0; z < res; z++)
+                for (int x = 0; x < res; x++)
+                {
+                    int local = z * res + x;
+                    int globalX = tileX * stride + x;
+                    int globalZ = tileZ * stride + z;
+                    int global = globalZ * Geometry.Width + globalX;
+                    float height = tile.Heights[local];
+                    if (!SurfaceGenerationValidation.Finite(height) || height < 0f || 1f < height)
+                        throw SurfaceGenerationValidation.Failure(Config, $"{tileX},{tileZ}", $"Invalid normalized height at {x},{z}.");
+
+                    // 既読境界の不一致は隠さず失敗
+                    // Fail on mismatched imported boundaries instead of hiding them
+                    if ((0 < tileX && x == 0) || (0 < tileZ && z == 0))
+                    {
+                        int ownerX = SurfaceLattice.OwnerTile(globalX, stride);
+                        int ownerZ = SurfaceLattice.OwnerTile(globalZ, stride);
+                        float owner = _tiles[ownerZ, ownerX].Heights[(globalZ - ownerZ * stride) * res + globalX - ownerX * stride];
+                        if (owner != height || landCells[global] != mask[local])
+                            throw SurfaceGenerationValidation.Failure(Config, $"{tileX},{tileZ}", $"Shared vertex mismatch at {globalX},{globalZ}: owner={owner:R}, incoming={height:R}, ownerLand={landCells[global]}, incomingLand={mask[local]}.");
+                    }
+                    landCells[global] = mask[local];
+                }
+            }
+
+            #endregion
         }
 
         public float GetHeight(int x, int z)
         {
             int stride = Config.Resolution - 1;
-            int tileX = Mathf.Max(0, (x - 1) / stride);
-            int tileZ = Mathf.Max(0, (z - 1) / stride);
+            int tileX = SurfaceLattice.OwnerTile(x, stride);
+            int tileZ = SurfaceLattice.OwnerTile(z, stride);
             return _tiles[tileZ, tileX].Heights[(z - tileZ * stride) * Config.Resolution + x - tileX * stride] * Config.terrainHeight;
         }
 
         public void SetHeight(int x, int z, float meters)
         {
             int stride = Config.Resolution - 1;
-            int firstX = Mathf.Max(0, (x - 1) / stride);
-            int firstZ = Mathf.Max(0, (z - 1) / stride);
+            int firstX = SurfaceLattice.OwnerTile(x, stride);
+            int firstZ = SurfaceLattice.OwnerTile(z, stride);
             int lastX = Mathf.Min(Config.gridSizeX - 1, x / stride);
             int lastZ = Mathf.Min(Config.gridSizeZ - 1, z / stride);
 
-            // 共有頂点を所有する最大4枚へ同じ正規化値を書き込む
-            // Write the same normalized value to up to four tiles sharing this vertex
+            // 共有頂点の所有4枚へ同じ値を書く
+            // Write the same value to the up-to-four owner tiles
             for (int tileZ = firstZ; tileZ <= lastZ; tileZ++)
             for (int tileX = firstX; tileX <= lastX; tileX++)
                 _tiles[tileZ, tileX].Heights[(z - tileZ * stride) * Config.Resolution + x - tileX * stride] = meters / Config.terrainHeight;
@@ -76,8 +107,8 @@ namespace Game.MapGeneration.Pipeline.Surface
             int x = Mathf.Min(Mathf.FloorToInt(point.x), Geometry.Width - 2);
             int z = Mathf.Min(Mathf.FloorToInt(point.y), Geometry.Depth - 2);
 
-            // 内部境界を隣タイルへ解決して双線形補間する
-            // Resolve internal boundaries across tiles before bilinear interpolation
+            // 内部境界を隣タイル解決で双線形補間
+            // Resolve internal boundaries across tiles for bilinear interpolation
             return Mathf.Lerp(Mathf.Lerp(GetHeight(x, z), GetHeight(x + 1, z), point.x - x),
                 Mathf.Lerp(GetHeight(x, z + 1), GetHeight(x + 1, z + 1), point.x - x), point.y - z);
         }
@@ -88,36 +119,6 @@ namespace Game.MapGeneration.Pipeline.Surface
             for (int z = 0; z < Geometry.Depth; z++)
             for (int x = 0; x < Geometry.Width; x++)
                 if (Land.IsProtectedVertex(x, z)) SetHeight(x, z, Mathf.Max(GetHeight(x, z), floor));
-        }
-
-        private void ImportTile(int tileX, int tileZ, bool[] mask, bool[] land)
-        {
-            int res = Config.Resolution;
-            int stride = res - 1;
-            var tile = _tiles[tileZ, tileX];
-            for (int z = 0; z < res; z++)
-            for (int x = 0; x < res; x++)
-            {
-                int local = z * res + x;
-                int globalX = tileX * stride + x;
-                int globalZ = tileZ * stride + z;
-                int global = globalZ * Geometry.Width + globalX;
-                float height = tile.Heights[local];
-                if (!SurfaceGenerationValidation.Finite(height) || height < 0f || height > 1f)
-                    throw SurfaceGenerationValidation.Failure(Config, $"{tileX},{tileZ}", $"Invalid normalized height at {x},{z}.");
-
-                // 既に読んだ境界値の不一致は隠さず生成を失敗させる
-                // Fail generation rather than hiding mismatched previously imported boundaries
-                if ((tileX > 0 && x == 0) || (tileZ > 0 && z == 0))
-                {
-                    int ownerX = Mathf.Max(0, (globalX - 1) / stride);
-                    int ownerZ = Mathf.Max(0, (globalZ - 1) / stride);
-                    float owner = _tiles[ownerZ, ownerX].Heights[(globalZ - ownerZ * stride) * res + globalX - ownerX * stride];
-                    if (owner != height || land[global] != mask[local])
-                        throw SurfaceGenerationValidation.Failure(Config, $"{tileX},{tileZ}", $"Shared vertex mismatch at {globalX},{globalZ}: owner={owner:R}, incoming={height:R}, ownerLand={land[global]}, incomingLand={mask[local]}.");
-                }
-                land[global] = mask[local];
-            }
         }
     }
 }

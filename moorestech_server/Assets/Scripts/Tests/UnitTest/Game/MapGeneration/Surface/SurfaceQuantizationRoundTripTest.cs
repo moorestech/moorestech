@@ -5,7 +5,7 @@ using Game.MapGeneration.Export;
 using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Pipeline.Config;
 using Game.Paths;
-using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Surface;
 using Game.MapGeneration.Pipeline.Generators;
 using Game.MapGeneration.Pipeline.Surface;
 using Game.MapGeneration.Pipeline.Surface.Placement;
@@ -50,9 +50,9 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         {
             float pad = SurfaceQuantization.PadHeight(bottom, new TerrainGenerationConfig { terrainHeight = height }, "fixture");
             float decoded = RoundTrip(pad, height);
-            Assert.That((double)decoded, Is.LessThanOrEqualTo(bottom - 0.001d));
+            Assert.That((double)decoded, Is.LessThanOrEqualTo(bottom - SurfaceQuantization.MiningBottomClearanceMeters));
             Assert.That(decoded, Is.EqualTo(pad));
-            Assert.That(bottom - decoded, Is.LessThanOrEqualTo(height / (double)SurfaceQuantization.TerrainStorageSteps + 0.00101d));
+            Assert.That(bottom - decoded, Is.LessThanOrEqualTo(height / (double)SurfaceQuantization.TerrainStorageSteps + SurfaceGuaranteeBounds.RangeGapTolerance));
         }
 
         [Test]
@@ -79,8 +79,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
                 values[units] = SurfaceQuantization.EncodeNormalized(units / (float)SurfaceQuantization.TerrainStorageSteps);
             output.Tiles.Add(new TerrainTileOutput { TileX = 0, TileZ = 0, Heights = values });
 
-            // 全格納段を実ファイルとUnityを通して検査する
-            // Inspect every storage step through actual files and Unity storage
+            // 全格納段を実ファイルとUnityで検査
+            // Inspect every storage step through real files and Unity
             TerrainFileWriter.Write(saved, output);
             var loaded = HeightFileLoader.LoadHeights(saved, 0, 0, resolution);
             _terrain = new TerrainData { heightmapResolution = resolution, size = new Vector3(256f, 600f, 256f) };
@@ -95,8 +95,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         [TestCase(32111, 0.9800097346305847f)]
         public void StorageReadbackMatchesObservedFloatReciprocal(int units, float observed)
         {
-            // 初回失敗の実Unity値を丸め許容なしで固定する
-            // Pin the actual Unity values from the first failed run without rounding tolerance
+            // 初回失敗の実Unity値を許容なしで固定
+            // Pin the first-failure Unity values without tolerance
             float encoded = SurfaceQuantization.EncodeNormalized(units / (float)SurfaceQuantization.TerrainStorageSteps);
             Assert.That(SurfaceQuantization.StoredNormalized(encoded), Is.EqualTo(observed));
         }
@@ -111,8 +111,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             for (int index = 0; index < values.Length; index++) values[index] = encoded;
             output.Tiles.Add(new TerrainTileOutput { TileX = 0, TileZ = 0, Heights = values });
 
-            // 本番r16保存と読込後に実TerrainDataへ格納する
-            // Store into actual TerrainData after production r16 writing and loading
+            // 本番r16保存と読込後に実地形へ格納
+            // Store into real TerrainData after production r16 save and load
             TerrainFileWriter.Write(saved, output);
             var loaded = HeightFileLoader.LoadHeights(saved, 0, 0, 33);
             Assert.That(loaded[0, 0], Is.EqualTo(encoded), "r16 reload must preserve the encoded value");

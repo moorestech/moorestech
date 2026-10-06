@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Surface;
 using System.IO;
 using Game.MapGeneration.Cache;
 using Game.MapGeneration.Export;

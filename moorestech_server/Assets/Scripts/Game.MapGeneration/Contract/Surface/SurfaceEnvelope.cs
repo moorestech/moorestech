@@ -1,4 +1,4 @@
-namespace Game.MapGeneration.Facade.Surface
+namespace Game.MapGeneration.Surface
 {
     // 描画海面と鉱脈整地が共有する生成版固有の契約
     // Revision-specific contract shared by the rendered sea and vein grading
@@ -12,7 +12,7 @@ namespace Game.MapGeneration.Facade.Surface
         public readonly float CoreHalfSize;
         public readonly float BlendWidth;
 
-        public SurfaceEnvelope(float seaY, float maximumWaveRise, float landClearance, float coreHalfSize, float blendWidth)
+        private SurfaceEnvelope(float seaY, float maximumWaveRise, float landClearance, float coreHalfSize, float blendWidth)
         {
             SeaY = seaY;
             MaximumWaveRise = maximumWaveRise;

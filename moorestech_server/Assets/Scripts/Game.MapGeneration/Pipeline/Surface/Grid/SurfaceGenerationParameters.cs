@@ -14,8 +14,8 @@ namespace Game.MapGeneration.Pipeline.Surface
 
         internal SurfaceGenerationParameters(TerrainGenerationConfig config, BiomeType[] biomes)
         {
-            // 全タイルで同じ入力を共有し、窓の原点から分離する
-            // Share identical inputs across tiles independently of window origins
+            // 全タイルで入力共有、窓原点と分離
+            // Share inputs across tiles, independent of window origins
             BiomeParams = JobDataConverter.ConvertBiomeParams(config, biomes, Allocator.TempJob);
             NoiseOffsets = JobDataConverter.GenerateNoiseOffsets(config, BiomeParams, biomes, Allocator.TempJob);
         }

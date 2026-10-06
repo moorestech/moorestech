@@ -32,8 +32,8 @@ namespace Game.MapGeneration.Pipeline.Surface
 
         public float[,] Load(int tileX, int tileZ)
         {
-            // 保存r16と同じ入力を所有タイルの評価へ渡す
-            // Feed owner evaluation the same input as stored r16
+            // 保存r16と同入力を所有タイルへ渡す
+            // Feed the owner tile the same input as stored r16
             int resolution = _grid.Config.Resolution;
             foreach (var tile in _grid.Output.Tiles)
             {
@@ -41,8 +41,7 @@ namespace Game.MapGeneration.Pipeline.Surface
                 var heights = new float[resolution, resolution];
                 for (int z = 0; z < resolution; z++)
                 for (int x = 0; x < resolution; x++)
-                    heights[z, x] = Mathf.Clamp(Mathf.RoundToInt(tile.Heights[z * resolution + x] * ushort.MaxValue),
-                        0, ushort.MaxValue) / (float)ushort.MaxValue;
+                    heights[z, x] = SurfaceQuantization.RoundTripR16(tile.Heights[z * resolution + x]);
                 return heights;
             }
             throw SurfaceGenerationValidation.Failure(_grid.Config, $"{tileX},{tileZ}", "Missing display owner tile.");

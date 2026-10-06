@@ -1,16 +1,20 @@
 using System;
-using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Surface;
 using UnityEngine;
 
 namespace Client.Game.InGame.Map.Outcrop
 {
     public static class OutcropSurfacePlacement
     {
+        // 露頭の底を地表のZファイトから浮かせる量（採掘底面の余裕とは別の意味）
+        // How far an outcrop base is lifted off the ground to avoid z-fighting (unrelated to the mining clearance)
+        private const float OutcropGroundLiftMeters = 0.001f;
+
         public static void Place(GameObject instance, Bounds veinBounds, TerrainSurfacePresentation presentation)
         {
             switch (presentation)
             {
-                case TerrainSurfacePresentation.Existing:
+                case TerrainSurfacePresentation.Legacy:
                     return;
                 case TerrainSurfacePresentation.Grounded grounded:
                     PlaceOnGround(instance, veinBounds, grounded.Envelope);
@@ -39,17 +43,17 @@ namespace Client.Game.InGame.Map.Outcrop
             }
             if (!hasVisibleRenderer)
                 throw Failure($"[OutcropSurfacePlacement] No active renderer on {instance.name}.");
-            if (meshBounds.size.x > envelope.CoreHalfSize * 2f || meshBounds.size.z > envelope.CoreHalfSize * 2f)
+            if (envelope.CoreHalfSize * 2f < meshBounds.size.x || envelope.CoreHalfSize * 2f < meshBounds.size.z)
                 throw Failure($"[OutcropSurfacePlacement] {instance.name} exceeds the grading core: {meshBounds.size}.");
 
             var center = veinBounds.center;
             var terrain = FindContainingTerrain(center);
             var groundHeight = terrain.SampleHeight(center) + terrain.transform.position.y;
 
-            // 全meshの中心と底面を平坦coreへ揃える
-            // Align the complete mesh center and bottom with the flat core
+            // 全meshの中心と底を平坦coreへ
+            // Align the whole mesh center and bottom with the flat core
             var shift = new Vector3(center.x - meshBounds.center.x,
-                groundHeight + 0.001f - meshBounds.min.y, center.z - meshBounds.center.z);
+                groundHeight + OutcropGroundLiftMeters - meshBounds.min.y, center.z - meshBounds.center.z);
             instance.transform.position += shift;
         }
 
@@ -60,8 +64,8 @@ namespace Client.Game.InGame.Map.Outcrop
             {
                 var origin = terrain.transform.position;
                 var size = terrain.terrainData.size;
-                if (center.x < origin.x || center.x > origin.x + size.x ||
-                    center.z < origin.z || center.z > origin.z + size.z) continue;
+                if (center.x < origin.x || origin.x + size.x < center.x ||
+                    center.z < origin.z || origin.z + size.z < center.z) continue;
 
                 // 共有境界は原点の辞書順で選ぶ
                 // Select shared boundaries by lexicographic terrain origin

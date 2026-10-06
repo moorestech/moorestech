@@ -1,5 +1,5 @@
 using Game.MapGeneration.Cache;
-using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Surface;
 using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Transfer;
 using NUnit.Framework;

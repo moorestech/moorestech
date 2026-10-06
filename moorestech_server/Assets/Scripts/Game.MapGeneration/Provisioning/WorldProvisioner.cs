@@ -106,7 +106,7 @@ namespace Game.MapGeneration.Provisioning
                     throw new InvalidOperationException(
                         "Cannot provision a generated world: MasterHolder.GenerationMaster.SelectedGeneration is undefined.");
 
-                var inputConfig = MapGenerationPipeline.BuildConfig(selected, settings.Seed, settings.ServerDataDirectory);
+                var inputConfig = MapGenerationPipeline.BuildConfig(selected, settings.Seed, settings.ServerDataDirectory, WorldGeneratorVersion.CurrentRevision);
                 var run = MapGenerationPipeline.Generate(selected, inputConfig);
 
                 // pass-2(先焼き)へ渡すのは台帳だけ。selectedとconfigは転送メタの原点から組み直せるのでTerrainVisualPrebakeが持つ

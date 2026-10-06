@@ -1,4 +1,4 @@
-using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Surface;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Visual;
 using Game.MapGeneration.Pipeline.Visual.Placement;
@@ -23,20 +23,18 @@ namespace Game.MapGeneration.Pipeline.Surface
             gridConfig.worldOffsetX = output.NoiseOrigin.x;
             gridConfig.worldOffsetZ = output.NoiseOrigin.y;
 
-            var boundaries = new SurfaceDisplayBoundaryOwner(source.Config, new GeneratedSurfaceDisplayHeightSource(source));
+            var heightSource = new GeneratedSurfaceDisplayHeightSource(source);
+            var boundaries = new SurfaceDisplayBoundaryOwner(gridConfig, heightSource);
 
-            // 保存r16の読み戻しと同じ入力を木加工へ渡す
-            // Feed tree processing the same inputs as the saved r16 reload
+            // 保存r16読戻しと同入力を木加工へ
+            // Feed tree processing the same input as the r16 reload
             foreach (var tile in source.Output.Tiles)
             {
-                var pre = new float[resolution, resolution];
+                var pre = heightSource.Load(tile.TileX, tile.TileZ);
                 var mask = new bool[resolution * resolution];
                 for (int z = 0; z < resolution; z++)
                 for (int x = 0; x < resolution; x++)
-                {
-                    pre[z, x] = Mathf.Clamp(Mathf.RoundToInt(tile.Heights[z * resolution + x] * ushort.MaxValue), 0, ushort.MaxValue) / (float)ushort.MaxValue;
                     mask[z * resolution + x] = source.Land.IsLandVertex(tile.TileX * stride + x, tile.TileZ * stride + z);
-                }
                 var tileConfig = gridConfig.CreateTileConfig(tile.TileX, tile.TileZ);
                 var scene = source.Config.TileScenePosition(tile.TileX, tile.TileZ);
                 var position = new Vector3(scene.x, 0f, scene.y);
@@ -52,9 +50,7 @@ namespace Game.MapGeneration.Pipeline.Surface
                 for (int z = 0; z < resolution; z++)
                 for (int x = 0; x < resolution; x++)
                 {
-                    float encoded = Mathf.Clamp(Mathf.RoundToInt(post[z, x] * ushort.MaxValue), 0, ushort.MaxValue) /
-                                    (float)ushort.MaxValue;
-                    heights[z * resolution + x] = SurfaceQuantization.StoredNormalized(encoded);
+                    heights[z * resolution + x] = SurfaceQuantization.StoredNormalized(SurfaceQuantization.RoundTripR16(post[z, x]));
                 }
                 masks[output.Tiles.Count] = mask;
                 output.Tiles.Add(new TerrainTileOutput { TileX = tile.TileX, TileZ = tile.TileZ, Heights = heights });

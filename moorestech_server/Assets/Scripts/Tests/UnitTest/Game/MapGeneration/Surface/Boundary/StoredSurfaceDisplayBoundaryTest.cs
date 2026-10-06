@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using Game.MapGeneration.Export;
-using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Surface;
 using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Surface;
@@ -57,7 +57,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
                 generated.CopyTo(generatedTiles[i], new Vector3(scene.x, 0f, scene.y), ledger,
                     grid.Land, SurfaceEnvelope.GeneratedV5, true);
             }
-            for (int i = 3; i >= 0; i--)
+            for (int i = 3; 0 <= i; i--)
             {
                 var result = new float[17, 17];
                 var scene = grid.Config.TileScenePosition(i % 2, i / 2);

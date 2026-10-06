@@ -8,7 +8,7 @@ using Core.Master;
 using Cysharp.Threading.Tasks;
 using Mooresmaster.Model.MapModule;
 using Server.Protocol.PacketResponse.MapData;
-using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Surface;
 using UnityEngine;
 using VContainer;
 
@@ -72,8 +72,8 @@ namespace Client.Game.InGame.Map.Outcrop
                     var prefab = _prefabCache.Resolve(veinGuid, element);
                     var center = CalculateInclusiveCenter(layout);
 
-                    // セル計算は元のAABB中心を使い表示だけ接地する
-                    // Retain the original AABB center for cells and ground only presentation
+                    // セルは元AABB中心、表示だけ接地
+                    // Cells keep the original AABB center; only presentation is grounded
                     if (prefab != null) InstantiateOutcrop(prefab, veinGuid, element, layout, center);
 
                     processedCount++;

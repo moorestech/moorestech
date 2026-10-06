@@ -1,5 +1,7 @@
 using System.Linq;
+using Game.MapGeneration.Transfer;
 using Game.MapGeneration.Pipeline;
+using Game.MapGeneration.Surface;
 using NUnit.Framework;
 using Tests.UnitTest.Game.MapGeneration.Tiling;
 using UnityEngine;
@@ -15,13 +17,33 @@ namespace Tests.UnitTest.Game.MapGeneration
     [Category("CiShardServerMap2")]
     public class MapGenerationPipelineTest
     {
+        // 保存版が本番入口から表示経路へ届く確認
+        // Verify the saved version reaches presentation via the production entry
+        [TestCase("4.0.0", WorldSurfaceRevision.Legacy4, typeof(TerrainSurfacePresentation.Legacy))]
+        [TestCase("5.0.0", WorldSurfaceRevision.Grounded5, typeof(TerrainSurfacePresentation.Grounded))]
+        public void SavedGeneratorVersionSelectsTheGenerationPath(string savedVersion, WorldSurfaceRevision expected, System.Type presentation)
+        {
+            var generation = TestGenerationConfigFactory.CreateSmall();
+            var origins = new TerrainOrigins(Vector2.zero, Vector2.zero);
+            var config = MapGenerationPipeline.BuildConfigWithSettledOrigins(
+                generation, 12345, TestGenerationConfigFactory.ServerDataDirectory, origins, savedVersion, "saved-world");
+            Assert.That(config.surfaceRevision, Is.EqualTo(expected));
+
+            var run = MapGenerationPipeline.Generate(generation, config);
+            Assert.That(run.Config.surfaceRevision, Is.EqualTo(expected));
+            var veinCount = run.Output.ItemVeins.Count + run.Output.FluidVeins.Count;
+            Assert.That(run.Ledger.GroundingPads.Count, Is.EqualTo(expected == WorldSurfaceRevision.Legacy4 ? 0 : veinCount));
+            Assert.That(MapGenerationAlgorithmTable.ResolveSurface(config.surfaceRevision).CreateHeightPolicy(config).Presentation,
+                Is.TypeOf(presentation));
+        }
+
         [Test]
         public void SameSeedProducesIdenticalOutput()
         {
             var config = TestGenerationConfigFactory.CreateSmall();
-            var runtimeConfigA = MapGenerationPipeline.BuildConfig(config, 12345, TestGenerationConfigFactory.ServerDataDirectory);
+            var runtimeConfigA = MapGenerationPipeline.BuildConfig(config, 12345, TestGenerationConfigFactory.ServerDataDirectory, WorldGeneratorVersion.CurrentRevision);
             var a = MapGenerationPipeline.Generate(config, runtimeConfigA).Output;
-            var runtimeConfigB = MapGenerationPipeline.BuildConfig(config, 12345, TestGenerationConfigFactory.ServerDataDirectory);
+            var runtimeConfigB = MapGenerationPipeline.BuildConfig(config, 12345, TestGenerationConfigFactory.ServerDataDirectory, WorldGeneratorVersion.CurrentRevision);
             var b = MapGenerationPipeline.Generate(config, runtimeConfigB).Output;
 
             Assert.That(a.Tiles[0].Heights, Is.EqualTo(b.Tiles[0].Heights));
@@ -44,9 +66,9 @@ namespace Tests.UnitTest.Game.MapGeneration
         public void DifferentSeedProducesDifferentHeights()
         {
             var config = TestGenerationConfigFactory.CreateSmall();
-            var runtimeConfigA = MapGenerationPipeline.BuildConfig(config, 1, TestGenerationConfigFactory.ServerDataDirectory);
+            var runtimeConfigA = MapGenerationPipeline.BuildConfig(config, 1, TestGenerationConfigFactory.ServerDataDirectory, WorldGeneratorVersion.CurrentRevision);
             var a = MapGenerationPipeline.Generate(config, runtimeConfigA).Output;
-            var runtimeConfigB = MapGenerationPipeline.BuildConfig(config, 2, TestGenerationConfigFactory.ServerDataDirectory);
+            var runtimeConfigB = MapGenerationPipeline.BuildConfig(config, 2, TestGenerationConfigFactory.ServerDataDirectory, WorldGeneratorVersion.CurrentRevision);
             var b = MapGenerationPipeline.Generate(config, runtimeConfigB).Output;
             Assert.That(a.Tiles[0].Heights.SequenceEqual(b.Tiles[0].Heights), Is.False);
         }
@@ -55,7 +77,7 @@ namespace Tests.UnitTest.Game.MapGeneration
         public void VeinAabbIsFixedSizeAndNonEmpty()
         {
             var config = TestGenerationConfigFactory.CreateSmall();
-            var runtimeConfig = MapGenerationPipeline.BuildConfig(config, 12345, TestGenerationConfigFactory.ServerDataDirectory);
+            var runtimeConfig = MapGenerationPipeline.BuildConfig(config, 12345, TestGenerationConfigFactory.ServerDataDirectory, WorldGeneratorVersion.CurrentRevision);
             var output = MapGenerationPipeline.Generate(config, runtimeConfig).Output;
 
             Assert.That(output.ItemVeins, Is.Not.Empty);
@@ -73,7 +95,7 @@ namespace Tests.UnitTest.Game.MapGeneration
         public void VeinAabbsDoNotOverlap()
         {
             var config = TestGenerationConfigFactory.CreateSmall();
-            var runtimeConfig = MapGenerationPipeline.BuildConfig(config, 12345, TestGenerationConfigFactory.ServerDataDirectory);
+            var runtimeConfig = MapGenerationPipeline.BuildConfig(config, 12345, TestGenerationConfigFactory.ServerDataDirectory, WorldGeneratorVersion.CurrentRevision);
             var output = MapGenerationPipeline.Generate(config, runtimeConfig).Output;
 
             // 鉱脈の重なりは産出だけ倍にする不具合の再発検知

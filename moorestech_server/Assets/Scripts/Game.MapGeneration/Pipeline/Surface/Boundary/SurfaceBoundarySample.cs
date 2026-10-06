@@ -16,8 +16,8 @@ namespace Game.MapGeneration.Pipeline.Surface
 
         internal SurfaceBoundarySample(JobBuffers source, int index, int biomeCount)
         {
-            // 窓の寿命を越えて使う境界だけを独立所有する
-            // Own only the boundary values that must outlive the temporary window
+            // 窓寿命を越える境界だけ独立所有
+            // Own only boundaries that outlive the temporary window
             _height = source.heights[index];
             _shore = source.shoreMask[index];
             _land = source.landMask[index];
@@ -33,8 +33,8 @@ namespace Game.MapGeneration.Pipeline.Surface
 
         internal void Write(JobBuffers destination, int index)
         {
-            // 高さと分類を必ず同じ所有タイルから配信する
-            // Emit heights and classification from the same owning tile
+            // 高さと分類は同じ所有タイルから配信
+            // Emit height and classification from the same owning tile
             destination.heights[index] = _height;
             destination.shoreMask[index] = _shore;
             destination.landMask[index] = _land;

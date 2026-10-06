@@ -7,37 +7,36 @@ namespace Game.MapGeneration.Pipeline.Surface.Grading
     public sealed class GroundingPlan
     {
         private readonly SurfaceTileGrid _grid;
-        private readonly int[] _bottoms;
-        private readonly IReadOnlyList<VeinGroundingPad> _pads;
+        private readonly IReadOnlyList<VeinGrounding> _groundings;
 
-        internal GroundingPlan(SurfaceTileGrid grid, int[] bottoms,
-            IReadOnlyList<VeinGroundingPad> pads)
+        internal GroundingPlan(SurfaceTileGrid grid, IReadOnlyList<VeinGrounding> groundings)
         {
             _grid = grid;
-            _bottoms = bottoms;
-            _pads = pads;
+            _groundings = groundings;
         }
 
-        public PlacementLedger Apply(MapGenerationOutput output, PlacementLedger ledger)
+        public PlacementLedger Apply(PlacementLedger ledger)
         {
-            // AABBを移し、見た目台帳には整地面だけを追加する
-            // Move AABBs and add only grading pads to the visual ledger
+            // AABBを移し台帳へ整地面のみ追加
+            // Move AABBs and add only pads to the ledger
+            var output = _grid.Output;
+            if (output.ItemVeins.Count + output.FluidVeins.Count != _groundings.Count)
+                throw SurfaceGenerationValidation.Failure(_grid.Config, "grading", "Vein count changed between planning and applying.");
             int index = 0;
             Move(output.ItemVeins);
             Move(output.FluidVeins);
-            var positions = new List<Vector3>();
-            foreach (var placement in ledger.Placements) positions.Add(placement.ScenePosition);
-            var grounded = ledger.WithScenePositions(positions);
-            foreach (var pad in _pads) grounded.AddGroundingPad(pad);
+            var pads = new List<VeinGroundingPad>(_groundings.Count);
+            foreach (var grounding in _groundings) pads.Add(grounding.Pad);
+            var grounded = ledger.WithGroundingPads(pads);
 
-            // 全域の一枚の格子から投影し、共有頂点へ複製する
-            // Project one global lattice and duplicate its shared vertices to all owners
+            // 全域一枚の格子から投影し頂点へ複製
+            // Project from one global lattice and copy to shared vertices
             var heights = new float[_grid.Geometry.Depth, _grid.Geometry.Width];
             for (int z = 0; z < _grid.Geometry.Depth; z++)
             for (int x = 0; x < _grid.Geometry.Width; x++)
                 heights[z, x] = _grid.GetHeight(x, z) / _grid.Config.terrainHeight;
             var projected = GroundingHeightProjector.Apply(heights, _grid.Geometry.Origin,
-                _grid.Geometry.Spacing, _grid.Config.terrainHeight, _pads);
+                _grid.Geometry.Spacing, _grid.Config.terrainHeight, pads);
             for (int z = 0; z < _grid.Geometry.Depth; z++)
             for (int x = 0; x < _grid.Geometry.Width; x++)
                 _grid.SetHeight(x, z, projected[z, x] * _grid.Config.terrainHeight);
@@ -50,7 +49,10 @@ namespace Game.MapGeneration.Pipeline.Surface.Grading
                 for (int i = 0; i < veins.Count; i++)
                 {
                     var vein = veins[i];
-                    var shift = Vector3Int.up * (_bottoms[index++] - vein.Min.y);
+                    var grounding = _groundings[index++];
+                    if (vein.VeinGuid != grounding.Vein.VeinGuid || vein.Min != grounding.Vein.Min || vein.Max != grounding.Vein.Max)
+                        throw SurfaceGenerationValidation.Failure(_grid.Config, "grading", $"Vein changed between planning and applying: {vein.VeinGuid} at {vein.Min}.");
+                    var shift = Vector3Int.up * (grounding.Bottom - vein.Min.y);
                     veins[i] = new PlacedVein(vein.VeinGuid, vein.Min + shift, vein.Max + shift);
                 }
             }

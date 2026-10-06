@@ -13,14 +13,6 @@ namespace Game.MapGeneration.Pipeline.Stages
     {
         private const int FluidVeinRngSeedOffset = 7500;
 
-        public static List<PlacedVein> Generate(
-            TerrainGenerationConfig config, bool[][,] masks, BiomeType[] biomeTypes,
-            float[,] heights2D, List<PlacementEntry> treeEntries, List<ObjectPlacementResult> objectPlacements,
-            TilePlacementContext tile, IVeinLandConstraint landConstraint)
-        {
-            return GenerateBatch(config, masks, biomeTypes, heights2D, treeEntries, objectPlacements, tile, landConstraint).Veins;
-        }
-
         public static VeinPlacementBatch GenerateBatch(
             TerrainGenerationConfig config, bool[][,] masks, BiomeType[] biomeTypes,
             float[,] heights2D, List<PlacementEntry> treeEntries, List<ObjectPlacementResult> objectPlacements,

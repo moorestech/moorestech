@@ -25,8 +25,8 @@ namespace Game.MapGeneration.Pipeline.Surface
         {
             PaddedWindowStage.Run(tileConfig, biomes, Buffers);
 
-            // 独立窓の境界候補は所有者を通してから下流へ公開する
-            // Publish independent window boundary candidates only through their canonical owner
+            // 境界候補は所有者経由で下流へ公開
+            // Publish boundary candidates to downstream only via the owner
             boundaries.CaptureOwned(tileX, tileZ, Buffers);
             boundaries.Emit(tileX, tileZ, Buffers);
         }

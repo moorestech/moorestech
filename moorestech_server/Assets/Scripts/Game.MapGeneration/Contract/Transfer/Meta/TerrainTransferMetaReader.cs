@@ -65,7 +65,7 @@ namespace Game.MapGeneration.Transfer
             // 対応する保存版はその版の生成経路で読む
             // Read supported saved versions through their corresponding generation path
             if (!WorldGeneratorVersion.Supports(worldMeta.GeneratorVersion))
-                return $"Unsupported generator '{worldMeta.GeneratorVersion}'; this build supports 4.0.0 and 5.0.0.";
+                return $"Unsupported generator '{worldMeta.GeneratorVersion}'; this build supports {WorldGeneratorVersion.SupportedVersionList}.";
 
             // 指紋・台帳の指紋・原点は生成時にしか決まらず補えない。0や空で読み進めると別の場所の地形や鍵になる
             // The fingerprint, ledger digest and origins exist only at generation and cannot be filled in; reading on with 0 or empty yields another place's terrain or keys

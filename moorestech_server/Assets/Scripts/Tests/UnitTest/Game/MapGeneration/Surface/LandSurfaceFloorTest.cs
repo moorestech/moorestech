@@ -1,6 +1,6 @@
 using System;
 using System.Text.RegularExpressions;
-using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Surface;
 using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Surface;
@@ -21,16 +21,16 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             var envelope = SurfaceEnvelope.GeneratedV5;
             var config = new TerrainGenerationConfig { terrainHeight = height };
             float floor = SurfaceQuantization.LandFloor(config, envelope, "fixture");
-            Assert.That(floor, Is.GreaterThanOrEqualTo(4.9f));
-            Assert.That(floor, Is.LessThan(4.9f + height / SurfaceQuantization.TerrainStorageSteps));
+            Assert.That(floor, Is.GreaterThanOrEqualTo(SurfaceGuaranteeBounds.LandMinimum));
+            Assert.That(floor, Is.LessThan(SurfaceGuaranteeBounds.LandMinimum + height / SurfaceQuantization.TerrainStorageSteps));
 
             // 上限と整数境界でも採掘面の直下を維持する
             // Keep pads immediately below mining bottoms at integer and upper boundaries
             foreach (int bottom in new[] { 5, (int)height })
             {
                 float pad = SurfaceQuantization.PadHeight(bottom, config, "fixture");
-                Assert.That(pad, Is.LessThanOrEqualTo(bottom - 0.001d));
-                Assert.That(bottom - pad, Is.LessThanOrEqualTo(height / SurfaceQuantization.TerrainStorageSteps + 0.0011f));
+                Assert.That(pad, Is.LessThanOrEqualTo(bottom - SurfaceQuantization.MiningBottomClearanceMeters));
+                Assert.That(bottom - pad, Is.LessThanOrEqualTo(height / SurfaceQuantization.TerrainStorageSteps + SurfaceGuaranteeBounds.RangeGapTolerance));
             }
         }
 
@@ -47,8 +47,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             // Protect only the four cells touching the land corner
             for (int z = 0; z < 5; z++)
             for (int x = 0; x < 5; x++)
-                Assert.That(grid.GetHeight(x, z), x >= 1 && x <= 3 && z >= 1 && z <= 3
-                    ? Is.GreaterThanOrEqualTo(4.9f) : Is.EqualTo(0f));
+                Assert.That(grid.GetHeight(x, z), 1 <= x && x <= 3 && 1 <= z && z <= 3
+                    ? Is.GreaterThanOrEqualTo(SurfaceGuaranteeBounds.LandMinimum) : Is.EqualTo(0f));
             Assert.That(grid.Land.ContainsSupport(new Rect(1f, 2f, 2f, 4f)), Is.False);
         }
 
@@ -58,7 +58,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         {
             var grid = SurfaceGridFixture.Create(1, 3, 4f, 8f, land);
             grid.ApplyLandFloor(SurfaceEnvelope.GeneratedV5);
-            Assert.That(grid.GetHeight(1, 1), land ? Is.GreaterThanOrEqualTo(4.9f) : Is.EqualTo(0f));
+            Assert.That(grid.GetHeight(1, 1), land ? Is.GreaterThanOrEqualTo(SurfaceGuaranteeBounds.LandMinimum) : Is.EqualTo(0f));
             Assert.That(grid.Land.ContainsSupport(new Rect(1f, 1f, 1f, 1f)), Is.EqualTo(land));
         }
 
@@ -99,14 +99,14 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         {
             var config = new TerrainGenerationConfig { terrainHeight = height, gridSizeX = 1, gridSizeZ = 1 };
             LogAssert.Expect(LogType.Error, new Regex("GeneratedSurface.*seed=.*revision=.*tile="));
-            Assert.Throws<InvalidOperationException>(() => new GroundedVanillaGenerator().Generate(config));
+            Assert.Throws<InvalidOperationException>(() => new GroundedVanillaGenerator(SurfaceEnvelope.GeneratedV5).Generate(config));
         }
 
         [Test]
         public void DispatchPreservesLegacyGenerator()
         {
             Assert.That(MapGenerationAlgorithmTable.Resolve(Generation.AlgorithmConst.VanillaGenerator,
-                WorldSurfaceRevision.Legacy4), Is.TypeOf<VanillaGenerator>());
+                WorldSurfaceRevision.Legacy4), Is.TypeOf<LegacyVanillaGenerator>());
             Assert.That(MapGenerationAlgorithmTable.Resolve(Generation.AlgorithmConst.VanillaGenerator,
                 WorldSurfaceRevision.Grounded5), Is.TypeOf<GroundedVanillaGenerator>());
         }

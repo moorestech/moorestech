@@ -7,15 +7,19 @@ namespace Game.MapGeneration.Pipeline.Visual.Placement
     {
         internal static string Describe(VeinGroundingPad pad)
         {
-            // padだけに接頭辞を付け、旧配置行の形式を保つ
-            // Prefix only pad rows and retain the legacy placement row format
+            // padだけ接頭辞を付け旧行形式を保つ
+            // Prefix only pad rows; keep the legacy row format
             return string.Join("|", "pad", Format(pad.Core.xMin), Format(pad.Core.yMin),
                 Format(pad.Core.xMax), Format(pad.Core.yMax), Format(pad.HeightMeters), Format(pad.BlendWidth));
-        }
 
-        private static string Format(float value)
-        {
-            return value.ToString("R", CultureInfo.InvariantCulture);
+            #region Internal
+
+            string Format(float value)
+            {
+                return value.ToString("R", CultureInfo.InvariantCulture);
+            }
+
+            #endregion
         }
     }
 }

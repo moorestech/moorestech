@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Game.MapGeneration.Cache;
-using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Surface;
 using Game.MapGeneration.Pipeline.Surface;
 using Game.MapGeneration.Pipeline.Visual.Detail;
 using Game.MapGeneration.Pipeline.Visual.Placement;
@@ -140,8 +140,7 @@ namespace Game.MapGeneration.Pipeline.Visual
                 // Storing rounds display heights to ushort steps, so the miss path lands on the same steps and hit and miss return identical values
                 for (var z = 0; z < postHeights.GetLength(0); z++)
                 for (var x = 0; x < postHeights.GetLength(1); x++)
-                    postHeights[z, x] = Mathf.Clamp(Mathf.RoundToInt(postHeights[z, x] * TerrainVisualCacheFormat.HeightQuantizeScale), 0, ushort.MaxValue)
-                                        / TerrainVisualCacheFormat.HeightQuantizeScale;
+                    postHeights[z, x] = SurfaceQuantization.RoundTripR16(postHeights[z, x]);
 
                 // Detailは移植元と同じ生の重みを読む。平面化はその後で、保存と適用に回る値だけをキャッシュ往復で不変にする
                 // Detail reads the same raw weights as the source; the flattening comes after it and only makes the stored, applied values survive a round trip
@@ -156,8 +155,9 @@ namespace Game.MapGeneration.Pipeline.Visual
             (float[,] Pre, float[,] Post) BuildHeightPair()
             {
                 var preHeights = HeightFileLoader.LoadHeights(_heightSource, tileX, tileZ, _gridConfig.Resolution);
-                return TileSurfaceHeightBuilder.Build(preHeights, tileConfig, tileWorldPosition, _ledgerSource.Resolve(),
+                var post = TileSurfaceHeightBuilder.Build(preHeights, tileConfig, tileWorldPosition, _ledgerSource.Resolve(),
                     _surfacePolicy, _displayBoundary);
+                return (preHeights, post);
             }
 
             // splatも岩の裸地でmapObjectを読むようになったので、Detailと同じく全タイルぶんを渡してhaloで切らせる

@@ -18,8 +18,8 @@ namespace Game.MapGeneration.Pipeline.Generators
             float l = dims.TerrainLength;
             int hRes = dims.Resolution;
 
-            // 既存の有限リトライ内で陸上候補だけを採用する
-            // Accept land candidates within the existing finite retry loop
+            // 有限リトライ内で陸上候補だけ採用
+            // Accept only land candidates within the finite retry loop
             int clusterCount = rng.Next(1, targetBand.maxObjectsPerCluster + 1);
             float oreMinDist = targetBand.minDistanceBetweenOres;
             int retries = Mathf.Max(1, targetBand.placementRetries);

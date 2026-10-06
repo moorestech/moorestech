@@ -24,22 +24,22 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface.Generated
 
         public GeneratedSurfaceFixture(int seed, int tiles, float width, float length)
         {
-            // キャッシュIDを本番形式に揃え、既存worldとの衝突を生成前に拒否する
-            // Use the production cache ID format and reject existing worlds before generation
+            // キャッシュIDを本番形式にし衝突を拒否
+            // Use the production cache ID and reject collisions before generation
             var id = Guid.NewGuid().ToString("N").Substring(0, GameSystemPaths.WorldIdHexDigits);
             Saved = WorldDataDirectory.FromWorldRoot(Path.Combine(Path.GetTempPath(), "vtg-test-" + id));
             Shared = WorldDataDirectory.ForWorldCacheWithoutCreating(id);
             Assert.That(Directory.Exists(Saved.Root), Is.False, Saved.Root);
             Assert.That(Directory.Exists(Shared.Root), Is.False, Shared.Root);
 
-            // 衝突検査後に所有したディレクトリは構築失敗時にも解放する
-            // Clean directories owned after collision checks even when construction fails
+            // 所有ディレクトリは失敗時も解放
+            // Clean owned directories even when construction fails
             bool initialized = false;
             try
             {
                 var inputs = new ProductionSurfaceInput();
                 var generation = MasterHolder.GenerationMaster.SelectedGeneration;
-                var config = MapGenerationPipeline.BuildConfig(generation, seed, inputs.ServerData);
+                var config = MapGenerationPipeline.BuildConfig(generation, seed, inputs.ServerData, WorldGeneratorVersion.CurrentRevision);
                 config.gridSizeX = tiles;
                 config.gridSizeZ = tiles;
                 // 探索の最終分類と同じ本番ピッチを維持する
@@ -49,8 +49,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface.Generated
                 config.terrainWidth = width;
                 config.terrainLength = length;
 
-                // 本番配置・探索を通した後の原点を分類再構築にも使う
-                // Use origins settled by production placement and search for classification reconstruction
+                // 探索後の原点を分類再構築にも使う
+                // Reuse the settled origins for classification reconstruction
                 var timer = SurfaceTestPhase.Start("generate");
                 Run = MapGenerationPipeline.Generate(generation, config);
                 SurfaceTestPhase.Finish("generate", timer);
@@ -95,8 +95,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface.Generated
             var timer = SurfaceTestPhase.Start(phase);
             if (removeVisualCache)
             {
-                // 自分の一時worldの表示cacheだけを除去する
-                // Remove only the visual cache owned by this temporary world
+                // 自分の一時world表示cacheを除去
+                // Remove only this temporary world's visual cache
                 foreach (var tile in Run.Output.Tiles)
                 {
                     var path = Shared.TerrainVisualCacheFilePath(tile.TileX, tile.TileZ);
@@ -125,8 +125,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface.Generated
                 var tile = Run.Output.Tiles[index];
                 var values = new float[resolution * resolution];
 
-                // 最終表示配列を共有格子へ写し境界不一致も検出する
-                // Copy final display arrays into a shared lattice that also detects seam mismatches
+                // 最終表示配列を共有格子へ写し不一致検出
+                // Copy final display arrays to a shared lattice to detect seam mismatches
                 for (int z = 0; z < resolution; z++)
                 for (int x = 0; x < resolution; x++)
                 {
@@ -146,8 +146,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface.Generated
 
         public void Dispose()
         {
-            // GUIDで隔離した自分の保存・cacheだけを片付ける
-            // Clean up only the save and cache isolated by this fixture's GUID
+            // GUID隔離した自分の保存だけ片付ける
+            // Clean up only the save and cache isolated by this GUID
             try
             {
                 if (Directory.Exists(Saved.Root)) Directory.Delete(Saved.Root, true);

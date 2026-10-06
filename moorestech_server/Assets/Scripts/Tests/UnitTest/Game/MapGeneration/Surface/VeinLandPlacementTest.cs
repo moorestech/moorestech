@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using Core.Master;
-using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Surface;
 using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
@@ -46,8 +46,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         [TestCase(true)]
         public void RejectedCandidateDoesNotStopFiniteRetriesOrRegisterGhost(bool fluid)
         {
-            // 最初の候補を落として、同じ既存ループの後続候補が通ることを調べる
-            // Reject the first candidate and exercise acceptance of later candidates in the same existing loop
+            // 初候補を落とし後続候補が通ることを確認
+            // Drop the first candidate and check later ones are accepted
             var constraint = new FirstCandidateRejectedConstraint();
             var veins = Generate(fluid, constraint, false);
             Assert.That(constraint.Calls, Is.GreaterThan(1));
@@ -83,7 +83,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             };
             var mask = new bool[65, 65];
             for (int z = 0; z < 65; z++)
-            for (int x = 0; x < 65; x++) mask[z, x] = !rejectSlope || (x > 0 && z > 0 && x < 64 && z < 64);
+            for (int x = 0; x < 65; x++) mask[z, x] = !rejectSlope || (0 < x && 0 < z && x < 64 && z < 64);
             var halo = new PlacementHaloStore(20f);
             var tile = new TilePlacementContext(0, 0, halo);
             var heights = new float[65, 65];
@@ -92,8 +92,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             var masks = new[] { mask };
             var biomes = new[] { BiomeType.Grassland };
             return fluid
-                ? FluidVeinPlacementStage.Generate(config, masks, biomes, heights, new List<PlacementEntry>(), null, tile, constraint)
-                : OrePlacementStage.Generate(config, masks, biomes, heights, new List<PlacementEntry>(), null, tile, constraint);
+                ? FluidVeinPlacementStage.GenerateBatch(config, masks, biomes, heights, new List<PlacementEntry>(), null, tile, constraint).Veins
+                : OrePlacementStage.GenerateBatch(config, masks, biomes, heights, new List<PlacementEntry>(), null, tile, constraint).Veins;
         }
 
         private static GroundedVeinLandConstraint Land(bool land)
@@ -124,7 +124,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             {
                 Calls++;
                 if (Calls == 1) Rejected = candidate;
-                return Calls > 1 && candidate.Min != Rejected.Min;
+                return 1 < Calls && candidate.Min != Rejected.Min;
             }
 
             public void ReportRejections(int seed, int tileX, int tileZ, string entryGuid, int acceptedCount)

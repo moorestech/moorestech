@@ -1,5 +1,5 @@
 using System;
-using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Surface;
 using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Pipeline.Generators;
 using Game.MapGeneration.Pipeline.Surface;
@@ -16,7 +16,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         [Test]
         public void LegacyConstraintDoesNotChangeCandidateAcceptance()
         {
-            var constraint = new UnrestrictedVeinLandConstraint();
+            var constraint = new LegacyVeinLandConstraint();
             Assert.That(constraint.Accept(Candidate(0, 0)), Is.True);
         }
 
@@ -33,8 +33,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         [TestCase(15, 15)]
         public void SeaInSkirtOrSingleInterpolationSupportCornerRejects(int seaX, int seaZ)
         {
-            // 候補のcoreは陸でも外周と補間支持点の海を拒否する
-            // Reject sea in the skirt and interpolation support even when the core is land
+            // coreが陸でも外周・補間点の海を拒否
+            // Reject sea in skirt and support points even if the core is land
             var constraint = Create(true, seaX, seaZ, Vector2.zero);
             Assert.That(constraint.Accept(Candidate(10, 10)), Is.False);
             Assert.That(constraint.Accept(Candidate(25, 25)), Is.True);
@@ -90,7 +90,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         {
             var low = Candidate(10, 10);
             var high = new PlacedVein("high", new Vector3Int(9, 20, 9), new Vector3Int(11, 20, 11));
-            Assert.That(new UnrestrictedVeinLandConstraint().Overlaps(low, new[] { high }), Is.False);
+            Assert.That(new LegacyVeinLandConstraint().Overlaps(low, new[] { high }), Is.False);
             Assert.That(Create(true, -1, -1, Vector2.zero).Overlaps(low, new[] { high }), Is.True);
         }
 
@@ -115,7 +115,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             var geometry = new SurfaceLattice(Vector2.zero, Vector2.one, 41, 41);
             var mask = new bool[41 * 41];
             for (int i = 0; i < mask.Length; i++) mask[i] = land;
-            if (seaX >= 0) mask[seaZ * 41 + seaX] = false;
+            if (0 <= seaX) mask[seaZ * 41 + seaX] = false;
             return new GroundedVeinLandConstraint(new LandCellField(geometry, mask), shift, SurfaceEnvelope.GeneratedV5);
         }
 

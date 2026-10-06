@@ -1,4 +1,4 @@
-namespace Game.MapGeneration.Facade.Surface
+namespace Game.MapGeneration.Surface
 {
     // 表示側へ生成内部の設定を渡さず契約だけを公開する
     // Expose the presentation contract without leaking internal generation configuration
@@ -6,7 +6,7 @@ namespace Game.MapGeneration.Facade.Surface
     {
         private TerrainSurfacePresentation() { }
 
-        public sealed class Existing : TerrainSurfacePresentation { }
+        public sealed class Legacy : TerrainSurfacePresentation { }
 
         public sealed class Grounded : TerrainSurfacePresentation
         {

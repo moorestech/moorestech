@@ -1,5 +1,5 @@
 using System;
-using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Surface;
 using Game.MapGeneration.Pipeline.Config;
 using UnityEngine;
 
@@ -8,6 +8,7 @@ namespace Game.MapGeneration.Pipeline.Surface
     public static class SurfaceQuantization
     {
         public const int TerrainStorageSteps = 32766;
+        public const double MiningBottomClearanceMeters = 0.001d;
         private const float TerrainStorageReciprocal = 1f / TerrainStorageSteps;
 
         public static float LandFloor(TerrainGenerationConfig config, SurfaceEnvelope envelope, string tile)
@@ -16,32 +17,52 @@ namespace Game.MapGeneration.Pipeline.Surface
             ValidateHeight(config, tile);
             int units = (int)Math.Ceiling(minimum / config.terrainHeight * TerrainStorageSteps);
 
-            // Unity格納後のfloat高さで陸地下限を満たす
-            // Satisfy the land lower bound using the float height stored by Unity
+            // 格納後float高さで陸地下限を満たす
+            // Meet the land floor with the stored float height
             while (units <= TerrainStorageSteps && Decode(units, config.terrainHeight) < minimum) units++;
             ValidateUnits(units, config, tile);
             return Decode(units, config.terrainHeight);
         }
 
+        // 陸地下限+採掘底面余裕+1段の整数下限
+        // Integer lower bound: land floor + one storage step + mining clearance
+        public static double MinimumMiningBottom(TerrainGenerationConfig config, SurfaceEnvelope envelope, string tile)
+        {
+            double quantum = (double)config.terrainHeight / TerrainStorageSteps;
+            return Math.Ceiling(LandFloor(config, envelope, tile) + quantum + MiningBottomClearanceMeters);
+        }
+
         public static float PadHeight(int boxBottom, TerrainGenerationConfig config, string tile)
         {
-            double maximum = boxBottom - 0.001d;
+            double maximum = boxBottom - MiningBottomClearanceMeters;
             ValidateHeight(config, tile);
             int units = (int)Math.Floor(maximum / config.terrainHeight * TerrainStorageSteps);
 
             // 採掘底面の余裕はr16読込後のUnity格納値で判定する
             // Evaluate the mining clearance against Unity storage after the r16 reload
-            while (units >= 0 && Decode(units, config.terrainHeight) > maximum) units--;
+            while (0 <= units && maximum < Decode(units, config.terrainHeight)) units--;
             ValidateUnits(units, config, tile);
             return Decode(units, config.terrainHeight);
+        }
+
+        // 正規化高さをr16整数段へ丸める
+        // Round a normalized height to an r16 integer step
+        public static int ToR16Units(float normalizedHeight)
+        {
+            return Mathf.Clamp(Mathf.RoundToInt(normalizedHeight * ushort.MaxValue), 0, ushort.MaxValue);
+        }
+
+        public static float RoundTripR16(float normalizedHeight)
+        {
+            return ToR16Units(normalizedHeight) / (float)ushort.MaxValue;
         }
 
         public static float EncodeNormalized(float normalizedHeight)
         {
             int storageUnits = Mathf.Clamp(Mathf.RoundToInt(normalizedHeight * TerrainStorageSteps), 0, TerrainStorageSteps);
 
-            // 格納格子をr16で運び、SetHeightsで同じ格子へ戻す
-            // Carry the storage lattice through r16 so SetHeights restores the same lattice point
+            // 格納格子をr16で運び戻す
+            // Carry the storage lattice via r16 and restore it with SetHeights
             int fileUnits = Mathf.RoundToInt(storageUnits / (float)TerrainStorageSteps * ushort.MaxValue);
             return fileUnits / (float)ushort.MaxValue;
         }
@@ -68,13 +89,13 @@ namespace Game.MapGeneration.Pipeline.Surface
 
         private static void ValidateHeight(TerrainGenerationConfig config, string tile)
         {
-            if (SurfaceGenerationValidation.Finite(config.terrainHeight) && config.terrainHeight > 0f) return;
+            if (SurfaceGenerationValidation.Finite(config.terrainHeight) && 0f < config.terrainHeight) return;
             throw SurfaceGenerationValidation.Failure(config, tile, "Surface quantization requires a finite positive terrainHeight.");
         }
 
         private static void ValidateUnits(int units, TerrainGenerationConfig config, string tile)
         {
-            if (units >= 0 && units <= TerrainStorageSteps) return;
+            if (0 <= units && units <= TerrainStorageSteps) return;
             throw SurfaceGenerationValidation.Failure(config, tile,
                 $"Surface quantization outside TerrainData range: units={units}, terrainHeight={config.terrainHeight}.");
         }

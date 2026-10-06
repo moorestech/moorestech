@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Client.Game.InGame.Environment.Terrain;
-using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Surface;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -17,7 +17,7 @@ namespace Client.Tests.Map.Surface
         [TearDown]
         public void TearDown()
         {
-            for (var index = _created.Count - 1; index >= 0; index--)
+            for (var index = _created.Count - 1; 0 <= index; index--)
                 UnityEngine.Object.DestroyImmediate(_created[index]);
             _created.Clear();
         }
@@ -42,8 +42,8 @@ namespace Client.Tests.Map.Surface
                 renderers[index].sharedMaterials = new[] { shared, shared };
             }
 
-            // 元assetの波高を変更せず各インスタンスへ同じ包絡を適用する
-            // Apply the same envelope to every instance without changing the source asset wave height
+            // 元の波高を変えず同じ包絡を適用
+            // Apply the same envelope without changing the source wave height
             var surface = CreateSurface(renderers);
             surface.Initialize(SurfaceEnvelope.GeneratedV5);
             var firstMaterials = renderers[0].sharedMaterials;

@@ -1,6 +1,6 @@
 using Game.MapGeneration.Pipeline.Surface.Placement;
 using Game.MapGeneration.Pipeline.Surface.Grading;
-using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Surface;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Stages;
@@ -13,10 +13,21 @@ namespace Game.MapGeneration.Pipeline.Surface
 {
     public sealed class GroundedVanillaGenerator : IMapGenerator
     {
+        private readonly SurfaceEnvelope _envelope;
+
+        public GroundedVanillaGenerator(SurfaceEnvelope envelope)
+        {
+            _envelope = envelope;
+        }
+
         public GenerationRun Generate(TerrainGenerationConfig sourceConfig)
         {
             var config = sourceConfig.ShallowCopy();
-            var envelope = SurfaceEnvelope.GeneratedV5;
+            var envelope = _envelope;
+
+            // 自分の版を刻み、版違いの config で呼ばれても表示と接地が食い違わないようにする
+            // Stamp our own revision so a config from another revision cannot split display and grounding
+            config.surfaceRevision = WorldSurfaceRevision.Grounded5;
             SurfaceGenerationValidation.Validate(config, envelope);
             var biomes = ClassificationStage.GetEnabledBiomeTypes(config);
             GenerationOriginResolver.RunSpawnSearch(config, biomes);
@@ -37,8 +48,8 @@ namespace Game.MapGeneration.Pipeline.Surface
             gridConfig.worldOffsetX = grid.Output.NoiseOrigin.x;
             gridConfig.worldOffsetZ = grid.Output.NoiseOrigin.y;
 
-            // 配置用分類を再生成し、高さだけ確定済み配列を使う
-            // Regenerate placement classification while using the settled height arrays
+            // 配置用分類を再生成、高さは確定済み
+            // Regenerate placement classification; heights are settled
             using var parameters = new SurfaceGenerationParameters(config, biomes);
             var boundaries = new SurfaceBoundarySamples(config, biomes.Length);
             foreach (var tile in grid.Output.Tiles)
@@ -50,7 +61,7 @@ namespace Game.MapGeneration.Pipeline.Surface
             }
 
             var before = SurfaceDisplayEvaluator.Build(grid, ledger, false, envelope);
-            ledger = VeinGroundingPlanner.Build(grid, envelope).Apply(grid.Output, ledger);
+            ledger = VeinGroundingPlanner.Build(grid, envelope).Apply(ledger);
             var after = SurfaceDisplayEvaluator.Build(grid, ledger, true, envelope);
             ledger = SurfaceObjectReanchor.Apply(grid.Output, ledger, bindings, before, after);
             grid.Output.SpawnPoint = new Vector3(spawn.x, after.SampleHeight(spawn), spawn.y);

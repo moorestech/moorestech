@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Map.Outcrop;
-using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Surface;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -37,7 +37,7 @@ namespace Client.Tests.Map.Surface
         [TearDown]
         public void TearDown()
         {
-            for (var index = _created.Count - 1; index >= 0; index--)
+            for (var index = _created.Count - 1; 0 <= index; index--)
                 UnityEngine.Object.DestroyImmediate(_created[index]);
             _created.Clear();
         }
@@ -53,8 +53,8 @@ namespace Client.Tests.Map.Surface
             Assert.That(renderer.bounds.center.z, Is.EqualTo(_veinBounds.center.z).Within(0.001f));
             Assert.That(renderer.bounds.min.y - _groundY, Is.InRange(0f, 0.02f));
 
-            // boundsだけでなく実頂点の地表交差を検査する
-            // Check actual vertices for ground intersection as well as bounds
+            // boundsでなく実頂点の交差を検査
+            // Check real vertices for ground intersection, not bounds
             var filter = root.GetComponentInChildren<MeshFilter>();
             foreach (var vertex in filter.sharedMesh.vertices)
                 Assert.That(filter.transform.TransformPoint(vertex).y, Is.GreaterThanOrEqualTo(_groundY));
@@ -65,7 +65,7 @@ namespace Client.Tests.Map.Surface
         {
             var root = CreateMesh(-3f, 2f);
             var position = root.transform.position;
-            OutcropSurfacePlacement.Place(root, _veinBounds, new TerrainSurfacePresentation.Existing());
+            OutcropSurfacePlacement.Place(root, _veinBounds, new TerrainSurfacePresentation.Legacy());
             Assert.That(root.transform.position, Is.EqualTo(position));
         }
 
@@ -100,8 +100,8 @@ namespace Client.Tests.Map.Surface
             if (disabledComponent) hidden.GetComponent<Renderer>().enabled = false;
             else hidden.SetActive(false);
 
-            // 非描画の巨大meshが露頭の底面や寸法を変えない
-            // A large invisible mesh must not change the outcrop bottom or dimensions
+            // 非描画の巨大meshは底面と寸法に無関係
+            // A large invisible mesh must not affect bottom or size
             OutcropSurfacePlacement.Place(root, _veinBounds, new TerrainSurfacePresentation.Grounded(SurfaceEnvelope.GeneratedV5));
             var visible = root.transform.GetChild(0).GetComponent<Renderer>();
             Assert.That(visible.bounds.min.y - _groundY, Is.InRange(0f, 0.02f));

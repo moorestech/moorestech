@@ -30,8 +30,8 @@ namespace Client.Tests.Map.Surface
 
         public static void AssertWaterInputs()
         {
-            // shaderの入力名と世界変位への変換式を固定する
-            // Lock down shader property names and world displacement conversion
+            // shader入力名と世界変位式を固定
+            // Pin shader property names and the world displacement formula
             var shaderPath = Path.Combine(Application.dataPath,
                 "PersonalAssets/moorestech-client-private/BK/Pure_Common/Shaders/BK_Water.shader");
             Assert.That(File.Exists(shaderPath), Is.True, shaderPath);

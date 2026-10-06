@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Surface;
 using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Stages;
@@ -22,7 +22,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             for (int z = 0; z < 33; z++)
             for (int x = 0; x < 33; x++) input[z, x] = displacement / grid.Config.terrainHeight;
             float padHeight = SurfaceQuantization.PadHeight(20, grid.Config, "fixture");
-            Assert.That((double)padHeight, Is.LessThanOrEqualTo(20 - 0.001d));
+            Assert.That((double)padHeight, Is.LessThanOrEqualTo(20 - SurfaceQuantization.MiningBottomClearanceMeters));
             var pads = new[] { new VeinGroundingPad(new Rect(10f, 10f, 4f, 4f), padHeight, 2f) };
             var post = FinalSurfaceProjector.Apply(input, grid.Config, Vector3.zero, grid.Land, pads, SurfaceEnvelope.GeneratedV5);
 

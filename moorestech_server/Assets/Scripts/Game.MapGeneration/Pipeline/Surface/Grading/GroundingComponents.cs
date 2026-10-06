@@ -10,8 +10,8 @@ namespace Game.MapGeneration.Pipeline.Surface.Grading
             var roots = new int[supports.Count];
             for (int i = 0; i < roots.Length; i++) roots[i] = i;
 
-            // 支持頂点を共有するcoreだけを推移的に結合する
-            // Transitively join only cores sharing interpolation support vertices
+            // 支持頂点共有のcoreだけ結合
+            // Join only cores that share support vertices
             for (int i = 0; i < roots.Length; i++)
             for (int j = i + 1; j < roots.Length; j++)
                 if (supports[i].Overlaps(supports[j])) roots[Root(j)] = Root(i);

@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using Game.MapGeneration.Cache;
 using Game.MapGeneration.Export;
-using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Surface;
 using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
@@ -48,8 +48,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface.Generated
             _directory = WorldDataDirectory.FromWorldRoot(Path.Combine(Path.GetTempPath(), "vtg-low-cache-" + Guid.NewGuid().ToString("N")));
             TerrainFileWriter.Write(_directory, output);
 
-            // 本番分類で全域が陸であることと木の負変位を確認する
-            // Verify the production classification is entirely land and the tree actually depresses it
+            // 全域が陸で木の変位が負であること
+            // Verify all land and that trees depress it
             var classified = SurfaceGridBuilder.Build(config);
             Assert.That(classified.Land.ContainsSupport(new Rect(0f, 0f, 32f, 32f)), Is.True);
             var pre = HeightFileLoader.LoadHeights(_directory, 0, 0, 33);
@@ -63,8 +63,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface.Generated
             var hit = CreateBaker(config, ledger).Bake(0, 0);
             Assert.That(File.GetLastWriteTimeUtc(path), Is.EqualTo(writeTime), "A hit must not rewrite the cache");
 
-            // cache除去後も保存された低地から本番bakerで復元する
-            // Rebuild from the saved lowland through the production baker after removing its cache
+            // cache除去後もbakerで低地復元
+            // Rebuild from saved lowland with the production baker after cache removal
             File.Delete(path);
             var miss = CreateBaker(config, ledger).Bake(0, 0);
             Assert.That(File.Exists(path), Is.True);
@@ -72,7 +72,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface.Generated
             SurfaceHeightAssert.AreEqual(first.DisplayHeights, miss.DisplayHeights, "lowland reload-miss");
             for (int z = 0; z < 33; z++)
             for (int x = 0; x < 33; x++)
-                Assert.That(miss.DisplayHeights[z, x] * config.terrainHeight, Is.GreaterThanOrEqualTo(4.9f));
+                Assert.That(miss.DisplayHeights[z, x] * config.terrainHeight, Is.GreaterThanOrEqualTo(SurfaceGuaranteeBounds.LandMinimum));
             Assert.That(HeightFileLoader.LoadHeights(_directory, 0, 0, 33)[16, 16], Is.EqualTo(pre[16, 16]));
             TestContext.WriteLine("Synthetic negative-tree/cache regression; no reproduction of the sea exposure report is claimed.");
         }
@@ -87,8 +87,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface.Generated
             var layers = SplatLayerTable.Build("fixture/beach", "fixture/rock", sections.MainLayerAddresses,
                 sections.TextureConfigs, sections.SurroundTextureConfigs, species, Array.Empty<string>());
 
-            // 合成fixtureの鍵でも本番と同じrevisionと台帳の指紋を使う
-            // Use production revision and ledger digest keying even for the synthetic fixture
+            // 合成鍵でも本番revisionと台帳指紋
+            // Use production revision and ledger digest even for synthetic keys
             var origins = MapGenerationPipeline.ResolveOrigins(config);
             var key = TerrainVisualCacheKey.Compute(new string('a', 64), config.seed, origins, config.Resolution,
                 WorldGeneratorVersion.Current, ledger.ComputeDigest());

@@ -18,17 +18,16 @@ namespace Game.MapGeneration.Pipeline.Surface
         {
             if (_resolved != null) return _resolved;
             int stride = _config.Resolution - 1;
-            int width = _config.gridSizeX * stride + 1;
-            int depth = _config.gridSizeZ * stride + 1;
-            var geometry = new SurfaceLattice(_config.TileScenePosition(0, 0),
-                new Vector2(_config.terrainWidth / stride, _config.terrainLength / stride), width, depth);
+            var geometry = SurfaceLattice.ForWorld(_config, _config.TileScenePosition(0, 0));
+            int width = geometry.Width;
+            int depth = geometry.Depth;
             var mask = new bool[width * depth];
             var biomes = ClassificationStage.GetEnabledBiomeTypes(_config);
             using var parameters = new SurfaceGenerationParameters(_config, biomes);
             var boundaries = new SurfaceBoundarySamples(_config, biomes.Length);
 
-            // 隣接タイルの角も保持し、外側セルの陸地支持を復元する
-            // Retain neighboring tile corners to reconstruct land support across outside cells
+            // 隣接タイルの角も保持し陸支持を復元
+            // Keep neighbor tile corners to restore land support
             for (int tileZ = 0; tileZ < _config.gridSizeZ; tileZ++)
             for (int tileX = 0; tileX < _config.gridSizeX; tileX++)
             {
@@ -41,7 +40,7 @@ namespace Game.MapGeneration.Pipeline.Surface
                     float value = window.Buffers.landMask[z * tile.Resolution + x];
                     if (!SurfaceGenerationValidation.Finite(value))
                         throw SurfaceGenerationValidation.Failure(_config, $"{tileX},{tileZ}", "Non-finite reconstructed land mask.");
-                    mask[(tileZ * stride + z) * width + tileX * stride + x] = value > 0.5f;
+                    mask[(tileZ * stride + z) * width + tileX * stride + x] = 0.5f < value;
                 }
             }
             _resolved = new LandCellField(geometry, mask);

@@ -24,8 +24,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             using var northeast = JobDataConverter.AllocateBuffers(3, 2, 1, Allocator.TempJob);
             var tiles = new[] { southwest, southeast, northwest, northeast };
 
-            // 重複する窓の値を意図的に異ならせ、取得順を反転する
-            // Deliberately disagree at overlapping window samples and reverse capture order
+            // 重複窓の値を変え取得順を反転
+            // Make overlapping window values differ and reverse capture order
             for (int tile = 0; tile < tiles.Length; tile++) Fill(tiles[tile], tile);
             for (int step = 0; step < tiles.Length; step++)
             {
@@ -38,8 +38,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
                 samples.Emit(tile % 2, tile / 2, tiles[tile]);
             }
 
-            // 縦横境界と四枚の角が同じ所有サンプルへ一致する
-            // Vertical and horizontal seams and the four-tile corner share the owning sample
+            // 縦横境界と四枚角が同じ所有サンプル
+            // Seams and four-tile corners share the owning sample
             for (int i = 0; i < 3; i++)
             {
                 AssertSample(southeast, i * 3, 0, i * 3 + 2);

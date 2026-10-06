@@ -35,7 +35,7 @@ namespace Game.MapGeneration.Facade
             // If the generation master (JSON text + placement-noise PNGs) differs from world creation, the ledger drifts from the server's truth; fail as for version and resolution
             generatedPayload.ThrowIfGenerationMasterDiffers(serverDataDirectory);
 
-            // 保存版の検査もサーバーと同じconfig組立で行う
+            // 保存版もサーバーと同じconfig組立
             // ただしスポーン探索だけは再計算せず、ワールド作成時に確定した原点を注入して同じ窓を指させる
             // Validate the saved revision through the same config assembly as the server
             // The spawn search alone is not recomputed: the origins settled at world creation are injected so the same window is addressed

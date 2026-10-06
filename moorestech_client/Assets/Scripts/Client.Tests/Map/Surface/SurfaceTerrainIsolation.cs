@@ -9,8 +9,8 @@ namespace Client.Tests.Map.Surface
         {
             float rightEdge = 0f;
 
-            // 既存地形を変更せず全既存矩形の右側へテスト地形を隔離する
-            // Isolate test terrain to the right of every existing rectangle without modifying existing terrains
+            // 既存矩形の右側へテスト地形を隔離
+            // Isolate test terrain right of every existing rectangle
             foreach (var terrain in Terrain.activeTerrains)
             {
                 float edge = terrain.transform.position.x + terrain.terrainData.size.x;

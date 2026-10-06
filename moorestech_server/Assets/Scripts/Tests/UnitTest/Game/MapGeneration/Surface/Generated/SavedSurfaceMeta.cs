@@ -32,8 +32,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface.Generated
                 PlacementLedgerDigest = run.Ledger.ComputeDigest(),
             };
 
-            // 本番保存DTOとreaderを往復しAABBもmap.jsonへ保存する
-            // Round-trip the production save DTO and reader and persist AABBs to map.json
+            // 本番DTOを往復しAABB保存
+            // Round-trip the production DTO and reader; persist to map.json
             File.WriteAllText(saved.WorldMetaFilePath, JsonConvert.SerializeObject(world));
             var map = MapInfoJsonBuilder.Build(run.Output);
             File.WriteAllText(saved.MapJsonFilePath, JsonConvert.SerializeObject(map));
@@ -43,8 +43,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface.Generated
             Assert.That(loaded.GeneratedPayload.PlacementLedgerDigest, Is.EqualTo(run.Ledger.ComputeDigest()));
             Assert.That(loaded.TerrainChunkTotal, Is.GreaterThan(0));
 
-            // 本番worldのcacheを触らず16桁のテストIDへ隔離する
-            // Isolate the cache under a 16-digit test ID without touching the production world cache
+            // 本番cacheを触らず16桁IDへ隔離
+            // Isolate under a 16-digit ID without touching production cache
             return new GeneratedTerrainTransferMeta(isolatedId, loaded.TerrainResolution, loaded.TerrainTileCount,
                 loaded.TerrainChunkTotal, loaded.WorldSeed, loaded.GeneratedPayload);
         }

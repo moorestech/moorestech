@@ -1,4 +1,4 @@
-using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Surface;
 using Game.MapGeneration.Pipeline.Config;
 
 namespace Game.MapGeneration.Pipeline.Surface
@@ -11,7 +11,7 @@ namespace Game.MapGeneration.Pipeline.Surface
 
         internal sealed class Legacy : SurfaceRevisionPolicy
         {
-            public override IMapGenerator Generator { get; } = new VanillaGenerator();
+            public override IMapGenerator Generator { get; } = new LegacyVanillaGenerator();
             internal override string VisualCacheVersionSuffix => string.Empty;
 
             public override SurfaceHeightPolicy CreateHeightPolicy(TerrainGenerationConfig config)
@@ -22,12 +22,18 @@ namespace Game.MapGeneration.Pipeline.Surface
 
         internal sealed class Grounded : SurfaceRevisionPolicy
         {
-            public override IMapGenerator Generator { get; } = new GroundedVanillaGenerator();
+            internal readonly SurfaceEnvelope Envelope = SurfaceEnvelope.GeneratedV5;
+            public override IMapGenerator Generator { get; }
             internal override string VisualCacheVersionSuffix => "|owned-display-1";
+
+            public Grounded()
+            {
+                Generator = new GroundedVanillaGenerator(Envelope);
+            }
 
             public override SurfaceHeightPolicy CreateHeightPolicy(TerrainGenerationConfig config)
             {
-                return new GroundedSurfaceHeightPolicy(config, SurfaceEnvelope.GeneratedV5);
+                return new GroundedSurfaceHeightPolicy(config, Envelope);
             }
         }
     }

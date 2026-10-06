@@ -2,6 +2,7 @@ using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Generators;
 using Game.MapGeneration.Pipeline.Runtime;
 using Game.MapGeneration.Pipeline.Spawn;
+using Game.MapGeneration.Surface;
 using Game.MapGeneration.Transfer;
 using Mooresmaster.Model.GenerationModule;
 using UnityEngine;
@@ -18,10 +19,11 @@ namespace Game.MapGeneration.Pipeline
         // サーバーの入口とセッション(クライアント側の再現)が同じ組み立てを通るための切り出し。
         // Builds the runtime config from the master element, seed, and server data directory.
         // Split out so both the server entry point and sessions (client-side reproduction) go through the same assembly.
-        public static TerrainGenerationConfig BuildConfig(Generation selected, int seed, string serverDataDirectory)
+        public static TerrainGenerationConfig BuildConfig(Generation selected, int seed, string serverDataDirectory, WorldSurfaceRevision revision)
         {
             var config = GenerationRuntimeConfigFactory.Build(selected);
             config.seed = seed;
+            config.surfaceRevision = revision;
 
             // マスタが持つのは PNG パスだけなので、生成器へ渡す前に画素へ展開しておく。
             // Master only carries PNG paths, so expand them into pixels before handing the config to the generator.
@@ -35,8 +37,7 @@ namespace Game.MapGeneration.Pipeline
             Generation selected, int seed, string serverDataDirectory, TerrainOrigins settledOrigins, string generatorVersion, string worldId)
         {
             var revision = WorldGeneratorVersion.Resolve(generatorVersion, worldId);
-            var config = BuildConfig(selected, seed, serverDataDirectory);
-            config.surfaceRevision = revision;
+            var config = BuildConfig(selected, seed, serverDataDirectory, revision);
 
             // マスタが探索を使わない設定なら書き戻しが起きず、マスタ値がそのまま生成時の値。注入する余地が無い
             // With the search disabled in the master there is no write-back at all, so the master values are the generation-time ones and nothing needs injecting

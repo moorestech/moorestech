@@ -73,8 +73,8 @@ namespace Tests.Watchdog
         
         public static TimeSpan ResolveTimeout(ITest test)
         {
-            // caseから親へ辿り、最も近いTimeout設定を優先する
-            // Walk from the case to its parents, preferring the nearest Timeout setting
+            // caseから親へ辿り最寄りを優先
+            // Walk from case to parents, preferring the nearest Timeout
             for (var current = test; current != null; current = current.Parent)
             {
                 var value = current.Properties.Get("Timeout");

@@ -9,8 +9,8 @@ namespace Game.MapGeneration.Pipeline.Visual.Detail
     {
         internal static void Apply(BiomeVisualSections visualSections, SplatLayerTable layerTable)
         {
-            // レイヤー表の確定後にフィルターへ列番号を渡す
-            // Bind filter column indices after settling the layer table
+            // レイヤー表確定後に列番号を渡す
+            // Pass column indices after the layer table settles
             foreach (var detailConfig in visualSections.DetailConfigs)
             foreach (var entry in detailConfig.entries)
             {

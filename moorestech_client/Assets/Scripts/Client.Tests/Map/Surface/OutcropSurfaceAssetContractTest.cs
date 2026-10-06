@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Client.Game.InGame.Map.Outcrop;
 using Core.Master;
-using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Surface;
 using Mod.Config;
 using Mod.Loader;
 using Newtonsoft.Json.Linq;
@@ -20,12 +20,12 @@ namespace Client.Tests.Map.Surface
         [TearDown]
         public void TearDown()
         {
-            // 本番マスタを後続テストへ残さず標準テスト入力へ戻す
-            // Restore standard test inputs so production masters do not leak into later tests
+            // 本番マスタを標準入力へ戻す
+            // Restore standard inputs so production masters do not leak
             MasterHolder.Load(new MasterJsonFileContainer(ModJsonStringLoader.GetMasterString(
                 new ModsResource(Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods")))));
 
-            for (var index = _created.Count - 1; index >= 0; index--)
+            for (var index = _created.Count - 1; 0 <= index; index--)
                 UnityEngine.Object.DestroyImmediate(_created[index]);
             _created.Clear();
         }
@@ -40,8 +40,8 @@ namespace Client.Tests.Map.Surface
             Assert.That(Directory.Exists(Path.Combine(serverData, "mods")), Is.True, "Pinned production master is required");
             MasterHolder.Load(new MasterJsonFileContainer(ModJsonStringLoader.GetMasterString(new ModsResource(Path.Combine(serverData, "mods")))));
 
-            // 本番参照アドレスを全件走査し欠損も失敗させる
-            // Inspect all production addresses and fail on missing assets
+            // 参照アドレスを全走査し欠損も失敗
+            // Scan all addresses and fail on missing assets
             var paths = SurfaceAssetContractInputs.CollectAddressablePaths();
             Assert.That(MasterHolder.MapVeinMaster.All.Count, Is.GreaterThan(0));
             var data = new TerrainData { heightmapResolution = 33, size = new Vector3(32f, 20f, 32f) };

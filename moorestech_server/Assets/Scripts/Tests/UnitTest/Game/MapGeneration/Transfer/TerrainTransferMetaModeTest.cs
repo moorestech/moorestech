@@ -86,7 +86,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Transfer
         public void 旧版のワイヤメタは必須項目が空でも版不一致で落ちる()
         {
             LogAssert.Expect(LogType.Error,
-                "Unsupported generator '3.0.0' for world 'world-old'; connect to a server on the same build.");
+                $"Unsupported generator '3.0.0' for world 'world-old'; this build supports {WorldGeneratorVersion.SupportedVersionList}; connect to a server on the same build.");
             var exception = Assert.Throws<InvalidOperationException>(() => TerrainTransferMeta.FromWire(
                 WorldMapMode.Generated, "world-old", 513, 4, 3, 42,
                 new TerrainOrigins(Vector2.zero, Vector2.zero), "fingerprint", "3.0.0", string.Empty));

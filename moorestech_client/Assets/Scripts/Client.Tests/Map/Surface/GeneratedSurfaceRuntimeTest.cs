@@ -14,8 +14,8 @@ namespace Client.Tests.Map.Surface
         [TearDown]
         public void TearDown()
         {
-            // 本番マスタを後続テストへ残さず標準テスト入力へ戻す
-            // Restore standard test inputs so production masters do not leak into later tests
+            // 本番マスタを標準入力へ戻す
+            // Restore standard inputs so production masters do not leak
             MasterHolder.Load(new MasterJsonFileContainer(ModJsonStringLoader.GetMasterString(
                 new ModsResource(Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods")))));
         }
@@ -25,8 +25,8 @@ namespace Client.Tests.Map.Surface
         [Timeout(1500000)]
         public void GeneratedFinalTerrainGroundsEveryProductionOutcropMesh()
         {
-            // 本番生成・保存・最終木加工を通して実TerrainDataを検査する
-            // Inspect actual TerrainData after production generation, saving and final tree processing
+            // 本番生成後のTerrainData検査
+            // Inspect real TerrainData from production generation
             using var generated = new GeneratedSurfaceFixture(196, 3, 1000f, 1000f);
             using var runtime = new RuntimeSurfaceFixture(generated, generated.BakeReload(true));
             runtime.AssertEveryVein();

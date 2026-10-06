@@ -1,5 +1,5 @@
 using System;
-using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Surface;
 using UnityEngine;
 
 namespace Client.Game.InGame.Environment.Terrain
@@ -37,15 +37,15 @@ namespace Client.Game.InGame.Environment.Terrain
                 }
             }
 
-            // 共有assetを保護しXZ配置と寸法を維持する
-            // Protect shared assets and preserve XZ placement and dimensions
+            // 共有assetを守りXZと寸法を維持
+            // Protect shared assets and keep XZ placement and size
             foreach (var renderer in waterRenderers)
             {
                 var position = renderer.transform.position;
                 position.y = envelope.SeaY;
                 renderer.transform.position = position;
-                // 再初期化でも既に所有する描画材質を再利用する
-                // Reuse owned presentation materials when initialized again
+                // 再初期化では所有材質を再利用
+                // Reuse owned materials on re-initialization
                 if (!_ownedMaterials.TryGetValue(renderer, out var materials))
                 {
                     materials = renderer.sharedMaterials;
@@ -57,30 +57,35 @@ namespace Client.Game.InGame.Environment.Terrain
                     material.SetFloat(WaveHeightProperty, envelope.MaximumWaveRise);
                 renderer.sharedMaterials = materials;
             }
-        }
 
-        private static void ValidatePlane(Renderer renderer)
-        {
-            var filter = renderer.GetComponent<MeshFilter>();
-            if (filter == null || filter.sharedMesh == null)
-                throw Failure($"[GeneratedOceanSurface] Missing plane mesh on {renderer.name}.");
+            #region Internal
 
-            // shaderはobject法線を世界変位に使うため元法線と平面を確認する
-            // The shader uses object normals as world displacement, so validate original normals and the plane
-            var mesh = filter.sharedMesh;
-            var vertices = mesh.vertices;
-            var normals = mesh.normals;
-            if (vertices.Length == 0 || normals.Length != vertices.Length)
-                throw Failure($"[GeneratedOceanSurface] Invalid plane geometry on {renderer.name}.");
-            for (var index = 0; index < vertices.Length; index++)
+            void ValidatePlane(Renderer renderer)
             {
-                var normal = renderer.transform.TransformDirection(normals[index]).normalized;
-                var offset = renderer.transform.TransformVector(vertices[index]);
-                if ((normals[index] - Vector3.up).sqrMagnitude > 0.000001f ||
-                    (normal - Vector3.up).sqrMagnitude > 0.000001f || Mathf.Abs(offset.y) > 0.0001f)
-                    throw Failure($"[GeneratedOceanSurface] Plane must have a zero base and upward normals: {renderer.name}, vertex {index}.");
+                var filter = renderer.GetComponent<MeshFilter>();
+                if (filter == null || filter.sharedMesh == null)
+                    throw Failure($"[GeneratedOceanSurface] Missing plane mesh on {renderer.name}.");
+
+                // shaderはobject法線を世界変位に使うため元法線と平面を確認する
+                // The shader uses object normals as world displacement, so validate original normals and the plane
+                var mesh = filter.sharedMesh;
+                var vertices = mesh.vertices;
+                var normals = mesh.normals;
+                if (vertices.Length == 0 || normals.Length != vertices.Length)
+                    throw Failure($"[GeneratedOceanSurface] Invalid plane geometry on {renderer.name}.");
+                for (var index = 0; index < vertices.Length; index++)
+                {
+                    var normal = renderer.transform.TransformDirection(normals[index]).normalized;
+                    var offset = renderer.transform.TransformVector(vertices[index]);
+                    if (0.000001f < (normals[index] - Vector3.up).sqrMagnitude ||
+                        0.000001f < (normal - Vector3.up).sqrMagnitude || 0.0001f < Mathf.Abs(offset.y))
+                        throw Failure($"[GeneratedOceanSurface] Plane must have a zero base and upward normals: {renderer.name}, vertex {index}.");
+                }
             }
+
+            #endregion
         }
+
         private static InvalidOperationException Failure(string reason)
         {
             // 拒否理由を起動失敗の前に記録する

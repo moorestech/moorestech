@@ -44,12 +44,16 @@ namespace Game.MapGeneration.Pipeline.Visual.Source
 
             _resolvedLedger = ledger;
             return _resolvedLedger;
-        }
 
-        private static InvalidOperationException Failure(string reason)
-        {
-            Debug.LogError(reason);
-            return new InvalidOperationException(reason);
+            #region Internal
+
+            InvalidOperationException Failure(string reason)
+            {
+                Debug.LogError(reason);
+                return new InvalidOperationException(reason);
+            }
+
+            #endregion
         }
     }
 }

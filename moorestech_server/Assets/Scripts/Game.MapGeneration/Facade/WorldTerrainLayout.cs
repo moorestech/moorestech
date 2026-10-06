@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
-using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Surface;
 
 namespace Game.MapGeneration.Facade
 {
@@ -67,7 +67,7 @@ namespace Game.MapGeneration.Facade
                 TerrainLayoutKind.TerrainAsset, TemplateTerrainDataAddress, TemplateTerrainOrigin,
                 new List<(int TileX, int TileZ)>(), Vector3.zero, 0,
                 new List<string>(), new List<DetailPrototypeSpec>(),
-                TemplateDetailObjectDistance, TemplateDetailObjectDensity, new TerrainSurfacePresentation.Existing());
+                TemplateDetailObjectDistance, TemplateDetailObjectDensity, new TerrainSurfacePresentation.Legacy());
         }
 
         public static WorldTerrainLayout CreateTileMaps(

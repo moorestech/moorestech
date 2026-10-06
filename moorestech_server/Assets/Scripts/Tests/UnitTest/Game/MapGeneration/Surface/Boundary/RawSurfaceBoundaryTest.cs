@@ -15,8 +15,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         [TestCase(12345)]
         public void ReportedUnitMasterSeedsShareRawBoundariesAndReconstructedLand(int seed)
         {
-            // 失敗した先焼きテストと同じマスタ・解像度・格子を使う
-            // Use the same master, resolution and grid as the failing prebake tests
+            // 失敗した先焼きテストと同じ条件を使う
+            // Use the same conditions as the failing prebake tests
             var path = Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods", "forUnitTest", "master", "generation.json");
             var json = JObject.Parse(File.ReadAllText(path));
             var parameters = (JObject)json["algorithmParam"];
@@ -41,8 +41,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
                     Is.EqualTo(grid.Output.Tiles[3].Heights[i]));
             }
 
-            // 再ロード側も同じ境界所有者から陸地を復元する
-            // The reload path reconstructs land from the same boundary owners
+            // 再ロードも同じ所有者から陸地復元
+            // Reload restores land from the same boundary owners
             var replayConfig = config.ShallowCopy();
             replayConfig.worldOffsetX = grid.Output.NoiseOrigin.x;
             replayConfig.worldOffsetZ = grid.Output.NoiseOrigin.y;

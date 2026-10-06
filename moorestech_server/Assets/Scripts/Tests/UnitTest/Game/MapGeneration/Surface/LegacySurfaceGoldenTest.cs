@@ -8,7 +8,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using Core.Master;
 using Game.MapGeneration.Export;
-using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Surface;
 using Game.MapGeneration.Identity;
 using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Transfer;
@@ -29,8 +29,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         [TearDown]
         public void TearDown()
         {
-            // 本番マスタを後続テストへ残さず標準テスト入力へ戻す
-            // Restore standard test inputs so production masters do not leak into later tests
+            // 本番マスタを標準入力へ戻す
+            // Restore standard inputs so production masters do not leak
             MasterHolder.Load(new MasterJsonFileContainer(ModJsonStringLoader.GetMasterString(
                 new ModsResource(Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods")))));
 
@@ -41,8 +41,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         [Timeout(1500000)]
         public void Seed196MatchesCommittedV4Golden()
         {
-            // 採取済み正本は読むだけとし本番マスタの指紋も照合する
-            // Read the committed baseline without rewriting it and verify the production master fingerprint
+            // 正本は読むだけ、マスタ指紋も照合
+            // Only read the baseline and verify the master fingerprint
             var repository = Path.GetFullPath(Path.Combine(Application.dataPath, "../.."));
             var fixturePath = Path.Combine(repository,
                 "moorestech_server/Assets/Scripts/Tests/UnitTest/Game/MapGeneration/Surface/Fixtures/legacy-v4-seed196.json");
@@ -58,8 +58,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
 
             // 保存された版を明示して実際の選択表を通す
             // Pass the saved revision explicitly through the production dispatch table
-            var config = MapGenerationPipeline.BuildConfig(generation, (int)golden["meta"]["seed"], dataDirectory);
-            config.surfaceRevision = WorldGeneratorVersion.Resolve((string)golden["meta"]["generatorVersion"], "legacy-golden");
+            var savedRevision = WorldGeneratorVersion.Resolve((string)golden["meta"]["generatorVersion"], "legacy-golden");
+            var config = MapGenerationPipeline.BuildConfig(generation, (int)golden["meta"]["seed"], dataDirectory, savedRevision);
             Assert.That(config.surfaceRevision, Is.EqualTo(WorldSurfaceRevision.Legacy4));
             var run = MapGenerationPipeline.Generate(generation, config);
             Assert.That(run.Output.Resolution, Is.EqualTo((int)golden["meta"]["resolution"]));
@@ -71,8 +71,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             AssertVector(golden["origins"]["worldOffset"], new Vector2(run.Config.worldOffsetX, run.Config.worldOffsetZ));
             AssertVector(golden["origins"]["spawnWorldPositionXZ"], run.Config.spawnWorldPosition);
 
-            // 実際の保存ライタでr16を出力し9枚すべてのbyteを照合する
-            // Use the production writer to compare every byte through the hashes of all nine r16 tiles
+            // 実ライタでr16を出し9枚照合
+            // Write r16 with the real writer and compare all nine tiles byte-wise
             _scratchRoot = Path.Combine(Path.GetTempPath(), "LegacySurfaceGolden_" + Guid.NewGuid());
             var directory = WorldDataDirectory.FromWorldRoot(_scratchRoot);
             TerrainFileWriter.Write(directory, run.Output);
@@ -86,8 +86,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
                 Assert.That(hash, Is.EqualTo((string)tile["sha256"]), (string)tile["fileName"]);
             }
 
-            // 順序も含め鉱石・液体AABBと旧表示中心を照合する
-            // Compare ordered item/fluid AABBs and the legacy presentation centers
+            // 鉱石・液体AABBと旧中心を順序込み照合
+            // Compare ordered ore/fluid AABBs and legacy centers
             AssertVeins(golden["itemVeins"], run.Output.ItemVeins.ToArray());
             AssertVeins(golden["fluidVeins"], run.Output.FluidVeins.ToArray());
             var veins = run.Output.ItemVeins.Concat(run.Output.FluidVeins).ToArray();

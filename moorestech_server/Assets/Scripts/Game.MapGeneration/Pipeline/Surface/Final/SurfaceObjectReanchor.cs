@@ -9,8 +9,8 @@ namespace Game.MapGeneration.Pipeline.Surface
         public static PlacementLedger Apply(MapGenerationOutput output, PlacementLedger ledger,
             SurfacePlacementBindings bindings, SurfaceTileGrid before, SurfaceTileGrid after)
         {
-            // 既存sinkと姿勢を残し、mapObjectだけへ地表差分を加える
-            // Add only the surface delta to map objects, preserving their sink and rotation
+            // sinkと姿勢を残し地表差分だけ加算
+            // Add only the surface delta, keeping sink and rotation
             foreach (var item in output.MapObjects)
             {
                 var point = new Vector2(item.Position.x, item.Position.z);

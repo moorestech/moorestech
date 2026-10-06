@@ -1,4 +1,5 @@
 using System;
+using Game.MapGeneration.Pipeline.Surface;
 using Game.MapGeneration.Pipeline.Surface.Grading;
 using UnityEngine;
 using System.Collections.Generic;
@@ -37,10 +38,10 @@ namespace Game.MapGeneration.Pipeline.Visual.Placement
             var result = new PlacementLedger();
             for (int i = 0; i < positions.Count; i++)
             {
-                // 座標だけを置換し、見た目属性とpadを引き継ぐ
-                // Replace only positions while retaining visual attributes and pads
+                // 座標だけ置換し属性とpadを引継ぐ
+                // Replace only positions; keep attributes and pads
                 var position = positions[i];
-                if (!Finite(position.x) || !Finite(position.y) || !Finite(position.z))
+                if (!SurfaceGenerationValidation.Finite(position.x) || !SurfaceGenerationValidation.Finite(position.y) || !SurfaceGenerationValidation.Finite(position.z))
                     Fail($"Non-finite placement position at ledger index {i}.");
                 var entry = _placements[i];
                 result.Add(new LedgerPlacement(entry.Guid, position, entry.Scale, entry.SurroundEffect, entry.Cluster));
@@ -49,9 +50,13 @@ namespace Game.MapGeneration.Pipeline.Visual.Placement
             return result;
         }
 
-        private static bool Finite(float value)
+        public PlacementLedger WithGroundingPads(IReadOnlyList<VeinGroundingPad> pads)
         {
-            return !float.IsNaN(value) && !float.IsInfinity(value);
+            if (0 < _pads.Count) Fail("Grounding pads were already applied to this ledger.");
+            var result = new PlacementLedger();
+            foreach (var placement in _placements) result.Add(placement);
+            foreach (var pad in pads) result.AddGroundingPad(pad);
+            return result;
         }
 
         private static void Fail(string reason)

@@ -26,8 +26,8 @@ namespace Client.Tests.Map.Surface
             var bounds = renderers[0].bounds;
             foreach (var renderer in renderers) bounds.Encapsulate(renderer.bounds);
 
-            // 露頭自身でなく、検証済み採掘coreの中心へ配置されたことを検査する
-            // Check alignment to the verified mining core rather than the outcrop's own center
+            // 検証済みcore中心への配置を検査
+            // Check placement at the verified core center
             Assert.That(bounds.center.x, Is.EqualTo(verifiedCore.center.x).Within(0.001f), guid);
             Assert.That(bounds.center.z, Is.EqualTo(verifiedCore.center.y).Within(0.001f), guid);
             foreach (var filter in instance.GetComponentsInChildren<MeshFilter>(true))
@@ -36,26 +36,26 @@ namespace Client.Tests.Map.Surface
                 var mesh = filter.sharedMesh;
                 Assert.That(mesh.triangles.Length, Is.GreaterThan(0), guid);
 
-                // 平坦core内なら全頂点の高さで三角形全体の交差を否定できる
-                // On a flat core, all vertex heights exclude intersection of every complete triangle
+                // 平坦core内なら全頂点で交差を否定
+                // On a flat core all vertex heights rule out intersection
                 foreach (var vertex in mesh.vertices)
                 {
                     var world = filter.transform.TransformPoint(vertex);
                     MeshVertices++;
-                    if (world.x < verifiedCore.xMin - 0.00001f || world.x > verifiedCore.xMax + 0.00001f ||
-                        world.z < verifiedCore.yMin - 0.00001f || world.z > verifiedCore.yMax + 0.00001f)
+                    if (world.x < verifiedCore.xMin - 0.00001f || verifiedCore.xMax + 0.00001f < world.x ||
+                        world.z < verifiedCore.yMin - 0.00001f || verifiedCore.yMax + 0.00001f < world.z)
                         OutsideCoreVertices++;
                     float gap = world.y - plane;
                     bottom = Mathf.Min(bottom, gap);
                     if (gap < 0f) BuriedVertices++;
-                    if (gap >= MinimumGap) continue;
+                    if (MinimumGap <= gap) continue;
                     MinimumGap = gap;
                     WorstPosition = world;
                     WorstTerrainY = plane;
                     WorstGuid = guid;
                 }
             }
-            if (bottom < 0f || bottom > 0.02f) InvalidContactGaps++;
+            if (bottom < 0f || 0.02f < bottom) InvalidContactGaps++;
             LargestContactGap = Mathf.Max(LargestContactGap, bottom);
         }
 

@@ -1,5 +1,5 @@
 using UnityEngine;
-using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Surface;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Spawn;
 
@@ -11,9 +11,9 @@ namespace Game.MapGeneration.Pipeline.Config
     // GenerationModule master by GenerationRuntimeConfigFactory, not persisted authoring data.
     public class TerrainGenerationConfig
     {
-        // 新規生成は接地保証版、既存再構築は保存版を注入する
-        // New generation uses grounding guarantees; reconstruction injects the saved revision
-        public WorldSurfaceRevision surfaceRevision = Game.MapGeneration.Transfer.WorldGeneratorVersion.CurrentRevision;
+        // 版は呼び出し側が必ず注入する（新規は現行版、再構築は保存版）。既定値は持たない
+        // Callers must inject the revision (current for new worlds, saved for reconstruction); there is no default
+        public WorldSurfaceRevision surfaceRevision;
 
         // スポーン候補探索
         // Spawn candidate search

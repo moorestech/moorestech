@@ -11,8 +11,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface.Generated.Helpers
             int stride = resolution - 1;
             var masks = new bool[output.Tiles.Count][];
 
-            // 不変の分類を一度だけ保存し、各表示格子の全頂点検査へ渡す
-            // Capture immutable classification once for each display grid's full vertex validation
+            // 不変の分類を一度保存し全頂点検査へ
+            // Capture immutable classification once for full vertex checks
             for (int index = 0; index < masks.Length; index++)
             {
                 var tile = output.Tiles[index];

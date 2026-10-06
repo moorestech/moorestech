@@ -1,4 +1,4 @@
-using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Surface;
 using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Surface;
@@ -34,8 +34,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             var owner = new SurfaceDisplayBoundaryOwner(config, source);
             var actual = new float[4][,];
 
-            // 異なる入力を持つ非所有タイルを先に要求しても所有者を使う
-            // Request nonowners first with disagreeing inputs and still use the canonical owner
+            // 非所有タイルを先に要求しても所有者使用
+            // Request non-owners first and still use the owner
             for (int step = 0; step < 4; step++)
             {
                 int tile = reverse ? 3 - step : step;
@@ -48,8 +48,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             }
             foreach (int loads in source.LoadCounts) Assert.That(loads, Is.EqualTo(1));
 
-            // 独立した本番フルチェーンの結果と全辺・四枚角を厳密比較する
-            // Compare every edge and the four-way corner exactly to an independent production full chain
+            // 独立フルチェーンと全辺・四枚角を比較
+            // Compare every edge and corner with an independent full chain
             var expectedTiles = new[] { Expected(0, 0), Expected(1, 0), Expected(0, 1), Expected(1, 1) };
             for (int tile = 0; tile < 4; tile++)
             for (int z = 0; z < 17; z++)

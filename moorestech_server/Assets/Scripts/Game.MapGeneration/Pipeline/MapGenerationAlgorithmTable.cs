@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Surface;
 using Game.MapGeneration.Pipeline.Surface;
 using Mooresmaster.Model.GenerationModule;
 using UnityEngine;
@@ -32,8 +32,8 @@ namespace Game.MapGeneration.Pipeline
         {
             if (Revisions.TryGetValue(revision, out var policy)) return policy;
 
-            // 未知の版を既存表示や現行生成器へ置き換えない
-            // Never substitute existing presentation or the current generator for an unknown revision
+            // 未知の版を既存表示へ置換しない
+            // Never substitute existing presentation for an unknown revision
             var reason = $"Unsupported surface revision '{revision}'.";
             Debug.LogError(reason);
             throw new InvalidOperationException(reason);

@@ -6,7 +6,7 @@ using Client.Game.InGame.Environment.Terrain.Assets;
 using Client.Game.InGame.Environment.Terrain.Build;
 using Cysharp.Threading.Tasks;
 using Game.MapGeneration.Facade;
-using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Surface;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 
@@ -49,19 +49,19 @@ namespace Client.Game.InGame.Environment.Terrain
             // Apply the ocean presentation contract after terrain completion
             switch (layout.SurfacePresentation)
             {
-                case TerrainSurfacePresentation.Existing:
+                case TerrainSurfacePresentation.Legacy:
                     break;
                 case TerrainSurfacePresentation.Grounded grounded:
                     var ocean = environmentRoot.GetComponentInChildren<GeneratedOceanSurface>(true);
                     if (ocean == null)
                     {
-                        Debug.LogWarning("[TerrainRuntimeBuilder] GeneratedOceanSurface is not wired on the environment prefab.");
+                        Debug.LogError("[TerrainRuntimeBuilder] GeneratedOceanSurface is not wired on the environment prefab.");
                         throw new InvalidOperationException("[TerrainRuntimeBuilder] GeneratedOceanSurface is not wired on the environment prefab.");
                     }
                     ocean.Initialize(grounded.Envelope);
                     break;
                 default:
-                    Debug.LogWarning("[TerrainRuntimeBuilder] Unknown surface presentation.");
+                    Debug.LogError("[TerrainRuntimeBuilder] Unknown surface presentation.");
                     throw new InvalidOperationException("[TerrainRuntimeBuilder] Unknown surface presentation.");
             }
             return layout;

@@ -1,4 +1,4 @@
-namespace Game.MapGeneration.Facade.Surface
+namespace Game.MapGeneration.Surface
 {
     public enum WorldSurfaceRevision
     {

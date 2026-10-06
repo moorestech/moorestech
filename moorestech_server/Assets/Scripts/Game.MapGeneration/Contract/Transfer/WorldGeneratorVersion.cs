@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Surface;
 using UnityEngine;
 
 namespace Game.MapGeneration.Transfer
@@ -19,6 +19,8 @@ namespace Game.MapGeneration.Transfer
 
         public static WorldSurfaceRevision CurrentRevision => Supported[Current];
 
+        public static string SupportedVersionList => string.Join(" and ", Supported.Keys);
+
         public static bool Supports(string generatorVersion)
         {
             return generatorVersion != null && Supported.ContainsKey(generatorVersion);
@@ -29,7 +31,7 @@ namespace Game.MapGeneration.Transfer
             // 未知版を現行版へ置換せず起動境界で止める
             // Reject unknown versions at the startup boundary instead of substituting the current revision
             if (generatorVersion != null && Supported.TryGetValue(generatorVersion, out var revision)) return revision;
-            var reason = $"Unsupported generator '{generatorVersion}' for world '{worldId}'; connect to a server on the same build.";
+            var reason = $"Unsupported generator '{generatorVersion}' for world '{worldId}'; this build supports {SupportedVersionList}; connect to a server on the same build.";
             Debug.LogError(reason);
             throw new InvalidOperationException(reason);
         }

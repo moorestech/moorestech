@@ -51,7 +51,7 @@ namespace Game.MapGeneration.Pipeline.Generators
             {
                 var entry = entries[i];
                 if (entry == null || string.IsNullOrEmpty(entry.veinGuid)) continue;
-                if (entryMasks == null || i >= entryMasks.Length || entryMasks[i] == null)
+                if (entryMasks == null || entryMasks.Length <= i || entryMasks[i] == null)
                     continue;
 
                 int acceptedBefore = result.Veins.Count;

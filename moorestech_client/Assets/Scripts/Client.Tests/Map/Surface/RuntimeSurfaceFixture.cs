@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.Map.Outcrop;
 using Core.Master;
-using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Surface;
 using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Pipeline.Surface;
 using Game.MapGeneration.Pipeline.Visual;
 using Newtonsoft.Json;
 using NUnit.Framework;
+using Tests.UnitTest.Game.MapGeneration.Surface;
 using Tests.UnitTest.Game.MapGeneration.Surface.Generated;
 using UnityEngine;
 
@@ -30,8 +31,8 @@ namespace Client.Tests.Map.Surface
             var config = generated.Run.Config;
             for (int index = 0; index < baked.Count; index++)
             {
-                // 本番最終配列から実際のUnity地形を構築する
-                // Construct actual Unity terrain from the production final arrays
+                // 本番最終配列から実地形を構築
+                // Build real terrain from the production final arrays
                 var tile = generated.Run.Output.Tiles[index];
                 var data = new TerrainData
                 {
@@ -57,7 +58,8 @@ namespace Client.Tests.Map.Surface
             foreach (var vein in veins)
             {
                 var center = (Vector3)(vein.Min + vein.Max + Vector3Int.one) * 0.5f;
-                var core = new Rect(center.x - 2f, center.z - 2f, 4f, 4f);
+                float coreHalfSize = SurfaceEnvelope.GeneratedV5.CoreHalfSize;
+                var core = new Rect(center.x - coreHalfSize, center.z - coreHalfSize, 2f * coreHalfSize, 2f * coreHalfSize);
                 float ground = AssertFlatCore(core);
                 AssertRangeBottom(vein);
                 var master = MasterHolder.MapVeinMaster.GetElementOrNull(new Guid(vein.VeinGuid));
@@ -66,8 +68,8 @@ namespace Client.Tests.Map.Surface
                 var prefab = SurfaceAssetContractInputs.LoadPrefab(paths[master.OutcropAddressablePath]);
                 Assert.That(prefab, Is.Not.Null, master.OutcropAddressablePath);
 
-                // 平坦面検査後に実Prefabを本番配置処理へ渡す
-                // Pass the actual prefab through production placement only after validating its flat support
+                // 平坦面検査後に実Prefabを配置へ渡す
+                // Pass the real prefab to placement after the flat check
                 var instance = UnityEngine.Object.Instantiate(prefab, Vector3.zero, Quaternion.identity);
                 _created.Add(instance);
                 var bounds = new Bounds(center + _translation, (Vector3)(vein.Max - vein.Min + Vector3Int.one));
@@ -86,19 +88,19 @@ namespace Client.Tests.Map.Surface
             float minimum = float.PositiveInfinity;
             Vector2 worst = Vector2.zero;
 
-            // Unityへ適用後の全陸地支持頂点も測定する
-            // Measure all land support vertices after applying them to Unity
+            // 適用後の陸地支持頂点も測定
+            // Also measure land support vertices after applying to Unity
             for (int z = 0; z < _final.Geometry.Depth; z++)
             for (int x = 0; x < _final.Geometry.Width; x++)
             {
                 if (!_generated.Original.Land.IsProtectedVertex(x, z)) continue;
                 float height = ActualVertex(x, z);
-                if (height >= minimum) continue;
+                if (minimum <= height) continue;
                 minimum = height;
                 worst = _final.Geometry.ScenePosition(x, z);
             }
             TestContext.WriteLine(JsonConvert.SerializeObject(new { actualTerrainMinimumLand = minimum, x = worst.x, z = worst.y }));
-            Assert.That(minimum, Is.GreaterThanOrEqualTo(4.9f));
+            Assert.That(minimum, Is.GreaterThanOrEqualTo(SurfaceGuaranteeBounds.LandMinimum));
         }
 
         private float AssertFlatCore(Rect core)
@@ -107,7 +109,7 @@ namespace Client.Tests.Map.Surface
             float plane = ActualVertex(support.xMin, support.yMin);
             for (int z = support.yMin; z < support.yMax; z++)
             for (int x = support.xMin; x < support.xMax; x++)
-                Assert.That(ActualVertex(x, z), Is.EqualTo(plane).Within(0.00005f), $"Non-flat core at {x},{z}");
+                Assert.That(ActualVertex(x, z), Is.EqualTo(plane).Within(SurfaceGuaranteeBounds.CoreFlatTolerance), $"Non-flat core at {x},{z}");
             return plane;
         }
 
@@ -115,10 +117,10 @@ namespace Client.Tests.Map.Surface
         {
             var bottom = Rect.MinMaxRect(vein.Min.x, vein.Min.z, vein.Max.x + 1f, vein.Max.z + 1f);
             var support = _final.Geometry.SupportVertices(bottom);
-            float maxGap = _generated.Run.Config.terrainHeight / SurfaceQuantization.TerrainStorageSteps + 0.00105f;
+            float maxGap = _generated.Run.Config.terrainHeight / SurfaceQuantization.TerrainStorageSteps + SurfaceGuaranteeBounds.RangeGapTolerance;
 
-            // 範囲下端矩形の全補間支持頂点を実TerrainDataで検査する
-            // Inspect all interpolation support vertices of the range bottom in actual TerrainData
+            // 下端矩形の補間支持頂点を検査
+            // Inspect the interpolation support vertices of the bottom rectangle
             for (int z = support.yMin; z < support.yMax; z++)
             for (int x = support.xMin; x < support.xMax; x++)
                 Assert.That(vein.Min.y - ActualVertex(x, z), Is.InRange(0f, maxGap), $"Range at {x},{z}");
@@ -135,7 +137,7 @@ namespace Client.Tests.Map.Surface
 
         public void Dispose()
         {
-            for (int index = _created.Count - 1; index >= 0; index--)
+            for (int index = _created.Count - 1; 0 <= index; index--)
                 UnityEngine.Object.DestroyImmediate(_created[index]);
             _created.Clear();
         }

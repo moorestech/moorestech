@@ -15,8 +15,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             };
             var output = new MapGenerationOutput { Resolution = resolution, SceneOrigin = config.TileScenePosition(0, 0) };
 
-            // 意図的に低い高さから本番の格子とfloorを検証する
-            // Exercise the production lattice and floor with intentionally low heights
+            // 低い高さから本番格子とfloorを検証
+            // Exercise the production lattice and floor with low heights
             for (int z = 0; z < side; z++)
             for (int x = 0; x < side; x++)
                 output.Tiles.Add(new TerrainTileOutput { TileX = x, TileZ = z, Heights = new float[resolution * resolution] });

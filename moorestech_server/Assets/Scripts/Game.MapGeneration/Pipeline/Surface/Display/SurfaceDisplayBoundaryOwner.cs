@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Surface;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Visual;
 using Game.MapGeneration.Pipeline.Visual.Placement;
@@ -45,42 +45,42 @@ namespace Game.MapGeneration.Pipeline.Surface
             {
                 int globalX = tileX * stride + x;
                 int globalZ = tileZ * stride + z;
-                int ownerX = Mathf.Max(0, (globalX - 1) / stride);
-                int ownerZ = Mathf.Max(0, (globalZ - 1) / stride);
+                int ownerX = SurfaceLattice.OwnerTile(globalX, stride);
+                int ownerZ = SurfaceLattice.OwnerTile(globalZ, stride);
                 var owner = new Vector2Int(ownerX, ownerZ);
                 if (!_edges.TryGetValue(owner, out var edge))
                 {
-                    edge = Evaluate(ownerX, ownerZ, ledger, land, envelope, projectFinal);
+                    edge = Evaluate(ownerX, ownerZ);
                     _edges.Add(owner, edge);
                 }
                 int ownerIndex = (globalZ - ownerZ * stride) * _grid.Resolution + globalX - ownerX * stride;
                 destination[z, x] = edge[ownerIndex];
             }
-            #endregion
-        }
 
-        private Dictionary<int, float> Evaluate(int tileX, int tileZ, PlacementLedger ledger,
-            LandCellField land, SurfaceEnvelope envelope, bool projectFinal)
-        {
-            var config = _grid.CreateTileConfig(tileX, tileZ);
-            var tile = _grid.TileScenePosition(tileX, tileZ);
-            var scene = new Vector3(tile.x, 0f, tile.y);
-            var pre = _source.Load(tileX, tileZ);
-
-            // 木の丸めと整地支持セルも所有者の座標で一度だけ評価する
-            // Evaluate tree rounding and pad support cells once in the owner's coordinates
-            var post = TreePerturbationApplier.Apply(pre, config, scene, ledger.Placements);
-            if (projectFinal)
-                post = FinalSurfaceProjector.Apply(post, config, scene, land, ledger.GroundingPads, envelope);
-            var edge = new Dictionary<int, float>();
-            int stride = config.Resolution - 1;
-            for (int z = 0; z <= stride; z++)
-            for (int x = 0; x <= stride; x++)
+            Dictionary<int, float> Evaluate(int ownerTileX, int ownerTileZ)
             {
-                if (x != 0 && z != 0 && x != stride && z != stride) continue;
-                edge.Add(z * config.Resolution + x, post[z, x]);
+                var ownerConfig = _grid.CreateTileConfig(ownerTileX, ownerTileZ);
+                var ownerTile = _grid.TileScenePosition(ownerTileX, ownerTileZ);
+                var ownerScene = new Vector3(ownerTile.x, 0f, ownerTile.y);
+                var pre = _source.Load(ownerTileX, ownerTileZ);
+
+                // 木の丸めと整地支持セルも所有者の座標で一度だけ評価する
+                // Evaluate tree rounding and pad support cells once in the owner's coordinates
+                var post = TreePerturbationApplier.Apply(pre, ownerConfig, ownerScene, ledger.Placements);
+                if (projectFinal)
+                    post = FinalSurfaceProjector.Apply(post, ownerConfig, ownerScene, land, ledger.GroundingPads, envelope);
+                var edge = new Dictionary<int, float>();
+                int ownerStride = ownerConfig.Resolution - 1;
+                for (int z = 0; z <= ownerStride; z++)
+                for (int x = 0; x <= ownerStride; x++)
+                {
+                    if (x != 0 && z != 0 && x != ownerStride && z != ownerStride) continue;
+                    edge.Add(z * ownerConfig.Resolution + x, post[z, x]);
+                }
+                return edge;
             }
-            return edge;
+
+            #endregion
         }
     }
 }

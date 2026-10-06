@@ -7,21 +7,15 @@ namespace Game.MapGeneration.Pipeline.Surface
 {
     public static class TileSurfaceHeightBuilder
     {
-        public static (float[,] Pre, float[,] Post) Build(float[,] pre, TerrainGenerationConfig config,
-            Vector3 tileScene, PlacementLedger ledger, SurfaceHeightPolicy policy)
-        {
-            // 密度とsplatは保存済みの木加工前を読む
-            // Density and splat keep reading the saved pre-tree field
-            var post = TreePerturbationApplier.Apply(pre, config, tileScene, ledger.Placements);
-            post = policy.Apply(post, config, tileScene, ledger);
-            return (pre, post);
-        }
-        internal static (float[,] Pre, float[,] Post) Build(float[,] pre, TerrainGenerationConfig config,
+        internal static float[,] Build(float[,] pre, TerrainGenerationConfig config,
             Vector3 tileScene, PlacementLedger ledger, SurfaceHeightPolicy policy, SurfaceDisplayBoundaryOwner owner)
         {
-            var pair = Build(pre, config, tileScene, ledger, policy);
-            policy.CopyBoundary(pair.Post, tileScene, ledger, owner);
-            return pair;
+            // 密度とsplatは木加工前を読む
+            // Density and splat read the pre-tree field
+            var post = TreePerturbationApplier.Apply(pre, config, tileScene, ledger.Placements);
+            post = policy.Apply(post, config, tileScene, ledger);
+            policy.CopyBoundary(post, tileScene, ledger, owner);
+            return post;
         }
     }
 }

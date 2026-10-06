@@ -1,5 +1,5 @@
 using System;
-using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Surface;
 using System.IO;
 using Game.MapGeneration.Cache;
 using Game.MapGeneration.Pipeline.Visual;

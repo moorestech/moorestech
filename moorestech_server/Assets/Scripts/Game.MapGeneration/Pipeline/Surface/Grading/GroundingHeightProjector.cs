@@ -36,8 +36,8 @@ namespace Game.MapGeneration.Pipeline.Surface.Grading
                         break;
                     }
 
-                    // core支持頂点以外はChebyshev距離で接続する
-                    // Connect other vertices using the Chebyshev distance from the core
+                    // core外頂点はChebyshev接続
+                    // Connect non-support vertices by Chebyshev distance
                     float dx = Mathf.Max(pad.Core.xMin - scene.x, scene.x - pad.Core.xMax, 0f);
                     float dz = Mathf.Max(pad.Core.yMin - scene.y, scene.y - pad.Core.yMax, 0f);
                     float distance = Mathf.Max(dx, dz);
@@ -46,7 +46,7 @@ namespace Game.MapGeneration.Pipeline.Surface.Grading
                     weightedHeight += weight * (double)pad.HeightMeters;
                     strongest = Mathf.Max(strongest, weight);
                 }
-                if (!core && weightSum > 0d)
+                if (!core && 0d < weightSum)
                     result[z, x] = Mathf.Lerp(heights[z, x], (float)(weightedHeight / weightSum) / terrainHeight, strongest);
             }
             return result;

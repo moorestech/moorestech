@@ -14,12 +14,10 @@ namespace Game.MapGeneration.Pipeline.Surface.Grading
             for (int index = 0; index < pads.Count; index++)
             {
                 var pad = pads[index];
-                var outer = Rect.MinMaxRect(pad.Core.xMin - pad.BlendWidth, pad.Core.yMin - pad.BlendWidth,
-                    pad.Core.xMax + pad.BlendWidth, pad.Core.yMax + pad.BlendWidth);
-                var support = lattice.SupportVertices(outer);
+                var support = lattice.SupportVertices(VeinGroundingPlanner.OuterOf(pad.Core, pad.BlendWidth));
 
-                // pad外周に掛かる格子bucketだけへ辞書順indexを登録する
-                // Register sorted pad indices only in lattice buckets touched by their outskirts
+                // pad外周のbucketへ辞書順で登録
+                // Register sorted pad indices in the perimeter buckets
                 for (int z = support.yMin / BucketWidth; z <= (support.yMax - 1) / BucketWidth; z++)
                 for (int x = support.xMin / BucketWidth; x <= (support.xMax - 1) / BucketWidth; x++)
                 {

@@ -12,12 +12,19 @@ namespace Game.MapGeneration.Pipeline.Surface.Grading
 
         public void AddMapObject(int outputIndex, int ledgerIndex)
         {
-            Add(_objects, outputIndex, ledgerIndex);
+            if (outputIndex < 0 || ledgerIndex < 0 || _objects.ContainsKey(outputIndex) || !_ledgerIndices.Add(ledgerIndex))
+            {
+                string reason = $"Invalid or duplicate surface binding: output={outputIndex}, ledger={ledgerIndex}.";
+                Debug.LogError(reason);
+                throw new InvalidOperationException(reason);
+            }
+            _objects.Add(outputIndex, ledgerIndex);
         }
 
         public PlacementLedger ApplyMapObjectPositions(MapGenerationOutput output, PlacementLedger ledger)
         {
-            var positions = CopyPositions(ledger);
+            var positions = new List<Vector3>(ledger.Placements.Count);
+            foreach (var entry in ledger.Placements) positions.Add(entry.ScenePosition);
             foreach (var pair in _objects)
             {
                 var position = positions[pair.Value];
@@ -25,24 +32,6 @@ namespace Game.MapGeneration.Pipeline.Surface.Grading
                 positions[pair.Value] = position;
             }
             return ledger.WithScenePositions(positions);
-        }
-
-        private static List<Vector3> CopyPositions(PlacementLedger ledger)
-        {
-            var positions = new List<Vector3>(ledger.Placements.Count);
-            foreach (var entry in ledger.Placements) positions.Add(entry.ScenePosition);
-            return positions;
-        }
-
-        private void Add(Dictionary<int, int> target, int outputIndex, int ledgerIndex)
-        {
-            if (outputIndex < 0 || ledgerIndex < 0 || target.ContainsKey(outputIndex) || !_ledgerIndices.Add(ledgerIndex))
-            {
-                string reason = $"Invalid or duplicate surface binding: output={outputIndex}, ledger={ledgerIndex}.";
-                Debug.LogError(reason);
-                throw new InvalidOperationException(reason);
-            }
-            target.Add(outputIndex, ledgerIndex);
         }
     }
 }

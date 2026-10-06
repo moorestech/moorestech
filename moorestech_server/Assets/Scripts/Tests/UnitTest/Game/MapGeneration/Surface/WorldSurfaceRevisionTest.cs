@@ -1,5 +1,5 @@
 using System;
-using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Surface;
 using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Transfer;
@@ -33,18 +33,18 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         public void UnknownRevisionCannotRegenerateAsCurrent(string version)
         {
             Assert.That(WorldGeneratorVersion.Supports(version), Is.False);
-            LogAssert.Expect(LogType.Error, $"Unsupported generator '{version}' for world 'fixture'; connect to a server on the same build.");
+            LogAssert.Expect(LogType.Error, $"Unsupported generator '{version}' for world 'fixture'; this build supports {WorldGeneratorVersion.SupportedVersionList}; connect to a server on the same build.");
             Assert.Throws<InvalidOperationException>(() => WorldGeneratorVersion.Resolve(version, "fixture"));
         }
 
         [Test]
-        public void NewConfigurationUsesGroundedRevision()
+        public void CurrentGeneratorVersionUsesGroundedRevision()
         {
-            Assert.That(new TerrainGenerationConfig().surfaceRevision, Is.EqualTo(WorldSurfaceRevision.Grounded5));
+            Assert.That(WorldGeneratorVersion.CurrentRevision, Is.EqualTo(WorldSurfaceRevision.Grounded5));
             Assert.That(WorldGeneratorVersion.Current, Is.EqualTo("5.0.0"));
         }
 
-        [TestCase(WorldSurfaceRevision.Legacy4, typeof(TerrainSurfacePresentation.Existing))]
+        [TestCase(WorldSurfaceRevision.Legacy4, typeof(TerrainSurfacePresentation.Legacy))]
         [TestCase(WorldSurfaceRevision.Grounded5, typeof(TerrainSurfacePresentation.Grounded))]
         public void PresentationUsesTheGenerationRevisionRegistry(WorldSurfaceRevision revision, Type presentation)
         {
@@ -64,8 +64,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         [TestCase("5.0.0")]
         public void SavedMetadataAcceptsBothSupportedVersions(string version)
         {
-            // readerのnullable理由契約を両版で固定する
-            // Pin the reader's nullable reason contract for both revisions
+            // readerのnullable契約を固定
+            // Pin the reader's nullable reason contract for both versions
             var meta = new WorldMetaJson
             {
                 MapMode = WorldMapMode.Generated,

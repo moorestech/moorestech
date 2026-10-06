@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Surface;
 using UnityEngine;
 
 namespace Game.MapGeneration.Pipeline.Surface.Grading
@@ -15,15 +15,9 @@ namespace Game.MapGeneration.Pipeline.Surface.Grading
             var supports = new List<RectInt>();
             foreach (var vein in veins)
             {
-                // inclusive AABB中心でscene上の平坦部を作る
-                // Construct the scene-space core around the inclusive AABB center
-                var center = (Vector3)(vein.Min + vein.Max + Vector3Int.one) * 0.5f;
-                var core = new Rect(new Vector2(center.x, center.z) - Vector2.one * envelope.CoreHalfSize,
-                    Vector2.one * (2f * envelope.CoreHalfSize));
-                var outer = Rect.MinMaxRect(core.xMin - envelope.BlendWidth, core.yMin - envelope.BlendWidth,
-                    core.xMax + envelope.BlendWidth, core.yMax + envelope.BlendWidth);
-                if (!grid.Land.ContainsSupport(outer))
-                    throw SurfaceGenerationValidation.Failure(grid.Config, "grading", $"Non-land vein footprint at {center}.");
+                var core = CoreFootprint(vein, envelope);
+                if (!grid.Land.ContainsSupport(OuterFootprint(vein, envelope)))
+                    throw SurfaceGenerationValidation.Failure(grid.Config, "grading", $"Non-land vein footprint at {core.center}.");
                 cores.Add(core);
                 supports.Add(grid.Geometry.SupportVertices(core));
             }
@@ -38,23 +32,40 @@ namespace Game.MapGeneration.Pipeline.Surface.Grading
                     maximums[roots[i]] = Mathf.Max(maximums[roots[i]], grid.GetHeight(x, z));
             }
 
-            // 全成分で同じUnity格納下限を使い、範囲の厚さは保つ
-            // Use the same Unity storage lower bound for all components and retain range thickness
-            float floor = SurfaceQuantization.LandFloor(grid.Config, envelope, "grading");
-            double quantum = (double)grid.Config.terrainHeight / SurfaceQuantization.TerrainStorageSteps;
-            int minimum = (int)Math.Ceiling(floor + quantum + 0.001d);
+            // 全成分で同じ格納下限、範囲厚は保つ
+            // Use one storage lower bound for all components, keep range thickness
+            int minimum = (int)SurfaceQuantization.MinimumMiningBottom(grid.Config, envelope, "grading");
             int maximum = Mathf.FloorToInt(grid.Config.terrainHeight);
-            if (minimum > maximum)
+            if (maximum < minimum)
                 throw SurfaceGenerationValidation.Failure(grid.Config, "grading", "No valid integer mining bottom interval.");
-            var bottoms = new int[veins.Count];
-            var pads = new List<VeinGroundingPad>();
+            var groundings = new List<VeinGrounding>(veins.Count);
             for (int i = 0; i < veins.Count; i++)
             {
                 int bottom = Mathf.Clamp(Mathf.CeilToInt(maximums[roots[i]]), minimum, maximum);
-                bottoms[i] = bottom;
-                pads.Add(new VeinGroundingPad(cores[i], SurfaceQuantization.PadHeight(bottom, grid.Config, "grading"), envelope.BlendWidth));
+                var pad = new VeinGroundingPad(cores[i], SurfaceQuantization.PadHeight(bottom, grid.Config, "grading"), envelope.BlendWidth);
+                groundings.Add(new VeinGrounding(veins[i], bottom, pad));
             }
-            return new GroundingPlan(grid, bottoms, pads);
+            return new GroundingPlan(grid, groundings);
+        }
+
+        // inclusive AABB中心でscene上の平坦部を作る
+        // Construct the scene-space core around the inclusive AABB center
+        internal static Rect CoreFootprint(PlacedVein sceneVein, SurfaceEnvelope envelope)
+        {
+            var center = (Vector3)(sceneVein.Min + sceneVein.Max + Vector3Int.one) * 0.5f;
+            return new Rect(new Vector2(center.x, center.z) - Vector2.one * envelope.CoreHalfSize,
+                Vector2.one * (2f * envelope.CoreHalfSize));
+        }
+
+        internal static Rect OuterFootprint(PlacedVein sceneVein, SurfaceEnvelope envelope)
+        {
+            return OuterOf(CoreFootprint(sceneVein, envelope), envelope.BlendWidth);
+        }
+
+        internal static Rect OuterOf(Rect core, float blendWidth)
+        {
+            return Rect.MinMaxRect(core.xMin - blendWidth, core.yMin - blendWidth,
+                core.xMax + blendWidth, core.yMax + blendWidth);
         }
     }
 }

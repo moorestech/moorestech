@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Game.MapGeneration.Pipeline.Generators;
 namespace Game.MapGeneration.Pipeline.Surface.Placement
 {
-    public sealed class UnrestrictedVeinLandConstraint : IVeinLandConstraint
+    public sealed class LegacyVeinLandConstraint : IVeinLandConstraint
     {
         public void RecordEligibleCenter()
         {

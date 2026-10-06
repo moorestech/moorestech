@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Game.MapGeneration.Cache;
-using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Surface;
 using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Surface.Grading;
@@ -37,8 +37,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface.Generated
             _scratch = root;
             var saved = WorldDataDirectory.FromWorldRoot(root);
 
-            // 故意の低地を本番r16ライタとローダーで往復する
-            // Round-trip deliberately low land through the production r16 writer and loader
+            // 故意の低地をr16で往復する
+            // Round-trip deliberate low land through r16
             TerrainFileWriter.Write(saved, grid.Output);
             var loaded = HeightFileLoader.LoadHeights(saved, 0, 0, 33);
             var input = new float[33 * 33];
@@ -48,7 +48,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface.Generated
                 Quaternion.identity, Vector3.one, 0f, TerrainSurroundEffectType.rockNoBareGround);
             var modifiers = new Dictionary<string, (float amount, float width)> { { "negative-tree", (-12f, 4f) } };
             TreeHeightModifier.Apply(input, grid.Config, new List<PlacementEntry> { entry }, modifiers);
-            Assert.That(input[16 * 33 + 16] * 600f, Is.LessThan(0f), "Negative tree fixture must actually depress land");
+            Assert.That(input[16 * 33 + 16] * grid.Config.terrainHeight, Is.LessThan(0f), "Negative tree fixture must actually depress land");
 
             var postTree = new float[33, 33];
             for (int z = 0; z < 33; z++)
@@ -57,8 +57,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface.Generated
                 Array.Empty<VeinGroundingPad>(), SurfaceEnvelope.GeneratedV5);
             float required = SurfaceQuantization.LandFloor(grid.Config, SurfaceEnvelope.GeneratedV5, "fixture");
 
-            // 木加工後の本番floorを通し保存再ロードでも下限を維持する
-            // Apply the production post-tree floor and retain its lower bound after saved reload
+            // 本番floorで保存再ロードも下限維持
+            // Production floor keeps the lower bound after reload
             for (int z = 0; z < 33; z++)
             for (int x = 0; x < 33; x++) grid.Output.Tiles[0].Heights[z * 33 + x] = final[z, x];
             TerrainFileWriter.Write(saved, grid.Output);
@@ -66,7 +66,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface.Generated
             for (int z = 0; z < 33; z++)
             for (int x = 0; x < 33; x++)
             {
-                Assert.That(SurfaceQuantization.StoredNormalized(reloaded[z, x]) * 600f, Is.GreaterThanOrEqualTo(required));
+                Assert.That(SurfaceQuantization.StoredNormalized(reloaded[z, x]) * grid.Config.terrainHeight, Is.GreaterThanOrEqualTo(required));
                 Assert.That(reloaded[z, x], Is.EqualTo(final[z, x]));
             }
             TestContext.WriteLine("Synthetic lowland regression; sea exposure report is not reproduced by this fixture.");

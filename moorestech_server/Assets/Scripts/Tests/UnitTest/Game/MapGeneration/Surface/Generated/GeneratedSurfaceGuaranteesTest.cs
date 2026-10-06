@@ -14,16 +14,16 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface.Generated
         [TearDown]
         public void TearDown()
         {
-            // 本番マスタを後続テストへ残さず標準テスト入力へ戻す
-            // Restore standard test inputs so production masters do not leak into later tests
+            // 本番マスタを標準入力へ戻す
+            // Restore standard inputs so production masters do not leak
             MasterHolder.Load(new MasterJsonFileContainer(ModJsonStringLoader.GetMasterString(
                 new ModsResource(Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods")))));
         }
 
         public static IEnumerable Cases()
         {
-            // 本番パラメータを保ち、seedと格子寸法を直交検査する
-            // Retain production parameters while checking seeds against grid dimensions
+            // 本番パラメータでseedと寸法を直交検査
+            // Keep production parameters; check seeds against grid sizes
             foreach (int seed in new[] { 196, 1, 2, 42, 197 })
             foreach (int tiles in new[] { 1, 3 })
                 yield return new TestCaseData(seed, tiles, 1000f, 1000f);
@@ -48,8 +48,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface.Generated
         [TearDown]
         public void TearDown()
         {
-            // 本番マスタを後続テストへ残さず標準テスト入力へ戻す
-            // Restore standard test inputs so production masters do not leak into later tests
+            // 本番マスタを標準入力へ戻す
+            // Restore standard inputs so production masters do not leak
             MasterHolder.Load(new MasterJsonFileContainer(ModJsonStringLoader.GetMasterString(
                 new ModsResource(Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods")))));
         }
@@ -64,8 +64,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface.Generated
         [Timeout(3600000)]
         public void Production2049FiveByFiveRetainsGuarantees(int seed)
         {
-            // 最大fixtureは専用filterで単独実行する
-            // Run the largest fixture alone through its dedicated filter
+            // 最大fixtureは専用filter実行
+            // Run the largest fixture alone via its filter
             using var fixture = new GeneratedSurfaceFixture(seed, 5, 1000f, 1000f);
             GeneratedSurfaceValidation.Check(fixture, true);
         }

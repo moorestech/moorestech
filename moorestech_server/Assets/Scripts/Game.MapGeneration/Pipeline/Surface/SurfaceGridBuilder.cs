@@ -1,4 +1,3 @@
-using Game.MapGeneration.Facade.Surface;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Stages;
 using Game.MapGeneration.Transfer;
@@ -9,7 +8,6 @@ namespace Game.MapGeneration.Pipeline.Surface
     {
         internal static SurfaceTileGrid Build(TerrainGenerationConfig config)
         {
-            SurfaceGenerationValidation.Validate(config, SurfaceEnvelope.GeneratedV5);
             var origins = MapGenerationPipeline.ResolveOrigins(config);
             var output = new MapGenerationOutput
             {
@@ -18,8 +16,8 @@ namespace Game.MapGeneration.Pipeline.Surface
                 SceneOrigin = origins.SceneOrigin,
             };
 
-            // 全タイル分類を確定してから陸地支持領域を構築する
-            // Settle every tile classification before constructing land support
+            // 全分類確定後に陸地支持を構築
+            // Build land support after all classifications settle
             var biomes = ClassificationStage.GetEnabledBiomeTypes(config);
             var gridConfig = config.ShallowCopy();
             gridConfig.worldOffsetX = origins.NoiseOrigin.x;
@@ -38,11 +36,11 @@ namespace Game.MapGeneration.Pipeline.Surface
                     float value = window.Buffers.landMask[i];
                     if (!SurfaceGenerationValidation.Finite(value))
                         throw SurfaceGenerationValidation.Failure(config, $"{x},{z}", $"Non-finite land mask at {i}.");
-                    mask[i] = value > 0.5f;
+                    mask[i] = 0.5f < value;
                 }
 
-                // 高さと分類だけを残し、大きい分類バッファは直ちに解放する
-                // Retain only heights and classification, releasing large job buffers immediately
+                // 高さと分類のみ残し分類バッファ解放
+                // Keep heights and classification, release the buffers
                 masks[output.Tiles.Count] = mask;
                 output.Tiles.Add(new TerrainTileOutput { TileX = x, TileZ = z, Heights = window.Buffers.heights.ToArray() });
             }

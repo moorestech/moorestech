@@ -8,8 +8,8 @@ namespace Game.MapGeneration.Pipeline.Surface.Origins
 {
     public static class SpawnSurfaceSampler
     {
-        // 中心タイルのハイトマップからスポーン高さを採り、シーン座標のスポーン地点にする。
-        // Samples the spawn height from the center tile's heightmap to complete the scene-space spawn point.
+        // 中心タイルのハイトマップからスポーン高さを採る
+        // Samples the spawn height from the center tile heightmap
         public static Vector3 ComputeLegacy(TerrainGenerationConfig config, float[] centerTileHeights, Vector2 sceneSpawnXz)
         {
             Vector2 spawn = config.spawnWorldPosition;

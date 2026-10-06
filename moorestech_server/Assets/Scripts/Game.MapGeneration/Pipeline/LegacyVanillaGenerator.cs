@@ -1,5 +1,5 @@
 using Game.MapGeneration.Pipeline.Surface.Grading;
-using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Surface;
 using Game.MapGeneration.Pipeline.Surface.Placement;
 using System;
 using Game.MapGeneration.Pipeline.Biomes;
@@ -18,7 +18,7 @@ namespace Game.MapGeneration.Pipeline
 {
     // VanillaGenerator アルゴリズムの本体。gridSizeX/Z の格子ぶんタイルを独立生成し、配置結果を1つの出力へまとめる。
     // The VanillaGenerator algorithm body: generates one independent tile per gridSizeX/Z cell into a single output.
-    public class VanillaGenerator : IMapGenerator
+    public class LegacyVanillaGenerator : IMapGenerator
     {
         public GenerationRun Generate(TerrainGenerationConfig sourceConfig)
         {
@@ -33,7 +33,7 @@ namespace Game.MapGeneration.Pipeline
             // mapping, and a non-positive one slips past EnumerateTileCoordinates' perfect-square check into a zero-chunk wire value (see TerrainTransferMeta).
             if (config.gridSizeX != config.gridSizeZ || config.gridSizeX <= 0)
                 throw new InvalidOperationException(
-                    $"[VanillaGenerator] gridSizeX ({config.gridSizeX}) and gridSizeZ ({config.gridSizeZ}) must be equal and positive.");
+                    $"[LegacyVanillaGenerator] gridSizeX ({config.gridSizeX}) and gridSizeZ ({config.gridSizeZ}) must be equal and positive.");
 
             var biomeTypes = ClassificationStage.GetEnabledBiomeTypes(config);
 
@@ -70,7 +70,7 @@ namespace Game.MapGeneration.Pipeline
             var helper = new BiomePlacementHelper(config);
             var halo = new PlacementHaloStore(PlacementHaloRadius.Resolve(config, biomeTypes, helper));
             var runner = new TilePlacementRunner(helper, biomeTypes,
-                noiseToSceneShift, new Vector3(sceneSpawnXz.x, 0f, sceneSpawnXz.y), output, halo, ledger, new UnrestrictedVeinLandConstraint(), new SurfacePlacementBindings());
+                noiseToSceneShift, new Vector3(sceneSpawnXz.x, 0f, sceneSpawnXz.y), output, halo, ledger, new LegacyVeinLandConstraint(), new SurfacePlacementBindings());
 
             // タイル窓の基準はindex(0,0)タイル。config.worldOffset は中心タイル基準なのでそのままでは基準にできない。
             // The tile windows are based on the index (0,0) tile; config.worldOffset is center-tile based and cannot serve as one.

@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Surface;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Surface.Grading;
 using UnityEngine;
@@ -13,8 +13,7 @@ namespace Game.MapGeneration.Pipeline.Surface
         {
             var heights = (float[,])postTreeHeights.Clone();
             var origin = new Vector2(tileScene.x, tileScene.z);
-            int stride = tileConfig.Resolution - 1;
-            var spacing = new Vector2(tileConfig.terrainWidth / stride, tileConfig.terrainLength / stride);
+            var spacing = SurfaceLattice.SpacingFor(tileConfig);
             float floor = SurfaceQuantization.LandFloor(tileConfig, envelope, $"scene={tileScene.x},{tileScene.z}");
 
             // 木の変位後に元分類の支持頂点を保護する
@@ -27,8 +26,8 @@ namespace Game.MapGeneration.Pipeline.Surface
                     heights[z, x] = Mathf.Max(heights[z, x], floor / tileConfig.terrainHeight);
             }
 
-            // 整地面を再投影して表示キャッシュとUnity格子をr16へ符号化する
-            // Reproject pads and encode the Unity lattice for the r16 visual cache
+            // 整地面を再投影しr16へ符号化
+            // Reproject pads and encode them into r16
             heights = GroundingHeightProjector.Apply(heights, origin, spacing, tileConfig.terrainHeight, pads);
             for (int z = 0; z < heights.GetLength(0); z++)
             for (int x = 0; x < heights.GetLength(1); x++)

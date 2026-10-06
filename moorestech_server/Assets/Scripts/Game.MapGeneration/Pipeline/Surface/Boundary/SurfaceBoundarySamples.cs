@@ -25,8 +25,8 @@ namespace Game.MapGeneration.Pipeline.Surface
             foreach (var local in SharedVertices(tileX, tileZ))
             {
                 var global = new Vector2Int(tileX * stride + local.x, tileZ * stride + local.y);
-                int ownerX = Mathf.Max(0, (global.x - 1) / stride);
-                int ownerZ = Mathf.Max(0, (global.y - 1) / stride);
+                int ownerX = SurfaceLattice.OwnerTile(global.x, stride);
+                int ownerZ = SurfaceLattice.OwnerTile(global.y, stride);
                 if (ownerX != tileX || ownerZ != tileZ) continue;
                 _owned.Add(global, new SurfaceBoundarySample(source, local.y * _config.Resolution + local.x, _biomeCount));
             }
@@ -52,13 +52,13 @@ namespace Game.MapGeneration.Pipeline.Surface
             // Retain only internal boundaries and visit each corner exactly once
             for (int x = 0; x <= stride; x++)
             {
-                if (tileZ > 0) yield return new Vector2Int(x, 0);
+                if (0 < tileZ) yield return new Vector2Int(x, 0);
                 if (tileZ < _config.gridSizeZ - 1) yield return new Vector2Int(x, stride);
             }
             for (int z = 0; z <= stride; z++)
             {
-                if ((z == 0 && tileZ > 0) || (z == stride && tileZ < _config.gridSizeZ - 1)) continue;
-                if (tileX > 0) yield return new Vector2Int(0, z);
+                if ((z == 0 && 0 < tileZ) || (z == stride && tileZ < _config.gridSizeZ - 1)) continue;
+                if (0 < tileX) yield return new Vector2Int(0, z);
                 if (tileX < _config.gridSizeX - 1) yield return new Vector2Int(stride, z);
             }
         }

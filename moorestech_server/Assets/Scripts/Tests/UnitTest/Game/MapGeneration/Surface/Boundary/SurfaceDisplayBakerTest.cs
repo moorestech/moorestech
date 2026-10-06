@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using Game.MapGeneration.Cache;
 using Game.MapGeneration.Export;
-using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Surface;
 using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
@@ -37,6 +37,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         {
             var grid = SurfaceGridFixture.Create(2, 17, 31.7f, 47.3f, true);
             var config = grid.Config;
+            config.surfaceRevision = WorldSurfaceRevision.Grounded5;
             config.landThreshold = -1f;
             config.detailResolution = 8;
             config.generateDetail = false;
@@ -59,9 +60,9 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             var baker = CreateBaker(config, ledger);
             var tiles = new float[4][,];
 
-            // 非所有タイルから焼き、未要求の所有者を高さファイルから解決させる
-            // Bake nonowners first so unrequested owners must resolve from height files
-            for (int i = 3; i >= 0; i--) tiles[i] = baker.Bake(i % 2, i / 2).DisplayHeights;
+            // 非所有タイルから焼き所有者を解決
+            // Bake non-owners first so owners resolve from height files
+            for (int i = 3; 0 <= i; i--) tiles[i] = baker.Bake(i % 2, i / 2).DisplayHeights;
             for (int k = 0; k < 17; k++)
             {
                 Assert.That(tiles[0][k, 16], Is.EqualTo(tiles[1][k, 0]));
@@ -70,8 +71,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
                 Assert.That(tiles[1][16, k], Is.EqualTo(tiles[3][0, k]));
             }
 
-            // 一枚だけcacheを取り逃し、残りのhitと同じ厳密な表示へ戻る
-            // Miss just one cache entry and reconstruct the same exact display beside hits
+            // 一枚cache未命中でも厳密な表示へ戻る
+            // One cache miss still rebuilds the exact display
             string path = _directory.TerrainVisualCacheFilePath(1, 1);
             Assert.That(File.Exists(path), Is.True);
             File.Delete(path);

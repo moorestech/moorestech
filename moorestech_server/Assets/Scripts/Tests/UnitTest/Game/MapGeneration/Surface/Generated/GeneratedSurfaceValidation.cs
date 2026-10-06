@@ -40,8 +40,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface.Generated
 
         private static void CheckReload(GeneratedSurfaceFixture fixture, IReadOnlyList<TileVisualBakeResult> first, bool removeCache)
         {
-            // hit配列をmiss生成前に解放可能にし、両経路の全頂点比較を保つ
-            // Allow hit arrays to be collected before miss generation while comparing every vertex on both paths
+            // hit配列をmiss前に解放可能にする
+            // Let hit arrays be collected before miss generation
             var reloaded = fixture.BakeReload(removeCache);
             string phase = removeCache ? "compare-reload-miss" : "compare-reload-hit";
             var timer = SurfaceTestPhase.Start(phase);
@@ -62,8 +62,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface.Generated
             Assert.That(actual.Count, Is.EqualTo(expected.Count));
             for (int index = 0; index < expected.Count; index++)
             {
-                // 全配列一致は共有境界と内部頂点の双方を含む
-                // Entire array equality includes both shared boundaries and interior vertices
+                // 全配列一致は境界と内部頂点を含む
+                // Array equality includes boundaries and interior vertices
                 Assert.That(actual[index].ScenePosition, Is.EqualTo(expected[index].ScenePosition));
                 SurfaceHeightAssert.AreEqual(expected[index].DisplayHeights, actual[index].DisplayHeights, $"display tile={index}");
             }

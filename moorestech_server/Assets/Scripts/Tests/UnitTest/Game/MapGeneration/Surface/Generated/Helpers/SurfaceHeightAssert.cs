@@ -20,8 +20,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface.Generated.Helpers
             var differences = new Differences();
             int width = expected.GetLength(1);
 
-            // 境界を含む全要素を走査し、失敗数と最初の値を一度だけ報告する
-            // Scan every element including boundaries and report the count and first values once
+            // 全要素を走査し失敗数と初値を報告
+            // Scan every element and report the failure count and first values
             for (int z = 0; z < expected.GetLength(0); z++)
             for (int x = 0; x < width; x++)
                 differences.Compare(expected[z, x], actual[z, x], z * width + x);
