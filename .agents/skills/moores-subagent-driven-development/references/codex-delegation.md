@@ -11,7 +11,7 @@
 
 ## 依頼の出し方
 
-- **Claudeはタスクを1つずつ渡さない。** 「subagent-driven-development スキルで `<plan>` の Task N から実装して。実装パートのみ。Task X（実機確認）・最終レビュー・PR作成はやらない」と1回だけ依頼する。依頼文にplanの中身を転記しない（codexが自分で読む）。
+- **Claudeはタスクを1つずつ渡さない。** 「moores-subagent-driven-development スキルで `<plan>` の Task N から実装して。実装パートのみ。Task X（実機確認）・最終レビュー・PR作成はやらない」と1回だけ依頼する。依頼文にplanの中身を転記しない（codexが自分で読む）。
 - 呼び出しは `node ~/.agents/skills/codex-implement/scripts/codex-implement.mjs --cd <worktree> --task "..." < /dev/null`。**`< /dev/null` は必須**で、無いと `Reading additional input from stdin...` で止まる。
 - 実行は `run_in_background: true` で起動し、**Claudeはそのままターンを終えて完了通知を待つ**。前景でのポーリングループ、途中経過の覗き見、sleepでの待機はしない（コンテキストの浪費になる。2026-09-24 ユーザー指摘）。
 - セッションID（stderrの `--session <UUID>`）を台帳に控える。

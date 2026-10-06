@@ -63,7 +63,7 @@ Run a `/grilling` session, using the `/domain-modeling` skill.
 
 ### 1.7 Codex 独立質問の消し込み（ADR確定後・moores-writing-plans 直前。必須）
 
-自分の質問集合には盲点がある。同じ課題を Codex に独立に質問生成させると、自分が聞かず agent 前提で埋めていた分岐が残問として出てくる。moores-writing-plans へ渡す前に、repo 内の `codex-audit` スキル（`.agents/skills/codex-audit/scripts/codex-open-questions.mjs`・repo ルート相対） で **Codex に独立した質問リストを作らせ、既に答えた質問を消し込み、残った質問だけをユーザーに聞く**。
+自分の質問集合には盲点がある。同じ課題を Codex に独立に質問生成させると、自分が聞かず agent 前提で埋めていた分岐が残問として出てくる。moores-writing-plans へ渡す前に、個人スキル `codex-audit` の `scripts/codex-open-questions.mjs`（同スキルの Base directory 基準。通常 `~/.agents/skills/codex-audit/`。repo には同名スキルを置かない — `.decisions/2026-10-06-repoスキルは個人版と同名にしない.md`） で **Codex に独立した質問リストを作らせ、既に答えた質問を消し込み、残った質問だけをユーザーに聞く**。
 
 手順（詳細と Gotchas は codex-audit SKILL.md「未回答質問だけを出す二段階」）:
 
@@ -74,7 +74,7 @@ Run a `/grilling` session, using the `/domain-modeling` skill.
 5. その後に §2 の moores-writing-plans へ進む
 
 - `remaining` が 0 件でもこの段は省略した扱いにしない（0 件という結果を一言報告する）
-- `codex` が無い・失敗した場合は生エラーを報告し、省略して進めるかをユーザーに聞く。黙って飛ばさない
+- `codex` または個人スキル `codex-audit` が無い・失敗した場合は生エラーを報告し、省略して進めるかをユーザーに聞く。黙って飛ばさない
 - generate の brief に書いた「既知の事実」がインタビュー中に覆った場合は、filter 時のプロンプトにその訂正を添える
 - worktree は消し込み後に `git worktree remove` で片付ける
 

@@ -10,7 +10,7 @@ description: |
   既定ではStep 3.5〜6.5をWorkflowツール（scripts/review_workflow.js）で決定論的に実行する（2026-08-20。本体は対象確定・機械チェック・Codex起動・AskUserQuestionのみ。sonnet委譲はWorkflow不可時のフォールバック）。
   Use when:
   1. moorestechでPR作成前・マージ前のレビューを行う時（pr-create前に必ず1パス）
-  2. subagent-driven-development の最終ブランチレビューを行う時
+  2. moores-subagent-driven-development の最終ブランチレビューを行う時
   3. 「moores-code-reviewで」「moorestechの設計規約でレビュー」「コードレビューして」と言われた時
 ---
 
@@ -122,7 +122,7 @@ Run dir : <$RUNDIRの実値> / Patch path : <PATCH_PATH> / User prompt : <USER_P
 1. **統合報告** — Critical/Warning/Info件数、各指摘の出所（決定論/reviewer名/Codex/Fable/N系統一致）、適用した修正、コンパイル・テスト結果。Warningは1件1行で全件載せる（保険としてコンテキストに乗せるのが目的。黙って落とさない）。Infoは末尾に圧縮列挙。raw出力やレビュー表をそのまま貼らない。Codex/Fableをスキップした場合はその旨を明記。
    - **「免責で消された指摘」セクション必須**: 各観点の `suppressed:` 節を固定形式 `- [Critical|Warning] <指摘要約> — suppressed-by: <トレードオフ1行, 出所ラベル>` で列挙する（元の重大度を行頭に保持。0件なら「suppressed: 0件」と明記）。§2.6参照。
 2. **保留した設計判断だけ**をAskUserQuestionで選択肢付き一括提示（0件ならスキップ）。回答に従い適用（§5の安全規則・検証を再適用）。裁定結果の適用は、1〜2箇所の機械的な直しなら本体が最小Edit、まとまった量なら fix subagent（`model: "sonnet"`）1体に design.md のパス+裁定を渡す。
-   - **例外: SDD の単一subagent実装モードから呼ばれた場合**（`subagent-driven-development` の規模ゲート未満の派遣を経てこのレビューに来た場合）は、**裁定反映の fix subagent を `model: "opus"` とし、本体による最小Editは行わない**（量が1〜2箇所でも fix subagent に渡す）。ADR 0053「本体セッションは実装コードを書かない」を最終レビュー局面でも守り切るため。通常の呼び出しでは従来どおり本体の最小Edit or fix subagent（`sonnet`）。
+   - **例外: SDD の単一subagent実装モードから呼ばれた場合**（`moores-subagent-driven-development` の規模ゲート未満の派遣を経てこのレビューに来た場合）は、**裁定反映の fix subagent を `model: "opus"` とし、本体による最小Editは行わない**（量が1〜2箇所でも fix subagent に渡す）。ADR 0053「本体セッションは実装コードを書かない」を最終レビュー局面でも守り切るため。通常の呼び出しでは従来どおり本体の最小Edit or fix subagent（`sonnet`）。
    - **裁定反映 diff の再レビュー（Refix・Step 6 と同じ手順）**: 裁定を適用する**前**に `python3 .claude/skills/moores-code-review/scripts/refix_snapshot.py snapshot --repo-root "$(pwd)" --run-dir $RUNDIR --name w7-s0` を取り、適用後に `--name w7-s1` → `refix_snapshot.py diff --from w7-s0 --to w7-s1 --out $RUNDIR/refix/w7-round1.diff` で反映 diff と `scope` を得る。`source` なら `post-checks/applied-diff-correctness.md`（`model: "opus"`・Step 4 と同じ5行契約＋`Refix of : design.md の該当裁定`・Patch path = その diff・報告先 `agents/refix-correctness-w7-r1.md`）を1体起動する（理由は同ファイル冒頭。Step 6 側は Workflow の Refix フェーズが同じ手順を回す）。Critical は直して `w7-s2` を取り直し直した差分だけで再実行（最大3周。機械的でなければ再度 AskUserQuestion）、上限超過・適用0件は未収束として報告冒頭に明記、Warning/Info は最終報告へ。`non-source`/`none` なら起動せず報告に1行。
    - **設計判断を反映した diff の構造レビュー（2026-09-20 導入）**: 上の反映 diff が型・スキーマ・公開シグネチャを新設または変更していれば、`reviewers/core-cs-centralization-duplication.md`（`.ts`/`.tsx` のみなら `core-ts_tsx-centralization-duplication.md`）を同じ diff・同じ5行契約で opus 1体起動する（報告先 `agents/refix-structure-w7-r1.md`）。裁定を反映した diff は新しい設計そのものだが、applied-diff-correctness は設計に言及しない。Critical は上と同じ扱い、`設計判断: あり` は最終報告へ案の形ごと載せる。根拠（2026-09-20 実測・後知恵なし opus 各1体）: 当時の反映diffへこの reviewer を当てるリプレイ4回のうち3回が、本番レビューが見逃してマージ済みの実在Critical（`BiomeObjectConfigRuntimeApplier` がバイオーム列挙を4箇所目に増やし、「1箇所化」という導入理由を導入物自身の文字列 switch が打ち消している件）を独立に検出した。一方この工程の契機となった bands 二重定義そのものは 4回中1回しか出ない — **特定の指摘の再発防止ではなく、反映diffに残る設計欠陥一般への網として入れている**（reviewer の焦点は毎回揺れるので、1回の検出を当てにしない）。
    - **載せてよいのは本質的な設計判断のみ**（アーキテクチャ・パターン選択・スコープ影響・両立不能な指摘・サブエージェントの `設計判断: あり`）。**載せるの禁止**: コメントの短縮・文体（convention-guard が自己完結）、200行超過・ファイル分割（努力目標・報告のみ）。混ぜた時点で規約違反（ユーザー裁定 2026-07-23）。

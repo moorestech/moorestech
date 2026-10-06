@@ -22,7 +22,7 @@ Subagent (general-purpose, フォアグラウンド):
     実装対象: [TASK_RANGE]（末尾の最終レビュー・PR作成タスクはコントローラーが行うので実装しない）
 
     計画ファイル冒頭の `> **For the controller session …**` ブロックと末尾の最終レビュー・PR作成タスクは
-    コントローラー向けの指示である。**あなたは subagent-driven-development スキルを起動せず、
+    コントローラー向けの指示である。**あなたは moores-subagent-driven-development スキルを起動せず、
     subagent を派遣せず、PR も作成しない。** 実装対象は [TASK_RANGE] のみ。
 
     moorestech設計ルール: [LENS_DIGEST_ABS]（実装前に読むこと）

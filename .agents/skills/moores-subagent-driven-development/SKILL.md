@@ -1,6 +1,6 @@
 ---
-name: subagent-driven-development
-description: 現在のセッションで、独立したタスクからなる実装計画を実行する際に使用する。規模ゲート未満はopus固定の単一subagentが計画全体を実装し、閾値超はタスクごと派遣＋タスクレビューで進める
+name: moores-subagent-driven-development
+description: moorestech専用の計画実行。現在のセッションで、独立したタスクからなる実装計画を実行する際に使用する。規模ゲート未満はopus固定の単一subagentが計画全体を実装し、閾値超はタスクごと派遣＋タスクレビューで進める
 ---
 
 # Subagent-Driven Development
