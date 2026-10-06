@@ -135,10 +135,10 @@ private static readonly IReadOnlyDictionary<string, WorldSurfaceRevision> Suppor
         { "4.0.0", WorldSurfaceRevision.Legacy4 },
         { "5.0.0", WorldSurfaceRevision.Grounded5 }
     };
-public static bool Supports(string generatorVersion) => Supported.ContainsKey(generatorVersion);
+public static bool Supports(string generatorVersion) => generatorVersion != null && Supported.ContainsKey(generatorVersion);
 public static WorldSurfaceRevision Resolve(string generatorVersion, string worldId)
 {
-    if (Supported.TryGetValue(generatorVersion, out var revision)) return revision;
+    if (generatorVersion != null && Supported.TryGetValue(generatorVersion, out var revision)) return revision;
     throw new InvalidOperationException($"Unsupported generator '{generatorVersion}' for '{worldId}'.");
 }
 public static void ThrowIfSupported(string generatorVersion, string worldId)
