@@ -61,7 +61,17 @@ export function testerName(row) {
 
 // 種別の表示名。未知の値は値そのものを出して無音で消さない
 // Display names for kinds; unknown values are shown verbatim, never hidden
-export const KIND_LABELS = { bug: "バグ", feedback: "感想", crash: "クラッシュ" };
+// 原型のキー（constructor 等）を種別名と取り違えないよう Map で持つ
+// Held in a Map so prototype keys such as "constructor" are never mistaken for kinds
+const KIND_LABELS = new Map([["bug", "バグ"], ["feedback", "感想"], ["crash", "クラッシュ"]]);
+
+export function isKnownKind(kind) {
+  return KIND_LABELS.has(kind);
+}
+
+export function kindLabel(kind) {
+  return KIND_LABELS.get(kind) || kind || "不明";
+}
 
 // ハッシュルート: #/<view>/<arg...>?key=value
 // Hash routes: #/<view>/<arg...>?key=value

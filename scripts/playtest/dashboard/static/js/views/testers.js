@@ -1,7 +1,7 @@
 // テスター一覧: 1人1行で活動量・到達度・報告数を並べる
 // Tester list: one row per tester with activity, progress and report counts
 import { card, pageHead } from "../components.js";
-import { countableSessions, emptyNote, fmtDateTime, fmtMinutes, h, routeHref, testerName } from "../core.js";
+import { countableSessions, emptyNote, fmtDateTime, fmtMinutes, h, isKnownKind, routeHref, testerName } from "../core.js";
 
 export function renderTesters(data) {
   const rows = buildTesterRows(data);
@@ -36,7 +36,7 @@ function buildTesterRows(data) {
   for (const report of data.reports) {
     const tester = entry(report);
     tester.profileUrl = tester.profileUrl || report.profileUrl;
-    tester.reports[report.kind in tester.reports ? report.kind : "other"] += 1;
+    tester.reports[isKnownKind(report.kind) ? report.kind : "other"] += 1;
     tester.last = maxIso(tester.last, report.readyAt);
   }
   for (const session of countableSessions(data.sessions)) {

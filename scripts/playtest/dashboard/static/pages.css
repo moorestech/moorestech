@@ -1,4 +1,5 @@
-/* 画面固有: 絞り込み・報告詳細・表・ダイジェスト・狭い画面 / Per-page: filters, detail, tables, digest, narrow screens */
+/* 画面固有: 絞り込み・報告詳細・表・ダイジェスト・狭い画面 */
+/* Per-page: filters, detail, tables, digest, narrow screens */
 .filter-panel { display: flex; flex-direction: column; gap: 10px; }
 .segmented { display: flex; flex-wrap: wrap; gap: 4px; }
 .segmented a {
@@ -53,7 +54,7 @@
 .info dd { margin: 0; }
 
 .table-wrap { overflow-x: auto; margin: 0 -8px; }
-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+table { width: 100%; min-width: 760px; border-collapse: collapse; font-size: 13px; }
 th { text-align: left; font-weight: 600; color: var(--muted); font-size: 12px; white-space: nowrap; }
 th, td { padding: 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
 tbody tr:last-child td { border-bottom: none; }

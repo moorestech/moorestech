@@ -1,6 +1,6 @@
 // 画面をまたいで使う表示部品（ページ見出し・カード・日付まとめ・報告行・状態表示）
 // Display parts shared across views (page header, card, day groups, report rows, status labels)
-import { fmtTime, h, KIND_LABELS, routeHref, testerName } from "./core.js";
+import { fmtTime, h, isKnownKind, kindLabel, routeHref, testerName } from "./core.js";
 
 const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 
@@ -70,8 +70,7 @@ function rowText(report) {
 }
 
 export function kindMark(kind) {
-  const known = KIND_LABELS[kind] ? kind : "unknown";
-  return h("span", { class: `kind kind-${known}` }, KIND_LABELS[kind] || kind || "不明");
+  return h("span", { class: `kind kind-${isKnownKind(kind) ? kind : "unknown"}` }, kindLabel(kind));
 }
 
 // 状態は色付きの点＋文字。強い色は「未投入」と「読めない」だけに使う
@@ -79,7 +78,7 @@ export function kindMark(kind) {
 export function statusText(report) {
   const label = statusLabel(report);
   if (!label) return null;
-  return h("span", { class: `status status-${report.triage}` }, label);
+  return h("span", { class: `status status-${report.triage}`, title: label }, label);
 }
 
 function statusLabel(report) {

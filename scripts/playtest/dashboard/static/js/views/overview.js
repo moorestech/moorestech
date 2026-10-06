@@ -2,11 +2,10 @@
 // Overview: "needs action" (un-enqueued bugs) on the left, recent activity and latest feedback on the right
 import { stackedDayChart } from "../charts.js";
 import { card, dayGroups, deltaText, moreLink, pageHead, reportRow, stat } from "../components.js";
-import { countableSessions, emptyNote, fmtDateTime, h, jstToday, linkify, routeHref, testerName } from "../core.js";
+import { countableSessions, emptyNote, fmtDateTime, h, isKnownKind, jstToday, linkify, routeHref, testerName } from "../core.js";
 
 const CHART_DAYS = 14;
 const LIST_LIMIT = 12;
-const KNOWN_KINDS = new Set(["bug", "feedback", "crash"]);
 const KIND_SERIES = [
   { key: "bug", label: "バグ", color: "--series-1" },
   { key: "feedback", label: "感想", color: "--series-2" },
@@ -17,7 +16,7 @@ const KIND_SERIES = [
 export function renderOverview(data) {
   const sessions = countableSessions(data.sessions);
   const candidates = data.reports.filter((r) => r.triage === "candidate");
-  const latest = [data.reports[0]?.readyAt, sessions[0]?.sessionStart].filter(Boolean).sort().pop();
+  const latest = [...data.reports, ...data.sessions].map((row) => row.readyAt).filter(Boolean).sort().pop();
   return h("div", { class: "view" },
     pageHead("概要", latest ? `最新の受信 ${fmtDateTime(latest)}` : "まだ受信がありません"),
     weekStats(data, sessions, candidates.length),
@@ -49,7 +48,10 @@ function weekStats(data, sessions, candidateCount) {
   const hours = (rows) => rows.reduce((sum, s) => sum + (s.playSeconds || 0), 0) / 3600;
   const playNow = hours(sessions.filter((s) => inWeek(s.date)));
   const playPrev = hours(sessions.filter((s) => inPrev(s.date)));
-  const testers = (pick) => new Set([...data.reports.filter((r) => pick(r.date)), ...sessions.filter((s) => pick(s.date))]
+  // 遠隔実行で除外した報告は、セッションと同じく人数にも数えない
+  // Reports excluded for remote exec are not counted toward testers, matching the sessions
+  const counted = data.reports.filter((r) => r.triage !== "excluded");
+  const testers = (pick) => new Set([...counted.filter((r) => pick(r.date)), ...sessions.filter((s) => pick(s.date))]
     .map((row) => row.steamId)).size;
   return h("div", { class: "stats" },
     stat("未投入のバグ", candidateCount, "件", "累計・投入待ち",
@@ -64,12 +66,12 @@ function activityCharts(reports, sessions) {
   const days = Array.from({ length: CHART_DAYS }, (_, i) => jstToday(CHART_DAYS - 1 - i));
   const counts = new Map();
   for (const r of reports) {
-    const key = `${r.date}|${KNOWN_KINDS.has(r.kind) ? r.kind : "other"}`;
+    const key = `${r.date}|${isKnownKind(r.kind) ? r.kind : "other"}`;
     counts.set(key, (counts.get(key) || 0) + 1);
   }
   // 「その他」は該当がある時だけ凡例に出す
   // "Other" joins the legend only when something falls into it
-  const series = KIND_SERIES.filter((s) => s.key !== "other" || reports.some((r) => !KNOWN_KINDS.has(r.kind)));
+  const series = KIND_SERIES.filter((s) => s.key !== "other" || reports.some((r) => !isKnownKind(r.kind)));
   const minutes = new Map();
   for (const s of sessions) minutes.set(s.date, (minutes.get(s.date) || 0) + (s.playSeconds || 0) / 60);
   return h("div", { class: "chart-stack" },

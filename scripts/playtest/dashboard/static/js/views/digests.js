@@ -3,12 +3,11 @@
 import { dayLabel, pageHead } from "../components.js";
 import { emptyNote, h, linkify, routeHref } from "../core.js";
 
-// digest.py が出す固定の見出し。感想の手前に出るものは最初の出現、後ろに出るものは最後の出現だけを見出しとして扱う
-// （感想本文に同じ文字列を書かれても、本物の見出しの位置は動かない）
-// Fixed headings digest.py emits. Those before the feedback section use their first occurrence, those after it their last,
-// so a copy typed into feedback never displaces the genuine heading
-const HEADINGS_BEFORE_FEEDBACK = ["## プレイ報告の件数", "## 投入候補のバグ報告", "## 感想（全文）"];
-const HEADINGS_AFTER_FEEDBACK = ["## 進行記録", "## 自動修正ラン"];
+// digest.py が出す固定の見出しと順序。全部がちょうど1回ずつこの順で現れた時だけ見出しとして描く。
+// テスター由来の値（感想・kind・endReason 等）に同じ行が紛れ込むと回数か順序が崩れるので、その日は見出し無しの素の文章に落とす。
+// The fixed headings digest.py emits, in order. They are drawn as headings only when each appears exactly once in this order;
+// a copy smuggled in through tester values (feedback, kind, endReason, ...) breaks the count or order, so that day falls back to plain text.
+const DIGEST_HEADINGS = ["## プレイ報告の件数", "## 投入候補のバグ報告", "## 感想（全文）", "## 進行記録", "## 自動修正ラン"];
 
 export function renderDigests(data, args) {
   if (data.digests.length === 0) return h("div", { class: "view" }, pageHead("ダイジェスト"), emptyNote("ダイジェストはまだありません"));
@@ -24,10 +23,12 @@ export function renderDigests(data, args) {
 }
 
 function headingLines(lines) {
-  const marked = new Set();
-  for (const heading of HEADINGS_BEFORE_FEEDBACK) if (lines.indexOf(heading) >= 0) marked.add(lines.indexOf(heading));
-  for (const heading of HEADINGS_AFTER_FEEDBACK) if (lines.lastIndexOf(heading) >= 0) marked.add(lines.lastIndexOf(heading));
-  return marked;
+  const positions = DIGEST_HEADINGS.map((heading) => lines.indexOf(heading));
+  const unique = DIGEST_HEADINGS.every((heading, i) => positions[i] >= 0 && lines.lastIndexOf(heading) === positions[i]);
+  const ordered = positions.every((position, i) => i === 0 || position > positions[i - 1]);
+  if (unique && ordered) return new Set(positions);
+  console.warn("[dashboard] ダイジェストの見出しが想定の回数・順序でないため、見出し無しの素の文章で表示する");
+  return new Set();
 }
 
 // 見出し以外は素の文章のまま、見出しの間ごとに1ブロックへまとめる（先頭のタイトル行は画面見出しと重複するので省く）
@@ -51,10 +52,8 @@ function digestBlocks(markdown) {
   return blocks;
 }
 
-// テスター由来の感想全文が混ざるため Markdown として解釈せず、https URL だけリンクにした素の文章で出す
-// Tester feedback is embedded verbatim, so the text is never interpreted as Markdown; only https URLs become links
-// （行頭の「- 」やコード行を解釈すると、感想本文から本物と同じ見た目の見出しやコピー用コマンドを偽装できる）
-// (Interpreting "- " or code lines would let feedback forge headings or copy-ready commands that look genuine)
+// テスター由来の感想全文が混ざるため Markdown として解釈せず、https URL だけリンクにした素の文章で出す（行頭の「- 」やコード行を解釈すると、本物そっくりのコマンドを偽装できる）
+// Tester feedback is embedded verbatim, so the text is never parsed as Markdown and only https URLs become links (parsing "- " or code lines would let it forge genuine-looking commands)
 async function loadDigest(date, body) {
   const markdown = await fetchDigest(date);
   if (markdown === null) {

@@ -1,7 +1,7 @@
 // 報告一覧: 主な絞り込み（投入状態・種別）はタブ型、従の絞り込み（テスター・ビルド・検索）は1行にまとめる
 // Report list: primary filters (status, kind) as segmented tabs, secondary ones (tester, build, search) in one row
 import { card, dayGroups, pageHead, reportRow } from "../components.js";
-import { emptyNote, h, KIND_LABELS, routeHref, testerName } from "../core.js";
+import { emptyNote, h, kindLabel, routeHref, testerName } from "../core.js";
 
 // 種別が空（読めない箱）は value="" だと「すべて」と区別できないので専用の値で表す
 // An empty kind (unreadable box) gets its own value, since "" would mean "all"
@@ -44,27 +44,30 @@ export function applyFilters(reports, params) {
 function kindTabs(reports) {
   const kinds = [...new Set(reports.map((r) => r.kind))];
   return [["", "全種別", reports.length], ...kinds.map((k) =>
-    [k || EMPTY_KIND, KIND_LABELS[k] || k || "不明", reports.filter((r) => r.kind === k).length])];
+    [k || EMPTY_KIND, kindLabel(k), reports.filter((r) => r.kind === k).length])];
 }
 
 // 件数0のタブも出す（「無い」ことが分かるのも情報）。選択中は塗りで示す
 // Zero-count tabs stay visible (absence is information too); the selected one is filled
 function segmented(key, tabs, params) {
   const current = params.get(key) || "";
+  // 遷移先は押した時点の params から作る（検索語は replaceState で後から変わるため、描画時の href だと消える）
+  // The target is built from params at click time; the search term changes later via replaceState and a render-time href would drop it
   return h("div", { class: "segmented", role: "tablist" }, tabs.map(([value, label, count]) =>
-    h("a", { href: hrefWith(params, key, value), class: value === current ? "on" : null, role: "tab" },
-      label, h("span", { class: "seg-count" }, String(count)))));
+    h("a", {
+      href: hrefWith(params, key, value), class: value === current ? "on" : null, role: "tab",
+      onclick: (event) => { event.preventDefault(); location.hash = hrefWith(params, key, value); },
+    }, label, h("span", { class: "seg-count" }, String(count)))));
 }
 
 function secondaryFilters(reports, params, refresh) {
   const testers = new Map(reports.map((r) => [r.steamId, testerName(r)]));
   const builds = [...new Set(reports.map((r) => r.buildLabel).filter(Boolean))].sort().reverse();
-  const active = ["kind", "triage", "tester", "build", "q"].some((key) => params.get(key));
   return h("div", { class: "filters" },
     select("tester", "すべてのテスター", [...testers], params),
     select("build", "すべてのビルド", builds.map((b) => [b, b]), params),
     searchBox(params, refresh),
-    active ? h("a", { class: "clear", href: routeHref("reports") }, "条件をクリア") : null);
+    h("a", { class: "clear", href: routeHref("reports") }, "条件をクリア"));
 }
 
 function select(key, allLabel, options, params) {

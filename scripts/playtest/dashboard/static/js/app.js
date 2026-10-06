@@ -37,6 +37,7 @@ async function load() {
   data = next;
   signature = nextSignature;
   document.getElementById("updated").textContent = `${fmtDateTime(next.generatedAt)} 時点`;
+  document.getElementById("notice").textContent = "";
   return changed;
 }
 
@@ -63,7 +64,7 @@ function render() {
 
 function showError(error) {
   console.error("[dashboard]", error);
-  document.getElementById("updated").textContent = `更新失敗: ${error.message}`;
+  document.getElementById("notice").textContent = `更新失敗: ${error.message}`;
 }
 
 // 定期更新で新着があっても、詳細画面（動画再生中かもしれない）と入力中は描き直さず、更新ボタンで反映する
@@ -84,7 +85,7 @@ async function refresh(force) {
   }
   if (!pendingRender) return;
   if (!force && isBusy()) {
-    document.getElementById("updated").textContent += "・新着あり（更新で反映）";
+    document.getElementById("notice").textContent = "新着あり（更新で反映）";
     return;
   }
   pendingRender = false;
