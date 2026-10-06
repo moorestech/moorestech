@@ -83,7 +83,7 @@ namespace Client.Tests.EditModeInPlayingTest
                 var previousFrameAt = startedAt;
                 var longestFrameSeconds = 0f;
                 Debug.Log($"[EventModeAutoStartBootTest] observation started realtime:{startedAt:F1}s frame:{Time.frameCount}");
-                while (Time.realtimeSinceStartup < deadline)
+                while (true)
                 {
                     // 同期起動でフレームが止まった時間も残し、通信待ちと区別する
                     // Record synchronous boot frame stalls to distinguish them from network waits
@@ -111,6 +111,10 @@ namespace Client.Tests.EditModeInPlayingTest
                         SessionState.SetString(OutcomeKey, $"returned to MainMenu (reloaded at {activeSceneLoadedAt}s; see the [PlaytestTitleGates] refusal log)");
                         return;
                     }
+
+                    // 期限を跨ぐ停止の直後でも、シーン判定を1回行ってから打ち切る
+                    // Even right after a stall that crosses the deadline, judge the scene once before giving up
+                    if (deadline <= Time.realtimeSinceStartup) break;
                     await UniTask.Yield();
                 }
                 longestFrameSeconds = Mathf.Max(longestFrameSeconds, Time.realtimeSinceStartup - previousFrameAt);
