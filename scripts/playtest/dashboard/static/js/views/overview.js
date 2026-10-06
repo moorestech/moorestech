@@ -11,7 +11,9 @@ const KIND_SERIES = [
   { key: "bug", label: "バグ", color: "--series-1" },
   { key: "feedback", label: "感想", color: "--series-2" },
   { key: "crash", label: "クラッシュ", color: "--series-3" },
+  { key: "other", label: "その他・読めない箱", color: "--series-4" },
 ];
+const KNOWN_KINDS = new Set(["bug", "feedback", "crash"]);
 
 export function renderOverview(data) {
   const sessions = countableSessions(data.sessions);
@@ -29,10 +31,12 @@ export function renderOverview(data) {
 
 function kpiRow(data, sessions) {
   const candidates = data.reports.filter((r) => r.triage === "candidate").length;
-  const testers = new Set([...data.reports.map((r) => r.steamId), ...data.sessions.map((s) => s.steamId)]);
+  // テスター画面と同じく、集計対象のセッションと報告から数える
+  // Counted from aggregatable sessions and reports, matching the tester view
+  const testers = new Set([...data.reports.map((r) => r.steamId), ...sessions.map((s) => s.steamId)]);
   const yesterday = jstToday(1);
   const recent = data.reports.filter((r) => r.date >= yesterday).length
-    + data.sessions.filter((s) => s.date >= yesterday).length;
+    + sessions.filter((s) => s.date >= yesterday).length;
   const totalSeconds = sessions.reduce((sum, s) => sum + (s.playSeconds || 0), 0);
   const broken = data.reports.filter((r) => r.triage === "broken").length + data.invalidSessions;
   return h("div", { class: "kpis" },
@@ -53,8 +57,15 @@ function kpi(label, value, unit, href, attention, note) {
 
 function reportsChart(reports, days) {
   const counts = new Map();
-  for (const r of reports) counts.set(`${r.date}|${r.kind}`, (counts.get(`${r.date}|${r.kind}`) || 0) + 1);
-  return stackedDayChart(days, KIND_SERIES, (day, kind) => counts.get(`${day}|${kind}`) || 0, "件");
+  for (const r of reports) {
+    const key = `${r.date}|${KNOWN_KINDS.has(r.kind) ? r.kind : "other"}`;
+    counts.set(key, (counts.get(key) || 0) + 1);
+  }
+  // 「その他」は該当がある時だけ凡例に出す
+  // "Other" joins the legend only when something falls into it
+  const hasOther = reports.some((r) => !KNOWN_KINDS.has(r.kind));
+  const series = KIND_SERIES.filter((s) => s.key !== "other" || hasOther);
+  return stackedDayChart(days, series, (day, kind) => counts.get(`${day}|${kind}`) || 0, "件");
 }
 
 function playChart(sessions, days) {

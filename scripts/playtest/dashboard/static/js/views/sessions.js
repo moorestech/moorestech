@@ -6,11 +6,13 @@ import { furthestChallenge } from "./testers.js";
 
 export function renderSessions(data, params) {
   const tester = params.get("tester") || "";
-  const all = countableSessions(data.sessions);
-  const sessions = tester ? all.filter((s) => s.steamId === tester) : all;
-  const excluded = data.sessions.length - all.length;
+  // 選択肢と除外件数は全セッションから作る（集計対象が0件のテスターも選べ、除外件数はそのテスターの分を出す）
+  // Options and the excluded count come from all sessions, so testers with zero countable sessions stay selectable
+  const scoped = tester ? data.sessions.filter((s) => s.steamId === tester) : data.sessions;
+  const sessions = countableSessions(scoped);
+  const excluded = scoped.length - sessions.length;
   return h("div", { class: "view" },
-    h("div", { class: "filters" }, testerSelect(all, tester),
+    h("div", { class: "filters" }, testerSelect(data.sessions, data.reports, tester),
       excluded > 0 ? h("span", { class: "muted" }, `遠隔実行あり/不明の ${excluded}件は除外`) : null,
       data.invalidSessions > 0 ? h("span", { class: "warn" }, `⚠ 読めなかった進行記録 ${data.invalidSessions}件`) : null),
     section(tester ? "チャレンジ到達（このテスターのセッション数）" : "チャレンジ到達ファネル（到達した人数）",
@@ -18,8 +20,8 @@ export function renderSessions(data, params) {
     section(`セッション（${sessions.length}件）`, sessions.length ? h("div", { class: "table-wrap" }, table(sessions, data.master)) : emptyNote("セッションがありません")));
 }
 
-function testerSelect(sessions, current) {
-  const testers = new Map(sessions.map((s) => [s.steamId, testerName(s)]));
+function testerSelect(sessions, reports, current) {
+  const testers = new Map([...reports, ...sessions].map((row) => [row.steamId, testerName(row)]));
   return h("select", {
     "aria-label": "テスター",
     onchange: (event) => { location.hash = routeHref("sessions", [], { tester: event.target.value }); },

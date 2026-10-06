@@ -63,13 +63,33 @@ class DashboardCollectTest(unittest.TestCase):
         self.assertEqual(rows["20260913_badtype"]["triage"], "broken")
         self.assertIn("kind", rows["20260913_badtype"]["problem"])
 
+    def test_unreadable_ingest_is_broken_not_candidate(self):
+        box = self.add_report("7656005", "20260913_badingest", {"kind": "bug", "remoteExec": DISABLED_MARK})
+        (box / "ingest.json").write_text("{broken", encoding="utf-8")
+        row = next(r for r in self.reports_by_id().values() if r["boxId"] == "20260913_badingest")
+        self.assertEqual(row["triage"], "broken")
+        self.assertIn("JSON", row["problem"])
+
+    def test_mistyped_display_field_keeps_triage(self):
+        self.add_report("7656005", "20260913_tick", {"kind": "bug", "remoteExec": DISABLED_MARK, "reportTick": "123",
+                                                      "repository": {"commit": "../../x"}})
+        row = self.reports_by_id()["20260913_tick"]
+        self.assertEqual(row["triage"], "candidate")
+        self.assertIsNone(row["reportTick"])
+        self.assertEqual(row["commit"], "")
+
+    def test_commit_falls_back_to_repository(self):
+        self.add_report("7656005", "20260913_repo", {"kind": "bug", "remoteExec": DISABLED_MARK,
+                                                      "repository": {"commit": "24226d1ac30574f2c74e75cc179f6be4d6884d54"}})
+        self.assertEqual(self.reports_by_id()["20260913_repo"]["commit"], "24226d1ac30574f2c74e75cc179f6be4d6884d54")
+
     def test_queued_report_links_its_fix_run(self):
         write_json(self.runs_root / "20260912_101000_bug2" / "fix-result.json",
                    {"status": "fixed", "pr_number": 1500, "summary": "直した", "finishedAt": "2026-09-13T00:00:00Z"})
         (self.runs_root / "20260912_100000_bug1").mkdir(parents=True)
         rows = self.reports_by_id()
         self.assertEqual(rows["20260912_101000_bug2"]["run"]["prNumber"], 1500)
-        self.assertEqual(rows["20260912_100000_bug1"]["run"]["status"], "running")
+        self.assertEqual(rows["20260912_100000_bug1"]["run"]["status"], "noResult")
 
     def test_sessions_keep_remote_exec_flag_and_count_invalid(self):
         box = self.root / "harness/playtest/progress/7656009/20260913_bad"
@@ -111,20 +131,23 @@ class DashboardHttpTest(unittest.TestCase):
         build_fixture(root)
         server.Config.logs, server.Config.master = root, root / "no-master"
         self.httpd = ThreadingHTTPServer(("127.0.0.1", 0), server.DashboardHandler)
+        port = self.httpd.server_address[1]
+        server.Config.allowed_hosts = frozenset({f"127.0.0.1:{port}"})
         threading.Thread(target=self.httpd.serve_forever, daemon=True).start()
-        self.base = f"http://127.0.0.1:{self.httpd.server_address[1]}"
+        self.base = f"http://127.0.0.1:{port}"
 
     def tearDown(self):
         self.httpd.shutdown()
         self.httpd.server_close()
         self.temp.cleanup()
 
-    def status(self, path):
+    def status(self, path, headers=None):
         try:
-            with urllib.request.urlopen(self.base + path) as response:
+            with urllib.request.urlopen(urllib.request.Request(self.base + path, headers=headers or {})) as response:
                 return response.status, response.headers, response.read()
         except urllib.error.HTTPError as error:
-            return error.code, error.headers, b""
+            with error:
+                return error.code, error.headers, b""
 
     def test_data_endpoint_returns_all_sections_with_csp(self):
         code, headers, body = self.status("/playtest/api/data")
@@ -140,6 +163,15 @@ class DashboardHttpTest(unittest.TestCase):
                      "/playtest/api/digest/..%2F..%2Fx", "/playtest/media/7656001/20260912_100000_bug1/manifest.json/x",
                      "/other"):
             self.assertEqual(self.status(path)[0], 404, path)
+
+    def test_foreign_host_and_nul_are_rejected(self):
+        self.assertEqual(self.status("/playtest/api/data", {"Host": "attacker.example"})[0], 421)
+        self.assertEqual(self.status("/playtest/static/%00")[0], 404)
+
+    def test_media_carries_security_headers(self):
+        code, headers, _ = self.status("/playtest/media/7656001/20260912_100000_bug1/manifest.json")
+        self.assertEqual(code, 200)
+        self.assertEqual(headers["X-Content-Type-Options"], "nosniff")
 
     def test_index_and_redirect(self):
         self.assertEqual(self.status("/playtest/")[0], 200)

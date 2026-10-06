@@ -3,6 +3,9 @@
 import { emptyNote, h, KIND_LABELS, routeHref, testerName } from "../core.js";
 import { reportLines } from "./overview.js";
 
+// 種別が空（読めない箱）は value="" だと「すべて」と区別できないので専用の値で表す
+// An empty kind (unreadable box) gets its own value, since "" would mean "all"
+const EMPTY_KIND = "(none)";
 const TRIAGE_FILTERS = { candidate: "未投入のバグ", queued: "投入済み", excluded: "遠隔実行で除外", broken: "読めない箱" };
 
 export function renderReports(data, params) {
@@ -21,7 +24,7 @@ function resultNodes(reports, params) {
 export function applyFilters(reports, params) {
   const query = (params.get("q") || "").toLowerCase();
   return reports.filter((r) =>
-    (!params.get("kind") || r.kind === params.get("kind"))
+    (!params.get("kind") || (r.kind || EMPTY_KIND) === params.get("kind"))
     && (!params.get("triage") || r.triage === params.get("triage"))
     && (!params.get("tester") || r.steamId === params.get("tester"))
     && (!params.get("build") || r.buildLabel === params.get("build"))
@@ -33,7 +36,7 @@ function filterBar(reports, params, refresh) {
   const builds = [...new Set(reports.map((r) => r.buildLabel).filter(Boolean))].sort().reverse();
   const kinds = [...new Set(reports.map((r) => r.kind))];
   return h("div", { class: "filters" },
-    select("kind", "種別すべて", kinds.map((k) => [k, KIND_LABELS[k] || k || "不明"]), params),
+    select("kind", "種別すべて", kinds.map((k) => [k || EMPTY_KIND, KIND_LABELS[k] || k || "不明"]), params),
     select("triage", "投入状態すべて", Object.entries(TRIAGE_FILTERS), params),
     select("tester", "テスターすべて", [...testers], params),
     select("build", "ビルドすべて", builds.map((b) => [b, b]), params),

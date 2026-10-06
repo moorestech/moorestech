@@ -1,7 +1,7 @@
 // 報告詳細: 説明全文・スクショ・動画・ビルド情報・投入コマンド
 // Report detail: full text, screenshot, video, build info and the enqueue command
 import {
-  emptyNote, fmtDateTime, h, kindBadge, linkify, mediaUrl, routeHref, runBadge, section, testerName, triageBadge,
+  emptyNote, fmtDateTime, h, kindBadge, linkify, mediaUrl, routeHref, runBadge, runStatusLabel, section, testerName, triageBadge,
 } from "../core.js";
 
 const REPO_URL = "https://github.com/moorestech/moorestech";
@@ -86,7 +86,7 @@ function runCell(report) {
   if (!report.queued) return "未投入";
   if (!report.run) return "投入済み（inbox で待機中）";
   const pr = report.run.prNumber ? externalLink(`${REPO_URL}/pull/${report.run.prNumber}`, `#${report.run.prNumber}`) : "PRなし";
-  return h("span", null, `${report.run.status}・`, pr, report.run.summary ? `・${report.run.summary}` : "");
+  return h("span", null, `${runStatusLabel(report.run.status)}・`, pr, report.run.summary ? `・${report.run.summary}` : "");
 }
 
 // 取り込みが書いた URL でも https 以外はリンクにしない（javascript: 等を踏ませない）

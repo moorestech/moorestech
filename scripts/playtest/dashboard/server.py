@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """プレイテストダッシュボードの HTTP サーバー（標準ライブラリのみ・127.0.0.1 待受・読み取り専用）。
+外部公開は review.moores.tech の /playtest パスを Cloudflare Access 越しにトンネルで通す前提。
 
 Playtest dashboard HTTP server (stdlib only, binds 127.0.0.1, read-only).
-外部公開は review.moores.tech の /playtest パスを Cloudflare Access 越しにトンネルで通す前提。
 Exposure is via the tunnel on review.moores.tech/playtest behind Cloudflare Access.
 
 Usage: python3 server.py [--port 8932] [--logs <moorestech_logs>] [--master <master dir>]
@@ -25,20 +25,22 @@ import collect_progress  # noqa: E402
 import collect_reports  # noqa: E402
 import master_names  # noqa: E402
 import media  # noqa: E402
+from security_headers import send_security_headers  # noqa: E402
 
 PREFIX = "/playtest"
 STATIC_ROOT = HERE / "static"
 STATIC_TYPES = {".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8",
                 ".js": "text/javascript; charset=utf-8"}
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
-# テスター由来の文字列を表示するページなので、スクリプトは自オリジンの静的ファイルだけに絞る
-# The page renders tester-supplied text, so scripts are limited to this origin's static files
-CSP = "default-src 'self'; img-src 'self' data:; media-src 'self'; style-src 'self'; script-src 'self'; frame-ancestors 'none'"
+# 公開ホスト名以外の Host を拒む（ローカルのブラウザ経由の DNS リバインディングで Access を迂回させないため）
+# Rejects any Host but the known names, so DNS rebinding through a local browser cannot bypass Access
+PUBLIC_HOST = "review.moores.tech"
 
 
 class Config:
     logs = Path()
     master = Path()
+    allowed_hosts: frozenset = frozenset()
 
 
 def build_payload() -> dict:
@@ -57,7 +59,11 @@ def build_payload() -> dict:
 
 class DashboardHandler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:  # noqa: N802 (http.server の規約名 / http.server naming)
+        if self.headers.get("Host", "") not in Config.allowed_hosts:
+            return self.reject(421, f"許可外の Host: {self.headers.get('Host', '')!r}")
         path = unquote(urlsplit(self.path).path)
+        if "\x00" in path:
+            return self.not_found("パスに NUL を含む")
         if path in ("/", PREFIX):
             return self.redirect(PREFIX + "/")
         if not path.startswith(PREFIX + "/"):
@@ -102,8 +108,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Cache-Control", cache)
-        self.send_header("Content-Security-Policy", CSP)
-        self.send_header("X-Content-Type-Options", "nosniff")
+        send_security_headers(self)
         self.end_headers()
         self.wfile.write(body)
 
@@ -113,8 +118,11 @@ class DashboardHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def not_found(self, reason: str) -> None:
-        print(f"[dashboard] 404 {reason}: {self.path}", file=sys.stderr)
-        self.send_error(404)
+        self.reject(404, reason)
+
+    def reject(self, status: int, reason: str) -> None:
+        print(f"[dashboard] {status} {reason}: {self.path}", file=sys.stderr)
+        self.send_error(status)
 
     def log_message(self, format: str, *args) -> None:  # noqa: A002 (基底の引数名 / base-class signature)
         # 200 系のアクセスログは出さず、404 の理由は not_found が出す
@@ -131,6 +139,7 @@ def main(argv: list[str] | None = None) -> int:
         repo.parent / "moorestech_master" / "server_v8" / "mods" / "moorestechAlphaMod_8" / "master"))
     args = parser.parse_args(argv)
     Config.logs, Config.master = Path(args.logs), Path(args.master)
+    Config.allowed_hosts = frozenset({PUBLIC_HOST, f"127.0.0.1:{args.port}", f"localhost:{args.port}"})
     server = ThreadingHTTPServer(("127.0.0.1", args.port), DashboardHandler)
     print(f"playtest dashboard: http://127.0.0.1:{args.port}{PREFIX}/ (logs={Config.logs})")
     server.serve_forever()

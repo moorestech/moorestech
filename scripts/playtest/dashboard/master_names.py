@@ -1,7 +1,7 @@
 """チャレンジ・研究の GUID を表示名と並び順へ引く（マスタデータ JSON を読むだけ）。
+マスタが無い・読めないときは空の表で返し、表示側は GUID のまま出す（集計は止めない）。
 
 Maps challenge and research GUIDs to display names and order by reading the master JSON.
-マスタが無い・読めないときは空の表で返し、表示側は GUID のまま出す（集計は止めない）。
 When the master is missing or unreadable an empty table is returned and the view shows raw GUIDs.
 """
 from __future__ import annotations
@@ -9,7 +9,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import digest_schema as schema
-from collect_reports import warn
+from display_fields import warn
 
 CHALLENGE_SCHEMA = {"data": ([{
     "categoryName": (schema.STR, ""), "displayOrder": (schema.NUMBER, 0),

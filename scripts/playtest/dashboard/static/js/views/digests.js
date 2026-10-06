@@ -13,51 +13,29 @@ export function renderDigests(data, args) {
     body);
 }
 
+// テスター由来の感想全文が混ざるため Markdown として解釈せず、https URL だけリンクにした素の文章で出す
+// Tester feedback is embedded verbatim, so the text is never interpreted as Markdown; only https URLs become links
+// （行頭の「- 」やコード行を解釈すると、感想本文から本物と同じ見た目の見出しやコピー用コマンドを偽装できる）
+// (Interpreting "- " or code lines would let feedback forge headings or copy-ready commands that look genuine)
 async function loadDigest(date, body) {
-  const response = await fetch(`api/digest/${date}`);
-  if (!response.ok) {
-    console.error(`[dashboard] digest ${date}: HTTP ${response.status}`);
-    body.replaceChildren(emptyNote(`読み込みに失敗しました（HTTP ${response.status}）`));
+  const markdown = await fetchDigest(date);
+  if (markdown === null) {
+    body.replaceChildren(emptyNote("読み込みに失敗しました（ブラウザのコンソールに理由）"));
     return;
   }
-  const { markdown } = await response.json();
-  body.replaceChildren(...renderMarkdown(markdown));
+  body.replaceChildren(h("p", { class: "muted small" }, "投入コマンドは報告詳細画面からコピーしてください（ここでは本文をそのまま表示）"),
+    h("div", { class: "digest-text" }, linkify(markdown)));
 }
 
-// ダイジェストが使う書式（見出し・箇条書き・字下げしたコード行・インラインコード）だけを DOM へ起こす
-// Renders only the syntax the digest uses (headings, bullets, indented command lines, inline code) into DOM
-function renderMarkdown(markdown) {
-  const nodes = [];
-  let list = null;
-  for (const line of markdown.split("\n")) {
-    const heading = /^(#{1,3}) (.*)$/.exec(line);
-    if (heading) {
-      list = null;
-      nodes.push(h(`h${heading[1].length + 1}`, null, inline(heading[2])));
-    } else if (line.startsWith("- ")) {
-      if (!list) nodes.push(list = h("ul", null));
-      list.append(h("li", null, inline(line.slice(2))));
-    } else if (/^ {2}`.*`$/.test(line) && list?.lastChild) {
-      list.lastChild.append(commandLine(line.trim().slice(1, -1)));
-    } else if (line.trim()) {
-      list = null;
-      nodes.push(h("p", null, inline(line)));
-    }
+async function fetchDigest(date) {
+  // ネットワークと応答 JSON は外部境界なので失敗を隔離し、理由をコンソールへ出す
+  // Network and response JSON are an external boundary, so failures are isolated and logged to the console
+  try {
+    const response = await fetch(`api/digest/${encodeURIComponent(date)}`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return (await response.json()).markdown;
+  } catch (error) {
+    console.error(`[dashboard] digest ${date}:`, error);
+    return null;
   }
-  return nodes;
-}
-
-function inline(text) {
-  return text.split(/(`[^`]+`)/).map((part) =>
-    (part.startsWith("`") && part.endsWith("`") && part.length > 1 ? h("code", null, part.slice(1, -1)) : linkify(part)));
-}
-
-function commandLine(command) {
-  const button = h("button", {
-    type: "button",
-    onclick: () => navigator.clipboard.writeText(command).then(
-      () => { button.textContent = "コピーしました"; },
-      (error) => { button.textContent = "コピー失敗"; console.error("[dashboard] clipboard", error); }),
-  }, "コピー");
-  return h("div", { class: "command" }, h("code", null, command), button);
 }

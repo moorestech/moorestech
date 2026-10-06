@@ -13,6 +13,7 @@
   --series-1: #2a78d6;
   --series-2: #eb6834;
   --series-3: #1baf7a;
+  --series-4: #eda100;
   --warn: #b4301f;
   --warn-bg: #fdecea;
   --ok: #1d7a3a;
@@ -32,6 +33,7 @@
     --series-1: #3987e5;
     --series-2: #d95926;
     --series-3: #199e70;
+    --series-4: #c98500;
     --warn: #ff8a7a;
     --warn-bg: #3a1d19;
     --ok: #5fcf83;
@@ -51,6 +53,7 @@
   --series-1: #3987e5;
   --series-2: #d95926;
   --series-3: #199e70;
+  --series-4: #c98500;
   --warn: #ff8a7a;
   --warn-bg: #3a1d19;
   --ok: #5fcf83;

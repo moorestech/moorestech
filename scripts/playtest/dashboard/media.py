@@ -1,7 +1,7 @@
 """報告箱のスクショ・動画・ログを許可リストどおりに配信する（動画のシーク用に Range に対応）。
+steamId/id はテスター由来の値なので、パスへ連結する前に取り込みと同じ安全セグメント規則で検証する。
 
 Serves a report box's screenshot, video and logs strictly by allowlist, with Range support for video seeking.
-steamId/id はテスター由来の値なので、パスへ連結する前に取り込みと同じ安全セグメント規則で検証する。
 steamId/id are tester-supplied, so they pass the same safe-segment rule as ingest before any path join.
 """
 from __future__ import annotations
@@ -12,6 +12,7 @@ from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 
 from collect_reports import MEDIA_FILES
+from security_headers import send_security_headers
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
 from safe_segment import is_safe_segment  # noqa: E402
@@ -35,6 +36,7 @@ def send_file(handler: BaseHTTPRequestHandler, path: Path) -> None:
     size = path.stat().st_size
     start, end = parse_range(handler.headers.get("Range"), size)
     if start is None:
+        print(f"[dashboard] 416 解釈できない Range: {handler.headers.get('Range')!r} {path.name}", file=sys.stderr)
         handler.send_response(416)
         handler.send_header("Content-Range", f"bytes */{size}")
         handler.end_headers()
@@ -45,6 +47,7 @@ def send_file(handler: BaseHTTPRequestHandler, path: Path) -> None:
     handler.send_header("Accept-Ranges", "bytes")
     handler.send_header("Content-Length", str(end - start + 1))
     handler.send_header("Cache-Control", "private, max-age=300")
+    send_security_headers(handler)
     if partial:
         handler.send_header("Content-Range", f"bytes {start}-{end}/{size}")
     handler.end_headers()

@@ -73,7 +73,13 @@ export function runBadge(report) {
   if (!report.queued) return null;
   if (!report.run) return h("span", { class: "badge run" }, "修正ラン待ち");
   const pr = report.run.prNumber ? ` #${report.run.prNumber}` : "";
-  return h("span", { class: `badge run run-${report.run.status}` }, `修正ラン ${report.run.status}${pr}`);
+  return h("span", { class: `badge run run-${report.run.status}` }, `修正ラン ${runStatusLabel(report.run.status)}${pr}`);
+}
+
+// fix-result.json の無いランは実行中か異常終了か区別できないので、そう書く
+// A run without fix-result.json may be running or dead, and the label says so
+export function runStatusLabel(status) {
+  return status === "noResult" ? "結果なし（実行中か異常終了）" : status;
 }
 
 // ハッシュルート: #/<view>/<arg...>?key=value
@@ -81,8 +87,19 @@ export function runBadge(report) {
 export function parseRoute() {
   const raw = location.hash.replace(/^#\/?/, "");
   const [path, query] = raw.split("?");
-  const parts = path.split("/").filter(Boolean).map(decodeURIComponent);
+  const parts = path.split("/").filter(Boolean).map(safeDecode);
   return { view: parts[0] || "overview", args: parts.slice(1), params: new URLSearchParams(query || "") };
+}
+
+// 壊れた %エスケープの URL でも画面全体を落とさず、そのままの文字列で扱う
+// A malformed %-escape must not take the whole page down; the raw segment is used instead
+function safeDecode(segment) {
+  try {
+    return decodeURIComponent(segment);
+  } catch (error) {
+    console.warn("[dashboard] URL の復号に失敗したため生の値で扱う", segment, error);
+    return segment;
+  }
 }
 
 export function routeHref(view, args, params) {
