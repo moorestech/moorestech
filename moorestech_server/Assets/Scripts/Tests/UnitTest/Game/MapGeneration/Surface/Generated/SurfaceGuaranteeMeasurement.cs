@@ -1,4 +1,5 @@
 using System.Linq;
+using Game.MapGeneration.Surface;
 using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Pipeline.Surface;
 using Newtonsoft.Json;
@@ -26,7 +27,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface.Generated
         {
             var result = new SurfaceGuaranteeMeasurement();
             float terrainHeight = fixture.Run.Config.terrainHeight;
-            float quantum = terrainHeight / SurfaceQuantization.TerrainStorageSteps;
+            float quantum = terrainHeight / TerrainHeightStorage.Steps;
 
             // 陸セルの支持頂点を全域検査
             // Inspect support vertices of all land cells

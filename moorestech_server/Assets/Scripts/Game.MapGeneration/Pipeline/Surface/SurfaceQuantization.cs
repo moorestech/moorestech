@@ -7,19 +7,18 @@ namespace Game.MapGeneration.Pipeline.Surface
 {
     public static class SurfaceQuantization
     {
-        public const int TerrainStorageSteps = 32766;
         public const double MiningBottomClearanceMeters = 0.001d;
-        private const float TerrainStorageReciprocal = 1f / TerrainStorageSteps;
+        private const float TerrainStorageReciprocal = 1f / TerrainHeightStorage.Steps;
 
         public static float LandFloor(TerrainGenerationConfig config, SurfaceEnvelope envelope, string tile)
         {
             double minimum = (double)envelope.SeaY + envelope.MaximumWaveRise + envelope.LandClearance;
             ValidateHeight(config, tile);
-            int units = (int)Math.Ceiling(minimum / config.terrainHeight * TerrainStorageSteps);
+            int units = (int)Math.Ceiling(minimum / config.terrainHeight * TerrainHeightStorage.Steps);
 
             // 格納後float高さで陸地下限を満たす
             // Meet the land floor with the stored float height
-            while (units <= TerrainStorageSteps && Decode(units, config.terrainHeight) < minimum) units++;
+            while (units <= TerrainHeightStorage.Steps && Decode(units, config.terrainHeight) < minimum) units++;
             ValidateUnits(units, config, tile);
             return Decode(units, config.terrainHeight);
         }
@@ -28,7 +27,7 @@ namespace Game.MapGeneration.Pipeline.Surface
         // Integer lower bound: land floor + one storage step + mining clearance
         public static double MinimumMiningBottom(TerrainGenerationConfig config, SurfaceEnvelope envelope, string tile)
         {
-            double quantum = (double)config.terrainHeight / TerrainStorageSteps;
+            double quantum = (double)config.terrainHeight / TerrainHeightStorage.Steps;
             return Math.Ceiling(LandFloor(config, envelope, tile) + quantum + MiningBottomClearanceMeters);
         }
 
@@ -36,7 +35,7 @@ namespace Game.MapGeneration.Pipeline.Surface
         {
             double maximum = boxBottom - MiningBottomClearanceMeters;
             ValidateHeight(config, tile);
-            int units = (int)Math.Floor(maximum / config.terrainHeight * TerrainStorageSteps);
+            int units = (int)Math.Floor(maximum / config.terrainHeight * TerrainHeightStorage.Steps);
 
             // 採掘底面の余裕はr16読込後のUnity格納値で判定する
             // Evaluate the mining clearance against Unity storage after the r16 reload
@@ -59,17 +58,17 @@ namespace Game.MapGeneration.Pipeline.Surface
 
         public static float EncodeNormalized(float normalizedHeight)
         {
-            int storageUnits = Mathf.Clamp(Mathf.RoundToInt(normalizedHeight * TerrainStorageSteps), 0, TerrainStorageSteps);
+            int storageUnits = Mathf.Clamp(Mathf.RoundToInt(normalizedHeight * TerrainHeightStorage.Steps), 0, TerrainHeightStorage.Steps);
 
             // 格納格子をr16で運び戻す
             // Carry the storage lattice via r16 and restore it with SetHeights
-            int fileUnits = Mathf.RoundToInt(storageUnits / (float)TerrainStorageSteps * ushort.MaxValue);
+            int fileUnits = Mathf.RoundToInt(storageUnits / (float)TerrainHeightStorage.Steps * ushort.MaxValue);
             return fileUnits / (float)ushort.MaxValue;
         }
 
         public static float StoredNormalized(float encodedHeight)
         {
-            int units = Mathf.Clamp(Mathf.RoundToInt(encodedHeight * TerrainStorageSteps), 0, TerrainStorageSteps);
+            int units = Mathf.Clamp(Mathf.RoundToInt(encodedHeight * TerrainHeightStorage.Steps), 0, TerrainHeightStorage.Steps);
             return DecodeNormalized(units);
         }
 
@@ -95,7 +94,7 @@ namespace Game.MapGeneration.Pipeline.Surface
 
         private static void ValidateUnits(int units, TerrainGenerationConfig config, string tile)
         {
-            if (0 <= units && units <= TerrainStorageSteps) return;
+            if (0 <= units && units <= TerrainHeightStorage.Steps) return;
             throw SurfaceGenerationValidation.Failure(config, tile,
                 $"Surface quantization outside TerrainData range: units={units}, terrainHeight={config.terrainHeight}.");
         }

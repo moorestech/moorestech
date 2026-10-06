@@ -52,7 +52,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             float decoded = RoundTrip(pad, height);
             Assert.That((double)decoded, Is.LessThanOrEqualTo(bottom - SurfaceQuantization.MiningBottomClearanceMeters));
             Assert.That(decoded, Is.EqualTo(pad));
-            Assert.That(bottom - decoded, Is.LessThanOrEqualTo(height / (double)SurfaceQuantization.TerrainStorageSteps + SurfaceGuaranteeBounds.RangeGapTolerance));
+            Assert.That(bottom - decoded, Is.LessThanOrEqualTo(height / (double)TerrainHeightStorage.Steps + SurfaceGuaranteeBounds.RangeGapTolerance));
         }
 
         [Test]
@@ -76,8 +76,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             var saved = WorldDataDirectory.FromWorldRoot(_scratch);
             var output = new MapGenerationOutput { Resolution = resolution };
             var values = new float[resolution * resolution];
-            for (int units = 0; units <= SurfaceQuantization.TerrainStorageSteps; units++)
-                values[units] = SurfaceQuantization.EncodeNormalized(units / (float)SurfaceQuantization.TerrainStorageSteps);
+            for (int units = 0; units <= TerrainHeightStorage.Steps; units++)
+                values[units] = SurfaceQuantization.EncodeNormalized(units / (float)TerrainHeightStorage.Steps);
             output.Tiles.Add(new TerrainTileOutput { TileX = 0, TileZ = 0, Heights = values });
 
             // 全格納段を実ファイルとUnityで検査
@@ -87,9 +87,9 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             _terrain = new TerrainData { heightmapResolution = resolution, size = new Vector3(256f, 600f, 256f) };
             _terrain.SetHeights(0, 0, loaded);
             var stored = _terrain.GetHeights(0, 0, resolution, resolution);
-            for (int units = 0; units <= SurfaceQuantization.TerrainStorageSteps; units++)
+            for (int units = 0; units <= TerrainHeightStorage.Steps; units++)
                 Assert.That(stored[units / resolution, units % resolution],
-                    Is.EqualTo((float)(units * (double)(1f / SurfaceQuantization.TerrainStorageSteps))), $"Storage step {units}");
+                    Is.EqualTo((float)(units * (double)(1f / TerrainHeightStorage.Steps))), $"Storage step {units}");
         }
 
         [TestCase(1025, 0.03128242492675781f)]
@@ -98,7 +98,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         {
             // 初回失敗の実Unity値を許容なしで固定
             // Pin the first-failure Unity values without tolerance
-            float encoded = SurfaceQuantization.EncodeNormalized(units / (float)SurfaceQuantization.TerrainStorageSteps);
+            float encoded = SurfaceQuantization.EncodeNormalized(units / (float)TerrainHeightStorage.Steps);
             Assert.That(SurfaceQuantization.StoredNormalized(encoded), Is.EqualTo(observed));
         }
 

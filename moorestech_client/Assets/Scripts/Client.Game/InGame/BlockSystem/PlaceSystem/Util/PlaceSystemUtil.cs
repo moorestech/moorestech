@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using ClassLibrary;
 using Client.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Ground;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Player;
@@ -33,36 +34,34 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
         public static bool TryGetRayHitBlockPosition(Camera mainCamera, int heightOffset, BlockDirection currentBlockDirection, BlockMasterElement holdingBlock, out Vector3Int pos, out BlockPreviewBoundingBoxSurface surface)
         {
             pos = Vector3Int.zero;
-            surface = null;
-            
-            if (!TryGetRayHitPosition(mainCamera, out var hitPos, out surface)) return false;
-            
-            pos = CalcPlacePoint(holdingBlock, hitPos, heightOffset, currentBlockDirection, surface);
+            if (!TryRaycastPlacementSurface(mainCamera, out var hit, out surface)) return false;
+
+            // 地面ヒットだけ、当たった地形の高さ格子1段をY決定へ渡す
+            // Only a ground hit hands the hit terrain's height lattice step to the Y decision
+            var groundHeightQuantizationStep = surface == null ? GroundHeightQuantization.StepOf(hit.collider) : 0f;
+            pos = CalcPlacePoint(holdingBlock, hit.point, heightOffset, currentBlockDirection, surface, groundHeightQuantizationStep);
 
             return true;
         }
-        
-        
+
         public static bool TryGetRayHitPosition(Camera mainCamera, out Vector3 pos, out BlockPreviewBoundingBoxSurface surface)
         {
-            surface = null;
             pos = Vector3Int.zero;
-            var ray = mainCamera.ScreenPointToRay(AimPointProvider.GetAimScreenPoint());
-            
-            //画面からのrayが何かにヒットしているか
-            if (!Physics.Raycast(ray, out var hit, float.PositiveInfinity, LayerConst.Without_Player_MapObject_Block_LayerMask)) return false;
-            //そのrayが地面のオブジェクトかブロックのバウンディングボックスにヒットしてるか
-            if (
-                !hit.transform.TryGetComponent<GroundGameObject>(out _) &&
-                !hit.transform.TryGetComponent(out surface)
-            )
-            {
-                return false;
-            }
-            
-            pos = hit.point;
+            if (!TryRaycastPlacementSurface(mainCamera, out var hit, out surface)) return false;
 
+            pos = hit.point;
             return true;
+        }
+
+        private static bool TryRaycastPlacementSurface(Camera mainCamera, out RaycastHit hit, out BlockPreviewBoundingBoxSurface surface)
+        {
+            surface = null;
+            var ray = mainCamera.ScreenPointToRay(AimPointProvider.GetAimScreenPoint());
+
+            //画面からのrayが何かにヒットしているか
+            if (!Physics.Raycast(ray, out hit, float.PositiveInfinity, LayerConst.Without_Player_MapObject_Block_LayerMask)) return false;
+            //そのrayが地面のオブジェクトかブロックのバウンディングボックスにヒットしてるか
+            return hit.transform.TryGetComponent<GroundGameObject>(out _) || hit.transform.TryGetComponent(out surface);
         }
 
         public static Vector3Int SnapHitPointToCell(Vector3 hitPoint)
@@ -105,13 +104,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             return true;
         }
         
-        public static Vector3Int CalcPlacePoint(BlockMasterElement holdingBlock ,Vector3 hitPoint, int heightOffset, BlockDirection currentBlockDirection, BlockPreviewBoundingBoxSurface boundingBoxSurface)
+        public static Vector3Int CalcPlacePoint(BlockMasterElement holdingBlock ,Vector3 hitPoint, int heightOffset, BlockDirection currentBlockDirection, BlockPreviewBoundingBoxSurface boundingBoxSurface, float groundHeightQuantizationStep)
         {
             PreviewSurfaceType? surfaceType = boundingBoxSurface == null ? (PreviewSurfaceType?)null : boundingBoxSurface.PreviewSurfaceType;
-            return CalcPlacePoint(holdingBlock, hitPoint, heightOffset, currentBlockDirection, surfaceType);
+            return CalcPlacePoint(holdingBlock, hitPoint, heightOffset, currentBlockDirection, surfaceType, groundHeightQuantizationStep);
         }
 
-        public static Vector3Int CalcPlacePoint(BlockMasterElement holdingBlock, Vector3 hitPoint, int heightOffset, BlockDirection currentBlockDirection, PreviewSurfaceType? surfaceType)
+        // groundHeightQuantizationStepは地面ヒット（surfaceType==null）でだけ使う、当たった地形の高さ格子1段
+        // groundHeightQuantizationStep is the hit terrain's height lattice step, used only for a ground hit (surfaceType == null)
+        public static Vector3Int CalcPlacePoint(BlockMasterElement holdingBlock, Vector3 hitPoint, int heightOffset, BlockDirection currentBlockDirection, PreviewSurfaceType? surfaceType, float groundHeightQuantizationStep)
         {
             var rotateAction = currentBlockDirection.GetCoordinateConvertAction();
             var rotatedSize = rotateAction(holdingBlock.BlockSize).Abs();
@@ -122,11 +123,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
                 point.x = Mathf.FloorToInt(hitPoint.x + (rotatedSize.x % 2 == 0 ? 0.5f : 0));
                 point.z = Mathf.FloorToInt(hitPoint.z + (rotatedSize.z % 2 == 0 ? 0.5f : 0));
 
-                // 天面ヒットのyは整数ちょうどだが、掠り角レイの浮動小数点誤差で僅かに下回り1段沈むためイプシロン補正
-                // Top-face hits land exactly on integer y, but grazing rays dip epsilon below and sink one cell, so correct it
-                point.y = Mathf.FloorToInt(hitPoint.y + 0.001f);
-
-                point += new Vector3Int(0, heightOffset, 0);
+                // 地面ヒットのYは地形追従と同じ規約で決め、TerrainDataの格子で整数を僅かに下回る地表を1段沈めない
+                // A ground hit's Y follows the terrain-follow rule, so a surface just under an integer on the TerrainData lattice does not sink a cell
+                point.y = PlacementGroundCellResolver.ResolveCellY(hitPoint.y, groundHeightQuantizationStep, heightOffset);
                 point -= new Vector3Int(rotatedSize.x, 0, rotatedSize.z) / 2;
 
                 return point;

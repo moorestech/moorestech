@@ -22,7 +22,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             var config = new TerrainGenerationConfig { terrainHeight = height };
             float floor = SurfaceQuantization.LandFloor(config, envelope, "fixture");
             Assert.That(floor, Is.GreaterThanOrEqualTo(SurfaceGuaranteeBounds.LandMinimum));
-            Assert.That(floor, Is.LessThan(SurfaceGuaranteeBounds.LandMinimum + height / SurfaceQuantization.TerrainStorageSteps));
+            Assert.That(floor, Is.LessThan(SurfaceGuaranteeBounds.LandMinimum + height / TerrainHeightStorage.Steps));
 
             // 上限と整数境界でも採掘面の直下を維持する
             // Keep pads immediately below mining bottoms at integer and upper boundaries
@@ -30,7 +30,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             {
                 float pad = SurfaceQuantization.PadHeight(bottom, config, "fixture");
                 Assert.That(pad, Is.LessThanOrEqualTo(bottom - SurfaceQuantization.MiningBottomClearanceMeters));
-                Assert.That(bottom - pad, Is.LessThanOrEqualTo(height / SurfaceQuantization.TerrainStorageSteps + SurfaceGuaranteeBounds.RangeGapTolerance));
+                Assert.That(bottom - pad, Is.LessThanOrEqualTo(height / TerrainHeightStorage.Steps + SurfaceGuaranteeBounds.RangeGapTolerance));
             }
         }
 

@@ -120,7 +120,7 @@ namespace Client.Tests.Map.Surface
         {
             var bottom = Rect.MinMaxRect(vein.Min.x, vein.Min.z, vein.Max.x + 1f, vein.Max.z + 1f);
             var support = _final.Geometry.SupportVertices(bottom);
-            float maxGap = _generated.Run.Config.terrainHeight / SurfaceQuantization.TerrainStorageSteps + SurfaceGuaranteeBounds.RangeGapTolerance;
+            float maxGap = _generated.Run.Config.terrainHeight / TerrainHeightStorage.Steps + SurfaceGuaranteeBounds.RangeGapTolerance;
 
             // 下端矩形の補間支持頂点を検査
             // Inspect the interpolation support vertices of the bottom rectangle
