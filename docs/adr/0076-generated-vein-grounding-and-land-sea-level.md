@@ -29,7 +29,9 @@ Status: proposed（挙動裁定は下記で確定。海面露出の再現経路�
 
 原因: 推測（根拠: 生成マスタseaLevel=0に対し、MainGameシーンのactiveなWater Rendererはworld Y=4.3。証拠: `water-main-scene.json`）。この不一致は確認済みだが、報告された海面露出の原因とは未確定。seed196・seed1の全9タイルで水面XZ範囲内のlandMask>0.5かつ地表<4.3を探した結果は0。ユーザー回答によりゲーム内の生成ワールドが対象と確定。原因を断定した海側の修正方式はまだ採択しない。
 
-ユーザー追記: 「デフォルトseed実プレイで海面より低い地形が生成されてる」。実PlayModeの追試は `docs/research/2026-10-06-vein-terrain-evidence/live-play-notes.md`。低地Y=2.74675を確認したが、現在の海plane範囲の最低地表はY=5.859733で海面露出は未再現。原因未確定を維持し、発生場所の回答待ち。
+ユーザー追記: 「デフォルトseed実プレイで海面より低い地形が生成されてる」。実PlayModeの追試は `docs/research/2026-10-06-vein-terrain-evidence/live-play-notes.md`。低地Y=2.74675を確認したが、現在の海plane範囲の最低地表はY=5.859733で海面露出は未再現。原因未確定を維持。ユーザーの「自分で調査してよ」に従い、場所の回答待ちを撤回し、全域描画比較・既存セーブ複製・配布snapshot比較まで実施した。
+
+追加実測: 実PlayModeでも露頭1415個中39個の配置点が地表下（水・原油など液体露頭120個中4個を含む）、最大1.500769m。証拠: `live-veins.txt`。露頭mesh全体ではなく配置点の測定。海面について現行の全域俯瞰描画でWaterを表示/非表示にして比較し、地形範囲内のRGB差>10は0pixel。配布snapshotの全9枚の地形と表示高度も同一。詳細と検査限界は `live-play-notes.md`。
 
 ## 配置と前例（agent前提）
 
