@@ -29,6 +29,8 @@ Status: proposed（挙動裁定は下記で確定。海面露出の再現経路�
 
 原因: 推測（根拠: 生成マスタseaLevel=0に対し、MainGameシーンのactiveなWater Rendererはworld Y=4.3。証拠: `water-main-scene.json`）。この不一致は確認済みだが、報告された海面露出の原因とは未確定。seed196・seed1の全9タイルで水面XZ範囲内のlandMask>0.5かつ地表<4.3を探した結果は0。ユーザー回答によりゲーム内の生成ワールドが対象と確定。原因を断定した海側の修正方式はまだ採択しない。
 
+ユーザー追記: 「デフォルトseed実プレイで海面より低い地形が生成されてる」。実PlayModeの追試は `docs/research/2026-10-06-vein-terrain-evidence/live-play-notes.md`。低地Y=2.74675を確認したが、現在の海plane範囲の最低地表はY=5.859733で海面露出は未再現。原因未確定を維持し、発生場所の回答待ち。
+
 ## 配置と前例（agent前提）
 
 - 地形と鉱脈の生成結果の保証はGame.MapGenerationが所有する。クライアントだけで露頭を持ち上げると採掘範囲との整合が崩れる。
