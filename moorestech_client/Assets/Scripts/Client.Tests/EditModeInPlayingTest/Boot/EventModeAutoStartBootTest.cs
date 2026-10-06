@@ -23,9 +23,9 @@ namespace Client.Tests.EditModeInPlayingTest
     [Category("CiShardClientPlay2")]
     public class EventModeAutoStartBootTest
     {
-        // 内蔵サーバー起動込みの到達上限秒
-        // Seconds limit to reach MainGame incl. server boot
-        private const float ReachMainGameTimeoutSeconds = 300f;
+        // CIの同期起動で536秒のフレーム停止を実測したため、到達と後続処理に余裕を取る
+        // Allow for arrival and continuations after the measured 536-second synchronous boot stall in CI
+        private const float ReachMainGameTimeoutSeconds = 900f;
 
         // ドメインリロードを跨いでPlay中の観測結果をPlay終了後の判定へ渡すキー
         // Key carrying the in-Play observation across the domain reload to the verdict after Play
@@ -45,7 +45,7 @@ namespace Client.Tests.EditModeInPlayingTest
 
         // 到達待ちの上限より長く取り、Play終了後の復元と判定まで打ち切られないようにする
         // Longer than the reach deadline so the restore and verdict after Play are never cut off
-        [UnityTest, Timeout(600000)]
+        [UnityTest, Timeout(1200000)]
         public IEnumerator 出展モードはメインメニューからクリック無しでMainGameへ進む()
         {
             EnterPlayModeUtil();
