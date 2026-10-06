@@ -84,7 +84,7 @@ namespace Game.MapGeneration.Pipeline.Surface
 
         public void ApplyLandFloor(SurfaceEnvelope envelope)
         {
-            float floor = SurfaceQuantization.LandFloor(Config.terrainHeight, envelope);
+            float floor = SurfaceQuantization.LandFloor(Config, envelope, "all");
             for (int z = 0; z < Geometry.Depth; z++)
             for (int x = 0; x < Geometry.Width; x++)
                 if (Land.IsProtectedVertex(x, z)) SetHeight(x, z, Mathf.Max(GetHeight(x, z), floor));
@@ -114,7 +114,7 @@ namespace Game.MapGeneration.Pipeline.Surface
                     int ownerZ = Mathf.Max(0, (globalZ - 1) / stride);
                     float owner = _tiles[ownerZ, ownerX].Heights[(globalZ - ownerZ * stride) * res + globalX - ownerX * stride];
                     if (owner != height || land[global] != mask[local])
-                        throw SurfaceGenerationValidation.Failure(Config, $"{tileX},{tileZ}", $"Shared vertex mismatch at {globalX},{globalZ}.");
+                        throw SurfaceGenerationValidation.Failure(Config, $"{tileX},{tileZ}", $"Shared vertex mismatch at {globalX},{globalZ}: owner={owner:R}, incoming={height:R}, ownerLand={land[global]}, incomingLand={mask[local]}.");
                 }
                 land[global] = mask[local];
             }

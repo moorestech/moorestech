@@ -28,8 +28,8 @@ namespace Game.MapGeneration.Pipeline.Surface
                 !Finite(envelope.CoreHalfSize) || envelope.CoreHalfSize <= 0f ||
                 !Finite(envelope.BlendWidth) || envelope.BlendWidth <= 0f)
                 throw Failure(config, "all", "Invalid surface envelope.");
-            var minimumBottom = Math.Ceiling(SurfaceQuantization.LandFloor(config.terrainHeight, envelope) +
-                                            config.terrainHeight / 65535d + 0.001d);
+            var minimumBottom = Math.Ceiling(SurfaceQuantization.LandFloor(config, envelope, "all") +
+                                            config.terrainHeight / (double)SurfaceQuantization.TerrainStorageSteps + 0.001d);
             if (minimumBottom < 0d || minimumBottom > Math.Floor(config.terrainHeight))
                 throw Failure(config, "all", "No integer mining bottom fits above the land floor.");
         }
@@ -38,8 +38,8 @@ namespace Game.MapGeneration.Pipeline.Surface
 
         internal static InvalidOperationException Failure(TerrainGenerationConfig config, string tile, string reason)
         {
-            var message = $"[GeneratedSurface] seed={config.seed} revision={config.SurfaceRevision} tile={tile}: {reason}";
-            Debug.LogWarning(message);
+            var message = $"[GeneratedSurface] seed={config.seed} revision={config.surfaceRevision} tile={tile}: {reason}";
+            Debug.LogError(message);
             return new InvalidOperationException(message);
         }
     }

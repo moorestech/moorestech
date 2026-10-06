@@ -31,7 +31,8 @@ namespace Game.MapGeneration.Pipeline.Visual
         private readonly TerrainGenerationConfig _gridConfig;
         private readonly SplatLayerTable _layerTable;
         private readonly ValidatedPlacementLedgerSource _ledgerSource;
-        private readonly SurfaceLandReconstructor _land;
+        private readonly SurfaceHeightPolicy _surfacePolicy;
+        public TerrainSurfacePresentation SurfacePresentation => _surfacePolicy.Presentation;
         private readonly TreeSurroundSpeciesTable _treeSurroundSpecies;
         private readonly TerrainVisualCache _visualCache;
         private readonly BiomeVisualSections _visualSections;
@@ -52,7 +53,7 @@ namespace Game.MapGeneration.Pipeline.Visual
             _layerTable = layerTable;
             _treeSurroundSpecies = treeSurroundSpecies;
             _ledgerSource = new ValidatedPlacementLedgerSource(ledgerSource, expectedPlacementLedgerDigest, treeSurroundSpecies);
-            _land = new SurfaceLandReconstructor(gridConfig);
+            _surfacePolicy = MapGenerationAlgorithmTable.ResolveSurface(gridConfig.surfaceRevision).CreateHeightPolicy(gridConfig);
             _heightSource = heightSource;
             _visualCache = visualCache;
 
@@ -154,7 +155,7 @@ namespace Game.MapGeneration.Pipeline.Visual
             {
                 var preHeights = HeightFileLoader.LoadHeights(_heightSource, tileX, tileZ, _gridConfig.Resolution);
                 return TileSurfaceHeightBuilder.Build(preHeights, tileConfig, tileWorldPosition, _ledgerSource.Resolve(),
-                    tileConfig.SurfaceRevision == WorldSurfaceRevision.Grounded5 ? _land.Resolve() : null);
+                    _surfacePolicy);
             }
 
             // splatも岩の裸地でmapObjectを読むようになったので、Detailと同じく全タイルぶんを渡してhaloで切らせる

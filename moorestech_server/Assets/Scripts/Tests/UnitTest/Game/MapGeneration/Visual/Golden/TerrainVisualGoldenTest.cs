@@ -52,7 +52,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Golden
                 TerrainFileWriter.Write(worldDirectory, output);
 
                 var gridConfig = config.ShallowCopy();
-                gridConfig.SurfaceRevision = WorldSurfaceRevision.Legacy4;
+                gridConfig.surfaceRevision = WorldSurfaceRevision.Legacy4;
                 gridConfig.worldOffsetX = output.NoiseOrigin.x;
                 gridConfig.worldOffsetZ = output.NoiseOrigin.y;
                 var helper = new BiomePlacementHelper(gridConfig);

@@ -1,4 +1,3 @@
-using Game.MapGeneration.Facade.Surface;
 using Game.MapGeneration.Pipeline.Surface.Placement;
 using System.Collections.Generic;
 using Game.MapGeneration.Pipeline.Config;
@@ -29,7 +28,7 @@ namespace Game.MapGeneration.Pipeline.Generators
             SpatialGrid objectSpatialGrid,
             VeinHaloChannels channels,
             float haloRadius,
-            IReadOnlyList<PlacedVein> excludedVeins, IVeinLandConstraint landConstraint, WorldSurfaceRevision revision, int tileIndexX, int tileIndexZ)
+            IReadOnlyList<PlacedVein> excludedVeins, IVeinLandConstraint landConstraint, int tileIndexX, int tileIndexZ)
         {
             var result = new VeinPlacementBatch();
             if (entries == null || entries.Length == 0)
@@ -53,19 +52,13 @@ namespace Game.MapGeneration.Pipeline.Generators
                 var entry = entries[i];
                 if (entry == null || string.IsNullOrEmpty(entry.veinGuid)) continue;
                 if (entryMasks == null || i >= entryMasks.Length || entryMasks[i] == null)
-                {
-                    if (revision == WorldSurfaceRevision.Grounded5)
-                        Debug.LogWarning($"Vein candidates seed={dims.Seed} revision={revision} tile={tileIndexX},{tileIndexZ} entry={entry.veinGuid}: no enabled biome candidates.");
                     continue;
-                }
-                int acceptedBefore = result.Veins.Count;
 
+                int acceptedBefore = result.Veins.Count;
                 OreEntryPlacer.Place(entry, i, entryMasks[i], heights, dims, rng,
                     borderPx, treeSpatialGrid, objectSpatialGrid,
-                    oreGrid, channels.Centers, haloRadius, excludedVeins, result, landConstraint, revision);
-                landConstraint.ReportRejections(dims.Seed, tileIndexX, tileIndexZ, entry.veinGuid);
-                if (revision == WorldSurfaceRevision.Grounded5 && result.Veins.Count == acceptedBefore)
-                    Debug.LogWarning($"Vein candidates seed={dims.Seed} revision={revision} tile={tileIndexX},{tileIndexZ} entry={entry.veinGuid}: finite biome/ring/filter/member search accepted zero.");
+                    oreGrid, channels.Centers, haloRadius, excludedVeins, result, landConstraint);
+                landConstraint.ReportRejections(dims.Seed, tileIndexX, tileIndexZ, entry.veinGuid, result.Veins.Count - acceptedBefore);
             }
 
             return result;

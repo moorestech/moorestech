@@ -1,6 +1,7 @@
 using System;
 using Game.MapGeneration.Facade;
 using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Surface;
@@ -20,7 +21,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         {
             var config = new TerrainGenerationConfig
             {
-                SurfaceRevision = WorldSurfaceRevision.Legacy4,
+                surfaceRevision = WorldSurfaceRevision.Legacy4,
                 overrideResolution = 17,
                 terrainWidth = 32f,
                 terrainLength = 32f,
@@ -31,7 +32,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
 
             // 旧版では陸地場を要求せず低い値を保持する
             // Legacy builds require no land field and retain low heights
-            var pair = TileSurfaceHeightBuilder.Build(pre, config, Vector3.zero, ledger, null);
+            var pair = TileSurfaceHeightBuilder.Build(pre, config, Vector3.zero, ledger, MapGenerationAlgorithmTable.ResolveSurface(config.surfaceRevision).CreateHeightPolicy(config));
             Assert.That(pair.Pre, Is.SameAs(pre));
             CollectionAssert.AreEqual(pre, pair.Post);
             Assert.That(pre[8, 8], Is.EqualTo(0.003f));

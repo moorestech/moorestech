@@ -17,6 +17,8 @@ namespace Game.MapGeneration.Transfer
                 { "5.0.0", WorldSurfaceRevision.Grounded5 }
             };
 
+        public static WorldSurfaceRevision CurrentRevision => Supported[Current];
+
         public static bool Supports(string generatorVersion)
         {
             return generatorVersion != null && Supported.ContainsKey(generatorVersion);
@@ -28,26 +30,14 @@ namespace Game.MapGeneration.Transfer
             // Reject unknown versions at the startup boundary instead of substituting the current revision
             if (generatorVersion != null && Supported.TryGetValue(generatorVersion, out var revision)) return revision;
             var reason = $"Unsupported generator '{generatorVersion}' for world '{worldId}'; connect to a server on the same build.";
-            Debug.LogWarning(reason);
+            Debug.LogError(reason);
             throw new InvalidOperationException(reason);
         }
 
-        public static void ThrowIfSupported(string generatorVersion, string worldId)
+        public static void ThrowIfUnsupported(string generatorVersion, string worldId)
         {
             Resolve(generatorVersion, worldId);
         }
 
-        public static string ToWire(WorldSurfaceRevision revision)
-        {
-            switch (revision)
-            {
-                case WorldSurfaceRevision.Legacy4: return "4.0.0";
-                case WorldSurfaceRevision.Grounded5: return "5.0.0";
-            }
-
-            var reason = $"Unsupported surface revision '{revision}'.";
-            Debug.LogWarning(reason);
-            throw new InvalidOperationException(reason);
-        }
     }
 }

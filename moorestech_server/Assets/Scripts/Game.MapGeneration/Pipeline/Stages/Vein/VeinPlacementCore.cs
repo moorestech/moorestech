@@ -49,7 +49,7 @@ namespace Game.MapGeneration.Pipeline.Stages
             // The AABB exclusion is settled inside member placement, so the returned placement is the confirmed set
             return OrePlacementGenerator.GenerateForWorld(
                 entries, entryMasks, borderMargin, heights2D, dims, rng, treeGrid, objectGrid,
-                channels, tile.Halo.Radius, excludedVeins, landConstraint, config.SurfaceRevision, tile.TileIndexX, tile.TileIndexZ);
+                channels, tile.Halo.Radius, excludedVeins, landConstraint, tile.TileIndexX, tile.TileIndexZ);
         }
 
         static bool[][,] BuildEntryMasks(

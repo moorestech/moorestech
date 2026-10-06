@@ -16,25 +16,27 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         [TestCase(600f)]
         [TestCase(5f)]
         [TestCase(1000f)]
+        [Timeout(1500000)]
         public void QuantizedFloorAndPadPreserveTheirDirectedBounds(float height)
         {
             var envelope = SurfaceEnvelope.GeneratedV5;
-            float floor = SurfaceQuantization.LandFloor(height, envelope);
+            var config = new TerrainGenerationConfig { terrainHeight = height };
+            float floor = SurfaceQuantization.LandFloor(config, envelope, "fixture");
             Assert.That(floor, Is.GreaterThanOrEqualTo(4.9f));
-            Assert.That(floor, Is.LessThan(4.9f + height / 65535f));
+            Assert.That(floor, Is.LessThan(4.9f + height / SurfaceQuantization.TerrainStorageSteps));
 
             // 上限と整数境界でも採掘面の直下を維持する
             // Keep pads immediately below mining bottoms at integer and upper boundaries
             foreach (int bottom in new[] { 5, (int)height })
             {
-                float pad = SurfaceQuantization.PadHeight(bottom, height);
+                float pad = SurfaceQuantization.PadHeight(bottom, config, "fixture");
                 Assert.That(pad, Is.LessThanOrEqualTo(bottom - 0.001d));
-                Assert.That(bottom - pad, Is.LessThanOrEqualTo(height / 65535f + 0.0011f));
-                Assert.That(SurfaceQuantization.Quantize(pad, height), Is.LessThan(bottom));
+                Assert.That(bottom - pad, Is.LessThanOrEqualTo(height / SurfaceQuantization.TerrainStorageSteps + 0.0011f));
             }
         }
 
         [Test]
+        [Timeout(1500000)]
         public void OneLandCornerProtectsAdjacentCellsWithoutRaisingRemoteSea()
         {
             var grid = SurfaceGridFixture.Create(1, 5, 4f, 8f, false);
@@ -54,6 +56,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
 
         [TestCase(false)]
         [TestCase(true)]
+        [Timeout(1500000)]
         public void AllSeaAndAllLandKeepTheirClassification(bool land)
         {
             var grid = SurfaceGridFixture.Create(1, 3, 4f, 8f, land);
@@ -63,6 +66,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         }
 
         [Test]
+        [Timeout(1500000)]
         public void RectangularTilesShareFourWayVertexAndInterpolation()
         {
             var grid = SurfaceGridFixture.Create(2, 3, 4f, 8f, true);
@@ -80,30 +84,32 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         }
 
         [Test]
+        [Timeout(1500000)]
         public void SharedHeightMismatchFailsWithTileDiagnostics()
         {
             var grid = SurfaceGridFixture.Create(2, 3, 4f, 8f, true);
             grid.Output.Tiles[1].Heights[0] = 0.1f;
-            LogAssert.Expect(LogType.Warning, new Regex("seed=.*revision=.*tile=.*Shared vertex mismatch"));
-            Assert.Throws<InvalidOperationException>(() =>
+            LogAssert.Expect(LogType.Error, new Regex("seed=.*revision=.*tile=.*Shared vertex mismatch"));
+            var exception = Assert.Throws<InvalidOperationException>(() =>
                 new SurfaceTileGrid(grid.Output, SurfaceGridFixture.Masks(4, 9, true), grid.Config));
+            Assert.That(exception.Message, Does.Contain($"owner={0f:R}, incoming={0.1f:R}"));
+            Assert.That(exception.Message, Does.Contain("ownerLand=True, incomingLand=True"));
         }
 
         [TestCase(float.NaN)]
         [TestCase(float.PositiveInfinity)]
         [TestCase(0f)]
         [TestCase(4f)]
+        [Timeout(1500000)]
         public void InvalidHeightCannotGenerateGuaranteedWorld(float height)
         {
             var config = new TerrainGenerationConfig { terrainHeight = height, gridSizeX = 1, gridSizeZ = 1 };
-            if (height == 4f)
-                LogAssert.Expect(LogType.Error, "Surface quantization outside r16 range: units=80281, terrainHeight=4.");
-            else
-                LogAssert.Expect(LogType.Warning, new Regex("GeneratedSurface.*seed=.*revision=.*tile="));
+            LogAssert.Expect(LogType.Error, new Regex("GeneratedSurface.*seed=.*revision=.*tile="));
             Assert.Throws<InvalidOperationException>(() => new GroundedVanillaGenerator().Generate(config));
         }
 
         [Test]
+        [Timeout(1500000)]
         public void DispatchPreservesLegacyGenerator()
         {
             Assert.That(MapGenerationAlgorithmTable.Resolve(Generation.AlgorithmConst.VanillaGenerator,

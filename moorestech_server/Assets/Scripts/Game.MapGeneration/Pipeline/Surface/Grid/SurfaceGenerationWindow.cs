@@ -20,9 +20,15 @@ namespace Game.MapGeneration.Pipeline.Surface
             Buffers.noiseOffsets = parameters.NoiseOffsets;
         }
 
-        internal void Run(TerrainGenerationConfig tileConfig, BiomeType[] biomes)
+        internal void Run(TerrainGenerationConfig tileConfig, BiomeType[] biomes,
+            SurfaceBoundarySamples boundaries, int tileX, int tileZ)
         {
             PaddedWindowStage.Run(tileConfig, biomes, Buffers);
+
+            // 独立窓の境界候補は所有者を通してから下流へ公開する
+            // Publish independent window boundary candidates only through their canonical owner
+            boundaries.CaptureOwned(tileX, tileZ, Buffers);
+            boundaries.Emit(tileX, tileZ, Buffers);
         }
 
         public void Dispose()

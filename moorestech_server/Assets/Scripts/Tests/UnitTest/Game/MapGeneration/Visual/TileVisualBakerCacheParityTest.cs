@@ -115,7 +115,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
         {
             return new TerrainGenerationConfig
             {
-                SurfaceRevision = WorldSurfaceRevision.Legacy4,
+                surfaceRevision = WorldSurfaceRevision.Legacy4,
                 overrideResolution = Resolution,
                 detailResolution = DetailResolution,
                 seed = 12345,

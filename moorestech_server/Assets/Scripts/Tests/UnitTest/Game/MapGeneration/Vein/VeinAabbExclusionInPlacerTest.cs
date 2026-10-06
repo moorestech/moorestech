@@ -101,7 +101,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Vein
                 0, 0, 2, 1);
             return OrePlacementGenerator.GenerateForWorld(
                 entries, masks, 0f, new float[HeightRes, HeightRes], dims, new System.Random(seed),
-                null, null, halo.ItemVeins, halo.Radius, excludedVeins, new UnrestrictedVeinLandConstraint(), WorldSurfaceRevision.Legacy4, 0, 0);
+                null, null, halo.ItemVeins, halo.Radius, excludedVeins, new UnrestrictedVeinLandConstraint(), 0, 0);
 
             #region Internal
 

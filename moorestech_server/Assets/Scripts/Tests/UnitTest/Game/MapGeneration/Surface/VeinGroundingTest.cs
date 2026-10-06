@@ -15,25 +15,28 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
     public class VeinGroundingTest
     {
         [Test]
-        public void ConnectedItemAndFluidCoresShareBottomAndRetainLedgerOffsets()
+        public void ConnectedItemAndFluidCoresShareBottomWithoutAddingVisualPlacements()
         {
             var grid = SurfaceGridFixture.Create(1, 33, 32f, 32f, true);
             for (int z = 0; z < 33; z++)
             for (int x = 0; x < 33; x++) grid.SetHeight(x, z, x + z);
-            var bindings = new SurfacePlacementBindings();
             var ledger = new PlacementLedger();
-            AddVein(grid.Output.ItemVeins, bindings, ledger, true, 11, 12, 7);
-            AddVein(grid.Output.FluidVeins, bindings, ledger, false, 16, 12, 50);
+            AddVein(grid.Output.ItemVeins, 11, 12, 7);
+            AddVein(grid.Output.FluidVeins, 16, 12, 50);
+            ledger.Add(new LedgerPlacement("tree", new Vector3(5f, 9f, 5f), Vector3.one,
+                TerrainSurroundEffectType.rockNoBareGround, null));
             var original = ledger.Placements[0];
-            var result = VeinGroundingPlanner.Build(grid, bindings, SurfaceEnvelope.GeneratedV5).Apply(grid.Output, ledger);
+            var result = VeinGroundingPlanner.Build(grid, SurfaceEnvelope.GeneratedV5).Apply(grid.Output, ledger);
 
             // 異種鉱脈の支持が重なる成分では共通底面にする
             // Use one bottom for connected support across different vein types
             int bottom = grid.Output.ItemVeins[0].Min.y;
             Assert.That(grid.Output.FluidVeins[0].Min.y, Is.EqualTo(bottom));
             Assert.That(grid.Output.ItemVeins[0].Max.y - bottom, Is.EqualTo(2));
-            Assert.That(result.Placements[0].ScenePosition.y, Is.EqualTo(original.ScenePosition.y + bottom - 7));
+            Assert.That(result.Placements[0].ScenePosition.y, Is.EqualTo(original.ScenePosition.y));
             Assert.That(ledger.Placements[0].ScenePosition, Is.EqualTo(original.ScenePosition));
+            Assert.That(result.Placements.Count, Is.EqualTo(1));
+            Assert.That(result.GroundingPads.Count, Is.EqualTo(2));
             Assert.That(result.Placements[0].Scale, Is.EqualTo(original.Scale));
             foreach (var pad in result.GroundingPads)
             {
@@ -74,7 +77,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         {
             var grid = SurfaceGridFixture.Create(1, 17, 32f, 32f, true);
             var ledger = new PlacementLedger();
-            var result = VeinGroundingPlanner.Build(grid, new SurfacePlacementBindings(), SurfaceEnvelope.GeneratedV5).Apply(grid.Output, ledger);
+            var result = VeinGroundingPlanner.Build(grid, SurfaceEnvelope.GeneratedV5).Apply(grid.Output, ledger);
             Assert.That(result.ComputeDigest(), Is.EqualTo("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"));
         }
 
@@ -84,10 +87,9 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             var grid = SurfaceGridFixture.Create(1, 17, 32f, 32f, true);
             for (int z = 0; z < 17; z++)
             for (int x = 0; x < 17; x++) grid.SetHeight(x, z, 600f);
-            var bindings = new SurfacePlacementBindings();
             var ledger = new PlacementLedger();
-            AddVein(grid.Output.ItemVeins, bindings, ledger, true, 12, 12, 600);
-            var result = VeinGroundingPlanner.Build(grid, bindings, SurfaceEnvelope.GeneratedV5).Apply(grid.Output, ledger);
+            AddVein(grid.Output.ItemVeins, 12, 12, 600);
+            var result = VeinGroundingPlanner.Build(grid, SurfaceEnvelope.GeneratedV5).Apply(grid.Output, ledger);
             Assert.That(grid.Output.ItemVeins[0].Min.y, Is.EqualTo(600));
             Assert.That(result.GroundingPads[0].HeightMeters, Is.LessThan(600f));
         }
@@ -96,23 +98,16 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         public void DuplicateAndInvalidBindingsFailWithDiagnostics()
         {
             var bindings = new SurfacePlacementBindings();
-            bindings.AddItemVein(0, 0);
-            LogAssert.Expect(LogType.Error, "Invalid or duplicate surface binding: output=0, ledger=0.");
-            Assert.Throws<InvalidOperationException>(() => bindings.AddFluidVein(0, 0));
+            bindings.AddMapObject(0, 0);
+            LogAssert.Expect(LogType.Error, "Invalid or duplicate surface binding: output=1, ledger=0.");
+            Assert.Throws<InvalidOperationException>(() => bindings.AddMapObject(1, 0));
             LogAssert.Expect(LogType.Error, "Invalid or duplicate surface binding: output=-1, ledger=2.");
             Assert.Throws<InvalidOperationException>(() => bindings.AddMapObject(-1, 2));
         }
 
-        private static void AddVein(List<PlacedVein> veins, SurfacePlacementBindings bindings,
-            PlacementLedger ledger, bool item, int x, int z, int bottom)
+        private static void AddVein(List<PlacedVein> veins, int x, int z, int bottom)
         {
-            int index = veins.Count;
-            int ledgerIndex = ledger.Placements.Count;
             veins.Add(new PlacedVein("fixture", new Vector3Int(x - 1, bottom, z - 1), new Vector3Int(x + 1, bottom + 2, z + 1)));
-            ledger.Add(new LedgerPlacement("fixture", new Vector3(x, bottom + 0.25f, z), Vector3.one * 2f,
-                TerrainSurroundEffectType.rockNoBareGround, null));
-            if (item) bindings.AddItemVein(index, ledgerIndex);
-            else bindings.AddFluidVein(index, ledgerIndex);
         }
     }
 }

@@ -22,14 +22,23 @@ namespace Client.Game.InGame.Map.Outcrop
 
         private static void PlaceOnGround(GameObject instance, Bounds veinBounds, SurfaceEnvelope envelope)
         {
-            var renderers = instance.GetComponentsInChildren<Renderer>(true);
+            var renderers = instance.GetComponentsInChildren<Renderer>();
             if (renderers.Length == 0)
                 throw Failure($"[OutcropSurfacePlacement] No renderer on {instance.name}.");
 
             // 作者のpivotを寸法と混同せず実体の全描画範囲を合成する
             // Combine instance bounds without confusing authored pivots with dimensions
-            var meshBounds = renderers[0].bounds;
-            foreach (var renderer in renderers) meshBounds.Encapsulate(renderer.bounds);
+            var meshBounds = new Bounds();
+            var hasVisibleRenderer = false;
+            foreach (var renderer in renderers)
+            {
+                if (!renderer.enabled || !renderer.gameObject.activeInHierarchy) continue;
+                if (hasVisibleRenderer) meshBounds.Encapsulate(renderer.bounds);
+                else meshBounds = renderer.bounds;
+                hasVisibleRenderer = true;
+            }
+            if (!hasVisibleRenderer)
+                throw Failure($"[OutcropSurfacePlacement] No active renderer on {instance.name}.");
             if (meshBounds.size.x > envelope.CoreHalfSize * 2f || meshBounds.size.z > envelope.CoreHalfSize * 2f)
                 throw Failure($"[OutcropSurfacePlacement] {instance.name} exceeds the grading core: {meshBounds.size}.");
 
@@ -68,7 +77,7 @@ namespace Client.Game.InGame.Map.Outcrop
         {
             // 拒否理由を起動失敗の前に記録する
             // Record the rejection before failing startup
-            Debug.LogWarning(reason);
+            Debug.LogError(reason);
             return new InvalidOperationException(reason);
         }
     }

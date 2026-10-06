@@ -25,12 +25,13 @@ namespace Client.Tests.Map.Surface
             for (var z = 0; z < 33; z++)
                 for (var x = 0; x < 33; x++) heights[z, x] = 0.5f;
             data.SetHeights(0, 0, heights);
+            var translation = SurfaceTerrainIsolation.ResolveTranslation(Vector2.zero);
             var terrainObject = Terrain.CreateTerrainGameObject(data);
-            terrainObject.transform.position = new Vector3(10000f, 2f, 10000f);
+            terrainObject.transform.position = translation + Vector3.up * 2f;
             _created.Add(data);
             _created.Add(terrainObject);
-            _groundY = terrainObject.GetComponent<Terrain>().SampleHeight(new Vector3(10016f, 0f, 10016f)) + 2f;
-            _veinBounds = new Bounds(new Vector3(10016f, 15f, 10016f), new Vector3(5f, 6f, 5f));
+            _groundY = terrainObject.GetComponent<Terrain>().SampleHeight(translation + new Vector3(16f, 0f, 16f)) + 2f;
+            _veinBounds = new Bounds(translation + new Vector3(16f, 15f, 16f), new Vector3(5f, 6f, 5f));
         }
 
         [TearDown]
@@ -72,7 +73,7 @@ namespace Client.Tests.Map.Surface
         public void coreを超えるmeshは明示失敗する()
         {
             var root = CreateMesh(0f, 5f);
-            LogAssert.Expect(LogType.Warning, new Regex("\\[OutcropSurfacePlacement\\]"));
+            LogAssert.Expect(LogType.Error, new Regex("\\[OutcropSurfacePlacement\\]"));
             Assert.Throws<InvalidOperationException>(() => OutcropSurfacePlacement.Place(root, _veinBounds,
                 new TerrainSurfacePresentation.Grounded(SurfaceEnvelope.GeneratedV5)));
         }
@@ -81,9 +82,39 @@ namespace Client.Tests.Map.Surface
         public void terrainが無い位置は明示失敗する()
         {
             var root = CreateMesh(0f, 2f);
-            var missing = new Bounds(new Vector3(-100000f, 0f, -100000f), Vector3.one);
-            LogAssert.Expect(LogType.Warning, new Regex("\\[OutcropSurfacePlacement\\]"));
+            var missing = new Bounds(SurfaceTerrainIsolation.ResolveTranslation(Vector2.zero), Vector3.one);
+            LogAssert.Expect(LogType.Error, new Regex("\\[OutcropSurfacePlacement\\]"));
             Assert.Throws<InvalidOperationException>(() => OutcropSurfacePlacement.Place(root, missing,
+                new TerrainSurfacePresentation.Grounded(SurfaceEnvelope.GeneratedV5)));
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void 非描画rendererは接地範囲から除外する(bool disabledComponent)
+        {
+            var root = CreateMesh(0f, 2f);
+            var hidden = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            hidden.transform.SetParent(root.transform, false);
+            hidden.transform.localScale = Vector3.one * 100f;
+            hidden.transform.localPosition = Vector3.down * 50f;
+            if (disabledComponent) hidden.GetComponent<Renderer>().enabled = false;
+            else hidden.SetActive(false);
+
+            // 非描画の巨大meshが露頭の底面や寸法を変えない
+            // A large invisible mesh must not change the outcrop bottom or dimensions
+            OutcropSurfacePlacement.Place(root, _veinBounds, new TerrainSurfacePresentation.Grounded(SurfaceEnvelope.GeneratedV5));
+            var visible = root.transform.GetChild(0).GetComponent<Renderer>();
+            Assert.That(visible.bounds.min.y - _groundY, Is.InRange(0f, 0.02f));
+        }
+
+        [Test]
+        public void 非アクティブなroot描画は接地対象にならない()
+        {
+            var root = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            _created.Add(root);
+            root.SetActive(false);
+            LogAssert.Expect(LogType.Error, new Regex("\\[OutcropSurfacePlacement\\]"));
+            Assert.Throws<InvalidOperationException>(() => OutcropSurfacePlacement.Place(root, _veinBounds,
                 new TerrainSurfacePresentation.Grounded(SurfaceEnvelope.GeneratedV5)));
         }
 

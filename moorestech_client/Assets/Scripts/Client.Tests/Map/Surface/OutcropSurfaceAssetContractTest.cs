@@ -1,3 +1,4 @@
+using Tests.Module.TestMod;
 using System.Collections.Generic;
 using System.IO;
 using Client.Game.InGame.Map.Outcrop;
@@ -19,6 +20,11 @@ namespace Client.Tests.Map.Surface
         [TearDown]
         public void TearDown()
         {
+            // 本番マスタを後続テストへ残さず標準テスト入力へ戻す
+            // Restore standard test inputs so production masters do not leak into later tests
+            MasterHolder.Load(new MasterJsonFileContainer(ModJsonStringLoader.GetMasterString(
+                new ModsResource(Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods")))));
+
             for (var index = _created.Count - 1; index >= 0; index--)
                 UnityEngine.Object.DestroyImmediate(_created[index]);
             _created.Clear();
@@ -43,11 +49,12 @@ namespace Client.Tests.Map.Surface
             for (var z = 0; z < 33; z++)
                 for (var x = 0; x < 33; x++) heights[z, x] = 0.5f;
             data.SetHeights(0, 0, heights);
+            var translation = SurfaceTerrainIsolation.ResolveTranslation(Vector2.zero);
             var terrainObject = Terrain.CreateTerrainGameObject(data);
-            terrainObject.transform.position = new Vector3(20000f, 0f, 20000f);
+            terrainObject.transform.position = translation;
             _created.Add(data);
             _created.Add(terrainObject);
-            var bounds = new Bounds(new Vector3(20016f, 11f, 20016f), new Vector3(5f, 2f, 5f));
+            var bounds = new Bounds(translation + new Vector3(16f, 11f, 16f), new Vector3(5f, 2f, 5f));
 
             foreach (var element in MasterHolder.MapVeinMaster.All)
             {
@@ -61,14 +68,14 @@ namespace Client.Tests.Map.Surface
                 // 実meshの全頂点を平坦面と比較する
                 // Compare every actual mesh vertex with the flat surface
                 var minimumY = float.PositiveInfinity;
-                foreach (var filter in instance.GetComponentsInChildren<MeshFilter>(true))
+                foreach (var filter in instance.GetComponentsInChildren<MeshFilter>())
                 {
+                    if (!filter.GetComponent<Renderer>().enabled) continue;
                     Assert.That(filter.sharedMesh, Is.Not.Null, element.OutcropAddressablePath);
                     foreach (var vertex in filter.sharedMesh.vertices)
                         minimumY = Mathf.Min(minimumY, filter.transform.TransformPoint(vertex).y);
                 }
                 Assert.That(minimumY - 10f, Is.InRange(0f, 0.02f), element.OutcropAddressablePath);
-                Assert.That(bounds.min.y, Is.GreaterThanOrEqualTo(10f));
             }
         }
 

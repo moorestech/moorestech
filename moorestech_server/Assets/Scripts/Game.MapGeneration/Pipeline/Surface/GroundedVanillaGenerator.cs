@@ -25,7 +25,7 @@ namespace Game.MapGeneration.Pipeline.Surface
 
             // 配置の前に全域の陸地と海面下限を確定する
             // Settle world-wide land classification and the sea floor before placement
-            var grid = SurfaceGridBuilder.Build(config);
+            var grid = SurfaceGridBuilder.BuildValidated(config);
             grid.ApplyLandFloor(envelope);
             var ledger = new PlacementLedger();
             var bindings = new SurfacePlacementBindings();
@@ -40,17 +40,18 @@ namespace Game.MapGeneration.Pipeline.Surface
             // 配置用分類を再生成し、高さだけ確定済み配列を使う
             // Regenerate placement classification while using the settled height arrays
             using var parameters = new SurfaceGenerationParameters(config, biomes);
+            var boundaries = new SurfaceBoundarySamples(config, biomes.Length);
             foreach (var tile in grid.Output.Tiles)
             {
                 var tileConfig = gridConfig.CreateTileConfig(tile.TileX, tile.TileZ);
                 using var window = new SurfaceGenerationWindow(tileConfig, biomes, parameters);
-                window.Run(tileConfig, biomes);
+                window.Run(tileConfig, biomes, boundaries, tile.TileX, tile.TileZ);
                 runner.Run(tileConfig, window.Buffers, tile.Heights, config.TileScenePosition(tile.TileX, tile.TileZ), tile.TileX, tile.TileZ);
             }
 
-            var before = SurfaceDisplayEvaluator.Build(grid, ledger, false);
-            ledger = VeinGroundingPlanner.Build(grid, bindings, envelope).Apply(grid.Output, ledger);
-            var after = SurfaceDisplayEvaluator.Build(grid, ledger, true);
+            var before = SurfaceDisplayEvaluator.Build(grid, ledger, false, envelope);
+            ledger = VeinGroundingPlanner.Build(grid, envelope).Apply(grid.Output, ledger);
+            var after = SurfaceDisplayEvaluator.Build(grid, ledger, true, envelope);
             ledger = SurfaceObjectReanchor.Apply(grid.Output, ledger, bindings, before, after);
             grid.Output.SpawnPoint = new Vector3(spawn.x, after.SampleHeight(spawn), spawn.y);
             return new GenerationRun(grid.Output, ledger, config);

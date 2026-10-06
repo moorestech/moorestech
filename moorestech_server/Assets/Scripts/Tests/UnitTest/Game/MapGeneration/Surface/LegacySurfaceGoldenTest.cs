@@ -1,3 +1,6 @@
+// pin 47f79ca の本番masterでのみ有効な手動ゲート
+// Manual gate valid only with the production master pinned at 47f79ca
+using Tests.Module.TestMod;
 using System;
 using System.Globalization;
 using System.IO;
@@ -18,6 +21,7 @@ using UnityEngine;
 
 namespace Tests.UnitTest.Game.MapGeneration.Surface
 {
+    [Category("IgnoreCI")]
     public class LegacySurfaceGoldenTest
     {
         private string _scratchRoot;
@@ -25,10 +29,16 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         [TearDown]
         public void TearDown()
         {
+            // 本番マスタを後続テストへ残さず標準テスト入力へ戻す
+            // Restore standard test inputs so production masters do not leak into later tests
+            MasterHolder.Load(new MasterJsonFileContainer(ModJsonStringLoader.GetMasterString(
+                new ModsResource(Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods")))));
+
             if (_scratchRoot != null && Directory.Exists(_scratchRoot)) Directory.Delete(_scratchRoot, true);
         }
 
         [Test]
+        [Timeout(1500000)]
         public void Seed196MatchesCommittedV4Golden()
         {
             // 採取済み正本は読むだけとし本番マスタの指紋も照合する
@@ -43,13 +53,14 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             MasterHolder.Load(new MasterJsonFileContainer(ModJsonStringLoader.GetMasterString(resources)));
             var generation = MasterHolder.GenerationMaster.SelectedGeneration;
             var fingerprint = GenerationMasterFingerprint.Compute(MasterHolder.GenerationMaster.SourceJsonText, generation, dataDirectory);
-            Assert.That(fingerprint, Is.EqualTo((string)golden["meta"]["generationMasterFingerprint"]));
+            Assert.That(fingerprint, Is.EqualTo((string)golden["meta"]["generationMasterFingerprint"]),
+                "Legacy manual gate requires production master pin 47f79ca; current generation master fingerprint differs.");
 
             // 保存された版を明示して実際の選択表を通す
             // Pass the saved revision explicitly through the production dispatch table
             var config = MapGenerationPipeline.BuildConfig(generation, (int)golden["meta"]["seed"], dataDirectory);
-            config.SurfaceRevision = WorldGeneratorVersion.Resolve((string)golden["meta"]["generatorVersion"], "legacy-golden");
-            Assert.That(config.SurfaceRevision, Is.EqualTo(WorldSurfaceRevision.Legacy4));
+            config.surfaceRevision = WorldGeneratorVersion.Resolve((string)golden["meta"]["generatorVersion"], "legacy-golden");
+            Assert.That(config.surfaceRevision, Is.EqualTo(WorldSurfaceRevision.Legacy4));
             var run = MapGenerationPipeline.Generate(generation, config);
             Assert.That(run.Output.Resolution, Is.EqualTo((int)golden["meta"]["resolution"]));
             Assert.That(run.Ledger.ComputeDigest(), Is.EqualTo((string)golden["placementLedgerDigest"]));

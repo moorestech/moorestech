@@ -16,7 +16,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Provisioning
             var generation = MasterHolder.GenerationMaster.SelectedGeneration;
             var config = MapGenerationPipeline.BuildConfigWithSettledOrigins(
                 generation, meta.WorldSeed, TestModDirectory.ForUnitTestModDirectory,
-                meta.GeneratedPayload.Origins, meta.GeneratedPayload.GeneratorVersion);
+                meta.GeneratedPayload.Origins, meta.GeneratedPayload.GeneratorVersion, meta.WorldId);
             return MapGenerationPipeline.Generate(generation, config).Ledger.ComputeDigest();
         }
     }

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using Game.MapGeneration.Pipeline.Generators;
 using Game.MapGeneration.Facade.Surface;
 using UnityEngine;
 
@@ -8,6 +10,8 @@ namespace Game.MapGeneration.Pipeline.Surface.Placement
         private readonly LandCellField _land;
         private readonly Vector2 _noiseToSceneShift;
         private readonly float _outerHalfSize;
+        private int _eligibleCenters;
+        private int _candidates;
         private int _coastRejected;
         private int _edgeRejected;
 
@@ -18,8 +22,19 @@ namespace Game.MapGeneration.Pipeline.Surface.Placement
             _outerHalfSize = envelope.CoreHalfSize + envelope.BlendWidth;
         }
 
+        public void RecordEligibleCenter()
+        {
+            _eligibleCenters++;
+        }
+
+        public bool Overlaps(PlacedVein candidate, IReadOnlyList<PlacedVein> veins)
+        {
+            return VeinAabbBuilder.OverlapsAnyXz(candidate, veins);
+        }
+
         public bool Accept(PlacedVein noiseSpaceVein)
         {
+            _candidates++;
             // inclusive中心を一度だけシーン座標へ移し、接続部まで検査する
             // Convert the inclusive center once into scene space and inspect the entire skirt
             var center = (Vector3)(noiseSpaceVein.Min + noiseSpaceVein.Max + Vector3Int.one) * 0.5f;
@@ -38,12 +53,16 @@ namespace Game.MapGeneration.Pipeline.Surface.Placement
             return true;
         }
 
-        public void ReportRejections(int seed, int tileX, int tileZ, string entryGuid)
+        public void ReportRejections(int seed, int tileX, int tileZ, string entryGuid, int acceptedCount)
         {
             // 有限候補の却下理由をエントリとタイル単位で残す
             // Record finite candidate rejections per entry and tile
             if (_coastRejected + _edgeRejected > 0)
                 Debug.LogWarning($"Vein land constraint seed={seed} revision=Grounded5 tile={tileX},{tileZ} entry={entryGuid}: coast={_coastRejected}, world-edge={_edgeRejected}.");
+            else if ((_eligibleCenters > 0 || _candidates > 0) && acceptedCount == 0)
+                Debug.LogWarning($"Vein candidates seed={seed} revision=Grounded5 tile={tileX},{tileZ} entry={entryGuid}: {_candidates} member candidates accepted zero; eligible centers={_eligibleCenters}.");
+            _eligibleCenters = 0;
+            _candidates = 0;
             _coastRejected = 0;
             _edgeRejected = 0;
         }

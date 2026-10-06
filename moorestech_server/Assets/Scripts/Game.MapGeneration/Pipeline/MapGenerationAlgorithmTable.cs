@@ -7,25 +7,35 @@ using UnityEngine;
 
 namespace Game.MapGeneration.Pipeline
 {
-    // 版とアルゴリズムの選択を一箇所へ集約する
-    // Keep revision and algorithm dispatch in one place
+    // 生成と表示の版選択を同じ対応表へ集約する
+    // Resolve generation and presentation revisions through the same registry
     public static class MapGenerationAlgorithmTable
     {
-        private static readonly IReadOnlyDictionary<(string, WorldSurfaceRevision), IMapGenerator> Generators =
-            new Dictionary<(string, WorldSurfaceRevision), IMapGenerator>
+        private static readonly IReadOnlyDictionary<WorldSurfaceRevision, SurfaceRevisionPolicy> Revisions =
+            new Dictionary<WorldSurfaceRevision, SurfaceRevisionPolicy>
             {
-                { (Generation.AlgorithmConst.VanillaGenerator, WorldSurfaceRevision.Legacy4), new VanillaGenerator() },
-                { (Generation.AlgorithmConst.VanillaGenerator, WorldSurfaceRevision.Grounded5), new GroundedVanillaGenerator() },
+                { WorldSurfaceRevision.Legacy4, new SurfaceRevisionPolicy.Legacy() },
+                { WorldSurfaceRevision.Grounded5, new SurfaceRevisionPolicy.Grounded() },
             };
 
         public static IMapGenerator Resolve(string algorithm, WorldSurfaceRevision revision)
         {
-            if (Generators.TryGetValue((algorithm, revision), out var generator)) return generator;
+            if (algorithm == Generation.AlgorithmConst.VanillaGenerator)
+                return ResolveSurface(revision).Generator;
 
-            // 未知の版を現行生成器で再生成しない
-            // Never regenerate unknown revisions with the current generator
             var reason = $"[MapGenerationAlgorithmTable] no generator for algorithm '{algorithm}', revision '{revision}'.";
-            Debug.LogWarning(reason);
+            Debug.LogError(reason);
+            throw new InvalidOperationException(reason);
+        }
+
+        public static SurfaceRevisionPolicy ResolveSurface(WorldSurfaceRevision revision)
+        {
+            if (Revisions.TryGetValue(revision, out var policy)) return policy;
+
+            // 未知の版を既存表示や現行生成器へ置き換えない
+            // Never substitute existing presentation or the current generator for an unknown revision
+            var reason = $"Unsupported surface revision '{revision}'.";
+            Debug.LogError(reason);
             throw new InvalidOperationException(reason);
         }
     }

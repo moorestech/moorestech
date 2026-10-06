@@ -73,19 +73,15 @@ namespace Tests.Watchdog
         
         public static TimeSpan ResolveTimeout(ITest test)
         {
-            // NUnit の [Timeout] を “設定値” として読み取りたい場合の試み。
-            // Unity側ではメインスレッド停止だと Timeout で中断できない点に注意。:contentReference[oaicite:3]{index=3}
-            try
+            // caseから親へ辿り、最も近いTimeout設定を優先する
+            // Walk from the case to its parents, preferring the nearest Timeout setting
+            for (var current = test; current != null; current = current.Parent)
             {
-                var value = test.Properties.Get("Timeout");
+                var value = current.Properties.Get("Timeout");
                 if (value is int i) return TimeSpan.FromMilliseconds(i);
                 
                 if (value is IList list && list.Count > 0 && list[0] is int i2)
                     return TimeSpan.FromMilliseconds(i2);
-            }
-            catch
-            {
-                /* ignore */
             }
             
             return TimeOut.DefaultTimeout;

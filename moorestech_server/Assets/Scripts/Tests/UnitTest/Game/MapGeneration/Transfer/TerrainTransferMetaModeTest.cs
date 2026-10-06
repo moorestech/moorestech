@@ -4,6 +4,7 @@ using MessagePack;
 using NUnit.Framework;
 using Server.Protocol.PacketResponse.MapData;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Tests.UnitTest.Game.MapGeneration.Transfer
 {
@@ -84,6 +85,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Transfer
         [Test]
         public void 旧版のワイヤメタは必須項目が空でも版不一致で落ちる()
         {
+            LogAssert.Expect(LogType.Error,
+                "Unsupported generator '3.0.0' for world 'world-old'; connect to a server on the same build.");
             var exception = Assert.Throws<InvalidOperationException>(() => TerrainTransferMeta.FromWire(
                 WorldMapMode.Generated, "world-old", 513, 4, 3, 42,
                 new TerrainOrigins(Vector2.zero, Vector2.zero), "fingerprint", "3.0.0", string.Empty));

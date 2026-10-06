@@ -1,5 +1,4 @@
 using Core.Master;
-using Game.MapGeneration.Facade.Surface;
 using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Pipeline.Visual;
 using Game.MapGeneration.Pipeline.Visual.Placement;
@@ -33,7 +32,6 @@ namespace Game.MapGeneration.Facade
             // 転送メタは別ビルドのサーバーからも届く。転送ファイル構成の版が違えばこの先の読み出しが全部ずれるので冒頭で止める
             // The meta can arrive from a server on another build; a differing transfer-layout version skews every read below, so stop at the head
             var generatedPayload = generatedMeta.GeneratedPayload;
-            generatedPayload.ThrowIfGeneratorVersionUnsupported(generatedMeta.WorldId);
 
             // 生成マスタ（JSON原文＋配置ノイズPNG）がワールド作成時と違えば台帳がサーバー正本とずれる。版・解像度と同じく例外で止める
             // If the generation master (JSON text + placement-noise PNGs) differs from world creation, the ledger drifts from the server's truth; fail as for version and resolution
@@ -45,7 +43,7 @@ namespace Game.MapGeneration.Facade
             // The spawn search alone is not recomputed: the origins settled at world creation are injected so the same window is addressed
             var selectedGeneration = MasterHolder.GenerationMaster.SelectedGeneration;
             var config = MapGenerationPipeline.BuildConfigWithSettledOrigins(
-                selectedGeneration, generatedMeta.WorldSeed, serverDataDirectory, generatedPayload.Origins, generatedPayload.GeneratorVersion);
+                selectedGeneration, generatedMeta.WorldSeed, serverDataDirectory, generatedPayload.Origins, generatedPayload.GeneratorVersion, generatedMeta.WorldId);
             generatedMeta.ThrowIfTerrainResolutionDiffers(config.Resolution);
 
             // 原点は格子の寸法と注入したGだけで決まり、生成を回さなくても確かめられる
@@ -66,9 +64,7 @@ namespace Game.MapGeneration.Facade
                 TerrainTransferMeta.EnumerateTileCoordinates(generatedMeta.TerrainTileCount),
                 new Vector3(gridConfig.terrainWidth, gridConfig.terrainHeight, gridConfig.terrainLength), gridConfig.Resolution,
                 factoryResult.OrderedLayerAddresses, DetailPrototypeSpecCollector.Collect(factoryResult.Baker.DetailPrototypes),
-                gridConfig.SurfaceRevision == WorldSurfaceRevision.Grounded5
-                    ? new TerrainSurfacePresentation.Grounded(SurfaceEnvelope.GeneratedV5)
-                    : new TerrainSurfacePresentation.Existing());
+                factoryResult.Baker.SurfacePresentation);
             return new TiledTerrainSession(layout, factoryResult.Baker);
         }
     }

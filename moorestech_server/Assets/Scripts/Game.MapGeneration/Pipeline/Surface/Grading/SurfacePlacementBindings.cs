@@ -7,54 +7,12 @@ namespace Game.MapGeneration.Pipeline.Surface.Grading
 {
     public sealed class SurfacePlacementBindings
     {
-        private readonly Dictionary<int, int> _items = new();
-        private readonly Dictionary<int, int> _fluids = new();
         private readonly Dictionary<int, int> _objects = new();
         private readonly HashSet<int> _ledgerIndices = new();
-        private readonly Dictionary<int, int> _originalBottoms = new();
-
-        public void AddItemVein(int outputIndex, int ledgerIndex)
-        {
-            Add(_items, outputIndex, ledgerIndex);
-        }
-
-        public void AddFluidVein(int outputIndex, int ledgerIndex)
-        {
-            Add(_fluids, outputIndex, ledgerIndex);
-        }
 
         public void AddMapObject(int outputIndex, int ledgerIndex)
         {
             Add(_objects, outputIndex, ledgerIndex);
-        }
-
-        internal void CaptureVeinBottoms(MapGenerationOutput output)
-        {
-            // 対応は確定append時のindexで保持し、丸め位置から逆引きしない
-            // Retain confirmed append indices rather than matching rounded positions
-            _originalBottoms.Clear();
-            foreach (var pair in _items) _originalBottoms.Add(pair.Value, output.ItemVeins[pair.Key].Min.y);
-            foreach (var pair in _fluids) _originalBottoms.Add(pair.Value, output.FluidVeins[pair.Key].Min.y);
-        }
-
-        public PlacementLedger ApplyVeinPositions(MapGenerationOutput output, PlacementLedger ledger)
-        {
-            var positions = CopyPositions(ledger);
-            Shift(_items, output.ItemVeins);
-            Shift(_fluids, output.FluidVeins);
-            return ledger.WithScenePositions(positions);
-
-            #region Internal
-
-            void Shift(Dictionary<int, int> bindings, List<PlacedVein> veins)
-            {
-                // 元配置の小数YとXZを残し、AABB移動量だけ加える
-                // Preserve original fractional Y and XZ while adding only the AABB shift
-                foreach (var pair in bindings)
-                    positions[pair.Value] += Vector3.up * (veins[pair.Key].Min.y - _originalBottoms[pair.Value]);
-            }
-
-            #endregion
         }
 
         public PlacementLedger ApplyMapObjectPositions(MapGenerationOutput output, PlacementLedger ledger)

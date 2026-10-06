@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Game.MapGeneration.Facade.Surface;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Generators.Util;
 using Game.MapGeneration.Pipeline.Surface.Placement;
@@ -13,7 +12,7 @@ namespace Game.MapGeneration.Pipeline.Generators
             List<PlacementEntry> clusterMembers, float[,] heights, TerrainDimensions dims,
             System.Random rng, SpatialGrid oreGrid, TerrainSurroundEffectType surroundEffect,
             IReadOnlyList<PlacedVein> excludedVeins, VeinPlacementBatch result,
-            IVeinLandConstraint landConstraint, WorldSurfaceRevision revision)
+            IVeinLandConstraint landConstraint)
         {
             float w = dims.TerrainWidth;
             float l = dims.TerrainLength;
@@ -47,8 +46,8 @@ namespace Game.MapGeneration.Pipeline.Generators
                     var candidate = VeinAabbBuilder.Build(entry.veinGuid, worldPosition);
                     if (!landConstraint.Accept(candidate)) continue;
                     if (0f < oreMinDist && oreGrid.HasNeighborWithin(mx, mz, oreMinDist)) continue;
-                    if (Overlaps(candidate, excludedVeins)) continue;
-                    if (Overlaps(candidate, result.Veins)) continue;
+                    if (landConstraint.Overlaps(candidate, excludedVeins)) continue;
+                    if (landConstraint.Overlaps(candidate, result.Veins)) continue;
 
                     vein = candidate;
                     veinFound = true;
@@ -58,23 +57,10 @@ namespace Game.MapGeneration.Pipeline.Generators
 
                 var placement = PlacementEntry.CreateVein(entry.veinGuid, worldPosition, surroundEffect);
                 clusterMembers.Add(placement);
-                result.Entries.Add(placement);
                 result.Veins.Add(vein);
                 oreGrid.Add(mx, mz);
             }
 
-            #region Internal
-
-            bool Overlaps(PlacedVein candidate, IReadOnlyList<PlacedVein> veins)
-            {
-                // 整地で高さが揃う新版はXZだけで重複を防ぐ
-                // New grading aligns heights, so prevent overlap using XZ alone
-                return revision == WorldSurfaceRevision.Legacy4
-                    ? VeinAabbBuilder.OverlapsAny(candidate, veins)
-                    : VeinAabbBuilder.OverlapsAnyXz(candidate, veins);
-            }
-
-            #endregion
         }
     }
 }

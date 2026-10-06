@@ -30,7 +30,7 @@ namespace Game.MapGeneration.Provisioning
             // Go through the very assembly the client's Open uses (a config with the settled origins injected); it equals the post-write-back config, so both sides bake alike
             var selectedGeneration = MasterHolder.GenerationMaster.SelectedGeneration;
             var config = MapGenerationPipeline.BuildConfigWithSettledOrigins(
-                selectedGeneration, terrainMeta.WorldSeed, serverDataDirectory, generatedPayload.Origins, generatedPayload.GeneratorVersion);
+                selectedGeneration, terrainMeta.WorldSeed, serverDataDirectory, generatedPayload.Origins, generatedPayload.GeneratorVersion, terrainMeta.WorldId);
 
             // 高さ源にワールド本体のterrain/を選ぶ入口。共有キャッシュを高さ源にするクライアントとは入口ごと分かれている
             // The entry choosing the world's own terrain/ as the height source; a client, whose source is the shared cache, goes through a different entry entirely

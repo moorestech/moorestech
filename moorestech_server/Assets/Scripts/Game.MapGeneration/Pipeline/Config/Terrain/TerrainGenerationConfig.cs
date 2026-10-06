@@ -13,7 +13,7 @@ namespace Game.MapGeneration.Pipeline.Config
     {
         // 新規生成は接地保証版、既存再構築は保存版を注入する
         // New generation uses grounding guarantees; reconstruction injects the saved revision
-        public WorldSurfaceRevision SurfaceRevision = WorldSurfaceRevision.Grounded5;
+        public WorldSurfaceRevision surfaceRevision = Game.MapGeneration.Transfer.WorldGeneratorVersion.CurrentRevision;
 
         // スポーン候補探索
         // Spawn candidate search

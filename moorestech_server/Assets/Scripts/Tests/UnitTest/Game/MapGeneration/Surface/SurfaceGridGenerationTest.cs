@@ -46,13 +46,13 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         {
             TestGenerationConfigFactory.LoadMasterWithMapObjectScaleForProvisioning(1f);
             var config = GenerationRuntimeConfigFactory.Build(TestGenerationConfigFactory.CreateSmall());
-            config.SurfaceRevision = WorldSurfaceRevision.Grounded5;
+            config.surfaceRevision = WorldSurfaceRevision.Grounded5;
 
             // 旧生成器の直接呼出しでも旧版の候補判定を保つ
             // Retain legacy candidate admission even when calling the legacy generator directly
             var run = new VanillaGenerator().Generate(config);
-            Assert.That(run.Config.SurfaceRevision, Is.EqualTo(WorldSurfaceRevision.Legacy4));
-            Assert.That(config.SurfaceRevision, Is.EqualTo(WorldSurfaceRevision.Grounded5));
+            Assert.That(run.Config.surfaceRevision, Is.EqualTo(WorldSurfaceRevision.Legacy4));
+            Assert.That(config.surfaceRevision, Is.EqualTo(WorldSurfaceRevision.Grounded5));
             Assert.That(run.Ledger.GroundingPads, Is.Empty);
         }
 
@@ -63,7 +63,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         public void InvalidClassificationSeaLevelFailsBeforeGeneration(float seaLevel)
         {
             var config = new TerrainGenerationConfig { seaLevel = seaLevel };
-            LogAssert.Expect(LogType.Warning, new Regex("GeneratedSurface.*Classification seaLevel"));
+            LogAssert.Expect(LogType.Error, new Regex("GeneratedSurface.*Classification seaLevel"));
             Assert.Throws<InvalidOperationException>(() => SurfaceGridBuilder.Build(config));
         }
 
@@ -71,7 +71,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         public void HeightmapDisabledCannotProduceGuaranteedSaveData()
         {
             var config = new TerrainGenerationConfig { generateHeightmap = false };
-            LogAssert.Expect(LogType.Warning, new Regex("GeneratedSurface.*Heightmap-disabled"));
+            LogAssert.Expect(LogType.Error, new Regex("GeneratedSurface.*Heightmap-disabled"));
             Assert.Throws<InvalidOperationException>(() => SurfaceGridBuilder.Build(config));
         }
 
@@ -83,7 +83,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         {
             var grid = SurfaceGridFixture.Create(1, 3, 4f, 8f, true);
             grid.Output.Tiles[0].Heights[4] = height;
-            LogAssert.Expect(LogType.Warning, new Regex("GeneratedSurface.*tile=0,0: Invalid normalized height at 1,1"));
+            LogAssert.Expect(LogType.Error, new Regex("GeneratedSurface.*tile=0,0: Invalid normalized height at 1,1"));
             Assert.Throws<InvalidOperationException>(() =>
                 new SurfaceTileGrid(grid.Output, SurfaceGridFixture.Masks(1, 9, true), grid.Config));
         }

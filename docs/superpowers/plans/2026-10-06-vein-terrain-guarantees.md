@@ -12,7 +12,7 @@
 
 - R1: 海と海岸を残す。陸地に属する補間セル全体で最終地表高が描画海面の最大変位より高い。受入: 最終TerrainDataの陸地セルの全頂点が海面包絡+0.10m以上、海底の一律持上げなし。
 - R2: Vein周辺を局所整地して埋没と浮きを防ぐ。受入: 全露頭meshの底面が平坦な整地面から0.001m上、全mesh頂点が地表以上。接地許容誤差0.02m。
-- R3: 鉱石・水・原油の採掘範囲も地上に置く。受入: inclusive AABBの下端面全体が地表以上で、地表との間隔が高さ量子化1段+0.001m以下。
+- R3: 鉱石・水・原油の採掘範囲も地上に置く。受入: inclusive AABBの下端面全体が地表以上で、地表との間隔が実TerrainDataの高さ量子化1段（terrainHeight/32766）+0.001m以下。
 - R4: 全種類のVeinを陸上に収める。受入: 平坦部・斜面への接続部・補間支持セルすべてが元の陸地分類内。海岸候補は既存の有限リトライ内で置き直し、個数・位置の変化を許容する。
 - R5: 新規生成ワールドだけに適用する。受入: revision 4の既存地形r16・Vein AABB・露頭位置を変えず、表示cache有/無の両方でロード成功する。
 - R6: タイル境界・隣接Vein・木の高さ加工・r16量子化で保証を崩さない。受入: 境界共有頂点が一致し、最終表示と再ロード後にもR1〜R4を満たす。
@@ -48,13 +48,13 @@
 
 - 全整地計算はシーンXZ。noise→scene変換は既存PlacementSceneOffsetで一度だけ。Veinの中心は `(Min + Max + Vector3Int.one) * 0.5f`。
 - `SurfaceEnvelope`（Facade/Surface）はreadonly struct。readonly float `SeaY=4.3f`, `MaximumWaveRise=0.5f`, `LandClearance=0.1f`, `CoreHalfSize=2f`, `BlendWidth=2f`。既定値を呼出引数に散布せず `SurfaceEnvelope.GeneratedV5` が唯一の定義。4×4m平坦部は実測した全Prefabと3×3m採掘範囲を包含する。表示側はmeshのXZ中心をAABB中心に合わせる。
-- `SurfaceQuantization`（Pipeline/Surface）は `float LandFloor(float terrainHeight, SurfaceEnvelope envelope)` と `float PadHeight(int boxBottom, float terrainHeight)` を持つ。高さの単位はm。下限はr16切上げ、平坦部はAABB下端から0.001m引いてr16切下げ。計算内部はdouble、結果はfloat。float丸めで大小関係を逆転させない端点テストを持つ。
+- `SurfaceQuantization`（Pipeline/Surface）は `float LandFloor(TerrainGenerationConfig config, SurfaceEnvelope envelope, string tile)` と `float PadHeight(int boxBottom, TerrainGenerationConfig config, string tile)` を持つ。高さの単位はm。下限はTerrainData格納格子（1/32766）へ切上げ、平坦部はAABB下端から0.001m引いて同格子へ切下げ。qはterrainHeight/32766。r16の65535段は輸送の符号化として維持し、書込→本番読込→TerrainData.SetHeights/GetHeights後の値で保証する。計算内部はdouble、結果はfloat。float丸めで大小関係を逆転させない端点テストを持つ。
 - `LandCellField` はglobal vertex lattice上の元のlandMaskを保持する。どれかの角がlandMask>0.5のセルを保証対象とし、そのセルの4頂点を最低高で保護する。これは陸側の補間で水面下へ落ちることを防ぐ1セル支持領域で、海の内側全域を陸地化しない。
 - Vein採用判定では平坦部+BlendWidthの外側矩形に掛かる**全補間セルの全頂点**が元のlandMask>0.5であることを要求する。world外は候補却下（ログ集計）。隣タイルをworld外扱いしない。
 - `VeinGroundingPad` readonly struct: readonly `Rect Core`, `float HeightMeters`, `float BlendWidth`。CoreはsceneXZ。補間支持頂点までCoreの高さを固定する。Core/外周は同じglobal格子から算出するのでタイル境界で食い違わない。
 - 整地coreの支持頂点が重なるVeinをconnected componentへまとめる。成分の全coreの元高さ最大値から共通の整数AABB底面Bを決め、各VeinのMinY/MaxYを同じ差分で移す。成分全体の外接矩形を埋立てず、coreの和集合とそのskirtだけを変更する。斜面だから候補を捨てない。Bは `[ceil(LandFloor+quantum+0.001), floor(terrainHeight)]` の範囲へ収める。空区間なら生成設定不成立を明示する。
 - 複数skirtは元高さを基準に同時合成する。各padのcoreからのChebyshev距離dに対しw=1-SmoothStep(0,BlendWidth,d)。core支持点は所属成分の高さ。その他は `Lerp(original, sum(w*padHeight)/sum(w), max(w))`（sum=0ならoriginal）。順序に依存させず、padをCore.xMin/zMin/xMax/zMaxの辞書順で固定して加算する。
-- 最終工程は木加工→陸地floor→pad再適用→r16量子化。padは陸地内にしかないのでfloorとの矛盾がない。保存するpre-tree地形と最終表示地形は区別し、tree加工を保存地形へ二重適用しない。
+- 最終工程は木加工→陸地floor→pad再適用→TerrainData格子への量子化→r16符号化。padは陸地内にしかないのでfloorとの矛盾がない。保存するpre-tree地形と最終表示地形は区別し、tree加工を保存地形へ二重適用しない。
 
 ### データフロー（Phase 1.5）
 
@@ -184,7 +184,7 @@ public void UnknownRevisionCannotRegenerateAsCurrent()
 
 **Interfaces:**
 - Consumes: `SurfaceEnvelope.GeneratedV5`、既存 `IMapGenerator.Generate(TerrainGenerationConfig)`、PaddedWindowStage。
-- Produces: `SurfaceQuantization.LandFloor(float,SurfaceEnvelope):float`、`PadHeight(int,float):float`、`Quantize(float,float):float`。
+- Produces: `SurfaceQuantization.LandFloor(TerrainGenerationConfig,SurfaceEnvelope,string):float`、`PadHeight(int,TerrainGenerationConfig,string):float`、`EncodeNormalized(float):float`、`StoredNormalized(float):float`。
 - Produces: `SurfaceTileGrid` ctor `(MapGenerationOutput output, bool[][] tileLandMasks, TerrainGenerationConfig config)`。readonly `Output`, `Land`, `Config`、`SampleHeight(Vector2):float`、`ApplyLandFloor(SurfaceEnvelope):void`。座標変換とtile共有頂点書込みを内包。
 - Produces: `LandCellField.ContainsSupport(Rect sceneFootprint):bool`、`LandCellField.IsProtectedVertex(int globalX,int globalZ):bool`。これらは内部stage専用。
 - Produces: `SurfaceGridBuilder.Build(TerrainGenerationConfig):SurfaceTileGrid`、`GroundedVanillaGenerator.Generate(TerrainGenerationConfig):GenerationRun`。
@@ -194,17 +194,14 @@ public void UnknownRevisionCannotRegenerateAsCurrent()
 - [ ] 全タイルを先にPaddedWindowStageで生成しheightsとlandMaskだけを保持。共有vertex indexは `tile*(resolution-1)+local`。重複頂点は一致を検査し、ownerはtileZ→tileXの最小側。globalサンプルを隣tileへclampしない。Spawn探索とorigins確定を一度だけ実行し、GenerationOriginResolver/SpawnSurfaceSamplerへ同役割メソッドを抽出して4/5で共有する（処理・乱数順は変えない）。その後配置用buffersを各tileで再生成し、heightにはfloor済み配列を使う。
 
 ```csharp
-public static float LandFloor(float terrainHeight, SurfaceEnvelope envelope)
-{
-    double meters = envelope.SeaY + envelope.MaximumWaveRise + envelope.LandClearance;
-    return FromUnits(Math.Ceiling(ToUnits(meters, terrainHeight)), terrainHeight);
-}
-public static float PadHeight(int boxBottom, float terrainHeight)
-{
-    return FromUnits(Math.Floor(ToUnits(boxBottom - 0.001d, terrainHeight)), terrainHeight);
-}
-private static double ToUnits(double meters, float terrainHeight) => meters / terrainHeight * 65535d;
-private static float FromUnits(double units, float terrainHeight) => (float)(units / 65535d * terrainHeight);
+// 実装は解読floatの上下限を確認し、必要なら格納段を進める
+// Production checks decoded float bounds and advances the storage step when necessary
+const int terrainStorageSteps = 32766;
+double quantum = config.terrainHeight / (double)terrainStorageSteps;
+float floor = SurfaceQuantization.LandFloor(config, envelope, "all");
+float pad = SurfaceQuantization.PadHeight(boxBottom, config, "grading");
+float encoded = SurfaceQuantization.EncodeNormalized(pad / config.terrainHeight);
+float effective = SurfaceQuantization.StoredNormalized(encoded);
 ```
 
 - [ ] 生成器選択を既存AlgorithmTableへ集約する（Pipelineに第2のdispatchを作らない）。
@@ -221,16 +218,16 @@ return generator.Generate(config);
 [Test]
 public void QuantizedLandFloorExceedsWaveEnvelope()
 {
-    float floor = SurfaceQuantization.LandFloor(600f, SurfaceEnvelope.GeneratedV5);
+    float floor = SurfaceQuantization.LandFloor(new TerrainGenerationConfig { terrainHeight = 600f }, SurfaceEnvelope.GeneratedV5, "fixture");
     Assert.That(floor, Is.GreaterThanOrEqualTo(4.9f));
-    Assert.That(floor, Is.LessThan(4.9f + 600f / 65535f));
+    Assert.That(floor, Is.LessThan(4.9f + 600f / 32766f));
 }
 [Test]
 public void PadStaysImmediatelyBelowMiningBox()
 {
-    float height = SurfaceQuantization.PadHeight(20, 600f);
+    float height = SurfaceQuantization.PadHeight(20, new TerrainGenerationConfig { terrainHeight = 600f }, "fixture");
     Assert.That(height, Is.LessThan(20f));
-    Assert.That(20f - height, Is.LessThanOrEqualTo(600f / 65535f + 0.00101f));
+    Assert.That(20f - height, Is.LessThanOrEqualTo(600f / 32766f + 0.00101f));
 }
 ```
 
@@ -306,7 +303,7 @@ public void LegacyConstraintDoesNotChangeCandidateAcceptance()
 
 ```csharp
 int bottom = Mathf.Clamp(Mathf.CeilToInt(maximumCoreHeight), minimumBottom, maximumBottom);
-float padHeight = SurfaceQuantization.PadHeight(bottom, terrainHeight);
+float padHeight = SurfaceQuantization.PadHeight(bottom, grid.Config, "grading");
 int shift = bottom - vein.Min.y;
 var grounded = new PlacedVein(vein.VeinGuid,
     vein.Min + Vector3Int.up * shift, vein.Max + Vector3Int.up * shift);
@@ -321,7 +318,7 @@ var grounded = new PlacedVein(vein.VeinGuid,
 public void PadQuantizationNeverMovesTerrainIntoRange()
 {
     foreach (int bottom in new[] { 5, 20, 599, 600 })
-        Assert.That(SurfaceQuantization.PadHeight(bottom, 600f), Is.LessThan(bottom));
+        Assert.That(SurfaceQuantization.PadHeight(bottom, new TerrainGenerationConfig { terrainHeight = 600f }, "fixture"), Is.LessThan(bottom));
 }
 ```
 
@@ -346,7 +343,7 @@ public void PadQuantizationNeverMovesTerrainIntoRange()
 
 **Interfaces:**
 - Consumes: `GroundingHeightProjector.Apply`, `PlacementLedger.GroundingPads`, `TreePerturbationApplier.Apply`。
-- Produces: `FinalSurfaceProjector.Apply(float[,] postTreeHeights, TerrainGenerationConfig tileConfig, Vector3 tileScene, LandCellField land, IReadOnlyList<VeinGroundingPad> pads):float[,]`。
+- Produces: `FinalSurfaceProjector.Apply(float[,] postTreeHeights, TerrainGenerationConfig tileConfig, Vector3 tileScene, LandCellField land, IReadOnlyList<VeinGroundingPad> pads, SurfaceEnvelope envelope):float[,]`。
 - Produces: `SurfaceObjectReanchor.Apply(MapGenerationOutput output, PlacementLedger ledger, SurfacePlacementBindings bindings, SurfaceTileGrid before, SurfaceTileGrid after):PlacementLedger`（before/afterは独立コピーの木加工後の高さ場。配置anchorへafter-beforeの差だけ加算し、既存sink/offsetとrotationを保つ）。
 - Produces: `ValidatedPlacementLedgerSource(IPlacementLedgerSource source,string expectedDigest,TreeSurroundSpeciesTable species)` と `Resolve():PlacementLedger`。既存TileVisualBaker.ResolveLedgerを移設し一度だけのresolve・digest/樹種検査を保持する。
 - Produces: `TileSurfaceHeightBuilder.Build(float[,] pre,TerrainGenerationConfig config,Vector3 tileScene,PlacementLedger ledger,LandCellField land):(float[,] Pre,float[,] Post)`。木加工とrevision別projectorを所有。TileVisualBakerの既存BuildHeightPairとResolveLedgerを抽出して199行以下にする。
@@ -356,7 +353,7 @@ public void PadQuantizationNeverMovesTerrainIntoRange()
 
 ```csharp
 var post = TreePerturbationApplier.Apply(pre, tileConfig, tileWorldPosition, ledger.Placements);
-post = FinalSurfaceProjector.Apply(post, tileConfig, tileWorldPosition, land, ledger.GroundingPads);
+post = FinalSurfaceProjector.Apply(post, tileConfig, tileWorldPosition, land, ledger.GroundingPads, envelope);
 ```
 
 - [ ] 生成側でも同じprojectorを使って最終表示高さを評価し、整地による変更前後の木・mapObjectの高さ差をoutputと返却ledgerへ同時反映する。tree modifierはXZ/Scaleで駆動し、Yを変更しても高さ場が変わらないことを既存実装とテストで固定する。従来sink/rotationを勝手に0へ直さない。spawn/fall復帰Yは最終表示面の補間値に更新。保存r16はあくまでpre-tree整地後の配列であり、post-treeをそこへ書かない。

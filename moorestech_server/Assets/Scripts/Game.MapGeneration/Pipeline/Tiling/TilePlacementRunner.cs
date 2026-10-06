@@ -99,8 +99,8 @@ namespace Game.MapGeneration.Pipeline.Tiling
             // Every tile appends to one list; assigning would keep only the last tile's placements.
             AppendMapObjects(treeEntries);
             AppendMapObjects(objectEntries);
-            SurfacePlacementAppender.AppendVeins(itemBatch, true, _output, _ledger, _bindings, _noiseToSceneShift, tileConfig.SurfaceRevision);
-            SurfacePlacementAppender.AppendVeins(fluidBatch, false, _output, _ledger, _bindings, _noiseToSceneShift, tileConfig.SurfaceRevision);
+            _output.ItemVeins.AddRange(itemBatch.Veins);
+            _output.FluidVeins.AddRange(fluidBatch.Veins);
 
             #region Internal
 

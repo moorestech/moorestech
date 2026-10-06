@@ -25,7 +25,7 @@ namespace Game.MapGeneration.Pipeline
             // 探索結果を config へ書き戻すため作業コピーで通す。引数を汚すと同じ config での再実行が別地形になる。
             // Work on a copy since the search result is written back; mutating the argument would make a re-run differ.
             var config = sourceConfig.ShallowCopy();
-            config.SurfaceRevision = WorldSurfaceRevision.Legacy4;
+            config.surfaceRevision = WorldSurfaceRevision.Legacy4;
 
             // 転送層のタイル並びは正方かつ1枚以上の格子前提。非正方は index と coord の対応が崩れ、0以下は
             // EnumerateTileCoordinates の完全平方判定を素通りしてチャンク0本のワイヤ値になる(TerrainTransferMeta参照)。

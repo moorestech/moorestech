@@ -32,11 +32,11 @@ namespace Game.MapGeneration.Pipeline
         // 生成時に確定した原点を注入したConfigを組み立てる。ワールド作成時の探索結果を引き継ぐ再現側(クライアント)専用。
         // Builds a config with the origins generation already settled; for the reproducing side (client) that inherits the world-creation search result.
         public static TerrainGenerationConfig BuildConfigWithSettledOrigins(
-            Generation selected, int seed, string serverDataDirectory, TerrainOrigins settledOrigins, string generatorVersion)
+            Generation selected, int seed, string serverDataDirectory, TerrainOrigins settledOrigins, string generatorVersion, string worldId)
         {
-            var revision = WorldGeneratorVersion.Resolve(generatorVersion, $"seed={seed}");
+            var revision = WorldGeneratorVersion.Resolve(generatorVersion, worldId);
             var config = BuildConfig(selected, seed, serverDataDirectory);
-            config.SurfaceRevision = revision;
+            config.surfaceRevision = revision;
 
             // マスタが探索を使わない設定なら書き戻しが起きず、マスタ値がそのまま生成時の値。注入する余地が無い
             // With the search disabled in the master there is no write-back at all, so the master values are the generation-time ones and nothing needs injecting
@@ -66,7 +66,7 @@ namespace Game.MapGeneration.Pipeline
         // Resolves the algorithm from an already-built config and generates.
         public static GenerationRun Generate(Generation selected, TerrainGenerationConfig config)
         {
-            var generator = MapGenerationAlgorithmTable.Resolve(selected.Algorithm, config.SurfaceRevision);
+            var generator = MapGenerationAlgorithmTable.Resolve(selected.Algorithm, config.surfaceRevision);
             return generator.Generate(config);
         }
     }

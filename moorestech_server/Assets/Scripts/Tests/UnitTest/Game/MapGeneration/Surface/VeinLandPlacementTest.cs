@@ -94,6 +94,17 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             public int Calls { get; private set; }
             public PlacedVein Rejected { get; private set; }
 
+            public void RecordEligibleCenter()
+            {
+                // 旧配置の観測は候補列や乱数を変更しない
+                // Legacy observation leaves candidates and RNG untouched
+            }
+
+            public bool Overlaps(PlacedVein candidate, IReadOnlyList<PlacedVein> veins)
+            {
+                return VeinAabbBuilder.OverlapsAny(candidate, veins);
+            }
+
             public bool Accept(PlacedVein candidate)
             {
                 Calls++;
@@ -101,7 +112,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
                 return Calls > 1 && candidate.Min != Rejected.Min;
             }
 
-            public void ReportRejections(int seed, int tileX, int tileZ, string entryGuid)
+            public void ReportRejections(int seed, int tileX, int tileZ, string entryGuid, int acceptedCount)
             {
                 LogAssert.Expect(LogType.Warning, "Fixture rejected first candidate.");
                 Debug.LogWarning("Fixture rejected first candidate.");

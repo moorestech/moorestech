@@ -10,6 +10,11 @@ namespace Game.MapGeneration.Pipeline.Surface
         public static SurfaceTileGrid Build(TerrainGenerationConfig config)
         {
             SurfaceGenerationValidation.Validate(config, SurfaceEnvelope.GeneratedV5);
+            return BuildValidated(config);
+        }
+
+        internal static SurfaceTileGrid BuildValidated(TerrainGenerationConfig config)
+        {
             var origins = MapGenerationPipeline.ResolveOrigins(config);
             var output = new MapGenerationOutput
             {
@@ -26,11 +31,12 @@ namespace Game.MapGeneration.Pipeline.Surface
             gridConfig.worldOffsetZ = origins.NoiseOrigin.y;
             var masks = new bool[config.gridSizeX * config.gridSizeZ][];
             using var parameters = new SurfaceGenerationParameters(config, biomes);
+            var boundaries = new SurfaceBoundarySamples(config, biomes.Length);
             foreach (var (x, z) in TerrainTransferMeta.EnumerateTileCoordinates(masks.Length))
             {
                 var tileConfig = gridConfig.CreateTileConfig(x, z);
                 using var window = new SurfaceGenerationWindow(tileConfig, biomes, parameters);
-                window.Run(tileConfig, biomes);
+                window.Run(tileConfig, biomes, boundaries, x, z);
                 var mask = new bool[config.Resolution * config.Resolution];
                 for (int i = 0; i < mask.Length; i++)
                 {

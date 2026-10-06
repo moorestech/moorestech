@@ -14,16 +14,16 @@ namespace Client.Game.InGame.Environment.Terrain
             if (float.IsNaN(envelope.SeaY) || float.IsInfinity(envelope.SeaY) ||
                 float.IsNaN(envelope.MaximumWaveRise) || float.IsInfinity(envelope.MaximumWaveRise) || envelope.MaximumWaveRise < 0f)
                 throw Failure("[GeneratedOceanSurface] Sea envelope must contain finite heights and a nonnegative wave rise.");
-            if (waterRenderers == null || waterRenderers.Length != 2)
-                throw Failure("[GeneratedOceanSurface] Exactly two water renderers must be wired.");
-
-            if (waterRenderers[0] == waterRenderers[1])
-                throw Failure("[GeneratedOceanSurface] Water renderer references must be distinct.");
+            if (waterRenderers == null || waterRenderers.Length == 0)
+                throw Failure("[GeneratedOceanSurface] At least one water renderer must be wired.");
 
             // 全入力を検証してから描画実体を書き換える
             // Validate every input before modifying presentation instances
+            var distinctRenderers = new System.Collections.Generic.HashSet<Renderer>();
             foreach (var renderer in waterRenderers)
             {
+                if (!distinctRenderers.Add(renderer))
+                    throw Failure("[GeneratedOceanSurface] Water renderer references must be distinct.");
                 if (renderer == null)
                     throw Failure("[GeneratedOceanSurface] A water renderer reference is missing.");
                 ValidatePlane(renderer);
@@ -43,12 +43,15 @@ namespace Client.Game.InGame.Environment.Terrain
                 var position = renderer.transform.position;
                 position.y = envelope.SeaY;
                 renderer.transform.position = position;
-                foreach (var material in renderer.materials)
+                var materials = renderer.sharedMaterials;
+                for (var index = 0; index < materials.Length; index++)
                 {
-                    material.SetFloat(WaveHeightProperty, envelope.MaximumWaveRise);
-                    if (material.GetFloat(WaveHeightProperty) > envelope.MaximumWaveRise)
-                        throw Failure($"[GeneratedOceanSurface] Wave envelope exceeded on {renderer.name}.");
+                    // Editorでも暗黙の複製を使わず描画専用の実体を割り当てる
+                    // Assign explicit presentation instances without implicit Editor material instantiation
+                    materials[index] = new Material(materials[index]);
+                    materials[index].SetFloat(WaveHeightProperty, envelope.MaximumWaveRise);
                 }
+                renderer.sharedMaterials = materials;
             }
         }
 
@@ -78,7 +81,7 @@ namespace Client.Game.InGame.Environment.Terrain
         {
             // 拒否理由を起動失敗の前に記録する
             // Record the rejection before failing startup
-            Debug.LogWarning(reason);
+            Debug.LogError(reason);
             return new InvalidOperationException(reason);
         }
     }

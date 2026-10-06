@@ -1,9 +1,11 @@
 using System;
 using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Transfer;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Tests.UnitTest.Game.MapGeneration.Surface
 {
@@ -13,9 +15,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         [TestCase("5.0.0", WorldSurfaceRevision.Grounded5)]
         public void SupportedWorldLoads(string version, WorldSurfaceRevision revision)
         {
-            Assert.DoesNotThrow(() => WorldGeneratorVersion.ThrowIfSupported(version, "fixture"));
+            Assert.DoesNotThrow(() => WorldGeneratorVersion.ThrowIfUnsupported(version, "fixture"));
             Assert.That(WorldGeneratorVersion.Resolve(version, "fixture"), Is.EqualTo(revision));
-            Assert.That(WorldGeneratorVersion.ToWire(revision), Is.EqualTo(version));
 
             // 転送境界も旧版を受理し保存値を維持する
             // The transfer boundary accepts the legacy revision and retains the saved value
@@ -32,14 +33,31 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         public void UnknownRevisionCannotRegenerateAsCurrent(string version)
         {
             Assert.That(WorldGeneratorVersion.Supports(version), Is.False);
+            LogAssert.Expect(LogType.Error, $"Unsupported generator '{version}' for world 'fixture'; connect to a server on the same build.");
             Assert.Throws<InvalidOperationException>(() => WorldGeneratorVersion.Resolve(version, "fixture"));
         }
 
         [Test]
         public void NewConfigurationUsesGroundedRevision()
         {
-            Assert.That(new TerrainGenerationConfig().SurfaceRevision, Is.EqualTo(WorldSurfaceRevision.Grounded5));
+            Assert.That(new TerrainGenerationConfig().surfaceRevision, Is.EqualTo(WorldSurfaceRevision.Grounded5));
             Assert.That(WorldGeneratorVersion.Current, Is.EqualTo("5.0.0"));
+        }
+
+        [TestCase(WorldSurfaceRevision.Legacy4, typeof(TerrainSurfacePresentation.Existing))]
+        [TestCase(WorldSurfaceRevision.Grounded5, typeof(TerrainSurfacePresentation.Grounded))]
+        public void PresentationUsesTheGenerationRevisionRegistry(WorldSurfaceRevision revision, Type presentation)
+        {
+            var config = new TerrainGenerationConfig { surfaceRevision = revision };
+            var policy = MapGenerationAlgorithmTable.ResolveSurface(revision).CreateHeightPolicy(config);
+            Assert.That(policy.Presentation, Is.TypeOf(presentation));
+        }
+
+        [Test]
+        public void UnknownPresentationRevisionFailsBeforeBaking()
+        {
+            LogAssert.Expect(LogType.Error, "Unsupported surface revision '999'.");
+            Assert.Throws<InvalidOperationException>(() => MapGenerationAlgorithmTable.ResolveSurface((WorldSurfaceRevision)999));
         }
 
         [TestCase("4.0.0")]

@@ -43,7 +43,7 @@ namespace Game.MapGeneration.Provisioning
             // Re-run pass-1 through the very assembly the client's Open uses, so passing here means the client reaches the same ledger
             var selectedGeneration = MasterHolder.GenerationMaster.SelectedGeneration;
             var config = MapGenerationPipeline.BuildConfigWithSettledOrigins(
-                selectedGeneration, terrainMeta.WorldSeed, serverDataDirectory, generatedPayload.Origins, generatedPayload.GeneratorVersion);
+                selectedGeneration, terrainMeta.WorldSeed, serverDataDirectory, generatedPayload.Origins, generatedPayload.GeneratorVersion, terrainMeta.WorldId);
             var run = MapGenerationPipeline.Generate(selectedGeneration, config);
 
             // 窓が動いていたら配置以前に別のワールドなので、集合の比較より先に止める

@@ -7,7 +7,7 @@ namespace Game.MapGeneration.Pipeline.Surface.Grading
 {
     public static class VeinGroundingPlanner
     {
-        public static GroundingPlan Build(SurfaceTileGrid grid, SurfacePlacementBindings bindings, SurfaceEnvelope envelope)
+        public static GroundingPlan Build(SurfaceTileGrid grid, SurfaceEnvelope envelope)
         {
             var veins = new List<PlacedVein>(grid.Output.ItemVeins);
             veins.AddRange(grid.Output.FluidVeins);
@@ -38,10 +38,10 @@ namespace Game.MapGeneration.Pipeline.Surface.Grading
                     maximums[roots[i]] = Mathf.Max(maximums[roots[i]], grid.GetHeight(x, z));
             }
 
-            // 全成分で同じ実r16下限を使い、範囲の厚さは保つ
-            // Use the same decoded r16 lower bound for all components and retain range thickness
-            float floor = SurfaceQuantization.LandFloor(grid.Config.terrainHeight, envelope);
-            double quantum = (double)grid.Config.terrainHeight / ushort.MaxValue;
+            // 全成分で同じUnity格納下限を使い、範囲の厚さは保つ
+            // Use the same Unity storage lower bound for all components and retain range thickness
+            float floor = SurfaceQuantization.LandFloor(grid.Config, envelope, "grading");
+            double quantum = (double)grid.Config.terrainHeight / SurfaceQuantization.TerrainStorageSteps;
             int minimum = (int)Math.Ceiling(floor + quantum + 0.001d);
             int maximum = Mathf.FloorToInt(grid.Config.terrainHeight);
             if (minimum > maximum)
@@ -52,10 +52,9 @@ namespace Game.MapGeneration.Pipeline.Surface.Grading
             {
                 int bottom = Mathf.Clamp(Mathf.CeilToInt(maximums[roots[i]]), minimum, maximum);
                 bottoms[i] = bottom;
-                pads.Add(new VeinGroundingPad(cores[i], SurfaceQuantization.PadHeight(bottom, grid.Config.terrainHeight), envelope.BlendWidth));
+                pads.Add(new VeinGroundingPad(cores[i], SurfaceQuantization.PadHeight(bottom, grid.Config, "grading"), envelope.BlendWidth));
             }
-            bindings.CaptureVeinBottoms(grid.Output);
-            return new GroundingPlan(grid, bindings, bottoms, pads);
+            return new GroundingPlan(grid, bottoms, pads);
         }
     }
 }

@@ -1,3 +1,4 @@
+using Game.MapGeneration.Facade.Surface;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Visual;
 using Game.MapGeneration.Pipeline.Visual.Placement;
@@ -7,7 +8,7 @@ namespace Game.MapGeneration.Pipeline.Surface
 {
     internal static class SurfaceDisplayEvaluator
     {
-        internal static SurfaceTileGrid Build(SurfaceTileGrid source, PlacementLedger ledger, bool projectFinal)
+        internal static SurfaceTileGrid Build(SurfaceTileGrid source, PlacementLedger ledger, bool projectFinal, SurfaceEnvelope envelope)
         {
             var output = new MapGenerationOutput
             {
@@ -39,13 +40,18 @@ namespace Game.MapGeneration.Pipeline.Surface
                 var position = new Vector3(scene.x, 0f, scene.y);
                 var post = TreePerturbationApplier.Apply(pre, tileConfig, position, ledger.Placements);
                 if (projectFinal)
-                    post = FinalSurfaceProjector.Apply(post, tileConfig, position, source.Land, ledger.GroundingPads);
+                    post = FinalSurfaceProjector.Apply(post, tileConfig, position, source.Land, ledger.GroundingPads, envelope);
 
                 // 返却場は独立コピーで、保存用pre-treeへ書き戻さない
-                // Return independent fields without writing back into saved pre-tree heights
+                // Evaluate Unity storage in independent fields without modifying saved pre-tree heights
                 var heights = new float[resolution * resolution];
                 for (int z = 0; z < resolution; z++)
-                for (int x = 0; x < resolution; x++) heights[z * resolution + x] = Mathf.Clamp(Mathf.RoundToInt(post[z, x] * ushort.MaxValue), 0, ushort.MaxValue) / (float)ushort.MaxValue;
+                for (int x = 0; x < resolution; x++)
+                {
+                    float encoded = Mathf.Clamp(Mathf.RoundToInt(post[z, x] * ushort.MaxValue), 0, ushort.MaxValue) /
+                                    (float)ushort.MaxValue;
+                    heights[z * resolution + x] = SurfaceQuantization.StoredNormalized(encoded);
+                }
                 masks[output.Tiles.Count] = mask;
                 output.Tiles.Add(new TerrainTileOutput { TileX = tile.TileX, TileZ = tile.TileZ, Heights = heights });
             }

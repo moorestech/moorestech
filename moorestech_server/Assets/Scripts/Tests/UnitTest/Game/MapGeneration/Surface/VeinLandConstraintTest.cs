@@ -39,7 +39,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             Assert.That(constraint.Accept(Candidate(10, 10)), Is.False);
             Assert.That(constraint.Accept(Candidate(25, 25)), Is.True);
             LogAssert.Expect(LogType.Warning, new Regex("seed=196.*tile=0,0.*coast=1, world-edge=0"));
-            constraint.ReportRejections(196, 0, 0, "entry");
+            constraint.ReportRejections(196, 0, 0, "entry", 1);
         }
 
         [Test]
@@ -49,7 +49,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             Assert.That(coast.Accept(Candidate(10, 10)), Is.False);
             Assert.That(coast.Accept(Candidate(1, 1)), Is.False);
             LogAssert.Expect(LogType.Warning, new Regex("coast=1, world-edge=1"));
-            coast.ReportRejections(196, 0, 0, "entry");
+            coast.ReportRejections(196, 0, 0, "entry", 1);
         }
 
         [Test]
@@ -62,7 +62,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             var constraint = new GroundedVeinLandConstraint(new LandCellField(geometry, mask), Vector2.zero, SurfaceEnvelope.GeneratedV5);
             Assert.That(constraint.Accept(Candidate(10, 10)), Is.False);
             LogAssert.Expect(LogType.Warning, new Regex("coast=1, world-edge=0"));
-            constraint.ReportRejections(196, 0, 0, "entry");
+            constraint.ReportRejections(196, 0, 0, "entry", 1);
         }
 
         [Test]
@@ -82,7 +82,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             Assert.That(constraint.Accept(Candidate(110, -60)), Is.True);
             Assert.That(constraint.Accept(Candidate(10, 10)), Is.False);
             LogAssert.Expect(LogType.Warning, new Regex("coast=0, world-edge=1"));
-            constraint.ReportRejections(196, 0, 0, "entry");
+            constraint.ReportRejections(196, 0, 0, "entry", 1);
         }
 
         [Test]
@@ -90,8 +90,24 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         {
             var low = Candidate(10, 10);
             var high = new PlacedVein("high", new Vector3Int(9, 20, 9), new Vector3Int(11, 20, 11));
-            Assert.That(VeinAabbBuilder.OverlapsAny(low, new[] { high }), Is.False);
-            Assert.That(VeinAabbBuilder.OverlapsAnyXz(low, new[] { high }), Is.True);
+            Assert.That(new UnrestrictedVeinLandConstraint().Overlaps(low, new[] { high }), Is.False);
+            Assert.That(Create(true, -1, -1, Vector2.zero).Overlaps(low, new[] { high }), Is.True);
+        }
+
+        [Test]
+        public void EmptyEntryIsQuietButAttemptedMemberShortageIsReportedAndReset()
+        {
+            var constraint = Create(true, -1, -1, Vector2.zero);
+            constraint.ReportRejections(196, 0, 0, "outside-band", 0);
+            LogAssert.NoUnexpectedReceived();
+            Assert.That(constraint.Accept(Candidate(10, 10)), Is.True);
+            LogAssert.Expect(LogType.Warning, new Regex("1 member candidates accepted zero"));
+            constraint.ReportRejections(196, 0, 0, "excluded-member", 0);
+            constraint.RecordEligibleCenter();
+            LogAssert.Expect(LogType.Warning, new Regex("0 member candidates accepted zero; eligible centers=1"));
+            constraint.ReportRejections(196, 0, 0, "filtered-center", 0);
+            constraint.ReportRejections(196, 0, 0, "next-empty-entry", 0);
+            LogAssert.NoUnexpectedReceived();
         }
 
         private static GroundedVeinLandConstraint Create(bool land, int seaX, int seaZ, Vector2 shift)

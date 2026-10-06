@@ -7,27 +7,27 @@ namespace Game.MapGeneration.Pipeline.Surface.Grading
     public sealed class GroundingPlan
     {
         private readonly SurfaceTileGrid _grid;
-        private readonly SurfacePlacementBindings _bindings;
         private readonly int[] _bottoms;
         private readonly IReadOnlyList<VeinGroundingPad> _pads;
 
-        internal GroundingPlan(SurfaceTileGrid grid, SurfacePlacementBindings bindings, int[] bottoms,
+        internal GroundingPlan(SurfaceTileGrid grid, int[] bottoms,
             IReadOnlyList<VeinGroundingPad> pads)
         {
             _grid = grid;
-            _bindings = bindings;
             _bottoms = bottoms;
             _pads = pads;
         }
 
         public PlacementLedger Apply(MapGenerationOutput output, PlacementLedger ledger)
         {
-            // AABBと台帳を同じ計画で移し、元台帳は保持する
-            // Move AABBs and ledger through one plan while retaining the source ledger
+            // AABBを移し、見た目台帳には整地面だけを追加する
+            // Move AABBs and add only grading pads to the visual ledger
             int index = 0;
             Move(output.ItemVeins);
             Move(output.FluidVeins);
-            var grounded = _bindings.ApplyVeinPositions(output, ledger);
+            var positions = new List<Vector3>();
+            foreach (var placement in ledger.Placements) positions.Add(placement.ScenePosition);
+            var grounded = ledger.WithScenePositions(positions);
             foreach (var pad in _pads) grounded.AddGroundingPad(pad);
 
             // 全域の一枚の格子から投影し、共有頂点へ複製する

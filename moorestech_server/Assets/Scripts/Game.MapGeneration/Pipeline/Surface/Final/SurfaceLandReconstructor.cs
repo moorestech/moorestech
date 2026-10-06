@@ -25,6 +25,7 @@ namespace Game.MapGeneration.Pipeline.Surface
             var mask = new bool[width * depth];
             var biomes = ClassificationStage.GetEnabledBiomeTypes(_config);
             using var parameters = new SurfaceGenerationParameters(_config, biomes);
+            var boundaries = new SurfaceBoundarySamples(_config, biomes.Length);
 
             // 隣接タイルの角も保持し、外側セルの陸地支持を復元する
             // Retain neighboring tile corners to reconstruct land support across outside cells
@@ -33,7 +34,7 @@ namespace Game.MapGeneration.Pipeline.Surface
             {
                 var tile = _config.CreateTileConfig(tileX, tileZ);
                 using var window = new SurfaceGenerationWindow(tile, biomes, parameters);
-                window.Run(tile, biomes);
+                window.Run(tile, biomes, boundaries, tileX, tileZ);
                 for (int z = 0; z < tile.Resolution; z++)
                 for (int x = 0; x < tile.Resolution; x++)
                 {

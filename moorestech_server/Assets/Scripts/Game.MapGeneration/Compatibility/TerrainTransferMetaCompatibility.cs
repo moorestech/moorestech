@@ -40,7 +40,7 @@ namespace Game.MapGeneration.Transfer
         public static void ThrowIfGeneratorVersionUnsupported(
             this GeneratedTerrainTransferPayload generatedPayload, string worldId)
         {
-            WorldGeneratorVersion.ThrowIfSupported(generatedPayload.GeneratorVersion, worldId);
+            WorldGeneratorVersion.ThrowIfUnsupported(generatedPayload.GeneratorVersion, worldId);
         }
     }
 }
