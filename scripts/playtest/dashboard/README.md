@@ -30,8 +30,8 @@ scripts/playtest/link-ticket.sh --remove <steamId> <reportId> <チケットURL> 
 ```
 
 - エージェント（Hermes 等）がチケットを起票するときは、関連する報告ごとに (1) チケット本文へビューワー URL `https://review.moores.tech/playtest/#/report/<steamId>/<reportId>` を書き、(2) `link-ticket.sh` で紐付ける。関連する報告は `curl -s -H 'Host: 127.0.0.1:8932' http://127.0.0.1:8932/playtest/api/data` の `reports[]`（`description`・`boxSteamId`・`boxId`）から探す
-- 保存先は `moorestech_logs/harness/playtest/dashboard-state.json`（報告箱の外。箱の中に置くとテスターが同名ファイルを送って既読を偽装できるため）。書き手はダッシュボードのサーバー1プロセスだけで、`link-ticket.sh` もサーバー経由で書く
-- 書き込み API（`POST /playtest/api/read`・`/api/links/add`・`/api/links/remove`）は JSON 本文と `X-Playtest-Dashboard: 1` ヘッダを必須にし、Origin があれば許可ホストと照合する（Access の内側でも別サイトからの送信を弾くため）。壊れた状態ファイルは上書きせず 500 を返す
+- 保存先は `moorestech_logs/.state/playtest-dashboard-state.json`（git 管理外）。報告箱の中に置くとテスターが同名ファイルを送って既読を偽装でき、git 管理下に置くとログ同期の rebase 中に記録が消えるため。書き手はダッシュボードのサーバー1プロセスだけで、`link-ticket.sh` もサーバー経由で書く。git の履歴には残らない（ディスクが壊れたら既読とリンクは失われる）
+- 書き込み API（`POST /playtest/api/read` は `{"items":[{"steamId","id"}...],"read":bool}` で複数件を全件か0件で、`/api/links/add`・`/api/links/remove` は1件ずつ。紐付いていない URL の解除は 404）は JSON 本文と `X-Playtest-Dashboard: 1` ヘッダを必須にし、Origin があれば許可ホストと照合する（Access の内側でも別サイトからの送信を弾くため）。壊れた状態ファイルは上書きせず 500 を返す
 
 ## 判定規則（ダイジェストと揃える）
 

@@ -1,9 +1,9 @@
 // 報告詳細で人が操作する部品: 既読の切り替え・ビューワー URL のコピー・関連チケットの紐付け
 // Human actions on the report detail: read toggle, copying the viewer URL, and linking related tickets
-// 詳細画面は動画再生中かもしれないので、操作後は画面全体を描き直さず自分の部品だけを直す
-// The detail page may be playing a video, so after an action only the affected part is redrawn, never the whole page
+// 詳細画面は動画再生中かもしれないので、操作後は画面全体を描き直さず、サーバーの保存結果を引き直して自分の部品だけを直す
+// The detail page may be playing a video, so after an action it re-reads what the server saved and redraws only its own parts
 import { card } from "../components.js";
-import { emptyNote, fmtDateTime, h, postState, reportKey } from "../core.js";
+import { emptyNote, fmtDateTime, fetchSavedReport, h, postState, reportKey } from "../core.js";
 
 const VIEWER_BASE = "https://review.moores.tech/playtest/#/report";
 
@@ -14,15 +14,21 @@ export function detailActions(report) {
     readButton.classList.toggle("is-on", Boolean(report.readAt));
   };
   readButton.addEventListener("click", async () => {
-    const next = !report.readAt;
-    if (await postState("read", { ...reportKey(report), read: next }, false)) {
-      report.readAt = next ? new Date().toISOString() : null;
-      paintRead();
-    }
+    if (await postState("read", { items: [reportKey(report)], read: !report.readAt }, false)) await syncFromServer(report, paintRead);
   });
   paintRead();
   const copyButton = h("button", { type: "button", onclick: () => copyViewerUrl(report, copyButton) }, "ビューワーのURLをコピー");
   return h("div", { class: "detail-actions" }, readButton, copyButton);
+}
+
+// 保存結果の既読とリンクを、画面が持っている報告オブジェクトへ写してから描き直す
+// Copies the saved read mark and links onto the page's report object, then repaints
+async function syncFromServer(report, repaint) {
+  const saved = await fetchSavedReport(report);
+  if (saved === null) return;
+  report.readAt = saved.readAt;
+  report.links = saved.links;
+  repaint();
 }
 
 export function viewerUrl(report) {
@@ -50,10 +56,7 @@ function ticketItem(report, link, paint) {
   const remove = h("button", {
     type: "button", class: "ghost", title: "紐付けを外す", "aria-label": "紐付けを外す",
     onclick: async () => {
-      if (await postState("links/remove", { ...reportKey(report), url: link.url }, false)) {
-        report.links = report.links.filter((other) => other.url !== link.url);
-        paint();
-      }
+      if (await postState("links/remove", { ...reportKey(report), url: link.url }, false)) await syncFromServer(report, paint);
     },
   }, "外す");
   const href = /^https:\/\//.test(link.url) ? link.url : null;
@@ -72,10 +75,9 @@ function addForm(report, paint) {
     event.preventDefault();
     const entry = { url: url.value.trim(), title: title.value.trim() };
     if (await postState("links/add", { ...reportKey(report), ...entry }, false)) {
-      report.links = [...report.links.filter((link) => link.url !== entry.url), { ...entry, addedAt: new Date().toISOString() }];
       url.value = "";
       title.value = "";
-      paint();
+      await syncFromServer(report, paint);
     }
   });
   return form;

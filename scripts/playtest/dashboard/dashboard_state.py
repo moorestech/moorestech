@@ -1,11 +1,15 @@
 """ダッシュボードで人が付ける状態（報告の既読・関連チケットのリンク）を1つの JSON に保存する。
 
-報告箱の中にマーカーを置くと、テスターが同名のファイルを送って既読を偽装できるため、箱の外の1ファイルに持つ。
-書き込みはこのサーバー1プロセスだけが行う前提で、プロセス内ロックと一時ファイルからの置き換えで壊れた中間状態を残さない。
+置き場は moorestech_logs の git 管理外（.state/）。報告箱の中に置くとテスターが同名ファイルを送って既読を偽装でき、
+git 管理下に置くとログ同期の rebase 中に古い版へ戻ったファイルを書き換えて記録が消えるため。
+書き手はこのサーバー1プロセスだけで、プロセス内ロックと一時ファイルからの置き換えで壊れた中間状態を残さない。
+更新関数は (HTTP ステータス, 理由) を返し、壊れた状態ファイルは上書きしない（既読やリンクの記録を空で潰さないため）。
 
 Stores human-made dashboard state (report read marks and related ticket links) in one JSON file.
-A marker inside a report box could be forged by a tester sending a same-named file, so the state lives outside the boxes.
+It lives outside git in moorestech_logs/.state/: inside a report box a tester could forge it with a same-named file, and under git
+a write during the log sync's rebase would hit a file temporarily rolled back to an old version and lose records.
 Only this server process writes it; an in-process lock plus write-to-temp-then-replace never leaves a half-written file.
+Updaters return (HTTP status, reason) and never overwrite a broken state file, so existing marks and links are not wiped.
 """
 from __future__ import annotations
 
@@ -24,14 +28,23 @@ _lock = threading.Lock()
 
 
 def read_state(path: Path) -> tuple[dict | None, str]:
-    """ファイルが無ければ空の状態、壊れていれば (None, 理由)
-    Returns an empty state when the file is absent, or (None, reason) when it is broken"""
+    """ファイルが無ければ空の状態、形が契約と違えば (None, 理由)。値の型まで見る（手で直したファイルで落ちないため）
+    Returns an empty state when absent, or (None, reason) when the shape breaks the contract, down to value types"""
     if not path.is_file():
         return {"read": {}, "links": {}}, ""
     data, reason = schema.read_json(path)
-    if data is None or not isinstance(data.get("read"), dict) or not isinstance(data.get("links"), dict):
-        return None, reason or "read/links が辞書でない"
+    if data is None:
+        return None, reason
+    read, links = data.get("read"), data.get("links")
+    if not isinstance(read, dict) or not all(isinstance(v, str) for v in read.values()):
+        return None, "read が「キー→日時文字列」の辞書でない"
+    if not isinstance(links, dict) or not all(isinstance(v, list) and all(valid_link(l) for l in v) for v in links.values()):
+        return None, "links が「キー→{url,title,addedAt} の配列」の辞書でない"
     return data, ""
+
+
+def valid_link(link: object) -> bool:
+    return isinstance(link, dict) and all(isinstance(link.get(k), str) for k in ("url", "title", "addedAt"))
 
 
 def load_state_for_display(path: Path) -> dict:
@@ -44,47 +57,53 @@ def load_state_for_display(path: Path) -> dict:
     return state
 
 
-def set_read(path: Path, key: str, read: bool) -> str | None:
-    """壊れた状態ファイルは上書きせず理由を返す（既読やリンクの記録を空で潰さないため）。以下の更新関数も同じ
-    A broken state file is never overwritten; the reason is returned so existing marks are not wiped. Same for the updaters below"""
+def set_read(path: Path, keys: list[str], read: bool) -> tuple[int, str]:
+    """複数の報告の既読をまとめて1回で書く（一括既読を途中失敗させず、読み直しも1回で済ませるため）
+    Writes the read mark of several reports at once, so bulk marking never half-fails and needs a single reload"""
     with _lock:
         state, reason = read_state(path)
         if state is None:
-            return reason
-        if read:
-            state["read"][key] = now_iso()
-        else:
-            state["read"].pop(key, None)
+            return 500, f"状態ファイルが壊れているため上書きしない: {reason}"
+        for key in keys:
+            if read:
+                state["read"][key] = now_iso()
+            else:
+                state["read"].pop(key, None)
         save_state(path, state)
-        return None
+        return 200, ""
 
 
-def add_link(path: Path, key: str, url: str, title: str) -> str | None:
+def add_link(path: Path, key: str, url: str, title: str) -> tuple[int, str]:
     """同じ URL は1つにまとめ、題名だけ新しい値で上書きする
     The same URL is kept once; only its title is refreshed"""
     with _lock:
         state, reason = read_state(path)
         if state is None:
-            return reason
-        links = [link for link in state["links"].get(key, []) if link.get("url") != url]
+            return 500, f"状態ファイルが壊れているため上書きしない: {reason}"
+        links = [link for link in state["links"].get(key, []) if link["url"] != url]
         links.append({"url": url, "title": title, "addedAt": now_iso()})
         state["links"][key] = links
         save_state(path, state)
-        return None
+        return 200, ""
 
 
-def remove_link(path: Path, key: str, url: str) -> str | None:
+def remove_link(path: Path, key: str, url: str) -> tuple[int, str]:
+    """一致する URL が無ければ 404（解除できたと誤解させない）
+    No matching URL gives 404, so callers never believe an unlink happened"""
     with _lock:
         state, reason = read_state(path)
         if state is None:
-            return reason
-        links = [link for link in state["links"].get(key, []) if link.get("url") != url]
+            return 500, f"状態ファイルが壊れているため上書きしない: {reason}"
+        current = state["links"].get(key, [])
+        links = [link for link in current if link["url"] != url]
+        if len(links) == len(current):
+            return 404, "その URL はこの報告に紐付いていない"
         if links:
             state["links"][key] = links
         else:
             state["links"].pop(key, None)
         save_state(path, state)
-        return None
+        return 200, ""
 
 
 def link_problem(url: object, title: object) -> str | None:

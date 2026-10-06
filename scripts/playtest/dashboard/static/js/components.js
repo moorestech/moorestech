@@ -72,7 +72,7 @@ export function readToggle(report) {
   const label = report.readAt ? "未読に戻す" : "既読にする";
   return h("button", {
     type: "button", class: "read-toggle", title: label, "aria-label": label, "aria-pressed": report.readAt ? "true" : "false",
-    onclick: () => postState("read", { ...reportKey(report), read: !report.readAt }, true),
+    onclick: () => postState("read", { items: [reportKey(report)], read: !report.readAt }, true),
   });
 }
 

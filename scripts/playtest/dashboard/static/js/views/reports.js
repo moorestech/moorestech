@@ -34,17 +34,14 @@ function resultCard(reports, params) {
     filtered.length ? dayGroups(filtered, (r) => r.date, (r) => reportRow(r, show), null) : emptyNote("条件に合う報告はありません"));
 }
 
-// 表示中の未読をまとめて既読にする（1件ずつ順に送り、途中で失敗したらそこで止める）
-// Marks every unread report on screen as read, one request at a time, stopping at the first failure
+// 表示中の未読を1回の送信でまとめて既読にする（サーバー側で全件か0件かになり、途中で止まらない）
+// Marks every unread report on screen as read in one request; the server applies all or none, so it never stops halfway
 function markAllRead(unread) {
   const button = h("button", {
     type: "button", class: "ghost",
     onclick: async () => {
       button.disabled = true;
-      for (const report of unread) {
-        if (!(await postState("read", { ...reportKey(report), read: true }, false))) break;
-      }
-      window.dispatchEvent(new CustomEvent("dashboard:changed", { detail: { redraw: true } }));
+      if (!(await postState("read", { items: unread.map(reportKey), read: true }, true))) button.disabled = false;
     },
   }, `表示中の未読${unread.length}件を既読にする`);
   return button;

@@ -60,7 +60,9 @@ def build_payload() -> dict:
 
 
 def state_path() -> Path:
-    return Config.logs / "harness" / "playtest" / "dashboard-state.json"
+    # git 管理外（.state/）に置く理由は dashboard_state のモジュール説明を参照
+    # Kept outside git (.state/); see dashboard_state's module docstring for why
+    return Config.logs / ".state" / "playtest-dashboard-state.json"
 
 
 def with_human_state(reports: list[dict], path: Path) -> list[dict]:

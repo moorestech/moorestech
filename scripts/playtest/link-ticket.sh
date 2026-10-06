@@ -5,11 +5,14 @@
 # Writes go through the always-on dashboard server so the state file keeps a single writer
 set -euo pipefail
 
-if [ "$#" -ne 4 ] && [ "$#" -ne 3 ]; then
+usage() {
   echo "usage: link-ticket.sh <steamId> <reportId> <ticketUrl> <title>   # 紐付け" >&2
   echo "       link-ticket.sh --remove <steamId> <reportId> <ticketUrl>  # 解除" >&2
   exit 1
-fi
+}
+# どちらのモードも引数は4個（紐付けは題名まで、解除は --remove を含めて）
+# Both modes take exactly four arguments (link includes the title; remove counts --remove itself)
+[ "$#" -eq 4 ] || usage
 PORT="${PLAYTEST_DASHBOARD_PORT:-8932}"
 BASE="http://127.0.0.1:${PORT}/playtest"
 VIEWER="https://review.moores.tech/playtest/#/report"

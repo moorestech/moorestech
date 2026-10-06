@@ -22,7 +22,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
 from safe_segment import is_safe_segment  # noqa: E402
 
 CSRF_HEADER = "X-Playtest-Dashboard"
-BODY_LIMIT = 16 * 1024
+BODY_LIMIT = 64 * 1024
+ITEMS_LIMIT = 500
 
 
 def handle_post(handler, route: str, reports_root: Path, state_path: Path, allowed_hosts: frozenset) -> tuple[int, dict]:
@@ -34,33 +35,48 @@ def handle_post(handler, route: str, reports_root: Path, state_path: Path, allow
     body, reason = read_body(handler)
     if body is None:
         return reject(400, reason, route)
-    key, reason = report_key(body, reports_root)
-    if key is None:
-        return reject(400, reason, route)
-    if route == "/api/read" and not isinstance(body.get("read"), bool):
-        return reject(400, "read は true/false にする", route)
-    if route == "/api/links/add":
-        problem = dashboard_state.link_problem(body.get("url"), body.get("title"))
-        if problem is not None:
-            return reject(400, problem, route)
-    if route == "/api/links/remove" and not isinstance(body.get("url"), str):
-        return reject(400, "url を指定する", route)
     # 状態ファイルの書き込みはディスク IO（容量不足・権限）という外部境界なので失敗を隔離して 500 にする
     # Writing the state file is disk IO, an external boundary (space, permissions), so failures are isolated as 500
     try:
-        if route == "/api/read":
-            broken = dashboard_state.set_read(state_path, key, body["read"])
-        elif route == "/api/links/add":
-            broken = dashboard_state.add_link(state_path, key, body["url"], body["title"].strip())
-        elif route == "/api/links/remove":
-            broken = dashboard_state.remove_link(state_path, key, body["url"])
-        else:
-            return reject(404, "未知の書き込みルート", route)
+        status, reason = dispatch(route, body, reports_root, state_path)
     except OSError as error:
-        return reject(500, f"状態ファイルへ書けない: {error}", route)
-    if broken is not None:
-        return reject(500, f"状態ファイルが壊れているため上書きしない: {broken}", route)
-    return 200, {"ok": True}
+        status, reason = 500, f"状態ファイルへ書けない: {error}"
+    return (200, {"ok": True}) if status == 200 else reject(status, reason, route)
+
+
+def dispatch(route: str, body: dict, reports_root: Path, state_path: Path) -> tuple[int, str]:
+    if route == "/api/read":
+        return write_read(body, reports_root, state_path)
+    key, reason = report_key(body, reports_root)
+    if key is None:
+        return 400, reason
+    if route == "/api/links/add":
+        problem = dashboard_state.link_problem(body.get("url"), body.get("title"))
+        if problem is not None:
+            return 400, problem
+        return dashboard_state.add_link(state_path, key, body["url"], body["title"].strip())
+    if route == "/api/links/remove":
+        if not isinstance(body.get("url"), str):
+            return 400, "url を指定する"
+        return dashboard_state.remove_link(state_path, key, body["url"])
+    return 404, "未知の書き込みルート"
+
+
+def write_read(body: dict, reports_root: Path, state_path: Path) -> tuple[int, str]:
+    """items（{steamId,id} の配列）の既読をまとめて切り替える。1件でも不正なら何も書かない
+    Toggles the read mark for every item ({steamId,id} list) at once; a single bad item means nothing is written"""
+    items = body.get("items")
+    if not isinstance(body.get("read"), bool):
+        return 400, "read は true/false にする"
+    if not isinstance(items, list) or not 0 < len(items) <= ITEMS_LIMIT or not all(isinstance(item, dict) for item in items):
+        return 400, f"items は 1〜{ITEMS_LIMIT} 件の {{steamId,id}} の配列にする"
+    keys = []
+    for item in items:
+        key, reason = report_key(item, reports_root)
+        if key is None:
+            return 400, f"{reason}: {item!r:.80}"
+        keys.append(key)
+    return dashboard_state.set_read(state_path, keys, body["read"])
 
 
 def request_problem(handler, allowed_hosts: frozenset) -> str | None:
@@ -76,7 +92,7 @@ def request_problem(handler, allowed_hosts: frozenset) -> str | None:
 
 def read_body(handler) -> tuple[dict | None, str]:
     raw_length = handler.headers.get("Content-Length") or "0"
-    length = int(raw_length) if raw_length.isdigit() else -1
+    length = int(raw_length) if raw_length.isascii() and raw_length.isdigit() else -1
     if length <= 0 or length > BODY_LIMIT:
         return None, f"本文の長さが範囲外: {length}"
     # 送られてきた本文の JSON 解析は外部入力の境界なので失敗を隔離する
@@ -88,8 +104,8 @@ def read_body(handler) -> tuple[dict | None, str]:
     return (body, "") if isinstance(body, dict) else (None, "本文が JSON オブジェクトでない")
 
 
-def report_key(body: dict, reports_root: Path) -> tuple[str | None, str]:
-    steam_id, report_id = body.get("steamId"), body.get("id")
+def report_key(item: dict, reports_root: Path) -> tuple[str | None, str]:
+    steam_id, report_id = item.get("steamId"), item.get("id")
     if not is_safe_segment(steam_id) or not is_safe_segment(report_id):
         return None, "steamId/id が安全なパスセグメントでない"
     if not (reports_root / steam_id / report_id / "ingest.json").is_file():
