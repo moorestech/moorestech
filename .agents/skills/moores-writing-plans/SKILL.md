@@ -98,7 +98,7 @@ hooks:
 ---
 ```
 
-**`## 設計検査記録` は検査を終えるたびに書き換える（required）。** 書き始めは `未実施` のまま置き、下の「設計検査」を実行したら `実施済み` と件数・要約1行へ置き換える。0件でも `実施済み / 強0・弱0・第3バケツ0 / 発火なし` と書く（0件と未実施を区別するため）。moores-writing-plans 終了時に ledger-gate がこの2行の `実施済み` を検査し、無ければブロックする
+**`## 設計検査記録` は検査を終えるたびに書き換える（required）。** 書き始めは `未実施` のまま置き、下の「設計検査」を実行したら `実施済み` と件数・要約1行へ置き換える。0件でも `実施済み / 強0・弱0・第3バケツ0 / 発火なし` と書く（0件と未実施を区別するため）。moores-writing-plans 終了時に ledger-gate がこの2行の `実施済み` を検査し、無ければブロックする（検査対象はこのセッションで作成・変更したplan全部。Write/Editに限らず Bash の `cat >` 等で書いたplanも、transcriptとgit差分から拾われる）
 
 **Final tasks (moorestech, required):** every plan's task list ends with an
 explicit closing task pair — 実行者はこれを無条件に実行する。planから省略しても
