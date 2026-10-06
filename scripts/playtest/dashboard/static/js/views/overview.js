@@ -1,61 +1,67 @@
-// 概要: 要対応の件数・日別の推移・最新の報告と感想
-// Overview: action counts, daily trends, latest reports and feedback
-import { barList, stackedDayChart } from "../charts.js";
-import {
-  countableSessions, emptyNote, fmtDateTime, fmtMinutes, h, jstToday, kindBadge, linkify, routeHref, runBadge,
-  section, testerName, triageBadge,
-} from "../core.js";
+// 概要: 左に「要対応（未投入のバグ）」、右に「直近の活動」と「最新の感想」を置く
+// Overview: "needs action" (un-enqueued bugs) on the left, recent activity and latest feedback on the right
+import { stackedDayChart } from "../charts.js";
+import { card, dayGroups, deltaText, moreLink, pageHead, reportRow, stat } from "../components.js";
+import { countableSessions, emptyNote, fmtDateTime, h, jstToday, linkify, routeHref, testerName } from "../core.js";
 
-const DAYS = 30;
+const CHART_DAYS = 14;
+const LIST_LIMIT = 12;
+const KNOWN_KINDS = new Set(["bug", "feedback", "crash"]);
 const KIND_SERIES = [
   { key: "bug", label: "バグ", color: "--series-1" },
   { key: "feedback", label: "感想", color: "--series-2" },
   { key: "crash", label: "クラッシュ", color: "--series-3" },
-  { key: "other", label: "その他・読めない箱", color: "--series-4" },
+  { key: "other", label: "その他", color: "--series-4" },
 ];
-const KNOWN_KINDS = new Set(["bug", "feedback", "crash"]);
 
 export function renderOverview(data) {
   const sessions = countableSessions(data.sessions);
-  const days = Array.from({ length: DAYS }, (_, i) => jstToday(DAYS - 1 - i));
+  const candidates = data.reports.filter((r) => r.triage === "candidate");
+  const latest = [data.reports[0]?.readyAt, sessions[0]?.sessionStart].filter(Boolean).sort().pop();
   return h("div", { class: "view" },
-    kpiRow(data, sessions),
-    h("div", { class: "grid-2" },
-      section(`日別のプレイ報告（直近${DAYS}日）`, reportsChart(data.reports, days)),
-      section(`日別のプレイ時間・分（直近${DAYS}日・遠隔実行なし）`, playChart(sessions, days))),
-    h("div", { class: "grid-2" },
-      section("未投入のバグ報告", candidateList(data.reports)),
-      section("最新の感想", feedbackList(data.reports))),
-    section("離脱時のUI状態（全セッション）", dropOff(sessions)));
+    pageHead("概要", latest ? `最新の受信 ${fmtDateTime(latest)}` : "まだ受信がありません"),
+    weekStats(data, sessions, candidates.length),
+    h("div", { class: "layout-main-side" },
+      card("未投入のバグ報告", { count: candidates.length, action: candidates.length > LIST_LIMIT ? moreLink(routeHref("reports", [], { triage: "candidate" }), "すべて見る") : null },
+        candidates.length
+          ? dayGroups(candidates.slice(0, LIST_LIMIT), (r) => r.date, (r) => reportRow(r, { kind: false, status: false }), dayTotals(candidates))
+          : emptyNote("未投入のバグ報告はありません")),
+      h("div", { class: "side-stack" },
+        card(`活動（直近${CHART_DAYS}日）`, null, activityCharts(data.reports, sessions)),
+        card("最新の感想", { action: moreLink(routeHref("reports", [], { kind: "feedback" }), "一覧") }, feedbackQuotes(data.reports)))));
 }
 
-function kpiRow(data, sessions) {
-  const candidates = data.reports.filter((r) => r.triage === "candidate").length;
-  // テスター画面と同じく、集計対象のセッションと報告から数える
-  // Counted from aggregatable sessions and reports, matching the tester view
-  const testers = new Set([...data.reports.map((r) => r.steamId), ...sessions.map((s) => s.steamId)]);
-  const yesterday = jstToday(1);
-  const recent = data.reports.filter((r) => r.date >= yesterday).length
-    + sessions.filter((s) => s.date >= yesterday).length;
-  const totalSeconds = sessions.reduce((sum, s) => sum + (s.playSeconds || 0), 0);
-  const broken = data.reports.filter((r) => r.triage === "broken").length + data.invalidSessions;
-  return h("div", { class: "kpis" },
-    kpi("未投入のバグ報告", candidates, "件", routeHref("reports", [], { triage: "candidate" }), candidates > 0),
-    kpi("プレイ報告", data.reports.length, "件", routeHref("reports")),
-    kpi("テスター", testers.size, "人", routeHref("testers")),
-    kpi("セッション（集計対象）", sessions.length, "件", routeHref("sessions"), false, `計 ${fmtMinutes(totalSeconds)}`),
-    kpi("昨日以降の新着", recent, "件", routeHref("reports")),
-    broken > 0 ? kpi("読めなかった箱", broken, "件", routeHref("reports", [], { triage: "broken" }), true) : null);
+function dayTotals(rows) {
+  const totals = new Map();
+  for (const row of rows) totals.set(row.date, (totals.get(row.date) || 0) + 1);
+  return totals;
 }
 
-function kpi(label, value, unit, href, attention, note) {
-  return h("a", { class: `kpi${attention ? " attention" : ""}`, href },
-    h("span", { class: "kpi-label" }, label),
-    h("span", { class: "kpi-value" }, String(value), h("small", null, unit)),
-    note ? h("span", { class: "kpi-note" }, note) : null);
+// 数字は「未投入（累計）」以外を直近7日に揃え、前の7日との差を添える
+// Every figure except the cumulative backlog uses the last 7 days, with the change versus the 7 days before
+function weekStats(data, sessions, candidateCount) {
+  const since = jstToday(6);
+  const before = jstToday(13);
+  const inWeek = (d) => d >= since;
+  const inPrev = (d) => d >= before && d < since;
+  const reportsNow = data.reports.filter((r) => inWeek(r.date)).length;
+  const reportsPrev = data.reports.filter((r) => inPrev(r.date)).length;
+  const hours = (rows) => rows.reduce((sum, s) => sum + (s.playSeconds || 0), 0) / 3600;
+  const playNow = hours(sessions.filter((s) => inWeek(s.date)));
+  const playPrev = hours(sessions.filter((s) => inPrev(s.date)));
+  const testers = (pick) => new Set([...data.reports.filter((r) => pick(r.date)), ...sessions.filter((s) => pick(s.date))]
+    .map((row) => row.steamId)).size;
+  return h("div", { class: "stats" },
+    stat("未投入のバグ", candidateCount, "件", "累計・投入待ち",
+      { href: routeHref("reports", [], { triage: "candidate" }), tone: candidateCount > 0 ? "attention" : null }),
+    stat("報告（7日）", reportsNow, "件", deltaText(reportsNow, reportsPrev, "件"), { href: routeHref("reports") }),
+    stat("プレイ時間（7日）", playNow.toFixed(1), "時間", deltaText(Number(playNow.toFixed(1)), Number(playPrev.toFixed(1)), "時間"),
+      { href: routeHref("sessions") }),
+    stat("テスター（7日）", testers(inWeek), "人", deltaText(testers(inWeek), testers(inPrev), "人"), { href: routeHref("testers") }));
 }
 
-function reportsChart(reports, days) {
+function activityCharts(reports, sessions) {
+  const days = Array.from({ length: CHART_DAYS }, (_, i) => jstToday(CHART_DAYS - 1 - i));
   const counts = new Map();
   for (const r of reports) {
     const key = `${r.date}|${KNOWN_KINDS.has(r.kind) ? r.kind : "other"}`;
@@ -63,51 +69,22 @@ function reportsChart(reports, days) {
   }
   // 「その他」は該当がある時だけ凡例に出す
   // "Other" joins the legend only when something falls into it
-  const hasOther = reports.some((r) => !KNOWN_KINDS.has(r.kind));
-  const series = KIND_SERIES.filter((s) => s.key !== "other" || hasOther);
-  return stackedDayChart(days, series, (day, kind) => counts.get(`${day}|${kind}`) || 0, "件");
-}
-
-function playChart(sessions, days) {
+  const series = KIND_SERIES.filter((s) => s.key !== "other" || reports.some((r) => !KNOWN_KINDS.has(r.kind)));
   const minutes = new Map();
   for (const s of sessions) minutes.set(s.date, (minutes.get(s.date) || 0) + (s.playSeconds || 0) / 60);
-  const series = [{ key: "play", label: "プレイ時間", color: "--series-1" }];
-  return stackedDayChart(days, series, (day) => Math.round(minutes.get(day) || 0), "分");
+  return h("div", { class: "chart-stack" },
+    h("h3", null, "報告数"),
+    stackedDayChart(days, series, (day, kind) => counts.get(`${day}|${kind}`) || 0, "件", 130),
+    h("h3", null, "プレイ時間（分）"),
+    stackedDayChart(days, [{ key: "play", label: "プレイ時間", color: "--series-1" }],
+      (day) => Math.round(minutes.get(day) || 0), "分", 110));
 }
 
-function candidateList(reports) {
-  const rows = reports.filter((r) => r.triage === "candidate").slice(0, 8);
-  if (rows.length === 0) return emptyNote("未投入のバグ報告はありません");
-  const total = reports.filter((r) => r.triage === "candidate").length;
-  return h("div", null, reportLines(rows),
-    total > rows.length ? h("a", { class: "more", href: routeHref("reports", [], { triage: "candidate" }) }, `すべて見る（${total}件）`) : null);
-}
-
-export function reportLines(rows) {
-  return h("ul", { class: "report-lines" }, rows.map((r) => h("li", null,
-    h("a", { href: routeHref("report", [r.boxSteamId, r.boxId]) },
-      h("span", { class: "line-meta" }, kindBadge(r.kind), triageBadge(r), runBadge(r),
-        h("span", { class: "muted" }, `${fmtDateTime(r.readyAt)}・${testerName(r)}`)),
-      h("span", { class: "line-text" }, firstLine(r))))));
-}
-
-function firstLine(report) {
-  if (report.problem && !report.description) return `⚠ ${report.problem}`;
-  return (report.description || "").trim().split("\n")[0] || "（説明文が空）";
-}
-
-function feedbackList(reports) {
-  const rows = reports.filter((r) => r.kind === "feedback").slice(0, 5);
+function feedbackQuotes(reports) {
+  const rows = reports.filter((r) => r.kind === "feedback").slice(0, 3);
   if (rows.length === 0) return emptyNote("感想はまだありません");
-  return h("div", { class: "feedback" }, rows.map((r) => h("article", null,
-    h("a", { class: "muted", href: routeHref("report", [r.boxSteamId, r.boxId]) }, `${fmtDateTime(r.readyAt)}・${testerName(r)}`),
-    h("p", null, linkify((r.description || "").trim() || "（説明文が空）")))));
-}
-
-function dropOff(sessions) {
-  if (sessions.length === 0) return emptyNote("セッションがありません");
-  const counts = new Map();
-  for (const s of sessions) counts.set(s.lastUiState, (counts.get(s.lastUiState) || 0) + 1);
-  const rows = [...counts].sort((a, b) => b[1] - a[1]).slice(0, 8).map(([label, value]) => ({ label, value }));
-  return barList(rows, "件");
+  return h("ul", { class: "quotes" }, rows.map((r) => h("li", null,
+    h("blockquote", null, linkify((r.description || "").trim() || "（説明文が空）")),
+    h("a", { class: "quote-meta", href: routeHref("report", [r.boxSteamId, r.boxId]) },
+      `${testerName(r)}・${fmtDateTime(r.readyAt)}`))));
 }

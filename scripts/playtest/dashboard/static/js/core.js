@@ -35,6 +35,14 @@ export function fmtDateTime(iso) {
   return Number.isNaN(date.getTime()) ? "不明" : JST_DATETIME.format(date);
 }
 
+const JST_TIME = new Intl.DateTimeFormat("ja-JP", { timeZone: "Asia/Tokyo", hour: "2-digit", minute: "2-digit" });
+
+export function fmtTime(iso) {
+  if (!iso) return "";
+  const date = new Date(iso);
+  return Number.isNaN(date.getTime()) ? "" : JST_TIME.format(date);
+}
+
 export function fmtMinutes(seconds) {
   if (seconds === null || seconds === undefined) return "—";
   const minutes = seconds / 60;
@@ -51,36 +59,9 @@ export function testerName(row) {
   return row.testerName || `ID ${row.steamId.slice(-6)}`;
 }
 
-// 種別と投入状態の表示名。未知の値は値そのものを出して無音で消さない
-// Display names for kind and triage; unknown values are shown verbatim, never hidden
+// 種別の表示名。未知の値は値そのものを出して無音で消さない
+// Display names for kinds; unknown values are shown verbatim, never hidden
 export const KIND_LABELS = { bug: "バグ", feedback: "感想", crash: "クラッシュ" };
-export const TRIAGE_LABELS = {
-  candidate: "未投入", queued: "投入済み", excluded: "遠隔実行で除外", notBug: "", broken: "読めない箱",
-};
-
-export function kindBadge(kind) {
-  return h("span", { class: `badge kind-${KIND_LABELS[kind] ? kind : "unknown"}` },
-    h("i", { class: "dot" }), KIND_LABELS[kind] || kind || "不明");
-}
-
-export function triageBadge(report) {
-  const label = TRIAGE_LABELS[report.triage];
-  if (label === "") return null;
-  return h("span", { class: `badge triage-${report.triage}` }, label || report.triage);
-}
-
-export function runBadge(report) {
-  if (!report.queued) return null;
-  if (!report.run) return h("span", { class: "badge run" }, "修正ラン待ち");
-  const pr = report.run.prNumber ? ` #${report.run.prNumber}` : "";
-  return h("span", { class: `badge run run-${report.run.status}` }, `修正ラン ${runStatusLabel(report.run.status)}${pr}`);
-}
-
-// fix-result.json の無いランは実行中か異常終了か区別できないので、そう書く
-// A run without fix-result.json may be running or dead, and the label says so
-export function runStatusLabel(status) {
-  return status === "noResult" ? "結果なし（実行中か異常終了）" : status;
-}
 
 // ハッシュルート: #/<view>/<arg...>?key=value
 // Hash routes: #/<view>/<arg...>?key=value
@@ -112,12 +93,6 @@ export function mediaUrl(report, name) {
   return `media/${encodeURIComponent(report.boxSteamId)}/${encodeURIComponent(report.boxId)}/${name}`;
 }
 
-export function countBy(rows, keyOf) {
-  const counts = new Map();
-  for (const row of rows) counts.set(keyOf(row), (counts.get(keyOf(row)) || 0) + 1);
-  return counts;
-}
-
 // 遠隔実行あり/不明のセッションはダイジェストと同じく集計から外す
 // Sessions with remote exec enabled/unknown stay out of aggregates, as in the digest
 export function countableSessions(sessions) {
@@ -129,10 +104,6 @@ export function countableSessions(sessions) {
 export function linkify(text) {
   return text.split(/(https:\/\/[A-Za-z0-9\-._~:/?#[\]@!$&*+,;=%]+)/).map((part, i) =>
     (i % 2 === 1 ? h("a", { href: part, target: "_blank", rel: "noopener noreferrer" }, part) : part));
-}
-
-export function section(title, ...children) {
-  return h("section", { class: "panel" }, h("h2", null, title), ...children);
 }
 
 export function emptyNote(text) {

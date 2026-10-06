@@ -36,7 +36,7 @@ async function load() {
   const changed = nextSignature !== signature;
   data = next;
   signature = nextSignature;
-  document.getElementById("updated").textContent = `更新 ${fmtDateTime(next.generatedAt)}`;
+  document.getElementById("updated").textContent = `${fmtDateTime(next.generatedAt)} 時点`;
   return changed;
 }
 
@@ -51,8 +51,12 @@ function fillTesterNames(next) {
 function render() {
   const route = parseRoute();
   const active = route.view === "report" ? "reports" : route.view;
+  // 報告タブにだけ未投入の件数を出す（要対応がどこにあるかをどの画面からも見えるように）
+  // Only the reports tab carries the un-enqueued count, so pending work is visible from every view
+  const pending = data.reports.filter((r) => r.triage === "candidate").length;
   document.getElementById("tabs").replaceChildren(...TABS.map(([view, label]) =>
-    h("a", { href: routeHref(view), class: view === active ? "current" : null }, label)));
+    h("a", { href: routeHref(view), class: view === active ? "current" : null }, label,
+      view === "reports" && pending > 0 ? h("span", { class: "tab-count", title: "未投入のバグ報告" }, String(pending)) : null)));
   const view = VIEWS[route.view] || VIEWS.overview;
   document.getElementById("main").replaceChildren(view(data, route));
 }
