@@ -10,6 +10,7 @@ Usage: python3 server.py [--port 8932] [--logs <moorestech_logs>] [--master <mas
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import sys
@@ -45,6 +46,14 @@ class Config:
     allowed_hosts: frozenset = frozenset()
 
 
+def app_version() -> str:
+    """画面ファイル群の版。開いたままのページがこれの変化で古いコードと気づき、読み込み直す
+    Version of the static files; an open page notices a change and reloads instead of running stale code"""
+    stamp = sorted((str(p.relative_to(STATIC_ROOT)), p.stat().st_mtime_ns, p.stat().st_size)
+                   for p in STATIC_ROOT.rglob("*") if p.is_file() and not p.name.startswith("."))
+    return hashlib.sha256(repr(stamp).encode("utf-8")).hexdigest()[:16]
+
+
 def build_payload() -> dict:
     playtest = Config.logs / "harness" / "playtest"
     runs = collect_reports.load_runs(Config.logs / "harness" / "bug-report" / "runs")
@@ -52,6 +61,7 @@ def build_payload() -> dict:
     digests = sorted((p.stem for p in (playtest / "digests").glob("*.md") if DATE_RE.match(p.stem)), reverse=True)
     return {
         "generatedAt": datetime.now(timezone.utc).isoformat(),
+        "appVersion": app_version(),
         "reports": with_human_state(collect_reports.load_reports(playtest / "reports", runs), state_path()),
         "sessions": sessions, "invalidSessions": invalid_sessions,
         "runs": sorted(runs.values(), key=lambda run: run["id"], reverse=True),
@@ -115,7 +125,9 @@ class DashboardHandler(BaseHTTPRequestHandler):
         target = (STATIC_ROOT / relative).resolve()
         if STATIC_ROOT not in target.parents or not target.is_file() or target.suffix not in STATIC_TYPES:
             return self.not_found("静的ファイル外")
-        self.send_bytes(target.read_bytes(), STATIC_TYPES[target.suffix], "no-cache", 200)
+        # 端末やトンネル途中のキャッシュに古い画面ファイルを残さない（反映後も古いコードが動き続けるのを防ぐ）
+        # Never leave old static files in device or tunnel caches, so stale code does not keep running after a deploy
+        self.send_bytes(target.read_bytes(), STATIC_TYPES[target.suffix], "no-store", 200)
 
     def send_digest(self, date: str) -> None:
         archive = Config.logs / "harness" / "playtest" / "digests" / f"{date}.md"
