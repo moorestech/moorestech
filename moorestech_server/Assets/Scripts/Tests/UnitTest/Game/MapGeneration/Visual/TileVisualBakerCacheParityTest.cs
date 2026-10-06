@@ -13,6 +13,7 @@ using Game.MapGeneration.Pipeline.Config;
 using Game.Paths;
 using NUnit.Framework;
 using Tests.UnitTest.Game.MapGeneration.Visual.Detail;
+using Tests.UnitTest.Game.MapGeneration.Surface;
 
 namespace Tests.UnitTest.Game.MapGeneration.Visual
 {
@@ -107,7 +108,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
                 visualSections.SurroundTextureConfigs, treeSurroundSpecies, Array.Empty<string>());
 
             return new TileVisualBaker(
-                config, BiomeTypes, visualSections, layerTable, treeSurroundSpecies, new MaterializedPlacementLedgerSource(EmptyLedger),
+                config, BiomeTypes, visualSections, layerTable, treeSurroundSpecies, new MaterializedPlacementLedgerSource(LedgerRunFixture.Legacy(EmptyLedger)),
                 EmptyLedger.ComputeDigest(), _worldCacheDirectory, new TerrainVisualCache(_worldCacheDirectory, CacheKey));
         }
 

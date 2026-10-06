@@ -47,6 +47,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             var generated = new SurfaceDisplayBoundaryOwner(grid.Config, new GeneratedSurfaceDisplayHeightSource(grid));
             var stored = new SurfaceDisplayBoundaryOwner(grid.Config, new StoredSurfaceDisplayHeightSource(_directory, 17));
             var generatedTiles = new float[4][,];
+            var policy = new GroundedSurfaceHeightPolicy(grid.Land, SurfaceEnvelope.GeneratedV5);
 
             // 生成側を正順、保存再構築を逆順に要求する
             // Request generation forward and stored reconstruction in reverse
@@ -54,15 +55,13 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             {
                 generatedTiles[i] = new float[17, 17];
                 var scene = grid.Config.TileScenePosition(i % 2, i / 2);
-                generated.CopyTo(generatedTiles[i], new Vector3(scene.x, 0f, scene.y), ledger,
-                    grid.Land, SurfaceEnvelope.GeneratedV5, true);
+                generated.CopyTo(generatedTiles[i], new Vector3(scene.x, 0f, scene.y), ledger, policy);
             }
             for (int i = 3; 0 <= i; i--)
             {
                 var result = new float[17, 17];
                 var scene = grid.Config.TileScenePosition(i % 2, i / 2);
-                stored.CopyTo(result, new Vector3(scene.x, 0f, scene.y), ledger,
-                    grid.Land, SurfaceEnvelope.GeneratedV5, true);
+                stored.CopyTo(result, new Vector3(scene.x, 0f, scene.y), ledger, policy);
                 CollectionAssert.AreEqual(generatedTiles[i], result);
             }
         }

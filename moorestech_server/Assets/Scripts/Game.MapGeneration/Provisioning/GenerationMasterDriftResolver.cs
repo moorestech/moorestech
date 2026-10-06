@@ -6,6 +6,7 @@ using System.Linq;
 using Core.Master;
 using Game.Map.Interface.Json;
 using Game.MapGeneration.Pipeline;
+using Game.MapGeneration.Pipeline.Surface;
 using Game.MapGeneration.Transfer;
 using Game.Paths;
 using Newtonsoft.Json;
@@ -49,7 +50,13 @@ namespace Game.MapGeneration.Provisioning
             // 窓が動いていたら配置以前に別のワールドなので、集合の比較より先に止める
             // A moved window is a different world before any placement is compared, so stop ahead of the set comparison
             generatedPayload.ThrowIfOriginsDiffer(new TerrainOrigins(run.Output.NoiseOrigin, run.Output.SceneOrigin));
-            ThrowIfMapObjectsMoved(worldDataDirectory, run.Output);
+            var recordedMapInfo = JsonConvert.DeserializeObject<MapInfoJson>(File.ReadAllText(worldDataDirectory.MapJsonFilePath));
+            ThrowIfMapObjectsMoved(worldDataDirectory, recordedMapInfo, run.Output);
+
+            // 鉱脈を整地する版では台帳padが鉱脈から決まるため、鉱脈集合の一致も台帳を進める条件になる
+            // Revisions that grade around veins derive ledger pads from the veins, so the vein set must hold too before the ledger advances
+            if (MapGenerationAlgorithmTable.ResolveSurface(run.Config.surfaceRevision).GradesTerrainAroundVeins)
+                ThrowIfVeinsMoved(recordedMapInfo, run);
 
             DropSharedVisualCache(terrainMeta.WorldId);
             AdvanceRecordedFingerprint(worldDataDirectory, currentFingerprint, run.Ledger.ComputeDigest());
@@ -63,9 +70,8 @@ namespace Game.MapGeneration.Provisioning
             // The visuals baked from the ledger (rock surrounds and the like) stick to placements; baking from a ledger disagreeing with the set map.json recorded would paint around absent rocks
             // 配置は高さと分類から導かれるので、転送済みの高さが別物になるマスタ変更はこの集合も動かす。集合一致は高さ据え置きの代理でもある
             // Placements derive from the heights and the classification, so a master change that would make the transferred heights another terrain moves this set too: set equality doubles as a proxy for the heights still fitting
-            static void ThrowIfMapObjectsMoved(WorldDataDirectory worldDataDirectory, MapGenerationOutput output)
+            static void ThrowIfMapObjectsMoved(WorldDataDirectory worldDataDirectory, MapInfoJson recordedMapInfo, MapGenerationOutput output)
             {
-                var recordedMapInfo = JsonConvert.DeserializeObject<MapInfoJson>(File.ReadAllText(worldDataDirectory.MapJsonFilePath));
                 var recordedKeys = SortedPlacementKeys(recordedMapInfo.MapObjects.Select(
                     mapObject => PlacementKey(mapObject.MapObjectGuidStr, mapObject.Position, mapObject.Scale)));
                 var regeneratedKeys = SortedPlacementKeys(output.MapObjects.Select(
@@ -76,6 +82,26 @@ namespace Game.MapGeneration.Provisioning
                     $"The generation master moved the placements of world '{worldDataDirectory.Root}': map.json records {recordedKeys.Count} " +
                     $"map objects while the current master generates {regeneratedKeys.Count} with a different (guid, position, scale) set. " +
                     "Delete the world directory and generate the world again.");
+            }
+
+            // map.jsonの鉱脈AABBはサーバーの採掘判定の正本。再生成と食い違えば、新しいpadは旧鉱脈と別の位置を整地する
+            // map.json's vein AABBs are the server's mining truth; disagreeing with regeneration means new pads would grade away from the old veins
+            static void ThrowIfVeinsMoved(MapInfoJson recordedMapInfo, GenerationRun run)
+            {
+                var recordedKeys = SortedPlacementKeys(recordedMapInfo.MapVeins.Select(
+                    vein => VeinKey(vein.VeinGuidStr, vein.MinPosition, vein.MaxPosition)));
+                var regeneratedKeys = SortedPlacementKeys(run.Output.ItemVeins.Concat(run.Output.FluidVeins).Select(
+                    vein => VeinKey(vein.VeinGuid, vein.Min, vein.Max)));
+                if (recordedKeys.SequenceEqual(regeneratedKeys)) return;
+
+                throw SurfaceGenerationValidation.Failure(run.Config, "all",
+                    $"The generation master moved the veins: map.json records {recordedKeys.Count} veins while the current master generates " +
+                    $"{regeneratedKeys.Count} with a different (veinGuid, min, max) set. Delete the world directory and generate the world again.");
+            }
+
+            static string VeinKey(string veinGuid, Vector3Int min, Vector3Int max)
+            {
+                return $"{veinGuid}:{min.x}:{min.y}:{min.z}:{max.x}:{max.y}:{max.z}";
             }
 
             static List<string> SortedPlacementKeys(IEnumerable<string> keys)

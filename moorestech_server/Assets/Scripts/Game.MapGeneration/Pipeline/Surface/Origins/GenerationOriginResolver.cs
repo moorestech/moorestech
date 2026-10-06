@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Game.MapGeneration.Pipeline.Surface.Origins
 {
-    public static class GenerationOriginResolver
+    internal static class GenerationOriginResolver
     {
         // スポーン探索を走らせ、中央化オフセット G を config のノイズ座標へ書き込む（結果の唯一の置き場が config）。
         // Run the spawn search and write the centering offset G into the config's noise coordinates, config being the sole home of the result.

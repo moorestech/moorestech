@@ -3,10 +3,11 @@ using Game.MapGeneration.Surface;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Surface.Grading;
 using UnityEngine;
+using Game.MapGeneration.Pipeline.Visual.Placement;
 
 namespace Game.MapGeneration.Pipeline.Surface
 {
-    public static class FinalSurfaceProjector
+    internal static class FinalSurfaceProjector
     {
         public static float[,] Apply(float[,] postTreeHeights, TerrainGenerationConfig tileConfig,
             Vector3 tileScene, LandCellField land, IReadOnlyList<VeinGroundingPad> pads, SurfaceEnvelope envelope)
@@ -26,9 +27,9 @@ namespace Game.MapGeneration.Pipeline.Surface
                     heights[z, x] = Mathf.Max(heights[z, x], floor / tileConfig.terrainHeight);
             }
 
-            // 整地面を再投影しr16へ符号化
-            // Reproject pads and encode them into r16
-            heights = GroundingHeightProjector.Apply(heights, origin, spacing, tileConfig.terrainHeight, pads);
+            // coreだけ再代入しr16へ符号化。skirtは生成時に保存高さへ焼き済みで二重補間しない
+            // Reassign cores only and encode into r16; skirts are already baked into the stored heights and never blended twice
+            heights = GroundingHeightProjector.ApplyCores(heights, origin, spacing, tileConfig.terrainHeight, pads);
             for (int z = 0; z < heights.GetLength(0); z++)
             for (int x = 0; x < heights.GetLength(1); x++)
                 heights[z, x] = SurfaceQuantization.EncodeNormalized(heights[z, x]);

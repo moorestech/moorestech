@@ -56,17 +56,17 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface.Generated
             var depressed = TreePerturbationApplier.Apply(pre, config, Vector3.zero, ledger.Placements);
             Assert.That(depressed[16, 16] * config.terrainHeight, Is.LessThan(0f));
 
-            var first = CreateBaker(config, ledger).Bake(0, 0);
+            var first = CreateBaker(config, ledger, classified.Land).Bake(0, 0);
             var path = _directory.TerrainVisualCacheFilePath(0, 0);
             Assert.That(File.Exists(path), Is.True, "A miss must actually write the visual cache");
             var writeTime = File.GetLastWriteTimeUtc(path);
-            var hit = CreateBaker(config, ledger).Bake(0, 0);
+            var hit = CreateBaker(config, ledger, classified.Land).Bake(0, 0);
             Assert.That(File.GetLastWriteTimeUtc(path), Is.EqualTo(writeTime), "A hit must not rewrite the cache");
 
             // cache除去後もbakerで低地復元
             // Rebuild from saved lowland with the production baker after cache removal
             File.Delete(path);
-            var miss = CreateBaker(config, ledger).Bake(0, 0);
+            var miss = CreateBaker(config, ledger, classified.Land).Bake(0, 0);
             Assert.That(File.Exists(path), Is.True);
             SurfaceHeightAssert.AreEqual(first.DisplayHeights, hit.DisplayHeights, "lowland reload-hit");
             SurfaceHeightAssert.AreEqual(first.DisplayHeights, miss.DisplayHeights, "lowland reload-miss");
@@ -77,7 +77,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface.Generated
             TestContext.WriteLine("Synthetic negative-tree/cache regression; no reproduction of the sea exposure report is claimed.");
         }
 
-        private TileVisualBaker CreateBaker(TerrainGenerationConfig config, PlacementLedger ledger)
+        private TileVisualBaker CreateBaker(TerrainGenerationConfig config, PlacementLedger ledger, LandCellField land)
         {
             var sections = new BiomeVisualSections(new[] { "fixture/grass" },
                 new[] { new BiomeTextureConfig { entries = Array.Empty<TextureEntry>() } },
@@ -93,7 +93,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface.Generated
             var key = TerrainVisualCacheKey.Compute(new string('a', 64), config.seed, origins, config.Resolution,
                 WorldGeneratorVersion.Current, ledger.ComputeDigest());
             return new TileVisualBaker(config, Biomes, sections, layers, species,
-                new MaterializedPlacementLedgerSource(ledger), ledger.ComputeDigest(), _directory,
+                new MaterializedPlacementLedgerSource(LedgerRunFixture.Grounded(ledger, land)), ledger.ComputeDigest(), _directory,
                 new TerrainVisualCache(_directory, key));
         }
 

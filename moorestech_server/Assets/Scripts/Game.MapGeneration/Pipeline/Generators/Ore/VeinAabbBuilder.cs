@@ -21,7 +21,7 @@ namespace Game.MapGeneration.Pipeline.Generators
 
         // 新版の整地前高さに依存せず水平方向の占有を排他する
         // Exclude horizontal occupancy independently of pre-grading heights in the new revision
-        public static bool OverlapsAnyXz(PlacedVein candidate, IReadOnlyList<PlacedVein> veins)
+        internal static bool OverlapsAnyXz(PlacedVein candidate, IReadOnlyList<PlacedVein> veins)
         {
             foreach (var vein in veins)
                 if (candidate.Min.x <= vein.Max.x && vein.Min.x <= candidate.Max.x &&

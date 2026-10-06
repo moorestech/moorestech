@@ -2,16 +2,16 @@ namespace Game.MapGeneration.Pipeline.Visual.Placement
 {
     public class MaterializedPlacementLedgerSource : IPlacementLedgerSource
     {
-        private readonly PlacementLedger _ledger;
+        private readonly GenerationRun _run;
 
-        public MaterializedPlacementLedgerSource(PlacementLedger ledger)
+        public MaterializedPlacementLedgerSource(GenerationRun run)
         {
-            _ledger = ledger;
+            _run = run;
         }
 
-        public PlacementLedger Resolve()
+        public GenerationRun Resolve()
         {
-            return _ledger;
+            return _run;
         }
     }
 }

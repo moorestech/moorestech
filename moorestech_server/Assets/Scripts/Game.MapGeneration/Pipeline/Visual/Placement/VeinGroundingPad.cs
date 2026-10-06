@@ -1,8 +1,8 @@
 using UnityEngine;
 
-namespace Game.MapGeneration.Pipeline.Surface.Grading
+namespace Game.MapGeneration.Pipeline.Visual.Placement
 {
-    public readonly struct VeinGroundingPad
+    internal readonly struct VeinGroundingPad
     {
         public readonly Rect Core;
         public readonly float HeightMeters;

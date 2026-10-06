@@ -42,7 +42,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Vein
             var placement = OrePlacementGenerator.GenerateForWorld(
                 entries, masks, 0f, new float[HeightRes, HeightRes], dims, new System.Random(seed),
                 null, null, halo.ItemVeins, halo.Radius,
-                halo.CreateConfirmedVeinSnapshot(TileCandidateAabbBounds.From(dims)), new LegacyVeinLandConstraint(), (int)(worldOffsetX / TileSize), 0);
+                halo.CreateConfirmedVeinSnapshot(TileCandidateAabbBounds.From(dims)), new LegacyVeinPlacementRule(), (int)(worldOffsetX / TileSize), 0);
             halo.CommitVeins(halo.ItemVeins, placement);
             return placement.Clusters.SelectMany(cluster => cluster.Members).ToList();
 

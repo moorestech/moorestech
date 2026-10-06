@@ -57,7 +57,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
                 Vector3.one, TerrainSurroundEffectType.rockNoBareGround, null));
             _directory = WorldDataDirectory.FromWorldRoot(Path.Combine(Path.GetTempPath(), "vtg-baker-seams-" + Guid.NewGuid().ToString("N")));
             TerrainFileWriter.Write(_directory, grid.Output);
-            var baker = CreateBaker(config, ledger);
+            var baker = CreateBaker(config, ledger, grid.Land);
             var tiles = new float[4][,];
 
             // 非所有タイルから焼き所有者を解決
@@ -76,13 +76,13 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             string path = _directory.TerrainVisualCacheFilePath(1, 1);
             Assert.That(File.Exists(path), Is.True);
             File.Delete(path);
-            var reloaded = CreateBaker(config, ledger);
+            var reloaded = CreateBaker(config, ledger, grid.Land);
             for (int i = 0; i < 4; i++)
                 CollectionAssert.AreEqual(tiles[i], reloaded.Bake(i % 2, i / 2).DisplayHeights);
             Assert.That(File.Exists(path), Is.True);
         }
 
-        private TileVisualBaker CreateBaker(TerrainGenerationConfig config, PlacementLedger ledger)
+        private TileVisualBaker CreateBaker(TerrainGenerationConfig config, PlacementLedger ledger, LandCellField land)
         {
             var sections = new BiomeVisualSections(new[] { "fixture/grass" },
                 new[] { new BiomeTextureConfig { entries = Array.Empty<TextureEntry>() } },
@@ -92,11 +92,11 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             var layers = SplatLayerTable.Build("fixture/beach", "fixture/rock", sections.MainLayerAddresses,
                 sections.TextureConfigs, sections.SurroundTextureConfigs, species, Array.Empty<string>());
             var origins = MapGenerationPipeline.ResolveOrigins(config);
-            var version = WorldGeneratorVersion.Current + MapGenerationAlgorithmTable.ResolveSurface(config.surfaceRevision).VisualCacheVersionSuffix;
+            var version = WorldGeneratorVersion.Current;
             var key = TerrainVisualCacheKey.Compute(new string('a', 64), config.seed, origins, config.Resolution,
                 version, ledger.ComputeDigest());
             return new TileVisualBaker(config, Biomes, sections, layers, species,
-                new MaterializedPlacementLedgerSource(ledger), ledger.ComputeDigest(), _directory,
+                new MaterializedPlacementLedgerSource(LedgerRunFixture.Grounded(ledger, land)), ledger.ComputeDigest(), _directory,
                 new TerrainVisualCache(_directory, key));
         }
     }

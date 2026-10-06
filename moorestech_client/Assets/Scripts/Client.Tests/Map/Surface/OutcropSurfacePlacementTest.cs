@@ -47,7 +47,7 @@ namespace Client.Tests.Map.Surface
         public void 作者pivotが正負でも全頂点を平坦面へ接地する(float pivot)
         {
             var root = CreateMesh(pivot, 2f);
-            OutcropSurfacePlacement.Place(root, _veinBounds, new TerrainSurfacePresentation.Grounded(SurfaceEnvelope.GeneratedV5));
+            Place(root, Grounded);
             var renderer = root.GetComponentInChildren<Renderer>();
             Assert.That(renderer.bounds.center.x, Is.EqualTo(_veinBounds.center.x).Within(0.001f));
             Assert.That(renderer.bounds.center.z, Is.EqualTo(_veinBounds.center.z).Within(0.001f));
@@ -65,17 +65,28 @@ namespace Client.Tests.Map.Surface
         {
             var root = CreateMesh(-3f, 2f);
             var position = root.transform.position;
-            OutcropSurfacePlacement.Place(root, _veinBounds, new TerrainSurfacePresentation.Legacy());
+            Place(root, new TerrainSurfacePresentation.Legacy());
             Assert.That(root.transform.position, Is.EqualTo(position));
         }
 
         [Test]
         public void coreを超えるmeshは明示失敗する()
         {
+            // 寸法違反はロード段のprefab単位で記録され、配置へ渡れば明示失敗する
+            // A size violation is recorded per prefab at load time and fails explicitly if handed to placement
             var root = CreateMesh(0f, 5f);
+            LogAssert.Expect(LogType.Error, new Regex("\\[OutcropPrefab\\] .*exceeds the grading core"));
+            var outcrop = OutcropPrefab.Create(root, Grounded);
+            Assert.That(outcrop.ContractViolation, Is.Not.Null);
             LogAssert.Expect(LogType.Error, new Regex("\\[OutcropSurfacePlacement\\]"));
-            Assert.Throws<InvalidOperationException>(() => OutcropSurfacePlacement.Place(root, _veinBounds,
-                new TerrainSurfacePresentation.Grounded(SurfaceEnvelope.GeneratedV5)));
+            Assert.Throws<InvalidOperationException>(() => OutcropSurfacePlacement.Place(root, outcrop, _veinBounds, Grounded));
+        }
+
+        [Test]
+        public void 旧worldはcoreを超えるprefabも契約違反にしない()
+        {
+            var root = CreateMesh(0f, 5f);
+            Assert.That(OutcropPrefab.Create(root, new TerrainSurfacePresentation.Legacy()).ContractViolation, Is.Null);
         }
 
         [Test]
@@ -83,9 +94,9 @@ namespace Client.Tests.Map.Surface
         {
             var root = CreateMesh(0f, 2f);
             var missing = new Bounds(SurfaceTerrainIsolation.ResolveTranslation(Vector2.zero), Vector3.one);
-            LogAssert.Expect(LogType.Error, new Regex("\\[OutcropSurfacePlacement\\]"));
-            Assert.Throws<InvalidOperationException>(() => OutcropSurfacePlacement.Place(root, missing,
-                new TerrainSurfacePresentation.Grounded(SurfaceEnvelope.GeneratedV5)));
+            var outcrop = OutcropPrefab.Create(root, Grounded);
+            LogAssert.Expect(LogType.Error, new Regex("\\[OutcropSurfacePlacement\\] No terrain contains"));
+            Assert.Throws<InvalidOperationException>(() => OutcropSurfacePlacement.Place(root, outcrop, missing, Grounded));
         }
 
         [TestCase(false)]
@@ -102,7 +113,7 @@ namespace Client.Tests.Map.Surface
 
             // 非描画の巨大meshは底面と寸法に無関係
             // A large invisible mesh must not affect bottom or size
-            OutcropSurfacePlacement.Place(root, _veinBounds, new TerrainSurfacePresentation.Grounded(SurfaceEnvelope.GeneratedV5));
+            Place(root, Grounded);
             var visible = root.transform.GetChild(0).GetComponent<Renderer>();
             Assert.That(visible.bounds.min.y - _groundY, Is.InRange(0f, 0.02f));
         }
@@ -113,9 +124,19 @@ namespace Client.Tests.Map.Surface
             var root = GameObject.CreatePrimitive(PrimitiveType.Cube);
             _created.Add(root);
             root.SetActive(false);
+            LogAssert.Expect(LogType.Error, new Regex("\\[OutcropPrefab\\] No enabled MeshRenderer"));
+            var outcrop = OutcropPrefab.Create(root, Grounded);
             LogAssert.Expect(LogType.Error, new Regex("\\[OutcropSurfacePlacement\\]"));
-            Assert.Throws<InvalidOperationException>(() => OutcropSurfacePlacement.Place(root, _veinBounds,
-                new TerrainSurfacePresentation.Grounded(SurfaceEnvelope.GeneratedV5)));
+            Assert.Throws<InvalidOperationException>(() => OutcropSurfacePlacement.Place(root, outcrop, _veinBounds, Grounded));
+        }
+
+        private static TerrainSurfacePresentation Grounded => new TerrainSurfacePresentation.Grounded(SurfaceEnvelope.GeneratedV5);
+
+        private void Place(GameObject root, TerrainSurfacePresentation presentation)
+        {
+            var outcrop = OutcropPrefab.Create(root, presentation);
+            Assert.That(outcrop.ContractViolation, Is.Null);
+            OutcropSurfacePlacement.Place(root, outcrop, _veinBounds, presentation);
         }
 
         private GameObject CreateMesh(float pivot, float width)

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Game.MapGeneration.Pipeline.Visual.Placement;
 
 namespace Game.MapGeneration.Pipeline.Surface.Grading
 {

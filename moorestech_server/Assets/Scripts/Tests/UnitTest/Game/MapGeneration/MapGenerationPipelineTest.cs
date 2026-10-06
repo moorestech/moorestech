@@ -33,7 +33,7 @@ namespace Tests.UnitTest.Game.MapGeneration
             Assert.That(run.Config.surfaceRevision, Is.EqualTo(expected));
             var veinCount = run.Output.ItemVeins.Count + run.Output.FluidVeins.Count;
             Assert.That(run.Ledger.GroundingPads.Count, Is.EqualTo(expected == WorldSurfaceRevision.Legacy4 ? 0 : veinCount));
-            Assert.That(MapGenerationAlgorithmTable.ResolveSurface(config.surfaceRevision).CreateHeightPolicy(config).Presentation,
+            Assert.That(MapGenerationAlgorithmTable.ResolveSurface(config.surfaceRevision).Presentation,
                 Is.TypeOf(presentation));
         }
 

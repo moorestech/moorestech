@@ -62,9 +62,10 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             var land = new bool[81 * 81];
             for (int i = 0; i < land.Length; i++) land[i] = true;
             land[40 * 81 + 59] = false;
-            var constraint = new GroundedVeinLandConstraint(new LandCellField(geometry, land),
-                new Vector2(0.49f, 0f), SurfaceEnvelope.GeneratedV5);
-            Assert.That(constraint.Accept(VeinAabbBuilder.Build("fixture", new Vector3(10f, 0f, 10f))), Is.False);
+            var rule = new GroundedVeinPlacementRule(new LandCellField(geometry, land),
+                new Vector2(0.49f, 0f), SurfaceEnvelope.GeneratedV5, WorldSurfaceRevision.Grounded5);
+            Assert.That(rule.TryAcceptMember(VeinAabbBuilder.Build("fixture", new Vector3(10f, 0f, 10f)),
+                Array.Empty<PlacedVein>(), Array.Empty<PlacedVein>()), Is.False);
         }
 
         [Test]

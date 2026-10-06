@@ -1,4 +1,3 @@
-using Game.MapGeneration.Pipeline.Surface.Placement;
 using System.Collections.Generic;
 using Core.Master;
 using Game.MapGeneration.Pipeline.Config;
@@ -29,7 +28,7 @@ namespace Game.MapGeneration.Pipeline.Generators
             PlacementHaloChannelMap centerHalos,
             float haloRadius,
             IReadOnlyList<PlacedVein> excludedVeins,
-            VeinPlacementBatch result, IVeinLandConstraint landConstraint)
+            VeinPlacementBatch result, IVeinPlacementRule placementRule)
         {
             float w = dims.TerrainWidth;
             float l = dims.TerrainLength;
@@ -115,12 +114,12 @@ namespace Game.MapGeneration.Pipeline.Generators
                             continue;
                     }
 
-                    landConstraint.RecordEligibleCenter();
+                    placementRule.BeginCluster();
                     var cluster = new VeinPlacementCluster(
                         entryIndex, entry.veinGuid,
                         new Vector2(localX + dims.WorldOffsetX, localZ + dims.WorldOffsetZ));
                     OreClusterMemberPlacer.Place(entry, band, localX, localZ, cluster.Members,
-                        heights, dims, rng, oreGrid, surroundEffect, excludedVeins, result, landConstraint);
+                        heights, dims, rng, oreGrid, surroundEffect, excludedVeins, result, placementRule);
                     if (cluster.Members.Count == 0) continue;
 
                     // AABB排他を生き残った実メンバーを持つ中心だけを同タイル後続候補の排他に使う。

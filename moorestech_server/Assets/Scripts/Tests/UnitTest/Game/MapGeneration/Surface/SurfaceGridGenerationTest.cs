@@ -62,17 +62,21 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         [TestCase(1.1f)]
         public void InvalidClassificationSeaLevelFailsBeforeGeneration(float seaLevel)
         {
-            var config = new TerrainGenerationConfig { seaLevel = seaLevel };
+            // 生成器の入口で生成より前に拒否する
+            // The generator entry rejects it before any generation runs
+            var config = GenerationRuntimeConfigFactory.Build(TestGenerationConfigFactory.CreateSmall());
+            config.seaLevel = seaLevel;
             LogAssert.Expect(LogType.Error, new Regex("GeneratedSurface.*Classification seaLevel"));
-            Assert.Throws<InvalidOperationException>(() => SurfaceGenerationValidation.Validate(config, SurfaceEnvelope.GeneratedV5));
+            Assert.Throws<InvalidOperationException>(() => new GroundedVanillaGenerator(SurfaceEnvelope.GeneratedV5).Generate(config));
         }
 
         [Test]
         public void HeightmapDisabledCannotProduceGuaranteedSaveData()
         {
-            var config = new TerrainGenerationConfig { generateHeightmap = false };
+            var config = GenerationRuntimeConfigFactory.Build(TestGenerationConfigFactory.CreateSmall());
+            config.generateHeightmap = false;
             LogAssert.Expect(LogType.Error, new Regex("GeneratedSurface.*Heightmap-disabled"));
-            Assert.Throws<InvalidOperationException>(() => SurfaceGenerationValidation.Validate(config, SurfaceEnvelope.GeneratedV5));
+            Assert.Throws<InvalidOperationException>(() => new GroundedVanillaGenerator(SurfaceEnvelope.GeneratedV5).Generate(config));
         }
 
         [TestCase(float.NaN)]

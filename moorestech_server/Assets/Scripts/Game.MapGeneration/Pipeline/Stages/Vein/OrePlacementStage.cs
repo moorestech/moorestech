@@ -1,4 +1,3 @@
-using Game.MapGeneration.Pipeline.Surface.Placement;
 using System.Collections.Generic;
 using Game.MapGeneration.Pipeline.Generators;
 using Game.MapGeneration.Pipeline.Biomes;
@@ -13,10 +12,10 @@ namespace Game.MapGeneration.Pipeline.Stages
     {
         private const int ItemVeinRngSeedOffset = 7000;
 
-        public static VeinPlacementBatch GenerateBatch(
+        internal static VeinPlacementBatch GenerateBatch(
             TerrainGenerationConfig config, bool[][,] masks, BiomeType[] biomeTypes,
             float[,] heights2D, List<PlacementEntry> treeEntries, List<ObjectPlacementResult> objectPlacements,
-            TilePlacementContext tile, IVeinLandConstraint landConstraint)
+            TilePlacementContext tile, IVeinPlacementRule placementRule)
         {
             var ore = config.oreConfig;
             if (!config.generateOre || ore.entries.Length == 0) return new VeinPlacementBatch();
@@ -26,7 +25,7 @@ namespace Game.MapGeneration.Pipeline.Stages
             var placement = VeinPlacementCore.Generate(
                 ore.entries, ore.borderMargin,
                 config, masks, biomeTypes, heights2D, treeEntries, objectPlacements,
-                ItemVeinRngSeedOffset, tile, channels, landConstraint);
+                ItemVeinRngSeedOffset, tile, channels, placementRule);
             tile.Halo.CommitVeins(channels, placement);
             return placement;
         }

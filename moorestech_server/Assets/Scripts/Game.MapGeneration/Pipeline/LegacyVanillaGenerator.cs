@@ -1,3 +1,4 @@
+using Game.MapGeneration.Pipeline.Surface;
 using Game.MapGeneration.Pipeline.Surface.Grading;
 using Game.MapGeneration.Surface;
 using Game.MapGeneration.Pipeline.Surface.Placement;
@@ -70,7 +71,7 @@ namespace Game.MapGeneration.Pipeline
             var helper = new BiomePlacementHelper(config);
             var halo = new PlacementHaloStore(PlacementHaloRadius.Resolve(config, biomeTypes, helper));
             var runner = new TilePlacementRunner(helper, biomeTypes,
-                noiseToSceneShift, new Vector3(sceneSpawnXz.x, 0f, sceneSpawnXz.y), output, halo, ledger, new LegacyVeinLandConstraint(), new SurfacePlacementBindings());
+                noiseToSceneShift, new Vector3(sceneSpawnXz.x, 0f, sceneSpawnXz.y), output, halo, ledger, new LegacyVeinPlacementRule(), new SurfacePlacementBindings(config));
 
             // タイル窓の基準はindex(0,0)タイル。config.worldOffset は中心タイル基準なのでそのままでは基準にできない。
             // The tile windows are based on the index (0,0) tile; config.worldOffset is center-tile based and cannot serve as one.
@@ -102,7 +103,7 @@ namespace Game.MapGeneration.Pipeline
 
             // 返す config は探索結果を書き戻した作業コピー。pass-2 が入力側を読むと探索前のスポーン座標を掴む。
             // The returned config is the working copy carrying the search write-back; reading the input side would hand pass-2 the pre-search spawn position.
-            return new GenerationRun(output, ledger, config);
+            return new GenerationRun(output, ledger, config, new LegacySurfaceHeightPolicy());
 
             #region Internal
 

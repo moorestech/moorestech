@@ -31,9 +31,8 @@ namespace Game.MapGeneration.Pipeline.Visual
         private readonly TerrainGenerationConfig _gridConfig;
         private readonly SplatLayerTable _layerTable;
         private readonly ValidatedPlacementLedgerSource _ledgerSource;
-        private readonly SurfaceHeightPolicy _surfacePolicy;
         private readonly SurfaceDisplayBoundaryOwner _displayBoundary;
-        public TerrainSurfacePresentation SurfacePresentation => _surfacePolicy.Presentation;
+        public TerrainSurfacePresentation SurfacePresentation { get; }
         private readonly TreeSurroundSpeciesTable _treeSurroundSpecies;
         private readonly TerrainVisualCache _visualCache;
         private readonly BiomeVisualSections _visualSections;
@@ -53,13 +52,13 @@ namespace Game.MapGeneration.Pipeline.Visual
             _visualSections = visualSections;
             _layerTable = layerTable;
             _treeSurroundSpecies = treeSurroundSpecies;
-            _ledgerSource = new ValidatedPlacementLedgerSource(ledgerSource, expectedPlacementLedgerDigest, treeSurroundSpecies);
-            _surfacePolicy = MapGenerationAlgorithmTable.ResolveSurface(gridConfig.surfaceRevision).CreateHeightPolicy(gridConfig);
+            _ledgerSource = new ValidatedPlacementLedgerSource(ledgerSource, expectedPlacementLedgerDigest, treeSurroundSpecies, gridConfig);
+            SurfacePresentation = MapGenerationAlgorithmTable.ResolveSurface(gridConfig.surfaceRevision).Presentation;
             _heightSource = heightSource;
             _displayBoundary = new SurfaceDisplayBoundaryOwner(gridConfig, new StoredSurfaceDisplayHeightSource(heightSource, gridConfig.Resolution));
             _visualCache = visualCache;
 
-            DetailTextureFilterBinder.Apply(visualSections, layerTable);
+            DetailTextureFilterBinder.Apply(visualSections, layerTable, gridConfig);
 
             // プロトタイプ設定と密度マップは同じフラグで生死を共にする。片方だけ残すと本数が食い違ってDetailPrototypesを読む側が壊れる
             // Configs and density maps live and die by one flag; keeping either alone breaks the counts for whoever reads DetailPrototypes
@@ -155,8 +154,9 @@ namespace Game.MapGeneration.Pipeline.Visual
             (float[,] Pre, float[,] Post) BuildHeightPair()
             {
                 var preHeights = HeightFileLoader.LoadHeights(_heightSource, tileX, tileZ, _gridConfig.Resolution);
-                var post = TileSurfaceHeightBuilder.Build(preHeights, tileConfig, tileWorldPosition, _ledgerSource.Resolve(),
-                    _surfacePolicy, _displayBoundary);
+                var run = _ledgerSource.Resolve();
+                var post = TileSurfaceHeightBuilder.Build(preHeights, tileConfig, tileWorldPosition, run.Ledger,
+                    run.DisplayHeightPolicy, _displayBoundary);
                 return (preHeights, post);
             }
 
@@ -173,7 +173,7 @@ namespace Game.MapGeneration.Pipeline.Visual
                 return SplatmapStage.Generate(
                     tileConfig, _biomeTypes, classification, _layerTable, _visualSections, _treeSurroundSpecies,
                     preHeights, biomeIndices, _gridConfig.AlphamapResolution,
-                    _ledgerSource.Resolve().Placements, tileWorldPosition);
+                    _ledgerSource.Resolve().Ledger.Placements, tileWorldPosition);
             }
 
             // 距離場はタイル境界の外まで見るため、切り出し済みのタイル内mapObjectではなく全タイルぶんを渡す
@@ -183,14 +183,13 @@ namespace Game.MapGeneration.Pipeline.Visual
             {
                 return TerrainDetailBuilder.Build(
                     tileConfig, _biomeTypes, _visualSections, preHeights, postHeights, classification.WinnerMasks,
-                    alphamap, _ledgerSource.Resolve().Placements, tileWorldPosition, tileX, tileZ);
+                    alphamap, _ledgerSource.Resolve().Ledger.Placements, tileWorldPosition, tileX, tileZ);
             }
 
             float[,] CreateFlatHeights(int resolution)
             {
                 return new float[resolution, resolution];
             }
-
 
             #endregion
         }

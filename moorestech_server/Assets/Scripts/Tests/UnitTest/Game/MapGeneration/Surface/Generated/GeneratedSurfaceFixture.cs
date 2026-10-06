@@ -82,7 +82,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface.Generated
             // サーバー先焼きと同じfactoryを使う
             // Use the same factory as server prebaking
             var timer = SurfaceTestPhase.Start("prebake");
-            var factory = TileVisualBakerFactory.CreateForPrebake(Run.Config, Meta, Run.Ledger,
+            var factory = TileVisualBakerFactory.CreateForPrebake(Run.Config, Meta, Run,
                 MasterHolder.GenerationMaster.SelectedGeneration, Saved);
             var results = BakeAll(factory.Baker);
             SurfaceTestPhase.Finish("prebake", timer);

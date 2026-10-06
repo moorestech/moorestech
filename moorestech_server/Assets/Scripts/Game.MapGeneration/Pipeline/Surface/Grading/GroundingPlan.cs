@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Game.MapGeneration.Pipeline.Surface.Grading
 {
-    public sealed class GroundingPlan
+    internal sealed class GroundingPlan
     {
         private readonly SurfaceTileGrid _grid;
         private readonly IReadOnlyList<VeinGrounding> _groundings;
@@ -27,7 +27,7 @@ namespace Game.MapGeneration.Pipeline.Surface.Grading
             Move(output.FluidVeins);
             var pads = new List<VeinGroundingPad>(_groundings.Count);
             foreach (var grounding in _groundings) pads.Add(grounding.Pad);
-            var grounded = ledger.WithGroundingPads(pads);
+            var grounded = ledger.WithGroundingPads(pads, _grid.Config);
 
             // 全域一枚の格子から投影し頂点へ複製
             // Project from one global lattice and copy to shared vertices
@@ -35,7 +35,11 @@ namespace Game.MapGeneration.Pipeline.Surface.Grading
             for (int z = 0; z < _grid.Geometry.Depth; z++)
             for (int x = 0; x < _grid.Geometry.Width; x++)
                 heights[z, x] = _grid.GetHeight(x, z) / _grid.Config.terrainHeight;
-            var projected = GroundingHeightProjector.Apply(heights, _grid.Geometry.Origin,
+            // skirtは保存高さへこの1回だけ焼き、表示段はcoreだけを再代入する
+            // Skirts are baked into the stored heights this once; the display stage reassigns cores alone
+            var skirted = GroundingHeightProjector.ApplySkirts(heights, _grid.Geometry.Origin,
+                _grid.Geometry.Spacing, _grid.Config.terrainHeight, pads);
+            var projected = GroundingHeightProjector.ApplyCores(skirted, _grid.Geometry.Origin,
                 _grid.Geometry.Spacing, _grid.Config.terrainHeight, pads);
             for (int z = 0; z < _grid.Geometry.Depth; z++)
             for (int x = 0; x < _grid.Geometry.Width; x++)

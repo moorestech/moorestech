@@ -1,6 +1,3 @@
-using Game.MapGeneration.Surface;
-using Game.MapGeneration.Pipeline.Config;
-using Game.MapGeneration.Pipeline.Visual;
 using Game.MapGeneration.Pipeline.Visual.Placement;
 using UnityEngine;
 
@@ -8,7 +5,9 @@ namespace Game.MapGeneration.Pipeline.Surface
 {
     internal static class SurfaceDisplayEvaluator
     {
-        internal static SurfaceTileGrid Build(SurfaceTileGrid source, PlacementLedger ledger, bool projectFinal, SurfaceEnvelope envelope)
+        // 表示焼きと同じ手順(木変位→policy→所有境界)で生成時の表示地形を組み立てる
+        // Assemble generation-time display terrain through the display bake's own steps (trees, policy, owned boundaries)
+        internal static SurfaceTileGrid Build(SurfaceTileGrid source, PlacementLedger ledger, SurfaceHeightPolicy policy)
         {
             var output = new MapGenerationOutput
             {
@@ -38,11 +37,7 @@ namespace Game.MapGeneration.Pipeline.Surface
                 var tileConfig = gridConfig.CreateTileConfig(tile.TileX, tile.TileZ);
                 var scene = source.Config.TileScenePosition(tile.TileX, tile.TileZ);
                 var position = new Vector3(scene.x, 0f, scene.y);
-                var post = TreePerturbationApplier.Apply(pre, tileConfig, position, ledger.Placements);
-                if (projectFinal)
-                    post = FinalSurfaceProjector.Apply(post, tileConfig, position, source.Land, ledger.GroundingPads, envelope);
-
-                boundaries.CopyTo(post, position, ledger, source.Land, envelope, projectFinal);
+                var post = TileSurfaceHeightBuilder.Build(pre, tileConfig, position, ledger, policy, boundaries);
 
                 // 返却場は独立コピーで、保存用pre-treeへ書き戻さない
                 // Evaluate Unity storage in independent fields without modifying saved pre-tree heights

@@ -70,10 +70,13 @@ namespace Client.Tests.Map.Surface
 
                 // 平坦面検査後に実Prefabを配置へ渡す
                 // Pass the real prefab to placement after the flat check
+                var grounded = new TerrainSurfacePresentation.Grounded(SurfaceEnvelope.GeneratedV5);
+                var outcrop = OutcropPrefab.Create(prefab, grounded);
+                Assert.That(outcrop.ContractViolation, Is.Null, master.OutcropAddressablePath);
                 var instance = UnityEngine.Object.Instantiate(prefab, Vector3.zero, Quaternion.identity);
                 _created.Add(instance);
                 var bounds = new Bounds(center + _translation, (Vector3)(vein.Max - vein.Min + Vector3Int.one));
-                OutcropSurfacePlacement.Place(instance, bounds, new TerrainSurfacePresentation.Grounded(SurfaceEnvelope.GeneratedV5));
+                OutcropSurfacePlacement.Place(instance, outcrop, bounds, grounded);
                 var verifiedWorldCore = new Rect(core.position + new Vector2(_translation.x, _translation.z), core.size);
                 vertices.Measure(instance, ground, vein.VeinGuid, verifiedWorldCore);
                 UnityEngine.Object.DestroyImmediate(instance);

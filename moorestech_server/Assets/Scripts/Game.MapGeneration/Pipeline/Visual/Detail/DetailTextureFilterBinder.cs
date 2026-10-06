@@ -1,13 +1,13 @@
-using System;
+using Game.MapGeneration.Pipeline.Config;
+using Game.MapGeneration.Pipeline.Surface;
 using Game.MapGeneration.Pipeline.Visual.Source;
 using Game.MapGeneration.Pipeline.Visual.Splat;
-using UnityEngine;
 
 namespace Game.MapGeneration.Pipeline.Visual.Detail
 {
     internal static class DetailTextureFilterBinder
     {
-        internal static void Apply(BiomeVisualSections visualSections, SplatLayerTable layerTable)
+        internal static void Apply(BiomeVisualSections visualSections, SplatLayerTable layerTable, TerrainGenerationConfig config)
         {
             // レイヤー表確定後に列番号を渡す
             // Pass column indices after the layer table settles
@@ -20,11 +20,8 @@ namespace Game.MapGeneration.Pipeline.Visual.Detail
                 foreach (var filterEntry in textureFilter.entries)
                 {
                     if (!layerTable.LayerIndexByAddress.TryGetValue(filterEntry.layerAddressablePath, out var layerIndex))
-                    {
-                        string reason = $"[TileVisualBaker] Detail texture filter layer '{filterEntry.layerAddressablePath}' is not registered in the splatmap layer table.";
-                        Debug.LogError(reason);
-                        throw new InvalidOperationException(reason);
-                    }
+                        throw SurfaceGenerationValidation.Failure(config, "all",
+                            $"[TileVisualBaker] Detail texture filter layer '{filterEntry.layerAddressablePath}' is not registered in the splatmap layer table.");
 
                     filterEntry.SetLayerIndex(layerIndex);
                 }

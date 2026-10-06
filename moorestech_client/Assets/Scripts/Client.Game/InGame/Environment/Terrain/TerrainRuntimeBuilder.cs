@@ -6,7 +6,6 @@ using Client.Game.InGame.Environment.Terrain.Assets;
 using Client.Game.InGame.Environment.Terrain.Build;
 using Cysharp.Threading.Tasks;
 using Game.MapGeneration.Facade;
-using Game.MapGeneration.Surface;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 
@@ -47,23 +46,7 @@ namespace Client.Game.InGame.Environment.Terrain
 
             // 地形完成後に海の表示契約を適用する
             // Apply the ocean presentation contract after terrain completion
-            switch (layout.SurfacePresentation)
-            {
-                case TerrainSurfacePresentation.Legacy:
-                    break;
-                case TerrainSurfacePresentation.Grounded grounded:
-                    var ocean = environmentRoot.GetComponentInChildren<GeneratedOceanSurface>(true);
-                    if (ocean == null)
-                    {
-                        Debug.LogError("[TerrainRuntimeBuilder] GeneratedOceanSurface is not wired on the environment prefab.");
-                        throw new InvalidOperationException("[TerrainRuntimeBuilder] GeneratedOceanSurface is not wired on the environment prefab.");
-                    }
-                    ocean.Initialize(grounded.Envelope);
-                    break;
-                default:
-                    Debug.LogError("[TerrainRuntimeBuilder] Unknown surface presentation.");
-                    throw new InvalidOperationException("[TerrainRuntimeBuilder] Unknown surface presentation.");
-            }
+            layout.SurfacePresentation.Accept(new OceanPresentationApplier(environmentRoot));
             return layout;
 
             #region Internal

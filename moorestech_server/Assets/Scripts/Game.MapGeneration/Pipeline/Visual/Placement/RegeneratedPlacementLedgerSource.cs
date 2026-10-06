@@ -20,9 +20,9 @@ namespace Game.MapGeneration.Pipeline.Visual.Placement
             _config = config;
         }
 
-        public PlacementLedger Resolve()
+        public GenerationRun Resolve()
         {
-            return MapGenerationPipeline.Generate(_selectedGeneration, _config).Ledger;
+            return MapGenerationPipeline.Generate(_selectedGeneration, _config);
         }
     }
 }

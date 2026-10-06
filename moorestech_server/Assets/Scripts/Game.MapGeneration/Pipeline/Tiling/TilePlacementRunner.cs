@@ -1,4 +1,3 @@
-using Game.MapGeneration.Pipeline.Surface.Placement;
 using Game.MapGeneration.Pipeline.Surface.Grading;
 using Game.MapGeneration.Pipeline.Generators;
 using System.Collections.Generic;
@@ -23,7 +22,7 @@ namespace Game.MapGeneration.Pipeline.Tiling
         private readonly Vector2 _noiseToSceneShift;
         private readonly Vector3 _sceneSpawn;
         private readonly MapGenerationOutput _output;
-        private readonly IVeinLandConstraint _landConstraint;
+        private readonly IVeinPlacementRule _placementRule;
         private readonly SurfacePlacementBindings _bindings;
 
         // pass-2(見た目)へ渡す配置台帳。生成システムの外へは出ない
@@ -38,10 +37,10 @@ namespace Game.MapGeneration.Pipeline.Tiling
         // Cluster ids restart at 0 per tile, so accumulate the max written so far + 1 to uniquify them across the whole grid.
         private int _nextClusterIdOffset;
 
-        public TilePlacementRunner(
+        internal TilePlacementRunner(
             BiomePlacementHelper helper, BiomeType[] biomeTypes,
             Vector2 noiseToSceneShift, Vector3 sceneSpawn, MapGenerationOutput output,
-            PlacementHaloStore halo, PlacementLedger ledger, IVeinLandConstraint landConstraint, SurfacePlacementBindings bindings)
+            PlacementHaloStore halo, PlacementLedger ledger, IVeinPlacementRule placementRule, SurfacePlacementBindings bindings)
         {
             _helper = helper;
             _biomeTypes = biomeTypes;
@@ -50,7 +49,7 @@ namespace Game.MapGeneration.Pipeline.Tiling
             _output = output;
             _halo = halo;
             _ledger = ledger;
-            _landConstraint = landConstraint;
+            _placementRule = placementRule;
             _bindings = bindings;
         }
 
@@ -114,9 +113,9 @@ namespace Game.MapGeneration.Pipeline.Tiling
                         treeEntries, tile, out objectEntries, out objectPlacements);
 
                 itemBatch = OrePlacementStage.GenerateBatch(
-                    tileConfig, masks, _biomeTypes, heights2D, treeEntries, objectPlacements, tile, _landConstraint);
+                    tileConfig, masks, _biomeTypes, heights2D, treeEntries, objectPlacements, tile, _placementRule);
                 fluidBatch = FluidVeinPlacementStage.GenerateBatch(
-                    tileConfig, masks, _biomeTypes, heights2D, treeEntries, objectPlacements, tile, _landConstraint);
+                    tileConfig, masks, _biomeTypes, heights2D, treeEntries, objectPlacements, tile, _placementRule);
             }
 
             void AppendMapObjects(List<PlacementEntry> entries)

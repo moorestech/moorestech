@@ -43,7 +43,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
                 actual[tile] = new float[17, 17];
                 actual[tile][8, 8] = -7f;
                 owner.CopyTo(actual[tile], new Vector3(scene.x, 0f, scene.y), ledger,
-                    grid.Land, SurfaceEnvelope.GeneratedV5, true);
+                    new GroundedSurfaceHeightPolicy(grid.Land, SurfaceEnvelope.GeneratedV5));
                 Assert.That(actual[tile][8, 8], Is.EqualTo(-7f), "Only perimeter samples may be copied");
             }
             foreach (int loads in source.LoadCounts) Assert.That(loads, Is.EqualTo(1));

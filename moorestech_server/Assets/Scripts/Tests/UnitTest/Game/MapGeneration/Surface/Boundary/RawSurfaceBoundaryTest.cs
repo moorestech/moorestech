@@ -41,12 +41,9 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
                     Is.EqualTo(grid.Output.Tiles[3].Heights[i]));
             }
 
-            // 再ロードも同じ所有者から陸地復元
-            // Reload restores land from the same boundary owners
-            var replayConfig = config.ShallowCopy();
-            replayConfig.worldOffsetX = grid.Output.NoiseOrigin.x;
-            replayConfig.worldOffsetZ = grid.Output.NoiseOrigin.y;
-            var replay = new SurfaceLandReconstructor(replayConfig).Resolve();
+            // 再ロードは再生成の副産物から陸地を得るので、同じ組み立ての再実行が同じ陸地を返す
+            // Reload takes land as a by-product of regeneration, so rerunning the same assembly returns the same land
+            var replay = SurfaceGridBuilder.Build(config.ShallowCopy()).Land;
             int protectedVertices = 0;
             for (int z = 0; z < grid.Geometry.Depth; z++)
             for (int x = 0; x < grid.Geometry.Width; x++)

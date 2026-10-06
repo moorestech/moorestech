@@ -28,7 +28,7 @@ namespace Game.MapGeneration.Pipeline
             throw new InvalidOperationException(reason);
         }
 
-        public static SurfaceRevisionPolicy ResolveSurface(WorldSurfaceRevision revision)
+        internal static SurfaceRevisionPolicy ResolveSurface(WorldSurfaceRevision revision)
         {
             if (Revisions.TryGetValue(revision, out var policy)) return policy;
 

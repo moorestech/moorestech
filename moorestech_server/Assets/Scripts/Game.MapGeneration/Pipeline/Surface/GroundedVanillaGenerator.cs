@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace Game.MapGeneration.Pipeline.Surface
 {
-    public sealed class GroundedVanillaGenerator : IMapGenerator
+    internal sealed class GroundedVanillaGenerator : IMapGenerator
     {
         private readonly SurfaceEnvelope _envelope;
 
@@ -39,17 +39,18 @@ namespace Game.MapGeneration.Pipeline.Surface
             var grid = SurfaceGridBuilder.Build(config);
             grid.ApplyLandFloor(envelope);
             var ledger = new PlacementLedger();
-            var bindings = new SurfacePlacementBindings();
+            var bindings = new SurfacePlacementBindings(config);
             var helper = new BiomePlacementHelper(config);
             var halo = new PlacementHaloStore(PlacementHaloRadius.Resolve(config, biomes, helper));
+            var placementRule = new GroundedVeinPlacementRule(grid.Land, shift, envelope, config.surfaceRevision);
             var runner = new TilePlacementRunner(helper, biomes, shift,
-                new Vector3(spawn.x, 0f, spawn.y), grid.Output, halo, ledger, new GroundedVeinLandConstraint(grid.Land, shift, envelope), bindings);
+                new Vector3(spawn.x, 0f, spawn.y), grid.Output, halo, ledger, placementRule, bindings);
             var gridConfig = config.ShallowCopy();
             gridConfig.worldOffsetX = grid.Output.NoiseOrigin.x;
             gridConfig.worldOffsetZ = grid.Output.NoiseOrigin.y;
 
-            // 配置用分類を再生成、高さは確定済み
-            // Regenerate placement classification; heights are settled
+            // 配置用分類を再生成、高さは確定済み。全タイルの分類バッファを保持すると生物群系数×解像度²×タイル数を常駐させるため、陸確定後にもう1周回す
+            // Regenerate placement classification; heights are settled. Holding every tile's classification buffers would keep biomes x resolution^2 x tiles resident, so a second pass runs once land settles
             using var parameters = new SurfaceGenerationParameters(config, biomes);
             var boundaries = new SurfaceBoundarySamples(config, biomes.Length);
             foreach (var tile in grid.Output.Tiles)
@@ -60,12 +61,15 @@ namespace Game.MapGeneration.Pipeline.Surface
                 runner.Run(tileConfig, window.Buffers, tile.Heights, config.TileScenePosition(tile.TileX, tile.TileZ), tile.TileX, tile.TileZ);
             }
 
-            var before = SurfaceDisplayEvaluator.Build(grid, ledger, false, envelope);
+            // 整地前後を表示と同じpolicyで評価し、配置物とスポーンを整地後の表示地表へ載せ直す
+            // Evaluate before and after grading with the display policies and re-anchor objects and spawn onto the graded display surface
+            var before = SurfaceDisplayEvaluator.Build(grid, ledger, new PreGradingSurfaceHeightPolicy());
             ledger = VeinGroundingPlanner.Build(grid, envelope).Apply(ledger);
-            var after = SurfaceDisplayEvaluator.Build(grid, ledger, true, envelope);
+            var displayPolicy = new GroundedSurfaceHeightPolicy(grid.Land, envelope);
+            var after = SurfaceDisplayEvaluator.Build(grid, ledger, displayPolicy);
             ledger = SurfaceObjectReanchor.Apply(grid.Output, ledger, bindings, before, after);
             grid.Output.SpawnPoint = new Vector3(spawn.x, after.SampleHeight(spawn), spawn.y);
-            return new GenerationRun(grid.Output, ledger, config);
+            return new GenerationRun(grid.Output, ledger, config, displayPolicy);
         }
     }
 }

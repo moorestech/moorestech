@@ -1,8 +1,9 @@
+using Game.MapGeneration.Pipeline.Visual.Placement;
 namespace Game.MapGeneration.Pipeline.Surface.Grading
 {
     // 鉱脈AABBと採掘底面・整地面を1組で運ぶ
     // Carries the vein AABB with its mining bottom and pad
-    public readonly struct VeinGrounding
+    internal readonly struct VeinGrounding
     {
         public readonly PlacedVein Vein;
         public readonly int Bottom;

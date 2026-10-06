@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Game.MapGeneration.Pipeline.Surface.Origins
 {
-    public static class SpawnSurfaceSampler
+    internal static class SpawnSurfaceSampler
     {
         // 中心タイルのハイトマップからスポーン高さを採る
         // Samples the spawn height from the center tile heightmap

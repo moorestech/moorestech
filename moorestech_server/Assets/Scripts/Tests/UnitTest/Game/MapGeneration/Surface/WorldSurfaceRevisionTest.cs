@@ -48,9 +48,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         [TestCase(WorldSurfaceRevision.Grounded5, typeof(TerrainSurfacePresentation.Grounded))]
         public void PresentationUsesTheGenerationRevisionRegistry(WorldSurfaceRevision revision, Type presentation)
         {
-            var config = new TerrainGenerationConfig { surfaceRevision = revision };
-            var policy = MapGenerationAlgorithmTable.ResolveSurface(revision).CreateHeightPolicy(config);
-            Assert.That(policy.Presentation, Is.TypeOf(presentation));
+            Assert.That(MapGenerationAlgorithmTable.ResolveSurface(revision).Presentation, Is.TypeOf(presentation));
         }
 
         [Test]

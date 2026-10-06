@@ -61,9 +61,12 @@ namespace Client.Tests.Map.Surface
                 Assert.That(paths.ContainsKey(element.OutcropAddressablePath), Is.True, element.OutcropAddressablePath);
                 var prefab = SurfaceAssetContractInputs.LoadPrefab(paths[element.OutcropAddressablePath]);
                 Assert.That(prefab, Is.Not.Null, element.OutcropAddressablePath);
+                var grounded = new TerrainSurfacePresentation.Grounded(SurfaceEnvelope.GeneratedV5);
+                var outcrop = OutcropPrefab.Create(prefab, grounded);
+                Assert.That(outcrop.ContractViolation, Is.Null, element.OutcropAddressablePath);
                 var instance = UnityEngine.Object.Instantiate(prefab, Vector3.zero, Quaternion.identity);
                 _created.Add(instance);
-                OutcropSurfacePlacement.Place(instance, bounds, new TerrainSurfacePresentation.Grounded(SurfaceEnvelope.GeneratedV5));
+                OutcropSurfacePlacement.Place(instance, outcrop, bounds, grounded);
 
                 // 実meshの全頂点を平坦面と比較する
                 // Compare every actual mesh vertex with the flat surface
@@ -81,7 +84,7 @@ namespace Client.Tests.Map.Surface
         }
 
         [Test]
-        public void 水shaderの包絡式と実plane入力を検査する()
+        public void 水shaderの入力と実plane入力を検査する()
         {
             SurfaceAssetContractInputs.AssertWaterInputs();
         }

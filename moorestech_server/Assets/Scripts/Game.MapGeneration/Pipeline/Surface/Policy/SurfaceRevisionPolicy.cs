@@ -1,39 +1,36 @@
 using Game.MapGeneration.Surface;
-using Game.MapGeneration.Pipeline.Config;
 
 namespace Game.MapGeneration.Pipeline.Surface
 {
-    public abstract class SurfaceRevisionPolicy
+    // 地表revisionごとの生成器・表示契約・鉱脈整地の有無を1か所で束ねる
+    // Bundles each surface revision's generator, presentation contract and vein grading in one place
+    internal abstract class SurfaceRevisionPolicy
     {
         public abstract IMapGenerator Generator { get; }
-        internal abstract string VisualCacheVersionSuffix { get; }
-        public abstract SurfaceHeightPolicy CreateHeightPolicy(TerrainGenerationConfig config);
+        public abstract TerrainSurfacePresentation Presentation { get; }
+
+        // 台帳padが鉱脈から決まる版か。真なら保存鉱脈と再生成鉱脈の一致が台帳を進める条件になる
+        // Whether ledger pads derive from veins; when true the saved and regenerated vein sets must match before the ledger advances
+        internal abstract bool GradesTerrainAroundVeins { get; }
 
         internal sealed class Legacy : SurfaceRevisionPolicy
         {
             public override IMapGenerator Generator { get; } = new LegacyVanillaGenerator();
-            internal override string VisualCacheVersionSuffix => string.Empty;
-
-            public override SurfaceHeightPolicy CreateHeightPolicy(TerrainGenerationConfig config)
-            {
-                return new LegacySurfaceHeightPolicy();
-            }
+            public override TerrainSurfacePresentation Presentation { get; } = new TerrainSurfacePresentation.Legacy();
+            internal override bool GradesTerrainAroundVeins => false;
         }
 
         internal sealed class Grounded : SurfaceRevisionPolicy
         {
-            internal readonly SurfaceEnvelope Envelope = SurfaceEnvelope.GeneratedV5;
             public override IMapGenerator Generator { get; }
-            internal override string VisualCacheVersionSuffix => "|owned-display-1";
+            public override TerrainSurfacePresentation Presentation { get; }
+            internal override bool GradesTerrainAroundVeins => true;
 
             public Grounded()
             {
-                Generator = new GroundedVanillaGenerator(Envelope);
-            }
-
-            public override SurfaceHeightPolicy CreateHeightPolicy(TerrainGenerationConfig config)
-            {
-                return new GroundedSurfaceHeightPolicy(config, Envelope);
+                var envelope = SurfaceEnvelope.GeneratedV5;
+                Generator = new GroundedVanillaGenerator(envelope);
+                Presentation = new TerrainSurfacePresentation.Grounded(envelope);
             }
         }
     }

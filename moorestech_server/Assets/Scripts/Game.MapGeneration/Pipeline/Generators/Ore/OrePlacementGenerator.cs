@@ -1,4 +1,3 @@
-using Game.MapGeneration.Pipeline.Surface.Placement;
 using System.Collections.Generic;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Generators.Util;
@@ -17,7 +16,7 @@ namespace Game.MapGeneration.Pipeline.Generators
     {
         // ワールド全体の鉱脈を配置する。entryMasks[i] は entries[i] の対象バイオーム合成マスク。
         // Places all veins; entryMasks[i] is the composite biome mask for entries[i].
-        public static VeinPlacementBatch GenerateForWorld(
+        internal static VeinPlacementBatch GenerateForWorld(
             OreEntry[] entries,
             bool[][,] entryMasks,
             float borderMargin,
@@ -28,7 +27,7 @@ namespace Game.MapGeneration.Pipeline.Generators
             SpatialGrid objectSpatialGrid,
             VeinHaloChannels channels,
             float haloRadius,
-            IReadOnlyList<PlacedVein> excludedVeins, IVeinLandConstraint landConstraint, int tileIndexX, int tileIndexZ)
+            IReadOnlyList<PlacedVein> excludedVeins, IVeinPlacementRule placementRule, int tileIndexX, int tileIndexZ)
         {
             var result = new VeinPlacementBatch();
             if (entries == null || entries.Length == 0)
@@ -54,11 +53,10 @@ namespace Game.MapGeneration.Pipeline.Generators
                 if (entryMasks == null || entryMasks.Length <= i || entryMasks[i] == null)
                     continue;
 
-                int acceptedBefore = result.Veins.Count;
                 OreEntryPlacer.Place(entry, i, entryMasks[i], heights, dims, rng,
                     borderPx, treeSpatialGrid, objectSpatialGrid,
-                    oreGrid, channels.Centers, haloRadius, excludedVeins, result, landConstraint);
-                landConstraint.ReportRejections(dims.Seed, tileIndexX, tileIndexZ, entry.veinGuid, result.Veins.Count - acceptedBefore);
+                    oreGrid, channels.Centers, haloRadius, excludedVeins, result, placementRule);
+                placementRule.ReportRejections(dims.Seed, tileIndexX, tileIndexZ, entry.veinGuid);
             }
 
             return result;

@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using Game.MapGeneration.Surface;
 using UnityEngine;
+using Game.MapGeneration.Pipeline.Visual.Placement;
 
 namespace Game.MapGeneration.Pipeline.Surface.Grading
 {
-    public static class VeinGroundingPlanner
+    internal static class VeinGroundingPlanner
     {
         public static GroundingPlan Build(SurfaceTileGrid grid, SurfaceEnvelope envelope)
         {

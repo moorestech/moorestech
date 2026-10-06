@@ -65,7 +65,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             LogAssert.NoUnexpectedReceived();
         }
 
-        private static List<PlacedVein> Generate(bool fluid, IVeinLandConstraint constraint, bool rejectSlope)
+        private static List<PlacedVein> Generate(bool fluid, IVeinPlacementRule constraint, bool rejectSlope)
         {
             var entry = VeinClusterTestFixtures.CreateEntry(VeinGuid);
             entry.useSlopeFilter = rejectSlope;
@@ -96,38 +96,34 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
                 : OrePlacementStage.GenerateBatch(config, masks, biomes, heights, new List<PlacementEntry>(), null, tile, constraint).Veins;
         }
 
-        private static GroundedVeinLandConstraint Land(bool land)
+        private static GroundedVeinPlacementRule Land(bool land)
         {
             var geometry = new SurfaceLattice(new Vector2(-1000f, -1000f), Vector2.one * 100f, 31, 31);
             var mask = new bool[31 * 31];
             for (int i = 0; i < mask.Length; i++) mask[i] = land;
-            return new GroundedVeinLandConstraint(new LandCellField(geometry, mask), Vector2.zero, SurfaceEnvelope.GeneratedV5);
+            return new GroundedVeinPlacementRule(new LandCellField(geometry, mask), Vector2.zero, SurfaceEnvelope.GeneratedV5, WorldSurfaceRevision.Grounded5);
         }
 
-        private sealed class FirstCandidateRejectedConstraint : IVeinLandConstraint
+        private sealed class FirstCandidateRejectedConstraint : IVeinPlacementRule
         {
             public int Calls { get; private set; }
             public PlacedVein Rejected { get; private set; }
 
-            public void RecordEligibleCenter()
+            public void BeginCluster()
             {
                 // 旧配置の観測は候補列や乱数を変更しない
                 // Legacy observation leaves candidates and RNG untouched
             }
 
-            public bool Overlaps(PlacedVein candidate, IReadOnlyList<PlacedVein> veins)
-            {
-                return VeinAabbBuilder.OverlapsAny(candidate, veins);
-            }
-
-            public bool Accept(PlacedVein candidate)
+            public bool TryAcceptMember(PlacedVein candidate, IReadOnlyList<PlacedVein> excludedVeins, IReadOnlyList<PlacedVein> confirmedVeins)
             {
                 Calls++;
                 if (Calls == 1) Rejected = candidate;
-                return 1 < Calls && candidate.Min != Rejected.Min;
+                return 1 < Calls && candidate.Min != Rejected.Min &&
+                       !VeinAabbBuilder.OverlapsAny(candidate, excludedVeins) && !VeinAabbBuilder.OverlapsAny(candidate, confirmedVeins);
             }
 
-            public void ReportRejections(int seed, int tileX, int tileZ, string entryGuid, int acceptedCount)
+            public void ReportRejections(int seed, int tileX, int tileZ, string entryGuid)
             {
                 LogAssert.Expect(LogType.Warning, "Fixture rejected first candidate.");
                 Debug.LogWarning("Fixture rejected first candidate.");

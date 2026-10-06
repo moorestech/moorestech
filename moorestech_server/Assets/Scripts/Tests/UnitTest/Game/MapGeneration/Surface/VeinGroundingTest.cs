@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using Game.MapGeneration.Surface;
 using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Pipeline.Config;
@@ -56,8 +57,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             for (int x = 0; x < 33; x++) heights[z, x] = (x + z) / 600f;
             var a = new VeinGroundingPad(new Rect(10f, 10f, 4f, 4f), 25f, 2f);
             var b = new VeinGroundingPad(new Rect(18f, 10f, 4f, 4f), 40f, 2f);
-            var forward = GroundingHeightProjector.Apply(heights, Vector2.zero, Vector2.one, 600f, new[] { a, b });
-            var reverse = GroundingHeightProjector.Apply(heights, Vector2.zero, Vector2.one, 600f, new[] { b, a });
+            var forward = Project(heights, Vector2.zero, new[] { a, b });
+            var reverse = Project(heights, Vector2.zero, new[] { b, a });
             CollectionAssert.AreEqual(forward, reverse);
             Assert.That(forward[0, 0], Is.EqualTo(heights[0, 0]));
             Assert.That(heights[12, 12], Is.EqualTo(24f / 600f));
@@ -67,9 +68,29 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         public void BoundaryPadHasIdenticalHeightOnBothTiles()
         {
             var pad = new VeinGroundingPad(new Rect(14f, 6f, 4f, 4f), 30f, 2f);
-            var left = GroundingHeightProjector.Apply(new float[17, 17], Vector2.zero, Vector2.one, 600f, new[] { pad });
-            var right = GroundingHeightProjector.Apply(new float[17, 17], new Vector2(16f, 0f), Vector2.one, 600f, new[] { pad });
+            var left = Project(new float[17, 17], Vector2.zero, new[] { pad });
+            var right = Project(new float[17, 17], new Vector2(16f, 0f), new[] { pad });
             for (int z = 0; z < 17; z++) Assert.That(left[z, 16], Is.EqualTo(right[z, 0]));
+        }
+
+        [Test]
+        public void DisplayProjectionReassignsCoresWithoutBlendingSkirtsAgain()
+        {
+            var grid = SurfaceGridFixture.Create(1, 33, 32f, 32f, true);
+            var input = new float[33, 33];
+            for (int z = 0; z < 33; z++)
+            for (int x = 0; x < 33; x++) input[z, x] = (100f + x + z) / grid.Config.terrainHeight;
+            float padHeight = SurfaceQuantization.PadHeight(20, grid.Config, "fixture");
+            var pad = new VeinGroundingPad(new Rect(10f, 10f, 4f, 4f), padHeight, 4f);
+            var post = FinalSurfaceProjector.Apply(input, grid.Config, Vector3.zero, grid.Land, new[] { pad }, SurfaceEnvelope.GeneratedV5);
+
+            // skirt圏内でもcore外は入力のまま、coreだけpad高さ
+            // Inside the skirt reach non-core vertices keep the input and only cores take the pad height
+            var support = grid.Geometry.SupportVertices(pad.Core);
+            int skirtX = support.xMax;
+            Assert.That(skirtX - pad.Core.xMax, Is.LessThan(pad.BlendWidth), "fixture: the vertex lies inside the skirt reach");
+            Assert.That(post[12, skirtX], Is.EqualTo(SurfaceQuantization.EncodeNormalized(input[12, skirtX])));
+            Assert.That(SurfaceQuantization.StoredNormalized(post[12, 12]) * grid.Config.terrainHeight, Is.EqualTo(pad.HeightMeters));
         }
 
         [Test]
@@ -97,12 +118,18 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         [Test]
         public void DuplicateAndInvalidBindingsFailWithDiagnostics()
         {
-            var bindings = new SurfacePlacementBindings();
+            var bindings = new SurfacePlacementBindings(SurfaceGridFixture.Create(1, 17, 32f, 32f, true).Config);
             bindings.AddMapObject(0, 0);
-            LogAssert.Expect(LogType.Error, "Invalid or duplicate surface binding: output=1, ledger=0.");
+            LogAssert.Expect(LogType.Error, new Regex(@"\[GeneratedSurface\] seed=.* revision=.* tile=bindings: Invalid or duplicate surface binding: output=1, ledger=0\.$"));
             Assert.Throws<InvalidOperationException>(() => bindings.AddMapObject(1, 0));
-            LogAssert.Expect(LogType.Error, "Invalid or duplicate surface binding: output=-1, ledger=2.");
+            LogAssert.Expect(LogType.Error, new Regex(@"\[GeneratedSurface\] seed=.* revision=.* tile=bindings: Invalid or duplicate surface binding: output=-1, ledger=2\.$"));
             Assert.Throws<InvalidOperationException>(() => bindings.AddMapObject(-1, 2));
+        }
+
+        private static float[,] Project(float[,] heights, Vector2 origin, VeinGroundingPad[] pads)
+        {
+            var skirted = GroundingHeightProjector.ApplySkirts(heights, origin, Vector2.one, 600f, pads);
+            return GroundingHeightProjector.ApplyCores(skirted, origin, Vector2.one, 600f, pads);
         }
 
         private static void AddVein(List<PlacedVein> veins, int x, int z, int bottom)

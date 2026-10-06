@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Generators.Util;
-using Game.MapGeneration.Pipeline.Surface.Placement;
 using UnityEngine;
 
 namespace Game.MapGeneration.Pipeline.Generators
@@ -12,7 +11,7 @@ namespace Game.MapGeneration.Pipeline.Generators
             List<PlacementEntry> clusterMembers, float[,] heights, TerrainDimensions dims,
             System.Random rng, SpatialGrid oreGrid, TerrainSurroundEffectType surroundEffect,
             IReadOnlyList<PlacedVein> excludedVeins, VeinPlacementBatch result,
-            IVeinLandConstraint landConstraint)
+            IVeinPlacementRule placementRule)
         {
             float w = dims.TerrainWidth;
             float l = dims.TerrainLength;
@@ -44,10 +43,11 @@ namespace Game.MapGeneration.Pipeline.Generators
                     float my = OrePlacementMath.SampleHeight(heights, mx, mz, w, l, hRes) * dims.TerrainHeight;
                     worldPosition = new Vector3(mx + dims.WorldOffsetX, my, mz + dims.WorldOffsetZ);
                     var candidate = VeinAabbBuilder.Build(entry.veinGuid, worldPosition);
-                    if (!landConstraint.Accept(candidate)) continue;
                     if (0f < oreMinDist && oreGrid.HasNeighborWithin(mx, mz, oreMinDist)) continue;
-                    if (landConstraint.Overlaps(candidate, excludedVeins)) continue;
-                    if (landConstraint.Overlaps(candidate, result.Veins)) continue;
+
+                    // 陸地・隣タイル確定済み・同タイル既出との判定順と集計は配置規則が持つ。どれも乱数を消費しない
+                    // The placement rule owns the order and tally of land, neighbour-confirmed and same-tile checks; none of them draws randomness
+                    if (!placementRule.TryAcceptMember(candidate, excludedVeins, result.Veins)) continue;
 
                     vein = candidate;
                     veinFound = true;

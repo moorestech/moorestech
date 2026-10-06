@@ -15,6 +15,7 @@ using NUnit.Framework;
 using Tests.UnitTest.Game.MapGeneration.Visual.Detail;
 using UnityEngine;
 using UnityEngine.TestTools;
+using Tests.UnitTest.Game.MapGeneration.Surface;
 
 namespace Tests.UnitTest.Game.MapGeneration.Visual
 {
@@ -138,9 +139,9 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
         public void RejectsResolvedLedgerWhoseDigestDiffersFromTheCacheIdentity()
         {
             var baker = CreateBaker(true, false, true,
-                new MaterializedPlacementLedgerSource(EmptyLedger), new string('f', 64));
+                new MaterializedPlacementLedgerSource(LedgerRunFixture.Legacy(EmptyLedger)), new string('f', 64));
 
-            LogAssert.Expect(LogType.Error, $"[TileVisualBaker] Resolved placement ledger digest '{EmptyLedger.ComputeDigest()}' does not match expected digest '{new string('f', 64)}'.");
+            LogAssert.Expect(LogType.Error, $"[GeneratedSurface] seed=12345 revision=Legacy4 tile=ledger: [TileVisualBaker] Resolved placement ledger digest '{EmptyLedger.ComputeDigest()}' does not match expected digest '{new string('f', 64)}'.");
             Assert.Throws<InvalidOperationException>(() => baker.Bake(TileX, TileZ));
             Assert.That(File.Exists(_worldCacheDirectory.TerrainVisualCacheFilePath(TileX, TileZ)), Is.False);
         }

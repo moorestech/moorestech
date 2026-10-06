@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Game.MapGeneration.Pipeline.Surface
 {
-    public static class SurfaceObjectReanchor
+    internal static class SurfaceObjectReanchor
     {
         public static PlacementLedger Apply(MapGenerationOutput output, PlacementLedger ledger,
             SurfacePlacementBindings bindings, SurfaceTileGrid before, SurfaceTileGrid after)

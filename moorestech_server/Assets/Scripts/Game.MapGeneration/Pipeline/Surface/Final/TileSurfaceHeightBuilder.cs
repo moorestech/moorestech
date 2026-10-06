@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Game.MapGeneration.Pipeline.Surface
 {
-    public static class TileSurfaceHeightBuilder
+    internal static class TileSurfaceHeightBuilder
     {
         internal static float[,] Build(float[,] pre, TerrainGenerationConfig config,
             Vector3 tileScene, PlacementLedger ledger, SurfaceHeightPolicy policy, SurfaceDisplayBoundaryOwner owner)

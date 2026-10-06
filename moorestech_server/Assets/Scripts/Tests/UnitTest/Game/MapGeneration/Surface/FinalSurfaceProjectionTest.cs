@@ -55,7 +55,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             output.ItemVeins.Add(new PlacedVein("ore", new Vector3Int(11, 20, 11), new Vector3Int(13, 22, 13)));
             var ledger = new PlacementLedger();
             ledger.Add(new LedgerPlacement("tree", output.MapObjects[0].Position, Vector3.one, TerrainSurroundEffectType.rockNoBareGround, null));
-            var bindings = new SurfacePlacementBindings();
+            var bindings = new SurfacePlacementBindings(before.Config);
             bindings.AddMapObject(0, 0);
             var result = SurfaceObjectReanchor.Apply(output, ledger, bindings, before, after);
 

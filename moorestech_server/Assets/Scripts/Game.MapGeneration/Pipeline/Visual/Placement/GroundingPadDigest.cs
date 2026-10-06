@@ -1,5 +1,4 @@
 using System.Globalization;
-using Game.MapGeneration.Pipeline.Surface.Grading;
 
 namespace Game.MapGeneration.Pipeline.Visual.Placement
 {

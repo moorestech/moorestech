@@ -1,23 +1,26 @@
-using System;
 using System.Collections.Generic;
+using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Visual.Placement;
 using UnityEngine;
 
 namespace Game.MapGeneration.Pipeline.Surface.Grading
 {
-    public sealed class SurfacePlacementBindings
+    internal sealed class SurfacePlacementBindings
     {
+        private readonly TerrainGenerationConfig _config;
         private readonly Dictionary<int, int> _objects = new();
         private readonly HashSet<int> _ledgerIndices = new();
+
+        public SurfacePlacementBindings(TerrainGenerationConfig config)
+        {
+            _config = config;
+        }
 
         public void AddMapObject(int outputIndex, int ledgerIndex)
         {
             if (outputIndex < 0 || ledgerIndex < 0 || _objects.ContainsKey(outputIndex) || !_ledgerIndices.Add(ledgerIndex))
-            {
-                string reason = $"Invalid or duplicate surface binding: output={outputIndex}, ledger={ledgerIndex}.";
-                Debug.LogError(reason);
-                throw new InvalidOperationException(reason);
-            }
+                throw SurfaceGenerationValidation.Failure(_config, "bindings",
+                    $"Invalid or duplicate surface binding: output={outputIndex}, ledger={ledgerIndex}.");
             _objects.Add(outputIndex, ledgerIndex);
         }
 
@@ -31,7 +34,7 @@ namespace Game.MapGeneration.Pipeline.Surface.Grading
                 position.y = output.MapObjects[pair.Key].Position.y;
                 positions[pair.Value] = position;
             }
-            return ledger.WithScenePositions(positions);
+            return ledger.WithScenePositions(positions, _config);
         }
     }
 }

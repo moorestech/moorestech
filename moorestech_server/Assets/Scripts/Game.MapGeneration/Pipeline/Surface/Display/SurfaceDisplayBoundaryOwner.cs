@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Game.MapGeneration.Surface;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Visual;
 using Game.MapGeneration.Pipeline.Visual.Placement;
@@ -19,8 +18,7 @@ namespace Game.MapGeneration.Pipeline.Surface
             _source = source;
         }
 
-        internal void CopyTo(float[,] destination, Vector3 scene, PlacementLedger ledger,
-            LandCellField land, SurfaceEnvelope envelope, bool projectFinal)
+        internal void CopyTo(float[,] destination, Vector3 scene, PlacementLedger ledger, SurfaceHeightPolicy policy)
         {
             int stride = _grid.Resolution - 1;
             var first = _grid.TileScenePosition(0, 0);
@@ -67,8 +65,7 @@ namespace Game.MapGeneration.Pipeline.Surface
                 // 木の丸めと整地支持セルも所有者の座標で一度だけ評価する
                 // Evaluate tree rounding and pad support cells once in the owner's coordinates
                 var post = TreePerturbationApplier.Apply(pre, ownerConfig, ownerScene, ledger.Placements);
-                if (projectFinal)
-                    post = FinalSurfaceProjector.Apply(post, ownerConfig, ownerScene, land, ledger.GroundingPads, envelope);
+                post = policy.Apply(post, ownerConfig, ownerScene, ledger);
                 var edge = new Dictionary<int, float>();
                 int ownerStride = ownerConfig.Resolution - 1;
                 for (int z = 0; z <= ownerStride; z++)

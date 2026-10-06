@@ -14,6 +14,8 @@ using Game.Paths;
 using NUnit.Framework;
 using Tests.UnitTest.Game.MapGeneration.Visual.Detail;
 using UnityEngine;
+using Game.MapGeneration.Pipeline;
+using Tests.UnitTest.Game.MapGeneration.Surface;
 
 namespace Tests.UnitTest.Game.MapGeneration.Visual
 {
@@ -65,7 +67,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
         protected TileVisualBaker CreateBaker(bool generateTexture, bool generateDetail, bool generateHeightmap)
         {
             return CreateBaker(generateTexture, generateDetail, generateHeightmap,
-                new MaterializedPlacementLedgerSource(EmptyLedger), EmptyLedger.ComputeDigest());
+                new MaterializedPlacementLedgerSource(LedgerRunFixture.Legacy(EmptyLedger)), EmptyLedger.ComputeDigest());
         }
 
         protected TileVisualBaker CreateBaker(
@@ -130,18 +132,18 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
 
         protected sealed class CountingLedgerSource : IPlacementLedgerSource
         {
-            private readonly PlacementLedger _ledger;
+            private readonly GenerationRun _run;
             public int ResolveCount { get; private set; }
 
             public CountingLedgerSource(PlacementLedger ledger)
             {
-                _ledger = ledger;
+                _run = LedgerRunFixture.Legacy(ledger);
             }
 
-            public PlacementLedger Resolve()
+            public GenerationRun Resolve()
             {
                 ResolveCount++;
-                return _ledger;
+                return _run;
             }
         }
     }

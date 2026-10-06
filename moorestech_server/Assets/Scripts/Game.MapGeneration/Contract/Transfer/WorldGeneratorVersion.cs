@@ -10,6 +10,11 @@ namespace Game.MapGeneration.Transfer
     public static class WorldGeneratorVersion
     {
         public const string Current = "5.0.0";
+
+        // 版キーは地表revisionと転送ファイル構成の両方を表す。転送構成・生成・表示連鎖のどれかを変えたら必ず新しい版キーを足し、旧キーが旧構成でしか読めないならSupportedから外す
+        // Supportedにある版は全てこのビルドが生成・転送・表示できる版に限る。読めない版を残すと別ビルドとの組み合わせが冒頭の版照合を素通りし、下流の読み出しずれとして現れる
+        // A version key stands for both the surface revision and the transfer file layout: any change to the transfer layout, generation or display chain adds a new key, and a key readable only under the old layout leaves Supported
+        // Supported lists only versions this build can generate, transfer and display; keeping an unreadable one lets a mixed-build pairing slip past the up-front version check and surface as misreads downstream
         private static readonly IReadOnlyDictionary<string, WorldSurfaceRevision> Supported =
             new Dictionary<string, WorldSurfaceRevision>
             {

@@ -32,7 +32,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
 
             // 旧版では陸地場を要求せず低い値を保持する
             // Legacy builds require no land field and retain low heights
-            var post = TileSurfaceHeightBuilder.Build(pre, config, Vector3.zero, ledger, MapGenerationAlgorithmTable.ResolveSurface(config.surfaceRevision).CreateHeightPolicy(config), null);
+            var post = TileSurfaceHeightBuilder.Build(pre, config, Vector3.zero, ledger, new LegacySurfaceHeightPolicy(), null);
             CollectionAssert.AreEqual(pre, post);
             Assert.That(pre[8, 8], Is.EqualTo(0.003f));
             Assert.That(WorldTerrainLayout.CreateTerrainAsset().SurfacePresentation, Is.TypeOf<TerrainSurfacePresentation.Legacy>());
@@ -42,13 +42,14 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         public void LedgerValidationIsLazyAndResolvesOnlyOnce()
         {
             var ledger = new PlacementLedger();
-            var source = new CountingSource(ledger);
+            var run = LedgerRunFixture.Legacy(ledger);
+            var source = new CountingSource(run);
             var config = new TerrainGenerationConfig();
             var species = TreeSurroundSpeciesTable.Build(new BiomePlacementHelper(config), Array.Empty<BiomeType>());
-            var validated = new ValidatedPlacementLedgerSource(source, ledger.ComputeDigest(), species);
+            var validated = new ValidatedPlacementLedgerSource(source, ledger.ComputeDigest(), species, config);
             Assert.That(source.Count, Is.Zero);
-            Assert.That(validated.Resolve(), Is.SameAs(ledger));
-            Assert.That(validated.Resolve(), Is.SameAs(ledger));
+            Assert.That(validated.Resolve(), Is.SameAs(run));
+            Assert.That(validated.Resolve(), Is.SameAs(run));
             Assert.That(source.Count, Is.EqualTo(1));
         }
 
@@ -58,26 +59,26 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             var ledger = new PlacementLedger();
             var config = new TerrainGenerationConfig();
             var species = TreeSurroundSpeciesTable.Build(new BiomePlacementHelper(config), Array.Empty<BiomeType>());
-            var validated = new ValidatedPlacementLedgerSource(new CountingSource(ledger), "different", species);
-            string reason = $"[TileVisualBaker] Resolved placement ledger digest '{ledger.ComputeDigest()}' does not match expected digest 'different'.";
+            var validated = new ValidatedPlacementLedgerSource(new CountingSource(LedgerRunFixture.Legacy(ledger)), "different", species, config);
+            string reason = $"[GeneratedSurface] seed={config.seed} revision={config.surfaceRevision} tile=ledger: [TileVisualBaker] Resolved placement ledger digest '{ledger.ComputeDigest()}' does not match expected digest 'different'.";
             LogAssert.Expect(LogType.Error, reason);
             Assert.Throws<InvalidOperationException>(() => validated.Resolve());
         }
 
         private sealed class CountingSource : IPlacementLedgerSource
         {
-            private readonly PlacementLedger _ledger;
+            private readonly GenerationRun _run;
             public int Count { get; private set; }
 
-            public CountingSource(PlacementLedger ledger)
+            public CountingSource(GenerationRun run)
             {
-                _ledger = ledger;
+                _run = run;
             }
 
-            public PlacementLedger Resolve()
+            public GenerationRun Resolve()
             {
                 Count++;
-                return _ledger;
+                return _run;
             }
         }
     }

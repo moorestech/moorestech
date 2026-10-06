@@ -1,4 +1,3 @@
-using System;
 using Game.MapGeneration.Surface;
 using UnityEngine;
 
@@ -14,9 +13,9 @@ namespace Client.Game.InGame.Environment.Terrain
         {
             if (float.IsNaN(envelope.SeaY) || float.IsInfinity(envelope.SeaY) ||
                 float.IsNaN(envelope.MaximumWaveRise) || float.IsInfinity(envelope.MaximumWaveRise) || envelope.MaximumWaveRise < 0f)
-                throw Failure("[GeneratedOceanSurface] Sea envelope must contain finite heights and a nonnegative wave rise.");
+                throw SurfaceContractFailure.Create("[GeneratedOceanSurface] Sea envelope must contain finite heights and a nonnegative wave rise.");
             if (waterRenderers == null || waterRenderers.Length == 0)
-                throw Failure("[GeneratedOceanSurface] At least one water renderer must be wired.");
+                throw SurfaceContractFailure.Create("[GeneratedOceanSurface] At least one water renderer must be wired.");
 
             // 全入力を検証してから描画実体を書き換える
             // Validate every input before modifying presentation instances
@@ -24,16 +23,16 @@ namespace Client.Game.InGame.Environment.Terrain
             foreach (var renderer in waterRenderers)
             {
                 if (renderer == null)
-                    throw Failure("[GeneratedOceanSurface] A water renderer reference is missing.");
+                    throw SurfaceContractFailure.Create("[GeneratedOceanSurface] A water renderer reference is missing.");
                 if (!distinctRenderers.Add(renderer))
-                    throw Failure("[GeneratedOceanSurface] Water renderer references must be distinct.");
+                    throw SurfaceContractFailure.Create("[GeneratedOceanSurface] Water renderer references must be distinct.");
                 ValidatePlane(renderer);
                 if (renderer.sharedMaterials.Length == 0)
-                    throw Failure($"[GeneratedOceanSurface] No water material on {renderer.name}.");
+                    throw SurfaceContractFailure.Create($"[GeneratedOceanSurface] No water material on {renderer.name}.");
                 foreach (var material in renderer.sharedMaterials)
                 {
                     if (material == null || material.shader.name != "BK/Water" || !material.HasProperty(WaveHeightProperty))
-                        throw Failure($"[GeneratedOceanSurface] Unsupported water material on {renderer.name}.");
+                        throw SurfaceContractFailure.Create($"[GeneratedOceanSurface] Unsupported water material on {renderer.name}.");
                 }
             }
 
@@ -64,7 +63,7 @@ namespace Client.Game.InGame.Environment.Terrain
             {
                 var filter = renderer.GetComponent<MeshFilter>();
                 if (filter == null || filter.sharedMesh == null)
-                    throw Failure($"[GeneratedOceanSurface] Missing plane mesh on {renderer.name}.");
+                    throw SurfaceContractFailure.Create($"[GeneratedOceanSurface] Missing plane mesh on {renderer.name}.");
 
                 // shaderはobject法線を世界変位に使うため元法線と平面を確認する
                 // The shader uses object normals as world displacement, so validate original normals and the plane
@@ -72,26 +71,18 @@ namespace Client.Game.InGame.Environment.Terrain
                 var vertices = mesh.vertices;
                 var normals = mesh.normals;
                 if (vertices.Length == 0 || normals.Length != vertices.Length)
-                    throw Failure($"[GeneratedOceanSurface] Invalid plane geometry on {renderer.name}.");
+                    throw SurfaceContractFailure.Create($"[GeneratedOceanSurface] Invalid plane geometry on {renderer.name}.");
                 for (var index = 0; index < vertices.Length; index++)
                 {
                     var normal = renderer.transform.TransformDirection(normals[index]).normalized;
                     var offset = renderer.transform.TransformVector(vertices[index]);
                     if (0.000001f < (normals[index] - Vector3.up).sqrMagnitude ||
                         0.000001f < (normal - Vector3.up).sqrMagnitude || 0.0001f < Mathf.Abs(offset.y))
-                        throw Failure($"[GeneratedOceanSurface] Plane must have a zero base and upward normals: {renderer.name}, vertex {index}.");
+                        throw SurfaceContractFailure.Create($"[GeneratedOceanSurface] Plane must have a zero base and upward normals: {renderer.name}, vertex {index}.");
                 }
             }
 
             #endregion
-        }
-
-        private static InvalidOperationException Failure(string reason)
-        {
-            // 拒否理由を起動失敗の前に記録する
-            // Record the rejection before failing startup
-            Debug.LogError(reason);
-            return new InvalidOperationException(reason);
         }
     }
 }
