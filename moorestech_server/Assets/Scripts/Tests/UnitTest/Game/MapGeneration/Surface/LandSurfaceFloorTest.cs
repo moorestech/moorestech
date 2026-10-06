@@ -29,7 +29,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             foreach (int bottom in new[] { 5, (int)height })
             {
                 float pad = SurfaceQuantization.PadHeight(bottom, config, "fixture");
-                Assert.That(pad, Is.LessThanOrEqualTo(bottom - SurfaceQuantization.MiningBottomClearanceMeters));
+                Assert.That(pad, Is.LessThanOrEqualTo(bottom - TerrainHeightStorage.MiningBottomClearanceMeters));
                 Assert.That(bottom - pad, Is.LessThanOrEqualTo(height / TerrainHeightStorage.Steps + SurfaceGuaranteeBounds.RangeGapTolerance));
             }
         }

@@ -7,7 +7,6 @@ namespace Game.MapGeneration.Pipeline.Surface
 {
     public static class SurfaceQuantization
     {
-        public const double MiningBottomClearanceMeters = 0.001d;
         private const float TerrainStorageReciprocal = 1f / TerrainHeightStorage.Steps;
 
         public static float LandFloor(TerrainGenerationConfig config, SurfaceEnvelope envelope, string tile)
@@ -28,12 +27,12 @@ namespace Game.MapGeneration.Pipeline.Surface
         public static double MinimumMiningBottom(TerrainGenerationConfig config, SurfaceEnvelope envelope, string tile)
         {
             double quantum = (double)config.terrainHeight / TerrainHeightStorage.Steps;
-            return Math.Ceiling(LandFloor(config, envelope, tile) + quantum + MiningBottomClearanceMeters);
+            return Math.Ceiling(LandFloor(config, envelope, tile) + quantum + TerrainHeightStorage.MiningBottomClearanceMeters);
         }
 
         public static float PadHeight(int boxBottom, TerrainGenerationConfig config, string tile)
         {
-            double maximum = boxBottom - MiningBottomClearanceMeters;
+            double maximum = boxBottom - TerrainHeightStorage.MiningBottomClearanceMeters;
             ValidateHeight(config, tile);
             int units = (int)Math.Floor(maximum / config.terrainHeight * TerrainHeightStorage.Steps);
 

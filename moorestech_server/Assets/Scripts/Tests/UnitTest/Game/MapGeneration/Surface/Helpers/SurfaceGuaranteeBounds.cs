@@ -1,4 +1,3 @@
-using Game.MapGeneration.Pipeline.Surface;
 using Game.MapGeneration.Surface;
 
 namespace Tests.UnitTest.Game.MapGeneration.Surface
@@ -12,7 +11,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         public static float LandMinimum => LandMinimumOf(SurfaceEnvelope.GeneratedV5);
         public static float SeaY => SurfaceEnvelope.GeneratedV5.SeaY;
         public static float CoreFlatTolerance => FloatSlack;
-        public static float RangeGapTolerance => (float)SurfaceQuantization.MiningBottomClearanceMeters + FloatSlack;
+        public static float RangeGapTolerance => (float)TerrainHeightStorage.MiningBottomClearanceMeters + FloatSlack;
 
         private static float LandMinimumOf(SurfaceEnvelope envelope)
         {

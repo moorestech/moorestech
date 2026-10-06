@@ -10,6 +10,10 @@ namespace Game.MapGeneration.Surface
         // TerrainData keeps normalized height 0..1 as integer steps 0..32766
         public const int Steps = 32766;
 
+        // 鉱脈パッドを採掘底面の整数より下げる余裕。生成側はこの分を引いた格子段にパッドを置き、設置側はこの分も整数へ引き上げる
+        // Clearance keeping a vein pad below the integer mining bottom; generation stores the pad this far below and placement lifts it back
+        public const double MiningBottomClearanceMeters = 0.001d;
+
         // 地形の高さ範囲1段ぶんのメートル
         // Meters spanned by one storage step for the given terrain height range
         public static float StepMeters(float terrainHeight)

@@ -50,7 +50,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         {
             float pad = SurfaceQuantization.PadHeight(bottom, new TerrainGenerationConfig { terrainHeight = height }, "fixture");
             float decoded = RoundTrip(pad, height);
-            Assert.That((double)decoded, Is.LessThanOrEqualTo(bottom - SurfaceQuantization.MiningBottomClearanceMeters));
+            Assert.That((double)decoded, Is.LessThanOrEqualTo(bottom - TerrainHeightStorage.MiningBottomClearanceMeters));
             Assert.That(decoded, Is.EqualTo(pad));
             Assert.That(bottom - decoded, Is.LessThanOrEqualTo(height / (double)TerrainHeightStorage.Steps + SurfaceGuaranteeBounds.RangeGapTolerance));
         }
