@@ -1,6 +1,9 @@
 /* 人が付ける状態の見た目: 既読の印・関連チケット */
 /* Styling for human-made state: read marks and related tickets */
 .row-item { display: flex; align-items: center; gap: 2px; }
+/* 未読はメールの受信箱と同じく太字、既読は薄い文字にして、丸を見なくても状態が分かるようにする */
+/* Unread is bold and read is faint, as in a mail inbox, so the state reads without looking at the circle */
+.row-item:not(.is-read) .row-text { font-weight: 600; }
 .row-item .row { flex: 1; min-width: 0; }
 .read-toggle {
   flex-shrink: 0;
@@ -18,14 +21,14 @@
   width: 15px;
   height: 15px;
   border-radius: 50%;
-  box-shadow: inset 0 0 0 1.5px var(--border-strong);
+  box-shadow: inset 0 0 0 2px var(--muted);
   font-size: 10px;
   line-height: 15px;
   text-align: center;
   color: var(--surface);
 }
 .read-toggle:hover { background: var(--hover); }
-.read-toggle:hover::before { box-shadow: inset 0 0 0 1.5px var(--muted); }
+.read-toggle:hover::before { box-shadow: inset 0 0 0 2px var(--text-2); }
 .read-toggle[aria-pressed="true"]::before { content: "✓"; background: var(--muted); box-shadow: none; }
 .row-item.is-read .row-text, .row-item.is-read .kind { color: var(--muted); }
 .row-meta .ticket-mark { font-size: 11px; color: var(--accent); }
@@ -42,3 +45,11 @@ button.ghost:disabled { color: var(--muted); cursor: default; }
 .ticket-text { display: flex; flex-direction: column; min-width: 0; overflow-wrap: anywhere; font-size: 13px; }
 .ticket-form { display: flex; flex-wrap: wrap; gap: 6px; }
 .ticket-form input { flex: 1 1 160px; min-width: 0; }
+
+@media (max-width: 640px) {
+  /* スマホでは丸を本文の1行目に揃え、押しやすい大きさにする */
+  /* On phones the circle aligns with the first text line and gets a larger tap target */
+  .row-item { align-items: flex-start; }
+  .read-toggle { width: 36px; height: 36px; margin-top: 2px; }
+  .read-toggle::before { width: 18px; height: 18px; line-height: 18px; font-size: 11px; }
+}
