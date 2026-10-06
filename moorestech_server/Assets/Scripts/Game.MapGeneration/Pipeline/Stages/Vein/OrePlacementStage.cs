@@ -1,4 +1,6 @@
+using Game.MapGeneration.Pipeline.Surface.Placement;
 using System.Collections.Generic;
+using Game.MapGeneration.Pipeline.Generators;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Tiling;
@@ -14,19 +16,27 @@ namespace Game.MapGeneration.Pipeline.Stages
         public static List<PlacedVein> Generate(
             TerrainGenerationConfig config, bool[][,] masks, BiomeType[] biomeTypes,
             float[,] heights2D, List<PlacementEntry> treeEntries, List<ObjectPlacementResult> objectPlacements,
-            TilePlacementContext tile)
+            TilePlacementContext tile, IVeinLandConstraint landConstraint)
+        {
+            return GenerateBatch(config, masks, biomeTypes, heights2D, treeEntries, objectPlacements, tile, landConstraint).Veins;
+        }
+
+        public static VeinPlacementBatch GenerateBatch(
+            TerrainGenerationConfig config, bool[][,] masks, BiomeType[] biomeTypes,
+            float[,] heights2D, List<PlacementEntry> treeEntries, List<ObjectPlacementResult> objectPlacements,
+            TilePlacementContext tile, IVeinLandConstraint landConstraint)
         {
             var ore = config.oreConfig;
-            if (!config.generateOre || ore.entries.Length == 0) return new List<PlacedVein>();
+            if (!config.generateOre || ore.entries.Length == 0) return new VeinPlacementBatch();
             // seed先とcommit先へ同じ束を渡し、種別の取り違えを起こせなくする。
             // The same bundle goes to seeding and to committing, so the kinds cannot be mismatched.
             var channels = tile.Halo.ItemVeins;
             var placement = VeinPlacementCore.Generate(
                 ore.entries, ore.borderMargin,
                 config, masks, biomeTypes, heights2D, treeEntries, objectPlacements,
-                ItemVeinRngSeedOffset, tile, channels);
+                ItemVeinRngSeedOffset, tile, channels, landConstraint);
             tile.Halo.CommitVeins(channels, placement);
-            return placement.Veins;
+            return placement;
         }
     }
 }

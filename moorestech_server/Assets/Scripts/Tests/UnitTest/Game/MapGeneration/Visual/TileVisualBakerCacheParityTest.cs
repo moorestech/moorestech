@@ -1,4 +1,5 @@
 using System;
+using Game.MapGeneration.Facade.Surface;
 using System.IO;
 using Game.MapGeneration.Cache;
 using Game.MapGeneration.Pipeline.Visual;
@@ -114,6 +115,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
         {
             return new TerrainGenerationConfig
             {
+                SurfaceRevision = WorldSurfaceRevision.Legacy4,
                 overrideResolution = Resolution,
                 detailResolution = DetailResolution,
                 seed = 12345,

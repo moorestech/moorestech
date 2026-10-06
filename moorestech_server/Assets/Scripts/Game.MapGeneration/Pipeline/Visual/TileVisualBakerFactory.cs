@@ -45,7 +45,9 @@ namespace Game.MapGeneration.Pipeline.Visual
         public static Result CreateForClient(
             TerrainGenerationConfig config, GeneratedTerrainTransferMeta terrainMeta, Generation selectedGeneration)
         {
-            var ledgerSource = new RegeneratedPlacementLedgerSource(selectedGeneration, config);
+            var savedConfig = config.ShallowCopy();
+            savedConfig.SurfaceRevision = WorldGeneratorVersion.Resolve(terrainMeta.GeneratedPayload.GeneratorVersion, terrainMeta.WorldId);
+            var ledgerSource = new RegeneratedPlacementLedgerSource(selectedGeneration, savedConfig);
             return CreateWithHeightSource(
                 config, terrainMeta, ledgerSource, selectedGeneration, SharedCacheOf(terrainMeta));
         }
@@ -69,6 +71,7 @@ namespace Game.MapGeneration.Pipeline.Visual
             // The payload always belongs to the meta; taking it as a separate argument would allow an inconsistent pair, so it is read here once
             var generatedPayload = terrainMeta.GeneratedPayload;
             var gridConfig = config.ShallowCopy();
+            gridConfig.SurfaceRevision = WorldGeneratorVersion.Resolve(generatedPayload.GeneratorVersion, terrainMeta.WorldId);
             gridConfig.worldOffsetX = generatedPayload.Origins.NoiseOrigin.x;
             gridConfig.worldOffsetZ = generatedPayload.Origins.NoiseOrigin.y;
             var biomeTypes = ClassificationStage.GetEnabledBiomeTypes(gridConfig);

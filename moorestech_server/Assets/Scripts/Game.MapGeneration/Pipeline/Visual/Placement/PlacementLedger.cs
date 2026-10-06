@@ -1,4 +1,6 @@
 using System;
+using Game.MapGeneration.Pipeline.Surface.Grading;
+using UnityEngine;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Security.Cryptography;
@@ -20,6 +22,43 @@ namespace Game.MapGeneration.Pipeline.Visual.Placement
 
         private readonly List<LedgerPlacement> _placements = new();
         public IReadOnlyList<LedgerPlacement> Placements => _placements;
+        private readonly List<VeinGroundingPad> _pads = new();
+        public IReadOnlyList<VeinGroundingPad> GroundingPads => _pads.AsReadOnly();
+
+        public void AddGroundingPad(VeinGroundingPad pad)
+        {
+            _pads.Add(pad);
+        }
+
+        public PlacementLedger WithScenePositions(IReadOnlyList<Vector3> positions)
+        {
+            if (positions.Count != _placements.Count)
+                Fail("Placement position count differs from the ledger.");
+            var result = new PlacementLedger();
+            for (int i = 0; i < positions.Count; i++)
+            {
+                // 座標だけを置換し、見た目属性とpadを引き継ぐ
+                // Replace only positions while retaining visual attributes and pads
+                var position = positions[i];
+                if (!Finite(position.x) || !Finite(position.y) || !Finite(position.z))
+                    Fail($"Non-finite placement position at ledger index {i}.");
+                var entry = _placements[i];
+                result.Add(new LedgerPlacement(entry.Guid, position, entry.Scale, entry.SurroundEffect, entry.Cluster));
+            }
+            foreach (var pad in _pads) result.AddGroundingPad(pad);
+            return result;
+        }
+
+        private static bool Finite(float value)
+        {
+            return !float.IsNaN(value) && !float.IsInfinity(value);
+        }
+
+        private static void Fail(string reason)
+        {
+            Debug.LogError(reason);
+            throw new InvalidOperationException(reason);
+        }
 
         public void Add(LedgerPlacement placement)
         {
@@ -34,6 +73,7 @@ namespace Game.MapGeneration.Pipeline.Visual.Placement
             // The visuals do not depend on the ledger's order, so sorting makes the digest order-independent and keeps stage-driven reordering out of the key
             var placementTexts = new List<string>(_placements.Count);
             foreach (var ledgerPlacement in _placements) placementTexts.Add(Describe(ledgerPlacement));
+            foreach (var pad in _pads) placementTexts.Add(GroundingPadDigest.Describe(pad));
             placementTexts.Sort(StringComparer.Ordinal);
 
             using var sha256 = SHA256.Create();

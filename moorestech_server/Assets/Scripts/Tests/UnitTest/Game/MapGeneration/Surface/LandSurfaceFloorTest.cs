@@ -1,0 +1,115 @@
+using System;
+using System.Text.RegularExpressions;
+using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Pipeline;
+using Game.MapGeneration.Pipeline.Config;
+using Game.MapGeneration.Pipeline.Surface;
+using Mooresmaster.Model.GenerationModule;
+using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
+
+namespace Tests.UnitTest.Game.MapGeneration.Surface
+{
+    public class LandSurfaceFloorTest
+    {
+        [TestCase(600f)]
+        [TestCase(5f)]
+        [TestCase(1000f)]
+        public void QuantizedFloorAndPadPreserveTheirDirectedBounds(float height)
+        {
+            var envelope = SurfaceEnvelope.GeneratedV5;
+            float floor = SurfaceQuantization.LandFloor(height, envelope);
+            Assert.That(floor, Is.GreaterThanOrEqualTo(4.9f));
+            Assert.That(floor, Is.LessThan(4.9f + height / 65535f));
+
+            // 上限と整数境界でも採掘面の直下を維持する
+            // Keep pads immediately below mining bottoms at integer and upper boundaries
+            foreach (int bottom in new[] { 5, (int)height })
+            {
+                float pad = SurfaceQuantization.PadHeight(bottom, height);
+                Assert.That(pad, Is.LessThanOrEqualTo(bottom - 0.001d));
+                Assert.That(bottom - pad, Is.LessThanOrEqualTo(height / 65535f + 0.0011f));
+                Assert.That(SurfaceQuantization.Quantize(pad, height), Is.LessThan(bottom));
+            }
+        }
+
+        [Test]
+        public void OneLandCornerProtectsAdjacentCellsWithoutRaisingRemoteSea()
+        {
+            var grid = SurfaceGridFixture.Create(1, 5, 4f, 8f, false);
+            var mask = new bool[25];
+            mask[2 * 5 + 2] = true;
+            grid = new SurfaceTileGrid(grid.Output, new[] { mask }, grid.Config);
+            grid.ApplyLandFloor(SurfaceEnvelope.GeneratedV5);
+
+            // 陸角に隣接する4セルだけを保護する
+            // Protect only the four cells touching the land corner
+            for (int z = 0; z < 5; z++)
+            for (int x = 0; x < 5; x++)
+                Assert.That(grid.GetHeight(x, z), x >= 1 && x <= 3 && z >= 1 && z <= 3
+                    ? Is.GreaterThanOrEqualTo(4.9f) : Is.EqualTo(0f));
+            Assert.That(grid.Land.ContainsSupport(new Rect(1f, 2f, 2f, 4f)), Is.False);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void AllSeaAndAllLandKeepTheirClassification(bool land)
+        {
+            var grid = SurfaceGridFixture.Create(1, 3, 4f, 8f, land);
+            grid.ApplyLandFloor(SurfaceEnvelope.GeneratedV5);
+            Assert.That(grid.GetHeight(1, 1), land ? Is.GreaterThanOrEqualTo(4.9f) : Is.EqualTo(0f));
+            Assert.That(grid.Land.ContainsSupport(new Rect(1f, 1f, 1f, 1f)), Is.EqualTo(land));
+        }
+
+        [Test]
+        public void RectangularTilesShareFourWayVertexAndInterpolation()
+        {
+            var grid = SurfaceGridFixture.Create(2, 3, 4f, 8f, true);
+            grid.SetHeight(2, 2, 20f);
+            foreach (var tile in grid.Output.Tiles)
+            {
+                int localX = tile.TileX == 0 ? 2 : 0;
+                int localZ = tile.TileZ == 0 ? 2 : 0;
+                Assert.That(tile.Heights[localZ * 3 + localX], Is.EqualTo(20f / 600f));
+            }
+            Assert.That(grid.SampleHeight(Vector2.zero), Is.EqualTo(20f).Within(0.00001f));
+            Assert.That(grid.SampleHeight(new Vector2(-1f, -2f)), Is.EqualTo(5f).Within(0.00001f));
+            Assert.That(grid.Land.ContainsSupport(new Rect(-1f, -1f, 2f, 2f)), Is.True);
+            Assert.That(grid.Land.ContainsSupport(new Rect(-5f, -1f, 2f, 2f)), Is.False);
+        }
+
+        [Test]
+        public void SharedHeightMismatchFailsWithTileDiagnostics()
+        {
+            var grid = SurfaceGridFixture.Create(2, 3, 4f, 8f, true);
+            grid.Output.Tiles[1].Heights[0] = 0.1f;
+            LogAssert.Expect(LogType.Warning, new Regex("seed=.*revision=.*tile=.*Shared vertex mismatch"));
+            Assert.Throws<InvalidOperationException>(() =>
+                new SurfaceTileGrid(grid.Output, SurfaceGridFixture.Masks(4, 9, true), grid.Config));
+        }
+
+        [TestCase(float.NaN)]
+        [TestCase(float.PositiveInfinity)]
+        [TestCase(0f)]
+        [TestCase(4f)]
+        public void InvalidHeightCannotGenerateGuaranteedWorld(float height)
+        {
+            var config = new TerrainGenerationConfig { terrainHeight = height, gridSizeX = 1, gridSizeZ = 1 };
+            if (height == 4f)
+                LogAssert.Expect(LogType.Error, "Surface quantization outside r16 range: units=80281, terrainHeight=4.");
+            else
+                LogAssert.Expect(LogType.Warning, new Regex("GeneratedSurface.*seed=.*revision=.*tile="));
+            Assert.Throws<InvalidOperationException>(() => new GroundedVanillaGenerator().Generate(config));
+        }
+
+        [Test]
+        public void DispatchPreservesLegacyGenerator()
+        {
+            Assert.That(MapGenerationAlgorithmTable.Resolve(Generation.AlgorithmConst.VanillaGenerator,
+                WorldSurfaceRevision.Legacy4), Is.TypeOf<VanillaGenerator>());
+            Assert.That(MapGenerationAlgorithmTable.Resolve(Generation.AlgorithmConst.VanillaGenerator,
+                WorldSurfaceRevision.Grounded5), Is.TypeOf<GroundedVanillaGenerator>());
+        }
+    }
+}

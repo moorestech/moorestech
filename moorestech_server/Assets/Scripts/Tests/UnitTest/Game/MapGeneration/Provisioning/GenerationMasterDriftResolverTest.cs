@@ -124,21 +124,10 @@ namespace Tests.UnitTest.Game.MapGeneration.Provisioning
 
             var repairedWorldMeta = ReadWorldMeta();
             Assert.AreNotEqual(originalWorldMeta.PlacementLedgerDigest, repairedWorldMeta.PlacementLedgerDigest, "見た目が動けば台帳digestも動く");
-            Assert.AreEqual(CurrentPlacementLedgerDigest(), repairedWorldMeta.PlacementLedgerDigest);
+            Assert.AreEqual(SavedRevisionLedgerFixture.ComputeDigest(_worldDataDirectory), repairedWorldMeta.PlacementLedgerDigest);
 
             DeleteSharedWorldCache(worldId);
             DeleteSharedWorldCache(TerrainTransferMetaReader.Read(_worldDataDirectory).WorldId);
-        }
-
-        // 現在のマスタでpass-1を回し直したときの台帳digest。解決側と同じ組み立てを通す
-        // The ledger digest of a pass-1 re-run under the current master, assembled exactly as the resolver does
-        private string CurrentPlacementLedgerDigest()
-        {
-            var terrainMeta = (GeneratedTerrainTransferMeta)TerrainTransferMetaReader.Read(_worldDataDirectory);
-            var selectedGeneration = MasterHolder.GenerationMaster.SelectedGeneration;
-            var config = MapGenerationPipeline.BuildConfigWithSettledOrigins(
-                selectedGeneration, terrainMeta.WorldSeed, TestModDirectory.ForUnitTestModDirectory, terrainMeta.GeneratedPayload.Origins);
-            return MapGenerationPipeline.Generate(selectedGeneration, config).Ledger.ComputeDigest();
         }
 
         // generated modeはMasterHolder.GenerationMaster.SelectedGenerationを要求するため、ForUnitTest modをDIコンテナ生成経由でロードする

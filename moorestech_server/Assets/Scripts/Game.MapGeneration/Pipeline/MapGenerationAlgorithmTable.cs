@@ -1,26 +1,32 @@
 using System;
 using System.Collections.Generic;
+using Game.MapGeneration.Facade.Surface;
+using Game.MapGeneration.Pipeline.Surface;
 using Mooresmaster.Model.GenerationModule;
+using UnityEngine;
 
 namespace Game.MapGeneration.Pipeline
 {
-    // アルゴリズム enum 名 → 生成器実装のディスパッチテーブル（生成器選択の真実源）。
-    // P1 では VanillaGenerator の1件のみ登録し、未登録名は即例外にする。
-    // Dispatch table from algorithm enum name to generator impl (single source of truth for selection).
-    // P1 registers only VanillaGenerator; unregistered names throw immediately.
+    // 版とアルゴリズムの選択を一箇所へ集約する
+    // Keep revision and algorithm dispatch in one place
     public static class MapGenerationAlgorithmTable
     {
-        static readonly IReadOnlyDictionary<string, IMapGenerator> Generators =
-            new Dictionary<string, IMapGenerator>
+        private static readonly IReadOnlyDictionary<(string, WorldSurfaceRevision), IMapGenerator> Generators =
+            new Dictionary<(string, WorldSurfaceRevision), IMapGenerator>
             {
-                { Generation.AlgorithmConst.VanillaGenerator, new VanillaGenerator() },
+                { (Generation.AlgorithmConst.VanillaGenerator, WorldSurfaceRevision.Legacy4), new VanillaGenerator() },
+                { (Generation.AlgorithmConst.VanillaGenerator, WorldSurfaceRevision.Grounded5), new GroundedVanillaGenerator() },
             };
 
-        public static IMapGenerator Resolve(string algorithm)
+        public static IMapGenerator Resolve(string algorithm, WorldSurfaceRevision revision)
         {
-            if (Generators.TryGetValue(algorithm, out var generator)) return generator;
-            throw new InvalidOperationException(
-                $"[MapGenerationAlgorithmTable] no generator registered for algorithm '{algorithm}'.");
+            if (Generators.TryGetValue((algorithm, revision), out var generator)) return generator;
+
+            // 未知の版を現行生成器で再生成しない
+            // Never regenerate unknown revisions with the current generator
+            var reason = $"[MapGenerationAlgorithmTable] no generator for algorithm '{algorithm}', revision '{revision}'.";
+            Debug.LogWarning(reason);
+            throw new InvalidOperationException(reason);
         }
     }
 }

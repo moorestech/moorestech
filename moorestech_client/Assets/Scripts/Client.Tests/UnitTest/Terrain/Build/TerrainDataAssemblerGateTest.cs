@@ -4,6 +4,7 @@ using System.Threading;
 using Client.Game.InGame.Environment.Terrain.Build;
 using Cysharp.Threading.Tasks;
 using Game.MapGeneration.Facade;
+using Game.MapGeneration.Facade.Surface;
 using Game.MapGeneration.Transfer;
 using NUnit.Framework;
 using UnityEngine;
@@ -108,7 +109,7 @@ namespace Client.Tests.UnitTest.Terrain.Build
         {
             var layout = WorldTerrainLayout.CreateTileMaps(
                 new List<(int TileX, int TileZ)> { (0, 0) }, new Vector3(TerrainWidth, TerrainHeight, TerrainWidth), Resolution,
-                new List<string>(), new List<DetailPrototypeSpec>());
+                new List<string>(), new List<DetailPrototypeSpec>(), new TerrainSurfacePresentation.Existing());
             var tile = new BakedTerrainTile(Vector3.zero, CreateHeights(), null, new[] { new int[15, 15] });
             _terrainData = new TerrainData();
             var initialResolution = _terrainData.heightmapResolution;
@@ -134,7 +135,7 @@ namespace Client.Tests.UnitTest.Terrain.Build
         {
             var layout = WorldTerrainLayout.CreateTileMaps(
                 new List<(int TileX, int TileZ)> { (0, 0) }, new Vector3(TerrainWidth, TerrainHeight, TerrainWidth), Resolution,
-                new List<string>(), new List<DetailPrototypeSpec>());
+                new List<string>(), new List<DetailPrototypeSpec>(), new TerrainSurfacePresentation.Existing());
             var tile = new BakedTerrainTile(
                 Vector3.zero, CreateHeights(), alphamap, new List<int[,]>());
 
@@ -147,7 +148,7 @@ namespace Client.Tests.UnitTest.Terrain.Build
         {
             var layout = WorldTerrainLayout.CreateTileMaps(
                 new List<(int TileX, int TileZ)> { (0, 0) }, new Vector3(TerrainWidth, TerrainHeight, TerrainWidth), Resolution,
-                new List<string>(), new List<DetailPrototypeSpec>());
+                new List<string>(), new List<DetailPrototypeSpec>(), new TerrainSurfacePresentation.Existing());
             var tile = new BakedTerrainTile(
                 Vector3.zero, CreateHeights(), null, detailMaps);
             var prototypes = new List<DetailPrototype>();

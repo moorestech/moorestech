@@ -1,3 +1,6 @@
+using Game.MapGeneration.Pipeline.Surface.Placement;
+using Game.MapGeneration.Pipeline.Surface.Grading;
+using Game.MapGeneration.Pipeline.Generators;
 using System.Collections.Generic;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
@@ -20,6 +23,8 @@ namespace Game.MapGeneration.Pipeline.Tiling
         private readonly Vector2 _noiseToSceneShift;
         private readonly Vector3 _sceneSpawn;
         private readonly MapGenerationOutput _output;
+        private readonly IVeinLandConstraint _landConstraint;
+        private readonly SurfacePlacementBindings _bindings;
 
         // pass-2(見た目)へ渡す配置台帳。生成システムの外へは出ない
         // The placement ledger handed to pass-2 (visuals); it never leaves the generation system
@@ -36,7 +41,7 @@ namespace Game.MapGeneration.Pipeline.Tiling
         public TilePlacementRunner(
             BiomePlacementHelper helper, BiomeType[] biomeTypes,
             Vector2 noiseToSceneShift, Vector3 sceneSpawn, MapGenerationOutput output,
-            PlacementHaloStore halo, PlacementLedger ledger)
+            PlacementHaloStore halo, PlacementLedger ledger, IVeinLandConstraint landConstraint, SurfacePlacementBindings bindings)
         {
             _helper = helper;
             _biomeTypes = biomeTypes;
@@ -45,6 +50,8 @@ namespace Game.MapGeneration.Pipeline.Tiling
             _output = output;
             _halo = halo;
             _ledger = ledger;
+            _landConstraint = landConstraint;
+            _bindings = bindings;
         }
 
         // buffers は PaddedWindowStage がクロップ済みの分類。配置の絵合わせ(木・物体・鉱脈)にだけ使い、戻り値には出さない。
@@ -65,16 +72,16 @@ namespace Game.MapGeneration.Pipeline.Tiling
             TreePlacementStage.Generate(tileConfig, _helper, _biomeTypes, masks, heights, treeEntries, tile);
 
             var objectEntries = new List<PlacementEntry>();
-            List<PlacedVein> itemVeins = null;
-            List<PlacedVein> fluidVeins = null;
+            VeinPlacementBatch itemBatch = null;
+            VeinPlacementBatch fluidBatch = null;
             PlaceObjectsAndVeinsInNoiseSpace();
 
             // 木はタイルローカル座標なのでタイルの設置位置ぶん進め、ノイズ座標の残りは窓原点ぶん引いてシーン座標へ揃える。
             // Trees are tile-local and advance by the tile's placement position; the rest are noise-space and realign by the window origin.
             PlacementSceneOffset.ToTileScene(treeEntries, tileScene);
             PlacementSceneOffset.ToSceneSpace(objectEntries, _noiseToSceneShift);
-            PlacementSceneOffset.ToSceneSpace(itemVeins, _noiseToSceneShift);
-            PlacementSceneOffset.ToSceneSpace(fluidVeins, _noiseToSceneShift);
+            PlacementSceneOffset.ToSceneSpace(itemBatch.Veins, _noiseToSceneShift);
+            PlacementSceneOffset.ToSceneSpace(fluidBatch.Veins, _noiseToSceneShift);
 
             // 安全域はシーン座標で判定する。ループ中は output.SpawnPoint が未確定なので採取済みのXZを使う。
             // Clearance is judged in scene space; output.SpawnPoint is unsettled mid-loop, so use the pre-sampled XZ.
@@ -92,8 +99,8 @@ namespace Game.MapGeneration.Pipeline.Tiling
             // Every tile appends to one list; assigning would keep only the last tile's placements.
             AppendMapObjects(treeEntries);
             AppendMapObjects(objectEntries);
-            _output.ItemVeins.AddRange(itemVeins);
-            _output.FluidVeins.AddRange(fluidVeins);
+            SurfacePlacementAppender.AppendVeins(itemBatch, true, _output, _ledger, _bindings, _noiseToSceneShift, tileConfig.SurfaceRevision);
+            SurfacePlacementAppender.AppendVeins(fluidBatch, false, _output, _ledger, _bindings, _noiseToSceneShift, tileConfig.SurfaceRevision);
 
             #region Internal
 
@@ -106,10 +113,10 @@ namespace Game.MapGeneration.Pipeline.Tiling
                     ObjectPlacementStage.Generate(tileConfig, _helper, _biomeTypes, masks, heights, heights2D,
                         treeEntries, tile, out objectEntries, out objectPlacements);
 
-                itemVeins = OrePlacementStage.Generate(
-                    tileConfig, masks, _biomeTypes, heights2D, treeEntries, objectPlacements, tile);
-                fluidVeins = FluidVeinPlacementStage.Generate(
-                    tileConfig, masks, _biomeTypes, heights2D, treeEntries, objectPlacements, tile);
+                itemBatch = OrePlacementStage.GenerateBatch(
+                    tileConfig, masks, _biomeTypes, heights2D, treeEntries, objectPlacements, tile, _landConstraint);
+                fluidBatch = FluidVeinPlacementStage.GenerateBatch(
+                    tileConfig, masks, _biomeTypes, heights2D, treeEntries, objectPlacements, tile, _landConstraint);
             }
 
             void AppendMapObjects(List<PlacementEntry> entries)
@@ -140,6 +147,7 @@ namespace Game.MapGeneration.Pipeline.Tiling
                             _nextClusterIdOffset, offset + entryCluster.ClusterId + 1);
                     }
 
+                    _bindings.AddMapObject(_output.MapObjects.Count, _ledger.Placements.Count);
                     _output.MapObjects.Add(new PlacedMapObject
                     {
                         MapObjectGuid = entry.MapObjectGuid,

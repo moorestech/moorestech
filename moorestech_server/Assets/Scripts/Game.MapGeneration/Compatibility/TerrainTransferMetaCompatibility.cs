@@ -35,14 +35,12 @@ namespace Game.MapGeneration.Transfer
                 MasterHolder.GenerationMaster.SourceJsonText, MasterHolder.GenerationMaster.SelectedGeneration, serverDataDirectory);
         }
 
-        // 別ビルドのサーバーが配るメタは転送ファイル構成そのものが違い、この先の読み出しが全部ずれる
-        // A meta served by another build describes a different transfer layout, which skews every read below it
-        // world.json側(サーバー自身のワールド)の版照合は、作り直しを促す文言でTerrainTransferMetaReaderが別に持つ
-        // The world.json-side check (the server's own world) lives separately in TerrainTransferMetaReader, whose message demands a regeneration
-        public static void ThrowIfGeneratorVersionDiffers(
+        // 保存版を再現できる場合だけ転送地形を受け入れる
+        // Accept transferred terrain only when the saved revision can be reproduced
+        public static void ThrowIfGeneratorVersionUnsupported(
             this GeneratedTerrainTransferPayload generatedPayload, string worldId)
         {
-            WorldGeneratorVersion.ThrowIfDiffers(generatedPayload.GeneratorVersion, worldId);
+            WorldGeneratorVersion.ThrowIfSupported(generatedPayload.GeneratorVersion, worldId);
         }
     }
 }

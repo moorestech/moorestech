@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Game.MapGeneration.Facade.Surface;
 
 namespace Game.MapGeneration.Facade
 {
@@ -25,6 +26,8 @@ namespace Game.MapGeneration.Facade
         private const float BakedDetailObjectDistance = 200f;
         private const float BakedDetailObjectDensity = 0.3f;
 
+        public TerrainSurfacePresentation SurfacePresentation { get; }
+
         public TerrainLayoutKind Kind { get; }
 
         public string AuthoredTerrainDataAddress { get; }
@@ -43,8 +46,9 @@ namespace Game.MapGeneration.Facade
             TerrainLayoutKind kind, string authoredTerrainDataAddress, Vector3 authoredOrigin,
             IReadOnlyList<(int TileX, int TileZ)> tileCoordinates, Vector3 tileSize, int heightmapResolution,
             IReadOnlyList<string> textureLayerAddresses, IReadOnlyList<DetailPrototypeSpec> detailPrototypes,
-            float detailObjectDistance, float detailObjectDensity)
+            float detailObjectDistance, float detailObjectDensity, TerrainSurfacePresentation presentation)
         {
+            SurfacePresentation = presentation;
             Kind = kind;
             AuthoredTerrainDataAddress = authoredTerrainDataAddress;
             AuthoredOrigin = authoredOrigin;
@@ -63,18 +67,18 @@ namespace Game.MapGeneration.Facade
                 TerrainLayoutKind.TerrainAsset, TemplateTerrainDataAddress, TemplateTerrainOrigin,
                 new List<(int TileX, int TileZ)>(), Vector3.zero, 0,
                 new List<string>(), new List<DetailPrototypeSpec>(),
-                TemplateDetailObjectDistance, TemplateDetailObjectDensity);
+                TemplateDetailObjectDistance, TemplateDetailObjectDensity, new TerrainSurfacePresentation.Existing());
         }
 
         public static WorldTerrainLayout CreateTileMaps(
             IReadOnlyList<(int TileX, int TileZ)> tileCoordinates, Vector3 tileSize, int heightmapResolution,
-            IReadOnlyList<string> textureLayerAddresses, IReadOnlyList<DetailPrototypeSpec> detailPrototypes)
+            IReadOnlyList<string> textureLayerAddresses, IReadOnlyList<DetailPrototypeSpec> detailPrototypes, TerrainSurfacePresentation presentation)
         {
             return new WorldTerrainLayout(
                 TerrainLayoutKind.TileMaps, string.Empty, Vector3.zero,
                 tileCoordinates, tileSize, heightmapResolution,
                 textureLayerAddresses, detailPrototypes,
-                BakedDetailObjectDistance, BakedDetailObjectDensity);
+                BakedDetailObjectDistance, BakedDetailObjectDensity, presentation);
         }
     }
 }

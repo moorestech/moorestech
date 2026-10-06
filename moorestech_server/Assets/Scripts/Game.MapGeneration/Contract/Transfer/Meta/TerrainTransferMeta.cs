@@ -38,7 +38,7 @@ namespace Game.MapGeneration.Transfer
             if (mapMode == WorldMapMode.Template) return new TemplateTerrainTransferMeta(worldId, worldSeed);
             if (WorldMapMode.IsGenerated(mapMode))
             {
-                WorldGeneratorVersion.ThrowIfDiffers(generatorVersion, worldId);
+                WorldGeneratorVersion.ThrowIfSupported(generatorVersion, worldId);
                 return new GeneratedTerrainTransferMeta(
                     worldId, terrainResolution, terrainTileCount, terrainChunkTotal, worldSeed,
                     new GeneratedTerrainTransferPayload(origins, generationMasterFingerprint, generatorVersion, placementLedgerDigest));

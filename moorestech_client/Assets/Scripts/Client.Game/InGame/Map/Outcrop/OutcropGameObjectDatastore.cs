@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using Client.Common;
-using Client.Common.Asset;
 using Client.Game.Common;
 using Client.Game.InGame.Map.NearestSearch;
 using Client.Network.API;
@@ -10,6 +8,7 @@ using Core.Master;
 using Cysharp.Threading.Tasks;
 using Mooresmaster.Model.MapModule;
 using Server.Protocol.PacketResponse.MapData;
+using Game.MapGeneration.Facade.Surface;
 using UnityEngine;
 using VContainer;
 
@@ -29,9 +28,7 @@ namespace Client.Game.InGame.Map.Outcrop
         // Outcrop count scales with vein density and one outcrop is heavier than a map object, so cross frames more often than that path's 100
         private const int FrameYieldObjectInterval = 50;
 
-        // 同一アドレスを複数のveinが共有するため、guidではなくアドレスでキャッシュする
-        // Several veins share one address, so cache by address rather than by guid
-        private readonly Dictionary<string, GameObject> _prefabCacheByAddress = new();
+        private readonly OutcropPrefabCache _prefabCache = new();
 
         // 露頭は破壊されないので、生成のたび索引へ登録すれば最初の探索で1回だけ木が焼かれる
         // Outcrops are never destroyed, so registering each one as it spawns bakes the tree exactly once, on the first search
@@ -47,7 +44,7 @@ namespace Client.Game.InGame.Map.Outcrop
             _handshakeResponse = handshakeResponse;
         }
 
-        public void StartOutcropInstantiation()
+        public void StartOutcropInstantiation(TerrainSurfacePresentation presentation)
         {
             // 二重開始は露頭を重ねるので落とす
             // A second start would stack duplicate outcrops
@@ -72,11 +69,11 @@ namespace Client.Game.InGame.Map.Outcrop
                     if (element == null)
                         throw new InvalidOperationException($"[OutcropGameObjectDatastore] mapVeinsマスタにveinGuid:{veinGuid}がありません");
 
-                    var prefab = ResolveOutcropPrefab(veinGuid, element);
+                    var prefab = _prefabCache.Resolve(veinGuid, element);
                     var center = CalculateInclusiveCenter(layout);
 
-                    // 露頭は地形状態に依存させず鉱脈AABB中心へ配置する
-                    // Place outcrops at vein AABB centers without depending on terrain state
+                    // セル計算は元のAABB中心を使い表示だけ接地する
+                    // Retain the original AABB center for cells and ground only presentation
                     if (prefab != null) InstantiateOutcrop(prefab, veinGuid, element, layout, center);
 
                     processedCount++;
@@ -84,26 +81,14 @@ namespace Client.Game.InGame.Map.Outcrop
                 }
             }
 
-            GameObject ResolveOutcropPrefab(Guid veinGuid, MapVeinMasterElement element)
-            {
-                var address = element.OutcropAddressablePath;
-                if (_prefabCacheByAddress.TryGetValue(address, out var cachedPrefab)) return cachedPrefab;
-
-                // 1本の失敗で全鉱脈を巻き添えにしない
-                // One failed load must not take every vein down
-                var loaded = AddressableLoader.LoadDefault<GameObject>(address);
-                if (loaded == null)
-                    // 失敗もキャッシュし、同じアドレスを共有する残りのveinで再試行とログを繰り返さない
-                    // Cache the failure too so the remaining veins sharing this address neither retry nor re-log
-                    Debug.LogError($"[OutcropGameObjectDatastore] 露頭プレハブをロードできません VeinGuid:{veinGuid} VeinName:{element.VeinName} Address:{address}");
-
-                _prefabCacheByAddress[address] = loaded;
-                return loaded;
-            }
-
             void InstantiateOutcrop(GameObject prefab, Guid veinGuid, MapVeinMasterElement element, VeinLayoutMessagePack layout, Vector3 center)
             {
                 var instance = Instantiate(prefab, center, Quaternion.identity, transform);
+                // 完成した表示契約に合わせて接地する
+                // Ground against the completed presentation contract
+                var bounds = new Bounds(center, new Vector3(layout.MaxX - layout.MinX + 1,
+                    layout.MaxY - layout.MinY + 1, layout.MaxZ - layout.MinZ + 1));
+                OutcropSurfacePlacement.Place(instance, bounds, presentation);
                 instance.name = $"{OutcropObjectNamePrefix}{layout.VeinGuid}";
 
                 // 全階層を採掘レイヤー化

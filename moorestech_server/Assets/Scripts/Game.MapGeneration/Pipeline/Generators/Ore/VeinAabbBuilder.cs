@@ -19,6 +19,17 @@ namespace Game.MapGeneration.Pipeline.Generators
             return new PlacedVein(veinGuid, center - Extent, center + Extent);
         }
 
+        // 新版の整地前高さに依存せず水平方向の占有を排他する
+        // Exclude horizontal occupancy independently of pre-grading heights in the new revision
+        public static bool OverlapsAnyXz(PlacedVein candidate, IReadOnlyList<PlacedVein> veins)
+        {
+            foreach (var vein in veins)
+                if (candidate.Min.x <= vein.Max.x && vein.Min.x <= candidate.Max.x &&
+                    candidate.Min.z <= vein.Max.z && vein.Min.z <= candidate.Max.z)
+                    return true;
+            return false;
+        }
+
         // 候補AABBが一覧のどれかと重なるか。除外集合と同バッチの確定分を同じ述語で見る。
         // Whether the candidate AABB overlaps any listed vein; the excluded set and this batch's confirmed veins share this predicate.
         public static bool OverlapsAny(PlacedVein candidate, IReadOnlyList<PlacedVein> veins)

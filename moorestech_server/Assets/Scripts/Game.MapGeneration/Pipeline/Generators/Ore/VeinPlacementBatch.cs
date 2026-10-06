@@ -9,6 +9,7 @@ namespace Game.MapGeneration.Pipeline.Generators
     public sealed class VeinPlacementBatch
     {
         public readonly List<PlacedVein> Veins = new();
+        public readonly List<PlacementEntry> Entries = new();
         public readonly List<VeinPlacementCluster> Clusters = new();
     }
 
