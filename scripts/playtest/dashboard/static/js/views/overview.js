@@ -39,6 +39,7 @@ function dayTotals(rows) {
 // 数字は「未投入（累計）」以外を直近7日に揃え、前の7日との差を添える
 // Every figure except the cumulative backlog uses the last 7 days, with the change versus the 7 days before
 function weekStats(data, sessions, candidateCount) {
+  const unreadCandidates = data.reports.filter((r) => r.triage === "candidate" && !r.readAt).length;
   const since = jstToday(6);
   const before = jstToday(13);
   const inWeek = (d) => d >= since;
@@ -54,7 +55,7 @@ function weekStats(data, sessions, candidateCount) {
   const testers = (pick) => new Set([...counted.filter((r) => pick(r.date)), ...sessions.filter((s) => pick(s.date))]
     .map((row) => row.steamId)).size;
   return h("div", { class: "stats" },
-    stat("未投入のバグ", candidateCount, "件", "累計・投入待ち",
+    stat("未投入のバグ", candidateCount, "件", `うち未読 ${unreadCandidates}件`,
       { href: routeHref("reports", [], { triage: "candidate" }), tone: candidateCount > 0 ? "attention" : null }),
     stat("報告（7日）", reportsNow, "件", deltaText(reportsNow, reportsPrev, "件"), { href: routeHref("reports") }),
     stat("プレイ時間（7日）", playNow.toFixed(1), "時間", deltaText(Number(playNow.toFixed(1)), Number(playPrev.toFixed(1)), "時間"),

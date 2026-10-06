@@ -1,7 +1,8 @@
-// 報告詳細: 説明全文・スクショ・動画・ビルド情報・投入コマンド
-// Report detail: full text, screenshot, video, build info and the enqueue command
+// 報告詳細: 説明全文・スクショ・動画・ビルド情報・投入コマンド・既読と関連チケット
+// Report detail: full text, screenshot, video, build info, enqueue command, read mark and related tickets
 import { card, kindMark, runStatusLabel, statusText } from "../components.js";
 import { emptyNote, fmtDateTime, h, linkify, mediaUrl, routeHref, testerName } from "../core.js";
+import { detailActions, ticketsCard } from "./report-actions.js";
 
 const REPO_URL = "https://github.com/moorestech/moorestech";
 
@@ -16,9 +17,11 @@ export function renderReport(data, args) {
       h("div", { class: "detail-tags" }, kindMark(report.kind), statusText(report)),
       h("h1", { class: "detail-title" }, linkify((report.description || "").trim() || "（説明文が空）")),
       h("p", { class: "detail-meta" }, `${testerName(report)}・${fmtDateTime(report.readyAt)}・${report.buildLabel || "ビルド不明"}`),
-      report.problem ? h("p", { class: "warn" }, `⚠ ${report.problem}`) : null),
+      report.problem ? h("p", { class: "warn" }, `⚠ ${report.problem}`) : null,
+      detailActions(report)),
     enqueueBlock(report),
-    h("div", { class: "layout-main-side" }, mediaBlock(report), card("詳細", null, infoGroups(report))));
+    h("div", { class: "layout-main-side" }, mediaBlock(report),
+      h("div", { class: "side-stack" }, ticketsCard(report), card("詳細", null, infoGroups(report)))));
 }
 
 function backLink() {
