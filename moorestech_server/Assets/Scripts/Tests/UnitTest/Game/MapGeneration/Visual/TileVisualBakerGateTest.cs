@@ -125,11 +125,11 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
         public void SkipsHeightAndLedgerWhenEveryGenerationGateIsOff()
         {
             File.Delete(_worldCacheDirectory.TerrainHeightFilePath(TileX, TileZ));
-            var ledgerSource = new CountingLedgerSource(EmptyLedger);
+            var runSource = new CountingGenerationRunSource(EmptyLedger);
 
-            var baked = CreateBaker(false, false, false, ledgerSource, EmptyLedger.ComputeDigest()).Bake(TileX, TileZ);
+            var baked = CreateBaker(false, false, false, runSource, EmptyLedger.ComputeDigest()).Bake(TileX, TileZ);
 
-            Assert.That(ledgerSource.ResolveCount, Is.EqualTo(0));
+            Assert.That(runSource.ResolveCount, Is.EqualTo(0));
             Assert.That(baked.DisplayHeights[0, 0], Is.EqualTo(0f));
             Assert.That(baked.Alphamap, Is.Null);
             Assert.That(baked.DetailMaps, Is.Empty);
@@ -139,7 +139,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
         public void RejectsResolvedLedgerWhoseDigestDiffersFromTheCacheIdentity()
         {
             var baker = CreateBaker(true, false, true,
-                new MaterializedPlacementLedgerSource(LedgerRunFixture.Legacy(EmptyLedger)), new string('f', 64));
+                new MaterializedGenerationRunSource(LedgerRunFixture.Legacy(EmptyLedger)), new string('f', 64));
 
             LogAssert.Expect(LogType.Error, $"[GeneratedSurface] seed=12345 revision=Legacy4 tile=ledger: [TileVisualBaker] Resolved placement ledger digest '{EmptyLedger.ComputeDigest()}' does not match expected digest '{new string('f', 64)}'.");
             Assert.Throws<InvalidOperationException>(() => baker.Bake(TileX, TileZ));
@@ -150,11 +150,11 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
         public void FullCacheHitDoesNotResolveTheLedger()
         {
             CreateBaker(true, false, true).Bake(TileX, TileZ);
-            var ledgerSource = new CountingLedgerSource(EmptyLedger);
+            var runSource = new CountingGenerationRunSource(EmptyLedger);
 
-            CreateBaker(true, false, true, ledgerSource, EmptyLedger.ComputeDigest()).Bake(TileX, TileZ);
+            CreateBaker(true, false, true, runSource, EmptyLedger.ComputeDigest()).Bake(TileX, TileZ);
 
-            Assert.That(ledgerSource.ResolveCount, Is.EqualTo(0));
+            Assert.That(runSource.ResolveCount, Is.EqualTo(0));
         }
 
         [Test]
@@ -164,13 +164,13 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
             File.WriteAllBytes(
                 _worldCacheDirectory.TerrainHeightFilePath(secondTileX, TileZ),
                 new byte[Resolution * Resolution * 2]);
-            var ledgerSource = new CountingLedgerSource(EmptyLedger);
-            var baker = CreateBaker(true, false, true, ledgerSource, EmptyLedger.ComputeDigest());
+            var runSource = new CountingGenerationRunSource(EmptyLedger);
+            var baker = CreateBaker(true, false, true, runSource, EmptyLedger.ComputeDigest());
 
             baker.Bake(TileX, TileZ);
             baker.Bake(secondTileX, TileZ);
 
-            Assert.That(ledgerSource.ResolveCount, Is.EqualTo(1));
+            Assert.That(runSource.ResolveCount, Is.EqualTo(1));
         }
 
     }

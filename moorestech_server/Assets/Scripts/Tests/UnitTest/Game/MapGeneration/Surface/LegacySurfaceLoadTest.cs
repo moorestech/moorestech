@@ -46,7 +46,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             var source = new CountingSource(run);
             var config = new TerrainGenerationConfig();
             var species = TreeSurroundSpeciesTable.Build(new BiomePlacementHelper(config), Array.Empty<BiomeType>());
-            var validated = new ValidatedPlacementLedgerSource(source, ledger.ComputeDigest(), species, config);
+            var validated = new ValidatedGenerationRunSource(source, ledger.ComputeDigest(), species, config);
             Assert.That(source.Count, Is.Zero);
             Assert.That(validated.Resolve(), Is.SameAs(run));
             Assert.That(validated.Resolve(), Is.SameAs(run));
@@ -59,13 +59,13 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             var ledger = new PlacementLedger();
             var config = new TerrainGenerationConfig();
             var species = TreeSurroundSpeciesTable.Build(new BiomePlacementHelper(config), Array.Empty<BiomeType>());
-            var validated = new ValidatedPlacementLedgerSource(new CountingSource(LedgerRunFixture.Legacy(ledger)), "different", species, config);
+            var validated = new ValidatedGenerationRunSource(new CountingSource(LedgerRunFixture.Legacy(ledger)), "different", species, config);
             string reason = $"[GeneratedSurface] seed={config.seed} revision={config.surfaceRevision} tile=ledger: [TileVisualBaker] Resolved placement ledger digest '{ledger.ComputeDigest()}' does not match expected digest 'different'.";
             LogAssert.Expect(LogType.Error, reason);
             Assert.Throws<InvalidOperationException>(() => validated.Resolve());
         }
 
-        private sealed class CountingSource : IPlacementLedgerSource
+        private sealed class CountingSource : IGenerationRunSource
         {
             private readonly GenerationRun _run;
             public int Count { get; private set; }

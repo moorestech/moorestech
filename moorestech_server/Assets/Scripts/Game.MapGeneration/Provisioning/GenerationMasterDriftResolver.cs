@@ -51,7 +51,7 @@ namespace Game.MapGeneration.Provisioning
             // A moved window is a different world before any placement is compared, so stop ahead of the set comparison
             generatedPayload.ThrowIfOriginsDiffer(new TerrainOrigins(run.Output.NoiseOrigin, run.Output.SceneOrigin));
             var recordedMapInfo = JsonConvert.DeserializeObject<MapInfoJson>(File.ReadAllText(worldDataDirectory.MapJsonFilePath));
-            ThrowIfMapObjectsMoved(worldDataDirectory, recordedMapInfo, run.Output);
+            ThrowIfMapObjectsMoved(worldDataDirectory, recordedMapInfo, run);
 
             // 鉱脈を整地する版では台帳padが鉱脈から決まるため、鉱脈集合の一致も台帳を進める条件になる
             // Revisions that grade around veins derive ledger pads from the veins, so the vein set must hold too before the ledger advances
@@ -70,15 +70,15 @@ namespace Game.MapGeneration.Provisioning
             // The visuals baked from the ledger (rock surrounds and the like) stick to placements; baking from a ledger disagreeing with the set map.json recorded would paint around absent rocks
             // 配置は高さと分類から導かれるので、転送済みの高さが別物になるマスタ変更はこの集合も動かす。集合一致は高さ据え置きの代理でもある
             // Placements derive from the heights and the classification, so a master change that would make the transferred heights another terrain moves this set too: set equality doubles as a proxy for the heights still fitting
-            static void ThrowIfMapObjectsMoved(WorldDataDirectory worldDataDirectory, MapInfoJson recordedMapInfo, MapGenerationOutput output)
+            static void ThrowIfMapObjectsMoved(WorldDataDirectory worldDataDirectory, MapInfoJson recordedMapInfo, GenerationRun run)
             {
                 var recordedKeys = SortedPlacementKeys(recordedMapInfo.MapObjects.Select(
                     mapObject => PlacementKey(mapObject.MapObjectGuidStr, mapObject.Position, mapObject.Scale)));
-                var regeneratedKeys = SortedPlacementKeys(output.MapObjects.Select(
+                var regeneratedKeys = SortedPlacementKeys(run.Output.MapObjects.Select(
                     mapObject => PlacementKey(mapObject.MapObjectGuid, mapObject.Position, mapObject.Scale)));
                 if (recordedKeys.SequenceEqual(regeneratedKeys)) return;
 
-                throw new InvalidOperationException(
+                throw SurfaceGenerationValidation.Failure(run.Config, "all",
                     $"The generation master moved the placements of world '{worldDataDirectory.Root}': map.json records {recordedKeys.Count} " +
                     $"map objects while the current master generates {regeneratedKeys.Count} with a different (guid, position, scale) set. " +
                     "Delete the world directory and generate the world again.");

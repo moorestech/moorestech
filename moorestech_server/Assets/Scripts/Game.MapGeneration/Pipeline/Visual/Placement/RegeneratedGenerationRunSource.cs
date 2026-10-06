@@ -9,12 +9,12 @@ namespace Game.MapGeneration.Pipeline.Visual.Placement
     ///     The port for a side that owns no ledger (the client), running pass-1 only when asked
     ///     With every tile in the cache it never runs at all; the validating baker owns reuse of a resolved result
     /// </summary>
-    public class RegeneratedPlacementLedgerSource : IPlacementLedgerSource
+    public class RegeneratedGenerationRunSource : IGenerationRunSource
     {
         private readonly Generation _selectedGeneration;
         private readonly TerrainGenerationConfig _config;
 
-        public RegeneratedPlacementLedgerSource(Generation selectedGeneration, TerrainGenerationConfig config)
+        public RegeneratedGenerationRunSource(Generation selectedGeneration, TerrainGenerationConfig config)
         {
             _selectedGeneration = selectedGeneration;
             _config = config;

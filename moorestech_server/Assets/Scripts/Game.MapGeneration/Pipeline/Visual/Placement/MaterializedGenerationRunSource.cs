@@ -1,10 +1,10 @@
 namespace Game.MapGeneration.Pipeline.Visual.Placement
 {
-    public class MaterializedPlacementLedgerSource : IPlacementLedgerSource
+    public class MaterializedGenerationRunSource : IGenerationRunSource
     {
         private readonly GenerationRun _run;
 
-        public MaterializedPlacementLedgerSource(GenerationRun run)
+        public MaterializedGenerationRunSource(GenerationRun run)
         {
             _run = run;
         }

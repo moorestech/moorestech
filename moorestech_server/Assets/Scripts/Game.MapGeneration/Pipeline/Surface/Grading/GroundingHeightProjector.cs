@@ -8,6 +8,15 @@ namespace Game.MapGeneration.Pipeline.Surface.Grading
     // Pad projection: core assignment serves both generation and display, skirt blending runs once at generation
     internal static class GroundingHeightProjector
     {
+        // 生成時の合成入口。skirtを元高さから合成した後でcoreを代入する
+        // The generation-time composition: blend skirts from the original heights, then assign cores
+        internal static float[,] ApplyAtGeneration(float[,] heights, Vector2 tileScene, Vector2 spacing, float terrainHeight,
+            IReadOnlyList<VeinGroundingPad> pads)
+        {
+            var skirted = ApplySkirts(heights, tileScene, spacing, terrainHeight, pads);
+            return ApplyCores(skirted, tileScene, spacing, terrainHeight, pads);
+        }
+
         // core支持頂点へpad高さを代入する。重なりは辞書順で先のpadが勝つ
         // Assign pad heights to core support vertices; on overlap the lexicographically first pad wins
         internal static float[,] ApplyCores(float[,] heights, Vector2 tileScene, Vector2 spacing, float terrainHeight,

@@ -60,6 +60,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             var forward = Project(heights, Vector2.zero, new[] { a, b });
             var reverse = Project(heights, Vector2.zero, new[] { b, a });
             CollectionAssert.AreEqual(forward, reverse);
+            Assert.That(forward[12, 12], Is.EqualTo(25f / 600f));
             Assert.That(forward[0, 0], Is.EqualTo(heights[0, 0]));
             Assert.That(heights[12, 12], Is.EqualTo(24f / 600f));
         }
@@ -128,8 +129,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
 
         private static float[,] Project(float[,] heights, Vector2 origin, VeinGroundingPad[] pads)
         {
-            var skirted = GroundingHeightProjector.ApplySkirts(heights, origin, Vector2.one, 600f, pads);
-            return GroundingHeightProjector.ApplyCores(skirted, origin, Vector2.one, 600f, pads);
+            return GroundingHeightProjector.ApplyAtGeneration(heights, origin, Vector2.one, 600f, pads);
         }
 
         private static void AddVein(List<PlacedVein> veins, int x, int z, int bottom)

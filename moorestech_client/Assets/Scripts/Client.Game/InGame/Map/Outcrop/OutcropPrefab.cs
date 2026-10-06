@@ -28,8 +28,8 @@ namespace Client.Game.InGame.Map.Outcrop
 
         public static OutcropPrefab Create(GameObject prefab, TerrainSurfacePresentation presentation)
         {
-            // 実体の有効状態でなくprefab由来の有効MeshRendererで測る。粒子等の描画範囲は寸法に混ぜない
-            // Measure prefab-authored enabled MeshRenderers, not the instance's active state; particles and the like never enter the size
+            // 実体の有効状態でなくprefab由来の有効なmesh系Renderer(Mesh/Skinned)で測る。粒子等の描画範囲は寸法に混ぜない
+            // Measure prefab-authored enabled mesh renderers (Mesh/Skinned), not the instance's active state; particles and the like never enter the size
             var hasMeshBounds = TryMeasureMeshBounds(out var meshBounds);
             var contract = new OutcropGroundingContract(prefab.name, hasMeshBounds, meshBounds);
             presentation.Accept(contract);
@@ -42,23 +42,36 @@ namespace Client.Game.InGame.Map.Outcrop
             {
                 bounds = default;
                 var found = false;
-                var root = prefab.transform;
                 foreach (var renderer in prefab.GetComponentsInChildren<MeshRenderer>(true))
                 {
                     var filter = renderer.GetComponent<MeshFilter>();
                     if (!renderer.enabled || filter == null || filter.sharedMesh == null || !IsActiveUnderRoot(renderer.transform)) continue;
-                    var local = filter.sharedMesh.bounds;
-                    for (var corner = 0; corner < 8; corner++)
-                    {
-                        var point = local.center + Vector3.Scale(local.extents,
-                            new Vector3((corner & 1) == 0 ? -1f : 1f, (corner & 2) == 0 ? -1f : 1f, (corner & 4) == 0 ? -1f : 1f));
-                        var offset = Vector3.Scale(root.localScale, root.InverseTransformPoint(renderer.transform.TransformPoint(point)));
-                        if (found) bounds.Encapsulate(offset);
-                        else bounds = new Bounds(offset, Vector3.zero);
-                        found = true;
-                    }
+                    Encapsulate(ref bounds, ref found, filter.sharedMesh.bounds, renderer.transform);
+                }
+
+                // Skinnedはbind姿勢のAABB(localBounds)をrootBone基準で測る
+                // Skinned renderers contribute their bind-pose AABB (localBounds) in rootBone space
+                foreach (var skinned in prefab.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+                {
+                    if (!skinned.enabled || skinned.sharedMesh == null || !IsActiveUnderRoot(skinned.transform)) continue;
+                    var space = skinned.rootBone != null ? skinned.rootBone : skinned.transform;
+                    Encapsulate(ref bounds, ref found, skinned.localBounds, space);
                 }
                 return found;
+            }
+
+            void Encapsulate(ref Bounds bounds, ref bool found, Bounds local, Transform space)
+            {
+                var root = prefab.transform;
+                for (var corner = 0; corner < 8; corner++)
+                {
+                    var point = local.center + Vector3.Scale(local.extents,
+                        new Vector3((corner & 1) == 0 ? -1f : 1f, (corner & 2) == 0 ? -1f : 1f, (corner & 4) == 0 ? -1f : 1f));
+                    var offset = Vector3.Scale(root.localScale, root.InverseTransformPoint(space.TransformPoint(point)));
+                    if (found) bounds.Encapsulate(offset);
+                    else bounds = new Bounds(offset, Vector3.zero);
+                    found = true;
+                }
             }
 
             bool IsActiveUnderRoot(Transform node)

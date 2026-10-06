@@ -67,12 +67,12 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
         protected TileVisualBaker CreateBaker(bool generateTexture, bool generateDetail, bool generateHeightmap)
         {
             return CreateBaker(generateTexture, generateDetail, generateHeightmap,
-                new MaterializedPlacementLedgerSource(LedgerRunFixture.Legacy(EmptyLedger)), EmptyLedger.ComputeDigest());
+                new MaterializedGenerationRunSource(LedgerRunFixture.Legacy(EmptyLedger)), EmptyLedger.ComputeDigest());
         }
 
         protected TileVisualBaker CreateBaker(
             bool generateTexture, bool generateDetail, bool generateHeightmap,
-            IPlacementLedgerSource ledgerSource, string expectedPlacementLedgerDigest)
+            IGenerationRunSource runSource, string expectedPlacementLedgerDigest)
         {
             var config = CreateConfig(generateTexture, generateDetail, generateHeightmap);
             var visualSections = CreateVisualSections();
@@ -82,7 +82,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
                 visualSections.SurroundTextureConfigs, treeSurroundSpecies, Array.Empty<string>());
 
             return new TileVisualBaker(
-                config, BiomeTypes, visualSections, layerTable, treeSurroundSpecies, ledgerSource,
+                config, BiomeTypes, visualSections, layerTable, treeSurroundSpecies, runSource,
                 expectedPlacementLedgerDigest, _worldCacheDirectory, new TerrainVisualCache(_worldCacheDirectory, CacheKey));
         }
 
@@ -130,12 +130,12 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
                 DetailTestConfigBuilder.CreateDisabledSurroundConfigs(BiomeTypes.Length));
         }
 
-        protected sealed class CountingLedgerSource : IPlacementLedgerSource
+        protected sealed class CountingGenerationRunSource : IGenerationRunSource
         {
             private readonly GenerationRun _run;
             public int ResolveCount { get; private set; }
 
-            public CountingLedgerSource(PlacementLedger ledger)
+            public CountingGenerationRunSource(PlacementLedger ledger)
             {
                 _run = LedgerRunFixture.Legacy(ledger);
             }

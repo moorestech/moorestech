@@ -30,7 +30,7 @@ namespace Client.Game.InGame.Map.Outcrop
             // 平坦coreに収まる有効meshだけが接地を保証できる
             // Only an enabled mesh fitting the flat core can guarantee grounding
             if (!_hasMeshBounds)
-                Violation = $"No enabled MeshRenderer on outcrop prefab {_prefabName}.";
+                Violation = $"No enabled MeshRenderer or SkinnedMeshRenderer on outcrop prefab {_prefabName}.";
             else if (envelope.CoreHalfSize * 2f < _meshBounds.size.x || envelope.CoreHalfSize * 2f < _meshBounds.size.z)
                 Violation = $"Outcrop prefab {_prefabName} exceeds the grading core: {_meshBounds.size}.";
         }

@@ -46,9 +46,9 @@ namespace Game.MapGeneration.Pipeline.Visual
             TerrainGenerationConfig config, GeneratedTerrainTransferMeta terrainMeta, Generation selectedGeneration)
         {
             var savedConfig = config.ShallowCopy();
-            var ledgerSource = new RegeneratedPlacementLedgerSource(selectedGeneration, savedConfig);
+            var runSource = new RegeneratedGenerationRunSource(selectedGeneration, savedConfig);
             return CreateWithHeightSource(
-                config, terrainMeta, ledgerSource, selectedGeneration, SharedCacheOf(terrainMeta));
+                config, terrainMeta, runSource, selectedGeneration, SharedCacheOf(terrainMeta));
         }
 
         // 先焼きの高さ源はワールド本体のterrain/(生成した本人が唯一の正)。共有キャッシュへの複製は要らない
@@ -57,14 +57,14 @@ namespace Game.MapGeneration.Pipeline.Visual
             TerrainGenerationConfig config, GeneratedTerrainTransferMeta terrainMeta,
             GenerationRun generatedRun, Generation selectedGeneration, WorldDataDirectory worldDataDirectory)
         {
-            var ledgerSource = new MaterializedPlacementLedgerSource(generatedRun);
+            var runSource = new MaterializedGenerationRunSource(generatedRun);
             return CreateWithHeightSource(
-                config, terrainMeta, ledgerSource, selectedGeneration, worldDataDirectory);
+                config, terrainMeta, runSource, selectedGeneration, worldDataDirectory);
         }
 
         private static Result CreateWithHeightSource(
             TerrainGenerationConfig config, GeneratedTerrainTransferMeta terrainMeta,
-            IPlacementLedgerSource ledgerSource, Generation selectedGeneration, WorldDataDirectory heightSource)
+            IGenerationRunSource runSource, Generation selectedGeneration, WorldDataDirectory heightSource)
         {
             // payloadは常にメタの持ち物。別引数で受けると不整合な対を組める余地が残るのでここで1度だけ読む
             // The payload always belongs to the meta; taking it as a separate argument would allow an inconsistent pair, so it is read here once
@@ -87,7 +87,7 @@ namespace Game.MapGeneration.Pipeline.Visual
             var cacheKey = TerrainVisualCacheKey.Compute(
                 generatedPayload.GenerationMasterFingerprint, config.seed, generatedPayload.Origins,
                 terrainMeta.TerrainResolution, generatedPayload.GeneratorVersion, generatedPayload.PlacementLedgerDigest);
-            var baker = new TileVisualBaker(gridConfig, biomeTypes, visualSections, layerTable, treeSurroundSpecies, ledgerSource,
+            var baker = new TileVisualBaker(gridConfig, biomeTypes, visualSections, layerTable, treeSurroundSpecies, runSource,
                 generatedPayload.PlacementLedgerDigest, heightSource, new TerrainVisualCache(SharedCacheOf(terrainMeta), cacheKey));
 
             return new Result(baker, gridConfig, layerTable.OrderedLayerAddresses);

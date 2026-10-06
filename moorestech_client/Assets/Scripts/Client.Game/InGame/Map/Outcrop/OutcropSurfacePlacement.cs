@@ -36,11 +36,8 @@ namespace Client.Game.InGame.Map.Outcrop
 
         public void VisitGrounded(SurfaceEnvelope envelope)
         {
-            // 契約違反のprefabはロード段で起動ごと止まる。ここへ届けば呼び出し側の取り違え
-            // Contract-violating prefabs stop startup at load time; reaching here means a caller mixed them up
-            if (_outcrop.ContractViolation != null)
-                throw SurfaceContractFailure.Create($"[OutcropSurfacePlacement] {_instance.name} uses an unvalidated outcrop prefab: {_outcrop.ContractViolation}");
-
+            // 接地契約の検査はロード段(OutcropGameObjectDatastore)の一箇所だけで行い、違反prefabはここへ届かない
+            // The grounding contract is checked only at load time (OutcropGameObjectDatastore); violating prefabs never reach here
             var center = _veinBounds.center;
             var terrain = FindContainingTerrain();
             var groundHeight = terrain.SampleHeight(center) + terrain.transform.position.y;

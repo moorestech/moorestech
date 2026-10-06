@@ -60,7 +60,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Golden
                 var layerTable = SplatLayerTable.Build("addr/beach", "addr/rock", sections.MainLayerAddresses, sections.TextureConfigs,
                     sections.SurroundTextureConfigs, species, System.Array.Empty<string>());
                 var baker = new TileVisualBaker(gridConfig, TerrainVisualGoldenFixture.BiomeTypes, sections, layerTable,
-                    species, new MaterializedPlacementLedgerSource(run), run.Ledger.ComputeDigest(), worldDirectory,
+                    species, new MaterializedGenerationRunSource(run), run.Ledger.ComputeDigest(), worldDirectory,
                     new TerrainVisualCache(worldDirectory, new string('0', 64)));
 
                 foreach (var (tileX, tileZ) in TerrainTransferMeta.EnumerateTileCoordinates(output.Tiles.Count))

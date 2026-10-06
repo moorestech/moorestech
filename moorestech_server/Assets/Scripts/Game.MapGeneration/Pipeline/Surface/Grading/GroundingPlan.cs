@@ -37,9 +37,7 @@ namespace Game.MapGeneration.Pipeline.Surface.Grading
                 heights[z, x] = _grid.GetHeight(x, z) / _grid.Config.terrainHeight;
             // skirtは保存高さへこの1回だけ焼き、表示段はcoreだけを再代入する
             // Skirts are baked into the stored heights this once; the display stage reassigns cores alone
-            var skirted = GroundingHeightProjector.ApplySkirts(heights, _grid.Geometry.Origin,
-                _grid.Geometry.Spacing, _grid.Config.terrainHeight, pads);
-            var projected = GroundingHeightProjector.ApplyCores(skirted, _grid.Geometry.Origin,
+            var projected = GroundingHeightProjector.ApplyAtGeneration(heights, _grid.Geometry.Origin,
                 _grid.Geometry.Spacing, _grid.Config.terrainHeight, pads);
             for (int z = 0; z < _grid.Geometry.Depth; z++)
             for (int x = 0; x < _grid.Geometry.Width; x++)

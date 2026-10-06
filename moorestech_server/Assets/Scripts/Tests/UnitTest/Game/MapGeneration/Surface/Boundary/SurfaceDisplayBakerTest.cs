@@ -96,7 +96,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             var key = TerrainVisualCacheKey.Compute(new string('a', 64), config.seed, origins, config.Resolution,
                 version, ledger.ComputeDigest());
             return new TileVisualBaker(config, Biomes, sections, layers, species,
-                new MaterializedPlacementLedgerSource(LedgerRunFixture.Grounded(ledger, land)), ledger.ComputeDigest(), _directory,
+                new MaterializedGenerationRunSource(LedgerRunFixture.Grounded(ledger, land)), ledger.ComputeDigest(), _directory,
                 new TerrainVisualCache(_directory, key));
         }
     }

@@ -5,18 +5,18 @@ using Game.MapGeneration.Pipeline.Visual.Surround;
 
 namespace Game.MapGeneration.Pipeline.Visual.Source
 {
-    internal sealed class ValidatedPlacementLedgerSource : IPlacementLedgerSource
+    internal sealed class ValidatedGenerationRunSource : IGenerationRunSource
     {
-        private readonly IPlacementLedgerSource _ledgerSource;
+        private readonly IGenerationRunSource _runSource;
         private readonly string _expectedPlacementLedgerDigest;
         private readonly TreeSurroundSpeciesTable _treeSurroundSpecies;
         private readonly TerrainGenerationConfig _config;
         private GenerationRun _resolvedRun;
 
-        public ValidatedPlacementLedgerSource(IPlacementLedgerSource source, string expectedDigest, TreeSurroundSpeciesTable species,
+        public ValidatedGenerationRunSource(IGenerationRunSource source, string expectedDigest, TreeSurroundSpeciesTable species,
             TerrainGenerationConfig config)
         {
-            _ledgerSource = source;
+            _runSource = source;
             _expectedPlacementLedgerDigest = expectedDigest;
             _treeSurroundSpecies = species;
             _config = config;
@@ -28,7 +28,7 @@ namespace Game.MapGeneration.Pipeline.Visual.Source
             // The ledger (pass-1) resolves at most once and only on a miss; when the prebaked cache hits everywhere, startup never runs pass-1
             if (_resolvedRun != null) return _resolvedRun;
 
-            var run = _ledgerSource.Resolve();
+            var run = _runSource.Resolve();
             var actualDigest = run.Ledger.ComputeDigest();
             if (actualDigest != _expectedPlacementLedgerDigest)
                 throw SurfaceGenerationValidation.Failure(_config, "ledger",

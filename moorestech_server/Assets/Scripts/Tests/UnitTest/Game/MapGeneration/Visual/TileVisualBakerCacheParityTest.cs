@@ -108,7 +108,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
                 visualSections.SurroundTextureConfigs, treeSurroundSpecies, Array.Empty<string>());
 
             return new TileVisualBaker(
-                config, BiomeTypes, visualSections, layerTable, treeSurroundSpecies, new MaterializedPlacementLedgerSource(LedgerRunFixture.Legacy(EmptyLedger)),
+                config, BiomeTypes, visualSections, layerTable, treeSurroundSpecies, new MaterializedGenerationRunSource(LedgerRunFixture.Legacy(EmptyLedger)),
                 EmptyLedger.ComputeDigest(), _worldCacheDirectory, new TerrainVisualCache(_worldCacheDirectory, CacheKey));
         }
 

@@ -30,7 +30,7 @@ namespace Game.MapGeneration.Pipeline.Visual
         private readonly BiomeType[] _biomeTypes;
         private readonly TerrainGenerationConfig _gridConfig;
         private readonly SplatLayerTable _layerTable;
-        private readonly ValidatedPlacementLedgerSource _ledgerSource;
+        private readonly ValidatedGenerationRunSource _runSource;
         private readonly SurfaceDisplayBoundaryOwner _displayBoundary;
         public TerrainSurfacePresentation SurfacePresentation { get; }
         private readonly TreeSurroundSpeciesTable _treeSurroundSpecies;
@@ -44,7 +44,7 @@ namespace Game.MapGeneration.Pipeline.Visual
 
         public TileVisualBaker(
             TerrainGenerationConfig gridConfig, BiomeType[] biomeTypes, BiomeVisualSections visualSections,
-            SplatLayerTable layerTable, TreeSurroundSpeciesTable treeSurroundSpecies, IPlacementLedgerSource ledgerSource,
+            SplatLayerTable layerTable, TreeSurroundSpeciesTable treeSurroundSpecies, IGenerationRunSource runSource,
             string expectedPlacementLedgerDigest, WorldDataDirectory heightSource, TerrainVisualCache visualCache)
         {
             _gridConfig = gridConfig;
@@ -52,7 +52,7 @@ namespace Game.MapGeneration.Pipeline.Visual
             _visualSections = visualSections;
             _layerTable = layerTable;
             _treeSurroundSpecies = treeSurroundSpecies;
-            _ledgerSource = new ValidatedPlacementLedgerSource(ledgerSource, expectedPlacementLedgerDigest, treeSurroundSpecies, gridConfig);
+            _runSource = new ValidatedGenerationRunSource(runSource, expectedPlacementLedgerDigest, treeSurroundSpecies, gridConfig);
             SurfacePresentation = MapGenerationAlgorithmTable.ResolveSurface(gridConfig.surfaceRevision).Presentation;
             _heightSource = heightSource;
             _displayBoundary = new SurfaceDisplayBoundaryOwner(gridConfig, new StoredSurfaceDisplayHeightSource(heightSource, gridConfig.Resolution));
@@ -154,7 +154,7 @@ namespace Game.MapGeneration.Pipeline.Visual
             (float[,] Pre, float[,] Post) BuildHeightPair()
             {
                 var preHeights = HeightFileLoader.LoadHeights(_heightSource, tileX, tileZ, _gridConfig.Resolution);
-                var run = _ledgerSource.Resolve();
+                var run = _runSource.Resolve();
                 var post = TileSurfaceHeightBuilder.Build(preHeights, tileConfig, tileWorldPosition, run.Ledger,
                     run.DisplayHeightPolicy, _displayBoundary);
                 return (preHeights, post);
@@ -173,7 +173,7 @@ namespace Game.MapGeneration.Pipeline.Visual
                 return SplatmapStage.Generate(
                     tileConfig, _biomeTypes, classification, _layerTable, _visualSections, _treeSurroundSpecies,
                     preHeights, biomeIndices, _gridConfig.AlphamapResolution,
-                    _ledgerSource.Resolve().Ledger.Placements, tileWorldPosition);
+                    _runSource.Resolve().Ledger.Placements, tileWorldPosition);
             }
 
             // 距離場はタイル境界の外まで見るため、切り出し済みのタイル内mapObjectではなく全タイルぶんを渡す
@@ -183,7 +183,7 @@ namespace Game.MapGeneration.Pipeline.Visual
             {
                 return TerrainDetailBuilder.Build(
                     tileConfig, _biomeTypes, _visualSections, preHeights, postHeights, classification.WinnerMasks,
-                    alphamap, _ledgerSource.Resolve().Ledger.Placements, tileWorldPosition, tileX, tileZ);
+                    alphamap, _runSource.Resolve().Ledger.Placements, tileWorldPosition, tileX, tileZ);
             }
 
             float[,] CreateFlatHeights(int resolution)

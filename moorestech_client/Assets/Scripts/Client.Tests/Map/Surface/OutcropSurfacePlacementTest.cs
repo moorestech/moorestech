@@ -70,16 +70,13 @@ namespace Client.Tests.Map.Surface
         }
 
         [Test]
-        public void coreを超えるmeshは明示失敗する()
+        public void coreを超えるmeshはロード段で契約違反になる()
         {
-            // 寸法違反はロード段のprefab単位で記録され、配置へ渡れば明示失敗する
-            // A size violation is recorded per prefab at load time and fails explicitly if handed to placement
+            // 寸法違反はロード段のprefab単位で記録される
+            // A size violation is recorded per prefab at load time
             var root = CreateMesh(0f, 5f);
             LogAssert.Expect(LogType.Error, new Regex("\\[OutcropPrefab\\] .*exceeds the grading core"));
-            var outcrop = OutcropPrefab.Create(root, Grounded);
-            Assert.That(outcrop.ContractViolation, Is.Not.Null);
-            LogAssert.Expect(LogType.Error, new Regex("\\[OutcropSurfacePlacement\\]"));
-            Assert.Throws<InvalidOperationException>(() => OutcropSurfacePlacement.Place(root, outcrop, _veinBounds, Grounded));
+            Assert.That(OutcropPrefab.Create(root, Grounded).ContractViolation, Does.Contain("exceeds the grading core"));
         }
 
         [Test]
@@ -125,9 +122,38 @@ namespace Client.Tests.Map.Surface
             _created.Add(root);
             root.SetActive(false);
             LogAssert.Expect(LogType.Error, new Regex("\\[OutcropPrefab\\] No enabled MeshRenderer"));
-            var outcrop = OutcropPrefab.Create(root, Grounded);
-            LogAssert.Expect(LogType.Error, new Regex("\\[OutcropSurfacePlacement\\]"));
-            Assert.Throws<InvalidOperationException>(() => OutcropSurfacePlacement.Place(root, outcrop, _veinBounds, Grounded));
+            Assert.That(OutcropPrefab.Create(root, Grounded).ContractViolation, Does.Contain("No enabled MeshRenderer"));
+        }
+
+        [Test]
+        public void SkinnedMeshRendererだけのprefabも接地する()
+        {
+            // modのskinned露頭もbind姿勢のAABBで寸法を測って接地する
+            // A mod's skinned outcrop is sized by its bind-pose AABB and grounded
+            var root = new GameObject("OutcropSkinnedFixture");
+            _created.Add(root);
+            var child = new GameObject("Skinned");
+            child.transform.SetParent(root.transform, false);
+            child.transform.localPosition = new Vector3(1f, -3f, -1f);
+            var skinned = child.AddComponent<SkinnedMeshRenderer>();
+            var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            _created.Add(cube);
+            skinned.sharedMesh = cube.GetComponent<MeshFilter>().sharedMesh;
+            skinned.localBounds = new Bounds(Vector3.zero, new Vector3(2f, 2f, 2f));
+            Place(root, Grounded);
+
+            // localBoundsの8隅を実座標へ移し、底と中心を検査する
+            // Map the eight localBounds corners to world space and check bottom and center
+            var minY = float.MaxValue;
+            var center = child.transform.TransformPoint(Vector3.zero);
+            for (var corner = 0; corner < 8; corner++)
+            {
+                var point = new Vector3((corner & 1) == 0 ? -1f : 1f, (corner & 2) == 0 ? -1f : 1f, (corner & 4) == 0 ? -1f : 1f);
+                minY = Mathf.Min(minY, child.transform.TransformPoint(point).y);
+            }
+            Assert.That(minY - _groundY, Is.InRange(0f, 0.02f));
+            Assert.That(center.x, Is.EqualTo(_veinBounds.center.x).Within(0.001f));
+            Assert.That(center.z, Is.EqualTo(_veinBounds.center.z).Within(0.001f));
         }
 
         private static TerrainSurfacePresentation Grounded => new TerrainSurfacePresentation.Grounded(SurfaceEnvelope.GeneratedV5);

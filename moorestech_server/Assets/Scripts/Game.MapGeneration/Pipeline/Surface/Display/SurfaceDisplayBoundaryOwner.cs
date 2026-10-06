@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Game.MapGeneration.Pipeline.Config;
-using Game.MapGeneration.Pipeline.Visual;
 using Game.MapGeneration.Pipeline.Visual.Placement;
 using UnityEngine;
 
@@ -64,8 +63,7 @@ namespace Game.MapGeneration.Pipeline.Surface
 
                 // 木の丸めと整地支持セルも所有者の座標で一度だけ評価する
                 // Evaluate tree rounding and pad support cells once in the owner's coordinates
-                var post = TreePerturbationApplier.Apply(pre, ownerConfig, ownerScene, ledger.Placements);
-                post = policy.Apply(post, ownerConfig, ownerScene, ledger);
+                var post = TileSurfaceHeightBuilder.BuildInterior(pre, ownerConfig, ownerScene, ledger, policy);
                 var edge = new Dictionary<int, float>();
                 int ownerStride = ownerConfig.Resolution - 1;
                 for (int z = 0; z <= ownerStride; z++)
