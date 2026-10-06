@@ -1,5 +1,5 @@
 #!/bin/bash
-# user-simulator review の関所。moores-grill-with-docs / writing-plans のfrontmatter hooksから呼ばれる
+# user-simulator review の関所。moores-grill-with-docs / moores-writing-plans のfrontmatter hooksから呼ばれる
 # （スキル発動セッション限定で有効）。track: spec/plan執筆とreview実行痕跡の追跡 / stop: 終了関所 / preask: AskUserQuestion直前のpreanswer関所
 # Gate for user-simulator review, activated only in sessions where the wired skills fired.
 set -u
@@ -27,7 +27,7 @@ case "$MODE" in
   stop)
     [ -f "$STATE.doc" ] || exit 0
     # 解除はdoc単位で判定する。.reviewedがセッション一発解除だと、先行docのreview後に
-    # 書かれた後続doc（grill spec→writing-plans plan等）の関所が素通りする（実測bug）。
+    # 書かれた後続doc（grill spec→moores-writing-plans plan等）の関所が素通りする（実測bug）。
     # Release is per-document: a session-global .reviewed would let a later doc slip the gate.
     [ "$STATE.reviewed" -nt "$STATE.doc" ] && exit 0
     # ブロック上限は自前カウンタで管理（ハーネス側上限は実測で機能しない） / Own block counter
