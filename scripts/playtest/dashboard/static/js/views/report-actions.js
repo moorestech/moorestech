@@ -56,7 +56,10 @@ function ticketItem(report, link, paint) {
   const remove = h("button", {
     type: "button", class: "ghost", title: "紐付けを外す", "aria-label": "紐付けを外す",
     onclick: async () => {
-      if (await postState("links/remove", { ...reportKey(report), url: link.url }, false)) await syncFromServer(report, paint);
+      // 失敗（別経路で既に外された 404 等）でも保存結果に揃え、外せない表示を残さない
+      // Even on failure (e.g. 404 when already removed elsewhere) the list is synced to storage, so no stale entry remains
+      await postState("links/remove", { ...reportKey(report), url: link.url }, false);
+      await syncFromServer(report, paint);
     },
   }, "外す");
   const href = /^https:\/\//.test(link.url) ? link.url : null;

@@ -112,7 +112,9 @@ async function start() {
   // After writing read marks or links, reload what the server saved and redraw (never let the page drift from storage)
   window.addEventListener("dashboard:changed", (event) => {
     if (event.detail.redraw) refresh(true);
-    else load().catch(showError);
+    // 自分の書き込み以外の変化も取り込んでいるかもしれないので、変化ありなら次の更新で描き直す
+    // The reload may carry changes besides our own write, so a detected change is redrawn on the next refresh
+    else load().then((changed) => { pendingRender = changed || pendingRender; }).catch(showError);
   });
   document.addEventListener("visibilitychange", () => refresh(false));
   setInterval(() => refresh(false), REFRESH_MS);
