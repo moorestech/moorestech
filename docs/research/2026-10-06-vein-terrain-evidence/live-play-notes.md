@@ -22,3 +22,17 @@ Recording root (gitignored): moorestech_client/PlaytestResults/20261006_155818/.
 - MacBook and Windows verification hosts were checked via configured SSH aliases; both timed out. No remote processes/editor were changed. No location request or permission exception is pending.
 
 Incident status: reported ocean protrusion remains unconfirmed in the current accessible environment. The actual generation seaLevel0 and fixed visible plane4.3 are independent definitions; that structural mismatch is confirmed but must not be presented as the measured cause of the user's specific protrusion. Product code remains unchanged. Design remains proposed rather than falsely marking the sea investigation complete.
+
+## 2026-10-07 post-implementation recorded playtests (revision 5)
+
+Recorded with the unity-playmode-recorded-playtest DSL in this worktree (recordings are gitignored under moorestech_client/PlaytestResults/; scenarios are committed under .agents/skills/unity-playmode-recorded-playtest/scenarios/misc/vein-terrain-*.cs). Each seed196 world was freshly generated in the run (world.json createdAt checked, shared world cache moved aside, never deleted).
+
+- tour (new seed196 world, generatorVersion 5.0.0, 9 tiles): terrain under the player at the previous worst outcrop (438.5,-401.5) = 27.99854 m, at the previous sea-plane low point (-336.43,405.76) = 5.85989 m, at a fluid vein 16.20670 m, at a coastline point 4.99087 m, on the tile seam x=0 10.60245 m; all >= 4.9 m (SeaY 4.3 + wave 0.5 + clearance 0.1). Outcrop mesh bottom minus terrain ≈ 0.001 m; seam height delta 0.000000.
+- gameplay-save: hand mining raised iron ore 0 -> 2; a primitive miner and a gear pump were placed on vein pads; vein range boxes bottom minus terrain min 0.0018 m / 0.0068 m; save.json updated.
+- reload-verify: both blocks at the same GUID/origin, 13 terrain probes identical, all nine r16 SHA256 identical after reload.
+- legacy-world-load: a clone-on-write copy of the existing world_generated (4.0.0) loads with generatorVersion 4.0.0 and all nine r16 byte-identical to the committed v4 golden; the original's hashes are unchanged before/after.
+- Defect found and fixed by these recordings: blocks placed on revision-5 vein pads sank one cell because the pad surface is stored just under the integer by 16-bit TerrainData quantization; client placement now tolerates one quantization step plus the pad clearance (commits ff7b46af5 and follow-up). After the fix: miner origin Y 10 = range bottom 10, pump 17 = 17.
+
+Environment limits (not product verification gaps of this branch, but stated so nothing is overclaimed): the CEF Web UI server crashes on this host (Beads moorestech-wsnf / moorestech-1gc8, also on master), leaving a white full-screen RawImage. Scenarios hide that overlay and use non-UI equivalents for the build menu (hotbar assignment from the same catalog) and the pause-menu save (the same GameSaveRequester.Save()). The real Web UI routes were not exercised. The shader's actual wave peak was not measured live (only the material waveHeight 0.5 that the envelope assumes).
+
+Incident status is unchanged: the user's reported sea-surface protrusion is still not reproduced. The synthetic below-sea fixtures and these recordings show the new guarantee holds on new worlds; they are not a reproduction of the report.
