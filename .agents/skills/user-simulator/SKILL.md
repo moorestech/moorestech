@@ -5,7 +5,7 @@ description: |
   「ユーザーなら何を指摘し、どう答えるか」を先回りで予測して適用するスキル。
   Use when:
   1. moores-grill-with-docs完了後・specをユーザーレビューに出す直前（reviewモード・毎回必須）
-  2. writing-plans完了後・planをユーザーレビューに出す直前（reviewモード・毎回必須）
+  2. moores-writing-plans完了後・planをユーザーレビューに出す直前（reviewモード・毎回必須）
   3. ユーザーにしか決められない設計質問（AskUserQuestion）を出す直前（preanswerモード・毎回）
   4. 「/user-simulator improve <id>」で起動された時、またはシミュレーターの外し（追加指摘・誤検知）が起きた時（improveモード）
   5. 「シミュレーターにかけて」「予測レビューして」「spec-plan-reviewで」と言われた時

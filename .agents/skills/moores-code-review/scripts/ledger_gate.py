@@ -9,7 +9,7 @@
 # ⚠ Run the regression suite after ANY change under scripts/; wiring into
 #   SKILL.md and a wiring-test invariant are part of "done" for new scripts.
 # =====================================================================
-"""writing-plans の判断台帳関所（sim-gate.sh前例踏襲）。
+"""moores-writing-plans の判断台帳関所（sim-gate.sh前例踏襲）。
 
 track: plan（docs/superpowers/plans/*.md）へのWrite/Editを状態ファイルに記録
 stop : plan本文の Modify:/Create: 対象のうち reviewers/moores-*.md の paths（＋extensions）に
@@ -175,7 +175,7 @@ def main() -> int:
         if design_problems:
             print(
                 "ledger-gate: planの設計検査が未完了です: " + " / ".join(design_problems)
-                + " — writing-plansの『設計検査』（spec-architecture-review Phase 1〜2.5と"
+                + " — moores-writing-plansの『設計検査』（spec-architecture-review Phase 1〜2.5と"
                 "Phase 2.6）を実行し、planの『## 設計検査記録』を実施済み・件数・要約1行へ書き換えてください。",
                 file=sys.stderr,
             )
