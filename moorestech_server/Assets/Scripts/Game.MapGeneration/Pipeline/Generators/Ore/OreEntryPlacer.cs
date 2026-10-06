@@ -92,7 +92,6 @@ namespace Game.MapGeneration.Pipeline.Generators
                     int px = Mathf.Clamp(Mathf.RoundToInt(localX / w * (hRes - 1)), 0, hRes - 1);
                     int pz = Mathf.Clamp(Mathf.RoundToInt(localZ / l * (hRes - 1)), 0, hRes - 1);
                     if (!mask[pz, px]) continue;
-                    landConstraint.RecordEligibleCenter();
                     if (BiomeMaskBuilder.IsNearMaskEdge(mask, px, pz, hRes, borderPx)) continue;
 
                     if (entry.useSlopeFilter)
@@ -116,6 +115,7 @@ namespace Game.MapGeneration.Pipeline.Generators
                             continue;
                     }
 
+                    landConstraint.RecordEligibleCenter();
                     var cluster = new VeinPlacementCluster(
                         entryIndex, entry.veinGuid,
                         new Vector2(localX + dims.WorldOffsetX, localZ + dims.WorldOffsetZ));

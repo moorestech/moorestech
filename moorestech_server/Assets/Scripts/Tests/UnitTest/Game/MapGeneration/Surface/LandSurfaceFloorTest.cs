@@ -16,7 +16,6 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         [TestCase(600f)]
         [TestCase(5f)]
         [TestCase(1000f)]
-        [Timeout(1500000)]
         public void QuantizedFloorAndPadPreserveTheirDirectedBounds(float height)
         {
             var envelope = SurfaceEnvelope.GeneratedV5;
@@ -36,7 +35,6 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         }
 
         [Test]
-        [Timeout(1500000)]
         public void OneLandCornerProtectsAdjacentCellsWithoutRaisingRemoteSea()
         {
             var grid = SurfaceGridFixture.Create(1, 5, 4f, 8f, false);
@@ -56,7 +54,6 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
 
         [TestCase(false)]
         [TestCase(true)]
-        [Timeout(1500000)]
         public void AllSeaAndAllLandKeepTheirClassification(bool land)
         {
             var grid = SurfaceGridFixture.Create(1, 3, 4f, 8f, land);
@@ -66,7 +63,6 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         }
 
         [Test]
-        [Timeout(1500000)]
         public void RectangularTilesShareFourWayVertexAndInterpolation()
         {
             var grid = SurfaceGridFixture.Create(2, 3, 4f, 8f, true);
@@ -84,7 +80,6 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         }
 
         [Test]
-        [Timeout(1500000)]
         public void SharedHeightMismatchFailsWithTileDiagnostics()
         {
             var grid = SurfaceGridFixture.Create(2, 3, 4f, 8f, true);
@@ -100,7 +95,6 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         [TestCase(float.PositiveInfinity)]
         [TestCase(0f)]
         [TestCase(4f)]
-        [Timeout(1500000)]
         public void InvalidHeightCannotGenerateGuaranteedWorld(float height)
         {
             var config = new TerrainGenerationConfig { terrainHeight = height, gridSizeX = 1, gridSizeZ = 1 };
@@ -109,7 +103,6 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         }
 
         [Test]
-        [Timeout(1500000)]
         public void DispatchPreservesLegacyGenerator()
         {
             Assert.That(MapGenerationAlgorithmTable.Resolve(Generation.AlgorithmConst.VanillaGenerator,

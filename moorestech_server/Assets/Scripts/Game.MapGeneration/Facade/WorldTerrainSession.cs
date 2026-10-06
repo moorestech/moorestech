@@ -29,17 +29,15 @@ namespace Game.MapGeneration.Facade
             if (terrainMeta is not GeneratedTerrainTransferMeta generatedMeta)
                 return new AuthoredTerrainSession(WorldTerrainLayout.CreateTerrainAsset());
 
-            // 転送メタは別ビルドのサーバーからも届く。転送ファイル構成の版が違えばこの先の読み出しが全部ずれるので冒頭で止める
-            // The meta can arrive from a server on another build; a differing transfer-layout version skews every read below, so stop at the head
             var generatedPayload = generatedMeta.GeneratedPayload;
 
             // 生成マスタ（JSON原文＋配置ノイズPNG）がワールド作成時と違えば台帳がサーバー正本とずれる。版・解像度と同じく例外で止める
             // If the generation master (JSON text + placement-noise PNGs) differs from world creation, the ledger drifts from the server's truth; fail as for version and resolution
             generatedPayload.ThrowIfGenerationMasterDiffers(serverDataDirectory);
 
-            // サーバーの唯一の入口と同じconfig組立を通す。手で組み直さない
+            // 保存版の検査もサーバーと同じconfig組立で行う
             // ただしスポーン探索だけは再計算せず、ワールド作成時に確定した原点を注入して同じ窓を指させる
-            // Go through the very config assembly of the server's single entry; never hand-assemble
+            // Validate the saved revision through the same config assembly as the server
             // The spawn search alone is not recomputed: the origins settled at world creation are injected so the same window is addressed
             var selectedGeneration = MasterHolder.GenerationMaster.SelectedGeneration;
             var config = MapGenerationPipeline.BuildConfigWithSettledOrigins(

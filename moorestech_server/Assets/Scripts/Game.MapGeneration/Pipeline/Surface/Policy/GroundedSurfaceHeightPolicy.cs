@@ -23,5 +23,10 @@ namespace Game.MapGeneration.Pipeline.Surface
         {
             return FinalSurfaceProjector.Apply(heights, config, scene, _land.Resolve(), ledger.GroundingPads, _envelope);
         }
+        internal override void CopyBoundary(float[,] heights, Vector3 scene, PlacementLedger ledger,
+            SurfaceDisplayBoundaryOwner owner)
+        {
+            owner.CopyTo(heights, scene, ledger, _land.Resolve(), _envelope, true);
+        }
     }
 }

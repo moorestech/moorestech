@@ -7,6 +7,7 @@ namespace Client.Game.InGame.Environment.Terrain
     public sealed class GeneratedOceanSurface : MonoBehaviour
     {
         [SerializeField] private Renderer[] waterRenderers;
+        private readonly System.Collections.Generic.Dictionary<Renderer, Material[]> _ownedMaterials = new();
         private const string WaveHeightProperty = "_WavesHeight";
 
         public void Initialize(SurfaceEnvelope envelope)
@@ -22,10 +23,10 @@ namespace Client.Game.InGame.Environment.Terrain
             var distinctRenderers = new System.Collections.Generic.HashSet<Renderer>();
             foreach (var renderer in waterRenderers)
             {
-                if (!distinctRenderers.Add(renderer))
-                    throw Failure("[GeneratedOceanSurface] Water renderer references must be distinct.");
                 if (renderer == null)
                     throw Failure("[GeneratedOceanSurface] A water renderer reference is missing.");
+                if (!distinctRenderers.Add(renderer))
+                    throw Failure("[GeneratedOceanSurface] Water renderer references must be distinct.");
                 ValidatePlane(renderer);
                 if (renderer.sharedMaterials.Length == 0)
                     throw Failure($"[GeneratedOceanSurface] No water material on {renderer.name}.");
@@ -43,14 +44,17 @@ namespace Client.Game.InGame.Environment.Terrain
                 var position = renderer.transform.position;
                 position.y = envelope.SeaY;
                 renderer.transform.position = position;
-                var materials = renderer.sharedMaterials;
-                for (var index = 0; index < materials.Length; index++)
+                // 再初期化でも既に所有する描画材質を再利用する
+                // Reuse owned presentation materials when initialized again
+                if (!_ownedMaterials.TryGetValue(renderer, out var materials))
                 {
-                    // Editorでも暗黙の複製を使わず描画専用の実体を割り当てる
-                    // Assign explicit presentation instances without implicit Editor material instantiation
-                    materials[index] = new Material(materials[index]);
-                    materials[index].SetFloat(WaveHeightProperty, envelope.MaximumWaveRise);
+                    materials = renderer.sharedMaterials;
+                    for (var index = 0; index < materials.Length; index++)
+                        materials[index] = new Material(materials[index]);
+                    _ownedMaterials.Add(renderer, materials);
                 }
+                foreach (var material in materials)
+                    material.SetFloat(WaveHeightProperty, envelope.MaximumWaveRise);
                 renderer.sharedMaterials = materials;
             }
         }

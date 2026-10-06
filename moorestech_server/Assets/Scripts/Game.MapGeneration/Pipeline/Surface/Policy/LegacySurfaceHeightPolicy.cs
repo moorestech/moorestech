@@ -14,5 +14,11 @@ namespace Game.MapGeneration.Pipeline.Surface
         {
             return heights;
         }
+        internal override void CopyBoundary(float[,] heights, Vector3 scene, PlacementLedger ledger,
+            SurfaceDisplayBoundaryOwner owner)
+        {
+            // 旧表示経路では所有境界を評価しない
+            // Do not evaluate owned boundaries on the legacy presentation path
+        }
     }
 }

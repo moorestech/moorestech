@@ -29,7 +29,6 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         [TestCase(1994.5435791015625f)]
         [TestCase(600f)]
         [TestCase(5f)]
-        [Timeout(1500000)]
         public void SerializedFloorRetainsTheDoubleEnvelope(float height)
         {
             var envelope = SurfaceEnvelope.GeneratedV5;
@@ -47,7 +46,6 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         [TestCase(600f, 120)]
         [TestCase(600f, 599)]
         [TestCase(600f, 600)]
-        [Timeout(1500000)]
         public void SerializedPadRetainsTheMiningGap(float height, int bottom)
         {
             float pad = SurfaceQuantization.PadHeight(bottom, new TerrainGenerationConfig { terrainHeight = height }, "fixture");
@@ -58,7 +56,6 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         }
 
         [Test]
-        [Timeout(1500000)]
         public void FractionalNoiseOriginUsesTheActualIntegerVeinShift()
         {
             var geometry = new SurfaceLattice(Vector2.zero, Vector2.one * 0.25f, 81, 81);
@@ -71,7 +68,6 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         }
 
         [Test]
-        [Timeout(1500000)]
         public void EveryStorageStepSurvivesProductionR16AndTerrainData()
         {
             const int resolution = 257;
@@ -97,7 +93,6 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
 
         [TestCase(1025, 0.03128242492675781f)]
         [TestCase(32111, 0.9800097346305847f)]
-        [Timeout(1500000)]
         public void StorageReadbackMatchesObservedFloatReciprocal(int units, float observed)
         {
             // 初回失敗の実Unity値を丸め許容なしで固定する

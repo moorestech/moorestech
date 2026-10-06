@@ -35,12 +35,5 @@ namespace Game.MapGeneration.Transfer
                 MasterHolder.GenerationMaster.SourceJsonText, MasterHolder.GenerationMaster.SelectedGeneration, serverDataDirectory);
         }
 
-        // 保存版を再現できる場合だけ転送地形を受け入れる
-        // Accept transferred terrain only when the saved revision can be reproduced
-        public static void ThrowIfGeneratorVersionUnsupported(
-            this GeneratedTerrainTransferPayload generatedPayload, string worldId)
-        {
-            WorldGeneratorVersion.ThrowIfUnsupported(generatedPayload.GeneratorVersion, worldId);
-        }
     }
 }

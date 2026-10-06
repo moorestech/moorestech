@@ -44,7 +44,11 @@ namespace Client.Tests.Map.Surface
 
             // 元assetの波高を変更せず各インスタンスへ同じ包絡を適用する
             // Apply the same envelope to every instance without changing the source asset wave height
-            CreateSurface(renderers).Initialize(SurfaceEnvelope.GeneratedV5);
+            var surface = CreateSurface(renderers);
+            surface.Initialize(SurfaceEnvelope.GeneratedV5);
+            var firstMaterials = renderers[0].sharedMaterials;
+            surface.Initialize(SurfaceEnvelope.GeneratedV5);
+            CollectionAssert.AreEqual(firstMaterials, renderers[0].sharedMaterials);
             foreach (var renderer in renderers)
             {
                 Assert.That(renderer.transform.position.y, Is.EqualTo(SurfaceEnvelope.GeneratedV5.SeaY));
@@ -64,6 +68,14 @@ namespace Client.Tests.Map.Surface
         {
             LogAssert.Expect(LogType.Error, new Regex("At least one water renderer"));
             Assert.Throws<InvalidOperationException>(() => CreateSurface(Array.Empty<Renderer>()).Initialize(SurfaceEnvelope.GeneratedV5));
+        }
+
+        [Test]
+        public void MissingReferencesAreReportedBeforeDuplicateDetection()
+        {
+            LogAssert.Expect(LogType.Error, new Regex("A water renderer reference is missing"));
+            Assert.Throws<InvalidOperationException>(() =>
+                CreateSurface(new Renderer[] { null, null }).Initialize(SurfaceEnvelope.GeneratedV5));
         }
 
         private GeneratedOceanSurface CreateSurface(Renderer[] renderers)

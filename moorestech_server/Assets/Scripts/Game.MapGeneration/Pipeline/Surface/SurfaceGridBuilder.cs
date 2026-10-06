@@ -5,16 +5,11 @@ using Game.MapGeneration.Transfer;
 
 namespace Game.MapGeneration.Pipeline.Surface
 {
-    public static class SurfaceGridBuilder
+    internal static class SurfaceGridBuilder
     {
-        public static SurfaceTileGrid Build(TerrainGenerationConfig config)
+        internal static SurfaceTileGrid Build(TerrainGenerationConfig config)
         {
             SurfaceGenerationValidation.Validate(config, SurfaceEnvelope.GeneratedV5);
-            return BuildValidated(config);
-        }
-
-        internal static SurfaceTileGrid BuildValidated(TerrainGenerationConfig config)
-        {
             var origins = MapGenerationPipeline.ResolveOrigins(config);
             var output = new MapGenerationOutput
             {

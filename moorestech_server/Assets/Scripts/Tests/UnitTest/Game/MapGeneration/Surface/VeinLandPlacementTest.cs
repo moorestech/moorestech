@@ -38,7 +38,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         {
             var constraint = Land(false);
             LogAssert.Expect(LogType.Warning, new Regex("seed=196.*coast=[1-9][0-9]*"));
-            var veins = Generate(fluid, constraint);
+            var veins = Generate(fluid, constraint, false);
             Assert.That(veins, Is.Empty);
         }
 
@@ -49,16 +49,28 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             // 最初の候補を落として、同じ既存ループの後続候補が通ることを調べる
             // Reject the first candidate and exercise acceptance of later candidates in the same existing loop
             var constraint = new FirstCandidateRejectedConstraint();
-            var veins = Generate(fluid, constraint);
+            var veins = Generate(fluid, constraint, false);
             Assert.That(constraint.Calls, Is.GreaterThan(1));
             Assert.That(veins.Count, Is.GreaterThan(0));
             foreach (var vein in veins)
                 Assert.That(vein.Min, Is.Not.EqualTo(constraint.Rejected.Min));
         }
 
-        private static List<PlacedVein> Generate(bool fluid, IVeinLandConstraint constraint)
+        [TestCase(false)]
+        [TestCase(true)]
+        public void OrdinarySlopeRejectionDoesNotWarnAboutFailedEligibleCenters(bool fluid)
+        {
+            var veins = Generate(fluid, Land(true), true);
+            Assert.That(veins, Is.Empty);
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        private static List<PlacedVein> Generate(bool fluid, IVeinLandConstraint constraint, bool rejectSlope)
         {
             var entry = VeinClusterTestFixtures.CreateEntry(VeinGuid);
+            entry.useSlopeFilter = rejectSlope;
+            entry.slopeMax = 0f;
+            entry.slopeSmoothness = 0f;
             var config = new TerrainGenerationConfig
             {
                 seed = 196, terrainWidth = 250f, terrainLength = 250f, terrainHeight = 100f,
@@ -71,14 +83,17 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
             };
             var mask = new bool[65, 65];
             for (int z = 0; z < 65; z++)
-            for (int x = 0; x < 65; x++) mask[z, x] = true;
+            for (int x = 0; x < 65; x++) mask[z, x] = !rejectSlope || (x > 0 && z > 0 && x < 64 && z < 64);
             var halo = new PlacementHaloStore(20f);
             var tile = new TilePlacementContext(0, 0, halo);
+            var heights = new float[65, 65];
+            for (int z = 0; z < 65; z++)
+            for (int x = 0; x < 65; x++) heights[z, x] = rejectSlope ? x / 64f : 0f;
             var masks = new[] { mask };
             var biomes = new[] { BiomeType.Grassland };
             return fluid
-                ? FluidVeinPlacementStage.Generate(config, masks, biomes, new float[65, 65], new List<PlacementEntry>(), null, tile, constraint)
-                : OrePlacementStage.Generate(config, masks, biomes, new float[65, 65], new List<PlacementEntry>(), null, tile, constraint);
+                ? FluidVeinPlacementStage.Generate(config, masks, biomes, heights, new List<PlacementEntry>(), null, tile, constraint)
+                : OrePlacementStage.Generate(config, masks, biomes, heights, new List<PlacementEntry>(), null, tile, constraint);
         }
 
         private static GroundedVeinLandConstraint Land(bool land)

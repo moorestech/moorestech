@@ -43,8 +43,8 @@ namespace Game.MapGeneration.Pipeline.Surface
             destination.seaTextureFactor[index] = _seaTexture;
             destination.plateauMask[index] = _plateau;
             destination.winnerBiomeIndex[index] = _winner;
-            // regionLabelsは窓内IDなので共有せず、各窓の対応表と対で保持する
-            // Keep window-local region labels paired with their own window's region table
+            // regionLabelsは上流の窓内IDで、配置は共有済み重みから勝者を再構築する
+            // Region labels belong to upstream windows; placement rebuilds winners from shared weights
             for (int biome = 0; biome < _biomeWeights.Length; biome++)
                 destination.biomeWeights[index * _biomeWeights.Length + biome] = _biomeWeights[biome];
         }

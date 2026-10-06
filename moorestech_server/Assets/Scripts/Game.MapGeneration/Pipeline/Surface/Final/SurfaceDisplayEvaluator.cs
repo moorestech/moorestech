@@ -23,6 +23,8 @@ namespace Game.MapGeneration.Pipeline.Surface
             gridConfig.worldOffsetX = output.NoiseOrigin.x;
             gridConfig.worldOffsetZ = output.NoiseOrigin.y;
 
+            var boundaries = new SurfaceDisplayBoundaryOwner(source.Config, new GeneratedSurfaceDisplayHeightSource(source));
+
             // 保存r16の読み戻しと同じ入力を木加工へ渡す
             // Feed tree processing the same inputs as the saved r16 reload
             foreach (var tile in source.Output.Tiles)
@@ -41,6 +43,8 @@ namespace Game.MapGeneration.Pipeline.Surface
                 var post = TreePerturbationApplier.Apply(pre, tileConfig, position, ledger.Placements);
                 if (projectFinal)
                     post = FinalSurfaceProjector.Apply(post, tileConfig, position, source.Land, ledger.GroundingPads, envelope);
+
+                boundaries.CopyTo(post, position, ledger, source.Land, envelope, projectFinal);
 
                 // 返却場は独立コピーで、保存用pre-treeへ書き戻さない
                 // Evaluate Unity storage in independent fields without modifying saved pre-tree heights

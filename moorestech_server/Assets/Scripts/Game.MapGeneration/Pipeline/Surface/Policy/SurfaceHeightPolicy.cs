@@ -12,5 +12,7 @@ namespace Game.MapGeneration.Pipeline.Surface
         public abstract float[,] Apply(float[,] heights, TerrainGenerationConfig config,
             Vector3 scene, PlacementLedger ledger);
 
+        internal abstract void CopyBoundary(float[,] heights, Vector3 scene, PlacementLedger ledger,
+            SurfaceDisplayBoundaryOwner owner);
     }
 }

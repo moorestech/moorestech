@@ -75,7 +75,7 @@ Surfaceの生成処理は既存output/ledgerへの**書き手**、クライア�
 | MapGenerationAlgorithmTable.Resolve(string,WorldSurfaceRevision) / GenerationOriginResolver / SpawnSurfaceSampler | Game.MapGeneration | 既存dispatchとVanillaGenerator内のspawn処理をその役割のまま抽出。別の選択表を作らない |
 | GroundedVanillaGenerator.Generate(TerrainGenerationConfig) | Game.MapGeneration Pipeline | VanillaGeneratorと同じIMapGenerator。revision 5専用、共通stage利用 |
 | IVeinLandConstraint.Accept(PlacedVein) / UnrestrictedVeinLandConstraint / GroundedVeinLandConstraint | Game.MapGeneration Pipeline.Surface.Placement | OreEntryPlacerの候補判定へ組込む入力制約。boolはgenerator内部の既存候補loopに閉じる |
-| VeinGroundingPad / VeinGroundingPlanner.Build / GroundingPlan.Apply | Game.MapGeneration Pipeline.Surface.Grading | 配置確定後の書き手。AABBとledgerの同時更新を内部で完結 |
+| VeinGroundingPad / VeinGroundingPlanner.Build / GroundingPlan.Apply | Game.MapGeneration Pipeline.Surface.Grading | 配置確定後の書き手。AABBのYを更新し、ledgerへ整地padだけを追加 |
 | SurfacePlacementBindings / PlacementLedger.WithScenePositions(IReadOnlyList<Vector3>) | Game.MapGeneration Pipeline | 配置stage内部のindex対応。更新は新ledgerを返す。ScenePosition以外とpadを引継ぐ |
 | PlacementLedger.GroundingPads / AddGroundingPad(VeinGroundingPad) | Game.MapGeneration Pipeline.Visual.Placement | 既存ledgerとdigestでpass-1→2を渡す。クライアント独自採掘位置を作らない |
 | FinalSurfaceProjector.Apply / SurfaceObjectReanchor.Apply | Game.MapGeneration Pipeline.Surface | TreePerturbationApplierの後段。旧経路は変更しない |
@@ -121,7 +121,7 @@ Surfaceの生成処理は既存output/ledgerへの**書き手**、クライア�
 **Interfaces:**
 - Consumes: 既存 `WorldGeneratorVersion.Current`, `BuildConfigWithSettledOrigins(Generation,int,string,TerrainOrigins)`。
 - Produces: `WorldGeneratorVersion.ThrowIfSupported(string generatorVersion,string worldId)`、`TerrainGenerationConfig.SurfaceRevision`（WorldSurfaceRevision必須入力）、`BuildConfigWithSettledOrigins(Generation,int,string,TerrainOrigins,string generatorVersion)`。
-- Produces: `WorldSurfaceRevision` enum（Legacy4,Grounded5）、`WorldGeneratorVersion.Resolve(string generatorVersion,string worldId):WorldSurfaceRevision`、`ToWire(WorldSurfaceRevision):string`、`Supports(string):bool`。外部文字列はResolveで一度解決し内部で文字列判定を繰返さない。
+- Produces: `WorldSurfaceRevision` enum（Legacy4,Grounded5）、`WorldGeneratorVersion.Resolve(string generatorVersion,string worldId):WorldSurfaceRevision`、`Supports(string):bool`。外部文字列はResolveで一度解決し内部で文字列判定を繰返さない。
 - Produces: `TerrainSurfacePresentation` abstract class、nested sealed `Existing` と `Grounded`。Groundedのreadonly `SurfaceEnvelope Envelope` はconstructor必須。`SurfaceEnvelope.GeneratedV5` は上記定数のreadonly値。
 
 - [ ] **生成コード変更前に**土台6ba0bb520・本番pinマスタ・seed196からv4比較基準を採取する。全9枚のr16 SHA256、item/fluid全AABBのGUID/Min/Max、ledger digest、spawn/原点、実露頭のroot位置をlegacy-v4-seed196.jsonへ保存する。生成コミットとmaster commit/fingerprintを同梱し、将来のテスト実行時には更新しない。既存調査ファイルは測定結果であり、このgolden一式はまだ含んでいない。
@@ -188,7 +188,7 @@ public void UnknownRevisionCannotRegenerateAsCurrent()
 - Produces: `SurfaceTileGrid` ctor `(MapGenerationOutput output, bool[][] tileLandMasks, TerrainGenerationConfig config)`。readonly `Output`, `Land`, `Config`、`SampleHeight(Vector2):float`、`ApplyLandFloor(SurfaceEnvelope):void`。座標変換とtile共有頂点書込みを内包。
 - Produces: `LandCellField.ContainsSupport(Rect sceneFootprint):bool`、`LandCellField.IsProtectedVertex(int globalX,int globalZ):bool`。これらは内部stage専用。
 - Produces: `SurfaceGridBuilder.Build(TerrainGenerationConfig):SurfaceTileGrid`、`GroundedVanillaGenerator.Generate(TerrainGenerationConfig):GenerationRun`。
-- Produces: `MapGenerationAlgorithmTable.Resolve(string algorithm,WorldSurfaceRevision revision):IMapGenerator`（既存Resolveの必須引数拡張）。未知algorithm/versionは例外。5だけGroundedVanillaGenerator、4はVanillaGenerator。ToWireもLegacy4/Grounded5の網羅switchで、未知enum数値は例外。
+- Produces: `MapGenerationAlgorithmTable.Resolve(string algorithm,WorldSurfaceRevision revision):IMapGenerator`（既存Resolveの必須引数拡張）。未知algorithm/versionは例外。5だけGroundedVanillaGenerator、4はVanillaGenerator。wire文字列はWorldGeneratorVersion.Resolveで検証し、revision別生成器・高さ・表示policyはMapGenerationAlgorithmTable.ResolveSurfaceの単一対応表で解決する。
 - Produces: `GenerationOriginResolver.RunSpawnSearch(TerrainGenerationConfig,BiomeType[]):void`、`ComputeSceneSpawnXz(TerrainGenerationConfig,Vector2):Vector2` と `SpawnSurfaceSampler.ComputeLegacy(TerrainGenerationConfig,float[],Vector2):Vector3`。VanillaGeneratorの同名private処理を内容不変で移設し、4からも呼ぶ。5のspawnはTask5の最終高さで決める。
 
 - [ ] 全タイルを先にPaddedWindowStageで生成しheightsとlandMaskだけを保持。共有vertex indexは `tile*(resolution-1)+local`。重複頂点は一致を検査し、ownerはtileZ→tileXの最小側。globalサンプルを隣tileへclampしない。Spawn探索とorigins確定を一度だけ実行し、GenerationOriginResolver/SpawnSurfaceSamplerへ同役割メソッドを抽出して4/5で共有する（処理・乱数順は変えない）。その後配置用buffersを各tileで再生成し、heightにはfloor済み配列を使う。
@@ -293,13 +293,13 @@ public void LegacyConstraintDoesNotChangeCandidateAcceptance()
 
 **Interfaces:**
 - Consumes: `SurfaceTileGrid`, `MapGenerationOutput.ItemVeins/FluidVeins`, `PlacementLedger`。
-- Produces: `VeinGroundingPlanner.Build(SurfaceTileGrid grid, SurfacePlacementBindings bindings, SurfaceEnvelope envelope):GroundingPlan`、`GroundingPlan.Apply(MapGenerationOutput output, PlacementLedger ledger):PlacementLedger`。
+- Produces: `VeinGroundingPlanner.Build(SurfaceTileGrid grid, SurfaceEnvelope envelope):GroundingPlan`、`GroundingPlan.Apply(MapGenerationOutput output, PlacementLedger ledger):PlacementLedger`。
 - Produces: `GroundingHeightProjector.Apply(float[,] heights, Vector2 tileScene, Vector2 spacing, float terrainHeight, IReadOnlyList<VeinGroundingPad> pads):float[,]`。
 - Produces: `PlacementLedger.GroundingPads:IReadOnlyList<VeinGroundingPad>` と `AddGroundingPad(VeinGroundingPad):void`。ledger内部で所有、可変Listを公開しない。
-- Produces: `SurfacePlacementBindings` はitem/fluid/mapObjectごとの `(int OutputIndex,int LedgerIndex)` をprivate保持し、`AddItemVein(int,int)`、`AddFluidVein(int,int)`、`AddMapObject(int,int)`で配置append時に結ぶ。`ApplyVeinPositions(MapGenerationOutput,PlacementLedger):PlacementLedger` と `ApplyMapObjectPositions(MapGenerationOutput,PlacementLedger):PlacementLedger` が対応するledgerのYだけを変えた新ledgerを返す。負indexや重複登録はログ付き例外。候補採用前には登録しない。
+- Produces: `SurfacePlacementBindings` はmapObjectだけの `(int OutputIndex,int LedgerIndex)` をprivate保持し、`AddMapObject(int,int)`でappend時に結ぶ。`ApplyMapObjectPositions(MapGenerationOutput,PlacementLedger):PlacementLedger` が対応するmapObjectのYだけを変えた新ledgerを返す。鉱脈は旧版と同様にledger行を持たず、GroundingPlan.ApplyはAABBの移動とGroundingPadsの追加だけを行う。
 - Produces: `PlacementLedger.WithScenePositions(IReadOnlyList<Vector3> positions):PlacementLedger` は件数・finite値を検査し、同じguid/scale/surround/cluster/padsで新しいledgerを作る。`GroundingPlan.Apply`と再接地は返すledgerをGenerationRunへ渡し、元ledgerを書換えない。
 
-- [ ] 全item/fluidを一緒にcore支持頂点の交差で成分化する。成分共通Bを前述の式で決め、元のMinY〜MaxYの厚さを保ち、出力AABBと対応ledgerのYを同じoperationで更新する。対応はTilePlacementRunnerの出力appendとledger.Addの同時点でSurfacePlacementBindingsへstable indexを記録する。旧版でも記録は可能だが消費せず、生成値や乱数には触れない。float近傍検索やGUIDだけの辞書で当てない（noise→sceneの整数丸めにより両者のXZは一致しない）。移動後AABBが新たに重なる候補（元はYだけで離れていたもの）は生成時のv5候補排他をXZ矩形の重なりで防ぐ。旧版は既存3D判定を維持する。
+- [ ] 全item/fluidを一緒にcore支持頂点の交差で成分化する。成分共通Bを前述の式で決め、元のMinY〜MaxYの厚さを保ち、出力AABBのYを移動しledgerには整地padのみ追加する。鉱脈行と鉱脈用bindingsは作らない（I2の既定に追随）。SurfacePlacementBindingsは木・mapObjectの再接地だけで使う。移動後AABBが新たに重なる候補（元はYだけで離れていたもの）は生成時のv5候補排他をXZ矩形の重なりで防ぐ。旧版は既存3D判定を維持する。
 
 ```csharp
 int bottom = Mathf.Clamp(Mathf.CeilToInt(maximumCoreHeight), minimumBottom, maximumBottom);
@@ -503,3 +503,9 @@ Phase2.6 第3バケツ1件・3箇所: (1) Export/TerrainFileWriter.csとCache/Te
 - 維持（agent前提）: Existing/Groundedの表示switchは露頭・海の各責務に置く。FacadeへUnity表示の振る舞いを逆流させない。nullableへ二重表現しない。
 - 維持（agent前提・ユーザー裁定ではない）: 描画海面は今回SurfaceEnvelopeで固定契約とする。生成マスタへ新しい調整機能を追加する要求はなく、既存worldのfingerprintと地形を維持する。既存の分類seaLevelと描画海面は別概念。将来のマスタ化案を今回の重要な質問としてユーザーへ戻さない。実表示を契約値で設定して入力検証する。
 - 見なかった領域: simulatorは整地の数学的証明、shader変位の実行検証をしていない。Task2/4/6/7の責務として明記し、計画作成時点で合格扱いしない。
+
+### ラウンド3の実装整合注記
+
+- 境界表示は固定所有タイルの保存r16入力から木加工→floor→pad→量子化まで評価し、その結果を隣接タイルへコピーする。TileVisualBakerは所有タイルの高さファイルを直接読み、呼出順・cache hit/missに依存しない。キャッシュするのは境界値のみ。
+- envelopeはGeneratedV5が唯一の定義。生成器と高さpolicyがそれぞれ同じ定義を取得する。生成器からstrategyへ同じインスタンスを運ぶ実装ではない。
+- regionLabelsは上流の窓内分類IDである。配置はowner共有済みのbiomeWeights/shoreMask/beachFactorから勝者マスクを作り直すため、regionの対応表を参照しない。

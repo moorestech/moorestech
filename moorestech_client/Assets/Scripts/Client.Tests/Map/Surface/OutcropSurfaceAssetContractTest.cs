@@ -70,7 +70,8 @@ namespace Client.Tests.Map.Surface
                 var minimumY = float.PositiveInfinity;
                 foreach (var filter in instance.GetComponentsInChildren<MeshFilter>())
                 {
-                    if (!filter.GetComponent<Renderer>().enabled) continue;
+                    var renderer = filter.GetComponent<Renderer>();
+                    if (renderer == null || !renderer.enabled) continue;
                     Assert.That(filter.sharedMesh, Is.Not.Null, element.OutcropAddressablePath);
                     foreach (var vertex in filter.sharedMesh.vertices)
                         minimumY = Mathf.Min(minimumY, filter.transform.TransformPoint(vertex).y);

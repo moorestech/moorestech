@@ -82,9 +82,13 @@ namespace Game.MapGeneration.Pipeline.Visual
 
             // 台帳の指紋はワールド作成時に確定して転送メタが運ぶ。鍵のためだけにpass-1を回さない
             // The ledger digest is settled at world creation and carried by the transfer meta, so the key alone never triggers a pass-1
+            // 所有境界導入前のv5キャッシュは再構築し、v4の鍵は維持する
+            // Rebuild pre-ownership v5 caches while preserving the v4 key
+            var visualVersion = generatedPayload.GeneratorVersion +
+                MapGenerationAlgorithmTable.ResolveSurface(config.surfaceRevision).VisualCacheVersionSuffix;
             var cacheKey = TerrainVisualCacheKey.Compute(
                 generatedPayload.GenerationMasterFingerprint, config.seed, generatedPayload.Origins,
-                terrainMeta.TerrainResolution, generatedPayload.GeneratorVersion, generatedPayload.PlacementLedgerDigest);
+                terrainMeta.TerrainResolution, visualVersion, generatedPayload.PlacementLedgerDigest);
             var baker = new TileVisualBaker(gridConfig, biomeTypes, visualSections, layerTable, treeSurroundSpecies, ledgerSource,
                 generatedPayload.PlacementLedgerDigest, heightSource, new TerrainVisualCache(SharedCacheOf(terrainMeta), cacheKey));
 

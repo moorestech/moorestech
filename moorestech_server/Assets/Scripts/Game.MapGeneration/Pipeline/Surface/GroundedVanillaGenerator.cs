@@ -25,7 +25,7 @@ namespace Game.MapGeneration.Pipeline.Surface
 
             // 配置の前に全域の陸地と海面下限を確定する
             // Settle world-wide land classification and the sea floor before placement
-            var grid = SurfaceGridBuilder.BuildValidated(config);
+            var grid = SurfaceGridBuilder.Build(config);
             grid.ApplyLandFloor(envelope);
             var ledger = new PlacementLedger();
             var bindings = new SurfacePlacementBindings();

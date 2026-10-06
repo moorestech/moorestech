@@ -16,5 +16,12 @@ namespace Game.MapGeneration.Pipeline.Surface
             post = policy.Apply(post, config, tileScene, ledger);
             return (pre, post);
         }
+        internal static (float[,] Pre, float[,] Post) Build(float[,] pre, TerrainGenerationConfig config,
+            Vector3 tileScene, PlacementLedger ledger, SurfaceHeightPolicy policy, SurfaceDisplayBoundaryOwner owner)
+        {
+            var pair = Build(pre, config, tileScene, ledger, policy);
+            policy.CopyBoundary(pair.Post, tileScene, ledger, owner);
+            return pair;
+        }
     }
 }

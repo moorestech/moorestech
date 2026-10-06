@@ -15,7 +15,6 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
     {
         [TestCase(-12f)]
         [TestCase(12f)]
-        [Timeout(1500000)]
         public void TreeDisplacementCannotBreakLandFloorOrCore(float displacement)
         {
             var grid = SurfaceGridFixture.Create(1, 33, 32f, 32f, true);
@@ -40,7 +39,6 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
         }
 
         [Test]
-        [Timeout(1500000)]
         public void ReanchorRetainsSinkRotationAndDoesNotShiftVeins()
         {
             var before = SurfaceGridFixture.Create(1, 17, 32f, 32f, true);
@@ -70,7 +68,6 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface
 
         [TestCase(-8f)]
         [TestCase(8f)]
-        [Timeout(1500000)]
         public void TreeHeightProcessingIgnoresPlacementY(float amount)
         {
             var config = new TerrainGenerationConfig { overrideResolution = 33, terrainWidth = 32f, terrainLength = 32f };
