@@ -78,9 +78,17 @@ namespace Client.Tests.EditModeInPlayingTest
             // Record the observation without asserting; throwing inside Play would skip the restore after Play
             async UniTask Body()
             {
-                var deadline = Time.realtimeSinceStartup + ReachMainGameTimeoutSeconds;
+                var startedAt = Time.realtimeSinceStartup;
+                var deadline = startedAt + ReachMainGameTimeoutSeconds;
+                var previousFrameAt = startedAt;
+                var longestFrameSeconds = 0f;
+                Debug.Log($"[EventModeAutoStartBootTest] observation started realtime:{startedAt:F1}s frame:{Time.frameCount}");
                 while (Time.realtimeSinceStartup < deadline)
                 {
+                    // 同期起動でフレームが止まった時間も残し、通信待ちと区別する
+                    // Record synchronous boot frame stalls to distinguish them from network waits
+                    longestFrameSeconds = Mathf.Max(longestFrameSeconds, Time.realtimeSinceStartup - previousFrameAt);
+                    previousFrameAt = Time.realtimeSinceStartup;
                     var activeSceneName = SceneManager.GetActiveScene().name;
                     if (activeSceneName == SceneConstant.MainGameSceneName)
                     {
@@ -89,6 +97,7 @@ namespace Client.Tests.EditModeInPlayingTest
                         var worldDirectory = GameSystemPaths.DefaultWorldDirectory;
                         var usedTemporaryWorld = worldDirectory == EventModeAutoStartBootEnvironment.TemporaryWorldDirectory && Directory.Exists(worldDirectory);
                         SessionState.SetString(OutcomeKey, usedTemporaryWorld ? ReachedMainGame : $"reached MainGame but the world was not created in the temporary directory (default world: {worldDirectory})");
+                        Debug.Log($"[EventModeAutoStartBootTest] reached MainGame elapsed:{Time.realtimeSinceStartup - startedAt:F1}s longestFrame:{longestFrameSeconds:F1}s");
                         return;
                     }
 
@@ -104,7 +113,10 @@ namespace Client.Tests.EditModeInPlayingTest
                     }
                     await UniTask.Yield();
                 }
-                SessionState.SetString(OutcomeKey, $"neither MainGame nor a return to MainMenu within {ReachMainGameTimeoutSeconds}s (active scene: {SceneManager.GetActiveScene().name})");
+                longestFrameSeconds = Mathf.Max(longestFrameSeconds, Time.realtimeSinceStartup - previousFrameAt);
+                var timeoutOutcome = $"neither MainGame nor a return to MainMenu within {ReachMainGameTimeoutSeconds}s (active scene: {SceneManager.GetActiveScene().name}; elapsed:{Time.realtimeSinceStartup - startedAt:F1}s longestFrame:{longestFrameSeconds:F1}s timeScale:{Time.timeScale})";
+                Debug.LogWarning($"[EventModeAutoStartBootTest] {timeoutOutcome}");
+                SessionState.SetString(OutcomeKey, timeoutOutcome);
             }
 
             #endregion
