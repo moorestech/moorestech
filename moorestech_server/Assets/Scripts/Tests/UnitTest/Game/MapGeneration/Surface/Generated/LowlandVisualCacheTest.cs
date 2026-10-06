@@ -16,6 +16,7 @@ using Game.MapGeneration.Pipeline.Visual.Surround;
 using Game.MapGeneration.Transfer;
 using Game.Paths;
 using NUnit.Framework;
+using Tests.UnitTest.Game.MapGeneration.Surface.Generated.Helpers;
 using Tests.UnitTest.Game.MapGeneration.Visual.Detail;
 using UnityEngine;
 
@@ -67,8 +68,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface.Generated
             File.Delete(path);
             var miss = CreateBaker(config, ledger).Bake(0, 0);
             Assert.That(File.Exists(path), Is.True);
-            CollectionAssert.AreEqual(first.DisplayHeights, hit.DisplayHeights);
-            CollectionAssert.AreEqual(first.DisplayHeights, miss.DisplayHeights);
+            SurfaceHeightAssert.AreEqual(first.DisplayHeights, hit.DisplayHeights, "lowland reload-hit");
+            SurfaceHeightAssert.AreEqual(first.DisplayHeights, miss.DisplayHeights, "lowland reload-miss");
             for (int z = 0; z < 33; z++)
             for (int x = 0; x < 33; x++)
                 Assert.That(miss.DisplayHeights[z, x] * config.terrainHeight, Is.GreaterThanOrEqualTo(4.9f));

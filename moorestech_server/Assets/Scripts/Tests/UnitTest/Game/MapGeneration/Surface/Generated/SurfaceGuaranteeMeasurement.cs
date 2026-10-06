@@ -48,9 +48,9 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface.Generated
                 result.MinimumLandPosition = final.Geometry.ScenePosition(x, z);
             }
 
-            var veins = fixture.Run.Output.ItemVeins.Concat(fixture.Run.Output.FluidVeins).ToArray();
-            result.Veins = veins.Length;
-            Assert.That(fixture.Run.Ledger.GroundingPads.Count, Is.EqualTo(veins.Length));
+            var veins = fixture.Run.Output.ItemVeins.Concat(fixture.Run.Output.FluidVeins);
+            result.Veins = fixture.Run.Output.ItemVeins.Count + fixture.Run.Output.FluidVeins.Count;
+            Assert.That(fixture.Run.Ledger.GroundingPads.Count, Is.EqualTo(result.Veins));
             foreach (var pad in fixture.Run.Ledger.GroundingPads)
             {
                 var outer = Rect.MinMaxRect(pad.Core.xMin - pad.BlendWidth, pad.Core.yMin - pad.BlendWidth,

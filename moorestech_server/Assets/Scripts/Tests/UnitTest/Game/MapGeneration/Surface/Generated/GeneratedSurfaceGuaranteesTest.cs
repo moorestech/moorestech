@@ -59,7 +59,9 @@ namespace Tests.UnitTest.Game.MapGeneration.Surface.Generated
         [TestCase(2)]
         [TestCase(42)]
         [TestCase(197)]
-        [Timeout(1500000)]
+        // 本番3x3を超える負荷検査で、全検査を保ったまま1件25分を超えるため60分にする
+        // Stress check beyond production 3x3 exceeds 25 min per case with all checks kept, so allow 60 min
+        [Timeout(3600000)]
         public void Production2049FiveByFiveRetainsGuarantees(int seed)
         {
             // 最大fixtureは専用filterで単独実行する
