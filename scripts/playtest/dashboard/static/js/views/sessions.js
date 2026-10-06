@@ -1,7 +1,8 @@
 // 進行: チャレンジ到達ファネルとセッション一覧（テスターで絞り込み可）
 // Progress: challenge reach funnel and session list, filterable by tester
 import { barList } from "../charts.js";
-import { countableSessions, emptyNote, fmtDateTime, fmtMinutes, h, routeHref, section, testerName } from "../core.js";
+import { card, pageHead } from "../components.js";
+import { countableSessions, emptyNote, fmtDateTime, fmtMinutes, h, routeHref, testerName } from "../core.js";
 import { furthestChallenge } from "./testers.js";
 
 export function renderSessions(data, params) {
@@ -11,13 +12,25 @@ export function renderSessions(data, params) {
   const scoped = tester ? data.sessions.filter((s) => s.steamId === tester) : data.sessions;
   const sessions = countableSessions(scoped);
   const excluded = scoped.length - sessions.length;
+  const notes = [excluded > 0 ? `遠隔実行あり/不明の ${excluded}件は集計から除外` : "",
+    data.invalidSessions > 0 ? `⚠ 読めなかった進行記録 ${data.invalidSessions}件` : ""].filter(Boolean).join("・");
   return h("div", { class: "view" },
-    h("div", { class: "filters" }, testerSelect(data.sessions, data.reports, tester),
-      excluded > 0 ? h("span", { class: "muted" }, `遠隔実行あり/不明の ${excluded}件は除外`) : null,
-      data.invalidSessions > 0 ? h("span", { class: "warn" }, `⚠ 読めなかった進行記録 ${data.invalidSessions}件`) : null),
-    section(tester ? "チャレンジ到達（このテスターのセッション数）" : "チャレンジ到達ファネル（到達した人数）",
-      funnel(sessions, data.master, !tester)),
-    section(`セッション（${sessions.length}件）`, sessions.length ? h("div", { class: "table-wrap" }, table(sessions, data.master)) : emptyNote("セッションがありません")));
+    pageHead("進行", notes || "全セッションを集計", testerSelect(data.sessions, data.reports, tester)),
+    h("div", { class: "layout-main-side" },
+      card(tester ? "チャレンジ到達（到達していたセッション数）" : "チャレンジ到達（到達した人数）", null,
+        funnel(sessions, data.master, !tester)),
+      h("div", { class: "side-stack" },
+        card("最後に開いていた画面", null, topCounts(sessions, (s) => s.lastUiState)),
+        card("終了理由", null, topCounts(sessions, (s) => s.endReason)))),
+    card("セッション", { count: sessions.length },
+      sessions.length ? h("div", { class: "table-wrap" }, table(sessions, data.master)) : emptyNote("セッションがありません")));
+}
+
+function topCounts(sessions, keyOf) {
+  if (sessions.length === 0) return emptyNote("セッションがありません");
+  const counts = new Map();
+  for (const s of sessions) counts.set(keyOf(s), (counts.get(keyOf(s)) || 0) + 1);
+  return barList([...counts].sort((a, b) => b[1] - a[1]).slice(0, 6).map(([label, value]) => ({ label, value })), "件");
 }
 
 function testerSelect(sessions, reports, current) {
@@ -25,7 +38,7 @@ function testerSelect(sessions, reports, current) {
   return h("select", {
     "aria-label": "テスター",
     onchange: (event) => { location.hash = routeHref("sessions", [], { tester: event.target.value }); },
-  }, h("option", { value: "" }, "テスターすべて"),
+  }, h("option", { value: "" }, "すべてのテスター"),
   [...testers].map(([id, name]) => h("option", { value: id, selected: id === current }, name)));
 }
 
@@ -42,9 +55,13 @@ function funnel(sessions, master, byTester) {
   if (lastReached < 0) return emptyNote("到達したチャレンジはまだありません");
   // 誰も届いていない奥のチャレンジは1行だけ残し、どこで止まっているかを示す
   // Keep one unreached challenge past the frontier to show where players stall
-  const rows = master.challenges.slice(0, Math.min(master.challenges.length, lastReached + 2)).map((c, i) => ({
-    label: `${i + 1}. ${c.title}`, value: reachers.get(c.guid).size, note: c.category,
-  }));
+  // 直前より減った所に減少数を添え、どこで脱落しているかを一目で分かるようにする
+  // Mark where the count drops versus the previous step, so the drop-off points stand out
+  const rows = master.challenges.slice(0, Math.min(master.challenges.length, lastReached + 2)).map((c, i, list) => {
+    const value = reachers.get(c.guid).size;
+    const previous = i > 0 ? reachers.get(list[i - 1].guid).size : value;
+    return { label: `${i + 1}. ${c.title}`, value, note: c.category, mark: value < previous ? `−${previous - value}` : "" };
+  });
   return barList(rows, byTester ? "人" : "件");
 }
 
@@ -55,7 +72,7 @@ function table(sessions, master) {
     h("tbody", null, sessions.map((s) => {
       const furthest = furthestChallenge(master, s.reachedChallenges);
       return h("tr", null,
-        h("td", null, fmtDateTime(s.sessionStart || s.readyAt)),
+        h("td", { class: "nowrap" }, fmtDateTime(s.sessionStart || s.readyAt)),
         h("td", null, h("a", { href: routeHref("sessions", [], { tester: s.steamId }) }, testerName(s))),
         h("td", { class: "num" }, fmtMinutes(s.playSeconds)),
         h("td", null, `${s.reachedChallenges.length}件`, furthest ? h("div", { class: "muted small" }, furthest.title) : null),

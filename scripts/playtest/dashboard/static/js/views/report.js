@@ -1,25 +1,24 @@
 // 報告詳細: 説明全文・スクショ・動画・ビルド情報・投入コマンド
 // Report detail: full text, screenshot, video, build info and the enqueue command
-import {
-  emptyNote, fmtDateTime, h, kindBadge, linkify, mediaUrl, routeHref, runBadge, runStatusLabel, section, testerName, triageBadge,
-} from "../core.js";
+import { card, kindMark, runStatusLabel, statusText } from "../components.js";
+import { emptyNote, fmtDateTime, h, linkify, mediaUrl, routeHref, testerName } from "../core.js";
 
 const REPO_URL = "https://github.com/moorestech/moorestech";
 
 export function renderReport(data, args) {
   const index = data.reports.findIndex((r) => r.boxSteamId === args[0] && r.boxId === args[1]);
-  if (index < 0) return h("div", { class: "view" }, emptyNote("この報告は見つかりません"), backLink());
+  if (index < 0) return h("div", { class: "view" }, backLink(), emptyNote("この報告は見つかりません"));
   const report = data.reports[index];
   return h("div", { class: "view" },
-    h("div", { class: "detail-nav" }, backLink(),
-      neighbour(data.reports[index - 1], "← 新しい報告"), neighbour(data.reports[index + 1], "古い報告 →")),
+    h("nav", { class: "detail-nav" }, backLink(), h("span", { class: "pager" },
+      neighbour(data.reports[index - 1], "‹ 新しい報告"), neighbour(data.reports[index + 1], "古い報告 ›"))),
     h("header", { class: "detail-head" },
-      h("div", { class: "line-meta" }, kindBadge(report.kind), triageBadge(report), runBadge(report)),
-      h("h1", null, `${fmtDateTime(report.readyAt)}・${testerName(report)}`),
-      h("p", { class: "description" }, linkify((report.description || "").trim() || "（説明文が空）")),
+      h("div", { class: "detail-tags" }, kindMark(report.kind), statusText(report)),
+      h("h1", { class: "detail-title" }, linkify((report.description || "").trim() || "（説明文が空）")),
+      h("p", { class: "detail-meta" }, `${testerName(report)}・${fmtDateTime(report.readyAt)}・${report.buildLabel || "ビルド不明"}`),
       report.problem ? h("p", { class: "warn" }, `⚠ ${report.problem}`) : null),
     enqueueBlock(report),
-    h("div", { class: "grid-2" }, mediaBlock(report), section("情報", infoTable(report))));
+    h("div", { class: "layout-main-side" }, mediaBlock(report), card("詳細", null, infoGroups(report))));
 }
 
 function backLink() {
@@ -27,7 +26,7 @@ function backLink() {
 }
 
 function neighbour(report, label) {
-  return report ? h("a", { href: routeHref("report", [report.boxSteamId, report.boxId]) }, label) : h("span");
+  return report ? h("a", { href: routeHref("report", [report.boxSteamId, report.boxId]) }, label) : h("span", { class: "muted" }, label);
 }
 
 // 投入の判断は人が持つ（ADR 0061）。画面は実行せず、貼れるコマンドを出すだけにする
@@ -35,8 +34,10 @@ function neighbour(report, label) {
 function enqueueBlock(report) {
   if (report.triage !== "candidate") return null;
   const command = `scripts/playtest/enqueue-autofix.sh ${shellQuote(report.boxSteamId)} ${shellQuote(report.boxId)}`;
-  const button = h("button", { type: "button", onclick: () => copy(command, button) }, "コピー");
-  return section("自動修正ランへ投入", h("div", { class: "command" }, h("code", null, command), button));
+  const button = h("button", { type: "button", class: "primary", onclick: () => copy(command, button) }, "コピー");
+  return h("div", { class: "callout" },
+    h("p", null, h("b", null, "未投入"), "　自動修正ランへ回すなら、Mac mini の moorestech で次を実行"),
+    h("div", { class: "command" }, h("code", null, command), button));
 }
 
 function shellQuote(value) {
@@ -61,25 +62,33 @@ function mediaBlock(report) {
   if (items.length === 0) items.push(emptyNote("スクリーンショット・動画はありません（テスターが送信を見送った可能性）"));
   const links = ["logs/unity.log", "manifest.json"].filter((name) => report.media.includes(name))
     .map((name) => h("a", { href: mediaUrl(report, name), target: "_blank", rel: "noopener" }, name));
-  return section("記録", ...items, links.length ? h("p", { class: "file-links" }, links) : null);
+  return card("記録", { action: links.length ? h("span", { class: "file-links" }, links) : null }, h("div", { class: "media-list" }, items));
 }
 
-function infoTable(report) {
-  const rows = [
-    ["テスター", report.profileUrl ? externalLink(report.profileUrl, testerName(report)) : testerName(report)],
-    ["SteamID", report.steamId],
-    ["報告ID", report.id],
-    ["送信", fmtDateTime(report.createdAt || report.readyAt)],
-    ["ビルド", report.buildLabel || "不明"],
-    ["コミット", report.commit ? externalLink(`${REPO_URL}/commit/${report.commit}`, report.commit.slice(0, 10)) : "不明"],
-    ["プラットフォーム", report.platform || "不明"],
-    ["UI状態", report.uiState || "不明"],
-    ["報告時tick", report.reportTick ?? "不明"],
-    ["動画の長さ", report.videoSeconds ? `${report.videoSeconds.toFixed(0)}秒` : "—"],
-    ["遠隔実行", report.remoteExecReason ? `${report.remoteExec}（${report.remoteExecReason}）` : (report.remoteExec || "不明")],
-    ["修正ラン", runCell(report)],
+// 詳細は「誰が・どのビルドで・どんな状態で・どう扱われたか」の4群に分けて並べる
+// Details are grouped as who, which build, what state, and how it was handled
+function infoGroups(report) {
+  const groups = [
+    ["テスター", [
+      ["名前", report.profileUrl ? externalLink(report.profileUrl, testerName(report)) : testerName(report)],
+      ["SteamID", report.steamId]]],
+    ["ビルド", [
+      ["ラベル", report.buildLabel || "不明"],
+      ["コミット", report.commit ? externalLink(`${REPO_URL}/commit/${report.commit}`, report.commit.slice(0, 10)) : "不明"],
+      ["環境", report.platform || "不明"]]],
+    ["報告時の状態", [
+      ["送信", fmtDateTime(report.createdAt || report.readyAt)],
+      ["画面", report.uiState || "不明"],
+      ["tick", report.reportTick ?? "不明"],
+      ["録画", report.videoSeconds ? `${report.videoSeconds.toFixed(0)}秒` : "なし"]]],
+    ["取り扱い", [
+      ["遠隔実行", report.remoteExecReason ? `${report.remoteExec}（${report.remoteExecReason}）` : (report.remoteExec || "不明")],
+      ["修正ラン", runCell(report)],
+      ["報告ID", h("code", null, report.id)]]],
   ];
-  return h("dl", { class: "info" }, rows.map(([label, value]) => [h("dt", null, label), h("dd", null, value)]));
+  return h("div", { class: "info-groups" }, groups.map(([title, rows]) => h("div", { class: "info-group" },
+    h("h3", null, title),
+    h("dl", { class: "info" }, rows.map(([label, value]) => [h("dt", null, label), h("dd", null, value)])))));
 }
 
 function runCell(report) {

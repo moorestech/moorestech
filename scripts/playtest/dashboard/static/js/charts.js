@@ -14,7 +14,7 @@ function svg(tag, attrs) {
 
 // 系列は { key, label, color(CSS変数名) } の固定順。順序は呼び出し側が決め、件数で並べ替えない
 // Series are { key, label, color (CSS var) } in a fixed order; never re-sorted by value
-export function stackedDayChart(days, series, valueOf, unit) {
+export function stackedDayChart(days, series, valueOf, unit, height) {
   const wrap = h("div", { class: "chart" });
   if (series.length > 1) {
     wrap.append(h("div", { class: "legend" }, series.map((s) =>
@@ -22,13 +22,13 @@ export function stackedDayChart(days, series, valueOf, unit) {
   }
   const host = h("div", { class: "chart-host" });
   wrap.append(host);
-  requestAnimationFrame(() => drawStack(host, days, series, valueOf, unit));
+  host.style.minHeight = `${height}px`;
+  requestAnimationFrame(() => drawStack(host, days, series, valueOf, unit, height));
   return wrap;
 }
 
-function drawStack(host, days, series, valueOf, unit) {
-  const width = Math.max(host.clientWidth, 280);
-  const height = 180;
+function drawStack(host, days, series, valueOf, unit, height) {
+  const width = Math.max(host.clientWidth, 240);
   const pad = { left: 32, right: 8, top: 8, bottom: 22 };
   const totals = days.map((day) => series.reduce((sum, s) => sum + valueOf(day, s.key), 0));
   const max = niceMax(Math.max(1, ...totals));
@@ -100,13 +100,13 @@ function hideTip() {
   tooltip().hidden = true;
 }
 
-// 横棒リスト: rows は { label, value, note } の表示順。最大値で幅を正規化する
-// Horizontal bar list: rows are { label, value, note } in display order, widths normalised to the max
+// 横棒リスト: rows は { label, value, note, mark } の表示順。最大値で幅を正規化し、mark は値の横に強調して出す
+// Horizontal bar list: rows are { label, value, note, mark } in display order, widths normalised to the max; mark is highlighted by the value
 export function barList(rows, unit) {
   const max = Math.max(1, ...rows.map((row) => row.value));
   return h("div", { class: "barlist" }, rows.map((row) =>
     h("div", { class: "barlist-row", title: `${row.label}: ${row.value}${unit}${row.note ? `（${row.note}）` : ""}` },
       h("span", { class: "barlist-label" }, row.label),
       h("span", { class: "barlist-track" }, h("span", { class: "barlist-fill", style: `width:${(row.value / max) * 100}%` })),
-      h("span", { class: "barlist-value" }, `${row.value}${unit}`))));
+      h("span", { class: "barlist-value" }, row.mark ? h("em", null, row.mark) : null, `${row.value}${unit}`))));
 }
