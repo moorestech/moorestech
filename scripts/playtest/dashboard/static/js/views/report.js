@@ -1,18 +1,17 @@
 // 報告詳細: 説明全文・スクショ・動画・ビルド情報・投入コマンド・既読と関連チケット
 // Report detail: full text, screenshot, video, build info, enqueue command, read mark and related tickets
 import { card, kindMark, runStatusLabel, statusText } from "../components.js";
-import { emptyNote, fmtDateTime, h, linkify, mediaUrl, routeHref, testerName } from "../core.js";
+import { emptyNote, findReport, fmtDateTime, h, linkify, mediaUrl, routeHref, testerName } from "../core.js";
+import { filterOf, loadFilter, neighbours } from "../report-filter.js";
 import { detailActions, ticketsCard } from "./report-actions.js";
 
 const REPO_URL = "https://github.com/moorestech/moorestech";
 
-export function renderReport(data, args) {
-  const index = data.reports.findIndex((r) => r.boxSteamId === args[0] && r.boxId === args[1]);
-  if (index < 0) return h("div", { class: "view" }, backLink(), emptyNote("この報告は見つかりません"));
-  const report = data.reports[index];
+export function renderReport(data, args, params) {
+  const report = findReport(data.reports, args[0], args[1]);
+  if (!report) return h("div", { class: "view" }, backLink(params), emptyNote("この報告は見つかりません"));
   return h("div", { class: "view" },
-    h("nav", { class: "detail-nav" }, backLink(), h("span", { class: "pager" },
-      neighbour(data.reports[index - 1], "‹ 新しい報告"), neighbour(data.reports[index + 1], "古い報告 ›"))),
+    detailNav(data, report, params),
     h("header", { class: "detail-head" },
       h("div", { class: "detail-tags" }, kindMark(report.kind), statusText(report)),
       h("h1", { class: "detail-title" }, linkify((report.description || "").trim() || "（説明文が空）")),
@@ -24,12 +23,23 @@ export function renderReport(data, args) {
       h("div", { class: "side-stack" }, ticketsCard(report), card("詳細", null, infoGroups(report)))));
 }
 
-function backLink() {
-  return h("a", { href: routeHref("reports") }, "← 報告一覧");
+// 前後は URL の条件で辿り、一覧へは条件がなければ最後の記憶で戻る
+// Page within the URL condition, but return to the last saved list when it has none
+export function detailNav(data, report, params) {
+  const filter = filterOf(params);
+  const { newer, older } = neighbours(data.reports, report, params);
+  return h("nav", { class: "detail-nav" }, backLink(params), h("span", { class: "pager" },
+    neighbour(newer, "‹ 新しい報告", filter), neighbour(older, "古い報告 ›", filter)));
 }
 
-function neighbour(report, label) {
-  return report ? h("a", { href: routeHref("report", [report.boxSteamId, report.boxId]) }, label) : h("span", { class: "muted" }, label);
+function backLink(params) {
+  const filter = filterOf(params);
+  const destination = Object.keys(filter).length ? filter : loadFilter();
+  return h("a", { href: routeHref("reports", [], destination) }, "← 報告一覧");
+}
+
+function neighbour(report, label, filter) {
+  return report ? h("a", { href: routeHref("report", [report.boxSteamId, report.boxId], filter) }, label) : h("span", { class: "muted" }, label);
 }
 
 // 投入の判断は人が持つ（ADR 0061）。画面は実行せず、貼れるコマンドを出すだけにする

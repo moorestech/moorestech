@@ -3,6 +3,7 @@
 import { stackedDayChart } from "../charts.js";
 import { card, dayGroups, deltaText, moreLink, pageHead, reportRow, stat } from "../components.js";
 import { countableSessions, emptyNote, fmtDateTime, h, isKnownKind, jstToday, linkify, routeHref, testerName } from "../core.js";
+import { applyFilters, CANDIDATE_FILTER, FEEDBACK_FILTER } from "../report-filter.js";
 
 const CHART_DAYS = 14;
 const LIST_LIMIT = 12;
@@ -15,19 +16,21 @@ const KIND_SERIES = [
 
 export function renderOverview(data) {
   const sessions = countableSessions(data.sessions);
-  const candidates = data.reports.filter((r) => r.triage === "candidate");
+  const candidates = applyFilters(data.reports, new URLSearchParams(CANDIDATE_FILTER));
   const latest = [...data.reports, ...data.sessions].map((row) => row.readyAt).filter(Boolean).sort().pop();
   return h("div", { class: "view" },
     pageHead("概要", latest ? `最新の受信 ${fmtDateTime(latest)}` : "まだ受信がありません"),
     weekStats(data, sessions, candidates.length),
     h("div", { class: "layout-main-side" },
-      card("未投入のバグ報告", { count: candidates.length, action: candidates.length > LIST_LIMIT ? moreLink(routeHref("reports", [], { triage: "candidate" }), "すべて見る") : null },
+      card("未投入のバグ報告", { count: candidates.length, action: candidates.length > LIST_LIMIT ? moreLink(routeHref("reports", [], CANDIDATE_FILTER), "すべて見る") : null },
         candidates.length
-          ? dayGroups(candidates.slice(0, LIST_LIMIT), (r) => r.date, (r) => reportRow(r, { kind: false, status: false }), dayTotals(candidates))
+          // 未投入欄の詳細は同じ分類の中を辿る
+          // Details from this backlog page within the same classification
+          ? dayGroups(candidates.slice(0, LIST_LIMIT), (r) => r.date, (r) => reportRow(r, { kind: false, status: false }, CANDIDATE_FILTER), dayTotals(candidates))
           : emptyNote("未投入のバグ報告はありません")),
       h("div", { class: "side-stack" },
         card(`活動（直近${CHART_DAYS}日）`, null, activityCharts(data.reports, sessions)),
-        card("最新の感想", { action: moreLink(routeHref("reports", [], { kind: "feedback" }), "一覧") }, feedbackQuotes(data.reports)))));
+        card("最新の感想", { action: moreLink(routeHref("reports", [], FEEDBACK_FILTER), "一覧") }, feedbackQuotes(data.reports)))));
 }
 
 function dayTotals(rows) {
@@ -39,7 +42,7 @@ function dayTotals(rows) {
 // 数字は「未投入（累計）」以外を直近7日に揃え、前の7日との差を添える
 // Every figure except the cumulative backlog uses the last 7 days, with the change versus the 7 days before
 function weekStats(data, sessions, candidateCount) {
-  const unreadCandidates = data.reports.filter((r) => r.triage === "candidate" && !r.readAt).length;
+  const unreadCandidates = applyFilters(data.reports, new URLSearchParams({ ...CANDIDATE_FILTER, read: "unread" })).length;
   const since = jstToday(6);
   const before = jstToday(13);
   const inWeek = (d) => d >= since;
@@ -56,7 +59,7 @@ function weekStats(data, sessions, candidateCount) {
     .map((row) => row.steamId)).size;
   return h("div", { class: "stats" },
     stat("未投入のバグ", candidateCount, "件", `うち未読 ${unreadCandidates}件`,
-      { href: routeHref("reports", [], { triage: "candidate" }), tone: candidateCount > 0 ? "attention" : null }),
+      { href: routeHref("reports", [], CANDIDATE_FILTER), tone: candidateCount > 0 ? "attention" : null }),
     stat("報告（7日）", reportsNow, "件", deltaText(reportsNow, reportsPrev, "件"), { href: routeHref("reports") }),
     stat("プレイ時間（7日）", playNow.toFixed(1), "時間", deltaText(Number(playNow.toFixed(1)), Number(playPrev.toFixed(1)), "時間"),
       { href: routeHref("sessions") }),
@@ -84,10 +87,12 @@ function activityCharts(reports, sessions) {
 }
 
 function feedbackQuotes(reports) {
-  const rows = reports.filter((r) => r.kind === "feedback").slice(0, 3);
+  const rows = applyFilters(reports, new URLSearchParams(FEEDBACK_FILTER)).slice(0, 3);
   if (rows.length === 0) return emptyNote("感想はまだありません");
   return h("ul", { class: "quotes" }, rows.map((r) => h("li", null,
     h("blockquote", null, linkify((r.description || "").trim() || "（説明文が空）")),
-    h("a", { class: "quote-meta", href: routeHref("report", [r.boxSteamId, r.boxId]) },
+    // 感想欄の詳細は感想の中を辿る
+    // Details from the feedback section page within feedback
+    h("a", { class: "quote-meta", href: routeHref("report", [r.boxSteamId, r.boxId], FEEDBACK_FILTER) },
       `${testerName(r)}・${fmtDateTime(r.readyAt)}`))));
 }

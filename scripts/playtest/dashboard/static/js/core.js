@@ -148,6 +148,10 @@ export function reportKey(report) {
   return { steamId: report.boxSteamId, id: report.boxId };
 }
 
+export function findReport(reports, steamId, boxId) {
+  return reports.find((report) => report.boxSteamId === steamId && report.boxId === boxId);
+}
+
 // 書き込み後にサーバーが保存した最新の報告を引き直す（別経路で足されたリンクも含めて画面を保存結果に揃えるため）
 // Re-reads the report as the server saved it after a write, so the page matches storage including links added elsewhere
 export async function fetchSavedReport(report) {
@@ -157,7 +161,7 @@ export async function fetchSavedReport(report) {
     const response = await fetch("api/data", { cache: "no-store" });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const data = await response.json();
-    return data.reports.find((r) => r.boxSteamId === report.boxSteamId && r.boxId === report.boxId) || null;
+    return findReport(data.reports, report.boxSteamId, report.boxId) || null;
   } catch (error) {
     console.error("[dashboard] 保存結果の読み直しに失敗", error);
     document.getElementById("notice").textContent = `読み直し失敗: ${error.message}`;
