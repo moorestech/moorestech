@@ -15,6 +15,7 @@
   decisions-ruling-reminder.mjs  # AskUserQuestion完了時に台帳への記録をリマインド（Claude Codeのみ）
   decisions-format-check.mjs     # .decisions/レコードの書式検査（違反はexit 2で差し戻し）
   beads-prime.mjs                # Beads台帳(bd)の概況と、bd/.decisionsの運用ルールをSessionStartで注入
+  skill-name-collision-check.mjs # repoの.agents/skillsと個人スキル(~/.claude|~/.codex|~/.agents/skills)の同名を検知し警告（Claude/Codex SessionStart。uloop-*は対象外）
   beads-guard.mjs                # 破壊的bd/doltコマンドの物理拒否とpublic誤送信ガード（PreToolUse）
   poll-guard.mjs                 # 同一ツール呼び出しの反復＝ポーリングを拒否し正しい待ち方を再注入（PreToolUse 全ツール。Claudeのみ登録 — リセット判定に全ツールイベントが要るため）
   beads-sync-watch.mjs           # Dolt同期障害の復旧誘導＋claim/createへのセッション出自刻印（PostToolUse）

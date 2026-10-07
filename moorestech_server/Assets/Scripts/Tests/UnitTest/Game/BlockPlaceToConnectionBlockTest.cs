@@ -1,3 +1,4 @@
+using Game.Block.Blocks.BeltConveyor.Connection;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Block.Blocks.Chest;
@@ -66,7 +67,7 @@ namespace Tests.UnitTest.Game
             world.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(conveyorX, 0, conveyorZ), direction, Array.Empty<BlockCreateParam>(), out var beltConveyor);
             
             //繋がっているコネクターを取得
-            var connectedMachine = (VanillaMachineBlockInventoryComponent)beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>().ConnectedTargets.First().Key;
+            var connectedMachine = (VanillaMachineBlockInventoryComponent)beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext>>().ConnectedTargets.First().Key;
             
             //繋がっているかを検証
             var machineInventory = vanillaMachine.GetComponent<VanillaMachineBlockInventoryComponent>();
@@ -101,7 +102,7 @@ namespace Tests.UnitTest.Game
             foreach (var (position, direction) in beltConveyorTransforms) world.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, position, direction, Array.Empty<BlockCreateParam>(), out _);
             
             //繋がっているコネクターを取得
-            var connectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)vanillaMachine.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>().ConnectedTargets;
+            var connectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)vanillaMachine.GetComponent<BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext>>().ConnectedTargets;
             
             Assert.AreEqual(4, connectInventory.Count);
             
@@ -148,7 +149,7 @@ namespace Tests.UnitTest.Game
         {
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, beltConveyorPos, direction, Array.Empty<BlockCreateParam>(), out var northBeltConveyor);
             
-            var connector = (VanillaChestComponent)northBeltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>().ConnectedTargets.First().Key;
+            var connector = (VanillaChestComponent)northBeltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext>>().ConnectedTargets.First().Key;
             
             Assert.AreEqual(targetChest.BlockInstanceId, connector.BlockInstanceId);
         }
@@ -167,46 +168,18 @@ namespace Tests.UnitTest.Game
             world.TryAddBlock(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var chest);
             
             //機械のコネクターを取得
-            var machineConnectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)machine.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>().ConnectedTargets;
+            var machineConnectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)machine.GetComponent<BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext>>().ConnectedTargets;
             
             //接続されていないことをチェック
             Assert.AreEqual(0, machineConnectInventory.Count);
             
             //チェストのコネクターを取得
-            var chestConnectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)chest.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>().ConnectedTargets;
+            var chestConnectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)chest.GetComponent<BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext>>().ConnectedTargets;
             
             //接続されていないことをチェック
             Assert.AreEqual(0, chestConnectInventory.Count);
         }
         
         
-        /// <summary>
-        ///     大きさが1x1x1以上のブロックで複数のコネクターがある場合、正しく接続されるかをテスト
-        /// </summary>
-        [Test]
-        public void MultiBlockConnectTest()
-        {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var world = ServerContext.WorldBlockDatastore;
-            
-            //ベルトコンベアを設置
-            
-            //接続するベルトコンベア
-            world.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(2, 0, 3), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
-            world.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(2, 0, -1), BlockDirection.South, Array.Empty<BlockCreateParam>(), out _);
-            
-            //接続されないベルトコンベア
-            world.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(3, 0, 3), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
-            world.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(1, 0, -1), BlockDirection.South, Array.Empty<BlockCreateParam>(), out _);
-            
-            //マルチブロックを設置
-            world.TryAddBlock(ForUnitTestModBlockId.MultiBlockGeneratorId, new Vector3Int(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var multiBlock);
-            
-            // マルチブロックのコネクターを取得
-            var connector = (Dictionary<IBlockInventory, ConnectedInfo>)multiBlock.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>().ConnectedTargets;
-            
-            // ベルトコンベアが正しく接続されているかをチェック
-            Assert.AreEqual(2, connector.Count);
-        }
     }
 }

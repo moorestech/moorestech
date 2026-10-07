@@ -1,3 +1,4 @@
+using Game.Block.Blocks.BeltConveyor.Connection;
 using System.Collections.Generic;
 using Game.Block.Blocks;
 using Game.Block.Blocks.BeltConveyor;
@@ -30,7 +31,7 @@ namespace Game.Block.Factory.BlockTemplate.Transport
                 BeltConveyorBlockParam.SlopeTypeConst.Down => BeltConveyorSlopeType.Down,
                 BeltConveyorBlockParam.SlopeTypeConst.Straight => BeltConveyorSlopeType.Straight
             };
-            var connectorComponent = BlockTemplateUtil.CreateInventoryConnector(beltParam.InventoryConnectors, blockPositionInfo);
+            var connectorComponent = BeltInventoryConnectionContext.Create(beltParam.InventoryConnectors, blockPositionInfo, slopeType);
             var beltConveyorConnector = new VanillaBeltConveyorBlockInventoryInserter(blockInstanceId, connectorComponent);
             var itemCount = beltParam.BeltConveyorItemCount;
             var time = beltParam.TimeOfItemEnterToExit;

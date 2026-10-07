@@ -19,7 +19,6 @@ using Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect;
 using Server.Protocol.PacketResponse.Util.ElectricWire.Connection;
 using Server.Protocol.PacketResponse.Util.ElectricWire.ConnectionRange;
 using Server.Protocol.PacketResponse.Util.ElectricWire.Placement;
-
 namespace Server.Protocol.PacketResponse.Util.ElectricWire
 {
     /// <summary>
@@ -92,7 +91,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
 
                 // 建設コストは財布に問い合わせる。残りで賄えるセルは素材を要求しない
                 // Ask the wallet for the construction cost; a cell covered by the remainder demands no materials
-                placementPlan = constructionWallet.PlanPlacement(blockMaster, playerId);
+                placementPlan = constructionWallet.PlanPlacement(poleBlockId, playerId);
                 costItemCounts = placementPlan.ItemsToConsume;
                 failureReason = ElectricWirePlacementFailureReason.InsufficientItems;
                 if (!ConstructionCostService.HasRequiredItems(costItemCounts, inventory.InventoryItems)) return false;

@@ -1,12 +1,11 @@
 using System;
 using System.Collections.Generic;
-using Core.Master;
+using Game.Block.Component.ConnectionContext;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Component.ConnectJudge;
 using Game.Block.Interface.ComponentAttribute;
 using Game.Context;
-using Game.World.Interface.DataStore;
 using Mooresmaster.Model.BlocksModule;
 using UniRx;
 using UnityEngine;
@@ -14,45 +13,43 @@ using UnityEngine;
 namespace Game.Block.Component
 {
     [DisallowMultiple]
-    public class BlockConnectorComponent<TTarget, TConnectJudge> : IBlockConnectorComponent<TTarget>
+    public class BlockConnectorComponent<TTarget, TConnectContext> : IBlockConnectorComponent<TTarget>
         where TTarget : IBlockComponent
-        where TConnectJudge : IConnectorConnectJudge, new()
+        where TConnectContext : IConnectorContext<TTarget>, new()
     {
-        // ドメイン固有の追加接続判定（型パラメータで束縛され、両側ブロックで同一が保証される）
-        // Domain-specific extra judge (bound by type parameter, guaranteed identical on both sides)
-        private static readonly TConnectJudge Judge = new TConnectJudge();
-
+        // Contextは型ごとに共有し、worldと配置情報は各コンポーネントが所有する
+        // Share context per connector type while each component owns its world and placement data
+        private static readonly TConnectContext Context = new();
+        internal readonly ConnectorContextData Data;
+        private readonly IConnectorWorldLookup _world;
         public IReadOnlyDictionary<TTarget, ConnectedInfo> ConnectedTargets => _connectedTargets;
         private readonly Dictionary<TTarget, ConnectedInfo> _connectedTargets = new();
-
         private readonly List<IDisposable> _blockUpdateEvents = new();
-        private readonly BlockPositionInfo _blockPositionInfo;
-
-        // key: インプットコネクターの位置
-        // value: 接続可能位置とIBlockConnector
         private readonly Dictionary<Vector3Int, List<(Vector3Int position, IBlockConnector connector)>> _inputConnectPoss;
-
-        // key: アウトプット先の位置
-        // value: アウトプットコネクターの位置とIBlockConnector
         private readonly Dictionary<Vector3Int, (Vector3Int position, IBlockConnector connector)> _outputTargetToOutputConnector;
 
         public BlockConnectorComponent(IReadOnlyList<IBlockConnector> inputConnectors, IReadOnlyList<IBlockConnector> outputConnectors, BlockPositionInfo blockPositionInfo)
+            : this(new ConnectorContextData(inputConnectors, outputConnectors, blockPositionInfo)) { }
+
+        internal BlockConnectorComponent(ConnectorContextData data)
         {
-            var worldBlockUpdateEvent = ServerContext.WorldBlockUpdateEvent;
-
-            _blockPositionInfo = blockPositionInfo;
-            _inputConnectPoss = BlockConnectorConnectPositionCalculator.CalculateConnectorToConnectPosList(inputConnectors, blockPositionInfo);
-            _outputTargetToOutputConnector = BlockConnectorConnectPositionCalculator.CalculateConnectPosToConnector(outputConnectors, blockPositionInfo);
-
-            foreach (var outputPos in _outputTargetToOutputConnector.Keys)
+            Data = data;
+            _world = ServerContext.WorldBlockDatastore;
+            var events = ServerContext.WorldBlockUpdateEvent;
+            // 専用接続も通常側の接続先になれるよう、両ポート表を必ず構築する
+            // Build both ordinary port tables even when this component also uses specialized connections
+            _inputConnectPoss = BlockConnectorConnectPositionCalculator.CalculateConnectorToConnectPosList(data.Inputs, data.Position);
+            _outputTargetToOutputConnector = BlockConnectorConnectPositionCalculator.CalculateConnectPosToConnector(data.Outputs, data.Position);
+            var positions = new HashSet<Vector3Int>(_outputTargetToOutputConnector.Keys);
+            positions.UnionWith(Context.InitializeAndGetOverridelSubsrcibePositions(this, data.Position, data));
+            foreach (var position in positions)
             {
-                _blockUpdateEvents.Add(worldBlockUpdateEvent.GetBlockPlaceEvent(outputPos).Subscribe(b => OnPlaceBlock(b.Pos)));
-                _blockUpdateEvents.Add(worldBlockUpdateEvent.GetBlockRemoveEvent(outputPos).Subscribe(OnRemoveBlock));
-
-                // アウトプット先にブロックがあったら接続を試みる
-                // If there is a block at the output destination, try to connect
-                if (ServerContext.WorldBlockDatastore.Exists(outputPos)) OnPlaceBlock(outputPos);
+                _blockUpdateEvents.Add(events.GetBlockPlaceEvent(position).Subscribe(change => Recalculate(change.BlockData.Block, null)));
+                // 撤去通知時はworldに残っている対象を計算から明示的に除く
+                // Explicitly exclude the removed block while it is still present in the world during notification
+                _blockUpdateEvents.Add(events.GetBlockRemoveEvent(position).Subscribe(change => Recalculate(change.BlockData.Block, change.BlockData.Block)));
             }
+            Recalculate(null, null);
         }
 
         public bool IsDestroy { get; private set; }
@@ -60,127 +57,44 @@ namespace Game.Block.Component
         public void Destroy()
         {
             _connectedTargets.Clear();
-            _blockUpdateEvents.ForEach(x => x.Dispose());
+            _blockUpdateEvents.ForEach(subscription => subscription.Dispose());
             _blockUpdateEvents.Clear();
             IsDestroy = true;
         }
 
-        /// <summary>
-        ///     ブロックを接続元から接続先に接続できるなら接続する
-        ///     位置一致 → 形状互換表 → ドメイン判定の3段で接続可否を決める
-        ///     Connect source to target if possible: position match, then shape table, then domain judge
-        /// </summary>
-        private void OnPlaceBlock(Vector3Int outputTargetPos)
+        private void Recalculate(IBlock targetBlock, IBlock removingBlock)
         {
-            // 接続先に同型のコネクタコンポーネントとターゲットがなければ処理を終了
-            // Exit if the target lacks a same-typed connector component and target component
-            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            if (!worldBlockDatastore.TryGetBlock(outputTargetPos, out BlockConnectorComponent<TTarget, TConnectJudge> targetConnector)) return;
-            if (!worldBlockDatastore.TryGetBlock<TTarget>(outputTargetPos, out var targetComponent)) return;
-
-            var targetBlock = ServerContext.WorldBlockDatastore.GetBlock(outputTargetPos);
-
-            // 位置一致した候補を全て評価し、最初に通る組を採用する
-            // Evaluate all position-matched candidates and use the first valid pair
-            if (!targetConnector._inputConnectPoss.TryGetValue(outputTargetPos, out var targetAcceptedCells)) return;
-            if (!TryJudgeConnectorPair(_outputTargetToOutputConnector[outputTargetPos], targetAcceptedCells, _blockPositionInfo, targetBlock.BlockPositionInfo, out var selfConnector, out var targetElementConnector)) return;
-
-            // 接続元ブロックと接続先ブロックを接続
-            // Connect source block to target block
-            if (!_connectedTargets.ContainsKey(targetComponent))
-            {
-                var connectedInfo = new ConnectedInfo(selfConnector, targetElementConnector, targetBlock);
-                _connectedTargets.Add(targetComponent, connectedInfo);
-            }
+            var ordinary = CalculateOrdinaryConnections(removingBlock);
+            var desired = Context.GetOverride(_connectedTargets, targetBlock, Data, _world, removingBlock, ordinary);
+            ConnectorConnectionReconciler.Apply(_connectedTargets, desired);
         }
 
-        /// <summary>
-        ///     2ブロックのコネクタ定義から、実際に噛み合うセル対を1組だけ解く。サーバーの実接続とクライアントのプレビューが同じ規則で解くための正本
-        ///     Resolves the single meshing cell pair from two blocks' connector definitions; the one rule both the server's real connection and the client's preview use
-        /// </summary>
+        private Dictionary<TTarget, ConnectedInfo> CalculateOrdinaryConnections(IBlock removingBlock)
+        {
+            var desired = new Dictionary<TTarget, ConnectedInfo>();
+            foreach (var (targetPosition, output) in _outputTargetToOutputConnector)
+            {
+                // 接続対象の不在は空セルの通常状態として扱う
+                // An absent connection target is the normal state of an empty cell
+                var target = _world.GetBlock(targetPosition);
+                if (target == null || ReferenceEquals(target, removingBlock)) continue;
+                if (!target.ComponentManager.TryGetComponent<BlockConnectorComponent<TTarget, TConnectContext>>(out var connector)) continue;
+                if (!target.ComponentManager.TryGetComponent<TTarget>(out var component)) continue;
+                if (!connector._inputConnectPoss.TryGetValue(targetPosition, out var acceptedCells)) continue;
+                if (!ConnectorPairJudge<TTarget>.TryJudgeConnectorPair(output, acceptedCells, Data.Position, target.BlockPositionInfo,
+                        Context, out var selfPort, out var targetPort)) continue;
+                if (!desired.ContainsKey(component)) desired.Add(component, new ConnectedInfo(selfPort, targetPort, target));
+            }
+            return desired;
+        }
+
         public static bool TryJudgeConnect(
             IReadOnlyList<IBlockConnector> selfOutputConnectors, BlockPositionInfo selfPositionInfo,
             IReadOnlyList<IBlockConnector> targetInputConnectors, BlockPositionInfo targetPositionInfo,
             out Vector3Int selfConnectorCell, out Vector3Int targetConnectorCell)
         {
-            selfConnectorCell = Vector3Int.zero;
-            targetConnectorCell = Vector3Int.zero;
-
-            var selfOutputs = BlockConnectorConnectPositionCalculator.CalculateConnectPosToConnector(selfOutputConnectors, selfPositionInfo);
-            var targetInputs = BlockConnectorConnectPositionCalculator.CalculateConnectorToConnectPosList(targetInputConnectors, targetPositionInfo);
-
-            foreach (var (outputTargetPos, selfOutput) in selfOutputs)
-            {
-                if (!targetInputs.TryGetValue(outputTargetPos, out var targetAcceptedCells)) continue;
-                if (!TryJudgeConnectorPair(selfOutput, targetAcceptedCells, selfPositionInfo, targetPositionInfo, out _, out _)) continue;
-
-                selfConnectorCell = selfOutput.position;
-                targetConnectorCell = outputTargetPos;
-                return true;
-            }
-
-            return false;
-        }
-
-        private static bool TryJudgeConnectorPair(
-            (Vector3Int position, IBlockConnector connector) outputConnector,
-            List<(Vector3Int position, IBlockConnector connector)> targetAcceptedCells,
-            BlockPositionInfo selfPositionInfo, BlockPositionInfo targetPositionInfo,
-            out IBlockConnector validSelfConnector, out IBlockConnector validTargetConnector)
-        {
-            validSelfConnector = null;
-            validTargetConnector = null;
-
-            // 形状互換表とドメイン判定の両方を通る候補を探す
-            // Find a candidate that passes both the shape table and domain judge
-            foreach (var candidate in CollectPositionMatchedCandidates())
-            {
-                if (!MasterHolder.BlockMaster.CanConnectConnectorShapes(candidate.selfConnector?.ShapeGuid, candidate.targetConnector?.ShapeGuid)) continue;
-
-                var judgeContext = new ConnectJudgeContext(candidate.selfConnector, candidate.targetConnector, selfPositionInfo, targetPositionInfo);
-                if (!Judge.CanConnect(judgeContext)) continue;
-
-                validSelfConnector = candidate.selfConnector;
-                validTargetConnector = candidate.targetConnector;
-                return true;
-            }
-
-            return false;
-
-            #region Internal
-
-            List<(IBlockConnector selfConnector, IBlockConnector targetConnector)> CollectPositionMatchedCandidates()
-            {
-                var candidates = new List<(IBlockConnector selfConnector, IBlockConnector targetConnector)>();
-
-                // 方向無制限入力では自側コネクタだけを確定する
-                // For unrestricted input, resolve only the source connector
-                if (targetAcceptedCells == null)
-                {
-                    candidates.Add((outputConnector.connector, null));
-                    return candidates;
-                }
-
-                // 同じ位置にある全ての候補ペアを評価対象に残す
-                // Keep every candidate pair at the same connector position
-                foreach (var target in targetAcceptedCells)
-                {
-                    if (target.position != outputConnector.position) continue;
-                    candidates.Add((outputConnector.connector, target.connector));
-                }
-
-                return candidates;
-            }
-
-            #endregion
-        }
-
-        private void OnRemoveBlock(BlockRemoveProperties updateProperties)
-        {
-            // 削除されたブロックがInputConnectorComponentでない場合、処理を終了する
-            if (!ServerContext.WorldBlockDatastore.TryGetBlock<TTarget>(updateProperties.Pos, out var component)) return;
-
-            _connectedTargets.Remove(component);
+            return ConnectorPairJudge<TTarget>.TryJudgeConnect(selfOutputConnectors, selfPositionInfo,
+                targetInputConnectors, targetPositionInfo, Context, out selfConnectorCell, out targetConnectorCell);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using Game.Block.Blocks.BeltConveyor.Connection;
+using System.Collections.Generic;
 using System.Linq;
 using Core.Inventory;
 using Core.Item.Interface;
@@ -36,7 +37,7 @@ namespace Game.Block.Blocks.Machine.Inventory
         private readonly MachineOutputSlotBinding _slotBinding = new();
 
         public VanillaMachineOutputInventory(int outputSlot, int outputTankCount, float innerTankCapacity, IItemStackFactory itemStackFactory,
-            BlockOpenableInventoryUpdateEvent blockInventoryUpdate, BlockInstanceId blockInstanceId, int inputSlotSize, BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> blockConnectorComponent)
+            BlockOpenableInventoryUpdateEvent blockInventoryUpdate, BlockInstanceId blockInstanceId, int inputSlotSize, BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext> blockConnectorComponent)
         {
             _blockInventoryUpdate = blockInventoryUpdate;
             _blockInstanceId = blockInstanceId;

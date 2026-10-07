@@ -4,6 +4,7 @@ using System.Linq;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.Machine;
+using Game.Block.Blocks.BeltConveyor.Connection;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Machine.Module;
 using Game.Block.Component;
@@ -22,16 +23,16 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class BlockTemplateUtil
     {
-        public static BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> CreateInventoryConnector(InventoryConnects inventoryConnects, BlockPositionInfo blockPositionInfo)
+        public static BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext> CreateInventoryConnector(InventoryConnects inventoryConnects, BlockPositionInfo blockPositionInfo)
         {
-            return new BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>(inventoryConnects.InputConnects, inventoryConnects.OutputConnects, blockPositionInfo);
+            return BeltInventoryConnectionContext.CreateMachine(inventoryConnects, blockPositionInfo);
         }
         
         // TODO 保存ステートを誰でも持てるようになったので、このあたりも各自でセーブ、ロードできるように簡略化したい
         public static (VanillaMachineInputInventory, VanillaMachineOutputInventory, VanillaMachineModuleInventory) GetMachineIOInventory(
             BlockId blockId, BlockInstanceId blockInstanceId,
             IMachineParam machineParam,
-            BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> blockConnectorComponent,
+            BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext> blockConnectorComponent,
             BlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent)
         {
             var inputSlotCount = machineParam.InputSlotCount;

@@ -18,9 +18,9 @@ namespace Tests.UnitTest.Game
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            Assert.AreEqual(ForUnitTestModBlockId.GearBeltConveyor, ConstructionWalletUtil.ResolveWalletBlockId(ForUnitTestModBlockId.TestGearBeltConveyorUp));
-            Assert.AreEqual(ForUnitTestModBlockId.GearBeltConveyor, ConstructionWalletUtil.ResolveWalletBlockId(ForUnitTestModBlockId.GearBeltConveyor));
-            Assert.AreEqual(ForUnitTestModBlockId.MachineId, ConstructionWalletUtil.ResolveWalletBlockId(ForUnitTestModBlockId.MachineId));
+            Assert.AreEqual(ForUnitTestModBlockId.GearBeltConveyor, ConstructionWalletQuery.ResolveWalletBlockId(ForUnitTestModBlockId.TestGearBeltConveyorUp));
+            Assert.AreEqual(ForUnitTestModBlockId.GearBeltConveyor, ConstructionWalletQuery.ResolveWalletBlockId(ForUnitTestModBlockId.GearBeltConveyor));
+            Assert.AreEqual(ForUnitTestModBlockId.MachineId, ConstructionWalletQuery.ResolveWalletBlockId(ForUnitTestModBlockId.MachineId));
         }
 
         [Test]
@@ -35,24 +35,26 @@ namespace Tests.UnitTest.Game
             // 残り0での消費は財布の判断漏れなので落ちる
             // Consuming from an empty wallet means the caller skipped the wallet's decision, so it throws
             Assert.Throws<InvalidOperationException>(() => store.ConsumeOne(PlayerId, wallet));
-            Assert.AreEqual(0, store.GetRemainingCount(PlayerId, wallet));
+            Assert.AreEqual(0, store.GetReader(PlayerId).GetRemainingCount(wallet));
 
             store.Refill(PlayerId, wallet, 3);
-            Assert.AreEqual(3, store.GetRemainingCount(PlayerId, wallet));
+            Assert.AreEqual(3, store.GetReader(PlayerId).GetRemainingCount(wallet));
             store.ConsumeOne(PlayerId, wallet);
-            Assert.AreEqual(2, store.GetRemainingCount(PlayerId, wallet));
+            Assert.AreEqual(2, store.GetReader(PlayerId).GetRemainingCount(wallet));
 
             // 返却は+1、Nに達したら0へ戻る（凝縮返却。設置と撤去が完全な逆操作になる閾値）
             // Return adds one; reaching N resets to zero (condensed refund; the threshold that makes removal the exact inverse of placement)
-            Assert.IsTrue(ConstructionWalletUtil.WouldCondense(store.GetRemainingCount(PlayerId, wallet), 3));
+            Assert.IsTrue(new ConstructionWalletQuery(store.GetReader(PlayerId)).TryPlanRemovalCell(wallet, out var condensing));
+            Assert.IsTrue(condensing.WouldCondense);
             store.ApplyReturn(PlayerId, wallet, true);
-            Assert.AreEqual(0, store.GetRemainingCount(PlayerId, wallet));
+            Assert.AreEqual(0, store.GetReader(PlayerId).GetRemainingCount(wallet));
 
             // N未達なら加算のみ
             // Below N it simply accumulates
-            Assert.IsFalse(ConstructionWalletUtil.WouldCondense(store.GetRemainingCount(PlayerId, wallet), 3));
+            Assert.IsTrue(new ConstructionWalletQuery(store.GetReader(PlayerId)).TryPlanRemovalCell(wallet, out var accumulating));
+            Assert.IsFalse(accumulating.WouldCondense);
             store.ApplyReturn(PlayerId, wallet, false);
-            Assert.AreEqual(1, store.GetRemainingCount(PlayerId, wallet));
+            Assert.AreEqual(1, store.GetReader(PlayerId).GetRemainingCount(wallet));
 
             // 通知はFlushまで溜まり、財布ごと1通へ集約される
             // Notifications accumulate until Flush and collapse into one per wallet
@@ -68,7 +70,7 @@ namespace Tests.UnitTest.Game
             var store = serviceProvider.GetService<RemainingPlacementCountDataStore>();
             var wallet = ForUnitTestModBlockId.GearBeltConveyor;
 
-            store.GetRemainingCount(PlayerId, wallet);
+            store.GetReader(PlayerId).GetRemainingCount(wallet);
             Assert.IsEmpty(store.GetSaveJsonObject());
 
             store.Refill(PlayerId, wallet, 3);

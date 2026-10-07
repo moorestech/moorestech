@@ -1,3 +1,4 @@
+using Game.Block.Blocks.BeltConveyor.Connection;
 using System.Collections.Generic;
 using Core.Master;
 using Game.Block.Blocks;
@@ -38,13 +39,13 @@ namespace Game.Block.Factory.BlockTemplate.Machine
         private IBlock GetBlock(Dictionary<string, object> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var machineParam = blockMasterElement.BlockParam as GearMachineBlockParam;
-            BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> inventoryConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(machineParam.InventoryConnectors, blockPositionInfo);
+            BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext> inventoryConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(machineParam.InventoryConnectors, blockPositionInfo);
             
             var blockId = MasterHolder.BlockMaster.GetBlockId(blockMasterElement.BlockGuid);
             var (input, output, module) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, machineParam, inventoryConnectorComponent, _blockInventoryUpdateEvent);
             
             var connectSetting = machineParam.Gear.GearConnects;
-            var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer, GearConnectJudge>(connectSetting, connectSetting, blockPositionInfo);
+            var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer, GearContext>(connectSetting, connectSetting, blockPositionInfo);
             var gearConsumption = machineParam.GearConsumption;
 
             var requirePower = (float)(gearConsumption.BaseTorque * gearConsumption.BaseRpm);

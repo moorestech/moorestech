@@ -155,6 +155,7 @@ split_chunksの出力が空（stderrに `below-threshold`）なら分割深掘�
   ```
   integratorは `agents/` 配下・Codex結論3本（`.final.md`。不在なら回収スクリプト実行後の同ファイル。`.out.md` は疑義がある時だけ補助的に見る）・`checks.json` を読み、`references/integration-rules.md` §0〜§2.7（実コード照合・棄却の挙証責任・重複排除・Warning/Info統合・suppressed統合・同型掃引・系統間矛盾の検証）を適用して `integrated.md` に統合結果を書く。各Criticalには適用区分（自動適用可 §3/§3.5 | 設計判断 §4）が付く。返答は件数サマリのみ。
 - integratorの返答を受けたら `integrated.md` をReadしてStep 6へ。生のagentsファイル・Codex出力へ戻ってよいのは、integratorの結論に疑義がある個別件の再確認だけ（全量の読み直しは統合の二重実行であり禁止）。
+- `python3 .claude/skills/moores-code-review/scripts/s5_shape_gate.py $RUNDIR` を走らせ、終了コード 1（§5 の決定ごとの「読み1／読み2／両立判定」の欠け、または integrated.md がそれを回収扱い）なら core-any-user-intent-fulfillment を欠け一覧付きで再起動（差し戻し）し integrator を再実行する。
 - `integrated.md` の「系統別回収状況」に欠員（起動失敗・weekly limit・Codexスキップ）があれば、Gotchasの再起動規則に従い、必要なら該当系統を再起動してintegratorを再実行する。**Codexの欠員申告は `codex_recover.py` の終了コードを添えていない限り受け付けない** — 回収漏れを欠員として通すと「外部監査の観点が効いていない」という偽の縮退申告がPR本文とレビュー記録に残る（2026-08-18 PR#1167 実害）。
 
 ## Step 6: 確定修正の自動適用＋コンパイル ⑤

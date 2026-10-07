@@ -1,3 +1,4 @@
+using Game.Block.Blocks.BeltConveyor.Connection;
 using System.Collections.Generic;
 using Core.Master;
 using Game.Block.Blocks.Service;
@@ -36,7 +37,7 @@ namespace Tests.UnitTest.Core.Other
             inventoryList.Add(inventory3);
             
             var componentPos = new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one);
-            var inputConnectorComponent = new BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>(null, null, componentPos);
+            var inputConnectorComponent = new BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext>(null, null, componentPos);
             
             var targets = (Dictionary<IBlockInventory, ConnectedInfo>)inputConnectorComponent.ConnectedTargets;
             

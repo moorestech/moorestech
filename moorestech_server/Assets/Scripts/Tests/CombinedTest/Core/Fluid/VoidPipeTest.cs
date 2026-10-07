@@ -62,7 +62,7 @@ namespace Tests.CombinedTest.Core.Fluid
             Assert.IsTrue(world.TryAddBlock(ForUnitTestModBlockId.VoidPipe, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var voidBlock));
 
             Assert.IsTrue(voidBlock.ExistsComponent<VoidPipeComponent>());
-            Assert.IsTrue(voidBlock.ExistsComponent<BlockConnectorComponent<IFluidInventory, DefaultConnectJudge>>());
+            Assert.IsTrue(voidBlock.ExistsComponent<BlockConnectorComponent<IFluidInventory, DefaultContext<IFluidInventory>>>());
             Assert.IsFalse(voidBlock.ExistsComponent<IBlockSaveState>());
         }
 
@@ -112,8 +112,8 @@ namespace Tests.CombinedTest.Core.Fluid
 
             for (var i = 0; i < 200; i++) GameUpdater.UpdateOneTick();
 
-            var sideConnector = sidePipeBlock.GetComponent<BlockConnectorComponent<IFluidInventory, DefaultConnectJudge>>();
-            var backConnector = backPipeBlock.GetComponent<BlockConnectorComponent<IFluidInventory, DefaultConnectJudge>>();
+            var sideConnector = sidePipeBlock.GetComponent<BlockConnectorComponent<IFluidInventory, DefaultContext<IFluidInventory>>>();
+            var backConnector = backPipeBlock.GetComponent<BlockConnectorComponent<IFluidInventory, DefaultContext<IFluidInventory>>>();
             Assert.AreEqual(0, sideConnector.ConnectedTargets.Count);
             Assert.AreEqual(0, backConnector.ConnectedTargets.Count);
             Assert.AreEqual(50, sidePipe.GetAmount(), 0.01);
@@ -135,7 +135,7 @@ namespace Tests.CombinedTest.Core.Fluid
             world.TryAddBlock(ForUnitTestModBlockId.FluidMachineId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var machineBlock);
             world.TryAddBlock(ForUnitTestModBlockId.VoidPipe, new Vector3Int(-1, 0, 0), VoidFacingPositiveX, Array.Empty<BlockCreateParam>(), out _);
 
-            var machineConnector = machineBlock.GetComponent<BlockConnectorComponent<IFluidInventory, DefaultConnectJudge>>();
+            var machineConnector = machineBlock.GetComponent<BlockConnectorComponent<IFluidInventory, DefaultContext<IFluidInventory>>>();
             Assert.AreEqual(1, machineConnector.ConnectedTargets.Count);
             Assert.IsInstanceOf<VoidPipeComponent>(machineConnector.ConnectedTargets.Keys.First());
 
