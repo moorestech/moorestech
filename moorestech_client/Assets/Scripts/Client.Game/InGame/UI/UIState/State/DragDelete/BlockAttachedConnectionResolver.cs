@@ -67,7 +67,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             // 未同期端点のレールは記録できないので、Undo時に戻せなかった件数へ入れる
             // Rails at unsynced destinations cannot be recorded, so count them as not restored on undo
             foreach (var destination in _unsyncedDestinationBuffer)
-                collector.AddUnrecordable($"rail at {destination}: node not synced");
+                collector.AddUnrecordable(destination, $"rail at {destination}: node not synced");
             foreach (var edge in edges)
             {
                 RemovedRail.Capture(_railCache, edge.canonicalFrom, edge.canonicalTo, RemovedRailCaptureContext.Cascade, collector);

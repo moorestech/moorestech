@@ -31,7 +31,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
         {
             if (!cache.TryGetNode(canonicalFrom, out var fromNode) || !cache.TryGetNode(canonicalTo, out var toNode))
             {
-                collector.AddUnrecordable($"rail {canonicalFrom}->{canonicalTo}: node not synced");
+                collector.AddUnrecordable((canonicalFrom, canonicalTo), $"rail {canonicalFrom}->{canonicalTo}: node not synced");
                 return;
             }
             if (RailEdgeClassifier.IsStationInternalEdge(fromNode, toNode)) return;
@@ -40,13 +40,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
             // Unsynced types cannot be restored; only directly deleted free edges count as skipped
             if (!cache.TryGetRailType(canonicalFrom, canonicalTo, out var railTypeGuid))
             {
-                collector.AddUnrecordable($"rail {canonicalFrom}->{canonicalTo}: type not synced");
+                collector.AddUnrecordable((canonicalFrom, canonicalTo), $"rail {canonicalFrom}->{canonicalTo}: type not synced");
                 return;
             }
             if (railTypeGuid == Guid.Empty)
             {
                 if (context == RemovedRailCaptureContext.Direct)
-                    collector.AddUnrecordable($"costless rail {canonicalFrom}->{canonicalTo}: direct restore unavailable");
+                    collector.AddUnrecordable((canonicalFrom, canonicalTo), $"costless rail {canonicalFrom}->{canonicalTo}: direct restore unavailable");
                 return;
             }
 

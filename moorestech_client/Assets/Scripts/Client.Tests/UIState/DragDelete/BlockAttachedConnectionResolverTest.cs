@@ -2,6 +2,7 @@ using System;
 using System.Text.RegularExpressions;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
 using Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine;
 using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.UI.UIState.State.DragDelete;
@@ -39,6 +40,23 @@ namespace Client.Tests.UIState
             LogAssert.Expect(LogType.Log, new Regex("\\[RemovalPreview\\] requester destroyed while requesting"));
             Assert.DoesNotThrow(() => cache.UpsertConnection(0, 2, 10, Guid.NewGuid(), true));
             Assert.DoesNotThrow(() => cache.UpsertConnection(3, 1, 10, Guid.NewGuid(), true));
+        }
+
+        [Test]
+        public void UnsyncedDestinationIsCountedAsUnrecordable()
+        {
+            var resolver = new BlockAttachedConnectionResolver(new ConnectionLineRegistry(), RailGraphClientCache.CreateForEditorTest());
+            var block = CreatePierBlock(Vector3Int.zero);
+            var collector = new RemovedObjectCollector();
+
+            // 同じ未同期端点でも赤表示は情報、Undo採取は記録不能の警告に分ける
+            // Report the same unsynced endpoint as info in preview and as an unrecordable warning in undo capture
+            LogAssert.Expect(LogType.Log, new Regex("\\[RemovalPreview\\] rail node not synced yet:.*retry on next topology change"));
+            resolver.RequestCascadePreview(block);
+            LogAssert.Expect(LogType.Warning, new Regex("\\[RemovalRestore\\] unrecordable: rail at .*: node not synced"));
+            resolver.CollectRemovedConnections(block, collector);
+            Assert.IsEmpty(collector.Objects);
+            Assert.AreEqual(1, collector.UnrecordableCount);
         }
 
         private BlockGameObject CreatePierBlock(Vector3Int origin)

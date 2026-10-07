@@ -48,7 +48,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
             // Count a line with unresolved endpoints because it has no restore target
             if (!line.TryResolveEndpointPositions(out var posA, out var posB))
             {
-                collector.AddUnrecordable($"line endpoint block not found from={line.FromId} to={line.ToId}");
+                collector.AddUnrecordable(line, $"line endpoint block not found from={line.FromId} to={line.ToId}");
                 return;
             }
             collector.Add(new RemovedConnectionLine(posA, posB, line.ConnectToolGuid, line.GetLineCommands()));
