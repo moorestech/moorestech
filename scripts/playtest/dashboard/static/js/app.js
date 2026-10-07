@@ -1,6 +1,7 @@
 // 起動・ナビゲーション・定期更新
 // Bootstrap, navigation and periodic refresh
 import { fmtDateTime, h, parseRoute, routeHref } from "./core.js";
+import { loadFilter } from "./report-filter.js";
 import { renderDigests } from "./views/digests.js";
 import { renderOverview } from "./views/overview.js";
 import { renderReport } from "./views/report.js";
@@ -15,7 +16,7 @@ const TABS = [
 const VIEWS = {
   overview: (data) => renderOverview(data),
   reports: (data, route) => renderReports(data, route.params),
-  report: (data, route) => renderReport(data, route.args),
+  report: (data, route) => renderReport(data, route.args, route.params),
   testers: (data) => renderTesters(data),
   sessions: (data, route) => renderSessions(data, route.params),
   digests: (data, route) => renderDigests(data, route.args),
@@ -58,14 +59,22 @@ function fillTesterNames(next) {
 function render() {
   const route = parseRoute();
   const active = route.view === "report" ? "reports" : route.view;
+  const view = VIEWS[route.view] || VIEWS.overview;
+  document.getElementById("main").replaceChildren(view(data, route));
   // 報告タブにだけ未投入の件数を出す（要対応がどこにあるかをどの画面からも見えるように）
   // Only the reports tab carries the un-enqueued count, so pending work is visible from every view
   const pending = data.reports.filter((r) => r.triage === "candidate").length;
+  // 一覧が記憶を更新した後、報告タブを最後の条件へ向ける
+  // After the list updates memory, point the reports tab at the last condition
   document.getElementById("tabs").replaceChildren(...TABS.map(([view, label]) =>
-    h("a", { href: routeHref(view), class: view === active ? "current" : null }, label,
+    h("a", {
+      href: view === "reports" ? routeHref(view, [], loadFilter()) : routeHref(view),
+      class: view === active ? "current" : null,
+      // 検索は再描画しないので、クリック時にも記憶を読み直す
+      // Search does not redraw tabs, so read memory again at click time
+      onclick: view === "reports" ? (event) => { event.currentTarget.href = routeHref(view, [], loadFilter()); } : null,
+    }, label,
       view === "reports" && pending > 0 ? h("span", { class: "tab-count", title: "未投入のバグ報告" }, String(pending)) : null)));
-  const view = VIEWS[route.view] || VIEWS.overview;
-  document.getElementById("main").replaceChildren(view(data, route));
 }
 
 function showError(error) {

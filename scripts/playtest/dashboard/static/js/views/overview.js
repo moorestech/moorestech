@@ -13,6 +13,8 @@ const KIND_SERIES = [
   { key: "other", label: "その他", color: "--series-4" },
 ];
 
+// 概要から開く詳細は、その欄の分類の中で前後を辿る
+// Details opened from the overview page within their section classification
 export function renderOverview(data) {
   const sessions = countableSessions(data.sessions);
   const candidates = data.reports.filter((r) => r.triage === "candidate");
@@ -23,7 +25,7 @@ export function renderOverview(data) {
     h("div", { class: "layout-main-side" },
       card("未投入のバグ報告", { count: candidates.length, action: candidates.length > LIST_LIMIT ? moreLink(routeHref("reports", [], { triage: "candidate" }), "すべて見る") : null },
         candidates.length
-          ? dayGroups(candidates.slice(0, LIST_LIMIT), (r) => r.date, (r) => reportRow(r, { kind: false, status: false }), dayTotals(candidates))
+          ? dayGroups(candidates.slice(0, LIST_LIMIT), (r) => r.date, (r) => reportRow(r, { kind: false, status: false }, { triage: "candidate" }), dayTotals(candidates))
           : emptyNote("未投入のバグ報告はありません")),
       h("div", { class: "side-stack" },
         card(`活動（直近${CHART_DAYS}日）`, null, activityCharts(data.reports, sessions)),
@@ -88,6 +90,6 @@ function feedbackQuotes(reports) {
   if (rows.length === 0) return emptyNote("感想はまだありません");
   return h("ul", { class: "quotes" }, rows.map((r) => h("li", null,
     h("blockquote", null, linkify((r.description || "").trim() || "（説明文が空）")),
-    h("a", { class: "quote-meta", href: routeHref("report", [r.boxSteamId, r.boxId]) },
+    h("a", { class: "quote-meta", href: routeHref("report", [r.boxSteamId, r.boxId], { kind: "feedback" }) },
       `${testerName(r)}・${fmtDateTime(r.readyAt)}`))));
 }
