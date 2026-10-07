@@ -46,6 +46,9 @@ namespace Client.Tests.WebUiHost
         public void StopsCarrySideAndNameFromDatastore()
         {
             var id = TrainUnitInstanceId.Create();
+            // 欠損警告の履歴を正常な時刻表で戻す
+            // Reset the missing-station warning history with a complete timetable
+            TrainTimetableDtoBuilder.CreateFromTimetable(new TrainTimetableSnapshot(id, false, -1, new TrainTimetableStop[0]), new List<TrainTimetableStationDto>());
             var stops = new[]
             {
                 new TrainTimetableStop(new Vector3Int(1, 0, 0), StationNodeSide.Front, TrainDiagram.DepartureConditionType.WaitForTicks, GameUpdater.TicksPerSecond),
@@ -56,7 +59,7 @@ namespace Client.Tests.WebUiHost
 
             // 駅ブロックが引けない停車駅は無言で空名にせず警告を出す
             // A stop whose station block is missing warns instead of silently going nameless
-            LogAssert.Expect(LogType.Warning, new Regex(@"\[TrainTimetableDto\] station block not found"));
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[TrainTimetableDto\] station blocks not found"));
             var dto = TrainTimetableDtoBuilder.CreateFromTimetable(timetable, stations);
 
             Assert.That(dto.TrainUnitId, Is.EqualTo(id.ToString()));
