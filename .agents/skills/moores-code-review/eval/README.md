@@ -98,7 +98,7 @@ PR988の誤設計は `docs/superpowers/specs/2026-07-05-item-stack-upgrade-desig
 1. `gh api repos/moorestech/moorestech/pulls/<PR>/reviews` と `/comments` でsakastudioの指摘を回収（LGTM・肯定は除く）
 2. 故障モード分類: **F0**=specに誤方針が明記 / **F1**=役割同型の前例が存在した（rgで実在確認） / **F2**=既存ルールが既に明文化されていた
 3. レイヤー別反映（1指摘1対策。「一般化ルール＋実例＋前例パス」の3点で書く）:
-   - F0 → writing-plans の spec-architecture-review（Red Flags・実例）と layer-map
+   - F0 → moores-writing-plans の spec-architecture-review（Red Flags・実例）と layer-map
    - F1 → 該当reviewerへ実例追記（無ければ新 moores-* reviewer＋selector発火条件＋リプレイ確認）、layer-map「よく引っかかる箇所」
    - F2 → ルール文言を禁止調に強化。機械判定可能なら deterministic_checks.py へ
 4. `../moorestech_logs/harness/moores-code-review/eval-log.md` に1行記録。将来のリプレイ対象なら `expected-findings.md` と `fixtures.tsv` にも追加
