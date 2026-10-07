@@ -139,8 +139,16 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
             foreach (var target in plan.Targets)
             {
                 var targetConnector = datastore.GetBlock(target.TargetId)?.GetComponent<IElectricWireConnector>();
-                if (targetConnector == null) continue;
-                if (!ElectricWireSystemUtil.TryConnectBothSides(selfConnector, targetConnector, target.Record)) continue;
+                if (targetConnector == null)
+                {
+                    Debug.Log($"[ElectricWireAutoConnect] skip: target {target.TargetId} vanished before connecting");
+                    continue;
+                }
+                if (!ElectricWireSystemUtil.TryConnectBothSides(selfConnector, targetConnector, target.Record))
+                {
+                    Debug.Log($"[ElectricWireAutoConnect] skip: connect to {target.TargetId} failed");
+                    continue;
+                }
 
                 ConnectToolMaterialConsumer.Consume(target.Record.Materials, inventory);
             }

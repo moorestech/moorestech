@@ -53,31 +53,31 @@ namespace Server.Protocol.PacketResponse
 
             // fromNodeの解決と設置先の空き確認
             // Resolve the from node and ensure the placement position is free
-            if (!_railGraphDatastore.TryGetRailNode(request.FromNodeId, out var fromNode) || fromNode == null || fromNode.Guid != request.FromGuid) return RailConnectWithPlacePierResponse.CreateFailedResponse();
-            if (ServerContext.WorldBlockDatastore.Exists(placePosition)) return RailConnectWithPlacePierResponse.CreateFailedResponse();
+            if (!_railGraphDatastore.TryGetRailNode(request.FromNodeId, out var fromNode) || fromNode == null || fromNode.Guid != request.FromGuid) return Refuse("from node invalid");
+            if (ServerContext.WorldBlockDatastore.Exists(placePosition)) return Refuse("position occupied");
 
             // 解放状態を検証する（解放判定は基底ブロック）
             // Validate the unlock state (judged on the base block)
             var baseBlockGuid = MasterHolder.BlockMaster.GetBlockMaster(request.PierBlockId).BlockGuid;
-            if (!_gameUnlockStateDataController.BlockUnlockStateInfos[baseBlockGuid].IsUnlocked) return RailConnectWithPlacePierResponse.CreateFailedResponse();
+            if (!_gameUnlockStateDataController.BlockUnlockStateInfos[baseBlockGuid].IsUnlocked) return Refuse("pier block not unlocked");
 
             // 未解放または未指定(Empty)のconnectToolによる接続要求は設置前に拒否する（電線・歯車の4経路と対称）
             // Reject connection requests with an unlocked or unspecified (Empty) connectTool before placement, symmetric with the electric-wire/gear-chain paths
-            if (!ConnectToolSelector.IsUnlocked(request.ConnectToolGuid)) return RailConnectWithPlacePierResponse.CreateFailedResponse();
+            if (!ConnectToolSelector.IsUnlocked(request.ConnectToolGuid)) return Refuse("connect tool not unlocked");
 
             // 橋脚がレールブロックであることと建設コストを設置前に検証する
             // Validate the pier is a rail block and its construction cost before placement
             var blockId = request.PierBlockId;
             var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
-            if (blockMaster.BlockParam is not TrainRailBlockParam) return RailConnectWithPlacePierResponse.CreateFailedResponse();
+            if (blockMaster.BlockParam is not TrainRailBlockParam) return Refuse("pier is not a rail block");
             var placementPlan = _constructionWallet.PlanPlacement(blockMaster, requesterPlayerId);
             var pierItemCounts = placementPlan.ItemsToConsume;
-            if (!ConstructionCostService.HasRequiredItems(pierItemCounts, inventory.InventoryItems)) return RailConnectWithPlacePierResponse.CreateFailedResponse();
+            if (!ConstructionCostService.HasRequiredItems(pierItemCounts, inventory.InventoryItems)) return Refuse("pier construction cost shortage");
 
             // 橋脚を設置する
             // Place the pier block
             var createParams = request.PierPlaceInfo.BlockCreateParams.Select(v => new BlockCreateParam(v.Key, v.Value)).ToArray();
-            if (!ServerContext.WorldBlockDatastore.TryAddBlock(blockId, placePosition, request.PierPlaceInfo.Direction, createParams, out var block)) return RailConnectWithPlacePierResponse.CreateFailedResponse();
+            if (!ServerContext.WorldBlockDatastore.TryAddBlock(blockId, placePosition, request.PierPlaceInfo.Direction, createParams, out var block)) return Refuse("TryAddBlock failed");
             var toNode = block.GetComponent<RailComponent>().BackNode;
 
             // レール長は設置後のtoNodeからのみ確定するため、可否判定は設置後に行う
@@ -89,7 +89,7 @@ namespace Server.Protocol.PacketResponse
             if (!judgement.IsPlaceable)
             {
                 ServerContext.WorldBlockDatastore.RemoveBlock(placePosition, BlockRemoveReason.ManualRemove);
-                return RailConnectWithPlacePierResponse.CreateFailedResponse();
+                return Refuse($"judgement {judgement.FailureReason} (rolled back)");
             }
 
             // 接続失敗時は孤立橋脚とコスト消費を残さないよう設置を取り消して失敗させる。RailTypeGuidにはconnectToolGuidを格納する
@@ -97,7 +97,7 @@ namespace Server.Protocol.PacketResponse
             if (!_commandHandler.TryConnect(fromNode.NodeId, fromNode.Guid, toNode.NodeId, toNode.Guid, request.ConnectToolGuid))
             {
                 ServerContext.WorldBlockDatastore.RemoveBlock(placePosition, BlockRemoveReason.ManualRemove);
-                return RailConnectWithPlacePierResponse.CreateFailedResponse();
+                return Refuse("TryConnect failed (rolled back)");
             }
 
             // 橋脚コストと接続に使ったレール素材を消費する
@@ -107,6 +107,18 @@ namespace Server.Protocol.PacketResponse
             ConnectToolMaterialConsumer.Consume(judgement.Materials, inventory);
 
             return RailConnectWithPlacePierResponse.Create(toNode.NodeId, toNode.Guid);
+
+            #region Internal
+
+            // 拒否・ロールバックの理由を残してから失敗応答を返す
+            // Log why the request was refused or rolled back, then return the failure response
+            ProtocolMessagePackBase Refuse(string reason)
+            {
+                Debug.LogWarning($"[RailConnectWithPlacePier] denied: {reason} pos={placePosition} fromNode={request.FromNodeId} player={requesterPlayerId}");
+                return RailConnectWithPlacePierResponse.CreateFailedResponse();
+            }
+
+            #endregion
         }
 
         [MessagePackObject]
