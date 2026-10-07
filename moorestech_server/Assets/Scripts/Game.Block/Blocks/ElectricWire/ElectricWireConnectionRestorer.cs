@@ -48,12 +48,17 @@ namespace Game.Block.Blocks.ElectricWire
                     Debug.LogWarning($"[ElectricWire] Duplicate saved connection: {selfId} -> {targetId}");
                     continue;
                 }
+                if (!connection.TryToConnectionRecord(out var record))
+                {
+                    Debug.LogWarning($"[ElectricWire] Saved connection without connectToolGuid skipped: {selfId} -> {targetId}");
+                    continue;
+                }
                 var connector = ResolveTarget(selfId, targetId);
                 if (connector == null)
                 {
                     continue;
                 }
-                connections.Add(targetId, (connector, connection.ToConnectionRecord()));
+                connections.Add(targetId, (connector, record));
             }
             return true;
         }

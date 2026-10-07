@@ -71,27 +71,34 @@ namespace Tests.CombinedTest.Game.ElectricWire
             CollectionAssert.AreEqual(record.Materials, reverseRecord.Materials);
         }
 
-        [TestCase("ElectricWireConnectorComponent")]
-        [TestCase("GearChainPoleComponent")]
-        public void 種類を持たない接続のセーブ状態は読み込みで例外になる(string componentKey)
+        [Test]
+        public void 種類を持たない接続だけを飛ばして他の接続は復元する()
         {
-            var save = JObject.Parse(BuildSave(out _, out _, out _, out _));
+            var save = JObject.Parse(BuildSave(out var posPole, out var posGenerator, out var posChainA, out var posChainB));
 
-            // 種類キーを消した旧形の接続は、無音で空Guidへ縮退させず読み込みで落ちる
-            // An old-shape connection without the tool key must fail on load instead of silently degrading to an empty Guid
+            // 電線の種類キーだけ消す。空Guidへ縮退させず、その接続だけを警告つきで飛ばす
+            // Drop only the wire's tool key; never degrade to an empty Guid, skip just that connection with a warning
             var removedCount = 0;
             foreach (var block in (JArray)save["world"])
             {
-                if (block["state"]?[componentKey]?["connections"] is not JArray connections) continue;
+                if (block["state"]?["ElectricWireConnectorComponent"]?["connections"] is not JArray connections) continue;
                 foreach (var connection in connections)
                 {
                     Assert.IsTrue(((JObject)connection).Remove("connectToolGuid"));
                     removedCount++;
                 }
             }
-
             Assert.AreEqual(2, removedCount);
-            Assert.Throws<JsonSerializationException>(() => LoadInto(save.ToString()));
+
+            UnityEngine.TestTools.LogAssert.Expect(LogType.Warning, new System.Text.RegularExpressions.Regex("\\[ElectricWire\\] Saved connection without connectToolGuid skipped"));
+            UnityEngine.TestTools.LogAssert.Expect(LogType.Warning, new System.Text.RegularExpressions.Regex("\\[ElectricWire\\] Saved connection without connectToolGuid skipped"));
+            LoadInto(save.ToString());
+            Assert.AreEqual(0, ServerContext.WorldBlockDatastore.GetBlock(posPole).GetComponent<IElectricWireConnector>().WireConnections.Count);
+            Assert.AreEqual(0, ServerContext.WorldBlockDatastore.GetBlock(posGenerator).GetComponent<IElectricWireConnector>().WireConnections.Count);
+            var poleA = ServerContext.WorldBlockDatastore.GetBlock(posChainA).GetComponent<IGearChainPole>();
+            var poleB = ServerContext.WorldBlockDatastore.GetBlock(posChainB).GetComponent<IGearChainPole>();
+            Assert.IsTrue(poleA.TryGetChainConnectionRecord(poleB.BlockInstanceId, out var record));
+            Assert.AreEqual(ChainToolGuid, record.ConnectToolGuid);
         }
 
         private static string BuildSave(out Vector3Int posPole, out Vector3Int posGenerator, out Vector3Int posChainA, out Vector3Int posChainB)
