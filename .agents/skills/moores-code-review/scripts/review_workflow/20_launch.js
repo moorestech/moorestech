@@ -49,10 +49,18 @@ function accountFor(plans, raw) {
 
 // 反映 diff の機械的動作確認（orchestrator-steps.md「反映 diff の機械的動作確認」の実行形）。Apply と Refix の反映役が共有する
 // Mechanical checks on an applied diff (executable form of the orchestrator-steps.md section); shared by Apply and Refix
-function verifyStep(label, diffPath, snapshotName, retakeHint) {
-  return `${label} 反映 diff の機械的動作確認（${A.orchestratorStepsPath} の「反映 diff の機械的動作確認」）: \`python3 ${A.appliedDiffChecksScript} ${diffPath} --repo-root ${A.repoRoot} --out-dir ${A.runDir}/refix/${snapshotName}-verify\` の JSON を見る。`
-    + ' scenario_files が非空なら、改名・削除・シグネチャ変更に追従してその録画シナリオを直し、同じコマンドを再実行して作り直された compile_snippets を1本ずつ `uloop execute-dynamic-code --project-path <Repo root>/moorestech_client --code-file <snippet>` で流し、CompilationErrors のうちメッセージが changed_api の名前を含むもの（この反映の破壊）が0件になるまで直す。それ以外のエラーは master 由来の既存の壊れなので直さず本数だけ書く（Editor 不在なら「未確認（Editor 不在）」）。'
-    + ` シナリオを直したら ${retakeHint}（シナリオの追従も反映 diff に含めて再レビューさせる）。`
+function verifyStep(label, diffPath, fromName, toName, retakeHint) {
+  const check = `\`python3 ${A.appliedDiffChecksScript} check ${diffPath} --repo-root ${A.repoRoot} --run-dir ${A.runDir} --from ${fromName} --to ${toName}\``
+  return `${label} 反映 diff の機械的動作確認（${A.orchestratorStepsPath} の「反映 diff の機械的動作確認」）: ${check} の JSON を見る（.cs に触れていれば録画シナリオ全件を反映後の状態でコンパイルし、${fromName} の記録＝反映前と比べる。uloop compile でエラー0にした後に回す。compile=skipped なら Unity の型が反映前のままなので、結果に関わらずシナリオは「未確認（compile 未実施）」と書く）。`
+    + ' scenarios.status が new_errors なら、scenarios.new（反映前に無く反映後に増えた診断＝この反映の破壊。名前を含まない型不一致もここに入る）が0件になるまで録画シナリオを反映に追従させて直す。'
+    + ` シナリオを直したら ${retakeHint}。その後に同じ check を再実行する（シナリオの追従も反映 diff に含めて再レビューさせる）。scenarios.existing（反映前にもあった診断）は直さず本数だけ書く。`
+    + ' unverified なら scenarios.unverified の理由をそのまま「未確認」と書く（反映前の診断が無いものを既存扱いにしない）。not_required なら該当なし。'
     + ' save_load.touched が true なら `uloop run-tests --project-path <Repo root>/moorestech_client --filter-type regex --filter-value \'<save_load.test_regex>\'` を回し、この反映が落としたテストは直す。save_load.unverified の各行は「未確認」として verify_note に書き写す。'
-    + ' 結果（シナリオ N 本追従・compile ok/未確認、セーブ往復 N passed/未確認と理由、どちらも該当なし）を verify_note に1行で返す。'
+    + ' 結果（シナリオ 増分 N 件→追従後 0 件・既存 N 件／未確認と理由、セーブ往復 N passed／未確認と理由、該当なし）を verify_note に1行で返す。'
+}
+
+// 反映前の録画シナリオ診断を記録する（編集前に1回。.cs に触れなければ check が使わないだけ）
+// Record the pre-change scenario diagnostics before editing (unused when the diff touches no .cs)
+function recordStep(name) {
+  return `\`python3 ${A.appliedDiffChecksScript} record --repo-root ${A.repoRoot} --run-dir ${A.runDir} --name ${name} --if-missing\`（反映前の録画シナリオ全件のコンパイル診断。.cs を編集する見込みが無ければ省いてよい。Editor 不在なら status=unavailable が記録され、後の check は「未確認」になる）`
 }

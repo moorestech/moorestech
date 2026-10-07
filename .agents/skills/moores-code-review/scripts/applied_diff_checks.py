@@ -8,19 +8,21 @@
 # ⚠ Run the regression suite after ANY change under scripts/; wiring into
 #   SKILL.md and a wiring-test invariant are part of "done" for new scripts.
 # =====================================================================
-"""applied_diff_checks.py — 反映 diff の機械的動作確認の対象を決める（orchestrator-steps.md「反映 diff の機械的動作確認」）。
+"""applied_diff_checks.py — 反映 diff の機械的動作確認（orchestrator-steps.md「反映 diff の機械的動作確認」）。
 
-1. 録画シナリオ: 反映 diff が改名・削除・シグネチャ変更した C# の公開宣言名を取り、
-   unity-playmode-recorded-playtest 配下の .cs（レビュー diff から除外され、uloop compile の対象でもない）を
-   語境界で grep する。参照したシナリオごとに、本体を呼ばないローカル関数へ包んだコンパイル確認用スニペットを
-   --out-dir へ書く（uloop execute-dynamic-code --code-file で流すと型・メンバー解決だけを確かめられる）。
+1. 録画シナリオ: 反映前（snapshot の前側）と反映後の両方で録画シナリオ全件をコンパイルし（scenario_compile.py）、
+   反映後にだけ増えた診断をこの反映の破壊として返す。反映前の診断が無ければ「未確認」で、既存扱いにしない。
+   - record: 編集する前に、作業ツリーの現状を <run-dir>/refix/<name>-scenarios.json へ記録する。
+   - check : 反映 diff が .cs（テスト以外）に触れていれば、反映後を <to> として記録し <from> の記録と比べる。
 2. セーブ/ロード: 反映 diff が Save/Load・DataStore・Json 系に触れたら、既存のセーブ往復テストを選ぶ regex を返す。
    既存テストで覆えない経路は unverified として返す（新しいテスト基盤は作らない）。
 
-Finds what the mechanical checks must cover for an applied diff: playtest scenarios referencing renamed or
-removed public C# declarations (with compile-only snippets), and save/load round-trip tests to run.
+Mechanical checks for an applied diff: before/after compile diagnostics of every playtest scenario, and the
+save/load round-trip tests to run.
 
-usage: applied_diff_checks.py <diff> --repo-root <REPO> --out-dir <DIR>  → stdout に JSON
+usage:
+  applied_diff_checks.py record --repo-root R --run-dir D --name s0 [--if-missing]
+  applied_diff_checks.py check <diff> --repo-root R --run-dir D --from s0 --to s1   → stdout に JSON
 exit: 0=ok / 2=diff が読めない
 """
 from __future__ import annotations
@@ -33,12 +35,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from refix_snapshot import is_non_source_path  # noqa: E402
+from scenario_compile import compare, record  # noqa: E402
 
-SCENARIO_MARK = "unity-playmode-recorded-playtest"
-TYPE_DECL_RE = re.compile(r"\b(?:class|struct|interface|enum|record)\s+([A-Z]\w*)")
-MEMBER_DECL_RE = re.compile(
-    r"^\s*(?:\[[^\]]*\]\s*)*(?:public|internal|protected)\b[^=;{(]*?\b([A-Z]\w*)\s*(?:<[^>]*>)?\s*(?:\(|\{|=>|;)")
-USING_DIRECTIVE_RE = re.compile(r"^using\s+(?:static\s+)?[\w.]+(?:\s*=\s*[\w.<>, ]+)?\s*;\s*$")
 SAVE_LOAD_PATH_RE = re.compile(r"Save|Load|DataStore|Datastore|Json")
 SAVE_LOAD_LINE_RE = re.compile(r"\b\w*(?:Save|Load)\w*\s*\(|Json|DataStore|Datastore")
 # 既存のセーブ往復テスト（サーバー側・EditMode）。ブロック・電線・チェーン・接続を含むワールドのセーブ→再ロードを覆う
@@ -64,54 +62,10 @@ def parse_diff(text: str) -> dict[str, dict[str, list[str]]]:
     return files
 
 
-def declared_names(line: str) -> list[str]:
-    names = TYPE_DECL_RE.findall(line)
-    m = MEMBER_DECL_RE.match(line)
-    if m:
-        names.append(m.group(1))
-    return names
-
-
-def changed_api(files: dict) -> list[str]:
-    # 削除行の宣言のうち、同じ宣言行が追加側に無いもの＝改名・削除・シグネチャ変更（移動だけなら同じ行が残る）。
-    # テストの宣言はシナリオから参照されないので数えない（Fake 等の名前で無関係なシナリオを拾わない）
-    # Declarations on removed lines whose exact line is absent from the added side: rename, removal or signature change.
-    # Test declarations are never referenced by scenarios, so they are skipped
-    code = {p: f for p, f in files.items()
-            if p.endswith(".cs") and SCENARIO_MARK not in p and not is_non_source_path(p)}
-    added = {" ".join(l.split()) for f in code.values() for l in f["added"]}
-    names: set[str] = set()
-    for f in code.values():
-        for line in f["removed"]:
-            if " ".join(line.split()) not in added:
-                names.update(declared_names(line))
-    return sorted(names)
-
-
-def scenario_hits(repo_root: Path, names: list[str]) -> dict[str, list[str]]:
-    scenarios = sorted((repo_root / ".agents" / "skills").glob(f"{SCENARIO_MARK}/**/*.cs"))
-    hits: dict[str, list[str]] = {}
-    for path in scenarios:
-        text = path.read_text(encoding="utf-8", errors="replace")
-        for name in names:
-            if re.search(rf"\b{re.escape(name)}\b", text):
-                hits.setdefault(str(path.relative_to(repo_root)), []).append(name)
-    return hits
-
-
-def compile_snippet(scenario: Path) -> str:
-    # 先頭の using 指令とコメントは残し、本体を呼ばないローカル関数へ包む（PlaytestRunner.Run を実行させない）
-    # Keep leading using directives and comments; wrap the body in a never-called local function so nothing runs
-    lines = scenario.read_text(encoding="utf-8").splitlines()
-    split = 0
-    for i, line in enumerate(lines):
-        stripped = line.strip()
-        if stripped and not stripped.startswith("//") and not USING_DIRECTIVE_RE.match(stripped):
-            split = i
-            break
-    header, body = lines[:split], lines[split:]
-    return "\n".join([*header, "object ScenarioCompileOnly()", "{", *body, "}",
-                      f'return "compile-only: {scenario.name}";', ""])
+def touches_cs(files: dict) -> list[str]:
+    # 録画シナリオ自体の追従編集も対象（シナリオは .agents 配下で、テスト扱いの path ではない）
+    # Scenario edits count too (scenarios live under .agents and are not test paths)
+    return sorted(p for p in files if p.endswith(".cs") and not is_non_source_path(p))
 
 
 def save_load(files: dict) -> dict:
@@ -122,29 +76,61 @@ def save_load(files: dict) -> dict:
             "unverified": SAVE_LOAD_UNVERIFIED if touched else []}
 
 
-def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("diff")
-    ap.add_argument("--repo-root", required=True)
-    ap.add_argument("--out-dir", required=True)
-    args = ap.parse_args(argv)
-    diff_path, repo_root, out_dir = Path(args.diff), Path(args.repo_root).resolve(), Path(args.out_dir)
+def record_path(run_dir: Path, name: str) -> Path:
+    return run_dir / "refix" / f"{name}-scenarios.json"
+
+
+def cmd_record(args) -> int:
+    out = record_path(Path(args.run_dir).resolve(), args.name)
+    if args.if_missing and out.is_file():
+        data = json.loads(out.read_text(encoding="utf-8"))
+        print(json.dumps({"record": str(out), "status": data.get("status"), "reused": True}, ensure_ascii=False))
+        return 0
+    data = record(Path(args.repo_root).resolve(), out)
+    print(json.dumps({"record": str(out), "status": data["status"], "reason": data["reason"],
+                      "scenarios": len(data["scenarios"])}, ensure_ascii=False))
+    return 0
+
+
+def cmd_check(args) -> int:
+    diff_path, repo_root, run_dir = Path(args.diff), Path(args.repo_root).resolve(), Path(args.run_dir).resolve()
     if not diff_path.is_file():
         print(f"diff が無い: {diff_path}", file=sys.stderr)
         return 2
     files = parse_diff(diff_path.read_text(encoding="utf-8", errors="replace"))
-    names = changed_api(files)
-    hits = scenario_hits(repo_root, names) if names else {}
-    snippets = []
-    if hits:
-        out_dir.mkdir(parents=True, exist_ok=True)
-        for rel in hits:
-            target = out_dir / (rel.split(f"{SCENARIO_MARK}/", 1)[-1].replace("/", "__") + ".compile.cs")
-            target.write_text(compile_snippet(repo_root / rel), encoding="utf-8")
-            snippets.append(str(target.resolve()))
-    print(json.dumps({"changed_api": names, "scenario_files": sorted(hits), "scenario_hits": hits,
-                      "compile_snippets": snippets, "save_load": save_load(files)}, ensure_ascii=False, indent=1))
+    cs_files = touches_cs(files)
+    if cs_files:
+        before_path = record_path(run_dir, args.src)
+        before = json.loads(before_path.read_text(encoding="utf-8")) if before_path.is_file() else None
+        after = record(repo_root, record_path(run_dir, args.dst))
+        scenarios = compare(before, after)
+        scenarios.update({"cs_files": cs_files, "before": str(before_path), "after": str(record_path(run_dir, args.dst))})
+    else:
+        scenarios = {"required": False, "status": "not_required", "new": [], "unverified": []}
+    print(json.dumps({"scenarios": scenarios, "save_load": save_load(files)}, ensure_ascii=False, indent=1))
     return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    sub = ap.add_subparsers(dest="cmd", required=True)
+    r = sub.add_parser("record")
+    r.add_argument("--repo-root", required=True)
+    r.add_argument("--run-dir", required=True)
+    r.add_argument("--name", required=True)
+    r.add_argument("--if-missing", action="store_true", help="記録が既にあれば取り直さない")
+    c = sub.add_parser("check")
+    c.add_argument("diff")
+    c.add_argument("--repo-root", required=True)
+    c.add_argument("--run-dir", required=True)
+    c.add_argument("--from", dest="src", required=True)
+    c.add_argument("--to", dest="dst", required=True)
+    args = ap.parse_args(argv)
+    for name in (getattr(args, "name", None), getattr(args, "src", None), getattr(args, "dst", None)):
+        if name is not None and not re.fullmatch(r"[A-Za-z0-9_.-]+", name):
+            print("snapshot 名は英数字・_ . - のみ", file=sys.stderr)
+            return 2
+    return cmd_record(args) if args.cmd == "record" else cmd_check(args)
 
 
 if __name__ == "__main__":

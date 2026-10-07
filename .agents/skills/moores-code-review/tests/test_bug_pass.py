@@ -139,6 +139,13 @@ class AssembledWorkflowTest(unittest.TestCase):
                 by_label = {c["label"]: c for c in calls}
                 self.assertIn("applied_diff_checks.py", by_label["apply"]["prompt"])
                 self.assertIn("applied_diff_checks.py", by_label["refix-apply-r1"]["prompt"])
+                # 録画シナリオは名前で絞らず、反映前の記録と反映後を比べる（基点→反映後の snapshot 名で突き合わせる）
+                # Scenarios are compared before/after by snapshot names, never narrowed by changed names
+                for label, frm, to in (("apply", "s0", "s1"), ("refix-apply-r1", "s1", "s2")):
+                    prompt = by_label[label]["prompt"]
+                    self.assertIn(f"--name {frm} --if-missing", prompt)
+                    self.assertIn(f"--from {frm} --to {to}", prompt)
+                    self.assertNotIn("changed_api", prompt)
                 integrator = by_label["integrator"]
                 self.assertEqual("Mode : bug-pass" in integrator["prompt"], bug)
                 self.assertEqual(integrator["schema"]["properties"]["design_items"].get("maximum") == 0, bug,

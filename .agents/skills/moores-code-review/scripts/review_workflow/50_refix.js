@@ -43,11 +43,11 @@ if (apply) {
       `Repo root : ${A.repoRoot}（修正はこの作業ツリーだけに加える）`,
       `Skill root : ${A.skillRoot}`,
       `Base ref : ${A.baseRef || '(未指定)'}`,
-      `手順: (1) レポートの Critical のうち修正方針が具体名つきで選択の余地が無いものだけ §3 の規則どおり適用する（具体名どおり・波及先すべて）。${designRule}`,
+      `手順: (0) 何も編集する前に ${recordStep(`s${round}`)} を実行する。(1) レポートの Critical のうち修正方針が具体名つきで選択の余地が無いものだけ §3 の規則どおり適用する（具体名どおり・波及先すべて）。${designRule}`,
       '(2) .cs を変えたら `uloop compile --project-path <Repo root>/moorestech_client` でエラー0を確認する（Editor不在で実行不能なら compile=skipped と理由。黙って省略しない）。',
       `(3) final.diff と checks-final.json を Apply と同じ作り方で作り直す（\`git diff <Base ref> -- <patch.diff が触ったファイル ∪ 編集・新規作成したファイル> ':(exclude,glob)**/unity-playmode-recorded-playtest/**/*.cs'\` → ${A.runDir}/final.diff、\`python3 ${A.deterministicChecksScript} ${A.runDir}/final.diff --repo-root ${A.repoRoot}\` → ${A.runDir}/checks-final.json）。自分の修正が新たに生んだ confirmed/比較演算子違反はその場で直す。`,
       `(4) ${snapshotNext} を実行し、scope を refix_scope に返す（失敗したら error と stderr）。`,
-      verifyStep('(5)', nextDiff, `s${next}`, `(4) をやり直して s${next} と round${next}.diff を取り直す`),
+      verifyStep('(5)', nextDiff, `s${round}`, `s${next}`, `(4) をやり直して s${next} と round${next}.diff を取り直す`),
       'レポートの Warning / Info は1件1行で warnings / infos に転記する（親が最終報告へ載せる。黙って落とさない）。',
       '修正は外科的に行い、ReadはEdit対象の現物確認に絞る。返答は構造化出力のみ。',
     ].join('\n')

@@ -20,14 +20,14 @@ if (!A.reportOnly) {
     `Repo root : ${A.repoRoot}（修正はこの作業ツリーだけに加える）`,
     `Skill root : ${A.skillRoot}（integration-rules.md §3〜§5・scripts はこの配下の絶対パス）`,
     `Base ref : ${A.baseRef || '(未指定)'} — final.diff は「${finalDiffRule}」で作る（pathspec で絞る。作業ツリーが Base ref から別件で進んでいても無関係な差分を巻き込まないため）。未指定なら patch.diff に「git diff HEAD -- <同じファイル集合>」を連結する。`,
-    `手順: (0) 何も編集する前に \`python3 ${A.refixSnapshotScript} snapshot --repo-root ${A.repoRoot} --run-dir ${A.runDir} --name s0\` を実行する（作業ツリーの snapshot。HEAD/index/作業ツリーは変わらない。Step 6.5-2.5 の反映 diff の基点）。`,
+    `手順: (0) 何も編集する前に \`python3 ${A.refixSnapshotScript} snapshot --repo-root ${A.repoRoot} --run-dir ${A.runDir} --name s0\` を実行する（作業ツリーの snapshot。HEAD/index/作業ツリーは変わらない。Step 6.5-2.5 の反映 diff の基点）。続けて ${recordStep('s0')} を実行する。`,
     BUG_PASS
       ? '(1) integrated.md の採用Critical（bug-pass では全件が自動適用可・修正方針は症状を消す最小の変更）を適用する。design.md は書かない。'
       : '(1) integrated.md の採用Critical のうち適用区分が自動適用可のものだけ適用する。設計判断は適用せず design.md（症状→原因→推奨と選択肢。コードを開かずに選べる形。0件なら「なし」）へ書く。',
     '(2) .cs を変えたら `uloop compile --project-path <Repo root>/moorestech_client` でエラー0を確認する（Editor不在で実行不能なら compile=skipped と返す）。',
     `(3) final.diff を書き、\`python3 ${A.deterministicChecksScript} <final.diff> --repo-root <Repo root>\` を ${A.runDir}/checks-final.json へ書く（--context は渡さない）。自分の修正が新たに生んだ confirmed/比較演算子違反はその場で直す。`,
     `(3.5) ${snapshotS1} を実行し、出力 JSON の scope を refix_scope に、files/source_files の要約を refix_note に返す（反映 diff は親が applied-diff-correctness で再レビューする）。スクリプトが失敗したら refix_scope=error とし stderr を refix_note に書く（黙って source/none にしない）。`,
-    verifyStep('(3.6)', `${A.runDir}/refix/round1.diff`, 's1', `(3.5) をやり直して s1 と round1.diff を取り直し、final.diff と checks-final.json も (3) と同じ作り方で作り直す`),
+    verifyStep('(3.6)', `${A.runDir}/refix/round1.diff`, 's0', 's1', `(3.5) をやり直して s1 と round1.diff を取り直し、final.diff と checks-final.json も (3) と同じ作り方で作り直す`),
     postCheckStep,
     '修正は外科的に行い、ReadはEdit対象の現物確認に絞る。返答は構造化出力のみ。',
   ].join('\n')
