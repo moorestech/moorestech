@@ -102,16 +102,6 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.Connection
             return infos.TryGetValue(connectToolGuid, out var info) && info.IsUnlocked;
         }
 
-        // 指定アイテムの所持合計を数える
-        // Count the total held amount of the given item
-        public static int CountItem(IOpenableInventory inventory, ItemId itemId)
-        {
-            var total = 0;
-            foreach (var itemStack in inventory.InventoryItems)
-                if (itemStack.Id == itemId)
-                    total += itemStack.Count;
-            return total;
-        }
 
 
 

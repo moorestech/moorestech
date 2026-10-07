@@ -6,6 +6,7 @@ using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
+using Game.Construction;
 using Game.Context;
 using Game.EnergySystem;
 using Core.Inventory;
@@ -60,11 +61,11 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
             {
                 foreach (var element in unlockedElements)
                 {
-                    if (!TryBuildTargets(element.ConnectToolGuid, out var builtTargets, out var requiredByItem)) continue;
+                    if (!TryBuildTargets(element.ConnectToolGuid, out var builtTargets, out var requiredMaterials)) continue;
 
-                    // 建設コスト等で予約済みの数量を上乗せして所持数を判定する
-                    // Add quantities reserved by construction costs when judging held counts
-                    if (!HasEnoughAll(requiredByItem)) continue;
+                    // 建設コスト等で予約済みの数量を上乗せして、所持判定の正本で判定する
+                    // Judge with the canonical affordability check, adding quantities reserved by construction costs
+                    if (!ConstructionMaterialAccounting.HasEnough(requiredMaterials, inventoryItems, ConnectToolMaterialConsumer.ToMaterials(reservedItems))) continue;
 
                     selectedTargets = builtTargets;
                     selectedConnectToolGuid = element.ConnectToolGuid;
@@ -76,10 +77,10 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
                 return false;
             }
 
-            bool TryBuildTargets(Guid connectToolGuid, out List<(BlockInstanceId, ConnectionLineRecord)> builtTargets, out Dictionary<ItemId, int> requiredByItem)
+            bool TryBuildTargets(Guid connectToolGuid, out List<(BlockInstanceId, ConnectionLineRecord)> builtTargets, out List<ConnectToolMaterialCost> requiredMaterials)
             {
                 builtTargets = new List<(BlockInstanceId, ConnectionLineRecord)>();
-                requiredByItem = new Dictionary<ItemId, int>();
+                requiredMaterials = new List<ConnectToolMaterialCost>();
 
                 foreach (var candidate in candidates)
                 {
@@ -90,39 +91,10 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
                     }
 
                     builtTargets.Add((candidate.TargetId, record));
-                    foreach (var material in record.Materials)
-                    {
-                        requiredByItem.TryGetValue(material.ItemId, out var current);
-                        requiredByItem[material.ItemId] = current + material.Count;
-                    }
+                    requiredMaterials.AddRange(record.Materials);
                 }
 
                 return true;
-            }
-
-            bool HasEnoughAll(Dictionary<ItemId, int> requiredByItem)
-            {
-                foreach (var (itemId, required) in requiredByItem)
-                {
-                    var reserved = 0;
-                    foreach (var reservedItem in reservedItems)
-                    {
-                        if (reservedItem.itemId == itemId) reserved += reservedItem.count;
-                    }
-                    if (CountItem(itemId) < required + reserved) return false;
-                }
-                return true;
-            }
-
-            int CountItem(ItemId itemId)
-            {
-                var total = 0;
-                foreach (var itemStack in inventoryItems)
-                {
-                    if (itemStack.Id != itemId) continue;
-                    total += itemStack.Count;
-                }
-                return total;
             }
 
             #endregion

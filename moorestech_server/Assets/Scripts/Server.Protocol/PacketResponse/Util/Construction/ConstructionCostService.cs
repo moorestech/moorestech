@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Core.Inventory;
 using Core.Item.Interface;
 using Core.Master;
+using Game.Construction;
 using Game.Context;
 using Server.Protocol.PacketResponse.Util.ConnectTool;
 
@@ -13,24 +14,11 @@ namespace Server.Protocol.PacketResponse.Util.Construction
     /// </summary>
     public static class ConstructionCostService
     {
+        // 所持判定は正本 ConstructionMaterialAccounting.HasEnough に委ねる
+        // Delegate the affordability check to the canonical ConstructionMaterialAccounting.HasEnough
         public static bool HasRequiredItems(IReadOnlyList<(ItemId itemId, int count)> itemCounts, IReadOnlyList<IItemStack> inventoryItems)
         {
-            if (itemCounts == null || itemCounts.Count == 0) return true;
-
-            // 全スロットの所持数を合算
-            // Sum held counts across all inventory slots per material
-            foreach (var (itemId, count) in itemCounts)
-            {
-                var total = 0;
-                foreach (var stack in inventoryItems)
-                {
-                    if (stack.Id != itemId) continue;
-                    total += stack.Count;
-                }
-                if (total < count) return false;
-            }
-
-            return true;
+            return ConstructionMaterialAccounting.HasEnough(ConnectToolMaterialConsumer.ToMaterials(itemCounts), inventoryItems, null);
         }
 
         public static void ConsumeRequiredItems(IReadOnlyList<(ItemId itemId, int count)> itemCounts, IOpenableInventory inventory)
