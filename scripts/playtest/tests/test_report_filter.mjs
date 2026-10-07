@@ -2,12 +2,30 @@
 // Verifies report-filter.js pure logic under node
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { applyFilters, filterOf, loadFilter, neighbours, saveFilter } from "../dashboard/static/js/report-filter.js";
+import { applyFilters, CANDIDATE_FILTER, FEEDBACK_FILTER, filterOf, loadFilter, neighbours, saveFilter, STORAGE_KEY } from "../dashboard/static/js/report-filter.js";
 
-import { routeHref } from "../dashboard/static/js/core.js";
+import { findReport, routeHref } from "../dashboard/static/js/core.js";
 
 const R = (id, kind, extra = {}) => ({ id, kind, triage: "excluded", steamId: "s", buildLabel: "b", description: "", testerName: "", readAt: null, ...extra });
 const reports = [R("1", "feedback"), R("2", "bug"), R("3", "feedback", { readAt: "x" }), R("4", "bug"), R("5", "feedback")];
+
+test("report lookup uses both box keys", () => {
+  const boxes = [
+    { boxSteamId: "s1", boxId: "same" },
+    { boxSteamId: "s2", boxId: "same" },
+  ];
+  assert.equal(findReport(boxes, "s2", "same"), boxes[1]);
+  assert.equal(findReport(boxes, "s1", "missing"), undefined);
+});
+
+test("overview presets use the same matcher as report links", () => {
+  const rows = [
+    R("candidate", "bug", { triage: "candidate" }),
+    R("feedback", "feedback"),
+  ];
+  assert.deepEqual(applyFilters(rows, new URLSearchParams(CANDIDATE_FILTER)), [rows[0]]);
+  assert.deepEqual(applyFilters(rows, new URLSearchParams(FEEDBACK_FILTER)), [rows[1]]);
+});
 
 test("filterOf keeps only non-empty filter keys", () => {
   assert.deepEqual(filterOf(new URLSearchParams("kind=feedback&q=&foo=1&read=unread")), { kind: "feedback", read: "unread" });
@@ -50,12 +68,12 @@ test("saveFilter/loadFilter round-trip and tolerate broken storage", (t) => {
   assert.deepEqual(loadFilter(), { kind: "feedback" });
   saveFilter({});
   assert.deepEqual(loadFilter(), {});
-  store.set("playtest-dashboard.report-filter", "{broken");
+  store.set(STORAGE_KEY, "{broken");
   assert.deepEqual(loadFilter(), {});
-  store.set("playtest-dashboard.report-filter", JSON.stringify({ kind: 1, evil: "x", q: "a" }));
+  store.set(STORAGE_KEY, JSON.stringify({ kind: 1, evil: "x", q: "a" }));
   assert.deepEqual(loadFilter(), { q: "a" });
   for (const value of ["null", "[]", "42", '"text"']) {
-    store.set("playtest-dashboard.report-filter", value);
+    store.set(STORAGE_KEY, value);
     assert.deepEqual(loadFilter(), {});
   }
   globalThis.localStorage = { getItem: () => { throw new Error("denied"); }, setItem: () => { throw new Error("denied"); } };
@@ -72,7 +90,7 @@ test("saveFilter dispatches after storing the filter", (t) => {
   const events = [];
   globalThis.localStorage = { setItem: (key, value) => store.set(key, value) };
   globalThis.dispatchEvent = (event) => {
-    assert.equal(store.get("playtest-dashboard.report-filter"), '{"kind":"feedback"}');
+    assert.equal(store.get(STORAGE_KEY), '{"kind":"feedback"}');
     events.push(event.type);
     return true;
   };

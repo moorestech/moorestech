@@ -2,10 +2,12 @@
 // Report filtering: condition extraction, matching, neighbour lookup and remembering the last condition (no DOM)
 
 export const FILTER_KEYS = ["triage", "kind", "read", "tester", "build", "q"];
+export const CANDIDATE_FILTER = { triage: "candidate" };
+export const FEEDBACK_FILTER = { kind: "feedback" };
 // 種別が空（読めない箱）は value="" だと「すべて」と区別できないので専用の値で表す
 // An empty kind (unreadable box) gets its own value, since "" would mean "all"
 export const EMPTY_KIND = "(none)";
-const STORAGE_KEY = "playtest-dashboard.report-filter";
+export const STORAGE_KEY = "playtest-dashboard.report-filter";
 
 export function filterOf(params) {
   return Object.fromEntries(FILTER_KEYS.filter((key) => params.get(key)).map((key) => [key, params.get(key)]));

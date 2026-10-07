@@ -1,7 +1,7 @@
 // 起動・ナビゲーション・定期更新
 // Bootstrap, navigation and periodic refresh
-import { fmtDateTime, h, parseRoute, routeHref } from "./core.js";
-import { loadFilter } from "./report-filter.js";
+import { findReport, fmtDateTime, h, parseRoute, routeHref } from "./core.js";
+import { applyFilters, CANDIDATE_FILTER, loadFilter, STORAGE_KEY } from "./report-filter.js";
 import { renderDigests } from "./views/digests.js";
 import { renderOverview } from "./views/overview.js";
 import { detailNav, renderReport } from "./views/report.js";
@@ -62,20 +62,25 @@ function render() {
   const view = VIEWS[route.view] || VIEWS.overview;
   // 報告タブにだけ未投入の件数を出す（要対応がどこにあるかをどの画面からも見えるように）
   // Only the reports tab carries the un-enqueued count, so pending work is visible from every view
-  const pending = data.reports.filter((r) => r.triage === "candidate").length;
+  const pending = applyFilters(data.reports, new URLSearchParams(CANDIDATE_FILTER)).length;
   document.getElementById("tabs").replaceChildren(...TABS.map(([tabView, label]) =>
     h("a", {
-      href: tabView === "reports" ? routeHref(tabView, [], loadFilter()) : routeHref(tabView),
+      href: routeHref(tabView),
       class: tabView === active ? "current" : null,
       "data-view": tabView,
     }, label,
       tabView === "reports" && pending > 0 ? h("span", { class: "tab-count", title: "未投入のバグ報告" }, String(pending)) : null)));
+  syncReportsTab();
   document.getElementById("main").replaceChildren(view(data, route));
 }
 
 function syncReportsTab() {
   const tab = document.querySelector('#tabs a[data-view="reports"]');
-  if (tab) tab.href = routeHref("reports", [], loadFilter());
+  if (tab) tab.href = reportsTabHref();
+}
+
+function reportsTabHref() {
+  return routeHref("reports", [], loadFilter());
 }
 
 // 詳細の動画を保ったまま、取得済みデータで前後リンクだけを更新する
@@ -85,7 +90,7 @@ function syncDetailNav() {
   if (route.view !== "report") return;
   const nav = document.querySelector("#main .detail-nav");
   if (!nav) return;
-  const report = data.reports.find((r) => r.boxSteamId === route.args[0] && r.boxId === route.args[1]);
+  const report = findReport(data.reports, route.args[0], route.args[1]);
   if (report) nav.replaceWith(detailNav(data, report, route.params));
 }
 
@@ -137,6 +142,9 @@ function reloadForNewVersion(force) {
 
 async function start() {
   window.addEventListener("dashboard:filter-saved", syncReportsTab);
+  // 別タブで保存された一覧条件も、報告タブの行き先に反映する
+  // Keep the reports tab destination current when another tab saves its filters
+  window.addEventListener("storage", (event) => { if (event.key === STORAGE_KEY) syncReportsTab(); });
   try {
     await load();
     render();

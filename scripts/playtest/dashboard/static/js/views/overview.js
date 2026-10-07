@@ -3,11 +3,10 @@
 import { stackedDayChart } from "../charts.js";
 import { card, dayGroups, deltaText, moreLink, pageHead, reportRow, stat } from "../components.js";
 import { countableSessions, emptyNote, fmtDateTime, h, isKnownKind, jstToday, linkify, routeHref, testerName } from "../core.js";
+import { applyFilters, CANDIDATE_FILTER, FEEDBACK_FILTER } from "../report-filter.js";
 
 const CHART_DAYS = 14;
 const LIST_LIMIT = 12;
-const CANDIDATE_FILTER = { triage: "candidate" };
-const FEEDBACK_FILTER = { kind: "feedback" };
 const KIND_SERIES = [
   { key: "bug", label: "バグ", color: "--series-1" },
   { key: "feedback", label: "感想", color: "--series-2" },
@@ -17,7 +16,7 @@ const KIND_SERIES = [
 
 export function renderOverview(data) {
   const sessions = countableSessions(data.sessions);
-  const candidates = data.reports.filter((r) => r.triage === CANDIDATE_FILTER.triage);
+  const candidates = applyFilters(data.reports, new URLSearchParams(CANDIDATE_FILTER));
   const latest = [...data.reports, ...data.sessions].map((row) => row.readyAt).filter(Boolean).sort().pop();
   return h("div", { class: "view" },
     pageHead("概要", latest ? `最新の受信 ${fmtDateTime(latest)}` : "まだ受信がありません"),
@@ -43,7 +42,7 @@ function dayTotals(rows) {
 // 数字は「未投入（累計）」以外を直近7日に揃え、前の7日との差を添える
 // Every figure except the cumulative backlog uses the last 7 days, with the change versus the 7 days before
 function weekStats(data, sessions, candidateCount) {
-  const unreadCandidates = data.reports.filter((r) => r.triage === CANDIDATE_FILTER.triage && !r.readAt).length;
+  const unreadCandidates = applyFilters(data.reports, new URLSearchParams({ ...CANDIDATE_FILTER, read: "unread" })).length;
   const since = jstToday(6);
   const before = jstToday(13);
   const inWeek = (d) => d >= since;
@@ -88,7 +87,7 @@ function activityCharts(reports, sessions) {
 }
 
 function feedbackQuotes(reports) {
-  const rows = reports.filter((r) => r.kind === FEEDBACK_FILTER.kind).slice(0, 3);
+  const rows = applyFilters(reports, new URLSearchParams(FEEDBACK_FILTER)).slice(0, 3);
   if (rows.length === 0) return emptyNote("感想はまだありません");
   return h("ul", { class: "quotes" }, rows.map((r) => h("li", null,
     h("blockquote", null, linkify((r.description || "").trim() || "（説明文が空）")),

@@ -1,16 +1,15 @@
 // 報告詳細: 説明全文・スクショ・動画・ビルド情報・投入コマンド・既読と関連チケット
 // Report detail: full text, screenshot, video, build info, enqueue command, read mark and related tickets
 import { card, kindMark, runStatusLabel, statusText } from "../components.js";
-import { emptyNote, fmtDateTime, h, linkify, mediaUrl, routeHref, testerName } from "../core.js";
+import { emptyNote, findReport, fmtDateTime, h, linkify, mediaUrl, routeHref, testerName } from "../core.js";
 import { filterOf, loadFilter, neighbours } from "../report-filter.js";
 import { detailActions, ticketsCard } from "./report-actions.js";
 
 const REPO_URL = "https://github.com/moorestech/moorestech";
 
 export function renderReport(data, args, params) {
-  const index = data.reports.findIndex((r) => r.boxSteamId === args[0] && r.boxId === args[1]);
-  if (index < 0) return h("div", { class: "view" }, backLink(params), emptyNote("この報告は見つかりません"));
-  const report = data.reports[index];
+  const report = findReport(data.reports, args[0], args[1]);
+  if (!report) return h("div", { class: "view" }, backLink(params), emptyNote("この報告は見つかりません"));
   return h("div", { class: "view" },
     detailNav(data, report, params),
     h("header", { class: "detail-head" },
