@@ -13,8 +13,9 @@
 録画シナリオ（unity-playmode-recorded-playtest 配下の .cs）はレビュー diff からも uloop compile からも外れる。
 反映が壊したかは「どの名前を変えたか」からは決まらない（複数行シグネチャ・名前を含まない型不一致・別型への移動）。
 そこで全件を本体を呼ばないローカル関数へ包んで execute-dynamic-code でコンパイルし、反映前と反映後の診断を
-(シナリオ, エラーコード, メッセージ) で正規化して比べ、反映後にだけ増えた診断をこの反映の破壊とする。
-行番号・列は追従編集で揺れるので鍵に入れない。同じ診断が増えた分は多重集合の差で数える。
+(シナリオ, エラーコード, メッセージ, 指す行のソース文字列) で正規化して比べ、反映後にだけ増えた診断をこの反映の破壊とする。
+行番号・列は追従編集で揺れるので鍵に入れず、代わりに指す行の文字列で呼び出し箇所を区別する（別の呼び出しの
+同文面 CS1503 と相殺しない。2026-10-07 Codex 再監査）。行が取れず対応を確認できない一致は既存扱いせず未確認にする。
 
 Records compile diagnostics of every playtest scenario and diffs before/after an applied change. Name-based
 targeting misses multi-line signatures, name-less type errors and moves; comparing normalized diagnostics does not.
@@ -83,7 +84,9 @@ def run_edc(project: Path, snippet: Path) -> dict:
             return {"status": "unknown", "reason": f"Unity に届かない（Editor 不在）: {detail}", "no_response": True}
         errors = data.get("CompilationErrors") or []
         if data.get("Success") or errors:
-            return {"status": "compiled", "diagnostics": [normalize(e) for e in errors]}
+            # Line は実際にコンパイルされたコード（UpdatedCode。無ければスニペット）の行 / Line indexes the compiled code
+            code_lines = str(data.get("UpdatedCode") or snippet.read_text(encoding="utf-8")).splitlines()
+            return {"status": "compiled", "diagnostics": [normalize(e, code_lines) for e in errors]}
         # コンパイル診断なしの失敗は実行拒否・例外。1回だけ取り直す / no diagnostics: rejection or runtime error, retry once
         reason = str(data.get("ErrorMessage") or data.get("Error") or "Success=false・CompilationErrors なし")[:200]
         if attempt == 0:
@@ -91,8 +94,13 @@ def run_edc(project: Path, snippet: Path) -> dict:
     return {"status": "unknown", "reason": reason}
 
 
-def normalize(diag: dict) -> dict:
-    return {"code": str(diag.get("ErrorCode") or "").strip(), "message": " ".join(str(diag.get("Message") or "").split())}
+def normalize(diag: dict, code_lines: list[str]) -> dict:
+    # 行番号は揺れるので、指す行のソース文字列（前後空白除去）で呼び出し箇所を識別する。取れなければ None
+    # Line numbers drift, so the stripped source text of the pointed line identifies the call site; None if unknown
+    line = diag.get("Line")
+    source = code_lines[line - 1].strip() if isinstance(line, int) and 1 <= line <= len(code_lines) else None
+    return {"code": str(diag.get("ErrorCode") or "").strip(),
+            "message": " ".join(str(diag.get("Message") or "").split()), "source": source or None}
 
 
 def record(repo_root: Path, out_json: Path) -> dict:
@@ -121,8 +129,26 @@ def record(repo_root: Path, out_json: Path) -> dict:
     return data
 
 
-def _keys(entry: dict) -> Counter:
-    return Counter((d["code"], d["message"]) for d in entry.get("diagnostics", []))
+def _diff_scenario(rel: str, prev: dict | None, entry: dict) -> tuple[list[dict], int, list[str]]:
+    # 同じ (コード, メッセージ, 指す行の文字列) だけを既存とみなす（別の呼び出しの同文面 CS1503 と相殺しない）。
+    # 行の文字列が取れない診断は、同文面が反映前にあれば対応を確認できないので未確認、無ければ増分
+    # Only identical (code, message, source line) counts as existing; a source-less diagnostic is unverified when
+    # the same text existed before (call site cannot be matched), otherwise new
+    before = Counter((d["code"], d["message"], d.get("source")) for d in (prev or {}).get("diagnostics", [])
+                     if d.get("source"))
+    loose = Counter((d["code"], d["message"]) for d in (prev or {}).get("diagnostics", []))
+    new, unverified, existing = [], [], 0
+    for d in entry.get("diagnostics", []):
+        key, item = (d["code"], d["message"], d.get("source")), {"scenario": rel, "code": d["code"],
+                                                               "message": d["message"], "source": d.get("source")}
+        if d.get("source") and before[key] > 0:
+            before[key] -= 1
+            existing += 1
+        elif not d.get("source") and loose[(d["code"], d["message"])] > 0:
+            unverified.append(f"{rel}: {d['code']} {d['message']}（指す行が取れず反映前の同文面と対応を確認できない）")
+        else:
+            new.append(item)
+    return new, existing, unverified
 
 
 def compare(before: dict | None, after: dict) -> dict:
@@ -149,10 +175,10 @@ def compare(before: dict | None, after: dict) -> dict:
         if before is None or before.get("status") == "unavailable":
             continue
         # 反映前に無いシナリオ（今回追加）は全診断が増分 / a scenario absent before counts all its diagnostics as new
-        after_keys, before_keys = _keys(entry), _keys(prev or {})
-        existing += sum((after_keys & before_keys).values())
-        for (code, message), n in (after_keys - before_keys).items():
-            new.extend({"scenario": rel, "code": code, "message": message} for _ in range(n))
+        added, kept, unsure = _diff_scenario(rel, prev, entry)
+        new += added
+        existing += kept
+        unverified += unsure
     status = "new_errors" if new else ("unverified" if unverified else "ok")
     return {"required": True, "status": status, "new": new, "existing": existing,
             "unverified": unverified, "compiled": len(after.get("scenarios", {})),

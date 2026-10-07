@@ -16,6 +16,8 @@ from pathlib import Path
 SKILL_DIR = Path(__file__).resolve().parent.parent
 SCRIPT = SKILL_DIR / "scripts/applied_diff_checks.py"
 FAKE = Path(__file__).resolve().parent / "fake_uloop.py"
+sys.path.insert(0, str(SKILL_DIR / "scripts"))
+import scenario_compile  # noqa: E402
 SCENARIO_DIR = ".agents/skills/unity-playmode-recorded-playtest/scenarios/misc"
 SCENARIO = """// 説明
 using Client.Playtest;
@@ -103,6 +105,23 @@ class AppliedDiffChecksTest(unittest.TestCase):
         out = self.check(moved)["scenarios"]
         self.assertEqual(out["status"], "new_errors")
         self.assertEqual(out["new"][0]["code"], "CS0117")
+
+    def test_same_text_error_at_another_call_site_is_not_cancelled(self):
+        # Codex 再監査: F(string)/G(int) → F(int)/G(string)。CS1503 は同文面だが別の呼び出しなので新規
+        # Codex r2: swapping the parameter types yields same-text CS1503 at a different call site, which is new
+        self.write_scenario(SCENARIO.replace("FooService.DoThing(1);", "A.F(1);\n    B.G(1);"))
+        self.record_before({"A.F": ["string"], "B.G": ["int"]})
+        self.set_api({"A.F": ["int"], "B.G": ["string"]})
+        out = self.check(diff_for(SRC, ["    void F(string v)"], ["    void F(int v)"]))["scenarios"]
+        self.assertEqual((out["status"], out["existing"]), ("new_errors", 0))
+        self.assertEqual([(d["code"], d["source"]) for d in out["new"]], [("CS1503", "B.G(1);")])
+
+    def test_source_less_match_is_unverified_not_existing(self):
+        diag = {"code": "CS1503", "message": "Argument 1: cannot convert from 'int' to 'string'"}
+        before = {"status": "ok", "scenarios": {"s.cs": {"status": "compiled", "diagnostics": [dict(diag, source="A.F(1);")]}}}
+        after = {"status": "ok", "scenarios": {"s.cs": {"status": "compiled", "diagnostics": [dict(diag, source=None)]}}}
+        out = scenario_compile.compare(before, after)
+        self.assertEqual((out["status"], out["existing"], out["new"]), ("unverified", 0, []))
 
     def test_existing_errors_are_not_new_even_when_lines_shift(self):
         self.write_scenario(SCENARIO.replace("FooService.DoThing(1);", "Gone.Api(1);"), "old.cs")
