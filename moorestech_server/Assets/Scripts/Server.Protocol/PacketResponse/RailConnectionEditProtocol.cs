@@ -82,14 +82,24 @@ namespace Server.Protocol.PacketResponse
             return new RailPlacementJudgement(RailConnectionEditFailureReason.None, connectToolGuid, materials);
         }
 
+        /// <summary>
+        /// レール区間1本の課金用の長さ。接続の課金・切断と撤去の返却・クライアントのプレビューが同じ式を使う
+        /// 制御点は強度を掛けない生の値で、描画・走行距離（BezierUtility.GetBezierCurveLength(IRailNode, IRailNode)）とは別の式
+        /// Billing length of one rail segment; connection cost, disconnect/removal refunds and the client preview share this formula
+        /// It uses raw control points without strength scaling, distinct from the render/travel length (BezierUtility.GetBezierCurveLength(IRailNode, IRailNode))
+        /// </summary>
         public static float GetRailLength(IRailNode fromNode, IRailNode toNode)
         {
-            var p0 = fromNode.FrontControlPoint.OriginalPosition;
-            var p1 = fromNode.FrontControlPoint.OriginalPosition + fromNode.FrontControlPoint.ControlPointPosition;
-            var p2 = toNode.BackControlPoint.OriginalPosition + toNode.BackControlPoint.ControlPointPosition;
-            var p3 = toNode.BackControlPoint.OriginalPosition;
-            var length = BezierUtility.GetBezierCurveLength(p0, p1, p2, p3, 64);
-            return length;
+            var from = fromNode.FrontControlPoint;
+            var to = toNode.BackControlPoint;
+            return GetRailLength(from.OriginalPosition, from.ControlPointPosition, to.OriginalPosition, to.ControlPointPosition);
+        }
+
+        // 終点ノードがまだ無い橋脚プレビュー向けに、位置と制御点方向から同じ長さを出す
+        // Same length from positions and control directions, for the pier preview whose end node does not exist yet
+        public static float GetRailLength(Vector3 startPosition, Vector3 startDirection, Vector3 endPosition, Vector3 endDirection)
+        {
+            return BezierUtility.GetBezierCurveLength(startPosition, startPosition + startDirection, endPosition + endDirection, endPosition, 64);
         }
 
         [MessagePackObject]
