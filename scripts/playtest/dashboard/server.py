@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""プレイテストダッシュボードの HTTP サーバー（標準ライブラリのみ・127.0.0.1 待受・読み取り専用）。
+"""プレイテストダッシュボードの HTTP サーバー（標準ライブラリのみ・127.0.0.1 待受。報告データは読むだけで、書くのは既読とチケットのリンクだけ）。
 外部公開は review.moores.tech の /playtest パスを Cloudflare Access 越しにトンネルで通す前提。
 
-Playtest dashboard HTTP server (stdlib only, binds 127.0.0.1, read-only).
+Playtest dashboard HTTP server (stdlib only, binds 127.0.0.1; report data is read-only, only read marks and ticket links are written).
 Exposure is via the tunnel on review.moores.tech/playtest behind Cloudflare Access.
 
 Usage: python3 server.py [--port 8932] [--logs <moorestech_logs>] [--master <master dir>]
@@ -10,6 +10,7 @@ Usage: python3 server.py [--port 8932] [--logs <moorestech_logs>] [--master <mas
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import sys
@@ -24,7 +25,9 @@ sys.path.insert(0, str(HERE))
 import collect_progress  # noqa: E402
 import collect_reports  # noqa: E402
 import master_names  # noqa: E402
+import dashboard_state  # noqa: E402
 import media  # noqa: E402
+import write_api  # noqa: E402
 from security_headers import send_security_headers  # noqa: E402
 
 PREFIX = "/playtest"
@@ -43,6 +46,14 @@ class Config:
     allowed_hosts: frozenset = frozenset()
 
 
+def app_version() -> str:
+    """画面ファイル群の版。開いたままのページがこれの変化で古いコードと気づき、読み込み直す
+    Version of the static files; an open page notices a change and reloads instead of running stale code"""
+    stamp = sorted((str(p.relative_to(STATIC_ROOT)), p.stat().st_mtime_ns, p.stat().st_size)
+                   for p in STATIC_ROOT.rglob("*") if p.is_file() and not p.name.startswith("."))
+    return hashlib.sha256(repr(stamp).encode("utf-8")).hexdigest()[:16]
+
+
 def build_payload() -> dict:
     playtest = Config.logs / "harness" / "playtest"
     runs = collect_reports.load_runs(Config.logs / "harness" / "bug-report" / "runs")
@@ -50,14 +61,43 @@ def build_payload() -> dict:
     digests = sorted((p.stem for p in (playtest / "digests").glob("*.md") if DATE_RE.match(p.stem)), reverse=True)
     return {
         "generatedAt": datetime.now(timezone.utc).isoformat(),
-        "reports": collect_reports.load_reports(playtest / "reports", runs),
+        "appVersion": app_version(),
+        "reports": with_human_state(collect_reports.load_reports(playtest / "reports", runs), state_path()),
         "sessions": sessions, "invalidSessions": invalid_sessions,
         "runs": sorted(runs.values(), key=lambda run: run["id"], reverse=True),
         "digests": digests, "master": master_names.load_master_names(Config.master),
     }
 
 
+def state_path() -> Path:
+    # git 管理外（.state/）に置く理由は dashboard_state のモジュール説明を参照
+    # Kept outside git (.state/); see dashboard_state's module docstring for why
+    return Config.logs / ".state" / "playtest-dashboard-state.json"
+
+
+def with_human_state(reports: list[dict], path: Path) -> list[dict]:
+    """人が付けた既読とチケットのリンクを各報告へ載せる
+    Attaches the human-made read marks and ticket links to each report"""
+    state = dashboard_state.load_state_for_display(path)
+    for report in reports:
+        key = f"{report['boxSteamId']}/{report['boxId']}"
+        report["readAt"] = state["read"].get(key) if isinstance(state["read"].get(key), str) else None
+        links = state["links"].get(key)
+        report["links"] = [link for link in links if isinstance(link, dict)] if isinstance(links, list) else []
+    return reports
+
+
 class DashboardHandler(BaseHTTPRequestHandler):
+    def do_POST(self) -> None:  # noqa: N802 (http.server の規約名 / http.server naming)
+        if self.headers.get("Host", "") not in Config.allowed_hosts:
+            return self.reject(421, f"許可外の Host: {self.headers.get('Host', '')!r}")
+        path = urlsplit(self.path).path
+        if not path.startswith(PREFIX + "/api/"):
+            return self.not_found("書き込みルート外")
+        reports_root = Config.logs / "harness" / "playtest" / "reports"
+        status, body = write_api.handle_post(self, path[len(PREFIX):], reports_root, state_path(), Config.allowed_hosts)
+        self.send_bytes(json.dumps(body, ensure_ascii=False).encode("utf-8"), "application/json; charset=utf-8", "no-store", status)
+
     def do_GET(self) -> None:  # noqa: N802 (http.server の規約名 / http.server naming)
         if self.headers.get("Host", "") not in Config.allowed_hosts:
             return self.reject(421, f"許可外の Host: {self.headers.get('Host', '')!r}")
@@ -85,7 +125,9 @@ class DashboardHandler(BaseHTTPRequestHandler):
         target = (STATIC_ROOT / relative).resolve()
         if STATIC_ROOT not in target.parents or not target.is_file() or target.suffix not in STATIC_TYPES:
             return self.not_found("静的ファイル外")
-        self.send_bytes(target.read_bytes(), STATIC_TYPES[target.suffix], "no-cache")
+        # 端末やトンネル途中のキャッシュに古い画面ファイルを残さない（反映後も古いコードが動き続けるのを防ぐ）
+        # Never leave old static files in device or tunnel caches, so stale code does not keep running after a deploy
+        self.send_bytes(target.read_bytes(), STATIC_TYPES[target.suffix], "no-store", 200)
 
     def send_digest(self, date: str) -> None:
         archive = Config.logs / "harness" / "playtest" / "digests" / f"{date}.md"
@@ -101,10 +143,10 @@ class DashboardHandler(BaseHTTPRequestHandler):
         media.send_file(self, target)
 
     def send_json(self, data: dict) -> None:
-        self.send_bytes(json.dumps(data, ensure_ascii=False, allow_nan=False).encode("utf-8"), "application/json; charset=utf-8", "no-store")
+        self.send_bytes(json.dumps(data, ensure_ascii=False, allow_nan=False).encode("utf-8"), "application/json; charset=utf-8", "no-store", 200)
 
-    def send_bytes(self, body: bytes, content_type: str, cache: str) -> None:
-        self.send_response(200)
+    def send_bytes(self, body: bytes, content_type: str, cache: str, status: int) -> None:
+        self.send_response(status)
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Cache-Control", cache)

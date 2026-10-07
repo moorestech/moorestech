@@ -301,6 +301,9 @@ python3 <$CANONの実値>/.claude/skills/moores-code-review/scripts/build_workfl
   次の2行を足す: 「対象コードのルート: <$PRWTの実値>。コードのReadは必ずこの配下」「スキル・reviewer・post-checks・統合ルールのReadは <$CANONの実値> 配下」
 - AskUserQuestionは使わない。設計判断もダイジェストの裁定カードへ。本体Step 7の記録（`$LOGS/harness/moores-code-review/records/`・`eval-log.md`）は書かない
 - 統合結果は `integrated.md` を読む。指摘は全部ダイジェストへ
+- 読む前に `python3 <$CANONの実値>/.claude/skills/moores-code-review/scripts/s5_shape_gate.py <$RUNDIRの実値>` を走らせる（§5 の形式検査）。
+  終了コード 1 なら user-intent reviewer を欠け一覧付きで再起動（差し戻し）→ integrator を再派遣して再検査する。2回目も 1 なら
+  ダイジェストの縮退申告に「§5 形式欠落（差し戻し後も未解消）」と書き、§5 を「回収済み」「全件両立」と要約しない
 
 ### Codex外部監査の起動手当て
 

@@ -119,3 +119,48 @@ export function linkify(text) {
 export function emptyNote(text) {
   return h("p", { class: "empty" }, text);
 }
+
+// 人が付ける状態（既読・チケットのリンク）を書き込み、成功したらアプリへ知らせる。
+// redraw=false は呼び出し側が自分の表示を直す場合（詳細画面の再生中の動画を描き直しで止めないため）
+// Writes human-made state (read marks, ticket links) and notifies the app on success;
+// redraw=false means the caller updates its own display (so a redraw never stops a playing video on the detail page)
+export async function postState(route, body, redraw) {
+  // サーバーへの書き込みはネットワーク境界なので失敗を隔離し、理由を画面上部とコンソールへ出す
+  // Writing to the server is a network boundary; failures are isolated and shown in the header and console
+  try {
+    const response = await fetch(`api/${route}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Playtest-Dashboard": "1" },
+      body: JSON.stringify(body),
+    });
+    const result = await response.json();
+    if (!response.ok || !result.ok) throw new Error(result.error || `HTTP ${response.status}`);
+  } catch (error) {
+    console.error(`[dashboard] ${route} に失敗`, error);
+    document.getElementById("notice").textContent = `保存失敗: ${error.message}`;
+    return false;
+  }
+  window.dispatchEvent(new CustomEvent("dashboard:changed", { detail: { redraw } }));
+  return true;
+}
+
+export function reportKey(report) {
+  return { steamId: report.boxSteamId, id: report.boxId };
+}
+
+// 書き込み後にサーバーが保存した最新の報告を引き直す（別経路で足されたリンクも含めて画面を保存結果に揃えるため）
+// Re-reads the report as the server saved it after a write, so the page matches storage including links added elsewhere
+export async function fetchSavedReport(report) {
+  // サーバーへの取得はネットワーク境界なので失敗を隔離し、理由をコンソールへ出す
+  // Fetching from the server is a network boundary; failures are isolated and logged to the console
+  try {
+    const response = await fetch("api/data", { cache: "no-store" });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+    return data.reports.find((r) => r.boxSteamId === report.boxSteamId && r.boxId === report.boxId) || null;
+  } catch (error) {
+    console.error("[dashboard] 保存結果の読み直しに失敗", error);
+    document.getElementById("notice").textContent = `読み直し失敗: ${error.message}`;
+    return null;
+  }
+}
