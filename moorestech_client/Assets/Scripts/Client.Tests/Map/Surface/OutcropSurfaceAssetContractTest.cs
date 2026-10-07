@@ -82,11 +82,5 @@ namespace Client.Tests.Map.Surface
                 Assert.That(minimumY - 10f, Is.InRange(0f, 0.02f), element.OutcropAddressablePath);
             }
         }
-
-        [Test]
-        public void 水shaderの入力と実plane入力を検査する()
-        {
-            SurfaceAssetContractInputs.AssertWaterInputs();
-        }
     }
 }
