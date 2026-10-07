@@ -55,6 +55,7 @@ namespace Server.Protocol.PacketResponse
             var notUnlockedCount = 0;
             var costShortageCount = 0;
             var wireShortageCount = 0;
+            var restoreFailedCount = 0;
 
             foreach (var placeInfo in data.PlacePositions)
             {
@@ -68,6 +69,7 @@ namespace Server.Protocol.PacketResponse
             if (0 < notUnlockedCount) _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.placeBlockNotUnlocked", Array.Empty<string>()));
             if (0 < costShortageCount) _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.placeBlockCostShortage", Array.Empty<string>()));
             if (0 < wireShortageCount) _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.placeBlockWireShortage", Array.Empty<string>()));
+            if (0 < restoreFailedCount) _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.undoRestoreSkipped", new[] { restoreFailedCount.ToString() }));
 
             return null;
 
@@ -75,9 +77,9 @@ namespace Server.Protocol.PacketResponse
 
             void PlaceBlock(PlaceInfoMessagePack placeInfo)
             {
-                // すでにブロックがある場合は何もしない
-                // Do nothing when a block already exists
-                if (ServerContext.WorldBlockDatastore.Exists(placeInfo.Position)) return;
+                // すでにブロックがある場合は何もしない。復元なら失敗として数える
+                // Do nothing when a block already exists; a restoration counts it as a failure
+                if (ServerContext.WorldBlockDatastore.Exists(placeInfo.Position)) { CountRestoreFailure(placeInfo, "position occupied"); return; }
 
                 var placeBlockId = placeInfo.BlockId;
                 var createParams = placeInfo.BlockCreateParams.Select(v => new BlockCreateParam(v.Key, v.Value)).ToArray();
@@ -86,7 +88,7 @@ namespace Server.Protocol.PacketResponse
                 // Free placement debug: force-place ignoring unlock/cost/wire entirely, then return
                 if (isFreePlacement)
                 {
-                    ServerContext.WorldBlockDatastore.TryAddBlock(placeBlockId, placeInfo.Position, placeInfo.Direction, createParams, out _);
+                    if (!ServerContext.WorldBlockDatastore.TryAddBlock(placeBlockId, placeInfo.Position, placeInfo.Direction, createParams, out _)) CountRestoreFailure(placeInfo, "TryAddBlock failed (free placement)");
                     return;
                 }
 
@@ -96,13 +98,13 @@ namespace Server.Protocol.PacketResponse
                 // Skip locked cells; the unlock rule, belt-slope normalization included, lives in the catalog
                 // 無料設置は上の早期returnで完結済みなので、ここへ到達する時点で無料設置ではない
                 // Free placement already returned above, so reaching here means placement is never free
-                if (!_placementTargetCatalog.IsBlockUnlocked(blockMaster.BlockGuid, _gameUnlockStateDataController, false)) { notUnlockedCount++; return; }
+                if (!_placementTargetCatalog.IsBlockUnlocked(blockMaster.BlockGuid, _gameUnlockStateDataController, false)) { notUnlockedCount++; LogRestoreSkip(placeInfo, "not unlocked"); return; }
 
                 // 財布に問い合わせ、賄えないセルはスキップ
                 // Ask the wallet; skip cells it cannot cover
                 var inventory = inventoryData.MainOpenableInventory;
                 var placementPlan = _constructionWallet.PlanPlacement(placeBlockId, requesterPlayerId);
-                if (!ConstructionCostService.HasRequiredItems(placementPlan.ItemsToConsume, inventory.InventoryItems)) { costShortageCount++; return; }
+                if (!ConstructionCostService.HasRequiredItems(placementPlan.ItemsToConsume, inventory.InventoryItems)) { costShortageCount++; LogRestoreSkip(placeInfo, "construction cost shortage"); return; }
 
                 // 自動接続の電気ブロックだけ事前検証
                 // Validate wiring only for auto-connect electric blocks
@@ -113,18 +115,35 @@ namespace Server.Protocol.PacketResponse
                     // 建設コストで消費予定の素材を予約として渡し、電線の所持数判定から除外する
                     // Pass construction-cost materials as reservations to exclude them from wire availability
                     plan = ElectricWireAutoConnectService.EvaluateAutoConnect(placeBlockId, placeInfo.Position, placeInfo.Direction, placementPlan.ItemsToConsume, inventory.InventoryItems);
-                    if (!plan.IsPlaceable) { wireShortageCount++; return; }
+                    if (!plan.IsPlaceable) { wireShortageCount++; LogRestoreSkip(placeInfo, "wire shortage"); return; }
                 }
 
                 // 設置に失敗した場合はコストを消費しない
                 // Do not consume the cost when placement fails
-                if (!ServerContext.WorldBlockDatastore.TryAddBlock(placeBlockId, placeInfo.Position, placeInfo.Direction, createParams, out var block)) return;
+                if (!ServerContext.WorldBlockDatastore.TryAddBlock(placeBlockId, placeInfo.Position, placeInfo.Direction, createParams, out var block)) { CountRestoreFailure(placeInfo, "TryAddBlock failed"); return; }
 
                 _constructionWallet.CommitPlacement(placementPlan, inventory, block.BlockInstanceId);
 
                 // 計画を実行しワイヤー消費
                 // Execute the validated plan: add wires and consume wire items
                 if (isAutoConnectElectric) ElectricWireAutoConnectService.ExecuteAutoConnect(plan, block, inventory);
+            }
+
+            // 復元（Undo）でスキップしたセルの理由を残す。通知は解放・不足それぞれのキーで出る
+            // Log why a restoration (undo) skipped a cell; the notification goes out under the unlock/shortage keys
+            void LogRestoreSkip(PlaceInfoMessagePack placeInfo, string reason)
+            {
+                if (data.Wiring != BlockPlacementWiring.NoAutoConnect) return;
+                UnityEngine.Debug.LogWarning($"[PlaceBlock] restore skipped: {reason} pos={(UnityEngine.Vector3Int)placeInfo.Position} block={placeInfo.BlockId} player={requesterPlayerId}");
+            }
+
+            // 復元（Undo）の再設置失敗は黙って捨てず、ログを残して末尾で件数を通知する
+            // A restoration (undo) re-place failure is not dropped silently: log it and notify the count at the end
+            void CountRestoreFailure(PlaceInfoMessagePack placeInfo, string reason)
+            {
+                if (data.Wiring != BlockPlacementWiring.NoAutoConnect) return;
+                restoreFailedCount++;
+                UnityEngine.Debug.LogWarning($"[PlaceBlock] restore failed: {reason} pos={(UnityEngine.Vector3Int)placeInfo.Position} block={placeInfo.BlockId} player={requesterPlayerId}");
             }
 
             #endregion

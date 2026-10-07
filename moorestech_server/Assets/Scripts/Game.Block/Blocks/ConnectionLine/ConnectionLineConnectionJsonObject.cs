@@ -14,9 +14,9 @@ namespace Game.Block.Blocks.ConnectionLine
     {
         [JsonProperty("targetBlockInstanceId")] public int TargetBlockInstanceId { get; private set; }
 
-        // 引いた種類はUndoの引き直しに要る。欠けた旧形はマイグレーションが埋めるので、ここでは必須で読む
-        // The drawn tool is needed for undo re-drawing; the migration fills it for old saves, so it is read as required here
-        [JsonProperty("connectToolGuid", Required = Required.Always)] public Guid ConnectToolGuid { get; private set; }
+        // 引いた種類はUndoの引き直しに要る。旧形はマイグレーションが埋める。それでも欠けた接続は復元側がその1件だけ飛ばす
+        // The drawn tool is needed for undo re-drawing; the migration fills old saves, and a connection still missing it is skipped alone by the restorer
+        [JsonProperty("connectToolGuid")] public Guid? ConnectToolGuid { get; private set; }
         [JsonProperty("materials")] public List<ConnectToolMaterialSaveJsonObject> Materials { get; private set; }
 
         public ConnectionLineConnectionJsonObject()
@@ -33,13 +33,16 @@ namespace Game.Block.Blocks.ConnectionLine
                 : record.Materials.Select(m => new ConnectToolMaterialSaveJsonObject(m)).ToList();
         }
 
-        // ロード時に永続値から接続記録を復元する
-        // Restore the connection record from persisted values on load
-        public ConnectionLineRecord ToConnectionRecord()
+        // ロード時に永続値から接続記録を復元する。種類が欠けていれば false
+        // Restore the connection record from persisted values on load; false when the tool is missing
+        public bool TryToConnectionRecord(out ConnectionLineRecord record)
         {
+            record = default;
+            if (!ConnectToolGuid.HasValue) return false;
             var materials = (Materials ?? new List<ConnectToolMaterialSaveJsonObject>())
                 .Select(m => m.ToMaterialCost()).ToList();
-            return new ConnectionLineRecord(ConnectToolGuid, materials);
+            record = new ConnectionLineRecord(ConnectToolGuid.Value, materials);
+            return true;
         }
     }
 }

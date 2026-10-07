@@ -56,21 +56,24 @@ namespace Client.Tests.BuildUndo
             CollectionAssert.AreEqual(new[] { "place:1", $"wire:{posA}-{posB}:{guid}" }, sender.Sent);
         }
 
-        [Test]
-        public void OccupiedBlockIsSkippedButLinesAreStillSent()
+        [TestCase(BlockFootprintOccupancy.OtherBlock, false)]
+        [TestCase(BlockFootprintOccupancy.SameBlockPresent, true)]
+        public void LineToEndpointIsSentOnlyWhenItsBlockIsBack(BlockFootprintOccupancy occupancy, bool lineSent)
         {
-            // 占有済みは再設置せず線だけ送る
-            // An occupied cell is skipped, but the line restore is sent
+            // 跡地が別ブロックなら線も送らず件数に入れ、同じブロックが残るなら送る
+            // Skip and count the line when another block took the spot; send it when the same block remains
             var guid = Guid.NewGuid();
             var block = new RemovedBlock(Vector3Int.zero, ForUnitTestModBlockId.MachineId, BlockDirection.North, Array.Empty<BlockCreateParam>());
             var chain = new RemovedConnectionLine(Vector3Int.zero, new Vector3Int(3, 0, 0), guid, new FakeConnectionLineCommands(ConnectionLineKind.GearChain));
             var sender = new FakeRemovalRestoreSender();
             var record = RemoveOperationRecord.CreateFrom(new List<IDeleteTarget> { new FakeDeleteTarget { RemovedObjects = { block, chain } } }, sender);
 
-            LogAssert.Expect(LogType.Warning, $"[RemovalRestore] skip re-place: footprint occupied at {Vector3Int.zero}");
-            record.UndoAsync(new FakeOccupancy(true)).GetAwaiter().GetResult();
+            if (!lineSent) LogAssert.Expect(LogType.Warning, $"[RemovalRestore] skip re-place: footprint occupied at {Vector3Int.zero}");
+            if (!lineSent) LogAssert.Expect(LogType.Warning, $"[RemovalRestore] skip line restore: endpoint block not restored {Vector3Int.zero}-{new Vector3Int(3, 0, 0)}");
+            record.UndoAsync(new FakeOccupancy(occupancy)).GetAwaiter().GetResult();
 
-            CollectionAssert.AreEqual(new[] { $"chain:{Vector3Int.zero}-{new Vector3Int(3, 0, 0)}:{guid}", "skipped:1" }, sender.Sent);
+            var expected = lineSent ? new[] { $"chain:{Vector3Int.zero}-{new Vector3Int(3, 0, 0)}:{guid}" } : new[] { "skipped:2" };
+            CollectionAssert.AreEqual(expected, sender.Sent);
         }
 
         [TestCase(ConnectionLineKind.ElectricWire)]

@@ -10,8 +10,12 @@ namespace Client.Game.InGame.Train.RailGraph
     {
         private RendererMaterialReplacerController _controller;
 
-        public void Invalidate()
+        // 赤用の複製材質をレンダラーから外して解放し、参照も捨てる
+        // Detach and destroy the red clone materials, then drop the reference
+        public void Release()
         {
+            _controller?.ResetMaterial();
+            _controller?.DestroyMaterial();
             _controller = null;
         }
 

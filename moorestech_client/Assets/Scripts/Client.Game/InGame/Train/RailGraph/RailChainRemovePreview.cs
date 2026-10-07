@@ -5,8 +5,8 @@ using UnityEngine;
 namespace Client.Game.InGame.Train.RailGraph
 {
     /// <summary>
-    ///     レール1本の赤プレビューを要求者ごとに数える
-    ///     Counts red-preview requesters per rail; red on first, reset on last
+    ///     レール1本の赤プレビューを要求者ごとに数える。赤の唯一の書き手
+    ///     Counts red-preview requesters per rail; the sole writer of the red material
     /// </summary>
     public class RailChainRemovePreview : MonoBehaviour, IRemovePreviewable
     {
@@ -27,12 +27,41 @@ namespace Client.Game.InGame.Train.RailGraph
 
         public void RequestRemovePreview(object requester)
         {
-            if (_requests.Add(requester)) _chain.SetRemovePreviewing();
+            if (_requests.Add(requester)) ApplyRed();
         }
 
         public void ReleaseRemovePreview(object requester)
         {
-            if (_requests.Remove(requester)) _chain.ResetMaterial();
+            if (_requests.Remove(requester)) ResetRed();
+        }
+
+        // 材質の作り直し（Rebuild・設置アニメ終了）後、要求者が残っていれば赤を当て直す
+        // Re-apply red after the materials are rebuilt (Rebuild, end of place animation) while requesters remain
+        public void Reapply()
+        {
+            if (_requests.HasRequesters) ApplyRed();
+        }
+
+        private void ApplyRed()
+        {
+            if (_chain.IsRemoving)
+            {
+                Debug.Log("[BezierRailChain] preview skipped: rail is removing");
+                return;
+            }
+            _chain.SetRemovePreviewing();
+        }
+
+        // 撤去アニメの材質を通常色で上書きしない（ApplyRed と対称）
+        // Do not overwrite the removal animation's material with the normal one (symmetric with ApplyRed)
+        private void ResetRed()
+        {
+            if (_chain.IsRemoving)
+            {
+                Debug.Log("[BezierRailChain] reset skipped: rail is removing");
+                return;
+            }
+            _chain.ResetMaterial();
         }
     }
 }

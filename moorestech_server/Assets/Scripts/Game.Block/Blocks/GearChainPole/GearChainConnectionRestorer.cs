@@ -37,11 +37,17 @@ namespace Game.Block.Blocks.GearChainPole
                     break;
                 }
 
+                if (!connection.TryToConnectionRecord(out var record))
+                {
+                    Debug.LogWarning($"[GearChain] Saved connection without connectToolGuid skipped: {ownerId} -> {partnerId}");
+                    continue;
+                }
+
                 // 相手と保存した種類・素材を復元
                 // Restore each partner with its saved tool and materials
                 var transformer = ResolveTarget(ownerId, partnerId);
                 if (transformer == null) continue;
-                mutation.Add(partnerId, transformer, connection.ToConnectionRecord());
+                mutation.Add(partnerId, transformer, record);
             }
         }
 

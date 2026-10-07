@@ -51,7 +51,7 @@ namespace Client.Tests.UIState.Fakes
         public void CollectRemovedObjects(RemovedObjectCollector collector)
         {
             foreach (var removedObject in RemovedObjects) collector.Add(removedObject);
-            foreach (var reason in UnrecordableReasons) collector.AddUnrecordable(reason);
+            foreach (var reason in UnrecordableReasons) collector.AddUnrecordable(reason, reason);
             foreach (var block in UnrecordableBlocks)
                 collector.AddUnrecordableBlock(block.Position, block.Direction, block.BlockId, block.Reason);
         }

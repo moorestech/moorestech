@@ -102,32 +102,6 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.Connection
             return infos.TryGetValue(connectToolGuid, out var info) && info.IsUnlocked;
         }
 
-        // 指定アイテムをインベントリのスロット順に減算する
-        // Decrease the given item across inventory slots in order
-        public static void ConsumeItem(IOpenableInventory inventory, ItemId itemId, int amount)
-        {
-            var remaining = amount;
-            for (var i = 0; i < inventory.InventoryItems.Count && 0 < remaining; i++)
-            {
-                var itemStack = inventory.InventoryItems[i];
-                if (itemStack.Id != itemId) continue;
-
-                var consumeAmount = Math.Min(itemStack.Count, remaining);
-                inventory.SetItem(i, itemStack.SubItem(consumeAmount));
-                remaining -= consumeAmount;
-            }
-        }
-
-        // 指定アイテムの所持合計を数える
-        // Count the total held amount of the given item
-        public static int CountItem(IOpenableInventory inventory, ItemId itemId)
-        {
-            var total = 0;
-            foreach (var itemStack in inventory.InventoryItems)
-                if (itemStack.Id == itemId)
-                    total += itemStack.Count;
-            return total;
-        }
 
 
 

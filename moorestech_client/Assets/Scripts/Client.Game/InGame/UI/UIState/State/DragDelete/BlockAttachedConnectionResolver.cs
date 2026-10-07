@@ -27,6 +27,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         private readonly List<(int canonicalFrom, int canonicalTo)> _edgeBuffer = new();
         private readonly List<ConnectionDestination> _destinationBuffer = new();
         private readonly List<ConnectionDestination> _unsyncedDestinationBuffer = new();
+        private readonly List<BlockGameObject> _destroyedRequesterBuffer = new();
 
         public BlockAttachedConnectionResolver(ConnectionLineRegistry registry, RailGraphClientCache railCache)
         {
@@ -63,10 +64,10 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         {
             foreach (var line in _registry.GetLinesAttachedTo(block.BlockInstanceId)) line.CollectRemovedObjects(collector);
             var edges = CollectRailEdges(block);
-            // Undo記録から漏れる未同期端点だけ警告する
-            // Warn only for unsynced destinations omitted from the undo record
-            foreach (var destination in _unsyncedDestinationBuffer)
-                UnityEngine.Debug.LogWarning($"[RemovalCascade] rail not recorded for undo: node not synced at {destination}");
+            // 未同期端点はレール有無も不明なので、ブロック単位で1件だけ戻せなかった件数へ入れる
+            // Unsynced destinations may or may not hold rails, so count them once per block as not restored
+            if (_unsyncedDestinationBuffer.Count > 0)
+                collector.AddUnrecordable(("unsyncedRailDestinations", block.BlockInstanceId), $"rail at {string.Join(", ", _unsyncedDestinationBuffer)}: node not synced");
             foreach (var edge in edges)
             {
                 RemovedRail.Capture(_railCache, edge.canonicalFrom, edge.canonicalTo, RemovedRailCaptureContext.Cascade, collector);
@@ -96,6 +97,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         // Reflect lines added to or removed from a requesting block into its red preview
         private void RefreshLineTargets(BlockInstanceId changedBlockId)
         {
+            PurgeDestroyedRequesters();
             foreach (var (block, targets) in _requested)
             {
                 if (!block.BlockInstanceId.Equals(changedBlockId)) continue;
@@ -119,6 +121,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         // After rail displays are rebuilt, re-request the rail previews of requesting blocks
         private void RefreshRailTargets()
         {
+            PurgeDestroyedRequesters();
             foreach (var (block, targets) in _requested)
             {
                 for (var i = targets.Count - 1; 0 <= i; i--)
@@ -132,6 +135,22 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
                     targets.Add(preview);
                     preview.RequestRemovePreview(block);
                 }
+            }
+        }
+
+        // 要求中に破棄されたブロック（ドラッグ中のUndo・他プレイヤーの撤去）を台帳から外す
+        // Drop requesters destroyed while requesting (undo during drag, removal by another player)
+        private void PurgeDestroyedRequesters()
+        {
+            _destroyedRequesterBuffer.Clear();
+            foreach (var block in _requested.Keys)
+            {
+                if (block == null) _destroyedRequesterBuffer.Add(block);
+            }
+            foreach (var block in _destroyedRequesterBuffer)
+            {
+                UnityEngine.Debug.Log("[RemovalPreview] requester destroyed while requesting; released its cascade preview");
+                ReleaseCascadePreview(block);
             }
         }
 

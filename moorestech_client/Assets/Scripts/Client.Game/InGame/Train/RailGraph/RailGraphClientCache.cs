@@ -142,6 +142,9 @@ namespace Client.Game.InGame.Train.RailGraph
             }
             _nodes[nodeId] = nextnode;
             _connectionDestinationToNodeId[nextnode.ConnectionDestination] = nodeId;
+            // 未同期だった端点が解決されるので、接続差分を待たずに購読側へ取り直しを促す
+            // A previously unsynced destination now resolves, so prompt subscribers to retry without waiting for an edge diff
+            _railTopologyChanged.OnNext(UniRx.Unit.Default);
         }
 
         // Apply node removal diff and purge related connections

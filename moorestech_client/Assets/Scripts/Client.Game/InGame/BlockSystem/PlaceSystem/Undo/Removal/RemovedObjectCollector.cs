@@ -13,28 +13,33 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
     {
         private readonly List<IRemovedObject> _objects = new();
         private readonly List<UnrecordableBlock> _unrecordableBlocks = new();
+        private readonly HashSet<object> _unrecordableKeys = new();
         public IReadOnlyList<IRemovedObject> Objects => _objects;
         public IReadOnlyList<UnrecordableBlock> GetUnrecordableBlocks()
         {
             return _unrecordableBlocks;
         }
-        public int UnrecordableCount { get; private set; }
+        public int UnrecordableCount => _unrecordableKeys.Count;
 
         public void Add(IRemovedObject removed)
         {
             _objects.Add(removed);
         }
 
-        // 復元先を持てない物。Undo時にプレイヤーへ件数で知らせる
-        // Something with no restore target; reported to the player by count on undo
-        public void AddUnrecordable(string reason)
+        // 復元先を持てない物。Undo時にプレイヤーへ件数で知らせる。両端から採取された同じ線は論理キーで1件にまとめる
+        // Something with no restore target, reported by count on undo; the same line captured from both ends collapses to one by its logical key
+        public void AddUnrecordable(object restoreKey, string reason)
         {
+            if (!_unrecordableKeys.Add(restoreKey)) return;
             Debug.LogWarning($"[RemovalRestore] unrecordable: {reason}");
-            UnrecordableCount++;
         }
 
         public void AddUnrecordableBlock(Vector3Int position, BlockDirection direction, BlockId blockId, string reason)
         {
+            foreach (var recorded in _unrecordableBlocks)
+            {
+                if (recorded.Position == position) return;
+            }
             Debug.LogWarning($"[RemovalRestore] unrecordable: {reason}");
             _unrecordableBlocks.Add(new UnrecordableBlock(position, direction, blockId));
         }
