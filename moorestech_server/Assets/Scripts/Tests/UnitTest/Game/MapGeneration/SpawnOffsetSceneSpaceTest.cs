@@ -1,4 +1,5 @@
 using Tests.UnitTest.Game.MapGeneration.Spawn;
+using Game.MapGeneration.Transfer;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Game.MapGeneration.Pipeline;
@@ -45,7 +46,7 @@ namespace Tests.UnitTest.Game.MapGeneration
 
             // 探索が選んだ良地が実際に生成されていれば、スポーン地点の分類は Grassland になる。
             // If the region the search chose was really generated, the spawn point classifies as Grassland.
-            var config = MapGenerationPipeline.BuildConfig(generation, Seed, TestGenerationConfigFactory.ServerDataDirectory);
+            var config = MapGenerationPipeline.BuildConfig(generation, Seed, TestGenerationConfigFactory.ServerDataDirectory, WorldGeneratorVersion.CurrentRevision);
             Assert.That(BiomeAtSpawn(output, generation, config), Is.EqualTo(BiomeType.Grassland));
 
             // world.json へ永続化されクライアントの分類段が使う値。index(0,0)タイルの窓原点は G + SceneOrigin。
@@ -87,9 +88,9 @@ namespace Tests.UnitTest.Game.MapGeneration
                 TestGenerationConfigFactory.SpawnSearchSetup.Enabled,
                 new JObject { ["worldOffsetX"] = 317.0, ["worldOffsetZ"] = -213.0 });
 
-            var expectedConfig = MapGenerationPipeline.BuildConfig(atOrigin, Seed, TestGenerationConfigFactory.ServerDataDirectory);
+            var expectedConfig = MapGenerationPipeline.BuildConfig(atOrigin, Seed, TestGenerationConfigFactory.ServerDataDirectory, WorldGeneratorVersion.CurrentRevision);
             var expected = MapGenerationPipeline.Generate(atOrigin, expectedConfig).Output;
-            var actualConfig = MapGenerationPipeline.BuildConfig(shifted, Seed, TestGenerationConfigFactory.ServerDataDirectory);
+            var actualConfig = MapGenerationPipeline.BuildConfig(shifted, Seed, TestGenerationConfigFactory.ServerDataDirectory, WorldGeneratorVersion.CurrentRevision);
             var actual = MapGenerationPipeline.Generate(shifted, actualConfig).Output;
 
             Assert.That(actual.SpawnPoint, Is.EqualTo(expected.SpawnPoint));

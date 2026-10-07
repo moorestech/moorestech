@@ -27,7 +27,7 @@ namespace Tests.CombinedTest.Game
             var (_, loadServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             (loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(saveJson);
 
-            Assert.AreEqual(2, loadServiceProvider.GetService<IRemainingPlacementCountLookup>().GetRemainingCount(playerId, wallet));
+            Assert.AreEqual(2, loadServiceProvider.GetService<IRemainingPlacementCountLookup>().GetReader(playerId).GetRemainingCount(wallet));
         }
     }
 }

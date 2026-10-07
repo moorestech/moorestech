@@ -25,7 +25,7 @@ namespace Client.Game.InGame.Environment.Terrain
     {
         private const string TerrainObjectName = "Terrain";
 
-        public static async UniTask BuildAsync(GetMapDataProtocol.ResponseMapDataMessagePack mapLayout, Transform environmentRoot, string localMasterDirectory)
+        public static async UniTask<WorldTerrainLayout> BuildAsync(GetMapDataProtocol.ResponseMapDataMessagePack mapLayout, Transform environmentRoot, string localMasterDirectory)
         {
             ITerrainAssetLoader assets = new RuntimeTerrainAssetLoader();
             var cancellationToken = CancellationToken.None;
@@ -43,6 +43,11 @@ namespace Client.Game.InGame.Environment.Terrain
                 case TerrainLayoutKind.TileMaps: await BuildTileMapsAsync((TiledTerrainSession)session); break;
                 default: throw new InvalidOperationException($"[TerrainRuntimeBuilder] Unknown layout kind {layout.Kind}.");
             }
+
+            // 地形完成後に海の表示契約を適用する
+            // Apply the ocean presentation contract after terrain completion
+            layout.SurfacePresentation.Accept(new OceanPresentationApplier(environmentRoot));
+            return layout;
 
             #region Internal
 

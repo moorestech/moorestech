@@ -70,7 +70,7 @@ namespace Server.Protocol.PacketResponse
             var blockId = request.PierBlockId;
             var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
             if (blockMaster.BlockParam is not TrainRailBlockParam) return Refuse("pier is not a rail block");
-            var placementPlan = _constructionWallet.PlanPlacement(blockMaster, requesterPlayerId);
+            var placementPlan = _constructionWallet.PlanPlacement(blockId, requesterPlayerId);
             var pierItemCounts = placementPlan.ItemsToConsume;
             if (!ConstructionCostService.HasRequiredItems(pierItemCounts, inventory.InventoryItems)) return Refuse("pier construction cost shortage");
 

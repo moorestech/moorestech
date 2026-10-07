@@ -84,7 +84,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
             var config = MultiTileTestWorld.BuildConfig(GridSide, Seed);
             MultiTileTestWorld.EnableTrees(config);
 
-            var run = new VanillaGenerator().Generate(config);
+            var run = new LegacyVanillaGenerator().Generate(config);
 
             Assert.IsNotEmpty(run.Output.MapObjects);
             foreach (var placement in run.Ledger.Placements)
@@ -135,7 +135,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
         private static GenerationRun GenerateWithObjects(TerrainGenerationConfig config)
         {
             MultiTileTestWorld.EnableObjects(config);
-            return new VanillaGenerator().Generate(config);
+            return new LegacyVanillaGenerator().Generate(config);
         }
     }
 }

@@ -125,7 +125,8 @@ namespace Tests.UnitTest.Game.MapGeneration
             // 読み手はパケット応答経路で例外を握り潰されるため、ログ1行からどのworld.jsonをどうするか分かる必要がある
             // The caller sits on a packet path that swallows exceptions, so the single log line must say which world.json to act on
             Assert.That(exception.Message, Does.Contain(worldDataDirectory.WorldMetaFilePath));
-            Assert.That(exception.Message, Does.Contain("placementLedgerDigest"));
+            Assert.That(exception.Message, Does.Contain("Unsupported generator '1.0.0'"));
+            Assert.That(exception.Message, Does.Contain("4.0.0 and 5.0.0"));
             Assert.That(exception.Message, Does.Not.Contain("biome_x_z"));
         }
 
@@ -156,20 +157,6 @@ namespace Tests.UnitTest.Game.MapGeneration
         }
 
         [Test]
-        public void タイル数が正方格子でなければ並び順が定まらないので例外を投げる()
-        {
-            Assert.Throws<InvalidOperationException>(() => TerrainTransferMeta.EnumerateTileCoordinates(2));
-        }
-
-        [Test]
-        public void タイル座標はz行x列の順に列挙される()
-        {
-            var tileCoordinates = TerrainTransferMeta.EnumerateTileCoordinates(4);
-
-            Assert.AreEqual(new[] { (0, 0), (1, 0), (0, 1), (1, 1) }, tileCoordinates);
-        }
-
-        [Test]
         public void 論理ストリームのファイル列はタイル順にheightを並べる()
         {
             var worldDataDirectory = _testScope.CreateEmptyWorldDataDirectory();
@@ -185,15 +172,6 @@ namespace Tests.UnitTest.Game.MapGeneration
             };
 
             Assert.AreEqual(expectedFilePaths, TerrainTransferMeta.EnumerateStreamFilePaths(worldDataDirectory, 4).ToArray());
-        }
-
-        [Test]
-        public void タイル数が0以下ならチャンク総数0を返さず例外を投げる()
-        {
-            // 0は完全平方数なので格子ガードを素通りする。無言でチャンク0本のワイヤ値を返させない
-            // Zero is a perfect square and slips past the grid guard; never let it silently yield a zero-chunk wire value
-            Assert.Throws<InvalidOperationException>(() => TerrainTransferMeta.EnumerateTileCoordinates(0));
-            Assert.Throws<InvalidOperationException>(() => TerrainTransferMeta.EnumerateTileCoordinates(-1));
         }
 
         // generatedワールドを読んだ結果が生成メタであることは、地形の寸法を読む全テストの前提でもある

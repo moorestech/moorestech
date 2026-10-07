@@ -20,7 +20,7 @@ namespace Client.Game.InGame.Construction
         // Takes a raw BlockId; normalizing it to the wallet key happens inside
         public int GetRemainingCount(BlockId blockId)
         {
-            var walletBlockId = ConstructionWalletUtil.ResolveWalletBlockId(blockId);
+            var walletBlockId = ConstructionWalletQuery.ResolveWalletBlockId(blockId);
             return _remainingCounts.TryGetValue(walletBlockId, out var remaining) ? remaining : 0;
         }
 

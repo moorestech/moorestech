@@ -103,7 +103,7 @@ namespace Server.Protocol.PacketResponse
                 // 財布に問い合わせ、賄えないセルはスキップ
                 // Ask the wallet; skip cells it cannot cover
                 var inventory = inventoryData.MainOpenableInventory;
-                var placementPlan = _constructionWallet.PlanPlacement(blockMaster, requesterPlayerId);
+                var placementPlan = _constructionWallet.PlanPlacement(placeBlockId, requesterPlayerId);
                 if (!ConstructionCostService.HasRequiredItems(placementPlan.ItemsToConsume, inventory.InventoryItems)) { costShortageCount++; LogRestoreSkip(placeInfo, "construction cost shortage"); return; }
 
                 // 自動接続の電気ブロックだけ事前検証
