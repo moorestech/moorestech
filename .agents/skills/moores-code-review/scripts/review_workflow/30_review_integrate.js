@@ -34,9 +34,10 @@ const integratorLines = [
   `Repo root : ${A.repoRoot}`,
   `Skill root : ${A.skillRoot}（integration-rules.md・codex_recover.py はこの配下の絶対パスで参照する）`,
   `起動計画の系統 : ${A.systems.map((s) => s.name).join(', ')}`,
+  `Checks : ${A.checksPath || 'なし（このモードでは決定論チェックを渡さない。読まない）'}`,
   `応答が無かった系統（自己申告ベース） : ${noResponse.length ? noResponse.join(', ') : 'なし'}`,
   '欠員の確定はあなたが行う: 起動計画の各系統について `agents/<name>.md` の実在と非空を突き合わせ、無いものを `missing_systems` に返し系統別回収状況に欠員として記録する（応答の有無は参考情報にすぎない）。',
-  `Codex の結論は起動された各ジョブ（${codexJobs.map((j) => j.name).join(', ') || 'なし'}）の \`.final.md\`${codexWait ? `（完了待ち結果: ${JSON.stringify(codexWait.results)}）` : ''}。不在なら codex_recover.py を先に走らせ、終了コード（0=結論あり / 3=未完走 / 4=セッション無し / 5=認証失効）を系統別回収状況に併記する。`,
+  `Codex の結論は起動された各ジョブ（${codexJobs.map((j) => j.name).join(', ') || 'なし'}）の \`.final.md\`（列挙外の Codex は起動していないので読まない・欠員に数えない）${codexWait ? `（完了待ち結果: ${JSON.stringify(codexWait.results)}）` : ''}。不在なら codex_recover.py を先に走らせ、終了コード（0=結論あり / 3=未完走 / 4=セッション無し / 5=認証失効）を系統別回収状況に併記する。`,
   '返答は件数サマリ（Critical/Warning/Info/suppressed/設計判断件数）と欠員系統名のみ。',
 ]
 if (BUG_PASS) integratorLines.push(

@@ -148,6 +148,9 @@ class AssembledWorkflowTest(unittest.TestCase):
                     self.assertNotIn("changed_api", prompt)
                 integrator = by_label["integrator"]
                 self.assertEqual("Mode : bug-pass" in integrator["prompt"], bug)
+                # bug-pass は checks.json を渡さない。integrator は渡された入力・起動計画の系統だけを検査する
+                # bug-pass passes no checks.json; the integrator inspects only the inputs and planned systems it is given
+                self.assertEqual("Checks : なし" in integrator["prompt"], bug)
                 self.assertEqual(integrator["schema"]["properties"]["design_items"].get("maximum") == 0, bug,
                                  "bug-pass の integrator は design_items>0 をスキーマで拒否する")
                 self.assertEqual("post-check を選択しない" in by_label["apply"]["prompt"], bug)
@@ -169,6 +172,8 @@ class BugPassWiringTest(unittest.TestCase):
         self.assertNotIn("推奨は最も本質的で長期運用に耐える案に固定する", rules + integrator)
         self.assertIn("症状を消す最小の変更", integrator)
         self.assertIn("Mode : bug-pass", integrator)
+        self.assertIn("起動計画に `rev-core-any-user-intent-fulfillment` が含まれるときだけ", integrator)
+        self.assertNotIn("Codex3本は1系統", integrator)
         self.assertIn("## 反映 diff の機械的動作確認", steps)
         self.assertIn("applied_diff_checks.py", steps)
         # 系統名の列挙は bug_pass.py だけが持つ（手順書・SKILL.md に二重定義しない）
