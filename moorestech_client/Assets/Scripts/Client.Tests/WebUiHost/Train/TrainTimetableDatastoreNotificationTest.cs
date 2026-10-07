@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Train.Timetable;
+using Core.Update;
+using Game.Train.Diagram;
 using Game.Train.RailGraph;
 using Game.Train.Unit;
 using NUnit.Framework;
@@ -18,7 +20,7 @@ namespace Client.Tests.WebUiHost.Train
             var notified = new List<TrainUnitInstanceId>();
             using var subscription = datastore.OnTimetableUpdated.Subscribe(notified.Add);
 
-            datastore.Apply(new TrainTimetableSnapshot(id, true, 0, new[] { new TrainTimetableStop(new Vector3Int(1, 2, 3), StationNodeSide.Front) }));
+            datastore.Apply(new TrainTimetableSnapshot(id, true, 0, new[] { new TrainTimetableStop(new Vector3Int(1, 2, 3), StationNodeSide.Front, TrainDiagram.DepartureConditionType.WaitForTicks, GameUpdater.TicksPerSecond) }));
 
             Assert.That(notified, Is.EqualTo(new[] { id }));
             Assert.That(datastore.TryGet(id, out var stored), Is.True);

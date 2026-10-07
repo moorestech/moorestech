@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Client.WebUiHost.Game.Topics.BlockDetail;
+using Core.Update;
+using Game.Train.Diagram;
 using Game.Train.RailGraph;
 using Game.Train.Unit;
 using NUnit.Framework;
@@ -46,8 +48,8 @@ namespace Client.Tests.WebUiHost
             var id = TrainUnitInstanceId.Create();
             var stops = new[]
             {
-                new TrainTimetableStop(new Vector3Int(1, 0, 0), StationNodeSide.Front),
-                new TrainTimetableStop(new Vector3Int(9, 0, 0), StationNodeSide.Back),
+                new TrainTimetableStop(new Vector3Int(1, 0, 0), StationNodeSide.Front, TrainDiagram.DepartureConditionType.WaitForTicks, GameUpdater.TicksPerSecond),
+                new TrainTimetableStop(new Vector3Int(9, 0, 0), StationNodeSide.Back, TrainDiagram.DepartureConditionType.WaitForTicks, GameUpdater.TicksPerSecond),
             };
             var timetable = new TrainTimetableSnapshot(id, true, 1, stops);
             var stations = new List<TrainTimetableStationDto> { TrainTimetableDtoBuilder.CreateStationDto(new Vector3Int(1, 0, 0), "north") };
