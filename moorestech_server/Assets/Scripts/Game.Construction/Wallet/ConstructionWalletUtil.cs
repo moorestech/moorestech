@@ -37,7 +37,7 @@ namespace Game.Construction
 
         // 置くセル数のうち実際に払うコストセット数。残りで賄える分は払わない
         // Cost sets actually paid for the given cells; what the remainder covers is not paid
-        public static int CalculateRequiredCostSets(int remaining, int cellCount, int placementsPerCost)
+        internal static int CalculateRequiredCostSets(int remaining, int cellCount, int placementsPerCost)
         {
             if (!UsesWallet(placementsPerCost)) return cellCount;
 
@@ -48,7 +48,7 @@ namespace Game.Construction
 
         // 財布の残りと払えるセット数から置ける数を出す。大量所持のオーバーフローを避ける
         // Placeable count from the wallet remainder plus the affordable cost sets, guarding against overflow on very large holdings
-        public static int CalculatePlaceableCount(int remaining, int affordableCostSets, int placementsPerCost)
+        internal static int CalculatePlaceableCount(int remaining, int affordableCostSets, int placementsPerCost)
         {
             if (!UsesWallet(placementsPerCost) || affordableCostSets == int.MaxValue) return affordableCostSets;
 

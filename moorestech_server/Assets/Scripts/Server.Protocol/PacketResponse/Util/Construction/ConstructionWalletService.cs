@@ -51,12 +51,12 @@ namespace Server.Protocol.PacketResponse.Util.Construction
             // The remainder goes back to whoever placed and paid for the block, not to whoever removes it
             var payerPlayerId = _payers.GetPayer(blockInstanceId, removePlayerId);
             var query = GetQuery(payerPlayerId);
-            var refund = ConstructionCostService.CreateRefundItems(query.GetItemsToRefund(blockId));
 
-            // 設置と同じ窓口で撤去を判断し、確定処理だけを予約する
-            // Decide removal through the same query as placement and reserve only the commit
-            if (!query.UsesWallet(blockId)) return new DirectCostRemovalPlan(refund);
-            return new WalletRemovalPlan(refund, _mutation, _payers, payerPlayerId, ConstructionWalletQuery.ResolveWalletBlockId(blockId), blockInstanceId, query.WouldCondenseOnReturn(blockId));
+            // 窓口の答えを確定用Planへ詰め、判断は窓口内に閉じる
+            // Pack the query answer into a commit plan, keeping decisions inside the query
+            if (!query.TryPlanRemovalCell(blockId, out var cell)) return new DirectCostRemovalPlan(ConstructionCostService.CreateRefundItems(query.GetItemsToRefund(blockId)));
+            var refund = ConstructionCostService.CreateRefundItems(cell.ItemsToRefund);
+            return new WalletRemovalPlan(refund, _mutation, _payers, payerPlayerId, cell.WalletBlockId, blockInstanceId, cell.WouldCondense);
         }
 
         public void CommitRemoval(IConstructionRemovalPlan plan)

@@ -140,18 +140,21 @@ namespace Tests.UnitTest.Game
 
             // セット未満は財布、到達時だけ素材へ戻す
             // Return to the wallet below one set and refund materials only at the set boundary
-            Assert.IsFalse(query.WouldCondenseOnReturn(slope));
-            Assert.IsEmpty(query.GetItemsToRefund(slope));
+            Assert.IsTrue(query.TryPlanRemovalCell(slope, out var accumulating));
+            Assert.AreEqual(wallet, accumulating.WalletBlockId);
+            Assert.IsFalse(accumulating.WouldCondense);
+            Assert.IsEmpty(accumulating.ItemsToRefund);
             mutation.Refill(PlayerId, wallet, 3);
             mutation.ConsumeOne(PlayerId, wallet);
-            Assert.IsTrue(query.WouldCondenseOnReturn(slope));
-            Assert.AreEqual(2, query.GetItemsToRefund(slope).Count);
+            Assert.IsTrue(query.TryPlanRemovalCell(slope, out var condensing));
+            Assert.IsTrue(condensing.WouldCondense);
+            Assert.AreEqual(2, condensing.ItemsToRefund.Count);
 
             // 財布対象外は設置も撤去も直接素材を使う
             // Non-wallet blocks use materials directly for both placement and removal
             Assert.IsFalse(query.UsesWallet(ForUnitTestModBlockId.BlockId));
             Assert.IsFalse(query.TryPlanCell(ForUnitTestModBlockId.BlockId, out _));
-            Assert.IsFalse(query.WouldCondenseOnReturn(ForUnitTestModBlockId.BlockId));
+            Assert.IsFalse(query.TryPlanRemovalCell(ForUnitTestModBlockId.BlockId, out _));
             Assert.AreEqual(query.GetItemsToConsume(ForUnitTestModBlockId.BlockId), query.GetItemsToRefund(ForUnitTestModBlockId.BlockId));
         }
 

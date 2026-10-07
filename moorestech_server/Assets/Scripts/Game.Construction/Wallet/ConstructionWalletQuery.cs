@@ -45,7 +45,17 @@ namespace Game.Construction
             return true;
         }
 
-        public bool WouldCondenseOnReturn(BlockId blockId)
+        // 財布を使うセルの撤去判断と返却素材を一度に確定する
+        // Decide condensation and refunded materials together for one wallet-backed cell
+        public bool TryPlanRemovalCell(BlockId blockId, out ConstructionWalletRemovalCellPlan plan)
+        {
+            plan = default;
+            if (!UsesWallet(blockId)) return false;
+            plan = new ConstructionWalletRemovalCellPlan(ResolveWalletBlockId(blockId), WouldCondenseOnReturn(blockId), GetItemsToRefund(blockId));
+            return true;
+        }
+
+        private bool WouldCondenseOnReturn(BlockId blockId)
         {
             var master = MasterHolder.BlockMaster.GetBlockMaster(blockId);
             return UsesWallet(blockId) && ConstructionWalletUtil.WouldCondense(_reader.GetRemainingCount(blockId), master.PlacementsPerCost);

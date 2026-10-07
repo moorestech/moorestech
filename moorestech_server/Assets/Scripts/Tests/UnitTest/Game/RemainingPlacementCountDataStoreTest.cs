@@ -44,13 +44,15 @@ namespace Tests.UnitTest.Game
 
             // 返却は+1、Nに達したら0へ戻る（凝縮返却。設置と撤去が完全な逆操作になる閾値）
             // Return adds one; reaching N resets to zero (condensed refund; the threshold that makes removal the exact inverse of placement)
-            Assert.IsTrue(new ConstructionWalletQuery(store.GetReader(PlayerId)).WouldCondenseOnReturn(wallet));
+            Assert.IsTrue(new ConstructionWalletQuery(store.GetReader(PlayerId)).TryPlanRemovalCell(wallet, out var condensing));
+            Assert.IsTrue(condensing.WouldCondense);
             store.ApplyReturn(PlayerId, wallet, true);
             Assert.AreEqual(0, store.GetReader(PlayerId).GetRemainingCount(wallet));
 
             // N未達なら加算のみ
             // Below N it simply accumulates
-            Assert.IsFalse(new ConstructionWalletQuery(store.GetReader(PlayerId)).WouldCondenseOnReturn(wallet));
+            Assert.IsTrue(new ConstructionWalletQuery(store.GetReader(PlayerId)).TryPlanRemovalCell(wallet, out var accumulating));
+            Assert.IsFalse(accumulating.WouldCondense);
             store.ApplyReturn(PlayerId, wallet, false);
             Assert.AreEqual(1, store.GetReader(PlayerId).GetRemainingCount(wallet));
 
