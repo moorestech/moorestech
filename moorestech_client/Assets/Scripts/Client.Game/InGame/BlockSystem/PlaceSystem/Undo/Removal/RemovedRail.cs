@@ -34,7 +34,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
                 collector.AddUnrecordable((canonicalFrom, canonicalTo), $"rail {canonicalFrom}->{canonicalTo}: node not synced");
                 return;
             }
-            if (RailEdgeClassifier.IsStationInternalEdge(fromNode, toNode)) return;
+            if (fromNode.StationRef.IsSameStation(toNode.StationRef)) return;
 
             // 種類未同期は復元できず、無償区間は直接切断だけ通知対象にする
             // Unsynced types cannot be restored; only directly deleted free edges count as skipped

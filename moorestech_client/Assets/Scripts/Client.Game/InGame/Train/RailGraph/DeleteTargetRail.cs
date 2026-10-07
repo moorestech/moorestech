@@ -120,7 +120,7 @@ namespace Client.Game.InGame.Train.RailGraph
             if (!_railGraphClientCache.TryGetNode(fromId, out var fromNode)) return DeleteDeniedReason.UnknownError;
             if (!_railGraphClientCache.TryGetNode(toId, out var toNode)) return DeleteDeniedReason.UnknownError;
             
-            if (RailEdgeClassifier.IsStationInternalEdge(fromNode, toNode)) return DeleteDeniedReason.StationInternalEdge;
+            if (fromNode.StationRef.IsSameStation(toNode.StationRef)) return DeleteDeniedReason.StationInternalEdge;
             
             return DeleteDeniedReason.None;
         }

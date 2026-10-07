@@ -87,7 +87,7 @@ namespace Server.Protocol.PacketResponse.Util.RailEdit
                 return ResponseRailConnectionEditMessagePack.CreateFailure(RailConnectionEditFailureReason.InvalidNode, data.Mode);
             }
 
-            if (IsStationInternalEdge(fromNode, toNode))
+            if (fromNode.StationRef.IsSameStation(toNode.StationRef))
             {
                 return ResponseRailConnectionEditMessagePack.CreateFailure(RailConnectionEditFailureReason.StationInternalEdge, data.Mode);
             }
@@ -127,19 +127,6 @@ namespace Server.Protocol.PacketResponse.Util.RailEdit
             }
 
             return ResponseRailConnectionEditMessagePack.Create(disconnectedflag, disconnectedflag ? RailConnectionEditFailureReason.None : RailConnectionEditFailureReason.UnknownError, data.Mode);
-
-            #region Internal
-
-            bool IsStationInternalEdge(RailNode from, RailNode to)
-            {
-                if (!from.StationRef.HasStation || !to.StationRef.HasStation)
-                {
-                    return false;
-                }
-                return from.StationRef.StationBlockInstanceId.Equals(to.StationRef.StationBlockInstanceId);
-            }
-
-            #endregion
         }
     }
 }
