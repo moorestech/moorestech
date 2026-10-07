@@ -65,7 +65,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             // Same 1-second polling as uGUI ElectricNetworkInfoView
             while (!ct.IsCancellationRequested)
             {
-                var response = await ClientContext.VanillaApi.Response.Block.GetElectricNetworkInfo(block.BlockInstanceId, ct);
+                var response = await ClientContext.VanillaApi.Response.World.GetElectricNetworkInfo(block.BlockInstanceId, ct);
                 if (ct.IsCancellationRequested) return;
                 Electric = response?.Info;
                 OnUpdated?.Invoke();
@@ -79,7 +79,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             // Same 1-second polling as PollElectric, so the stop-reason row stays live while open
             while (!ct.IsCancellationRequested)
             {
-                var response = await ClientContext.VanillaApi.Response.Block.GetGearNetworkInfo(block.BlockInstanceId, ct);
+                var response = await ClientContext.VanillaApi.Response.World.GetGearNetworkInfo(block.BlockInstanceId, ct);
                 if (ct.IsCancellationRequested) return;
 
                 // 通信失敗は網未所属(Info=null)と区別し、前回値を保って停止理由行を消さない

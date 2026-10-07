@@ -24,7 +24,7 @@ namespace Server.Protocol.PacketResponse
             _snapshotNotifyEvent = serviceProvider.GetService<ITrainUnitSnapshotNotifyEvent>();
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var request = MessagePackSerializer.Deserialize<TrainScheduleEditRequest>(payload);
             if (!_trainUnitLookupDatastore.TryGetTrainUnit(request.TrainUnitInstanceId, out var train))

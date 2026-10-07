@@ -54,7 +54,6 @@ namespace Client.WebUiHost.Game.Actions
 
             // 操作ごとの要求生成を検証と一体化し、成功した要求だけを送信する
             // Build each operation's request with validation and send only successful results
-            var playerId = ClientContext.PlayerConnectionSetting.PlayerId;
             var resolveResult = ResolveRequest(out var request);
             if (!resolveResult.Ok) return resolveResult;
 
@@ -71,12 +70,12 @@ namespace Client.WebUiHost.Game.Actions
                 {
                     var recipeResult = ResolveSelectableRecipe(payload["recipeGuid"], _unlockStateData, out var recipeGuid);
                     if (!recipeResult.Ok) return recipeResult;
-                    request = MachineRecipeSelectionProtocol.MachineRecipeSelectionRequest.CreateSetRecipeRequest(source.BlockPosition, recipeGuid, playerId);
+                    request = MachineRecipeSelectionProtocol.MachineRecipeSelectionRequest.CreateSetRecipeRequest(source.BlockPosition, recipeGuid);
                     return ActionResult.Success();
                 }
                 if (operation != "clear") return ActionResult.Fail("invalid_operation");
 
-                request = MachineRecipeSelectionProtocol.MachineRecipeSelectionRequest.CreateClearRequest(source.BlockPosition, playerId);
+                request = MachineRecipeSelectionProtocol.MachineRecipeSelectionRequest.CreateClearRequest(source.BlockPosition);
                 return ActionResult.Success();
             }
 

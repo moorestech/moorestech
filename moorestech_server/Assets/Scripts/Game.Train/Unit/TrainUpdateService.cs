@@ -70,8 +70,8 @@ namespace Game.Train.Unit
 
             NotifyPreSimulationDiff(_executedTick);
 
-            //↓これ以降にクライアントからの操作コマンド系適応がはいる、hashmismatchなどによるブロードキャストもはいる
-            // Client command application and hash-mismatch broadcasting continue after this point.
+            // これ以降にクライアントからの操作コマンドが適用される
+            // Client commands are applied after this point.
             //snapshot,生成イベント系
             // Snapshot generation and creation events also continue after this point.
             return;

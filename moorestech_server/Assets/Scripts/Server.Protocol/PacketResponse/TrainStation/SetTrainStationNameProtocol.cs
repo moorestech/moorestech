@@ -17,7 +17,7 @@ namespace Server.Protocol.PacketResponse
         {
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var request = MessagePackSerializer.Deserialize<SetTrainStationNameRequest>(payload);
             return Apply(request);

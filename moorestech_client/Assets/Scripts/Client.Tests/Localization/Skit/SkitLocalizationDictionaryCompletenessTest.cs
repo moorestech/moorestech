@@ -32,6 +32,7 @@ namespace Client.Tests.Localization.Skit
             [Localize.DefaultLanguageCode] = (162, "4ae1de4d73b56470e9abd475b3ecd07692e17305709b08c9f00bf07c2d8f5e76"),
             [CanonicalKeyLanguageCode] = (162, "4a3ed5dd98c690235baa09cb6b1aa36250d4e23e94de03f29215f409d7a68315"),
             [EnglishMirrorLanguageCode] = (162, "2534c6dd29dbbb302173017d2dce5aa6a40660cbc94142190bf3dc76c43fec55"),
+            ["korean"] = (162, "1e817fccfa927831f11a6b93fda766ff4a8ed4e5f2d7da08f4686d53f1954735"),
         };
 
         // LanguageCatalog由来で全言語を走査し新規言語追加時にbaseline未登録を検知する

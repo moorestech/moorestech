@@ -114,7 +114,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Use the actual dispatcher to check tag registration and response sequence
             request.SequenceId = 73;
             var payload = MessagePackSerializer.Serialize(request);
-            var responses = environment.PacketResponseCreator.GetPacketResponse(payload, new PacketResponseContext(null));
+            var responses = environment.PacketResponseCreator.GetPacketResponse(payload, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1));
             Assert.AreEqual(1, responses.Count);
             var response = MessagePackSerializer.Deserialize<Response>(responses[0]);
             Assert.AreEqual(request.Tag, response.Tag);

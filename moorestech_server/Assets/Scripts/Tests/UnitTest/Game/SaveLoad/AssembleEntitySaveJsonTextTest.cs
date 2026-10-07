@@ -2,7 +2,9 @@ using Game.Entity.Interface;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
 using Microsoft.Extensions.DependencyInjection;
+using Game.PlayerIdentity;
 using NUnit.Framework;
+using Tests.Util.PlayerIdentity;
 using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
@@ -17,17 +19,19 @@ namespace Tests.UnitTest.Game.SaveLoad
             var (_, serviceProvider) =
                 new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
+            var firstPlayerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<PlayerIdentityRegistry>(), "steam:1").PlayerId;
+            var secondPlayerId = PlayerIdentityTestHelper.Register(serviceProvider.GetRequiredService<PlayerIdentityRegistry>(), "steam:2").PlayerId;
             var entitiesDatastore = serviceProvider.GetService<IEntitiesDatastore>();
             var entityFactory = serviceProvider.GetService<IEntityFactory>();
             
             
             //セーブ用のエンティ追加
-            var entity1 = entityFactory.CreateEntity(VanillaEntityType.VanillaPlayer, new EntityInstanceId(10));
+            var entity1 = entityFactory.CreateEntity(VanillaEntityType.VanillaPlayer, new EntityInstanceId(firstPlayerId));
             var entityPosition = new Vector3(1, 2, 3);
             entity1.SetPosition(entityPosition);
             entitiesDatastore.Add(entity1);
             
-            var entity2 = entityFactory.CreateEntity(VanillaEntityType.VanillaPlayer, new EntityInstanceId(30));
+            var entity2 = entityFactory.CreateEntity(VanillaEntityType.VanillaPlayer, new EntityInstanceId(secondPlayerId));
             var entityPosition2 = new Vector3(4, 5, 6);
             entity2.SetPosition(entityPosition2);
             entitiesDatastore.Add(entity2);
@@ -44,12 +48,12 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             
             //ロードしたエンティティを取得
-            var loadedEntity1 = entitiesDatastore.Get(new EntityInstanceId(10));
+            var loadedEntity1 = entitiesDatastore.Get(new EntityInstanceId(firstPlayerId));
             Assert.AreEqual(entity1.InstanceId, loadedEntity1.InstanceId);
             Assert.AreEqual(entityPosition, loadedEntity1.Position);
             Assert.AreEqual(entity1.EntityType, loadedEntity1.EntityType);
             
-            var loadedEntity2 = entitiesDatastore.Get(new EntityInstanceId(30));
+            var loadedEntity2 = entitiesDatastore.Get(new EntityInstanceId(secondPlayerId));
             Assert.AreEqual(entity2.InstanceId, loadedEntity2.InstanceId);
             Assert.AreEqual(entityPosition2, loadedEntity2.Position);
             Assert.AreEqual(entity2.EntityType, loadedEntity2.EntityType);

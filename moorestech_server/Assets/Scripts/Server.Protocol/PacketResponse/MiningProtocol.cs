@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Core.Item.Interface;
 using Core.Master;
@@ -37,10 +37,10 @@ namespace Server.Protocol.PacketResponse
             _notificationService = serviceProvider.GetService<NotificationService>();
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var data = MessagePackSerializer.Deserialize<MiningProtocolMessagePack>(payload);
-            var playerInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId);
+            var playerInventory = _playerInventoryDataStore.GetInventoryData(requesterPlayerId);
             var equippedItem = playerInventory.EquipmentInventory.GetSelectedItem();
 
             var earnedItems = data.TargetType switch
@@ -85,7 +85,7 @@ namespace Server.Protocol.PacketResponse
                     // 1個も入らなければ通知しない
                     // No notification when nothing landed
                     if (insertedCount.Value <= 0) continue;
-                    _notificationService.NotifyWithoutCooldown(data.PlayerId, NotificationMessagePack.CreateItemEarned(insertedCount.Key, insertedCount.Value));
+                    _notificationService.NotifyWithoutCooldown(requesterPlayerId, NotificationMessagePack.CreateItemEarned(insertedCount.Key, insertedCount.Value));
                 }
             }
 
@@ -94,13 +94,13 @@ namespace Server.Protocol.PacketResponse
             void NotifyLostEarnedItems(int lostCount)
             {
                 if (lostCount <= 0) return;
-                _notificationService.Notify(data.PlayerId, NotificationMessagePack.CreateOperationDenied("denied.miningInventoryFull", Array.Empty<string>()));
+                _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.miningInventoryFull", Array.Empty<string>()));
             }
 
             List<IItemStack> MineMapObject()
             {
                 var mapObject = ServerContext.MapObjectDatastore.Get(data.InstanceId);
-                var result = _mapObjectMiningService.TryAttack(data.PlayerId, mapObject, equippedItem, playerInventory.MainOpenableInventory, out var items);
+                var result = _mapObjectMiningService.TryAttack(requesterPlayerId, mapObject, equippedItem, playerInventory.MainOpenableInventory, out var items);
                 switch (result)
                 {
                     case MiningAttackResult.Success:
@@ -111,7 +111,7 @@ namespace Server.Protocol.PacketResponse
                     case MiningAttackResult.CooldownNotElapsed:
                     case MiningAttackResult.InventoryFull:
                     case MiningAttackResult.NotInteractable:
-                        Debug.Log($"Mining attack rejected. playerId:{data.PlayerId} instanceId:{data.InstanceId} result:{result}");
+                        Debug.Log($"Mining attack rejected. playerId:{requesterPlayerId} instanceId:{data.InstanceId} result:{result}");
                         return null;
                     default:
                         throw new ArgumentOutOfRangeException(nameof(result), result, null);
@@ -125,7 +125,7 @@ namespace Server.Protocol.PacketResponse
 
             List<IItemStack> MineVein()
             {
-                var result = _veinHandMiningService.TryMine(data.PlayerId, data.VeinGuid, data.VeinPosition.Vector3Int, equippedItem, playerInventory.MainOpenableInventory, out var items);
+                var result = _veinHandMiningService.TryMine(requesterPlayerId, data.VeinGuid, data.VeinPosition.Vector3Int, equippedItem, playerInventory.MainOpenableInventory, out var items);
                 switch (result)
                 {
                     case VeinMiningResult.Success:
@@ -137,7 +137,7 @@ namespace Server.Protocol.PacketResponse
                     case VeinMiningResult.ToolMismatch:
                     case VeinMiningResult.CooldownNotElapsed:
                     case VeinMiningResult.InventoryFull:
-                        Debug.Log($"Vein mining rejected. playerId:{data.PlayerId} veinGuid:{data.VeinGuid} position:{data.VeinPosition.Vector3Int} result:{result}");
+                        Debug.Log($"Vein mining rejected. playerId:{requesterPlayerId} veinGuid:{data.VeinGuid} position:{data.VeinPosition.Vector3Int} result:{result}");
                         return null;
                     default:
                         throw new ArgumentOutOfRangeException(nameof(result), result, null);
@@ -160,7 +160,6 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class MiningProtocolMessagePack : ProtocolMessagePackBase
         {
-            [Key(2)] public int PlayerId { get; set; }
             [Key(3)] public MiningTargetType TargetType { get; set; }
             [Key(4)] public int InstanceId { get; set; }
             [Key(5)] public Vector3IntMessagePack VeinPosition { get; set; }
@@ -172,24 +171,23 @@ namespace Server.Protocol.PacketResponse
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public MiningProtocolMessagePack() { }
 
-            private MiningProtocolMessagePack(int playerId, MiningTargetType targetType, int instanceId, Vector3IntMessagePack veinPosition, Guid veinGuid)
+            private MiningProtocolMessagePack(MiningTargetType targetType, int instanceId, Vector3IntMessagePack veinPosition, Guid veinGuid)
             {
                 Tag = ProtocolTag;
-                PlayerId = playerId;
                 TargetType = targetType;
                 InstanceId = instanceId;
                 VeinPosition = veinPosition;
                 VeinGuid = veinGuid;
             }
 
-            public static MiningProtocolMessagePack CreateMapObjectRequest(int playerId, int instanceId)
+            public static MiningProtocolMessagePack CreateMapObjectRequest(int instanceId)
             {
-                return new MiningProtocolMessagePack(playerId, MiningTargetType.MapObject, instanceId, new Vector3IntMessagePack(Vector3Int.zero), Guid.Empty);
+                return new MiningProtocolMessagePack(MiningTargetType.MapObject, instanceId, new Vector3IntMessagePack(Vector3Int.zero), Guid.Empty);
             }
 
-            public static MiningProtocolMessagePack CreateVeinRequest(int playerId, Guid veinGuid, Vector3Int position)
+            public static MiningProtocolMessagePack CreateVeinRequest(Guid veinGuid, Vector3Int position)
             {
-                return new MiningProtocolMessagePack(playerId, MiningTargetType.Vein, 0, new Vector3IntMessagePack(position), veinGuid);
+                return new MiningProtocolMessagePack(MiningTargetType.Vein, 0, new Vector3IntMessagePack(position), veinGuid);
             }
         }
     }

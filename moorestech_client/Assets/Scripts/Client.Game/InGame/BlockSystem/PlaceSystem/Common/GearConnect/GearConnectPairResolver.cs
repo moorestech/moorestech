@@ -42,7 +42,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.GearConnect
 
                 // 歯車は同じコネクタ定義を入力にも出力にも使う（各Templateが同一リストを両側へ渡している）
                 // A gear uses the same connector list for both input and output, exactly as every gear template passes it
-                if (!BlockConnectorComponent<IGearEnergyTransformer, GearConnectJudge>.TryJudgeConnect(
+                if (!BlockConnectorComponent<IGearEnergyTransformer, GearContext>.TryJudgeConnect(
                         selfGear.Gear.GearConnects, selfPositionInfo,
                         neighbourGear.Gear.GearConnects, neighbourPositionInfo,
                         out var selfConnectorCell, out var targetConnectorCell)) continue;

@@ -57,7 +57,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 実際のパケット登録とMessagePack往復を通す
             // Exercise actual packet registration and MessagePack round trips
             var payload = MessagePackSerializer.Serialize(request);
-            var responses = Environment.PacketResponseCreator.GetPacketResponse(payload, new PacketResponseContext(null));
+            var responses = Environment.PacketResponseCreator.GetPacketResponse(payload, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1));
             Assert.AreEqual(1, responses.Count);
             return MessagePackSerializer.Deserialize<TrainScheduleEditProtocol.TrainScheduleEditResponse>(responses[0]);
         }

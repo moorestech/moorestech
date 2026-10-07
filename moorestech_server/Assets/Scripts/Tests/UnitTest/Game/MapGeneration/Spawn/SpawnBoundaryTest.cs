@@ -3,7 +3,7 @@ using Game.MapGeneration.Pipeline;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 
-namespace Tests.UnitTest.Game.MapGeneration
+namespace Tests.UnitTest.Game.MapGeneration.Spawn
 {
     public class SpawnBoundaryTest
     {

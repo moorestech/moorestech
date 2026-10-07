@@ -39,6 +39,7 @@
         "Game.PlayerInventory.Interface",
         "CommandForgeGeneratorUtil.Editor",
         "Client.WebUiHost",
+        "Client.Build.Policy",
         "Client.Playtest",
         "Client.Skit",
         "Unity.Addressables.Editor",
@@ -62,7 +63,8 @@
         "Game.PlacementTarget",
         "Game.Construction",
         "Game.Map.Interface",
-        "Client.PlaytestReceiver"
+        "Client.PlaytestReceiver",
+        "Client.RemoteExec"
     ],
     "includePlatforms": [
         "Editor"

@@ -3,6 +3,7 @@ using Client.Common;
 using Client.Game.Common;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.PlaytestReceiver.Launch;
+using Client.Starter.Playtest.TitleGates;
 using Cysharp.Threading.Tasks;
 using Game.Paths;
 using UniRx;
@@ -70,6 +71,14 @@ namespace Client.Starter.PlaytestSmoke
             if (StandalonePlaytestSmokePreconditions.TryFindFailure(settings, PlaytestLaunchProfile.Resolve(), out var failureReason))
             {
                 Fail(settings, "preconditions", failureReason);
+                return;
+            }
+
+            // タイトルの確認の通過を待ってから開始する。先に始めると初期化が「確認が未開始」で断りメニューへ戻す
+            // Start only after the title gates pass; starting earlier makes initialization refuse as "not started" and bounce to the menu
+            if (!await PlaytestTitleGates.WaitUntilPassedWithinDeadlineAsync(PlaytestTitleGates.UnattendedPassTimeoutSeconds, Application.exitCancellationToken))
+            {
+                Fail(settings, "title-gates", $"title gates did not pass within {PlaytestTitleGates.UnattendedPassTimeoutSeconds}s (the title composition root may not have started the sequence)");
                 return;
             }
 

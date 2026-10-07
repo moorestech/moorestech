@@ -19,7 +19,7 @@ namespace Server.Protocol.PacketResponse
             _trainUnitLookupDatastore = serviceProvider.GetService<ITrainUnitLookupDatastore>();
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var request = MessagePackSerializer.Deserialize<GetTrainTimetableRequest>(payload);
             if (!_trainUnitLookupDatastore.TryGetTrainUnit(request.TrainUnitInstanceId, out var train))

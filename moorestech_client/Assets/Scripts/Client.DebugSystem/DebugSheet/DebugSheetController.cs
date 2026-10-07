@@ -44,8 +44,7 @@ namespace Client.DebugSystem
             rootPage.AddSwitch(false, "Runtime Hierarchy Inspector", valueChanged: active => runtimeHierarchyInspector.SetActive(active));
             rootPage.AddButton("Clear Inventory", clicked: () =>
             {
-                var command = $"{SendCommandProtocol.ClearInventoryCommand} {ClientContext.PlayerConnectionSetting.PlayerId}";
-                ClientContext.VanillaApi.SendOnly.SendCommand(command);
+                ClientContext.VanillaApi.SendOnly.SendCommand(SendCommandProtocol.ClearInventoryCommand);
             });
             rootPage.AddButton("Get Play Time", clicked: () =>
             {
@@ -82,6 +81,7 @@ namespace Client.DebugSystem
             rootPage.AddBoolWithSave(false, TrainUnitDebugOverlayLabel, TrainUnitDebugOverlayKey);
             rootPage.AddBoolWithSave(false, PlacePreviewKeepLabel, PlacePreviewKeepKey);
             rootPage.AddBoolWithSave(false, FreeBlockPlacementLabel, DebugParameterKeys.FreeBlockPlacement);
+            rootPage.AddBoolWithSave(false, FlyModeLabel, FlyModeKey);
         }
         public static void CloseDebugSheet()
         {

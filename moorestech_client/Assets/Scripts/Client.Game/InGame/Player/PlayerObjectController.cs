@@ -1,5 +1,7 @@
-﻿using Client.Game.InGame.BlockSystem;
+﻿using System.Collections.Generic;
+using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Ground;
+using Client.Game.InGame.Player.FlyMode;
 using StarterAssets;
 using UnityEngine;
 
@@ -12,7 +14,7 @@ namespace Client.Game.InGame.Player
         public void SetActive(bool active);
         
         public void SetAnimationState(string state);
-        public void SetControllable(bool enable);
+        public void SetMovementLock(PlayerMovementLockReason reason, bool isLocked);
         public void SetModelVisible(bool visible);
     }
     
@@ -24,7 +26,9 @@ namespace Client.Game.InGame.Player
         [SerializeField] private ThirdPersonController controller;
         [SerializeField] private Animator animator;
         private readonly PlayerModelVisibility _modelVisibility = new();
+        private readonly HashSet<PlayerMovementLockReason> _movementLocks = new();
         private PlayerRideFollow _rideFollow;
+        private PlayerFlyModeController _flyMode;
         private bool _isModelVisible = true;
         private Vector3 worldSpawnPosition;
         private Vector3 initialPlayerPosition;
@@ -36,6 +40,11 @@ namespace Client.Game.InGame.Player
         {
             controller.Initialize();
             _rideFollow = new PlayerRideFollow(transform, GetComponent<CharacterController>(), controller);
+            _flyMode = new PlayerFlyModeController(controller);
+
+            // 生成直後の操作可否を移動とフライの双方へ揃えておく
+            // Sync the initial controllability to both movement and fly mode right after construction
+            ApplyMovementLock();
 
             // 落下復帰先はワールドのスポーン地点。地形はランタイム構築なのでシーン配置のマーカーは当てにできない
             // Fall recovery targets the world spawn; terrain is built at runtime so a scene-authored marker cannot be trusted
@@ -56,6 +65,14 @@ namespace Client.Game.InGame.Player
             SetPlayerPosition(initialPlayerPosition);
             controller.enabled = true;
             isRuntimeStarted = true;
+        }
+
+        private void Update()
+        {
+            // 地形構築前は動かさない
+            // Stay still before terrain exists
+            if (!isRuntimeStarted) return;
+            _flyMode.ManualUpdate(Time.unscaledTime);
         }
 
         private void LateUpdate()
@@ -116,9 +133,25 @@ namespace Client.Game.InGame.Player
         {
             animator.Play(state);
         }
-        public void SetControllable(bool enable)
+        // 停止理由ごとに独立して掛け外しする。画面を閉じても乗車中の停止を解除しないため
+        // Each stop reason is set and cleared on its own, so closing a screen never lifts the stop while riding
+        public void SetMovementLock(PlayerMovementLockReason reason, bool isLocked)
         {
-            controller.SetControllable(enable);
+            if (isLocked) _movementLocks.Add(reason);
+            else _movementLocks.Remove(reason);
+            ApplyMovementLock();
+        }
+
+        private void ApplyMovementLock()
+        {
+            // 乗車中の停止は追従状態が正。別フラグへ写すと二重管理になる
+            // The follow state is the authority for the riding stop; a separate flag would duplicate it
+            var isControllable = _movementLocks.Count == 0 && !_rideFollow.IsFollowing();
+
+            // 移動とフライの双方へ変化時に渡す
+            // Push to both movement and fly mode on every change
+            controller.SetControllable(isControllable);
+            _flyMode.SetControllable(isControllable);
         }
 
         public void SetModelVisible(bool visible)
@@ -145,13 +178,13 @@ namespace Client.Game.InGame.Player
         public void SetRideFollowTarget(Transform target, Vector3 localPosition, Quaternion localRotation)
         {
             _rideFollow.SetTarget(target, localPosition, localRotation);
-            SetControllable(false);
+            ApplyMovementLock();
         }
 
         public void ClearRideFollowTarget()
         {
             _rideFollow.ClearTarget();
-            SetControllable(true);
+            ApplyMovementLock();
         }
     }
 }

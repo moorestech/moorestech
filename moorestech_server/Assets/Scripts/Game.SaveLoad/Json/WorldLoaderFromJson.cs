@@ -4,6 +4,7 @@ using Core.Update;
 using Game.Challenge;
 using Game.Map.Interface.Json;
 using Game.Paths;
+using Game.PlayerIdentity;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json.WorldVersions;
 using Game.SaveLoad.Migration;
@@ -26,9 +27,11 @@ namespace Game.SaveLoad.Json
         private readonly SaveLoadPreparer _saveLoadPreparer;
         private readonly WorldSaveDataRestorer _worldSaveDataRestorer;
         private readonly SaveBackfilledFieldsRecord _saveBackfilledFieldsRecord;
+        private readonly PlayerIdentityRegistry _playerIdentityRegistry;
 
         public WorldLoaderFromJson(WorldDataDirectory worldDataDirectory, IWorldSettingsDatastore worldSettingsDatastore, ChallengeDatastore challengeDatastore,
-            MapInfoJson mapInfoJson, SaveLoadPreparer saveLoadPreparer, WorldSaveDataRestorer worldSaveDataRestorer, SaveBackfilledFieldsRecord saveBackfilledFieldsRecord)
+            MapInfoJson mapInfoJson, SaveLoadPreparer saveLoadPreparer, WorldSaveDataRestorer worldSaveDataRestorer, SaveBackfilledFieldsRecord saveBackfilledFieldsRecord,
+            PlayerIdentityRegistry playerIdentityRegistry)
         {
             _worldDataDirectory = worldDataDirectory;
             _worldSettingsDatastore = worldSettingsDatastore;
@@ -37,6 +40,7 @@ namespace Game.SaveLoad.Json
             _saveLoadPreparer = saveLoadPreparer;
             _worldSaveDataRestorer = worldSaveDataRestorer;
             _saveBackfilledFieldsRecord = saveBackfilledFieldsRecord;
+            _playerIdentityRegistry = playerIdentityRegistry;
         }
 
         public void LoadOrInitialize()
@@ -98,6 +102,9 @@ namespace Game.SaveLoad.Json
             // A new world has backfilled nothing; carrying over the previous world's list would mark real values as fabricated
             _saveBackfilledFieldsRecord.SetFields(Array.Empty<string>());
 
+            // 前のワールドの身元と採番状態を持ち越さない
+            // Do not carry identities or allocation state over from the previous world
+            _playerIdentityRegistry.InitializeForNewWorld();
             _worldSettingsDatastore.Initialize(_mapInfoJson);
             _challengeDatastore.InitializeCurrentChallenges();
         }

@@ -2,6 +2,7 @@ using System.Threading;
 using Core.Update;
 using Game.SaveLoad.Snapshot;
 using Server.Protocol;
+using UnityEngine;
 
 namespace Server.Boot.Loop.PacketProcessing
 {
@@ -32,13 +33,18 @@ namespace Server.Boot.Loop.PacketProcessing
         {
             // 受信スレッドでは世界を変更せず、全接続共通FIFOへ渡す
             // Keep world mutation off the receive thread and hand the packet to the shared FIFO
+            if (Volatile.Read(ref _isActive) == 0)
+            {
+                Debug.LogWarning("切断済み接続からのパケット投入を拒否しました");
+                return;
+            }
             _tickEndPacketQueue.Enqueue(new ReceivedPacketEntry(this, packet));
         }
 
         public void Dispose()
         {
-            // 固定済みキューに残る項目も実行されないよう接続状態だけを落とす
-            // Mark only connection state so already-frozen entries are skipped
+            // 切断確定後の新規投入だけを止め、先に積んだパケットは切断項目より前に処理する
+            // Stop new enqueues after close; earlier packets still run before the disconnect entry
             Volatile.Write(ref _isActive, 0);
         }
 
@@ -46,7 +52,7 @@ namespace Server.Boot.Loop.PacketProcessing
         {
             // 再生の真実はここ（tick末尾の処理点）。クライアント送信時刻ではなく処理tickで記録する
             // Replay truth lives here at the tick-end processing point; record the processing tick, not the client send time
-            _receivedPacketLog.Append(GameUpdater.CurrentTick, packet);
+            _receivedPacketLog.Append(GameUpdater.CurrentTick, _packetResponseContext.PlayerId, packet);
 
             var results = _packetResponseCreator.GetPacketResponse(packet, _packetResponseContext);
 
@@ -62,8 +68,6 @@ namespace Server.Boot.Loop.PacketProcessing
         {
             private readonly ReceiveQueueProcessor _owner;
             private readonly byte[] _packet;
-
-            public bool IsActive => Volatile.Read(ref _owner._isActive) != 0;
 
             public ReceivedPacketEntry(ReceiveQueueProcessor owner, byte[] packet)
             {

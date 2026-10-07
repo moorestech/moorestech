@@ -30,6 +30,42 @@ trap 'rmdir "$LOCK"' EXIT
 # Only READY boxes qualify; in-flight <id>.partial boxes are never picked up (pairs with ship-outbox's atomicity)
 shopt -s nullglob
 [ -d "$INBOX" ] || { log "inbox が無いので何もしない: $INBOX"; exit 0; }
+
+HELD="$INBOX/.remote-exec-held"
+# 無効と読めた箱だけを通す。読めない manifest は AUTOFIX_FORCED でも通さない（壊れた印を通常扱いにしない）
+# Only a box that reads as disabled passes; an unreadable manifest is refused even with AUTOFIX_FORCED, so a broken mark never becomes an ordinary report
+remote_exec_allows() {
+  local candidate="$1" state err reason
+  err="$(mktemp)"
+  if ! state="$(python3 "$REPO/scripts/playtest/remote_exec_manifest_state.py" "$candidate/manifest.json" 2>"$err")"; then
+    REMOTE_EXEC_HOLD_REASON="manifest を読めない（$(tr '\n' ' ' < "$err")）"
+    rm -f "$err"
+    return 1
+  fi
+  reason="$(tr '\n' ' ' < "$err")"
+  rm -f "$err"
+  [ "$state" = 1 ] || return 0
+  if [ -e "$candidate/AUTOFIX_FORCED" ]; then
+    log "AUTOFIX_FORCED があるため遠隔実行あり/不明の箱を流す（${reason:-manifest の印が有効}）: $candidate"
+    return 0
+  fi
+  REMOTE_EXEC_HOLD_REASON="${reason:-manifest の印が有効}"
+  return 1
+}
+
+# 遮断した箱は dot 始まりの退避先へ移し、後続の候補を止めない（重複ガードと同じ作法）
+# A held box moves to the dot-prefixed quarantine so the boxes behind it keep flowing (same idiom as the duplicate guard)
+hold_remote_exec_box() {
+  local candidate="$1" name="$2"
+  mkdir -p "$HELD"
+  if [ -e "$HELD/$name" ]; then
+    log "遠隔実行ありの箱を退避できない（同名が退避先にある）。触らず次の候補へ: $HELD/$name"
+  elif mv "$candidate" "$HELD/$name"; then
+    log "遠隔実行が有効/不明のためランを起こさず退避した（${REMOTE_EXEC_HOLD_REASON}）: $HELD/$name"
+  else
+    log "遠隔実行ありの箱を退避できなかった。今回は飛ばして次の候補へ: $candidate"
+  fi
+}
 box=""; id=""
 for marker in "$INBOX"/*/READY; do
   candidate="$(dirname "$marker")"; name="$(basename "$candidate")"
@@ -47,6 +83,12 @@ for marker in "$INBOX"/*/READY; do
     else
       log "重複箱を隔離できなかった。今回は飛ばして次の候補へ: $candidate"
     fi
+    continue
+  fi
+  # 遠隔実行が有効・不明だったセッションの箱は自動修正ランへ流さない（ADR 0072）。投入経路に依らずここが唯一の関所
+  # A box from a session with remote execution enabled or unknown never reaches an auto-fix run (ADR 0072); this is the single gate regardless of how it was enqueued
+  if ! remote_exec_allows "$candidate"; then
+    hold_remote_exec_box "$candidate" "$name"
     continue
   fi
   box="$candidate"; id="$name"; break

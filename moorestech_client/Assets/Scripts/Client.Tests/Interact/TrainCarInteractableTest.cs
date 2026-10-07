@@ -6,6 +6,7 @@ using Client.Game.InGame.Train.View.Object.Core;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Input;
+using Client.Tests.Common;
 using Game.Train.Unit;
 using NUnit.Framework;
 using UnityEngine;
@@ -82,8 +83,10 @@ namespace Client.Tests.Interact
 
         private static TrainCarInteractable AttachTrainCarInteractable(TrainCarEntityObject trainCarEntityObject)
         {
+            var registry = new TrainCarViewRegistryFake();
+            registry.Register(trainCarEntityObject);
             var interactable = trainCarEntityObject.gameObject.AddComponent<TrainCarInteractable>();
-            interactable.Initialize(trainCarEntityObject);
+            interactable.Initialize(trainCarEntityObject, registry);
             trainCarEntityObject.SetInteractable(interactable);
             return interactable;
         }

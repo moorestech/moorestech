@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Game.Train.Event;
 using Game.Train.Unit;
@@ -12,6 +12,10 @@ namespace Server.Protocol
     public class PacketResponseCreator
     {
         private readonly Dictionary<string, IPacketResponse> _packetResponseDictionary = new();
+
+        // ハンドシェイクは実装1本きりで、接続コンテキストを受ける唯一の経路なので辞書へ均さず直接持つ
+        // The handshake has a single implementation and is the only path taking the connection context, so it is held directly rather than in a dictionary
+        private readonly InitialHandshakeProtocol _initialHandshake;
         
         //TODO この辺もDIコンテナに載せる?こういうパケット周りめっちゃなんとかしたい
         // TODO should packet registration also be moved into the DI container?
@@ -21,7 +25,7 @@ namespace Server.Protocol
             // Acquire train-related services required for packet creation
             var trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
             var trainCarRidingInputBuffer = serviceProvider.GetService<TrainCarRidingInputBuffer>();
-            _packetResponseDictionary.Add(InitialHandshakeProtocol.ProtocolTag, new InitialHandshakeProtocol(serviceProvider));
+            _initialHandshake = new InitialHandshakeProtocol(serviceProvider);
             _packetResponseDictionary.Add(RequestWorldDataProtocol.ProtocolTag, new RequestWorldDataProtocol(serviceProvider));
             _packetResponseDictionary.Add(PlayerInventoryResponseProtocol.ProtocolTag, new PlayerInventoryResponseProtocol(serviceProvider));
             _packetResponseDictionary.Add(SetPlayerCoordinateProtocol.ProtocolTag, new SetPlayerCoordinateProtocol(serviceProvider));
@@ -61,7 +65,6 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(GetWorldPlaySessionInfoProtocol.ProtocolTag, new GetWorldPlaySessionInfoProtocol(serviceProvider));
             _packetResponseDictionary.Add(RailConnectionEditProtocol.Tag, new RailConnectionEditProtocol(serviceProvider));
             _packetResponseDictionary.Add(RailConnectWithPlacePierProtocol.Tag, new RailConnectWithPlacePierProtocol(serviceProvider));
-            _packetResponseDictionary.Add(TrainResyncProtocol.ProtocolTag, new TrainResyncProtocol(serviceProvider));
             _packetResponseDictionary.Add(PlaceTrainCarOnRailProtocol.ProtocolTag, new PlaceTrainCarOnRailProtocol(serviceProvider));
             _packetResponseDictionary.Add(AttachTrainCarToUnitProtocol.ProtocolTag, new AttachTrainCarToUnitProtocol(serviceProvider));
             _packetResponseDictionary.Add(TrainCarRidingInputProtocol.ProtocolTag, new TrainCarRidingInputProtocol(trainCarRidingInputBuffer, trainUpdateService));
@@ -85,7 +88,21 @@ namespace Server.Protocol
             try
             {
                 request = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(payload);
-                response = _packetResponseDictionary[request.Tag].GetResponse(payload, context);
+                // 身元未確定の接続から届く操作は送り手を決められないため破棄する
+                // Drop operations before the connection identifies their sender
+                if (request.Tag == InitialHandshakeProtocol.ProtocolTag)
+                {
+                    response = _initialHandshake.GetResponse(payload, context);
+                }
+                else if (!context.PlayerId.HasValue)
+                {
+                    Debug.LogWarning($"[PacketResponseCreator] 未紐づけの接続からの要求を無視しました tag:{request.Tag}");
+                    return new List<byte[]>();
+                }
+                else
+                {
+                    response = _packetResponseDictionary[request.Tag].GetResponse(payload, context.PlayerId.Value);
+                }
             }
             catch (Exception e)
             {

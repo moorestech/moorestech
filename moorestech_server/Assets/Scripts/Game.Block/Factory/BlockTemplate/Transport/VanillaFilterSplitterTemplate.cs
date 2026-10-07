@@ -1,3 +1,5 @@
+using Game.Block.Blocks.BeltConveyor;
+using Game.Block.Blocks.BeltConveyor.Connection;
 using System.Collections.Generic;
 using Game.Block.Blocks;
 using Game.Block.Blocks.FilterSplitter;
@@ -23,7 +25,7 @@ namespace Game.Block.Factory.BlockTemplate.Transport
         {
             var param = blockMasterElement.BlockParam as FilterSplitterBlockParam;
 
-            var connectorComponent = BlockTemplateUtil.CreateInventoryConnector(param.InventoryConnectors, blockPositionInfo);
+            var connectorComponent = BeltInventoryConnectionContext.Create(param.InventoryConnectors, blockPositionInfo, BeltConveyorSlopeType.Straight);
 
             // マスタの outputConnects の順序が方向インデックスとなる
             // The order of outputConnects in master data defines the direction index

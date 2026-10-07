@@ -20,7 +20,7 @@ namespace Server.Protocol.PacketResponse
             _worldSettingsDatastore = serviceProvider.GetService<IWorldSettingsDatastore>();
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var totalPlaySeconds = _worldSettingsDatastore.GetCurrentPlayTime().TotalSeconds;
 

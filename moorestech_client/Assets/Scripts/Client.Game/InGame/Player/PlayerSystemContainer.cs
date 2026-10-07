@@ -1,4 +1,5 @@
 using System;
+using Client.Input;
 using Client.Network.API;
 using UniRx;
 using UnityEngine;
@@ -30,6 +31,10 @@ namespace Client.Game.InGame.Player
         public void Construct(InitialHandshakeResponse initialHandshakeResponse)
         {
             playerObjectController.Initialize(initialHandshakeResponse.PlayerPos, initialHandshakeResponse.MapLayout.Spawn);
+
+            // 文字入力中の停止は自機の初期化後に張る。フォーカスは受信スレッド発なのでメインスレッドへ移す
+            // Hook the text-input stop after the player is initialized; focus comes from the socket thread, so hop to the main thread
+            new TextInputMovementLockApplier(playerObjectController).Initialize(WebUiInputExclusivity.TextInputFocused.ObserveOnMainThread());
         }
 
         // 地形構築の完了をFinalizerから受けて、自機の実行を開始する

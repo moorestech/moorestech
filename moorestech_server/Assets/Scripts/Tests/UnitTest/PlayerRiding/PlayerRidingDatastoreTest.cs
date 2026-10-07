@@ -260,7 +260,7 @@ namespace Tests.UnitTest.PlayerRiding
 
         private static PlayerConnectionRegistry RegisterConnectedPlayers(TrainTestEnvironment environment, params int[] playerIds)
         {
-            var registry = (PlayerConnectionRegistry)environment.ServiceProvider.GetService<IPlayerConnectionChecker>();
+            var registry = environment.ServiceProvider.GetRequiredService<PlayerConnectionRegistry>();
 
             // 乗車判定は実機側と同じ接続レジストリを IPlayerConnectionChecker として使う。
             // Riding checks use the same connection registry as the runtime IPlayerConnectionChecker.

@@ -1,12 +1,14 @@
 ---
 name: edit-schema
 description: |
-  マスターデータのYAMLスキーマを編集するためのガイド。スキーマの追加・変更・削除を行う際に使用する。
+  マスターデータのYAMLスキーマを編集するためのガイド。スキーマの追加・変更・削除と、foreignKey追加時のC#バリデーション追加を扱う。
   Use when:1.VanillaSchemaのymlファイル(blocks.yml,items.yml等)を編集する必要がある時2.新しいブロックタイプやパラメータを追加する
-  3.既存スキーマの構造を変更する4.SourceGeneratorのトリガー方法を確認する
+  3.既存スキーマの構造を変更する4.SourceGeneratorのトリガー方法を確認する5.foreignKey(Guid参照)を追加しバリデーションを書く時
 ---
 
 # Schema Editing Guide
+
+YAMLの書き方（プロパティ・型・設定オプション）は [yaml_spec.md](references/yaml_spec.md) が正本。YAMLを書く前に該当箇所を読むこと。
 
 ## Directory Structure
 
@@ -25,7 +27,7 @@ VanillaSchema/
 `VanillaSchema/` 配下の該当YAMLファイルを編集。
 
 ### 2. Update csc.rsp (Add/Delete Schema)
-スキーマの追加・削除時に `moorestech_server/Assets/Scripts/Core.Master/csc.rsp` を編集：
+スキーマファイルの追加・削除時は `moorestech_server/Assets/Scripts/Core.Master/csc.rsp` を編集：
 ```
 # 追加時
 /additionalfile:Assets/../../VanillaSchema/newSchema.yml
@@ -34,13 +36,13 @@ VanillaSchema/
 ```
 
 ### 3. Trigger SourceGenerator
-`moorestech_server/Assets/Scripts/Core.Master/_CompileRequester.cs` の `dummyText` を変更：
+`moorestech_server/Assets/Scripts/Core.Master/_CompileRequester.cs` の `dummyText` を変更してコミットする：
 ```csharp
 private const string dummyText = "new-value-here";
 ```
 
 ### 4. Rebuild
-MCPまたはUnityでリビルド。生成コードは `Mooresmaster.Model.*Module` 名前空間に配置される。
+uloopでコンパイル。生成コードは `Mooresmaster.Model.*Module` 名前空間に配置される。
 
 ## Key Patterns
 
@@ -87,59 +89,69 @@ implementationInterface:
 
 ## Important Rules
 
-- **新しいトップ階層スキーマ（VanillaSchema直下のyml）の新設は原則禁止（CRITICAL）** — 新しい定義は既存のトップ階層スキーマ（blocks.yml, items.yml, buildMenu.yml等）のプロパティとして追加する。既存のどのトップ階層にも意味的に入れられない場合に限り新設を許可する。新設はcsc.rsp・MasterHolder・全modのJSONファイル追加を伴い、レビューで統合先の提示とともに差し戻される（PR1042でblockCategories.ymlがbuildMenu.ymlへ統合された実績）
-- **`optional: true` は原則禁止（CRITICAL）** — 新規フィールドは必須とし、`default` をYAMLに定義した上で全JSON（上記「更新対象のJSONデータ配置先」参照）へ値を追記するのが**正規手順**。optionalが正当なのは「存在しないことに意味がある」フィールド（コネクタ形状の `directions`/`shapeGuid` 等）のみで、数値パラメータのoptional化はほぼ常に誤り。「既存JSONを壊さないため」は理由にならない（後方互換は考慮不要・AGENTS.md）。optionalにすると読み取り側に `?? Default` フォールバックが増殖し、レビューで必須化+全JSON更新に差し戻される（PR978で44箇所修正の実績）。下記「生成コンストラクタ破壊」の対処が必要になった時点で、optionalが本当に正しいか疑うこと
+- **新しいトップ階層スキーマ（VanillaSchema直下のyml）の新設は原則禁止** — 新しい定義は既存のトップ階層スキーマ（blocks.yml, items.yml, buildMenu.yml等）のプロパティとして追加する。既存のどのトップ階層にも意味的に入れられない場合に限り新設を許可する。新設はcsc.rsp・MasterHolder・全modのJSONファイル追加を伴い、レビューで統合先の提示とともに差し戻される（PR1042でblockCategories.ymlがbuildMenu.ymlへ統合された実績）
+- **`optional: true` は原則禁止** — 新規フィールドは必須とし、`default` をYAMLに定義した上で全JSON（下記「JSONデータ配置先」）へ値を追記するのが正規手順。optionalが正当なのは「存在しないことに意味がある」フィールド（コネクタ形状の `directions`/`shapeGuid` 等）のみで、数値パラメータのoptional化はほぼ常に誤り。「既存JSONを壊さないため」は理由にならない（後方互換は考慮不要・AGENTS.md）。optionalにすると読み取り側に `?? Default` フォールバックが増殖し、レビューで必須化+全JSON更新に差し戻される（PR978で44箇所修正の実績）
 - C#側に `Default*` 定数や `?? Default` フォールバックを書いてマスタ欠損を吸収しない（欠損はスキーマとJSONで解決する）
 - 手動で `Mooresmaster.Model.*` クラスを作成しない
-- スキーマ変更後は必ず `_CompileRequester.cs` を更新してコミット
 
-## プロパティのリネーム・削除時のJSONデータ更新（CRITICAL）
+## プロパティのリネーム・削除時のJSONデータ更新
 
-スキーマのプロパティ名を変更・削除した場合、**すべてのJSONデータを漏れなく更新すること**。
-更新漏れがあるとCIでMooresmasterLoaderExceptionが発生する。
+プロパティ名の変更・削除、必須プロパティ追加時は全JSONを更新。
 
-**更新対象のJSONデータ配置先（すべて更新すること）：**
+必須キー変更時はJSONファイル、C#テストの文字列、`JObject`／`JArray`、JSON生成ヘルパーも検索・更新。YAMLの`default:`はローダーの欠損補完に使われない。
+
+**JSONデータ配置先：**
 - `moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/`
 - `moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/ServerData/mods/`
 - `../moorestech_master/` 配下全体
 - `mooresmaster/mooresmaster.SandBox/`
 
-**必ずgrepで旧プロパティ名の残存がないことを確認する：**
 ```bash
-grep -r '"旧プロパティ名"' --include='*.json' . ../moorestech_master/ | grep -v '.claude/worktrees'
+grep -r '"旧プロパティ名"' --include='*.json' . ../moorestech_master/
 ```
 
-## プロパティ追加時の生成コンストラクタ破壊（CRITICAL）
+スキーマ変更時は `TestModDirectory.ForUnitTestModDirectory` と外部ピン先の出荷マスタを新版コードでロード。スキーマのコミットとJSON実パス・コミットを組で記録。
 
-`optional: true` を付けたプロパティを追加しても、SourceGenerator が生成する要素クラス（例 `BlockMasterElement`）の**コンストラクタには必須の末尾引数が1つ増える**（C# のデフォルト値は付かない）。そのため、手書きで `new XxxMasterElement(...)` している箇所（主に**テスト**）は全て CS7036（`There is no argument given ...`）でコンパイルエラーになる。JSON ローダー経由のロードは影響を受けないが、手動構築箇所は必ず引数追加が必要。
+## プロパティ追加時の生成コンストラクタ破壊
 
-**プロパティ追加後、必ず手動構築箇所を洗って末尾に引数を足す：**
+プロパティを追加すると（`optional: true` でも）、SourceGenerator が生成する要素クラス（例 `BlockMasterElement`）の**コンストラクタに必須の末尾引数が1つ増える**。手書きで `new XxxMasterElement(...)` している箇所（主にテスト）は CS7036 になるので、末尾に引数を足す。JSONローダー経由のロードは影響を受けない。
+
 ```bash
 grep -rn 'new <要素クラス名>(' --include='*.cs' moorestech_server moorestech_client | grep -v '/obj/'
 ```
-optional なら末尾に `null`（または既定値相当）を渡す。追加位置はスキーマ上どこでも生成順は `PropertyTable` 順なので、原則**末尾プロパティとして足す**と既存の引数順が崩れず差分が最小になる。
+生成順は `PropertyTable` 順なので、**末尾プロパティとして足す**と既存の引数順が崩れず差分が最小になる。
 
-## スキーマ変更後の最終検証（CRITICAL）
+例外テストは新必須キーを揃え、対象の異常だけで失敗するか確認。配列添字だけで実データ由来とせず、テスト入力も調べる。
 
-スキーマ変更に伴うすべてのタスク（コード修正・JSON更新・テスト修正）が完了したら、**クライアントプロジェクトの全テストを実行すること**。CIはクライアントプロジェクトからEditModeテストを実行するため、サーバー側テストだけでは検証が不十分。
+CIはクライアントプロジェクトからEditModeテストを実行する。スキーマ変更の影響テストはクライアントのproject-pathで回す。
 
-## Validation for foreignKey (CRITICAL)
+## foreignKey追加時のC#バリデーション
 
-**MUST**: foreignKeyを持つプロパティを追加した場合、**必ず `/validate-schema` スキルを実行**してC#バリデーションを追加すること。
+SourceGeneratorは `foreignKey` からバリデーションを**自動生成しない**。手動で足さないと、存在しないGuidが実行時に `InvalidOperationException` を起こす。
 
-SourceGeneratorはforeignKeyからバリデーションコードを自動生成しない。手動追加を怠ると実行時エラー（InvalidOperationException）の原因となる。
+- 置き場: `moorestech_server/Assets/Scripts/Core.Master/Validator/` のスキーマ別 `*MasterUtil.cs`（blocks → `BlockMasterUtil.cs`、BlockParam系は `Validator/Block/` にも分割あり）。追加先は同じ参照先を検証している既存行を grep して決める
+- 参照先ごとの書き方（既存パターン）:
+
+```csharp
+// items / fluids / blocks は Master の IdOrNull で引く
+// Resolve items / fluids / blocks via the master's IdOrNull
+var id = MasterHolder.ItemMaster.GetItemIdOrNull(element.ItemGuid); // GetFluidIdOrNull / GetBlockIdOrNull
+if (id == null)
+{
+    logs += $"[{MasterName}] Name:{name} has invalid ItemGuid:{element.ItemGuid}\n";
+}
+
+// mapObjects は要素を引く
+// Resolve mapObjects by element lookup
+var mapObjectElement = MasterHolder.MapObjectMaster.GetMapObjectElementOrNull(element.MapObjectGuid);
+
+// IdOrNull を持たない参照先（research・challenge・同一スキーマ内参照）はローカル関数で存在確認
+// Targets without IdOrNull (research, challenge, same-schema refs) use a local existence check
+bool ExistsResearchGuid(Guid researchGuid) => Array.Exists(research.Data, r => r.ResearchNodeGuid == researchGuid);
+```
+
+見落としやすい箇所: `ref:` 先のスキーマ内の foreignKey（例 `generateFluids` の `fluidGuid`）、`switch/cases` の各case、配列要素内の foreignKey（`foreach` で回す）。optional な Guid は未設定時（`Guid.Empty` / `HasValue` 無し）をスキップする。
 
 ## SourceGenerator Troubleshooting
 
-SourceGeneratorはどのような環境（git worktree、root repo、CI/CD）でも動作します。
-
-もしSourceGeneratorでコードが生成されていないことによるコンパイルエラー（例：`The type or namespace name 'Mooresmaster' could not be found (are you missing a using directive or an assembly reference?)` 等）が発生した場合、**100%スキーマの書き方に問題があります**。
-
-このような時は：
-1. YAMLファイル全体を見直して不具合がないかチェック
-2. [yaml_spec.md](references/yaml_spec.md) でYAMLの書き方の仕様を確認
-3. コンパイルエラーが解消するまで修正を続ける
-
-## Reference
-
-**MUST**: IF もし今から実行しようとしているタスクがYAMLを編集する必要がある場合 THEN 必ず [yaml_spec.md](references/yaml_spec.md) を確認してください。利用可能なプロパティ、型、設定オプションの完全なリファレンスが記載されています。
+`Mooresmaster` 名前空間が見つからない等、生成されていないことによるコンパイルエラーが出たら、まず csc.rsp の登録漏れとYAMLの書き方を疑う（SourceGeneratorは worktree・CIでも動く）。YAML全体を [yaml_spec.md](references/yaml_spec.md) と照らして直す。

@@ -7,8 +7,8 @@ using UnityEngine;
 namespace Client.Game.InGame.Train.Network
 {
     /// <summary>
-    ///     RailGraph差分の初期適用から再同期までを担うキャッシュ反映サービス
-    ///     Service that applies the initial RailGraph snapshot and future resync payloads
+    ///     RailGraphの初期snapshotをキャッシュへ反映するサービス
+    ///     Service that applies the initial RailGraph snapshot to the cache
     /// </summary>
     public sealed class RailGraphSnapshotApplier
     {

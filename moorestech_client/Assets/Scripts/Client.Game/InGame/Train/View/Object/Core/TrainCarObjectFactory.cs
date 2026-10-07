@@ -20,6 +20,14 @@ namespace Client.Game.InGame.Train.View.Object.Core
     public class TrainCarObjectFactory
     {
         private readonly Dictionary<Guid, GameObject> _prefabCacheByTrainCarMasterId = new();
+        private readonly ITrainCarViewRegistry _trainCarViewRegistry;
+
+        // 開いた車両インベントリがIDから今の表示を引き直せるよう、登録簿を面へ渡す
+        // Hand the view registry to the interact face so an opened car inventory can re-resolve the current view by ID
+        public TrainCarObjectFactory(ITrainCarViewRegistry trainCarViewRegistry)
+        {
+            _trainCarViewRegistry = trainCarViewRegistry;
+        }
 
         public TrainCarEntityObject CreateTrainCarObject(Transform parent, TrainCarSnapshot carSnapshot)
         {
@@ -69,7 +77,7 @@ namespace Client.Game.InGame.Train.View.Object.Core
                 // インタラクト面（開く・乗車）を付ける
                 // Attach the interact face (open / ride)
                 var interactable = trainObject.AddComponent<TrainCarInteractable>();
-                interactable.Initialize(trainEntityObject);
+                interactable.Initialize(trainEntityObject, _trainCarViewRegistry);
                 trainEntityObject.SetInteractable(interactable);
 
                 // animation processor と座席 resolver は Prefab 構造から補完する

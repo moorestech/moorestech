@@ -19,6 +19,12 @@ namespace Game.Paths
         // The default world name at boot; single source of truth
         public const string DefaultWorldName = "world_1";
 
+        // 既定ワールドの置き場を起動環境から差し替えるキー（前例: DebugParametersCacheDirectory）。未設定ならSaves/world_1
+        // Env key that relocates the default world from the launch environment (precedent: DebugParametersCacheDirectory); unset means Saves/world_1
+        // プロセス環境変数なのでドメインリロードを跨いで効き、プロセスと共に消えるため残置しない
+        // Being a process env var it survives domain reloads and dies with the process, so it is never left behind
+        private const string DefaultWorldDirectoryOverrideEnvKey = "MOORESTECH_DEFAULT_WORLD_DIRECTORY";
+
         public static string GameSystemDirectory
         {
             get
@@ -37,7 +43,30 @@ namespace Game.Paths
         public static string TmpFileDirectory => DirectoryCreator(GameSystemDirectory, "Tmp");
         public static string ExtractedModDirectory => DirectoryCreator(TmpFileDirectory, "ExtractedMods");
         public static string SaveFileDirectory => DirectoryCreator(GameSystemDirectory, "Saves");
-        public static string DefaultWorldDirectory => GetSaveFilePath(DefaultWorldName);
+
+        // 内蔵サーバーの既定ワールドと既定ワールドの削除が共に読む唯一の窓口
+        // The single window read by both the embedded server's default world and the default-world deletion
+        public static string DefaultWorldDirectory
+        {
+            get
+            {
+                var overrideDirectory = GetDefaultWorldDirectoryOverride();
+                return string.IsNullOrEmpty(overrideDirectory) ? GetSaveFilePath(DefaultWorldName) : overrideDirectory;
+            }
+        }
+
+        public static string GetDefaultWorldDirectoryOverride()
+        {
+            return Environment.GetEnvironmentVariable(DefaultWorldDirectoryOverrideEnvKey);
+        }
+
+        // 既定ワールドの置き場を差し替える。null・空文字で解除
+        // Relocates the default world; null or empty clears the override
+        public static void SetDefaultWorldDirectoryOverride(string directoryPath)
+        {
+            var value = string.IsNullOrEmpty(directoryPath) ? null : directoryPath;
+            Environment.SetEnvironmentVariable(DefaultWorldDirectoryOverrideEnvKey, value);
+        }
 
         // サーバーから受け取った派生データの置き場。削除しても再取得で復元される
         // Holds data derived from the server; deleting it only forces a re-fetch
@@ -57,6 +86,10 @@ namespace Game.Paths
         // 前回セッションの正常終了マーカーと退避物の置き場。起動時にだけ読む
         // Holds the previous session's clean-exit marker and salvaged files; read only at boot
         public static string BugReportLastSessionDirectory => Path.Combine(BugReportDirectory, "last-session");
+
+        // 遠隔実行のアクセストークンと台帳の置き場を一箇所で定義する
+        // Define the access token and ledger location for remote execution in one place
+        public static string RemoteExecDirectory => Path.Combine(GameSystemDirectory, "RemoteExec");
 
         // 進行記録の作業中セッションとoutbox。プレイ報告とは別ツリーで持つ（shared-contracts §2）
         // The in-flight progress session and its outbox; kept in a tree separate from play reports (shared-contracts §2)

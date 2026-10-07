@@ -152,8 +152,8 @@ namespace Tests.CombinedTest.Server.PacketTest
         private ElectricWireExtendProtocol.ElectricWireExtendResponse SendExtend(Vector3Int fromPos, Vector3Int newPolePos, BlockId poleBlockId)
         {
             var placeInfo = new PlaceInfo { Position = newPolePos, Direction = BlockDirection.North, VerticalDirection = BlockVerticalDirection.Horizontal };
-            var payload = MessagePackSerializer.Serialize(ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateExtendRequest(PlayerId, fromPos, poleBlockId, placeInfo, ConnectToolGuid));
-            var responses = _packet.GetPacketResponse(payload, new PacketResponseContext(null));
+            var payload = MessagePackSerializer.Serialize(ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateExtendRequest(fromPos, poleBlockId, placeInfo, ConnectToolGuid));
+            var responses = _packet.GetPacketResponse(payload, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
             return MessagePackSerializer.Deserialize<ElectricWireExtendProtocol.ElectricWireExtendResponse>(responses[0]);
         }
 

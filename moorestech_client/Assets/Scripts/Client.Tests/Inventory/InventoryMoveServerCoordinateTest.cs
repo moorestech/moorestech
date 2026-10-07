@@ -11,7 +11,6 @@ namespace Client.Tests.Inventory
     public class InventoryMoveServerCoordinateTest
     {
         private const int MainSlotCount = 54;
-        private const int PlayerId = 3;
 
         // 装備はスロット恒等で装備識別子へ写る（結合スロットではないのでオフセットを引かない）
         // Equipment maps onto the equipment identifier with an identity slot (no offset, since it is not a combined slot)
@@ -20,10 +19,9 @@ namespace Client.Tests.Inventory
         [TestCase(2)]
         public void EquipmentMapsToEquipmentIdentifierWithIdentitySlot(int localSlot)
         {
-            var (identifier, serverSlot) = InventoryMoveServerDispatcher.ToServerCoordinate(null, MainSlotCount, PlayerId, LocalMoveInventoryType.Equipment, localSlot);
+            var (identifier, serverSlot) = InventoryMoveServerDispatcher.ToServerCoordinate(null, MainSlotCount, LocalMoveInventoryType.Equipment, localSlot);
 
             Assert.AreEqual(InventoryType.Equipment, identifier.InventoryType);
-            Assert.AreEqual(PlayerId, identifier.PlayerId);
             Assert.AreEqual(localSlot, serverSlot);
         }
 
@@ -32,10 +30,9 @@ namespace Client.Tests.Inventory
         [Test]
         public void GrabMapsToGrabIdentifierWithSlotZero()
         {
-            var (identifier, serverSlot) = InventoryMoveServerDispatcher.ToServerCoordinate(null, MainSlotCount, PlayerId, LocalMoveInventoryType.Grab, 5);
+            var (identifier, serverSlot) = InventoryMoveServerDispatcher.ToServerCoordinate(null, MainSlotCount, LocalMoveInventoryType.Grab, 5);
 
             Assert.AreEqual(InventoryType.Grab, identifier.InventoryType);
-            Assert.AreEqual(PlayerId, identifier.PlayerId);
             Assert.AreEqual(0, serverSlot);
         }
 
@@ -44,10 +41,9 @@ namespace Client.Tests.Inventory
         [Test]
         public void MainRangeOfCombinedSlotMapsToMainIdentifier()
         {
-            var (identifier, serverSlot) = InventoryMoveServerDispatcher.ToServerCoordinate(null, MainSlotCount, PlayerId, LocalMoveInventoryType.MainOrSub, MainSlotCount - 1);
+            var (identifier, serverSlot) = InventoryMoveServerDispatcher.ToServerCoordinate(null, MainSlotCount, LocalMoveInventoryType.MainOrSub, MainSlotCount - 1);
 
             Assert.AreEqual(InventoryType.Main, identifier.InventoryType);
-            Assert.AreEqual(PlayerId, identifier.PlayerId);
             Assert.AreEqual(MainSlotCount - 1, serverSlot);
         }
     }

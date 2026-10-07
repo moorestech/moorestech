@@ -3,6 +3,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using Client.ExternalProcess;
 using Client.WebUiHost.Common;
 using Client.WebUiHost.Static;
 using UnityEditor.Build;

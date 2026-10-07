@@ -22,11 +22,13 @@ using Client.Game.InGame.Interact.Selection;
 using Client.Game.InGame.BlockSystem.PlaceSystem.VeinRestriction;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview;
 using Client.Game.InGame.Map.MapVein;
+using Client.Game.InGame.Player;
 using Client.Game.InGame.Player.StateController;
 using Client.Game.InGame.Player.StateController.State;
 using Client.Game.InGame.Riding;
 using Client.Game.InGame.Train.DebugView;
 using Client.Game.InGame.Train.Network;
+using Client.Game.InGame.Train.Network.Diagnostics;
 using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.Train.View;
@@ -117,6 +119,9 @@ namespace Client.Starter.Registration
             builder.Register<IPlayerCameraInteractionApplier, PlayerCameraInteractionApplier>(Lifetime.Singleton);
             builder.Register<PlayerViewModeController>(Lifetime.Singleton).AsSelf().As<IStartable>().As<ITickable>();
             builder.Register<UiStateCameraPolicyService>(Lifetime.Singleton);
+            // UIStateControlへ移動ロックの窓口を公開
+            // Expose the movement-lock endpoint to UIStateControl
+            builder.Register<IPlayerObjectController>(resolver => resolver.Resolve<PlayerSystemContainer>().PlayerObjectController, Lifetime.Singleton);
 
             // UI state群を単一の辞書へ集約する
             // Gather UI states into their single dictionary
@@ -166,11 +171,13 @@ namespace Client.Starter.Registration
             builder.Register<RailGraphSnapshotApplier>(Lifetime.Singleton);
             builder.Register<TrainUnitClientCache>(Lifetime.Singleton);
             builder.Register<TrainUnitTickState>(Lifetime.Singleton);
+            builder.RegisterInstance(new TrainSynchronizationDiagnosticWriter(System.IO.Path.Combine(UnityEngine.Application.persistentDataPath, "Logs", "TrainSynchronization")));
+            builder.Register<TrainSynchronizationDiagnostics>(Lifetime.Singleton);
             builder.Register<TrainUnitFutureMessageBuffer>(Lifetime.Singleton);
             builder.Register<TrainUnitSnapshotApplier>(Lifetime.Singleton);
             builder.Register<TrainUnitVisualUpdateSystem>(Lifetime.Singleton);
             builder.Register<TrainUnitClientSimulator>(Lifetime.Singleton).AsSelf().As<ITickable>();
-            builder.Register<TrainUnitHashVerifier>(Lifetime.Singleton).As<ITrainUnitHashTickGate>().As<IDisposable>();
+            builder.Register<TrainUnitHashVerifier>(Lifetime.Singleton).As<ITrainUnitHashTickGate>();
             builder.Register<TrainUnitDebugOverlayPresenter>(Lifetime.Singleton).As<ITickable>().As<IDisposable>();
         }
     }

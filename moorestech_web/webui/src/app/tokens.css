@@ -111,18 +111,20 @@
   --menu-content-height: calc(var(--ui-stage-height) - var(--menu-upper-safe-area) - var(--menu-lower-safe-area));
   /* 持ち物グリッドの基準寸法。InventoryPanelのインラインstyleが同じトークンをvar()で参照し二重著述を避ける */
   /* Base inventory grid dimensions; InventoryPanel's inline style references these same tokens via var() to avoid dual authorship */
-  /* 端数の由来: 9列45スロット(PlayerInventoryConst.MainInventoryColumns)を6列時と同じ319.6pxの専有幅へ収めるため実測ピッチを×0.6603した値。枠:間隔比と正本の左右余白が壊れるので単独で丸めない */
-  /* Where the fractions come from: the measured pitch scaled by x0.6603 so 9 columns of the 45-slot main inventory (PlayerInventoryConst.MainInventoryColumns) occupy the same 319.6px as the 6-column layout; do not round them individually, it breaks the frame:gap ratio and the reference side margins */
+  /* 端数の由来: 旧9列グリッドを6列時と同じ319.6pxの専有幅へ収めるため実測ピッチを×0.6603した値。枠:間隔比と正本の左右余白が壊れるので単独で丸めない */
+  /* Where the fractions come from: the measured pitch scaled by x0.6603 so the former 9-column grid occupied the same 319.6px as the 6-column layout; do not round them individually, it breaks the frame:gap ratio and the reference side margins */
   --inventory-slot-base-size: 30.123px;
   --inventory-slot-base-gap: 6.064px;
   --inventory-count-base-font-size: 10.565px;
-  --inventory-slot-scale: 1.3;
-  --inventory-columns: 9;
+  /* 10列化で持ち物パネルの幅を9列×1.3倍時(473.9px)のまま保つ値。広げると固定幅stageから右のクラフトパネルが溢れる（ユーザー裁定 2026-10-06） */
+  /* Keeps the 10-column panel at the 9-column x1.3 width (473.9px); widening it overflows the craft panel off the fixed-width stage (user ruling 2026-10-06) */
+  --inventory-slot-scale: 1.1678;
+  --inventory-columns: 10;
   /* 持ち物パネルの幅。InventoryPanelのインラインstyleと研究パネルの左端導出が同じ値を見る */
   /* The inventory panel width; InventoryPanel's inline style and the research panel's left edge share this one value */
-  /* 378pxは1.0倍時の実測。スロット1.3倍化で9列グリッドが伸びた分を足す（ユーザー裁定 2026-08-20） */
-  /* 378px is the measured 1.0x width; the 1.3x slots stretch the 9-column grid, and that growth is added here (user ruling 2026-08-20) */
-  --inventory-panel-width: calc(378px + (var(--inventory-columns) * var(--inventory-slot-base-size) + (var(--inventory-columns) - 1) * var(--inventory-slot-base-gap)) * (var(--inventory-slot-scale) - 1));
+  /* 58.381pxはグリッド以外の枠幅（9列1.0倍時の実測378px - 9列グリッド319.619px）。列数・倍率どちらを変えてもグリッド分だけ伸縮する */
+  /* 58.381px is the non-grid frame width (measured 378px at 9 columns 1.0x minus the 319.619px 9-column grid); the panel tracks any column count or scale */
+  --inventory-panel-width: calc(58.381px + (var(--inventory-columns) * var(--inventory-slot-base-size) + (var(--inventory-columns) - 1) * var(--inventory-slot-base-gap)) * var(--inventory-slot-scale));
   /* stageの左右余白。stage幅の連立式（全幅 - 左右padding - 持ち物幅 - 列gap = 機械パネル幅）の項なので、
      App.module.cssとblockInventoryの両方がこの1個を見る。片方だけ動かすと機械パネルが枠外へ溢れる */
   /* The stage's side padding; it is a term of the width equation (full width - side padding - inventory - column gap
@@ -251,24 +253,24 @@
   /* 画面外矢印を画面端からこの固定長だけ内側にクランプする */
   /* Clamp off-screen arrows this fixed length inside the screen edge */
   --world-pin-edge-margin: 40px;
-  /* D&D説明のドラッグガイド矢印の寸法と1周期の長さ（webui-design §8.17） */
-  /* Size and one-cycle duration of the D&D drag guide arrow (webui-design §8.17) */
+  /* D&D説明のドラッグガイド矢印の寸法と1周期の長さ（ref-webui-design §8.17） */
+  /* Size and one-cycle duration of the D&D drag guide arrow (ref-webui-design §8.17) */
   --tutorial-drag-guide-size: 56px;
   --tutorial-drag-guide-duration: 3200ms;
-  /* 枠線ハイライトの文言ラベルの間隔（webui-design §8.17） */
-  /* Gap for an outline highlight's text label (webui-design §8.17) */
+  /* 枠線ハイライトの文言ラベルの間隔（ref-webui-design §8.17） */
+  /* Gap for an outline highlight's text label (ref-webui-design §8.17) */
   --tutorial-highlight-label-gap: 4px;
   /* ラベル面のpaddingと文字サイズ。ワールドピンのラベルと枠線ラベルが共有する */
   /* Label-face padding and font size shared by the world-pin label and the outline label */
   --label-face-padding: 4px 10px;
   --label-face-font-size: 14px;
-  /* keyControlヒントHUDのホットバー床からの間隔・縦積み間隔・kbdとの間隔（webui-design §8.19。文字様式は--key-hint-*を使う） */
-  /* Gap above the hotbar floor, vertical stack gap, and kbd gap for the keyControl hint HUD (webui-design §8.19; text style uses --key-hint-*) */
+  /* keyControlヒントHUDのホットバー床からの間隔・縦積み間隔・kbdとの間隔（ref-webui-design §8.19。文字様式は--key-hint-*を使う） */
+  /* Gap above the hotbar floor, vertical stack gap, and kbd gap for the keyControl hint HUD (ref-webui-design §8.19; text style uses --key-hint-*) */
   --tutorial-key-hint-hotbar-gap: 72px;
   --tutorial-key-hint-gap: 6px;
   --tutorial-key-hint-kbd-gap: 10px;
-  /* keyControlヒントはワールド上に面無しで浮くため白では埋もれる。原色赤で文字色を立てる（webui-design §8.19） */
-  /* The keyControl hint floats faceless over the world and drowns in white, so it uses the attention red (webui-design §8.19) */
+  /* keyControlヒントはワールド上に面無しで浮くため白では埋もれる。原色赤で文字色を立てる（ref-webui-design §8.19） */
+  /* The keyControl hint floats faceless over the world and drowns in white, so it uses the attention red (ref-webui-design §8.19) */
   --tutorial-key-hint-color: var(--tutorial-attention-red);
   /* ドラッグガイド矢印を世界背景から分離する最小限の影（world-pin矢印と同族） */
   /* Minimal shadow separating the drag guide arrow from the world background, same family as the world-pin arrow */

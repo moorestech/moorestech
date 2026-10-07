@@ -1,3 +1,4 @@
+using Game.Block.Blocks.BeltConveyor.Connection;
 using System;
 using System.Collections.Generic;
 using Core.Item.Interface;
@@ -29,14 +30,14 @@ namespace Game.Block.Blocks.FilterSplitter
         public int FilterSlotCountPerDirection => _filterSlotCount;
 
         private readonly DirectionState[] _directions;
-        private readonly BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> _connectorComponent;
+        private readonly BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext> _connectorComponent;
         private readonly BlockInstanceId _blockInstanceId;
         private readonly int _filterSlotCount;
         private int _roundRobinIndex = -1;
 
         public VanillaFilterSplitterComponent(
             BlockInstanceId blockInstanceId,
-            BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> connectorComponent,
+            BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext> connectorComponent,
             IReadOnlyList<IBlockConnector> outputConnectorElements,
             int filterSlotCountPerDirection)
         {
@@ -53,7 +54,7 @@ namespace Game.Block.Blocks.FilterSplitter
         public VanillaFilterSplitterComponent(
             Dictionary<string, object> componentStates,
             BlockInstanceId blockInstanceId,
-            BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> connectorComponent,
+            BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext> connectorComponent,
             IReadOnlyList<IBlockConnector> outputConnectorElements,
             int filterSlotCountPerDirection) :
             this(blockInstanceId, connectorComponent, outputConnectorElements, filterSlotCountPerDirection)

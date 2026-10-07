@@ -7,10 +7,6 @@ namespace Client.Starter
 {
     public class InitializeProprieties
     {
-        // 未指定時の既定プレイヤー。既定の解決はこのクラスだけが持つ
-        // The default player when unspecified; only this class resolves it
-        private const int DefaultPlayerId = 1;
-
         // 許容ポート範囲。文言へは{p0}で供給する
         // The allowed port range; the wording receives it through {p0}
         private const int MinExclusivePort = 1024;
@@ -22,35 +18,33 @@ namespace Client.Starter
         // リモート接続専用の宛先ポート。ローカルは宛先を持たないためnull
         // Destination port for remote connections only; null for local, which has no destination
         public readonly int? RemoteServerPort;
-        public readonly int PlayerId;
 
         public string[] CreateLocalServerArgs { get; set; } = Array.Empty<string>();
 
-        private InitializeProprieties(bool isRemoteConnection, string serverIp, int? remoteServerPort, int playerId)
+        private InitializeProprieties(bool isRemoteConnection, string serverIp, int? remoteServerPort)
         {
             IsRemoteConnection = isRemoteConnection;
             ServerIp = serverIp;
             RemoteServerPort = remoteServerPort;
-            PlayerId = playerId;
         }
 
         // ローカルプレイは接続試行なしで内蔵サーバーを必ず起動する（ADR 0013）
         // Local play always boots the embedded server without probing (ADR 0013)
-        public static InitializeProprieties CreateLocalServer(int? playerId)
+        public static InitializeProprieties CreateLocalServer()
         {
-            return new InitializeProprieties(false, ServerConst.LocalServerIp, null, playerId ?? DefaultPlayerId);
+            return new InitializeProprieties(false, ServerConst.LocalServerIp, null);
         }
 
         // 明示IP:ポート指定のみ。フォールバック無し
         // Explicit IP:port only; no fallback
-        public static InitializeProprieties CreateRemoteConnection(string serverIp, int serverPort, int playerId)
+        public static InitializeProprieties CreateRemoteConnection(string serverIp, int serverPort)
         {
-            return new InitializeProprieties(true, serverIp, serverPort, playerId);
+            return new InitializeProprieties(true, serverIp, serverPort);
         }
 
         // 入力欄の文字列を検証し、通ったときだけ接続プロパティを作る。拒否は理由だけで表す
         // Validates the raw input fields and builds the properties only when they pass; a refusal is expressed by the reason alone
-        public static bool TryCreateRemoteConnection(string serverIpText, string serverPortText, int playerId, out InitializeProprieties properties, out RemoteConnectionDenyReason denyReason)
+        public static bool TryCreateRemoteConnection(string serverIpText, string serverPortText, out InitializeProprieties properties, out RemoteConnectionDenyReason denyReason)
         {
             properties = null;
             denyReason = default;
@@ -81,7 +75,7 @@ namespace Client.Starter
 
             // 表記ゆれを正規化した文字列で持たせる
             // Carry the address as its normalized textual form
-            properties = CreateRemoteConnection(address.ToString(), port, playerId);
+            properties = CreateRemoteConnection(address.ToString(), port);
             return true;
         }
     }

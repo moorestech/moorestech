@@ -20,11 +20,12 @@ import os
 import subprocess
 import sys
 
-EXCLUDES = [
-    ":(exclude)*.meta", ":(exclude)*.prefab", ":(exclude)*.asset", ":(exclude)*.unity",
-    ":(exclude)*.png", ":(exclude)*.jpg", ":(exclude)*.controller", ":(exclude)*.mat", ":(exclude)*.fbx",
-    ":(exclude,glob)**/unity-playmode-recorded-playtest/**/*.cs",
-]
+# レビューに入れないパスの正本は moores-code-review の review_diff.py（セッション側の patch と同じ除外にする）
+# The exclusion source of truth is moores-code-review's review_diff.py, so this patch matches the session-side one
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "..", "moores-code-review", "scripts"))
+from review_diff import exclude_pathspecs  # noqa: E402
+
+EXCLUDES = exclude_pathspecs()
 # ユーザー側git設定（quotepath/color/ext-diff/textconv/バイナリ判定/rename圧縮）に patch を痩せさせないための固定フラグ
 # Fixed flags so user git config (quotepath/color/ext-diff/textconv/binary/rename) cannot silently thin the patch
 DIFF_FLAGS = ["-c", "core.quotepath=false", "diff", "--no-color", "--no-ext-diff", "--no-textconv", "--text", "--no-renames"]

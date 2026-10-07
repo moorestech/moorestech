@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { sendInputState } from "@/bridge";
-import { isPointerOverWebUi, isTextInputElement, reduceWebInputState, type WebInputState } from "./activeLayer";
+import { browserDefaultSuppressionFor, isPointerOverWebUi, isTextInputElement, reduceWebInputState, type WebInputState } from "./activeLayer";
 
 // DOMのヒットテストとテキストフォーカスをUnityへ差分通知する
 // Report DOM hit testing and text focus changes to Unity only when state changes
@@ -19,13 +19,32 @@ export function useWebInputExclusivity() {
     const onPointerLeave = () => update({ pointerOverUi: false });
     const onFocusIn = (event: FocusEvent) => update({ textInputFocused: isTextInputElement(event.target) });
     const onFocusOut = () => queueMicrotask(() => update({ textInputFocused: isTextInputElement(document.activeElement) }));
-    const onKeyDown = (event: KeyboardEvent) => {
-      // ブラウザのTabフォーカス移動はWeb UIの選択表示とUnityのTab操作の双方と衝突するので既定動作ごと封じる
-      // Native Tab traversal fights both the web UI's own selection rendering and Unity's Tab binding, so its default is suppressed
-      if (event.key === "Tab") {
-        event.preventDefault();
-        return;
+    // keydown/keyupが同じ判別値を引くので、封じ方の非対称が生まれない
+    // Both keydown and keyup read the same discriminant, so the two can never drift apart
+    const applySuppression = (event: KeyboardEvent): boolean => {
+      const kind = browserDefaultSuppressionFor(event.key, document.activeElement);
+      switch (kind) {
+        case "allow":
+          return false;
+        case "preventDefault":
+          event.preventDefault();
+          return true;
+        case "preventDefaultAndStopPropagation":
+          event.preventDefault();
+          event.stopPropagation();
+          return true;
+        default: {
+          const exhaustive: never = kind;
+          return exhaustive;
+        }
       }
+    };
+
+    const onKeyUp = (event: KeyboardEvent) => {
+      applySuppression(event);
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (applySuppression(event)) return;
       if (event.key !== "Escape" || !state.textInputFocused) return;
       (document.activeElement as HTMLElement | null)?.blur();
       event.preventDefault();
@@ -38,12 +57,14 @@ export function useWebInputExclusivity() {
     document.addEventListener("focusin", onFocusIn, true);
     document.addEventListener("focusout", onFocusOut, true);
     document.addEventListener("keydown", onKeyDown, true);
+    document.addEventListener("keyup", onKeyUp, true);
     return () => {
       document.removeEventListener("pointermove", onPointerMove, true);
       document.documentElement.removeEventListener("pointerleave", onPointerLeave);
       document.removeEventListener("focusin", onFocusIn, true);
       document.removeEventListener("focusout", onFocusOut, true);
       document.removeEventListener("keydown", onKeyDown, true);
+      document.removeEventListener("keyup", onKeyUp, true);
       sendInputState(false, false);
     };
   }, []);

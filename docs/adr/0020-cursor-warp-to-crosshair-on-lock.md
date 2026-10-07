@@ -28,6 +28,8 @@ CefUnity は `Input.mousePosition` からブラウザ座標を作って CEF へ 
 
 ## 実装後の実測（2026-08-19・PR fix/webui-cursor-tooltip-and-selection）
 
+> **訂正（2026-10-01）**: 本節のスキット経路の因果説明（Web 側が座標を一度も受け取っていない）は誤り。実カーソルでの再計測で、真因は `CursorTooltip` の位置計算が Mantine `Portal` の初回 null 描画で空振りし再実行されないことだと分かった。本節の実測値もプレイテストの注入マウスと上下逆転した座標換算によるもので信用できない。[ADR 0074](0074-cursor-tooltip-recomputes-position-when-element-attaches.md) を参照。
+
 PlayMode録画テスト `cursor-tooltip-follows-crosshair.cs` による対照実験の結果、本裁定の**有効範囲は当初の想定より狭い**ことが判明した。裁定自体（ロックする遷移ではロック前にワープする）は維持する。
 
 | 経路 | 修正あり | 修正なし |

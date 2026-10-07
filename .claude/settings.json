@@ -72,11 +72,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PROJECT_DIR}/.dev-hooks/decisions-index.mjs\""
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.dev-hooks/beads-prime.mjs\""
           },
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PROJECT_DIR}/.dev-hooks/beads-prime.mjs\""
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.dev-hooks/skill-name-collision-check.mjs\" claude"
           }
         ]
       }

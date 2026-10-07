@@ -125,6 +125,11 @@ namespace Client.Game.InGame.UI.UIState.State
             _inGameCameraController.SetControllable(false);
         }
 
+        public bool LocksPlayerMovement()
+        {
+            return false;
+        }
+
         public IReadOnlyList<KeyHint> GetKeyHints()
         {
             return System.Array.Empty<KeyHint>();

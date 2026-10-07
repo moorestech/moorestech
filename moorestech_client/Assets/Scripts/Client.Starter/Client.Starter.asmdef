@@ -37,7 +37,10 @@
         "MessagePack",
         "Game.Block.Interface",
         "Client.PlaytestReceiver",
-        "com.rlabrecque.steamworks.net"
+        "com.rlabrecque.steamworks.net",
+        "Game.PlayerIdentity",
+        "Client.RemoteExec",
+        "Client.Input"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

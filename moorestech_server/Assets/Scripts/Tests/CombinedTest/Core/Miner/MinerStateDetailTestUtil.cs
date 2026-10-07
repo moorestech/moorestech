@@ -1,3 +1,4 @@
+using Tests.Util.EnergySystem;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -20,7 +21,7 @@ using Tests.Module.TestMod;
 using Tests.Util;
 using UniRx;
 using UnityEngine;
-using static Tests.Util.ElectricNetworkReflectionTestUtil;
+using static Tests.Util.EnergySystem.ElectricNetworkReflectionTestUtil;
 
 namespace Tests.CombinedTest.Core.Miner
 {

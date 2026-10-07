@@ -39,6 +39,11 @@ description: |
 
 `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/` に新規ファイルを作成。
 
+`IPacketResponse.GetResponse` は接続に紐づいた `requesterPlayerId` を受け取る（自己申告のplayerIdをペイロードへ載せない）。
+既存フィールドを削除しても後続の `[Key(n)]` は詰め直さず欠番のまま残す（詰め直すと旧パケットログの再生で値が黙って化ける）。
+`PacketResponseContext` そのものを受けるのは接続へIDを紐づけるハンドシェイク（`InitialHandshakeProtocol`）だけで、
+これは `PacketResponseCreator` が専用の分岐で呼ぶ。通常のプロトコルはcontextを受け取らない。
+
 ```csharp
 using System;
 using System.Collections.Generic;
@@ -58,7 +63,7 @@ namespace Server.Protocol.PacketResponse
             _dependency = serviceProvider.GetService<ISomeDependency>();
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var data = MessagePackSerializer.Deserialize<YourRequestMessagePack>(payload);
             // ビジネスロジック
@@ -151,7 +156,7 @@ public async UniTask<...> SetFilterSplitterItem(...) { ... }
 
 ### Step 4: コンパイル確認
 
-MCPツールまたは`unity-test.sh`でコンパイルを確認。
+`uloop compile --project-path ./moorestech_client` でコンパイルを確認。
 
 ---
 
@@ -166,19 +171,27 @@ using System;
 using Game.Context;
 using MessagePack;
 using Server.Event;
+using UniRx;
 
 namespace Server.Event.EventReceive
 {
-    public class YourEventPacket
+    public class YourEventPacket : IBootInitializable
     {
         public const string EventTag = "va:event:yourEvent";
         private readonly EventProtocolProvider _eventProtocolProvider;
+        private readonly ISomeDataStore _someDataStore;
 
-        public YourEventPacket(EventProtocolProvider eventProtocolProvider)
+        public YourEventPacket(EventProtocolProvider eventProtocolProvider, ISomeDataStore someDataStore)
         {
             _eventProtocolProvider = eventProtocolProvider;
-            // ゲームイベントを購読（UniRx .Subscribe）
-            ServerContext.SomeEvent.OnSomething.Subscribe(OnSomething);
+            _someDataStore = someDataStore;
+        }
+
+        public void Load()
+        {
+            // 購読はコンストラクタでなくLoadで行う（起動時に一括で呼ばれる）
+            // Subscribe in Load, not the constructor (invoked in bulk at boot)
+            _someDataStore.OnSomething.Subscribe(OnSomething);
         }
 
         private void OnSomething(SomeEventData eventData)
@@ -212,11 +225,15 @@ namespace Server.Event.EventReceive
 }
 ```
 
-### Step 2: イベントパケットを初期化
+### Step 2: DIコンテナに登録
 
-イベントを発火する責任を持つシステムのコンストラクタでインスタンス化し、フィールドに保持する（GC防止）。
+`moorestech_server/Assets/Scripts/Server.Boot/MoorestechServerDIContainerGenerator.cs` の EventPacket 群に追加:
 
-例: ブロック配置イベント → `BlockUpdateSystem`で初期化、レールノード作成イベント → `RailGraphDatastore`関連で初期化。
+```csharp
+services.AddSingleton<YourEventPacket>();
+```
+
+`IBootInitializable` を実装していれば、起動時に `AddInitializableForwarding` 経由で生成され `Load()` が呼ばれる（前例: `UnlockedEventPacket`）。初期ロード完了後に購読を始めたい場合は `IPostLoadInitializable` を使う。
 
 ### Step 3: テストを作成
 
@@ -224,7 +241,7 @@ namespace Server.Event.EventReceive
 
 ### Step 4: コンパイル確認
 
-MCPツールまたは`unity-test.sh`でコンパイルを確認。
+`uloop compile --project-path ./moorestech_client` でコンパイルを確認。
 
 ---
 
@@ -235,7 +252,7 @@ MCPツールまたは`unity-test.sh`でコンパイルを確認。
 - `[Obsolete]`付き引数なしコンストラクタは省略不可
 - イベント購読はUniRxの`.Subscribe()`を使用
 - コードのコメントは日本語・英語の2行セット
-- payloadの`PlayerId`自己申告（無検証）は既存多数派の許容パターン。検証追加や`context.PlayerId`への是正はリポジトリ全体の一括改修案件であり、個別プロトコルで独自対応しない（裁定: `.decisions/2026-08-14-プロトコルのplayerId自己申告は既存多数派として放置する.md`）
+- リクエストのペイロードに送り手の`playerId`を載せない。送り手のIDはハンドシェイクで接続に紐づいた`context.PlayerId.Value`から取得する。未紐づけ接続の要求は`PacketResponseCreator`が一括で無視する（ADR 0073、`.decisions/2026-09-27-サーバーは接続に紐づいたプレイヤーIDだけを信じる.md`）。イベント・レスポンスの表示用IDは対象外。
 
 ## Request/Response メッセージ設計原則
 

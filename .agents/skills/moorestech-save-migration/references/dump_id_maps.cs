@@ -29,4 +29,4 @@ return JsonConvert.SerializeObject(new Dictionary<string,object>{
     ["itemConst"]=TrainCarMasterElement.DefaultContainerTypeConst.Item,
     ["fluidConst"]=TrainCarMasterElement.DefaultContainerTypeConst.Fluid,
 });
-// 結果 .Result(JSON文字列) を Python 側で /tmp/id_maps.json に保存して使う。
+// 結果 .Result(JSON文字列) を作業用ディレクトリ（scratchpad等）の id_maps.json に保存し、migrate_save_template.py の第1引数に渡す。

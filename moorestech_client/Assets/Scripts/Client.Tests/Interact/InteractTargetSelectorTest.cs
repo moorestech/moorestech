@@ -30,7 +30,7 @@ namespace Client.Tests.Interact
 
             // 2mを超えると照準ヒットでも候補にならず、近傍にも無いのでnull
             // Beyond 2m the aim hit is discarded and nothing is nearby, so null
-            PlayerObject.transform.position = target.transform.position + new Vector3(0f, 0f, InteractTargetSelector.InteractDistance + 0.5f);
+            PlayerObject.transform.position = target.transform.position + new Vector3(0f, 0f, InteractOverlap.InteractDistance + 0.5f);
             Assert.IsNull(selector.Scan().Primary);
         }
 

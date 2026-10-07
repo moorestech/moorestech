@@ -41,7 +41,7 @@ namespace Game.SaveLoad.Pruning
         {
             // マスタguidを持たない
             // No master guid at all
-            "worldVersion", "entities", "setting", "playerRidingStates", "constructionPayers", "inventorySlotLevel",
+            "worldVersion", "players", "entities", "setting", "playerRidingStates", "constructionPayers", "inventorySlotLevel",
             "cleanRoomRooms", "miningCooldowns", "currentTick", "randomState", "backfilledFields",
             // mapObjects: マップ側に無いinstanceIdをMapObjectDatastore.LoadMapObjectが読み飛ばす
             // mapObjects: MapObjectDatastore.LoadMapObject skips instance ids absent from the map

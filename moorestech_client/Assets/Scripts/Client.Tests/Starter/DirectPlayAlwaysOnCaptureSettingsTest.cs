@@ -73,8 +73,8 @@ namespace Client.Tests.Starter
             AlwaysOnCaptureSetting.Apply(enabled ? AlwaysOnCaptureSetting.Enabled() : AlwaysOnCaptureSetting.Disabled());
             PlaytestStartGateBypass.Apply();
             var proprieties = remote
-                ? InitializeProprieties.CreateRemoteConnection("127.0.0.1", 25565, 1)
-                : InitializeProprieties.CreateLocalServer(null);
+                ? InitializeProprieties.CreateRemoteConnection("127.0.0.1", 25565)
+                : InitializeProprieties.CreateLocalServer();
 
             // 実行環境の理由と印の保持を別々に確認する
             // Verify the environment reason and mark retention separately
@@ -91,8 +91,8 @@ namespace Client.Tests.Starter
         public void 印なしの起動入口は環境の有人判定に従う(bool remote)
         {
             var proprieties = remote
-                ? InitializeProprieties.CreateRemoteConnection("127.0.0.1", 25565, 1)
-                : InitializeProprieties.CreateLocalServer(null);
+                ? InitializeProprieties.CreateRemoteConnection("127.0.0.1", 25565)
+                : InitializeProprieties.CreateLocalServer();
             if (Application.isBatchMode)
             {
                 LogAssert.Expect(LogType.Log, new Regex("無人起動のため直Playの常時記録を自動では有効にしません reason:batchMode"));

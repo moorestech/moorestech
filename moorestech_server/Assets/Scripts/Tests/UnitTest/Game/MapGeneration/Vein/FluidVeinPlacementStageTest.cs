@@ -3,7 +3,7 @@ using Mooresmaster.Model.GenerationModule;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace Tests.UnitTest.Game.MapGeneration
+namespace Tests.UnitTest.Game.MapGeneration.Vein
 {
     // FluidVeinPlacementStageがOrePlacementStageと同じ配置ロジックで流体鉱脈を生成し、
     // GUIDが設定値と一致・AABBが地形範囲内に収まることを検証する。

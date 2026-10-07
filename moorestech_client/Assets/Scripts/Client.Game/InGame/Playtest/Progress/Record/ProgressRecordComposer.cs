@@ -43,6 +43,7 @@ namespace Client.Game.InGame.Playtest.Progress.Record
                 ["steamId"] = NullableText(header.SteamId),
                 ["buildInfo"] = header.BuildInfo == null ? JValue.CreateNull() : JObject.Parse(JsonConvert.SerializeObject(header.BuildInfo, new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() })),
                 ["sessionStart"] = NullableText(header.SessionStart),
+                ["remoteExec"] = header.RemoteExec == null ? JValue.CreateNull() : new JValue(header.RemoteExec.Value),
                 ["sessionEnd"] = ProgressUtcTime.ToIso(sessionEndUtc),
                 ["endReason"] = ProgressEndReasonJson.ToContractText(endReason),
                 ["playSeconds"] = NullableNumber(playSeconds),

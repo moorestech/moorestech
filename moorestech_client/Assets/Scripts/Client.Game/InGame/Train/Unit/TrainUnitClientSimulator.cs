@@ -100,8 +100,8 @@ namespace Client.Game.InGame.Train.Unit
                     }
                 }
 
-                // hash 不一致なら描画 tick を巻き戻しすぎず、次回の同期を待つ
-                // If the hash mismatches, keep the render tick near the applied tick and wait for the next sync
+                // hash gateが進行を許可しない場合は推定tickを現在tick+1へ補正し、このフレームの列車tickループを抜ける
+                // If the hash gate disallows advancement, set the estimated tick to the current tick + 1 and leave this frame's train tick loop
                 var canAdvance = _hashTickGate.CanAdvanceTick(id + 1);
                 if (canAdvance)
                 {

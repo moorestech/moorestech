@@ -10,7 +10,7 @@ description: |
   既定ではStep 3.5〜6.5をWorkflowツール（scripts/review_workflow.js）で決定論的に実行する（2026-08-20。本体は対象確定・機械チェック・Codex起動・AskUserQuestionのみ。sonnet委譲はWorkflow不可時のフォールバック）。
   Use when:
   1. moorestechでPR作成前・マージ前のレビューを行う時（pr-create前に必ず1パス）
-  2. subagent-driven-development の最終ブランチレビューを行う時
+  2. moores-subagent-driven-development の最終ブランチレビューを行う時
   3. 「moores-code-reviewで」「moorestechの設計規約でレビュー」「コードレビューして」と言われた時
 ---
 
@@ -35,13 +35,13 @@ moorestechのコードレビューを **決定論チェック → 5系統の並�
 
 ### 回収時の突合（本体）
 
-Workflow の返り値を報告へ転記する前に、`systems.planned` が `checks.json` 由来の `systems.expected.total` と一致し `systems.missing` が空かを見る。不一致・欠員は報告に転記し、欠員分だけ Agent で再起動→integrator だけ再派遣してよい。Codex の欠員申告は `codex_recover.py` の終了コード付きでなければ受け付けない（orchestrator-steps.md Step 5）。`postfix.warnings/infos` と `postCheckSelection.note` は integrated.md に載らないので Step 7 の報告へ転記する。report-only では final.diff / checks-final.json / design.md は生成されない。 `refix` は、`refix.scope` が `source` なら 1 周以上の round と各 `report` の実在を確認する。`refix.unresolved` が true なら最終 round の Critical は直っていないので、報告冒頭に「反映 diff 再レビュー未収束（N 周）」と書き、Step 7 の AskUserQuestion に「手で直す / 未修正のまま進める」を載せる（黙って収束扱いにしない）。各 round の `warnings/infos` を報告へ転記する（収束した最終周は `agents/refix-correctness-r<N>.md` の Warning/Info 節を本体が Read してよい）。`scope` が `non-source`/`none` なら「反映 diff は doc/テスト/コメントのみ（再レビュー不要）」と 1 行書く。体数不一致・モデル割り当て違い・成果物欠落があれば、再派遣を重ねる前に transcript（`~/.claude/projects/<プロジェクト>/<セッションID>/subagents/*.meta.json`）で実測し、スキル記述の穴なら `references/skill-improvement.md` で恒久対応する。欠員のある統合結果は「全系統レビュー済み」を偽装するので採用しない。
+Workflow の返り値を報告へ転記する前に、**`python3 .claude/skills/moores-code-review/scripts/s5_shape_gate.py $RUNDIR` を必ず走らせる**（user-intent reviewer の §5 が決定ごとに「読み1／読み2／両立判定」を揃えているか・形の欠けた §5 を integrated.md が回収扱いしていないかの形式検査。中身は判定しない）。終了コード 1 なら stderr の欠け一覧を添えて core-any-user-intent-fulfillment だけ Agent で再起動（差し戻し）→ integrator だけ再派遣し、再度ゲートを通す。2回目も 1 なら報告冒頭に「§5 形式欠落（差し戻し後も未解消）」と書き、user-intent 系統を欠員として扱う。続けて `systems.planned` が `checks.json` 由来の `systems.expected.total` と一致し `systems.missing` が空かを見る。不一致・欠員は報告に転記し、欠員分だけ Agent で再起動→integrator だけ再派遣してよい。Codex の欠員申告は `codex_recover.py` の終了コード付きでなければ受け付けない（orchestrator-steps.md Step 5）。`postfix.warnings/infos` と `postCheckSelection.note` は integrated.md に載らないので Step 7 の報告へ転記する。report-only では final.diff / checks-final.json / design.md は生成されない。 `refix` は、`refix.scope` が `source` なら 1 周以上の round と各 `report` の実在を確認する。`refix.unresolved` が true なら最終 round の Critical は直っていないので、報告冒頭に「反映 diff 再レビュー未収束（N 周）」と書き、Step 7 の AskUserQuestion に「手で直す / 未修正のまま進める」を載せる（黙って収束扱いにしない）。各 round の `warnings/infos` を報告へ転記する（収束した最終周は `agents/refix-correctness-r<N>.md` の Warning/Info 節を本体が Read してよい）。`scope` が `non-source`/`none` なら「反映 diff は doc/テスト/コメントのみ（再レビュー不要）」と 1 行書く。体数不一致・モデル割り当て違い・成果物欠落があれば、再派遣を重ねる前に transcript（`~/.claude/projects/<プロジェクト>/<セッションID>/subagents/*.meta.json`）で実測し、スキル記述の穴なら `references/skill-improvement.md` で恒久対応する。欠員のある統合結果は「全系統レビュー済み」を偽装するので採用しない。
 
 ## Step 0: 実行ディレクトリ `$RUNDIR` を作る
 
 1回のレビューが作る生成物（patch・context・codex監査プロンプト3本・check_all出力・chunks・最終diff・最終detchecks）は
 **すべて** `$LOGS/harness/moores-code-review/runs/<ts>/` 配下に置く。以下これを `$RUNDIR` と呼ぶ
-（`$LOGS` は記録repo `../moorestech_logs`。`<ts>` は `YYYY-MM-DD-HHMM` 形式でレビュー1回につき1つ）。
+（`$LOGS`＝`../moorestech_logs`。`<ts>`＝レビューごとに新規 `YYYY-MM-DD-HHMM-<ブランチslug>-<UUID>`。既存ディレクトリ再利用は同一レビューの中断復旧時のみ。）
 
     mkdir -p <$RUNDIRの実値>
 
@@ -58,15 +58,21 @@ Workflow の返り値を報告へ転記する前に、`systems.planned` が `che
 
 セッション文脈（何を作業したか・どんな裁定があったか）を知るのは本体だけなので、この Step は委譲できない。
 
-1. **作業範囲を特定** — このセッションで生成・変更した成果物をコミット範囲・staged・unstagedから確定し、統合unified diffを `<$RUNDIRの実値>/patch.diff` に書く（**PATCH_PATH**）。`git diff <base>^..<last>` + `git diff --cached` + `git diff` を連結。ユーザーがレビュー範囲を明示したらそれを優先。
-   - **プレイテストシナリオの除外（省略禁止）** — 各 `git diff` に必ず次のpathspecを付け、
-     `unity-playmode-recorded-playtest` 配下の `.cs` をpatchへ入れない:
+1. **作業範囲を特定** — このセッションで生成・変更した成果物をコミット範囲・staged・unstagedから確定し、統合unified diffを `<$RUNDIRの実値>/patch.diff` に書く（**PATCH_PATH**）。ユーザーがレビュー範囲を明示したらそれを優先。
+   - **diff は必ず `scripts/review_diff.py` 経由で取る（素の `git diff` 禁止）** — 引数は `git diff` にそのまま渡り、レビューに入れないパスの除外が必ず付く:
 
-         -- . ':(exclude,glob)**/unity-playmode-recorded-playtest/**/*.cs'
+         python3 .claude/skills/moores-code-review/scripts/review_diff.py <base>^..<last> >  <PATCH_PATH>
+         python3 .claude/skills/moores-code-review/scripts/review_diff.py --cached       >> <PATCH_PATH>
+         python3 .claude/skills/moores-code-review/scripts/review_diff.py                >> <PATCH_PATH>
 
-     シナリオは実プレイを踏ませるための使い捨ての操作台本であり、プロダクトコードの規約（重複排除・
+     除外の正本は `review_diff.py` の1箇所で、pr-independent-review の `make_patch.py` も同じものを使う。外すのは
+     手を入れない外部物（NuGet の同梱パッケージ・ロックファイル）・生成物（DO NOT EDIT の自動生成コード）・バイナリ・
+     Unity のシリアライズ資産・`unity-playmode-recorded-playtest` 配下の `.cs`。NuGet を足す PR ではパッケージ本体だけで
+     数万行・数十MBになり、レビューが埋もれる（PR#1436 で +14万行のうち14万行がパッケージだった）。
+     プレイテストシナリオは実プレイを踏ませるための使い捨ての操作台本であり、プロダクトコードの規約（重複排除・
      命名・行数）で裁く対象ではない。指摘しても設計判断の裁定コストだけが増える
-     （ユーザー裁定 2026-08-16 / PR#1137-F12）。`Client.Playtest` のDSL本体はこのパス外なので通常どおり見る
+     （ユーザー裁定 2026-08-16 / PR#1137-F12）。`Client.Playtest` のDSL本体はこのパス外なので通常どおり見る。
+     `Assets/Dependencies` の `.cs` はチームが手を入れるので外さない
 2. **4カテゴリcontextを書く** — `<$RUNDIRの実値>/context.md`（**USER_PROMPT_PATH**）に埋める。埋め忘れるとreviewerがfalse-positiveを量産する:
    - **目指す（ゴール）** / **目指さない（非目標）** / **許容するトレードオフ** / **尊重すべき制約**
    - **4カテゴリは必ず `##` 見出しで書く**（太字箇条書き形式は出所ラベル検査の対象外になり沈黙故障する。見出しゼロはfail-closedでconfirmedになる）。
@@ -85,6 +91,8 @@ Workflow の返り値を報告へ転記する前に、`systems.planned` が `che
        python3 .claude/skills/moores-code-review/scripts/build_workflow_args.py --run-dir <$RUNDIRの実値> --patch "<PATCH_PATH>" --context "<USER_PROMPT_PATH>" --repo-root "$(pwd)" --base-ref <base SHA>
 
    report-only（pr-independent-review）では `--report-only --detchecks <detchecks.json>` を足す。
+
+   `build_workflow_args.py` は `--run-dir` に `workflow-args.json` を生成。`> workflow-args.json` 禁止。正常終了後、JSONをWorkflowの `args` へ渡す。
 
 ## Step 3.5〜6.5: Workflow で実行
 
@@ -114,7 +122,7 @@ Run dir : <$RUNDIRの実値> / Patch path : <PATCH_PATH> / User prompt : <USER_P
 1. **統合報告** — Critical/Warning/Info件数、各指摘の出所（決定論/reviewer名/Codex/Fable/N系統一致）、適用した修正、コンパイル・テスト結果。Warningは1件1行で全件載せる（保険としてコンテキストに乗せるのが目的。黙って落とさない）。Infoは末尾に圧縮列挙。raw出力やレビュー表をそのまま貼らない。Codex/Fableをスキップした場合はその旨を明記。
    - **「免責で消された指摘」セクション必須**: 各観点の `suppressed:` 節を固定形式 `- [Critical|Warning] <指摘要約> — suppressed-by: <トレードオフ1行, 出所ラベル>` で列挙する（元の重大度を行頭に保持。0件なら「suppressed: 0件」と明記）。§2.6参照。
 2. **保留した設計判断だけ**をAskUserQuestionで選択肢付き一括提示（0件ならスキップ）。回答に従い適用（§5の安全規則・検証を再適用）。裁定結果の適用は、1〜2箇所の機械的な直しなら本体が最小Edit、まとまった量なら fix subagent（`model: "sonnet"`）1体に design.md のパス+裁定を渡す。
-   - **例外: SDD の単一subagent実装モードから呼ばれた場合**（`subagent-driven-development` の規模ゲート未満の派遣を経てこのレビューに来た場合）は、**裁定反映の fix subagent を `model: "opus"` とし、本体による最小Editは行わない**（量が1〜2箇所でも fix subagent に渡す）。ADR 0053「本体セッションは実装コードを書かない」を最終レビュー局面でも守り切るため。通常の呼び出しでは従来どおり本体の最小Edit or fix subagent（`sonnet`）。
+   - **例外: SDD の単一subagent実装モードから呼ばれた場合**（`moores-subagent-driven-development` の規模ゲート未満の派遣を経てこのレビューに来た場合）は、**裁定反映の fix subagent を `model: "opus"` とし、本体による最小Editは行わない**（量が1〜2箇所でも fix subagent に渡す）。ADR 0053「本体セッションは実装コードを書かない」を最終レビュー局面でも守り切るため。通常の呼び出しでは従来どおり本体の最小Edit or fix subagent（`sonnet`）。
    - **裁定反映 diff の再レビュー（Refix・Step 6 と同じ手順）**: 裁定を適用する**前**に `python3 .claude/skills/moores-code-review/scripts/refix_snapshot.py snapshot --repo-root "$(pwd)" --run-dir $RUNDIR --name w7-s0` を取り、適用後に `--name w7-s1` → `refix_snapshot.py diff --from w7-s0 --to w7-s1 --out $RUNDIR/refix/w7-round1.diff` で反映 diff と `scope` を得る。`source` なら `post-checks/applied-diff-correctness.md`（`model: "opus"`・Step 4 と同じ5行契約＋`Refix of : design.md の該当裁定`・Patch path = その diff・報告先 `agents/refix-correctness-w7-r1.md`）を1体起動する（理由は同ファイル冒頭。Step 6 側は Workflow の Refix フェーズが同じ手順を回す）。Critical は直して `w7-s2` を取り直し直した差分だけで再実行（最大3周。機械的でなければ再度 AskUserQuestion）、上限超過・適用0件は未収束として報告冒頭に明記、Warning/Info は最終報告へ。`non-source`/`none` なら起動せず報告に1行。
    - **設計判断を反映した diff の構造レビュー（2026-09-20 導入）**: 上の反映 diff が型・スキーマ・公開シグネチャを新設または変更していれば、`reviewers/core-cs-centralization-duplication.md`（`.ts`/`.tsx` のみなら `core-ts_tsx-centralization-duplication.md`）を同じ diff・同じ5行契約で opus 1体起動する（報告先 `agents/refix-structure-w7-r1.md`）。裁定を反映した diff は新しい設計そのものだが、applied-diff-correctness は設計に言及しない。Critical は上と同じ扱い、`設計判断: あり` は最終報告へ案の形ごと載せる。根拠（2026-09-20 実測・後知恵なし opus 各1体）: 当時の反映diffへこの reviewer を当てるリプレイ4回のうち3回が、本番レビューが見逃してマージ済みの実在Critical（`BiomeObjectConfigRuntimeApplier` がバイオーム列挙を4箇所目に増やし、「1箇所化」という導入理由を導入物自身の文字列 switch が打ち消している件）を独立に検出した。一方この工程の契機となった bands 二重定義そのものは 4回中1回しか出ない — **特定の指摘の再発防止ではなく、反映diffに残る設計欠陥一般への網として入れている**（reviewer の焦点は毎回揺れるので、1回の検出を当てにしない）。
    - **載せてよいのは本質的な設計判断のみ**（アーキテクチャ・パターン選択・スコープ影響・両立不能な指摘・サブエージェントの `設計判断: あり`）。**載せるの禁止**: コメントの短縮・文体（convention-guard が自己完結）、200行超過・ファイル分割（努力目標・報告のみ）。混ぜた時点で規約違反（ユーザー裁定 2026-07-23）。

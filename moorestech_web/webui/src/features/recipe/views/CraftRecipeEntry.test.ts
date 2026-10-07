@@ -79,4 +79,22 @@ describe("CraftRecipeEntry", () => {
     expect(durationText(renderer)).toBe("2 seconds");
     expect(renderer.root.findByType("mock-button" as never).props.children).toBe("Craft");
   });
+
+  // Spaceはジャンプ専用でクラフトを始めず、Enterだけが始める
+  // Space is jump-only and never starts crafting; only Enter does
+  it("SpaceではクラフトボタンのonKeyDownが何もせずEnterでは長押しを始める", () => {
+    vi.stubGlobal("requestAnimationFrame", vi.fn(() => 1));
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
+    const renderer = renderEntry();
+    const button = renderer.root.findByType("mock-button" as never);
+    const space = { key: " ", preventDefault: vi.fn() };
+    const enter = { key: "Enter", preventDefault: vi.fn() };
+
+    button.props.onKeyDown(space);
+    expect(space.preventDefault).not.toHaveBeenCalled();
+
+    act(() => button.props.onKeyDown(enter));
+    expect(enter.preventDefault).toHaveBeenCalled();
+    vi.unstubAllGlobals();
+  });
 });

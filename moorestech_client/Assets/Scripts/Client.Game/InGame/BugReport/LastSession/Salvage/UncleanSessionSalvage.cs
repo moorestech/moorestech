@@ -11,7 +11,7 @@ namespace Client.Game.InGame.BugReport.LastSession
     // Gathers the evidence for the confirmation gate, either salvaging this boot's detected crash or re-presenting an unanswered older generation as-is
     internal static class UncleanSessionSalvage
     {
-        public static PreviousSessionArtifacts Collect(PreviousSessionSalvageRequest request, List<PreviousProcessSession> uncleanSessions, IReadOnlyDictionary<int, bool> exitedCleanlyByProcessId, bool carriesPendingReport, SalvageMissingLog missing)
+        public static PreviousSessionArtifacts Collect(PreviousSessionSalvageRequest request, List<PreviousProcessSession> uncleanSessions, IReadOnlyDictionary<int, bool> exitedCleanlyByProcessId, bool carriesPendingReport, bool hadPendingReport, SalvageMissingLog missing)
         {
             var recordingDestination = Path.Combine(request.LastSessionDirectory, BugReportBundleLayout.RecordingDirectoryName);
             var snapshotDestination = Path.Combine(request.LastSessionDirectory, BugReportBundleLayout.SnapshotDirectoryName);
@@ -35,6 +35,7 @@ namespace Client.Game.InGame.BugReport.LastSession
             {
                 MoveUncleanRecordings();
                 previousOrigin = SelectLatestOrigin();
+                PreviousSessionRemoteExecLedgers.Save(request.LastSessionDirectory, uncleanSessions, hadPendingReport, missing);
                 hasOwnedSnapshots = MoveWorldSnapshots();
                 playerLogPath = PlayerLogLocator.PreviousSessionLogPath();
                 if (playerLogPath == null) missing.Report("playerLog", "前回セッションのPlayer-prev.logが見つからない");

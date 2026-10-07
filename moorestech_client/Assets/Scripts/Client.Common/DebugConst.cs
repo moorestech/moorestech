@@ -25,6 +25,13 @@ namespace Client.Game
         // Key lives in Common.Debug.DebugParameterKeys because the server reads it too
         public const string FreeBlockPlacementLabel = "Free block placement (no item cost)";
 
+        // 連打回数はシート表示とClient.Gameの判定が共に読むため、両方から届くここに置く
+        // Tap counts feed both the sheet label and the Client.Game detector, so they live where both can reach
+        public const int FlyModeEnterTapCount = 4;
+        public const int FlyModeExitTapCount = 2;
+        public static readonly string FlyModeLabel = $"Fly mode (Space x{FlyModeEnterTapCount} / x{FlyModeExitTapCount})";
+        public const string FlyModeKey = "FlyMode";
+
         public const string FpsLimitLabel = "FPS Limit";
         public const string FpsLimitKey = "FpsLimit";
     }

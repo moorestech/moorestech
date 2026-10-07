@@ -1,3 +1,4 @@
+using Game.Block.Blocks.BeltConveyor.Connection;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -56,7 +57,7 @@ namespace Game.Block.Blocks.Miner
         private VanillaMinerState _lastMinerState;
         private VanillaMinerState _currentState = VanillaMinerState.Idle;
         
-        public VanillaMinerProcessorComponent(BlockInstanceId blockInstanceId, float requestPower, float idlePowerRate, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> inputConnectorComponent, BlockPositionInfo blockPositionInfo, MineSettings mineSettings)
+        public VanillaMinerProcessorComponent(BlockInstanceId blockInstanceId, float requestPower, float idlePowerRate, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext> inputConnectorComponent, BlockPositionInfo blockPositionInfo, MineSettings mineSettings)
         {
             _blockInstanceId = blockInstanceId;
             _baseRequestEnergy = requestPower;
@@ -102,7 +103,7 @@ namespace Game.Block.Blocks.Miner
             #endregion
         }
         
-        public VanillaMinerProcessorComponent(Dictionary<string, object> componentStates, BlockInstanceId blockInstanceId, float requestPower, float idlePowerRate, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> inputConnectorComponent, BlockPositionInfo blockPositionInfo, MineSettings mineSettings)
+        public VanillaMinerProcessorComponent(Dictionary<string, object> componentStates, BlockInstanceId blockInstanceId, float requestPower, float idlePowerRate, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext> inputConnectorComponent, BlockPositionInfo blockPositionInfo, MineSettings mineSettings)
             : this(blockInstanceId, requestPower, idlePowerRate, outputSlotCount, openableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo, mineSettings)
         {
             var saveJsonObject = BlockComponentStateReader.Read<VanillaElectricMinerSaveJsonObject>(componentStates, SaveKey);

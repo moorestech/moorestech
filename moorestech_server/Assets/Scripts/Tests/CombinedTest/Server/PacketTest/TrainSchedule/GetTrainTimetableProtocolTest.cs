@@ -46,7 +46,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         private static GetTrainTimetableProtocol.GetTrainTimetableResponse Get(TrainScheduleProtocolTestEnvironment fixture, TrainUnitInstanceId id)
         {
             var payload = MessagePackSerializer.Serialize(new GetTrainTimetableProtocol.GetTrainTimetableRequest(id));
-            var responses = fixture.Environment.PacketResponseCreator.GetPacketResponse(payload, new PacketResponseContext(null));
+            var responses = fixture.Environment.PacketResponseCreator.GetPacketResponse(payload, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1));
             return MessagePackSerializer.Deserialize<GetTrainTimetableProtocol.GetTrainTimetableResponse>(responses[0]);
         }
     }

@@ -1,3 +1,4 @@
+using Game.Block.Blocks.BeltConveyor.Connection;
 using System;
 using System.Collections.Generic;
 using Core.Master;
@@ -46,7 +47,7 @@ namespace Tests.CombinedTest.Core
             var beltConveyorComponent = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
             beltConveyorComponent.InsertItem(item, InsertItemContext.Empty);
             
-            var beltConnectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>().ConnectedTargets;
+            var beltConnectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext>>().ConnectedTargets;
             beltConnectInventory.Add(chestComponent, new ConnectedInfo());
             
             
@@ -74,7 +75,7 @@ namespace Tests.CombinedTest.Core
             
             chestComponent.SetItem(0, new ItemId(1), 1);
             
-            var chestConnectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)chest.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>().ConnectedTargets;
+            var chestConnectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)chest.GetComponent<BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext>>().ConnectedTargets;
             chestConnectInventory.Add(beltConveyorComponent, new ConnectedInfo());
             GameUpdater.UpdateOneTick();
             

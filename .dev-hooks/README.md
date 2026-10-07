@@ -12,10 +12,10 @@
 .dev-hooks/
   check-diff.mjs                 # 差分観点リマインダ本体（node。mac/windows・claude/codex 共通）
   rules.json                     # ルール定義（ここだけ編集すれば拡張できる）
-  decisions-index.mjs            # 意思決定台帳(.decisions/)の目次と運用ルールをSessionStartで注入
   decisions-ruling-reminder.mjs  # AskUserQuestion完了時に台帳への記録をリマインド（Claude Codeのみ）
   decisions-format-check.mjs     # .decisions/レコードの書式検査（違反はexit 2で差し戻し）
-  beads-prime.mjs                # Beads台帳(bd)の概況と役割分担ルールをSessionStartで注入
+  beads-prime.mjs                # Beads台帳(bd)の概況と、bd/.decisionsの運用ルールをSessionStartで注入
+  skill-name-collision-check.mjs # repoの.agents/skillsと個人スキル(~/.claude|~/.codex|~/.agents/skills)の同名を検知し警告（Claude/Codex SessionStart。uloop-*は対象外）
   beads-guard.mjs                # 破壊的bd/doltコマンドの物理拒否とpublic誤送信ガード（PreToolUse）
   poll-guard.mjs                 # 同一ツール呼び出しの反復＝ポーリングを拒否し正しい待ち方を再注入（PreToolUse 全ツール。Claudeのみ登録 — リセット判定に全ツールイベントが要るため）
   beads-sync-watch.mjs           # Dolt同期障害の復旧誘導＋claim/createへのセッション出自刻印（PostToolUse）
@@ -57,6 +57,7 @@
   "description": "何のためのルールか（人間向けメモ）",
   "pattern": "正規表現（tool_input 全体に対して照合）",
   "flags": "i",                       // 任意。正規表現フラグ（例: 大文字小文字無視）
+  "filePattern": "\\.cs$",             // 任意。編集対象のファイルパスに対する正規表現。省略時は全ファイル
   "tools": ["Edit", "Write"],          // 任意。対象ツール限定。省略時は全編集ツール
   "message": "エージェントに流す文言"
 }
@@ -69,12 +70,14 @@
   "id": "no-async-void",
   "pattern": "async\\s+void",
   "flags": "",
+  "filePattern": "\\.cs$",
   "message": "⚠ async void を検出。Task 戻り値に変更し、例外が握り潰されないか確認してください。"
 }
 ```
 
 - `pattern` は JSON 文字列なのでバックスラッシュは `\\` でエスケープする。
 - 複数ルールが一致したら、各 message を空行区切りで連結して注入する。
+- コード向けのルールには `filePattern` を付ける。付けないと、その語を含む Markdown や HTML を書いただけで発火する。
 
 ## 確認
 

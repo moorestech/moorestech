@@ -14,6 +14,7 @@
         "Core.Item",
         "Core.Item.Interface",
         "Core.Master",
+        "Core.Update",
         "Game.Block",
         "Game.Block.Interface",
         "Game.Gear",
@@ -31,7 +32,9 @@
         "UniTask",
         "VContainer",
         "Game.PlacementTarget",
-        "Client.PlaytestReceiver"
+        "Client.PlaytestReceiver",
+        "Client.RemoteExec",
+        "Client.ExternalProcess"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

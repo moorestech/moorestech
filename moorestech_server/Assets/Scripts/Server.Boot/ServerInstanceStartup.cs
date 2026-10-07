@@ -26,7 +26,7 @@ namespace Server.Boot
 {
     internal static class ServerInstanceStartup
     {
-        internal static (Thread connectionUpdateThread, Thread gameUpdateThread, CancellationTokenSource cancellationTokenSource, Socket listener) Start(string[] args, out WorldSaveCoordinator worldSaveCoordinator, out WorldSnapshotRing worldSnapshotRing)
+        internal static (Thread connectionUpdateThread, Thread gameUpdateThread, CancellationTokenSource cancellationTokenSource, Socket listener) Start(string[] args, out WorldSaveCoordinator worldSaveCoordinator, out WorldSnapshotRing worldSnapshotRing, out ServerThreadActionQueue threadActionQueue)
         {
             var settings = CliConvert.Parse<StartServerSettings>(args);
             var worldDataDirectory = WorldDataDirectory.FromWorldRoot(settings.WorldDirectory);
@@ -102,7 +102,7 @@ namespace Server.Boot
 
             var cancellationToken = new CancellationTokenSource();
             var token = cancellationToken.Token;
-            var connectionRegistry = (PlayerConnectionRegistry)serviceProvider.GetService<IPlayerConnectionChecker>();
+            var connectionRegistry = serviceProvider.GetRequiredService<PlayerConnectionRegistry>();
             var eventProtocolProvider = serviceProvider.GetService<EventProtocolProvider>();
             var tickEndPacketQueue = serviceProvider.GetRequiredService<TickEndPacketQueue>();
             var receivedPacketLog = serviceProvider.GetRequiredService<ReceivedPacketLog>();
@@ -120,7 +120,11 @@ namespace Server.Boot
                 Task.Run(() => AutoSaveSystem.AutoSave(serviceProvider.GetRequiredService<IWorldSaveRequest>(), token), cancellationToken.Token);
             }
 
-            var gameUpdateThread = new Thread(() => ServerGameUpdater.StartUpdate(token));
+            // スレッド開始前にキューを所有し、早期終了でも同じ受付を閉じる
+            // Own the queue before thread start so early shutdown closes the same admission
+            threadActionQueue = serviceProvider.GetRequiredService<ServerThreadActionQueue>();
+            var startedQueue = threadActionQueue;
+            var gameUpdateThread = new Thread(() => ServerGameUpdater.StartUpdate(token, startedQueue));
             gameUpdateThread.Name = "[moorestech]ゲームアップデートスレッド";
             gameUpdateThread.Start();
 

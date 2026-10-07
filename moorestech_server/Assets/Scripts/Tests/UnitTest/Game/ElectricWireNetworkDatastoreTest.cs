@@ -1,3 +1,4 @@
+using Tests.Util.EnergySystem;
 using Game.Block.Interface;
 using Game.EnergySystem;
 using NUnit.Framework;

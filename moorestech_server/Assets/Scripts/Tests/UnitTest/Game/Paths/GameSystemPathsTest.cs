@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using Game.Paths;
 using NUnit.Framework;
+using Server.Boot;
 
 namespace Tests.UnitTest.Game.Paths
 {
@@ -42,6 +43,32 @@ namespace Tests.UnitTest.Game.Paths
             var expected = Path.Combine(GameSystemPaths.WorldCacheDirectory, worldId);
 
             Assert.That(Path.GetFullPath(actual), Is.EqualTo(Path.GetFullPath(expected)));
+        }
+
+        // 上書きキーは内蔵サーバーの既定ワールドと既定ワールドの削除の両方を一時ディレクトリへ向け、Saves/world_1に触れない
+        // The override key points both the embedded server's default world and the default-world deletion at a temporary directory, leaving Saves/world_1 untouched
+        [Test]
+        public void 上書きキーで既定ワールドの読み書きと削除が一時ディレクトリへ向く()
+        {
+            var previousOverride = GameSystemPaths.GetDefaultWorldDirectoryOverride();
+            var temporaryWorldDirectory = Path.Combine(Path.GetTempPath(), $"moorestech_default_world_override_test_{Guid.NewGuid()}");
+            Directory.CreateDirectory(temporaryWorldDirectory);
+            GameSystemPaths.SetDefaultWorldDirectoryOverride(temporaryWorldDirectory);
+
+            // 失敗しても上書きを戻す。残すと後続テストの既定ワールドがずれる
+            // Restore the override even on failure; leaving it would shift later tests' default world
+            try
+            {
+                Assert.AreEqual(temporaryWorldDirectory, GameSystemPaths.DefaultWorldDirectory);
+                Assert.AreEqual(temporaryWorldDirectory, new StartServerSettings().WorldDirectory);
+                Assert.IsTrue(GameSystemPaths.DeleteDefaultWorldDirectory());
+                Assert.IsFalse(Directory.Exists(temporaryWorldDirectory));
+            }
+            finally
+            {
+                GameSystemPaths.SetDefaultWorldDirectoryOverride(previousOverride);
+                if (Directory.Exists(temporaryWorldDirectory)) Directory.Delete(temporaryWorldDirectory, true);
+            }
         }
     }
 }

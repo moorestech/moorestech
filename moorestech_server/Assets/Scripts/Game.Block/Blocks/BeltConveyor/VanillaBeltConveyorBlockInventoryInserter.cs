@@ -1,3 +1,4 @@
+using Game.Block.Blocks.BeltConveyor.Connection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,11 +25,11 @@ namespace Game.Block.Blocks.BeltConveyor
     
     public class VanillaBeltConveyorBlockInventoryInserter : IBeltConveyorBlockInventoryInserter
     {
-        private readonly BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> _blockConnectorComponent;
+        private readonly BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext> _blockConnectorComponent;
         private readonly BlockInstanceId _sourceBlockInstanceId;
         private int _roundRobinIndex = -1;
 
-        public VanillaBeltConveyorBlockInventoryInserter(BlockInstanceId sourceBlockInstanceId, BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> blockConnectorComponent)
+        public VanillaBeltConveyorBlockInventoryInserter(BlockInstanceId sourceBlockInstanceId, BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext> blockConnectorComponent)
         {
             _sourceBlockInstanceId = sourceBlockInstanceId;
             _blockConnectorComponent = blockConnectorComponent;

@@ -1,3 +1,4 @@
+using Tests.Util.EnergySystem;
 using System;
 using Core.Update;
 using Game.Block.Interface;
@@ -12,7 +13,7 @@ using Tests.Module.TestMod;
 using Tests.Util;
 using UnityEngine;
 using static Tests.Module.TestMod.ForUnitTestModBlockId;
-using static Tests.Util.ElectricNetworkReflectionTestUtil;
+using static Tests.Util.EnergySystem.ElectricNetworkReflectionTestUtil;
 
 namespace Tests.CombinedTest.Game
 {

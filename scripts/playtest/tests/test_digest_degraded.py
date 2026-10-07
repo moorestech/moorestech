@@ -12,7 +12,7 @@ from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from digest_fixture import SCRIPTS, TARGET_DATE, build_fixture, run_digest, write_json  # noqa: E402
+from digest_fixture import DISABLED_MARK, SCRIPTS, TARGET_DATE, build_fixture, run_digest, write_json  # noqa: E402
 
 sys.path.insert(0, str(SCRIPTS))
 import digest_collect as dc  # noqa: E402
@@ -161,7 +161,7 @@ class DigestDegradedTest(unittest.TestCase):
         fb = self.root / "harness/playtest/reports/7656010/20260912_991000_noready"
         write_json(fb / "ingest.json", {"kind": "report", "steamId": "7656010",
                                         "id": "20260912_991000_noready", "ingestedAt": "2026-09-12T05:20:00Z"})
-        write_json(fb / "manifest.json", {"kind": "bug", "description": "readyAt無し"})
+        write_json(fb / "manifest.json", {"kind": "bug", "remoteExec": DISABLED_MARK, "description": "readyAt無し"})
         reports, stats = dc.load_reports(self.root / "harness/playtest/reports", self.date)
         self.assertEqual(len(reports), 5)
         self.assertEqual(stats["readyAtFallback"], 1)

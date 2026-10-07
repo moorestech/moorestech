@@ -33,7 +33,7 @@ namespace Server.Protocol.PacketResponse
             _worldDataDirectory = serviceProvider.GetService<WorldDataDirectory>();
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var request = MessagePackSerializer.Deserialize<RequestMapDataMessagePack>(payload);
 

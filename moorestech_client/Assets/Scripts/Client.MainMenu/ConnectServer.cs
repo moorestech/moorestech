@@ -54,8 +54,7 @@ namespace Client.MainMenu
                     return;
             }
 
-            var playerId = PlayerPrefs.GetInt(PlayerPrefsKeys.PlayerIdKey);
-            if (!InitializeProprieties.TryCreateRemoteConnection(serverIp.text, serverPort.text, playerId, out var properties, out var denyReason))
+            if (!InitializeProprieties.TryCreateRemoteConnection(serverIp.text, serverPort.text, out var properties, out var denyReason))
             {
                 serverConnectPopup.SetText(Localize.GetFormatted(denyReason.Key, denyReason.TextParams));
                 return;

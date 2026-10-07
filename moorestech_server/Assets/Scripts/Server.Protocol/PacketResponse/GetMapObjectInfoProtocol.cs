@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Game.Context;
 using Game.Map.Interface.MapObject;
@@ -18,7 +18,7 @@ namespace Server.Protocol.PacketResponse
         {
         }
         
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var sendMapObjects = new List<MapObjectsInfoMessagePack>();
             foreach (var mapObject in ServerContext.MapObjectDatastore.MapObjects)

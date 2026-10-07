@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Train.Unit;
+using Client.Game.InGame.Train.Network.Diagnostics;
 using System.Linq;
 using UnityEngine;
 
@@ -14,20 +15,28 @@ namespace Client.Game.InGame.Train.Network
         private bool isGetFirstHash = false;
 
         private readonly TrainUnitTickState _tickState;
+        private readonly TrainSynchronizationDiagnostics _diagnostics;
         private readonly SortedDictionary<ulong, ITrainTickBufferedEvent> _futureEvents = new();
         private readonly SortedDictionary<ulong, (uint unitsHash, uint railGraphHash, uint serverTick, uint tickSequenceId)> _futureHashStates = new();
 
-        public TrainUnitFutureMessageBuffer(TrainUnitTickState tickState)
+        public TrainUnitFutureMessageBuffer(TrainUnitTickState tickState, TrainSynchronizationDiagnostics diagnostics)
         {
             _tickState = tickState;
+            _diagnostics = diagnostics;
         }
 
         // イベントを未来tickキューへ積む。
         // Queue a pre-simulation event only when its tick is still in the future.
         public void EnqueueEvent(uint serverTick, uint tickSequenceId, ITrainTickBufferedEvent bufferedEvent)
         {
+            _diagnostics.RecordReceived(bufferedEvent?.GetType().Name ?? "NullEvent", serverTick, tickSequenceId);
+            _tickState.SetMaxBufferedTickUnifiedId(TrainTickUnifiedIdUtility.CreateTickUnifiedId(serverTick, tickSequenceId));
+            if (_tickState.IsPermanentlyWaiting) return;
             if (bufferedEvent == null)
+            {
+                Debug.LogWarning($"[TrainUnitFutureMessageBuffer] Ignored null event: {serverTick}_{tickSequenceId}");
                 return;
+            }
             var eventTickUnifiedId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(serverTick, tickSequenceId);
             if (eventTickUnifiedId <= _tickState.GetAppliedTickUnifiedId())
             {
@@ -35,7 +44,6 @@ namespace Client.Game.InGame.Train.Network
                 // Drop events already covered.
                 return;
             }
-            _tickState.SetMaxBufferedTicks(serverTick);
             _futureEvents[eventTickUnifiedId] = bufferedEvent;
         }
 
@@ -43,6 +51,9 @@ namespace Client.Game.InGame.Train.Network
         // Queue hash states by tick for tick-aligned verification.
         public void EnqueueHash(uint unitsHash, uint railGraphHash, uint serverTick, uint tickSequenceId)
         {
+            _diagnostics.RecordReceived("Hash", serverTick, tickSequenceId);
+            _tickState.SetMaxBufferedTickUnifiedId(TrainTickUnifiedIdUtility.CreateTickUnifiedId(serverTick, tickSequenceId));
+            if (_tickState.IsPermanentlyWaiting) return;
             if (isGetFirstHash == false)
             {
                 Debug.Log($"1stHash: serverTick={serverTick}, tickSequenceId={tickSequenceId}, ");
@@ -56,7 +67,6 @@ namespace Client.Game.InGame.Train.Network
                 // Drop hash states already covered.
                 return;
             }
-            _tickState.SetMaxBufferedTicks(serverTick);
             _futureHashStates[messageTickUnifiedId] = (unitsHash, railGraphHash, serverTick, tickSequenceId);
         }
 
@@ -65,6 +75,16 @@ namespace Client.Game.InGame.Train.Network
         public bool TryDequeueHashAtTickSequenceId(ulong tickUnifiedId, out (uint unitsHash, uint railGraphHash, uint serverTick, uint tickSequenceId) message)
         {
             return _futureHashStates.TryGetValue(tickUnifiedId, out message);
+        }
+
+        internal void StopRetainingFutureMessages(string reason)
+        {
+            // 確定停止後は後着を再適用せず、保持済みpayloadも解放する。
+            // Never apply late arrivals after a terminal stop and release already retained payloads.
+            _tickState.StopPermanently();
+            _futureEvents.Clear();
+            _futureHashStates.Clear();
+            Debug.Log($"[TrainSynchronization] Permanently waiting: {reason}. Released buffered payloads; later payloads are discarded while bounded receive history continues.");
         }
         
         // 対象tickより古いhashは検証対象外として破棄する。
@@ -126,6 +146,7 @@ namespace Client.Game.InGame.Train.Network
             // Drop all events at or below executed unified id to prevent re-apply.
             RemoveEventsAtOrBelow(eventTickUnifiedId);
             _tickState.RecordAppliedTickUnifiedId(eventTickUnifiedId);
+            _diagnostics.RecordApplied(eventTickUnifiedId);
             return true;
             
             #region Internal

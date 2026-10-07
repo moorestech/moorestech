@@ -111,18 +111,16 @@ class SkillWiringTest(unittest.TestCase):
             self.assertIn("必ず回帰テストを実行", head,
                           f"scripts/{s.name} に回帰テスト必須バナーが無い")
 
-    def test_playtest_scenarios_are_excluded_from_patch(self):
-        # patch生成のpathspecからプレイテストシナリオ除外が消えていないこと
-        # （消えると使い捨ての操作台本が再びレビュー対象になる。ユーザー裁定 2026-08-16 / PR#1137-F12）
-        # The playtest-scenario exclusion must stay in every patch-building pathspec
-        pathspec = "':(exclude,glob)**/unity-playmode-recorded-playtest/**/*.cs'"
-        self.assertIn(pathspec, SKILL_MD,
-                      "moores-code-review Step 1 のpatch生成からプレイテストシナリオ除外が消えている")
-        # pr-independent-review側のpatch生成はscripts/make_patch.pyが担う（SKILL.md本文にpathspecは書かない）
-        # pr-independent-review builds its patch in scripts/make_patch.py; the SKILL.md body no longer carries the pathspec
+    def test_patch_builders_share_the_review_diff_exclusions(self):
+        # 除外の正本は review_diff.py。セッション側（SKILL.md Step 1）と pr-independent-review（make_patch.py）が
+        # 同じ正本を使い、素の git diff に戻らないこと（戻るとプレイテストシナリオや NuGet 本体が再びレビューに入る）
+        # Both patch builders must use review_diff.py; falling back to plain git diff re-admits scenarios and vendored NuGet
+        self.assertIn("scripts/review_diff.py <base>^..<last>", SKILL_MD,
+                      "moores-code-review Step 1 のpatch生成が review_diff.py を経由していない")
         independent = (REPO_ROOT / ".agents/skills/pr-independent-review/scripts/make_patch.py").read_text(encoding="utf-8")
-        self.assertIn('":(exclude,glob)**/unity-playmode-recorded-playtest/**/*.cs"', independent,
-                      "pr-independent-review make_patch.py のpatch生成からプレイテストシナリオ除外が消えている")
+        self.assertIn("from review_diff import exclude_pathspecs", independent,
+                      "pr-independent-review make_patch.py が review_diff.py の除外を使っていない")
+        self.assertIn("EXCLUDES = exclude_pathspecs()", independent)
 
     def test_every_reviewer_has_frontmatter(self):
         # selector発見可能性: reviewersはfrontmatter（extensions等）を持つこと

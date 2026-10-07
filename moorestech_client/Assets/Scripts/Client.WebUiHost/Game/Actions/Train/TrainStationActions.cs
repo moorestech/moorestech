@@ -27,7 +27,8 @@ namespace Client.WebUiHost.Game.Actions
         {
             if (payload?["name"] is not JValue { Type: JTokenType.String } name) return Reject("invalid_payload");
             if (_subInventoryState.CurrentSubInventorySource is not BlockSubInventorySource source) return Reject("block_not_open");
-            if (source.BlockTypeName != BlockTypeConst.TrainStation) return Reject("invalid_block_type");
+            if (!source.TryGetBlockIdentity(out _, out var blockTypeName)) return Reject("block_not_open");
+            if (blockTypeName != BlockTypeConst.TrainStation) return Reject("invalid_block_type");
 
             // 駅名の正本はサーバーのブロック状態
             // Keep server block state as the source of truth for station names

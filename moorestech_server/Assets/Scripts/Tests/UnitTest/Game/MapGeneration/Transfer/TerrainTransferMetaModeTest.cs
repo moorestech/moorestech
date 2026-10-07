@@ -5,7 +5,7 @@ using NUnit.Framework;
 using Server.Protocol.PacketResponse.MapData;
 using UnityEngine;
 
-namespace Tests.UnitTest.Game.MapGeneration
+namespace Tests.UnitTest.Game.MapGeneration.Transfer
 {
     // モード文字列の解釈はワイヤ→ドメイン復元(TerrainTransferMeta.FromWire)の1箇所だけが行う。消費側は復元された型だけを見る
     // Mode-string interpretation happens only in the wire-to-domain restore (TerrainTransferMeta.FromWire); consumers look at the restored type alone

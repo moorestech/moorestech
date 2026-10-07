@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System.IO;
 using System.Runtime.InteropServices;
+using Client.ExternalProcess;
 using Client.WebUiHost.Common;
 using Client.WebUiHost.Vite;
 using UnityEditor.Build;

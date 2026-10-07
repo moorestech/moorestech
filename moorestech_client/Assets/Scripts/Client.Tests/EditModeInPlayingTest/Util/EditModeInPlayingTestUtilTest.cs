@@ -60,7 +60,7 @@ namespace Client.Tests.EditModeInPlayingTest.Util
             LogAssert.ignoreFailingMessages = true;
             var reason = PlaytestStartGateBypass.PeekUnattendedReason();
             AlwaysOnCaptureSetting.Apply(AlwaysOnCaptureSetting.Disabled());
-            PlayModeLaunchOverrides.ApplyIfNeeded(InitializeProprieties.CreateLocalServer(null));
+            PlayModeLaunchOverrides.ApplyIfNeeded(InitializeProprieties.CreateLocalServer());
             var enabled = AlwaysOnCaptureSetting.Current.IsEnabled;
 
             yield return new ExitPlayMode();

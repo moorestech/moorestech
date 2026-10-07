@@ -16,7 +16,7 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService.Resolver
             _trainUnitLookupDatastore = trainUnitLookupDatastore;
         }
 
-        public IOpenableInventory Resolve(InventoryIdentifierMessagePack identifier)
+        public IOpenableInventory Resolve(InventoryIdentifierMessagePack identifier, int requesterPlayerId)
         {
             // 列車カーIDからアイテムコンテナを取得する
             // Get the item container from the train car id.

@@ -94,7 +94,7 @@ namespace Client.WebUiHost.Game.Topics
 
         private async UniTaskVoid RefreshAsync(CancellationToken ct)
         {
-            var states = await ClientContext.VanillaApi.Response.Progress.GetResearchNodeStates(ct);
+            var states = await ClientContext.VanillaApi.Response.Progression.GetResearchNodeStates(ct);
             if (_disposed || ct.IsCancellationRequested || states == null) return;
             ApplyNodeStates(states);
         }

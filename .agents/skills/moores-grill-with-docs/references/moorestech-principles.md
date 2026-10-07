@@ -47,7 +47,7 @@
 | 問い | 答え | 根拠 |
 |---|---|---|
 | スキーマ変更の手順を聞くか | 聞かない。edit-schema スキル参照 | 手順はスキル化済み |
-| foreignKey 追加後の確認 | validate-schema スキルで C# バリデーション追加漏れを確認 | スキル化済み |
+| foreignKey 追加後の確認 | edit-schema スキルの「foreignKey追加時のC#バリデーション」で追加漏れを確認 | スキル化済み |
 | Mooresmaster.Model.* を手で書くか | 書かない。SourceGenerator 自動生成のみ | AGENTS.md |
 | プロパティ廃止時の参照移行方法 | スキーマから消してコンパイルエラー駆動で置換 | 置換漏れをビルドが検出する |
 

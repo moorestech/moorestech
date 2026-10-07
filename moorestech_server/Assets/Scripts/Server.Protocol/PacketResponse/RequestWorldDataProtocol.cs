@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Context;
@@ -26,15 +26,15 @@ namespace Server.Protocol.PacketResponse
             _entitiesDatastore = serviceProvider.GetService<IEntitiesDatastore>();
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
-            // リクエストからPlayerIdを取得
-            // Get PlayerId from request
+            // リクエストを読み、接続のプレイヤー位置を使う
+            // Read the request and use the position of the bound player
             var request = MessagePackSerializer.Deserialize<RequestWorldDataMessagePack>(payload);
 
             // プレイヤー位置を取得
             // Get player position
-            var playerEntityId = new EntityInstanceId(request.PlayerId);
+            var playerEntityId = new EntityInstanceId(requesterPlayerId);
             var playerPosition = _entitiesDatastore.Exists(playerEntityId)
                 ? _entitiesDatastore.GetPosition(playerEntityId)
                 : Vector3.zero;
@@ -64,16 +64,12 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class RequestWorldDataMessagePack : ProtocolMessagePackBase
         {
-            [Key(2)] public int PlayerId { get; set; }
 
-            public RequestWorldDataMessagePack(int playerId)
+            public RequestWorldDataMessagePack()
             {
                 Tag = ProtocolTag;
-                PlayerId = playerId;
             }
 
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-            public RequestWorldDataMessagePack() { }
         }
         
         [MessagePackObject]

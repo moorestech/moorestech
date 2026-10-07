@@ -68,10 +68,10 @@ export default function CraftRecipeEntry({ recipe, counts, onSelect, testId, tut
             onPointerUp={stop}
             onPointerLeave={stop}
             onPointerCancel={stop}
-            // キーボード（Enter/Space）長押しでも連続クラフトできるようにする（ネイティブ onClick 喪失分の回復）
-            // Keep keyboard (Enter/Space) hold working, restoring the craft path lost when native onClick was removed
-            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); start(); } }}
-            onKeyUp={(e) => { if (e.key === "Enter" || e.key === " ") stop(); }}
+            // キーボードはEnter長押しで連続クラフトする。Spaceはジャンプ専用なので反応させない
+            // Keyboard crafting is an Enter hold; Space is reserved for jumping and never crafts
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); start(); } }}
+            onKeyUp={(e) => { if (e.key === "Enter") stop(); }}
             onBlur={stop}
           >
             {t(L.ui.recipe.craftButtonLabel)}
