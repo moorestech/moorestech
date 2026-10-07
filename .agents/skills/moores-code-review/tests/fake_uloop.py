@@ -45,7 +45,10 @@ def main(argv: list[str]) -> int:
     snippet = Path(argv[argv.index("--code-file") + 1])
     api_path = project.parent / "fake_api.json"
     if not api_path.is_file():
-        print("connection refused", file=sys.stderr)
+        # 実物の接続失敗と同じ形（stderr に Error オブジェクト）/ same shape as the real connection failure
+        print(json.dumps({"Success": False, "Error": {"ErrorCode": "UNITY_NOT_REACHABLE", "Phase": "connection",
+                                                      "Message": "The Unity CLI Loop server is not reachable."}}),
+              file=sys.stderr)
         return 1
     errors = diagnose(snippet.read_text(encoding="utf-8"), json.loads(api_path.read_text(encoding="utf-8")))
     print("[uloop] executing...")

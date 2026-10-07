@@ -74,10 +74,13 @@ def run_edc(project: Path, snippet: Path) -> dict:
             run = subprocess.run(cmd, capture_output=True, text=True, timeout=EDC_TIMEOUT_SEC)
         except (OSError, subprocess.TimeoutExpired) as e:
             return {"status": "unknown", "reason": f"uloop を実行できない: {e}", "no_response": True}
-        data = _parse_json(run.stdout)
-        if data is None:
-            return {"status": "unknown", "reason": f"uloop が JSON を返さない（Editor 不在?）: {run.stderr.strip()[:200]}",
-                    "no_response": True}
+        data = _parse_json(run.stdout) or _parse_json(run.stderr)
+        # 接続失敗は stderr に {"Error": {"ErrorCode": "UNITY_NOT_REACHABLE", "Phase": "connection"}} で返る（2026-10-07 実測）
+        # Connection failures come back on stderr as an Error object with Phase "connection" (observed 2026-10-07)
+        error = data.get("Error") if data else None
+        if data is None or (isinstance(error, dict) and error.get("Phase") == "connection"):
+            detail = error.get("Message") if isinstance(error, dict) else run.stderr.strip()[:200]
+            return {"status": "unknown", "reason": f"Unity に届かない（Editor 不在）: {detail}", "no_response": True}
         errors = data.get("CompilationErrors") or []
         if data.get("Success") or errors:
             return {"status": "compiled", "diagnostics": [normalize(e) for e in errors]}
