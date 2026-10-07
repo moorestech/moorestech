@@ -1,6 +1,6 @@
 # Step 2〜6.5 実行手順（正本・委譲オーケストレータが読む）
 
-moores-code-review の実行本体。**既定（2026-08-20）ではこの手順書の Step 3.5〜6.5 を `scripts/review_workflow.js`（Workflow ツール）が実行する** — 本体が Step 2（check_all.py・split_chunks・Codex起動・`build_workflow_args.py`）まで行い、Workflow が系統の並列発火→統合→適用→post-check を決定論的に回す。この手順書は Workflow スクリプトの**仕様の正本**であり、JS を変えるときは先にここを直す。sonnet オーケストレータ委譲（旧既定）・インライン実行の場合は、派遣プロンプトの `Run dir` / `Patch path` / `User prompt` / `Repo root` を前提に Step 2 から自分で始める（Step 0〜1 は親が完了済み）。Step 7（報告・AskUserQuestion・記録）は親が行う — このファイルには含まれない。
+moores-code-review の実行本体。**既定（2026-08-20）ではこの手順書の Step 3.5〜6.5 を Workflow スクリプト（部品 `scripts/review_workflow/*.js` を `build_workflow_args.py` が結合し args を埋め込んだ `$RUNDIR/review_workflow.js`）が実行する** — 本体が Step 2（check_all.py・split_chunks・Codex起動・`build_workflow_args.py`）まで行い、Workflow が系統の並列発火→統合→適用→post-check を決定論的に回す。同じスクリプトを `mode=bug-pass` で SKILL.md Step 7.5 の最終バグ確認にも使う（末尾「bug-pass モードの差分」）。この手順書は Workflow スクリプトの**仕様の正本**であり、JS を変えるときは先にここを直す。sonnet オーケストレータ委譲（旧既定）・インライン実行の場合は、派遣プロンプトの `Run dir` / `Patch path` / `User prompt` / `Repo root` を前提に Step 2 から自分で始める（Step 0〜1 は親が完了済み）。Step 7（報告・AskUserQuestion・記録）は親が行う — このファイルには含まれない。
 
 ## 5系統の構成
 
@@ -166,6 +166,7 @@ split_chunksの出力が空（stderrに `below-threshold`）なら分割深掘�
 - .csを修正したら `uloop compile --project-path ./moorestech_client` を実行しエラー0を確認する。
 - **編集を始める前に反映 diff の基点を snapshot する**: `python3 .claude/skills/moores-code-review/scripts/refix_snapshot.py snapshot --repo-root <Repo root> --run-dir <$RUNDIRの実値> --name s0`（一時 index で作業ツリー全体を commit object 化する。HEAD/index/作業ツリーは変わらない。`git stash create` は未追跡・intent-to-add の扱いが揺れるため使わない）。Step 6.5-2.5 が「Step 6 が適用した差分だけ」を切り出すために使う。
 - 修正は外科的に行う。裏取りはintegratorが済ませているので、ReadはこれからEditする箇所の現物確認に絞る。
+- 反映 diff（Step 6.5-2.5 の `refix/round1.diff`）ができたら、下の「反映 diff の機械的動作確認」を回す。
 
 ## Step 6.5: 決定論再チェック＋コメント保全post-checks ⑤.5
 
@@ -174,6 +175,7 @@ Step 6の修正適用後に走らせるpost-fixガード群。**人間の変更�
 1. **最終diffを作り直す** — Step 6適用後の作業ツリーをbaseと比較し `<$RUNDIRの実値>/final.diff` に書く。
 2. **決定論チェックを最終diffで再実行** — `deterministic_checks.py` を再度実行し `<$RUNDIRの実値>/checks-final.json` に書く。自分の修正が新たに生んだ `confirmed`/`comparison_operator` 違反はその場でインライン修正する。**再実行時は `--context` を渡さない**（出所ラベルはStep 2で検査済み。再検出させるとcontext編集へ誘導され無意味）。
 2.5. **反映 diff の再レビュー（Refix・最大3周）** — `refix_snapshot.py snapshot --name s1` に続けて `refix_snapshot.py diff --from s0 --to s1 --out <$RUNDIRの実値>/refix/round1.diff` を実行し、出力 JSON の `scope` を見る。`source`（テスト以外のソースにコメント/空行以外の変更行あり）なら **applied-diff-correctness**（`post-checks/applied-diff-correctness.md`・opus・5行契約＋`Refix of : integrated.md の採用Critical の修正方針` の1行、Patch path は `refix/round1.diff`、報告先 `agents/refix-correctness-r1.md`）を1体起動する。`non-source`/`none` なら起動しない（0トークン・報告に1行）。理由（レビューの出力を反映した diff はどの系統の入力にもならない。cmux-connector c9baa79 2026-09-08 較正）は同ファイル冒頭。
+   - 反映 diff を取るたび（round1 も直し直しの round2 以降も）、後述の「反映 diff の機械的動作確認」をその diff に対して回す。
    - Critical が出たら、修正方針が具体名つきで選択の余地が無いものだけ §3 で適用（.cs なら compile 再実行）し、それ以外と「裁定そのものが誤り」型は design.md へ追記して Step 7 へ escalate する。適用したら `snapshot --name s2` → `diff --from s1 --to s2 --out refix/round2.diff` で**直し直した差分だけ**を次周の Patch path にして再起動（`Refix of` は前周のレポート）。Critical 0 で収束、**上限3周**・適用0件は未収束として最終報告冒頭に「反映 diff 再レビュー未収束（N 周）」と書き Step 7 の AskUserQuestion に「手で直す / 未修正のまま進める」を載せる（黙って収束扱いにしない）。Warning/Info は最終報告へ転記する。scope が `error`（スクリプト失敗）なら黙って `source`/`none` に倒さず、stderr を報告して止まる。
 3. **発火すべきガードをスクリプトで選択し、出力どおりに並列起動**（1メッセージ内。2026-08-16裁定・空振り回の無条件起動を廃止）:
 
@@ -190,6 +192,21 @@ Step 6の修正適用後に走らせるpost-fixガード群。**人間の変更�
 5. **convention-guardはラベル分岐（Step 7へは送らない）** — `機械的` は §5 のもと自動適用、`要判断` は**ガード自身の裁定で完結**させる（短縮案が意図を保てるなら適用、例外該当なら残置。結果は報告に1行）。コメント短縮をAskUserQuestionに載せるのは**禁止**（ユーザー裁定 2026-07-23）。同一行で衝突したら**根拠保全を優先**。
    - **webui（`moorestech_web/webui`）では `要判断` も短縮を適用する** — 数値詳細・数式・設計意図が落ちる場合でも文字数規約を優先して短縮する（詳細はコードとテスト本体が担う）。残置してよいのは「なぜ必要か」型の純粋な根拠コメント（定数選定根拠・防止目的）のみ（ユーザー裁定 2026-08-04・[[2026-08-04-コメント文字数規約は根拠情報より優先する]]）。
 6. 全ガードが `Critical: なし` で再チェックも増分ゼロなら何もせず完了（委譲時はここで親へ返答する）。
+
+## 反映 diff の機械的動作確認（Step 6 自動適用・Refix の直し直し・Step 7 裁定反映・Step 7.5 bug-pass の反映で共通）
+
+レビューは反映が録画シナリオを壊したことも、線を含むセーブで起動できなくなったことも見逃す（根拠: harness/moores-code-review/experiments/2026-10-05-review-until-no-critical/report.md・moorestech_logs）。反映 diff（`refix_snapshot.py diff` の出力）を取るたびに、機械的に次を確かめる。Workflow では Apply と Refix の反映役がこの節を実行し、結果を `verify_note` で返す。
+
+1. `python3 .claude/skills/moores-code-review/scripts/applied_diff_checks.py <反映diff> --repo-root <Repo root> --out-dir <$RUNDIR>/refix/<snapshot名>-verify` を実行し、出力 JSON を見る。
+2. **録画シナリオ（`scenario_files`）** — 反映が改名・削除・シグネチャ変更した C# の公開宣言名（`changed_api`）を参照している `unity-playmode-recorded-playtest` 配下の `.cs`。これらはレビュー diff から除外され、Unity プロジェクト（`moorestech_client/Assets`）の外にあるので **`uloop compile` の対象にも入らない**（`run-scenario.sh` が実行時に execute-dynamic-code へ渡して初めてコンパイルされる）。非空なら、反映に追従してそのシナリオを直し、手順1を再実行して作り直された `compile_snippets`（本体を呼ばないローカル関数へ包んだコンパイル確認用。PlayMode 不要・シナリオは実行されない）を1本ずつ `uloop execute-dynamic-code --project-path <Repo root>/moorestech_client --code-file <snippet>` で流す。`CompilationErrors` のうちメッセージが `changed_api` の名前を含むもの（この反映の破壊）が0件になるまで直す。それ以外のエラーは master 由来の既存の壊れ（既に型・名前空間が無いシナリオがある）なので直さず本数だけ報告する。シナリオを直したら snapshot と反映 diff を取り直し、シナリオの追従も反映 diff 再レビューの対象に含める。Editor 不在で流せなければ「未確認（Editor 不在）」と報告する。
+3. **セーブ/ロード（`save_load.touched`）** — 反映が Save/Load・DataStore・Json 系に触れたら、既存のセーブ往復テスト（ブロック・電線・チェーン・接続を含むワールドのセーブ→再ロード。`ElectricWireSaveLoadTest`・`ChainEnergySaveLoadTest`・`GearChainPoleSaveLoadTest`・`BlockConnectionSaveLoadTest`・`SaveJsonFileTest` ほか）を `uloop run-tests --project-path <Repo root>/moorestech_client --filter-type regex --filter-value '<save_load.test_regex>'`（EditMode）で回し、この反映が落としたテストは直す。`save_load.unverified` の経路（クライアントが線・チェーンを含むセーブから起動する経路）を通す既存の自動テストは無い — 新しいテスト基盤は作らず、報告に「未確認」と書く。
+4. 結果（シナリオ N 本追従・コンパイル確認／未確認、セーブ往復 N passed／未確認と理由、該当なし）を1行で報告に載せる。黙って省略しない。
+
+## bug-pass モードの差分（SKILL.md Step 7.5・`build_workflow_args.py --bug-pass`）
+
+- 系統: `scripts/workflow_args/bug_pass.py` の許可集合（誤動作を狩る reviewer・investigator と Codex バグ狩り1本。名前の列挙はそのファイルだけが持つ）。発火条件は `select_reviewers.py` のまま、チャンクは `split_chunks.py --threshold=1`（小規模 PR でも全文精読）。verifier・Fable・post-check は起動しない。
+- 入力: User prompt は免責の節を外した `context-bug-pass.md`、共通出力契約に bug-pass 追記（Critical は再現手順1文付きだけ・設計判断なし・suppress 不可）、integrator には前周 Warning の出所（本レビューの `integrated.md` と `agents/refix-*.md`）。統合規則は `references/integration-rules.md` §7。
+- Apply・Refix・機械的動作確認は review と同じ。ただし Refix の直し直しは §4 の設計判断も escalate せず症状を消す最小の変更で直す（直せないものだけ Warning として親へ）。design.md は書かない。
 
 ## モデル割り当て
 
