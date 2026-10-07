@@ -9,6 +9,7 @@ namespace Client.Game.InGame.UI.UIState.State.RemovePreview
     public class RemovePreviewRequests
     {
         private readonly HashSet<object> _requesters = new();
+        public bool HasRequesters => 0 < _requesters.Count;
 
         // 最初の要求でだけtrue（赤を付ける合図）
         // True only on the first request (signal to apply red)

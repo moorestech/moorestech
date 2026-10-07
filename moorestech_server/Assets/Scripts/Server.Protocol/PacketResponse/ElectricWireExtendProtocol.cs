@@ -47,7 +47,10 @@ namespace Server.Protocol.PacketResponse
             // 拒否理由は通常設置と同じ通知経路でプレイヤーへ返す（前例: RailConnectionEditProtocol）
             // Surface the rejection through the same notification path as normal placement (precedent: RailConnectionEditProtocol)
             if (!result.IsSuccess)
+            {
+                Debug.LogWarning($"[ElectricWireExtend] denied: {result.FailureReason} op={request.Operation} from={request.FromPosVector} to={request.ToPosVector} player={requesterPlayerId}");
                 _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied($"denied.electricWireExtend.{result.FailureReason}", Array.Empty<string>()));
+            }
 
             return result.IsSuccess
                 ? ElectricWireExtendResponse.CreateSuccess(result.EndpointPos, result.EndpointBlockInstanceId)

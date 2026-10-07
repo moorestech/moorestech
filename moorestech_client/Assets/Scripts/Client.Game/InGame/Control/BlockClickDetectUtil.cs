@@ -1,7 +1,6 @@
 using Client.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
-using Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine;
 using Client.Game.InGame.Control.ViewMode;
 using UnityEngine;
 
@@ -33,20 +32,6 @@ namespace Client.Game.InGame.Control
         }
         
         
-        public static ConnectionLineAimResult GetCursorOnConnectionLine()
-        {
-            // 照準レイの生成とコライダー→線本体の解決は正本を呼ぶ（Task 10）
-            // Ray creation and collider-to-line resolution call their single definitions (Task 10)
-            if (!TryCreateAimRay(out var ray)) return ConnectionLineAimResult.Missed(ConnectionLineAimOutcome.NoCamera);
-
-            // 接続線は専用レイヤのため単独Raycastで判定する
-            // Connection lines live on a dedicated layer, so probe them with their own raycast
-            if (!Physics.Raycast(ray, out var hit, AimRayDistance, LayerConst.ConnectionLineOnlyLayerMask, QueryTriggerInteraction.Collide)) return ConnectionLineAimResult.Missed(ConnectionLineAimOutcome.NothingHit);
-
-            var line = ConnectionLineDeleteTarget.FromCollider(hit.collider);
-            return line == null ? ConnectionLineAimResult.Missed(ConnectionLineAimOutcome.NotALine) : ConnectionLineAimResult.Found(line);
-        }
-
         /// <summary>
         /// 25/11/4 列車エンティティとブロックのインタラクト判定の共通化のために一旦こうしたが、本当にこれで良いのだろうか、、、要検討
         /// </summary>
@@ -134,39 +119,6 @@ namespace Client.Game.InGame.Control
             if (camera == null) return false;
             ray = camera.ScreenPointToRay(AimPointProvider.GetAimScreenPoint());
             return true;
-        }
-    }
-    /// <summary>
-    ///     接続線への照準結果。外れた理由を区別する（スポイトの外れは通常操作なのでログは出さない）
-    ///     Aim result on a connection line; distinguishes why it missed (an eyedropper miss is normal, so it is not logged)
-    /// </summary>
-    public enum ConnectionLineAimOutcome
-    {
-        Found,
-        NoCamera,
-        NothingHit,
-        NotALine,
-    }
-
-    public readonly struct ConnectionLineAimResult
-    {
-        public ConnectionLineAimOutcome Outcome { get; }
-        public ConnectionLineDeleteTarget Line { get; }
-
-        private ConnectionLineAimResult(ConnectionLineAimOutcome outcome, ConnectionLineDeleteTarget line)
-        {
-            Outcome = outcome;
-            Line = line;
-        }
-
-        public static ConnectionLineAimResult Found(ConnectionLineDeleteTarget line)
-        {
-            return new ConnectionLineAimResult(ConnectionLineAimOutcome.Found, line);
-        }
-
-        public static ConnectionLineAimResult Missed(ConnectionLineAimOutcome outcome)
-        {
-            return new ConnectionLineAimResult(outcome, null);
         }
     }
 

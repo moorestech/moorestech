@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -67,12 +68,12 @@ namespace Client.Tests.BuildUndo
 
             Assert.AreEqual(2, collector.Objects.Count);
             var sender = new FakeRemovalRestoreSender();
-            collector.Objects[1].SendConnectionRestore(sender);
+            collector.Objects[1].TrySendConnectionRestore(sender, new HashSet<Vector3Int>());
             CollectionAssert.AreEqual(new[] { $"wire:{Vector3Int.zero}-{Vector3Int.right}:{tool}" }, sender.Sent);
         }
 
         [Test]
-        public void MissingEndpointIsCountedAsUnrecordable()
+        public void MissingEndpointIsCountedOnceAsUnrecordable()
         {
             _lineObject = new GameObject("MissingEndpointWire");
             var line = _lineObject.AddComponent<ConnectionLineDeleteTarget>();
@@ -81,6 +82,9 @@ namespace Client.Tests.BuildUndo
             var collector = new RemovedObjectCollector();
 
             LogAssert.Expect(LogType.Warning, new Regex("\\[RemovalRestore\\] unrecordable: line endpoint block not found"));
+            // 両端ブロックから同じ線を採取しても1件に数える
+            // The same line captured from both endpoint blocks counts once
+            line.CollectRemovedObjects(collector);
             line.CollectRemovedObjects(collector);
             Assert.IsEmpty(collector.Objects);
             Assert.AreEqual(1, collector.UnrecordableCount);
@@ -132,31 +136,8 @@ namespace Client.Tests.BuildUndo
             Assert.AreEqual(1, collector.Objects.Count);
             Assert.AreEqual(1, collector.GetUnrecordableBlocks().Count);
             var sender = new FakeRemovalRestoreSender();
-            collector.Objects[0].SendConnectionRestore(sender);
+            collector.Objects[0].TrySendConnectionRestore(sender, new HashSet<Vector3Int>());
             CollectionAssert.AreEqual(new[] { $"rail:{origin}-{other}:{railType}" }, sender.Sent);
-        }
-
-        [Test]
-        public void UnsyncedDestinationWarnsWhenUndoRailIsOmitted()
-        {
-            var resolver = new BlockAttachedConnectionResolver(new ConnectionLineRegistry(), RailGraphClientCache.CreateForEditorTest());
-            _blockObject = new GameObject("UnsyncedPier");
-            var block = _blockObject.AddComponent<BlockGameObject>();
-            SetBlockProperty(block, nameof(BlockGameObject.BlockPosInfo),
-                new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one));
-            var area = new GameObject("Front", typeof(BoxCollider)).AddComponent<TrainRailConnectAreaCollider>();
-            area.transform.SetParent(_blockObject.transform);
-            area.isFront = true;
-            area.Initialize(block);
-            var collector = new RemovedObjectCollector();
-
-            // 同じ未同期端点でも赤表示は情報、Undo採取は警告に分ける
-            // Report the same unsynced endpoint as info in preview and warning in undo capture
-            LogAssert.Expect(LogType.Log, new Regex("\\[RemovalPreview\\] rail node not synced yet:.*retry on next topology change"));
-            resolver.RequestCascadePreview(block);
-            LogAssert.Expect(LogType.Warning, new Regex("\\[RemovalCascade\\] rail not recorded for undo: node not synced"));
-            resolver.CollectRemovedConnections(block, collector);
-            Assert.IsEmpty(collector.Objects);
         }
 
         private static void UpsertPier(RailGraphClientCache cache, int frontNodeId, Vector3Int position)

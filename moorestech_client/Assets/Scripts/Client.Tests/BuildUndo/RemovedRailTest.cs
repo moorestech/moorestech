@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Game.Block.Interface;
 using Game.Train.RailGraph;
 using System;
@@ -36,7 +37,7 @@ namespace Client.Tests.BuildUndo
             var collector = new RemovedObjectCollector();
             RemovedRail.Capture(cache, 0, 2, RemovedRailCaptureContext.Direct, collector);
             Assert.AreEqual(1, collector.Objects.Count);
-            collector.Objects[0].SendConnectionRestore(sender);
+            collector.Objects[0].TrySendConnectionRestore(sender, new HashSet<Vector3Int>());
 
             CollectionAssert.AreEqual(new[] { $"rail:{new Vector3Int(0, 0, 0)}-{new Vector3Int(10, 0, 0)}:{railType}" }, sender.Sent);
         }

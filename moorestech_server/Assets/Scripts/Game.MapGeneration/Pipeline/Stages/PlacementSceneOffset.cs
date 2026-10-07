@@ -33,9 +33,14 @@ namespace Game.MapGeneration.Pipeline.Stages
         //
         // vein ごとに丸め直すと隣り合う AABB の間隔が 1 縮み、ノイズ空間で確立した非重なりが壊れる。
         // Re-rounding per vein can shrink the gap between neighbouring AABBs by one and break the non-overlap established in noise space.
+        public static Vector3Int VeinShift(Vector2 noiseToSceneShift)
+        {
+            return Vector3Int.RoundToInt(new Vector3(noiseToSceneShift.x, 0f, noiseToSceneShift.y));
+        }
+
         public static void ToSceneSpace(List<PlacedVein> veins, Vector2 noiseToSceneShift)
         {
-            var offset = Vector3Int.RoundToInt(new Vector3(noiseToSceneShift.x, 0f, noiseToSceneShift.y));
+            var offset = VeinShift(noiseToSceneShift);
             for (int i = 0; i < veins.Count; i++)
                 veins[i] = veins[i].Shifted(offset);
         }
