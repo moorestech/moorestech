@@ -6,15 +6,15 @@ Mac mini 自宅サーバー固有の事情。索引は `CLAUDE.local.macmini.md`
 - 症状: Editor.log の末尾が `Application is shutting down...` だけで、クラッシュの形跡がない
 - 原因: launchd の `com.sakastudio.dev-server-reaper`（`StartInterval 3600`、毎時1回・分は起動時刻次第で固定でない）が「生きた所有者の居ない Unity」を刈る。証跡は `~/Library/Logs/dev-server-reaper.log` の `REAPED pid=... (no live registered launcher for Unity process in <worktree>)`
 - 刈られない条件は2つだけ。(1) 起動から 30 分未満（`MIN_AGE_MIN=30`）、(2) `~/Library/Caches/dev-server-reaper-unity-owners.json` の所有 receipt が、生きた所有者エージェントと一致する
-- PATH 上の `uloop`（`~/.local/bin/uloop`）は生バイナリで、`moores-wt new` が呼ぶ `uloop launch` も receipt を書かない。放っておくと起動 30 分超の Editor は次の刈り取りで必ず死ぬ
-- 対処: 長時間使う Editor は起動直後に receipt を1件追記する。キーは `owner_pid`（自分の claude プロセス。コマンドラインに `--session-id`/`--resume` があるもの）、`owner_session_id`、`owner_start_token`、`project_path`（`.../moorestech_client`）、`unity_pid`、`unity_start_token`、`registered_at`（epoch 秒）の全部。start token は `LC_ALL=C ps -p <PID> -o lstart=` の出力そのもの（ロケールが違うと一致しない）。必須キーが欠けた receipt は reaper が malformed として扱う
+- PATH 上の `uloop`（`~/.local/bin/uloop`）は所有ラッパーへの symlink で、`uloop launch`（`moores-wt new` 経由を含む）が receipt を書く。`ls -la ~/.local/bin/uloop` が生バイナリになっていたら、v3 インストーラに上書きされている（下の「uloop CLI の配置」で戻す）。その間に起動した Editor は起動 30 分超で刈られる
+- ラッパーを通らずに起動した Editor を守るときだけ、receipt を手で1件追記する。キーは `owner_pid`（自分の claude プロセス。コマンドラインに `--session-id`/`--resume` があるもの）、`owner_session_id`、`owner_start_token`、`project_path`（`.../moorestech_client`）、`unity_pid`、`unity_start_token`、`registered_at`（epoch 秒）の全部。start token は `LC_ALL=C ps -p <PID> -o lstart=` の出力そのもの（ロケールが違うと一致しない）。必須キーが欠けた receipt は reaper が malformed として扱う
 - 登録できたかは `~/bin/dev-server-reaper-unity.py` の `protected_unity_from_receipts` を import して保護集合に入るかで確かめる。`--mode list` の dry-run は証明にならない（30 分未満の Editor は receipt と無関係に候補外）
 - 刈られるとテスト実行中の EditModeInPlayingTest が他テストの `sceneLoaded` ハンドラ由来の NRE で落ち、プロダクトのバグに見える。長時間の検証の前に receipt を確かめる
 
 ## uloop CLI の配置
-- `~/.local/bin/uloop`: PATH 上の uloop v3 CLI（生バイナリ）
+- `~/.local/bin/uloop`: `~/bin/uloop-owned-wrapper.py` への symlink（PATH 上の入口）
 - `~/bin/uloop-owned-wrapper.py`: `uloop launch` で生えた Unity PID を所有者エージェントに紐づけて receipt を書くラッパー。`REAL_ULOOP` は `~/bin/uloop-v3/uloop`
-- v3 のインストーラは既定で `~/.local/bin/uloop` を書き、`~/.zshrc` に PATH ブロックを足す。ラッパー経路を活かす場合は `ULOOP_INSTALL_DIR=$HOME/bin/uloop-v3` で入れ、追記された PATH ブロックを消す
+- v3 のインストーラ・更新は既定で `~/.local/bin/uloop` を生バイナリで上書きし、`~/.zshrc` に PATH ブロックを足す。`ULOOP_INSTALL_DIR=$HOME/bin/uloop-v3` で入れる。上書きされたら、生バイナリを `~/bin/uloop-v3/uloop` へコピーし、`ln -sfh ~/bin/uloop-owned-wrapper.py ~/.local/bin/uloop` で張り直す
 - v3 dispatcher は package 1.x へ委譲しない（委譲は V2 package 限定、判定は `.uloop/project-runner-pin.json` の有無）。ラッパーには「pin 不在かつ manifest が旧 git URL 参照なら旧 npm CLI へ回す」フォールバックがある
 
 ## Editor の前面/非前面
