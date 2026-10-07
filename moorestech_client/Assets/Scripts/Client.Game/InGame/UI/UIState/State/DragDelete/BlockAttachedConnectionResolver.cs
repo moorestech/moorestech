@@ -64,10 +64,10 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         {
             foreach (var line in _registry.GetLinesAttachedTo(block.BlockInstanceId)) line.CollectRemovedObjects(collector);
             var edges = CollectRailEdges(block);
-            // 未同期端点のレールは記録できないので、Undo時に戻せなかった件数へ入れる
-            // Rails at unsynced destinations cannot be recorded, so count them as not restored on undo
-            foreach (var destination in _unsyncedDestinationBuffer)
-                collector.AddUnrecordable(destination, $"rail at {destination}: node not synced");
+            // 未同期端点はレール有無も不明なので、ブロック単位で1件だけ戻せなかった件数へ入れる
+            // Unsynced destinations may or may not hold rails, so count them once per block as not restored
+            if (_unsyncedDestinationBuffer.Count > 0)
+                collector.AddUnrecordable(("unsyncedRailDestinations", block.BlockInstanceId), $"rail at {string.Join(", ", _unsyncedDestinationBuffer)}: node not synced");
             foreach (var edge in edges)
             {
                 RemovedRail.Capture(_railCache, edge.canonicalFrom, edge.canonicalTo, RemovedRailCaptureContext.Cascade, collector);
