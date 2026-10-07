@@ -137,7 +137,7 @@ namespace Client.Tests.BuildUndo
         }
 
         [Test]
-        public void UnsyncedDestinationWarnsWhenUndoRailIsOmitted()
+        public void UnsyncedDestinationIsCountedAsUnrecordable()
         {
             var resolver = new BlockAttachedConnectionResolver(new ConnectionLineRegistry(), RailGraphClientCache.CreateForEditorTest());
             _blockObject = new GameObject("UnsyncedPier");
@@ -154,9 +154,10 @@ namespace Client.Tests.BuildUndo
             // Report the same unsynced endpoint as info in preview and warning in undo capture
             LogAssert.Expect(LogType.Log, new Regex("\\[RemovalPreview\\] rail node not synced yet:.*retry on next topology change"));
             resolver.RequestCascadePreview(block);
-            LogAssert.Expect(LogType.Warning, new Regex("\\[RemovalCascade\\] rail not recorded for undo: node not synced"));
+            LogAssert.Expect(LogType.Warning, new Regex("\\[RemovalRestore\\] unrecordable: rail at .*: node not synced"));
             resolver.CollectRemovedConnections(block, collector);
             Assert.IsEmpty(collector.Objects);
+            Assert.AreEqual(1, collector.UnrecordableCount);
         }
 
         private static void UpsertPier(RailGraphClientCache cache, int frontNodeId, Vector3Int position)

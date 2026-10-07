@@ -64,10 +64,10 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         {
             foreach (var line in _registry.GetLinesAttachedTo(block.BlockInstanceId)) line.CollectRemovedObjects(collector);
             var edges = CollectRailEdges(block);
-            // Undo記録から漏れる未同期端点だけ警告する
-            // Warn only for unsynced destinations omitted from the undo record
+            // 未同期端点のレールは記録できないので、Undo時に戻せなかった件数へ入れる
+            // Rails at unsynced destinations cannot be recorded, so count them as not restored on undo
             foreach (var destination in _unsyncedDestinationBuffer)
-                UnityEngine.Debug.LogWarning($"[RemovalCascade] rail not recorded for undo: node not synced at {destination}");
+                collector.AddUnrecordable($"rail at {destination}: node not synced");
             foreach (var edge in edges)
             {
                 RemovedRail.Capture(_railCache, edge.canonicalFrom, edge.canonicalTo, RemovedRailCaptureContext.Cascade, collector);
