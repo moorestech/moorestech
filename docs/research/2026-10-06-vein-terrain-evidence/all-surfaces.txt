@@ -1,0 +1,4 @@
+player=(465.61, 11.90, 505.68)
+surface=Plane active=False enabled=True pos=(0.00, 0.00, 0.00) bounds=Center: (0.00, 0.00, 0.00), Extents: (500.00, 0.00, 500.00) materials=Debug Plane:Universal Render Pipeline/Lit
+surface=Water active=True enabled=True pos=(-26.63, 4.30, 199.79) bounds=Center: (-26.63, 4.30, 199.79), Extents: (382.67, 0.00, 651.18) materials=Water01:BK/Water
+surface=Water active=True enabled=True pos=(1995.60, 4.30, 228.20) bounds=Center: (1995.60, 4.30, 228.20), Extents: (619.20, 0.00, 1285.77) materials=Water01:BK/Water

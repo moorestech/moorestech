@@ -1,4 +1,5 @@
 using System;
+using Game.MapGeneration.Transfer;
 using Game.MapGeneration.Pipeline;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -20,7 +21,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Spawn
 
             var exception = Assert.Throws<InvalidOperationException>(() =>
             {
-                var runtimeConfig = MapGenerationPipeline.BuildConfig(generation, Seed, TestGenerationConfigFactory.ServerDataDirectory);
+                var runtimeConfig = MapGenerationPipeline.BuildConfig(generation, Seed, TestGenerationConfigFactory.ServerDataDirectory, WorldGeneratorVersion.CurrentRevision);
                 MapGenerationPipeline.Generate(generation, runtimeConfig);
             });
             StringAssert.Contains("spawn target", exception.Message);
@@ -35,7 +36,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Spawn
 
             var exception = Assert.Throws<InvalidOperationException>(() =>
             {
-                var runtimeConfig = MapGenerationPipeline.BuildConfig(generation, Seed, TestGenerationConfigFactory.ServerDataDirectory);
+                var runtimeConfig = MapGenerationPipeline.BuildConfig(generation, Seed, TestGenerationConfigFactory.ServerDataDirectory, WorldGeneratorVersion.CurrentRevision);
                 MapGenerationPipeline.Generate(generation, runtimeConfig);
             });
             StringAssert.Contains("scene spawn", exception.Message);
@@ -50,7 +51,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Spawn
 
             var exception = Assert.Throws<InvalidOperationException>(() =>
             {
-                var runtimeConfig = MapGenerationPipeline.BuildConfig(generation, Seed, TestGenerationConfigFactory.ServerDataDirectory);
+                var runtimeConfig = MapGenerationPipeline.BuildConfig(generation, Seed, TestGenerationConfigFactory.ServerDataDirectory, WorldGeneratorVersion.CurrentRevision);
                 MapGenerationPipeline.Generate(generation, runtimeConfig);
             });
             StringAssert.Contains("scene spawn", exception.Message);

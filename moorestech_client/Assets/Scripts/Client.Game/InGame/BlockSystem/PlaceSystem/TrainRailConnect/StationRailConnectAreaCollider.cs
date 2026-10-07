@@ -30,6 +30,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             var origin = BlockGameObject.BlockPosInfo.OriginalPos;
             return new ConnectionDestination(origin, (int)railComponentIndex, IsFront);
         }
+
     }
     
     public enum StationrailComponentIndex

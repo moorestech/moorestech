@@ -48,8 +48,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             out IRailNode canonicalFromNode,
             out IRailNode canonicalToNode)
         {
-            var canonicalFromId = (int)(railObjectId & 0xffffffff);
-            var canonicalToId = (int)(railObjectId >> 32);
+            var (canonicalFromId, canonicalToId) = RailObjectIdCodec.Decode(railObjectId);
             canonicalFromNode = null;
             canonicalToNode = null;
             if (!cache.TryGetNode(canonicalFromId, out canonicalFromNode))

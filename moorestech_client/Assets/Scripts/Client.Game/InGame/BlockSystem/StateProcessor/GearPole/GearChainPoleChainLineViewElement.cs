@@ -12,9 +12,20 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.GearPole
     public class GearChainPoleChainLineViewElement : MonoBehaviour, IConnectionLineViewElement
     {
         private const float LineSpacing = 0.1f;
+        private const float ColliderRadius = 0.08f;
+
+        // 未解決時の再解決を試みる間隔
+        // Interval between resolution retries while unresolved
+        private const float RetryIntervalSeconds = 0.5f;
+        private const int WarningAfterRetries = 20;
 
         [SerializeField] private LineRenderer lineRenderer1;
         [SerializeField] private LineRenderer lineRenderer2;
+
+        private BlockInstanceId _startInstanceId;
+        private BlockInstanceId _endInstanceId;
+        private float _retryTimer;
+        private int _failedRetries;
 
         /// <summary>
         /// 接続ラインの位置を設定する
@@ -22,10 +33,44 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.GearPole
         /// </summary>
         public void SetLine(BlockInstanceId startInstanceId, BlockInstanceId endInstanceId)
         {
+            _startInstanceId = startInstanceId;
+            _endInstanceId = endInstanceId;
+            _failedRetries = 0;
+
+            // 即解決できなければUpdateで再試行
+            // If unresolved now, retry in Update
+            enabled = !TryBuildLine();
+        }
+
+        private void Update()
+        {
+            // 未解決の間だけ相手の生成を再確認
+            // While unresolved, periodically recheck partner creation
+            _retryTimer -= Time.deltaTime;
+            if (0f < _retryTimer) return;
+            _retryTimer = RetryIntervalSeconds;
+
+            if (TryBuildLine())
+            {
+                enabled = false;
+                return;
+            }
+            _failedRetries++;
+            if (_failedRetries == WarningAfterRetries)
+                Debug.LogWarning($"[GearChainLine] endpoint unresolved after {_failedRetries} retries: {_startInstanceId}->{_endInstanceId}");
+        }
+
+        // 両端を解決し線とコライダーを構築。未生成ならfalse
+        // Resolve both ends and build line and collider; false if not yet created
+        private bool TryBuildLine()
+        {
             // BlockGameObjectDataStoreから座標を取得
             // Get positions from BlockGameObjectDataStore
-            if (!ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(startInstanceId, out var startBlock)) return;
-            if (!ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(endInstanceId, out var endBlock)) return;
+            if (!ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(_startInstanceId, out var startBlock) ||
+                !ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(_endInstanceId, out var endBlock))
+            {
+                return false;
+            }
 
             // ブロックの中心座標を計算
             // Calculate block center positions
@@ -51,6 +96,11 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.GearPole
             lineRenderer2.positionCount = 2;
             lineRenderer2.SetPosition(0, startPos - offset);
             lineRenderer2.SetPosition(1, endPos - offset);
+
+            // 削除ツール用に両端を結ぶカプセルを置く
+            // Place a capsule spanning both ends for the delete tool
+            ConnectionLineColliderBuilder.AddCapsule(transform, (startPos + endPos) * 0.5f, endPos - startPos, ColliderRadius, Vector3.Distance(startPos, endPos));
+            return true;
         }
     }
 }

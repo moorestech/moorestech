@@ -1,4 +1,5 @@
 using System;
+using Game.MapGeneration.Surface;
 using System.IO;
 using Game.MapGeneration.Cache;
 using Game.MapGeneration.Pipeline.Visual;
@@ -12,6 +13,7 @@ using Game.MapGeneration.Pipeline.Config;
 using Game.Paths;
 using NUnit.Framework;
 using Tests.UnitTest.Game.MapGeneration.Visual.Detail;
+using Tests.UnitTest.Game.MapGeneration.Surface;
 
 namespace Tests.UnitTest.Game.MapGeneration.Visual
 {
@@ -106,7 +108,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
                 visualSections.SurroundTextureConfigs, treeSurroundSpecies, Array.Empty<string>());
 
             return new TileVisualBaker(
-                config, BiomeTypes, visualSections, layerTable, treeSurroundSpecies, new MaterializedPlacementLedgerSource(EmptyLedger),
+                config, BiomeTypes, visualSections, layerTable, treeSurroundSpecies, new MaterializedGenerationRunSource(LedgerRunFixture.Legacy(EmptyLedger)),
                 EmptyLedger.ComputeDigest(), _worldCacheDirectory, new TerrainVisualCache(_worldCacheDirectory, CacheKey));
         }
 
@@ -114,6 +116,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
         {
             return new TerrainGenerationConfig
             {
+                surfaceRevision = WorldSurfaceRevision.Legacy4,
                 overrideResolution = Resolution,
                 detailResolution = DetailResolution,
                 seed = 12345,

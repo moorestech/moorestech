@@ -72,7 +72,7 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(1, GetSegmentCount(networkDatastore));
             Assert.IsTrue(networkDatastore.TryGetEnergySegment(pole.BlockInstanceId, out var savedSegment));
             var savedStatistics = savedSegment.Statistics;
-            var savedCost = pole.GetComponent<IElectricWireConnector>().WireConnections[generator.BlockInstanceId].Cost;
+            var savedRecord = pole.GetComponent<IElectricWireConnector>().WireConnections[generator.BlockInstanceId].Record;
 
             var saveJson = saveServiceProvider.GetService<AssembleSaveJsonText>().AssembleSaveJson();
 
@@ -118,16 +118,17 @@ namespace Tests.CombinedTest.Game
 
             // GUIDを介してコストが正しく復元されているか（保存時と同一）を確認する
             // Verify the connection cost (via GUID roundtrip) matches the pre-save value
-            var loadedCost = loadedPole.WireConnections[loadedGenerator.BlockInstanceId].Cost;
-            CollectionAssert.AreEqual(savedCost.Materials, loadedCost.Materials);
+            var loadedRecord = loadedPole.WireConnections[loadedGenerator.BlockInstanceId].Record;
+            CollectionAssert.AreEqual(savedRecord.Materials, loadedRecord.Materials);
+            Assert.AreEqual(savedRecord.ConnectToolGuid, loadedRecord.ConnectToolGuid);
 
             // 復元後の切断でセーブ前と同じコストが返却される
             // Disconnecting after restore refunds the same wire cost as before the save
             var loadedInventory = loadServiceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).MainOpenableInventory;
             var beforeDisconnectCount = CountItem(loadedInventory, wireItemId);
-            Assert.IsTrue(ElectricWireSystemUtil.TryDisconnect(posPole, posGenerator, playerId, out var disconnectError), disconnectError.ToString());
+            Assert.IsTrue(ElectricWireDisconnectUtil.TryDisconnect(posPole, posGenerator, playerId, out var disconnectError), disconnectError.ToString());
             var afterDisconnectCount = CountItem(loadedInventory, wireItemId);
-            Assert.AreEqual(savedCost.TotalCount, afterDisconnectCount - beforeDisconnectCount);
+            Assert.AreEqual(savedRecord.TotalCount, afterDisconnectCount - beforeDisconnectCount);
         }
 
 

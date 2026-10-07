@@ -1,0 +1,21 @@
+using UnityEngine;
+using Game.MapGeneration.Pipeline.Surface;
+using Game.MapGeneration.Facade.Surface;
+var sb = new System.Text.StringBuilder();
+var td = new TerrainData();
+td.heightmapResolution = 33;
+td.size = new Vector3(64f, 600f, 64f);
+float floorM = SurfaceQuantization.LandFloor(600f, SurfaceEnvelope.GeneratedV5);
+var h = new float[33, 33];
+int[] bottoms = { 5, 20, 37, 120, 599 };
+h[0, 0] = floorM / 600f;
+for (int i = 0; i < bottoms.Length; i++) h[0, i + 1] = SurfaceQuantization.PadHeight(bottoms[i], 600f) / 600f;
+td.SetHeights(0, 0, h);
+var back = td.GetHeights(0, 0, 33, 33);
+sb.AppendLine($"floor in={floorM:R} back={back[0,0]*600f:R} ok={back[0,0]*600f >= 4.9f}");
+for (int i = 0; i < bottoms.Length; i++) { float b = back[0, i + 1] * 600f; sb.AppendLine($"pad bottom={bottoms[i]} in={h[0,i+1]*600f:R} back={b:R} below={b < bottoms[i]} gap={bottoms[i]-b:R}"); }
+// probe quantum
+var q = new float[1,1]; float minStep = 1f;
+for (int k = 1; k < 2000; k++) { q[0,0] = k / 65535f; td.SetHeights(5,5,q); float r = td.GetHeights(5,5,1,1)[0,0]; if (r > 0f) { sb.AppendLine($"first nonzero at k={k} value={r:R} 1/value={1f/r:R}"); break; } }
+Object.DestroyImmediate(td);
+return sb.ToString();

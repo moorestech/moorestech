@@ -32,6 +32,9 @@ namespace Client.Tests.EditModeInPlayingTest
     // shard割当はクラスと一緒に移動・改名される
     // The shard assignment travels with the class through moves and renames
     [Category("CiShardClientPlay1")]
+    // 起動先の海面PrefabはCIに無い非公開アセットを親に持つため、ローカルEditorで検証する
+    // The boot ocean prefab inherits a private asset absent in CI, so verify this in the local Editor
+    [Category("IgnoreCI")]
     public class PlayerStartsOnBuiltTerrainTest
     {
         // 地表下に埋まった自機はCharacterControllerの押し出しでXZが数cm動く。Warpが抜ければ数百mずれるので1mで切れる

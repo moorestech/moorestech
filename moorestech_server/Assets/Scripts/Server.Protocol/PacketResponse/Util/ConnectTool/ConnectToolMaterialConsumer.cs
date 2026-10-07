@@ -1,9 +1,9 @@
+using Game.Block.Blocks.ConnectionLine;
 using System;
 using System.Collections.Generic;
 using Core.Inventory;
 using Core.Item.Interface;
 using Core.Master;
-using Game.Context;
 using Server.Protocol.PacketResponse.Util.ElectricWire.Connection;
 
 namespace Server.Protocol.PacketResponse.Util.ConnectTool
@@ -38,18 +38,12 @@ namespace Server.Protocol.PacketResponse.Util.ConnectTool
             }
         }
 
-        // 返却用のアイテムスタック列を生成する
-        // Create refund item stacks for the given materials
-        public static List<IItemStack> CreateRefundItems(IReadOnlyList<ConnectToolMaterialCost> materials)
+        // 返却が入りきることを切断前に確認する
+        // Check the refund fits before disconnecting the line
+        public static bool TryCreateFittingRefund(IReadOnlyList<ConnectToolMaterialCost> materials, IOpenableInventory inventory, out List<IItemStack> refundStacks)
         {
-            var result = new List<IItemStack>();
-            if (materials == null) return result;
-            foreach (var material in materials)
-            {
-                if (material.Count <= 0 || material.ItemId == ItemMaster.EmptyItemId) continue;
-                result.Add(ServerContext.ItemStackFactory.Create(material.ItemId, material.Count));
-            }
-            return result;
+            refundStacks = ConnectionLineRefundItems.Create(materials);
+            return refundStacks.Count == 0 || inventory.InsertionCheck(refundStacks);
         }
     }
 }

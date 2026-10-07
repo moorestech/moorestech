@@ -73,6 +73,10 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PROJECT_DIR}/.dev-hooks/beads-prime.mjs\""
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.dev-hooks/skill-name-collision-check.mjs\" claude"
           }
         ]
       }

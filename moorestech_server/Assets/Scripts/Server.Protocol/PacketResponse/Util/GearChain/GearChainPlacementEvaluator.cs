@@ -18,15 +18,6 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
     /// </summary>
     public static class GearChainPlacementEvaluator
     {
-        public const string TooFarError = "TooFar";
-        public const string AlreadyConnectedError = "AlreadyConnected";
-        public const string ConnectionLimitError = "ConnectionLimit";
-        public const string NoItemError = "NoItem";
-        public const string NoPoleItemError = "NoPoleItem";
-        public const string InvalidTargetError = "InvalidTarget";
-        public const string PositionOccupiedError = "PositionOccupied";
-        public const string NotUnlockedError = "NotUnlocked";
-        public const string InsufficientItemsError = "InsufficientItems";
 
         /// <summary>
         /// 距離・既接続・接続数上限・チェーン素材を一括判定する。消費はconnectToolマスタ駆動の複数素材。
@@ -40,51 +31,51 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
 
             // 距離が両端の上限のminを超えると不可
             // Reject when distance exceeds the min of both max distances
-            if (Mathf.Min(fromMaxConnectionDistance, toMaxConnectionDistance) < connectionDistance) return GearChainPlacementJudgement.Failure(TooFarError);
+            if (Mathf.Min(fromMaxConnectionDistance, toMaxConnectionDistance) < connectionDistance) return GearChainPlacementJudgement.Failure(GearChainPlacementFailureReason.TooFar);
 
             // 既に接続済みの場合は不可
             // Reject when the pair is already connected
-            if (alreadyConnected) return GearChainPlacementJudgement.Failure(AlreadyConnectedError);
+            if (alreadyConnected) return GearChainPlacementJudgement.Failure(GearChainPlacementFailureReason.AlreadyConnected);
 
             // 接続数の上限を確認する
             // Check connection count limit
-            if (anyConnectionFull) return GearChainPlacementJudgement.Failure(ConnectionLimitError);
+            if (anyConnectionFull) return GearChainPlacementJudgement.Failure(GearChainPlacementFailureReason.ConnectionLimit);
 
             // connectToolマスタから複数素材の必要数を算出する
             // Calculate the required multi-material count from the connectTool master
-            if (!ConnectToolCostCalculator.TryCalculate(connectToolGuid, connectionDistance, out var materials)) return GearChainPlacementJudgement.Failure(NoItemError);
+            if (!ConnectToolCostCalculator.TryCalculate(connectToolGuid, connectionDistance, out var materials)) return GearChainPlacementJudgement.Failure(GearChainPlacementFailureReason.NoItem);
 
             // 予約分を上乗せした必要数を所持が満たすかは共有の正本へ委ねる
             // Whether the held count covers the requirement plus the reservation is delegated to the shared definition
-            if (!ConstructionMaterialAccounting.HasEnough(materials, stacks, reservedMaterials)) return GearChainPlacementJudgement.Failure(NoItemError);
+            if (!ConstructionMaterialAccounting.HasEnough(materials, stacks, reservedMaterials)) return GearChainPlacementJudgement.Failure(GearChainPlacementFailureReason.NoItem);
 
-            return GearChainPlacementJudgement.Success(new GearChainConnectionCost(materials));
+            return GearChainPlacementJudgement.Success(new ConnectionLineRecord(connectToolGuid, materials));
         }
     }
 
     /// <summary>
-    /// 歯車チェーン設置可否の判定結果。失敗理由またはチェーン消費コストを保持する
-    /// Judgement result of gear chain placement, holding failure reason or chain consumption cost
+    /// 歯車チェーン設置可否の判定結果
+    /// Judgement result of gear chain placement
     /// </summary>
     public readonly struct GearChainPlacementJudgement
     {
-        public readonly string FailureReason;
-        public readonly GearChainConnectionCost ChainCost;
+        public readonly GearChainPlacementFailureReason FailureReason;
+        public readonly ConnectionLineRecord ChainRecord;
 
-        public bool IsPlaceable => string.IsNullOrEmpty(FailureReason);
+        public bool IsPlaceable => FailureReason == GearChainPlacementFailureReason.None;
 
-        private GearChainPlacementJudgement(string failureReason, GearChainConnectionCost chainCost)
+        private GearChainPlacementJudgement(GearChainPlacementFailureReason failureReason, ConnectionLineRecord chainRecord)
         {
             FailureReason = failureReason;
-            ChainCost = chainCost;
+            ChainRecord = chainRecord;
         }
 
-        public static GearChainPlacementJudgement Success(GearChainConnectionCost chainCost)
+        public static GearChainPlacementJudgement Success(ConnectionLineRecord chainRecord)
         {
-            return new GearChainPlacementJudgement(string.Empty, chainCost);
+            return new GearChainPlacementJudgement(GearChainPlacementFailureReason.None, chainRecord);
         }
 
-        public static GearChainPlacementJudgement Failure(string reason)
+        public static GearChainPlacementJudgement Failure(GearChainPlacementFailureReason reason)
         {
             return new GearChainPlacementJudgement(reason, default);
         }

@@ -60,13 +60,13 @@ namespace Tests.CombinedTest.Server.PacketTest.GearChain
             if (0 < materialCount) _inventory.SetItem(1, ServerContext.ItemStackFactory.Create(MaterialItemId, materialCount));
         }
 
-        public void AssertExtendFailsWithoutStateChange(Vector3Int placePos, string expectedError, int expectedChainCount, int expectedMaterialCount)
+        public void AssertExtendFailsWithoutStateChange(Vector3Int placePos, GearChainPlacementFailureReason expectedReason, int expectedChainCount, int expectedMaterialCount)
         {
             // 失敗時に一切の状態変更が起きないことを検証する
             // Verify failures leave absolutely no state changes
             var response = SendExtend(placePos);
             Assert.False(response.IsSuccess);
-            Assert.AreEqual(expectedError, response.Error);
+            Assert.AreEqual(expectedReason.ToString(), response.Error);
             Assert.False(ServerContext.WorldBlockDatastore.Exists(placePos));
             Assert.AreEqual(expectedChainCount, CountItem(ChainItemId));
             Assert.AreEqual(expectedMaterialCount, CountItem(MaterialItemId));

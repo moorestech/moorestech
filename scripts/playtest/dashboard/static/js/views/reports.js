@@ -2,14 +2,15 @@
 // Report list: primary filters (status, kind) as segmented tabs, secondary ones (tester, build, search) in one row
 import { card, dayGroups, pageHead, reportRow } from "../components.js";
 import { emptyNote, h, kindLabel, postState, reportKey, routeHref, testerName } from "../core.js";
+import { EMPTY_KIND, applyFilters, filterOf, readMatches, saveFilter } from "../report-filter.js";
 
-// 種別が空（読めない箱）は value="" だと「すべて」と区別できないので専用の値で表す
-// An empty kind (unreadable box) gets its own value, since "" would mean "all"
-const EMPTY_KIND = "(none)";
 const READ_TABS = [["", "既読・未読"], ["unread", "未読"], ["read", "既読"]];
 const TRIAGE_TABS = [["", "すべて"], ["candidate", "未投入"], ["queued", "投入済み"], ["excluded", "除外"], ["broken", "読めない"]];
 
 export function renderReports(data, params) {
+  // 開いた一覧の条件を記憶し、条件なしなら記憶も空にする
+  // Remember the opened list condition, including an empty condition
+  saveFilter(filterOf(params));
   const results = h("div", null);
   const refresh = () => results.replaceChildren(resultCard(data.reports, params));
   refresh();
@@ -26,12 +27,13 @@ export function renderReports(data, params) {
 
 function resultCard(reports, params) {
   const filtered = applyFilters(reports, params);
+  const filter = filterOf(params);
   // 絞り込みで自明になった列は行から外す（同じ札が全行に並ぶと読む量だけ増える）
   // Columns made obvious by the filter are dropped from rows; the same tag on every row only adds reading
   const show = { kind: !params.get("kind"), status: !params.get("triage") };
   const unread = filtered.filter((r) => !r.readAt);
   return card("該当する報告", { count: filtered.length, action: unread.length ? markAllRead(unread) : null },
-    filtered.length ? dayGroups(filtered, (r) => r.date, (r) => reportRow(r, show), null) : emptyNote("条件に合う報告はありません"));
+    filtered.length ? dayGroups(filtered, (r) => r.date, (r) => reportRow(r, show, filter), null) : emptyNote("条件に合う報告はありません"));
 }
 
 // 表示中の未読をまとめて既読にする。サーバーの1回あたり上限（500件）ごとに送り、各回は全件か0件かになる
@@ -54,23 +56,6 @@ function markAllRead(unread) {
     },
   }, `表示中の未読${unread.length}件を既読にする`);
   return button;
-}
-
-function readMatches(report, value) {
-  if (value === "unread") return !report.readAt;
-  if (value === "read") return Boolean(report.readAt);
-  return true;
-}
-
-export function applyFilters(reports, params) {
-  const query = (params.get("q") || "").toLowerCase();
-  return reports.filter((r) =>
-    (!params.get("kind") || (r.kind || EMPTY_KIND) === params.get("kind"))
-    && (!params.get("triage") || r.triage === params.get("triage"))
-    && (!params.get("tester") || r.steamId === params.get("tester"))
-    && (!params.get("build") || r.buildLabel === params.get("build"))
-    && readMatches(r, params.get("read") || "")
-    && (!query || `${r.description || ""} ${r.id} ${r.testerName}`.toLowerCase().includes(query)));
 }
 
 function kindTabs(reports) {
@@ -116,6 +101,7 @@ function searchBox(params, refresh) {
     oninput: (event) => {
       params.set("q", event.target.value);
       history.replaceState(null, "", routeHref("reports", [], Object.fromEntries(params)));
+      saveFilter(filterOf(params));
       refresh();
     },
   });

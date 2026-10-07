@@ -73,7 +73,7 @@ namespace Client.Tests.PlaceSystem.Util
             var feedback = new PlacementFeedback();
             var walletQuery = BuildWalletQuery();
             var datastore = new ClientRemainingPlacementCountDatastore();
-            datastore.ApplyAll(new Dictionary<BlockId, int> { { ConstructionWalletUtil.ResolveWalletBlockId(blockId), 3 } });
+            datastore.ApplyAll(new Dictionary<BlockId, int> { { ConstructionWalletQuery.ResolveWalletBlockId(blockId), 3 } });
 
             ConstructionMaterialShortageReporter.ReportShortages(placeInfos, blockId, new ConstructionWalletQuery(datastore), BuildInventory(0, 0), feedback);
             Assert.IsEmpty(feedback.Lines);

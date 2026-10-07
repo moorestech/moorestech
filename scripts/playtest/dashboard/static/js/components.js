@@ -50,8 +50,8 @@ export function dayGroups(rows, dateOf, renderRow, totals) {
 
 // 報告1行: 本文を主役にし、種別・状態は一覧の文脈で自明でない時だけ出す
 // One report row: the text leads; kind and status appear only when the list context does not already imply them
-export function reportRow(report, show) {
-  return h("li", { class: `row-item${report.readAt ? " is-read" : ""}` }, readToggle(report), h("a", { class: "row", href: routeHref("report", [report.boxSteamId, report.boxId]) },
+export function reportRow(report, show, filter) {
+  return h("li", { class: `row-item${report.readAt ? " is-read" : ""}` }, readToggle(report), h("a", { class: "row", href: routeHref("report", [report.boxSteamId, report.boxId], filter) },
     show.kind ? kindMark(report.kind) : null,
     h("span", { class: "row-text" }, rowText(report)),
     // 右側は固定幅の列にして、録画や状態の有無で行ごとに位置がずれないようにする

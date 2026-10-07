@@ -1,4 +1,6 @@
+using Client.Game.InGame.UI.Notification;
 using System;
+using UniRx;
 using Client.Network.API;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
@@ -18,16 +20,21 @@ namespace Client.WebUiHost.Game.Topics
 
         private readonly WebSocketHub _hub;
         private readonly IDisposable _subscription;
+        private readonly IDisposable _localSubscription;
         private long _seq;
 
         // 除去件数の告知はサーバー接続時に1回しか来ない。Web未購読の間に配ると失われるので初期データとして持ち続ける
         // The prune notice arrives only once per server connection; publishing it while the web is unsubscribed loses it, so it is kept as initial data
         private NotificationDto _saveMigrationNotice;
 
-        public NotificationTopic(WebSocketHub hub, IVanillaApiEvent vanillaApiEvent)
+        public NotificationTopic(WebSocketHub hub, IVanillaApiEvent vanillaApiEvent, ClientLocalNotificationSource localNotificationSource)
         {
             _hub = hub;
             _subscription = vanillaApiEvent.SubscribeEventResponse(NotificationService.EventTag, OnNotification);
+
+            // クライアント側の拒否も同じ表示へ流す
+            // Relay client-side refusals through the same display
+            _localSubscription = localNotificationSource.OnNotification.Subscribe(Publish);
         }
 
         public UniTask<string> GetSnapshotJsonAsync()
@@ -41,11 +48,16 @@ namespace Client.WebUiHost.Game.Topics
         public void Dispose()
         {
             _subscription.Dispose();
+            _localSubscription.Dispose();
         }
 
         private void OnNotification(byte[] payload)
         {
-            var message = MessagePackSerializer.Deserialize<NotificationMessagePack>(payload);
+            Publish(MessagePackSerializer.Deserialize<NotificationMessagePack>(payload));
+        }
+
+        private void Publish(NotificationMessagePack message)
+        {
 
             // throwは購読パイプを貫き配信を止める
             // A throw would pierce the subscription pipe and halt all event delivery

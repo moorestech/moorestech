@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
+using Client.Game.InGame.Environment.Terrain;
 using Client.Common;
-using Client.Common.Asset;
 using Client.Game.Common;
 using Client.Game.InGame.Map.NearestSearch;
 using Client.Network.API;
@@ -10,6 +10,7 @@ using Core.Master;
 using Cysharp.Threading.Tasks;
 using Mooresmaster.Model.MapModule;
 using Server.Protocol.PacketResponse.MapData;
+using Game.MapGeneration.Surface;
 using UnityEngine;
 using VContainer;
 
@@ -29,9 +30,7 @@ namespace Client.Game.InGame.Map.Outcrop
         // Outcrop count scales with vein density and one outcrop is heavier than a map object, so cross frames more often than that path's 100
         private const int FrameYieldObjectInterval = 50;
 
-        // 同一アドレスを複数のveinが共有するため、guidではなくアドレスでキャッシュする
-        // Several veins share one address, so cache by address rather than by guid
-        private readonly Dictionary<string, GameObject> _prefabCacheByAddress = new();
+        private readonly OutcropPrefabCache _prefabCache = new();
 
         // 露頭は破壊されないので、生成のたび索引へ登録すれば最初の探索で1回だけ木が焼かれる
         // Outcrops are never destroyed, so registering each one as it spawns bakes the tree exactly once, on the first search
@@ -42,12 +41,12 @@ namespace Client.Game.InGame.Map.Outcrop
         [Inject]
         public void Initialize(InitialHandshakeResponse handshakeResponse)
         {
-            // Terrain完成後に地表判定
-            // Probe ground after Terrain is ready
+            // 露頭の生成はTerrain完成後のStartOutcropInstantiationまで待つ
+            // Outcrop creation waits for StartOutcropInstantiation after the Terrain is complete
             _handshakeResponse = handshakeResponse;
         }
 
-        public void StartOutcropInstantiation()
+        public void StartOutcropInstantiation(TerrainSurfacePresentation presentation)
         {
             // 二重開始は露頭を重ねるので落とす
             // A second start would stack duplicate outcrops
@@ -63,8 +62,11 @@ namespace Client.Game.InGame.Map.Outcrop
             async UniTask InstantiateOutcropsFromLayoutAsync()
             {
                 var cancellationToken = this.GetCancellationTokenOnDestroy();
-                var processedCount = 0;
 
+                // 全prefabの接地契約を先に検査し、違反があれば1体も置かずに一括で止める
+                // Check every prefab's grounding contract first and stop in bulk, placing nothing, on any violation
+                var resolved = new List<(VeinLayoutMessagePack Layout, Guid VeinGuid, MapVeinMasterElement Element, OutcropPrefab Outcrop)>();
+                var violationCount = 0;
                 foreach (var layout in _handshakeResponse.MapLayout.MapVeins)
                 {
                     var veinGuid = new Guid(layout.VeinGuid);
@@ -72,52 +74,54 @@ namespace Client.Game.InGame.Map.Outcrop
                     if (element == null)
                         throw new InvalidOperationException($"[OutcropGameObjectDatastore] mapVeinsマスタにveinGuid:{veinGuid}がありません");
 
-                    var prefab = ResolveOutcropPrefab(veinGuid, element);
-                    var center = CalculateInclusiveCenter(layout);
+                    var outcrop = _prefabCache.Resolve(veinGuid, element, presentation);
+                    if (outcrop == null) continue;
+                    if (outcrop.ContractViolation != null)
+                    {
+                        violationCount++;
+                        continue;
+                    }
+                    resolved.Add((layout, veinGuid, element, outcrop));
+                }
+                if (0 < violationCount)
+                    throw SurfaceContractFailure.Create(
+                        $"[OutcropGameObjectDatastore] {violationCount} veins use outcrop prefabs violating the grounding contract; see the [OutcropPrefab] errors.");
 
-                    // 露頭は地形状態に依存させず鉱脈AABB中心へ配置する
-                    // Place outcrops at vein AABB centers without depending on terrain state
-                    if (prefab != null) InstantiateOutcrop(prefab, veinGuid, element, layout, center);
+                var processedCount = 0;
+                foreach (var (layout, veinGuid, element, outcrop) in resolved)
+                {
+                    // セルは元AABB中心、表示だけ接地
+                    // Cells keep the original AABB center; only presentation is grounded
+                    InstantiateOutcrop(outcrop, veinGuid, element, layout, CalculateInclusiveCenter(layout));
 
                     processedCount++;
                     if (processedCount % FrameYieldObjectInterval == 0) await UniTask.Yield(cancellationToken);
                 }
             }
 
-            GameObject ResolveOutcropPrefab(Guid veinGuid, MapVeinMasterElement element)
+            void InstantiateOutcrop(OutcropPrefab outcrop, Guid veinGuid, MapVeinMasterElement element, VeinLayoutMessagePack layout, Vector3 center)
             {
-                var address = element.OutcropAddressablePath;
-                if (_prefabCacheByAddress.TryGetValue(address, out var cachedPrefab)) return cachedPrefab;
-
-                // 1本の失敗で全鉱脈を巻き添えにしない
-                // One failed load must not take every vein down
-                var loaded = AddressableLoader.LoadDefault<GameObject>(address);
-                if (loaded == null)
-                    // 失敗もキャッシュし、同じアドレスを共有する残りのveinで再試行とログを繰り返さない
-                    // Cache the failure too so the remaining veins sharing this address neither retry nor re-log
-                    Debug.LogError($"[OutcropGameObjectDatastore] 露頭プレハブをロードできません VeinGuid:{veinGuid} VeinName:{element.VeinName} Address:{address}");
-
-                _prefabCacheByAddress[address] = loaded;
-                return loaded;
-            }
-
-            void InstantiateOutcrop(GameObject prefab, Guid veinGuid, MapVeinMasterElement element, VeinLayoutMessagePack layout, Vector3 center)
-            {
-                var instance = Instantiate(prefab, center, Quaternion.identity, transform);
+                var instance = Instantiate(outcrop.Prefab, center, Quaternion.identity, transform);
                 instance.name = $"{OutcropObjectNamePrefix}{layout.VeinGuid}";
+
+                // 完成した表示契約に合わせて接地する
+                // Ground against the completed presentation contract
+                var bounds = new Bounds(center, new Vector3(layout.MaxX - layout.MinX + 1,
+                    layout.MaxY - layout.MinY + 1, layout.MaxZ - layout.MinZ + 1));
+                OutcropSurfacePlacement.Place(instance, outcrop, bounds, presentation);
 
                 // 全階層を採掘レイヤー化
                 // Apply mining layer to all children
                 foreach (var child in instance.GetComponentsInChildren<Transform>(true))
                     child.gameObject.layer = LayerConst.MapObjectLayer;
 
-                var outcrop = instance.GetComponent<OutcropGameObject>();
-                if (outcrop == null) outcrop = instance.AddComponent<OutcropGameObject>();
-                _nearestIndex.Register(veinGuid, outcrop);
+                var outcropObject = instance.GetComponent<OutcropGameObject>();
+                if (outcropObject == null) outcropObject = instance.AddComponent<OutcropGameObject>();
+                _nearestIndex.Register(veinGuid, outcropObject);
 
                 // 不可の鉱脈も提示対象なので初期化する
                 // An unmineable vein still has to say so
-                outcrop.Initialize(element, veinGuid, CalculateMinePosition(layout, center));
+                outcropObject.Initialize(element, veinGuid, CalculateMinePosition(layout, center));
             }
 
             Vector3 CalculateInclusiveCenter(VeinLayoutMessagePack layout)

@@ -13,8 +13,8 @@
 | 画面 | 内容 |
 |---|---|
 | 概要 | 未投入のバグ報告・報告数・テスター数・セッション数、日別の報告数（種別の積み上げ）とプレイ時間、最新の未投入バグと感想、離脱時のUI状態 |
-| 報告 | 全報告を新しい順に。種別・投入状態・テスター・ビルド・文字列で絞り込み（条件は URL に残る） |
-| 報告詳細 | 説明全文・動画（シーク可）・スクショ・unity.log・manifest.json・ビルド/コミット・遠隔実行の状態・修正ランの結果。未投入なら `enqueue-autofix.sh` のコピー |
+| 報告 | 全報告を新しい順に。種別・投入状態・テスター・ビルド・文字列で絞り込み（条件は URL に残り、最後の条件はブラウザに記憶して「報告」タブで戻る） |
+| 報告詳細 | 一覧の条件を引き継ぎ、前後・一覧へ戻るも同じ条件の中で辿る。説明全文・動画（シーク可）・スクショ・unity.log・manifest.json・ビルド/コミット・遠隔実行の状態・修正ランの結果。未投入なら `enqueue-autofix.sh` のコピー |
 | テスター | 1人1行で最終活動・セッション数・プレイ時間・到達チャレンジ（最奥の名前）・研究数・報告数 |
 | 進行 | チャレンジ到達ファネル（マスタの定義順・到達人数）とセッション一覧。テスターで絞り込み |
 | ダイジェスト | `digests/<日付>.md` を Discord の 1800 文字切り詰め無しで表示。感想全文が混ざるので Markdown として解釈せず素の文章で出し、コピー用ボタンも出さない（感想本文から本物そっくりのコマンドを偽装できるため） |
@@ -64,6 +64,7 @@ static/              index.html・CSS・ES modules（views/ が画面ごと）
 python3 scripts/playtest/dashboard/server.py            # 既定: --port 8932、--logs と --master は repo の兄弟から導出
 python3 scripts/playtest/tests/test_dashboard.py        # テスト（読み取り）
 python3 scripts/playtest/tests/test_dashboard_state.py  # テスト（既読・チケットリンクの書き込み）
+node --test scripts/playtest/tests/test_report_filter.mjs  # テスト（絞り込みの純粋ロジック）
 ```
 
 Mac mini では always-on supervisor の `playtest-dashboard`（longrun）がメインクローンから起動する。
