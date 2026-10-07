@@ -295,7 +295,7 @@ python3 <$CANONの実値>/.claude/skills/moores-code-review/scripts/build_workfl
 - `--report-only --detchecks` で Apply フェーズが省かれ、post-check（comment-rationale-guard / comment-convention-guard）は
   patch＋detchecks.json で発火し、contract.md に report-only の前提が付く。修正適用が無いので最終diff＝Step 3のpatchであり、
   決定論チェックの再実行はしない。convention-guardの「機械的は自動適用」も指摘として出す
-- Workflow には `workflow-args.json` の中身をそのまま `args` に渡す。Workflow が `Repo root`（`$PRWT`）と `Skill root`（`$CANON`）を
+- Workflow には build_workflow_args.py が書いた `<$RUNDIRの実値>/review_workflow.js`（args 埋め込み済み）を `scriptPath` に渡す（`args` は渡さない）。Workflow が `Repo root`（`$PRWT`）と `Skill root`（`$CANON`）を
   全subagentのpromptへ注入する。**Workflow不可でsonnet委譲へフォールバックする場合のみ**、全prompt（reviewer・Fable全般・
   verifier・post-checks）の `Read this :` / `Candidates :` / `Patch path :` / `User prompt :` を `$CANON` / `$RUNDIR` の絶対パスで書き、
   次の2行を足す: 「対象コードのルート: <$PRWTの実値>。コードのReadは必ずこの配下」「スキル・reviewer・post-checks・統合ルールのReadは <$CANONの実値> 配下」
