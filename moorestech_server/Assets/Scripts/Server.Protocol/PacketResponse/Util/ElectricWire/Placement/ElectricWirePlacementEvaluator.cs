@@ -1,10 +1,10 @@
+using Game.Block.Interface.Component;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Construction;
-using Game.EnergySystem;
 using Server.Protocol.PacketResponse.Util.ConnectTool;
 
 namespace Server.Protocol.PacketResponse.Util.ElectricWire.Placement
@@ -44,14 +44,14 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.Placement
             if (!ConstructionMaterialAccounting.HasEnough(materials, items, reservedMaterials))
                 return ElectricWirePlacementJudgement.Failure(ElectricWirePlacementFailureReason.NoWireItem);
 
-            return ElectricWirePlacementJudgement.Success(new ElectricWireConnectionCost(materials));
+            return ElectricWirePlacementJudgement.Success(new ConnectionLineRecord(connectToolGuid, materials));
         }
 
-        public static bool TryCalculateWireCost(Guid connectToolGuid, float distance, out ElectricWireConnectionCost cost)
+        public static bool TryCreateWireRecord(Guid connectToolGuid, float distance, out ConnectionLineRecord record)
         {
-            cost = ElectricWireConnectionCost.Empty;
+            record = default;
             if (!ConnectToolCostCalculator.TryCalculate(connectToolGuid, distance, out var materials)) return false;
-            cost = new ElectricWireConnectionCost(materials);
+            record = new ConnectionLineRecord(connectToolGuid, materials);
             return true;
         }
     }

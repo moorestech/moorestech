@@ -47,24 +47,24 @@ namespace Server.Protocol.PacketResponse
 
             // 設置先が空いているか確認する
             // Ensure the placement position is free
-            if (ServerContext.WorldBlockDatastore.Exists(placePosition)) return GearChainPoleExtendResponse.CreateFailed(GearChainPlacementEvaluator.PositionOccupiedError);
+            if (ServerContext.WorldBlockDatastore.Exists(placePosition)) return GearChainPoleExtendResponse.CreateFailed(GearChainPlacementFailureReason.PositionOccupied);
 
             // ブロックの解放状態を検証する（解放判定は基底ブロック）
             // Validate the unlock state (judged on the base block)
             var baseBlockGuid = MasterHolder.BlockMaster.GetBlockMaster(request.PoleBlockId).BlockGuid;
-            if (!_gameUnlockStateDataController.BlockUnlockStateInfos[baseBlockGuid].IsUnlocked) return GearChainPoleExtendResponse.CreateFailed(GearChainPlacementEvaluator.NotUnlockedError);
+            if (!_gameUnlockStateDataController.BlockUnlockStateInfos[baseBlockGuid].IsUnlocked) return GearChainPoleExtendResponse.CreateFailed(GearChainPlacementFailureReason.NotUnlocked);
 
             // 指定BlockIdからポールパラメータを解決する
             // Resolve the pole parameter from the requested BlockId
             var blockId = request.PoleBlockId;
             var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
-            if (blockMaster.BlockParam is not GearChainPoleBlockParam poleParam) return GearChainPoleExtendResponse.CreateFailed(GearChainPlacementEvaluator.NoPoleItemError);
+            if (blockMaster.BlockParam is not GearChainPoleBlockParam poleParam) return GearChainPoleExtendResponse.CreateFailed(GearChainPlacementFailureReason.NoPoleItem);
 
             // 建設コストは財布に問い合わせる。残りで賄えるなら素材を要求しない
             // Ask the wallet for the construction cost; when the remainder covers it no materials are demanded
             var placementPlan = _constructionWallet.PlanPlacement(blockId, requesterPlayerId);
             var costItemCounts = placementPlan.ItemsToConsume;
-            if (!ConstructionCostService.HasRequiredItems(costItemCounts, inventory.InventoryItems)) return GearChainPoleExtendResponse.CreateFailed(GearChainPlacementEvaluator.InsufficientItemsError);
+            if (!ConstructionCostService.HasRequiredItems(costItemCounts, inventory.InventoryItems)) return GearChainPoleExtendResponse.CreateFailed(GearChainPlacementFailureReason.InsufficientItems);
 
             // 起点ありの場合は接続可否を設置前にすべて検証する
             // With a from pole, validate connection viability before placing
@@ -72,9 +72,9 @@ namespace Server.Protocol.PacketResponse
             {
                 // 未解放のconnectToolによる接続要求は設置前に拒否する
                 // Reject a connection request using a connectTool that is not unlocked before placement
-                if (!GearChainSystemUtil.IsConnectToolUnlocked(request.ConnectToolGuid)) return GearChainPoleExtendResponse.CreateFailed(GearChainPlacementEvaluator.NotUnlockedError);
+                if (!GearChainSystemUtil.IsConnectToolUnlocked(request.ConnectToolGuid)) return GearChainPoleExtendResponse.CreateFailed(GearChainPlacementFailureReason.NotUnlocked);
 
-                if (!GearChainSystemUtil.TryGetGearChainPole(request.FromPolePosVector, out var fromPole, out _)) return GearChainPoleExtendResponse.CreateFailed(GearChainPlacementEvaluator.InvalidTargetError);
+                if (!GearChainSystemUtil.TryGetGearChainPole(request.FromPolePosVector, out var fromPole, out _)) return GearChainPoleExtendResponse.CreateFailed(GearChainPlacementFailureReason.InvalidTarget);
 
                 // 新規ポール側は接続容量0の場合のみ上限超過として扱う
                 // Treat the new pole as full only when its connection capacity is zero
@@ -87,7 +87,7 @@ namespace Server.Protocol.PacketResponse
             // ブロックを設置する
             // Place the block
             var createParams = request.PolePlaceInfo.BlockCreateParams.Select(v => new BlockCreateParam(v.Key, v.Value)).ToArray();
-            if (!ServerContext.WorldBlockDatastore.TryAddBlock(blockId, placePosition, request.PolePlaceInfo.Direction, createParams, out var block)) return GearChainPoleExtendResponse.CreateFailed(GearChainPlacementEvaluator.PositionOccupiedError);
+            if (!ServerContext.WorldBlockDatastore.TryAddBlock(blockId, placePosition, request.PolePlaceInfo.Direction, createParams, out var block)) return GearChainPoleExtendResponse.CreateFailed(GearChainPlacementFailureReason.PositionOccupied);
 
             // 起点ありならチェーン接続とアイテム消費
             // With a from pole, connect the chain and consume chain items
@@ -165,12 +165,12 @@ namespace Server.Protocol.PacketResponse
                 Tag = GearChainPoleExtendProtocol.Tag;
             }
 
-            public static GearChainPoleExtendResponse CreateFailed(string error)
+            public static GearChainPoleExtendResponse CreateFailed(GearChainPlacementFailureReason reason)
             {
                 return new GearChainPoleExtendResponse
                 {
                     IsSuccess = false,
-                    Error = error,
+                    Error = reason.ToString(),
                     PlacedPolePos = new Vector3IntMessagePack(Vector3Int.zero),
                 };
             }

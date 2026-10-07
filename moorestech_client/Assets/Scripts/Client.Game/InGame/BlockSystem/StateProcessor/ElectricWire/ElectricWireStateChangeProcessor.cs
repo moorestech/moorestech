@@ -1,7 +1,6 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine;
 using Game.Block.Blocks.ElectricWire;
 using Game.Block.Interface;
 using Server.Event.EventReceive;
@@ -38,20 +37,18 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
             var state = blockState.GetStateDetail<ElectricWireStateDetail>(ElectricWireStateDetail.BlockStateDetailKey);
             if (state == null) return;
 
-            // 接続先InstanceIdを配列に変換する
-            // Convert partner instance IDs to an array
-            var partnerInstanceIds = state.PartnerBlockInstanceIds?
-                .Select(id => new BlockInstanceId(id))
-                .ToArray() ?? Array.Empty<BlockInstanceId>();
+            // 接続先と引いた種類を受け取る
+            // Receive partner IDs and their connect tool kinds
+            var partners = ConnectionLinePartner.FromMessagePacks(state.Partners);
 
             // 接続先ID集合を最新状態へ置き換える
             // Replace the partner ID set with the latest state
             _currentPartnerIds.Clear();
-            foreach (var id in partnerInstanceIds) _currentPartnerIds.Add(id);
+            foreach (var partner in partners) _currentPartnerIds.Add(partner.PartnerId);
 
             // ワイヤー表示を更新する
             // Update the wire display
-            _wireLineView.UpdateConnectionLines(partnerInstanceIds);
+            _wireLineView.UpdateConnectionLines(partners);
         }
     }
 }

@@ -133,21 +133,21 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
                 // Fail when the pole to be placed cannot hold even one wire
                 if (poleParam.MaxWireConnectionCount < 1)
                     return ElectricWireExtendResult.Failure(ElectricWirePlacementFailureReason.ConnectionLimit);
-                if (!ElectricWirePlacementEvaluator.TryCalculateWireCost(connectToolGuid, distance, out var wireCost))
+                if (!ElectricWirePlacementEvaluator.TryCreateWireRecord(connectToolGuid, distance, out var wireRecord))
                     return ElectricWireExtendResult.Failure(ElectricWirePlacementFailureReason.NoWireItem);
                 // 建設コストの予約分を上乗せした所持判定は共有の正本へ委ねる
                 // The held check with the construction cost reserved on top is delegated to the shared definition
-                if (!ConstructionMaterialAccounting.HasEnough(wireCost.Materials, inventory.InventoryItems, ConnectToolMaterialConsumer.ToMaterials(costItemCounts)))
+                if (!ConstructionMaterialAccounting.HasEnough(wireRecord.Materials, inventory.InventoryItems, ConnectToolMaterialConsumer.ToMaterials(costItemCounts)))
                     return ElectricWireExtendResult.Failure(ElectricWirePlacementFailureReason.NoWireItem);
 
                 // 検証をすべて通過したのでここから状態を変更する
                 // All validation passed; start mutating state from here
-                if (!TryPlacePole(polePlaceInfo, poleBlockId, out var selfConnector))
+                if (!ElectricWirePolePlacement.TryPlace(polePlaceInfo, poleBlockId, out var selfConnector))
                     return ElectricWireExtendResult.Failure(ElectricWirePlacementFailureReason.PositionOccupied);
 
                 // 起点1本が張れなければ配線なしの成功で潰さず失敗として返す（素材も建設コストも消費しない）
                 // If the single origin wire cannot be strung, report failure instead of a wireless success; nothing is consumed
-                if (!ElectricWireSystemUtil.TryConnectBothSides(selfConnector, fromConnector, wireCost))
+                if (!ElectricWireSystemUtil.TryConnectBothSides(selfConnector, fromConnector, wireRecord))
                 {
                     // 事前検証済みのため通常到達しないが、孤立電柱を残さないよう設置を取り消す（前例: GearChainPoleExtendProtocol）
                     // Unreachable after pre-validation; remove the block to avoid leaving an orphan pole (precedent: GearChainPoleExtendProtocol)
@@ -157,7 +157,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
 
                 // 電線素材と建設コストを消費する（dirty化は接続処理内で行われる）
                 // Consume the wire materials and the construction cost; the connection mutation itself marks the topology dirty
-                ConnectToolMaterialConsumer.Consume(wireCost.Materials, inventory);
+                ConnectToolMaterialConsumer.Consume(wireRecord.Materials, inventory);
                 constructionWallet.CommitPlacement(placementPlan, inventory, selfConnector.BlockInstanceId);
                 constructionWallet.FlushRemainingCountChanges();
 
@@ -170,7 +170,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
             {
                 if (!TryValidatePolePlacement(out var placementFailure)) return ElectricWireExtendResult.Failure(placementFailure);
 
-                if (!TryPlacePole(polePlaceInfo, poleBlockId, out var selfConnector))
+                if (!ElectricWirePolePlacement.TryPlace(polePlaceInfo, poleBlockId, out var selfConnector))
                     return ElectricWireExtendResult.Failure(ElectricWirePlacementFailureReason.PositionOccupied);
 
                 // 建設コストのみ消費する
@@ -184,16 +184,5 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
             #endregion
         }
 
-        private static bool TryPlacePole(PlaceInfoMessagePack polePlaceInfo, BlockId blockId, out IElectricWireConnector selfConnector)
-        {
-            // ブロックを設置しワイヤー端点を解決する
-            // Place the block and resolve its wire connector component
-            selfConnector = null;
-            var createParams = polePlaceInfo.BlockCreateParams.Select(v => new BlockCreateParam(v.Key, v.Value)).ToArray();
-            if (!ServerContext.WorldBlockDatastore.TryAddBlock(blockId, polePlaceInfo.Position, polePlaceInfo.Direction, createParams, out var placedBlock)) return false;
-
-            selfConnector = placedBlock.GetComponent<IElectricWireConnector>();
-            return true;
-        }
     }
 }

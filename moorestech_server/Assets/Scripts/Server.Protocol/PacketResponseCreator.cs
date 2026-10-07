@@ -1,3 +1,4 @@
+using Server.Protocol.PacketResponse.Rail;
 using System;
 using System.Collections.Generic;
 using Game.Train.Event;
@@ -64,6 +65,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(GetPlayedSkitIdsProtocol.ProtocolTag, new GetPlayedSkitIdsProtocol(serviceProvider));
             _packetResponseDictionary.Add(GetWorldPlaySessionInfoProtocol.ProtocolTag, new GetWorldPlaySessionInfoProtocol(serviceProvider));
             _packetResponseDictionary.Add(RailConnectionEditProtocol.Tag, new RailConnectionEditProtocol(serviceProvider));
+            _packetResponseDictionary.Add(RailConnectByDestinationProtocol.Tag, new RailConnectByDestinationProtocol(serviceProvider));
             _packetResponseDictionary.Add(RailConnectWithPlacePierProtocol.Tag, new RailConnectWithPlacePierProtocol(serviceProvider));
             _packetResponseDictionary.Add(PlaceTrainCarOnRailProtocol.ProtocolTag, new PlaceTrainCarOnRailProtocol(serviceProvider));
             _packetResponseDictionary.Add(AttachTrainCarToUnitProtocol.ProtocolTag, new AttachTrainCarToUnitProtocol(serviceProvider));

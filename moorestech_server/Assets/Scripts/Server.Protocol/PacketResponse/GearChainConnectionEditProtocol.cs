@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Core.Master;
+using Server.Event.Notification;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Protocol.PacketResponse.Util.GearChain;
@@ -13,8 +13,11 @@ namespace Server.Protocol.PacketResponse
     {
         public const string Tag = "va:gearChainConnectionEdit";
 
+        private readonly NotificationService _notificationService;
+
         public GearChainConnectionEditProtocol(ServiceProvider serviceProvider)
         {
+            _notificationService = serviceProvider.GetService<NotificationService>();
         }
 
         public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
@@ -39,10 +42,38 @@ namespace Server.Protocol.PacketResponse
                 switch (data.Mode)
                 {
                     case ChainEditMode.Connect:
-                        success = GearChainSystemUtil.TryConnect(data.PosAVector, data.PosBVector, requesterPlayerId, data.ConnectToolGuid, out error);
+                        // 復元では既接続を無消費・無通知で成功扱いにする
+                        // A restore of an existing connection succeeds without spending or notifying
+                        if (data.IsRestore && GearChainSystemUtil.IsAlreadyConnected(data.PosAVector, data.PosBVector))
+                        {
+                            Debug.Log($"[GearChainConnectionEdit] restore already connected: {data.PosAVector}->{data.PosBVector}");
+                            return new GearChainConnectionEditResponse(true, string.Empty);
+                        }
+                        success = GearChainSystemUtil.TryConnect(data.PosAVector, data.PosBVector, requesterPlayerId, data.ConnectToolGuid, out var connectFailure);
+                        error = success ? string.Empty : connectFailure.ToString();
+                        // 応答を待たない接続元へ拒否を通知する
+                        // Notify send-only connection callers of refusals
+                        if (!success)
+                        {
+                            Debug.LogWarning($"[GearChainConnectionEdit] connect denied: {connectFailure} posA={data.PosAVector} posB={data.PosBVector} player={requesterPlayerId}");
+                            _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied($"denied.gearChainConnect.{connectFailure}", Array.Empty<string>()));
+                        }
+                        break;
+
+                    case ChainEditMode.Disconnect:
+                        success = GearChainSystemUtil.TryDisconnect(data.PosAVector, data.PosBVector, requesterPlayerId, out var disconnectFailure);
+                        error = success ? string.Empty : disconnectFailure.ToString();
+                        // 返却不能などの拒否を要求者へ通知する
+                        // Notify the requester of refusals such as an unfitting refund
+                        if (!success)
+                        {
+                            Debug.LogWarning($"[GearChainConnectionEdit] disconnect denied: {disconnectFailure} posA={data.PosAVector} posB={data.PosBVector} player={requesterPlayerId}");
+                            _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied($"denied.gearChainDisconnect.{disconnectFailure}", Array.Empty<string>()));
+                        }
                         break;
 
                     default:
+                        Debug.LogWarning($"[GearChainConnectionEdit] Invalid mode: {data.Mode}");
                         return new GearChainConnectionEditResponse(false, "Invalid mode");
                 }
 
@@ -59,6 +90,7 @@ namespace Server.Protocol.PacketResponse
             [Key(3)] public Vector3IntMessagePack PosB { get; set; }
             [Key(4)] public ChainEditMode Mode { get; set; }
             [Key(6)] public Guid ConnectToolGuid { get; set; }
+            [Key(7)] public bool IsRestore { get; set; }
 
             [IgnoreMember] public Vector3Int PosAVector => PosA;
             [IgnoreMember] public Vector3Int PosBVector => PosB;
@@ -78,6 +110,24 @@ namespace Server.Protocol.PacketResponse
                 };
             }
 
+            public static GearChainConnectionEditRequest CreateRestoreConnectRequest(Vector3Int posA, Vector3Int posB, Guid connectToolGuid)
+            {
+                var request = CreateConnectRequest(posA, posB, connectToolGuid);
+                request.IsRestore = true;
+                return request;
+            }
+
+            public static GearChainConnectionEditRequest CreateDisconnectRequest(Vector3Int posA, Vector3Int posB)
+            {
+                return new GearChainConnectionEditRequest
+                {
+                    Tag = GearChainConnectionEditProtocol.Tag,
+                    PosA = new Vector3IntMessagePack(posA),
+                    PosB = new Vector3IntMessagePack(posB),
+                    Mode = ChainEditMode.Disconnect,
+                    ConnectToolGuid = Guid.Empty,
+                };
+            }
         }
 
         [MessagePackObject]
@@ -99,6 +149,7 @@ namespace Server.Protocol.PacketResponse
         public enum ChainEditMode
         {
             Connect,
+            Disconnect,
         }
     }
 }

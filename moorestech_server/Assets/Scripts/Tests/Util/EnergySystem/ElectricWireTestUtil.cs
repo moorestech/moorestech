@@ -1,3 +1,4 @@
+using Game.Block.Interface.Component;
 using System;
 using Core.Master;
 using Game.Block.Interface;
@@ -24,7 +25,7 @@ namespace Tests.Util.EnergySystem
             var connectorA = ResolveConnector(posA);
             var connectorB = ResolveConnector(posB);
 
-            var cost = ElectricWireConnectionCost.Empty;
+            var cost = new ConnectionLineRecord(Guid.Parse("c0000000-0000-0000-0000-000000000001"), Array.Empty<ConnectToolMaterialCost>());
             connectorA.TryAddWireConnection(connectorB.BlockInstanceId, cost);
             connectorB.TryAddWireConnection(connectorA.BlockInstanceId, cost);
         }
