@@ -50,6 +50,9 @@ export function saveFilter(filter) {
   } catch (error) {
     console.warn("[dashboard] filter memory unavailable", error);
   }
+  // Node テストには画面のイベント配送口がないため、ブラウザでだけ通知する
+  // Node tests have no page event dispatcher, so notify only in the browser
+  if (globalThis.dispatchEvent) globalThis.dispatchEvent(new CustomEvent("dashboard:filter-saved"));
 }
 
 export function loadFilter() {

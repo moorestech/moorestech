@@ -67,6 +67,21 @@ test("saveFilter/loadFilter round-trip and tolerate broken storage", (t) => {
   assert.equal(warnings.mock.callCount(), 5);
 });
 
+test("saveFilter dispatches after storing the filter", (t) => {
+  const store = new Map();
+  const events = [];
+  globalThis.localStorage = { setItem: (key, value) => store.set(key, value) };
+  globalThis.dispatchEvent = (event) => {
+    assert.equal(store.get("playtest-dashboard.report-filter"), '{"kind":"feedback"}');
+    events.push(event.type);
+    return true;
+  };
+  t.after(() => { delete globalThis.localStorage; delete globalThis.dispatchEvent; });
+
+  saveFilter({ kind: "feedback" });
+  assert.deepEqual(events, ["dashboard:filter-saved"]);
+});
+
 // 全条件の交差と検索対象を確かめ、移動時の取りこぼしを防ぐ
 // Check every intersecting condition and searchable field to prevent losses during navigation
 test("all six filters intersect and query matches without case sensitivity", () => {

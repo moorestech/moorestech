@@ -2,7 +2,6 @@
 // Report list: primary filters (status, kind) as segmented tabs, secondary ones (tester, build, search) in one row
 import { card, dayGroups, pageHead, reportRow } from "../components.js";
 import { emptyNote, h, kindLabel, postState, reportKey, routeHref, testerName } from "../core.js";
-
 import { EMPTY_KIND, applyFilters, filterOf, readMatches, saveFilter } from "../report-filter.js";
 
 const READ_TABS = [["", "既読・未読"], ["unread", "未読"], ["read", "既読"]];
@@ -28,12 +27,13 @@ export function renderReports(data, params) {
 
 function resultCard(reports, params) {
   const filtered = applyFilters(reports, params);
+  const filter = filterOf(params);
   // 絞り込みで自明になった列は行から外す（同じ札が全行に並ぶと読む量だけ増える）
   // Columns made obvious by the filter are dropped from rows; the same tag on every row only adds reading
   const show = { kind: !params.get("kind"), status: !params.get("triage") };
   const unread = filtered.filter((r) => !r.readAt);
   return card("該当する報告", { count: filtered.length, action: unread.length ? markAllRead(unread) : null },
-    filtered.length ? dayGroups(filtered, (r) => r.date, (r) => reportRow(r, show, filterOf(params)), null) : emptyNote("条件に合う報告はありません"));
+    filtered.length ? dayGroups(filtered, (r) => r.date, (r) => reportRow(r, show, filter), null) : emptyNote("条件に合う報告はありません"));
 }
 
 // 表示中の未読をまとめて既読にする。サーバーの1回あたり上限（500件）ごとに送り、各回は全件か0件かになる
