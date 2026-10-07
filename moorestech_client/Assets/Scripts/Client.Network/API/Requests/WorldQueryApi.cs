@@ -14,7 +14,8 @@ namespace Client.Network.API.Requests
 {
     public sealed class WorldQueryApi
     {
-        private const int MapDataRequestAttempts = 3;
+        private const int MapDataRequestAttempts = 2;
+        private const int MapDataTimeoutSeconds = 60;
         private readonly PacketExchangeManager _packetExchangeManager;
 
         public WorldQueryApi(PacketExchangeManager packetExchangeManager)
@@ -50,7 +51,7 @@ namespace Client.Network.API.Requests
             for (var attempt = 1; attempt <= MapDataRequestAttempts; attempt++)
             {
                 var request = GetMapDataProtocol.RequestMapDataMessagePack.CreateLayoutRequest();
-                var (response, reason) = await _packetExchangeManager.GetPacketResponseWithReason<GetMapDataProtocol.ResponseMapDataMessagePack>(request, ct);
+                var (response, reason) = await _packetExchangeManager.GetPacketResponseWithReason<GetMapDataProtocol.ResponseMapDataMessagePack>(request, ct, MapDataTimeoutSeconds);
                 if (reason == PacketWaitCompletionReason.Received) return response;
 
                 Debug.LogWarning($"Map layout request attempt {attempt}/{MapDataRequestAttempts} ended with {reason}.");
