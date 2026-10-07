@@ -23,7 +23,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Placement
             config.generateObject = true;
             config.grassland.objectConfig = BuildScatterConfig(useClusterMode, bands);
             config.forest.objectConfig = BuildScatterConfig(useClusterMode, bands);
-            return new VanillaGenerator().Generate(config);
+            return new LegacyVanillaGenerator().Generate(config);
         }
 
         public static BiomeObjectConfig BuildScatterConfig(bool useClusterMode, (float OuterRadiusMeters, float Amount)[] bands)

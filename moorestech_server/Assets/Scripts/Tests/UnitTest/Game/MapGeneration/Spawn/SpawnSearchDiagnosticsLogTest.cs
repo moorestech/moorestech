@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using Game.MapGeneration.Transfer;
 using Game.MapGeneration.Pipeline;
 using NUnit.Framework;
 using UnityEngine;
@@ -25,7 +26,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Spawn
             // This is the default-false main path; staying silent here makes it look identical to the fallback (ADR#13)
             LogAssert.Expect(LogType.Log, new Regex(@"^\[SpawnSearch\] 探索無効（useSpawnOffsetSearch=false）$"));
 
-            var runtimeConfig = MapGenerationPipeline.BuildConfig(generation, Seed, TestGenerationConfigFactory.ServerDataDirectory);
+            var runtimeConfig = MapGenerationPipeline.BuildConfig(generation, Seed, TestGenerationConfigFactory.ServerDataDirectory, WorldGeneratorVersion.CurrentRevision);
             MapGenerationPipeline.Generate(generation, runtimeConfig);
         }
     }

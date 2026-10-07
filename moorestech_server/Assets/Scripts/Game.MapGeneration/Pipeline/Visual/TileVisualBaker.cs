@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using Game.MapGeneration.Cache;
+using Game.MapGeneration.Surface;
+using Game.MapGeneration.Pipeline.Surface;
 using Game.MapGeneration.Pipeline.Visual.Detail;
 using Game.MapGeneration.Pipeline.Visual.Placement;
 using Game.MapGeneration.Pipeline.Visual.Source;
@@ -28,16 +30,13 @@ namespace Game.MapGeneration.Pipeline.Visual
         private readonly BiomeType[] _biomeTypes;
         private readonly TerrainGenerationConfig _gridConfig;
         private readonly SplatLayerTable _layerTable;
-        private readonly IPlacementLedgerSource _ledgerSource;
+        private readonly ValidatedGenerationRunSource _runSource;
+        private readonly SurfaceDisplayBoundaryOwner _displayBoundary;
+        public TerrainSurfacePresentation SurfacePresentation { get; }
         private readonly TreeSurroundSpeciesTable _treeSurroundSpecies;
         private readonly TerrainVisualCache _visualCache;
         private readonly BiomeVisualSections _visualSections;
         private readonly WorldDataDirectory _heightSource;
-        private readonly string _expectedPlacementLedgerDigest;
-
-        // 解決済みの台帳。pass-1は起動あたり高々1回で、取り逃しが2枚目以降続いても回し直さない
-        // The resolved ledger: pass-1 runs at most once per start and is not repeated for further missed tiles
-        private PlacementLedger _resolvedLedger;
 
         // detailプロトタイプの並びはタイルに依らず一度だけ決める
         // The detail prototype order does not vary by tile and is decided once
@@ -45,7 +44,7 @@ namespace Game.MapGeneration.Pipeline.Visual
 
         public TileVisualBaker(
             TerrainGenerationConfig gridConfig, BiomeType[] biomeTypes, BiomeVisualSections visualSections,
-            SplatLayerTable layerTable, TreeSurroundSpeciesTable treeSurroundSpecies, IPlacementLedgerSource ledgerSource,
+            SplatLayerTable layerTable, TreeSurroundSpeciesTable treeSurroundSpecies, IGenerationRunSource runSource,
             string expectedPlacementLedgerDigest, WorldDataDirectory heightSource, TerrainVisualCache visualCache)
         {
             _gridConfig = gridConfig;
@@ -53,12 +52,13 @@ namespace Game.MapGeneration.Pipeline.Visual
             _visualSections = visualSections;
             _layerTable = layerTable;
             _treeSurroundSpecies = treeSurroundSpecies;
-            _ledgerSource = ledgerSource;
-            _expectedPlacementLedgerDigest = expectedPlacementLedgerDigest;
+            _runSource = new ValidatedGenerationRunSource(runSource, expectedPlacementLedgerDigest, treeSurroundSpecies, gridConfig);
+            SurfacePresentation = MapGenerationAlgorithmTable.ResolveSurface(gridConfig.surfaceRevision).Presentation;
             _heightSource = heightSource;
+            _displayBoundary = new SurfaceDisplayBoundaryOwner(gridConfig, new StoredSurfaceDisplayHeightSource(heightSource, gridConfig.Resolution));
             _visualCache = visualCache;
 
-            AssignTextureFilterLayerIndices();
+            DetailTextureFilterBinder.Apply(visualSections, layerTable, gridConfig);
 
             // プロトタイプ設定と密度マップは同じフラグで生死を共にする。片方だけ残すと本数が食い違ってDetailPrototypesを読む側が壊れる
             // Configs and density maps live and die by one flag; keeping either alone breaks the counts for whoever reads DetailPrototypes
@@ -66,30 +66,6 @@ namespace Game.MapGeneration.Pipeline.Visual
                 ? DetailPrototypeRuntimeConfigCollector.Collect(biomeTypes, visualSections)
                 : new List<DetailPrototypeRuntimeConfig>();
 
-            #region Internal
-
-            // textureFilterはアドレスしか知らない。列番号はSplatLayerTableが確定した後でしか分からないため、ここで一括して差し込む
-            // A textureFilter knows only its address; the column index is unknowable before SplatLayerTable settles, so it is injected here in one pass
-            void AssignTextureFilterLayerIndices()
-            {
-                foreach (var detailConfig in visualSections.DetailConfigs)
-                foreach (var entry in detailConfig.entries)
-                {
-                    var textureFilter = entry.textureFilter;
-                    if (!textureFilter.enabled || textureFilter.entries == null) continue;
-
-                    foreach (var filterEntry in textureFilter.entries)
-                    {
-                        if (!layerTable.LayerIndexByAddress.TryGetValue(filterEntry.layerAddressablePath, out var layerIndex))
-                            throw new InvalidOperationException(
-                                $"[TileVisualBaker] Detail texture filter layer '{filterEntry.layerAddressablePath}' is not registered in the splatmap layer table.");
-
-                        filterEntry.SetLayerIndex(layerIndex);
-                    }
-                }
-            }
-
-            #endregion
         }
 
         public TileVisualBakeResult Bake(int tileX, int tileZ)
@@ -163,8 +139,7 @@ namespace Game.MapGeneration.Pipeline.Visual
                 // Storing rounds display heights to ushort steps, so the miss path lands on the same steps and hit and miss return identical values
                 for (var z = 0; z < postHeights.GetLength(0); z++)
                 for (var x = 0; x < postHeights.GetLength(1); x++)
-                    postHeights[z, x] = Mathf.Clamp(Mathf.RoundToInt(postHeights[z, x] * TerrainVisualCacheFormat.HeightQuantizeScale), 0, ushort.MaxValue)
-                                        / TerrainVisualCacheFormat.HeightQuantizeScale;
+                    postHeights[z, x] = SurfaceQuantization.RoundTripR16(postHeights[z, x]);
 
                 // Detailは移植元と同じ生の重みを読む。平面化はその後で、保存と適用に回る値だけをキャッシュ往復で不変にする
                 // Detail reads the same raw weights as the source; the flattening comes after it and only makes the stored, applied values survive a round trip
@@ -179,8 +154,10 @@ namespace Game.MapGeneration.Pipeline.Visual
             (float[,] Pre, float[,] Post) BuildHeightPair()
             {
                 var preHeights = HeightFileLoader.LoadHeights(_heightSource, tileX, tileZ, _gridConfig.Resolution);
-                var postHeights = TreePerturbationApplier.Apply(preHeights, tileConfig, tileWorldPosition, ResolveLedger().Placements);
-                return (preHeights, postHeights);
+                var run = _runSource.Resolve();
+                var post = TileSurfaceHeightBuilder.Build(preHeights, tileConfig, tileWorldPosition, run.Ledger,
+                    run.DisplayHeightPolicy, _displayBoundary);
+                return (preHeights, post);
             }
 
             // splatも岩の裸地でmapObjectを読むようになったので、Detailと同じく全タイルぶんを渡してhaloで切らせる
@@ -196,7 +173,7 @@ namespace Game.MapGeneration.Pipeline.Visual
                 return SplatmapStage.Generate(
                     tileConfig, _biomeTypes, classification, _layerTable, _visualSections, _treeSurroundSpecies,
                     preHeights, biomeIndices, _gridConfig.AlphamapResolution,
-                    ResolveLedger().Placements, tileWorldPosition);
+                    _runSource.Resolve().Ledger.Placements, tileWorldPosition);
             }
 
             // 距離場はタイル境界の外まで見るため、切り出し済みのタイル内mapObjectではなく全タイルぶんを渡す
@@ -206,40 +183,12 @@ namespace Game.MapGeneration.Pipeline.Visual
             {
                 return TerrainDetailBuilder.Build(
                     tileConfig, _biomeTypes, _visualSections, preHeights, postHeights, classification.WinnerMasks,
-                    alphamap, ResolveLedger().Placements, tileWorldPosition, tileX, tileZ);
+                    alphamap, _runSource.Resolve().Ledger.Placements, tileWorldPosition, tileX, tileZ);
             }
 
             float[,] CreateFlatHeights(int resolution)
             {
                 return new float[resolution, resolution];
-            }
-
-            // 台帳を要求するのは取り逃した瞬間だけ。指紋と樹種の検査も実体化するこの1点へ寄せる
-            // Demand the ledger only on a miss, and keep digest and species checks at this single materialization point
-            PlacementLedger ResolveLedger()
-            {
-                if (_resolvedLedger != null) return _resolvedLedger;
-
-                var ledger = _ledgerSource.Resolve();
-                var actualDigest = ledger.ComputeDigest();
-                if (actualDigest != _expectedPlacementLedgerDigest)
-                    throw new InvalidOperationException(
-                        $"[TileVisualBaker] Resolved placement ledger digest '{actualDigest}' does not match expected digest '{_expectedPlacementLedgerDigest}'.");
-
-                // 塗る樹種かどうかは塗り側が決めるが、未登録樹種は台帳と樹種表の出所違いなので解決時に一度だけ止める
-                // The painter decides which species paint, but an unregistered species means the ledger and table have different sources, so stop once on resolution
-                foreach (var placement in ledger.Placements)
-                {
-                    if (placement.SurroundEffect != TerrainSurroundEffectType.treeRootPatch) continue;
-                    if (_treeSurroundSpecies.IsRegistered(placement.Guid)) continue;
-
-                    throw new InvalidOperationException(
-                        $"[TileVisualBaker] Ledger placement '{placement.Guid}' carries {nameof(TerrainSurroundEffectType.treeRootPatch)} " +
-                        "but is absent from the tree species table; the ledger and the species table came from different biome sets.");
-                }
-
-                _resolvedLedger = ledger;
-                return _resolvedLedger;
             }
 
             #endregion

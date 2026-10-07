@@ -132,7 +132,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
 
         private static Dictionary<Vector2Int, byte[]> AssertNoSeamAcrossGrid(TerrainGenerationConfig config)
         {
-            var output = new VanillaGenerator().Generate(config).Output;
+            var output = new LegacyVanillaGenerator().Generate(config).Output;
             Assert.AreEqual(GridSide * GridSide, output.Tiles.Count);
 
             var biomeIndicesByTile = TileBiomeIndexComputer.ComputeForAllTiles(config, output);

@@ -57,6 +57,7 @@
         "VContainer",
         "StarterAssetsInputs",
         "ThirdPersonController",
+        "Mod.Config",
         "Mod.Loader",
         "Unity.TextMeshPro",
         "Game.Hotbar",

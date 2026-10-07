@@ -1,0 +1,11 @@
+using Client.Playtest;
+using Client.DebugSystem.Environment;
+using UnityEngine;
+return PlaytestRunner.Run("sea-low-ground-view",new PlaytestRunOptions{Record=true},async p=>{
+DebugEnvironmentController.SetEnvironment(DebugEnvironmentType.Runtime);
+p.Note("Generated world seed 196; runtime environment; inspect low terrain at x892 z0");
+p.WarpPlayer(new Vector3(892.5781f,4f,0f));
+await p.WaitSeconds(1f);
+await p.Screenshot("02-low-ground");
+p.Note("Current position="+p.PlayerPosition);
+});

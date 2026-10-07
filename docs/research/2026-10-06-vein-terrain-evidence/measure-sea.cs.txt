@@ -1,0 +1,51 @@
+using UnityEngine;
+using Core.Master;
+using Mod.Config;
+using Mod.Loader;
+using Game.MapGeneration.Pipeline;
+var dataDirectory = "/Users/sakastudio/hermes-agent/data/repos/moorestech_master/server_v8";
+var resources = new ModsResource(System.IO.Path.Combine(dataDirectory, "mods"));
+MasterHolder.Load(new MasterJsonFileContainer(ModJsonStringLoader.GetMasterString(resources)));
+var generation = MasterHolder.GenerationMaster.SelectedGeneration;
+var config = MapGenerationPipeline.BuildConfig(generation, 196, dataDirectory);
+var run = MapGenerationPipeline.Generate(generation, config);
+var output = run.Output;
+var cfg = run.Config;
+var types = Game.MapGeneration.Pipeline.Stages.ClassificationStage.GetEnabledBiomeTypes(cfg);
+var grid = cfg.ShallowCopy();
+grid.worldOffsetX = output.NoiseOrigin.x;
+grid.worldOffsetZ = output.NoiseOrigin.y;
+var reports = new System.Text.StringBuilder();
+foreach (var tile in output.Tiles) {
+var tileConfig = grid.CreateTileConfig(tile.TileX, tile.TileZ);
+var buffers = Game.MapGeneration.Pipeline.Jobs.JobDataConverter.AllocateBuffers(cfg.Resolution, types.Length, 1, Unity.Collections.Allocator.TempJob);
+buffers.biomeParams = Game.MapGeneration.Pipeline.Jobs.JobDataConverter.ConvertBiomeParams(cfg, types, Unity.Collections.Allocator.TempJob);
+buffers.noiseOffsets = Game.MapGeneration.Pipeline.Jobs.JobDataConverter.GenerateNoiseOffsets(cfg, buffers.biomeParams, types, Unity.Collections.Allocator.TempJob);
+Game.MapGeneration.Pipeline.Tiling.PaddedWindowStage.Run(tileConfig, types, buffers);
+int lowLand = 0;
+int lowInterior = 0;
+float minimum = 600;
+string example = "";
+for (int z = 0; z < cfg.Resolution; z++) for (int x = 0; x < cfg.Resolution; x++)
+{
+    int i = z * cfg.Resolution + x;
+    float sceneX = output.SceneOrigin.x + tile.TileX * cfg.terrainWidth + x * cfg.terrainWidth / (cfg.Resolution - 1);
+    float sceneZ = output.SceneOrigin.y + tile.TileZ * cfg.terrainLength + z * cfg.terrainLength / (cfg.Resolution - 1);
+    bool inPlane1 = sceneX >= 1376.4f && sceneX <= 2614.8f && sceneZ >= -1057.5f && sceneZ <= 1513.9f;
+    bool inPlane2 = sceneX >= -409.3f && sceneX <= 356.0f && sceneZ >= -451.3f && sceneZ <= 850.9f;
+    if (!inPlane1 && !inPlane2) continue;
+    float y = buffers.heights[i] * cfg.terrainHeight;
+    if (buffers.landMask[i] <= 0.5f || y >= 4.3f) continue;
+    lowLand++;
+    if (buffers.beachFactor[i] >= 0.01f) continue;
+    lowInterior++;
+    if (y >= minimum) continue;
+    minimum = y;
+    example = $"scene=({sceneX},{y},{sceneZ}) landMask={buffers.landMask[i]} beachFactor={buffers.beachFactor[i]} winner={buffers.winnerBiomeIndex[i]}";
+}
+var report = $"seed196 production master, tile={tile.TileX},{tile.TileZ}, within authored water plane XZ; seaLevel={cfg.seaLevel} waterPlaneY=4.3; lowLandPixels={lowLand} lowInteriorPixels={lowInterior} minimum={minimum} example={example}; EditMode production height generation/classification; no PlayMode render; pre visual perturbation";
+buffers.Dispose();
+reports.AppendLine(report);
+}
+System.IO.File.WriteAllText("/tmp/moores-vein-terrain-20261006/sea-all-measurement.txt", reports.ToString());
+return reports.ToString();
