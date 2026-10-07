@@ -67,7 +67,7 @@ hooks:
 ```markdown
 # [Feature Name] Implementation Plan
 
-> **For the controller session (実装を担うsubagentはこのブロックを無視してよい):** このplanの実行は subagent-driven-development スキルが担う。実行モード（規模ゲート未満の単一subagent実装モード／閾値超のタスクごと派遣）は同スキルの規模ゲートに従って決める。ステップはチェックボックス（`- [ ]`）記法で書く。
+> **For the controller session (実装を担うsubagentはこのブロックを無視してよい):** このplanの実行は moores-subagent-driven-development スキルが担う。実行モード（規模ゲート未満の単一subagent実装モード／閾値超のタスクごと派遣）は同スキルの規模ゲートに従って決める。ステップはチェックボックス（`- [ ]`）記法で書く。
 
 **Goal:** [これが何を構築するかを1文で説明]
 
@@ -102,7 +102,7 @@ hooks:
 
 **Final tasks (moorestech, required):** every plan's task list ends with an
 explicit closing task pair — 実行者はこれを無条件に実行する。planから省略しても
-ゲートは免除されない（subagent-driven-developmentのmandatory-gateセクション参照）:
+ゲートは免除されない（moores-subagent-driven-developmentのmandatory-gateセクション参照）:
 
 1. 「必ずmoores-code-reviewスキルで全ブランチレビューを実行すること
    （自動実行・ゴール文言による省略不可）」
@@ -224,22 +224,22 @@ Self-Review（内容）の次に、このファイル後半の **spec-architectu
 
 ## Execution Handoff
 
-実装は**新規セッションでのsubagent-driven-development**が既定。このセッションで実行方法の選択肢を提示せず、新規セッションを起動して開始プロンプトを送る（起動手段が無ければ出力する）（planning済みセッションはコンパクト対象で、コンパクト要約は非監査・何が落ちるか制御できない。監査済み成果物であるplan・ADR・`.decisions/`だけで開始できる状態を作り、フルコンテキストの新規セッションへ引き継ぐ）。
+実装は**新規セッションでのmoores-subagent-driven-development**が既定。このセッションで実行方法の選択肢を提示せず、新規セッションを起動して開始プロンプトを送る（起動手段が無ければ出力する）（planning済みセッションはコンパクト対象で、コンパクト要約は非監査・何が落ちるか制御できない。監査済み成果物であるplan・ADR・`.decisions/`だけで開始できる状態を作り、フルコンテキストの新規セッションへ引き継ぐ）。
 
 手順:
 
 1. **引き継ぎ完全性チェック**: 「planとADRと`.decisions/`だけ読んで実装できるか？」に Yes と言えるか確認する。会話の中でしか決まっていない裁定・制約が1つでも残っていれば、planの `## 判断記録（ADR）` か `.decisions/` へ書き落としてから次へ進む（新規セッションでは会話コンテキストは完全に消える）。
 
-2. **開始プロンプトを作る**: 以下のテンプレートを埋める。既定ではユーザー不在の一文と末尾の「codex移譲モードで」を必ず入れる（subagent-driven-development の codex委譲モード）。ユーザーが明示的に外すよう指示した場合だけ外す:
+2. **開始プロンプトを作る**: 以下のテンプレートを埋める。既定ではユーザー不在の一文と末尾の「codex移譲モードで」を必ず入れる（moores-subagent-driven-development の codex委譲モード）。ユーザーが明示的に外すよう指示した場合だけ外す:
 
    ```
    <1行目は必ずこれにスキル名やplanパスを1行目に置かない。タスク概要（20〜30字程度の体言止め。例: iOSアプリの入力フィールド改善）>
-   subagent-driven-development スキルを使って、以下の実装planを実行してください。
+   moores-subagent-driven-development スキルを使って、以下の実装planを実行してください。
 
    - plan: docs/superpowers/plans/<filename>.md
    - 作業場所: <ブランチ名>（worktreeの場合はそのパスも記載）
    - まずplan全文を読み、`## Requirements`・`## Global Constraints`・`## 判断記録（ADR）`を全タスク共通の制約として扱ってください
-   - 進捗管理はsubagent-driven-developmentスキルの規定に従ってください（SDD本体はplanのチェックボックス＋進捗台帳、単一subagent実装モードは報告ファイル＋進捗台帳が正）
+   - 進捗管理はmoores-subagent-driven-developmentスキルの規定に従ってください（SDD本体はplanのチェックボックス＋進捗台帳、単一subagent実装モードは報告ファイル＋進捗台帳が正）
    - planの最終タスク群（moores-code-reviewによる全ブランチレビュー→pr-createでPR作成・コンフリクト解消まで）は省略不可です。PRが作成されセッションを閉じられる状態になるまで完了扱いにしないでください
    - 私は寝ているので、確認を待たず進められるだけ進めてください。止まるのは解決不能な障害か取り返し不能な破壊的操作だけです
    codex移譲モードで
@@ -247,7 +247,7 @@ Self-Review（内容）の次に、このファイル後半の **spec-architectu
 
 3. **新規セッションを自分で起動して送る（既定）**: 環境ローカル規約（`CLAUDE.local.md` 等）に新規セッションの起動手段が定められていれば、それで新しいペイン／セッションを起動し、作業worktreeへ移動してから上のプロンプトを入力・送信し、受理されたことを画面読み取りで確かめて起動先を報告する。このセッションでは実装しない。起動手段が無い・失敗した場合だけ、コードブロックで出力して貼り付けを案内する（失敗時は生エラーも添える）。
 
-このセッション内で本体が直接タスクを順次実行することは、ユーザーが明示的に希望した場合のみ行う。自分から選択肢として提示しない（既定は subagent-driven-development の規模ゲートが選ぶモードである）。
+このセッション内で本体が直接タスクを順次実行することは、ユーザーが明示的に希望した場合のみ行う。自分から選択肢として提示しない（既定は moores-subagent-driven-development の規模ゲートが選ぶモードである）。
 
 # 追加SKILL:spec-architecture-review
 
