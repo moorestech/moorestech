@@ -64,6 +64,7 @@ static/              index.html・CSS・ES modules（views/ が画面ごと）
 python3 scripts/playtest/dashboard/server.py            # 既定: --port 8932、--logs と --master は repo の兄弟から導出
 python3 scripts/playtest/tests/test_dashboard.py        # テスト（読み取り）
 python3 scripts/playtest/tests/test_dashboard_state.py  # テスト（既読・チケットリンクの書き込み）
+node --test scripts/playtest/tests/test_report_filter.mjs  # テスト（絞り込みの純粋ロジック）
 ```
 
 Mac mini では always-on supervisor の `playtest-dashboard`（longrun）がメインクローンから起動する。
