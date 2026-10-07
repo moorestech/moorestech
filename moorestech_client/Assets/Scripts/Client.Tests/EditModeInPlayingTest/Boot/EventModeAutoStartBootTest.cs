@@ -23,9 +23,9 @@ namespace Client.Tests.EditModeInPlayingTest
     [Category("CiShardClientPlay2")]
     public class EventModeAutoStartBootTest
     {
-        // 内蔵サーバー起動込みの到達上限秒
-        // Seconds limit to reach MainGame incl. server boot
-        private const float ReachMainGameTimeoutSeconds = 300f;
+        // CIの同期起動で536秒のフレーム停止を実測したため、到達と後続処理に余裕を取る
+        // Allow for arrival and continuations after the measured 536-second synchronous boot stall in CI
+        private const float ReachMainGameTimeoutSeconds = 900f;
 
         // ドメインリロードを跨いでPlay中の観測結果をPlay終了後の判定へ渡すキー
         // Key carrying the in-Play observation across the domain reload to the verdict after Play
@@ -45,7 +45,7 @@ namespace Client.Tests.EditModeInPlayingTest
 
         // 到達待ちの上限より長く取り、Play終了後の復元と判定まで打ち切られないようにする
         // Longer than the reach deadline so the restore and verdict after Play are never cut off
-        [UnityTest, Timeout(600000)]
+        [UnityTest, Timeout(1200000)]
         public IEnumerator 出展モードはメインメニューからクリック無しでMainGameへ進む()
         {
             EnterPlayModeUtil();
@@ -78,9 +78,17 @@ namespace Client.Tests.EditModeInPlayingTest
             // Record the observation without asserting; throwing inside Play would skip the restore after Play
             async UniTask Body()
             {
-                var deadline = Time.realtimeSinceStartup + ReachMainGameTimeoutSeconds;
-                while (Time.realtimeSinceStartup < deadline)
+                var startedAt = Time.realtimeSinceStartup;
+                var deadline = startedAt + ReachMainGameTimeoutSeconds;
+                var previousFrameAt = startedAt;
+                var longestFrameSeconds = 0f;
+                Debug.Log($"[EventModeAutoStartBootTest] observation started realtime:{startedAt:F1}s frame:{Time.frameCount}");
+                while (true)
                 {
+                    // 同期起動でフレームが止まった時間も残し、通信待ちと区別する
+                    // Record synchronous boot frame stalls to distinguish them from network waits
+                    longestFrameSeconds = Mathf.Max(longestFrameSeconds, Time.realtimeSinceStartup - previousFrameAt);
+                    previousFrameAt = Time.realtimeSinceStartup;
                     var activeSceneName = SceneManager.GetActiveScene().name;
                     if (activeSceneName == SceneConstant.MainGameSceneName)
                     {
@@ -89,6 +97,7 @@ namespace Client.Tests.EditModeInPlayingTest
                         var worldDirectory = GameSystemPaths.DefaultWorldDirectory;
                         var usedTemporaryWorld = worldDirectory == EventModeAutoStartBootEnvironment.TemporaryWorldDirectory && Directory.Exists(worldDirectory);
                         SessionState.SetString(OutcomeKey, usedTemporaryWorld ? ReachedMainGame : $"reached MainGame but the world was not created in the temporary directory (default world: {worldDirectory})");
+                        Debug.Log($"[EventModeAutoStartBootTest] reached MainGame elapsed:{Time.realtimeSinceStartup - startedAt:F1}s longestFrame:{longestFrameSeconds:F1}s");
                         return;
                     }
 
@@ -102,9 +111,16 @@ namespace Client.Tests.EditModeInPlayingTest
                         SessionState.SetString(OutcomeKey, $"returned to MainMenu (reloaded at {activeSceneLoadedAt}s; see the [PlaytestTitleGates] refusal log)");
                         return;
                     }
+
+                    // 期限を跨ぐ停止の直後でも、シーン判定を1回行ってから打ち切る
+                    // Even right after a stall that crosses the deadline, judge the scene once before giving up
+                    if (deadline <= Time.realtimeSinceStartup) break;
                     await UniTask.Yield();
                 }
-                SessionState.SetString(OutcomeKey, $"neither MainGame nor a return to MainMenu within {ReachMainGameTimeoutSeconds}s (active scene: {SceneManager.GetActiveScene().name})");
+                longestFrameSeconds = Mathf.Max(longestFrameSeconds, Time.realtimeSinceStartup - previousFrameAt);
+                var timeoutOutcome = $"neither MainGame nor a return to MainMenu within {ReachMainGameTimeoutSeconds}s (active scene: {SceneManager.GetActiveScene().name}; elapsed:{Time.realtimeSinceStartup - startedAt:F1}s longestFrame:{longestFrameSeconds:F1}s timeScale:{Time.timeScale})";
+                Debug.LogWarning($"[EventModeAutoStartBootTest] {timeoutOutcome}");
+                SessionState.SetString(OutcomeKey, timeoutOutcome);
             }
 
             #endregion

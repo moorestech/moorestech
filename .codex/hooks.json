@@ -22,6 +22,12 @@
             "command": "node \".dev-hooks/beads-prime.mjs\"",
             "timeout": 15,
             "statusMessage": "Loading beads context"
+          },
+          {
+            "type": "command",
+            "command": "node \".dev-hooks/skill-name-collision-check.mjs\" codex",
+            "timeout": 15,
+            "statusMessage": "Checking repo/personal skill name collisions"
           }
         ]
       }

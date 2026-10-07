@@ -9,9 +9,6 @@ namespace Game.Construction
     public interface IRemainingPlacementCountLookup
     {
         IObservable<RemainingPlacementCountChange> OnRemainingCountChanged { get; }
-        // 生のBlockIdを受け、財布キーへの正規化は実装側が行う（クライアント側と同一契約）
-        // Takes a raw BlockId; normalizing it to the wallet key is the implementation's job, matching the client-side contract
-        int GetRemainingCount(int playerId, BlockId blockId);
         IReadOnlyList<(BlockId walletBlockId, int remainingCount)> GetRemainingCounts(int playerId);
 
         // プレイヤーへ束縛済みの読み取り口を払い出す。財布の問い合わせはこの口から行う

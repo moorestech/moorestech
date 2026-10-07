@@ -62,7 +62,7 @@ namespace Server.Protocol.PacketResponse
 
             // 建設コストは財布に問い合わせる。残りで賄えるなら素材を要求しない
             // Ask the wallet for the construction cost; when the remainder covers it no materials are demanded
-            var placementPlan = _constructionWallet.PlanPlacement(blockMaster, requesterPlayerId);
+            var placementPlan = _constructionWallet.PlanPlacement(blockId, requesterPlayerId);
             var costItemCounts = placementPlan.ItemsToConsume;
             if (!ConstructionCostService.HasRequiredItems(costItemCounts, inventory.InventoryItems)) return GearChainPoleExtendResponse.CreateFailed(GearChainPlacementFailureReason.InsufficientItems);
 

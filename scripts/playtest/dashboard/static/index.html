@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Playtest Dashboard</title>
+  <link rel="stylesheet" href="static/base.css">
+  <link rel="stylesheet" href="static/views.css">
+  <link rel="stylesheet" href="static/pages.css">
+  <link rel="stylesheet" href="static/state.css">
+  <script type="module" src="static/js/app.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">moorestech<span>playtest</span></div>
+      <nav id="tabs" class="tabs"></nav>
+      <div class="refresh"><span id="notice" class="notice" role="status"></span><span id="updated">読み込み中…</span><button id="reload" type="button">更新</button></div>
+    </div>
+  </header>
+  <main id="main"></main>
+  <div id="tooltip" class="tooltip" hidden></div>
+</body>
+</html>

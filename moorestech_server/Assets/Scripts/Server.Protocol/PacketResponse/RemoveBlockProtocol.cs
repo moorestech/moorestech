@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Core.Item.Interface;
 using Core.Master;
+using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
@@ -46,7 +47,7 @@ namespace Server.Protocol.PacketResponse
 
             // 財布に返却物を問い合わせ（確定は後段）
             // Ask the wallet what to refund (finalized further down)
-            var removalPlan = _constructionWallet.PlanRemoval(MasterHolder.BlockMaster.GetBlockMaster(block.BlockId), block.BlockInstanceId, requesterPlayerId);
+            var removalPlan = _constructionWallet.PlanRemoval(block.BlockId, block.BlockInstanceId, requesterPlayerId);
 
             // レール返却を合算し全額入る時だけ撤去
             // Sum rail refunds and remove only if the whole refund fits
