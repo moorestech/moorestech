@@ -3,8 +3,7 @@ using Core.Inventory;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Context;
-using Server.Protocol.PacketResponse.Util.ElectricWire;
-using Server.Protocol.PacketResponse.Util.ElectricWire.Connection;
+using Server.Protocol.PacketResponse.Util.ConnectTool;
 
 namespace Server.Protocol.PacketResponse.Util.Construction
 {
@@ -42,7 +41,7 @@ namespace Server.Protocol.PacketResponse.Util.Construction
             // Reuse the shared first-slot-onward consumption logic used by wire consumption
             foreach (var (itemId, count) in itemCounts)
             {
-                ElectricWireSystemUtil.ConsumeItem(inventory, itemId, count);
+                ConnectToolMaterialConsumer.ConsumeItem(inventory, itemId, count);
             }
         }
 

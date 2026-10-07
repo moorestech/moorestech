@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using Core.Inventory;
 using Core.Item.Interface;
 using Core.Master;
-using Server.Protocol.PacketResponse.Util.ElectricWire.Connection;
 
 namespace Server.Protocol.PacketResponse.Util.ConnectTool
 {
@@ -34,7 +33,23 @@ namespace Server.Protocol.PacketResponse.Util.ConnectTool
             foreach (var material in materials)
             {
                 if (material.Count <= 0 || material.ItemId == ItemMaster.EmptyItemId) continue;
-                ElectricWireSystemUtil.ConsumeItem(inventory, material.ItemId, material.Count);
+                ConsumeItem(inventory, material.ItemId, material.Count);
+            }
+        }
+
+        // 指定アイテムをインベントリのスロット順に減算する
+        // Decrease the given item across inventory slots in order
+        public static void ConsumeItem(IOpenableInventory inventory, ItemId itemId, int amount)
+        {
+            var remaining = amount;
+            for (var i = 0; i < inventory.InventoryItems.Count && 0 < remaining; i++)
+            {
+                var itemStack = inventory.InventoryItems[i];
+                if (itemStack.Id != itemId) continue;
+
+                var consumeAmount = Math.Min(itemStack.Count, remaining);
+                inventory.SetItem(i, itemStack.SubItem(consumeAmount));
+                remaining -= consumeAmount;
             }
         }
 
