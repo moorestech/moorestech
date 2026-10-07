@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.Train.RailGraph;
 using Core.Master;
 using Game.Train.SaveLoad;
+using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
 {
@@ -54,14 +55,22 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
 
         public object RestoreKey => (_from, _to);
 
-        public BlockRestoreOutcome AppendBlockRestore(List<PlaceInfo> placeInfos, IBlockOccupancyQuery occupancy)
+        public BlockRestoreOutcome AppendBlockRestore(List<PlaceInfo> placeInfos, IBlockOccupancyQuery occupancy, HashSet<Vector3Int> skippedBlockPositions)
         {
             return BlockRestoreOutcome.NotABlock;
         }
 
-        public void SendConnectionRestore(IRemovalRestoreSender sender)
+        public bool TrySendConnectionRestore(IRemovalRestoreSender sender, HashSet<Vector3Int> skippedBlockPositions)
         {
+            // 跡地に別ブロックがある端点へ引くと意図しない配線と素材消費になる
+            // Drawing to an endpoint now occupied by another block would wire it unintentionally and consume materials
+            if (skippedBlockPositions.Contains(_from.blockPosition) || skippedBlockPositions.Contains(_to.blockPosition))
+            {
+                Debug.LogWarning($"[RemovalRestore] skip rail restore: endpoint block not restored {(Vector3Int)_from.blockPosition}-{(Vector3Int)_to.blockPosition}");
+                return false;
+            }
             sender.ConnectRail(_from, _to, _railTypeGuid);
+            return true;
         }
     }
 

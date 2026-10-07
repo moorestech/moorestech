@@ -56,14 +56,22 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
 
         public object RestoreKey => (_kind, _posA, _posB);
 
-        public BlockRestoreOutcome AppendBlockRestore(List<PlaceInfo> placeInfos, IBlockOccupancyQuery occupancy)
+        public BlockRestoreOutcome AppendBlockRestore(List<PlaceInfo> placeInfos, IBlockOccupancyQuery occupancy, HashSet<Vector3Int> skippedBlockPositions)
         {
             return BlockRestoreOutcome.NotABlock;
         }
 
-        public void SendConnectionRestore(IRemovalRestoreSender sender)
+        public bool TrySendConnectionRestore(IRemovalRestoreSender sender, HashSet<Vector3Int> skippedBlockPositions)
         {
+            // 跡地に別ブロックがある端点へ引くと意図しない配線と素材消費になる
+            // Drawing to an endpoint now occupied by another block would wire it unintentionally and consume materials
+            if (skippedBlockPositions.Contains(_posA) || skippedBlockPositions.Contains(_posB))
+            {
+                Debug.LogWarning($"[RemovalRestore] skip line restore: endpoint block not restored {_posA}-{_posB}");
+                return false;
+            }
             _commands.SendRestore(sender, _posA, _posB, _connectToolGuid);
+            return true;
         }
     }
 }

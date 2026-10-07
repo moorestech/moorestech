@@ -47,7 +47,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
 
         public object RestoreKey => _position;
 
-        public BlockRestoreOutcome AppendBlockRestore(List<PlaceInfo> placeInfos, IBlockOccupancyQuery occupancy)
+        public BlockRestoreOutcome AppendBlockRestore(List<PlaceInfo> placeInfos, IBlockOccupancyQuery occupancy, HashSet<Vector3Int> skippedBlockPositions)
         {
             // 占有判定はブロックIDから寸法を解決する
             // Occupancy resolves the footprint size from the block id
@@ -60,6 +60,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
             if (state == BlockFootprintOccupancy.OtherBlock)
             {
                 Debug.LogWarning($"[RemovalRestore] skip re-place: footprint occupied at {_position}");
+                skippedBlockPositions.Add(_position);
                 return BlockRestoreOutcome.SkippedOccupied;
             }
 
@@ -89,8 +90,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
             #endregion
         }
 
-        public void SendConnectionRestore(IRemovalRestoreSender sender)
+        public bool TrySendConnectionRestore(IRemovalRestoreSender sender, HashSet<Vector3Int> skippedBlockPositions)
         {
+            return true;
         }
     }
 }

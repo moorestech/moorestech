@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -67,7 +68,7 @@ namespace Client.Tests.BuildUndo
 
             Assert.AreEqual(2, collector.Objects.Count);
             var sender = new FakeRemovalRestoreSender();
-            collector.Objects[1].SendConnectionRestore(sender);
+            collector.Objects[1].TrySendConnectionRestore(sender, new HashSet<Vector3Int>());
             CollectionAssert.AreEqual(new[] { $"wire:{Vector3Int.zero}-{Vector3Int.right}:{tool}" }, sender.Sent);
         }
 
@@ -132,7 +133,7 @@ namespace Client.Tests.BuildUndo
             Assert.AreEqual(1, collector.Objects.Count);
             Assert.AreEqual(1, collector.GetUnrecordableBlocks().Count);
             var sender = new FakeRemovalRestoreSender();
-            collector.Objects[0].SendConnectionRestore(sender);
+            collector.Objects[0].TrySendConnectionRestore(sender, new HashSet<Vector3Int>());
             CollectionAssert.AreEqual(new[] { $"rail:{origin}-{other}:{railType}" }, sender.Sent);
         }
 
