@@ -164,6 +164,7 @@ namespace Server.Boot.Composition
             services.AddSingleton<TrainCarRidingInputBuffer>();
             services.AddSingleton<TrainCarRidingManualCommandResolver>();
             services.AddSingleton<TrainUpdateService>();
+            services.AddSingleton<ITrainTimetableNotifyEvent, TrainTimetableNotifyEvent>();
 
             // 電力・gear・流体のtick更新をDIから登録する
             // Register electric, gear and fluid tick updates through DI.

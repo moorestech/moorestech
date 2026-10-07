@@ -302,3 +302,26 @@ ui.loading.deviceIdentityUnavailable,Could not identify this device. The game ca
 ui.loading.playerAlreadyConnected,The same player is already connected.,The same player is already connected.,同じプレイヤーが既に接続しています。,Derselbe Spieler ist bereits verbunden.,같은 플레이어가 이미 접속해 있습니다.
 ui.loading.buildOriginUnavailable,Could not verify this build. The game cannot start.,Could not verify this build. The game cannot start.,ビルド情報を確認できないため開始できません。,Dieser Build konnte nicht überprüft werden. Das Spiel kann nicht gestartet werden.,이 빌드를 확인하지 못했습니다. 게임을 시작할 수 없습니다.
 ui.loading.handshakeProtocolError,The server returned an unknown connection response.,The server returned an unknown connection response.,サーバーから不明な接続応答を受け取りました。,Der Server hat eine unbekannte Verbindungsantwort zurückgegeben.,서버가 알 수 없는 연결 응답을 반환했습니다.
+ui.blockInventory.trainTabInventory,Inventory,Inventory,インベントリ,Inventar,인벤토리
+ui.blockInventory.trainTabTimetable,Timetable,Timetable,時刻表,Fahrplan,시간표
+ui.blockInventory.timetableAutoRun,Auto run,Auto run,自動運転,Automatik,자동 운전
+ui.blockInventory.timetableAutoRunUnavailable,Apply at least one stop to enable auto run.,Apply at least one stop to enable auto run.,停車駅を1つ以上適用すると自動運転をONにできます。,Mindestens einen Halt anwenden um den Automatikbetrieb zu aktivieren.,정차역을 하나 이상 적용하면 자동 운전을 켤 수 있습니다.
+ui.blockInventory.timetableAutoRunOn,ON,ON,ON,AN,켜짐
+ui.blockInventory.timetableAutoRunOff,OFF,OFF,OFF,AUS,꺼짐
+ui.blockInventory.timetableStops,Stops,Stops,停車駅,Haltestellen,정차역
+ui.blockInventory.timetableStopsEmpty,No stops. Add a station below.,No stops. Add a station below.,停車駅がありません。下の駅一覧から追加してください。,Keine Halte. Unten eine Station hinzufügen.,정차역이 없습니다. 아래 역 목록에서 추가하세요.
+ui.blockInventory.timetableStations,Stations,Stations,駅一覧,Stationen,역 목록
+ui.blockInventory.timetableStationsEmpty,No stations in the world.,No stations in the world.,ワールドに駅がありません。,Keine Stationen in der Welt.,월드에 역이 없습니다.
+ui.blockInventory.timetableLoading,Loading timetable...,Loading timetable...,時刻表を読み込み中…,Fahrplan wird geladen...,시간표를 불러오는 중…
+ui.blockInventory.timetableUnavailable,Timetable unavailable.,Timetable unavailable.,時刻表を取得できません。,Fahrplan nicht verfügbar.,시간표를 불러올 수 없습니다.
+ui.blockInventory.timetableAdd,Add,Add,追加,Hinzufügen,추가
+ui.blockInventory.timetableApply,Apply,Apply,適用,Anwenden,적용
+ui.blockInventory.timetableMoveUp,Move up,Move up,上へ,Nach oben,위로
+ui.blockInventory.timetableMoveDown,Move down,Move down,下へ,Nach unten,아래로
+ui.blockInventory.timetableRemove,Remove,Remove,削除,Entfernen,삭제
+ui.blockInventory.timetableStopLabel,{index}. {station},{index}. {station},{index}. {station},{index}. {station},{index}. {station}
+ui.blockInventory.timetableStationLabel,"{name} ({x}, {y}, {z})","{name} ({x}, {y}, {z})","{name} ({x}, {y}, {z})","{name} ({x}, {y}, {z})","{name} ({x}, {y}, {z})"
+ui.blockInventory.timetableUnnamedStation,Station,Station,駅,Station,역
+ui.blockInventory.stationNameLabel,Station name,Station name,駅名,Stationsname,역 이름
+ui.blockInventory.stationNamePlaceholder,Enter a station name,Enter a station name,駅名を入力,Stationsname eingeben,역 이름 입력
+ui.blockInventory.stationNameApply,Set,Set,決定,Übernehmen,확인

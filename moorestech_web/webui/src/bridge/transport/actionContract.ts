@@ -1,4 +1,4 @@
-import type { SlotRef, BlockSlotRef } from "../contract/payloadTypes";
+import type { SlotRef, BlockSlotRef, TrainTimetableStop } from "../contract/payloadTypes";
 
 // C# UIStateEnum 由来の state 名。文字列リテラルの散在を防ぐ
 // State names from the C# UIStateEnum; prevents scattered string literals
@@ -85,6 +85,12 @@ export type ActionPayloads = {
   "filter_splitter.set_filter_item": { directionIndex: number; slotIndex: number; clear: boolean };
   "electric_to_gear.set_output_mode": { modeIndex: number };
   "train_platform.set_transfer_mode": { mode: "loadToTrain" | "unloadToPlatform" };
+  // 時刻表タブを選んだときだけ送り、C#側が開いている列車の時刻表取得を始める
+  // Sent only when the timetable tab is selected; the C# side starts fetching the open train's timetable
+  "train_timetable.open": Record<string, never>;
+  "train_timetable.replace": { stops: { x: number; y: number; z: number; side: TrainTimetableStop["side"] }[] };
+  "train_timetable.set_auto_run": { enabled: boolean };
+  "train_station.set_name": { name: string };
   "debug.echo": { hello: string };
   "tutorial.anchor_ack": {
     tutorialSessionId: string; revision: number; elementId: string; anchorId: string;
@@ -131,6 +137,10 @@ export const ACTION_TYPES = [
   "filter_splitter.set_filter_item",
   "electric_to_gear.set_output_mode",
   "train_platform.set_transfer_mode",
+  "train_timetable.open",
+  "train_timetable.replace",
+  "train_timetable.set_auto_run",
+  "train_station.set_name",
   "debug.echo",
   "tutorial.anchor_ack",
   "skit.advance",

@@ -33,6 +33,7 @@ const BLOCK_FIXTURES: Record<string, BlockInventoryWireData> = {
   gearGenerator: fx.blockGearGenerator,
   electricToGear: fx.blockElectricToGear,
   train: fx.trainCargo,
+  trainTimetable: fx.trainWithTimetable,
   trainError: fx.trainContainerMissing,
   trainPlatform: fx.blockTrainPlatform,
   trainFluidPlatform: fx.blockTrainFluidPlatform,

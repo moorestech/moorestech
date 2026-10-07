@@ -1,3 +1,5 @@
+using Client.Game.InGame.Train.Timetable;
+using Client.Game.InGame.Train.Unit;
 using System.Collections.Generic;
 using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.Submit;
@@ -73,9 +75,11 @@ namespace Client.WebUiHost.Game
             // Register the progress-bar topic
             var progressTopic = new ProgressTopic(hub, resolver.Resolve<ProgressBarState>());
             hub.RegisterTopic(ProgressTopic.TopicName, progressTopic);
-            // ブロックインベントリトピックを登録
-            // Register the block-inventory topic
-            var blockInventoryTopic = new BlockInventoryTopic(hub, uiStateControl, subInventoryState);
+            // ブロックインベントリトピックを登録（時刻表の取得担当は時刻表タブのactionと共有）
+            // Register the block-inventory topic (the timetable fetcher is shared with the timetable-tab action)
+            var trainUnitClientCache = resolver.Resolve<TrainUnitClientCache>();
+            var timetableFetcher = new TrainTimetableFetcher(resolver.Resolve<IClientTrainTimetableMutator>(), resolver.Resolve<IClientTrainTimetableLookup>());
+            var blockInventoryTopic = new BlockInventoryTopic(hub, uiStateControl, subInventoryState, trainUnitClientCache, resolver.Resolve<IClientTrainTimetableLookup>(), timetableFetcher);
             hub.RegisterTopic(BlockInventoryTopic.TopicName, blockInventoryTopic);
             // UIステートトピックを登録（Web側画面ルーティングの正）
             // Register the UI-state topic (source of truth for web-side routing)
@@ -184,7 +188,7 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new FilterSplitterSetFilterItemActionHandler(subInventoryState, controller, blockInventoryTopic));
             hub.RegisterAction(new ElectricToGearSetOutputModeActionHandler(subInventoryState));
             hub.RegisterAction(new MachineRecipeSelectActionHandler(subInventoryState, unlockStateData));
-            hub.RegisterAction(new TrainPlatformSetTransferModeActionHandler(subInventoryState));
+            TrainWebUiActionRegistration.Register(hub, subInventoryState, trainUnitClientCache, timetableFetcher);
             hub.RegisterAction(new BuildMenuSelectActionHandler(uiStateControl, placementTargetResolver, buildMenuSelection));
             hub.RegisterAction(new BlueprintDeleteActionHandler(blueprintLibrary));
             hub.RegisterAction(new PauseMenuSaveActionHandler(resolver.Resolve<GameSaveRequester>()));

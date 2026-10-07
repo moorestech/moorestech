@@ -1,0 +1,21 @@
+{
+  "open": true,
+  "source": "block",
+  "blockType": "TrainStation",
+  "identifier": "(8, 0, 4)",
+  "blockGuid": "77777777-7777-4777-8777-777777777777",
+  "itemSlots": [
+    {
+      "itemId": 3,
+      "count": 4
+    }
+  ],
+  "fluidSlots": [],
+  "trainPlatform": {
+    "mode": "unloadToPlatform",
+    "itemSlotCount": 5
+  },
+  "trainStation": {
+    "name": "north"
+  }
+}

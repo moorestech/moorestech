@@ -78,5 +78,31 @@ namespace Client.Network.API.Requests
             var request = RailConnectWithPlacePierProtocol.RailConnectWithPlacePierRequest.Create(fromNodeId, fromGuid, pierBlockId, pierPlaceInfo, railTypeGuid);
             return await _packetExchangeManager.GetPacketResponse<RailConnectWithPlacePierProtocol.RailConnectWithPlacePierResponse>(request, ct);
         }
+
+        // 時刻表置換と自動運転切替を単一の送信口で扱う
+        // Send timetable replacement and auto-run changes through one entry point
+        public async UniTask<TrainScheduleEditProtocol.TrainScheduleEditResponse> SendTrainScheduleEdit(
+            TrainScheduleEditProtocol.TrainScheduleEditRequest request, CancellationToken ct)
+        {
+            return await _packetExchangeManager.GetPacketResponse<TrainScheduleEditProtocol.TrainScheduleEditResponse>(request, ct);
+        }
+
+        // 時刻表タブを開いたときに現在の時刻表を取り寄せる
+        // Fetch the current timetable when the timetable tab opens
+        public async UniTask<GetTrainTimetableProtocol.GetTrainTimetableResponse> GetTrainTimetable(
+            TrainUnitInstanceId trainUnitInstanceId, CancellationToken ct)
+        {
+            var request = new GetTrainTimetableProtocol.GetTrainTimetableRequest(trainUnitInstanceId);
+            return await _packetExchangeManager.GetPacketResponse<GetTrainTimetableProtocol.GetTrainTimetableResponse>(request, ct);
+        }
+
+        // 改名結果を待ち、表示更新はブロック状態の通知に委ねる
+        // Await the rename result; block state notifications update the displayed name
+        public async UniTask<SetTrainStationNameProtocol.SetTrainStationNameResponse> SetTrainStationName(
+            Vector3Int position, string stationName, CancellationToken ct)
+        {
+            var request = new SetTrainStationNameProtocol.SetTrainStationNameRequest(position, stationName);
+            return await _packetExchangeManager.GetPacketResponse<SetTrainStationNameProtocol.SetTrainStationNameResponse>(request, ct);
+        }
     }
 }

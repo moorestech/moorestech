@@ -8,7 +8,7 @@ import {
 import { GamePanel, IconButton } from "@/shared/ui";
 import { resolveBlockComponent } from "./registry/blockComponentRegistry";
 import styles from "./style.module.css";
-import BlockItemGrid from "./BlockItemGrid";
+import TrainInventoryBody from "./train/TrainInventoryBody";
 import { buildMachineRecipeSelectionRows } from "./details/machine/machineRecipeSelectionLogic";
 import { blockNameKey, L, useI18n, type TranslationKey } from "@/shared/i18n";
 import { tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
@@ -38,11 +38,13 @@ export default function BlockInventoryPanel() {
   const isLargeMachinePanel = data.source === "block" && data.machine !== undefined
     && buildMachineRecipeSelectionRows(machineRecipes?.recipes ?? [], data.machine.blockGuid, data.machine.selectedRecipeGuid).length > 0;
 
+  const isLargePanel = isLargeMachinePanel || data.source === "train";
+
   return (
     <div
-      className={isLargeMachinePanel ? `${styles.panel} ${styles.panelLarge}` : styles.panel}
+      className={isLargePanel ? `${styles.panel} ${styles.panelLarge}` : styles.panel}
       data-testid="block-inventory"
-      data-large={isLargeMachinePanel ? "true" : undefined}
+      data-large={isLargePanel ? "true" : undefined}
     >
       <GamePanel
         variant="default"
@@ -51,13 +53,13 @@ export default function BlockInventoryPanel() {
           paddingBottom: "var(--block-panel-bottom-safe-area)",
           // 内容量幅の小型パネルは右余白が10pxしかなくフェード帯で途切れて見えるため、左と対称の右余白を足す
           // Content-sized small panels have only a 10px right padding that dies in the fade band, so mirror the left inset
-          ...(isLargeMachinePanel
+          ...(isLargePanel
             ? { height: "100%", boxSizing: "border-box" }
             : { paddingRight: "var(--block-panel-right-safe-area)" }),
         }}
       >
         {data.source === "train" && trainError && <div data-testid="train-inventory-error">{trainError}</div>}
-        {data.source === "train" && !trainError && <BlockItemGrid itemSlots={data.itemSlots} testId="train-inventory-slots" />}
+        {data.source === "train" && !trainError && <TrainInventoryBody key={data.identifier} data={data} />}
         {/* identifierでkey付与。同一フレーム内でホストのpublishデバウンスにより閉/開が畳まれても、別ブロックの再マウントを保証する */}
         {/* Keyed by identifier so a different block always remounts even when the host's publish debounce collapses close/open into one frame */}
         {data.source === "block" && Body && <Body key={data.identifier} data={data} fillsPanelHeight={isLargeMachinePanel} />}
