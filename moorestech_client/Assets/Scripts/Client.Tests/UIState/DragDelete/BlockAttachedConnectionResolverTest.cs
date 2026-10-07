@@ -59,17 +59,42 @@ namespace Client.Tests.UIState
             Assert.AreEqual(1, collector.UnrecordableCount);
         }
 
+        [Test]
+        public void NodeSyncAloneRetriesUnsyncedDestinations()
+        {
+            var cache = RailGraphClientCache.CreateForEditorTest();
+            var resolver = new BlockAttachedConnectionResolver(new ConnectionLineRegistry(), cache);
+            var block = CreatePierBlock(Vector3Int.zero);
+            AddArea(block, false);
+            var unsynced = new Regex("\\[RemovalPreview\\] rail node not synced yet:.*retry on next topology change");
+            LogAssert.Expect(LogType.Log, unsynced);
+            LogAssert.Expect(LogType.Log, unsynced);
+            resolver.RequestCascadePreview(block);
+
+            // 接続差分が来なくても、ノード同期だけで未同期端点を取り直す（残る背面1件だけ再ログ）
+            // Retry unsynced destinations on a node sync alone, without an edge diff (only the remaining back side logs again)
+            LogAssert.Expect(LogType.Log, new Regex("^UpsertNode: nodeId=0"));
+            LogAssert.Expect(LogType.Log, unsynced);
+            cache.UpsertNode(0, Guid.NewGuid(), Vector3.zero, new ConnectionDestination(Vector3Int.zero, 0, true), Vector3.forward, Vector3.back);
+            LogAssert.NoUnexpectedReceived();
+        }
+
         private BlockGameObject CreatePierBlock(Vector3Int origin)
         {
             _blockObject = new GameObject("Pier");
             var block = _blockObject.AddComponent<BlockGameObject>();
             typeof(BlockGameObject).GetProperty(nameof(BlockGameObject.BlockPosInfo)).GetSetMethod(true)
                 .Invoke(block, new object[] { new BlockPositionInfo(origin, BlockDirection.North, Vector3Int.one) });
-            var area = new GameObject("Front", typeof(BoxCollider)).AddComponent<TrainRailConnectAreaCollider>();
-            area.transform.SetParent(_blockObject.transform);
-            area.isFront = true;
-            area.Initialize(block);
+            AddArea(block, true);
             return block;
+        }
+
+        private void AddArea(BlockGameObject block, bool isFront)
+        {
+            var area = new GameObject(isFront ? "Front" : "Back", typeof(BoxCollider)).AddComponent<TrainRailConnectAreaCollider>();
+            area.transform.SetParent(_blockObject.transform);
+            area.isFront = isFront;
+            area.Initialize(block);
         }
 
         private static void UpsertPier(RailGraphClientCache cache, int frontNodeId, Vector3Int position)
