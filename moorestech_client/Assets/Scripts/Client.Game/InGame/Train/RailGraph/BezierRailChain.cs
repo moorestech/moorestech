@@ -65,6 +65,13 @@ namespace Client.Game.InGame.Train.RailGraph
         {
             _rendererShaderAnimation ??= gameObject.AddComponent<RendererShaderAnimation>();
             await _rendererShaderAnimation.PlaceAnimation();
+            if (this == null) return;
+
+            // 設置アニメの材質リセットで置換器が古くなるため、作り直してから赤を戻す
+            // The place animation's material reset stales the replacer, so recapture before restoring red
+            _removePreview.Release();
+            if (!_useGpuDeform) _removePreview.Capture(gameObject);
+            if (TryGetComponent<RailChainRemovePreview>(out var preview)) preview.Reapply();
         }
         
         public async UniTask RemoveAnimation()
@@ -95,8 +102,8 @@ namespace Client.Game.InGame.Train.RailGraph
         {
             // ベジエチェーンを最新情報で組み直す
             // Rebuild full chain along the current control points
+            _removePreview.Release();
             _segments.Clear(transform);
-            _removePreview.Invalidate();
             if (_modulePrefab == null)
             {
                 Debug.LogWarning("[BezierRailChain] rebuild skipped: module prefab missing");
@@ -157,30 +164,32 @@ namespace Client.Game.InGame.Train.RailGraph
             }
 
             if (!_useGpuDeform) _removePreview.Capture(gameObject);
+
+            // 組み直しで消えた赤を戻す
+            // Restore the red lost by the rebuild
+            if (TryGetComponent<RailChainRemovePreview>(out var preview)) preview.Reapply();
         }
 
         private void OnDestroy()
         {
+            _removePreview.Release();
             _segments.Clear(transform);
         }
 
         private void OnDisable()
         {
+            _removePreview.Release();
             _segments.Clear(transform);
-            _removePreview.Invalidate();
         }
 
-        public void SetRemovePreviewing()
+        // 撤去アニメ中の扱いは赤の唯一の書き手 RailChainRemovePreview が判断する
+        // The sole red writer RailChainRemovePreview decides how to treat a rail under removal animation
+        internal void SetRemovePreviewing()
         {
-            if (IsRemoving)
-            {
-                Debug.Log("[BezierRailChain] preview skipped: rail is removing");
-                return;
-            }
             _removePreview.SetRed(gameObject, _useGpuDeform, _segments);
         }
-        
-        public void ResetMaterial()
+
+        internal void ResetMaterial()
         {
             _removePreview.Reset(_useGpuDeform, _previewColor, _segments);
         }
