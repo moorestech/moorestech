@@ -1,0 +1,88 @@
+# 録画・ffmpeg・撮影経路の調査
+
+本稿は調査終了時点の技術的整理である。元クラッシュは未再現、根本原因は未確定。録画故障の実在、実装上の録画不具合、Unityの描画失敗を別の事実として扱う。
+非公開証拠の固定点は `5dad531e25f8af56764967643145ae17b3e14a1d`。個人情報、接続情報、生dumpは本稿に含めない。
+
+## 原実行で観測したこと
+
+原Playerログには、ffmpeg rawvideo入力のENOMEM、録画writerのBrokenPipe、後続captureの録画Unavailableとvideo欠損がある。その間にUnity fenceの要求値未達警告があり、最終的に通常描画のcommand-list Close相当がE_FAILとなった。
+これらの行にはencoder PID、録画世代、writerのthrow stack、pool残数、queue長がない。ENOMEMの子、writer例外の子、最後にUnavailableとなったcurrent encoderを同一とする直接IDは得られていない。
+
+stderrはProcessの非同期readerからUnityログへ転送される。writer警告、UI/captureログ、描画threadの警告は別の発行経路であり、ファイルの行順を各threadの実発生時刻へ変換できない。packet tick、動画PTS、受理frame番号も壁時計の代用にはしない。
+
+同日起動の別保存bundleは、初期のログ・撮影成功を補強した。ただし最後のScreenshotがnativeで記録されたこと、失敗Close listに入ったことは証明しない。
+
+## 元sourceと検証buildの比較
+
+原sourceの基準commitは `9cec17ddcb88f2ae798352ddf876370876589ef0`、検証版は `24226d1ac30574f2c74e75cc179f6be4d6884d54`。
+`GameFrameRecorder`、`ScreenFrameReader`、`FfmpegProcess`および主要capture/session処理は同じsourceで、capture sourceの差はserver API参照階層だった。
+FfmpegLocatorのWindowsPlayer同梱先・探索順、起動引数、pipe redirects、終了処理も同じ動作。ProcessSessionScopeは保存先名の定数共有への変更であり、Windows Job制御ではない。
+
+環境sanitizeのclass移動はnamespace変更だけで、原版もPlayer対象asmdef内のSubsystemRegistration callbackとして存在した。検証版だけに新しい環境浄化が加わったとは言えない。
+原配布buildはdirtyと記録され、完全な配布file manifestと元Managed DLL実物は残存資料から得られなかった。固定source一致は原配布byte一致の証明ではない。
+
+## 2枚のCPU bufferとwriter例外
+
+`GameFrameRecorder.Initialize`は2枚のFrameBufferPoolを一度作り、各encoder世代へ同じpoolを渡す。writerはqueueからframeを取り、stdin.Writeが成功した後でpoolへReturnする。
+Write例外がReturnより前に出ると、その貸出枠が戻らない。2枚目が既にqueueへ入っていた場合、writer終了後にqueueを排出する処理がないため、free0/queue1になり得る。
+StopはCompleteAdding、writer Join、child終了待ちを行うが、失敗writerの貸出枠や残ったqueueを回収しない。後続世代も同じpoolを使い、失われた容量を補充しない。
+
+これは無制限のメモリ確保ではない。元 `GameFrameRecorder.cs:26–31,84` と `FrameBufferPool.cs:13–15` により、2枚×1280×720×RGBA4bytes＝7,372,800bytes（約7.03MiB）の固定配列である。固定2枚の容量が利用不能になる録画不具合であり、数GiB単位のJob差分の説明ではない。childが先に退出してWriteをskipした場合はReturnへ進むため、単なる子退出とWrite例外は異なる。
+
+元sourceを変更せず使う小規模CPU probeで、実pipe write例外、既にqueuedの2枚目、Stop後とsuccessorのpool枯渇を確認した。probeは自作childであり、ffmpeg本体、GameFrameRecorder、Unity renderer、元Monoの実行試験ではない。
+原ログのpool警告0件とも両立する条件はあるが、それで原pool枯渇の発生を認定しない。
+
+## Mono候補を絞った範囲
+
+保存検証Managed ILでは、Process stdinのFileStreamは要求bufferSize8192からconstructor chainを通り、実bufferSize0・同期I/Oになる。通常Write後にdirty bufferが残らず、最後のFlushが未送信frameを吐いてBrokenPipeになったという説明は、この限定経路では成立しない。
+
+原dumpとPE timestamp・image size・checksum・RSDSが一致するMono候補で、icall tableからMonoIO.Close/Writeのentryを同定した。
+Closeはout-errorを0にし、CloseHandle失敗時だけGetLastErrorを格納する。成功Closeが古いlast-error109を拾う説明は、このentryの機械語と不一致。
+Writeもout-errorを初期化し、通常WriteFile成功ではlast-errorを格納せず、失敗時だけ格納する。正のpartial writeはmanaged側で残量を再試行し、部分送信後の破断もあり得る。
+
+これらは「原writer例外は必ずWrite」「原枠喪失が確定」の証明ではない。共通catchはWrite/Flush/Closeを覆い、原throw site、handle状態、Managed DLL全byte一致は未観測。実CloseHandle失敗を包括除外したものでもない。
+
+## encoder世代と退出
+
+通常captureでは新encoderを起動してから旧世代をdrainするため、短い子重複は設計上可能。Stopはkill要求後の完全退出を再確認せず、exit codeも検査しない。
+実観測の周期sampleは短命・境界の重複を取り逃し得る。検証childのprivateBytes合算や単体peakを、原実行のJob差分へ帰属していない。
+
+元MP4の全frame software decodeでは提出15本はデコードでき、最終世代の短いsegmentも読めた。正常なMP4 trailerや79frameという数はchild exit0、正常Stop、kill不在、writer受理frame数、pipe内残量を証明しない。
+動画だけでENOMEMのchild世代やUTCを特定できない。別症例の黒画面や退出も元クラッシュと混同しない。
+
+## pool状態とGPU資源寿命
+
+pool不足はGPU readback完了callbackで判明する。writerが死亡してもchildが生存中なら、TickはCapture/Blit/AsyncGPUReadbackを続け得る。pool0ではCPUコピー前にframeをdropする。
+この分岐にRenderTexture.Releaseはない。encoder世代切替や普通のESCもreaderをDisposeしない。
+サイズ変更で交換するのはscreen RTで、readback対象の固定scaled RTは維持される。pool枯渇からGPU資源の直接解放へ進む故障経路は確認できなかった。
+
+current childが退出済みなら新規録画GPU要求とpool rentを止める。capture入口でUnavailableなら世代切替も省略する。一方、availability確認後のsettle中に退出した場合は再確認せずsuccessorへ進む境界がある。
+元の最後のUnavailableは入口の早期returnを支持し、この最後のcaptureがpoisoned poolを新encoderへ引き継いだ証拠にはならない。
+
+## 独立Screenshotは別経路
+
+録画UnavailableでもBugReportCaptureSessionはserver captureとファイルScreenshotを要求する。要求発行、後段native描画への到達、失敗listへの包含は別の証明段階である。
+最終server capture requestとsnapshotの対応は確認したが、server completionにはnative Screenshot/list/fence共通IDがない。
+
+古いScreenshot完了待ち中に新captureがworkspaceを解放する静的候補があり、通常の連続ESC試験でScreenshot保存失敗は別の不具合として観測した。ただしnative保存側の親directory再作成や元での失敗は未確認で、元GPU原因には結び付けていない。
+
+## 試験の結論と限界
+
+Mでは所有encoderの退出を確認して直後に通常ESCし、Unavailable/video欠損を経ても独立Screenshotが完成した。free2/queue0で、BrokenPipeとpool喪失は同時再現していない。
+Zでは健全な録画世代切替とScreenshot pending中resizeが完走した。したがって「writer失敗後の状態を覆った」とは言えない。
+実ゲームでWrite失敗と枠喪失を測る試験には条件付きの科学的価値があり得る。原pool枯渇やGPU因果の事前証明を試験の必須条件にしてはいけない。一方、実ゲームのWrite失敗と枠喪失を同時に測った証拠はなく、CPU probeや子退出のみの陰性で代用できない。A以前の前報にはENOMEM/BrokenPipeの誘発記録があるが、pool状態は未測定である。
+
+録画pool喪失とcapture保存失敗は独立に扱える既知問題であり、元Unity Close/E_FAILの根本原因は未確定のまま調査を終了した。
+
+## 非公開証拠索引
+
+以下は非公開repro内からの相対path。固定証拠commitは冒頭の値。
+
+- `investigation-20260929/post-pipe-evidence/README.md`
+- `investigation-20260929/remaining-recording-causes/README.md`
+- `investigation-20260929/managed-identity/README.md`
+- `investigation-20260929/post-failure-state-probe/`
+- `investigation-20260929/original-queue-occurrence/README.md`
+- `investigation-20260929/recording-media-causal-refinement.md`
+- `investigation-20260929/trial-m-child-exit/README.md`
+- `investigation-20260929/cef-diagnostic-20260930/trial-z-result/README.md`
