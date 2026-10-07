@@ -14,6 +14,7 @@ namespace Client.Network.API.Requests
 {
     public sealed class WorldQueryApi
     {
+        private const int MapDataRequestAttempts = 3;
         private readonly PacketExchangeManager _packetExchangeManager;
 
         public WorldQueryApi(PacketExchangeManager packetExchangeManager)
@@ -44,8 +45,20 @@ namespace Client.Network.API.Requests
         // Fetch spawn/mapObjects/mapVeins
         public async UniTask<GetMapDataProtocol.ResponseMapDataMessagePack> GetMapData(CancellationToken ct)
         {
-            var request = GetMapDataProtocol.RequestMapDataMessagePack.CreateLayoutRequest();
-            return await _packetExchangeManager.GetPacketResponse<GetMapDataProtocol.ResponseMapDataMessagePack>(request, ct);
+            // 地形ハッシュ計算で初回応答が遅れる場合は、読み取り専用のレイアウト要求を再送する
+            // Retry the read-only layout request when the first response is delayed by terrain hashing
+            for (var attempt = 1; attempt <= MapDataRequestAttempts; attempt++)
+            {
+                var request = GetMapDataProtocol.RequestMapDataMessagePack.CreateLayoutRequest();
+                var (response, reason) = await _packetExchangeManager.GetPacketResponseWithReason<GetMapDataProtocol.ResponseMapDataMessagePack>(request, ct);
+                if (reason == PacketWaitCompletionReason.Received) return response;
+
+                Debug.LogWarning($"Map layout request attempt {attempt}/{MapDataRequestAttempts} ended with {reason}.");
+                if (reason != PacketWaitCompletionReason.Timeout) break;
+            }
+
+            Debug.LogError("Map layout could not be fetched during initialization.");
+            return null;
         }
 
         // 地形バイナリのGZip断片を1チャンク取得する。Layout応答とは別の型が返るため送信口も分ける
