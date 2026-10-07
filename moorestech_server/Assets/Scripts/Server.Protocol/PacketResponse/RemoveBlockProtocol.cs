@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Core.Item.Interface;
-using Core.Master;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -43,7 +42,7 @@ namespace Server.Protocol.PacketResponse
 
             // 財布に返却物を問い合わせ（確定は後段）
             // Ask the wallet what to refund (finalized further down)
-            var removalPlan = _constructionWallet.PlanRemoval(MasterHolder.BlockMaster.GetBlockMaster(block.BlockId), block.BlockInstanceId, requesterPlayerId);
+            var removalPlan = _constructionWallet.PlanRemoval(block.BlockId, block.BlockInstanceId, requesterPlayerId);
 
             // 破壊した後のアイテムをインベントリに挿入できるかチェック
             // Check if items after destruction can be inserted into inventory

@@ -21,12 +21,60 @@ namespace Game.Construction
             _reader = reader;
         }
 
+        public bool UsesWallet(BlockId blockId)
+        {
+            return ConstructionWalletUtil.UsesWallet(MasterHolder.BlockMaster.GetBlockMaster(blockId).PlacementsPerCost);
+        }
+
+        public static BlockId ResolveWalletBlockId(BlockId blockId)
+        {
+            return ConstructionWalletUtil.ResolveWalletBlockId(blockId);
+        }
+
+        // 財布を使うセルの判断と消費素材を一度に確定する
+        // Decide wallet usage and consumed materials together for one wallet-backed cell
+        public bool TryPlanCell(BlockId blockId, out ConstructionWalletCellPlan plan)
+        {
+            plan = default;
+            if (!UsesWallet(blockId)) return false;
+            var master = MasterHolder.BlockMaster.GetBlockMaster(blockId);
+            var covered = IsCoveredByWallet(blockId);
+            var usage = covered ? ConstructionWalletUsage.CoveredByWallet : ConstructionWalletUsage.PaidAndRefilled;
+            var items = GetItemsToConsume(blockId);
+            plan = new ConstructionWalletCellPlan(usage, ResolveWalletBlockId(blockId), master.PlacementsPerCost, items);
+            return true;
+        }
+
+        // 財布を使うセルの撤去判断と返却素材を一度に確定する
+        // Decide condensation and refunded materials together for one wallet-backed cell
+        public bool TryPlanRemovalCell(BlockId blockId, out ConstructionWalletRemovalCellPlan plan)
+        {
+            plan = default;
+            if (!UsesWallet(blockId)) return false;
+            plan = new ConstructionWalletRemovalCellPlan(ResolveWalletBlockId(blockId), WouldCondenseOnReturn(blockId), GetItemsToRefund(blockId));
+            return true;
+        }
+
+        private bool WouldCondenseOnReturn(BlockId blockId)
+        {
+            var master = MasterHolder.BlockMaster.GetBlockMaster(blockId);
+            return UsesWallet(blockId) && ConstructionWalletUtil.WouldCondense(_reader.GetRemainingCount(blockId), master.PlacementsPerCost);
+        }
+
+        // 撤去で戻す素材も窓口が決め、呼び出し側に凝縮判断を残さない
+        // Decide removal materials here so callers never reinterpret condensation
+        public IReadOnlyList<(ItemId itemId, int count)> GetItemsToRefund(BlockId blockId)
+        {
+            if (UsesWallet(blockId) && !WouldCondenseOnReturn(blockId)) return Array.Empty<(ItemId, int)>();
+            return ConstructionCostItems.ToItemCounts(MasterHolder.BlockMaster.GetBlockMaster(blockId).RequiredItems);
+        }
+
         // 表示用の財布状態。財布を通らないブロックはnullで「財布は無い」を表す
         // The wallet state for display; blocks that bypass the wallet return null to say there is no wallet
         public ConstructionWalletStatus? GetWalletStatus(BlockId blockId)
         {
             var placementsPerCost = MasterHolder.BlockMaster.GetBlockMaster(blockId).PlacementsPerCost;
-            if (!ConstructionWalletUtil.UsesWallet(placementsPerCost)) return null;
+            if (!UsesWallet(blockId)) return null;
             return new ConstructionWalletStatus(placementsPerCost, _reader.GetRemainingCount(blockId));
         }
 
