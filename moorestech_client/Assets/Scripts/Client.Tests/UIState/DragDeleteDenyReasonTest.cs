@@ -1,3 +1,4 @@
+using Client.Tests.BuildUndo;
 using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.UI.UIState.State.DragDelete;
@@ -25,7 +26,7 @@ namespace Client.Tests.UIState
         {
             // 理由キー無しの拒否はnullで表現され、表示経路が辞書引きへ到達しない
             // A reasonless denial is expressed as null so the display path never reaches the lookup
-            var selection = new DragDeleteSelection(new BuildOperationHistory());
+            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
             var target = new FakeDeleteTarget { Removable = false, DenyReason = null };
 
             selection.BeginDrag();
@@ -43,7 +44,7 @@ namespace Client.Tests.UIState
         {
             // ESCキャンセル後の拒否も理由なし拒否として安全に扱える
             // A denial after an ESC cancel is also handled safely as a reasonless denial
-            var selection = new DragDeleteSelection(new BuildOperationHistory());
+            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
             var target = new FakeDeleteTarget { Removable = true };
 
             selection.BeginDrag();
@@ -60,7 +61,7 @@ namespace Client.Tests.UIState
         {
             // 理由キーがある拒否は従来どおり文言まで解決される
             // A denial that carries a reason key still resolves all the way to its wording
-            var selection = new DragDeleteSelection(new BuildOperationHistory());
+            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
             var target = new FakeDeleteTarget
             {
                 Removable = false,

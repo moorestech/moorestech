@@ -1,6 +1,8 @@
+using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Mooresmaster.Localization.Generated;
+using UnityEngine;
 
 namespace Client.Game.InGame.UI.UIState.State.DragDelete
 {
@@ -11,19 +13,21 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
     public class DragDeleteSelection
     {
         private readonly BuildOperationHistory _buildOperationHistory;
+        private readonly IRemovalRestoreSender _restoreSender;
 
         // 論理削除キーで重複排除する（同一機械の複数メッシュ子などを1件に集約）
         // Dedupe by logical delete key so multiple mesh children of one machine collapse into one
         private readonly Dictionary<object, IDeleteTarget> _selectedTargets = new();
         private bool _canceled;
 
-        // 最初に選択したブロックの破壊カテゴリーをセッションのカテゴリーとして固定する（未選択時はnull）
-        // Fix the first selected block's destruction category as the session category (null while empty)
-        private string _sessionCategory;
+        // 最初の対象のカテゴリーで照準を固定
+        // Fix aim to the first target's category
+        public DeleteAimFilter AimFilter { get; private set; } = DeleteAimFilter.Frontmost;
 
-        public DragDeleteSelection(BuildOperationHistory buildOperationHistory)
+        public DragDeleteSelection(BuildOperationHistory buildOperationHistory, IRemovalRestoreSender restoreSender)
         {
             _buildOperationHistory = buildOperationHistory;
+            _restoreSender = restoreSender;
         }
 
         // 新しいドラッグ開始時に選択・キャンセル状態・セッションカテゴリーをリセットする
@@ -32,7 +36,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         {
             _selectedTargets.Clear();
             _canceled = false;
-            _sessionCategory = null;
+            AimFilter = DeleteAimFilter.Frontmost;
         }
 
         // 対象を選択へ追加する。削除可否・カテゴリー整合をまとめて判定し、追加不可なら拒否理由を返す（理由なし拒否はnull）
@@ -61,7 +65,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
 
             // 最初の追加でセッションカテゴリーを固定する
             // Fix the session category on the first added target
-            _sessionCategory ??= target.GetDestructionCategory();
+            if (!AimFilter.IsCategoryRequired) AimFilter = DeleteAimFilter.Category(target.GetDestructionCategory());
 
             _selectedTargets.Add(key, target);
             target.SetRemovePreviewing();
@@ -72,19 +76,26 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         // Whether the target's category can join this session (anything while empty, then same category only)
         private bool IsCategoryCompatible(IDeleteTarget target)
         {
-            if (_sessionCategory == null) return true;
-            return _sessionCategory == target.GetDestructionCategory();
+            return AimFilter.Accepts(target);
         }
 
         // 選択を全てリセットしてキャンセル状態にする（ESC操作）
         // Reset all selections and mark as canceled (ESC behavior)
         public void CancelSelection()
         {
-            foreach (var target in _selectedTargets.Values) target.ResetMaterial();
+            foreach (var target in _selectedTargets.Values)
+            {
+                if (target is Object unityTarget && unityTarget == null)
+                {
+                    Debug.LogWarning("[DragDelete] selected target was destroyed before cancel");
+                    continue;
+                }
+                target.ResetMaterial();
+            }
 
             _selectedTargets.Clear();
             _canceled = true;
-            _sessionCategory = null;
+            AimFilter = DeleteAimFilter.Frontmost;
         }
 
         // 選択を一括削除し、Ctrl+Z用のUndo履歴も記録する
@@ -93,7 +104,19 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         {
             if (_canceled) return;
 
-            var committed = new List<IDeleteTarget>(_selectedTargets.Values);
+            // 削除送信後に端点が消え得るため撤去物を先に記録する
+            // Record removed objects before sends can remove their endpoints
+            var committed = new List<IDeleteTarget>();
+            foreach (var target in _selectedTargets.Values)
+            {
+                if (target is Object unityTarget && unityTarget == null)
+                {
+                    Debug.LogWarning("[DragDelete] selected target was destroyed before commit");
+                    continue;
+                }
+                committed.Add(target);
+            }
+            var record = RemoveOperationRecord.CreateFrom(committed, _restoreSender);
             foreach (var target in committed)
             {
                 // Delete はサーバー往復の非同期なので即座に赤プレビューだけ戻す
@@ -103,12 +126,11 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             }
 
             _selectedTargets.Clear();
-            _sessionCategory = null;
+            AimFilter = DeleteAimFilter.Frontmost;
 
             // Ctrl+Z用のUndo履歴を記録（空バッチはPushしない）
             // Record the undo history for Ctrl+Z (skip empty batches)
-            var record = RemoveOperationRecord.CreateFrom(committed);
-            if (record.HasCells) _buildOperationHistory.Push(record);
+            if (record.HasRemovedObjects) _buildOperationHistory.Push(record);
         }
 
         // キャンセルされていない場合のみ削除確定を許可する

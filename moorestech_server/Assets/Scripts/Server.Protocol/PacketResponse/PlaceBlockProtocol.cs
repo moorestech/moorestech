@@ -104,11 +104,11 @@ namespace Server.Protocol.PacketResponse
                 var placementPlan = _constructionWallet.PlanPlacement(placeBlockId, requesterPlayerId);
                 if (!ConstructionCostService.HasRequiredItems(placementPlan.ItemsToConsume, inventory.InventoryItems)) { costShortageCount++; return; }
 
-                // 電気なら自動接続を事前検証
-                // For electric blocks, validate the auto-connect plan before placement; skip when wires are insufficient
-                var isElectric = ElectricWireBlockParamResolver.TryGetWireRangeParam(blockMaster.BlockParam, out _, out _, out _);
+                // 自動接続の電気ブロックだけ事前検証
+                // Validate wiring only for auto-connect electric blocks
+                var isAutoConnectElectric = data.Wiring == BlockPlacementWiring.AutoConnect && ElectricWireBlockParamResolver.TryGetWireRangeParam(blockMaster.BlockParam, out _, out _, out _);
                 var plan = default(ElectricWireAutoConnectPlan);
-                if (isElectric)
+                if (isAutoConnectElectric)
                 {
                     // 建設コストで消費予定の素材を予約として渡し、電線の所持数判定から除外する
                     // Pass construction-cost materials as reservations to exclude them from wire availability
@@ -124,7 +124,7 @@ namespace Server.Protocol.PacketResponse
 
                 // 計画を実行しワイヤー消費
                 // Execute the validated plan: add wires and consume wire items
-                if (isElectric) ElectricWireAutoConnectService.ExecuteAutoConnect(plan, block, inventory);
+                if (isAutoConnectElectric) ElectricWireAutoConnectService.ExecuteAutoConnect(plan, block, inventory);
             }
 
             #endregion
@@ -134,11 +134,13 @@ namespace Server.Protocol.PacketResponse
         public class SendPlaceBlockProtocolMessagePack : ProtocolMessagePackBase
         {
             [Key(3)] public List<PlaceInfoMessagePack> PlacePositions { get; set; }
+            [Key(4)] public BlockPlacementWiring Wiring { get; set; }
 
-            public SendPlaceBlockProtocolMessagePack(List<PlaceInfo> placeInfos)
+            public SendPlaceBlockProtocolMessagePack(List<PlaceInfo> placeInfos, BlockPlacementWiring wiring)
             {
                 Tag = ProtocolTag;
                 PlacePositions = placeInfos.ConvertAll(v => new PlaceInfoMessagePack(v));
+                Wiring = wiring;
             }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]

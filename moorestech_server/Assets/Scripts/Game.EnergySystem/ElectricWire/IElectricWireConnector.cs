@@ -17,10 +17,10 @@ namespace Game.EnergySystem
         // Electric role of this block; always tied to a consumer, generator or transformer
         IElectricEnergyRole EnergyRole { get; }
 
-        IReadOnlyDictionary<BlockInstanceId, (IElectricWireConnector Connector, ElectricWireConnectionCost Cost)> WireConnections { get; }
+        IReadOnlyDictionary<BlockInstanceId, (IElectricWireConnector Connector, ConnectionLineRecord Record)> WireConnections { get; }
 
         bool ContainsWireConnection(BlockInstanceId partnerId);
-        bool TryAddWireConnection(BlockInstanceId partnerId, ElectricWireConnectionCost cost);
-        bool TryRemoveWireConnection(BlockInstanceId partnerId, out ElectricWireConnectionCost cost);
+        bool TryAddWireConnection(BlockInstanceId partnerId, ConnectionLineRecord record);
+        bool TryRemoveWireConnection(BlockInstanceId partnerId, out ConnectionLineRecord record);
     }
 }

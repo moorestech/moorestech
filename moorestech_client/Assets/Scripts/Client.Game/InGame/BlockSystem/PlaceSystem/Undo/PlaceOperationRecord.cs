@@ -1,7 +1,8 @@
+using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
 using System.Collections.Generic;
 using System.Threading;
-using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
+using Game.Block.Interface;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Server.Protocol.PacketResponse;
@@ -36,7 +37,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
             foreach (var info in placeInfos)
             {
                 if (!info.Placeable) continue;
-                cells.Add(new PlacedCell(info.Position, info.BlockId));
+                cells.Add(new PlacedCell(info.Position, info.Direction, info.BlockId));
             }
             return new PlaceOperationRecord(cells);
         }
@@ -45,33 +46,38 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
         ///     設置の取り消し。同座標同BlockIdの現存セルだけを撤去する（設置失敗・他者変更セルの誤爆防止）
         ///     Undo the placement by removing only cells still holding the same BlockId (avoids nuking failed or replaced cells)
         /// </summary>
-        public async UniTask UndoAsync(BlockGameObjectDataStore blockGameObjectDataStore)
+        public async UniTask UndoAsync(IBlockOccupancyQuery occupancy)
         {
             foreach (var cell in _cells)
             {
-                if (!IsSameBlockAlive(cell)) continue;
-                await ClientContext.VanillaApi.Response.Block.BlockRemove(cell.Position, CancellationToken.None);
+                if (occupancy.GetOccupancy(cell.Position, cell.Direction, cell.BlockId) != BlockFootprintOccupancy.SameBlockPresent)
+                {
+                    Debug.Log($"[PlaceUndo] skip cell: same block absent at {cell.Position}");
+                    continue;
+                }
+                var response = await ClientContext.VanillaApi.Response.Block.BlockRemove(cell.Position, CancellationToken.None);
+                // 応答はタイムアウト・デコード失敗でnullになる外部データ
+                // The response is external data and becomes null on timeout or decode failure
+                if (response == null)
+                {
+                    Debug.LogWarning($"[PlaceUndo] remove got no response (timeout or decode failure) at {cell.Position}");
+                    continue;
+                }
+                if (!response.Success) Debug.LogWarning($"[PlaceUndo] remove refused: {response.FailureReason} at {cell.Position}");
             }
 
-            #region Internal
-
-            bool IsSameBlockAlive(PlacedCell cell)
-            {
-                if (!blockGameObjectDataStore.TryGetBlockGameObject(cell.Position, out var blockGameObject)) return false;
-                return blockGameObject.BlockId.Equals(cell.BlockId);
-            }
-
-            #endregion
         }
 
         private readonly struct PlacedCell
         {
             public readonly Vector3Int Position;
+            public readonly BlockDirection Direction;
             public readonly BlockId BlockId;
 
-            public PlacedCell(Vector3Int position, BlockId blockId)
+            public PlacedCell(Vector3Int position, BlockDirection direction, BlockId blockId)
             {
                 Position = position;
+                Direction = direction;
                 BlockId = blockId;
             }
         }

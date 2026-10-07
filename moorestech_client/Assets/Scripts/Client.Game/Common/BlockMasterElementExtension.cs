@@ -9,6 +9,10 @@ namespace Client.Game.Common
         // Default destruction category; the single source of truth lives in Core.Master's BlockMaster
         public const string DefaultDestructionCategory = BlockMaster.DefaultDestructionCategory;
 
+        // 接続線カテゴリーはマスタで使用不可
+        // Connection-line category is reserved from masters
+        public const string ConnectionLineDestructionCategory = BlockMaster.ConnectionLineDestructionCategory;
+
         // 破壊カテゴリーを取得する。破壊カテゴリ定義から逆引きし、未定義はdefault扱い
         // Get the destruction category by reverse lookup from the category definitions; unlisted blocks are default
         public static string GetDestructionCategory(this BlockMasterElement blockMasterElement)

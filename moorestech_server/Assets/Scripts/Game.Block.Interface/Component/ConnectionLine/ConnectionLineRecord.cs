@@ -2,18 +2,20 @@ using System;
 using System.Collections.Generic;
 using Core.Master;
 
-namespace Game.EnergySystem
+namespace Game.Block.Interface.Component
 {
     /// <summary>
-    /// ワイヤー1本の接続に消費した素材（複数可）の情報。切断・撤去時の返却に使う
-    /// Multi-material consumption info per wire, used for refund on disconnect or removal
+    /// 接続線（電線・歯車チェーン）1本の記録。引いた接続ツールの種類と払った素材を持ち、返却とUndoの引き直しに使う
+    /// Record of one connection line (wire or gear chain): the connect tool it was drawn with and the paid materials, used for refunds and undo re-drawing
     /// </summary>
-    public readonly struct ElectricWireConnectionCost
+    public readonly struct ConnectionLineRecord
     {
+        public readonly Guid ConnectToolGuid;
         public readonly IReadOnlyList<ConnectToolMaterialCost> Materials;
 
-        public ElectricWireConnectionCost(IReadOnlyList<ConnectToolMaterialCost> materials)
+        public ConnectionLineRecord(Guid connectToolGuid, IReadOnlyList<ConnectToolMaterialCost> materials)
         {
+            ConnectToolGuid = connectToolGuid;
             Materials = materials;
         }
 
@@ -29,7 +31,5 @@ namespace Game.EnergySystem
                 return total;
             }
         }
-
-        public static ElectricWireConnectionCost Empty => new(Array.Empty<ConnectToolMaterialCost>());
     }
 }

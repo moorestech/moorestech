@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using Core.Master;
 using Core.Inventory;
 using Game.Block.Blocks.GearChainPole;
@@ -43,7 +42,7 @@ namespace Tests.UnitTest.Game.Chain
             // Attempt to connect chain and verify failure code
             var succeeded = GearChainSystemUtil.TryConnect(Vector3Int.zero, far, PlayerId, ConnectToolGuid, out var error);
             Assert.False(succeeded);
-            Assert.AreEqual("TooFar", error);
+            Assert.AreEqual(GearChainPlacementFailureReason.TooFar, error);
         }
 
         [Test]
@@ -61,7 +60,7 @@ namespace Tests.UnitTest.Game.Chain
             // Attempt to connect without chain item
             var connected = GearChainSystemUtil.TryConnect(posA, posB, PlayerId, ConnectToolGuid, out var error);
             Assert.False(connected);
-            Assert.AreEqual("NoItem", error);
+            Assert.AreEqual(GearChainPlacementFailureReason.NoItem, error);
         }
 
         [Test]
@@ -84,7 +83,7 @@ namespace Tests.UnitTest.Game.Chain
             // Attempt to connect and confirm shortage error
             var connected = GearChainSystemUtil.TryConnect(posA, posB, PlayerId, ConnectToolGuid, out var error);
             Assert.False(connected);
-            Assert.AreEqual("NoItem", error);
+            Assert.AreEqual(GearChainPlacementFailureReason.NoItem, error);
             Assert.AreEqual(9, inventory.GetItem(0).Count);
         }
 
@@ -108,7 +107,7 @@ namespace Tests.UnitTest.Game.Chain
             // Execute chain connection
             var connected = GearChainSystemUtil.TryConnect(posA, posB, PlayerId, ConnectToolGuid, out var connectError);
             Assert.True(connected);
-            Assert.IsEmpty(connectError ?? string.Empty);
+            Assert.AreEqual(GearChainPlacementFailureReason.None, connectError);
             Assert.AreEqual(5, CountItem(inventory, _chainItemId));
 
             // ギア接続が双方向に登録されることを確認する
@@ -132,7 +131,7 @@ namespace Tests.UnitTest.Game.Chain
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearChainPole, posA, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var blockA);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearChainPole, posB, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var blockB);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearChainPole, posC, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var blockC);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearChainPole, posD, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearChainPole, posD, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var blockD);
 
             // チェーンアイテムを上限分プレイヤーに配布する
             // Provide chain items for connection attempts
@@ -145,14 +144,14 @@ namespace Tests.UnitTest.Game.Chain
             var secondConnect = GearChainSystemUtil.TryConnect(posA, posC, PlayerId, ConnectToolGuid, out var secondError);
             Assert.True(firstConnect);
             Assert.True(secondConnect);
-            Assert.IsEmpty(firstError ?? string.Empty);
-            Assert.IsEmpty(secondError ?? string.Empty);
+            Assert.AreEqual(GearChainPlacementFailureReason.None, firstError);
+            Assert.AreEqual(GearChainPlacementFailureReason.None, secondError);
 
             // 上限超過の接続を拒否する
             // Reject connection beyond the limit
             var limitConnect = GearChainSystemUtil.TryConnect(posA, posD, PlayerId, ConnectToolGuid, out var limitError);
             Assert.False(limitConnect);
-            Assert.AreEqual("ConnectionLimit", limitError);
+            Assert.AreEqual(GearChainPlacementFailureReason.ConnectionLimit, limitError);
             Assert.AreEqual(5, inventory.GetItem(0).Count);
 
             // 接続中のポールが正しく記録されていることを確認する
@@ -161,11 +160,12 @@ namespace Tests.UnitTest.Game.Chain
             var poleB = blockB.GetComponent<IGearChainPole>();
             var poleC = blockC.GetComponent<IGearChainPole>();
             
-            // リフレクションで_chainTargetsの数を取得して検証する
-            // Get _chainTargets count via reflection and verify
-            var chainTargetsCount = GetChainTargetsCount(poleA as GearChainPoleComponent);
-            Assert.AreEqual(2, chainTargetsCount);
-            
+            // 上限到達と拒否された両端不在を検証
+            // Verify capacity and absence of the rejected connection at both ends
+            Assert.IsTrue(poleA.IsConnectionFull);
+            Assert.IsFalse(poleA.ContainsChainConnection(blockD.BlockInstanceId));
+            Assert.IsFalse(blockD.GetComponent<IGearChainPole>().ContainsChainConnection(blockA.BlockInstanceId));
+
             Assert.True(poleA.ContainsChainConnection(blockB.BlockInstanceId));
             Assert.True(poleA.ContainsChainConnection(blockC.BlockInstanceId));
             Assert.True(poleB.ContainsChainConnection(blockA.BlockInstanceId));
