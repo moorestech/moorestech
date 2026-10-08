@@ -1,284 +1,148 @@
-// ⚠ 現行masterでは動かない（2026-09-19棚卸し・beads moorestech-q3ei）: 削除済みのuGUI型（BuildMenuView/ItemSlotView/CommonSlotView/BlueprintNameInputView）を参照しておりexecute-dynamic-codeでコンパイルできない。画面UIはWeb UI一本（ADR 0052）。雛形にしないこと。書き直しはWebビルドメニューのbuild-menu-entry-blueprintCopy-{id}等をClickWebUi/UntilWebUiElementで操作し、名前入力はBlueprintNameInputWebBridge経由のWebモーダルで行う
-// ⚠ Broken on current master (2026-09-19 inventory, beads moorestech-q3ei): references removed uGUI types (BuildMenuView/ItemSlotView/CommonSlotView/BlueprintNameInputView) and does not compile under execute-dynamic-code. The screen UI is Web-only (ADR 0052); do not use this as a template. Rewrite it by operating the Web build-menu entry (build-menu-entry-blueprintCopy-{id} etc.) via ClickWebUi/UntilWebUiElement, with name input through the BlueprintNameInputWebBridge Web modal
-// BP統合検証(UI経路)
-// コピー(ドラッグ+スクロール+名前入力)→R回転貼付→セーブロード往復
-// コピー元:
-// ・チェスト(2,32,2)North
-// ・石窯(4,32,2)East
-// ・チェスト(2,32,4)North
-// ・ボックス(0,32,0)-(8,38,6)
-// アンカー(4,32,3)基準のオフセットを厳密assert
-// 回転1回・貼付アンカー(14,32,14)の期待位置も検証
-// Blueprint integration scenario (UI route): copy via XZ drag + scroll height + naming, rotated paste, save/load round-trip
-// Sources: chest(2,32,2)North / stone kiln(4,32,2)East / chest(2,32,4)North, box (0,32,0)-(8,38,6)
-// Asserts exact offsets from anchor (4,32,3) and expected positions for one R rotation pasted at anchor (14,32,14)
+// ⚠ 旧uGUI版（BuildMenuView等）を置き換えたWeb UI版。名前入力の文字打ちだけは状態へ直接書く（Webモーダルの文字入力はDSL未対応）
+// Web-UI rewrite replacing the old uGUI scenario; only the name text is written to the state directly (DSL cannot type into the web modal)
+// 検証: 1クリック始点/終点・E高さ・右短押しで終点選択へ戻る・側面ヒットの始点セル・範囲内0の拒否・貼り付けE・ドラッグ列5個・サムネイル
+// Checks one-click bounds, height, cancellation, side hits, empty ranges, drag paste, and thumbnails
 using System.Linq;
-using Client.Game.InGame.BlockSystem.PlaceSystem;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
+using UniRx;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Blueprint;
-using Client.Game.InGame.UI.BuildMenu;
-using Client.Game.InGame.UI.Inventory;
-using Client.Game.InGame.UI.Inventory.Common;
+using Client.Game.InGame.UI.Tooltip;
 using Client.Game.InGame.UI.UIState;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
-using Core.Master;
+using Client.Playtest.Operations.Ui;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using Game.Blueprint;
-using Game.SaveLoad.Json;
-using Game.SaveLoad.Json.WorldVersions;
-using Newtonsoft.Json;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.LowLevel;
+using VContainer;
 
 var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("blueprint-copy-paste-via-ui", options, async p =>
 {
-    await p.SetupFlatGround();
-    p.WarpPlayer(new Vector3(5f, 33.5f, 4f));
+    // 背景EditorではInputSystemがデバイスを無効化し注入が届かないため、焦点無視へ切り替え再有効化する（beads moorestech-xsd18.4 (b)）
+    // A background Editor disables keyboard/mouse so injection never lands; switch to ignore-focus and re-enable (beads moorestech-xsd18.4 (b))
+    var inputSettings = InputSystem.settings;
+    inputSettings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+    inputSettings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+    SemanticInput.EnsureDevices();
+    InputSystem.EnableDevice(Keyboard.current);
+    InputSystem.EnableDevice(Mouse.current);
 
-    // 解放と建設コスト付与（内訳はコード参照）
-    // Unlock and grant construction costs (chest: 1 UI place + 2 paste, kiln: 1 paste)
-    await p.PrepareBlockForUiPlacement("木のチェスト", 4);
-    await p.PrepareBlockForUiPlacement("石窯", 2);
-
-    // コピー元: UI設置1+直設置2
-    // Source blocks: one via UI, two direct (one with a non-default direction)
-    await p.PlaceBlockViaUi("木のチェスト", new Vector3Int(2, 32, 2), BlockDirection.North);
-    p.PlaceBlockDirect("石窯", new Vector3Int(4, 32, 2), BlockDirection.East);
-    p.PlaceBlockDirect("木のチェスト", new Vector3Int(2, 32, 4), BlockDirection.North);
-    await p.WaitBlockGameObject(new Vector3Int(4, 32, 2));
-    await p.WaitBlockGameObject(new Vector3Int(2, 32, 4));
-    await p.Screenshot("01-source-blocks");
-
-    // BP機能を解放（未解放時メニュー非表示）
-    // Unlock the blueprint feature (otherwise it never appears in the build menu)
+    await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
+    await p.SkipOpeningSkit();
     p.Hotbar.UnlockBlueprint();
 
-    // BPコピーツールを選択（テキストスロット）
-    // Select the blueprint copy tool (icon-less text slot)
-    await OpenBuildMenuAndClickTextSlot("ブループリントコピー", "02-menu-copy-tool");
+    p.PlaceBlockDirect("木のチェスト", new Vector3Int(2, 32, 2), BlockDirection.North);
+    p.PlaceBlockDirect("石窯", new Vector3Int(10, 32, 2), BlockDirection.North);
+    await p.WaitBlockGameObject(new Vector3Int(2, 32, 2));
+    await p.WaitBlockGameObject(new Vector3Int(10, 32, 2));
+    p.WarpPlayer(new Vector3(6f, 33.5f, -5f));
 
-    var placeSystemStateController = ClientDIContext.DIContainer.DIContainerResolver.Resolve<PlaceSystemStateController>();
-    var hotbarBefore = placeSystemStateController.CurrentOrigin.TryGetHotbarSlot(out var hotbarSlotBefore) ? hotbarSlotBefore : -1;
-
-    // XZドラッグ+スクロール+2で範囲選択
-    // Build the selection box via XZ drag plus +2 scroll steps
-    await p.AimAt(new Vector3(0.5f, 32f, 0.5f));
-    SemanticInput.MouseButtonDown(0);
-    await UniTask.DelayFrame(3);
-    await p.AimAt(new Vector3(4.5f, 32f, 3.5f));
-    await p.AimAt(new Vector3(8.5f, 32f, 6.5f));
-    InjectScrollWithHeldLeft(200f);
-    await UniTask.DelayFrame(4);
-
-    // ボックス可視化: min(0,32,0)-max(8,38,6)→サイズ(9,7,7)
-    // 両端とも石窯に遮られない地面セルを狙う
-    // Box visualizer: min(0,32,0)-max(8,38,6) -> size (9,7,7); both corners aim at ground cells clear of the kiln
-    var visualizer = GameObject.Find("BlueprintAreaVisualizer");
-    p.Assert(visualizer != null && visualizer.activeSelf, "ドラッグ中に選択ボックスが表示される");
-    p.Assert(visualizer != null && visualizer.transform.localScale == new Vector3(9f, 7f, 7f), $"スクロール+2で選択ボックスサイズが(9,7,7) 実際:{(visualizer != null ? visualizer.transform.localScale.ToString() : "null")}");
-    await p.Screenshot("03-drag-box");
-
-    SemanticInput.MouseButtonUp(0);
-
-    // ドラッグ解放で名前入力ダイアログが開く
-    // Releasing the drag opens the name input dialog
-    var nameInputView = UnityEngine.Object.FindFirstObjectByType<BlueprintNameInputView>(FindObjectsInactive.Include);
-    await p.Until(() => nameInputView.gameObject.activeSelf, 10f, "ドラッグ解放で名前入力ダイアログが開く");
-
-    // BPコピー中のホイールは範囲調整が占有し、ホットバー選択を動かしてはならない
-    // The wheel is owned by range adjustment during a blueprint copy and must not move the hotbar selection
-    var hotbarAfter = placeSystemStateController.CurrentOrigin.TryGetHotbarSlot(out var hotbarSlotAfter) ? hotbarSlotAfter : -1;
-    p.Assert(hotbarAfter == hotbarBefore, $"ドラッグ中スクロールでホットバー選択が変わらない {hotbarBefore} -> {hotbarAfter}");
-
-    // 名前入力中のB/G/V/Tabキー抑止を検証
-    // Key suppression while naming: injecting B/G/V/Tab must not leave PlaceBlock nor close the dialog
-    var nameFieldInfo = typeof(BlueprintNameInputView).GetField("nameInputField", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-    var inputField = (TMPro.TMP_InputField)nameFieldInfo.GetValue(nameInputView);
-    if (!inputField.isFocused)
-    {
-        EventSystem.current.SetSelectedGameObject(inputField.gameObject);
-        inputField.ActivateInputField();
-        await UniTask.DelayFrame(3);
-    }
-    p.Assert(inputField.isFocused, "名前入力フィールドがフォーカスされている");
-
-    await p.PressKey(Key.B);
-    await p.PressKey(Key.G);
-    await p.PressKey(Key.V);
-    await p.PressKey(Key.Tab);
-    await UniTask.DelayFrame(3);
-    p.Assert(p.CurrentUiState == UIStateEnum.PlaceBlock, $"B/G/V/Tab注入後もPlaceBlockのまま 実際:{p.CurrentUiState}");
-    p.Assert(nameInputView.gameObject.activeSelf, "キー注入後もダイアログが開いたまま");
-    await p.Screenshot("04-name-dialog");
-
-    // 名前を設定して確定ボタンをクリック
-    // Set the name and click the confirm button
-    inputField.text = "conveyor";
-    var confirmInfo = typeof(BlueprintNameInputView).GetField("confirmButton", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-    var confirmButton = (UnityEngine.UI.Button)confirmInfo.GetValue(nameInputView);
-    ClickUi(confirmButton.gameObject);
-
-    // サーバー登録とBPオフセット・向きを検証
-    // Verify server registration and BP contents (offsets/directions relative to anchor (4,32,3))
+    var resolver = ClientDIContext.DIContainer.DIContainerResolver;
+    var nameState = resolver.Resolve<BlueprintNameInputState>();
+    var heightOffset = resolver.Resolve<PlacementHeightOffset>();
+    var checks = new BlueprintCopyPasteScenarioChecks(p, resolver.Resolve<MouseCursorTooltipState>());
+    var isNameOpen = false;
+    using var nameSubscription = nameState.OnOpenChanged.Subscribe(value => isNameOpen = value);
     var datastore = p.ServerService<IBlueprintDatastore>();
-    await p.Until(() => datastore.Blueprints.Any(b => b.Name == "conveyor"), 15f, "サーバーにBP『conveyor』が登録される");
-    var bp = datastore.Blueprints.First(b => b.Name == "conveyor");
-    p.Assert(bp.Blocks.Count == 3, $"BPのブロック数が3 実際:{bp.Blocks.Count}");
-    p.Assert(HasBpBlock(bp, new Vector3Int(-2, 0, -1), BlockDirection.North), "BP内チェストA offset(-2,0,-1) North");
-    p.Assert(HasBpBlock(bp, new Vector3Int(0, 0, -1), BlockDirection.East), "BP内石窯 offset(0,0,-1) East");
-    p.Assert(HasBpBlock(bp, new Vector3Int(-2, 0, 1), BlockDirection.North), "BP内チェストB offset(-2,0,1) North");
 
-    // 貼付:メニュー→BP選択→R回転→(14,32,14)
-    // Paste: reopen menu, select the BP entry, rotate with R, paste at anchor (14,32,14)
-    p.WarpPlayer(new Vector3(14f, 33.5f, 14f));
-    await OpenBuildMenuAndClickTextSlot("conveyor", "05-menu-bp-entry");
-    await p.PressKey(Key.R);
-    await p.AimAt(new Vector3(14.5f, 32f, 14.5f));
-    await UniTask.DelayFrame(3);
-    await p.Screenshot("06-paste-preview");
+    const string ToolCategory = "build-menu-category-d1000000-0000-4000-8000-000000000009";
+    const string CopyToolEntry = "build-menu-entry-blueprintCopy-88dd687d-aceb-4aeb-94e8-44be1e1f5a0d";
+    const string BlueprintCategory = "build-menu-category-d1000000-0000-4000-8000-000000000010";
+
+    p.Note("BPコピーツールを選択");
+    await checks.SelectEntry(ToolCategory, CopyToolEntry);
+
+    p.Note("始点: 地面(0.5,32,0.5)を1クリック。赤マーカーがセルに乗る");
+    await p.AimAt(new Vector3(0.5f, 32f, 0.5f));
     await p.ClickPlace();
+    checks.AssertMarker("BlueprintCopyStartMarker", new Vector3Int(0, 32, 0), "始点マーカー(0,32,0)");
 
-    // 回転1回の期待位置:
-    // ・チェストA(13,32,16)East
-    // ・石窯(13,32,12)South
-    // ・チェストB(15,32,16)East
-    // Expected after one rotation: chestA (13,32,16) East / kiln (13,32,12) South / chestB (15,32,16) East
-    var chestAPos = new Vector3Int(13, 32, 16);
-    var kilnPos = new Vector3Int(13, 32, 12);
-    var chestBPos = new Vector3Int(15, 32, 16);
-    await p.Until(() => p.GetBlock(chestAPos) != null && p.GetBlock(kilnPos) != null && p.GetBlock(chestBPos) != null, 20f, "R回転貼り付けで3ブロックがサーバーに設置される");
+    p.Note("Eで終点を1段上げ、地面(4.5,32,4.5)へホバー。範囲は(0,32,0)-(4,33,4)、範囲内1ブロック");
+    await p.PressKey(Key.E);
+    await p.AimAt(new Vector3(4.5f, 32f, 4.5f));
+    await UniTask.DelayFrame(3);
+    checks.AssertMarker("BlueprintCopyEndMarker", new Vector3Int(4, 33, 4), "終点マーカー(4,33,4)");
+    checks.AssertRangeBox(new Vector3Int(0, 32, 0), new Vector3Int(4, 33, 4), "範囲ボックス");
+    p.Assert(checks.TooltipHasParam("1"), "ツールチップに範囲内1ブロック");
+    await p.Screenshot("01-selecting-end");
 
-    var chestId = PlaytestBlockOps.ResolveBlockId("木のチェスト");
-    var kilnId = PlaytestBlockOps.ResolveBlockId("石窯");
-    AssertPlaced(chestAPos, chestId, BlockDirection.East, "貼り付けチェストA");
-    AssertPlaced(kilnPos, kilnId, BlockDirection.South, "貼り付け石窯");
-    AssertPlaced(chestBPos, chestId, BlockDirection.East, "貼り付けチェストB");
+    p.Note("終点クリックで名前入力が開く。Web側キャンセル（nameState.Cancel＝モーダルの閉じる/ESC相当）で終点選択へ戻る（始点は残る）");
+    await p.ClickPlace();
+    await p.UntilWebUiElement("modal-input", 10f);
+    p.Assert(isNameOpen, "名前入力が開く");
+    nameState.Cancel();
+    await UniTask.DelayFrame(5);
+    p.Assert(!isNameOpen, "Webキャンセルで名前入力が閉じる");
+    p.Assert(p.CurrentUiState == UIStateEnum.PlaceBlock, $"Webキャンセル後もPlaceBlock 実際:{p.CurrentUiState}");
+    checks.AssertMarker("BlueprintCopyStartMarker", new Vector3Int(0, 32, 0), "Webキャンセル後も始点マーカーが残る");
 
-    await p.WaitBlockGameObject(kilnPos);
-    await p.ExitToGameScreen();
-    await p.Screenshot("07-pasted");
+    p.Note("もう一度終点クリックし、今度はゲーム側の右短押しで終点選択へ戻る");
+    await p.ClickPlace();
+    await p.UntilWebUiElement("modal-input", 10f);
+    await p.RightShortClick();
+    await UniTask.DelayFrame(5);
+    p.Assert(p.CurrentUiState == UIStateEnum.PlaceBlock, $"右短押し後もPlaceBlock 実際:{p.CurrentUiState}");
+    p.Assert(!isNameOpen, "右短押しで名前入力が閉じる");
+    checks.AssertMarker("BlueprintCopyStartMarker", new Vector3Int(0, 32, 0), "右短押し後も始点マーカーが残る");
+    await p.Screenshot("02-after-cancel");
 
-    // セーブ→JSON検証→再ロード→メニュー確認
-    // Save, verify the JSON, reload through the same path as WorldLoaderFromJson, confirm the menu entry survives
-    var savePath = p.ServerService<SaveJsonFilePath>().Path;
-    ClientContext.VanillaApi.SendOnly.Save();
-    await p.Until(() => System.IO.File.Exists(savePath) && System.IO.File.ReadAllText(savePath).Contains("conveyor"), 30f, "セーブファイルにBPが書き出される");
+    p.Note("もう一度終点を確定し名前を入れて作成。チェストだけが写りオフセット(0,0,0)");
+    await p.PressKey(Key.Q);
+    await p.AimAt(new Vector3(4.5f, 32f, 4.5f));
+    await p.ClickPlace();
+    await p.UntilWebUiElement("modal-input", 10f);
+    nameState.Confirm("chest-bp");
+    await p.Until(() => datastore.Blueprints.Any(b => b.Name == "chest-bp"), 15f, "BP『chest-bp』が登録される");
+    await UniTask.DelayFrame(10);
+    var chestBp = datastore.Blueprints.First(b => b.Name == "chest-bp");
+    p.Assert(chestBp.Blocks.Count == 1 && chestBp.Blocks[0].Offset == Vector3Int.zero, $"BPはチェスト1個・オフセット(0,0,0) 実際:{chestBp.Blocks.Count}/{(chestBp.Blocks.Count > 0 ? chestBp.Blocks[0].Offset.ToString() : "-")}");
 
-    var loaded = JsonConvert.DeserializeObject<WorldSaveAllInfo>(System.IO.File.ReadAllText(savePath));
-    p.Assert(loaded.Blueprints != null && loaded.Blueprints.Any(b => b.Name == "conveyor" && b.Blocks.Count == 3), "セーブJSONのblueprintsにconveyor(3ブロック)が含まれる");
+    p.Note("側面ヒット: チェスト東面(3.0,32.5,2.5)の始点セルは(3,32,2)（旧実装は(3,33,2)）。範囲内0なら確定を拒む");
+    await p.AimAt(new Vector3(3.0f, 32.5f, 2.5f));
+    await p.ClickPlace();
+    checks.AssertMarker("BlueprintCopyStartMarker", new Vector3Int(3, 32, 2), "東面ヒットの始点セル(3,32,2)");
+    await p.AimAt(new Vector3(4.5f, 32f, 4.5f));
+    await UniTask.DelayFrame(3);
+    p.Assert(checks.TooltipHasParam("0"), "範囲内0ブロックの表示");
+    await p.ClickPlace();
+    await UniTask.DelayFrame(5);
+    p.Assert(!isNameOpen, "範囲内0では名前入力が開かない");
+    await p.Screenshot("03-empty-range-refused");
+    await p.PressKey(Key.Escape);
 
-    datastore.LoadBlueprints(new System.Collections.Generic.List<BlueprintJsonObject>());
-    p.Assert(datastore.Blueprints.Count == 0, "再ロード前にBPデータストアを空にできる");
-    datastore.LoadBlueprints(loaded.Blueprints);
-    p.Assert(datastore.Blueprints.Any(b => b.Name == "conveyor"), "セーブJSONからBPデータストアへ復元される");
+    p.Note("貼り付け: Eでゴーストが1段上がる");
+    await checks.SelectEntry(BlueprintCategory, $"build-menu-entry-blueprint-{chestBp.BlueprintGuid:D}");
+    await p.AimAt(new Vector3(6.5f, 32f, 6.5f));
+    await p.PressKey(Key.E);
+    await UniTask.DelayFrame(3);
+    p.Assert(heightOffset.Value == 1, $"貼り付け中のEで高さ1 実際:{heightOffset.Value}");
+    p.Assert(checks.ActiveGhostPositions().Any(pos => pos == new Vector3(6f, 33f, 6f)), $"ゴーストが(6,33,6) 実際:{string.Join(";", checks.ActiveGhostPositions())}");
+    await p.Screenshot("04-paste-height");
+    await p.PressKey(Key.Q);
 
-    // 復元後メニューにBPスロット表示
-    // The rebuilt build menu still lists the blueprint slot
-    await p.PressKey(Key.B);
+    p.Note("ドラッグ列: (6.5,32,6.5)→(10.5,32,6.5)で5個");
+    await PlaytestUiOps.DragPlace(new Vector3(6.5f, 32f, 6.5f), new Vector3(10.5f, 32f, 6.5f));
+    await p.Until(() => Enumerable.Range(6, 5).All(x => p.GetBlock(new Vector3Int(x, 32, 6)) != null), 20f, "x=6..10 に5個置かれる");
+    await p.WaitBlockGameObject(new Vector3Int(10, 32, 6));
+    await p.Screenshot("05-drag-run-pasted");
+
+    p.Note("サムネイル: コンテナに撮影済みでビルドメニューに画像が出る");
+    await p.Until(() => ClientDIContext.BlueprintThumbnailLookup.Contains(chestBp.BlueprintGuid), 20f, "サムネイル撮影完了");
+    await p.PressKey(Key.Tab);
     await p.WaitUiState(UIStateEnum.BuildMenu, 10f);
-    await p.Until(() => FindTextSlot("conveyor") != null, 15f, "再ロード後のビルドメニューにBP『conveyor』が表示される");
-    await p.Screenshot("08-menu-after-reload");
+    await p.ClickWebUi(BlueprintCategory);
+    await p.HoverWebUi($"build-menu-entry-blueprint-{chestBp.BlueprintGuid:D}");
+    await p.Screenshot("06-thumbnail-in-build-menu");
+    await p.CloseWebUiPanel();
     await p.ExitToGameScreen();
+    await p.Hotbar.AssignHotbar(0, "chest-bp");
+    await p.UntilWebUiElement("hotbar-slot-0", 10f);
+    await UniTask.DelayFrame(5);
+    await p.Screenshot("07-thumbnail-in-hotbar");
 
-    #region Internal
-
-    async UniTask OpenBuildMenuAndClickTextSlot(string label, string screenshotName)
-    {
-        // PlaceBlock中はTab、それ以外はBで開く（実プレイと同じキー割当）
-        // Open with Tab while in PlaceBlock, otherwise with B (same bindings as real play)
-        for (var attempt = 0; attempt < 3 && p.CurrentUiState != UIStateEnum.BuildMenu; attempt++)
-        {
-            var openKey = p.CurrentUiState == UIStateEnum.PlaceBlock ? Key.Tab : Key.B;
-            await p.PressKey(openKey);
-            var openDeadline = Time.realtimeSinceStartup + 4f;
-            while (Time.realtimeSinceStartup < openDeadline && p.CurrentUiState != UIStateEnum.BuildMenu) await UniTask.DelayFrame(5);
-        }
-        p.Assert(p.CurrentUiState == UIStateEnum.BuildMenu, $"ビルドメニューが開く ({label})");
-
-        // BPライブラリ更新の非同期再構築がクリックを破棄するレースがあるため、遷移するまでクリックを繰り返す
-        // The async BP-library rebuild can wipe a pending click, so retry clicking until the transition happens
-        var screenshotTaken = false;
-        var clickDeadline = Time.realtimeSinceStartup + 20f;
-        while (p.CurrentUiState != UIStateEnum.PlaceBlock && Time.realtimeSinceStartup < clickDeadline)
-        {
-            var slot = FindTextSlot(label);
-            if (slot != null && !screenshotTaken && screenshotName != null)
-            {
-                await p.Screenshot(screenshotName);
-                screenshotTaken = true;
-
-                // スクショのawait中に非同期再構築でスロットが破棄され得るため取り直す
-                // The async rebuild may destroy the slot during the screenshot await, so re-fetch it
-                slot = FindTextSlot(label);
-            }
-            if (slot != null) ClickUi(slot.GetComponentInChildren<CommonSlotView>(true).gameObject);
-            await UniTask.DelayFrame(10);
-        }
-        p.Assert(p.CurrentUiState == UIStateEnum.PlaceBlock, $"スロット『{label}』選択でPlaceBlockへ遷移");
-
-        // PlaceBlock遷移直後のカメラtweenが落ち着くまで待つ
-        // Wait for the camera tween right after entering PlaceBlock to settle
-        await UniTask.Delay(System.TimeSpan.FromSeconds(0.6f));
-    }
-
-    ItemSlotView FindTextSlot(string label)
-    {
-        // アイコン無し（ItemViewData==null）スロットを表示テキストで特定する（閉じたメニューの残骸スロットは対象外）
-        // Locate icon-less slots (ItemViewData==null) by display text; skip stale slots under a closed menu
-        var buildMenuView = UnityEngine.Object.FindFirstObjectByType<BuildMenuView>(FindObjectsInactive.Include);
-        if (buildMenuView == null || !buildMenuView.gameObject.activeInHierarchy) return null;
-        foreach (var slot in buildMenuView.GetComponentsInChildren<ItemSlotView>(true))
-        {
-            if (slot.ItemViewData != null) continue;
-            if (slot.GetComponentsInChildren<TMPro.TMP_Text>(true).Any(t => t.text == label)) return slot;
-        }
-        return null;
-    }
-
-    void ClickUi(GameObject target)
-    {
-        // EventSystem直叩き（OSカーソル非依存）。スロットはDown/Up、ボタンはClickで発火する
-        // Direct EventSystem execution (OS-cursor independent); slots fire on Down/Up, buttons on Click
-        var eventData = new PointerEventData(EventSystem.current) { button = PointerEventData.InputButton.Left };
-        ExecuteEvents.Execute(target, eventData, ExecuteEvents.pointerDownHandler);
-        ExecuteEvents.Execute(target, eventData, ExecuteEvents.pointerUpHandler);
-        ExecuteEvents.Execute(target, eventData, ExecuteEvents.pointerClickHandler);
-    }
-
-    void InjectScrollWithHeldLeft(float scrollY)
-    {
-        // ドラッグ保持中のスクロール注入。held状態と同座標を同時にre-queueして誤エッジを防ぐ
-        // Inject scroll while dragging; re-queue the held button and same position to avoid spurious edges
-        var mouse = Mouse.current;
-        var state = new MouseState
-        {
-            position = mouse.position.ReadValue(),
-            delta = Vector2.zero,
-            scroll = new Vector2(0f, scrollY),
-        };
-        state = state.WithButton(MouseButton.Left, true);
-        InputSystem.QueueStateEvent(mouse, state);
-    }
-
-    bool HasBpBlock(BlueprintJsonObject blueprint, Vector3Int offset, BlockDirection direction)
-    {
-        return blueprint.Blocks.Any(b => b.Offset == offset && b.Direction == (int)direction);
-    }
-
-    void AssertPlaced(Vector3Int pos, BlockId expectedId, BlockDirection expectedDir, string label)
-    {
-        var block = p.GetBlock(pos);
-        var ok = block != null && block.BlockId == expectedId && block.BlockPositionInfo.BlockDirection == expectedDir && block.BlockPositionInfo.OriginalPos == pos;
-        var actual = block == null ? "null" : $"id={block.BlockId} dir={block.BlockPositionInfo.BlockDirection} origin={block.BlockPositionInfo.OriginalPos}";
-        p.Assert(ok, $"{label}: {pos} {expectedDir} (実際: {actual})");
-    }
-
-    #endregion
 });
