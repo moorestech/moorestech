@@ -1,3 +1,4 @@
+using Client.Game.InGame.Block;
 using Client.Network.API;
 using Client.Network.Settings;
 
@@ -13,8 +14,9 @@ namespace Client.Game.InGame.Context
         public static FluidImageContainer FluidImageContainer { get; private set; }
         public static PlayerConnectionSetting PlayerConnectionSetting { get; private set; }
         public static VanillaApi VanillaApi { get; private set; }
+        public static BlockIconImagePhotographer BlockIconImagePhotographer { get; private set; }
 
-        public ClientContext(BlockGameObjectPrefabContainer blockGameObjectPrefabContainer, ItemImageContainer itemImageContainer, BlockImageContainer blockImageContainer, TrainCarImageContainer trainCarImageContainer, ConnectToolImageContainer connectToolImageContainer, FluidImageContainer fluidImageContainer, PlayerConnectionSetting playerConnectionSetting, VanillaApi vanillaApi)
+        public ClientContext(BlockGameObjectPrefabContainer blockGameObjectPrefabContainer, ItemImageContainer itemImageContainer, BlockImageContainer blockImageContainer, TrainCarImageContainer trainCarImageContainer, ConnectToolImageContainer connectToolImageContainer, FluidImageContainer fluidImageContainer, PlayerConnectionSetting playerConnectionSetting, VanillaApi vanillaApi, BlockIconImagePhotographer blockIconImagePhotographer)
         {
             BlockGameObjectPrefabContainer = blockGameObjectPrefabContainer;
             ItemImageContainer = itemImageContainer;
@@ -24,6 +26,7 @@ namespace Client.Game.InGame.Context
             FluidImageContainer = fluidImageContainer;
             PlayerConnectionSetting = playerConnectionSetting;
             VanillaApi = vanillaApi;
+            BlockIconImagePhotographer = blockIconImagePhotographer;
         }
     }
 }

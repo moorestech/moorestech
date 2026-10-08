@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Thumbnail;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.WebUiHost.Game.Icons;
 using Common.Debug;
@@ -21,12 +22,12 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
     {
         // 解放判定はResolverが持つ唯一の供給点へ委ね、ここは変換だけを担う
         // Delegates the unlock decision to the resolver's single supply point; this file only converts
-        public static List<BuildMenuEntryDto> CreateDtos(PlacementTargetResolver placementTargetResolver, ConstructionWalletQuery walletQuery, IEnumerable<IItemStack> inventoryItems)
+        public static List<BuildMenuEntryDto> CreateDtos(PlacementTargetResolver placementTargetResolver, ConstructionWalletQuery walletQuery, IEnumerable<IItemStack> inventoryItems, IBlueprintThumbnailLookup thumbnails)
         {
-            return CreateDtos(placementTargetResolver.CreateUnlockedTargets(), walletQuery, inventoryItems);
+            return CreateDtos(placementTargetResolver.CreateUnlockedTargets(), walletQuery, inventoryItems, thumbnails);
         }
 
-        public static List<BuildMenuEntryDto> CreateDtos(IReadOnlyList<IPlacementTarget> targets, ConstructionWalletQuery walletQuery, IEnumerable<IItemStack> inventoryItems)
+        public static List<BuildMenuEntryDto> CreateDtos(IReadOnlyList<IPlacementTarget> targets, ConstructionWalletQuery walletQuery, IEnumerable<IItemStack> inventoryItems, IBlueprintThumbnailLookup thumbnails)
         {
             var dtos = new List<BuildMenuEntryDto>();
             var categoryMaster = MasterHolder.BuildMenuCategoryMaster;
@@ -68,7 +69,7 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                     RequiredItems = BuildMenuMaterialAvailability.CreateRequiredItemDtos(target, heldByItem),
                     PaymentWaived = paymentWaived,
                     SetPlacement = ResolveSetPlacement(walletStatus),
-                    IconUrl = ResolveIconUrl(target),
+                    IconUrl = ResolveIconUrl(target, thumbnails),
                 });
             }
             return dtos;
@@ -136,7 +137,7 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
 
         // アイコンURL解決もホットバートピックと共有する唯一の解決点。種別の判定は型で行う
         // The single resolution point for icon URLs, shared with the hotbar topic; the kind check is by type
-        public static string ResolveIconUrl(IPlacementTarget target)
+        public static string ResolveIconUrl(IPlacementTarget target, IBlueprintThumbnailLookup thumbnails)
         {
             switch (target)
             {
@@ -148,8 +149,11 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                     return $"{TrainCarIconSource.PathPrefixConst}{trainCar.TrainCarGuid}{IconEndpoint.PathSuffix}";
                 case ConnectToolPlacementTarget connectTool:
                     return $"{ConnectToolIconSource.PathPrefixConst}{connectTool.ConnectToolGuid}{IconEndpoint.PathSuffix}";
+                case BlueprintPlacementTarget blueprint:
+                    return thumbnails.Contains(blueprint.BlueprintGuid)
+                        ? $"{BlueprintIconSource.PathPrefixConst}{blueprint.BlueprintGuid:D}{IconEndpoint.PathSuffix}"
+                        : null;
                 case BlueprintCopyPlacementTarget:
-                case BlueprintPlacementTarget:
                     return null;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(target), target, null);

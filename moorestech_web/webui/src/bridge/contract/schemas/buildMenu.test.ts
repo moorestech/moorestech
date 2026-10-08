@@ -62,6 +62,20 @@ describe("BuildMenuEntryDataSchema", () => {
     }).label).toBe("starter-base");
   });
 
+  it("撮影済みblueprintのアイコンURLを受理する", () => {
+    const entry = BuildMenuEntryDataSchema.parse({
+      id: "60000000-0000-4000-8000-000000000001",
+      kind: "blueprint",
+      label: "starter-base",
+      iconUrl: "/api/blueprint-icons/60000000-0000-4000-8000-000000000001.png",
+      categoryGuid: "10000000-0000-4000-8000-000000000001",
+      subCategoryGuid: "20000000-0000-4000-8000-000000000001",
+      requiredItems: [],
+      paymentWaived: false,
+    });
+    expect(entry.iconUrl).toBe("/api/blueprint-icons/60000000-0000-4000-8000-000000000001.png");
+  });
+
   it("blockはsetPlacementを任意で受理し、perCostが1以下なら弾く", () => {
     const blockEntryBase = {
       id: "30000000-0000-4000-8000-000000000001",

@@ -57,7 +57,7 @@ namespace Client.Game.InGame.Block
                 Debug.Log($"{CaptureLogPrefix} {captureProgress} stage:setup");
 
                 var captureTarget = Instantiate(capturePrefab, transform);
-                captureTarget.transform.position = Vector3.zero;
+                captureTarget.transform.localPosition = Vector3.zero;
                 captureTarget.transform.rotation = Quaternion.identity;
                 captureTarget.transform.localScale = Vector3.one;
 
