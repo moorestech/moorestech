@@ -1,6 +1,7 @@
 using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
+using Game.Block.Interface;
 using NUnit.Framework;
 
 namespace Client.Tests.PlaceSystem.Common
@@ -35,6 +36,34 @@ namespace Client.Tests.PlaceSystem.Common
             heightOffset.SyncSelectedTarget(firstTarget);
 
             Assert.AreEqual(5, heightOffset.Value);
+        }
+
+        [Test]
+        public void スポイトで同じブロックの別向きを拾っても高さオフセットは保たれる()
+        {
+            var heightOffset = new PlacementHeightOffset();
+            var blockGuid = Guid.NewGuid();
+            heightOffset.SyncSelectedTarget(new BlockPlacementTarget(blockGuid, BlockDirection.North));
+            heightOffset.Adjust(3);
+
+            // 向き違いは持ち替えではない。旧来のBlockId比較と同じく高さを保つ
+            // A different facing is not a switch; keep the height just like the former BlockId comparison
+            heightOffset.SyncSelectedTarget(new BlockPlacementTarget(blockGuid, BlockDirection.East));
+
+            Assert.AreEqual(3, heightOffset.Value);
+        }
+
+        [Test]
+        public void 同じIdでも種別が違えば高さオフセットは0へ戻る()
+        {
+            var heightOffset = new PlacementHeightOffset();
+            var sharedGuid = Guid.NewGuid();
+            heightOffset.SyncSelectedTarget(new BlockPlacementTarget(sharedGuid, null));
+            heightOffset.Adjust(3);
+
+            heightOffset.SyncSelectedTarget(new BlueprintPlacementTarget(sharedGuid, "blueprint"));
+
+            Assert.AreEqual(0, heightOffset.Value);
         }
 
         [Test]

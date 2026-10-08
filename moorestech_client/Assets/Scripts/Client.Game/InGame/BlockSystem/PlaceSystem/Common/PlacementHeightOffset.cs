@@ -18,12 +18,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         public int Value => _value.Value;
         public IObservable<int> OnChanged => _value;
 
-        // 対象の持ち替えを検知して高さを地表へ戻す
-        // Detect target changes and return height to ground level
+        // 対象の持ち替えを検知して高さを地表へ戻す。スポイトで同種の別向きを拾っても持ち替えとみなさないよう、向きを含めず種別とIdで比べる
+        // Detect target changes and return height to ground; compare kind and id without direction so an eyedropped other facing is not a switch
         public void SyncSelectedTarget(IPlacementTarget target)
         {
-            if (!Equals(_previousSelectedTarget, target)) _value.Value = 0;
+            if (!IsSameKindAndId(_previousSelectedTarget, target)) _value.Value = 0;
             _previousSelectedTarget = target;
+        }
+
+        private static bool IsSameKindAndId(IPlacementTarget previous, IPlacementTarget current)
+        {
+            if (previous == null || current == null) return previous == current;
+            return previous.Kind == current.Kind && previous.Id == current.Id;
         }
 
         // 高さを扱わない設置系へ移ったときに地表基準へ戻す。次の持ち替え判定も初期化する
