@@ -30,5 +30,19 @@ namespace Client.Tests.PlaceSystem
             Assert.AreEqual("denied.blueprintCreate.EmptyArea", observed.MessageId);
             Assert.AreEqual(0, observed.MessageParams.Length);
         }
+
+        [Test]
+        public void 未解放の拒否はサーバー通知に任せてログだけ出す()
+        {
+            var source = new ClientLocalNotificationSource();
+            NotificationMessagePack observed = null;
+            using var subscription = source.OnNotification.Subscribe(message => observed = message);
+            var result = BlueprintCreateResult.Rejected(BlueprintFailureReason.NotUnlocked);
+            LogAssert.Expect(LogType.Error, new Regex("create rejected: NotUnlocked"));
+
+            BlueprintCreateFailureNotifier.NotifyFailure(result, source, Vector3Int.zero, Vector3Int.one, "locked");
+
+            Assert.IsNull(observed, "the client duplicated the server's NotUnlocked notice");
+        }
     }
 }

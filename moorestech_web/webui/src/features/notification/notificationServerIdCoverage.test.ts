@@ -22,7 +22,7 @@ const reasonInterpolation = /^\$"([^"{}]+)\{[^"{}]+\}"$/;
 // 補間idの接頭辞→展開するenumと、その経路では送られない値
 // Interpolated id prefix -> the enum to expand and the values that path never sends
 const interpolatedIdEnums = new Map<string, { enumName: string; notSentMembers: string[] }>([
-  ["denied.blueprintCreate.", { enumName: "BlueprintCreateFailure", notSentMembers: ["None"] }],
+  ["denied.blueprintCreate.", { enumName: "BlueprintCreateFailure", notSentMembers: ["None", "NotUnlocked"] }],
   ["denied.railEdit.", { enumName: "RailConnectionEditFailureReason", notSentMembers: ["None"] }],
   ["denied.electricWireExtend.", { enumName: "ElectricWirePlacementFailureReason", notSentMembers: ["InventoryFull", "NotConnected"] }],
   [
