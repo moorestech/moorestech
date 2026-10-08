@@ -1,6 +1,5 @@
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Run;
-using Client.Input;
-using Core.Master;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Height;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
@@ -39,9 +38,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
         public void UpdateHeightOffsetByInput()
         {
-            if (HybridInput.GetKeyDown(KeyCode.Q)) //TODO InputManagerに移す
-                AdjustHeightOffset(-1);
-            else if (HybridInput.GetKeyDown(KeyCode.E)) AdjustHeightOffset(1);
+            PlacementHeightKeyInput.Apply(_heightOffset);
         }
 
         // 入力の解釈だけを担い、高さの規則と保持は共有の正へ委ねる
@@ -51,11 +48,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             _heightOffset.Adjust(delta);
         }
 
-        // 持ち替え判定は共有の正が持つ。こちらは自分のドラッグを畳むだけ
-        // The shared source owns the block-switch check; this only folds its own drag
-        public void SyncSelectedBlock(BlockId blockId)
+        // 対象変更では開始高さへ戻さず、ドラッグだけ捨てる
+        // On target change, discard only the drag without restoring its starting height
+        public void DiscardForSelectionChange()
         {
-            if (_heightOffset.SyncSelectedBlock(blockId)) _session = null;
+            _session = null;
         }
 
         public void BeginDrag(Vector3Int startCell, PlacementHitSurfaceKind surfaceKind)

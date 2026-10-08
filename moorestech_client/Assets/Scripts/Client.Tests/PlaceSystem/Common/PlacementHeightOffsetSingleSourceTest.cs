@@ -5,7 +5,8 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Empty;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Game.Topics;
-using Core.Master;
+using System;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using UnityEngine;
@@ -53,11 +54,12 @@ namespace Client.Tests.PlaceSystem.Common
         public void 持ち替えで高さが地表基準へ戻ると表示も戻る()
         {
             var heightOffset = new PlacementHeightOffset();
+            var firstTarget = new BlueprintPlacementTarget(Guid.NewGuid(), "first");
             var dragState = new CommonBlockPlaceDragState(heightOffset);
-            dragState.SyncSelectedBlock(new BlockId(1));
+            heightOffset.SyncSelectedTarget(firstTarget);
             dragState.AdjustHeightOffset(3);
 
-            dragState.SyncSelectedBlock(new BlockId(2));
+            heightOffset.SyncSelectedTarget(new BlueprintPlacementTarget(Guid.NewGuid(), "second"));
 
             Assert.AreEqual(0, heightOffset.Value, "the HUD kept the old height after a hotbar swap reset the actual one");
         }
@@ -66,8 +68,9 @@ namespace Client.Tests.PlaceSystem.Common
         public void ドラッグ中に設置系が畳まれても高さは開始値へ戻る()
         {
             var heightOffset = new PlacementHeightOffset();
+            var firstTarget = new BlueprintPlacementTarget(Guid.NewGuid(), "first");
             var dragState = new CommonBlockPlaceDragState(heightOffset);
-            dragState.SyncSelectedBlock(new BlockId(1));
+            heightOffset.SyncSelectedTarget(firstTarget);
             dragState.BeginDrag(Vector3Int.zero, PlacementHitSurfaceKind.Ground);
             dragState.AdjustHeightOffset(2);
 
@@ -82,10 +85,11 @@ namespace Client.Tests.PlaceSystem.Common
         public void 共有の正を渡した2つのドラッグ状態は同じ高さを読み書きする()
         {
             var heightOffset = new PlacementHeightOffset();
+            var firstTarget = new BlueprintPlacementTarget(Guid.NewGuid(), "first");
             var firstDragState = new CommonBlockPlaceDragState(heightOffset);
             var secondDragState = new CommonBlockPlaceDragState(heightOffset);
 
-            firstDragState.SyncSelectedBlock(new BlockId(1));
+            heightOffset.SyncSelectedTarget(firstTarget);
             firstDragState.AdjustHeightOffset(1);
             Assert.AreEqual(1, secondDragState.HeightOffset);
 
@@ -94,7 +98,7 @@ namespace Client.Tests.PlaceSystem.Common
 
             // 持ち替え判定も1本。片側で持ち替えたらもう片側から見た高さも地表基準へ戻る
             // The block-switch check is shared too, so a swap on one side returns the other side's height to ground
-            secondDragState.SyncSelectedBlock(new BlockId(2));
+            heightOffset.SyncSelectedTarget(new BlueprintPlacementTarget(Guid.NewGuid(), "second"));
             Assert.AreEqual(0, firstDragState.HeightOffset);
         }
 

@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor;
@@ -49,19 +50,28 @@ namespace Client.Tests.PlaceSystem.Common
         }
 
         [Test]
-        public void ベルト設置系の持ち替えは注入された共有高さを地表へ戻す()
+        public void コントローラーのベルト持ち替えは注入された共有高さを地表へ戻す()
         {
             var heightOffset = new PlacementHeightOffset();
             var beltSystem = CreateBeltSystem(heightOffset);
+            var selector = new SwitchableSelector(beltSystem);
+            var controller = new PlaceSystemStateController(selector, new NullPresenter(), heightOffset);
 
-            UpdateWithTarget(beltSystem, FirstBeltGuid);
+            controller.SetTarget(new BlockPlacementTarget(FirstBeltGuid, null), PlacementOrigin.FromHotbarSlot(0));
+            controller.ManualUpdate();
             heightOffset.Adjust(2);
 
-            // 本番のManualUpdateが持ち替えを見て共有インスタンスを畳む。自前instanceを握る退行ならここが2のまま残る
-            // The production ManualUpdate folds the shared instance on a block switch; a system holding its own instance leaves 2 here
-            UpdateWithTarget(beltSystem, SecondBeltGuid);
+            // ベルトのドラッグ状態が注入された高さを読み、持ち替えはコントローラーが地表へ戻す
+            // The belt drag state reads the injected height; the controller resets it on target change
+            var dragStateField = typeof(BeltConveyorPlaceSystem).GetField("_dragState", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.IsNotNull(dragStateField);
+            var dragState = (CommonBlockPlaceDragState)dragStateField.GetValue(beltSystem);
+            Assert.AreEqual(2, dragState.HeightOffset, "the belt system did not read the injected shared height");
+            controller.SetTarget(new BlockPlacementTarget(SecondBeltGuid, null), PlacementOrigin.FromHotbarSlot(1));
+            controller.ManualUpdate();
 
-            Assert.AreEqual(0, heightOffset.Value, "BeltConveyorPlaceSystem must write the injected PlacementHeightOffset, not one of its own");
+            Assert.AreEqual(0, heightOffset.Value, "the controller did not reset shared height on a belt target change");
+            Assert.AreEqual(0, dragState.HeightOffset, "the belt system retained a height separate from the shared instance");
         }
 
         [Test]

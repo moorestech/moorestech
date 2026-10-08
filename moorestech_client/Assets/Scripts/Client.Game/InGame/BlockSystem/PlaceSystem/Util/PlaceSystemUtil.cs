@@ -53,7 +53,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             return true;
         }
 
-        private static bool TryRaycastPlacementSurface(Camera mainCamera, out RaycastHit hit, out BlockPreviewBoundingBoxSurface surface)
+        internal static bool TryRaycastPlacementSurface(Camera mainCamera, out RaycastHit hit, out BlockPreviewBoundingBoxSurface surface)
         {
             surface = null;
             var ray = mainCamera.ScreenPointToRay(AimPointProvider.GetAimScreenPoint());
@@ -66,44 +66,23 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
 
         public static Vector3Int SnapHitPointToCell(Vector3 hitPoint)
         {
-            // BPコピーと貼り付けで共通のセル化規約（XZは床スナップ、Yは整数グリッド面の丸め）
-            // Shared cell-snap convention for BP copy and paste: floor XZ, round Y on the integer grid face
+            // 列車車両の距離判定専用。BPの設置セル解決にはPlacementUnitCellResolverを使う
+            // Only for train-car distance checks; blueprint placement cells use PlacementUnitCellResolver
             return new Vector3Int(Mathf.FloorToInt(hitPoint.x), Mathf.RoundToInt(hitPoint.y), Mathf.FloorToInt(hitPoint.z));
         }
 
+        // 大きい既存の車両・線路設置系は参照を維持し、レイキャスト本体だけ共通化する
+        // Keep existing train callers stable while sharing the extracted raycast implementation
         public static bool TryGetRaySpecifiedComponentHit<T>(Camera mainCamera, out T component, int layerMask) where T : class
         {
-            component = null;
-            var ray = mainCamera.ScreenPointToRay(AimPointProvider.GetAimScreenPoint());
-            
-            //画面からのrayが何かにヒットしているか
-            if (!Physics.Raycast(ray, out var hit, float.PositiveInfinity, layerMask)) return false;
-            //そのrayが指定されたコンポーネントを持っているか
-            if (!hit.transform.TryGetComponent(out component))
-            {
-                return false;
-            }
-            
-            return true;
+            return PlaceSystemRaycastUtil.TryGetRaySpecifiedComponentHit(mainCamera, out component, layerMask);
         }
-        
+
         public static bool TryGetRaySpecifiedComponentHitPosition<T>(Camera mainCamera, out Vector3 pos, out T component, int layerMask) where T : class
         {
-            component = null;
-            pos = Vector3Int.zero;
-            var ray = mainCamera.ScreenPointToRay(AimPointProvider.GetAimScreenPoint());
-            
-            //画面からのrayが何かにヒットしているか
-            if (!Physics.Raycast(ray, out var hit, float.PositiveInfinity, layerMask)) return false;
-            //そのrayが指定されたコンポーネントを持っているか
-            if (!hit.transform.TryGetComponent(out component))
-            {
-                return false;
-            }
-            pos = hit.point;
-            return true;
+            return PlaceSystemRaycastUtil.TryGetRaySpecifiedComponentHitPosition(mainCamera, out pos, out component, layerMask);
         }
-        
+
         public static Vector3Int CalcPlacePoint(BlockMasterElement holdingBlock ,Vector3 hitPoint, int heightOffset, BlockDirection currentBlockDirection, BlockPreviewBoundingBoxSurface boundingBoxSurface, float groundHeightQuantizationStep)
         {
             PreviewSurfaceType? surfaceType = boundingBoxSurface == null ? (PreviewSurfaceType?)null : boundingBoxSurface.PreviewSurfaceType;
@@ -116,7 +95,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
         {
             var rotateAction = currentBlockDirection.GetCoordinateConvertAction();
             var rotatedSize = rotateAction(holdingBlock.BlockSize).Abs();
+            return CalcPlacePointBySize(rotatedSize, hitPoint, heightOffset, surfaceType, groundHeightQuantizationStep);
+        }
 
+        // 回転済みサイズで通常設置とBPのセル解決を共通化する
+        // Resolve normal placement and blueprint cells from the same rotated size
+        public static Vector3Int CalcPlacePointBySize(Vector3Int rotatedSize, Vector3 hitPoint, int heightOffset, PreviewSurfaceType? surfaceType, float groundHeightQuantizationStep)
+        {
             if (surfaceType == null)
             {
                 var point = Vector3Int.zero;

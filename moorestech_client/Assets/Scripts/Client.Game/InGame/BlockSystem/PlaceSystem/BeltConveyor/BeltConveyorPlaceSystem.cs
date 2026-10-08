@@ -85,7 +85,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             _currentBlockDirection = target.ResolveDirectionOnSelection(_currentBlockDirection, isSelectionChanged);
             _dragState.UpdateHeightOffsetByInput();
             _currentBlockDirection = BeltConveyorInputControl.RotateDirection(_currentBlockDirection);
-            var isSendable = GroundClickControl(target, feedback);
+            var isSendable = GroundClickControl(target, isSelectionChanged, feedback);
             PlaceBlockOnRelease();
 
             #region Internal
@@ -106,11 +106,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
 
         // 戻り値はカーソル位置に送信できる設置列があるか
         // Returns whether the cursor has a sendable placement run
-        private bool GroundClickControl(BlockPlacementTarget target, PlacementFeedback feedback)
+        private bool GroundClickControl(BlockPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback)
         {
             // ビルドメニューの選択ブロックが変わったら連続設置状態をリセット
             // Reset the continuous placement state when the build-menu selected block changes
-            _dragState.SyncSelectedBlock(target.BlockId);
+            if (isSelectionChanged) _dragState.DiscardForSelectionChange();
 
             //基本はプレビュー非表示
             _previewBlockController.SetActive(false);
