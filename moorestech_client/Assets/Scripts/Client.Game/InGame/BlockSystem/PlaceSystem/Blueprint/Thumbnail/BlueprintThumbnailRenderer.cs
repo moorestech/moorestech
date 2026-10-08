@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.Context;
 using Cysharp.Threading.Tasks;
@@ -44,8 +42,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Thumbnail
             }
             _isRendering = true;
 
-            // TryBuildが撮影器と同じRenderer判定で空boundsを拒む契約で順次撮影する
-            // TryBuild rejects empty bounds with the photographer's renderer predicate before serial capture
+            // 撮れないBPは撮影器が null を返してログを残すため、飛ばして次へ進む
+            // The photographer logs and returns null for an unshootable blueprint, so skip it and continue
             var plan = BlueprintThumbnailSyncPlanner.Plan(_library.Blueprints.Select(b => b.BlueprintGuid).ToList(), _container.Guids);
             foreach (var guid in plan.ToRemove) _container.Remove(guid);
             foreach (var guid in plan.ToRender)
@@ -73,13 +71,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Thumbnail
 
                 var photographer = ClientContext.BlockIconImagePhotographer;
                 if (!BlueprintThumbnailSubjectBuilder.TryBuild(blueprint, photographer.transform, out var subject)) return null;
-
-                // TryBuildは撮影器と同じRenderer判定で空boundsを拒み、非アクティブな元は描画せず複製だけを撮る
-                // TryBuild rejects empty bounds with the capture predicate; only the activated clone is rendered
-                subject.SetActive(false);
-                var textures = await photographer.TakeIconImages(new List<(GameObject prefab, string debugName)> { (subject, blueprint.Name) });
-                UnityEngine.Object.Destroy(subject);
-                return textures[0];
+                return await photographer.TryTakeSubjectIconImage(subject, blueprint.Name);
             }
 
             #endregion

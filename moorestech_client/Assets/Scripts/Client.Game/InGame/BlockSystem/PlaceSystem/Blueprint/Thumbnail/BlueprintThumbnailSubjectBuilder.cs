@@ -1,5 +1,4 @@
 using Client.Game.InGame.Context;
-using Client.Game.InGame.Block.IconCapture;
 using Game.Block.Interface;
 using Game.Blueprint;
 using UnityEngine;
@@ -26,7 +25,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Thumbnail
 
             subject = new GameObject($"BlueprintThumbnailSubject:{blueprint.Name}");
             subject.transform.SetParent(parent, false);
-            var builtCount = 0;
 
             // 実設置と同じ座標変換で、撮影器直下にローカル配置する
             // Use real-placement coordinates within the photographer's local space
@@ -43,18 +41,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Thumbnail
                 block.transform.SetParent(subject.transform, false);
                 block.transform.localPosition = position;
                 block.SetActive(true);
-                builtCount++;
             }
 
-            // プレファブが全て欠けた場合、空被写体を撮影器へ渡さない
-            // Never pass an empty subject when every prefab is missing
-            // 撮影器と同じRenderer列を検査し、空boundsの例外を先に防ぐ
-            // Check the same renderer set as capture to prevent the empty-bounds exception
-            if (0 < builtCount && 0 < BlockIconImagePhotographer.GetRenderableComponents(subject).Length) return true;
-            Debug.LogError($"[BlueprintThumbnail] blueprint {blueprint.BlueprintGuid} has no renderable prefabs; thumbnail skipped");
-            Object.Destroy(subject);
-            subject = null;
-            return false;
+            return true;
         }
     }
 }

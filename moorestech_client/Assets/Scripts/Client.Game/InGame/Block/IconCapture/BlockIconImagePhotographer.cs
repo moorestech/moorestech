@@ -22,11 +22,6 @@ namespace Client.Game.InGame.Block.IconCapture
             foreach (var light in GetComponentsInChildren<Light>(true)) light.enabled = false;
         }
 
-        public static Renderer[] GetRenderableComponents(GameObject target)
-        {
-            return target.GetComponentsInChildren<Renderer>();
-        }
-
         public async UniTask<List<Texture2D>> TakeBlockIconImages(List<BlockPrefabInfo> blockObjectInfos)
         {
             var targets = blockObjectInfos.Select(info => (info.BlockObjectPrefab, info.BlockMasterElement.Name)).ToList();
@@ -42,6 +37,23 @@ namespace Client.Game.InGame.Block.IconCapture
             var result = await CaptureTargets(targets);
             RestoreCaptureLights(previousLightStates);
             return result;
+        }
+
+        public async UniTask<Texture2D> TryTakeSubjectIconImage(GameObject subject, string debugName)
+        {
+            // 元被写体は描画させず複製だけを撮り、成否に関わらず破棄する
+            // Never render the original subject; shoot only its clone and destroy it whatever the outcome
+            subject.SetActive(false);
+            var previousLightStates = EnableCaptureLights();
+            var icon = await new BlockIconCaptureShot(transform, cameraPrefab, iconSize).TryCapture(subject, debugName, $"1/1 {debugName}");
+            RestoreCaptureLights(previousLightStates);
+            if (Application.isPlaying) Destroy(subject);
+            else DestroyImmediate(subject);
+
+            // BPは実行時に作られるため、撮れない被写体は例外にせずログを残して空を返す
+            // Blueprints are made at runtime, so an unshootable subject logs and returns null instead of throwing
+            if (icon == null) Debug.LogError($"{CaptureLogPrefix} subject has no renderers; capture skipped: {debugName}");
+            return icon;
         }
 
         private async UniTask<List<Texture2D>> CaptureTargets(List<(GameObject prefab, string debugName)> targets)
