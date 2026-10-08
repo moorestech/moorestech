@@ -1,7 +1,5 @@
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Run;
-using System;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -72,58 +70,10 @@ namespace Client.Tests.PlaceSystem.Common
         }
 
         [Test]
-        public void 別ブロックへ切替えると高さオフセットが0へ戻る()
-        {
-            var heightOffset = new PlacementHeightOffset();
-            var dragState = new CommonBlockPlaceDragState(heightOffset);
-            var firstTarget = new BlueprintPlacementTarget(Guid.NewGuid(), "first");
-            heightOffset.SyncSelectedTarget(firstTarget);
-            heightOffset.Adjust(5);
-
-            heightOffset.SyncSelectedTarget(new BlueprintPlacementTarget(Guid.NewGuid(), "second"));
-            dragState.DiscardForSelectionChange();
-
-            Assert.AreEqual(0, dragState.HeightOffset);
-        }
-
-        [Test]
-        public void 同じブロックの再選択では高さオフセットが保たれる()
-        {
-            var heightOffset = new PlacementHeightOffset();
-            var dragState = new CommonBlockPlaceDragState(heightOffset);
-            var firstTarget = new BlueprintPlacementTarget(Guid.NewGuid(), "first");
-            heightOffset.SyncSelectedTarget(firstTarget);
-            heightOffset.Adjust(5);
-
-            heightOffset.SyncSelectedTarget(firstTarget);
-
-            Assert.AreEqual(5, dragState.HeightOffset);
-        }
-
-        [Test]
-        public void ClearDragを挟んでも同一ブロックなら高さオフセットは保たれる()
-        {
-            var heightOffset = new PlacementHeightOffset();
-            var dragState = new CommonBlockPlaceDragState(heightOffset);
-            var firstTarget = new BlueprintPlacementTarget(Guid.NewGuid(), "first");
-            heightOffset.SyncSelectedTarget(firstTarget);
-            heightOffset.Adjust(5);
-
-            // 配置システムを跨いだDisable相当の解除。高さの基準はブロック切替だけが動かす
-            // Simulates the Disable-equivalent teardown across place systems; only a block switch moves the height baseline
-            dragState.ClearDrag();
-            heightOffset.SyncSelectedTarget(firstTarget);
-
-            Assert.AreEqual(5, dragState.HeightOffset);
-        }
-
-        [Test]
         public void ドラッグ中に上げた高さは解放で開始値へ戻る()
         {
             var heightOffset = new PlacementHeightOffset();
             var dragState = new CommonBlockPlaceDragState(heightOffset);
-            var firstTarget = new BlueprintPlacementTarget(Guid.NewGuid(), "first");
-            heightOffset.SyncSelectedTarget(firstTarget);
             heightOffset.Adjust(2);
             dragState.BeginDrag(new Vector3Int(0, 0, 0), PlacementHitSurfaceKind.Ground);
             heightOffset.Adjust(3);

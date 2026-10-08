@@ -1,5 +1,6 @@
 using System;
 using Client.Game.InGame.Block;
+using Client.Tests.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview;
@@ -32,9 +33,11 @@ namespace Client.Tests.PlaceSystem.Common
         private GameObject _sceneObject;
         private Camera _camera;
 
-        [SetUp]
-        public void SetUp()
+        public override void Setup()
         {
+            base.Setup();
+            TestReflection.ResetInputManagerCache();
+
             // MasterHolderを読むのは本番のManualUpdate。ForUnitTest modのマスタで通す
             // The production ManualUpdate reads MasterHolder, so it runs on the ForUnitTest mod master
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
@@ -43,10 +46,14 @@ namespace Client.Tests.PlaceSystem.Common
             _camera = _sceneObject.AddComponent<Camera>();
         }
 
-        [TearDown]
-        public void TearDown()
+        public override void TearDown()
         {
             Object.DestroyImmediate(_sceneObject);
+
+            // 仮想デバイスへ結び付いた入力キャッシュを捨て、後続テストへ持ち越さない
+            // Drop the input cache bound to the virtual devices so it never leaks into later tests
+            TestReflection.ResetInputManagerCache();
+            base.TearDown();
         }
 
         [Test]

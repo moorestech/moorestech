@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Run;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Height;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
@@ -11,9 +11,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Control;
 using Client.Input;
 using Core.Master;
-using Game.Block.Interface;
 using Game.Blueprint;
-using Server.Protocol.PacketResponse;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
@@ -28,15 +26,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
         private readonly PlacementHeightOffset _heightOffset;
         private readonly Camera _mainCamera;
-        private readonly BlueprintPasteDragState _dragState;
+        private readonly CommonBlockPlaceDragState _dragState;
         private BlueprintPastePreviewController _previewController;
         private BlueprintJsonObject _currentBlueprint;
         private int _rotationStep;
         private Vector3Int _footprintSize = Vector3Int.one;
-
-        // 手編集セーブのnull設定は空設定として送る
-        // Send null settings from hand-edited saves as empty settings
-        private static readonly Dictionary<string, string> EmptySettings = new();
 
         public override bool UsesPlacementHeight => true;
 
@@ -46,7 +40,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
             _library = library;
             _blockGameObjectDataStore = blockGameObjectDataStore;
             _heightOffset = heightOffset;
-            _dragState = new BlueprintPasteDragState(heightOffset);
+            _dragState = new CommonBlockPlaceDragState(heightOffset);
         }
 
         public override void Enable()
@@ -63,61 +57,61 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
                 ResolveBlueprint(target.BlueprintGuid);
             }
 
-            // 解放はヒットの有無に関係なく先に畳む
-            // Fold a release before hit testing so a sky release cannot keep a stale drag
-            var releaseStartAnchor = _dragState.GetStartAnchor();
-            var releaseHeightOffset = _heightOffset.Value;
-            var isReleasedDrag = InputManager.Playable.ScreenLeftClick.GetKeyUp && releaseStartAnchor.HasValue && _dragState.EndDrag();
-            if (_currentBlueprint == null)
-            {
-                _previewController.Hide();
-                return;
-            }
+            var isSendable = UpdatePastePreview(out var placements, out var placeableFlags);
 
-            PlacementHeightKeyInput.Apply(_heightOffset);
-            if (InputManager.Playable.BlockPlaceRotation.GetKeyDown) Rotate();
-            if (!PlacementUnitCellResolver.TryGetCursorCell(_mainCamera, isReleasedDrag ? releaseHeightOffset : _heightOffset.Value, out var cursorAnchor))
-            {
-                if (isReleasedDrag) Debug.Log("[BlueprintPaste] release skipped: cursor has no placement surface");
-                _previewController.Hide();
-                return;
-            }
-
-            if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi())
-            {
-                _dragState.BeginDrag(cursorAnchor, _heightOffset.Value);
-                // 押下と解放が同フレームなら、始めたドラッグをその場で畳む
-                // When press and release share a frame, fold the drag just begun
-                if (!isReleasedDrag && InputManager.Playable.ScreenLeftClick.GetKeyUp)
-                {
-                    releaseStartAnchor = _dragState.GetStartAnchor();
-                    releaseHeightOffset = _heightOffset.Value;
-                    isReleasedDrag = _dragState.EndDrag();
-                }
-            }
-            if (!PlaceSystemUtil.IsPlaceableFromPlayer(cursorAnchor))
-            {
-                if (isReleasedDrag) Debug.Log($"[BlueprintPaste] release skipped: cursor {cursorAnchor} is too far from player");
-                _previewController.Hide();
-                feedback.AddTooFar();
-                return;
-            }
-
-            var startAnchor = isReleasedDrag ? releaseStartAnchor.Value : _dragState.ResolveStartAnchor(cursorAnchor);
-            var placements = BlueprintPasteRunBuilder.Build(_currentBlueprint, startAnchor, cursorAnchor, _footprintSize, _rotationStep);
-            var placeableFlags = placements.Select(IsPlaceable).ToList();
-            _previewController.UpdatePreview(placements, placeableFlags);
-            BlueprintPasteOverlapReasonReporter.Report(placeableFlags, feedback);
-
-            // 解放時は設置可能な要素だけ送る
-            // On release, send only placeable elements
-            if (isReleasedDrag)
-            {
-                if (UiPointerHitTest.IsPointerOverAnyUi()) Debug.Log("[BlueprintPaste] release skipped: pointer is over UI");
-                else SendPlace(placements, placeableFlags);
-            }
+            // 解放の畳みと送信可否は通常設置と同じ1つの入口で決める。押下と解放が同フレームでも押下登録の後に畳む
+            // Folding and sending on release share the normal placement's single entry; a same-frame press is registered first
+            if (!_dragState.TryConsumeSendableRelease(InputManager.Playable.ScreenLeftClick.GetKeyUp, isSendable, false)) return;
+            BlueprintPastePlaceSender.SendPlaceable(placements, placeableFlags);
 
             #region Internal
+
+            // 戻り値はこのフレームで解放したら送信できる列があるか
+            // Returns whether a release this frame has a run to send
+            bool UpdatePastePreview(out List<BlueprintPlacementElement> runPlacements, out List<bool> flags)
+            {
+                runPlacements = null;
+                flags = null;
+                if (_currentBlueprint == null)
+                {
+                    _previewController.Hide();
+                    return false;
+                }
+
+                PlacementHeightKeyInput.Apply(_heightOffset);
+                if (InputManager.Playable.BlockPlaceRotation.GetKeyDown) Rotate();
+                if (!PlacementUnitCellResolver.TryGetCursorCell(_mainCamera, _heightOffset.Value, out var cursorAnchor))
+                {
+                    LogReleaseSkipped("cursor has no placement surface");
+                    _previewController.Hide();
+                    return false;
+                }
+
+                if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi()) _dragState.BeginDrag(cursorAnchor, PlacementHitSurfaceKind.Ground);
+                if (!PlaceSystemUtil.IsPlaceableFromPlayer(cursorAnchor))
+                {
+                    LogReleaseSkipped($"cursor {cursorAnchor} is too far from player");
+                    _previewController.Hide();
+                    feedback.AddTooFar();
+                    return false;
+                }
+
+                runPlacements = BlueprintPasteRunBuilder.Build(_currentBlueprint, _dragState.ResolveDragStartCell(cursorAnchor), cursorAnchor, _footprintSize, _rotationStep);
+                flags = runPlacements.Select(IsPlaceable).ToList();
+                _previewController.UpdatePreview(runPlacements, flags);
+                BlueprintPasteOverlapReasonReporter.Report(flags, feedback);
+                if (InputManager.Playable.ScreenLeftClick.GetKeyUp && UiPointerHitTest.IsPointerOverAnyUi())
+                {
+                    LogReleaseSkipped("pointer is over UI");
+                    return false;
+                }
+                return true;
+            }
+
+            void LogReleaseSkipped(string reason)
+            {
+                if (InputManager.Playable.ScreenLeftClick.GetKeyUp && _dragState.IsDragging) Debug.Log($"[BlueprintPaste] release skipped: {reason}");
+            }
 
             void ResolveBlueprint(Guid blueprintGuid)
             {
@@ -144,40 +138,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
             bool IsPlaceable(BlueprintPlacementElement placement)
             {
                 return !_blockGameObjectDataStore.IsOverlapPositionInfo(BlueprintPlacementElementUtil.ToPositionInfo(placement));
-            }
-
-            void SendPlace(List<BlueprintPlacementElement> allPlacements, List<bool> flags)
-            {
-                var placeInfos = new List<PlaceInfo>();
-                for (var i = 0; i < allPlacements.Count; i++)
-                {
-                    if (flags[i]) placeInfos.Add(ToPlaceInfo(allPlacements[i]));
-                }
-
-                if (placeInfos.Count == 0)
-                {
-                    Debug.Log("[BlueprintPaste] release skipped: no placeable blocks");
-                    return;
-                }
-
-                PlaceBlockProtocolSender.SendPlaceBlockProtocol(placeInfos);
-            }
-
-            PlaceInfo ToPlaceInfo(BlueprintPlacementElement placement)
-            {
-                var createParams = (placement.Settings ?? EmptySettings)
-                    .Select(kvp => new BlockCreateParam(kvp.Key, Encoding.UTF8.GetBytes(kvp.Value)))
-                    .ToArray();
-
-                return new PlaceInfo
-                {
-                    Position = placement.Position,
-                    Direction = placement.Direction,
-                    VerticalDirection = BlockVerticalDirection.Horizontal,
-                    BlockId = placement.BlockId,
-                    Placeable = true,
-                    CreateParams = createParams,
-                };
             }
 
             #endregion
