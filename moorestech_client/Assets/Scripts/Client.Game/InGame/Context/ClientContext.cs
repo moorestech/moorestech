@@ -1,4 +1,4 @@
-using Client.Game.InGame.Block;
+using Client.Game.InGame.Block.IconCapture;
 using Client.Network.API;
 using Client.Network.Settings;
 
