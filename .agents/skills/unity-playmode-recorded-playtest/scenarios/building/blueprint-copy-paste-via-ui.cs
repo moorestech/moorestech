@@ -118,17 +118,26 @@ return PlaytestRunner.Run("blueprint-copy-paste-via-ui", options, async p =>
     p.Note("貼り付け: Eでゴーストが1段上がる");
     await checks.SelectEntry(BlueprintCategory, $"build-menu-entry-blueprint-{chestBp.BlueprintGuid:D}");
     await p.AimAt(new Vector3(6.5f, 32f, 6.5f));
+    await UniTask.DelayFrame(3);
+
+    // 浅い俯角の照準はカメラ位置で隣セルへ揺れるため、E前のゴーストを基準に真上へ1段上がることを見る
+    // Shallow-pitch aiming can land on a neighbor cell depending on the camera, so compare against the pre-E ghost
+    var ghostBeforeHeight = checks.ActiveGhostPositions().Single();
+    p.Assert(ghostBeforeHeight.y == 32f, $"E前のゴーストは地表 実際:{ghostBeforeHeight}");
     await p.PressKey(Key.E);
     await UniTask.DelayFrame(3);
     p.Assert(heightOffset.Value == 1, $"貼り付け中のEで高さ1 実際:{heightOffset.Value}");
-    p.Assert(checks.ActiveGhostPositions().Any(pos => pos == new Vector3(6f, 33f, 6f)), $"ゴーストが(6,33,6) 実際:{string.Join(";", checks.ActiveGhostPositions())}");
+    var expectedGhost = ghostBeforeHeight + Vector3.up;
+    p.Assert(checks.ActiveGhostPositions().Any(pos => pos == expectedGhost), $"ゴーストが{expectedGhost} 実際:{string.Join(";", checks.ActiveGhostPositions())}");
     await p.Screenshot("04-paste-height");
     await p.PressKey(Key.Q);
 
-    p.Note("ドラッグ列: (6.5,32,6.5)→(10.5,32,6.5)で5個");
-    await PlaytestUiOps.DragPlace(new Vector3(6.5f, 32f, 6.5f), new Vector3(10.5f, 32f, 6.5f));
-    await p.Until(() => Enumerable.Range(6, 5).All(x => p.GetBlock(new Vector3Int(x, 32, 6)) != null), 20f, "x=6..10 に5個置かれる");
-    await p.WaitBlockGameObject(new Vector3Int(10, 32, 6));
+    // 石窯(10..13,z2..5)がカメラと列の間に入らない位置へ置く（入ると終点が石窯の側面に解決される）
+    // Keep the run clear of the stone oven (10..13, z2..5); otherwise the cursor resolves onto the oven side face
+    p.Note("ドラッグ列: (-1.5,32,12.5)→(2.5,32,12.5)で5個");
+    await PlaytestUiOps.DragPlace(new Vector3(-1.5f, 32f, 12.5f), new Vector3(2.5f, 32f, 12.5f));
+    await p.Until(() => Enumerable.Range(-2, 5).All(x => p.GetBlock(new Vector3Int(x, 32, 12)) != null), 20f, "x=-2..2 に5個置かれる");
+    await p.WaitBlockGameObject(new Vector3Int(2, 32, 12));
     await p.Screenshot("05-drag-run-pasted");
 
     p.Note("サムネイル: コンテナに撮影済みでビルドメニューに画像が出る");
