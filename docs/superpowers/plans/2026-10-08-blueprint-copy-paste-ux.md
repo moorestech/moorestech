@@ -39,7 +39,7 @@
 ## 設計検査記録
 
 - 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反1件・修正1件 / Create失敗の表現をサーバー `BlueprintFailureReason` 拡張からクライアント側 `BlueprintCreateFailure`（前例 `BlueprintDeleteResult`）へ。配置表・死活表は「配置と前例」節
-- Phase 2.6（型閉包・重複・ADR矛盾）: 未実施
+- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強4・弱9・第3バケツ1 / 強4は全て反映または理由付きで据え置き（判断記録参照）、弱は4件反映・5件理由付き据え置き、第3バケツは既存IsOverlapへの委譲で解消
 
 ## 実測根拠（2026-10-08）
 
@@ -92,6 +92,7 @@ worktree `blueprint-copy-paste-ux` の `moorestech_client/PlaytestResults/202610
 // moorestech_server/Assets/Scripts/Game.Blueprint/BlueprintCopyTargetRule.cs
 using System.Collections.Generic;
 using Game.Block.Interface;
+using Game.Block.Interface.Extension;
 using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
@@ -119,15 +120,12 @@ namespace Game.Blueprint
             return !ExcludedBlockTypes.Contains(master.BlockType);
         }
 
-        // 占有セルの一部でも範囲に入れば対象。MinPos/MaxPosは包含境界
-        // Included when any occupied cell intersects the box; MinPos/MaxPos are inclusive bounds
+        // 占有セルの一部でも範囲に入れば対象。範囲を1つの占有情報に見立て既存のAABB交差（IsOverlap）へ委ねる
+        // Included when any occupied cell intersects the box; the box is treated as one footprint and handed to the existing AABB overlap (IsOverlap)
         public static bool IntersectsBox(BlockPositionInfo positionInfo, Vector3Int min, Vector3Int max)
         {
-            var blockMin = positionInfo.MinPos;
-            var blockMax = positionInfo.MaxPos;
-            return blockMin.x <= max.x && min.x <= blockMax.x &&
-                   blockMin.y <= max.y && min.y <= blockMax.y &&
-                   blockMin.z <= max.z && min.z <= blockMax.z;
+            var box = new BlockPositionInfo(min, BlockDirection.North, max - min + Vector3Int.one);
+            return positionInfo.IsOverlap(box);
         }
     }
 }
@@ -312,13 +310,37 @@ git commit -m "feat(blueprint): コピー対象規則を共有化しアンカー
 
 **Files:**
 - Create: `moorestech_server/Assets/Scripts/Game.Blueprint/BlueprintFootprintCalculator.cs`
+- Create: `moorestech_server/Assets/Scripts/Game.Blueprint/BlueprintPlacementElementUtil.cs`
+- Modify: `moorestech_server/Assets/Scripts/Game.Blueprint/BlueprintPasteCalculator.cs:14-19`（マスタに無いGUIDのスキップへ警告ログ）
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/BlueprintFootprintCalculatorTest.cs`
 
 **Interfaces:**
 - Consumes: `BlueprintPasteCalculator.CalculatePlacements(BlueprintJsonObject, Vector3Int, int)`、`BlockPositionInfo(Vector3Int, BlockDirection, Vector3Int)`
-- Produces: `public static class BlueprintFootprintCalculator { static Vector3Int CalcSize(BlueprintJsonObject blueprint, int rotationStep); }`（Task 6 の列間隔）
+- Produces: `public static class BlueprintFootprintCalculator { static Vector3Int CalcSize(BlueprintJsonObject blueprint, int rotationStep); }`（Task 6 の列間隔）、`public static class BlueprintPlacementElementUtil { static BlockPositionInfo ToPositionInfo(BlueprintPlacementElement placement); }`（Task 6 の重なり判定と共用）
 
 - [ ] **Step 1: 実装を書く**
+
+```csharp
+// moorestech_server/Assets/Scripts/Game.Blueprint/BlueprintPlacementElementUtil.cs
+using Core.Master;
+using Game.Block.Interface;
+
+namespace Game.Blueprint
+{
+    /// <summary>
+    ///     配置要素をマスタのサイズ込みの占有情報へ変換する唯一の場所（外形計算と重なり判定が共用）
+    ///     The single conversion from a placement element to its footprint with the master size (shared by footprint and overlap checks)
+    /// </summary>
+    public static class BlueprintPlacementElementUtil
+    {
+        public static BlockPositionInfo ToPositionInfo(BlueprintPlacementElement placement)
+        {
+            var blockSize = MasterHolder.BlockMaster.GetBlockMaster(placement.BlockId).BlockSize;
+            return new BlockPositionInfo(placement.Position, placement.Direction, blockSize);
+        }
+    }
+}
+```
 
 ```csharp
 // moorestech_server/Assets/Scripts/Game.Blueprint/BlueprintFootprintCalculator.cs
@@ -350,8 +372,7 @@ namespace Game.Blueprint
             var max = placements[0].Position;
             foreach (var placement in placements)
             {
-                var blockSize = MasterHolder.BlockMaster.GetBlockMaster(placement.BlockId).BlockSize;
-                var info = new BlockPositionInfo(placement.Position, placement.Direction, blockSize);
+                var info = BlueprintPlacementElementUtil.ToPositionInfo(placement);
                 min = Vector3Int.Min(min, info.MinPos);
                 max = Vector3Int.Max(max, info.MaxPos);
             }
@@ -359,6 +380,16 @@ namespace Game.Blueprint
             return max - min + Vector3Int.one;
         }
     }
+}
+```
+
+`BlueprintPasteCalculator.CalculatePlacements` の `if (blockId == null) continue;` を次にする（無音の縮退禁止。外形計算・範囲計数・サムネイルがこのスキップの上に載る）:
+
+```csharp
+if (blockId == null)
+{
+    Debug.LogWarning($"[BlueprintPaste] block {block.BlockGuidStr} of blueprint {blueprint.BlueprintGuid} is not in the master; skipped");
+    continue;
 }
 ```
 
@@ -420,7 +451,7 @@ Expected: PASS 2件
 - [ ] **Step 4: コミットする**
 
 ```bash
-git add moorestech_server/Assets/Scripts/Game.Blueprint/BlueprintFootprintCalculator.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/BlueprintFootprintCalculatorTest.cs
+git add moorestech_server/Assets/Scripts/Game.Blueprint/BlueprintFootprintCalculator.cs moorestech_server/Assets/Scripts/Game.Blueprint/BlueprintPlacementElementUtil.cs moorestech_server/Assets/Scripts/Game.Blueprint/BlueprintPasteCalculator.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/BlueprintFootprintCalculatorTest.cs
 git commit -m "feat(blueprint): 回転後のBP外形寸法を計算する BlueprintFootprintCalculator を追加"
 ```
 
@@ -433,6 +464,8 @@ git commit -m "feat(blueprint): 回転後のBP外形寸法を計算する Bluepr
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Common/CommonBlockPlacePointCalculator.cs:30-110`
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Common/PlacementHeightKeyInput.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Common/CommonBlockPlaceDragState.cs:36-42`
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/PlaceSystemStateController.cs:95-110`（対象変更で高さを地表へ戻す）
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/PlaceSystemStateControllerHeightResetTest.cs`
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/PlacementUnitCellResolverTest.cs`
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/PlacementRunPositionCalculatorTest.cs`
 
@@ -632,6 +665,78 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
 `CommonBlockPlaceDragState.UpdateHeightOffsetByInput()` の本体を `PlacementHeightKeyInput.Apply(_heightOffset);` に置き換える（`AdjustHeightOffset` はそのまま）。
 
+`PlaceSystemStateController.ManualUpdate` の `var isSelectionChanged = ...; _lastTarget = CurrentTarget;` の直後に次を足す（高さを0へ戻す書き手を設置系へ散らさず、ここ1本にする。既存の「高さを持たない系へ移ったら戻す」はそのまま）:
+
+```csharp
+// 設置対象が変わったら高さは地表基準へ戻す（ブロックの持ち替えもBPの持ち替えも同じ）。設置系側はResetToGroundを呼ばない
+// A target change returns the height to ground level (swapping blocks or blueprints alike); place systems never call ResetToGround themselves
+if (isSelectionChanged) _placementHeightOffset.ResetToGround();
+```
+
+```csharp
+// moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/PlaceSystemStateControllerHeightResetTest.cs
+using System;
+using System.Collections.Generic;
+using Client.Game.InGame.BlockSystem.PlaceSystem;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
+using Game.PlacementTarget;
+using NUnit.Framework;
+
+namespace Client.Tests.PlaceSystem
+{
+    // 対象の持ち替えで高さが地表へ戻ること（書き手はコントローラ1本）
+    // A target swap returns the height to ground (the controller is the single writer)
+    public class PlaceSystemStateControllerHeightResetTest
+    {
+        [Test]
+        public void 対象が変わると高さが0へ戻る()
+        {
+            var heightOffset = new PlacementHeightOffset();
+            var placeSystem = new HeightPlaceSystem();
+            var controller = new PlaceSystemStateController(new SingleSelector(placeSystem), new NullPresenter(), heightOffset);
+
+            controller.SetTarget(new BlueprintPlacementTarget(Guid.NewGuid(), "a"), PlacementOrigin.NonHotbar);
+            controller.ManualUpdate();
+            heightOffset.Adjust(2);
+            controller.ManualUpdate();
+            Assert.AreEqual(2, heightOffset.Value);
+
+            controller.SetTarget(new BlueprintPlacementTarget(Guid.NewGuid(), "b"), PlacementOrigin.NonHotbar);
+            controller.ManualUpdate();
+            Assert.AreEqual(0, heightOffset.Value);
+        }
+
+        private class HeightPlaceSystem : IPlaceSystem
+        {
+            public bool OwnsWheelInput => false;
+            public bool UsesPlacementHeight => true;
+            public void Enable() { }
+            public void ManualUpdate(PlaceSystemUpdateContext context) { }
+            public void Disable() { }
+            public bool TryCancelInProgressOperation() => false;
+        }
+
+        private class SingleSelector : IPlaceSystemSelector
+        {
+            private readonly IPlaceSystem _placeSystem;
+            public SingleSelector(IPlaceSystem placeSystem) { _placeSystem = placeSystem; }
+            public IPlaceSystem EmptyPlaceSystem { get; } = new Client.Game.InGame.BlockSystem.PlaceSystem.Empty.EmptyPlaceSystem();
+            public IPlaceSystem GetCurrentPlaceSystem(PlaceSystemUpdateContext context) => _placeSystem;
+        }
+
+        private class NullPresenter : IPlacementFeedbackPresenter
+        {
+            public void Present(PlacementFeedback feedback) { }
+            public void Hide() { }
+        }
+    }
+}
+```
+
+（`PlacementOrigin.NonHotbar` と `BlueprintPlacementTarget(Guid, string)` は既存。`SetTarget` は public）
+
 - [ ] **Step 5: テストを書く**
 
 ```csharp
@@ -713,14 +818,14 @@ namespace Client.Tests.PlaceSystem
 
 - [ ] **Step 6: コンパイルしテストを実行する**
 
-Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "PlacementUnitCellResolverTest|PlacementRunPositionCalculatorTest|PlaceSystemUtilCalcPlacePointTest|CommonBlockPlace"`
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "PlacementUnitCellResolverTest|PlacementRunPositionCalculatorTest|PlaceSystemUtilCalcPlacePointTest|CommonBlockPlace|PlaceSystemStateController"`
 Expected: ErrorCount 0 / 全PASS（既存の `PlaceSystemUtilCalcPlacePointTest` が委譲後も通る）
 
 - [ ] **Step 7: コミットする**
 
 ```bash
-git add moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Util moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Common moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem
-git commit -m "refactor(place): 1x1セル解決・列位置計算・Q/E入力を共通化しBPから使えるようにする"
+git add moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Util moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Common moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/PlaceSystemStateController.cs moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem
+git commit -m "refactor(place): 1x1セル解決・列位置計算・Q/E入力を共通化し、持ち替え時の高さ復帰をコントローラ1本にする"
 ```
 
 ### Task 4: 辞書・ツールチップ行・Create失敗の可視化
@@ -738,7 +843,8 @@ git commit -m "refactor(place): 1x1セル解決・列位置計算・Q/E入力を
 - Produces:
   - 辞書キー `LocalizationKeys.Ui.Tooltip.BlueprintCopyBlocksInRange`（{p0}）、`LocalizationKeys.Ui.Tooltip.BlueprintCopyEmptyRange`、`LocalizationKeys.Ui.Notification.BlueprintCreateFailed`（{p0}）
   - `public static class BlueprintCopyFeedbackLines { static void ReportBlocksInRange(int count, PlacementFeedback feedback); }`
-  - `public enum BlueprintCreateFailure { None, RequestFailed, NotUnlocked, InvalidName, EmptyArea, InvalidRequest, Unknown }`、`public readonly struct BlueprintCreateResult { bool Success; Guid BlueprintGuid; BlueprintCreateFailure Failure; }`、`UniTask<BlueprintCreateResult> ClientBlueprintLibrary.CreateBlueprint(string name, Vector3Int min, Vector3Int max, CancellationToken ct)`（前例: 同ファイルの `BlueprintDeleteResult`）
+  - `public enum BlueprintCreateFailure { None, RequestFailed, NotUnlocked, InvalidName, EmptyArea, InvalidRequest, Unknown }`、`public readonly struct BlueprintCreateResult { BlueprintCreateFailure Failure; Guid BlueprintGuid; bool Success => Failure == None; }`（判別子は `Failure` 1本。`Success` は派生）
+  - `bool ClientBlueprintLibrary.TryGetBlueprint(Guid blueprintGuid, out BlueprintJsonObject blueprint)`（Task 6/7 が共用。見つからなければ理由をログ）、`UniTask<BlueprintCreateResult> ClientBlueprintLibrary.CreateBlueprint(string name, Vector3Int min, Vector3Int max, CancellationToken ct)`（前例: 同ファイルの `BlueprintDeleteResult`）
 
 - [ ] **Step 1: 辞書行を足す（`Localization/localization.csv` 末尾）**
 
@@ -797,19 +903,20 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
 
     public readonly struct BlueprintCreateResult
     {
-        public readonly bool Success;
-        public readonly Guid BlueprintGuid;
+        // 判別子はFailure1本。成功はFailure==Noneの派生で、BlueprintGuidは成功時だけ意味を持つ
+        // Failure is the single discriminator; Success derives from it and BlueprintGuid only means something on success
         public readonly BlueprintCreateFailure Failure;
+        public readonly Guid BlueprintGuid;
+        public bool Success => Failure == BlueprintCreateFailure.None;
 
-        private BlueprintCreateResult(bool success, Guid blueprintGuid, BlueprintCreateFailure failure)
+        private BlueprintCreateResult(BlueprintCreateFailure failure, Guid blueprintGuid)
         {
-            Success = success;
-            BlueprintGuid = blueprintGuid;
             Failure = failure;
+            BlueprintGuid = blueprintGuid;
         }
 
-        public static BlueprintCreateResult Succeeded(Guid blueprintGuid) => new(true, blueprintGuid, BlueprintCreateFailure.None);
-        public static BlueprintCreateResult RequestFailed() => new(false, Guid.Empty, BlueprintCreateFailure.RequestFailed);
+        public static BlueprintCreateResult Succeeded(Guid blueprintGuid) => new(BlueprintCreateFailure.None, blueprintGuid);
+        public static BlueprintCreateResult RequestFailed() => new(BlueprintCreateFailure.RequestFailed, Guid.Empty);
 
         public static BlueprintCreateResult Rejected(BlueprintFailureReason reason)
         {
@@ -821,7 +928,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
                 BlueprintFailureReason.InvalidRequest => BlueprintCreateFailure.InvalidRequest,
                 _ => BlueprintCreateFailure.Unknown,
             };
-            return new BlueprintCreateResult(false, Guid.Empty, failure);
+            return new BlueprintCreateResult(failure, Guid.Empty);
         }
     }
 }
@@ -843,6 +950,24 @@ public async UniTask<BlueprintCreateResult> CreateBlueprint(string name, Vector3
     return response.Success
         ? BlueprintCreateResult.Succeeded(Guid.Parse(response.RegisteredGuidStr))
         : BlueprintCreateResult.Rejected(response.FailureReason);
+}
+```
+
+`ClientBlueprintLibrary` に次を足す（Task 6 の解決と Task 7 の撮影が共用。見つからない＝削除済み/未同期をログに残す）:
+
+```csharp
+public bool TryGetBlueprint(Guid blueprintGuid, out BlueprintJsonObject blueprint)
+{
+    foreach (var pack in _blueprints)
+    {
+        if (pack.BlueprintGuid != blueprintGuid) continue;
+        blueprint = pack.ToJsonObject();
+        return true;
+    }
+
+    Debug.Log($"[ClientBlueprintLibrary] blueprint {blueprintGuid} is not in the cache (deleted or not yet synced)");
+    blueprint = null;
+    return false;
 }
 ```
 
@@ -913,8 +1038,8 @@ git commit -m "feat(blueprint): 範囲内ブロック数のツールチップ行
 **Interfaces:**
 - Consumes: Task 1 `BlueprintCopyTargetRule`、Task 3 `PlacementUnitCellResolver.TryGetCursorCell`・`PlacementHeightKeyInput.Apply`、Task 4 `BlueprintCopyFeedbackLines`・`BlueprintCreateResult`、`BlueprintNameInputState.Open/Close/OnConfirm/OnCancel`、`PlacementHeightOffset.Value/ResetToGround`、`BlockGameObjectDataStore.BlockGameObjectByInstanceIdDictionary`
 - Produces:
-  - `public enum BlueprintCopyPhase { SelectingStart, SelectingEnd, AwaitingName }`
-  - `public class BlueprintCopySelection { BlueprintCopyPhase Phase; Vector3Int StartCell; Vector3Int EndCell; void SelectStart(Vector3Int); void SelectEnd(Vector3Int); void ReturnToEndSelection(); void Clear(); static (Vector3Int min, Vector3Int max) CalcBox(Vector3Int a, Vector3Int b); }`
+  - `public enum BlueprintCopyPhase { SelectingStart, SelectingEnd, AwaitingName, Creating }`
+  - `public class BlueprintCopySelection { BlueprintCopyPhase Phase; Vector3Int StartCell; Vector3Int EndCell; void SelectStart(Vector3Int); void SelectEnd(Vector3Int); void ReturnToEndSelection(); void BeginCreate(); void Clear(); static (Vector3Int min, Vector3Int max) CalcBox(Vector3Int a, Vector3Int b); }`（`Creating` は送信中。次の始点を受け付けない）
   - `public static class BlueprintCopyRangeCounter { static int Count(IEnumerable<(BlockMasterElement master, BlockPositionInfo position)> blocks, Vector3Int min, Vector3Int max); }`
   - `public class BlueprintCopyClickInput { bool TryConsumeClick(); }`（押下を登録してから解放で1回だけ true。ビルドメニュー選択クリックの解放漏れを無視する）
   - `public class BlueprintCopyRangeVisualizer { void ShowSelectingStart(Vector3Int hoverCell); void ShowSelectingEnd(Vector3Int startCell, Vector3Int hoverCell, Vector3Int min, Vector3Int max); void ShowAwaitingName(Vector3Int startCell, Vector3Int endCell, Vector3Int min, Vector3Int max); void ShowStartOnly(Vector3Int startCell); void HideAll(); }`（GameObject名: `BlueprintCopyStartMarker` / `BlueprintCopyEndMarker` / `BlueprintCopyRangeBox`）
@@ -933,6 +1058,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Copy
         SelectingStart,
         SelectingEnd,
         AwaitingName,
+        Creating,
     }
 
     /// <summary>
@@ -965,6 +1091,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Copy
         {
             if (Phase != BlueprintCopyPhase.AwaitingName) throw new InvalidOperationException($"ReturnToEndSelection in {Phase}");
             Phase = BlueprintCopyPhase.SelectingEnd;
+        }
+
+        // 名前確定で送信中へ。応答が返るまで次の始点を受け付けない（ADR 0076）
+        // Confirming the name enters Creating; no new start is accepted until the reply arrives (ADR 0076)
+        public void BeginCreate()
+        {
+            if (Phase != BlueprintCopyPhase.AwaitingName) throw new InvalidOperationException($"BeginCreate in {Phase}");
+            Phase = BlueprintCopyPhase.Creating;
         }
 
         public void Clear()
@@ -1207,11 +1341,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Copy
             _visualizer ??= new BlueprintCopyRangeVisualizer();
             _selection.Clear();
             _clickInput.Reset();
-            _heightOffset.ResetToGround();
         }
 
         protected override void ManualUpdate(BlueprintCopyPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback)
         {
+            // 送信中は入力も表示も止める（応答で選択が畳まれる）
+            // While sending, take no input and show nothing (the reply folds the selection)
+            if (_selection.Phase == BlueprintCopyPhase.Creating)
+            {
+                _visualizer.HideAll();
+                return;
+            }
+
             // 名前入力中は選択を凍結し表示だけ保つ
             // While the name dialog is open, freeze the selection and keep the visuals
             if (_selection.Phase == BlueprintCopyPhase.AwaitingName)
@@ -1295,10 +1436,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Copy
         private async UniTaskVoid CreateAndReset(string name)
         {
             var (min, max) = BlueprintCopySelection.CalcBox(_selection.StartCell, _selection.EndCell);
-            _selection.Clear();
-            _visualizer?.HideAll();
+            _selection.BeginCreate();
 
             var result = await _library.CreateBlueprint(name, min, max, CancellationToken.None);
+
+            // 応答後に畳む。Disableで既にClear済みなら二重に畳まない
+            // Fold after the reply; if Disable already cleared it, do not fold twice
+            if (_selection.Phase == BlueprintCopyPhase.Creating) _selection.Clear();
             if (result.Success) return;
 
             // サーバー拒否・通信失敗はログと通知の両方へ（最終防衛。通常は範囲内0をクライアントで弾く）
@@ -1338,6 +1482,12 @@ namespace Client.Tests.PlaceSystem
             selection.ReturnToEndSelection();
             Assert.AreEqual(BlueprintCopyPhase.SelectingEnd, selection.Phase);
             Assert.AreEqual(new Vector3Int(4, 32, 4), selection.StartCell);
+
+            selection.SelectEnd(new Vector3Int(0, 33, 0));
+            selection.BeginCreate();
+            Assert.AreEqual(BlueprintCopyPhase.Creating, selection.Phase);
+            selection.Clear();
+            Assert.AreEqual(BlueprintCopyPhase.SelectingStart, selection.Phase);
         }
 
         [Test]
@@ -1354,6 +1504,7 @@ namespace Client.Tests.PlaceSystem
             var selection = new BlueprintCopySelection();
             Assert.Throws<InvalidOperationException>(() => selection.SelectEnd(Vector3Int.zero));
             Assert.Throws<InvalidOperationException>(() => selection.ReturnToEndSelection());
+            Assert.Throws<InvalidOperationException>(() => selection.BeginCreate());
         }
     }
 }
@@ -1580,7 +1731,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
         {
             _rotationStep = 0;
             _previewController ??= new BlueprintPastePreviewController(new GameObject("BlueprintPastePreview").transform);
-            _heightOffset.ResetToGround();
         }
 
         protected override void ManualUpdate(BlueprintPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback)
@@ -1628,8 +1778,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
 
             void ResolveBlueprint(Guid blueprintGuid)
             {
-                var pack = _library.Blueprints.FirstOrDefault(b => b.BlueprintGuid == blueprintGuid);
-                _currentBlueprint = pack?.ToJsonObject();
+                // 見つからない理由（削除済み/未同期）はライブラリ側がログに残す
+                // The library logs why a lookup misses (deleted or not yet synced)
+                _currentBlueprint = _library.TryGetBlueprint(blueprintGuid, out var blueprint) ? blueprint : null;
                 if (_currentBlueprint != null) _footprintSize = BlueprintFootprintCalculator.CalcSize(_currentBlueprint, _rotationStep);
             }
 
@@ -1641,9 +1792,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
 
             bool IsPlaceable(BlueprintPlacementElement placement)
             {
-                var blockSize = MasterHolder.BlockMaster.GetBlockMaster(placement.BlockId).BlockSize;
-                var positionInfo = new BlockPositionInfo(placement.Position, placement.Direction, blockSize);
-                return !_blockGameObjectDataStore.IsOverlapPositionInfo(positionInfo);
+                return !_blockGameObjectDataStore.IsOverlapPositionInfo(BlueprintPlacementElementUtil.ToPositionInfo(placement));
             }
 
             void SendPlace(List<BlueprintPlacementElement> allPlacements, List<bool> flags)
@@ -1755,13 +1904,16 @@ git commit -m "feat(blueprint): 貼り付けにQ/E高さとドラッグ列設置
 ### Task 7: サムネイル: 撮影・保持・配信・DTO・Web契約
 
 **Files:**
-- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Context/ClientContext.cs`（プロパティ2つ・ctor引数2つ追加）
-- Modify: `moorestech_client/Assets/Scripts/Client.Starter/InitializeScenePipeline.cs:154`（DontDestroyOnLoad と ClientContext 引数）
-- Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/Context/BlueprintThumbnailContainer.cs`
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Context/ClientContext.cs`（`BlockIconImagePhotographer` プロパティ・ctor引数追加）
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Context/ClientDIContext.cs`（`IBlueprintThumbnailLookup BlueprintThumbnailLookup` を解決して静的公開）
+- Modify: `moorestech_client/Assets/Scripts/Client.Starter/InitializeScenePipeline.cs:154`（DontDestroyOnLoad・隔離位置への退避・ClientContext 引数）
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Block/BlockIconImagePhotographer.cs:57-61`（複製の配置を `localPosition` に。撮影器を隔離位置へ置けるようにする）
+- Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Blueprint/Thumbnail/IBlueprintThumbnailLookup.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Blueprint/Thumbnail/BlueprintThumbnailContainer.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Blueprint/Thumbnail/BlueprintThumbnailSyncPlanner.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Blueprint/Thumbnail/BlueprintThumbnailSubjectBuilder.cs`
-- Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Blueprint/Thumbnail/BlueprintThumbnailRenderer.cs`
-- Modify: `moorestech_client/Assets/Scripts/Client.Starter/Registration/MainGameInteractionRegistration.cs`（`builder.RegisterEntryPoint<BlueprintThumbnailRenderer>();` を `RegisterPlacement` 末尾へ）
+- Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Blueprint/Thumbnail/BlueprintThumbnailRenderer.cs`（`Photograph` は撮れないとき null を返し `Sync` が登録を飛ばす。null は「撮れなかった」の1意味だけで、ログは `TryBuild` が出す）
+- Modify: `moorestech_client/Assets/Scripts/Client.Starter/Registration/MainGameInteractionRegistration.cs`（`builder.Register<BlueprintThumbnailContainer>(Lifetime.Singleton).AsSelf().As<IBlueprintThumbnailLookup>();` と `builder.RegisterEntryPoint<BlueprintThumbnailRenderer>();` を `RegisterPlacement` 末尾へ）
 - Create: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Icons/BlueprintIconSource.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Icons/IconEndpoint.cs:19-26`（`_sources` へ追加）
 - Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BuildMenu/BuildMenuEntryDtoFactory.cs:143-156`（`ResolveIconUrl`）
@@ -1774,29 +1926,52 @@ git commit -m "feat(blueprint): 貼り付けにQ/E高さとドラッグ列設置
 **Interfaces:**
 - Consumes: `BlockIconImagePhotographer.TakeIconImages(List<(GameObject prefab, string debugName)>)`、`ClientContext.BlockGameObjectPrefabContainer.CreateBlockGameObject(BlockId, Vector3, Quaternion)`、`SlopeBlockPlaceSystem.GetBlockPositionToPlacePosition`、`BlueprintPasteCalculator.CalculatePlacements`、`ClientBlueprintLibrary.Blueprints/OnChanged`
 - Produces:
-  - `public class BlueprintThumbnailContainer { IObservable<Guid> OnThumbnailChanged; bool Contains(Guid); bool TryGet(Guid, out Texture2D); IReadOnlyCollection<Guid> Guids; void Add(Guid, Texture2D); void Remove(Guid); }`
-  - `ClientContext.BlueprintThumbnailContainer`（static get）、`ClientContext.BlockIconImagePhotographer`（static get）
+  - `public interface IBlueprintThumbnailLookup { IObservable<Guid> OnThumbnailChanged; bool Contains(Guid); bool TryGet(Guid, out Texture2D); IReadOnlyCollection<Guid> Guids; }`（読み取り面。配信・DTO・トピックはこれだけを見る）
+  - `public class BlueprintThumbnailContainer : IBlueprintThumbnailLookup { void Add(Guid, Texture2D); void Remove(Guid); }`（書き手は `BlueprintThumbnailRenderer` だけ。DI注入のみで static 公開しない）
+  - `ClientDIContext.BlueprintThumbnailLookup`（static get、`IBlueprintThumbnailLookup`）、`ClientContext.BlockIconImagePhotographer`（static get）
   - `public readonly struct BlueprintThumbnailSyncPlan { IReadOnlyList<Guid> ToRender; IReadOnlyList<Guid> ToRemove; }`、`public static class BlueprintThumbnailSyncPlanner { static BlueprintThumbnailSyncPlan Plan(IReadOnlyList<Guid> libraryGuids, IReadOnlyCollection<Guid> cachedGuids); }`
-  - `public static class BlueprintThumbnailSubjectBuilder { static GameObject Build(BlueprintJsonObject blueprint); }`
+  - `public static class BlueprintThumbnailSubjectBuilder { static bool TryBuild(BlueprintJsonObject blueprint, Transform parent, out GameObject subject); }`（解決できた配置が0件なら false＋`Debug.LogError`。被写体は撮影器の直下にローカル原点で組む）
   - `public class BlueprintThumbnailRenderer : IInitializable, IDisposable`
   - `public class BlueprintIconSource : IIconTextureSource { const string PathPrefixConst = "/api/blueprint-icons/"; }`
 
 - [ ] **Step 1: 保持コンテナと ClientContext**
 
 ```csharp
-// moorestech_client/Assets/Scripts/Client.Game/InGame/Context/BlueprintThumbnailContainer.cs
+// Blueprint/Thumbnail/IBlueprintThumbnailLookup.cs
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Thumbnail
+{
+    /// <summary>
+    ///     サムネイルの読み取り面。配信・DTO・トピックはここだけを見る（書き手は撮影側のみ）
+    ///     The read side of thumbnails; delivery, DTOs and topics see only this (the photographer side is the sole writer)
+    /// </summary>
+    public interface IBlueprintThumbnailLookup
+    {
+        IObservable<Guid> OnThumbnailChanged { get; }
+        IReadOnlyCollection<Guid> Guids { get; }
+        bool Contains(Guid blueprintGuid);
+        bool TryGet(Guid blueprintGuid, out Texture2D thumbnail);
+    }
+}
+```
+
+```csharp
+// Blueprint/Thumbnail/BlueprintThumbnailContainer.cs
 using System;
 using System.Collections.Generic;
 using UniRx;
 using UnityEngine;
 
-namespace Client.Game.InGame.Context
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Thumbnail
 {
     /// <summary>
-    ///     保存済みBPのサムネイルをGuidキーで保持する。無い＝まだ撮影していない（配信側はURLを出さない）
-    ///     Holds saved-blueprint thumbnails by GUID; absent means not photographed yet (the delivery side emits no URL)
+    ///     保存済みBPのサムネイルをGuidキーで保持する。未撮影のGuidは持たない
+    ///     Holds saved-blueprint thumbnails by GUID; GUIDs not yet photographed are absent
     /// </summary>
-    public class BlueprintThumbnailContainer
+    public class BlueprintThumbnailContainer : IBlueprintThumbnailLookup
     {
         private readonly Dictionary<Guid, Texture2D> _thumbnails = new();
         private readonly Subject<Guid> _onThumbnailChanged = new();
@@ -1822,15 +1997,18 @@ namespace Client.Game.InGame.Context
 }
 ```
 
-`ClientContext` に `public static BlueprintThumbnailContainer BlueprintThumbnailContainer { get; private set; }` と `public static BlockIconImagePhotographer BlockIconImagePhotographer { get; private set; }` を追加し、ctor 末尾に `BlueprintThumbnailContainer blueprintThumbnailContainer, BlockIconImagePhotographer blockIconImagePhotographer` を足して代入する（`using Client.Game.InGame.Block;`）。
+`BlockIconImagePhotographer.GetIcon` の `captureTarget.transform.position = Vector3.zero;` を `captureTarget.transform.localPosition = Vector3.zero;` に変える（初期化シーンでは撮影器が原点にあるため結果は同じ。主シーンでは隔離位置に従う。カメラ位置は複製のレンダラー境界から求めるため変更不要）。
+
+`ClientContext` に `public static BlockIconImagePhotographer BlockIconImagePhotographer { get; private set; }` を追加し、ctor 末尾に `BlockIconImagePhotographer blockIconImagePhotographer` を足して代入する（`using Client.Game.InGame.Block;`）。`ClientDIContext` に `public static IBlueprintThumbnailLookup BlueprintThumbnailLookup { get; private set; }` を追加し、ctor で `diContainer.DIContainerResolver.Resolve<IBlueprintThumbnailLookup>()` を代入する（前例: 同ctorの `BuildOperationHistory`）。
 
 `InitializeScenePipeline` の `new ClientContext(...)` 直前に次を置く:
 
 ```csharp
-// 撮影器を主シーンへ持ち越す。BPサムネイルはゲーム中に撮るため初期化シーンと寿命を分ける
-// Carry the photographer into the main scene; blueprint thumbnails are shot during play, so it outlives the init scene
+// 撮影器を主シーンへ持ち越し、地形や既設ブロックが写り込まない隔離位置へ退避する（被写体と複製は撮影器直下のローカル原点に置かれる）
+// Carry the photographer into the main scene and park it where terrain and placed blocks cannot appear (subjects and clones sit at its local origin)
 DontDestroyOnLoad(blockIconImagePhotographer.gameObject);
-new ClientContext(assetResult.BlockGameObjectPrefabContainer, assetResult.ItemImageContainer, assetResult.BlockImageContainer, assetResult.TrainCarImageContainer, assetResult.ConnectToolImageContainer, assetResult.FluidImageContainer, serverResult.PlayerConnectionSetting, serverResult.VanillaApi, new BlueprintThumbnailContainer(), blockIconImagePhotographer);
+blockIconImagePhotographer.transform.position = new Vector3(0f, -5000f, 0f);
+new ClientContext(assetResult.BlockGameObjectPrefabContainer, assetResult.ItemImageContainer, assetResult.BlockImageContainer, assetResult.TrainCarImageContainer, assetResult.ConnectToolImageContainer, assetResult.FluidImageContainer, serverResult.PlayerConnectionSetting, serverResult.VanillaApi, blockIconImagePhotographer);
 ```
 
 - [ ] **Step 2: 同期計画（純ロジック）と撮影対象の組み立て**
@@ -1896,13 +2074,25 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Thumbnail
     /// </summary>
     public static class BlueprintThumbnailSubjectBuilder
     {
-        public static GameObject Build(BlueprintJsonObject blueprint)
+        public static bool TryBuild(BlueprintJsonObject blueprint, Transform parent, out GameObject subject)
         {
-            var root = new GameObject($"BlueprintThumbnailSubject:{blueprint.Name}");
+            var placements = BlueprintPasteCalculator.CalculatePlacements(blueprint, Vector3Int.zero, 0);
 
-            // 実設置と同じ座標変換（グリッド原点→モデル原点）で並べる
-            // Lay out with the same grid-to-model-origin conversion as real placement
-            foreach (var placement in BlueprintPasteCalculator.CalculatePlacements(blueprint, Vector3Int.zero, 0))
+            // 全ブロックがマスタから消えたBPは被写体が空で撮影器が例外を投げるため、撮らずに理由を残す（以後のBPを止めない）
+            // A blueprint whose blocks all vanished from the master has an empty subject and the photographer throws, so skip it with a reason (never stall later blueprints)
+            if (placements.Count == 0)
+            {
+                Debug.LogError($"[BlueprintThumbnail] blueprint {blueprint.BlueprintGuid} ({blueprint.Name}) has no resolvable blocks; thumbnail skipped");
+                subject = null;
+                return false;
+            }
+
+            subject = new GameObject($"BlueprintThumbnailSubject:{blueprint.Name}");
+            subject.transform.SetParent(parent, false);
+
+            // 実設置と同じ座標変換（グリッド原点→モデル原点）で、撮影器直下のローカル座標に並べる
+            // Lay out with the same grid-to-model-origin conversion as real placement, in the photographer's local space
+            foreach (var placement in placements)
             {
                 // プレファブ欠損は被写体から外して続ける（例外で撮影が止まると以降のBPが全て未撮影のまま固まる）
                 // A missing prefab is left out and the shot continues (an exception here would stall every later thumbnail)
@@ -1913,12 +2103,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Thumbnail
                 }
 
                 var position = SlopeBlockPlaceSystem.GetBlockPositionToPlacePosition(placement.Position, placement.Direction, placement.BlockId);
-                var block = ClientContext.BlockGameObjectPrefabContainer.CreateBlockGameObject(placement.BlockId, position, placement.Direction.GetRotation());
-                block.transform.SetParent(root.transform, true);
+                var block = ClientContext.BlockGameObjectPrefabContainer.CreateBlockGameObject(placement.BlockId, Vector3.zero, placement.Direction.GetRotation());
+                block.transform.SetParent(subject.transform, false);
+                block.transform.localPosition = position;
                 block.SetActive(true);
             }
 
-            return root;
+            return true;
         }
     }
 }
@@ -1946,13 +2137,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Thumbnail
     public class BlueprintThumbnailRenderer : IInitializable, IDisposable
     {
         private readonly ClientBlueprintLibrary _library;
+        private readonly BlueprintThumbnailContainer _container;
         private readonly CompositeDisposable _subscriptions = new();
         private bool _isRendering;
         private bool _isRerunRequested;
 
-        public BlueprintThumbnailRenderer(ClientBlueprintLibrary library)
+        public BlueprintThumbnailRenderer(ClientBlueprintLibrary library, BlueprintThumbnailContainer container)
         {
             _library = library;
+            _container = container;
         }
 
         public void Initialize()
@@ -1970,14 +2163,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Thumbnail
             if (_isRendering) { _isRerunRequested = true; return; }
             _isRendering = true;
 
-            var container = ClientContext.BlueprintThumbnailContainer;
-            var plan = BlueprintThumbnailSyncPlanner.Plan(_library.Blueprints.Select(b => b.BlueprintGuid).ToList(), container.Guids.ToList());
-            foreach (var guid in plan.ToRemove) container.Remove(guid);
+            var plan = BlueprintThumbnailSyncPlanner.Plan(_library.Blueprints.Select(b => b.BlueprintGuid).ToList(), _container.Guids.ToList());
+            foreach (var guid in plan.ToRemove) _container.Remove(guid);
             foreach (var guid in plan.ToRender)
             {
-                var pack = _library.Blueprints.FirstOrDefault(b => b.BlueprintGuid == guid);
-                if (pack == null) continue;
-                container.Add(guid, await Photograph(pack.ToJsonObject()));
+                if (!_library.TryGetBlueprint(guid, out var blueprint)) continue;
+                var thumbnail = await Photograph(blueprint);
+
+                // 撮れなかったBPは未登録のまま（名前表示に留まる）。理由はTryBuildがログ済み
+                // A blueprint that could not be shot stays unregistered (name display); TryBuild already logged why
+                if (thumbnail == null) continue;
+                _container.Add(guid, thumbnail);
             }
 
             _isRendering = false;
@@ -1992,8 +2188,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Thumbnail
             // Batch runs do not render and use the placeholder (same as ModAssetIconLoader)
             if (Application.isBatchMode) return Texture2D.whiteTexture;
 
-            var subject = BlueprintThumbnailSubjectBuilder.Build(blueprint);
-            var textures = await ClientContext.BlockIconImagePhotographer.TakeIconImages(new List<(GameObject prefab, string debugName)> { (subject, blueprint.Name) });
+            var photographer = ClientContext.BlockIconImagePhotographer;
+            if (!BlueprintThumbnailSubjectBuilder.TryBuild(blueprint, photographer.transform, out var subject)) return null;
+            var textures = await photographer.TakeIconImages(new List<(GameObject prefab, string debugName)> { (subject, blueprint.Name) });
             UnityEngine.Object.Destroy(subject);
             return textures[0];
         }
@@ -2001,7 +2198,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Thumbnail
 }
 ```
 
-`MainGameInteractionRegistration.RegisterPlacement` 末尾に `builder.RegisterEntryPoint<BlueprintThumbnailRenderer>();`（`using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Thumbnail;`）。
+`MainGameInteractionRegistration.RegisterPlacement` 末尾に `builder.Register<BlueprintThumbnailContainer>(Lifetime.Singleton).AsSelf().As<IBlueprintThumbnailLookup>();` と `builder.RegisterEntryPoint<BlueprintThumbnailRenderer>();`（`using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Thumbnail;`）。
 
 - [ ] **Step 4: 配信ソース・DTO・トピックの再配信**
 
@@ -2023,7 +2220,9 @@ namespace Client.WebUiHost.Game.Icons
 
         public string PathPrefix => PathPrefixConst;
 
-        public bool IsReady => ClientContext.BlueprintThumbnailContainer != null;
+        // 主ゲームのDIが組み上がるまで（ClientDIContext未設定）は503で待たせる
+        // Until the main game's DI is built (ClientDIContext unset) answer 503
+        public bool IsReady => ClientDIContext.BlueprintThumbnailLookup != null;
 
         public bool IsValidKey(string keyText)
         {
@@ -2033,7 +2232,7 @@ namespace Client.WebUiHost.Game.Icons
         public Texture2D ResolveOrNull(string keyText)
         {
             if (!Guid.TryParse(keyText, out var blueprintGuid)) return null;
-            return ClientContext.BlueprintThumbnailContainer.TryGet(blueprintGuid, out var thumbnail) ? thumbnail : null;
+            return ClientDIContext.BlueprintThumbnailLookup.TryGet(blueprintGuid, out var thumbnail) ? thumbnail : null;
         }
     }
 }
@@ -2047,14 +2246,14 @@ namespace Client.WebUiHost.Game.Icons
 // サムネイル未撮影の間はURLを出さず名前表示のまま。撮影完了はトピック再配信で追従する
 // Until the thumbnail is shot there is no URL and the name shows; completion republishes through the topics
 case BlueprintPlacementTarget blueprint:
-    return ClientContext.BlueprintThumbnailContainer.Contains(blueprint.BlueprintGuid)
+    return ClientDIContext.BlueprintThumbnailLookup.Contains(blueprint.BlueprintGuid)
         ? $"{BlueprintIconSource.PathPrefixConst}{blueprint.BlueprintGuid:D}{IconEndpoint.PathSuffix}"
         : null;
 case BlueprintCopyPlacementTarget:
     return null;
 ```
 
-`BuildMenuTopic` ctor の購読群に `ClientContext.BlueprintThumbnailContainer.OnThumbnailChanged.Subscribe(_ => SchedulePublish())`、`HotbarTopic` ctor にも同じ購読を足し、既存の `_subscriptions`/Dispose 経路へ `.AddTo` する（既存フィールド名に合わせる。無ければ `_thumbnailSubscription` を追加して Dispose で破棄）。
+`BuildMenuTopic` ctor の購読群に `ClientDIContext.BlueprintThumbnailLookup.OnThumbnailChanged.Subscribe(_ => SchedulePublish())`、`HotbarTopic` ctor にも同じ購読を足し、既存の `_subscriptions`/Dispose 経路へ `.AddTo` する（既存フィールド名に合わせる。無ければ `_thumbnailSubscription` を追加して Dispose で破棄）。
 
 Web: `hotbar.ts` の `HotbarBlueprintSlotSchema` を `iconUrl: z.string().optional()` にする（コメントを「サムネイル撮影後だけURLが載る」に）。`buildMenu.test.ts` に `{ kind: "blueprint", id, label: "x", iconUrl: "/api/blueprint-icons/<guid>.png", ... }` が受理されるケースを1つ足す。`hotbar` の既存テスト（`src/bridge/contract/schemas/hotbar.test.ts` があれば）にも同様に1ケース。
 
@@ -2104,7 +2303,7 @@ Expected: ErrorCount 0 / 全PASS / vitest・build 成功
 - [ ] **Step 7: コミットする**
 
 ```bash
-git add -A moorestech_client/Assets/Scripts/Client.Game/InGame/Context moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Blueprint/Thumbnail moorestech_client/Assets/Scripts/Client.Starter moorestech_client/Assets/Scripts/Client.WebUiHost moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/BlueprintThumbnailSyncPlannerTest.cs moorestech_web/webui/src
+git add -A moorestech_client/Assets/Scripts/Client.Game/InGame/Context moorestech_client/Assets/Scripts/Client.Game/InGame/Block/BlockIconImagePhotographer.cs moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Blueprint moorestech_client/Assets/Scripts/Client.Starter moorestech_client/Assets/Scripts/Client.WebUiHost moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/BlueprintThumbnailSyncPlannerTest.cs moorestech_web/webui/src
 git commit -m "feat(blueprint): BPサムネイルをアイコン撮影器で生成し /api/blueprint-icons で配信する"
 ```
 
@@ -2115,7 +2314,7 @@ git commit -m "feat(blueprint): BPサムネイルをアイコン撮影器で生�
 - Delete: `.agents/skills/unity-playmode-recorded-playtest/scenarios/building/blueprint-copy-box-probe.cs`（実測プローブ。役目を終える。結果は plan の実測根拠節に転記済み）
 
 **Interfaces:**
-- Consumes: Task 5 の GameObject名 `BlueprintCopyStartMarker`/`BlueprintCopyEndMarker`/`BlueprintCopyRangeBox`、`BlueprintNameInputState.Confirm`、`ClientContext.BlueprintThumbnailContainer.Contains`、Web testid `build-menu-entry-blueprintCopy-88dd687d-aceb-4aeb-94e8-44be1e1f5a0d`・`build-menu-category-d1000000-0000-4000-8000-000000000009`（ツール）・`build-menu-category-d1000000-0000-4000-8000-000000000010`（BP）・`modal-input`
+- Consumes: Task 5 の GameObject名 `BlueprintCopyStartMarker`/`BlueprintCopyEndMarker`/`BlueprintCopyRangeBox`、`BlueprintNameInputState.Confirm`、`ClientDIContext.BlueprintThumbnailLookup.Contains`、Web testid `build-menu-entry-blueprintCopy-88dd687d-aceb-4aeb-94e8-44be1e1f5a0d`・`build-menu-category-d1000000-0000-4000-8000-000000000009`（ツール）・`build-menu-category-d1000000-0000-4000-8000-000000000010`（BP）・`modal-input`
 
 - [ ] **Step 1: シナリオを書く**
 
@@ -2189,12 +2388,21 @@ return PlaytestRunner.Run("blueprint-copy-paste-via-ui", options, async p =>
     p.Assert(TooltipHasParam("1"), "ツールチップに範囲内1ブロック");
     await p.Screenshot("01-selecting-end");
 
-    p.Note("終点クリックで名前入力が開く。Escで終点選択へ戻る（始点は残る）");
+    p.Note("終点クリックで名前入力が開く。Web側キャンセル（nameState.Cancel＝モーダルの閉じる/ESC相当）で終点選択へ戻る（始点は残る）");
+    await p.ClickPlace();
+    await p.UntilWebUiElement("modal-input", 10f);
+    nameState.Cancel();
+    await UniTask.DelayFrame(5);
+    p.Assert(p.CurrentUiState == UIStateEnum.PlaceBlock, $"Webキャンセル後もPlaceBlock 実際:{p.CurrentUiState}");
+    AssertMarker("BlueprintCopyStartMarker", new Vector3Int(0, 32, 0), "Webキャンセル後も始点マーカーが残る");
+
+    p.Note("もう一度終点クリックし、今度はゲーム側のEscキーで終点選択へ戻る");
     await p.ClickPlace();
     await p.UntilWebUiElement("modal-input", 10f);
     await p.PressKey(Key.Escape);
     await UniTask.DelayFrame(5);
     p.Assert(p.CurrentUiState == UIStateEnum.PlaceBlock, $"Esc後もPlaceBlock 実際:{p.CurrentUiState}");
+    p.Assert(!nameState.IsOpen, "Escで名前入力が閉じる");
     AssertMarker("BlueprintCopyStartMarker", new Vector3Int(0, 32, 0), "Esc後も始点マーカーが残る");
     await p.Screenshot("02-after-escape");
 
@@ -2238,7 +2446,7 @@ return PlaytestRunner.Run("blueprint-copy-paste-via-ui", options, async p =>
     await p.Screenshot("05-drag-run-pasted");
 
     p.Note("サムネイル: コンテナに撮影済みでビルドメニューに画像が出る");
-    await p.Until(() => ClientContext.BlueprintThumbnailContainer.Contains(chestBp.BlueprintGuid), 20f, "サムネイル撮影完了");
+    await p.Until(() => ClientDIContext.BlueprintThumbnailLookup.Contains(chestBp.BlueprintGuid), 20f, "サムネイル撮影完了");
     await p.PressKey(Key.Tab);
     await p.WaitUiState(UIStateEnum.BuildMenu, 10f);
     await p.ClickWebUi(BlueprintCategory);
@@ -2313,7 +2521,7 @@ uloop control-play-mode --project-path ./moorestech_client --action stop
 SKILL=.claude/skills/unity-playmode-recorded-playtest
 "$SKILL/scripts/run-scenario.sh" ./moorestech_client "$SKILL/scenarios/building/blueprint-copy-paste-via-ui.cs" /Users/sakastudio/hermes-agent/data/repos/moorestech_master/server_v8
 ```
-Expected: `Success: true`・Asserts 全PASS・録画mp4が0byteでない・スクショ06にBP枠の画像が映る（目視）。失敗したら `result.json` の最後のPASSと `uloop get-logs --log-type Error` で切り分ける
+Expected: `Success: true`・Asserts 全PASS・録画mp4が0byteでない・スクショ06にBP枠の画像が映り、その画像に地形や周囲ブロックが写り込んでいない（目視）。失敗したら `result.json` の最後のPASSと `uloop get-logs --log-type Error` で切り分ける
 
 - [ ] **Step 3: コミットする**
 
@@ -2348,7 +2556,7 @@ git commit -m "playtest: BPコピー/貼り付けのWeb UI版録画シナリオ�
 | R7 貼り付けQ/E | Task 6、Task 8 |
 | R8 ドラッグ列 | Task 2（外形）、Task 3（列位置）、Task 6（`BlueprintPasteRunBuilder`）、Task 8 |
 | R9 アンカー外形 | Task 1（テスト `AnchorFollowsBlockExtentNotBoxTest`） |
-| R10 サムネイル | Task 7、Task 8 |
+| R10 サムネイル | Task 7（撮影はライブラリ更新を起点に先回り生成。URLは撮影済みだけ）、Task 8 |
 | R11 境界ブロック | Task 1（規則維持）、Task 5 テスト |
 | R12 部分設置 | Task 6（`IsPlaceable` 要素単位） |
 
@@ -2370,4 +2578,24 @@ planning中の判断:
 - 録画シナリオの名前入力はWebモーダルの文字打ちをDSLが持たないため `BlueprintNameInputState.Confirm` を直接呼ぶ（モーダルが開くことは `modal-input` の出現で検証）。出所: agent前提
 - EditModeInPlayingTest は作らない。ランタイム挙動は Task 8 のunityプレイ録画テストで通し検証する。出所: agent前提
 - beads `moorestech-izz2`（BP貼り付けYのRound/Floor不一致）は R1 で解消される。close は PR マージ時。出所: agent前提
+- Phase 2.6 発火の裁定（ユーザーによる詳細設計の委任のもと agent が決定。出所: agent前提）:
+  - [強 5-A] BP枠の IconUrl 不在＝未撮影: このままでよい。Web契約は種別ごとに iconUrl 省略を既に許し（blueprintCopy）、Web側は「画像か名前か」の表示分岐しか持たない
+  - [強 5-B] `BlueprintCreateResult` は判別子 `Failure` 1本にし `Success` を派生へ（反映済み）
+  - [強 5-D] サムネイル保持は `IBlueprintThumbnailLookup`（読み）と `BlueprintThumbnailContainer`（書き。DI注入のみ）へ分離、static 公開は読み面だけ（反映済み）
+  - [強 検査7] ADR と plan の食い違い3件: (a) 送信中は `Creating` 局面で次の始点を受け付けない（plan を ADR に合わせた）、(b) 生成は要求時ではなくライブラリ更新を起点に先回りする（ADR を plan に合わせた。負キャッシュ404を踏まないため）、(c) 終点マーカーは新規の緑定数・範囲は既存 `PlaceableColor`（ADR を plan に合わせた。原文「終点は緑」。既存 `PlaceableColor` は青寄り）
+  - [弱 5-F 高さ] 高さを0へ戻す書き手を `PlaceSystemStateController`（対象変更時）1本へ。BP系の `Enable` から `ResetToGround` を削除（反映済み・Task 3）
+  - [弱 5-F ESC二経路] `BlueprintNameInputState.Cancel/Close` は `_isOpen` でガードされ、Web側Cancelとゲーム側ESCが同じ1回を二重に処理しない（先に閉じた側だけが効く）。所有者の統合はしない
+  - [弱 5-C クリック] `TryConsumeClick` の bool は入力ゲート。理由の型化はしない（前例 `CommonBlockPlaceDragState.TryConsumeSendableRelease`）
+  - [弱 5-C 未着/該当なし] ライブラリはログイン時に全件同期済み。`TryGetBlueprint` が見つからない理由をログに残す（反映済み）
+  - [弱 5-F DontDestroyOnLoad] 撮影器はゲーム寿命。破棄の所有者は置かない（AGENTS.md 既知の制約）
+  - [弱 5-G] `Game.Blueprint` は `BlueprintPasteCalculator` を既にクライアントが使う前例あり。Interface層へは移さない
+  - [弱 検査6 重複] (e) ライブラリ検索は `TryGetBlueprint` へ、(f) 占有情報の生成は `BlueprintPlacementElementUtil.ToPositionInfo` へ統合（反映済み）。(a)(c) は同一メソッド内の2回で許容、(b) は共有規則の呼び出しであり重複ではない、(d) コピー（1クリック）と貼り付け（押下→ドラッグ→解放）は入力の形が違うため統合しない
+  - [弱 検査7-2] 押下未登録の解放はビルドメニュー選択クリックの定常的な漏れで、拒否・縮退ではない。ログは出さない（前例 `CommonBlockPlaceDragState.EndDrag`）
+  - [第3バケツ] `BlueprintCopyTargetRule.IntersectsBox` は既存 `BlockPositionInfoExtension.IsOverlap` へ委譲して重複を作らない（反映済み・Task 1）
+- user-simulator review（2026-10-08）の反映（出所: シミュレーター予測→agent適用。ユーザーによる詳細設計の委任のもと）:
+  - 全ブロックがマスタから消えたBPは撮影器が空被写体で例外を投げ以後の撮影が止まる → `TryBuild` で0件を検出しログして飛ばす（反映済み・Task 7）
+  - 被写体と複製は撮影器直下のローカル原点に置き、撮影器は主シーンで隔離位置（y=-5000）へ退避。`BlockIconImagePhotographer` の複製配置を `localPosition` に（反映済み・Task 7）。Task 8 の目視項目に「地形が写り込まない」を追加
+  - `BlueprintPasteCalculator` のマスタ欠損スキップに警告ログ（反映済み・Task 2）
+  - Task 8 の ESC 検証を Web経路（`nameState.Cancel`）とゲーム側（Escキー）の2パターンに（反映済み）
+  - 要裁定「全ブロック未解決のBPをロード時に削除するか」: A（サムネイル無し＋ログで残す）を採用。無効BPの整理は別件 bd 起票（本planの範囲外）
 - Create結果はクライアント側enum `BlueprintCreateFailure` で表す（サーバーの `BlueprintFailureReason` に null 応答用の値を足さない。配置検査で修正）。出所: agent前提（前例 `BlueprintDeleteResult`）
