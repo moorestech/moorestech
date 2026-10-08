@@ -62,6 +62,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
             // 解放の畳みと送信可否は通常設置と同じ1つの入口で決める。押下と解放が同フレームでも押下登録の後に畳む
             // Folding and sending on release share the normal placement's single entry; a same-frame press is registered first
             if (!_dragState.TryConsumeSendableRelease(InputManager.Playable.ScreenLeftClick.GetKeyUp, isSendable, false)) return;
+
+            // サーバーが再検証し部分成功を許すため、クライアントで置けると判定したものだけ送る
+            // The server revalidates and allows partial success, so send only what the client judged placeable
             BlueprintPastePlaceSender.SendPlaceable(placements, placeableFlags);
 
             #region Internal
