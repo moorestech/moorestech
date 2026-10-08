@@ -57,6 +57,12 @@ const notificationKeys = new Map<string, TranslationKey>([
   ["denied.gearChainConnect.ConnectionLimit", L.ui.notification.gearChainConnectConnectionLimit],
   ["denied.gearChainConnect.NoItem", L.ui.notification.gearChainConnectNoItem],
   ["denied.blueprint.NotUnlocked", L.ui.notification.blueprintNotUnlocked],
+  ["denied.blueprintCreate.RequestFailed", L.ui.notification.blueprintCreateRequestFailed],
+  ["denied.blueprintCreate.NotUnlocked", L.ui.notification.blueprintCreateNotUnlocked],
+  ["denied.blueprintCreate.InvalidName", L.ui.notification.blueprintCreateInvalidName],
+  ["denied.blueprintCreate.EmptyArea", L.ui.notification.blueprintCreateEmptyArea],
+  ["denied.blueprintCreate.InvalidRequest", L.ui.notification.blueprintCreateInvalidRequest],
+  ["denied.blueprintCreate.Unknown", L.ui.notification.blueprintCreateUnknown],
   ["saveMigration.missingMasterPruned", L.ui.notification.saveMigrationMissingMasterPruned],
 ]);
 

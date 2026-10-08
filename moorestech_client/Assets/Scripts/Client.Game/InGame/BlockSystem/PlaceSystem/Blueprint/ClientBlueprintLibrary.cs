@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Client.Game.InGame.Context;
 using Cysharp.Threading.Tasks;
+using Game.Blueprint;
 using Server.Protocol.PacketResponse;
 using UniRx;
 using UnityEngine;
@@ -57,17 +58,33 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
             ApplyResponse(response);
         }
 
-        public async UniTask<(bool success, Guid blueprintGuid)> CreateBlueprint(string name, Vector3Int min, Vector3Int max, CancellationToken ct)
+        public async UniTask<BlueprintCreateResult> CreateBlueprint(string name, Vector3Int min, Vector3Int max, CancellationToken ct)
         {
             var request = BlueprintRequest.CreateCreateRequest(name, min, max);
             var response = await ClientContext.VanillaApi.Response.Block.SendBlueprintRequest(request, ct);
 
             // タイムアウト等のnull応答は失敗扱い
             // Treat a null response (timeout etc.) as failure
-            if (response == null) return (false, Guid.Empty);
+            if (response == null) return BlueprintCreateResult.RequestFailed();
 
             ApplyResponse(response);
-            return (response.Success, response.Success ? Guid.Parse(response.RegisteredGuidStr) : Guid.Empty);
+            return response.Success
+                ? BlueprintCreateResult.Succeeded(Guid.Parse(response.RegisteredGuidStr))
+                : BlueprintCreateResult.Rejected(response.FailureReason);
+        }
+
+        public bool TryGetBlueprint(Guid blueprintGuid, out BlueprintJsonObject blueprint)
+        {
+            foreach (var pack in _blueprints)
+            {
+                if (pack.BlueprintGuid != blueprintGuid) continue;
+                blueprint = pack.ToJsonObject();
+                return true;
+            }
+
+            Debug.Log($"[ClientBlueprintLibrary] blueprint {blueprintGuid} is not in the cache (deleted or not yet synced)");
+            blueprint = null;
+            return false;
         }
 
         public async UniTask<BlueprintDeleteResult> DeleteBlueprint(Guid blueprintGuid, CancellationToken ct)
