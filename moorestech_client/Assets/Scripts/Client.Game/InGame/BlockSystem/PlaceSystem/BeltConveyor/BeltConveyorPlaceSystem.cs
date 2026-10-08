@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Height;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Run;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
@@ -34,6 +35,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
         private readonly Camera _mainCamera;
         private readonly BeltConveyorPlaceRunBuilder _placeRunBuilder;
 
+        private readonly PlacementHeightOffset _placementHeightOffset;
+
         private readonly CommonBlockPlaceDragState _dragState;
 
         private BlockDirection _currentBlockDirection = BlockDirection.North;
@@ -41,6 +44,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
 
         public BeltConveyorPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory localPlayerInventory, ConstructionWalletQuery constructionWalletQuery, PlacementHeightOffset placementHeightOffset)
         {
+            _placementHeightOffset = placementHeightOffset;
             _dragState = new CommonBlockPlaceDragState(placementHeightOffset);
             _mainCamera = mainCamera;
             _previewBlockController = previewBlockController;
@@ -83,7 +87,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
         protected override void ManualUpdate(BlockPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback)
         {
             _currentBlockDirection = target.ResolveDirectionOnSelection(_currentBlockDirection, isSelectionChanged);
-            _dragState.UpdateHeightOffsetByInput();
+            PlacementHeightKeyInput.Apply(_placementHeightOffset);
             _currentBlockDirection = BeltConveyorInputControl.RotateDirection(_currentBlockDirection);
             var isSendable = GroundClickControl(target, isSelectionChanged, feedback);
             PlaceBlockOnRelease();

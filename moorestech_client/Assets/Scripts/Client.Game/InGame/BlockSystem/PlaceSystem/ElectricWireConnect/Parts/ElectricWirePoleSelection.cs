@@ -89,8 +89,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
             {
                 if (UiPointerHitTest.IsPointerOverAnyUi()) return 0f;
 
-                // InputSystemスクロールを読み、無ければlegacyへフォールバック
-                // Read Input System scroll with a legacy fallback
+                // スクロール読取（legacy代替あり）
+                // Read scroll with legacy fallback
                 return Mouse.current != null ? Mouse.current.scroll.ReadValue().y / 100f : UnityEngine.Input.mouseScrollDelta.y;
             }
 

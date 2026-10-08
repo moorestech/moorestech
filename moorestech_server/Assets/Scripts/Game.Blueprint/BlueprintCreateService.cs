@@ -12,6 +12,10 @@ namespace Game.Blueprint
     {
         public static bool TryCreateFromArea(string name, Vector3Int min, Vector3Int max, out BlueprintJsonObject blueprint)
         {
+            // 逆順の範囲も同じ箱として扱う
+            // Treat a reversed range as the same box
+            var boxMin = Vector3Int.Min(min, max);
+            var boxMax = Vector3Int.Max(min, max);
             var targets = CollectTargets();
             if (targets.Count == 0)
             {
@@ -36,11 +40,11 @@ namespace Game.Blueprint
             List<WorldBlockData> CollectTargets()
             {
                 var result = new List<WorldBlockData>();
+                var box = BlueprintCopyTargetRule.CreateBox(boxMin, boxMax);
                 foreach (var data in ServerContext.WorldBlockDatastore.BlockMasterDictionary.Values)
                 {
                     var master = MasterHolder.BlockMaster.GetBlockMaster(data.Block.BlockId);
-                    if (!BlueprintCopyTargetRule.IsCopyTarget(master)) continue;
-                    if (!BlueprintCopyTargetRule.IntersectsBox(data.Block.BlockPositionInfo, min, max)) continue;
+                    if (!BlueprintCopyTargetRule.IsCopiedByBox(master, data.Block.BlockPositionInfo, box)) continue;
                     result.Add(data);
                 }
 

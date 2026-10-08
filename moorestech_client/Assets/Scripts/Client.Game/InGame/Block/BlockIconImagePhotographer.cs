@@ -101,6 +101,17 @@ namespace Client.Game.InGame.Block
                 // カメラを上30度・Y45度に設定
                 // Aim the Camera 30 degrees down and 45 degrees around the Y axis
                 var blockImageCamera = Instantiate(cameraPrefab);
+
+                // 生成直後にARGB32の出力先を固定し、メイン画面へ描画される隙を作らない
+                // Bind an ARGB32 target right after creation so the Camera never draws to the main screen
+                var renderTexture = new RenderTexture(iconSize, iconSize, 24, RenderTextureFormat.ARGB32)
+                {
+                    name = $"BlockIconCapture:{captureDebugName}",
+                    useMipMap = false,
+                    autoGenerateMips = false
+                };
+
+                blockImageCamera.targetTexture = renderTexture;
                 blockImageCamera.transform.rotation = Quaternion.Euler(30f, 45f, 0f);
 
                 var minPos = bounds.Select(b => b.min).Aggregate(Vector3.Min);
@@ -129,16 +140,6 @@ namespace Client.Game.InGame.Block
                 // Right before handing work to the GPU; a log stopping here means the freeze is on the Render side
                 Debug.Log($"{CaptureLogPrefix} {captureProgress} stage:render");
 
-                // ARGB32で透明度を保持
-                // Preserve alpha with an ARGB32 RenderTexture
-                var renderTexture = new RenderTexture(iconSize, iconSize, 24, RenderTextureFormat.ARGB32)
-                {
-                    name = $"BlockIconCapture:{captureDebugName}",
-                    useMipMap = false,
-                    autoGenerateMips = false
-                };
-
-                blockImageCamera.targetTexture = renderTexture;
                 // PlayModeは通常の描画フレームへ委ね、同期Render内でのメインスレッド固着を避ける。
                 // Let the normal PlayMode frame render the Camera to avoid a main-thread freeze inside synchronous Render.
                 if (Application.isPlaying)
@@ -149,6 +150,7 @@ namespace Client.Game.InGame.Block
                 {
                     blockImageCamera.Render();
                 }
+                blockImageCamera.enabled = false;
                 blockImageCamera.targetTexture = null;
 
                 // 同期読み戻しの直前。ここで止まっていればReadPixelsかApplyの固着

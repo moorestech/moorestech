@@ -16,7 +16,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Thumbnail
         {
             var placements = BlueprintPasteCalculator.CalculatePlacements(blueprint, Vector3Int.zero, 0);
             var missingCount = blueprint.Blocks.Count - placements.Count;
-            if (missingCount > 0) Debug.LogWarning($"[BlueprintThumbnail] blueprint {blueprint.BlueprintGuid} skipped {missingCount} blocks missing from the master");
+            if (0 < missingCount) Debug.LogWarning($"[BlueprintThumbnail] blueprint {blueprint.BlueprintGuid} skipped {missingCount} blocks missing from the master");
             if (placements.Count == 0)
             {
                 Debug.LogError($"[BlueprintThumbnail] blueprint {blueprint.BlueprintGuid} ({blueprint.Name}) has no resolvable blocks; thumbnail skipped");
@@ -50,7 +50,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Thumbnail
             // Never pass an empty subject when every prefab is missing
             // 撮影器と同じRenderer列を検査し、空boundsの例外を先に防ぐ
             // Check the same renderer set as capture to prevent the empty-bounds exception
-            if (builtCount > 0 && BlockIconImagePhotographer.GetRenderableComponents(subject).Length > 0) return true;
+            if (0 < builtCount && 0 < BlockIconImagePhotographer.GetRenderableComponents(subject).Length) return true;
             Debug.LogError($"[BlueprintThumbnail] blueprint {blueprint.BlueprintGuid} has no renderable prefabs; thumbnail skipped");
             Object.Destroy(subject);
             subject = null;

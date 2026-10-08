@@ -31,7 +31,7 @@ namespace Client.Tests.PlaceSystem.Common
                 dragState.BeginDrag(Vector3Int.zero, PlacementHitSurfaceKind.Ground);
 
                 var revisionBeforeAdjust = hub.GetTopicRevision(PlacementModeTopic.TopicName);
-                dragState.AdjustHeightOffset(2);
+                heightOffset.Adjust(2);
 
                 // ドラッグ中の値がsnapshotへ現れ、購読がpushしたことをrevision増分で固定する
                 // The in-drag value reaches the snapshot, pinning that the subscription pushed it via the revision bump
@@ -57,7 +57,7 @@ namespace Client.Tests.PlaceSystem.Common
             var firstTarget = new BlueprintPlacementTarget(Guid.NewGuid(), "first");
             var dragState = new CommonBlockPlaceDragState(heightOffset);
             heightOffset.SyncSelectedTarget(firstTarget);
-            dragState.AdjustHeightOffset(3);
+            heightOffset.Adjust(3);
 
             heightOffset.SyncSelectedTarget(new BlueprintPlacementTarget(Guid.NewGuid(), "second"));
 
@@ -72,7 +72,7 @@ namespace Client.Tests.PlaceSystem.Common
             var dragState = new CommonBlockPlaceDragState(heightOffset);
             heightOffset.SyncSelectedTarget(firstTarget);
             dragState.BeginDrag(Vector3Int.zero, PlacementHitSurfaceKind.Ground);
-            dragState.AdjustHeightOffset(2);
+            heightOffset.Adjust(2);
 
             // ドラッグ途中の離脱（Tab等）でも高さはドラッグ開始値へ戻す。解放時と同じ規則
             // Leaving mid-drag (Tab and friends) returns the height to the drag's starting value, as a release does
@@ -90,10 +90,10 @@ namespace Client.Tests.PlaceSystem.Common
             var secondDragState = new CommonBlockPlaceDragState(heightOffset);
 
             heightOffset.SyncSelectedTarget(firstTarget);
-            firstDragState.AdjustHeightOffset(1);
+            heightOffset.Adjust(1);
             Assert.AreEqual(1, secondDragState.HeightOffset);
 
-            secondDragState.AdjustHeightOffset(2);
+            heightOffset.Adjust(2);
             Assert.AreEqual(3, firstDragState.HeightOffset);
 
             // 持ち替え判定も1本。片側で持ち替えたらもう片側から見た高さも地表基準へ戻る

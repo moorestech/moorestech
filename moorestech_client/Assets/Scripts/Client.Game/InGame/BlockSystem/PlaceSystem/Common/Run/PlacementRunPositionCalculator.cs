@@ -34,21 +34,21 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.Run
             // 最も長い軸だけへ外形寸法ずつ伸ばす
             // Extend only the longest axis by its footprint component
             PlacementRunAxis axis;
-            if (deltaX >= deltaY && deltaX >= deltaZ)
+            if (deltaY <= deltaX && deltaZ <= deltaX)
             {
                 axis = PlacementRunAxis.X;
-                var direction = endPoint.x > startPoint.x ? 1 : -1;
-                while (Mathf.Abs(current.x - endPoint.x) >= stepSize.x)
+                var direction = startPoint.x < endPoint.x ? 1 : -1;
+                while (stepSize.x <= Mathf.Abs(current.x - endPoint.x))
                 {
                     current.x += stepSize.x * direction;
                     positions.Add(current);
                 }
             }
-            else if (deltaZ >= deltaX && deltaZ >= deltaY)
+            else if (deltaX <= deltaZ && deltaY <= deltaZ)
             {
                 axis = PlacementRunAxis.Z;
-                var direction = endPoint.z > startPoint.z ? 1 : -1;
-                while (Mathf.Abs(current.z - endPoint.z) >= stepSize.z)
+                var direction = startPoint.z < endPoint.z ? 1 : -1;
+                while (stepSize.z <= Mathf.Abs(current.z - endPoint.z))
                 {
                     current.z += stepSize.z * direction;
                     positions.Add(current);
@@ -57,8 +57,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.Run
             else
             {
                 axis = PlacementRunAxis.Y;
-                var direction = endPoint.y > startPoint.y ? 1 : -1;
-                while (Mathf.Abs(current.y - endPoint.y) >= stepSize.y)
+                var direction = startPoint.y < endPoint.y ? 1 : -1;
+                while (stepSize.y <= Mathf.Abs(current.y - endPoint.y))
                 {
                     current.y += stepSize.y * direction;
                     positions.Add(current);

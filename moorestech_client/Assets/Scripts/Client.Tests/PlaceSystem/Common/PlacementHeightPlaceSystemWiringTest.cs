@@ -15,6 +15,7 @@ using Server.Protocol.PacketResponse;
 using System.Collections.Generic;
 using Tests.Module.TestMod;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using Object = UnityEngine.Object;
 
 namespace Client.Tests.PlaceSystem.Common
@@ -23,7 +24,7 @@ namespace Client.Tests.PlaceSystem.Common
     ///     設置系が共有の設置高さへ実際に配線されていることを、本番のManualUpdate・Disable・系切替を通して検証
     ///     Verifies through the production ManualUpdate, Disable and system switch that place systems are wired to the shared height
     /// </summary>
-    public class PlacementHeightPlaceSystemWiringTest
+    public class PlacementHeightPlaceSystemWiringTest : InputTestFixture
     {
         private static readonly Guid FirstBeltGuid = Guid.Parse("00000000-0000-0000-0000-000000000003");
         private static readonly Guid SecondBeltGuid = Guid.Parse("00000000-0000-0000-0000-000000000030");
@@ -60,8 +61,8 @@ namespace Client.Tests.PlaceSystem.Common
             controller.ManualUpdate();
             heightOffset.Adjust(2);
 
-            // 注入配線はCommonBlockPlaceDragStateTestが検証し、ここはコントローラーの持ち替えを検証する
-            // CommonBlockPlaceDragStateTest covers shared wiring; this test covers controller-owned switching
+            // 共有高さの保持はPlacementHeightOffsetが担い、ここはコントローラーの持ち替えによる復帰を検証する
+            // PlacementHeightOffset owns the shared value; this test covers the reset on controller-owned switching
             controller.SetTarget(new BlockPlacementTarget(SecondBeltGuid, null), PlacementOrigin.FromHotbarSlot(1));
             controller.ManualUpdate();
 
@@ -86,6 +87,21 @@ namespace Client.Tests.PlaceSystem.Common
             controller.ManualUpdate();
 
             Assert.AreEqual(0, heightOffset.Value, "the height stayed while a system that never applies it was active");
+        }
+
+        [Test]
+        public void ベルト系のManualUpdateは注入された共有高さへQEを書く()
+        {
+            var keyboard = InputSystem.AddDevice<Keyboard>();
+            var heightOffset = new PlacementHeightOffset();
+            var beltSystem = CreateBeltSystem(heightOffset);
+
+            // ベルト系が自前の高さを握る退行だと、HUDが読む共有値は動かない
+            // If the belt system held its own height, the shared value the HUD reads would not move
+            Press(keyboard.eKey);
+            UpdateWithTarget(beltSystem, FirstBeltGuid);
+
+            Assert.AreEqual(1, heightOffset.Value, "the belt system did not write Q/E into the injected shared height");
         }
 
         [Test]

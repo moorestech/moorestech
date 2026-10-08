@@ -5,8 +5,8 @@ using UnityEngine;
 namespace Client.WebUiHost.Game.Icons
 {
     /// <summary>
-    ///     /api/blueprint-icons/{guid}.png の撮影済み画像を解決する
-    ///     Resolves photographed blueprint images at /api/blueprint-icons/{guid}.png
+    ///     BP撮影済みアイコンの解決
+    ///     Resolves photographed blueprint icons
     /// </summary>
     public class BlueprintIconSource : IIconTextureSource
     {

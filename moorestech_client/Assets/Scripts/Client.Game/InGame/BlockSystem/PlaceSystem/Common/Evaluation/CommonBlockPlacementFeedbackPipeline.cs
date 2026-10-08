@@ -18,8 +18,8 @@ using Server.Protocol.PacketResponse;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.Evaluation
 {
     /// <summary>
-    ///     通常設置列の制限と接続プレビューを、カーソルセル確定後に評価する
-    ///     Evaluates normal-run restrictions and connection previews after cursor resolution
+    ///     設置列の制限と接続プレビューを評価
+    ///     Evaluates run restrictions and connection previews
     /// </summary>
     public class CommonBlockPlacementFeedbackPipeline
     {
@@ -59,8 +59,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.Evaluation
             ConstructionMaterialShortageReporter.ReportShortages(cells, blockId, _wallet, _inventory, feedback);
             ConstructionCostPreviewMarker.MarkUnaffordableCellsAsNotPlaceable(cells, blockId, _wallet, _inventory);
 
-            // 接続とゴーストを評価して、最終的な設置可否の色へ反映する
-            // Evaluate connections and ghosts, then apply final placeability colors
+            // 接続評価を最終色へ反映
+            // Apply connection results to final colors
             var wirePlaceable = _wires.ApplyAutoConnect(cells, blockId, direction, _inventory, cursorIndex, feedback);
             _gears.Apply(cells, blockId, cursorIndex);
             _chainPreview.Apply(cells[cursorIndex], master, surfaceKind == PlacementHitSurfaceKind.Ground, heightOffset);

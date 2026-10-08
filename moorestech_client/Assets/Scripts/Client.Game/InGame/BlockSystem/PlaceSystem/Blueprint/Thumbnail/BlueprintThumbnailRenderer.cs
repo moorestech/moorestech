@@ -62,23 +62,27 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Thumbnail
                 _isRerunRequested = false;
                 Sync().Forget();
             }
-        }
 
-        private static async UniTask<Texture2D> Photograph(BlueprintJsonObject blueprint)
-        {
-            // バッチ実行では描画器が無いためプレースホルダーを返す
-            // Batch runs have no renderer, so use a placeholder
-            if (Application.isBatchMode) return Texture2D.whiteTexture;
+            #region Internal
 
-            var photographer = ClientContext.BlockIconImagePhotographer;
-            if (!BlueprintThumbnailSubjectBuilder.TryBuild(blueprint, photographer.transform, out var subject)) return null;
+            async UniTask<Texture2D> Photograph(BlueprintJsonObject blueprint)
+            {
+                // バッチ実行では描画器が無いためプレースホルダーを返す
+                // Batch runs have no renderer, so use a placeholder
+                if (Application.isBatchMode) return Texture2D.whiteTexture;
 
-            // TryBuildは撮影器と同じRenderer判定で空boundsを拒み、非アクティブな元は描画せず複製だけを撮る
-            // TryBuild rejects empty bounds with the capture predicate; only the activated clone is rendered
-            subject.SetActive(false);
-            var textures = await photographer.TakeIconImages(new List<(GameObject prefab, string debugName)> { (subject, blueprint.Name) });
-            UnityEngine.Object.Destroy(subject);
-            return textures[0];
+                var photographer = ClientContext.BlockIconImagePhotographer;
+                if (!BlueprintThumbnailSubjectBuilder.TryBuild(blueprint, photographer.transform, out var subject)) return null;
+
+                // TryBuildは撮影器と同じRenderer判定で空boundsを拒み、非アクティブな元は描画せず複製だけを撮る
+                // TryBuild rejects empty bounds with the capture predicate; only the activated clone is rendered
+                subject.SetActive(false);
+                var textures = await photographer.TakeIconImages(new List<(GameObject prefab, string debugName)> { (subject, blueprint.Name) });
+                UnityEngine.Object.Destroy(subject);
+                return textures[0];
+            }
+
+            #endregion
         }
     }
 }

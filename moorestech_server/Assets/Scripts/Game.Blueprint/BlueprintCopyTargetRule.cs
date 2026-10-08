@@ -23,16 +23,18 @@ namespace Game.Blueprint
             BlockTypeConst.TrainFluidPlatform,
         };
 
-        public static bool IsCopyTarget(BlockMasterElement master)
+        // 範囲判定用のボックスはループの前で一度だけ作る
+        // Build the range box once before looping over blocks
+        public static BlockPositionInfo CreateBox(Vector3Int min, Vector3Int max)
         {
-            return !ExcludedBlockTypes.Contains(master.BlockType);
+            return new BlockPositionInfo(min, BlockDirection.North, max - min + Vector3Int.one);
         }
 
-        // 占有セルが一つでも範囲に入れば対象とする
-        // Include a block when any occupied cell intersects the box
-        public static bool IntersectsBox(BlockPositionInfo positionInfo, Vector3Int min, Vector3Int max)
+        // 除外種別でなく、占有セルが一つでも範囲に入れば対象とする
+        // Include a block when it is not excluded and any occupied cell intersects the box
+        public static bool IsCopiedByBox(BlockMasterElement master, BlockPositionInfo positionInfo, BlockPositionInfo box)
         {
-            var box = new BlockPositionInfo(min, BlockDirection.North, max - min + Vector3Int.one);
+            if (ExcludedBlockTypes.Contains(master.BlockType)) return false;
             return positionInfo.IsOverlap(box);
         }
     }

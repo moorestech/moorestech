@@ -12,7 +12,7 @@ namespace Game.Blueprint
         {
             var placements = BlueprintPasteCalculator.CalculatePlacements(blueprint, Vector3Int.zero, rotationStep);
 
-            // 解決可能なブロックが無い場合も列の刻みを正に保つ
+            // 空でも列の刻みは正
             // Keep the run stride positive when no blocks can be resolved
             if (placements.Count == 0)
             {

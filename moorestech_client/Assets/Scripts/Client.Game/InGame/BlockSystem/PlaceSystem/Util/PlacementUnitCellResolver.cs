@@ -1,5 +1,4 @@
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Ground;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
@@ -14,15 +13,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
 
         public static bool TryGetCursorCell(Camera mainCamera, int heightOffset, out Vector3Int cell)
         {
-            cell = Vector3Int.zero;
-            if (!PlaceSystemUtil.TryRaycastPlacementSurface(mainCamera, out var hit, out var surface)) return false;
-
-            // 地面ヒットだけ地形の高さ格子を渡す
-            // Only a ground hit passes the terrain height lattice step
-            var groundHeightQuantizationStep = surface == null ? GroundHeightQuantization.StepOf(hit.collider) : 0f;
-            var surfaceType = surface == null ? (PreviewSurfaceType?)null : surface.PreviewSurfaceType;
-            cell = ResolveCell(hit.point, surfaceType, groundHeightQuantizationStep, heightOffset);
-            return true;
+            return PlaceSystemUtil.TryGetRayHitPlacePointBySize(mainCamera, UnitSize, heightOffset, out cell, out _);
         }
 
         public static Vector3Int ResolveCell(Vector3 hitPoint, PreviewSurfaceType? surfaceType, float groundHeightQuantizationStep, int heightOffset)

@@ -12,8 +12,8 @@ namespace Client.Starter.Initialization.Context
     {
         public static void Compose(ModAssetLoadResult assets, ServerConnectionResult server, BlockIconImagePhotographer photographer)
         {
-            // 被写体を地形や既設ブロックから離した撮影空間へ移す
-            // Park subjects away from terrain and placed blocks
+            // 地形から離した撮影空間へ
+            // Move subjects to a space away from terrain
             photographer.PrepareForMainScene();
             Object.DontDestroyOnLoad(photographer.gameObject);
             photographer.transform.position = new Vector3(0f, -5000f, 0f);

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConnect;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Height;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Run;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
@@ -43,6 +44,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         private readonly Evaluation.CommonBlockPlacementFeedbackPipeline _feedbackPipeline;
         private readonly ChainPlacementPreviewPart _chainPlacementPreviewPart;
 
+        private readonly PlacementHeightOffset _placementHeightOffset;
+
         private readonly CommonBlockPlaceDragState _dragState;
 
         private BlockDirection _currentBlockDirection = BlockDirection.North;
@@ -50,6 +53,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
         public CommonBlockPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory localPlayerInventory, IGameUnlockStateData gameUnlockStateData, ConstructionWalletQuery constructionWalletQuery, MapVeinAabbRegistry veinAabbRegistry, IPlacementGroundFollower groundFollower, VeinRestrictedPlacementState veinRestrictedPlacementState, ChainPlacePreviewState chainPlacePreviewState, IChainGroundQuery chainGroundQuery, PlacementHeightOffset placementHeightOffset)
         {
+            _placementHeightOffset = placementHeightOffset;
             _dragState = new CommonBlockPlaceDragState(placementHeightOffset);
             _mainCamera = mainCamera;
             _groundFollower = groundFollower;
@@ -107,7 +111,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         protected override void ManualUpdate(BlockPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback)
         {
             _currentBlockDirection = target.ResolveDirectionOnSelection(_currentBlockDirection, isSelectionChanged);
-            _dragState.UpdateHeightOffsetByInput();
+            PlacementHeightKeyInput.Apply(_placementHeightOffset);
             BlockDirectionControl();
             var isSendable = GroundClickControl(out var wirePlaceable);
             PlaceBlockOnRelease(isSendable, wirePlaceable);
@@ -172,8 +176,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 // Submit the preview and report the cursor reasons; terrain overlap never blocks placement (ADR 0047)
                 var cursorIndex = NormalPlacementPreviewStep.Apply(_previewBlockController, _currentPlaceInfos, placeCauses, placePoint, holdingBlockMaster, feedback);
 
-                // 鉱脈・資材・接続の評価を一箇所で行い、最終色を更新する
-                // Evaluate veins, materials and connections in one place, then update final colors
+                // 設置可否の評価と色更新
+                // Evaluate placeability and update colors
                 wirePlaceable = _feedbackPipeline.Apply(_currentPlaceInfos, holdingBlockMaster, target.BlockId, _currentBlockDirection, cursorIndex, surfaceKind, _dragState.HeightOffset, feedback);
 
                 return true;

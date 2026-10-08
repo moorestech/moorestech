@@ -40,7 +40,7 @@ namespace Tests.CombinedTest.Game
                 new(Vector3Int.zero, master.BlockGuid.ToString(), (int)BlockDirection.North, new Dictionary<string, string>()),
             }, Guid.NewGuid());
 
-            // マスタの3x1x2占有外形が90度回転で2x1x3へ移る
+            // 90度回転で3x1x2が2x1x3へ
             // Rotating the master's 3x1x2 occupied extent yields 2x1x3
             Assert.AreEqual(new Vector3Int(3, 1, 2), BlueprintFootprintCalculator.CalcSize(blueprint, 0));
             Assert.AreEqual(new Vector3Int(2, 1, 3), BlueprintFootprintCalculator.CalcSize(blueprint, 1));

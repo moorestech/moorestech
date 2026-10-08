@@ -83,7 +83,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
                 return;
             }
 
-            if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi()) _dragState.BeginDrag(cursorAnchor, _heightOffset.Value);
+            if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi())
+            {
+                _dragState.BeginDrag(cursorAnchor, _heightOffset.Value);
+                // 押下と解放が同フレームなら、始めたドラッグをその場で畳む
+                // When press and release share a frame, fold the drag just begun
+                if (!isReleasedDrag && InputManager.Playable.ScreenLeftClick.GetKeyUp)
+                {
+                    releaseStartAnchor = _dragState.GetStartAnchor();
+                    releaseHeightOffset = _heightOffset.Value;
+                    isReleasedDrag = _dragState.EndDrag();
+                }
+            }
             if (!PlaceSystemUtil.IsPlaceableFromPlayer(cursorAnchor))
             {
                 if (isReleasedDrag) Debug.Log($"[BlueprintPaste] release skipped: cursor {cursorAnchor} is too far from player");
@@ -120,7 +131,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
                 // マスタ欠損は解決時に一度だけ記録し、毎フレーム計算からは警告しない
                 // Report missing master entries once at resolution, never on every preview frame
                 var missing = _currentBlueprint.Blocks.Count(block => MasterHolder.BlockMaster.GetBlockIdOrNull(block.BlockGuid) == null);
-                if (missing > 0) Debug.LogWarning($"[BlueprintPaste] blueprint {blueprintGuid} has {missing} blocks missing from the master; skipped");
+                if (0 < missing) Debug.LogWarning($"[BlueprintPaste] blueprint {blueprintGuid} has {missing} blocks missing from the master; skipped");
                 _footprintSize = BlueprintFootprintCalculator.CalcSize(_currentBlueprint, _rotationStep);
             }
 

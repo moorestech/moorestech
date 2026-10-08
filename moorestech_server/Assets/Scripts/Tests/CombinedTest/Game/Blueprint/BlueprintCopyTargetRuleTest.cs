@@ -22,10 +22,12 @@ namespace Tests.CombinedTest.Game
             var rail = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainRail);
             var chest = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.ChestId);
 
-            // レールだけを除外し、通常ブロックはコピー可能にする
+            // レールのみ除外
             // Exclude rail-family blocks while retaining ordinary blocks
-            Assert.IsFalse(BlueprintCopyTargetRule.IsCopyTarget(rail));
-            Assert.IsTrue(BlueprintCopyTargetRule.IsCopyTarget(chest));
+            var box = BlueprintCopyTargetRule.CreateBox(Vector3Int.zero, Vector3Int.zero);
+            var position = new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one);
+            Assert.IsFalse(BlueprintCopyTargetRule.IsCopiedByBox(rail, position, box));
+            Assert.IsTrue(BlueprintCopyTargetRule.IsCopiedByBox(chest, position, box));
         }
 
         [Test]
@@ -36,11 +38,12 @@ namespace Tests.CombinedTest.Game
             var position = new BlockPositionInfo(new Vector3Int(10, 0, 10), BlockDirection.North, master.BlockSize);
             Assert.AreNotEqual(position.MinPos, position.MaxPos);
 
-            // 最大端の1セルだけに範囲が重なっても対象に含める
+            // 端1セルの重なりも対象
             // Include the block when only its maximum occupied cell intersects
-            Assert.IsTrue(BlueprintCopyTargetRule.IntersectsBox(position, position.MaxPos, position.MaxPos));
+            var insideBox = BlueprintCopyTargetRule.CreateBox(position.MaxPos, position.MaxPos);
+            Assert.IsTrue(BlueprintCopyTargetRule.IsCopiedByBox(master, position, insideBox));
             var outside = position.MaxPos + Vector3Int.right;
-            Assert.IsFalse(BlueprintCopyTargetRule.IntersectsBox(position, outside, outside));
+            Assert.IsFalse(BlueprintCopyTargetRule.IsCopiedByBox(master, position, BlueprintCopyTargetRule.CreateBox(outside, outside)));
         }
     }
 }

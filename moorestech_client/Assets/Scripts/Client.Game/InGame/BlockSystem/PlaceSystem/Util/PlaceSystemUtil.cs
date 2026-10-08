@@ -33,14 +33,22 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
 
         public static bool TryGetRayHitBlockPosition(Camera mainCamera, int heightOffset, BlockDirection currentBlockDirection, BlockMasterElement holdingBlock, out Vector3Int pos, out BlockPreviewBoundingBoxSurface surface)
         {
+            var rotatedSize = currentBlockDirection.GetCoordinateConvertAction()(holdingBlock.BlockSize).Abs();
+            return TryGetRayHitPlacePointBySize(mainCamera, rotatedSize, heightOffset, out pos, out surface);
+        }
+
+        // 通常設置とBPのセル解決が共有する、レイキャスト→設置セルの本体
+        // Shared raycast-to-placement-cell body for normal placement and blueprint cell resolution
+        public static bool TryGetRayHitPlacePointBySize(Camera mainCamera, Vector3Int rotatedSize, int heightOffset, out Vector3Int pos, out BlockPreviewBoundingBoxSurface surface)
+        {
             pos = Vector3Int.zero;
             if (!TryRaycastPlacementSurface(mainCamera, out var hit, out surface)) return false;
 
             // 地面ヒットだけ、当たった地形の高さ格子1段をY決定へ渡す
             // Only a ground hit hands the hit terrain's height lattice step to the Y decision
             var groundHeightQuantizationStep = surface == null ? GroundHeightQuantization.StepOf(hit.collider) : 0f;
-            pos = CalcPlacePoint(holdingBlock, hit.point, heightOffset, currentBlockDirection, surface, groundHeightQuantizationStep);
-
+            var surfaceType = surface == null ? (PreviewSurfaceType?)null : surface.PreviewSurfaceType;
+            pos = CalcPlacePointBySize(rotatedSize, hit.point, heightOffset, surfaceType, groundHeightQuantizationStep);
             return true;
         }
 
@@ -69,18 +77,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             // 列車車両の距離判定専用。BPの設置セル解決にはPlacementUnitCellResolverを使う
             // Only for train-car distance checks; blueprint placement cells use PlacementUnitCellResolver
             return new Vector3Int(Mathf.FloorToInt(hitPoint.x), Mathf.RoundToInt(hitPoint.y), Mathf.FloorToInt(hitPoint.z));
-        }
-
-        // 大きい既存の車両・線路設置系は参照を維持し、レイキャスト本体だけ共通化する
-        // Keep existing train callers stable while sharing the extracted raycast implementation
-        public static bool TryGetRaySpecifiedComponentHit<T>(Camera mainCamera, out T component, int layerMask) where T : class
-        {
-            return PlaceSystemRaycastUtil.TryGetRaySpecifiedComponentHit(mainCamera, out component, layerMask);
-        }
-
-        public static bool TryGetRaySpecifiedComponentHitPosition<T>(Camera mainCamera, out Vector3 pos, out T component, int layerMask) where T : class
-        {
-            return PlaceSystemRaycastUtil.TryGetRaySpecifiedComponentHitPosition(mainCamera, out pos, out component, layerMask);
         }
 
         public static Vector3Int CalcPlacePoint(BlockMasterElement holdingBlock ,Vector3 hitPoint, int heightOffset, BlockDirection currentBlockDirection, BlockPreviewBoundingBoxSurface boundingBoxSurface, float groundHeightQuantizationStep)

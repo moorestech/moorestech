@@ -14,11 +14,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Copy
     {
         public static int Count(IEnumerable<(BlockMasterElement master, BlockPositionInfo position)> blocks, Vector3Int min, Vector3Int max)
         {
+            var box = BlueprintCopyTargetRule.CreateBox(min, max);
             var count = 0;
             foreach (var (master, position) in blocks)
             {
-                if (!BlueprintCopyTargetRule.IsCopyTarget(master)) continue;
-                if (!BlueprintCopyTargetRule.IntersectsBox(position, min, max)) continue;
+                if (!BlueprintCopyTargetRule.IsCopiedByBox(master, position, box)) continue;
                 count++;
             }
 

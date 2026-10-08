@@ -1,5 +1,4 @@
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Run;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Height;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
@@ -34,18 +33,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
             _heightOffset.Restore(_session.StartHeightOffset);
             _session = null;
-        }
-
-        public void UpdateHeightOffsetByInput()
-        {
-            PlacementHeightKeyInput.Apply(_heightOffset);
-        }
-
-        // 入力の解釈だけを担い、高さの規則と保持は共有の正へ委ねる
-        // Interprets input only; the height rule and the stored value belong to the shared source
-        public void AdjustHeightOffset(int delta)
-        {
-            _heightOffset.Adjust(delta);
         }
 
         // 対象変更では開始高さへ戻さず、ドラッグだけ捨てる

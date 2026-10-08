@@ -29,7 +29,7 @@ namespace Client.Tests.PlaceSystem
                 (rail, new BlockPositionInfo(new Vector3Int(3, 32, 3), BlockDirection.North, Vector3Int.one)),
             };
 
-            // 占有セルの角だけ入る大型ブロックを含めて数える
+            // 角だけ入る大型ブロックも数える
             // Count a large block even if only one corner intersects
             Assert.AreEqual(2, BlueprintCopyRangeCounter.Count(blocks, new Vector3Int(0, 32, 0), new Vector3Int(11, 32, 4)));
             Assert.AreEqual(1, BlueprintCopyRangeCounter.Count(blocks, new Vector3Int(0, 33, 0), new Vector3Int(11, 33, 4)));

@@ -62,7 +62,7 @@ namespace Client.Playtest.Operations.Ui
 
         public bool TooltipHasParam(string value)
         {
-            return _tooltip.GetPresentation().Lines.Any(line => line.TextParams.Count > 0 && line.TextParams[0] == value);
+            return _tooltip.GetPresentation().Lines.Any(line => 0 < line.TextParams.Count && line.TextParams[0] == value);
         }
 
         public List<Vector3> ActiveGhostPositions()

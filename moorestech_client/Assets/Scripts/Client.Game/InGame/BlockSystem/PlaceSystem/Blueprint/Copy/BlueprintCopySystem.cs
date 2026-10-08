@@ -32,6 +32,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Copy
         private readonly BlueprintCopyClickInput _clickInput = new();
         private readonly CompositeDisposable _subscriptions = new();
         private BlueprintCopyRangeVisualizer _visualizer;
+        private int _createRequestId;
 
         public override bool UsesPlacementHeight => true;
 
@@ -50,6 +51,24 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Copy
             {
                 if (_selection.Phase == BlueprintCopyPhase.AwaitingName) _selection.ReturnToEndSelection();
             }).AddTo(_subscriptions);
+
+            #region Internal
+
+            async UniTaskVoid CreateAndReset(string name)
+            {
+                var (min, max) = BlueprintCopySelection.CalcBox(_selection.StartCell, _selection.EndCell);
+                _selection.BeginCreate();
+                var requestId = ++_createRequestId;
+                var result = await _library.CreateBlueprint(name, min, max, CancellationToken.None);
+
+                // 応答まで送信中局面を保持し、自分の要求のときだけ選択を畳む
+                // Hold Creating until the reply, clearing the selection only for the latest request
+                if (requestId == _createRequestId && _selection.Phase == BlueprintCopyPhase.Creating) _selection.Clear();
+                if (result.Success) return;
+                BlueprintCreateFailureNotifier.NotifyFailure(result, ClientDIContext.ClientLocalNotificationSource, min, max, name);
+            }
+
+            #endregion
         }
 
         public override void Enable()
@@ -72,7 +91,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Copy
             if (_selection.Phase == BlueprintCopyPhase.AwaitingName)
             {
                 var (nameMin, nameMax) = BlueprintCopySelection.CalcBox(_selection.StartCell, _selection.EndCell);
-                _visualizer.ShowAwaitingName(_selection.StartCell, _selection.EndCell, nameMin, nameMax);
+                _visualizer.ShowSelectingEnd(_selection.StartCell, _selection.EndCell, nameMin, nameMax);
                 return;
             }
 
@@ -81,7 +100,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Copy
             if (!PlacementUnitCellResolver.TryGetCursorCell(_mainCamera, _heightOffset.Value, out var cursorCell))
             {
                 if (isClicked) Debug.Log("[BlueprintCopy] click refused: cursor has no placement surface");
-                if (_selection.Phase == BlueprintCopyPhase.SelectingEnd) _visualizer.ShowStartOnly(_selection.StartCell);
+                if (_selection.Phase == BlueprintCopyPhase.SelectingEnd) _visualizer.ShowSelectingStart(_selection.StartCell);
                 else _visualizer.HideAll();
                 return;
             }
@@ -122,6 +141,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Copy
 
         public override void Disable()
         {
+            _createRequestId++;
             _selection.Clear();
             _clickInput.Reset();
             _visualizer?.HideAll();
@@ -134,28 +154,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Copy
             {
                 case BlueprintCopyPhase.SelectingEnd:
                     _selection.Clear();
+                    _clickInput.Reset();
                     _visualizer?.HideAll();
                     return true;
                 case BlueprintCopyPhase.AwaitingName:
                     _nameInputState.Close();
                     _selection.ReturnToEndSelection();
+                    _clickInput.Reset();
                     return true;
                 default:
                     return false;
             }
-        }
-
-        private async UniTaskVoid CreateAndReset(string name)
-        {
-            var (min, max) = BlueprintCopySelection.CalcBox(_selection.StartCell, _selection.EndCell);
-            _selection.BeginCreate();
-            var result = await _library.CreateBlueprint(name, min, max, CancellationToken.None);
-
-            // 応答まで送信中局面を保持し、完了後に選択を畳む
-            // Hold Creating until the reply, then clear the selection
-            if (_selection.Phase == BlueprintCopyPhase.Creating) _selection.Clear();
-            if (result.Success) return;
-            BlueprintCreateFailureNotifier.NotifyFailure(result, ClientDIContext.ClientLocalNotificationSource, min, max, name);
         }
     }
 }

@@ -47,7 +47,7 @@ function readServerSources(): Map<string, string> {
     .filter((path) => path.endsWith(".cs") && !path.split(/[\\/]/).some((segment) => segment === "Client.Tests"));
   for (const file of clientFiles) {
     const source = readFileSync(join(clientScriptsDir, file), "utf8");
-    if (source.includes("NotificationMessagePack.Create") || source.includes("enum BlueprintCreateFailure")) sources.set(`client:${file}`, source);
+    if (source.includes("NotificationMessagePack.Create") || [...interpolatedIdEnums.values()].some(({ enumName }) => source.includes(`enum ${enumName}`))) sources.set(`client:${file}`, source);
   }
   return sources;
 }

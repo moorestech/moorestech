@@ -32,7 +32,7 @@ namespace Tests.CombinedTest.Game
             Assert.IsTrue(created);
             Assert.AreEqual(2, blueprint.Blocks.Count);
 
-            // アンカーはチェストと機械の占有外形から決める
+            // アンカーは占有外形で決まる
             // Derive the anchor from the occupied extent of chest and machine
             var machineInfo = ServerContext.WorldBlockDatastore.GetBlock(new Vector3Int(3, 0, 4)).BlockPositionInfo;
             var expectedAnchor = new Vector3Int(Mathf.FloorToInt(machineInfo.MaxPos.x / 2f), 0, Mathf.FloorToInt(machineInfo.MaxPos.z / 2f));
@@ -51,7 +51,7 @@ namespace Tests.CombinedTest.Game
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            // 広い選択範囲の隅に1個だけ置き、余白にアンカーが引かれないことを確かめる
+            // 余白にアンカーが引かれない
             // Place one block in a wide box and verify margins do not move the anchor
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             var created = BlueprintCreateService.TryCreateFromArea("extent", Vector3Int.zero, new Vector3Int(9, 2, 9), out var blueprint);
@@ -86,7 +86,7 @@ namespace Tests.CombinedTest.Game
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            // 外形(-4..-1)の中心は負座標でも下へ丸める
+            // 負座標の中心も下へ丸める
             // Floor the center of the (-4..-1) extent toward negative infinity
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, new Vector3Int(-4, 0, -4), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, new Vector3Int(-1, 0, -1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);

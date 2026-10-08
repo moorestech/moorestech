@@ -12,7 +12,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             
             //画面からのrayが何かにヒットしているか
             if (!Physics.Raycast(ray, out var hit, float.PositiveInfinity, layerMask)) return false;
-            //そのrayが指定されたコンポーネントを持っているか
             if (!hit.transform.TryGetComponent(out component))
             {
                 return false;
@@ -29,7 +28,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             
             //画面からのrayが何かにヒットしているか
             if (!Physics.Raycast(ray, out var hit, float.PositiveInfinity, layerMask)) return false;
-            //そのrayが指定されたコンポーネントを持っているか
             if (!hit.transform.TryGetComponent(out component))
             {
                 return false;

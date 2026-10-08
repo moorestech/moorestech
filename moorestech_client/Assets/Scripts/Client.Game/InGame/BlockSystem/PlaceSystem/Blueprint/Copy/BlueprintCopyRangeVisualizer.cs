@@ -19,6 +19,25 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Copy
             _startMarker = CreateCube("BlueprintCopyStartMarker", MaterialConst.NotPlaceableColor);
             _endMarker = CreateCube("BlueprintCopyEndMarker", EndMarkerColor);
             _rangeBox = CreateCube("BlueprintCopyRangeBox", MaterialConst.PlaceableColor);
+
+            #region Internal
+
+            GameObject CreateCube(string name, Color color)
+            {
+                var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                cube.name = name;
+                Object.Destroy(cube.GetComponent<Collider>());
+
+                // 設置プレビュー材質を複製して色を付ける
+                // Clone the placement preview material and tint it
+                var material = new Material(MaterialConst.GetPreviewPlaceBlockMaterial());
+                material.SetColor(MaterialConst.PreviewColorPropertyName, color);
+                cube.GetComponent<MeshRenderer>().sharedMaterial = material;
+                cube.SetActive(false);
+                return cube;
+            }
+
+            #endregion
         }
 
         public void ShowSelectingStart(Vector3Int hoverCell)
@@ -32,19 +51,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Copy
         {
             PlaceCell(_startMarker, startCell);
             PlaceCell(_endMarker, hoverCell);
-            PlaceBox(min, max);
-        }
 
-        public void ShowAwaitingName(Vector3Int startCell, Vector3Int endCell, Vector3Int min, Vector3Int max)
-        {
-            ShowSelectingEnd(startCell, endCell, min, max);
-        }
-
-        public void ShowStartOnly(Vector3Int startCell)
-        {
-            PlaceCell(_startMarker, startCell);
-            _endMarker.SetActive(false);
-            _rangeBox.SetActive(false);
+            // セル境界から中心とサイズを計算する
+            // Calculate center and size from cell boundaries
+            var size = new Vector3(max.x - min.x + 1, max.y - min.y + 1, max.z - min.z + 1);
+            _rangeBox.transform.position = new Vector3(min.x, min.y, min.z) + size * 0.5f;
+            _rangeBox.transform.localScale = size;
+            _rangeBox.SetActive(true);
         }
 
         public void HideAll()
@@ -59,31 +72,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Copy
             cube.transform.position = cell + new Vector3(0.5f, 0.5f, 0.5f);
             cube.transform.localScale = Vector3.one;
             cube.SetActive(true);
-        }
-
-        private void PlaceBox(Vector3Int min, Vector3Int max)
-        {
-            // セル境界から中心とサイズを計算する
-            // Calculate center and size from cell boundaries
-            var size = new Vector3(max.x - min.x + 1, max.y - min.y + 1, max.z - min.z + 1);
-            _rangeBox.transform.position = new Vector3(min.x, min.y, min.z) + size * 0.5f;
-            _rangeBox.transform.localScale = size;
-            _rangeBox.SetActive(true);
-        }
-
-        private static GameObject CreateCube(string name, Color color)
-        {
-            var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            cube.name = name;
-            Object.Destroy(cube.GetComponent<Collider>());
-
-            // 設置プレビュー材質を複製して色を付ける
-            // Clone the placement preview material and tint it
-            var material = new Material(MaterialConst.GetPreviewPlaceBlockMaterial());
-            material.SetColor(MaterialConst.PreviewColorPropertyName, color);
-            cube.GetComponent<MeshRenderer>().sharedMaterial = material;
-            cube.SetActive(false);
-            return cube;
         }
     }
 }
