@@ -1,0 +1,17 @@
+using UnityEngine;
+using System.Linq;
+var waters=Object.FindObjectsByType<Renderer>(FindObjectsSortMode.None).Where(r=>r.enabled&&r.sharedMaterials.Any(m=>m!=null&&m.shader.name=="BK/Water")).ToArray();
+var go=new GameObject("WaterDiagnosticCamera");var cam=go.AddComponent<Camera>();cam.CopyFrom(Camera.main);cam.enabled=false;cam.orthographic=true;cam.orthographicSize=1600f;cam.aspect=1f;cam.nearClipPlane=0.1f;cam.farClipPlane=3000f;cam.transform.position=new Vector3(500,1800,500);cam.transform.rotation=Quaternion.Euler(90,0,0);
+var rt=new RenderTexture(2048,2048,24);cam.targetTexture=rt;var previous=RenderTexture.active;
+var report=new System.Text.StringBuilder();
+Color32[] first=null;
+for(var mode=0;mode<2;mode++){
+foreach(var r in waters)r.enabled=mode==0;
+cam.Render();RenderTexture.active=rt;var texture=new Texture2D(2048,2048,TextureFormat.RGBA32,false);texture.ReadPixels(new Rect(0,0,2048,2048),0,0);texture.Apply();
+System.IO.File.WriteAllBytes("/tmp/moores-vein-terrain-20261006/water-aerial-"+mode+".png",texture.EncodeToPNG());
+var pixels=texture.GetPixels32();if(mode==0)first=pixels;else{var changed=0;for(var i=0;i<pixels.Length;i++)if(!pixels[i].Equals(first[i]))changed++;report.AppendLine("differentPixels="+changed);}
+Object.DestroyImmediate(texture);
+}
+foreach(var r in waters)r.enabled=true;
+RenderTexture.active=previous;cam.targetTexture=null;Object.DestroyImmediate(rt);Object.DestroyImmediate(go);
+System.IO.File.WriteAllText("/tmp/moores-vein-terrain-20261006/water-render-diff.txt",report.ToString());return report.ToString();

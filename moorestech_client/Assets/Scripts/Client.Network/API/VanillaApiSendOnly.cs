@@ -1,9 +1,11 @@
+using Server.Protocol.PacketResponse.Rail;
 using System;
 using System.Collections.Generic;
 using Client.Network.API.Requests;
 using Core.Master;
 
 using Game.Train.RailPositions;
+using Game.Train.SaveLoad;
 using Game.Train.Unit;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
@@ -11,7 +13,6 @@ using Server.Util.MessagePack;
 using UnityEngine;
 using static Server.Protocol.PacketResponse.RailConnectionEditProtocol;
 using static Server.Protocol.PacketResponse.SubscribeInventoryProtocol;
-using static Server.Protocol.PacketResponse.GearChainConnectionEditProtocol;
 using static Server.Protocol.PacketResponse.TrainCarRidingInputProtocol;
 
 namespace Client.Network.API
@@ -20,11 +21,13 @@ namespace Client.Network.API
     {
         private readonly PacketSender _packetSender;
         public HotbarCommandApi Hotbar { get; }
+        public ConnectionLineCommandApi ConnectionLine { get; }
         
         public VanillaApiSendOnly(PacketSender packetSender)
         {
             _packetSender = packetSender;
             Hotbar = new HotbarCommandApi(packetSender);
+            ConnectionLine = new ConnectionLineCommandApi(packetSender);
         }
         
         
@@ -40,9 +43,9 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
         
-        public void PlaceBlock(List<PlaceInfo> placePositions)
+        public void PlaceBlock(List<PlaceInfo> placePositions, BlockPlacementWiring wiring)
         {
-            var request = new PlaceBlockProtocol.SendPlaceBlockProtocolMessagePack(placePositions);
+            var request = new PlaceBlockProtocol.SendPlaceBlockProtocolMessagePack(placePositions, wiring);
             _packetSender.Send(request);
         }
 
@@ -122,6 +125,14 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
         
+        // 再設置後の端点を座標で指定して同じ種類のレールを復元する
+        // Restore the same rail type by identifying re-placed endpoints by position
+        public void ConnectRailByDestination(ConnectionDestination from, ConnectionDestination to, Guid connectToolGuid)
+        {
+            var request = new RailConnectByDestinationProtocol.RailConnectByDestinationRequest(from, to, connectToolGuid);
+            _packetSender.Send(request);
+        }
+
         public void PlaceRailWithPier(int fromNodeId, Guid fromGuid, BlockId pierBlockId, PlaceInfo pierPlaceInfo, Guid railTypeGuid)
         {
             var request = RailConnectWithPlacePierProtocol.RailConnectWithPlacePierRequest.Create(fromNodeId, fromGuid, pierBlockId, pierPlaceInfo, railTypeGuid);
@@ -147,26 +158,6 @@ namespace Client.Network.API
         public void SubscribeInventory(InventoryIdentifierMessagePack identifier, bool isSubscribe)
         {
             var request = new SubscribeInventoryRequestMessagePack(identifier, isSubscribe);
-            _packetSender.Send(request);
-        }
-
-        /// <summary>
-        /// ギアチェーンポール間の接続を作成する
-        /// Create a connection between GearChainPoles
-        /// </summary>
-        public void ConnectGearChain(Vector3Int posA, Vector3Int posB, Guid connectToolGuid)
-        {
-            var request = GearChainConnectionEditRequest.CreateConnectRequest(posA, posB, connectToolGuid);
-            _packetSender.Send(request);
-        }
-
-        /// <summary>
-        /// 電気系ブロック間の電線を切断する
-        /// Disconnect an electric wire between electric blocks
-        /// </summary>
-        public void DisconnectElectricWire(Vector3Int posA, Vector3Int posB)
-        {
-            var request = ElectricWireDisconnectProtocol.ElectricWireDisconnectRequest.CreateDisconnectRequest(posA, posB);
             _packetSender.Send(request);
         }
 

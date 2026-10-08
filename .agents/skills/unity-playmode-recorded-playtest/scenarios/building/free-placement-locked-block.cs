@@ -68,7 +68,7 @@ return PlaytestRunner.Run("free-placement-locked-block", options, async p =>
             Placeable = true,
             CreateParams = Array.Empty<BlockCreateParam>(),
         };
-        ClientContext.VanillaApi.SendOnly.PlaceBlock(new List<PlaceInfo> { placeInfo });
+        ClientContext.VanillaApi.SendOnly.PlaceBlock(new List<PlaceInfo> { placeInfo }, BlockPlacementWiring.AutoConnect);
 
         // 設置がサーバーで成立しクライアントViewが出るまで待つ（修正前はnullのまま＝timeoutで失敗）
         // Wait until placement takes effect and the client view spawns (before the fix it stayed null = timeout)

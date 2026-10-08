@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Train.Network;
 using Game.Train.SaveLoad;
+using UniRx;
 using UnityEngine;
 
 namespace Client.Game.InGame.Train.RailGraph
@@ -40,6 +41,11 @@ namespace Client.Game.InGame.Train.RailGraph
 
         private RailGraphPathFinder _pathFinder;//ダイクストラ法
 
+        // レール網トポロジ変化の適用後に発火する
+        // Fires after the rail topology changes
+        private readonly Subject<UniRx.Unit> _railTopologyChanged = new();
+        public IObservable<UniRx.Unit> OnRailTopologyChanged => _railTopologyChanged;
+
         private RailGraphClientCache()
         {
             _pathFinder = new RailGraphPathFinder();
@@ -60,6 +66,7 @@ namespace Client.Game.InGame.Train.RailGraph
             // Apply edge information onto adjacency list
             PopulateConnections(snapshot, _connectNodes);
             TrainRailObjectManager.Instance?.OnCacheRebuilt(this);
+            _railTopologyChanged.OnNext(UniRx.Unit.Default);
             #region Internal
 
             void ResetSlots(int requiredCount)
@@ -135,6 +142,9 @@ namespace Client.Game.InGame.Train.RailGraph
             }
             _nodes[nodeId] = nextnode;
             _connectionDestinationToNodeId[nextnode.ConnectionDestination] = nodeId;
+            // 未同期だった端点が解決されるので、接続差分を待たずに購読側へ取り直しを促す
+            // A previously unsynced destination now resolves, so prompt subscribers to retry without waiting for an edge diff
+            _railTopologyChanged.OnNext(UniRx.Unit.Default);
         }
 
         // Apply node removal diff and purge related connections
@@ -163,6 +173,7 @@ namespace Client.Game.InGame.Train.RailGraph
                 outgoing.Clear();
             }
             RemoveIncomingConnections(nodeId);
+            _railTopologyChanged.OnNext(UniRx.Unit.Default);
         }
 
         // Apply or overwrite an edge diff connecting two nodes
@@ -186,6 +197,7 @@ namespace Client.Game.InGame.Train.RailGraph
             }
             UpsertRailSegment(fromNodeId, toNodeId, distance, railTypeGuid, isDrawable);
             TrainRailObjectManager.Instance?.OnConnectionUpserted(fromNodeId, toNodeId, this);
+            _railTopologyChanged.OnNext(UniRx.Unit.Default);
         }
 
         // Apply an edge removal diff
@@ -198,6 +210,7 @@ namespace Client.Game.InGame.Train.RailGraph
                 return;
             RemoveRailSegment(fromNodeId, toNodeId);
             TrainRailObjectManager.Instance?.OnConnectionRemoved(fromNodeId, toNodeId, this);
+            _railTopologyChanged.OnNext(UniRx.Unit.Default);
         }
 
         // Retrieve IrailNode by RailNodeId

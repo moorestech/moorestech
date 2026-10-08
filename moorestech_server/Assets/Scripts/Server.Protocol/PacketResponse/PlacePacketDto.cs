@@ -65,4 +65,11 @@ namespace Server.Protocol.PacketResponse
 
         [JsonIgnore] public Dictionary<string, byte[]> CreateParamDictionary => CreateParams.ToDictionary(v => v.Key, v => v.Value);
     }
+    // 電線の自動接続を通常設置と明示復元で切り替える
+    // Select electric auto-connect for normal placement or explicit restoration
+    public enum BlockPlacementWiring
+    {
+        AutoConnect,
+        NoAutoConnect,
+    }
 }

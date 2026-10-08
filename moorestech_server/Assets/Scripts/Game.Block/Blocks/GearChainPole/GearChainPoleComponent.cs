@@ -2,14 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Block.Component;
+using Game.Block.Blocks.ConnectionLine;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Blocks.Gear;
 using Game.Block.Interface.Extension;
+using UnityEngine;
 using Game.Context;
 using Game.Gear.Common;
 using Core.Item.Interface;
-using Core.Master;
 using MessagePack;
 using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.GearConnectOptionModule;
@@ -24,14 +25,17 @@ namespace Game.Block.Blocks.GearChainPole
         private readonly GearChainPoleBlockParam _param;
 
         public float MaxConnectionDistance => _param.MaxConnectionDistance;
-        public bool IsConnectionFull => _chainTargets.Count >= _param.MaxConnectionCount;
+        public bool IsConnectionFull => _param.MaxConnectionCount <= _chainLookup.Count;
 
         // チェーン接続と、周辺ギア接続の列挙を担うserviceを保持する
         // Hold chain connections and the service that enumerates adjacent gear connections
         private readonly SimpleGearService _gearService;
         private readonly GearConnectOption _chainOption = new(false, null);
 
-        private readonly Dictionary<BlockInstanceId, (IGearEnergyTransformer Transformer, GearChainConnectionCost Cost)> _chainTargets = new();
+        // 台帳の読み取り面と変更面を分離する
+        // Separate the ledger's read and mutation surfaces
+        private readonly IGearChainConnectionLookup _chainLookup;
+        private readonly IGearChainConnectionMutation _chainMutation;
 
         // ブロック状態変更通知用のSubject
         // Subject for block state change notifications
@@ -42,6 +46,9 @@ namespace Game.Block.Blocks.GearChainPole
         {
             // 基本状態を初期化する
             // Initialize base state
+            var chainConnections = new GearChainConnectionSet();
+            _chainLookup = chainConnections;
+            _chainMutation = chainConnections;
             _param = param;
             BlockInstanceId = blockInstanceId;
             _gearService = new SimpleGearService(this, connectorComponent);
@@ -51,33 +58,33 @@ namespace Game.Block.Blocks.GearChainPole
             ServerContext.GetService<IGearNetworkDatastore>().AddGear(this);
         }
 
-
         public List<GearConnect> GetGearConnects()
         {
             // コネクタ経由の隣接接続にチェーン接続を加えて返す
             // Return adjacent connections via the connector plus chain connections
             var result = _gearService.GetGearConnects();
-            foreach (var chainTarget in _chainTargets.Values) result.Add(new GearConnect(chainTarget.Transformer, _chainOption, _chainOption));
+            foreach (var chainTarget in _chainLookup.Targets.Values) result.Add(new GearConnect(chainTarget.Transformer, _chainOption, _chainOption));
 
             return result;
         }
 
         public bool ContainsChainConnection(BlockInstanceId partnerId)
         {
-            // 指定IDとの接続有無を確認する
-            // Check whether the target id is connected
-            return _chainTargets.ContainsKey(partnerId);
+            return _chainLookup.Contains(partnerId);
         }
 
-        public bool TryAddChainConnection(BlockInstanceId partnerId, GearChainConnectionCost connectionCost)
+        public bool TryAddChainConnection(BlockInstanceId partnerId, ConnectionLineRecord connectionRecord)
         {
             // 新しい接続先を記録する
             // Store new partner connection
-            if (_chainTargets.ContainsKey(partnerId)) return false;
-            if (_chainTargets.Count >= _param.MaxConnectionCount) return false;
-            var transformer = ResolveChainTarget(partnerId);
+            if (_chainLookup.Contains(partnerId) || IsConnectionFull)
+            {
+                Debug.LogWarning($"[GearChain] Connection already exists or limit reached: {BlockInstanceId} -> {partnerId}");
+                return false;
+            }
+            var transformer = GearChainConnectionRestorer.ResolveTarget(BlockInstanceId, partnerId);
             if (transformer == null) return false;
-            _chainTargets.Add(partnerId, (transformer, connectionCost));
+            _chainMutation.Add(partnerId, transformer, connectionRecord);
             // 接続集合の変更点自身でdirty化し、呼び出し元の再構築漏れを構造的に防ぐ
             // Mark dirty at the mutation itself so no caller can ever forget the rebuild
             ServerContext.GetService<IGearNetworkDatastore>().MarkTopologyDirty();
@@ -87,93 +94,49 @@ namespace Game.Block.Blocks.GearChainPole
             return true;
         }
 
-        public bool TryRemoveChainConnection(BlockInstanceId partnerId, out GearChainConnectionCost cost)
+        public bool TryRemoveChainConnection(BlockInstanceId partnerId, out ConnectionLineRecord record)
         {
-            if (!_chainTargets.Remove(partnerId, out var connection))
+            if (!_chainMutation.TryRemove(partnerId, out record))
             {
-                cost = default;
+                Debug.LogWarning($"[GearChain] Connection to remove does not exist: {BlockInstanceId} -> {partnerId}");
                 return false;
             }
-
-            cost = connection.Cost;
             ServerContext.GetService<IGearNetworkDatastore>().MarkTopologyDirty();
             _onChangeBlockState.OnNext(Unit.Default);
             return true;
         }
 
-        private IGearEnergyTransformer ResolveChainTarget(BlockInstanceId targetId)
+        public bool TryGetChainConnectionRecord(BlockInstanceId partnerId, out ConnectionLineRecord record)
         {
-            // 接続候補をワールドから解決する
-            // Resolve target transformer from world
-            var block = ServerContext.WorldBlockDatastore.GetBlock(targetId);
-            var transformer = block?.GetComponent<IGearEnergyTransformer>();
-            if (transformer == null || transformer.BlockInstanceId == BlockInstanceId) return null;
-            return transformer;
+            return _chainLookup.TryGetRecord(partnerId, out record);
         }
 
         public IReadOnlyList<IItemStack> GetRefundItems()
         {
-            // 返却すべきアイテムのリストを取得する（接続ごとに複数素材を展開）
-            // Get list of items that should be refunded (expand multiple materials per connection)
-            var refundItems = new List<IItemStack>();
-            foreach (var connection in _chainTargets.Values)
-            {
-                var materials = connection.Cost.Materials;
-                if (materials == null) continue;
-                foreach (var material in materials)
-                {
-                    if (material.Count <= 0 || material.ItemId == ItemMaster.EmptyItemId) continue;
-                    refundItems.Add(ServerContext.ItemStackFactory.Create(material.ItemId, material.Count));
-                }
-            }
-
-            return refundItems;
+            return _chainLookup.CreateRefundItems();
         }
-
-
-        #region LoadComponent
 
         private readonly Dictionary<string, object> _componentStates;
         public void OnPostBlockLoad()
         {
-            // 全てのブロックがロードされた後に、セーブデータから接続先を復元する
-            // Restore chain connections from saved data after all blocks are loaded
+            // 全ブロック生成後に保存台帳を復元
+            // Restore the saved ledger after all blocks are created
             if (_componentStates == null) return;
             if (!BlockComponentStateReader.TryRead<GearChainPoleSaveDataJsonObject>(_componentStates, SaveKey, out var data)) return;
+            GearChainConnectionRestorer.Restore(data, BlockInstanceId, _param.MaxConnectionCount, _chainLookup, _chainMutation);
 
-            _chainTargets.Clear();
-            
-            // 接続コスト情報を利用して復元する
-            // Restore using connection cost information when available
-            if (data.Connections is not { Count: > 0 }) return;
-            
-            
-            foreach (var connection in data.Connections)
-            {
-                if (connection.TargetBlockInstanceId == BlockInstanceId.AsPrimitive()) continue;
-                if (_chainTargets.Count >= _param.MaxConnectionCount) break;
-                var targetId = new BlockInstanceId(connection.TargetBlockInstanceId);
-                if (_chainTargets.ContainsKey(targetId)) continue;
-                var transformer = ResolveChainTarget(targetId);
-                if (transformer == null) continue;
-                var cost = connection.ToConnectionCost();
-                _chainTargets.Add(targetId, (transformer, cost));
-            }
-            
-            // 復元したチェーン接続を次tick先頭の再構築対象にする
-            // Mark restored chain connections for rebuilding at the next tick head
+            // 復元した接続を次tick先頭で反映
+            // Rebuild the network from restored connections at the next tick head
             ServerContext.GetService<IGearNetworkDatastore>().MarkTopologyDirty();
             _onChangeBlockState.OnNext(Unit.Default);
         }
-
-        #endregion
 
         public bool IsDestroy { get; private set; }
         public void Destroy()
         {
             // 接続先のブロックからも接続を削除する
             // Remove connections from connected blocks as well
-            foreach (var targetId in _chainTargets.Keys.ToList())
+            foreach (var targetId in _chainLookup.PartnerIds.ToList())
             {
                 var targetBlock = ServerContext.WorldBlockDatastore.GetBlock(targetId);
                 var targetPole = targetBlock?.GetComponent<IGearChainPole>();
@@ -186,14 +149,11 @@ namespace Game.Block.Blocks.GearChainPole
 
             // コネクタはBlockComponentManagerが別コンポーネントとして破棄するため、ここでは破棄しない
             // The connector is destroyed separately by BlockComponentManager, so it must not be destroyed here
-            _chainTargets.Clear();
+            _chainMutation.Clear();
             _gearService.Destroy();
             _onChangeBlockState.Dispose();
             IsDestroy = true;
         }
-
-
-        #region IGearEnergyTransformer
 
         public Torque GetRequiredTorque(RPM rpm, bool isClockwise)
         {
@@ -215,18 +175,11 @@ namespace Game.Block.Blocks.GearChainPole
             _gearService.NotifyStateChanged();
         }
 
-        #endregion
-
-        #region IBlockStateObservable
-
-
         public BlockStateDetail[] GetBlockStateDetails()
         {
             // チェーン接続情報をシリアライズして返す
             // Serialize and return chain connection information
-            var partnerIds = _chainTargets.Keys;
-
-            var stateDetail = new GearChainPoleStateDetail(partnerIds);
+            var stateDetail = new GearChainPoleStateDetail(ConnectionLinePartnerMessagePack.CreateArray(_chainLookup.Targets));
             var bytes = MessagePackSerializer.Serialize(stateDetail);
             return new[]
             {
@@ -235,19 +188,11 @@ namespace Game.Block.Blocks.GearChainPole
             };
         }
 
-        #endregion
-
-        #region IBlockSaveState
-
         public string SaveKey => nameof(GearChainPoleComponent);
         public object GetSaveState()
         {
-            // 接続先と消費情報を保存する
-            // Persist partner ids and consumption info
-            var data = new GearChainPoleSaveDataJsonObject(_chainTargets);
-            return data;
+            return _chainLookup.CreateSaveData();
         }
 
-        #endregion
     }
 }

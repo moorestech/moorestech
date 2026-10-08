@@ -1,3 +1,5 @@
+using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
+using Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine;
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem;
@@ -13,7 +15,7 @@ using UnityEngine;
 
 namespace Client.Game.InGame.Block
 {
-    public class BlockGameObjectDataStore : MonoBehaviour, ISkitBlockObjectControl
+    public class BlockGameObjectDataStore : MonoBehaviour, ISkitBlockObjectControl, IBlockOccupancyQuery, IConnectionLineEndpointQuery
     {
         public IReadOnlyDictionary<Vector3Int, BlockGameObject> BlockGameObjectDictionary => _blockObjectsDictionary;
         private readonly Dictionary<Vector3Int, BlockGameObject> _blockObjectsDictionary = new();
@@ -52,6 +54,14 @@ namespace Client.Game.InGame.Block
         public bool TryGetBlockGameObject(BlockInstanceId blockInstanceId, out BlockGameObject blockGameObject)
         {
             return _blockObjectsByInstanceIdDictionary.TryGetValue(blockInstanceId, out blockGameObject);
+        }
+
+        public bool TryGetPosition(BlockInstanceId instanceId, out Vector3Int position)
+        {
+            position = default;
+            if (!_blockObjectsByInstanceIdDictionary.TryGetValue(instanceId, out var block)) return false;
+            position = block.BlockPosInfo.OriginalPos;
+            return true;
         }
 
         /// <summary>
@@ -140,6 +150,28 @@ namespace Client.Game.InGame.Block
                 if (block.BlockPosInfo.IsOverlap(target))
                     return true;
             return false;
+        }
+
+        public BlockFootprintOccupancy GetOccupancy(Vector3Int origin, BlockDirection direction, BlockId blockId)
+        {
+            // IDから占有範囲を一箇所で構築する
+            // Build the footprint from the block id in one place
+            var size = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockSize;
+            var target = new BlockPositionInfo(origin, direction, size);
+            // 同じブロックが残っていても他ブロックとの重なりを優先する
+            // Another overlapping block takes priority even when the original remains
+            var sameBlockPresent = false;
+            foreach (var block in _blockObjectsDictionary.Values)
+            {
+                if (!block.BlockPosInfo.IsOverlap(target)) continue;
+                if (block.BlockPosInfo.OriginalPos == target.OriginalPos && block.BlockId == blockId)
+                {
+                    sameBlockPresent = true;
+                    continue;
+                }
+                return BlockFootprintOccupancy.OtherBlock;
+            }
+            return sameBlockPresent ? BlockFootprintOccupancy.SameBlockPresent : BlockFootprintOccupancy.Free;
         }
     }
 }

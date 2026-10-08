@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Game.MapGeneration.Surface;
 using System.IO;
 using Game.MapGeneration.Cache;
 using Game.MapGeneration.Export;
@@ -51,6 +52,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Golden
                 TerrainFileWriter.Write(worldDirectory, output);
 
                 var gridConfig = config.ShallowCopy();
+                gridConfig.surfaceRevision = WorldSurfaceRevision.Legacy4;
                 gridConfig.worldOffsetX = output.NoiseOrigin.x;
                 gridConfig.worldOffsetZ = output.NoiseOrigin.y;
                 var helper = new BiomePlacementHelper(gridConfig);
@@ -58,7 +60,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Golden
                 var layerTable = SplatLayerTable.Build("addr/beach", "addr/rock", sections.MainLayerAddresses, sections.TextureConfigs,
                     sections.SurroundTextureConfigs, species, System.Array.Empty<string>());
                 var baker = new TileVisualBaker(gridConfig, TerrainVisualGoldenFixture.BiomeTypes, sections, layerTable,
-                    species, new MaterializedPlacementLedgerSource(run.Ledger), run.Ledger.ComputeDigest(), worldDirectory,
+                    species, new MaterializedGenerationRunSource(run), run.Ledger.ComputeDigest(), worldDirectory,
                     new TerrainVisualCache(worldDirectory, new string('0', 64)));
 
                 foreach (var (tileX, tileZ) in TerrainTransferMeta.EnumerateTileCoordinates(output.Tiles.Count))

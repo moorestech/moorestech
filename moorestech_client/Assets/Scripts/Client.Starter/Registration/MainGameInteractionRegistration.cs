@@ -1,4 +1,7 @@
+using Client.Game.InGame.UI.UIState.State.DragDelete;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
 using System;
+using Client.Game.InGame.UI.Notification;
 using Client.Game.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor;
@@ -14,6 +17,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.BlockSystem.StateProcessor;
+using Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine;
 using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.Hotbar;
@@ -145,6 +149,10 @@ namespace Client.Starter.Registration
             builder.Register<BlueprintNameInputState>(Lifetime.Singleton);
             builder.Register<BuildOperationHistory>(Lifetime.Singleton);
             builder.Register<BuildUndoService>(Lifetime.Singleton);
+            builder.Register<VanillaRemovalRestoreSender>(Lifetime.Singleton).As<IRemovalRestoreSender>();
+            builder.Register<ClientLocalNotificationSource>(Lifetime.Singleton);
+            builder.Register<ConnectionLineRegistry>(Lifetime.Singleton);
+            builder.Register<BlockAttachedConnectionResolver>(Lifetime.Singleton);
             builder.Register<ItemRecipeViewerDataContainer>(Lifetime.Singleton);
             builder.Register<BlockPickResolver>(Lifetime.Singleton);
             builder.Register<PlacementTargetPickService>(Lifetime.Singleton);

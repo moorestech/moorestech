@@ -1,3 +1,4 @@
+using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.Tooltip;
@@ -16,9 +17,9 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         private IDeleteTarget _deleteTargetObject;
         private bool _isDragging;
 
-        public DeleteObjectService(BuildOperationHistory buildOperationHistory, IMouseCursorTooltip tooltip)
+        public DeleteObjectService(BuildOperationHistory buildOperationHistory, IMouseCursorTooltip tooltip, IRemovalRestoreSender restoreSender)
         {
-            _selection = new DragDeleteSelection(buildOperationHistory);
+            _selection = new DragDeleteSelection(buildOperationHistory, restoreSender);
             _tooltip = tooltip;
         }
 
@@ -28,9 +29,10 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             // Reset the denial-reason tooltip at the start of each frame (only our own showing clears, others survive)
             _tooltip.Hide(_tooltipOwner);
 
-            // カーソル下の削除対象を取得（無ければnull）
-            // Resolve the target hovered this frame (null when nothing hit)
-            BlockClickDetectUtil.TryGetCursorOnComponent(out IDeleteTarget hovered);
+            // 固定カテゴリー内の最前面を取る
+            // Resolve the frontmost target in the fixed category, or overall if unfixed
+            var aim = DeleteTargetRaycaster.AimAt(_selection.AimFilter);
+            var hovered = aim.Target;
 
             // 左クリック開始でドラッグ選択を開始する
             // Begin a drag selection on left-click down
@@ -70,7 +72,13 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
                 // A canceled drag is inert until the button is released
                 if (!_selection.CanCommit()) return;
 
-                if (hovered == null) return;
+                // 別カテゴリーのみ狙うなら理由を表示
+                // Show the denial when a drag aims only at another category
+                if (hovered == null)
+                {
+                    ShowDenyReason(aim.GetDragDenyReason());
+                    return;
+                }
 
                 // 削除可否・カテゴリー整合の判定と追加をサービス側へ集約し、拒否理由だけ受け取って表示する
                 // Delegate the removable/category judgement and the add to the service; just receive and show the deny reason

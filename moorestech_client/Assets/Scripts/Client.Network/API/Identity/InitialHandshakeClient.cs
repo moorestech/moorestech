@@ -60,6 +60,11 @@ namespace Client.Network.API.Identity
                 api.Progression.GetResearchNodeStates(ct),
                 api.World.GetMapData(ct));
 
+            // 地図応答が届かない起動は理由を示して拒否し、地形取得へnullを渡さない
+            // Refuse a boot without a map response explicitly instead of passing null to terrain fetching
+            if (responses.Item8 == null)
+                return Refuse("地図レイアウト応答が届きませんでした（再試行後もタイムアウトまたはデシリアライズ失敗）");
+
             return InitialHandshakeAttempt.Succeeded(new InitialHandshakeResponse(initialHandShake, responses));
 
             #region Internal

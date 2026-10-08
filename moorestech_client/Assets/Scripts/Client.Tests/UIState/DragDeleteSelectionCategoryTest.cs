@@ -1,3 +1,4 @@
+using Client.Tests.BuildUndo;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.UI.UIState.State.DragDelete;
 using Client.Tests.UIState.Fakes;
@@ -17,7 +18,7 @@ namespace Client.Tests.UIState
         {
             // default開始ではdefault同士を複数選択できる
             // A default-started session can multi-select default targets
-            var selection = new DragDeleteSelection(new BuildOperationHistory());
+            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
             var first = new FakeDeleteTarget { Removable = true, Category = "default" };
             var second = new FakeDeleteTarget { Removable = true, Category = "default" };
 
@@ -35,7 +36,7 @@ namespace Client.Tests.UIState
         {
             // default開始では土台カテゴリーを追加選択できず、拒否理由が返る
             // A default-started session rejects a foundation target and returns the deny reason
-            var selection = new DragDeleteSelection(new BuildOperationHistory());
+            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
             var start = new FakeDeleteTarget { Removable = true, Category = "default" };
             var foundation = new FakeDeleteTarget { Removable = true, Category = "foundation" };
 
@@ -55,7 +56,7 @@ namespace Client.Tests.UIState
         {
             // 土台開始では土台だけ選択でき、defaultは追加選択できない
             // A foundation-started session accepts only foundation, not default
-            var selection = new DragDeleteSelection(new BuildOperationHistory());
+            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
             var foundationA = new FakeDeleteTarget { Removable = true, Category = "foundation" };
             var foundationB = new FakeDeleteTarget { Removable = true, Category = "foundation" };
             var defaultTarget = new FakeDeleteTarget { Removable = true, Category = "default" };
@@ -76,13 +77,14 @@ namespace Client.Tests.UIState
         {
             // 破壊完了後は次のセッションへカテゴリー固定が漏れない
             // The category lock does not leak into the next session after a commit
-            var selection = new DragDeleteSelection(new BuildOperationHistory());
+            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
             var foundation = new FakeDeleteTarget { Removable = true, Category = "foundation" };
             var defaultTarget = new FakeDeleteTarget { Removable = true, Category = "default" };
 
             selection.BeginDrag();
             Assert.IsTrue(selection.TryAddTarget(foundation, out _));
             selection.CommitDelete();
+            Assert.IsFalse(selection.AimFilter.IsCategoryRequired);
 
             selection.BeginDrag();
             Assert.IsTrue(selection.TryAddTarget(defaultTarget, out _));
@@ -96,19 +98,39 @@ namespace Client.Tests.UIState
         {
             // キャンセル後は次のセッションへカテゴリー固定が漏れない
             // The category lock does not leak into the next session after a cancel
-            var selection = new DragDeleteSelection(new BuildOperationHistory());
+            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
             var foundation = new FakeDeleteTarget { Removable = true, Category = "foundation" };
             var defaultTarget = new FakeDeleteTarget { Removable = true, Category = "default" };
 
             selection.BeginDrag();
             Assert.IsTrue(selection.TryAddTarget(foundation, out _));
             selection.CancelSelection();
+            Assert.IsFalse(selection.AimFilter.IsCategoryRequired);
 
             selection.BeginDrag();
             Assert.IsTrue(selection.TryAddTarget(defaultTarget, out _));
             selection.CommitDelete();
 
             Assert.AreEqual(1, defaultTarget.DeleteCount);
+        }
+
+        [Test]
+        public void AimFilterIsFixedByFirstTargetAndResetOnNewDrag()
+        {
+            // 最初の対象で固定、新ドラッグで解除
+            // The first target fixes the filter; a new drag resets it
+            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
+            selection.BeginDrag();
+            Assert.IsFalse(selection.AimFilter.IsCategoryRequired);
+
+            var line = new FakeDeleteTarget { Removable = true, Category = "connectionLine" };
+            selection.TryAddTarget(line, out _);
+            Assert.IsTrue(selection.AimFilter.IsCategoryRequired);
+            Assert.IsTrue(selection.AimFilter.Accepts(line));
+            Assert.IsFalse(selection.AimFilter.Accepts(new FakeDeleteTarget { Category = "default" }));
+
+            selection.BeginDrag();
+            Assert.IsFalse(selection.AimFilter.IsCategoryRequired);
         }
     }
 }
