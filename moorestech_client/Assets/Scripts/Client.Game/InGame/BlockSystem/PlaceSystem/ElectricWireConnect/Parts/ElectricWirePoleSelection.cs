@@ -23,8 +23,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
         private IReadOnlyList<BlockId> _unlockedPoles = new List<BlockId>();
         private int _selectedIndex;
 
-        // 微小デルタを整数ステップへ丸めるためのスクロール蓄積（前例: BlueprintCopySystem）
-        // Scroll accumulator turning fractional deltas into whole steps (precedent: BlueprintCopySystem)
+        // 微小デルタを整数ステップへ丸めるスクロール蓄積
+        // Scroll accumulator turning fractional deltas into whole steps
         private readonly ScrollStepAccumulator _scrollAccumulator = new();
 
         public BlockDirection CurrentDirection { get; private set; } = BlockDirection.North;
@@ -89,8 +89,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
             {
                 if (UiPointerHitTest.IsPointerOverAnyUi()) return 0f;
 
-                // InputSystemスクロールを読み、無ければlegacyへフォールバック（BlueprintCopySystemと同一）
-                // Read Input System scroll with a legacy fallback, identical to BlueprintCopySystem
+                // InputSystemスクロールを読み、無ければlegacyへフォールバック
+                // Read Input System scroll with a legacy fallback
                 return Mouse.current != null ? Mouse.current.scroll.ReadValue().y / 100f : UnityEngine.Input.mouseScrollDelta.y;
             }
 
