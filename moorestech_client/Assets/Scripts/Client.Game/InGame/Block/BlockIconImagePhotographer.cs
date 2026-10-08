@@ -15,6 +15,18 @@ namespace Client.Game.InGame.Block
         [SerializeField] private int iconSize = 512;
         [SerializeField] Camera cameraPrefab;
 
+        public void PrepareForMainScene()
+        {
+            // 主シーンへ持ち越す撮影用ライトを消し、通常の照明へ干渉させない
+            // Disable capture lights before carrying the photographer into the main scene
+            foreach (var light in GetComponentsInChildren<Light>(true)) light.enabled = false;
+        }
+
+        public static Renderer[] GetRenderableComponents(GameObject target)
+        {
+            return target.GetComponentsInChildren<Renderer>();
+        }
+
         public async UniTask<List<Texture2D>> TakeBlockIconImages(List<BlockPrefabInfo> blockObjectInfos)
         {
             var targets = blockObjectInfos.Select(info => (info.BlockObjectPrefab, info.BlockMasterElement.Name)).ToList();
@@ -22,6 +34,23 @@ namespace Client.Game.InGame.Block
         }
 
         public async UniTask<List<Texture2D>> TakeIconImages(List<(GameObject prefab, string debugName)> targets)
+        {
+            var lights = GetComponentsInChildren<Light>(true);
+            var previousStates = new bool[lights.Length];
+            for (var i = 0; i < lights.Length; i++)
+            {
+                previousStates[i] = lights[i].enabled;
+                lights[i].enabled = true;
+            }
+
+            // 撮影を終えたら主シーンの照明状態へ戻す
+            // Restore scene lighting after the capture completes
+            var result = await CaptureTargets(targets);
+            for (var i = 0; i < lights.Length; i++) lights[i].enabled = previousStates[i];
+            return result;
+        }
+
+        private async UniTask<List<Texture2D>> CaptureTargets(List<(GameObject prefab, string debugName)> targets)
         {
             var result = new List<Texture2D>();
 
@@ -57,11 +86,12 @@ namespace Client.Game.InGame.Block
                 Debug.Log($"{CaptureLogPrefix} {captureProgress} stage:setup");
 
                 var captureTarget = Instantiate(capturePrefab, transform);
+                captureTarget.SetActive(true);
                 captureTarget.transform.localPosition = Vector3.zero;
                 captureTarget.transform.rotation = Quaternion.identity;
                 captureTarget.transform.localScale = Vector3.one;
 
-                var bounds = captureTarget.GetComponentsInChildren<Renderer>().Select(b => b.bounds).ToList();
+                var bounds = GetRenderableComponents(captureTarget).Select(b => b.bounds).ToList();
                 if (bounds.Count == 0)
                 {
                     throw new System.Exception("撮影対象にメッシュレンダラーがありませんでした:" + captureTarget.name + " " + captureDebugName);

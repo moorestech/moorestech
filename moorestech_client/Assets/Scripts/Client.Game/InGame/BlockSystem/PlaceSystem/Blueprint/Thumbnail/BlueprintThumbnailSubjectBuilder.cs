@@ -1,4 +1,5 @@
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Block;
 using Game.Block.Interface;
 using Game.Blueprint;
 using UnityEngine;
@@ -47,7 +48,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Thumbnail
 
             // プレファブが全て欠けた場合、空被写体を撮影器へ渡さない
             // Never pass an empty subject when every prefab is missing
-            if (builtCount > 0 && subject.GetComponentInChildren<Renderer>() != null) return true;
+            // 撮影器と同じRenderer列を検査し、空boundsの例外を先に防ぐ
+            // Check the same renderer set as capture to prevent the empty-bounds exception
+            if (builtCount > 0 && BlockIconImagePhotographer.GetRenderableComponents(subject).Length > 0) return true;
             Debug.LogError($"[BlueprintThumbnail] blueprint {blueprint.BlueprintGuid} has no renderable prefabs; thumbnail skipped");
             Object.Destroy(subject);
             subject = null;

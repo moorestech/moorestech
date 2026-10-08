@@ -30,6 +30,23 @@ namespace Tests.CombinedTest.Game
         }
 
         [Test]
+        public void RotatedMultiCellBlockUsesMasterSizeTest()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var master = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.MultiBlockGeneratorId);
+            Assert.AreEqual(new Vector3Int(3, 1, 2), master.BlockSize);
+            var blueprint = new BlueprintJsonObject("multi", new List<BlueprintBlockJsonObject>
+            {
+                new(Vector3Int.zero, master.BlockGuid.ToString(), (int)BlockDirection.North, new Dictionary<string, string>()),
+            }, Guid.NewGuid());
+
+            // マスタの3x1x2占有外形が90度回転で2x1x3へ移る
+            // Rotating the master's 3x1x2 occupied extent yields 2x1x3
+            Assert.AreEqual(new Vector3Int(3, 1, 2), BlueprintFootprintCalculator.CalcSize(blueprint, 0));
+            Assert.AreEqual(new Vector3Int(2, 1, 3), BlueprintFootprintCalculator.CalcSize(blueprint, 1));
+        }
+
+        [Test]
         public void UnresolvableBlueprintFoldsToOneCellTest()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));

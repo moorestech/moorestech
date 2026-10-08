@@ -29,6 +29,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
             return _session == null ? cursorAnchor : _session.StartCell;
         }
 
+        internal Vector3Int? GetStartAnchor()
+        {
+            return _session?.StartCell;
+        }
+
         public bool EndDrag()
         {
             if (_session == null) return false;

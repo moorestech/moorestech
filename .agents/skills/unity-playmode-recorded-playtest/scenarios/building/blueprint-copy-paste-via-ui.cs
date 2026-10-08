@@ -33,7 +33,7 @@ return PlaytestRunner.Run("blueprint-copy-paste-via-ui", options, async p =>
     InputSystem.EnableDevice(Mouse.current);
 
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
-    await p.SkipOpeningSkit();
+    await p.SkipOpeningSkitIfPlaying();
     p.Hotbar.UnlockBlueprint();
 
     p.PlaceBlockDirect("木のチェスト", new Vector3Int(2, 32, 2), BlockDirection.North);

@@ -65,9 +65,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
 
             // 解放はヒットの有無に関係なく先に畳む
             // Fold a release before hit testing so a sky release cannot keep a stale drag
-            var releaseStartAnchor = _dragState.ResolveStartAnchor(Vector3Int.zero);
+            var releaseStartAnchor = _dragState.GetStartAnchor();
             var releaseHeightOffset = _heightOffset.Value;
-            var isReleasedDrag = InputManager.Playable.ScreenLeftClick.GetKeyUp && _dragState.EndDrag();
+            var isReleasedDrag = InputManager.Playable.ScreenLeftClick.GetKeyUp && releaseStartAnchor.HasValue && _dragState.EndDrag();
             if (_currentBlueprint == null)
             {
                 _previewController.Hide();
@@ -92,7 +92,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
                 return;
             }
 
-            var startAnchor = isReleasedDrag ? releaseStartAnchor : _dragState.ResolveStartAnchor(cursorAnchor);
+            var startAnchor = isReleasedDrag ? releaseStartAnchor.Value : _dragState.ResolveStartAnchor(cursorAnchor);
             var placements = BlueprintPasteRunBuilder.Build(_currentBlueprint, startAnchor, cursorAnchor, _footprintSize, _rotationStep);
             var placeableFlags = placements.Select(IsPlaceable).ToList();
             _previewController.UpdatePreview(placements, placeableFlags);
