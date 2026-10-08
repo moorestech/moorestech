@@ -12,6 +12,7 @@
         "Game.Gear",
         "Game.EnergySystem",
         "Game.Block.Interface",
+        "Game.Blueprint",
         "Core.Master",
         "Server.Protocol",
         "UniTask",

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
 {
     /// <summary>
     ///     BP設置不可理由を報告
