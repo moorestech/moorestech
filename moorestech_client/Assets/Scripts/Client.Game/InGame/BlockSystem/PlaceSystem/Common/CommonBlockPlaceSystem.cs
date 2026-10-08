@@ -134,7 +134,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             bool GroundClickControl(out bool wirePlaceable)
             {
                 wirePlaceable = false;
-                if (isSelectionChanged) _dragState.DiscardForSelectionChange();
+                if (isSelectionChanged) _dragState.DiscardForBlockChange(target.BlockGuid);
 
                 //基本はプレビュー非表示
                 _previewBlockController.SetActive(false);

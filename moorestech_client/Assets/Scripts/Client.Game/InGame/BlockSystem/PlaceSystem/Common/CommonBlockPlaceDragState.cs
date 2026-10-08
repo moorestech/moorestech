@@ -1,3 +1,4 @@
+using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Run;
 using UnityEngine;
 
@@ -19,6 +20,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
         private readonly PlacementHeightOffset _heightOffset;
         private PlacementDragSession _session;
+        private Guid? _lastBlockGuid;
 
         public CommonBlockPlaceDragState(PlacementHeightOffset heightOffset)
         {
@@ -40,6 +42,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         public void DiscardForSelectionChange()
         {
             _session = null;
+        }
+
+        // 持ち替え先のブロック種が変わったときだけドラッグを捨てる。同種の別向きへの持ち替えでは続行する
+        // Discards the drag only when the block kind changes; switching to another direction of the same kind keeps it
+        public void DiscardForBlockChange(Guid blockGuid)
+        {
+            var isBlockChanged = _lastBlockGuid != blockGuid;
+            _lastBlockGuid = blockGuid;
+            if (isBlockChanged) DiscardForSelectionChange();
         }
 
         public void BeginDrag(Vector3Int startCell, PlacementHitSurfaceKind surfaceKind)

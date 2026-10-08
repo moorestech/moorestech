@@ -114,7 +114,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
         {
             // ビルドメニューの選択ブロックが変わったら連続設置状態をリセット
             // Reset the continuous placement state when the build-menu selected block changes
-            if (isSelectionChanged) _dragState.DiscardForSelectionChange();
+            if (isSelectionChanged) _dragState.DiscardForBlockChange(target.BlockGuid);
 
             //基本はプレビュー非表示
             _previewBlockController.SetActive(false);
