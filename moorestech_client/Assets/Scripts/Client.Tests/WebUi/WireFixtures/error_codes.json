@@ -33,6 +33,7 @@
     "blueprint_delete_not_found",
     "blueprint_delete_not_unlocked",
     "blueprint_delete_request_failed",
+    "blueprint_delete_unknown",
     "empty_description",
     "invalid_kind",
     "invalid_page",

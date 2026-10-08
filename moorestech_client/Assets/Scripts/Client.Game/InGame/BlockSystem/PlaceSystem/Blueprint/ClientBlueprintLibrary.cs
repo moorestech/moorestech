@@ -10,14 +10,15 @@ using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
 {
-    // 削除結果でNotFound・未解放拒否・通信失敗を区別
-    // Distinguishes NotFound and locked-feature rejection from request failures
+    // 削除結果でNotFound・未解放拒否・通信失敗・未知の拒否理由を区別
+    // Distinguishes NotFound, locked-feature rejection, request failure and unknown rejection reasons
     public enum BlueprintDeleteResult
     {
         Success,
         NotFound,
         NotUnlocked,
         RequestFailed,
+        Unknown,
     }
 
     public interface IBlueprintDeleteService
@@ -92,15 +93,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
             var response = await ClientContext.VanillaApi.Response.Block.SendBlueprintRequest(BlueprintRequest.CreateDeleteRequest(blueprintGuid), ct);
             ApplyResponse(response);
 
-            // nullは通信失敗、理由で未発見判別
-            // Null means request failure; the reason identifies NotFound
+            // nullは通信失敗。未知の拒否理由はCreateと同じくUnknownへ畳む
+            // Null means request failure; unknown rejection reasons fold into Unknown just like Create
             if (response == null) return BlueprintDeleteResult.RequestFailed;
             if (response.Success) return BlueprintDeleteResult.Success;
             return response.FailureReason switch
             {
                 BlueprintFailureReason.NotFound => BlueprintDeleteResult.NotFound,
                 BlueprintFailureReason.NotUnlocked => BlueprintDeleteResult.NotUnlocked,
-                _ => BlueprintDeleteResult.RequestFailed,
+                _ => BlueprintDeleteResult.Unknown,
             };
         }
 

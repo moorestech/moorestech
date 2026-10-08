@@ -88,6 +88,7 @@ namespace Client.Tests.WebUi
         [TestCase(BlueprintDeleteResult.NotFound, false, "blueprint_delete_not_found")]
         [TestCase(BlueprintDeleteResult.NotUnlocked, false, "blueprint_delete_not_unlocked")]
         [TestCase(BlueprintDeleteResult.RequestFailed, false, "blueprint_delete_request_failed")]
+        [TestCase(BlueprintDeleteResult.Unknown, false, "blueprint_delete_unknown")]
         public void BlueprintDeleteActionは削除結果をエラー契約へ変換する(
             BlueprintDeleteResult deleteResult, bool expectedOk, string expectedError)
         {
