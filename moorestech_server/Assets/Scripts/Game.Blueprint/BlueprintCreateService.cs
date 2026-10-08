@@ -2,26 +2,14 @@ using System.Collections.Generic;
 using Core.Master;
 using Core.Update;
 using Game.Block.Interface.Component;
-using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.World.Interface.DataStore;
 using UnityEngine;
-using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
 
 namespace Game.Blueprint
 {
     public static class BlueprintCreateService
     {
-        // レール系はブロック外ドメイン（RailSegments）を持つためコピー対象外
-        // Rail-family blocks are excluded; their graph lives outside block states
-        private static readonly HashSet<string> ExcludedBlockTypes = new()
-        {
-            BlockTypeConst.TrainRail,
-            BlockTypeConst.TrainStation,
-            BlockTypeConst.TrainItemPlatform,
-            BlockTypeConst.TrainFluidPlatform,
-        };
-
         public static bool TryCreateFromArea(string name, Vector3Int min, Vector3Int max, out BlueprintJsonObject blueprint)
         {
             var targets = CollectTargets();
@@ -31,9 +19,9 @@ namespace Game.Blueprint
                 return false;
             }
 
-            // アンカー = ボックスXZ中心セル・ボックス最下段Y（負座標でも1セルずれないようfloorで丸める）
-            // Anchor: XZ center cell and bottom Y of the box; floor so negative coordinates never shift a cell
-            var anchor = new Vector3Int(Mathf.FloorToInt((min.x + max.x) / 2f), min.y, Mathf.FloorToInt((min.z + max.z) / 2f));
+            // 選択余白による位置ずれを避けるため、コピー対象の外形からアンカーを決める
+            // Derive the anchor from copied blocks so selection margins cannot shift placement
+            var anchor = CalcAnchor(targets);
             var blocks = new List<BlueprintBlockJsonObject>();
             foreach (var data in targets)
             {
@@ -51,26 +39,27 @@ namespace Game.Blueprint
                 foreach (var data in ServerContext.WorldBlockDatastore.BlockMasterDictionary.Values)
                 {
                     var master = MasterHolder.BlockMaster.GetBlockMaster(data.Block.BlockId);
-                    if (ExcludedBlockTypes.Contains(master.BlockType)) continue;
-                    if (!IntersectsBox(data)) continue;
+                    if (!BlueprintCopyTargetRule.IsCopyTarget(master)) continue;
+                    if (!BlueprintCopyTargetRule.IntersectsBox(data.Block.BlockPositionInfo, min, max)) continue;
                     result.Add(data);
                 }
 
                 return result;
             }
 
-            // 占有セルの一部がボックス内なら対象
-            // Included when any occupied cell intersects the XYZ bounding box
-            bool IntersectsBox(WorldBlockData data)
+            // 負座標でも中心セルを下方向に丸める
+            // Floor the center cell even at negative coordinates
+            Vector3Int CalcAnchor(List<WorldBlockData> copyTargets)
             {
-                foreach (var pos in data.Block.BlockPositionInfo.EnumeratePositions())
+                var extentMin = copyTargets[0].Block.BlockPositionInfo.MinPos;
+                var extentMax = copyTargets[0].Block.BlockPositionInfo.MaxPos;
+                foreach (var data in copyTargets)
                 {
-                    if (min.x <= pos.x && pos.x <= max.x &&
-                        min.y <= pos.y && pos.y <= max.y &&
-                        min.z <= pos.z && pos.z <= max.z) return true;
+                    extentMin = Vector3Int.Min(extentMin, data.Block.BlockPositionInfo.MinPos);
+                    extentMax = Vector3Int.Max(extentMax, data.Block.BlockPositionInfo.MaxPos);
                 }
 
-                return false;
+                return new Vector3Int(Mathf.FloorToInt((extentMin.x + extentMax.x) / 2f), extentMin.y, Mathf.FloorToInt((extentMin.z + extentMax.z) / 2f));
             }
 
             BlueprintBlockJsonObject CreateBlockJson(WorldBlockData data, Vector3Int anchorPos)
