@@ -12,7 +12,7 @@ namespace Game.Block.Blocks.BeltConveyor.Topology.Layout
     // Inputs into a merge from a machine or a branch buffer get a hidden one-cell internal segment in between; merge buffers and normal segments connect directly
     public static class BeltSegmentLayoutBuilder
     {
-        public static List<BeltSegmentLayout> Build(List<BeltTopologyCell> cells)
+        public static BeltSegmentLayout[] Build(List<BeltTopologyCell> cells)
         {
             var cellIndexByBlock = new Dictionary<BlockInstanceId, int>(cells.Count);
             for (var i = 0; i < cells.Count; i++) cellIndexByBlock.Add(cells[i].BlockInstanceId, i);
@@ -44,7 +44,7 @@ namespace Game.Block.Blocks.BeltConveyor.Topology.Layout
                 for (var i = 0; i < layout.Inputs.Length; i++)
                     if (NeedsInternal(layout.Inputs[i].Connection)) layouts[layout.Inputs[i].PartnerSegmentIndex] = CreateInternalLayout(layout, layout.Inputs[i]);
             }
-            return new List<BeltSegmentLayout>(layouts);
+            return layouts;
 
             #region Internal
 
@@ -96,23 +96,35 @@ namespace Game.Block.Blocks.BeltConveyor.Topology.Layout
                 for (var i = 0; i < count; i++)
                 {
                     ref readonly var output = ref last.Outputs[i];
-                    var partner = PartnerIndex(output);
-                    // 分岐bufferから合流へ出すときは、合流が持つ内部segmentへつなぐ
-                    // A branch buffer feeding a merge connects to the merge's internal segment instead
-                    if (kind == BeltSegmentKind.Branch && partner != BeltSegmentLayoutLink.Machine)
-                        partner = InternalIndexFor(cellIndexByBlock[output.PartnerBlock.BlockInstanceId], last.BlockInstanceId, partner);
+                    var partner = BeltSegmentLayoutLink.Machine;
+                    if (output.PartnerKind == BeltTopologyPartnerKind.Belt)
+                    {
+                        // 分岐bufferから合流へ出すときは、合流が持つ内部segmentへつなぐ
+                        // A branch buffer feeding a merge connects to the merge's internal segment instead
+                        var partnerCellIndex = cellIndexByBlock[output.PartnerBlock.BlockInstanceId];
+                        partner = kind == BeltSegmentKind.Branch ? InternalIndexFor(partnerCellIndex, last.BlockInstanceId) : segmentIndexOfCell[partnerCellIndex];
+                    }
                     links[i] = new BeltSegmentLayoutLink(output.Direction, output.EntryDirection, partner, output);
                 }
                 return links;
             }
 
-            int InternalIndexFor(int targetCellIndex, BlockInstanceId sourceBlock, int fallback)
+            int InternalIndexFor(int targetCellIndex, BlockInstanceId sourceBlock)
             {
+                // 相手が合流でなければそのsegment。合流なら、送り元の入力は対で作られているので必ず見つかる
+                // A non-merge target is its own segment; for a merge, the source's input always exists because links are built in pairs
                 var target = cells[targetCellIndex];
-                if (!IsMerge(target) || target.IsSplitter) return fallback;
-                for (var i = 0; i < target.Inputs.Length; i++)
-                    if (target.Inputs[i].PartnerBlock.BlockInstanceId == sourceBlock) return internalIndexOfInput[InputKey(targetCellIndex, i)];
-                return fallback;
+                if (!IsMerge(target) || target.IsSplitter) return segmentIndexOfCell[targetCellIndex];
+                var inputIndex = 0;
+                while (target.Inputs[inputIndex].PartnerBlock.BlockInstanceId != sourceBlock) inputIndex++;
+                return internalIndexOfInput[InputKey(targetCellIndex, inputIndex)];
+            }
+
+            bool NeedsInternal(in BeltTopologyConnection input)
+            {
+                // 機械か分配器(分岐buffer)からの入力は、合流へ直接つながず内部segmentを挟む。分配器判定はマス側の計算済みの値を読む
+                // Inputs from a machine or a splitter (branch buffer) never connect to a merge directly; the splitter flag is read from the computed cell
+                return input.PartnerKind == BeltTopologyPartnerKind.Machine || cells[cellIndexByBlock[input.PartnerBlock.BlockInstanceId]].IsSplitter;
             }
 
             BeltSegmentLayout CreateInternalLayout(BeltSegmentLayout merge, in BeltSegmentLayoutLink mergeInput)
@@ -138,13 +150,6 @@ namespace Game.Block.Blocks.BeltConveyor.Topology.Layout
         private static bool IsMerge(BeltTopologyCell cell)
         {
             return 2 <= cell.Inputs.Length;
-        }
-
-        // 機械か分配器(分岐buffer)からの入力は、合流へ直接つながず内部segmentを挟む
-        // Inputs from a machine or a splitter (branch buffer) never connect to a merge directly and get an internal segment
-        private static bool NeedsInternal(in BeltTopologyConnection input)
-        {
-            return input.PartnerKind == BeltTopologyPartnerKind.Machine || BeltTopologyBuilder.IsSplitter(input.PartnerBlock.BlockMasterElement.BlockParam);
         }
 
         // 1マスの入力は辺ごとに1本なので最大4本。4を基数にすればマスと入力の組を1つの整数で表せる

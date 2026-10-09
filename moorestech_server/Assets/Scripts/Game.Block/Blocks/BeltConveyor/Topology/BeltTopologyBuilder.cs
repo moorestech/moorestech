@@ -76,10 +76,9 @@ namespace Game.Block.Blocks.BeltConveyor.Topology
                 var position = block.BlockPositionInfo;
                 // 水平姿勢でないベルトは前方向を持てないので一覧に載せない。プレイヤーが置ける通常の状態なのでログは出さない
                 // A belt without a horizontal orientation has no forward direction and is left out. Players can place it normally, so no log
-                if (position.BlockDirection is not (BlockDirection.North or BlockDirection.East or BlockDirection.South or BlockDirection.West) ||
-                    !BeltTopologyGeometry.TryGetDirection(position.BlockDirection.ConvertLocalCell(Vector3Int.forward), out var forward)) return false;
+                if (position.BlockDirection is not (BlockDirection.North or BlockDirection.East or BlockDirection.South or BlockDirection.West)) return false;
                 index = works.Count;
-                works.Add(new CellWork(block, forward));
+                works.Add(new CellWork(block, BeltTopologyGeometry.HorizontalDirection(position.BlockDirection.ConvertLocalCell(Vector3Int.forward))));
                 cellIndexByBlock.Add(block.BlockInstanceId, index);
                 return true;
             }
@@ -133,7 +132,7 @@ namespace Game.Block.Blocks.BeltConveyor.Topology
             return param is BeltConveyorBlockParam || param is GearBeltConveyorBlockParam;
         }
 
-        internal static bool IsSplitter(IBlockParam param)
+        private static bool IsSplitter(IBlockParam param)
         {
             var connectors = param is BeltConveyorBlockParam belt ? belt.InventoryConnectors : ((GearBeltConveyorBlockParam)param).InventoryConnectors;
             return OutputConnectorCount(connectors) > 1;

@@ -13,11 +13,17 @@ namespace Game.Block.Blocks.BeltConveyor.Topology
         {
             direction = BeltDirection.None;
             if (1 < Mathf.Abs(offset.y) || Mathf.Abs(offset.x) + Mathf.Abs(offset.z) != 1) return false;
-            if (offset.z == 1) direction = BeltDirection.Front;
-            else if (offset.z == -1) direction = BeltDirection.Back;
-            else if (offset.x == -1) direction = BeltDirection.Left;
-            else direction = BeltDirection.Right;
+            direction = HorizontalDirection(offset);
             return true;
+        }
+
+        // 水平の単位ベクトル(高さは無視)を方向にする。呼び出し側が単位ベクトルであることを保証する
+        // Maps a horizontal unit vector (height ignored) to a direction; callers guarantee it is a unit vector
+        public static BeltDirection HorizontalDirection(Vector3Int unitOffset)
+        {
+            if (unitOffset.z == 1) return BeltDirection.Front;
+            if (unitOffset.z == -1) return BeltDirection.Back;
+            return unitOffset.x == -1 ? BeltDirection.Left : BeltDirection.Right;
         }
 
         // 受け側から見た搬入元の向きに、送り側と受け側の高さ比較を足す

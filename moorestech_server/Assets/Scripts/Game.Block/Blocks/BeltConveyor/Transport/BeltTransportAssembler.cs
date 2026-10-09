@@ -9,21 +9,20 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
     // Creates Core segments from the layouts (D3) and wires them exactly as the layout links say
     public static class BeltTransportAssembler
     {
-        public static BeltTransportAssembly Assemble(List<BeltSegmentLayout> layouts)
+        public static BeltTransportAssembly Assemble(BeltSegmentLayout[] layouts)
         {
             // 番号順にsegmentを生成してから接続する。優先順は新規生成として向きから初期化する
             // Create every segment in index order, then wire; priorities start from the direction as for a fresh block
-            var layoutArray = layouts.ToArray();
-            var segments = new BeltConveyorSegment[layoutArray.Length];
-            for (var i = 0; i < layoutArray.Length; i++) segments[i] = Create(layoutArray[i]);
+            var segments = new BeltConveyorSegment[layouts.Length];
+            for (var i = 0; i < layouts.Length; i++) segments[i] = Create(layouts[i]);
 
             var supplyPortByFace = new Dictionary<BeltMachineSupplyKey, BeltMachineSupplyPort>();
-            for (var i = 0; i < layoutArray.Length; i++)
+            for (var i = 0; i < layouts.Length; i++)
             {
-                WireOutputs(layoutArray[i], segments[i]);
-                CollectSupplyPorts(layoutArray[i], segments[i]);
+                WireOutputs(layouts[i], segments[i]);
+                CollectSupplyPorts(layouts[i], segments[i]);
             }
-            return new BeltTransportAssembly(layoutArray, segments, supplyPortByFace);
+            return new BeltTransportAssembly(layouts, segments, supplyPortByFace);
 
             #region Internal
 
@@ -63,7 +62,7 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
             {
                 // 内部segmentへの押し込みは、その合流マスのblockへの押し込みとして届く
                 // A push into an internal segment arrives as a push into its merge cell's block
-                var owner = layout.IsInternal ? layoutArray[layout.Outputs[0].PartnerSegmentIndex] : layout;
+                var owner = layout.IsInternal ? layouts[layout.Outputs[0].PartnerSegmentIndex] : layout;
                 return owner.Cells[0].BlockInstanceId;
             }
 
