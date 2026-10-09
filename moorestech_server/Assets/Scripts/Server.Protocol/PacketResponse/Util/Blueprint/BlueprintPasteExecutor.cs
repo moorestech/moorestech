@@ -28,6 +28,8 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint
                     var cell = cellExecutor.PlanCell(element.BlockId, playerId, inventory, plan.IsPaymentWaived);
                     if (!cell.IsAffordable)
                     {
+                        // 全体保証は計画時のみ。同期購読者が在庫を変えると、公開済み設置イベントは巻き戻せないため既配置分を残す
+                        // Whole-copy affordability is guaranteed only during planning; synchronous inventory changes leave placed cells because published placement events cannot be rolled back
                         Debug.LogWarning($"[BlueprintPaste] execution cost shortage pos={element.Position} player={playerId}");
                         costShortage = true;
                         break;

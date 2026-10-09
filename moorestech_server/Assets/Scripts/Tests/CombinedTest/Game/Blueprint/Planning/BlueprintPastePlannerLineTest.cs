@@ -37,6 +37,7 @@ namespace Tests.CombinedTest.Game.Blueprint.Planning
             var result = context.Plan(WiredBlueprint(), 1, new Dictionary<ItemId, int>());
             Assert.IsTrue(result.Copies[0].IsPlaced);
             Assert.IsEmpty(result.Copies[0].Draft.Lines);
+            Assert.AreEqual(1, result.Copies[0].Draft.OverlappingEndpointLineCount);
         }
 
         [Test]
@@ -86,8 +87,10 @@ namespace Tests.CombinedTest.Game.Blueprint.Planning
         public void 回転後の端点を元のindexから解決するTest(int rotation)
         {
             var context = new BlueprintPastePlannerTestContext(true, 0);
-            var draft = BlueprintPasteCopyBuilder.Build(WiredBlueprint(),
-                new BlueprintPasteOrigin(new Vector3Int(7, 2, 5), true), rotation, context.World);
+            var origins = new[] { new BlueprintPasteOrigin(new Vector3Int(7, 2, 5), true) };
+            var plan = BlueprintPastePlanner.Plan(WiredBlueprint(), origins, rotation, context.World,
+                context.Wallet, new Dictionary<ItemId, int>());
+            var draft = plan.Copies[0].Draft;
             var line = draft.Lines.Single();
             Assert.AreEqual(0, draft.Elements[line.ElementIndexA].BlockIndex);
             Assert.AreEqual(1, draft.Elements[line.ElementIndexB].BlockIndex);
@@ -111,9 +114,25 @@ namespace Tests.CombinedTest.Game.Blueprint.Planning
             // Skip only the missing endpoint line without compacting saved indices
             var draft = BlueprintPasteCopyBuilder.BuildUnobstructed(blueprint);
             Assert.AreEqual(2, draft.Elements.Count);
+            Assert.AreEqual(1, draft.MissingEndpointLineCount);
             var line = draft.Lines.Single();
             Assert.AreEqual(1, draft.Elements[line.ElementIndexA].BlockIndex);
             Assert.AreEqual(2, draft.Elements[line.ElementIndexB].BlockIndex);
+        }
+
+        [Test]
+        public void 未知線種は省略理由を残しブロックの貼り付けを妨げないTest()
+        {
+            var context = new BlueprintPastePlannerTestContext(true, 0);
+            var blueprint = WiredBlueprint();
+            blueprint.Wires.Clear();
+            blueprint.Wires.Add(new BlueprintLineJsonObject(0, 1, Guid.NewGuid()));
+
+            var plan = context.Plan(blueprint, 1, new Dictionary<ItemId, int>());
+
+            Assert.AreEqual(BlueprintPasteCopyState.Placeable, plan.Copies[0].State);
+            Assert.IsEmpty(plan.Copies[0].Draft.Lines);
+            Assert.AreEqual(1, plan.Copies[0].Draft.UnknownConnectToolLineCount);
         }
 
         private static BlueprintJsonObject WiredBlueprint()

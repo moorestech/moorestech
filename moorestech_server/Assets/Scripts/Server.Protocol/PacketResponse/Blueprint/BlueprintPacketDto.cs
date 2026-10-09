@@ -41,8 +41,8 @@ namespace Server.Protocol.PacketResponse
         // 識別子はGuidに一本化。名前は表示専用でありもう識別には使わない
         // The identity is unified to a GUID; the name is display-only and no longer used for identification
         [Key(2)] public string BlueprintGuidStr { get; set; }
-        [Key(3)] public List<BlueprintLineMessagePack> Wires;
-        [Key(4)] public List<BlueprintLineMessagePack> Chains;
+        [Key(3)] public List<BlueprintLineMessagePack> Wires { get; set; }
+        [Key(4)] public List<BlueprintLineMessagePack> Chains { get; set; }
         [IgnoreMember] public Guid BlueprintGuid => Guid.Parse(BlueprintGuidStr);
 
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]

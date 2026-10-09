@@ -9,7 +9,7 @@ using Client.Game.InGame.Construction;
 using Game.Construction;
 using Game.PlacementTarget;
 using Game.Blueprint;
-using Server.Protocol.PacketResponse;
+using Client.Tests.PlaceSystem.Blueprint;
 using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.UIState;
 using Client.WebUiHost.Game.Actions;
@@ -47,9 +47,7 @@ namespace Client.Tests.WebUi
 
             // BP本体を持つライブラリから解決した対象をDTOへ渡す
             // Pass library-resolved targets with blueprint bodies into the DTO conversion
-            var library = new ClientBlueprintLibrary();
-            ((IList<BlueprintMessagePack>)library.Blueprints).Add(new BlueprintMessagePack(
-                new BlueprintJsonObject("starter-base", new(), new(), new(), blueprintGuid)));
+            var library = new BlueprintLookupStub(new BlueprintJsonObject("starter-base", new(), new(), new(), blueprintGuid));
             var targets = new PlacementTargetResolver(new PlacementTargetCatalog(new BeltConveyorPlacementUnlockSourceMap()), library, unlockState)
                 .CreateUnlockedTargets();
             var dtos = BuildMenuEntryDtoFactory.CreateDtos(targets, new ConstructionWalletQuery(new ClientRemainingPlacementCountDatastore()), Array.Empty<IItemStack>(), new BlueprintThumbnailContainer());

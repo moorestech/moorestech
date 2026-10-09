@@ -10,6 +10,10 @@ using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
 {
+    /// <summary>
+    ///     BP内の復元予定配線をプレビューする
+    ///     Previews saved connections within a blueprint
+    /// </summary>
     public class BlueprintPasteLinePreview
     {
         private readonly Transform _root = new GameObject("BlueprintPasteLines").transform;

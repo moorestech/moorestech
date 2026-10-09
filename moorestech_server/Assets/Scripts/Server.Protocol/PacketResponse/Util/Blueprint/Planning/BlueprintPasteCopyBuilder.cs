@@ -1,7 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Block.Interface;
+using Game.Block.Interface.Extension;
 using Game.Blueprint;
 using Server.Protocol.PacketResponse.Util.ConnectTool;
 using UnityEngine;
@@ -10,11 +10,6 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint.Planning
 {
     public static class BlueprintPasteCopyBuilder
     {
-        public static BlueprintPasteCopyDraft Build(BlueprintJsonObject blueprint, BlueprintPasteOrigin origin, int rotationStep, IBlueprintPasteWorld world)
-        {
-            return Build(blueprint, origin, rotationStep, world, Array.Empty<BlueprintPasteCopyDraft>());
-        }
-
         internal static BlueprintPasteCopyDraft Build(BlueprintJsonObject blueprint, BlueprintPasteOrigin origin,
             int rotationStep, IBlueprintPasteWorld world, IReadOnlyList<BlueprintPasteCopyDraft> accepted)
         {
@@ -39,9 +34,7 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint.Planning
                     {
                         if (!copy.NonOverlapFlags[i]) continue;
                         var occupied = BlueprintPlacementElementUtil.ToPositionInfo(copy.Elements[i]);
-                        if (position.MinPos.x <= occupied.MaxPos.x && occupied.MinPos.x <= position.MaxPos.x &&
-                            position.MinPos.y <= occupied.MaxPos.y && occupied.MinPos.y <= position.MaxPos.y &&
-                            position.MinPos.z <= occupied.MaxPos.z && occupied.MinPos.z <= position.MaxPos.z)
+                        if (position.IsOverlap(occupied))
                             return true;
                     }
                 }
@@ -67,9 +60,13 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint.Planning
             for (var i = 0; i < elements.Count; i++) elementIndexByBlockIndex[elements[i].BlockIndex] = i;
 
             var lines = new List<BlueprintPasteLine>();
+            var missingEndpointLineCount = 0;
+            var overlappingEndpointLineCount = 0;
+            var unknownConnectToolLineCount = 0;
             ResolveLines(BlueprintPasteLineKind.ElectricWire, blueprint.Wires);
             ResolveLines(BlueprintPasteLineKind.GearChain, blueprint.Chains);
-            return new BlueprintPasteCopyDraft(origin.Position, origin.IsGroundFound, elements, nonOverlapFlags, lines);
+            return new BlueprintPasteCopyDraft(origin.Position, origin.IsGroundFound, elements, nonOverlapFlags, lines,
+                missingEndpointLineCount, overlappingEndpointLineCount, unknownConnectToolLineCount);
 
             #region Internal
 
@@ -81,7 +78,7 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint.Planning
                     // A line whose endpoint block vanished from the master cannot be drawn
                     if (!elementIndexByBlockIndex.TryGetValue(saved.BlockIndexA, out var indexA) || !elementIndexByBlockIndex.TryGetValue(saved.BlockIndexB, out var indexB))
                     {
-                        Debug.LogWarning($"[BlueprintPaste] line skipped: endpoint missing kind={kind} a={saved.BlockIndexA} b={saved.BlockIndexB} blueprint={blueprint.BlueprintGuid}");
+                        missingEndpointLineCount++;
                         continue;
                     }
 
@@ -89,7 +86,7 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint.Planning
                     // Skip lines whose endpoint is blocked by an overlap (ADR 0077 decision 4)
                     if (!nonOverlapFlags[indexA] || !nonOverlapFlags[indexB])
                     {
-                        Debug.LogWarning($"[BlueprintPaste] line skipped: endpoint overlaps kind={kind} a={saved.BlockIndexA} b={saved.BlockIndexB} blueprint={blueprint.BlueprintGuid}");
+                        overlappingEndpointLineCount++;
                         continue;
                     }
 
@@ -97,7 +94,7 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint.Planning
                     var positionB = elements[indexB].Position;
                     if (!ConnectToolCostCalculator.TryCalculate(saved.ConnectToolGuid, Vector3Int.Distance(positionA, positionB), out var materials))
                     {
-                        Debug.LogWarning($"[BlueprintPaste] line skipped: unknown connect tool {saved.ConnectToolGuid} blueprint={blueprint.BlueprintGuid}");
+                        unknownConnectToolLineCount++;
                         continue;
                     }
 

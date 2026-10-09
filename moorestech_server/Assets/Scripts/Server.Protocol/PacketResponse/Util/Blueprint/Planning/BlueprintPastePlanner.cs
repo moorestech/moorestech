@@ -3,7 +3,6 @@ using System.Linq;
 using Core.Master;
 using Game.Blueprint;
 using Game.Construction;
-using UnityEngine;
 
 namespace Server.Protocol.PacketResponse.Util.Blueprint.Planning
 {
@@ -12,7 +11,6 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint.Planning
         public static BlueprintPastePlan Plan(BlueprintJsonObject blueprint, IReadOnlyList<BlueprintPasteOrigin> origins, int rotationStep, IBlueprintPasteWorld world, ConstructionWalletQuery wallet, IReadOnlyDictionary<ItemId, int> heldByItem)
         {
             var isPaymentWaived = world.IsPaymentWaived;
-            var isUnlocked = IsUnlocked();
             var accepted = new List<BlueprintPasteCopyDraft>();
             var copies = new List<BlueprintPasteCopyPlan>();
             var shortageRequirements = new List<(ItemId itemId, int held, int required)>();
@@ -30,8 +28,6 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint.Planning
                 // Reserve only accepted copies and construct an immutable final result
                 if (state == BlueprintPasteCopyState.Placeable)
                     accepted.Add(draft);
-                else
-                    Debug.LogWarning($"[BlueprintPaste] copy rejected: {state} origin={draft.Origin} blueprint={blueprint.BlueprintGuid}");
                 copies.Add(new BlueprintPasteCopyPlan(draft, state));
             }
             return new BlueprintPastePlan(copies, isPaymentWaived, shortageRequirements);
@@ -42,19 +38,24 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint.Planning
             {
                 if (!draft.IsGroundFound) return BlueprintPasteCopyState.GroundNotFound;
                 if (draft.NonOverlapFlags.All(flag => !flag)) return BlueprintPasteCopyState.AllOverlapped;
-                if (!isUnlocked) return BlueprintPasteCopyState.NotUnlocked;
+                if (!IsUnlocked(draft)) return BlueprintPasteCopyState.NotUnlocked;
                 return BlueprintPasteCopyState.Placeable;
             }
 
-            bool IsUnlocked()
+            bool IsUnlocked(BlueprintPasteCopyDraft draft)
             {
                 // 重なりで省略される要素も解放を免除しない
                 // Unlock is required even for entries skipped due to overlaps
-                foreach (var block in blueprint.Blocks)
+                foreach (var element in draft.Elements)
                 {
-                    if (!world.IsBlockUnlocked(block.BlockGuid)) return false;
+                    if (!world.IsBlockUnlocked(blueprint.Blocks[element.BlockIndex].BlockGuid)) return false;
                 }
-                return blueprint.Wires.Concat(blueprint.Chains).All(line => world.IsConnectToolUnlocked(line.ConnectToolGuid));
+
+                // マスタに無い線種は復元対象にならず解放判定からも外す
+                // Unknown line tools cannot be restored and do not participate in unlock checks
+                return blueprint.Wires.Concat(blueprint.Chains)
+                    .Where(line => MasterHolder.ConnectToolMaster.GetElementOrNull(line.ConnectToolGuid) != null)
+                    .All(line => world.IsConnectToolUnlocked(line.ConnectToolGuid));
             }
 
             BlueprintPasteCopyState JudgeMaterials(BlueprintPasteCopyDraft draft)

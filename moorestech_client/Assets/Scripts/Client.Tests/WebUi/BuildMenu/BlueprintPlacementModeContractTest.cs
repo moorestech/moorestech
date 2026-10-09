@@ -14,7 +14,7 @@ using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
 
-namespace Client.Tests.WebUi
+namespace Client.Tests.WebUi.BuildMenu
 {
     public class BlueprintPlacementModeContractTest
     {
@@ -25,7 +25,7 @@ namespace Client.Tests.WebUi
         }
 
         [Test]
-        public void PlacementModeFactorySeparatesTypedCopyToolFromRawBlueprintName()
+        public void PlacementModeFactorySeparatesTypedCopyToolFromRawBlueprintNameTest()
         {
             var copyTool = PlacementModeDtoFactory.Create(
                 new BlueprintCopyPlacementTarget(
@@ -48,6 +48,5 @@ namespace Client.Tests.WebUi
             Assert.AreEqual("raw", blueprint.SelectedTargetType);
             Assert.AreEqual("My Blueprint", blueprint.SelectedName);
         }
-
     }
 }

@@ -14,10 +14,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
     public class PlacementTargetResolver
     {
         private readonly PlacementTargetCatalog _catalog;
-        private readonly ClientBlueprintLibrary _blueprintLibrary;
+        private readonly IBlueprintLookup _blueprintLibrary;
         private readonly IGameUnlockStateData _gameUnlockStateData;
 
-        public PlacementTargetResolver(PlacementTargetCatalog catalog, ClientBlueprintLibrary blueprintLibrary, IGameUnlockStateData gameUnlockStateData)
+        public PlacementTargetResolver(PlacementTargetCatalog catalog, IBlueprintLookup blueprintLibrary, IGameUnlockStateData gameUnlockStateData)
         {
             _catalog = catalog;
             _blueprintLibrary = blueprintLibrary;

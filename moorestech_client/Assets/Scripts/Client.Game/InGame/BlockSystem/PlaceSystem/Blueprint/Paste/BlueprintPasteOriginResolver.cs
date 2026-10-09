@@ -6,6 +6,10 @@ using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
 {
+    /// <summary>
+    ///     ヒット面からBP外接箱の原点を解決する
+    ///     Resolves blueprint extent origins from hit surfaces
+    /// </summary>
     public static class BlueprintPasteOriginResolver
     {
         public static bool TryResolveCursorOrigin(Camera camera, Vector3Int footprintSize, int heightOffset, out Vector3Int origin, out PlacementHitSurfaceKind surfaceKind)

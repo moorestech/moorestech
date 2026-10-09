@@ -96,6 +96,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.IsFalse(ServerContext.WorldBlockDatastore.Exists(BlueprintPasteProtocolTestContext.Origin + new Vector3Int(3, 0, 0)));
             Assert.AreEqual(0, context.Inventory.InventoryItems.Sum(item => item.Count));
             context.AssertDenied(BlueprintFailureReason.PasteCostShortage, 1);
+            context.AssertDenied(BlueprintFailureReason.PastePlacementFailed, 1);
         }
     }
 }

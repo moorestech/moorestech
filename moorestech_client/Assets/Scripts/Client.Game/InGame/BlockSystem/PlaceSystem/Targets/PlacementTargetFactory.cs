@@ -9,7 +9,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
     {
         // カタログエントリからIPlacementTargetを生成する唯一の解決点
         // The single resolution point from catalog entry to IPlacementTarget
-        public static bool TryCreate(PlacementTargetEntry entry, ClientBlueprintLibrary blueprintLibrary, out IPlacementTarget target)
+        public static bool TryCreate(PlacementTargetEntry entry, IBlueprintLookup blueprintLibrary, out IPlacementTarget target)
         {
             switch (entry.Kind)
             {

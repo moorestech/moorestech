@@ -121,6 +121,10 @@ namespace Tests.UnitTest.Game.SaveLoad.BlueprintMigration
         [TestCase("{\"blueprints\":[null]}")]
         [TestCase("{\"blueprints\":[{\"blocks\":[{\"offsetX\":2147483648,\"offsetY\":0,\"offsetZ\":0}]}]}")]
         [TestCase("{\"blueprints\":[{\"blocks\":[{\"offsetX\":0.5,\"offsetY\":0,\"offsetZ\":0}]}]}")]
+        [TestCase("{\"blueprints\":[{\"blocks\":[{\"offsetX\":-2147483649,\"offsetY\":0,\"offsetZ\":0}]}]}")]
+        [TestCase("{\"blueprints\":[{\"blocks\":[{\"offsetX\":9223372036854775807,\"offsetY\":0,\"offsetZ\":0}]}]}")]
+        [TestCase("{\"blueprints\":[{\"blocks\":[{\"offsetX\":9223372036854775808,\"offsetY\":0,\"offsetZ\":0}]}]}")]
+        [TestCase("{\"blueprints\":[{\"blocks\":[{\"offsetX\":-9223372036854775809,\"offsetY\":0,\"offsetZ\":0}]}]}")]
         public void 不正な外部JSONは例外でなく失敗を返すTest(string json)
         {
             var save = JObject.Parse(json);

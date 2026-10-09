@@ -98,6 +98,43 @@ namespace Tests.CombinedTest.Game.Blueprint.Planning
             Assert.AreEqual(BlueprintPasteCopyState.NotUnlocked, result.Copies[0].State);
         }
 
+        [TestCase(false)]
+        [TestCase(true)]
+        public void マスタ欠損ブロックは解放判定から除外して残るブロックを置けるTest(bool remainingLocked)
+        {
+            var context = new BlueprintPastePlannerTestContext(true, 0);
+            var block = ForUnitTestModBlockId.BlockId;
+            var blueprint = BlueprintPastePlannerTestContext.Create(block);
+            var missingGuid = Guid.NewGuid();
+            blueprint.Blocks.Insert(0, new BlueprintBlockJsonObject(Vector3Int.zero, missingGuid.ToString(),
+                (int)BlockDirection.North, new Dictionary<string, string>()));
+            if (remainingLocked) context.World.Locked.Add(MasterHolder.BlockMaster.GetBlockMaster(block).BlockGuid);
+
+            // 本番同様に未知Guidで例外を投げるworldでも判定を完了する
+            // Complete planning with a world that throws for unknown GUIDs, as production does
+            Assert.Throws<InvalidOperationException>(() => context.World.IsBlockUnlocked(missingGuid));
+            var plan = context.Plan(blueprint, 1, new Dictionary<ItemId, int>());
+
+            Assert.AreEqual(remainingLocked ? BlueprintPasteCopyState.NotUnlocked : BlueprintPasteCopyState.Placeable,
+                plan.Copies[0].State);
+            Assert.AreEqual(1, plan.Copies[0].Draft.Elements.Count);
+            Assert.AreEqual(1, plan.Copies[0].Draft.Elements[0].BlockIndex);
+        }
+
+        [Test]
+        public void 全ブロックがマスタ欠損でも例外なく配置対象なしになるTest()
+        {
+            var context = new BlueprintPastePlannerTestContext(true, 0);
+            var blueprint = BlueprintPastePlannerTestContext.Create();
+            blueprint.Blocks.Add(new BlueprintBlockJsonObject(Vector3Int.zero, Guid.NewGuid().ToString(),
+                (int)BlockDirection.North, new Dictionary<string, string>()));
+
+            var plan = context.Plan(blueprint, 1, new Dictionary<ItemId, int>());
+
+            Assert.AreEqual(BlueprintPasteCopyState.AllOverlapped, plan.Copies[0].State);
+            Assert.IsEmpty(plan.Copies[0].Draft.Elements);
+        }
+
         [Test]
         public void 生成後のCopyPlanは状態を変える口を持たないTest()
         {

@@ -89,8 +89,16 @@ namespace Client.Tests.WebUi
             var block = ForUnitTestModBlockId.GearBeltConveyor;
             _remaining.Apply(block, 1);
             var dto = CreateDto(CreateBlueprint(block, ForUnitTestModBlockId.TestGearBeltConveyorUp));
-            Assert.IsNotEmpty(dto.RequiredItems);
-            Assert.IsTrue(dto.RequiredItems.All(item => item.Lacking));
+            var costs = MasterHolder.BlockMaster.GetBlockMaster(block).RequiredItems;
+            Assert.IsNotEmpty(costs);
+            Assert.AreEqual(costs.Length, dto.RequiredItems.Count);
+            foreach (var cost in costs)
+            {
+                var row = dto.RequiredItems.Single(item => item.ItemId == MasterHolder.ItemMaster.GetItemId(cost.ItemGuid).AsPrimitive());
+                Assert.AreEqual(cost.Count, row.Count, "共有財布を一度だけ使い補充1セットを要求する");
+                Assert.AreEqual(0, row.Held);
+                Assert.IsTrue(row.Lacking);
+            }
         }
 
         [Test]

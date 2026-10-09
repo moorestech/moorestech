@@ -33,6 +33,14 @@ namespace Client.Tests.PlaceSystem.Blueprint.Paste
         }
 
         [Test]
+        public void 未解放のBPがあれば解放不足理由を一行出すTest()
+        {
+            var feedback = Report(BlueprintPasteCopyState.NotUnlocked, BlueprintPasteCopyState.NotUnlocked);
+            Assert.AreEqual(1, feedback.Lines.Count);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBlueprintNotUnlocked.Key, feedback.Lines[0].Key.Key);
+        }
+
+        [Test]
         public void 素材不足のBPがあれば不足素材行を出すTest()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
@@ -81,7 +89,7 @@ namespace Client.Tests.PlaceSystem.Blueprint.Paste
         private static BlueprintPasteCopyPlan Copy(BlueprintPasteCopyState state)
         {
             var draft = new BlueprintPasteCopyDraft(Vector3Int.zero, state != BlueprintPasteCopyState.GroundNotFound,
-                Array.Empty<BlueprintPlacementElement>(), Array.Empty<bool>(), Array.Empty<BlueprintPasteLine>());
+                Array.Empty<BlueprintPlacementElement>(), Array.Empty<bool>(), Array.Empty<BlueprintPasteLine>(), 0, 0, 0);
             return new BlueprintPasteCopyPlan(draft, state);
         }
     }

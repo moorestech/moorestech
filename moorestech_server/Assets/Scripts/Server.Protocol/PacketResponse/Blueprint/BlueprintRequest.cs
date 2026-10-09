@@ -25,8 +25,8 @@ namespace Server.Protocol.PacketResponse
 
         // 列の各原点と共通の回転を送る
         // Send each run origin and the shared rotation
-        [Key(7)] public int RotationStep;
-        [Key(8)] public List<Vector3IntMessagePack> Origins;
+        [Key(7)] public int RotationStep { get; set; }
+        [Key(8)] public List<Vector3IntMessagePack> Origins { get; set; }
 
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public BlueprintRequest() { Tag = BlueprintProtocol.ProtocolTag; }
@@ -63,6 +63,8 @@ namespace Server.Protocol.PacketResponse
 
         // 共有上限で区切り、始点からの素材判定順を保つ
         // Split at the shared limit while preserving material evaluation order
+        // 要求間で不足状態は共有せず、サーバー状態が変わると後続要求で再び配置可能になる
+        // Shortage state is not shared across requests; server state changes can make a later request placeable again
         public static IEnumerable<BlueprintRequest> CreatePasteRequests(Guid blueprintGuid, int rotationStep, List<Vector3Int> origins)
         {
             for (var offset = 0; offset < origins.Count; offset += MaxPasteOrigins)

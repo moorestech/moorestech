@@ -1,5 +1,3 @@
-using System;
-using System.Globalization;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
@@ -55,10 +53,10 @@ namespace Game.SaveLoad.Migration.Steps
                     {
                         var offsetToken = block[key];
                         if (offsetToken?.Type != JTokenType.Integer) return $"BPのブロックに整数の{key}がありません。 guid={blueprint["guid"]}";
-                        // 現在カルチャの負号を使わず、整数値を不変カルチャで検証する
-                        // Validate the integer value with invariant formatting, independent of the current culture's minus sign
-                        var offsetText = Convert.ToString(((JValue)offsetToken).Value, CultureInfo.InvariantCulture);
-                        if (!int.TryParse(offsetText, NumberStyles.Integer, CultureInfo.InvariantCulture, out _))
+                        // JSON整数はlong、プログラムで組む整数はintとして範囲を直接調べる
+                        // Check parsed long values and programmatically created int values directly
+                        var value = ((JValue)offsetToken).Value;
+                        if (!(value is int) && !(value is long number && int.MinValue <= number && number <= int.MaxValue))
                         {
                             return $"BPの{key}が整数範囲外です。 guid={blueprint["guid"]}";
                         }

@@ -10,6 +10,10 @@ using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
 {
+    /// <summary>
+    ///     設置可能なBPコピーを送信し操作結果を記録する
+    ///     Sends placeable blueprint copies and records the operation
+    /// </summary>
     public static class BlueprintPastePlaceSender
     {
         public static void Send(Guid blueprintGuid, int rotationStep, BlueprintPastePlan plan)

@@ -78,6 +78,22 @@ namespace Tests.CombinedTest.Game.Blueprint.Planning
                 BlueprintPasteCopyState.Placeable }, plan.Copies.Select(copy => copy.State));
         }
 
+        [TestCase(0)]
+        [TestCase(1)]
+        public void 多セルブロックの原点以外に既存セルがあれば重なりを検出するTest(int rotation)
+        {
+            var context = new BlueprintPastePlannerTestContext(true, 0);
+            var blueprint = BlueprintPastePlannerTestContext.Create(ForUnitTestModBlockId.MultiBlockGeneratorId);
+            var longAxis = rotation == 0 ? Vector3Int.right : new Vector3Int(0, 0, 1);
+            context.World.Overlaps.Add(longAxis);
+
+            var plan = BlueprintPastePlanner.Plan(blueprint, Origins(Vector3Int.zero), rotation,
+                context.World, context.Wallet, new Dictionary<ItemId, int>());
+
+            Assert.AreEqual(BlueprintPasteCopyState.AllOverlapped, plan.Copies[0].State);
+            Assert.IsFalse(plan.Copies[0].Draft.NonOverlapFlags.Single());
+        }
+
         [Test]
         public void 外接箱の空白部分は後続BPのブロックを妨げないTest()
         {

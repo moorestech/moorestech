@@ -102,7 +102,7 @@ namespace Client.Starter.Registration
             builder.Register<IPlacementFeedbackPresenter, PlacementFeedbackTooltipPresenter>(Lifetime.Singleton);
             builder.Register<PlaceSystemStateController>(Lifetime.Singleton);
             builder.Register<IPlaceSystemSelector, PlaceSystemSelector>(Lifetime.Singleton);
-            builder.Register<ClientBlueprintLibrary>(Lifetime.Singleton);
+            builder.Register<ClientBlueprintLibrary>(Lifetime.Singleton).AsSelf().As<IBlueprintLookup>();
             builder.Register<MapVeinAabbRegistry>(Lifetime.Singleton);
             builder.Register<VeinRestrictedPlacementState>(Lifetime.Singleton);
             builder.Register<ChainPlacePreviewState>(Lifetime.Singleton);

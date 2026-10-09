@@ -71,8 +71,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
             // Folding and sending on release share the normal placement's single entry; a same-frame press is registered first
             if (!_dragState.TryConsumeSendableRelease(InputManager.Playable.ScreenLeftClick.GetKeyUp, isSendable, false)) return;
 
-            // サーバーが再検証し部分成功を許すため、クライアントで置けると判定したものだけ送る
-            // The server revalidates and allows partial success, so send only what the client judged placeable
+            // BP単位の共有判定で設置可能なコピーだけを送り、サーバーで再検証する
+            // Send only copies accepted by the shared judgement and revalidate them on the server
             BlueprintPastePlaceSender.Send(_currentBlueprintGuid, _rotationStep, plan);
 
             #region Internal
@@ -98,9 +98,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
                 }
 
                 if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi()) _dragState.BeginDrag(cursorAnchor, surfaceKind);
-                if (!PlaceSystemUtil.IsPlaceableFromPlayer(cursorAnchor))
+                // 通常設置と同じく地形追従後の列カーソル原点で距離を見る
+                // Match normal placement by checking the resolved cursor copy after ground following
+                var origins = BlueprintPasteRunBuilder.BuildOrigins(_dragState.ResolveDragStartCell(cursorAnchor), cursorAnchor, _footprintSize, _dragState.ResolveSurfaceKind(surfaceKind), _heightOffset.Value, out var cursorIndex);
+                var cursorPosition = origins[cursorIndex].Position;
+                if (!PlaceSystemUtil.IsPlaceableFromPlayer(cursorPosition))
                 {
-                    LogReleaseSkipped($"cursor {cursorAnchor} is too far from player");
+                    LogReleaseSkipped($"cursor {cursorPosition} is too far from player");
                     HideAll();
                     feedback.AddTooFar();
                     return false;
@@ -108,7 +112,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
 
                 // 外接箱の列を共有プランナーへ渡し表示と送信の判定を統一する
                 // Share one extent-run judgement between previews and sending
-                var origins = BlueprintPasteRunBuilder.BuildOrigins(_dragState.ResolveDragStartCell(cursorAnchor), cursorAnchor, _footprintSize, _dragState.ResolveSurfaceKind(surfaceKind), _heightOffset.Value);
                 runPlan = BlueprintPastePlanner.Plan(_currentBlueprint, origins, _rotationStep, _pasteWorld, _walletQuery, ConstructionMaterialAccounting.TallyHeld(_inventory));
                 var ghosts = _previewController.UpdatePreview(runPlan);
                 _linePreview.Show(runPlan, ghosts);

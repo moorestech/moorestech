@@ -3,6 +3,10 @@ using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
 {
+    /// <summary>
+    ///     復元予定チェーンのプレビューを描く
+    ///     Renders previews of chains to restore
+    /// </summary>
     internal class BlueprintPasteChainPreview
     {
         private readonly GameObject _root;

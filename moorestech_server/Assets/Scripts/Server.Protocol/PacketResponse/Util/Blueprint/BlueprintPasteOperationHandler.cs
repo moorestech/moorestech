@@ -64,6 +64,7 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint
 
             // 判定拒否と実行中の失敗を操作単位で通知する
             // Report rejected copies and execution failures once per operation
+            LogSkipped();
             var result = BlueprintPasteExecutor.Execute(plan, requesterPlayerId, _cells, inventory);
             NotifyIfAny(BlueprintFailureReason.PasteCostShortage, plan.CountCopies(BlueprintPasteCopyState.MaterialShortage) + result.CostShortageCopyCount);
             NotifyIfAny(BlueprintFailureReason.PasteNotUnlocked, plan.CountCopies(BlueprintPasteCopyState.NotUnlocked));
@@ -71,6 +72,25 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint
             NotifyIfAny(BlueprintFailureReason.PastePlacementFailed, result.PlacementFailedCopyCount);
 
             #region Internal
+
+            void LogSkipped()
+            {
+                // BP解決で欠けた情報と、各配置での重なりを操作内で集計する
+                // Aggregate missing blueprint data and per-copy overlaps once for this operation
+                var firstDraft = plan.Copies[0].Draft;
+                LogIfAny("missing block master", blueprint.Blocks.Count - firstDraft.Elements.Count);
+                LogIfAny("line endpoint missing", plan.Copies.Sum(copy => copy.Draft.MissingEndpointLineCount));
+                LogIfAny("unknown connect tool", plan.Copies.Sum(copy => copy.Draft.UnknownConnectToolLineCount));
+                LogIfAny("line endpoint overlaps", plan.Copies.Sum(copy => copy.Draft.OverlappingEndpointLineCount));
+                LogIfAny("block overlaps", plan.Copies.Sum(copy => copy.Draft.NonOverlapFlags.Count(flag => !flag)));
+                LogIfAny("AllOverlapped", plan.CountCopies(BlueprintPasteCopyState.AllOverlapped));
+            }
+
+            void LogIfAny(string reason, int count)
+            {
+                if (count == 0) return;
+                Debug.LogWarning($"[BlueprintPaste] skipped {reason} count={count} blueprint={blueprint.BlueprintGuid} player={requesterPlayerId}");
+            }
 
             bool IsValid()
             {

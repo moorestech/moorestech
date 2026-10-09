@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
 using Game.Block.Interface;
+using Game.Block.Interface.Extension;
 using Game.Blueprint;
 using Game.Construction;
 using NUnit.Framework;
@@ -64,16 +65,20 @@ namespace Tests.CombinedTest.Game.Blueprint.Planning
 
             public bool IsOverlapping(BlockPositionInfo positionInfo)
             {
-                return Overlaps.Contains(positionInfo.OriginalPos);
+                return positionInfo.EnumeratePositions().Any(Overlaps.Contains);
             }
 
             public bool IsBlockUnlocked(Guid blockGuid)
             {
+                if (MasterHolder.BlockMaster.GetBlockIdOrNull(blockGuid) == null)
+                    throw new InvalidOperationException($"Unknown block GUID: {blockGuid}");
                 return !Locked.Contains(blockGuid);
             }
 
             public bool IsConnectToolUnlocked(Guid connectToolGuid)
             {
+                if (MasterHolder.ConnectToolMaster.GetElementOrNull(connectToolGuid) == null)
+                    throw new InvalidOperationException($"Unknown connect tool GUID: {connectToolGuid}");
                 return !Locked.Contains(connectToolGuid);
             }
         }

@@ -5,6 +5,10 @@ using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConnect
 {
+    /// <summary>
+    ///     通常設置とBPで共有する電線プレビュー
+    ///     Wire preview shared by normal placement and blueprints
+    /// </summary>
     public class PreviewWireLine
     {
         private readonly GameObject _gameObject;
@@ -20,7 +24,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
 
         public PreviewWireLine(Transform parent)
         {
-            _gameObject = new GameObject("AutoConnectWire");
+            _gameObject = new GameObject("PreviewWireLine");
             _gameObject.transform.SetParent(parent, false);
             _meshFilter = _gameObject.AddComponent<MeshFilter>();
             var renderer = _gameObject.AddComponent<MeshRenderer>();

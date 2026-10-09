@@ -14,8 +14,15 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint.Planning
         public IReadOnlyList<bool> NonOverlapFlags { get; }
         public IReadOnlyList<BlueprintPasteLine> Lines { get; }
 
+        // プレビューは無音で判定し、実行側が省略理由をまとめて報告する
+        // Keep preview planning silent and let execution report aggregated skip reasons
+        public int MissingEndpointLineCount { get; }
+        public int OverlappingEndpointLineCount { get; }
+        public int UnknownConnectToolLineCount { get; }
+
         public BlueprintPasteCopyDraft(Vector3Int origin, bool isGroundFound, IReadOnlyList<BlueprintPlacementElement> elements,
-            IReadOnlyList<bool> nonOverlapFlags, IReadOnlyList<BlueprintPasteLine> lines)
+            IReadOnlyList<bool> nonOverlapFlags, IReadOnlyList<BlueprintPasteLine> lines,
+            int missingEndpointLineCount, int overlappingEndpointLineCount, int unknownConnectToolLineCount)
         {
             Origin = origin;
             IsGroundFound = isGroundFound;
@@ -25,6 +32,9 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint.Planning
             Elements = Array.AsReadOnly(elements.ToArray());
             NonOverlapFlags = Array.AsReadOnly(nonOverlapFlags.ToArray());
             Lines = Array.AsReadOnly(lines.ToArray());
+            MissingEndpointLineCount = missingEndpointLineCount;
+            OverlappingEndpointLineCount = overlappingEndpointLineCount;
+            UnknownConnectToolLineCount = unknownConnectToolLineCount;
         }
     }
 }

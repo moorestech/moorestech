@@ -7,9 +7,9 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject]
     public class BlueprintLineMessagePack
     {
-        [Key(0)] public int BlockIndexA;
-        [Key(1)] public int BlockIndexB;
-        [Key(2)] public string ConnectToolGuidStr;
+        [Key(0)] public int BlockIndexA { get; set; }
+        [Key(1)] public int BlockIndexB { get; set; }
+        [Key(2)] public string ConnectToolGuidStr { get; set; }
 
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public BlueprintLineMessagePack() { }

@@ -7,6 +7,10 @@ using Server.Protocol.PacketResponse.Util.Blueprint.Planning;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
 {
+    /// <summary>
+    ///     クライアントの占有と解放状態を共有判定へ供給する
+    ///     Supplies client occupancy and unlock state to shared planning
+    /// </summary>
     public class ClientBlueprintPasteWorld : IBlueprintPasteWorld
     {
         private readonly BlockGameObjectDataStore _blocks;
