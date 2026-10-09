@@ -18,6 +18,8 @@ namespace Server.Protocol.PacketResponse
         // The GUID issued on a successful Create (null for other operations)
         [Key(4)] public string RegisteredGuidStr { get; set; }
         [Key(5)] public List<BlueprintMessagePack> Blueprints { get; set; }
+        [Key(6)] public bool HasCostShortage { get; set; }
+        [Key(7)] public List<BlueprintPlacedCellMessagePack> PlacedCells { get; set; }
 
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public BlueprintResponse() { }
@@ -29,6 +31,37 @@ namespace Server.Protocol.PacketResponse
             FailureReason = failureReason;
             RegisteredGuidStr = registeredGuidStr;
             Blueprints = blueprints;
+            PlacedCells = new List<BlueprintPlacedCellMessagePack>();
+        }
+
+        public BlueprintResponse(bool success, BlueprintFailureReason failureReason,
+            bool hasCostShortage, List<BlueprintPlacedCellMessagePack> placedCells)
+        {
+            Tag = BlueprintProtocol.ProtocolTag;
+            Success = success;
+            FailureReason = failureReason;
+            HasCostShortage = hasCostShortage;
+            PlacedCells = placedCells;
+        }
+    }
+
+    [MessagePackObject]
+    public class BlueprintPlacedCellMessagePack
+    {
+        [Key(0)] public Vector3IntMessagePack Position { get; set; }
+        [Key(1)] public int Direction { get; set; }
+        [Key(2)] public int BlockId { get; set; }
+        [Key(3)] public int BlockInstanceId { get; set; }
+
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        public BlueprintPlacedCellMessagePack() { }
+
+        public BlueprintPlacedCellMessagePack(Vector3Int position, int direction, int blockId, int blockInstanceId)
+        {
+            Position = new Vector3IntMessagePack(position);
+            Direction = direction;
+            BlockId = blockId;
+            BlockInstanceId = blockInstanceId;
         }
     }
 

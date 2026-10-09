@@ -14,13 +14,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
     ///     BP内の復元予定配線をプレビューする
     ///     Previews saved connections within a blueprint
     /// </summary>
-    public class BlueprintPasteLinePreview
+    internal class BlueprintPasteLinePreview
     {
         private readonly Transform _root = new GameObject("BlueprintPasteLines").transform;
         private readonly List<PreviewWireLine> _wires = new();
         private readonly List<BlueprintPasteChainPreview> _chains = new();
 
-        public void Show(BlueprintPastePlan plan, IReadOnlyList<IReadOnlyList<BlockPreviewObject>> ghosts)
+        internal void Show(BlueprintPastePlan plan, IReadOnlyList<IReadOnlyList<BlockPreviewObject>> ghosts)
         {
             _root.gameObject.SetActive(true);
             var wireCount = 0;
@@ -30,20 +30,20 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
                 var copy = plan.Copies[copyIndex];
                 foreach (var line in copy.Draft.Lines)
                 {
-                    // 保存配線の解決済み端点だけをBPの可否色で描く
-                    // Draw only resolved saved connections in the copy's judgement color
+                    // 解決済み配線をBPの可否色で描く
+                    // Draw resolved lines in the copy judgement color.
                     if (line.Kind == BlueprintPasteLineKind.ElectricWire)
                     {
                         if (_wires.Count == wireCount) _wires.Add(new PreviewWireLine(_root));
                         var wire = _wires[wireCount++];
-                        wire.SetColor(!copy.IsPlaced);
+                        wire.SetColor(!copy.IsPlaced || !line.IsConnectable);
                         wire.Draw(ResolveWireEndpoint(copyIndex, line.ElementIndexA), ResolveWireEndpoint(copyIndex, line.ElementIndexB));
                     }
                     else
                     {
                         if (_chains.Count == chainCount) _chains.Add(new BlueprintPasteChainPreview(_root));
                         _chains[chainCount++].Draw(GearChainPoleExtendPreviewCalculator.GetPoleCenter(line.PositionA),
-                            GearChainPoleExtendPreviewCalculator.GetPoleCenter(line.PositionB), copy.IsPlaced);
+                            GearChainPoleExtendPreviewCalculator.GetPoleCenter(line.PositionB), copy.IsPlaced && line.IsConnectable);
                     }
                 }
 
@@ -66,6 +66,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
             #endregion
         }
 
-        public void Hide() => _root.gameObject.SetActive(false);
+        internal void Hide() => _root.gameObject.SetActive(false);
     }
 }

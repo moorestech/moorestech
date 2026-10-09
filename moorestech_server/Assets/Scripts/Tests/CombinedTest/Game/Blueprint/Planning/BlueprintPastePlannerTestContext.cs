@@ -56,6 +56,7 @@ namespace Tests.CombinedTest.Game.Blueprint.Planning
         {
             internal readonly HashSet<Vector3Int> Overlaps = new();
             internal readonly HashSet<Guid> Locked = new();
+            internal int BlockUnlockChecks;
             public bool IsPaymentWaived { get; }
 
             internal TestWorld(bool paymentWaived)
@@ -70,6 +71,7 @@ namespace Tests.CombinedTest.Game.Blueprint.Planning
 
             public bool IsBlockUnlocked(Guid blockGuid)
             {
+                BlockUnlockChecks++;
                 if (MasterHolder.BlockMaster.GetBlockIdOrNull(blockGuid) == null)
                     throw new InvalidOperationException($"Unknown block GUID: {blockGuid}");
                 return !Locked.Contains(blockGuid);

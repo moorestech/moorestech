@@ -36,8 +36,8 @@ namespace Tests.CombinedTest.Game.Blueprint.Planning
             var plan = BlueprintPastePlanner.Plan(blueprint, origins, 0, context.World, context.Wallet,
                 BlueprintPastePlannerTestContext.BlockCosts(block, 5));
 
-            // 2個、1個、2個を置き、重複分の素材を予約しない
-            // Place two, one, and two blocks without reserving materials for the overlap
+            // 重複分を除き2・1・2個を配置
+            // Place two, one and two blocks excluding overlap costs.
             Assert.AreEqual(3, plan.EnumerateCopiesToPlace().Count());
             CollectionAssert.AreEqual(new[] { false, true }, plan.Copies[1].Draft.NonOverlapFlags);
             CollectionAssert.AreEqual(new[] { Vector3Int.zero, new Vector3Int(2, 0, 0), new Vector3Int(4, 0, 0),
@@ -72,8 +72,8 @@ namespace Tests.CombinedTest.Game.Blueprint.Planning
             var plan = BlueprintPastePlanner.Plan(blueprint, Origins(Vector3Int.zero, longAxis, longAxis * 3), rotation,
                 context.World, context.Wallet, new Dictionary<ItemId, int>());
 
-            // 3セル幅の箱を1セルずらすと重複、3セルずらすと隣接する
-            // Shifting a three-cell footprint by one overlaps; shifting by three only touches its boundary
+            // 幅3の箱の重複・隣接境界を検証
+            // Verify overlap and adjacency boundaries for a width-three box.
             CollectionAssert.AreEqual(new[] { BlueprintPasteCopyState.Placeable, BlueprintPasteCopyState.AllOverlapped,
                 BlueprintPasteCopyState.Placeable }, plan.Copies.Select(copy => copy.State));
         }

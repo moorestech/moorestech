@@ -87,6 +87,17 @@ namespace Tests.CombinedTest.Game.Blueprint.Planning
         }
 
         [Test]
+        public void 複数原点でも解放判定は最初の適格コピーで一度だけ行うTest()
+        {
+            var context = new BlueprintPastePlannerTestContext(true, 0);
+            var blueprint = BlueprintPastePlannerTestContext.Create(ForUnitTestModBlockId.BlockId);
+            var result = context.Plan(blueprint, 3, new Dictionary<ItemId, int>());
+
+            Assert.IsTrue(result.Copies.All(copy => copy.IsPlaced));
+            Assert.AreEqual(1, context.World.BlockUnlockChecks);
+        }
+
+        [Test]
         public void 重なりで省略される未解放ブロックもBPを拒否するTest()
         {
             var context = new BlueprintPastePlannerTestContext(true, 0);
@@ -131,7 +142,7 @@ namespace Tests.CombinedTest.Game.Blueprint.Planning
 
             var plan = context.Plan(blueprint, 1, new Dictionary<ItemId, int>());
 
-            Assert.AreEqual(BlueprintPasteCopyState.AllOverlapped, plan.Copies[0].State);
+            Assert.AreEqual(BlueprintPasteCopyState.NoResolvedBlocks, plan.Copies[0].State);
             Assert.IsEmpty(plan.Copies[0].Draft.Elements);
         }
 

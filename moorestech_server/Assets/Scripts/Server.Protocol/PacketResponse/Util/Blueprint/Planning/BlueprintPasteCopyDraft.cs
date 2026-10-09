@@ -9,7 +9,8 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint.Planning
     public class BlueprintPasteCopyDraft
     {
         public Vector3Int Origin { get; }
-        public bool IsGroundFound { get; }
+        internal bool IsGroundFound { get; }
+        public bool AreCoordinatesValid { get; }
         public IReadOnlyList<BlueprintPlacementElement> Elements { get; }
         public IReadOnlyList<bool> NonOverlapFlags { get; }
         public IReadOnlyList<BlueprintPasteLine> Lines { get; }
@@ -22,9 +23,10 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint.Planning
 
         public BlueprintPasteCopyDraft(Vector3Int origin, bool isGroundFound, IReadOnlyList<BlueprintPlacementElement> elements,
             IReadOnlyList<bool> nonOverlapFlags, IReadOnlyList<BlueprintPasteLine> lines,
-            int missingEndpointLineCount, int overlappingEndpointLineCount, int unknownConnectToolLineCount)
+            int missingEndpointLineCount, int overlappingEndpointLineCount, int unknownConnectToolLineCount, bool areCoordinatesValid)
         {
             Origin = origin;
+            AreCoordinatesValid = areCoordinatesValid;
             IsGroundFound = isGroundFound;
 
             // 呼び出し側のリスト変更で判定結果を変えない

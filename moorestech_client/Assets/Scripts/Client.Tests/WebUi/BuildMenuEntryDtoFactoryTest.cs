@@ -45,8 +45,8 @@ namespace Client.Tests.WebUi
             var unlockState = new AllPlacementTargetsUnlockedStateData();
             var blueprintGuid = Guid.Parse("70000000-0000-4000-8000-000000000001");
 
-            // BP本体を持つライブラリから解決した対象をDTOへ渡す
-            // Pass library-resolved targets with blueprint bodies into the DTO conversion
+            // BP本体を解決済みの対象をDTO化
+            // Convert a target whose blueprint body has resolved into a DTO.
             var library = new BlueprintLookupStub(new BlueprintJsonObject("starter-base", new(), new(), new(), blueprintGuid));
             var targets = new PlacementTargetResolver(new PlacementTargetCatalog(new BeltConveyorPlacementUnlockSourceMap()), library, unlockState)
                 .CreateUnlockedTargets();

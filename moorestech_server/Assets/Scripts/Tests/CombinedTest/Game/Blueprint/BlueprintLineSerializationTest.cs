@@ -23,8 +23,8 @@ namespace Tests.CombinedTest.Game.Blueprint
                 new List<BlueprintLineJsonObject> { new(0, 1, Guid.NewGuid()) },
                 new List<BlueprintLineJsonObject> { new(1, 0, Guid.NewGuid()) }, Guid.NewGuid());
 
-            // 実際のシリアライザを通して端点と線種を比較する
-            // Compare endpoints and tool identities through the actual serializers
+            // 実シリアライザで端点と線種を照合
+            // Compare endpoints and tool kinds through the real serializer.
             var json = JsonConvert.DeserializeObject<BlueprintJsonObject>(JsonConvert.SerializeObject(original));
             AssertBlueprint(original, json);
             var packet = MessagePackSerializer.Deserialize<BlueprintMessagePack>(MessagePackSerializer.Serialize(new BlueprintMessagePack(original)));

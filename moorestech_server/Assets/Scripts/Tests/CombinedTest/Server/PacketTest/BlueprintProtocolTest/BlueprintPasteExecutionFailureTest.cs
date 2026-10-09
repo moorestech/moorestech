@@ -24,6 +24,25 @@ namespace Tests.CombinedTest.Server.PacketTest
     public class BlueprintPasteExecutionFailureTest
     {
         [Test]
+        public void 不足のセル計画は実行器が拒否するTest()
+        {
+            using var context = new BlueprintPasteProtocolTestContext(true, false);
+            var wallet = context.Services.GetRequiredService<ConstructionWalletService>();
+            var executor = new BlockCellPlacementExecutor(wallet);
+            var cell = executor.PlanCell(ForUnitTestModBlockId.BlockId, BlueprintPasteProtocolTestContext.PlayerId,
+                context.Inventory, false);
+            Assert.IsFalse(cell.IsAffordable);
+
+            // 呼び出し側が判定を忘れても設置と支払いをしない
+            // Reject placement and payment even if the caller forgets the affordability check
+            Assert.IsFalse(executor.TryPlaceCell(cell, BlueprintPasteProtocolTestContext.Origin,
+                global::Game.Block.Interface.BlockDirection.North,
+                System.Array.Empty<global::Game.Block.Interface.BlockCreateParam>(), context.Inventory, out var block));
+            Assert.IsNull(block);
+            Assert.IsEmpty(ServerContext.WorldBlockDatastore.BlockMasterDictionary);
+        }
+
+        [Test]
         public void 判定後に占有された端点へ保存配線を張らないTest()
         {
             using var context = new BlueprintPasteProtocolTestContext(true, false);
@@ -41,8 +60,21 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Another block occupies an endpoint after the plan was made
             var existing = BlueprintPasteProtocolTestContext.Place(ForUnitTestModBlockId.ElectricPoleId,
                 BlueprintPasteProtocolTestContext.Origin).GetComponent<IElectricWireConnector>();
+            var held = context.Inventory.InventoryItems.GroupBy(item => item.Id)
+                .ToDictionary(group => group.Key, group => group.Sum(item => item.Count));
+            var successfulCellCost = wallet.GetQuery(BlueprintPasteProtocolTestContext.PlayerId)
+                .GetItemsToConsume(ForUnitTestModBlockId.ElectricPoleId);
             var result = BlueprintPasteExecutor.Execute(plan, BlueprintPasteProtocolTestContext.PlayerId,
                 new BlockCellPlacementExecutor(wallet), context.Inventory);
+
+            // 成功したセルだけ支払い、未配置セルと未接続線は消費しない
+            // Charge only successful cells; unplaced cells and unrestored lines consume nothing.
+            foreach (var (itemId, count) in held)
+            {
+                var consumed = successfulCellCost.Where(item => item.itemId == itemId).Sum(item => item.count);
+                Assert.AreEqual(count - consumed, context.Inventory.InventoryItems.Where(item => item.Id == itemId).Sum(item => item.Count));
+            }
+            Assert.IsFalse(result.HasCostShortage);
 
             Assert.AreEqual(1, result.FailedLineCount);
             Assert.AreEqual(1, result.PlacementFailedCopyCount);
@@ -90,13 +122,16 @@ namespace Tests.CombinedTest.Server.PacketTest
                     }
                 });
 
-            context.Paste(blueprint, 0, BlueprintPasteProtocolTestContext.Origin);
+            var response = context.SendForResponse(BlueprintRequest.CreatePasteRequest(blueprint.BlueprintGuid, 0,
+                new System.Collections.Generic.List<Vector3Int> { BlueprintPasteProtocolTestContext.Origin }));
 
             Assert.AreEqual(1, ServerContext.WorldBlockDatastore.BlockMasterDictionary.Count);
             Assert.IsFalse(ServerContext.WorldBlockDatastore.Exists(BlueprintPasteProtocolTestContext.Origin + new Vector3Int(3, 0, 0)));
             Assert.AreEqual(0, context.Inventory.InventoryItems.Sum(item => item.Count));
-            context.AssertDenied(BlueprintFailureReason.PasteCostShortage, 1);
+            context.AssertDeniedCount(1);
             context.AssertDenied(BlueprintFailureReason.PastePlacementFailed, 1);
+            Assert.IsTrue(response.HasCostShortage);
+            Assert.AreEqual(1, response.PlacedCells.Count);
         }
     }
 }

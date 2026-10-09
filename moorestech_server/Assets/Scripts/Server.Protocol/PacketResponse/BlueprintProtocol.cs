@@ -81,8 +81,7 @@ namespace Server.Protocol.PacketResponse
                     Debug.LogWarning($"[BlueprintPaste] blueprint feature not unlocked player={requesterPlayerId}");
                     return NotUnlockedResponse();
                 }
-                _pasteHandler.Handle(req, requesterPlayerId);
-                return null;
+                return _pasteHandler.Handle(req, requesterPlayerId);
             }
 
             ProtocolMessagePackBase HandleDelete(BlueprintRequest req)

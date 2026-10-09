@@ -41,6 +41,35 @@ namespace Client.Tests.PlaceSystem.Blueprint.Paste
         }
 
         [Test]
+        public void 全マスタ欠損は重なり理由を出さないTest()
+        {
+            var feedback = Report(BlueprintPasteCopyState.NoResolvedBlocks);
+            Assert.AreEqual(1, feedback.Lines.Count);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBlueprintMissingBlocks.Key, feedback.Lines[0].Key.Key);
+        }
+
+        [TestCase(BlueprintPasteLineKind.ElectricWire, BlueprintPasteLineFailureReason.OutOfRange, "ui.tooltip.placeWireOutOfRange")]
+        [TestCase(BlueprintPasteLineKind.ElectricWire, BlueprintPasteLineFailureReason.ConnectionLimit, "ui.tooltip.placeWireConnectionLimit")]
+        [TestCase(BlueprintPasteLineKind.GearChain, BlueprintPasteLineFailureReason.OutOfRange, "ui.tooltip.placeGearChainTooFar")]
+        [TestCase(BlueprintPasteLineKind.GearChain, BlueprintPasteLineFailureReason.ConnectionLimit, "ui.tooltip.placeGearChainConnectionLimit")]
+        public void 設置可能BPの無効線は理由を重複せず表示Test(BlueprintPasteLineKind kind, BlueprintPasteLineFailureReason reason, string expected)
+        {
+            var line = new BlueprintPasteLine(kind, 0, 1, Vector3Int.zero, Vector3Int.right, Guid.NewGuid(),
+                Array.Empty<ConnectToolMaterialCost>(), reason);
+            var draft = new BlueprintPasteCopyDraft(Vector3Int.zero, true, Array.Empty<BlueprintPlacementElement>(),
+                Array.Empty<bool>(), new[] { line, line }, 0, 0, 0, true);
+            var copy = new BlueprintPasteCopyPlan(draft, BlueprintPasteCopyState.Placeable);
+            var plan = new BlueprintPastePlan(new[] { copy, copy }, false, Array.Empty<(ItemId, int, int)>());
+            var feedback = new PlacementFeedback();
+
+            // ブロック可否とは独立した線の理由を確認する
+            // Line reasons remain visible independently of block placement status
+            BlueprintPasteFeedbackReporter.Report(plan, feedback);
+            Assert.AreEqual(1, feedback.Lines.Count);
+            Assert.AreEqual(expected, feedback.Lines[0].Key.Key);
+        }
+
+        [Test]
         public void 素材不足のBPがあれば不足素材行を出すTest()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
@@ -89,7 +118,7 @@ namespace Client.Tests.PlaceSystem.Blueprint.Paste
         private static BlueprintPasteCopyPlan Copy(BlueprintPasteCopyState state)
         {
             var draft = new BlueprintPasteCopyDraft(Vector3Int.zero, state != BlueprintPasteCopyState.GroundNotFound,
-                Array.Empty<BlueprintPlacementElement>(), Array.Empty<bool>(), Array.Empty<BlueprintPasteLine>(), 0, 0, 0);
+                Array.Empty<BlueprintPlacementElement>(), Array.Empty<bool>(), Array.Empty<BlueprintPasteLine>(), 0, 0, 0, true);
             return new BlueprintPasteCopyPlan(draft, state);
         }
     }

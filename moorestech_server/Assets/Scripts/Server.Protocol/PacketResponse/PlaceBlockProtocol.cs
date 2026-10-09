@@ -110,7 +110,7 @@ namespace Server.Protocol.PacketResponse
 
                 // 設置に失敗した場合はコストを消費しない
                 // Do not consume the cost when placement fails
-                if (!_cellPlacementExecutor.TryPlaceCell(cellPlacement, placeBlockId, placeInfo.Position, placeInfo.Direction, createParams, inventory, out var block)) { CountRestoreFailure(placeInfo, "TryAddBlock failed"); return; }
+                if (!_cellPlacementExecutor.TryPlaceCell(cellPlacement, placeInfo.Position, placeInfo.Direction, createParams, inventory, out var block)) { CountRestoreFailure(placeInfo, "TryAddBlock failed"); return; }
 
                 // 計画を実行しワイヤー消費
                 // Execute the validated plan: add wires and consume wire items

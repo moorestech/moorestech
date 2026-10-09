@@ -21,9 +21,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             context.Register(blueprint);
             context.Supply(blueprint, 1);
 
-            // 必要素材を一つだけ減らして原子性を検証する
-            // Remove just one required item to verify whole-copy rejection
-            var stack = context.Inventory.InventoryItems.First(item => item.Count > 0);
+            // 素材1個不足で原子性を検証
+            // Verify atomicity with one missing material unit.
+            var stack = context.Inventory.InventoryItems.First(item => 0 < item.Count);
             context.Inventory.SetItem(Array.IndexOf(context.Inventory.InventoryItems.ToArray(), stack),
                 ServerContext.ItemStackFactory.Create(stack.Id, stack.Count - 1));
             var held = context.Inventory.InventoryItems.Sum(item => item.Count);
@@ -45,8 +45,8 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             context.Paste(blueprint, 0, origins);
 
-            // 二つのBPは全ブロック設置し、三つ目は丸ごと拒否する
-            // Place every block of two copies and reject the entire third copy
+            // 2BPを配置し3個目は全体拒否
+            // Place two copies and reject the entire third copy.
             Assert.AreEqual(4, ServerContext.WorldBlockDatastore.BlockMasterDictionary.Count);
             foreach (var origin in origins.Take(2))
             {

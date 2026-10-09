@@ -56,14 +56,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
         {
             var resolved = new List<(ItemId itemId, int count)>(requiredItems.Count);
             foreach (var (itemGuid, count) in requiredItems) resolved.Add((MasterHolder.ItemMaster.GetItemId(itemGuid), count));
-            return CalculateRequirements(resolved, heldByItem);
-        }
-
-        // 必要数と所持数の突き合わせは共有会計へ委譲する
-        // Delegate matching required against held to shared accounting
-        public static List<(ItemId itemId, int held, int required)> CalculateRequirements(IReadOnlyList<(ItemId itemId, int count)> requiredItems, IReadOnlyDictionary<ItemId, int> heldByItem)
-        {
-            return ConstructionMaterialAccounting.MatchRequirements(requiredItems, heldByItem);
+            return ConstructionMaterialAccounting.MatchRequirements(resolved, heldByItem);
         }
     }
 }

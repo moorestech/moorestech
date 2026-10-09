@@ -29,17 +29,10 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
         {
             var stacks = inventoryItems as IItemStack[] ?? inventoryItems.ToArray();
 
-            // 距離が両端の上限のminを超えると不可
-            // Reject when distance exceeds the min of both max distances
-            if (Mathf.Min(fromMaxConnectionDistance, toMaxConnectionDistance) < connectionDistance) return GearChainPlacementJudgement.Failure(GearChainPlacementFailureReason.TooFar);
-
-            // 既に接続済みの場合は不可
-            // Reject when the pair is already connected
-            if (alreadyConnected) return GearChainPlacementJudgement.Failure(GearChainPlacementFailureReason.AlreadyConnected);
-
-            // 接続数の上限を確認する
-            // Check connection count limit
-            if (anyConnectionFull) return GearChainPlacementJudgement.Failure(GearChainPlacementFailureReason.ConnectionLimit);
+            var connectionFailure = EvaluateConnection(connectionDistance, fromMaxConnectionDistance, toMaxConnectionDistance,
+                alreadyConnected, anyConnectionFull);
+            if (connectionFailure != GearChainPlacementFailureReason.None)
+                return GearChainPlacementJudgement.Failure(connectionFailure);
 
             // connectToolマスタから複数素材の必要数を算出する
             // Calculate the required multi-material count from the connectTool master
@@ -50,6 +43,16 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
             if (!ConstructionMaterialAccounting.HasEnough(materials, stacks, reservedMaterials)) return GearChainPlacementJudgement.Failure(GearChainPlacementFailureReason.NoItem);
 
             return GearChainPlacementJudgement.Success(new ConnectionLineRecord(connectToolGuid, materials));
+        }
+        // 計画時と実行時の接続条件を共有する
+        // Share connection conditions between planning and execution
+        public static GearChainPlacementFailureReason EvaluateConnection(float distance, float maxA, float maxB,
+            bool alreadyConnected, bool anyConnectionFull)
+        {
+            if (Mathf.Min(maxA, maxB) < distance) return GearChainPlacementFailureReason.TooFar;
+            if (alreadyConnected) return GearChainPlacementFailureReason.AlreadyConnected;
+            if (anyConnectionFull) return GearChainPlacementFailureReason.ConnectionLimit;
+            return GearChainPlacementFailureReason.None;
         }
     }
 

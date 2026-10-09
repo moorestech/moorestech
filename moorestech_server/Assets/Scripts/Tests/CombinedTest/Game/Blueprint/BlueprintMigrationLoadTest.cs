@@ -56,8 +56,8 @@ namespace Tests.CombinedTest.Game.Blueprint
             var sourcePath = WorldDataDirectory.FromWorldRoot(_archiveRoot).SaveJsonFilePath;
             File.WriteAllText(sourcePath, original);
 
-            // 本番DIの移行・バックアップ・ロード経路を通す
-            // Exercise migration, backup and loading through production DI
+            // 本番DIで移行・保存・ロードを検証
+            // Verify migration, backup and load through production DI.
             var options = new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory)
             {
                 worldDataDirectory = WorldDataDirectory.FromServerDataMap(TestModDirectory.ForUnitTestModDirectory, sourcePath)

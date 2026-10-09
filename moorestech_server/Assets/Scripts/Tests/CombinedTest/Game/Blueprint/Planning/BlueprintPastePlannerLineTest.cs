@@ -74,8 +74,8 @@ namespace Tests.CombinedTest.Game.Blueprint.Planning
             var result = context.Plan(blueprint, 1, new Dictionary<ItemId, int>());
             Assert.AreEqual(BlueprintPasteCopyState.MaterialShortage, result.Copies[0].State);
 
-            // チェーン代だけ渡せば無料設置中の建設分は要求しない
-            // Supplying only chain materials suffices while block placement is free
+            // 無料時はチェーン代だけで配置
+            // Place using only chain costs during free placement.
             var held = result.Copies[0].Draft.Lines.Single().Materials.ToDictionary(cost => cost.ItemId, cost => cost.Count);
             Assert.IsTrue(context.Plan(blueprint, 1, held).Copies[0].IsPlaced);
         }

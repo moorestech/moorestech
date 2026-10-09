@@ -9,6 +9,7 @@ using Game.Block.Interface;
 using Game.Blueprint;
 using Game.Construction;
 using Game.Context;
+using Game.Entity.Interface;
 using Game.UnlockState;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -46,6 +47,10 @@ namespace Tests.CombinedTest.Server.PacketTest
             DebugParameters.SaveBool(DebugParameterKeys.FreeBlockPlacement, freePlacement);
             (_packet, Services) = PlaceBlockProtocolTestSupport.CreateServer();
             Inventory = PlaceBlockProtocolTestSupport.GetInventory(Services);
+            var entities = Services.GetRequiredService<IEntitiesDatastore>();
+            var playerId = new EntityInstanceId(PlayerId);
+            if (!entities.Exists(playerId))
+                entities.Add(Services.GetRequiredService<IEntityFactory>().CreateEntity(VanillaEntityType.VanillaPlayer, playerId, Vector3.zero));
             if (unlockBlueprint) Services.GetRequiredService<IGameUnlockStateDataController>().UnlockBlueprint();
             _sink = EventTestUtil.RegisterCaptureSink(Services, PlayerId);
         }
@@ -89,15 +94,37 @@ namespace Tests.CombinedTest.Server.PacketTest
 
         internal void Send(BlueprintRequest request)
         {
-            _packet.GetPacketResponse(MessagePackSerializer.Serialize(request), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
+            SendForResponse(request);
+        }
+
+        internal BlueprintResponse SendForResponse(BlueprintRequest request)
+        {
+            var packets = _packet.GetPacketResponse(MessagePackSerializer.Serialize(request),
+                Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
+            Assert.AreEqual(1, packets.Count);
+            return MessagePackSerializer.Deserialize<BlueprintResponse>(packets[0]);
+        }
+
+        internal void AssertDeniedCount(int count)
+        {
+            Assert.AreEqual(count, EnumerateBlueprintDenials().Count());
         }
 
         internal void AssertDenied(BlueprintFailureReason reason, int count)
         {
-            var message = _sink.Events.Where(e => e.Tag == NotificationService.EventTag)
-                .Select(e => MessagePackSerializer.Deserialize<NotificationMessagePack>(e.Payload))
+            var message = EnumerateBlueprintDenials()
                 .Single(e => e.MessageId == $"denied.blueprint.{reason}");
-            if (count >= 0) Assert.AreEqual(count.ToString(), message.MessageParams[0]);
+            if (0 <= count) Assert.AreEqual(count.ToString(), message.MessageParams[0]);
+        }
+
+        private IEnumerable<NotificationMessagePack> EnumerateBlueprintDenials()
+        {
+            // 同じ通知経路の解除通知を除く
+            // Exclude unlock notifications sharing the same event channel.
+            return _sink.Events.Where(e => e.Tag == NotificationService.EventTag)
+                .Select(e => MessagePackSerializer.Deserialize<NotificationMessagePack>(e.Payload))
+                .Where(e => e.Category == NotificationCategory.OperationDenied &&
+                    e.MessageId.StartsWith("denied.blueprint.", StringComparison.Ordinal));
         }
 
         internal static IBlock Place(BlockId blockId, Vector3Int position)

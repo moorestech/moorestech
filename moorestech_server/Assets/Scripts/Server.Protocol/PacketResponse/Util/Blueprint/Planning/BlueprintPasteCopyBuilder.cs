@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Game.Block.Interface;
-using Game.Block.Interface.Extension;
 using Game.Blueprint;
 using Server.Protocol.PacketResponse.Util.ConnectTool;
 using UnityEngine;
@@ -11,13 +10,17 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint.Planning
     public static class BlueprintPasteCopyBuilder
     {
         internal static BlueprintPasteCopyDraft Build(BlueprintJsonObject blueprint, BlueprintPasteOrigin origin,
-            int rotationStep, IBlueprintPasteWorld world, IReadOnlyList<BlueprintPasteCopyDraft> accepted)
+            int rotationStep, IBlueprintPasteWorld world, IReadOnlyList<BlueprintPasteCopyOccupancy> accepted, out BlueprintPasteCopyOccupancy occupancy)
         {
-            var elements = BlueprintPasteCalculator.CalculatePlacements(blueprint, origin.Position, rotationStep);
+            var coordinatesValid = BlueprintPasteCalculator.TryCalculatePlacements(blueprint, origin.Position, rotationStep, out var elements);
+            occupancy = BlueprintPasteCopyOccupancy.Create(elements);
+            if (!coordinatesValid)
+                return new BlueprintPasteCopyDraft(origin.Position, origin.IsGroundFound, elements, new List<bool>(),
+                    new List<BlueprintPasteLine>(), 0, 0, 0, false);
             var nonOverlapFlags = new List<bool>(elements.Count);
-            foreach (var element in elements)
+            var intersecting = occupancy.FindIntersecting(accepted);
+            foreach (var position in occupancy.Positions)
             {
-                var position = BlueprintPlacementElementUtil.ToPositionInfo(element);
                 nonOverlapFlags.Add(!world.IsOverlapping(position) && !OverlapsAccepted(position));
             }
             return Create(blueprint, origin, elements, nonOverlapFlags);
@@ -28,15 +31,9 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint.Planning
             {
                 // 外接箱の空白は予約せず、実際に置くブロックの占有箱だけを見る
                 // Reserve actual block footprints rather than empty space in a copy's bounds
-                foreach (var copy in accepted)
+                foreach (var occupied in intersecting)
                 {
-                    for (var i = 0; i < copy.Elements.Count; i++)
-                    {
-                        if (!copy.NonOverlapFlags[i]) continue;
-                        var occupied = BlueprintPlacementElementUtil.ToPositionInfo(copy.Elements[i]);
-                        if (position.IsOverlap(occupied))
-                            return true;
-                    }
+                    if (occupied.Overlaps(position)) return true;
                 }
                 return false;
             }
@@ -60,13 +57,14 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint.Planning
             for (var i = 0; i < elements.Count; i++) elementIndexByBlockIndex[elements[i].BlockIndex] = i;
 
             var lines = new List<BlueprintPasteLine>();
+            var evaluator = new BlueprintPasteLineEvaluator();
             var missingEndpointLineCount = 0;
             var overlappingEndpointLineCount = 0;
             var unknownConnectToolLineCount = 0;
             ResolveLines(BlueprintPasteLineKind.ElectricWire, blueprint.Wires);
             ResolveLines(BlueprintPasteLineKind.GearChain, blueprint.Chains);
             return new BlueprintPasteCopyDraft(origin.Position, origin.IsGroundFound, elements, nonOverlapFlags, lines,
-                missingEndpointLineCount, overlappingEndpointLineCount, unknownConnectToolLineCount);
+                missingEndpointLineCount, overlappingEndpointLineCount, unknownConnectToolLineCount, true);
 
             #region Internal
 
@@ -98,7 +96,8 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint.Planning
                         continue;
                     }
 
-                    lines.Add(new BlueprintPasteLine(kind, indexA, indexB, positionA, positionB, saved.ConnectToolGuid, materials));
+                    lines.Add(new BlueprintPasteLine(kind, indexA, indexB, positionA, positionB, saved.ConnectToolGuid, materials,
+                        evaluator.Evaluate(kind, elements[indexA], elements[indexB])));
                 }
             }
 

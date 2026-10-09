@@ -3,8 +3,8 @@ using UnityEngine;
 
 namespace Game.SaveLoad.Migration.Steps
 {
-    // V4→V5移行（ADR0077）: BPのオフセットを外接箱最小角基準へ平行移動し、配線リストを空で足す
-    // V4→V5 migration (ADR 0077): shift blueprint offsets to the extent's min corner and add empty line lists
+    // V4→V5: BP原点と配線を移行
+    // V4 to V5: migrate blueprint origins and initialize line lists.
     // 最小角は各ブロック原点(=MinPos)の成分最小なのでマスタを引かない
     // The min corner is the component-wise min of block origins (= MinPos), so the master is never read
     public sealed class SaveMigrationStepV4ToV5 : ISaveMigrationStep
@@ -75,7 +75,7 @@ namespace Game.SaveLoad.Migration.Steps
                         max = Mathf.Max(max, block[key].Value<int>());
                     }
 
-                    if ((long)max - min > int.MaxValue) return $"BPの{key}の幅が整数範囲外です。";
+                    if (int.MaxValue < (long)max - min) return $"BPの{key}の幅が整数範囲外です。";
                 }
 
                 return null;

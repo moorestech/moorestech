@@ -49,14 +49,6 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
 
-        public void PasteBlueprint(Guid blueprintGuid, int rotationStep, List<Vector3Int> origins)
-        {
-            // 長い列もサーバー上限以内の要求へ順番を保って分割する
-            // Send long runs in ordered requests within the server limit
-            foreach (var request in BlueprintRequest.CreatePasteRequests(blueprintGuid, rotationStep, origins))
-                _packetSender.Send(request);
-        }
-
         public void SendPlayerPosition(Vector3 pos)
         {
             var request = new SetPlayerCoordinateProtocol.PlayerCoordinateSendProtocolMessagePack(pos);
@@ -109,11 +101,6 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
         
-        public void CompleteBaseCamp(Vector3Int position)
-        {
-            var request = new CompleteBaseCampProtocol.CompleteBaseCampProtocolMessagePack(position);
-            _packetSender.Send(request);
-        }
 
         public void CompleteResearch(Guid researchGuid)
         {
@@ -141,11 +128,6 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
 
-        public void PlaceRailWithPier(int fromNodeId, Guid fromGuid, BlockId pierBlockId, PlaceInfo pierPlaceInfo, Guid railTypeGuid)
-        {
-            var request = RailConnectWithPlacePierProtocol.RailConnectWithPlacePierRequest.Create(fromNodeId, fromGuid, pierBlockId, pierPlaceInfo, railTypeGuid);
-            _packetSender.Send(request);
-        }
         
         public void SendTrainCarRidingInput(bool moveForward, bool moveBackward, bool selectPreviousBranch, bool selectNextBranch)
         {

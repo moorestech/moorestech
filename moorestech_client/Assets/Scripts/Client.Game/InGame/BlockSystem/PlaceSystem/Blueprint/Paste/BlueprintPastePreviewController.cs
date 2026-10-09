@@ -13,14 +13,20 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
     public class BlueprintPastePreviewController
     {
         private readonly BlockPlacePreviewObjectPool _pool;
+        private readonly BlueprintPasteLinePreview _lines = new();
+        private BlueprintPastePlan _lastPlan;
 
         public BlueprintPastePreviewController(Transform parentTransform)
         {
             _pool = new BlockPlacePreviewObjectPool(parentTransform);
         }
 
-        public IReadOnlyList<IReadOnlyList<BlockPreviewObject>> UpdatePreview(BlueprintPastePlan plan)
+        public void UpdatePreview(BlueprintPastePlan plan)
         {
+            // 同じ表示指示ではゴースト再配置と線描画を省く
+            // Skip ghost placement and line rendering for identical visual commands
+            if (BlueprintPasteVisualState.Matches(_lastPlan, plan)) return;
+            _lastPlan = plan;
             _pool.AllUnUse();
             var ghosts = new List<IReadOnlyList<BlockPreviewObject>>();
             foreach (var copy in plan.Copies)
@@ -29,8 +35,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
                 for (var i = 0; i < copy.Draft.Elements.Count; i++)
                 {
                     var placement = copy.Draft.Elements[i];
-                    // 実設置の座標変換で配置しBP全体の判定を反映する
-                    // Use the real placement transform and the whole-copy judgement
+                    // 実設置座標にBP全体の可否を表示
+                    // Show whole-copy judgement at real placement positions.
                     var pos = SlopeBlockPlaceSystem.GetBlockPositionToPlacePosition(placement.Position, placement.Direction, placement.BlockId);
                     var previewObject = _pool.GetObject(placement.BlockId);
                     previewObject.SetTransform(pos, placement.Direction.GetRotation());
@@ -40,11 +46,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
                 }
                 ghosts.Add(copyGhosts);
             }
-            return ghosts;
+            _lines.Show(plan, ghosts);
         }
 
         public void Hide()
         {
+            _lastPlan = null;
+            _lines.Hide();
             _pool.AllUnUse();
         }
     }

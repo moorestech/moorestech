@@ -15,8 +15,8 @@ using UnityEngine;
 namespace Client.Playtest.Operations.Ui
 {
     /// <summary>
-    ///     BP貼り付けゴースト・配線ゴースト・不足行・必要素材を録画シナリオから読む
-    ///     Reads paste ghosts, wire ghosts, shortage lines and required materials for recorded scenarios
+    /// BP・配線ゴーストと不足素材を録画用に読む
+    /// Read blueprint and wire ghosts, shortages and costs for recordings.
     /// </summary>
     public class BlueprintPasteGhostProbe
     {
@@ -42,8 +42,8 @@ namespace Client.Playtest.Operations.Ui
 
             Color ReadPreviewColor(GameObject ghost)
             {
-                // 置換済みマテリアルの可否色を読む（可否色を持たないレンダラーは飛ばす）
-                // Read the placeability color from replaced materials, skipping renderers without it
+                // 可否色を持つ描画材質だけを読む
+                // Read only renderer materials carrying judgement colors.
                 foreach (var renderer in ghost.GetComponentsInChildren<Renderer>(true))
                 foreach (var material in renderer.sharedMaterials)
                 {
@@ -63,8 +63,8 @@ namespace Client.Playtest.Operations.Ui
 
         public async UniTask<int> CountFramesMissingGhosts(int ghostCount, int wireCount, int frames)
         {
-            // 連続フレームでゴーストか配線ゴーストが欠けたフレーム数を数える
-            // Count consecutive frames where any block or wire ghost is missing
+            // ブロック・配線の欠落フレームを集計
+            // Count frames missing block or line ghosts.
             var missing = 0;
             for (var frame = 0; frame < frames; frame++)
             {
@@ -84,8 +84,8 @@ namespace Client.Playtest.Operations.Ui
 
         public int ActiveWireLineCount()
         {
-            // 配線ゴーストは描画用メッシュを持つ有効な線だけ数える
-            // Count only active wire ghosts that carry a drawable mesh
+            // 有効メッシュを持つ配線だけ数える
+            // Count active lines with a rendering mesh.
             var root = GameObject.Find("BlueprintPasteLines");
             if (root == null) return 0;
             var count = 0;
@@ -107,8 +107,8 @@ namespace Client.Playtest.Operations.Ui
 
         public static List<(ItemId itemId, int count)> RequiredItems(BlueprintJsonObject blueprint, int copies)
         {
-            // ビルドメニューと同じく回転0・重なりなしのBPを財布込みで数える
-            // Count unobstructed rotation-0 copies through the wallet, as the build menu does
+            // 回転0・重複なしで財布込み素材計算
+            // Calculate wallet-aware costs at zero rotation without overlaps.
             var playerId = ClientContext.PlayerConnectionSetting.PlayerId;
             var wallet = ServerContext.GetService<ConstructionWalletService>().GetQuery(playerId);
             var drafts = Enumerable.Range(0, copies).Select(_ => BlueprintPasteCopyBuilder.BuildUnobstructed(blueprint)).ToArray();

@@ -3,16 +3,18 @@ using Core.Master;
 
 namespace Server.Protocol.PacketResponse.Util.Construction
 {
-    public readonly struct BlockCellPlacement
+    internal readonly struct BlockCellPlacement
     {
         public readonly IConstructionPlacementPlan WalletPlan;
+        public readonly BlockId BlockId;
         public readonly bool IsPaymentWaived;
         public readonly bool IsAffordable;
-        public IReadOnlyList<(ItemId itemId, int count)> ItemsToConsume => WalletPlan.ItemsToConsume;
+        internal IReadOnlyList<(ItemId itemId, int count)> ItemsToConsume => WalletPlan.ItemsToConsume;
 
-        public BlockCellPlacement(IConstructionPlacementPlan walletPlan, bool isPaymentWaived, bool isAffordable)
+        internal BlockCellPlacement(BlockId blockId, IConstructionPlacementPlan walletPlan, bool isPaymentWaived, bool isAffordable)
         {
             WalletPlan = walletPlan;
+            BlockId = blockId;
             IsPaymentWaived = isPaymentWaived;
             IsAffordable = isAffordable;
         }

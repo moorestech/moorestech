@@ -57,8 +57,8 @@ namespace Tests.CombinedTest.Game
             var actual = EnumerateCells(info);
             Assert.AreEqual(master.BlockSize.x * master.BlockSize.y * master.BlockSize.z, actual.Count);
 
-            // 直接回転したセル集合も最小角を原点に揃える
-            // Normalize the directly rotated occupied cells to the origin as well
+            // 直接回転後も最小角を原点に揃える
+            // Align the minimum corner after direct rotation.
             var originalInfo = new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, master.BlockSize);
             var expected = new HashSet<Vector3Int>();
             foreach (var pos in EnumerateCells(originalInfo)) expected.Add(new Vector3Int(pos.z, pos.y, master.BlockSize.x - 1 - pos.x));
@@ -92,8 +92,8 @@ namespace Tests.CombinedTest.Game
             }, new List<BlueprintLineJsonObject>(), new List<BlueprintLineJsonObject>(), System.Guid.NewGuid());
             var origin = new Vector3Int(10, 5, -10);
 
-            // 全回転で最小角と占有形状、保存indexを保つ
-            // Preserve the minimum corner, occupied shape and saved indices at every rotation
+            // 全回転で最小角・形状・index維持
+            // Preserve extent minimum, shape and indices at every rotation.
             var expectedMachinePositions = new[]
             {
                 new Vector3Int(3, 1, 0), new Vector3Int(0, 1, 0),

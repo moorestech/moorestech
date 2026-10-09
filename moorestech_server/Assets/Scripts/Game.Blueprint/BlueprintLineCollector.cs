@@ -6,8 +6,8 @@ using Game.EnergySystem;
 namespace Game.Blueprint
 {
     /// <summary>
-    ///     コピー対象内で両端が閉じた電線・歯車チェーンをindex化する
-    ///     Indexes wires and gear chains whose both ends lie inside the copy targets
+    /// BP内の電線・チェーンをindex化
+    /// Index wires and chains internal to the blueprint.
     /// </summary>
     public static class BlueprintLineCollector
     {

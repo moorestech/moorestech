@@ -28,8 +28,8 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             context.Paste(blueprint, rotation, BlueprintPasteProtocolTestContext.Origin);
 
-            // 北向きの二端点は回転後にX列からZ列へ移る
-            // The north-facing endpoints rotate from an X row to a Z row
+            // 回転で端点のX列をZ列へ移す
+            // Rotate the endpoint row from the X axis to Z.
             var a = Connector(BlueprintPasteProtocolTestContext.Origin);
             var b = Connector(BlueprintPasteProtocolTestContext.Origin + (rotation == 0 ? new Vector3Int(3, 0, 0) : new Vector3Int(0, 0, 3)));
             Assert.IsTrue(a.ContainsWireConnection(b.BlockInstanceId));
@@ -125,8 +125,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             context.UnlockLines();
             context.Register(blueprint);
 
-            // ブロック代だけを満たし、線代の不足で全体を拒否する
-            // Cover block costs only and reject the whole copy for missing wire costs
+            // 線代不足で全体拒否を検証
+            // Verify whole-copy rejection when line costs are missing.
             PlaceBlockProtocolTestSupport.GrantRequiredItems(context.Services, ForUnitTestModBlockId.ElectricPoleId, 2);
             context.Paste(blueprint, 0, BlueprintPasteProtocolTestContext.Origin);
 

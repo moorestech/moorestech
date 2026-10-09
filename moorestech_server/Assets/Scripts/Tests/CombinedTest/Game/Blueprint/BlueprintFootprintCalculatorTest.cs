@@ -58,8 +58,8 @@ namespace Tests.CombinedTest.Game
                 new(new Vector3Int(-4, 4, 9), machineGuid, (int)BlockDirection.East, new Dictionary<string, string>()),
             }, new List<BlueprintLineJsonObject>(), new List<BlueprintLineJsonObject>(), Guid.NewGuid());
 
-            // 元オフセットの平行移動に関係なく外形の軸だけが入れ替わる
-            // Rotation swaps extent axes independently of the original offset translation
+            // 平行移動に依らず外形軸を交換
+            // Swap extent axes independently of translation.
             for (var rotation = 0; rotation < 4; rotation++)
             {
                 var expected = rotation % 2 == 0 ? new Vector3Int(5, 2, 3) : new Vector3Int(3, 2, 5);

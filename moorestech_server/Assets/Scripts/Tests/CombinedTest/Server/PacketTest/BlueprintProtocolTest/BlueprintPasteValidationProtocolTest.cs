@@ -133,6 +133,21 @@ namespace Tests.CombinedTest.Server.PacketTest
         }
 
         [Test]
+        public void 一つでも最大セルが整数範囲外なら全原点を拒否するTest()
+        {
+            using var context = new BlueprintPasteProtocolTestContext(true, true);
+            var blueprint = context.Create(ForUnitTestModBlockId.MultiBlockGeneratorId);
+            context.Register(blueprint);
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[BlueprintPaste\] invalid coordinates"));
+
+            context.Paste(blueprint, 0, BlueprintPasteProtocolTestContext.Origin,
+                new Vector3Int(int.MaxValue, int.MaxValue, int.MaxValue));
+
+            Assert.IsEmpty(ServerContext.WorldBlockDatastore.BlockMasterDictionary);
+            context.AssertDenied(BlueprintFailureReason.InvalidRequest, 0);
+        }
+
+        [Test]
         public void 存在しないBPは通知して拒否するTest()
         {
             using var context = new BlueprintPasteProtocolTestContext(true, false);

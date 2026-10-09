@@ -12,6 +12,7 @@ using Game.Block.Interface;
 using Game.Blueprint;
 using Game.Construction;
 using NUnit.Framework;
+using Server.Protocol.PacketResponse.Util.Blueprint.Planning;
 using Server.Protocol.PacketResponse.Util.ConnectTool;
 using Server.Boot;
 using Tests.Module;
@@ -132,12 +133,36 @@ namespace Client.Tests.WebUi
         }
 
         [Test]
+        public void 無料設置中の接続不能な重複チェーンは二重請求しないTest()
+        {
+            DebugParameters.SaveBool(DebugParameterKeys.FreeBlockPlacement, true);
+            var blueprint = CreateBlueprint(ForUnitTestModBlockId.GearChainPole, ForUnitTestModBlockId.GearChainPole);
+            var chainGuid = Guid.Parse("c0000000-0000-0000-0000-000000000003");
+            blueprint.Chains.Add(new BlueprintLineJsonObject(0, 1, chainGuid));
+            blueprint.Chains.Add(new BlueprintLineJsonObject(1, 0, chainGuid));
+            var dto = CreateDto(blueprint);
+
+            // 受理される一本だけを表示し、完全免除にもならない
+            // Show only the accepted chain and keep its payment requirement
+            Assert.IsFalse(dto.PaymentWaived);
+            Assert.IsTrue(ConnectToolCostCalculator.TryCalculate(chainGuid, 10, out var costs));
+            foreach (var cost in costs)
+            {
+                Assert.AreEqual(cost.Count, dto.RequiredItems.Single(row => row.ItemId == cost.ItemId.AsPrimitive()).Count);
+            }
+        }
+
+        [Test]
         public void 通常設置のBPには保存電線の素材も表示するTest()
         {
             var blueprint = CreateBlueprint(ForUnitTestModBlockId.ElectricPoleId, ForUnitTestModBlockId.ElectricPoleId);
+            // テスト電柱の接続範囲内に両端を置く
+            // Keep both test poles within their connection range.
+            blueprint.Blocks[1].OffsetX = 2;
             var wireGuid = Guid.Parse("c0000000-0000-0000-0000-000000000001");
             blueprint.Wires.Add(new BlueprintLineJsonObject(0, 1, wireGuid));
-            Assert.IsTrue(ConnectToolCostCalculator.TryCalculate(wireGuid, 10, out var costs));
+            Assert.IsTrue(BlueprintPasteCopyBuilder.BuildUnobstructed(blueprint).Lines.Single().IsConnectable);
+            Assert.IsTrue(ConnectToolCostCalculator.TryCalculate(wireGuid, 2, out var costs));
             Assert.IsNotEmpty(costs);
             var dto = CreateDto(blueprint);
             foreach (var cost in costs)
@@ -160,8 +185,8 @@ namespace Client.Tests.WebUi
 
         private static BlueprintJsonObject CreateBlueprint(params BlockId[] blockIds)
         {
-            // ブロック配置は外接箱最小角基準で重ならない列にする
-            // Place non-overlapping blocks in a row relative to the bounding-box minimum
+            // 最小角基準で重ならない列を配置
+            // Place a non-overlapping run from extent-min origins.
             var blocks = new List<BlueprintBlockJsonObject>();
             for (var i = 0; i < blockIds.Length; i++)
                 blocks.Add(new BlueprintBlockJsonObject(new Vector3Int(i * 10, 0, 0),

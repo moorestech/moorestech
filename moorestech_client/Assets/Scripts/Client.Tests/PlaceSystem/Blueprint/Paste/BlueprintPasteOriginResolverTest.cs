@@ -13,8 +13,8 @@ namespace Client.Tests.PlaceSystem
         [TestCase(PreviewSurfaceType.YX_Origin, 4, 8)]
         public void 側面は面に接し最下段をカーソル段へそろえるTest(PreviewSurfaceType surface, int expectedX, int expectedZ)
         {
-            // 全側面で垂直軸の接し方と平行軸の中心寄せを確かめる
-            // Verify normal-axis contact and parallel-axis centering on all side faces
+            // 全側面の接面と横方向中心を検証
+            // Verify contact and horizontal centering on every side face.
             var origin = BlueprintPasteOriginResolver.ResolveOrigin(new Vector3Int(3, 4, 2), new Vector3(5f, 32.4f, 10.3f), surface, 0f, 0);
             Assert.AreEqual(new Vector3Int(expectedX, 32, expectedZ), origin);
         }

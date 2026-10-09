@@ -14,13 +14,13 @@ namespace Server.Protocol.PacketResponse
         [Key(2)] public BlueprintOperation Operation { get; set; }
         [Key(3)] public string Name { get; set; }
 
-        // コピー範囲はXYZバウンディングボックスで指定
-        // Copy area is uniquely specified as a full XYZ bounding box
+        // コピー範囲はXYZ外接箱で指定
+        // Specify the copy region as an XYZ bounding box.
         [Key(4)] public Vector3IntMessagePack Min { get; set; }
         [Key(5)] public Vector3IntMessagePack Max { get; set; }
 
-        // 削除・貼り付けの対象は名前ではなくGuidで指定する
-        // Delete and paste identify the target by GUID rather than name
+        // 削除・貼付対象はGuidで識別
+        // Identify delete and paste targets by GUID.
         [Key(6)] public string BlueprintGuidStr { get; set; }
 
         // 列の各原点と共通の回転を送る
@@ -63,8 +63,8 @@ namespace Server.Protocol.PacketResponse
 
         // 共有上限で区切り、始点からの素材判定順を保つ
         // Split at the shared limit while preserving material evaluation order
-        // 要求間で不足状態は共有せず、サーバー状態が変わると後続要求で再び配置可能になる
-        // Shortage state is not shared across requests; server state changes can make a later request placeable again
+        // 送信側は各応答を待ち、不足が出た後の要求を送らない
+        // The sender waits for each response and stops sending after a shortage
         public static IEnumerable<BlueprintRequest> CreatePasteRequests(Guid blueprintGuid, int rotationStep, List<Vector3Int> origins)
         {
             for (var offset = 0; offset < origins.Count; offset += MaxPasteOrigins)

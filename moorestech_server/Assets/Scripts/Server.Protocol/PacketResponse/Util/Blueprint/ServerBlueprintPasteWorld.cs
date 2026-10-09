@@ -6,7 +6,6 @@ using Game.PlacementTarget;
 using Game.UnlockState;
 using Game.World.Interface.DataStore;
 using Server.Protocol.PacketResponse.Util.Blueprint.Planning;
-using Server.Protocol.PacketResponse.Util.ElectricWire.Connection;
 
 namespace Server.Protocol.PacketResponse.Util.Blueprint
 {
@@ -25,11 +24,7 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint
 
         public bool IsOverlapping(BlockPositionInfo positionInfo)
         {
-            foreach (var position in positionInfo.EnumeratePositions())
-            {
-                if (ServerContext.WorldBlockDatastore.Exists(position)) return true;
-            }
-            return false;
+            return ServerContext.WorldBlockDatastore.IsOverlapExistingBlock(positionInfo);
         }
 
         // 通常設置と同じ無料設置時の解放規則を使う
@@ -43,7 +38,7 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint
         // Saved line tools must be unlocked even with free placement
         public bool IsConnectToolUnlocked(Guid connectToolGuid)
         {
-            return ElectricWireSystemUtil.IsConnectToolUnlocked(connectToolGuid);
+            return _catalog.IsConnectToolUnlocked(connectToolGuid, _unlockState);
         }
     }
 }

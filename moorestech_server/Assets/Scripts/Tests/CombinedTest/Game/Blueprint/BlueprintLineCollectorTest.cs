@@ -30,8 +30,8 @@ namespace Tests.CombinedTest.Game.Blueprint
             unlock.UnlockConnectTool(WireToolGuid);
             unlock.UnlockConnectTool(GearChainPoleExtendTestHelper.ConnectToolGuid);
 
-            // 両種の配線素材を用意して実際の接続経路を使う
-            // Supply both line materials and use the real connection paths
+            // 両配線の素材を用意し実接続を通す
+            // Supply both line types and exercise real connection paths.
             var inventory = services.GetRequiredService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
             var wireItem = MasterHolder.ItemMaster.GetItemId(Guid.Parse("00000000-0000-0000-1234-000000000001"));
             var chainItem = MasterHolder.ItemMaster.GetItemId(Guid.Parse("00000000-0000-0000-1234-000000000004"));
@@ -61,8 +61,8 @@ namespace Tests.CombinedTest.Game.Blueprint
             AssertEndpoints(blueprint, blueprint.Wires[0], pole, generator, WireToolGuid);
             AssertEndpoints(blueprint, blueprint.Chains[0], chainA, chainB, GearChainPoleExtendTestHelper.ConnectToolGuid);
 
-            // 対象列の順序を逆にしても端点indexが正しい
-            // Reversing target order still maps endpoints to the corresponding indices
+            // 逆順の対象でも端点indexを検証
+            // Verify endpoint indices for reversed target order.
             var reversed = BlueprintLineCollector.Collect(new[] { chainB, generator, chainA, pole });
             Assert.AreEqual(1, reversed.wires.Count);
             Assert.AreEqual(1, reversed.chains.Count);

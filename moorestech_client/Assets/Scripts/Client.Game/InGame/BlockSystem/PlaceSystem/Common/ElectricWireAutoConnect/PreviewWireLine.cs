@@ -9,7 +9,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
     ///     通常設置とBPで共有する電線プレビュー
     ///     Wire preview shared by normal placement and blueprints
     /// </summary>
-    public class PreviewWireLine
+    internal class PreviewWireLine
     {
         private readonly GameObject _gameObject;
         private readonly MeshFilter _meshFilter;
@@ -22,28 +22,28 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
         private Vector3 _cachedEnd;
         private bool _hasCache;
 
-        public PreviewWireLine(Transform parent)
+        internal PreviewWireLine(Transform parent)
         {
             _gameObject = new GameObject("PreviewWireLine");
             _gameObject.transform.SetParent(parent, false);
             _meshFilter = _gameObject.AddComponent<MeshFilter>();
             var renderer = _gameObject.AddComponent<MeshRenderer>();
 
-            // 材質を複製し半透明接続色で初期化（可否色はSetColorで都度切り替える）
-            // Clone the shared preview material with the semi-transparent placeable color (SetColor switches it per-call)
+            // 複製材質を半透明可否色で初期化
+            // Initialize cloned material with translucent judgement colors.
             _material = new Material(MaterialConst.GetPreviewPlaceBlockMaterial());
             SetColor(false);
             renderer.sharedMaterial = _material;
         }
 
-        public void SetActive(bool active)
+        internal void SetActive(bool active)
         {
             _gameObject.SetActive(active);
         }
 
         // 可否に応じてワイヤー線の色を切り替える
         // Switch the wire line's color by placeability
-        public void SetColor(bool isFailure)
+        internal void SetColor(bool isFailure)
         {
             var color = isFailure ? MaterialConst.NotPlaceableColor : MaterialConst.PlaceableColor;
             color.a = 0.5f;
@@ -51,7 +51,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
             _material.color = color;
         }
 
-        public void Draw(Vector3 start, Vector3 end)
+        internal void Draw(Vector3 start, Vector3 end)
         {
             _gameObject.SetActive(true);
 

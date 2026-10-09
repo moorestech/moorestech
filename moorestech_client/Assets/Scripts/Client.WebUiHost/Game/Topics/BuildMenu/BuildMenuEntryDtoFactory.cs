@@ -11,6 +11,7 @@ using Core.Master;
 using Game.Construction;
 using Game.PlacementTarget;
 using Mooresmaster.Model.BuildMenuModule;
+using Server.Protocol.PacketResponse.Util.Blueprint.Planning;
 
 namespace Client.WebUiHost.Game.Topics.BuildMenu
 {
@@ -54,7 +55,7 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                 var walletStatus = block == null ? null : walletQuery.GetWalletStatus(block.BlockId);
 
                 var (requiredItemDtos, blueprintPaymentWaived) = target is BlueprintPlacementTarget blueprint
-                    ? BuildMenuMaterialAvailability.CreateBlueprintRequiredItems(blueprint, walletQuery, heldByItem, freeBlockPlacement)
+                    ? CreateBlueprintRequiredItems(blueprint)
                     : (BuildMenuMaterialAvailability.CreateRequiredItemDtos(target, heldByItem), false);
 
                 // 支払いを完全免除できるエントリだけ不足表示を免除する
@@ -107,6 +108,23 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             {
                 if (status == null) return null;
                 return new BuildMenuSetPlacementDto { PerCost = status.Value.PlacementsPerCost, Remaining = status.Value.RemainingCount };
+            }
+
+            // BPの財布問い合わせと完全免除の判断をDTO生成元へ集約する
+            // Keep blueprint wallet queries and full-waiver decisions at the DTO source
+            (List<BuildMenuRequiredItemDto> items, bool paymentWaived) CreateBlueprintRequiredItems(BlueprintPlacementTarget blueprint)
+            {
+                var draft = BlueprintPasteCopyBuilder.BuildUnobstructed(blueprint.Blueprint);
+                var drafts = new[] { draft };
+                var payable = BlueprintPasteCostCalculator.CalcRequiredItems(drafts, walletQuery, freeBlockPlacement);
+                var paymentWaived = freeBlockPlacement && payable.Count == 0;
+
+                // 完全免除時だけ通常費用を案内し、有料線が残れば支払額を示す
+                // Show nominal cost only for a full waiver; otherwise show payable line cost
+                var required = paymentWaived
+                    ? BlueprintPasteCostCalculator.CalcRequiredItems(drafts, walletQuery, false)
+                    : payable;
+                return (BuildMenuMaterialAvailability.CreateRequiredItemDtos(required, heldByItem), paymentWaived);
             }
 
             #endregion

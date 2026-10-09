@@ -45,8 +45,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             var record = PlaceOperationRecord.CreateFrom(currentPlaceInfos);
             if (record.HasCells) ClientDIContext.BuildOperationHistory.Push(record);
 
+            ReportConfirmedPlacement(currentPlaceInfos.Count);
+        }
+
+        internal static void ReportConfirmedPlacement(int count)
+        {
             SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.PlaceBlock);
-            _placeBlockSent.OnNext(currentPlaceInfos.Count);
+            _placeBlockSent.OnNext(count);
         }
 
         // 左クリック解放時の設置送信。戻り値は送信したか

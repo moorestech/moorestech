@@ -43,6 +43,11 @@ namespace Server.Protocol.PacketResponse
             
             var block = ServerContext.WorldBlockDatastore.GetBlock(data.Pos);
             if (block == null) return Refuse(RemoveBlockFailureReason.Unknown);
+            // Undoは設置時の個体だけを撤去する
+            // Undo removes only the instance created by that placement
+            if (data.ExpectedBlockInstanceIdInt.HasValue &&
+                block.BlockInstanceId.AsPrimitive() != data.ExpectedBlockInstanceIdInt.Value)
+                return Refuse(RemoveBlockFailureReason.InstanceChanged);
             if (!RailBlockRemovalGuard.CanRemove(block, _railPositionManager)) return Refuse(RemoveBlockFailureReason.NodeInUseByTrain);
 
             // 財布に返却物を問い合わせ（確定は後段）
@@ -133,6 +138,7 @@ namespace Server.Protocol.PacketResponse
         public class RemoveBlockProtocolMessagePack : ProtocolMessagePackBase
         {
             [Key(3)] public Vector3IntMessagePack Pos { get; set; }
+            [Key(4)] public int? ExpectedBlockInstanceIdInt { get; set; }
             
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public RemoveBlockProtocolMessagePack() { }
@@ -140,6 +146,10 @@ namespace Server.Protocol.PacketResponse
             {
                 Tag = ProtocolTag;
                 Pos = new Vector3IntMessagePack(pos);
+            }
+            public RemoveBlockProtocolMessagePack(Vector3Int pos, BlockInstanceId expectedInstanceId) : this(pos)
+            {
+                ExpectedBlockInstanceIdInt = expectedInstanceId.AsPrimitive();
             }
         }
 
@@ -176,6 +186,7 @@ namespace Server.Protocol.PacketResponse
             NodeInUseByTrain,
             Unknown,
             InventoryFull,
+            InstanceChanged,
         }
     }
 }

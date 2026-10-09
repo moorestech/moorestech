@@ -3,7 +3,7 @@ using Game.Blueprint;
 
 namespace Server.Protocol.PacketResponse.Util.Blueprint.Planning
 {
-    public enum BlueprintPasteCopyState { Placeable, GroundNotFound, AllOverlapped, NotUnlocked, MaterialShortage }
+    public enum BlueprintPasteCopyState { Placeable, GroundNotFound, AllOverlapped, NotUnlocked, MaterialShortage, NoResolvedBlocks, InvalidCoordinates }
 
     public class BlueprintPasteCopyPlan
     {

@@ -327,3 +327,4 @@ ui.notification.blueprintNotFound,Blueprint not found,Blueprint not found,ブル
 ui.notification.blueprintPasteInvalidRequest,Blueprint paste request is invalid,Blueprint paste request is invalid,ブループリントの貼り付け要求が無効です,Die Anfrage zum Einfügen des Bauplans ist ungültig,설계도 붙여넣기 요청이 올바르지 않습니다
 ui.notification.blueprintPastePlacementFailed,{p0} blueprints could not be fully placed,{p0} blueprints could not be fully placed,ブループリント{p0}個の一部を設置できませんでした,{p0} Baupläne konnten nicht vollständig platziert werden,설계도 {p0}개를 완전히 배치하지 못했습니다
 ui.tooltip.placeBlueprintNotUnlocked,Blueprint contains locked blocks or connections,Blueprint contains locked blocks or connections,未解放のブロックまたは接続を含みます,Der Bauplan enthält gesperrte Blöcke oder Verbindungen,설계도에 해금되지 않은 블록 또는 연결이 포함되어 있습니다
+ui.tooltip.placeBlueprintMissingBlocks,Blueprint has no available blocks,Blueprint has no available blocks,使用可能なブロックがないブループリントです,Der Bauplan enthält keine verfügbaren Blöcke,설계도에 사용 가능한 블록이 없습니다

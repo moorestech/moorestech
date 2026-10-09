@@ -21,7 +21,7 @@ namespace Server.Protocol.PacketResponse
             ConnectToolGuidStr = jsonObject.ConnectToolGuidStr;
         }
 
-        public BlueprintLineJsonObject ToJsonObject()
+        internal BlueprintLineJsonObject ToJsonObject()
         {
             return new BlueprintLineJsonObject(BlockIndexA, BlockIndexB, Guid.Parse(ConnectToolGuidStr));
         }

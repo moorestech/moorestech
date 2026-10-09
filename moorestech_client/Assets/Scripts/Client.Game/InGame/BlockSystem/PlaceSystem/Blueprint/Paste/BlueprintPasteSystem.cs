@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste.Cache;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Run;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Height;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
@@ -15,6 +16,7 @@ using Game.Construction;
 using Client.Game.InGame.UI.Inventory.Main;
 using Server.Protocol.PacketResponse.Util.Blueprint.Planning;
 using UnityEngine;
+using UniRx;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
 {
@@ -25,17 +27,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
     public class BlueprintPasteSystem : PlaceSystemBase<BlueprintPlacementTarget>
     {
         private readonly ClientBlueprintLibrary _library;
-        private readonly ClientBlueprintPasteWorld _pasteWorld;
-        private readonly ConstructionWalletQuery _walletQuery;
-        private readonly ILocalPlayerInventory _inventory;
-        private readonly BlueprintPasteLinePreview _linePreview = new();
+        private readonly BlueprintPastePlanEvaluator _planEvaluator;
         private Guid _currentBlueprintGuid;
+        private ulong _blueprintRevision;
         private readonly PlacementHeightOffset _heightOffset;
         private readonly Camera _mainCamera;
         private readonly CommonBlockPlaceDragState _dragState;
         private BlueprintPastePreviewController _previewController;
         private BlueprintJsonObject _currentBlueprint;
         private int _rotationStep;
+        private bool _libraryChanged;
+        private Vector3Int _dragPlacementStart;
         private Vector3Int _footprintSize = Vector3Int.one;
 
         public override bool UsesPlacementHeight => true;
@@ -44,9 +46,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
         {
             _mainCamera = mainCamera;
             _library = library;
-            _pasteWorld = new ClientBlueprintPasteWorld(blockGameObjectDataStore, targetResolver);
-            _walletQuery = walletQuery;
-            _inventory = inventory;
+            _library.OnChanged.Subscribe(_ => _libraryChanged = true);
+            _planEvaluator = new BlueprintPastePlanEvaluator(new ClientBlueprintPasteWorld(blockGameObjectDataStore, targetResolver), walletQuery, inventory);
             _heightOffset = heightOffset;
             _dragState = new CommonBlockPlaceDragState(heightOffset);
         }
@@ -59,10 +60,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
 
         protected override void ManualUpdate(BlueprintPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback)
         {
-            if (isSelectionChanged)
+            if (isSelectionChanged || _libraryChanged)
             {
                 _dragState.DiscardForSelectionChange();
                 ResolveBlueprint(target.BlueprintGuid);
+                _libraryChanged = false;
             }
 
             var isSendable = UpdatePastePreview(out var plan);
@@ -71,8 +73,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
             // Folding and sending on release share the normal placement's single entry; a same-frame press is registered first
             if (!_dragState.TryConsumeSendableRelease(InputManager.Playable.ScreenLeftClick.GetKeyUp, isSendable, false)) return;
 
-            // BP単位の共有判定で設置可能なコピーだけを送り、サーバーで再検証する
-            // Send only copies accepted by the shared judgement and revalidate them on the server
+            // 共有判定で許可したBPを送信
+            // Send copies accepted by the shared planner.
             BlueprintPastePlaceSender.Send(_currentBlueprintGuid, _rotationStep, plan);
 
             #region Internal
@@ -90,21 +92,28 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
 
                 PlacementHeightKeyInput.Apply(_heightOffset);
                 if (InputManager.Playable.BlockPlaceRotation.GetKeyDown) Rotate();
-                if (!BlueprintPasteOriginResolver.TryResolveCursorOrigin(_mainCamera, _footprintSize, _heightOffset.Value, out var cursorAnchor, out var surfaceKind))
+                if (!BlueprintPasteOriginResolver.TryResolveCursorOrigin(_mainCamera, _footprintSize, _heightOffset.Value, out var cursorAnchor, out var cursorOrigin, out var surfaceKind))
                 {
-                    LogReleaseSkipped("cursor has no placement surface");
+                    LogReleaseSkipped("cursor has no placement surface or footprint ground");
+                    feedback.AddGroundNotFound();
                     HideAll();
                     return false;
                 }
 
-                if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi()) _dragState.BeginDrag(cursorAnchor, surfaceKind);
-                // 通常設置と同じく地形追従後の列カーソル原点で距離を見る
-                // Match normal placement by checking the resolved cursor copy after ground following
-                var origins = BlueprintPasteRunBuilder.BuildOrigins(_dragState.ResolveDragStartCell(cursorAnchor), cursorAnchor, _footprintSize, _dragState.ResolveSurfaceKind(surfaceKind), _heightOffset.Value, out var cursorIndex);
-                var cursorPosition = origins[cursorIndex].Position;
-                if (!PlaceSystemUtil.IsPlaceableFromPlayer(cursorPosition))
+                if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi())
                 {
-                    LogReleaseSkipped($"cursor {cursorPosition} is too far from player");
+                    // 軸判定用ヒット段と地形補正済み始点を別に保持する
+                    // Preserve the hit anchor separately from the terrain-adjusted start
+                    _dragState.BeginDrag(cursorAnchor, surfaceKind);
+                    _dragPlacementStart = cursorOrigin;
+                }
+                var placementStart = _dragState.IsDragging ? _dragPlacementStart : cursorOrigin;
+                // 地形追従後の列原点で距離を判定
+                // Check every copy origin after ground following
+                var origins = BlueprintPasteRunBuilder.BuildOrigins(_dragState.ResolveDragStartCell(cursorAnchor), cursorAnchor, placementStart, _footprintSize, _dragState.ResolveSurfaceKind(surfaceKind), _heightOffset.Value, out _);
+                if (origins.Any(origin => !PlaceSystemUtil.IsPlaceableFromPlayer(origin.Position)))
+                {
+                    LogReleaseSkipped("one or more copies are too far from player");
                     HideAll();
                     feedback.AddTooFar();
                     return false;
@@ -112,9 +121,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
 
                 // 外接箱の列を共有プランナーへ渡し表示と送信の判定を統一する
                 // Share one extent-run judgement between previews and sending
-                runPlan = BlueprintPastePlanner.Plan(_currentBlueprint, origins, _rotationStep, _pasteWorld, _walletQuery, ConstructionMaterialAccounting.TallyHeld(_inventory));
-                var ghosts = _previewController.UpdatePreview(runPlan);
-                _linePreview.Show(runPlan, ghosts);
+                runPlan = _planEvaluator.Plan(_currentBlueprintGuid, _blueprintRevision, _currentBlueprint, origins, _rotationStep);
+                _previewController.UpdatePreview(runPlan);
                 BlueprintPasteFeedbackReporter.Report(runPlan, feedback);
                 if (InputManager.Playable.ScreenLeftClick.GetKeyUp && UiPointerHitTest.IsPointerOverAnyUi())
                 {
@@ -132,6 +140,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
             void ResolveBlueprint(Guid blueprintGuid)
             {
                 _currentBlueprintGuid = blueprintGuid;
+                _blueprintRevision++;
                 _currentBlueprint = _library.TryGetBlueprint(blueprintGuid, out var blueprint) ? blueprint : null;
                 if (_currentBlueprint == null)
                 {
@@ -157,8 +166,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
 
         private void HideAll()
         {
+            _planEvaluator.Clear();
             _previewController?.Hide();
-            _linePreview.Hide();
         }
 
         public override bool TryCancelInProgressOperation()

@@ -36,8 +36,8 @@ namespace Game.Blueprint
 
     public class BlueprintBlockJsonObject
     {
-        // 外接箱最小角（全ブロックのOriginalPosの成分最小）からの相対
-        // Offset from the bounding-box minimum (component-wise minimum of block origins)
+        // 外接箱の最小角からの相対座標
+        // Coordinates relative to the extent minimum corner.
         [JsonProperty("offsetX")] public int OffsetX;
         [JsonProperty("offsetY")] public int OffsetY;
         [JsonProperty("offsetZ")] public int OffsetZ;
