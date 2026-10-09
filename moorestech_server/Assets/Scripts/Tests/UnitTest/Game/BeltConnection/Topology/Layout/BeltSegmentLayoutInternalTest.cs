@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using Core.BeltTransport;
 using Game.Block.Blocks.BeltConveyor.Topology.Layout;
 using Game.Block.Interface;
-using Game.World.Interface.DataStore;
 using Mooresmaster.Model.InventoryConnectsModule;
 using NUnit.Framework;
 using Tests.Module.TestMod;
@@ -29,7 +28,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology.Layout
 
             // 後ろの通常segmentは合流へ直結し、機械入力だけが合流直後の内部segmentを経由する
             // The rear normal segment feeds the merge directly; only the machine input goes through the internal segment right after the merge
-            Assert.AreEqual(3, layouts.Count);
+            Assert.AreEqual(3, layouts.Length);
             AssertSegment(layouts[0], BeltSegmentKind.Normal, 6, BeltDirection.Front, new Vector3Int(0, 0, 0));
             AssertSegment(layouts[1], BeltSegmentKind.Merge, 6, BeltDirection.Front, new Vector3Int(0, 0, 1));
             AssertLink(layouts[0].Outputs[0], BeltDirection.Front, BeltEntryDirection.FromBack, 1);
@@ -62,7 +61,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology.Layout
 
             // 合流の直後に Left → Right の順で内部segmentが並ぶ
             // Internal segments follow the merge in Left, then Right order
-            Assert.AreEqual(3, layouts.Count);
+            Assert.AreEqual(3, layouts.Length);
             AssertSegment(layouts[0], BeltSegmentKind.Merge, 6, BeltDirection.Front, new Vector3Int(0, 0, 1));
             AssertLink(layouts[0].Inputs[0], BeltDirection.Left, BeltEntryDirection.FromLeft, 1);
             AssertLink(layouts[0].Inputs[1], BeltDirection.Right, BeltEntryDirection.FromRight, 2);
@@ -83,7 +82,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology.Layout
             Place(world, ForUnitTestModBlockId.ChestId, new Vector3Int(-1, 0, 1), BlockDirection.North);
             var layouts = BuildLayouts(world);
 
-            Assert.AreEqual(1, layouts.Count);
+            Assert.AreEqual(1, layouts.Length);
             AssertSegment(layouts[0], BeltSegmentKind.Normal, 6, BeltDirection.Front, new Vector3Int(0, 0, 1));
             Assert.AreEqual(1, layouts[0].Inputs.Length);
             AssertLink(layouts[0].Inputs[0], BeltDirection.Left, BeltEntryDirection.FromLeft, Machine);
@@ -99,7 +98,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology.Layout
             Place(world, ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(1, 0, 1), BlockDirection.West);
             var layouts = BuildLayouts(world);
 
-            Assert.AreEqual(4, layouts.Count);
+            Assert.AreEqual(4, layouts.Length);
             AssertSegment(layouts[0], BeltSegmentKind.Branch, 128, BeltDirection.Front, Vector3Int.zero);
             AssertSegment(layouts[1], BeltSegmentKind.Merge, 6, BeltDirection.Front, new Vector3Int(0, 0, 1));
             AssertSegment(layouts[3], BeltSegmentKind.Normal, 6, BeltDirection.Left, new Vector3Int(1, 0, 1));
@@ -126,7 +125,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology.Layout
 
             // 合流(0,0,1)から合流(0,0,2)へは合流bufferなので内部segmentを挟まず直結する
             // Merge (0,0,1) feeds merge (0,0,2) directly because a merge buffer needs no internal segment
-            Assert.AreEqual(6, layouts.Count);
+            Assert.AreEqual(6, layouts.Length);
             AssertSegment(layouts[2], BeltSegmentKind.Merge, 6, BeltDirection.Front, new Vector3Int(0, 0, 1));
             AssertSegment(layouts[3], BeltSegmentKind.Merge, 6, BeltDirection.Front, new Vector3Int(0, 0, 2));
             Assert.AreEqual(3, layouts[2].Inputs.Length);
@@ -139,7 +138,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology.Layout
             AssertInternal(layouts[4], BeltDirection.Right);
             Assert.IsTrue(layouts[4].Inputs[0].IsMachine);
 
-            List<string> BuildInOrder(int[] order, out List<BeltSegmentLayout> built)
+            List<string> BuildInOrder(int[] order, out BeltSegmentLayout[] built)
             {
                 var world = NewWorld();
                 InstallMachinePorts(Vector3Int.right);
@@ -155,11 +154,6 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology.Layout
                 built = BuildLayouts(world);
                 return Signature(built);
             }
-        }
-
-        private static IWorldBlockDatastore NewWorld()
-        {
-            return new BeltEdgeTestWorld(false, BlockDirection.North).World;
         }
 
         private static OutputConnectsElement InstallMachinePorts(params Vector3Int[] directions)

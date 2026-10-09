@@ -15,6 +15,13 @@ namespace Tests.UnitTest.Core.BeltTransport
     {
         public const int W = BeltConstants.ItemWidth;
 
+        // 優先の高い順に3方向を並べた順序値
+        // An order value listing three directions from the highest priority
+        public static int Order(BeltDirection first, BeltDirection second, BeltDirection third)
+        {
+            return (int)first | ((int)second << 2) | ((int)third << 4);
+        }
+
         private const BindingFlags PrivateInstanceFlags = BindingFlags.NonPublic | BindingFlags.Instance;
         private const string EnqueueTailMethodName = "EnqueueTail";
         private const string AdvanceMethodName = "Advance";

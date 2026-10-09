@@ -22,7 +22,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology
         [Test]
         public void MultiCellMachineUsesConnectorCell()
         {
-            var world = new BeltEdgeTestWorld(false, BlockDirection.North).World;
+            var world = NewWorld();
             var input = MachinePortTestTemplate.Input(new Vector3Int(0, 0, 0), new[] { Vector3Int.back }, null);
             var output = MachinePortTestTemplate.Output(new Vector3Int(1, 0, 1), new[] { Vector3Int.forward }, null);
             MachinePortTestTemplate.Install(new InventoryConnects(new[] { input }, new[] { output }), new Vector3Int(2, 1, 2));
@@ -51,7 +51,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology
         [Test]
         public void UpSlopeFeedsMachineOneCellHigher()
         {
-            var world = new BeltEdgeTestWorld(false, BlockDirection.North).World;
+            var world = NewWorld();
             var input = MachinePortTestTemplate.Input(Vector3Int.zero, null, null);
             MachinePortTestTemplate.Install(new InventoryConnects(new[] { input }, null), Vector3Int.one);
             Place(world, BeltTestMaster.Up, Vector3Int.zero, BlockDirection.North);
@@ -89,7 +89,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology
 
         private static List<BeltTopologyCell> BuildTwoMachineWorld(int[] order, out OutputConnectsElement leftPort, out OutputConnectsElement rightPort)
         {
-            var world = new BeltEdgeTestWorld(false, BlockDirection.North).World;
+            var world = NewWorld();
             leftPort = MachinePortTestTemplate.Output(Vector3Int.zero, new[] { Vector3Int.left }, null);
             rightPort = MachinePortTestTemplate.Output(Vector3Int.zero, new[] { Vector3Int.right }, null);
             MachinePortTestTemplate.Install(new InventoryConnects(null, new[] { leftPort, rightPort }), Vector3Int.one);

@@ -13,6 +13,11 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology
 {
     internal static class BeltTopologyTestUtil
     {
+        internal static IWorldBlockDatastore NewWorld()
+        {
+            return new BeltEdgeTestWorld(false, BlockDirection.North).World;
+        }
+
         internal static IBlock Place(IWorldBlockDatastore world, BlockId id, Vector3Int position, BlockDirection direction)
         {
             Assert.IsTrue(world.TryAddBlock(id, position, direction, Array.Empty<BlockCreateParam>(), out var block), $"place {id} at {position}");

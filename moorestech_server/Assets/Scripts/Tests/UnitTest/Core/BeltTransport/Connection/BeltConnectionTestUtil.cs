@@ -36,13 +36,6 @@ namespace Tests.UnitTest.Core.BeltTransport.Connection
             return new BeltMergeSegment(0, priorityOrder, forwardDirection);
         }
 
-        // 優先の高い順に3方向を並べた順序値
-        // An order value listing three directions from the highest priority
-        public static int Order(BeltDirection first, BeltDirection second, BeltDirection third)
-        {
-            return (int)first | ((int)second << 2) | ((int)third << 4);
-        }
-
         // 段階4の前進と搬出を1回実行する
         // Run the stage-4 advance and output once
         public static void AdvanceAndTransfer(BeltNormalSegment segment)

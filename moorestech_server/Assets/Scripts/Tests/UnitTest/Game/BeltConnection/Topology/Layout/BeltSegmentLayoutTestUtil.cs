@@ -11,12 +11,12 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology.Layout
 {
     internal static class BeltSegmentLayoutTestUtil
     {
-        internal static List<BeltSegmentLayout> BuildLayouts(IWorldBlockDatastore world)
+        internal static BeltSegmentLayout[] BuildLayouts(IWorldBlockDatastore world)
         {
             var layouts = BeltSegmentLayoutBuilder.Build(BeltTopologyBuilder.Build(world));
             // 番号は並び順そのもの
             // The index must equal the list position
-            for (var i = 0; i < layouts.Count; i++) Assert.AreEqual(i, layouts[i].Index, "index equals list position");
+            for (var i = 0; i < layouts.Length; i++) Assert.AreEqual(i, layouts[i].Index, "index equals list position");
             return layouts;
         }
 
@@ -56,7 +56,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology.Layout
 
         // インスタンスIDを除いた比較用の文字列。別ワールド同士の決定性比較に使う
         // Comparison string without instance ids, used to compare determinism across separate worlds
-        internal static List<string> Signature(List<BeltSegmentLayout> layouts)
+        internal static List<string> Signature(BeltSegmentLayout[] layouts)
         {
             return layouts.Select(layout =>
                 $"{layout.Index} {layout.Kind} internal={layout.IsInternal} speed={layout.Speed} fwd={layout.Forward} " +

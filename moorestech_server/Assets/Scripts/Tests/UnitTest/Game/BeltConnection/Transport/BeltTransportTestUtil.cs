@@ -17,11 +17,6 @@ namespace Tests.UnitTest.Game.BeltConnection.Transport
 {
     internal static class BeltTransportTestUtil
     {
-        internal static IWorldBlockDatastore NewWorld()
-        {
-            return new BeltEdgeTestWorld(false, BlockDirection.North).World;
-        }
-
         internal static void InstallMachinePorts(Vector3Int[] outputDirections, Vector3Int[] inputDirections)
         {
             // 1マス機械(チェスト)に、方向ごとの出力・入力ポートを付ける。全機械が同じポートを持つ

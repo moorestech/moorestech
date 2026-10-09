@@ -59,11 +59,6 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation
             return buffer.TryGetItem(out var item) ? Serial(item) : -1;
         }
 
-        public static int Order(BeltDirection first, BeltDirection second, BeltDirection third)
-        {
-            return (int)first | ((int)second << 2) | ((int)third << 4);
-        }
-
         public static void TickTimes(BeltSimulation simulation, int ticks)
         {
             for (var i = 0; i < ticks; i++) simulation.Tick();

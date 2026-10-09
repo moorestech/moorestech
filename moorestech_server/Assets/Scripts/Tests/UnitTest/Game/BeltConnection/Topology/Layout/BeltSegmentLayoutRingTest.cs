@@ -1,8 +1,6 @@
-using System.Collections.Generic;
 using Core.BeltTransport;
 using Game.Block.Blocks.BeltConveyor.Topology.Layout;
 using Game.Block.Interface;
-using Game.World.Interface.DataStore;
 using NUnit.Framework;
 using Tests.Module.TestMod;
 using UnityEngine;
@@ -27,7 +25,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology.Layout
 
             // 速度6→32と32→6の2か所で切れ、それぞれの先頭は境界の次のマス
             // Cut at the 6-to-32 and 32-to-6 boundaries; each head is the cell right after a boundary
-            Assert.AreEqual(2, layouts.Count);
+            Assert.AreEqual(2, layouts.Length);
             AssertSegment(layouts[0], BeltSegmentKind.Normal, 6, BeltDirection.Right, new Vector3Int(0, 0, 0), new Vector3Int(0, 0, 1));
             AssertSegment(layouts[1], BeltSegmentKind.Normal, 32, BeltDirection.Left, new Vector3Int(1, 0, 1), new Vector3Int(1, 0, 0));
             AssertLink(layouts[0].Outputs[0], BeltDirection.Right, BeltEntryDirection.FromLeft, 1);
@@ -49,7 +47,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology.Layout
 
             // (0,0,0)は輪の後ろと外からの2入力で合流になり、残り3マスは合流の出口から始まる1本の通常
             // (0,0,0) gets two inputs (ring rear and outside) and becomes a merge; the other three cells form one normal starting at the merge exit
-            Assert.AreEqual(3, layouts.Count);
+            Assert.AreEqual(3, layouts.Length);
             AssertSegment(layouts[0], BeltSegmentKind.Normal, 6, BeltDirection.Right, new Vector3Int(-1, 0, 0));
             AssertSegment(layouts[1], BeltSegmentKind.Merge, 6, BeltDirection.Front, new Vector3Int(0, 0, 0));
             AssertSegment(layouts[2], BeltSegmentKind.Normal, 6, BeltDirection.Left, new Vector3Int(0, 0, 1), new Vector3Int(1, 0, 1), new Vector3Int(1, 0, 0));
@@ -65,6 +63,22 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology.Layout
         }
 
         [Test]
+        public void RingBecomesOneNormalSegmentLinkedToItself()
+        {
+            var layouts = BuildRing(new[] { 0, 1, 2, 3 });
+
+            // 輪は座標最小のマスを先頭に搬送順で並び、入出力とも自分自身を指す
+            // A ring starts at its smallest-position cell in transport order and links to itself on both ends
+            Assert.AreEqual(1, layouts.Length);
+            AssertSegment(layouts[0], BeltSegmentKind.Normal, 6, BeltDirection.Left,
+                new Vector3Int(0, 0, 0), new Vector3Int(0, 0, 1), new Vector3Int(1, 0, 1), new Vector3Int(1, 0, 0));
+            Assert.AreEqual(1, layouts[0].Inputs.Length);
+            Assert.AreEqual(1, layouts[0].Outputs.Length);
+            AssertLink(layouts[0].Inputs[0], BeltDirection.Right, BeltEntryDirection.FromRight, 0);
+            AssertLink(layouts[0].Outputs[0], BeltDirection.Left, BeltEntryDirection.FromRight, 0);
+        }
+
+        [Test]
         public void RingHeadIsSmallestCellRegardlessOfPlacementOrder()
         {
             var forward = Signature(BuildRing(new[] { 0, 1, 2, 3 }));
@@ -73,18 +87,13 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology.Layout
             Assert.AreEqual(new Vector3Int(0, 0, 0), BuildRing(new[] { 2, 3, 0, 1 })[0].Cells[0].Position);
         }
 
-        private static List<BeltSegmentLayout> BuildRing(int[] order)
+        private static BeltSegmentLayout[] BuildRing(int[] order)
         {
             var positions = new[] { new Vector3Int(0, 0, 0), new Vector3Int(0, 0, 1), new Vector3Int(1, 0, 1), new Vector3Int(1, 0, 0) };
             var directions = new[] { BlockDirection.North, BlockDirection.East, BlockDirection.South, BlockDirection.West };
             var world = NewWorld();
             foreach (var index in order) Place(world, ForUnitTestModBlockId.BeltConveyorId, positions[index], directions[index]);
             return BuildLayouts(world);
-        }
-
-        private static IWorldBlockDatastore NewWorld()
-        {
-            return new BeltEdgeTestWorld(false, BlockDirection.North).World;
         }
     }
 }

@@ -17,7 +17,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology
         [Test]
         public void StraightLineHasLevelBackEntries()
         {
-            var world = new BeltEdgeTestWorld(false, BlockDirection.North).World;
+            var world = NewWorld();
             for (var z = 0; z < 3; z++) Place(world, ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(0, 0, z), BlockDirection.North);
             var cells = BeltTopologyBuilder.Build(world);
 
@@ -39,7 +39,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology
         [Test]
         public void TurnEntersStraightBeltFromSide()
         {
-            var world = new BeltEdgeTestWorld(false, BlockDirection.North).World;
+            var world = NewWorld();
             Place(world, ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(0, 0, 0), BlockDirection.North);
             Place(world, ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(0, 0, 1), BlockDirection.North);
             Place(world, ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(1, 0, 1), BlockDirection.West);
@@ -59,7 +59,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology
         [Test]
         public void TMergeReportsBothSideInputs()
         {
-            var world = new BeltEdgeTestWorld(false, BlockDirection.North).World;
+            var world = NewWorld();
             Place(world, ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(-1, 0, 1), BlockDirection.East);
             Place(world, ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(1, 0, 1), BlockDirection.West);
             Place(world, ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(0, 0, 1), BlockDirection.North);
@@ -76,7 +76,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology
         [TestCase(false)]
         public void SplitterFlagFollowsMasterOutputsNotConnections(bool connectAllOutputs)
         {
-            var world = new BeltEdgeTestWorld(false, BlockDirection.North).World;
+            var world = NewWorld();
             Place(world, ForUnitTestModBlockId.GearBeltConveyorSplitter, Vector3Int.zero, BlockDirection.North);
             Place(world, ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(0, 0, 1), BlockDirection.North);
             if (connectAllOutputs)
@@ -98,7 +98,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology
         [Test]
         public void UpSlopeRaisesEntryFromBelow()
         {
-            var world = new BeltEdgeTestWorld(false, BlockDirection.North).World;
+            var world = NewWorld();
             Place(world, ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(0, 0, 0), BlockDirection.North);
             Place(world, BeltTestMaster.Up, new Vector3Int(0, 0, 1), BlockDirection.North);
             Place(world, ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(0, 1, 2), BlockDirection.North);
@@ -115,7 +115,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology
         [Test]
         public void DownSlopeLowersEntryFromAbove()
         {
-            var world = new BeltEdgeTestWorld(false, BlockDirection.North).World;
+            var world = NewWorld();
             Place(world, ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(0, 1, 0), BlockDirection.North);
             Place(world, BeltTestMaster.Down, new Vector3Int(0, 0, 1), BlockDirection.North);
             Place(world, ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(0, 0, 2), BlockDirection.North);
@@ -132,7 +132,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology
         [Test]
         public void NonHorizontalBeltIsExcludedWithoutWarning()
         {
-            var world = new BeltEdgeTestWorld(false, BlockDirection.North).World;
+            var world = NewWorld();
             Place(world, ForUnitTestModBlockId.BeltConveyorId, Vector3Int.zero, BlockDirection.UpNorth);
             Assert.IsEmpty(BeltTopologyBuilder.Build(world));
         }
@@ -148,7 +148,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology
 
             List<string> BuildInOrder(int[] order)
             {
-                var world = new BeltEdgeTestWorld(false, BlockDirection.North).World;
+                var world = NewWorld();
                 foreach (var index in order) Place(world, ForUnitTestModBlockId.BeltConveyorId, positions[index], directions[index]);
                 return Signature(BeltTopologyBuilder.Build(world));
             }
