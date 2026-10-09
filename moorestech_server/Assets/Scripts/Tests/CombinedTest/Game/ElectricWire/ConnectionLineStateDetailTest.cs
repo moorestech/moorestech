@@ -41,7 +41,7 @@ namespace Tests.CombinedTest.Game.ElectricWire
             Assert.IsTrue(world.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, new Vector3Int(0, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pole));
             Assert.IsTrue(world.TryAddBlock(ForUnitTestModBlockId.GeneratorId, new Vector3Int(2, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var generator));
             GiveItem(provider, "00000000-0000-0000-1234-000000000001");
-            Assert.IsTrue(ElectricWireSystemUtil.TryConnect(pole.BlockPositionInfo.OriginalPos, generator.BlockPositionInfo.OriginalPos, _playerId, WireToolGuid, out var error), error.ToString());
+            Assert.IsTrue(ElectricWireSystemUtil.TryConnect(pole.BlockPositionInfo.OriginalPos, generator.BlockPositionInfo.OriginalPos, _playerId, WireToolGuid, false, out var error), error.ToString());
 
             // シリアライズ後も種類と接続先が一致する
             // Partner and tool identity survive serialization
