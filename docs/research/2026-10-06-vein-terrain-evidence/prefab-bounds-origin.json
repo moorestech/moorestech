@@ -1,0 +1,14 @@
+{
+  "Result": "Assets/AddressableResources/Environment/Vein/Fluid/Oil.prefab min=(-1.5000, -0.1404, -1.5000) max=(1.5000, 0.1404, 1.5000)\nAssets/AddressableResources/Environment/Vein/Fluid/Water.prefab min=(-1.5000, -0.1404, -1.5000) max=(1.5000, 0.1404, 1.5000)\nAssets/AddressableResources/Environment/Vein/Item/Tungsten.prefab min=(-1.5000, -0.1404, -1.5000) max=(1.5000, 0.1404, 1.5000)\nAssets/AddressableResources/Environment/Vein/Item/VeinPrefab_Bronze.prefab min=(-1.7030, -0.8383, -1.6164) max=(1.5918, 0.3140, 1.7012)\nAssets/AddressableResources/Environment/Vein/Item/VeinPrefab_Clay.prefab min=(-1.7030, -0.8383, -1.6164) max=(1.5918, 0.3140, 1.7012)\nAssets/AddressableResources/Environment/Vein/Item/VeinPrefab_Coal.prefab min=(-1.7030, -0.8383, -1.6164) max=(1.5918, 0.3140, 1.7012)\nAssets/AddressableResources/Environment/Vein/Item/VeinPrefab_Copper.prefab min=(-1.7030, -0.8383, -1.6164) max=(1.5918, 0.3140, 1.7012)\nAssets/AddressableResources/Environment/Vein/Item/VeinPrefab_Iron.prefab min=(-1.7030, -0.8383, -1.6164) max=(1.5918, 0.3140, 1.7012)\nAssets/AddressableResources/Environment/Vein/Item/VeinPrefab_Stone.prefab min=(-1.7030, -0.8383, -1.6164) max=(1.5918, 0.3140, 1.7012)\nAssets/AddressableResources/Environment/Vein/Item/VeinPrefab_Tree.prefab min=(-1.7030, -0.8383, -1.6164) max=(1.5918, 0.3140, 1.7012)\nAssets/AddressableResources/Environment/Vein/Item/VeinPrefabBase.prefab min=(-1.7030, -0.8383, -1.6164) max=(1.5918, 0.3140, 1.7012)",
+  "Logs": [
+    "Execution completed successfully"
+  ],
+  "CompilationErrors": [],
+  "ErrorMessage": "",
+  "Error": "",
+  "UpdatedCode": null,
+  "DiagnosticsSummary": null,
+  "Diagnostics": [],
+  "EditorPlaying": false,
+  "Success": true
+}

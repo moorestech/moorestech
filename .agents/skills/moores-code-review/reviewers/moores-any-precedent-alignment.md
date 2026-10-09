@@ -14,7 +14,7 @@ cwdを読み、patchが導入する**新しいパターン**（新規クラス�
    - 同種のstore/イベント/プロトコル: `Server.Event/EventReceive/`・`Game.*/`・`MoorestechServerDIContainerGenerator` の既存登録
    - 置換・吸収する既存コンポーネントがあるなら、**その置換対象自身の機構が第一の前例**
 3. 前例と比較し、乖離があれば「前例に合わせる修正方針」または「新規パターンとして明示すべき」を判定する。
-4. `.claude/skills/writing-plans/references/moorestech-layer-map.md` が存在すればReadし、層責務・機構規約表とも突合する。
+4. `.claude/skills/moores-writing-plans/references/moorestech-layer-map.md` が存在すればReadし、層責務・機構規約表とも突合する。
 
 ## Critical判定基準
 - 役割同型の前例が明確に存在するのに、無言で別の機構・配置・命名を採用している（例: 既存は購読プッシュ型なのにポーリングで新設、既存はサービス委譲なのにインライン再実装、既存は専用イベントなのに他応答からの間接導出）。

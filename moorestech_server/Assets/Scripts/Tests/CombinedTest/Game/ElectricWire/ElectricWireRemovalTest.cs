@@ -55,8 +55,8 @@ namespace Tests.CombinedTest.Game.ElectricWire
             var inventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).MainOpenableInventory;
             inventory.SetItem(0, ServerContext.ItemStackFactory.Create(wireItemId, 10));
 
-            Assert.IsTrue(ElectricWireSystemUtil.TryConnect(posA, posB, playerId, ConnectToolGuid, out var errorA), errorA.ToString());
-            Assert.IsTrue(ElectricWireSystemUtil.TryConnect(posB, posC, playerId, ConnectToolGuid, out var errorB), errorB.ToString());
+            Assert.IsTrue(ElectricWireSystemUtil.TryConnect(posA, posB, playerId, ConnectToolGuid, false, out var errorA), errorA.ToString());
+            Assert.IsTrue(ElectricWireSystemUtil.TryConnect(posB, posC, playerId, ConnectToolGuid, false, out var errorB), errorB.ToString());
 
             // トポロジ反映のため1tick進める
             // Advance one tick for the topology flush
@@ -71,8 +71,8 @@ namespace Tests.CombinedTest.Game.ElectricWire
 
             // 配置座標(0,0)-(3,0)-(6,0)より各接続の距離は3。consumptionPerLength=1なので電線コストは3本ずつ
             // Blocks at (0,0)-(3,0)-(6,0) put each connection at distance 3; with consumptionPerLength=1 each wire costs 3
-            var costToA = connectorB.WireConnections[connectorA.BlockInstanceId].Cost;
-            var costToC = connectorB.WireConnections[connectorC.BlockInstanceId].Cost;
+            var costToA = connectorB.WireConnections[connectorA.BlockInstanceId].Record;
+            var costToC = connectorB.WireConnections[connectorC.BlockInstanceId].Record;
             Assert.AreEqual(3, costToA.TotalCount);
             Assert.AreEqual(3, costToC.TotalCount);
 

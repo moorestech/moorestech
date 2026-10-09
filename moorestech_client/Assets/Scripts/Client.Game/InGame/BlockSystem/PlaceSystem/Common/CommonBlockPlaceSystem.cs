@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConnect;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Height;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Run;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
@@ -35,18 +36,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
     public class CommonBlockPlaceSystem : PlaceSystemBase<BlockPlacementTarget>
     {
         private readonly IPlacementPreviewBlockGameObjectController _previewBlockController;
-        private readonly ILocalPlayerInventory _localPlayerInventory;
-        private readonly ConstructionWalletQuery _constructionWalletQuery;
         private readonly Camera _mainCamera;
         private readonly CommonBlockPlacePointCalculator _blockPlacePointCalculator;
         private readonly ElectricWireAutoConnectPreview _autoConnectPreview;
-        private readonly MapVeinAabbRegistry _veinAabbRegistry;
         private readonly IPlacementGroundFollower _groundFollower;
-        private readonly VeinRestrictedPlacementState _veinRestrictedPlacementState;
         private readonly GearConnectPreview _gearConnectPreview;
-        private readonly ChainPlacePreviewState _chainPlacePreviewState;
-        private readonly IChainGroundQuery _chainGroundQuery;
+        private readonly Evaluation.CommonBlockPlacementFeedbackPipeline _feedbackPipeline;
         private readonly ChainPlacementPreviewPart _chainPlacementPreviewPart;
+
+        private readonly PlacementHeightOffset _placementHeightOffset;
 
         private readonly CommonBlockPlaceDragState _dragState;
 
@@ -55,20 +53,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
         public CommonBlockPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory localPlayerInventory, IGameUnlockStateData gameUnlockStateData, ConstructionWalletQuery constructionWalletQuery, MapVeinAabbRegistry veinAabbRegistry, IPlacementGroundFollower groundFollower, VeinRestrictedPlacementState veinRestrictedPlacementState, ChainPlacePreviewState chainPlacePreviewState, IChainGroundQuery chainGroundQuery, PlacementHeightOffset placementHeightOffset)
         {
+            _placementHeightOffset = placementHeightOffset;
             _dragState = new CommonBlockPlaceDragState(placementHeightOffset);
             _mainCamera = mainCamera;
             _groundFollower = groundFollower;
             _previewBlockController = previewBlockController;
-            _localPlayerInventory = localPlayerInventory;
-            _constructionWalletQuery = constructionWalletQuery;
-            _veinAabbRegistry = veinAabbRegistry;
-            _veinRestrictedPlacementState = veinRestrictedPlacementState;
             _gearConnectPreview = new GearConnectPreview(blockGameObjectDataStore);
             _blockPlacePointCalculator = new CommonBlockPlacePointCalculator(blockGameObjectDataStore);
             _autoConnectPreview = new ElectricWireAutoConnectPreview(blockGameObjectDataStore, previewBlockController, gameUnlockStateData, constructionWalletQuery);
-            _chainPlacePreviewState = chainPlacePreviewState;
-            _chainGroundQuery = chainGroundQuery;
             _chainPlacementPreviewPart = new ChainPlacementPreviewPart(chainPlacePreviewState, _blockPlacePointCalculator, chainGroundQuery);
+            _feedbackPipeline = new Evaluation.CommonBlockPlacementFeedbackPipeline(_previewBlockController, veinAabbRegistry, veinRestrictedPlacementState, chainPlacePreviewState, _blockPlacePointCalculator, chainGroundQuery, constructionWalletQuery, localPlayerInventory, _autoConnectPreview, _gearConnectPreview, _chainPlacementPreviewPart);
         }
         
         // Q/Eで動かす設置高さを読む系
@@ -117,7 +111,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         protected override void ManualUpdate(BlockPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback)
         {
             _currentBlockDirection = target.ResolveDirectionOnSelection(_currentBlockDirection, isSelectionChanged);
-            _dragState.UpdateHeightOffsetByInput();
+            PlacementHeightKeyInput.Apply(_placementHeightOffset);
             BlockDirectionControl();
             var isSendable = GroundClickControl(out var wirePlaceable);
             PlaceBlockOnRelease(isSendable, wirePlaceable);
@@ -140,7 +134,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             bool GroundClickControl(out bool wirePlaceable)
             {
                 wirePlaceable = false;
-                _dragState.SyncSelectedBlock(target.BlockId);
+                if (isSelectionChanged) _dragState.DiscardForBlockChange(target.BlockGuid);
 
                 //基本はプレビュー非表示
                 _previewBlockController.SetActive(false);
@@ -182,36 +176,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 // Submit the preview and report the cursor reasons; terrain overlap never blocks placement (ADR 0047)
                 var cursorIndex = NormalPlacementPreviewStep.Apply(_previewBlockController, _currentPlaceInfos, placeCauses, placePoint, holdingBlockMaster, feedback);
 
-                // 鉱脈由来の設置制限（採掘機の底面XZ重なりとチュートリアルの鉱脈限定）をまとめて課す
-                // Apply both vein-bound placement restrictions at once: the miner's footprint XZ overlap and the tutorial vein limit
-                // 素材チェックより前に落として枠を消費させない
-                // They run before the material check so blocked cells don't consume quota
-                VeinPlacementReporter.MarkOutsideVeinCellsAsNotPlaceable(_currentPlaceInfos, holdingBlockMaster, cursorIndex, _veinAabbRegistry, _veinRestrictedPlacementState, feedback);
-
-                // 連結レイアウトが置けない設置を弾く
-                // Reject placements whose tutorial chain layout cannot fit (client-side only, like the vein limit)
-                ChainPlacementReporter.MarkChainBlockedCellsAsNotPlaceable(_currentPlaceInfos, holdingBlockMaster, cursorIndex, _chainPlacePreviewState, _blockPlacePointCalculator, _chainGroundQuery, surfaceKind == PlacementHitSurfaceKind.Ground, _dragState.HeightOffset, feedback);
-
-                // 鉱脈・既存ブロックで落ちたセルがアイテム枠を消費しないよう、フィルタ後にチェックする
-                // Check after filtering so cells dropped by veins or existing blocks don't consume item quota
-                ConstructionMaterialShortageReporter.ReportShortages(_currentPlaceInfos, target.BlockId, _constructionWalletQuery, _localPlayerInventory, feedback);
-                ConstructionCostPreviewMarker.MarkUnaffordableCellsAsNotPlaceable(_currentPlaceInfos, target.BlockId, _constructionWalletQuery, _localPlayerInventory);
-
-                // 各セルの自動接続を評価し表示更新。cursorIndexは上で解決済みのため再解決しない
-                // Evaluate auto-connect per cell and update the preview; cursorIndex is already resolved above so it is not re-resolved
-                wirePlaceable = _autoConnectPreview.ApplyAutoConnect(_currentPlaceInfos, target.BlockId, _currentBlockDirection, _localPlayerInventory, cursorIndex, feedback);
-
-                // 歯車はどの座標同士が噛み合うかを線で示す。設置可否には関与しない
-                // Gears show which cells mesh with which via lines; this never affects placeability
-                _gearConnectPreview.Apply(_currentPlaceInfos, target.BlockId, cursorIndex);
-
-                // 連結ゴーストをカーソルへ追従表示する
-                // Follow the cursor with the chain ghosts
-                _chainPlacementPreviewPart.Apply(_currentPlaceInfos[cursorIndex], holdingBlockMaster, surfaceKind == PlacementHitSurfaceKind.Ground, _dragState.HeightOffset);
-
-                // 最終的なPlaceable状態でプレビュー色を更新
-                // Update preview colors based on the final Placeable state
-                _previewBlockController.UpdatePlaceableColors(_currentPlaceInfos);
+                // 設置可否の評価と色更新
+                // Evaluate placeability and update colors
+                wirePlaceable = _feedbackPipeline.Apply(_currentPlaceInfos, holdingBlockMaster, target.BlockId, _currentBlockDirection, cursorIndex, surfaceKind, _dragState.HeightOffset, feedback);
 
                 return true;
             }

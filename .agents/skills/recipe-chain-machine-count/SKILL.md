@@ -118,3 +118,8 @@ DFS は2回走らせる：
 
 ### baseRpm 前提の明記
 GearMachine の計算は「定格RPMで動いている」前提。ユーザーが歯車動力に余裕がない場合、実際の台数は増える。回答末尾で必ず「歯車動力でRPMが下がるとGearMachineの台数は増える」と注意する。
+
+### 液体燃料の発電機と流体の流量（発電機の台数・燃料比を出すとき）
+- `ElectricGenerator` の `fuelFluids[]` は「`time` 秒ごとに `amount` を消費し、燃焼中は需要に関係なく `power` を一定で出す」。燃料消費/秒 = `amount / time`、発電機1台を賄う燃料生産機の台数 = 燃料消費/秒 ÷ (生産機1台の出力/秒)。根拠: `Game.Block/Blocks/PowerGenerator/VanillaElectricGeneratorFuelService.cs`
+- 液体の油井などの `ElectricPump` は `generateFluid[]` の `amount / generateTime` が1台/秒
+- `fluidInventoryConnectors` の `flowCapacity` は**毎秒**の上限で、実効値は接続した両側の `flowCapacity` の小さい方（`FluidBoundaryPort.GetFlowCapacityPerTick`）。燃料消費/秒やレシピの入出力/秒が流入口・パイプの `flowCapacity` を超えると、マスタ上の値どおりには回らない。台数を出すときは消費側・供給側・間のパイプの `flowCapacity` も必ず照合し、足りなければ注意書きに出す

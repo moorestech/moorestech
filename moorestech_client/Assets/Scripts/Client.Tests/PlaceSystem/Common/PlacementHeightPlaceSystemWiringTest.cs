@@ -1,5 +1,6 @@
 using System;
 using Client.Game.InGame.Block;
+using Client.Tests.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview;
@@ -15,6 +16,7 @@ using Server.Protocol.PacketResponse;
 using System.Collections.Generic;
 using Tests.Module.TestMod;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using Object = UnityEngine.Object;
 
 namespace Client.Tests.PlaceSystem.Common
@@ -23,7 +25,7 @@ namespace Client.Tests.PlaceSystem.Common
     ///     設置系が共有の設置高さへ実際に配線されていることを、本番のManualUpdate・Disable・系切替を通して検証
     ///     Verifies through the production ManualUpdate, Disable and system switch that place systems are wired to the shared height
     /// </summary>
-    public class PlacementHeightPlaceSystemWiringTest
+    public class PlacementHeightPlaceSystemWiringTest : InputTestFixture
     {
         private static readonly Guid FirstBeltGuid = Guid.Parse("00000000-0000-0000-0000-000000000003");
         private static readonly Guid SecondBeltGuid = Guid.Parse("00000000-0000-0000-0000-000000000030");
@@ -31,9 +33,11 @@ namespace Client.Tests.PlaceSystem.Common
         private GameObject _sceneObject;
         private Camera _camera;
 
-        [SetUp]
-        public void SetUp()
+        public override void Setup()
         {
+            base.Setup();
+            TestReflection.ResetInputManagerCache();
+
             // MasterHolderを読むのは本番のManualUpdate。ForUnitTest modのマスタで通す
             // The production ManualUpdate reads MasterHolder, so it runs on the ForUnitTest mod master
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
@@ -42,26 +46,34 @@ namespace Client.Tests.PlaceSystem.Common
             _camera = _sceneObject.AddComponent<Camera>();
         }
 
-        [TearDown]
-        public void TearDown()
+        public override void TearDown()
         {
             Object.DestroyImmediate(_sceneObject);
+
+            // 仮想デバイスへ結び付いた入力キャッシュを捨て、後続テストへ持ち越さない
+            // Drop the input cache bound to the virtual devices so it never leaks into later tests
+            TestReflection.ResetInputManagerCache();
+            base.TearDown();
         }
 
         [Test]
-        public void ベルト設置系の持ち替えは注入された共有高さを地表へ戻す()
+        public void コントローラーのベルト持ち替えは共有高さを地表へ戻す()
         {
             var heightOffset = new PlacementHeightOffset();
             var beltSystem = CreateBeltSystem(heightOffset);
+            var selector = new SwitchableSelector(beltSystem);
+            var controller = new PlaceSystemStateController(selector, new NullPresenter(), heightOffset);
 
-            UpdateWithTarget(beltSystem, FirstBeltGuid);
+            controller.SetTarget(new BlockPlacementTarget(FirstBeltGuid, null), PlacementOrigin.FromHotbarSlot(0));
+            controller.ManualUpdate();
             heightOffset.Adjust(2);
 
-            // 本番のManualUpdateが持ち替えを見て共有インスタンスを畳む。自前instanceを握る退行ならここが2のまま残る
-            // The production ManualUpdate folds the shared instance on a block switch; a system holding its own instance leaves 2 here
-            UpdateWithTarget(beltSystem, SecondBeltGuid);
+            // 共有高さの保持はPlacementHeightOffsetが担い、ここはコントローラーの持ち替えによる復帰を検証する
+            // PlacementHeightOffset owns the shared value; this test covers the reset on controller-owned switching
+            controller.SetTarget(new BlockPlacementTarget(SecondBeltGuid, null), PlacementOrigin.FromHotbarSlot(1));
+            controller.ManualUpdate();
 
-            Assert.AreEqual(0, heightOffset.Value, "BeltConveyorPlaceSystem must write the injected PlacementHeightOffset, not one of its own");
+            Assert.AreEqual(0, heightOffset.Value, "the controller did not reset shared height on a belt target change");
         }
 
         [Test]
@@ -82,6 +94,21 @@ namespace Client.Tests.PlaceSystem.Common
             controller.ManualUpdate();
 
             Assert.AreEqual(0, heightOffset.Value, "the height stayed while a system that never applies it was active");
+        }
+
+        [Test]
+        public void ベルト系のManualUpdateは注入された共有高さへQEを書く()
+        {
+            var keyboard = InputSystem.AddDevice<Keyboard>();
+            var heightOffset = new PlacementHeightOffset();
+            var beltSystem = CreateBeltSystem(heightOffset);
+
+            // ベルト系が自前の高さを握る退行だと、HUDが読む共有値は動かない
+            // If the belt system held its own height, the shared value the HUD reads would not move
+            Press(keyboard.eKey);
+            UpdateWithTarget(beltSystem, FirstBeltGuid);
+
+            Assert.AreEqual(1, heightOffset.Value, "the belt system did not write Q/E into the injected shared height");
         }
 
         [Test]

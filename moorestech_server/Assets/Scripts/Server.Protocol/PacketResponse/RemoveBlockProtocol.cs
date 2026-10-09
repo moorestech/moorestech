@@ -8,10 +8,12 @@ using Game.Block.Interface.Component;
 using Game.Context;
 using Game.PlayerInventory.Interface;
 using Game.Train.RailPositions;
+using Game.Train.RailGraph;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Protocol.PacketResponse.Util.Construction;
+using Server.Protocol.PacketResponse.Util.RailEdit;
 using Server.Util.MessagePack;
 using UnityEngine;
 
@@ -24,6 +26,7 @@ namespace Server.Protocol.PacketResponse
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly TrainRailPositionManager _railPositionManager;
         private readonly ConstructionWalletService _constructionWallet;
+        private readonly IRailGraphDatastore _railGraphDatastore;
 
 
         public RemoveBlockProtocol(ServiceProvider serviceProvider)
@@ -31,6 +34,7 @@ namespace Server.Protocol.PacketResponse
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
             _railPositionManager = serviceProvider.GetService<TrainRailPositionManager>();
             _constructionWallet = serviceProvider.GetService<ConstructionWalletService>();
+            _railGraphDatastore = serviceProvider.GetService<IRailGraphDatastore>();
         }
         
         public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
@@ -38,16 +42,18 @@ namespace Server.Protocol.PacketResponse
             var data = MessagePackSerializer.Deserialize<RemoveBlockProtocolMessagePack>(payload);
             
             var block = ServerContext.WorldBlockDatastore.GetBlock(data.Pos);
-            if (block == null) return RemoveBlockResponseMessagePack.CreateFailure(RemoveBlockFailureReason.Unknown);
-            if (!CanManualRemoveBlock(block)) return RemoveBlockResponseMessagePack.CreateFailure(RemoveBlockFailureReason.NodeInUseByTrain);
+            if (block == null) return Refuse(RemoveBlockFailureReason.Unknown);
+            if (!RailBlockRemovalGuard.CanRemove(block, _railPositionManager)) return Refuse(RemoveBlockFailureReason.NodeInUseByTrain);
 
             // 財布に返却物を問い合わせ（確定は後段）
             // Ask the wallet what to refund (finalized further down)
-            var removalPlan = _constructionWallet.PlanRemoval(MasterHolder.BlockMaster.GetBlockMaster(block.BlockId), block.BlockInstanceId, requesterPlayerId);
+            var removalPlan = _constructionWallet.PlanRemoval(block.BlockId, block.BlockInstanceId, requesterPlayerId);
 
-            // 破壊した後のアイテムをインベントリに挿入できるかチェック
-            // Check if items after destruction can be inserted into inventory
-            if (!TryInsertRefundItems(out var refundItems)) return RemoveBlockResponseMessagePack.CreateFailure(RemoveBlockFailureReason.Unknown);
+            // レール返却を合算し全額入る時だけ撤去
+            // Sum rail refunds and remove only if the whole refund fits
+            var railRefundItems = RailRemovalRefundCalculator.CreateRefundItems(block, _railGraphDatastore);
+            if (!TryInsertRefundItems(out var refundItems))
+                return Refuse(RemoveBlockFailureReason.InventoryFull);
             
             // 削除処理
             // Deletion process
@@ -67,31 +73,14 @@ namespace Server.Protocol.PacketResponse
             
             #region Internal
 
-            bool CanManualRemoveBlock(IBlock targetBlock)
+            RemoveBlockResponseMessagePack Refuse(RemoveBlockFailureReason reason)
             {
-                var railComponents = targetBlock.ComponentManager.GetComponents<RailComponent>();
-                if (railComponents.Count == 0) return true;
-
-                // レール系ブロックは列車位置が保持するノードを壊せない
-                // Rail blocks cannot remove nodes currently held by train positions.
-                for (var i = 0; i < railComponents.Count; i++)
-                {
-                    if (!CanManualRemoveRailComponent(railComponents[i])) return false;
-                }
-
-                return true;
+                // 拒否した対象と理由を記録する
+                // Record the refused target and reason
+                Debug.Log($"[RemoveBlock] removal denied: {reason} position={data.Pos.Vector3Int}");
+                return RemoveBlockResponseMessagePack.CreateFailure(reason);
             }
 
-            bool CanManualRemoveRailComponent(RailComponent railComponent)
-            {
-                // 橋脚削除はFront/Back両ノードの削除と同義として扱う
-                // Removing a pier is equivalent to removing both front and back nodes.
-                if (!_railPositionManager.CanRemoveNode(railComponent.FrontNode)) return false;
-                if (!_railPositionManager.CanRemoveNode(railComponent.BackNode)) return false;
-
-                return true;
-            }
-            
             bool TryInsertRefundItems(out List<IItemStack> items)
             {
                 var playerMainInventory = _playerInventoryDataStore.GetInventoryData(requesterPlayerId).MainOpenableInventory;
@@ -126,6 +115,7 @@ namespace Server.Protocol.PacketResponse
                     result.AddRange(refundInfo.GetRefundItems());
                 }
                 
+                result.AddRange(railRefundItems);
                 return result;
             }
             
@@ -185,6 +175,7 @@ namespace Server.Protocol.PacketResponse
             None,
             NodeInUseByTrain,
             Unknown,
+            InventoryFull,
         }
     }
 }

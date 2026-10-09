@@ -22,7 +22,7 @@ namespace Game.SaveLoad.Json.WorldVersions
     {
         // セーブ形式の現在版。マイグレーション連鎖の終点であり、形式を変えるPRがここを上げる
         // The current save format version; the migration chain's destination, raised by any PR that changes the format
-        public const int CurrentVersion = 3;
+        public const int CurrentVersion = 4;
 
         [JsonProperty("worldVersion")] public int WorldVersion = CurrentVersion;
         

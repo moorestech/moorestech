@@ -47,7 +47,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             // Resolve both endpoints' max length and share the server-side judgement using the held rail item
             // ノード同士の接続はブロックを設置しないため橋脚コストも予約も無い
             // Connecting two nodes places no block, so there is neither a pier cost nor a reservation
-            var length = BezierUtility.GetBezierCurveLength(fromNode, toNode, 64);
+            // 長さはサーバーの課金と同じ式で出す（描画用の強度付き曲線長とは別）
+            // Length uses the server's billing formula (not the strength-scaled render length)
+            var length = RailConnectionEditProtocol.GetRailLength(fromNode, toNode);
             var fromMax = ResolveMaxConnectableRailLength(from, blockGameObjectDataStore);
             var toMax = ResolveMaxConnectableRailLength(to, blockGameObjectDataStore);
             var pierPlacement = EvaluateWithPierReservation(length, fromMax, toMax, playerInventory, connectToolGuid, Array.Empty<ConstructionRequiredItemElement>(), 0);
@@ -90,9 +92,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             // Build render control points
             BezierUtility.BuildRenderControlPoints(startPosition, endPosition, startDirection, endDirection, out var p0, out var p1, out var p2, out var p3);
 
-            // 始点側ブロックの上限と配置予定ブロックの上限で所持中レールアイテムを使ったサーバーと同じ判定を共有する
-            // Share server-side judgement using source block limit, placing block limit, and the held rail item
-            var length = BezierUtility.GetBezierCurveLength(p0, p1, p2, p3, 64);
+            // 始点側ブロックの上限と配置予定ブロックの上限で所持中レールアイテムを使ったサーバーと同じ判定を共有する。長さもサーバーの課金と同じ式で出す
+            // Share server-side judgement using source block limit, placing block limit, and the held rail item; the length uses the server's billing formula too
+            var length = RailConnectionEditProtocol.GetRailLength(startPosition, startDirection, endPosition, endDirection);
             var fromMax = ResolveMaxConnectableRailLength(from, blockGameObjectDataStore);
             var pierPlacement = EvaluateWithPierReservation(length, fromMax, placingBlockMaxConnectableRailLength, playerInventory, connectToolGuid, pierRequiredItems, pierRequiredCostSets);
 

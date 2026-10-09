@@ -53,8 +53,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Construction
 
             // 設置で減るのは設置者の財布だけで、通知も設置者へ1通だけ届く
             // Only the payer's wallet moves, and the single notification goes to the payer alone
-            Assert.AreEqual(2, lookup.GetRemainingCount(payerPlayerId, belt));
-            Assert.AreEqual(0, lookup.GetRemainingCount(removerPlayerId, belt));
+            Assert.AreEqual(2, lookup.GetReader(payerPlayerId).GetRemainingCount(belt));
+            Assert.AreEqual(0, lookup.GetReader(removerPlayerId).GetRemainingCount(belt));
             Assert.AreEqual(new[] { 2 }, TakeRemainingCounts(payerSink));
             Assert.IsEmpty(TakeRemainingCounts(removerSink));
 
@@ -62,8 +62,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Construction
 
             // 撤去+1でNに達し設置者の財布が凝縮、撤去者の財布は動かない
             // The return reaches one set's worth and condenses the payer's wallet; the remover's wallet never moves
-            Assert.AreEqual(0, lookup.GetRemainingCount(payerPlayerId, belt));
-            Assert.AreEqual(0, lookup.GetRemainingCount(removerPlayerId, belt));
+            Assert.AreEqual(0, lookup.GetReader(payerPlayerId).GetRemainingCount(belt));
+            Assert.AreEqual(0, lookup.GetReader(removerPlayerId).GetRemainingCount(belt));
             Assert.AreEqual(new[] { 0 }, TakeRemainingCounts(payerSink));
             Assert.IsEmpty(TakeRemainingCounts(removerSink));
 
@@ -90,14 +90,14 @@ namespace Tests.CombinedTest.Server.PacketTest.Construction
             var (loadedPacket, loadedServiceProvider) = CreateServer();
             (loadedServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(saveJson);
             var loadedLookup = loadedServiceProvider.GetService<IRemainingPlacementCountLookup>();
-            Assert.AreEqual(2, loadedLookup.GetRemainingCount(payerPlayerId, belt));
+            Assert.AreEqual(2, loadedLookup.GetReader(payerPlayerId).GetRemainingCount(belt));
 
             Remove(loadedPacket, removerPlayerId);
 
             // 課金元の記録がロードされているので、別プレイヤーの撤去でも設置者の財布が凝縮する
             // The payer record survives the load, so a stranger's removal still condenses the placer's wallet
-            Assert.AreEqual(0, loadedLookup.GetRemainingCount(payerPlayerId, belt));
-            Assert.AreEqual(0, loadedLookup.GetRemainingCount(removerPlayerId, belt));
+            Assert.AreEqual(0, loadedLookup.GetReader(payerPlayerId).GetRemainingCount(belt));
+            Assert.AreEqual(0, loadedLookup.GetReader(removerPlayerId).GetRemainingCount(belt));
             Assert.AreEqual(1, GetItemCount(GetPlayerInventory(loadedServiceProvider, removerPlayerId), Material1Guid));
         }
 
@@ -113,7 +113,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Construction
                     BlockId = blockId,
                 },
             };
-            var payload = MessagePackSerializer.Serialize(new PlaceBlockProtocol.SendPlaceBlockProtocolMessagePack(placeInfos));
+            var payload = MessagePackSerializer.Serialize(new PlaceBlockProtocol.SendPlaceBlockProtocolMessagePack(placeInfos, BlockPlacementWiring.AutoConnect));
             packet.GetPacketResponse(payload, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(playerId));
         }
 

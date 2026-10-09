@@ -1,6 +1,6 @@
 # review モード — spec/plan完成時の予測レビュー
 
-moores-grill-with-docs（spec）/ writing-plans（plan）の完了後・ユーザーレビュー依頼の**前**に必ず実施する。
+moores-grill-with-docs（spec）/ moores-writing-plans（plan）の完了後・ユーザーレビュー依頼の**前**に必ず実施する。
 
 **フック関所**: 両スキルのfrontmatter hooksが `scripts/sim-gate.sh` を配線しており、spec/planを書いた
 セッションは `../moorestech_logs/harness/user-simulator/improve/misses.md` への採点追記（＝手順5）が行われるまでターン終了がブロックされる。

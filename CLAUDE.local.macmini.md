@@ -35,7 +35,7 @@ moores-wt status [--json]
 - PlayModeの内蔵サーバーはポート0（OS自動採番）で起動しBoundPortへ接続するため、複数worktreeのPlayMode同時実行はポート衝突しない（ServerConnectionInitializer参照）。ローカルプレイは接続試行なしで必ず内蔵サーバーを起動し、スタンドアロンサーバーが11564に居ても誤接続しない（外部接続はConnectServerメニューの明示指定のみ）。
 - .cs変更のコンパイル必須ゲートを満たすには、worktree側で自分用のEditorをuloopで立ち上げる必要がある。Mac miniのメモリ上、同時Editor数は2〜3本を目安に抑える（目安であって機械的な拒否はしない）。
 - Editorのカウントは`-batchMode`付きの子プロセス（AssetImportWorker等）を除外する。
-- 常設スロットは`~/hermes-agent/data/worktrees/moorestech/pr-apply`と`pr-apply-2`の2つだけ（pr-adjudicated-applyのスロットプール。固有ポート8707/8708・Library配備済み）。pr-independent-reviewはPRごとに使い捨てworktreeを作り、共用スロットは使わない。
+- 常設スロットは`~/hermes-agent/data/worktrees/moorestech/pr-apply`と`pr-apply-2`の2つだけ（pr-adjudicated-applyのスロットプール。Library配備済み。新設時の4点セットは下記索引）。pr-independent-reviewはPRごとに使い捨てworktreeを作り、共用スロットは使わない。
 
 ## メインワークツリーでのブランチ操作はhookで物理拒否
 
@@ -46,6 +46,12 @@ moores-wt status [--json]
 - 通す: linked worktree内の同操作、`git -C <worktree>` 経由、`status`/`log`/`fetch`/`branch --list|-d`/`checkout -- <path>`/`worktree add`、moorestech以外のrepo
 - 上書き: `MOORES_MAIN_WT_OK=1` をコマンドに前置（低リスク作業で本当にメイン上で実行する場合のみ）
 - 理由: cmuxは全セッションをメインワークツリーのcwdで起こすため、`moores-wt new` を踏まないセッションはそのままメインで作業してしまう
+
+## 詰まったら読む（Mac mini固有。詳細は `docs/development/macmini/`）
+
+- Editorがログを残さず消えた（dev-server-reaper・所有receiptの手動登録）、uloop CLIの配置、Editorの前面/非前面とCPU絞り、TestResults.xmlのマシン共通パス、Steam版起動中のCEF初期化失敗、新規worktreeのSafe Mode → `docs/development/macmini/unity-editor.md`
+- moores-wtの癖（非ログインシェルでの失敗・`--from`の既定・既存ローカルブランチ流用・`rm`後の残骸）、checkoutの書き込み対策、新規worktreeの録画前提、pr-applyスロット新設の4点セット、無人実装の`/goal`と`独立レビュー待ち`ラベルの基準 → `docs/development/macmini/worktree-and-automation.md`
+- 環境に依存しない一般則は AGENTS.md「詰まったら読む」から辿る
 
 # その他
 

@@ -1,3 +1,4 @@
+using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Cysharp.Threading.Tasks;
@@ -50,7 +51,7 @@ namespace Client.Tests.BuildUndo
         // Fake record used only to verify push/pop ordering
         private class FakeOperationRecord : IBuildOperationRecord
         {
-            public UniTask UndoAsync(BlockGameObjectDataStore blockGameObjectDataStore)
+            public UniTask UndoAsync(IBlockOccupancyQuery occupancy)
             {
                 return UniTask.CompletedTask;
             }

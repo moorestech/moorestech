@@ -1,5 +1,7 @@
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Copy;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect;

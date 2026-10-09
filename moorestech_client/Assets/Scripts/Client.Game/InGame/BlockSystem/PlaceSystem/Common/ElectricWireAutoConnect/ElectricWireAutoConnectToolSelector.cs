@@ -23,7 +23,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
         /// selectedMaterialsは選ばれたツールの素材で成功時のみ有効。shortagesは失敗時のみ非空で、表示専用の不足素材を運ぶ
         /// selectedMaterials holds the picked tool's materials and is valid on success only; shortages is non-empty on failure only and carries the display-side shortage
         /// </summary>
-        public static bool TrySelect(List<(Vector3Int TargetPos, float Distance)> targets, ElectricWireAutoConnectVirtualInventory virtualInventory, IGameUnlockStateData gameUnlockStateData, out IReadOnlyList<ConnectToolMaterialCost> selectedMaterials, out int selectedCost, out IReadOnlyList<ConstructionMaterialShortage> shortages)
+        public static bool TrySelect(List<(Vector3Int TargetPos, float Distance)> targets, ElectricWireAutoConnectVirtualInventory virtualInventory, IGameUnlockStateData gameUnlockStateData, bool isFreePlacement, out IReadOnlyList<ConnectToolMaterialCost> selectedMaterials, out int selectedCost, out IReadOnlyList<ConstructionMaterialShortage> shortages)
         {
             selectedMaterials = null;
             selectedCost = 0;
@@ -36,7 +36,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
             // 解放済みフィルタと並び順はサーバーと同一実装を呼んで共有する（手写しすると規則がずれてプレビューと実接続が食い違う）
             // Share the server's own implementation for the unlocked filter and ordering (a hand-copy drifts and desyncs preview from reality)
             var electricWireTools = ConnectToolSelector
-                .UnlockedByToolType(ConnectToolMasterElement.ToolTypeConst.electricWire, gameUnlockStateData)
+                .AutoConnectCandidatesByToolType(ConnectToolMasterElement.ToolTypeConst.electricWire, gameUnlockStateData, isFreePlacement)
                 .ToList();
 
             // 解放済みが0件なら自動接続なしで設置可（サーバーのunlockedTools.Count == 0分岐と一致）
@@ -51,6 +51,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
             foreach (var element in electricWireTools)
             {
                 if (!TrySumCost(element.ConnectToolGuid, out var materials, out var cost)) continue;
+
+                // 無料設置は所持を問わずコスト0で張る（サーバーの無料設置と同じ規則）
+                // Free placement wires at zero cost regardless of holdings (same rule as the server's free placement)
+                if (isFreePlacement)
+                {
+                    selectedMaterials = Array.Empty<ConnectToolMaterialCost>();
+                    return true;
+                }
+
                 if (!virtualInventory.CanAfford(materials))
                 {
                     firstUnaffordableMaterials ??= materials;
@@ -77,7 +86,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
                 var accumulator = new Dictionary<ItemId, int>();
                 foreach (var target in targets)
                 {
-                    if (!ElectricWirePlacementEvaluator.TryCalculateWireCost(connectToolGuid, target.Distance, out var targetCost))
+                    if (!ElectricWirePlacementEvaluator.TryCreateWireRecord(connectToolGuid, target.Distance, out var targetCost))
                     {
                         materials = null;
                         return false;

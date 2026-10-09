@@ -67,6 +67,14 @@ namespace Game.Train.RailGraph
             return NodeRole != other.NodeRole;
         }
 
+        // 両方が同じ駅に属するなら true（駅内部の区間判定の正本）
+        // True when both belong to the same station (the canonical station-internal edge check)
+        public bool IsSameStation(StationReference other)
+        {
+            if (!HasStation || !other.HasStation) return false;
+            return StationBlockInstanceId.Equals(other.StationBlockInstanceId);
+        }
+
         // 駅座標を取得する
         // Returns the station world position.
         public Vector3Int GetStationPosition() => StationPosition;

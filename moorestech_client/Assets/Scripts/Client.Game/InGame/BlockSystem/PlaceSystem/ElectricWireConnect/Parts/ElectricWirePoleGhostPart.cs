@@ -1,8 +1,10 @@
+using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.UI.Inventory.Main;
+using Common.Debug;
 using Game.Construction;
 using UnityEngine;
 
@@ -42,7 +44,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
             // 電柱1本分の不足素材。財布の残りで賄えるなら必要セット数0となり不足は出ない
             // One pole's material shortage; a wallet-covered pole needs zero cost sets and shows no shortage
             var requiredCostSets = _walletQuery.GetRequiredCostSets(poleBlockId, 1);
-            var materialShortages = ConstructionCostShortageCalculator.Calculate(poleMaster.RequiredItems, requiredCostSets, _inventory);
+            // 無料設置は建設コストを払わないので不足も出さない（通常設置のConstructionCostPreviewMarkerと同じ扱い）
+            // Free placement pays no construction cost, so no shortage either (same as ConstructionCostPreviewMarker for normal placement)
+            var isFreePlacement = DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement);
+            var materialShortages = isFreePlacement ? new List<ConstructionMaterialShortage>() : ConstructionCostShortageCalculator.Calculate(poleMaster.RequiredItems, requiredCostSets, _inventory);
 
             // 地面レイキャストで座標算出。距離超過は理由のみ出す
             // Computes the position via ground raycast; beyond range shows only the reason

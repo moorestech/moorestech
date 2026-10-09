@@ -12,6 +12,7 @@ import { L } from "@/shared/i18n";
 import { resolveNotificationKey } from "./notificationMessages";
 
 const serverScriptsDir = fileURLToPath(new URL("../../../../../moorestech_server/Assets/Scripts/", import.meta.url));
+const clientScriptsDir = fileURLToPath(new URL("../../../../../moorestech_client/Assets/Scripts/", import.meta.url));
 const factoryCallFirstArgument = /NotificationMessagePack\.Create(?:Achievement|AchievementWithItem|OperationDenied)\(\s*(\$?"[^"]*")/g;
 const factoryInternalLiteral = /"((?:achievement|denied|saveMigration)\.[^"]+)"/g;
 const plainLiteral = /^"([^"{}]+)"$/;
@@ -21,6 +22,7 @@ const reasonInterpolation = /^\$"([^"{}]+)\{[^"{}]+\}"$/;
 // 補間idの接頭辞→展開するenumと、その経路では送られない値
 // Interpolated id prefix -> the enum to expand and the values that path never sends
 const interpolatedIdEnums = new Map<string, { enumName: string; notSentMembers: string[] }>([
+  ["denied.blueprintCreate.", { enumName: "BlueprintCreateFailure", notSentMembers: ["None", "NotUnlocked"] }],
   ["denied.railEdit.", { enumName: "RailConnectionEditFailureReason", notSentMembers: ["None"] }],
   ["denied.electricWireExtend.", { enumName: "ElectricWirePlacementFailureReason", notSentMembers: ["InventoryFull", "NotConnected"] }],
   [
@@ -30,6 +32,8 @@ const interpolatedIdEnums = new Map<string, { enumName: string; notSentMembers: 
       notSentMembers: ["None", "OutOfRange", "AlreadyConnected", "ConnectionLimit", "NoWireItem", "NoPoleItem", "PositionOccupied", "InvalidMode", "NotUnlocked", "InsufficientItems"],
     },
   ],
+  ["denied.gearChainDisconnect.", { enumName: "GearChainDisconnectFailureReason", notSentMembers: ["None"] }],
+  ["denied.gearChainConnect.", { enumName: "GearChainPlacementFailureReason", notSentMembers: ["None", "NoPoleItem", "PositionOccupied", "InsufficientItems"] }],
 ]);
 
 function readServerSources(): Map<string, string> {
@@ -37,6 +41,14 @@ function readServerSources(): Map<string, string> {
   const files = readdirSync(serverScriptsDir, { recursive: true, encoding: "utf8" })
     .filter((path) => path.endsWith(".cs") && !path.split(/[\\/]/).some((segment) => segment.startsWith("Tests")));
   for (const file of files) sources.set(file, readFileSync(join(serverScriptsDir, file), "utf8"));
+  // クライアント発の通知id（Undo取りこぼし等）も送信元に含める。生成API呼び出しを持つファイルだけを読む
+  // Client-originated ids (e.g. undo restore skips) are senders too; read only files that call the factories
+  const clientFiles = readdirSync(clientScriptsDir, { recursive: true, encoding: "utf8" })
+    .filter((path) => path.endsWith(".cs") && !path.split(/[\\/]/).some((segment) => segment === "Client.Tests"));
+  for (const file of clientFiles) {
+    const source = readFileSync(join(clientScriptsDir, file), "utf8");
+    if (source.includes("NotificationMessagePack.Create") || [...interpolatedIdEnums.values()].some(({ enumName }) => source.includes(`enum ${enumName}`))) sources.set(`client:${file}`, source);
+  }
   return sources;
 }
 
@@ -96,6 +108,9 @@ describe("サーバー通知idの表網羅", () => {
     expect(ids).toContain("denied.blueprint.NotUnlocked");
     expect(ids).toContain("denied.railEdit.InvalidNode");
     expect(ids).toContain("denied.electricWireDisconnect.InventoryFull");
+    expect(ids).toContain("denied.gearChainDisconnect.InventoryFull");
+    expect(ids).toContain("denied.gearChainConnect.NoItem");
+    expect(ids).toContain("denied.undoRestoreSkipped");
   });
 
   it("通知生成APIの引数は全て分類できる形である", () => {
