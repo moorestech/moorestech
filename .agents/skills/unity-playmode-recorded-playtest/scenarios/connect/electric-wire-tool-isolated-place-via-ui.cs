@@ -14,6 +14,7 @@ using Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState;
 using Client.Playtest;
+using Common.Debug;
 using Client.Playtest.Input;
 using Client.Playtest.WebUi;
 using Cysharp.Threading.Tasks;
@@ -28,6 +29,9 @@ using VContainer;
 var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("electric-wire-tool-isolated-place-via-ui", options, async p =>
 {
+    // 素材消費を検証するため、開発者設定に関わらず無料設置をOFFにする
+    // Turn free placement off regardless of developer settings, since this scenario asserts material consumption
+    DebugParameters.SaveBool(DebugParameterKeys.FreeBlockPlacement, false);
     await p.SetupFlatGround();
     p.WarpPlayer(new Vector3(8f, 34f, -6f));
     await p.WaitSeconds(0.5f);

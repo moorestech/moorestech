@@ -9,6 +9,7 @@ using Game.Block.Interface.Extension;
 using Game.Construction;
 using Game.Context;
 using Game.EnergySystem;
+using Game.UnlockState;
 using Core.Inventory;
 using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.BuildMenuModule;
@@ -26,7 +27,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
     /// </summary>
     public static class ElectricWireAutoConnectService
     {
-        public static ElectricWireAutoConnectPlan EvaluateAutoConnect(BlockId blockId, Vector3Int position, BlockDirection direction, IReadOnlyList<(ItemId itemId, int count)> reservedItems, IReadOnlyList<IItemStack> inventoryItems)
+        public static ElectricWireAutoConnectPlan EvaluateAutoConnect(BlockId blockId, Vector3Int position, BlockDirection direction, IReadOnlyList<(ItemId itemId, int count)> reservedItems, IReadOnlyList<IItemStack> inventoryItems, bool isFreePlacement)
         {
             var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
             var ownInfo = new BlockPositionInfo(position, direction, blockMaster.BlockSize);
@@ -38,9 +39,10 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
             if (candidates.Count == 0)
                 return ElectricWireAutoConnectPlan.Success(Array.Empty<(BlockInstanceId, ConnectionLineRecord)>(), Guid.Empty);
 
-            // 解放済みelectricWire connectToolをSortPriority昇順で取得する
-            // Fetch unlocked electricWire connectTools ascending by SortPriority
-            var unlockedTools = ConnectToolSelector.UnlockedByToolType(ConnectToolMasterElement.ToolTypeConst.electricWire).ToList();
+            // 解放済みelectricWire connectToolをSortPriority昇順で取得する（無料設置は未解放も候補）
+            // Fetch unlocked electricWire connectTools ascending by SortPriority (free placement also tries locked ones)
+            var unlockState = ServerContext.GetService<IGameUnlockStateDataController>();
+            var unlockedTools = ConnectToolSelector.AutoConnectCandidatesByToolType(ConnectToolMasterElement.ToolTypeConst.electricWire, unlockState, isFreePlacement).ToList();
 
             // 電線connectToolが未解放の世界では配線せず設置のみ許可する（設置自体はブロックしない）
             // With no unlocked wire connectTool, allow placement without wiring (do not block the placement itself)
@@ -63,9 +65,9 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
                 {
                     if (!TryBuildTargets(element.ConnectToolGuid, out var builtTargets, out var requiredMaterials)) continue;
 
-                    // 建設コスト等で予約済みの数量を上乗せして、所持判定の正本で判定する
-                    // Judge with the canonical affordability check, adding quantities reserved by construction costs
-                    if (!ConstructionMaterialAccounting.HasEnough(requiredMaterials, inventoryItems, ConnectToolMaterialConsumer.ToMaterials(reservedItems))) continue;
+                    // 建設コスト等で予約済みの数量を上乗せして、所持判定の正本で判定する。無料設置は所持を問わない
+                    // Judge with the canonical affordability check, adding quantities reserved by construction costs; free placement ignores holdings
+                    if (!isFreePlacement && !ConstructionMaterialAccounting.HasEnough(requiredMaterials, inventoryItems, ConnectToolMaterialConsumer.ToMaterials(reservedItems))) continue;
 
                     selectedTargets = builtTargets;
                     selectedConnectToolGuid = element.ConnectToolGuid;
@@ -90,7 +92,9 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
                         return false;
                     }
 
-                    builtTargets.Add((candidate.TargetId, record));
+                    // 無料設置は素材0で記録し、撤去時にも素材を返さない
+                    // Free placement records no materials so removal refunds nothing either
+                    builtTargets.Add((candidate.TargetId, isFreePlacement ? ElectricWirePlacementEvaluator.CreateFreeRecord(connectToolGuid) : record));
                     requiredMaterials.AddRange(record.Materials);
                 }
 

@@ -43,7 +43,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
         /// 既存ブロック同士の接続可否を評価する。範囲相互判定→評価器の順で判定する
         /// Evaluate connecting two existing blocks: mutual range check first, then the evaluator
         /// </summary>
-        public static ElectricWireExtendPreviewData Evaluate(BlockGameObject source, BlockGameObject target, int sourceMaxConnectionCount, int targetMaxConnectionCount, float distance, Guid connectToolGuid, IEnumerable<IItemStack> inventoryItems)
+        public static ElectricWireExtendPreviewData Evaluate(BlockGameObject source, BlockGameObject target, int sourceMaxConnectionCount, int targetMaxConnectionCount, float distance, Guid connectToolGuid, IEnumerable<IItemStack> inventoryItems, bool isFreePlacement)
         {
             // 既設ブロック同士の接続はブロックを設置しないため予約は無い
             // Connecting two existing blocks places no block, so there is nothing to reserve
@@ -55,7 +55,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
             var anyConnectionFull = IsConnectionFull(source, sourceMaxConnectionCount) || IsConnectionFull(target, targetMaxConnectionCount);
 
             var judgement = ElectricWirePlacementEvaluator.EvaluateWireConnection(
-                distance, alreadyConnected, anyConnectionFull, connectToolGuid, inventoryItems, null);
+                distance, alreadyConnected, anyConnectionFull, connectToolGuid, inventoryItems, null, isFreePlacement);
             return BuildPreview(judgement, connectToolGuid, distance, inventoryItems, null);
         }
 
@@ -65,7 +65,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
         /// 電柱の建設コストは同一フレームで先に押さえられるため、予約として電線判定と不足算出の双方へ載せる
         /// The new pole's construction cost is claimed first in the same frame, so it is reserved for both the wire judgement and the shortage calculation
         /// </summary>
-        public static ElectricWireExtendPreviewData EvaluateNewPole(BlockGameObject source, int sourceMaxConnectionCount, ElectricPoleBlockParam poleParam, BlockPositionInfo poleGhostInfo, float distance, Guid connectToolGuid, IEnumerable<IItemStack> inventoryItems, IReadOnlyList<(ItemId itemId, int count)> poleConstructionItemCounts)
+        public static ElectricWireExtendPreviewData EvaluateNewPole(BlockGameObject source, int sourceMaxConnectionCount, ElectricPoleBlockParam poleParam, BlockPositionInfo poleGhostInfo, float distance, Guid connectToolGuid, IEnumerable<IItemStack> inventoryItems, IReadOnlyList<(ItemId itemId, int count)> poleConstructionItemCounts, bool isFreePlacement)
         {
             var reservedMaterials = ConnectToolMaterialConsumer.ToMaterials(poleConstructionItemCounts);
 
@@ -76,7 +76,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
             if (!ElectricConnectionRangeService.IsMutuallyConnectable(source.BlockPosInfo, sourceProfile, sourceIsPole, poleGhostInfo, ConnectionRangeProfile.CreatePole(poleParam), true))
                 return BuildPreview(ElectricWirePlacementJudgement.Failure(ElectricWirePlacementFailureReason.OutOfRange), connectToolGuid, distance, inventoryItems, reservedMaterials);
 
-            return BuildNewPolePreview(distance, IsConnectionFull(source, sourceMaxConnectionCount), connectToolGuid, inventoryItems, poleConstructionItemCounts);
+            return BuildNewPolePreview(distance, IsConnectionFull(source, sourceMaxConnectionCount), connectToolGuid, inventoryItems, poleConstructionItemCounts, isFreePlacement);
         }
 
         /// <summary>
@@ -85,11 +85,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
         /// 幾何もワールド状態も見ない純関数のため、EditModeテストからそのまま呼べる
         /// A pure function reading neither geometry nor world state, so EditMode tests call it directly
         /// </summary>
-        public static ElectricWireExtendPreviewData BuildNewPolePreview(float distance, bool sourceFull, Guid connectToolGuid, IEnumerable<IItemStack> inventoryItems, IReadOnlyList<(ItemId itemId, int count)> poleConstructionItemCounts)
+        public static ElectricWireExtendPreviewData BuildNewPolePreview(float distance, bool sourceFull, Guid connectToolGuid, IEnumerable<IItemStack> inventoryItems, IReadOnlyList<(ItemId itemId, int count)> poleConstructionItemCounts, bool isFreePlacement)
         {
             var reservedMaterials = ConnectToolMaterialConsumer.ToMaterials(poleConstructionItemCounts);
             var judgement = ElectricWirePlacementEvaluator.EvaluateWireConnection(
-                distance, false, sourceFull, connectToolGuid, inventoryItems, reservedMaterials);
+                distance, false, sourceFull, connectToolGuid, inventoryItems, reservedMaterials, isFreePlacement);
             return BuildPreview(judgement, connectToolGuid, distance, inventoryItems, reservedMaterials);
         }
 

@@ -148,7 +148,7 @@ namespace Tests.CombinedTest.Game.SaveLoad
             var inventory = provider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).MainOpenableInventory;
             inventory.SetItem(0, ServerContext.ItemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(Guid.Parse("00000000-0000-0000-1234-000000000001")), 10));
             inventory.SetItem(1, ServerContext.ItemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(Guid.Parse("00000000-0000-0000-1234-000000000004")), 10));
-            Assert.IsTrue(ElectricWireSystemUtil.TryConnect(posPole, posGenerator, playerId, WireToolGuid, out var wireError), wireError.ToString());
+            Assert.IsTrue(ElectricWireSystemUtil.TryConnect(posPole, posGenerator, playerId, WireToolGuid, false, out var wireError), wireError.ToString());
             Assert.IsTrue(GearChainSystemUtil.TryConnect(posChainA, posChainB, playerId, ChainToolGuid, out var chainError), chainError.ToString());
 
             // 保存された4端点だけから種類を消す

@@ -84,27 +84,17 @@ namespace Server.Protocol.PacketResponse
                 var placeBlockId = placeInfo.BlockId;
                 var createParams = placeInfo.BlockCreateParams.Select(v => new BlockCreateParam(v.Key, v.Value)).ToArray();
 
-                // 無料設置デバッグ: 解放・コスト・電線を一切見ず強制設置して即return
-                // Free placement debug: force-place ignoring unlock/cost/wire entirely, then return
-                if (isFreePlacement)
-                {
-                    if (!ServerContext.WorldBlockDatastore.TryAddBlock(placeBlockId, placeInfo.Position, placeInfo.Direction, createParams, out _)) CountRestoreFailure(placeInfo, "TryAddBlock failed (free placement)");
-                    return;
-                }
-
                 var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(placeBlockId);
 
-                // 未解放セルはスキップ。坂ベルトの正規化を含む解放判定はカタログへ集約している
-                // Skip locked cells; the unlock rule, belt-slope normalization included, lives in the catalog
-                // 無料設置は上の早期returnで完結済みなので、ここへ到達する時点で無料設置ではない
-                // Free placement already returned above, so reaching here means placement is never free
-                if (!_placementTargetCatalog.IsBlockUnlocked(blockMaster.BlockGuid, _gameUnlockStateDataController, false)) { notUnlockedCount++; LogRestoreSkip(placeInfo, "not unlocked"); return; }
+                // 未解放セルはスキップ（無料設置は解放・コスト・電線素材の判定と支払いのみ免除し設置と配線は通常どおり）。解放判定はカタログへ集約
+                // Skip locked cells (free placement waives only unlock/cost/wire-material checks and payments; placing and wiring run as usual); the unlock rule lives in the catalog
+                if (!_placementTargetCatalog.IsBlockUnlocked(blockMaster.BlockGuid, _gameUnlockStateDataController, isFreePlacement)) { notUnlockedCount++; LogRestoreSkip(placeInfo, "not unlocked"); return; }
 
                 // 財布に問い合わせ、賄えないセルはスキップ
                 // Ask the wallet; skip cells it cannot cover
                 var inventory = inventoryData.MainOpenableInventory;
                 var placementPlan = _constructionWallet.PlanPlacement(placeBlockId, requesterPlayerId);
-                if (!ConstructionCostService.HasRequiredItems(placementPlan.ItemsToConsume, inventory.InventoryItems)) { costShortageCount++; LogRestoreSkip(placeInfo, "construction cost shortage"); return; }
+                if (!isFreePlacement && !ConstructionCostService.HasRequiredItems(placementPlan.ItemsToConsume, inventory.InventoryItems)) { costShortageCount++; LogRestoreSkip(placeInfo, "construction cost shortage"); return; }
 
                 // 自動接続の電気ブロックだけ事前検証
                 // Validate wiring only for auto-connect electric blocks
@@ -114,7 +104,7 @@ namespace Server.Protocol.PacketResponse
                 {
                     // 建設コストで消費予定の素材を予約として渡し、電線の所持数判定から除外する
                     // Pass construction-cost materials as reservations to exclude them from wire availability
-                    plan = ElectricWireAutoConnectService.EvaluateAutoConnect(placeBlockId, placeInfo.Position, placeInfo.Direction, placementPlan.ItemsToConsume, inventory.InventoryItems);
+                    plan = ElectricWireAutoConnectService.EvaluateAutoConnect(placeBlockId, placeInfo.Position, placeInfo.Direction, placementPlan.ItemsToConsume, inventory.InventoryItems, isFreePlacement);
                     if (!plan.IsPlaceable) { wireShortageCount++; LogRestoreSkip(placeInfo, "wire shortage"); return; }
                 }
 
@@ -122,7 +112,9 @@ namespace Server.Protocol.PacketResponse
                 // Do not consume the cost when placement fails
                 if (!ServerContext.WorldBlockDatastore.TryAddBlock(placeBlockId, placeInfo.Position, placeInfo.Direction, createParams, out var block)) { CountRestoreFailure(placeInfo, "TryAddBlock failed"); return; }
 
-                _constructionWallet.CommitPlacement(placementPlan, inventory, block.BlockInstanceId);
+                // 無料設置は支払わない。支払者記録も残らないため撤去時の返金は従来どおり
+                // Free placement pays nothing; no payer record is kept, so the removal refund behaves as before
+                if (!isFreePlacement) _constructionWallet.CommitPlacement(placementPlan, inventory, block.BlockInstanceId);
 
                 // 計画を実行しワイヤー消費
                 // Execute the validated plan: add wires and consume wire items
