@@ -59,7 +59,21 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
             Assert.IsEmpty(preview.MaterialShortages);
         }
 
-        private static List<IItemStack> BuildInventory(ItemId itemId, int count)
+        [Test]
+        // 無料設置は電線も電柱コストも払わないので、所持0でも設置可・消費数0になる
+        // Free placement pays for neither wire nor pole, so it is placeable with nothing held and costs zero
+        public void 無料設置なら所持0でも設置可で電線消費数は0になる()
+        {
+            var wireItemId = MasterHolder.ItemMaster.GetItemId(WireMaterialGuid);
+
+            var preview = ElectricWireExtendPreviewCalculator.BuildNewPolePreview(1f, false, WireConnectToolGuid, BuildInventory(wireItemId, 0), new[] { (itemId: wireItemId, count: 2) }, true);
+
+            Assert.IsTrue(preview.IsPlaceable);
+            Assert.AreEqual(0, preview.WireCostCount);
+            Assert.IsEmpty(preview.MaterialShortages);
+        }
+
+                private static List<IItemStack> BuildInventory(ItemId itemId, int count)
         {
             return new List<IItemStack> { ServerContext.ItemStackFactory.Create(itemId, count) };
         }

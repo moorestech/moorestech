@@ -7,6 +7,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.EnergySystem;
+using Game.UnlockState;
 using Core.Inventory;
 using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.BuildMenuModule;
@@ -36,9 +37,10 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
             if (candidates.Count == 0)
                 return ElectricWireAutoConnectPlan.Success(Array.Empty<(BlockInstanceId, ElectricWireConnectionCost)>(), Guid.Empty);
 
-            // 解放済みelectricWire connectToolをSortPriority昇順で取得する
-            // Fetch unlocked electricWire connectTools ascending by SortPriority
-            var unlockedTools = ConnectToolSelector.UnlockedByToolType(ConnectToolMasterElement.ToolTypeConst.electricWire).ToList();
+            // 解放済みelectricWire connectToolをSortPriority昇順で取得する（無料設置は未解放も候補）
+            // Fetch unlocked electricWire connectTools ascending by SortPriority (free placement also tries locked ones)
+            var unlockState = ServerContext.GetService<IGameUnlockStateDataController>();
+            var unlockedTools = ConnectToolSelector.AutoConnectCandidatesByToolType(ConnectToolMasterElement.ToolTypeConst.electricWire, unlockState, isFreePlacement).ToList();
 
             // 電線connectToolが未解放の世界では配線せず設置のみ許可する（設置自体はブロックしない）
             // With no unlocked wire connectTool, allow placement without wiring (do not block the placement itself)

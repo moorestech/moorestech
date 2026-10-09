@@ -44,5 +44,17 @@ namespace Server.Protocol.PacketResponse.Util.ConnectTool
                 .Where(element => infos.TryGetValue(element.ConnectToolGuid, out var info) && info.IsUnlocked)
                 .OrderBy(element => element.SortPriority);
         }
+
+        /// <summary>
+        /// 自動配線で試すconnectToolの候補。無料設置は解放ゲートも免除するため未解放のツールも含める（並び順は同じ）
+        /// connectTool candidates tried by auto-connect; free placement waives the unlock gate too, so locked tools are included (same ordering)
+        /// </summary>
+        public static IEnumerable<ConnectToolMasterElement> AutoConnectCandidatesByToolType(string toolType, IGameUnlockStateData unlockState, bool isFreePlacement)
+        {
+            if (!isFreePlacement) return UnlockedByToolType(toolType, unlockState);
+            return MasterHolder.ConnectToolMaster.All
+                .Where(element => element.ToolType == toolType)
+                .OrderBy(element => element.SortPriority);
+        }
     }
 }

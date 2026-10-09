@@ -97,6 +97,22 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
             Assert.Less(0, wireShortage.Required);
         }
 
+        [Test]
+        // 無料設置はサーバーと同じく解放・所持を問わずコスト0で配線する
+        // Free placement wires at zero cost regardless of unlock state or holdings, same as the server
+        public void 無料設置なら未解放かつ電線0個でもコスト0で選定される()
+        {
+            var wireItemId = MasterHolder.ItemMaster.GetItemId(WireItemGuid);
+            var emptyInventory = new ElectricWireAutoConnectVirtualInventory(new StubLocalPlayerInventory(ServerContext.ItemStackFactory.Create(wireItemId, 0)), Array.Empty<(ItemId itemId, int count)>());
+
+            var selected = ElectricWireAutoConnectToolSelector.TrySelect(CreateTargets(), emptyInventory, _unlockState, true, out var materials, out var cost, out var shortages);
+
+            Assert.IsTrue(selected);
+            Assert.AreEqual(0, cost);
+            Assert.IsEmpty(materials);
+            Assert.AreEqual(0, shortages.Count);
+        }
+
         #region TestUtil
 
         private static Guid FirstElectricWireToolGuid()

@@ -36,7 +36,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
             // 解放済みフィルタと並び順はサーバーと同一実装を呼んで共有する（手写しすると規則がずれてプレビューと実接続が食い違う）
             // Share the server's own implementation for the unlocked filter and ordering (a hand-copy drifts and desyncs preview from reality)
             var electricWireTools = ConnectToolSelector
-                .UnlockedByToolType(ConnectToolMasterElement.ToolTypeConst.electricWire, gameUnlockStateData)
+                .AutoConnectCandidatesByToolType(ConnectToolMasterElement.ToolTypeConst.electricWire, gameUnlockStateData, isFreePlacement)
                 .ToList();
 
             // 解放済みが0件なら自動接続なしで設置可（サーバーのunlockedTools.Count == 0分岐と一致）

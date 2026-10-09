@@ -58,6 +58,18 @@ namespace Tests.CombinedTest.Server.PacketTest
         }
 
         [Test]
+        public void 無料設置なら電線ツール未解放でも自動配線される()
+        {
+            // 電線connectToolを解放せずに電柱2本を置く
+            // Place two poles without unlocking the wire connectTool
+            var (packet, _) = CreateServer();
+            PlaceBlock(packet, ForUnitTestModBlockId.ElectricPoleId, new Vector3Int(0, 0, 0));
+            PlaceBlock(packet, ForUnitTestModBlockId.ElectricPoleId, new Vector3Int(3, 0, 0));
+
+            Assert.IsTrue(GetConnector(new Vector3Int(0, 0, 0)).ContainsWireConnection(GetConnector(new Vector3Int(3, 0, 0)).BlockInstanceId));
+        }
+
+        [Test]
         public void 無料設置では未解放ブロックも置ける()
         {
             // 解放もコストも用意せずに未解放の電柱を置く

@@ -84,10 +84,8 @@ namespace Server.Protocol.PacketResponse
 
                 var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(placeBlockId);
 
-                // 未解放セルはスキップ。坂ベルトの正規化を含む解放判定はカタログへ集約している
-                // Skip locked cells; the unlock rule, belt-slope normalization included, lives in the catalog
-                // 無料設置は解放・建設コスト・電線素材の判定と支払いだけを免除し、設置と自動配線は通常どおり行う
-                // Free placement waives only the unlock, construction-cost and wire-material checks and payments; placing and auto-wiring run as usual
+                // 未解放セルはスキップ（無料設置は解放・コスト・電線素材の判定と支払いのみ免除し設置と配線は通常どおり）。解放判定はカタログへ集約
+                // Skip locked cells (free placement waives only unlock/cost/wire-material checks and payments; placing and wiring run as usual); the unlock rule lives in the catalog
                 if (!_placementTargetCatalog.IsBlockUnlocked(blockMaster.BlockGuid, _gameUnlockStateDataController, isFreePlacement)) { notUnlockedCount++; return; }
 
                 // 財布に問い合わせ、賄えないセルはスキップ
