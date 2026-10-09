@@ -111,18 +111,18 @@ namespace Tests.CombinedTest.Core
         }
 
         [Test]
-        public void GearBeltConveyorAlwaysRequestsFullTorqueTest()
+        public void GearBeltConveyorRequestsNoTorqueTest()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            // 歯車ベルトは搬送状態を歯車側へ伝えない素のGearEnergyTransformerなので、空でも常にフル要求になる
-            // A gear belt is a plain GearEnergyTransformer that never reports transport state, so it requests full torque even when empty
+            // 歯車ベルトは載っているアイテムの数によらずトルクを消費しない。マスタの基準トルクが正でも要求は0
+            // A gear belt consumes no torque regardless of the items it carries; the request is zero even though the master base torque is positive
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGearBeltConveyor, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
             var param = (GearBeltConveyorBlockParam)block.BlockMasterElement.BlockParam;
             var gear = block.GetComponent<GearEnergyTransformer>();
             var baseRpm = new RPM((float)param.GearConsumption.BaseRpm);
-            var fullTorque = GearConsumptionCalculator.CalcRequiredTorque(param.GearConsumption, baseRpm).AsPrimitive();
-            Assert.AreEqual(fullTorque, gear.GetRequiredTorque(baseRpm, true).AsPrimitive(), 0.0001f);
+            Assert.Less(0f, GearConsumptionCalculator.CalcRequiredTorque(param.GearConsumption, baseRpm).AsPrimitive());
+            Assert.AreEqual(0f, gear.GetRequiredTorque(baseRpm, true).AsPrimitive(), 0.0001f);
         }
 
         [Test]
