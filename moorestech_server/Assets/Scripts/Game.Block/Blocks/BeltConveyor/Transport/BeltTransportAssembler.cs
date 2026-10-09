@@ -17,13 +17,13 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
             var segments = new BeltConveyorSegment[layoutArray.Length];
             for (var i = 0; i < layoutArray.Length; i++) segments[i] = Create(layoutArray[i]);
 
-            var supplyPorts = new List<BeltMachineSupplyPort>();
+            var supplyPortByFace = new Dictionary<BeltMachineSupplyKey, BeltMachineSupplyPort>();
             for (var i = 0; i < layoutArray.Length; i++)
             {
                 WireOutputs(layoutArray[i], segments[i]);
                 CollectSupplyPorts(layoutArray[i], segments[i]);
             }
-            return new BeltTransportAssembly(layoutArray, segments, supplyPorts);
+            return new BeltTransportAssembly(layoutArray, segments, supplyPortByFace);
 
             #region Internal
 
@@ -47,7 +47,8 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
                 foreach (var link in layout.Inputs)
                 {
                     if (!link.IsMachine) continue;
-                    supplyPorts.Add(new BeltMachineSupplyPort(SupplyBlockOf(layout), link.Connection, segment, link.Direction, link.EntryDirection));
+                    var key = new BeltMachineSupplyKey(SupplyBlockOf(layout), link.Connection.PartnerBlock.BlockInstanceId);
+                    supplyPortByFace.Add(key, new BeltMachineSupplyPort(segment, link.Direction, link.EntryDirection));
                 }
             }
 

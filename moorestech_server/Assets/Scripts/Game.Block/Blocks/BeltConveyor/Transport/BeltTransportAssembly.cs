@@ -5,7 +5,6 @@ using Core.Master;
 using Game.Block.Blocks.BeltConveyor.Topology.Layout;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
-using UnityEngine;
 
 namespace Game.Block.Blocks.BeltConveyor.Transport
 {
@@ -22,40 +21,27 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
         public readonly BeltSegmentLayout[] Layouts;
         public readonly BeltConveyorSegment[] Segments;
         public readonly BeltSimulation Simulation;
-        // 押し込まれるベルコンのblockごとに受け口をまとめ、機械の押し込みをそのblockの数件だけで照合する
-        // Supply ports grouped by the pushed belt block, so a machine push is matched against that block's few ports only
-        private readonly Dictionary<BlockInstanceId, List<BeltMachineSupplyPort>> _supplyPortsByBeltBlock = new();
+        // 面(押し込まれるベルコンのblock＋機械のblock)ごとに受け口を1つ持つ
+        // One supply port per face (the pushed belt block plus the machine block)
+        private readonly Dictionary<BeltMachineSupplyKey, BeltMachineSupplyPort> _supplyPortByFace;
 
-        public BeltTransportAssembly(BeltSegmentLayout[] layouts, BeltConveyorSegment[] segments, List<BeltMachineSupplyPort> supplyPorts)
+        public BeltTransportAssembly(BeltSegmentLayout[] layouts, BeltConveyorSegment[] segments, Dictionary<BeltMachineSupplyKey, BeltMachineSupplyPort> supplyPortByFace)
         {
             Layouts = layouts;
             Segments = segments;
             Simulation = new BeltSimulation(segments);
-            foreach (var port in supplyPorts)
-            {
-                if (!_supplyPortsByBeltBlock.TryGetValue(port.BeltBlockInstanceId, out var ports))
-                {
-                    ports = new List<BeltMachineSupplyPort>(1);
-                    _supplyPortsByBeltBlock.Add(port.BeltBlockInstanceId, ports);
-                }
-                ports.Add(port);
-            }
+            _supplyPortByFace = supplyPortByFace;
         }
 
-        // 機械の押し込みを、接続に対応する受け口へ進入距離1で入れる。受け口が無い押し込みは接続の食い違いなので拒否してログを出す
-        // Push from a machine into the port matching its connection at entry length 1; a push with no port is a connection mismatch, so reject it and log
+        // 機械の押し込みを、その面の受け口へ進入距離1で入れる
+        // Push from a machine into the port of its face at entry length 1
+        // 受け口が無い面は接続解決が接続を作らなかった面(縦置きのベルコン等)で、通常の配置では起きないので無音で拒否する
+        // A face without a port is one the connection resolver never connected (such as a vertically placed belt); it never occurs in normal placement, so reject silently
         public bool TrySupplyFromMachine(BlockInstanceId beltBlockInstanceId, in InsertItemContext context, ItemId itemId, ItemInstanceId itemInstanceId)
         {
-            if (_supplyPortsByBeltBlock.TryGetValue(beltBlockInstanceId, out var ports))
-                for (var i = 0; i < ports.Count; i++)
-                {
-                    var port = ports[i];
-                    if (!port.Matches(beltBlockInstanceId, context)) continue;
-                    var item = new BeltItem(itemId, itemInstanceId, port.EntryDirection);
-                    return port.Receiver.TryReceive(port.Direction, MachineEntryLength, item);
-                }
-            Debug.LogError($"[BeltTransport] No supply port for machine {context.SourceBlockInstanceId} pushing into belt {beltBlockInstanceId}; the push is rejected.");
-            return false;
+            if (!_supplyPortByFace.TryGetValue(new BeltMachineSupplyKey(beltBlockInstanceId, context.SourceBlockInstanceId), out var port)) return false;
+            var item = new BeltItem(itemId, itemInstanceId, port.EntryDirection);
+            return port.Receiver.TryReceive(port.Direction, MachineEntryLength, item);
         }
     }
 }
