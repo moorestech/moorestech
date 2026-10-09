@@ -30,74 +30,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         // Builds only the run skeleton; every block cause is None here and gets evaluated once Y is final
         public static PlacementRun CalculateRun(Vector3Int startPoint, Vector3Int endPoint, BlockDirection blockDirection, BlockMasterElement holdingBlockMasterElement)
         {
-            var blockSize = holdingBlockMasterElement.BlockSize;
-
-            List<Vector3Int> positions = CalcPositions(blockSize, out var runAxis);
-
-            List<PlaceInfo> cells = CalcPlaceCells(positions);
-
+            var runPositions = PlacementRunPositionCalculator.Calculate(startPoint, endPoint, holdingBlockMasterElement.BlockSize);
+            var cells = CalcPlaceCells(runPositions.Positions);
             var blockCauses = new List<PlacementBlockCause>(cells.Count);
             for (var i = 0; i < cells.Count; i++) blockCauses.Add(PlacementBlockCause.None);
 
-            return new PlacementRun(cells, blockCauses, runAxis, ResolveCursorIndex(positions));
+            return new PlacementRun(cells, blockCauses, runPositions.Axis, runPositions.CursorIndex);
 
             #region Internal
 
-            List<Vector3Int> CalcPositions(Vector3Int size, out PlacementRunAxis extendedAxis)
-            {
-                var pointList = new List<Vector3Int>();
-                var currentPoint = startPoint;
-                pointList.Add(currentPoint);
-                
-                // 最も距離が長い方向を判定
-                var deltaX = Mathf.Abs(endPoint.x - startPoint.x);
-                var deltaY = Mathf.Abs(endPoint.y - startPoint.y);
-                var deltaZ = Mathf.Abs(endPoint.z - startPoint.z);
-                
-                if (deltaX >= deltaY && deltaX >= deltaZ)
-                {
-                    // X方向に伸ばす
-                    extendedAxis = PlacementRunAxis.X;
-                    var stepX = size.x;
-                    var directionX = endPoint.x > startPoint.x ? 1 : -1;
-                    
-                    while (Mathf.Abs(currentPoint.x - endPoint.x) >= stepX)
-                    {
-                        currentPoint.x += stepX * directionX;
-                        pointList.Add(currentPoint);
-                    }
-                }
-                else if (deltaZ >= deltaX && deltaZ >= deltaY)
-                {
-                    // Z方向に伸ばす
-                    extendedAxis = PlacementRunAxis.Z;
-                    var stepZ = size.z;
-                    var directionZ = endPoint.z > startPoint.z ? 1 : -1;
-                    
-                    while (Mathf.Abs(currentPoint.z - endPoint.z) >= stepZ)
-                    {
-                        currentPoint.z += stepZ * directionZ;
-                        pointList.Add(currentPoint);
-                    }
-                }
-                else
-                {
-                    // Y方向に伸ばす
-                    extendedAxis = PlacementRunAxis.Y;
-                    var stepY = size.y;
-                    var directionY = endPoint.y > startPoint.y ? 1 : -1;
-                    
-                    while (Mathf.Abs(currentPoint.y - endPoint.y) >= stepY)
-                    {
-                        currentPoint.y += stepY * directionY;
-                        pointList.Add(currentPoint);
-                    }
-                }
-                
-                return pointList;
-            }
-            
-            List<PlaceInfo> CalcPlaceCells(List<Vector3Int> placePositions)
+            List<PlaceInfo> CalcPlaceCells(IReadOnlyList<Vector3Int> placePositions)
             {
                 var placeInfos = new List<PlaceInfo>(placePositions.Count);
 
@@ -122,18 +64,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 }
 
                 return placeInfos;
-            }
-
-            // 終点は刻み幅で割り切れないと列に載らないため、一致が無ければ末尾セルを充てる
-            // The end point is not on the run when the step does not divide it, so the last cell stands in
-            int ResolveCursorIndex(List<Vector3Int> placePositions)
-            {
-                for (var i = 0; i < placePositions.Count; i++)
-                {
-                    if (placePositions[i] == endPoint) return i;
-                }
-
-                return placePositions.Count - 1;
             }
 
             #endregion

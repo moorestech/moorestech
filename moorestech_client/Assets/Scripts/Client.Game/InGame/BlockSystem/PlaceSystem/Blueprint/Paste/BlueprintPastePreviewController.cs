@@ -4,7 +4,7 @@ using Game.Block.Interface;
 using Game.Blueprint;
 using UnityEngine;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
 {
     /// <summary>
     ///     BP貼り付けゴーストの一括表示・プール取得

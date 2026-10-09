@@ -30,17 +30,34 @@ namespace Tests.CombinedTest.Game
             var created = BlueprintCreateService.TryCreateFromArea("test", new Vector3Int(0, 0, 0), new Vector3Int(5, 2, 5), out var blueprint);
 
             Assert.IsTrue(created);
-            // Y上限2のためy=5は対象外
-            // The y=5 block is excluded because the box top is y=2
             Assert.AreEqual(2, blueprint.Blocks.Count);
 
-            // アンカー(2,0,2)、原点のオフセット(-2,0,-2)
-            // Anchor is box XZ center and bottom Y (2, 0, 2)
-            var chestBlock = blueprint.Blocks.First(b => b.Offset == new Vector3Int(-2, 0, -2));
+            // アンカーは占有外形で決まる
+            // Derive the anchor from the occupied extent of chest and machine
+            var machineInfo = ServerContext.WorldBlockDatastore.GetBlock(new Vector3Int(3, 0, 4)).BlockPositionInfo;
+            var expectedAnchor = new Vector3Int(Mathf.FloorToInt(machineInfo.MaxPos.x / 2f), 0, Mathf.FloorToInt(machineInfo.MaxPos.z / 2f));
+            var chestBlock = blueprint.Blocks.First(b => b.Direction == (int)BlockDirection.North);
+            Assert.AreEqual(-expectedAnchor, chestBlock.Offset);
             Assert.AreEqual((int)BlockDirection.North, chestBlock.Direction);
 
-            var machineBlock = blueprint.Blocks.First(b => b.Offset == new Vector3Int(1, 0, 2));
+            var machineBlock = blueprint.Blocks.First(b => b.Direction == (int)BlockDirection.East);
+            Assert.AreEqual(new Vector3Int(3, 0, 4) - expectedAnchor, machineBlock.Offset);
             Assert.AreEqual((int)BlockDirection.East, machineBlock.Direction);
+        }
+
+        [Test]
+        public void AnchorFollowsBlockExtentNotBoxTest()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            // 余白にアンカーが引かれない
+            // Place one block in a wide box and verify margins do not move the anchor
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            var created = BlueprintCreateService.TryCreateFromArea("extent", Vector3Int.zero, new Vector3Int(9, 2, 9), out var blueprint);
+
+            Assert.IsTrue(created);
+            Assert.AreEqual(Vector3Int.zero, blueprint.Blocks[0].Offset);
         }
 
         [Test]
@@ -58,8 +75,9 @@ namespace Tests.CombinedTest.Game
 
             Assert.IsTrue(created);
             Assert.AreEqual(2, blueprint.Blocks.Count);
-            var elevated = blueprint.Blocks.First(b => b.Offset == new Vector3Int(0, 5, 0));
+            var elevated = blueprint.Blocks.First(b => b.Offset == new Vector3Int(1, 5, 1));
             Assert.NotNull(elevated);
+            Assert.IsTrue(blueprint.Blocks.Any(b => b.Offset == new Vector3Int(-1, 0, -1)));
         }
 
         [Test]
@@ -68,14 +86,16 @@ namespace Tests.CombinedTest.Game
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            // 負座標ボックス(-4,0,-4)-(-1,2,-1)の中心はfloorで(-3,0,-3)になる（ゼロ方向丸めだと(-2,0,-2)）
-            // The center of the negative box floors to (-3,0,-3); truncation toward zero would give (-2,0,-2)
-            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, new Vector3Int(-3, 0, -3), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            // 負座標の中心も下へ丸める
+            // Floor the center of the (-4..-1) extent toward negative infinity
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, new Vector3Int(-4, 0, -4), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, new Vector3Int(-1, 0, -1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
 
             var created = BlueprintCreateService.TryCreateFromArea("negative", new Vector3Int(-4, 0, -4), new Vector3Int(-1, 2, -1), out var blueprint);
 
             Assert.IsTrue(created);
-            Assert.AreEqual(new Vector3Int(0, 0, 0), blueprint.Blocks[0].Offset);
+            Assert.IsTrue(blueprint.Blocks.Any(b => b.Offset == new Vector3Int(-1, 0, -1)));
+            Assert.IsTrue(blueprint.Blocks.Any(b => b.Offset == new Vector3Int(2, 0, 2)));
         }
 
         [Test]

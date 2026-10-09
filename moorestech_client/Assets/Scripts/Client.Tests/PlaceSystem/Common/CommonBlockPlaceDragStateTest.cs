@@ -1,6 +1,5 @@
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Run;
-using Core.Master;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -71,52 +70,13 @@ namespace Client.Tests.PlaceSystem.Common
         }
 
         [Test]
-        public void 別ブロックへ切替えると高さオフセットが0へ戻る()
-        {
-            var dragState = new CommonBlockPlaceDragState(new PlacementHeightOffset());
-            dragState.SyncSelectedBlock(new BlockId(1));
-            dragState.AdjustHeightOffset(5);
-
-            dragState.SyncSelectedBlock(new BlockId(2));
-
-            Assert.AreEqual(0, dragState.HeightOffset);
-        }
-
-        [Test]
-        public void 同じブロックの再選択では高さオフセットが保たれる()
-        {
-            var dragState = new CommonBlockPlaceDragState(new PlacementHeightOffset());
-            dragState.SyncSelectedBlock(new BlockId(1));
-            dragState.AdjustHeightOffset(5);
-
-            dragState.SyncSelectedBlock(new BlockId(1));
-
-            Assert.AreEqual(5, dragState.HeightOffset);
-        }
-
-        [Test]
-        public void ClearDragを挟んでも同一ブロックなら高さオフセットは保たれる()
-        {
-            var dragState = new CommonBlockPlaceDragState(new PlacementHeightOffset());
-            dragState.SyncSelectedBlock(new BlockId(1));
-            dragState.AdjustHeightOffset(5);
-
-            // 配置システムを跨いだDisable相当の解除。高さの基準はブロック切替だけが動かす
-            // Simulates the Disable-equivalent teardown across place systems; only a block switch moves the height baseline
-            dragState.ClearDrag();
-            dragState.SyncSelectedBlock(new BlockId(1));
-
-            Assert.AreEqual(5, dragState.HeightOffset);
-        }
-
-        [Test]
         public void ドラッグ中に上げた高さは解放で開始値へ戻る()
         {
-            var dragState = new CommonBlockPlaceDragState(new PlacementHeightOffset());
-            dragState.SyncSelectedBlock(new BlockId(1));
-            dragState.AdjustHeightOffset(2);
+            var heightOffset = new PlacementHeightOffset();
+            var dragState = new CommonBlockPlaceDragState(heightOffset);
+            heightOffset.Adjust(2);
             dragState.BeginDrag(new Vector3Int(0, 0, 0), PlacementHitSurfaceKind.Ground);
-            dragState.AdjustHeightOffset(3);
+            heightOffset.Adjust(3);
 
             Assert.IsTrue(dragState.EndDrag());
             Assert.AreEqual(2, dragState.HeightOffset);
@@ -125,10 +85,11 @@ namespace Client.Tests.PlaceSystem.Common
         [Test]
         public void 解放フレームはドラッグを畳み次の列は現在位置から始まる()
         {
-            var dragState = new CommonBlockPlaceDragState(new PlacementHeightOffset());
+            var heightOffset = new PlacementHeightOffset();
+            var dragState = new CommonBlockPlaceDragState(heightOffset);
             var cursorCell = new Vector3Int(8, 2, 3);
             dragState.BeginDrag(new Vector3Int(1, 2, 3), PlacementHitSurfaceKind.Ground);
-            dragState.AdjustHeightOffset(2);
+            heightOffset.Adjust(2);
 
             Assert.IsTrue(dragState.TryConsumeSendableRelease(true, true, false), "a sendable release with a registered press must allow the send");
 
@@ -153,10 +114,11 @@ namespace Client.Tests.PlaceSystem.Common
         [Test]
         public void 押している間は開始点と高さを保ち送信へ進まない()
         {
-            var dragState = new CommonBlockPlaceDragState(new PlacementHeightOffset());
+            var heightOffset = new PlacementHeightOffset();
+            var dragState = new CommonBlockPlaceDragState(heightOffset);
             var startCell = new Vector3Int(1, 2, 3);
             dragState.BeginDrag(startCell, PlacementHitSurfaceKind.Ground);
-            dragState.AdjustHeightOffset(2);
+            heightOffset.Adjust(2);
 
             Assert.IsFalse(dragState.TryConsumeSendableRelease(false, true, false));
 

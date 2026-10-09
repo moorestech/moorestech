@@ -3,6 +3,7 @@ using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.Submit;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Thumbnail;
 using Game.PlacementTarget;
 using Client.Game.InGame.UI.Blueprint;
 using Client.Game.InGame.UI.BuildMenu;
@@ -150,14 +151,15 @@ namespace Client.WebUiHost.Game
             var buildMenuSelection = resolver.Resolve<BuildMenuSelection>();
             var blueprintNameInputState = resolver.Resolve<BlueprintNameInputState>();
             var constructionWalletQuery = resolver.Resolve<ConstructionWalletQuery>();
-            var buildMenuTopic = new BuildMenuTopic(hub, uiStateControl, blueprintLibrary, placementTargetResolver, constructionWalletQuery, controller);
+            var thumbnails = resolver.Resolve<IBlueprintThumbnailLookup>();
+            var buildMenuTopic = new BuildMenuTopic(hub, uiStateControl, blueprintLibrary, placementTargetResolver, constructionWalletQuery, controller, thumbnails);
             hub.RegisterTopic(BuildMenuTopic.TopicName, buildMenuTopic);
             new BlueprintNameInputWebBridge(blueprintNameInputState, modalService);
 
             // ホットバーのtopic/actionをまとめて登録（前例 C4WebUiRegistration）
             // Register the hotbar topic/actions together (precedent: C4WebUiRegistration)
             var clientHotbarDatastore = resolver.Resolve<ClientHotbarDatastore>();
-            HotbarWebUiRegistration.Register(hub, clientHotbarDatastore, placementTargetResolver, blueprintLibrary, resolver.Resolve<PlaceSystemStateController>(), uiStateControl);
+            HotbarWebUiRegistration.Register(hub, clientHotbarDatastore, placementTargetResolver, blueprintLibrary, resolver.Resolve<PlaceSystemStateController>(), uiStateControl, thumbnails);
 
             // action ハンドラ登録
             // Register action handlers

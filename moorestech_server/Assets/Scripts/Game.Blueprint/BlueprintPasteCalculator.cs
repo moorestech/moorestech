@@ -12,8 +12,8 @@ namespace Game.Blueprint
             var result = new List<BlueprintPlacementElement>();
             foreach (var block in blueprint.Blocks)
             {
-                // マスタに無いGuid（mod構成変更）はスキップして継続する
-                // Skip blocks whose GUID no longer exists in the master data
+                // マスタ欠損の警告は呼び出し側のBP解決時に一度出す。プレビュー毎フレームの計算では繰り返さない
+                // The caller logs missing master entries once when resolving a blueprint, avoiding per-frame preview spam
                 var blockId = MasterHolder.BlockMaster.GetBlockIdOrNull(block.BlockGuid);
                 if (blockId == null) continue;
 

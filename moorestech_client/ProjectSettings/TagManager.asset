@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Block
   - CinemachineTarget
+  - Earth Clouds
   layers:
   - Default
   - TransparentFX
@@ -19,7 +20,7 @@ TagManager:
   - Ground
   - Outline
   - ConnectionLine
-  - 
+  - IconCapture
   - 
   - 
   - 
