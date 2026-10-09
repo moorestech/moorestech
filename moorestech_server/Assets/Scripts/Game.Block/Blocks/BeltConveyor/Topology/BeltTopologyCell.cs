@@ -1,6 +1,5 @@
 using Core.BeltTransport;
 using Game.Block.Interface;
-using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 
 namespace Game.Block.Blocks.BeltConveyor.Topology
@@ -19,8 +18,8 @@ namespace Game.Block.Blocks.BeltConveyor.Topology
         // マスタの出力コネクターが複数ある分配器か（接続数とは無関係）
         // Splitter-type belt with several master output connectors, regardless of how many are connected
         public readonly bool IsSplitter;
-        // 方向値→相手マス座標の順に並んだ、件数ぴったりの配列。入力は機械入力の規則で絞り済み
-        // Exactly sized arrays ordered by direction value, then partner cell position; inputs are already narrowed by the machine input rule
+        // 方向値→相手マス座標の順に並んだ、件数ぴったりの配列
+        // Exactly sized arrays ordered by direction value, then partner cell position
         public readonly BeltTopologyConnection[] Inputs;
         public readonly BeltTopologyConnection[] Outputs;
 
@@ -35,19 +34,6 @@ namespace Game.Block.Blocks.BeltConveyor.Topology
             IsSplitter = isSplitter;
             Inputs = inputs;
             Outputs = outputs;
-        }
-
-        // 送り側ブロックとコネクター対が、規則で残った入力のどれかに一致するか
-        // Whether the sender block and connector pair matches one of the inputs kept by the machine input rule
-        public bool AcceptsInput(BlockInstanceId sourceBlockInstanceId, IBlockConnector sourceConnector, IBlockConnector targetConnector)
-        {
-            for (var i = 0; i < Inputs.Length; i++)
-            {
-                ref readonly var input = ref Inputs[i];
-                if (input.PartnerBlock.BlockInstanceId == sourceBlockInstanceId && ReferenceEquals(input.SourceConnector, sourceConnector) &&
-                    ReferenceEquals(input.TargetConnector, targetConnector)) return true;
-            }
-            return false;
         }
     }
 }
