@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Game.Block.Blocks.BeltConveyor.Transport;
 using Game.Block.Blocks.Fluid;
 using Game.EnergySystem;
 using Game.Gear.Common;
@@ -7,8 +8,8 @@ using Game.World.Interface.DataStore;
 
 namespace Server.Boot
 {
-    // tick順序を1箇所で明示する（仕様2.1①〜④＋拡張。電力網→歯車網→流体網再構築→電力→歯車→流体→鉄道tick→ブロック更新。丸数字の⑤以降は仕様側でブロック更新・セーブを指すためここでは使わない）
-    // Declares the tick order in one place: spec 2.1 ①-④ plus extensions — rebuild electric, gear and fluid topologies, then settle electric, gear, fluid, train, then update blocks. Circled numbers ⑤+ are reserved by the spec for block updates and save
+    // tick順序を1箇所で明示する（仕様2.1①〜④＋拡張。電力網→歯車網→流体網再構築→電力→歯車→流体→鉄道tick→ブロック更新→ベルト搬送。丸数字の⑤以降は仕様側でブロック更新・セーブを指すためここでは使わない）
+    // Declares the tick order in one place: spec 2.1 ①-④ plus extensions — rebuild electric, gear and fluid topologies, then settle electric, gear, fluid, train, update blocks, then belt transport. Circled numbers ⑤+ are reserved by the spec for block updates and save
     public class MasterTickUpdater
     {
         private readonly ElectricWireNetworkDatastore _electricWireNetworkDatastore;
@@ -19,6 +20,7 @@ namespace Server.Boot
         private readonly FluidTickUpdater _fluidTickUpdater;
         private readonly TrainUpdateService _trainUpdateService;
         private readonly IWorldBlockDatastore _worldBlockDatastore;
+        private readonly BeltTransportTickUpdater _beltTransportTickUpdater;
 
         // 正準順の反復に使う再利用バッファ。毎tickの確保を避ける
         // Reusable buffer for the canonical-order iteration, avoiding a per-tick allocation
@@ -32,7 +34,8 @@ namespace Server.Boot
             GearTickUpdater gearTickUpdater,
             FluidTickUpdater fluidTickUpdater,
             TrainUpdateService trainUpdateService,
-            IWorldBlockDatastore worldBlockDatastore)
+            IWorldBlockDatastore worldBlockDatastore,
+            BeltTransportTickUpdater beltTransportTickUpdater)
         {
             _electricWireNetworkDatastore = electricWireNetworkDatastore;
             _gearNetworkDatastore = gearNetworkDatastore;
@@ -42,6 +45,7 @@ namespace Server.Boot
             _fluidTickUpdater = fluidTickUpdater;
             _trainUpdateService = trainUpdateService;
             _worldBlockDatastore = worldBlockDatastore;
+            _beltTransportTickUpdater = beltTransportTickUpdater;
         }
 
         public void Update()
@@ -67,6 +71,10 @@ namespace Server.Boot
             // 設置・破壊はtick末尾で確定するため、この反復中に増減は起きない
             // Placement and removal settle at tick end, so the collection never mutates during this iteration
             foreach (var blockData in _tickOrderedBlocks) blockData.Block.TickUpdate();
+
+            // ベルト搬送は全blockの後に進める。機械からの押し込みがこのtickのblock更新で済んでから、ベルコン上のアイテムをまとめて動かす
+            // Belt transport advances after every block, so machine pushes made during this tick's block updates move with the belts in one batch
+            _beltTransportTickUpdater.Update();
         }
     }
 }

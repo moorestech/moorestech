@@ -4,6 +4,7 @@ using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
 using Game.Action;
+using Game.Block.Blocks.BeltConveyor.Transport;
 using Game.Block.Blocks.Fluid;
 using Game.Block.Event;
 using Game.Block.Factory;
@@ -165,11 +166,12 @@ namespace Server.Boot.Composition
             services.AddSingleton<TrainCarRidingManualCommandResolver>();
             services.AddSingleton<TrainUpdateService>();
 
-            // 電力・gear・流体のtick更新をDIから登録する
-            // Register electric, gear and fluid tick updates through DI.
+            // 電力・gear・流体・ベルト搬送のtick更新をDIから登録する
+            // Register electric, gear, fluid and belt transport tick updates through DI.
             services.AddSingleton<ElectricTickUpdater>();
             services.AddSingleton<GearTickUpdater>();
             services.AddSingleton<FluidTickUpdater>();
+            services.AddSingleton<BeltTransportTickUpdater>();
             services.AddSingleton<MasterTickUpdater>();
             services.AddSingleton<IBlockRemovalReservationService, BlockRemovalReservationService>();
             // クライアント操作は全接続共通FIFOへ集め、tick末尾に一括適用する
