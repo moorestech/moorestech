@@ -21,7 +21,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var blueprint = context.Create(ForUnitTestModBlockId.BlockId);
             context.Register(blueprint);
             var origins = new[] { Vector3Int.zero, Vector3Int.right };
-            origins[farIndex] = new Vector3Int(101, 0, 0);
+            origins[farIndex] = new Vector3Int(111, 0, 0);
             LogAssert.Expect(LogType.Warning, new Regex(@"invalid placement distance"));
 
             context.Paste(blueprint, 0, origins);
@@ -53,6 +53,16 @@ namespace Tests.CombinedTest.Server.PacketTest
             var blueprint = context.Create(ForUnitTestModBlockId.BlockId);
             context.Register(blueprint);
             context.Paste(blueprint, 0, new Vector3Int(100, 0, 0));
+            Assert.AreEqual(1, ServerContext.WorldBlockDatastore.BlockMasterDictionary.Count);
+        }
+
+        [Test]
+        public void 位置同期遅れの許容幅内なら受理するTest()
+        {
+            using var context = new BlueprintPasteProtocolTestContext(true, true);
+            var blueprint = context.Create(ForUnitTestModBlockId.BlockId);
+            context.Register(blueprint);
+            context.Paste(blueprint, 0, new Vector3Int(105, 0, 0));
             Assert.AreEqual(1, ServerContext.WorldBlockDatastore.BlockMasterDictionary.Count);
         }
 

@@ -77,7 +77,7 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint
             // Validate every copy against the server's player position
             var playerEntityId = new EntityInstanceId(requesterPlayerId);
             if (!_entities.Exists(playerEntityId) || origins.Any(origin =>
-                    !PlacementDistanceRule.IsWithinReach(_entities.GetPosition(playerEntityId), origin.Position)))
+                    !PlacementDistanceRule.IsWithinReachWithSyncTolerance(_entities.GetPosition(playerEntityId), origin.Position)))
             {
                 Debug.LogWarning($"[BlueprintPaste] invalid placement distance or missing player player={requesterPlayerId}");
                 Notify(BlueprintFailureReason.InvalidRequest, 0);
