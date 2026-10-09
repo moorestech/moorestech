@@ -1,12 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Game.Context;
-using Game.Entity.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Event.EventReceive;
-using Server.Protocol.PacketResponse.Util;
 using Server.Util.MessagePack;
 using UnityEngine;
 
@@ -15,32 +12,15 @@ namespace Server.Protocol.PacketResponse
     public class RequestWorldDataProtocol : IPacketResponse
     {
         public const string ProtocolTag = "va:getWorldData";
-        public const float ItemVisibilityDistance = 20f;
-
-        private readonly IEntityFactory _entityFactory;
-        private readonly IEntitiesDatastore _entitiesDatastore;
 
         public RequestWorldDataProtocol(ServiceProvider serviceProvider)
         {
-            _entityFactory = serviceProvider.GetService<IEntityFactory>();
-            _entitiesDatastore = serviceProvider.GetService<IEntitiesDatastore>();
         }
 
         public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
-            // リクエストを読み、接続のプレイヤー位置を使う
-            // Read the request and use the position of the bound player
-            var request = MessagePackSerializer.Deserialize<RequestWorldDataMessagePack>(payload);
-
-            // プレイヤー位置を取得
-            // Get player position
-            var playerEntityId = new EntityInstanceId(requesterPlayerId);
-            var playerPosition = _entitiesDatastore.Exists(playerEntityId)
-                ? _entitiesDatastore.GetPosition(playerEntityId)
-                : Vector3.zero;
-
-            // ブロック収集（既存処理）
-            // Collect blocks (existing logic)
+            // ブロック収集
+            // Collect blocks
             var blockMasterDictionary = ServerContext.WorldBlockDatastore.BlockMasterDictionary;
             var blockResult = new List<BlockDataMessagePack>();
             foreach (var blockMaster in blockMasterDictionary)
@@ -51,13 +31,9 @@ namespace Server.Protocol.PacketResponse
                 blockResult.Add(new BlockDataMessagePack(block.BlockId, pos, blockDirection, block.BlockInstanceId));
             }
 
-            // エンティティ収集（距離フィルタリング付き）
-            // Collect entities with distance filtering
-            var entities = new List<EntityMessagePack>();
-            var items = CollectBeltConveyorItems.CollectItemFromWorld(_entityFactory, playerPosition, ItemVisibilityDistance);
-            entities.AddRange(items.Select(item => new EntityMessagePack(item)));
-
-            return new ResponseWorldDataMessagePack(blockResult.ToArray(), entities.ToArray());
+            // ベルコン上のアイテムはこの応答では送らない。tick同期の全量・差分で届ける
+            // Items on belts are not part of this response; they arrive through the tick-synchronized full state and deltas
+            return new ResponseWorldDataMessagePack(blockResult.ToArray(), Array.Empty<EntityMessagePack>());
         }
 
 

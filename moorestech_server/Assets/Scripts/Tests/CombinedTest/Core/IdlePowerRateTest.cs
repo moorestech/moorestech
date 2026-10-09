@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using Core.Master;
 using Core.Update;
-using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Blocks.Gear;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
@@ -112,25 +111,17 @@ namespace Tests.CombinedTest.Core
         }
 
         [Test]
-        public void GearBeltConveyorUsesIdleRateOnlyWhenEmptyTest()
+        public void GearBeltConveyorAlwaysRequestsFullTorqueTest()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            // 空のベルトはIdle扱いで要求トルクが低減される
-            // An empty belt is idle, so required torque is reduced
+            // 歯車ベルトは搬送状態を歯車側へ伝えない素のGearEnergyTransformerなので、空でも常にフル要求になる
+            // A gear belt is a plain GearEnergyTransformer that never reports transport state, so it requests full torque even when empty
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGearBeltConveyor, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
             var param = (GearBeltConveyorBlockParam)block.BlockMasterElement.BlockParam;
-            var gear = block.GetComponent<GearBeltConveyorComponent>();
-            var belt = block.GetComponent<VanillaBeltConveyorComponent>();
+            var gear = block.GetComponent<GearEnergyTransformer>();
             var baseRpm = new RPM((float)param.GearConsumption.BaseRpm);
             var fullTorque = GearConsumptionCalculator.CalcRequiredTorque(param.GearConsumption, baseRpm).AsPrimitive();
-            var idlePowerRate = param.GearConsumption.IdlePowerRate;
-            Assert.AreEqual(fullTorque * idlePowerRate, gear.GetRequiredTorque(baseRpm, true).AsPrimitive(), 0.0001f);
-
-            // アイテムが載るとイベントで搬送中としてフル要求に戻る
-            // Once an item is on the belt, the event makes it active and requests full torque
-            var item = ServerContext.ItemStackFactory.Create(new ItemId(1), 1);
-            belt.InsertItem(item, InsertItemContext.Empty);
             Assert.AreEqual(fullTorque, gear.GetRequiredTorque(baseRpm, true).AsPrimitive(), 0.0001f);
         }
 

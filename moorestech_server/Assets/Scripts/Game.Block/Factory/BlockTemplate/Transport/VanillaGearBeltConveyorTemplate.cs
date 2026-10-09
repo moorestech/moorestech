@@ -15,18 +15,18 @@ namespace Game.Block.Factory.BlockTemplate.Transport
     {
         public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] createParams)
         {
-            return GetBlock(null, blockMasterElement, blockInstanceId, blockPositionInfo);
+            return GetBlock(blockMasterElement, blockInstanceId, blockPositionInfo);
         }
-        
+
         public IBlock Load(Dictionary<string, object> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            return GetBlock(componentStates, blockMasterElement, blockInstanceId, blockPositionInfo);
+            return GetBlock(blockMasterElement, blockInstanceId, blockPositionInfo);
         }
-        
-        private static BlockSystem GetBlock(Dictionary<string, object> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+
+        private static BlockSystem GetBlock(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var gearBeltParam = blockMasterElement.BlockParam as GearBeltConveyorBlockParam;
-            
+
             var gearEnergyTransformerConnector = new BlockConnectorComponent<IGearEnergyTransformer, GearContext>(
                 gearBeltParam.Gear.GearConnects,
                 gearBeltParam.Gear.GearConnects,
@@ -39,29 +39,17 @@ namespace Game.Block.Factory.BlockTemplate.Transport
                 GearBeltConveyorBlockParam.SlopeTypeConst.Straight => BeltConveyorSlopeType.Straight
             };
             var inventoryConnector = BeltInventoryConnectionContext.Create(gearBeltParam.InventoryConnectors, blockPositionInfo, slopeType);
-            var beltConveyorConnector = new VanillaBeltConveyorBlockInventoryInserter(blockInstanceId, inventoryConnector);
 
-            var itemCount = gearBeltParam.BeltConveyorItemCount;
-            
-            // RPM供給前は搬送を停止させるため、無限大の時間を設定する
-            // Use infinite time to stop transport before RPM is supplied
-            var time = float.PositiveInfinity;
-            
-            var vanillaBeltConveyorComponent = componentStates == null ? 
-                    new VanillaBeltConveyorComponent(itemCount, time, beltConveyorConnector, slopeType) :
-                    new VanillaBeltConveyorComponent(componentStates, itemCount, time, beltConveyorConnector,slopeType, gearBeltParam.InventoryConnectors);
-            
-            var gearBeltConveyorComponent = new GearBeltConveyorComponent(vanillaBeltConveyorComponent, blockInstanceId, gearBeltParam.TimeOfItemEnterToExit, gearBeltParam.GearConsumption, gearEnergyTransformerConnector);
-            
-            // 過負荷破壊コンポーネントを追加
-            // Add overload breakage component
+            // 搬送の実体はワールド全体の組が持ち、速度はマスタで固定。歯車は回転数の受け手と過負荷破壊だけを担う
+            // Transport lives in the world-wide assembly at the fixed master speed; the gear side only receives rotation and handles overload breakage
+            var gearEnergyTransformer = new GearEnergyTransformer(gearBeltParam.GearConsumption, blockInstanceId, gearEnergyTransformerConnector);
             var overloadParam = gearBeltParam as IGearOverloadParam;
-            var overloadBreakageComponent = new GearOverloadBreakageComponent(blockInstanceId, gearBeltConveyorComponent, overloadParam);
+            var overloadBreakageComponent = new GearOverloadBreakageComponent(blockInstanceId, gearEnergyTransformer, overloadParam);
 
             var blockComponents = new List<IBlockComponent>
             {
-                gearBeltConveyorComponent,
-                vanillaBeltConveyorComponent,
+                gearEnergyTransformer,
+                new BeltConveyorInventoryComponent(blockInstanceId),
                 gearEnergyTransformerConnector,
                 inventoryConnector,
                 overloadBreakageComponent

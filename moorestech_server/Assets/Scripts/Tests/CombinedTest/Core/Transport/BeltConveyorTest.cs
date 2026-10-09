@@ -1,257 +1,130 @@
-using Game.Block.Blocks.BeltConveyor.Connection;
-using System;
-using System.Collections.Generic;
 using Core.Master;
 using Core.Update;
-using Game.Block.Blocks.BeltConveyor;
-using Game.Block.Blocks.Chest;
-using Game.Block.Blocks.Gear;
-using Game.Block.Component;
+using Game.Block.Blocks.BeltConveyor.Transport;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
-using Game.Block.Interface.Extension;
 using Game.Context;
-using Game.Gear.Common;
-using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Server.Boot;
-using Tests.Module;
 using Tests.Module.TestMod;
 using UnityEngine;
-using Random = System.Random;
-using Game.Block.Interface.Component.ConnectJudge;
+using static Tests.Util.BeltWorldTestUtil;
 
 namespace Tests.CombinedTest.Core.Transport
 {
-    /// <summary>
-    ///     コンフィグが変わったらこのテストを変更に応じて変更してください
-    /// </summary>
+    // 実際のtick経路でTestBeltConveyor(速度6、1マス=256)の搬送を確かめる
+    // Checks TestBeltConveyor transport (speed 6, one cell = 256) through the real tick path
     public class BeltConveyorTest
     {
-        //一定個数以上アイテムが入らないテストした後、正しく次に出力されるかのテスト
-        [Test]
-        public void FullInsertAndChangeConnectorBeltConveyorTest()
-        {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            
-            var beltConveyorParam = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.BeltConveyorId).BlockParam as BeltConveyorBlockParam;
-            var itemStackFactory = ServerContext.ItemStackFactory;
-            
-            var random = new Random(4123);
-            for (var i = 0; i < 2; i++) //あまり深い意味はないが取りあえずテストは2回実行する
-            {
-                var id = new ItemId(random.Next(0, 10));
-                
-                var item = itemStackFactory.Create(id, beltConveyorParam.BeltConveyorItemCount + 1);
-                var beltConveyor = ServerContext.BlockFactory.Create(ForUnitTestModBlockId.BeltConveyorId, new BlockInstanceId(int.MaxValue), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
-                var beltConveyorComponent = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
-                
-                var endTime = DateTime.Now.AddSeconds(beltConveyorParam.TimeOfItemEnterToExit);
-                
-                while (DateTime.Now < endTime.AddSeconds(0.1))
-                {
-                    item = beltConveyorComponent.InsertItem(item, InsertItemContext.Empty);
-                    beltConveyor.TickUpdate();
-                }
-                
-                Assert.AreEqual(item.Count, 1);
-                
-                var dummy = new DummyBlockInventory();
-                
-                var connectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext>>().ConnectedTargets;
-                connectInventory.Add(dummy, new ConnectedInfo());
-                beltConveyor.TickUpdate();
-                
-                Assert.AreEqual(itemStackFactory.Create(id, 1).ToString(), dummy.InsertedItems[0].ToString());
-            }
-        }
-        
-        //一個のアイテムが入って正しく搬出されるかのテスト
+        private static readonly ItemId ItemA = new(1);
+        private static readonly ItemId ItemB = new(2);
+
+        // 一個のアイテムが入って正しく搬出されるかのテスト
+        // One item enters and is output on the exact tick
         [Test]
         public void InsertBeltConveyorTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            
-            var beltConveyorParam = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.BeltConveyorId).BlockParam as BeltConveyorBlockParam;
-            var blockFactory = ServerContext.BlockFactory;
-            var itemStackFactory = ServerContext.ItemStackFactory;
-            
-            
-            var id = new ItemId(2);
-            const int count = 3;
-            var item = itemStackFactory.Create(id, count);
-            var dummy = new DummyBlockInventory();
-            
-            // アイテムを挿入
-            var beltConveyor = blockFactory.Create(ForUnitTestModBlockId.BeltConveyorId, new BlockInstanceId(int.MaxValue), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
-            var beltConveyorComponent = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
-            
-            var connectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext>>().ConnectedTargets;
-            connectInventory.Add(dummy, new ConnectedInfo());
-            
-            // 期待されるtick数を計算
-            // Calculate expected tick count
-            var expectedTicks = (int)(beltConveyorParam.TimeOfItemEnterToExit * GameUpdater.TicksPerSecond);
-            var outputItem = beltConveyorComponent.InsertItem(item, InsertItemContext.Empty);
+            CreateServer();
+            var source = Inventory(Place(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, -1), BlockDirection.North));
+            PlaceStraightBelts(3);
+            var output = Inventory(Place(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, 3), BlockDirection.North));
+            source.SetItem(0, ServerContext.ItemStackFactory.Create(ItemA, 3));
 
-            // tick数でループ制御（タイムアウト付き）
-            // Loop controlled by tick count (with timeout)
-            var elapsedTicks = 0;
-            var maxTicks = expectedTicks + 10; // 余裕を持たせる
-            while (!dummy.IsItemExists && elapsedTicks < maxTicks)
-            {
-                beltConveyor.TickUpdate();
-                elapsedTicks++;
-            }
-
-            // 期待したtick数近辺でアイテムが到達したことを確認
-            // Verify item arrived around expected tick count
-            Assert.True(dummy.IsItemExists, "Item should have been output");
-            Assert.True(elapsedTicks <= expectedTicks + 2 && expectedTicks - 2 <= elapsedTicks, $"Item should arrive around expected tick count. Expected: {expectedTicks}, Actual: {elapsedTicks}");
-
-            Debug.Log($"Expected ticks: {expectedTicks}, Elapsed ticks: {elapsedTicks}");
-            
-            Assert.True(outputItem.Equals(itemStackFactory.Create(id, count - 1)));
-            var tmp = itemStackFactory.Create(id, 1);
-            Debug.Log($"{tmp} {dummy.InsertedItems[0]}");
-            Assert.AreEqual(tmp.ToString(), dummy.InsertedItems[0].ToString());
+            // tick1で進入距離1で入り出口まで3*256-1=767。速度6で127tick後に残り5、128tick目に渡る
+            // Enters at length 1 on tick 1 leaving 3*256-1=767; at speed 6 it is 5 away after 127 belt ticks and handed over on tick 128
+            GameUpdater.RunFrames(1);
+            Assert.AreEqual(2, CountOf(source, ItemA), "1回の押し込みで入るのは1個だけ");
+            Assert.AreEqual(761, ItemsOnSegmentAt(Vector3Int.zero)[0].DistanceToExit);
+            GameUpdater.RunFrames(126);
+            Assert.AreEqual(0, CountOf(output, ItemA));
+            Assert.AreEqual(5, ItemsOnSegmentAt(Vector3Int.zero)[0].DistanceToExit);
+            GameUpdater.RunFrames(1);
+            Assert.AreEqual(1, CountOf(output, ItemA));
         }
-        
-        //ベルトコンベアのインベントリをフルにするテスト
+
+        // 出口が詰まって満杯になったベルトが、出口が空くと次のtickで1個を渡すテスト
+        // A belt filled up behind a blocked exit hands one item over on the tick after the exit frees
         [Test]
-        public void FullInsertBeltConveyorTest()
+        public void FullBeltReleasesHeadWhenOutputFreesTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            
-            var beltConveyorParam = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.BeltConveyorId).BlockParam as BeltConveyorBlockParam;
-            var blockFactory = ServerContext.BlockFactory;
-            var itemStackFactory = ServerContext.ItemStackFactory;
-            
-            var random = new Random(4123);
-            
-            var id = new ItemId(random.Next(1, 11));
-            var item = itemStackFactory.Create(id, beltConveyorParam.BeltConveyorItemCount + 1);
-            var dummy = new DummyBlockInventory(beltConveyorParam.BeltConveyorItemCount);
-            var beltConveyor = blockFactory.Create(ForUnitTestModBlockId.BeltConveyorId, new BlockInstanceId(int.MaxValue), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
-            var beltConveyorComponent = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
-            
-            var connectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext>>().ConnectedTargets;
-            connectInventory.Add(dummy, new ConnectedInfo());
-            
-            while (!dummy.IsItemExists)
-            {
-                item = beltConveyorComponent.InsertItem(item, InsertItemContext.Empty);
-                beltConveyor.TickUpdate();
-            }
-            
-            Assert.True(item.Equals(itemStackFactory.Create(id, 0)));
-            var tmp = itemStackFactory.Create(id, beltConveyorParam.BeltConveyorItemCount);
-            Assert.True(dummy.InsertedItems[0].Equals(tmp));
+            CreateServer();
+            var source = Inventory(Place(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, -1), BlockDirection.North));
+            PlaceStraightBelts(3);
+            var output = Inventory(Place(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, 3), BlockDirection.North));
+            for (var i = 0; i < output.GetSlotSize(); i++) output.SetItem(i, ServerContext.ItemStackFactory.Create(ItemB, 1));
+            source.SetItem(0, ServerContext.ItemStackFactory.Create(ItemA, 10));
+
+            // 3マスのsegmentには3個までしか載らない。出口で詰まると0・256・512に密着して止まり、それ以上は入らない
+            // A three-cell segment holds at most three items; blocked at the exit they pack at 0, 256 and 512 and nothing more enters
+            GameUpdater.RunFrames(600);
+            var parked = ItemsOnSegmentAt(Vector3Int.zero);
+            CollectionAssert.AreEqual(new[] { 0, 256, 512 }, new[] { parked[0].DistanceToExit, parked[1].DistanceToExit, parked[2].DistanceToExit });
+            Assert.AreEqual(3, parked.Length);
+            Assert.AreEqual(7, CountOf(source, ItemA));
+            Assert.AreEqual(0, CountOf(output, ItemA));
+
+            // 1スロット空けると次のtickで先頭が渡り、残りは速度6だけ進む
+            // Freeing one slot hands the head over on the next tick and the rest advance by the speed 6
+            output.SetItem(0, ServerContext.ItemStackFactory.CreatEmpty());
+            GameUpdater.RunFrames(1);
+            Assert.AreEqual(1, CountOf(output, ItemA));
+            var moved = ItemsOnSegmentAt(Vector3Int.zero);
+            CollectionAssert.AreEqual(new[] { 250, 506 }, new[] { moved[0].DistanceToExit, moved[1].DistanceToExit });
         }
-        
-        //二つのアイテムが入ったとき、一方しか入らないテスト
+
+        // 1回の押し込みで1個だけ入り、満杯のsegmentへの押し込みは差し戻されるテスト
+        // One push enters exactly one item, and a push into a full segment is returned unchanged
         [Test]
-        public void Insert2ItemBeltConveyorTest()
+        public void InsertIntoFullSegmentIsRejectedTest()
         {
-            var (_, serviceProvider) =
-                new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var blockFactory = ServerContext.BlockFactory;
-            var itemStackFactory = ServerContext.ItemStackFactory;
-            
-            var random = new Random(4123);
-            for (var i = 0; i < 2; i++) //あまり深い意味はないが取りあえずテストは2回実行する
-            {
-                //必要な変数を作成
-                var item1 = itemStackFactory.Create(new ItemId(random.Next(1, 11)), random.Next(1, 10));
-                var item2 = itemStackFactory.Create(new ItemId(random.Next(1, 11)), random.Next(1, 10));
-                
-                var beltConveyor = blockFactory.Create(ForUnitTestModBlockId.BeltConveyorId , new BlockInstanceId(int.MaxValue), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
-                var beltConveyorComponent = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
-                
-                var item1Out = beltConveyorComponent.InsertItem(item1, InsertItemContext.Empty);
-                var item2Out = beltConveyorComponent.InsertItem(item2, InsertItemContext.Empty);
-                
-                Assert.True(item1Out.Equals(item1.SubItem(1)));
-                Assert.True(item2Out.Equals(item2));
-            }
+            CreateServer();
+            var source = Place(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, -1), BlockDirection.North);
+            var belt = Place(ForUnitTestModBlockId.BeltConveyorId, Vector3Int.zero, BlockDirection.North);
+            ServerContext.GetService<BeltTransportDatastore>().RebuildIfDirty();
+            var beltInventory = Inventory(belt);
+            var context = new InsertItemContext(source.BlockInstanceId, null, null);
+
+            // 1マスのsegmentは1個で満杯。1回目は1個減って返り、2回目はそのまま返る
+            // A one-cell segment is full with one item; the first push returns one fewer, the second returns unchanged
+            var first = ServerContext.ItemStackFactory.Create(ItemA, 5);
+            var second = ServerContext.ItemStackFactory.Create(ItemB, 3);
+            Assert.AreEqual(ServerContext.ItemStackFactory.Create(ItemA, 4), beltInventory.InsertItem(first, context));
+            Assert.AreEqual(second, beltInventory.InsertItem(second, context));
+            Assert.AreEqual(1, ItemsOnSegmentAt(Vector3Int.zero).Length);
+            Assert.AreEqual(ItemA, ItemsOnSegmentAt(Vector3Int.zero)[0].Item.ItemId);
         }
 
         // 歯車ベルトコンベアスプリッタが2方向に分配できるかのテスト
+        // The gear belt splitter distributes evenly to its two outputs
         [Test]
         public void GearBeltConveyorSplitterDistributesToTwoChestsTest()
         {
-            // テスト環境を初期化する
-            // Initialize test environment
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            var itemStackFactory = ServerContext.ItemStackFactory;
+            CreateServer();
 
-            // スプリッター本体とチェストを配置する
-            // Place splitter and chests
-            var splitterPosition = Vector3Int.zero;
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearBeltConveyorSplitter, splitterPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
-            var sourceChestPosition = new Vector3Int(0, 0, -1);
-            var outputChestPositionA = new Vector3Int(0, 0, 1);
-            var outputChestPositionB = new Vector3Int(-1, 0, 0);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, sourceChestPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var sourceChestBlock);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, outputChestPositionA, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var outputChestBlockA);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, outputChestPositionB, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var outputChestBlockB);
-            var sourceChest = sourceChestBlock.GetComponent<VanillaChestComponent>();
-            var outputChestA = outputChestBlockA.GetComponent<VanillaChestComponent>();
-            var outputChestB = outputChestBlockB.GetComponent<VanillaChestComponent>();
-
-            // 歯車ネットワークを構築して搬送を有効化する
-            // Build gear network to enable transport
-            var generatorPosition = new Vector3Int(1, 0, 0);
-            var gearPosition = new Vector3Int(2, 0, 0);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.InfinityTorqueSimpleGearGenerator, generatorPosition, BlockDirection.East, Array.Empty<BlockCreateParam>(), out var generatorBlock);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPosition, BlockDirection.East, Array.Empty<BlockCreateParam>(), out var gearBlock);
-
-            // 入力チェストにアイテムを投入する
-            // Insert items into source chest
-            var itemId = new ItemId(1);
+            // スプリッター本体とチェストを配置する。搬送速度はマスタ固定なので歯車の動力は要らない
+            // Place the splitter and chests; transport speed is fixed by the master so no gear power is needed
+            Place(ForUnitTestModBlockId.GearBeltConveyorSplitter, Vector3Int.zero, BlockDirection.North);
+            var source = Inventory(Place(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, -1), BlockDirection.North));
+            var outputA = Inventory(Place(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, 1), BlockDirection.North));
+            var outputB = Inventory(Place(ForUnitTestModBlockId.ChestId, new Vector3Int(-1, 0, 0), BlockDirection.North));
             const int itemCount = 40;
-            var itemStack = itemStackFactory.Create(itemId, itemCount);
-            sourceChest.SetItem(0, itemStack);
+            source.SetItem(0, ServerContext.ItemStackFactory.Create(ItemA, itemCount));
 
-            // 両チェストへの分配完了を待つ
-            // Wait for distribution to both chests
-            var startTime = DateTime.Now;
-            var timeoutTime = startTime.AddSeconds(20);
-            while (DateTime.Now <= timeoutTime && !IsDistributed(outputChestA, outputChestB, itemId, itemCount))
-            {
-                // 接続したgeneratorにより歯車ネットワークがスプリッターを駆動する（直接供給は行わない）
-                // The gear network (via the connected generator) drives the splitter; no direct supply
-                GameUpdater.UpdateOneTick();
-            }
-            
-            Assert.AreEqual(itemCount / 2, GetItemCount(outputChestB, itemId));
-            Assert.AreEqual(itemCount / 2, GetItemCount(outputChestA, itemId));
+            // 分岐は搬出のたびに方向を入れ替えるので、全数を流し切ると半数ずつになる
+            // The branch rotates its output direction on every handoff, so draining everything splits it in half
+            for (var tick = 0; tick < 2000 && CountOf(outputA, ItemA) + CountOf(outputB, ItemA) < itemCount; tick++) GameUpdater.UpdateOneTick();
+            Assert.AreEqual(itemCount / 2, CountOf(outputA, ItemA));
+            Assert.AreEqual(itemCount / 2, CountOf(outputB, ItemA));
+        }
 
-            #region Internal
+        private static void CreateServer()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+        }
 
-            int GetItemCount(VanillaChestComponent chest, ItemId targetItemId)
-            {
-                // 対象アイテムの合計数を集計する
-                // Aggregate total count for target item
-                var total = 0;
-                foreach (var stack in chest.InventoryItems)
-                {
-                    if (stack.Id != targetItemId) continue;
-                    total += stack.Count;
-                }
-                return total;
-            }
-
-            bool IsDistributed(VanillaChestComponent chestLeft, VanillaChestComponent chestRight, ItemId targetItemId, int insertCount)
-            {
-                // 左右のチェストが必要数を受け取ったか確認する
-                // Check if both chests received required count
-                var chestCount = insertCount / 2;
-                return chestCount <= GetItemCount(chestLeft, targetItemId) && chestCount <= GetItemCount(chestRight, targetItemId);
-            }
-
-            #endregion
+        private static void PlaceStraightBelts(int length)
+        {
+            for (var z = 0; z < length; z++) Place(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(0, 0, z), BlockDirection.North);
         }
     }
 }

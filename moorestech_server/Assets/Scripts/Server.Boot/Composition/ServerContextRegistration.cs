@@ -4,6 +4,7 @@ using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
 using Game.Action;
+using Game.Block.Blocks.BeltConveyor.Transport;
 using Game.Block.Blocks.Fluid;
 using Game.Block.Event;
 using Game.Block.Factory;
@@ -96,6 +97,7 @@ namespace Server.Boot.Composition
             initializerCollection.AddSingleton<IBlockOpenableInventoryUpdateEvent, BlockOpenableInventoryUpdateEvent>();
             initializerCollection.AddSingleton<GearNetworkDatastore>();
             initializerCollection.AddSingleton<FluidNetworkDatastore>();
+            initializerCollection.AddSingleton<BeltTransportDatastore>();
             initializerCollection.AddSingleton<CleanRoomDatastore>();
             initializerCollection.AddSingleton<RailGraphDatastore>();
             initializerCollection.AddSingleton<IRailGraphDatastore>(provider => provider.GetService<RailGraphDatastore>());

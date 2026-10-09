@@ -8,8 +8,8 @@ using Game.World.Interface.DataStore;
 
 namespace Server.Boot
 {
-    // tick順序を1箇所で明示する（仕様2.1①〜④＋拡張。電力網→歯車網→流体網再構築→電力→歯車→流体→鉄道tick→ブロック更新→ベルト搬送。丸数字の⑤以降は仕様側でブロック更新・セーブを指すためここでは使わない）
-    // Declares the tick order in one place: spec 2.1 ①-④ plus extensions — rebuild electric, gear and fluid topologies, then settle electric, gear, fluid, train, update blocks, then belt transport. Circled numbers ⑤+ are reserved by the spec for block updates and save
+    // tick順序を1箇所で明示する（仕様2.1①〜④＋拡張。電力網→歯車網→流体網→ベルト搬送再構築→電力→歯車→流体→鉄道tick→ブロック更新→ベルト搬送。丸数字の⑤以降は仕様側でブロック更新・セーブを指すためここでは使わない）
+    // Declares the tick order in one place: spec 2.1 ①-④ plus extensions — rebuild electric, gear, fluid and belt transport topologies, then settle electric, gear, fluid, train, update blocks, then belt transport. Circled numbers ⑤+ are reserved by the spec for block updates and save
     public class MasterTickUpdater
     {
         private readonly ElectricWireNetworkDatastore _electricWireNetworkDatastore;
@@ -20,6 +20,7 @@ namespace Server.Boot
         private readonly FluidTickUpdater _fluidTickUpdater;
         private readonly TrainUpdateService _trainUpdateService;
         private readonly IWorldBlockDatastore _worldBlockDatastore;
+        private readonly BeltTransportDatastore _beltTransportDatastore;
         private readonly BeltTransportTickUpdater _beltTransportTickUpdater;
 
         // 正準順の反復に使う再利用バッファ。毎tickの確保を避ける
@@ -35,6 +36,7 @@ namespace Server.Boot
             FluidTickUpdater fluidTickUpdater,
             TrainUpdateService trainUpdateService,
             IWorldBlockDatastore worldBlockDatastore,
+            BeltTransportDatastore beltTransportDatastore,
             BeltTransportTickUpdater beltTransportTickUpdater)
         {
             _electricWireNetworkDatastore = electricWireNetworkDatastore;
@@ -45,6 +47,7 @@ namespace Server.Boot
             _fluidTickUpdater = fluidTickUpdater;
             _trainUpdateService = trainUpdateService;
             _worldBlockDatastore = worldBlockDatastore;
+            _beltTransportDatastore = beltTransportDatastore;
             _beltTransportTickUpdater = beltTransportTickUpdater;
         }
 
@@ -55,6 +58,7 @@ namespace Server.Boot
             _electricWireNetworkDatastore.RebuildIfDirty();
             _gearNetworkDatastore.RebuildIfDirty();
             _fluidNetworkDatastore.RebuildIfDirty();
+            _beltTransportDatastore.RebuildIfDirty();
             _electricTickUpdater.Update();
             _gearTickUpdater.Update();
             _fluidTickUpdater.Update();

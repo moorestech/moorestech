@@ -1,11 +1,6 @@
-using Game.Block.Blocks.BeltConveyor.Connection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Core.Master;
 using Core.Update;
-using Game.Block.Blocks.BeltConveyor;
-using Game.Block.Component;
+using Game.Block.Blocks.Gear;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
@@ -13,237 +8,74 @@ using Game.Context;
 using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Server.Boot;
-using Tests.Module;
 using Tests.Module.TestMod;
 using Tests.Util;
 using UnityEngine;
-using Game.Block.Interface.Component.ConnectJudge;
+using static Tests.Util.BeltWorldTestUtil;
 
 namespace Tests.CombinedTest.Core.Transport
 {
+    // 歯車ベルトはマスタの固定速度(GearBeltConveyor=32)で搬送し、回転数・トルクは搬送に影響しない
+    // A gear belt transports at the fixed master speed (GearBeltConveyor = 32); RPM and torque do not affect transport
     public class GearBeltConveyorTest
     {
-        // トルクの供給率が100%のとき、指定した時間でアイテムが出てくるテスト
+        private static readonly ItemId ItemA = new(2);
+
+        // 3マス・速度32: 進入距離1で出口まで767。23tick後に残り31、24tick目に渡る
+        // Three cells at speed 32: 767 to the exit after entering at length 1; 31 away after 23 belt ticks, handed over on tick 24
+        private const int ExpectedArrivalTick = 24;
+
+        // 歯車ネットワークから基準回転数で駆動されても、到着tickはマスタ速度だけで決まるテスト
+        // Even when driven at base RPM by a gear network, the arrival tick depends only on the master speed
         [Test]
-        public void OutputTestWhenTorqueSuppliedRateIs100()
+        public void PoweredGearBeltArrivesOnMasterSpeedTickTest()
         {
-            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            CreateServer();
+            var (source, output, belts) = PlaceLine();
+            var generator = Place(ForUnitTestModBlockId.SimpleGearGenerator, new Vector3Int(1, 0, 0), BlockDirection.East).GetComponent<SimpleGearGeneratorComponent>();
+            Place(ForUnitTestModBlockId.SmallGear, new Vector3Int(2, 0, 0), BlockDirection.East);
+            var param = (GearBeltConveyorBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearBeltConveyor).BlockParam;
+            generator.SetGenerateRpm((float)param.GearConsumption.BaseRpm);
+            generator.SetGenerateTorque(1f);
+            source.SetItem(0, ServerContext.ItemStackFactory.Create(ItemA, 1));
 
-            var itemStackFactory = ServerContext.ItemStackFactory;
-            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-
-            const int id = 2;
-            const int count = 3;
-            var item = itemStackFactory.Create(new ItemId(id), count);
-            var dummy = new DummyBlockInventory();
-
-
-            // gearBeltConveyorブロックを生成
-            var gearBeltConveyorPosition = new Vector3Int(0, 0, 0);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearBeltConveyor, gearBeltConveyorPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var gearBeltConveyor);
-            var beltConveyorComponent = gearBeltConveyor.GetComponent<VanillaBeltConveyorComponent>();
-            var connectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)gearBeltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext>>().ConnectedTargets;
-
-            // generatorブロックを作成（baseRpmに合わせたrpmを設定してoperatingRate=1にする）
-            // Create generator with rpm matching baseRpm so operatingRate = 1
-            var generatorPosition = new Vector3Int(1, 0, 0);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.East, Array.Empty<BlockCreateParam>(), out var generatorBlock);
-            var generatorComponent = generatorBlock.GetComponent<global::Game.Block.Blocks.Gear.SimpleGearGeneratorComponent>();
-
-            var gearBeltConveyorBlockParam = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearBeltConveyor).BlockParam as GearBeltConveyorBlockParam;
-            var gearConsumption = gearBeltConveyorBlockParam.GearConsumption;
-            // baseRpmでジェネレーターを動かすことでoperatingRate=1を保証する
-            // Run generator at baseRpm to guarantee operatingRate = 1
-            var generatorRpm = (float)gearConsumption.BaseRpm;
-            generatorComponent.SetGenerateRpm(generatorRpm);
-            generatorComponent.SetGenerateTorque(1f);
-
-            // testGearブロックを作成
-            var testGearPosition = new Vector3Int(2, 0, 0);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, testGearPosition, BlockDirection.East, Array.Empty<BlockCreateParam>(), out var testGear);
-
-            // 配置による接続再計算後に、搬送時間検証用の出力先を取り付ける
-            // Attach the transport-timing sink after placement has finished recalculating connections
-            connectInventory.Add(dummy, new ConnectedInfo());
-
-            // ギアネットワークを確立するための更新サイクルを実行
-            // Run update cycle to establish gear network
+            GameUpdater.RunFrames(ExpectedArrivalTick - 1);
+            Assert.Less(0f, belts[0].GetComponent<GearEnergyTransformer>().CurrentRpm.AsPrimitive(), "belt should be driven by the generator");
+            Assert.AreEqual(0, CountOf(output, ItemA));
             GameUpdater.RunFrames(1);
-
-            // 新formula: duration = timeOfItemEnterToExit / (rpm/baseRpm * torqueRate)
-            // New formula: duration = timeOfItemEnterToExit / (rpm/baseRpm * torqueRate)
-            const float torqueRate = 1f;
-            var rpmRatio = generatorRpm / (float)gearConsumption.BaseRpm; // = 1 (baseRpmで動作)
-            var operatingRate = rpmRatio * torqueRate;
-            var duration = (float)gearBeltConveyorBlockParam.TimeOfItemEnterToExit / operatingRate;
-
-            // 期待されるtick数を計算
-            // Calculate expected tick count
-            var expectedTicks = (int)(duration * GameUpdater.TicksPerSecond);
-            Assert.IsTrue(connectInventory.ContainsKey(dummy), "Transport sink must remain connected before item insertion");
-            beltConveyorComponent.InsertItem(item, InsertItemContext.Empty);
-
-            // tick数でループ制御（タイムアウト付き）
-            // Loop controlled by tick count (with timeout)
-            var elapsedTicks = 0;
-            var maxTicks = (int)(20 * GameUpdater.TicksPerSecond); // 20秒でタイムアウト
-            while (!dummy.IsItemExists && elapsedTicks < maxTicks)
-            {
-                elapsedTicks++;
-                GameUpdater.RunFrames(1);
-            }
-
-            Assert.True(dummy.IsItemExists, "Item should have been output");
-
-            // 期待したtick数近辺でアイテムが到達したことを確認
-            // Verify item arrived around expected tick count
-            var tickTolerance = (int)(0.4 * GameUpdater.TicksPerSecond); // 0.4秒の許容誤差
-            Debug.Log($"Expected ticks: {expectedTicks}, Elapsed ticks: {elapsedTicks}, Duration: {duration}");
-            Assert.True(elapsedTicks <= expectedTicks + tickTolerance, $"Item should arrive within tolerance. Expected: {expectedTicks}, Actual: {elapsedTicks}");
-            Assert.True(expectedTicks - tickTolerance <= elapsedTicks, $"Item should not arrive too early. Expected: {expectedTicks}, Actual: {elapsedTicks}");
+            Assert.AreEqual(1, CountOf(output, ItemA));
         }
 
-        // RPMが0のときはアイテムが搬送されないことのテスト
+        // 回転数0(歯車ネットワーク無し)でも同じtickで搬送されるテスト
+        // With zero RPM (no gear network) the item still arrives on the same tick
         [Test]
-        public void NoOutputWhenRpmIsZero()
+        public void UnpoweredGearBeltStillTransportsTest()
         {
-            // テスト用のDIコンテナを初期化する
-            // Initialize the test DI container
-            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            
-            var itemStackFactory = ServerContext.ItemStackFactory;
-            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            
-            // 歯車ベルトコンベアと出力先を用意する
-            // Prepare the gear belt conveyor and its output
-            var gearBeltConveyorPosition = new Vector3Int(0, 0, 0);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearBeltConveyor, gearBeltConveyorPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var gearBeltConveyor);
-            var connectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)gearBeltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext>>().ConnectedTargets;
-            var dummy = new DummyBlockInventory();
-            
-            var beltConveyorComponent = gearBeltConveyor.GetComponent<VanillaBeltConveyorComponent>();
-            var gearBeltConveyorComponent = gearBeltConveyor.GetComponent<GearBeltConveyorComponent>();
-            
-            // 歯車ジェネレーターで一度稼働させ、速度を設定する
-            // Run once with a gear generator to set the speed
-            var generatorPosition = new Vector3Int(1, 0, 0);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.East, Array.Empty<BlockCreateParam>(), out var generatorBlock);
-            var generator = generatorBlock.GetComponent<global::Game.Block.Blocks.Gear.SimpleGearGeneratorComponent>();
-            // 配置による接続再計算後に、速度検証用の出力先を取り付ける
-            // Attach the speed-test sink after placement has finished recalculating connections
-            connectInventory.Add(dummy, new ConnectedInfo());
-            generator.SetGenerateRpm(10f);
-            generator.SetGenerateTorque(1f);
-            GameUpdater.RunFrames(GameUpdater.SecondsToTicks(0.1));
+            CreateServer();
+            var (source, output, belts) = PlaceLine();
+            source.SetItem(0, ServerContext.ItemStackFactory.Create(ItemA, 1));
 
-            Assert.True(0f < gearBeltConveyorComponent.CurrentRpm.AsPrimitive());
-
-            // 出力を止めてRPMを0にする
-            // Stop output to force RPM to 0
-            generator.SetGenerateTorque(0f);
-            GameUpdater.RunFrames(GameUpdater.SecondsToTicks(0.1));
-            
-            Assert.AreEqual(0f, gearBeltConveyorComponent.CurrentRpm.AsPrimitive());
-            
-            // RPM0の状態でアイテムを挿入する
-            // Insert an item while RPM is zero
-            var item = itemStackFactory.Create(new ItemId(2), 1);
-            Assert.IsTrue(connectInventory.ContainsKey(dummy), "Transport sink must remain connected before item insertion");
-            beltConveyorComponent.InsertItem(item, InsertItemContext.Empty);
-            
-            // ベルトの速度に相当する時間を超えても搬送されないことを確認する
-            // Ensure the item is not transported even after exceeding the belt travel time
-            var gearBeltParam = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearBeltConveyor).BlockParam as GearBeltConveyorBlockParam;
-            // 新formula: timeOfItemEnterToExit = param / (rpm/baseRpm * torqueRate)
-            // New formula: timeOfItemEnterToExit = param / (rpm/baseRpm * torqueRate)
-            var rpmRatioForCheck = 10f / (float)gearBeltParam.GearConsumption.BaseRpm;
-            var operatingRateForCheck = rpmRatioForCheck * 1f;
-            var timeOfItemEnterToExit = (float)gearBeltParam.TimeOfItemEnterToExit / operatingRateForCheck;
-            var updateCount = (int)Math.Ceiling(timeOfItemEnterToExit / 0.1f) + beltConveyorComponent.BeltConveyorItems.Count + 2;
-            for (var i = 0; i < updateCount; i++) GameUpdater.RunFrames(GameUpdater.SecondsToTicks(0.1));
-            
-            Assert.False(dummy.IsItemExists);
+            GameUpdater.RunFrames(ExpectedArrivalTick - 1);
+            Assert.AreEqual(0f, belts[0].GetComponent<GearEnergyTransformer>().CurrentRpm.AsPrimitive());
+            Assert.AreEqual(0, CountOf(output, ItemA));
+            GameUpdater.RunFrames(1);
+            Assert.AreEqual(1, CountOf(output, ItemA));
         }
 
-        // 停止中にアイテムを投入し、速度復帰後に正常に搬送されることのテスト
-        // Test that items inserted while stopped are transported normally after speed recovery
-        [Test]
-        public void ItemInsertedWhileStoppedShouldTransportAfterSpeedRecovery()
+        private static void CreateServer()
         {
-            // テスト用のDIコンテナを初期化する
-            // Initialize the test DI container
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+        }
 
-            var itemStackFactory = ServerContext.ItemStackFactory;
-            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-
-            // 歯車ベルトコンベアと出力先を用意する
-            // Prepare the gear belt conveyor and its output
-            var gearBeltConveyorPosition = new Vector3Int(0, 0, 0);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearBeltConveyor, gearBeltConveyorPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var gearBeltConveyor);
-            var connectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)gearBeltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext>>().ConnectedTargets;
-            var dummy = new DummyBlockInventory();
-
-            var beltConveyorComponent = gearBeltConveyor.GetComponent<VanillaBeltConveyorComponent>();
-            var gearBeltConveyorComponent = gearBeltConveyor.GetComponent<GearBeltConveyorComponent>();
-
-            // 歯車ジェネレーターを配置し、一度稼働させてから停止する（baseRpmに合わせてoperatingRate=1）
-            // Place a gear generator, run once, then stop (set to baseRpm so operatingRate = 1)
-            var generatorPosition = new Vector3Int(1, 0, 0);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.East, Array.Empty<BlockCreateParam>(), out var generatorBlock);
-            var generator = generatorBlock.GetComponent<global::Game.Block.Blocks.Gear.SimpleGearGeneratorComponent>();
-            // 配置による接続再計算後に、速度検証用の出力先を取り付ける
-            // Attach the speed-test sink after placement has finished recalculating connections
-            connectInventory.Add(dummy, new ConnectedInfo());
-            var beltParamForSetup = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearBeltConveyor).BlockParam as GearBeltConveyorBlockParam;
-            var baseRpm = (float)beltParamForSetup.GearConsumption.BaseRpm;
-            generator.SetGenerateRpm(baseRpm);
-            generator.SetGenerateTorque(1f);
-            GameUpdater.RunFrames(GameUpdater.SecondsToTicks(0.1));
-
-            Assert.True(0f < gearBeltConveyorComponent.CurrentRpm.AsPrimitive(), "Belt should be running initially");
-
-            // 出力を止めてRPMを0にする
-            // Stop output to force RPM to 0
-            generator.SetGenerateTorque(0f);
-            GameUpdater.RunFrames(GameUpdater.SecondsToTicks(0.1));
-
-            Assert.AreEqual(0f, gearBeltConveyorComponent.CurrentRpm.AsPrimitive(), "Belt should be stopped");
-
-            // 停止中にアイテムを挿入する
-            // Insert an item while the belt is stopped
-            var item = itemStackFactory.Create(new ItemId(2), 1);
-            Assert.IsTrue(connectInventory.ContainsKey(dummy), "Transport sink must remain connected before item insertion");
-            beltConveyorComponent.InsertItem(item, InsertItemContext.Empty);
-
-            // アイテムがベルトに載っていることを確認
-            // Verify the item is on the belt
-            Assert.AreEqual(1, beltConveyorComponent.BeltConveyorItems.Count(i => i != null), "Item should be on the belt");
-
-            // 速度を復帰させる
-            // Restore speed
-            generator.SetGenerateTorque(1f);
-            GameUpdater.RunFrames(GameUpdater.SecondsToTicks(0.1));
-
-            Assert.True(0f < gearBeltConveyorComponent.CurrentRpm.AsPrimitive(), "Belt should be running again");
-
-            // アイテムが搬送されるまで十分な時間待機する（1tickずつ進める）
-            // Wait enough time for the item to be transported (advance 1 tick at a time)
-            // 新formula: timeOfItemEnterToExit = param / (rpm/baseRpm * torqueRate)
-            // New formula: timeOfItemEnterToExit = param / (rpm/baseRpm * torqueRate)
-            var gearBeltParam = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearBeltConveyor).BlockParam as GearBeltConveyorBlockParam;
-            var rpmRatio = baseRpm / (float)gearBeltParam.GearConsumption.BaseRpm; // = 1 (baseRpmで動作)
-            var operatingRate = rpmRatio * 1f;
-            var timeOfItemEnterToExit = (float)gearBeltParam.TimeOfItemEnterToExit / operatingRate;
-            var waitTicks = GameUpdater.SecondsToTicks(timeOfItemEnterToExit * 2); // 2倍の時間待つ
-            for (uint i = 0; i < waitTicks; i++)
-            {
-                GameUpdater.RunFrames(1);
-            }
-
-            // アイテムが出力先に到達していることを確認
-            // Verify the item has reached the output
-            Assert.True(dummy.IsItemExists, "Item should have been transported after speed recovery");
+        // 搬入チェスト→歯車ベルト3マス→搬出チェストを北向きに並べる
+        // Line up input chest -> three gear belt cells -> output chest facing north
+        private static (IBlockInventory source, IBlockInventory output, IBlock[] belts) PlaceLine()
+        {
+            var source = Inventory(Place(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, -1), BlockDirection.North));
+            var belts = new IBlock[3];
+            for (var z = 0; z < belts.Length; z++) belts[z] = Place(ForUnitTestModBlockId.GearBeltConveyor, new Vector3Int(0, 0, z), BlockDirection.North);
+            var output = Inventory(Place(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, 3), BlockDirection.North));
+            return (source, output, belts);
         }
     }
 }

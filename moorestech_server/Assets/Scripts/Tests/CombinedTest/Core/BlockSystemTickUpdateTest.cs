@@ -1,62 +1,40 @@
-using Game.Block.Blocks.BeltConveyor.Connection;
-using System;
-using System.Collections.Generic;
 using Core.Master;
-using Core.Update;
-using Game.Block.Blocks.BeltConveyor;
-using Game.Block.Component;
 using Game.Block.Interface;
-using Game.Block.Interface.Component;
-using Game.Block.Interface.Component.ConnectJudge;
-using Game.Block.Interface.Extension;
 using Game.Context;
-using Mooresmaster.Model.BlocksModule;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
-using Tests.Module;
 using Tests.Module.TestMod;
 using UnityEngine;
+using static Tests.Util.BeltWorldTestUtil;
 
 namespace Tests.CombinedTest.Core
 {
     public class BlockSystemTickUpdateTest
     {
         [Test]
-        public void TickUpdateDrivesBeltComponentWithoutGameUpdaterObservable()
+        public void MasterTickUpdaterDrivesBeltTransportWithoutGameUpdaterObservable()
         {
-            // 中央tick駆動と同じ経路でベルトブロックを構築する
-            // Build a belt block through the same path used by central tick driving
-            new MoorestechServerDIContainerGenerator().Create(
+            // チェスト→ベルト1マス→チェストを組み、中央tick入口だけで搬送を進める
+            // Build chest -> one belt cell -> chest and advance transport through the central tick entry only
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(
                 new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var belt = ServerContext.BlockFactory.Create(
-                ForUnitTestModBlockId.BeltConveyorId,
-                new BlockInstanceId(int.MaxValue),
-                new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one));
-            var beltComponent = belt.GetComponent<VanillaBeltConveyorComponent>();
-            var output = new DummyBlockInventory();
+            var masterTickUpdater = serviceProvider.GetRequiredService<MasterTickUpdater>();
+            var itemId = new ItemId(1);
+            var source = Inventory(Place(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, -1), BlockDirection.North));
+            Place(ForUnitTestModBlockId.BeltConveyorId, Vector3Int.zero, BlockDirection.North);
+            var output = Inventory(Place(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, 1), BlockDirection.North));
+            source.SetItem(0, ServerContext.ItemStackFactory.Create(itemId, 1));
 
-            // 搬出先を接続して1アイテムをベルトへ投入する
-            // Connect an output and insert one item into the belt
-            var connectedTargets = (Dictionary<IBlockInventory, ConnectedInfo>)belt
-                .GetComponent<BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext>>()
-                .ConnectedTargets;
-            connectedTargets.Add(output, new ConnectedInfo());
-            var item = ServerContext.ItemStackFactory.Create(new ItemId(1), 1);
-            var remainder = beltComponent.InsertItem(item, InsertItemContext.Empty);
-            Assert.AreEqual(ItemMaster.EmptyItemId, remainder.Id);
-
-            // GameUpdaterを使わずBlockSystemの公開tick入口だけで搬送を進める
-            // Advance transport only through BlockSystem's public tick entry without GameUpdater
-            var beltParam = (BeltConveyorBlockParam)MasterHolder.BlockMaster
-                .GetBlockMaster(ForUnitTestModBlockId.BeltConveyorId)
-                .BlockParam;
-            var maxTicks = (int)GameUpdater.SecondsToTicks(beltParam.TimeOfItemEnterToExit) + 2;
-            for (var tick = 0; tick < maxTicks && !output.IsItemExists; tick++)
-            {
-                belt.TickUpdate();
-            }
-
-            Assert.True(output.IsItemExists);
+            // GameUpdaterを使わずMasterTickUpdater.Updateだけで回す。1回目で再構築・チェストの押し込み・ベルト1tickが走る
+            // Drive only MasterTickUpdater.Update without GameUpdater; the first call rebuilds, runs the chest push and one belt tick
+            // 1マス・速度6: 出口まで255。42回後に残り3、43回目に渡る
+            // One cell at speed 6: 255 to the exit; 3 away after 42 updates, handed over on update 43
+            for (var i = 0; i < 42; i++) masterTickUpdater.Update();
+            Assert.AreEqual(0, source.GetItem(0).Count);
+            Assert.AreEqual(0, CountOf(output, itemId));
+            masterTickUpdater.Update();
+            Assert.AreEqual(1, CountOf(output, itemId));
         }
     }
 }

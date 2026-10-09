@@ -1,4 +1,5 @@
 using Core.BeltTransport;
+using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.BeltConveyor.Topology;
 using Game.Block.Interface;
@@ -13,6 +14,10 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
     {
         private readonly IBlockInventory _inventory;
         private readonly InsertItemContext _context;
+        // 拒否されて出口で待つ個体のスタック。同じ個体が待ち続ける間は作り直さない
+        // The stack of the item rejected and waiting at the exit; not recreated while the same item keeps waiting
+        private IItemStack _waitingStack;
+        private ItemInstanceId _waitingInstanceId;
 
         // sourceBlockInstanceIdは搬出するベルコンのblock。コネクター対は接続から引き継ぐ
         // sourceBlockInstanceId is the emitting belt block; the connector pair comes from the connection
@@ -37,9 +42,15 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
 
         public bool TryReceive(BeltDirection inputDirection, int length, in BeltItem item)
         {
-            var stack = ServerContext.ItemStackFactory.Create(item.ItemId, 1, item.ItemInstanceId);
-            var remaining = _inventory.InsertItem(stack, _context);
-            return remaining.Id == ItemMaster.EmptyItemId;
+            if (_waitingStack == null || _waitingInstanceId != item.ItemInstanceId)
+            {
+                _waitingStack = ServerContext.ItemStackFactory.Create(item.ItemId, 1, item.ItemInstanceId);
+                _waitingInstanceId = item.ItemInstanceId;
+            }
+            var remaining = _inventory.InsertItem(_waitingStack, _context);
+            var accepted = remaining.Id == ItemMaster.EmptyItemId;
+            if (accepted) _waitingStack = null;
+            return accepted;
         }
     }
 }

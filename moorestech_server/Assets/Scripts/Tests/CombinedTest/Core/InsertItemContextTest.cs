@@ -1,14 +1,18 @@
-using Game.Block.Blocks.BeltConveyor.Connection;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Core.BeltTransport;
+using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
-using Game.Block.Blocks.BeltConveyor;
+using Game.Block.Blocks.BeltConveyor.Connection;
+using Game.Block.Blocks.BeltConveyor.Topology;
+using Game.Block.Blocks.BeltConveyor.Transport;
 using Game.Block.Blocks.Chest;
-using Game.Block.Blocks.Connector;
 using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
+using Game.Block.Interface.Component.ConnectJudge;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Mooresmaster.Model.BlocksModule;
@@ -18,7 +22,7 @@ using Server.Boot;
 using Tests.Module;
 using Tests.Module.TestMod;
 using UnityEngine;
-using Game.Block.Interface.Component.ConnectJudge;
+using static Tests.Util.BeltWorldTestUtil;
 
 namespace Tests.CombinedTest.Core
 {
@@ -35,58 +39,23 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void BeltConveyorToTargetInsertContextTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            var itemStackFactory = ServerContext.ItemStackFactory;
+            // 搬入チェスト→ベルト1マス→搬出チェストを組み、ベルトの搬出接続を取り出す
+            // Build source chest -> one belt cell -> target chest and take the belt's output connection
+            Place(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, -1), BlockDirection.North);
+            var belt = Place(ForUnitTestModBlockId.BeltConveyorId, Vector3Int.zero, BlockDirection.North);
+            var target = Place(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, 1), BlockDirection.North);
+            ServerContext.GetService<BeltTransportDatastore>().RebuildIfDirty();
 
-            // ベルトコンベアを作成（WorldBlockDatastoreに登録）
-            // Create belt conveyor (registered in WorldBlockDatastore)
-            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var beltConveyor);
-            var beltBlockInstanceId = beltConveyor.BlockInstanceId;
-            var beltConveyorComponent = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
-
-            // ターゲットとしてDummyBlockInventoryを使用（InsertItemContextを記録）
-            // Use DummyBlockInventory as target (records InsertItemContext)
-            var dummyTarget = new DummyBlockInventory();
-
-            // ベルトコンベア→ターゲットの接続を設定
-            // Set up belt conveyor → target connection
-            var selfConnector = CreateInventoryConnector(0);
-            var targetConnector = CreateInventoryConnector(1);
-            var connectedInfo = new ConnectedInfo(selfConnector, targetConnector, null);
-
-            var beltConnectorComponent = beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext>>();
-            var connectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)beltConnectorComponent.ConnectedTargets;
-            connectInventory.Clear();
-            connectInventory.Add(dummyTarget, connectedInfo);
-
-            // アイテムを挿入
-            // Insert item
-            var item = itemStackFactory.Create(new ItemId(1), 1);
-            beltConveyorComponent.InsertItem(item, InsertItemContext.Empty);
-
-            // アイテムが出力されるまで待つ
-            // Wait until item is output
-            while (dummyTarget.InsertedContexts.Count == 0) GameUpdater.UpdateOneTick();
-
-            // InsertItemContextが正しく設定されていることを確認
-            // Verify InsertItemContext is correctly set
+            // 搬出は送り元ベルトのblock・ベルトの出力コネクター・チェストの入力コネクターを文脈として渡す
+            // The handoff carries the emitting belt block, the belt's output connector and the chest's input connector as its context
+            var dummyTarget = HandOverThroughOutputLinkTo(target, Vector3Int.zero);
             Assert.AreEqual(1, dummyTarget.InsertedContexts.Count);
             var context = dummyTarget.InsertedContexts[0];
-
-            // SourceBlockInstanceIdがベルトコンベアのBlockInstanceIdと一致すること
-            // SourceBlockInstanceId matches belt conveyor's BlockInstanceId
-            Assert.AreEqual(beltBlockInstanceId, context.SourceBlockInstanceId);
-
-            // SourceConnectorが正しく設定されていること
-            // SourceConnector is correctly set
-            Assert.IsNotNull(context.SourceConnector);
-            Assert.AreEqual(selfConnector.ConnectorGuid, context.SourceConnector.ConnectorGuid);
-
-            // TargetConnectorが正しく設定されていること
-            // TargetConnector is correctly set
-            Assert.IsNotNull(context.TargetConnector);
-            Assert.AreEqual(targetConnector.ConnectorGuid, context.TargetConnector.ConnectorGuid);
+            Assert.AreEqual(belt.BlockInstanceId, context.SourceBlockInstanceId);
+            Assert.AreEqual(BeltOutputConnectorGuid(belt), context.SourceConnector.ConnectorGuid);
+            Assert.AreEqual(ChestInputConnectorGuid(target), context.TargetConnector.ConnectorGuid);
         }
 
         /// <summary>
@@ -112,9 +81,12 @@ namespace Tests.CombinedTest.Core
 
             // チェスト→ターゲットの接続を設定
             // Set up chest → target connection
+            // 接続一覧はベルト構成の再構築でも走査されるため、相手blockには離れた位置の実チェストを代役に置く
+            // The connection list is also walked by the belt layout rebuild, so a real chest placed far away stands in as the partner block
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, new Vector3Int(10, 0, 10), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var standInTargetBlock);
             var selfConnector = CreateInventoryConnector(0);
             var targetConnector = CreateInventoryConnector(1);
-            var connectedInfo = new ConnectedInfo(selfConnector, targetConnector, null);
+            var connectedInfo = new ConnectedInfo(selfConnector, targetConnector, standInTargetBlock);
 
             var chestConnectorComponent = chest.GetComponent<BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext>>();
             var connectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)chestConnectorComponent.ConnectedTargets;
@@ -151,110 +123,90 @@ namespace Tests.CombinedTest.Core
         }
 
         /// <summary>
-        /// ベルトコンベアがアイテムを受け取った際、PathIdがアイテムに設定されるかテスト
-        /// Test that PathId is set on item when belt conveyor receives item
+        /// ベルトコンベアは接続された機械からの押し込みだけを受け付けるテスト
+        /// Test that a belt conveyor accepts pushes only from a connected machine
         /// </summary>
         [Test]
-        public void BeltConveyorReceivesPathIdFromContextTest()
+        public void BeltConveyorAcceptsOnlyConnectedMachinePushTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var itemStackFactory = ServerContext.ItemStackFactory;
 
-            // ベルトコンベアを作成（WorldBlockDatastoreに登録）
-            // Create belt conveyor (registered in WorldBlockDatastore)
-            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var beltConveyor);
-            var beltConveyorComponent = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
+            // ベルトの背面に接続チェスト、離れた場所に未接続チェストを置く
+            // Put a connected chest behind the belt and an unconnected chest far away
+            var connected = Place(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, -1), BlockDirection.North);
+            var belt = Place(ForUnitTestModBlockId.BeltConveyorId, Vector3Int.zero, BlockDirection.North);
+            var unconnected = Place(ForUnitTestModBlockId.ChestId, new Vector3Int(10, 0, 10), BlockDirection.North);
+            ServerContext.GetService<BeltTransportDatastore>().RebuildIfDirty();
+            var beltInventory = Inventory(belt);
 
-            // InsertItemContextにPathIdを設定してベルトコンベアにアイテムを挿入
-            // Insert item into belt conveyor with PathId set in InsertItemContext
-            var sourceConnector = CreateInventoryConnector(0);
-            var targetConnector = CreateInventoryConnector(1);
-            var context = new InsertItemContext(new BlockInstanceId(99999), sourceConnector, targetConnector);
+            // 文脈なし・未接続の送り元は面の受け口が無いので、そのまま差し戻される
+            // No context or an unconnected source has no port for that face, so the stack comes back unchanged
+            var item = itemStackFactory.Create(new ItemId(1), 2);
+            Assert.AreEqual(2, beltInventory.InsertItem(item, InsertItemContext.Empty).Count);
+            Assert.AreEqual(2, beltInventory.InsertItem(item, new InsertItemContext(unconnected.BlockInstanceId, null, null)).Count);
+            Assert.AreEqual(0, ItemsOnSegmentAt(Vector3Int.zero).Length);
 
-            var item = itemStackFactory.Create(new ItemId(1), 1);
-            beltConveyorComponent.InsertItem(item, context);
-
-            // ベルトコンベアのアイテムにStartConnectorが設定されていることを確認
-            // Verify StartConnector is set on belt conveyor item
-            var beltItem = beltConveyorComponent.BeltConveyorItems[^1];
-            Assert.IsNotNull(beltItem);
-            Assert.IsNotNull(beltItem.StartConnector);
-            Assert.AreEqual(targetConnector.ConnectorGuid, beltItem.StartConnector.ConnectorGuid);
+            // 接続された機械からの押し込みは1個だけ入る
+            // A push from the connected machine enters exactly one item
+            Assert.AreEqual(1, beltInventory.InsertItem(item, new InsertItemContext(connected.BlockInstanceId, null, null)).Count);
+            Assert.AreEqual(1, ItemsOnSegmentAt(Vector3Int.zero).Length);
         }
 
         /// <summary>
-        /// チェスト→ベルトコンベア→ターゲットの全経路でInsertItemContextが正しく設定されるかテスト
-        /// Test that InsertItemContext is correctly set for the entire path: chest → belt conveyor → target
+        /// チェスト→複数マスのベルトコンベア→ターゲットの経路で、搬出の送り元が末尾マスのベルトになるかテスト
+        /// Test that on chest -> multi-cell belt -> target, the handoff source is the belt of the last cell
         /// </summary>
         [Test]
         public void ChestToBeltConveyorToTargetInsertContextTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            var itemStackFactory = ServerContext.ItemStackFactory;
+            // 入力チェスト→ベルト2マス→出力チェスト
+            // Input chest -> two belt cells -> output chest
+            var inputChest = Inventory(Place(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, -1), BlockDirection.North));
+            Place(ForUnitTestModBlockId.BeltConveyorId, Vector3Int.zero, BlockDirection.North);
+            var lastBelt = Place(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(0, 0, 1), BlockDirection.North);
+            var target = Place(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, 2), BlockDirection.North);
+            inputChest.SetItem(0, ServerContext.ItemStackFactory.Create(new ItemId(1), 1));
 
-            // 入力チェストを作成（WorldBlockDatastoreに登録）
-            // Create input chest (registered in WorldBlockDatastore)
-            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var inputChest);
-            var inputChestBlockInstanceId = inputChest.BlockInstanceId;
-            var inputChestComponent = inputChest.GetComponent<VanillaChestComponent>();
+            // 2マス・速度6: 進入距離1で出口まで511。85tick後に残り1、86tick目に出力チェストへ届く
+            // Two cells at speed 6: 511 to the exit; 1 away after 85 ticks, reaching the output chest on tick 86
+            GameUpdater.RunFrames(85);
+            Assert.AreEqual(0, CountOf(Inventory(target), new ItemId(1)));
+            GameUpdater.RunFrames(1);
+            Assert.AreEqual(1, CountOf(Inventory(target), new ItemId(1)));
 
-            // ベルトコンベアを作成（WorldBlockDatastoreに登録）
-            // Create belt conveyor (registered in WorldBlockDatastore)
-            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(0, 0, 1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var beltConveyor);
-            var beltBlockInstanceId = beltConveyor.BlockInstanceId;
-            var beltConveyorComponent = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
+            // 2マスは1つのsegmentになり、搬出の送り元は先頭でなく末尾マスのベルトになる
+            // The two cells form one segment, and the handoff source is the last cell's belt, not the head
+            var context = HandOverThroughOutputLinkTo(target, Vector3Int.zero).InsertedContexts[0];
+            Assert.AreEqual(lastBelt.BlockInstanceId, context.SourceBlockInstanceId);
+            Assert.AreEqual(BeltOutputConnectorGuid(lastBelt), context.SourceConnector.ConnectorGuid);
+            Assert.AreEqual(ChestInputConnectorGuid(target), context.TargetConnector.ConnectorGuid);
+        }
 
-            // 出力ターゲットとしてDummyBlockInventoryを使用
-            // Use DummyBlockInventory as output target
-            var dummyTarget = new DummyBlockInventory();
+        // 指定マスのsegmentから対象への搬出接続を、受け手だけDummyに差し替えた受け口へ1個渡す
+        // Hand one item through the segment's output connection to the target, with only the receiver swapped for a dummy
+        private static DummyBlockInventory HandOverThroughOutputLinkTo(IBlock target, Vector3Int segmentCell)
+        {
+            var layout = Assembly().Layouts.Single(l => l.Cells.Any(cell => cell.Position == segmentCell));
+            var link = layout.Outputs.Single(o => o.IsMachine && ReferenceEquals(o.Connection.PartnerBlock, target));
+            var c = link.Connection;
+            var dummy = new DummyBlockInventory();
+            var connection = new BeltTopologyConnection(c.Direction, c.EntryDirection, c.PartnerKind, c.PartnerBlock, c.PartnerCell, c.SourceConnector, c.TargetConnector, dummy);
+            var receiver = new BeltMachineReceiver(layout.Cells[layout.Cells.Length - 1].BlockInstanceId, connection);
+            Assert.IsTrue(receiver.TryReceive(link.Direction, 1, new BeltItem(new ItemId(1), ItemInstanceId.Create(), link.EntryDirection)));
+            return dummy;
+        }
 
-            // 入力チェスト→ベルトコンベアの接続を設定
-            // Set up input chest → belt conveyor connection
-            var inputChestConnector = CreateInventoryConnector(0);
-            var beltInputConnector = CreateInventoryConnector(1);
-            var inputChestConnectedInfo = new ConnectedInfo(inputChestConnector, beltInputConnector, beltConveyor);
+        private static Guid BeltOutputConnectorGuid(IBlock belt)
+        {
+            return ((BeltConveyorBlockParam)belt.BlockMasterElement.BlockParam).InventoryConnectors.OutputConnects[0].ConnectorGuid;
+        }
 
-            var inputChestConnectorComponent = inputChest.GetComponent<BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext>>();
-            var inputChestConnectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)inputChestConnectorComponent.ConnectedTargets;
-            inputChestConnectInventory.Clear();
-            inputChestConnectInventory.Add(beltConveyorComponent, inputChestConnectedInfo);
-
-            // ベルトコンベア→出力ターゲットの接続を設定
-            // Set up belt conveyor → output target connection
-            var beltOutputConnector = CreateInventoryConnector(0);
-            var targetInputConnector = CreateInventoryConnector(1);
-            var beltConnectedInfo = new ConnectedInfo(beltOutputConnector, targetInputConnector, null);
-
-            var beltConnectorComponent = beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext>>();
-            var beltConnectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)beltConnectorComponent.ConnectedTargets;
-            beltConnectInventory.Clear();
-            beltConnectInventory.Add(dummyTarget, beltConnectedInfo);
-
-            // 入力チェストにアイテムを設定
-            // Set item to input chest
-            var item = itemStackFactory.Create(new ItemId(1), 1);
-            inputChestComponent.SetItem(0, item);
-
-            // アイテムが最終ターゲットに届くまで待つ
-            // Wait until item reaches final target
-            while (dummyTarget.InsertedContexts.Count == 0) GameUpdater.UpdateOneTick();
-
-            // ベルトコンベアのアイテムに入力時のPathIdが設定されていることを確認
-            // Verify PathId from input is set on belt conveyor item (item already moved, check via dummy target)
-            // Note: Since item has moved to target, we check the context received by target
-
-            // 出力ターゲットが受け取ったInsertItemContextを確認
-            // Verify InsertItemContext received by output target
-            Assert.AreEqual(1, dummyTarget.InsertedContexts.Count);
-            var targetContext = dummyTarget.InsertedContexts[0];
-
-            // SourceBlockInstanceIdがベルトコンベアのBlockInstanceIdと一致すること（最後の送信元はベルトコンベア）
-            // SourceBlockInstanceId matches belt conveyor's BlockInstanceId (last sender is belt conveyor)
-            Assert.AreEqual(beltBlockInstanceId, targetContext.SourceBlockInstanceId);
-            Assert.AreEqual(beltOutputConnector.ConnectorGuid, targetContext.SourceConnector.ConnectorGuid);
-            Assert.AreEqual(targetInputConnector.ConnectorGuid, targetContext.TargetConnector.ConnectorGuid);
+        private static Guid ChestInputConnectorGuid(IBlock chest)
+        {
+            return ((ChestBlockParam)chest.BlockMasterElement.BlockParam).InventoryConnectors.InputConnects[0].ConnectorGuid;
         }
 
         private static IBlockConnector CreateInventoryConnector(int index)

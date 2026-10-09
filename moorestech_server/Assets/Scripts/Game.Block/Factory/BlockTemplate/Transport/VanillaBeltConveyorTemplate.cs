@@ -12,41 +12,34 @@ namespace Game.Block.Factory.BlockTemplate.Transport
     {
         public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] createParams)
         {
-            return GetBlock(null, blockMasterElement, blockInstanceId, blockPositionInfo);
+            return GetBlock(blockMasterElement, blockInstanceId, blockPositionInfo);
         }
-        
+
         public IBlock Load(Dictionary<string, object> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            //TODo UP bletからの入力を受付?
-            return GetBlock(componentStates, blockMasterElement, blockInstanceId, blockPositionInfo);
+            return GetBlock(blockMasterElement, blockInstanceId, blockPositionInfo);
         }
-        
-        private BlockSystem GetBlock(Dictionary<string, object> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+
+        private BlockSystem GetBlock(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var beltParam = blockMasterElement.BlockParam as BeltConveyorBlockParam;
-            
+
             var slopeType = beltParam.SlopeType switch
             {
                 BeltConveyorBlockParam.SlopeTypeConst.Up => BeltConveyorSlopeType.Up,
                 BeltConveyorBlockParam.SlopeTypeConst.Down => BeltConveyorSlopeType.Down,
                 BeltConveyorBlockParam.SlopeTypeConst.Straight => BeltConveyorSlopeType.Straight
             };
+
+            // 搬送の実体はワールド全体の組が持つ。blockは接続と機械からの搬入口だけを持つ
+            // Transport lives in the world-wide assembly; the block holds only its connections and the inlet for machines
             var connectorComponent = BeltInventoryConnectionContext.Create(beltParam.InventoryConnectors, blockPositionInfo, slopeType);
-            var beltConveyorConnector = new VanillaBeltConveyorBlockInventoryInserter(blockInstanceId, connectorComponent);
-            var itemCount = beltParam.BeltConveyorItemCount;
-            var time = beltParam.TimeOfItemEnterToExit;
-            
-            var beltComponent = componentStates == null ? 
-                new VanillaBeltConveyorComponent(itemCount, time, beltConveyorConnector, slopeType) : 
-                new VanillaBeltConveyorComponent(componentStates, itemCount, time, beltConveyorConnector, slopeType, beltParam.InventoryConnectors);
-            
-            
             var components = new List<IBlockComponent>
             {
-                beltComponent,
+                new BeltConveyorInventoryComponent(blockInstanceId),
                 connectorComponent
             };
-            
+
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
     }

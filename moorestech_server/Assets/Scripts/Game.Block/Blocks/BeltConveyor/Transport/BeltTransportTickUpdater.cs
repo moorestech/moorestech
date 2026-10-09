@@ -1,6 +1,3 @@
-using System;
-using Game.Block.Blocks.BeltConveyor.Topology.Layout;
-
 namespace Game.Block.Blocks.BeltConveyor.Transport
 {
     // ベルト搬送tickの唯一の入口。MasterTickUpdaterから全blockの更新の後に呼ばれる
@@ -11,18 +8,16 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
     // Belts have no per-block Update; every segment advances here
     public class BeltTransportTickUpdater
     {
-        private readonly BeltTransportAssembly _assembly;
+        private readonly BeltTransportDatastore _beltTransportDatastore;
 
-        public BeltTransportTickUpdater()
+        public BeltTransportTickUpdater(BeltTransportDatastore beltTransportDatastore)
         {
-            // ベルコンが1つも登録されていない組から始める
-            // Start from an assembly with no belts registered
-            _assembly = BeltTransportAssembler.Assemble(Array.Empty<BeltSegmentLayout>());
+            _beltTransportDatastore = beltTransportDatastore;
         }
 
         public void Update()
         {
-            _assembly.Simulation.Tick();
+            _beltTransportDatastore.Assembly.Simulation.Tick();
         }
     }
 }
