@@ -8,6 +8,8 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Construction;
 using Game.Construction;
 using Game.PlacementTarget;
+using Game.Blueprint;
+using Server.Protocol.PacketResponse;
 using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.UIState;
 using Client.WebUiHost.Game.Actions;
@@ -43,12 +45,13 @@ namespace Client.Tests.WebUi
             var unlockState = new AllPlacementTargetsUnlockedStateData();
             var blueprintGuid = Guid.Parse("70000000-0000-4000-8000-000000000001");
 
-            // 解放判定はResolverの責務のため、変換対象の設置対象一覧を直接渡して変換だけを検証する
-            // The unlock decision belongs to the resolver, so hand the targets in directly and verify only the conversion
-            var targets = new PlacementTargetCatalog(new BeltConveyorPlacementUnlockSourceMap())
-                .UnlockedEntries(unlockState, false, new[] { (blueprintGuid, "starter-base") })
-                .Select(PlacementTargetFactory.Create)
-                .ToList();
+            // BP本体を持つライブラリから解決した対象をDTOへ渡す
+            // Pass library-resolved targets with blueprint bodies into the DTO conversion
+            var library = new ClientBlueprintLibrary();
+            ((IList<BlueprintMessagePack>)library.Blueprints).Add(new BlueprintMessagePack(
+                new BlueprintJsonObject("starter-base", new(), new(), new(), blueprintGuid)));
+            var targets = new PlacementTargetResolver(new PlacementTargetCatalog(new BeltConveyorPlacementUnlockSourceMap()), library, unlockState)
+                .CreateUnlockedTargets();
             var dtos = BuildMenuEntryDtoFactory.CreateDtos(targets, new ConstructionWalletQuery(new ClientRemainingPlacementCountDatastore()), Array.Empty<IItemStack>(), new BlueprintThumbnailContainer());
 
             // 実マスタ規模で複数エントリが返ること（空リストでは以降の検証が無意味）
@@ -154,7 +157,7 @@ namespace Client.Tests.WebUi
         public void 撮影済みBPだけアイコンURLを出す()
         {
             var guid = Guid.NewGuid();
-            var target = new BlueprintPlacementTarget(guid, "test");
+            var target = new BlueprintPlacementTarget(guid, "test", new global::Game.Blueprint.BlueprintJsonObject());
             var thumbnails = new BlueprintThumbnailContainer();
 
             Assert.IsNull(BuildMenuEntryDtoFactory.ResolveIconUrl(target, thumbnails));

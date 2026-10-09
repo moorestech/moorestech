@@ -7,26 +7,42 @@ namespace Game.Blueprint
 {
     public static class BlueprintPasteCalculator
     {
-        public static List<BlueprintPlacementElement> CalculatePlacements(BlueprintJsonObject blueprint, Vector3Int pasteAnchor, int rotationStep)
+        public static List<BlueprintPlacementElement> CalculatePlacements(BlueprintJsonObject blueprint, Vector3Int origin, int rotationStep)
         {
             var result = new List<BlueprintPlacementElement>();
-            foreach (var block in blueprint.Blocks)
+            for (var blockIndex = 0; blockIndex < blueprint.Blocks.Count; blockIndex++)
             {
+                var block = blueprint.Blocks[blockIndex];
                 // マスタ欠損の警告は呼び出し側のBP解決時に一度出す。プレビュー毎フレームの計算では繰り返さない
                 // The caller logs missing master entries once when resolving a blueprint, avoiding per-frame preview spam
                 var blockId = MasterHolder.BlockMaster.GetBlockIdOrNull(block.BlockGuid);
                 if (blockId == null) continue;
 
                 var blockSize = MasterHolder.BlockMaster.GetBlockMaster(blockId.Value).BlockSize;
-                var element = CalcElement(block, blockId.Value, blockSize);
+                var element = CalcElement(blockIndex, block, blockId.Value, blockSize);
                 result.Add(element);
             }
 
+            // 回転後の外接箱最小角を指定原点へ平行移動する
+            // Translate the rotated extent's minimum corner to the requested origin
+            if (result.Count == 0) return result;
+            var rotatedMin = result[0].Position;
+            foreach (var element in result)
+            {
+                rotatedMin = Vector3Int.Min(rotatedMin, element.Position);
+            }
+
+            var shift = origin - rotatedMin;
+            for (var i = 0; i < result.Count; i++)
+            {
+                var element = result[i];
+                result[i] = new BlueprintPlacementElement(element.BlockIndex, element.Position + shift, element.Direction, element.BlockId, element.Settings);
+            }
             return result;
 
             #region Internal
 
-            BlueprintPlacementElement CalcElement(BlueprintBlockJsonObject block, BlockId blockId, Vector3Int blockSize)
+            BlueprintPlacementElement CalcElement(int blockIndex, BlueprintBlockJsonObject block, BlockId blockId, Vector3Int blockSize)
             {
                 var direction = (BlockDirection)block.Direction;
                 for (var i = 0; i < rotationStep; i++) direction = direction.HorizonRotation();
@@ -39,7 +55,7 @@ namespace Game.Blueprint
                 var rotatedMax = RotateOffset(maxOffset, rotationStep);
                 var newOrigin = Vector3Int.Min(rotatedOrigin, rotatedMax);
 
-                return new BlueprintPlacementElement(pasteAnchor + newOrigin, direction, blockId, block.Settings);
+                return new BlueprintPlacementElement(blockIndex, newOrigin, direction, blockId, block.Settings);
             }
 
             // 時計回り90度: (x, z) -> (z, -x)。HorizonRotation(North->East)と同回転

@@ -11,6 +11,7 @@ using Core.Master;
 using Game.Construction;
 using Game.PlacementTarget;
 using Mooresmaster.Model.BuildMenuModule;
+using Server.Protocol.PacketResponse.Util.Blueprint.Planning;
 
 namespace Client.WebUiHost.Game.Topics.BuildMenu
 {
@@ -51,11 +52,32 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                 // 財布へは1エントリ1回だけ問い合わせ、設置数表示と支払い免除の両方をここから導く
                 // Ask the wallet once per entry and derive both the set display and the payment waiver from it
                 var block = target as BlockPlacementTarget;
+                var blueprint = target as BlueprintPlacementTarget;
                 var walletStatus = block == null ? null : walletQuery.GetWalletStatus(block.BlockId);
 
-                // 無料設置デバッグはブロック設置だけを免除する（車両設置はこのフラグを見ない）
-                // The free-placement debug flag waives block placement only; train-car placement ignores it
-                var paymentWaived = (freeBlockPlacement && block != null) || (walletStatus?.CoversNextPlacement() ?? false);
+                // BPは重なりなし1個を貼り付けと同じ財布込み計算へ渡す
+                // Calculate one unobstructed blueprint with the same wallet-aware paste costs
+                var requiredItemDtos = BuildMenuMaterialAvailability.CreateRequiredItemDtos(target, heldByItem);
+                var blueprintPaymentWaived = false;
+                if (blueprint != null)
+                {
+                    var copies = new[] { BlueprintPasteCopyBuilder.BuildUnobstructed(blueprint.Blueprint) };
+                    var required = BlueprintPasteCostCalculator.CalcRequiredItems(copies, walletQuery, false);
+                    if (freeBlockPlacement)
+                    {
+                        // 一部有料なら免除後の必要数を表示し、チェーン不足を隠さない
+                        // For partial waivers, display the payable costs so chain shortages stay visible
+                        var payable = BlueprintPasteCostCalculator.CalcRequiredItems(copies, walletQuery, true);
+                        blueprintPaymentWaived = payable.Count == 0;
+                        if (!blueprintPaymentWaived) required = payable;
+                    }
+                    requiredItemDtos = BuildMenuMaterialAvailability.CreateRequiredItemDtos(required, heldByItem);
+                }
+
+                // 支払いを完全免除できるエントリだけ不足表示を免除する
+                // Suppress shortage display only for entries whose payment is completely waived
+                var paymentWaived = (freeBlockPlacement && block != null) || blueprintPaymentWaived
+                    || (walletStatus?.CoversNextPlacement() ?? false);
 
                 dtos.Add(new BuildMenuEntryDto
                 {
@@ -66,7 +88,7 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                     Label = target.Kind == PlacementTargetKind.Blueprint ? target.DisplayName : null,
                     CategoryGuid = categoryGuid.ToString("D"),
                     SubCategoryGuid = subCategoryGuid.ToString("D"),
-                    RequiredItems = BuildMenuMaterialAvailability.CreateRequiredItemDtos(target, heldByItem),
+                    RequiredItems = requiredItemDtos,
                     PaymentWaived = paymentWaived,
                     SetPlacement = ResolveSetPlacement(walletStatus),
                     IconUrl = ResolveIconUrl(target, thumbnails),

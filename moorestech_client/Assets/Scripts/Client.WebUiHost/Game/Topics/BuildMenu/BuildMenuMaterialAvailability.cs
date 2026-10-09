@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Core.Master;
+using Game.Construction;
 
 namespace Client.WebUiHost.Game.Topics.BuildMenu
 {
@@ -15,7 +15,15 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
         {
             // 合算と突き合わせは設置時判定と同じ唯一の定義へ委ねる
             // Aggregation and matching go through the same single definition placement uses
-            var requirements = ConstructionCostShortageCalculator.CalculateRequirements(target.CreateRequiredItems(), heldByItem);
+            var requiredItems = new List<(ItemId itemId, int count)>();
+            foreach (var (itemGuid, count) in target.CreateRequiredItems())
+                requiredItems.Add((MasterHolder.ItemMaster.GetItemId(itemGuid), count));
+            return CreateRequiredItemDtos(requiredItems, heldByItem);
+        }
+
+        public static List<BuildMenuRequiredItemDto> CreateRequiredItemDtos(IReadOnlyList<(ItemId itemId, int count)> requiredItems, IReadOnlyDictionary<ItemId, int> heldByItem)
+        {
+            var requirements = ConstructionMaterialAccounting.MatchRequirements(requiredItems, heldByItem);
 
             var itemDtos = new List<BuildMenuRequiredItemDto>();
             foreach (var (itemId, held, required) in requirements)

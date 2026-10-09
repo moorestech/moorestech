@@ -16,11 +16,11 @@ namespace Client.Tests.PlaceSystem.Common
         public void 別ブロックへ切替えると高さオフセットが0へ戻る()
         {
             var heightOffset = new PlacementHeightOffset();
-            var firstTarget = new BlueprintPlacementTarget(Guid.NewGuid(), "first");
+            var firstTarget = new BlueprintPlacementTarget(Guid.NewGuid(), "first", new global::Game.Blueprint.BlueprintJsonObject());
             heightOffset.SyncSelectedTarget(firstTarget);
             heightOffset.Adjust(5);
 
-            heightOffset.SyncSelectedTarget(new BlueprintPlacementTarget(Guid.NewGuid(), "second"));
+            heightOffset.SyncSelectedTarget(new BlueprintPlacementTarget(Guid.NewGuid(), "second", new global::Game.Blueprint.BlueprintJsonObject()));
 
             Assert.AreEqual(0, heightOffset.Value);
         }
@@ -29,7 +29,7 @@ namespace Client.Tests.PlaceSystem.Common
         public void 同じブロックの再選択では高さオフセットが保たれる()
         {
             var heightOffset = new PlacementHeightOffset();
-            var firstTarget = new BlueprintPlacementTarget(Guid.NewGuid(), "first");
+            var firstTarget = new BlueprintPlacementTarget(Guid.NewGuid(), "first", new global::Game.Blueprint.BlueprintJsonObject());
             heightOffset.SyncSelectedTarget(firstTarget);
             heightOffset.Adjust(5);
 
@@ -61,7 +61,7 @@ namespace Client.Tests.PlaceSystem.Common
             heightOffset.SyncSelectedTarget(new BlockPlacementTarget(sharedGuid, null));
             heightOffset.Adjust(3);
 
-            heightOffset.SyncSelectedTarget(new BlueprintPlacementTarget(sharedGuid, "blueprint"));
+            heightOffset.SyncSelectedTarget(new BlueprintPlacementTarget(sharedGuid, "blueprint", new global::Game.Blueprint.BlueprintJsonObject()));
 
             Assert.AreEqual(0, heightOffset.Value);
         }
@@ -70,7 +70,7 @@ namespace Client.Tests.PlaceSystem.Common
         public void ClearDragを挟んでも同一ブロックなら高さオフセットは保たれる()
         {
             var heightOffset = new PlacementHeightOffset();
-            var firstTarget = new BlueprintPlacementTarget(Guid.NewGuid(), "first");
+            var firstTarget = new BlueprintPlacementTarget(Guid.NewGuid(), "first", new global::Game.Blueprint.BlueprintJsonObject());
             heightOffset.SyncSelectedTarget(firstTarget);
             heightOffset.Adjust(5);
 

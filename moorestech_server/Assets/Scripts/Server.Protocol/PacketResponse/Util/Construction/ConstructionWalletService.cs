@@ -64,7 +64,7 @@ namespace Server.Protocol.PacketResponse.Util.Construction
             plan.Commit();
         }
 
-        private ConstructionWalletQuery GetQuery(int playerId)
+        public ConstructionWalletQuery GetQuery(int playerId)
         {
             if (_queries.TryGetValue(playerId, out var query)) return query;
             query = new ConstructionWalletQuery(_lookup.GetReader(playerId));

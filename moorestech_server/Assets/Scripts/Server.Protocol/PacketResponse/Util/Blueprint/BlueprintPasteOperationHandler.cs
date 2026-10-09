@@ -1,0 +1,98 @@
+using System;
+using System.Linq;
+using Common.Debug;
+using Game.Blueprint;
+using Game.Construction;
+using Game.PlacementTarget;
+using Game.PlayerInventory.Interface;
+using Game.UnlockState;
+using Microsoft.Extensions.DependencyInjection;
+using Server.Event.Notification;
+using Server.Protocol.PacketResponse.Util.Blueprint.Planning;
+using Server.Protocol.PacketResponse.Util.Construction;
+using UnityEngine;
+
+namespace Server.Protocol.PacketResponse.Util.Blueprint
+{
+    public class BlueprintPasteOperationHandler
+    {
+        private readonly IBlueprintDatastore _blueprints;
+        private readonly IPlayerInventoryDataStore _inventories;
+        private readonly IGameUnlockStateDataController _unlockState;
+        private readonly PlacementTargetCatalog _catalog;
+        private readonly ConstructionWalletService _wallet;
+        private readonly BlockCellPlacementExecutor _cells;
+        private readonly NotificationService _notifications;
+
+        public BlueprintPasteOperationHandler(ServiceProvider serviceProvider)
+        {
+            _blueprints = serviceProvider.GetRequiredService<IBlueprintDatastore>();
+            _inventories = serviceProvider.GetRequiredService<IPlayerInventoryDataStore>();
+            _unlockState = serviceProvider.GetRequiredService<IGameUnlockStateDataController>();
+            _catalog = serviceProvider.GetRequiredService<PlacementTargetCatalog>();
+            _wallet = serviceProvider.GetRequiredService<ConstructionWalletService>();
+            _cells = new BlockCellPlacementExecutor(_wallet);
+            _notifications = serviceProvider.GetRequiredService<NotificationService>();
+        }
+
+        public void Handle(BlueprintRequest request, int requesterPlayerId)
+        {
+            // 外部入力の回転・原点・識別子を配置前に検証する
+            // Validate external rotation, origins and identity before placement
+            if (!IsValid())
+            {
+                Debug.LogWarning($"[BlueprintPaste] invalid request rotation={request.RotationStep} origins={request.Origins?.Count} player={requesterPlayerId}");
+                Notify(BlueprintFailureReason.InvalidRequest, 0);
+                return;
+            }
+            var blueprint = _blueprints.Blueprints.FirstOrDefault(b => b.BlueprintGuid == Guid.Parse(request.BlueprintGuidStr));
+            if (blueprint == null)
+            {
+                Debug.LogWarning($"[BlueprintPaste] blueprint not found guid={request.BlueprintGuidStr} player={requesterPlayerId}");
+                Notify(BlueprintFailureReason.NotFound, 0);
+                return;
+            }
+
+            // サーバーには地形がないため、送信原点は地形解決済みとする
+            // The server has no terrain; incoming origins have already resolved it
+            var waived = DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement);
+            var inventory = _inventories.GetInventoryData(requesterPlayerId).MainOpenableInventory;
+            var world = new ServerBlueprintPasteWorld(_catalog, _unlockState, waived);
+            var origins = request.Origins.ConvertAll(origin => new BlueprintPasteOrigin(origin.Vector3Int, true));
+            var plan = BlueprintPastePlanner.Plan(blueprint, origins, request.RotationStep, world,
+                _wallet.GetQuery(requesterPlayerId), ConstructionMaterialAccounting.TallyHeld(inventory.InventoryItems));
+
+            // 判定拒否と実行中の失敗を操作単位で通知する
+            // Report rejected copies and execution failures once per operation
+            var result = BlueprintPasteExecutor.Execute(plan, requesterPlayerId, _cells, inventory);
+            NotifyIfAny(BlueprintFailureReason.PasteCostShortage, plan.CountCopies(BlueprintPasteCopyState.MaterialShortage) + result.CostShortageCopyCount);
+            NotifyIfAny(BlueprintFailureReason.PasteNotUnlocked, plan.CountCopies(BlueprintPasteCopyState.NotUnlocked));
+            NotifyIfAny(BlueprintFailureReason.PasteLineFailed, result.FailedLineCount);
+            NotifyIfAny(BlueprintFailureReason.PastePlacementFailed, result.PlacementFailedCopyCount);
+
+            #region Internal
+
+            bool IsValid()
+            {
+                return 0 <= request.RotationStep && request.RotationStep < 4 &&
+                       request.Origins != null && 0 < request.Origins.Count && request.Origins.Count <= BlueprintRequest.MaxPasteOrigins &&
+                       request.Origins.All(origin => origin != null) && Guid.TryParse(request.BlueprintGuidStr, out _);
+            }
+
+            void NotifyIfAny(BlueprintFailureReason reason, int count)
+            {
+                if (count == 0) return;
+                Debug.LogWarning($"[BlueprintPaste] rejected {reason} count={count} player={requesterPlayerId}");
+                Notify(reason, count);
+            }
+
+            void Notify(BlueprintFailureReason reason, int count)
+            {
+                _notifications.Notify(requesterPlayerId,
+                    NotificationMessagePack.CreateOperationDenied($"denied.blueprint.{reason}", new[] { count.ToString() }));
+            }
+
+            #endregion
+        }
+    }
+}

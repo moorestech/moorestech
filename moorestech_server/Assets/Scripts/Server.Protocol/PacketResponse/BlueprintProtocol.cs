@@ -6,13 +6,15 @@ using Game.UnlockState;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Event.Notification;
+using Server.Protocol.PacketResponse.Util.Blueprint;
+using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
 {
     /// <summary>
-    /// ・BP作成/一覧取得/削除
+    /// ・BP作成/一覧取得/削除/貼り付け
     /// ・Operationで分岐
-    /// Protocol for creating, listing, and deleting blueprints; dispatches by Operation.
+    /// Protocol for creating, listing, deleting, and pasting blueprints; dispatches by Operation.
     /// </summary>
     public class BlueprintProtocol : IPacketResponse
     {
@@ -21,12 +23,14 @@ namespace Server.Protocol.PacketResponse
         private readonly IBlueprintDatastore _blueprintDatastore;
         private readonly IGameUnlockStateData _gameUnlockState;
         private readonly NotificationService _notificationService;
+        private readonly BlueprintPasteOperationHandler _pasteHandler;
 
         public BlueprintProtocol(ServiceProvider serviceProvider)
         {
             _blueprintDatastore = serviceProvider.GetService<IBlueprintDatastore>();
             _gameUnlockState = serviceProvider.GetService<IGameUnlockStateData>();
             _notificationService = serviceProvider.GetService<NotificationService>();
+            _pasteHandler = new BlueprintPasteOperationHandler(serviceProvider);
         }
 
         public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
@@ -41,6 +45,8 @@ namespace Server.Protocol.PacketResponse
                     return SuccessResponse(null);
                 case BlueprintOperation.Delete:
                     return HandleDelete(request);
+                case BlueprintOperation.Paste:
+                    return HandlePaste(request);
                 default:
                     return FailResponse(BlueprintFailureReason.UnknownOperation);
             }
@@ -64,6 +70,19 @@ namespace Server.Protocol.PacketResponse
                 // Returns the issued GUID; the name is untouched so there is nothing to report back
                 var registeredGuid = _blueprintDatastore.Register(blueprint);
                 return SuccessResponse(registeredGuid.ToString());
+            }
+
+            ProtocolMessagePackBase HandlePaste(BlueprintRequest req)
+            {
+                // BP機能の解放は無料設置でも必要
+                // Blueprint availability is required even with free placement
+                if (!_gameUnlockState.IsBlueprintUnlocked)
+                {
+                    Debug.LogWarning($"[BlueprintPaste] blueprint feature not unlocked player={requesterPlayerId}");
+                    return NotUnlockedResponse();
+                }
+                _pasteHandler.Handle(req, requesterPlayerId);
+                return null;
             }
 
             ProtocolMessagePackBase HandleDelete(BlueprintRequest req)

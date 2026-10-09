@@ -29,7 +29,7 @@ namespace Server.Protocol.PacketResponse
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly IGameUnlockStateDataController _gameUnlockStateDataController;
         private readonly NotificationService _notificationService;
-        private readonly ConstructionWalletService _constructionWallet;
+        private readonly BlockCellPlacementExecutor _cellPlacementExecutor;
         private readonly PlacementTargetCatalog _placementTargetCatalog;
 
         public PlaceBlockProtocol(ServiceProvider serviceProvider)
@@ -37,7 +37,7 @@ namespace Server.Protocol.PacketResponse
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
             _gameUnlockStateDataController = serviceProvider.GetService<IGameUnlockStateDataController>();
             _notificationService = serviceProvider.GetService<NotificationService>();
-            _constructionWallet = serviceProvider.GetService<ConstructionWalletService>();
+            _cellPlacementExecutor = new BlockCellPlacementExecutor(serviceProvider.GetService<ConstructionWalletService>());
             _placementTargetCatalog = serviceProvider.GetService<PlacementTargetCatalog>();
         }
 
@@ -64,7 +64,7 @@ namespace Server.Protocol.PacketResponse
 
             // ドラッグ設置でセル数分に増幅させないため、財布の変更通知は最後に1通へ集約する
             // Collapse the wallet notifications into one at the very end so a drag never amplifies them per cell
-            _constructionWallet.FlushRemainingCountChanges();
+            _cellPlacementExecutor.FlushRemainingCountChanges();
 
             if (0 < notUnlockedCount) _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.placeBlockNotUnlocked", Array.Empty<string>()));
             if (0 < costShortageCount) _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.placeBlockCostShortage", Array.Empty<string>()));
@@ -93,8 +93,8 @@ namespace Server.Protocol.PacketResponse
                 // 財布に問い合わせ、賄えないセルはスキップ
                 // Ask the wallet; skip cells it cannot cover
                 var inventory = inventoryData.MainOpenableInventory;
-                var placementPlan = _constructionWallet.PlanPlacement(placeBlockId, requesterPlayerId);
-                if (!isFreePlacement && !ConstructionCostService.HasRequiredItems(placementPlan.ItemsToConsume, inventory.InventoryItems)) { costShortageCount++; LogRestoreSkip(placeInfo, "construction cost shortage"); return; }
+                var cellPlacement = _cellPlacementExecutor.PlanCell(placeBlockId, requesterPlayerId, inventory, isFreePlacement);
+                if (!cellPlacement.IsAffordable) { costShortageCount++; LogRestoreSkip(placeInfo, "construction cost shortage"); return; }
 
                 // 自動接続の電気ブロックだけ事前検証
                 // Validate wiring only for auto-connect electric blocks
@@ -104,17 +104,13 @@ namespace Server.Protocol.PacketResponse
                 {
                     // 建設コストで消費予定の素材を予約として渡し、電線の所持数判定から除外する
                     // Pass construction-cost materials as reservations to exclude them from wire availability
-                    plan = ElectricWireAutoConnectService.EvaluateAutoConnect(placeBlockId, placeInfo.Position, placeInfo.Direction, placementPlan.ItemsToConsume, inventory.InventoryItems, isFreePlacement);
+                    plan = ElectricWireAutoConnectService.EvaluateAutoConnect(placeBlockId, placeInfo.Position, placeInfo.Direction, cellPlacement.ItemsToConsume, inventory.InventoryItems, isFreePlacement);
                     if (!plan.IsPlaceable) { wireShortageCount++; LogRestoreSkip(placeInfo, "wire shortage"); return; }
                 }
 
                 // 設置に失敗した場合はコストを消費しない
                 // Do not consume the cost when placement fails
-                if (!ServerContext.WorldBlockDatastore.TryAddBlock(placeBlockId, placeInfo.Position, placeInfo.Direction, createParams, out var block)) { CountRestoreFailure(placeInfo, "TryAddBlock failed"); return; }
-
-                // 無料設置は支払わない。支払者記録も残らないため撤去時の返金は従来どおり
-                // Free placement pays nothing; no payer record is kept, so the removal refund behaves as before
-                if (!isFreePlacement) _constructionWallet.CommitPlacement(placementPlan, inventory, block.BlockInstanceId);
+                if (!_cellPlacementExecutor.TryPlaceCell(cellPlacement, placeBlockId, placeInfo.Position, placeInfo.Direction, createParams, inventory, out var block)) { CountRestoreFailure(placeInfo, "TryAddBlock failed"); return; }
 
                 // 計画を実行しワイヤー消費
                 // Execute the validated plan: add wires and consume wire items

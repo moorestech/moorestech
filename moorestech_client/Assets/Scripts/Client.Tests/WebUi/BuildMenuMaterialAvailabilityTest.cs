@@ -51,6 +51,19 @@ namespace Client.Tests.WebUi
             Assert.IsTrue(dtos[0].Lacking);
         }
 
+        [Test]
+        public void ItemId版でも重複素材は合算して所持と突き合わせる()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var itemId = MasterHolder.ItemMaster.GetItemId(MasterHolder.ItemMaster.Items.Data[0].ItemGuid);
+            var rows = BuildMenuMaterialAvailability.CreateRequiredItemDtos(new[] { (itemId, 3), (itemId, 3) },
+                new Dictionary<ItemId, int> { { itemId, 4 } });
+            Assert.AreEqual(1, rows.Count);
+            Assert.AreEqual(6, rows[0].Count);
+            Assert.AreEqual(4, rows[0].Held);
+            Assert.IsTrue(rows[0].Lacking);
+        }
+
         /// <summary>
         /// 必要素材を任意に並べるスタブ。実マスタは重複itemGuidを持たない
         /// Stub that lists arbitrary required items; the real master holds no duplicate itemGuid

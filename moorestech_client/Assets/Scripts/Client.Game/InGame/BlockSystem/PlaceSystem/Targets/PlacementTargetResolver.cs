@@ -33,8 +33,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
             foreach (var entry in UnlockedEntries())
             {
                 if (entry.Id != id) continue;
-                target = PlacementTargetFactory.Create(entry);
-                return true;
+                return PlacementTargetFactory.TryCreate(entry, _blueprintLibrary, out target);
             }
 
             target = null;
@@ -48,7 +47,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
             var targets = new List<IPlacementTarget>();
             foreach (var entry in UnlockedEntries())
             {
-                targets.Add(PlacementTargetFactory.Create(entry));
+                if (PlacementTargetFactory.TryCreate(entry, _blueprintLibrary, out var target)) targets.Add(target);
             }
 
             return targets;
@@ -60,6 +59,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
         {
             var showAllPlaceable = DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement);
             return _catalog.IsBlockUnlocked(blockGuid, _gameUnlockStateData, showAllPlaceable);
+        }
+
+        // 線種は無料設置でも解放を免除せずカタログで判定する
+        // The catalog still requires connection-tool unlocks during free placement
+        public bool IsConnectToolUnlocked(Guid connectToolGuid)
+        {
+            return _catalog.TryGetMasterEntry(connectToolGuid, out var entry) && entry.Kind == PlacementTargetKind.ConnectTool
+                && _catalog.IsAssignable(connectToolGuid, _gameUnlockStateData, false, Array.Empty<Guid>());
         }
 
         // 解放判定と無料設置デバッグを一箇所で解決する。呼び出し側は解放条件を再実装しない
