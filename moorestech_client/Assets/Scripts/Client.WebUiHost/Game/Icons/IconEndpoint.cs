@@ -9,8 +9,8 @@ using UnityEngine;
 namespace Client.WebUiHost.Game.Icons
 {
     /// <summary>
-    /// Item/Block/TrainCar/ConnectTool/Fluid アイコン配信の共通実装（キャッシュ・ETag・304・PNGエンコード）
-    /// Shared delivery logic for Item/Block/TrainCar/ConnectTool/Fluid icons (cache, ETag, 304, PNG encoding)
+    /// 各種アイコン配信の共通実装
+    /// Shared delivery logic for icons
     /// </summary>
     public static class IconEndpoint
     {
@@ -22,7 +22,8 @@ namespace Client.WebUiHost.Game.Icons
             new BlockIconSource(),
             new TrainCarIconSource(),
             new ConnectToolIconSource(),
-            new FluidIconSource()
+            new FluidIconSource(),
+            new BlueprintIconSource()
         };
 
         // PathPrefix + キー文字列をキーにして source 横断で1本にまとめる

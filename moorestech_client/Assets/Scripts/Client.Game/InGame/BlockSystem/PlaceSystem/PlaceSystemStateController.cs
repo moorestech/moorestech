@@ -107,6 +107,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 if (!_currentPlaceSystem.UsesPlacementHeight) _placementHeightOffset.ResetToGround();
             }
 
+            // 旧系のDisableがドラッグ高さを復元した後に、持ち替えの高さを決める
+            // Resolve target height after the old system's Disable restores its drag height
+            if (isSelectionChanged) _placementHeightOffset.SyncSelectedTarget(CurrentTarget);
+
             _currentPlaceSystem.ManualUpdate(updateContext);
 
             // 消費の有無はドラッグ中など毎フレーム変わりうるため、更新後の実状態をここで取り込む

@@ -45,7 +45,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var fromConnector = fromPole.GetComponent<IElectricWireConnector>();
             var newConnector = ServerContext.WorldBlockDatastore.GetBlock(newPolePos).GetComponent<IElectricWireConnector>();
             Assert.IsTrue(fromConnector.ContainsWireConnection(newConnector.BlockInstanceId));
-            Assert.AreEqual(0, fromConnector.WireConnections[newConnector.BlockInstanceId].Cost.TotalCount);
+            Assert.AreEqual(0, fromConnector.WireConnections[newConnector.BlockInstanceId].Record.TotalCount);
             Assert.AreEqual(0, CountItem(inventory, _wireItemId));
         }
 
@@ -65,7 +65,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.IsTrue(response.IsSuccess, response.FailureReason.ToString());
             var connectorA = poleA.GetComponent<IElectricWireConnector>();
             var connectorB = poleB.GetComponent<IElectricWireConnector>();
-            Assert.AreEqual(0, connectorA.WireConnections[connectorB.BlockInstanceId].Cost.TotalCount);
+            Assert.AreEqual(0, connectorA.WireConnections[connectorB.BlockInstanceId].Record.TotalCount);
         }
     }
 }

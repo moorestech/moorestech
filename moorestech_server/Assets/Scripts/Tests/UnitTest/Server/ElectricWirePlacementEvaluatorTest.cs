@@ -91,8 +91,8 @@ namespace Tests.UnitTest.Server
 
             Assert.True(judgement.IsPlaceable);
             Assert.AreEqual(ElectricWirePlacementFailureReason.None, judgement.FailureReason);
-            Assert.AreEqual(_wireItemId, judgement.WireCost.Materials[0].ItemId);
-            Assert.AreEqual(6, judgement.WireCost.Materials[0].Count);
+            Assert.AreEqual(_wireItemId, judgement.WireRecord.Materials[0].ItemId);
+            Assert.AreEqual(6, judgement.WireRecord.Materials[0].Count);
         }
 
         [Test]
@@ -122,17 +122,18 @@ namespace Tests.UnitTest.Server
                 new List<ConnectToolMaterialCost> { new(_wireItemId, 1) }, false);
 
             Assert.True(judgement.IsPlaceable);
-            Assert.AreEqual(5, judgement.WireCost.TotalCount);
+            Assert.AreEqual(5, judgement.WireRecord.TotalCount);
         }
 
         [Test]
-        public void TryCalculateWireCostは距離を切り上げてコストを算出する()
+        public void TryCreateWireRecordは距離を切り上げて記録を作る()
         {
-            var succeeded = ElectricWirePlacementEvaluator.TryCalculateWireCost(ConnectToolGuid, 3.2f, out var cost);
+            var succeeded = ElectricWirePlacementEvaluator.TryCreateWireRecord(ConnectToolGuid, 3.2f, out var cost);
 
             Assert.True(succeeded);
             Assert.AreEqual(_wireItemId, cost.Materials[0].ItemId);
             Assert.AreEqual(4, cost.Materials[0].Count);
+            Assert.AreEqual(ConnectToolGuid, cost.ConnectToolGuid);
         }
 
         private static List<IItemStack> CreateInventory(ItemId itemId, int count)

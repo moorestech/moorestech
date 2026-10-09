@@ -1,10 +1,10 @@
+using Game.Block.Interface.Component;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Construction;
-using Game.EnergySystem;
 using Server.Protocol.PacketResponse.Util.ConnectTool;
 
 namespace Server.Protocol.PacketResponse.Util.ElectricWire.Placement
@@ -42,21 +42,28 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.Placement
 
             // 無料設置は所持を問わずコスト0の接続として記録し、撤去時にも素材を返さない
             // Free placement ignores holdings and records a zero-cost wire, so removal refunds nothing either
-            if (isFreePlacement) return ElectricWirePlacementJudgement.Success(ElectricWireConnectionCost.Empty);
+            if (isFreePlacement) return ElectricWirePlacementJudgement.Success(CreateFreeRecord(connectToolGuid));
 
             // 予約分を上乗せした必要数を所持が満たすかは共有の正本へ委ねる
             // Whether the held count covers the requirement plus the reservation is delegated to the shared definition
             if (!ConstructionMaterialAccounting.HasEnough(materials, items, reservedMaterials))
                 return ElectricWirePlacementJudgement.Failure(ElectricWirePlacementFailureReason.NoWireItem);
 
-            return ElectricWirePlacementJudgement.Success(new ElectricWireConnectionCost(materials));
+            return ElectricWirePlacementJudgement.Success(new ConnectionLineRecord(connectToolGuid, materials));
         }
 
-        public static bool TryCalculateWireCost(Guid connectToolGuid, float distance, out ElectricWireConnectionCost cost)
+        // 無料設置の接続線記録。引き直し用にツール種別は保ち、払った素材は空にする
+        // Record for a free-placement line: keeps the tool type for re-drawing, with no paid materials
+        public static ConnectionLineRecord CreateFreeRecord(Guid connectToolGuid)
         {
-            cost = ElectricWireConnectionCost.Empty;
+            return new ConnectionLineRecord(connectToolGuid, Array.Empty<ConnectToolMaterialCost>());
+        }
+
+        public static bool TryCreateWireRecord(Guid connectToolGuid, float distance, out ConnectionLineRecord record)
+        {
+            record = default;
             if (!ConnectToolCostCalculator.TryCalculate(connectToolGuid, distance, out var materials)) return false;
-            cost = new ElectricWireConnectionCost(materials);
+            record = new ConnectionLineRecord(connectToolGuid, materials);
             return true;
         }
     }

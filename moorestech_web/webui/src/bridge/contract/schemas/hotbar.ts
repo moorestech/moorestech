@@ -17,12 +17,12 @@ const HotbarBlueprintCopySlotSchema = z.object({
   label: z.never().optional(),
 }).strict();
 
-// ユーザー命名BPのみ原文labelを運ぶ
-// Only user-named blueprints lack a dictionary key, so they carry their raw label
+// iconUrlは撮影後のみ付く
+// User-named blueprints carry their raw label and receive iconUrl only after photography
 const HotbarBlueprintSlotSchema = z.object({
   kind: z.literal("blueprint"),
   id: GuidSchema,
-  iconUrl: z.never().optional(),
+  iconUrl: z.string().optional(),
   label: z.string().min(1),
 }).strict();
 

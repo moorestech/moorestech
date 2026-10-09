@@ -9,6 +9,12 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
     public class ElectricWireLineView : ConnectionLineViewBase<ElectricWireLineViewElement>
     {
         private const string WireLinePrefabAddress = "Vanilla/Block/Util/ElectricWireLine";
+        private readonly IConnectionLineCommands _commands = new ElectricWireLineCommands();
+
+        protected override IConnectionLineCommands GetLineCommands()
+        {
+            return _commands;
+        }
 
         protected override string GetLinePrefabAddress()
         {

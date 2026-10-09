@@ -52,8 +52,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 支払いが無いので消費も記録も0、撤去時の返却も0
             // Nothing was paid, so nothing is consumed, recorded or refunded
             Assert.AreEqual(0, GetWireCount(inventory));
-            foreach (var connection in poleA.WireConnections.Values) Assert.AreEqual(0, connection.Cost.TotalCount);
-            foreach (var connection in machine.WireConnections.Values) Assert.AreEqual(0, connection.Cost.TotalCount);
+            foreach (var connection in poleA.WireConnections.Values) Assert.AreEqual(0, connection.Record.TotalCount);
+            foreach (var connection in machine.WireConnections.Values) Assert.AreEqual(0, connection.Record.TotalCount);
             Assert.AreEqual(0, ((IGetRefundItemsInfo)poleA).GetRefundItems().Count);
         }
 

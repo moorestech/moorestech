@@ -45,25 +45,26 @@ namespace Game.MapGeneration.Pipeline.Visual
         public static Result CreateForClient(
             TerrainGenerationConfig config, GeneratedTerrainTransferMeta terrainMeta, Generation selectedGeneration)
         {
-            var ledgerSource = new RegeneratedPlacementLedgerSource(selectedGeneration, config);
+            var savedConfig = config.ShallowCopy();
+            var runSource = new RegeneratedGenerationRunSource(selectedGeneration, savedConfig);
             return CreateWithHeightSource(
-                config, terrainMeta, ledgerSource, selectedGeneration, SharedCacheOf(terrainMeta));
+                config, terrainMeta, runSource, selectedGeneration, SharedCacheOf(terrainMeta));
         }
 
         // 先焼きの高さ源はワールド本体のterrain/(生成した本人が唯一の正)。共有キャッシュへの複製は要らない
         // The prebake's height source is the world's own terrain/ (the generator itself is the sole truth); no copy into the shared cache is needed
         public static Result CreateForPrebake(
             TerrainGenerationConfig config, GeneratedTerrainTransferMeta terrainMeta,
-            PlacementLedger ledger, Generation selectedGeneration, WorldDataDirectory worldDataDirectory)
+            GenerationRun generatedRun, Generation selectedGeneration, WorldDataDirectory worldDataDirectory)
         {
-            var ledgerSource = new MaterializedPlacementLedgerSource(ledger);
+            var runSource = new MaterializedGenerationRunSource(generatedRun);
             return CreateWithHeightSource(
-                config, terrainMeta, ledgerSource, selectedGeneration, worldDataDirectory);
+                config, terrainMeta, runSource, selectedGeneration, worldDataDirectory);
         }
 
         private static Result CreateWithHeightSource(
             TerrainGenerationConfig config, GeneratedTerrainTransferMeta terrainMeta,
-            IPlacementLedgerSource ledgerSource, Generation selectedGeneration, WorldDataDirectory heightSource)
+            IGenerationRunSource runSource, Generation selectedGeneration, WorldDataDirectory heightSource)
         {
             // payloadは常にメタの持ち物。別引数で受けると不整合な対を組める余地が残るのでここで1度だけ読む
             // The payload always belongs to the meta; taking it as a separate argument would allow an inconsistent pair, so it is read here once
@@ -81,10 +82,12 @@ namespace Game.MapGeneration.Pipeline.Visual
 
             // 台帳の指紋はワールド作成時に確定して転送メタが運ぶ。鍵のためだけにpass-1を回さない
             // The ledger digest is settled at world creation and carried by the transfer meta, so the key alone never triggers a pass-1
+            // 表示連鎖を変えるときは新しいWorldGeneratorVersionとして扱い、鍵の版軸は生成器版の1本に保つ
+            // A change to the display chain is a new WorldGeneratorVersion, so the key keeps the generator version as its only version axis
             var cacheKey = TerrainVisualCacheKey.Compute(
                 generatedPayload.GenerationMasterFingerprint, config.seed, generatedPayload.Origins,
                 terrainMeta.TerrainResolution, generatedPayload.GeneratorVersion, generatedPayload.PlacementLedgerDigest);
-            var baker = new TileVisualBaker(gridConfig, biomeTypes, visualSections, layerTable, treeSurroundSpecies, ledgerSource,
+            var baker = new TileVisualBaker(gridConfig, biomeTypes, visualSections, layerTable, treeSurroundSpecies, runSource,
                 generatedPayload.PlacementLedgerDigest, heightSource, new TerrainVisualCache(SharedCacheOf(terrainMeta), cacheKey));
 
             return new Result(baker, gridConfig, layerTable.OrderedLayerAddresses);

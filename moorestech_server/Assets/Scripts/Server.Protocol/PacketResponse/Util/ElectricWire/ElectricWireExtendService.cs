@@ -142,16 +142,16 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
                 var reservedMaterials = isFreePlacement ? null : ConnectToolMaterialConsumer.ToMaterials(costItemCounts);
                 var wireJudgement = ElectricWirePlacementEvaluator.EvaluateWireConnection(distance, false, false, connectToolGuid, inventory.InventoryItems, reservedMaterials, isFreePlacement);
                 if (!wireJudgement.IsPlaceable) return ElectricWireExtendResult.Failure(wireJudgement.FailureReason);
-                var wireCost = wireJudgement.WireCost;
+                var wireRecord = wireJudgement.WireRecord;
 
                 // 検証をすべて通過したのでここから状態を変更する
                 // All validation passed; start mutating state from here
-                if (!ElectricWirePolePlacer.TryPlace(polePlaceInfo, poleBlockId, out var selfConnector))
+                if (!ElectricWirePolePlacement.TryPlace(polePlaceInfo, poleBlockId, out var selfConnector))
                     return ElectricWireExtendResult.Failure(ElectricWirePlacementFailureReason.PositionOccupied);
 
                 // 起点1本が張れなければ配線なしの成功で潰さず失敗として返す（素材も建設コストも消費しない）
                 // If the single origin wire cannot be strung, report failure instead of a wireless success; nothing is consumed
-                if (!ElectricWireSystemUtil.TryConnectBothSides(selfConnector, fromConnector, wireCost))
+                if (!ElectricWireSystemUtil.TryConnectBothSides(selfConnector, fromConnector, wireRecord))
                 {
                     // 事前検証済みのため通常到達しないが、孤立電柱を残さないよう設置を取り消す（前例: GearChainPoleExtendProtocol）
                     // Unreachable after pre-validation; remove the block to avoid leaving an orphan pole (precedent: GearChainPoleExtendProtocol)
@@ -161,7 +161,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
 
                 // 電線素材と建設コストを消費する（dirty化は接続処理内で行われる）
                 // Consume the wire materials and the construction cost; the connection mutation itself marks the topology dirty
-                ConnectToolMaterialConsumer.Consume(wireCost.Materials, inventory);
+                ConnectToolMaterialConsumer.Consume(wireRecord.Materials, inventory);
                 CommitConstructionCost(selfConnector);
 
                 return ElectricWireExtendResult.Success(polePlaceInfo.Position, selfConnector.BlockInstanceId.AsPrimitive());
@@ -173,7 +173,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
             {
                 if (!TryValidatePolePlacement(out var placementFailure)) return ElectricWireExtendResult.Failure(placementFailure);
 
-                if (!ElectricWirePolePlacer.TryPlace(polePlaceInfo, poleBlockId, out var selfConnector))
+                if (!ElectricWirePolePlacement.TryPlace(polePlaceInfo, poleBlockId, out var selfConnector))
                     return ElectricWireExtendResult.Failure(ElectricWirePlacementFailureReason.PositionOccupied);
 
                 // 建設コストのみ消費する

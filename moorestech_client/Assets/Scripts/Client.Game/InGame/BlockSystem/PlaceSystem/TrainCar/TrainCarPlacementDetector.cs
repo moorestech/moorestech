@@ -114,7 +114,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
             // レールID付きコライダーをレイキャストで取得する
             // Raycast to obtain the rail collider that carries the object id
-            if (!PlaceSystemUtil.TryGetRaySpecifiedComponentHitPosition<RailObjectIdCarrier>(_mainCamera, out var hitPosition, out var railCarrier, Without_Player_MapObject_BlockBoundingBox_LayerMask))
+            if (!PlaceSystemRaycastUtil.TryGetRaySpecifiedComponentHitPosition<RailObjectIdCarrier>(_mainCamera, out var hitPosition, out var railCarrier, Without_Player_MapObject_BlockBoundingBox_LayerMask))
             {
                 return false;
             }

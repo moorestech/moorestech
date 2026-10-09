@@ -113,8 +113,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
             // Returns a cost on success or failure (failure derives it from distance)
             int ResolveCostCount()
             {
-                if (judgement.IsPlaceable) return judgement.WireCost.TotalCount;
-                return ElectricWirePlacementEvaluator.TryCalculateWireCost(connectToolGuid, distance, out var cost) ? cost.TotalCount : 0;
+                if (judgement.IsPlaceable) return judgement.WireRecord.TotalCount;
+                return ElectricWirePlacementEvaluator.TryCreateWireRecord(connectToolGuid, distance, out var cost) ? cost.TotalCount : 0;
             }
 
             #endregion

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Game.MapGeneration.Transfer;
 using Game.MapGeneration.Pipeline;
 using Mooresmaster.Model.GenerationModule;
 using Newtonsoft.Json.Linq;
@@ -43,7 +44,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Spawn
         public static MapGenerationOutput AssertOutputIsInsideGrid(Generation generation, int seed)
         {
             var vp = (VanillaGeneratorAlgorithmParam)generation.AlgorithmParam;
-            var runtimeConfig = MapGenerationPipeline.BuildConfig(generation, seed, TestGenerationConfigFactory.ServerDataDirectory);
+            var runtimeConfig = MapGenerationPipeline.BuildConfig(generation, seed, TestGenerationConfigFactory.ServerDataDirectory, WorldGeneratorVersion.CurrentRevision);
             var output = MapGenerationPipeline.Generate(generation, runtimeConfig).Output;
 
             // 格子が占める範囲を決めるのは SceneOrigin と格子サイズ。master の worldOffset を原点に使うと実位置とずれる。

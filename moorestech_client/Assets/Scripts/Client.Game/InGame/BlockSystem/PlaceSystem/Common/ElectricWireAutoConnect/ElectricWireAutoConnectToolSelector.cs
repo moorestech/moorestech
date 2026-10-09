@@ -86,7 +86,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
                 var accumulator = new Dictionary<ItemId, int>();
                 foreach (var target in targets)
                 {
-                    if (!ElectricWirePlacementEvaluator.TryCalculateWireCost(connectToolGuid, target.Distance, out var targetCost))
+                    if (!ElectricWirePlacementEvaluator.TryCreateWireRecord(connectToolGuid, target.Distance, out var targetCost))
                     {
                         materials = null;
                         return false;

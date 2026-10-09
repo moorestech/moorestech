@@ -30,8 +30,8 @@ namespace Game.Blueprint
 
     public class BlueprintBlockJsonObject
     {
-        // アンカー（選択ボックスXZ中心・ボックス最下段Y）からの相対オフセット
-        // Offset relative to the anchor (rect XZ center, lowest Y)
+        // 外形XZ中心・最下段からの相対
+        // Offset from footprint XZ center and bottom
         [JsonProperty("offsetX")] public int OffsetX;
         [JsonProperty("offsetY")] public int OffsetY;
         [JsonProperty("offsetZ")] public int OffsetZ;

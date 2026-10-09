@@ -4,6 +4,7 @@ import { L, buildPositionalInterpolationValues, challengeTitleKey, researchNameK
 import type { GameNotification } from "./notificationStore";
 
 const notificationKeys = new Map<string, TranslationKey>([
+  ["denied.undoRestoreSkipped", L.ui.notification.undoRestoreSkipped],
   ["achievement.researchCompleted", L.ui.notification.researchCompleted],
   ["achievement.challengeCompleted", L.ui.notification.challengeCompleted],
   ["achievement.unlockedItem", L.ui.notification.unlockedItem],
@@ -46,7 +47,21 @@ const notificationKeys = new Map<string, TranslationKey>([
   ["denied.electricWireDisconnect.NotConnected", L.ui.notification.electricWireDisconnectNotConnected],
   ["denied.electricWireDisconnect.InventoryFull", L.ui.notification.electricWireDisconnectInventoryFull],
   ["denied.electricWireDisconnect.InvalidTarget", L.ui.notification.electricWireDisconnectFailed],
+  ["denied.gearChainDisconnect.NotConnected", L.ui.notification.gearChainDisconnectNotConnected],
+  ["denied.gearChainDisconnect.InventoryFull", L.ui.notification.gearChainDisconnectInventoryFull],
+  ["denied.gearChainDisconnect.InvalidTarget", L.ui.notification.gearChainDisconnectFailed],
+  ["denied.gearChainConnect.InvalidTarget", L.ui.notification.gearChainConnectInvalidTarget],
+  ["denied.gearChainConnect.NotUnlocked", L.ui.notification.gearChainConnectNotUnlocked],
+  ["denied.gearChainConnect.TooFar", L.ui.notification.gearChainConnectTooFar],
+  ["denied.gearChainConnect.AlreadyConnected", L.ui.notification.gearChainConnectAlreadyConnected],
+  ["denied.gearChainConnect.ConnectionLimit", L.ui.notification.gearChainConnectConnectionLimit],
+  ["denied.gearChainConnect.NoItem", L.ui.notification.gearChainConnectNoItem],
   ["denied.blueprint.NotUnlocked", L.ui.notification.blueprintNotUnlocked],
+  ["denied.blueprintCreate.RequestFailed", L.ui.notification.blueprintCreateRequestFailed],
+  ["denied.blueprintCreate.InvalidName", L.ui.notification.blueprintCreateInvalidName],
+  ["denied.blueprintCreate.EmptyArea", L.ui.notification.blueprintCreateEmptyArea],
+  ["denied.blueprintCreate.InvalidRequest", L.ui.notification.blueprintCreateInvalidRequest],
+  ["denied.blueprintCreate.Unknown", L.ui.notification.blueprintCreateUnknown],
   ["saveMigration.missingMasterPruned", L.ui.notification.saveMigrationMissingMasterPruned],
 ]);
 

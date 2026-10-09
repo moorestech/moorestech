@@ -30,7 +30,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
 
             // PlaceInfoをサーバー送信
             // Send PlaceInfo to server
-            ClientContext.VanillaApi.SendOnly.PlaceBlock(currentPlaceInfos);
+            ClientContext.VanillaApi.SendOnly.PlaceBlock(currentPlaceInfos, BlockPlacementWiring.AutoConnect);
 
             // Ctrl+Z用に空でない設置バッチを記録
             // Record a non-empty place batch into the undo history for Ctrl+Z

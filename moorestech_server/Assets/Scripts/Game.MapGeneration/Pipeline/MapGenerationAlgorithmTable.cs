@@ -1,26 +1,42 @@
 using System;
 using System.Collections.Generic;
+using Game.MapGeneration.Surface;
+using Game.MapGeneration.Pipeline.Surface;
 using Mooresmaster.Model.GenerationModule;
+using UnityEngine;
 
 namespace Game.MapGeneration.Pipeline
 {
-    // アルゴリズム enum 名 → 生成器実装のディスパッチテーブル（生成器選択の真実源）。
-    // P1 では VanillaGenerator の1件のみ登録し、未登録名は即例外にする。
-    // Dispatch table from algorithm enum name to generator impl (single source of truth for selection).
-    // P1 registers only VanillaGenerator; unregistered names throw immediately.
+    // 生成と表示の版選択を同じ対応表へ集約する
+    // Resolve generation and presentation revisions through the same registry
     public static class MapGenerationAlgorithmTable
     {
-        static readonly IReadOnlyDictionary<string, IMapGenerator> Generators =
-            new Dictionary<string, IMapGenerator>
+        private static readonly IReadOnlyDictionary<WorldSurfaceRevision, SurfaceRevisionPolicy> Revisions =
+            new Dictionary<WorldSurfaceRevision, SurfaceRevisionPolicy>
             {
-                { Generation.AlgorithmConst.VanillaGenerator, new VanillaGenerator() },
+                { WorldSurfaceRevision.Legacy4, new SurfaceRevisionPolicy.Legacy() },
+                { WorldSurfaceRevision.Grounded5, new SurfaceRevisionPolicy.Grounded() },
             };
 
-        public static IMapGenerator Resolve(string algorithm)
+        public static IMapGenerator Resolve(string algorithm, WorldSurfaceRevision revision)
         {
-            if (Generators.TryGetValue(algorithm, out var generator)) return generator;
-            throw new InvalidOperationException(
-                $"[MapGenerationAlgorithmTable] no generator registered for algorithm '{algorithm}'.");
+            if (algorithm == Generation.AlgorithmConst.VanillaGenerator)
+                return ResolveSurface(revision).Generator;
+
+            var reason = $"[MapGenerationAlgorithmTable] no generator for algorithm '{algorithm}', revision '{revision}'.";
+            Debug.LogError(reason);
+            throw new InvalidOperationException(reason);
+        }
+
+        internal static SurfaceRevisionPolicy ResolveSurface(WorldSurfaceRevision revision)
+        {
+            if (Revisions.TryGetValue(revision, out var policy)) return policy;
+
+            // 未知の版を既存表示へ置換しない
+            // Never substitute existing presentation for an unknown revision
+            var reason = $"Unsupported surface revision '{revision}'.";
+            Debug.LogError(reason);
+            throw new InvalidOperationException(reason);
         }
     }
 }

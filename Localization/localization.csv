@@ -117,9 +117,19 @@ ui.notification.electricWireExtendFailed,Wiring failed,Wiring failed,配線に�
 ui.notification.electricWireDisconnectNotConnected,Disconnect failed: not connected,Disconnect failed: not connected,接続されていないため切断できませんでした,Trennen fehlgeschlagen: nicht verbunden,연결 해제 실패: 연결되어 있지 않습니다
 ui.notification.electricWireDisconnectInventoryFull,Disconnect failed: inventory is full,Disconnect failed: inventory is full,インベントリが満杯のため切断できませんでした,Trennen fehlgeschlagen: Inventar ist voll,연결 해제 실패: 인벤토리가 가득 찼습니다
 ui.notification.electricWireDisconnectFailed,Disconnect failed,Disconnect failed,切断に失敗しました,Trennen fehlgeschlagen,연결 해제 실패
+ui.notification.gearChainDisconnectNotConnected,Disconnect failed: not connected,Disconnect failed: not connected,接続されていないため切断できませんでした,Trennen fehlgeschlagen: nicht verbunden,연결 해제 실패: 연결되어 있지 않습니다
+ui.notification.gearChainDisconnectInventoryFull,Disconnect failed: inventory is full,Disconnect failed: inventory is full,インベントリが満杯のため切断できませんでした,Trennen fehlgeschlagen: Inventar ist voll,연결 해제 실패: 인벤토리가 가득 찼습니다
+ui.notification.gearChainDisconnectFailed,Disconnect failed,Disconnect failed,切断に失敗しました,Trennen fehlgeschlagen,연결 해제 실패
+ui.notification.gearChainConnectInvalidTarget,Chain connection failed: no chain pole at the target,Chain connection failed: no chain pole at the target,接続先にチェーンポールが無いためチェーンを張れませんでした,Kettenverbindung fehlgeschlagen: kein Kettenmast am Ziel,체인 연결 실패: 대상에 체인 기둥이 없습니다
+ui.notification.gearChainConnectNotUnlocked,Chain connection failed: this chain is not unlocked,Chain connection failed: this chain is not unlocked,このチェーンは未解放のため張れませんでした,Kettenverbindung fehlgeschlagen: diese Kette ist nicht freigeschaltet,체인 연결 실패: 이 체인은 해금되지 않았습니다
+ui.notification.gearChainConnectTooFar,Chain connection failed: too far,Chain connection failed: too far,距離が遠すぎるためチェーンを張れませんでした,Kettenverbindung fehlgeschlagen: zu weit entfernt,체인 연결 실패: 거리가 너무 멉니다
+ui.notification.gearChainConnectAlreadyConnected,Chain connection failed: already connected,Chain connection failed: already connected,既に接続されているためチェーンを張れませんでした,Kettenverbindung fehlgeschlagen: bereits verbunden,체인 연결 실패: 이미 연결되어 있습니다
+ui.notification.gearChainConnectConnectionLimit,Chain connection failed: connection limit reached,Chain connection failed: connection limit reached,接続数の上限に達しているためチェーンを張れませんでした,Kettenverbindung fehlgeschlagen: Verbindungslimit erreicht,체인 연결 실패: 연결 수 한도에 도달했습니다
+ui.notification.gearChainConnectNoItem,Chain connection failed: not enough chain materials,Chain connection failed: not enough chain materials,チェーンの素材が足りないため張れませんでした,Kettenverbindung fehlgeschlagen: nicht genug Kettenmaterial,체인 연결 실패: 체인 재료가 부족합니다
 ui.notification.itemEarned,{itemName} +{count},{itemName} +{count},{itemName} +{count},{itemName} +{count},{itemName} +{count}
 ui.notification.unknownMessage,Unknown notification: {messageId},Unknown notification: {messageId},不明な通知: {messageId},Unbekannte Benachrichtigung: {messageId},알 수 없는 알림: {messageId}
 ui.notification.saveMigrationMissingMasterPruned,"Removed data missing from this version: {p0} blocks, {p1} item stacks, {p2} research","Removed data missing from this version: {p0} blocks, {p1} item stacks, {p2} research",このバージョンに無くなったデータを取り除きました: ブロック{p0}個・アイテム{p1}枠・研究{p2}件,"Nicht mehr vorhandene Daten entfernt: {p0} Blöcke, {p1} Gegenstandsstapel, {p2} Forschungen","이 버전에 없는 데이터를 제거했습니다: 블록 {p0}개, 아이템 스택 {p1}개, 연구 {p2}개"
+ui.notification.undoRestoreSkipped,Undo could not restore {p0} removed objects,Undo could not restore {p0} removed objects,元に戻せなかった撤去物が{p0}件あります,{p0} entfernte Objekte konnten nicht wiederhergestellt werden,되돌리지 못한 철거물이 {p0}개 있습니다
 ui.pauseMenu.title,Pause Menu,Pause Menu,ポーズメニュー,Pausenmenü,일시정지 메뉴
 ui.pauseMenu.disconnected,Disconnected from server,Disconnected from server,サーバーから切断されました,Verbindung zum Server getrennt,서버와의 연결이 끊어졌습니다
 ui.pauseMenu.settings,Settings,Settings,設定,Einstellungen,설정
@@ -180,6 +190,7 @@ ui.delete.railHasVehicle,A vehicle is on this rail.,A vehicle is on this rail.,�
 ui.delete.blockDeleteFailed,Failed to delete the block.,Failed to delete the block.,ブロックを削除できませんでした。,Der Block konnte nicht entfernt werden.,블록을 삭제하지 못했습니다.
 ui.delete.stationInternalRail,Rails inside a station cannot be deleted.,Rails inside a station cannot be deleted.,駅内部のレールは削除できません。,Gleise innerhalb eines Bahnhofs können nicht entfernt werden.,역 내부의 레일은 삭제할 수 없습니다.
 ui.delete.unknownError,Unknown error,Unknown error,不明なエラー,Unbekannter Fehler,알 수 없는 오류
+ui.delete.inventoryFull,Inventory is full. Make room for the refunded items before removing.,Inventory is full. Make room for the refunded items before removing.,インベントリがいっぱいです。返却されるアイテムの空きを作ってから撤去してください。,Das Inventar ist voll. Schaffe Platz für die zurückerstatteten Gegenstände.,인벤토리가 가득 찼습니다. 반환될 아이템의 공간을 확보한 뒤 철거하세요.
 ui.keyHint.key.tab,Tab,Tab,Tab,Tab,Tab
 ui.keyHint.key.b,B,B,B,B,B
 ui.keyHint.key.g,G,G,G,G,G
@@ -302,3 +313,10 @@ ui.loading.deviceIdentityUnavailable,Could not identify this device. The game ca
 ui.loading.playerAlreadyConnected,The same player is already connected.,The same player is already connected.,同じプレイヤーが既に接続しています。,Derselbe Spieler ist bereits verbunden.,같은 플레이어가 이미 접속해 있습니다.
 ui.loading.buildOriginUnavailable,Could not verify this build. The game cannot start.,Could not verify this build. The game cannot start.,ビルド情報を確認できないため開始できません。,Dieser Build konnte nicht überprüft werden. Das Spiel kann nicht gestartet werden.,이 빌드를 확인하지 못했습니다. 게임을 시작할 수 없습니다.
 ui.loading.handshakeProtocolError,The server returned an unknown connection response.,The server returned an unknown connection response.,サーバーから不明な接続応答を受け取りました。,Der Server hat eine unbekannte Verbindungsantwort zurückgegeben.,서버가 알 수 없는 연결 응답을 반환했습니다.
+ui.tooltip.blueprintCopyBlocksInRange,Blocks in range: {p0},Blocks in range: {p0},範囲内のブロック: {p0},Blöcke im Bereich: {p0},범위 내 블록: {p0}
+ui.tooltip.blueprintCopyEmptyRange,No blocks in range,No blocks in range,範囲にブロックがありません,Keine Blöcke im Bereich,범위에 블록이 없습니다
+ui.notification.blueprintCreateRequestFailed,Blueprint could not be created because the request failed,Blueprint could not be created because the request failed,通信に失敗したためブループリントを作成できませんでした,Der Bauplan konnte wegen eines Verbindungsfehlers nicht erstellt werden,요청에 실패하여 설계도를 만들지 못했습니다
+ui.notification.blueprintCreateInvalidName,Blueprint name is invalid,Blueprint name is invalid,ブループリント名が無効です,Der Bauplanname ist ungültig,설계도 이름이 올바르지 않습니다
+ui.notification.blueprintCreateEmptyArea,No blocks in the selected area,No blocks in the selected area,選択範囲にブロックがありません,Keine Blöcke im ausgewählten Bereich,선택한 범위에 블록이 없습니다
+ui.notification.blueprintCreateInvalidRequest,Blueprint request is invalid,Blueprint request is invalid,ブループリントの作成要求が無効です,Die Bauplananfrage ist ungültig,설계도 생성 요청이 올바르지 않습니다
+ui.notification.blueprintCreateUnknown,Blueprint could not be created,Blueprint could not be created,ブループリントを作成できませんでした,Der Bauplan konnte nicht erstellt werden,설계도를 만들지 못했습니다

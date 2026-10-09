@@ -19,8 +19,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Placement
             var config = MultiTileTestWorld.BuildConfig(2, 99);
             MultiTileTestWorld.EnableTrees(config);
             MultiTileTestWorld.EnableObjects(config);
-            var first = new VanillaGenerator().Generate(config).Ledger;
-            var second = new VanillaGenerator().Generate(config).Ledger;
+            var first = new LegacyVanillaGenerator().Generate(config).Ledger;
+            var second = new LegacyVanillaGenerator().Generate(config).Ledger;
             Assert.That(first.Placements.Count, Is.GreaterThan(0));
             Assert.That(first.Placements.Count, Is.EqualTo(second.Placements.Count));
             for (var i = 0; i < first.Placements.Count; i++)
@@ -44,7 +44,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Placement
             // entries[0]=クラスタ採番、entries[1]=独立散布（別GUID）
             // entries[0] is cluster-numbered, entries[1] is independently scattered (different guid)
             config.grassland.objectConfig.entries[1].terrainSurroundEffectType = TerrainSurroundEffectType.rockBareGround;
-            var run = new VanillaGenerator().Generate(config);
+            var run = new LegacyVanillaGenerator().Generate(config);
             var ledger = run.Ledger;
             var mapObjects = run.Output.MapObjects;
             Assert.That(ledger.Placements.Count, Is.EqualTo(mapObjects.Count));
@@ -69,7 +69,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Placement
             config.grassland.treePlacement.prototypes[0].terrainSurroundEffectType = TerrainSurroundEffectType.rockNoBareGround;
             config.forest.treePlacement.prototypes[0].terrainSurroundEffectType = TerrainSurroundEffectType.rockNoBareGround;
 
-            var ledger = new VanillaGenerator().Generate(config).Ledger;
+            var ledger = new LegacyVanillaGenerator().Generate(config).Ledger;
 
             Assert.That(ledger.Placements.Count, Is.GreaterThan(0));
             Assert.That(ledger.Placements.All(p => p.SurroundEffect == TerrainSurroundEffectType.rockNoBareGround), Is.True);
@@ -103,7 +103,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Placement
             config.grassland.objectConfig = objectConfig;
             config.forest.objectConfig = objectConfig;
 
-            var ledger = new VanillaGenerator().Generate(config).Ledger;
+            var ledger = new LegacyVanillaGenerator().Generate(config).Ledger;
 
             Assert.That(ledger.Placements.Any(p => p.Guid == TestGenerationConfigFactory.TestMapObjectGuid
                                                    && p.SurroundEffect == TerrainSurroundEffectType.rockBareGround), Is.True);
