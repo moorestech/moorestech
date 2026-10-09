@@ -122,17 +122,6 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.Connection
             }
         }
 
-        // 指定アイテムの所持合計を数える
-        // Count the total held amount of the given item
-        public static int CountItem(IOpenableInventory inventory, ItemId itemId)
-        {
-            var total = 0;
-            foreach (var itemStack in inventory.InventoryItems)
-                if (itemStack.Id == itemId)
-                    total += itemStack.Count;
-            return total;
-        }
-
         public static bool TryDisconnect(Vector3Int posA, Vector3Int posB, int playerId, out ElectricWirePlacementFailureReason failureReason)
         {
             // 接続対象を取得する
@@ -168,7 +157,6 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.Connection
             connectorA.TryRemoveWireConnection(connectorB.BlockInstanceId, out _);
             connectorB.TryRemoveWireConnection(connectorA.BlockInstanceId, out _);
             foreach (var refundStack in refundStacks) inventory.InsertItem(refundStack);
-
 
             return true;
         }
