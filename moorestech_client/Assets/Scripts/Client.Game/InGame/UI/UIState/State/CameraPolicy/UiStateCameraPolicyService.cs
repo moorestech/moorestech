@@ -26,6 +26,7 @@ namespace Client.Game.InGame.UI.UIState.State.CameraPolicy
         private readonly PlayerViewModeController _viewModeController;
         private PolicyZone _currentZone = PolicyZone.Neutral;
         private bool _isGameplayAltHeld;
+        private bool _isBuildModalOpen;
 
         private bool IsFirstPerson => _viewModeController.GetCurrentMode() == PlayerViewMode.FirstPerson;
 
@@ -62,14 +63,23 @@ namespace Client.Game.InGame.UI.UIState.State.CameraPolicy
 
         public void UpdateRotationInput()
         {
-            // FPS常時回転ゆえ右ドラッグはTPS限定
-            // FPS always rotates, so right-drag toggling is TPS-only
-            if (IsFirstPerson) return;
+            // FPS常時回転ゆえ右ドラッグはTPS限定。モーダル表示中はカーソルを奪わない
+            // FPS always rotates, so right-drag toggling is TPS-only; never grab the cursor while a modal is open
+            if (IsFirstPerson || _isBuildModalOpen) return;
 
             // ドラッグ終了後のカーソルは掴んだ位置に留めたいので中央へは寄せない
             // The cursor stays where the drag grabbed it after release, so it is never centered here
             if (HybridInput.GetMouseButtonDown(1)) _cameraInteractionApplier.SetInteractionMode(CameraInteractionMode.CameraLook, CursorCenterWarp.None);
             if (HybridInput.GetMouseButtonUp(1)) _cameraInteractionApplier.SetInteractionMode(CameraInteractionMode.PointerFree, CursorCenterWarp.None);
+        }
+
+        public void SetBuildModalOpen(bool isOpen)
+        {
+            // 建築中のモーダルはクリック操作が要るため、FPSでも表示中だけ自由カーソルにする
+            // A modal in build mode needs clicks, so even FPS frees the cursor while it is open
+            _isBuildModalOpen = isOpen;
+            if (_currentZone != PolicyZone.Build) return;
+            ApplyZonePolicy(CursorCenterWarp.None);
         }
 
         public void UpdateGameplayFreeCursorInput()
@@ -135,7 +145,7 @@ namespace Client.Game.InGame.UI.UIState.State.CameraPolicy
         private void ApplyZonePolicy(CursorCenterWarp warp)
         {
             var isGameplayLocked = _currentZone == PolicyZone.Gameplay && !_isGameplayAltHeld;
-            var cameraLook = isGameplayLocked || (_currentZone == PolicyZone.Build && IsFirstPerson);
+            var cameraLook = isGameplayLocked || (_currentZone == PolicyZone.Build && IsFirstPerson && !_isBuildModalOpen);
 
             _cameraInteractionApplier.SetInteractionMode(cameraLook ? CameraInteractionMode.CameraLook : CameraInteractionMode.PointerFree, warp);
 

@@ -152,6 +152,7 @@ namespace Client.Starter.Registration
             builder.Register<BuildMenuState>(Lifetime.Singleton);
             builder.Register<CrosshairVisibility>(Lifetime.Singleton);
             builder.Register<BlueprintNameInputState>(Lifetime.Singleton);
+            builder.RegisterEntryPoint<BlueprintNameInputCursorApplier>();
             builder.Register<BuildOperationHistory>(Lifetime.Singleton);
             builder.Register<BuildUndoService>(Lifetime.Singleton);
             builder.Register<VanillaRemovalRestoreSender>(Lifetime.Singleton).As<IRemovalRestoreSender>();

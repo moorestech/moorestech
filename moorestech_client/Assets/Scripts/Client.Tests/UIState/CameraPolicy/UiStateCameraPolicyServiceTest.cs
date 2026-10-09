@@ -1,4 +1,5 @@
 using Client.Game.InGame.Control.ViewMode;
+using Client.Game.InGame.UI.Blueprint;
 using Client.Game.InGame.UI.UIState.State.CameraPolicy;
 using Client.Tests.UIState.Fakes;
 using Client.Tests.ViewMode;
@@ -77,6 +78,37 @@ namespace Client.Tests.UIState.CameraPolicy
             Press(MouseDevice.rightButton);
             _service.UpdateRotationInput();
             Release(MouseDevice.rightButton);
+            _service.UpdateRotationInput();
+            CollectionAssert.IsEmpty(_applier.Calls);
+        }
+
+        [Test]
+        public void BuildZoneFpsFreesCursorOnlyWhileBlueprintNameInputIsOpen()
+        {
+            var nameInputState = new BlueprintNameInputState();
+            new BlueprintNameInputCursorApplier(nameInputState, _service).Initialize();
+            _viewModeController.ToggleViewMode();
+            _service.EnterBuildMode();
+
+            // 名前入力中は保存ボタンを押せるよう自由カーソル、閉じたらFPSのロックへ戻る
+            // The name input frees the cursor so Save is clickable, and closing it restores the FPS lock
+            _applier.Calls.Clear();
+            nameInputState.Open();
+            CollectionAssert.AreEqual(new[] { "Mode:PointerFree" }, _applier.Calls);
+
+            _applier.Calls.Clear();
+            nameInputState.Cancel();
+            CollectionAssert.AreEqual(new[] { "Mode:CameraLook" }, _applier.Calls);
+        }
+
+        [Test]
+        public void BuildZoneTpsIgnoresRightDragWhileModalIsOpen()
+        {
+            _service.EnterBuildMode();
+            _service.SetBuildModalOpen(true);
+
+            _applier.Calls.Clear();
+            Press(MouseDevice.rightButton);
             _service.UpdateRotationInput();
             CollectionAssert.IsEmpty(_applier.Calls);
         }
