@@ -55,7 +55,7 @@
 
 ## 設計検査記録
 
-- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反0件・修正0件 / 判定共有ロジックは Server.Protocol Util（評価器の前例と同層）、新プロトコルは D2 で理由付け、注目点は D3（PlaceBlockProtocol と設置処理が並行PR待ちで二重）
+- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反0件・修正0件 / 判定共有ロジックは Server.Protocol Util（評価器の前例と同層）、Paste は既存 va:blueprint の操作（1プロトコル1ドメインの前例）、設置1セル実行器は PlaceBlockProtocol と共用（D3）
 - Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強3・弱4・第3バケツ7 / 強は不変化・GroundNotFound状態・財布込みビルドメニューで解消、弱②③④採用
 
 ---
