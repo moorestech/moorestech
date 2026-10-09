@@ -37,7 +37,7 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
 
             // 電線1＋電柱2で3必要なところを2しか持たない
             // 3 are needed (1 wire plus 2 for the pole) against only 2 held
-            var preview = ElectricWireExtendPreviewCalculator.BuildNewPolePreview(1f, false, WireConnectToolGuid, BuildInventory(wireItemId, 2), new[] { (itemId: wireItemId, count: 2) });
+            var preview = ElectricWireExtendPreviewCalculator.BuildNewPolePreview(1f, false, WireConnectToolGuid, BuildInventory(wireItemId, 2), new[] { (itemId: wireItemId, count: 2) }, false);
 
             Assert.IsFalse(preview.IsPlaceable);
             Assert.AreEqual(ElectricWirePlacementFailureReason.NoWireItem, preview.Judgement.FailureReason);
@@ -53,7 +53,7 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
         {
             var wireItemId = MasterHolder.ItemMaster.GetItemId(WireMaterialGuid);
 
-            var preview = ElectricWireExtendPreviewCalculator.BuildNewPolePreview(1f, false, WireConnectToolGuid, BuildInventory(wireItemId, 2), Array.Empty<(ItemId itemId, int count)>());
+            var preview = ElectricWireExtendPreviewCalculator.BuildNewPolePreview(1f, false, WireConnectToolGuid, BuildInventory(wireItemId, 2), Array.Empty<(ItemId itemId, int count)>(), false);
 
             Assert.IsTrue(preview.IsPlaceable);
             Assert.IsEmpty(preview.MaterialShortages);

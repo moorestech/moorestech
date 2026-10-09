@@ -24,7 +24,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
     /// </summary>
     public static class ElectricWireAutoConnectService
     {
-        public static ElectricWireAutoConnectPlan EvaluateAutoConnect(BlockId blockId, Vector3Int position, BlockDirection direction, IReadOnlyList<(ItemId itemId, int count)> reservedItems, IReadOnlyList<IItemStack> inventoryItems)
+        public static ElectricWireAutoConnectPlan EvaluateAutoConnect(BlockId blockId, Vector3Int position, BlockDirection direction, IReadOnlyList<(ItemId itemId, int count)> reservedItems, IReadOnlyList<IItemStack> inventoryItems, bool isFreePlacement)
         {
             var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
             var ownInfo = new BlockPositionInfo(position, direction, blockMaster.BlockSize);
@@ -61,9 +61,9 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
                 {
                     if (!TryBuildTargets(element.ConnectToolGuid, out var builtTargets, out var requiredByItem)) continue;
 
-                    // 建設コスト等で予約済みの数量を上乗せして所持数を判定する
-                    // Add quantities reserved by construction costs when judging held counts
-                    if (!HasEnoughAll(requiredByItem)) continue;
+                    // 建設コスト等で予約済みの数量を上乗せして所持数を判定する。無料設置は所持を問わない
+                    // Add quantities reserved by construction costs when judging held counts; free placement ignores holdings
+                    if (!isFreePlacement && !HasEnoughAll(requiredByItem)) continue;
 
                     selectedTargets = builtTargets;
                     selectedConnectToolGuid = element.ConnectToolGuid;
@@ -88,7 +88,9 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
                         return false;
                     }
 
-                    builtTargets.Add((candidate.TargetId, cost));
+                    // 無料設置はコスト0で記録し、撤去時にも素材を返さない
+                    // Free placement records a zero cost so removal refunds nothing either
+                    builtTargets.Add((candidate.TargetId, isFreePlacement ? ElectricWireConnectionCost.Empty : cost));
                     foreach (var material in cost.Materials)
                     {
                         requiredByItem.TryGetValue(material.ItemId, out var current);

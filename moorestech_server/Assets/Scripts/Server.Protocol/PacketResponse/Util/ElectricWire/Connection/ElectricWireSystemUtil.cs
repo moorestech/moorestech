@@ -20,7 +20,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.Connection
 {
     public static class ElectricWireSystemUtil
     {
-        public static bool TryConnect(Vector3Int posA, Vector3Int posB, int playerId, Guid connectToolGuid, out ElectricWirePlacementFailureReason failureReason)
+        public static bool TryConnect(Vector3Int posA, Vector3Int posB, int playerId, Guid connectToolGuid, bool isFreePlacement, out ElectricWirePlacementFailureReason failureReason)
         {
             // 接続対象を取得する
             // Acquire target wire connectors
@@ -73,7 +73,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.Connection
             var inventory = ServerContext.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).MainOpenableInventory;
 
             var judgement = ElectricWirePlacementEvaluator.EvaluateWireConnection(
-                distance, alreadyConnected, anyConnectionFull, connectToolGuid, inventory.InventoryItems, null);
+                distance, alreadyConnected, anyConnectionFull, connectToolGuid, inventory.InventoryItems, null, isFreePlacement);
 
             if (!judgement.IsPlaceable)
             {

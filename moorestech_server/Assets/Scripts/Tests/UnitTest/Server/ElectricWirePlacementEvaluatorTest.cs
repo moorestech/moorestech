@@ -35,7 +35,7 @@ namespace Tests.UnitTest.Server
             var inventory = CreateInventory(_wireItemId, 100);
 
             var judgement = ElectricWirePlacementEvaluator.EvaluateWireConnection(
-                5f, true, false, ConnectToolGuid, inventory, null);
+                5f, true, false, ConnectToolGuid, inventory, null, false);
 
             Assert.False(judgement.IsPlaceable);
             Assert.AreEqual(ElectricWirePlacementFailureReason.AlreadyConnected, judgement.FailureReason);
@@ -47,7 +47,7 @@ namespace Tests.UnitTest.Server
             var inventory = CreateInventory(_wireItemId, 100);
 
             var judgement = ElectricWirePlacementEvaluator.EvaluateWireConnection(
-                5f, false, true, ConnectToolGuid, inventory, null);
+                5f, false, true, ConnectToolGuid, inventory, null, false);
 
             Assert.False(judgement.IsPlaceable);
             Assert.AreEqual(ElectricWirePlacementFailureReason.ConnectionLimit, judgement.FailureReason);
@@ -61,7 +61,7 @@ namespace Tests.UnitTest.Server
             var inventory = CreateInventory(_wireItemId, 2);
 
             var judgement = ElectricWirePlacementEvaluator.EvaluateWireConnection(
-                5f, false, false, ConnectToolGuid, inventory, null);
+                5f, false, false, ConnectToolGuid, inventory, null, false);
 
             Assert.False(judgement.IsPlaceable);
             Assert.AreEqual(ElectricWirePlacementFailureReason.NoWireItem, judgement.FailureReason);
@@ -74,7 +74,7 @@ namespace Tests.UnitTest.Server
 
             var judgement = ElectricWirePlacementEvaluator.EvaluateWireConnection(
                 5f, false, false, ConnectToolGuid, inventory,
-                new List<ConnectToolMaterialCost> { new(ForUnitTestItemId.ItemId1, 1) });
+                new List<ConnectToolMaterialCost> { new(ForUnitTestItemId.ItemId1, 1) }, false);
 
             Assert.True(judgement.IsPlaceable);
         }
@@ -87,7 +87,7 @@ namespace Tests.UnitTest.Server
             var inventory = CreateInventory(_wireItemId, 6);
 
             var judgement = ElectricWirePlacementEvaluator.EvaluateWireConnection(
-                5.5f, false, false, ConnectToolGuid, inventory, null);
+                5.5f, false, false, ConnectToolGuid, inventory, null, false);
 
             Assert.True(judgement.IsPlaceable);
             Assert.AreEqual(ElectricWirePlacementFailureReason.None, judgement.FailureReason);
@@ -104,7 +104,7 @@ namespace Tests.UnitTest.Server
 
             var judgement = ElectricWirePlacementEvaluator.EvaluateWireConnection(
                 5f, false, false, ConnectToolGuid, inventory,
-                new List<ConnectToolMaterialCost> { new(_wireItemId, 1) });
+                new List<ConnectToolMaterialCost> { new(_wireItemId, 1) }, false);
 
             Assert.False(judgement.IsPlaceable);
             Assert.AreEqual(ElectricWirePlacementFailureReason.NoWireItem, judgement.FailureReason);
@@ -119,7 +119,7 @@ namespace Tests.UnitTest.Server
 
             var judgement = ElectricWirePlacementEvaluator.EvaluateWireConnection(
                 5f, false, false, ConnectToolGuid, inventory,
-                new List<ConnectToolMaterialCost> { new(_wireItemId, 1) });
+                new List<ConnectToolMaterialCost> { new(_wireItemId, 1) }, false);
 
             Assert.True(judgement.IsPlaceable);
             Assert.AreEqual(5, judgement.WireCost.TotalCount);

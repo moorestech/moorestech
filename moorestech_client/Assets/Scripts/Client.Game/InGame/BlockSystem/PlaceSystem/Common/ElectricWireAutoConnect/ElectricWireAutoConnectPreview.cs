@@ -14,9 +14,8 @@ using Game.UnlockState;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Util.ElectricWire;
 using Server.Protocol.PacketResponse.Util.ElectricWire.Placement;
-using UnityEngine;
-
 using Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect;
+using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConnect
 {
@@ -86,6 +85,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
             // Note: a first-cell approximation; starting with wallet balance over-estimates once it runs out mid-drag, starting at zero under-estimates (drifts both ways)
             // 電気系はplacementsPerCost>1を持たず現状は到達不能。逐次シミュレーションはbd moorestech-2o06.1に保留
             // No electric block has placementsPerCost>1 today, so this is unreachable; per-cell simulation is parked in bd moorestech-2o06.1
+            var isFreePlacement = global::Common.Debug.DebugParameters.GetValueOrDefaultBool(global::Common.Debug.DebugParameterKeys.FreeBlockPlacement);
             var virtualInventory = new ElectricWireAutoConnectVirtualInventory(inventory, _constructionWalletQuery.GetItemsToConsume(blockId));
             var totalCost = 0;
             var anyPlaceable = false;
@@ -96,7 +96,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
             {
                 var placeInfo = placeInfos[i];
                 var targets = GetOrCollectCellGeometry(placeInfo.Position);
-                var wirePlaceable = ElectricWireAutoConnectToolSelector.TrySelect(targets, virtualInventory, _gameUnlockStateData, out var cellMaterials, out var cellCost, out var cellShortages);
+                var wirePlaceable = ElectricWireAutoConnectToolSelector.TrySelect(targets, virtualInventory, _gameUnlockStateData, isFreePlacement, out var cellMaterials, out var cellCost, out var cellShortages);
                 if (!wirePlaceable) placeInfo.Placeable = false;
 
                 if (placeInfo.Placeable)

@@ -23,7 +23,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
         /// selectedMaterialsは選ばれたツールの素材で成功時のみ有効。shortagesは失敗時のみ非空で、表示専用の不足素材を運ぶ
         /// selectedMaterials holds the picked tool's materials and is valid on success only; shortages is non-empty on failure only and carries the display-side shortage
         /// </summary>
-        public static bool TrySelect(List<(Vector3Int TargetPos, float Distance)> targets, ElectricWireAutoConnectVirtualInventory virtualInventory, IGameUnlockStateData gameUnlockStateData, out IReadOnlyList<ConnectToolMaterialCost> selectedMaterials, out int selectedCost, out IReadOnlyList<ConstructionMaterialShortage> shortages)
+        public static bool TrySelect(List<(Vector3Int TargetPos, float Distance)> targets, ElectricWireAutoConnectVirtualInventory virtualInventory, IGameUnlockStateData gameUnlockStateData, bool isFreePlacement, out IReadOnlyList<ConnectToolMaterialCost> selectedMaterials, out int selectedCost, out IReadOnlyList<ConstructionMaterialShortage> shortages)
         {
             selectedMaterials = null;
             selectedCost = 0;
@@ -51,6 +51,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
             foreach (var element in electricWireTools)
             {
                 if (!TrySumCost(element.ConnectToolGuid, out var materials, out var cost)) continue;
+
+                // 無料設置は所持を問わずコスト0で張る（サーバーの無料設置と同じ規則）
+                // Free placement wires at zero cost regardless of holdings (same rule as the server's free placement)
+                if (isFreePlacement)
+                {
+                    selectedMaterials = Array.Empty<ConnectToolMaterialCost>();
+                    return true;
+                }
+
                 if (!virtualInventory.CanAfford(materials))
                 {
                     firstUnaffordableMaterials ??= materials;

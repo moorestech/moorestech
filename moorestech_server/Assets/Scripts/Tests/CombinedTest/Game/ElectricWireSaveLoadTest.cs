@@ -61,8 +61,8 @@ namespace Tests.CombinedTest.Game
             var inventory = saveServiceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).MainOpenableInventory;
             inventory.SetItem(0, ServerContext.ItemStackFactory.Create(wireItemId, 10));
 
-            Assert.IsTrue(ElectricWireSystemUtil.TryConnect(posPole, posGenerator, playerId, ConnectToolGuid, out var errorA), errorA.ToString());
-            Assert.IsTrue(ElectricWireSystemUtil.TryConnect(posGenerator, posMachine, playerId, ConnectToolGuid, out var errorB), errorB.ToString());
+            Assert.IsTrue(ElectricWireSystemUtil.TryConnect(posPole, posGenerator, playerId, ConnectToolGuid, false, out var errorA), errorA.ToString());
+            Assert.IsTrue(ElectricWireSystemUtil.TryConnect(posGenerator, posMachine, playerId, ConnectToolGuid, false, out var errorB), errorB.ToString());
 
             // トポロジ反映と統計確定のため1tick進める
             // Advance one tick for the topology flush and statistics settlement

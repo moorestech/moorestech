@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Common.Debug;
 using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
@@ -39,6 +40,10 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
             IReadOnlyList<(ItemId itemId, int count)> costItemCounts = null;
             var constructionWallet = ServerContext.GetService<ConstructionWalletService>();
 
+            // 無料設置は解放・建設コスト・電線素材の判定と支払いだけを免除し、設置と配線は通常どおり行う
+            // Free placement waives only the unlock, construction-cost and wire-material checks and payments; placing and wiring run as usual
+            var isFreePlacement = DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement);
+
             // Operationごとの経路をこの1箇所で振り分ける。外部入力由来の列挙域外は不正Modeとして拒否する
             // All per-operation branching lives here; out-of-range values from external input are rejected as an invalid mode
             switch (operation)
@@ -59,7 +64,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
             // Connect two existing blocks; on success return the target as the endpoint
             ElectricWireExtendResult ExecuteConnectToExisting()
             {
-                if (!ElectricWireSystemUtil.TryConnect(fromPos, toPos, playerId, connectToolGuid, out var failureReason))
+                if (!ElectricWireSystemUtil.TryConnect(fromPos, toPos, playerId, connectToolGuid, isFreePlacement, out var failureReason))
                     return ElectricWireExtendResult.Failure(failureReason);
 
                 // TryConnect成功直後なので終点コネクタは必ず解決できる
@@ -81,7 +86,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
                 // Validate the unlock state (judged on the base block)
                 blockMaster = MasterHolder.BlockMaster.GetBlockMaster(poleBlockId);
                 failureReason = ElectricWirePlacementFailureReason.NotUnlocked;
-                if (!ServerContext.GetService<IGameUnlockStateDataController>().BlockUnlockStateInfos[blockMaster.BlockGuid].IsUnlocked) return false;
+                if (!isFreePlacement && !ServerContext.GetService<IGameUnlockStateDataController>().BlockUnlockStateInfos[blockMaster.BlockGuid].IsUnlocked) return false;
 
                 // 指定BlockIdから電柱パラメータを解決する
                 // Resolve the pole parameter from the requested BlockId
@@ -94,7 +99,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
                 placementPlan = constructionWallet.PlanPlacement(poleBlockId, playerId);
                 costItemCounts = placementPlan.ItemsToConsume;
                 failureReason = ElectricWirePlacementFailureReason.InsufficientItems;
-                if (!ConstructionCostService.HasRequiredItems(costItemCounts, inventory.InventoryItems)) return false;
+                if (!isFreePlacement && !ConstructionCostService.HasRequiredItems(costItemCounts, inventory.InventoryItems)) return false;
 
                 failureReason = ElectricWirePlacementFailureReason.None;
                 return true;
@@ -133,16 +138,16 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
                 // Fail when the pole to be placed cannot hold even one wire
                 if (poleParam.MaxWireConnectionCount < 1)
                     return ElectricWireExtendResult.Failure(ElectricWirePlacementFailureReason.ConnectionLimit);
-                if (!ElectricWirePlacementEvaluator.TryCalculateWireCost(connectToolGuid, distance, out var wireCost))
-                    return ElectricWireExtendResult.Failure(ElectricWirePlacementFailureReason.NoWireItem);
-                // 建設コストの予約分を上乗せした所持判定は共有の正本へ委ねる
-                // The held check with the construction cost reserved on top is delegated to the shared definition
-                if (!ConstructionMaterialAccounting.HasEnough(wireCost.Materials, inventory.InventoryItems, ConnectToolMaterialConsumer.ToMaterials(costItemCounts)))
-                    return ElectricWireExtendResult.Failure(ElectricWirePlacementFailureReason.NoWireItem);
+                // 建設コストの予約分を上乗せした所持判定は評価器へ委ねる（新設電柱は未接続なので既接続・上限は起点側のみ）
+                // The held check with the construction cost reserved on top goes to the evaluator (the new pole is unwired, so only the origin's state matters)
+                var reservedMaterials = isFreePlacement ? null : ConnectToolMaterialConsumer.ToMaterials(costItemCounts);
+                var wireJudgement = ElectricWirePlacementEvaluator.EvaluateWireConnection(distance, false, false, connectToolGuid, inventory.InventoryItems, reservedMaterials, isFreePlacement);
+                if (!wireJudgement.IsPlaceable) return ElectricWireExtendResult.Failure(wireJudgement.FailureReason);
+                var wireCost = wireJudgement.WireCost;
 
                 // 検証をすべて通過したのでここから状態を変更する
                 // All validation passed; start mutating state from here
-                if (!TryPlacePole(polePlaceInfo, poleBlockId, out var selfConnector))
+                if (!ElectricWirePolePlacer.TryPlace(polePlaceInfo, poleBlockId, out var selfConnector))
                     return ElectricWireExtendResult.Failure(ElectricWirePlacementFailureReason.PositionOccupied);
 
                 // 起点1本が張れなければ配線なしの成功で潰さず失敗として返す（素材も建設コストも消費しない）
@@ -158,8 +163,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
                 // 電線素材と建設コストを消費する（dirty化は接続処理内で行われる）
                 // Consume the wire materials and the construction cost; the connection mutation itself marks the topology dirty
                 ConnectToolMaterialConsumer.Consume(wireCost.Materials, inventory);
-                constructionWallet.CommitPlacement(placementPlan, inventory, selfConnector.BlockInstanceId);
-                constructionWallet.FlushRemainingCountChanges();
+                CommitConstructionCost(selfConnector);
 
                 return ElectricWireExtendResult.Success(polePlaceInfo.Position, selfConnector.BlockInstanceId.AsPrimitive());
             }
@@ -170,30 +174,26 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
             {
                 if (!TryValidatePolePlacement(out var placementFailure)) return ElectricWireExtendResult.Failure(placementFailure);
 
-                if (!TryPlacePole(polePlaceInfo, poleBlockId, out var selfConnector))
+                if (!ElectricWirePolePlacer.TryPlace(polePlaceInfo, poleBlockId, out var selfConnector))
                     return ElectricWireExtendResult.Failure(ElectricWirePlacementFailureReason.PositionOccupied);
 
                 // 建設コストのみ消費する
                 // Consume only the construction cost
-                constructionWallet.CommitPlacement(placementPlan, inventory, selfConnector.BlockInstanceId);
-                constructionWallet.FlushRemainingCountChanges();
+                CommitConstructionCost(selfConnector);
 
                 return ElectricWireExtendResult.Success(polePlaceInfo.Position, selfConnector.BlockInstanceId.AsPrimitive());
             }
 
+            // 無料設置は支払わない。支払者記録も残らないため撤去時の返金は従来どおり
+            // Free placement pays nothing; no payer record is kept, so the removal refund behaves as before
+            void CommitConstructionCost(IElectricWireConnector selfConnector)
+            {
+                if (isFreePlacement) return;
+                constructionWallet.CommitPlacement(placementPlan, inventory, selfConnector.BlockInstanceId);
+                constructionWallet.FlushRemainingCountChanges();
+            }
+
             #endregion
-        }
-
-        private static bool TryPlacePole(PlaceInfoMessagePack polePlaceInfo, BlockId blockId, out IElectricWireConnector selfConnector)
-        {
-            // ブロックを設置しワイヤー端点を解決する
-            // Place the block and resolve its wire connector component
-            selfConnector = null;
-            var createParams = polePlaceInfo.BlockCreateParams.Select(v => new BlockCreateParam(v.Key, v.Value)).ToArray();
-            if (!ServerContext.WorldBlockDatastore.TryAddBlock(blockId, polePlaceInfo.Position, polePlaceInfo.Direction, createParams, out var placedBlock)) return false;
-
-            selfConnector = placedBlock.GetComponent<IElectricWireConnector>();
-            return true;
         }
     }
 }
