@@ -133,7 +133,7 @@ namespace Game.Block.Blocks.BeltConveyor.Topology
             return param is BeltConveyorBlockParam || param is GearBeltConveyorBlockParam;
         }
 
-        private static bool IsSplitter(IBlockParam param)
+        internal static bool IsSplitter(IBlockParam param)
         {
             var connectors = param is BeltConveyorBlockParam belt ? belt.InventoryConnectors : ((GearBeltConveyorBlockParam)param).InventoryConnectors;
             return OutputConnectorCount(connectors) > 1;
