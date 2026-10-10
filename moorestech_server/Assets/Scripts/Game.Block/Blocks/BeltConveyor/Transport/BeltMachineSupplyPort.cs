@@ -7,14 +7,18 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
     public readonly struct BeltMachineSupplyPort
     {
         public readonly IBeltReceiver Receiver;
+        // 受けるsegmentの番号。差分はこの番号で搬入先を指す
+        // Number of the receiving segment; diffs refer to the destination by it
+        public readonly int SegmentIndex;
         // 受け側から見た搬入元の方向と、受け側マスへの進入方向
         // Source direction as seen from the receiver, and the entry direction into the receiving cell
         public readonly BeltDirection Direction;
         public readonly BeltEntryDirection EntryDirection;
 
-        public BeltMachineSupplyPort(IBeltReceiver receiver, BeltDirection direction, BeltEntryDirection entryDirection)
+        public BeltMachineSupplyPort(IBeltReceiver receiver, int segmentIndex, BeltDirection direction, BeltEntryDirection entryDirection)
         {
             Receiver = receiver;
+            SegmentIndex = segmentIndex;
             Direction = direction;
             EntryDirection = entryDirection;
         }

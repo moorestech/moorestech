@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Game.Block.Blocks.BeltConveyor.Save;
+using Game.Block.Blocks.BeltConveyor.Sync.Diff;
 using Game.Block.Blocks.BeltConveyor.Topology;
 using Game.Block.Blocks.BeltConveyor.Topology.Layout;
 using Game.Block.Blocks.BeltConveyor.Transport.Rebuild;
@@ -23,11 +24,14 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
         private bool _isTopologyDirty = true;
 
         public BeltTransportAssembly Assembly { get; private set; }
+        // 機械との搬送の成立を溜める。tickの束を作る側が搬送tick直後に取り出す
+        // Accumulates settled machine handoffs; the tick-bundle sender takes them right after the transport tick
+        public BeltTransportDiffRecorder DiffRecorder { get; } = new();
 
         public BeltTransportDatastore(IWorldBlockDatastore worldBlockDatastore, IWorldBlockUpdateEvent worldBlockUpdateEvent)
         {
             _worldBlockDatastore = worldBlockDatastore;
-            Assembly = BeltTransportAssembler.Assemble(Array.Empty<BeltSegmentLayout>(), new Dictionary<BlockInstanceId, int>());
+            Assembly = BeltTransportAssembler.Assemble(Array.Empty<BeltSegmentLayout>(), new Dictionary<BlockInstanceId, int>(), DiffRecorder);
             worldBlockUpdateEvent.OnBlockPlaceEvent.Subscribe(_ => _isTopologyDirty = true);
             worldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(_ => _isTopologyDirty = true);
         }
@@ -41,8 +45,12 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
             var snapshot = BeltTransportSnapshot.Capture(Assembly);
             var savedPriorityOrders = BeltTransportLoadedStateConverter.Convert(_loadedStates, snapshot);
             _loadedStates.Clear();
-            Assembly = BeltTransportAssembler.Assemble(BeltSegmentLayoutBuilder.Build(BeltTopologyBuilder.Build(_worldBlockDatastore)), savedPriorityOrders);
+            Assembly = BeltTransportAssembler.Assemble(BeltSegmentLayoutBuilder.Build(BeltTopologyBuilder.Build(_worldBlockDatastore)), savedPriorityOrders, DiffRecorder);
             BeltTransportRestorer.Restore(snapshot, Assembly);
+
+            // 旧構成の番号で書かれた未取り出しの差分は新構成へ適用しない。中身は再構築後の全量に含まれる
+            // Untaken diffs written with old-assembly numbers are never applied to the new one; their effect is in the post-rebuild full state
+            DiffRecorder.Discard();
         }
 
         // ロードしたベルコンblockの保存内容を預かる。次の再構築で復元手順に乗せる

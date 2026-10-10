@@ -1,6 +1,9 @@
 using System.Collections.Generic;
 using Core.BeltTransport;
+using Game.Block.Blocks.BeltConveyor.Sync.Diff;
 using Game.Block.Blocks.BeltConveyor.Sync.State;
+using Game.Block.Blocks.BeltConveyor.Transport;
+using UnityEngine;
 
 namespace Game.Block.Blocks.BeltConveyor.Sync.Replica
 {
@@ -33,6 +36,32 @@ namespace Game.Block.Blocks.BeltConveyor.Sync.Replica
         public BeltTransportFullState CaptureFullState()
         {
             return BeltTransportFullStateCapture.Capture(Shapes, Segments);
+        }
+
+        // サーバーと同じtickを再生する。搬入を同じ順で載せ、搬出成功を予告してから1tick進める
+        // Replays the same tick as the server: apply the inserts in order, announce the successful extracts, then advance one tick
+        // 載らない搬入や消費されない予告は、複製がサーバーと食い違った印。falseを返し、呼び出し側が停止を決める
+        // An insert that does not fit or an announcement left unconsumed marks the replica as diverged; returns false and the caller decides to stop
+        public bool Tick(BeltTickDiff diff)
+        {
+            var consistent = true;
+            foreach (var insert in diff.Inserts)
+            {
+                if (Segments[insert.SegmentIndex].TryReceive(insert.InputDirection, BeltTransportAssembly.MachineEntryLength, insert.ToItem())) continue;
+                Debug.LogError($"[BeltTransport] replica could not place a machine push into segment {insert.SegmentIndex} from {insert.InputDirection}; the replica has diverged from the server.");
+                consistent = false;
+            }
+            foreach (var extract in diff.Extracts) MachineReceiverOf(extract.SegmentIndex, extract.OutputDirection).AcceptOnce();
+
+            Simulation.Tick();
+
+            foreach (var extract in diff.Extracts)
+            {
+                if (!MachineReceiverOf(extract.SegmentIndex, extract.OutputDirection).ClearPending()) continue;
+                Debug.LogError($"[BeltTransport] replica did not hand an item from segment {extract.SegmentIndex} toward {extract.OutputDirection} as the server did; the replica has diverged from the server.");
+                consistent = false;
+            }
+            return consistent;
         }
     }
 }

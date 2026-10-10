@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Core.BeltTransport;
 using Core.Item.Interface;
 using Core.Master;
+using Game.Block.Blocks.BeltConveyor.Sync.Diff;
 using Game.Block.Blocks.BeltConveyor.Topology.Layout;
 using Game.Block.Blocks.BeltConveyor.Transport.Rebuild;
 using Game.Block.Interface;
@@ -28,14 +29,16 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
         // 面(押し込まれるベルコンのblock＋機械のblock)ごとに受け口を1つ持つ
         // One supply port per face (the pushed belt block plus the machine block)
         private readonly Dictionary<BeltMachineSupplyKey, BeltMachineSupplyPort> _supplyPortByFace;
+        private readonly BeltTransportDiffRecorder _diffRecorder;
 
-        public BeltTransportAssembly(BeltSegmentLayout[] layouts, BeltConveyorSegment[] segments, Dictionary<BeltMachineSupplyKey, BeltMachineSupplyPort> supplyPortByFace)
+        public BeltTransportAssembly(BeltSegmentLayout[] layouts, BeltConveyorSegment[] segments, Dictionary<BeltMachineSupplyKey, BeltMachineSupplyPort> supplyPortByFace, BeltTransportDiffRecorder diffRecorder)
         {
             Layouts = layouts;
             Segments = segments;
             Simulation = new BeltSimulation(segments);
             Locator = new BeltCellLocator(layouts);
             _supplyPortByFace = supplyPortByFace;
+            _diffRecorder = diffRecorder;
         }
 
         // 機械の押し込みを、その面の受け口へ進入距離1で入れる
@@ -46,7 +49,12 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
         {
             if (!_supplyPortByFace.TryGetValue(new BeltMachineSupplyKey(beltBlockInstanceId, context.SourceBlockInstanceId), out var port)) return false;
             var item = new BeltItem(itemId, itemInstanceId, port.EntryDirection);
-            return port.Receiver.TryReceive(port.Direction, MachineEntryLength, item);
+            if (!port.Receiver.TryReceive(port.Direction, MachineEntryLength, item)) return false;
+
+            // 入った押し込みだけを差分に残す。複製は同じtickの搬送前に同じ順で載せ直す
+            // Only pushes that entered go into the diff; the replica re-applies them in the same order before the same tick's transport
+            _diffRecorder.RecordInsert(port.SegmentIndex, port.Direction, item);
+            return true;
         }
     }
 }

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Core.BeltTransport;
 using Game.Block.Blocks.BeltConveyor.Save;
+using Game.Block.Blocks.BeltConveyor.Sync.Diff;
 using Game.Block.Blocks.BeltConveyor.Topology.Layout;
 using Game.Block.Interface;
 
@@ -12,7 +13,9 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
     {
         // savedPriorityOrdersはロード直後だけ中身を持つ。載っている合流・分岐はその優先順で、それ以外は向きから初期化する
         // savedPriorityOrders has entries only right after a load; listed merges and branches start from them, everything else from the direction
-        public static BeltTransportAssembly Assemble(BeltSegmentLayout[] layouts, IReadOnlyDictionary<BlockInstanceId, int> savedPriorityOrders)
+        // diffRecorderは機械との搬送の成立を書く先。生成した受け手と受け口がsegment番号つきで記録する
+        // diffRecorder receives settled machine handoffs; the created receivers and supply ports record them with segment numbers
+        public static BeltTransportAssembly Assemble(BeltSegmentLayout[] layouts, IReadOnlyDictionary<BlockInstanceId, int> savedPriorityOrders, BeltTransportDiffRecorder diffRecorder)
         {
             var segments = new BeltConveyorSegment[layouts.Length];
             for (var i = 0; i < layouts.Length; i++) segments[i] = Create(layouts[i], savedPriorityOrders);
@@ -23,7 +26,7 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
                 WireOutputs(layouts[i], segments[i]);
                 CollectSupplyPorts(layouts[i], segments[i]);
             }
-            return new BeltTransportAssembly(layouts, segments, supplyPortByFace);
+            return new BeltTransportAssembly(layouts, segments, supplyPortByFace, diffRecorder);
 
             #region Internal
 
@@ -34,7 +37,9 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
                 var sourceBlock = SourceBlockOf(layout);
                 foreach (var link in layout.Outputs)
                 {
-                    IBeltReceiver target = link.IsMachine ? new BeltMachineReceiver(sourceBlock, link.Connection) : segments[link.PartnerSegmentIndex];
+                    IBeltReceiver target = link.IsMachine
+                        ? new BeltMachineReceiver(sourceBlock, link.Connection, layout.Index, link.Direction, diffRecorder)
+                        : segments[link.PartnerSegmentIndex];
                     if (segment is BeltNormalSegment normal) normal.ConnectTo(target, link.Direction, link.EntryDirection);
                     else ((BeltBufferedSegment)segment).Buffer.ConnectTo(target, link.Direction, link.EntryDirection);
                 }
@@ -48,7 +53,7 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
                 {
                     if (!link.IsMachine) continue;
                     var key = new BeltMachineSupplyKey(SupplyBlockOf(layout), link.Connection.PartnerBlock.BlockInstanceId);
-                    supplyPortByFace.Add(key, new BeltMachineSupplyPort(segment, link.Direction, link.EntryDirection));
+                    supplyPortByFace.Add(key, new BeltMachineSupplyPort(segment, layout.Index, link.Direction, link.EntryDirection));
                 }
             }
 

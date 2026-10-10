@@ -6,6 +6,7 @@ using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.BeltConveyor.Connection;
+using Game.Block.Blocks.BeltConveyor.Sync.Diff;
 using Game.Block.Blocks.BeltConveyor.Topology;
 using Game.Block.Blocks.BeltConveyor.Transport;
 using Game.Block.Blocks.Chest;
@@ -194,7 +195,7 @@ namespace Tests.CombinedTest.Core
             var c = link.Connection;
             var dummy = new DummyBlockInventory();
             var connection = new BeltTopologyConnection(c.Direction, c.EntryDirection, c.PartnerKind, c.PartnerBlock, c.PartnerCell, c.SourceConnector, c.TargetConnector, dummy);
-            var receiver = new BeltMachineReceiver(layout.Cells[layout.Cells.Length - 1].BlockInstanceId, connection);
+            var receiver = new BeltMachineReceiver(layout.Cells[layout.Cells.Length - 1].BlockInstanceId, connection, layout.Index, link.Direction, new BeltTransportDiffRecorder());
             Assert.IsTrue(receiver.TryReceive(link.Direction, 1, new BeltItem(new ItemId(1), ItemInstanceId.Create(), link.EntryDirection)));
             return dummy;
         }

@@ -34,5 +34,14 @@ namespace Game.Block.Blocks.BeltConveyor.Sync.Replica
             _acceptsOnce = false;
             return true;
         }
+
+        // tick末尾に未消費の予告を消す。残っていればサーバーの搬出が複製で起きなかった不一致
+        // Clears an unconsumed announcement at the tick end; one left over means a server handoff that did not happen in the replica, a mismatch
+        public bool ClearPending()
+        {
+            var wasPending = _acceptsOnce;
+            _acceptsOnce = false;
+            return wasPending;
+        }
     }
 }

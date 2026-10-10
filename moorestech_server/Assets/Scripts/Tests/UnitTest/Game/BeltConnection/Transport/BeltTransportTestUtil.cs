@@ -6,6 +6,7 @@ using Core.Master;
 using Game.Block.Blocks.BeltConveyor.Topology;
 using Game.Block.Blocks.BeltConveyor.Topology.Layout;
 using Game.Block.Blocks.BeltConveyor.Transport;
+using Game.Block.Blocks.BeltConveyor.Sync.Diff;
 using Game.Block.Blocks.BeltConveyor.Transport.Rebuild;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -33,7 +34,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Transport
         internal static BeltTransportAssembly Assemble(IWorldBlockDatastore world)
         {
             var layouts = BeltSegmentLayoutBuilder.Build(BeltTopologyBuilder.Build(world));
-            return BeltTransportAssembler.Assemble(layouts, new Dictionary<BlockInstanceId, int>());
+            return BeltTransportAssembler.Assemble(layouts, new Dictionary<BlockInstanceId, int>(), new BeltTransportDiffRecorder());
         }
 
         // 旧構成のアイテムを取り出し、現在のワールドから作り直した新構成へ復元する(BeltTransportDatastoreと同じ手順)
