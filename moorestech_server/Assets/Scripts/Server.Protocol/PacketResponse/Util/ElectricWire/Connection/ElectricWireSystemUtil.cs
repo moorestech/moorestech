@@ -20,7 +20,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.Connection
 {
     public static class ElectricWireSystemUtil
     {
-        public static bool TryConnect(Vector3Int posA, Vector3Int posB, int playerId, Guid connectToolGuid, out ElectricWirePlacementFailureReason failureReason)
+        public static bool TryConnect(Vector3Int posA, Vector3Int posB, int playerId, Guid connectToolGuid, bool isFreePlacement, out ElectricWirePlacementFailureReason failureReason)
         {
             // 接続対象を取得する
             // Acquire target wire connectors
@@ -73,7 +73,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.Connection
             var inventory = ServerContext.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).MainOpenableInventory;
 
             var judgement = ElectricWirePlacementEvaluator.EvaluateWireConnection(
-                distance, alreadyConnected, anyConnectionFull, connectToolGuid, inventory.InventoryItems, null);
+                distance, alreadyConnected, anyConnectionFull, connectToolGuid, inventory.InventoryItems, null, isFreePlacement);
 
             if (!judgement.IsPlaceable)
             {
@@ -101,9 +101,6 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.Connection
             var infos = ServerContext.GetService<IGameUnlockStateDataController>().ConnectToolUnlockStateInfos;
             return infos.TryGetValue(connectToolGuid, out var info) && info.IsUnlocked;
         }
-
-
-
 
         // 両側にワイヤーを張り、片側が失敗したら自分が追加したエッジだけ戻す。成功時のみtrueを返す
         // Wire both connectors; on failure roll back only the edge this call added. Returns true only on success

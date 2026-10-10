@@ -47,6 +47,33 @@ namespace Client.Tests.BuildUndo
             Assert.IsFalse(history.TryPop(out _));
         }
 
+        [Test]
+        public void 通信中の予約は後続操作より古い履歴として確定する()
+        {
+            var history = new BuildOperationHistory();
+            var pending = new FakeOperationRecord();
+            var later = new FakeOperationRecord();
+            var reservation = history.Reserve();
+            history.Push(later);
+            history.Complete(reservation, pending);
+
+            Assert.IsTrue(history.TryPop(out var latest));
+            Assert.AreSame(later, latest);
+            Assert.IsTrue(history.TryPop(out var earlier));
+            Assert.AreSame(pending, earlier);
+        }
+
+        [Test]
+        public void 未確定の予約はUndoされず空応答なら消える()
+        {
+            var history = new BuildOperationHistory();
+            var reservation = history.Reserve();
+
+            Assert.IsFalse(history.TryPop(out _));
+            history.Cancel(reservation);
+            Assert.IsFalse(history.TryPop(out _));
+        }
+
         // 履歴の入出力順のみ検証するためのフェイクレコード
         // Fake record used only to verify push/pop ordering
         private class FakeOperationRecord : IBuildOperationRecord

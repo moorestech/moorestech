@@ -22,6 +22,8 @@ const reasonInterpolation = /^\$"([^"{}]+)\{[^"{}]+\}"$/;
 // 補間idの接頭辞→展開するenumと、その経路では送られない値
 // Interpolated id prefix -> the enum to expand and the values that path never sends
 const interpolatedIdEnums = new Map<string, { enumName: string; notSentMembers: string[] }>([
+  ["denied.blueprint.", { enumName: "BlueprintFailureReason", notSentMembers: ["None", "InvalidName", "EmptyArea", "UnknownOperation"] }],
+  ["denied.blueprintCreate.", { enumName: "BlueprintCreateFailure", notSentMembers: ["None", "NotUnlocked"] }],
   ["denied.railEdit.", { enumName: "RailConnectionEditFailureReason", notSentMembers: ["None"] }],
   ["denied.electricWireExtend.", { enumName: "ElectricWirePlacementFailureReason", notSentMembers: ["InventoryFull", "NotConnected"] }],
   [
@@ -46,7 +48,7 @@ function readServerSources(): Map<string, string> {
     .filter((path) => path.endsWith(".cs") && !path.split(/[\\/]/).some((segment) => segment === "Client.Tests"));
   for (const file of clientFiles) {
     const source = readFileSync(join(clientScriptsDir, file), "utf8");
-    if (source.includes("NotificationMessagePack.Create")) sources.set(`client:${file}`, source);
+    if (source.includes("NotificationMessagePack.Create") || [...interpolatedIdEnums.values()].some(({ enumName }) => source.includes(`enum ${enumName}`))) sources.set(`client:${file}`, source);
   }
   return sources;
 }
@@ -105,6 +107,12 @@ describe("サーバー通知idの表網羅", () => {
     expect(ids).toContain("achievement.unlockedItem");
     expect(ids).toContain("saveMigration.missingMasterPruned");
     expect(ids).toContain("denied.blueprint.NotUnlocked");
+    expect(ids).toContain("denied.blueprint.InvalidRequest");
+    expect(ids).toContain("denied.blueprint.NotFound");
+    expect(ids).toContain("denied.blueprint.PasteCostShortage");
+    expect(ids).toContain("denied.blueprint.PasteNotUnlocked");
+    expect(ids).toContain("denied.blueprint.PasteLineFailed");
+    expect(ids).toContain("denied.blueprint.PastePlacementFailed");
     expect(ids).toContain("denied.railEdit.InvalidNode");
     expect(ids).toContain("denied.electricWireDisconnect.InventoryFull");
     expect(ids).toContain("denied.gearChainDisconnect.InventoryFull");

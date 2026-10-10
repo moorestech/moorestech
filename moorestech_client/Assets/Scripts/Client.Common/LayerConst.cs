@@ -15,6 +15,10 @@ namespace Client.Common
         // Layer that draws nothing but the focus outline
         public static readonly int OutlineLayer = LayerMask.NameToLayer("Outline");
 
+        // アイコン撮影の複製だけを置き、撮影ライト・カメラを主シーンから隔離するレイヤー
+        // Layer holding only icon-capture clones so capture lights and cameras stay isolated from the main scene
+        public static readonly int IconCaptureLayer = LayerMask.NameToLayer("IconCapture");
+
         // このレイヤーマスク、列車の追加によって「ブロック」だけでなく、ワールド中にインタラクトできるもの、という意味になりつつあるからリネームを検討する
         public static readonly int BlockOnlyLayerMask = 1 << BlockLayer;
         public static readonly int BlockBoundingBoxOnlyLayerMask = 1 << BlockBoundingBoxLayer;

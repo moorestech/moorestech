@@ -9,6 +9,8 @@ namespace Game.Blueprint
     {
         [JsonProperty("name")] public string Name;
         [JsonProperty("blocks")] public List<BlueprintBlockJsonObject> Blocks;
+        [JsonProperty("wires", Required = Required.Always)] public List<BlueprintLineJsonObject> Wires;
+        [JsonProperty("chains", Required = Required.Always)] public List<BlueprintLineJsonObject> Chains;
 
         // BlockGuidStr/BlockGuidと同形式。識別子はGuidに一本化し、名前は表示専用
         // Same shape as BlockGuidStr/BlockGuid; the identity is unified to a GUID and the name is display-only
@@ -18,20 +20,24 @@ namespace Game.Blueprint
         public BlueprintJsonObject()
         {
             Blocks = new List<BlueprintBlockJsonObject>();
+            Wires = new List<BlueprintLineJsonObject>();
+            Chains = new List<BlueprintLineJsonObject>();
         }
 
-        public BlueprintJsonObject(string name, List<BlueprintBlockJsonObject> blocks, Guid blueprintGuid)
+        public BlueprintJsonObject(string name, List<BlueprintBlockJsonObject> blocks, List<BlueprintLineJsonObject> wires, List<BlueprintLineJsonObject> chains, Guid blueprintGuid)
         {
             Name = name;
             Blocks = blocks;
+            Wires = wires;
+            Chains = chains;
             BlueprintGuidStr = blueprintGuid.ToString();
         }
     }
 
     public class BlueprintBlockJsonObject
     {
-        // アンカー（選択ボックスXZ中心・ボックス最下段Y）からの相対オフセット
-        // Offset relative to the anchor (rect XZ center, lowest Y)
+        // 外接箱の最小角からの相対座標
+        // Coordinates relative to the extent minimum corner.
         [JsonProperty("offsetX")] public int OffsetX;
         [JsonProperty("offsetY")] public int OffsetY;
         [JsonProperty("offsetZ")] public int OffsetZ;
@@ -60,6 +66,25 @@ namespace Game.Blueprint
             BlockGuidStr = blockGuidStr;
             Direction = direction;
             Settings = settings;
+        }
+    }
+
+    public class BlueprintLineJsonObject
+    {
+        // 端点はBP内ブロックのindex。座標は貼り付け時に回転後の位置から解決する
+        // Endpoints are block indices inside the blueprint; positions are resolved after rotation at paste time
+        [JsonProperty("blockIndexA")] public int BlockIndexA;
+        [JsonProperty("blockIndexB")] public int BlockIndexB;
+        [JsonProperty("connectToolGuid")] public string ConnectToolGuidStr;
+        [JsonIgnore] public Guid ConnectToolGuid => Guid.Parse(ConnectToolGuidStr);
+
+        public BlueprintLineJsonObject() { }
+
+        public BlueprintLineJsonObject(int blockIndexA, int blockIndexB, Guid connectToolGuid)
+        {
+            BlockIndexA = blockIndexA;
+            BlockIndexB = blockIndexB;
+            ConnectToolGuidStr = connectToolGuid.ToString();
         }
     }
 }

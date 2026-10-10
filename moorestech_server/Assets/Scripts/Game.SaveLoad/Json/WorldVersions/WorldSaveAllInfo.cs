@@ -22,14 +22,14 @@ namespace Game.SaveLoad.Json.WorldVersions
     {
         // セーブ形式の現在版。マイグレーション連鎖の終点であり、形式を変えるPRがここを上げる
         // The current save format version; the migration chain's destination, raised by any PR that changes the format
-        public const int CurrentVersion = 4;
+        public const int CurrentVersion = 5;
 
         [JsonProperty("worldVersion")] public int WorldVersion = CurrentVersion;
-        
+
         public WorldSaveAllInfo(
-            List<BlockJsonObject> world, 
+            List<BlockJsonObject> world,
             List<PlayerInventorySaveJsonObject> inventory,
-            List<EntityJsonObject> entities, 
+            List<EntityJsonObject> entities,
             WorldSettingJsonObject setting,
             List<MapObjectJsonObject> mapObjects,
             ChallengeJsonObject challenge,
@@ -73,7 +73,7 @@ namespace Game.SaveLoad.Json.WorldVersions
             BackfilledFields = backfilledFields;
             Players = players;
         }
-        
+
         [JsonProperty("players")] public PlayersSaveJsonObject Players { get; }
 
         [JsonProperty("world")] public List<BlockJsonObject> World { get; }

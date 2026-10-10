@@ -148,6 +148,14 @@ namespace Game.PlacementTarget
             return IsEntryUnlocked(entry, unlockState, showAllPlaceable);
         }
 
+        public bool IsConnectToolUnlocked(Guid connectToolGuid, IGameUnlockStateData unlockState)
+        {
+            // 接続ツールの実在と解放を共通入口で判定する
+            // Judge tool existence and unlock state through one shared entry
+            return TryGetMasterEntry(connectToolGuid, out var entry) && entry.Kind == PlacementTargetKind.ConnectTool
+                && IsEntryUnlocked(entry, unlockState, false);
+        }
+
         private static bool IsEntryUnlocked(PlacementTargetEntry entry, IGameUnlockStateData unlockState, bool showAllPlaceable)
         {
             switch (entry.Kind)

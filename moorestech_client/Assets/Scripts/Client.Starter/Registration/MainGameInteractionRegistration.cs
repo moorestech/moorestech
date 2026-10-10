@@ -6,6 +6,9 @@ using Client.Game.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Copy;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Thumbnail;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
@@ -99,7 +102,7 @@ namespace Client.Starter.Registration
             builder.Register<IPlacementFeedbackPresenter, PlacementFeedbackTooltipPresenter>(Lifetime.Singleton);
             builder.Register<PlaceSystemStateController>(Lifetime.Singleton);
             builder.Register<IPlaceSystemSelector, PlaceSystemSelector>(Lifetime.Singleton);
-            builder.Register<ClientBlueprintLibrary>(Lifetime.Singleton);
+            builder.Register<ClientBlueprintLibrary>(Lifetime.Singleton).AsSelf().As<IBlueprintLookup>();
             builder.Register<MapVeinAabbRegistry>(Lifetime.Singleton);
             builder.Register<VeinRestrictedPlacementState>(Lifetime.Singleton);
             builder.Register<ChainPlacePreviewState>(Lifetime.Singleton);
@@ -109,6 +112,8 @@ namespace Client.Starter.Registration
             builder.Register<PlacementTargetCatalog>(Lifetime.Singleton);
             builder.Register<BlueprintPasteSystem>(Lifetime.Singleton);
             builder.Register<BlueprintCopySystem>(Lifetime.Singleton);
+            builder.Register<BlueprintThumbnailContainer>(Lifetime.Singleton).AsSelf().As<IBlueprintThumbnailLookup>();
+            builder.RegisterEntryPoint<BlueprintThumbnailRenderer>();
             builder.Register<PlacementTargetResolver>(Lifetime.Singleton);
             builder.Register<HotbarKeyInput>(Lifetime.Singleton);
             builder.Register<HotbarTapInputService>(Lifetime.Singleton);
@@ -147,6 +152,7 @@ namespace Client.Starter.Registration
             builder.Register<BuildMenuState>(Lifetime.Singleton);
             builder.Register<CrosshairVisibility>(Lifetime.Singleton);
             builder.Register<BlueprintNameInputState>(Lifetime.Singleton);
+            builder.RegisterEntryPoint<BlueprintNameInputCursorApplier>();
             builder.Register<BuildOperationHistory>(Lifetime.Singleton);
             builder.Register<BuildUndoService>(Lifetime.Singleton);
             builder.Register<VanillaRemovalRestoreSender>(Lifetime.Singleton).As<IRemovalRestoreSender>();

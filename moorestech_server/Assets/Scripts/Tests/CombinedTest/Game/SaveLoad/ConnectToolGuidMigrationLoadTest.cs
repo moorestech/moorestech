@@ -14,6 +14,7 @@ using Game.EnergySystem;
 using Game.PlayerInventory.Interface;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
+using Game.SaveLoad.Json.WorldVersions;
 using Game.SaveLoad.Migration.Steps;
 using Game.UnlockState;
 using Microsoft.Extensions.DependencyInjection;
@@ -73,7 +74,7 @@ namespace Tests.CombinedTest.Game.SaveLoad
             Assert.AreEqual(original, File.ReadAllText(sourcePath));
             Assert.AreEqual(original, File.ReadAllText(configuredDirectory.BackupSaveJsonPath(3)));
             var loadedSave = JObject.Parse(loadProvider.GetRequiredService<AssembleSaveJsonText>().AssembleSaveJson());
-            Assert.AreEqual(4, loadedSave["worldVersion"].Value<int>());
+            Assert.AreEqual(WorldSaveAllInfo.CurrentVersion, loadedSave["worldVersion"].Value<int>());
 
             var pole = ServerContext.WorldBlockDatastore.GetBlock(posPole).GetComponent<IElectricWireConnector>();
             var generator = ServerContext.WorldBlockDatastore.GetBlock(posGenerator).GetComponent<IElectricWireConnector>();
@@ -148,7 +149,7 @@ namespace Tests.CombinedTest.Game.SaveLoad
             var inventory = provider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).MainOpenableInventory;
             inventory.SetItem(0, ServerContext.ItemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(Guid.Parse("00000000-0000-0000-1234-000000000001")), 10));
             inventory.SetItem(1, ServerContext.ItemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(Guid.Parse("00000000-0000-0000-1234-000000000004")), 10));
-            Assert.IsTrue(ElectricWireSystemUtil.TryConnect(posPole, posGenerator, playerId, WireToolGuid, out var wireError), wireError.ToString());
+            Assert.IsTrue(ElectricWireSystemUtil.TryConnect(posPole, posGenerator, playerId, WireToolGuid, false, out var wireError), wireError.ToString());
             Assert.IsTrue(GearChainSystemUtil.TryConnect(posChainA, posChainB, playerId, ChainToolGuid, out var chainError), chainError.ToString());
 
             // 保存された4端点だけから種類を消す

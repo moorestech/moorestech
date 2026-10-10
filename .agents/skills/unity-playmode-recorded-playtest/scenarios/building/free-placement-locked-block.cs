@@ -26,8 +26,8 @@ return PlaytestRunner.Run("free-placement-locked-block", options, async p =>
     await p.SetupFlatGround();
     p.WarpPlayer(new Vector3(6f, 33.5f, -8f));
 
-    // 無料設置デバッグをON（サーバーの強制設置分岐を有効化）
-    // Turn on the free-placement debug toggle (enables the server's forced-placement branch)
+    // 無料設置デバッグをON（サーバーの解放・コストの判定と支払いを免除）
+    // Turn on the free-placement debug toggle (waives unlock/cost checks and payments on the server)
     DebugParameters.SaveBool(DebugParameterKeys.FreeBlockPlacement, true);
     p.Note("無料設置デバッグをONにした。未解放・在庫ゼロで設置できるか検証する");
     await p.Screenshot("00-before-placement");

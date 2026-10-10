@@ -32,14 +32,26 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             // Send PlaceInfo to server
             ClientContext.VanillaApi.SendOnly.PlaceBlock(currentPlaceInfos, BlockPlacementWiring.AutoConnect);
 
+            RecordSentPlacement(currentPlaceInfos);
+            return true;
+        }
+
+        // 送信経路によらず履歴・効果音・本人の設置件数を揃える
+        // Keep history, sound and local placement counts consistent across send paths
+        internal static void RecordSentPlacement(List<PlaceInfo> currentPlaceInfos)
+        {
             // Ctrl+Z用に空でない設置バッチを記録
             // Record a non-empty place batch into the undo history for Ctrl+Z
             var record = PlaceOperationRecord.CreateFrom(currentPlaceInfos);
             if (record.HasCells) ClientDIContext.BuildOperationHistory.Push(record);
 
+            ReportConfirmedPlacement(currentPlaceInfos.Count);
+        }
+
+        internal static void ReportConfirmedPlacement(int count)
+        {
             SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.PlaceBlock);
-            _placeBlockSent.OnNext(currentPlaceInfos.Count);
-            return true;
+            _placeBlockSent.OnNext(count);
         }
 
         // 左クリック解放時の設置送信。戻り値は送信したか

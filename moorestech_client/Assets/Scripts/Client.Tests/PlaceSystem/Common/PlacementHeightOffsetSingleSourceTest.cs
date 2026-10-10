@@ -5,7 +5,8 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Empty;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Game.Topics;
-using Core.Master;
+using System;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using UnityEngine;
@@ -30,7 +31,7 @@ namespace Client.Tests.PlaceSystem.Common
                 dragState.BeginDrag(Vector3Int.zero, PlacementHitSurfaceKind.Ground);
 
                 var revisionBeforeAdjust = hub.GetTopicRevision(PlacementModeTopic.TopicName);
-                dragState.AdjustHeightOffset(2);
+                heightOffset.Adjust(2);
 
                 // ドラッグ中の値がsnapshotへ現れ、購読がpushしたことをrevision増分で固定する
                 // The in-drag value reaches the snapshot, pinning that the subscription pushed it via the revision bump
@@ -53,11 +54,12 @@ namespace Client.Tests.PlaceSystem.Common
         public void 持ち替えで高さが地表基準へ戻ると表示も戻る()
         {
             var heightOffset = new PlacementHeightOffset();
+            var firstTarget = new BlueprintPlacementTarget(Guid.NewGuid(), "first", new global::Game.Blueprint.BlueprintJsonObject());
             var dragState = new CommonBlockPlaceDragState(heightOffset);
-            dragState.SyncSelectedBlock(new BlockId(1));
-            dragState.AdjustHeightOffset(3);
+            heightOffset.SyncSelectedTarget(firstTarget);
+            heightOffset.Adjust(3);
 
-            dragState.SyncSelectedBlock(new BlockId(2));
+            heightOffset.SyncSelectedTarget(new BlueprintPlacementTarget(Guid.NewGuid(), "second", new global::Game.Blueprint.BlueprintJsonObject()));
 
             Assert.AreEqual(0, heightOffset.Value, "the HUD kept the old height after a hotbar swap reset the actual one");
         }
@@ -66,10 +68,11 @@ namespace Client.Tests.PlaceSystem.Common
         public void ドラッグ中に設置系が畳まれても高さは開始値へ戻る()
         {
             var heightOffset = new PlacementHeightOffset();
+            var firstTarget = new BlueprintPlacementTarget(Guid.NewGuid(), "first", new global::Game.Blueprint.BlueprintJsonObject());
             var dragState = new CommonBlockPlaceDragState(heightOffset);
-            dragState.SyncSelectedBlock(new BlockId(1));
+            heightOffset.SyncSelectedTarget(firstTarget);
             dragState.BeginDrag(Vector3Int.zero, PlacementHitSurfaceKind.Ground);
-            dragState.AdjustHeightOffset(2);
+            heightOffset.Adjust(2);
 
             // ドラッグ途中の離脱（Tab等）でも高さはドラッグ開始値へ戻す。解放時と同じ規則
             // Leaving mid-drag (Tab and friends) returns the height to the drag's starting value, as a release does
@@ -82,19 +85,20 @@ namespace Client.Tests.PlaceSystem.Common
         public void 共有の正を渡した2つのドラッグ状態は同じ高さを読み書きする()
         {
             var heightOffset = new PlacementHeightOffset();
+            var firstTarget = new BlueprintPlacementTarget(Guid.NewGuid(), "first", new global::Game.Blueprint.BlueprintJsonObject());
             var firstDragState = new CommonBlockPlaceDragState(heightOffset);
             var secondDragState = new CommonBlockPlaceDragState(heightOffset);
 
-            firstDragState.SyncSelectedBlock(new BlockId(1));
-            firstDragState.AdjustHeightOffset(1);
+            heightOffset.SyncSelectedTarget(firstTarget);
+            heightOffset.Adjust(1);
             Assert.AreEqual(1, secondDragState.HeightOffset);
 
-            secondDragState.AdjustHeightOffset(2);
+            heightOffset.Adjust(2);
             Assert.AreEqual(3, firstDragState.HeightOffset);
 
             // 持ち替え判定も1本。片側で持ち替えたらもう片側から見た高さも地表基準へ戻る
             // The block-switch check is shared too, so a swap on one side returns the other side's height to ground
-            secondDragState.SyncSelectedBlock(new BlockId(2));
+            heightOffset.SyncSelectedTarget(new BlueprintPlacementTarget(Guid.NewGuid(), "second", new global::Game.Blueprint.BlueprintJsonObject()));
             Assert.AreEqual(0, firstDragState.HeightOffset);
         }
 
