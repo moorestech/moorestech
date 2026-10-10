@@ -1,0 +1,7 @@
+{
+  "_comment": "Workflow の agent() が指定する Claude モデル名 → codex exec の起動設定。model が null なら ~/.codex/config.toml の既定モデルを使い、effort だけ階層に合わせる（opus/fable=深い推論、sonnet=中、haiku=待機係なので浅い）。未知のモデル名は runner が起動前に止める（無言の割り当て漏れを作らない）。",
+  "opus": { "model": null, "effort": "high" },
+  "fable": { "model": null, "effort": "high" },
+  "sonnet": { "model": null, "effort": "medium" },
+  "haiku": { "model": null, "effort": "low" }
+}
