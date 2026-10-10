@@ -1,6 +1,7 @@
 ﻿using Cinemachine;
 using Client.Common;
 using Client.Game.InGame.Control.ViewMode;
+using Client.Game.InGame.UltraLight;
 using Client.Input;
 using DG.Tweening;
 using UnityEngine;
@@ -43,6 +44,10 @@ namespace Client.Game.InGame.Control
         public void Initialize()
         {
             CameraManager.RegisterCamera(this);
+
+            // 超軽量設定: 描画距離とポストエフェクトを削る
+            // Ultra-light preset: cut draw distance and post-processing
+            UltraLightPreset.ApplyCamera(mainCamera, virtualCamera);
         }
 
         private void Awake()

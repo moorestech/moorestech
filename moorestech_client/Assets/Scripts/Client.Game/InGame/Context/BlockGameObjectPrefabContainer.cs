@@ -1,3 +1,4 @@
+using Client.Game.InGame.UltraLight;
 using System.Collections.Generic;
 using Client.Common.Asset;
 using Client.Game.Common;
@@ -13,7 +14,6 @@ using Server.Protocol.PacketResponse.Util.ElectricWire;
 using UnityEngine;
 using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
 using Object = UnityEngine.Object;
-
 
 using Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect;
 
@@ -114,6 +114,10 @@ namespace Client.Game.InGame.Context
                 // ブロックの作成とセットアップをして返す
                 // Create and set up the block, then return
                 var block = Object.Instantiate(blockObjectInfo.BlockObjectPrefab, position, rotation, parent);
+
+                // 超軽量設定: Initializeが演出をキャッシュする前に剥がす
+                // Ultra-light preset: strip effects before Initialize caches them
+                UltraLightPreset.StripEffects(block);
 
                 // コンポーネントの設定
                 // Set up components

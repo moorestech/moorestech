@@ -1,3 +1,4 @@
+using Client.Game.InGame.UltraLight;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -124,6 +125,10 @@ namespace Client.Game.InGame.Map.MapObject
                 Object.Destroy(instance);
                 return false;
             }
+
+            // 超軽量設定: 木・岩はColliderだけ残し常時非表示（登録前に消すと距離表示でも復帰しない）
+            // Ultra-light preset: keep only colliders on trees and rocks; hiding before Register keeps distance culling from restoring them
+            UltraLightPreset.HideRenderers(instance);
 
             // master区分を具体側で解釈し、汎用表示基盤へboolだけを渡す
             // Interpret the master category here and pass only a boolean into the generic visibility mechanism
