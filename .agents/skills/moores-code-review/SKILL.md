@@ -115,6 +115,8 @@ Codex には Workflow も Agent も無いため、同じ `$RUNDIR/review_workflo
 
        node .agents/skills/moores-code-review/scripts/codex_workflow_runner/run.mjs <$RUNDIRの実値>/review_workflow.js
 
+   オプションは付けない（同時数は Workflow と同じ `min(16, CPU-2)` が既定。下げても発火数は変わらず所要だけ伸びる。codex が PATH に無いときだけ `--codex-bin <codex_preflight.py の codex>` を足す）。
+
 4. 標準出力（＝`$RUNDIR/codex-runner/result.json`）が Workflow の返り値にあたる。`fireCount`・`failedFires` と `result.systems` を「回収時の突合」と同じ規則で見て、Step 7 の報告冒頭に「runner: 発火 N 体（失敗 M）」を書く。終了コード 3 は Workflow 本文の例外（`error` に理由）で、`$RUNDIR` を残したまま同じコマンドで再実行してよい（キャッシュは無いので全系統が再発火する）。
 5. Step 7 の AskUserQuestion が使えない非対話実行（`codex exec`）では、設計判断と `[解釈]` Warning を選択肢付きで報告に列挙して止める（自分で裁定しない）。
 
