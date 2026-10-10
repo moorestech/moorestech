@@ -1,9 +1,11 @@
 using System.Linq;
+using Core.BeltTransport;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.BeltConveyor.Topology;
 using Game.Block.Blocks.BeltConveyor.Topology.Layout;
 using Game.Block.Blocks.BeltConveyor.Transport;
+using Game.Block.Blocks.BeltConveyor.Transport.Rebuild;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
@@ -30,6 +32,46 @@ namespace Tests.UnitTest.Game.BeltConnection.Transport
         {
             var layouts = BeltSegmentLayoutBuilder.Build(BeltTopologyBuilder.Build(world));
             return BeltTransportAssembler.Assemble(layouts);
+        }
+
+        // 旧構成のアイテムを取り出し、現在のワールドから作り直した新構成へ復元する(BeltTransportDatastoreと同じ手順)
+        // Capture the old assembly's items and restore them into a new assembly built from the current world, as BeltTransportDatastore does
+        internal static BeltTransportAssembly Rebuild(BeltTransportAssembly old, IWorldBlockDatastore world)
+        {
+            var snapshot = BeltTransportSnapshot.Capture(old);
+            var next = Assemble(world);
+            BeltTransportRestorer.Restore(snapshot, next);
+            return next;
+        }
+
+        internal static BeltItem NewItem(ItemId itemId, BeltEntryDirection entryDirection)
+        {
+            return new BeltItem(itemId, ItemInstanceId.Create(), entryDirection);
+        }
+
+        internal static BeltConveyorSegment SegmentAt(BeltTransportAssembly assembly, Vector3Int position)
+        {
+            return assembly.Segments[SegmentIndexAt(assembly, position)];
+        }
+
+        // segmentの走行列が、出口に近い順に(アイテム, 出口までの距離)と完全一致するか。個体・種類・進入方向まで比べる
+        // Whether a segment's run equals the given (item, distance to exit) pairs in exit order, comparing instance, kind and entry direction
+        internal static void AssertRun(BeltConveyorSegment segment, params (BeltItem item, int distance)[] expected)
+        {
+            var actual = segment.CaptureItems();
+            Assert.AreEqual(expected.Length, actual.Length, "item count on the segment");
+            for (var i = 0; i < expected.Length; i++)
+            {
+                Assert.AreEqual(expected[i].distance, actual[i].DistanceToExit, $"distance of item {i}");
+                AssertSameItem(expected[i].item, actual[i].Item);
+            }
+        }
+
+        internal static void AssertSameItem(BeltItem expected, BeltItem actual)
+        {
+            Assert.AreEqual(expected.ItemInstanceId, actual.ItemInstanceId, "item instance");
+            Assert.AreEqual(expected.ItemId, actual.ItemId, "item id");
+            Assert.AreEqual(expected.EntryDirection, actual.EntryDirection, "entry direction");
         }
 
         internal static bool Push(BeltTransportAssembly assembly, IBlock belt, IBlock machine, ItemId itemId)

@@ -1,6 +1,7 @@
 using System;
 using Game.Block.Blocks.BeltConveyor.Topology;
 using Game.Block.Blocks.BeltConveyor.Topology.Layout;
+using Game.Block.Blocks.BeltConveyor.Transport.Rebuild;
 using Game.World.Interface.DataStore;
 using UniRx;
 
@@ -8,8 +9,8 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
 {
     // ワールド全体のベルト搬送の1組を持つ。設置・撤去でdirtyになり、tick先頭のRebuildIfDirtyでワールドから作り直す（流体・歯車と同型）
     // Holds the single world-wide belt transport assembly; placement and removal mark it dirty and RebuildIfDirty at the tick head rebuilds it from the world, like fluid and gear
-    // 再構築では載っていたアイテムを引き継がない。復元の手順は撤去・再構築の仕様に従って別途載せる
-    // A rebuild does not carry items over; restoration per the removal/rebuild spec is added separately
+    // 再構築では旧構成のアイテムを取り出し、撤去と再構築の仕様に従って新構成へ復元する。置けないアイテムは消滅する
+    // A rebuild captures the old assembly's items and restores them into the new one per the removal/rebuild spec; items that cannot be placed vanish
     public class BeltTransportDatastore
     {
         private readonly IWorldBlockDatastore _worldBlockDatastore;
@@ -31,7 +32,9 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
         {
             if (!_isTopologyDirty) return;
             _isTopologyDirty = false;
+            var snapshot = BeltTransportSnapshot.Capture(Assembly);
             Assembly = BeltTransportAssembler.Assemble(BeltSegmentLayoutBuilder.Build(BeltTopologyBuilder.Build(_worldBlockDatastore)));
+            BeltTransportRestorer.Restore(snapshot, Assembly);
         }
     }
 }
