@@ -1,5 +1,6 @@
 using Client.Common;
 using Client.Game.InGame.BlockSystem;
+using Client.Game.InGame.UltraLight;
 using UnityEngine;
 
 namespace Client.Game.InGame.Environment.Terrain.Build
@@ -33,6 +34,10 @@ namespace Client.Game.InGame.Environment.Terrain.Build
 
             terrain.detailObjectDistance = detailObjectDistance;
             terrain.detailObjectDensity = detailObjectDensity;
+
+            // 超軽量設定: 地形LODを粗くし木・草・影を描かない
+            // Ultra-light preset: coarser terrain LOD and no trees, foliage or shadows
+            UltraLightPreset.ApplyTerrain(terrain);
             return terrain;
         }
     }

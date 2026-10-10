@@ -1,3 +1,4 @@
+using Client.Game.InGame.UltraLight;
 using System;
 using System.Collections.Generic;
 using Client.Common.Asset;
@@ -68,6 +69,10 @@ namespace Client.Game.InGame.Train.View.Object.Core
             TrainCarEntityObject CreateTrainEntity(GameObject prefab)
             {
                 var trainObject = GameObject.Instantiate(prefab, Vector3.zero, Quaternion.identity, parent);
+
+                // 超軽量設定: 煙VFX等の演出を止める
+                // Ultra-light preset: stop effects such as smoke VFX
+                UltraLightPreset.StripEffects(trainObject);
 
                 // entity 本体には通常描画用の ID と Rigidbody だけを初期化する
                 // Initialize the entity itself with runtime id and Rigidbody setup only
