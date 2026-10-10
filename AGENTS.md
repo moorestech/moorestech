@@ -149,6 +149,7 @@ partialは禁止。如何なる条件でもpartialを絶対に使ってはいけ
 
 # スキル配置と実行記録
 - スキルのgit正本は `.agents/skills/` のみ。`.claude/skills` と `.codex/skills` はそこへのsymlink（tracked）。ミラー実体の複製・CI同期は禁止（マージ衝突が3倍になるため廃止済み）
+- Codex（Workflow ツール・Agent ツールが無いホスト）で Workflow 前提のスキル（moores-code-review 等）を回すときは、Workflow の代わりにそのスキルの `scripts/codex_workflow_runner/run.mjs` で同じ台本を実行する（手順は `references/codex-host.md`）。系統を自分で代行・領域分割・縮退させない
 - レビュー実行記録（moores-code-reviewのrecords/eval-log、pr-independent-reviewのrecords/シャドー台帳）はコードrepoに置かず `../moorestech_logs/harness/` へ書く。featureブランチで記録ファイルをコミットしない
 - `../moorestech_logs` 内で作業する前に同repoの `README.md` を読む（レイアウト・考古学手順・消失事故の落とし穴が書いてある）
 
