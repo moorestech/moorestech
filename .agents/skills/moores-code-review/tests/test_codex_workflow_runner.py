@@ -104,7 +104,9 @@ class CodexWorkflowRunnerTest(unittest.TestCase):
         # Codex ホストが系統を自前代行せず runner を使うよう SKILL.md に配線されていること
         # SKILL.md must route Codex hosts to the runner instead of self-substituting the systems
         skill = (SKILL_DIR / "SKILL.md").read_text(encoding="utf-8")
-        self.assertIn("scripts/codex_workflow_runner/run.mjs", skill)
+        self.assertIn("references/codex-host.md", skill)
+        ref = (SKILL_DIR / "references/codex-host.md").read_text(encoding="utf-8")
+        self.assertIn("scripts/codex_workflow_runner/run.mjs", ref)
         self.assertIn("領域分割に置き換えるのは禁止", skill)
 
 

@@ -21,7 +21,7 @@ moorestechのコードレビューを **決定論チェック → 5系統の並�
 
 **この SKILL.md は本体セッション用のディスパッチャである**（2026-08-18 分割・2026-08-20 Workflow化）。本体がやるのは Step 0〜2（対象確定・機械チェック・Codex起動・Workflow args）・Workflow 起動・Step 7（報告と AskUserQuestion）・Step 7.5（最終バグ確認の起動）だけで、**Step 3〜6.5 の実行手順・5系統の詳細・モデル割り当て・実行系 Gotchas の正本は `references/orchestrator-steps.md`**、その実行形が `scripts/review_workflow/*.js`（`build_workflow_args.py` が結合して `$RUNDIR/review_workflow.js` を書く）にある。本体が orchestrator-steps.md を通読するのはインライン実行(後述)の場合のみ。
 
-**Codex（Workflow ツールも Agent ツールも無いホスト）で実行している場合**: Step 0〜2 と Step 7 は同じく自分で行い、Step 3.5〜6.5 は下の「Codex ホストでの実行」節の runner で回す。選ばれた系統を自分で代行・要約・領域分割に置き換えるのは禁止（発火数が Claude 実行と一致しなくなる）。
+**Codex（Workflow ツールも Agent ツールも無いホスト）で実行している場合は、先に `references/codex-host.md` を Read してそれに従う**（Step 3.5〜6.5 は Workflow の代わりに `scripts/codex_workflow_runner/run.mjs` で回す。選ばれた系統を自分で代行・要約・領域分割に置き換えるのは禁止）。Claude はこのファイルを読まない。
 
 系統の要約（詳細は orchestrator-steps.md）: ①決定論チェック(check_all.py・0トークン) ②reviewer 41本（moores-* 12・core-* 29） ③Codex外部監査3本 ④Fable全般 ⑤分割深掘り調査(16ファイル以上のみ) + 条件発火verifier + post-checks 2本（コメント保全）+ Refix（反映diff再レビュー `applied-diff-correctness.md`・`scripts/refix_snapshot.py` の snapshot 間 diff・最大3周）+ opus integrator。裁定反映の後に Step 7.5 の bug-pass（正しさ系だけ・同じ Workflow を `mode=bug-pass` で）。
 
@@ -104,21 +104,6 @@ Step 2-3 が書いた結合済みスクリプトを `scriptPath`（絶対パス�
     Workflow({ scriptPath: "<$RUNDIRの実値>/review_workflow.js" })
 
 完了通知を受けたら **`integrated.md` を Read する（この1ファイルだけ）**。`agents/`・Codex `.out.md` は読まない（疑義のある個別件の再確認のみ例外）。返り値の `missing`・`fallbacks`・`apply.compile`・`postCheckSelection.note`・`postfix.warnings/infos` は Step 7 の報告へ転記する。Workflow が例外で止まった場合（integrator/apply の応答なし）は `$RUNDIR` の残骸を引き継ぎ、同じ `scriptPath` に `resumeFromRunId` を付けて再起動する（完了済みの体はキャッシュ。`build_workflow_args.py` を再実行して書き直すとキャッシュが外れうるので、再開時は再実行しない）。最初からやり直さない。返り値の `apply.verify_note` と `refix.rounds[].verify`（機械的動作確認の結果）も Step 7 の報告へ転記する。
-
-### Codex ホストでの実行（Workflow の代替ランタイム）
-
-Codex には Workflow も Agent も無いため、同じ `$RUNDIR/review_workflow.js` を `scripts/codex_workflow_runner/run.mjs` で実行する。runner はスクリプト本文をそのまま評価し、`agent()` 1回を `codex exec` 1プロセス（`--output-schema` で構造化出力・`-o` で結論）に置き換えるだけなので、系統の選択・発火数・再起動・統合・適用は Claude の Workflow 実行と一致する（`tests/test_codex_workflow_runner.py` が模擬実行と突き合わせる）。モデル階層（opus/fable/sonnet/haiku）は `codex_model_map.json` で codex の推論強度へ写す。
-
-1. Step 2-2 は Codex 3本のプロンプトを `$RUNDIR/codex-<名前>.md` に書くところまで行い、起動しない（runner が未起動のものだけ切り離して起動する）。
-2. 子の codex exec が対象リポジトリと `$RUNDIR` へ書き、さらに codex を起動するため、本体はサンドボックス外（`danger-full-access`）で動いている必要がある。サンドボックスで子の起動が拒否されたら縮退せず止め、その旨を報告する。
-3. 前景で1コマンド実行し、終わるまで待つ（所要は系統数と同時数次第で数十分。バックグラウンドに回してポーリングしない）:
-
-       node .agents/skills/moores-code-review/scripts/codex_workflow_runner/run.mjs <$RUNDIRの実値>/review_workflow.js
-
-   オプションは付けない（同時数は Workflow と同じ `min(16, CPU-2)` が既定。下げても発火数は変わらず所要だけ伸びる。codex が PATH に無いときだけ `--codex-bin <codex_preflight.py の codex>` を足す）。
-
-4. 標準出力（＝`$RUNDIR/codex-runner/result.json`）が Workflow の返り値にあたる。`fireCount`・`failedFires` と `result.systems` を「回収時の突合」と同じ規則で見て、Step 7 の報告冒頭に「runner: 発火 N 体（失敗 M）」を書く。終了コード 3 は Workflow 本文の例外（`error` に理由）で、`$RUNDIR` を残したまま同じコマンドで再実行してよい（キャッシュは無いので全系統が再発火する）。
-5. Step 7 の AskUserQuestion が使えない非対話実行（`codex exec`）では、設計判断と `[解釈]` Warning を選択肢付きで報告に列挙して止める（自分で裁定しない）。
 
 ### 旧既定: sonnet 委譲（Workflow 不可時のフォールバック・2026-08-18）
 
