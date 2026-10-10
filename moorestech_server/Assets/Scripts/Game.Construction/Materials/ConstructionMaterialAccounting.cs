@@ -51,6 +51,33 @@ namespace Game.Construction
             return required;
         }
 
+        // 必要数と所持数を素材の初出順で突き合わせる
+        // Match required and held counts in first-seen material order
+        public static List<(ItemId itemId, int held, int required)> MatchRequirements(IReadOnlyList<(ItemId itemId, int count)> requiredItems, IReadOnlyDictionary<ItemId, int> heldByItem)
+        {
+            // 必要数を素材の初出順で合算する（表示順を安定させる）
+            // Sum required counts per material in first-seen order (keeps the display order stable)
+            var requiredByItem = new Dictionary<ItemId, int>();
+            var itemOrder = new List<ItemId>();
+            foreach (var (itemId, count) in requiredItems)
+            {
+                if (!requiredByItem.ContainsKey(itemId))
+                {
+                    requiredByItem[itemId] = 0;
+                    itemOrder.Add(itemId);
+                }
+                requiredByItem[itemId] += count;
+            }
+
+            var requirements = new List<(ItemId itemId, int held, int required)>();
+            foreach (var itemId in itemOrder)
+            {
+                heldByItem.TryGetValue(itemId, out var held);
+                requirements.Add((itemId, held, requiredByItem[itemId]));
+            }
+            return requirements;
+        }
+
         // 各素材の所持合計が、予約分を上乗せした必要数を満たすか。可否判定の正本
         // Whether the summed held count of each material meets its requirement plus the reservation; the canonical affordability judgement
         public static bool HasEnough(IReadOnlyList<ConnectToolMaterialCost> materials, IReadOnlyDictionary<ItemId, int> heldByItem, IReadOnlyList<ConnectToolMaterialCost> reservedMaterials)

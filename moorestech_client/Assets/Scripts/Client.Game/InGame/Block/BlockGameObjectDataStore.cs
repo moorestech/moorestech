@@ -30,6 +30,7 @@ namespace Client.Game.InGame.Block
         
         public IObservable<Vector3Int> OnBlockRemoved => _onBlockRemoved;
         private readonly Subject<Vector3Int> _onBlockRemoved = new();
+        public ulong OccupancyRevision { get; private set; }
 
         // ブロックGUID別の最近傍索引。全ブロック走査での最寄り探索を毎フレーム回さないため（前例: OutcropGameObjectDatastore）
         // Per-block-GUID nearest index, so no per-frame full scan is needed for nearest lookups (precedent: OutcropGameObjectDatastore)
@@ -116,6 +117,7 @@ namespace Client.Game.InGame.Block
             _blockObjectsDictionary.Add(blockPosition, block);
             _blockObjectsByInstanceIdDictionary.Add(blockInstanceId, block);
             _nearestIndex.Register(block.BlockMasterElement.BlockGuid, block);
+            OccupancyRevision++;
             _onBlockPlaced.OnNext(block);
         }
         
@@ -130,6 +132,7 @@ namespace Client.Game.InGame.Block
             _blockObjectsByInstanceIdDictionary.Remove(block.BlockInstanceId);
             DropFromNearestIndex(block);
             _blockObjectsDictionary.Remove(blockPosition);
+            OccupancyRevision++;
             
             // ブロック削除イベントを発行
             // Fire block removal event

@@ -25,14 +25,17 @@ namespace Game.Blueprint
 
             // 選択余白による位置ずれを避けるため、コピー対象の外形からアンカーを決める
             // Derive the anchor from copied blocks so selection margins cannot shift placement
-            var anchor = CalcAnchor(targets);
+            var anchor = CalcMinCorner(targets);
             var blocks = new List<BlueprintBlockJsonObject>();
             foreach (var data in targets)
             {
                 blocks.Add(CreateBlockJson(data, anchor));
             }
 
-            blueprint = new BlueprintJsonObject(name, blocks, GameRandom.NextGuid());
+            // 保存したブロック順で内部配線を記録する
+            // Record internal lines using the saved block order
+            var (wires, chains) = BlueprintLineCollector.Collect(targets.ConvertAll(data => data.Block));
+            blueprint = new BlueprintJsonObject(name, blocks, wires, chains, GameRandom.NextGuid());
             return true;
 
             #region Internal
@@ -51,19 +54,17 @@ namespace Game.Blueprint
                 return result;
             }
 
-            // 負座標でも中心セルを下方向に丸める
-            // Floor the center cell even at negative coordinates
-            Vector3Int CalcAnchor(List<WorldBlockData> copyTargets)
+            // 原点の成分最小を基準にする
+            // Anchor at the component-wise minimum of block origins
+            Vector3Int CalcMinCorner(List<WorldBlockData> copyTargets)
             {
-                var extentMin = copyTargets[0].Block.BlockPositionInfo.MinPos;
-                var extentMax = copyTargets[0].Block.BlockPositionInfo.MaxPos;
+                var minCorner = copyTargets[0].Block.BlockPositionInfo.OriginalPos;
                 foreach (var data in copyTargets)
                 {
-                    extentMin = Vector3Int.Min(extentMin, data.Block.BlockPositionInfo.MinPos);
-                    extentMax = Vector3Int.Max(extentMax, data.Block.BlockPositionInfo.MaxPos);
+                    minCorner = Vector3Int.Min(minCorner, data.Block.BlockPositionInfo.OriginalPos);
                 }
 
-                return new Vector3Int(Mathf.FloorToInt((extentMin.x + extentMax.x) / 2f), extentMin.y, Mathf.FloorToInt((extentMin.z + extentMax.z) / 2f));
+                return minCorner;
             }
 
             BlueprintBlockJsonObject CreateBlockJson(WorldBlockData data, Vector3Int anchorPos)

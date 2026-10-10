@@ -7,13 +7,15 @@ namespace Game.Blueprint
 {
     public class BlueprintPlacementElement
     {
+        public readonly int BlockIndex;
         public readonly Vector3Int Position;
         public readonly BlockDirection Direction;
         public readonly BlockId BlockId;
         public readonly Dictionary<string, string> Settings;
 
-        public BlueprintPlacementElement(Vector3Int position, BlockDirection direction, BlockId blockId, Dictionary<string, string> settings)
+        public BlueprintPlacementElement(int blockIndex, Vector3Int position, BlockDirection direction, BlockId blockId, Dictionary<string, string> settings)
         {
+            BlockIndex = blockIndex;
             Position = position;
             Direction = direction;
             BlockId = blockId;

@@ -9,6 +9,7 @@ using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Player;
 using Core.Master;
 using Game.Block.Interface;
+using Game.PlacementTarget;
 using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
@@ -17,18 +18,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
 {
     public class PlaceSystemUtil
     {
-        // 全PlaceSystem共通の設置距離
-        // Placement distance shared by all PlaceSystems
-        private const float PlaceableMaxDistance = 100f;
-
         // プレイヤー位置基準で設置距離を判定する（起点をカメラ位置にすると視点の引き方で判定が食い違う）
         // Judge placeable distance from the player position (a camera-based origin would disagree as the view is pulled back)
         public static bool IsPlaceableFromPlayer(Vector3Int placePoint)
         {
-            var placePosition = (Vector3)placePoint;
             var playerPosition = PlayerSystemContainer.Instance.PlayerObjectController.Position;
 
-            return Vector3.Distance(playerPosition, placePosition) <= PlaceableMaxDistance;
+            return PlacementDistanceRule.IsWithinReach(playerPosition, placePoint);
         }
 
         public static bool TryGetRayHitBlockPosition(Camera mainCamera, int heightOffset, BlockDirection currentBlockDirection, BlockMasterElement holdingBlock, out Vector3Int pos, out BlockPreviewBoundingBoxSurface surface)
@@ -41,8 +37,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
         // Shared raycast-to-placement-cell body for normal placement and blueprint cell resolution
         public static bool TryGetRayHitPlacePointBySize(Camera mainCamera, Vector3Int rotatedSize, int heightOffset, out Vector3Int pos, out BlockPreviewBoundingBoxSurface surface)
         {
+            return TryGetRayHitPlacePointBySize(mainCamera, rotatedSize, heightOffset, out pos, out surface, out _);
+        }
+
+        internal static bool TryGetRayHitPlacePointBySize(Camera mainCamera, Vector3Int rotatedSize, int heightOffset,
+            out Vector3Int pos, out BlockPreviewBoundingBoxSurface surface, out Vector3 hitPoint)
+        {
             pos = Vector3Int.zero;
+            hitPoint = default;
             if (!TryRaycastPlacementSurface(mainCamera, out var hit, out surface)) return false;
+            hitPoint = hit.point;
 
             // 地面ヒットだけ、当たった地形の高さ格子1段をY決定へ渡す
             // Only a ground hit hands the hit terrain's height lattice step to the Y decision

@@ -30,7 +30,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
     ///     サーバーのBPライブラリのクライアント側キャッシュ
     ///     Client-side cache of the server blueprint library
     /// </summary>
-    public class ClientBlueprintLibrary : IBlueprintDeleteService
+    public class ClientBlueprintLibrary : IBlueprintDeleteService, IBlueprintLookup
     {
         // キャッシュが最新全件に置き換わったら発火する（BuildMenuTopic の再配信トリガ）
         // Fires when the cache is replaced with a fresh full list (republish trigger for BuildMenuTopic)

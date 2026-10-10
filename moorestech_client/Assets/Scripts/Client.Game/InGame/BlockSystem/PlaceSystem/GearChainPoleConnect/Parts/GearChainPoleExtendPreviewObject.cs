@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Client.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse;
@@ -15,15 +14,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
     /// </summary>
     public class GearChainPoleExtendPreviewObject
     {
-        private const float LineWidth = 0.05f;
-        private const float LineSpacing = 0.1f;
-
         private readonly IPlacementPreviewBlockGameObjectController _ghostController;
         private readonly List<PlaceInfo> _positionedPlaceInfos = new();
-
-        private GameObject _lineRoot;
-        private LineRenderer _lineRenderer1;
-        private LineRenderer _lineRenderer2;
+        private GearChainPreviewLine _line;
 
         public GearChainPoleExtendPreviewObject(IPlacementPreviewBlockGameObjectController ghostController)
         {
@@ -76,55 +69,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
             {
                 if (!command.LineVisible)
                 {
-                    if (_lineRoot != null) _lineRoot.SetActive(false);
+                    _line?.SetActive(false);
                     return;
                 }
 
-                EnsureLines();
-                _lineRoot.SetActive(true);
-
-                // 2本のラインを水平にオフセットして描画
-                // Draw two horizontally offset lines like the existing chain view
-                var direction = (command.LineEnd - command.LineStart).normalized;
-                var right = Vector3.Cross(Vector3.up, direction).normalized;
-                if (right == Vector3.zero) right = Vector3.right;
-                var offset = right * (LineSpacing / 2f);
-
-                var color = command.LinePlaceable ? MaterialConst.PlaceableColor : MaterialConst.NotPlaceableColor;
-                SetLine(_lineRenderer1, command.LineStart + offset, command.LineEnd + offset, color);
-                SetLine(_lineRenderer2, command.LineStart - offset, command.LineEnd - offset, color);
-            }
-
-            void EnsureLines()
-            {
-                if (_lineRoot != null) return;
-
-                // プレビュー用ラインを実行時に生成する（シーン配線を不要にするため）
-                // Create preview lines at runtime (avoids scene wiring)
-                _lineRoot = new GameObject("GearChainPoleExtendPreviewLine");
-                _lineRenderer1 = CreateLineRenderer("Line1");
-                _lineRenderer2 = CreateLineRenderer("Line2");
-            }
-
-            LineRenderer CreateLineRenderer(string lineName)
-            {
-                var lineObject = new GameObject(lineName);
-                lineObject.transform.SetParent(_lineRoot.transform);
-
-                var lineRenderer = lineObject.AddComponent<LineRenderer>();
-                lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
-                lineRenderer.startWidth = LineWidth;
-                lineRenderer.endWidth = LineWidth;
-                lineRenderer.positionCount = 2;
-                return lineRenderer;
-            }
-
-            void SetLine(LineRenderer lineRenderer, Vector3 lineStart, Vector3 lineEnd, Color color)
-            {
-                lineRenderer.SetPosition(0, lineStart);
-                lineRenderer.SetPosition(1, lineEnd);
-                lineRenderer.startColor = color;
-                lineRenderer.endColor = color;
+                // BPと通常延長で同じチェーン描画を使う
+                // Share chain rendering with blueprint previews
+                _line ??= new GearChainPreviewLine(null);
+                _line.Draw(command.LineStart, command.LineEnd, command.LinePlaceable);
             }
 
             #endregion

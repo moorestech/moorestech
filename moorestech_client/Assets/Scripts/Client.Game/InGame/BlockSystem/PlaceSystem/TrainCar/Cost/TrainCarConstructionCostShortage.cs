@@ -20,7 +20,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar.Cost
             var trainCarMaster = MasterHolder.TrainUnitMaster.GetTrainCarMaster(trainCarGuid);
             var costItems = ConstructionCostItems.ToItemCounts(trainCarMaster.RequiredItems);
             var heldByItem = ConstructionMaterialAccounting.TallyHeld(inventoryItems);
-            var requirements = ConstructionCostShortageCalculator.CalculateRequirements(costItems, heldByItem);
+            var requirements = ConstructionMaterialAccounting.MatchRequirements(costItems, heldByItem);
             return ConstructionCostShortageCalculator.ToShortages(requirements);
         }
     }

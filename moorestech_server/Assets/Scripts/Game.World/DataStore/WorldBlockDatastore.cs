@@ -87,7 +87,7 @@ namespace Game.World.DataStore
         {
             var blockSize = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockSize;
             var blockPositionInfo = new BlockPositionInfo(position, direction, blockSize);
-            if (IsOverlapExistingBlock(blockPositionInfo))
+            if (this.IsOverlapExistingBlock(blockPositionInfo))
             {
                 block = null;
                 return false;
@@ -104,7 +104,7 @@ namespace Game.World.DataStore
             //IDが未登録で、かつ占有範囲が既存ブロックと重ならない場合のみ設置する
             //Place only when the id is unregistered and the footprint does not overlap any existing block
             if (_blockMasterDictionary.ContainsKey(block.BlockInstanceId) ||
-                IsOverlapExistingBlock(block.BlockPositionInfo))
+                this.IsOverlapExistingBlock(block.BlockPositionInfo))
             {
                 block.Destroy();
                 return false;
@@ -124,17 +124,6 @@ namespace Game.World.DataStore
             return true;
         }
         
-        //設置しようとするブロックの占有範囲が既存ブロックと重なるかを判定する
-        //Check whether the footprint of the block to place overlaps any existing block
-        private bool IsOverlapExistingBlock(BlockPositionInfo positionInfo)
-        {
-            foreach (var position in positionInfo.EnumeratePositions())
-                if (_coordinateDictionary.ContainsKey(position))
-                    return true;
-
-            return false;
-        }
-
         private BlockInstanceId GetEntityId(Vector3Int pos)
         {
             _coordinateDictionary.TryGetValue(pos, out var blockInstanceId);

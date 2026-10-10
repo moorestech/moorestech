@@ -93,6 +93,41 @@ namespace Game.Construction
             return ConstructionCostItems.ToItemCounts(MasterHolder.BlockMaster.GetBlockMaster(blockId).RequiredItems);
         }
 
+        // 複数セルの財布キーと残数を共有し、消費素材だけを返す
+        // Share wallet keys and balances across cells, returning only the materials to consume
+        public IReadOnlyList<(ItemId itemId, int count)> GetItemsToConsumeForCells(IReadOnlyDictionary<BlockId, int> cellCounts)
+        {
+            var normalizedCounts = new Dictionary<BlockId, int>();
+            foreach (var (blockId, count) in cellCounts)
+            {
+                var walletBlockId = ResolveWalletBlockId(blockId);
+                normalizedCounts.TryGetValue(walletBlockId, out var previous);
+                normalizedCounts[walletBlockId] = previous + count;
+            }
+
+            // 財布の判断と素材への変換を問い合わせ口の内側で完了する
+            // Finish wallet decisions and material conversion inside the query window
+            var requiredByItem = new Dictionary<ItemId, int>();
+            foreach (var (blockId, count) in normalizedCounts)
+            {
+                var sets = GetRequiredCostSets(blockId, count);
+                if (sets == 0) continue;
+                var items = ConstructionCostItems.ToItemCounts(MasterHolder.BlockMaster.GetBlockMaster(blockId).RequiredItems);
+                foreach (var (itemId, itemCount) in items)
+                {
+                    requiredByItem.TryGetValue(itemId, out var current);
+                    requiredByItem[itemId] = current + itemCount * sets;
+                }
+            }
+
+            var required = new List<(ItemId itemId, int count)>(requiredByItem.Count);
+            foreach (var (itemId, count) in requiredByItem)
+            {
+                required.Add((itemId, count));
+            }
+            return required;
+        }
+
         // 表示中のセル数に対し実際に払うコストセット数
         // The cost sets actually paid for the cells being previewed
         public int GetRequiredCostSets(BlockId blockId, int cellCount)

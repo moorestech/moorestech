@@ -66,6 +66,27 @@ namespace Tests.UnitTest.Game
         }
 
         [Test]
+        public void 複数セル問い合わせは坂と直線の財布を共有して素材化する()
+        {
+            var query = CreateQuery(out var mutation);
+            var straight = ForUnitTestModBlockId.GearBeltConveyor;
+            var cells = new Dictionary<BlockId, int>
+            {
+                { straight, 1 },
+                { ForUnitTestModBlockId.TestGearBeltConveyorUp, 1 },
+            };
+            mutation.Refill(PlayerId, straight, 3);
+            Assert.IsEmpty(query.GetItemsToConsumeForCells(cells));
+
+            // 残り1で2セルなら同じ財布を一度補充する
+            // Two cells with one remaining refill the shared wallet once
+            mutation.ConsumeOne(PlayerId, straight);
+            mutation.ConsumeOne(PlayerId, straight);
+            CollectionAssert.AreEquivalent(ConstructionCostItems.ToItemCounts(MasterHolder.BlockMaster.GetBlockMaster(straight).RequiredItems),
+                query.GetItemsToConsumeForCells(cells));
+        }
+
+        [Test]
         public void 残り設置数と買えるセット数から置ける数を算出する()
         {
             var query = CreateQuery(out var mutation);
