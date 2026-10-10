@@ -138,11 +138,14 @@ namespace Tests.CombinedTest.Core.CleanRoom
             var positionInfo = new BlockPositionInfo(new Vector3Int(10, 0, 10), BlockDirection.North, Vector3Int.one);
             var loaded = ServerContext.BlockFactory.Load(blockGuid, new BlockInstanceId(int.MaxValue), states, positionInfo);
 
-            var loadedInventory = loaded.GetComponent<IBlockInventory>();
-            Assert.AreEqual(1, loadedInventory.GetItem(0).Id.AsPrimitive());
-            Assert.AreEqual(5, loadedInventory.GetItem(0).Count);
-            Assert.AreEqual(2, loadedInventory.GetItem(1).Id.AsPrimitive());
-            Assert.AreEqual(3, loadedInventory.GetItem(1).Count);
+            // 中継スロットは撤去時の返却物としてスロット順に読める
+            // The transit slots are readable in slot order as the removal refund
+            var loadedItems = loaded.GetComponent<IGetRefundItemsInfo>().GetRefundItems();
+            Assert.AreEqual(2, loadedItems.Count);
+            Assert.AreEqual(1, loadedItems[0].Id.AsPrimitive());
+            Assert.AreEqual(5, loadedItems[0].Count);
+            Assert.AreEqual(2, loadedItems[1].Id.AsPrimitive());
+            Assert.AreEqual(3, loadedItems[1].Count);
         }
 
         #region TestHelper

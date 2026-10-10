@@ -48,7 +48,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             //ブロックをセットアップ
             worldBlockDataStore.TryAddBlock(ForUnitTestModBlockId.MachineId, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
-            var blockInventory = block.GetComponent<IBlockInventory>();
+            var blockInventory = block.GetComponent<IOpenableBlockInventoryComponent>();
 
             // 束縛(ADR 0042)のためレシピを選択し、対象アイテムをレシピ自身から取る
             // Binding (ADR 0042) requires a selected recipe; the target item comes from the recipe itself

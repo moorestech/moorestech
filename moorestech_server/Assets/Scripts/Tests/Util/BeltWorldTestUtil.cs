@@ -20,12 +20,19 @@ namespace Tests.Util
             return block;
         }
 
-        public static IBlockInventory Inventory(IBlock block)
+        public static IOpenableBlockInventoryComponent Inventory(IBlock block)
         {
-            return block.ComponentManager.GetComponent<IBlockInventory>();
+            return block.ComponentManager.GetComponent<IOpenableBlockInventoryComponent>();
         }
 
-        public static int CountOf(IBlockInventory inventory, ItemId itemId)
+        // ベルコンの搬入口。スロットを持たないので開けるインベントリではない
+        // The belt inlet; it has no slots and is not an openable inventory
+        public static IBlockInventory Inlet(IBlock belt)
+        {
+            return belt.ComponentManager.GetComponent<IBlockInventory>();
+        }
+
+        public static int CountOf(IOpenableBlockInventoryComponent inventory, ItemId itemId)
         {
             var count = 0;
             for (var i = 0; i < inventory.GetSlotSize(); i++)

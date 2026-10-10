@@ -10,8 +10,8 @@ namespace Game.Block.Blocks.BeltConveyor
 {
     // ベルコンblockが機械から受ける搬入口。押し込みはワールド全体の搬送の組へ進入距離1で渡し、1個入った分だけ減らして返す
     // The belt block's inlet for machines; a push goes to the world-wide transport assembly at entry length 1 and the stack returns reduced by the one item that entered
-    // ベルコン上のアイテムはblockのスロットとして持たない。撤去で返さず、スロットは常に0
-    // Items on the belt are not block slots; removal returns nothing and the slot count is always zero
+    // ベルコン上のアイテムはblockのスロットとして持たない。撤去・過負荷破壊で返さず、次tickの再構築で消える
+    // Items on the belt are not block slots; removal and overload breakage return nothing and the next-tick rebuild drops them
     public class BeltConveyorInventoryComponent : IBlockInventory
     {
         private readonly BlockInstanceId _blockInstanceId;
@@ -39,23 +39,6 @@ namespace Game.Block.Blocks.BeltConveyor
         {
             BlockException.CheckDestroy(this);
             return itemStacks.Count == 1 && itemStacks[0].Count == 1;
-        }
-
-        public int GetSlotSize()
-        {
-            BlockException.CheckDestroy(this);
-            return 0;
-        }
-
-        public IItemStack GetItem(int slot)
-        {
-            BlockException.CheckDestroy(this);
-            return ServerContext.ItemStackFactory.CreatEmpty();
-        }
-
-        public void SetItem(int slot, IItemStack itemStack)
-        {
-            BlockException.CheckDestroy(this);
         }
 
         public void Destroy()

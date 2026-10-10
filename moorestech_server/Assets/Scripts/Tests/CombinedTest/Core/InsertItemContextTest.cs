@@ -138,7 +138,7 @@ namespace Tests.CombinedTest.Core
             var belt = Place(ForUnitTestModBlockId.BeltConveyorId, Vector3Int.zero, BlockDirection.North);
             var unconnected = Place(ForUnitTestModBlockId.ChestId, new Vector3Int(10, 0, 10), BlockDirection.North);
             ServerContext.GetService<BeltTransportDatastore>().RebuildIfDirty();
-            var beltInventory = Inventory(belt);
+            var beltInventory = Inlet(belt);
 
             // 文脈なし・未接続の送り元は面の受け口が無いので、そのまま差し戻される
             // No context or an unconnected source has no port for that face, so the stack comes back unchanged

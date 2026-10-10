@@ -98,9 +98,9 @@ namespace Server.Protocol.PacketResponse
                 // The construction-cost refund simply follows the wallet's instruction
                 result.AddRange(removalPlan.ItemsToRefund);
                 
-                // インベントリのアイテムを取得
-                // Get items from block inventory
-                if (ServerContext.WorldBlockDatastore.TryGetBlock<IBlockInventory>(data.Pos, out var blockInventory))
+                // 開けるインベントリのスロットを返す。ベルコンのようにスロットを持たないblockは何も返さない
+                // Refund the slots of an openable inventory; blocks without slots, such as belts, refund nothing
+                if (ServerContext.WorldBlockDatastore.TryGetBlock<IOpenableBlockInventoryComponent>(data.Pos, out var blockInventory))
                 {
                     for (var i = 0; i < blockInventory.GetSlotSize(); i++)
                     {

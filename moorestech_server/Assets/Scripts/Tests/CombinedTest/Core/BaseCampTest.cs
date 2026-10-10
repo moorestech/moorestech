@@ -32,7 +32,7 @@ namespace Tests.CombinedTest.Core
             
             // ベースキャンプコンポーネントの取得
             var baseCampComponent = baseCampBlock.GetComponent<BaseCampComponent>();
-            var baseCampInventory = baseCampBlock.GetComponent<IBlockInventory>();
+            var baseCampInventory = baseCampBlock.GetComponent<IOpenableBlockInventoryComponent>();
             
             // 必要なアイテムの設定（テスト用に単一アイテム）
             var requiredItemGuid = new Guid("00000000-0000-0000-1234-000000000001");
@@ -61,7 +61,7 @@ namespace Tests.CombinedTest.Core
             ServerContext.WorldBlockDatastore.TryAddBlock(baseCampBlockId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var baseCampBlock);
             
             var baseCampComponent = baseCampBlock.GetComponent<BaseCampComponent>();
-            var baseCampInventory = baseCampBlock.GetComponent<IBlockInventory>();
+            var baseCampInventory = baseCampBlock.GetComponent<IOpenableBlockInventoryComponent>();
             
             // 複数の必要アイテム（実際のBaseCamp2の設定に合わせる）
             var requiredItems = new List<(ItemId id, int count)>
@@ -109,7 +109,7 @@ namespace Tests.CombinedTest.Core
             ServerContext.WorldBlockDatastore.TryAddBlock(baseCampBlockId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var baseCampBlock);
             
             var baseCampComponent = baseCampBlock.GetComponent<BaseCampComponent>();
-            var baseCampInventory = baseCampBlock.GetComponent<IBlockInventory>();
+            var baseCampInventory = baseCampBlock.GetComponent<IOpenableBlockInventoryComponent>();
             
             // 間違ったアイテムを納品しようとする（BaseCamp1はItemId 1が必要だが、ItemId 2を送る）
             var wrongItemGuid = new Guid("00000000-0000-0000-1234-000000000002");
@@ -137,7 +137,7 @@ namespace Tests.CombinedTest.Core
             ServerContext.WorldBlockDatastore.TryAddBlock(baseCampBlockId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var baseCampBlock);
             
             var baseCampComponent = baseCampBlock.GetComponent<BaseCampComponent>();
-            var baseCampInventory = baseCampBlock.GetComponent<IBlockInventory>();
+            var baseCampInventory = baseCampBlock.GetComponent<IOpenableBlockInventoryComponent>();
             
             var requiredItemId = new ItemId(1);
             var requiredAmount = 10;

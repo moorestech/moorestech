@@ -105,13 +105,13 @@ namespace Client.Tests.PlaceSystem.ConveyorOverpass
                 }
             }
 
-            IBlockInventory PlaceChest(Vector3Int position)
+            IOpenableBlockInventoryComponent PlaceChest(Vector3Int position)
             {
                 Assert.IsTrue(world.TryAddBlock(ForUnitTestModBlockId.ChestId, position, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var chest));
-                return chest.GetComponent<IBlockInventory>();
+                return chest.GetComponent<IOpenableBlockInventoryComponent>();
             }
 
-            int CountOf(IBlockInventory inventory, ItemId targetItemId)
+            int CountOf(IOpenableBlockInventoryComponent inventory, ItemId targetItemId)
             {
                 var count = 0;
                 for (var i = 0; i < inventory.GetSlotSize(); i++)

@@ -12,6 +12,7 @@ using Game.Context;
 using Game.World.Interface.DataStore;
 using Mooresmaster.Model.InventoryConnectsModule;
 using NUnit.Framework;
+using Tests.Module;
 using Tests.UnitTest.Game.BeltConnection.Machine;
 using UnityEngine;
 
@@ -100,12 +101,14 @@ namespace Tests.UnitTest.Game.BeltConnection.Transport
             return assembly.Layouts.Single(layout => layout.IsInternal).Index;
         }
 
-        internal static IBlockInventory Inventory(IBlock block)
+        // 接続テスト用の機械(MachinePortTestTemplate)はDummyBlockInventoryを持つ
+        // Machines of the connection tests (MachinePortTestTemplate) carry a DummyBlockInventory
+        internal static DummyBlockInventory Inventory(IBlock block)
         {
-            return block.ComponentManager.GetComponent<IBlockInventory>();
+            return block.ComponentManager.GetComponent<DummyBlockInventory>();
         }
 
-        internal static int CountOf(IBlockInventory inventory, ItemId itemId)
+        internal static int CountOf(DummyBlockInventory inventory, ItemId itemId)
         {
             var count = 0;
             for (var i = 0; i < inventory.GetSlotSize(); i++)
@@ -113,7 +116,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Transport
             return count;
         }
 
-        internal static int TotalCount(IBlockInventory inventory)
+        internal static int TotalCount(DummyBlockInventory inventory)
         {
             var count = 0;
             for (var i = 0; i < inventory.GetSlotSize(); i++)
@@ -121,7 +124,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Transport
             return count;
         }
 
-        internal static void FillWith(IBlockInventory inventory, ItemId itemId)
+        internal static void FillWith(DummyBlockInventory inventory, ItemId itemId)
         {
             // 別アイテムで全スロットを埋め、以後の搬入を拒否させる
             // Fill every slot with another item so later inserts are rejected

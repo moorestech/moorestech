@@ -47,7 +47,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             MachineRecipeSelectTestUtil.SelectRecipe(block, recipe);
             var boundInput = recipe.InputItems[0];
             var boundInputId = MasterHolder.ItemMaster.GetItemId(boundInput.ItemGuid);
-            var blockInventory = block.GetComponent<IBlockInventory>();
+            var blockInventory = block.GetComponent<IOpenableBlockInventoryComponent>();
             blockInventory.InsertItem(itemStackFactory.Create(boundInputId, boundInput.Count), InsertItemContext.Empty);
 
             // プロトコルを使ってブロックを削除
@@ -99,7 +99,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 削除するためのブロックを設置
             // Place block to be removed
             worldBlock.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
-            var blockInventory = block.GetComponent<IBlockInventory>();
+            var blockInventory = block.GetComponent<IOpenableBlockInventoryComponent>();
             // ブロックにはID3のアイテムを2個と、ID4のアイテムを5個入れる
             // Block contains 2 ID3 items and 5 ID4 items
             blockInventory.SetItem(0, itemStackFactory.Create(new ItemId(3), 2));
@@ -152,7 +152,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             worldBlock.TryAddBlock(machineBlockId, new Vector3Int(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
             MachineRecipeSelectTestUtil.SelectRecipe(block, recipe);
             var boundInput = recipe.InputItems[0];
-            block.GetComponent<IBlockInventory>().InsertItem(itemStackFactory.Create(boundInput.ItemGuid, 1), InsertItemContext.Empty);
+            block.GetComponent<IOpenableBlockInventoryComponent>().InsertItem(itemStackFactory.Create(boundInput.ItemGuid, 1), InsertItemContext.Empty);
             
             
             //プロトコルを使ってブロックを削除

@@ -69,7 +69,7 @@ namespace Tests.CombinedTest.Core.Transport
 
         // 搬入チェスト→歯車ベルト3マス→搬出チェストを北向きに並べる
         // Line up input chest -> three gear belt cells -> output chest facing north
-        private static (IBlockInventory source, IBlockInventory output, IBlock[] belts) PlaceLine()
+        private static (IOpenableBlockInventoryComponent source, IOpenableBlockInventoryComponent output, IBlock[] belts) PlaceLine()
         {
             var source = Inventory(Place(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, -1), BlockDirection.North));
             var belts = new IBlock[3];

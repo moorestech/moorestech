@@ -81,7 +81,7 @@ namespace Tests.CombinedTest.Core.Transport
             var source = Place(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, -1), BlockDirection.North);
             var belt = Place(ForUnitTestModBlockId.BeltConveyorId, Vector3Int.zero, BlockDirection.North);
             ServerContext.GetService<BeltTransportDatastore>().RebuildIfDirty();
-            var beltInventory = Inventory(belt);
+            var beltInventory = Inlet(belt);
             var context = new InsertItemContext(source.BlockInstanceId, null, null);
 
             // 1マスのsegmentは1個で満杯。1回目は1個減って返り、2回目はそのまま返る
