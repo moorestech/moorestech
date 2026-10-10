@@ -111,7 +111,7 @@ namespace Server.Boot.Composition
             // 退避先はワールドのセーブファイルの隣。登録時に解決すると実セーブ領域をテストからも掴んでしまう
             // The archives sit beside that world's save file; resolving at registration time would grab the real save area even from tests
             services.AddSingleton<SaveArchiveWriter>();
-            services.AddSingleton(SaveMigrationChain.ForCurrentVersion(new ISaveMigrationStep[] { new SaveMigrationStepV1ToV2(), new SaveMigrationStepV2ToV3(), new SaveMigrationStepV3ToV4() }));
+            services.AddSingleton(SaveMigrationChain.ForCurrentVersion(new ISaveMigrationStep[] { new SaveMigrationStepV1ToV2(), new SaveMigrationStepV2ToV3(), new SaveMigrationStepV3ToV4(), new SaveMigrationStepV4ToV5() }));
             services.AddSingleton<MissingMasterPruner>();
             services.AddSingleton<MissingMasterPruneReportStore>();
             services.AddSingleton<IMissingMasterPruneReportLookup>(provider => provider.GetRequiredService<MissingMasterPruneReportStore>());

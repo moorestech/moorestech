@@ -14,6 +14,7 @@ using Game.EnergySystem;
 using Game.PlayerInventory.Interface;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
+using Game.SaveLoad.Json.WorldVersions;
 using Game.SaveLoad.Migration.Steps;
 using Game.UnlockState;
 using Microsoft.Extensions.DependencyInjection;
@@ -73,7 +74,7 @@ namespace Tests.CombinedTest.Game.SaveLoad
             Assert.AreEqual(original, File.ReadAllText(sourcePath));
             Assert.AreEqual(original, File.ReadAllText(configuredDirectory.BackupSaveJsonPath(3)));
             var loadedSave = JObject.Parse(loadProvider.GetRequiredService<AssembleSaveJsonText>().AssembleSaveJson());
-            Assert.AreEqual(4, loadedSave["worldVersion"].Value<int>());
+            Assert.AreEqual(WorldSaveAllInfo.CurrentVersion, loadedSave["worldVersion"].Value<int>());
 
             var pole = ServerContext.WorldBlockDatastore.GetBlock(posPole).GetComponent<IElectricWireConnector>();
             var generator = ServerContext.WorldBlockDatastore.GetBlock(posGenerator).GetComponent<IElectricWireConnector>();
