@@ -96,12 +96,6 @@ properties:
             - when: BeltConveyor
               type: object
               properties:
-                - key: beltConveyorItemCount
-                  type: integer
-                  default: 1
-                - key: timeOfItemEnterToExit
-                  type: number
-                  default: 1
                 - key: beltSpeedPerTick
                   type: integer
                   default: 13
@@ -328,9 +322,6 @@ properties:
             - when: GearBeltConveyor
               type: object
               properties:
-                - key: beltConveyorItemCount
-                  type: integer
-                  default: 4
                 - key: beltConveyorSpeed
                   type: number
                   default: 2

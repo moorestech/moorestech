@@ -190,8 +190,6 @@
       "blockType": "BeltConveyor",
       "blockParam": {
         "beltSpeedPerTick": 6,
-        "timeOfItemEnterToExit": 2,
-        "beltConveyorItemCount": 4,
         "inventoryConnectors": {
           "inputConnects": [
             {
@@ -1846,8 +1844,6 @@
       "blockType": "SimpleGearGenerator",
       "blockParam": {
         "requireTorque": 0,
-        "timeOfItemEnterToExit": 0.5,
-        "beltConveyorItemCount": 4,
         "generateTorque": 1,
         "generateRpm": 20,
         "teethCount": 10,
@@ -2222,9 +2218,7 @@
       "name": "SmallGearBeltConveyor",
       "blockType": "GearBeltConveyor",
       "blockParam": {
-        "beltConveyorItemCount": 4,
         "beltSpeedPerTick": 32,
-        "timeOfItemEnterToExit": 0.4,
         "overloadMaxRpm": 10,
         "overloadMaxTorque": 10,
         "destructionCheckInterval": 0.01,
@@ -2327,9 +2321,7 @@
       "name": "GearBeltConveyor",
       "blockType": "GearBeltConveyor",
       "blockParam": {
-        "beltConveyorItemCount": 4,
         "beltSpeedPerTick": 32,
-        "timeOfItemEnterToExit": 0.4,
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
@@ -4109,8 +4101,6 @@
         "destructionCheckInterval": 1,
         "baseDestructionProbability": 0,
         "beltSpeedPerTick": 128,
-        "timeOfItemEnterToExit": 0.05,
-        "beltConveyorItemCount": 4,
         "gear": {
           "gearConnects": [
             {
@@ -4624,9 +4614,7 @@
       "name": "TestGearBeltConveyorUp",
       "blockType": "GearBeltConveyor",
       "blockParam": {
-        "beltConveyorItemCount": 4,
         "beltSpeedPerTick": 32,
-        "timeOfItemEnterToExit": 0.4,
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
@@ -4739,9 +4727,7 @@
       "name": "TestGearBeltConveyorDown",
       "blockType": "GearBeltConveyor",
       "blockParam": {
-        "beltConveyorItemCount": 4,
         "beltSpeedPerTick": 32,
-        "timeOfItemEnterToExit": 0.4,
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,

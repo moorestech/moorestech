@@ -146,14 +146,6 @@
                 "then": {
                   "type": "object",
                   "properties": {
-                    "beltConveyorItemCount": {
-                      "type": "integer",
-                      "default": 1
-                    },
-                    "timeOfItemEnterToExit": {
-                      "type": "number",
-                      "default": 1
-                    },
                     "beltSpeedPerTick": {
                       "type": "integer",
                       "default": 13
@@ -565,10 +557,6 @@
                 "then": {
                   "type": "object",
                   "properties": {
-                    "beltConveyorItemCount": {
-                      "type": "integer",
-                      "default": 4
-                    },
                     "beltConveyorSpeed": {
                       "type": "number",
                       "default": 2

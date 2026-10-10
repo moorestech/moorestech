@@ -574,8 +574,6 @@
             }
           ]
         },
-        "beltConveyorItemCount": 1,
-        "timeOfItemEnterToExit": 1,
         "inputSlotCount": 1,
         "teethCount": 10,
         "outputSlotCount": 1,
@@ -932,8 +930,6 @@
       "blockType": "GearBeltConveyor",
       "blockParam": {
         "beltSpeedPerTick": 1,
-        "timeOfItemEnterToExit": 100,
-        "beltConveyorItemCount": 4,
         "gear": {
           "gearConnects": [
             {
@@ -1088,8 +1084,6 @@
       "blockType": "GearBeltConveyor",
       "blockParam": {
         "beltSpeedPerTick": 1,
-        "timeOfItemEnterToExit": 100,
-        "beltConveyorItemCount": 4,
         "gear": {
           "gearConnects": [
             {
@@ -1194,8 +1188,6 @@
       "blockType": "GearBeltConveyor",
       "blockParam": {
         "beltSpeedPerTick": 1,
-        "timeOfItemEnterToExit": 100,
-        "beltConveyorItemCount": 4,
         "gear": {
           "gearConnects": [
             {
@@ -1974,8 +1966,6 @@
       "blockParam": {
         "slopeType": "Straight",
         "beltSpeedPerTick": 17,
-        "timeOfItemEnterToExit": 0.75,
-        "beltConveyorItemCount": 6,
         "inventoryConnectors": {
           "inputConnects": [
             {
@@ -2061,8 +2051,6 @@
       "blockParam": {
         "slopeType": "Up",
         "beltSpeedPerTick": 17,
-        "timeOfItemEnterToExit": 0.75,
-        "beltConveyorItemCount": 6,
         "inventoryConnectors": {
           "outputConnects": [
             {
@@ -2121,9 +2109,7 @@
       "blockPrefabAddressablesPath": "Vanilla/Block/Fast_BeltConveyor_Down",
       "openable": false,
       "blockParam": {
-        "beltConveyorItemCount": 6,
         "beltSpeedPerTick": 17,
-        "timeOfItemEnterToExit": 0.75,
         "slopeType": "Down",
         "inventoryConnectors": {
           "outputConnects": [
