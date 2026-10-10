@@ -2,6 +2,7 @@ using Game.Block.Blocks.BeltConveyor.Connection;
 using System.Collections.Generic;
 using Game.Block.Blocks;
 using Game.Block.Blocks.BeltConveyor;
+using Game.Block.Blocks.BeltConveyor.Save;
 using Game.Block.Blocks.Gear;
 using Game.Block.Component;
 using Game.Block.Interface;
@@ -15,15 +16,15 @@ namespace Game.Block.Factory.BlockTemplate.Transport
     {
         public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] createParams)
         {
-            return GetBlock(blockMasterElement, blockInstanceId, blockPositionInfo);
+            return GetBlock(null, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
 
         public IBlock Load(Dictionary<string, object> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            return GetBlock(blockMasterElement, blockInstanceId, blockPositionInfo);
+            return GetBlock(componentStates, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
 
-        private static BlockSystem GetBlock(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        private static BlockSystem GetBlock(Dictionary<string, object> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var gearBeltParam = blockMasterElement.BlockParam as GearBeltConveyorBlockParam;
 
@@ -48,11 +49,15 @@ namespace Game.Block.Factory.BlockTemplate.Transport
             gearEnergyTransformer.SetTorqueRequestRate(0f);
             var overloadParam = gearBeltParam as IGearOverloadParam;
             var overloadBreakageComponent = new GearOverloadBreakageComponent(blockInstanceId, gearEnergyTransformer, overloadParam);
+            var saveStateComponent = componentStates == null
+                ? new BeltConveyorSaveStateComponent(blockInstanceId)
+                : new BeltConveyorSaveStateComponent(componentStates, blockInstanceId);
 
             var blockComponents = new List<IBlockComponent>
             {
                 gearEnergyTransformer,
                 new BeltConveyorInventoryComponent(blockInstanceId),
+                saveStateComponent,
                 gearEnergyTransformerConnector,
                 inventoryConnector,
                 overloadBreakageComponent

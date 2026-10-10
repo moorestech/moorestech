@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Core.BeltTransport;
+using Game.Block.Blocks.BeltConveyor.Save;
 using Game.Block.Blocks.BeltConveyor.Topology.Layout;
 using Game.Block.Interface;
 
@@ -9,12 +10,12 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
     // Creates Core segments from the layouts (D3) and wires them exactly as the layout links say
     public static class BeltTransportAssembler
     {
-        public static BeltTransportAssembly Assemble(BeltSegmentLayout[] layouts)
+        // savedPriorityOrdersはロード直後だけ中身を持つ。載っている合流・分岐はその優先順で、それ以外は向きから初期化する
+        // savedPriorityOrders has entries only right after a load; listed merges and branches start from them, everything else from the direction
+        public static BeltTransportAssembly Assemble(BeltSegmentLayout[] layouts, IReadOnlyDictionary<BlockInstanceId, int> savedPriorityOrders)
         {
-            // 番号順にsegmentを生成してから接続する。優先順は新規生成として向きから初期化する
-            // Create every segment in index order, then wire; priorities start from the direction as for a fresh block
             var segments = new BeltConveyorSegment[layouts.Length];
-            for (var i = 0; i < layouts.Length; i++) segments[i] = Create(layouts[i]);
+            for (var i = 0; i < layouts.Length; i++) segments[i] = Create(layouts[i], savedPriorityOrders);
 
             var supplyPortByFace = new Dictionary<BeltMachineSupplyKey, BeltMachineSupplyPort>();
             for (var i = 0; i < layouts.Length; i++)
@@ -69,14 +70,19 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
             #endregion
         }
 
-        private static BeltConveyorSegment Create(BeltSegmentLayout layout)
+        private static BeltConveyorSegment Create(BeltSegmentLayout layout, IReadOnlyDictionary<BlockInstanceId, int> savedPriorityOrders)
         {
+            // 合流の優先順は先頭(唯一)のマス、分岐は末尾マスのblockに属する。保存値は搬出・搬入方向を除いた並べ替えのときだけ使う
+            // A merge's order belongs to its only cell and a branch's to its last cell; a saved value is used only when it permutes the directions other than the output or input
             switch (layout.Kind)
             {
                 case BeltSegmentKind.Merge:
-                    return new BeltMergeSegment(layout.Speed, BeltPriority.InitializeFromDirection, layout.Forward);
+                    var mergeOrder = BeltSavedPriorityOrder.Resolve(savedPriorityOrders, layout.Cells[0].BlockInstanceId, layout.Forward);
+                    return new BeltMergeSegment(layout.Speed, mergeOrder, layout.Forward);
                 case BeltSegmentKind.Branch:
-                    return new BeltBranchSegment(layout.Capacity, layout.Speed, BeltPriority.InitializeFromDirection, layout.Forward);
+                    var lastCell = layout.Cells[layout.Cells.Length - 1].BlockInstanceId;
+                    var branchOrder = BeltSavedPriorityOrder.Resolve(savedPriorityOrders, lastCell, BeltDirections.Opposite(layout.Forward));
+                    return new BeltBranchSegment(layout.Capacity, layout.Speed, branchOrder, layout.Forward);
                 default:
                     return new BeltNormalSegment(layout.Capacity, layout.Speed);
             }

@@ -9,9 +9,10 @@ namespace Game.Block.Blocks.BeltConveyor.Transport.Rebuild
     {
         public static void Restore(BeltTransportSnapshot snapshot, BeltTransportAssembly assembly)
         {
-            var locator = new BeltCellLocator(assembly.Layouts);
+            var locator = assembly.Locator;
             var placements = new BeltSegmentPlacement[assembly.Segments.Length];
             for (var i = 0; i < placements.Length; i++) placements[i] = new BeltSegmentPlacement();
+            var corruptedSegments = CollectCorruptedSegments();
 
             // 走行中→消えるbuffer→内部segmentの順に確定し、最後にsegmentごとの配置をCoreへ書く
             // Settle running items, then vanishing buffers, then internal segments, and finally write each segment's placement into Core
@@ -22,6 +23,16 @@ namespace Game.Block.Blocks.BeltConveyor.Transport.Rebuild
 
             #region Internal
 
+            HashSet<int> CollectCorruptedSegments()
+            {
+                // 読めない保存内容を持つblockが属するsegmentには、何も置かない
+                // Nothing is placed into a segment that contains a block with unreadable saved content
+                var segments = new HashSet<int>();
+                foreach (var block in snapshot.CorruptedBlocks)
+                    if (locator.TryLocate(block, out var location)) segments.Add(location.SegmentIndex);
+                return segments;
+            }
+
             void PlaceRunningItems()
             {
                 // 先頭のマスが残るものだけが候補。所属マスとマス内進行量を保ち、経路が変わるものは表示用の進入方向を合わせる
@@ -29,7 +40,7 @@ namespace Game.Block.Blocks.BeltConveyor.Transport.Rebuild
                 var candidates = new List<BeltRestoreCandidate>();
                 foreach (var record in snapshot.RunningItems)
                 {
-                    if (!locator.TryLocate(record.CellBlockInstanceId, out var location)) continue;
+                    if (!locator.TryLocate(record.CellBlockInstanceId, out var location) || corruptedSegments.Contains(location.SegmentIndex)) continue;
                     var matches = BeltCellLocator.MatchesPath(location.Cell, record.Item.EntryDirection);
                     var item = matches ? record.Item : record.Item.WithEntryDirection(BeltCellLocator.AlignToPath(location.Cell, record.Item.EntryDirection));
                     var distance = location.CellExitDistance + record.DistanceToCellExit;
@@ -46,7 +57,7 @@ namespace Game.Block.Blocks.BeltConveyor.Transport.Rebuild
                 var candidates = new List<BeltRestoreCandidate>();
                 foreach (var record in snapshot.BufferItems)
                 {
-                    if (!locator.TryLocate(record.CellBlockInstanceId, out var location)) continue;
+                    if (!locator.TryLocate(record.CellBlockInstanceId, out var location) || corruptedSegments.Contains(location.SegmentIndex)) continue;
                     if (location.IsLastCell && assembly.Segments[location.SegmentIndex] is BeltBufferedSegment buffered)
                     {
                         buffered.Buffer.RestoreItem(record.Item);
@@ -65,8 +76,11 @@ namespace Game.Block.Blocks.BeltConveyor.Transport.Rebuild
                 // 同じ合流マス・同じ入力方向に内部segmentが再び作られる場合だけ、出口までの距離を保って引き継ぐ
                 // Carried over with their distances only when an internal segment is created again for the same merge cell and input direction
                 foreach (var record in snapshot.InternalItems)
+                {
+                    if (snapshot.CorruptedBlocks.Contains(record.MergeBlockInstanceId)) continue;
                     if (locator.TryFindInternal(record.MergeBlockInstanceId, record.InputDirection, out var segmentIndex))
                         assembly.Segments[segmentIndex].RestoreItems(record.States);
+                }
             }
 
             #endregion

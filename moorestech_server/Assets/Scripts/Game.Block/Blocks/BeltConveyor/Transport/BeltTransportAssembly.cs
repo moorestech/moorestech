@@ -3,6 +3,7 @@ using Core.BeltTransport;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.BeltConveyor.Topology.Layout;
+using Game.Block.Blocks.BeltConveyor.Transport.Rebuild;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 
@@ -21,6 +22,9 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
         public readonly BeltSegmentLayout[] Layouts;
         public readonly BeltConveyorSegment[] Segments;
         public readonly BeltSimulation Simulation;
+        // blockがどのsegmentのどのマスかを引く。再構築の復元とセーブの切り出しが使う
+        // Looks up which segment and cell a block is; used by rebuild restoration and save extraction
+        public readonly BeltCellLocator Locator;
         // 面(押し込まれるベルコンのblock＋機械のblock)ごとに受け口を1つ持つ
         // One supply port per face (the pushed belt block plus the machine block)
         private readonly Dictionary<BeltMachineSupplyKey, BeltMachineSupplyPort> _supplyPortByFace;
@@ -30,6 +34,7 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
             Layouts = layouts;
             Segments = segments;
             Simulation = new BeltSimulation(segments);
+            Locator = new BeltCellLocator(layouts);
             _supplyPortByFace = supplyPortByFace;
         }
 

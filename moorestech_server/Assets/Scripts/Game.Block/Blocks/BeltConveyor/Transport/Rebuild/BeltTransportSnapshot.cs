@@ -1,29 +1,26 @@
 using System.Collections.Generic;
 using Core.BeltTransport;
 using Game.Block.Blocks.BeltConveyor.Topology.Layout;
+using Game.Block.Interface;
 
 namespace Game.Block.Blocks.BeltConveyor.Transport.Rebuild
 {
     // 再構築の直前に、旧構成のアイテムをマス・buffer・内部segmentごとに取り出したもの。取り出しは旧segmentを変更しない
     // Items of the old assembly taken right before a rebuild, grouped by cell, buffer and internal segment; capturing leaves the old segments untouched
+    // ロードした保存内容も同じ記録として足され、同じ復元手順に乗る
+    // Loaded save content is added as the same kind of records and goes through the same restore procedure
     public sealed class BeltTransportSnapshot
     {
-        public readonly List<BeltRunningItemRecord> RunningItems;
-        public readonly List<BeltBufferItemRecord> BufferItems;
-        public readonly List<BeltInternalItemRecord> InternalItems;
-
-        private BeltTransportSnapshot(List<BeltRunningItemRecord> runningItems, List<BeltBufferItemRecord> bufferItems, List<BeltInternalItemRecord> internalItems)
-        {
-            RunningItems = runningItems;
-            BufferItems = bufferItems;
-            InternalItems = internalItems;
-        }
+        public readonly List<BeltRunningItemRecord> RunningItems = new();
+        public readonly List<BeltBufferItemRecord> BufferItems = new();
+        public readonly List<BeltInternalItemRecord> InternalItems = new();
+        // 保存内容が読めなかったblock。そのblockを含むsegmentにはアイテムを1つも復元しない
+        // Blocks whose saved content was unreadable; no item is restored into a segment containing one
+        public readonly HashSet<BlockInstanceId> CorruptedBlocks = new();
 
         public static BeltTransportSnapshot Capture(BeltTransportAssembly assembly)
         {
-            var runningItems = new List<BeltRunningItemRecord>();
-            var bufferItems = new List<BeltBufferItemRecord>();
-            var internalItems = new List<BeltInternalItemRecord>();
+            var snapshot = new BeltTransportSnapshot();
             var layouts = assembly.Layouts;
             for (var i = 0; i < layouts.Length; i++)
             {
@@ -36,9 +33,9 @@ namespace Game.Block.Blocks.BeltConveyor.Transport.Rebuild
                 }
                 CaptureRunning(i, layout, segment);
                 if (segment is BeltBufferedSegment buffered && buffered.Buffer.TryGetItem(out var held))
-                    bufferItems.Add(new BeltBufferItemRecord(layout.Cells[layout.Cells.Length - 1].BlockInstanceId, held, i));
+                    snapshot.BufferItems.Add(new BeltBufferItemRecord(layout.Cells[layout.Cells.Length - 1].BlockInstanceId, held, i));
             }
-            return new BeltTransportSnapshot(runningItems, bufferItems, internalItems);
+            return snapshot;
 
             #region Internal
 
@@ -52,7 +49,7 @@ namespace Game.Block.Blocks.BeltConveyor.Transport.Rebuild
                 {
                     var cellIndex = cells.Length - 1 - states[order].DistanceToExit / BeltConstants.ItemWidth;
                     var distanceToCellExit = states[order].DistanceToExit % BeltConstants.ItemWidth;
-                    runningItems.Add(new BeltRunningItemRecord(cells[cellIndex].BlockInstanceId, distanceToCellExit, states[order].Item, segmentIndex, order));
+                    snapshot.RunningItems.Add(new BeltRunningItemRecord(cells[cellIndex].BlockInstanceId, distanceToCellExit, states[order].Item, segmentIndex, order));
                 }
             }
 
@@ -63,7 +60,7 @@ namespace Game.Block.Blocks.BeltConveyor.Transport.Rebuild
                 var states = segment.CaptureItems();
                 if (states.Length == 0) return;
                 var merge = layouts[layout.Outputs[0].PartnerSegmentIndex];
-                internalItems.Add(new BeltInternalItemRecord(merge.Cells[0].BlockInstanceId, layout.Inputs[0].Direction, states));
+                snapshot.InternalItems.Add(new BeltInternalItemRecord(merge.Cells[0].BlockInstanceId, layout.Inputs[0].Direction, states));
             }
 
             #endregion

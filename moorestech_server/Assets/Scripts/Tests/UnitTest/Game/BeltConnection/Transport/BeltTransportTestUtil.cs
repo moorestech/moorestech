@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using Core.BeltTransport;
 using Core.Item.Interface;
@@ -32,7 +33,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Transport
         internal static BeltTransportAssembly Assemble(IWorldBlockDatastore world)
         {
             var layouts = BeltSegmentLayoutBuilder.Build(BeltTopologyBuilder.Build(world));
-            return BeltTransportAssembler.Assemble(layouts);
+            return BeltTransportAssembler.Assemble(layouts, new Dictionary<BlockInstanceId, int>());
         }
 
         // 旧構成のアイテムを取り出し、現在のワールドから作り直した新構成へ復元する(BeltTransportDatastoreと同じ手順)
