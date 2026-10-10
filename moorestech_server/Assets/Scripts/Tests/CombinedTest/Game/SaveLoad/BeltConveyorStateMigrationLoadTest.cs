@@ -18,8 +18,8 @@ using UnityEngine;
 
 namespace Tests.CombinedTest.Game.SaveLoad
 {
-    // 版4の旧ベルコンstateが版5で除去され、ベルコンは空でロードされることを検証
-    // Verify a version-4 old belt state is dropped at version 5 and the belt loads empty
+    // 版5の旧ベルコンstateが版6で除去され、ベルコンは空でロードされることを検証
+    // Verify a version-5 old belt state is dropped at version 6 and the belt loads empty
     public class BeltConveyorStateMigrationLoadTest
     {
         private static readonly Vector3Int BeltPosition = new(3, 0, 5);
@@ -40,9 +40,9 @@ namespace Tests.CombinedTest.Game.SaveLoad
         }
 
         [Test]
-        public void 版4の旧ベルコンのアイテムは消滅し空のベルコンとしてロードされる()
+        public void 版5の旧ベルコンのアイテムは消滅し空のベルコンとしてロードされる()
         {
-            var save = BuildVersion4Save();
+            var save = BuildVersion5Save();
 
             // 一時ファイルを実セーブパスに指定する
             // Point the DI save path at a temporary file
@@ -59,10 +59,10 @@ namespace Tests.CombinedTest.Game.SaveLoad
             Assert.AreEqual(sourcePath, configuredDirectory.SaveJsonFilePath);
             loadProvider.GetRequiredService<IWorldSaveDataLoader>().LoadOrInitialize();
 
-            // 原本を保持し版4を退避する
-            // Loading keeps the original and archives version 4
+            // 原本を保持し版5を退避する
+            // Loading keeps the original and archives version 5
             Assert.AreEqual(original, File.ReadAllText(sourcePath));
-            Assert.AreEqual(original, File.ReadAllText(configuredDirectory.BackupSaveJsonPath(4)));
+            Assert.AreEqual(original, File.ReadAllText(configuredDirectory.BackupSaveJsonPath(5)));
 
             // ベルコンは同じ位置に残り、搬送の組を作り直しても何も載っていない
             // The belt stays at its position and carries nothing even after the transport assembly is rebuilt
@@ -79,13 +79,13 @@ namespace Tests.CombinedTest.Game.SaveLoad
             var loadedSave = JObject.Parse(loadProvider.GetRequiredService<AssembleSaveJsonText>().AssembleSaveJson());
             Assert.AreEqual(WorldSaveAllInfo.CurrentVersion, loadedSave["worldVersion"].Value<int>());
             var loadedState = (JObject)FindBlockAt(loadedSave, BeltPosition)["state"];
-            Assert.IsFalse(loadedState.ContainsKey(SaveMigrationStepV4ToV5.OldBeltSaveKey));
+            Assert.IsFalse(loadedState.ContainsKey(SaveMigrationStepV5ToV6.OldBeltSaveKey));
             Assert.AreEqual(0, ((JArray)loadedState[NewBeltSaveKey]["items"]).Count);
         }
 
-        // 現行の本物のセーブから新キーを消して旧キーを入れ、版4と名乗らせる
-        // Strip the new key from a real current save, inject the old key and label it version 4
-        private static JObject BuildVersion4Save()
+        // 現行の本物のセーブから新キーを消して旧キーを入れ、版5と名乗らせる
+        // Strip the new key from a real current save, inject the old key and label it version 5
+        private static JObject BuildVersion5Save()
         {
             var (_, provider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             Assert.IsTrue(ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, BeltPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _));
@@ -94,8 +94,8 @@ namespace Tests.CombinedTest.Game.SaveLoad
             var beltBlock = FindBlockAt(save, BeltPosition);
             var state = (JObject)beltBlock["state"];
             Assert.IsTrue(state.Remove(NewBeltSaveKey), "現行セーブにベルコンの新キーがありません");
-            state[SaveMigrationStepV4ToV5.OldBeltSaveKey] = JArray.Parse("[\"{\\\"x\\\":1}\",null,null,null]");
-            save["worldVersion"] = 4;
+            state[SaveMigrationStepV5ToV6.OldBeltSaveKey] = JArray.Parse("[\"{\\\"x\\\":1}\",null,null,null]");
+            save["worldVersion"] = 5;
             return save;
         }
 

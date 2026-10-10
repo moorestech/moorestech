@@ -17,13 +17,13 @@ namespace Client.Tests.PlaceSystem
             var placeSystem = new HeightPlaceSystem();
             var controller = new PlaceSystemStateController(new SingleSelector(placeSystem), new NullPresenter(), heightOffset);
 
-            controller.SetTarget(new BlueprintPlacementTarget(Guid.NewGuid(), "a"), PlacementOrigin.NonHotbar);
+            controller.SetTarget(new BlueprintPlacementTarget(Guid.NewGuid(), "a", new global::Game.Blueprint.BlueprintJsonObject()), PlacementOrigin.NonHotbar);
             controller.ManualUpdate();
             heightOffset.Adjust(2);
             controller.ManualUpdate();
             Assert.AreEqual(2, heightOffset.Value);
 
-            controller.SetTarget(new BlueprintPlacementTarget(Guid.NewGuid(), "b"), PlacementOrigin.NonHotbar);
+            controller.SetTarget(new BlueprintPlacementTarget(Guid.NewGuid(), "b", new global::Game.Blueprint.BlueprintJsonObject()), PlacementOrigin.NonHotbar);
             controller.ManualUpdate();
             Assert.AreEqual(0, heightOffset.Value);
         }

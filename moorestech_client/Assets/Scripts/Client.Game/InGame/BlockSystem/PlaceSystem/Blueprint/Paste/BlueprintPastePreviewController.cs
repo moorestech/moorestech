@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Game.Block.Interface;
-using Game.Blueprint;
+using Server.Protocol.PacketResponse.Util.Blueprint.Planning;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
@@ -13,33 +13,46 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
     public class BlueprintPastePreviewController
     {
         private readonly BlockPlacePreviewObjectPool _pool;
+        private readonly BlueprintPasteLinePreview _lines = new();
+        private BlueprintPastePlan _lastPlan;
 
         public BlueprintPastePreviewController(Transform parentTransform)
         {
             _pool = new BlockPlacePreviewObjectPool(parentTransform);
         }
 
-        public void UpdatePreview(List<BlueprintPlacementElement> placements, List<bool> placeableFlags)
+        public void UpdatePreview(BlueprintPastePlan plan)
         {
+            // 同じ表示指示ではゴースト再配置と線描画を省く
+            // Skip ghost placement and line rendering for identical visual commands
+            if (BlueprintPasteVisualState.Matches(_lastPlan, plan)) return;
+            _lastPlan = plan;
             _pool.AllUnUse();
-            for (var i = 0; i < placements.Count; i++)
+            var ghosts = new List<IReadOnlyList<BlockPreviewObject>>();
+            foreach (var copy in plan.Copies)
             {
-                var placement = placements[i];
-
-                // 実設置と同じ座標変換（グリッド原点→モデル原点）でゴーストを配置する
-                // Position ghosts with the same grid-to-model-origin conversion as real placement
-                var pos = SlopeBlockPlaceSystem.GetBlockPositionToPlacePosition(placement.Position, placement.Direction, placement.BlockId);
-                var rot = placement.Direction.GetRotation();
-
-                var previewObject = _pool.GetObject(placement.BlockId);
-                previewObject.SetTransform(pos, rot);
-                previewObject.SetPlaceableColor(placeableFlags[i]);
-                previewObject.SetActive(true);
+                var copyGhosts = new List<BlockPreviewObject>();
+                for (var i = 0; i < copy.Draft.Elements.Count; i++)
+                {
+                    var placement = copy.Draft.Elements[i];
+                    // 実設置座標にBP全体の可否を表示
+                    // Show whole-copy judgement at real placement positions.
+                    var pos = SlopeBlockPlaceSystem.GetBlockPositionToPlacePosition(placement.Position, placement.Direction, placement.BlockId);
+                    var previewObject = _pool.GetObject(placement.BlockId);
+                    previewObject.SetTransform(pos, placement.Direction.GetRotation());
+                    previewObject.SetPlaceableColor(copy.IsPlaced && copy.Draft.NonOverlapFlags[i]);
+                    previewObject.SetActive(true);
+                    copyGhosts.Add(previewObject);
+                }
+                ghosts.Add(copyGhosts);
             }
+            _lines.Show(plan, ghosts);
         }
 
         public void Hide()
         {
+            _lastPlan = null;
+            _lines.Hide();
             _pool.AllUnUse();
         }
     }

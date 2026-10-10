@@ -61,6 +61,26 @@ namespace Client.Tests.PlaceSystem
         }
 
         [Test]
+        public void 線種専用入口はカタログの解放判定と一致する()
+        {
+            var catalog = new PlacementTargetCatalog(new BeltConveyorPlacementUnlockSourceMap());
+            var state = ServerContext.GetService<IGameUnlockStateDataController>();
+            foreach (var tool in MasterHolder.ConnectToolMaster.All)
+            {
+                Assert.AreEqual(catalog.IsAssignable(tool.ConnectToolGuid, state, false, Array.Empty<Guid>()),
+                    catalog.IsConnectToolUnlocked(tool.ConnectToolGuid, state));
+                state.UnlockConnectTool(tool.ConnectToolGuid);
+                Assert.IsTrue(catalog.IsConnectToolUnlocked(tool.ConnectToolGuid, state));
+            }
+
+            // 別種別と未知GUIDは接続ツールとして通さない
+            // Reject other kinds and unknown GUIDs as connection tools
+            Assert.IsFalse(catalog.IsConnectToolUnlocked(Guid.NewGuid(), state));
+            var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearBeltConveyor).BlockGuid;
+            Assert.IsFalse(catalog.IsConnectToolUnlocked(blockGuid, state));
+        }
+
+        [Test]
         public void ブループリント未解放ならBP系エントリは列挙されず解放後に現れる()
         {
             var catalog = new PlacementTargetCatalog(new BeltConveyorPlacementUnlockSourceMap());

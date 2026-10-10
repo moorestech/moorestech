@@ -1,58 +1,89 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
-using Game.Block.Interface;
-using Game.Blueprint;
+using Client.Game.InGame.Context;
+using Cysharp.Threading.Tasks;
 using Server.Protocol.PacketResponse;
+using Server.Protocol.PacketResponse.Util.Blueprint.Planning;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
 {
     /// <summary>
-    ///     貼り付け列のうち置ける要素を設置プロトコルへ変換して送る
-    ///     Converts the placeable elements of a paste run into the place protocol and sends them
+    ///     ドラッグ順に貼付し、確定セルをUndo登録
+    ///     Send drags in order and group confirmed cells into one undo record
     /// </summary>
-    public static class BlueprintPastePlaceSender
+    internal static class BlueprintPastePlaceSender
     {
-        // 手編集セーブのnull設定は空設定として送る
-        // Send null settings from hand-edited saves as empty settings
-        private static readonly Dictionary<string, string> EmptySettings = new();
+        private static readonly Queue<PendingPaste> _pending = new();
+        private static readonly BlueprintPasteRequestRunner _runner = new(new VanillaBlueprintPasteRequestTransport());
+        private static bool _isProcessing;
 
-        public static void SendPlaceable(List<BlueprintPlacementElement> placements, List<bool> placeableFlags)
+        internal static void Send(Guid blueprintGuid, int rotationStep, BlueprintPastePlan plan)
         {
-            // 置けない要素は落とし、置けるものが無ければ送信自体を見送る
-            // Drop unplaceable elements and skip the send entirely when nothing remains
-            var placeInfos = new List<PlaceInfo>();
-            for (var i = 0; i < placements.Count; i++)
+            // 解放時の原点を複製し、後のプレビュー更新から切り離す
+            // Snapshot release origins independently of later preview updates
+            var origins = plan.EnumerateCopiesToPlace().Select(copy => copy.Draft.Origin).ToList();
+            if (origins.Count == 0)
             {
-                if (placeableFlags[i]) placeInfos.Add(ToPlaceInfo(placements[i]));
-            }
-
-            if (placeInfos.Count == 0)
-            {
-                Debug.Log("[BlueprintPaste] release skipped: no placeable blocks");
+                Debug.Log("[BlueprintPaste] release skipped: no placeable blueprint copies");
                 return;
             }
 
-            PlaceBlockProtocolSender.SendPlaceBlockProtocol(placeInfos);
+            var history = ClientDIContext.BuildOperationHistory;
+            var reservation = history.Reserve();
+            _pending.Enqueue(new PendingPaste(blueprintGuid, rotationStep, origins, history, reservation));
+            if (_isProcessing)
+            {
+                Debug.Log($"[BlueprintPaste] queued drag behind pending paste count={_pending.Count}");
+                return;
+            }
+            ProcessQueue().Forget();
         }
 
-        private static PlaceInfo ToPlaceInfo(BlueprintPlacementElement placement)
+        private static async UniTask ProcessQueue()
         {
-            var createParams = (placement.Settings ?? EmptySettings)
-                .Select(kvp => new BlockCreateParam(kvp.Key, Encoding.UTF8.GetBytes(kvp.Value)))
-                .ToArray();
-
-            return new PlaceInfo
+            _isProcessing = true;
+            while (_pending.Count > 0)
             {
-                Position = placement.Position,
-                Direction = placement.Direction,
-                VerticalDirection = BlockVerticalDirection.Horizontal,
-                BlockId = placement.BlockId,
-                Placeable = true,
-                CreateParams = createParams,
-            };
+                var operation = _pending.Dequeue();
+                // 操作間では不足状態を共有せず、操作内だけ逐次送信する
+                // Each operation sends its chunks sequentially with an independent shortage stop
+                var placedCells = await _runner.Run(operation.BlueprintGuid, operation.RotationStep, operation.Origins);
+                var record = PlaceOperationRecord.CreateFromPlacedCells(placedCells);
+                if (record.HasCells)
+                {
+                    operation.History.Complete(operation.Reservation, record);
+                    PlaceBlockProtocolSender.ReportConfirmedPlacement(placedCells.Count);
+                }
+                else
+                {
+                    operation.History.Cancel(operation.Reservation);
+                    Debug.Log("[BlueprintPaste] no confirmed cells; undo history skipped");
+                }
+            }
+            _isProcessing = false;
+        }
+
+        private sealed class PendingPaste
+        {
+            public readonly Guid BlueprintGuid;
+            public readonly int RotationStep;
+            public readonly List<Vector3Int> Origins;
+            public readonly BuildOperationHistory History;
+            public readonly LinkedListNode<IBuildOperationRecord> Reservation;
+
+            public PendingPaste(Guid blueprintGuid, int rotationStep, List<Vector3Int> origins,
+                BuildOperationHistory history, LinkedListNode<IBuildOperationRecord> reservation)
+            {
+                BlueprintGuid = blueprintGuid;
+                RotationStep = rotationStep;
+                Origins = origins;
+                History = history;
+                Reservation = reservation;
+            }
         }
     }
 }

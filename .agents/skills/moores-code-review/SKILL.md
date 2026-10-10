@@ -21,6 +21,8 @@ moorestechのコードレビューを **決定論チェック → 5系統の並�
 
 **この SKILL.md は本体セッション用のディスパッチャである**（2026-08-18 分割・2026-08-20 Workflow化）。本体がやるのは Step 0〜2（対象確定・機械チェック・Codex起動・Workflow args）・Workflow 起動・Step 7（報告と AskUserQuestion）・Step 7.5（最終バグ確認の起動）だけで、**Step 3〜6.5 の実行手順・5系統の詳細・モデル割り当て・実行系 Gotchas の正本は `references/orchestrator-steps.md`**、その実行形が `scripts/review_workflow/*.js`（`build_workflow_args.py` が結合して `$RUNDIR/review_workflow.js` を書く）にある。本体が orchestrator-steps.md を通読するのはインライン実行(後述)の場合のみ。
 
+**Codex（Workflow ツールも Agent ツールも無いホスト）で実行している場合は、先に `references/codex-host.md` を Read してそれに従う**（Step 3.5〜6.5 は Workflow の代わりに `scripts/codex_workflow_runner/run.mjs` で回す。選ばれた系統を自分で代行・要約・領域分割に置き換えるのは禁止）。Claude はこのファイルを読まない。
+
 系統の要約（詳細は orchestrator-steps.md）: ①決定論チェック(check_all.py・0トークン) ②reviewer 41本（moores-* 12・core-* 29） ③Codex外部監査3本 ④Fable全般 ⑤分割深掘り調査(16ファイル以上のみ) + 条件発火verifier + post-checks 2本（コメント保全）+ Refix（反映diff再レビュー `applied-diff-correctness.md`・`scripts/refix_snapshot.py` の snapshot 間 diff・最大3周）+ opus integrator。裁定反映の後に Step 7.5 の bug-pass（正しさ系だけ・同じ Workflow を `mode=bug-pass` で）。
 
 ## Workflow実行（既定・2026-08-20）

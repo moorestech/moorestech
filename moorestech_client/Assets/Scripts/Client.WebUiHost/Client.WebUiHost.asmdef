@@ -19,6 +19,7 @@
         "Game.Gear",
         "Game.Context",
         "Game.Construction",
+        "Game.Blueprint",
         "Server.Protocol",
         "Game.PlayerInventory.Interface",
         "Game.Research",

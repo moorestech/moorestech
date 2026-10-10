@@ -32,16 +32,14 @@ namespace Tests.CombinedTest.Game
             Assert.IsTrue(created);
             Assert.AreEqual(2, blueprint.Blocks.Count);
 
-            // アンカーは占有外形で決まる
-            // Derive the anchor from the occupied extent of chest and machine
-            var machineInfo = ServerContext.WorldBlockDatastore.GetBlock(new Vector3Int(3, 0, 4)).BlockPositionInfo;
-            var expectedAnchor = new Vector3Int(Mathf.FloorToInt(machineInfo.MaxPos.x / 2f), 0, Mathf.FloorToInt(machineInfo.MaxPos.z / 2f));
+            // 各原点の成分最小がアンカーになる
+            // Anchor at the component-wise minimum of the block origins
             var chestBlock = blueprint.Blocks.First(b => b.Direction == (int)BlockDirection.North);
-            Assert.AreEqual(-expectedAnchor, chestBlock.Offset);
+            Assert.AreEqual(Vector3Int.zero, chestBlock.Offset);
             Assert.AreEqual((int)BlockDirection.North, chestBlock.Direction);
 
             var machineBlock = blueprint.Blocks.First(b => b.Direction == (int)BlockDirection.East);
-            Assert.AreEqual(new Vector3Int(3, 0, 4) - expectedAnchor, machineBlock.Offset);
+            Assert.AreEqual(new Vector3Int(3, 0, 4), machineBlock.Offset);
             Assert.AreEqual((int)BlockDirection.East, machineBlock.Direction);
         }
 
@@ -75,27 +73,27 @@ namespace Tests.CombinedTest.Game
 
             Assert.IsTrue(created);
             Assert.AreEqual(2, blueprint.Blocks.Count);
-            var elevated = blueprint.Blocks.First(b => b.Offset == new Vector3Int(1, 5, 1));
+            var elevated = blueprint.Blocks.First(b => b.Offset == new Vector3Int(2, 5, 2));
             Assert.NotNull(elevated);
-            Assert.IsTrue(blueprint.Blocks.Any(b => b.Offset == new Vector3Int(-1, 0, -1)));
+            Assert.IsTrue(blueprint.Blocks.Any(b => b.Offset == Vector3Int.zero));
         }
 
         [Test]
-        public void NegativeCoordinateAnchorIsFlooredTest()
+        public void NegativeCoordinateAnchorUsesMinimumTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            // 負座標の中心も下へ丸める
-            // Floor the center of the (-4..-1) extent toward negative infinity
+            // 負座標でも成分最小をゼロへ移す
+            // Shift the minimum of the negative extent to zero
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, new Vector3Int(-4, 0, -4), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, new Vector3Int(-1, 0, -1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
 
             var created = BlueprintCreateService.TryCreateFromArea("negative", new Vector3Int(-4, 0, -4), new Vector3Int(-1, 2, -1), out var blueprint);
 
             Assert.IsTrue(created);
-            Assert.IsTrue(blueprint.Blocks.Any(b => b.Offset == new Vector3Int(-1, 0, -1)));
-            Assert.IsTrue(blueprint.Blocks.Any(b => b.Offset == new Vector3Int(2, 0, 2)));
+            Assert.IsTrue(blueprint.Blocks.Any(b => b.Offset == Vector3Int.zero));
+            Assert.IsTrue(blueprint.Blocks.Any(b => b.Offset == new Vector3Int(3, 0, 3)));
         }
 
         [Test]

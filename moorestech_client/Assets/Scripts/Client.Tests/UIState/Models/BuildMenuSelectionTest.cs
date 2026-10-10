@@ -10,7 +10,7 @@ namespace Client.Tests.UIState.Models
         public void 選択は一度だけ消費される()
         {
             var selection = new BuildMenuSelection();
-            var target = new BlueprintPlacementTarget(System.Guid.NewGuid(), "test");
+            var target = new BlueprintPlacementTarget(System.Guid.NewGuid(), "test", new global::Game.Blueprint.BlueprintJsonObject());
 
             selection.SetSelectedTarget(target);
 
@@ -23,7 +23,7 @@ namespace Client.Tests.UIState.Models
         public void Clearで未消費の選択が捨てられる()
         {
             var selection = new BuildMenuSelection();
-            selection.SetSelectedTarget(new BlueprintPlacementTarget(System.Guid.NewGuid(), "test"));
+            selection.SetSelectedTarget(new BlueprintPlacementTarget(System.Guid.NewGuid(), "test", new global::Game.Blueprint.BlueprintJsonObject()));
 
             selection.Clear();
 
