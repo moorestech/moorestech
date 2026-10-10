@@ -50,6 +50,9 @@ namespace Game.Train.Unit
             return _tickSequenceId;
         }
         public uint GetCurrentTickSequenceId() => _tickSequenceId;
+        // 本物のハッシュを送るtickか。他系統(ベルト)も同じtickにだけハッシュを計算する
+        // Whether this tick carries a real hash; other systems (belt) compute their hash only on these ticks
+        public static bool IsHashBroadcastTick(uint tick) => tick % TrainUnitHashBroadcastIntervalTicks == 0;
         public IObservable<HashStateEventData> OnHashEvent => _onHashEvent;
         public IObservable<(uint, IReadOnlyList<TrainTickDiffData>)> OnPreSimulationDiffEvent => _onPreSimulationDiffEvent;
         public bool IsTrainAutoRunDebugEnabled() => _trainAutoRunDebugEnabled;
@@ -86,7 +89,7 @@ namespace Game.Train.Unit
             #region Internal
             HashStateEventData BuildHashStateEventData(uint hashTick)
             {
-                if (hashTick % TrainUnitHashBroadcastIntervalTicks != 0)
+                if (!IsHashBroadcastTick(hashTick))
                 {
                     return new HashStateEventData(hashTick, uint.MaxValue, uint.MaxValue);
                 }

@@ -8,6 +8,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
 using NUnit.Framework;
+using UniRx;
 
 namespace Tests.CombinedTest.Core.Transport
 {
@@ -20,20 +21,20 @@ namespace Tests.CombinedTest.Core.Transport
             return ServerContext.GetService<BeltTransportDatastore>();
         }
 
-        // 未取り出しの差分を捨て、現在の組の全量から複製を組む。クライアントの初回同期に当たる
-        // Drop untaken diffs and assemble a replica from the current assembly's full state; the client's initial sync
+        // 現在の組の全量から複製を組む。クライアントの初回同期に当たる
+        // Assemble a replica from the current assembly's full state; the client's initial sync
         internal static BeltTransportReplica StartReplica()
         {
-            Datastore().DiffRecorder.TakeTickDiff();
             return BeltTransportReplicaAssembler.Assemble(BeltTransportFullStateCapture.Capture(Datastore().Assembly));
         }
 
-        // 実tickを1回進め、そのtickの差分を取り出す
-        // Advance one real tick and take that tick's diff
+        // 実tickを1回進め、搬送直後の報告からそのtickの差分を受け取る
+        // Advance one real tick and receive that tick's diff from the post-transport report
         internal static BeltTickDiff TickServer()
         {
-            GameUpdater.UpdateOneTick();
-            return Datastore().DiffRecorder.TakeTickDiff();
+            var diff = BeltTickDiff.Empty;
+            using (ServerContext.GetService<BeltTransportTickUpdater>().OnTransportTickCompleted.Subscribe(report => diff = report.Diff)) GameUpdater.UpdateOneTick();
+            return diff;
         }
 
         // 差分を複製で再生し、食い違いが無くハッシュがサーバーと一致することを確かめる

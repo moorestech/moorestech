@@ -68,6 +68,7 @@ using Mod.Loader;
 using Newtonsoft.Json;
 using Server.Event;
 using Server.Event.EventReceive;
+using Server.Event.EventReceive.BeltTransportSync;
 using Server.Event.Notification;
 using Server.Event.EventReceive.UnifiedInventoryEvent;
 using Server.Boot.Loop.PacketProcessing;
@@ -151,6 +152,8 @@ namespace Server.Boot.Composition
             services.AddSingleton<TrainUnitTickDiffBundleEventPacket>();
             services.AddSingleton<TrainUnitSnapshotEventPacket>();
             services.AddSingleton<TrainFullSnapshotEventPacket>();
+            services.AddSingleton<BeltTransportTickEventPacket>();
+            services.AddSingleton<BeltTransportFullSnapshotEventPacket>();
             services.AddSingleton<RailNodeRemovedEventPacket>();
             services.AddSingleton<RailConnectionRemovedEventPacket>();
             services.AddSingleton<RidingStateEventPacket>();

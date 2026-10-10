@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Game.Context;
 using Game.Train.Unit;
 using MessagePack;
+using Server.Event.EventReceive.BeltTransportSync;
 using Server.Util.MessagePack;
 using UniRx;
 using UnityEngine;
@@ -10,20 +11,25 @@ namespace Server.Event.EventReceive
 {
     // hash(n-1)とdiff(n)を1イベントで送る統合パケット
     // Unified packet that sends hash(n-1) and diff(n) in one event.
+    // hash(n-1)には列車・レールに加えてベルト搬送のハッシュも相乗りする。ベルトは搬送tick直後に計算した値を保持しており、ここで読む
+    // hash(n-1) also carries the belt transport hash alongside train and rail; the belt holds the value computed right after its transport tick and it is read here
     public sealed class TrainUnitTickDiffBundleEventPacket : IBootInitializable
     {
         public const string EventTag = "va:event:trainUnitTickDiffBundle";
 
         private readonly EventProtocolProvider _eventProtocolProvider;
         private readonly TrainUpdateService _trainUpdateService;
+        private readonly BeltTransportTickEventPacket _beltTransportTickEventPacket;
         private readonly Dictionary<uint, HashTickState> _hashStatesByTick = new();
 
         public TrainUnitTickDiffBundleEventPacket(
             EventProtocolProvider eventProtocolProvider,
-            TrainUpdateService trainUpdateService)
+            TrainUpdateService trainUpdateService,
+            BeltTransportTickEventPacket beltTransportTickEventPacket)
         {
             _eventProtocolProvider = eventProtocolProvider;
             _trainUpdateService = trainUpdateService;
+            _beltTransportTickEventPacket = beltTransportTickEventPacket;
         }
 
         public void Load()
@@ -37,9 +43,15 @@ namespace Server.Event.EventReceive
         private void OnHashTick(TrainUpdateService.HashStateEventData hashStateEventData)
         {
             var hashTickSequenceId = _trainUpdateService.NextTickSequenceId();
+            // 間引きtickはベルトもダミー。本物のtickだけ保持値を読む
+            // A skipped tick is a dummy for the belt too; only a real tick reads the held value
+            var beltTransportHash = TrainUpdateService.IsHashBroadcastTick(hashStateEventData.Tick)
+                ? _beltTransportTickEventPacket.StateHashOf(hashStateEventData.Tick)
+                : uint.MaxValue;
             _hashStatesByTick[hashStateEventData.Tick] = new HashTickState(
                 hashStateEventData.UnitsHash,
                 hashStateEventData.RailGraphHash,
+                beltTransportHash,
                 hashTickSequenceId);
         }
 
@@ -60,6 +72,7 @@ namespace Server.Event.EventReceive
                 diffTickSequenceId,
                 hashState.UnitsHash,
                 hashState.RailGraphHash,
+                hashState.BeltTransportHash,
                 diffs);
             var payload = MessagePackSerializer.Serialize(messagePack);
             _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
@@ -96,12 +109,14 @@ namespace Server.Event.EventReceive
         {
             public uint UnitsHash { get; }
             public uint RailGraphHash { get; }
+            public uint BeltTransportHash { get; }
             public uint HashTickSequenceId { get; }
 
-            public HashTickState(uint unitsHash, uint railGraphHash, uint hashTickSequenceId)
+            public HashTickState(uint unitsHash, uint railGraphHash, uint beltTransportHash, uint hashTickSequenceId)
             {
                 UnitsHash = unitsHash;
                 RailGraphHash = railGraphHash;
+                BeltTransportHash = beltTransportHash;
                 HashTickSequenceId = hashTickSequenceId;
             }
         }

@@ -27,6 +27,11 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
         // 機械との搬送の成立を溜める。tickの束を作る側が搬送tick直後に取り出す
         // Accumulates settled machine handoffs; the tick-bundle sender takes them right after the transport tick
         public BeltTransportDiffRecorder DiffRecorder { get; } = new();
+        private readonly Subject<Unit> _onAssemblyRebuilt = new();
+
+        // 組を作り直した直後に流れる。搬送tickの報告がそのtickを全量送信に切り替えるために購読する
+        // Fires right after the assembly is rebuilt; the transport tick report subscribes to switch that tick to a full-state send
+        public IObservable<Unit> OnAssemblyRebuilt => _onAssemblyRebuilt;
 
         public BeltTransportDatastore(IWorldBlockDatastore worldBlockDatastore, IWorldBlockUpdateEvent worldBlockUpdateEvent)
         {
@@ -51,6 +56,7 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
             // 旧構成の番号で書かれた未取り出しの差分は新構成へ適用しない。中身は再構築後の全量に含まれる
             // Untaken diffs written with old-assembly numbers are never applied to the new one; their effect is in the post-rebuild full state
             DiffRecorder.Discard();
+            _onAssemblyRebuilt.OnNext(Unit.Default);
         }
 
         // ロードしたベルコンblockの保存内容を預かる。次の再構築で復元手順に乗せる

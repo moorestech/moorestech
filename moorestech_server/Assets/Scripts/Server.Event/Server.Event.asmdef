@@ -26,7 +26,9 @@
     "Game.Hotbar",
     "Game.Construction",
     "Game.SaveLoad.Interface",
-    "Game.Paths"
+    "Game.Paths",
+    "Game.Block",
+    "Core.BeltTransport"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
