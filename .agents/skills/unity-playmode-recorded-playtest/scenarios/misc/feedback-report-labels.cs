@@ -1,9 +1,10 @@
 // 感想とバグの送信ボタンを実機CEFで描画し、種別切替を録画する
 // Render feedback and bug send labels in real CEF and record kind switching
+using Client.Game.InGame.UI.UIState;
 using Client.Playtest;
 using Client.Playtest.Operations;
 using Client.Playtest.WebUi;
-using UnityEngine.InputSystem;
+using UnityEngine;
 
 return PlaytestRunner.Run("feedback-report-labels", new PlaytestRunOptions { Record = true }, async p =>
 {
@@ -11,7 +12,10 @@ return PlaytestRunner.Run("feedback-report-labels", new PlaytestRunOptions { Rec
     await p.SkipOpeningSkitIfPlaying();
     await p.ExitToGameScreen();
     p.Note("ポーズの報告画面で感想を選ぶ");
-    await p.PressKey(Key.Escape);
+    // 文言検証の前提として既存の画面遷移窓口からポーズへ入る
+    // Enter pause through the existing transition API as a precondition for label verification
+    Object.FindFirstObjectByType<UIStateControl>().RequestTransition(UIStateEnum.PauseMenu);
+    await p.WaitUiState(UIStateEnum.PauseMenu, 15f);
     // 保存済み言語に依存せず、日本語の期待値へ設定画面から揃える
     // Set Japanese through settings so assertions do not depend on the saved locale
     await p.ClickWebUi("pause-menu-open-settings");
