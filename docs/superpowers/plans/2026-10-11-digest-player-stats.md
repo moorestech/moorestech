@@ -1169,3 +1169,11 @@ git diff --check
 - 既存根拠: [ADR 0061](../../adr/0061-steam-closed-playtest-report-receiver-and-save-compat.md) の感想全文・日次進行/修正ラン、[ADR 0070](../../adr/0070-playtest-drops-allowlist-and-resolves-reporter-names-at-ingest.md) のSteamID同一性・取り込み時の名前・meta優先を維持。候補再掲のみD1で変更する。
 - Python CLIだけの変更でゲームランタイム/C#に触れないため、Unity compile・unity-playmode-recorded-playtest・EditModeInPlayingTestは不要。レビュー後の再検証も同じPython CLI経路で行う。
 - 後続独立検査へ渡すもの: このplan、上表と読取前例一覧、上記2 ADR、`.agents/skills/moores-writing-plans/references/type-closure-patterns.md` と `moorestech-layer-map.md`。Phase 2.6/simulatorの結果・新たなユーザー裁定は現時点で存在しない。
+
+## 承認出所の訂正（2026-10-11）
+- 本機能の実ユーザー原文「投入候補は不要 プレヤーの人数とプレイ時間を出すようにできる？」と「前日分：プレイヤー人数・合計プレイ時間・1人あたり平均＋プレイヤー別時間」は維持する。
+- rationale-guard C1の案A/Bへのclarifyは `user_response: "[user did not respond within 10m]"`。真正なOOB回答はなく、「おすすめで」とのユーザー裁定記載は誤り。
+- [agent前提] 案Aのコメントだけを292e3fe1adで適用・pushした。件名「裁定に従い」は不正確であり、承認の証拠ではない。履歴と実装・レビュー成果物は保存する。
+- 真の残件: コメント復元の人間判断1件が未解決（moores-code-review Step 6.5-4）。bug-pass完了/C0/W0は承認を代替しない。回答までPR/merge/deployを再開しない。
+- 正本訂正記録: `moorestech_logs/harness/moores-code-review/runs/2026-10-11-digest-player-stats-37c8f226-45d1-4630-b9ee-676fab0628fc/approval-provenance-correction.md`。
+
