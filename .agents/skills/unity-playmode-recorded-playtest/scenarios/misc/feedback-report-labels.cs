@@ -5,9 +5,19 @@ using Client.Playtest;
 using Client.Playtest.Operations;
 using Client.Playtest.WebUi;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 return PlaytestRunner.Run("feedback-report-labels", new PlaytestRunOptions { Record = true }, async p =>
 {
+    // 非フォーカスでも注入イベントをGameViewへ届け、終了時に元設定へ戻す
+    // Route injected events to GameView while unfocused and restore settings after verification
+    var inputSettings = InputSystem.settings;
+    var backgroundBehavior = inputSettings.backgroundBehavior;
+    var editorInputBehavior = inputSettings.editorInputBehaviorInPlayMode;
+    inputSettings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+    inputSettings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+    InputSystem.EnableDevice(Mouse.current);
+    InputSystem.EnableDevice(Keyboard.current);
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
     await p.SkipOpeningSkitIfPlaying();
     await p.ExitToGameScreen();
@@ -35,4 +45,6 @@ return PlaytestRunner.Run("feedback-report-labels", new PlaytestRunOptions { Rec
     var bug = await PlaytestDomQuery.Query("bug-report-send", 5f);
     p.Assert(bug.Found && bug.Text == "バグ報告を送信", "バグのボタンは従来文言");
     await p.Screenshot("bug-button");
+    inputSettings.backgroundBehavior = backgroundBehavior;
+    inputSettings.editorInputBehaviorInPlayMode = editorInputBehavior;
 });
