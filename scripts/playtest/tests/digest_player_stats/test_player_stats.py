@@ -1,7 +1,13 @@
 """人数・時間・表示の境界を検証する。
 Tests player, time and rendering boundaries."""
+import sys
 import unittest
+from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from digest_fixture import SCRIPTS  # noqa: E402
+
+sys.path.insert(0, str(SCRIPTS))
 import digest_collect as collect
 from digest_support.progress import aggregate_progress
 from digest_support.sections import format_progress

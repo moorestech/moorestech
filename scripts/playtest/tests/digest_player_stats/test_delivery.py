@@ -2,15 +2,19 @@
 Tests date selection, delivery order and neutralization boundaries."""
 import io
 import json
+import sys
 import tempfile
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 from unittest.mock import patch
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from digest_fixture import DISABLED_MARK, SCRIPTS, TARGET_DATE, build_fixture, run_digest, write_json  # noqa: E402
+
+sys.path.insert(0, str(SCRIPTS))
 import digest
 import digest_collect as collect
-from digest_fixture import DISABLED_MARK, TARGET_DATE, build_fixture, run_digest, write_json
 from digest_schema import ZERO_WIDTH_SPACE
 
 

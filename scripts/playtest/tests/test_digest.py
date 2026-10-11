@@ -194,3 +194,7 @@ class DigestTest(unittest.TestCase):
         self.assertIn("# moorestech プレイテスト日次ダイジェスト 2026-01-01", out)
         self.assertIn("## 進行記録", out)
         self.assertIn("なし", out)
+
+
+if __name__ == "__main__":
+    unittest.main()
