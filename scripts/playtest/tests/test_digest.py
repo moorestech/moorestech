@@ -73,11 +73,7 @@ class DigestTest(unittest.TestCase):
         self.assertEqual(len(reports), 4)
         self.assertEqual(stats, {"unreadable": 0, "readyAtFallback": 0, "noPayload": 0, "invalidManifest": 0})
 
-    def test_load_reports_marks_queued(self):
-        reports, _stats = dc.load_reports(self.root / "harness/playtest/reports", self.date)
-        by_id = {r["id"]: r for r in reports}
-        self.assertFalse(by_id["20260912_100000_bug1"]["queued"])
-        self.assertTrue(by_id["20260912_101000_bug2"]["queued"])
+
 
     def test_aggregate_progress(self):
         records, stats = dc.load_progress(self.root / "harness/playtest/progress", self.date)
@@ -91,9 +87,9 @@ class DigestTest(unittest.TestCase):
         self.assertEqual(agg["lastEvents"]["buildModeCancelled"], 2)
         self.assertEqual(agg["lastUiStates"]["GameScreen"], 1)
 
-    def test_aggregate_progress_excludes_null_play_seconds(self):
-        """playSeconds null の記録はセッション数に数えつつ平均の分母から外し、欠落件数を返す
-        A record with a null playSeconds still counts as a session but is excluded from the mean, and is reported as missing"""
+    def test_aggregate_progress_marks_null_play_seconds_unknown(self):
+        """時間欠損も人数・件数に数え、平均は不明にする
+        Missing time still counts toward players and sessions, but makes the mean unknown"""
         pg3 = self.root / "harness/playtest/progress/7656003/20260912_150000_pg3"
         write_json(pg3 / "ingest.json", {"kind": "progress", "steamId": "7656003",
                                          "id": "20260912_150000_pg3", "readyAt": "2026-09-12T09:30:00Z"})
@@ -105,7 +101,7 @@ class DigestTest(unittest.TestCase):
         self.assertEqual(agg["sessions"], 3)
         self.assertEqual(agg["testers"], 3)
         self.assertEqual(agg["playSecondsMissing"], 1)
-        self.assertAlmostEqual(agg["meanPlaySeconds"], 900.0)
+        self.assertIsNone(agg["meanPlaySeconds"])
 
     def test_digest_shows_unknown_when_all_play_seconds_missing(self):
         """playSeconds が全件 null の日は平均を 0 と偽らず「不明」と出し、⚠ 行と stderr WARN が出る
@@ -122,7 +118,7 @@ class DigestTest(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertNotIn("平均プレイ時間 0.0 分", result.stdout)
             self.assertIn("平均プレイ時間 不明", result.stdout)
-            self.assertIn("⚠ playSeconds が欠落し平均から除外したセッション 2件", result.stdout)
+            self.assertIn("⚠ playSeconds が欠落したセッション 2件（欠損を含むため平均は不明）", result.stdout)
             self.assertIn("[digest] WARN progress.playSecondsMissing=2", result.stderr)
 
     def test_load_fix_results_uses_finished_at(self):
@@ -144,15 +140,7 @@ class DigestTest(unittest.TestCase):
         self.assertNotIn("⚠", out)
         self.assertTrue((self.root / "harness/playtest/digests/2026-09-12.md").is_file())
 
-    def test_digest_lists_enqueue_candidates(self):
-        """投入候補は未投入のバグだけ。コマンドはそのまま貼れる形で出る
-        Only un-enqueued bugs are listed, with a copy-pastable command"""
-        out = self.run_ok("--max-chars", "0")
-        self.assertIn("## 投入候補のバグ報告", out)
-        self.assertIn("enqueue-autofix.sh 7656001 20260912_100000_bug1", out)
-        self.assertIn("ベルトが止まる", out)
-        self.assertNotIn("enqueue-autofix.sh 7656001 20260912_101000_bug2", out)
-        self.assertNotIn("投入済みのバグ", out)
+
 
     def test_enqueue_command_id_is_shell_safe(self):
         """id にシェルメタ文字が混じっても、貼り付けたコマンドは注入されず literal として渡る。
@@ -173,15 +161,15 @@ class DigestTest(unittest.TestCase):
             self.assertEqual(result.stdout, "7656006\n$(touch pwned)\n")
 
     def test_enqueue_command_survives_at_sign_neutralization(self):
-        """id/steamIdに@を含んでも本文全体の無害化でコマンド中の@がZWSPで壊されず貼り付けたコマンドは元の値のまま渡る。
-        コマンド外の@everyoneは従来どおり無害化される（回帰: 2026-09-17）
-        An @ in id/steamId is not corrupted inside the pasted command by whole-body neutralization; @everyone outside
-        the command still gets neutralized (regression: 2026-09-17)"""
+        """候補単体のコマンド値と表示の無害化を検証する。
+        Checks command values and display neutralization in the standalone candidate path."""
         box = self.root / "harness/playtest/reports/7656007/20260912_170000_atsign"
         write_json(box / "ingest.json", {"kind": "report", "steamId": "7656007@evil",
                                           "id": "20260912_170000_atsign@evil", "readyAt": "2026-09-12T09:45:00Z"})
         write_json(box / "manifest.json", {"kind": "bug", "remoteExec": DISABLED_MARK, "description": "@everyone check this"})
-        out = self.run_ok("--max-chars", "0")
+        lines = dcand.format_candidates(*dcand.load_candidate_reports(self.root / "harness/playtest/reports"))
+        body, commands = dschema.protect_pasteable_commands("\n".join(lines))
+        out = dschema.restore_pasteable_commands(dschema.neutralize_discord_markup(body), commands)
         self.assertIn(f"@{dschema.ZERO_WIDTH_SPACE}everyone", out)
         cmd_line = next(line for line in out.splitlines()
                         if "enqueue-autofix.sh 7656007" in line).strip().strip("`")
@@ -206,7 +194,3 @@ class DigestTest(unittest.TestCase):
         self.assertIn("# moorestech プレイテスト日次ダイジェスト 2026-01-01", out)
         self.assertIn("## 進行記録", out)
         self.assertIn("なし", out)
-
-
-if __name__ == "__main__":
-    unittest.main()

@@ -15,11 +15,9 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import digest_candidates as dcand  # noqa: E402
 import digest_collect as dc  # noqa: E402
 from digest_support.sections import format_progress, format_runs  # noqa: E402
 from digest_schema import neutralize_discord_markup as safe  # noqa: E402
-from digest_schema import protect_pasteable_commands as protect_cmds, restore_pasteable_commands as restore_cmds  # noqa: E402
 
 
 def format_counts(reports: list[dict], stats: dict) -> list[str]:
@@ -92,6 +90,7 @@ def emit_warnings(report_stats: dict, progress_stats: dict, run_stats: dict) -> 
         "progress.remoteExec": progress_stats.get("remoteExec", 0),
         "progress.noPayload": progress_stats.get("noPayload", 0),
         "progress.playSecondsMissing": progress_stats.get("playSecondsMissing", 0),
+        "progress.unknownIdSessions": progress_stats.get("unknownIdSessions", 0),
         "runs.finishedAtFallback": run_stats["finishedAtFallback"],
         "runs.invalidResult": run_stats["invalidResult"],
     }
@@ -116,25 +115,22 @@ def main(argv: list[str] | None = None) -> int:
     logs = Path(args.logs)
     playtest = logs / "harness" / "playtest"
     reports, report_stats = dc.load_reports(playtest / "reports", date)
-    candidates, candidate_stats = dcand.load_candidate_reports(playtest / "reports")
     progress, progress_stats = dc.load_progress(playtest / "progress", date)
     runs, run_stats = dc.load_fix_results(logs / "harness" / "bug-report" / "runs", date)
     progress_agg = dc.aggregate_progress(progress)
-    # stderr WARN 集計へも playSeconds 欠落件数を載せる（agg 側にしか無い値なので合流させる）
-    # Also feed the playSeconds-missing count into the stderr WARN summary; it only lives in agg
-    progress_stats = dict(progress_stats, playSecondsMissing=progress_agg["playSecondsMissing"])
+    # 時間欠損と帰属不明を運用ログにも渡す
+    # Feed missing time and unknown IDs into operational warnings.
+    progress_stats = dict(progress_stats, playSecondsMissing=progress_agg["playSecondsMissing"],
+                          unknownIdSessions=progress_agg["unknownIdSessions"])
 
     lines = [f"# moorestech プレイテスト日次ダイジェスト {date}"]
-    lines += format_counts(reports, report_stats)
-    lines += dcand.format_candidates(candidates, candidate_stats)
-    lines += format_feedback(reports)
     lines += format_progress(progress_agg, progress_stats, progress)
+    lines += format_counts(reports, report_stats)
+    lines += format_feedback(reports)
     lines += format_runs(runs, run_stats)
-    # テスター由来の値が散在するため出力境界で本文全体を無害化するが、コマンド行だけは退避して書き戻す
-    # Tester-supplied values are scattered so the whole body is neutralized at the boundary, but command lines are stashed and restored
-    raw_body = "\n".join(lines) + "\n"
-    protected_body, stashed_commands = protect_cmds(raw_body)
-    body = restore_cmds(safe(protected_body), stashed_commands)
+    # 全文を無害化して保存してから配信用に切る
+    # Neutralize and archive the complete text before truncating delivery.
+    body = safe("\n".join(lines) + "\n")
     archive = playtest / "digests" / f"{date}.md"
     if not args.no_archive:
         archive.parent.mkdir(parents=True, exist_ok=True)
