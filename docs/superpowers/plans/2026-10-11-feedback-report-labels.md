@@ -44,8 +44,8 @@
 
 Files: Modify: moorestech_web/webui/src/features/pauseMenu/BugReportForm.tsx, Localization/localization.csv, moorestech_web/webui/src/shared/i18n/generated/localizationKeys.ts
 
-- [ ] CSVへui.feedbackReport.send/sent/sendingを追加。日本語は「感想を送信」「感想をoutboxに書き出しました」「感想を書き出しています…」。英語は既存Impressionsに、独語Eindrücke、韓国語감상に合わせる。
-- [ ] フォームの種別別文言を一箇所へ集め、送信開始時kindをpayloadと成功通知へ使う。
+- [x] CSVへui.feedbackReport.send/sent/sendingを追加。日本語は「感想を送信」「感想をoutboxに書き出しました」「感想を書き出しています…」。英語は既存Impressionsに、独語Eindrücke、韓国語감상に合わせる。
+- [x] フォームの種別別文言を一箇所へ集め、送信開始時kindをpayloadと成功通知へ使う。
 
 ```ts
 function reportLabels(kind: PauseMenuReportKind) {
@@ -56,14 +56,14 @@ const accepted = await dispatchAction("bug_report.submit", { description: trimme
 // accepted後、欠損がない場合だけ t(reportLabels(kind).sent) を表示する
 ```
 
-- [ ] `pnpm --dir moorestech_web/webui gen:i18n`でキー生成。git差分で追加キーのみ確認。
-- [ ] Task 1をコミットする。
+- [x] `pnpm --dir moorestech_web/webui gen:i18n`でキー生成。git差分で追加キーのみ確認。
+- [x] Task 1をコミットする。
 
 ## Task 2: 状態・画面検証
 
 Files: Modify: moorestech_web/webui/src/features/pauseMenu/BugReportFormTests/testSupport.ts; Create: moorestech_web/webui/src/features/pauseMenu/BugReportFormTests/reportKindLabels.test.ts, moorestech_web/webui/e2e/tests/system/feedbackReportLabels.spec.ts, .agents/skills/unity-playmode-recorded-playtest/scenarios/misc/feedback-report-labels.cs
 
-- [ ] テストでfeedback/bugのボタン・成功、拒否時のfeedback draft保持、missing時の既存通知、送信中の無効と文言、遅延中kindが変更された際の開始時通知を確認する。
+- [x] テストでfeedback/bugのボタン・成功、拒否時のfeedback draft保持、missing時の既存通知、送信中の無効と文言、遅延中kindが変更された際の開始時通知を確認する。
 
 ```ts
 expect(sendButton(renderer).children.join("")).toBe("感想を送信");
@@ -71,10 +71,10 @@ expect(mocks.dispatchAction).toHaveBeenCalledWith("bug_report.submit", {descript
 expect(mocks.emitToast).toHaveBeenCalledWith("感想を書き出しました", "info");
 ```
 
-- [ ] `pnpm --dir moorestech_web/webui test -- src/features/pauseMenu src/shared/i18n/localizationKeysFreshness.test.ts`、`build`、`lint`を実行しPASSを確認。
-- [ ] Playwrightで4言語の実CSVのラベル・成功通知を確認しスクショと動画を保存。既存pauseMenu.spec.tsも通す。
-- [ ] 自分のUnityで録画シナリオを実行し実ゲーム視点・feedback/bugのDOMテキストを確認、スクショをdocs/pr-assets/feedback-report-labelsへ保存する。送信そのものはmock/unitで検証し、実機から不要な感想バンドルを外部投入しない（agent前提、ユーザー依頼は文言修正）。
-- [ ] Task 2と検証結果をコミットする。
+- [x] `pnpm --dir moorestech_web/webui test -- src/features/pauseMenu src/shared/i18n/localizationKeysFreshness.test.ts`、`build`、`lint`を実行しPASSを確認。
+- [x] Playwrightで4言語の実CSVのラベル・成功通知を確認しスクショと動画を保存。既存pauseMenu.spec.tsも通す。
+- [x] 自分のUnityで録画シナリオを実行し実ゲーム視点・feedback/bugのDOMテキストを確認、録画スクショをshareへ保全し、PRにはdocs/pr-assets/feedback-report-labelsの全言語画像を掲載する（録画オーバーレイを含む画像は検証証拠として分ける）。送信そのものはmock/unitで検証し、実機から不要な感想バンドルを外部投入しない（agent前提、ユーザー依頼は文言修正）。
+- [x] Task 2と検証結果をコミットする。
 
 ## Task 3: 必ずmoores-code-reviewスキルで全ブランチレビューを実行すること
 
@@ -98,3 +98,14 @@ expect(mocks.emitToast).toHaveBeenCalledWith("感想を書き出しました", "
 - 出所: agent前提（fresh-context Phase 2.6）。翻訳は型付き生成キーを使い、追加3キー×4言語non-emptyとfreshnessを検査する。翻訳欠損は既存tの処理へ従い変更しない。
 - user-simulator review: Critical0・Warning0・要裁定0。レポート /tmp/moorestech-a-plan-review.md。採点: 自律委任のためユーザー反応未取得、予測を承認へ昇格しない。
 - 独立質問filter: remaining0、thread 01a1289e-afe8-7d13-9ad4-160d399bc5d3。
+
+## 単独セッション検証記録（2026-10-11）
+
+- HEAD 930d06220bとcleanを確認して所有権を引継ぎ。感想送信文言だけを継続。
+- Web再実行: unit129ファイル/992件PASS、Playwright8件PASS、build/lint成功。
+- CSV追加3キー×4言語non-empty PASS。生成キーfreshnessを含むunit成功。
+- Unity compile: Success=true、ErrorCount=0、WarningCount=0。
+- 録画前提を既存任意スキットスキップ、設定UIによる日本語固定、既存RequestTransition、非フォーカスの検証用InputSystem設定へ補正。製品コードは変更しない。
+- Unity録画: 20261011_110640/feedback-report-labels、Success=true、Assert2/2PASS、ErrorLogs0、動画6019812bytes。実プレイ視点と感想/バグの期待表示を画像で確認、動画全フレームデコード成功。
+- 証拠保全: https://sakastudiomac-mini.tail3a5aa5.ts.net:8443/2026-10-11-feedback-report-labels-20261011/
+- 旧planの親担当工程は、この独立セッションが引き継ぐ（Notion更新、worktree片付け）。
