@@ -34,7 +34,7 @@ Modify:
 - Localization/localization.csv
 - moorestech_client/Assets/Scripts/Client.Tests/UIState/UIStateKeyHintCatalogTest.cs（既存期待値が影響する場合のみ）
 
-- [ ] CSVへ `ui.keyHint.key.rightShortPressOutsideUiOrEsc` と `ui.keyHint.text.cancelOperationOrExitMode` を追加する。日本語は「UI外で右クリック短押し / Esc」「選択・起点を解除 / なければモード終了」。英語・独語・韓国語も同じ意味にする。
+- [ ] CSVへ `ui.keyHint.key.rightShortPressOutsideUiOrEsc` と `ui.keyHint.text.cancelOperationOrExitMode` を追加する。日本語は「UI外で右クリック短押し / Esc」「操作をキャンセル / なければモード終了」。英語・独語・韓国語も同じ意味にする。
 - [ ] 設置はB終了を先頭、破壊はG終了を先頭に移し、その直後へ新案内を追加する。
 
 ```csharp
@@ -70,3 +70,5 @@ new KeyHint(LocalizationKeys.Ui.KeyHint.Key.RightShortPressOutsideUiOrEsc,
 
 - user-simulator review: Criticalなし。既存カタログの件数10/7→11/8とEscの画面別許可範囲を更新する。ユーザー反応の採点は未観測（自主進行の委任あり）。
 - Codex独立質問 generate/filter: answered 0・remaining 0。
+
+- agent前提更新: BlueprintCopyの名前入力中Escは終点選択へ戻るため、共通文言を「操作をキャンセル / なければモード終了」に包括化。根拠はBlueprintCopyPlacementStateの既存キャンセル経路。入力挙動は不変。
