@@ -44,6 +44,20 @@ namespace Client.Tests.UIState
             Assert.AreEqual(LocalizationKeys.Ui.KeyHint.Key.E.Key, raise.KeyNameKey.Key);
         }
 
+        [TestCase(true)]
+        [TestCase(false)]
+        public void BuildModesShowImmediateExitBeforeCancelOrExit(bool isPlacement)
+        {
+            var hints = isPlacement ? PlaceBlockStateHints.Hints : DeleteObjectStateHints.Hints;
+            var expected = new[]
+            {
+                (isPlacement ? LocalizationKeys.Ui.KeyHint.Key.B : LocalizationKeys.Ui.KeyHint.Key.G,
+                    isPlacement ? LocalizationKeys.Ui.KeyHint.Text.ExitPlaceMode : LocalizationKeys.Ui.KeyHint.Text.ExitDeleteMode),
+                (LocalizationKeys.Ui.KeyHint.Key.RightShortPressOutsideUiOrEsc, LocalizationKeys.Ui.KeyHint.Text.CancelOperationOrExitMode),
+            };
+            AssertHints(expected, hints.Take(2).ToArray());
+        }
+
         [Test]
         public void ChallengeListHasNoHints()
         {
@@ -55,8 +69,8 @@ namespace Client.Tests.UIState
         [Test]
         public void EveryScreenHintCountMatchesAdr()
         {
-            Assert.AreEqual(10, PlaceBlockStateHints.Hints.Count);
-            Assert.AreEqual(7, DeleteObjectStateHints.Hints.Count);
+            Assert.AreEqual(11, PlaceBlockStateHints.Hints.Count);
+            Assert.AreEqual(8, DeleteObjectStateHints.Hints.Count);
             Assert.AreEqual(6, PlayerInventoryStateHints.Hints.Count);
             Assert.AreEqual(5, SubInventoryStateHints.Hints.Count);
             Assert.AreEqual(2, ResearchTreeStateHints.Hints.Count);
@@ -86,26 +100,28 @@ namespace Client.Tests.UIState
                 LocalizationKeys.Ui.KeyHint.Key.DoubleClick, LocalizationKeys.Ui.KeyHint.Key.ShiftLeftClick,
             }.Select(key => key.Key).ToArray();
 
-            var declared = AllHints.Select(hint => hint.KeyNameKey.Key).Distinct().ToArray();
-
-            CollectionAssert.IsEmpty(declared.Except(allowed).ToArray(), "ADR-0032の許可リストに無いキー名が宣言されている");
+            // 二段階解除の例外は設置・破壊の宣言元に限定する
+            // Restrict the two-stage cancel exception to the placement and deletion tables
+            var forbidden = CollectAllHints().Where(entry => !allowed.Contains(entry.hint.KeyNameKey.Key)
+                && !(entry.hint.KeyNameKey.Key == LocalizationKeys.Ui.KeyHint.Key.RightShortPressOutsideUiOrEsc.Key
+                    && (entry.owner == typeof(PlaceBlockStateHints) || entry.owner == typeof(DeleteObjectStateHints))))
+                .Select(entry => $"{entry.owner.Name}: {entry.hint.KeyNameKey.Key}").ToArray();
+            CollectionAssert.IsEmpty(forbidden, "ADR-0032の画面別許可リストに無いキー名が宣言されている");
         }
 
         // 手書き列挙だと新設テーブルが許可リスト検査から漏れるため、Client.Gameの*StateHintsを走査して集める
         // A hand-written list would let a new table escape the allow-list check, so every *StateHints in Client.Game is scanned
-        private static readonly IReadOnlyList<KeyHint> AllHints = CollectAllHints();
-
-        private static IReadOnlyList<KeyHint> CollectAllHints()
+        private static IReadOnlyList<(Type owner, KeyHint hint)> CollectAllHints()
         {
             var hintTables = typeof(GameScreenStateHints).Assembly.GetTypes()
                 .Where(type => type.Name.EndsWith("StateHints", StringComparison.Ordinal))
                 .SelectMany(type => type.GetFields(BindingFlags.Public | BindingFlags.Static))
                 .Where(field => typeof(IReadOnlyList<KeyHint>).IsAssignableFrom(field.FieldType))
-                .Select(field => (IReadOnlyList<KeyHint>)field.GetValue(null))
+                .Select(field => (owner: field.DeclaringType, hints: (IReadOnlyList<KeyHint>)field.GetValue(null)))
                 .ToArray();
 
             Assert.IsNotEmpty(hintTables, "*StateHints テーブルが1つも見つからない");
-            return hintTables.SelectMany(hints => hints).ToArray();
+            return hintTables.SelectMany(table => table.hints.Select(hint => (table.owner, hint))).ToArray();
         }
 
         // 各stateがGetKeyHints()で自分のテーブルを返しているか（テーブル直読みでは配線ごと落ちても気づけない）

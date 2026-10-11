@@ -206,6 +206,7 @@ ui.keyHint.key.leftAltHold,Left Alt (Hold),Left Alt (Hold),左Alt（長押し）
 ui.keyHint.key.middleClick,Middle Click,Middle Click,中クリック,Mittelklick,마우스 가운데 버튼 클릭
 ui.keyHint.key.leftDrag,Left Drag,Left Drag,左ドラッグ,Mit links ziehen,왼쪽 드래그
 ui.keyHint.key.rightClick,Right Click,Right Click,右クリック,Rechtsklick,오른쪽 클릭
+ui.keyHint.key.rightShortPressOutsideUiOrEsc,Short Right Click outside UI / Esc,Short Right Click outside UI / Esc,UI外で右クリック短押し / Esc,Kurzer Rechtsklick außerhalb der UI / Esc,UI 밖에서 짧게 오른쪽 클릭 / Esc
 ui.keyHint.key.doubleClick,Double Click,Double Click,ダブルクリック,Doppelklick,더블 클릭
 ui.keyHint.key.shiftLeftClick,Shift + Left Click,Shift + Left Click,Shift+左クリック,Umschalt + Linksklick,Shift + 왼쪽 클릭
 ui.keyHint.text.inventory,Inventory,Inventory,インベントリ,Inventar,인벤토리
@@ -217,6 +218,7 @@ ui.keyHint.text.buildShortcut,Build Shortcut,Build Shortcut,建築ショート�
 ui.keyHint.text.deleteMode,Delete Mode,Delete Mode,破壊モード,Abbaumodus,삭제 모드
 ui.keyHint.text.exitDeleteMode,Exit Delete Mode,Exit Delete Mode,破壊モード終了,Abbaumodus verlassen,삭제 모드 종료
 ui.keyHint.text.exitPlaceMode,Exit Placement Mode,Exit Placement Mode,配置モード終了,Baumodus verlassen,설치 모드 종료
+ui.keyHint.text.cancelOperationOrExitMode,Cancel operation / otherwise exit mode,Cancel operation / otherwise exit mode,操作をキャンセル / なければモード終了,Vorgang abbrechen / sonst Modus verlassen,작업 취소 / 없으면 모드 종료
 ui.keyHint.text.selectBlock,Select Block,Select Block,ブロック選択,Block auswählen,블록 선택
 ui.keyHint.text.swapTarget,Swap Block,Swap Block,ブロック持ち替え,Block wechseln,블록 교체
 ui.keyHint.text.toggleView,Toggle View,Toggle View,視点切替,Ansicht wechseln,시점 전환
