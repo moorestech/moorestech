@@ -8,9 +8,9 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
 {
     // 全量同士・全量とサーバーの組・Core segment同士を項目ごとに比べる
     // Field-by-field comparison of full states, a full state against the server assembly, and Core segments against each other
-    internal static class BeltFullStateAssert
+    public static class BeltFullStateAssert
     {
-        internal static void AreEqual(BeltTransportFullState expected, BeltTransportFullState actual)
+        public static void AreEqual(BeltTransportFullState expected, BeltTransportFullState actual)
         {
             Assert.AreEqual(expected.Segments.Length, actual.Segments.Length, "segment count");
             for (var i = 0; i < expected.Segments.Length; i++)
@@ -28,7 +28,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
 
         // 全量がサーバーの構成とsegmentの中身をそのまま写しているか。切り出し側の取りこぼしを複製を介さずに検出する
         // Whether the full state mirrors the server's layouts and segment contents; catches capture omissions without going through the replica
-        internal static void MirrorsAssembly(BeltTransportFullState full, BeltTransportAssembly assembly)
+        public static void MirrorsAssembly(BeltTransportFullState full, BeltTransportAssembly assembly)
         {
             Assert.AreEqual(assembly.Layouts.Length, full.Segments.Length, "segment count against layouts");
             for (var i = 0; i < full.Segments.Length; i++)
@@ -54,7 +54,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
 
         // 複製のsegmentがサーバーと同じ型・容量・速度・個数で作られたか
         // Whether replica segments were created with the server's type, capacity, speed and count
-        internal static void SameSegments(BeltConveyorSegment[] expected, BeltConveyorSegment[] actual)
+        public static void SameSegments(BeltConveyorSegment[] expected, BeltConveyorSegment[] actual)
         {
             Assert.AreEqual(expected.Length, actual.Length, "segment count against replica");
             for (var i = 0; i < expected.Length; i++)
