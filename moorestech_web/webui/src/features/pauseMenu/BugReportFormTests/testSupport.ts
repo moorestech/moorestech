@@ -1,9 +1,14 @@
-import { createElement, type ReactNode } from "react";
+import { readFileSync } from "node:fs";
+import { createElement, type ReactElement, type ReactNode } from "react";
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { afterEach, vi } from "vitest";
 import { setDictionaries } from "@/shared/i18n/i18nStore";
 import type { BugReportDraft } from "../useBugReportDraft";
 import { useBugReportDraft } from "../useBugReportDraft";
+// Node用パーサーをテストでも使う
+// Reuse the Node parser in tests
+// @ts-expect-error -- The build script is intentionally a plain ESM module.
+import { parseLocalizationCsv } from "../../../../scripts/generate-localization-keys.mjs";
 
 const mocks = vi.hoisted(() => ({
   dispatchAction: vi.fn(async (): Promise<boolean> => true),
@@ -62,10 +67,16 @@ function FormWithDraft({ status }: { status: Status }) {
 }
 
 export async function render(status: Status): Promise<ReactTestRenderer> {
+  return renderElement(createElement(FormWithDraft, { status }));
+}
+
+// 描画の初期化を共用する
+// Share renderer initialization
+async function renderElement(element: ReactElement): Promise<ReactTestRenderer> {
   setDictionaries("japanese", dictionary, {}, {});
   let renderer: ReactTestRenderer;
   await act(async () => {
-    renderer = create(createElement(FormWithDraft, { status }));
+    renderer = create(element);
   });
   return renderer!;
 }
@@ -83,8 +94,18 @@ export function statusTexts(renderer: ReactTestRenderer): string[] {
 }
 
 export async function renderMutableDraft(status: Status, draft: BugReportDraft): Promise<ReactTestRenderer> {
-  setDictionaries("japanese", dictionary, {}, {});
-  let renderer: ReactTestRenderer;
-  await act(async () => { renderer = create(createElement(BugReportForm, { status, draft })); });
-  return renderer!;
+  return renderElement(createElement(BugReportForm, { status, draft }));
+}
+
+// 正規CSVの辞書で再描画する
+// Rerender with dictionaries from the production CSV
+export function loadProductionDictionaries(locale: string): void {
+  const csv: { languageCodes: string[]; rows: { key: string; texts: string[]; source: string }[] } =
+    parseLocalizationCsv(readFileSync(new URL("../../../../../../Localization/localization.csv", import.meta.url), "utf8"));
+  const languageIndex = csv.languageCodes.indexOf(locale);
+  const englishIndex = csv.languageCodes.indexOf("english");
+  setDictionaries(locale,
+    Object.fromEntries(csv.rows.map((row) => [row.key, row.texts[languageIndex]])),
+    Object.fromEntries(csv.rows.map((row) => [row.key, row.texts[englishIndex]])),
+    Object.fromEntries(csv.rows.map((row) => [row.key, row.source])));
 }

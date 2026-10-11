@@ -5,6 +5,16 @@ import { getMocks, modeSwitch, render, renderMutableDraft, sendButton, statusTex
 const mocks = getMocks();
 
 describe("BugReportForm report-kind labels", () => {
+  // ホスト送信中は応答待ちと別に検査
+  // Check host submission independently of local waiting
+  it("ローカル送信前でもホスト送信中は感想の表示を使う", async () => {
+    const draft = { kind: "feedback" as const, description: "感想", setKind: () => {}, setDescription: () => {}, reset: () => {} };
+    const renderer = await renderMutableDraft({ kind: "submitting", missing: [] }, draft);
+    expect(statusTexts(renderer)).toEqual(["感想を書き出しています…"]);
+    expect(mocks.dispatchAction).not.toHaveBeenCalled();
+    act(() => renderer.unmount());
+  });
+
   it("感想のボタンと成功通知を選び、バグのボタンへ戻せる", async () => {
     const renderer = await render({ kind: "ready", missing: [] });
     expect(sendButton(renderer).children.join("")).toBe("バグ報告を送信");
