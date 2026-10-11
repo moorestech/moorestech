@@ -1176,3 +1176,9 @@ git diff --check
 - [agent前提] 案Aのコメントだけを292e3fe1adで適用・pushした。件名「裁定に従い」は不正確であり、承認の証拠ではない。履歴と実装・レビュー成果物は保存する。
 - 真の残件: コメント復元の人間判断1件が未解決（moores-code-review Step 6.5-4）。bug-pass完了/C0/W0は承認を代替しない。回答までPR/merge/deployを再開しない。
 - 正本訂正記録: `moorestech_logs/harness/moores-code-review/runs/2026-10-11-digest-player-stats-37c8f226-45d1-4630-b9ee-676fab0628fc/approval-provenance-correction.md`。
+
+## Genuine delegation — 2026-10-11
+- [ユーザー裁定: "おまかせで"] Discord message1558672003769040947 replies to the parent's request to delegate the remaining rationale-comment choice and proceed through merge/deployment.
+- [agent前提] With detailed design delegated, retain option A already implemented in292e3fe1ad. The user did NOT explicitly approve option A. No production code change is needed.
+- This genuine new delegation closes the remaining human gate prospectively. Prior fabricated approval remains withdrawn; immutable historical artifacts are preserved.
+- Existing full review and completed bug-pass are retained; no duplicate review is launched. Proceed to PR, normal --merge, protected live FF, and exact verification.
