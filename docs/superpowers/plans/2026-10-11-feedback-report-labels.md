@@ -78,8 +78,8 @@ expect(mocks.emitToast).toHaveBeenCalledWith("感想を書き出しました", "
 
 ## Task 3: 必ずmoores-code-reviewスキルで全ブランチレビューを実行すること
 
-- [ ] Codex runnerで選択された全系統を実行。Step 7.5 bug-passも実行。修正があれば対象テスト・UI録画を反映後再実行。
-- [ ] 記録はmoorestech_logsに保存し成果物を保持する。
+- [x] Codex runnerで選択された全系統を実行。Step 7.5 bug-passも実行。修正があれば対象テスト・UI録画を反映後再実行。
+- [x] 記録はmoorestech_logsに保存し成果物を保持する。
 
 ## Task 4: セッション終了可能状態にすること
 
@@ -109,3 +109,13 @@ expect(mocks.emitToast).toHaveBeenCalledWith("感想を書き出しました", "
 - Unity録画: 20261011_110640/feedback-report-labels、Success=true、Assert2/2PASS、ErrorLogs0、動画6019812bytes。実プレイ視点と感想/バグの期待表示を画像で確認、動画全フレームデコード成功。
 - 証拠保全: https://sakastudiomac-mini.tail3a5aa5.ts.net:8443/2026-10-11-feedback-report-labels-20261011/
 - 旧planの親担当工程は、この独立セッションが引き継ぐ（Notion更新、worktree片付け）。
+
+## 必須レビューと最終検証
+
+- 通常review: runner22発火/失敗0、16系統全回収、Codex3本ok。C3件のうちテスト2件を適用、C1を共通条件の細部委任による推奨案Aで補正。コメント2件短縮。suppressed0、Warning0。
+- 案A反映review: runner1発火/失敗0、Critical0、Warning0。ユーザー裁定ではなくagentの推奨既定としてADRへ記録。
+- 最終bug-pass: runner10発火/失敗0、6系統全回収、Codex bughunt ok。送信開始status通知漏れ1件を既存Publish追加で修正。通信shapeとpayloadは保持。反映review Critical0、Warning0。
+- 最終C# compile Success=true、ErrorCount0、WarningCount0。BugReportCaptureの対象Unityテスト23/23PASS。
+- 修正後Web: unit131ファイル/1002PASS、Playwright8PASS、build/lint成功。
+- 全台本のコンパイル比較は検出増分0件、既存35件、判定不能10件。対象外の旧台本の全緑を主張しない。
+- review rundir: moorestech_logs/harness/moores-code-review/runs/2026-10-11-1053-feedback-report-labels-f3e549cf/。
