@@ -107,21 +107,25 @@ namespace Client.Tests.UIState
                     && (entry.owner == typeof(PlaceBlockStateHints) || entry.owner == typeof(DeleteObjectStateHints))))
                 .Select(entry => $"{entry.owner.Name}: {entry.hint.KeyNameKey.Key}").ToArray();
             CollectionAssert.IsEmpty(forbidden, "ADR-0032の画面別許可リストに無いキー名が宣言されている");
-        }
 
-        // 手書き列挙だと新設テーブルが許可リスト検査から漏れるため、Client.Gameの*StateHintsを走査して集める
-        // A hand-written list would let a new table escape the allow-list check, so every *StateHints in Client.Game is scanned
-        private static IReadOnlyList<(Type owner, KeyHint hint)> CollectAllHints()
-        {
-            var hintTables = typeof(GameScreenStateHints).Assembly.GetTypes()
-                .Where(type => type.Name.EndsWith("StateHints", StringComparison.Ordinal))
-                .SelectMany(type => type.GetFields(BindingFlags.Public | BindingFlags.Static))
-                .Where(field => typeof(IReadOnlyList<KeyHint>).IsAssignableFrom(field.FieldType))
-                .Select(field => (owner: field.DeclaringType, hints: (IReadOnlyList<KeyHint>)field.GetValue(null)))
-                .ToArray();
+            #region Internal
 
-            Assert.IsNotEmpty(hintTables, "*StateHints テーブルが1つも見つからない");
-            return hintTables.SelectMany(table => table.hints.Select(hint => (table.owner, hint))).ToArray();
+            // 手書き列挙だと新設テーブルが許可リスト検査から漏れるため、Client.Gameの*StateHintsを走査して集める
+            // A hand-written list would let a new table escape the allow-list check, so every *StateHints in Client.Game is scanned
+            IReadOnlyList<(Type owner, KeyHint hint)> CollectAllHints()
+            {
+                var hintTables = typeof(GameScreenStateHints).Assembly.GetTypes()
+                    .Where(type => type.Name.EndsWith("StateHints", StringComparison.Ordinal))
+                    .SelectMany(type => type.GetFields(BindingFlags.Public | BindingFlags.Static))
+                    .Where(field => typeof(IReadOnlyList<KeyHint>).IsAssignableFrom(field.FieldType))
+                    .Select(field => (owner: field.DeclaringType, hints: (IReadOnlyList<KeyHint>)field.GetValue(null)))
+                    .ToArray();
+
+                Assert.IsNotEmpty(hintTables, "*StateHints テーブルが1つも見つからない");
+                return hintTables.SelectMany(table => table.hints.Select(hint => (table.owner, hint))).ToArray();
+            }
+
+            #endregion
         }
 
         // 各stateがGetKeyHints()で自分のテーブルを返しているか（テーブル直読みでは配線ごと落ちても気づけない）
