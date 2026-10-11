@@ -73,8 +73,6 @@ class DigestTest(unittest.TestCase):
         self.assertEqual(len(reports), 4)
         self.assertEqual(stats, {"unreadable": 0, "readyAtFallback": 0, "noPayload": 0, "invalidManifest": 0})
 
-
-
     def test_aggregate_progress(self):
         records, stats = dc.load_progress(self.root / "harness/playtest/progress", self.date)
         self.assertEqual(stats["invalidRecord"], 0)
@@ -139,8 +137,6 @@ class DigestTest(unittest.TestCase):
         self.assertIn("#1400", out)
         self.assertNotIn("⚠", out)
         self.assertTrue((self.root / "harness/playtest/digests/2026-09-12.md").is_file())
-
-
 
     def test_enqueue_command_id_is_shell_safe(self):
         """id にシェルメタ文字が混じっても、貼り付けたコマンドは注入されず literal として渡る。
