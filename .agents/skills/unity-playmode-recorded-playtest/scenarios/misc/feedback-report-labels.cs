@@ -8,10 +8,16 @@ using UnityEngine.InputSystem;
 return PlaytestRunner.Run("feedback-report-labels", new PlaytestRunOptions { Record = true }, async p =>
 {
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
-    await p.SkipOpeningSkit();
+    await p.SkipOpeningSkitIfPlaying();
     await p.ExitToGameScreen();
     p.Note("ポーズの報告画面で感想を選ぶ");
     await p.PressKey(Key.Escape);
+    // 保存済み言語に依存せず、日本語の期待値へ設定画面から揃える
+    // Set Japanese through settings so assertions do not depend on the saved locale
+    await p.ClickWebUi("pause-menu-open-settings");
+    await p.ClickWebUi("language-select-option-japanese");
+    await p.UntilWebUiElement("pause-menu-locale-japanese", 15f);
+    await p.ClickWebUi("pause-menu-back");
     await p.ClickWebUi("pause-menu-open-bug-report");
     await p.ClickWebUi("bug-report-kind-feedback");
     await PlaytestWebUiOps.WaitWebUiTextContains("bug-report-send", "感想", 15f);
