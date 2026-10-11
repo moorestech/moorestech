@@ -2,6 +2,7 @@ import { createElement, type ReactNode } from "react";
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { afterEach, vi } from "vitest";
 import { setDictionaries } from "@/shared/i18n/i18nStore";
+import type { BugReportDraft } from "../useBugReportDraft";
 import { useBugReportDraft } from "../useBugReportDraft";
 
 const mocks = vi.hoisted(() => ({
@@ -79,4 +80,11 @@ export function modeSwitch(renderer: ReactTestRenderer) {
 
 export function statusTexts(renderer: ReactTestRenderer): string[] {
   return renderer.root.findAll((node) => node.type === "span" && node.props["data-testid"] === "bug-report-status").map((node) => node.children.join(""));
+}
+
+export async function renderMutableDraft(status: Status, draft: BugReportDraft): Promise<ReactTestRenderer> {
+  setDictionaries("japanese", dictionary, {}, {});
+  let renderer: ReactTestRenderer;
+  await act(async () => { renderer = create(createElement(BugReportForm, { status, draft })); });
+  return renderer!;
 }
