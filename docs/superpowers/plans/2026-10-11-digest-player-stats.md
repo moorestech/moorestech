@@ -560,7 +560,7 @@ import digest_collect as dc  # noqa: E402
 import digest_candidates as dcand  # noqa: E402
 from digest_schema import neutralize_discord_markup as safe
 
-ZWSP = "​"
+ZWSP = "\u200b"
 READY_AT = "2026-09-12T09:50:00Z"
 
 
