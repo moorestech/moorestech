@@ -28,8 +28,6 @@ describe("BugReportForm report-kind labels", () => {
     act(() => renderer.unmount());
   });
 
-  // 拒否された感想は成功扱いせず、書きかけの種別と本文を残す
-  // Rejected feedback keeps its draft kind and text without claiming success
   it("感想送信が失敗すると成功通知を出さずdraftを残す", async () => {
     mocks.dispatchAction.mockResolvedValueOnce(false);
     const renderer = await render({ kind: "ready", missing: [] });

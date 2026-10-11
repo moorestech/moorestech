@@ -15,8 +15,8 @@ test.afterEach(async ({ page }) => {
   await setUiState(page, "PlayerInventory");
 });
 
-// 本番CSVで全言語を描画し、成功後の種別リセットまで確認する
-// Render every language from the production CSV and check kind reset after success
+// 本番CSVで全言語と種別復帰を検証
+// Check all languages and kind reset with the production CSV
 for (const label of labels) {
   test(`感想送信のボタンと完了通知: ${label.locale}`, async ({ page }) => {
     await setTopicScenario(page, "japanese");
