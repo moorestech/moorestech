@@ -128,8 +128,8 @@ def main(argv: list[str] | None = None) -> int:
     lines += format_counts(reports, report_stats)
     lines += format_feedback(reports)
     lines += format_runs(runs, run_stats)
-    # 全文を無害化して保存してから配信用に切る
-    # Neutralize and archive the complete text before truncating delivery.
+    # 外部由来の値が各節に散在するため、無害化漏れを防ぐ処理は結合後の全文にかける
+    # External values occur across sections, so sanitize the joined body to prevent gaps.
     body = safe("\n".join(lines) + "\n")
     archive = playtest / "digests" / f"{date}.md"
     if not args.no_archive:
