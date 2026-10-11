@@ -8,29 +8,56 @@ def top_line(counter: Counter, limit: int) -> str:
     return " / ".join(f"{key} {value}件" for key, value in counter.most_common(limit))
 
 
+def format_play_time(summary: dict) -> str:
+    if summary["missingSessions"] and not summary["knownSessions"]:
+        return "不明"
+    value = f"{summary['knownSeconds'] / 60:.1f} 分"
+    return f"既知分 {value}（一部不明）" if summary["missingSessions"] else value
+
+
 def format_progress(agg: dict, stats: dict, records: list[dict]) -> list[str]:
-    lines = ["", "## 進行記録"]
+    # 集計結果から平均の不明理由を明示する
+    # Explain an unknown mean using the aggregation results.
     if agg["sessions"] == 0:
+        mean = "対象なし"
+    elif agg["meanPlaySeconds"] is not None:
+        mean = f"{agg['meanPlaySeconds'] / 60:.1f} 分"
+    else:
+        reasons = []
+        if agg["playSecondsMissing"]:
+            reasons.append("時間欠損")
+        if agg["unknownIdSessions"]:
+            reasons.append("ID不明")
+        mean = "不明（" + "/".join(reasons) + "）"
+    lines = ["", "## 前日のプレイ状況",
+             "受信日（JST）基準。実際に遊んだ日とは異なる場合あり",
+             f"- 人数 {agg['testers']} 人",
+             "- 合計プレイ時間 " + format_play_time(agg["playTime"]),
+             "- 1人あたり平均プレイ時間 " + mean,
+             "### プレイヤー別時間"]
+    # 内訳も集計済みの時間を使い、空IDに名前を付けない
+    # Use aggregated time for each player and keep empty IDs unnamed.
+    for player in agg["players"].values():
+        lines.append(f"- {player['tester']}: {format_play_time(player['playTime'])}")
+    if agg["unknownIdSessions"]:
+        lines.append("- ID不明分: " + format_play_time(agg["unattributedPlayTime"]))
+    if not agg["sessions"]:
+        lines.append("- なし")
+    # 時間・帰属警告をプレイ状況の直後へ置く
+    # Place time and attribution warnings immediately after player statistics.
+    if agg["playSecondsMissing"]:
+        lines.append(f"- ⚠ playSeconds が欠落したセッション {agg['playSecondsMissing']}件（欠損を含むため平均は不明）")
+    if agg["unknownIdSessions"]:
+        lines.append(f"- ⚠ ID不明のセッション {agg['unknownIdSessions']}件（帰属不明のため平均は不明）")
+    lines += ["", "## 進行記録", f"- セッション {agg['sessions']} 件"]
+    if not agg["sessions"]:
         lines.append("- なし")
     else:
-        lines.append(f"- 人数 {agg['testers']} 人 / セッション {agg['sessions']} 件")
-        # 人数集計（aggregate_progress）と同じ述語（steamId非空）でそろえる。空IDの記録が一覧だけに残ると人数と食い違う
-        # Matches aggregate_progress's predicate (non-empty steamId); a record with an empty id would otherwise inflate the list past the count
-        testers = {record["steamId"]: record["tester"] for record in records if record["steamId"]}
-        lines.append("- テスター: " + "、".join(testers.values()))
-        # 全件 playSeconds 欠落なら 0 分と偽らず「不明」と明示する
-        # When every session lacks playSeconds, say "unknown" rather than falsely printing 0 minutes
-        if agg["meanPlaySeconds"] is None:
-            lines.append("- 平均プレイ時間 不明（playSeconds が全件欠落）")
-        else:
-            lines.append(f"- 平均プレイ時間 {agg['meanPlaySeconds'] / 60:.1f} 分")
         lines.append(f"- 平均研究完了数 {agg['meanResearch']:.1f}")
         lines.append("- 到達チャレンジ数の分布: " + top_line(agg["reachBuckets"], 5))
         lines.append("- 離脱時の最後のイベント上位: " + top_line(agg["lastEvents"], 5))
         lines.append("- 離脱時のUI状態上位: " + top_line(agg["lastUiStates"], 5))
         lines.append("- 終了理由: " + top_line(agg["endReasons"], 5))
-        if agg.get("playSecondsMissing"):
-            lines.append(f"- ⚠ playSeconds が欠落し平均から除外したセッション {agg['playSecondsMissing']}件")
     if stats.get("unreadable"):
         lines.append(f"- ⚠ ingest.json を読めない/日付を解釈できず除外した箱 {stats['unreadable']}件")
     if stats.get("readyAtFallback"):

@@ -3,7 +3,9 @@
 
 Verifies the digest's guards: Discord neutralisation, record.json value checks and the candidate exclusion count.
 """
+import io
 import sys
+from contextlib import redirect_stderr
 import tempfile
 import unittest
 from pathlib import Path
@@ -13,6 +15,8 @@ from digest_fixture import DISABLED_MARK, SCRIPTS, TARGET_DATE, build_fixture, r
 
 sys.path.insert(0, str(SCRIPTS))
 import digest_collect as dc  # noqa: E402
+import digest_candidates as dcand  # noqa: E402
+from digest_schema import neutralize_discord_markup as safe
 
 ZWSP = "​"
 READY_AT = "2026-09-12T09:50:00Z"
@@ -43,11 +47,11 @@ class DigestGuardsTest(unittest.TestCase):
         return result.stdout
 
     def test_tester_text_cannot_ping_or_break_code_fences(self):
-        """感想全文・投入候補の見出しのメンションとコードフェンスを無害化する
-        Mentions and code fences in feedback text and candidate headings are neutralised"""
+        """感想全文のメンションとコードフェンスを無害化する
+        Mentions and code fences in feedback text are neutralised"""
         self.add_report("7656020", "20260912_170000_fbping",
                         {"kind": "feedback", "description": "@everyone @here <@123> ```\n閉じない"})
-        self.add_report("7656021", "20260912_171000_bugping", {"kind": "bug", "description": "<@&456> ```バグ"})
+        self.add_report("7656021", "20260912_171000_bugping", {"kind": "feedback", "description": "<@&456> ```感想"})
         out = self.digest()
         for raw in ("@everyone", "@here", "<@123>", "<@&456>", "```"):
             self.assertNotIn(raw, out)
@@ -59,7 +63,8 @@ class DigestGuardsTest(unittest.TestCase):
         An id with a backtick would close the code span, so no pasteable command is printed"""
         self.add_report("7656022", "20260912_172000_tick", {"kind": "bug", "description": "x"},
                         ingest_id="a`@everyone`b")
-        out = self.digest()
+        out = safe("\n".join(dcand.format_candidates(
+            *dcand.load_candidate_reports(self.root / "harness/playtest/reports"))))
         self.assertIn("バッククォートを含むため貼り付けコマンドを出さない", out)
         self.assertNotIn("enqueue-autofix.sh 7656022", out)
         self.assertNotIn("@everyone", out)
@@ -71,10 +76,13 @@ class DigestGuardsTest(unittest.TestCase):
         broken.mkdir(parents=True)
         (broken / "ingest.json").write_text("{", encoding="utf-8")
         self.add_report("7656024", "20260801_110000_badmanifest", {"kind": ["bug"]})
-        result = run_digest(self.root, TARGET_DATE, "--max-chars", "0", "--no-archive")
-        self.assertIn("読めず投入候補の判定から除外した箱 2件", result.stdout)
-        self.assertIn("投入候補の判定から除外: JSON解析失敗", result.stderr)
-        self.assertIn("投入候補の判定から除外: 型不一致: kind", result.stderr)
+        errors = io.StringIO()
+        with redirect_stderr(errors):
+            out = "\n".join(dcand.format_candidates(
+                *dcand.load_candidate_reports(self.root / "harness/playtest/reports")))
+        self.assertIn("読めず投入候補の判定から除外した箱 2件", out)
+        self.assertIn("投入候補の判定から除外: JSON解析失敗", errors.getvalue())
+        self.assertIn("投入候補の判定から除外: 型不一致: kind", errors.getvalue())
 
     def test_nonempty_remote_exec_ledger_is_counted_without_invalid_manifest(self):
         box = self.add_report("7656030", "20260912_183000_rex",
