@@ -23,6 +23,9 @@ export function BugReportForm({ status, draft }: Props) {
   // 送信してよいかの判定はC#が持ち、結論が kind で届く。ここで条件を組み立て直すと判定が2本になる
   // C# owns whether a send may start and delivers the verdict as the kind; rebuilding the conditions here would make two rules
   const blocked = trimmedDescription.length === 0 || status.kind !== "ready" || sending;
+  // 応答待ち終了後もホスト送信中は種別を保つ
+  // Preserve the kind while the host writes after local waiting ends
+  const inputLocked = sending || status.kind === "submitting";
 
   const send = async () => {
     // 二度押しは同じ確保から2箱を作り、同じ報告のdraft PRが2本出る
@@ -59,14 +62,14 @@ export function BugReportForm({ status, draft }: Props) {
           { value: PauseMenuReportKinds.feedback, label: t(L.ui.playtest.reportKind.feedback), testId: "bug-report-kind-feedback" },
         ]}
         onChange={(value) => draft.setKind(value as PauseMenuReportKind)}
-        disabled={sending}
+        disabled={inputLocked}
         testId="bug-report-kind"
       />
       <textarea
         className={styles.description}
         value={draft.description}
         placeholder={t(L.ui.bugReport.placeholder)}
-        disabled={sending}
+        disabled={inputLocked}
         onChange={(e) => draft.setDescription(e.currentTarget.value)}
         data-testid="bug-report-description"
       />
