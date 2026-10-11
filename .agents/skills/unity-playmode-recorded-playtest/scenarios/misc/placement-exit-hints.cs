@@ -22,6 +22,7 @@ return PlaytestRunner.Run("placement-exit-hints", options, async p =>
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
     await PlaytestSkitOps.SkipOpeningSkitIfPlaying(5f);
     await p.WaitUiState(UIStateEnum.GameScreen, 30f);
+    await p.PrepareBlockForUiPlacement("原始的な採掘機", 1);
     var initialLanguage = Localize.GetCurrentLanguageCode();
     var control = Object.FindFirstObjectByType<UIStateControl>();
     var dictionary = (UIStateDictionary)typeof(UIStateControl)
@@ -33,7 +34,7 @@ return PlaytestRunner.Run("placement-exit-hints", options, async p =>
     {
         p.Note(language + ": 終了案内を設置と破壊で確認する");
         p.Assert(Localize.TrySetChosenLanguage(language), language + ": 言語切替成功");
-        await p.OpenBuildMenuAndSelectBlock("木のチェスト");
+        await p.OpenBuildMenuAndSelectBlock("原始的な採掘機");
         await ObserveHints(language, UIStateEnum.PlaceBlock, 11, LocalizationKeys.Ui.KeyHint.Key.B.Key);
         await p.PressKey(Key.Escape);
         await p.WaitUiState(UIStateEnum.GameScreen, 5f);
@@ -50,7 +51,7 @@ return PlaytestRunner.Run("placement-exit-hints", options, async p =>
     // 右短押しはUI外を観測してから注入し、両モードの終了を確認する
     // Observe an outside-UI pointer before injecting a right short press in each mode
     p.Note("UI外の右短押しで設置と破壊を終了する");
-    await p.OpenBuildMenuAndSelectBlock("木のチェスト");
+    await p.OpenBuildMenuAndSelectBlock("原始的な採掘機");
     await ExitWithRightShortPress("設置");
     await p.PressKey(Key.G);
     await p.WaitUiState(UIStateEnum.DeleteBar, 5f);
@@ -85,12 +86,16 @@ return PlaytestRunner.Run("placement-exit-hints", options, async p =>
             dom = await PlaytestDomQuery.Query("key-hints", 2f);
         }
         p.Assert(dom.Found && dom.Text.Contains(keyText) && dom.Text.Contains(actionText), language + ": Webに翻訳済み案内を表示");
+        var overlay = Object.FindFirstObjectByType<Client.Playtest.Overlay.PlaytestOverlayView>();
+        if (overlay != null) overlay.enabled = false;
+        await UniTask.DelayFrame(2);
         await p.Screenshot(language + "-" + state);
+        if (overlay != null) overlay.enabled = true;
     }
 
     async UniTask ExitWithRightShortPress(string label)
     {
-        SemanticInput.MouseMoveTo(new Vector2(8f, Screen.height - 8f));
+        SemanticInput.MouseMoveTo(new Vector2(Screen.width * 0.5f, Screen.height - 24f));
         await UniTask.DelayFrame(3);
         await p.Until(() => !UiPointerHitTest.IsPointerOverAnyUi(), 5f, label + ": ポインタがUI外");
         await p.RightShortClick();
