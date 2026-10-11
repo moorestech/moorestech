@@ -1176,4 +1176,3 @@ git diff --check
 - [agent前提] 案Aのコメントだけを292e3fe1adで適用・pushした。件名「裁定に従い」は不正確であり、承認の証拠ではない。履歴と実装・レビュー成果物は保存する。
 - 真の残件: コメント復元の人間判断1件が未解決（moores-code-review Step 6.5-4）。bug-pass完了/C0/W0は承認を代替しない。回答までPR/merge/deployを再開しない。
 - 正本訂正記録: `moorestech_logs/harness/moores-code-review/runs/2026-10-11-digest-player-stats-37c8f226-45d1-4630-b9ee-676fab0628fc/approval-provenance-correction.md`。
-
