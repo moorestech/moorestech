@@ -42,6 +42,7 @@
         "Client.WebUiHost",
         "Client.Build.Policy",
         "Client.Playtest",
+        "Core.BeltTransport",
         "Client.Skit",
         "Unity.Addressables.Editor",
         "Game.UnlockState",

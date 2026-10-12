@@ -43,11 +43,11 @@ namespace Client.Game.InGame.Train.Network.Diagnostics
             Capture("MissingOrderedMessage", confirmedGap ? "ConfirmedOrderedGap" : null, confirmedGap);
         }
 
-        internal void RecordHashMismatch(ulong expectedId, uint localTrain, uint serverTrain, uint localRail, uint serverRail, bool permanentWait)
+        internal void RecordHashMismatch(ulong expectedId, uint localTrain, uint serverTrain, uint localRail, uint serverRail, uint localBelt, uint serverBelt, bool permanentWait)
         {
             // 初回の比較値を保ち、再観測で同じ比較値を作り直さない。
             // Preserve the first comparison without allocating another object on each repeated observation.
-            var comparison = _waiting?.HashComparison ?? new TrainSynchronizationHashComparison(localTrain, serverTrain, localRail, serverRail);
+            var comparison = _waiting?.HashComparison ?? new TrainSynchronizationHashComparison(localTrain, serverTrain, localRail, serverRail, localBelt, serverBelt);
             BeginWaiting(expectedId, "HashMismatch", comparison);
             if (_waiting != null && _waiting.HashComparison == null) _waiting.HashComparison = comparison;
             Capture("HashMismatch", permanentWait ? "ReceivedTickGap" : null, true);
@@ -93,7 +93,7 @@ namespace Client.Game.InGame.Train.Network.Diagnostics
                 if (_warned) return;
                 _warned = true;
                 var hashes = _waiting.HashComparison;
-                var comparison = hashes == null ? "" : $", train(client={hashes.LocalTrainHash}, server={hashes.ServerTrainHash}), rail(client={hashes.LocalRailHash}, server={hashes.ServerRailHash})";
+                var comparison = hashes == null ? "" : $", train(client={hashes.LocalTrainHash}, server={hashes.ServerTrainHash}), rail(client={hashes.LocalRailHash}, server={hashes.ServerRailHash}), belt(client={hashes.LocalBeltHash}, server={hashes.ServerBeltHash})";
                 Debug.LogWarning($"[TrainSynchronization] Waiting: {observation}, expected={_waiting.ExpectedId >> 32}_{(uint)_waiting.ExpectedId}, applied={_waiting.AppliedIdAtOnset}, latestReceived={_tickState.GetMaxBufferedTickUnifiedId()}{comparison}");
             }
             #endregion
