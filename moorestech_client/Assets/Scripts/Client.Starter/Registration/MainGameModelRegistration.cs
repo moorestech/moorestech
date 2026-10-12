@@ -2,6 +2,7 @@ using Client.Game.InGame.ColliderStreaming;
 using Client.Game.InGame.ColliderStreaming.Block;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.BeltTransport.Network;
+using Client.Game.InGame.BeltTransport.View;
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.LastSession;
@@ -96,6 +97,7 @@ namespace Client.Starter.Registration
             builder.RegisterEntryPoint<TrainUnitTickDiffBundleEventNetworkHandler>();
             builder.RegisterEntryPoint<TrainFullSnapshotEventNetworkHandler>().AsSelf();
             builder.RegisterEntryPoint<BeltTransportEventNetworkHandler>();
+            builder.RegisterEntryPoint<BeltItemObjectPresenter>();
 
             // 通し検証はsmoke起動時だけ登録する（前例: PlaytestRecordRegistration のフラグ分岐）
             // The smoke runner is registered only on a smoke launch (precedent: PlaytestRecordRegistration's flag branch)
