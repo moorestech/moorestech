@@ -68,6 +68,7 @@ namespace Client.Tests.WebUi.Gate
             new Rule("Client.Game/InGame/UI/Crosshair", Category.Infra, "クロスヘア表示可否の論理状態"),
             new Rule("Client.Game/InGame/UI/ProgressBar", Category.Infra, "進捗の論理状態（ui.progressのデータ源）"),
             new Rule("Client.Game/InGame/UI/Tooltip", Category.Infra, "ツールチップの論理状態"),
+            new Rule("Client.Game/InGame/UI/Notification/ClientLocalNotificationSource.cs", Category.Infra, "通知イベントの発行元でありuGUI表示を持たない"),
             new Rule("Client.Game/InGame/Presenter/PauseMenu", Category.Infra, "終了経路・切断状態・セーブ要求（uGUI非依存）"),
             new Rule("Client.Game/InGame/BackgroundSkit", Category.Infra, "音声再生専用オーケストレータ。文字表示はWeb UI側が担う"),
             new Rule("Client.Game/Skit/Localization", Category.Infra, "通常スキットの辞書読込・合成・解決基盤（画面表示なし）"),

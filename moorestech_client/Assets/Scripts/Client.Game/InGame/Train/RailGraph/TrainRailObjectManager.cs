@@ -1,3 +1,4 @@
+using Game.Train.RailGraph.Utility;
 using System.Collections.Generic;
 using CommandForgeGenerator.Command;
 using Cysharp.Threading.Tasks;
@@ -45,6 +46,16 @@ namespace Client.Game.InGame.Train.RailGraph
         public void SetActive(bool enable)
         {
             gameObject.SetActive(enable);
+        }
+
+        // 描画中のレール1本をIDから引く（巻き込み赤表示用）
+        // Look up a drawn rail by id (for cascade red preview)
+        public bool TryGetRailChain(ulong railObjectId, out BezierRailChain chain)
+        {
+            chain = null;
+            if (!_railObjs.TryGetValue(railObjectId, out var gobj) || gobj == null) return false;
+            chain = gobj.GetComponent<BezierRailChain>();
+            return chain != null;
         }
 
         internal void OnCacheRebuilt(RailGraphClientCache cache)
@@ -96,8 +107,8 @@ namespace Client.Game.InGame.Train.RailGraph
             #region Internal
                 void RemoveLine(int fromNodeId, int toNodeId)
                 {
-                    var (canonicalFrom, canonicalTo) = SelectCanonicalPair(fromNodeId, toNodeId);
-                    var railObjectId = ComputeRailObjectId(canonicalFrom, canonicalTo);
+                    var (canonicalFrom, canonicalTo) = RailSegmentPairing.SelectCanonicalPair(fromNodeId, toNodeId);
+                    var railObjectId = RailObjectIdCodec.ComputeRailObjectId(canonicalFrom, canonicalTo);
                     if (!_railObjs.TryGetValue(railObjectId, out var gobj))
                     {
                         return;
@@ -123,8 +134,8 @@ namespace Client.Game.InGame.Train.RailGraph
             if (!HasPairedConnection(fromNodeId, toNodeId))
                 return;
 
-            var (canonicalFrom, canonicalTo) = SelectCanonicalPair(fromNodeId, toNodeId);
-            var railObjectId = ComputeRailObjectId(canonicalFrom, canonicalTo);
+            var (canonicalFrom, canonicalTo) = RailSegmentPairing.SelectCanonicalPair(fromNodeId, toNodeId);
+            var railObjectId = RailObjectIdCodec.ComputeRailObjectId(canonicalFrom, canonicalTo);
             if (_railObjs.ContainsKey(railObjectId))
                 return;
             if (_cache == null)
@@ -135,7 +146,7 @@ namespace Client.Game.InGame.Train.RailGraph
                 return;
 
             var lineObject = SpawnRail($"RailLine_{canonicalFrom}_{canonicalTo}", startNode, endNode);
-            ApplyRailObjectId(lineObject, railObjectId);
+            RailColliderObjectIdBinder.Apply(lineObject, railObjectId);
             lineObject.transform.SetParent(transform, false);
             _railObjs[railObjectId] = lineObject;
             
@@ -173,39 +184,8 @@ namespace Client.Game.InGame.Train.RailGraph
                 return instance.gameObject;
             }
             
-            static void ApplyRailObjectId(GameObject lineObject, ulong railObjectId)
-            {
-                if (lineObject == null)
-                    return;
-                
-                // レール用コライダーにIDを埋め込む
-                // Embed the rail object id into colliders for raycast lookup
-                var colliders = lineObject.GetComponentsInChildren<Collider>(true);
-                for (var i = 0; i < colliders.Length; i++)
-                {
-                    var collider = colliders[i];
-                    if (collider == null)
-                        continue;
-                    
-                    var carrier = collider.GetComponent<RailObjectIdCarrier>();
-                    if (carrier == null)
-                        carrier = collider.gameObject.AddComponent<RailObjectIdCarrier>();
-                    carrier.SetRailObjectId(railObjectId);
-                }
-            }
             #endregion
         }
 
-        private static (int canonicalFrom, int canonicalTo) SelectCanonicalPair(int fromNodeId, int toNodeId)
-        {
-            var alternateFrom = toNodeId ^ 1;
-            var alternateTo = fromNodeId ^ 1;
-            return fromNodeId <= alternateFrom ? (fromNodeId, toNodeId) : (alternateFrom, alternateTo);
-        }
-
-        private static ulong ComputeRailObjectId(int canonicalFrom, int canonicalTo)
-        {
-            return (ulong)canonicalFrom + ((ulong)canonicalTo << 32);
-        }
     }
 }

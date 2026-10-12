@@ -16,7 +16,7 @@ namespace Game.MapGeneration.Pipeline.Generators
     {
         // ワールド全体の鉱脈を配置する。entryMasks[i] は entries[i] の対象バイオーム合成マスク。
         // Places all veins; entryMasks[i] is the composite biome mask for entries[i].
-        public static VeinPlacementBatch GenerateForWorld(
+        internal static VeinPlacementBatch GenerateForWorld(
             OreEntry[] entries,
             bool[][,] entryMasks,
             float borderMargin,
@@ -27,7 +27,7 @@ namespace Game.MapGeneration.Pipeline.Generators
             SpatialGrid objectSpatialGrid,
             VeinHaloChannels channels,
             float haloRadius,
-            IReadOnlyList<PlacedVein> excludedVeins)
+            IReadOnlyList<PlacedVein> excludedVeins, IVeinPlacementRule placementRule, int tileIndexX, int tileIndexZ)
         {
             var result = new VeinPlacementBatch();
             if (entries == null || entries.Length == 0)
@@ -50,11 +50,13 @@ namespace Game.MapGeneration.Pipeline.Generators
             {
                 var entry = entries[i];
                 if (entry == null || string.IsNullOrEmpty(entry.veinGuid)) continue;
-                if (entryMasks == null || i >= entryMasks.Length || entryMasks[i] == null) continue;
+                if (entryMasks == null || entryMasks.Length <= i || entryMasks[i] == null)
+                    continue;
 
                 OreEntryPlacer.Place(entry, i, entryMasks[i], heights, dims, rng,
                     borderPx, treeSpatialGrid, objectSpatialGrid,
-                    oreGrid, channels.Centers, haloRadius, excludedVeins, result);
+                    oreGrid, channels.Centers, haloRadius, excludedVeins, result, placementRule);
+                placementRule.ReportRejections(dims.Seed, tileIndexX, tileIndexZ, entry.veinGuid);
             }
 
             return result;

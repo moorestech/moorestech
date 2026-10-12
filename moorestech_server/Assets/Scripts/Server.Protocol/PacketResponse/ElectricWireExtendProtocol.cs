@@ -8,6 +8,7 @@ using Server.Util.MessagePack;
 using UnityEngine;
 
 using Server.Protocol.PacketResponse.Util.ElectricWire.Placement;
+using Server.Protocol.PacketResponse.Util.ElectricWire.Connection;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -28,6 +29,15 @@ namespace Server.Protocol.PacketResponse
             // Deserialize request payload
             var request = MessagePackSerializer.Deserialize<ElectricWireExtendRequest>(payload);
 
+            // 復元要求だけはサーバーの現状態で既接続を判定し、課金と通知を抑止する
+            // Only restore requests check current server connections before charging or notifying
+            if (request.IsRestore && request.Operation == ElectricWireExtendOperation.ConnectToExisting &&
+                ElectricWireSystemUtil.TryGetExistingConnection(request.FromPosVector, request.ToPosVector, out var toConnector))
+            {
+                Debug.Log($"[ElectricWireExtend] restore already connected: {request.FromPosVector}->{request.ToPosVector}");
+                return ElectricWireExtendResponse.CreateSuccess(request.ToPosVector, toConnector.BlockInstanceId.AsPrimitive());
+            }
+
             // 検証と設置・接続・消費をサービスに委ね、結果を応答へ変換する
             // Delegate validation, placement, wiring and consumption to the service; map its result to a response
             var result = ElectricWireExtendService.Execute(
@@ -37,7 +47,10 @@ namespace Server.Protocol.PacketResponse
             // 拒否理由は通常設置と同じ通知経路でプレイヤーへ返す（前例: RailConnectionEditProtocol）
             // Surface the rejection through the same notification path as normal placement (precedent: RailConnectionEditProtocol)
             if (!result.IsSuccess)
+            {
+                Debug.LogWarning($"[ElectricWireExtend] denied: {result.FailureReason} op={request.Operation} from={request.FromPosVector} to={request.ToPosVector} player={requesterPlayerId}");
                 _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied($"denied.electricWireExtend.{result.FailureReason}", Array.Empty<string>()));
+            }
 
             return result.IsSuccess
                 ? ElectricWireExtendResponse.CreateSuccess(result.EndpointPos, result.EndpointBlockInstanceId)
@@ -53,6 +66,7 @@ namespace Server.Protocol.PacketResponse
             [Key(5)] public PlaceInfoMessagePack PolePlaceInfo { get; set; }
             [Key(7)] public int PoleBlockIdInt { get; set; }
             [Key(8)] public Guid ConnectToolGuid { get; set; }
+            [Key(9)] public bool IsRestore { get; set; }
 
             [IgnoreMember] public Vector3Int FromPosVector => FromPos;
             [IgnoreMember] public Vector3Int ToPosVector => ToPos;
@@ -77,6 +91,13 @@ namespace Server.Protocol.PacketResponse
 
             public static ElectricWireExtendRequest CreateConnectRequest(Vector3Int fromPos, Vector3Int toPos, Guid connectToolGuid)
                 => new(ElectricWireExtendOperation.ConnectToExisting, fromPos, toPos, new PlaceInfoMessagePack(new PlaceInfo()), 0, connectToolGuid);
+
+            public static ElectricWireExtendRequest CreateRestoreConnectRequest(Vector3Int fromPos, Vector3Int toPos, Guid connectToolGuid)
+            {
+                var request = CreateConnectRequest(fromPos, toPos, connectToolGuid);
+                request.IsRestore = true;
+                return request;
+            }
 
             public static ElectricWireExtendRequest CreateExtendRequest(Vector3Int fromPos, BlockId poleBlockId, PlaceInfo polePlaceInfo, Guid connectToolGuid)
                 => new(ElectricWireExtendOperation.ExtendToNewPole, fromPos, Vector3Int.zero, new PlaceInfoMessagePack(polePlaceInfo), poleBlockId.AsPrimitive(), connectToolGuid);

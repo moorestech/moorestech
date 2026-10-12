@@ -6,6 +6,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire;
 using Client.Game.InGame.Control;
 using Client.Input;
+using Common.Debug;
 using Core.Master;
 using Game.Block.Interface;
 using Server.Protocol.PacketResponse.Util.ElectricWire;
@@ -67,7 +68,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
                 // Already-connected and connection-full judgements are delegated to the calculator
                 var toPos = targetBlock.BlockPosInfo.OriginalPos;
                 var distance = Vector3Int.Distance(fromPos, toPos);
-                var preview = ElectricWireExtendPreviewCalculator.Evaluate(source, targetBlock, sourceMaxCount, targetMaxConnectionCount, distance, connectToolGuid, _context.Inventory);
+                var preview = ElectricWireExtendPreviewCalculator.Evaluate(source, targetBlock, sourceMaxCount, targetMaxConnectionCount, distance, connectToolGuid, _context.Inventory, IsFreePlacement());
 
                 _context.WirePreview.Show(ElectricWireEndpointResolver.Resolve(source), ElectricWireEndpointResolver.Resolve(targetBlock), preview.IsPlaceable);
 
@@ -99,7 +100,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
                 // 地形干渉・重複で不可のセルは電柱を置かないので建設コストも消費せず、電線の必要数へ乗せない
                 // A cell blocked by terrain or an existing block places no pole, so its construction cost is neither consumed nor added to the wire requirement
                 var poleReservation = evaluation.IsGroundClear && evaluation.IsPositionFree ? evaluation.PoleConstructionItemCounts : Array.Empty<(ItemId itemId, int count)>();
-                var preview = ElectricWireExtendPreviewCalculator.EvaluateNewPole(source, sourceMaxCount, evaluation.PoleParam, poleGhostInfo, distance, connectToolGuid, _context.Inventory, poleReservation);
+                var preview = ElectricWireExtendPreviewCalculator.EvaluateNewPole(source, sourceMaxCount, evaluation.PoleParam, poleGhostInfo, distance, connectToolGuid, _context.Inventory, poleReservation, IsFreePlacement());
                 var placeable = evaluation.IsGhostPlaceable && preview.IsPlaceable;
 
                 // ゴーストとワイヤー線を可否色で表示する
@@ -125,6 +126,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
                     _context.PreviewBlockController.SetActive(false);
                     _context.RequestSender.SendExtend(fromPos, evaluation.PoleBlockId, evaluation.PlaceInfo, connectToolGuid);
                 }
+            }
+
+            bool IsFreePlacement()
+            {
+                return DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement);
             }
 
             void HidePreview()

@@ -1,6 +1,5 @@
+using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Run;
-using Client.Input;
-using Core.Master;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
@@ -21,6 +20,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
         private readonly PlacementHeightOffset _heightOffset;
         private PlacementDragSession _session;
+        private Guid? _lastBlockGuid;
 
         public CommonBlockPlaceDragState(PlacementHeightOffset heightOffset)
         {
@@ -37,25 +37,20 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             _session = null;
         }
 
-        public void UpdateHeightOffsetByInput()
+        // 対象変更では開始高さへ戻さず、ドラッグだけ捨てる
+        // On target change, discard only the drag without restoring its starting height
+        public void DiscardForSelectionChange()
         {
-            if (HybridInput.GetKeyDown(KeyCode.Q)) //TODO InputManagerに移す
-                AdjustHeightOffset(-1);
-            else if (HybridInput.GetKeyDown(KeyCode.E)) AdjustHeightOffset(1);
+            _session = null;
         }
 
-        // 入力の解釈だけを担い、高さの規則と保持は共有の正へ委ねる
-        // Interprets input only; the height rule and the stored value belong to the shared source
-        public void AdjustHeightOffset(int delta)
+        // 持ち替え先のブロック種が変わったときだけドラッグを捨てる。同種の別向きへの持ち替えでは続行する
+        // Discards the drag only when the block kind changes; switching to another direction of the same kind keeps it
+        public void DiscardForBlockChange(Guid blockGuid)
         {
-            _heightOffset.Adjust(delta);
-        }
-
-        // 持ち替え判定は共有の正が持つ。こちらは自分のドラッグを畳むだけ
-        // The shared source owns the block-switch check; this only folds its own drag
-        public void SyncSelectedBlock(BlockId blockId)
-        {
-            if (_heightOffset.SyncSelectedBlock(blockId)) _session = null;
+            var isBlockChanged = _lastBlockGuid != blockGuid;
+            _lastBlockGuid = blockGuid;
+            if (isBlockChanged) DiscardForSelectionChange();
         }
 
         public void BeginDrag(Vector3Int startCell, PlacementHitSurfaceKind surfaceKind)

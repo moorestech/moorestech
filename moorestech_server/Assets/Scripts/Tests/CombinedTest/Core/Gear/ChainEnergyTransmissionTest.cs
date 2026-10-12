@@ -53,7 +53,7 @@ namespace Tests.CombinedTest.Core.Gear
             // Establish chain connection
             var connected = GearChainSystemUtil.TryConnect(new Vector3Int(1, 0, 0), new Vector3Int(6, 0, 0), playerId, ConnectToolGuid, out var error);
             Assert.True(connected);
-            Assert.IsEmpty(error ?? string.Empty);
+            Assert.AreEqual(GearChainPlacementFailureReason.None, error);
 
             // ギアネットワークを更新する
             // Update gear networks

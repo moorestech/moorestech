@@ -39,7 +39,7 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
         {
             var sourcePole = new FakeGearChainPole(new Vector3Int(0, 0, 0));
             var input = GearChainPoleDecideInputs.CreateGhostReadyInput(sourcePole);
-            input.ExtendPreview = new GearChainPoleExtendPreviewData(Vector3.zero, Vector3.one, GearChainPlacementJudgement.Failure(GearChainPlacementEvaluator.TooFarError), Array.Empty<ConstructionMaterialShortage>());
+            input.ExtendPreview = new GearChainPoleExtendPreviewData(Vector3.zero, Vector3.one, GearChainPlacementJudgement.Failure(GearChainPlacementFailureReason.TooFar), Array.Empty<ConstructionMaterialShortage>());
 
             var result = GearChainPolePlaceExtendMode.Decide(input);
 
@@ -57,7 +57,7 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
             var sourcePole = new FakeGearChainPole(new Vector3Int(0, 0, 0));
             var input = GearChainPoleDecideInputs.CreateGhostReadyInput(sourcePole);
             input.GhostGroundClear = false;
-            input.ExtendPreview = new GearChainPoleExtendPreviewData(Vector3.zero, Vector3.one, GearChainPlacementJudgement.Failure(GearChainPlacementEvaluator.NoItemError), Array.Empty<ConstructionMaterialShortage>());
+            input.ExtendPreview = new GearChainPoleExtendPreviewData(Vector3.zero, Vector3.one, GearChainPlacementJudgement.Failure(GearChainPlacementFailureReason.NoItem), Array.Empty<ConstructionMaterialShortage>());
 
             var result = GearChainPolePlaceExtendMode.Decide(input);
 

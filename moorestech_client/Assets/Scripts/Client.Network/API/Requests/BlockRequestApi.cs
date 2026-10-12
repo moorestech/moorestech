@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using Core.Master;
+using Game.Block.Interface;
 using Cysharp.Threading.Tasks;
 using Server.Protocol.PacketResponse;
 using Server.Util.MessagePack;
@@ -20,6 +21,13 @@ namespace Client.Network.API.Requests
         public async UniTask<RemoveBlockProtocol.RemoveBlockResponseMessagePack> BlockRemove(Vector3Int pos, CancellationToken ct)
         {
             var request = new RemoveBlockProtocol.RemoveBlockProtocolMessagePack(pos);
+            return await _packetExchangeManager.GetPacketResponse<RemoveBlockProtocol.RemoveBlockResponseMessagePack>(request, ct);
+        }
+
+        public async UniTask<RemoveBlockProtocol.RemoveBlockResponseMessagePack> BlockRemoveIfInstance(
+            Vector3Int pos, BlockInstanceId expectedInstanceId, CancellationToken ct)
+        {
+            var request = new RemoveBlockProtocol.RemoveBlockProtocolMessagePack(pos, expectedInstanceId);
             return await _packetExchangeManager.GetPacketResponse<RemoveBlockProtocol.RemoveBlockResponseMessagePack>(request, ct);
         }
 

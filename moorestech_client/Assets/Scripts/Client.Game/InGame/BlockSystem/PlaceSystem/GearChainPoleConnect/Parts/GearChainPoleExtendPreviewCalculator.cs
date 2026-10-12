@@ -1,3 +1,4 @@
+using Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,7 +35,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
 
             // 既接続かをクライアントのステートで判定
             // Determine existing connection from client-side state
-            var alreadyConnected = fromInfo.PartnerInstanceIds.Contains(toInfo.InstanceId.AsPrimitive());
+            var alreadyConnected = fromInfo.Partners.Any(partner => partner.PartnerId.Equals(toInfo.InstanceId));
 
             var distance = Vector3Int.Distance(fromPos, toPos);
             var judgement = GearChainPlacementEvaluator.EvaluatePlacement(distance, fromInfo.MaxConnectionDistance, toInfo.MaxConnectionDistance, alreadyConnected, fromInfo.IsConnectionFull || toInfo.IsConnectionFull, connectToolGuid, playerInventory, null);
@@ -62,7 +63,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
         // Only on a material-shortage failure, derive the short materials from the very inputs the judgement used
         private static IReadOnlyList<ConstructionMaterialShortage> ResolveMaterialShortages(GearChainPlacementJudgement judgement, Guid connectToolGuid, float distance, ILocalPlayerInventory playerInventory, IReadOnlyList<ConnectToolMaterialCost> reservedMaterials)
         {
-            if (judgement.FailureReason != GearChainPlacementEvaluator.NoItemError) return Array.Empty<ConstructionMaterialShortage>();
+            if (judgement.FailureReason != GearChainPlacementFailureReason.NoItem) return Array.Empty<ConstructionMaterialShortage>();
             return ConnectToolMaterialShortageCalculator.Calculate(connectToolGuid, distance, playerInventory, reservedMaterials);
         }
 
@@ -80,9 +81,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
             // ブロックステートから現在の接続先を取得する（未受信時は0接続とみなす）
             // Read current partners from block state (treat as 0 connections when not received yet)
             var stateDetail = blockObject.GetStateDetail<GearChainPoleStateDetail>(GearChainPoleStateDetail.BlockStateDetailKey);
-            var partnerIds = stateDetail?.PartnerBlockInstanceIds ?? System.Array.Empty<int>();
+            var partners = ConnectionLinePartner.FromMessagePacks(stateDetail?.Partners);
 
-            info = new GearChainPoleClientInfo(blockObject.BlockInstanceId, param.MaxConnectionDistance, param.MaxConnectionCount <= partnerIds.Length, partnerIds);
+            info = new GearChainPoleClientInfo(blockObject.BlockInstanceId, param.MaxConnectionDistance, param.MaxConnectionCount <= partners.Length, partners);
             return true;
         }
 
@@ -101,14 +102,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
         public readonly BlockInstanceId InstanceId;
         public readonly float MaxConnectionDistance;
         public readonly bool IsConnectionFull;
-        public readonly int[] PartnerInstanceIds;
+        public readonly ConnectionLinePartner[] Partners;
 
-        public GearChainPoleClientInfo(BlockInstanceId instanceId, float maxConnectionDistance, bool isConnectionFull, int[] partnerInstanceIds)
+        public GearChainPoleClientInfo(BlockInstanceId instanceId, float maxConnectionDistance, bool isConnectionFull, ConnectionLinePartner[] partners)
         {
             InstanceId = instanceId;
             MaxConnectionDistance = maxConnectionDistance;
             IsConnectionFull = isConnectionFull;
-            PartnerInstanceIds = partnerInstanceIds;
+            Partners = partners;
         }
     }
 
@@ -118,16 +119,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
     /// </summary>
     public readonly struct GearChainPoleExtendPreviewData
     {
-        public static GearChainPoleExtendPreviewData Invalid => new(Vector3.zero, Vector3.zero, false, false, string.Empty, Array.Empty<ConstructionMaterialShortage>());
+        public static GearChainPoleExtendPreviewData Invalid => new(Vector3.zero, Vector3.zero, false, false, GearChainPlacementFailureReason.None, Array.Empty<ConstructionMaterialShortage>());
 
         public readonly Vector3 StartPoint;
         public readonly Vector3 EndPoint;
         public readonly bool IsPlaceable;
         public readonly bool IsValid;
 
-        // 不可理由(Evaluator定数)。可なら空
-        // Failure reason (Evaluator constant); empty when placeable
-        public readonly string FailureReason;
+        // 不可理由。可ならNone
+        // Failure reason; None when placeable
+        public readonly GearChainPlacementFailureReason FailureReason;
 
         // 不足時のみ非空、他は空
         // Non-empty only on shortage; empty otherwise
@@ -137,7 +138,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
         {
         }
 
-        private GearChainPoleExtendPreviewData(Vector3 startPoint, Vector3 endPoint, bool isPlaceable, bool isValid, string failureReason, IReadOnlyList<ConstructionMaterialShortage> materialShortages)
+        private GearChainPoleExtendPreviewData(Vector3 startPoint, Vector3 endPoint, bool isPlaceable, bool isValid, GearChainPlacementFailureReason failureReason, IReadOnlyList<ConstructionMaterialShortage> materialShortages)
         {
             StartPoint = startPoint;
             EndPoint = endPoint;

@@ -1,0 +1,14 @@
+using UnityEngine;
+using System.Linq;
+var report=new System.Text.StringBuilder();
+foreach(var water in Object.FindObjectsByType<Renderer>(FindObjectsSortMode.None).Where(r=>r.enabled && r.sharedMaterials.Any(m=>m!=null && m.shader.name=="BK/Water"))){
+var min=600f; var pos=Vector3.zero;var count=0;
+foreach(var t in Terrain.activeTerrains){var d=t.terrainData;var hs=d.GetHeights(0,0,d.heightmapResolution,d.heightmapResolution);
+for(int z=0;z<d.heightmapResolution;z++)for(int x=0;x<d.heightmapResolution;x++){
+var wx=t.transform.position.x+x*d.size.x/(d.heightmapResolution-1);var wz=t.transform.position.z+z*d.size.z/(d.heightmapResolution-1);
+if(wx<water.bounds.min.x||wx>water.bounds.max.x||wz<water.bounds.min.z||wz>water.bounds.max.z)continue;
+var h=t.transform.position.y+hs[z,x]*d.size.y;count++;if(h>=min)continue;min=h;pos=new Vector3(wx,h,wz);
+}}
+report.AppendLine($"Water={water.transform.position} minTerrain={min} at={pos} samples={count} waveHeight={water.sharedMaterial.GetFloat("_WavesHeight")}");
+}
+System.IO.File.WriteAllText("/tmp/moores-vein-terrain-20261006/live-plane-min.txt",report.ToString());return report.ToString();

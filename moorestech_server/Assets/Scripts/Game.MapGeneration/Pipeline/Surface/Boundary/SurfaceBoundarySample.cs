@@ -1,0 +1,52 @@
+using Game.MapGeneration.Pipeline.Jobs;
+
+namespace Game.MapGeneration.Pipeline.Surface
+{
+    internal sealed class SurfaceBoundarySample
+    {
+        private readonly float _height;
+        private readonly float _shore;
+        private readonly float _land;
+        private readonly float _beach;
+        private readonly float _landTexture;
+        private readonly float _seaTexture;
+        private readonly float _plateau;
+        private readonly int _winner;
+        private readonly float[] _biomeWeights;
+
+        internal SurfaceBoundarySample(JobBuffers source, int index, int biomeCount)
+        {
+            // 窓寿命を越える境界だけ独立所有
+            // Own only boundaries that outlive the temporary window
+            _height = source.heights[index];
+            _shore = source.shoreMask[index];
+            _land = source.landMask[index];
+            _beach = source.beachFactor[index];
+            _landTexture = source.landTextureFactor[index];
+            _seaTexture = source.seaTextureFactor[index];
+            _plateau = source.plateauMask[index];
+            _winner = source.winnerBiomeIndex[index];
+            _biomeWeights = new float[biomeCount];
+            for (int biome = 0; biome < biomeCount; biome++)
+                _biomeWeights[biome] = source.biomeWeights[index * biomeCount + biome];
+        }
+
+        internal void Write(JobBuffers destination, int index)
+        {
+            // 高さと分類は同じ所有タイルから配信
+            // Emit height and classification from the same owning tile
+            destination.heights[index] = _height;
+            destination.shoreMask[index] = _shore;
+            destination.landMask[index] = _land;
+            destination.beachFactor[index] = _beach;
+            destination.landTextureFactor[index] = _landTexture;
+            destination.seaTextureFactor[index] = _seaTexture;
+            destination.plateauMask[index] = _plateau;
+            destination.winnerBiomeIndex[index] = _winner;
+            // regionLabelsは上流の窓内IDで、配置は共有済み重みから勝者を再構築する
+            // Region labels belong to upstream windows; placement rebuilds winners from shared weights
+            for (int biome = 0; biome < _biomeWeights.Length; biome++)
+                destination.biomeWeights[index * _biomeWeights.Length + biome] = _biomeWeights[biome];
+        }
+    }
+}

@@ -74,7 +74,7 @@ namespace Tests.CombinedTest.Game
             unlockState.UnlockBlueprint();
 
             var blueprintGuid = Guid.Parse("70000000-0000-4000-8000-000000000001");
-            blueprintDatastore.Register(new BlueprintJsonObject("starter-base", new List<BlueprintBlockJsonObject>(), blueprintGuid));
+            blueprintDatastore.Register(new BlueprintJsonObject("starter-base", new List<BlueprintBlockJsonObject>(), new List<BlueprintLineJsonObject>(), new List<BlueprintLineJsonObject>(), blueprintGuid));
 
             var blockGuid = ResolvableBlockGuid();
             unlockState.UnlockBlock(blockGuid);

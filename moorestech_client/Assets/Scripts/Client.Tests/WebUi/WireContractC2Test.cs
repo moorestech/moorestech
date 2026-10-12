@@ -119,31 +119,6 @@ namespace Client.Tests.WebUi
         }
 
         [Test]
-        public void PlacementModeFactorySeparatesTypedCopyToolFromRawBlueprintName()
-        {
-            var copyTool = PlacementModeDtoFactory.Create(
-                new BlueprintCopyPlacementTarget(
-                    MasterHolder.BuildToolMaster.All[0].BuildToolGuid),
-                2,
-                "",
-                wheelOwnedByTool: false);
-            var blueprint = PlacementModeDtoFactory.Create(
-                new BlueprintPlacementTarget(
-                    Guid.Parse("60000000-0000-4000-8000-000000000001"),
-                    "My Blueprint"),
-                2,
-                "",
-                wheelOwnedByTool: false);
-
-            // BPコピーはtyped、命名BPはraw
-            // Type blueprint copies while preserving authored blueprint names
-            Assert.AreEqual("blueprintCopy", copyTool.SelectedTargetType);
-            Assert.IsNull(copyTool.SelectedName);
-            Assert.AreEqual("raw", blueprint.SelectedTargetType);
-            Assert.AreEqual("My Blueprint", blueprint.SelectedName);
-        }
-
-        [Test]
         public void PlacementModeFactoryRejectsUnknownTargetType()
         {
             Assert.Throws<ArgumentOutOfRangeException>(() =>

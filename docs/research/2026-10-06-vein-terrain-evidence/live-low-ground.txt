@@ -1,0 +1,10 @@
+waters=2
+Terrain_0_0 lowNonzeroSamples=0 nonBeachDominant=0 example=
+Terrain_1_0 lowNonzeroSamples=8330 nonBeachDominant=8330 example=(582.0313,2.96649,-669.9219) sand=0 dominant=Gravel1 weight=1
+Terrain_2_0 lowNonzeroSamples=0 nonBeachDominant=0 example=
+Terrain_0_1 lowNonzeroSamples=7927 nonBeachDominant=7927 example=(-1000,2.874931,861.3281) sand=0 dominant=Gravel1 weight=1
+Terrain_1_1 lowNonzeroSamples=15925 nonBeachDominant=15925 example=(892.5781,2.74675,0) sand=0 dominant=Gravel1 weight=1
+Terrain_2_1 lowNonzeroSamples=14230 nonBeachDominant=14230 example=(1000,2.765061,15.625) sand=0 dominant=Gravel1 weight=1
+Terrain_0_2 lowNonzeroSamples=47646 nonBeachDominant=47646 example=(-1000,0,1000) sand=0 dominant=Gravel1 weight=1
+Terrain_1_2 lowNonzeroSamples=0 nonBeachDominant=0 example=
+Terrain_2_2 lowNonzeroSamples=0 nonBeachDominant=0 example=

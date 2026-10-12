@@ -1,3 +1,5 @@
+using Game.MapGeneration.Surface;
+using Game.MapGeneration.Pipeline.Surface.Placement;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -99,7 +101,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Vein
                 0, 0, 2, 1);
             return OrePlacementGenerator.GenerateForWorld(
                 entries, masks, 0f, new float[HeightRes, HeightRes], dims, new System.Random(seed),
-                null, null, halo.ItemVeins, halo.Radius, excludedVeins);
+                null, null, halo.ItemVeins, halo.Radius, excludedVeins, new LegacyVeinPlacementRule(), 0, 0);
 
             #region Internal
 

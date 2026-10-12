@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using Core.Master;
 using Core.Inventory;
 using Game.Block.Blocks.GearChainPole;
@@ -45,16 +44,6 @@ namespace Tests.UnitTest.Game.Chain
             _packet = packet;
             _chainItemId = MasterHolder.ItemMaster.GetItemId(ChainMaterialGuid);
             serviceProvider.GetService<IGameUnlockStateDataController>().UnlockConnectTool(ConnectToolGuid);
-        }
-
-        // GearChainPoleComponentから_chainTargetsの数を取得するユーティリティメソッド
-        // Utility method to get _chainTargets count from GearChainPoleComponent via reflection
-        protected static int GetChainTargetsCount(GearChainPoleComponent component)
-        {
-            var field = typeof(GearChainPoleComponent).GetField("_chainTargets", BindingFlags.NonPublic | BindingFlags.Instance);
-            Assert.IsNotNull(field, "_chainTargetsフィールドを取得できませんでした。");
-            var chainTargets = field.GetValue(component);
-            return ((System.Collections.ICollection)chainTargets).Count;
         }
 
         protected static int CountItem(IOpenableInventory inventory, ItemId itemId)

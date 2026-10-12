@@ -1,0 +1,117 @@
+// v4(generatorVersion 4.0.0) seed196 の比較基準(golden)を本番生成器・本番pinマスタから採取する uloop execute-dynamic-code スニペット
+// 入口は measure-vein.cs.txt と同じ (MasterHolder.Load → BuildConfig → Generate)。WorldProvisioner.BuildGenerated と同一経路
+// r16 は TerrainFileWriter.Write で一時ディレクトリへ実際に書き、そのバイト列を SHA256 する(保存形式そのもの)
+// Captures the v4 seed196 golden from the production generator and pinned production master (same entry as measure-vein.cs.txt / WorldProvisioner.BuildGenerated).
+// r16 hashes are taken over the bytes TerrainFileWriter.Write actually writes into a scratch directory.
+// parameters: param0=output json path, param1=scratch world root, param2=base commit, param3=head commit, param4=master commit, param5=captured-at UTC, param6=absolute path of <worktree>/../moorestech_master/server_v8
+using System.IO;
+using System.Linq;
+using System.Globalization;
+using System.Security.Cryptography;
+using UnityEngine;
+using Core.Master;
+using Mod.Config;
+using Mod.Loader;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Game.MapGeneration.Pipeline;
+using Game.MapGeneration.Export;
+using Game.MapGeneration.Identity;
+using Game.MapGeneration.Transfer;
+using Game.Paths;
+var outPath = parameters["param0"].ToString();
+var scratchRoot = parameters["param1"].ToString();
+var dataDirectory = parameters["param6"].ToString();
+var seed = 196;
+var resources = new ModsResource(Path.Combine(dataDirectory, "mods"));
+MasterHolder.Load(new MasterJsonFileContainer(ModJsonStringLoader.GetMasterString(resources)));
+var generation = MasterHolder.GenerationMaster.SelectedGeneration;
+var inputConfig = MapGenerationPipeline.BuildConfig(generation, seed, dataDirectory);
+var run = MapGenerationPipeline.Generate(generation, inputConfig);
+var output = run.Output;
+var cfg = run.Config;
+var fingerprint = GenerationMasterFingerprint.Compute(MasterHolder.GenerationMaster.SourceJsonText, generation, dataDirectory);
+var worldId = WorldIdentity.CalculateGenerated(seed, fingerprint, WorldGeneratorVersion.Current);
+string R(float v) => v.ToString("R", CultureInfo.InvariantCulture);
+JArray V3(Vector3 v) => new JArray(R(v.x), R(v.y), R(v.z));
+JArray V3i(Vector3Int v) => new JArray(v.x, v.y, v.z);
+string Sha(byte[] b) { using var s = SHA256.Create(); return System.BitConverter.ToString(s.ComputeHash(b)).Replace("-", "").ToLowerInvariant(); }
+
+// 保存r16: 本番ライタで書いたファイルのSHA256 / saved r16: SHA256 of the files the production writer produced
+if (Directory.Exists(scratchRoot)) Directory.Delete(scratchRoot, true);
+var wdd = WorldDataDirectory.FromWorldRoot(scratchRoot);
+TerrainFileWriter.Write(wdd, output);
+var tiles = new JArray();
+foreach (var tile in output.Tiles)
+{
+    var path = wdd.TerrainHeightFilePath(tile.TileX, tile.TileZ);
+    var bytes = File.ReadAllBytes(path);
+    tiles.Add(new JObject { ["tileX"] = tile.TileX, ["tileZ"] = tile.TileZ, ["fileName"] = Path.GetFileName(path), ["byteLength"] = bytes.Length, ["sha256"] = Sha(bytes) });
+}
+Directory.Delete(scratchRoot, true);
+
+JArray Veins(System.Collections.Generic.List<PlacedVein> veins)
+{
+    var a = new JArray();
+    foreach (var v in veins) a.Add(new JObject { ["guid"] = v.VeinGuid, ["min"] = V3i(v.Min), ["max"] = V3i(v.Max) });
+    return a;
+}
+
+// 露頭root: OutcropGameObjectDatastore.CalculateInclusiveCenter と同式、mapVeins順(item→fluid) / outcrop root, same formula and order as the client
+var outcrops = new JArray();
+var resolvable = 0;
+foreach (var v in output.ItemVeins.Concat(output.FluidVeins))
+{
+    var center = new Vector3((v.Min.x + v.Max.x + 1) * 0.5f, (v.Min.y + v.Max.y + 1) * 0.5f, (v.Min.z + v.Max.z + 1) * 0.5f);
+    var element = MasterHolder.MapVeinMaster.GetElementOrNull(new System.Guid(v.VeinGuid));
+    var address = element?.OutcropAddressablePath;
+    if (!string.IsNullOrEmpty(address)) resolvable++;
+    outcrops.Add(new JObject { ["guid"] = v.VeinGuid, ["root"] = V3(center), ["outcropAddress"] = address });
+}
+
+var origins = MapGenerationPipeline.ResolveOrigins(cfg);
+var root = new JObject
+{
+    ["meta"] = new JObject
+    {
+        ["purpose"] = "Legacy v4 golden captured BEFORE surface-revision changes; tests compare against it and must never regenerate it.",
+        ["baseRepoCommit"] = parameters["param2"].ToString(),
+        ["headRepoCommit"] = parameters["param3"].ToString(),
+        ["masterCommit"] = parameters["param4"].ToString(),
+        ["serverDataDirectory"] = "../moorestech_master/server_v8",
+        ["generationMasterFingerprint"] = fingerprint,
+        ["generatedWorldId"] = worldId,
+        ["seed"] = seed,
+        ["generatorVersion"] = WorldGeneratorVersion.Current,
+        ["algorithm"] = generation.Algorithm,
+        ["resolution"] = output.Resolution,
+        ["tileCount"] = output.Tiles.Count,
+        ["terrainSize"] = V3(new Vector3(cfg.terrainWidth, cfg.terrainHeight, cfg.terrainLength)),
+        ["seaLevel"] = R(cfg.seaLevel),
+        ["capturedAtUtc"] = parameters["param5"].ToString(),
+        ["entry"] = "MasterHolder.Load(ModsResource(server_v8/mods)) -> MapGenerationPipeline.BuildConfig(SelectedGeneration,196,server_v8) -> Generate; same path as WorldProvisioner.BuildGenerated",
+        ["floatFormat"] = "floats are strings formatted with float.ToString(\"R\", InvariantCulture); ints are JSON numbers",
+    },
+    ["tiles"] = tiles,
+    ["placementLedgerDigest"] = run.Ledger.ComputeDigest(),
+    ["placementLedgerCount"] = run.Ledger.Placements.Count,
+    ["spawnPoint"] = V3(output.SpawnPoint),
+    ["origins"] = new JObject
+    {
+        ["noiseOrigin"] = new JArray(R(output.NoiseOrigin.x), R(output.NoiseOrigin.y)),
+        ["sceneOrigin"] = new JArray(R(output.SceneOrigin.x), R(output.SceneOrigin.y)),
+        ["resolvedFromConfigNoiseOrigin"] = new JArray(R(origins.NoiseOrigin.x), R(origins.NoiseOrigin.y)),
+        ["resolvedFromConfigSceneOrigin"] = new JArray(R(origins.SceneOrigin.x), R(origins.SceneOrigin.y)),
+        ["worldOffset"] = new JArray(R(cfg.worldOffsetX), R(cfg.worldOffsetZ)),
+        ["spawnWorldPositionXZ"] = new JArray(R(cfg.spawnWorldPosition.x), R(cfg.spawnWorldPosition.y)),
+    },
+    ["itemVeins"] = Veins(output.ItemVeins),
+    ["fluidVeins"] = Veins(output.FluidVeins),
+    ["outcropRoots"] = new JObject
+    {
+        ["note"] = "One entry per vein in map.json mapVeins order (itemVeins then fluidVeins), as OutcropGameObjectDatastore iterates. root = ((Min+Max+1)*0.5) per axis (CalculateInclusiveCenter), rotation identity, world space. The client instantiates only when the outcropAddress prefab loads; entries whose address is empty/unloadable produce no GameObject.",
+        ["entries"] = outcrops,
+    },
+};
+File.WriteAllText(outPath, root.ToString(Formatting.Indented) + "\n");
+return $"tiles={tiles.Count} item={output.ItemVeins.Count} fluid={output.FluidVeins.Count} outcrops={outcrops.Count} withAddress={resolvable} digest={root["placementLedgerDigest"]} fp={fingerprint} spawn={output.SpawnPoint} r16[0]={tiles[0]["sha256"]}";

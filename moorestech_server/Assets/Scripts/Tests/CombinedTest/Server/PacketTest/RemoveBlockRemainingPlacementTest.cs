@@ -38,16 +38,16 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             Remove(packet, new Vector3Int(10, 0));
             Assert.AreEqual(0, GetItemCount(inventory, Material1Guid));
-            Assert.AreEqual(1, lookup.GetRemainingCount(PlayerId, belt));
+            Assert.AreEqual(1, lookup.GetReader(PlayerId).GetRemainingCount(belt));
             Remove(packet, new Vector3Int(11, 0));
-            Assert.AreEqual(2, lookup.GetRemainingCount(PlayerId, belt));
+            Assert.AreEqual(2, lookup.GetReader(PlayerId).GetRemainingCount(belt));
             Remove(packet, new Vector3Int(12, 0));
 
             // 3本目でNに達し素材1セットへ凝縮返却
             // The third removal reaches one set's worth and condenses into one set of materials
             Assert.AreEqual(1, GetItemCount(inventory, Material1Guid));
             Assert.AreEqual(1, GetItemCount(inventory, Material2Guid));
-            Assert.AreEqual(0, lookup.GetRemainingCount(PlayerId, belt));
+            Assert.AreEqual(0, lookup.GetReader(PlayerId).GetRemainingCount(belt));
         }
 
         [Test]
@@ -66,7 +66,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Placing one belt consumes one material set, leaving wallet at count-per-set minus one
             Assert.AreEqual(0, GetItemCount(inventory, Material1Guid));
             Assert.AreEqual(0, GetItemCount(inventory, Material2Guid));
-            Assert.AreEqual(2, lookup.GetRemainingCount(PlayerId, belt));
+            Assert.AreEqual(2, lookup.GetReader(PlayerId).GetRemainingCount(belt));
 
             Remove(packet, new Vector3Int(10, 0));
 
@@ -74,7 +74,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // A single removal from the partially-consumed wallet reaches the per-set count and refunds one set with zero net material change
             Assert.AreEqual(1, GetItemCount(inventory, Material1Guid));
             Assert.AreEqual(1, GetItemCount(inventory, Material2Guid));
-            Assert.AreEqual(0, lookup.GetRemainingCount(PlayerId, belt));
+            Assert.AreEqual(0, lookup.GetReader(PlayerId).GetRemainingCount(belt));
         }
 
         [Test]
@@ -99,7 +99,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             Remove(packet, new Vector3Int(10, 0));
 
             Assert.IsTrue(ServerContext.WorldBlockDatastore.Exists(new Vector3Int(10, 0)));
-            Assert.AreEqual(2, serviceProvider.GetService<IRemainingPlacementCountLookup>().GetRemainingCount(PlayerId, belt));
+            Assert.AreEqual(2, serviceProvider.GetService<IRemainingPlacementCountLookup>().GetReader(PlayerId).GetRemainingCount(belt));
         }
 
         [Test]

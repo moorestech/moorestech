@@ -33,13 +33,13 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             packet.GetPacketResponse(CreatePlaceBlockPayload(belt, (10, 0)), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
             Assert.AreEqual(1, GetItemCount(inventory, Material1Guid));
-            Assert.AreEqual(2, lookup.GetRemainingCount(PlayerId, belt));
+            Assert.AreEqual(2, lookup.GetReader(PlayerId).GetRemainingCount(belt));
 
             packet.GetPacketResponse(CreatePlaceBlockPayload(belt, (11, 0)), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
             packet.GetPacketResponse(CreatePlaceBlockPayload(belt, (12, 0)), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
             Assert.AreEqual(1, GetItemCount(inventory, Material1Guid));
             Assert.AreEqual(1, GetItemCount(inventory, Material2Guid));
-            Assert.AreEqual(0, lookup.GetRemainingCount(PlayerId, belt));
+            Assert.AreEqual(0, lookup.GetReader(PlayerId).GetRemainingCount(belt));
             Assert.IsTrue(ServerContext.WorldBlockDatastore.Exists(new Vector3Int(12, 0)));
         }
 
@@ -53,7 +53,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             packet.GetPacketResponse(CreatePlaceBlockPayload(belt, (10, 0)), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
 
             Assert.IsFalse(ServerContext.WorldBlockDatastore.Exists(new Vector3Int(10, 0)));
-            Assert.AreEqual(0, serviceProvider.GetService<IRemainingPlacementCountLookup>().GetRemainingCount(PlayerId, belt));
+            Assert.AreEqual(0, serviceProvider.GetService<IRemainingPlacementCountLookup>().GetReader(PlayerId).GetRemainingCount(belt));
         }
 
         [Test]
@@ -74,8 +74,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(0, GetItemCount(inventory, Material1Guid));
             // 生のBlockIdで引いても財布キーへ正規化されるので上りは直線と同じ残数を返す
             // A raw BlockId is normalized to the wallet key, so the slope reads the same remainder as the straight block
-            Assert.AreEqual(1, lookup.GetRemainingCount(PlayerId, straight));
-            Assert.AreEqual(1, lookup.GetRemainingCount(PlayerId, ForUnitTestModBlockId.TestGearBeltConveyorUp));
+            Assert.AreEqual(1, lookup.GetReader(PlayerId).GetRemainingCount(straight));
+            Assert.AreEqual(1, lookup.GetReader(PlayerId).GetRemainingCount(ForUnitTestModBlockId.TestGearBeltConveyorUp));
         }
 
         [Test]
@@ -93,7 +93,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 5本=1セット+2本目開始→2セット消費・残1
             // Five cells = one full set (3) + the start of a second set → two sets consumed, one remaining
             Assert.AreEqual(0, GetItemCount(inventory, Material1Guid));
-            Assert.AreEqual(1, serviceProvider.GetService<IRemainingPlacementCountLookup>().GetRemainingCount(PlayerId, belt));
+            Assert.AreEqual(1, serviceProvider.GetService<IRemainingPlacementCountLookup>().GetReader(PlayerId).GetRemainingCount(belt));
             Assert.IsTrue(ServerContext.WorldBlockDatastore.Exists(new Vector3Int(14, 0)));
         }
     }

@@ -1,0 +1,10 @@
+2026-10-06 実測 (Unity 6000.3.8f1, EditMode, uloop execute-dynamic-code, script: terraindata-height-precision.cs.txt)
+TerrainData res33 size.y=600 に SurfaceQuantization(883f4010c) の値を SetHeights→GetHeights
+floor in=4.90730143 back=4.907526 ok=True
+pad bottom=5 in=4.998856 back=4.99908447 below=True gap=0.000915527344
+pad bottom=20 in=19.9954243 back=19.9963379 below=True gap=0.00366210938
+pad bottom=37 in=36.9970245 back=36.989563 below=True gap=0.0104370117
+pad bottom=120 in=119.990845 back=119.996338 below=True gap=0.00366210938
+pad bottom=599 in=598.9929 back=598.992859 below=True gap=0.00714111328
+first nonzero at k=2 value=3.051944E-05 1/value=32766
+結論(実測): TerrainDataの格納量子は 1/32766。r16(1/65535)で量子化しても読み戻しで値が動き、bottom=37でgap 0.01044m > 600/65535+0.001=0.01016m（R3上限超過）。

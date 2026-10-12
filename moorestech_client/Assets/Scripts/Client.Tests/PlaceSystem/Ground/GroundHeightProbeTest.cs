@@ -36,7 +36,7 @@ namespace Client.Tests.PlaceSystem.Ground
             CreateGroundSlab(new Vector3(10.9f, 34f, 20.9f), new Vector3(0.3f, 1f, 0.3f));
 
             Assert.IsTrue(GroundHeightProbe.TryGetFootprintMaxGroundHeight(
-                blockPos, BlockDirection.North, Vector3Int.one, out var height));
+                blockPos, BlockDirection.North, Vector3Int.one, out var height, out _));
 
             Assert.AreEqual(34.5f, height, 0.01f, "占有セルの最大を取れていない");
         }
@@ -53,7 +53,7 @@ namespace Client.Tests.PlaceSystem.Ground
             CreateGroundSlab(new Vector3(101.25f, 20f, 200.5f), new Vector3(0.5f, 1f, 6f));
 
             Assert.IsTrue(GroundHeightProbe.TryGetFootprintMaxGroundHeight(
-                new Vector3Int(100, 0, 200), BlockDirection.North, Vector3Int.one, out var height));
+                new Vector3Int(100, 0, 200), BlockDirection.North, Vector3Int.one, out var height, out _));
 
             Assert.AreEqual(10.4f, height, 0.01f, "隣接セルの柱を拾っている");
         }
@@ -70,7 +70,7 @@ namespace Client.Tests.PlaceSystem.Ground
             CreateGroundSlab(new Vector3(301.5f, 11.9f, 401.5f), Vector3.one);
 
             Assert.IsTrue(GroundHeightProbe.TryGetFootprintMaxGroundHeight(
-                new Vector3Int(300, 0, 400), BlockDirection.North, new Vector3Int(2, 1, 2), out var height));
+                new Vector3Int(300, 0, 400), BlockDirection.North, new Vector3Int(2, 1, 2), out var height, out _));
 
             Assert.AreEqual(12.4f, height, 0.01f);
         }
@@ -79,7 +79,7 @@ namespace Client.Tests.PlaceSystem.Ground
         public void 地表が無ければ失敗する()
         {
             Assert.IsFalse(GroundHeightProbe.TryGetFootprintMaxGroundHeight(
-                new Vector3Int(5000, 0, 5000), BlockDirection.North, Vector3Int.one, out _));
+                new Vector3Int(5000, 0, 5000), BlockDirection.North, Vector3Int.one, out _, out _));
         }
 
         [Test]

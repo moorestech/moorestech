@@ -2,28 +2,20 @@ using System.Collections.Generic;
 using Core.Master;
 using Core.Update;
 using Game.Block.Interface.Component;
-using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.World.Interface.DataStore;
 using UnityEngine;
-using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
 
 namespace Game.Blueprint
 {
     public static class BlueprintCreateService
     {
-        // レール系はブロック外ドメイン（RailSegments）を持つためコピー対象外
-        // Rail-family blocks are excluded; their graph lives outside block states
-        private static readonly HashSet<string> ExcludedBlockTypes = new()
-        {
-            BlockTypeConst.TrainRail,
-            BlockTypeConst.TrainStation,
-            BlockTypeConst.TrainItemPlatform,
-            BlockTypeConst.TrainFluidPlatform,
-        };
-
         public static bool TryCreateFromArea(string name, Vector3Int min, Vector3Int max, out BlueprintJsonObject blueprint)
         {
+            // 逆順の範囲も同じ箱として扱う
+            // Treat a reversed range as the same box
+            var boxMin = Vector3Int.Min(min, max);
+            var boxMax = Vector3Int.Max(min, max);
             var targets = CollectTargets();
             if (targets.Count == 0)
             {
@@ -31,16 +23,19 @@ namespace Game.Blueprint
                 return false;
             }
 
-            // アンカー = ボックスXZ中心セル・ボックス最下段Y（負座標でも1セルずれないようfloorで丸める）
-            // Anchor: XZ center cell and bottom Y of the box; floor so negative coordinates never shift a cell
-            var anchor = new Vector3Int(Mathf.FloorToInt((min.x + max.x) / 2f), min.y, Mathf.FloorToInt((min.z + max.z) / 2f));
+            // 選択余白による位置ずれを避けるため、コピー対象の外形からアンカーを決める
+            // Derive the anchor from copied blocks so selection margins cannot shift placement
+            var anchor = CalcMinCorner(targets);
             var blocks = new List<BlueprintBlockJsonObject>();
             foreach (var data in targets)
             {
                 blocks.Add(CreateBlockJson(data, anchor));
             }
 
-            blueprint = new BlueprintJsonObject(name, blocks, GameRandom.NextGuid());
+            // 保存したブロック順で内部配線を記録する
+            // Record internal lines using the saved block order
+            var (wires, chains) = BlueprintLineCollector.Collect(targets.ConvertAll(data => data.Block));
+            blueprint = new BlueprintJsonObject(name, blocks, wires, chains, GameRandom.NextGuid());
             return true;
 
             #region Internal
@@ -48,29 +43,28 @@ namespace Game.Blueprint
             List<WorldBlockData> CollectTargets()
             {
                 var result = new List<WorldBlockData>();
+                var box = BlueprintCopyTargetRule.CreateBox(boxMin, boxMax);
                 foreach (var data in ServerContext.WorldBlockDatastore.BlockMasterDictionary.Values)
                 {
                     var master = MasterHolder.BlockMaster.GetBlockMaster(data.Block.BlockId);
-                    if (ExcludedBlockTypes.Contains(master.BlockType)) continue;
-                    if (!IntersectsBox(data)) continue;
+                    if (!BlueprintCopyTargetRule.IsCopiedByBox(master, data.Block.BlockPositionInfo, box)) continue;
                     result.Add(data);
                 }
 
                 return result;
             }
 
-            // 占有セルの一部がボックス内なら対象
-            // Included when any occupied cell intersects the XYZ bounding box
-            bool IntersectsBox(WorldBlockData data)
+            // 原点の成分最小を基準にする
+            // Anchor at the component-wise minimum of block origins
+            Vector3Int CalcMinCorner(List<WorldBlockData> copyTargets)
             {
-                foreach (var pos in data.Block.BlockPositionInfo.EnumeratePositions())
+                var minCorner = copyTargets[0].Block.BlockPositionInfo.OriginalPos;
+                foreach (var data in copyTargets)
                 {
-                    if (min.x <= pos.x && pos.x <= max.x &&
-                        min.y <= pos.y && pos.y <= max.y &&
-                        min.z <= pos.z && pos.z <= max.z) return true;
+                    minCorner = Vector3Int.Min(minCorner, data.Block.BlockPositionInfo.OriginalPos);
                 }
 
-                return false;
+                return minCorner;
             }
 
             BlueprintBlockJsonObject CreateBlockJson(WorldBlockData data, Vector3Int anchorPos)

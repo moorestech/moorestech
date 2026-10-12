@@ -7,7 +7,7 @@ import { emptyNote, h, linkify, routeHref } from "../core.js";
 // テスター由来の値（感想・kind・endReason 等）に同じ行が紛れ込むと回数か順序が崩れるので、その日は見出し無しの素の文章に落とす。
 // The fixed headings digest.py emits, in order. They are drawn as headings only when each appears exactly once in this order;
 // a copy smuggled in through tester values (feedback, kind, endReason, ...) breaks the count or order, so that day falls back to plain text.
-const DIGEST_HEADINGS = ["## プレイ報告の件数", "## 投入候補のバグ報告", "## 感想（全文）", "## 進行記録", "## 自動修正ラン"];
+const DIGEST_HEADINGS = ["## 前日のプレイ状況", "## 進行記録", "## プレイ報告の件数", "## 感想（全文）", "## 自動修正ラン"];
 
 export function renderDigests(data, args) {
   if (data.digests.length === 0) return h("div", { class: "view" }, pageHead("ダイジェスト"), emptyNote("ダイジェストはまだありません"));

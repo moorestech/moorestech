@@ -1,0 +1,5 @@
+seed=196 res=2049 tiles=9 seaLevel=0 height=600 veinCount=1296 origins=(-1000.00, -1000.00)
+buried guid=fe3ccb53-4902-4191-a4bd-c8fe1f8a086d xyz=(-390.5,16.5,-328.5) terrain=16.53543 depth=0.03543472 min=(-392, 16, -330) max=(-390, 16, -328)
+buried guid=fe3ccb53-4902-4191-a4bd-c8fe1f8a086d xyz=(-914.5,12.5,-970.5) terrain=12.54041 depth=0.04041386 min=(-916, 12, -972) max=(-914, 12, -970)
+buried guid=30507499-64b8-4795-93ad-a7b9d51d7ded xyz=(438.5,17.5,-401.5) terrain=19.00077 depth=1.500769 min=(437, 17, -403) max=(439, 17, -401)
+buriedCount=38 worstDepth=1.500769; source=production generator seed196 and production master; TerrainData interpolation; BEFORE visual tree perturbation; no PlayMode/prefab mesh measurement

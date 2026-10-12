@@ -27,7 +27,7 @@ namespace Game.Construction
 
         // 生のBlockIdを受け取り財布キーへの正規化は内側で行う（クライアント側と同一契約）
         // Takes a raw BlockId and normalizes it to the wallet key inside, the same contract as the client side
-        public int GetRemainingCount(int playerId, BlockId blockId)
+        private int GetRemainingCount(int playerId, BlockId blockId)
         {
             if (!_remainingCounts.TryGetValue(playerId, out var wallets)) return 0;
             return wallets.TryGetValue(ConstructionWalletUtil.ResolveWalletBlockId(blockId), out var remaining) ? remaining : 0;

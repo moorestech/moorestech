@@ -19,9 +19,9 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
         // Each failure reason constant maps to its own tooltip key
         public void FailureReasonMapsToDedicatedTooltipKeyTest()
         {
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainTooFar.Key, GearChainPlacementFailureTooltipKey.ToKey(GearChainPlacementEvaluator.TooFarError).Key);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainAlreadyConnected.Key, GearChainPlacementFailureTooltipKey.ToKey(GearChainPlacementEvaluator.AlreadyConnectedError).Key);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainConnectionLimit.Key, GearChainPlacementFailureTooltipKey.ToKey(GearChainPlacementEvaluator.ConnectionLimitError).Key);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainTooFar.Key, GearChainPlacementFailureTooltipKey.ToKey(GearChainPlacementFailureReason.TooFar).Key);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainAlreadyConnected.Key, GearChainPlacementFailureTooltipKey.ToKey(GearChainPlacementFailureReason.AlreadyConnected).Key);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainConnectionLimit.Key, GearChainPlacementFailureTooltipKey.ToKey(GearChainPlacementFailureReason.ConnectionLimit).Key);
         }
 
         [Test]
@@ -31,10 +31,10 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
         {
             // 素材不足の期待キーは既定の不可文言になる
             // The material shortage's expected key is the default cannot-place text
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainFailed.Key, GearChainPlacementFailureTooltipKey.ToKey(GearChainPlacementEvaluator.NoItemError).Key);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainFailed.Key, GearChainPlacementFailureTooltipKey.ToKey(GearChainPlacementEvaluator.InvalidTargetError).Key);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainFailed.Key, GearChainPlacementFailureTooltipKey.ToKey(GearChainPlacementEvaluator.NotUnlockedError).Key);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainFailed.Key, GearChainPlacementFailureTooltipKey.ToKey(string.Empty).Key);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainFailed.Key, GearChainPlacementFailureTooltipKey.ToKey(GearChainPlacementFailureReason.NoItem).Key);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainFailed.Key, GearChainPlacementFailureTooltipKey.ToKey(GearChainPlacementFailureReason.InvalidTarget).Key);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainFailed.Key, GearChainPlacementFailureTooltipKey.ToKey(GearChainPlacementFailureReason.NotUnlocked).Key);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainFailed.Key, GearChainPlacementFailureTooltipKey.ToKey(GearChainPlacementFailureReason.None).Key);
         }
 
         [Test]
@@ -42,17 +42,17 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
         // Returns no line when placeable and one reason-key line otherwise
         public void BuildFailureLinesReturnsLineOnlyWhenNotPlaceableTest()
         {
-            var cases = new (bool IsPlaceable, string FailureReason, string ExpectedKey)[]
+            var cases = new (bool IsPlaceable, GearChainPlacementFailureReason FailureReason, string ExpectedKey)[]
             {
-                (true, GearChainPlacementEvaluator.TooFarError, null),
-                (true, string.Empty, null),
-                (false, GearChainPlacementEvaluator.TooFarError, LocalizationKeys.Ui.Tooltip.PlaceGearChainTooFar.Key),
-                (false, GearChainPlacementEvaluator.AlreadyConnectedError, LocalizationKeys.Ui.Tooltip.PlaceGearChainAlreadyConnected.Key),
-                (false, GearChainPlacementEvaluator.ConnectionLimitError, LocalizationKeys.Ui.Tooltip.PlaceGearChainConnectionLimit.Key),
+                (true, GearChainPlacementFailureReason.TooFar, null),
+                (true, GearChainPlacementFailureReason.None, null),
+                (false, GearChainPlacementFailureReason.TooFar, LocalizationKeys.Ui.Tooltip.PlaceGearChainTooFar.Key),
+                (false, GearChainPlacementFailureReason.AlreadyConnected, LocalizationKeys.Ui.Tooltip.PlaceGearChainAlreadyConnected.Key),
+                (false, GearChainPlacementFailureReason.ConnectionLimit, LocalizationKeys.Ui.Tooltip.PlaceGearChainConnectionLimit.Key),
                 // 素材不足は行にせず不足リストのまま関門へ運ぶため、ここでは行が出ない
                 // A material shortage travels to the gate as data, so no line is produced here
-                (false, GearChainPlacementEvaluator.NoItemError, null),
-                (false, GearChainPlacementEvaluator.NotUnlockedError, LocalizationKeys.Ui.Tooltip.PlaceGearChainFailed.Key),
+                (false, GearChainPlacementFailureReason.NoItem, null),
+                (false, GearChainPlacementFailureReason.NotUnlocked, LocalizationKeys.Ui.Tooltip.PlaceGearChainFailed.Key),
             };
 
             foreach (var testCase in cases)
@@ -76,16 +76,16 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
         // A material shortage produces no line here and is only flagged as belonging to the shortage channel
         public void MaterialShortageIsRoutedToTheGateInsteadOfLinesTest()
         {
-            Assert.IsTrue(GearChainPlacementFailureTooltipKey.IsChainMaterialShortage(CreateJudgedPreview(GearChainPlacementEvaluator.NoItemError)));
-            Assert.IsFalse(GearChainPlacementFailureTooltipKey.IsChainMaterialShortage(CreateJudgedPreview(GearChainPlacementEvaluator.TooFarError)));
+            Assert.IsTrue(GearChainPlacementFailureTooltipKey.IsChainMaterialShortage(CreateJudgedPreview(GearChainPlacementFailureReason.NoItem)));
+            Assert.IsFalse(GearChainPlacementFailureTooltipKey.IsChainMaterialShortage(CreateJudgedPreview(GearChainPlacementFailureReason.TooFar)));
 
             // 判定が無いフレーム（起点未解決など）は不足枠を開けない
             // A frame without any judgement (e.g. an unresolved source) never opens the shortage slot
             Assert.IsFalse(GearChainPlacementFailureTooltipKey.IsChainMaterialShortage(GearChainPoleExtendPreviewData.Invalid));
-            Assert.IsEmpty(GearChainPlacementFailureTooltipKey.BuildFailureLines(false, GearChainPlacementEvaluator.NoItemError));
+            Assert.IsEmpty(GearChainPlacementFailureTooltipKey.BuildFailureLines(false, GearChainPlacementFailureReason.NoItem));
         }
 
-        private static GearChainPoleExtendPreviewData CreateJudgedPreview(string failureReason)
+        private static GearChainPoleExtendPreviewData CreateJudgedPreview(GearChainPlacementFailureReason failureReason)
         {
             return new GearChainPoleExtendPreviewData(Vector3.zero, Vector3.one, GearChainPlacementJudgement.Failure(failureReason), Array.Empty<ConstructionMaterialShortage>());
         }

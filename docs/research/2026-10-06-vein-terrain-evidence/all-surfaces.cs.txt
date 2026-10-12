@@ -1,0 +1,14 @@
+using Client.Playtest;
+using UnityEngine;
+using System.Linq;
+using System.Text;
+return PlaytestRunner.Run("existing-world-surfaces",new PlaytestRunOptions{Record=true},async p=>{
+var report=new StringBuilder();report.AppendLine("player="+p.PlayerPosition);
+foreach(var r in Object.FindObjectsByType<Renderer>(FindObjectsInactive.Include,FindObjectsSortMode.None)){
+if(r.bounds.size.x<100 || r.bounds.size.z<100 || r.bounds.size.y>10)continue;
+report.AppendLine($"surface={r.name} active={r.gameObject.activeInHierarchy} enabled={r.enabled} pos={r.transform.position} bounds={r.bounds} materials={string.Join(",",r.sharedMaterials.Select(m=>m==null?"null":m.name+":"+m.shader.name))}");
+}
+System.IO.File.WriteAllText("/tmp/moores-vein-terrain-20261006/all-surfaces.txt",report.ToString());
+p.Note("Inspect copied existing default world; all broad horizontal surfaces recorded");
+await p.Screenshot("01-existing-spawn");
+});

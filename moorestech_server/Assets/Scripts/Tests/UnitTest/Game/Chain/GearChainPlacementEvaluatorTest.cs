@@ -40,7 +40,7 @@ namespace Tests.UnitTest.Game.Chain
             // Judge a case where distance exceeds the min of both limits
             var judgement = GearChainPlacementEvaluator.EvaluatePlacement(11f, 10f, 20f, false, false, ConnectToolGuid, Items((_chainItemId, 20)), NoReserved);
             Assert.False(judgement.IsPlaceable);
-            Assert.AreEqual(GearChainPlacementEvaluator.TooFarError, judgement.FailureReason);
+            Assert.AreEqual(GearChainPlacementFailureReason.TooFar, judgement.FailureReason);
         }
 
         [Test]
@@ -50,7 +50,7 @@ namespace Tests.UnitTest.Game.Chain
             // Judge a pair that is already connected
             var judgement = GearChainPlacementEvaluator.EvaluatePlacement(3f, 10f, 10f, true, false, ConnectToolGuid, Items((_chainItemId, 20)), NoReserved);
             Assert.False(judgement.IsPlaceable);
-            Assert.AreEqual(GearChainPlacementEvaluator.AlreadyConnectedError, judgement.FailureReason);
+            Assert.AreEqual(GearChainPlacementFailureReason.AlreadyConnected, judgement.FailureReason);
         }
 
         [Test]
@@ -60,7 +60,7 @@ namespace Tests.UnitTest.Game.Chain
             // Judge a case where the connection count is full
             var judgement = GearChainPlacementEvaluator.EvaluatePlacement(3f, 10f, 10f, false, true, ConnectToolGuid, Items((_chainItemId, 20)), NoReserved);
             Assert.False(judgement.IsPlaceable);
-            Assert.AreEqual(GearChainPlacementEvaluator.ConnectionLimitError, judgement.FailureReason);
+            Assert.AreEqual(GearChainPlacementFailureReason.ConnectionLimit, judgement.FailureReason);
         }
 
         [Test]
@@ -70,7 +70,7 @@ namespace Tests.UnitTest.Game.Chain
             // Judge a case owning only 2 chains for distance 3
             var judgement = GearChainPlacementEvaluator.EvaluatePlacement(3f, 10f, 10f, false, false, ConnectToolGuid, Items((_chainItemId, 9)), NoReserved);
             Assert.False(judgement.IsPlaceable);
-            Assert.AreEqual(GearChainPlacementEvaluator.NoItemError, judgement.FailureReason);
+            Assert.AreEqual(GearChainPlacementFailureReason.NoItem, judgement.FailureReason);
         }
 
         [Test]
@@ -80,7 +80,7 @@ namespace Tests.UnitTest.Game.Chain
             // Judge a case specifying an item not in the chain master
             var judgement = GearChainPlacementEvaluator.EvaluatePlacement(3f, 10f, 10f, false, false, Guid.NewGuid(), Items((_poleItemId, 20)), NoReserved);
             Assert.False(judgement.IsPlaceable);
-            Assert.AreEqual(GearChainPlacementEvaluator.NoItemError, judgement.FailureReason);
+            Assert.AreEqual(GearChainPlacementFailureReason.NoItem, judgement.FailureReason);
         }
 
         [Test]
@@ -90,7 +90,7 @@ namespace Tests.UnitTest.Game.Chain
             // A reserved entry matching the chain item adds to the requirement (3 fails, 4 succeeds)
             var shortage = GearChainPlacementEvaluator.EvaluatePlacement(3f, 10f, 10f, false, false, ConnectToolGuid, Items((_chainItemId, 10)), Reserved((_chainItemId, 1)));
             Assert.False(shortage.IsPlaceable);
-            Assert.AreEqual(GearChainPlacementEvaluator.NoItemError, shortage.FailureReason);
+            Assert.AreEqual(GearChainPlacementFailureReason.NoItem, shortage.FailureReason);
 
             var enough = GearChainPlacementEvaluator.EvaluatePlacement(3f, 10f, 10f, false, false, ConnectToolGuid, Items((_chainItemId, 11)), Reserved((_chainItemId, 1)));
             Assert.True(enough.IsPlaceable);
@@ -106,14 +106,15 @@ namespace Tests.UnitTest.Game.Chain
         }
 
         [Test]
-        public void EvaluateSucceedsWithChainCost()
+        public void EvaluateSucceedsWithChainRecord()
         {
             // すべての条件を満たすケースで消費コストを検証する
             // Verify chain cost in a fully valid case
             var judgement = GearChainPlacementEvaluator.EvaluatePlacement(3f, 10f, 10f, false, false, ConnectToolGuid, Items((_chainItemId, 10)), NoReserved);
             Assert.True(judgement.IsPlaceable);
-            Assert.AreEqual(_chainItemId, judgement.ChainCost.Materials[0].ItemId);
-            Assert.AreEqual(10, judgement.ChainCost.Materials[0].Count);
+            Assert.AreEqual(_chainItemId, judgement.ChainRecord.Materials[0].ItemId);
+            Assert.AreEqual(10, judgement.ChainRecord.Materials[0].Count);
+            Assert.AreEqual(ConnectToolGuid, judgement.ChainRecord.ConnectToolGuid);
         }
 
         private static ConnectToolMaterialCost[] Reserved(params (ItemId id, int count)[] items)

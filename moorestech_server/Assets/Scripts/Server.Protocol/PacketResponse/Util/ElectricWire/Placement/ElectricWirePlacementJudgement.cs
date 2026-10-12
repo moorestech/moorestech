@@ -1,27 +1,27 @@
-using Game.EnergySystem;
+using Game.Block.Interface.Component;
 
 namespace Server.Protocol.PacketResponse.Util.ElectricWire.Placement
 {
     /// <summary>
-    /// ワイヤー接続の可否判定結果。失敗理由とコストをまとめて保持する
-    /// Result of a wire connection judgement, bundling the failure reason and the cost
+    /// ワイヤー接続の可否判定結果。失敗理由と接続記録を保持する
+    /// Result of a wire connection judgement, bundling the failure reason and the record
     /// </summary>
     public readonly struct ElectricWirePlacementJudgement
     {
         public readonly bool IsPlaceable;
         public readonly ElectricWirePlacementFailureReason FailureReason;
-        public readonly ElectricWireConnectionCost WireCost;
+        public readonly ConnectionLineRecord WireRecord;
 
-        private ElectricWirePlacementJudgement(bool isPlaceable, ElectricWirePlacementFailureReason failureReason, ElectricWireConnectionCost wireCost)
+        private ElectricWirePlacementJudgement(bool isPlaceable, ElectricWirePlacementFailureReason failureReason, ConnectionLineRecord wireRecord)
         {
             IsPlaceable = isPlaceable;
             FailureReason = failureReason;
-            WireCost = wireCost;
+            WireRecord = wireRecord;
         }
 
-        public static ElectricWirePlacementJudgement Success(ElectricWireConnectionCost wireCost)
+        public static ElectricWirePlacementJudgement Success(ConnectionLineRecord wireRecord)
         {
-            return new ElectricWirePlacementJudgement(true, ElectricWirePlacementFailureReason.None, wireCost);
+            return new ElectricWirePlacementJudgement(true, ElectricWirePlacementFailureReason.None, wireRecord);
         }
 
         public static ElectricWirePlacementJudgement Failure(ElectricWirePlacementFailureReason failureReason)

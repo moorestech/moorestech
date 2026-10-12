@@ -1,3 +1,4 @@
+using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
 using System;
 using Client.Game.Common;
 using Client.Game.InGame.Context;
@@ -35,11 +36,17 @@ namespace Client.Game.InGame.Train.RailGraph
 
         public void SetRemovePreviewing()
         {
-            RailChain.SetRemovePreviewing();
+            // 撤去後に破棄済み表示体へ触れない
+            // Do not touch a rail view destroyed after removal
+            if (RailChain == null) return;
+            RailChainRemovePreview.Of(RailChain).RequestRemovePreview(this);
         }
         public void ResetMaterial()
         {
-            RailChain.ResetMaterial();
+            // 破棄済みの表示体には触れられない
+            // A destroyed rail view cannot be reset or queried
+            if (RailChain == null) return;
+            RailChainRemovePreview.Of(RailChain).ReleaseRemovePreview(this);
         }
         
         public bool IsRemovable(out LocalizationKey? deniedReason)
@@ -59,15 +66,32 @@ namespace Client.Game.InGame.Train.RailGraph
             return canDelete == DeleteDeniedReason.None;
         }
         
+        public void CollectRemovedObjects(RemovedObjectCollector collector)
+        {
+            // 直接撤去では無償区間も復元不能件数へ含める
+            // Count directly deleted free segments among unrestorable items
+            var (fromId, toId) = RailObjectIdCodec.Decode(RailObjectIdCarrier.GetRailObjectId());
+            RemovedRail.Capture(_railGraphClientCache, fromId, toId, RemovedRailCaptureContext.Direct, collector);
+        }
+
         public void Delete()
         {
             var carrier = RailObjectIdCarrier;
             var railObjectId = carrier.GetRailObjectId();
-            var fromId = unchecked((int)(uint)railObjectId);
-            var toId = unchecked((int)(uint)(railObjectId >> 32));
+            var (fromId, toId) = RailObjectIdCodec.Decode(railObjectId);
             
-            if (!_railGraphClientCache.TryGetNode(fromId, out var fromNode)) return;
-            if (!_railGraphClientCache.TryGetNode(toId, out var toNode)) return;
+            // 未同期の端点で切断できない理由を残す
+            // Report which unsynced endpoint prevents the disconnect request
+            if (!_railGraphClientCache.TryGetNode(fromId, out var fromNode))
+            {
+                Debug.LogWarning($"[RailDelete] endpoint node not found: node={fromId} edge={fromId}->{toId}");
+                return;
+            }
+            if (!_railGraphClientCache.TryGetNode(toId, out var toNode))
+            {
+                Debug.LogWarning($"[RailDelete] endpoint node not found: node={toId} edge={fromId}->{toId}");
+                return;
+            }
             
             ClientContext.VanillaApi.SendOnly.DisconnectRail(fromNode.NodeId, fromNode.NodeGuid, toNode.NodeId, toNode.NodeGuid);
         }
@@ -91,25 +115,16 @@ namespace Client.Game.InGame.Train.RailGraph
             if (RailChain.IsRemoving) return DeleteDeniedReason.Removed;
             
             var railObjectId = RailObjectIdCarrier.GetRailObjectId();
-            var fromId = unchecked((int)(uint)railObjectId);
-            var toId = unchecked((int)(uint)(railObjectId >> 32));
+            var (fromId, toId) = RailObjectIdCodec.Decode(railObjectId);
             
             if (!_railGraphClientCache.TryGetNode(fromId, out var fromNode)) return DeleteDeniedReason.UnknownError;
             if (!_railGraphClientCache.TryGetNode(toId, out var toNode)) return DeleteDeniedReason.UnknownError;
             
-            if (IsStationInternalEdge(fromNode, toNode)) return DeleteDeniedReason.StationInternalEdge;
+            if (fromNode.StationRef.IsSameStation(toNode.StationRef)) return DeleteDeniedReason.StationInternalEdge;
             
             return DeleteDeniedReason.None;
         }
         
-        private bool IsStationInternalEdge(IRailNode from, IRailNode to)
-        {
-            if (!from.StationRef.HasStation || !to.StationRef.HasStation)
-            {
-                return false;
-            }
-            return from.StationRef.StationBlockInstanceId.Equals(to.StationRef.StationBlockInstanceId);
-        }
         
         public enum DeleteDeniedReason
         {

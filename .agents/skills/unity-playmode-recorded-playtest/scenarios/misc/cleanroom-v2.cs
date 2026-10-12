@@ -58,7 +58,7 @@ return PlaytestRunner.Run("cleanroom-v2", options, async p =>
     var genConn = generatorBlock.GetComponent<IElectricWireConnector>();
     var filterConn = filterBlock.GetComponent<IElectricWireConnector>();
     var machineConn = machineBlock.GetComponent<IElectricWireConnector>();
-    var freeCost = new ElectricWireConnectionCost(ItemMaster.EmptyItemId, 0);
+    var freeCost = new ConnectionLineRecord(Guid.Parse("872372d5-2998-4fb7-826c-593ceeafcfb2"), Array.Empty<ConnectToolMaterialCost>());
     p.Assert(ElectricWireSystemUtil.TryConnectBothSides(genConn, filterConn, freeCost), "wire gen->filter");
     p.Assert(ElectricWireSystemUtil.TryConnectBothSides(genConn, machineConn, freeCost), "wire gen->machine");
     p.ServerService<IElectricWireNetworkDatastore>().RebuildAround(genConn, filterConn, machineConn);

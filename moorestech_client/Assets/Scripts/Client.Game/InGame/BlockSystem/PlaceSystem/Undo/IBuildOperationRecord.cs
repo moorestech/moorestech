@@ -1,3 +1,4 @@
+using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
 using Client.Game.InGame.Block;
 using Cysharp.Threading.Tasks;
 
@@ -9,6 +10,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
     /// </summary>
     public interface IBuildOperationRecord
     {
-        UniTask UndoAsync(BlockGameObjectDataStore blockGameObjectDataStore);
+        UniTask UndoAsync(IBlockOccupancyQuery occupancy);
     }
 }

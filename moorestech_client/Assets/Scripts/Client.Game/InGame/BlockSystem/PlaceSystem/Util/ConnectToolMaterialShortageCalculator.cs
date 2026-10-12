@@ -10,8 +10,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
     /// <summary>
     /// 接続ツールの必要素材と所持を突き合わせ不足を返す
     /// Matches a connect tool's required materials against held counts and returns the shortages
-    /// 必要数の算出はサーバーと共有のConnectToolCostCalculator、突き合わせはConstructionCostShortageCalculatorに委ねる
-    /// The requirement comes from the server-shared ConnectToolCostCalculator and the match from ConstructionCostShortageCalculator
+    /// 必要数の算出はサーバーと共有のConnectToolCostCalculator、突き合わせは共有会計に委ねる
+    /// The requirement comes from the server-shared ConnectToolCostCalculator and the match from shared accounting
     /// </summary>
     public static class ConnectToolMaterialShortageCalculator
     {
@@ -34,7 +34,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             // 必要数の合算は可否判定と同じ正本を通す。集計単位が割れると可否と表示が食い違う
             // The requirement goes through the very definition the affordability judgement uses; a differing unit would split verdict from display
             var requiredItems = ConstructionMaterialAccounting.SumRequiredByItem(materials, reservedMaterials);
-            return ConstructionCostShortageCalculator.ToShortages(ConstructionCostShortageCalculator.CalculateRequirements(requiredItems, heldByItem));
+            return ConstructionCostShortageCalculator.ToShortages(ConstructionMaterialAccounting.MatchRequirements(requiredItems, heldByItem));
         }
     }
 }

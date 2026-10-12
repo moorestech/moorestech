@@ -17,6 +17,9 @@ SKILL_MD = "\n".join(
     + [f.read_text(encoding="utf-8") for f in sorted((SKILL_DIR / "references").glob("*.md"))]
 )
 REPO_ROOT = SKILL_DIR.parent.parent.parent
+# Workflow スクリプトは部品（scripts/review_workflow/*.js）を build_workflow_args.py が結合する。検査は結合後の全文に当てる
+# The workflow script is assembled from scripts/review_workflow/*.js; checks run against the concatenated text
+WORKFLOW_SRC = "\n".join(f.read_text(encoding="utf-8") for f in sorted((SKILL_DIR / "scripts/review_workflow").glob("*.js")))
 
 
 class SkillWiringTest(unittest.TestCase):
@@ -106,7 +109,7 @@ class SkillWiringTest(unittest.TestCase):
     def test_every_script_has_regression_banner(self):
         # 全スクリプトが「変更時は回帰テスト必須」バナーを持つこと（新規追加時の掲示漏れ防止）
         # Every script must carry the regression-suite banner (so new scripts inherit the rule)
-        for s in (SKILL_DIR / "scripts").glob("*.py"):
+        for s in [*(SKILL_DIR / "scripts").glob("*.py"), *(SKILL_DIR / "scripts/workflow_args").glob("*.py")]:
             head = s.read_text(encoding="utf-8")[:1200]
             self.assertIn("必ず回帰テストを実行", head,
                           f"scripts/{s.name} に回帰テスト必須バナーが無い")
@@ -160,7 +163,7 @@ class RefixWiringTest(unittest.TestCase):
         for doc in ("SKILL.md", "references/orchestrator-steps.md"):
             self.assertIn("refix_snapshot.py", (SKILL_DIR / doc).read_text(encoding="utf-8"),
                           f"{doc} が反映 diff の作り方として refix_snapshot.py を指していない")
-        wf = (SKILL_DIR / "scripts/review_workflow.js").read_text(encoding="utf-8")
+        wf = WORKFLOW_SRC
         self.assertIn("refixSnapshotScript", wf, "review_workflow.js が refix_snapshot.py を呼んでいない")
         self.assertIn("refix-correctness-r", wf, "review_workflow.js に Refix の reviewer 起動が無い")
         self.assertIn("refix_scope", wf, "apply の返り値に反映 diff の scope が無い")
@@ -236,16 +239,23 @@ class WorkflowWiringTest(unittest.TestCase):
 
     def test_workflow_script_and_args_builder_are_wired(self):
         skill = (SKILL_DIR / "SKILL.md").read_text(encoding="utf-8")
-        self.assertTrue((SKILL_DIR / "scripts/review_workflow.js").is_file(), "scripts/review_workflow.js が無い")
-        self.assertIn("scripts/review_workflow.js", skill, "SKILL.md が review_workflow.js を起動経路に載せていない")
+        self.assertTrue((SKILL_DIR / "scripts/review_workflow/00_meta.js").is_file(), "scripts/review_workflow/00_meta.js が無い")
+        self.assertFalse((SKILL_DIR / "scripts/review_workflow.js").exists(), "分割前の review_workflow.js が残っている（部品と二重定義になる）")
+        self.assertIn("scripts/review_workflow/", skill, "SKILL.md が Workflow 部品の置き場を指していない")
+        self.assertIn('Workflow({ scriptPath: "<$RUNDIRの実値>/review_workflow.js" })', skill,
+                      "SKILL.md が結合済みスクリプト（$RUNDIR/review_workflow.js）を scriptPath にしていない")
         self.assertIn("build_workflow_args.py", skill, "SKILL.md が build_workflow_args.py を呼んでいない")
         self.assertIn("codex_preflight.py", SKILL_MD, "codex_preflight.py が手順に配線されていない")
         self.assertTrue((SKILL_DIR / "references/output-contract.md").is_file(), "references/output-contract.md が無い")
-        builder = (SKILL_DIR / "scripts/build_workflow_args.py").read_text(encoding="utf-8")
-        self.assertIn("output-contract.md", builder, "build_workflow_args.py が契約の正本を読んでいない")
+        # 契約の読み込みは build_workflow_args.py の部品（workflow_args/systems.py）が担う
+        # The contract is read by the builder's part module (workflow_args/systems.py)
+        builder = (SKILL_DIR / "scripts/workflow_args/systems.py").read_text(encoding="utf-8")
+        self.assertIn("output-contract.md", builder, "build_workflow_args.py（workflow_args/systems.py）が契約の正本を読んでいない")
 
     def test_workflow_script_has_meta_and_phases(self):
-        src = (SKILL_DIR / "scripts/review_workflow.js").read_text(encoding="utf-8")
+        src = WORKFLOW_SRC
+        self.assertTrue(sorted((SKILL_DIR / "scripts/review_workflow").glob("*.js"))[0].read_text(encoding="utf-8")
+                        .count("export const meta") == 1, "先頭部品が export const meta を持たない")
         self.assertIn("export const meta", src)
         for title in ("Review", "Integrate", "Apply", "Refix", "PostCheck"):
             self.assertIn(f"title: '{title}'", src, f"phase {title} が meta に無い")
@@ -264,8 +274,7 @@ class WorkflowWiringTest(unittest.TestCase):
         node = shutil.which("node")
         if not node:
             self.skipTest("node が無い環境")
-        src = (SKILL_DIR / "scripts/review_workflow.js").read_text(encoding="utf-8")
-        src = src.replace("export const meta", "const meta", 1)
+        src = WORKFLOW_SRC.replace("export const meta", "const meta", 1)
         wrapped = ("const args={};const agent=async()=>null;const parallel=async(t)=>Promise.all(t.map(f=>f()));"
                    "const log=()=>{};\n(async()=>{\n" + src + "\n})();")
         with tempfile.NamedTemporaryFile("w", suffix=".mjs", delete=False) as fh:

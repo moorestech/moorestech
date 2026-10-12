@@ -1,0 +1,11 @@
+using UnityEngine;
+using Client.Game.InGame.Map.Outcrop;
+using System.Linq;
+var rows=new System.Text.StringBuilder();var total=0;var buried=0;var fluid=0;var buriedFluid=0;var worst=0f;var worstName="";
+foreach(var o in Object.FindObjectsByType<OutcropGameObject>(FindObjectsSortMode.None)){
+var pos=o.transform.position;var t=Terrain.activeTerrains.FirstOrDefault(v=>pos.x>=v.transform.position.x&&pos.x<=v.transform.position.x+v.terrainData.size.x&&pos.z>=v.transform.position.z&&pos.z<=v.transform.position.z+v.terrainData.size.z);if(t==null)continue;
+var ground=t.SampleHeight(pos)+t.transform.position.y;total++;if(o.EarnItemGuids.Count==0)fluid++;if(ground<=pos.y)continue;buried++;if(o.EarnItemGuids.Count==0)buriedFluid++;var depth=ground-pos.y;if(depth>worst){worst=depth;worstName=o.name+" pos="+pos+" ground="+ground;}
+rows.AppendLine($"{o.name} fluid={o.EarnItemGuids.Count==0} pos={pos} ground={ground} anchorDepth={depth}");
+}
+var summary=$"total={total} buriedAnchors={buried} fluid={fluid} buriedFluidAnchors={buriedFluid} worstDepth={worst} worst={worstName}";
+System.IO.File.WriteAllText("/tmp/moores-vein-terrain-20261006/live-veins.txt",summary+"\n"+rows);return summary;

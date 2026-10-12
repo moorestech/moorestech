@@ -16,10 +16,10 @@ namespace Game.Block.Interface.Extension
         {
             // ブロックが占有する全セルを列挙する
             // Enumerate every grid cell occupied by the block
-            for (var x = self.MinPos.x; x <= self.MaxPos.x; x++)
-            for (var y = self.MinPos.y; y <= self.MaxPos.y; y++)
-            for (var z = self.MinPos.z; z <= self.MaxPos.z; z++)
-                yield return new Vector3Int(x, y, z);
+            for (long x = self.MinPos.x; x <= self.MaxPos.x; x++)
+            for (long y = self.MinPos.y; y <= self.MaxPos.y; y++)
+            for (long z = self.MinPos.z; z <= self.MaxPos.z; z++)
+                yield return new Vector3Int((int)x, (int)y, (int)z);
         }
 
         /// <summary>

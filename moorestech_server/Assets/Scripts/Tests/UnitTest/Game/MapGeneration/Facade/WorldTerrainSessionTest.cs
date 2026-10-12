@@ -84,7 +84,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Facade
         {
             var generation = SpawnSearchTestWorld.CreateGeneration(TestGenerationConfigFactory.SpawnSearchSetup.Enabled);
             var sourceConfig = MapGenerationPipeline.BuildConfig(
-                generation, 12345, TestGenerationConfigFactory.ServerDataDirectory);
+                generation, 12345, TestGenerationConfigFactory.ServerDataDirectory, WorldGeneratorVersion.CurrentRevision);
             var run = MapGenerationPipeline.Generate(generation, sourceConfig);
 
             var settledOffset = new Vector2(run.Config.worldOffsetX, run.Config.worldOffsetZ);

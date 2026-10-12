@@ -183,7 +183,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             }
             IRailComponentConnectAreaCollider GetTrainRailConnectAreaCollider()
             {
-                PlaceSystemUtil.TryGetRaySpecifiedComponentHit<IRailComponentConnectAreaCollider>(_mainCamera, out var connectArea, Without_Player_MapObject_BlockBoundingBox_LayerMask);
+                PlaceSystemRaycastUtil.TryGetRaySpecifiedComponentHit<IRailComponentConnectAreaCollider>(_mainCamera, out var connectArea, Without_Player_MapObject_BlockBoundingBox_LayerMask);
                 return connectArea;
             }
             bool TryResolveNode(ConnectionDestination destination, out IRailNode railNode)

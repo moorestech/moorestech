@@ -108,6 +108,11 @@ unity-playmode-recorded-playtestでPlayModeを通しで動かす検証は「unit
 ## ログ確認
 `uloop get-logs --project-path ./moorestech_client --log-type Error`
 
+## 詰まったら読む
+- uloop が繋がらない・テスト結果が合わない・Editor が固まる・計測ログが見つからない → `docs/development/uloop-troubleshooting.md`
+- UniTask の多重 await・CI（batchmode）だけで落ちる/タイムアウトするテスト → `docs/development/async-and-ci-pitfalls.md`
+- master ピンが戻る・webui の node_modules/e2e が不安定・新規 worktree の録画シナリオが止まる・moores-code-review 自動適用後の扱い → `docs/development/worktree-and-review-pitfalls.md`
+
 # Objectシングルトンパターン
 GameObjectはシーン/Prefabに事前配置前提とし、Awakeで_instanceを設定。Instanceプロパティでの動的生成は禁止
 public class MySingleton : MonoBehaviour

@@ -17,6 +17,7 @@ namespace Client.Network.API
     /// </summary>
     public class PacketExchangeManager
     {
+        private const int DefaultResponseTimeoutSeconds = 10;
         private readonly PacketSender _packetSender;
 
         private readonly Dictionary<int, ResponseWaiter> _responseWaiters = new();
@@ -91,7 +92,7 @@ namespace Client.Network.API
                 var expired = new List<int>();
                 foreach (var kv in _responseWaiters)
                 {
-                    if ((DateTime.Now - kv.Value.SendTime).TotalSeconds >= 10)
+                    if ((DateTime.Now - kv.Value.SendTime).TotalSeconds >= kv.Value.TimeoutSeconds)
                         expired.Add(kv.Key);
                 }
 
@@ -125,7 +126,12 @@ namespace Client.Network.API
 
         // 完了理由が必要な呼び出し元向け（タイムアウトを区別したい場合に使う）
         // For callers that need to distinguish between timeout and other failures
-        public async UniTask<(TResponse response, PacketWaitCompletionReason reason)> GetPacketResponseWithReason<TResponse>(ProtocolMessagePackBase request, CancellationToken ct) where TResponse : ProtocolMessagePackBase
+        public UniTask<(TResponse response, PacketWaitCompletionReason reason)> GetPacketResponseWithReason<TResponse>(ProtocolMessagePackBase request, CancellationToken ct) where TResponse : ProtocolMessagePackBase
+        {
+            return GetPacketResponseWithReason<TResponse>(request, ct, DefaultResponseTimeoutSeconds);
+        }
+
+        public async UniTask<(TResponse response, PacketWaitCompletionReason reason)> GetPacketResponseWithReason<TResponse>(ProtocolMessagePackBase request, CancellationToken ct, int timeoutSeconds) where TResponse : ProtocolMessagePackBase
         {
             SendPacket();
 
@@ -142,14 +148,14 @@ namespace Client.Network.API
 
             async UniTask<(TResponse response, PacketWaitCompletionReason reason)> WaitReceive()
             {
-                var responseWaiter = new ResponseWaiter(new Subject<(byte[] data, PacketWaitCompletionReason reason)>());
+                var responseWaiter = new ResponseWaiter(new Subject<(byte[] data, PacketWaitCompletionReason reason)>(), timeoutSeconds);
                 _responseWaiters.Add(_sequenceId, responseWaiter);
 
                 var (data, reason) = await responseWaiter.WaitSubject.ToUniTask(true, ct);
                 if (reason == PacketWaitCompletionReason.Timeout)
                 {
-                    // サーバーが 10 秒以内に応答しなかった
-                    // The server did not respond within the timeout window
+                    // サーバーが指定秒数以内に応答しなかった
+                    // The server did not respond within the requested timeout window
                     Debug.Log($"Packet timed out. Tag:{request.Tag}");
                     return (null, PacketWaitCompletionReason.Timeout);
                 }
@@ -172,18 +178,6 @@ namespace Client.Network.API
         }
     }
 
-
-    public class ResponseWaiter
-    {
-        public ResponseWaiter(Subject<(byte[] data, PacketWaitCompletionReason reason)> waitSubject)
-        {
-            WaitSubject = waitSubject;
-            SendTime = DateTime.Now;
-        }
-
-        public Subject<(byte[] data, PacketWaitCompletionReason reason)> WaitSubject { get; }
-        public DateTime SendTime { get; }
-    }
 
     // 応答待ちが完了した理由を明示する
     // Distinguishes how a packet wait completed

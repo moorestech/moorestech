@@ -38,7 +38,7 @@ namespace Tests.CombinedTest.Game
             BlueprintJsonObject CreateBlueprint(string name)
             {
                 var block = new BlueprintBlockJsonObject(Vector3Int.zero, Guid.NewGuid().ToString(), 0, new Dictionary<string, string>());
-                return new BlueprintJsonObject(name, new List<BlueprintBlockJsonObject> { block }, Guid.NewGuid());
+                return new BlueprintJsonObject(name, new List<BlueprintBlockJsonObject> { block }, new List<BlueprintLineJsonObject>(), new List<BlueprintLineJsonObject>(), Guid.NewGuid());
             }
 
             #endregion
@@ -51,7 +51,7 @@ namespace Tests.CombinedTest.Game
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var datastore = serviceProvider.GetService<IBlueprintDatastore>();
 
-            var guid = datastore.Register(new BlueprintJsonObject("target", new List<BlueprintBlockJsonObject>(), Guid.NewGuid()));
+            var guid = datastore.Register(new BlueprintJsonObject("target", new List<BlueprintBlockJsonObject>(), new List<BlueprintLineJsonObject>(), new List<BlueprintLineJsonObject>(), Guid.NewGuid()));
 
             Assert.IsTrue(datastore.Delete(guid));
             Assert.AreEqual(0, datastore.Blueprints.Count);
@@ -67,7 +67,7 @@ namespace Tests.CombinedTest.Game
 
             var settings = new Dictionary<string, string> { { "TestKey", "{\"a\":1}" } };
             var block = new BlueprintBlockJsonObject(new Vector3Int(1, 0, -2), System.Guid.NewGuid().ToString(), 3, settings);
-            datastore.Register(new BlueprintJsonObject("roundtrip", new List<BlueprintBlockJsonObject> { block }, Guid.NewGuid()));
+            datastore.Register(new BlueprintJsonObject("roundtrip", new List<BlueprintBlockJsonObject> { block }, new List<BlueprintLineJsonObject>(), new List<BlueprintLineJsonObject>(), Guid.NewGuid()));
 
             // セーブJSONを別Datastoreへ復元し一致確認
             // Extract save JSON and restore into a fresh datastore
@@ -82,12 +82,39 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual("{\"a\":1}", restoredBlock.Settings["TestKey"]);
         }
 
+        [TestCase(null)]
+        [TestCase("")]
+        [TestCase("malformed")]
+        [TestCase("00000000-0000-0000-0000-000000000000")]
+        public void MalformedSavedConnectionIsSkippedWithoutLosingBlueprintTest(string invalidGuid)
+        {
+            var validGuid = Guid.NewGuid();
+            var valid = new BlueprintLineJsonObject(0, 1, validGuid);
+            var malformed = new BlueprintLineJsonObject { BlockIndexA = 0, BlockIndexB = 1, ConnectToolGuidStr = invalidGuid };
+            var blueprint = new BlueprintJsonObject("saved", new List<BlueprintBlockJsonObject>(),
+                new List<BlueprintLineJsonObject> { malformed, valid }, new List<BlueprintLineJsonObject> { malformed }, Guid.NewGuid());
+            var datastore = new BlueprintDatastore();
+
+            // 不正線の省略理由を両線種で残し正常線を保持する
+            // Both connection kinds log malformed omissions while keeping valid lines
+            UnityEngine.TestTools.LogAssert.Expect(LogType.Warning,
+                $"[BlueprintLoad] line skipped: malformed connectToolGuid blueprint={blueprint.BlueprintGuidStr} index=0");
+            UnityEngine.TestTools.LogAssert.Expect(LogType.Warning,
+                $"[BlueprintLoad] line skipped: malformed connectToolGuid blueprint={blueprint.BlueprintGuidStr} index=0");
+            datastore.LoadBlueprints(new List<BlueprintJsonObject> { blueprint });
+            Assert.AreEqual(1, datastore.Blueprints.Count);
+            Assert.AreEqual(1, datastore.Blueprints[0].Wires.Count);
+            Assert.AreEqual(validGuid, datastore.Blueprints[0].Wires[0].ConnectToolGuid);
+            Assert.IsEmpty(datastore.Blueprints[0].Chains);
+            Assert.DoesNotThrow(() => JsonConvert.SerializeObject(datastore.GetSaveJsonObject()));
+        }
+
         [Test]
         public void BlueprintGuidはJsonシリアライズを経由しても保持される()
         {
             // private setterのBlueprintGuidStrがNewtonsoft経由でも復元されるか検証する
             // Verify BlueprintGuidStr (a private setter) round-trips through Newtonsoft
-            var original = new BlueprintJsonObject("json-roundtrip", new List<BlueprintBlockJsonObject>(), Guid.NewGuid());
+            var original = new BlueprintJsonObject("json-roundtrip", new List<BlueprintBlockJsonObject>(), new List<BlueprintLineJsonObject>(), new List<BlueprintLineJsonObject>(), Guid.NewGuid());
 
             var json = JsonConvert.SerializeObject(original);
             var restored = JsonConvert.DeserializeObject<BlueprintJsonObject>(json);

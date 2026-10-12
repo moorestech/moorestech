@@ -98,7 +98,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
             if (result.ChainConnectSend.HasValue)
             {
                 var connect = result.ChainConnectSend.Value;
-                ClientContext.VanillaApi.SendOnly.ConnectGearChain(connect.FromPos, connect.ToPos, connect.ConnectToolGuid);
+                ClientContext.VanillaApi.SendOnly.ConnectionLine.ConnectGearChain(connect.FromPos, connect.ToPos, connect.ConnectToolGuid);
             }
 
             // 反映: 次の起点を確定する

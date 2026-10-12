@@ -76,7 +76,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Golden
 
             // 木・岩の位置とクラスタはVanillaGeneratorが決める
             // Tree and rock positions and clusters come from VanillaGenerator
-            var run = new VanillaGenerator().Generate(config);
+            var run = new LegacyVanillaGenerator().Generate(config);
             return (config, sections, run);
         }
 

@@ -1,10 +1,11 @@
 using Game.MapGeneration.Pipeline.Config;
+using Game.MapGeneration.Pipeline.Surface;
 using Game.MapGeneration.Pipeline.Visual.Placement;
 
 namespace Game.MapGeneration.Pipeline
 {
-    // 生成1回が産む成果一式。3つとも必須コンストラクタ引数なので、詰め忘れはコンパイルエラーになる。
-    // Everything a single generation run yields; all three are mandatory constructor arguments, so a missing one fails to compile.
+    // 生成1回が産む成果一式。4つとも必須コンストラクタ引数なので、詰め忘れはコンパイルエラーになる。
+    // Everything a single generation run yields; all four are mandatory constructor arguments, so a missing one fails to compile.
     public sealed class GenerationRun
     {
         // 生成の結果出力。map.json・terrainファイル・転送メタはここからだけ作る。
@@ -19,11 +20,16 @@ namespace Game.MapGeneration.Pipeline
         // The config after the generator wrote the spawn-search result back; pass-2 uses this rather than the input config.
         public TerrainGenerationConfig Config { get; }
 
-        public GenerationRun(MapGenerationOutput output, PlacementLedger ledger, TerrainGenerationConfig config)
+        // 保存した高さを表示高さへ仕上げる手順。陸分類など生成時にしか無い入力を抱えたまま pass-2 へ渡す
+        // How the stored heights become display heights; it carries generation-only inputs such as the land classification into pass-2
+        public SurfaceHeightPolicy DisplayHeightPolicy { get; }
+
+        public GenerationRun(MapGenerationOutput output, PlacementLedger ledger, TerrainGenerationConfig config, SurfaceHeightPolicy displayHeightPolicy)
         {
             Output = output;
             Ledger = ledger;
             Config = config;
+            DisplayHeightPolicy = displayHeightPolicy;
         }
     }
 }

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Client.Common;
 using Client.Common.Asset;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.Block.IconCapture;
 using Client.Game.InGame.Context;
 using Core.Master;
 using Cysharp.Threading.Tasks;

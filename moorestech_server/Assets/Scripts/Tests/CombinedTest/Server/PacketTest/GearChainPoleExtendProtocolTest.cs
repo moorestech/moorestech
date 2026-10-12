@@ -73,14 +73,14 @@ namespace Tests.CombinedTest.Server.PacketTest
         public void ExtendFailsWhenTooFar()
         {
             _helper.SetInventory(20, 3);
-            _helper.AssertExtendFailsWithoutStateChange(new Vector3Int(11, 0, 0), GearChainPlacementEvaluator.TooFarError, 20, 3);
+            _helper.AssertExtendFailsWithoutStateChange(new Vector3Int(11, 0, 0), GearChainPlacementFailureReason.TooFar, 20, 3);
         }
 
         [Test]
         public void ExtendFailsWithoutChainItem()
         {
             _helper.SetInventory(9, 3);
-            _helper.AssertExtendFailsWithoutStateChange(new Vector3Int(3, 0, 0), GearChainPlacementEvaluator.NoItemError, 9, 3);
+            _helper.AssertExtendFailsWithoutStateChange(new Vector3Int(3, 0, 0), GearChainPlacementFailureReason.NoItem, 9, 3);
         }
 
         [Test]
@@ -89,7 +89,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 素材(建設コスト)を持たない場合はInsufficientItemsで失敗し状態不変
             // Without the materials (construction cost), it fails with InsufficientItems and leaves no state change
             _helper.SetInventory(10, 0);
-            _helper.AssertExtendFailsWithoutStateChange(new Vector3Int(3, 0, 0), GearChainPlacementEvaluator.InsufficientItemsError, 10, 0);
+            _helper.AssertExtendFailsWithoutStateChange(new Vector3Int(3, 0, 0), GearChainPlacementFailureReason.InsufficientItems, 10, 0);
         }
 
         [Test]
@@ -102,7 +102,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var response = _helper.SendExtendWithBlock(placePos, ForUnitTestModBlockId.LockedGearChainPole);
 
             Assert.False(response.IsSuccess);
-            Assert.AreEqual(GearChainPlacementEvaluator.NotUnlockedError, response.Error);
+            Assert.AreEqual(GearChainPlacementFailureReason.NotUnlocked.ToString(), response.Error);
             Assert.False(ServerContext.WorldBlockDatastore.Exists(placePos));
             Assert.AreEqual(10, _helper.CountItem(_helper.ChainItemId));
             Assert.AreEqual(3, _helper.CountItem(_helper.MaterialItemId));
@@ -121,7 +121,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // 手動接続でチェーン4個消費済み(6残)、素材は未消費(3)
             // 4 chains consumed by manual connects (6 left), materials untouched (3)
-            _helper.AssertExtendFailsWithoutStateChange(new Vector3Int(0, 0, 3), GearChainPlacementEvaluator.ConnectionLimitError, 10, 3);
+            _helper.AssertExtendFailsWithoutStateChange(new Vector3Int(0, 0, 3), GearChainPlacementFailureReason.ConnectionLimit, 10, 3);
         }
 
         [Test]
@@ -133,7 +133,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             var response = _helper.SendExtend(placePos);
             Assert.False(response.IsSuccess);
-            Assert.AreEqual(GearChainPlacementEvaluator.PositionOccupiedError, response.Error);
+            Assert.AreEqual(GearChainPlacementFailureReason.PositionOccupied.ToString(), response.Error);
             Assert.AreEqual(10, _helper.CountItem(_helper.ChainItemId));
             Assert.AreEqual(3, _helper.CountItem(_helper.MaterialItemId));
         }

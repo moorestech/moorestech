@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Thumbnail;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Hotbar;
@@ -36,25 +37,29 @@ namespace Client.WebUiHost.Game.Topics.Hotbar
         private readonly PlacementTargetResolver _placementTargetResolver;
         private readonly ClientBlueprintLibrary _blueprintLibrary;
         private readonly PlaceSystemStateController _placeSystemStateController;
+        private readonly IBlueprintThumbnailLookup _thumbnails;
         private readonly IDisposable _datastoreSubscription;
         private readonly IDisposable _librarySubscription;
         private readonly IDisposable _targetSubscription;
         private readonly IDisposable _unlockSubscription;
+        private readonly IDisposable _thumbnailSubscription;
         private bool _publishScheduled;
         private bool _disposed;
 
-        public HotbarTopic(WebSocketHub hub, ClientHotbarDatastore clientHotbarDatastore, PlacementTargetResolver placementTargetResolver, ClientBlueprintLibrary blueprintLibrary, PlaceSystemStateController placeSystemStateController)
+        public HotbarTopic(WebSocketHub hub, ClientHotbarDatastore clientHotbarDatastore, PlacementTargetResolver placementTargetResolver, ClientBlueprintLibrary blueprintLibrary, PlaceSystemStateController placeSystemStateController, IBlueprintThumbnailLookup thumbnails)
         {
             _hub = hub;
             _clientHotbarDatastore = clientHotbarDatastore;
             _placementTargetResolver = placementTargetResolver;
             _blueprintLibrary = blueprintLibrary;
             _placeSystemStateController = placeSystemStateController;
+            _thumbnails = thumbnails;
 
             // 割当の変更・解決先であるBPライブラリの変更・由来枠を含む設置対象の変更で再配信する
             // Republish on assignment changes, on blueprint-library changes (the resolution source), and on placement-target changes that carry the origin
             _datastoreSubscription = _clientHotbarDatastore.OnAssignmentsChanged.Subscribe(_ => SchedulePublish());
             _librarySubscription = _blueprintLibrary.OnChanged.Subscribe(_ => SchedulePublish());
+            _thumbnailSubscription = _thumbnails.OnThumbnailChanged.Subscribe(_ => SchedulePublish());
             _targetSubscription = _placeSystemStateController.OnTargetChanged.Subscribe(_ => SchedulePublish());
 
             // 研究で解放されると未解決枠が解決可能へ変わるため再配信する（前例 MachineRecipesTopic）
@@ -72,6 +77,7 @@ namespace Client.WebUiHost.Game.Topics.Hotbar
             _disposed = true;
             _datastoreSubscription.Dispose();
             _librarySubscription.Dispose();
+            _thumbnailSubscription.Dispose();
             _targetSubscription.Dispose();
             _unlockSubscription.Dispose();
         }
@@ -130,7 +136,7 @@ namespace Client.WebUiHost.Game.Topics.Hotbar
                     // マスタ由来名はweb側がGuid導出キーで解決する。ユーザー命名のBPだけ原文を運ぶ（前例 BuildMenuEntryDtoFactory）
                     // The web resolves master-derived names by GUID-keyed lookup; only user-named blueprints carry their raw text (precedent: BuildMenuEntryDtoFactory)
                     Label = target.Kind == PlacementTargetKind.Blueprint ? target.DisplayName : null,
-                    IconUrl = BuildMenuEntryDtoFactory.ResolveIconUrl(target),
+                    IconUrl = BuildMenuEntryDtoFactory.ResolveIconUrl(target, _thumbnails),
                 };
             }
 

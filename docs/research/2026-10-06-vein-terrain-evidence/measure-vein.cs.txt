@@ -1,0 +1,46 @@
+using UnityEngine;
+using Core.Master;
+using Mod.Config;
+using Mod.Loader;
+using Game.MapGeneration.Pipeline;
+var dataDirectory = "/Users/sakastudio/hermes-agent/data/repos/moorestech_master/server_v8";
+var resources = new ModsResource(System.IO.Path.Combine(dataDirectory, "mods"));
+MasterHolder.Load(new MasterJsonFileContainer(ModJsonStringLoader.GetMasterString(resources)));
+var generation = MasterHolder.GenerationMaster.SelectedGeneration;
+var config = MapGenerationPipeline.BuildConfig(generation, 196, dataDirectory);
+var run = MapGenerationPipeline.Generate(generation, config);
+var output = run.Output;
+var cfg = run.Config;
+var report = new System.Text.StringBuilder();
+report.AppendLine($"seed=196 res={output.Resolution} tiles={output.Tiles.Count} seaLevel={cfg.seaLevel} height={cfg.terrainHeight} veinCount={output.ItemVeins.Count} origins={output.SceneOrigin}");
+int buried = 0;
+float worst = 0;
+foreach (var tile in output.Tiles)
+{
+    var td = new TerrainData();
+    td.heightmapResolution = output.Resolution;
+    td.size = new Vector3(cfg.terrainWidth, cfg.terrainHeight, cfg.terrainLength);
+    var h = new float[output.Resolution, output.Resolution];
+    for (int z = 0; z < output.Resolution; z++)
+        for (int x = 0; x < output.Resolution; x++) h[z, x] = tile.Heights[z * output.Resolution + x];
+    td.SetHeights(0, 0, h);
+    float originX = output.SceneOrigin.x + tile.TileX * cfg.terrainWidth;
+    float originZ = output.SceneOrigin.y + tile.TileZ * cfg.terrainLength;
+    foreach (var vein in output.ItemVeins)
+    {
+        float x = (vein.Min.x + vein.Max.x + 1) * 0.5f;
+        float z = (vein.Min.z + vein.Max.z + 1) * 0.5f;
+        float y = (vein.Min.y + vein.Max.y + 1) * 0.5f;
+        if (x < originX || x >= originX + cfg.terrainWidth || z < originZ || z >= originZ + cfg.terrainLength) continue;
+        float terrain = td.GetInterpolatedHeight((x-originX)/cfg.terrainWidth, (z-originZ)/cfg.terrainLength);
+        if (terrain <= y) continue;
+        buried++;
+        if (terrain-y <= worst) continue;
+        worst = terrain-y;
+        report.AppendLine($"buried guid={vein.VeinGuid} xyz=({x},{y},{z}) terrain={terrain} depth={worst} min={vein.Min} max={vein.Max}");
+    }
+    Object.DestroyImmediate(td);
+}
+report.AppendLine($"buriedCount={buried} worstDepth={worst}; source=production generator seed196 and production master; TerrainData interpolation; BEFORE visual tree perturbation; no PlayMode/prefab mesh measurement");
+System.IO.File.WriteAllText("/tmp/moores-vein-terrain-20261006/measurement.txt", report.ToString());
+return report.ToString();

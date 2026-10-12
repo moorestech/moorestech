@@ -1,4 +1,5 @@
 using Game.MapGeneration.Pipeline;
+using Game.MapGeneration.Transfer;
 using Mooresmaster.Model.GenerationModule;
 using NUnit.Framework;
 using UnityEngine;
@@ -15,7 +16,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Vein
         public void FluidVeinsAreGeneratedWithinTerrainBounds()
         {
             var generation = TestGenerationConfigFactory.CreateSmall();
-            var runtimeConfig = MapGenerationPipeline.BuildConfig(generation, 12345, TestGenerationConfigFactory.ServerDataDirectory);
+            var runtimeConfig = MapGenerationPipeline.BuildConfig(generation, 12345, TestGenerationConfigFactory.ServerDataDirectory, WorldGeneratorVersion.CurrentRevision);
             var output = MapGenerationPipeline.Generate(generation, runtimeConfig).Output;
 
             Assert.That(output.FluidVeins, Is.Not.Empty);

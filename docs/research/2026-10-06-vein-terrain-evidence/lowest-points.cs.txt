@@ -1,0 +1,12 @@
+using Client.Playtest;
+using UnityEngine;
+return PlaytestRunner.Run("lowest-water-overlap-points",new PlaytestRunOptions{Record=true},async p=>{
+p.Note("Default seed196; first water rectangle lowest live ground y5.859733; water plane y4.3");
+p.WarpPlayer(new Vector3(-336.43f,7.2f,405.76f));
+await p.WaitSeconds(1f);
+await p.Screenshot("01-water-one-lowest");
+p.Note("Second water rectangle lowest live ground y6.262589");
+p.WarpPlayer(new Vector3(1667.48f,7.6f,-334.47f));
+await p.WaitSeconds(1f);
+await p.Screenshot("02-water-two-lowest");
+});

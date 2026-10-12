@@ -77,7 +77,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
         public static byte[] CreatePlacePayload(List<PlaceInfo> placeInfos)
         {
-            return MessagePackSerializer.Serialize(new PlaceBlockProtocol.SendPlaceBlockProtocolMessagePack(placeInfos));
+            return MessagePackSerializer.Serialize(new PlaceBlockProtocol.SendPlaceBlockProtocolMessagePack(placeInfos, BlockPlacementWiring.AutoConnect));
         }
 
         public static void GrantRequiredItems(ServiceProvider serviceProvider, BlockId blockId, int costSets)

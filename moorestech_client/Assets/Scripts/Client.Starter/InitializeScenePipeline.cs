@@ -4,11 +4,13 @@ using System.Threading;
 using Client.Common;
 using Client.Game.Common;
 using Client.Game.InGame.Block;
-using Client.Game.InGame.Context;
+using Client.Game.InGame.Block.IconCapture;
 using Client.Starter.Identity;
 using Client.Starter.Initialization;
 using Client.Starter.Initialization.Progress;
 using Client.Starter.Initialization.Refusal;
+using Client.Starter.Initialization.Context;
+using Client.Starter.Initialization.Scene;
 using Cysharp.Threading.Tasks;
 using Game.Context;
 using Mooresmaster.Localization.Generated;
@@ -151,7 +153,7 @@ namespace Client.Starter
             // 取得結果から通信フォーマッタと静的コンテキストを初期化する
             // Initialize the message formatter and static context from the collected results
             MessagePackInitializer.Initialize();
-            new ClientContext(assetResult.BlockGameObjectPrefabContainer, assetResult.ItemImageContainer, assetResult.BlockImageContainer, assetResult.TrainCarImageContainer, assetResult.ConnectToolImageContainer, assetResult.FluidImageContainer, serverResult.PlayerConnectionSetting, serverResult.VanillaApi);
+            ClientContextComposer.Compose(assetResult, serverResult, blockIconImagePhotographer);
 
             // シーンロードは全アセットロード完了後に直列実行する
             // Load the scene serially, after every asset load has finished
@@ -160,7 +162,8 @@ namespace Client.Starter
             // Play終了後にここへ到達した継続はシーンロードで編集中シーンを壊すため確実に止める
             // A continuation reaching here after play-mode exit would clobber the edited scene, so stop it for certain
             exitToken.ThrowIfCancellationRequested();
-            SceneManager.sceneLoaded += MainGameSceneLoaded;
+            var sceneLoadedHandler = new MainGameSceneLoadedHandler(serverResult, serverDirectory, collectsPlaytestRecords, exitToken);
+            SceneManager.sceneLoaded += sceneLoadedHandler.OnSceneLoaded;
             SceneManager.LoadSceneAsync(SceneConstant.MainGameSceneName, LoadSceneMode.Single);
 
             #region Internal
@@ -177,30 +180,6 @@ namespace Client.Starter
                 var fetchedChunkCount = await new TerrainDataFetcher(connectionResult.VanillaApi.Response, exitToken).RunAsync(connectionResult.HandshakeResponse.MapLayout);
                 loadingProgressLog.AppendElapsed(LocalizationKeys.Ui.Loading.TerrainReady, fetchedChunkCount.ToString());
                 return connectionResult;
-            }
-
-            void MainGameSceneLoaded(Scene scene, LoadSceneMode mode)
-            {
-                SceneManager.sceneLoaded -= MainGameSceneLoaded;
-
-                // Forget境界の例外を専用callbackで観測し、DI未構築のMainGameへ取り残さない
-                // Observe the forgotten boundary through its dedicated callback so MainGame is never stranded without DI
-                new MainGameInitializationFinalizer(serverResult, serverDirectory, collectsPlaytestRecords).RunAsync(exitToken).Forget(exception =>
-                {
-                    // Play終了で言語ゲートの待ちを打ち切っただけなら失敗ではない。メインメニューへ戻さない
-                    // Cancelling the language-gate wait on play exit is not a failure, so it never returns to the main menu
-                    if (exception is OperationCanceledException)
-                    {
-                        Debug.Log("Initialization was aborted because an exit cancellation arrived midway");
-                        return;
-                    }
-                    Debug.LogError($"初期化処理中にエラーが発生しました: {exception.GetType()} {exception.Message}\n{exception.StackTrace}");
-
-                    // メインメニューへ戻る経路はすべて内蔵サーバーを道連れにする
-                    // Every path back to the main menu takes the embedded server down with it
-                    GameShutdownEvent.FireGameShutdown(GameShutdownReason.InitializationFailed);
-                    SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
-                });
             }
 
             #endregion

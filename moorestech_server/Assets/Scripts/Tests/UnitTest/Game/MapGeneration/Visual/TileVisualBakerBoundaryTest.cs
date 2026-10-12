@@ -26,7 +26,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
         public void 可視化パスの分類はタイル境界で一致する()
         {
             var config = MultiTileTestWorld.BuildConfig(GridSide, Seed);
-            var output = new VanillaGenerator().Generate(config).Output;
+            var output = new LegacyVanillaGenerator().Generate(config).Output;
             Assert.AreEqual(GridSide * GridSide, output.Tiles.Count);
 
             var visualBiomeIndicesByTile = ComputeVisualizationPathBiomeIndices(config, output);
@@ -55,7 +55,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
         public void 可視化パスの分類は生成パスの分類と全画素で一致する()
         {
             var config = MultiTileTestWorld.BuildConfig(GridSide, Seed);
-            var output = new VanillaGenerator().Generate(config).Output;
+            var output = new LegacyVanillaGenerator().Generate(config).Output;
 
             var visualBiomeIndicesByTile = ComputeVisualizationPathBiomeIndices(config, output);
             var generationBiomeIndicesByTile = TileBiomeIndexComputer.ComputeForAllTiles(config, output);

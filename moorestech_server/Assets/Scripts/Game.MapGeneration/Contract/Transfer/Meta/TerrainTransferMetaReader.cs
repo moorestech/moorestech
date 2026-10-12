@@ -62,11 +62,10 @@ namespace Game.MapGeneration.Transfer
         {
             if (!WorldMapMode.IsGenerated(worldMeta.MapMode)) return $"mapMode '{worldMeta.MapMode}' is not '{WorldMapMode.Generated}'.";
 
-            // 旧バージョンの転送ファイル構成は新クライアントが読めないので、generatorVersion 不一致は明示拒否する
-            // An older transfer layout is unreadable by a new client, so a generatorVersion mismatch is refused explicitly
-            if (worldMeta.GeneratorVersion != WorldGeneratorVersion.Current)
-                return $"It was written by generator '{worldMeta.GeneratorVersion}', but this build is '{WorldGeneratorVersion.Current}'. " +
-                       "The transferred terrain file layout changed (placementLedgerDigest now identifies the placement-dependent visual cache).";
+            // 対応する保存版はその版の生成経路で読む
+            // Read supported saved versions through their corresponding generation path
+            if (!WorldGeneratorVersion.Supports(worldMeta.GeneratorVersion))
+                return $"Unsupported generator '{worldMeta.GeneratorVersion}'; this build supports {WorldGeneratorVersion.SupportedVersionList}.";
 
             // 指紋・台帳の指紋・原点は生成時にしか決まらず補えない。0や空で読み進めると別の場所の地形や鍵になる
             // The fingerprint, ledger digest and origins exist only at generation and cannot be filled in; reading on with 0 or empty yields another place's terrain or keys

@@ -1,3 +1,5 @@
+using System;
+using Game.Block.Interface.Component;
 using System.Collections;
 using System.Collections.Generic;
 using Core.Master;
@@ -16,7 +18,7 @@ namespace Tests.UnitTest.Game
         // Static registry resolving BlockInstanceId to instance; used by TryAddWireConnection to look up the partner
         private static readonly Dictionary<BlockInstanceId, FakeWireConnector> Registry = new();
 
-        private readonly Dictionary<BlockInstanceId, (IElectricWireConnector Connector, ElectricWireConnectionCost Cost)> _wireConnections = new();
+        private readonly Dictionary<BlockInstanceId, (IElectricWireConnector Connector, ConnectionLineRecord Record)> _wireConnections = new();
         private readonly CountingWireConnections _countingWireConnections;
 
         private FakeWireConnector(BlockInstanceId blockInstanceId)
@@ -32,7 +34,7 @@ namespace Tests.UnitTest.Game
 
         public IElectricEnergyRole EnergyRole { get; private set; }
 
-        public IReadOnlyDictionary<BlockInstanceId, (IElectricWireConnector Connector, ElectricWireConnectionCost Cost)> WireConnections => _countingWireConnections;
+        public IReadOnlyDictionary<BlockInstanceId, (IElectricWireConnector Connector, ConnectionLineRecord Record)> WireConnections => _countingWireConnections;
         public int AdjacencyEnumerationCount { get; private set; }
         public int YieldedConnectionCount { get; private set; }
 
@@ -61,9 +63,9 @@ namespace Tests.UnitTest.Game
         // Test helper wiring a bidirectional connection between two fakes
         public static void ConnectEachOther(FakeWireConnector a, FakeWireConnector b)
         {
-            var cost = new ElectricWireConnectionCost(new List<ConnectToolMaterialCost> { new(new ItemId(1), 1) });
-            a.TryAddWireConnection(b.BlockInstanceId, cost);
-            b.TryAddWireConnection(a.BlockInstanceId, cost);
+            var record = new ConnectionLineRecord(Guid.Parse("c0000000-0000-0000-0000-000000000001"), new List<ConnectToolMaterialCost> { new(new ItemId(1), 1) });
+            a.TryAddWireConnection(b.BlockInstanceId, record);
+            b.TryAddWireConnection(a.BlockInstanceId, record);
         }
 
         // 双方向のワイヤー接続を解除するテスト用ヘルパー
@@ -86,24 +88,24 @@ namespace Tests.UnitTest.Game
             return _wireConnections.ContainsKey(partnerId);
         }
 
-        public bool TryAddWireConnection(BlockInstanceId partnerId, ElectricWireConnectionCost cost)
+        public bool TryAddWireConnection(BlockInstanceId partnerId, ConnectionLineRecord record)
         {
             if (_wireConnections.ContainsKey(partnerId)) return false;
             if (!Registry.TryGetValue(partnerId, out var partner)) return false;
-            _wireConnections[partnerId] = (partner, cost);
+            _wireConnections[partnerId] = (partner, record);
             return true;
         }
 
-        public bool TryRemoveWireConnection(BlockInstanceId partnerId, out ElectricWireConnectionCost cost)
+        public bool TryRemoveWireConnection(BlockInstanceId partnerId, out ConnectionLineRecord record)
         {
             if (_wireConnections.TryGetValue(partnerId, out var entry))
             {
-                cost = entry.Cost;
+                record = entry.Record;
                 _wireConnections.Remove(partnerId);
                 return true;
             }
 
-            cost = default;
+            record = default;
             return false;
         }
 
@@ -112,14 +114,14 @@ namespace Tests.UnitTest.Game
             IsDestroy = true;
         }
 
-        private sealed class CountingWireConnections : IReadOnlyDictionary<BlockInstanceId, (IElectricWireConnector Connector, ElectricWireConnectionCost Cost)>
+        private sealed class CountingWireConnections : IReadOnlyDictionary<BlockInstanceId, (IElectricWireConnector Connector, ConnectionLineRecord Record)>
         {
             private readonly FakeWireConnector _owner;
-            private readonly Dictionary<BlockInstanceId, (IElectricWireConnector Connector, ElectricWireConnectionCost Cost)> _source;
+            private readonly Dictionary<BlockInstanceId, (IElectricWireConnector Connector, ConnectionLineRecord Record)> _source;
 
             public CountingWireConnections(
                 FakeWireConnector owner,
-                Dictionary<BlockInstanceId, (IElectricWireConnector Connector, ElectricWireConnectionCost Cost)> source)
+                Dictionary<BlockInstanceId, (IElectricWireConnector Connector, ConnectionLineRecord Record)> source)
             {
                 _owner = owner;
                 _source = source;
@@ -127,20 +129,20 @@ namespace Tests.UnitTest.Game
 
             public int Count => _source.Count;
             public IEnumerable<BlockInstanceId> Keys => _source.Keys;
-            public IEnumerable<(IElectricWireConnector Connector, ElectricWireConnectionCost Cost)> Values => EnumerateValues();
-            public (IElectricWireConnector Connector, ElectricWireConnectionCost Cost) this[BlockInstanceId key] => _source[key];
+            public IEnumerable<(IElectricWireConnector Connector, ConnectionLineRecord Record)> Values => EnumerateValues();
+            public (IElectricWireConnector Connector, ConnectionLineRecord Record) this[BlockInstanceId key] => _source[key];
 
             public bool ContainsKey(BlockInstanceId key)
             {
                 return _source.ContainsKey(key);
             }
 
-            public bool TryGetValue(BlockInstanceId key, out (IElectricWireConnector Connector, ElectricWireConnectionCost Cost) value)
+            public bool TryGetValue(BlockInstanceId key, out (IElectricWireConnector Connector, ConnectionLineRecord Record) value)
             {
                 return _source.TryGetValue(key, out value);
             }
 
-            public IEnumerator<KeyValuePair<BlockInstanceId, (IElectricWireConnector Connector, ElectricWireConnectionCost Cost)>> GetEnumerator()
+            public IEnumerator<KeyValuePair<BlockInstanceId, (IElectricWireConnector Connector, ConnectionLineRecord Record)>> GetEnumerator()
             {
                 return _source.GetEnumerator();
             }
@@ -150,7 +152,7 @@ namespace Tests.UnitTest.Game
                 return GetEnumerator();
             }
 
-            private IEnumerable<(IElectricWireConnector Connector, ElectricWireConnectionCost Cost)> EnumerateValues()
+            private IEnumerable<(IElectricWireConnector Connector, ConnectionLineRecord Record)> EnumerateValues()
             {
                 _owner.AdjacencyEnumerationCount++;
                 foreach (var connection in _source.Values)

@@ -1,4 +1,7 @@
+using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
+using Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine;
 using System;
+using Client.Game.InGame.Block.Index;
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.Context;
@@ -13,7 +16,7 @@ using UnityEngine;
 
 namespace Client.Game.InGame.Block
 {
-    public class BlockGameObjectDataStore : MonoBehaviour, ISkitBlockObjectControl
+    public class BlockGameObjectDataStore : MonoBehaviour, ISkitBlockObjectControl, IBlockOccupancyQuery, IConnectionLineEndpointQuery
     {
         public IReadOnlyDictionary<Vector3Int, BlockGameObject> BlockGameObjectDictionary => _blockObjectsDictionary;
         private readonly Dictionary<Vector3Int, BlockGameObject> _blockObjectsDictionary = new();
@@ -28,10 +31,11 @@ namespace Client.Game.InGame.Block
         
         public IObservable<Vector3Int> OnBlockRemoved => _onBlockRemoved;
         private readonly Subject<Vector3Int> _onBlockRemoved = new();
+        public ulong OccupancyRevision { get; private set; }
 
         // ブロック種別ごとの索引。種別での列挙に全ブロック走査を使わないため
         // Per-block-type index, so enumerating one type needs no full scan
-        private readonly Dictionary<string, List<BlockGameObject>> _blocksByBlockType = new();
+        private readonly BlockTypeIndex _blockTypeIndex = new();
 
         // ブロックGUID別の最近傍索引。全ブロック走査での最寄り探索を毎フレーム回さないため（前例: OutcropGameObjectDatastore）
         // Per-block-GUID nearest index, so no per-frame full scan is needed for nearest lookups (precedent: OutcropGameObjectDatastore)
@@ -56,6 +60,14 @@ namespace Client.Game.InGame.Block
         public bool TryGetBlockGameObject(BlockInstanceId blockInstanceId, out BlockGameObject blockGameObject)
         {
             return _blockObjectsByInstanceIdDictionary.TryGetValue(blockInstanceId, out blockGameObject);
+        }
+
+        public bool TryGetPosition(BlockInstanceId instanceId, out Vector3Int position)
+        {
+            position = default;
+            if (!_blockObjectsByInstanceIdDictionary.TryGetValue(instanceId, out var block)) return false;
+            position = block.BlockPosInfo.OriginalPos;
+            return true;
         }
 
         /// <summary>
@@ -90,7 +102,7 @@ namespace Client.Game.InGame.Block
                 var oldBlock = _blockObjectsDictionary[blockPosition];
                 _blockObjectsByInstanceIdDictionary.Remove(oldBlock.BlockInstanceId);
                 DropFromNearestIndex(oldBlock);
-                DropFromBlockTypeIndex(oldBlock);
+                _blockTypeIndex.Remove(oldBlock);
                 Destroy(oldBlock.gameObject);
                 _blockObjectsDictionary.Remove(blockPosition);
             }
@@ -111,7 +123,8 @@ namespace Client.Game.InGame.Block
             _blockObjectsDictionary.Add(blockPosition, block);
             _blockObjectsByInstanceIdDictionary.Add(blockInstanceId, block);
             _nearestIndex.Register(block.BlockMasterElement.BlockGuid, block);
-            RegisterToBlockTypeIndex(block);
+            _blockTypeIndex.Register(block);
+            OccupancyRevision++;
             _onBlockPlaced.OnNext(block);
         }
         
@@ -125,8 +138,9 @@ namespace Client.Game.InGame.Block
             block.DestroyBlock().Forget();
             _blockObjectsByInstanceIdDictionary.Remove(block.BlockInstanceId);
             DropFromNearestIndex(block);
-            DropFromBlockTypeIndex(block);
+            _blockTypeIndex.Remove(block);
             _blockObjectsDictionary.Remove(blockPosition);
+            OccupancyRevision++;
             
             // ブロック削除イベントを発行
             // Fire block removal event
@@ -143,24 +157,7 @@ namespace Client.Game.InGame.Block
 
         public IReadOnlyList<BlockGameObject> GetBlocksByBlockType(string blockType)
         {
-            return _blocksByBlockType.TryGetValue(blockType, out var blocks) ? blocks : Array.Empty<BlockGameObject>();
-        }
-
-        private void RegisterToBlockTypeIndex(BlockGameObject block)
-        {
-            var blockType = block.BlockMasterElement.BlockType;
-            if (!_blocksByBlockType.TryGetValue(blockType, out var blocks))
-            {
-                blocks = new List<BlockGameObject>();
-                _blocksByBlockType.Add(blockType, blocks);
-            }
-            blocks.Add(block);
-        }
-
-        private void DropFromBlockTypeIndex(BlockGameObject block)
-        {
-            if (!_blocksByBlockType.TryGetValue(block.BlockMasterElement.BlockType, out var blocks)) return;
-            blocks.Remove(block);
+            return _blockTypeIndex.GetBlocks(blockType);
         }
 
         public bool IsOverlapPositionInfo(BlockPositionInfo target)
@@ -169,6 +166,28 @@ namespace Client.Game.InGame.Block
                 if (block.BlockPosInfo.IsOverlap(target))
                     return true;
             return false;
+        }
+
+        public BlockFootprintOccupancy GetOccupancy(Vector3Int origin, BlockDirection direction, BlockId blockId)
+        {
+            // IDから占有範囲を一箇所で構築する
+            // Build the footprint from the block id in one place
+            var size = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockSize;
+            var target = new BlockPositionInfo(origin, direction, size);
+            // 同じブロックが残っていても他ブロックとの重なりを優先する
+            // Another overlapping block takes priority even when the original remains
+            var sameBlockPresent = false;
+            foreach (var block in _blockObjectsDictionary.Values)
+            {
+                if (!block.BlockPosInfo.IsOverlap(target)) continue;
+                if (block.BlockPosInfo.OriginalPos == target.OriginalPos && block.BlockId == blockId)
+                {
+                    sameBlockPresent = true;
+                    continue;
+                }
+                return BlockFootprintOccupancy.OtherBlock;
+            }
+            return sameBlockPresent ? BlockFootprintOccupancy.SameBlockPresent : BlockFootprintOccupancy.Free;
         }
     }
 }

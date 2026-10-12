@@ -1,3 +1,4 @@
+using Client.Tests.BuildUndo;
 using System.Runtime.Serialization;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
@@ -115,7 +116,7 @@ namespace Client.Tests.UIState
             // Share the history with the service (avoids the trap of recording into a different instance than the one popped)
             var buildOperationHistory = new BuildOperationHistory();
             var rightShortPressInputService = new RightShortPressInputService(new RightShortPressInput());
-            return new DeleteObjectState(null, CreateCameraPolicy(applier, viewModeController), buildOperationHistory, new BuildUndoService(buildOperationHistory, null), new PlacementTargetPickService(null, null), rightShortPressInputService, new MouseCursorTooltipState());
+            return new DeleteObjectState(new FakeRemovalRestoreSender(), CreateCameraPolicy(applier, viewModeController), buildOperationHistory, new BuildUndoService(buildOperationHistory, null), new PlacementTargetPickService(null, null), rightShortPressInputService, new MouseCursorTooltipState());
         }
 
         // 鉱脈ゼロの台帳。PlaceBlockStateはコンストラクタで表示を解決するため実体が要る

@@ -49,7 +49,7 @@ namespace Tests.UnitTest.Game.Chain
             // Execute chain connection
             var connected = GearChainSystemUtil.TryConnect(posA, posB, PlayerId, ConnectToolGuid, out var connectError);
             Assert.True(connected);
-            Assert.IsEmpty(connectError ?? string.Empty);
+            Assert.AreEqual(GearChainPlacementFailureReason.None, connectError);
             Assert.AreEqual(0, CountItem(inventory, _chainItemId));
 
             // 接続が双方向に登録されていることを確認する
@@ -94,8 +94,8 @@ namespace Tests.UnitTest.Game.Chain
             var connectAC = GearChainSystemUtil.TryConnect(posA, posC, PlayerId, ConnectToolGuid, out var errorAC);
             Assert.True(connectAB);
             Assert.True(connectAC);
-            Assert.IsEmpty(errorAB ?? string.Empty);
-            Assert.IsEmpty(errorAC ?? string.Empty);
+            Assert.AreEqual(GearChainPlacementFailureReason.None, errorAB);
+            Assert.AreEqual(GearChainPlacementFailureReason.None, errorAC);
             Assert.AreEqual(0, CountItem(inventory, _chainItemId));
 
             // 接続が正しく登録されていることを確認する

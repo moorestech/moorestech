@@ -16,6 +16,9 @@ using Server.Protocol;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Util.ElectricWire;
 using Server.Protocol.PacketResponse.Util.ElectricWire.Placement;
+using Server.Event.Notification;
+using Tests.CombinedTest.Server.PacketTest.Event;
+using System.Linq;
 using Tests.Module.TestMod;
 using UnityEngine;
 
@@ -27,6 +30,37 @@ namespace Tests.CombinedTest.Server.PacketTest
     /// </summary>
     public class ElectricWireExistingConnectionTest : ElectricWireExtendProtocolTestBase
     {
+
+        [Test]
+        public void RestoreOfExistingWireDoesNotConsumeOrNotify()
+        {
+            var from = Vector3Int.zero;
+            var to = new Vector3Int(3, 0, 0);
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, from, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, to, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            var inventory = SetupInventory(0, 10);
+            Assert.IsTrue(SendConnect(from, to, ConnectToolGuid).IsSuccess);
+            var sink = EventTestUtil.RegisterCaptureSink(_serviceProvider, PlayerId);
+
+            // 既接続への復元は正常扱いでも素材を使わず拒否通知もしない
+            // Restoring an existing wire succeeds without spending or denial notification
+            Assert.IsTrue(SendRestoreConnect(from, to, ConnectToolGuid).IsSuccess);
+            Assert.AreEqual(7, CountItem(inventory, _wireItemId));
+            Assert.IsFalse(sink.TakeAll().Any(e => e.Tag == NotificationService.EventTag));
+        }
+
+        [Test]
+        public void RestoreOfMissingWireConsumesNormalConnectionCost()
+        {
+            var from = Vector3Int.zero;
+            var to = new Vector3Int(3, 0, 0);
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, from, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, to, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            var inventory = SetupInventory(0, 10);
+
+            Assert.IsTrue(SendRestoreConnect(from, to, ConnectToolGuid).IsSuccess);
+            Assert.AreEqual(7, CountItem(inventory, _wireItemId));
+        }
 
         [Test]
         public void 既存ブロック接続Operationで接続され終点InstanceIdが返る()

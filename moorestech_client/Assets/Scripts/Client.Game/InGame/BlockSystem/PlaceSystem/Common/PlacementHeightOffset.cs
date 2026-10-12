@@ -1,5 +1,5 @@
 using System;
-using Core.Master;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using UniRx;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
@@ -13,27 +13,30 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
     public class PlacementHeightOffset
     {
         private readonly ReactiveProperty<int> _value = new(0);
-        private BlockId? _previousSelectedBlockId;
+        private IPlacementTarget _previousSelectedTarget;
 
         public int Value => _value.Value;
         public IObservable<int> OnChanged => _value;
 
-        // 持ち替えたら高さは地表基準へ戻す。戻り値は選択が変わったか
-        // A block switch returns the height to ground level; the return says whether the selection changed
-        public bool SyncSelectedBlock(BlockId blockId)
+        // 対象の持ち替えを検知して高さを地表へ戻す。スポイトで同種の別向きを拾っても持ち替えとみなさないよう、向きを含めず種別とIdで比べる
+        // Detect target changes and return height to ground; compare kind and id without direction so an eyedropped other facing is not a switch
+        public void SyncSelectedTarget(IPlacementTarget target)
         {
-            var isChanged = _previousSelectedBlockId != blockId;
-            _previousSelectedBlockId = blockId;
+            if (!IsSameKindAndId(_previousSelectedTarget, target)) _value.Value = 0;
+            _previousSelectedTarget = target;
+        }
 
-            if (isChanged) _value.Value = 0;
-            return isChanged;
+        private static bool IsSameKindAndId(IPlacementTarget previous, IPlacementTarget current)
+        {
+            if (previous == null || current == null) return previous == current;
+            return previous.Kind == current.Kind && previous.Id == current.Id;
         }
 
         // 高さを扱わない設置系へ移ったときに地表基準へ戻す。次の持ち替え判定も初期化する
         // Returns to ground level when moving to a system that has no height, resetting the next block-switch check too
         public void ResetToGround()
         {
-            _previousSelectedBlockId = null;
+            _previousSelectedTarget = null;
             _value.Value = 0;
         }
 

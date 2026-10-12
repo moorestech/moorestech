@@ -1,3 +1,4 @@
+using Client.Tests.BuildUndo;
 using System.Runtime.Serialization;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Map.MapVein;
@@ -88,7 +89,7 @@ namespace Client.Tests.UIState
             // Share the history with the service (avoids the trap of recording into a different instance than the one popped)
             var buildOperationHistory = new BuildOperationHistory();
             var rightShortPressInputService = new RightShortPressInputService(new RightShortPressInput());
-            var state = new DeleteObjectState(null, CreateCameraPolicy(applier), buildOperationHistory, new BuildUndoService(buildOperationHistory, null), new PlacementTargetPickService(null, null), rightShortPressInputService, new MouseCursorTooltipState());
+            var state = new DeleteObjectState(new FakeRemovalRestoreSender(), CreateCameraPolicy(applier), buildOperationHistory, new BuildUndoService(buildOperationHistory, null), new PlacementTargetPickService(null, null), rightShortPressInputService, new MouseCursorTooltipState());
             state.OnEnter(new UITransitContext(UIStateEnum.DeleteBar));
             CollectionAssert.AreEqual(new[] { "Mode:PointerFree" }, applier.Calls);
 

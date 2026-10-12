@@ -26,7 +26,7 @@ namespace Client.Tests.WebUi.WireContracts
                 "invalid_guid", "research_failed", "block_not_open",
                 "invalid_direction", "filter_request_failed", "unknown_entry", "unknown_locale", "already_selected",
                 "stale_session", "stale_revision", "intent_not_allowed", "unknown_choice",
-                "blueprint_delete_not_found", "blueprint_delete_not_unlocked", "blueprint_delete_request_failed",
+                "blueprint_delete_not_found", "blueprint_delete_not_unlocked", "blueprint_delete_request_failed", "blueprint_delete_unknown",
                 // plan G: ポーズメニュー送信のみ。同意/異常終了はタイトルuGUIへ移設（ADR 0065）
                 // plan G: pause-menu submission only; consent/crash moved to the title uGUI (ADR 0065)
                 "empty_description", "invalid_kind", "invalid_page", "bundle_write_failed", "no_capture_session", "capture_pending", "submit_in_flight",

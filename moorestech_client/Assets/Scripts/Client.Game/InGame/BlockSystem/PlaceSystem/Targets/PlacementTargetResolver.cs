@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
+using Client.Game.InGame.UnlockState;
 using Common.Debug;
 using Game.PlacementTarget;
 using Game.UnlockState;
@@ -14,10 +15,21 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
     public class PlacementTargetResolver
     {
         private readonly PlacementTargetCatalog _catalog;
-        private readonly ClientBlueprintLibrary _blueprintLibrary;
+        private readonly IBlueprintLookup _blueprintLibrary;
         private readonly IGameUnlockStateData _gameUnlockStateData;
 
-        public PlacementTargetResolver(PlacementTargetCatalog catalog, ClientBlueprintLibrary blueprintLibrary, IGameUnlockStateData gameUnlockStateData)
+        internal bool TryGetPlacementUnlockRevision(out ulong revision)
+        {
+            if (_gameUnlockStateData is ClientGameUnlockStateData clientState)
+            {
+                revision = clientState.PlacementUnlockRevision;
+                return true;
+            }
+            revision = 0;
+            return false;
+        }
+
+        public PlacementTargetResolver(PlacementTargetCatalog catalog, IBlueprintLookup blueprintLibrary, IGameUnlockStateData gameUnlockStateData)
         {
             _catalog = catalog;
             _blueprintLibrary = blueprintLibrary;
@@ -33,8 +45,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
             foreach (var entry in UnlockedEntries())
             {
                 if (entry.Id != id) continue;
-                target = PlacementTargetFactory.Create(entry);
-                return true;
+                return PlacementTargetFactory.TryCreate(entry, _blueprintLibrary, out target);
             }
 
             target = null;
@@ -48,7 +59,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
             var targets = new List<IPlacementTarget>();
             foreach (var entry in UnlockedEntries())
             {
-                targets.Add(PlacementTargetFactory.Create(entry));
+                if (PlacementTargetFactory.TryCreate(entry, _blueprintLibrary, out var target)) targets.Add(target);
             }
 
             return targets;
@@ -59,7 +70,19 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
         public bool IsBlockUnlocked(Guid blockGuid)
         {
             var showAllPlaceable = DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement);
+            return IsBlockUnlocked(blockGuid, showAllPlaceable);
+        }
+
+        internal bool IsBlockUnlocked(Guid blockGuid, bool showAllPlaceable)
+        {
             return _catalog.IsBlockUnlocked(blockGuid, _gameUnlockStateData, showAllPlaceable);
+        }
+
+        // 線種は無料設置でも解放を免除せずカタログで判定する
+        // The catalog still requires connection-tool unlocks during free placement
+        internal bool IsConnectToolUnlocked(Guid connectToolGuid)
+        {
+            return _catalog.IsConnectToolUnlocked(connectToolGuid, _gameUnlockStateData);
         }
 
         // 解放判定と無料設置デバッグを一箇所で解決する。呼び出し側は解放条件を再実装しない

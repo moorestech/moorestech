@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Game.PlacementTarget;
+using Game.Blueprint;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
 {
@@ -16,13 +17,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
         // BPだけはマスタを持たずサーバー保存名がそのまま表示名になる
         // Blueprints have no master, so the server-stored name is the display name as-is
         public string DisplayName { get; }
+        public BlueprintJsonObject Blueprint { get; }
 
+        // BPの必要数は財布を持つビルドメニュー集約点で計算する
+        // Blueprint costs are calculated at the wallet-aware build-menu aggregation point
         public IReadOnlyList<(Guid itemGuid, int count)> CreateRequiredItems() => Array.Empty<(Guid, int)>();
 
-        public BlueprintPlacementTarget(Guid blueprintGuid, string displayName)
+        public BlueprintPlacementTarget(Guid blueprintGuid, string displayName, BlueprintJsonObject blueprint)
         {
             BlueprintGuid = blueprintGuid;
             DisplayName = displayName;
+            Blueprint = blueprint;
         }
 
         public bool Equals(IPlacementTarget other)

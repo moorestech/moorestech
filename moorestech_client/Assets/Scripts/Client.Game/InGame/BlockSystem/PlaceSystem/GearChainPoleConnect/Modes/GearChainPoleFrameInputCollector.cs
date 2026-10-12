@@ -142,7 +142,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
 
         private IGearChainPoleConnectAreaCollider GetHitPole()
         {
-            PlaceSystemUtil.TryGetRaySpecifiedComponentHit<IGearChainPoleConnectAreaCollider>(
+            PlaceSystemRaycastUtil.TryGetRaySpecifiedComponentHit<IGearChainPoleConnectAreaCollider>(
                 _mainCamera,
                 out var collider,
                 Without_Player_MapObject_BlockBoundingBox_LayerMask);

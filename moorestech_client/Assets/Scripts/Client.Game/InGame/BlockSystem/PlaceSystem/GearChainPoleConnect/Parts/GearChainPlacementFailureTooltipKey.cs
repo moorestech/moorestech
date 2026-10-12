@@ -14,9 +14,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
     {
         // 素材不足は行を作らず不足リストのまま関門へ渡す。行にした瞬間に同一アイテムの畳み込みが効かなくなる
         // A material shortage is never turned into lines here; it goes to the gate as data, since lines can no longer be folded per item
-        private static bool IsMaterialShortage(string failureReason)
+        private static bool IsMaterialShortage(GearChainPlacementFailureReason failureReason)
         {
-            return failureReason == GearChainPlacementEvaluator.NoItemError;
+            return failureReason == GearChainPlacementFailureReason.NoItem;
         }
 
         // チェーン判定が素材不足で落ちたフレームか。判定の中身はこの型の外へ出さない
@@ -29,20 +29,20 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
 
         // 可:行なし／素材不足:行なし（関門が出す）／他:理由1行
         // Placeable: none / material shortage: none (the gate emits it) / otherwise: one reason line
-        public static IReadOnlyList<TooltipLine> BuildFailureLines(bool isPlaceable, string failureReason)
+        public static IReadOnlyList<TooltipLine> BuildFailureLines(bool isPlaceable, GearChainPlacementFailureReason failureReason)
         {
             if (isPlaceable) return Array.Empty<TooltipLine>();
             if (IsMaterialShortage(failureReason)) return Array.Empty<TooltipLine>();
             return new[] { new TooltipLine(ToKey(failureReason)) };
         }
 
-        public static LocalizationKey ToKey(string failureReason)
+        public static LocalizationKey ToKey(GearChainPlacementFailureReason failureReason)
         {
             return failureReason switch
             {
-                GearChainPlacementEvaluator.TooFarError => LocalizationKeys.Ui.Tooltip.PlaceGearChainTooFar,
-                GearChainPlacementEvaluator.AlreadyConnectedError => LocalizationKeys.Ui.Tooltip.PlaceGearChainAlreadyConnected,
-                GearChainPlacementEvaluator.ConnectionLimitError => LocalizationKeys.Ui.Tooltip.PlaceGearChainConnectionLimit,
+                GearChainPlacementFailureReason.TooFar => LocalizationKeys.Ui.Tooltip.PlaceGearChainTooFar,
+                GearChainPlacementFailureReason.AlreadyConnected => LocalizationKeys.Ui.Tooltip.PlaceGearChainAlreadyConnected,
+                GearChainPlacementFailureReason.ConnectionLimit => LocalizationKeys.Ui.Tooltip.PlaceGearChainConnectionLimit,
                 // 素材不足(NoItemError)は名指しの行を素材ごとに積むためここでは写像しない
                 // Material shortage (NoItemError) is not mapped here; it becomes one named line per material
                 // 上記以外（未解放・サーバー側のみの理由）はクライアントの接続判定では発生しないため既定文言へ

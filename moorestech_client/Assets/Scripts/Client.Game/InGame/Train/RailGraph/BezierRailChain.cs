@@ -32,19 +32,13 @@ namespace Client.Game.InGame.Train.RailGraph
         private bool _useGpuDeform;
         private Color _previewColor = MaterialConst.PlaceableColor;
 
-        private readonly List<SegmentInstance> _segments = new();
+        private readonly BezierRailChainSegments _segments = new();
+        private readonly RailChainRemoveMaterial _removePreview = new();
         
         private RailGraphClientCache _railGraphClientCache;
-        private RendererMaterialReplacerController _controller;
-        private Material _removeMaterial;
         private RendererShaderAnimation _rendererShaderAnimation;
         
         public bool IsRemoving { get; private set; }
-        
-        private void Awake()
-        {
-            _removeMaterial = MaterialConst.GetPreviewPlaceBlockMaterial();
-        }
         
         public void SetRailGraphCache(RailGraphClientCache cache)
         {
@@ -56,7 +50,7 @@ namespace Client.Game.InGame.Train.RailGraph
         public void SetUseGpuDeform(bool enable)
         {
             _useGpuDeform = enable;
-            foreach (var segment in _segments) foreach (var mesh in segment.Meshes) mesh.SetUseGpuDeform(_useGpuDeform);
+            _segments.SetUseGpuDeform(_useGpuDeform);
         }
 
         // プレビュー色を設定する
@@ -64,13 +58,20 @@ namespace Client.Game.InGame.Train.RailGraph
         public void SetPreviewColor(Color color)
         {
             _previewColor = color;
-            foreach (var segment in _segments) foreach (var mesh in segment.Meshes) mesh.SetPreviewColor(_previewColor);
+            _segments.SetPreviewColor(_previewColor);
         }
         
         public async UniTask PlaceAnimation()
         {
             _rendererShaderAnimation ??= gameObject.AddComponent<RendererShaderAnimation>();
             await _rendererShaderAnimation.PlaceAnimation();
+            if (this == null) return;
+
+            // 設置アニメの材質リセットで置換器が古くなるため、作り直してから赤を戻す
+            // The place animation's material reset stales the replacer, so recapture before restoring red
+            _removePreview.Release();
+            if (!_useGpuDeform) _removePreview.Capture(gameObject);
+            if (TryGetComponent<RailChainRemovePreview>(out var preview)) preview.Reapply();
         }
         
         public async UniTask RemoveAnimation()
@@ -85,12 +86,7 @@ namespace Client.Game.InGame.Train.RailGraph
         public void SetUseMeshCollider(bool useMeshCollider)
         {
             _useMeshCollider = useMeshCollider;
-            foreach (var segment in _segments)
-            {
-                if (segment?.Root == null) continue;
-                var colliders = segment.Root.GetComponentsInChildren<MeshCollider>(true);
-                foreach (var collider in colliders) collider.enabled = _useMeshCollider;
-            }
+            _segments.SetUseMeshCollider(_useMeshCollider);
         }
         
         /// <summary>外部コードから制御点を再設定する</summary>
@@ -106,214 +102,96 @@ namespace Client.Game.InGame.Train.RailGraph
         {
             // ベジエチェーンを最新情報で組み直す
             // Rebuild full chain along the current control points
-            ClearSegmentsImmediate();
+            _removePreview.Release();
+            _segments.Clear(transform);
             if (_modulePrefab == null)
+            {
+                Debug.LogWarning("[BezierRailChain] rebuild skipped: module prefab missing");
                 return;
+            }
 
-            var moduleLength = GetModuleLength(_modulePrefab, 0f);
+            var moduleLength = _segments.GetModuleLength(_modulePrefab, _forwardAxis, _upAxis, 0f);
             if (moduleLength <= 0f)
+            {
+                Debug.LogWarning("[BezierRailChain] rebuild skipped: module length unavailable");
                 return;
+            }
 
             _curveSampleCountCache = _useGpuDeform ? Mathf.Clamp(_curveSamples, 8, BezierRailMesh.MaxCurveSamples) : _curveSamples;
             _curveLength = BezierUtility.BuildArcLengthTable(_point0, _point1, _point2, _point3, _curveSampleCountCache, ref _arcLengths);
             if (_curveLength <= 1e-4f)
+            {
+                Debug.LogWarning("[BezierRailChain] rebuild skipped: curve too short");
                 return;
+            }
 
+            // メッシュ生成へ現在の曲線設定を渡す
+            // Pass current curve settings to mesh creation
+            _segments.Configure(new BezierRailChainSegments.Settings
+            {
+                Owner = this,
+                RailCache = _railGraphClientCache,
+                ForwardAxis = _forwardAxis,
+                UpAxis = _upAxis,
+                Point0 = _point0,
+                Point1 = _point1,
+                Point2 = _point2,
+                Point3 = _point3,
+                CurveSamples = _curveSamples,
+                CurveSampleCount = _curveSampleCountCache,
+                CurveLength = _curveLength,
+                ArcLengths = _arcLengths,
+                UseGpuDeform = _useGpuDeform,
+                UseMeshCollider = _useMeshCollider,
+                PreviewColor = _previewColor,
+            });
             var offset = 0f;
             var fullSegmentCount = Mathf.Max(0, Mathf.FloorToInt(_curveLength / moduleLength));
 
             for (var i = 0; i < fullSegmentCount; i++)
             {
-                var segment = CreateSegmentGO(i, _modulePrefab);
-                ConfigureSegmentInstance(segment, offset, moduleLength);
+                var segment = _segments.CreateSegmentGO(i, _modulePrefab);
+                _segments.ConfigureSegmentInstance(segment, offset, moduleLength);
                 offset += moduleLength;
             }
 
             var remainder = Mathf.Max(0f, _curveLength - offset);
-            if (remainder <= 1e-4f)
-                return;
-
-            // 端数は多めに生成し、終端Clampによる縮小で隙間を吸収する
-            // Generate extra remainder coverage and let end clamping shrink the last segment
-            var remainderSteps = Mathf.Clamp(Mathf.CeilToInt(remainder / moduleLength * 8f), 1, 8);
-            var halfLength = _halfModulePrefab != null ? GetModuleLength(_halfModulePrefab, moduleLength * 0.5f) : moduleLength * 0.5f;
-            var quarterLength = _quarterModulePrefab != null ? GetModuleLength(_quarterModulePrefab, moduleLength * 0.25f) : moduleLength * 0.25f;
-            var eighthLength = _eighthModulePrefab != null ? GetModuleLength(_eighthModulePrefab, moduleLength * 0.125f) : moduleLength * 0.125f;
-            TryCreatePartialSegment(ref remainderSteps, 4, _halfModulePrefab, halfLength, ref offset);
-            TryCreatePartialSegment(ref remainderSteps, 2, _quarterModulePrefab, quarterLength, ref offset);
-            TryCreatePartialSegment(ref remainderSteps, 1, _eighthModulePrefab, eighthLength, ref offset);
-            TryCreatePartialSegment(ref remainderSteps, 1, _eighthModulePrefab, eighthLength, ref offset);
-            if (remainderSteps > 0)
+            if (remainder > 1e-4f)
             {
-                Debug.LogWarning($"[BezierRailChain] 端数を埋められませんでした (残りステップ:{remainderSteps}). 必要な長さのモジュールが揃っているか確認してください。", this);
+                // 端数は多めに生成し、終端Clampによる縮小で隙間を吸収する
+                // Generate extra remainder coverage and let end clamping shrink the last segment
+                _segments.FillRemainder(remainder, moduleLength, offset, _halfModulePrefab, _quarterModulePrefab, _eighthModulePrefab);
             }
-            
-            if (!_useGpuDeform) _controller = new RendererMaterialReplacerController(gameObject);
+
+            if (!_useGpuDeform) _removePreview.Capture(gameObject);
+
+            // 組み直しで消えた赤を戻す
+            // Restore the red lost by the rebuild
+            if (TryGetComponent<RailChainRemovePreview>(out var preview)) preview.Reapply();
         }
 
         private void OnDestroy()
         {
-            ClearSegmentsImmediate();
+            _removePreview.Release();
+            _segments.Clear(transform);
         }
 
         private void OnDisable()
         {
-            ClearSegmentsImmediate();
+            _removePreview.Release();
+            _segments.Clear(transform);
         }
 
-        private void ClearSegmentsImmediate()
+        // 撤去アニメ中の扱いは赤の唯一の書き手 RailChainRemovePreview が判断する
+        // The sole red writer RailChainRemovePreview decides how to treat a rail under removal animation
+        internal void SetRemovePreviewing()
         {
-            // 生成済みセグメントをすべて破棄
-            // Dispose every spawned segment instance
-            for (var i = _segments.Count - 1; i >= 0; i--)
-                DestroySegment(_segments[i]);
-            _segments.Clear();
-
-            var staleChildren = new List<GameObject>();
-            foreach (Transform child in transform)
-            {
-                if (child != null && child.name.StartsWith("Segment_"))
-                    staleChildren.Add(child.gameObject);
-            }
-
-            foreach (var child in staleChildren)
-                Destroy(child);
+            _removePreview.SetRed(gameObject, _useGpuDeform, _segments);
         }
 
-        private SegmentInstance CreateSegmentGO(int index, GameObject prefab)
+        internal void ResetMaterial()
         {
-            // レール用プレハブをインスタンス化しBezier変形対象を収集
-            // Instantiate module prefab and collect mesh deformers
-            var segment = new SegmentInstance();
-            var instance = Instantiate(prefab, transform);
-            instance.layer = LayerConst.BlockLayer;
-            instance.name = $"Segment_{index}";
-            segment.Root = instance;
-            PrepareMeshComponents(instance, segment);
-            _segments.Add(segment);
-            return segment;
-        }
-
-        private void PrepareMeshComponents(GameObject root, SegmentInstance segment)
-        {
-            var filters = root.GetComponentsInChildren<MeshFilter>(true);
-            foreach (var filter in filters)
-            {
-                if (filter.sharedMesh == null)
-                    continue;
-
-                var renderer = filter.GetComponent<MeshRenderer>();
-                if (renderer == null)
-                    renderer = filter.gameObject.AddComponent<MeshRenderer>();
-
-                ConfigureMeshCollider(filter);
-
-                var meshComponent = filter.GetComponent<BezierRailMesh>();
-                if (meshComponent == null)
-                    meshComponent = filter.gameObject.AddComponent<BezierRailMesh>();
-                
-                var deleteTarget = filter.GetComponent<DeleteTargetRail>();
-                if (deleteTarget == null)
-                    deleteTarget = filter.gameObject.AddComponent<DeleteTargetRail>();
-                
-                meshComponent.SetSourceMesh(filter.sharedMesh);
-                meshComponent.SetAxes(_forwardAxis, _upAxis);
-                meshComponent.SetSamples(_curveSamples);
-                meshComponent.SetUseGpuDeform(_useGpuDeform);
-                meshComponent.SetPreviewColor(_previewColor);
-                deleteTarget.SetParentBezierRailChain(this);
-                deleteTarget.SetRailGraphCache(_railGraphClientCache);
-                segment.Meshes.Add(meshComponent);
-            }
-        }
-
-        private void ConfigureSegmentInstance(SegmentInstance segment, float offset, float length)
-        {
-            foreach (var mesh in segment.Meshes)
-            {
-                mesh.SetControlPoints(_point0, _point1, _point2, _point3);
-                mesh.SetAxes(_forwardAxis, _upAxis);
-                mesh.SetSamples(_curveSamples);
-                mesh.SetUseGpuDeform(_useGpuDeform);
-                mesh.SetCurveData(_curveLength, _arcLengths, _curveSampleCountCache);
-                mesh.SetPreviewColor(_previewColor);
-                mesh.ConfigureSegment(offset, length);
-                mesh.Deform();
-            }
-        }
-
-        private void TryCreatePartialSegment(ref int remainderSteps, int stepValue, GameObject prefab, float segmentLength, ref float offset)
-        {
-            if (remainderSteps < stepValue)
-                return;
-            if (prefab == null)
-                return;
-
-            var segment = CreateSegmentGO(_segments.Count, prefab);
-            ConfigureSegmentInstance(segment, offset, segmentLength);
-            offset += segmentLength;
-            remainderSteps -= stepValue;
-        }
-
-        private float GetModuleLength(GameObject prefab, float fallback)
-        {
-            // プレハブ配下のメッシュ群から長さを計測し、失敗時はフォールバック
-            // Measure prefab span via child meshes and fall back when unavailable
-            if (prefab == null)
-                return fallback;
-
-            float prefabLength = 0f;
-            var filters = prefab.GetComponentsInChildren<MeshFilter>(true);
-            foreach (var filter in filters)
-            {
-                if (filter.sharedMesh == null)
-                    continue;
-                var candidate = BezierRailMesh.CalculateModuleLength(filter.sharedMesh, _forwardAxis, _upAxis);
-                if (candidate > prefabLength)
-                    prefabLength = candidate;
-            }
-
-            return prefabLength > 1e-4f ? prefabLength : fallback;
-        }
-
-        private static void DestroySegment(SegmentInstance segment)
-        {
-            if (segment?.Root == null)
-                return;
-            Destroy(segment.Root);
-        }
-
-        // MeshColliderを設定する
-        // Configure MeshCollider
-        private void ConfigureMeshCollider(MeshFilter filter)
-        {
-            var collider = filter.GetComponent<MeshCollider>();
-            if (_useMeshCollider)
-            {
-                if (collider == null) collider = filter.gameObject.AddComponent<MeshCollider>();
-                collider.sharedMesh = filter.sharedMesh;
-                collider.enabled = true;
-                return;
-            }
-            if (collider != null) collider.enabled = false;
-        }
-
-        private sealed class SegmentInstance
-        {
-            internal GameObject Root;
-            internal readonly List<BezierRailMesh> Meshes = new();
-        }
-        
-        public void SetRemovePreviewing()
-        {
-            if (IsRemoving) return;
-            _controller.CopyAndSetMaterial(_removeMaterial);
-            _controller.SetColor(MaterialConst.PreviewColorPropertyName, MaterialConst.NotPlaceableColor);
-        }
-        
-        public void ResetMaterial()
-        {
-            _controller.ResetMaterial();   
+            _removePreview.Reset(_useGpuDeform, _previewColor, _segments);
         }
     }
 }

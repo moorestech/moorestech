@@ -40,7 +40,7 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
             var sourcePole = new FakeGearChainPole(new Vector3Int(0, 0, 0));
             var input = GearChainPoleDecideInputs.CreateGhostReadyInput(sourcePole);
             input.GhostMaterialShortages = new[] { new ConstructionMaterialShortage(MasterHolder.ItemMaster.GetItemId(MaterialGuid), 1, 4) };
-            input.ExtendPreview = new GearChainPoleExtendPreviewData(Vector3.zero, Vector3.one, GearChainPlacementJudgement.Failure(GearChainPlacementEvaluator.NoItemError), Array.Empty<ConstructionMaterialShortage>());
+            input.ExtendPreview = new GearChainPoleExtendPreviewData(Vector3.zero, Vector3.one, GearChainPlacementJudgement.Failure(GearChainPlacementFailureReason.NoItem), Array.Empty<ConstructionMaterialShortage>());
 
             var feedback = new PlacementFeedback();
             GearChainPolePlaceExtendMode.Decide(input).PushFeedback(feedback);

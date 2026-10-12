@@ -84,6 +84,13 @@ namespace Tests.CombinedTest.Server.PacketTest
             return MessagePackSerializer.Deserialize<ElectricWireExtendProtocol.ElectricWireExtendResponse>(responses[0]);
         }
 
+        protected ElectricWireExtendProtocol.ElectricWireExtendResponse SendRestoreConnect(Vector3Int fromPos, Vector3Int toPos, Guid connectToolGuid)
+        {
+            var payload = MessagePackSerializer.Serialize(ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateRestoreConnectRequest(fromPos, toPos, connectToolGuid));
+            var responses = _packet.GetPacketResponse(payload, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
+            return MessagePackSerializer.Deserialize<ElectricWireExtendProtocol.ElectricWireExtendResponse>(responses[0]);
+        }
+
         protected static int CountItem(IOpenableInventory inventory, ItemId itemId)
         {
             var total = 0;

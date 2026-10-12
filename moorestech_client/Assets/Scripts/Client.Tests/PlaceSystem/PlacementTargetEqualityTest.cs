@@ -41,8 +41,8 @@ namespace Client.Tests.PlaceSystem
             // ブループリントはGuidで区別する（同名でも別Guidなら別物、同Guidなら名前が違っても同一）
             // Blueprints are distinguished by GUID (same name with a different GUID is distinct; same GUID is identical even with a different name)
             var blueprintGuid = Guid.NewGuid();
-            Assert.IsTrue(new BlueprintPlacementTarget(blueprintGuid, "bp1").Equals(new BlueprintPlacementTarget(blueprintGuid, "bp1")));
-            Assert.IsFalse(new BlueprintPlacementTarget(blueprintGuid, "bp1").Equals(new BlueprintPlacementTarget(Guid.NewGuid(), "bp1")));
+            Assert.IsTrue(new BlueprintPlacementTarget(blueprintGuid, "bp1", new global::Game.Blueprint.BlueprintJsonObject()).Equals(new BlueprintPlacementTarget(blueprintGuid, "bp1", new global::Game.Blueprint.BlueprintJsonObject())));
+            Assert.IsFalse(new BlueprintPlacementTarget(blueprintGuid, "bp1", new global::Game.Blueprint.BlueprintJsonObject()).Equals(new BlueprintPlacementTarget(Guid.NewGuid(), "bp1", new global::Game.Blueprint.BlueprintJsonObject())));
         }
 
         [Test]
@@ -53,7 +53,7 @@ namespace Client.Tests.PlaceSystem
             Assert.IsFalse(new BlueprintCopyPlacementTarget(buildToolGuid).Equals(new BlueprintCopyPlacementTarget(Guid.NewGuid())));
             var guid = Guid.NewGuid();
             Assert.IsFalse(new BlockPlacementTarget(BlockGuidA, null).Equals(new TrainCarPlacementTarget(guid)));
-            Assert.IsFalse(new BlueprintPlacementTarget(Guid.NewGuid(), "x").Equals(new ConnectToolPlacementTarget(Guid.NewGuid())));
+            Assert.IsFalse(new BlueprintPlacementTarget(Guid.NewGuid(), "x", new global::Game.Blueprint.BlueprintJsonObject()).Equals(new ConnectToolPlacementTarget(Guid.NewGuid())));
         }
     }
 }

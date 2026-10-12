@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
-using Client.Game.InGame.Block;
+using Client.Game.InGame.Block.IconCapture;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;

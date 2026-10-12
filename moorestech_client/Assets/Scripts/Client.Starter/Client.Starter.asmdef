@@ -28,6 +28,7 @@
         "Core.Item.Interface",
         "Game.Paths",
         "Game.MapGeneration.Contract",
+        "Game.MapGeneration.Facade",
         "Common.Debug",
         "Client.Localization",
         "Mod.Loader",

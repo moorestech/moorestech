@@ -21,6 +21,7 @@ namespace Client.Game.InGame.UnlockState
         public IReadOnlyDictionary<Guid, TrainCarUnlockStateInfo> TrainCarUnlockStateInfos => _trainCarUnlockStateInfos;
         public IReadOnlyDictionary<Guid, ConnectToolUnlockStateInfo> ConnectToolUnlockStateInfos => _connectToolUnlockStateInfos;
         public bool IsBlueprintUnlocked { get; private set; }
+        public ulong PlacementUnlockRevision { get; private set; }
 
         private readonly Dictionary<Guid, CraftRecipeUnlockStateInfo> _recipeUnlockStateInfos = new();
         private readonly Dictionary<ItemId, ItemUnlockStateInfo> _itemUnlockStateInfos = new();
@@ -138,6 +139,7 @@ namespace Client.Game.InGame.UnlockState
                  case UnlockEventType.Block:
                      var blockGuid = message.UnlockedBlockGuid;
                      _blockUnlockStateInfos[blockGuid] = new BlockUnlockStateInfo(blockGuid, true);
+                     PlacementUnlockRevision++;
                      break;
                  // 列車車両の解放をイベントから反映する
                  // Reflect train car unlock from the event
@@ -150,6 +152,7 @@ namespace Client.Game.InGame.UnlockState
                  case UnlockEventType.ConnectTool:
                      var connectToolGuid = message.UnlockedConnectToolGuid;
                      _connectToolUnlockStateInfos[connectToolGuid] = new ConnectToolUnlockStateInfo(connectToolGuid, true);
+                     PlacementUnlockRevision++;
                      break;
                  // BP解放をイベントから反映
                  // Reflect the blueprint feature unlock from the event

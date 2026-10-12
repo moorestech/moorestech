@@ -37,7 +37,7 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
 
             // 電線1＋電柱2で3必要なところを2しか持たない
             // 3 are needed (1 wire plus 2 for the pole) against only 2 held
-            var preview = ElectricWireExtendPreviewCalculator.BuildNewPolePreview(1f, false, WireConnectToolGuid, BuildInventory(wireItemId, 2), new[] { (itemId: wireItemId, count: 2) });
+            var preview = ElectricWireExtendPreviewCalculator.BuildNewPolePreview(1f, false, WireConnectToolGuid, BuildInventory(wireItemId, 2), new[] { (itemId: wireItemId, count: 2) }, false);
 
             Assert.IsFalse(preview.IsPlaceable);
             Assert.AreEqual(ElectricWirePlacementFailureReason.NoWireItem, preview.Judgement.FailureReason);
@@ -53,13 +53,27 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
         {
             var wireItemId = MasterHolder.ItemMaster.GetItemId(WireMaterialGuid);
 
-            var preview = ElectricWireExtendPreviewCalculator.BuildNewPolePreview(1f, false, WireConnectToolGuid, BuildInventory(wireItemId, 2), Array.Empty<(ItemId itemId, int count)>());
+            var preview = ElectricWireExtendPreviewCalculator.BuildNewPolePreview(1f, false, WireConnectToolGuid, BuildInventory(wireItemId, 2), Array.Empty<(ItemId itemId, int count)>(), false);
 
             Assert.IsTrue(preview.IsPlaceable);
             Assert.IsEmpty(preview.MaterialShortages);
         }
 
-        private static List<IItemStack> BuildInventory(ItemId itemId, int count)
+        [Test]
+        // 無料設置は電線も電柱コストも払わないので、所持0でも設置可・消費数0になる
+        // Free placement pays for neither wire nor pole, so it is placeable with nothing held and costs zero
+        public void 無料設置なら所持0でも設置可で電線消費数は0になる()
+        {
+            var wireItemId = MasterHolder.ItemMaster.GetItemId(WireMaterialGuid);
+
+            var preview = ElectricWireExtendPreviewCalculator.BuildNewPolePreview(1f, false, WireConnectToolGuid, BuildInventory(wireItemId, 0), new[] { (itemId: wireItemId, count: 2) }, true);
+
+            Assert.IsTrue(preview.IsPlaceable);
+            Assert.AreEqual(0, preview.WireCostCount);
+            Assert.IsEmpty(preview.MaterialShortages);
+        }
+
+                private static List<IItemStack> BuildInventory(ItemId itemId, int count)
         {
             return new List<IItemStack> { ServerContext.ItemStackFactory.Create(itemId, count) };
         }

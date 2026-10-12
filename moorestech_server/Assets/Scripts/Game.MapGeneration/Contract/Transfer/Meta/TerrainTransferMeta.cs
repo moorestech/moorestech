@@ -38,7 +38,9 @@ namespace Game.MapGeneration.Transfer
             if (mapMode == WorldMapMode.Template) return new TemplateTerrainTransferMeta(worldId, worldSeed);
             if (WorldMapMode.IsGenerated(mapMode))
             {
-                WorldGeneratorVersion.ThrowIfDiffers(generatorVersion, worldId);
+                // 版照合はpayload構築より先。別ビルドのワイヤ値は必須項目が欠け、後にすると版不一致の診断へ届かない
+                // The version check precedes building the payload; another build's wire values lack required fields, so checking later never reaches the version-mismatch diagnosis
+                WorldGeneratorVersion.ThrowIfUnsupported(generatorVersion, worldId);
                 return new GeneratedTerrainTransferMeta(
                     worldId, terrainResolution, terrainTileCount, terrainChunkTotal, worldSeed,
                     new GeneratedTerrainTransferPayload(origins, generationMasterFingerprint, generatorVersion, placementLedgerDigest));

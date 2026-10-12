@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Thumbnail;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Construction;
 using Client.Game.InGame.UI.Inventory.Equipment;
@@ -80,7 +81,7 @@ namespace Client.Tests.WebUi
             var controller = new LocalPlayerInventoryController(new LocalPlayerInventory(), new LocalPlayerEquipment());
             var topic = new BuildMenuTopic(
                 new WebSocketHub(), control, blueprintLibrary, resolver,
-                new ConstructionWalletQuery(new ClientRemainingPlacementCountDatastore()), controller);
+                new ConstructionWalletQuery(new ClientRemainingPlacementCountDatastore()), controller, new BlueprintThumbnailContainer());
             return (topic, controller, controlObject);
         }
 

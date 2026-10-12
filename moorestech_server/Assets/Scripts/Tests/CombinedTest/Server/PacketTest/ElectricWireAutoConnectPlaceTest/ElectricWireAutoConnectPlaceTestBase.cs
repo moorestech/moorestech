@@ -70,6 +70,11 @@ namespace Tests.CombinedTest.Server.PacketTest
 
         protected static void PlaceBlock(PacketResponseCreator packet, BlockId blockId, Vector3Int position)
         {
+            PlaceBlockWithWiring(packet, blockId, position, BlockPlacementWiring.AutoConnect);
+        }
+
+        protected static void PlaceBlockWithWiring(PacketResponseCreator packet, BlockId blockId, Vector3Int position, BlockPlacementWiring wiring)
+        {
             var placeInfo = new List<PlaceInfo>
             {
                 new()
@@ -81,7 +86,7 @@ namespace Tests.CombinedTest.Server.PacketTest
                 },
             };
 
-            var payload = MessagePackSerializer.Serialize(new PlaceBlockProtocol.SendPlaceBlockProtocolMessagePack(placeInfo));
+            var payload = MessagePackSerializer.Serialize(new PlaceBlockProtocol.SendPlaceBlockProtocolMessagePack(placeInfo, wiring));
             packet.GetPacketResponse(payload, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
         }
 

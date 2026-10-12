@@ -43,7 +43,7 @@ namespace Client.Tests.PlaceSystem
             // Hit on -Z face of existing block → new block origin should be z=4
             var hitPoint = new Vector3(5.5f, 5.5f, 5.0f);
 
-            var pos = PlaceSystemUtil.CalcPlacePoint(MakeUnitBlock(), hitPoint, 0, BlockDirection.North, PreviewSurfaceType.YX_Origin);
+            var pos = PlaceSystemUtil.CalcPlacePoint(MakeUnitBlock(), hitPoint, 0, BlockDirection.North, PreviewSurfaceType.YX_Origin, 0f);
 
             Assert.AreEqual(new Vector3Int(5, 5, 4), pos);
         }
@@ -55,7 +55,7 @@ namespace Client.Tests.PlaceSystem
             // Hit on +Z face → new block origin at z=6
             var hitPoint = new Vector3(5.5f, 5.5f, 6.0f);
 
-            var pos = PlaceSystemUtil.CalcPlacePoint(MakeUnitBlock(), hitPoint, 0, BlockDirection.North, PreviewSurfaceType.YX_Z);
+            var pos = PlaceSystemUtil.CalcPlacePoint(MakeUnitBlock(), hitPoint, 0, BlockDirection.North, PreviewSurfaceType.YX_Z, 0f);
 
             Assert.AreEqual(new Vector3Int(5, 5, 6), pos);
         }
@@ -67,7 +67,7 @@ namespace Client.Tests.PlaceSystem
             // Hit on -X face → new block origin at x=4
             var hitPoint = new Vector3(5.0f, 5.5f, 5.5f);
 
-            var pos = PlaceSystemUtil.CalcPlacePoint(MakeUnitBlock(), hitPoint, 0, BlockDirection.North, PreviewSurfaceType.YZ_Origin);
+            var pos = PlaceSystemUtil.CalcPlacePoint(MakeUnitBlock(), hitPoint, 0, BlockDirection.North, PreviewSurfaceType.YZ_Origin, 0f);
 
             Assert.AreEqual(new Vector3Int(4, 5, 5), pos);
         }
@@ -78,7 +78,7 @@ namespace Client.Tests.PlaceSystem
             // 既存ブロックの+X面 (x=6) にヒット → 新ブロックは x=6 に置かれるべき
             var hitPoint = new Vector3(6.0f, 5.5f, 5.5f);
 
-            var pos = PlaceSystemUtil.CalcPlacePoint(MakeUnitBlock(), hitPoint, 0, BlockDirection.North, PreviewSurfaceType.YZ_X);
+            var pos = PlaceSystemUtil.CalcPlacePoint(MakeUnitBlock(), hitPoint, 0, BlockDirection.North, PreviewSurfaceType.YZ_X, 0f);
 
             Assert.AreEqual(new Vector3Int(6, 5, 5), pos);
         }
@@ -89,7 +89,7 @@ namespace Client.Tests.PlaceSystem
             // 既存ブロックの+Y面 (y=6) にヒット → 新ブロックは y=6 に置かれるべき
             var hitPoint = new Vector3(5.5f, 6.0f, 5.5f);
 
-            var pos = PlaceSystemUtil.CalcPlacePoint(MakeUnitBlock(), hitPoint, 0, BlockDirection.North, PreviewSurfaceType.XZ_Y);
+            var pos = PlaceSystemUtil.CalcPlacePoint(MakeUnitBlock(), hitPoint, 0, BlockDirection.North, PreviewSurfaceType.XZ_Y, 0f);
 
             Assert.AreEqual(new Vector3Int(5, 6, 5), pos);
         }
@@ -101,7 +101,7 @@ namespace Client.Tests.PlaceSystem
             // Hit on -Y face → new block origin at y=4
             var hitPoint = new Vector3(5.5f, 5.0f, 5.5f);
 
-            var pos = PlaceSystemUtil.CalcPlacePoint(MakeUnitBlock(), hitPoint, 0, BlockDirection.North, PreviewSurfaceType.XZ_Origin);
+            var pos = PlaceSystemUtil.CalcPlacePoint(MakeUnitBlock(), hitPoint, 0, BlockDirection.North, PreviewSurfaceType.XZ_Origin, 0f);
 
             Assert.AreEqual(new Vector3Int(5, 4, 5), pos);
         }
@@ -115,7 +115,7 @@ namespace Client.Tests.PlaceSystem
             // → FloorToInt would drop it one block too low
             var hitPoint = new Vector3(5.5f, 4.9999f, 5.5f);
 
-            var pos = PlaceSystemUtil.CalcPlacePoint(MakeUnitBlock(), hitPoint, 0, BlockDirection.North, PreviewSurfaceType.XZ_Origin);
+            var pos = PlaceSystemUtil.CalcPlacePoint(MakeUnitBlock(), hitPoint, 0, BlockDirection.North, PreviewSurfaceType.XZ_Origin, 0f);
 
             Assert.AreEqual(new Vector3Int(5, 4, 5), pos);
         }
@@ -126,7 +126,7 @@ namespace Client.Tests.PlaceSystem
             // -Z側から当てたレイは hit.z が 4.9999... を返すことがある
             var hitPoint = new Vector3(5.5f, 5.5f, 4.9999f);
 
-            var pos = PlaceSystemUtil.CalcPlacePoint(MakeUnitBlock(), hitPoint, 0, BlockDirection.North, PreviewSurfaceType.YX_Origin);
+            var pos = PlaceSystemUtil.CalcPlacePoint(MakeUnitBlock(), hitPoint, 0, BlockDirection.North, PreviewSurfaceType.YX_Origin, 0f);
 
             Assert.AreEqual(new Vector3Int(5, 5, 4), pos);
         }
@@ -137,7 +137,7 @@ namespace Client.Tests.PlaceSystem
             // -X側から当てたレイは hit.x が 4.9999... を返すことがある
             var hitPoint = new Vector3(4.9999f, 5.5f, 5.5f);
 
-            var pos = PlaceSystemUtil.CalcPlacePoint(MakeUnitBlock(), hitPoint, 0, BlockDirection.North, PreviewSurfaceType.YZ_Origin);
+            var pos = PlaceSystemUtil.CalcPlacePoint(MakeUnitBlock(), hitPoint, 0, BlockDirection.North, PreviewSurfaceType.YZ_Origin, 0f);
 
             Assert.AreEqual(new Vector3Int(4, 5, 5), pos);
         }
@@ -151,7 +151,7 @@ namespace Client.Tests.PlaceSystem
             // 面座標+ε側(hit=5.0001)でも正しく y=4 に落ちること
             var hitPoint = new Vector3(5.5f, 5.0001f, 5.5f);
 
-            var pos = PlaceSystemUtil.CalcPlacePoint(MakeUnitBlock(), hitPoint, 0, BlockDirection.North, PreviewSurfaceType.XZ_Origin);
+            var pos = PlaceSystemUtil.CalcPlacePoint(MakeUnitBlock(), hitPoint, 0, BlockDirection.North, PreviewSurfaceType.XZ_Origin, 0f);
 
             Assert.AreEqual(new Vector3Int(5, 4, 5), pos);
         }
@@ -163,7 +163,7 @@ namespace Client.Tests.PlaceSystem
             // Upper face at y=6, hit just below (5.9999) should still resolve to y=6
             var hitPoint = new Vector3(5.5f, 5.9999f, 5.5f);
 
-            var pos = PlaceSystemUtil.CalcPlacePoint(MakeUnitBlock(), hitPoint, 0, BlockDirection.North, PreviewSurfaceType.XZ_Y);
+            var pos = PlaceSystemUtil.CalcPlacePoint(MakeUnitBlock(), hitPoint, 0, BlockDirection.North, PreviewSurfaceType.XZ_Y, 0f);
 
             Assert.AreEqual(new Vector3Int(5, 6, 5), pos);
         }
@@ -174,7 +174,7 @@ namespace Client.Tests.PlaceSystem
             // 南面 z=6 の -ε側(hit=5.9999) でも z=6 に解決すること
             var hitPoint = new Vector3(5.5f, 5.5f, 5.9999f);
 
-            var pos = PlaceSystemUtil.CalcPlacePoint(MakeUnitBlock(), hitPoint, 0, BlockDirection.North, PreviewSurfaceType.YX_Z);
+            var pos = PlaceSystemUtil.CalcPlacePoint(MakeUnitBlock(), hitPoint, 0, BlockDirection.North, PreviewSurfaceType.YX_Z, 0f);
 
             Assert.AreEqual(new Vector3Int(5, 5, 6), pos);
         }
@@ -185,7 +185,7 @@ namespace Client.Tests.PlaceSystem
             // 東面 x=6 の -ε側(hit=5.9999) でも x=6 に解決すること
             var hitPoint = new Vector3(5.9999f, 5.5f, 5.5f);
 
-            var pos = PlaceSystemUtil.CalcPlacePoint(MakeUnitBlock(), hitPoint, 0, BlockDirection.North, PreviewSurfaceType.YZ_X);
+            var pos = PlaceSystemUtil.CalcPlacePoint(MakeUnitBlock(), hitPoint, 0, BlockDirection.North, PreviewSurfaceType.YZ_X, 0f);
 
             Assert.AreEqual(new Vector3Int(6, 5, 5), pos);
         }
@@ -199,7 +199,7 @@ namespace Client.Tests.PlaceSystem
             // For unit block (odd size), heightOffset=0 uses hit position as-is
             var hitPoint = new Vector3(5.3f, 4.0f, 5.7f);
 
-            var pos = PlaceSystemUtil.CalcPlacePoint(MakeUnitBlock(), hitPoint, 0, BlockDirection.North, (PreviewSurfaceType?)null);
+            var pos = PlaceSystemUtil.CalcPlacePoint(MakeUnitBlock(), hitPoint, 0, BlockDirection.North, (PreviewSurfaceType?)null, 0f);
 
             Assert.AreEqual(new Vector3Int(5, 4, 5), pos);
         }
@@ -211,7 +211,7 @@ namespace Client.Tests.PlaceSystem
         {
             var hitPoint = new Vector3(5.5f, 6.0f, 5.5f);
 
-            var pos = PlaceSystemUtil.CalcPlacePoint(MakeUnitBlock(), hitPoint, 2, BlockDirection.North, PreviewSurfaceType.XZ_Y);
+            var pos = PlaceSystemUtil.CalcPlacePoint(MakeUnitBlock(), hitPoint, 2, BlockDirection.North, PreviewSurfaceType.XZ_Y, 0f);
 
             Assert.AreEqual(new Vector3Int(5, 8, 5), pos);
         }
@@ -221,7 +221,7 @@ namespace Client.Tests.PlaceSystem
         {
             var hitPoint = new Vector3(5.5f, 5.5f, 6.0f);
 
-            var pos = PlaceSystemUtil.CalcPlacePoint(MakeUnitBlock(), hitPoint, -1, BlockDirection.North, PreviewSurfaceType.YX_Z);
+            var pos = PlaceSystemUtil.CalcPlacePoint(MakeUnitBlock(), hitPoint, -1, BlockDirection.North, PreviewSurfaceType.YX_Z, 0f);
 
             Assert.AreEqual(new Vector3Int(5, 4, 6), pos);
         }
@@ -231,7 +231,7 @@ namespace Client.Tests.PlaceSystem
         {
             var hitPoint = new Vector3(6.0f, 5.5f, 5.5f);
 
-            var pos = PlaceSystemUtil.CalcPlacePoint(MakeUnitBlock(), hitPoint, 3, BlockDirection.North, PreviewSurfaceType.YZ_X);
+            var pos = PlaceSystemUtil.CalcPlacePoint(MakeUnitBlock(), hitPoint, 3, BlockDirection.North, PreviewSurfaceType.YZ_X, 0f);
 
             Assert.AreEqual(new Vector3Int(6, 8, 5), pos);
         }

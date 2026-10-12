@@ -1,9 +1,10 @@
 // 起動・ナビゲーション・定期更新
 // Bootstrap, navigation and periodic refresh
-import { fmtDateTime, h, parseRoute, routeHref } from "./core.js";
+import { findReport, fmtDateTime, h, parseRoute, routeHref } from "./core.js";
+import { applyFilters, CANDIDATE_FILTER, loadFilter, STORAGE_KEY } from "./report-filter.js";
 import { renderDigests } from "./views/digests.js";
 import { renderOverview } from "./views/overview.js";
-import { renderReport } from "./views/report.js";
+import { detailNav, renderReport } from "./views/report.js";
 import { renderReports } from "./views/reports.js";
 import { renderSessions } from "./views/sessions.js";
 import { renderTesters } from "./views/testers.js";
@@ -15,7 +16,7 @@ const TABS = [
 const VIEWS = {
   overview: (data) => renderOverview(data),
   reports: (data, route) => renderReports(data, route.params),
-  report: (data, route) => renderReport(data, route.args),
+  report: (data, route) => renderReport(data, route.args, route.params),
   testers: (data) => renderTesters(data),
   sessions: (data, route) => renderSessions(data, route.params),
   digests: (data, route) => renderDigests(data, route.args),
@@ -58,14 +59,39 @@ function fillTesterNames(next) {
 function render() {
   const route = parseRoute();
   const active = route.view === "report" ? "reports" : route.view;
+  const view = VIEWS[route.view] || VIEWS.overview;
   // 報告タブにだけ未投入の件数を出す（要対応がどこにあるかをどの画面からも見えるように）
   // Only the reports tab carries the un-enqueued count, so pending work is visible from every view
-  const pending = data.reports.filter((r) => r.triage === "candidate").length;
-  document.getElementById("tabs").replaceChildren(...TABS.map(([view, label]) =>
-    h("a", { href: routeHref(view), class: view === active ? "current" : null }, label,
-      view === "reports" && pending > 0 ? h("span", { class: "tab-count", title: "未投入のバグ報告" }, String(pending)) : null)));
-  const view = VIEWS[route.view] || VIEWS.overview;
+  const pending = applyFilters(data.reports, new URLSearchParams(CANDIDATE_FILTER)).length;
+  document.getElementById("tabs").replaceChildren(...TABS.map(([tabView, label]) =>
+    h("a", {
+      href: routeHref(tabView),
+      class: tabView === active ? "current" : null,
+      "data-view": tabView,
+    }, label,
+      tabView === "reports" && pending > 0 ? h("span", { class: "tab-count", title: "未投入のバグ報告" }, String(pending)) : null)));
+  syncReportsTab();
   document.getElementById("main").replaceChildren(view(data, route));
+}
+
+function syncReportsTab() {
+  const tab = document.querySelector('#tabs a[data-view="reports"]');
+  if (tab) tab.href = reportsTabHref();
+}
+
+function reportsTabHref() {
+  return routeHref("reports", [], loadFilter());
+}
+
+// 詳細の動画を保ったまま、取得済みデータで前後リンクだけを更新する
+// Keep the detail video intact while updating only its navigation from fetched data
+function syncDetailNav() {
+  const route = parseRoute();
+  if (route.view !== "report") return;
+  const nav = document.querySelector("#main .detail-nav");
+  if (!nav) return;
+  const report = findReport(data.reports, route.args[0], route.args[1]);
+  if (report) nav.replaceWith(detailNav(data, report, route.params));
 }
 
 function showError(error) {
@@ -93,11 +119,13 @@ async function refresh(force) {
     reloadForNewVersion(force);
     return;
   }
-  if (!pendingRender) return;
   if (!force && isBusy()) {
+    syncDetailNav();
+    if (!pendingRender) return;
     document.getElementById("notice").textContent = "新着あり（更新で反映）";
     return;
   }
+  if (!pendingRender) return;
   pendingRender = false;
   render();
 }
@@ -113,6 +141,10 @@ function reloadForNewVersion(force) {
 }
 
 async function start() {
+  window.addEventListener("dashboard:filter-saved", syncReportsTab);
+  // 別タブで保存された一覧条件も、報告タブの行き先に反映する
+  // Keep the reports tab destination current when another tab saves its filters
+  window.addEventListener("storage", (event) => { if (event.key === STORAGE_KEY) syncReportsTab(); });
   try {
     await load();
     render();
@@ -134,7 +166,7 @@ async function start() {
     if (event.detail.redraw) refresh(true);
     // 自分の書き込み以外の変化も取り込んでいるかもしれないので、変化ありなら次の更新で描き直す
     // The reload may carry changes besides our own write, so a detected change is redrawn on the next refresh
-    else load().then((changed) => { pendingRender = changed || pendingRender; }).catch(showError);
+    else load().then((changed) => { pendingRender = changed || pendingRender; syncDetailNav(); }).catch(showError);
   });
   document.addEventListener("visibilitychange", () => refresh(false));
   setInterval(() => refresh(false), REFRESH_MS);

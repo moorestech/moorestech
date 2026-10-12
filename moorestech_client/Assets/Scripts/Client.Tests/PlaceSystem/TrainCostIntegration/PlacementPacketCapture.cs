@@ -46,7 +46,7 @@ namespace Client.Tests.PlaceSystem.TrainCostIntegration
 
             // 空要求を送って観測系自体が働くことを先に固定する
             // Prove the capture works before asserting that placement emits no request
-            Api.SendOnly.PlaceBlock(new List<PlaceInfo>());
+            Api.SendOnly.PlaceBlock(new List<PlaceInfo>(), BlockPlacementWiring.AutoConnect);
             Assert.IsTrue(_peer.Poll(1000000, SelectMode.SelectRead));
             var probe = new byte[_peer.Available];
             Assert.Greater(_peer.Receive(probe), 0);

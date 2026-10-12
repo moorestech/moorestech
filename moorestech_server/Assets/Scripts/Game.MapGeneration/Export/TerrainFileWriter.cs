@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using Game.MapGeneration.Pipeline;
+using Game.MapGeneration.Pipeline.Surface;
 using Game.Paths;
 using UnityEngine;
 
@@ -41,8 +42,7 @@ namespace Game.MapGeneration.Export
                 var buffer = new byte[tile.Heights.Length * 2];
                 for (var i = 0; i < tile.Heights.Length; i++)
                 {
-                    var clamped = Mathf.Clamp01(tile.Heights[i]);
-                    var value = (ushort)Mathf.Clamp(Mathf.RoundToInt(clamped * ushort.MaxValue), 0, ushort.MaxValue);
+                    var value = (ushort)SurfaceQuantization.ToR16Units(Mathf.Clamp01(tile.Heights[i]));
                     buffer[i * 2] = (byte)(value & 0xFF);
                     buffer[i * 2 + 1] = (byte)(value >> 8);
                 }

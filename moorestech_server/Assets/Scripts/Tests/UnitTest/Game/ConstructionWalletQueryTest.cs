@@ -66,6 +66,27 @@ namespace Tests.UnitTest.Game
         }
 
         [Test]
+        public void 複数セル問い合わせは坂と直線の財布を共有して素材化する()
+        {
+            var query = CreateQuery(out var mutation);
+            var straight = ForUnitTestModBlockId.GearBeltConveyor;
+            var cells = new Dictionary<BlockId, int>
+            {
+                { straight, 1 },
+                { ForUnitTestModBlockId.TestGearBeltConveyorUp, 1 },
+            };
+            mutation.Refill(PlayerId, straight, 3);
+            Assert.IsEmpty(query.GetItemsToConsumeForCells(cells));
+
+            // 残り1で2セルなら同じ財布を一度補充する
+            // Two cells with one remaining refill the shared wallet once
+            mutation.ConsumeOne(PlayerId, straight);
+            mutation.ConsumeOne(PlayerId, straight);
+            CollectionAssert.AreEquivalent(ConstructionCostItems.ToItemCounts(MasterHolder.BlockMaster.GetBlockMaster(straight).RequiredItems),
+                query.GetItemsToConsumeForCells(cells));
+        }
+
+        [Test]
         public void 残り設置数と買えるセット数から置ける数を算出する()
         {
             var query = CreateQuery(out var mutation);
@@ -107,6 +128,55 @@ namespace Tests.UnitTest.Game
             }
 
             Assert.AreEqual(1, changedCount);
+        }
+
+        [Test]
+        public void 設置計画は坂ベルトの財布キーと補充または残数消費を決める()
+        {
+            var query = CreateQuery(out var mutation);
+            var slope = ForUnitTestModBlockId.TestGearBeltConveyorUp;
+            var wallet = ForUnitTestModBlockId.GearBeltConveyor;
+
+            // 空の財布は素材を払い代表キーへ補充
+            // An empty wallet pays materials and refills the representative key
+            Assert.IsTrue(query.TryPlanCell(slope, out var paid));
+            Assert.AreEqual(ConstructionWalletUsage.PaidAndRefilled, paid.Usage);
+            Assert.AreEqual(wallet, paid.WalletBlockId);
+            Assert.AreEqual(3, paid.PlacementsPerCost);
+            Assert.AreEqual(2, paid.ItemsToConsume.Count);
+
+            mutation.Refill(PlayerId, wallet, paid.PlacementsPerCost);
+            mutation.ConsumeOne(PlayerId, wallet);
+            Assert.IsTrue(query.TryPlanCell(slope, out var covered));
+            Assert.AreEqual(ConstructionWalletUsage.CoveredByWallet, covered.Usage);
+            Assert.IsEmpty(covered.ItemsToConsume);
+        }
+
+        [Test]
+        public void 撤去の凝縮境界と返却素材を窓口が決める()
+        {
+            var query = CreateQuery(out var mutation);
+            var slope = ForUnitTestModBlockId.TestGearBeltConveyorUp;
+            var wallet = ForUnitTestModBlockId.GearBeltConveyor;
+
+            // セット未満は財布、到達時だけ素材へ戻す
+            // Return to the wallet below one set and refund materials only at the set boundary
+            Assert.IsTrue(query.TryPlanRemovalCell(slope, out var accumulating));
+            Assert.AreEqual(wallet, accumulating.WalletBlockId);
+            Assert.IsFalse(accumulating.WouldCondense);
+            Assert.IsEmpty(accumulating.ItemsToRefund);
+            mutation.Refill(PlayerId, wallet, 3);
+            mutation.ConsumeOne(PlayerId, wallet);
+            Assert.IsTrue(query.TryPlanRemovalCell(slope, out var condensing));
+            Assert.IsTrue(condensing.WouldCondense);
+            Assert.AreEqual(2, condensing.ItemsToRefund.Count);
+
+            // 財布対象外は設置も撤去も直接素材を使う
+            // Non-wallet blocks use materials directly for both placement and removal
+            Assert.IsFalse(query.UsesWallet(ForUnitTestModBlockId.BlockId));
+            Assert.IsFalse(query.TryPlanCell(ForUnitTestModBlockId.BlockId, out _));
+            Assert.IsFalse(query.TryPlanRemovalCell(ForUnitTestModBlockId.BlockId, out _));
+            Assert.AreEqual(query.GetItemsToConsume(ForUnitTestModBlockId.BlockId), query.GetItemsToRefund(ForUnitTestModBlockId.BlockId));
         }
 
         private static ConstructionWalletQuery CreateQuery(out IRemainingPlacementCountMutation mutation)

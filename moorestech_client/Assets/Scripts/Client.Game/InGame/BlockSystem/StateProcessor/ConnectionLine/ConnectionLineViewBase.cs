@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Client.Common.Asset;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.Context;
 using Game.Block.Interface;
 using UnityEngine;
 
@@ -24,6 +25,8 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
         // Addressable address of the line element prefab
         protected abstract string GetLinePrefabAddress();
 
+        protected abstract IConnectionLineCommands GetLineCommands();
+
         public void Initialize(BlockGameObject blockGameObject)
         {
             var prefab = AddressableLoader.LoadDefault<GameObject>(GetLinePrefabAddress());
@@ -36,9 +39,10 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
         /// 接続ラインの表示を更新する
         /// Update the connection line display
         /// </summary>
-        public void UpdateConnectionLines(BlockInstanceId[] partnerInstanceIds)
+        public void UpdateConnectionLines(IReadOnlyList<ConnectionLinePartner> partners)
         {
-            var newInstanceIds = new HashSet<BlockInstanceId>(partnerInstanceIds);
+            var newInstanceIds = new HashSet<BlockInstanceId>();
+            foreach (var partner in partners) newInstanceIds.Add(partner.PartnerId);
 
             // 不要になったラインを削除する
             // Remove lines that are no longer needed
@@ -46,7 +50,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
 
             // 新規接続のラインを作成する
             // Create lines for new connections
-            AddNewLines(partnerInstanceIds);
+            AddNewLines(partners);
 
             #region Internal
 
@@ -66,15 +70,22 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
                 }
             }
 
-            void AddNewLines(BlockInstanceId[] instanceIds)
+            void AddNewLines(IReadOnlyList<ConnectionLinePartner> lines)
             {
-                foreach (var targetId in instanceIds)
+                foreach (var partner in lines)
                 {
-                    if (_activeLines.ContainsKey(targetId)) continue;
-                    if (!ShouldDrawLine(_myBlockInstanceId, targetId)) continue;
+                    if (_activeLines.TryGetValue(partner.PartnerId, out var existing))
+                    {
+                        // 線種が変わっていたら作り直す
+                        // Rebuild when the line kind changed
+                        if (existing.GetComponent<ConnectionLineDeleteTarget>().ConnectToolGuid == partner.ConnectToolGuid) continue;
+                        Destroy(existing.gameObject);
+                        _activeLines.Remove(partner.PartnerId);
+                    }
+                    if (!ShouldDrawLine(_myBlockInstanceId, partner.PartnerId)) continue;
 
-                    var element = CreateLineElement(targetId);
-                    _activeLines[targetId] = element;
+                    var element = CreateLineElement(partner);
+                    _activeLines[partner.PartnerId] = element;
                 }
             }
 
@@ -87,10 +98,12 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
 
             // ラインElementを生成する
             // Create the line element
-            TElement CreateLineElement(BlockInstanceId targetId)
+            TElement CreateLineElement(ConnectionLinePartner partner)
             {
                 var element = Instantiate(_linePrefab, transform);
-                element.SetLine(_myBlockInstanceId, targetId);
+                element.SetLine(_myBlockInstanceId, partner.PartnerId);
+                var deleteTarget = element.gameObject.AddComponent<ConnectionLineDeleteTarget>();
+                deleteTarget.Initialize(_myBlockInstanceId, partner.PartnerId, partner.ConnectToolGuid, ClientDIContext.ConnectionLineRegistry, ClientDIContext.BlockGameObjectDataStore, GetLineCommands());
                 return element;
             }
 

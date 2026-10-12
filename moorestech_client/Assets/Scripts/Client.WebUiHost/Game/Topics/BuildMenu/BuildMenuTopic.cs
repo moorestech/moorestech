@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Thumbnail;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.UIState;
@@ -26,14 +27,16 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
         private readonly PlacementTargetResolver _placementTargetResolver;
         private readonly ConstructionWalletQuery _constructionWalletQuery;
         private readonly LocalPlayerInventoryController _inventoryController;
+        private readonly IBlueprintThumbnailLookup _thumbnails;
         private readonly IDisposable _librarySubscription;
+        private readonly IDisposable _thumbnailSubscription;
         private readonly IDisposable _remainingSubscription;
         private readonly IDisposable _inventorySubscription;
         private bool _buildMenuActive;
         private bool _publishScheduled;
         private bool _disposed;
 
-        public BuildMenuTopic(WebSocketHub hub, UIStateControl uiStateControl, ClientBlueprintLibrary blueprintLibrary, PlacementTargetResolver placementTargetResolver, ConstructionWalletQuery constructionWalletQuery, LocalPlayerInventoryController inventoryController)
+        public BuildMenuTopic(WebSocketHub hub, UIStateControl uiStateControl, ClientBlueprintLibrary blueprintLibrary, PlacementTargetResolver placementTargetResolver, ConstructionWalletQuery constructionWalletQuery, LocalPlayerInventoryController inventoryController, IBlueprintThumbnailLookup thumbnails)
         {
             _hub = hub;
             _uiStateControl = uiStateControl;
@@ -41,11 +44,13 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             _placementTargetResolver = placementTargetResolver;
             _constructionWalletQuery = constructionWalletQuery;
             _inventoryController = inventoryController;
+            _thumbnails = thumbnails;
 
             // 入場・BP更新・残数変化で再配信
             // Republish on entry, BP updates, and remaining-count changes
             _uiStateControl.OnStateChanged += OnStateChanged;
             _librarySubscription = _blueprintLibrary.OnChanged.Subscribe(_ => SchedulePublish());
+            _thumbnailSubscription = _thumbnails.OnThumbnailChanged.Subscribe(_ => SchedulePublish());
             _remainingSubscription = _constructionWalletQuery.OnWalletChanged.Subscribe(_ => SchedulePublish());
 
             // 不足判定は所持数に依存するため、表示中の所持変化でも配り直す（前例 ResearchTopic）
@@ -65,6 +70,7 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             _disposed = true;
             _uiStateControl.OnStateChanged -= OnStateChanged;
             _librarySubscription.Dispose();
+            _thumbnailSubscription.Dispose();
             _remainingSubscription.Dispose();
             _inventorySubscription.Dispose();
         }
@@ -114,7 +120,7 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             var dto = new BuildMenuTopicDto
             {
                 Categories = BuildMenuEntryDtoFactory.CreateCategoryDtos(),
-                Entries = BuildMenuEntryDtoFactory.CreateDtos(_placementTargetResolver, _constructionWalletQuery, _inventoryController.LocalPlayerInventory),
+                Entries = BuildMenuEntryDtoFactory.CreateDtos(_placementTargetResolver, _constructionWalletQuery, _inventoryController.LocalPlayerInventory, _thumbnails),
             };
             return WebUiJson.Serialize(dto);
         }

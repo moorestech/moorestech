@@ -1,0 +1,19 @@
+using UnityEngine;
+using System.Linq;
+using System.Text;
+    var report = new StringBuilder();
+    report.AppendLine("Player=" + Client.Game.InGame.Player.PlayerSystemContainer.Instance.PlayerObjectController.Position);
+    foreach (var t in Terrain.activeTerrains)
+    {
+        report.AppendLine("Terrain=" + t.name + " pos=" + t.transform.position + " size=" + t.terrainData.size);
+        report.AppendLine("Layers=" + string.Join(",", t.terrainData.terrainLayers.Select(l => l.name)));
+    }
+    foreach (var r in Object.FindObjectsByType<Renderer>(FindObjectsSortMode.None))
+    {
+        if (!r.enabled || !r.gameObject.activeInHierarchy) continue;
+        if (!r.sharedMaterials.Any(m => m != null && (m.name.ToLower().Contains("water") || m.shader.name.ToLower().Contains("water")))) continue;
+        report.AppendLine("Water=" + r.name + " pos=" + r.transform.position + " bounds=" + r.bounds + " parent=" + r.transform.parent);
+        foreach(var m in r.sharedMaterials) report.AppendLine(" Material=" + m.name + " shader=" + m.shader.name);
+    }
+    System.IO.File.WriteAllText("/tmp/moores-vein-terrain-20261006/live-state.txt", report.ToString());
+return report.ToString();

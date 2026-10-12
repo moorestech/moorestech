@@ -75,11 +75,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
             Send(ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateIsolatedPlaceRequest(poleBlockId, polePlaceInfo));
         }
 
-        public void Disconnect(Vector3Int posA, Vector3Int posB)
-        {
-            ClientContext.VanillaApi.SendOnly.DisconnectElectricWire(posA, posB);
-        }
-
         private void Send(ElectricWireExtendProtocol.ElectricWireExtendRequest request)
         {
             var generation = ++_generation;

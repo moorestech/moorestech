@@ -1,3 +1,4 @@
+using Game.Block.Blocks.ConnectionLine;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,9 +8,9 @@ using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.EnergySystem;
 using Core.Item.Interface;
-using Core.Master;
 using MessagePack;
 using UniRx;
+using UnityEngine;
 
 namespace Game.Block.Blocks.ElectricWire
 {
@@ -24,8 +25,8 @@ namespace Game.Block.Blocks.ElectricWire
         // Electric role of this block; always tied to a consumer, generator or transformer
         public IElectricEnergyRole EnergyRole { get; }
 
-        private readonly Dictionary<BlockInstanceId, (IElectricWireConnector Connector, ElectricWireConnectionCost Cost)> _wireConnections = new();
-        public IReadOnlyDictionary<BlockInstanceId, (IElectricWireConnector Connector, ElectricWireConnectionCost Cost)> WireConnections => _wireConnections;
+        private readonly Dictionary<BlockInstanceId, (IElectricWireConnector Connector, ConnectionLineRecord Record)> _wireConnections = new();
+        public IReadOnlyDictionary<BlockInstanceId, (IElectricWireConnector Connector, ConnectionLineRecord Record)> WireConnections => _wireConnections;
 
         // ブロック状態変更通知用のSubject
         // Subject for block state change notifications
@@ -55,15 +56,15 @@ namespace Game.Block.Blocks.ElectricWire
             return _wireConnections.ContainsKey(partnerId);
         }
 
-        public bool TryAddWireConnection(BlockInstanceId partnerId, ElectricWireConnectionCost connectionCost)
+        public bool TryAddWireConnection(BlockInstanceId partnerId, ConnectionLineRecord connectionRecord)
         {
             // 新しい接続先を記録する
             // Store new partner connection
             if (_wireConnections.ContainsKey(partnerId)) return false;
             if (_maxWireConnectionCount <= _wireConnections.Count) return false;
-            var connector = ResolveWireTarget(partnerId);
+            var connector = ElectricWireConnectionRestorer.ResolveTarget(BlockInstanceId, partnerId);
             if (connector == null) return false;
-            _wireConnections.Add(partnerId, (connector, connectionCost));
+            _wireConnections.Add(partnerId, (connector, connectionRecord));
             // 接続集合の変更点自身でdirty化し、呼び出し元の再構築漏れを構造的に防ぐ
             // Mark dirty at the mutation itself so no caller can ever forget the rebuild
             ServerContext.GetService<IElectricWireNetworkMutation>().MarkTopologyDirty();
@@ -73,44 +74,25 @@ namespace Game.Block.Blocks.ElectricWire
             return true;
         }
 
-        public bool TryRemoveWireConnection(BlockInstanceId partnerId, out ElectricWireConnectionCost cost)
+        public bool TryRemoveWireConnection(BlockInstanceId partnerId, out ConnectionLineRecord record)
         {
             if (!_wireConnections.Remove(partnerId, out var connection))
             {
-                cost = default;
+                record = default;
                 return false;
             }
-            cost = connection.Cost;
+            record = connection.Record;
             ServerContext.GetService<IElectricWireNetworkMutation>().MarkTopologyDirty();
             _onChangeBlockState.OnNext(Unit.Default);
             return true;
         }
 
-        private IElectricWireConnector ResolveWireTarget(BlockInstanceId targetId)
-        {
-            // 接続候補をワールドから解決する
-            // Resolve target connector from world
-            var block = ServerContext.WorldBlockDatastore.GetBlock(targetId);
-            var connector = block?.GetComponent<IElectricWireConnector>();
-            if (connector == null || connector.BlockInstanceId == BlockInstanceId) return null;
-            return connector;
-        }
-
         public IReadOnlyList<IItemStack> GetRefundItems()
         {
-            // 返却すべきアイテムのリストを取得する（接続ごとに複数素材を展開）
-            // Get list of items that should be refunded (expand multiple materials per connection)
+            // 接続ごとに払った素材を返却する
+            // Refund the materials paid for each connection
             var refundItems = new List<IItemStack>();
-            foreach (var connection in _wireConnections.Values)
-            {
-                var materials = connection.Cost.Materials;
-                if (materials == null) continue;
-                foreach (var material in materials)
-                {
-                    if (material.Count <= 0 || material.ItemId == ItemMaster.EmptyItemId) continue;
-                    refundItems.Add(ServerContext.ItemStackFactory.Create(material.ItemId, material.Count));
-                }
-            }
+            foreach (var connection in _wireConnections.Values) refundItems.AddRange(ConnectionLineRefundItems.Create(connection.Record.Materials));
             return refundItems;
         }
 
@@ -125,21 +107,7 @@ namespace Game.Block.Blocks.ElectricWire
 
             _wireConnections.Clear();
 
-            // 接続コスト情報を利用して復元する
-            // Restore using connection cost information when available
-            if (data.Connections is not { Count: > 0 }) return;
-
-            foreach (var connection in data.Connections)
-            {
-                if (connection.TargetBlockInstanceId == BlockInstanceId.AsPrimitive()) continue;
-                if (_maxWireConnectionCount <= _wireConnections.Count) break;
-                var targetId = new BlockInstanceId(connection.TargetBlockInstanceId);
-                if (_wireConnections.ContainsKey(targetId)) continue;
-                var connector = ResolveWireTarget(targetId);
-                if (connector == null) continue;
-                var cost = connection.ToConnectionCost();
-                _wireConnections.Add(targetId, (connector, cost));
-            }
+            if (!ElectricWireConnectionRestorer.Restore(data, BlockInstanceId, _maxWireConnectionCount, _wireConnections)) return;
 
             // 復元接続をエネルギー網へ反映
             // Reflect restored wire connections into the energy network
@@ -175,7 +143,7 @@ namespace Game.Block.Blocks.ElectricWire
         {
             // ワイヤー接続情報をシリアライズして返す
             // Serialize and return wire connection information
-            var stateDetail = new ElectricWireStateDetail(_wireConnections.Keys);
+            var stateDetail = new ElectricWireStateDetail(ConnectionLinePartnerMessagePack.CreateArray(_wireConnections));
             var bytes = MessagePackSerializer.Serialize(stateDetail);
             return new[] { new BlockStateDetail(ElectricWireStateDetail.BlockStateDetailKey, bytes) };
         }

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Client.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Ground;
 using Game.Block.Interface;
+using Game.MapGeneration.Surface;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -49,15 +50,30 @@ namespace Client.Tests.PlaceSystem.Ground
         {
             // 整数直下の微小誤差は引き上げる
             // A tiny undershoot below an integer is lifted
-            Assert.AreEqual(32, PlacementGroundCellResolver.ResolveCellY(32f - 1e-4f, 0));
+            Assert.AreEqual(32, PlacementGroundCellResolver.ResolveCellY(32f - 1e-4f, 0f, 0));
 
             // 許容誤差を超える端数は引き上げない
             // A fraction beyond the tolerance is not lifted
-            Assert.AreEqual(31, PlacementGroundCellResolver.ResolveCellY(31.99f, 0));
+            Assert.AreEqual(31, PlacementGroundCellResolver.ResolveCellY(31.99f, 0f, 0));
 
             // 整数ちょうどはそのまま
             // An exact integer stays as is
-            Assert.AreEqual(32, PlacementGroundCellResolver.ResolveCellY(32f, 0));
+            Assert.AreEqual(32, PlacementGroundCellResolver.ResolveCellY(32f, 0f, 0));
+        }
+
+        // 格子のある地表は「格子1段＋採掘底面クリアランス＋浮動小数余裕」まで整数へ引き上げ、それを超えて下回る地表は1段下のまま
+        // A lattice ground is lifted within one step + mining-bottom clearance + float margin; anything further below stays one cell lower
+        [Test]
+        public void 格子1段とクリアランスぶん整数を下回る地表は整数セルへ収める()
+        {
+            var step = TerrainHeightStorage.StepMeters(600f);
+            var padUndershoot = step + (float)TerrainHeightStorage.MiningBottomClearanceMeters;
+
+            Assert.AreEqual(10, PlacementGroundCellResolver.ResolveCellY(10f - 0.9f * step, step, 0));
+            Assert.AreEqual(10, PlacementGroundCellResolver.ResolveCellY(10f - padUndershoot - 0.0005f, step, 0));
+            Assert.AreEqual(9, PlacementGroundCellResolver.ResolveCellY(10f - padUndershoot - 0.0015f, step, 0));
+            Assert.AreEqual(9, PlacementGroundCellResolver.ResolveCellY(10f - 1.5f * step, step, 0));
+            Assert.AreEqual(10, PlacementGroundCellResolver.ResolveCellY(10f, step, 0));
         }
 
         // 手動オフセットは地形解決後に加算される

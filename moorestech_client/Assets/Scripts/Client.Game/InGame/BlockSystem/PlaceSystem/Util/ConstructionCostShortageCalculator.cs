@@ -56,34 +56,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
         {
             var resolved = new List<(ItemId itemId, int count)>(requiredItems.Count);
             foreach (var (itemGuid, count) in requiredItems) resolved.Add((MasterHolder.ItemMaster.GetItemId(itemGuid), count));
-            return CalculateRequirements(resolved, heldByItem);
-        }
-
-        // 必要数と所持数の突き合わせの唯一の定義。不足として扱うかは呼び出し元が決める
-        // The single definition of matching required against held; whether that counts as a shortage is the caller's call
-        public static List<(ItemId itemId, int held, int required)> CalculateRequirements(IReadOnlyList<(ItemId itemId, int count)> requiredItems, IReadOnlyDictionary<ItemId, int> heldByItem)
-        {
-            // 必要数を素材の初出順で合算する（表示順を安定させる）
-            // Sum required counts per material in first-seen order (keeps the display order stable)
-            var requiredByItem = new Dictionary<ItemId, int>();
-            var itemOrder = new List<ItemId>();
-            foreach (var (itemId, count) in requiredItems)
-            {
-                if (!requiredByItem.ContainsKey(itemId))
-                {
-                    requiredByItem[itemId] = 0;
-                    itemOrder.Add(itemId);
-                }
-                requiredByItem[itemId] += count;
-            }
-
-            var requirements = new List<(ItemId itemId, int held, int required)>();
-            foreach (var itemId in itemOrder)
-            {
-                heldByItem.TryGetValue(itemId, out var held);
-                requirements.Add((itemId, held, requiredByItem[itemId]));
-            }
-            return requirements;
+            return ConstructionMaterialAccounting.MatchRequirements(resolved, heldByItem);
         }
     }
 }

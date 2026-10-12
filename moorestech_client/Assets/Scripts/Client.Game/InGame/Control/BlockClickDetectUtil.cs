@@ -1,7 +1,6 @@
 using Client.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
-using Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire;
 using Client.Game.InGame.Control.ViewMode;
 using UnityEngine;
 
@@ -33,31 +32,13 @@ namespace Client.Game.InGame.Control
         }
         
         
-        public static bool TryGetCursorOnElectricWire(out ElectricWireLineViewElement wireElement)
-        {
-            wireElement = null;
-
-            var camera = Camera.main;
-            if (camera == null) return false;
-
-            // ワイヤーは専用レイヤのため単独Raycastで判定する
-            // Wires live on a dedicated layer, so probe them with their own raycast
-            var ray = camera.ScreenPointToRay(AimPointProvider.GetAimScreenPoint());
-            if (!Physics.Raycast(ray, out var hit, 100, LayerConst.ElectricWireOnlyLayerMask)) return false;
-
-            // ワイヤーコライダーは子オブジェクトのため親を辿って本体を得る
-            // Wire colliders live on child objects, so climb to the parent to get the element
-            wireElement = hit.collider.GetComponentInParent<ElectricWireLineViewElement>();
-            return wireElement != null;
-        }
-
         /// <summary>
         /// 25/11/4 列車エンティティとブロックのインタラクト判定の共通化のために一旦こうしたが、本当にこれで良いのだろうか、、、要検討
         /// </summary>
         public static bool TryGetCursorOnComponent<T>(out T component)
         {
             component = default;
-            if (!TryGetFrontmostSolidHit(LayerConst.BlockOnlyLayerMask, RayDistance, out var hit)) return false;
+            if (!TryGetFrontmostSolidHit(LayerConst.BlockOnlyLayerMask, AimRayDistance, out var hit)) return false;
 
             // 最前面ヒットの子要素から解決する
             // Resolve from the frontmost hit's children
@@ -68,7 +49,7 @@ namespace Client.Game.InGame.Control
         public static bool TryGetCursorOnComponentInParent<T>(out T component)
         {
             component = default;
-            if (!TryGetFrontmostSolidHit(LayerConst.BlockOnlyLayerMask, RayDistance, out var hit)) return false;
+            if (!TryGetFrontmostSolidHit(LayerConst.BlockOnlyLayerMask, AimRayDistance, out var hit)) return false;
 
             // 列車の当たり判定コライダーは本体コンポーネントを子に持たないため親方向へ辿る
             // Train hit colliders do not hold the entity component in their children, so climb toward parents
@@ -76,7 +57,7 @@ namespace Client.Game.InGame.Control
             return component is not null;
         }
 
-        private const float RayDistance = 100f;
+        public const float AimRayDistance = 100f;
 
         // 毎フレーム通る経路なので、ヒット配列は使い回してGCを出さない
         // This path runs every frame, so the hit array is reused instead of allocating
@@ -90,22 +71,14 @@ namespace Client.Game.InGame.Control
         {
             frontmostHit = default;
 
-            // 25/11/4 そもそもCamera.mainを使ってていいのか？これも検討したい
-            var camera = Camera.main;
-            if (camera == null) return false;
-
-            // 照準座標はAimPointProviderで視点モードに応じて一元解決する
-            // The aim point is resolved centrally by AimPointProvider per view mode
-            var ray = camera.ScreenPointToRay(AimPointProvider.GetAimScreenPoint());
-
-            var hitCount = RaycastNonAlloc(ray, layerMask, maxDistance);
+            var hitCount = RaycastAimAll(layerMask, maxDistance, out var hits);
 
             // 手前のプレビューゴーストだけを貫通対象にする。並べ替えずに最小距離を1回の走査で選ぶ
             // Only nearby preview ghosts are penetrated; the nearest is picked in one scan instead of sorting
             var found = false;
             for (var index = 0; index < hitCount; index++)
             {
-                var hit = HitBuffer[index];
+                var hit = hits[index];
                 if (found && frontmostHit.distance <= hit.distance) continue;
                 if (hit.collider.GetComponentInParent<BlockPreviewObject>() != null) continue;
 
@@ -114,23 +87,39 @@ namespace Client.Game.InGame.Control
             }
 
             return found;
+        }
 
-            #region Internal
+        /// <summary>
+        ///     照準レイで全ヒットし件数を返す。hitsは件数分のみ有効
+        ///     Raycasts all hits along the aim ray; hits is valid up to the count
+        /// </summary>
+        public static int RaycastAimAll(int layerMask, float maxDistance, out RaycastHit[] hits)
+        {
+            hits = HitBuffer;
+            if (!TryCreateAimRay(out var ray)) return 0;
 
             // 飽和したまま返すと手前のヒットを取りこぼすため、バッファを倍にして採り直す
             // A saturated buffer could drop the nearest hit, so it is doubled and re-queried
-            static int RaycastNonAlloc(Ray castRay, int mask, float distance)
+            while (true)
             {
-                while (true)
-                {
-                    var count = Physics.RaycastNonAlloc(castRay, HitBuffer, distance, mask);
-                    if (count < HitBuffer.Length) return count;
+                var count = Physics.RaycastNonAlloc(ray, HitBuffer, maxDistance, layerMask, QueryTriggerInteraction.Collide);
+                hits = HitBuffer;
+                if (count < HitBuffer.Length) return count;
 
-                    HitBuffer = new RaycastHit[HitBuffer.Length * 2];
-                }
+                HitBuffer = new RaycastHit[HitBuffer.Length * 2];
             }
+        }
 
-            #endregion
+        // 照準レイを作る。カメラが無ければfalse
+        // Build the aim ray; false without a camera
+        private static bool TryCreateAimRay(out Ray ray)
+        {
+            ray = default;
+            var camera = Camera.main;
+            if (camera == null) return false;
+            ray = camera.ScreenPointToRay(AimPointProvider.GetAimScreenPoint());
+            return true;
         }
     }
+
 }

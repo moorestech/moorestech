@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UniRx;
+using UnityEngine;
 
 namespace Game.Blueprint
 {
@@ -38,7 +39,24 @@ namespace Game.Blueprint
         public void LoadBlueprints(List<BlueprintJsonObject> blueprints)
         {
             _blueprints.Clear();
-            _blueprints.AddRange(blueprints);
+            foreach (var blueprint in blueprints)
+            {
+                RemoveMalformedLines(blueprint.Wires, blueprint.BlueprintGuidStr);
+                RemoveMalformedLines(blueprint.Chains, blueprint.BlueprintGuidStr);
+                _blueprints.Add(blueprint);
+            }
+        }
+
+        private static void RemoveMalformedLines(List<BlueprintLineJsonObject> lines, string blueprintGuid)
+        {
+            // セーブ境界で不正な線を除き理由を残す
+            // Reject malformed saved connections at the save boundary with a reason
+            for (var index = lines.Count - 1; index >= 0; index--)
+            {
+                if (Guid.TryParse(lines[index].ConnectToolGuidStr, out var toolGuid) && toolGuid != Guid.Empty) continue;
+                Debug.LogWarning($"[BlueprintLoad] line skipped: malformed connectToolGuid blueprint={blueprintGuid} index={index}");
+                lines.RemoveAt(index);
+            }
         }
     }
 }

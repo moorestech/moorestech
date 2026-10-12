@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Thumbnail;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.WebUiHost.Game.Icons;
 using Common.Debug;
@@ -10,6 +11,7 @@ using Core.Master;
 using Game.Construction;
 using Game.PlacementTarget;
 using Mooresmaster.Model.BuildMenuModule;
+using Server.Protocol.PacketResponse.Util.Blueprint.Planning;
 
 namespace Client.WebUiHost.Game.Topics.BuildMenu
 {
@@ -21,12 +23,12 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
     {
         // 解放判定はResolverが持つ唯一の供給点へ委ね、ここは変換だけを担う
         // Delegates the unlock decision to the resolver's single supply point; this file only converts
-        public static List<BuildMenuEntryDto> CreateDtos(PlacementTargetResolver placementTargetResolver, ConstructionWalletQuery walletQuery, IEnumerable<IItemStack> inventoryItems)
+        public static List<BuildMenuEntryDto> CreateDtos(PlacementTargetResolver placementTargetResolver, ConstructionWalletQuery walletQuery, IEnumerable<IItemStack> inventoryItems, IBlueprintThumbnailLookup thumbnails)
         {
-            return CreateDtos(placementTargetResolver.CreateUnlockedTargets(), walletQuery, inventoryItems);
+            return CreateDtos(placementTargetResolver.CreateUnlockedTargets(), walletQuery, inventoryItems, thumbnails);
         }
 
-        public static List<BuildMenuEntryDto> CreateDtos(IReadOnlyList<IPlacementTarget> targets, ConstructionWalletQuery walletQuery, IEnumerable<IItemStack> inventoryItems)
+        public static List<BuildMenuEntryDto> CreateDtos(IReadOnlyList<IPlacementTarget> targets, ConstructionWalletQuery walletQuery, IEnumerable<IItemStack> inventoryItems, IBlueprintThumbnailLookup thumbnails)
         {
             var dtos = new List<BuildMenuEntryDto>();
             var categoryMaster = MasterHolder.BuildMenuCategoryMaster;
@@ -47,14 +49,19 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             {
                 var (categoryGuid, subCategoryGuid) = ResolveCategoryPair(target);
 
-                // 財布へは1エントリ1回だけ問い合わせ、設置数表示と支払い免除の両方をここから導く
-                // Ask the wallet once per entry and derive both the set display and the payment waiver from it
+                // 通常ブロックの財布状態は設置数表示と支払い免除で共有する
+                // Share the ordinary block wallet status between the set display and payment waiver
                 var block = target as BlockPlacementTarget;
                 var walletStatus = block == null ? null : walletQuery.GetWalletStatus(block.BlockId);
 
-                // 無料設置デバッグはブロック設置だけを免除する（車両設置はこのフラグを見ない）
-                // The free-placement debug flag waives block placement only; train-car placement ignores it
-                var paymentWaived = (freeBlockPlacement && block != null) || (walletStatus?.CoversNextPlacement() ?? false);
+                var (requiredItemDtos, blueprintPaymentWaived) = target is BlueprintPlacementTarget blueprint
+                    ? CreateBlueprintRequiredItems(blueprint)
+                    : (BuildMenuMaterialAvailability.CreateRequiredItemDtos(target, heldByItem), false);
+
+                // 支払いを完全免除できるエントリだけ不足表示を免除する
+                // Suppress shortage display only for entries whose payment is completely waived
+                var paymentWaived = (freeBlockPlacement && block != null) || blueprintPaymentWaived
+                    || (walletStatus?.CoversNextPlacement() ?? false);
 
                 dtos.Add(new BuildMenuEntryDto
                 {
@@ -65,10 +72,10 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                     Label = target.Kind == PlacementTargetKind.Blueprint ? target.DisplayName : null,
                     CategoryGuid = categoryGuid.ToString("D"),
                     SubCategoryGuid = subCategoryGuid.ToString("D"),
-                    RequiredItems = BuildMenuMaterialAvailability.CreateRequiredItemDtos(target, heldByItem),
+                    RequiredItems = requiredItemDtos,
                     PaymentWaived = paymentWaived,
                     SetPlacement = ResolveSetPlacement(walletStatus),
-                    IconUrl = ResolveIconUrl(target),
+                    IconUrl = ResolveIconUrl(target, thumbnails),
                 });
             }
             return dtos;
@@ -101,6 +108,23 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             {
                 if (status == null) return null;
                 return new BuildMenuSetPlacementDto { PerCost = status.Value.PlacementsPerCost, Remaining = status.Value.RemainingCount };
+            }
+
+            // BPの財布問い合わせと完全免除の判断をDTO生成元へ集約する
+            // Keep blueprint wallet queries and full-waiver decisions at the DTO source
+            (List<BuildMenuRequiredItemDto> items, bool paymentWaived) CreateBlueprintRequiredItems(BlueprintPlacementTarget blueprint)
+            {
+                var draft = BlueprintPasteCopyBuilder.BuildUnobstructed(blueprint.Blueprint);
+                var drafts = new[] { draft };
+                var payable = BlueprintPasteCostCalculator.CalcRequiredItems(drafts, walletQuery, freeBlockPlacement);
+                var paymentWaived = freeBlockPlacement && payable.Count == 0;
+
+                // 完全免除時だけ通常費用を案内し、有料線が残れば支払額を示す
+                // Show nominal cost only for a full waiver; otherwise show payable line cost
+                var required = paymentWaived
+                    ? BlueprintPasteCostCalculator.CalcRequiredItems(drafts, walletQuery, false)
+                    : payable;
+                return (BuildMenuMaterialAvailability.CreateRequiredItemDtos(required, heldByItem), paymentWaived);
             }
 
             #endregion
@@ -136,7 +160,7 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
 
         // アイコンURL解決もホットバートピックと共有する唯一の解決点。種別の判定は型で行う
         // The single resolution point for icon URLs, shared with the hotbar topic; the kind check is by type
-        public static string ResolveIconUrl(IPlacementTarget target)
+        public static string ResolveIconUrl(IPlacementTarget target, IBlueprintThumbnailLookup thumbnails)
         {
             switch (target)
             {
@@ -148,8 +172,11 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                     return $"{TrainCarIconSource.PathPrefixConst}{trainCar.TrainCarGuid}{IconEndpoint.PathSuffix}";
                 case ConnectToolPlacementTarget connectTool:
                     return $"{ConnectToolIconSource.PathPrefixConst}{connectTool.ConnectToolGuid}{IconEndpoint.PathSuffix}";
+                case BlueprintPlacementTarget blueprint:
+                    return thumbnails.Contains(blueprint.BlueprintGuid)
+                        ? $"{BlueprintIconSource.PathPrefixConst}{blueprint.BlueprintGuid:D}{IconEndpoint.PathSuffix}"
+                        : null;
                 case BlueprintCopyPlacementTarget:
-                case BlueprintPlacementTarget:
                     return null;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(target), target, null);

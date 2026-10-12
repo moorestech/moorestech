@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Core.Master;
 using Game.Block.Interface;
+using Game.Block.Interface.Extension;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Component.ConnectJudge;
 using Game.Block.Interface.State;
@@ -36,6 +37,15 @@ namespace Game.World.Interface.DataStore
             return datastore.TryAddBlock(blockId, position, direction, Array.Empty<BlockCreateParam>(), out block);
         }
         
+        // 通常設置と事前計画で占有判定を共有する
+        // Share occupancy checks between ordinary placement and planning
+        public static bool IsOverlapExistingBlock(this IWorldBlockDatastore datastore, BlockPositionInfo positionInfo)
+        {
+            foreach (var position in positionInfo.EnumeratePositions())
+                if (datastore.Exists(position)) return true;
+            return false;
+        }
+
         public static bool Exists(this IWorldBlockDatastore datastore, Vector3Int pos)
         {
             var block = datastore.GetBlock(pos);

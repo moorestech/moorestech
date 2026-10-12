@@ -36,7 +36,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var pole1 = block1.GetComponent<IGearChainPole>();
             var pole2 = block2.GetComponent<IGearChainPole>();
             var pole3 = block3.GetComponent<IGearChainPole>();
-            var noCost = new GearChainConnectionCost(Array.Empty<ConnectToolMaterialCost>());
+            var noCost = new ConnectionLineRecord(Guid.Parse("c0000000-0000-0000-0000-000000000003"), Array.Empty<ConnectToolMaterialCost>());
             // 本番経路(GearChainSystemUtil)と同じく必ず双方向に張る。片方向は本番に存在しない不正状態
             // Connect both directions as the production path (GearChainSystemUtil) always does; one-way links never exist in production
             Assert.IsTrue(pole1.TryAddChainConnection(pole2.BlockInstanceId, noCost));
