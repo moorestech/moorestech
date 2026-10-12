@@ -114,7 +114,10 @@ namespace Game.Block.Blocks.BeltConveyor.Topology
                 {
                     var block = works[i].Block;
                     var param = block.BlockMasterElement.BlockParam;
-                    var speed = param is BeltConveyorBlockParam belt ? belt.BeltSpeedPerTick : ((GearBeltConveyorBlockParam)param).BeltSpeedPerTick;
+                    // マスタは秒単位。整数に換算できることは読み込み時の検証で保証済み
+                    // The master holds seconds; load-time validation guarantees a whole per-tick value
+                    var speedPerSecond = param is BeltConveyorBlockParam belt ? belt.BeltSpeedPerSecond : ((GearBeltConveyorBlockParam)param).BeltSpeedPerSecond;
+                    var speed = BeltSpeedConversion.ToPerTick(speedPerSecond);
                     Array.Sort(inputs[i], BeltTopologyOrder.Connection);
                     Array.Sort(outputs[i], BeltTopologyOrder.Connection);
                     result.Add(new BeltTopologyCell(block.BlockPositionInfo.OriginalPos, block.BlockInstanceId, block, works[i].Forward, speed, IsSplitter(param),

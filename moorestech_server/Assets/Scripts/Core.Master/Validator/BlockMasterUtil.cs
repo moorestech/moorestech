@@ -22,7 +22,7 @@ namespace Core.Master.Validator
             errorLogs += BlockConnectorValidator.ValidateMeshingAxes(blocks);
             errorLogs += ExtractionSettingsValidator.Validate(blocks);
             errorLogs += BeltConveyorFamilyValidator.Validate(blocks);
-            errorLogs += BeltSpeedPerTickValidator.Validate(blocks);
+            errorLogs += BeltSpeedPerSecondValidator.Validate(blocks);
             return string.IsNullOrEmpty(errorLogs);
 
             #region Internal

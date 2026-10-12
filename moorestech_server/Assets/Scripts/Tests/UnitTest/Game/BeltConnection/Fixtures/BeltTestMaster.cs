@@ -58,7 +58,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Fixtures
                 var fast = straight.DeepClone();
                 fast["blockGuid"] = FastGuid.ToString();
                 fast["name"] = "TestBeltConveyorFast";
-                fast["blockParam"]["beltSpeedPerTick"] = 128;
+                fast["blockParam"]["beltSpeedPerSecond"] = 10;
                 blocks.Add(fast);
                 // 全ベルトはいずれかのファミリーに属する必要がある。斜面を持たない独立ファミリーにする
                 // Every belt must belong to a family; give it its own family without slopes

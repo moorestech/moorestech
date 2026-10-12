@@ -189,7 +189,7 @@
       "name": "TestBeltConveyor",
       "blockType": "BeltConveyor",
       "blockParam": {
-        "beltSpeedPerTick": 6,
+        "beltSpeedPerSecond": 0.46875,
         "inventoryConnectors": {
           "inputConnects": [
             {
@@ -2218,7 +2218,7 @@
       "name": "SmallGearBeltConveyor",
       "blockType": "GearBeltConveyor",
       "blockParam": {
-        "beltSpeedPerTick": 32,
+        "beltSpeedPerSecond": 2.5,
         "overloadMaxRpm": 10,
         "overloadMaxTorque": 10,
         "destructionCheckInterval": 0.01,
@@ -2321,7 +2321,7 @@
       "name": "GearBeltConveyor",
       "blockType": "GearBeltConveyor",
       "blockParam": {
-        "beltSpeedPerTick": 32,
+        "beltSpeedPerSecond": 2.5,
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
@@ -4100,7 +4100,7 @@
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
         "baseDestructionProbability": 0,
-        "beltSpeedPerTick": 128,
+        "beltSpeedPerSecond": 10,
         "gear": {
           "gearConnects": [
             {
@@ -4614,7 +4614,7 @@
       "name": "TestGearBeltConveyorUp",
       "blockType": "GearBeltConveyor",
       "blockParam": {
-        "beltSpeedPerTick": 32,
+        "beltSpeedPerSecond": 2.5,
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
@@ -4727,7 +4727,7 @@
       "name": "TestGearBeltConveyorDown",
       "blockType": "GearBeltConveyor",
       "blockParam": {
-        "beltSpeedPerTick": 32,
+        "beltSpeedPerSecond": 2.5,
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,

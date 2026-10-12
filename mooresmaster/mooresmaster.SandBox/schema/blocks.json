@@ -146,9 +146,9 @@
                 "then": {
                   "type": "object",
                   "properties": {
-                    "beltSpeedPerTick": {
-                      "type": "integer",
-                      "default": 13
+                    "beltSpeedPerSecond": {
+                      "type": "number",
+                      "default": 2.5
                     },
                     "slopeType": {
                       "type": "string",
@@ -561,9 +561,9 @@
                       "type": "number",
                       "default": 2
                     },
-                    "beltSpeedPerTick": {
-                      "type": "integer",
-                      "default": 26
+                    "beltSpeedPerSecond": {
+                      "type": "number",
+                      "default": 1.25
                     },
                     "requireTorquePerRpm": {
                       "type": "number",

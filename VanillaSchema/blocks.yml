@@ -251,11 +251,11 @@ properties:
         implementationInterface:
         - IInventoryConnectors
         properties:
-        # 1tickに進む距離（1セル=256単位）。1以上128以下（BeltConstants.MaxSpeed）
-        # Distance advanced per tick in 1/256 cell units; must be 1..128 (BeltConstants.MaxSpeed)
-        - key: beltSpeedPerTick
-          type: integer
-          default: 13
+        # 1秒に進むマス数。読み込み時に1tickあたりの整数距離(×256/20)へ換算するので、整数になる値だけ許す(0.078125刻み、最大10)
+        # Cells advanced per second; converted on load to a whole per-tick distance (x256/20), so only values that convert to a whole number are allowed (steps of 0.078125, at most 10)
+        - key: beltSpeedPerSecond
+          type: number
+          default: 2.5
         - key: slopeType
           type: enum
           options:
@@ -642,11 +642,11 @@ properties:
         - IGearConnectors
         - IGearOverloadParam
         properties:
-        # 1tickに進む距離（1セル=256単位）。1以上128以下（BeltConstants.MaxSpeed）
-        # Distance advanced per tick in 1/256 cell units; must be 1..128 (BeltConstants.MaxSpeed)
-        - key: beltSpeedPerTick
-          type: integer
-          default: 26
+        # 1秒に進むマス数。読み込み時に1tickあたりの整数距離(×256/20)へ換算するので、整数になる値だけ許す(0.078125刻み、最大10)
+        # Cells advanced per second; converted on load to a whole per-tick distance (x256/20), so only values that convert to a whole number are allowed (steps of 0.078125, at most 10)
+        - key: beltSpeedPerSecond
+          type: number
+          default: 1.25
         - key: gearConsumption
           ref: gearConsumption
         - key: slopeType
