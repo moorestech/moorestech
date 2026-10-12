@@ -2,6 +2,7 @@ using Client.Game.InGame.UI.UIState.State.DragDelete;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
 using Client.Game.InGame.BeltTransport;
 using Client.Game.InGame.BeltTransport.View;
+using CommandForgeGenerator.Command;
 using System;
 using Client.Game.InGame.UI.Notification;
 using Client.Game.Common;
@@ -187,7 +188,7 @@ namespace Client.Starter.Registration
             builder.Register<RailGraphSnapshotApplier>(Lifetime.Singleton);
             builder.Register<TrainUnitClientCache>(Lifetime.Singleton);
             builder.Register<BeltTransportClientCache>(Lifetime.Singleton);
-            builder.Register<AddressableBeltItemObjectFactory>(Lifetime.Singleton).As<IBeltItemObjectFactory>();
+            builder.Register<AddressableBeltItemObjectFactory>(Lifetime.Singleton).As<IBeltItemObjectFactory>().As<ISkitEntityObjectControl>();
             builder.Register<TrainUnitTickState>(Lifetime.Singleton);
             builder.RegisterInstance(new TrainSynchronizationDiagnosticWriter(System.IO.Path.Combine(UnityEngine.Application.persistentDataPath, "Logs", "TrainSynchronization")));
             builder.Register<TrainSynchronizationDiagnostics>(Lifetime.Singleton);

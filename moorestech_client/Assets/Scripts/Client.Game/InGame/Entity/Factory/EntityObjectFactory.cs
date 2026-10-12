@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
-using Game.Entity.Interface;
 using UnityEngine;
 
 namespace Client.Game.InGame.Entity.Factory
@@ -19,8 +18,9 @@ namespace Client.Game.InGame.Entity.Factory
         
         public EntityObjectFactory()
         {
+            // ベルト上のアイテムはポーリングから外れた(複製から表示する)。ポーリングで表示するエンティティは今は無い
+            // Belt items left the polling path (displayed from the replica); no entity kind is displayed through polling for now
             _factoryMap = new Dictionary<string, IEntityObjectFactory>();
-            _factoryMap.Add(VanillaEntityType.VanillaItem, new BeltConveyorItemEntityObjectFactory());
         }
         
         public async UniTask<IEntityObject> CreateEntity(Transform parent, EntityResponse entity)

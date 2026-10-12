@@ -1190,6 +1190,7 @@ MonoBehaviour:
       type: {class: TransformRotationInfo, ns: Client.Game.InGame.BlockSystem.StateProcessor, asm: Client.Game}
       data:
         isReverse: 0
+        directionMode: 0
         rotationAxis: 0
         rotationTransform: {fileID: 2160269865489261940}
         rotationSpeed: 1
@@ -1197,6 +1198,7 @@ MonoBehaviour:
       type: {class: TransformRotationInfo, ns: Client.Game.InGame.BlockSystem.StateProcessor, asm: Client.Game}
       data:
         isReverse: 1
+        directionMode: 0
         rotationAxis: 0
         rotationTransform: {fileID: 4090871014590697041}
         rotationSpeed: 1
@@ -1810,7 +1812,8 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: -1638471998465328765, guid: 5d884e7556f41f74f85a834f48830b6e, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
@@ -1876,7 +1879,8 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: -1638471998465328765, guid: 5d884e7556f41f74f85a834f48830b6e, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []

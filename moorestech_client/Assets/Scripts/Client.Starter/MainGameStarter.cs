@@ -126,7 +126,7 @@ namespace Client.Starter
             builder.RegisterComponent(uiRoot);
             builder.RegisterComponent(saveAndQuitPresenter);
 
-            builder.RegisterComponent(entityObjectDatastore);
+            builder.RegisterComponent(entityObjectDatastore).AsSelf().As<ISkitEntityObjectControl>();
             builder.RegisterComponent(trainCarObjectDatastore).AsSelf().As<ISkitWorldObjectControl>();
             builder.RegisterComponent(challengeManager);
 
