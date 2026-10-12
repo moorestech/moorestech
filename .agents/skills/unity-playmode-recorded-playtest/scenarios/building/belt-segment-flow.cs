@@ -18,12 +18,15 @@ using Game.Block.Interface.Component;
 using Game.Context;
 using Game.Train.Unit;
 using UnityEngine;
+using VContainer;
 
 var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("belt-segment-flow", options, async p =>
 {
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig { SpawnPosition = new Vector3(4f, 34f, 0f) });
-    await p.SkipOpeningSkit();
+    // 生成worldの起動はスキットを再生しない設定なので、再生中のときだけ飛ばす
+    // The generated-world boot disables skit playback, so skip only when one is playing
+    await p.SkipOpeningSkitIfPlaying();
 
     p.Note("設置: 供給チェスト→直線3本→分岐器→前と左は合流して受けA、右は受けB");
     var sourcePosition = new Vector3Int(0, 32, 3);
@@ -88,9 +91,10 @@ return PlaytestRunner.Run("belt-segment-flow", options, async p =>
     p.Assert(CountOf(source, itemId) == sourceAfterStall, $"撤去後は供給が詰まって減らない(残={CountOf(source, itemId)})");
     p.Assert(TickGap() < 40, $"撤去後もクライアントtickが追従している(差={TickGap()})");
 
-    p.Note("撤去した位置へ再設置する。流れが戻り、受けAが再び増える");
+    p.Note("撤去した位置へ再設置し、供給を20個足す。流れが戻り、受けAが再び増える");
     p.PlaceBlockDirect("ベルトコンベア", removedPosition, BlockDirection.North);
     await p.WaitBlockGameObject(removedPosition);
+    source.SetItem(0, ServerContext.ItemStackFactory.Create(itemId, CountOf(source, itemId) + 20));
     var countAAfterReplace = CountOf(sinkA, itemId);
     await p.Until(() => countAAfterReplace + 3 <= CountOf(sinkA, itemId), 90f, "再設置後に受けAが3個増えた");
     await p.Screenshot("05-belt-replaced");
@@ -99,10 +103,10 @@ return PlaytestRunner.Run("belt-segment-flow", options, async p =>
     p.Assert(TickGap() < 40, $"最後までクライアントtickが追従している(差={TickGap()})");
     await p.Until(() => CountOf(source, itemId) == 0, 120f, "供給チェストが空になった");
     await p.Until(() => DisplayedItemCount() == 0, 60f, "ベルト上の表示物が全て消えた");
-    // 撤去したマスに載っていたアイテムは消滅する仕様なので、合計は30から撤去時の載り分(高々1個)を引いた数
-    // Items on the removed cell vanish by design, so the total is 30 minus what sat on that cell at removal (at most one)
+    // 供給は30+20個。撤去したマスに載っていたアイテムは消滅する仕様なので、合計はそこから撤去時の載り分(高々1個)を引いた数
+    // 30+20 items were supplied; items on the removed cell vanish by design, so the total is that minus what sat on the cell at removal (at most one)
     var delivered = CountOf(sinkA, itemId) + CountOf(sinkB, itemId);
-    p.Assert(29 <= delivered && delivered <= 30, $"受けAとBの合計が29〜30個(A={CountOf(sinkA, itemId)}, B={CountOf(sinkB, itemId)})");
+    p.Assert(49 <= delivered && delivered <= 50, $"受けAとBの合計が49〜50個(A={CountOf(sinkA, itemId)}, B={CountOf(sinkB, itemId)})");
     await p.Screenshot("06-all-delivered");
 
     #region Internal

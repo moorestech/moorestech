@@ -161,7 +161,7 @@ cat "$RUN_DIR/result.json"
 # 失敗時はライブ診断（EDCでの状態確認）のために意図的に残し、停止コマンドを案内する。
 # Auto-stop play mode on success (prevents port squatting and state carry-over into the next run).
 # On failure, keep play mode alive on purpose for live EDC diagnosis and print how to stop it.
-if python3 -c "import sys,json; sys.exit(0 if json.load(open(sys.argv[1]))['Success'] else 1)" "$RUN_DIR/result.json"; then
+if python3 -c "import sys,json; sys.exit(0 if json.load(open(sys.argv[1], encoding='utf-8'))['Success'] else 1)" "$RUN_DIR/result.json"; then
     echo "== stop play mode =="
     uloop control-play-mode --project-path "$PROJECT_PATH" --action stop >/dev/null 2>&1 && echo "play mode stopped"
     exit 0
