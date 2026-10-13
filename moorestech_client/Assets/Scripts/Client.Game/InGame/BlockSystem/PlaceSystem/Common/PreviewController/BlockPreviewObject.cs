@@ -28,6 +28,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
             }
         }
         private GroundCollisionDetector[] _collisionDetectors;
+        private Collider[][] _contactColliders;
         private bool _terrainContactConfigured;
         private GameObject _ownedTerrainContact;
         private RendererMaterialReplacerController _rendererMaterialReplacerController;
@@ -42,7 +43,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
             _rendererMaterialReplacerController.CopyAndSetMaterial(placeMaterial);
             
             _blockPreviewStateProcessors = GetComponentsInChildren<IBlockPreviewStateProcessor>(true);
-            _collisionDetectors = GetComponentsInChildren<GroundCollisionDetector>(true);
             
             SetPlaceableColor(true);
             
@@ -57,6 +57,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
                 obj.Initialize(blockId);
                 obj.SetActive(true);
             });
+            CacheContactColliders();
         }
         
         public void SetPreviewStateDetail(PlaceInfo placeInfo)
@@ -95,7 +96,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
         {
             if (_terrainContactConfigured) return;
             _terrainContactConfigured = true;
-            _collisionDetectors = GetComponentsInChildren<GroundCollisionDetector>(true);
+            CacheContactColliders();
             if (_collisionDetectors.Length != 0) return;
 
             // 見た目の張り出しを避け、マスターの占有セル内だけで地形接触を測る
@@ -114,7 +115,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
             box.size = size - Vector3.one * (inset * 2f);
             box.isTrigger = true;
             contact.AddComponent<GroundCollisionDetector>();
-            _collisionDetectors = GetComponentsInChildren<GroundCollisionDetector>(true);
+            CacheContactColliders();
         }
 
         internal void SetTerrainContactEnabled(bool enabled, Vector3Int blockSize)
@@ -127,7 +128,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
 
         internal bool DetectCurrentGroundOverlap()
         {
-            return PlacementGroundContactQuery.HasOverlap(_collisionDetectors, gameObject.scene);
+            return PlacementGroundContactQuery.HasOverlap(_collisionDetectors, _contactColliders, gameObject.scene);
+        }
+
+        private void CacheContactColliders()
+        {
+            // 非表示の子も構成時に保持し、現在状態だけを問い合わせで読む
+            // Cache dormant child sources once and read only their live state during queries.
+            _collisionDetectors = GetComponentsInChildren<GroundCollisionDetector>(true);
+            _contactColliders = new Collider[_collisionDetectors.Length][];
+            for (var index = 0; index < _collisionDetectors.Length; index++)
+                _contactColliders[index] = _collisionDetectors[index].GetComponentsInChildren<Collider>(true);
         }
         
         public void SetActive(bool active)

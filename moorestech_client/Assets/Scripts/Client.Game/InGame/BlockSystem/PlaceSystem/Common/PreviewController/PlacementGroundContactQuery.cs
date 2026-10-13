@@ -10,13 +10,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
     {
         private static Collider[] _candidates = new Collider[8];
 
-        internal static bool HasOverlap(GroundCollisionDetector[] detectors, Scene scene)
+        internal static bool HasOverlap(GroundCollisionDetector[] detectors, Collider[][] contactColliders, Scene scene)
         {
             var physics = scene.GetPhysicsScene();
-            foreach (var detector in detectors)
+            for (var index = 0; index < detectors.Length; index++)
             {
+                var detector = detectors[index];
                 if (!detector.isActiveAndEnabled) continue;
-                foreach (var source in detector.GetComponentsInChildren<Collider>(true))
+                foreach (var source in contactColliders[index])
                 {
                     if (!source.enabled || !source.gameObject.activeInHierarchy) continue;
                     if (HasOverlap(source, physics)) return true;

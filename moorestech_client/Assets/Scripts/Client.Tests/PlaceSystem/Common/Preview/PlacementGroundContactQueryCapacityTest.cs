@@ -53,7 +53,8 @@ namespace Client.Tests.PlaceSystem.Common.Preview
             var actualCandidates = new Collider[32];
             Assert.AreEqual(candidateCount, _scene.GetPhysicsScene().OverlapBox(Vector3.zero, Vector3.one,
                 actualCandidates, Quaternion.identity, 1 << LayerConst.GroundLayer, QueryTriggerInteraction.Collide));
-            Assert.AreEqual(expectedOverlap, PlacementGroundContactQuery.HasOverlap(new[] { detector }, _scene));
+            Assert.AreEqual(expectedOverlap, PlacementGroundContactQuery.HasOverlap(
+                new[] { detector }, new[] { new Collider[] { preview.GetComponent<BoxCollider>() } }, _scene));
         }
     }
 }

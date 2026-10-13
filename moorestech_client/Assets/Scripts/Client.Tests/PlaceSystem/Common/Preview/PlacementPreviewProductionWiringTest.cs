@@ -87,6 +87,8 @@ namespace Client.Tests.PlaceSystem.Common.Preview
             // 接触継続・離脱の結果伝達を検査
             // Check propagation of persistent and cleared contact.
             _fixture.Step();
+            Assert.IsTrue(detector.IsCollision, "OnTriggerStay refreshes raw contact after FixedUpdate reset");
+            Assert.IsTrue(preview.IsCollisionGround, "preview retains the refreshed raw notification");
             CollectionAssert.AreEqual(new[] { true }, _fixture.Controller.DetectGroundOverlaps());
             ground.transform.position = Vector3.one * 100f;
             _fixture.Step();

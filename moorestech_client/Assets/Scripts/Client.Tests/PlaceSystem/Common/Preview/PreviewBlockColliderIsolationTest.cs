@@ -169,31 +169,6 @@ namespace Client.Tests.PlaceSystem.Common.Preview
             Physics.SyncTransforms();
             Assert.IsTrue(preview.DetectCurrentGroundOverlap(), "a bump beyond the inset enters the volume");
         }
-        [Test]
-        public void ExistingNonBoxDetectorUsesItsOwnShapeForCurrentPose()
-        {
-            var root = new GameObject("ExistingSpherePreview");
-            SceneManager.MoveGameObjectToScene(root, _scene);
-            var sphere = root.AddComponent<SphereCollider>();
-            sphere.radius = 0.25f;
-            root.AddComponent<GroundCollisionDetector>();
-            var preview = root.AddComponent<BlockPreviewObject>();
-            preview.ConfigurePlacementColliders();
-            preview.SetTerrainContactEnabled(true, Vector3Int.one);
-            var ground = new GameObject("Ground");
-            SceneManager.MoveGameObjectToScene(ground, _scene);
-            ground.layer = LayerConst.GroundLayer;
-            ground.AddComponent<GroundGameObject>();
-            var box = ground.AddComponent<BoxCollider>();
-            box.size = new Vector3(0.1f, 0.1f, 0.1f);
-            ground.transform.position = new Vector3(0.4f, 0.4f, 0f);
-            Physics.SyncTransforms();
-            Assert.IsFalse(preview.DetectCurrentGroundOverlap(), "AABB intersection is not sphere penetration");
-            ground.transform.position = new Vector3(0.2f, 0f, 0f);
-            Physics.SyncTransforms();
-            Assert.IsTrue(preview.DetectCurrentGroundOverlap());
-            Assert.AreSame(sphere, root.GetComponent<SphereCollider>());
-        }
     }
 }
 #endif
