@@ -1,3 +1,4 @@
+using Game.Train.Unit;
 using Core.Item;
 using Core.Master;
 using Core.Update;
@@ -79,6 +80,10 @@ namespace Server.Boot
             var threadActionQueue = serviceProvider.GetRequiredService<ServerThreadActionQueue>();
             GameUpdater.TickEndUpdates.Add(threadActionQueue.Drain);
             ServerThreadActionQueueAccess.SetCurrent(threadActionQueue);
+
+            // tickの境界: 操作の適用まで終えた状態で列車・レール・ベルトのハッシュを出し、tick番号を進める。ベルトの組はまだ作り直されていないので搬送直後と同じハッシュになる
+            // The tick boundary: emit the train, rail and belt hashes from the state after input was applied, then advance the tick; the belt assembly is not rebuilt yet, so its hash equals the post-transport one
+            GameUpdater.FinalTickEndUpdates.Add(serviceProvider.GetRequiredService<TrainUpdateService>().CompleteTick);
 
             // 全世界変更の確定後が唯一のセーブ可能な安定点（仕様2.1⑦）。将来の初回snapshot取得もこの位置に登録する
             // The point after every world mutation commits is the only save-stable boundary (spec 2.1-7); future initial-snapshot capture also registers here

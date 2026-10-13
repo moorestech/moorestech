@@ -1,3 +1,4 @@
+using Core.Update;
 using System.Linq;
 using Game.Block.Blocks.BeltConveyor.Sync.Message;
 using Game.Train.Unit;
@@ -47,15 +48,21 @@ namespace Tests.CombinedTest.Server.PacketTest.Event.BeltTransportSync
             BuildMachineFedWorldAndWarmUp();
             var trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
 
-            // 暖機後は列車diffとベルトで連番が進んでいる。登録pushの前後で変わらない
-            // After the warm-up the train diff and belt event advanced the counter; it stays the same across the registration push
-            var before = trainUpdateService.GetCurrentTickSequenceId();
-            Assert.Greater(before, 0u, "sequence ids were issued this tick");
+            // tickの境界では連番は0に戻っている。登録pushはそれを進めず、次tickの番号付け(列車diff=1・ベルト=2)もずれない
+            // At the tick boundary the counter is back at 0; the registration push does not advance it, and the next tick's numbering (train diff 1, belt 2) is unshifted
+            Assert.AreEqual(0u, trainUpdateService.GetCurrentTickSequenceId(), "no id issued at the boundary");
             var sink = new CapturedEventSink();
             serviceProvider.GetService<EventProtocolProvider>().RegisterPlayer(JoiningPlayerId, sink);
 
             Assert.AreEqual(1, sink.Events.Count(e => e.Tag == BeltTransportFullSnapshotEventPacket.EventTag), "belt snapshot pushed");
-            Assert.AreEqual(before, trainUpdateService.GetCurrentTickSequenceId(), "sequence id after the push");
+            Assert.AreEqual(0u, trainUpdateService.GetCurrentTickSequenceId(), "sequence id after the push");
+            sink.TakeAll();
+            GameUpdater.UpdateOneTick();
+            var beltEvent = sink.Events.Single(e => e.Tag == BeltTransportTickEventPacket.TickDiffEventTag || e.Tag == BeltTransportTickEventPacket.RebuiltFullStateEventTag);
+            var beltSequenceId = beltEvent.Tag == BeltTransportTickEventPacket.TickDiffEventTag
+                ? MessagePackSerializer.Deserialize<BeltTransportTickDiffMessagePack>(beltEvent.Payload).TickSequenceId
+                : MessagePackSerializer.Deserialize<BeltTransportFullStateMessagePack>(beltEvent.Payload).TickSequenceId;
+            Assert.AreEqual(2u, beltSequenceId, "belt event keeps sequence id 2 after the push");
         }
     }
 }

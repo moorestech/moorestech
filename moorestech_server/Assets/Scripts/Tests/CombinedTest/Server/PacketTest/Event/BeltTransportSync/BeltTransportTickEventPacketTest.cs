@@ -45,7 +45,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event.BeltTransportSync
             {
                 PlaceOnPlacementIteration(i, trainUpdateService, expectedRebuiltTicks);
                 GameUpdater.UpdateOneTick();
-                var tick = trainUpdateService.GetCurrentTick();
+                var tick = (trainUpdateService.GetCurrentTick() - 1);
                 var events = sink.TakeAll();
                 CollectSequenceIds(events, sequenceIdsByTick);
 
@@ -94,7 +94,9 @@ namespace Tests.CombinedTest.Server.PacketTest.Event.BeltTransportSync
             Assert.AreEqual(BeltTransportFullSnapshotEventPacket.EventTag, initial[2].Tag);
             var snapshot = MessagePackSerializer.Deserialize<BeltTransportFullStateMessagePack>(initial[2].Payload);
             var replica = BeltTransportReplicaAssembler.Assemble(snapshot.ToFullState());
-            var replicaHashByTick = new Dictionary<uint, uint> { [snapshot.ServerTick] = HashOf(replica) };
+            // 登録時の全量は直前のtickを終えた状態。水位のtickは次に回るtickなので、複製のハッシュはその1つ前に対応する
+            // The registration full state is the state after the previous tick; its watermark tick is the one about to run, so the replica hash belongs to the tick before
+            var replicaHashByTick = new Dictionary<uint, uint> { [snapshot.ServerTick - 1] = HashOf(replica) };
 
             var expectedRebuiltTicks = new List<uint>();
             var rebuilds = 0;
@@ -106,7 +108,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event.BeltTransportSync
                 GameUpdater.UpdateOneTick();
                 foreach (var eventMessagePack in sink.TakeAll()) Apply(eventMessagePack);
 
-                var tick = trainUpdateService.GetCurrentTick();
+                var tick = (trainUpdateService.GetCurrentTick() - 1);
                 Assert.IsTrue(replicaHashByTick.ContainsKey(tick), $"replica advanced to tick {tick}");
                 Assert.AreEqual(BeltTransportStateHash.Compute(CaptureServer()), replicaHashByTick[tick], $"replica hash at tick {tick}");
             }
@@ -157,13 +159,13 @@ namespace Tests.CombinedTest.Server.PacketTest.Event.BeltTransportSync
             #endregion
         }
 
-        // 指定回の直前に行き止まりを延ばし、その次のtickを再構築tickとして記録する
-        // Extend the dead end right before the chosen iterations and record the following tick as the expected rebuilt tick
+        // 指定回の直前に行き止まりを延ばし、これから回るtickを再構築tickとして記録する
+        // Extend the dead end right before the chosen iterations and record the tick about to run as the expected rebuilt tick
         private static void PlaceOnPlacementIteration(int iteration, TrainUpdateService trainUpdateService, List<uint> expectedRebuiltTicks)
         {
             if (iteration != FirstPlacementIteration && iteration != SecondPlacementIteration) return;
             ExtendDeadEnd(iteration == FirstPlacementIteration ? 22 : 23);
-            expectedRebuiltTicks.Add(trainUpdateService.GetCurrentTick() + 1);
+            expectedRebuiltTicks.Add(trainUpdateService.GetCurrentTick());
         }
 
         private static uint HashOf(BeltTransportReplica replica)

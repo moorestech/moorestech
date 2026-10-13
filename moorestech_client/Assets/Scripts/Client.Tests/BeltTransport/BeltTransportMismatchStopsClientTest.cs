@@ -37,10 +37,10 @@ namespace Client.Tests.BeltTransport
             var rig = new BeltSyncClientRig();
             rig.Join(sink.TakeAll());
 
-            // 本物のハッシュを送るtickまで進め、そのハッシュが届く前に複製だけを1tick余分に進める
-            // Advance to a tick that carries a real hash and, before that hash arrives, push the replica alone one extra tick
-            while (!TrainUpdateService.IsHashBroadcastTick(trainUpdateService.GetCurrentTick())) AdvanceServerOneTick();
-            var stoppedAtTick = trainUpdateService.GetCurrentTick();
+            // クライアントが本物のハッシュを持つtickを処理し終えるまで進め、そのハッシュが次tickで届く前に複製だけを1tick余分に進める
+            // Advance until the client has processed a tick that carries a real hash and, before that hash arrives next tick, push the replica alone one extra tick
+            while (!TrainUpdateService.IsHashBroadcastTick(rig.TickState.GetTick())) AdvanceServerOneTick();
+            var stoppedAtTick = rig.TickState.GetTick();
             Assert.IsTrue(rig.Cache.ApplyTickDiff(BeltTickDiff.Empty), "the extra tick itself is consistent");
 
             // 次tickに届くハッシュで不一致になり、列車tickは止まるが停止はまだ確定しない
@@ -53,7 +53,7 @@ namespace Client.Tests.BeltTransport
             // Once reception runs 200 ticks ahead the stop becomes permanent and the applied tick never moves again
             for (var i = 0; i < ReceivedGapForPermanentStop + 8 && !rig.TickState.IsPermanentlyWaiting; i++) AdvanceServerOneTick();
             Assert.IsTrue(rig.TickState.IsPermanentlyWaiting, "stop confirmed");
-            Assert.GreaterOrEqual(trainUpdateService.GetCurrentTick() - stoppedAtTick, ReceivedGapForPermanentStop, "stop confirmed by the received gap");
+            Assert.GreaterOrEqual((trainUpdateService.GetCurrentTick() - 1) - stoppedAtTick, ReceivedGapForPermanentStop, "stop confirmed by the received gap");
             AdvanceServerOneTick();
             Assert.AreEqual(stoppedAtTick, rig.TickState.GetTick(), "client tick stays at the mismatch");
 
@@ -97,7 +97,7 @@ namespace Client.Tests.BeltTransport
                 if (forged == null) continue;
 
                 Assert.IsTrue(rig.TickState.IsPermanentlyWaiting, "replica divergence stops the client");
-                Assert.AreEqual(trainUpdateService.GetCurrentTick(), rig.TickState.GetTick(), "stopped on the forged tick");
+                Assert.AreEqual((trainUpdateService.GetCurrentTick() - 1), rig.TickState.GetTick(), "stopped on the forged tick");
                 return;
             }
             Assert.Fail("no tick offered a machine output absent from the real diff");

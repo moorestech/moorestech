@@ -45,7 +45,7 @@ namespace Client.Tests.BeltTransport
 
                 // 毎tick、前tickのハッシュを検証器が通し、ベルトの連番まで流れた複製はサーバーと同じ状態
                 // Every tick the verifier passes the previous tick's hash, and once flushed up to the belt's sequence id the replica equals the server
-                var tick = trainUpdateService.GetCurrentTick();
+                var tick = (trainUpdateService.GetCurrentTick() - 1);
                 Assert.AreEqual(tick, rig.TickState.GetTick(), $"client reached tick {tick}");
                 Assert.AreEqual(BeltTransportStateHash.Compute(CaptureServer()), rig.Cache.ComputeCurrentHash(), $"replica hash at tick {tick}");
             }
@@ -58,13 +58,13 @@ namespace Client.Tests.BeltTransport
             BeltFullStateAssert.AreEqual(CaptureServer(), rig.Cache.Replica.CaptureFullState());
         }
 
-        // 指定回の直前に行き止まりを延ばし、その次のtickを再構築tickとして記録する
-        // Extend the dead end right before the chosen iterations and record the following tick as the expected rebuilt tick
+        // 指定回の直前に行き止まりを延ばし、これから回るtickを再構築tickとして記録する
+        // Extend the dead end right before the chosen iterations and record the tick about to run as the expected rebuilt tick
         private static void PlaceOnPlacementIteration(int iteration, TrainUpdateService trainUpdateService, List<uint> expectedRebuiltTicks)
         {
             if (iteration != FirstPlacementIteration && iteration != SecondPlacementIteration) return;
             ExtendDeadEnd(iteration == FirstPlacementIteration ? 22 : 23);
-            expectedRebuiltTicks.Add(trainUpdateService.GetCurrentTick() + 1);
+            expectedRebuiltTicks.Add(trainUpdateService.GetCurrentTick());
         }
     }
 }
