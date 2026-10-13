@@ -75,10 +75,14 @@ fi
 
 RUN_DIR="$PLAYTEST_RUN_ROOT/$BUILD_LABEL"
 STEAM_DIR="$RUN_DIR/steam"
-# RUN_DIRの再利用は前回の成果物・promotion.mdを黙って読ませる温床になるためfail-closedで拒否する
-# Reusing RUN_DIR would silently read a previous run's artifacts/promotion.md, so refuse it fail-closed
-if [ -e "$RUN_DIR" ]; then
-    echo "ERROR: RUN_DIR が既に存在します（前回実行の残骸の可能性）: ${RUN_DIR}" >&2
+# 並行起動と前回成果物の混入を防ぐため、runを排他的に確保する
+# Claim the run exclusively to prevent concurrent launches and stale artifact reuse
+if ! mkdir -p -- "$PLAYTEST_RUN_ROOT"; then
+    echo "ERROR: RUN_DIR の親を作成できません（IO失敗）: ${RUN_DIR}" >&2
+    exit 2
+fi
+if ! mkdir -- "$RUN_DIR"; then
+    echo "ERROR: RUN_DIR を確保できません（既存・同時確保・IO失敗）: ${RUN_DIR}" >&2
     exit 2
 fi
 mkdir -p "$RUN_DIR/build-windows" "$RUN_DIR/build-mac" "$STEAM_DIR/output"

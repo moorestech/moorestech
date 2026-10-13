@@ -82,3 +82,79 @@ for mode in full partial; do
     [ -f "$run/verify/result.json" ] || fail "$mode cleanup failure lost verification evidence"
     [ -f "$run/promotion.md" ] || fail "$mode cleanup failure prevented promotion instructions"
 done
+
+# 別コミットの同時確保で敗者を止め、所有者の成果物を共有させない
+# Stop the loser of simultaneous claims from sharing another commit's artifacts
+make_sandbox
+cat >"$SANDBOX/bin/mkdir" <<'EOF_MKDIR'
+#!/bin/bash
+set -eu
+if [ "$#" -eq 2 ] && [ "$1" = -- ] && [ "$2" = "$PLAYTEST_RUN_ROOT/concurrent-run" ]; then
+    race="${PLAYTEST_RUN_ROOT%/runs}/race"
+    touch "$race/ready-$RACE_ID"
+    for ((attempt=0; attempt<200; attempt++)); do
+        [ -f "$race/ready-A" ] && [ -f "$race/ready-B" ] && break
+        sleep 0.025
+    done
+    [ -f "$race/ready-A" ] && [ -f "$race/ready-B" ] || exit 90
+    if /bin/mkdir -- "$2"; then
+        echo "$RACE_ID" >"$race/owner"
+        /bin/mkdir -p "$2/build-windows" "$2/build-mac" "$2/steam/output"
+        for path in build-windows/keep build-mac/keep unity-build-windows.log \
+            unity-build-mac.log steam/output/upload.log promotion.md; do
+            echo owner-evidence >"$2/$path"
+        done
+        touch "$race/claimed"
+        for ((attempt=0; attempt<200; attempt++)); do
+            [ -f "$race/release" ] && exit 0
+            sleep 0.025
+        done
+        echo 'owner barrier timed out' >&2
+        exit 91
+    fi
+    exit 1
+fi
+exec /bin/mkdir "$@"
+EOF_MKDIR
+chmod +x "$SANDBOX/bin/mkdir"
+mkdir -p "$SANDBOX/race"
+for identity in A B; do
+    (
+        RACE_ID="$identity" GIT_VERIFY_OUTPUT="$identity${COMMIT:1}" \
+            BUILD_INFO_COMMIT="$identity${COMMIT:1}" MOORESTECH_STEAM_BUILD_LABEL=concurrent-run \
+            run_target >"$SANDBOX/race/output-$identity"
+        echo "$?" >"$SANDBOX/race/status-$identity"
+    ) &
+    if [ "$identity" = A ]; then PID_A=$!; else PID_B=$!; fi
+done
+for ((attempt=0; attempt<200; attempt++)); do
+    [ -f "$SANDBOX/race/claimed" ] && \
+        { [ -f "$SANDBOX/race/status-A" ] || [ -f "$SANDBOX/race/status-B" ]; } && break
+    sleep 0.025
+done
+if [ -f "$SANDBOX/race/claimed" ]; then
+    owner=$(cat "$SANDBOX/race/owner")
+    if [ "$owner" = A ]; then loser=B; else loser=A; fi
+    [ "$(cat "$SANDBOX/race/status-$loser" 2>/dev/null)" = 2 ] || fail "concurrent loser did not exit 2"
+    grep -q 'RUN_DIR.*既存・同時確保・IO失敗' "$SANDBOX/race/output-$loser" || fail "claim failure omitted its reason"
+    grep -q "$SANDBOX/runs/concurrent-run" "$SANDBOX/race/output-$loser" || fail "claim failure omitted its path"
+    grep -Eq '^(moores-wt|unity|steamcmd|rm|verify) ' "$SANDBOX/calls.log" && fail "loser reached worktree/build/delivery"
+    for path in build-windows/keep build-mac/keep unity-build-windows.log \
+        unity-build-mac.log steam/output/upload.log promotion.md; do
+        [ "$(cat "$SANDBOX/runs/concurrent-run/$path" 2>/dev/null)" = owner-evidence ] || fail "loser modified owner evidence: $path"
+    done
+else
+    fail "simultaneous run claims did not reach the ownership barrier"
+fi
+# 所有者を解放し、正常配布と片付けまで完走させる
+# Release the owner and let normal delivery and cleanup finish
+touch "$SANDBOX/race/release"
+wait "$PID_A"
+wait "$PID_B"
+if [ -f "$SANDBOX/race/claimed" ]; then
+    [ "$(cat "$SANDBOX/race/status-$owner")" = 0 ] || fail "concurrent owner failed"
+    [ "$(grep -c '^moores-wt new ' "$SANDBOX/calls.log")" = 1 ] || fail "multiple worktrees were requested"
+    assert_payloads_removed "$SANDBOX/runs/concurrent-run"
+    assert_release_evidence_retained "$SANDBOX/runs/concurrent-run"
+    [ -f "$SANDBOX/runs/concurrent-run/promotion.md" ] || fail "owner lost promotion instructions"
+fi
