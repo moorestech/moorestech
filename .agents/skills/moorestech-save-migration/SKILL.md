@@ -5,12 +5,10 @@ description: moorestech のセーブ形式を変えるとき、ロード時マ�
 
 # moorestech Save Migration
 
-## 方針（2026-09-13 に反転した）
+## 方針
 
-テスター配布が始まったため、**セーブ形式を変えるPRはロード時マイグレーションのステップを同梱する**（ADR 0058、
-`.decisions/2026-09-13-テスターのセーブ互換はゲーム内ロード時マイグレーション連鎖で保つ.md`、AGENTS.md
-「互換性とパフォーマンス」の例外項）。以前の「コード側に互換を書かずセーブファイルを手で変換する」方針は、
-worldVersion 導入前のセーブと開発者手元のセーブに限った補助手順へ降格した。
+テスター配布が始まったため、**セーブ形式を変えるPRはロード時マイグレーションのステップを同梱する**（AGENTS.md
+「互換性とパフォーマンス」の例外項）。セーブファイルの手変換は worldVersion 導入前のセーブと開発者手元のセーブに限る。
 
 セーブ実体は `<GameSystemPaths.SaveFileDirectory>/world_1/save.json`（mac なら
 `~/Library/Application Support/moorestech/Saves/world_1/save.json`）。

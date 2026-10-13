@@ -44,7 +44,7 @@ IL上の参照勘定は既に厳密（オーバーロード解決済み・interf
 1. `placement-mismatch` → server側asmdefで宣言されているのにclient側からしか使われていない型。**移設提案**をCriticalで出す。次は **正当**:
    - サーバー・クライアント共有のデータ契約（`*MessagePack`/`*EventPacket`/`*Master`）で、サーバー側は生成のみ・IL上は`const`インライン化で参照が消えている型 → `rg "<型名>" moorestech_server` で実測して確認する
    - サーバー起動の入口（`ServerStarter` 等）をクライアントの内蔵サーバーから呼ぶ形
-2. `placement-registration-only` → DI登録だけがserver側の接点で、コンストラクタ注入・フィールド・`GetService<T>()` のどれもserver側に無い型。PR1095 `IBlueprintCatalogSource` と同型。裁定:
+2. `placement-registration-only` → DI登録だけがserver側の接点で、コンストラクタ注入・フィールド・`GetService<T>()` のどれもserver側に無い型。唯一の実装がクライアント側にあり、サーバ側はDI登録だけで実質クライアント専用の interface が典型。裁定:
    - `rg "GetService<型名>|<型名> " moorestech_server --glob "*.cs"` で解決者の不在を実測する
    - コンストラクタで購読を張るだけの「配線用シングルトン」（`*EventPacket` 群がこの形）は **正当**。ただしその意図がコメントに無いならWarningで1行残す
    - 解決者も配線もないなら **Critical: 登録ごと削除**（受益者なき抽象の禁止）

@@ -34,7 +34,6 @@ hooks:
 # pr-independent-review — 独立セッションPRレビュー（シャドー運用v1）
 
 規則の由来（どの事故・裁定から生まれたか）は `references/changelog.md`。記録の固定書式は `references/record-format.md`。
-対応spec: `docs/superpowers/specs/2026-07-27-pr-independent-review-design.md`
 
 ## 記法（本文全体の共通規約）
 
@@ -118,7 +117,7 @@ AskUserQuestion は deny される。ブロックは同一セッション2回で
          --origin <$ORIGINの実値>
 
    stdout の JSON の `canon` が `$CANON` の実値、`worktree_parent`（PC共通の `<clone置き場の親>/worktrees/moorestech/` に固定）が本スキルの作る
-   worktree の置き場。`$ORIGIN` の隣（repos 直下）へ worktree を作らない（2026-09-29 ユーザー裁定）。`origin_master_sha` は records の `canonical:` に書く。`warnings`（古ピン掃除の失敗）は報告に載せて続行する
+   worktree の置き場。`$ORIGIN` の隣（repos 直下）へ worktree を作らない。`origin_master_sha` は records の `canonical:` に書く。`warnings`（古ピン掃除の失敗）は報告に載せて続行する
 
    | exit | 意味 | 対応 |
    | --- | --- | --- |
@@ -179,7 +178,7 @@ Step 10 の付与条件を確認する。
 
 ## Step 2: PR専用worktree `$PRWT` へcheckout
 
-**worktreeはPRごとに1つ作り、レビューからpushまでそこで完結させる**（ユーザー裁定 2026-08-05）。共用の使い回しworktreeにしない。
+**worktreeはPRごとに1つ作り、レビューからpushまでそこで完結させる**。共用の使い回しworktreeにしない。
 
 - **場所**: `<worktree_parentの実値>/pr-<番号>`（`skills-canon-<sha8>` と同じ親）
 - **無ければ作る**:
@@ -273,7 +272,7 @@ PRコメントの合意主張は使わない。
 - `generic_origin=false` の new_edges と `dir_is_new=true` の new_edges は参考情報（裁定カードにせず折りたたみ参考節へ）。
   `dir_is_new` の件数はStep 8に「うちdir_is_new N件」として残す
 - `.claude/` `.agents/` `.codex/` 配下の `.cs` はプロダクトコードでないため除外して解釈する
-- `.moorestech-external-revisions.json` の差分は指摘対象にしない（ユーザー裁定 2026-08-16）。findings.jsonにも裁定カードにも起こさない
+- `.moorestech-external-revisions.json` の差分は指摘対象にしない。findings.jsonにも裁定カードにも起こさない
 - `line` が `null` の所見（`schema_change` / `new_protocol_file` / `new_datastore_file`）はファイル単位。表記はファイルパスのみで `:1` や `:null` を書き足さない
 
 ## Step 6: moores-code-review本体をreport-onlyで発火

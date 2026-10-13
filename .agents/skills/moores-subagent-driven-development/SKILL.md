@@ -107,7 +107,7 @@ description: moorestech専用の計画実行。現在のセッションで、独
 
 - SDD本体: タスクごとに `Task N: complete (commits <base7>..<head7>, review clean)`
 - 単一モード: `dispatched` / `continuation #k from Task N base <sha7>`（PARTIAL継続のみ。この行数がそのまま継続回数） / `switched to SDD per-task …` / `complete`
-- 単一モードの復旧順: **台帳 → 元subagentの生存確認（手段は runtime-*.md。生きていれば結果を待つ） → 報告ファイル → `git log`**。`dispatched` だけで `complete` が無いとき、生存確認なしに再派遣しない（死亡と決めつけて再派遣し同一worktreeを二重編集した実事故がある）
+- 単一モードの復旧順: **台帳 → 元subagentの生存確認（手段は runtime-*.md。生きていれば結果を待つ） → 報告ファイル → `git log`**。`dispatched` だけで `complete` が無いとき、生存確認なしに再派遣しない（生きている subagent と同じworktreeを二重編集するため）
 - `git clean -fdx` は台帳を消す。発生したら `git log` から復旧する
 - 実行メモは台帳の代わりにならない（人間向けの現在地と質問の置き場）。compaction後は台帳と併せてメモも読み、未回答の質問を引き継ぐ
 

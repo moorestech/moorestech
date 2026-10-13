@@ -37,6 +37,3 @@ recall 側に倒す。半信の候補は Warning で必ず載せる。棄却し�
 ## 出力
 
 共通出力契約（Critical/Warning/Info/suppressed + 設計判断）。各指摘に「変更点」「壊れる呼び出し元（ファイル:行）」「故障シナリオ」を含める。
-
-<!-- 由来: 組み込み /code-review v2.1.232 Angle C (cross-file tracer) の移植 2026-08-14。
-     同一 diff 比較で catch 範囲・呼び出し側 retry 契約破りの検出実績あり。all-code-review ADR-0004 (2026-08-14) からの同文移植。 -->

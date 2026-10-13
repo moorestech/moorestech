@@ -103,7 +103,7 @@ p.Assert(!networkOf(a1).Equals(networkOf(b1)), "別セグメント");
 
 ## 落とし穴
 
-1. **未割当の枠をタップすると建築モードを抜ける**（旧仕様との最大の違い）。`Hotbar.AssignHotbar`せずに
+1. **未割当の枠をタップすると建築モードを抜ける**。`Hotbar.AssignHotbar`せずに
    `Hotbar.SelectHotbar`だけ呼ぶと、GameScreenでは何も起きず、PlaceBlock中なら即座に抜けてしまう
 2. **接続ツールはブロックと別枠のアンロック状態**（`ConnectToolUnlockStateInfos`）を持つ。ブロックだけ
    `UnlockBlock`しても、対応する接続ツールを`Hotbar.UnlockConnectTool`しないと延長設置・クリック結線どちらも動かない
