@@ -1,6 +1,6 @@
 # 駅の既定名の命名システム Implementation Plan
 
-> **For the controller session (実装を担うsubagentはこのブロックを無視してよい):** このplanの実行は moores-subagent-driven-development スキルが担う。実行モード（規模ゲート未満の単一subagent実装モード／閾値超のタスクごと派遣）は同スキルの規模ゲートに従って決める。ステップはチェックボックス（`- [ ]`）記法で書く。
+> **For the controller session (実装を担うsubagentはこのブロックを無視してよい):** このplanの実行は moores-subagent-driven-development スキルが担う。実行モード（規模ゲート未満の単一subagent実装モード／閾値超のタスクごと派遣）は同スキルの規模ゲートに従って決める。ステップはチェックボックス（`- [x]`）記法で書く。
 
 **Goal:** 新しく置いた蒸気機関車駅に、周辺の鉱脈・地物から "Iron Ore Station" "Log Station 2" のような英語の既定名を付ける。
 
@@ -57,7 +57,7 @@
   - `TrainStationFeatureEnglishNames(IReadOnlyDictionary<string, string> englishTexts)`、`string GetItemName(Guid itemGuid)`、`string GetFluidName(Guid fluidGuid)`
   - `static class ModEnglishContentNameLoader`、`static Dictionary<string, string> Load(ModsResource modsResource)`（key → english の辞書。`item.*.name` と `fluid.*.name` だけ）
 
-- [ ] **Step 1: 英語名の表を書く**
+- [x] **Step 1: 英語名の表を書く**
 
 ```csharp
 using System;
@@ -96,7 +96,7 @@ namespace Game.Block.Blocks.TrainRail.Naming
 
 （`GetItemMaster(Guid)` / `GetFluidMaster(Guid)` の name プロパティ名は生成物で確認する。GUID 文字列の書式は小文字ハイフン区切り（`Guid.ToString()` の既定 "D"）で、v8 の CSV（`item.582040ec-093b-4c8e-8fe3-f4ec030cf1ca.name`）と一致する。走査は現存の鉱脈・地物から特徴を取るため、ここに渡る GUID はマスタに必ず在る。）
 
-- [ ] **Step 2: ローダーを書く**
+- [x] **Step 2: ローダーを書く**
 
 ```csharp
 using System;
@@ -158,7 +158,7 @@ namespace Server.Boot.Localization
 
 （パース結果の型名・`LanguageCodes`・`Rows`・`Texts` は `ModLocalizationMerger.MergeCsv` の使い方に合わせる。mod の走査順は「マスタとローカライズが共有する上書き順」（`Mod.Config/ModJsonStringLoader.cs:19` の `modResource.Mods.OrderBy(pair => pair.Key, StringComparer.Ordinal)`）と同じにする。コード例の `foreach (var mod in modsResource.Mods.Values)` はこの順序付きの列挙に置き換える。catch する例外型は `LocalizationCsvException` と IO 系に絞れるなら絞る。Server.Boot.asmdef が `Mod.Loader` と `mooresmaster.LocalizationCsv.dll` を参照しているかを確かめ、無ければ足す。）
 
-- [ ] **Step 3: テストを書く**（一時ディレクトリに `<mod>/localization/localization.csv` を作り、`ModsResource` をその親で作る。作り方はクライアント `Client.Tests/Localization/Composition/ModLocalizationMergerTest.cs:106` 付近の前例に合わせる）
+- [x] **Step 3: テストを書く**（一時ディレクトリに `<mod>/localization/localization.csv` を作り、`ModsResource` をその親で作る。作り方はクライアント `Client.Tests/Localization/Composition/ModLocalizationMergerTest.cs:106` 付近の前例に合わせる）
 
 ```csharp
 [Test]
@@ -183,12 +183,12 @@ public void UnreadableCsvIsSkippedWithError()
 
 （壊れた CSV の中身は `LocalizationCsvParser` が実際に例外を投げる形にする。投げなければ別の壊し方を選ぶ。）
 
-- [ ] **Step 4: コンパイルしテスト**
+- [x] **Step 4: コンパイルしテスト**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "ModEnglishContentNameLoaderTest"`
 Expected: ErrorCount 0 / PASS
 
-- [ ] **Step 5: コミット** `git commit -m "feat: modのlocalization.csvから英語のアイテム・液体名を読む"`
+- [x] **Step 5: コミット** `git commit -m "feat: modのlocalization.csvから英語のアイテム・液体名を読む"`
 
 ---
 
@@ -202,7 +202,7 @@ Expected: ErrorCount 0 / PASS
 - Consumes: Task 1 の `TrainStationFeatureEnglishNames`
 - Produces: `TrainStationNameFeatureScanner(IItemMapVeinDatastore, IFluidMapVeinDatastore, IMapObjectDatastore, TrainStationFeatureEnglishNames)`、`string ScanBaseName(BlockPositionInfo position)`（番号なしの名前。"Iron Ore Station" または代替 "Station"）、`const float ScanRadius = 32f`
 
-- [ ] **Step 1: 走査を書く**
+- [x] **Step 1: 走査を書く**
 
 ```csharp
 using System.Collections.Generic;
@@ -304,7 +304,7 @@ namespace Game.Block.Blocks.TrainRail.Naming
 
 `IMinableMapObjectParam` の名前空間・`EarnItems` の実体（生成型では `.items` 配列の可能性）と要素の `ItemGuid` の名前は `Core.Master/Validator/MapObjectMasterUtil.cs:25` の使い方に、`MapObjectMaster.IsDecoration` の引数型も同ファイル周辺に合わせる。
 
-- [ ] **Step 2: テストを書く**（`TrainTestHelper.CreateEnvironment()` で ForUnitTest の map.json を読む環境を作り、`ServerContext.ItemMapVeinDatastore` 等と、空辞書の `TrainStationFeatureEnglishNames`（英語訳なし→マスタ name）を渡す。駅サイズ 3×1×8 の `BlockPositionInfo` を直接作る。名前はマスタ name: Test1（`00000000-0000-0000-1234-000000000001`）・Water（液体）・TestMiningRock の最初の earnItems のアイテムを ForUnitTest の items.json / fluids.json / map.json から書き写す）
+- [x] **Step 2: テストを書く**（`TrainTestHelper.CreateEnvironment()` で ForUnitTest の map.json を読む環境を作り、`ServerContext.ItemMapVeinDatastore` 等と、空辞書の `TrainStationFeatureEnglishNames`（英語訳なし→マスタ name）を渡す。駅サイズ 3×1×8 の `BlockPositionInfo` を直接作る。名前はマスタ name: Test1（`00000000-0000-0000-1234-000000000001`）・Water（液体）・TestMiningRock の最初の earnItems のアイテムを ForUnitTest の items.json / fluids.json / map.json から書き写す）
 
 ```csharp
 [Test]
@@ -349,12 +349,12 @@ public void EnglishNameIsPreferred()
 
 （`Station(pos)` は `new BlockPositionInfo(pos, BlockDirection.North, new Vector3Int(3, 1, 8))` を返すテスト内ヘルパー。距離は上の検算どおりだが、実装前に test map と照合し、成り立たなければ設置位置を変える（期待値を実装に合わせて変えない）。）
 
-- [ ] **Step 3: コンパイルしテスト**
+- [x] **Step 3: コンパイルしテスト**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "TrainStationNameFeatureScannerTest"`
 Expected: ErrorCount 0 / PASS
 
-- [ ] **Step 4: コミット** `git commit -m "feat: 駅の周辺から既定名を決める走査を追加"`
+- [x] **Step 4: コミット** `git commit -m "feat: 駅の周辺から既定名を決める走査を追加"`
 
 ---
 
@@ -373,7 +373,7 @@ Expected: ErrorCount 0 / PASS
 - Consumes: Task 2 の `TrainStationNameFeatureScanner.ScanBaseName`
 - Produces: `TrainStationDefaultNameAllocator(TrainStationNameFeatureScanner)`、`string Allocate(BlockPositionInfo position)`
 
-- [ ] **Step 1: 割り当てを書く**
+- [x] **Step 1: 割り当てを書く**
 
 ```csharp
 using System.Collections.Generic;
@@ -422,12 +422,12 @@ namespace Game.Block.Blocks.TrainRail.Naming
 }
 ```
 
-- [ ] **Step 2: テンプレートへ組み込む**
+- [x] **Step 2: テンプレートへ組み込む**
 
 - `VanillaTrainStationTemplate`: ctor に `TrainStationDefaultNameAllocator defaultNameAllocator` を足し、`New` の `new TrainStationComponent()` を `new TrainStationComponent(_defaultNameAllocator.Allocate(positionInfo))` に変える。`Load` は変更なし
 - `VanillaIBlockTemplates`: ctor に `IItemMapVeinDatastore`、`IFluidMapVeinDatastore`、`IMapObjectDatastore`、`TrainStationFeatureEnglishNames` を足し、`new TrainStationDefaultNameAllocator(new TrainStationNameFeatureScanner(itemVeins, fluidVeins, mapObjects, englishNames))` を作って `VanillaTrainStationTemplate` へ渡す（同じ initializer コンテナに登録済み: `ServerContextRegistration.cs:111-114`。`new VanillaIBlockTemplates(` の直接呼び出しは無く DI 解決のみ）
 
-- [ ] **Step 3: テストを書く**（`TrainTestHelper.CreateEnvironment()` で実サーバー環境を作り、`ServerContext.WorldBlockDatastore.TryAddBlock` で `ForUnitTestModBlockId.TestTrainStation` を置く。ForUnitTest mod に localization.csv が無ければ英語名はマスタ name になる）
+- [x] **Step 3: テストを書く**（`TrainTestHelper.CreateEnvironment()` で実サーバー環境を作り、`ServerContext.WorldBlockDatastore.TryAddBlock` で `ForUnitTestModBlockId.TestTrainStation` を置く。ForUnitTest mod に localization.csv が無ければ英語名はマスタ name になる）
 
 ```csharp
 [Test]
@@ -471,12 +471,12 @@ public void FallbackNameWhenNothingNearby()
 
 既存 `TrainStationNameTest` の「初期名は空文字」は「初期名は `$"{Test1Name} Station"`」へ書き換える（原点設置の場合）。
 
-- [ ] **Step 4: コンパイルしテスト**
+- [x] **Step 4: コンパイルしテスト**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "TrainStation|Train.*Station|RequestBlockInventoryTest|TrainSchedule"`
 Expected: ErrorCount 0 / PASS（既存の駅関連テストも全て通る）
 
-- [ ] **Step 5: コミット** `git commit -m "feat: 新設駅に周辺の特徴から英語の既定名を付ける"`
+- [x] **Step 5: コミット** `git commit -m "feat: 新設駅に周辺の特徴から英語の既定名を付ける"`
 
 ---
 
@@ -485,15 +485,15 @@ Expected: ErrorCount 0 / PASS（既存の駅関連テストも全て通る）
 **Files:**
 - Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/train/train-station-default-name.cs`
 
-- [ ] **Step 1:** `unity-playmode-recorded-playtest` スキルの DSL で、v8 ワールドの鉱脈の近く（`map.json` の mapVeins から1つ選ぶ）と、鉱脈も地物も無い場所に駅を1つずつ置き、それぞれの駅ブロックを F で開いて駅名欄を録画する。1つ目は "<鉱石の英語名> Station"、2つ目は "Station" であることをスクショで確かめる。続けて同じ鉱脈の近くにもう1つ置き、"… Station 2" になることを確かめる
-- [ ] **Step 2:** シナリオを `run-scenario.sh` で実行し、result.json とスクショ・録画のパスを PR 本文用に控える。駅ブロック UI が開けない等で止まった場合は、原因を（実測／推測の札付きで）報告ファイルへ書き、bd に起票して PR 本文の未検証欄に明記する
-- [ ] **Step 3: コミット** `git commit -m "test: 駅の既定名を録画プレイテストで確認するシナリオを追加"`
+- [x] **Step 1:** `unity-playmode-recorded-playtest` スキルの DSL で、v8 ワールドの鉱脈の近く（`map.json` の mapVeins から1つ選ぶ）と、鉱脈も地物も無い場所に駅を1つずつ置き、それぞれの駅ブロックを F で開いて駅名欄を録画する。1つ目は "<鉱石の英語名> Station"、2つ目は "Station" であることをスクショで確かめる。続けて同じ鉱脈の近くにもう1つ置き、"… Station 2" になることを確かめる
+- [x] **Step 2:** シナリオを `run-scenario.sh` で実行し、result.json とスクショ・録画のパスを PR 本文用に控える。駅ブロック UI が開けない等で止まった場合は、原因を（実測／推測の札付きで）報告ファイルへ書き、bd に起票して PR 本文の未検証欄に明記する
+- [x] **Step 3: コミット** `git commit -m "test: 駅の既定名を録画プレイテストで確認するシナリオを追加"`
 
 ---
 
 ### Task 5: 全ブランチレビュー
 
-- [ ] 必ず moores-code-review スキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）。レビュー指摘の反映が判定経路（走査・番号の決め方）や条件式に触れたら、Task 4 の録画テストを反映後に再実施する
+- [x] 必ず moores-code-review スキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）。レビュー指摘の反映が判定経路（走査・番号の決め方）や条件式に触れたら、Task 4 の録画テストを反映後に再実施する
 
 ### Task 6: PR 作成とセッション終了可能状態
 
