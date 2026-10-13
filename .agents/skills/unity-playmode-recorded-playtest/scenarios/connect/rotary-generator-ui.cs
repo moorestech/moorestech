@@ -2,7 +2,9 @@ using System;
 using System.Globalization;
 using System.Linq;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.UI.UIState;
 using Client.Playtest;
+using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Client.Playtest.WebUi;
 using Core.Master;
@@ -18,6 +20,7 @@ using Game.Gear.Common;
 using MessagePack;
 using UniRx;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
@@ -32,7 +35,11 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
     // 平地と実プレイ視点を作り、開幕の入力遮断を解除する
     // Create flat ground and the gameplay view, then clear the opening input gate
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
-    await p.SkipOpeningSkit();
+    if (p.CurrentUiState == UIStateEnum.GameScreen) p.Note("開幕スキットは再生されず、既にゲーム画面にいる");
+    else await p.SkipOpeningSkit();
+    InputSystem.AddDevice<Keyboard>();
+    InputSystem.AddDevice<Mouse>();
+    p.Note("専用仮想キーボードとマウスで実プレイ入力を送る");
     p.WarpPlayer(new Vector3(8f, 34f, 1f));
     await p.WaitSeconds(0.5f);
 
@@ -40,8 +47,7 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
     var generatorBlock = p.PlaceBlockDirect("回転発電機", generatorPos, BlockDirection.North);
     var generatorObject = await p.WaitBlockGameObject(generatorPos);
     p.Assert(generatorBlock != null && p.GetBlock(generatorPos) != null, "発電機がサーバーに設置された");
-    await AimAtClickCollider(generatorObject);
-    await p.PressInteract();
+    await OpenGenerator();
     await p.UntilWebUiElement("gear-to-electric-section", 15f);
     await p.Until(() => Detail().GenerationState == GearToElectricGenerationState.Stopped, 15f, "RPM不足で停止中");
     await VerifyPanel("停止中（RPM不足）", false);
@@ -104,8 +110,7 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
              activeNetwork.TryResolveRotation(generatorBlock.BlockInstanceId, out var rpm, out _) &&
              rpm.AsPrimitive() >= 40f, "発電中の実RPMは最低40以上");
     await p.ExitToGameScreen();
-    await AimAtClickCollider(generatorObject);
-    await p.PressInteract();
+    await OpenGenerator();
     await p.UntilWebUiElement("gear-to-electric-section", 15f);
     await VerifyPanel("発電中", true);
     await p.Screenshot("rotary-generator-generating");
@@ -132,6 +137,18 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
     {
         var collider = blockObject.GetComponentsInChildren<Collider>(true).First(c => c.name == "ClickCollider");
         await p.AimAt(collider.bounds.center);
+    }
+
+    async UniTask OpenGenerator()
+    {
+        // 通常画面ではAltでカーソル照準を解放し、Fの実操作を通す
+        // Free cursor aiming with Alt in gameplay, then use the real F interaction
+        SemanticInput.KeyDown(Key.LeftAlt);
+        await UniTask.DelayFrame(3);
+        await AimAtClickCollider(generatorObject);
+        await p.PressInteract();
+        SemanticInput.KeyUp(Key.LeftAlt);
+        await UniTask.DelayFrame(3);
     }
 
     async UniTask VerifyPanel(string expectedState, bool expectPositivePower)
