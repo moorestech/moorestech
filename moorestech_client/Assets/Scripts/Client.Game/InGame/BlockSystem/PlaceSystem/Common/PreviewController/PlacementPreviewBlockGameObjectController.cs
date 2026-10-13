@@ -44,6 +44,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
                 var rot = placeInfo.Direction.GetRotation();
 
                 var previewBlock = _blockPlacePreviewObjectPool.GetObject(blockId);
+                previewBlock.ConfigureTerrainContact(holdingBlockMaster.BlockSize);
                 _activePreviewBlocks.Add(previewBlock);
                 previewBlock.SetTransform(pos,rot);
 

@@ -28,6 +28,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
             }
         }
         private GroundCollisionDetector[] _collisionDetectors;
+        private bool _terrainContactConfigured;
         private RendererMaterialReplacerController _rendererMaterialReplacerController;
         private IBlockPreviewStateProcessor[] _blockPreviewStateProcessors;
         
@@ -87,6 +88,32 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
                 collider.isTrigger = true;
                 collider.gameObject.layer = LayerConst.BlockLayer;
             }
+        }
+
+        internal void ConfigureTerrainContact(Vector3Int blockSize)
+        {
+            if (_terrainContactConfigured) return;
+            _terrainContactConfigured = true;
+            _collisionDetectors = GetComponentsInChildren<GroundCollisionDetector>(true);
+            if (_collisionDetectors.Length != 0) return;
+
+            // 見た目の張り出しを避け、マスターの占有セル内だけで地形接触を測る
+            // Measure terrain within master occupancy, excluding visual mesh overhang.
+            var body = gameObject.AddComponent<Rigidbody>();
+            body.isKinematic = true;
+            body.useGravity = false;
+
+            var contact = new GameObject("PlacementGroundContactVolume");
+            contact.layer = LayerConst.BlockLayer;
+            contact.transform.SetParent(transform, false);
+            var size = new Vector3(blockSize.x, blockSize.y, blockSize.z);
+            var inset = Physics.defaultContactOffset * 2f;
+            var box = contact.AddComponent<BoxCollider>();
+            box.center = size * 0.5f;
+            box.size = size - Vector3.one * (inset * 2f);
+            box.isTrigger = true;
+            contact.AddComponent<GroundCollisionDetector>();
+            _collisionDetectors = GetComponentsInChildren<GroundCollisionDetector>(true);
         }
         
         public void SetActive(bool active)

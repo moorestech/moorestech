@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System.Linq;
 using Client.Common;
+using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using NUnit.Framework;
@@ -83,6 +84,57 @@ namespace Client.Tests.PlaceSystem.Common.Preview
                 Assert.AreEqual(LayerConst.BlockLayer, collider.gameObject.layer);
                 Assert.AreEqual(0, LayerConst.Without_Player_MapObject_Block_LayerMask & (1 << collider.gameObject.layer));
             }
+        }
+
+        [Test]
+        public void MissingDetectorGetsOneInsetContactVolumeWithoutChangingVisualCollider()
+        {
+            var root = new GameObject("Preview");
+            SceneManager.MoveGameObjectToScene(root, _scene);
+            var visual = new GameObject("VisualOverhang");
+            visual.transform.SetParent(root.transform, false);
+            var visualCollider = visual.AddComponent<BoxCollider>();
+            visualCollider.center = new Vector3(0.5f, 0.4f, 0.5f);
+            var preview = root.AddComponent<BlockPreviewObject>();
+            preview.ConfigurePlacementColliders();
+
+            // 同一プール個体を再設定しても専用接触源を増やさない
+            // Pool reuse must not add a second contact source.
+            preview.ConfigureTerrainContact(new Vector3Int(1, 1, 1));
+            preview.ConfigureTerrainContact(new Vector3Int(1, 1, 1));
+
+            var detector = root.GetComponentsInChildren<GroundCollisionDetector>(true).Single();
+            var box = detector.GetComponent<BoxCollider>();
+            var body = root.GetComponent<Rigidbody>();
+            var inset = Physics.defaultContactOffset * 2f;
+            Assert.IsTrue(body.isKinematic);
+            Assert.IsFalse(body.useGravity);
+            Assert.IsTrue(box.isTrigger);
+            Assert.AreEqual(LayerConst.BlockLayer, box.gameObject.layer);
+            Assert.AreEqual(inset, box.bounds.min.y, 0.0001f);
+            Assert.AreEqual(1f - inset, box.bounds.max.y, 0.0001f);
+            Assert.IsTrue(visualCollider.enabled);
+            Assert.IsTrue(visualCollider.isTrigger);
+            Assert.AreEqual(LayerConst.BlockLayer, visualCollider.gameObject.layer);
+        }
+
+        [Test]
+        public void ExistingDetectorRemainsTheOnlyContactSource()
+        {
+            var root = new GameObject("Preview");
+            SceneManager.MoveGameObjectToScene(root, _scene);
+            var child = new GameObject("ExistingContact");
+            child.transform.SetParent(root.transform, false);
+            child.AddComponent<BoxCollider>();
+            var existing = child.AddComponent<GroundCollisionDetector>();
+            var preview = root.AddComponent<BlockPreviewObject>();
+            preview.ConfigurePlacementColliders();
+
+            preview.ConfigureTerrainContact(new Vector3Int(1, 1, 1));
+
+            Assert.AreSame(existing, root.GetComponentsInChildren<GroundCollisionDetector>(true).Single());
+            Assert.IsNull(root.GetComponent<Rigidbody>());
+            Assert.IsFalse(root.transform.Cast<Transform>().Any(t => t.name == "PlacementGroundContactVolume"));
         }
     }
 }

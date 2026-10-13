@@ -13,7 +13,17 @@ namespace Client.Game.InGame.Block
             IsCollision = false;
         }
         
+        private void OnTriggerEnter(Collider other)
+        {
+            SetCollisionIfGround(other);
+        }
+
         private void OnTriggerStay(Collider other)
+        {
+            SetCollisionIfGround(other);
+        }
+
+        private void SetCollisionIfGround(Collider other)
         {
             if (other.gameObject.TryGetComponent<GroundGameObject>(out _))
             {
