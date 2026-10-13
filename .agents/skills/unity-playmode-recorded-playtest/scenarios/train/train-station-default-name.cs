@@ -73,8 +73,8 @@ return PlaytestRunner.Run("train-station-default-name", options, async p =>
         p.Assert(view.GetStateDetail<TrainStationNameStateDetail>(TrainStationNameStateDetail.BlockStateDetailKey).StationName == expectedName,
             $"クライアント駅名: {expectedName}");
 
-        // 駅の南端を2m以内から狙い、HUDに重ならない高さへ照準する。
-        // Aim at the station's south end within two meters and keep the pointer above the HUD.
+        // 高い駅屋根は画面外になるため、南端のプレイヤーに近い高さを狙う。
+        // Aim near player height at the south end because the tall station roof projects off screen.
         var bounds = new Bounds();
         var firstCollider = true;
         foreach (var collider in view.GetComponentsInChildren<Collider>(true))
@@ -89,7 +89,9 @@ return PlaytestRunner.Run("train-station-default-name", options, async p =>
         await UniTask.DelayFrame(10);
         SemanticInput.KeyDown(Key.LeftAlt);
         await UniTask.DelayFrame(2);
-        await p.AimAt(new Vector3(bounds.center.x, bounds.max.y - 0.1f, bounds.min.z + 0.1f));
+        var aimPoint = new Vector3(bounds.center.x, position.y + 1.2f, bounds.min.z + 0.1f);
+        await p.AimAt(aimPoint);
+        p.Note($"駅照準: target={aimPoint}, screen={Camera.main.WorldToScreenPoint(aimPoint)}, size={Screen.width}x{Screen.height}");
         await p.PressInteract();
         SemanticInput.KeyUp(Key.LeftAlt);
         await p.WaitUiState(UIStateEnum.SubInventory, 10f);
