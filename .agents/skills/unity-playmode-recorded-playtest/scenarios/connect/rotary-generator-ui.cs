@@ -40,7 +40,7 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
     InputSystem.AddDevice<Keyboard>();
     InputSystem.AddDevice<Mouse>();
     p.Note("専用仮想キーボードとマウスで実プレイ入力を送る");
-    p.WarpPlayer(new Vector3(8f, 34f, 1f));
+    p.WarpPlayer(new Vector3(7f, 34f, 10f));
     await p.WaitSeconds(0.5f);
 
     p.Note("駆動源なしの回転発電機を F キーで開き、停止表示を確認する");
@@ -136,7 +136,8 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
     async UniTask AimAtClickCollider(BlockGameObject blockObject)
     {
         var collider = blockObject.GetComponentsInChildren<Collider>(true).First(c => c.name == "ClickCollider");
-        await p.AimAt(collider.bounds.center);
+        var aimPoint = new Vector3(collider.bounds.center.x, collider.bounds.min.y + 1.1f, collider.bounds.center.z);
+        await p.AimAt(aimPoint);
     }
 
     async UniTask OpenGenerator()
