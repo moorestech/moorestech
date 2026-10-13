@@ -67,8 +67,25 @@ namespace Tests.UnitTest.Game.TrainStation.Naming
         public void InvalidCsvIsSkippedWithError()
         {
             CreateMod("one", "a", "wrong,header\n");
-            LogAssert.Expect(LogType.Error, new Regex(@"\[ModEnglishContentName\] skipped unreadable localization csv"));
+            LogAssert.Expect(LogType.Error, new Regex(@"\[ModEnglishContentName\] skipped unreadable localization csv: .*English names from this CSV are missing; station naming uses existing dictionary entries or master names\."));
             Assert.IsEmpty(ModEnglishContentNameLoader.Load(new ModsResource(_directory)));
+        }
+
+        [TestCase("Iron", "Copper")]
+        [TestCase("", "Iron")]
+        public void DuplicateEnglishColumnsSkipCsvAndKeepEarlierName(string first, string second)
+        {
+            // 曖昧な後続CSVで前modの有効訳を壊さない
+            // An ambiguous later CSV must preserve valid translations from the earlier mod
+            CreateMod("one", "a", $"key,Source,english\n{ItemKey},,Earlier\n");
+            CreateMod("two", "z", $"key,Source,english,english\n{ItemKey},,{first},{second}\nfluid.test.name,,Water,Oil\n");
+            LogAssert.Expect(LogType.Error, new Regex(@"\[ModEnglishContentName\] skipped localization csv with duplicate english columns: .*English names from this CSV are missing; station naming uses existing dictionary entries or master names\."));
+
+            // 上書きと新規追加の両方が起きないことを確認
+            // Verify that neither overwrites nor new entries are merged
+            var texts = ModEnglishContentNameLoader.Load(new ModsResource(_directory));
+            Assert.AreEqual("Earlier", texts[ItemKey]);
+            Assert.AreEqual(1, texts.Count);
         }
 
         [Test]

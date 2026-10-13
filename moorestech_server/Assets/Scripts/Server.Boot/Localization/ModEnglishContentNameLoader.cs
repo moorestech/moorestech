@@ -43,7 +43,7 @@ namespace Server.Boot.Localization
                 }
                 catch (Exception exception) when (exception is LocalizationCsvException || exception is IOException || exception is UnauthorizedAccessException)
                 {
-                    Debug.LogError($"[ModEnglishContentName] skipped unreadable localization csv: {csvPath} {exception.Message}");
+                    Debug.LogError($"[ModEnglishContentName] skipped unreadable localization csv: {csvPath} {exception.Message}; English names from this CSV are missing; station naming uses existing dictionary entries or master names.");
                     return;
                 }
 
@@ -51,6 +51,13 @@ namespace Server.Boot.Localization
                 if (englishIndex < 0)
                 {
                     Debug.Log($"[ModEnglishContentName] english column absent: {csvPath}");
+                    return;
+                }
+                // 重複英語列のCSVは反映前に除外する
+                // Skip CSV files with duplicate English columns before merging
+                if (Array.LastIndexOf(csv.LanguageCodes, EnglishLanguageCode) != englishIndex)
+                {
+                    Debug.LogError($"[ModEnglishContentName] skipped localization csv with duplicate english columns: {csvPath}; English names from this CSV are missing; station naming uses existing dictionary entries or master names.");
                     return;
                 }
                 // 特徴名の英語欄だけを辞書へ取り込む
