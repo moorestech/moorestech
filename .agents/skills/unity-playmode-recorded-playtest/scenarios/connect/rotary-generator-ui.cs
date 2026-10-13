@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Linq;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.UI.UIState;
+using Client.Localization;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
@@ -37,6 +38,7 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
     if (p.CurrentUiState == UIStateEnum.GameScreen) p.Note("開幕スキットは再生されず、既にゲーム画面にいる");
     else await p.SkipOpeningSkit();
+    p.Assert(Localize.TrySetChosenLanguage("japanese"), "録画の表示言語を日本語に設定");
     InputSystem.AddDevice<Keyboard>();
     InputSystem.AddDevice<Mouse>();
     p.Note("専用仮想キーボードとマウスで実プレイ入力を送る");
@@ -52,7 +54,8 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
     await p.Until(() => Detail().GenerationState == GearToElectricGenerationState.Stopped, 15f, "RPM不足で停止中");
     await VerifyPanel("停止中（RPM不足）", false);
     await p.Screenshot("rotary-generator-stopped");
-    await p.ExitToGameScreen();
+    await p.ClickWebUi("block-inventory-close");
+    await p.WaitUiState(UIStateEnum.GameScreen, 10f);
 
     // 蒸気機関から二段の20対10歯噛合で40 RPMへ増速する
     // Increase steam-engine speed to 40 RPM through two 20-to-10 tooth meshes
