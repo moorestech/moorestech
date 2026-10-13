@@ -2,6 +2,7 @@ using System;
 using System.Globalization;
 using System.Linq;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.Control;
 using Client.Game.InGame.Interact.Selection;
 using Client.Game.InGame.UI.UIState;
 using Client.Localization;
@@ -9,6 +10,7 @@ using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Client.Playtest.WebUi;
+using Client.Common;
 using Core.Master;
 using Core.Update;
 using Cysharp.Threading.Tasks;
@@ -42,7 +44,7 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
     InputSystem.AddDevice<Keyboard>();
     InputSystem.AddDevice<Mouse>();
     p.Note("専用仮想キーボードとマウスで実プレイ入力を送る");
-    p.WarpPlayer(new Vector3(7f, 34f, 10f));
+    p.WarpPlayer(new Vector3(7f, 34f, 10.5f));
     await p.WaitSeconds(0.5f);
 
     p.Note("駆動源なしの回転発電機を F キーで開き、停止表示を確認する");
@@ -153,6 +155,11 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
         await AimAtClickCollider(generatorObject);
         var selector = new InteractTargetSelector();
         await p.Until(() => selector.Scan().Primary?.GameObject == generatorObject.gameObject, 10f, "F操作前の対象が回転発電機");
+        var playerPosition = p.PlayerPosition;
+        var rayDistance = Vector3.Distance(Camera.main.transform.position, playerPosition) + InteractOverlap.InteractDistance;
+        var layerMask = LayerConst.BlockOnlyLayerMask | LayerConst.MapObjectOnlyLayerMask;
+        p.Assert(BlockClickDetectUtil.TryGetFrontmostSolidHit(layerMask, rayDistance, out var hit) &&
+                 Vector3.Distance(playerPosition, hit.point) < 1.5f, $"F照準ヒットは射程2mに余裕がある: hit={hit.point}, distance={Vector3.Distance(playerPosition, hit.point):F2}m");
         await p.PressInteract();
         await p.WaitUiState(UIStateEnum.SubInventory, 10f);
         SemanticInput.KeyUp(Key.LeftAlt);
