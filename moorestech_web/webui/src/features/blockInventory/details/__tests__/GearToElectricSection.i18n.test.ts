@@ -4,8 +4,8 @@ import { act, create } from "react-test-renderer";
 import { describe, expect, it, vi } from "vitest";
 import type { BlockInventoryOpen } from "@/bridge";
 import { setDictionaries } from "@/shared/i18n/i18nStore";
-// CSV生成器のパーサーでLocalization正本を読む
-// Read the canonical Localization CSV with its generator's parser
+// 生成器で翻訳正本CSVを読む
+// Read the canonical localization CSV with the generator
 // @ts-expect-error -- The build script is intentionally a plain ESM module.
 import { parseLocalizationCsv } from "../../../../../scripts/generate-localization-keys.mjs";
 
@@ -29,8 +29,8 @@ describe("GearToElectricSection with the Japanese dictionary", () => {
     const source = Object.fromEntries(csv.rows.map((row: { key: string; source: string }) => [row.key, row.source]));
     setDictionaries("japanese", japanese, english, source);
 
-    // 実コンポーネントに数値を渡し、実辞書と補間器の結果を読む
-    // Render the real component and read the result of the real dictionary and interpolator
+    // 実辞書と補間結果を描画で検査
+    // Check the real dictionary and interpolation through rendering
     const data = {
       open: true, source: "block", blockType: "GearToElectricGenerator", identifier: "block:1",
       blockGuid: "g", itemSlots: [], fluidSlots: [],

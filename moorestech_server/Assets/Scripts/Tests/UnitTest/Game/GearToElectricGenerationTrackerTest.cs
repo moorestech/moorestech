@@ -7,8 +7,8 @@ namespace Tests.UnitTest.Game
 {
     public class GearToElectricGenerationTrackerTest
     {
-        // 最低RPM未満は停止し、ちょうどなら発電する
-        // Below minimum RPM stops; exactly the minimum generates
+        // 最低RPMちょうどなら発電する
+        // Generate at exactly the minimum RPM
         [Test]
         public void BelowMinimumRpmIsStoppedEvenWithSuppliedPower()
         {
@@ -19,8 +19,6 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(GearToElectricGenerationState.Generating, tracker.State);
         }
 
-        // 最低RPMが0でも回転0は停止する
-        // Zero rotation stops even if the minimum is zero
         [Test]
         public void ZeroRpmIsStoppedWhenMinimumRpmIsZero()
         {
@@ -29,8 +27,6 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(GearToElectricGenerationState.Stopped, tracker.State);
         }
 
-        // 回転中に供給しなければ待機中
-        // Spinning without supply is idle
         [Test]
         public void SpinningWithoutSuppliedPowerIsIdle()
         {

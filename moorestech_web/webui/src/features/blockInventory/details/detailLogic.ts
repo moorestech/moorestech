@@ -66,8 +66,8 @@ const MachineStateDisplayTable: Record<MachineProcessState, MachineStateDisplay>
   halted: { labelKey: L.ui.blockInventory.machineStateHalted, insufficient: true, showPowerRate: false },
 };
 
-// 発電状態の文言と不足トーンを一つの表で決める
-// Set the generation label and insufficient tone in one table
+// 発電文言と不足トーンを一表で決定
+// Resolve generation labels and insufficient tones in one table
 type GearToElectricStateDisplay = {
   labelKey: TranslationKey;
   insufficient: boolean;

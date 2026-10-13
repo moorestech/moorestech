@@ -45,8 +45,8 @@ namespace Tests.CombinedTest.Core.Gear
             Assert.AreEqual(GearToElectricGenerationState.Idle, ReadDetail().GenerationState);
             Assert.AreEqual(0f, ReadDetail().GeneratedElectricPower, 0.001f);
 
-            // 人工需要で放電し、次の実tickでゼロへ戻す
-            // Discharge for injected demand and return to zero on the next real tick
+            // 人工需要後、実tickで供給をゼロへ
+            // Clear supply on the real tick after injected demand
             var supply = generator.OutputEnergy().AsPrimitive();
             Assert.Greater(supply, 0f);
             var beforeDischarge = changeCount;

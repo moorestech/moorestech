@@ -20,8 +20,8 @@ namespace Client.Tests.WebUi.BlockDetail
 {
     public class GearToElectricDetailDtoBuilderTest
     {
-        // サーバーの3状態を文字列にし、最大値はマスタから読む
-        // Serialize all three server states and read the maximum from master
+        // 3状態を文字列へ変換
+        // Convert all three states to strings
         [TestCase(GearToElectricGenerationState.Generating, "generating")]
         [TestCase(GearToElectricGenerationState.Idle, "idle")]
         [TestCase(GearToElectricGenerationState.Stopped, "stopped")]
@@ -48,8 +48,8 @@ namespace Client.Tests.WebUi.BlockDetail
                 { GearToElectricGeneratorBlockStateDetail.GearGeneratorBlockStateDetailKey, MessagePackSerializer.Serialize(detail) },
             });
 
-            // 実クライアントオブジェクトへ受信済み状態だけを注入する
-            // Inject only the received state into a real client object
+            // 受信状態を実クライアントへ注入
+            // Inject received state into a real client object
             var gameObject = new GameObject("ParentApplyGeneratorTest");
             var block = gameObject.AddComponent<BlockGameObject>();
             typeof(BlockGameObject).GetProperty(nameof(BlockGameObject.BlockMasterElement)).SetValue(block, master);

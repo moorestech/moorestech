@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-// 電力と歯車の変換機の詳細契約
-// Detail contracts for the electricity and gear converters
 export const ElectricToGearOutputModeDataSchema = z.object({
   rpm: z.number(),
   torque: z.number(),
