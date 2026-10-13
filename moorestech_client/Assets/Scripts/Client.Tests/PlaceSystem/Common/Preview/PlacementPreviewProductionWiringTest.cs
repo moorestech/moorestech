@@ -83,8 +83,8 @@ namespace Client.Tests.PlaceSystem.Common.Preview
             Assert.IsTrue(preview.IsCollisionGround);
             CollectionAssert.AreEqual(new[] { true }, _fixture.Controller.DetectGroundOverlaps());
 
-            // 継続通知と離脱後のリセットを結果の伝達まで観測する
-            // Observe contact persistence and clearing through the result chain.
+            // 接触継続・離脱の結果伝達を検査
+            // Check propagation of persistent and cleared contact.
             _fixture.Step();
             CollectionAssert.AreEqual(new[] { true }, _fixture.Controller.DetectGroundOverlaps());
             ground.transform.position = Vector3.one * 100f;

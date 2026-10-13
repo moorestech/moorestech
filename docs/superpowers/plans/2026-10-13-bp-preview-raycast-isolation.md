@@ -172,8 +172,6 @@ namespace Client.Tests.PlaceSystem.Common.Preview
             ground.AddComponent<GroundGameObject>();
             ground.AddComponent<BoxCollider>().size = new Vector3(20f, 1f, 20f);
 
-            // 同じ実アセットの照準経路で表示と再利用を検査
-            // Check visibility and reuse along the real asset's aim ray.
             var preview = ghost.AddComponent<BlockPreviewObject>();
             preview.ConfigurePlacementColliders();
             var origin = new Vector3(center.x, 10f, center.z);

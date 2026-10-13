@@ -8,8 +8,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
     {
         public static BlockPreviewObject Create(BlockId blockId)
         {
-            // 実Prefabを複製してプレビューの表示を初期化する
-            // Clone the real prefab and initialize preview visuals.
+            // 実Prefabからプレビュー表示を初期化
+            // Initialize preview visuals from the real prefab.
             var block = ClientContext.BlockGameObjectPrefabContainer.CreateBlockGameObject(blockId, Vector3.zero, Quaternion.identity);
             block.SetActive(true);
             
