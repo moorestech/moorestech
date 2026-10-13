@@ -4,8 +4,10 @@ using Core.Master;
 
 namespace Game.Block.Blocks.TrainRail.Naming
 {
-    // 駅の既定名に使う英語名。modの英語訳が無ければマスタのnameへ縮退する
-    // English names for default station names; falls back to the master name when no mod translation exists
+    // 駅名用のmod英語訳
+    // Mod English translations for station names
+    // 未翻訳ならマスタ名
+    // Use the master name when untranslated
     public class TrainStationFeatureEnglishNames
     {
         private readonly IReadOnlyDictionary<string, string> _englishTexts;

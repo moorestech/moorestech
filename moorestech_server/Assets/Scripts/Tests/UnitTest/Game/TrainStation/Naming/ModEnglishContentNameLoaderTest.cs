@@ -86,8 +86,8 @@ namespace Tests.UnitTest.Game.TrainStation.Naming
             Directory.CreateDirectory(masterDirectory);
             File.WriteAllText(Path.Combine(masterDirectory, "modMeta.json"),
                 $"{{\"id\":\"{id}\",\"name\":\"test\",\"version\":\"1.0\",\"author\":\"author\",\"description\":\"test\"}}");
-            // CSV無しのmodも同じ入力経路で検証する
-            // Verify a mod without CSV through the same input path
+            // CSVなしも同じ入力経路で検証
+            // Verify absent CSV through the same input path
             if (csv == null) return;
             var localizationDirectory = Path.Combine(modDirectory, "localization");
             Directory.CreateDirectory(localizationDirectory);

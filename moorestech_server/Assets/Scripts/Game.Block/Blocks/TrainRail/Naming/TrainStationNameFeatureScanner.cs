@@ -8,8 +8,12 @@ using UnityEngine;
 
 namespace Game.Block.Blocks.TrainRail.Naming
 {
-    // 駅の周辺から番号なしの既定名を決める（鉱脈→地物の採掘アイテム→代替）
-    // Decide the unnumbered default name around a station (vein, then mined item of map objects, then fallback)
+    // 周辺から番号なしの駅名を生成
+    // Generate an unnumbered station name from nearby features
+    // 鉱脈→地物の採掘アイテムの順
+    // Prefer veins, then items mined from map objects
+    // 特徴なしなら代替名
+    // Use the fallback name when no feature exists
     public class TrainStationNameFeatureScanner
     {
         private const float ScanRadius = 32f;

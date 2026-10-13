@@ -25,8 +25,8 @@ namespace Tests.UnitTest.Game.TrainStation.Naming
             Assert.AreEqual("Test1 Station", first.StationName);
             Assert.AreEqual("Test1 Station 2", second.StationName);
 
-            // 2番の駅を3番の名前へ改名すると、次は空いた2番、その次は4番になる
-            // Renaming station 2 to number 3 frees 2 for the next station and pushes the one after to 4
+            // 2→3へ改名後、次は2、その次は4
+            // After renaming 2 to 3, allocate 2 next, then 4
             second.SetStationName("Test1 Station 3");
             Assert.AreEqual("Test1 Station 2", Place(new Vector3Int(0, 0, 16)).StationName);
             Assert.AreEqual("Test1 Station 4", Place(new Vector3Int(0, 0, 24)).StationName);

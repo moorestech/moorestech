@@ -5,8 +5,12 @@ using Game.Context;
 
 namespace Game.Block.Blocks.TrainRail.Naming
 {
-    // 新設駅の既定名を、全駅名と重ならない最小の番号で決める（1は番号なし）
-    // Decide a new station's default name with the smallest number unused by any station (1 has no number)
+    // 全駅名との重複を回避
+    // Avoid names already used by any station
+    // 最小の空き番号を使用
+    // Use the smallest available number
+    // 1は番号なし
+    // Omit the number for 1
     public class TrainStationDefaultNameAllocator
     {
         private readonly TrainStationNameFeatureScanner _scanner;

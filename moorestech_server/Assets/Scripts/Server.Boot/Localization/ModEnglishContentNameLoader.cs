@@ -8,8 +8,10 @@ using UnityEngine;
 
 namespace Server.Boot.Localization
 {
-    // 全modのlocalization.csvからitem/fluid名の英語訳だけを集める
-    // Collect only English item/fluid names from every mod's localization.csv
+    // 全modの翻訳CSVを読む
+    // Read localization CSV files from all mods
+    // アイテム・液体の英語名のみ収集
+    // Collect only English item and fluid names
     public static class ModEnglishContentNameLoader
     {
         private const string LocalizationCsvRelativePath = "localization/localization.csv";
