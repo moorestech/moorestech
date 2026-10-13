@@ -5,7 +5,7 @@ import { Stack, Text } from "@mantine/core";
 import { dispatchAction } from "@/bridge";
 import type { TrainTimetableData } from "@/bridge";
 import { L, useI18n } from "@/shared/i18n";
-import { ModeSwitch, PanelActionButton } from "@/shared/ui";
+import { FadeRule, GamePanel, ModeSwitch, PanelActionButton } from "@/shared/ui";
 import TrainTimetableStopList from "./TrainTimetableStopList";
 import { addStop, canEnableAutoRun, moveStop, removeStop, stationKey, stationLabel, toReplacePayload, sameStopOrder } from "./timetableEditLogic";
 import styles from "./style.module.css";
@@ -51,31 +51,39 @@ export default function TrainTimetableSection({ timetable }: { timetable: TrainT
         />
       </div>
       {!canEnableAutoRun(timetable.stops) && <Text size="sm">{t(L.ui.blockInventory.timetableAutoRunUnavailable)}</Text>}
-      <Text size="sm">{t(L.ui.blockInventory.timetableStops)}</Text>
-      <TrainTimetableStopList
-        stops={draft}
-        currentIndex={matchesServer ? timetable.currentIndex : null}
-        onMove={(i, d) => setDraft((prev) => moveStop(prev, i, d))}
-        onRemove={(i) => setDraft((prev) => removeStop(prev, i))}
-      />
-      <Text size="sm">{t(L.ui.blockInventory.timetableStations)}</Text>
-      <div className={styles.list} data-testid="train-timetable-stations">
-        {timetable.stations.length === 0 && <Text size="sm">{t(L.ui.blockInventory.timetableStationsEmpty)}</Text>}
-        {timetable.stations.map((station) => (
-          <div className={styles.row} key={stationKey(station.position)}>
-            <span>{stationLabel(t, station)}</span>
-            <PanelActionButton
-              testId={`train-timetable-station-${stationKey(station.position).replace(/,/g, "_")}-add`}
-              onClick={() => setDraft((prev) => addStop(prev, station))}
-            >
-              {t(L.ui.blockInventory.timetableAdd)}
-            </PanelActionButton>
-          </div>
-        ))}
-      </div>
-      <PanelActionButton testId="train-timetable-apply" onClick={() => { void applyDraft(); }}>
-        {t(L.ui.blockInventory.timetableApply)}
-      </PanelActionButton>
+      <GamePanel variant="craft">
+        <div className={`${styles.row} ${styles.sectionHeading}`}>
+          <Text size="sm">{t(L.ui.blockInventory.timetableStops)}</Text>
+          <PanelActionButton testId="train-timetable-apply" onClick={() => { void applyDraft(); }}>
+            {t(L.ui.blockInventory.timetableApply)}
+          </PanelActionButton>
+        </div>
+        <FadeRule />
+        <TrainTimetableStopList
+          stops={draft}
+          currentIndex={matchesServer ? timetable.currentIndex : null}
+          onMove={(i, d) => setDraft((prev) => moveStop(prev, i, d))}
+          onRemove={(i) => setDraft((prev) => removeStop(prev, i))}
+        />
+      </GamePanel>
+      <GamePanel variant="craft">
+        <Text className={styles.sectionHeading} size="sm">{t(L.ui.blockInventory.timetableStations)}</Text>
+        <FadeRule />
+        <div className={styles.list} data-testid="train-timetable-stations">
+          {timetable.stations.length === 0 && <Text size="sm">{t(L.ui.blockInventory.timetableStationsEmpty)}</Text>}
+          {timetable.stations.map((station) => (
+            <div className={styles.row} key={stationKey(station.position)}>
+              <span>{stationLabel(t, station)}</span>
+              <PanelActionButton
+                testId={`train-timetable-station-${stationKey(station.position).replace(/,/g, "_")}-add`}
+                onClick={() => setDraft((prev) => addStop(prev, station))}
+              >
+                {t(L.ui.blockInventory.timetableAdd)}
+              </PanelActionButton>
+            </div>
+          ))}
+        </div>
+      </GamePanel>
     </Stack>
   );
 }
