@@ -36,14 +36,6 @@ namespace Game.CleanRoom
             _detectionService = new CleanRoomDetectionService(worldBlockDatastore, DirtyCellBudgetPerTick);
             _thresholdRows = BuildThresholdRows();
 
-            // tick毎に「①差分再検出 ②純度シミュレーション ③機械効果反映」の順で処理する
-            // Each tick runs detection, purity simulation, then machine effect pushes
-            _subscriptions.Add(GameUpdater.UpdateObservable.Subscribe(_ =>
-            {
-                _detectionService.ProcessDirtySeeds();
-                UpdatePurity();
-                _machineEffectService.PushEffects(TryGetCleanRoom);
-            }));
             _subscriptions.Add(ServerContext.WorldBlockUpdateEvent.OnBlockPlaceEvent.Subscribe(properties =>
             {
                 _detectionService.OnBlockChanged(properties.BlockData);
@@ -54,6 +46,15 @@ namespace Game.CleanRoom
                 _detectionService.OnBlockChanged(properties.BlockData);
                 _machineEffectService.OnBlockRemoved(properties.BlockData);
             }));
+        }
+
+        // MasterTickUpdaterが毎tick、本体(ブロック更新・ベルト搬送)の後に呼ぶ。「①差分再検出 ②純度シミュレーション ③機械効果反映」の順
+        // Called by MasterTickUpdater every tick after the body (block updates and belt transport): detection, purity simulation, then machine effect pushes
+        public void Update()
+        {
+            _detectionService.ProcessDirtySeeds();
+            UpdatePurity();
+            _machineEffectService.PushEffects(TryGetCleanRoom);
         }
 
         public bool TryGetCleanRoomAt(Vector3Int cell, out CleanRoom room)

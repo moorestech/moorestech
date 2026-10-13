@@ -27,7 +27,6 @@ namespace Game.Challenge
             _gameUnlockStateDataController = gameUnlockStateDataController;
             _challengeEvent = challengeEvent;
             _gameActionExecutor = gameActionExecutor;
-            GameUpdater.UpdateObservable.Subscribe(Update);
             
             // カテゴリアンロック時のイベントを購読
             _gameUnlockStateDataController.OnUnlockChallengeCategory.Subscribe(OnChallengeCategoryUnlocked);
@@ -73,7 +72,9 @@ namespace Game.Challenge
             #endregion
         }
         
-        private void Update(Unit unit)
+        // MasterTickUpdaterが毎tick、本体(ブロック更新・ベルト搬送)の後に呼ぶ
+        // Called by MasterTickUpdater every tick, after the body (block updates and belt transport)
+        public void Update()
         {
             for (var i = CurrentChallengeInfo.CurrentChallenges.Count - 1; i >= 0; i--)
             {

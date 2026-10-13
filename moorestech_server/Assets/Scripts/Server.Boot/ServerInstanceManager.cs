@@ -136,14 +136,6 @@ namespace Server.Boot
                 Debug.LogError($"常時記録の停止が例外で終わったため、区間ファイルのハンドルが残っている可能性があります message:{e.Message}");
                 Debug.LogException(e);
             }
-            try
-            {
-                GameUpdater.Dispose();
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-            }
 
             #region Internal
 

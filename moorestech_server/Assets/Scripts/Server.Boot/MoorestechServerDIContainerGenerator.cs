@@ -67,22 +67,13 @@ namespace Server.Boot
             var serviceProvider = services.BuildServiceProvider();
             var packetResponse = new PacketResponseCreator(serviceProvider);
 
-            // tick順序（仕様2.1）はMasterTickUpdaterの1ファイルに集約し、ここでは1本だけ登録する
-            // The tick order (spec 2.1) lives in MasterTickUpdater; register just that one entry here
+            // 1tickの全順序（本体・末尾・境界・セーブ）はMasterTickUpdaterの1ファイルに集約し、ここでは1本だけ登録する
+            // The whole tick order (body, tick end, boundary, save) lives in MasterTickUpdater; register just that one entry here
             GameUpdater.AdditionalUpdates.Add(serviceProvider.GetRequiredService<MasterTickUpdater>().Update);
 
-            // tick末尾: 固定した入力と予約破壊を一つの更新器で確定する。派生する網の再構築は次tick先頭のRebuildIfDirtyに委ねる
-            // Tick end: commit frozen input and reserved removals through one updater; derived network rebuilding is deferred to RebuildIfDirty at the next tick head
-            GameUpdater.TickEndUpdates.Add(serviceProvider.GetRequiredService<WorldMutationTickEndUpdater>().Update);
-            // 他スレッド処理をtick末尾実行。現サーバーのキューを唯一の入口へ公開する
-            // Run other-thread work at tick end and publish this server's queue as the single entry point
-            var threadActionQueue = serviceProvider.GetRequiredService<ServerThreadActionQueue>();
-            GameUpdater.TickEndUpdates.Add(threadActionQueue.Drain);
-            ServerThreadActionQueueAccess.SetCurrent(threadActionQueue);
-
-            // tick末尾の最終処理（境界→セーブ→スナップショット）の順序はFinalTickEndUpdaterの1ファイルに集約し、ここでは1本だけ登録する
-            // The final tick-end order (boundary, save, snapshot) lives in FinalTickEndUpdater; register just that one entry here
-            GameUpdater.FinalTickEndUpdates.Add(serviceProvider.GetRequiredService<FinalTickEndUpdater>().Update);
+            // 現サーバーの別スレッドキューを唯一の入口へ公開する（流すのはMasterTickUpdater）
+            // Publish this server's other-thread queue as the single entry point (MasterTickUpdater drains it)
+            ServerThreadActionQueueAccess.SetCurrent(serviceProvider.GetRequiredService<ServerThreadActionQueue>());
 
             //IBootInitializable実装を一括生成し、起動時初期化のLoadを呼ぶ
             // Create all IBootInitializable implementations and invoke their boot-time Load.

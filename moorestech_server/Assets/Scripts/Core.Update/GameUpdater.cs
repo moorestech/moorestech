@@ -23,68 +23,21 @@ namespace Core.Update
             CurrentTick = tick;
         }
 
-        public static IObservable<Unit> UpdateObservable => _updateSubject;
-        private static Subject<Unit> _updateSubject = new();
-
+        // 1tickの処理順はServer.BootのMasterTickUpdaterが1ファイルで明示する。ここには本体を1本登録するだけで、購読や末尾用のリストは持たない
+        // The order inside one tick is declared in Server.Boot's MasterTickUpdater; only that one entry is registered here, with no subscription or tick-end lists
         public static List<Action> AdditionalUpdates = new();
-
-        // tick末尾処理（予約された破壊の一括確定等）。ブロック更新後・LateUpdate前に実行される
-        // Tick-end handlers (batch-applying reserved removals etc.), run after block updates and before LateUpdate
-        public static List<Action> TickEndUpdates = new();
-
-        // 世界変更完了後のセーブ等を実行する最終tick末尾処理
-        // Final tick-end handlers for saving after all world mutations complete
-        public static List<Action> FinalTickEndUpdates = new();
 
         public static void Update()
         {
             CurrentTick++;
-
-            // AdditionalUpdatesのやつ。テストでも呼ぶので関数化
-            // Run additional tick updates first.
             ExecuteAdditionalUpdates();
-
-            // Updateの実行
-            // Execute Update
-            ExecuteUpdate();
-
-            // tick末尾処理の実行
-            // Execute tick-end handlers
-            ExecuteTickEndUpdates();
-
-            // 世界変更の確定後にだけ最終処理を実行する
-            // Execute final handlers only after world mutations are committed
-            ExecuteFinalTickEndUpdates();
-
-            #region Internal
-
-            void ExecuteUpdate()
-            {
-                var updateProfilerMask = new ProfilerMarker("Update");
-                updateProfilerMask.Begin();
-                _updateSubject.OnNext(Unit.Default);
-                updateProfilerMask.End();
-            }
-
-            #endregion
         }
 
         // CurrentTickはここでも巻き戻さない。巻き戻すと計測中の差分が負に回り込むため
         // CurrentTick is never rewound here; rewinding would wrap in-flight elapsed differences
         public static void ResetUpdate()
         {
-            _updateSubject = new Subject<Unit>();
-
-            // 追加tick更新とtick末尾処理も初期化する
-            // Reset additional tick updates and tick-end handlers as well.
             AdditionalUpdates.Clear();
-            TickEndUpdates.Clear();
-            FinalTickEndUpdates.Clear();
-        }
-
-        public static void Dispose()
-        {
-            _updateSubject.Dispose();
         }
 
         // 秒数をtickに変換するユーティリティ（マスターデータの秒数値を変換する用）
@@ -125,22 +78,6 @@ namespace Core.Update
             }
         }
 
-        private static void ExecuteTickEndUpdates()
-        {
-            foreach (var tickEndUpdate in TickEndUpdates)
-            {
-                tickEndUpdate();
-            }
-        }
-
-        private static void ExecuteFinalTickEndUpdates()
-        {
-            foreach (var finalTickEndUpdate in FinalTickEndUpdates)
-            {
-                finalTickEndUpdate();
-            }
-        }
-
 #if UNITY_EDITOR
         public static void UpdateOneTick()
         {
@@ -157,9 +94,6 @@ namespace Core.Update
             {
                 CurrentTick++;
                 ExecuteAdditionalUpdates();
-                _updateSubject.OnNext(Unit.Default);
-                ExecuteTickEndUpdates();
-                ExecuteFinalTickEndUpdates();
             }
         }
 #endif
