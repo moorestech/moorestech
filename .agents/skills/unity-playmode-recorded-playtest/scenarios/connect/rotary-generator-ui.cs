@@ -2,6 +2,7 @@ using System;
 using System.Globalization;
 using System.Linq;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.Interact.Selection;
 using Client.Game.InGame.UI.UIState;
 using Client.Localization;
 using Client.Playtest;
@@ -38,7 +39,6 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
     if (p.CurrentUiState == UIStateEnum.GameScreen) p.Note("開幕スキットは再生されず、既にゲーム画面にいる");
     else await p.SkipOpeningSkit();
-    p.Assert(Localize.TrySetChosenLanguage("japanese"), "録画の表示言語を日本語に設定");
     InputSystem.AddDevice<Keyboard>();
     InputSystem.AddDevice<Mouse>();
     p.Note("専用仮想キーボードとマウスで実プレイ入力を送る");
@@ -51,6 +51,7 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
     p.Assert(generatorBlock != null && p.GetBlock(generatorPos) != null, "発電機がサーバーに設置された");
     await OpenGenerator();
     await p.UntilWebUiElement("gear-to-electric-section", 15f);
+    p.Assert(Localize.TrySetChosenLanguage("japanese"), "録画の表示言語を日本語に設定");
     await p.Until(() => Detail().GenerationState == GearToElectricGenerationState.Stopped, 15f, "RPM不足で停止中");
     await VerifyPanel("停止中（RPM不足）", false);
     await p.Screenshot("rotary-generator-stopped");
@@ -150,7 +151,10 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
         SemanticInput.KeyDown(Key.LeftAlt);
         await UniTask.DelayFrame(3);
         await AimAtClickCollider(generatorObject);
+        var selector = new InteractTargetSelector();
+        await p.Until(() => selector.Scan().Primary?.GameObject == generatorObject.gameObject, 10f, "F操作前の対象が回転発電機");
         await p.PressInteract();
+        await p.WaitUiState(UIStateEnum.SubInventory, 10f);
         SemanticInput.KeyUp(Key.LeftAlt);
         await UniTask.DelayFrame(3);
     }
