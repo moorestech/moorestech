@@ -1,16 +1,16 @@
 # Step 2〜6.5 実行手順（正本・委譲オーケストレータが読む）
 
-moores-code-review の実行本体。**既定（2026-08-20）ではこの手順書の Step 3.5〜6.5 を Workflow スクリプト（部品 `scripts/review_workflow/*.js` を `build_workflow_args.py` が結合し args を埋め込んだ `$RUNDIR/review_workflow.js`）が実行する** — 本体が Step 2（check_all.py・split_chunks・Codex起動・`build_workflow_args.py`）まで行い、Workflow が系統の並列発火→統合→適用→post-check を決定論的に回す。同じスクリプトを `mode=bug-pass` で SKILL.md Step 7.5 の最終バグ確認にも使う（末尾「bug-pass モードの差分」）。この手順書は Workflow スクリプトの**仕様の正本**であり、JS を変えるときは先にここを直す。sonnet オーケストレータ委譲（旧既定）・インライン実行の場合は、派遣プロンプトの `Run dir` / `Patch path` / `User prompt` / `Repo root` を前提に Step 2 から自分で始める（Step 0〜1 は親が完了済み）。Step 7（報告・AskUserQuestion・記録）は親が行う — このファイルには含まれない。
+moores-code-review の実行本体。**既定ではこの手順書の Step 3.5〜6.5 を Workflow スクリプト（部品 `scripts/review_workflow/*.js` を `build_workflow_args.py` が結合し args を埋め込んだ `$RUNDIR/review_workflow.js`）が実行する** — 本体が Step 2（check_all.py・split_chunks・Codex起動・`build_workflow_args.py`）まで行い、Workflow が系統の並列発火→統合→適用→post-check を決定論的に回す。同じスクリプトを `mode=bug-pass` で SKILL.md Step 7.5 の最終バグ確認にも使う（末尾「bug-pass モードの差分」）。この手順書は Workflow スクリプトの**仕様の正本**であり、JS を変えるときは先にここを直す。sonnet オーケストレータ委譲（フォールバック）・インライン実行の場合は、派遣プロンプトの `Run dir` / `Patch path` / `User prompt` / `Repo root` を前提に Step 2 から自分で始める（Step 0〜1 は親が完了済み）。Step 7（報告・AskUserQuestion・記録）は親が行う — このファイルには含まれない。
 
 ## 5系統の構成
 
 1. **決定論チェック**（`scripts/deterministic_checks.py`）— AGENTS.md・moorestech規約の機械判定分（partial・try-catch・Func・200行・10ファイル・デフォルト引数・SerializeField命名・比較演算子・コメント長・region・master_default_fallback・packet_response_root・server_realtime_api・server_elapsed_time・init_method_naming・schema_optional_true・event_tag_sync・try_catch_boundary）。0トークン。
-2. **reviewer群**（`reviewers/`・41本）— 命名は `<出自>-<言語>-<観点>`。言語は拡張子ゲート（`cs`/`ts_tsx`、ゲート無しは `any`）。発火条件は各ファイル先頭YAML、モデルは `scripts/model_map.json`、選択は `select_reviewers.py` の1本（2026-09-23 に旧 `lenses/` を統合。実行時は同じsubagentで、違いは出自と選択条件だけだったため）。
-   - **`moores-*`（12本）** — moorestech固有の設計規約。実PRレビュー指摘（PR978/987/988/996/997/1000/1095/1108）由来。
-   - **`core-*`（29本）** — 言語横断のコード品質。全数調査（63セッション/1029起動）で採用実績のある観点のみ採録（採用0/冗長の20本と決定論代替1本は除外、2026-08-16再監査で採用ゼロの2本を追加削除。根拠は `scripts/model_map.json` の `_excluded_from_port`）。加えて、`moores-cs-*` 5本（moores-cs-speculative-abstraction・moores-cs-type-driven-structure・moores-cs-hardcoded-content-enumeration・moores-cs-default-resolution-ownership・moores-cs-implicit-cardinality-assumption）の **ts/tsx翻案版**を採録し、webui差分にも同じ意味構造の検査を当てる（`_ts_lens_ports`・2026-08-04逆輸入）。
+2. **reviewer群**（`reviewers/`・41本）— 命名は `<出自>-<言語>-<観点>`。言語は拡張子ゲート（`cs`/`ts_tsx`、ゲート無しは `any`）。発火条件は各ファイル先頭YAML、モデルは `scripts/model_map.json`、選択は `select_reviewers.py` の1本。
+   - **`moores-*`（12本）** — moorestech固有の設計規約。
+   - **`core-*`（29本）** — 言語横断のコード品質。採用実績のある観点のみ採録（除外した観点は `scripts/model_map.json` の `_excluded_from_port`）。加えて、`moores-cs-*` 5本（moores-cs-speculative-abstraction・moores-cs-type-driven-structure・moores-cs-hardcoded-content-enumeration・moores-cs-default-resolution-ownership・moores-cs-implicit-cardinality-assumption）の **ts/tsx翻案版**を採録し、webui差分にも同じ意味構造の検査を当てる（`_ts_lens_ports`）。
 3. **Codex外部監査**（`scripts/codex-audit-template.md`）— 別モデルCLIの独立第三者視点。
 4. **Fable全般レビュー**（`generalists/fable-holistic-review.md`）— チェックリスト非依存の俯瞰監査。自己裏取り契約。
-5. **分割深掘り調査**（`investigators/`・3観点）— 変更ファイル（テスト・非コード除外後）が16以上の大規模PRのみ発火。`scripts/split_chunks.py` がドメイン単位で10-15ファイルのチャンクに分割し、チャンクごとに深読みバグ狩り・縫い目統合・チャンク内一貫性の3エージェントが**変更後ファイル全文**をagenticにReadする（全体diff一括の系統では希釈される注意を担保）。テストは完全隔離＝チャンク割当もReadも禁止（ユーザー裁定 2026-08-03）。
+5. **分割深掘り調査**（`investigators/`・3観点）— 変更ファイル（テスト・非コード除外後）が16以上の大規模PRのみ発火。`scripts/split_chunks.py` がドメイン単位で10-15ファイルのチャンクに分割し、チャンクごとに深読みバグ狩り・縫い目統合・チャンク内一貫性の3エージェントが**変更後ファイル全文**をagenticにReadする（全体diff一括の系統では希釈される注意を担保）。テストは完全隔離＝チャンク割当もReadも禁止。
 
 ## Step 2: 機械チェック統一窓口 ①（check_all.py）
 
@@ -25,20 +25,20 @@ python3 .claude/skills/moores-code-review/scripts/check_all.py "<PATCH_PATH>" --
 `deterministic` 節の解釈:
 
 - **`confirmed`**（partial・try-catch・Func・デフォルト引数・SerializeField命名・10ファイル・master_default_fallback・packet_response_root・server_realtime_api・init_method_naming・external_repo_reference・context_source_label）— 検出正確・裏取り不要。Criticalとして統合に直接載せる（修正の適用可否は §3/§4）。`external_repo_reference`（コードからmoorestech-client-private/PersonalAssets・moorestech_masterへの直接言及。moorestech repo単体＝CIで動かなくなる・起点moorestech-sm831）は言及を外し公開側フィクスチャや既存入口経由へ直す。起動パイプライン等どうしても要る箇所は `scripts/external_repo_reference_allowlist.json` に理由付きで足す（足すかどうかはユーザー判断＝§4）。`context_source_label`（出所ラベル欠落）はcontextファイルを修正して再実行する。
-- **`confirmed` のうち200行超過（file-too-long）は努力目標** — Criticalにせず報告のWarning備考に1行載せるだけ。分割を強制せず、AskUserQuestionにも**絶対に**載せない（ユーザー裁定 2026-07-23）。
-- **既に規約超過しているディレクトリへの1〜2ファイル追加も努力目標** — `dir-file-limit` のうち、そのディレクトリが本ブランチ以前から10ファイルを超えていた場合は `file-too-long` と同様に扱う。報告のWarning備考に1行のみ載せ、**AskUserQuestionには載せない**（ユーザー裁定 2026-08-14・[[2026-08-14-既存超過ディレクトリへの追加はレビューで問わない]]）。本ブランチが新規に作ったディレクトリが超過した場合のみCriticalとして扱う。
-- **テストコードは200行/10ファイル規約の適用外** — `*Test(s).cs`・`*.test.ts(x)`・`*.spec.ts`・`Tests`系/`e2e`/`tests`ディレクトリ配下は `file-too-long`/`dir-file-limit` の対象外（スクリプトが除外済み。ユーザー裁定 2026-07-28）。
-- **webui（`moorestech_web/webui`）は分割を実施する** — 上の適用外・努力目標の扱いと異なり、webuiでは e2e/tests 含め10ファイル超過を検出したら機能別サブディレクトリへの分割を修正として実施する（報告止まりにしない）。前例: e2e/tests を research/ inventory/ recipe/ へ分割。playwright testDir は再帰globのため設定変更不要（ユーザー裁定 2026-08-04 「基本的にwebuiは分割もするし、コメントの短縮も行う」・[[2026-08-04-e2eテストはサブディレクトリ分割し10ファイル規約を守る]]）。
+- **`confirmed` のうち200行超過（file-too-long）は努力目標** — Criticalにせず報告のWarning備考に1行載せるだけ。分割を強制しない（AskUserQuestion の扱いは `references/integration-rules.md` §4 に従う）。
+- **既に規約超過しているディレクトリへの1〜2ファイル追加も努力目標** — `dir-file-limit` のうち、そのディレクトリが本ブランチ以前から10ファイルを超えていた場合は `file-too-long` と同様に扱う。報告のWarning備考に1行のみ載せ、**AskUserQuestionには載せない**。本ブランチが新規に作ったディレクトリが超過した場合のみCriticalとして扱う。
+- **テストコードは200行/10ファイル規約の適用外** — `*Test(s).cs`・`*.test.ts(x)`・`*.spec.ts`・`Tests`系/`e2e`/`tests`ディレクトリ配下は `file-too-long`/`dir-file-limit` の対象外（スクリプトが除外済み）。
+- **webui（`moorestech_web/webui`）は分割を実施する** — 上の適用外・努力目標の扱いと異なり、webuiでは e2e/tests 含め10ファイル超過を検出したら機能別サブディレクトリへの分割を修正として実施する（報告止まりにしない）。前例: e2e/tests を research/ inventory/ recipe/ へ分割。playwright testDir は再帰globのため設定変更不要。
 - **`candidates.comparison_operator`** — 1件以上あればStep 3で比較演算子verifier（sonnet）を並列起動。0件なら起動しない。
-- **`candidates.try_catch_boundary`** — 1件以上あればStep 4でtry-catch境界verifier（opus）を並列起動。0件なら起動しない。**根拠コメントの実在を免除として扱ってはならない**（コメントがあるだけの try-catch は `confirmed` のまま。許可された境界3種を主張しているものだけがこの候補に降り、verifierが実コードで裁定する。ユーザー指摘由来の較正 2026-08-02・PR1095）。
-- **`candidates.server_elapsed_time`** — 1件以上あればStep 4でサーバDateTime用途verifier（sonnet）を並列起動。0件なら起動しない。サーバ`Game.*`の`DateTime.Now/UtcNow`は「セーブへの実世界時刻記録（正当）」と「ゲーム進行の経過時間ゲート（違反）」が同じ実装形になるため、確定検出にせずverifierが用途を裁定する（PR1095 `MapObjectMiningService` のDateTimeクールダウン由来・2026-08-02）。
+- **`candidates.try_catch_boundary`** — 1件以上あればStep 4でtry-catch境界verifier（opus）を並列起動。0件なら起動しない。**根拠コメントの実在を免除として扱ってはならない**（コメントがあるだけの try-catch は `confirmed` のまま。許可された境界3種を主張しているものだけがこの候補に降り、verifierが実コードで裁定する）。
+- **`candidates.server_elapsed_time`** — 1件以上あればStep 4でサーバDateTime用途verifier（sonnet）を並列起動。0件なら起動しない。サーバ`Game.*`の`DateTime.Now/UtcNow`は「セーブへの実世界時刻記録（正当）」と「ゲーム進行の経過時間ゲート（違反）」が同じ実装形になるため、確定検出にせずverifierが用途を裁定する。
 - **`candidates.comment_length` / `region_internal`** — この時点では保持のみ（commentはStep 5.5で最終diffに再計測、regionはregion-internal reviewerの裏付け）。
 - **`candidates.schema_optional_true`** は moores-any-master-data-defense、**`candidates.event_tag_sync`** は moores-any-server-state-syncの裏付けデータとして渡す（正当な例外がありうるためreviewerが裁定）。
-- **`candidates.guid_literal`** は moores-cs-hardcoded-content-enumeration、**`candidates.event_action`**（`event Action`宣言=UniRx規約違反疑い）は moores-cs-domain-boundary、**`candidates.mutable_auto_property`**（`{ get; set; }`=SetHogeメソッド規約違反疑い）と **`candidates.passthrough_property`** は moores-cs-redundant-member-duplicationの裏付けデータとして渡す（DTOシリアライズ・外部interop等の正当例外はreviewerが裁定。2026-08-16決定論化第2弾）。
+- **`candidates.guid_literal`** は moores-cs-hardcoded-content-enumeration、**`candidates.event_action`**（`event Action`宣言=UniRx規約違反疑い）は moores-cs-domain-boundary、**`candidates.mutable_auto_property`**（`{ get; set; }`=SetHogeメソッド規約違反疑い）と **`candidates.passthrough_property`** は moores-cs-redundant-member-duplicationの裏付けデータとして渡す（DTOシリアライズ・外部interop等の正当例外はreviewerが裁定）。
 
 ## Step 2.5: 死にメンバー・公開範囲・配置・キャンセルゲート（IL解析） ①.5
 
-**check_all.py が同時実行済み**（出力JSONの `dead_member` 節。単体で再実行したい時だけ `scripts/dead_member_gate.py "<PATCH_PATH>" --repo-root "$(pwd)"`）。実体は `tools/DeadMemberAudit`（Mono CecilによるScriptAssembliesのIL解析）で、**patchが触ったファイルのもの**を `candidates.dead_member` として出す。名前grepと違いオーバーロード単位で参照を厳密に数える（AGENTS.md「デバッグ/テスト専用publicを残さない」のanalyzer化・2026-08-03）。rule の種別と裁定手順は `verifiers/dead-member-verifier.md` の表が正。
+**check_all.py が同時実行済み**（出力JSONの `dead_member` 節。単体で再実行したい時だけ `scripts/dead_member_gate.py "<PATCH_PATH>" --repo-root "$(pwd)"`）。実体は `tools/DeadMemberAudit`（Mono CecilによるScriptAssembliesのIL解析）で、**patchが触ったファイルのもの**を `candidates.dead_member` として出す。名前grepと違いオーバーロード単位で参照を厳密に数える（AGENTS.md「デバッグ/テスト専用publicを残さない」のanalyzer化）。rule の種別と裁定手順は `verifiers/dead-member-verifier.md` の表が正。
 
 - **`status: ok`** — candidatesが1件以上あればStep 4で死にメンバーverifier（sonnet・`verifiers/dead-member-verifier.md`）を並列起動。0件なら起動しない。rule別の裁定手順はverifier側に書いてある。
 - **`status: stale`** — 変更.csがDLLより新しい。`uloop compile` を先に実行してからゲートを再実行する（コンパイルはどのみちStep 5で必須）。
@@ -46,14 +46,14 @@ python3 .claude/skills/moores-code-review/scripts/check_all.py "<PATCH_PATH>" --
 
 ## Step 2.6: webui死コード・テスト専用参照ゲート（knip） ①.6
 
-**check_all.py が同時実行済み**（出力JSONの `ts_dead_code` 節。単体で再実行したい時だけ `scripts/ts_dead_code_gate.py "<PATCH_PATH>" --repo-root "$(pwd)"`）。実体は `moorestech_web/webui` の knip（設定は `webui/knip.json` が正）で、**patchが触った .ts/.tsx のもの**を `candidates.ts_dead_code` として出す。C#側 DeadMemberAudit（Step 2.5）のts/tsx対称形（2026-08-16導入・弱かった `core-ts_tsx-dead-code-and-scope` reviewerの機械化代替）。rule: `ts-dead-file` / `ts-dead-export`（参照ゼロ）、`ts-nonproduction-file` / `ts-nonproduction-export`（テスト・e2e・開発コードからのみ参照）。
+**check_all.py が同時実行済み**（出力JSONの `ts_dead_code` 節。単体で再実行したい時だけ `scripts/ts_dead_code_gate.py "<PATCH_PATH>" --repo-root "$(pwd)"`）。実体は `moorestech_web/webui` の knip（設定は `webui/knip.json` が正）で、**patchが触った .ts/.tsx のもの**を `candidates.ts_dead_code` として出す。C#側 DeadMemberAudit（Step 2.5）のts/tsx対称形。rule: `ts-dead-file` / `ts-dead-export`（参照ゼロ）、`ts-nonproduction-file` / `ts-nonproduction-export`（テスト・e2e・開発コードからのみ参照）。
 
 - **`status: ok`** — candidatesが1件以上あればStep 4でts死コードverifier（sonnet・`verifiers/ts-dead-code-verifier.md`）を並列起動。0件なら起動しない。
 - **`status: skipped`** — webuiのts/tsx変更なし（knip自体を実行しない・0秒）、またはknip未インストール（後者は報告に1行明記）。
 
 ## Step 3: Codex外部監査を3本バックグラウンド起動する ②
 
-**起動前に実体パスと認証ファイルを解決する**（`which codex` は使わない — 封じ込めPATHでは失敗し、実体が `~/.local/bin` にあるのに「codex不在」と誤診して10本連続で縮退した・2026-08-20）:
+**起動前に実体パスと認証ファイルを解決する**（`which codex` は使わない — 封じ込めPATHでは失敗し、実体が `~/.local/bin` にあっても「codex不在」と誤診して縮退する）:
 
 ```bash
 python3 .claude/skills/moores-code-review/scripts/codex_preflight.py   # {"status":"ok","codex":"<実体パス>",...} / exit 10=バイナリ不在 / 11=認証ファイル不在（報告は status 文字列で転記）
@@ -63,7 +63,7 @@ exit 0 なら以下の `codex` を出力の `codex` 実体パスに読み替え�
 
 3種のテンプレートを埋めて監査プロンプトを `$RUNDIR` に書き、**3本ともバックグラウンドで並列起動する**:
 
-1. **俯瞰監査** — `scripts/codex-audit-template.md`（3観点同梱・従来どおり。ユーザーが観点を指定したらここに差し替える）→ `<$RUNDIRの実値>/codex-audit.md`
+1. **俯瞰監査** — `scripts/codex-audit-template.md`（3観点同梱。ユーザーが観点を指定したらここに差し替える）→ `<$RUNDIRの実値>/codex-audit.md`
 2. **バグ狩り専任** — `scripts/codex-bughunt-template.md`（不具合のみ・設計への言及禁止・修正提案は最小差分）→ `<$RUNDIRの実値>/codex-bughunt.md`
 3. **設計整合専任** — `scripts/codex-design-template.md`（設計のみ・**過剰設計提案の抑制付き**: 新抽象の推奨は既存前例が現にその形の場合に限る）→ `<$RUNDIRの実値>/codex-design.md`
 
@@ -73,7 +73,7 @@ codex exec --sandbox read-only --skip-git-repo-check -o <$RUNDIRの実値>/codex
 codex exec --sandbox read-only --skip-git-repo-check -o <$RUNDIRの実値>/codex-design.final.md  - < <$RUNDIRの実値>/codex-design.md  > <$RUNDIRの実値>/codex-design.out.md 2>&1
 ```
 
-**`-o`（`--output-last-message`）は必須** — 結論の正本は `.final.md` であり、`.out.md`（stdout）はツール実行ログ込みの副産物にすぎない。stdoutは完走しても最終回答まで届かないことがある（2026-08-18実測：3本ともtask_completeまで完走したのに`.out.md`はツールログの途中で終端し、integratorが「Codex全滅」と誤判定した）。
+**`-o`（`--output-last-message`）は必須** — 結論の正本は `.final.md` であり、`.out.md`（stdout）はツール実行ログ込みの副産物にすぎない。stdoutは完走しても最終回答まで届かず、ツールログの途中で終端することがある（`.out.md` で判定すると完走した Codex を全滅と誤判定する）。
 
 それぞれBashの `run_in_background: true` で起動しシェルIDを控える。**出力は必ず `.out.md` へリダイレクトする** — 完了確認はシェル状態だけで行い、監査本文をオーケストレータのコンテキストへ読み込まない（回収はStep 5のintegratorが行う）。狭域専任2本は単発同梱プロンプトで注意が3分割される問題への対策（recall向上）で、俯瞰が残り全部の受け皿。**同一モデルの3起動は独立系統ではない** — 回収時、codex間で重複した指摘は1件に畳み、出所は「Codex」1系統として扱う（integration-rules §2）。preflight が exit 10/11 なら本Stepを3本ともスキップし、その理由（`status` 文字列）を最終報告に明記する（黙って縮退しない）。
 
@@ -98,7 +98,7 @@ python3 .claude/skills/moores-code-review/scripts/split_chunks.py "<PATCH_PATH>"
 
 split_chunksの出力が空（stderrに `below-threshold`）なら分割深掘り調査は発火しない（0トークン）。非空なら**CHUNKS_TSV**として保持する。
 
-**並列にAgent起動する。ただし1メッセージ最大12体**（同時実行20体上限に他セッション分を含め当たると起動が黙って消えるため。mac miniで実測17%が消失・2026-08-16再監査）。13体以上になる場合は残りを次のメッセージで**完了を待たずに**続けて起動する。起動失敗（`Concurrent subagent limit`）が返った体は控えておき必ず再起動する。起動対象:
+**並列にAgent起動する。ただし1メッセージ最大12体**（同時実行20体上限に他セッション分を含め当たると起動が黙って消えるため）。13体以上になる場合は残りを次のメッセージで**完了を待たずに**続けて起動する。起動失敗（`Concurrent subagent limit`）が返った体は控えておき必ず再起動する。起動対象:
 
 1. **各発火reviewer**（select_reviewersのTSVどおりの `model`）— 3行契約＋共通出力契約:
    ```
@@ -113,7 +113,7 @@ split_chunksの出力が空（stderrに `below-threshold`）なら分割深掘�
    Warning: 0行以上 — 観点に該当しそうだが確信・裏取りが一段弱い指摘、重大だが裁量余地のある懸念。`- <ファイル:行>: <懸念と根拠>`
    Info: 0行以上 — 対応不要の観察・過検知ガードで落としたが記録価値のある事実。1行ずつ
    suppressed: 0行以上 — トレードオフ免責で降格した指摘。`- [Critical|Warning] <ファイル:行>: <指摘要約> / suppressed-by: <トレードオフ1行, 出所ラベル>`。Critical/Warning節には入れない（重大度は行頭表記で保持）
-   設計判断: あり/なし — 従来通り（代替案の具体形・シグネチャ付き比較）
+   設計判断: あり/なし — 代替案の具体形・シグネチャ付き比較
    ```
    `moores-any-precedent-alignment.md`（always発火）は他の発火reviewerが0件でも必ず起動する。
 2. **Fable全般レビュー**（常時・`model: "fable"`）— 同じ3行契約＋共通出力契約で `generalists/fable-holistic-review.md` を渡す。
@@ -125,7 +125,6 @@ split_chunksの出力が空（stderrに `below-threshold`）なら分割深掘�
    Patch path : <PATCH_PATH>
    User prompt : <USER_PROMPT_PATH>
    ```
-   テストファイルはチャンクに含まれず、investigatorはReadもしない（完全隔離・ユーザー裁定 2026-08-03）。
 5. **比較演算子verifier**（Step 2の `candidates.comparison_operator` が1件以上のときだけ・`model: "sonnet"`）— 4行契約:
    ```
    Read this : .claude/skills/moores-code-review/verifiers/comparison-operator-verifier.md
@@ -140,7 +139,7 @@ split_chunksの出力が空（stderrに `below-threshold`）なら分割深掘�
 
 **回収はファイルハンドオフで行う（オーケストレータのコンテキストを空けるため）。** 起動前に共通出力契約（正本は `references/output-contract.md`。Workflow 既定では `build_workflow_args.py` が書く）を `<$RUNDIRの実値>/contract.md` へ1本だけ書き、各エージェントのプロンプトは `Read this` / `Patch path` / `User prompt` / `Output contract`（contract.mdのパス） / `Write full report to`（`<$RUNDIRの実値>/agents/<名前>.md`）の5行に畳む。**返答は3行以内（Critical件数・設計判断あり/なし・一行要約）に制限し、詳細は返答に書かせずファイルへ書かせる。** `agents/` 配下のファイル群の回収・照合はStep 5のintegratorが行う（オーケストレータはgrep・集計しない）。起動数が多い場合はwaveに分けてよい（1メッセージ内の並列は各wave内で守る）。
 
-各サブエージェントは上記の共通出力契約（Critical/Warning/Info＋設計判断）で返す。**二値（あり/なし）に潰さず3段階で出させる理由**: Warning/Infoは「とりあえず統合報告のコンテキストに乗る」ことが目的の保険であり、二値だと確信の一段弱い実指摘が `なし` に丸められて消失する（ユーザー裁定 2026-07-23。実例: リプレースファミリーのハードコードを複数レンズが視認しながら二値契約のため無出力で落とした）。`設計判断: あり` はCriticalでも備考でもない第3の出口で、Step 7のAskUserQuestionへ**必ず**載せる（備考落ちで黙殺しない）。reviewer発火が0件でもレンズ群とFableは起動する。
+各サブエージェントは上記の共通出力契約（Critical/Warning/Info＋設計判断）で返す。**二値（あり/なし）に潰さず3段階で出させる理由**: Warning/Infoは「とりあえず統合報告のコンテキストに乗る」ことが目的の保険であり、二値だと確信の一段弱い実指摘が `なし` に丸められて消失する。`設計判断: あり` はCriticalでも備考でもない第3の出口で、Step 7のAskUserQuestionへ**必ず**載せる（備考落ちで黙殺しない）。reviewer発火が0件でもレンズ群とFableは起動する。
 
 ## Step 5: 回収・統合（integratorへ委譲） ④
 
@@ -159,7 +158,7 @@ split_chunksの出力が空（stderrに `below-threshold`）なら分割深掘�
   integratorは起動計画の系統の `agents/<名前>.md`・起動された Codex の結論（`.final.md`。不在なら回収スクリプト実行後の同ファイル。`.out.md` は疑義がある時だけ補助的に見る）・`checks.json` を読み、`references/integration-rules.md` §0〜§2.7（実コード照合・棄却の挙証責任・重複排除・Warning/Info統合・suppressed統合・同型掃引・系統間矛盾の検証）を適用して `integrated.md` に統合結果を書く。各Criticalには適用区分（自動適用可 §3/§3.5 | 設計判断 §4）が付く。返答は件数サマリのみ。
 - integratorの返答を受けたら `integrated.md` をReadしてStep 6へ。生のagentsファイル・Codex出力へ戻ってよいのは、integratorの結論に疑義がある個別件の再確認だけ（全量の読み直しは統合の二重実行であり禁止）。
 - `python3 .claude/skills/moores-code-review/scripts/s5_shape_gate.py $RUNDIR` を走らせ、終了コード 1（§5 の決定ごとの「読み1／読み2／両立判定」の欠け、または integrated.md がそれを回収扱い）なら core-any-user-intent-fulfillment を欠け一覧付きで再起動（差し戻し）し integrator を再実行する。
-- `integrated.md` の「系統別回収状況」に欠員（起動失敗・weekly limit・Codexスキップ）があれば、Gotchasの再起動規則に従い、必要なら該当系統を再起動してintegratorを再実行する。**Codexの欠員申告は `codex_recover.py` の終了コードを添えていない限り受け付けない** — 回収漏れを欠員として通すと「外部監査の観点が効いていない」という偽の縮退申告がPR本文とレビュー記録に残る（2026-08-18 PR#1167 実害）。
+- `integrated.md` の「系統別回収状況」に欠員（起動失敗・weekly limit・Codexスキップ）があれば、Gotchasの再起動規則に従い、必要なら該当系統を再起動してintegratorを再実行する。**Codexの欠員申告は `codex_recover.py` の終了コードを添えていない限り受け付けない** — 回収漏れを欠員として通すと「外部監査の観点が効いていない」という偽の縮退申告がPR本文とレビュー記録に残る。
 
 ## Step 6: 確定修正の自動適用＋コンパイル ⑤
 
@@ -177,10 +176,10 @@ Step 6の修正適用後に走らせるpost-fixガード群。**人間の変更�
 
 1. **最終diffを作り直す** — Step 6適用後の作業ツリーをbaseと比較し `<$RUNDIRの実値>/final.diff` に書く。
 2. **決定論チェックを最終diffで再実行** — `deterministic_checks.py` を再度実行し `<$RUNDIRの実値>/checks-final.json` に書く。自分の修正が新たに生んだ `confirmed`/`comparison_operator` 違反はその場でインライン修正する。**再実行時は `--context` を渡さない**（出所ラベルはStep 2で検査済み。再検出させるとcontext編集へ誘導され無意味）。
-2.5. **反映 diff の再レビュー（Refix・最大3周）** — `refix_snapshot.py snapshot --name s1` に続けて `refix_snapshot.py diff --from s0 --to s1 --out <$RUNDIRの実値>/refix/round1.diff` を実行し、出力 JSON の `scope` を見る。`source`（テスト以外のソースにコメント/空行以外の変更行あり）なら **applied-diff-correctness**（`post-checks/applied-diff-correctness.md`・opus・5行契約＋`Refix of : integrated.md の採用Critical の修正方針` の1行、Patch path は `refix/round1.diff`、報告先 `agents/refix-correctness-r1.md`）を1体起動する。`non-source`/`none` なら起動しない（0トークン・報告に1行）。理由（レビューの出力を反映した diff はどの系統の入力にもならない。cmux-connector c9baa79 2026-09-08 較正）は同ファイル冒頭。
+2.5. **反映 diff の再レビュー（Refix・最大3周）** — `refix_snapshot.py snapshot --name s1` に続けて `refix_snapshot.py diff --from s0 --to s1 --out <$RUNDIRの実値>/refix/round1.diff` を実行し、出力 JSON の `scope` を見る。`source`（テスト以外のソースにコメント/空行以外の変更行あり）なら **applied-diff-correctness**（`post-checks/applied-diff-correctness.md`・opus・5行契約＋`Refix of : integrated.md の採用Critical の修正方針` の1行、Patch path は `refix/round1.diff`、報告先 `agents/refix-correctness-r1.md`）を1体起動する。`non-source`/`none` なら起動しない（0トークン・報告に1行）。理由（レビューの出力を反映した diff はどの系統の入力にもならない）は同ファイル冒頭。
    - 反映 diff を取るたび（round1 も直し直しの round2 以降も）、後述の「反映 diff の機械的動作確認」をその diff に対して回す。
    - Critical が出たら、修正方針が具体名つきで選択の余地が無いものだけ §3 で適用（.cs なら compile 再実行）し、それ以外と「裁定そのものが誤り」型は design.md へ追記して Step 7 へ escalate する。適用したら `snapshot --name s2` → `diff --from s1 --to s2 --out refix/round2.diff` で**直し直した差分だけ**を次周の Patch path にして再起動（`Refix of` は前周のレポート）。Critical 0 で収束、**上限3周**・適用0件は未収束として最終報告冒頭に「反映 diff 再レビュー未収束（N 周）」と書き Step 7 の AskUserQuestion に「手で直す / 未修正のまま進める」を載せる（黙って収束扱いにしない）。Warning/Info は最終報告へ転記する。scope が `error`（スクリプト失敗）なら黙って `source`/`none` に倒さず、stderr を報告して止まる。
-3. **発火すべきガードをスクリプトで選択し、出力どおりに並列起動**（1メッセージ内。2026-08-16裁定・空振り回の無条件起動を廃止）:
+3. **発火すべきガードをスクリプトで選択し、出力どおりに並列起動**（1メッセージ内）:
 
    ```bash
    python3 .claude/skills/moores-code-review/scripts/select_post_checks.py <$RUNDIRの実値>/final.diff <$RUNDIRの実値>/checks-final.json
@@ -192,15 +191,15 @@ Step 6の修正適用後に走らせるpost-fixガード群。**人間の変更�
    - **applied-diff-correctness** はここでは選択されない（2.5 の Refix が反映 diff に対して起動する。最終 diff 全体に当てるものではない）。
    - スキップしたガードは最終報告に「post-checks: <名前> 発火条件未達でスキップ」と1行明記する（黙って縮退しない）。
 4. **rationale-guardのCriticalはescalate**（自動復元しない）— 削除コメント再挿入は設計判断。復元タグ案を添えてStep 7へ。
-5. **convention-guardはラベル分岐（Step 7へは送らない）** — `機械的` は §5 のもと自動適用、`要判断` は**ガード自身の裁定で完結**させる（短縮案が意図を保てるなら適用、例外該当なら残置。結果は報告に1行）。コメント短縮をAskUserQuestionに載せるのは**禁止**（ユーザー裁定 2026-07-23）。同一行で衝突したら**根拠保全を優先**。
-   - **webui（`moorestech_web/webui`）では `要判断` も短縮を適用する** — 数値詳細・数式・設計意図が落ちる場合でも文字数規約を優先して短縮する（詳細はコードとテスト本体が担う）。残置してよいのは「なぜ必要か」型の純粋な根拠コメント（定数選定根拠・防止目的）のみ（ユーザー裁定 2026-08-04・[[2026-08-04-コメント文字数規約は根拠情報より優先する]]）。
+5. **convention-guardはラベル分岐（Step 7へは送らない）** — `機械的` は §5 のもと自動適用、`要判断` は**ガード自身の裁定で完結**させる（短縮案が意図を保てるなら適用、例外該当なら残置。結果は報告に1行）。同一行で衝突したら**根拠保全を優先**。
+   - **webui（`moorestech_web/webui`）では `要判断` も短縮を適用する** — 数値詳細・数式・設計意図が落ちる場合でも文字数規約を優先して短縮する（詳細はコードとテスト本体が担う）。残置してよいのは「なぜ必要か」型の純粋な根拠コメント（定数選定根拠・防止目的）のみ。
 6. 全ガードが `Critical: なし` で再チェックも増分ゼロなら何もせず完了（委譲時はここで親へ返答する）。
 
 ## 反映 diff の機械的動作確認（Step 6 自動適用・Refix の直し直し・Step 7 裁定反映・Step 7.5 bug-pass の反映で共通）
 
-レビューは反映が録画シナリオを壊したことも、線を含むセーブで起動できなくなったことも見逃す（根拠: harness/moores-code-review/experiments/2026-10-05-review-until-no-critical/report.md・moorestech_logs）。反映 diff（`refix_snapshot.py diff` の出力）を取るたびに、機械的に次を確かめる。Workflow では Apply と Refix の反映役がこの節を実行し、結果を `verify_note` で返す。
+レビューは反映が録画シナリオを壊したことも、線を含むセーブで起動できなくなったことも見逃す。反映 diff（`refix_snapshot.py diff` の出力）を取るたびに、機械的に次を確かめる。Workflow では Apply と Refix の反映役がこの節を実行し、結果を `verify_note` で返す。
 
-録画シナリオ（`unity-playmode-recorded-playtest` 配下の `.cs`）はレビュー diff から除外され、Unity プロジェクト（`moorestech_client/Assets`）の外にあるので **`uloop compile` の対象にも入らない**（`run-scenario.sh` が実行時に execute-dynamic-code へ渡して初めてコンパイルされる）。どのシナリオが壊れたかは「反映が変えた名前」からは決まらない（複数行シグネチャ・名前を含まない型不一致 `CS1503`・別型への移動・追従後に旧名を含まなくなるシナリオで漏れる。2026-10-07 Codex 指摘）。そこで名前で絞らず、**反映前と反映後の両方で全件をコンパイルして診断の差集合を取る**。
+録画シナリオ（`unity-playmode-recorded-playtest` 配下の `.cs`）はレビュー diff から除外され、Unity プロジェクト（`moorestech_client/Assets`）の外にあるので **`uloop compile` の対象にも入らない**（`run-scenario.sh` が実行時に execute-dynamic-code へ渡して初めてコンパイルされる）。どのシナリオが壊れたかは「反映が変えた名前」からは決まらない（複数行シグネチャ・名前を含まない型不一致 `CS1503`・別型への移動・追従後に旧名を含まなくなるシナリオで漏れる）。そこで名前で絞らず、**反映前と反映後の両方で全件をコンパイルして診断の差集合を取る**。
 
 1. **反映前の記録（編集する前）** — 反映の基点 snapshot（`s0`・Refix の直し直しなら前周の `s<N>`・Step 7 なら `w7-s0`）を取った直後、何も編集する前に `python3 .claude/skills/moores-code-review/scripts/applied_diff_checks.py record --repo-root <Repo root> --run-dir <$RUNDIR> --name <基点名> --if-missing` を実行する。全シナリオを本体を呼ばないローカル関数へ包んだスニペット（PlayMode 不要・シナリオは実行されない）にして `uloop execute-dynamic-code --code-file` でコンパイルし、`<$RUNDIR>/refix/<基点名>-scenarios.json` に書く。`.cs` を編集する見込みが無ければ省いてよい（その場合 `.cs` に触れた反映は「未確認」になる）。
 2. **反映後の比較** — 反映し `uloop compile` でエラー0にした後、反映 diff に対して `applied_diff_checks.py check <反映diff> --repo-root <Repo root> --run-dir <$RUNDIR> --from <基点名> --to <反映後の snapshot 名>` を実行する。反映 diff が `.cs`（テスト以外。シナリオ自体を含む）に触れていれば、反映後の状態で全シナリオを記録し直して基点の記録と比べる。診断は (シナリオ, エラーコード, メッセージ, 指す行のソース文字列〈前後空白除去〉) に正規化し、**行番号・列は鍵に入れない**（追従編集で揺れる）。指す行の文字列で呼び出し箇所を区別するので、別の呼び出しに出た同文面の診断（例: 引数型を入れ替えた2つの呼び出しの `CS1503`）と相殺しない。同一診断の増加は多重集合の差で数え、指す行が取れず反映前の同文面と対応を確認できない診断は既存扱いせず「未確認」にする。
@@ -226,12 +225,12 @@ Step 6の修正適用後に走らせるpost-fixガード群。**人間の変更�
 - **「並列」の実体はバックグラウンド起動** — Codexを `run_in_background` で先に投げ、完了を待たずにreviewer・Fableを起動する。
 - **`codex exec` のフラグ順序** — `--sandbox` `--skip-git-repo-check` はサブコマンドより**前**に置く。監査プロンプトは `$RUNDIR`（logs repo側）に置く（コードrepo内は誤コミットの恐れ・`/tmp` は消える）。
 - **verifierは候補ゼロなら起動しない** — `candidates.comparison_operator` / `candidates.try_catch_boundary` / `candidates.server_elapsed_time` / `candidates.dead_member` が空なら対応verifierは不要（0トークン）。
-- **try-catchの免除はverifierだけが出せる** — オーケストレータが「根拠コメントがあるからAGENTS.md例外を充足」と判断してCritical計上から外すのは禁止（PR1095の較正ミスそのもの）。コメントは検証対象であって証拠ではない。
+- **try-catchの免除はverifierだけが出せる** — オーケストレータが「根拠コメントがあるからAGENTS.md例外を充足」と判断してCritical計上から外すのは禁止。コメントは検証対象であって証拠ではない。
 - **分割深掘り調査は閾値未満なら起動しない** — split_chunksが `below-threshold` を返したら第5系統は丸ごと不発火（0トークン）。閾値を無視してinvestigatorを手動起動しない（小PRでは既存系統と重複するだけ）。
-- **investigatorにテストを絶対に見せない** — チャンク割当除外だけでなくRead自体が禁止（ユーザー裁定 2026-08-03 完全隔離）。テスト不足の検知はtest系reviewerの担当のまま。
+- **investigatorにテストを絶対に見せない** — テストファイルはチャンクに含めず、investigator は Read 自体も禁止（完全隔離）。テスト不足の検知はtest系reviewerの担当のまま。
 - **文字数はスクリプトの値が正** — LLMに日本語の文字数を数え直させない。convention-guardは `count` を信頼し例外判定と短縮案だけ行う。
 - **post-checksはreviewerではない** — `post-checks/` はStep 6.5専用でセレクタのglobに含まれない。applied-diff-correctness はセレクタで選ばれず、Step 6.5-2.5 の Refix・Step 7 の設計判断反映・pr-adjudicated-apply が反映 diff（`refix_snapshot.py` の snapshot 間 diff）に対して直接起動する（手順は各 SKILL.md）。
 - **Agent起動時に必ずmodel列を渡す（モデル継承事故の防止）** — Agentツールは `model` を省略すると**親（＝あなた＝オーケストレータ）のモデルを継承**する。委譲時のあなたはsonnetなので、model未指定のサブエージェントが誤ってsonnetで起動しうる（opus/fable指定系統の無言降格）。セレクタはTSV2列目に**常に具体値**を出す（`select_reviewers.py` は未記載reviewerを `default:opus` に具体化。空欄は絶対に出さない）。この2列目を**必ずそのまま** Agentの `model` に渡すこと。fableが正になるのは `moores-any-precedent-alignment`（`model_map.json` の `fable`）とFable全般（prose指定）だけで、それ以外にfableは現れない。
-- **系統を間引かない／中断しない** — レポートはファイルへ書かせ返答は3行に絞る（Step 4の回収方式）。系統を落とすなら報告に明記する（[[2026-08-14-大規模ファンアウトは回収方式を変えて完走する]]）。
+- **系統を間引かない／中断しない** — レポートはファイルへ書かせ返答は3行に絞る（Step 4の回収方式）。系統を落とすなら報告に明記する。
 - **Codexの `.out.md` が途中で切れていても失敗ではない** — 判定材料は `.final.md`（`-o` の出力）と `codex_recover.py` の終了コードだけ。`.out.md` を `grep` して「結論が無い＝失敗」と断じない（stdoutにはツール実行ログしか残っていないことがある）。真の失敗は「rollout にセッションが無い（exit 4）」「task_complete が無い（exit 3）」「認証失効（exit 5。rollout に結論が無いときだけ `.out.md` 両端の codex ERROR 行で判定）」の3つだけ。
-- **fableクォータ切れは黙って欠員にしない** — fable指定の系統（moores-any-precedent-alignment・Fable全般）が「weekly limit」等の失敗応答を返したら、その系統を `model: "opus"` で再起動する（2026-07〜08で14起動が無言消失した実測より）。再起動した事実は最終報告に1行明記。
+- **fableクォータ切れは黙って欠員にしない** — fable指定の系統（moores-any-precedent-alignment・Fable全般）が「weekly limit」等の失敗応答を返したら、その系統を `model: "opus"` で再起動する（放置すると系統が無言で欠ける）。再起動した事実は最終報告に1行明記。
