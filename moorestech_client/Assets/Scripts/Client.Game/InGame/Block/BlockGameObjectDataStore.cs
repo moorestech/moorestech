@@ -1,6 +1,7 @@
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
 using Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine;
 using System;
+using Client.Game.InGame.Block.Index;
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.Context;
@@ -31,6 +32,10 @@ namespace Client.Game.InGame.Block
         public IObservable<Vector3Int> OnBlockRemoved => _onBlockRemoved;
         private readonly Subject<Vector3Int> _onBlockRemoved = new();
         public ulong OccupancyRevision { get; private set; }
+
+        // ブロック種別ごとの索引。種別での列挙に全ブロック走査を使わないため
+        // Per-block-type index, so enumerating one type needs no full scan
+        private readonly BlockTypeIndex _blockTypeIndex = new();
 
         // ブロックGUID別の最近傍索引。全ブロック走査での最寄り探索を毎フレーム回さないため（前例: OutcropGameObjectDatastore）
         // Per-block-GUID nearest index, so no per-frame full scan is needed for nearest lookups (precedent: OutcropGameObjectDatastore)
@@ -97,6 +102,7 @@ namespace Client.Game.InGame.Block
                 var oldBlock = _blockObjectsDictionary[blockPosition];
                 _blockObjectsByInstanceIdDictionary.Remove(oldBlock.BlockInstanceId);
                 DropFromNearestIndex(oldBlock);
+                _blockTypeIndex.Remove(oldBlock);
                 Destroy(oldBlock.gameObject);
                 _blockObjectsDictionary.Remove(blockPosition);
             }
@@ -117,6 +123,7 @@ namespace Client.Game.InGame.Block
             _blockObjectsDictionary.Add(blockPosition, block);
             _blockObjectsByInstanceIdDictionary.Add(blockInstanceId, block);
             _nearestIndex.Register(block.BlockMasterElement.BlockGuid, block);
+            _blockTypeIndex.Register(block);
             OccupancyRevision++;
             _onBlockPlaced.OnNext(block);
         }
@@ -131,6 +138,7 @@ namespace Client.Game.InGame.Block
             block.DestroyBlock().Forget();
             _blockObjectsByInstanceIdDictionary.Remove(block.BlockInstanceId);
             DropFromNearestIndex(block);
+            _blockTypeIndex.Remove(block);
             _blockObjectsDictionary.Remove(blockPosition);
             OccupancyRevision++;
             
@@ -145,6 +153,11 @@ namespace Client.Game.InGame.Block
         {
             block.MarkUnsearchable();
             _nearestIndex.NotifyTargetUnsearchable(block.BlockMasterElement.BlockGuid);
+        }
+
+        public IReadOnlyList<BlockGameObject> GetBlocksByBlockType(string blockType)
+        {
+            return _blockTypeIndex.GetBlocks(blockType);
         }
 
         public bool IsOverlapPositionInfo(BlockPositionInfo target)

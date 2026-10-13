@@ -11,6 +11,7 @@ import { applyPauseMenuAction, type PauseMenuActionResult } from "./pauseMenuAct
 import { demoMode } from "./topics/topicFixtures";
 import { knownActions } from "./topics/actionTypes";
 import { applyLocalizationAction } from "./localization/transport";
+import { applyTrainTimetableAction } from "./train/timetableActions";
 import { handleNonActionMessage } from "./messages/nonActionMessages";
 // インベントリ状態は接続ごとに分離する。並列テストが同一 inv を奪い合わないため
 // Inventory state is isolated per connection so parallel tests don't race on the same inv
@@ -39,10 +40,13 @@ export function attachWsHandlers(wss: WebSocketServer) {
         // ack は実 host 同様 apply 後に確定し、topic event は数十ms 後に別経路で push（stale grab 再現）
         // ack is decided after apply like the real host; the topic event is pushed later on a separate channel
         let error: string | undefined;
+        let timetableResult: ReturnType<typeof applyTrainTimetableAction>;
         let skitActionResult: string | null | undefined, localizationActionResult: string | null | undefined, pauseMenuActionResult: PauseMenuActionResult;
         if (state.injectedActionError?.type === msg.type) {
           error = state.injectedActionError.error;
           state.injectedActionError = null;
+        } else if ((timetableResult = applyTrainTimetableAction(msg.type, msg.payload)).handled) {
+          error = timetableResult.error;
         } else if (msg.type === "fail.always") {
           error = "mock_error";
         } else if ((skitActionResult = applySkitAction(msg.type, msg.payload)) !== null) {

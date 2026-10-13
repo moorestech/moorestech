@@ -1,0 +1,12 @@
+/* 駅名欄専用の行様式。入力欄本体は shared の記述欄様式を継承する */
+/* Row layout for the station name field; the input inherits the shared field style */
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mode-switch-padding-inline);
+}
+
+.nameInput {
+  composes: field from "../../../../shared/ui/textAreaField.module.css";
+}

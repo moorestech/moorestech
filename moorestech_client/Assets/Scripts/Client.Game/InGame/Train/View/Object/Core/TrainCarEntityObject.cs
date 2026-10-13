@@ -1,15 +1,12 @@
 using System;
-using Client.Game.InGame.Context;
 using Client.Game.InGame.Interact;
 using Client.Game.InGame.Interact.Selection;
 using Client.Game.InGame.Train.View;
 using Client.Game.InGame.Train.View.Object.Material;
 using Client.Game.InGame.Train.View.Object.Pose;
 using Client.Game.InGame.Train.View.Object.Processors;
-using Common.Debug;
 using Game.Train.Unit;
 using Mooresmaster.Model.TrainModule;
-using Server.Protocol.PacketResponse;
 using UnityEngine;
 
 namespace Client.Game.InGame.Train.View.Object.Core
@@ -27,8 +24,6 @@ namespace Client.Game.InGame.Train.View.Object.Core
         private ITrainCarPoseUpdater _poseUpdater;
         private ITrainCarObjectProcessor[] _processors = Array.Empty<ITrainCarObjectProcessor>();
         private TrainCarMaterialController _materialController;
-        private static bool _isDebugAutoRunInitialized;
-        private static bool _debugAutoRun;
 
         public void Initialize(TrainCarInstanceId trainCarInstanceId, TrainCarMasterElement trainCarMasterElement)
         {
@@ -150,13 +145,6 @@ namespace Client.Game.InGame.Train.View.Object.Core
             Destroy(gameObject);
         }
 
-        private void Update()
-        {
-            // debug auto-run command は TrainCarEntityObject 内に残し、描画更新は unit visual updater 側で行う
-            // Keep the debug auto-run command here while visual updates stay in the unit visual updater
-            UpdateDebugAutoRunCommand();
-        }
-
         private void DispatchProcessors(TrainCarContext context)
         {
             // 通常描画専用 processor へ同じ context を配る
@@ -165,39 +153,6 @@ namespace Client.Game.InGame.Train.View.Object.Core
             {
                 _processors[i].ManualUpdate(context);
             }
-        }
-
-        private static void UpdateDebugAutoRunCommand()
-        {
-            var currentDebugAutoRun = DebugParameters.GetValueOrDefaultBool(DebugConst.TrainAutoRunKey);
-            if (!_isDebugAutoRunInitialized)
-            {
-                // 複数 car entity があっても初期状態は共有して一度だけ記録する
-                // Share the initial state so multiple car entities do not send duplicate commands
-                _debugAutoRun = currentDebugAutoRun;
-                _isDebugAutoRunInitialized = true;
-                return;
-            }
-            if (_debugAutoRun == currentDebugAutoRun)
-            {
-                return;
-            }
-
-            // toggle 変化時だけサーバーへ全列車の自動運転切り替えを送る
-            // Send the all-train auto-run command only when the toggle changes
-            _debugAutoRun = currentDebugAutoRun;
-            SendTrainAutoRunChanged(_debugAutoRun);
-            UnityEngine.Debug.Log($"[Debug] Train auto run changed: {_debugAutoRun}");
-        }
-
-        private static void SendTrainAutoRunChanged(bool isEnabled)
-        {
-            // サーバーへ全列車の自動運転切り替えコマンドを送信する
-            // Send the auto-run toggle command for all trains to the server
-            var command = isEnabled
-                ? $"{SendCommandProtocol.TrainAutoRunCommand} {SendCommandProtocol.TrainAutoRunOnArgument}"
-                : $"{SendCommandProtocol.TrainAutoRunCommand} {SendCommandProtocol.TrainAutoRunOffArgument}";
-            ClientContext.VanillaApi.SendOnly.SendCommand(command);
         }
     }
 }
