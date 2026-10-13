@@ -116,7 +116,7 @@ namespace Client.Tests.UnitTest.MapPreview
             var gate = new GeneratedMapPreviewStageRunGate(_stage, run, cancellation);
             try
             {
-                // 実Run完了後だけStage終端を留め、root出現時刻に依存しない。
+                // 実Run後の終端だけ保留。
                 // Hold only the Stage terminal after the real run, independent of root timing.
                 var deadline = EditorApplication.timeSinceStartup + 600;
                 while (gate.WorldBuilt.Task.Status == UniTaskStatus.Pending && _stage.State == GeneratedMapPreviewState.Generating && EditorApplication.timeSinceStartup < deadline)
@@ -128,7 +128,7 @@ namespace Client.Tests.UnitTest.MapPreview
                 var data = root.GetComponentsInChildren<UnityEngine.Terrain>().Select(x => x.terrainData).ToArray();
                 Assert.That(data, Is.Not.Empty);
                 Assert.That(GeneratedMapPreviewObservation.WorldDirectories().Except(baseline), Is.Not.Empty);
-                // Close直後の保持と継続解除後の回収を別々に確かめる。
+                // 閉鎖時の保持と終端回収を検査。
                 // Check retention just after Close separately from reclamation after release.
                 StageUtility.GoToMainStage();
                 Assert.That(_stage.State, Is.EqualTo(GeneratedMapPreviewState.Closed));

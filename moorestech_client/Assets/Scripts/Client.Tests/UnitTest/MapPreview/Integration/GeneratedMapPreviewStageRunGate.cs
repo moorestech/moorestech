@@ -22,7 +22,7 @@ namespace Client.Tests.UnitTest.MapPreview.Integration
             _run = run;
             _cancellationToken = cancellation.Token;
 
-            // 既存の私有observerへ実Runを渡し、製品公開APIは増やさない。
+            // 実Runを私有監視へ渡す。
             // Feed the real run into the existing private observer without expanding the production API.
             const BindingFlags privateInstance = BindingFlags.Instance | BindingFlags.NonPublic;
             typeof(GeneratedMapPreviewStage).GetField("_run", privateInstance).SetValue(stage, run);
