@@ -497,7 +497,8 @@ Expected: ErrorCount 0 / PASS（既存の駅関連テストも全て通る）
 
 ### Task 6: PR 作成とセッション終了可能状態
 
-- [ ] セッション終了可能状態にすること: pr-create スキルで PR を作成する。ベースは `master`（PR #1415 はマージ済み）。PR 作成前に `origin/master` を取り込みコンパイルを確認する。PR 本文に「PR #1415 の拡張・別PR」と ADR 0079 へのリンクを書く。ベースとのコンフリクトがあればマージして解消・コンパイル確認のうえ push する（解消の実作業は pr-create 経由で opus subagent に委譲される）。全作業がコミット・push 済みで、このセッションをそのまま閉じても PR がマージ可能な状態になっていることを確認して終える。PR 作成後に `moores-wt rm train-station-default-name`
+- [x] セッション終了可能状態にすること: pr-create スキルで PR を作成する。ベースは `master`（PR #1415 はマージ済み）。PR 作成前に `origin/master` を取り込みコンパイルを確認する。PR 本文に「PR #1415 の拡張・別PR」と ADR 0079 へのリンクを書く。ベースとのコンフリクトがあればマージして解消・コンパイル確認のうえ push する（解消の実作業は pr-create 経由で opus subagent に委譲される）。全作業がコミット・push 済みで、このセッションをそのまま閉じても PR がマージ可能な状態になっていることを確認して終える。PR #1496 と全素材の報告ページ公開、最新master取り込み後のコンパイル Error0/Warning0・関連338/338 PASS・MERGEABLEを確認済み。
+- [ ] controller が検証記録をアーカイブしてから `moores-wt rm train-station-default-name` を実行する
 
 ---
 
