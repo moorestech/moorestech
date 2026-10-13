@@ -8,6 +8,7 @@ using Game.Gear.Common;
 using MessagePack;
 using Mooresmaster.Model.BlocksModule;
 using Newtonsoft.Json;
+using UniRx;
 using UnityEngine;
 
 namespace Game.Block.Blocks.GearToElectric
@@ -18,10 +19,11 @@ namespace Game.Block.Blocks.GearToElectric
     ///     Converter turning gear energy into electric power, holding a one-tick internal battery of maxGeneratedPower at the tick boundary.
     ///     It charges only the deficit on the gear tick, declares the remainder as available supply on the next electric tick, and discharges by utilization after the statistics settle.
     /// </summary>
-    public class GearToElectricGeneratorComponent : GearEnergyTransformer, IGear, IElectricGenerator, IElectricTickPostHandler, IUpdatableBlockComponent, IBlockStateDetail, IBlockSaveState
+    public class GearToElectricGeneratorComponent : GearEnergyTransformer, IGear, IElectricGenerator, IElectricTickPostHandler, IUpdatableBlockComponent, IBlockStateDetail, IBlockSaveState, IBlockStateObservable
     {
         public int TeethCount => _param.TeethCount;
         public string SaveKey => "gearToElectricGenerator";
+        public new IObservable<Unit> OnChangeBlockState { get; }
 
         private readonly GearToElectricGeneratorBlockParam _param;
 
@@ -29,7 +31,7 @@ namespace Game.Block.Blocks.GearToElectric
         // Battery capacity is master-data maxGeneratedPower (one tick's worth); only the remainder is saved
         private float BatteryCapacity => _param.MaxGeneratedPower;
         private float _batteryRemaining;
-        private float _lastDischargedPower;
+        private readonly GearToElectricGenerationTracker _generationTracker;
 
         public GearToElectricGeneratorComponent(
             GearToElectricGeneratorBlockParam param,
@@ -39,6 +41,10 @@ namespace Game.Block.Blocks.GearToElectric
         {
             _param = param;
             _batteryRemaining = 0f;
+            _generationTracker = new GearToElectricGenerationTracker((float)param.GearConsumption.MinimumRpm);
+            // 歯車と発電の可視値の変化を共に通知する
+            // Notify changes to both gear and generation values
+            OnChangeBlockState = base.OnChangeBlockState.Merge(_generationTracker.OnGenerationChanged);
         }
 
         // セーブ復元用コンストラクタ。残量を0から容量の範囲へクランプして復元する
@@ -76,17 +82,18 @@ namespace Game.Block.Blocks.GearToElectric
 
             void DischargeByUtilization()
             {
-                // 放電なしのtickは前tickの放電量を表示に残さない
-                // Clear the last discharge so a no-discharge tick does not keep showing the previous amount
+                // 放電なしのtickは前tickの供給量を表示に残さない
+                // Clear the previous supply on a tick without discharge
                 if (statistics.TotalGeneratePower <= 0f)
                 {
-                    _lastDischargedPower = 0f;
+                    _generationTracker.RecordElectricTick(CurrentRpm, 0f);
                     return;
                 }
                 var deliveredPower = statistics.TotalRequiredPower * statistics.PowerRate;
                 var utilization = Mathf.Clamp01(deliveredPower / statistics.TotalGeneratePower);
-                _lastDischargedPower = _batteryRemaining * utilization;
-                _batteryRemaining -= _lastDischargedPower;
+                var discharged = _batteryRemaining * utilization;
+                _batteryRemaining -= discharged;
+                _generationTracker.RecordElectricTick(CurrentRpm, discharged);
             }
 
             void UpdateTorqueRequest()
@@ -108,8 +115,8 @@ namespace Game.Block.Blocks.GearToElectric
 
             ChargeFromGear();
 
-            // 電線未接続で電力tick後処理が呼ばれない場合でも、満充電後は歯車網へ負荷をかけ続けないよう要求を更新する
-            // Refresh the torque request even when no wire connects (so the post-tick hook never runs); a full battery must stop loading the gear network
+            // 充電直後の不足分で要求トルクを更新する
+            // Refresh the torque request from the deficit just after charging
             var postChargeDeficit = BatteryCapacity - _batteryRemaining;
             SetTorqueRequestRate(BatteryCapacity <= 0f ? 0f : postChargeDeficit / BatteryCapacity);
 
@@ -146,14 +153,12 @@ namespace Game.Block.Blocks.GearToElectric
 
             BlockStateDetail CreateDetail()
             {
-                var chargeRate = BatteryCapacity <= 0f ? 0f : _batteryRemaining / BatteryCapacity;
                 var detail = new GearToElectricGeneratorBlockStateDetail(
                     IsCurrentClockwise,
                     CurrentRpm,
                     CurrentTorque,
-                    chargeRate,
-                    new ElectricPower(_lastDischargedPower),
-                    _batteryRemaining);
+                    new ElectricPower(_generationTracker.SuppliedPower),
+                    _generationTracker.State);
                 var serialized = MessagePackSerializer.Serialize(detail);
                 return new BlockStateDetail(GearToElectricGeneratorBlockStateDetail.GearGeneratorBlockStateDetailKey, serialized);
             }
