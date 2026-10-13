@@ -43,6 +43,18 @@ describe("GearToElectricSection", () => {
     expect(textOf(tree, "gear-to-electric-state")).toBe("ui.blockInventory.gearToElectricStateStopped|undefined");
     expect(tree.root.findAll((n) => n.props["data-insufficient"] === true).length).toBeGreaterThan(0);
   });
+  it.each([[0, "0"], [0.1, "0.10"], [0.49, "0.49"], [0.5, "1"], [29.49999, "29"], [29.5, "30"], [1e-8, "1.0e-8"]])("preserves positive supply %s as %s", (suppliedPower, expected) => {
+    const tree = render({ generationState: "generating", suppliedPower: Number(suppliedPower), maxGeneratedPower: 100 });
+    expect(textOf(tree, "gear-to-electric-supplied-power")).toBe(`ui.blockInventory.gearToElectricSuppliedPower|{"current":"${expected}","max":"100"}`);
+  });
+  it("preserves a positive master maximum below integer precision", () => {
+    const tree = render({ generationState: "generating", suppliedPower: 0.1, maxGeneratedPower: 0.2 });
+    expect(textOf(tree, "gear-to-electric-supplied-power")).toBe('ui.blockInventory.gearToElectricSuppliedPower|{"current":"0.10","max":"0.20"}');
+  });
+  it("explains the measurement timing on the state row", () => {
+    const tree = render({ generationState: "generating", suppliedPower: 10, maxGeneratedPower: 100 });
+    expect(tree.root.findAll((n) => n.props["data-testid"] === "gear-to-electric-state")[0].props.title).toBe("ui.blockInventory.gearToElectricMeasurementTiming|undefined");
+  });
   it("renders nothing before detail arrives", () => {
     expect(render().toJSON()).toBeNull();
   });

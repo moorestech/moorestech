@@ -38,6 +38,7 @@ ui.blockInventory.machineStateIdle,Standby,Standby,待機中,Bereit,대기 중
 ui.blockInventory.gearToElectricStateGenerating,Generating,Generating,発電中,Erzeugt Strom,발전 중
 ui.blockInventory.gearToElectricStateIdle,Standby (no demand),Standby (no demand),待機中（需要なし）,Bereit (kein Bedarf),대기 중 (수요 없음)
 ui.blockInventory.gearToElectricStateStopped,Stopped (RPM too low),Stopped (RPM too low),停止中（RPM不足）,Gestoppt (Drehzahl zu niedrig),정지 (RPM 부족)
+ui.blockInventory.gearToElectricMeasurementTiming,Generation state and supplied power show the latest measurement. Their update timing differs from RPM.,Generation state and supplied power show the latest measurement. Their update timing differs from RPM.,発電状態と供給電力は直近の計測結果です。回転数とは更新のタイミングが異なります。,Erzeugungszustand und gelieferte Leistung zeigen die letzte Messung. Sie werden zu anderen Zeitpunkten als die Drehzahl aktualisiert.,발전 상태와 공급 전력은 최근 측정 결과입니다. 회전수와 업데이트 시점이 다릅니다.
 ui.blockInventory.gearToElectricSuppliedPower,Supplied power {current} / max {max},Supplied power {current} / max {max},供給電力 {current} / 最大 {max},Gelieferte Leistung {current} / max. {max},공급 전력 {current} / 최대 {max}
 ui.blockInventory.machineStateProcessing,Operating,Operating,稼働中,In Betrieb,가동 중
 ui.blockInventory.machineStateHalted,Halted,Halted,停止中,Gestoppt,정지됨

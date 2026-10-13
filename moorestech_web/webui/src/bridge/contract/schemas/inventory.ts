@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { GuidSchema, SlotDataSchema } from "./common";
 import { ElectricToGearDataSchema, GearToElectricDataSchema } from "./energyConversion";
-
 export const PlayerInventoryDataSchema = z.object({
   mainSlots: z.array(SlotDataSchema),
   grab: SlotDataSchema,
@@ -174,7 +173,16 @@ export const BlockInventoryOpenSchema = z.object({
   gearToElectric: GearToElectricDataSchema.optional(),
   trainPlatform: TrainPlatformDataSchema.optional(),
   trainStation: TrainStationDetailSchema.optional(),
-}).strict();
+}).strict().superRefine((data, ctx) => {
+  // 変換機詳細の混入は受信境界で拒否する。未着は許容する
+  // Reject mismatched converter details at the receive boundary while allowing pending details
+  if (data.gearToElectric && data.blockType !== "GearToElectricGenerator")
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["gearToElectric"], message: "gearToElectric requires GearToElectricGenerator" });
+  if (data.electricToGear && data.blockType !== "ElectricToGearGenerator")
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["electricToGear"], message: "electricToGear requires ElectricToGearGenerator" });
+  if (data.gearToElectric && data.electricToGear)
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Converter details cannot coexist" });
+});
 const TrainInventoryOpenSchema = z.object({
   open: z.literal(true),
   source: z.literal("train"),

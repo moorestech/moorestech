@@ -13,13 +13,20 @@ export default function GearToElectricSection({ data }: { data: BlockInventoryOp
   const display = gearToElectricStateDisplay(detail.generationState);
   return (
     <Stack gap={2} data-testid="gear-to-electric-section">
-      <LackHighlightText insufficient={display.insufficient} size="sm" testId="gear-to-electric-state">{t(display.labelKey)}</LackHighlightText>
+      <LackHighlightText insufficient={display.insufficient} size="sm" testId="gear-to-electric-state" title={t(L.ui.blockInventory.gearToElectricMeasurementTiming)}>{t(display.labelKey)}</LackHighlightText>
       <Text size="sm" c="var(--text-default)" data-testid="gear-to-electric-supplied-power">
         {t(L.ui.blockInventory.gearToElectricSuppliedPower, {
-          current: detail.suppliedPower.toFixed(0),
-          max: detail.maxGeneratedPower.toFixed(0),
+          current: formatPower(detail.suppliedPower),
+          max: formatPower(detail.maxGeneratedPower),
         })}
       </Text>
     </Stack>
   );
+}
+
+// 正の微小値だけ有効桁を残し、供給と容量をゼロ表示にしない
+// Preserve significant digits only for tiny positive values so neither supply nor capacity reads as zero
+function formatPower(power: number): string {
+  const rounded = power.toFixed(0);
+  return power > 0 && rounded === "0" ? power.toPrecision(2) : rounded;
 }
