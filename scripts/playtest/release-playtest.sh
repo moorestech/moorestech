@@ -135,6 +135,17 @@ release_render_steam_vdfs "$RUN_DIR" "$STEAM_DIR"
 
 "$STEAMCMD_BIN" +login "$MOORESTECH_STEAM_USER" +run_app_build "$STEAM_DIR/app_build_playtest.vdf" +quit
 
+# Steamに格納済みの本体だけを消し、調査ログと検証資料は残す
+# Remove only uploaded build payloads, keeping logs and verification evidence
+if rm -rf -- "$RUN_DIR/build-windows" "$RUN_DIR/build-mac"; then
+    echo "[release-playtest] uploaded build payloads removed: $RUN_DIR/build-windows $RUN_DIR/build-mac"
+else
+    echo "WARNING: アップロード済みビルド本体の削除に失敗しました" >&2
+    for build_dir in "$RUN_DIR/build-windows" "$RUN_DIR/build-mac"; do
+        [ ! -e "$build_dir" ] && [ ! -L "$build_dir" ] || echo "WARNING: 残存パス: $build_dir" >&2
+    done
+fi
+
 # 検証機の通し検証に通ったものだけを手動反映の対象にする
 # Only a build that passed the check machine becomes eligible for manual promotion
 "$VERIFY_SCRIPT" "$BUILD_LABEL"

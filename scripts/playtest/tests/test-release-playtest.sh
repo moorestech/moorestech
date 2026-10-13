@@ -7,12 +7,12 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=lib/release-playtest-sandbox.sh
 . "$SCRIPT_DIR/lib/release-playtest-sandbox.sh"
 
-# 成功系: worktree→unity→steamcmd→verify→worktree破棄(trap) の順に呼ばれ、告知テキストが出る
+# 成功系: worktree→unity→steamcmd→本体削除→verify→worktree破棄(trap) の順に呼ばれ、告知テキストが出る
 make_sandbox
 OUTPUT=$(run_target); STATUS=$?
 [ "$STATUS" -eq 0 ] || fail "success run exited $STATUS: $OUTPUT"
 ORDER=$(awk '{print $1}' "$SANDBOX/calls.log" | tr '\n' ' ')
-[ "$ORDER" = "git git git moores-wt git git git git git git git git git unity unity codesign lipo lipo lipo steamcmd verify moores-wt " ] || fail "call order was: $ORDER"
+[ "$ORDER" = "git git git moores-wt git git git git git git git git git unity unity codesign lipo lipo lipo steamcmd rm verify moores-wt " ] || fail "call order was: $ORDER"
 grep -q "run_app_build" "$SANDBOX/calls.log" || fail "steamcmd was not asked to run_app_build"
 ls "$SANDBOX"/runs/*/promotion.md >/dev/null 2>&1 || fail "promotion.md was not written"
 grep -q '"setlive" "playtest-staging"' "$SANDBOX"/runs/*/steam/app_build_playtest.vdf || fail "Steam upload did not target playtest-staging"
@@ -167,5 +167,8 @@ VERIFY_LINE=$(grep -n "rev-parse --verify" "$SANDBOX/calls.log" | head -n1 | cut
 [ -n "$FETCH_LINE" ] || fail "fetch origin was not called"
 [ -n "$VERIFY_LINE" ] || fail "rev-parse --verify was not called"
 [ "$FETCH_LINE" -lt "$VERIFY_LINE" ] || fail "fetch did not happen before rev-parse --verify"
+
+# shellcheck source=lib/release-playtest-cleanup-cases.sh
+. "$SCRIPT_DIR/lib/release-playtest-cleanup-cases.sh"
 
 finish_contract "release-playtest contract"
