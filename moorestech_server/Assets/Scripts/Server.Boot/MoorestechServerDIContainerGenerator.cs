@@ -1,4 +1,3 @@
-using Game.Train.Unit;
 using Core.Item;
 using Core.Master;
 using Core.Update;
@@ -81,17 +80,9 @@ namespace Server.Boot
             GameUpdater.TickEndUpdates.Add(threadActionQueue.Drain);
             ServerThreadActionQueueAccess.SetCurrent(threadActionQueue);
 
-            // tickの境界: 操作の適用まで終えた状態で列車・レール・ベルトのハッシュを出し、tick番号を進める。ベルトの組はまだ作り直されていないので搬送直後と同じハッシュになる
-            // The tick boundary: emit the train, rail and belt hashes from the state after input was applied, then advance the tick; the belt assembly is not rebuilt yet, so its hash equals the post-transport one
-            GameUpdater.FinalTickEndUpdates.Add(serviceProvider.GetRequiredService<TrainUpdateService>().CompleteTick);
-
-            // 全世界変更の確定後が唯一のセーブ可能な安定点（仕様2.1⑦）。将来の初回snapshot取得もこの位置に登録する
-            // The point after every world mutation commits is the only save-stable boundary (spec 2.1-7); future initial-snapshot capture also registers here
-            GameUpdater.FinalTickEndUpdates.Add(serviceProvider.GetRequiredService<WorldSaveCoordinator>().SaveIfRequested);
-
-            // 常時記録のスナップショットはセーブと同じ安定点で取る（Startされるまで何もしない）
-            // Always-on snapshots are captured at the same stable point as saves (inert until Start)
-            GameUpdater.FinalTickEndUpdates.Add(serviceProvider.GetRequiredService<WorldSnapshotRing>().Update);
+            // tick末尾の最終処理（境界→セーブ→スナップショット）の順序はFinalTickEndUpdaterの1ファイルに集約し、ここでは1本だけ登録する
+            // The final tick-end order (boundary, save, snapshot) lives in FinalTickEndUpdater; register just that one entry here
+            GameUpdater.FinalTickEndUpdates.Add(serviceProvider.GetRequiredService<FinalTickEndUpdater>().Update);
 
             //IBootInitializable実装を一括生成し、起動時初期化のLoadを呼ぶ
             // Create all IBootInitializable implementations and invoke their boot-time Load.

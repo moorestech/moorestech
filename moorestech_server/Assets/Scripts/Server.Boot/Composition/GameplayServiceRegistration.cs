@@ -174,6 +174,7 @@ namespace Server.Boot.Composition
             services.AddSingleton<FluidTickUpdater>();
             services.AddSingleton<BeltTransportTickUpdater>();
             services.AddSingleton<MasterTickUpdater>();
+            services.AddSingleton<FinalTickEndUpdater>();
             services.AddSingleton<IBlockRemovalReservationService, BlockRemovalReservationService>();
             // クライアント操作は全接続共通FIFOへ集め、tick末尾に一括適用する
             // Client operations funnel into one shared FIFO applied in batch at tick end
