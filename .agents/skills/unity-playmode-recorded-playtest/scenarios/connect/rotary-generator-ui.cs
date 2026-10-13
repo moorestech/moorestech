@@ -190,6 +190,7 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
         p.Assert(detail.GenerationState.ToString() == (expectedState == "発電中" ? "Generating" : expectedState == "待機中（需要なし）" ? "Idle" : "Stopped"), "DOM状態がサーバーenumと一致");
         p.Assert(rows[1].Text == $"供給電力 {current} / 最大 100", "DOM供給量がサーバー値と一致");
         p.Assert(expectPositivePower ? detail.GeneratedElectricPower > 0f : Mathf.Approximately(detail.GeneratedElectricPower, 0f), "サーバー供給量");
+        p.Assert(expectedState != "待機中（需要なし）" || rows[4].Text.Contains("需要なし"), $"待機電力網は需要なし: {rows[4].Text}");
         p.Assert(rows[0].Y < rows[1].Y && rows[1].Y < rows[2].Y && rows[2].Y < rows[3].Y &&
                  rows[3].Y < rows[4].Y && rows[4].Y < rows[5].Y, "状態→供給→歯車→電力網→歯車網の表示順");
     }
