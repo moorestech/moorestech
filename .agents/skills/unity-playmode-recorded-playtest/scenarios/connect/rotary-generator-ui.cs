@@ -178,6 +178,7 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
             for (var index = 0; index < testIds.Length; index++) rows[index] = await PlaytestDomQuery.Query(testIds[index], 1f);
             if (rows.All(row => row.Found) && rows[0].Text == expectedState &&
                 rows[1].Text.Contains("最大 100") &&
+                (expectedState != "待機中（需要なし）" || rows[4].Text.Contains("需要なし")) &&
                 (!expectPositivePower || !rows[1].Text.Contains("供給電力 0 "))) break;
             await UniTask.Yield();
         }
