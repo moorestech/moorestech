@@ -116,7 +116,7 @@ namespace Game.Block.Blocks.BeltConveyor.Topology
                     var param = block.BlockMasterElement.BlockParam;
                     // マスタは秒単位。整数に換算できることは読み込み時の検証で保証済み
                     // The master holds seconds; load-time validation guarantees a whole per-tick value
-                    var speedPerSecond = param is BeltConveyorBlockParam belt ? belt.BeltSpeedPerSecond : ((GearBeltConveyorBlockParam)param).BeltSpeedPerSecond;
+                    var speedPerSecond = ((IBeltSpeedParam)param).BeltSpeedPerSecond;
                     var speed = BeltSpeedConversion.ToPerTick(speedPerSecond);
                     Array.Sort(inputs[i], BeltTopologyOrder.Connection);
                     Array.Sort(outputs[i], BeltTopologyOrder.Connection);
@@ -126,38 +126,37 @@ namespace Game.Block.Blocks.BeltConveyor.Topology
                 return result;
             }
 
+            bool IsBelt(IBlock block)
+            {
+                return block.BlockMasterElement.BlockParam is IBeltSpeedParam;
+            }
+
+            bool IsSplitter(IBlockParam param)
+            {
+                var connectors = ((IInventoryConnectors)param).InventoryConnectors;
+                return 1 < OutputConnectorCount(connectors);
+            }
+
+            int OutputConnectorCount(InventoryConnects connectors)
+            {
+                // 未定義の出力は搬出口なしとして0個に数える
+                // Undefined outputs mean no emitting port and count as zero
+                return connectors.OutputConnects == null ? 0 : connectors.OutputConnects.Length;
+            }
+
+            Vector3Int EndpointCell(IBlock block, bool isBelt, IBlockConnector connector)
+            {
+                // ベルトは原点、機械は接続に使われたコネクターのoffsetが指す外周マス
+                // Belts use their origin; machines use the boundary cell addressed by the connector used for this connection
+                return isBelt ? block.BlockPositionInfo.OriginalPos : block.BlockPositionInfo.ConvertBlockLocalToWorldCell(connector.Offset);
+            }
+
+            BeltTopologyPartnerKind KindOf(bool isBelt)
+            {
+                return isBelt ? BeltTopologyPartnerKind.Belt : BeltTopologyPartnerKind.Machine;
+            }
+
             #endregion
-        }
-
-        private static bool IsBelt(IBlock block)
-        {
-            var param = block.BlockMasterElement.BlockParam;
-            return param is BeltConveyorBlockParam || param is GearBeltConveyorBlockParam;
-        }
-
-        private static bool IsSplitter(IBlockParam param)
-        {
-            var connectors = param is BeltConveyorBlockParam belt ? belt.InventoryConnectors : ((GearBeltConveyorBlockParam)param).InventoryConnectors;
-            return OutputConnectorCount(connectors) > 1;
-        }
-
-        private static int OutputConnectorCount(InventoryConnects connectors)
-        {
-            // 未定義の出力は搬出口なしとして0個に数える
-            // Undefined outputs mean no emitting port and count as zero
-            return connectors.OutputConnects == null ? 0 : connectors.OutputConnects.Length;
-        }
-
-        private static Vector3Int EndpointCell(IBlock block, bool isBelt, IBlockConnector connector)
-        {
-            // ベルトは原点、機械は接続に使われたコネクターのoffsetが指す外周マス
-            // Belts use their origin; machines use the boundary cell addressed by the connector used for this connection
-            return isBelt ? block.BlockPositionInfo.OriginalPos : block.BlockPositionInfo.ConvertBlockLocalToWorldCell(connector.Offset);
-        }
-
-        private static BeltTopologyPartnerKind KindOf(bool isBelt)
-        {
-            return isBelt ? BeltTopologyPartnerKind.Belt : BeltTopologyPartnerKind.Machine;
         }
 
         // 構築中のマス1つ分。入出力の件数だけ数え、接続本体は共有の一時リストに置く

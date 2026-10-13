@@ -21,10 +21,10 @@ namespace Client.Game.InGame.BeltTransport.View
                 return;
             }
 
-            // テクスチャが無い種類は材質を共有しない(無地のまま個別に持つ)
-            // A kind without a texture does not share a material (kept plain and separate)
+            // テクスチャが無い種類も無地の材質を種類ごとに1つ共有し、個体ごとに増やさない
+            // A kind without a texture also shares one plain material per kind instead of growing one per object
             var newMaterial = new Material(itemMaterial) { mainTexture = texture };
-            if (texture != null) MaterialCache[itemId] = newMaterial;
+            MaterialCache[itemId] = newMaterial;
             meshRenderer.material = newMaterial;
         }
     }

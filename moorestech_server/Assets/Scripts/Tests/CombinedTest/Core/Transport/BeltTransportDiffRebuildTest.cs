@@ -58,7 +58,7 @@ namespace Tests.CombinedTest.Core.Transport
             Assert.AreEqual(2, rebuilds, "one rebuild per topology change");
             Assert.Greater(nonEmptyDiffsAfterRebuild, 0, "diffs were replayed onto re-assembled replicas");
             Assert.Greater(CountOf(sink, ItemA) + CountOf(sink, ItemC), 0, "the extended line delivered");
-            BeltFullStateAssert.AreEqual(BeltTransportFullStateCapture.Capture(Datastore().Assembly), replica.CaptureFullState());
+            BeltFullStateAssert.AreEqual(Datastore().CaptureFullState(), replica.CaptureFullState());
 
             #region Internal
 
@@ -71,7 +71,7 @@ namespace Tests.CombinedTest.Core.Transport
                     var diff = TickServer();
                     if (ReferenceEquals(before, Datastore().Assembly))
                     {
-                        if (!diff.IsEmpty && rebuilds > 0) nonEmptyDiffsAfterRebuild++;
+                        if (0 < diff.Inserts.Length + diff.Extracts.Length && 0 < rebuilds) nonEmptyDiffsAfterRebuild++;
                         ReplayAndAssert(replica, diff, tick);
                         continue;
                     }
@@ -84,7 +84,7 @@ namespace Tests.CombinedTest.Core.Transport
             {
                 // このtickの差分は新構成の番号で書かれ、tick後の全量に既に含まれる。旧複製へは適用せず全量から組み直す
                 // This tick's diff is numbered for the new assembly and already contained in the post-tick full state; never apply it to the old replica, re-assemble from the full state instead
-                var full = BeltTransportFullStateCapture.Capture(Datastore().Assembly);
+                var full = Datastore().CaptureFullState();
                 Assert.AreNotEqual(Signature(old.CaptureFullState()), Signature(full), $"the rebuild at tick {tick} changed the segment shapes");
                 var next = BeltTransportReplicaAssembler.Assemble(full);
                 Assert.AreEqual(ServerHash(), BeltTransportStateHash.Compute(next.CaptureFullState()), $"hash right after the rebuild at tick {tick}");

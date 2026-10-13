@@ -43,8 +43,8 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
             Assert.IsTrue(Push(assembly, mergeBelt, machine, ItemA));
             Tick(assembly, 3);
 
-            var full = BeltTransportFullStateCapture.Capture(assembly);
-            Assert.IsTrue(full.Segments.Any(s => s.Shape.Kind == BeltSegmentKind.Normal && s.Items.Length > 0), "normal segment with running items");
+            var full = CaptureOf(assembly);
+            Assert.IsTrue(full.Segments.Any(s => s.Shape.Kind == BeltSegmentKind.Normal && 0 < s.Items.Length), "normal segment with running items");
             Assert.IsTrue(full.Segments.Any(s => s.Shape.Kind == BeltSegmentKind.Merge && s.HasBufferItem), "merge with a buffered item");
             Assert.IsTrue(full.Segments.Any(s => s.Shape.Kind == BeltSegmentKind.Branch && s.HasBufferItem), "branch with a buffered item");
             Assert.IsTrue(full.Segments.Any(s => s.Shape.IsInternal && s.Items.Length == 1), "internal segment with an item");
@@ -94,7 +94,9 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
         public void EmptyTickDiffRoundTripsToEmpty()
         {
             var message = RoundTrip(new BeltTransportTickDiffMessagePack(ServerTick, TickSequenceId, BeltTickDiff.Empty));
-            Assert.IsTrue(message.ToDiff().IsEmpty);
+            var decoded = message.ToDiff();
+            Assert.AreEqual(0, decoded.Inserts.Length);
+            Assert.AreEqual(0, decoded.Extracts.Length);
             Assert.AreEqual(ServerTick, message.ServerTick);
             Assert.AreEqual(TickSequenceId, message.TickSequenceId);
         }

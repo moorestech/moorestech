@@ -31,6 +31,17 @@ namespace Game.Block.Blocks.BeltConveyor.Sync.Message
             Forward = shape.Forward;
             Inputs = FromLinks(shape.Inputs);
             Outputs = FromLinks(shape.Outputs);
+
+            #region Internal
+
+            BeltLinkShapeMessagePack[] FromLinks(BeltLinkShape[] links)
+            {
+                var messages = new BeltLinkShapeMessagePack[links.Length];
+                for (var i = 0; i < messages.Length; i++) messages[i] = new BeltLinkShapeMessagePack(links[i]);
+                return messages;
+            }
+
+            #endregion
         }
 
         public BeltSegmentShape ToShape()
@@ -38,20 +49,17 @@ namespace Game.Block.Blocks.BeltConveyor.Sync.Message
             var cells = new BeltCellShape[Cells.Length];
             for (var i = 0; i < cells.Length; i++) cells[i] = Cells[i].ToShape();
             return new BeltSegmentShape(Kind, IsInternal, cells, Speed, Forward, ToLinks(Inputs), ToLinks(Outputs));
-        }
 
-        private static BeltLinkShapeMessagePack[] FromLinks(BeltLinkShape[] links)
-        {
-            var messages = new BeltLinkShapeMessagePack[links.Length];
-            for (var i = 0; i < messages.Length; i++) messages[i] = new BeltLinkShapeMessagePack(links[i]);
-            return messages;
-        }
+            #region Internal
 
-        private static BeltLinkShape[] ToLinks(BeltLinkShapeMessagePack[] messages)
-        {
-            var links = new BeltLinkShape[messages.Length];
-            for (var i = 0; i < links.Length; i++) links[i] = messages[i].ToShape();
-            return links;
+            BeltLinkShape[] ToLinks(BeltLinkShapeMessagePack[] messages)
+            {
+                var links = new BeltLinkShape[messages.Length];
+                for (var i = 0; i < links.Length; i++) links[i] = messages[i].ToShape();
+                return links;
+            }
+
+            #endregion
         }
     }
 }

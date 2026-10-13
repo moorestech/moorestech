@@ -1,5 +1,6 @@
 using System.Linq;
 using Core.BeltTransport;
+using Game.Block.Blocks.BeltConveyor.Sync.Diff;
 using Game.Block.Blocks.BeltConveyor.Sync.Replica;
 using Game.Block.Blocks.BeltConveyor.Sync.State;
 using Game.Block.Blocks.BeltConveyor.Transport;
@@ -42,7 +43,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
             SegmentAt(assembly, new Vector3Int(30, 0, 0)).RestoreItems(new[] { At(ItemB, BeltEntryDirection.FromBack, 0) });
             Assert.IsTrue(Push(assembly, world.GetBlock(new Vector3Int(30, 0, 1)), machine, ItemC));
 
-            var replica = BeltTransportReplicaAssembler.Assemble(BeltTransportFullStateCapture.Capture(assembly));
+            var replica = BeltTransportReplicaAssembler.Assemble(CaptureOf(assembly));
             var initialHash = HashOf(assembly);
             for (var tick = 1; tick <= TickCount; tick++)
             {
@@ -54,7 +55,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
             // 実際に状態が動いたうえで一致していること、項目ごとにも一致していること
             // The state actually moved, and it also matches field by field
             Assert.AreNotEqual(initialHash, HashOf(assembly), "the server state changed over the run");
-            BeltFullStateAssert.AreEqual(BeltTransportFullStateCapture.Capture(assembly), replica.CaptureFullState());
+            BeltFullStateAssert.AreEqual(CaptureOf(assembly), replica.CaptureFullState());
         }
 
         [Test]
@@ -63,20 +64,21 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
             var (world, chest) = LineIntoChest();
             var assembly = Assemble(world);
             PutThreeItems(assembly);
-            var replica = BeltTransportReplicaAssembler.Assemble(BeltTransportFullStateCapture.Capture(assembly));
-            var receiver = MachineReceiverOfOnlyMachineOutput(replica);
+            var replica = BeltTransportReplicaAssembler.Assemble(CaptureOf(assembly));
+            var extract = ExtractOfOnlyMachineOutput(replica);
 
-            // サーバーを先に進め、アイテムが機械へ出たtickだけ複製の受け手に1回の受け入れを許す
-            // Tick the server first and allow the replica receiver exactly one acceptance on the tick an item left into the machine
+            // サーバーを先に進め、アイテムが機械へ出たtickだけ搬出差分を付けて複製を再生する
+            // Tick the server first and replay the replica with an extract diff only on the tick an item left into the machine
             var handoffs = 0;
             for (var tick = 1; tick <= TickCount; tick++)
             {
+                var diff = BeltTickDiff.Empty;
                 if (TickServerAndCountHandoff(assembly))
                 {
-                    receiver.AcceptOnce();
+                    diff = new BeltTickDiff(new BeltMachineInsertRecord[0], new[] { extract });
                     handoffs++;
                 }
-                replica.Simulation.Tick();
+                Assert.IsTrue(replica.Tick(diff), $"replay at tick {tick}");
                 Assert.AreEqual(HashOf(assembly), HashOf(replica), $"hash at tick {tick}");
             }
             Assert.AreEqual(3, handoffs, "three handoffs into the chest");
@@ -90,7 +92,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
             var (world, _) = LineIntoChest();
             var assembly = Assemble(world);
             PutThreeItems(assembly);
-            var replica = BeltTransportReplicaAssembler.Assemble(BeltTransportFullStateCapture.Capture(assembly));
+            var replica = BeltTransportReplicaAssembler.Assemble(CaptureOf(assembly));
 
             // 受け入れを許さない複製は出口で待ち続け、サーバーが機械へ渡したtickで食い違う
             // A replica never allowed to accept keeps waiting at the exit and diverges on the tick the server hands off
@@ -114,7 +116,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
             FillWith(Inventory(chest), ItemC);
             var assembly = Assemble(world);
             PutThreeItems(assembly);
-            var replica = BeltTransportReplicaAssembler.Assemble(BeltTransportFullStateCapture.Capture(assembly));
+            var replica = BeltTransportReplicaAssembler.Assemble(CaptureOf(assembly));
 
             // 満杯で拒否する機械なら、サーバーも複製も出口で待たせ続けて一致する
             // With a full machine that refuses, both the server and the replica keep the item waiting at the exit and match
@@ -124,7 +126,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
                 replica.Simulation.Tick();
                 Assert.AreEqual(HashOf(assembly), HashOf(replica), $"hash at tick {tick}");
             }
-            Assert.AreEqual(3, ItemCount(BeltTransportFullStateCapture.Capture(assembly)), "the server kept all items on the belt");
+            Assert.AreEqual(3, ItemCount(CaptureOf(assembly)), "the server kept all items on the belt");
         }
 
         // z=0..2 の北向きの直線の先(z=3)に、後ろから受け入れるチェストを置く
@@ -152,18 +154,18 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
         // Tick the server once and report whether the assembly lost an item (handed to the machine)
         private static bool TickServerAndCountHandoff(BeltTransportAssembly assembly)
         {
-            var before = ItemCount(BeltTransportFullStateCapture.Capture(assembly));
+            var before = ItemCount(CaptureOf(assembly));
             assembly.Simulation.Tick();
-            return ItemCount(BeltTransportFullStateCapture.Capture(assembly)) < before;
+            return ItemCount(CaptureOf(assembly)) < before;
         }
 
-        private static BeltReplicaMachineReceiver MachineReceiverOfOnlyMachineOutput(BeltTransportReplica replica)
+        private static BeltMachineExtractRecord ExtractOfOnlyMachineOutput(BeltTransportReplica replica)
         {
             var outputs = Enumerable.Range(0, replica.Shapes.Length)
                 .SelectMany(i => replica.Shapes[i].Outputs.Where(o => o.IsMachine).Select(o => (index: i, direction: o.Direction)))
                 .ToList();
             Assert.AreEqual(1, outputs.Count, "machine outputs in the replica");
-            return replica.MachineReceiverOf(outputs[0].index, outputs[0].direction);
+            return new BeltMachineExtractRecord(outputs[0].index, outputs[0].direction);
         }
     }
 }

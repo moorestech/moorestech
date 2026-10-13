@@ -118,21 +118,21 @@ namespace Tests.UnitTest.Game.BeltConnection.Transport
             var item = NewItem(ItemA, BeltEntryDirection.FromBack);
             var candidates = new List<BeltRestoreCandidate>
             {
-                new(2, 0, 0, item, 0, 0),
-                new(1, 0, 300, item, 0, 0),
-                new(1, 0, 100, item, 5, 1),
-                new(1, 0, 100, item, 5, 0),
-                new(1, 0, 100, item, 2, 9),
+                new(BeltRestorePriority.RunningRealigned, 0, 0, item, 0, 0),
+                new(BeltRestorePriority.RunningMatchingPath, 0, 300, item, 0, 0),
+                new(BeltRestorePriority.RunningMatchingPath, 0, 100, item, 5, 1),
+                new(BeltRestorePriority.RunningMatchingPath, 0, 100, item, 5, 0),
+                new(BeltRestorePriority.RunningMatchingPath, 0, 100, item, 2, 9),
             };
 
             // 優先度→出口までの距離→元のsegment番号→元の順番で並ぶ
             // Sorted by priority, then distance to exit, then source segment index, then source order
             candidates.Sort();
-            CollectionAssert.AreEqual(new[] { 1, 1, 1, 1, 2 }, candidates.Select(c => c.Priority).ToArray());
+            CollectionAssert.AreEqual(new[] { BeltRestorePriority.RunningMatchingPath, BeltRestorePriority.RunningMatchingPath, BeltRestorePriority.RunningMatchingPath, BeltRestorePriority.RunningMatchingPath, BeltRestorePriority.RunningRealigned }, candidates.Select(c => c.Priority).ToArray());
             CollectionAssert.AreEqual(new[] { 100, 100, 100, 300, 0 }, candidates.Select(c => c.DistanceToExit).ToArray());
-            Assert.AreEqual(new BeltRestoreCandidate(1, 0, 100, item, 2, 9).CompareTo(candidates[0]), 0);
-            Assert.AreEqual(new BeltRestoreCandidate(1, 0, 100, item, 5, 0).CompareTo(candidates[1]), 0);
-            Assert.AreEqual(new BeltRestoreCandidate(1, 0, 100, item, 5, 1).CompareTo(candidates[2]), 0);
+            Assert.AreEqual(new BeltRestoreCandidate(BeltRestorePriority.RunningMatchingPath, 0, 100, item, 2, 9).CompareTo(candidates[0]), 0);
+            Assert.AreEqual(new BeltRestoreCandidate(BeltRestorePriority.RunningMatchingPath, 0, 100, item, 5, 0).CompareTo(candidates[1]), 0);
+            Assert.AreEqual(new BeltRestoreCandidate(BeltRestorePriority.RunningMatchingPath, 0, 100, item, 5, 1).CompareTo(candidates[2]), 0);
         }
 
         // (0,0,0)北→(0,0,1)東→(1,0,1)南→(1,0,0)西→(0,0,0) の4マスの輪

@@ -66,7 +66,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event.BeltTransportSync
 
         public static BeltTransportFullState CaptureServer()
         {
-            return BeltTransportFullStateCapture.Capture(ServerContext.GetService<BeltTransportDatastore>().Assembly);
+            return ServerContext.GetService<BeltTransportDatastore>().CaptureFullState();
         }
 
         public static bool IsBeltTickEvent(EventMessagePack eventMessagePack)

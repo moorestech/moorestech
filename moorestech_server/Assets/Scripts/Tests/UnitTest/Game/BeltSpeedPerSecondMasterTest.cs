@@ -36,13 +36,13 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(BeltConstants.MaxSpeed, BeltSpeedConversion.ToPerTick(splitter.BeltSpeedPerSecond));
         }
 
-        // 1tickの距離が整数にならない秒速は換算を拒む
-        // A cells-per-second that does not give a whole per-tick distance is refused by the conversion
-        [TestCase(1.0, 12.8)]
-        [TestCase(3.0, 38.4)]
-        public void 整数にならない秒速は換算できない(double cellsPerSecond, double exact)
+        // 検証をすり抜けた非整数の秒速は丸めずに換算で例外になる
+        // A non-whole cells-per-second that slipped past validation throws instead of being rounded
+        [TestCase(1.0)]
+        [TestCase(3.0)]
+        public void 整数にならない秒速は換算で例外になる(double cellsPerSecond)
         {
-            Assert.IsFalse(BeltSpeedConversion.TryToPerTick(cellsPerSecond, out _), $"{cellsPerSecond} cells/s = {exact} per tick");
+            Assert.Throws<System.InvalidOperationException>(() => BeltSpeedConversion.ToPerTick(cellsPerSecond));
         }
 
         [TestCase("TestBeltConveyor", 0.0)]

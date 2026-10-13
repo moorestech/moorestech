@@ -12,79 +12,83 @@ namespace Game.Block.Blocks.BeltConveyor.Sync.State
 
         public static uint Compute(BeltTransportFullState fullState)
         {
-            var hash = Mix(FnvOffset, fullState.Segments.Length);
+            var stateHash = Mix(FnvOffset, fullState.Segments.Length);
             for (var i = 0; i < fullState.Segments.Length; i++)
             {
-                hash = Mix(hash, i);
-                hash = MixShape(hash, fullState.Segments[i].Shape);
-                hash = MixContents(hash, fullState.Segments[i]);
+                stateHash = Mix(stateHash, i);
+                stateHash = MixShape(stateHash, fullState.Segments[i].Shape);
+                stateHash = MixContents(stateHash, fullState.Segments[i]);
             }
-            return hash;
-        }
+            return stateHash;
 
-        private static uint MixShape(uint current, BeltSegmentShape shape)
-        {
-            var hash = Mix(current, (int)shape.Kind);
-            hash = Mix(hash, shape.IsInternal ? 1 : 0);
-            hash = Mix(hash, shape.Speed);
-            hash = Mix(hash, (int)shape.Forward);
-            hash = Mix(hash, shape.Cells.Length);
-            foreach (var cell in shape.Cells)
+            #region Internal
+
+            uint MixShape(uint current, BeltSegmentShape shape)
             {
-                hash = MixPosition(hash, cell.Position);
-                hash = Mix(hash, (int)cell.Forward);
+                var hash = Mix(current, (int)shape.Kind);
+                hash = Mix(hash, shape.IsInternal ? 1 : 0);
+                hash = Mix(hash, shape.Speed);
+                hash = Mix(hash, (int)shape.Forward);
+                hash = Mix(hash, shape.Cells.Length);
+                foreach (var cell in shape.Cells)
+                {
+                    hash = MixPosition(hash, cell.Position);
+                    hash = Mix(hash, (int)cell.Forward);
+                }
+                hash = MixLinks(hash, shape.Inputs);
+                hash = MixLinks(hash, shape.Outputs);
+                return hash;
             }
-            hash = MixLinks(hash, shape.Inputs);
-            hash = MixLinks(hash, shape.Outputs);
-            return hash;
-        }
 
-        private static uint MixContents(uint current, BeltSegmentState state)
-        {
-            var hash = Mix(current, state.PriorityOrder);
-            hash = Mix(hash, state.Items.Length);
-            foreach (var item in state.Items) hash = MixItem(hash, item);
-            hash = Mix(hash, state.HasBufferItem ? 1 : 0);
-            if (state.HasBufferItem) hash = MixItem(hash, state.BufferItem);
-            return hash;
-        }
-
-        private static uint MixLinks(uint current, BeltLinkShape[] links)
-        {
-            var hash = Mix(current, links.Length);
-            foreach (var link in links)
+            uint MixContents(uint current, BeltSegmentState state)
             {
-                hash = Mix(hash, (int)link.Direction);
-                hash = Mix(hash, (int)link.EntryDirection);
-                hash = Mix(hash, link.PartnerSegmentIndex);
+                var hash = Mix(current, state.PriorityOrder);
+                hash = Mix(hash, state.Items.Length);
+                foreach (var item in state.Items) hash = MixItem(hash, item);
+                hash = Mix(hash, state.HasBufferItem ? 1 : 0);
+                if (state.HasBufferItem) hash = MixItem(hash, state.BufferItem);
+                return hash;
             }
-            return hash;
-        }
 
-        private static uint MixItem(uint current, in BeltItemSnapshot item)
-        {
-            var hash = Mix(current, item.ItemId.AsPrimitive());
-            hash = MixLong(hash, item.ItemInstanceId.AsPrimitive());
-            hash = Mix(hash, (int)item.EntryDirection);
-            hash = Mix(hash, item.DistanceToExit);
-            return hash;
-        }
-
-        private static uint MixPosition(uint current, Vector3Int position)
-        {
-            var hash = Mix(current, position.x);
-            hash = Mix(hash, position.y);
-            hash = Mix(hash, position.z);
-            return hash;
-        }
-
-        private static uint MixLong(uint current, long value)
-        {
-            unchecked
+            uint MixLinks(uint current, BeltLinkShape[] links)
             {
-                var hash = Mix(current, (int)value);
-                return Mix(hash, (int)(value >> 32));
+                var hash = Mix(current, links.Length);
+                foreach (var link in links)
+                {
+                    hash = Mix(hash, (int)link.Direction);
+                    hash = Mix(hash, (int)link.EntryDirection);
+                    hash = Mix(hash, link.PartnerSegmentIndex);
+                }
+                return hash;
             }
+
+            uint MixItem(uint current, in BeltItemSnapshot item)
+            {
+                var hash = Mix(current, item.ItemId.AsPrimitive());
+                hash = MixLong(hash, item.ItemInstanceId.AsPrimitive());
+                hash = Mix(hash, (int)item.EntryDirection);
+                hash = Mix(hash, item.DistanceToExit);
+                return hash;
+            }
+
+            uint MixPosition(uint current, Vector3Int position)
+            {
+                var hash = Mix(current, position.x);
+                hash = Mix(hash, position.y);
+                hash = Mix(hash, position.z);
+                return hash;
+            }
+
+            uint MixLong(uint current, long value)
+            {
+                unchecked
+                {
+                    var hash = Mix(current, (int)value);
+                    return Mix(hash, (int)(value >> 32));
+                }
+            }
+
+            #endregion
         }
 
         private static uint Mix(uint current, int value)

@@ -19,7 +19,7 @@ namespace Client.Tests.BeltTransport
     {
         private const int Cell = BeltConstants.ItemWidth;
         private const int Speed = 32;
-        private const float Surface = BeltItemWorldPositionCalculator.SurfaceHeight;
+        private const float Surface = 0.35f;
         private static readonly ItemId ItemA = new(1);
 
         [Test]

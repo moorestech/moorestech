@@ -25,13 +25,13 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation.RandomNetwork
             // 機械から供給される通常segmentを起点に、延長・分岐・合流・輪を積み上げる
             // Start from machine-fed normal segments and stack extensions, branches, merges and loops
             _random = new RandomBeltChoices(seed);
-            for (var i = _random.Next(2, 5); i > 0; i--)
+            for (var i = _random.Next(2, 5); 0 < i; i--)
             {
                 var belt = AddNormal();
                 _sources.Add(new RandomBeltMachineSource(_random.NextSeed(), belt));
                 _openEnds.Add(new BeltOpenEnd(belt, null, BeltDirection.None));
             }
-            for (var step = _random.Next(4, 11); step > 0; step--) AddRandomPart();
+            for (var step = _random.Next(4, 11); 0 < step; step--) AddRandomPart();
 
             // 残った出口は機械へ、通常segmentは一部を未接続のまま残す
             // Close remaining exits into machines, leaving some normal exits unconnected
@@ -91,7 +91,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation.RandomNetwork
                 Order(candidates[0], candidates[1], candidates[2]), forward);
             Segments.Add(branch);
             end.ConnectTo(branch, forward);
-            for (var i = _random.Next(2, 4) - 1; i >= 0; i--) _openEnds.Add(new BeltOpenEnd(null, branch.Buffer, candidates[i]));
+            for (var i = _random.Next(2, 4) - 1; 0 <= i; i--) _openEnds.Add(new BeltOpenEnd(null, branch.Buffer, candidates[i]));
         }
 
         private void AddMerge()
@@ -100,7 +100,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation.RandomNetwork
             // Buffer inputs have fixed directions. Skip when they collide or leave no straight direction
             if (_openEnds.Count < 2) return;
             var ends = new List<BeltOpenEnd>();
-            for (var i = Math.Min(_openEnds.Count, _random.Next(2, 4)); i > 0; i--) ends.Add(TakeOpenEnd(_random.Next(_openEnds.Count)));
+            for (var i = Math.Min(_openEnds.Count, _random.Next(2, 4)); 0 < i; i--) ends.Add(TakeOpenEnd(_random.Next(_openEnds.Count)));
             var used = 0;
             foreach (var end in ends)
             {
@@ -129,7 +129,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation.RandomNetwork
         {
             var first = AddNormal();
             var last = first;
-            for (var i = _random.Next(0, 3); i > 0; i--)
+            for (var i = _random.Next(0, 3); 0 < i; i--)
             {
                 var next = AddNormal();
                 last.ConnectTo(next, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));

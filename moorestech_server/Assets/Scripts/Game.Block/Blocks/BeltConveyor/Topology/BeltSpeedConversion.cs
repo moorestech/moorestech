@@ -12,16 +12,15 @@ namespace Game.Block.Blocks.BeltConveyor.Topology
     {
         private const double WholeNumberTolerance = 1e-6;
 
-        public static bool TryToPerTick(double cellsPerSecond, out int distancePerTick)
-        {
-            var exact = cellsPerSecond * BeltConstants.ItemWidth / GameUpdater.TicksPerSecond;
-            distancePerTick = (int)Math.Round(exact);
-            return Math.Abs(exact - distancePerTick) < WholeNumberTolerance;
-        }
-
         public static int ToPerTick(double cellsPerSecond)
         {
-            TryToPerTick(cellsPerSecond, out var distancePerTick);
+            var exact = cellsPerSecond * BeltConstants.ItemWidth / GameUpdater.TicksPerSecond;
+            var distancePerTick = (int)Math.Round(exact);
+
+            // 検証をすり抜けた非整数は丸めると決定論が崩れるので落とす
+            // A non-whole value that slipped past validation would break determinism if rounded, so fail loudly
+            if (WholeNumberTolerance <= Math.Abs(exact - distancePerTick))
+                throw new InvalidOperationException($"beltSpeedPerSecond:{cellsPerSecond} is not a whole per-tick distance (exact {exact}, rounded {distancePerTick})");
             return distancePerTick;
         }
     }

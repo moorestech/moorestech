@@ -65,6 +65,10 @@ defineInterface:
   properties:
   - key: inventoryConnectors
     ref: inventoryConnects
+- interfaceName: IBeltSpeedParam
+  properties:
+  - key: beltSpeedPerSecond
+    type: number
 - interfaceName: IGearConnectors
   properties:
     - key: gear
@@ -250,6 +254,7 @@ properties:
         type: object
         implementationInterface:
         - IInventoryConnectors
+        - IBeltSpeedParam
         properties:
         # 1秒に進むマス数。読み込み時に1tickあたりの整数距離(×256/20)へ換算するので、整数になる値だけ許す(0.078125刻み、最大10)
         # Cells advanced per second; converted on load to a whole per-tick distance (x256/20), so only values that convert to a whole number are allowed (steps of 0.078125, at most 10)
@@ -641,6 +646,7 @@ properties:
         - IInventoryConnectors
         - IGearConnectors
         - IGearOverloadParam
+        - IBeltSpeedParam
         properties:
         # 1秒に進むマス数。読み込み時に1tickあたりの整数距離(×256/20)へ換算するので、整数になる値だけ許す(0.078125刻み、最大10)
         # Cells advanced per second; converted on load to a whole per-tick distance (x256/20), so only values that convert to a whole number are allowed (steps of 0.078125, at most 10)

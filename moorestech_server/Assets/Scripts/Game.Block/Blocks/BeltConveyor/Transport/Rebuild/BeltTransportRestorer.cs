@@ -44,7 +44,7 @@ namespace Game.Block.Blocks.BeltConveyor.Transport.Rebuild
                     var matches = BeltCellLocator.MatchesPath(location.Cell, record.Item.EntryDirection);
                     var item = matches ? record.Item : record.Item.WithEntryDirection(BeltCellLocator.AlignToPath(location.Cell, record.Item.EntryDirection));
                     var distance = location.CellExitDistance + record.DistanceToCellExit;
-                    candidates.Add(new BeltRestoreCandidate(matches ? 1 : 2, location.SegmentIndex, distance, item, record.SourceSegmentIndex, record.SourceOrder));
+                    candidates.Add(new BeltRestoreCandidate(matches ? BeltRestorePriority.RunningMatchingPath : BeltRestorePriority.RunningRealigned, location.SegmentIndex, distance, item, record.SourceSegmentIndex, record.SourceOrder));
                 }
                 candidates.Sort();
                 foreach (var candidate in candidates) placements[candidate.SegmentIndex].TryPlace(candidate.DistanceToExit, candidate.Item);
@@ -65,7 +65,7 @@ namespace Game.Block.Blocks.BeltConveyor.Transport.Rebuild
                     }
                     var matches = BeltCellLocator.MatchesPath(location.Cell, record.Item.EntryDirection);
                     var item = matches ? record.Item : record.Item.WithEntryDirection(BeltCellLocator.AlignToPath(location.Cell, record.Item.EntryDirection));
-                    candidates.Add(new BeltRestoreCandidate(3, location.SegmentIndex, location.CellExitDistance, item, record.SourceSegmentIndex, 0));
+                    candidates.Add(new BeltRestoreCandidate(BeltRestorePriority.VanishedBufferItem, location.SegmentIndex, location.CellExitDistance, item, record.SourceSegmentIndex, 0));
                 }
                 candidates.Sort();
                 foreach (var candidate in candidates) placements[candidate.SegmentIndex].TryPlace(candidate.DistanceToExit, candidate.Item);

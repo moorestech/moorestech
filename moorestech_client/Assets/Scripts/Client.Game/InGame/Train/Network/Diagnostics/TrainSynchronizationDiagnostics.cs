@@ -53,6 +53,15 @@ namespace Client.Game.InGame.Train.Network.Diagnostics
             Capture("HashMismatch", permanentWait ? "ReceivedTickGap" : null, true);
         }
 
+        // 複製の食い違いは再同期しない恒久停止なので、停止前に診断を確定保存する
+        // A replica divergence is a permanent stop without resync, so persist the diagnosis before stopping
+        internal void RecordReplicaDivergence(ulong expectedId, string replicaKind)
+        {
+            var reason = $"{replicaKind}ReplicaDiverged";
+            BeginWaiting(expectedId, reason, null);
+            Capture(reason, reason, true);
+        }
+
         private void BeginWaiting(ulong expectedId, string reason, TrainSynchronizationHashComparison comparison)
         {
             if (!_tickState.IsInitialized || _waiting != null) return;

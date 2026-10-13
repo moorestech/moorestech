@@ -58,7 +58,7 @@ namespace Tests.UnitTest.Core.BeltTransport
             void AdvanceOneTick()
             {
                 var speed = random.Next(BeltConstants.MaxSpeed + 1);
-                var sent = GetOutputLength(segment, speed) > 0 && random.Next(2) == 0;
+                var sent = 0 < GetOutputLength(segment, speed) && random.Next(2) == 0;
                 Advance(segment, speed, sent);
                 if (sent)
                 {

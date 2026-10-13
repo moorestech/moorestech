@@ -25,7 +25,7 @@ namespace Tests.CombinedTest.Core.Transport
         // Assemble a replica from the current assembly's full state; the client's initial sync
         internal static BeltTransportReplica StartReplica()
         {
-            return BeltTransportReplicaAssembler.Assemble(BeltTransportFullStateCapture.Capture(Datastore().Assembly));
+            return BeltTransportReplicaAssembler.Assemble(Datastore().CaptureFullState());
         }
 
         // 実tickを1回進め、搬送直後の報告からそのtickの差分を受け取る
@@ -47,7 +47,7 @@ namespace Tests.CombinedTest.Core.Transport
 
         internal static uint ServerHash()
         {
-            return BeltTransportStateHash.Compute(BeltTransportFullStateCapture.Capture(Datastore().Assembly));
+            return Datastore().ComputeStateHash();
         }
 
         // 機械(チェスト)からの押し込みと同じ文脈で、ベルコンの搬入口へ1個押し込む。入ったらtrue

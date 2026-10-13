@@ -46,16 +46,16 @@ namespace Client.Game.InGame.BeltTransport.Network
             _diagnostics = diagnostics;
         }
 
-        public UniTask WaitForInitialApplyAsync()
-        {
-            return _initialApplyCompletion.Task;
-        }
-
         public void Initialize()
         {
             _fullSnapshotSubscription = _vanillaApiEvent.SubscribeEventResponse(BeltTransportFullSnapshotEventPacket.EventTag, HandleFullSnapshot);
             _tickDiffSubscription = _vanillaApiEvent.SubscribeEventResponse(BeltTransportTickEventPacket.TickDiffEventTag, HandleTickDiff);
             _rebuiltFullStateSubscription = _vanillaApiEvent.SubscribeEventResponse(BeltTransportTickEventPacket.RebuiltFullStateEventTag, HandleRebuiltFullState);
+        }
+
+        public UniTask WaitForInitialApplyAsync()
+        {
+            return _initialApplyCompletion.Task;
         }
 
         // ネットワーク受信payloadのデシリアライズと適用を隔離する外部境界。畳まないと完了ソースがPendingで残り、初期化の待機が無期限になる
@@ -78,29 +78,36 @@ namespace Client.Game.InGame.BeltTransport.Network
                 // The initial full state arrives through InitializeDispatch's synchronous replay, so rethrowing would abort startup and strand every remaining buffered event
                 _initialApplyCompletion.TrySetException(applyException);
                 Debug.LogError($"[BeltTransportSync] 途中参加の全量の適用に失敗しました: {applyException}");
+                // 複製が無いまま順序適用とハッシュ照合が進むとNREが続くので、列車ごと恒久停止する
+                // Without a replica, ordered applies and hash checks would keep throwing NREs, so stop permanently with the train
+                _futureMessageBuffer.StopRetainingFutureMessages("BeltTransportInitialSnapshotFailed");
             }
+
+            #region Internal
+
+            bool CanApplyInitialSnapshot()
+            {
+                if (_initialApplyCompletion.Task.Status == UniTaskStatus.Pending) return true;
+                // 失敗・恒久停止の理由は通知済み。完了済みの全量の再適用だけを説明する
+                // Failure and permanent-stop reasons were already logged; explain only completed full-state rejection
+                if (_initialApplyCompletion.Task.Status == UniTaskStatus.Succeeded && !_tickState.IsPermanentlyWaiting)
+                    Debug.LogWarning("[BeltTransportSync] Ignored join-time full state after initial synchronization completed.");
+                return false;
+            }
+
+            #endregion
         }
 
         private void HandleTickDiff(byte[] payload)
         {
             var message = MessagePackSerializer.Deserialize<BeltTransportTickDiffMessagePack>(payload);
-            _futureMessageBuffer.EnqueueEvent(message.ServerTick, message.TickSequenceId, new BeltTransportTickDiffBufferedEvent(_cache, _futureMessageBuffer, message.ToDiff()));
+            _futureMessageBuffer.EnqueueEvent(message.ServerTick, message.TickSequenceId, new BeltTransportTickDiffBufferedEvent(_cache, _futureMessageBuffer, _diagnostics, TrainTickUnifiedIdUtility.CreateTickUnifiedId(message.ServerTick, message.TickSequenceId), message.ToDiff()));
         }
 
         private void HandleRebuiltFullState(byte[] payload)
         {
             var message = MessagePackSerializer.Deserialize<BeltTransportFullStateMessagePack>(payload);
             _futureMessageBuffer.EnqueueEvent(message.ServerTick, message.TickSequenceId, new BeltTransportRebuiltFullStateBufferedEvent(_cache, message.ToFullState()));
-        }
-
-        private bool CanApplyInitialSnapshot()
-        {
-            if (_initialApplyCompletion.Task.Status == UniTaskStatus.Pending) return true;
-            // 失敗・恒久停止の理由は通知済み。完了済みの全量の再適用だけを説明する
-            // Failure and permanent-stop reasons were already logged; explain only completed full-state rejection
-            if (_initialApplyCompletion.Task.Status == UniTaskStatus.Succeeded && !_tickState.IsPermanentlyWaiting)
-                Debug.LogWarning("[BeltTransportSync] Ignored join-time full state after initial synchronization completed.");
-            return false;
         }
 
         public void Dispose()

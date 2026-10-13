@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Game.Block.Blocks.BeltConveyor.Sync.State;
 using Game.Block.Blocks.BeltConveyor.Transport;
 using Game.Context;
 using Game.Train.Unit;
@@ -50,8 +49,8 @@ namespace Server.Event.EventReceive
             // 間引きtickはベルトもダミー。本物のtickだけ今の組をその場でハッシュする
             // A skipped tick is a dummy for the belt too; only a real tick hashes the current assembly on the spot
             var beltTransportHash = TrainUpdateService.IsHashBroadcastTick(hashStateEventData.Tick)
-                ? BeltTransportStateHash.Compute(BeltTransportFullStateCapture.Capture(_beltTransportDatastore.Assembly))
-                : uint.MaxValue;
+                ? _beltTransportDatastore.ComputeStateHash()
+                : TrainUnitHashStateMessagePack.DummyHash;
             _hashStatesByTick[hashStateEventData.Tick] = new HashTickState(
                 hashStateEventData.UnitsHash,
                 hashStateEventData.RailGraphHash,

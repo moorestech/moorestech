@@ -106,23 +106,27 @@ namespace Game.Train.Unit
             _onHashEvent.OnNext(BuildHashStateEventData(_executedTick));
             _executedTick++;
             _tickSequenceId = 0;
-        }
 
-        private HashStateEventData BuildHashStateEventData(uint hashTick)
-        {
-            if (!IsHashBroadcastTick(hashTick))
+            #region Internal
+
+            HashStateEventData BuildHashStateEventData(uint hashTick)
             {
-                return new HashStateEventData(hashTick, uint.MaxValue, uint.MaxValue);
+                if (!IsHashBroadcastTick(hashTick))
+                {
+                    return new HashStateEventData(hashTick, uint.MaxValue, uint.MaxValue);
+                }
+
+                var bundles = new List<TrainUnitSnapshotBundle>();
+                foreach (var train in _trainUnitLookupDatastore.GetRegisteredTrains())
+                {
+                    bundles.Add(TrainUnitSnapshotFactory.CreateSnapshot(train));
+                }
+                var unitsHash = TrainUnitSnapshotHashCalculator.Compute(bundles);
+                var railGraphHash = _railGraphDatastore.GetConnectNodesHash();
+                return new HashStateEventData(hashTick, unitsHash, railGraphHash);
             }
 
-            var bundles = new List<TrainUnitSnapshotBundle>();
-            foreach (var train in _trainUnitLookupDatastore.GetRegisteredTrains())
-            {
-                bundles.Add(TrainUnitSnapshotFactory.CreateSnapshot(train));
-            }
-            var unitsHash = TrainUnitSnapshotHashCalculator.Compute(bundles);
-            var railGraphHash = _railGraphDatastore.GetConnectNodesHash();
-            return new HashStateEventData(hashTick, unitsHash, railGraphHash);
+            #endregion
         }
 
         public void ResetTick()

@@ -1,6 +1,5 @@
 using Game.Block.Blocks.BeltConveyor.Sync.Diff;
 using Game.Block.Blocks.BeltConveyor.Sync.Message;
-using Game.Block.Blocks.BeltConveyor.Sync.State;
 using Game.Block.Blocks.BeltConveyor.Transport;
 using Game.Context;
 using Game.Train.Unit;
@@ -55,7 +54,7 @@ namespace Server.Event.EventReceive.BeltTransportSync
 
             void SendRebuiltFullState()
             {
-                var fullState = BeltTransportFullStateCapture.Capture(_beltTransportDatastore.Assembly);
+                var fullState = _beltTransportDatastore.CaptureFullState();
                 var message = new BeltTransportFullStateMessagePack(tick, tickSequenceId, fullState);
                 _eventProtocolProvider.AddBroadcastEvent(RebuiltFullStateEventTag, MessagePackSerializer.Serialize(message));
             }

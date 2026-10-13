@@ -25,7 +25,8 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
         {
             var recorder = new BeltTransportDiffRecorder();
             var diff = recorder.TakeTickDiff();
-            Assert.IsTrue(diff.IsEmpty);
+            Assert.AreEqual(0, diff.Inserts.Length);
+            Assert.AreEqual(0, diff.Extracts.Length);
             Assert.AreSame(BeltTickDiff.Empty, diff);
         }
 
@@ -56,7 +57,8 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
 
             // 取り出した後は空で、取り出した差分は後の記録に影響されない
             // Empty after taking, and the taken diff is unaffected by later records
-            Assert.IsTrue(recorder.TakeTickDiff().IsEmpty);
+            var afterTake = recorder.TakeTickDiff();
+            Assert.AreEqual(0, afterTake.Inserts.Length + afterTake.Extracts.Length);
             recorder.RecordExtract(9, BeltDirection.Front);
             Assert.AreEqual(2, diff.Extracts.Length);
             Assert.AreEqual(1, recorder.TakeTickDiff().Extracts.Length);
@@ -69,7 +71,8 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
             recorder.RecordInsert(0, BeltDirection.Back, NewItem(ItemA, BeltEntryDirection.FromBack));
             recorder.RecordExtract(0, BeltDirection.Front);
             recorder.Discard();
-            Assert.IsTrue(recorder.TakeTickDiff().IsEmpty);
+            var afterDiscard = recorder.TakeTickDiff();
+            Assert.AreEqual(0, afterDiscard.Inserts.Length + afterDiscard.Extracts.Length);
         }
 
         [Test]
@@ -81,7 +84,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
             Place(world, ForUnitTestModBlockId.BeltConveyorId, Vector3Int.zero, BlockDirection.North);
             var assembly = Assemble(world);
             SegmentAt(assembly, Vector3Int.zero).RestoreItems(new[] { At(ItemA, BeltEntryDirection.FromBack, 0) });
-            var replica = BeltTransportReplicaAssembler.Assemble(BeltTransportFullStateCapture.Capture(assembly));
+            var replica = BeltTransportReplicaAssembler.Assemble(CaptureOf(assembly));
 
             var insert = new BeltMachineInsertRecord(0, BeltDirection.Back, NewItem(ItemB, BeltEntryDirection.FromBack));
             LogAssert.Expect(LogType.Error, new Regex("diverged"));
@@ -98,7 +101,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
             InstallMachinePorts(new Vector3Int[0], new[] { Vector3Int.back });
             PlaceLine(world, 0, 0, 3);
             Place(world, ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, 3), BlockDirection.North);
-            var replica = BeltTransportReplicaAssembler.Assemble(BeltTransportFullStateCapture.Capture(Assemble(world)));
+            var replica = BeltTransportReplicaAssembler.Assemble(CaptureOf(Assemble(world)));
             var output = replica.Shapes[0].Outputs.Single(o => o.IsMachine);
 
             var extract = new BeltMachineExtractRecord(0, output.Direction);
@@ -107,7 +110,9 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
 
             // 未消費の予告は持ち越さない。次のtickに出口へ来たアイテムを勝手に受け入れない
             // The unconsumed announcement is not carried over, so a later item reaching the exit is not silently accepted
-            Assert.IsFalse(replica.MachineReceiverOf(0, output.Direction).TryReceive(output.Direction, 1, NewItem(ItemA, BeltEntryDirection.FromBack)));
+            replica.Segments[0].RestoreItems(new[] { At(ItemA, BeltEntryDirection.FromBack, 0) });
+            for (var tick = 0; tick < 300; tick++) Assert.IsTrue(replica.Tick(BeltTickDiff.Empty), $"empty diff at tick {tick}");
+            Assert.AreEqual(1, ItemCount(replica.CaptureFullState()), "the item waits at the exit instead of being handed off");
         }
     }
 }

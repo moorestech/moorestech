@@ -1,4 +1,5 @@
 using Core.BeltTransport;
+using Game.Block.Blocks.BeltConveyor.Topology.Layout;
 
 namespace Game.Block.Blocks.BeltConveyor.Sync.State
 {
@@ -6,7 +7,7 @@ namespace Game.Block.Blocks.BeltConveyor.Sync.State
     // One link in the full state; the partner is a segment number, or Machine (-1) for a machine
     public readonly struct BeltLinkShape
     {
-        public const int Machine = -1;
+        public const int Machine = BeltSegmentLayoutLink.Machine;
 
         // 出力なら末尾マスから相手へ、入力なら先頭マスから送り元へ向かう水平方向
         // Horizontal direction from the last cell toward the partner for outputs, or from the head cell toward the source for inputs

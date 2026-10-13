@@ -66,7 +66,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation.RandomNetwork
 
         public void Shuffle<T>(IList<T> values)
         {
-            for (var i = values.Count - 1; i > 0; i--)
+            for (var i = values.Count - 1; 0 < i; i--)
             {
                 var j = _random.Next(i + 1);
                 (values[i], values[j]) = (values[j], values[i]);

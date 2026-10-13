@@ -11,7 +11,7 @@ namespace Game.SaveLoad.Migration.Steps
     {
         // 旧コンポーネントのSaveKey(typeof FullName)。ステップは前の版の型を参照しないので文字列で持つ
         // The old component's SaveKey (typeof FullName); the step never references live types, so it is kept as a string
-        public const string OldBeltSaveKey = "Game.Block.Blocks.BeltConveyor.VanillaBeltConveyorComponent";
+        private const string OldBeltSaveKey = "Game.Block.Blocks.BeltConveyor.VanillaBeltConveyorComponent";
 
         public int FromVersion => 5;
 

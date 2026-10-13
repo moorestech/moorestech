@@ -1,5 +1,4 @@
 using Game.Block.Blocks.BeltConveyor.Sync.Message;
-using Game.Block.Blocks.BeltConveyor.Sync.State;
 using Game.Block.Blocks.BeltConveyor.Transport;
 using Game.Context;
 using Game.Train.Unit;
@@ -35,7 +34,7 @@ namespace Server.Event.EventReceive.BeltTransportSync
 
         private void PushFullSnapshot(int playerId)
         {
-            var fullState = BeltTransportFullStateCapture.Capture(_beltTransportDatastore.Assembly);
+            var fullState = _beltTransportDatastore.CaptureFullState();
             var message = new BeltTransportFullStateMessagePack(_trainUpdateService.GetCurrentTick(), _trainUpdateService.GetCurrentTickSequenceId(), fullState);
             _eventProtocolProvider.AddEvent(playerId, EventTag, MessagePackSerializer.Serialize(message));
         }

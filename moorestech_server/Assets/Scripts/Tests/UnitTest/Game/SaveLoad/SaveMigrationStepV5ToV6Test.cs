@@ -9,7 +9,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 {
     public class SaveMigrationStepV5ToV6Test
     {
-        private const string OldKey = SaveMigrationStepV5ToV6.OldBeltSaveKey;
+        private const string OldKey = "Game.Block.Blocks.BeltConveyor.VanillaBeltConveyorComponent";
         private const string SiblingKey = "GearEnergyTransformer";
         private const string FailureLog = "版5から版6へ変換できません";
 

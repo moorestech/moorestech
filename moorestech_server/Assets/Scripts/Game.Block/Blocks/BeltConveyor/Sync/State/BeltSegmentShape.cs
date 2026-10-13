@@ -39,15 +39,23 @@ namespace Game.Block.Blocks.BeltConveyor.Sync.State
             var cells = new BeltCellShape[layout.Cells.Length];
             for (var i = 0; i < cells.Length; i++) cells[i] = new BeltCellShape(layout.Cells[i].Position, layout.Cells[i].Forward);
             return new BeltSegmentShape(layout.Kind, layout.IsInternal, cells, layout.Speed, layout.Forward, FromLinks(layout.Inputs), FromLinks(layout.Outputs));
-        }
 
-        private static BeltLinkShape[] FromLinks(BeltSegmentLayoutLink[] links)
-        {
-            // 構成のMachine(-1)と全量のMachine(-1)は同じ値。相手番号はそのまま写す
-            // The layout's Machine (-1) and the full state's Machine (-1) are the same value, so partner numbers copy over as they are
-            var shapes = new BeltLinkShape[links.Length];
-            for (var i = 0; i < links.Length; i++) shapes[i] = new BeltLinkShape(links[i].Direction, links[i].EntryDirection, links[i].PartnerSegmentIndex);
-            return shapes;
+            #region Internal
+
+            BeltLinkShape[] FromLinks(BeltSegmentLayoutLink[] links)
+            {
+                // 機械の番兵は全量側の値へ明示的に写し、segment番号はそのまま写す
+                // The machine sentinel maps explicitly to the full state's value; segment numbers copy over as they are
+                var shapes = new BeltLinkShape[links.Length];
+                for (var i = 0; i < links.Length; i++)
+                {
+                    var partner = links[i].IsMachine ? BeltLinkShape.Machine : links[i].PartnerSegmentIndex;
+                    shapes[i] = new BeltLinkShape(links[i].Direction, links[i].EntryDirection, partner);
+                }
+                return shapes;
+            }
+
+            #endregion
         }
     }
 }

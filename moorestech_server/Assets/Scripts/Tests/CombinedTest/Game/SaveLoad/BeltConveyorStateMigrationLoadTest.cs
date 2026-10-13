@@ -8,7 +8,6 @@ using Game.Paths;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
 using Game.SaveLoad.Json.WorldVersions;
-using Game.SaveLoad.Migration.Steps;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -23,6 +22,7 @@ namespace Tests.CombinedTest.Game.SaveLoad
     public class BeltConveyorStateMigrationLoadTest
     {
         private static readonly Vector3Int BeltPosition = new(3, 0, 5);
+        private const string OldBeltSaveKey = "Game.Block.Blocks.BeltConveyor.VanillaBeltConveyorComponent";
         private static readonly string NewBeltSaveKey = typeof(BeltConveyorSaveStateComponent).FullName;
 
         private string _archiveRoot;
@@ -79,7 +79,7 @@ namespace Tests.CombinedTest.Game.SaveLoad
             var loadedSave = JObject.Parse(loadProvider.GetRequiredService<AssembleSaveJsonText>().AssembleSaveJson());
             Assert.AreEqual(WorldSaveAllInfo.CurrentVersion, loadedSave["worldVersion"].Value<int>());
             var loadedState = (JObject)FindBlockAt(loadedSave, BeltPosition)["state"];
-            Assert.IsFalse(loadedState.ContainsKey(SaveMigrationStepV5ToV6.OldBeltSaveKey));
+            Assert.IsFalse(loadedState.ContainsKey(OldBeltSaveKey));
             Assert.AreEqual(0, ((JArray)loadedState[NewBeltSaveKey]["items"]).Count);
         }
 
@@ -94,7 +94,7 @@ namespace Tests.CombinedTest.Game.SaveLoad
             var beltBlock = FindBlockAt(save, BeltPosition);
             var state = (JObject)beltBlock["state"];
             Assert.IsTrue(state.Remove(NewBeltSaveKey), "現行セーブにベルコンの新キーがありません");
-            state[SaveMigrationStepV5ToV6.OldBeltSaveKey] = JArray.Parse("[\"{\\\"x\\\":1}\",null,null,null]");
+            state[OldBeltSaveKey] = JArray.Parse("[\"{\\\"x\\\":1}\",null,null,null]");
             save["worldVersion"] = 5;
             return save;
         }

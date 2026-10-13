@@ -1,11 +1,13 @@
 using Tests.Util.EnergySystem;
 using System;
 using System.Linq;
+using Core.Item;
 using Core.Master;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.PowerGenerator;
 using Game.Block.Interface;
+using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.SaveLoad.Snapshot;
@@ -17,10 +19,8 @@ using UnityEngine;
 
 namespace Tests.CombinedTest.Server.Replay
 {
-    // 燃料燃焼とレシピ加工が毎tick動く世界を組む。静的な世界では決定性検査が素通りしてしまうため
-    // ベルト上のアイテムは現状セーブされず再構築で消えるので使わない（スナップショットから再生すると搬送中アイテムが失われ一致しなくなる）
-    // Builds a world where fuel burning and recipe processing move every tick; a static world would let the determinism check pass vacuously
-    // Items on belts are not saved yet and vanish on rebuild, so belts are not used (replay from a snapshot would lose in-transit items and diverge)
+    // 燃料燃焼・レシピ加工・機械から搬入される合流ベルトが毎tick動く世界を組む。静的な世界では決定性検査が素通りしてしまうため
+    // Builds a world where fuel burning, recipe processing and a machine-fed merging belt move every tick; a static world would let the determinism check pass vacuously
     public static class SnapshotReplayWorldFixture
     {
         private static readonly string GeneratorSaveKey = typeof(VanillaElectricGeneratorComponent).FullName;
@@ -34,6 +34,9 @@ namespace Tests.CombinedTest.Server.Replay
         private static readonly Vector3Int PolePosition = new(5, 0, 0);
         private static readonly Vector3Int MachinePosition = new(7, 0, 0);
         private static readonly Vector3Int GeneratorPosition = new(5, 0, 2);
+        // 合流ベルトの列。他の設備から離して置く
+        // Column of the merging belt line, kept clear of the other installations
+        private const int BeltColumnX = 20;
 
         public static void BuildMovingWorld()
         {
@@ -62,6 +65,41 @@ namespace Tests.CombinedTest.Server.Replay
             {
                 machineInventory.InsertItem(ServerContext.ItemStackFactory.Create(input.ItemGuid, input.Count * 3));
             }
+
+            BuildMachineFedMergingBelt();
+        }
+
+        // チェスト→直線(z=-1..3)→チェスト。z=1へ横のベルコン、z=2へ横の機械が合流し、ロード復元の距離・優先順・個体IDを検査対象にする
+        // Chest -> line (z=-1..3) -> chest; a side belt merges at z=1 and a side machine at z=2, so load-restored distances, priority orders and instance ids are checked
+        private static void BuildMachineFedMergingBelt()
+        {
+            var item = MasterHolder.ItemMaster.GetItemId(FuelItemGuid);
+            var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(item);
+            var sourceMain = PlaceChest(new Vector3Int(BeltColumnX, 0, -2));
+            for (var z = -1; z <= 3; z++) PlaceBelt(new Vector3Int(BeltColumnX, 0, z), BlockDirection.North);
+            PlaceBelt(new Vector3Int(BeltColumnX + 1, 0, 1), BlockDirection.West);
+            var sourceSide = PlaceChest(new Vector3Int(BeltColumnX + 2, 0, 1));
+            var sourceMachineMerge = PlaceChest(new Vector3Int(BeltColumnX - 1, 0, 2));
+            PlaceChest(new Vector3Int(BeltColumnX, 0, 4));
+
+            // 3つの搬入元を満杯にし、計測中ずっとベルトへ押し込ませる
+            // Fill the three sources so they keep pushing into the belts throughout the run
+            foreach (var source in new[] { sourceMain, sourceSide, sourceMachineMerge }) source.SetItem(0, ServerContext.ItemStackFactory.Create(item, maxStack));
+
+            #region Internal
+
+            IOpenableBlockInventoryComponent PlaceChest(Vector3Int position)
+            {
+                ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, position, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var chest);
+                return chest.ComponentManager.GetComponent<IOpenableBlockInventoryComponent>();
+            }
+
+            void PlaceBelt(Vector3Int position, BlockDirection direction)
+            {
+                ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, position, direction, Array.Empty<BlockCreateParam>(), out _);
+            }
+
+            #endregion
         }
 
         // 燃焼中の燃料と加工中レシピがスナップショットに実際に入っていることを確かめる

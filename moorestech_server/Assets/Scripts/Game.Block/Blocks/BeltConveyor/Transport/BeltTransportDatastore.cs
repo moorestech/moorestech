@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Game.Block.Blocks.BeltConveyor.Save;
 using Game.Block.Blocks.BeltConveyor.Sync.Diff;
+using Game.Block.Blocks.BeltConveyor.Sync.State;
 using Game.Block.Blocks.BeltConveyor.Topology;
 using Game.Block.Blocks.BeltConveyor.Topology.Layout;
 using Game.Block.Blocks.BeltConveyor.Transport.Rebuild;
@@ -57,6 +58,20 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
             // Untaken diffs written with old-assembly numbers are never applied to the new one; their effect is in the post-rebuild full state
             DiffRecorder.Discard();
             _onAssemblyRebuilt.OnNext(Unit.Default);
+        }
+
+        // 現在の組の全量を切り出す。初回同期・再構築時の全量送信が使う
+        // Cuts the current assembly's full state; used for the initial sync and the full-state send after a rebuild
+        public BeltTransportFullState CaptureFullState()
+        {
+            return BeltTransportFullStateCapture.Capture(Assembly.Shapes, Assembly.Segments);
+        }
+
+        // 現在の組の全量ハッシュ。クライアントの複製との照合に使う
+        // Full-state hash of the current assembly, checked against the client replica
+        public uint ComputeStateHash()
+        {
+            return BeltTransportStateHash.Compute(CaptureFullState());
         }
 
         // ロードしたベルコンblockの保存内容を預かる。次の再構築で復元手順に乗せる

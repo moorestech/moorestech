@@ -18,7 +18,7 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
         public static BeltTransportAssembly Assemble(BeltSegmentLayout[] layouts, IReadOnlyDictionary<BlockInstanceId, int> savedPriorityOrders, BeltTransportDiffRecorder diffRecorder)
         {
             var segments = new BeltConveyorSegment[layouts.Length];
-            for (var i = 0; i < layouts.Length; i++) segments[i] = Create(layouts[i], savedPriorityOrders);
+            for (var i = 0; i < layouts.Length; i++) segments[i] = Create(layouts[i]);
 
             var supplyPortByFace = new Dictionary<BeltMachineSupplyKey, BeltMachineSupplyPort>();
             for (var i = 0; i < layouts.Length; i++)
@@ -72,25 +72,25 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
                 return owner.Cells[0].BlockInstanceId;
             }
 
-            #endregion
-        }
-
-        private static BeltConveyorSegment Create(BeltSegmentLayout layout, IReadOnlyDictionary<BlockInstanceId, int> savedPriorityOrders)
-        {
-            // 合流の優先順は先頭(唯一)のマス、分岐は末尾マスのblockに属する。保存値は搬出・搬入方向を除いた並べ替えのときだけ使う
-            // A merge's order belongs to its only cell and a branch's to its last cell; a saved value is used only when it permutes the directions other than the output or input
-            switch (layout.Kind)
+            BeltConveyorSegment Create(BeltSegmentLayout layout)
             {
-                case BeltSegmentKind.Merge:
-                    var mergeOrder = BeltSavedPriorityOrder.Resolve(savedPriorityOrders, layout.Cells[0].BlockInstanceId, layout.Forward);
-                    return new BeltMergeSegment(layout.Speed, mergeOrder, layout.Forward);
-                case BeltSegmentKind.Branch:
-                    var lastCell = layout.Cells[layout.Cells.Length - 1].BlockInstanceId;
-                    var branchOrder = BeltSavedPriorityOrder.Resolve(savedPriorityOrders, lastCell, BeltDirections.Opposite(layout.Forward));
-                    return new BeltBranchSegment(layout.Capacity, layout.Speed, branchOrder, layout.Forward);
-                default:
-                    return new BeltNormalSegment(layout.Capacity, layout.Speed);
+                // 合流の優先順は先頭(唯一)のマス、分岐は末尾マスのblockに属する。保存値は搬出・搬入方向を除いた並べ替えのときだけ使う
+                // A merge's order belongs to its only cell and a branch's to its last cell; a saved value is used only when it permutes the directions other than the output or input
+                switch (layout.Kind)
+                {
+                    case BeltSegmentKind.Merge:
+                        var mergeOrder = BeltSavedPriorityOrder.Resolve(savedPriorityOrders, layout.Cells[0].BlockInstanceId, layout.Forward);
+                        return new BeltMergeSegment(layout.Speed, mergeOrder, layout.Forward);
+                    case BeltSegmentKind.Branch:
+                        var lastCell = layout.Cells[layout.Cells.Length - 1].BlockInstanceId;
+                        var branchOrder = BeltSavedPriorityOrder.Resolve(savedPriorityOrders, lastCell, BeltDirections.Opposite(layout.Forward));
+                        return new BeltBranchSegment(layout.Capacity, layout.Speed, branchOrder, layout.Forward);
+                    default:
+                        return new BeltNormalSegment(layout.Capacity, layout.Speed);
+                }
             }
+
+            #endregion
         }
     }
 }

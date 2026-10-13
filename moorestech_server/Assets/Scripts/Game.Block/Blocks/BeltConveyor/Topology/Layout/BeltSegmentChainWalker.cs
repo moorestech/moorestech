@@ -18,7 +18,7 @@ namespace Game.Block.Blocks.BeltConveyor.Topology.Layout
             for (var i = 0; i < cells.Count; i++)
             {
                 successor[i] = FindSuccessor(i);
-                if (successor[i] >= 0) hasPredecessor[successor[i]] = true;
+                if (0 <= successor[i]) hasPredecessor[successor[i]] = true;
             }
 
             // 先行マスを持たないマスから歩き、残りは輪として座標順に歩く

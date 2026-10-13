@@ -22,22 +22,25 @@ namespace Core.Master.Validator
             var logs = "";
             foreach (var block in blocks.Data)
             {
-                if (block.BlockParam is BeltConveyorBlockParam beltParam) logs += ValidateSpeed(block.Name, beltParam.BeltSpeedPerSecond);
-                if (block.BlockParam is GearBeltConveyorBlockParam gearBeltParam) logs += ValidateSpeed(block.Name, gearBeltParam.BeltSpeedPerSecond);
+                if (block.BlockParam is IBeltSpeedParam beltSpeedParam) logs += ValidateSpeed(block.Name, beltSpeedParam.BeltSpeedPerSecond);
             }
             return logs;
-        }
 
-        // 整数にならない値は搬送の決定論を崩すので弾く。0以下は永久停止、上限超はsegmentが速度設定で例外を投げるため起動時に弾く
-        // A value that is not a whole number breaks the transport's determinism; zero or less stalls forever and above the cap makes the segment throw, so all are rejected at startup
-        private static string ValidateSpeed(string blockName, double cellsPerSecond)
-        {
-            var exact = cellsPerSecond * CellLength / TicksPerSecond;
-            var distancePerTick = (int)Math.Round(exact);
-            if (WholeNumberTolerance <= Math.Abs(exact - distancePerTick))
-                return $"[BlockMaster] Name:{blockName} has beltSpeedPerSecond:{cellsPerSecond} that is not a whole per-tick distance (x{CellLength}/{TicksPerSecond} = {exact})\n";
-            if (MinDistancePerTick <= distancePerTick && distancePerTick <= MaxDistancePerTick) return "";
-            return $"[BlockMaster] Name:{blockName} has beltSpeedPerSecond:{cellsPerSecond} = {distancePerTick} per tick, outside {MinDistancePerTick}..{MaxDistancePerTick}\n";
+            #region Internal
+
+            // 整数にならない値は搬送の決定論を崩すので弾く。0以下は永久停止、上限超はsegmentが速度設定で例外を投げるため起動時に弾く
+            // A value that is not a whole number breaks the transport's determinism; zero or less stalls forever and above the cap makes the segment throw, so all are rejected at startup
+            string ValidateSpeed(string blockName, double cellsPerSecond)
+            {
+                var exact = cellsPerSecond * CellLength / TicksPerSecond;
+                var distancePerTick = (int)Math.Round(exact);
+                if (WholeNumberTolerance <= Math.Abs(exact - distancePerTick))
+                    return $"[BlockMaster] Name:{blockName} has beltSpeedPerSecond:{cellsPerSecond} that is not a whole per-tick distance (x{CellLength}/{TicksPerSecond} = {exact})\n";
+                if (MinDistancePerTick <= distancePerTick && distancePerTick <= MaxDistancePerTick) return "";
+                return $"[BlockMaster] Name:{blockName} has beltSpeedPerSecond:{cellsPerSecond} = {distancePerTick} per tick, outside {MinDistancePerTick}..{MaxDistancePerTick}\n";
+            }
+
+            #endregion
         }
     }
 }

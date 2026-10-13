@@ -3,6 +3,7 @@ using Core.BeltTransport;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.BeltConveyor.Sync.Diff;
+using Game.Block.Blocks.BeltConveyor.Sync.State;
 using Game.Block.Blocks.BeltConveyor.Topology.Layout;
 using Game.Block.Blocks.BeltConveyor.Transport.Rebuild;
 using Game.Block.Interface;
@@ -21,6 +22,9 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
         // 添字はsegment番号(構成のIndex)と一致する
         // Indices equal the segment number (layout Index)
         public readonly BeltSegmentLayout[] Layouts;
+        // 全量に載せる形。構成から組の生成時に1回だけ作る
+        // Shapes for the full state, built once from the layouts when the assembly is created
+        public readonly BeltSegmentShape[] Shapes;
         public readonly BeltConveyorSegment[] Segments;
         public readonly BeltSimulation Simulation;
         // blockがどのsegmentのどのマスかを引く。再構築の復元とセーブの切り出しが使う
@@ -34,6 +38,8 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
         public BeltTransportAssembly(BeltSegmentLayout[] layouts, BeltConveyorSegment[] segments, Dictionary<BeltMachineSupplyKey, BeltMachineSupplyPort> supplyPortByFace, BeltTransportDiffRecorder diffRecorder)
         {
             Layouts = layouts;
+            Shapes = new BeltSegmentShape[layouts.Length];
+            for (var i = 0; i < layouts.Length; i++) Shapes[i] = BeltSegmentShape.FromLayout(layouts[i]);
             Segments = segments;
             Simulation = new BeltSimulation(segments);
             Locator = new BeltCellLocator(layouts);

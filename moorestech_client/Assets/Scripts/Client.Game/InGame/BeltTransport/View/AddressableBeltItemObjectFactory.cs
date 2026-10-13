@@ -16,44 +16,74 @@ namespace Client.Game.InGame.BeltTransport.View
     {
         private const string DefaultItemPrefabPath = "Vanilla/Game/ItemEntity";
         private const string ParentName = "BeltTransportItems";
+        private const string MissingItemObjectName = "MissingBeltItem";
 
-        private GameObject _defaultItemPrefab;
-        private readonly Dictionary<ItemId, GameObject> _modelPrefabByItem = new();
+        // 結果でなく進行中の読み込みを持つ。同じ種類が同時に何個現れても読み込みは1本で、失敗(null)もそのまま印として残る
+        // Holds in-flight loads rather than results; however many of a kind appear at once there is one load, and a failure (null) stays as the mark
+        private UniTask<GameObject>? _defaultItemPrefabTask;
+        private readonly Dictionary<ItemId, UniTask<GameObject>> _modelPrefabTaskByItem = new();
         private Transform _parent;
 
         public async UniTask<IBeltItemObject> CreateAsync(ItemId itemId, Vector3 position)
         {
             var itemMaster = MasterHolder.ItemMaster.GetItemMaster(itemId);
             var modelPath = itemMaster.AddressablePaths?.EntityModel;
-            if (string.IsNullOrEmpty(modelPath)) return await CreateTextured(itemId, position);
+            if (string.IsNullOrEmpty(modelPath)) return await CreateTextured();
 
-            var modelPrefab = await LoadModelPrefab(itemId, modelPath);
-            if (modelPrefab == null) return await CreateTextured(itemId, position);
+            var modelPrefab = await ModelPrefabTask();
+            if (modelPrefab == null) return await CreateTextured();
             return new GameObjectBeltItemObject(Object.Instantiate(modelPrefab, position, Quaternion.identity, Parent()));
-        }
 
-        private async UniTask<IBeltItemObject> CreateTextured(ItemId itemId, Vector3 position)
-        {
-            if (_defaultItemPrefab == null) _defaultItemPrefab = await AddressableLoader.LoadAsyncDefault<GameObject>(DefaultItemPrefabPath);
-            var itemObject = Object.Instantiate(_defaultItemPrefab, position, Quaternion.identity, Parent());
-            var viewData = ClientContext.ItemImageContainer.GetItemView(itemId);
-            itemObject.GetComponent<BeltItemTexturedObject>().SetTexture(viewData?.ItemTexture, itemId);
-            return new GameObjectBeltItemObject(itemObject);
-        }
+            #region Internal
 
-        private async UniTask<GameObject> LoadModelPrefab(ItemId itemId, string modelPath)
-        {
-            if (_modelPrefabByItem.TryGetValue(itemId, out var cached)) return cached;
-            // Addressableの読み込み結果は外部データ。失敗はログに残し、既定のprefabへ落とす
-            // The Addressable load result is external data; a failure is logged and falls back to the default prefab
-            var loaded = await AddressableLoader.LoadAsync<GameObject>(modelPath);
-            if (loaded?.Asset == null)
+            async UniTask<IBeltItemObject> CreateTextured()
             {
+                _defaultItemPrefabTask ??= LoadDefaultItemPrefab().Preserve();
+                var defaultItemPrefab = await _defaultItemPrefabTask.Value;
+                // 既定prefabが読めなければ空の置き物で表示枠だけを保つ(理由は読み込み時に1回ログ済み)
+                // Without the default prefab keep only an empty placeholder (the reason was logged once at load)
+                if (defaultItemPrefab == null)
+                {
+                    var placeholder = new GameObject(MissingItemObjectName);
+                    placeholder.transform.SetParent(Parent(), false);
+                    placeholder.transform.position = position;
+                    return new GameObjectBeltItemObject(placeholder);
+                }
+
+                var itemObject = Object.Instantiate(defaultItemPrefab, position, Quaternion.identity, Parent());
+                var viewData = ClientContext.ItemImageContainer.GetItemView(itemId);
+                itemObject.GetComponent<BeltItemTexturedObject>().SetTexture(viewData?.ItemTexture, itemId);
+                return new GameObjectBeltItemObject(itemObject);
+            }
+
+            UniTask<GameObject> ModelPrefabTask()
+            {
+                if (_modelPrefabTaskByItem.TryGetValue(itemId, out var cached)) return cached;
+                var task = LoadModelPrefab().Preserve();
+                _modelPrefabTaskByItem[itemId] = task;
+                return task;
+            }
+
+            // Addressableの読み込み結果は外部データ。失敗は種類ごとに1回だけログに残し、以後は既定のprefabへ落とす
+            // The Addressable load result is external data; a failure is logged once per kind and later falls back to the default prefab
+            async UniTask<GameObject> LoadModelPrefab()
+            {
+                var loaded = await AddressableLoader.LoadAsync<GameObject>(modelPath);
+                if (loaded?.Asset != null) return loaded.Asset;
                 Debug.LogError($"[BeltTransportView] failed to load the item model {modelPath} for item {itemId.AsPrimitive()}; showing the textured default instead.");
                 return null;
             }
-            _modelPrefabByItem[itemId] = loaded.Asset;
-            return loaded.Asset;
+
+            // 既定prefabの読み込み結果も外部データ。失敗は1回だけログに残す
+            // The default prefab load result is external data too; a failure is logged once
+            async UniTask<GameObject> LoadDefaultItemPrefab()
+            {
+                var prefab = await AddressableLoader.LoadAsyncDefault<GameObject>(DefaultItemPrefabPath);
+                if (prefab == null) Debug.LogError($"[BeltTransportView] failed to load the default item prefab {DefaultItemPrefabPath}; belt items are shown as empty placeholders.");
+                return prefab;
+            }
+
+            #endregion
         }
 
         public void SetActive(bool enable)

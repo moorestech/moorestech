@@ -26,6 +26,19 @@ namespace Game.Block.Blocks.BeltConveyor.Topology
             return unitOffset.x == -1 ? BeltDirection.Left : BeltDirection.Right;
         }
 
+        // 方向を水平の単位ベクトルにする。HorizontalDirectionの逆写像
+        // Maps a direction to its horizontal unit vector; the inverse of HorizontalDirection
+        public static Vector3Int DirectionOffset(BeltDirection direction)
+        {
+            switch (direction)
+            {
+                case BeltDirection.Front: return new Vector3Int(0, 0, 1);
+                case BeltDirection.Back: return new Vector3Int(0, 0, -1);
+                case BeltDirection.Left: return new Vector3Int(-1, 0, 0);
+                default: return new Vector3Int(1, 0, 0);
+            }
+        }
+
         // 受け側から見た搬入元の向きに、送り側と受け側の高さ比較を足す
         // Combine the source direction seen from the receiver with the source-vs-receiver height comparison
         public static BeltEntryDirection GetEntryDirection(BeltDirection sourceDirectionFromReceiver, int sourceY, int receiverY)

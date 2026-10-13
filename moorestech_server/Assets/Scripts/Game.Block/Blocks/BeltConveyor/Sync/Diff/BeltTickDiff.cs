@@ -11,8 +11,6 @@ namespace Game.Block.Blocks.BeltConveyor.Sync.Diff
         public readonly BeltMachineInsertRecord[] Inserts;
         public readonly BeltMachineExtractRecord[] Extracts;
 
-        public bool IsEmpty => Inserts.Length == 0 && Extracts.Length == 0;
-
         public BeltTickDiff(BeltMachineInsertRecord[] inserts, BeltMachineExtractRecord[] extracts)
         {
             Inserts = inserts;

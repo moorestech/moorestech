@@ -90,7 +90,7 @@ namespace Tests.CombinedTest.Core.Transport
                 branchMachineExtracts += diff.Extracts.Count(e => e.SegmentIndex == branchSegment && e.OutputDirection == branchMachineOutput);
                 var fillingNow = diff.Extracts.Count(e => e.SegmentIndex == fillingSegment);
                 fillingExtracts += fillingNow;
-                if (fillingNow > 0) lastFillingExtractTick = tick;
+                if (0 < fillingNow) lastFillingExtractTick = tick;
             }
 
             // 搬入・搬出・内部segmentへの搬入・bufferから機械への搬出がどれも実際に再生された
@@ -111,7 +111,7 @@ namespace Tests.CombinedTest.Core.Transport
             Assert.Less(lastFillingExtractTick, TickCount - 50, "handoffs stopped mid-run");
             Assert.AreEqual(3, ItemsOnSegmentAt(Vector3Int.zero).Length, "the line jammed");
 
-            BeltFullStateAssert.AreEqual(BeltTransportFullStateCapture.Capture(Datastore().Assembly), replica.CaptureFullState());
+            BeltFullStateAssert.AreEqual(Datastore().CaptureFullState(), replica.CaptureFullState());
         }
 
         [Test]
@@ -143,7 +143,7 @@ namespace Tests.CombinedTest.Core.Transport
             }
             Assert.AreEqual(6, pushed, "every push entered");
             Assert.Greater(CountOf(sink, ItemA), 0, "pushed items reached the chest");
-            BeltFullStateAssert.AreEqual(BeltTransportFullStateCapture.Capture(Datastore().Assembly), replica.CaptureFullState());
+            BeltFullStateAssert.AreEqual(Datastore().CaptureFullState(), replica.CaptureFullState());
         }
 
         private static void CreateServer()

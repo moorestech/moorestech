@@ -63,7 +63,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event.BeltTransportSync
                 }
                 var diff = MessagePackSerializer.Deserialize<BeltTransportTickDiffMessagePack>(beltEvents[0].Payload);
                 Assert.AreEqual(tick, diff.ServerTick, "diff tick");
-                if (diff.ToDiff().IsEmpty) emptyDiffs++;
+                var decodedDiff = diff.ToDiff();
+                if (decodedDiff.Inserts.Length + decodedDiff.Extracts.Length == 0) emptyDiffs++;
                 else nonEmptyDiffs++;
             }
 

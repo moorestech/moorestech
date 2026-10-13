@@ -22,7 +22,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
         // Capture the full state, check it mirrors the server assembly, assemble a replica, and check the replica's capture matches field by field and by hash
         internal static BeltTransportReplica AssertRoundTrip(BeltTransportAssembly assembly)
         {
-            var full = BeltTransportFullStateCapture.Capture(assembly);
+            var full = CaptureOf(assembly);
             BeltFullStateAssert.MirrorsAssembly(full, assembly);
 
             var replica = BeltTransportReplicaAssembler.Assemble(full);
@@ -33,9 +33,14 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
             return replica;
         }
 
+        internal static BeltTransportFullState CaptureOf(BeltTransportAssembly assembly)
+        {
+            return BeltTransportFullStateCapture.Capture(assembly.Shapes, assembly.Segments);
+        }
+
         internal static uint HashOf(BeltTransportAssembly assembly)
         {
-            return BeltTransportStateHash.Compute(BeltTransportFullStateCapture.Capture(assembly));
+            return BeltTransportStateHash.Compute(CaptureOf(assembly));
         }
 
         internal static uint HashOf(BeltTransportReplica replica)

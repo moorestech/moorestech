@@ -28,11 +28,6 @@ namespace Game.Block.Blocks.BeltConveyor.Sync.Replica
             _machineReceivers = machineReceivers;
         }
 
-        public BeltReplicaMachineReceiver MachineReceiverOf(int segmentIndex, BeltDirection outputDirection)
-        {
-            return _machineReceivers[(segmentIndex, outputDirection)];
-        }
-
         public BeltTransportFullState CaptureFullState()
         {
             return BeltTransportFullStateCapture.Capture(Shapes, Segments);
@@ -47,17 +42,33 @@ namespace Game.Block.Blocks.BeltConveyor.Sync.Replica
             var consistent = true;
             foreach (var insert in diff.Inserts)
             {
-                if (Segments[insert.SegmentIndex].TryReceive(insert.InputDirection, BeltTransportAssembly.MachineEntryLength, insert.ToItem())) continue;
-                Debug.LogError($"[BeltTransport] replica could not place a machine push into segment {insert.SegmentIndex} from {insert.InputDirection}; the replica has diverged from the server.");
+                // 範囲外のsegment番号も載らない搬入と同じく食い違いとして報告する
+                // An out-of-range segment number is reported as a divergence just like an insert that does not fit
+                var inRange = 0 <= insert.SegmentIndex && insert.SegmentIndex < Segments.Length;
+                if (inRange && Segments[insert.SegmentIndex].TryReceive(insert.InputDirection, BeltTransportAssembly.MachineEntryLength, insert.ToItem())) continue;
+                Debug.LogError($"[BeltTransport] replica could not place a machine push into segment {insert.SegmentIndex} from {insert.InputDirection} (segments: {Segments.Length}); the replica has diverged from the server.");
                 consistent = false;
             }
-            foreach (var extract in diff.Extracts) MachineReceiverOf(extract.SegmentIndex, extract.OutputDirection).AcceptOnce();
+
+            // 受け口の無い搬出も食い違いとして報告し、予告はできる受け口だけに出す
+            // An extract without a receiver is also a divergence; only existing receivers get the announcement
+            foreach (var extract in diff.Extracts)
+            {
+                if (_machineReceivers.TryGetValue((extract.SegmentIndex, extract.OutputDirection), out var receiver))
+                {
+                    receiver.AcceptOnce();
+                    continue;
+                }
+                Debug.LogError($"[BeltTransport] replica has no machine receiver at segment {extract.SegmentIndex} toward {extract.OutputDirection}; the replica has diverged from the server.");
+                consistent = false;
+            }
 
             Simulation.Tick();
 
             foreach (var extract in diff.Extracts)
             {
-                if (!MachineReceiverOf(extract.SegmentIndex, extract.OutputDirection).ClearPending()) continue;
+                if (!_machineReceivers.TryGetValue((extract.SegmentIndex, extract.OutputDirection), out var receiver)) continue;
+                if (!receiver.ClearPending()) continue;
                 Debug.LogError($"[BeltTransport] replica did not hand an item from segment {extract.SegmentIndex} toward {extract.OutputDirection} as the server did; the replica has diverged from the server.");
                 consistent = false;
             }

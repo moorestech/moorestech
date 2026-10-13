@@ -12,7 +12,7 @@ namespace Client.Tests.BeltTransport
     public class BeltItemWorldPositionCalculatorTest
     {
         private const int Cell = BeltConstants.ItemWidth;
-        private const float Surface = BeltItemWorldPositionCalculator.SurfaceHeight;
+        private const float Surface = 0.35f;
         private const float Tolerance = 1e-4f;
 
         [Test]
@@ -60,10 +60,13 @@ namespace Client.Tests.BeltTransport
             // 平ら → 上り坂 → 1段上の平ら
             // flat -> up slope -> flat one step up
             var shapes = new[] { Segment(Front(0, 0, 0), Front(0, 0, 1), Front(0, 1, 2)) };
-            Assert.IsFalse(BeltItemWorldPositionCalculator.IsSlope(shapes[0], 0));
-            Assert.IsTrue(BeltItemWorldPositionCalculator.IsSlope(shapes[0], 1));
-            Assert.IsFalse(BeltItemWorldPositionCalculator.IsSlope(shapes[0], 2));
 
+            // 1マスめと3マスめは平らなので中心は上がらない
+            // The first and third cells are flat, so their centers do not rise
+            AssertPosition(new Vector3(0.5f, Surface, 0.5f), shapes, 0, 2 * Cell, BeltEntryDirection.FromBack);
+            AssertPosition(new Vector3(0.5f, 1f + Surface, 2.5f), shapes, 0, 0, BeltEntryDirection.FromBack);
+            // 2マスめは坂なので中心が半段上がる
+            // The second cell is a slope, so its center rises half a step
             AssertPosition(new Vector3(0.5f, Surface + 0.5f, 1.5f), shapes, 0, Cell, BeltEntryDirection.FromBack);
             AssertPosition(new Vector3(0.5f, Surface + 0.75f, 2.0f), shapes, 0, Cell / 2, BeltEntryDirection.FromBack);
         }
@@ -76,8 +79,10 @@ namespace Client.Tests.BeltTransport
             var up = Segment(new[] { Front(0, 0, 0) }, Array.Empty<BeltLinkShape>(), new[] { new BeltLinkShape(BeltDirection.Front, BeltEntryDirection.FromBackBelow, 1) });
             var flat = Segment(new[] { Front(0, 1, 1) }, new[] { new BeltLinkShape(BeltDirection.Back, BeltEntryDirection.FromBackBelow, 0) }, Array.Empty<BeltLinkShape>());
             var shapes = new[] { up, flat };
-            Assert.IsTrue(BeltItemWorldPositionCalculator.IsSlope(up, 0));
-            Assert.IsFalse(BeltItemWorldPositionCalculator.IsSlope(flat, 0));
+            // 坂マスの中心は半段上がり、その先の平らマスは上がらない
+            // The slope cell's center rises half a step, the flat cell beyond it does not
+            AssertPosition(new Vector3(0.5f, Surface + 0.5f, 0.5f), shapes, 0, 0, BeltEntryDirection.FromBack);
+            AssertPosition(new Vector3(0.5f, 1f + Surface, 1.5f), shapes, 1, 0, BeltEntryDirection.FromBackBelow);
 
             // segment1の1マスめの半ば: 搬入元は接続先segmentの末尾(坂)の中心
             // Halfway into segment 1's first cell: the source is the center of the linked segment's last cell, the slope
@@ -92,8 +97,9 @@ namespace Client.Tests.BeltTransport
             var down = Segment(new[] { Front(0, 1, 0), Front(0, 0, 1) }, Array.Empty<BeltLinkShape>(), new[] { new BeltLinkShape(BeltDirection.Front, BeltEntryDirection.FromBack, 1) });
             var flat = Segment(new[] { Front(0, 0, 2) }, new[] { new BeltLinkShape(BeltDirection.Back, BeltEntryDirection.FromBack, 0) }, Array.Empty<BeltLinkShape>());
             var shapes = new[] { down, flat };
-            Assert.IsTrue(BeltItemWorldPositionCalculator.IsSlope(down, 1));
-
+            // 下り坂マスの中心は半段上がる
+            // The down-slope cell's center rises half a step
+            AssertPosition(new Vector3(0.5f, Surface + 0.5f, 1.5f), shapes, 0, 0, BeltEntryDirection.FromBack);
             AssertPosition(new Vector3(0.5f, Surface + 0.25f, 2.0f), shapes, 1, Cell / 2, BeltEntryDirection.FromBack);
         }
 

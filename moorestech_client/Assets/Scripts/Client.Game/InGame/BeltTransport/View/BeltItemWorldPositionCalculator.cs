@@ -1,5 +1,6 @@
 using Core.BeltTransport;
 using Game.Block.Blocks.BeltConveyor.Sync.State;
+using Game.Block.Blocks.BeltConveyor.Topology;
 using UnityEngine;
 
 namespace Client.Game.InGame.BeltTransport.View
@@ -12,7 +13,7 @@ namespace Client.Game.InGame.BeltTransport.View
     {
         // ベルト面の高さ(ブロック底からアイテム中心まで)。旧Bezier経路の既定値に合わせる
         // Belt surface height (block base to item center), matching the old Bezier path's default
-        public const float SurfaceHeight = 0.35f;
+        private const float SurfaceHeight = 0.35f;
         // 坂マスは両端が1段違うので中心が半段上がる
         // A slope cell's ends differ by one step, so its center sits half a step higher
         private const float SlopeCenterRise = 0.5f;
@@ -65,7 +66,7 @@ namespace Client.Game.InGame.BeltTransport.View
 
         // マスの中心。坂マスは半段上がる
         // The cell's center; a slope cell sits half a step higher
-        public static Vector3 CellCenter(BeltSegmentShape shape, int cellIndex)
+        private static Vector3 CellCenter(BeltSegmentShape shape, int cellIndex)
         {
             var center = FlatCenter(shape.Cells[cellIndex].Position);
             return IsSlope(shape, cellIndex) ? center + new Vector3(0f, SlopeCenterRise, 0f) : center;
@@ -73,23 +74,36 @@ namespace Client.Game.InGame.BeltTransport.View
 
         // 坂マスか。隣のマスが1段上なら坂(上り坂は先が、下り坂は手前が1段上)。段差はsegment内ならマスの座標、境界なら接続の進入方向から読む
         // Whether the cell is a slope: a neighbour one step up means a slope (ahead for an up slope, behind for a down slope); read from cell positions inside the segment, from link entry directions at its ends
-        public static bool IsSlope(BeltSegmentShape shape, int cellIndex)
+        private static bool IsSlope(BeltSegmentShape shape, int cellIndex)
         {
             var cells = shape.Cells;
             var y = cells[cellIndex].Position.y;
             if (0 < cellIndex && cells[cellIndex - 1].Position.y == y + 1) return true;
             if (cellIndex < cells.Length - 1 && cells[cellIndex + 1].Position.y == y + 1) return true;
-            if (cellIndex == 0 && AnyLinkWithHeight(shape.Inputs, HeightStep.Above)) return true;
-            return cellIndex == cells.Length - 1 && AnyLinkWithHeight(shape.Outputs, HeightStep.Below);
-        }
+            if (cellIndex == 0 && AnyInputFromAbove()) return true;
+            return cellIndex == cells.Length - 1 && AnyOutputFromBelow();
 
-        private static bool AnyLinkWithHeight(BeltLinkShape[] links, HeightStep heightStep)
-        {
-            foreach (var link in links)
+            #region Internal
+
+            bool AnyInputFromAbove()
             {
-                if (HeightStepOf(link.EntryDirection) == heightStep) return true;
+                foreach (var input in shape.Inputs)
+                {
+                    if (IsFromAbove(input.EntryDirection)) return true;
+                }
+                return false;
             }
-            return false;
+
+            bool AnyOutputFromBelow()
+            {
+                foreach (var output in shape.Outputs)
+                {
+                    if (IsFromBelow(output.EntryDirection)) return true;
+                }
+                return false;
+            }
+
+            #endregion
         }
 
         private static Vector3 FlatCenter(Vector3Int cellPosition)
@@ -97,44 +111,26 @@ namespace Client.Game.InGame.BeltTransport.View
             return new Vector3(cellPosition.x + 0.5f, cellPosition.y + SurfaceHeight, cellPosition.z + 0.5f);
         }
 
-        // 前+Z・後-Z・左-X・右+X
-        // Front=+Z, Back=-Z, Left=-X, Right=+X
-        public static Vector3Int DirectionOffset(BeltDirection direction)
-        {
-            switch (direction)
-            {
-                case BeltDirection.Front: return new Vector3Int(0, 0, 1);
-                case BeltDirection.Back: return new Vector3Int(0, 0, -1);
-                case BeltDirection.Left: return new Vector3Int(-1, 0, 0);
-                default: return new Vector3Int(1, 0, 0);
-            }
-        }
-
         // 今のマスから見た搬入元マスへの差分。上から来たなら+1段、下から来たなら-1段
         // Offset from the current cell to the source cell; one step up when it came from above, one step down when from below
-        public static Vector3Int EntryOffset(BeltEntryDirection entryDirection)
+        private static Vector3Int EntryOffset(BeltEntryDirection entryDirection)
         {
-            var offset = DirectionOffset(BeltEntryDirections.Horizontal(entryDirection));
-            switch (HeightStepOf(entryDirection))
-            {
-                case HeightStep.Above: return offset + Vector3Int.up;
-                case HeightStep.Below: return offset + Vector3Int.down;
-                default: return offset;
-            }
+            var offset = BeltTopologyGeometry.DirectionOffset(BeltEntryDirections.Horizontal(entryDirection));
+            if (IsFromAbove(entryDirection)) return offset + Vector3Int.up;
+            if (IsFromBelow(entryDirection)) return offset + Vector3Int.down;
+            return offset;
         }
 
-        private static HeightStep HeightStepOf(BeltEntryDirection entryDirection)
+        // 高さ段の判定はCoreの符号化(BeltEntryDirections)に任せ、こちらで値の並びを解釈しない
+        // Height-step checks defer to Core's encoding (BeltEntryDirections) instead of interpreting the value layout here
+        private static bool IsFromAbove(BeltEntryDirection entryDirection)
         {
-            return (HeightStep)((int)entryDirection / 4);
+            return BeltEntryDirections.FromAbove(BeltEntryDirections.Horizontal(entryDirection)) == entryDirection;
         }
 
-        // 進入方向の値は水平4方向×高さ3段で、4で割った商が高さ
-        // Entry direction values are 4 horizontal directions times 3 height steps; the quotient by 4 is the height
-        private enum HeightStep
+        private static bool IsFromBelow(BeltEntryDirection entryDirection)
         {
-            Level = 0,
-            Above = 1,
-            Below = 2
+            return BeltEntryDirections.FromBelow(BeltEntryDirections.Horizontal(entryDirection)) == entryDirection;
         }
     }
 }
