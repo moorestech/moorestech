@@ -287,6 +287,9 @@ ui.tooltip.interactRideTrain,[E] Ride,[E] Ride,[E] 乗車,[E] Einsteigen,[E] 탑
 ui.tooltip.namedCannotHandMine,{p0} : Cannot be mined by hand,{p0} : Cannot be mined by hand,{p0} : 手掘りできません,{p0} : Kann nicht von Hand abgebaut werden,{p0} : 맨손으로는 채굴할 수 없습니다
 ui.bugReport.placeholder,What happened? (what you did and what went wrong),What happened? (what you did and what went wrong),何が起きた？（何をして・何がおかしかったか）,Was ist passiert? (was du getan hast und was schiefging),무슨 일이 있었나요? (무엇을 했고 어떤 문제가 생겼는지)
 ui.bugReport.send,Send bug report,Send bug report,バグ報告を送信,Fehlerbericht senden,버그 신고 보내기
+ui.feedbackReport.send,Send impressions,Send impressions,感想を送信,Eindrücke senden,감상 보내기
+ui.feedbackReport.sent,Impressions saved to outbox,Impressions saved to outbox,感想をoutboxに書き出しました,Eindrücke im Postausgang gespeichert,감상이 보낼 편지함에 저장되었습니다
+ui.feedbackReport.sending,Writing the impressions…,Writing the impressions…,感想を書き出しています…,Eindrücke werden geschrieben…,감상을 작성하는 중…
 ui.bugReport.sent,Bug report saved to outbox,Bug report saved to outbox,バグ報告をoutboxに書き出しました,Fehlerbericht im Postausgang gespeichert,버그 신고가 보낼 편지함에 저장되었습니다
 ui.bugReport.capturePending,Securing the recording…,Securing the recording…,記録を確保しています…,Aufzeichnung wird gesichert…,녹화 데이터를 확보하는 중…
 ui.bugReport.missing,Missing: {items},Missing: {items},欠けている項目: {items},Fehlt: {items},누락: {items}
