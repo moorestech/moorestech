@@ -32,12 +32,12 @@ detachedのまま作業してください（ブランチ名は作らない）。
 ## 機械的に解消するファイル（「解消不能」にしてはならない）
 
 機械生成・緩い運用のファイルは意味的な判断を要さない。下表のとおり機械的に解消して先へ進める。
-**これらのファイルを理由に `解消不能` を報告することは禁止**（ユーザー裁定 2026-08-19）:
+**これらのファイルを理由に `解消不能` を報告することは禁止**:
 
 | ファイル | 解消方法 |
 | --- | --- |
 | `.moorestech-external-revisions.json` | **PR head側（ours）を採る**。外部repoピンは厳密運用しておらず、常駐Unityが実チェックアウト値へ書き戻す。PRのコードはPR側ピンのマスタで検証されているので、PR側を保つのが唯一の整合 |
-| `moorestech_server/Assets/Scripts/Core.Master/_CompileRequester.cs` | **origin/master側（theirs）を採る**。印の文字列自体に意味は無いが、**値が変わること**がSourceGenerator再生成のトリガーである。oursだとPR headのLibraryがキャッシュした生成コードのまま据え置かれ、masterが持ち込んだスキーマ変更が反映されず `Mooresmaster.Model.*` へのアクセスがCS1061で落ちる（PR1175で実測） |
+| `moorestech_server/Assets/Scripts/Core.Master/_CompileRequester.cs` | **origin/master側（theirs）を採る**。印の文字列自体に意味は無いが、**値が変わること**がSourceGenerator再生成のトリガーである。oursだとPR headのLibraryがキャッシュした生成コードのまま据え置かれ、masterが持ち込んだスキーマ変更が反映されず `Mooresmaster.Model.*` へのアクセスがCS1061で落ちる |
 | `moorestech_client/.uloop/tools.json` | **ours**（uloopが書く環境ファイル） |
 | `.superpowers/**`・`docs/superpowers/**` のレポート/進捗記録 | modify/delete衝突なら**削除側を採る**（`git rm`）。作業記録の成果物であり、コードの正しさに影響しない |
 
