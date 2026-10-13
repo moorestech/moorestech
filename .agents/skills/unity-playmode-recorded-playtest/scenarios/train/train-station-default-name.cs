@@ -92,18 +92,25 @@ return PlaytestRunner.Run("train-station-default-name", options, async p =>
         p.Assert(view.GetStateDetail<TrainStationNameStateDetail>(TrainStationNameStateDetail.BlockStateDetailKey).StationName == expectedName,
             $"クライアント駅名: {expectedName}");
 
+        // 遠方のColliderは距離カリングされるため、設置座標へ移動して復帰を待つ。
+        // Move to the placement coordinates and wait for colliders culled by distance to return.
+        p.WarpPlayer(new Vector3(position.x + 3.5f, position.y + 1.5f, position.z - 1f));
+        var bounds = new Bounds();
+        await p.Until(() =>
+        {
+            var firstCollider = true;
+            foreach (var collider in view.GetComponentsInChildren<Collider>(true))
+            {
+                if (!collider.enabled || !collider.gameObject.activeInHierarchy || collider.isTrigger || collider.bounds.size == Vector3.zero) continue;
+                if (firstCollider) bounds = collider.bounds;
+                else bounds.Encapsulate(collider.bounds);
+                firstCollider = false;
+            }
+            return !firstCollider;
+        }, 10f, "駅のインタラクト用Colliderが復帰する");
+
         // 高い駅屋根は画面外になるため、南端のプレイヤーに近い高さを狙う。
         // Aim near player height at the south end because the tall station roof projects off screen.
-        var bounds = new Bounds();
-        var firstCollider = true;
-        foreach (var collider in view.GetComponentsInChildren<Collider>(true))
-        {
-            if (!collider.enabled || collider.isTrigger) continue;
-            if (firstCollider) bounds = collider.bounds;
-            else bounds.Encapsulate(collider.bounds);
-            firstCollider = false;
-        }
-        p.Assert(!firstCollider, "駅のインタラクト用Colliderがある");
         p.WarpPlayer(new Vector3(bounds.center.x, position.y + 1.5f, bounds.min.z - 1f));
         await UniTask.DelayFrame(10);
         SemanticInput.KeyDown(Key.LeftAlt);
