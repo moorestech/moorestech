@@ -1,6 +1,7 @@
+import type { BlockInventoryWireData } from "../types/blockInventoryWireData";
 import { Topics } from "../../../src/bridge/transport/protocol";
 import type { TopicPayloads } from "../../../src/bridge/transport/protocol";
-import type { PlayerInventoryData, BlockInventoryWireData } from "../../../src/bridge/contract/payloadTypes";
+import type { PlayerInventoryData } from "../../../src/bridge/contract/payloadTypes";
 import * as fx from "../fixtures";
 import { state } from "../state";
 

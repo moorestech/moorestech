@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { NestedPauseSubStateNames } from "@/bridge";
-import { NotificationDataSchema, PauseMenuDataSchema, UiStateDataSchema } from "./ui";
+import { NotificationDataSchema, PauseMenuDataSchema, UiStateDataSchema } from "../ui";
 
 describe("NotificationDataSchema", () => {
   it("itemId: nullをomittedと同様に受理する（シリアライザ揺れ耐性）", () => {

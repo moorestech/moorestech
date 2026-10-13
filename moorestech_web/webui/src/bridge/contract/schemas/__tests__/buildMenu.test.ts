@@ -1,5 +1,5 @@
 import { assert, describe, expect, it } from "vitest";
-import { BuildMenuEntryDataSchema } from "./buildMenu";
+import { BuildMenuEntryDataSchema } from "../buildMenu";
 
 describe("BuildMenuEntryDataSchema", () => {
   it("id+kind契約をパースできる", () => {

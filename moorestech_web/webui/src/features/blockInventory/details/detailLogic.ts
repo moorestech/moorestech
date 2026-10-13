@@ -68,7 +68,7 @@ const MachineStateDisplayTable: Record<MachineProcessState, MachineStateDisplay>
 
 // 発電状態の文言と不足トーンを一つの表で決める
 // Set the generation label and insufficient tone in one table
-export type GearToElectricStateDisplay = {
+type GearToElectricStateDisplay = {
   labelKey: TranslationKey;
   insufficient: boolean;
 };

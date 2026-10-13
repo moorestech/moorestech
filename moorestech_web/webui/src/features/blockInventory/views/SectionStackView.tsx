@@ -39,7 +39,7 @@ const genericConfig: SectionStackViewConfig = {
   showFluidProgress: true,
 };
 
-export function resolveSectionStackViewConfig(blockType: string): SectionStackViewConfig {
+function resolveSectionStackViewConfig(blockType: string): SectionStackViewConfig {
   return configByBlockType[blockType] ?? genericConfig;
 }
 

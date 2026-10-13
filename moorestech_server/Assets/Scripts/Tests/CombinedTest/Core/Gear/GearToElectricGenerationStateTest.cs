@@ -74,12 +74,13 @@ namespace Tests.CombinedTest.Core.Gear
                 return MessagePackSerializer.Deserialize<GearToElectricGeneratorBlockStateDetail>(detail.Value);
             }
 
+            void AdvanceTicks(int count)
+            {
+                for (var tick = 0; tick < count; tick++) GameUpdater.UpdateOneTick();
+            }
+
             #endregion
         }
 
-        private static void AdvanceTicks(int count)
-        {
-            for (var tick = 0; tick < count; tick++) GameUpdater.UpdateOneTick();
-        }
     }
 }

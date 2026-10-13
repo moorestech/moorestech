@@ -41,6 +41,7 @@ namespace Game.Block.Blocks.GearToElectric
         {
             _param = param;
             _batteryRemaining = 0f;
+            SetTorqueRequestRate(BatteryCapacity <= 0f ? 0f : 1f);
             _generationTracker = new GearToElectricGenerationTracker((float)param.GearConsumption.MinimumRpm);
             // 歯車と発電の可視値の変化を共に通知する
             // Notify changes to both gear and generation values
@@ -59,6 +60,7 @@ namespace Game.Block.Blocks.GearToElectric
             if (!BlockComponentStateReader.TryRead<GearToElectricGeneratorSaveJsonObject>(componentStates, SaveKey, out var saveData)) return;
             if (saveData == null) return;
             _batteryRemaining = Mathf.Clamp(saveData.BatteryRemaining, 0f, BatteryCapacity);
+            SetTorqueRequestRate(BatteryCapacity <= 0f ? 0f : (BatteryCapacity - _batteryRemaining) / BatteryCapacity);
         }
 
         // 電力tick: 現在のバッテリー残量をこのtickの供給可能電力として申告する
@@ -115,11 +117,6 @@ namespace Game.Block.Blocks.GearToElectric
 
             ChargeFromGear();
 
-            // 充電直後の不足分で要求トルクを更新する
-            // Refresh the torque request from the deficit just after charging
-            var postChargeDeficit = BatteryCapacity - _batteryRemaining;
-            SetTorqueRequestRate(BatteryCapacity <= 0f ? 0f : postChargeDeficit / BatteryCapacity);
-
             #region Internal
 
             void ChargeFromGear()
@@ -134,6 +131,11 @@ namespace Game.Block.Blocks.GearToElectric
 
                 var charge = Mathf.Min(deficit, BatteryCapacity * operatingRate);
                 _batteryRemaining = Mathf.Min(BatteryCapacity, _batteryRemaining + charge);
+
+                // 充電直後の不足分で要求トルクを更新する
+                // Refresh the torque request from the deficit just after charging
+                var postChargeDeficit = BatteryCapacity - _batteryRemaining;
+                SetTorqueRequestRate(BatteryCapacity <= 0f ? 0f : postChargeDeficit / BatteryCapacity);
             }
 
             #endregion

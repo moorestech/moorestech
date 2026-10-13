@@ -3,7 +3,7 @@ import {
   GameStateDataSchema, SkitPresentationDataSchema,
   TutorialDragGuideSchema, TutorialHighlightSchema, TutorialOverlayElementSchema,
   TutorialPresentationDataSchema,
-} from "./presentation";
+} from "../presentation";
 
 describe("Phase C4 presentation contracts", () => {
   it("accepts the outline tutorial highlight kind", () => {

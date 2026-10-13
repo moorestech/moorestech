@@ -1,7 +1,7 @@
 import { createElement } from "react";
 import { act, create } from "react-test-renderer";
 import { describe, expect, it, vi } from "vitest";
-import type { BlockInventoryOpen, GearToElectricData } from "@/bridge";
+import type { BlockInventoryOpen } from "@/bridge";
 
 vi.mock("@/shared/i18n", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/shared/i18n")>()),
@@ -12,9 +12,9 @@ vi.mock("@mantine/core", () => ({
   Text: ({ children, ...props }: { children: unknown }) => createElement("mock-text", props, children as never),
 }));
 
-import GearToElectricSection from "./GearToElectricSection";
+import GearToElectricSection from "../GearToElectricSection";
 
-function render(gearToElectric?: GearToElectricData) {
+function render(gearToElectric?: NonNullable<BlockInventoryOpen["gearToElectric"]>) {
   const data = { open: true, source: "block", blockType: "GearToElectricGenerator", identifier: "block:1", blockGuid: "g", itemSlots: [], fluidSlots: [], gearToElectric } as unknown as BlockInventoryOpen;
   let tree!: ReturnType<typeof create>;
   act(() => { tree = create(createElement(GearToElectricSection, { data })); });

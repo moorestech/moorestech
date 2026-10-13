@@ -7,18 +7,18 @@ import { setDictionaries } from "@/shared/i18n/i18nStore";
 // CSV生成器のパーサーでLocalization正本を読む
 // Read the canonical Localization CSV with its generator's parser
 // @ts-expect-error -- The build script is intentionally a plain ESM module.
-import { parseLocalizationCsv } from "../../../../scripts/generate-localization-keys.mjs";
+import { parseLocalizationCsv } from "../../../../../scripts/generate-localization-keys.mjs";
 
 vi.mock("@mantine/core", () => ({
   Stack: ({ children, ...props }: { children: unknown }) => createElement("mock-stack", props, children as never),
   Text: ({ children, ...props }: { children: unknown }) => createElement("mock-text", props, children as never),
 }));
 
-import GearToElectricSection from "./GearToElectricSection";
+import GearToElectricSection from "../GearToElectricSection";
 
 describe("GearToElectricSection with the Japanese dictionary", () => {
   it("shows the specified supplied-power sentence after real i18n interpolation", () => {
-    const csvPath = new URL("../../../../../../Localization/localization.csv", import.meta.url);
+    const csvPath = new URL("../../../../../../../Localization/localization.csv", import.meta.url);
     const csv = parseLocalizationCsv(readFileSync(csvPath, "utf8"));
     const japaneseIndex = csv.languageCodes.indexOf("japanese");
     const englishIndex = csv.languageCodes.indexOf("english");

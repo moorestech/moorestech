@@ -175,7 +175,7 @@ export const BlockInventoryOpenSchema = z.object({
   trainPlatform: TrainPlatformDataSchema.optional(),
   trainStation: TrainStationDetailSchema.optional(),
 }).strict();
-export const TrainInventoryOpenSchema = z.object({
+const TrainInventoryOpenSchema = z.object({
   open: z.literal(true),
   source: z.literal("train"),
   blockType: z.literal("Train"),

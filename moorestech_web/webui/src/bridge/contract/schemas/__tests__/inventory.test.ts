@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { FluidSlotDataSchema } from "./inventory";
+import { FluidSlotDataSchema } from "../inventory";
 
 const FLUID_GUID = "60000000-0000-4000-8000-000000000001";
 

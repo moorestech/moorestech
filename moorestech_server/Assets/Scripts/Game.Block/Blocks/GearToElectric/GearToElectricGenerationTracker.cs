@@ -27,7 +27,7 @@ namespace Game.Block.Blocks.GearToElectric
         // Record current RPM and supplied power immediately after discharge
         public void RecordElectricTick(RPM currentRpm, float suppliedPower)
         {
-            var state = ResolveState(currentRpm, suppliedPower);
+            var state = ResolveState();
             // 表示の丸め境界を跨ぐ微小差も直近tickの実供給として届ける
             // Deliver even tiny changes across a display rounding boundary as the latest tick's actual supply
             if (_hasNotifiedOnce && state == State && SuppliedPower == suppliedPower) return;
@@ -35,15 +35,20 @@ namespace Game.Block.Blocks.GearToElectric
             State = state;
             SuppliedPower = suppliedPower;
             _onGenerationChanged.OnNext(Unit.Default);
+
+            #region Internal
+
+            // RPM不足を優先し、回転中だけ供給量で状態を分ける
+            // RPM shortage takes priority; supply distinguishes states only while spinning
+            GearToElectricGenerationState ResolveState()
+            {
+                var rpm = currentRpm.AsPrimitive();
+                if (rpm <= 0f || rpm < _minimumRpm) return GearToElectricGenerationState.Stopped;
+                return 0f < suppliedPower ? GearToElectricGenerationState.Generating : GearToElectricGenerationState.Idle;
+            }
+
+            #endregion
         }
 
-        // RPM不足を優先し、回転中だけ供給量で状態を分ける
-        // RPM shortage takes priority; supply distinguishes states only while spinning
-        private GearToElectricGenerationState ResolveState(RPM currentRpm, float suppliedPower)
-        {
-            var rpm = currentRpm.AsPrimitive();
-            if (rpm <= 0f || rpm < _minimumRpm) return GearToElectricGenerationState.Stopped;
-            return suppliedPower > 0f ? GearToElectricGenerationState.Generating : GearToElectricGenerationState.Idle;
-        }
     }
 }

@@ -1,4 +1,4 @@
-import type { BlockInventoryWireData } from "../../src/bridge/contract/payloadTypes";
+import type { BlockInventoryWireData } from "./types/blockInventoryWireData";
 import * as BlockGuids from "./fixtures/blockLocalizationFixtures";
 import { WATER_FLUID_GUID } from "./fixtures/contentLocalizationFixtures";
 

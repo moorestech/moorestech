@@ -11,7 +11,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
     /// </summary>
     public static class GearToElectricDetailDtoBuilder
     {
-        public static void Apply(BlockInventoryDto dto, BlockGameObject block, object param)
+        internal static void Apply(BlockInventoryDto dto, BlockGameObject block, object param)
         {
             if (param is not GearToElectricGeneratorBlockParam generatorParam) return;
             var state = block.GetStateDetail<GearToElectricGeneratorBlockStateDetail>(
