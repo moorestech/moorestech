@@ -111,26 +111,45 @@ namespace Client.Tests.UnitTest.MapPreview
         public IEnumerator ClosingAfterWholeWorldCreationReclaimsPendingGeneration()
         {
             var baseline = GeneratedMapPreviewObservation.WorldDirectories();
-            _stage.Regenerate();
-            // 同期生成から最初のTerrain処理へ渡った時点を上限付きで待つ
-            // Wait with a deadline for synchronous generation to hand over to the first terrain build
-            var deadline = EditorApplication.timeSinceStartup + 600;
-            while (_stage.scene.rootCount == 0 && _stage.State == GeneratedMapPreviewState.Generating && EditorApplication.timeSinceStartup < deadline)
-                yield return null;
-            Assert.That(_stage.State, Is.EqualTo(GeneratedMapPreviewState.Generating));
-            var root = _stage.scene.GetRootGameObjects().Single();
-            var data = Resources.FindObjectsOfTypeAll<TerrainData>().Where(x => !AssetDatabase.Contains(x)).ToArray();
-            Assert.That(GeneratedMapPreviewObservation.WorldDirectories().Except(baseline), Is.Not.Empty);
-
-            // 同期ワールド生成が戻った後の実際のyield境界で閉じる
-            // Close at a real yield boundary after synchronous whole-world provisioning returns
-            StageUtility.GoToMainStage();
-            yield return null;
-            Assert.That(_stage.State, Is.EqualTo(GeneratedMapPreviewState.Closed));
-            Assert.That(root == null, Is.True);
-            Assert.That(data.All(x => x == null), Is.True);
-            Assert.That(GeneratedMapPreviewObservation.WorldDirectories(), Is.EquivalentTo(baseline));
-            Assert.That(SceneManager.GetActiveScene(), Is.EqualTo(_main));
+            var run = new GeneratedMapPreviewRun();
+            using var cancellation = new CancellationTokenSource();
+            var gate = new GeneratedMapPreviewStageRunGate(_stage, run, cancellation);
+            try
+            {
+                // 実Run完了後だけStage終端を留め、root出現時刻に依存しない。
+                // Hold only the Stage terminal after the real run, independent of root timing.
+                var deadline = EditorApplication.timeSinceStartup + 600;
+                while (gate.WorldBuilt.Task.Status == UniTaskStatus.Pending && _stage.State == GeneratedMapPreviewState.Generating && EditorApplication.timeSinceStartup < deadline)
+                    yield return null;
+                Assert.That(gate.WorldBuilt.Task.Status, Is.EqualTo(UniTaskStatus.Succeeded), _stage.StatusText);
+                Assert.That(gate.Completion.IsCompleted, Is.False);
+                Assert.That(_stage.State, Is.EqualTo(GeneratedMapPreviewState.Generating));
+                var root = _stage.scene.GetRootGameObjects().Single();
+                var data = root.GetComponentsInChildren<UnityEngine.Terrain>().Select(x => x.terrainData).ToArray();
+                Assert.That(data, Is.Not.Empty);
+                Assert.That(GeneratedMapPreviewObservation.WorldDirectories().Except(baseline), Is.Not.Empty);
+                // Close直後の保持と継続解除後の回収を別々に確かめる。
+                // Check retention just after Close separately from reclamation after release.
+                StageUtility.GoToMainStage();
+                Assert.That(_stage.State, Is.EqualTo(GeneratedMapPreviewState.Closed));
+                Assert.That(gate.Completion.IsCompleted, Is.False);
+                Assert.That(root != null && data.All(x => x != null), Is.True);
+                Assert.That(GeneratedMapPreviewObservation.WorldDirectories().Except(baseline), Is.Not.Empty);
+                gate.Release.TrySetResult();
+                while (!gate.Completion.IsCompleted && EditorApplication.timeSinceStartup < deadline) yield return null;
+                Assert.That(gate.Completion.IsCompleted, Is.True, "observer must finish before GetResult");
+                Assert.Throws<OperationCanceledException>(() => gate.Completion.GetAwaiter().GetResult());
+                Assert.That(root == null && data.All(x => x == null), Is.True);
+                Assert.That(GeneratedMapPreviewObservation.WorldDirectories(), Is.EquivalentTo(baseline));
+                Assert.That(SceneManager.GetActiveScene(), Is.EqualTo(_main));
+                Assert.That(_main.isDirty, Is.False);
+            }
+            finally
+            {
+                gate.Release.TrySetResult();
+                StageUtility.GoToMainStage();
+                if (gate.Completion.IsFaulted) _ = gate.Completion.Exception;
+            }
         }
 
         [UnityTest]
