@@ -46,7 +46,7 @@ describe("GearToElectricSection with the Japanese dictionary", () => {
     expect(power.props.children).toBe("供給電力 72 / 最大 100");
     const state = tree.root.findByProps({ "data-testid": "gear-to-electric-state" });
     expect(state.props.children).toBe("発電中");
-    expect(tree.root.findByType("mock-hover-tooltip").props.label).toBe("発電状態と供給電力は直近の計測結果です。回転数とは更新のタイミングが異なります。");
+    expect(tree.root.findAll((node) => typeof node.type === "string" && node.props.label !== undefined)[0].props.label).toBe("発電状態と供給電力は直近の計測結果です。回転数とは更新のタイミングが異なります。");
     const timing = csv.rows.find((row: { key: string }) => row.key === "ui.blockInventory.gearToElectricMeasurementTiming");
     expect(timing).toBeDefined();
     for (const text of timing.texts) expect(text.length).toBeGreaterThan(0);

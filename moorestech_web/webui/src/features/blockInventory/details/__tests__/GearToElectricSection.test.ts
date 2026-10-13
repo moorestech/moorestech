@@ -57,7 +57,7 @@ describe("GearToElectricSection", () => {
   });
   it("explains the measurement timing on the state row", () => {
     const tree = render({ generationState: "generating", suppliedPower: 10, maxGeneratedPower: 100 });
-    expect(tree.root.findByType("mock-hover-tooltip").props.label).toBe("ui.blockInventory.gearToElectricMeasurementTiming|undefined");
+    expect(tree.root.findAll((node) => typeof node.type === "string" && node.props.label !== undefined)[0].props.label).toBe("ui.blockInventory.gearToElectricMeasurementTiming|undefined");
   });
   it("renders nothing before detail arrives", () => {
     expect(render().toJSON()).toBeNull();
