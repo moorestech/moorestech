@@ -21,6 +21,10 @@ namespace Client.Tests.EventMode
                 BindingFlags.Static | BindingFlags.NonPublic);
             Assert.IsNotNull(sequence);
             Assert.IsTrue(MethodCallInspector.ContainsCall(hook, sequence));
+            // 終了トークンの取得欠落を検出する
+            // Detect a missing exit-token getter call
+            var exitTokenGetter = typeof(Application).GetProperty(nameof(Application.exitCancellationToken)).GetMethod;
+            Assert.IsTrue(MethodCallInspector.ContainsCall(hook, exitTokenGetter));
         }
 
         [Test]
@@ -39,6 +43,12 @@ namespace Client.Tests.EventMode
             var log = typeof(Debug).GetMethod(nameof(Debug.LogError), new[] { typeof(object) });
             var quit = typeof(Application).GetMethod(nameof(Application.Quit), System.Type.EmptyTypes);
             Assert.IsTrue(MethodCallInspector.CallsInOrder(action, log, quit));
+            // 期限切れ経路でワールドを保全する
+            // Preserve the world on the timeout path
+            var delete = typeof(GameSystemPaths).GetMethod(nameof(GameSystemPaths.DeleteDefaultWorldDirectory));
+            var start = typeof(LocalGameLauncher).GetMethod(nameof(LocalGameLauncher.StartLocalGame));
+            Assert.IsFalse(MethodCallInspector.ContainsCall(action, delete));
+            Assert.IsFalse(MethodCallInspector.ContainsCall(action, start));
         }
     }
 }

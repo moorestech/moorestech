@@ -1,4 +1,6 @@
 using System.Collections;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Localization;
@@ -7,6 +9,7 @@ using Client.Starter.EventMode;
 using Client.Starter.Playtest.TitleGates;
 using Client.Tests.BugReport;
 using Client.Tests.PlaytestReceiver;
+using Client.Tests.Playtest;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using UnityEngine.TestTools;
@@ -90,6 +93,15 @@ namespace Client.Tests.EventMode
         [UnityTest, Timeout(5000)]
         public IEnumerator CancelledExitDoesNotStartAnAlreadyPassedTitle() => UniTask.ToCoroutine(async () =>
         {
+            // 副作用直前の取消ガード欠落を検出する
+            // Detect removal of the cancellation guard before side effects
+            var sequence = typeof(EventModeAutoStartSequence).GetMethod(nameof(EventModeAutoStartSequence.RunAsync),
+                BindingFlags.Static | BindingFlags.NonPublic);
+            var stateMachine = sequence.GetCustomAttribute<AsyncStateMachineAttribute>().StateMachineType;
+            var moveNext = stateMachine.GetMethod("MoveNext", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            var guard = typeof(CancellationToken).GetMethod(nameof(CancellationToken.ThrowIfCancellationRequested));
+            Assert.IsTrue(MethodCallInspector.ContainsCall(moveNext, guard));
+
             using var exit = new CancellationTokenSource();
             PassUnattendedTitle(exit.Token);
             exit.Cancel();

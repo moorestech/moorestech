@@ -108,6 +108,8 @@ namespace Client.Tests.EventMode
 `EventModeAutoStartSequenceTest.cs`:
 ```csharp
 using System.Collections;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Localization;
@@ -116,6 +118,7 @@ using Client.Starter.EventMode;
 using Client.Starter.Playtest.TitleGates;
 using Client.Tests.BugReport;
 using Client.Tests.PlaytestReceiver;
+using Client.Tests.Playtest;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using UnityEngine.TestTools;
@@ -199,6 +202,15 @@ namespace Client.Tests.EventMode
         [UnityTest, Timeout(5000)]
         public IEnumerator CancelledExitDoesNotStartAnAlreadyPassedTitle() => UniTask.ToCoroutine(async () =>
         {
+            // 副作用直前の取消ガード欠落を検出する
+            // Detect removal of the cancellation guard before side effects
+            var sequence = typeof(EventModeAutoStartSequence).GetMethod(nameof(EventModeAutoStartSequence.RunAsync),
+                BindingFlags.Static | BindingFlags.NonPublic);
+            var stateMachine = sequence.GetCustomAttribute<AsyncStateMachineAttribute>().StateMachineType;
+            var moveNext = stateMachine.GetMethod("MoveNext", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            var guard = typeof(CancellationToken).GetMethod(nameof(CancellationToken.ThrowIfCancellationRequested));
+            Assert.IsTrue(MethodCallInspector.ContainsCall(moveNext, guard));
+
             using var exit = new CancellationTokenSource();
             PassUnattendedTitle(exit.Token);
             exit.Cancel();
@@ -222,7 +234,7 @@ namespace Client.Tests.EventMode
 `EventModeAutoStartBindingTest.cs`:
 ```csharp
 using System.Reflection;
-using Client.Common;
+using Client.Starter;
 using Client.Starter.EventMode;
 using Client.Tests.Playtest;
 using Game.Paths;
@@ -244,6 +256,10 @@ namespace Client.Tests.EventMode
                 BindingFlags.Static | BindingFlags.NonPublic);
             Assert.IsNotNull(sequence);
             Assert.IsTrue(MethodCallInspector.ContainsCall(hook, sequence));
+            // 終了トークンの取得欠落を検出する
+            // Detect a missing exit-token getter call
+            var exitTokenGetter = typeof(Application).GetProperty(nameof(Application.exitCancellationToken)).GetMethod;
+            Assert.IsTrue(MethodCallInspector.ContainsCall(hook, exitTokenGetter));
         }
 
         [Test]
@@ -262,6 +278,12 @@ namespace Client.Tests.EventMode
             var log = typeof(Debug).GetMethod(nameof(Debug.LogError), new[] { typeof(object) });
             var quit = typeof(Application).GetMethod(nameof(Application.Quit), System.Type.EmptyTypes);
             Assert.IsTrue(MethodCallInspector.CallsInOrder(action, log, quit));
+            // 期限切れ経路でワールドを保全する
+            // Preserve the world on the timeout path
+            var delete = typeof(GameSystemPaths).GetMethod(nameof(GameSystemPaths.DeleteDefaultWorldDirectory));
+            var start = typeof(LocalGameLauncher).GetMethod(nameof(LocalGameLauncher.StartLocalGame));
+            Assert.IsFalse(MethodCallInspector.ContainsCall(action, delete));
+            Assert.IsFalse(MethodCallInspector.ContainsCall(action, start));
         }
     }
 }
@@ -406,7 +428,7 @@ git commit -m "test: replace full exhibition world boot with lightweight startup
 - 配置検査: 7種類のファイルを上の表へ抽出。すべて出展起動のClient.StarterまたはClient.Testsへ配置。Core・Server・スキーマ・セーブ形式へ変更を入れない。
 - 前例検査: 待機は既存TitleGatesへ委譲、副作用のinterface差し替えはEventModeStartGateのIEventIdleWatchArmerと同じ役割、配線検査は既存MethodCallInspectorを呼ぶ。
 - 機能パリティ: 上の5操作は存続。Unityフックと無人宣言/言語適用の呼び出し順を維持する。
-- 保留/取消検査: 未始動→通過、通過済み、期限切れ→遅い通過、取消、通過後の取消の5ケース。遅い通過でも旧実行の副作用を再開しない。
+- 保留/取消検査: 未始動→通過、通過済み、期限切れ→遅い通過、取消、通過済み＋取消済みの5ケース。遅い通過でも旧実行の副作用を再開しない。取消済み入力の実待機試験に加え、ILで副作用直前の取消ガードの存在を検査する。実スレッド競合の再現を証明する試験ではない。終了トークンgetterの呼び出し存在と期限切れactionsの削除・開始呼び出し不在も検査するが、トークンのデータフロー全般は証明しない。
 - 同点規則・外部出力の規則化・複数UI保持者の鮮度: 新設しないため該当なし。IL解析規則は既存Inspectorを再利用する。
 - placeholder/型照合: 定義するRunAsync・2つのeffectsメソッドと呼び出し側は一致。コードブロックはファイルごとに200行未満。計画上の検証はすべて未実施としてチェックを空のまま残す。
 
