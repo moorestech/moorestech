@@ -78,7 +78,9 @@ namespace Client.Game.InGame.BugReport.Capture
         // Decides whether a send may start and hands over the records; this is the single authority for that decision
         public BugReportSubmitTicket TryBeginSubmit()
         {
-            return _submitGate.TryBegin(_data, _progress.IsCapturePending());
+            var ticket = _submitGate.TryBegin(_data, _progress.IsCapturePending());
+            if (ticket.Allowed) _progress.Publish(_data, _submitGate);
+            return ticket;
         }
 
         // 書き出しの結果を確保状態へ戻す。欠損は書き出し側が確定させるので、ここで丸ごと置き換える

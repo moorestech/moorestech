@@ -23,22 +23,26 @@ export function BugReportForm({ status, draft }: Props) {
   // 送信してよいかの判定はC#が持ち、結論が kind で届く。ここで条件を組み立て直すと判定が2本になる
   // C# owns whether a send may start and delivers the verdict as the kind; rebuilding the conditions here would make two rules
   const blocked = trimmedDescription.length === 0 || status.kind !== "ready" || sending;
+  // 応答待ち終了後もホスト送信中は種別を保つ
+  // Preserve the kind while the host writes after local waiting ends
+  const inputLocked = sending || status.kind === "submitting";
 
   const send = async () => {
     // 二度押しは同じ確保から2箱を作り、同じ報告のdraft PRが2本出る
     // A second click makes two boxes from one capture and raises two draft PRs for one report
     if (blocked) return;
     const missing = [...status.missing];
+    const kind = draft.kind;
     setSending(true);
     // 失敗時のトーストは dispatchAction が出すため、ここでは書き出し成功だけを伝える
     // dispatchAction toasts the failure itself, so this path only reports a successful write
-    const accepted = await dispatchAction("bug_report.submit", { description: trimmedDescription, kind: draft.kind });
+    const accepted = await dispatchAction("bug_report.submit", { description: trimmedDescription, kind });
     setSending(false);
     if (!accepted) return;
 
     // 押した時点の確保状態で出す。書き出し中の欠損はmanifestにだけ残す
     // Use capture state at click time; gaps during writing remain only in the manifest
-    if (missing.length === 0) emitToast(t(L.ui.bugReport.sent), "info");
+    if (missing.length === 0) emitToast(t(reportLabels(kind).sent), "info");
     else emitToast(t(L.ui.bugReport.missing, { items: missing.join(", ") }), "error");
 
     draft.reset();
@@ -58,30 +62,36 @@ export function BugReportForm({ status, draft }: Props) {
           { value: PauseMenuReportKinds.feedback, label: t(L.ui.playtest.reportKind.feedback), testId: "bug-report-kind-feedback" },
         ]}
         onChange={(value) => draft.setKind(value as PauseMenuReportKind)}
-        disabled={sending}
+        disabled={inputLocked}
         testId="bug-report-kind"
       />
       <textarea
         className={styles.description}
         value={draft.description}
         placeholder={t(L.ui.bugReport.placeholder)}
-        disabled={sending}
+        disabled={inputLocked}
         onChange={(e) => draft.setDescription(e.currentTarget.value)}
         data-testid="bug-report-description"
       />
       {statusLine && <span className={styles.status} data-testid="bug-report-status">{statusLine}</span>}
-      <Button onClick={send} disabled={blocked} data-testid="bug-report-send">{t(L.ui.bugReport.send)}</Button>
+      <Button onClick={send} disabled={blocked} data-testid="bug-report-send">{t(reportLabels(draft.kind).send)}</Button>
     </>
   );
+
+  // 種別別の表示キーをここに集め、完了通知は送信開始時の種別を使う
+  // Keep kind-specific display keys together; completion uses the kind captured at submission
+  function reportLabels(kind: PauseMenuReportKind) {
+    return kind === PauseMenuReportKinds.feedback ? L.ui.feedbackReport : L.ui.bugReport;
+  }
 
   // 送れない理由はC#の kind 1本から引く。押下中だけは応答が届くまでの手元の状態を優先する
   // The reason a send is blocked comes from C#'s single kind; only the click's own round trip is read locally
   function describeStatus(): string | null {
-    if (sending) return t(L.ui.bugReport.sending);
+    if (sending) return t(reportLabels(draft.kind).sending);
     switch (status.kind) {
       case "noSession": return t(L.ui.bugReport.noSession);
       case "capturing": return t(L.ui.bugReport.capturePending);
-      case "submitting": return t(L.ui.bugReport.sending);
+      case "submitting": return t(reportLabels(draft.kind).sending);
       case "ready": return null;
     }
   }
