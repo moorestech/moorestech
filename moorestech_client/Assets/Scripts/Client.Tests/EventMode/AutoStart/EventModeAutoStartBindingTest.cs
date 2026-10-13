@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Client.Tests.EventMode
 {
-    public class EventModeAutoStartBindingTest
+    internal class EventModeAutoStartBindingTest
     {
         [Test]
         public void RuntimeHookUsesAfterSceneLoadAndProductionSequence()

@@ -125,7 +125,7 @@ using UnityEngine.TestTools;
 
 namespace Client.Tests.EventMode
 {
-    public class EventModeAutoStartSequenceTest
+    internal class EventModeAutoStartSequenceTest
     {
         private const float ShortDeadlineSeconds = 0.2f;
         private const float ObservationLimitSeconds = 5f;
@@ -243,7 +243,7 @@ using UnityEngine;
 
 namespace Client.Tests.EventMode
 {
-    public class EventModeAutoStartBindingTest
+    internal class EventModeAutoStartBindingTest
     {
         [Test]
         public void RuntimeHookUsesAfterSceneLoadAndProductionSequence()

@@ -16,7 +16,7 @@ using UnityEngine.TestTools;
 
 namespace Client.Tests.EventMode
 {
-    public class EventModeAutoStartSequenceTest
+    internal class EventModeAutoStartSequenceTest
     {
         private const float ShortDeadlineSeconds = 0.2f;
         private const float ObservationLimitSeconds = 5f;
