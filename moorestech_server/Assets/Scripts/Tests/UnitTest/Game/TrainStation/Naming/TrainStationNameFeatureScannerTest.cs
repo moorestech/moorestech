@@ -83,8 +83,8 @@ namespace Tests.UnitTest.Game.TrainStation.Naming
         public void MostFrequentMinedNameWinsAndTiesUseOrdinalName()
         {
             var map = EmptyMap();
-            map.MapObjects.Add(Object(1, "8c0e1339-be75-4690-99cd-58b5385a17cd", Vector3.one));
-            map.MapObjects.Add(Object(2, "00000000-0000-2222-0000-000000000001", Vector3.one));
+            map.MapObjects.Add(Object(1, "00000000-0000-2222-0000-000000000001", Vector3.one));
+            map.MapObjects.Add(Object(2, "8c0e1339-be75-4690-99cd-58b5385a17cd", Vector3.one));
             Assert.AreEqual("Test1 Station", Scanner(map, Names()).ScanBaseName(SquareStation()));
             // 同数の辞書順と、最多への切り替えを独立に確かめる
             // Verify ordinal ties separately from switching to a majority

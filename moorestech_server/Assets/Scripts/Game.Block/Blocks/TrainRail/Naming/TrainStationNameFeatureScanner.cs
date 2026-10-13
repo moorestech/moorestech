@@ -12,7 +12,7 @@ namespace Game.Block.Blocks.TrainRail.Naming
     // Decide the unnumbered default name around a station (vein, then mined item of map objects, then fallback)
     public class TrainStationNameFeatureScanner
     {
-        public const float ScanRadius = 32f;
+        private const float ScanRadius = 32f;
         private const string FallbackName = "Station";
 
         private readonly IItemMapVeinDatastore _itemVeins;

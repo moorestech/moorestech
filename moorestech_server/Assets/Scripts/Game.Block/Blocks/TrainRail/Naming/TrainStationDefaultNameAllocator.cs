@@ -16,7 +16,7 @@ namespace Game.Block.Blocks.TrainRail.Naming
             _scanner = scanner;
         }
 
-        public string Allocate(BlockPositionInfo position)
+        internal string Allocate(BlockPositionInfo position)
         {
             var baseName = _scanner.ScanBaseName(position);
             var existingNames = CollectExistingNames();
