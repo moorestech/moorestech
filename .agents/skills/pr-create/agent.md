@@ -42,18 +42,15 @@ PRのタイトルと概要を作成する。
 - タイトルは70文字以内
 - 詳細は本文（body）に記述
 
-### 2.5 Web変更の画像を準備する
+### 2.5 報告ページの素材を集める
 
-差分に `moorestech_web/webui/`、Webフロントエンド、またはユーザーが見るWeb UIの変更が含まれる場合は、PR本文への実画面画像添付を必須とする。
+すべてのPRで報告ページ（`https://review.moores.tech/pr/<PR番号>/report/`）を公開し、PR本文の先頭行にそのURLを1本だけh1見出し（`# https://review.moores.tech/pr/<PR番号>/report/`）で大きく張る。リンク文字列で包まずURLそのものを見出しにする。書式・manifest・公開手順は [references/pr-report.md](references/pr-report.md) が正本。
 
-1. タスク中に生成した最新スクリーンショットを探し、変更後の画面と一致することを確認する。
-2. 画像が無い、古い、または主要状態が不足する場合は、既存のcaptureスクリプトやPlaywright E2Eを使って代表状態を撮影する。
-3. レイアウト変更では、影響を受ける主要画面・モードが比較できる最小十分な枚数を選ぶ。
-4. 選んだ画像を `docs/pr-assets/<PRの題材>/` へコピーし、実装変更と同じPRブランチへコミットする。画像には秘密情報や一時的なデバッグ表示を含めない。
-5. push後、画像を含むコミットSHAを固定した `https://github.com/<owner>/<repo>/blob/<commit-sha>/docs/pr-assets/<PRの題材>/<image>.png?raw=true` 形式のURLを `## スクリーンショット` 節へ埋め込む。
-6. ローカル絶対パス、`file://` URL、実行環境だけで見えるURLはPR本文へ書かない。
+1. タスク中に撮った画像・動画（スクリーンショット、unityプレイ録画テストの `recording.mp4`、Playwright の撮影など）を**全部**集め、変更後の状態と一致することを確認する。
+2. 見た目が変わる変更（Web UI・ゲーム内UI・演出など）で素材が無い・古い・主要状態が欠ける場合は、既存のcaptureスクリプト・Playwright・unityプレイ録画テストで撮る。
+3. PR作業のscratch（コミットしない場所）に `manifest.json` を書く。素材が本当に無い変更だけ `no_media_reason` に理由を書く。
 
-Web変更で画像のコミットやGitHub上での参照確認ができない場合は、画像を省略したまま完了報告をしてはいけない。失敗した操作と必要な復旧操作を明記して呼び出し元へ返す。
+禁止: PR本文に画像・動画のURLを個別に並べる、`docs/pr-assets/` へ素材をコミットする、ローカルパス・`file://`・tailnet（share）のURLを書く。
 
 ### 3. Prepare Branch and Commit
 ステップ1の結果を元に、必要なコミットを自動で作成する。ユーザーに確認せず実行すること。
@@ -97,11 +94,10 @@ git push -u origin <PR_BRANCH>
 
 # Create PR using gh CLI（--base でマージ先、--head でPR元ブランチを明示）
 gh pr create --base <BASE> --head <PR_BRANCH> --title "the pr title" --body "$(cat <<'EOF'
+# （報告URLは公開後に差し替え）
+
 ## Summary
 <1-3 bullet points>
-
-## スクリーンショット
-<Web関連変更の場合のみ、docs/pr-assetsへコミットした実画面画像のGitHub URLを配置>
 
 ## Test plan
 [Bulleted markdown checklist of TODOs for testing the pull request...]
@@ -110,6 +106,17 @@ Generated with [Claude Code](https://claude.com/claude-code)
 EOF
 )"
 ```
+
+### 4.5 報告ページを公開する（必須）
+
+PR番号が決まったら、mac-mini で報告ページを公開し、PR本文の先頭行を `# <公開URL>` に差し替える。既存PRへのpushで成果物が変わった場合も再公開する。
+
+```bash
+python3 scripts/pr-report/publish_pr_report.py <PR番号> <manifest.json>   # 標準出力が公開URL
+gh pr edit <PR番号> --body-file <URLを入れた本文>
+```
+
+公開スクリプトが失敗した場合は、報告URL無しのまま完了報告をしてはいけない。失敗した操作と必要な復旧操作を明記して呼び出し元へ返す。
 
 ### 5. コンフリクト確認と解消（必須）
 PR作成（または既存PRへのpush）後、マージ可能状態を確認する。
@@ -140,7 +147,7 @@ gh pr view <PR番号またはPR_BRANCH> --json mergeable,mergeStateStatus
 ## Important Notes
 
 - 完了したらPRのURLとマージ可能状態（MERGEABLE / コンフリクト解消済み / 要裁定で未解消）を返す（呼び出し元がユーザーに提示できるように）。worktree用ブランチ（`treeN`）から切り出した場合は、作成したPR用ブランチ名も併せて報告する
-- Web関連変更では、`gh api` で各画像がPRブランチのコミットに存在することを確認し、`gh pr view --json body` で `## スクリーンショット` 節とGitHub上の画像URLを確認して掲載画像数も報告する
+- `gh pr view --json body` で本文の先頭行が `# https://review.moores.tech/pr/<PR番号>/report/` であり、他に報告URLが無いことを確認し、公開スクリプトが出した「画像 N 枚 / 動画 M 本」を報告する
 - `treeN` のようなworktree運用ブランチをそのままPRのheadにしない。必ず内容を表す別ブランチを切ってからPRを作る
 - `treeN`・ベースブランチ以外では、現在のブランチ名を別のprefixへ付け替えない（`chore/xxx` を `feature/xxx` にし直す等は禁止）
 - 明示的な許可なく破壊的なgitコマンドを使わない

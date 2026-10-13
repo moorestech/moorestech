@@ -20,14 +20,15 @@ description: |
    `.claude/skills/pr-create/agent.md` の手順に従い、現在のブランチの変更を
    master（またはベースブランチ）へマージするPRを作成せよ。
    出力・コミットメッセージ・PR本文はすべて日本語。ユーザーへの確認はせず全自動で実行し、
-   Web関連の変更を含む場合は検証済みの実画面画像をPR本文へ添付し、
-   最後に作成したPRのURLと添付画像数を返すこと。
+   タスク中の画像・動画を全部載せた報告ページを review.moores.tech/pr/<N>/report/ へ公開して
+   PR本文の先頭行にそのURLだけをh1見出し（`# <URL>`）で張り、
+   最後に作成したPRのURLと報告URL・画像枚数・動画本数を返すこと。
    （ユーザーからの追加指示があればここに引き継ぐ）
    ```
 
    subagent は起動後すぐ `.claude/skills/pr-create/agent.md` を Read し、その Workflow を実行する。
 
-3. **結果を提示する。** subagent が返した PR の URL をユーザーに提示する。
+3. **結果を提示する。** subagent が返した PR の URL と報告URLをユーザーに提示する。
 
 ## Important Notes
 
@@ -36,8 +37,7 @@ description: |
 - stacked PRは `gh pr create` 直前に土台PRのstate・mergeCommitと最新baseを確認。未マージ→土台ブランチ、マージ済み→取り込み先をbase候補にし、差分が今回分だけか確認。未マージのclosedはマージ済み扱いしない。
 
 - 詳細な PR 作成フロー（情報収集・差分分析・ブランチ/コミット作成・`gh pr create`）は `agent.md` 側に定義済み。本体で重複実装しない
-- Web関連の変更ではスクリーンショット添付を完了条件とし、ローカルパスだけをPR本文へ書いて完了扱いにしない
-- Web関連の変更では、検証済みスクリーンショットを `docs/pr-assets/<PRの題材>/` へコミットし、そのGitHub URLをPR本文へ掲載することを完了条件とする
+- すべてのPRで報告ページ（`https://review.moores.tech/pr/<N>/report/`）の公開と、PR本文の先頭行へのh1見出しでのURL掲載（`# https://review.moores.tech/pr/<N>/report/`）を完了条件とする。タスク中の画像・動画は全部ここへ載せ、PR本文に個別のURLを並べない・`docs/pr-assets/` へコミットしない（詳細は `references/pr-report.md`）
 - 実際のマージ（`gh pr merge` 等）は行わない。PR作成と base 設定までが範囲
 - ただしPR作成後のコンフリクト確認は必須。CONFLICTINGならbaseをPRブランチへマージして解消・pushまで行う。コンフリクト解消の実作業はsonnetにやらせず、必ず**opus subagent**へさらに委譲する（設計判断を要する場合のみ未解消のまま報告。詳細は `agent.md` ステップ5）
 - PR の head は指定がない限り cwd の現在ブランチをそのまま使う。ブランチ名の prefix は問わず、切り直しや改名はしない（詳細は `agent.md` ステップ3）
