@@ -12,7 +12,7 @@ vi.mock("@mantine/core", () => ({
   Text: ({ children, ...props }: { children: unknown }) => createElement("mock-text", props, children as never),
 }));
 
-import GearSection from "./GearSection";
+import GearSection from "../GearSection";
 
 function render(gear: GearDetailData) {
   const data = { open: true, source: "block", blockType: "GearMachine", identifier: "block:1", blockGuid: "g", itemSlots: [], fluidSlots: [], gear } as unknown as BlockInventoryOpen;

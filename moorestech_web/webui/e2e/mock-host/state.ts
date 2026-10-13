@@ -1,5 +1,6 @@
+import type { BlockInventoryWireData } from "./types/blockInventoryWireData";
 import type { WebSocket } from "ws";
-import type { BlockInventoryWireData, ModalRequest, UiStateData, ResearchTreeData, GameStateData, SkitPresentationData, TrainRidingData, PlayerInventoryData, WorldPinPresentationData } from "../../src/bridge/contract/payloadTypes";
+import type { ModalRequest, UiStateData, ResearchTreeData, GameStateData, SkitPresentationData, TrainRidingData, PlayerInventoryData, WorldPinPresentationData } from "../../src/bridge/contract/payloadTypes";
 import * as fx from "./fixtures";
 import { clone } from "./wire";
 import type { PauseMenuPageName } from "../../src/bridge/transport/protocol";

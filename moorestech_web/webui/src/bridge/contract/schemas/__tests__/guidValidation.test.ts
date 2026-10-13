@@ -10,7 +10,7 @@ import {
   MachineDetailDataSchema,
   MachineRecipeSchema,
   ResearchNodeDataSchema,
-} from "./index";
+} from "../index";
 
 const invalidGuid = "symbolic-guid";
 const guidA = "10000000-0000-4000-8000-000000000001";

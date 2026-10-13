@@ -1,7 +1,8 @@
+import type { BlockInventoryWireData } from "./types/blockInventoryWireData";
 // 機械レシピ選択Actionがモックblock状態へ反映される契約を検証する
 // Verifies that machine recipe selection actions update mock block state
 import { describe, expect, it } from "vitest";
-import type { BlockInventoryWireData } from "../../src/bridge/contract/payloadTypes";
+
 import type { ActionPayloads } from "../../src/bridge/transport/protocol";
 import { applyMachineRecipeSelect } from "./detailActions";
 

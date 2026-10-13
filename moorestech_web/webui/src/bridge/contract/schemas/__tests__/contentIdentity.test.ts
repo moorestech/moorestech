@@ -3,7 +3,7 @@ import {
   ChallengeCurrentDataSchema,
   ChallengeTreeDataSchema,
   ResearchTreeDataSchema,
-} from "./index";
+} from "../index";
 
 const researchNode = {
   guid: "60000000-0000-4000-8000-000000000001",
