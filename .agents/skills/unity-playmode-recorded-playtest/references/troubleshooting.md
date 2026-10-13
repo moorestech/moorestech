@@ -88,11 +88,11 @@ EditModeInPlayingTestを一括実行すると、後半のテストが
 
 - **機関車は燃料なしで無言停止する**（エラー・警告ログ一切なし）。auto-run有効・IsDocked=False・diagram正常でも
   マスコン計算が0を返しspeed=0のまま。`p.Until(() => train.CurrentSpeed > 0, ...)`が原因不明でタイムアウトしたら
-  まず `p.SendCommand("addFuelToAllTrainCarsCommand")` を挟む（2026-07-18実証: これだけでspeed=7.58に）。
+  まず `p.SendCommand("addFuelToAllTrainCarsCommand")` を挟む。
   ※scout調査が「fuelSlots=0だから燃料は走行のゲートにならない」と断定した実績があるが**誤り**だった
 
 - **レール橋脚（TrainRail型）のUI設置（PlaceBlockViaUi）がタイムアウトすることがある**。至近距離ワープ
-  （レンジ内）でも `UI設置反映: ... Until timeout` + NullReferenceException で失敗した実例あり（2026-07-18、真因未解明）。
+  （レンジ内）でも `UI設置反映: ... Until timeout` + NullReferenceException で失敗することがある（真因未解明）。
   レンジ説では説明できない。実績のある回避はサーバー直設置への切替（`PlaceTrainCarOnRailProtocolTest`等の
   サーバーテストと同経路でcreate param付き生成）。クライアント側の橋脚出現をWaitBlockGameObjectで待てば
   PlaceBlockイベント同期の検証を兼ねられる
