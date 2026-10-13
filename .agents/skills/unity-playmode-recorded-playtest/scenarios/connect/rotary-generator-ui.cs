@@ -44,7 +44,7 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
     InputSystem.AddDevice<Keyboard>();
     InputSystem.AddDevice<Mouse>();
     p.Note("専用仮想キーボードとマウスで実プレイ入力を送る");
-    p.WarpPlayer(new Vector3(7f, 34f, 10.5f));
+    p.WarpPlayer(new Vector3(5.5f, 34f, 10.5f));
     await p.WaitSeconds(0.5f);
 
     p.Note("駆動源なしの回転発電機を F キーで開き、停止表示を確認する");
@@ -103,7 +103,8 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
     p.Hotbar.UnlockConnectTool("電線");
     await p.GiveItem("銅のワイヤー", 64);
     await p.Hotbar.AssignHotbar(0, "電線");
-    await p.Hotbar.EnterBuildMode(0);
+    await p.ClickWebUi("hotbar-slot-0");
+    await p.WaitUiState(UIStateEnum.PlaceBlock, 10f);
     await AimAtClickCollider(generatorObject);
     await p.ClickPlace();
     await AimAtClickCollider(minerObject);
@@ -142,7 +143,7 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
     async UniTask AimAtClickCollider(BlockGameObject blockObject)
     {
         var collider = blockObject.GetComponentsInChildren<Collider>(true).First(c => c.name == "ClickCollider");
-        var aimPoint = new Vector3(collider.bounds.center.x, collider.bounds.min.y + 1.1f, collider.bounds.center.z);
+        var aimPoint = new Vector3(collider.bounds.center.x, collider.bounds.min.y + 0.4f, collider.bounds.center.z);
         await p.AimAt(aimPoint);
     }
 
