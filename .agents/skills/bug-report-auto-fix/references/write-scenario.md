@@ -17,7 +17,7 @@ DSL の書き方・API 一覧・実行方法の正本は `.agents/skills/unity-p
   別の master を渡すとスキーマ不整合で `MooresmasterLoaderException` により初期化が無言で死ぬ
 - `__BUNDLE__` プレースホルダを `sed "s|__BUNDLE__|$RUN|g"` で実値へ置換してから渡す（`run-scenario.sh` は置換しない）
 - シナリオは `$RUN/` 側へ書き出す（`$RUN/observe-2.cs` 等）。**`$WORKTREE` のコードrepoへコミットしない** —
-  バンドル依存のシナリオは証拠であって、PR に載る再現テストではない（裁定 2026-09-11）
+  バンドル依存のシナリオは証拠であって、PR に載る再現テストではない
 - 結果ディレクトリは `$RUN/observe-2/` のように連番で残す。上書きすると「何を試したか」が消え、
   `not_reproduced` の `summary` に書くべき材料が無くなる
 

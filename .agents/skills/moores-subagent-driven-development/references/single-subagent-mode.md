@@ -1,6 +1,6 @@
 # 単一subagent実装モードの詳細（規模ゲート未満）
 
-SKILL.md「単一subagent実装モード」の手順詳細・継続再派遣・fix経路・復旧。裁定の出所は ADR 0053 と `.decisions/2026-09-08-SDD閾値未満は本体インラインでなく単一opus-subagentで実装する.md`、`.decisions/2026-09-09-SDD単一モードの継続上限と途中終了ステータスとfix経路.md`。
+SKILL.md「単一subagent実装モード」の手順詳細・継続再派遣・fix経路・復旧。
 
 ## 手順の補足
 

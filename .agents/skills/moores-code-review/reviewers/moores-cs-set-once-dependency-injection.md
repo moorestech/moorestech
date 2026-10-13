@@ -5,12 +5,12 @@ keywords:
   - "public void Set"
 ---
 
-# Lens: set-once依存の可変setter注入（PR1027由来）
+# Lens: set-once依存の可変setter注入
 
 ## あなたの役割
 cwdを読み、patchが**生成時に確定し以後不変な依存（set-once依存）を、public setterメソッドで注入している**箇所を返す。代表形は、生成直後に1回だけ呼ばれる `SetHoge(依存)` で協調オブジェクト（interface・サービス・sink）を差し込み、その1回だけという運用規約にスレッド安全性・不変性が乗っている構造。setterが要るように見える理由が呼び出し側の行順だけなら、コンストラクタ注入へ畳める。見るのは「不変条件がコメント上の約束か、構造上の保証か」という一点。
 
-由来: PR1027 review — `PacketResponseContext` に `SetEventSink(IPlayerEventSink)` が追加され、`ServerListenAcceptor` が `new PacketResponseContext()` 直後に1回だけ呼んでいた。「セットは公開前に1回だけ、受信スレッド起動前なのでlock不要」とコメントが主張していたが、public setterが生きる限りそれは運用規約でしかない。**この由来の具体ドメインにも構文にも引きずられず、下記の意味構造だけで判定すること**。
+例: `PacketResponseContext` に `SetEventSink(IPlayerEventSink)` が追加され、`ServerListenAcceptor` が `new PacketResponseContext()` 直後に1回だけ呼んでいた。「セットは公開前に1回だけ、受信スレッド起動前なのでlock不要」とコメントが主張していたが、public setterが生きる限りそれは運用規約でしかない。**この例の具体ドメインにも構文にも引きずられず、下記の意味構造だけで判定すること**。
 
 ## 検査対象の絞り込み
 起動prompt 2行目 `Patch path` をReadし、追加/変更された `public void Set*(...)` メソッドと、そのプロダクションコードでの呼び出し箇所に絞る。既存クラスは全読みせず、setterとその呼び出し元スコープ（`new X()` の周辺）だけを確認する。

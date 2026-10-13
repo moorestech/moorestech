@@ -89,7 +89,7 @@ python3 .claude/skills/master-refine/scripts/recalc_research_positions.py \
 レイアウトの要点:
 - 依存元は左・依存先は右。ルートノードは x=0、メインチェーン（最長依存パス）は y=0
 - X は `depth * X_SPACING` ではなく next_x 方式。同 depth の分岐が横に展開されても後続のメインチェーンは必ずその右に来る
-- `X_SPACING = 170`（旧500。研究ツリーUI上で間延びしたため1/3に短縮 — 2026-07-22 裁定）
+- `X_SPACING = 170`（研究ツリーUI上で間延びしないため）
 
 ---
 

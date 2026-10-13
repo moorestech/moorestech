@@ -31,6 +31,3 @@ recall 側に倒す。半信の候補を黙って落とさない（名指しで�
 ## 出力
 
 共通出力契約（Critical/Warning/Info/suppressed + 設計判断）。各 Critical/Warning に「削除された不変条件」「再確立を探した場所」「故障シナリオ」を含める。
-
-<!-- 由来: 組み込み /code-review v2.1.232 Angle B (removed-behavior auditor) の移植 2026-08-14。
-     同一 diff 比較で本角度由来の確認済みバグ (argv0 集約時の前提喪失ほか) 検出実績あり。all-code-review ADR-0004 (2026-08-14) からの同文移植。 -->
