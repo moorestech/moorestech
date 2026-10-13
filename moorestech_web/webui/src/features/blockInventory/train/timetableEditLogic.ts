@@ -1,5 +1,5 @@
-// 時刻表タブのローカル編集。適用で丸ごと送信
-// Local editing for the timetable tab; sent whole on Apply
+// 各操作から即時送信用の停車駅一覧を組み立てる
+// Build the stop list sent immediately for each operation
 import type { ActionPayloads, TrainTimetableStation, TrainTimetableStop } from "@/bridge";
 import { L, type InterpolationValues, type TranslationKey } from "@/shared/i18n";
 
@@ -55,7 +55,7 @@ export function toReplacePayload(stops: readonly TrainTimetableStop[]): ActionPa
 }
 
 // 順序が同じときだけサーバーの行番号を編集リストへ適用する。端の違いも別行として扱う
-// Apply the server row index to the draft only when both orders match; a differing side counts as a different row
+// Apply the server row index to the displayed list only when both orders match; a differing side counts as a different row
 export function sameStopOrder(left: readonly TrainTimetableStop[], right: readonly TrainTimetableStop[]): boolean {
   return left.length === right.length && left.every((stop, i) => stationKey(stop.position) === stationKey(right[i].position) && stop.side === right[i].side);
 }

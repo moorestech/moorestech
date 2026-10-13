@@ -59,3 +59,10 @@
   padding: 0 var(--mode-switch-padding-inline) var(--mode-switch-padding-block);
   color: var(--text-high-contrast);
 }
+
+/* 反映待ちと移動端を既存の非活性トーンで示す */
+/* Use the existing muted tone for pending edits and list boundaries */
+.list button:disabled {
+  color: var(--text-muted);
+  cursor: default;
+}

@@ -1,46 +1,25 @@
-// 時刻表タブ。draft編集→適用で送信、自動運転は即送信
-// Timetable tab: edit a draft, send on Apply; auto-run sends immediately
-import { useRef, useState } from "react";
+// 駅の編集と自動運転を操作ごとに送信する時刻表タブ
+// Timetable tab sending stop edits and auto-run changes immediately
 import { Stack, Text } from "@mantine/core";
 import { dispatchAction } from "@/bridge";
 import type { TrainTimetableData } from "@/bridge";
 import { L, useI18n } from "@/shared/i18n";
 import { FadeRule, GamePanel, ModeSwitch, PanelActionButton } from "@/shared/ui";
 import TrainTimetableStopList from "./TrainTimetableStopList";
-import { addStop, canEnableAutoRun, moveStop, removeStop, stationKey, stationLabel, toReplacePayload, sameStopOrder } from "./timetableEditLogic";
+import { addStop, canEnableAutoRun, moveStop, removeStop, stationKey, stationLabel, sameStopOrder } from "./timetableEditLogic";
 import styles from "./style.module.css";
+import { useImmediateTimetable } from "./useImmediateTimetable";
 
 export default function TrainTimetableSection({ timetable }: { timetable: TrainTimetableData }) {
   const { t } = useI18n();
-  // 適用前に閉じるとdraftは破棄（アンマウントで消える）
-  // The draft is discarded if closed before Apply (dies on unmount)
-  const [draft, setDraft] = useState(timetable.stops);
-  const [previousStops, setPreviousStops] = useState(timetable.stops);
-  // 未編集は最新snapshotに追従、編集中は並び保持
-  // Follow the latest snapshot while clean; keep order while editing
-  if (previousStops !== timetable.stops) {
-    setPreviousStops(timetable.stops);
-    if (sameStopOrder(draft, previousStops)) setDraft(timetable.stops);
-  }
-  const matchesServer = sameStopOrder(draft, timetable.stops);
-  // 送信の待ち時間中に届いた権威を掴むための最新スナップショット
-  // Holds the latest snapshot so a send that resolves late reverts to the authority that arrived meanwhile
-  const latestStops = useRef(timetable.stops);
-  latestStops.current = timetable.stops;
-  // 非受理・到達不能なら編集を捨てて権威へ戻す（dirtyのまま二度と再同期されないのを防ぐ）
-  // A rejected or unreachable send drops the edits and returns to authority (never stays dirty forever)
-  async function applyDraft() {
-    const ok = await dispatchAction("train_timetable.replace", toReplacePayload(draft));
-    if (ok) return;
-    console.warn("[TrainTimetable] replace not accepted: reverting the draft to the server timetable");
-    setDraft(latestStops.current);
-  }
+  const { stops, isPending, replace } = useImmediateTimetable(timetable.stops);
+  const matchesServer = sameStopOrder(stops, timetable.stops);
   const autoRunOptions = [
-    { value: "on", label: t(L.ui.blockInventory.timetableAutoRunOn), testId: "train-timetable-auto-run-on", disabled: !canEnableAutoRun(timetable.stops) },
-    { value: "off", label: t(L.ui.blockInventory.timetableAutoRunOff), testId: "train-timetable-auto-run-off" },
+    { value: "on", label: t(L.ui.blockInventory.timetableAutoRunOn), testId: "train-timetable-auto-run-on", disabled: isPending || !canEnableAutoRun(timetable.stops) },
+    { value: "off", label: t(L.ui.blockInventory.timetableAutoRunOff), testId: "train-timetable-auto-run-off", disabled: isPending },
   ];
   return (
-    <Stack gap="xs" data-testid="train-timetable-section">
+    <Stack gap="xs" data-testid="train-timetable-section" aria-busy={isPending}>
       <div className={styles.row}>
         <Text size="sm">{t(L.ui.blockInventory.timetableAutoRun)}</Text>
         <ModeSwitch
@@ -54,16 +33,14 @@ export default function TrainTimetableSection({ timetable }: { timetable: TrainT
       <GamePanel variant="craft">
         <div className={`${styles.row} ${styles.sectionHeading}`}>
           <Text size="sm">{t(L.ui.blockInventory.timetableStops)}</Text>
-          <PanelActionButton testId="train-timetable-apply" onClick={() => { void applyDraft(); }}>
-            {t(L.ui.blockInventory.timetableApply)}
-          </PanelActionButton>
         </div>
         <FadeRule />
         <TrainTimetableStopList
-          stops={draft}
+          stops={stops}
+          disabled={isPending}
           currentIndex={matchesServer ? timetable.currentIndex : null}
-          onMove={(i, d) => setDraft((prev) => moveStop(prev, i, d))}
-          onRemove={(i) => setDraft((prev) => removeStop(prev, i))}
+          onMove={(i, d) => void replace(moveStop(stops, i, d))}
+          onRemove={(i) => void replace(removeStop(stops, i))}
         />
       </GamePanel>
       <GamePanel variant="craft">
@@ -76,7 +53,8 @@ export default function TrainTimetableSection({ timetable }: { timetable: TrainT
               <span>{stationLabel(t, station)}</span>
               <PanelActionButton
                 testId={`train-timetable-station-${stationKey(station.position).replace(/,/g, "_")}-add`}
-                onClick={() => setDraft((prev) => addStop(prev, station))}
+                disabled={isPending}
+                onClick={() => { void replace(addStop(stops, station)); }}
               >
                 {t(L.ui.blockInventory.timetableAdd)}
               </PanelActionButton>
