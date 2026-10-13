@@ -90,7 +90,7 @@ namespace Game.Block.Blocks.TrainRail
             void RemoveConnectionPositionRegistration()
             {
                 var positions = _railGraphDatastore.GetRailPositionToConnectionDestination();
-                var key = Vector3Int.RoundToInt(Position * 2f);
+                var key = RoundRailPosition(Position);
                 // 橋脚は位置索引へ登録されないため削除対象を持たない
                 // Bridge piers have no entry in the connection position index
                 if (!positions.TryGetValue(key, out var pair)) return;
@@ -109,6 +109,13 @@ namespace Game.Block.Blocks.TrainRail
             }
 
             #endregion
+        }
+
+        // 登録と撤去で半マスの位置キーを共有する
+        // Share the half-cell position key between registration and removal
+        internal static Vector3Int RoundRailPosition(Vector3 position)
+        {
+            return Vector3Int.RoundToInt(position * 2f);
         }
 
         public static Vector3 ToVector3(BlockDirection blockDirection)
