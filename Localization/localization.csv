@@ -35,6 +35,10 @@ ui.blockInventory.stopReasonNoGeneration,No power generated,No power generated,�
 ui.blockInventory.stopReasonNoGenerator,No generator,No generator,発電機がありません,Kein Generator,발전기 없음
 ui.blockInventory.powerRateSummary,Power {rate}% ({current}/{required}),Power {rate}% ({current}/{required}),電力 {rate}% ({current}/{required}),Energie {rate} % ({current}/{required}),전력 {rate}% ({current}/{required})
 ui.blockInventory.machineStateIdle,Standby,Standby,待機中,Bereit,대기 중
+ui.blockInventory.gearToElectricStateGenerating,Generating,Generating,発電中,Erzeugt Strom,발전 중
+ui.blockInventory.gearToElectricStateIdle,Standby (no demand),Standby (no demand),待機中（需要なし）,Bereit (kein Bedarf),대기 중 (수요 없음)
+ui.blockInventory.gearToElectricStateStopped,Stopped (RPM too low),Stopped (RPM too low),停止中（RPM不足）,Gestoppt (Drehzahl zu niedrig),정지 (RPM 부족)
+ui.blockInventory.gearToElectricSuppliedPower,Supplied power {current} / max {max},Supplied power {current} / max {max},供給電力 {current} / 最大 {max},Gelieferte Leistung {current} / max. {max},공급 전력 {current} / 최대 {max}
 ui.blockInventory.machineStateProcessing,Operating,Operating,稼働中,In Betrieb,가동 중
 ui.blockInventory.machineStateHalted,Halted,Halted,停止中,Gestoppt,정지됨
 ui.blockInventory.trainPlatformLoad,Load,Load,積込,Beladen,적재

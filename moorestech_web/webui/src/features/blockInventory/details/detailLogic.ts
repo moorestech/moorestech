@@ -1,4 +1,4 @@
-import type { GearDetailData, GearNetworkStopReason, MachineProcessState } from "@/bridge";
+import type { GearDetailData, GearNetworkStopReason, GearToElectricGenerationState, MachineProcessState } from "@/bridge";
 import { clamp01 } from "@/shared/clamp01";
 import { L, type InterpolationValues, type TranslationKey } from "@/shared/i18n";
 
@@ -64,6 +64,23 @@ const MachineStateDisplayTable: Record<MachineProcessState, MachineStateDisplay>
   idle: { labelKey: L.ui.blockInventory.machineStateIdle, insufficient: false, showPowerRate: true },
   processing: { labelKey: L.ui.blockInventory.machineStateProcessing, insufficient: false, showPowerRate: true },
   halted: { labelKey: L.ui.blockInventory.machineStateHalted, insufficient: true, showPowerRate: false },
+};
+
+// 発電状態の文言と不足トーンを一つの表で決める
+// Set the generation label and insufficient tone in one table
+export type GearToElectricStateDisplay = {
+  labelKey: TranslationKey;
+  insufficient: boolean;
+};
+
+export function gearToElectricStateDisplay(state: GearToElectricGenerationState): GearToElectricStateDisplay {
+  return GearToElectricStateDisplayTable[state];
+}
+
+const GearToElectricStateDisplayTable: Record<GearToElectricGenerationState, GearToElectricStateDisplay> = {
+  generating: { labelKey: L.ui.blockInventory.gearToElectricStateGenerating, insufficient: false },
+  idle: { labelKey: L.ui.blockInventory.gearToElectricStateIdle, insufficient: false },
+  stopped: { labelKey: L.ui.blockInventory.gearToElectricStateStopped, insufficient: true },
 };
 
 // 歯車行のキーと引数を役割から1回で確定する。発電機は基準RPMを持たないため現在値だけを渡す（ADR 0056）

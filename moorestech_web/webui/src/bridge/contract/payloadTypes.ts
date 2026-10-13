@@ -15,6 +15,8 @@ import type {
   ElectricNetworkDataSchema,
   ElectricToGearDataSchema,
   ElectricToGearOutputModeDataSchema,
+  GearToElectricDataSchema,
+  GearToElectricGenerationStateSchema,
   FilterSplitterDataSchema,
   FilterSplitterDirectionDataSchema,
   FilterSplitterModeSchema,
@@ -117,6 +119,8 @@ export type GearDetailData = z.infer<typeof GearDetailDataSchema>;
 export type ElectricNetworkData = z.infer<typeof ElectricNetworkDataSchema>;
 export type ElectricToGearOutputModeData = z.infer<typeof ElectricToGearOutputModeDataSchema>;
 export type ElectricToGearData = z.infer<typeof ElectricToGearDataSchema>;
+export type GearToElectricGenerationState = z.infer<typeof GearToElectricGenerationStateSchema>;
+export type GearToElectricData = z.infer<typeof GearToElectricDataSchema>;
 export type TrainPlatformMode = z.infer<typeof TrainPlatformModeSchema>;
 export type TrainPlatformData = z.infer<typeof TrainPlatformDataSchema>;
 export type TrainTimetableData = z.infer<typeof TrainTimetableDataSchema>;

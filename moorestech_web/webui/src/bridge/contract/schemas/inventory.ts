@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { GuidSchema, SlotDataSchema } from "./common";
+import { ElectricToGearDataSchema, GearToElectricDataSchema } from "./energyConversion";
 
 export const PlayerInventoryDataSchema = z.object({
   mainSlots: z.array(SlotDataSchema),
@@ -121,18 +122,6 @@ export const FilterSplitterDataSchema = z.object({
   directions: z.array(FilterSplitterDirectionDataSchema),
 });
 
-export const ElectricToGearOutputModeDataSchema = z.object({
-  rpm: z.number(),
-  torque: z.number(),
-  requiredPower: z.number(),
-});
-export const ElectricToGearDataSchema = z.object({
-  selectedIndex: z.number().int().nonnegative(),
-  fulfillmentRate: z.number(),
-  consumedElectricPower: z.number(),
-  outputModes: z.array(ElectricToGearOutputModeDataSchema),
-});
-
 export const TrainPlatformModeSchema = z.enum(["loadToTrain", "unloadToPlatform"]);
 export const TrainPlatformDataSchema = z.object({
   mode: TrainPlatformModeSchema,
@@ -182,6 +171,7 @@ export const BlockInventoryOpenSchema = z.object({
   gearNetwork: GearNetworkDataSchema.optional(),
   filterSplitter: FilterSplitterDataSchema.optional(),
   electricToGear: ElectricToGearDataSchema.optional(),
+  gearToElectric: GearToElectricDataSchema.optional(),
   trainPlatform: TrainPlatformDataSchema.optional(),
   trainStation: TrainStationDetailSchema.optional(),
 }).strict();

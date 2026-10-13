@@ -4,6 +4,7 @@ import { FluidSlotRow } from "@/shared/ui";
 import BlockItemGrid from "../BlockItemGrid";
 import styles from "../style.module.css";
 import GearSection from "../details/GearSection";
+import GearToElectricSection from "../details/GearToElectricSection";
 import GeneratorSection from "../details/GeneratorSection";
 import MachineSection from "../details/MachineSection";
 import MinerSection from "../details/MinerSection";
@@ -24,6 +25,7 @@ const configByBlockType: Record<string, SectionStackViewConfig> = {
   ElectricGenerator: { itemGridTestId: "generator-fuel-grid", fluidRowTestId: null, renderEmptyGrid: true, showFluidProgress: true },
   FuelGearGenerator: { itemGridTestId: "generator-fuel-grid", fluidRowTestId: null, renderEmptyGrid: true, showFluidProgress: true },
   SimpleGearGenerator: { itemGridTestId: "generator-fuel-grid", fluidRowTestId: null, renderEmptyGrid: true, showFluidProgress: true },
+  GearToElectricGenerator: { itemGridTestId: null, fluidRowTestId: null, renderEmptyGrid: false, showFluidProgress: false },
   ElectricMiner: { itemGridTestId: "miner-output-grid", fluidRowTestId: null, renderEmptyGrid: true, showFluidProgress: true },
   GearMiner: { itemGridTestId: "gear-miner-output-grid", fluidRowTestId: null, renderEmptyGrid: true, showFluidProgress: true },
   ElectricPump: { itemGridTestId: null, fluidRowTestId: "pump-fluid-slots", renderEmptyGrid: false, showFluidProgress: false },
@@ -57,6 +59,7 @@ export default function SectionStackView({ data, fillsPanelHeight }: { data: Blo
       <MinerSection data={data} />
       <PumpSection data={data} />
       <GeneratorSection data={data} />
+      <GearToElectricSection data={data} />
       <GearSection data={data} />
       <ElectricNetworkSection data={data} />
       <GearNetworkSection data={data} />

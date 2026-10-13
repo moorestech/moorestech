@@ -148,6 +148,20 @@ describe("validBlockInventory capability details", () => {
       },
     }).valid).toBe(false);
   });
+  it("accepts a gearToElectric detail", () => {
+    expect(parseTopicPayload(Topics.blockInventory, {
+      ...openBase,
+      blockType: "GearToElectricGenerator",
+      gearToElectric: { generationState: "idle", suppliedPower: 0, maxGeneratedPower: 100 },
+    }).valid).toBe(true);
+  });
+  it("rejects an unknown gearToElectric generation state", () => {
+    expect(parseTopicPayload(Topics.blockInventory, {
+      ...openBase,
+      blockType: "GearToElectricGenerator",
+      gearToElectric: { generationState: "charging", suppliedPower: 0, maxGeneratedPower: 100 },
+    }).valid).toBe(false);
+  });
   it("rejects malformed details", () => {
     expect(parseTopicPayload(Topics.blockInventory, { ...openBase, machine: { recipeGuid: 1 } }).valid).toBe(false);
     expect(parseTopicPayload(Topics.blockInventory, { ...openBase, gearNetwork: { totalRequiredGearPower: 1, totalGenerateGearPower: 2, stopReason: 3 } }).valid).toBe(false);
