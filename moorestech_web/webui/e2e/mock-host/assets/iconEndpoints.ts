@@ -26,7 +26,16 @@ export function serveGameIcon(url: string, res: ServerResponse, demo: boolean): 
   if (url.startsWith(ITEM_ICON_PREFIX) || isBlockIcon) {
     // demo時は実ゲームアイコン(無ければプレースホルダ)、通常時は404で#idフォールバック
     // demo serves real game icons (placeholder if absent); otherwise 404 for the #id fallback
-    const id = Number(url.split("/").pop()?.replace(".png", "")) || 0;
+    const parsedId = Number(url.split("/").pop()?.replace(".png", ""));
+    const id = isBlockIcon ? parsedId || 0 : parsedId;
+    // 不正な外部IDで画像選択が例外を投げるのを防ぐ
+    // Reject invalid external IDs before image selection can throw
+    if (!isBlockIcon && (!Number.isFinite(id) || !Number.isInteger(id) || 0 > id)) {
+      console.warn(`[mock-host] Invalid item icon ID: ${url}`);
+      res.statusCode = 404;
+      res.end();
+      return true;
+    }
     // ブロック画像は実アセットが無いため常にプレースホルダ（実ホストはBlockImageContainerのPNG）
     // Block images have no real asset so always use the placeholder (the real host renders BlockImageContainer PNGs)
     const real = demo && !isBlockIcon ? realIconFor(id, iconDirectory, iconFiles) : null;
