@@ -15,6 +15,7 @@ using Client.Playtest.Operations.Ui;
 using Cysharp.Threading.Tasks;
 using Game.Blueprint;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using StarterAssets;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -24,8 +25,12 @@ return PlaytestRunner.Run("blueprint-koujyou2-self-hit", new PlaytestRunOptions 
 {
     var input = Environment.GetEnvironmentVariable("BP_FLICKER_INPUT");
     var mode = Environment.GetEnvironmentVariable("BP_FLICKER_MODE");
+    var fixedMode = Environment.GetEnvironmentVariable("BP_FLICKER_EXPECT_FIXED");
     if (string.IsNullOrWhiteSpace(input) || (mode != "original" && mode != "controlled"))
         throw new InvalidOperationException("BP_FLICKER_INPUT and BP_FLICKER_MODE=original|controlled are required");
+    if (fixedMode != "0" && fixedMode != "1")
+        throw new InvalidOperationException("BP_FLICKER_EXPECT_FIXED=0|1 is required");
+    var expectFixed = fixedMode == "1";
     var bp = JsonConvert.DeserializeObject<BlueprintJsonObject>(File.ReadAllText(Path.Combine(input, "koujyou2.json")));
     if (bp == null || bp.Blocks.Count != 675 || bp.Blocks.Select(b => b.BlockGuidStr).Distinct().Count() != 13 || bp.Wires.Count != 38)
         throw new InvalidOperationException("Unexpected koujyou2 fixture: expected 675 blocks, 13 kinds, 38 wires");
@@ -49,10 +54,12 @@ return PlaytestRunner.Run("blueprint-koujyou2-self-hit", new PlaytestRunOptions 
     // Register the original blueprint through the normal library and build menu.
     var resolver = ClientDIContext.DIContainer.DIContainerResolver;
     var datastore = p.ServerService<IBlueprintDatastore>();
-    var existing = datastore.Blueprints.FirstOrDefault(value => value.BlueprintGuid == bp.BlueprintGuid);
+    var matches = datastore.Blueprints.Where(value => value.BlueprintGuid == bp.BlueprintGuid).ToArray();
+    if (matches.Length > 1) throw new InvalidOperationException("Saved blueprint has duplicate original GUID entries");
+    var existing = matches.SingleOrDefault();
     if (existing == null) datastore.Register(bp);
-    else if (existing.Blocks.Count != 675 || existing.Blocks.Select(b => b.BlockGuidStr).Distinct().Count() != 13 || existing.Wires.Count != 38)
-        throw new InvalidOperationException("Saved blueprint has the original GUID but different contents");
+    else if (!JToken.DeepEquals(JToken.FromObject(existing), JToken.FromObject(bp)))
+        throw new InvalidOperationException("Saved blueprint has the original GUID but different payload");
     await resolver.Resolve<ClientBlueprintLibrary>().Refresh(Camera.main.GetCancellationTokenOnDestroy());
     var tooltip = resolver.Resolve<MouseCursorTooltipState>();
     var checks = new BlueprintCopyPasteScenarioChecks(p, tooltip);
@@ -136,7 +143,7 @@ return PlaytestRunner.Run("blueprint-koujyou2-self-hit", new PlaytestRunOptions 
         p.Note($"{mode}/{phase}: missing={missing}/{frames}; trace=preview-frames.tsv");
         // 修正前は欠落を証拠として残し、修正後ランだけ成功条件を適用する。
         // Preserve baseline missing frames as evidence; apply the pass condition on fixed runs.
-        if (verifyGhosts && Environment.GetEnvironmentVariable("BP_FLICKER_EXPECT_FIXED") == "1")
+        if (verifyGhosts && expectFixed)
             p.Assert(missing == 0, $"{mode}/{phase}: all 675 ghosts visible for {frames} frames");
     }
 });
