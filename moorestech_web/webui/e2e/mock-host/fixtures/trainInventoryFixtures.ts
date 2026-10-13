@@ -1,5 +1,4 @@
-import type { BlockInventoryWireData } from "../../../src/bridge/contract/payloadTypes";
-
+import type { BlockInventoryWireData } from "../types/blockInventoryWireData";
 const empty = () => ({ itemId: 0, count: 0 });
 
 export const trainCargo = {

@@ -1,12 +1,6 @@
+import type { BlockInventoryWireData } from "./types/blockInventoryWireData";
 import type { ActionPayloads } from "../../src/bridge/transport/protocol";
-import type {
-  PlayerInventoryData,
-  SlotData,
-  SlotRef,
-  BlockInventoryWireData,
-  BlockSlotRef,
-  CraftRecipe,
-} from "../../src/bridge/contract/payloadTypes";
+import type { PlayerInventoryData, SlotData, SlotRef, BlockSlotRef, CraftRecipe } from "../../src/bridge/contract/payloadTypes";
 
 export function slotOf(inv: PlayerInventoryData, ref: SlotRef): SlotData {
   if (ref.area === "grab") return inv.grab;

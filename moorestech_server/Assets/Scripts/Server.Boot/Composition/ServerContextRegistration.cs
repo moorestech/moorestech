@@ -1,4 +1,6 @@
 using System.IO;
+using Game.Block.Blocks.TrainRail.Naming;
+using Server.Boot.Localization;
 using Core.Item;
 using Core.Item.Interface;
 using Core.Master;
@@ -81,12 +83,13 @@ namespace Server.Boot.Composition
 {
     internal static class ServerContextRegistration
     {
-        internal static ServiceProvider Create(WorldDataDirectory worldDataDirectory, MasterJsonFileContainer masterJsonFileContainer)
+        internal static ServiceProvider Create(WorldDataDirectory worldDataDirectory, MasterJsonFileContainer masterJsonFileContainer, ModsResource modsResource)
         {
             // ServerContext用のインスタンスを登録
             // Register instances used by ServerContext.
             var initializerCollection = new ServiceCollection();
             initializerCollection.AddSingleton(masterJsonFileContainer);
+            initializerCollection.AddSingleton(new TrainStationFeatureEnglishNames(ModEnglishContentNameLoader.Load(modsResource)));
             initializerCollection.AddSingleton<IItemStackFactory, ItemStackFactory>();
             initializerCollection.AddSingleton<VanillaIBlockTemplates, VanillaIBlockTemplates>();
             initializerCollection.AddSingleton<IBlockFactory, BlockFactory>();

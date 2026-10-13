@@ -2,11 +2,6 @@ import { describe, expect, it } from "vitest";
 import { parseTopicPayload } from "./validators";
 import { Topics } from "../transport/protocol";
 
-const openBase = {
-  open: true, source: "block", blockType: "ElectricMachine", identifier: "(0, 0, 0)", blockGuid: "40000000-0000-4000-8000-000000000001",
-  itemSlots: [{ itemId: 1, count: 2 }], fluidSlots: [],
-};
-
 describe("placement mode schema", () => {
   it("accepts master identities without raw labels", () => {
     expect(parseTopicPayload(Topics.placementMode, {
@@ -78,84 +73,6 @@ describe("localization.current schema", () => {
     expect(parseTopicPayload(Topics.localization, { locale: "" }).valid).toBe(false);
     expect(parseTopicPayload(Topics.localization, { locale: "japanese", revision: -1 }).valid).toBe(false);
     expect(parseTopicPayload(Topics.localization, { locale: "japanese", revision: 1.5 }).valid).toBe(false);
-  });
-});
-
-describe("validBlockInventory capability details", () => {
-  it("accepts machine + electricNetwork details", () => {
-    const d = {
-      ...openBase,
-      progress: 0.5,
-      machine: { recipeGuid: "50000000-0000-4000-8000-000000000001", selectedRecipeGuid: "50000000-0000-4000-8000-000000000002", blockGuid: "40000000-0000-4000-8000-000000000001", recipeTime: 15, outputItems: [{ itemId: 2, count: 3 }], currentState: "processing", currentPower: 10, requestPower: 20, slotLayout: { input: 2, output: 1, module: 1, inputTank: 0 }, slotBindings: [{ slot: 0, itemId: 1, count: 2 }], tankBindings: [] },
-      electricNetwork: { totalGeneratePower: 100, totalRequiredPower: 50, consumerCount: 3, powerRate: 1 },
-    };
-    expect(parseTopicPayload(Topics.blockInventory, d).valid).toBe(true);
-    expect(parseTopicPayload(Topics.blockInventory, {
-      ...d,
-      machine: { ...d.machine, selectedRecipeGuid: undefined, blockGuid: undefined },
-    }).valid).toBe(false);
-  });
-  it("accepts gear + gearNetwork + generator + miner + filterSplitter + electricToGear details", () => {
-    const d = {
-      ...openBase,
-      generator: { remainingFuelTime: 3, currentFuelTime: 10, operatingRate: 0.5 },
-      miner: { currentPower: 1, requestPower: 2, miningItems: [{ itemId: 5, itemsPerMinute: 12 }] },
-      gear: { currentRpm: 10, currentTorque: 3, baseRpm: 20, role: "consumer" },
-      gearNetwork: { totalRequiredGearPower: 5, totalGenerateGearPower: 10, stopReason: "none" },
-      filterSplitter: { directionCount: 2, filterSlotCountPerDirection: 3, directions: [{ mode: "whitelist", filterItemIds: [1, 0, 0] }, { mode: "default", filterItemIds: [0, 0, 0] }] },
-      electricToGear: {
-        selectedIndex: 1,
-        fulfillmentRate: 0.75,
-        consumedElectricPower: 10,
-        outputModes: [{ rpm: 10, torque: 10, requiredPower: 10 }, { rpm: 20, torque: 20, requiredPower: 10 }],
-      },
-    };
-    expect(parseTopicPayload(Topics.blockInventory, d).valid).toBe(true);
-    // 旧形状（role無し・baseTorque入り）は判別子の欠落と余剰キーの両方で落ちる
-    // The old shape (no role, with baseTorque) fails both on the missing discriminator and on the excess key
-    expect(parseTopicPayload(Topics.blockInventory, {
-      ...openBase,
-      gear: { currentRpm: 10, currentTorque: 3, baseRpm: 20, baseTorque: 5 },
-    }).valid).toBe(false);
-    expect(parseTopicPayload(Topics.blockInventory, {
-      ...openBase,
-      gear: { currentRpm: 10, currentTorque: 3, baseRpm: 20, baseTorque: 5, role: "consumer" },
-    }).valid).toBe(false);
-    expect(parseTopicPayload(Topics.blockInventory, {
-      ...openBase,
-      gear: { currentRpm: 10, currentTorque: 3, role: "generator" },
-    }).valid).toBe(true);
-    // 発電機は基準RPMを持たず、消費側は必ず持つ
-    // Generators carry no base RPM and consumers always do
-    expect(parseTopicPayload(Topics.blockInventory, {
-      ...openBase,
-      gear: { currentRpm: 10, currentTorque: 3, baseRpm: 0, role: "generator" },
-    }).valid).toBe(false);
-    expect(parseTopicPayload(Topics.blockInventory, {
-      ...openBase,
-      gear: { currentRpm: 10, currentTorque: 3, role: "consumer" },
-    }).valid).toBe(false);
-  });
-
-  it("rejects electricToGear without output mode power", () => {
-    expect(parseTopicPayload(Topics.blockInventory, {
-      ...openBase,
-      electricToGear: {
-        selectedIndex: 0,
-        fulfillmentRate: 1,
-        consumedElectricPower: 10,
-        outputModes: [{ rpm: 10, torque: 10 }],
-      },
-    }).valid).toBe(false);
-  });
-  it("rejects malformed details", () => {
-    expect(parseTopicPayload(Topics.blockInventory, { ...openBase, machine: { recipeGuid: 1 } }).valid).toBe(false);
-    expect(parseTopicPayload(Topics.blockInventory, { ...openBase, gearNetwork: { totalRequiredGearPower: 1, totalGenerateGearPower: 2, stopReason: 3 } }).valid).toBe(false);
-    expect(parseTopicPayload(Topics.blockInventory, { ...openBase, filterSplitter: { directionCount: 1, filterSlotCountPerDirection: 1, directions: [{ mode: "whitelist" }] } }).valid).toBe(false);
-  });
-  it("still accepts details-less open and closed payloads", () => {
-    expect(parseTopicPayload(Topics.blockInventory, openBase).valid).toBe(true);
-    expect(parseTopicPayload(Topics.blockInventory, { open: false }).valid).toBe(true);
   });
 });
 

@@ -162,6 +162,13 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
         public double RequiredPower;
     }
 
+    public class GearToElectricDetailDto
+    {
+        public string GenerationState;
+        public float SuppliedPower;
+        public float MaxGeneratedPower;
+    }
+
     public class TrainPlatformDetailDto
     {
         public string Mode;
