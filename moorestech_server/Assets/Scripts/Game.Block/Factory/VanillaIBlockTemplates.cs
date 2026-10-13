@@ -1,5 +1,8 @@
 ﻿using System.Collections.Generic;
 using Game.Block.Event;
+using Game.Block.Blocks.TrainRail.Naming;
+using Game.Map.Interface.Vein;
+using Game.Map.Interface.MapObject;
 using Game.Block.Factory.BlockTemplate;
 using Game.Block.Factory.BlockTemplate.CleanRoom;
 using Game.Block.Factory.BlockTemplate.Electric;
@@ -23,7 +26,7 @@ namespace Game.Block.Factory
     {
         public readonly Dictionary<string, IBlockTemplate> BlockTypesDictionary;
         
-        public VanillaIBlockTemplates(IBlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent, IRailGraphDatastore railGraphDatastore)
+        public VanillaIBlockTemplates(IBlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent, IRailGraphDatastore railGraphDatastore, IItemMapVeinDatastore itemVeins, IFluidMapVeinDatastore fluidVeins, IMapObjectDatastore mapObjects, TrainStationFeatureEnglishNames englishNames)
         {
             var blockInventoryEvent = blockInventoryUpdateEvent as BlockOpenableInventoryUpdateEvent;
             
@@ -52,7 +55,11 @@ namespace Game.Block.Factory
             BlockTypesDictionary.Add(BlockTypeConst.TrainRail, new VanillaTrainRailTemplate(railGraphDatastore));
             BlockTypesDictionary.Add(BlockTypeConst.FluidPipe, new VanillaFluidBlockTemplate());
             BlockTypesDictionary.Add(BlockTypeConst.VoidPipe, new VanillaVoidPipeTemplate());
-            BlockTypesDictionary.Add(BlockTypeConst.TrainStation, new VanillaTrainStationTemplate(blockInventoryEvent, railGraphDatastore));
+            // 設置時だけ周辺から駅名を割り当てる
+            // Allocate a station name from nearby features only on placement
+            var stationNameScanner = new TrainStationNameFeatureScanner(itemVeins, fluidVeins, mapObjects, englishNames);
+            var stationNameAllocator = new TrainStationDefaultNameAllocator(stationNameScanner);
+            BlockTypesDictionary.Add(BlockTypeConst.TrainStation, new VanillaTrainStationTemplate(blockInventoryEvent, railGraphDatastore, stationNameAllocator));
             BlockTypesDictionary.Add(BlockTypeConst.TrainItemPlatform, new VanillaTrainItemPlatformTemplate(blockInventoryEvent, railGraphDatastore));
             BlockTypesDictionary.Add(BlockTypeConst.TrainFluidPlatform, new VanillaTrainFluidPlatformTemplate(railGraphDatastore));
             BlockTypesDictionary.Add(BlockTypeConst.BaseCamp, new BaseCampBlockTemplate());
