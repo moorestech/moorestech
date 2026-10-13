@@ -55,7 +55,7 @@ poller は cwd を `$CANON` にして起動する（`scripts/bugreport/inbox-pol
 - **終端は `$RUN/fix-result.json` を書いた直後だけ**（`references/fix-result.md`）。書く前に終わる終わり方はバグ
 - **3分岐で止まる**: 再現できた→修正まで／再現できない→`not_reproduced`／仕様の曖昧さに当たった→`needs_ruling`（コードを触らず bd に質問を積む）
 - **マージしない**。PR は draft
-- **時間・利用枠の上限は設けない**（裁定 2026-09-11）。行き詰まりの判定は上の3分岐のみ
+- **時間・利用枠の上限は設けない**。行き詰まりの判定は上の3分岐のみ
 - **修正対象は報告されたバグだけ**。ついでの改善はしない（見つけた別問題は bd に積む）
 
 ## 無人実行の規律（最初に読む）
@@ -112,7 +112,7 @@ poller は cwd を `$CANON` にして起動する（`scripts/bugreport/inbox-pol
 
 **先に前提を確かめる。** `LATEST_TICK` が空、または `$WORLD_DIR/save.json` が無い箱では観察は成立しない。
 `run-scenario.sh` はこの状態を検査せず PlayMode を起動し、**300秒待って `NG: game not ready` を出したうえ終了コード 0 を返し、
-Editor を PlayMode に置き去りにする**（2026-09-12 リハーサルで実測）。該当する箱は Step 3 を飛ばし、
+Editor を PlayMode に置き去りにする**。該当する箱は Step 3 を飛ばし、
 「観察できない理由（世界データ欠損）」を `summary` に書いて Step 4 へ進む。飛ばしたこと自体も必ずログに残す。
 
 ```bash
@@ -120,7 +120,7 @@ Editor を PlayMode に置き去りにする**（2026-09-12 リハーサルで�
 ```
 
 **実体化が予約された箱は先に土台を実体化する。** `WORLD_MATERIALIZE_PENDING=1` は、manifest の `worldDefinition` が `full` かつ `world/map.json` がある箱以外すべて
-（`generated-world-json-only`・宣言の無い旧版・読めない宣言・`map.json` の欠けた `full`）に立つ。生成ワールドの箱は `world/` に `world.json` しか無く、そのまま起動すると地形が無く落ちる（ADR 0064）。
+（`generated-world-json-only`・宣言の無い旧版・読めない宣言・`map.json` の欠けた `full`）に立つ。生成ワールドの箱は `world/` に `world.json` しか無く、そのまま起動すると地形が無く落ちる。
 `prepare-run.sh` は土台を自分で決めず、`WORLD_DIR` を `$RUN/world-materialized` にして `save.json` だけを置いてあるので、観察の前に Step 2 と同じ resolver で土台を決めて写す。
 返り値が `ERROR:` なら（壊れた宣言・宣言と中身の食い違い・地形を引き当てられない箱）観察を飛ばし、理由を `summary` に書く。
 箱の `world/` には書き足さない（`map.json` が増えると宣言と中身が食い違い、決定性検査が拒否する）。
@@ -163,7 +163,7 @@ PLAYTEST_WORLD_DIRECTORY=$WORLD_DIR PLAYTEST_MAP_MODE=$OBSERVE_MAP_MODE PLAYTEST
 ## Step 5: 修正と合成NUnit
 
 1. 修正は `$WORKTREE`（ブランチ `bugfix/<run-id>`）で行う
-2. **合成NUnit が再現テストの正、バンドル依存のプレイテストは証拠扱い**（裁定 2026-09-11）。`creating-server-tests` に従い、
+2. **合成NUnit が再現テストの正、バンドル依存のプレイテストは証拠扱い**。`creating-server-tests` に従い、
    バンドルのワールドファイル・スナップショットに一切依存しない最小の再現テストを書く。
    **修正前に落ち、修正後に通る**ことを `uloop run-tests --test-mode EditMode` で両方とも実測し、出力を報告に残す。
    最小化できない場合はプレイテストシナリオと録画を `$RUN/observe/` に残し、PR 本文に「プレイテスト証拠のみ」と明記する
@@ -173,11 +173,11 @@ PLAYTEST_WORLD_DIRECTORY=$WORLD_DIR PLAYTEST_MAP_MODE=$OBSERVE_MAP_MODE PLAYTEST
 `Ignore` 属性・許容誤差の拡大ではない。既存テストが赤くなったら、それは修正が壊した回帰であり直す対象である。
 
 **バンドルの中身（スナップショット JSON・動画・フレーム・ログ本文）をテストのフィクスチャとしてコードrepoへコミットしない**
-（裁定 2026-09-11。バンドルは moorestech_logs 側に置いたまま参照する）。
+（バンドルは moorestech_logs 側に置いたまま参照する）。
 
-## Step 6: 修正先の判定（裁定 2026-09-11）
+## Step 6: 修正先の判定
 
-裁定は「**再現は必ず報告時のコミット＋未コミット差分で行い、同じ再現テストが最新 master でも落ちれば master 基底、
+規則は「**再現は必ず報告時のコミット＋未コミット差分で行い、同じ再現テストが最新 master でも落ちれば master 基底、
 master で落ちなければ報告ブランチ基底（PR は報告ブランチ宛て）**」である。合成NUnit を作ったら、その1コミットを
 `origin/master` 基底でも実行して判定する:
 
@@ -203,14 +203,14 @@ Step 3 のシナリオを修正後のバイナリで再実行し `$RUN/observe-a
 ## Step 8: レビューと PR
 
 1. `moores-code-review` を実行し、機械的指摘を反映する。設計判断が要る指摘は PR 本文の「裁定事項」に列挙する（AskUserQuestion は使えない）
-2. `git push -u origin <ブランチ>` → `pr-create` スキルで PR を作る（本文: 説明文の引用・原因・修正・合成NUnit・`$RUN` のパス・欠損項目・決定性是正の有無・裁定事項）。**動画やスナップショットは添付しない**（裁定: 公開PRにはパスと説明だけ）
+2. `git push -u origin <ブランチ>` → `pr-create` スキルで PR を作る（本文: 説明文の引用・原因・修正・合成NUnit・`$RUN` のパス・欠損項目・決定性是正の有無・裁定事項）。修正前後の録画・スクショは pr-create の報告ページ（Cloudflare Access 配下の `review.moores.tech/pr/<N>/report/`）にだけ載せ、**PR本文へは添付しない**（裁定: 公開PRにはパスと説明だけ）
 3. `gh pr ready --undo <番号>` で draft にする
 4. `bd note <id> "PR #<番号> ..."`
 
-**公開 PR に載せてよいのは「説明とパス」だけ**（裁定 2026-09-11）。バンドルは private の moorestech_logs 側にあり、
+**公開 PR に載せてよいのは「説明とパス」だけ**。バンドルは private の moorestech_logs 側にあり、
 本人とエージェントだけが閲覧する。PR 本文・コミットメッセージ・テストコードに次を持ち込まない:
 
-- 動画・フレーム・スクリーンショットの添付（修正後のプレイ録画も同じ扱い）
+- 動画・フレーム・スクリーンショットの添付（修正後のプレイ録画も同じ扱い。Access 配下の報告ページURLを張るのは可）
 - スナップショット JSON・パケットログ本文の貼り付け
 - 報告者のローカルパス・ワールドの中身
 

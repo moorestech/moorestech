@@ -5,7 +5,7 @@ PlayMode 中の「何が存在していて、どうなっているか」を `ulo
 
 ## 「見えない」は推論でなく probe の結果として宣言する
 
-`_localServerProcess (Process)` のような field 名を見て「サーバーは別OSプロセスだから見えない」と結論し、動的コードを試さずに諦めた実例がある。実際は PlayMode 中は同一プロセスで `ServerContext.*` が普通に引けた。field 名・型名はデプロイモードごとに意味が変わるので、「この状態は見えない」と言う前に該当エントリーポイントを1回叩く。返れば見える、throw / null なら見えない。
+`_localServerProcess (Process)` のような field 名・型名だけで「サーバーは別OSプロセスだから見えない」と結論しない。PlayMode 中は同一プロセスで `ServerContext.*` が引ける。field 名・型名はデプロイモードごとに意味が変わるので、「この状態は見えない」と言う前に該当エントリーポイントを動的コードで1回叩く。返れば見える、throw / null なら見えない。
 
 ```csharp
 var ctx = Game.Context.ServerContext.WorldBlockDatastore;

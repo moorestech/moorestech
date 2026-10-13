@@ -59,7 +59,7 @@ Run a `/grilling` session, using the `/domain-modeling` skill.
 - **プレビュー内の副次情報は裁定に昇格させない。** 選択肢の label/description で問うていない要素（プレビュー図に書き込んだ秒数・文言・寸法・配色）は、その案が採択されても決定文に含めない。含めたいなら別質問にするか、決定文から分離して `agent前提` と書く。
 - **原文の語句を解釈した決定は原文を逐語引用する。** 依頼原文の句を選択肢へ変換して裁定を取った場合、出所欄には採択ラベルだけでなく**原文の句を逐語で**並記する（`出所: ユーザー裁定 YYYY-MM-DD 原文「…」→ 選択「…」`）。`.decisions/` のファイル名リンクや「質問で採択」という言い換えは引用の代わりにならない。下流の含意チェック（moores-code-review `core-any-user-intent-fulfillment` §5）は引用文だけを検査対象にするため、引用が無い裁定は転記の歪みがあっても検査不能で素通りする。
 
-較正実例（PR1176・PR1157の意図取り違え事故・レイアウト裁定の特化ガイド）: [references/adjudication-fidelity.md](references/adjudication-fidelity.md)
+意図取り違えの較正実例・レイアウト裁定の特化ガイド: [references/adjudication-fidelity.md](references/adjudication-fidelity.md)
 
 ### 1.7 Codex 独立質問の消し込み（ADR確定後・moores-writing-plans 直前。必須）
 

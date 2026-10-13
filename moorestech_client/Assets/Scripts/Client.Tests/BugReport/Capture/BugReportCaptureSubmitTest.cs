@@ -86,13 +86,15 @@ namespace Client.Tests.BugReport.Capture
             session.BeginOnPauseMenu();
             session.OnServerCaptureCompleted(new ServerCaptureCompletion(7, 5, true, "/w/snapshots", "/master/server_v8", new List<string> { "tick_5.json" }, new List<string>(), null, 0));
 
-            var ticket = session.TryBeginSubmit();
-            Assert.IsTrue(ticket.Allowed);
-            LogAssert.Expect(LogType.Warning, new Regex(BugReportSubmitTicket.SubmitInFlight));
-            Assert.AreEqual(BugReportSubmitTicket.SubmitInFlight, session.TryBeginSubmit().RefusedCode);
-
             var kinds = new List<string>();
             using var subscription = session.Status.Skip(1).Subscribe(status => kinds.Add(status.Kind));
+            var ticket = session.TryBeginSubmit();
+            Assert.IsTrue(ticket.Allowed);
+            Assert.AreEqual(BugReportCaptureStatus.Submitting, session.Status.Value.Kind);
+            CollectionAssert.AreEqual(new[] { BugReportCaptureStatus.Submitting }, kinds);
+            LogAssert.Expect(LogType.Warning, new Regex(BugReportSubmitTicket.SubmitInFlight));
+            Assert.AreEqual(BugReportSubmitTicket.SubmitInFlight, session.TryBeginSubmit().RefusedCode);
+            CollectionAssert.AreEqual(new[] { BugReportCaptureStatus.Submitting }, kinds);
             sources.RequestResult = new BugReportServerCaptureRequest(true, 8, null);
             sources.ScreenshotPath = "/tmp/second-shot.png";
             session.CompleteSubmit(ticket.Data, true, new List<MissingItem>());
@@ -105,7 +107,7 @@ namespace Client.Tests.BugReport.Capture
 
             // 配信は既存の確保中→準備完了を使い、2件目の資料が最初と別であることを確かめる
             // Reuse the capturing-to-ready delivery and verify that the second report owns distinct materials
-            Assert.AreEqual(BugReportCaptureStatus.Capturing, kinds[0]);
+            Assert.AreEqual(BugReportCaptureStatus.Capturing, kinds[1]);
             Assert.AreEqual(BugReportCaptureStatus.Ready, kinds[kinds.Count - 1]);
             var second = session.TryBeginSubmit();
             Assert.IsTrue(second.Allowed);

@@ -53,3 +53,9 @@
   cursor: default;
   pointer-events: none;
 }
+
+/* §8.22 パネル内タブ用途では本文との間に一段の余白を置く */
+/* In the §8.22 in-panel tab role, keep one step of space from the body below */
+.root[role="tablist"] {
+  margin-bottom: var(--mode-switch-padding-block);
+}

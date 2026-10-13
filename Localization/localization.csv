@@ -35,6 +35,11 @@ ui.blockInventory.stopReasonNoGeneration,No power generated,No power generated,�
 ui.blockInventory.stopReasonNoGenerator,No generator,No generator,発電機がありません,Kein Generator,발전기 없음
 ui.blockInventory.powerRateSummary,Power {rate}% ({current}/{required}),Power {rate}% ({current}/{required}),電力 {rate}% ({current}/{required}),Energie {rate} % ({current}/{required}),전력 {rate}% ({current}/{required})
 ui.blockInventory.machineStateIdle,Standby,Standby,待機中,Bereit,대기 중
+ui.blockInventory.gearToElectricStateGenerating,Generating,Generating,発電中,Erzeugt Strom,발전 중
+ui.blockInventory.gearToElectricStateIdle,Standby (no demand),Standby (no demand),待機中（需要なし）,Bereit (kein Bedarf),대기 중 (수요 없음)
+ui.blockInventory.gearToElectricStateStopped,Stopped (RPM too low),Stopped (RPM too low),停止中（RPM不足）,Gestoppt (Drehzahl zu niedrig),정지 (RPM 부족)
+ui.blockInventory.gearToElectricMeasurementTiming,Generation state and supplied power show the latest measurement. Their update timing differs from RPM.,Generation state and supplied power show the latest measurement. Their update timing differs from RPM.,発電状態と供給電力は直近の計測結果です。回転数とは更新のタイミングが異なります。,Erzeugungszustand und gelieferte Leistung zeigen die letzte Messung. Sie werden zu anderen Zeitpunkten als die Drehzahl aktualisiert.,발전 상태와 공급 전력은 최근 측정 결과입니다. 회전수와 업데이트 시점이 다릅니다.
+ui.blockInventory.gearToElectricSuppliedPower,Supplied power {current} / max {max},Supplied power {current} / max {max},供給電力 {current} / 最大 {max},Gelieferte Leistung {current} / max. {max},공급 전력 {current} / 최대 {max}
 ui.blockInventory.machineStateProcessing,Operating,Operating,稼働中,In Betrieb,가동 중
 ui.blockInventory.machineStateHalted,Halted,Halted,停止中,Gestoppt,정지됨
 ui.blockInventory.trainPlatformLoad,Load,Load,積込,Beladen,적재
@@ -287,6 +292,9 @@ ui.tooltip.interactRideTrain,[E] Ride,[E] Ride,[E] 乗車,[E] Einsteigen,[E] 탑
 ui.tooltip.namedCannotHandMine,{p0} : Cannot be mined by hand,{p0} : Cannot be mined by hand,{p0} : 手掘りできません,{p0} : Kann nicht von Hand abgebaut werden,{p0} : 맨손으로는 채굴할 수 없습니다
 ui.bugReport.placeholder,What happened? (what you did and what went wrong),What happened? (what you did and what went wrong),何が起きた？（何をして・何がおかしかったか）,Was ist passiert? (was du getan hast und was schiefging),무슨 일이 있었나요? (무엇을 했고 어떤 문제가 생겼는지)
 ui.bugReport.send,Send bug report,Send bug report,バグ報告を送信,Fehlerbericht senden,버그 신고 보내기
+ui.feedbackReport.send,Send impressions,Send impressions,感想を送信,Eindrücke senden,감상 보내기
+ui.feedbackReport.sent,Impressions saved to outbox,Impressions saved to outbox,感想をoutboxに書き出しました,Eindrücke im Postausgang gespeichert,감상이 보낼 편지함에 저장되었습니다
+ui.feedbackReport.sending,Writing the impressions…,Writing the impressions…,感想を書き出しています…,Eindrücke werden geschrieben…,감상을 작성하는 중…
 ui.bugReport.sent,Bug report saved to outbox,Bug report saved to outbox,バグ報告をoutboxに書き出しました,Fehlerbericht im Postausgang gespeichert,버그 신고가 보낼 편지함에 저장되었습니다
 ui.bugReport.capturePending,Securing the recording…,Securing the recording…,記録を確保しています…,Aufzeichnung wird gesichert…,녹화 데이터를 확보하는 중…
 ui.bugReport.missing,Missing: {items},Missing: {items},欠けている項目: {items},Fehlt: {items},누락: {items}
@@ -313,6 +321,29 @@ ui.loading.deviceIdentityUnavailable,Could not identify this device. The game ca
 ui.loading.playerAlreadyConnected,The same player is already connected.,The same player is already connected.,同じプレイヤーが既に接続しています。,Derselbe Spieler ist bereits verbunden.,같은 플레이어가 이미 접속해 있습니다.
 ui.loading.buildOriginUnavailable,Could not verify this build. The game cannot start.,Could not verify this build. The game cannot start.,ビルド情報を確認できないため開始できません。,Dieser Build konnte nicht überprüft werden. Das Spiel kann nicht gestartet werden.,이 빌드를 확인하지 못했습니다. 게임을 시작할 수 없습니다.
 ui.loading.handshakeProtocolError,The server returned an unknown connection response.,The server returned an unknown connection response.,サーバーから不明な接続応答を受け取りました。,Der Server hat eine unbekannte Verbindungsantwort zurückgegeben.,서버가 알 수 없는 연결 응답을 반환했습니다.
+ui.blockInventory.trainTabInventory,Inventory,Inventory,インベントリ,Inventar,인벤토리
+ui.blockInventory.trainTabTimetable,Timetable,Timetable,時刻表,Fahrplan,시간표
+ui.blockInventory.timetableAutoRun,Auto run,Auto run,自動運転,Automatik,자동 운전
+ui.blockInventory.timetableAutoRunUnavailable,Apply at least one stop to enable auto run.,Apply at least one stop to enable auto run.,停車駅を1つ以上適用すると自動運転をONにできます。,Mindestens einen Halt anwenden um den Automatikbetrieb zu aktivieren.,정차역을 하나 이상 적용하면 자동 운전을 켤 수 있습니다.
+ui.blockInventory.timetableAutoRunOn,ON,ON,ON,AN,켜짐
+ui.blockInventory.timetableAutoRunOff,OFF,OFF,OFF,AUS,꺼짐
+ui.blockInventory.timetableStops,Stops,Stops,停車駅,Haltestellen,정차역
+ui.blockInventory.timetableStopsEmpty,No stops. Add a station below.,No stops. Add a station below.,停車駅がありません。下の駅一覧から追加してください。,Keine Halte. Unten eine Station hinzufügen.,정차역이 없습니다. 아래 역 목록에서 추가하세요.
+ui.blockInventory.timetableStations,Stations,Stations,駅一覧,Stationen,역 목록
+ui.blockInventory.timetableStationsEmpty,No stations in the world.,No stations in the world.,ワールドに駅がありません。,Keine Stationen in der Welt.,월드에 역이 없습니다.
+ui.blockInventory.timetableLoading,Loading timetable...,Loading timetable...,時刻表を読み込み中…,Fahrplan wird geladen...,시간표를 불러오는 중…
+ui.blockInventory.timetableUnavailable,Timetable unavailable.,Timetable unavailable.,時刻表を取得できません。,Fahrplan nicht verfügbar.,시간표를 불러올 수 없습니다.
+ui.blockInventory.timetableAdd,Add,Add,追加,Hinzufügen,추가
+ui.blockInventory.timetableApply,Apply,Apply,適用,Anwenden,적용
+ui.blockInventory.timetableMoveUp,Move up,Move up,上へ,Nach oben,위로
+ui.blockInventory.timetableMoveDown,Move down,Move down,下へ,Nach unten,아래로
+ui.blockInventory.timetableRemove,Remove,Remove,削除,Entfernen,삭제
+ui.blockInventory.timetableStopLabel,{index}. {station},{index}. {station},{index}. {station},{index}. {station},{index}. {station}
+ui.blockInventory.timetableStationLabel,"{name} ({x}, {y}, {z})","{name} ({x}, {y}, {z})","{name} ({x}, {y}, {z})","{name} ({x}, {y}, {z})","{name} ({x}, {y}, {z})"
+ui.blockInventory.timetableUnnamedStation,Station,Station,駅,Station,역
+ui.blockInventory.stationNameLabel,Station name,Station name,駅名,Stationsname,역 이름
+ui.blockInventory.stationNamePlaceholder,Enter a station name,Enter a station name,駅名を入力,Stationsname eingeben,역 이름 입력
+ui.blockInventory.stationNameApply,Set,Set,決定,Übernehmen,확인
 ui.tooltip.blueprintCopyBlocksInRange,Blocks in range: {p0},Blocks in range: {p0},範囲内のブロック: {p0},Blöcke im Bereich: {p0},범위 내 블록: {p0}
 ui.tooltip.blueprintCopyEmptyRange,No blocks in range,No blocks in range,範囲にブロックがありません,Keine Blöcke im Bereich,범위에 블록이 없습니다
 ui.notification.blueprintCreateRequestFailed,Blueprint could not be created because the request failed,Blueprint could not be created because the request failed,通信に失敗したためブループリントを作成できませんでした,Der Bauplan konnte wegen eines Verbindungsfehlers nicht erstellt werden,요청에 실패하여 설계도를 만들지 못했습니다

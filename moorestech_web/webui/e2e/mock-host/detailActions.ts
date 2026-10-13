@@ -1,4 +1,5 @@
-import type { BlockInventoryWireData, MachineRecipe, ResearchTreeData } from "../../src/bridge/contract/payloadTypes";
+import type { BlockInventoryWireData } from "./types/blockInventoryWireData";
+import type { MachineRecipe, ResearchTreeData } from "../../src/bridge/contract/payloadTypes";
 import type { ActionPayloads } from "../../src/bridge/transport/protocol";
 import { overflowingMachineRecipes } from "./fixtures/recipeFixtures";
 

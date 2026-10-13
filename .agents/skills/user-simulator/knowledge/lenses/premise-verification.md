@@ -3,7 +3,7 @@ applies: spec+plan
 model: opus
 ---
 
-# Lens: 前提裏取り（ブッシュ前提事故・map静的ベイク誤解・セーブ移行GUID誤認由来）
+# Lens: 前提裏取り
 
 ## あなたの役割
 Doc path のspec/planを読み、**裏取りされていない前提の上に設計が載っている**Criticalのみを返す。この類型は全面作り直しに直結する破壊力最大の欠陥で、現状ユーザー本人の指摘でしか発覚していない。必要ならリポジトリ（cwd）と `../moorestech_master` のマスタJSONをGrep/Readして裏取りする。

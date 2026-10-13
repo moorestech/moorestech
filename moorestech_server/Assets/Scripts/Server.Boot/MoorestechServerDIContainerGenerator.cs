@@ -55,7 +55,7 @@ namespace Server.Boot
             // Create the stack level store before any ItemStack creation (ctor sets the static Instance)
             var itemStackLevelDataStore = new ItemStackLevelDataStore();
 
-            var initializerProvider = ServerContextRegistration.Create(options.worldDataDirectory, masterJsonFileContainer);
+            var initializerProvider = ServerContextRegistration.Create(options.worldDataDirectory, masterJsonFileContainer, modResource);
             var serverContext = new ServerContext(initializerProvider);
 
             // 各責務のサービスを同じ順序で登録する

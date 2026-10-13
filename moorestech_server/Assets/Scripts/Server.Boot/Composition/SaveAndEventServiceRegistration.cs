@@ -67,6 +67,7 @@ using Mod.Config;
 using Mod.Loader;
 using Newtonsoft.Json;
 using Server.Event;
+using Server.Event.EventReceive.Train;
 using Server.Event.EventReceive;
 using Server.Event.EventReceive.BeltTransportSync;
 using Server.Event.Notification;
@@ -157,6 +158,8 @@ namespace Server.Boot.Composition
             services.AddSingleton<RailNodeRemovedEventPacket>();
             services.AddSingleton<RailConnectionRemovedEventPacket>();
             services.AddSingleton<RidingStateEventPacket>();
+            services.AddSingleton<ITrainTimetableSubscriptionRegistry, TrainInventoryTimetableSubscriptionRegistry>();
+            services.AddSingleton<TrainTimetableEventPacket>();
             services.AddSingleton<AchievementNotificationWiring>();
             services.AddSingleton<MissingMasterPruneNotificationWiring>();
 

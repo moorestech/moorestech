@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Game.Block.Blocks;
+using Game.Block.Blocks.TrainRail.Naming;
 using Game.Block.Blocks.Chest;
 using Game.Block.Blocks.Service;
 using Game.Block.Blocks.TrainRail;
@@ -15,11 +16,13 @@ namespace Game.Block.Factory.BlockTemplate.Train
 {
     public class VanillaTrainStationTemplate : IBlockTemplate
     {
+        private readonly TrainStationDefaultNameAllocator _defaultNameAllocator;
         private readonly IRailGraphDatastore _railGraphDatastore;
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdateEvent;
 
-        public VanillaTrainStationTemplate(BlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent, IRailGraphDatastore railGraphDatastore)
+        public VanillaTrainStationTemplate(BlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent, IRailGraphDatastore railGraphDatastore, TrainStationDefaultNameAllocator defaultNameAllocator)
         {
+            _defaultNameAllocator = defaultNameAllocator;
             _blockInventoryUpdateEvent = blockInventoryUpdateEvent;
             _railGraphDatastore = railGraphDatastore;
         }
@@ -36,7 +39,7 @@ namespace Game.Block.Factory.BlockTemplate.Train
             //②stationをつなげて設置した場合にピッタリ重なる位置のrailComponentを自動接続するための処理
             var railComponents = RailComponentUtility.Create2RailComponents(positionInfo, stationParam.EntryRailPosition, stationParam.ExitRailPosition, _railGraphDatastore, (float)stationParam.MaxConnectableRailLength);//①が行われる
             RailComponentUtility.RegisterAndConnetStationBlocks(railComponents, _railGraphDatastore);//②接続処理
-            var station = new TrainStationComponent("test");
+            var station = new TrainStationComponent(_defaultNameAllocator.Allocate(positionInfo));
             var trainPlatformDockingComponent = new TrainPlatformDockingComponent(stationParam.LoadingAnimeSpeed);
             var trainPlatformTransferComponent = new TrainPlatformTransferComponent(TrainPlatformTransferComponent.TransferMode.LoadToTrain);
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(stationParam.InventoryConnectors, positionInfo);
@@ -105,4 +108,3 @@ namespace Game.Block.Factory.BlockTemplate.Train
         }
     }
 }
-

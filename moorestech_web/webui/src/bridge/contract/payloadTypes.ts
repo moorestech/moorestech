@@ -1,48 +1,34 @@
 import type { z } from "zod";
 import type {
-  BlockInventoryAreaSchema,
-  BlockInventoryClosedSchema,
   BlockInventoryDataSchema,
   BlockInventoryOpenSchema,
   BlockSlotRefSchema,
   BuildMenuCategorySchema,
   BuildMenuDataSchema,
   BuildMenuEntryDataSchema,
-  BuildMenuEntryKindSchema,
   BuildMenuRequiredItemSchema,
   CraftRecipeSchema,
   CraftRecipesDataSchema,
-  ElectricNetworkDataSchema,
-  ElectricToGearDataSchema,
-  ElectricToGearOutputModeDataSchema,
-  FilterSplitterDataSchema,
-  FilterSplitterDirectionDataSchema,
+  GearToElectricGenerationStateSchema,
   FilterSplitterModeSchema,
   FluidMasterDataSchema,
   FluidMasterEntrySchema,
   FluidSlotDataSchema,
   GearDetailDataSchema,
-  GearNetworkDataSchema,
   GearNetworkStopReasonSchema,
-  GeneratorDetailDataSchema,
   HotbarDataSchema,
   HotbarSlotSchema,
-  InventoryAreaSchema,
   ItemMasterDataSchema,
   ItemMasterEntrySchema,
   MachineDetailDataSchema,
   MachineProcessStateSchema,
-  MachineRecipeItemSchema,
   MachineRecipeSchema,
   MachineRecipesDataSchema,
-  MinerDetailDataSchema,
-  PumpDetailDataSchema,
   ModalDataSchema,
   ModalRequestSchema,
   PlayerInventoryDataSchema,
   ProgressDataSchema,
   RecipeViewerItemListDataSchema,
-  RequiredItemSchema,
   ResearchNodeDataSchema,
   ResearchNodeStateSchema,
   ResearchTreeDataSchema,
@@ -51,11 +37,8 @@ import type {
   UiStateDataSchema,
   LocalizationDataSchema,
   EventLanguageGateDataSchema,
-  ChallengeNodeStateSchema,
   ChallengeNodeDataSchema,
-  ChallengeCategoryDataSchema,
   ChallengeTreeDataSchema,
-  CurrentChallengeDataSchema,
   ChallengeCurrentDataSchema,
   PauseMenuDataSchema,
   PlacementModeDataSchema,
@@ -68,17 +51,17 @@ import type {
   WorldPinPresentationDataSchema,
   SkitPresentationDataSchema,
   TrainRidingDataSchema,
-  TrainPlatformDataSchema,
   TrainPlatformModeSchema,
+  TrainTimetableDataSchema,
+  TrainTimetableStationSchema,
+  TrainTimetableStopSchema,
   NotificationDataSchema,
 } from "./schemas";
 
 // 公開DTO型は実行時スキーマから導出し、wire shapeの定義元を一つに保つ
 // Derive public DTO types from runtime schemas to keep one source for wire shapes
 export type SlotData = z.infer<typeof SlotDataSchema>;
-export type InventoryArea = z.infer<typeof InventoryAreaSchema>;
 export type SlotRef = z.infer<typeof SlotRefSchema>;
-export type BlockInventoryArea = z.infer<typeof BlockInventoryAreaSchema>;
 export type BlockSlotRef = z.infer<typeof BlockSlotRefSchema>;
 export type PlayerInventoryData = z.infer<typeof PlayerInventoryDataSchema>;
 export type ModalRequest = z.infer<typeof ModalRequestSchema>;
@@ -107,30 +90,18 @@ export type TrainRidingData = z.infer<typeof TrainRidingDataSchema>;
 export type FluidSlotData = z.infer<typeof FluidSlotDataSchema>;
 export type MachineProcessState = z.infer<typeof MachineProcessStateSchema>;
 export type MachineDetailData = z.infer<typeof MachineDetailDataSchema>;
-export type GeneratorDetailData = z.infer<typeof GeneratorDetailDataSchema>;
-export type MinerDetailData = z.infer<typeof MinerDetailDataSchema>;
-export type PumpDetailData = z.infer<typeof PumpDetailDataSchema>;
 export type GearDetailData = z.infer<typeof GearDetailDataSchema>;
-export type ElectricNetworkData = z.infer<typeof ElectricNetworkDataSchema>;
-export type ElectricToGearOutputModeData = z.infer<typeof ElectricToGearOutputModeDataSchema>;
-export type ElectricToGearData = z.infer<typeof ElectricToGearDataSchema>;
+export type GearToElectricGenerationState = z.infer<typeof GearToElectricGenerationStateSchema>;
 export type TrainPlatformMode = z.infer<typeof TrainPlatformModeSchema>;
-export type TrainPlatformData = z.infer<typeof TrainPlatformDataSchema>;
+export type TrainTimetableData = z.infer<typeof TrainTimetableDataSchema>;
+export type TrainTimetableStation = z.infer<typeof TrainTimetableStationSchema>;
+export type TrainTimetableStop = z.infer<typeof TrainTimetableStopSchema>;
 export type GearNetworkStopReason = z.infer<typeof GearNetworkStopReasonSchema>;
-export type GearNetworkData = z.infer<typeof GearNetworkDataSchema>;
 export type FilterSplitterMode = z.infer<typeof FilterSplitterModeSchema>;
-export type FilterSplitterDirectionData = z.infer<typeof FilterSplitterDirectionDataSchema>;
-export type FilterSplitterData = z.infer<typeof FilterSplitterDataSchema>;
 export type BlockInventoryOpen = z.infer<typeof BlockInventoryOpenSchema>;
-export type BlockInventoryClosed = z.infer<typeof BlockInventoryClosedSchema>;
 export type BlockInventoryData = z.infer<typeof BlockInventoryDataSchema>;
-// パース前のワイヤ形式（fluidSlotsはkind変換前のfluidId/amount/capacity/fluidGuid）。e2eモックサーバ専用
-// The pre-parse wire shape (fluidSlots before the kind transform); used only by the e2e mock server
-export type BlockInventoryWireData = z.input<typeof BlockInventoryDataSchema>;
-export type RequiredItem = z.infer<typeof RequiredItemSchema>;
 export type CraftRecipe = z.infer<typeof CraftRecipeSchema>;
 export type CraftRecipesData = z.infer<typeof CraftRecipesDataSchema>;
-export type MachineRecipeItem = z.infer<typeof MachineRecipeItemSchema>;
 export type MachineRecipe = z.infer<typeof MachineRecipeSchema>;
 export type MachineRecipesData = z.infer<typeof MachineRecipesDataSchema>;
 export type RecipeViewerItemListData = z.infer<typeof RecipeViewerItemListDataSchema>;
@@ -141,17 +112,13 @@ export type FluidMasterData = z.infer<typeof FluidMasterDataSchema>;
 export type ResearchNodeState = z.infer<typeof ResearchNodeStateSchema>;
 export type ResearchNodeData = z.infer<typeof ResearchNodeDataSchema>;
 export type ResearchTreeData = z.infer<typeof ResearchTreeDataSchema>;
-export type BuildMenuEntryKind = z.infer<typeof BuildMenuEntryKindSchema>;
 export type BuildMenuRequiredItem = z.infer<typeof BuildMenuRequiredItemSchema>;
 export type BuildMenuCategory = z.infer<typeof BuildMenuCategorySchema>;
 export type BuildMenuEntryData = z.infer<typeof BuildMenuEntryDataSchema>;
 export type BuildMenuData = z.infer<typeof BuildMenuDataSchema>;
 export type HotbarSlot = z.infer<typeof HotbarSlotSchema>;
 export type HotbarData = z.infer<typeof HotbarDataSchema>;
-export type ChallengeNodeState = z.infer<typeof ChallengeNodeStateSchema>;
 export type ChallengeNodeData = z.infer<typeof ChallengeNodeDataSchema>;
-export type ChallengeCategoryData = z.infer<typeof ChallengeCategoryDataSchema>;
 export type ChallengeTreeData = z.infer<typeof ChallengeTreeDataSchema>;
-export type CurrentChallengeData = z.infer<typeof CurrentChallengeDataSchema>;
 export type ChallengeCurrentData = z.infer<typeof ChallengeCurrentDataSchema>;
 export type NotificationData = z.infer<typeof NotificationDataSchema>;

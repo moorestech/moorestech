@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { GuidSchema, SlotDataSchema } from "./common";
-
+import { ElectricToGearDataSchema, GearToElectricDataSchema } from "./energyConversion";
 export const PlayerInventoryDataSchema = z.object({
   mainSlots: z.array(SlotDataSchema),
   grab: SlotDataSchema,
@@ -121,24 +121,36 @@ export const FilterSplitterDataSchema = z.object({
   directions: z.array(FilterSplitterDirectionDataSchema),
 });
 
-export const ElectricToGearOutputModeDataSchema = z.object({
-  rpm: z.number(),
-  torque: z.number(),
-  requiredPower: z.number(),
-});
-export const ElectricToGearDataSchema = z.object({
-  selectedIndex: z.number().int().nonnegative(),
-  fulfillmentRate: z.number(),
-  consumedElectricPower: z.number(),
-  outputModes: z.array(ElectricToGearOutputModeDataSchema),
-});
-
 export const TrainPlatformModeSchema = z.enum(["loadToTrain", "unloadToPlatform"]);
 export const TrainPlatformDataSchema = z.object({
   mode: TrainPlatformModeSchema,
   itemSlotCount: z.number().int().nonnegative().optional(),
   fluidCapacity: z.number().nonnegative().optional(),
 });
+
+// 時刻表は駅ブロック座標で対象を固定し、表示名は独立して保持する
+// The timetable identifies station blocks by position and carries names only for display
+const TrainStationPositionSchema = z.object({ x: z.number().int(), y: z.number().int(), z: z.number().int() });
+export const TrainTimetableStationSchema = z.object({ position: TrainStationPositionSchema, name: z.string() });
+// 停車駅は駅一覧に入線方向（端）を足した形。端はホストの正本で、UIからの新規追加時だけ固定値を積む
+// A stop is a station plus the arrival side; the host owns the side and the UI only fixes it for new additions
+const TrainTimetableStopSideSchema = z.enum(["front", "back"]);
+export const TrainTimetableStopSchema = TrainTimetableStationSchema.extend({ side: TrainTimetableStopSideSchema });
+export const TrainTimetableDataSchema = z.object({
+  trainUnitId: z.string(),
+  isAutoRun: z.boolean(),
+  currentIndex: z.number().int(),
+  stops: z.array(TrainTimetableStopSchema),
+  stations: z.array(TrainTimetableStationSchema),
+});
+// 取得状態はC#が判定して kind で届く。読み込み中と取得不可を「値の有無」1ビットに畳まない
+// C# decides the fetch state and sends it as the kind; loading and unavailable are not folded into value presence
+const TrainTimetableStateSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("loading") }).strict(),
+  z.object({ kind: z.literal("unavailable") }).strict(),
+  z.object({ kind: z.literal("ready"), data: TrainTimetableDataSchema }).strict(),
+]);
+const TrainStationDetailSchema = z.object({ name: z.string() });
 
 export const BlockInventoryOpenSchema = z.object({
   open: z.literal(true),
@@ -158,15 +170,27 @@ export const BlockInventoryOpenSchema = z.object({
   gearNetwork: GearNetworkDataSchema.optional(),
   filterSplitter: FilterSplitterDataSchema.optional(),
   electricToGear: ElectricToGearDataSchema.optional(),
+  gearToElectric: GearToElectricDataSchema.optional(),
   trainPlatform: TrainPlatformDataSchema.optional(),
-}).strict();
-export const TrainInventoryOpenSchema = z.object({
+  trainStation: TrainStationDetailSchema.optional(),
+}).strict().superRefine((data, ctx) => {
+  // 変換機詳細の混入は受信境界で拒否する。未着は許容する
+  // Reject mismatched converter details at the receive boundary while allowing pending details
+  if (data.gearToElectric && data.blockType !== "GearToElectricGenerator")
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["gearToElectric"], message: "gearToElectric requires GearToElectricGenerator" });
+  if (data.electricToGear && data.blockType !== "ElectricToGearGenerator")
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["electricToGear"], message: "electricToGear requires ElectricToGearGenerator" });
+  if (data.gearToElectric && data.electricToGear)
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Converter details cannot coexist" });
+});
+const TrainInventoryOpenSchema = z.object({
   open: z.literal(true),
   source: z.literal("train"),
   blockType: z.literal("Train"),
   identifier: z.string(),
   itemSlots: z.array(SlotDataSchema),
   fluidSlots: z.array(FluidSlotDataSchema),
+  timetable: TrainTimetableStateSchema,
   error: z.enum(["containerMissing", "trainCarMissing", "openFailed"]).optional(),
 });
 export const BlockInventoryClosedSchema = z.object({ open: z.literal(false) });

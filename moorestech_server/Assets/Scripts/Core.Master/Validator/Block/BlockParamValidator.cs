@@ -112,6 +112,15 @@ namespace Core.Master.Validator.Block
                     }
                 }
 
+                // 容量ゼロや非有限値は発電能力を失わせるためロード時に拒否する
+                // Reject zero or non-finite capacity at load time because it removes generation capability
+                if (block.BlockParam is GearToElectricGeneratorBlockParam gearToElectric)
+                {
+                    var capacity = gearToElectric.MaxGeneratedPower;
+                    if (capacity <= 0f || float.IsNaN(capacity) || float.IsInfinity(capacity))
+                        logs += $"[BlockMaster] Name:{block.Name} maxGeneratedPower must be finite and > 0 (got {capacity})\n";
+                }
+
                 // CleanRoomAirFilter: filterItemGuid
                 // CleanRoomAirFilter: filterItemGuid
                 if (block.BlockParam is CleanRoomAirFilterBlockParam cleanRoomAirFilter)

@@ -111,7 +111,6 @@ namespace Game.Train.RailGraph
         public bool TryGetRailSegmentType(int startNodeId, int endNodeId, out Guid railTypeGuid) => TryGetRailSegmentTypeInternal(startNodeId, endNodeId, out railTypeGuid);
         public uint GetConnectNodesHash() => GetGraphHashInternal();
         public RailGraphSnapshot CaptureSnapshot(uint currentTick) => CaptureSnapshotInternal(currentTick);
-        public IReadOnlyList<RailNode> GetRailNodes() => railNodes;
         public Dictionary<Vector3Int, (ConnectionDestination first, ConnectionDestination second)> GetRailPositionToConnectionDestination() => railPositionToConnectionDestination;
 
         //======================================================

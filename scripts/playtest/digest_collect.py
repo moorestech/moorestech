@@ -70,10 +70,8 @@ def collect_boxes(root: Path, date: str, payload_name: str) -> tuple[list[dict],
 
 
 def load_reports(root: Path, date: str) -> tuple[list[dict], dict]:
-    """プレイ報告の manifest から種別・説明文・ビルド識別と、投入済みかどうかを取り出す。
-    型が契約と食い違う manifest.json の箱は件数に数えて除外する
-    Extracts kind, description, build label and the enqueued flag from each play report manifest;
-    boxes whose manifest.json types mismatch the contract are counted and excluded"""
+    """日次報告の種別・説明文・ビルド識別を取り出す。
+    Extracts kind, description and build label for daily reports."""
     boxes, stats = collect_boxes(root, date, "manifest.json")
     stats = dict(stats, invalidManifest=0)
     reports = []
@@ -97,26 +95,23 @@ def load_reports(root: Path, date: str) -> tuple[list[dict], dict]:
             "kind": manifest["kind"],
             "description": manifest["description"],
             "buildLabel": manifest["buildInfo"]["steamBuildLabel"],
-            # AUTOFIX_QUEUED は enqueue-autofix.sh だけが書く。投入候補一覧から外す判定に使う
-            # AUTOFIX_QUEUED is written only by enqueue-autofix.sh and removes the box from the candidate list
-            "queued": (box["dir"] / "AUTOFIX_QUEUED").is_file(),
-            "dir": box["dir"],
         })
     return reports, stats
 
 
 def flatten_progress_record(record: dict, box: dict) -> dict:
-    """型の保証された record.json を集計用の1行へ畳む
-    Flattens a type-guaranteed record.json into one aggregation row"""
+    """検証済み記録を集計用の1行へ畳む。
+    Flattens a validated record into one aggregation row."""
     events = record["events"]
-    # playSeconds が null（測れなかった正規のケース）はそのまま None を通す。集計側が非欠損だけで平均を取る
-    # A null playSeconds (the producer's legitimate "unmeasured" case) is passed through as None; aggregation averages only the present ones
+    # meta優先で解決したIDを集計と表示で共有する
+    # Share the meta-first resolved ID between aggregation and display.
+    steam_id = box["meta"]["steamId"] or record["steamId"]
     raw_seconds = record["playSeconds"]
     return {
-        # meta（R2の置き場所）が正。旧い箱だけrecord本文へフォールバックする（ADR 0070「追跡の正はR2の置き場所」）
-        # meta (the R2 location) is authoritative; only legacy boxes fall back to the record body (ADR 0070 "the R2 location is the tracking authority")
-        "steamId": box["meta"]["steamId"] or record["steamId"],
-        "tester": tester_label(box["meta"]),
+        "steamId": steam_id,
+        "tester": tester_label(dict(box["meta"], steamId=steam_id)),
+        # 未計測を保持し、平均は集計側で不明とする
+        # Preserve missing measurements so aggregation marks the mean unknown.
         "playSeconds": float(raw_seconds) if raw_seconds is not None else None,
         "endReason": record["endReason"] or "unknown",
         "reached": len(record["reachedChallenges"]),

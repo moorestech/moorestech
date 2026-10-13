@@ -7,7 +7,6 @@ plan の**構造化6節**（Files / Interfaces / Produces・Consumes / 配置表
 
 出所: 採用済み critical 239件の分類と X 群63件の plan 照合（[incidents #T1](incidents.md)）。
 行末の `pr-NNNN Fnn` は照合原本の verdict id（`moorestech_logs/harness/writing-plans-extension/x-pass2-verdicts/`）。
-「畳み方」と強弱の区分は 14 plan での実走評価（同 `phase26-eval-2026-09-13/`）由来。
 
 ## 出力の畳み方（Phase 2.6 実行者向け）
 

@@ -37,14 +37,11 @@ class DigestReporterTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         return result.stdout
 
-    def test_feedback_and_candidate_include_resolved_reporter(self):
+    def test_feedback_includes_resolved_reporter_without_candidates(self):
         out = self.digest()
-        label = "Tester（SteamID 7656001・https://steamcommunity.com/profiles/7656001/）"
         self.assertIn("### 20260912_110000_fb1（Tester（SteamID 7656002・https://steamcommunity.com/profiles/7656002/）", out)
-        self.assertIn(f"20260912_100000_bug1（2026-09-12・{label}）", out)
-        command = next(line for line in out.splitlines() if "enqueue-autofix.sh 7656001" in line)
-        self.assertNotIn("Tester", command)
-        self.assertNotIn("steamcommunity", command)
+        self.assertNotIn("## 投入候補", out)
+        self.assertNotIn("enqueue-autofix.sh", out)
 
     def test_old_ingest_has_unresolved_name(self):
         box = self.root / "harness/playtest/reports/7656002/20260912_110000_fb1"
@@ -64,17 +61,14 @@ class DigestReporterTest(unittest.TestCase):
         self.assertIn("@" + schema.ZERO_WIDTH_SPACE + "everyone **x**", out)
 
     def test_progress_lists_unique_testers_without_profile_urls(self):
-        out = self.digest()
-        line = next(line for line in out.splitlines() if line.startswith("- テスター: "))
-        self.assertIn("Tester（SteamID 7656001）", line)
-        self.assertIn("Tester（SteamID 7656002）", line)
-        self.assertNotIn("steamcommunity", line)
+        lines = [line for line in self.digest().splitlines() if line.startswith("- Tester（SteamID ")]
+        self.assertEqual(lines, ["- Tester（SteamID 7656001）: 20.0 分",
+                                 "- Tester（SteamID 7656002）: 10.0 分"])
+        self.assertTrue(all("steamcommunity" not in line for line in lines))
 
     def test_digest_lists_pre_target_day_candidate_until_enqueued(self):
-        """対象日より前の readyAt を持つ未投入バグは、投入候補として JST 日付付きで出続け、
-        件数節（バグN件）には数えず、AUTOFIX_QUEUED を付けると消える
-        A pre-target-day un-enqueued bug keeps resurfacing in the candidates section with its
-        JST date, is never counted in the "バグN件" tally, and disappears once AUTOFIX_QUEUED is written"""
+        """過去の候補は単体機能に残り、日次には再掲しない。
+        Historical candidates remain available standalone but never resurface in the daily digest."""
         old_bug = self.root / "harness/playtest/reports/7656005/20260905_100000_oldbug"
         write_json(old_bug / "ingest.json", {"kind": "report", "steamId": "7656005",
                                              "id": "20260905_100000_oldbug", "readyAt": "2026-09-05T05:00:00Z"})
@@ -82,17 +76,13 @@ class DigestReporterTest(unittest.TestCase):
         candidates, _stats = dcand.load_candidate_reports(self.root / "harness/playtest/reports")
         self.assertIn("20260905_100000_oldbug", {c["id"] for c in candidates})
         out = self.digest()
-        self.assertIn("enqueue-autofix.sh 7656005 20260905_100000_oldbug", out)
-        self.assertIn("20260905_100000_oldbug（2026-09-05・名前未解決（SteamID 7656005））", out)
-        # 対象日フィルタで拾われないため、対象日のバグ件数節（2件）には混入しない
-        # It falls outside the target-day filter, so it never inflates the "バグ2件" tally
+        self.assertNotIn("20260905_100000_oldbug", out)
+        self.assertNotIn("enqueue-autofix.sh", out)
         self.assertIn("バグ 2件 / 感想 1件 / クラッシュ 1件", out)
-        # bug1 は対象日内かつ未投入 → 候補にも同時に出る
-        # bug1 is within the target day and also un-enqueued, so it appears as a candidate too
-        self.assertIn("enqueue-autofix.sh 7656001 20260912_100000_bug1", out)
         (old_bug / "AUTOFIX_QUEUED").write_text("queued\n", encoding="utf-8")
-        out2 = self.digest()
-        self.assertNotIn("enqueue-autofix.sh 7656005 20260905_100000_oldbug", out2)
+        candidates, _stats = dcand.load_candidate_reports(self.root / "harness/playtest/reports")
+        self.assertNotIn("20260905_100000_oldbug", {c["id"] for c in candidates})
+        self.assertEqual(self.digest(), out)
 
     def test_reporter_label_has_no_url_when_unresolved(self):
         self.assertEqual(collect.reporter_label({"steamId": "7656001"}), "名前未解決（SteamID 7656001）")
@@ -106,7 +96,7 @@ class DigestReporterTest(unittest.TestCase):
         write_json(box / "ingest.json", {"steamId": "7656001", "steamPersonaName": "Updated",
                                          "readyAt": "2026-09-12T09:30:00Z"})
         write_json(box / "record.json", {"schemaVersion": 1, "steamId": "7656001", "remoteExec": False, "playSeconds": 1})
-        line = next(line for line in self.digest().splitlines() if line.startswith("- テスター: "))
+        line = next(line for line in self.digest().splitlines() if line.startswith("- Updated（SteamID "))
         self.assertEqual(line.count("SteamID 7656001"), 1)
         self.assertIn("Updated（SteamID 7656001）", line)
 
@@ -129,10 +119,10 @@ class DigestReporterTest(unittest.TestCase):
         ]
         agg = collect.aggregate_progress(records)
         lines = digest.format_progress(agg, {}, records)
-        line = next(entry for entry in lines if entry.startswith("- テスター: "))
-        names = line[len("- テスター: "):].split("、")
+        names = [line for line in lines if line.startswith("- A（SteamID ")]
         self.assertEqual(len(names), agg["testers"])
-        self.assertNotIn("名前未解決（SteamID ）", line)
+        self.assertNotIn("名前未解決（SteamID ）", "\n".join(lines))
+        self.assertIn("- ID不明分: 0.0 分", lines)
 
     def test_steam_persona_extract_normalizes_newline_in_display_name(self):
         # 改行入りの表示名が、貼り付けコマンドの退避正規表現を偽装できないことを保証する（C12）

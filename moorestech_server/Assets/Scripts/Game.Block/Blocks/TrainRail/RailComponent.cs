@@ -30,10 +30,6 @@ namespace Game.Block.Blocks.TrainRail
         public Vector3 Position { get; }
         public readonly Vector3 RailDirection;
 
-        // このRailComponentから接続可能なレールセグメントの最大長(m)
-        // Maximum length (m) of a rail segment that can be connected from this RailComponent
-        public float MaxConnectableRailLength { get; }
-
         /// <summary>
         /// レール方向にBlockDirectionを用いるコンストラクタ
         /// </summary>
@@ -52,7 +48,6 @@ namespace Game.Block.Blocks.TrainRail
 
             Position = position;
             RailDirection = railDirection;
-            MaxConnectableRailLength = maxConnectableRailLength;
 
             // ベジェ曲線の制御点を初期化
             FrontControlPoint = new RailControlPoint(position, CalculateControlPointOffset(true));
@@ -82,12 +77,47 @@ namespace Game.Block.Blocks.TrainRail
         public void Destroy()
         {
             IsDestroy = true;
+            // 接続位置の索引から自分だけを外し、隣駅の接続先は保持する
+            // Remove only this component from the position index and preserve its neighbor
+            RemoveConnectionPositionRegistration();
             FrontNode.Destroy();
             BackNode.Destroy();
             FrontNode = null;
             BackNode = null;
+
+            #region Internal
+
+            void RemoveConnectionPositionRegistration()
+            {
+                var positions = _railGraphDatastore.GetRailPositionToConnectionDestination();
+                var key = RoundRailPosition(Position);
+                // 橋脚は位置索引へ登録されないため削除対象を持たない
+                // Bridge piers have no entry in the connection position index
+                if (!positions.TryGetValue(key, out var pair)) return;
+                if (BelongsToComponent(pair.first)) pair.first = ConnectionDestination.Default;
+                if (BelongsToComponent(pair.second)) pair.second = ConnectionDestination.Default;
+
+                // 共有位置の残存側があれば索引を残す
+                // Keep the shared position entry while a surviving endpoint remains
+                if (pair.first.IsDefault() && pair.second.IsDefault()) positions.Remove(key);
+                else positions[key] = pair;
+            }
+
+            bool BelongsToComponent(ConnectionDestination destination)
+            {
+                return destination.Equals(FrontNode.ConnectionDestination) || destination.Equals(BackNode.ConnectionDestination);
+            }
+
+            #endregion
         }
-        
+
+        // 登録と撤去で半マスの位置キーを共有する
+        // Share the half-cell position key between registration and removal
+        internal static Vector3Int RoundRailPosition(Vector3 position)
+        {
+            return Vector3Int.RoundToInt(position * 2f);
+        }
+
         public static Vector3 ToVector3(BlockDirection blockDirection)
         {
             return blockDirection switch

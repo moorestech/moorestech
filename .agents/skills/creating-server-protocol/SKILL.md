@@ -29,7 +29,7 @@ description: |
 | 2 | 初期データ（ログイン/再接続時の全量復元） | `InitialHandshakeProtocol`のResponseに同梱 or `va:get*`プロトコル |
 | 3 | クライアント購読（受信→クライアント側DataStore反映） | `SubscribeEventResponse(XxxEventPacket.EventTag, ...)`する`*EventHandler`（`IInitializable`/`RegisterEntryPoint`） |
 
-**禁止**: 他プロトコル（研究完了・チャレンジ等）の応答をパースして別状態を間接導出する`*Applier`。「新規プロトコル・イベントは作らない」とspecに書くのは新規パターンでありユーザー裁定が必要（PR988でApplier 2種が全廃され3点セットに作り直された）。
+**禁止**: 他プロトコル（研究完了・チャレンジ等）の応答をパースして別状態を間接導出する`*Applier`。「新規プロトコル・イベントは作らない」とspecに書くのは新規パターンでありユーザー裁定が必要（間接導出のApplierは結局3点セットへ作り直すことになるため）。
 **前例**: `UnlockedEventPacket`+`GetGameUnlockStateProtocol`+`ClientGameUnlockStateDatastore`、`ItemStackLevelUnlockEventPacket`+`InitialHandshakeProtocol.ItemStackLevels`+`ItemStackLevelEventHandler`。
 **順序**: 初期適用はそれに依存するデータ（インベントリ等）の取得より**先**に行う（`VanillaApiWithResponse.InitialHandShake`参照）。
 
@@ -116,30 +116,30 @@ namespace Server.Protocol.PacketResponse
 _packetResponseDictionary.Add(YourProtocol.ProtocolTag, new YourProtocol(serviceProvider));
 ```
 
-### Step 2.5: クライアント側 VanillaApi にメソッドを追加（**1プロトコル = 1メソッド**）
+### Step 2.5: ResponseApi のドメイン別拡張クラスにメソッドを追加（**1プロトコル = 1メソッド**）
 
-`moorestech_client/Assets/Scripts/Client.Network/API/VanillaApiWithResponse.cs` にプロトコル送信用メソッドを **1個だけ** 追加する。
+`moorestech_client/Assets/Scripts/Client.Network/API/ResponseApi/<ドメイン>ResponseApi.cs` に `VanillaApiWithResponse` の拡張メソッドを **1個だけ** 追加する。呼び出し側には `using Client.Network.API;` を追加する。
 
-**原則: 1プロトコル = 1 VanillaApi メソッド**。1つのプロトコルに対して複数のラッパーメソッド（`GetXxx` / `SetXxx` / `UpdateXxx` 等）を作ってはいけない。プロトコルが複数の Operation を持つ場合は、`Request` オブジェクトを呼び出し側で構築して渡す形にする。
+**原則: 1プロトコル = 1 ResponseApi 拡張メソッド**。1つのプロトコルに対して複数のラッパーメソッド（`GetXxx` / `SetXxx` / `UpdateXxx` 等）を作ってはいけない。プロトコルが複数の Operation を持つ場合は、`Request` オブジェクトを呼び出し側で構築して渡す形にする。
 
 ```csharp
 // 良い: 1メソッドだけ。呼び出し側が Request を構築する
-public async UniTask<YourProtocol.YourResponseMessagePack> SendYourRequest(
-    YourProtocol.YourRequestMessagePack request, CancellationToken ct)
+public static async UniTask<YourProtocol.YourResponseMessagePack> SendYourRequest(
+    this VanillaApiWithResponse api, YourProtocol.YourRequestMessagePack request, CancellationToken ct)
 {
-    return await _packetExchangeManager.GetPacketResponse<YourProtocol.YourResponseMessagePack>(request, ct);
+    return await api.PacketExchange.GetPacketResponse<YourProtocol.YourResponseMessagePack>(request, ct);
 }
 
 // 単純なプロトコルなら、全プロパティを引数に取って内部で Request を組む形も可
-public async UniTask<YourProtocol.YourResponseMessagePack> SendYourRequest(
-    Vector3Int position, int someField, CancellationToken ct)
+public static async UniTask<YourProtocol.YourResponseMessagePack> SendYourRequest(
+    this VanillaApiWithResponse api, Vector3Int position, int someField, CancellationToken ct)
 {
     var request = new YourProtocol.YourRequestMessagePack(position, someField);
-    return await _packetExchangeManager.GetPacketResponse<YourProtocol.YourResponseMessagePack>(request, ct);
+    return await api.PacketExchange.GetPacketResponse<YourProtocol.YourResponseMessagePack>(request, ct);
 }
 ```
 
-**禁止例**: 1プロトコルに複数の Operation を持たせて、operation ごとに VanillaApi メソッドを生やす。これは「1プロトコル = N メソッド」になりラッパーが肥大化する。
+**禁止例**: 1プロトコルに複数の Operation を持たせて、operation ごとに ResponseApi メソッドを生やす。これは「1プロトコル = N メソッド」になりラッパーが肥大化する。
 
 ```csharp
 // 禁止: 1プロトコル (FilterSplitterStateProtocol) に対し 3 メソッド生やしている
@@ -148,7 +148,7 @@ public async UniTask<...> SetFilterSplitterMode(...) { ... }
 public async UniTask<...> SetFilterSplitterItem(...) { ... }
 ```
 
-このルールにより、プロトコルの追加コストが「1ファイル + 1 PacketResponseCreator 登録行 + 1 VanillaApi メソッド」に固定され、後続の Operation 追加が API 表面に波及しない。
+このルールにより、プロトコルの追加コストが「1ファイル + 1 PacketResponseCreator 登録行 + 1 ResponseApi 拡張メソッド」に固定され、後続の Operation 追加が API 表面に波及しない。
 
 ### Step 3: テストを作成
 
@@ -252,7 +252,7 @@ services.AddSingleton<YourEventPacket>();
 - `[Obsolete]`付き引数なしコンストラクタは省略不可
 - イベント購読はUniRxの`.Subscribe()`を使用
 - コードのコメントは日本語・英語の2行セット
-- リクエストのペイロードに送り手の`playerId`を載せない。送り手のIDはハンドシェイクで接続に紐づいた`context.PlayerId.Value`から取得する。未紐づけ接続の要求は`PacketResponseCreator`が一括で無視する（ADR 0073、`.decisions/2026-09-27-サーバーは接続に紐づいたプレイヤーIDだけを信じる.md`）。イベント・レスポンスの表示用IDは対象外。
+- リクエストのペイロードに送り手の`playerId`を載せない。送り手のIDはハンドシェイクで接続に紐づいた`context.PlayerId.Value`から取得する。未紐づけ接続の要求は`PacketResponseCreator`が一括で無視する。イベント・レスポンスの表示用IDは対象外。
 
 ## Request/Response メッセージ設計原則
 
