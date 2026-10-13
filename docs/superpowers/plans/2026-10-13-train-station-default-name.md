@@ -4,7 +4,7 @@
 
 **Goal:** 新しく置いた蒸気機関車駅に、周辺の鉱脈・地物から "Iron Ore Station" "Log Station 2" のような英語の既定名を付ける。
 
-**Architecture:** サーバーは設置時（`VanillaTrainStationTemplate.New`）に、周辺特徴の走査（`TrainStationNameFeatureScanner`）で特徴のアイテム／液体を選び、英語名（mod の localization.csv の english 列。欠ければマスタ name）で "{name} Station" を組み立て、全駅名と重ならない最小番号を付けた文字列を既存の `TrainStationComponent(string)` に渡す。駅名は今までどおりの文字列で、セーブ形式・同期・Web UI は変えない。
+**Architecture:** サーバーは設置時（`VanillaTrainStationTemplate.New`）に、周辺特徴の走査（`TrainStationNameFeatureScanner`）で特徴のアイテム／液体の英語名（mod の localization.csv の english 列。欠ければマスタ name）から "{name} Station" を作り、全駅名と重ならない最小番号を付けた文字列を既存の `TrainStationComponent(string)` に渡す。駅名は今までどおりの文字列で、セーブ形式・同期・Web UI は変えない。
 
 **Tech Stack:** Unity C#（サーバー Game.Block / Server.Boot）、共通 CSV パーサー `mooresmaster.LocalizationCsv`（`Mooresmaster.LocalizationCsv.LocalizationCsvParser`）。
 
@@ -24,7 +24,7 @@
 - try-catch は外部入力（mod の CSV のパース・ファイル読み込み）の境界だけ。根拠コメントを書き、catch した失敗は `Debug.LogError` に残す
 - 走査半径 `32`（水平、XZ）。書式: `"{name} Station"` / `"{name} Station {number}"` / `"Station"` / `"Station {number}"`
 - テストは `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "<正規表現>"`
-- 土台は PR #1415 のブランチ（`origin/feature/train-timetable-ui`）。本PRのベースも `feature/train-timetable-ui`
+- 土台は `origin/master`（PR #1415 はマージ済み、bb41e34f41）。本PRのベースは `master`
 
 ## 設計検査記録
 
@@ -39,7 +39,7 @@
 |---|---|---|---|
 | 1 | `ModEnglishContentNameLoader`（mod CSV の english 列を読む） | Server.Boot `Localization/` | ModsResource を持つのは Server.Boot。読み方の前例はクライアント `Client.Localization/Dictionary/ModLocalizationMerger.cs` |
 | 2 | `TrainStationFeatureEnglishNames`（GUID→英語名の表、マスタ name へ縮退） | Game.Block `Blocks/TrainRail/Naming/` | 駅命名だけが使う読み取り表。Server.Boot が作って DI 登録 |
-| 3 | `TrainStationNameFeatureScanner` | Game.Block `Blocks/TrainRail/Naming/` | 鉱脈・地物 datastore を ctor 注入（Game.Block は Game.Map.Interface 参照済み）。前例 `VanillaGearMapObjectMinerProcessorComponent` の `GetWithinBoundingBox` |
+| 3 | `TrainStationNameFeatureScanner`（番号なしの名前を返す） | Game.Block `Blocks/TrainRail/Naming/` | 鉱脈・地物 datastore と英語名の表を ctor 注入（Game.Block は Game.Map.Interface 参照済み）。前例 `VanillaGearMapObjectMinerProcessorComponent` の `GetWithinBoundingBox` |
 | 4 | `TrainStationDefaultNameAllocator` | Game.Block `Blocks/TrainRail/Naming/` | 決まった名前の文字列を返す。全駅の列挙は `ServerContext.WorldBlockDatastore`（DI 循環のため注入不可。前例 `BlockPlaceOnVeinChallengeTask.cs:80`） |
 
 ---
@@ -49,7 +49,7 @@
 **Files:**
 - Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/TrainRail/Naming/TrainStationFeatureEnglishNames.cs`
 - Create: `moorestech_server/Assets/Scripts/Server.Boot/Localization/ModEnglishContentNameLoader.cs`
-- Modify: `moorestech_server/Assets/Scripts/Server.Boot/Composition/ServerContextRegistration.cs`（initializer コンテナへ `TrainStationFeatureEnglishNames` を AddSingleton。`ModsResource` の受け取り方は `MoorestechServerDIContainerGenerator.cs:50` から `ServerContextRegistration.Create(...)` への引数の流れに合わせる）
+- Modify: `moorestech_server/Assets/Scripts/Server.Boot/Composition/ServerContextRegistration.cs`（initializer コンテナへ `TrainStationFeatureEnglishNames` を AddSingleton。`ModsResource` は `MoorestechServerDIContainerGenerator.cs:50` で生成されるが `ServerContextRegistration.Create(...)` には渡っていない。呼び出し元は1箇所なので `Create` の引数に `ModsResource` を足し、`ModEnglishContentNameLoader.Load` の結果で `TrainStationFeatureEnglishNames` を作って登録する。`ServerInstanceStartup.cs:36` 側の起動経路も同じ `Create` を通るか確認する）
 - Test: `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/TrainStation/Naming/ModEnglishContentNameLoaderTest.cs`
 
 **Interfaces:**
@@ -195,62 +195,16 @@ Expected: ErrorCount 0 / PASS
 ### Task 2: 周辺特徴の走査
 
 **Files:**
-- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/TrainRail/Naming/TrainStationNameFeature.cs`
 - Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/TrainRail/Naming/TrainStationNameFeatureScanner.cs`
 - Test: `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/TrainStation/Naming/TrainStationNameFeatureScannerTest.cs`
 
 **Interfaces:**
 - Consumes: Task 1 の `TrainStationFeatureEnglishNames`
-- Produces:
-  - 抽象クラス `TrainStationNameFeature` の `abstract string FormatName(TrainStationFeatureEnglishNames names, int number)`（number 1 は番号なし）と、サブクラス `ItemTrainStationNameFeature(Guid)`（`ItemGuid`）／`FluidTrainStationNameFeature(Guid)`（`FluidGuid`）／`FallbackTrainStationNameFeature`
-  - `TrainStationNameFeatureScanner(IItemMapVeinDatastore, IFluidMapVeinDatastore, IMapObjectDatastore)`、`TrainStationNameFeature Scan(BlockPositionInfo position)`、`const float ScanRadius = 32f`
+- Produces: `TrainStationNameFeatureScanner(IItemMapVeinDatastore, IFluidMapVeinDatastore, IMapObjectDatastore, TrainStationFeatureEnglishNames)`、`string ScanBaseName(BlockPositionInfo position)`（番号なしの名前。"Iron Ore Station" または代替 "Station"）、`const float ScanRadius = 32f`
 
-- [ ] **Step 1: 特徴の型を書く**
+- [ ] **Step 1: 走査を書く**
 
 ```csharp
-using System;
-
-namespace Game.Block.Blocks.TrainRail.Naming
-{
-    // 既定名の元になる特徴。番号1は番号なしで名前を組み立てる
-    // Feature a default name derives from; number 1 renders without a number
-    public abstract class TrainStationNameFeature
-    {
-        public abstract string FormatName(TrainStationFeatureEnglishNames names, int number);
-
-        protected static string FormatStation(string baseName, int number)
-        {
-            return number == 1 ? $"{baseName} Station" : $"{baseName} Station {number}";
-        }
-    }
-
-    public sealed class ItemTrainStationNameFeature : TrainStationNameFeature
-    {
-        public Guid ItemGuid { get; }
-        public ItemTrainStationNameFeature(Guid itemGuid) { ItemGuid = itemGuid; }
-        public override string FormatName(TrainStationFeatureEnglishNames names, int number) => FormatStation(names.GetItemName(ItemGuid), number);
-    }
-
-    public sealed class FluidTrainStationNameFeature : TrainStationNameFeature
-    {
-        public Guid FluidGuid { get; }
-        public FluidTrainStationNameFeature(Guid fluidGuid) { FluidGuid = fluidGuid; }
-        public override string FormatName(TrainStationFeatureEnglishNames names, int number) => FormatStation(names.GetFluidName(FluidGuid), number);
-    }
-
-    // 周辺に何も無い駅の名前
-    // Name for a station with nothing nearby
-    public sealed class FallbackTrainStationNameFeature : TrainStationNameFeature
-    {
-        public override string FormatName(TrainStationFeatureEnglishNames names, int number) => number == 1 ? "Station" : $"Station {number}";
-    }
-}
-```
-
-- [ ] **Step 2: 走査を書く**
-
-```csharp
-using System;
 using System.Collections.Generic;
 using Core.Master;
 using Game.Block.Interface;
@@ -260,54 +214,58 @@ using UnityEngine;
 
 namespace Game.Block.Blocks.TrainRail.Naming
 {
-    // 駅の周辺から既定名の特徴を選ぶ（鉱脈→地物の採掘アイテム→代替）
-    // Pick the default-name feature around a station (vein, then mined item of map objects, then fallback)
+    // 駅の周辺から番号なしの既定名を決める（鉱脈→地物の採掘アイテム→代替）
+    // Decide the unnumbered default name around a station (vein, then mined item of map objects, then fallback)
     public class TrainStationNameFeatureScanner
     {
         public const float ScanRadius = 32f;
+        private const string FallbackName = "Station";
 
         private readonly IItemMapVeinDatastore _itemVeins;
         private readonly IFluidMapVeinDatastore _fluidVeins;
         private readonly IMapObjectDatastore _mapObjects;
+        private readonly TrainStationFeatureEnglishNames _names;
 
-        public TrainStationNameFeatureScanner(IItemMapVeinDatastore itemVeins, IFluidMapVeinDatastore fluidVeins, IMapObjectDatastore mapObjects)
+        public TrainStationNameFeatureScanner(IItemMapVeinDatastore itemVeins, IFluidMapVeinDatastore fluidVeins, IMapObjectDatastore mapObjects, TrainStationFeatureEnglishNames names)
         {
             _itemVeins = itemVeins;
             _fluidVeins = fluidVeins;
             _mapObjects = mapObjects;
+            _names = names;
         }
 
-        public TrainStationNameFeature Scan(BlockPositionInfo position)
+        public string ScanBaseName(BlockPositionInfo position)
         {
             var center = new Vector2((position.MinPos.x + position.MaxPos.x + 1) * 0.5f, (position.MinPos.z + position.MaxPos.z + 1) * 0.5f);
-            return FindNearestVein() ?? FindMostMinedItem() ?? new FallbackTrainStationNameFeature();
+            var featureName = FindNearestVeinName() ?? FindMostMinedItemName();
+            return featureName == null ? FallbackName : $"{featureName} {FallbackName}";
 
             #region Internal
 
-            TrainStationNameFeature FindNearestVein()
+            string FindNearestVeinName()
             {
-                // 同距離はアイテム優先、次にGUID文字列順（その順に並べた候補の先勝ち）
-                // Ties prefer items, then GUID string order (the first candidate in that order wins)
-                TrainStationNameFeature best = null;
+                // 最も近い鉱脈。同距離は先に見つけた方（アイテム→液体の順）
+                // Nearest vein; ties keep the first found (items before fluids)
+                string best = null;
                 var bestDistance = float.MaxValue;
-                foreach (var vein in SortedByGuid(ItemVeinCandidates())) Consider(new ItemTrainStationNameFeature(vein.ContentGuid), vein.Min, vein.Max);
-                foreach (var vein in SortedByGuid(FluidVeinCandidates())) Consider(new FluidTrainStationNameFeature(vein.ContentGuid), vein.Min, vein.Max);
+                foreach (var vein in _itemVeins.Veins) Consider(_names.GetItemName(MasterHolder.ItemMaster.GetItemGuid(vein.VeinItemId)), vein.VeinRangeMin, vein.VeinRangeMax);
+                foreach (var vein in _fluidVeins.Veins) Consider(_names.GetFluidName(MasterHolder.FluidMaster.GetFluidGuid(vein.VeinFluidId)), vein.VeinRangeMin, vein.VeinRangeMax);
                 return best;
 
-                void Consider(TrainStationNameFeature feature, Vector3Int min, Vector3Int max)
+                void Consider(string name, Vector3Int min, Vector3Int max)
                 {
                     var distance = HorizontalDistanceToCells(min, max);
                     if (ScanRadius < distance || bestDistance <= distance) return;
-                    best = feature;
+                    best = name;
                     bestDistance = distance;
                 }
             }
 
-            TrainStationNameFeature FindMostMinedItem()
+            string FindMostMinedItemName()
             {
-                // 採掘可能な地物を最初の採掘アイテムで数え、最多（同数はGUID文字列順の先）を選ぶ
-                // Count minable map objects by their first earned item; pick the most frequent (ties go to GUID string order)
-                var counts = new SortedDictionary<string, (Guid ItemGuid, int Count)>(StringComparer.Ordinal);
+                // 採掘可能な地物を最初の採掘アイテムの名前で数え、最多（同数は名前の序数順で先）を選ぶ
+                // Count minable map objects by their first earned item's name; pick the most frequent (ties by ordinal name)
+                var counts = new SortedDictionary<string, int>(System.StringComparer.Ordinal);
                 var min = new Vector3(center.x - ScanRadius, 0, center.y - ScanRadius);
                 var max = new Vector3(center.x + ScanRadius, 0, center.y + ScanRadius);
                 foreach (var mapObject in _mapObjects.GetWithinBoundingBox(min, max))
@@ -316,37 +274,19 @@ namespace Game.Block.Blocks.TrainRail.Naming
                     if (ScanRadius < Vector2.Distance(center, new Vector2(mapObject.Position.x, mapObject.Position.z))) continue;
                     var element = MasterHolder.MapObjectMaster.GetMapObjectElement(mapObject.MapObjectGuid);
                     if (MapObjectMaster.IsDecoration(element) || element.MiningParam is not IMinableMapObjectParam minable || minable.EarnItems.Length == 0) continue;
-                    var itemGuid = minable.EarnItems[0].ItemGuid;
-                    var key = itemGuid.ToString();
-                    counts[key] = counts.TryGetValue(key, out var entry) ? (itemGuid, entry.Count + 1) : (itemGuid, 1);
+                    var name = _names.GetItemName(minable.EarnItems[0].ItemGuid);
+                    counts[name] = counts.TryGetValue(name, out var count) ? count + 1 : 1;
                 }
 
-                TrainStationNameFeature best = null;
+                string best = null;
                 var bestCount = 0;
-                foreach (var (itemGuid, count) in counts.Values)
+                foreach (var (name, count) in counts)
                 {
                     if (count <= bestCount) continue;
-                    best = new ItemTrainStationNameFeature(itemGuid);
+                    best = name;
                     bestCount = count;
                 }
                 return best;
-            }
-
-            IEnumerable<(Guid ContentGuid, Vector3Int Min, Vector3Int Max)> ItemVeinCandidates()
-            {
-                foreach (var vein in _itemVeins.Veins) yield return (MasterHolder.ItemMaster.GetItemGuid(vein.VeinItemId), vein.VeinRangeMin, vein.VeinRangeMax);
-            }
-
-            IEnumerable<(Guid ContentGuid, Vector3Int Min, Vector3Int Max)> FluidVeinCandidates()
-            {
-                foreach (var vein in _fluidVeins.Veins) yield return (MasterHolder.FluidMaster.GetFluidGuid(vein.VeinFluidId), vein.VeinRangeMin, vein.VeinRangeMax);
-            }
-
-            List<(Guid ContentGuid, Vector3Int Min, Vector3Int Max)> SortedByGuid(IEnumerable<(Guid ContentGuid, Vector3Int Min, Vector3Int Max)> veins)
-            {
-                var sorted = new List<(Guid ContentGuid, Vector3Int Min, Vector3Int Max)>(veins);
-                sorted.Sort((a, b) => string.CompareOrdinal(a.ContentGuid.ToString(), b.ContentGuid.ToString()));
-                return sorted;
             }
 
             float HorizontalDistanceToCells(Vector3Int min, Vector3Int max)
@@ -362,19 +302,25 @@ namespace Game.Block.Blocks.TrainRail.Naming
 }
 ```
 
-`IMinableMapObjectParam` の名前空間・`EarnItems` の要素型と `ItemGuid` の名前は `Core.Master/Validator/MapObjectMasterUtil.cs:25` の使い方に、`MapObjectMaster.IsDecoration` の引数型も同ファイル周辺に合わせる。200行を超えたら鉱脈探索を `TrainStationNearestVeinFinder` へ分ける。
+`IMinableMapObjectParam` の名前空間・`EarnItems` の実体（生成型では `.items` 配列の可能性）と要素の `ItemGuid` の名前は `Core.Master/Validator/MapObjectMasterUtil.cs:25` の使い方に、`MapObjectMaster.IsDecoration` の引数型も同ファイル周辺に合わせる。
 
-- [ ] **Step 3: テストを書く**（`TrainTestHelper.CreateEnvironment()` で ForUnitTest の map.json を読む環境を作り、`ServerContext.ItemMapVeinDatastore` 等を渡す。駅サイズ 3×1×8 の `BlockPositionInfo` を直接作る）
+- [ ] **Step 2: テストを書く**（`TrainTestHelper.CreateEnvironment()` で ForUnitTest の map.json を読む環境を作り、`ServerContext.ItemMapVeinDatastore` 等と、空辞書の `TrainStationFeatureEnglishNames`（英語訳なし→マスタ name）を渡す。駅サイズ 3×1×8 の `BlockPositionInfo` を直接作る。名前はマスタ name: Test1（`00000000-0000-0000-1234-000000000001`）・Water（液体）・TestMiningRock の最初の earnItems のアイテムを ForUnitTest の items.json / fluids.json / map.json から書き写す）
 
 ```csharp
 [Test]
-public void NearestVeinWins()
+public void NearestItemVein()
 {
-    // 原点の駅は中心(1.5,4)。最寄りは(0,5,1)のTest1鉱脈（距離約2.06）
-    // A station at the origin has center (1.5,4); nearest is the Test1 vein at (0,5,1), ~2.06 away
-    var feature = CreateScanner().Scan(new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, new Vector3Int(3, 1, 8)));
-    Assert.IsInstanceOf<ItemTrainStationNameFeature>(feature);
-    Assert.AreEqual(Guid.Parse("00000000-0000-0000-1234-000000000001"), ((ItemTrainStationNameFeature)feature).ItemGuid);
+    // 原点の駅は中心(1.5,4)。最寄りは(0,5,1)のTest1鉱脈（約2.06。Water鉱脈は3.0）
+    // A station at the origin has center (1.5,4); nearest is the Test1 vein at (0,5,1) (~2.06; Water is 3.0)
+    Assert.AreEqual($"{Test1Name} Station", CreateScanner().ScanBaseName(Station(Vector3Int.zero)));
+}
+
+[Test]
+public void NearestFluidVein()
+{
+    // (4,0,0)の駅は中心(5.5,4)。Water鉱脈(0..10,z0)が3.0でTest1鉱脈(4.92)より近い
+    // A station at (4,0,0) has center (5.5,4); the Water vein (3.0) beats the Test1 vein (4.92)
+    Assert.AreEqual($"{WaterName} Station", CreateScanner().ScanBaseName(Station(new Vector3Int(4, 0, 0))));
 }
 
 [Test]
@@ -382,27 +328,33 @@ public void MinedItemOfMapObjectsWhenNoVein()
 {
     // (100,0,100)のTestMiningRockだけが半径内（鉱脈はx≤20,z≤1で範囲外）
     // Only TestMiningRock at (100,0,100) is in range; veins sit at x<=20, z<=1
-    var feature = CreateScanner().Scan(new BlockPositionInfo(new Vector3Int(95, 0, 95), BlockDirection.North, new Vector3Int(3, 1, 8)));
-    Assert.IsInstanceOf<ItemTrainStationNameFeature>(feature);
-    Assert.AreEqual(ExpectedTestMiningRockEarnItemGuid, ((ItemTrainStationNameFeature)feature).ItemGuid);
+    Assert.AreEqual($"{TestMiningRockItemName} Station", CreateScanner().ScanBaseName(Station(new Vector3Int(95, 0, 95))));
 }
 
 [Test]
 public void FallbackWhenNothingNearby()
 {
-    var feature = CreateScanner().Scan(new BlockPositionInfo(new Vector3Int(60, 0, 60), BlockDirection.North, new Vector3Int(3, 1, 8)));
-    Assert.IsInstanceOf<FallbackTrainStationNameFeature>(feature);
+    Assert.AreEqual("Station", CreateScanner().ScanBaseName(Station(new Vector3Int(60, 0, 60))));
+}
+
+[Test]
+public void EnglishNameIsPreferred()
+{
+    // 英語訳があればマスタnameより優先する
+    // An English translation wins over the master name
+    var names = new TrainStationFeatureEnglishNames(new Dictionary<string, string> { ["item.00000000-0000-0000-1234-000000000001.name"] = "Iron" });
+    Assert.AreEqual("Iron Station", CreateScanner(names).ScanBaseName(Station(Vector3Int.zero)));
 }
 ```
 
-`ExpectedTestMiningRockEarnItemGuid` は `Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/map.json` の TestMiningRock（`00000000-0000-2222-0000-000000000001`）の最初の earnItems の itemGuid を書き写す。実装前に上の距離計算が test map で成り立つか（他の鉱脈が同距離にならないか）を確かめ、成り立たなければテストの設置位置を変える（期待値を実装に合わせて変えない）。
+（`Station(pos)` は `new BlockPositionInfo(pos, BlockDirection.North, new Vector3Int(3, 1, 8))` を返すテスト内ヘルパー。距離は上の検算どおりだが、実装前に test map と照合し、成り立たなければ設置位置を変える（期待値を実装に合わせて変えない）。）
 
-- [ ] **Step 4: コンパイルしテスト**
+- [ ] **Step 3: コンパイルしテスト**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "TrainStationNameFeatureScannerTest"`
 Expected: ErrorCount 0 / PASS
 
-- [ ] **Step 5: コミット** `git commit -m "feat: 駅の周辺から既定名の特徴を選ぶ走査を追加"`
+- [ ] **Step 4: コミット** `git commit -m "feat: 駅の周辺から既定名を決める走査を追加"`
 
 ---
 
@@ -412,14 +364,14 @@ Expected: ErrorCount 0 / PASS
 - Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/TrainRail/Naming/TrainStationDefaultNameAllocator.cs`
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/Train/VanillaTrainStationTemplate.cs`
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Factory/VanillaIBlockTemplates.cs`
-- Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/TrainRail/TrainStationComponent.cs`（引数なし ctor と `UnnamedStationName` 定数を削除。新設駅は必ず名前を受け取る。ロード ctor の既定値は空文字のまま）
+- Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/TrainRail/TrainStationComponent.cs`（引数なし ctor と `UnnamedStationName` 定数を削除し、新設駅は必ず名前を受け取る。ロード ctor の `: this()` 連鎖は、セーブが読めないときの空文字を自分で入れる形に直す）
 - Modify: `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/TrainStation/TrainStationNameTest.cs`（初期名 `string.Empty` の期待を既定名に変更）
-- Modify: 駅の初期名を空文字前提で読む既存テスト（`grep -rn "StationName" moorestech_server/Assets/Scripts/Tests` で全件確認）、`new VanillaIBlockTemplates` / `new TrainStationComponent()` の呼び出し側（`grep -rn` で全件）
+- Modify: 駅の初期名を空文字前提で読む既存テスト（`grep -rn "StationName" moorestech_server/Assets/Scripts/Tests` で全件確認）と `new TrainStationComponent()` の呼び出し側（`grep -rn` で全件）
 - Test: `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/TrainStation/Naming/TrainStationDefaultNameAllocatorTest.cs`
 
 **Interfaces:**
-- Consumes: Task 1 の `TrainStationFeatureEnglishNames`、Task 2 の `TrainStationNameFeatureScanner` / `TrainStationNameFeature.FormatName`
-- Produces: `TrainStationDefaultNameAllocator(TrainStationNameFeatureScanner, TrainStationFeatureEnglishNames)`、`string Allocate(BlockPositionInfo position)`
+- Consumes: Task 2 の `TrainStationNameFeatureScanner.ScanBaseName`
+- Produces: `TrainStationDefaultNameAllocator(TrainStationNameFeatureScanner)`、`string Allocate(BlockPositionInfo position)`
 
 - [ ] **Step 1: 割り当てを書く**
 
@@ -430,26 +382,25 @@ using Game.Context;
 
 namespace Game.Block.Blocks.TrainRail.Naming
 {
-    // 新設駅の既定名を、全駅名と重ならない最小の番号で決める
-    // Decide a new station's default name with the smallest number not used by any station
+    // 新設駅の既定名を、全駅名と重ならない最小の番号で決める（1は番号なし）
+    // Decide a new station's default name with the smallest number unused by any station (1 has no number)
     public class TrainStationDefaultNameAllocator
     {
         private readonly TrainStationNameFeatureScanner _scanner;
-        private readonly TrainStationFeatureEnglishNames _names;
 
-        public TrainStationDefaultNameAllocator(TrainStationNameFeatureScanner scanner, TrainStationFeatureEnglishNames names)
+        public TrainStationDefaultNameAllocator(TrainStationNameFeatureScanner scanner)
         {
             _scanner = scanner;
-            _names = names;
         }
 
         public string Allocate(BlockPositionInfo position)
         {
-            var feature = _scanner.Scan(position);
+            var baseName = _scanner.ScanBaseName(position);
             var existingNames = CollectExistingNames();
-            var number = 1;
-            while (existingNames.Contains(feature.FormatName(_names, number))) number++;
-            return feature.FormatName(_names, number);
+            if (!existingNames.Contains(baseName)) return baseName;
+            var number = 2;
+            while (existingNames.Contains($"{baseName} {number}")) number++;
+            return $"{baseName} {number}";
 
             #region Internal
 
@@ -474,25 +425,27 @@ namespace Game.Block.Blocks.TrainRail.Naming
 - [ ] **Step 2: テンプレートへ組み込む**
 
 - `VanillaTrainStationTemplate`: ctor に `TrainStationDefaultNameAllocator defaultNameAllocator` を足し、`New` の `new TrainStationComponent()` を `new TrainStationComponent(_defaultNameAllocator.Allocate(positionInfo))` に変える。`Load` は変更なし
-- `VanillaIBlockTemplates`: ctor に `IItemMapVeinDatastore`、`IFluidMapVeinDatastore`、`IMapObjectDatastore`、`TrainStationFeatureEnglishNames` を足し、`new TrainStationDefaultNameAllocator(new TrainStationNameFeatureScanner(itemVeins, fluidVeins, mapObjects), englishNames)` を作って `VanillaTrainStationTemplate` へ渡す（同じ initializer コンテナに登録済み: `ServerContextRegistration.cs:111-114`）
+- `VanillaIBlockTemplates`: ctor に `IItemMapVeinDatastore`、`IFluidMapVeinDatastore`、`IMapObjectDatastore`、`TrainStationFeatureEnglishNames` を足し、`new TrainStationDefaultNameAllocator(new TrainStationNameFeatureScanner(itemVeins, fluidVeins, mapObjects, englishNames))` を作って `VanillaTrainStationTemplate` へ渡す（同じ initializer コンテナに登録済み: `ServerContextRegistration.cs:111-114`。`new VanillaIBlockTemplates(` の直接呼び出しは無く DI 解決のみ）
 
-- [ ] **Step 3: テストを書く**（`TrainTestHelper.CreateEnvironment()` で実サーバー環境を作り、`ServerContext.WorldBlockDatastore.TryAddBlock` で `ForUnitTestModBlockId.TestTrainStation` を置く。ForUnitTest mod に localization.csv が無ければ英語名はマスタ name（Test1 の `name`）になる）
+- [ ] **Step 3: テストを書く**（`TrainTestHelper.CreateEnvironment()` で実サーバー環境を作り、`ServerContext.WorldBlockDatastore.TryAddBlock` で `ForUnitTestModBlockId.TestTrainStation` を置く。ForUnitTest mod に localization.csv が無ければ英語名はマスタ name になる）
 
 ```csharp
 [Test]
 public void SameFeatureGetsSmallestFreeNumber()
 {
     TrainTestHelper.CreateEnvironment();
+    // +z方向に並べるとTest1鉱脈(0,5,1)が最寄りのまま（Water鉱脈より1近い）
+    // Stacking along +z keeps the Test1 vein (0,5,1) nearest (1 closer than the Water vein)
     var first = PlaceStation(Vector3Int.zero);
-    var second = PlaceStation(new Vector3Int(4, 0, 0));
+    var second = PlaceStation(new Vector3Int(0, 0, 8));
     Assert.AreEqual($"{Test1Name} Station", first.StationName);
     Assert.AreEqual($"{Test1Name} Station 2", second.StationName);
 
     // 2番の駅を3番の名前へ改名すると、次は空いた2番、その次は4番になる
     // Renaming station 2 to number 3 frees 2 for the next station and pushes the one after to 4
     second.SetStationName($"{Test1Name} Station 3");
-    Assert.AreEqual($"{Test1Name} Station 2", PlaceStation(new Vector3Int(8, 0, 0)).StationName);
-    Assert.AreEqual($"{Test1Name} Station 4", PlaceStation(new Vector3Int(12, 0, 0)).StationName);
+    Assert.AreEqual($"{Test1Name} Station 2", PlaceStation(new Vector3Int(0, 0, 16)).StationName);
+    Assert.AreEqual($"{Test1Name} Station 4", PlaceStation(new Vector3Int(0, 0, 24)).StationName);
 }
 
 [Test]
@@ -500,9 +453,9 @@ public void RemovedStationNumberIsReused()
 {
     TrainTestHelper.CreateEnvironment();
     PlaceStation(Vector3Int.zero);
-    PlaceStation(new Vector3Int(4, 0, 0));
-    ServerContext.WorldBlockDatastore.RemoveBlock(new Vector3Int(4, 0, 0), BlockRemoveReason.ManualRemove);
-    Assert.AreEqual($"{Test1Name} Station 2", PlaceStation(new Vector3Int(4, 0, 0)).StationName);
+    PlaceStation(new Vector3Int(0, 0, 8));
+    ServerContext.WorldBlockDatastore.RemoveBlock(new Vector3Int(0, 0, 8), BlockRemoveReason.ManualRemove);
+    Assert.AreEqual($"{Test1Name} Station 2", PlaceStation(new Vector3Int(0, 0, 8)).StationName);
 }
 
 [Test]
@@ -514,9 +467,9 @@ public void FallbackNameWhenNothingNearby()
 }
 ```
 
-（`PlaceStation` は置いたブロックから `TrainStationComponent` を返すテスト内ヘルパー。`Test1Name` は ForUnitTest の items.json の Test1（`00000000-0000-0000-1234-000000000001`）の `name`。(4,0,0)・(8,0,0)・(12,0,0) の駅が原点の駅と同じ特徴（Test1 鉱脈）になるか、(64,0,60) が代替になるかを Task 2 の距離計算で確かめ、ならなければ位置をずらす。`RemoveBlock` の正確なシグネチャは `IWorldBlockDatastore` で確認。）
+（`PlaceStation` は置いたブロックから `TrainStationComponent` を返すテスト内ヘルパー。`Test1Name` は ForUnitTest の items.json の Test1 の `name`。(0,0,8)・(0,0,16)・(0,0,24) は Test1 鉱脈が 10.0/18.0/26.0、Water 鉱脈が 11/19/27 の検算。(0,0,24) 以降が半径32を超えないことも含め実装前に照合し、成り立たなければ位置をずらす。`RemoveBlock` の正確なシグネチャは `IWorldBlockDatastore` で確認。）
 
-既存 `TrainStationNameTest` の「初期名は空文字」は「初期名は `$"{Test1Name} Station"`」へ書き換える。
+既存 `TrainStationNameTest` の「初期名は空文字」は「初期名は `$"{Test1Name} Station"`」へ書き換える（原点設置の場合）。
 
 - [ ] **Step 4: コンパイルしテスト**
 
@@ -544,7 +497,7 @@ Expected: ErrorCount 0 / PASS（既存の駅関連テストも全て通る）
 
 ### Task 6: PR 作成とセッション終了可能状態
 
-- [ ] セッション終了可能状態にすること: pr-create スキルで PR を作成する。ベースは `feature/train-timetable-ui`（PR #1415）。PR 本文に「PR #1415 の拡張・別PR」と ADR 0079 へのリンクを書く。ベースとのコンフリクトがあればマージして解消・コンパイル確認のうえ push する（解消の実作業は pr-create 経由で opus subagent に委譲される）。全作業がコミット・push 済みで、このセッションをそのまま閉じても PR がマージ可能な状態になっていることを確認して終える。PR 作成後に `moores-wt rm train-station-default-name`
+- [ ] セッション終了可能状態にすること: pr-create スキルで PR を作成する。ベースは `master`（PR #1415 はマージ済み）。PR 作成前に `origin/master` を取り込みコンパイルを確認する。PR 本文に「PR #1415 の拡張・別PR」と ADR 0079 へのリンクを書く。ベースとのコンフリクトがあればマージして解消・コンパイル確認のうえ push する（解消の実作業は pr-create 経由で opus subagent に委譲される）。全作業がコミット・push 済みで、このセッションをそのまま閉じても PR がマージ可能な状態になっていることを確認して終える。PR 作成後に `moores-wt rm train-station-default-name`
 
 ---
 
@@ -554,7 +507,7 @@ Expected: ErrorCount 0 / PASS（既存の駅関連テストも全て通る）
 - 裁定: `.decisions/2026-10-13-駅の既定名*.md`。うち「構造で保存し表示時に翻訳」「番号は特徴ごとの連番で再利用しない」は、同日の後続裁定（英語の文字列で確定する／空いている最小番号にする）で覆った
 - planning 中の判断:
   - 計画の初版（構造保存・カウンタ・セーブv6・DTO/Web UI改修）は、型検査への回答でユーザーが「複雑過ぎ」と差し戻したため、文字列で確定する最小構成へ作り直した（出所: ユーザー裁定 2026-10-13、ADR 0079）
-  - 特徴は抽象クラス＋Item/Fluid/Fallback のサブクラスにし、名前の書式は各型が持つ。判別子と使わない欄（Guid.Empty 等）を並べた形にしない（出所: agent判断。初版の型検査の強い指摘を、作り直した特徴の型にも当てた）
+  - 特徴の型は作らず、走査が番号なしの名前の文字列を直接返す（出所: シミュレーター予測（Warning）を agent が採用。ユーザーの「変に複雑過ぎ」の差し戻しに沿う）。同点の選び方は鉱脈が見つけた順（アイテム→液体）、地物が名前の序数順で、どちらも結果は名前の文字列だけなので構造に差は出ない
   - 全駅の列挙は `ServerContext.WorldBlockDatastore` を呼び出し時に引く。`WorldBlockDatastore` は `BlockFactory` → `VanillaIBlockTemplates` に依存し、注入すると DI が循環するため
   - `ModEnglishContentNameLoader.cs` は Server.Boot に置く。`ModsResource` を持つのは Server.Boot で、Game.Block には英語名の表（`TrainStationFeatureEnglishNames.cs`）だけを渡す。ADR 0006 決定4（サーバーは辞書に非関与）の例外で、用途は既定名の生成に限る（ADR 0079 agent前提）
   - `VanillaTrainStationTemplate.cs` は ctor で `TrainStationDefaultNameAllocator` を受け取り、`New` だけで既定名を付ける（`Load` はセーブ値）
@@ -562,6 +515,6 @@ Expected: ErrorCount 0 / PASS（既存の駅関連テストも全て通る）
   - `TrainStationComponent.cs` の引数なし ctor を消し、新設駅は必ず名前を受け取る
   - `SetTrainStationNameProtocol.cs` は変更しない（改名は今までどおり文字列を上書きする）
   - 録画プレイテスト（Task 4）を含める。駅名は UI に出るランタイム挙動のため
-  - 型検査（作り直し後）の弱3件（CSVキーの接頭辞判定・「番号1は番号なし」とGUID順ソートの重複記述）は採らない（出所: ユーザー指示 2026-10-13「たかが自動名前付けでそんなに色々考える必要ある？」を細部の簡素優先と解釈した agent判断）
+  - 型検査（作り直し後）の弱3件（CSVキーの接頭辞判定・「番号1は番号なし」とGUID順ソートの重複記述。後2者は特徴の型を外したことで消えた）は採らない（出所: ユーザー指示 2026-10-13「たかが自動名前付けでそんなに色々考える必要ある？」を細部の簡素優先と解釈した agent判断）
   - 本PR外のリファクタ提案: `ModEnglishContentNameLoader` とクライアント `ModLocalizationMerger.cs` の CSV 読み込みは重複する（共通化は本PR外）
   - 本PR外のリファクタ提案（初版の型検査の第3バケツ）: ブロックと鉱脈の XZ の幾何を `Game.Block.Interface/Extension/BlockPositionInfoExtension.cs`（`OverlapsVeinXz`）へ集める案。今回は距離計算をスキャナー内に置く
