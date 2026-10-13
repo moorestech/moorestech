@@ -44,7 +44,7 @@ PRのタイトルと概要を作成する。
 
 ### 2.5 報告ページの素材を集める
 
-すべてのPRで報告ページ（`https://review.moores.tech/pr/<PR番号>/report/`）を公開し、PR本文の `## 報告` 節にそのURLを1本だけ張る。書式・manifest・公開手順は [references/pr-report.md](references/pr-report.md) が正本。
+すべてのPRで報告ページ（`https://review.moores.tech/pr/<PR番号>/report/`）を公開し、PR本文の先頭行にそのURLを1本だけh1見出し（`# https://review.moores.tech/pr/<PR番号>/report/`）で大きく張る。リンク文字列で包まずURLそのものを見出しにする。書式・manifest・公開手順は [references/pr-report.md](references/pr-report.md) が正本。
 
 1. タスク中に撮った画像・動画（スクリーンショット、unityプレイ録画テストの `recording.mp4`、Playwright の撮影など）を**全部**集め、変更後の状態と一致することを確認する。
 2. 見た目が変わる変更（Web UI・ゲーム内UI・演出など）で素材が無い・古い・主要状態が欠ける場合は、既存のcaptureスクリプト・Playwright・unityプレイ録画テストで撮る。
@@ -94,8 +94,7 @@ git push -u origin <PR_BRANCH>
 
 # Create PR using gh CLI（--base でマージ先、--head でPR元ブランチを明示）
 gh pr create --base <BASE> --head <PR_BRANCH> --title "the pr title" --body "$(cat <<'EOF'
-## 報告
-（公開後に差し替え）
+# （報告URLは公開後に差し替え）
 
 ## Summary
 <1-3 bullet points>
@@ -110,7 +109,7 @@ EOF
 
 ### 4.5 報告ページを公開する（必須）
 
-PR番号が決まったら、mac-mini で報告ページを公開し、PR本文の `## 報告` 節をURLに差し替える。既存PRへのpushで成果物が変わった場合も再公開する。
+PR番号が決まったら、mac-mini で報告ページを公開し、PR本文の先頭行を `# <公開URL>` に差し替える。既存PRへのpushで成果物が変わった場合も再公開する。
 
 ```bash
 python3 scripts/pr-report/publish_pr_report.py <PR番号> <manifest.json>   # 標準出力が公開URL
@@ -148,7 +147,7 @@ gh pr view <PR番号またはPR_BRANCH> --json mergeable,mergeStateStatus
 ## Important Notes
 
 - 完了したらPRのURLとマージ可能状態（MERGEABLE / コンフリクト解消済み / 要裁定で未解消）を返す（呼び出し元がユーザーに提示できるように）。worktree用ブランチ（`treeN`）から切り出した場合は、作成したPR用ブランチ名も併せて報告する
-- `gh pr view --json body` で `## 報告` 節に `https://review.moores.tech/pr/<PR番号>/report/` が1本だけあることを確認し、公開スクリプトが出した「画像 N 枚 / 動画 M 本」を報告する
+- `gh pr view --json body` で本文の先頭行が `# https://review.moores.tech/pr/<PR番号>/report/` であり、他に報告URLが無いことを確認し、公開スクリプトが出した「画像 N 枚 / 動画 M 本」を報告する
 - `treeN` のようなworktree運用ブランチをそのままPRのheadにしない。必ず内容を表す別ブランチを切ってからPRを作る
 - `treeN`・ベースブランチ以外では、現在のブランチ名を別のprefixへ付け替えない（`chore/xxx` を `feature/xxx` にし直す等は禁止）
 - 明示的な許可なく破壊的なgitコマンドを使わない

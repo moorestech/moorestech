@@ -1,6 +1,6 @@
 # PR報告ページ（review.moores.tech/pr/<N>/report/）
 
-PRの成果物（画像・動画・検証結果）は、PRごとに1枚の報告ページへまとめ、PR本文からはそのURLを1本だけ張る。
+PRの成果物（画像・動画・検証結果）は、PRごとに1枚の報告ページへまとめ、PR本文の先頭行にそのURLを1本だけh1見出しで張る（`# https://review.moores.tech/pr/<N>/report/`。リンク文字列で包まない）。
 ページの書式は `scripts/pr-report/report_html.py` だけが決める。PRごとに独自のHTMLを書かない。
 
 ## 置き場と見え方
