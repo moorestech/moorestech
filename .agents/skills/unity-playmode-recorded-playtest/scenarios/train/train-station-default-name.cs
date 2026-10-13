@@ -7,6 +7,7 @@ using Client.Game.InGame.UI.UIState;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
+using Client.Playtest.Operations.Ui;
 using Cysharp.Threading.Tasks;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
@@ -26,7 +27,10 @@ return PlaytestRunner.Run("train-station-default-name", options, async p =>
         CreateFlatGround = false,
         SpawnPosition = new Vector3(96.5f, 101.5f, -50f),
     });
-    await p.SkipOpeningSkit();
+    // テンプレートワールドではスキットが無い場合もゲーム画面へ進む。
+    // Continue to the game screen even when the template world has no opening skit.
+    await PlaytestSkitOps.SkipOpeningSkitIfPlaying(10f);
+    await p.WaitUiState(UIStateEnum.GameScreen, 10f);
 
     // 半径32の走査は駅のXZ中心から鉱脈セルまで測り、英語CSVのCoalを使う。
     // The radius-32 scan measures from the station's XZ center to vein cells and uses Coal from the English CSV.
