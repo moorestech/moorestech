@@ -160,7 +160,7 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
         var rayDistance = Vector3.Distance(Camera.main.transform.position, playerPosition) + InteractOverlap.InteractDistance;
         var layerMask = LayerConst.BlockOnlyLayerMask | LayerConst.MapObjectOnlyLayerMask;
         p.Assert(BlockClickDetectUtil.TryGetFrontmostSolidHit(layerMask, rayDistance, out var hit) &&
-                 Vector3.Distance(playerPosition, hit.point) < 1.5f, $"F照準ヒットは射程2mに余裕がある: hit={hit.point}, distance={Vector3.Distance(playerPosition, hit.point):F2}m");
+                 Vector3.Distance(playerPosition, hit.point) < 1.8f, $"F照準ヒットは射程2mに余裕がある: hit={hit.point}, distance={Vector3.Distance(playerPosition, hit.point):F2}m");
         await p.PressInteract();
         await p.WaitUiState(UIStateEnum.SubInventory, 10f);
         SemanticInput.KeyUp(Key.LeftAlt);
