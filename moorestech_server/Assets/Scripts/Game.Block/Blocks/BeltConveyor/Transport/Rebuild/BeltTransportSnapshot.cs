@@ -17,6 +17,9 @@ namespace Game.Block.Blocks.BeltConveyor.Transport.Rebuild
         // 保存内容が読めなかったblock。そのblockを含むsegmentにはアイテムを1つも復元しない
         // Blocks whose saved content was unreadable; no item is restored into a segment containing one
         public readonly HashSet<BlockInstanceId> CorruptedBlocks = new();
+        // 合流・分岐の現在の優先順を、優先順が属するblockで持つ。セーブの切り出しだけが使い、再構築はトポロジー変更で初期化する仕様なので引き継がない
+        // Current merge and branch priority orders keyed by the block they belong to; only save extraction uses them, since a topology rebuild resets orders by spec
+        public readonly Dictionary<BlockInstanceId, int> PriorityOrders = new();
 
         public static BeltTransportSnapshot Capture(BeltTransportAssembly assembly)
         {
@@ -32,8 +35,7 @@ namespace Game.Block.Blocks.BeltConveyor.Transport.Rebuild
                     continue;
                 }
                 CaptureRunning(i, layout, segment);
-                if (segment is BeltBufferedSegment buffered && buffered.Buffer.TryGetItem(out var held))
-                    snapshot.BufferItems.Add(new BeltBufferItemRecord(layout.Cells[layout.Cells.Length - 1].BlockInstanceId, held, i));
+                if (segment is BeltBufferedSegment buffered) CaptureBuffered(i, layout, buffered);
             }
             return snapshot;
 
@@ -47,10 +49,18 @@ namespace Game.Block.Blocks.BeltConveyor.Transport.Rebuild
                 var cells = layout.Cells;
                 for (var order = 0; order < states.Length; order++)
                 {
-                    var cellIndex = cells.Length - 1 - states[order].DistanceToExit / BeltConstants.ItemWidth;
-                    var distanceToCellExit = states[order].DistanceToExit % BeltConstants.ItemWidth;
+                    var cellIndex = BeltCellLocation.CellIndexOf(cells.Length, states[order].DistanceToExit, out var distanceToCellExit);
                     snapshot.RunningItems.Add(new BeltRunningItemRecord(cells[cellIndex].BlockInstanceId, distanceToCellExit, states[order].Item, segmentIndex, order));
                 }
+            }
+
+            void CaptureBuffered(int segmentIndex, BeltSegmentLayout layout, BeltBufferedSegment buffered)
+            {
+                // 合流・分岐のbufferと優先順は末尾マスのblockに属する
+                // The buffer and priority order of a merge or branch belong to the last cell's block
+                var lastCellBlock = layout.Cells[layout.Cells.Length - 1].BlockInstanceId;
+                snapshot.PriorityOrders.Add(lastCellBlock, buffered.PriorityOrder);
+                if (buffered.Buffer.TryGetItem(out var held)) snapshot.BufferItems.Add(new BeltBufferItemRecord(lastCellBlock, held, segmentIndex));
             }
 
             void CaptureInternal(BeltSegmentLayout layout, BeltConveyorSegment segment)

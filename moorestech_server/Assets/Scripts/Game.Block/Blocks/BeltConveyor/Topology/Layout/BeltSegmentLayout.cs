@@ -27,6 +27,8 @@ namespace Game.Block.Blocks.BeltConveyor.Topology.Layout
         // Up to three in direction order for a branch, at most one otherwise
         public readonly BeltSegmentLayoutLink[] Outputs;
 
+        // 容量の式の唯一の置き場。内部segmentはマスを持たないが1マス分を運ぶ。全量の形はこの値を写して持つ
+        // The single home of the capacity rule; an internal segment has no cells but carries one cell's worth. The full-state shape copies this value
         public int Capacity => IsInternal ? 1 : Cells.Length;
 
         public BeltSegmentLayout(int index, BeltSegmentKind kind, bool isInternal, BeltTopologyCell[] cells, int speed, BeltDirection forward,

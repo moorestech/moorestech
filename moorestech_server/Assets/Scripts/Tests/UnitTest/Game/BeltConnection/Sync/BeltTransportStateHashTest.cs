@@ -36,6 +36,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
         [TestCase("PriorityOrder")]
         [TestCase("CellPosition")]
         [TestCase("CellForward")]
+        [TestCase("Capacity")]
         [TestCase("Speed")]
         [TestCase("Forward")]
         [TestCase("Kind")]
@@ -60,6 +61,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
                 case "PriorityOrder": changed.MergeOrder = BeltPriority.MoveLast(changed.MergeOrder, (int)BeltDirection.Back); break;
                 case "CellPosition": changed.CellPosition = new Vector3Int(0, 0, 1); break;
                 case "CellForward": changed.CellForward = BeltDirection.Left; break;
+                case "Capacity": changed.Capacity = 2; break;
                 case "Speed": changed.Speed = 9; break;
                 case "Forward": changed.Forward = BeltDirection.Right; break;
                 case "Kind": changed.MergeKind = BeltSegmentKind.Branch; break;
@@ -102,6 +104,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
             public int MergeOrder = BeltPriority.Create(BeltDirection.Back);
             public Vector3Int CellPosition = Vector3Int.zero;
             public BeltDirection CellForward = BeltDirection.Front;
+            public int Capacity = 1;
             public int Speed = 8;
             public BeltDirection Forward = BeltDirection.Front;
             public BeltSegmentKind MergeKind = BeltSegmentKind.Merge;
@@ -118,7 +121,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
             {
                 // 通常segment: 1マス、合流へ出力1本、走行中アイテム1個
                 // Normal segment: one cell, one output into the merge, one running item
-                var normalShape = new BeltSegmentShape(BeltSegmentKind.Normal, FirstIsInternal, new[] { new BeltCellShape(CellPosition, CellForward) }, Speed, Forward,
+                var normalShape = new BeltSegmentShape(BeltSegmentKind.Normal, FirstIsInternal, new[] { new BeltCellShape(CellPosition, CellForward) }, Capacity, Speed, Forward,
                     Array.Empty<BeltLinkShape>(), new[] { new BeltLinkShape(OutputDirection, OutputEntry, OutputPartner) });
                 var running = HasRunningItem
                     ? new[] { new BeltItemSnapshot(new BeltItem(ItemId, ItemInstance, ItemEntry), ItemDistance) }
@@ -127,7 +130,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
 
                 // 合流segment: 通常segmentからの入力1本、buffer内アイテム1個
                 // Merge segment: one input from the normal segment, one buffered item
-                var mergeShape = new BeltSegmentShape(MergeKind, false, new[] { new BeltCellShape(new Vector3Int(0, 0, 2), BeltDirection.Front) }, 8, BeltDirection.Front,
+                var mergeShape = new BeltSegmentShape(MergeKind, false, new[] { new BeltCellShape(new Vector3Int(0, 0, 2), BeltDirection.Front) }, 1, 8, BeltDirection.Front,
                     new[] { new BeltLinkShape(BeltDirection.Back, BeltEntryDirection.FromBack, InputPartner) }, Array.Empty<BeltLinkShape>());
                 var buffered = new BeltItemSnapshot(new BeltItem(new ItemId(3), BufferInstance, BufferEntry), 0);
                 var merge = new BeltSegmentState(mergeShape, MergeOrder, Array.Empty<BeltItemSnapshot>(), HasBuffer, HasBuffer ? buffered : default);

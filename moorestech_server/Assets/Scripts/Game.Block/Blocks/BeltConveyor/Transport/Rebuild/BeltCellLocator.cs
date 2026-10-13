@@ -26,7 +26,7 @@ namespace Game.Block.Blocks.BeltConveyor.Transport.Rebuild
                 var cells = layout.Cells;
                 for (var i = 0; i < cells.Length; i++)
                 {
-                    var cellExitDistance = (cells.Length - 1 - i) * BeltConstants.ItemWidth;
+                    var cellExitDistance = BeltCellLocation.CellExitDistanceOf(cells.Length, i);
                     _locationByBlock.Add(cells[i].BlockInstanceId, new BeltCellLocation(layout.Index, cells[i], cellExitDistance, i == cells.Length - 1));
                 }
             }

@@ -20,18 +20,18 @@ namespace Server.Event.EventReceive.BeltTransportSync
         public const string RebuiltFullStateEventTag = "va:event:beltTransportRebuiltFullState";
 
         private readonly EventProtocolProvider _eventProtocolProvider;
-        private readonly BeltTransportDatastore _beltTransportDatastore;
+        private readonly IBeltTransportLookup _beltTransportLookup;
         private readonly BeltTransportTickUpdater _beltTransportTickUpdater;
         private readonly TrainUpdateService _trainUpdateService;
 
         public BeltTransportTickEventPacket(
             EventProtocolProvider eventProtocolProvider,
-            BeltTransportDatastore beltTransportDatastore,
+            IBeltTransportLookup beltTransportLookup,
             BeltTransportTickUpdater beltTransportTickUpdater,
             TrainUpdateService trainUpdateService)
         {
             _eventProtocolProvider = eventProtocolProvider;
-            _beltTransportDatastore = beltTransportDatastore;
+            _beltTransportLookup = beltTransportLookup;
             _beltTransportTickUpdater = beltTransportTickUpdater;
             _trainUpdateService = trainUpdateService;
         }
@@ -54,7 +54,7 @@ namespace Server.Event.EventReceive.BeltTransportSync
 
             void SendRebuiltFullState()
             {
-                var fullState = _beltTransportDatastore.CaptureFullState();
+                var fullState = _beltTransportLookup.CaptureFullState();
                 var message = new BeltTransportFullStateMessagePack(tick, tickSequenceId, fullState);
                 _eventProtocolProvider.AddBroadcastEvent(RebuiltFullStateEventTag, MessagePackSerializer.Serialize(message));
             }

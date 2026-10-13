@@ -14,16 +14,16 @@ namespace Server.Event.EventReceive.BeltTransportSync
         public const string EventTag = "va:event:beltTransportFullSnapshot";
 
         private readonly EventProtocolProvider _eventProtocolProvider;
-        private readonly BeltTransportDatastore _beltTransportDatastore;
+        private readonly IBeltTransportLookup _beltTransportLookup;
         private readonly TrainUpdateService _trainUpdateService;
 
         public BeltTransportFullSnapshotEventPacket(
             EventProtocolProvider eventProtocolProvider,
-            BeltTransportDatastore beltTransportDatastore,
+            IBeltTransportLookup beltTransportLookup,
             TrainUpdateService trainUpdateService)
         {
             _eventProtocolProvider = eventProtocolProvider;
-            _beltTransportDatastore = beltTransportDatastore;
+            _beltTransportLookup = beltTransportLookup;
             _trainUpdateService = trainUpdateService;
         }
 
@@ -34,7 +34,7 @@ namespace Server.Event.EventReceive.BeltTransportSync
 
         private void PushFullSnapshot(int playerId)
         {
-            var fullState = _beltTransportDatastore.CaptureFullState();
+            var fullState = _beltTransportLookup.CaptureFullState();
             var message = new BeltTransportFullStateMessagePack(_trainUpdateService.GetCurrentTick(), _trainUpdateService.GetCurrentTickSequenceId(), fullState);
             _eventProtocolProvider.AddEvent(playerId, EventTag, MessagePackSerializer.Serialize(message));
         }

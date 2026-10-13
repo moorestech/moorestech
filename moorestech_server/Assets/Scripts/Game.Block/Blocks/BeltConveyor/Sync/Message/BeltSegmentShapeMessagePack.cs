@@ -17,6 +17,7 @@ namespace Game.Block.Blocks.BeltConveyor.Sync.Message
         [Key(4)] public BeltDirection Forward { get; set; }
         [Key(5)] public BeltLinkShapeMessagePack[] Inputs { get; set; }
         [Key(6)] public BeltLinkShapeMessagePack[] Outputs { get; set; }
+        [Key(7)] public int Capacity { get; set; }
 
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public BeltSegmentShapeMessagePack() { }
@@ -31,6 +32,7 @@ namespace Game.Block.Blocks.BeltConveyor.Sync.Message
             Forward = shape.Forward;
             Inputs = FromLinks(shape.Inputs);
             Outputs = FromLinks(shape.Outputs);
+            Capacity = shape.Capacity;
 
             #region Internal
 
@@ -48,7 +50,7 @@ namespace Game.Block.Blocks.BeltConveyor.Sync.Message
         {
             var cells = new BeltCellShape[Cells.Length];
             for (var i = 0; i < cells.Length; i++) cells[i] = Cells[i].ToShape();
-            return new BeltSegmentShape(Kind, IsInternal, cells, Speed, Forward, ToLinks(Inputs), ToLinks(Outputs));
+            return new BeltSegmentShape(Kind, IsInternal, cells, Capacity, Speed, Forward, ToLinks(Inputs), ToLinks(Outputs));
 
             #region Internal
 

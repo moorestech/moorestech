@@ -94,19 +94,19 @@ namespace Client.Tests.BeltTransport
         private static BeltSegmentState Line(params BeltItemSnapshot[] items)
         {
             var cells = new[] { FrontCell(0, 0, 0), FrontCell(0, 0, 1), FrontCell(0, 0, 2) };
-            var shape = new BeltSegmentShape(BeltSegmentKind.Normal, false, cells, Speed, BeltDirection.Front, Array.Empty<BeltLinkShape>(), Array.Empty<BeltLinkShape>());
+            var shape = new BeltSegmentShape(BeltSegmentKind.Normal, false, cells, cells.Length, Speed, BeltDirection.Front, Array.Empty<BeltLinkShape>(), Array.Empty<BeltLinkShape>());
             return new BeltSegmentState(shape, 0, items, false, default);
         }
 
         private static BeltSegmentState BranchWithBufferItem(long instanceId)
         {
-            var shape = new BeltSegmentShape(BeltSegmentKind.Branch, false, new[] { FrontCell(5, 0, 0) }, Speed, BeltDirection.Front, Array.Empty<BeltLinkShape>(), Array.Empty<BeltLinkShape>());
+            var shape = new BeltSegmentShape(BeltSegmentKind.Branch, false, new[] { FrontCell(5, 0, 0) }, 1, Speed, BeltDirection.Front, Array.Empty<BeltLinkShape>(), Array.Empty<BeltLinkShape>());
             return new BeltSegmentState(shape, 0, Array.Empty<BeltItemSnapshot>(), true, Running(instanceId, 0));
         }
 
         private static BeltSegmentState InternalWith(long instanceId)
         {
-            var shape = new BeltSegmentShape(BeltSegmentKind.Normal, true, Array.Empty<BeltCellShape>(), Speed, BeltDirection.Front, Array.Empty<BeltLinkShape>(), Array.Empty<BeltLinkShape>());
+            var shape = new BeltSegmentShape(BeltSegmentKind.Normal, true, Array.Empty<BeltCellShape>(), 1, Speed, BeltDirection.Front, Array.Empty<BeltLinkShape>(), Array.Empty<BeltLinkShape>());
             return new BeltSegmentState(shape, 0, new[] { Running(instanceId, Cell / 2) }, false, default);
         }
 

@@ -47,13 +47,27 @@ namespace Tests.Util
             return ServerContext.GetService<BeltTransportDatastore>().Assembly;
         }
 
+        // tick先頭の再構築を先に呼び、機械の押し込みを受け付ける区間(block更新中)に入る。tickの外から搬入口へ押し込むテストが使う
+        // Run the tick-head rebuild first to enter the window that accepts machine pushes (block updates); used by tests that push into an inlet from outside a tick
+        public static void EnterMachinePushWindow()
+        {
+            ServerContext.GetService<IBeltTransportMutation>().RebuildIfDirty();
+        }
+
+        // 指定マスを含むsegmentを返す
+        // The segment containing the given cell
+        public static BeltConveyorSegment SegmentAt(Vector3Int position)
+        {
+            var assembly = Assembly();
+            var index = assembly.Layouts.Single(layout => layout.Cells.Any(cell => cell.Position == position)).Index;
+            return assembly.Segments[index];
+        }
+
         // 指定マスを含むsegmentのアイテムを出口に近い順で返す
         // Items of the segment containing the given cell, in exit order
         public static BeltItemState[] ItemsOnSegmentAt(Vector3Int position)
         {
-            var assembly = Assembly();
-            var index = assembly.Layouts.Single(layout => layout.Cells.Any(cell => cell.Position == position)).Index;
-            return assembly.Segments[index].CaptureItems();
+            return SegmentAt(position).CaptureItems();
         }
     }
 }

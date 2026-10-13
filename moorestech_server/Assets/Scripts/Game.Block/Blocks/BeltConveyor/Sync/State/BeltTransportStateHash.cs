@@ -27,6 +27,7 @@ namespace Game.Block.Blocks.BeltConveyor.Sync.State
             {
                 var hash = Mix(current, (int)shape.Kind);
                 hash = Mix(hash, shape.IsInternal ? 1 : 0);
+                hash = Mix(hash, shape.Capacity);
                 hash = Mix(hash, shape.Speed);
                 hash = Mix(hash, (int)shape.Forward);
                 hash = Mix(hash, shape.Cells.Length);

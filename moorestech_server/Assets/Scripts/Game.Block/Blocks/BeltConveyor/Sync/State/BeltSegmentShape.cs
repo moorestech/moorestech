@@ -21,13 +21,16 @@ namespace Game.Block.Blocks.BeltConveyor.Sync.State
         public readonly BeltLinkShape[] Inputs;
         public readonly BeltLinkShape[] Outputs;
 
-        public int Capacity => IsInternal ? 1 : Cells.Length;
+        // 容量の式は構成(BeltSegmentLayout.Capacity)の1箇所だけに置き、ここは値として持つ。通信形にも値で載せ、クライアントは式を再実装しない
+        // The capacity rule lives only in the layout (BeltSegmentLayout.Capacity); this holds the value, the wire form carries it too, and the client never re-implements the rule
+        public readonly int Capacity;
 
-        public BeltSegmentShape(BeltSegmentKind kind, bool isInternal, BeltCellShape[] cells, int speed, BeltDirection forward, BeltLinkShape[] inputs, BeltLinkShape[] outputs)
+        public BeltSegmentShape(BeltSegmentKind kind, bool isInternal, BeltCellShape[] cells, int capacity, int speed, BeltDirection forward, BeltLinkShape[] inputs, BeltLinkShape[] outputs)
         {
             Kind = kind;
             IsInternal = isInternal;
             Cells = cells;
+            Capacity = capacity;
             Speed = speed;
             Forward = forward;
             Inputs = inputs;
@@ -38,7 +41,7 @@ namespace Game.Block.Blocks.BeltConveyor.Sync.State
         {
             var cells = new BeltCellShape[layout.Cells.Length];
             for (var i = 0; i < cells.Length; i++) cells[i] = new BeltCellShape(layout.Cells[i].Position, layout.Cells[i].Forward);
-            return new BeltSegmentShape(layout.Kind, layout.IsInternal, cells, layout.Speed, layout.Forward, FromLinks(layout.Inputs), FromLinks(layout.Outputs));
+            return new BeltSegmentShape(layout.Kind, layout.IsInternal, cells, layout.Capacity, layout.Speed, layout.Forward, FromLinks(layout.Inputs), FromLinks(layout.Outputs));
 
             #region Internal
 

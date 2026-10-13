@@ -123,8 +123,8 @@ namespace Server.Boot
             }
             // 常時記録が持つ書き出しスレッドと区間ファイルのハンドルを手放す。残すとセッション毎に積み上がる
             // Release the writer thread and segment file handle always-on capture holds; leaving them accumulates per session
-            // ここもファイルハンドルを閉じる外部境界。閉じ損ねても残りの後始末（GameUpdater）まで到達させる
-            // This too is the file-handle boundary; even a failed close must not stop the remaining teardown (GameUpdater)
+            // ここもファイルハンドルを閉じる外部境界。閉じ損ねても残りの後始末（GameUpdaterからの取り外し）まで到達させる
+            // This too is the file-handle boundary; even a failed close must not stop the remaining teardown (detaching from GameUpdater)
             try
             {
                 _worldSnapshotRing?.Stop();
@@ -136,6 +136,9 @@ namespace Server.Boot
                 Debug.LogError($"常時記録の停止が例外で終わったため、区間ファイルのハンドルが残っている可能性があります message:{e.Message}");
                 Debug.LogException(e);
             }
+            // 破棄したサーバーのtick本体をGameUpdaterから外す。残すと次にtickを回した経路で破棄済みの世界が進む
+            // Detach the disposed server's tick body from GameUpdater; leaving it would advance the disposed world on the next tick
+            GameUpdater.ResetUpdate();
 
             #region Internal
 

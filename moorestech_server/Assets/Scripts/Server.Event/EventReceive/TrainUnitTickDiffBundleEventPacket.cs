@@ -22,17 +22,17 @@ namespace Server.Event.EventReceive
 
         private readonly EventProtocolProvider _eventProtocolProvider;
         private readonly TrainUpdateService _trainUpdateService;
-        private readonly BeltTransportDatastore _beltTransportDatastore;
+        private readonly IBeltTransportLookup _beltTransportLookup;
         private readonly Dictionary<uint, HashTickState> _hashStatesByTick = new();
 
         public TrainUnitTickDiffBundleEventPacket(
             EventProtocolProvider eventProtocolProvider,
             TrainUpdateService trainUpdateService,
-            BeltTransportDatastore beltTransportDatastore)
+            IBeltTransportLookup beltTransportLookup)
         {
             _eventProtocolProvider = eventProtocolProvider;
             _trainUpdateService = trainUpdateService;
-            _beltTransportDatastore = beltTransportDatastore;
+            _beltTransportLookup = beltTransportLookup;
         }
 
         public void Load()
@@ -49,7 +49,7 @@ namespace Server.Event.EventReceive
             // 間引きtickはベルトもダミー。本物のtickだけ今の組をその場でハッシュする
             // A skipped tick is a dummy for the belt too; only a real tick hashes the current assembly on the spot
             var beltTransportHash = TrainUpdateService.IsHashBroadcastTick(hashStateEventData.Tick)
-                ? _beltTransportDatastore.ComputeStateHash()
+                ? _beltTransportLookup.ComputeStateHash()
                 : TrainUnitHashStateMessagePack.DummyHash;
             _hashStatesByTick[hashStateEventData.Tick] = new HashTickState(
                 hashStateEventData.UnitsHash,

@@ -1,3 +1,4 @@
+using Core.BeltTransport;
 using Game.Block.Blocks.BeltConveyor.Topology;
 
 namespace Game.Block.Blocks.BeltConveyor.Transport.Rebuild
@@ -19,6 +20,28 @@ namespace Game.Block.Blocks.BeltConveyor.Transport.Rebuild
             Cell = cell;
             CellExitDistance = cellExitDistance;
             IsLastCell = isLastCell;
+        }
+
+        // マス内の残り距離を、segment出口までの距離へ戻す
+        // Converts the remaining distance within this cell back to the distance to the segment exit
+        public int ToSegmentDistance(int distanceToCellExit)
+        {
+            return CellExitDistance + distanceToCellExit;
+        }
+
+        // 距離とマスの換算はこの対だけで行う。マス番号は搬送順、segmentの出口から各マスの出口までは1マス幅ずつ離れる
+        // Distance and cell conversions go through this pair only; cell indices follow transport order and each cell exit lies one cell width further from the segment exit
+        public static int CellExitDistanceOf(int cellCount, int cellIndex)
+        {
+            return (cellCount - 1 - cellIndex) * BeltConstants.ItemWidth;
+        }
+
+        // segment出口までの距離から、先頭が乗るマス番号とそのマスの出口までの残り距離を出す
+        // From the distance to the segment exit, yields the cell the head is on and the remaining distance to that cell's exit
+        public static int CellIndexOf(int cellCount, int distanceToExit, out int distanceToCellExit)
+        {
+            distanceToCellExit = distanceToExit % BeltConstants.ItemWidth;
+            return cellCount - 1 - distanceToExit / BeltConstants.ItemWidth;
         }
     }
 }

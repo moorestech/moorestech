@@ -15,21 +15,21 @@ namespace Game.Block.Blocks.BeltConveyor
     public class BeltConveyorInventoryComponent : IBlockInventory
     {
         private readonly BlockInstanceId _blockInstanceId;
-        private readonly BeltTransportDatastore _beltTransportDatastore;
+        private readonly IBeltTransportMutation _beltTransportMutation;
 
         public bool IsDestroy { get; private set; }
 
         public BeltConveyorInventoryComponent(BlockInstanceId blockInstanceId)
         {
             _blockInstanceId = blockInstanceId;
-            _beltTransportDatastore = ServerContext.GetService<BeltTransportDatastore>();
+            _beltTransportMutation = ServerContext.GetService<IBeltTransportMutation>();
         }
 
         public IItemStack InsertItem(IItemStack itemStack, InsertItemContext context)
         {
             BlockException.CheckDestroy(this);
             if (itemStack.Id == ItemMaster.EmptyItemId) return itemStack;
-            var supplied = _beltTransportDatastore.Assembly.TrySupplyFromMachine(_blockInstanceId, context, itemStack.Id, itemStack.ItemInstanceId);
+            var supplied = _beltTransportMutation.TrySupplyFromMachine(_blockInstanceId, context, itemStack.Id, itemStack.ItemInstanceId);
             return supplied ? itemStack.SubItem(1) : itemStack;
         }
 

@@ -118,7 +118,7 @@ namespace Client.Tests.BeltTransport
 
         private static BeltSegmentShape Segment(BeltCellShape[] cells, BeltLinkShape[] inputs, BeltLinkShape[] outputs)
         {
-            return new BeltSegmentShape(BeltSegmentKind.Normal, false, cells, 32, cells[cells.Length - 1].Forward, inputs, outputs);
+            return new BeltSegmentShape(BeltSegmentKind.Normal, false, cells, cells.Length, 32, cells[cells.Length - 1].Forward, inputs, outputs);
         }
 
         private static BeltCellShape Front(int x, int y, int z)

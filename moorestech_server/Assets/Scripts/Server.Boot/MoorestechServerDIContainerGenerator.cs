@@ -69,7 +69,7 @@ namespace Server.Boot
 
             // 1tickの全順序（本体・末尾・境界・セーブ）はMasterTickUpdaterの1ファイルに集約し、ここでは1本だけ登録する
             // The whole tick order (body, tick end, boundary, save) lives in MasterTickUpdater; register just that one entry here
-            GameUpdater.AdditionalUpdates.Add(serviceProvider.GetRequiredService<MasterTickUpdater>().Update);
+            GameUpdater.SetMasterTick(serviceProvider.GetRequiredService<MasterTickUpdater>().Update);
 
             // 現サーバーの別スレッドキューを唯一の入口へ公開する（流すのはMasterTickUpdater）
             // Publish this server's other-thread queue as the single entry point (MasterTickUpdater drains it)

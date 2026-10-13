@@ -112,7 +112,11 @@ namespace Server.Boot.Composition
             services.AddSingleton<IGearNetworkDatastore>(provider => provider.GetRequiredService<GearNetworkDatastore>());
             services.AddSingleton(initializerProvider.GetService<FluidNetworkDatastore>());
             services.AddSingleton<IFluidNetworkDatastore>(provider => provider.GetRequiredService<FluidNetworkDatastore>());
+            // 具象はテストの直接参照用、Lookup/Mutationは読み書きの契約別。全て同一インスタンスを共有する
+            // The concrete type serves direct test access; Lookup/Mutation split read and write contracts. All share one instance
             services.AddSingleton(initializerProvider.GetService<BeltTransportDatastore>());
+            services.AddSingleton<IBeltTransportLookup>(provider => provider.GetRequiredService<BeltTransportDatastore>());
+            services.AddSingleton<IBeltTransportMutation>(provider => provider.GetRequiredService<BeltTransportDatastore>());
             services.AddSingleton(initializerProvider.GetService<CleanRoomDatastore>());
             services.AddSingleton(railGraphDatastore);
             services.AddSingleton<IRailGraphDatastore>(railGraphDatastore);

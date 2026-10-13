@@ -43,7 +43,7 @@ namespace Game.Block.Blocks.BeltConveyor.Transport.Rebuild
                     if (!locator.TryLocate(record.CellBlockInstanceId, out var location) || corruptedSegments.Contains(location.SegmentIndex)) continue;
                     var matches = BeltCellLocator.MatchesPath(location.Cell, record.Item.EntryDirection);
                     var item = matches ? record.Item : record.Item.WithEntryDirection(BeltCellLocator.AlignToPath(location.Cell, record.Item.EntryDirection));
-                    var distance = location.CellExitDistance + record.DistanceToCellExit;
+                    var distance = location.ToSegmentDistance(record.DistanceToCellExit);
                     candidates.Add(new BeltRestoreCandidate(matches ? BeltRestorePriority.RunningMatchingPath : BeltRestorePriority.RunningRealigned, location.SegmentIndex, distance, item, record.SourceSegmentIndex, record.SourceOrder));
                 }
                 candidates.Sort();

@@ -101,6 +101,8 @@ namespace Server.Boot.Composition
             initializerCollection.AddSingleton<GearNetworkDatastore>();
             initializerCollection.AddSingleton<FluidNetworkDatastore>();
             initializerCollection.AddSingleton<BeltTransportDatastore>();
+            initializerCollection.AddSingleton<IBeltTransportLookup>(provider => provider.GetService<BeltTransportDatastore>());
+            initializerCollection.AddSingleton<IBeltTransportMutation>(provider => provider.GetService<BeltTransportDatastore>());
             initializerCollection.AddSingleton<CleanRoomDatastore>();
             initializerCollection.AddSingleton<RailGraphDatastore>();
             initializerCollection.AddSingleton<IRailGraphDatastore>(provider => provider.GetService<RailGraphDatastore>());

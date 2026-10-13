@@ -11,7 +11,7 @@ namespace Game.Block.Blocks.BeltConveyor.Save
     public class BeltConveyorSaveStateComponent : IBlockSaveState
     {
         private readonly BlockInstanceId _blockInstanceId;
-        private readonly BeltTransportDatastore _beltTransportDatastore;
+        private readonly IBeltTransportLookup _beltTransportLookup;
 
         public string SaveKey { get; } = typeof(BeltConveyorSaveStateComponent).FullName;
         public bool IsDestroy { get; private set; }
@@ -19,7 +19,7 @@ namespace Game.Block.Blocks.BeltConveyor.Save
         public BeltConveyorSaveStateComponent(BlockInstanceId blockInstanceId)
         {
             _blockInstanceId = blockInstanceId;
-            _beltTransportDatastore = ServerContext.GetService<BeltTransportDatastore>();
+            _beltTransportLookup = ServerContext.GetService<IBeltTransportLookup>();
         }
 
         public BeltConveyorSaveStateComponent(Dictionary<string, object> componentStates, BlockInstanceId blockInstanceId) : this(blockInstanceId)
@@ -27,13 +27,13 @@ namespace Game.Block.Blocks.BeltConveyor.Save
             // 保存されていたアイテム・優先順は組へ預ける。次のtick先頭の再構築で復元手順に乗る
             // Saved items and priority orders are handed to the assembly and go through the restore procedure at the next tick-head rebuild
             if (!BlockComponentStateReader.TryRead<BeltConveyorSaveJsonObject>(componentStates, SaveKey, out var state)) return;
-            _beltTransportDatastore.RegisterLoadedState(blockInstanceId, state);
+            ServerContext.GetService<IBeltTransportMutation>().RegisterLoadedState(blockInstanceId, state);
         }
 
         public object GetSaveState()
         {
             BlockException.CheckDestroy(this);
-            return _beltTransportDatastore.CreateSaveState(_blockInstanceId);
+            return _beltTransportLookup.CreateSaveState(_blockInstanceId);
         }
 
         public void Destroy()

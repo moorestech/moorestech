@@ -1,22 +1,26 @@
 using System.Collections.Generic;
 using Core.BeltTransport;
 using Game.Block.Blocks.BeltConveyor.Sync.State;
+using Game.Block.Blocks.BeltConveyor.Transport;
 
 namespace Game.Block.Blocks.BeltConveyor.Sync.Replica
 {
-    // 全量からCoreのsegmentを生成し、形の接続どおりに配線して中身を載せる。サーバーのBeltTransportAssemblerと同じ手順をワールド無しで行う
-    // Creates Core segments from the full state, wires them as the shapes say and loads the contents; the server's BeltTransportAssembler procedure without a world
+    // 全量からCoreのsegmentを生成し、形の接続どおりに配線して中身を載せる。生成と配線はサーバーのBeltTransportAssemblerと同じ関数を使う
+    // Creates Core segments from the full state, wires them as the shapes say and loads the contents; creation and wiring use the same functions as the server's BeltTransportAssembler
     public static class BeltTransportReplicaAssembler
     {
         public static BeltTransportReplica Assemble(BeltTransportFullState fullState)
         {
+            // 優先順は全量の値をそのまま使う。合流は搬入順、分岐はbufferの搬出順
+            // The priority order comes straight from the full state: input order for a merge, buffer output order for a branch
             var states = fullState.Segments;
             var shapes = new BeltSegmentShape[states.Length];
             var segments = new BeltConveyorSegment[states.Length];
             for (var i = 0; i < states.Length; i++)
             {
-                shapes[i] = states[i].Shape;
-                segments[i] = Create(states[i]);
+                var shape = states[i].Shape;
+                shapes[i] = shape;
+                segments[i] = BeltTransportAssembler.CreateSegment(shape.Kind, shape.Capacity, shape.Speed, states[i].PriorityOrder, shape.Forward);
             }
 
             var machineReceivers = new Dictionary<(int, BeltDirection), BeltReplicaMachineReceiver>();
@@ -28,8 +32,8 @@ namespace Game.Block.Blocks.BeltConveyor.Sync.Replica
 
             void WireOutputs(int index, BeltConveyorSegment segment)
             {
-                // 通常はsegment自身、合流・分岐はbufferが搬出する。相手が機械なら複製の受け手を作る
-                // A normal segment outputs itself; merges and branches output through their buffer. Machines get a replica receiver
+                // 相手が機械なら複製の受け手を作る
+                // A machine partner gets a replica receiver
                 foreach (var link in shapes[index].Outputs)
                 {
                     IBeltReceiver target;
@@ -43,8 +47,7 @@ namespace Game.Block.Blocks.BeltConveyor.Sync.Replica
                     {
                         target = segments[link.PartnerSegmentIndex];
                     }
-                    if (segment is BeltNormalSegment normal) normal.ConnectTo(target, link.Direction, link.EntryDirection);
-                    else ((BeltBufferedSegment)segment).Buffer.ConnectTo(target, link.Direction, link.EntryDirection);
+                    BeltTransportAssembler.ConnectOutput(segment, target, link.Direction, link.EntryDirection);
                 }
             }
 
@@ -59,22 +62,6 @@ namespace Game.Block.Blocks.BeltConveyor.Sync.Replica
             }
 
             #endregion
-        }
-
-        private static BeltConveyorSegment Create(BeltSegmentState state)
-        {
-            // 優先順は全量の値をそのまま使う。合流は搬入順、分岐はbufferの搬出順
-            // The priority order comes straight from the full state: input order for a merge, buffer output order for a branch
-            var shape = state.Shape;
-            switch (shape.Kind)
-            {
-                case BeltSegmentKind.Merge:
-                    return new BeltMergeSegment(shape.Speed, state.PriorityOrder, shape.Forward);
-                case BeltSegmentKind.Branch:
-                    return new BeltBranchSegment(shape.Capacity, shape.Speed, state.PriorityOrder, shape.Forward);
-                default:
-                    return new BeltNormalSegment(shape.Capacity, shape.Speed);
-            }
         }
     }
 }

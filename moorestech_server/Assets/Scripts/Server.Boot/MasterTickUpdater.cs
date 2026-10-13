@@ -28,7 +28,7 @@ namespace Server.Boot
         private readonly FluidTickUpdater _fluidTickUpdater;
         private readonly TrainUpdateService _trainUpdateService;
         private readonly IWorldBlockDatastore _worldBlockDatastore;
-        private readonly BeltTransportDatastore _beltTransportDatastore;
+        private readonly IBeltTransportMutation _beltTransportMutation;
         private readonly BeltTransportTickUpdater _beltTransportTickUpdater;
         private readonly ChallengeDatastore _challengeDatastore;
         private readonly CleanRoomDatastore _cleanRoomDatastore;
@@ -50,7 +50,7 @@ namespace Server.Boot
             FluidTickUpdater fluidTickUpdater,
             TrainUpdateService trainUpdateService,
             IWorldBlockDatastore worldBlockDatastore,
-            BeltTransportDatastore beltTransportDatastore,
+            IBeltTransportMutation beltTransportMutation,
             BeltTransportTickUpdater beltTransportTickUpdater,
             ChallengeDatastore challengeDatastore,
             CleanRoomDatastore cleanRoomDatastore,
@@ -67,7 +67,7 @@ namespace Server.Boot
             _fluidTickUpdater = fluidTickUpdater;
             _trainUpdateService = trainUpdateService;
             _worldBlockDatastore = worldBlockDatastore;
-            _beltTransportDatastore = beltTransportDatastore;
+            _beltTransportMutation = beltTransportMutation;
             _beltTransportTickUpdater = beltTransportTickUpdater;
             _challengeDatastore = challengeDatastore;
             _cleanRoomDatastore = cleanRoomDatastore;
@@ -84,7 +84,7 @@ namespace Server.Boot
             _electricWireNetworkDatastore.RebuildIfDirty();
             _gearNetworkDatastore.RebuildIfDirty();
             _fluidNetworkDatastore.RebuildIfDirty();
-            _beltTransportDatastore.RebuildIfDirty();
+            _beltTransportMutation.RebuildIfDirty();
             _electricTickUpdater.Update();
             _gearTickUpdater.Update();
             _fluidTickUpdater.Update();

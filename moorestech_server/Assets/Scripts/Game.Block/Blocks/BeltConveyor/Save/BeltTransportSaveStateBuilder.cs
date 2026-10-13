@@ -1,61 +1,38 @@
-using Core.BeltTransport;
-using Game.Block.Blocks.BeltConveyor.Transport;
+using System.Collections.Generic;
+using Game.Block.Blocks.BeltConveyor.Transport.Rebuild;
 using Game.Block.Interface;
 
 namespace Game.Block.Blocks.BeltConveyor.Save
 {
-    // 搬送の組から、1つのベルコンblockに属する保存内容を切り出す
-    // Cuts the save content belonging to one belt block out of the transport assembly
+    // 再構築と同じ取り出し結果(snapshot)を、blockごとの保存形へ振り分ける。アイテムのマスとマス内距離はsnapshotがsegment単位で確定済み
+    // Distributes the same capture a rebuild uses (the snapshot) into per-block save forms; each item's cell and in-cell distance are already settled per segment by the snapshot
     public static class BeltTransportSaveStateBuilder
     {
-        public static BeltConveyorSaveJsonObject Build(BeltTransportAssembly assembly, BlockInstanceId blockInstanceId)
+        public static Dictionary<BlockInstanceId, BeltConveyorSaveJsonObject> Build(BeltTransportSnapshot snapshot)
         {
-            // 設置直後で組にまだ無いblockは空。次のtick先頭で組に載る
-            // A block placed this tick is not in the assembly yet and saves as empty; it joins at the next tick head
-            var state = new BeltConveyorSaveJsonObject();
-            if (!assembly.Locator.TryLocate(blockInstanceId, out var location)) return state;
-            var segment = assembly.Segments[location.SegmentIndex];
-            var layout = assembly.Layouts[location.SegmentIndex];
+            var states = new Dictionary<BlockInstanceId, BeltConveyorSaveJsonObject>();
 
-            CollectRunningItems();
-            CollectBufferAndPriority();
-            CollectInternalItems();
-            return state;
+            // 走行中は先頭が乗るマスのblockへ出口に近い順のまま、bufferと優先順は末尾マスのblockへ、内部segmentは合流blockへ入力方向つきで入れる
+            // Running items go to the block under their head in exit order, buffers and orders to the last cell's block, internal-segment items to the merge block with their input direction
+            foreach (var record in snapshot.RunningItems)
+                StateOf(record.CellBlockInstanceId).Items.Add(new BeltItemSaveJsonObject(record.Item, record.DistanceToCellExit));
+            foreach (var pair in snapshot.PriorityOrders) StateOf(pair.Key).PriorityOrder = pair.Value;
+            foreach (var record in snapshot.BufferItems) StateOf(record.CellBlockInstanceId).BufferItem = new BeltItemSaveJsonObject(record.Item, 0);
+            foreach (var record in snapshot.InternalItems)
+            {
+                var internalItems = StateOf(record.MergeBlockInstanceId).InternalItems;
+                foreach (var captured in record.States) internalItems.Add(new BeltInternalItemSaveJsonObject(record.InputDirection, captured.Item, captured.DistanceToExit));
+            }
+            return states;
 
             #region Internal
 
-            void CollectRunningItems()
+            BeltConveyorSaveJsonObject StateOf(BlockInstanceId blockInstanceId)
             {
-                // segmentの走行列のうち、先頭がこのマスの範囲にあるものだけを、マスの出口までの距離で保存する
-                // Of the segment run, keep only items whose head lies within this cell, saved by distance to the cell exit
-                foreach (var captured in segment.CaptureItems())
-                {
-                    var distanceToCellExit = captured.DistanceToExit - location.CellExitDistance;
-                    if (distanceToCellExit < 0 || BeltConstants.ItemWidth <= distanceToCellExit) continue;
-                    state.Items.Add(new BeltItemSaveJsonObject(captured.Item, distanceToCellExit));
-                }
-            }
-
-            void CollectBufferAndPriority()
-            {
-                // 合流・分岐のbufferと優先順は末尾マスのblockに属する
-                // The buffer and priority order of a merge or branch belong to the last cell's block
-                if (!location.IsLastCell || segment is not BeltBufferedSegment buffered) return;
-                state.PriorityOrder = buffered.PriorityOrder;
-                if (buffered.Buffer.TryGetItem(out var held)) state.BufferItem = new BeltItemSaveJsonObject(held, 0);
-            }
-
-            void CollectInternalItems()
-            {
-                // 合流の入力のうち内部segmentを挟むものは、その内部segment上のアイテムを入力方向つきで保存する
-                // For merge inputs that go through an internal segment, save that segment's items tagged with the input direction
-                if (segment.Kind != BeltSegmentKind.Merge) return;
-                foreach (var input in layout.Inputs)
-                {
-                    if (input.IsMachine || !assembly.Layouts[input.PartnerSegmentIndex].IsInternal) continue;
-                    foreach (var captured in assembly.Segments[input.PartnerSegmentIndex].CaptureItems())
-                        state.InternalItems.Add(new BeltInternalItemSaveJsonObject(input.Direction, captured.Item, captured.DistanceToExit));
-                }
+                if (states.TryGetValue(blockInstanceId, out var state)) return state;
+                state = new BeltConveyorSaveJsonObject();
+                states.Add(blockInstanceId, state);
+                return state;
             }
 
             #endregion

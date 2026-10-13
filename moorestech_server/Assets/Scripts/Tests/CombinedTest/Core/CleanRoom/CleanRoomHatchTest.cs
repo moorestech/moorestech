@@ -93,6 +93,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
             Assert.AreEqual(1, parked.Length);
             Assert.AreEqual(0, parked[0].DistanceToExit);
             Assert.AreEqual(5, source.GetItem(0).Count);
+            BeltWorldTestUtil.EnterMachinePushWindow();
             var rejected = belt.GetComponent<IBlockInventory>().InsertItem(itemStackFactory.Create(new ItemId(1), 1), new InsertItemContext(sourceBlock.BlockInstanceId, null, null));
             Assert.AreEqual(1, rejected.Count);
         }

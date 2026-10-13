@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using UniRx;
-using Unity.Profiling;
 
 namespace Core.Update
 {
@@ -23,21 +20,28 @@ namespace Core.Update
             CurrentTick = tick;
         }
 
-        // 1tickの処理順はServer.BootのMasterTickUpdaterが1ファイルで明示する。ここには本体を1本登録するだけで、購読や末尾用のリストは持たない
-        // The order inside one tick is declared in Server.Boot's MasterTickUpdater; only that one entry is registered here, with no subscription or tick-end lists
-        public static List<Action> AdditionalUpdates = new();
+        // 1tickの処理順はServer.BootのMasterTickUpdaterが1ファイルで明示する。ここが持つのはその本体1本だけで、外から追加する口は無い
+        // The order inside one tick is declared in Server.Boot's MasterTickUpdater; this holds only that one body, with no way to append from outside
+        private static Action _masterTick = NoMasterTick;
 
         public static void Update()
         {
             CurrentTick++;
-            ExecuteAdditionalUpdates();
+            _masterTick();
         }
 
-        // CurrentTickはここでも巻き戻さない。巻き戻すと計測中の差分が負に回り込むため
-        // CurrentTick is never rewound here; rewinding would wrap in-flight elapsed differences
+        // サーバー生成時に1回呼ぶ。作り直しでは前のサーバーの本体を置き換え、2本並ぶことは無い
+        // Called once when a server is created; re-creating replaces the previous server's body, so two never run side by side
+        public static void SetMasterTick(Action tick)
+        {
+            _masterTick = tick;
+        }
+
+        // サーバーの破棄・作り直しの前に呼び、前のサーバーの本体を外してtickを空回りにする。CurrentTickは巻き戻さない（計測中の差分が負に回り込むため）
+        // Called before a server is disposed or re-created; detaches the previous server's body so ticks idle. CurrentTick is never rewound (in-flight differences would wrap)
         public static void ResetUpdate()
         {
-            AdditionalUpdates.Clear();
+            _masterTick = NoMasterTick;
         }
 
         // 秒数をtickに変換するユーティリティ（マスターデータの秒数値を変換する用）
@@ -70,12 +74,10 @@ namespace Core.Update
         // Utility to convert ticks to seconds (for display purposes)
         public static double TicksToSeconds(uint ticks) => ticks * SecondsPerTick;
 
-        private static void ExecuteAdditionalUpdates()
+        // サーバーが無い間のtick本体。進めるのはtick番号だけ
+        // The tick body while no server exists; only the tick number advances
+        private static void NoMasterTick()
         {
-            foreach (var additionalUpdate in AdditionalUpdates)
-            {
-                additionalUpdate();
-            }
         }
 
 #if UNITY_EDITOR
@@ -93,7 +95,7 @@ namespace Core.Update
             for (var i = 0u; i < frameCount; i++)
             {
                 CurrentTick++;
-                ExecuteAdditionalUpdates();
+                _masterTick();
             }
         }
 #endif

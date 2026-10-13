@@ -115,7 +115,7 @@ namespace Tests.CombinedTest.Core.Transport
         }
 
         [Test]
-        public void InletPushBetweenTicksIsReplayedOnNextTick()
+        public void InletPushAfterTickHeadIsReplayedInSameTick()
         {
             CreateServer();
             var machine = Place(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, -1), BlockDirection.North);
@@ -125,8 +125,8 @@ namespace Tests.CombinedTest.Core.Transport
             TickServer();
             var replica = StartReplica();
 
-            // tickの外(block更新の外)で搬入口へ押し込んだ分も、次のtickの差分に載って同じ順で再生される
-            // A push into the inlet outside the tick (outside block updates) lands in the next tick's diff and replays in order
+            // tick先頭の再構築後(block更新中と同じ区間)に搬入口へ押し込んだ分は、そのtickの差分に載って同じ順で再生される
+            // A push into the inlet after the tick-head rebuild (the same window as block updates) lands in that tick's diff and replays in order
             var pushed = 0;
             for (var tick = 1; tick <= 300; tick++)
             {
