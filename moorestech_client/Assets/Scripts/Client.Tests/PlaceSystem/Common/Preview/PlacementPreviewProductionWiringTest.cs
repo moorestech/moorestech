@@ -11,6 +11,9 @@ using UnityEngine.TestTools;
 
 namespace Client.Tests.PlaceSystem.Common.Preview
 {
+    // プレビューのPlayMode物理テストを専用shardへ集める。
+    // Route the preview PlayMode physics tests to their dedicated shard.
+    [Category("CiShardClientPlay2")]
     public class PlacementPreviewProductionWiringTest
     {
         private PlacementPreviewPhysicsFixture _fixture;
