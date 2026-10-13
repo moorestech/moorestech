@@ -78,10 +78,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
             _rendererMaterialReplacerController.SetColor(MaterialConst.PreviewColorPropertyName, color);
         }
         
-        public void SetTriggerCollider(bool isTrigger)
+        internal void ConfigurePlacementColliders()
         {
-            var childrenColliders = GetComponentsInChildren<Collider>();
-            foreach (var childrenCollider in childrenColliders) childrenCollider.isTrigger = isTrigger;
+            // 地面接触を残し、非表示の子も設置照準から外す
+            // Preserve ground contact and exclude inactive children from placement aiming.
+            foreach (var collider in GetComponentsInChildren<Collider>(true))
+            {
+                collider.isTrigger = true;
+                collider.gameObject.layer = LayerConst.BlockLayer;
+            }
         }
         
         public void SetActive(bool active)
