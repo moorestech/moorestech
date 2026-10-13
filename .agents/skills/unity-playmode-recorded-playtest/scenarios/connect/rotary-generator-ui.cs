@@ -106,8 +106,10 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
     await p.ClickWebUi("hotbar-slot-0");
     await p.WaitUiState(UIStateEnum.PlaceBlock, 10f);
     await AimAtClickCollider(generatorObject);
+    p.Assert(BlockClickDetectUtil.TryGetCursorOnBlock(out var sourceTarget) && sourceTarget == generatorObject, "電線起点クリック前の実ヒットが発電機");
     await p.ClickPlace();
-    await AimAtClickCollider(minerObject);
+    await p.AimAt(new Vector3(9.5f, 34f, 12.7f));
+    p.Assert(BlockClickDetectUtil.TryGetCursorOnBlock(out var destinationTarget) && destinationTarget == minerObject, "電線終点クリック前の実ヒットが採掘機");
     await p.ClickPlace();
     await p.Until(() => generatorWire.ContainsWireConnection(minerBlock.BlockInstanceId) &&
                         minerWire.ContainsWireConnection(generatorBlock.BlockInstanceId), 15f, "実操作で双方向電線接続");
