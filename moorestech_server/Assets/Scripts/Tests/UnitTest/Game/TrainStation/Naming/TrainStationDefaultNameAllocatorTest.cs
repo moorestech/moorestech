@@ -39,7 +39,9 @@ namespace Tests.UnitTest.Game.TrainStation.Naming
             Place(Vector3Int.zero);
             Place(new Vector3Int(0, 0, 8));
             Assert.IsTrue(ServerContext.WorldBlockDatastore.RemoveBlock(new Vector3Int(0, 0, 8), BlockRemoveReason.ManualRemove));
-            Assert.AreEqual("Test1 Station 2", Place(new Vector3Int(0, 0, 8)).StationName);
+            // 撤去で空いた番号は同じ特徴の別位置でも再利用される
+            // A number freed by removal is reused at another location with the same feature
+            Assert.AreEqual("Test1 Station 2", Place(new Vector3Int(0, 0, 16)).StationName);
         }
 
         [Test]
