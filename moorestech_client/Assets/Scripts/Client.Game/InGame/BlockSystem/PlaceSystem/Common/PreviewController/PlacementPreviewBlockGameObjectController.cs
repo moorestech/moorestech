@@ -21,7 +21,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
             SetActive(false);
         }
         
-        public void SetPreview(List<PlaceInfo> placePointInfos, BlockMasterElement holdingBlockMaster)
+        public void SetPreview(List<PlaceInfo> placePointInfos, BlockMasterElement holdingBlockMaster, bool terrainContactEnabled)
         {
             // さっきと違うブロックだったら削除する
             // Destroy the pooled previews when the held block changed
@@ -44,7 +44,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
                 var rot = placeInfo.Direction.GetRotation();
 
                 var previewBlock = _blockPlacePreviewObjectPool.GetObject(blockId);
-                previewBlock.ConfigureTerrainContact(holdingBlockMaster.BlockSize);
+                previewBlock.SetTerrainContactEnabled(terrainContactEnabled, holdingBlockMaster.BlockSize);
                 _activePreviewBlocks.Add(previewBlock);
                 previewBlock.SetTransform(pos,rot);
 
@@ -58,10 +58,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
         
         public IReadOnlyList<bool> DetectGroundOverlaps()
         {
-            // 直近の物理ステップ時点の接触を返す。可否も色も決めない
-            // Returns the contact as of the last physics step; placeability and color stay with the caller
+            // 現配置の接触を同期判定する。可否も色も決めない
+            // Query current-position contact; placeability and color stay with the caller.
             var groundOverlaps = new List<bool>(_activePreviewBlocks.Count);
-            foreach (var previewBlock in _activePreviewBlocks) groundOverlaps.Add(previewBlock.IsCollisionGround);
+            Physics.SyncTransforms();
+            foreach (var previewBlock in _activePreviewBlocks) groundOverlaps.Add(previewBlock.DetectCurrentGroundOverlap());
 
             return groundOverlaps;
         }

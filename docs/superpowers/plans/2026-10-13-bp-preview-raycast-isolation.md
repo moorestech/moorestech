@@ -63,7 +63,13 @@ manifestの報告時点カメラ: position=(623.1587,118.412971,635.0399)、Eule
 
 データフロー: 照準入力 → PlaceSystemUtil.TryRaycastPlacementSurface → BP位置・可否評価 → BlueprintPastePreviewController → プール → PreviewBlockCreator → BlockPreviewObject。変更箇所は末端の生成物設定であり、上流の入力と下流の表示をつなぐ第2経路は作らない。
 
-Collider無効化の前例は `TrainCarPreviewController` にあるが、ブロック系のベルト・レール・電柱・歯車ポールでは `GroundCollisionDetector.OnTriggerStay` → `BlockPreviewObject.IsCollisionGround` → `PlacementPreviewBlockGameObjectController.DetectGroundOverlaps` を使うため、その方法は採らない。既存の除外maskに合わせる案はレイ機構を維持でき、全面的な探索方式変更より今回の責務に合う。
+Collider無効化の前例は `TrainCarPreviewController` にあるが、ブロック系のベルト・レール・電柱・歯車ポールでは `GroundCollisionDetector.OnTriggerEnter/Stay` の生通知を維持するため、その方法は採らない。既存の除外maskに合わせる案はレイ機構を維持でき、全面的な探索方式変更より今回の責務に合う。
+
+### 実装後レビューでの技術契約補正（agent既定・新しいユーザー裁定ではない）
+
+実controllerの同一プール個体で、clear→contactを同フレームに動かすと交差trueでも旧`DetectGroundOverlaps=false`、逆方向では交差falseでもtrueだった（session212010、frame1908/1920）。これは直近のFixedUpdate/Trigger通知を現フレームの可否に使用したC3の鮮度故障であり、UI確定送信の誤動作までは未観測。`SetPreview` は必須の `terrainContactEnabled` を受け、通常設置はfalse、接触を可否に使う4利用者はtrueとする。falseの初回では専用地形源を生成しない。true→falseはプレビュー所有の専用源だけ停止し、元Prefab由来のCollider/Detectorを維持する。false→trueは同一源を再利用する。
+
+`GroundCollisionDetector.OnTriggerEnter/Stay` → `BlockPreviewObject.IsCollisionGround` は実物理通知の生値として残す。一方、`DetectGroundOverlaps` は現配置のColliderと`GroundGameObject`を同一物理シーンで同期照合した値を返す。したがって旧「通知値をそのまま利用者へ渡す」技術経路は変更される。通知源の回帰と、現配置→利用者可否の回帰を別々に検証する。マスター占有体積は各面を既存`Physics.defaultContactOffset`現在0.01の2倍（向かい合う2面の余白0.02）だけ内側へ入れ、平地・浅い境界・段差を検査する。
 
 | 操作 | 計画後の期待 | 検証 |
 |---|---|---|

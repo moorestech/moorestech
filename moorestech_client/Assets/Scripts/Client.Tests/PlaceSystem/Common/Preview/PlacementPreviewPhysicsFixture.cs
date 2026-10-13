@@ -56,14 +56,14 @@ namespace Client.Tests.PlaceSystem.Common.Preview
             Controller.SetActive(true);
         }
 
-        internal BlockPreviewObject SetPreview()
+        internal BlockPreviewObject SetPreview(Vector3Int position, bool terrainContactEnabled)
         {
             var blockId = ForUnitTestModBlockId.BlockId;
             var cell = new PlaceInfo
             {
-                BlockId = blockId, Position = Vector3Int.zero, Direction = BlockDirection.North, Placeable = true
+                BlockId = blockId, Position = position, Direction = BlockDirection.North, Placeable = true
             };
-            Controller.SetPreview(new List<PlaceInfo> { cell }, MasterHolder.BlockMaster.GetBlockMaster(blockId));
+            Controller.SetPreview(new List<PlaceInfo> { cell }, MasterHolder.BlockMaster.GetBlockMaster(blockId), terrainContactEnabled);
             Assert.IsTrue(Controller.TryGetPreviewBlock(0, out var preview));
             return preview;
         }

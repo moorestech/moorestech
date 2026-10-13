@@ -40,7 +40,11 @@ namespace Client.Tests.PlaceSystem.Common.Preview
             ghost.SetActive(true);
             _physics.Simulate(0.02f);
             var cube = ghost.GetComponentsInChildren<Collider>(true).FirstOrDefault(c => c.name == "Cube_4");
-            var center = cube == null ? new Vector3(0.5f, 0.5f, 0.5f) : cube.bounds.center;
+            // チェストは別照準点、ベルト系は原因となったColliderの存在を必須にする
+            // Chest uses an explicit aim; belts must retain the collider that caused the failure.
+            var chest = path.Contains("wooden chest.prefab");
+            if (!chest) Assert.IsNotNull(cube, $"{path}: required Cube_4 collider missing");
+            var center = chest ? new Vector3(0.5f, 0.5f, 0.5f) : cube.bounds.center;
             var ground = new GameObject("Ground");
             SceneManager.MoveGameObjectToScene(ground, _scene);
             ground.layer = LayerConst.GroundLayer;
@@ -103,10 +107,11 @@ namespace Client.Tests.PlaceSystem.Common.Preview
 
             var detector = root.GetComponentsInChildren<GroundCollisionDetector>(true).Single();
             var box = detector.GetComponent<BoxCollider>();
-            var body = root.GetComponent<Rigidbody>();
+            var body = detector.GetComponent<Rigidbody>();
             var inset = Physics.defaultContactOffset * 2f;
             Assert.IsTrue(body.isKinematic);
             Assert.IsFalse(body.useGravity);
+            Assert.IsNull(root.GetComponent<Rigidbody>());
             Assert.IsTrue(box.isTrigger);
             Assert.AreEqual(LayerConst.BlockLayer, box.gameObject.layer);
             Assert.AreEqual(inset, box.bounds.min.y, 0.0001f);
@@ -131,8 +136,63 @@ namespace Client.Tests.PlaceSystem.Common.Preview
             preview.ConfigureTerrainContact(new Vector3Int(1, 1, 1));
 
             Assert.AreSame(existing, root.GetComponentsInChildren<GroundCollisionDetector>(true).Single());
+            preview.SetTerrainContactEnabled(false, Vector3Int.one);
+            Assert.IsTrue(existing.gameObject.activeSelf, "the source Prefab detector must remain active");
+            preview.SetTerrainContactEnabled(true, Vector3Int.one);
             Assert.IsNull(root.GetComponent<Rigidbody>());
             Assert.IsFalse(root.transform.Cast<Transform>().Any(t => t.name == "PlacementGroundContactVolume"));
+        }
+
+        [Test]
+        public void InsetUsesTwoFacingContactMarginsAtShallowBoundary()
+        {
+            var root = new GameObject("Preview");
+            SceneManager.MoveGameObjectToScene(root, _scene);
+            var preview = root.AddComponent<BlockPreviewObject>();
+            preview.SetTerrainContactEnabled(true, Vector3Int.one);
+            var contact = root.GetComponentsInChildren<GroundCollisionDetector>(true).Single().GetComponent<BoxCollider>();
+            var inset = Physics.defaultContactOffset * 2f;
+            var ground = new GameObject("ShallowGround");
+            SceneManager.MoveGameObjectToScene(ground, _scene);
+            ground.layer = LayerConst.GroundLayer;
+            ground.AddComponent<GroundGameObject>();
+            var groundBox = ground.AddComponent<BoxCollider>();
+            groundBox.size = new Vector3(2f, 1f, 2f);
+            ground.transform.position = new Vector3(0.5f, -0.5f, 0.5f);
+            Physics.SyncTransforms();
+            Assert.AreEqual(inset, contact.bounds.min.y, 0.0001f);
+            Assert.IsFalse(preview.DetectCurrentGroundOverlap(), "flat ground must clear the inset volume");
+            ground.transform.position += Vector3.up * inset * 0.5f;
+            Physics.SyncTransforms();
+            Assert.IsFalse(preview.DetectCurrentGroundOverlap(), "a bump below the inset stays clear");
+            ground.transform.position += Vector3.up * inset;
+            Physics.SyncTransforms();
+            Assert.IsTrue(preview.DetectCurrentGroundOverlap(), "a bump beyond the inset enters the volume");
+        }
+        [Test]
+        public void ExistingNonBoxDetectorUsesItsOwnShapeForCurrentPose()
+        {
+            var root = new GameObject("ExistingSpherePreview");
+            SceneManager.MoveGameObjectToScene(root, _scene);
+            var sphere = root.AddComponent<SphereCollider>();
+            sphere.radius = 0.25f;
+            root.AddComponent<GroundCollisionDetector>();
+            var preview = root.AddComponent<BlockPreviewObject>();
+            preview.ConfigurePlacementColliders();
+            preview.SetTerrainContactEnabled(true, Vector3Int.one);
+            var ground = new GameObject("Ground");
+            SceneManager.MoveGameObjectToScene(ground, _scene);
+            ground.layer = LayerConst.GroundLayer;
+            ground.AddComponent<GroundGameObject>();
+            var box = ground.AddComponent<BoxCollider>();
+            box.size = new Vector3(0.1f, 0.1f, 0.1f);
+            ground.transform.position = new Vector3(0.4f, 0.4f, 0f);
+            Physics.SyncTransforms();
+            Assert.IsFalse(preview.DetectCurrentGroundOverlap(), "AABB intersection is not sphere penetration");
+            ground.transform.position = new Vector3(0.2f, 0f, 0f);
+            Physics.SyncTransforms();
+            Assert.IsTrue(preview.DetectCurrentGroundOverlap());
+            Assert.AreSame(sphere, root.GetComponent<SphereCollider>());
         }
     }
 }

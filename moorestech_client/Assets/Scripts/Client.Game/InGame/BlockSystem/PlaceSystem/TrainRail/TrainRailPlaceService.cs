@@ -51,7 +51,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
             RotationRailComponent();
             
             var placeInfos = new List<PlaceInfo> { CreatePlaceInfo() };
-            _previewBlockController.SetPreview(placeInfos, holdingBlockMaster);
+            _previewBlockController.SetPreview(placeInfos, holdingBlockMaster, true);
             var groundOverlaps = _previewBlockController.DetectGroundOverlaps();
 
             // 地面に埋まるセルを設置不可にし、その理由を積む。レール1セルは共有原因を判定しないためNone列を渡す

@@ -29,6 +29,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
         }
         private GroundCollisionDetector[] _collisionDetectors;
         private bool _terrainContactConfigured;
+        private GameObject _ownedTerrainContact;
         private RendererMaterialReplacerController _rendererMaterialReplacerController;
         private IBlockPreviewStateProcessor[] _blockPreviewStateProcessors;
         
@@ -99,13 +100,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
 
             // 見た目の張り出しを避け、マスターの占有セル内だけで地形接触を測る
             // Measure terrain within master occupancy, excluding visual mesh overhang.
-            var body = gameObject.AddComponent<Rigidbody>();
-            body.isKinematic = true;
-            body.useGravity = false;
-
             var contact = new GameObject("PlacementGroundContactVolume");
+            _ownedTerrainContact = contact;
             contact.layer = LayerConst.BlockLayer;
             contact.transform.SetParent(transform, false);
+            var body = contact.AddComponent<Rigidbody>();
+            body.isKinematic = true;
+            body.useGravity = false;
             var size = new Vector3(blockSize.x, blockSize.y, blockSize.z);
             var inset = Physics.defaultContactOffset * 2f;
             var box = contact.AddComponent<BoxCollider>();
@@ -114,6 +115,19 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
             box.isTrigger = true;
             contact.AddComponent<GroundCollisionDetector>();
             _collisionDetectors = GetComponentsInChildren<GroundCollisionDetector>(true);
+        }
+
+        internal void SetTerrainContactEnabled(bool enabled, Vector3Int blockSize)
+        {
+            // 通常設置は専用源を作らず、再利用時には専用源だけを切り替える
+            // Normal placement creates no owned source; reuse toggles only that source.
+            if (enabled) ConfigureTerrainContact(blockSize);
+            if (_ownedTerrainContact != null) _ownedTerrainContact.SetActive(enabled);
+        }
+
+        internal bool DetectCurrentGroundOverlap()
+        {
+            return PlacementGroundContactQuery.HasOverlap(_collisionDetectors, gameObject.scene);
         }
         
         public void SetActive(bool active)

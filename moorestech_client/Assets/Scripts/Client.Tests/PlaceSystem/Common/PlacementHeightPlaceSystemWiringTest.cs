@@ -181,7 +181,7 @@ namespace Client.Tests.PlaceSystem.Common
         private class NullPreviewController : IPlacementPreviewBlockGameObjectController
         {
             public bool IsActive { get; private set; }
-            public void SetPreview(List<PlaceInfo> currentPlaceInfos, BlockMasterElement holdingBlockMaster) { }
+            public void SetPreview(List<PlaceInfo> currentPlaceInfos, BlockMasterElement holdingBlockMaster, bool terrainContactEnabled) { }
             public IReadOnlyList<bool> DetectGroundOverlaps() => new List<bool>();
             public void UpdatePlaceableColors(List<PlaceInfo> placeInfos) { }
             public void SetActive(bool active) => IsActive = active;
