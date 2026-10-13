@@ -2,6 +2,7 @@ import { Stack, Text } from "@mantine/core";
 import type { BlockInventoryOpen } from "@/bridge";
 import LackHighlightText from "./LackHighlightText";
 import { gearToElectricStateDisplay } from "./detailLogic";
+import { HoverTooltip } from "@/shared/ui";
 import { L, useI18n } from "@/shared/i18n";
 
 // 発電状態とこの1台が電力網へ渡した量を表示する
@@ -13,7 +14,11 @@ export default function GearToElectricSection({ data }: { data: BlockInventoryOp
   const display = gearToElectricStateDisplay(detail.generationState);
   return (
     <Stack gap={2} data-testid="gear-to-electric-section">
-      <LackHighlightText insufficient={display.insufficient} size="sm" testId="gear-to-electric-state" title={t(L.ui.blockInventory.gearToElectricMeasurementTiming)}>{t(display.labelKey)}</LackHighlightText>
+      <HoverTooltip label={t(L.ui.blockInventory.gearToElectricMeasurementTiming)}>
+        <div>
+          <LackHighlightText insufficient={display.insufficient} size="sm" testId="gear-to-electric-state">{t(display.labelKey)}</LackHighlightText>
+        </div>
+      </HoverTooltip>
       <Text size="sm" c="var(--text-default)" data-testid="gear-to-electric-supplied-power">
         {t(L.ui.blockInventory.gearToElectricSuppliedPower, {
           current: formatPower(detail.suppliedPower),

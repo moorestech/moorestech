@@ -12,6 +12,10 @@ vi.mock("@mantine/core", () => ({
   Text: ({ children, ...props }: { children: unknown }) => createElement("mock-text", props, children as never),
 }));
 
+vi.mock("@/shared/ui", () => ({
+  HoverTooltip: ({ children, label }: { children: unknown; label: string }) => createElement("mock-hover-tooltip", { label }, children as never),
+}));
+
 import GearToElectricSection from "../GearToElectricSection";
 
 function render(gearToElectric?: NonNullable<BlockInventoryOpen["gearToElectric"]>) {
@@ -53,7 +57,7 @@ describe("GearToElectricSection", () => {
   });
   it("explains the measurement timing on the state row", () => {
     const tree = render({ generationState: "generating", suppliedPower: 10, maxGeneratedPower: 100 });
-    expect(tree.root.findAll((n) => n.props["data-testid"] === "gear-to-electric-state")[0].props.title).toBe("ui.blockInventory.gearToElectricMeasurementTiming|undefined");
+    expect(tree.root.findByType("mock-hover-tooltip").props.label).toBe("ui.blockInventory.gearToElectricMeasurementTiming|undefined");
   });
   it("renders nothing before detail arrives", () => {
     expect(render().toJSON()).toBeNull();

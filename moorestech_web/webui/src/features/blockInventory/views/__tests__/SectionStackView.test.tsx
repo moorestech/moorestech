@@ -18,6 +18,7 @@ vi.mock("../../BlockItemGrid", () => ({
 }));
 vi.mock("@/shared/ui", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/shared/ui")>()),
+  HoverTooltip: ({ children }: { children: unknown }) => createElement("mock-hover-tooltip", null, children as never),
   FluidSlotRow: ({ testId, progress }: { testId: string; progress: number | null }) => createElement("aside", { "data-testid": testId, progress }),
 }));
 
@@ -73,7 +74,7 @@ describe("SectionStackView", () => {
     ]);
     expect(tree.root.findByProps({ "data-testid": "gear-to-electric-state" }).props.children).toBe("ui.blockInventory.gearToElectricStateGenerating|undefined");
     expect(tree.root.findByProps({ "data-testid": "gear-to-electric-supplied-power" }).props.children).toBe('ui.blockInventory.gearToElectricSuppliedPower|{"current":"72","max":"100"}');
-    expect(tree.root.findAll((n) => n.type === "div")).toHaveLength(0);
+    expect(tree.root.findAll((n) => n.type === "div" && n.props["data-testid"] !== undefined)).toHaveLength(0);
     act(() => { tree.unmount(); });
   });
 });
