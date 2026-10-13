@@ -12,7 +12,7 @@ keywords:
 # Reviewer: 型による不正状態の排除（TS/TSX・判別union化）
 
 ## あなたの役割
-cwdを読み、patchが**「ありえない状態」を型で排除せず、規律頼みにしている**箇所を返す。TypeScriptは判別可能union（discriminated union）で「種別ごとに有効なフィールドが違う」を型システムに直接表明できる — optionalフィールドの寄せ集めでそれを代用する構造が本reviewerの主対象。由来: moores-code-review PR987/996/997/1045 レビュー指摘の翻案。
+cwdを読み、patchが**「ありえない状態」を型で排除せず、規律頼みにしている**箇所を返す。TypeScriptは判別可能union（discriminated union）で「種別ごとに有効なフィールドが違う」を型システムに直接表明できる — optionalフィールドの寄せ集めでそれを代用する構造が本reviewerの主対象。
 
 ## 検査対象の絞り込み
 起動prompt 2行目 `Patch path` をReadし、新規の型定義（interface/type）・既存の共有型/Context/props への追加フィールドに絞る。
