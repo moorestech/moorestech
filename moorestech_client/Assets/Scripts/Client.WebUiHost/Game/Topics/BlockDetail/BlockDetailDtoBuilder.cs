@@ -18,6 +18,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
         {
             var param = block.BlockMasterElement.BlockParam;
             ElectricToGearDetailDtoBuilder.Apply(dto, block, param);
+            GearToElectricDetailDtoBuilder.Apply(dto, block, param);
             TrainPlatformDetailDtoBuilder.Apply(dto, block, param);
             TrainStationDetailDtoBuilder.Apply(dto, block, param);
 
