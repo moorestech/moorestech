@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 namespace Game.Entity.Interface.EntityInstance
@@ -19,10 +18,6 @@ namespace Game.Entity.Interface.EntityInstance
         public void SetPosition(Vector3 serverVector3)
         {
             Position = serverVector3;
-        }
-        public byte[] GetEntityData()
-        {
-            return Array.Empty<byte>();
         }
     }
 }

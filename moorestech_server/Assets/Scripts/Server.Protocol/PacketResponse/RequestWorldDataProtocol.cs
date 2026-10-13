@@ -33,7 +33,7 @@ namespace Server.Protocol.PacketResponse
 
             // ベルコン上のアイテムはこの応答では送らない。tick同期の全量・差分で届ける
             // Items on belts are not part of this response; they arrive through the tick-synchronized full state and deltas
-            return new ResponseWorldDataMessagePack(blockResult.ToArray(), Array.Empty<EntityMessagePack>());
+            return new ResponseWorldDataMessagePack(blockResult.ToArray());
         }
 
 
@@ -52,15 +52,13 @@ namespace Server.Protocol.PacketResponse
         public class ResponseWorldDataMessagePack : ProtocolMessagePackBase
         {
             [Key(2)] public BlockDataMessagePack[] Blocks { get; set; }
-            [Key(3)] public EntityMessagePack[] Entities { get; set; }
             
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public ResponseWorldDataMessagePack() { }
-            public ResponseWorldDataMessagePack(BlockDataMessagePack[] Block, EntityMessagePack[] entities)
+            public ResponseWorldDataMessagePack(BlockDataMessagePack[] blocks)
             {
                 Tag = ProtocolTag;
-                Blocks = Block;
-                Entities = entities;
+                Blocks = blocks;
             }
         }
     }

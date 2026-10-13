@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
-using Client.Game.InGame.Entity;
 using Client.Game.InGame.Environment;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Map.Outcrop;
@@ -53,13 +52,11 @@ namespace Client.DebugSystem.Skit
             // The test scene has no real objects, so provide empty dummies purely as SetActive targets
             var mapObjectDatastore = CreateChildComponent<MapObjectGameObjectDatastore>();
             var outcropDatastore = CreateChildComponent<OutcropGameObjectDatastore>();
-            var entityObjectDatastore = CreateChildComponent<EntityObjectDatastore>();
 
             // RegisterComponentはビルド時に強制Resolveしサーバ応答必須のConstructを走らせるためRegisterInstanceを使う
             // RegisterComponent force-resolves at build time and would run Construct, which needs a server response, so use RegisterInstance
             builder.RegisterInstance(mapObjectDatastore).AsSelf().As<ISkitWorldObjectControl>();
             builder.RegisterInstance(outcropDatastore).AsSelf().As<ISkitWorldObjectControl>();
-            builder.RegisterInstance(entityObjectDatastore);
             // テストシーンにはハンドシェイクが無いので原点ゼロで再生する
             // The test scene has no handshake, so play with a zero origin
             builder.RegisterInstance(new SkitOrigin(Vector3.zero));
