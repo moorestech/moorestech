@@ -1,7 +1,6 @@
 using System;
 using Game.Gear.Common;
 using UniRx;
-using UnityEngine;
 
 namespace Game.Block.Blocks.GearToElectric
 {
@@ -29,7 +28,9 @@ namespace Game.Block.Blocks.GearToElectric
         public void RecordElectricTick(RPM currentRpm, float suppliedPower)
         {
             var state = ResolveState(currentRpm, suppliedPower);
-            if (_hasNotifiedOnce && state == State && Mathf.Approximately(SuppliedPower, suppliedPower)) return;
+            // 表示の丸め境界を跨ぐ微小差も直近tickの実供給として届ける
+            // Deliver even tiny changes across a display rounding boundary as the latest tick's actual supply
+            if (_hasNotifiedOnce && state == State && SuppliedPower == suppliedPower) return;
             _hasNotifiedOnce = true;
             State = state;
             SuppliedPower = suppliedPower;
