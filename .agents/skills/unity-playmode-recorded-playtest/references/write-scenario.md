@@ -17,6 +17,8 @@ using UnityEngine;
 // 調査は録画を省き、提出用の最終実行だけ録画する
 // Skip recording during investigation; record only the final submission run
 var options = new PlaytestRunOptions { Record = false };
+// キー・マウス使用時はready後、この位置でinput-injection.mdのde-risk probeを完了する
+// For keyboard/mouse input, complete the input-injection.md de-risk probe here after ready
 return PlaytestRunner.Run("my-scenario", options, async p =>
 {
     // デバッグ環境を1行構築（無限落下防止の足場+ワープ+無料設置）。設定値は冒頭ログとTimelineに流れる
@@ -32,6 +34,7 @@ return PlaytestRunner.Run("my-scenario", options, async p =>
 ```
 
 調査用は`Record = false`で`result.json`の`Success`と`Asserts`を確認する。提出用の最終実行だけ`Record = true`にして、動画・期待スクショ・実プレイ視点も確認する。
+キー・マウスを使う場合は[input-injection.md](input-injection.md)のde-risk probeを`PlaytestRunner.Run`前のトップレベルで完了する。必要なEditor／GameViewフォーカス回復、有効状態の再確認、単体入力成立確認は、`Record=true`へ切り替えた最終実行でもコールバック内に置かない。
 
 `PlaytestEnvironmentConfig` のフィールド（すべてpublicフィールド・デフォルト値あり）:
 `FreeBlockPlacement=true`（建築全解放+クライアント/サーバー両方のコスト無料。falseでも毎回明示保存され前回実行の残留なし）/

@@ -35,11 +35,19 @@ ls <repo-root>/moorestech_client/Assets/Scripts/Client.Playtest/ 2>/dev/null
 ```bash
 cd <repo-root>   # 必ずpwd確認（worktree頻用）
 SKILL=.claude/skills/unity-playmode-recorded-playtest
-uloop control-play-mode --project-path ./moorestech_client --action stop   # 前回状態の持ち越し防止
-"$SKILL/scripts/run-scenario.sh" ./moorestech_client "$SKILL/scenarios/building/belt-line-via-ui.cs"
+SCRATCH="$PWD/moorestech_client/PlaytestResults/scratch"
+mkdir -p "$SCRATCH"
+cp "$SKILL/scenarios/building/belt-line-via-ui.cs" "$SCRATCH/belt-line-via-ui.cs"
 ```
 
-これが通れば環境は健全。通らなければ troubleshooting.md。
+調査・環境確認ではコピー内の`PlaytestRunOptions.Record`を`false`へ変更してから、次を実行する。
+
+```bash
+uloop control-play-mode --project-path ./moorestech_client --action stop   # 前回状態の持ち越し防止
+"$SKILL/scripts/run-scenario.sh" ./moorestech_client "$SCRATCH/belt-line-via-ui.cs"
+```
+
+これが通れば環境は健全。通らなければ troubleshooting.md。提出用の最終実行は`Record=true`のシナリオを使い、動画・スクショ・実プレイ視点の目視も完了する。
 
 ## 絶対規則（全ユースケース共通・違反すると必ず死ぬ）
 
