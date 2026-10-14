@@ -12,8 +12,8 @@ namespace Tests.UnitTest.Core.BeltTransport.Connection
         [Test]
         public void 記録した空き以下なら搬送し搬入先の前進後に進入距離を保って置く()
         {
-            // 搬入先の空きはW-100=156で、進入距離70が収まる
-            // The target's offer is W-100=156, which fits the entry length 70
+            // 搬入先の空きはW-100=260で、進入距離70が収まる
+            // The target's offer is W-100=260, which fits the entry length 70
             var source = CreateNormal(1, 0);
             EnqueueTail(source, 30, MakeItem(1));
             var target = CreateNormal(2, 0);
@@ -31,19 +31,19 @@ namespace Tests.UnitTest.Core.BeltTransport.Connection
         [Test]
         public void 進入距離が記録した空きを超えると搬送せず出口で止まる()
         {
-            // 空きW-160=96に進入距離100は入らない
-            // The entry length 100 does not fit the offer W-160=96
+            // 搬入先の先頭を出口からW-96に置くと空きは96で、進入距離100は入らない
+            // With the target's head at W-96 from the exit the offer is 96, which the entry length 100 does not fit
             var source = CreateNormal(1, 0);
             EnqueueTail(source, 0, MakeItem(1));
             var target = CreateNormal(2, 0);
-            EnqueueTail(target, 160, MakeItem(2));
+            EnqueueTail(target, W - 96, MakeItem(2));
             source.ConnectTo(target, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
 
             BeginTickAt(source, 100);
             BeginTickAt(target, 50);
             RunStageFour(source, target);
             AssertDistances(source, 0);
-            AssertDistances(target, 110);
+            AssertDistances(target, W - 96 - 50);
         }
 
         [Test]
@@ -90,14 +90,14 @@ namespace Tests.UnitTest.Core.BeltTransport.Connection
             AssertDistances(loop, 2 * W - 100, 4 * W - 100);
             CollectionAssert.AreEqual(new long[] { 2, 1 }, Serials(loop));
 
-            // 5tick後に2個目が出口を88越えて入口へ回る
-            // Five ticks later the second item passes the exit by 88 and wraps around
-            for (var tick = 0; tick < 5; tick++)
+            // 7tick後に2個目(2W-100=620)が出口を80越えて入口へ回る
+            // Seven ticks later the second item (2W-100=620) passes the exit by 80 and wraps around
+            for (var tick = 0; tick < 7; tick++)
             {
                 BeginTickAt(loop, 100);
                 RunStageFour(loop);
             }
-            AssertDistances(loop, 4 * W - 600, 4 * W - 88);
+            AssertDistances(loop, 4 * W - 800, 4 * W - 80);
             CollectionAssert.AreEqual(new long[] { 1, 2 }, Serials(loop));
         }
 

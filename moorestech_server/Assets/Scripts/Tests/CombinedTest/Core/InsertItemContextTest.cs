@@ -171,9 +171,9 @@ namespace Tests.CombinedTest.Core
             var target = Place(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, 2), BlockDirection.North);
             inputChest.SetItem(0, ServerContext.ItemStackFactory.Create(new ItemId(1), 1));
 
-            // 2マス・速度6: 進入距離1で出口まで511。85tick後に残り1、86tick目に出力チェストへ届く
-            // Two cells at speed 6: 511 to the exit; 1 away after 85 ticks, reaching the output chest on tick 86
-            GameUpdater.RunFrames(85);
+            // 2マス・速度6: 進入距離1で出口まで719。119tick後に残り5、120tick目に出力チェストへ届く
+            // Two cells at speed 6: 719 to the exit; 5 away after 119 ticks, reaching the output chest on tick 120
+            GameUpdater.RunFrames(119);
             Assert.AreEqual(0, CountOf(Inventory(target), new ItemId(1)));
             GameUpdater.RunFrames(1);
             Assert.AreEqual(1, CountOf(Inventory(target), new ItemId(1)));

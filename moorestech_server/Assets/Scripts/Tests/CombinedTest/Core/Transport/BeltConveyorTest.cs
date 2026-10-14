@@ -1,3 +1,4 @@
+using Core.BeltTransport;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.BeltConveyor.Transport;
@@ -12,8 +13,8 @@ using static Tests.Util.BeltWorldTestUtil;
 
 namespace Tests.CombinedTest.Core.Transport
 {
-    // 実際のtick経路でTestBeltConveyor(速度6、1マス=256)の搬送を確かめる
-    // Checks TestBeltConveyor transport (speed 6, one cell = 256) through the real tick path
+    // 実際のtick経路でTestBeltConveyor(速度6、1マス=360)の搬送を確かめる
+    // Checks TestBeltConveyor transport (speed 6, one cell = 360) through the real tick path
     public class BeltConveyorTest
     {
         private static readonly ItemId ItemA = new(1);
@@ -30,12 +31,12 @@ namespace Tests.CombinedTest.Core.Transport
             var output = Inventory(Place(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, 3), BlockDirection.North));
             source.SetItem(0, ServerContext.ItemStackFactory.Create(ItemA, 3));
 
-            // tick1で進入距離1で入り出口まで3*256-1=767。速度6で127tick後に残り5、128tick目に渡る
-            // Enters at length 1 on tick 1 leaving 3*256-1=767; at speed 6 it is 5 away after 127 belt ticks and handed over on tick 128
+            // tick1で進入距離1で入り出口まで3*360-1=1079。速度6で179tick後に残り5、180tick目に渡る
+            // Enters at length 1 on tick 1 leaving 3*360-1=1079; at speed 6 it is 5 away after 179 belt ticks and handed over on tick 180
             GameUpdater.RunFrames(1);
             Assert.AreEqual(2, CountOf(source, ItemA), "1回の押し込みで入るのは1個だけ");
-            Assert.AreEqual(761, ItemsOnSegmentAt(Vector3Int.zero)[0].DistanceToExit);
-            GameUpdater.RunFrames(126);
+            Assert.AreEqual(3 * BeltConstants.ItemWidth - 1 - 6, ItemsOnSegmentAt(Vector3Int.zero)[0].DistanceToExit);
+            GameUpdater.RunFrames(178);
             Assert.AreEqual(0, CountOf(output, ItemA));
             Assert.AreEqual(5, ItemsOnSegmentAt(Vector3Int.zero)[0].DistanceToExit);
             GameUpdater.RunFrames(1);
@@ -54,11 +55,11 @@ namespace Tests.CombinedTest.Core.Transport
             for (var i = 0; i < output.GetSlotSize(); i++) output.SetItem(i, ServerContext.ItemStackFactory.Create(ItemB, 1));
             source.SetItem(0, ServerContext.ItemStackFactory.Create(ItemA, 10));
 
-            // 3マスのsegmentには3個までしか載らない。出口で詰まると0・256・512に密着して止まり、それ以上は入らない
-            // A three-cell segment holds at most three items; blocked at the exit they pack at 0, 256 and 512 and nothing more enters
+            // 3マスのsegmentには3個までしか載らない。出口で詰まると0・360・720に密着して止まり、それ以上は入らない
+            // A three-cell segment holds at most three items; blocked at the exit they pack at 0, 360 and 720 and nothing more enters
             GameUpdater.RunFrames(600);
             var parked = ItemsOnSegmentAt(Vector3Int.zero);
-            CollectionAssert.AreEqual(new[] { 0, 256, 512 }, new[] { parked[0].DistanceToExit, parked[1].DistanceToExit, parked[2].DistanceToExit });
+            CollectionAssert.AreEqual(new[] { 0, BeltConstants.ItemWidth, 2 * BeltConstants.ItemWidth }, new[] { parked[0].DistanceToExit, parked[1].DistanceToExit, parked[2].DistanceToExit });
             Assert.AreEqual(3, parked.Length);
             Assert.AreEqual(7, CountOf(source, ItemA));
             Assert.AreEqual(0, CountOf(output, ItemA));
@@ -69,7 +70,7 @@ namespace Tests.CombinedTest.Core.Transport
             GameUpdater.RunFrames(1);
             Assert.AreEqual(1, CountOf(output, ItemA));
             var moved = ItemsOnSegmentAt(Vector3Int.zero);
-            CollectionAssert.AreEqual(new[] { 250, 506 }, new[] { moved[0].DistanceToExit, moved[1].DistanceToExit });
+            CollectionAssert.AreEqual(new[] { BeltConstants.ItemWidth - 6, 2 * BeltConstants.ItemWidth - 6 }, new[] { moved[0].DistanceToExit, moved[1].DistanceToExit });
         }
 
         // 1回の押し込みで1個だけ入り、満杯のsegmentへの押し込みは差し戻されるテスト

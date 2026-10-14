@@ -38,7 +38,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
             // Branch side: fill the front and right outputs so one item leaves left and the second stays in the buffer
             SegmentAt(assembly, new Vector3Int(20, 0, 1)).RestoreItems(new[] { At(ItemC, BeltEntryDirection.FromBack, 0) });
             SegmentAt(assembly, new Vector3Int(21, 0, 0)).RestoreItems(new[] { At(ItemC, BeltEntryDirection.FromLeft, 0) });
-            SegmentAt(assembly, new Vector3Int(20, 0, -1)).RestoreItems(new[] { At(ItemA, BeltEntryDirection.FromBack, 0), At(ItemB, BeltEntryDirection.FromBack, 256) });
+            SegmentAt(assembly, new Vector3Int(20, 0, -1)).RestoreItems(new[] { At(ItemA, BeltEntryDirection.FromBack, 0), At(ItemB, BeltEntryDirection.FromBack, BeltConstants.ItemWidth) });
             Tick(assembly, 200);
             Assert.IsTrue(Push(assembly, mergeBelt, machine, ItemA));
             Tick(assembly, 3);

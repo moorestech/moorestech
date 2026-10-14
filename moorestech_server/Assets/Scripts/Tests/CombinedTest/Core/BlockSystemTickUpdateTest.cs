@@ -28,9 +28,9 @@ namespace Tests.CombinedTest.Core
 
             // GameUpdaterを使わずMasterTickUpdater.Updateだけで回す。1回目で再構築・チェストの押し込み・ベルト1tickが走る
             // Drive only MasterTickUpdater.Update without GameUpdater; the first call rebuilds, runs the chest push and one belt tick
-            // 1マス・速度6: 出口まで255。42回後に残り3、43回目に渡る
-            // One cell at speed 6: 255 to the exit; 3 away after 42 updates, handed over on update 43
-            for (var i = 0; i < 42; i++) masterTickUpdater.Update();
+            // 1マス・速度6: 出口まで359。59回後に残り5、60回目に渡る
+            // One cell at speed 6: 359 to the exit; 5 away after 59 updates, handed over on update 60
+            for (var i = 0; i < 59; i++) masterTickUpdater.Update();
             Assert.AreEqual(0, source.GetItem(0).Count);
             Assert.AreEqual(0, CountOf(output, itemId));
             masterTickUpdater.Update();

@@ -26,9 +26,9 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
             SegmentAt(assembly, Vector3Int.zero).RestoreItems(new[]
             {
                 At(ItemA, BeltEntryDirection.FromBack, 0),
-                At(ItemB, BeltEntryDirection.FromBack, 300),
-                At(ItemC, BeltEntryDirection.FromLeft, 556),
-                At(ItemA, BeltEntryDirection.FromBack, 900)
+                At(ItemB, BeltEntryDirection.FromBack, 400),
+                At(ItemC, BeltEntryDirection.FromLeft, 400 + BeltConstants.ItemWidth),
+                At(ItemA, BeltEntryDirection.FromBack, 1200)
             });
             Tick(assembly, 3);
 
@@ -81,7 +81,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
             var feed = SegmentAt(assembly, new Vector3Int(0, 0, -1));
             if (ReferenceEquals(feed, branch))
             {
-                branch.RestoreItems(new[] { At(ItemA, BeltEntryDirection.FromBack, 0), At(ItemB, BeltEntryDirection.FromBack, 256) });
+                branch.RestoreItems(new[] { At(ItemA, BeltEntryDirection.FromBack, 0), At(ItemB, BeltEntryDirection.FromBack, BeltConstants.ItemWidth) });
             }
             else
             {

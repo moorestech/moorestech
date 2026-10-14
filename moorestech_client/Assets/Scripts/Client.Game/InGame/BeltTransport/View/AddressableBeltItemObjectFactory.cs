@@ -17,6 +17,10 @@ namespace Client.Game.InGame.BeltTransport.View
         private const string ParentName = "BeltTransportItems";
         private const string MissingItemObjectName = "MissingBeltItem";
 
+        // 1マスに1個しか載らないので表示物を一辺2.4倍にして見やすくする(2026-10-14 ユーザー指示)。prefabの原点はキューブの底なので底面はベルト面に乗ったまま
+        // Only one item fits a cell, so the object is shown 2.4x per side for legibility (user request 2026-10-14); the prefab origin is the cube bottom, so it still rests on the belt
+        private const float DisplayScale = 2.4f;
+
         // 読み込み結果を種類ごとに持つ。失敗(null)もそのまま印として残し、読み直さない
         // Holds the load result per kind; a failure (null) stays as the mark and is never retried
         private bool _isDefaultItemPrefabLoaded;
@@ -27,7 +31,7 @@ namespace Client.Game.InGame.BeltTransport.View
         public IBeltItemObject Create(ItemId itemId, Vector3 position)
         {
             var modelPrefab = ResolveModelPrefab();
-            if (modelPrefab != null) return new GameObjectBeltItemObject(Object.Instantiate(modelPrefab, position, Quaternion.identity, Parent()));
+            if (modelPrefab != null) return new GameObjectBeltItemObject(Place(modelPrefab));
             return CreateTextured();
 
             #region Internal
@@ -57,10 +61,17 @@ namespace Client.Game.InGame.BeltTransport.View
                     return new GameObjectBeltItemObject(placeholder);
                 }
 
-                var itemObject = Object.Instantiate(defaultItemPrefab, position, Quaternion.identity, Parent());
+                var itemObject = Place(defaultItemPrefab);
                 var viewData = ClientContext.ItemImageContainer.GetItemView(itemId);
                 itemObject.GetComponent<BeltItemTexturedObject>().SetTexture(viewData?.ItemTexture, itemId);
                 return new GameObjectBeltItemObject(itemObject);
+            }
+
+            GameObject Place(GameObject prefab)
+            {
+                var placed = Object.Instantiate(prefab, position, Quaternion.identity, Parent());
+                placed.transform.localScale = prefab.transform.localScale * DisplayScale;
+                return placed;
             }
 
             // 既定prefabの読み込み結果も外部データ。失敗は1回だけログに残す

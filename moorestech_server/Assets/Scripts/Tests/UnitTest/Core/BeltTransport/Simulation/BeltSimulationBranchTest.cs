@@ -71,11 +71,11 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation
         [Test]
         public void 二方向分岐は通常segmentと機械へ交互に搬出する()
         {
-            // 搬入元は128で密着4個。分岐は隙間128で受け、次tickの段階1で回収・段階3で搬出するので2tickに1個
-            // The input has four packed items at 128. The branch receives with gap 128, collects next stage 1 and outputs in stage 3: one per two ticks
-            var input = CreateNormal(4, 128);
-            var branch = CreateBranch(1, 128, BeltPriority.InitializeFromDirection, BeltDirection.Front);
-            var belt = CreateNormal(2, 64);
+            // 搬入元は速度W/2で密着4個。分岐は隙間W/2で受け、次tickの段階1で回収・段階3で搬出するので2tickに1個
+            // The input has four packed items at speed W/2. The branch receives with gap W/2, collects next stage 1 and outputs in stage 3: one per two ticks
+            var input = CreateNormal(4, W / 2);
+            var branch = CreateBranch(1, W / 2, BeltPriority.InitializeFromDirection, BeltDirection.Front);
+            var belt = CreateNormal(2, W / 4);
             var machine = new FakeBeltReceiver(W, true);
             input.ConnectTo(branch, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
             branch.Buffer.ConnectTo(belt, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
@@ -84,25 +84,25 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation
             var simulation = new BeltSimulation(new BeltConveyorSegment[] { input, branch, belt });
 
             simulation.Tick();
-            AssertItems(branch, (1, 128));
+            AssertItems(branch, (1, W / 2));
 
-            // tick2: #1をFrontへ進入距離128で2W-128=384、同tickに64進み320。順序(L,R,F)
-            // Tick2: #1 goes Front with entry 128 to 2W-128=384, then moves 64 to 320 the same tick. Order (L,R,F)
+            // tick2: #1をFrontへ進入距離W/2で2W-W/2、同tickにW/4進み5W/4。順序(L,R,F)
+            // Tick2: #1 goes Front with entry W/2 to 2W-W/2, then moves W/4 to 5W/4 the same tick. Order (L,R,F)
             simulation.Tick();
-            AssertItems(belt, (1, 320));
+            AssertItems(belt, (1, 5 * W / 4));
             Assert.AreEqual(Order(BeltDirection.Left, BeltDirection.Right, BeltDirection.Front), branch.PriorityOrder);
 
             // tick4: Leftは未接続で飛ばしRightの機械へ→(L,F,R)
             // Tick4: Left is unconnected and skipped, so the Right machine gets #2 → (L,F,R)
             TickTimes(simulation, 2);
-            AssertItems(belt, (1, 192));
+            AssertItems(belt, (1, 3 * W / 4));
             CollectionAssert.AreEqual(new long[] { 2 }, Serials(machine.ReceivedItems));
             Assert.AreEqual(Order(BeltDirection.Left, BeltDirection.Front, BeltDirection.Right), branch.PriorityOrder);
 
-            // tick6: #3は空き2W-(128+W)=128へ進入距離128で入り384→320、#1は64。tick8: #1は出口で止まり#3が密着
-            // Tick6: #3 enters the offer 2W-(128+W)=128 with 128, 384→320, #1 at 64. Tick8: #1 parks at the exit and #3 packs behind
+            // tick6: #3は空き2W-(W/2+W)=W/2へ進入距離W/2で入り3W/2→5W/4、#1はW/4。tick8: #1は出口で止まり#3が密着
+            // Tick6: #3 enters the offer 2W-(W/2+W)=W/2 with W/2, 3W/2→5W/4, #1 at W/4. Tick8: #1 parks at the exit and #3 packs behind
             TickTimes(simulation, 2);
-            AssertItems(belt, (1, 64), (3, 320));
+            AssertItems(belt, (1, W / 4), (3, 5 * W / 4));
             TickTimes(simulation, 2);
             AssertItems(belt, (1, 0), (3, W));
             AssertItems(input);

@@ -47,15 +47,15 @@ namespace Tests.UnitTest.Game.BeltConnection.Transport
             ((BeltBufferedSegment)SegmentAt(old, MergeCell)).Buffer.RestoreItem(held);
             SegmentAt(old, new Vector3Int(0, 0, 2)).RestoreItems(new[] { new BeltItemState(onC, 0) });
 
-            // Bを撤去すると z=-1..2 の1本になり合流のbufferは消える。Cの出口で止まるアイテムの後端は256ちょうどでMのマスは空いている
-            // Removing B leaves one z=-1..2 segment and the merge buffer vanishes; C's item parked at the exit ends exactly at 256, leaving M's cell free
+            // Bを撤去すると z=-1..2 の1本になり合流のbufferは消える。Cの出口で止まるアイテムの後端は360ちょうどでMのマスは空いている
+            // Removing B leaves one z=-1..2 segment and the merge buffer vanishes; C's item parked at the exit ends exactly at 360, leaving M's cell free
             world.RemoveBlock(new Vector3Int(1, 0, 1), BlockRemoveReason.ManualRemove);
             var next = Rebuild(old, world);
 
-            // 先頭をMのマスの出口(256)に置き、進入方向は新しい経路の直進(FromBack)へ合わせる
-            // Its head goes to M's cell exit (256) and its entry direction is aligned to the new straight path (FromBack)
+            // 先頭をMのマスの出口(360)に置き、進入方向は新しい経路の直進(FromBack)へ合わせる
+            // Its head goes to M's cell exit (360) and its entry direction is aligned to the new straight path (FromBack)
             Assert.AreEqual(1, next.Segments.Length);
-            AssertRun(next.Segments[0], (onC, 0), (held.WithEntryDirection(BeltEntryDirection.FromBack), 256));
+            AssertRun(next.Segments[0], (onC, 0), (held.WithEntryDirection(BeltEntryDirection.FromBack), BeltConstants.ItemWidth));
         }
 
         [Test]
@@ -69,11 +69,11 @@ namespace Tests.UnitTest.Game.BeltConnection.Transport
             merge.Buffer.RestoreItem(held);
             merge.RestoreItems(new[] { new BeltItemState(running, 100) });
 
-            // 走行中アイテムを先に256+100へ置くので、Mのマスは空いておらずbufferのアイテムは消える
-            // The running item is placed first at 256+100, so M's cell is not free and the buffer item vanishes
+            // 走行中アイテムを先に360+100へ置くので、Mのマスは空いておらずbufferのアイテムは消える
+            // The running item is placed first at 360+100, so M's cell is not free and the buffer item vanishes
             world.RemoveBlock(new Vector3Int(1, 0, 1), BlockRemoveReason.ManualRemove);
             var next = Rebuild(old, world);
-            AssertRun(next.Segments[0], (running, 356));
+            AssertRun(next.Segments[0], (running, BeltConstants.ItemWidth + 100));
         }
 
         [Test]
@@ -86,8 +86,8 @@ namespace Tests.UnitTest.Game.BeltConnection.Transport
             ((BeltBufferedSegment)SegmentAt(old, MergeCell)).Buffer.RestoreItem(held);
             SegmentAt(old, new Vector3Int(0, 0, 2)).RestoreItems(new[] { new BeltItemState(onC, 10) });
 
-            // Cのアイテムは出口から10、後端266でMのマスへ10だけかかるので、bufferのアイテムは消える
-            // C's item sits 10 from the exit and ends at 266, reaching 10 into M's cell, so the buffer item vanishes
+            // Cのアイテムは出口から10、後端370でMのマスへ10だけかかるので、bufferのアイテムは消える
+            // C's item sits 10 from the exit and ends at 370, reaching 10 into M's cell, so the buffer item vanishes
             world.RemoveBlock(new Vector3Int(1, 0, 1), BlockRemoveReason.ManualRemove);
             var next = Rebuild(old, world);
             AssertRun(next.Segments[0], (onC, 10));

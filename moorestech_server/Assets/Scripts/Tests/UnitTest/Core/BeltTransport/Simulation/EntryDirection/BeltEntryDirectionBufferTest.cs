@@ -16,9 +16,9 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation.EntryDirection
         {
             // 搬出先outは出口に#99が詰まり空き0。tick3で#10がbufferへ回収されたまま留まる
             // The output belt is blocked by #99 at its exit with zero offer, so #10 stays in the buffer after tick 3
-            var merge = CreateMerge(64, BeltDirection.Front);
-            var left = CreateNormal(4, 128);
-            var output = CreateNormal(1, 64);
+            var merge = CreateMerge(W / 4, BeltDirection.Front);
+            var left = CreateNormal(4, W / 2);
+            var output = CreateNormal(1, W / 4);
             var sink = new FakeBeltReceiver(W, false);
             left.ConnectTo(merge, BeltDirection.Right, BeltEntryDirections.FromBelow(BeltDirection.Left));
             merge.Buffer.ConnectTo(output, BeltDirection.Front, BeltEntryDirections.FromAbove(BeltDirection.Back));
@@ -28,7 +28,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation.EntryDirection
             var simulation = new BeltSimulation(new BeltConveyorSegment[] { merge, left, output });
 
             simulation.Tick();
-            AssertItems(merge, (10, 128));
+            AssertItems(merge, (10, W / 2));
             AssertEntries(merge, (10, BeltEntryDirection.FromLeftBelow));
 
             TickTimes(simulation, 2);
@@ -49,8 +49,8 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation.EntryDirection
         {
             // 前向き分岐は(Front,Left,Right)の順に1個ずつ回す。分岐への搬入も接続の値になり回収では変わらない
             // A front-facing branch rotates one by one through (Front,Left,Right). Input into it takes the connection's value, kept on collection
-            var input = CreateNormal(4, 128);
-            var branch = CreateBranch(1, 128, BeltPriority.InitializeFromDirection, BeltDirection.Front);
+            var input = CreateNormal(4, W / 2);
+            var branch = CreateBranch(1, W / 2, BeltPriority.InitializeFromDirection, BeltDirection.Front);
             var front = new FakeBeltReceiver(W, true);
             var left = new FakeBeltReceiver(W, true);
             var right = new FakeBeltReceiver(W, true);
@@ -62,7 +62,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation.EntryDirection
             var simulation = new BeltSimulation(new BeltConveyorSegment[] { input, branch });
 
             simulation.Tick();
-            AssertItems(branch, (1, 128));
+            AssertItems(branch, (1, W / 2));
             AssertEntries(branch, (1, BeltEntryDirection.FromBackAbove));
 
             // 2tickに1個ずつ前・左・右へ渡る

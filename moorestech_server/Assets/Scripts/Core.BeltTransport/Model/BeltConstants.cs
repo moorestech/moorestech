@@ -4,7 +4,7 @@ namespace Core.BeltTransport
     {
         // アイテム幅とベルト1マスの長さは同じ値を使う
         // Item width and the length of one belt cell share this value
-        public const int ItemWidth = 256;
+        public const int ItemWidth = 360;
 
         // segment速度の上限（1tickあたりの進行量）
         // Upper bound of segment speed (advance per tick)

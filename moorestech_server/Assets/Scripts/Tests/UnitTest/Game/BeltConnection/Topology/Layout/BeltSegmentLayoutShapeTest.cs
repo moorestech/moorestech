@@ -69,12 +69,12 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology.Layout
             Place(world, ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(0, 0, -1), BlockDirection.North);
             var layouts = BuildLayouts(world);
 
-            // 後ろの直線(速度6)は分配器(速度128)と速度が違うので分岐へ畳まれない
-            // The rear run (speed 6) differs in speed from the splitter (128), so it is not folded into the branch
+            // 後ろの直線(速度6)は分配器(速度180)と速度が違うので分岐へ畳まれない
+            // The rear run (speed 6) differs in speed from the splitter (180), so it is not folded into the branch
             Assert.AreEqual(5, layouts.Length);
             AssertSegment(layouts[0], BeltSegmentKind.Normal, 6, BeltDirection.Left, new Vector3Int(-1, 0, 0));
             AssertSegment(layouts[1], BeltSegmentKind.Normal, 6, BeltDirection.Front, new Vector3Int(0, 0, -2), new Vector3Int(0, 0, -1));
-            AssertSegment(layouts[2], BeltSegmentKind.Branch, 128, BeltDirection.Front, Vector3Int.zero);
+            AssertSegment(layouts[2], BeltSegmentKind.Branch, 180, BeltDirection.Front, Vector3Int.zero);
             AssertSegment(layouts[3], BeltSegmentKind.Normal, 6, BeltDirection.Front, new Vector3Int(0, 0, 1));
             AssertSegment(layouts[4], BeltSegmentKind.Normal, 6, BeltDirection.Right, new Vector3Int(1, 0, 0));
 
@@ -103,10 +103,10 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology.Layout
             Place(world, ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(0, 0, 1), BlockDirection.North);
             var layouts = BuildLayouts(world);
 
-            // 速度128の直線2マスは分配器と同速なので、分配器を末尾とする1本の分岐segmentに畳まれる
-            // The two speed-128 straight cells match the splitter's speed, so they fold into one branch segment ending at the splitter
+            // 速度180の直線2マスは分配器と同速なので、分配器を末尾とする1本の分岐segmentに畳まれる
+            // The two speed-180 straight cells match the splitter's speed, so they fold into one branch segment ending at the splitter
             Assert.AreEqual(2, layouts.Length);
-            AssertSegment(layouts[0], BeltSegmentKind.Branch, 128, BeltDirection.Front, new Vector3Int(0, 0, -2), new Vector3Int(0, 0, -1), Vector3Int.zero);
+            AssertSegment(layouts[0], BeltSegmentKind.Branch, 180, BeltDirection.Front, new Vector3Int(0, 0, -2), new Vector3Int(0, 0, -1), Vector3Int.zero);
             Assert.IsEmpty(layouts[0].Inputs);
             Assert.AreEqual(1, layouts[0].Outputs.Length);
             AssertLink(layouts[0].Outputs[0], BeltDirection.Front, BeltEntryDirection.FromBack, 1);
@@ -124,7 +124,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology.Layout
             var layouts = BuildLayouts(world);
 
             Assert.AreEqual(connectFront ? 2 : 1, layouts.Length);
-            AssertSegment(layouts[0], BeltSegmentKind.Branch, 128, BeltDirection.Front, Vector3Int.zero);
+            AssertSegment(layouts[0], BeltSegmentKind.Branch, 180, BeltDirection.Front, Vector3Int.zero);
             Assert.IsEmpty(layouts[0].Inputs);
             Assert.AreEqual(connectFront ? 1 : 0, layouts[0].Outputs.Length);
             if (!connectFront) return;
@@ -142,11 +142,11 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology.Layout
             Place(world, ForUnitTestModBlockId.GearBeltConveyor, new Vector3Int(0, 0, 3), BlockDirection.North);
             var layouts = BuildLayouts(world);
 
-            // 速度6→32の境で切れ、2本が1本の接続でつながる
-            // The run is cut at the 6-to-32 speed change and the two segments are linked once
+            // 速度6→36の境で切れ、2本が1本の接続でつながる
+            // The run is cut at the 6-to-36 speed change and the two segments are linked once
             Assert.AreEqual(2, layouts.Length);
             AssertSegment(layouts[0], BeltSegmentKind.Normal, 6, BeltDirection.Front, new Vector3Int(0, 0, 0), new Vector3Int(0, 0, 1));
-            AssertSegment(layouts[1], BeltSegmentKind.Normal, 32, BeltDirection.Front, new Vector3Int(0, 0, 2), new Vector3Int(0, 0, 3));
+            AssertSegment(layouts[1], BeltSegmentKind.Normal, 36, BeltDirection.Front, new Vector3Int(0, 0, 2), new Vector3Int(0, 0, 3));
             Assert.IsEmpty(layouts[0].Inputs);
             AssertLink(layouts[0].Outputs[0], BeltDirection.Front, BeltEntryDirection.FromBack, 1);
             AssertLink(layouts[1].Inputs[0], BeltDirection.Back, BeltEntryDirection.FromBack, 0);

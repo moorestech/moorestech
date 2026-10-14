@@ -12,12 +12,12 @@ namespace Tests.UnitTest.Core.BeltTransport
         public void 先頭が出口に届かなければ全体が速度分進む()
         {
             var segment = Build(8, 300, 0, 50);
-            AssertDistances(segment, 300, 556, 862);
+            AssertDistances(segment, 300, 300 + W, 350 + 2 * W);
 
             Advance(segment, 100, false);
-            AssertDistances(segment, 200, 456, 762);
+            AssertDistances(segment, 200, 200 + W, 250 + 2 * W);
             Advance(segment, 128, false);
-            AssertDistances(segment, 72, 328, 634);
+            AssertDistances(segment, 72, 72 + W, 122 + 2 * W);
         }
 
         [Test]
@@ -37,7 +37,7 @@ namespace Tests.UnitTest.Core.BeltTransport
             // Head moves 10 and stops; the follower moves 100 and the gap 200 becomes 110
             var segment = Build(4, 10, 200);
             Advance(segment, 100, false);
-            AssertDistances(segment, 0, 366);
+            AssertDistances(segment, 0, 110 + W);
             Assert.AreEqual(1, GetBlockSizeAt(segment, 0));
         }
 
@@ -47,7 +47,7 @@ namespace Tests.UnitTest.Core.BeltTransport
             // a=20, [b c] 30空き, d 40空き, e 100空き。速度128で a停止→残108→bc合体→残78→d合体→残38→eの隙間62
             // a=20, [b c] 30 apart, d 40 apart, e 100 apart. Speed 128: a stops→108 left→bc merge→78 left→d merges→38 left→e gap 62
             var segment = Build(8, 20, 30, 0, 40, 100);
-            AssertDistances(segment, 20, 306, 562, 858, 1214);
+            AssertDistances(segment, 20, 50 + W, 50 + 2 * W, 90 + 3 * W, 190 + 4 * W);
 
             Advance(segment, 128, false);
             AssertDistances(segment, 0, W, 2 * W, 3 * W, 3 * W + W + 62);
@@ -85,11 +85,11 @@ namespace Tests.UnitTest.Core.BeltTransport
         {
             var moving = Build(4, 40, 10);
             Advance(moving, 0, false);
-            AssertDistances(moving, 40, 306);
+            AssertDistances(moving, 40, 50 + W);
 
             var parked = Build(4, 0, 10);
             Advance(parked, 0, false);
-            AssertDistances(parked, 0, 266);
+            AssertDistances(parked, 0, 10 + W);
         }
 
         [Test]

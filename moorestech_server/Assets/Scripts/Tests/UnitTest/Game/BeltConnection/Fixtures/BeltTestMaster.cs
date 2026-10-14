@@ -14,8 +14,8 @@ namespace Tests.UnitTest.Game.BeltConnection.Fixtures
         private static readonly Guid FastGuid = Guid.Parse("00000000-0000-0000-0000-0000000000a5");
         internal static BlockId Up => MasterHolder.BlockMaster.GetBlockId(UpGuid);
         internal static BlockId Down => MasterHolder.BlockMaster.GetBlockId(DownGuid);
-        // 分配器と同じ速度128の直線。同速の走行路が分岐segmentへ畳まれる経路のテスト用
-        // A straight belt at speed 128, same as the splitter, for testing a same-speed run folded into a branch segment
+        // 分配器と同じ速度180の直線。同速の走行路が分岐segmentへ畳まれる経路のテスト用
+        // A straight belt at speed 180, same as the splitter, for testing a same-speed run folded into a branch segment
         internal static BlockId Fast => MasterHolder.BlockMaster.GetBlockId(FastGuid);
 
         internal static void Load(MasterJsonFileContainer container)

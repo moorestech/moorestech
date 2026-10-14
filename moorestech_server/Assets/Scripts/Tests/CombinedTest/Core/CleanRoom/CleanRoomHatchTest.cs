@@ -52,9 +52,9 @@ namespace Tests.CombinedTest.Core.CleanRoom
             var chestComponent = PlaceBlock(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, 2)).GetComponent<VanillaChestComponent>();
             source.SetItem(0, ServerContext.ItemStackFactory.Create(new ItemId(1), 1));
 
-            // ベルト1マス・速度6: 出口まで255で43tick目にハッチへ渡る。ハッチは次のtick44の自身の更新でチェストへ押し出す
-            // One belt cell at speed 6: 255 to the exit, handed to the hatch on tick 43; the hatch pushes it into the chest during its own update on tick 44
-            GameUpdater.RunFrames(43);
+            // ベルト1マス・速度6: 出口まで359で60tick目にハッチへ渡る。ハッチは次のtick61の自身の更新でチェストへ押し出す
+            // One belt cell at speed 6: 359 to the exit, handed to the hatch on tick 60; the hatch pushes it into the chest during its own update on tick 61
+            GameUpdater.RunFrames(60);
             Assert.AreEqual(0, chestComponent.InventoryItems[0].Count);
             GameUpdater.RunFrames(1);
             Assert.AreEqual(1, chestComponent.InventoryItems[0].Id.AsPrimitive());
@@ -75,9 +75,9 @@ namespace Tests.CombinedTest.Core.CleanRoom
             var itemStackFactory = ServerContext.ItemStackFactory;
             source.SetItem(0, itemStackFactory.Create(new ItemId(1), 10));
 
-            // 1マスのベルトは1個ずつ43tick周期で渡す。4個でハッチが埋まり、5個目(tick173投入)はtick215に出口で止まる
-            // The one-cell belt hands one item every 43 ticks; four fill the hatch and the fifth (pushed on tick 173) parks at the exit on tick 215
-            GameUpdater.RunFrames(300);
+            // 1マスのベルトは1個ずつ60tick周期で渡す。4個でハッチが埋まり、5個目(tick241投入)はtick300に出口で止まる
+            // The one-cell belt hands one item every 60 ticks; four fill the hatch and the fifth (pushed on tick 241) parks at the exit on tick 300
+            GameUpdater.RunFrames(400);
 
             // ハッチの中継バッファ4スタックが埋まり、以後の挿入は差し戻される
             // The 4-stack transit buffer is full, so further inserts bounce back

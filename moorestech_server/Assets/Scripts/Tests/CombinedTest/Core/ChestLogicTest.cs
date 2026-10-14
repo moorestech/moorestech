@@ -1,3 +1,4 @@
+using Core.BeltTransport;
 using Core.Master;
 using Core.Update;
 using Game.Block.Interface;
@@ -27,9 +28,9 @@ namespace Tests.CombinedTest.Core
             var chest = Inventory(Place(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, 1), BlockDirection.North));
             source.SetItem(0, item);
 
-            // 1マス・速度6: 進入距離1で出口まで255。42tick後に残り3、43tick目にチェストのスロット0へ入る
-            // One cell at speed 6: 255 to the exit; 3 away after 42 ticks, lands in chest slot 0 on tick 43
-            GameUpdater.RunFrames(42);
+            // 1マス・速度6: 進入距離1で出口まで359。59tick後に残り5、60tick目にチェストのスロット0へ入る
+            // One cell at speed 6: 359 to the exit; 5 away after 59 ticks, lands in chest slot 0 on tick 60
+            GameUpdater.RunFrames(59);
             Assert.AreEqual(ItemMaster.EmptyItemId, chest.GetItem(0).Id);
             GameUpdater.RunFrames(1);
             Assert.AreEqual(item.Id, chest.GetItem(0).Id);
@@ -46,14 +47,14 @@ namespace Tests.CombinedTest.Core
             Place(ForUnitTestModBlockId.BeltConveyorId, Vector3Int.zero, BlockDirection.North);
             chest.SetItem(0, ServerContext.ItemStackFactory.Create(new ItemId(1), 1));
 
-            // 1tickのblock更新でベルトへ入り、同じtickのベルト更新で255から6進んで249になる
-            // It enters the belt during the tick's block update and advances 6 from 255 to 249 in the same tick's belt update
+            // 1tickのblock更新でベルトへ入り、同じtickのベルト更新で359から6進んで353になる
+            // It enters the belt during the tick's block update and advances 6 from 359 to 353 in the same tick's belt update
             GameUpdater.UpdateOneTick();
             Assert.AreEqual(0, chest.GetItem(0).Count);
             var onBelt = ItemsOnSegmentAt(Vector3Int.zero);
             Assert.AreEqual(1, onBelt.Length);
             Assert.AreEqual(new ItemId(1), onBelt[0].Item.ItemId);
-            Assert.AreEqual(249, onBelt[0].DistanceToExit);
+            Assert.AreEqual(BeltConstants.ItemWidth - 1 - 6, onBelt[0].DistanceToExit);
         }
 
         private static void CreateServer()

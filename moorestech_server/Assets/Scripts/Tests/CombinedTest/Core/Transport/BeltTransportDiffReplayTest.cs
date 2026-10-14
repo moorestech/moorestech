@@ -19,7 +19,7 @@ namespace Tests.CombinedTest.Core.Transport
     // Whether a replica fed only one full state plus per-tick diffs keeps reproducing a world where machines push and accept through the real tick path
     public class BeltTransportDiffReplayTest
     {
-        private const int TickCount = 400;
+        private const int TickCount = 600;
         private static readonly ItemId ItemA = new(1);
         private static readonly ItemId ItemB = new(2);
         private static readonly ItemId ItemC = new(3);
@@ -128,10 +128,10 @@ namespace Tests.CombinedTest.Core.Transport
             // tick先頭の再構築後(block更新中と同じ区間)に搬入口へ押し込んだ分は、そのtickの差分に載って同じ順で再生される
             // A push into the inlet after the tick-head rebuild (the same window as block updates) lands in that tick's diff and replays in order
             var pushed = 0;
-            for (var tick = 1; tick <= 300; tick++)
+            for (var tick = 1; tick <= 420; tick++)
             {
                 var stack = ServerContext.ItemStackFactory.Create(ItemA, 1);
-                var entered = tick % 50 == 0 && PushThroughInlet(inlet, machine, stack);
+                var entered = tick % 70 == 0 && PushThroughInlet(inlet, machine, stack);
                 var diff = TickServer();
                 if (entered)
                 {

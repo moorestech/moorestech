@@ -21,9 +21,9 @@ namespace Client.Tests.PlaceSystem.ConveyorOverpass
     // Verify the real auto-overpass placement generates a belt run stepping over obstacles and items flow across it.
     public class ConveyorOverpassConveyanceTest
     {
-        // 斜面を含む5マスは1つのsegmentになる。速度32・進入距離1で出口まで5*256-1=1279。39tick後に残り31、40tick目に渡る
-        // The five cells including slopes form one segment; at speed 32 entering at length 1 leaves 5*256-1=1279, 31 away after 39 ticks, handed over on tick 40
-        private const int ExpectedArrivalTick = 40;
+        // 斜面を含む5マスは1つのsegmentになる。速度36・進入距離1で出口まで5*360-1=1799。49tick後に残り35、50tick目に渡る
+        // The five cells including slopes form one segment; at speed 36 entering at length 1 leaves 5*360-1=1799, 35 away after 49 ticks, handed over on tick 50
+        private const int ExpectedArrivalTick = 50;
         private const int MaxTransportTicks = 200;
 
         // 単一障害物(2,0,0)を跨いで終端まで搬送する

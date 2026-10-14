@@ -23,11 +23,11 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology.Layout
             Place(world, ForUnitTestModBlockId.GearBeltConveyor, new Vector3Int(1, 0, 0), BlockDirection.West);
             var layouts = BuildLayouts(world);
 
-            // 速度6→32と32→6の2か所で切れ、それぞれの先頭は境界の次のマス
-            // Cut at the 6-to-32 and 32-to-6 boundaries; each head is the cell right after a boundary
+            // 速度6→36と36→6の2か所で切れ、それぞれの先頭は境界の次のマス
+            // Cut at the 6-to-36 and 36-to-6 boundaries; each head is the cell right after a boundary
             Assert.AreEqual(2, layouts.Length);
             AssertSegment(layouts[0], BeltSegmentKind.Normal, 6, BeltDirection.Right, new Vector3Int(0, 0, 0), new Vector3Int(0, 0, 1));
-            AssertSegment(layouts[1], BeltSegmentKind.Normal, 32, BeltDirection.Left, new Vector3Int(1, 0, 1), new Vector3Int(1, 0, 0));
+            AssertSegment(layouts[1], BeltSegmentKind.Normal, 36, BeltDirection.Left, new Vector3Int(1, 0, 1), new Vector3Int(1, 0, 0));
             AssertLink(layouts[0].Outputs[0], BeltDirection.Right, BeltEntryDirection.FromLeft, 1);
             AssertLink(layouts[1].Inputs[0], BeltDirection.Left, BeltEntryDirection.FromLeft, 0);
             AssertLink(layouts[1].Outputs[0], BeltDirection.Left, BeltEntryDirection.FromRight, 0);

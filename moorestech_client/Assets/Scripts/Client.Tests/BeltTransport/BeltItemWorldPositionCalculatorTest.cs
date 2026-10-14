@@ -36,8 +36,8 @@ namespace Client.Tests.BeltTransport
         {
             var shapes = new[] { Segment(Front(0, 0, 0), Front(0, 0, 1), Front(0, 0, 2)) };
 
-            // 機械からの進入距離1: 後ろの隣マスの中心から1/256だけ進んだ位置
-            // Machine entry at distance 1: 1/256 past the center of the neighbour behind
+            // 機械からの進入距離1: 後ろの隣マスの中心から1/360だけ進んだ位置
+            // Machine entry at distance 1: 1/360 past the center of the neighbour behind
             AssertPosition(new Vector3(0.5f, Surface, -0.5f + 1f / Cell), shapes, 0, 3 * Cell - 1, BeltEntryDirection.FromBack);
             // 左上から入った: 左隣で1段上のマスの平らな中心と1マスめの中心の中間
             // Entered from the upper left: midway between the flat center of the neighbour one step up on the left and the first cell's center

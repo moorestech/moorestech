@@ -26,19 +26,19 @@ namespace Tests.CombinedTest.Game
             var outputChest = Inventory(Place(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, 2), BlockDirection.North));
             inputChest.SetItem(0, global::Game.Context.ServerContext.ItemStackFactory.Create(itemId, 2));
 
-            // 1個目: tick1のblock更新で進入距離1で入り出口まで255。速度6で42tick後に残り3、43tick目に渡る
-            // First item: enters at length 1 during tick 1 (255 to the exit); at speed 6 it is 3 away after 42 belt ticks and is handed over on tick 43
-            GameUpdater.RunFrames(42);
+            // 1個目: tick1のblock更新で進入距離1で入り出口まで359。速度6で59tick後に残り5、60tick目に渡る
+            // First item: enters at length 1 during tick 1 (359 to the exit); at speed 6 it is 5 away after 59 belt ticks and is handed over on tick 60
+            GameUpdater.RunFrames(59);
             Assert.AreEqual(0, CountOf(outputChest, itemId));
             Assert.AreEqual(1, CountOf(inputChest, itemId), "1マスのsegmentは1個で満杯なので2個目はまだ入らない");
             GameUpdater.RunFrames(1);
             Assert.AreEqual(1, CountOf(outputChest, itemId));
 
-            // 2個目: 空いたtick44に入り、同じく43tick目(=tick86)に渡る
-            // Second item: enters on tick 44 once the cell is free and is likewise handed over on its 43rd belt tick (tick 86)
+            // 2個目: 空いたtick61に入り、同じく60tick目(=tick120)に渡る
+            // Second item: enters on tick 61 once the cell is free and is likewise handed over on its 60th belt tick (tick 120)
             GameUpdater.RunFrames(1);
             Assert.AreEqual(0, CountOf(inputChest, itemId));
-            GameUpdater.RunFrames(41);
+            GameUpdater.RunFrames(58);
             Assert.AreEqual(1, CountOf(outputChest, itemId));
             GameUpdater.RunFrames(1);
             Assert.AreEqual(2, CountOf(outputChest, itemId));

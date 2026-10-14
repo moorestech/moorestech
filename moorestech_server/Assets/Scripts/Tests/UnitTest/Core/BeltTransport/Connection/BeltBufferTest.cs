@@ -31,11 +31,11 @@ namespace Tests.UnitTest.Core.BeltTransport.Connection
             Assert.AreEqual(1, collected.ItemInstanceId.AsPrimitive());
             AssertDistances(branch, W);
 
-            // bufferが満杯なら出口に着いても回収しない
-            // With a full buffer the head is not collected even at the exit
-            BeginTickAt(branch, 128);
+            // bufferが満杯なら出口に着いても回収しない。速度W/2の2tickで出口に着く
+            // With a full buffer the head is not collected even at the exit; it reaches the exit in two ticks at speed W/2
+            BeginTickAt(branch, W / 2);
             Collect(branch.Buffer);
-            BeginTickAt(branch, 128);
+            BeginTickAt(branch, W / 2);
             Collect(branch.Buffer);
             AssertDistances(branch, 0);
             Assert.IsTrue(branch.Buffer.TryGetItem(out var held));
@@ -151,8 +151,8 @@ namespace Tests.UnitTest.Core.BeltTransport.Connection
         [Test]
         public void 通常segmentへ搬出すると進入距離を保って入口に置かれる()
         {
-            // 空き256に速度100で入り、詰まった2個目は相手の空きが負なので保持したまま
-            // Enters an offer of 256 by speed 100; the second stays held because the target's offer is negative
+            // 空きWに速度100で入り、詰まった2個目は相手の空きが負なので保持したまま
+            // Enters an offer of W by speed 100; the second stays held because the target's offer is negative
             var branch = CreateBranch(1, Init, BeltDirection.Front);
             var normal = CreateNormal(1, 0);
             branch.Buffer.ConnectTo(normal, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));

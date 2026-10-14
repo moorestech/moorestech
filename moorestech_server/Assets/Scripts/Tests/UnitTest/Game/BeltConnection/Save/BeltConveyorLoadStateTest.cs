@@ -26,8 +26,8 @@ namespace Tests.UnitTest.Game.BeltConnection.Save
             var originals = new[]
             {
                 new BeltItemState(NewItem(ItemA, BeltEntryDirection.FromBack), 50),
-                new BeltItemState(NewItem(ItemB, BeltEntryDirection.FromBack), 400),
-                new BeltItemState(NewItem(ItemC, BeltEntryDirection.FromBack), 700)
+                new BeltItemState(NewItem(ItemB, BeltEntryDirection.FromBack), 500),
+                new BeltItemState(NewItem(ItemC, BeltEntryDirection.FromBack), 900)
             };
             CurrentSegmentAt(Vector3Int.zero).RestoreItems(originals);
             var saved = SaveWorld(world);
@@ -89,7 +89,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Save
             PlaceStraightLine(world, 0);
             PlaceStraightLine(world, 5);
             Rebuild();
-            CurrentSegmentAt(Vector3Int.zero).RestoreItems(new[] { new BeltItemState(NewItem(ItemA, BeltEntryDirection.FromBack), 400) });
+            CurrentSegmentAt(Vector3Int.zero).RestoreItems(new[] { new BeltItemState(NewItem(ItemA, BeltEntryDirection.FromBack), 500) });
             CurrentSegmentAt(new Vector3Int(5, 0, 0)).RestoreItems(new[] { new BeltItemState(NewItem(ItemC, BeltEntryDirection.FromBack), 50) });
 
             var saved = SaveWorld(world);
@@ -109,7 +109,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Save
         [TestCase("itemGuid", "\"11111111-2222-3333-4444-555555555555\"")]
         [TestCase("entryDirection", "12")]
         [TestCase("entryDirection", "-1")]
-        [TestCase("distanceToExit", "256")]
+        [TestCase("distanceToExit", "360")]
         [TestCase("distanceToExit", "-1")]
         public void CorruptedItemDropsWholeSegmentButKeepsOtherSegments(string field, string valueJson)
         {
@@ -120,7 +120,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Save
             CurrentSegmentAt(Vector3Int.zero).RestoreItems(new[]
             {
                 new BeltItemState(NewItem(ItemA, BeltEntryDirection.FromBack), 50),
-                new BeltItemState(NewItem(ItemB, BeltEntryDirection.FromBack), 400)
+                new BeltItemState(NewItem(ItemB, BeltEntryDirection.FromBack), 500)
             });
             CurrentSegmentAt(new Vector3Int(5, 0, 0)).RestoreItems(new[] { new BeltItemState(NewItem(ItemC, BeltEntryDirection.FromBack), 50) });
 

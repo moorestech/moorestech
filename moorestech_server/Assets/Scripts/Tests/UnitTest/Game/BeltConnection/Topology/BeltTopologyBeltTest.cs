@@ -87,7 +87,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology
             var splitter = Cell(BeltTopologyBuilder.Build(world), Vector3Int.zero);
 
             Assert.IsTrue(splitter.IsSplitter);
-            Assert.AreEqual(128, splitter.BeltSpeedPerTick);
+            Assert.AreEqual(180, splitter.BeltSpeedPerTick);
             Assert.AreEqual(connectAllOutputs ? 3 : 1, splitter.Outputs.Length);
             AssertConnection(splitter.Outputs[0], BeltDirection.Front, BeltEntryDirection.FromBack, Belt, new Vector3Int(0, 0, 1));
             if (!connectAllOutputs) return;

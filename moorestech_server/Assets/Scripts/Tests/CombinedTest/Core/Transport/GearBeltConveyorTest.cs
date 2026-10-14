@@ -15,15 +15,15 @@ using static Tests.Util.BeltWorldTestUtil;
 
 namespace Tests.CombinedTest.Core.Transport
 {
-    // 歯車ベルトはマスタの固定速度(GearBeltConveyor=32)で搬送し、回転数・トルクは搬送に影響しない
-    // A gear belt transports at the fixed master speed (GearBeltConveyor = 32); RPM and torque do not affect transport
+    // 歯車ベルトはマスタの固定速度(GearBeltConveyor=36)で搬送し、回転数・トルクは搬送に影響しない
+    // A gear belt transports at the fixed master speed (GearBeltConveyor = 36); RPM and torque do not affect transport
     public class GearBeltConveyorTest
     {
         private static readonly ItemId ItemA = new(2);
 
-        // 3マス・速度32: 進入距離1で出口まで767。23tick後に残り31、24tick目に渡る
-        // Three cells at speed 32: 767 to the exit after entering at length 1; 31 away after 23 belt ticks, handed over on tick 24
-        private const int ExpectedArrivalTick = 24;
+        // 3マス・速度36: 進入距離1で出口まで1079。29tick後に残り35、30tick目に渡る
+        // Three cells at speed 36: 1079 to the exit after entering at length 1; 35 away after 29 belt ticks, handed over on tick 30
+        private const int ExpectedArrivalTick = 30;
 
         // 歯車ネットワークから基準回転数で駆動されても、到着tickはマスタ速度だけで決まるテスト
         // Even when driven at base RPM by a gear network, the arrival tick depends only on the master speed

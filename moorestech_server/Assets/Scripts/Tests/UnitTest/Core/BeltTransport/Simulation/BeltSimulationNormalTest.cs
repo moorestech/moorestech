@@ -36,16 +36,16 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation
         [Test]
         public void 機械が拒否すると先頭は出口で止まり後続が詰める()
         {
-            // 後続の隙間は406-100-W=50。tick1で36,342、tick2で先頭が0に止まり残り28で隙間50→22、tick3で密着
-            // Follower spacing is 406-100-W=50. Tick1: 36,342; tick2 the head parks at 0 and 28 left closes 50→22; tick3 packs
+            // 後続は100+W+50で隙間50。tick1で36とW+86、tick2で先頭が0に止まり残り28で隙間50→22、tick3で密着
+            // The follower at 100+W+50 leaves a gap of 50. Tick1: 36 and W+86; tick2 the head parks at 0 and 28 left closes 50→22; tick3 packs
             var belt = CreateNormal(3, 64);
             var machine = new FakeBeltReceiver(W, false);
             belt.ConnectTo(machine, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
-            Restore(belt, (1, 100), (2, 406));
+            Restore(belt, (1, 100), (2, 100 + W + 50));
             var simulation = new BeltSimulation(new[] { belt });
 
             simulation.Tick();
-            AssertItems(belt, (1, 36), (2, 342));
+            AssertItems(belt, (1, 36), (2, W + 86));
             simulation.Tick();
             AssertItems(belt, (1, 0), (2, W + 22));
             Assert.AreEqual(28, machine.ReceiveAttempts[0].Length);
@@ -64,8 +64,8 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation
         [Test]
         public void 速度の違う通常segmentへは進入距離で置かれ搬入先の速度は次tickから効く()
         {
-            // 送り元速度100、先頭50なので進入距離50。搬入先の長さ768から50入った718に置き、次tickは速度30で688
-            // Source speed 100, head at 50, so entry 50. It lands at 768-50=718 and moves at speed 30 to 688 next tick
+            // 送り元速度100、先頭50なので進入距離50。搬入先の長さ3Wから50入った3W-50に置き、次tickは速度30で3W-80
+            // Source speed 100, head at 50, so entry 50. It lands at 3W-50 and moves at speed 30 to 3W-80 next tick
             var source = CreateNormal(2, 100);
             var target = CreateNormal(3, 30);
             source.ConnectTo(target, BeltDirection.Front, BeltEntryDirections.Level(BeltDirection.Back));
@@ -82,8 +82,8 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation
         [Test]
         public void 同じtickの前進で空いた分は搬送に使わず境界で1tick待つ()
         {
-            // 搬入先の空きはW-(5+W)=-5なので送れない。搬入先は同tickで機械へ出て空くが、送るのは次tick（W-100=156）
-            // The target's offer W-(5+W)=-5 refuses. It empties into the machine the same tick, but the send waits for next tick (W-100=156)
+            // 搬入先の空きはW-(5+W)=-5なので送れない。搬入先は同tickで機械へ出て空くが、送るのは次tick（W-100=260）
+            // The target's offer W-(5+W)=-5 refuses. It empties into the machine the same tick, but the send waits for next tick (W-100=260)
             var source = CreateNormal(2, 100);
             var target = CreateNormal(1, 10);
             var machine = new FakeBeltReceiver(W, true);

@@ -16,8 +16,8 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation.EntryDirection
         [Test]
         public void 通常segment間を渡ったアイテムだけが接続の進入方向になる()
         {
-            // #1は出口まで2で搬入先の512-2=510へ。#2は1000から毎tick4ずつ進むだけでa内に留まる
-            // #1 is 2 from the exit and lands at 512-2=510 in b. #2 only moves 4 per tick from 1000 and stays in a
+            // #1は出口まで2で搬入先の2W-2へ。#2は1000から毎tick4ずつ進むだけでa内に留まる
+            // #1 is 2 from the exit and lands at 2W-2 in b. #2 only moves 4 per tick from 1000 and stays in a
             var a = CreateNormal(8, 4);
             var b = CreateNormal(2, 4);
             a.ConnectTo(b, BeltDirection.Front, BeltEntryDirections.FromBelow(BeltDirection.Back));
@@ -29,7 +29,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation.EntryDirection
             var simulation = new BeltSimulation(new[] { a, b });
 
             simulation.Tick();
-            AssertItems(b, (1, 510));
+            AssertItems(b, (1, 2 * W - 2));
             AssertEntries(b, (1, BeltEntryDirection.FromBackBelow));
             AssertItems(a, (2, 996));
             AssertEntries(a, (2, BeltEntryDirection.FromRightAbove));
@@ -39,7 +39,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation.EntryDirection
             TickTimes(simulation, 100);
             AssertItems(a, (2, 596));
             AssertEntries(a, (2, BeltEntryDirection.FromRightAbove));
-            AssertItems(b, (1, 110));
+            AssertItems(b, (1, 2 * W - 2 - 400));
             AssertEntries(b, (1, BeltEntryDirection.FromBackBelow));
         }
 
@@ -70,27 +70,27 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation.EntryDirection
         {
             var segment = CreateNormal(2, 64);
             Assert.IsTrue(segment.TryReceive(BeltDirection.Back, 64, MakeItemFrom(1, BeltEntryDirection.FromRightBelow)));
-            AssertItems(segment, (1, 448));
+            AssertItems(segment, (1, 2 * W - 64));
             AssertEntries(segment, (1, BeltEntryDirection.FromRightBelow));
 
             var simulation = new BeltSimulation(new[] { segment });
             simulation.Tick();
-            AssertItems(segment, (1, 384));
+            AssertItems(segment, (1, 2 * W - 128));
             AssertEntries(segment, (1, BeltEntryDirection.FromRightBelow));
         }
 
         [Test]
         public void 自己接続の輪は継ぎ目を越えるたびに進入方向を書く()
         {
-            // 周長1024・速度64。tick1で#1だけが継ぎ目を越え、16tickで1周すると#2も越えている
-            // Circumference 1024, speed 64. Only #1 crosses the seam on tick 1; after a 16-tick lap #2 has crossed too
-            var loop = CreateNormal(4, 64);
+            // 周長4W・速度W/4。tick1で#1だけが継ぎ目を越え、16tickで1周すると#2も越えている
+            // Circumference 4W, speed W/4. Only #1 crosses the seam on tick 1; after a 16-tick lap #2 has crossed too
+            var loop = CreateNormal(4, W / 4);
             loop.ConnectTo(loop, BeltDirection.Front, BeltEntryDirections.FromAbove(BeltDirection.Back));
             Restore(loop, (1, 0), (2, 2 * W));
             var simulation = new BeltSimulation(new[] { loop });
 
             simulation.Tick();
-            AssertItems(loop, (2, 448), (1, 960));
+            AssertItems(loop, (2, 2 * W - W / 4), (1, 4 * W - W / 4));
             AssertEntries(loop, (2, BeltEntryDirection.FromBack), (1, BeltEntryDirection.FromBackAbove));
             TickTimes(simulation, 15);
             AssertItems(loop, (1, 0), (2, 2 * W));
@@ -101,7 +101,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation.EntryDirection
             loop.ConnectTo(loop, BeltDirection.Front, BeltEntryDirections.FromBelow(BeltDirection.Back));
             simulation = new BeltSimulation(new[] { loop });
             simulation.Tick();
-            AssertItems(loop, (2, 448), (1, 960));
+            AssertItems(loop, (2, 2 * W - W / 4), (1, 4 * W - W / 4));
             AssertEntries(loop, (2, BeltEntryDirection.FromBackAbove), (1, BeltEntryDirection.FromBackBelow));
         }
     }

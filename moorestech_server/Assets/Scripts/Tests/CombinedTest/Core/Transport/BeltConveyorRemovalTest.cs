@@ -32,8 +32,8 @@ namespace Tests.CombinedTest.Core.Transport
             for (var z = 0; z < 3; z++) Place(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(0, 0, z), BlockDirection.North);
             source.SetItem(0, ServerContext.ItemStackFactory.Create(ItemA, 3));
 
-            // 出口が無いので3個が0・256・512に詰まり、z=2・z=1・z=0に1個ずつ乗る
-            // With no exit the three items pack at 0, 256 and 512, one on each of z=2, z=1 and z=0
+            // 出口が無いので3個が0・360・720に詰まり、z=2・z=1・z=0に1個ずつ乗る
+            // With no exit the three items pack at 0, 360 and 720, one on each of z=2, z=1 and z=0
             GameUpdater.RunFrames(400);
             Assert.AreEqual(3, ItemsOnSegmentAt(Vector3Int.zero).Length);
             Assert.AreEqual(0, CountOf(source, ItemA));

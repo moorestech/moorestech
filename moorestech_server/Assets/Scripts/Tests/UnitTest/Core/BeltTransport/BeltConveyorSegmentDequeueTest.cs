@@ -12,11 +12,11 @@ namespace Tests.UnitTest.Core.BeltTransport
         public void 搬出成立で先頭が消え残りは速度分進む()
         {
             var segment = Build(4, 50, 0, 20);
-            AssertDistances(segment, 50, 306, 582);
+            AssertDistances(segment, 50, 50 + W, 70 + 2 * W);
             Assert.AreEqual(78, GetOutputLength(segment, 128));
 
             Advance(segment, 128, true);
-            AssertDistances(segment, 178, 454);
+            AssertDistances(segment, 50 + W - 128, 70 + 2 * W - 128);
             Assert.AreEqual(2, segment.CaptureItems()[0].Item.ItemInstanceId.AsPrimitive());
 
             // 最後の1個を搬出すると空になる
@@ -47,13 +47,14 @@ namespace Tests.UnitTest.Core.BeltTransport
             Assert.AreEqual(2, GetBlockSizeAt(segment, 0));
             Assert.AreEqual(2, GetBlockSizeAt(segment, 1));
 
-            // 2tickで先頭が出口へ着き、3tick目に後続ブロックが合体する
-            // The head reaches the exit in two ticks; the following block merges on the third
-            Advance(segment, 128, false);
-            AssertDistances(segment, 128, 384, 740, 996);
-            Advance(segment, 128, false);
-            AssertDistances(segment, 0, W, 612, 868);
-            Advance(segment, 128, false);
+            // 速度W/2なら2tickで先頭が出口へ着き(後続との隙間は100のまま)、3tick目に後続ブロックが合体する
+            // At speed W/2 the head reaches the exit in two ticks (the gap behind stays 100); the following block merges on the third
+            var speed = W / 2;
+            Advance(segment, speed, false);
+            AssertDistances(segment, W - speed, 2 * W - speed, 3 * W + 100 - speed, 4 * W + 100 - speed);
+            Advance(segment, speed, false);
+            AssertDistances(segment, 0, W, 3 * W + 100 - 2 * speed, 4 * W + 100 - 2 * speed);
+            Advance(segment, speed, false);
             AssertDistances(segment, 0, W, 2 * W, 3 * W);
             Assert.AreEqual(4, GetBlockSizeAt(segment, 0));
             Assert.AreEqual(4, GetBlockSizeAt(segment, 3));

@@ -19,9 +19,9 @@ namespace Client.Game.InGame.Train.Unit
         private const double FastForwardLagSeconds = 0.2d;
         private static readonly double FastForwardLagTicks = Math.Max(1.0, Math.Ceiling(FastForwardLagSeconds / TickSeconds));
 
-        // 1 フレームで追いつく最大 tick 数を固定する
-        // Fix the maximum ticks to catch up in a single frame
-        private const int MaxCatchUpTicksPerFrame = 4;
+        // 1 フレームで追いつく最大 tick 数。低fps(Sceneタブ併用で1〜3fps等)でも1秒ぶん以上を1フレームで回せる値にしておく(暫定の決め打ち・2026-10-14)
+        // Maximum ticks to catch up in a single frame; large enough to cover over a second per frame at low fps (1-3fps with the Scene tab open), a provisional hard-coded value (2026-10-14)
+        private const int MaxCatchUpTicksPerFrame = 21;
 
         private readonly TrainUnitTickState _tickState;
         private readonly ITrainUnitHashTickGate _hashTickGate;

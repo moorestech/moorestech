@@ -18,15 +18,15 @@ namespace Tests.UnitTest.Core.BeltTransport.Connection
             EnqueueTail(segment, 100, MakeItem(1));
             Assert.AreEqual(2 * W - 100, segment.GetOffer(BeltDirection.Back));
 
-            // 進入距離100で搬入した直後は後端が入口から156はみ出す
-            // Right after entering by 100 the rear sticks out of the entrance by 156
+            // 進入距離100で搬入した直後は後端が入口からW-100はみ出す
+            // Right after entering by 100 the rear sticks out of the entrance by W-100
             var entering = CreateNormal(2, 0);
             Assert.IsTrue(entering.TryReceive(BeltDirection.Back, 100, MakeItem(2)));
             AssertDistances(entering, 2 * W - 100);
             Assert.AreEqual(100 - W, entering.GetOffer(BeltDirection.Back));
             Advance(entering, 100, false);
             Assert.AreEqual(200 - W, entering.GetOffer(BeltDirection.Back));
-            Advance(entering, 56, false);
+            Advance(entering, W - 200, false);
             Assert.AreEqual(0, entering.GetOffer(BeltDirection.Back));
             Advance(entering, 100, false);
             Assert.AreEqual(100, entering.GetOffer(BeltDirection.Back));
@@ -82,14 +82,14 @@ namespace Tests.UnitTest.Core.BeltTransport.Connection
             Assert.AreEqual(BeltDirection.Left, receiver.ReceiveAttempts[0].Direction);
             Assert.AreEqual(70, receiver.ReceiveAttempts[0].Length);
             Assert.AreEqual(1, receiver.ReceiveAttempts[0].Item.ItemInstanceId.AsPrimitive());
-            AssertDistances(segment, 296 - 100);
+            AssertDistances(segment, 30 + W + 10 - 100);
         }
 
         [Test]
         public void 搬出先が拒否すると先頭は出口で止まり後続が詰まる()
         {
-            // 出口から30・336・792。速度100で先頭停止、残り70で隙間50を詰め、残り20で隙間200が180になる
-            // At 30, 336 and 792. Speed 100 parks the head, 70 closes the 50 gap, and 20 shrinks the 200 gap to 180
+            // 出口から30・80+W・280+2W。速度100で先頭停止、残り70で隙間50を詰め、残り20で隙間200が180になる
+            // At 30, 80+W and 280+2W. Speed 100 parks the head, 70 closes the 50 gap, and 20 shrinks the 200 gap to 180
             var segment = CreateNormal(3, 0);
             EnqueueTail(segment, 30, MakeItem(1));
             EnqueueTail(segment, 50, MakeItem(2));

@@ -99,7 +99,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology.Layout
             var layouts = BuildLayouts(world);
 
             Assert.AreEqual(4, layouts.Length);
-            AssertSegment(layouts[0], BeltSegmentKind.Branch, 128, BeltDirection.Front, Vector3Int.zero);
+            AssertSegment(layouts[0], BeltSegmentKind.Branch, 180, BeltDirection.Front, Vector3Int.zero);
             AssertSegment(layouts[1], BeltSegmentKind.Merge, 6, BeltDirection.Front, new Vector3Int(0, 0, 1));
             AssertSegment(layouts[3], BeltSegmentKind.Normal, 6, BeltDirection.Left, new Vector3Int(1, 0, 1));
 

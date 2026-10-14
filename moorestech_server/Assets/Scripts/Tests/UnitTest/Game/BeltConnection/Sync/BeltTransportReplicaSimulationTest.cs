@@ -36,7 +36,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
 
             // 合流の両入力・分岐の入力・坂・機械合流の内部segmentへ置く。tick中は機械が押し込まないので搬送はベルト間だけ
             // Items on both merge inputs, the branch input, the slope and the machine merge's internal segment; no machine pushes during ticks, so all handoffs are belt-to-belt
-            SegmentAt(assembly, new Vector3Int(0, 0, 0)).RestoreItems(new[] { At(ItemA, BeltEntryDirection.FromBack, 0), At(ItemB, BeltEntryDirection.FromBack, 256) });
+            SegmentAt(assembly, new Vector3Int(0, 0, 0)).RestoreItems(new[] { At(ItemA, BeltEntryDirection.FromBack, 0), At(ItemB, BeltEntryDirection.FromBack, BeltConstants.ItemWidth) });
             SegmentAt(assembly, new Vector3Int(1, 0, 1)).RestoreItems(new[] { At(ItemC, BeltEntryDirection.FromBack, 0) });
             SegmentAt(assembly, new Vector3Int(10, 0, -1)).RestoreItems(new[] { At(ItemA, BeltEntryDirection.FromBack, 0) });
             SegmentAt(assembly, new Vector3Int(20, 0, 0)).RestoreItems(new[] { At(ItemA, BeltEntryDirection.FromBack, 30), At(ItemB, BeltEntryDirection.FromBack, 500) });
@@ -145,8 +145,8 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
             SegmentAt(assembly, Vector3Int.zero).RestoreItems(new[]
             {
                 At(ItemA, BeltEntryDirection.FromBack, 20),
-                At(ItemB, BeltEntryDirection.FromBack, 300),
-                At(ItemA, BeltEntryDirection.FromBack, 556)
+                At(ItemB, BeltEntryDirection.FromBack, 400),
+                At(ItemA, BeltEntryDirection.FromBack, 400 + BeltConstants.ItemWidth)
             });
         }
 

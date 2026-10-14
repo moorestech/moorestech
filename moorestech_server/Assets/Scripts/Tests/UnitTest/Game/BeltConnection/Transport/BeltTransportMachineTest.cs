@@ -1,3 +1,4 @@
+using Core.BeltTransport;
 using Core.Master;
 using Game.Block.Interface;
 using Game.Context;
@@ -27,16 +28,16 @@ namespace Tests.UnitTest.Game.BeltConnection.Transport
             var assembly = Assemble(world);
             var segment = assembly.Segments[SegmentIndexAt(assembly, Vector3Int.zero)];
 
-            // 進入距離1で入るので出口まで767。速度6で127tick後に残り5、128tick目に渡る
-            // Entering at length 1 leaves 767 to the exit; at speed 6 it is 5 away after 127 ticks and handed over on tick 128
+            // 進入距離1で入るので出口まで3*360-1=1079。速度6で179tick後に残り5、180tick目に渡る
+            // Entering at length 1 leaves 3*360-1=1079 to the exit; at speed 6 it is 5 away after 179 ticks and handed over on tick 180
             Assert.IsTrue(Push(assembly, head, machine, ItemA));
-            Assert.AreEqual(767, segment.CaptureItems()[0].DistanceToExit);
-            Tick(assembly, 127);
-            Assert.AreEqual(0, TotalCount(chest), "chest is still empty after 127 ticks");
+            Assert.AreEqual(3 * BeltConstants.ItemWidth - 1, segment.CaptureItems()[0].DistanceToExit);
+            Tick(assembly, 179);
+            Assert.AreEqual(0, TotalCount(chest), "chest is still empty after 179 ticks");
             Assert.AreEqual(5, segment.CaptureItems()[0].DistanceToExit);
 
             Tick(assembly, 1);
-            Assert.AreEqual(1, TotalCount(chest), "chest holds exactly one item after 128 ticks");
+            Assert.AreEqual(1, TotalCount(chest), "chest holds exactly one item after 180 ticks");
             Assert.AreEqual(1, CountOf(chest, ItemA));
             Assert.IsEmpty(segment.CaptureItems());
         }
@@ -90,19 +91,19 @@ namespace Tests.UnitTest.Game.BeltConnection.Transport
             // 1マスの内部segmentは1個で満杯になり、2個目の押し込みを拒否する
             // The one-cell internal segment is full with one item and rejects a second push
             Assert.IsTrue(Push(assembly, mergeBelt, machine, ItemA));
-            Assert.AreEqual(255, inner.CaptureItems()[0].DistanceToExit);
+            Assert.AreEqual(BeltConstants.ItemWidth - 1, inner.CaptureItems()[0].DistanceToExit);
             Assert.IsFalse(Push(assembly, mergeBelt, machine, ItemA), "internal segment is full");
 
-            // 速度128で1tick後に残り127、2tick目に合流へ進入距離1で渡る
-            // At speed 128 it is 127 away after one tick and enters the merge at length 1 on tick 2
+            // 速度180で1tick後に残り179、2tick目に合流へ進入距離1で渡る
+            // At speed 180 it is 179 away after one tick and enters the merge at length 1 on tick 2
             Tick(assembly, 1);
-            Assert.AreEqual(127, inner.CaptureItems()[0].DistanceToExit);
+            Assert.AreEqual(179, inner.CaptureItems()[0].DistanceToExit);
             Assert.IsFalse(Push(assembly, mergeBelt, machine, ItemA), "internal segment is still occupied");
             Tick(assembly, 1);
             Assert.IsEmpty(inner.CaptureItems());
             var mergeItems = merge.CaptureItems();
             Assert.AreEqual(1, mergeItems.Length);
-            Assert.AreEqual(255, mergeItems[0].DistanceToExit);
+            Assert.AreEqual(BeltConstants.ItemWidth - 1, mergeItems[0].DistanceToExit);
             Assert.IsTrue(Push(assembly, mergeBelt, machine, ItemA), "internal segment accepts again once emptied");
 
             // 2個ともチェストへ届く

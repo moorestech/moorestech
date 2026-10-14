@@ -94,7 +94,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Transport
             // 構成が変わらなければ全アイテムが同じ位置・同じ進入方向で戻る
             // With no change every item comes back at the same position with the same entry direction
             var next = Rebuild(old, world);
-            AssertRun(next.Segments[0], (onC3, 0), (onC2, 300), (onC0, 900));
+            AssertRun(next.Segments[0], (onC3, 0), (onC2, 400), (onC0, 1250));
         }
 
         [Test]
@@ -109,7 +109,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Transport
             world.RemoveBlock(new Vector3Int(1, 0, 0), BlockRemoveReason.ManualRemove);
             var next = Rebuild(old, world);
             Assert.AreEqual(1, next.Segments.Length);
-            AssertRun(next.Segments[0], (onC2, 44), (onC0, 644));
+            AssertRun(next.Segments[0], (onC2, 40), (onC0, 890));
         }
 
         [Test]
@@ -157,7 +157,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Transport
             var onC3 = NewItem(ItemA, BeltEntryDirection.FromFront);
             var onC2 = NewItem(ItemA, BeltEntryDirection.FromLeft);
             var onC0 = NewItem(ItemA, BeltEntryDirection.FromRight);
-            assembly.Segments[0].RestoreItems(new[] { new BeltItemState(onC3, 0), new BeltItemState(onC2, 300), new BeltItemState(onC0, 900) });
+            assembly.Segments[0].RestoreItems(new[] { new BeltItemState(onC3, 0), new BeltItemState(onC2, 400), new BeltItemState(onC0, 1250) });
             return (onC3, onC2, onC0);
         }
     }

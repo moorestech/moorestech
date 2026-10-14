@@ -11,11 +11,13 @@ namespace Core.Master.Validator
     {
         // Core.BeltTransport・Core.UpdateはCore.Masterを参照するため逆参照できない。BeltConstants.ItemWidth・MaxSpeed・GameUpdater.TicksPerSecondと一致させる
         // Core.BeltTransport and Core.Update reference Core.Master, so they cannot be referenced back; keep equal to BeltConstants.ItemWidth / MaxSpeed and GameUpdater.TicksPerSecond
-        private const int CellLength = 256;
+        private const int CellLength = 360;
         private const int TicksPerSecond = 20;
         private const int MinDistancePerTick = 1;
-        private const int MaxDistancePerTick = 128;
-        private const double WholeNumberTolerance = 1e-6;
+        private const int MaxDistancePerTick = 180;
+        // 1マス=360なので秒速は k/18 の循環小数になる。JSONは小数6桁で書く前提で、その丸め誤差(1e-5未満)を整数として受け入れる
+        // With a 360-length cell the per-second values are repeating decimals k/18; JSON is written to six places, so that rounding error (under 1e-5) still counts as whole
+        private const double WholeNumberTolerance = 1e-4;
 
         internal static string Validate(Blocks blocks)
         {

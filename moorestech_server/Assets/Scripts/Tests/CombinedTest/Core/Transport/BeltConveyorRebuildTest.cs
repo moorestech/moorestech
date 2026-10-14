@@ -1,3 +1,4 @@
+using Core.BeltTransport;
 using Core.Master;
 using Core.Update;
 using Game.Block.Interface;
@@ -26,12 +27,12 @@ namespace Tests.CombinedTest.Core.Transport
             Place(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, 3), BlockDirection.North);
             source.SetItem(0, ServerContext.ItemStackFactory.Create(ItemA, 1));
 
-            // tick1で出口まで761、以後毎tick6進むので50tick後は767-300=467。z=1のマスで残り211
-            // 761 to the exit after tick 1, then 6 per tick, so 767-300=467 after 50 ticks: on cell z=1 with 211 left in the cell
-            GameUpdater.RunFrames(50);
+            // tick1で出口まで1073、以後毎tick6進むので80tick後は1079-480=599。z=1のマスで残り239
+            // 1073 to the exit after tick 1, then 6 per tick, so 1079-480=599 after 80 ticks: on cell z=1 with 239 left in the cell
+            GameUpdater.RunFrames(80);
             var before = ItemsOnSegmentAt(Vector3Int.zero);
             Assert.AreEqual(1, before.Length);
-            Assert.AreEqual(467, before[0].DistanceToExit);
+            Assert.AreEqual(599, before[0].DistanceToExit);
 
             // 出口のチェストを外してベルトを1マス延ばし、その先にチェストを置く
             // Remove the output chest, extend the belt by one cell and put the chest beyond it
@@ -39,20 +40,20 @@ namespace Tests.CombinedTest.Core.Transport
             Place(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(0, 0, 3), BlockDirection.North);
             var output = Inventory(Place(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, 4), BlockDirection.North));
 
-            // 次のtick先頭で4マスへ作り直され、z=1は出口から512+211=723。同じtickで6進み717
-            // The next tick head rebuilds into four cells, z=1 sitting at 512+211=723 from the exit; the same tick advances it to 717
+            // 次のtick先頭で4マスへ作り直され、z=1は出口から720+239=959。同じtickで6進み953
+            // The next tick head rebuilds into four cells, z=1 sitting at 720+239=959 from the exit; the same tick advances it to 953
             GameUpdater.RunFrames(1);
             var after = ItemsOnSegmentAt(Vector3Int.zero);
             Assert.AreEqual(1, after.Length);
             Assert.AreEqual(4, Assembly().Layouts[0].Cells.Length);
-            Assert.AreEqual(717, after[0].DistanceToExit);
+            Assert.AreEqual(953, after[0].DistanceToExit);
             Assert.AreEqual(before[0].Item.ItemInstanceId, after[0].Item.ItemInstanceId);
 
-            // 717=6*119+3なので119tick後に残り3、次のtickでチェストへ渡る
-            // 717=6*119+3, so it is 3 away after 119 ticks and handed to the chest on the next tick
-            GameUpdater.RunFrames(119);
+            // 953=6*158+5なので158tick後に残り5、次のtickでチェストへ渡る
+            // 953=6*158+5, so it is 5 away after 158 ticks and handed to the chest on the next tick
+            GameUpdater.RunFrames(158);
             Assert.AreEqual(0, CountOf(output, ItemA));
-            Assert.AreEqual(3, ItemsOnSegmentAt(Vector3Int.zero)[0].DistanceToExit);
+            Assert.AreEqual(5, ItemsOnSegmentAt(Vector3Int.zero)[0].DistanceToExit);
             GameUpdater.RunFrames(1);
             Assert.AreEqual(1, CountOf(output, ItemA));
             Assert.IsEmpty(ItemsOnSegmentAt(Vector3Int.zero));
@@ -66,11 +67,11 @@ namespace Tests.CombinedTest.Core.Transport
             for (var z = 0; z < 3; z++) Place(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(0, 0, z), BlockDirection.North);
             source.SetItem(0, ServerContext.ItemStackFactory.Create(ItemA, 2));
 
-            // 出口が無いので先頭は出口で止まる。2個は0と256に密着して止まり、z=2とz=1のマスに1個ずつ
-            // With no output the head parks at the exit; the two items pack at 0 and 256, one on cell z=2 and one on z=1
+            // 出口が無いので先頭は出口で止まる。2個は0と360に密着して止まり、z=2とz=1のマスに1個ずつ
+            // With no output the head parks at the exit; the two items pack at 0 and 360, one on cell z=2 and one on z=1
             GameUpdater.RunFrames(300);
             var before = ItemsOnSegmentAt(Vector3Int.zero);
-            CollectionAssert.AreEqual(new[] { 0, 256 }, new[] { before[0].DistanceToExit, before[1].DistanceToExit });
+            CollectionAssert.AreEqual(new[] { 0, BeltConstants.ItemWidth }, new[] { before[0].DistanceToExit, before[1].DistanceToExit });
 
             // z=2を撤去すると、z=2上の先頭は消え、z=1上のアイテムはマス内残り0のまま新しい出口に来る
             // Removing z=2 deletes the head on it, and the z=1 item lands at the new exit with 0 left in its cell

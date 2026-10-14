@@ -7,8 +7,8 @@ namespace Client.Game.InGame.BeltTransport.View
 {
     // 出口までの距離とsegmentの経路から「今のマス・進行量」を求め、進入方向と合わせてワールド座標にする。マス中心からマス中心へ直線で補間し、坂も同じ進行量で補間する
     // Derives the current cell and progress from the distance to exit and the segment path, then combines them with the entry direction into a world position; interpolates in a straight line between cell centers, slopes included
-    // 進行量は0で搬入元マスの中心、256で今のマスの中心。先頭が出口に達したとき、アイテムの中心は末尾マスの中心にある
-    // Progress 0 is the source cell's center and 256 the current cell's center; when the head reaches the exit, the item's center is at the last cell's center
+    // 進行量は0で搬入元マスの中心、360で今のマスの中心。先頭が出口に達したとき、アイテムの中心は末尾マスの中心にある
+    // Progress 0 is the source cell's center and 360 the current cell's center; when the head reaches the exit, the item's center is at the last cell's center
     public static class BeltItemWorldPositionCalculator
     {
         // ベルト面の高さ(ブロック底からアイテム中心まで)。旧Bezier経路の既定値に合わせる

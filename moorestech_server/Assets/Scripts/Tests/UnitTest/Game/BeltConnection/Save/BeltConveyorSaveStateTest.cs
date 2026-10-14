@@ -23,20 +23,20 @@ namespace Tests.UnitTest.Game.BeltConnection.Save
             PlaceStraightLine(world, 0);
             Rebuild();
 
-            // segment出口から50・400・700。マスの出口はz=2が0、z=1が256、z=0が512
-            // 50, 400 and 700 from the segment exit; cell exits are 0 for z=2, 256 for z=1 and 512 for z=0
+            // segment出口から50・500・900。マスの出口はz=2が0、z=1が360、z=0が720
+            // 50, 500 and 900 from the segment exit; cell exits are 0 for z=2, 360 for z=1 and 720 for z=0
             CurrentSegmentAt(Vector3Int.zero).RestoreItems(new[]
             {
                 new BeltItemState(NewItem(ItemA, BeltEntryDirection.FromBack), 50),
-                new BeltItemState(NewItem(ItemB, BeltEntryDirection.FromBack), 400),
-                new BeltItemState(NewItem(ItemC, BeltEntryDirection.FromBack), 700)
+                new BeltItemState(NewItem(ItemB, BeltEntryDirection.FromBack), 500),
+                new BeltItemState(NewItem(ItemC, BeltEntryDirection.FromBack), 900)
             });
 
             // 各blockは先頭が自マスにある1個だけを、自マス出口までの距離で持つ
             // Each block holds only the one item whose head is on its cell, by the distance to its own cell exit
             AssertOnlyRunningItem(SaveStateAt(world, new Vector3Int(0, 0, 2)), ItemA, 50);
-            AssertOnlyRunningItem(SaveStateAt(world, new Vector3Int(0, 0, 1)), ItemB, 144);
-            AssertOnlyRunningItem(SaveStateAt(world, new Vector3Int(0, 0, 0)), ItemC, 188);
+            AssertOnlyRunningItem(SaveStateAt(world, new Vector3Int(0, 0, 1)), ItemB, 140);
+            AssertOnlyRunningItem(SaveStateAt(world, new Vector3Int(0, 0, 0)), ItemC, 180);
         }
 
         [Test]
