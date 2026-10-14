@@ -56,6 +56,7 @@ namespace Game.Block.Blocks.BeltConveyor.Save
                 var usedDirections = 0;
                 foreach (var saved in state.InternalItems)
                 {
+                    if (saved == null) return false;
                     if (saved.InputDirection < (int)BeltDirection.Front || (int)BeltDirection.Right < saved.InputDirection) return false;
                     if ((usedDirections & (1 << saved.InputDirection)) != 0) return false;
                     usedDirections |= 1 << saved.InputDirection;
@@ -74,6 +75,8 @@ namespace Game.Block.Blocks.BeltConveyor.Save
                 // 種類GUIDはマスタに存在し空でないこと、進入方向は12通り、距離は1マス内
                 // The kind GUID must exist in the master and not be empty, the entry direction must be one of twelve, and the distance must lie within one cell
                 item = default;
+                distanceToExit = 0;
+                if (saved == null) return false;
                 distanceToExit = saved.DistanceToExit;
                 if (!Guid.TryParse(saved.ItemGuidStr, out var itemGuid)) return false;
                 var itemId = MasterHolder.ItemMaster.GetItemIdOrNull(itemGuid);

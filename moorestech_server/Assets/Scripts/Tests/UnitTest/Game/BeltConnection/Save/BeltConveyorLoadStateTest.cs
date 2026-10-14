@@ -80,6 +80,30 @@ namespace Tests.UnitTest.Game.BeltConnection.Save
             AssertRestored(tail[0], ItemA, BeltEntryDirection.FromBack, 0);
         }
 
+        // 要素そのものがnullの保存内容も、壊れたアイテムと同じくsegmentごと落とす
+        // A null element in the saved list is dropped segment-wide just like a corrupted item
+        [Test]
+        public void NullItemElementDropsWholeSegmentButKeepsOtherSegments()
+        {
+            var world = NewWorld();
+            PlaceStraightLine(world, 0);
+            PlaceStraightLine(world, 5);
+            Rebuild();
+            CurrentSegmentAt(Vector3Int.zero).RestoreItems(new[] { new BeltItemState(NewItem(ItemA, BeltEntryDirection.FromBack), 400) });
+            CurrentSegmentAt(new Vector3Int(5, 0, 0)).RestoreItems(new[] { new BeltItemState(NewItem(ItemC, BeltEntryDirection.FromBack), 50) });
+
+            var saved = SaveWorld(world);
+            SavedStateAt(saved, new Vector3Int(0, 0, 1))["items"][0] = JValue.CreateNull();
+
+            NewWorld().LoadBlockDataList(saved);
+            LogAssert.Expect(LogType.Error, new Regex("unreadable saved items"));
+            Rebuild();
+            Assert.IsEmpty(CurrentSegmentAt(Vector3Int.zero).CaptureItems());
+            var other = CurrentSegmentAt(new Vector3Int(5, 0, 0)).CaptureItems();
+            Assert.AreEqual(1, other.Length);
+            AssertRestored(other[0], ItemC, BeltEntryDirection.FromBack, 50);
+        }
+
         [TestCase("itemGuid", "\"not-a-guid\"")]
         [TestCase("itemGuid", "\"00000000-0000-0000-0000-000000000000\"")]
         [TestCase("itemGuid", "\"11111111-2222-3333-4444-555555555555\"")]
@@ -118,6 +142,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Save
 
         [TestCase("[{\"inputDirection\":4,\"item\":{\"itemGuid\":\"GUID\",\"entryDirection\":2,\"distanceToExit\":100}}]")]
         [TestCase("[{\"inputDirection\":2,\"item\":null}]")]
+        [TestCase("[null]")]
         [TestCase("[{\"inputDirection\":2,\"item\":{\"itemGuid\":\"GUID\",\"entryDirection\":2,\"distanceToExit\":100}},{\"inputDirection\":2,\"item\":{\"itemGuid\":\"GUID\",\"entryDirection\":2,\"distanceToExit\":200}}]")]
         public void CorruptedInternalItemDropsMergeItems(string internalItemsJson)
         {
