@@ -11,11 +11,11 @@ export default defineConfig({
   // Run serially since specs share mock-host global state (e.g. currentBlock)
   fullyParallel: false,
   workers: 1,
-  // 各機能の「動作する動画」を mp4 で残す（CEF 不要のブラウザ録画）
-  // Keep a working-feature mp4 per spec (browser recording, no CEF needed)
+  // 必要なテストだけ明示して録画する: MOORESTECH_E2E_RECORD=1 pnpm exec playwright test --config e2e/playwright.config.ts e2e/tests/progress.spec.ts
+  // Set the opt-in flag for one selected spec, not the whole suite
   use: {
     baseURL: `http://127.0.0.1:${PORT}`,
-    video: "on",
+    video: process.env.MOORESTECH_E2E_RECORD === "1" ? "on" : "off",
     trace: "retain-on-failure",
   },
   webServer: {
