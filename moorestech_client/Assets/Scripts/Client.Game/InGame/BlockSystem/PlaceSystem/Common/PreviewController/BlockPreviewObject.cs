@@ -28,6 +28,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
             }
         }
         private GroundCollisionDetector[] _collisionDetectors;
+        private Collider[][] _contactColliders;
+        private bool _terrainContactConfigured;
+        private GameObject _ownedTerrainContact;
         private RendererMaterialReplacerController _rendererMaterialReplacerController;
         private IBlockPreviewStateProcessor[] _blockPreviewStateProcessors;
         
@@ -40,7 +43,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
             _rendererMaterialReplacerController.CopyAndSetMaterial(placeMaterial);
             
             _blockPreviewStateProcessors = GetComponentsInChildren<IBlockPreviewStateProcessor>(true);
-            _collisionDetectors = GetComponentsInChildren<GroundCollisionDetector>(true);
             
             SetPlaceableColor(true);
             
@@ -55,6 +57,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
                 obj.Initialize(blockId);
                 obj.SetActive(true);
             });
+            CacheContactColliders();
         }
         
         public void SetPreviewStateDetail(PlaceInfo placeInfo)
@@ -78,10 +81,64 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
             _rendererMaterialReplacerController.SetColor(MaterialConst.PreviewColorPropertyName, color);
         }
         
-        public void SetTriggerCollider(bool isTrigger)
+        internal void ConfigurePlacementColliders()
         {
-            var childrenColliders = GetComponentsInChildren<Collider>();
-            foreach (var childrenCollider in childrenColliders) childrenCollider.isTrigger = isTrigger;
+            // 地面接触を残し、非表示の子も設置照準から外す
+            // Preserve ground contact and exclude inactive children from placement aiming.
+            foreach (var collider in GetComponentsInChildren<Collider>(true))
+            {
+                collider.isTrigger = true;
+                collider.gameObject.layer = LayerConst.BlockLayer;
+            }
+        }
+
+        internal void ConfigureTerrainContact(Vector3Int blockSize)
+        {
+            if (_terrainContactConfigured) return;
+            _terrainContactConfigured = true;
+            CacheContactColliders();
+            if (_collisionDetectors.Length != 0) return;
+
+            // 見た目の張り出しを避け、マスターの占有セル内だけで地形接触を測る
+            // Measure terrain within master occupancy, excluding visual mesh overhang.
+            var contact = new GameObject("PlacementGroundContactVolume");
+            _ownedTerrainContact = contact;
+            contact.layer = LayerConst.BlockLayer;
+            contact.transform.SetParent(transform, false);
+            var body = contact.AddComponent<Rigidbody>();
+            body.isKinematic = true;
+            body.useGravity = false;
+            var size = new Vector3(blockSize.x, blockSize.y, blockSize.z);
+            var inset = Physics.defaultContactOffset * 2f;
+            var box = contact.AddComponent<BoxCollider>();
+            box.center = size * 0.5f;
+            box.size = size - Vector3.one * (inset * 2f);
+            box.isTrigger = true;
+            contact.AddComponent<GroundCollisionDetector>();
+            CacheContactColliders();
+        }
+
+        internal void SetTerrainContactEnabled(bool enabled, Vector3Int blockSize)
+        {
+            // 通常設置は専用源を作らず、再利用時には専用源だけを切り替える
+            // Normal placement creates no owned source; reuse toggles only that source.
+            if (enabled) ConfigureTerrainContact(blockSize);
+            if (_ownedTerrainContact != null) _ownedTerrainContact.SetActive(enabled);
+        }
+
+        internal bool DetectCurrentGroundOverlap()
+        {
+            return PlacementGroundContactQuery.HasOverlap(_collisionDetectors, _contactColliders, gameObject.scene);
+        }
+
+        private void CacheContactColliders()
+        {
+            // 非表示の子も構成時に保持し、現在状態だけを問い合わせで読む
+            // Cache dormant child sources once and read only their live state during queries.
+            _collisionDetectors = GetComponentsInChildren<GroundCollisionDetector>(true);
+            _contactColliders = new Collider[_collisionDetectors.Length][];
+            for (var index = 0; index < _collisionDetectors.Length; index++)
+                _contactColliders[index] = _collisionDetectors[index].GetComponentsInChildren<Collider>(true);
         }
         
         public void SetActive(bool active)
