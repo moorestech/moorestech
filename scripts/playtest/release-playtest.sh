@@ -75,10 +75,14 @@ fi
 
 RUN_DIR="$PLAYTEST_RUN_ROOT/$BUILD_LABEL"
 STEAM_DIR="$RUN_DIR/steam"
-# RUN_DIRの再利用は前回の成果物・promotion.mdを黙って読ませる温床になるためfail-closedで拒否する
-# Reusing RUN_DIR would silently read a previous run's artifacts/promotion.md, so refuse it fail-closed
-if [ -e "$RUN_DIR" ]; then
-    echo "ERROR: RUN_DIR が既に存在します（前回実行の残骸の可能性）: ${RUN_DIR}" >&2
+# 並行起動と前回成果物の混入を防ぐため、runを排他的に確保する
+# Claim the run exclusively to prevent concurrent launches and stale artifact reuse
+if ! mkdir -p -- "$PLAYTEST_RUN_ROOT"; then
+    echo "ERROR: RUN_DIR の親を作成できません（IO失敗）: ${RUN_DIR}" >&2
+    exit 2
+fi
+if ! mkdir -- "$RUN_DIR"; then
+    echo "ERROR: RUN_DIR を確保できません（既存・同時確保・IO失敗）: ${RUN_DIR}" >&2
     exit 2
 fi
 mkdir -p "$RUN_DIR/build-windows" "$RUN_DIR/build-mac" "$STEAM_DIR/output"
@@ -134,6 +138,17 @@ release_require_mac_artifact "$RUN_DIR/build-mac"
 release_render_steam_vdfs "$RUN_DIR" "$STEAM_DIR"
 
 "$STEAMCMD_BIN" +login "$MOORESTECH_STEAM_USER" +run_app_build "$STEAM_DIR/app_build_playtest.vdf" +quit
+
+# Steamに格納済みの本体だけを消し、調査ログと検証資料は残す
+# Remove only uploaded build payloads, keeping logs and verification evidence
+if rm -rf -- "$RUN_DIR/build-windows" "$RUN_DIR/build-mac"; then
+    echo "[release-playtest] uploaded build payloads removed: $RUN_DIR/build-windows $RUN_DIR/build-mac"
+else
+    echo "WARNING: アップロード済みビルド本体の削除に失敗しました" >&2
+    for build_dir in "$RUN_DIR/build-windows" "$RUN_DIR/build-mac"; do
+        [ ! -e "$build_dir" ] && [ ! -L "$build_dir" ] || echo "WARNING: 残存パス: $build_dir" >&2
+    done
+fi
 
 # 検証機の通し検証に通ったものだけを手動反映の対象にする
 # Only a build that passed the check machine becomes eligible for manual promotion

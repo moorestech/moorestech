@@ -19,7 +19,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         {
             // DetectGroundOverlapsを呼ばないことが仕様。呼ぶとADR 0047が撤回される
             // Not calling DetectGroundOverlaps is the specification; calling it would revoke ADR 0047
-            previewController.SetPreview(placeInfos, holdingBlockMaster);
+            previewController.SetPreview(placeInfos, holdingBlockMaster, false);
 
             return PlacementCellReasonReporter.ResolveCursorAndReportCauses(placeInfos, cellCauses, cursorCell, feedback);
         }

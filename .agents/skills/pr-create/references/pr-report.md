@@ -11,11 +11,17 @@ PRの成果物（画像・動画・検証結果）は、PRごとに1枚の報告
 
 ## 載せるもの
 
-- タスク中に撮った画像・動画は**全部**載せる。取捨選択で落とさない
-  - unityプレイ録画テストを実行したら `recording.mp4` は必須
-  - Web UI・ゲーム内UIなど見た目が変わる変更で素材が無い・古い場合は、撮ってから載せる
-- 素材が本当に無い変更（ロジックのみ・ドキュメントのみ等）だけ `no_media_reason` に理由を書く
+- 現行headの受入条件を示す最終成功素材と、説明に必要な診断素材を載せる。その他の原本は既存の記録先に保全する
+  - 提出用unityプレイ録画テストの最終成功`recording.mp4`は載せる。調査用や失敗runの動画を成功の証拠にしない
+  - Web UI・ゲーム内UIなど見た目が変わる変更で主要状態の素材が無い・古い場合は、必要な状態を撮ってから載せる
+- 非visual変更（ロジックのみ・ドキュメントのみ等）では素材生成を目的にUIを録画せず、`no_media_reason`に理由を書く
 - 秘密情報・一時的なデバッグ表示が映ったものは撮り直す
+
+Web UIの録画が必要なら、`moorestech_web/webui`で対象specを絞って実行する:
+
+```bash
+MOORESTECH_E2E_RECORD=1 pnpm exec playwright test --config e2e/playwright.config.ts e2e/tests/progress.spec.ts
+```
 
 ## manifest.json
 

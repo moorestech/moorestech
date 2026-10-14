@@ -73,7 +73,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
             // Ground detect reads the ghost's physics contact, so activate it before judging (precedent: GearChainPoleExtendPreviewObject.PositionGhost)
             _previewBlockController.SetActive(true);
 
-            _previewBlockController.SetPreview(placeInfos, poleMaster);
+            _previewBlockController.SetPreview(placeInfos, poleMaster, true);
             var groundOverlaps = _previewBlockController.DetectGroundOverlaps();
 
             // 接触は可否として返すだけ。塗りとPlaceableの確定はモード側が持つ

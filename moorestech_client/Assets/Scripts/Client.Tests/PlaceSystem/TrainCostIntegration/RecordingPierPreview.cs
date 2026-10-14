@@ -10,7 +10,7 @@ namespace Client.Tests.PlaceSystem.TrainCostIntegration
         internal readonly List<bool> ColorUpdates = new();
         public bool IsActive { get; private set; }
 
-        public void SetPreview(List<PlaceInfo> placeInfos, BlockMasterElement master)
+        public void SetPreview(List<PlaceInfo> placeInfos, BlockMasterElement master, bool terrainContactEnabled)
         {
             UpdatePlaceableColors(placeInfos);
         }

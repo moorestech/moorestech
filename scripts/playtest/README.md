@@ -19,6 +19,10 @@ export STEAM_WEB_API_KEY=<Steam Web API の publisher key>
 Windows と Mac（Apple Silicon）の配布ビルドを焼き、1つの Steam ビルドに両 depot を入れて `playtest-staging` へ上げる。Windows は検証機で通し検証し、Mac は `promotion.md` の手順で人が確認する。`playtest` への反映は確認後に Steamworks Web UI で手動実行する。
 用語は CONTEXT.md「プレイテスト」節、裁定は docs/adr/0061 を正とする。
 
+`steamcmd +run_app_build` が正常終了した直後に、その `RUN_DIR/build-windows` と `RUN_DIR/build-mac` を削除する。ログ・`steam/`・`verify/`・検証成功時に生成する `promotion.md` は残し、他の run は触らない。
+ビルド・成果物検査・Steam アップロードが失敗した run は、調査用にビルド本体を保持する。アップロード後の Windows 検証が失敗した場合は本体が削除済みで、`promotion.md` は生成しない。
+本体の削除に失敗した場合は警告と残存パスを出して Windows 検証を続ける。他工程が成功すれば正常終了するため、残った本体の容量回収は手動で行う。
+
 ### 1回だけ行う準備
 
 #### Steamworks 側（Web の手動作業。自動化しない）
