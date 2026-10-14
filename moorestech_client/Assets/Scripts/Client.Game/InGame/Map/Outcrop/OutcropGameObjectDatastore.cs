@@ -46,12 +46,16 @@ namespace Client.Game.InGame.Map.Outcrop
             _handshakeResponse = handshakeResponse;
         }
 
-        public void StartOutcropInstantiation(TerrainSurfacePresentation presentation)
+        public void StartOutcropInstantiation(TerrainSurfacePresentation presentation, Transform environmentRoot)
         {
             // 二重開始は露頭を重ねるので落とす
             // A second start would stack duplicate outcrops
             if (_initializationTask != null)
                 throw new InvalidOperationException("[OutcropGameObjectDatastore] StartOutcropInstantiationが二重に呼ばれました");
+
+            // 接地候補は生成した地形だけを1回集める。冒頭スキットで非表示でも含める
+            // Collect generated terrain once as grounding candidates, including terrain hidden by the opening skit
+            var ownedTerrains = environmentRoot.GetComponentsInChildren<UnityEngine.Terrain>(true);
 
             // 完了と例外を起動待機境界へ伝播させる
             // Propagate completion and exceptions to the startup wait boundary
@@ -108,7 +112,7 @@ namespace Client.Game.InGame.Map.Outcrop
                 // Ground against the completed presentation contract
                 var bounds = new Bounds(center, new Vector3(layout.MaxX - layout.MinX + 1,
                     layout.MaxY - layout.MinY + 1, layout.MaxZ - layout.MinZ + 1));
-                OutcropSurfacePlacement.Place(instance, outcrop, bounds, presentation);
+                OutcropSurfacePlacement.Place(instance, outcrop, bounds, presentation, ownedTerrains);
 
                 // 全階層を採掘レイヤー化
                 // Apply mining layer to all children

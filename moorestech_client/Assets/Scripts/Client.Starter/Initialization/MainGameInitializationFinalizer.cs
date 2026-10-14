@@ -82,7 +82,7 @@ namespace Client.Starter.Initialization
 
             // 露頭生成はTerrain完成後に明示開始する。完了待ちは下の待機境界が一括で担う（ADR#15）
             // Outcrop instantiation starts explicitly after the terrain is ready; the wait boundary below waits for it with the rest (ADR#15)
-            resolver.Resolve<OutcropGameObjectDatastore>().StartOutcropInstantiation(terrainLayout.SurfacePresentation);
+            resolver.Resolve<OutcropGameObjectDatastore>().StartOutcropInstantiation(terrainLayout.SurfacePresentation, starter.EnvironmentRoot.transform);
 
             await InitialEventApplyWaiter.WaitAllAsync(resolver.Resolve<IReadOnlyList<IInitialEventApplyWaitTarget>>());
 

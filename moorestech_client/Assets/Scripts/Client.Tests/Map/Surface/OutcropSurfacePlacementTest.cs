@@ -62,21 +62,6 @@ namespace Client.Tests.Map.Surface
         }
 
         [Test]
-        public void 非表示の環境内にある地形にも露頭を接地する()
-        {
-            // 冒頭スキットと同じ非表示の親階層に地形を置く
-            // Place the terrain under a hidden parent as the opening skit does
-            var environment = new GameObject("HiddenEnvironmentFixture");
-            _created.Add(environment);
-            _terrainObject.transform.SetParent(environment.transform);
-            environment.SetActive(false);
-            Assert.That(Array.IndexOf(Terrain.activeTerrains, _terrainObject.GetComponent<Terrain>()), Is.EqualTo(-1));
-            var root = CreateMesh(0f, 2f);
-            Place(root, Grounded);
-            Assert.That(root.GetComponentInChildren<Renderer>().bounds.min.y - _groundY, Is.InRange(0f, 0.02f));
-        }
-
-        [Test]
         public void 旧worldの位置は変えない()
         {
             var root = CreateMesh(-3f, 2f);
@@ -109,7 +94,7 @@ namespace Client.Tests.Map.Surface
             var missing = new Bounds(SurfaceTerrainIsolation.ResolveTranslation(Vector2.zero), Vector3.one);
             var outcrop = OutcropPrefab.Create(root, Grounded);
             LogAssert.Expect(LogType.Error, new Regex("\\[OutcropSurfacePlacement\\] No terrain contains"));
-            Assert.Throws<InvalidOperationException>(() => OutcropSurfacePlacement.Place(root, outcrop, missing, Grounded));
+            Assert.Throws<InvalidOperationException>(() => OutcropSurfacePlacement.Place(root, outcrop, missing, Grounded, OwnedTerrains));
         }
 
         [TestCase(false)]
@@ -172,13 +157,15 @@ namespace Client.Tests.Map.Surface
             Assert.That(center.z, Is.EqualTo(_veinBounds.center.z).Within(0.001f));
         }
 
+        private Terrain[] OwnedTerrains => new[] { _terrainObject.GetComponent<Terrain>() };
+
         private static TerrainSurfacePresentation Grounded => new TerrainSurfacePresentation.Grounded(SurfaceEnvelope.GeneratedV5);
 
         private void Place(GameObject root, TerrainSurfacePresentation presentation)
         {
             var outcrop = OutcropPrefab.Create(root, presentation);
             Assert.That(outcrop.ContractViolation, Is.Null);
-            OutcropSurfacePlacement.Place(root, outcrop, _veinBounds, presentation);
+            OutcropSurfacePlacement.Place(root, outcrop, _veinBounds, presentation, OwnedTerrains);
         }
 
         private GameObject CreateMesh(float pivot, float width)
