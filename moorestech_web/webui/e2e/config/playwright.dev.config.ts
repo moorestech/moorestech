@@ -14,7 +14,7 @@ export default defineConfig({
   workers: 1,
   use: {
     baseURL: `http://127.0.0.1:${VITE_PORT}`,
-    video: "on",
+    video: process.env.MOORESTECH_E2E_RECORD === "1" ? "on" : "off",
     trace: "retain-on-failure",
   },
   webServer: {
