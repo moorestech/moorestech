@@ -189,6 +189,7 @@ namespace Client.Starter.Registration
             builder.Register<TrainUnitClientCache>(Lifetime.Singleton);
             builder.Register<BeltTransportClientCache>(Lifetime.Singleton);
             builder.Register<AddressableBeltItemObjectFactory>(Lifetime.Singleton).As<IBeltItemObjectFactory>().As<ISkitEntityObjectControl>();
+            builder.Register<BeltItemObjectPresenter>(Lifetime.Singleton);
             builder.Register<TrainUnitTickState>(Lifetime.Singleton);
             builder.RegisterInstance(new TrainSynchronizationDiagnosticWriter(System.IO.Path.Combine(UnityEngine.Application.persistentDataPath, "Logs", "TrainSynchronization")));
             builder.Register<TrainSynchronizationDiagnostics>(Lifetime.Singleton);

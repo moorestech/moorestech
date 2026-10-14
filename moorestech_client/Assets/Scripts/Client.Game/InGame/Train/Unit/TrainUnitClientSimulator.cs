@@ -1,4 +1,5 @@
 using System;
+using Client.Game.InGame.BeltTransport.View;
 using Client.Game.InGame.Train.Network;
 using Client.Game.InGame.Train.View;
 using Core.Update;
@@ -26,6 +27,7 @@ namespace Client.Game.InGame.Train.Unit
         private readonly ITrainUnitHashTickGate _hashTickGate;
         private readonly TrainUnitFutureMessageBuffer _futureMessageBuffer;
         private readonly TrainUnitVisualUpdateSystem _visualUpdateSystem;
+        private readonly BeltItemObjectPresenter _beltItemObjectPresenter;
 
         private double _estimatedClientTick;
         private double _modifyTick = 0.1;
@@ -37,12 +39,14 @@ namespace Client.Game.InGame.Train.Unit
             TrainUnitTickState tickState,
             ITrainUnitHashTickGate hashTickGate,
             TrainUnitFutureMessageBuffer futureMessageBuffer,
-            TrainUnitVisualUpdateSystem visualUpdateSystem)
+            TrainUnitVisualUpdateSystem visualUpdateSystem,
+            BeltItemObjectPresenter beltItemObjectPresenter)
         {
             _tickState = tickState;
             _hashTickGate = hashTickGate;
             _futureMessageBuffer = futureMessageBuffer;
             _visualUpdateSystem = visualUpdateSystem;
+            _beltItemObjectPresenter = beltItemObjectPresenter;
         }
 
         public void Tick()
@@ -117,6 +121,10 @@ namespace Client.Game.InGame.Train.Unit
             // simulator が推定した render tick を、TrainUnit 全体の描画更新 system に渡す
             // Pass the simulator-estimated render tick to the visual update system for all TrainUnits
             _visualUpdateSystem.UpdateAll(_estimatedClientTick, _tickState.GetTick());
+
+            // ベルト上のアイテムの表示は列車の描画更新の後に同じ順で更新する(複製が進んだ回だけ作り直す)
+            // Belt item display updates after the train visuals in this same fixed order (rebuilt only when the replica advanced)
+            _beltItemObjectPresenter.UpdateAll();
         }
     }
 }

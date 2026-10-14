@@ -1,8 +1,6 @@
-using System;
 using Game.Block.Blocks.BeltConveyor.Sync.Diff;
 using Game.Block.Blocks.BeltConveyor.Sync.Replica;
 using Game.Block.Blocks.BeltConveyor.Sync.State;
-using UniRx;
 
 namespace Client.Game.InGame.BeltTransport
 {
@@ -14,17 +12,14 @@ namespace Client.Game.InGame.BeltTransport
         // Absent until the join-time full state arrives; the ordered buffer flushes nothing before it, so no diff can come first
         public BeltTransportReplica Replica { get; private set; }
 
-        // 表示側が購読する。組み直しは全アイテムの作り直し、tickは位置の更新の合図
-        // Subscribed by the view: a re-assembly cues rebuilding every item, a tick cues updating positions
-        private readonly Subject<Unit> _onReplicaAssembled = new();
-        private readonly Subject<Unit> _onReplicaTicked = new();
-        public IObservable<Unit> OnReplicaAssembled => _onReplicaAssembled;
-        public IObservable<Unit> OnReplicaTicked => _onReplicaTicked;
+        // 組み直しとtickのたびに進む版。表示側は購読でなく、描画更新の順番の中でこの版を見て作り直す
+        // Advances on every re-assembly and tick; the view compares this inside its explicit update order instead of subscribing
+        public int ReplicaVersion { get; private set; }
 
         public void ApplyFullState(BeltTransportFullState fullState)
         {
             Replica = BeltTransportReplicaAssembler.Assemble(fullState);
-            _onReplicaAssembled.OnNext(Unit.Default);
+            ReplicaVersion++;
         }
 
         // サーバーと同じtickを再生する。falseは複製がサーバーと食い違った印
@@ -32,7 +27,7 @@ namespace Client.Game.InGame.BeltTransport
         public bool ApplyTickDiff(BeltTickDiff diff)
         {
             var consistent = Replica.Tick(diff);
-            _onReplicaTicked.OnNext(Unit.Default);
+            ReplicaVersion++;
             return consistent;
         }
 

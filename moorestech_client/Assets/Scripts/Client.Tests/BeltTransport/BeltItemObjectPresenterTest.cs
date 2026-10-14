@@ -5,7 +5,6 @@ using Client.Game.InGame.BeltTransport.View;
 using Core.BeltTransport;
 using Core.Item.Interface;
 using Core.Master;
-using Cysharp.Threading.Tasks;
 using Game.Block.Blocks.BeltConveyor.Sync.Diff;
 using Game.Block.Blocks.BeltConveyor.Sync.State;
 using NUnit.Framework;
@@ -27,7 +26,7 @@ namespace Client.Tests.BeltTransport
         {
             var factory = new FakeBeltItemObjectFactory();
             var cache = new BeltTransportClientCache();
-            new BeltItemObjectPresenter(cache, factory).Initialize();
+            var presenter = new BeltItemObjectPresenter(cache, factory);
 
             // 直線に2個、分岐のbufferに1個、内部segmentに1個
             // Two items on a straight line, one in a branch buffer, one on an internal segment
@@ -37,6 +36,7 @@ namespace Client.Tests.BeltTransport
                 BranchWithBufferItem(3),
                 InternalWith(4)
             }));
+            presenter.UpdateAll();
 
             Assert.AreEqual(2, factory.Created.Count, "objects only for the running items on cells");
             AssertPosition(new Vector3(0.5f, Surface, 0.5f), factory.Created[1]);
@@ -49,12 +49,14 @@ namespace Client.Tests.BeltTransport
         {
             var factory = new FakeBeltItemObjectFactory();
             var cache = new BeltTransportClientCache();
-            new BeltItemObjectPresenter(cache, factory).Initialize();
+            var presenter = new BeltItemObjectPresenter(cache, factory);
             cache.ApplyFullState(new BeltTransportFullState(new[] { Line(Running(1, 2 * Cell), Running(2, 0)) }));
+            presenter.UpdateAll();
 
             // 1tickで先頭のアイテムは出口に留まり、後ろのアイテムは速度ぶん進む
             // In one tick the leading item stays at the exit and the trailing one advances by the speed
             cache.ApplyTickDiff(BeltTickDiff.Empty);
+            presenter.UpdateAll();
             AssertPosition(new Vector3(0.5f, Surface, 0.5f + Speed / (float)Cell), factory.Created[1]);
             AssertPosition(new Vector3(0.5f, Surface, 2.5f), factory.Created[2]);
             Assert.AreEqual(2, factory.Created.Count, "no new objects for a tick");
@@ -62,24 +64,32 @@ namespace Client.Tests.BeltTransport
             // 組み直しで片方が消えた: その表示物だけ破棄され、残った個体は同じ表示物のまま
             // A re-assembly without one item: only its object is destroyed and the surviving instance keeps its object
             cache.ApplyFullState(new BeltTransportFullState(new[] { Line(Running(2, 0)) }));
+            presenter.UpdateAll();
             Assert.IsTrue(factory.Created[1].IsDestroyed, "vanished item destroyed");
             Assert.IsFalse(factory.Created[2].IsDestroyed, "surviving item kept");
             Assert.AreEqual(2, factory.Created.Count, "no re-creation across a re-assembly");
         }
 
         [Test]
-        public void ObjectArrivingAfterTheItemVanishedIsDestroyedOnArrival()
+        public void UpdateAllDoesNothingUntilTheReplicaAdvances()
         {
-            var factory = new FakeBeltItemObjectFactory { Deferred = true };
+            var factory = new FakeBeltItemObjectFactory();
             var cache = new BeltTransportClientCache();
-            new BeltItemObjectPresenter(cache, factory).Initialize();
-            cache.ApplyFullState(new BeltTransportFullState(new[] { Line(Running(1, 2 * Cell)) }));
-            cache.ApplyFullState(new BeltTransportFullState(new[] { Line() }));
+            var presenter = new BeltItemObjectPresenter(cache, factory);
 
-            // 読み込み完了が消滅の後に来た: 届いた表示物はその場で破棄
-            // The load completes after the item vanished: the arriving object is destroyed on the spot
-            factory.CompleteDeferred();
-            Assert.IsTrue(factory.Created[1].IsDestroyed);
+            // 複製が無い間は何もしない
+            // Nothing happens while there is no replica yet
+            presenter.UpdateAll();
+            Assert.AreEqual(0, factory.Created.Count);
+
+            // 同じ版のまま何度呼んでも、表示物は作り直されず動かない
+            // Repeated calls on the same version neither re-create nor move the objects
+            cache.ApplyFullState(new BeltTransportFullState(new[] { Line(Running(1, 2 * Cell)) }));
+            presenter.UpdateAll();
+            factory.Created[1].Position = Vector3.one;
+            presenter.UpdateAll();
+            Assert.AreEqual(1, factory.Created.Count);
+            Assert.AreEqual(Vector3.one, factory.Created[1].Position, "untouched while the replica version is unchanged");
         }
 
         private static void AssertPosition(Vector3 expected, FakeBeltItemObject itemObject)
@@ -120,31 +130,20 @@ namespace Client.Tests.BeltTransport
             return new BeltCellShape(new Vector3Int(x, y, z), BeltDirection.Front);
         }
 
-        // 表示物を即時(または保留して後で)返し、個体IDごとに記録する。個体IDは生成順に1から振られている前提
-        // Returns objects at once (or deferred until released) and records them by instance id; instance ids are assumed to be numbered from 1 in creation order
+        // 表示物をその場で返し、個体IDごとに記録する。個体IDは生成順に1から振られている前提
+        // Returns objects on the spot and records them by instance id; instance ids are assumed to be numbered from 1 in creation order
         private sealed class FakeBeltItemObjectFactory : IBeltItemObjectFactory
         {
             public readonly Dictionary<long, FakeBeltItemObject> Created = new();
             public readonly Dictionary<long, ItemId> CreatedItemIds = new();
-            private readonly List<(UniTaskCompletionSource<IBeltItemObject> source, FakeBeltItemObject itemObject)> _deferred = new();
-            public bool Deferred;
 
-            public UniTask<IBeltItemObject> CreateAsync(ItemId itemId, Vector3 position)
+            public IBeltItemObject Create(ItemId itemId, Vector3 position)
             {
-                var itemObject = new FakeBeltItemObject();
+                var itemObject = new FakeBeltItemObject { Position = position };
                 var instanceId = Created.Count + 1;
                 Created.Add(instanceId, itemObject);
                 CreatedItemIds.Add(instanceId, itemId);
-                if (!Deferred) return UniTask.FromResult<IBeltItemObject>(itemObject);
-                var source = new UniTaskCompletionSource<IBeltItemObject>();
-                _deferred.Add((source, itemObject));
-                return source.Task;
-            }
-
-            public void CompleteDeferred()
-            {
-                foreach (var (source, itemObject) in _deferred) source.TrySetResult(itemObject);
-                _deferred.Clear();
+                return itemObject;
             }
         }
 

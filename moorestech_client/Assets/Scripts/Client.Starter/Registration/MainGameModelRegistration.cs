@@ -2,7 +2,6 @@ using Client.Game.InGame.ColliderStreaming;
 using Client.Game.InGame.ColliderStreaming.Block;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.BeltTransport.Network;
-using Client.Game.InGame.BeltTransport.View;
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.LastSession;
@@ -98,7 +97,6 @@ namespace Client.Starter.Registration
             builder.RegisterEntryPoint<TrainUnitTickDiffBundleEventNetworkHandler>();
             builder.RegisterEntryPoint<TrainFullSnapshotEventNetworkHandler>().AsSelf();
             builder.RegisterEntryPoint<BeltTransportEventNetworkHandler>();
-            builder.RegisterEntryPoint<BeltItemObjectPresenter>();
             // 時刻表はtick同期の外でUI用に保持する
             // Keep timetables for the UI outside the tick-synchronized path
             builder.Register<ClientTrainTimetableDatastore>(Lifetime.Singleton).As<IClientTrainTimetableLookup>().As<IClientTrainTimetableMutator>().AsSelf();
