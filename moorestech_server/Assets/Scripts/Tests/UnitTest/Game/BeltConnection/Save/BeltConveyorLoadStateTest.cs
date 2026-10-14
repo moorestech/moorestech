@@ -104,8 +104,68 @@ namespace Tests.UnitTest.Game.BeltConnection.Save
             AssertRestored(other[0], ItemC, BeltEntryDirection.FromBack, 50);
         }
 
+        // 欠損マスタの整理が種類を空GUIDにしたアイテムは壊れた値ではない。その1個だけ見送り、同じsegmentの残りはそのまま戻る(エラーログ無し)
+        // An item whose kind the missing-master cleanup emptied is not corruption: only it is skipped and the rest of its segment returns as is (no error log)
+        [Test]
+        public void PrunedItemIsSkippedAloneAndTheRestOfItsSegmentIsRestored()
+        {
+            var world = NewWorld();
+            PlaceStraightLine(world, 0);
+            Rebuild();
+            CurrentSegmentAt(Vector3Int.zero).RestoreItems(new[]
+            {
+                new BeltItemState(NewItem(ItemA, BeltEntryDirection.FromBack), 50),
+                new BeltItemState(NewItem(ItemB, BeltEntryDirection.FromBack), 500)
+            });
+
+            // z=1のアイテム(距離500)の種類を、整理と同じく空GUIDにする
+            // Empty the kind of the z=1 item (distance 500) exactly as the cleanup does
+            var saved = SaveWorld(world);
+            SavedStateAt(saved, new Vector3Int(0, 0, 1))["items"][0]["itemGuid"] = System.Guid.Empty.ToString();
+
+            NewWorld().LoadBlockDataList(saved);
+            Rebuild();
+            var restored = CurrentSegmentAt(Vector3Int.zero).CaptureItems();
+            Assert.AreEqual(1, restored.Length, "only the pruned item is missing");
+            AssertRestored(restored[0], ItemA, BeltEntryDirection.FromBack, 50);
+        }
+
+        // bufferか内部segmentのアイテムが整理で空にされても、合流blockのもう片方はそのまま戻る
+        // When the buffer item or the internal-segment item was emptied by the cleanup, the merge block's other item still returns
+        [TestCase("bufferItem", TestName = "PrunedBufferItemIsSkippedAndInternalItemIsRestored")]
+        [TestCase("internalItem", TestName = "PrunedInternalItemIsSkippedAndBufferItemIsRestored")]
+        public void PrunedMergeItemIsSkippedAlone(string prunedPlace)
+        {
+            var world = MachineMergeWorld();
+            Rebuild();
+            var assembly = Datastore().Assembly;
+            ((BeltBufferedSegment)CurrentSegmentAt(MergeCell)).Buffer.RestoreItem(NewItem(ItemB, BeltEntryDirection.FromLeft));
+            assembly.Segments[InternalSegmentIndex(assembly)].RestoreItems(new[] { new BeltItemState(NewItem(ItemC, BeltEntryDirection.FromLeft), 100) });
+            var saved = SaveWorld(world);
+            var mergeState = SavedStateAt(saved, MergeCell);
+            var target = prunedPlace == "bufferItem" ? mergeState["bufferItem"] : mergeState["internalItems"][0]["item"];
+            target["itemGuid"] = System.Guid.Empty.ToString();
+
+            var loaded = NewWorld();
+            InstallMachineMergePorts();
+            loaded.LoadBlockDataList(saved);
+            Rebuild();
+            var next = Datastore().Assembly;
+            var merge = (BeltBufferedSegment)CurrentSegmentAt(MergeCell);
+            var internalItems = next.Segments[InternalSegmentIndex(next)].CaptureItems();
+            if (prunedPlace == "bufferItem")
+            {
+                Assert.IsFalse(merge.Buffer.HasItem, "pruned buffer item is skipped");
+                Assert.AreEqual(1, internalItems.Length);
+                AssertRestored(internalItems[0], ItemC, BeltEntryDirection.FromLeft, 100);
+                return;
+            }
+            Assert.IsEmpty(internalItems, "pruned internal item is skipped");
+            Assert.IsTrue(merge.Buffer.TryGetItem(out var held));
+            Assert.AreEqual(ItemB, held.ItemId);
+        }
+
         [TestCase("itemGuid", "\"not-a-guid\"")]
-        [TestCase("itemGuid", "\"00000000-0000-0000-0000-000000000000\"")]
         [TestCase("itemGuid", "\"11111111-2222-3333-4444-555555555555\"")]
         [TestCase("entryDirection", "12")]
         [TestCase("entryDirection", "-1")]
