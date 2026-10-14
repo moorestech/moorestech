@@ -12,6 +12,7 @@ namespace Client.Tests.Map.Surface
     public class OutcropSurfacePlacementTest
     {
         private readonly List<UnityEngine.Object> _created = new();
+        private GameObject _terrainObject;
         private Bounds _veinBounds;
         private float _groundY;
 
@@ -26,11 +27,11 @@ namespace Client.Tests.Map.Surface
                 for (var x = 0; x < 33; x++) heights[z, x] = 0.5f;
             data.SetHeights(0, 0, heights);
             var translation = SurfaceTerrainIsolation.ResolveTranslation(Vector2.zero);
-            var terrainObject = Terrain.CreateTerrainGameObject(data);
-            terrainObject.transform.position = translation + Vector3.up * 2f;
+            _terrainObject = Terrain.CreateTerrainGameObject(data);
+            _terrainObject.transform.position = translation + Vector3.up * 2f;
             _created.Add(data);
-            _created.Add(terrainObject);
-            _groundY = terrainObject.GetComponent<Terrain>().SampleHeight(translation + new Vector3(16f, 0f, 16f)) + 2f;
+            _created.Add(_terrainObject);
+            _groundY = _terrainObject.GetComponent<Terrain>().SampleHeight(translation + new Vector3(16f, 0f, 16f)) + 2f;
             _veinBounds = new Bounds(translation + new Vector3(16f, 15f, 16f), new Vector3(5f, 6f, 5f));
         }
 
@@ -67,10 +68,9 @@ namespace Client.Tests.Map.Surface
             // Place the terrain under a hidden parent as the opening skit does
             var environment = new GameObject("HiddenEnvironmentFixture");
             _created.Add(environment);
-            var terrainObject = (GameObject)_created[1];
-            terrainObject.transform.SetParent(environment.transform);
+            _terrainObject.transform.SetParent(environment.transform);
             environment.SetActive(false);
-            Assert.That(Array.IndexOf(Terrain.activeTerrains, terrainObject.GetComponent<Terrain>()), Is.EqualTo(-1));
+            Assert.That(Array.IndexOf(Terrain.activeTerrains, _terrainObject.GetComponent<Terrain>()), Is.EqualTo(-1));
             var root = CreateMesh(0f, 2f);
             Place(root, Grounded);
             Assert.That(root.GetComponentInChildren<Renderer>().bounds.min.y - _groundY, Is.InRange(0f, 0.02f));
