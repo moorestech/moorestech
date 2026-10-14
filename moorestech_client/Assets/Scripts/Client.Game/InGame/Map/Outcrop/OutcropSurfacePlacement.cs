@@ -55,8 +55,11 @@ namespace Client.Game.InGame.Map.Outcrop
             Terrain FindContainingTerrain()
             {
                 Terrain selected = null;
-                foreach (var candidate in Terrain.activeTerrains)
+                // スキット中は地形が非表示でも接地に使い、別シーンの地形は除外する
+                // Ground against hidden terrain during skits, excluding terrain from other scenes
+                foreach (var candidate in UnityEngine.Object.FindObjectsByType<Terrain>(FindObjectsInactive.Include, FindObjectsSortMode.None))
                 {
+                    if (candidate.gameObject.scene != _instance.scene) continue;
                     var origin = candidate.transform.position;
                     var size = candidate.terrainData.size;
                     if (center.x < origin.x || origin.x + size.x < center.x ||
