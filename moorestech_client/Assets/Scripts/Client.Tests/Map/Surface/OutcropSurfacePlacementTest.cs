@@ -61,6 +61,22 @@ namespace Client.Tests.Map.Surface
         }
 
         [Test]
+        public void 非表示の環境内にある地形にも露頭を接地する()
+        {
+            // 冒頭スキットと同じ非表示の親階層に地形を置く
+            // Place the terrain under a hidden parent as the opening skit does
+            var environment = new GameObject("HiddenEnvironmentFixture");
+            _created.Add(environment);
+            var terrainObject = (GameObject)_created[1];
+            terrainObject.transform.SetParent(environment.transform);
+            environment.SetActive(false);
+            Assert.That(Array.IndexOf(Terrain.activeTerrains, terrainObject.GetComponent<Terrain>()), Is.EqualTo(-1));
+            var root = CreateMesh(0f, 2f);
+            Place(root, Grounded);
+            Assert.That(root.GetComponentInChildren<Renderer>().bounds.min.y - _groundY, Is.InRange(0f, 0.02f));
+        }
+
+        [Test]
         public void 旧worldの位置は変えない()
         {
             var root = CreateMesh(-3f, 2f);
