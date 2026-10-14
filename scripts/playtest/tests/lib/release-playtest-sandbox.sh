@@ -12,6 +12,8 @@ PINNED_PRIVATE="aa741996fda0141060210dfdaa335a312b3ef857"
 PRIVATE_REL="moorestech_client/Assets/PersonalAssets/moorestech-client-private"
 # shellcheck source=release-playtest-build-stubs.sh
 . "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/release-playtest-build-stubs.sh"
+# shellcheck source=release-playtest-delivery-stubs.sh
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/release-playtest-delivery-stubs.sh"
 
 fail() { echo "FAIL: $1"; FAILURES=$((FAILURES + 1)); }
 
@@ -113,22 +115,14 @@ esac
 echo "$SANDBOX/wt"
 exit "\${MOORES_WT_EXIT:-0}"
 EOF
-    cat >"$SANDBOX/bin/steamcmd" <<EOF
-#!/bin/bash
-echo "steamcmd \$*" >>"$SANDBOX/calls.log"
-exit "\${STEAMCMD_EXIT:-0}"
-EOF
-    cat >"$SANDBOX/bin/verify" <<EOF
-#!/bin/bash
-echo "verify \$*" >>"$SANDBOX/calls.log"
-exit "\${VERIFY_EXIT:-0}"
-EOF
+    write_delivery_stubs "$SANDBOX"
     write_build_stubs "$SANDBOX" "$COMMIT"
     chmod +x "$SANDBOX/bin/"*
 }
 
 run_target() {
     ( cd "$SANDBOX" && \
+      PATH="$SANDBOX/bin:$PATH" CLEANUP_FAILURE="${CLEANUP_FAILURE-none}" \
       MOORESTECH_STEAM_USER="${MOORESTECH_STEAM_USER-steamuser}" \
       MOORESTECH_STEAM_DEPOT_ID_WINDOWS="${MOORESTECH_STEAM_DEPOT_ID_WINDOWS-1958161}" \
       MOORESTECH_STEAM_DEPOT_ID_MAC="${MOORESTECH_STEAM_DEPOT_ID_MAC-1958162}" \

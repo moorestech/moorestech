@@ -12,6 +12,7 @@ echo "unity \$* branch=\$MOORESTECH_BUILD_BRANCH masterRoot=\$MOORESTECH_MASTER_
 out="\$MOORESTECH_BUILD_OUTPUT"
 case "\$*" in
   *MacOsSteamPlaytestBuild*)
+    touch "\$out/../unity-build-mac.log" "\$out/build-started"
     [ "\${UNITY_MAC_EXIT:-0}" = "0" ] || exit "\${UNITY_MAC_EXIT}"
     app="\$out/moorestech.app"
     helper="\$app/Contents/PlugIns/cef-unity-server.app/Contents/MacOS/cef-unity-server"
@@ -25,6 +26,7 @@ case "\$*" in
     target="\${BUILD_INFO_TARGET_MAC:-StandaloneOSX}"
     ;;
   *)
+    touch "\$out/../unity-build-windows.log" "\$out/build-started"
     [ "\${UNITY_EXIT:-0}" = "0" ] || exit "\${UNITY_EXIT}"
     remove_after_write=""
     mkdir -p "\$out/moorestech_Data/StreamingAssets" "\$out/game/mods"

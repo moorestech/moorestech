@@ -33,7 +33,10 @@ UNITY_LINES=$(grep "^unity" "$SANDBOX/calls.log")
 echo "$UNITY_LINES" | sed -n 1p | grep -q "WindowsSteamPlaytestBuild" || fail "first unity call was not the Windows build"
 echo "$UNITY_LINES" | sed -n 2p | grep -q "MacOsSteamPlaytestBuild" || fail "second unity call was not the Mac build"
 [ "$(grep -c "^steamcmd" "$SANDBOX/calls.log")" -eq 1 ] || fail "steamcmd was not called exactly once"
-ls -d "$SANDBOX"/runs/*/build-windows "$SANDBOX"/runs/*/build-mac >/dev/null 2>&1 || fail "per-OS build dirs were not created"
+for run in "$SANDBOX"/runs/*; do
+    assert_payloads_removed "$run"
+    [ -f "$run/steam/upload-complete" ] || fail "upload did not observe both payloads"
+done
 
 # run root の & と \ を sed の置換記号として解釈せず VDF にそのまま書く
 # Keep ampersand and backslash in the run root literal when rendering VDFs with sed
@@ -63,6 +66,10 @@ for case_spec in "${FAILURE_CASES[@]}"; do
     OUTPUT=$(eval "$assignment" run_target); STATUS=$?
     [ "$STATUS" -ne 0 ] || fail "$name did not fail the run"
     grep -q "^steamcmd" "$SANDBOX/calls.log" && fail "steamcmd ran despite $name"
+    for run in "$SANDBOX"/runs/*; do
+        assert_payloads_retained "$run"
+        [ -f "$run/build-mac/build-started" ] || fail "$name lost the partial Mac build"
+    done
     grep -q "^moores-wt .*rm" "$SANDBOX/calls.log" || fail "worktree was not torn down after $name"
 done
 
