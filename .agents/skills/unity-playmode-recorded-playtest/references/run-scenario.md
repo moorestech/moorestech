@@ -43,7 +43,7 @@ PLAYTEST_SEED=12345 \
 1. **preflight** (スキル同梱 `scripts/preflight.sh`): CLI Loop疎通（タイムアウト=モーダル/ビジー検出兼務）→ コンパイル → master実在 → **マスタロードのドライラン**（EditモードでMasterHolder.Loadを試しスキーマ不整合をPlayMode前に検出）
 2. **boot**: 通常は `PlaytestBoot.PrepareAndEnterPlayMode(masterDir, noSave:true)`、固定worldの3変数指定時は `PrepareWorldAndEnterPlayMode(masterDir, worldDir, mapMode, seed)` をEDC 1回で実行してPlayMode突入
 3. **ready待ち**: ゲーム初期化完了イベントで書かれる `ready.marker` をファイルポーリング（EDCを連打しない）
-4. **シナリオ投入**: シナリオ全文をEDC 1回で `PlaytestRunner.Run` に渡す（DSLは事前コンパイル済みなのでAPI推測ミスが構造的に起きない）
+4. **シナリオ投入**: キー/マウスを使う場合は先に[input-injection.md](input-injection.md)のde-risk probeを読み、ready後・操作前にフォーカスとデバイスの有効状態を確認する（ワンコマンド実行ではシナリオ先頭で確認）。シナリオ全文をEDC 1回で `PlaytestRunner.Run` に渡す（DSLは事前コンパイル済み）
 5. **回収**: `result.json` の出現を待って表示。`Success` で exit 0/1
 
 ## 結果の読み方

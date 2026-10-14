@@ -11,8 +11,8 @@ export default defineConfig({
   // Run serially since specs share mock-host global state (e.g. currentBlock)
   fullyParallel: false,
   workers: 1,
-  // 必要なテストだけ明示して録画する: MOORESTECH_E2E_RECORD=1 pnpm exec playwright test --config e2e/playwright.config.ts e2e/tests/progress.spec.ts
-  // Set the opt-in flag for one selected spec, not the whole suite
+  // 明示フラグがあるときだけ録画する
+  // Record only when the opt-in flag is set
   use: {
     baseURL: `http://127.0.0.1:${PORT}`,
     video: process.env.MOORESTECH_E2E_RECORD === "1" ? "on" : "off",

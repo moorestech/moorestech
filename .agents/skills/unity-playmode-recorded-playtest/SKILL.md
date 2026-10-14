@@ -1,6 +1,6 @@
 ---
 name: unity-playmode-recorded-playtest
-description: 'Unity Editor を PlayMode 起動し、録画付きで end-to-end gameplay を検証する枠組み。第一選択はプレイテストDSL（Client.Playtest asmdef + 本スキル同梱の scripts/run-scenario.sh）による1コマンド一発実行で、preflight→PlayMode起動→シナリオ投入→result.json回収まで自動化される（実測ready~26秒）。UI経路設置（ビルドメニュー→クリック/ドラッグ）とホットバー割当（建築ショートカット。歯車チェーンポール等）もDSLで操作可能。ユースケース別の詳細は references/ を参照（本文にルーティング表）。DSLが無いブランチのみレガシー手動フローへフォールバック。Use When: 「Unity をコードで動かして録画したい」「PlayMode テストの入力とフォーカスを検証」「Recorder を CLI 制御」「実プレイで動くか確認」「キーマウ操作でE2E検証」「MonoBehaviour Update を回した状態で API 叩いて検証」「ロジック単体テストでは捕まらないシナリオを通しで確認」「プレイテストDSLでシナリオ実行」と言われた場合。背景動作が必要なときは入力デバイスの有効状態を実測する。入力は必ず InputSystem QueueStateEvent で注入し OS simulate-keyboard/simulate-mouse-input は使わない（前面化して注入を汚染する・最重要）。masterデータはブランチ互換コミットへピン留めした worktree を使う（スキーマ不整合は MooresmasterLoaderException で初期化が無言死する）。録画には操作オーバーレイ（アクションログ・キー・カーソル）が自動で焼き込まれ、アクション間0.5秒インターバルが自動挿入される。'
+description: 'Unity Editor を PlayMode 起動し、録画付きで end-to-end gameplay を検証する枠組み。第一選択はプレイテストDSL（Client.Playtest asmdef + 本スキル同梱の scripts/run-scenario.sh）による1コマンド一発実行で、preflight→PlayMode起動→シナリオ投入→result.json回収まで自動化される（実測ready~26秒）。UI経路設置（ビルドメニュー→クリック/ドラッグ）とホットバー割当（建築ショートカット。歯車チェーンポール等）もDSLで操作可能。ユースケース別の詳細は references/ を参照（本文にルーティング表）。DSLが無いブランチのみレガシー手動フローへフォールバック。Use When: 「Unity をコードで動かして録画したい」「フォーカス無しで PlayMode テスト」「Recorder を CLI 制御」「実プレイで動くか確認」「キーマウ操作でE2E検証」「MonoBehaviour Update を回した状態で API 叩いて検証」「ロジック単体テストでは捕まらないシナリオを通しで確認」「プレイテストDSLでシナリオ実行」と言われた場合。背景動作が必要なときは入力デバイスの有効状態を実測する。入力は必ず InputSystem QueueStateEvent で注入し OS simulate-keyboard/simulate-mouse-input は使わない（OS入力とInputSystem注入を混在させない）。masterデータはブランチ互換コミットへピン留めした worktree を使う（スキーマ不整合は MooresmasterLoaderException で初期化が無言死する）。録画には操作オーバーレイ（アクションログ・キー・カーソル）が自動で焼き込まれ、アクション間0.5秒インターバルが自動挿入される。'
 ---
 
 # unity-playmode-recorded-playtest
@@ -47,7 +47,7 @@ uloop control-play-mode --project-path ./moorestech_client --action stop   # 前
    共有moorestech_masterのHEADや他ブランチ用の既存worktreeは別スキーマに進んでいることがあり、使うと`MooresmasterLoaderException`で初期化が**無言死**する。互換コミットは作業中プロジェクトの`.moorestech-external-revisions.json`の`moorestech_master.commitHash`で、Unityが作業ツリー版を実チェックアウト値へ常時書き戻すため**コミット済み(`git show HEAD:`)の値が正**。
    `run-scenario.sh`/`preflight.sh`はこのコミット済みcommitHashにHEADが一致するmoorestech_master worktreeを**自動解決**する（第3/第2引数省略時）。未作成なら自動解決が失敗しエラーになるので、作業中ブランチ用に1つ作る:
    `git -C ../moorestech_master worktree add <path> <互換コミット>`（作成後は第3引数で明示してもよい）
-2. **OSレベル入力シミュレート禁止**（simulate-keyboard/simulate-mouse-input）。Editorを前面化させ実OSマウスが毎フレーム注入を上書きし、PlayMode再起動まで回復しない。注入は`SemanticInput`（QueueStateEvent）一択。**スニペットから`InputSystem.Update()`も呼ばない**
+2. **OSレベル入力シミュレート禁止**（simulate-keyboard/simulate-mouse-input）。OS入力と注入を混在させると実OSマウスが注入値を上書きし、PlayMode再起動まで回復しない。注入は`SemanticInput`（QueueStateEvent）一択。**スニペットから`InputSystem.Update()`も呼ばない**
 3. **固定sleepで待たない**。`p.Until(条件, timeout, ラベル)`かファイル出現ポーリング（result.json / ready.marker）で待つ
 4. **シナリオ実行前にPlayModeを止める**。走ったままだと前回のワールド状態を引き継ぐ
 5. **legacy `UnityEngine.Input`直読みは注入で駆動不可**。主要経路は`Client.Input.HybridInput`へ移行済み。新たに駆動しない入力を見つけたらHybridInput化する（input-injection.md）

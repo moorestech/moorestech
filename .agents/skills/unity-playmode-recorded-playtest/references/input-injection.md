@@ -5,7 +5,7 @@
 - **InputSystem直接注入** — `InputSystem.QueueStateEvent(...)`。フォーカスと入力デバイスの有効状態を確認して使う。
   DSLでは `Client.Playtest/Input/SemanticInput.cs` がこれを抽象化している（**第一選択**）
 - **OS入力** — `uloop simulate-keyboard` / `simulate-mouse-input` は**禁止**。
-  Editorを前面化させ、実OSマウス状態が毎フレーム`Mouse.current`にforwardされてInputSystem注入を上書き無効化する。
+  OS入力を混ぜると実OSマウス状態が`Mouse.current`に転送され、InputSystem注入を上書きする。
   一度汚染するとPlayMode再起動でしか戻らない（ESC1回のsimulateで以降全注入が死んだ実績あり）
 
 さらに: **スニペットから`InputSystem.Update()`を呼ばない**。editor-update文脈になり

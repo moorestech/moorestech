@@ -17,6 +17,12 @@ PRの成果物（画像・動画・検証結果）は、PRごとに1枚の報告
 - 非visual変更（ロジックのみ・ドキュメントのみ等）では素材生成を目的にUIを録画せず、`no_media_reason`に理由を書く
 - 秘密情報・一時的なデバッグ表示が映ったものは撮り直す
 
+Web UIの録画が必要なら、`moorestech_web/webui`で対象specを絞って実行する:
+
+```bash
+MOORESTECH_E2E_RECORD=1 pnpm exec playwright test --config e2e/playwright.config.ts e2e/tests/progress.spec.ts
+```
+
 ## manifest.json
 
 PR作業のscratch（コミットしない場所）に置く。`file` は絶対パスか manifest からの相対パス。
