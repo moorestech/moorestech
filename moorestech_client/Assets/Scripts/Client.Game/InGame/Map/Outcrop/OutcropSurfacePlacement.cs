@@ -59,9 +59,13 @@ namespace Client.Game.InGame.Map.Outcrop
                 // Ground against hidden terrain during skits, excluding terrain from other scenes
                 foreach (var candidate in UnityEngine.Object.FindObjectsByType<Terrain>(FindObjectsInactive.Include, FindObjectsSortMode.None))
                 {
+                    // silent-ok: 別シーンは対象外 / 地形がなければ起動失敗を進行記録で開発者へ送る
+                    // Other scenes are outside this search; missing terrain fails startup and reaches developers through progress records
                     if (candidate.gameObject.scene != _instance.scene) continue;
                     var origin = candidate.transform.position;
                     var size = candidate.terrainData.size;
+                    // silent-ok: 範囲外は対象外 / 全候補が外れたら起動失敗を進行記録で開発者へ送る
+                    // Outside terrain is skipped; exhausting candidates fails startup and reaches developers through progress records
                     if (center.x < origin.x || origin.x + size.x < center.x ||
                         center.z < origin.z || origin.z + size.z < center.z) continue;
 
