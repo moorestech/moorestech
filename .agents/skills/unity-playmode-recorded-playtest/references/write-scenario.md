@@ -14,7 +14,9 @@ using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using UnityEngine;
 
-var options = new PlaytestRunOptions { Record = true };   // Record=true でmp4録画内蔵
+// 調査は録画を省き、提出用の最終実行だけ録画する
+// Skip recording during investigation; record only the final submission run
+var options = new PlaytestRunOptions { Record = false };
 return PlaytestRunner.Run("my-scenario", options, async p =>
 {
     // デバッグ環境を1行構築（無限落下防止の足場+ワープ+無料設置）。設定値は冒頭ログとTimelineに流れる
@@ -28,6 +30,8 @@ return PlaytestRunner.Run("my-scenario", options, async p =>
     await p.Screenshot("01-milestone");
 });
 ```
+
+調査用は`Record = false`で`result.json`の`Success`と`Asserts`を確認する。提出用の最終実行だけ`Record = true`にして、動画・期待スクショ・実プレイ視点も確認する。
 
 `PlaytestEnvironmentConfig` のフィールド（すべてpublicフィールド・デフォルト値あり）:
 `FreeBlockPlacement=true`（建築全解放+クライアント/サーバー両方のコスト無料。falseでも毎回明示保存され前回実行の残留なし）/

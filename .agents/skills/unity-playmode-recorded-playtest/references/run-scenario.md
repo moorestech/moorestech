@@ -51,7 +51,7 @@ PLAYTEST_SEED=12345 \
 成果物: `moorestech_client/PlaytestResults/<セッション>/<ラン名>/`（git管理外）
 
 - `result.json` — `Success` / `Error`(スタックトレース) / `Asserts`配列(Label・Passed・Message) / `Timeline`(操作・ナレーション・待機の時系列ログ) / `Screenshots` / `RecordingPath`
-- `recording.mp4` — 全編録画（`PlaytestRunOptions { Record = true }` のとき）
+- `recording.mp4` — 提出用の最終実行（`PlaytestRunOptions { Record = true }`）で生成。調査用（`Record = false`）では生成しない
 - `*.png` — シナリオ内 `p.Screenshot(name)` の出力
 
 **Assertは失敗しても実行が続く。Untilのタイムアウトだけは例外で中断し`Error`に入る。**
@@ -59,8 +59,8 @@ Success=false のときは Error の先頭行と「最後にPASSしたAssert」�
 
 ## 実行後チェックリスト
 
-1. `Success: true` か / Assertsが全てPassedか
-2. スクショ・録画を**必ず目視**（設置位置ズレ・見た目の破綻はassertで捕まらない）
+1. 調査用（`Record = false`）は`Success: true`か / Assertsが全てPassedかを確認する
+2. 提出用の最終実行（`Record = true`）は1に加え、0 byteでない動画・期待UIのスクショ・実プレイ視点（アバター・地面・HUD）を**必ず目視**する。調査用の成功を提出用録画に代えない
 3. `git status` → `.moorestech-external-revisions.json` が書き換わっていたら `git checkout --` で戻す（Unityの自動書き換え。スキーマ未更新ならコミット禁止）
 
 ## よくある失敗と即応
