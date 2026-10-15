@@ -56,14 +56,16 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
             var holdingBlock = BeltConveyorHoldingBlock.Resolve(holdingBlockId);
             Assert.AreEqual(BeltSlopeGrade.Up, holdingBlock.SlopeGrade);
 
-            var runBuilder = new BeltConveyorPlaceRunBuilder(_dataStore, new CommonBlockPlaceDragState(new PlacementHeightOffset()), new FakeConveyorTerrainFloor(new Dictionary<Vector2Int, int>()));
-            var placeInfos = runBuilder.Build(Vector3Int.zero, new Vector3Int(2, 0, 2), BlockDirection.East, holdingBlock, out _, out var beltReasons, out _);
+            var terrain = new FakeConveyorTerrainFloor(new Dictionary<Vector2Int, int> { [new Vector2Int(1, 0)] = 7 });
+            var runBuilder = new BeltConveyorPlaceRunBuilder(_dataStore, new CommonBlockPlaceDragState(new PlacementHeightOffset()), terrain);
+            var placeInfos = runBuilder.Build(Vector3Int.zero, new Vector3Int(2, 0, 2), BlockDirection.East, holdingBlock, out _, out var beltReasons, out var terrainClimbAbandoned);
 
             Assert.AreEqual(5, placeInfos.Count);
             Assert.IsTrue(placeInfos.All(info => info.BlockId == holdingBlockId));
             Assert.IsTrue(placeInfos.All(info => info.Placeable));
             Assert.IsTrue(placeInfos.All(info => info.VerticalDirection == BlockVerticalDirection.Up));
             Assert.IsTrue(beltReasons.All(reason => reason == BeltConveyorPlacementBlockReason.None));
+            Assert.IsFalse(terrainClimbAbandoned);
             CollectionAssert.AreEqual(new[] { 0, 1, 2, 3, 4 }, placeInfos.Select(info => info.Position.y).ToList());
         }
 

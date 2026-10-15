@@ -38,6 +38,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
             return CalculateStraightPoint(startPoint, endPoint, isStartDirectionZ, blockDirection, straightBlockMaster, IsNotExistBlock, IsOccupied, _terrainFloor, out blockCauses, out beltReasons, out terrainClimbAbandoned);
         }
 
+        // 坂を持たないファミリーが丘を越えられないとき、元の経路を同じ判定器で解く
+        // Resolve the original path through the same checks when a family lacks the slope needed for a hill
+        internal List<PlaceInfo> CalculateStraightPointWithoutTerrain(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockMasterElement straightBlockMaster, out List<PlacementBlockCause> blockCauses, out List<BeltConveyorPlacementBlockReason> beltReasons)
+        {
+            return CalculateStraightPoint(startPoint, endPoint, isStartDirectionZ, blockDirection, straightBlockMaster, IsNotExistBlock, IsOccupied, new NoConveyorTerrainFloor(), out blockCauses, out beltReasons, out _);
+        }
+
         public static List<PlaceInfo> CalculateStraightPoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockMasterElement straightBlockMaster, Func<PlaceInfo, BlockMasterElement, bool> isNotExistBlock, Func<Vector3Int, bool> isOccupied, IConveyorTerrainFloor terrainFloor, out List<PlacementBlockCause> blockCauses, out List<BeltConveyorPlacementBlockReason> beltReasons, out bool terrainClimbAbandoned)
         {
             var (placeInfos, startToCornerDistance) = BeltConveyorStraightPathBuilder.Build(startPoint, endPoint, isStartDirectionZ, blockDirection);

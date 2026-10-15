@@ -149,8 +149,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
 
             // ベルト固有の理由と地形乗り越え断念の案内を積む
             // Push belt-specific reasons and the terrain-climb-abandoned notice
-            // カーソルが列外なら固有理由なしとして扱う
-            // Treat a cursor outside the run as having no belt-specific reason
+            // -1は共用カーソル解決の既存契約。列外なら固有理由なしにする（型化は後続bd）
+            // -1 is the shared cursor resolver's existing contract; use no reason outside the run (typed in follow-up bd)
             var cursorCellReason = cursorIndex < 0 ? BeltConveyorPlacementBlockReason.None : beltReasons[cursorIndex];
             BeltConveyorFeedbackReporter.Report(feedback, cursorCellReason, terrainClimbAbandoned);
 

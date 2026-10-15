@@ -41,5 +41,19 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
 
             Assert.AreEqual(new[] { LocalizationKeys.Ui.Tooltip.PlaceBeltOverpassInfeasible.Key }, feedback.Lines.Select(line => line.Key.Key).ToArray());
         }
+
+        [Test]
+        public void 固有理由と断念案内はこの順で二行積む()
+        {
+            var feedback = new PlacementFeedback();
+
+            BeltConveyorFeedbackReporter.Report(feedback, BeltConveyorPlacementBlockReason.ImpossibleOverpass, true);
+
+            Assert.AreEqual(new[]
+            {
+                LocalizationKeys.Ui.Tooltip.PlaceBeltOverpassInfeasible.Key,
+                LocalizationKeys.Ui.Tooltip.PlaceBeltTerrainClimbAbandoned.Key,
+            }, feedback.Lines.Select(line => line.Key.Key).ToArray());
+        }
     }
 }

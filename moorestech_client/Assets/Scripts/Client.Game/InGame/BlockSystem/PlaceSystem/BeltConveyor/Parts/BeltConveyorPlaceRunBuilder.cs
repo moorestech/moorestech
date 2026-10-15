@@ -4,6 +4,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.ConveyorOverpass;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Game.Block.Interface;
+using Game.Block.Interface.Extension;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 
@@ -42,9 +43,47 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
 
             var cellInfos = _placePointCalculator.CalculateStraightPoint(dragStartPoint, placePoint, isStartDirectionZ, blockDirection, holdingBlock.BlockMaster, out blockCauses, out beltReasons, out terrainClimbAbandoned);
 
+            // 必要な坂をファミリーが持たなければ、地形が生んだ高低差だけを諦める
+            // If the family lacks a required slope, abandon only the height change caused by terrain
+            if (HasUnavailableSlope(cellInfos, holdingBlock.Family))
+            {
+                var terrainFreeInfos = _placePointCalculator.CalculateStraightPointWithoutTerrain(dragStartPoint, placePoint, isStartDirectionZ, blockDirection, holdingBlock.BlockMaster, out var terrainFreeCauses, out var terrainFreeReasons);
+                var terrainChangedRun = HasVerticalDifference(cellInfos, terrainFreeInfos);
+                if (terrainChangedRun)
+                {
+                    cellInfos = terrainFreeInfos;
+                    blockCauses = terrainFreeCauses;
+                    beltReasons = terrainFreeReasons;
+                }
+
+                // 元の経路も坂不足か立体交差不能なら従来の不可理由だけを出す
+                // Show only the original block reason if the original path also lacks a slope or feasible overpass
+                terrainClimbAbandoned = terrainChangedRun && !beltReasons.Contains(BeltConveyorPlacementBlockReason.ImpossibleOverpass) && !HasUnavailableSlope(cellInfos, holdingBlock.Family);
+            }
+
             // セル列へ直線・坂を1対1で割り当てる
             // Assign straight/slope blocks to cells one-to-one
             return BeltConveyorStraightCellBlockResolver.ResolveStraightRun(cellInfos, holdingBlock.Family, beltReasons);
+        }
+
+        private static bool HasUnavailableSlope(IReadOnlyList<PlaceInfo> cells, BeltConveyorFamily family)
+        {
+            foreach (var cell in cells)
+            {
+                if (cell.VerticalDirection == BlockVerticalDirection.Up && !family.UpBlockId.HasValue) return true;
+                if (cell.VerticalDirection == BlockVerticalDirection.Down && !family.DownBlockId.HasValue) return true;
+            }
+            return false;
+        }
+
+        private static bool HasVerticalDifference(IReadOnlyList<PlaceInfo> terrainCells, IReadOnlyList<PlaceInfo> terrainFreeCells)
+        {
+            for (var i = 0; i < terrainCells.Count; i++)
+            {
+                if (terrainCells[i].Position.y != terrainFreeCells[i].Position.y) return true;
+                if (terrainCells[i].VerticalDirection != terrainFreeCells[i].VerticalDirection) return true;
+            }
+            return false;
         }
     }
 }
