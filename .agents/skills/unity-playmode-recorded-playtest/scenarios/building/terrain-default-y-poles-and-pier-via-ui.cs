@@ -19,7 +19,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using VContainer;
 
-var options = new PlaytestRunOptions { Record = false };
+var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("terrain-default-y-poles-and-pier-via-ui", options, async p =>
 {
     // 背景EditorではInputSystemがデバイスを無効化し注入が届かないため、焦点無視へ切り替え再有効化する
