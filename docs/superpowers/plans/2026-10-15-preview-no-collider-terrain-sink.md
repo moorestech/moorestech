@@ -17,7 +17,7 @@
 - R5 撤去: `ConfigurePlacementColliders`・`ConfigureTerrainContact`・`SetTerrainContactEnabled`・`DetectCurrentGroundOverlap`・`PlacementGroundContactQuery`・`IPlacementPreviewBlockGameObjectController.DetectGroundOverlaps`・`SetPreview` の `terrainContactEnabled` 引数・歯車チェーンポールの「選択レイ前の前フレームゴーストHide」・`BlockClickDetectUtil`／`DeleteTargetRaycaster` のプレビュー命中スキップ・`GroundCollisionDetector`（クラス・5Prefabの部品・`BlockGameObject` の無効化・`BlockGameObjectColliderSetup` の除外分岐）。受け入れ: `grep -rn "GroundCollisionDetector\|DetectGroundOverlaps\|PlacementGroundContactQuery\|ConfigureTerrainContact" moorestech_client/Assets/Scripts` が0件
 - R6 BP部分設置: 埋まるブロックだけ赤く表示して飛ばし、残りを置く。全ブロックが重なり／埋まりで不可ならBP不可。飛ばしたブロックを端点に持つ電線・歯車チェーンは張らない（ADR 0077 決定4と同じ）。受け入れ: サーバーテストで、埋まり位置を送ったブロックが置かれず素材も消費されず、その端点の線も張られない
 - R7 BPの除外はクライアントが送る: BPリクエストに埋まりブロックの位置列 `TerrainSunkBlockPositions` を載せる。サーバーは地形を検証せず、その位置の要素を不可にする。受け入れ: 位置列が空なら従来どおり全部置く／位置列にある要素だけ置かない
-- R8 表示: 不可理由は既存の `PlacementFeedback.AddBlockedByTerrain`（「地形に埋まっています」）を全系統で使う。BPは埋まり要素が1つでもあれば行を出す
+- R8 表示: 不可理由は既存の `PlacementFeedback.AddBlockedByTerrain`（「地形に埋まっています」）を全系統で使う。BPは埋まり要素が1つでもあれば行を出す（重なり行が「全コピーが全滅のときだけ」なのと非対称にするのは、重なりは既存ブロックが見えて赤ゴーストだけで原因が分かるが、地中への食い込みは見た目で分かりにくく、BPにはカーソルセルの理由行も無いため）
 - R9 接続線（電線・歯車チェーン・レール）は地形判定しない（埋まってよい）
 - R10 残すもの: #1507 の「4設置系の設置Yを占有範囲の地形最高点を含むセルにする」、接続線返却の MaxStack 分割はそのまま
 - やらないこと: ベルトの地形迂回ルート計算（bd moorestech-5wy86）。サーバー側の地形検証。セーブ形式の変更・既存セーブの地中ブロックの扱い。4隅サンプル間の尖りの検出
@@ -59,7 +59,7 @@
 | `moorestech_client/Assets/Scripts/Client.Game/InGame/Context/BlockGameObjectColliderSetup.cs` | 検出器除外分岐の撤去 | Modify |
 | `moorestech_client/Assets/Scripts/Client.Game/InGame/Control/BlockClickDetectUtil.cs` | プレビュー命中スキップの撤去 | Modify |
 | `moorestech_client/Assets/Scripts/Client.Game/InGame/Control/DeleteTargetRaycaster.cs` | 同上 | Modify |
-| `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/Util/Blueprint/Planning/BlueprintPasteElementBlockCause.cs` | BP要素の不可原因3値 | Create |
+| `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/Util/Blueprint/Planning/BlueprintPasteCopyDraft.cs` | BP要素の不可原因3値 enum を同居（Planning/ は既に10ファイルのため。前例: `BlueprintPasteCopyState` が `BlueprintPasteCopyPlan.cs` に同居） | Modify |
 | `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/Util/Blueprint/Planning/IBlueprintPasteWorld.cs` | `IsTerrainSunk` 追加 | Modify |
 | `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/Util/Blueprint/Planning/BlueprintPasteCopyBuilder.cs` / `BlueprintPasteCopyDraft.cs` / `BlueprintPasteCopyPlan.cs` / `BlueprintPasteMaterialAccumulator.cs` / `BlueprintPastePlanner.cs` | NonOverlapFlags → ElementBlockCauses | Modify |
 | `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/Util/Blueprint/ServerBlueprintPasteWorld.cs` / `BlueprintPasteOperationHandler.cs` | 送られた埋まり位置で判定 | Modify |
@@ -333,7 +333,6 @@ git commit -m "feat(place): 地形めり込みを全設置系で高さサンプ�
 ### Task 2: BP貼り付けの埋まりブロックをクライアント判定で飛ばす
 
 **Files:**
-- Create: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/Util/Blueprint/Planning/BlueprintPasteElementBlockCause.cs`
 - Modify: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/Util/Blueprint/Planning/IBlueprintPasteWorld.cs`
 - Modify: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/Util/Blueprint/Planning/BlueprintPasteCopyBuilder.cs`
 - Modify: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/Util/Blueprint/Planning/BlueprintPasteCopyDraft.cs`
@@ -366,11 +365,9 @@ git commit -m "feat(place): 地形めり込みを全設置系で高さサンプ�
 
 - [ ] **Step 2: 共有 planner を3値へ広げる**
 
-`BlueprintPasteElementBlockCause.cs`:
+`BlueprintPasteCopyDraft.cs` の namespace 内、クラスの前に置く（新規ファイルにしない）:
 
 ```csharp
-namespace Server.Protocol.PacketResponse.Util.Blueprint.Planning
-{
     // BP要素を置けない原因。地形はクライアントが判定して送る（ADR 0081）
     // Why a blueprint element cannot be placed; terrain is judged and sent by the client (ADR 0081)
     public enum BlueprintPasteElementBlockCause
@@ -379,7 +376,6 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint.Planning
         ExistingBlock,
         TerrainSunk,
     }
-}
 ```
 
 `IBlueprintPasteWorld` に `bool IsTerrainSunk(BlockPositionInfo positionInfo);` を足す。`BlueprintPasteCopyBuilder.Build` のループを次にする:
@@ -514,7 +510,7 @@ git commit -m "feat(blueprint): 地形に埋まるブロックだけ飛ばし埋
 
 - [ ] **Step 4: 撤去と付随の削除**
   - `PlacementGroundContactQuery.cs`・`GroundCollisionDetector.cs` を .meta ごと `git rm`
-  - Step 1 で確認した5Prefabから `GroundCollisionDetector` を `uloop execute-dynamic-code`（`PrefabUtility.LoadPrefabContents` → 削除 → `SaveAsPrefabAsset` → `UnloadPrefabContents`）で外す。その GameObject が検出専用（Collider と GroundCollisionDetector／Rigidbody だけで子が無い）なら GameObject ごと削除する。Missing Script が残っていないことを同じ dynamic-code で確かめる
+  - Step 1 で確認した5Prefabから `GroundCollisionDetector` を `uloop execute-dynamic-code`（`PrefabUtility.LoadPrefabContents` → 削除 → `SaveAsPrefabAsset` → `UnloadPrefabContents`）で外す。その GameObject が検出専用（Collider と GroundCollisionDetector／Rigidbody だけで子が無い。campfier・Primitive_Blast_Furnace の `PreviewCollison` が該当見込み）なら GameObject ごと削除する。Sieve・press machine・Charcoal_Kiln は描画本体の `Cube`（MeshRenderer＋非トリガー BoxCollider）に付いている見込みなので、Cube は残し部品だけ外す。帰結: その BoxCollider が `BlockGameObjectColliderSetup.IsClickableCollider` でクリック可能扱いになる（Sieve はクリック可能 Collider 0本→1本で、欠落エラーが消える。press machine・Charcoal_Kiln はベイク済み `ClickCollider` と二重になり、次に `BlockClickColliderBaker` を回すと `ClickCollider` が消える）。この帰結を受け入れて進め、`BlockClickColliderTest` の対象ブロックに5Prefabが含まれないことを確認する。Missing Script が残っていないことを同じ dynamic-code で確かめる
   - `BlockGameObject.cs:85-89` の「地面との衝突判定を無効化」ループを削除
   - `BlockGameObjectColliderSetup.cs:55-57` の GroundCollisionDetector 除外分岐とコメントを削除
   - `BlockClickDetectUtil.TryGetFrontmostSolidHit` のプレビュー命中スキップ行とコメントを削除し、コメントを「最小距離のヒットを1回の走査で選ぶ」/「Pick the nearest hit in one scan without sorting」に直す
@@ -577,3 +573,4 @@ git commit -m "test(place): 地形めり込み統一とプレビュー当たり�
 - unityプレイ録画テストを Task 4 に含めた: 判定が実地形（TerrainCollider・生成ワールドの端数）とレイに依存し、#1499/#1507 の退行はどちらもユニットテストを通って実地形で出たため。出所: agent前提（planning）
 - サーバー側BP共有plannerとプロトコルの改修（BlueprintPasteElementBlockCause.cs 新設、IBlueprintPasteWorld.cs・BlueprintPasteCopyBuilder.cs・BlueprintPasteCopyDraft.cs・BlueprintPasteCopyPlan.cs・BlueprintPasteMaterialAccumulator.cs・BlueprintPastePlanner.cs・ServerBlueprintPasteWorld.cs・BlueprintPasteOperationHandler.cs・BlueprintRequest.cs の変更）: BPの埋まり除外をクライアント判定・リクエスト送信・サーバーは送信値で飛ばす形にするための最小改修。サーバー可変状態の同期ではなく単発リクエストの入力追加なので3点セット（イベント＋初期データ＋購読）は不要。地形を持たないサーバーが送信値を信じる形は既存 BlueprintPasteOrigin.IsGroundFound と同型。出所: ユーザー裁定 2026-10-15 選択「クライアントが除外を送る (推奨)」＋形状は agent前提（planning）
 - Phase 2.6 裁定（ユーザー裁定 2026-10-15）: ADR 0081 を plan に合わせ「BP除外は位置で送る」「境界は ResolveCellY の許容誤差で比べる」を追記。「プレビュー表示→埋まり判定→理由反映」の3系統の繰り返しと電柱・歯車ポールの1セル判定の繰り返しは据え置き（選択「このままでよい (推奨)」）。BPの要素可否の述語は `BlueprintPasteCopyDraft.IsPlaceableCause` 1本へ集約（検査6の指摘を直接修正）。届け先は master へのPRだけ（選択「masterへのPRだけ (推奨)」）。テストケース 10.999f は float 誤差で境界をまたぐおそれがあるため 10.99f に修正。裁定記録: `.decisions/2026-10-15-BP埋まり除外は位置で送り境界はResolveCellYの許容誤差で比べる.md`
+- user-simulator review（2026-10-15）の適用: enum を新規ファイルにせず `BlueprintPasteCopyDraft.cs` へ同居（1ディレクトリ10ファイル規約。前例 `BlueprintPasteCopyPlan.cs:6`）、R8 に非対称の理由を明記、Task 3 Step 4 に描画本体 Cube に付いた検出器の扱いと Collider がクリック可能になる帰結を明記。いずれも規約・前例の適用と手順の明文化で、挙動・範囲の判断ではない。出所: agent前提（user-simulator 指摘を規約照合のうえ採用）
