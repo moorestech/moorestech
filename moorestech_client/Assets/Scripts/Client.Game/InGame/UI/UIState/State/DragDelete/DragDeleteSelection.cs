@@ -125,17 +125,35 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             foreach (var target in committed) target.Delete();
             if (record.HasRemovedObjects) _buildOperationHistory.Push(record);
 
-            // 送信と履歴記録の後で表示を戻し、未着手分は次の解除へ残す
-            // Reset after sends and history recording; retain unstarted releases for the next cancellation
+            // 送信と履歴記録の後で全対象の表示を戻す
+            // Reset every preview after sends and history recording
             ReleasePendingResets("[DragDelete] selected target was destroyed before reset");
         }
 
         private void ReleasePendingResets(string destroyedWarning)
         {
-            // 失敗した対象は再試行せず、後続対象の所有権だけ残す
-            // Remove before calling so only unstarted targets remain after an exception
+            // 失敗時も残りを解放して次の離脱を守る
+            // Drain remaining releases on failure so the next exit input can proceed
             while (_pendingResets.Count > 0)
-                _resetRecovery.Reset(_pendingResets.Dequeue(), destroyedWarning);
+            {
+                var target = _pendingResets.Dequeue();
+                var completed = false;
+                try
+                {
+                    _resetRecovery.Reset(target, destroyedWarning);
+                    completed = true;
+                }
+                finally
+                {
+                    if (!completed)
+                    {
+                        // 後続例外でも失敗対象の診断を残す
+                        // Diagnose each failed target even if a later exception replaces it
+                        UnityEngine.Debug.LogWarning($"[DragDelete] preview reset failed for {target.GetType().Name}; releasing remaining targets");
+                        ReleasePendingResets(destroyedWarning);
+                    }
+                }
+            }
         }
 
         // キャンセルされていない場合のみ削除確定を許可する

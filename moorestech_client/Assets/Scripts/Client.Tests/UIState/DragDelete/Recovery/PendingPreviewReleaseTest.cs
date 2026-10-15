@@ -26,12 +26,12 @@ namespace Client.Tests.UIState
             Assert.IsTrue(selection.TryAddTarget(first, out _));
             Assert.IsTrue(selection.TryAddTarget(next, out _));
 
-            // 先頭の送信または復元が失敗しても、後続の解放を保持する
-            // Retain later releases when the first send or reset throws
+            // 送信失敗時だけ解放を次回へ残す
+            // Drain after reset failure; retain releases only when sending fails
             if (commit) Assert.Throws<InvalidOperationException>(() => selection.CommitDelete());
             else Assert.Throws<InvalidOperationException>(() => service.CancelSelection());
             Assert.IsFalse(selection.HasSelection());
-            Assert.AreEqual(0, next.ResetCount);
+            Assert.AreEqual(deleteFails ? 0 : 1, next.ResetCount);
             service.CancelSelection();
             service.CancelSelection();
             selection.CommitDelete();
@@ -45,7 +45,7 @@ namespace Client.Tests.UIState
         }
 
         [Test]
-        public void LaterFailureKeepsRemainingQueueAcrossNewDrag()
+        public void MultipleResetFailuresDrainAllTargetsBeforeNextDrag()
         {
             var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             var first = new FakeDeleteTarget { Removable = true, ThrowOnReset = true };
@@ -54,14 +54,14 @@ namespace Client.Tests.UIState
             selection.BeginDrag();
             foreach (var target in new[] { first, second, third }) Assert.IsTrue(selection.TryAddTarget(target, out _));
             Assert.Throws<InvalidOperationException>(() => selection.CancelSelection());
+            foreach (var target in new[] { first, second, third }) Assert.AreEqual(1, target.ResetCount);
             selection.BeginDrag();
             var fourth = new FakeDeleteTarget { Removable = true };
             Assert.IsTrue(selection.TryAddTarget(fourth, out _));
 
-            // 新ドラッグで保留キューを消さず、次の失敗でも後続を残す
-            // Preserve queued releases across a new drag and another failure
-            Assert.Throws<InvalidOperationException>(() => selection.CancelSelection());
-            Assert.AreEqual(0, third.ResetCount);
+            // 新ドラッグに過去の失敗を持ち越さない
+            // Do not carry old failures into cancellation of a new drag
+            Assert.DoesNotThrow(() => selection.CancelSelection());
             selection.CancelSelection();
             foreach (var target in new[] { first, second, third, fourth })
             {
@@ -81,13 +81,14 @@ namespace Client.Tests.UIState
             Assert.IsTrue(selection.TryAddTarget(broken, out _));
             Assert.IsTrue(selection.TryAddTarget(gameObject.AddComponent<DestroyableDeleteTarget>(), out _));
             Assert.IsTrue(selection.TryAddTarget(healthy, out _));
-            Assert.Throws<InvalidOperationException>(() => selection.CancelSelection());
             UnityEngine.Object.DestroyImmediate(gameObject);
 
             // 破棄済みの未着手対象は診断し、健全な後続を解放する
             // Diagnose the destroyed pending target and release the healthy successor
+            LogAssert.Expect(LogType.Warning, "[DragDelete] preview reset failed for FakeDeleteTarget; releasing remaining targets");
             LogAssert.Expect(LogType.Warning, "[DragDelete] selected target was destroyed before cancel");
-            selection.CancelSelection();
+            Assert.Throws<InvalidOperationException>(() => selection.CancelSelection());
+            Assert.DoesNotThrow(() => selection.CancelSelection());
             Assert.AreEqual(1, broken.ResetCount);
             Assert.AreEqual(1, healthy.ResetCount);
         }

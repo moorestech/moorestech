@@ -143,10 +143,16 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             _tooltip.Hide(_tooltipOwner);
             _isDragging = false;
 
-            // 選択とホバー中の赤プレビューを戻す
-            // Reset the selection and any single-hover red preview
-            _selection.CancelSelection();
-            _hoverPreview.Release();
+            // 選択の解放が失敗してもホバーの解放を試す
+            // Attempt hover release even when selection release fails
+            try
+            {
+                _selection.CancelSelection();
+            }
+            finally
+            {
+                _hoverPreview.Release();
+            }
         }
     }
 }
