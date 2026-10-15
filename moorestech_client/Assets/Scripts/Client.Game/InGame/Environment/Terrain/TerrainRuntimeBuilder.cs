@@ -25,7 +25,7 @@ namespace Client.Game.InGame.Environment.Terrain
     {
         private const string TerrainObjectName = "Terrain";
 
-        public static async UniTask<WorldTerrainLayout> BuildAsync(GetMapDataProtocol.ResponseMapDataMessagePack mapLayout, Transform environmentRoot, string localMasterDirectory)
+        public static async UniTask<BuiltWorldTerrain> BuildAsync(GetMapDataProtocol.ResponseMapDataMessagePack mapLayout, Transform environmentRoot, string localMasterDirectory)
         {
             ITerrainAssetLoader assets = new RuntimeTerrainAssetLoader();
             var cancellationToken = CancellationToken.None;
@@ -35,6 +35,7 @@ namespace Client.Game.InGame.Environment.Terrain
             // The meta goes straight back to the generation system; nothing here interprets its contents (seed, origins)
             var session = WorldTerrainSession.Open(mapLayout.TerrainMeta.ToTerrainTransferMeta(), localMasterDirectory);
             var layout = session.Layout;
+            var builtTerrains = new List<UnityEngine.Terrain>();
             switch (layout.Kind)
             {
                 // TileMapsとTiledTerrainSessionはOpenが対で決める。焼く口はこの分岐でしか要らない
@@ -47,7 +48,7 @@ namespace Client.Game.InGame.Environment.Terrain
             // 地形完成後に海の表示契約を適用する
             // Apply the ocean presentation contract after terrain completion
             layout.SurfacePresentation.Accept(new OceanPresentationApplier(environmentRoot));
-            return layout;
+            return new BuiltWorldTerrain(layout, builtTerrains);
 
             #region Internal
 
@@ -57,8 +58,8 @@ namespace Client.Game.InGame.Environment.Terrain
                 if (terrainData == null)
                     throw new InvalidOperationException(
                         $"[TerrainRuntimeBuilder] TerrainData '{layout.AuthoredTerrainDataAddress}' could not be loaded from Addressables.");
-                TerrainObjectFactory.Create(environmentRoot, TerrainObjectName, layout.AuthoredOrigin, terrainData, terrainMaterial,
-                    layout.DetailObjectDistance, layout.DetailObjectDensity);
+                builtTerrains.Add(TerrainObjectFactory.Create(environmentRoot, TerrainObjectName, layout.AuthoredOrigin, terrainData, terrainMaterial,
+                    layout.DetailObjectDistance, layout.DetailObjectDensity));
             }
 
             async UniTask BuildTileMapsAsync(TiledTerrainSession tiledSession)
@@ -74,6 +75,7 @@ namespace Client.Game.InGame.Environment.Terrain
                     var terrain = TerrainObjectFactory.Create(environmentRoot, $"{TerrainObjectName}_{tileX}_{tileZ}", tile.ScenePosition,
                         terrainData, terrainMaterial, layout.DetailObjectDistance, layout.DetailObjectDensity);
                     terrainsByTileCoordinate[new Vector2Int(tileX, tileZ)] = terrain;
+                    builtTerrains.Add(terrain);
                 }
                 TerrainNeighborLinker.Link(terrainsByTileCoordinate);
                 Debug.Log($"[TerrainRuntimeBuilder] Terrain built: tiles={terrainsByTileCoordinate.Count} elapsedMs={buildStopwatch.ElapsedMilliseconds}");

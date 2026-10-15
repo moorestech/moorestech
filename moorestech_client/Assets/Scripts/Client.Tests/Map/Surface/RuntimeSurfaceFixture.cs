@@ -76,7 +76,7 @@ namespace Client.Tests.Map.Surface
                 var instance = UnityEngine.Object.Instantiate(prefab, Vector3.zero, Quaternion.identity);
                 _created.Add(instance);
                 var bounds = new Bounds(center + _translation, (Vector3)(vein.Max - vein.Min + Vector3Int.one));
-                OutcropSurfacePlacement.Place(instance, outcrop, bounds, grounded);
+                OutcropSurfacePlacement.Place(instance, outcrop, bounds, grounded, _terrains.Values.ToArray());
                 var verifiedWorldCore = new Rect(core.position + new Vector2(_translation.x, _translation.z), core.size);
                 vertices.Measure(instance, ground, vein.VeinGuid, verifiedWorldCore);
                 UnityEngine.Object.DestroyImmediate(instance);

@@ -11,8 +11,9 @@ namespace Client.Tests.Map.Surface
 
             // 既存矩形の右側へテスト地形を隔離
             // Isolate test terrain right of every existing rectangle
-            foreach (var terrain in Terrain.activeTerrains)
+            foreach (var terrain in Object.FindObjectsByType<Terrain>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             {
+                Assert.That(terrain.terrainData, Is.Not.Null, $"Terrain '{terrain.name}' requires TerrainData for fixture isolation");
                 float edge = terrain.transform.position.x + terrain.terrainData.size.x;
                 Assert.That(float.IsNaN(edge) || float.IsInfinity(edge), Is.False, "Existing terrain bounds must be finite");
                 rightEdge = Mathf.Max(rightEdge, edge);
