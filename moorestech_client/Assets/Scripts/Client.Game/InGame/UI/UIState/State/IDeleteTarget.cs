@@ -43,6 +43,10 @@ namespace Client.Game.InGame.UI.UIState.State
         /// </summary>
         object GetDeleteTargetKey();
 
+        // 同じ表示を復元する子で共有し、表示再生成時には変わるキー
+        // Shared by wrappers restoring one view; changes when the view is recreated
+        object GetPreviewResetKey();
+
         /// <summary>
         ///     破壊カテゴリー（同一破壊セッションで混在させないための区別。未設定はdefault）
         ///     Destruction category used to prevent mixing categories in one destroy session (unset means default)

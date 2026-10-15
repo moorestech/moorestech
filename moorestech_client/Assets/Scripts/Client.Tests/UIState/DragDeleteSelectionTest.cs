@@ -15,7 +15,7 @@ namespace Client.Tests.UIState
         [Test]
         public void AddRemovableTargetAddsAndPreviews()
         {
-            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
+            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             var target = new FakeDeleteTarget { Removable = true };
 
             selection.BeginDrag();
@@ -27,7 +27,7 @@ namespace Client.Tests.UIState
         [Test]
         public void AddSameTargetTwiceDoesNotDoubleAdd()
         {
-            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
+            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             var target = new FakeDeleteTarget { Removable = true };
 
             selection.BeginDrag();
@@ -40,7 +40,7 @@ namespace Client.Tests.UIState
         [Test]
         public void AddNonRemovableTargetIsIgnored()
         {
-            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
+            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             var target = new FakeDeleteTarget { Removable = false };
 
             selection.BeginDrag();
@@ -54,7 +54,7 @@ namespace Client.Tests.UIState
         [Test]
         public void CancelSelectionResetsAndDisablesCommit()
         {
-            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
+            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             var target = new FakeDeleteTarget { Removable = true };
 
             selection.BeginDrag();
@@ -68,7 +68,7 @@ namespace Client.Tests.UIState
         [Test]
         public void CommitDeleteDeletesTargetThenClears()
         {
-            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
+            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             var target = new FakeDeleteTarget { Removable = true };
 
             selection.BeginDrag();
@@ -84,7 +84,7 @@ namespace Client.Tests.UIState
         [Test]
         public void BeginDragAfterCancelReenablesCommit()
         {
-            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
+            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             var first = new FakeDeleteTarget { Removable = true };
             var second = new FakeDeleteTarget { Removable = true };
 
@@ -106,7 +106,7 @@ namespace Client.Tests.UIState
         [Test]
         public void AddTargetAfterCancelIsIgnored()
         {
-            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
+            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             var target = new FakeDeleteTarget { Removable = true };
 
             selection.BeginDrag();
@@ -119,7 +119,7 @@ namespace Client.Tests.UIState
         [Test]
         public void CommitDeleteAfterCancelWithoutBeginDragDeletesNothing()
         {
-            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
+            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             var target = new FakeDeleteTarget { Removable = true };
 
             selection.BeginDrag();
@@ -133,7 +133,7 @@ namespace Client.Tests.UIState
         [Test]
         public void CommitDeleteDeletesEachOfTwoTargets()
         {
-            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
+            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             var first = new FakeDeleteTarget { Removable = true };
             var second = new FakeDeleteTarget { Removable = true };
 
@@ -149,7 +149,7 @@ namespace Client.Tests.UIState
         [Test]
         public void CommitDeleteResetsMaterialOncePerTarget()
         {
-            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
+            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             var target = new FakeDeleteTarget { Removable = true };
 
             selection.BeginDrag();
@@ -164,7 +164,7 @@ namespace Client.Tests.UIState
         {
             // 同一論理対象（同じキー）の別ラッパーは1件に集約され重複Deleteしない
             // Different wrappers of the same logical target (same key) collapse into one, no duplicate Delete
-            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
+            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             var sharedKey = new object();
             var first = new FakeDeleteTarget { Removable = true, Key = sharedKey };
             var second = new FakeDeleteTarget { Removable = true, Key = sharedKey };

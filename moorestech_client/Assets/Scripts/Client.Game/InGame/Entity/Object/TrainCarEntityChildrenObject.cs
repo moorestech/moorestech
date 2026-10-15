@@ -56,6 +56,10 @@ namespace Client.Game.InGame.Entity.Object
             ClientContext.VanillaApi.SendOnly.RemoveTrain(TrainCarEntityObject.TrainCarInstanceId);
         }
 
+        // 復元を共有する表示の寿命を識別する
+        // Identify the lifetime of the shared preview view
+        public object GetPreviewResetKey() => _materialController;
+
         // 同一車両の全renderer子は同じTrainCarEntityObjectを指す＝論理削除単位
         // All renderer children of a car share the same TrainCarEntityObject = the logical delete unit
         public object GetDeleteTargetKey()
