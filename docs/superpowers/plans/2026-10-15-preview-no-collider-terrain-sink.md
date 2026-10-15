@@ -33,7 +33,7 @@
 ## 設計検査記録
 
 - 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反0件・修正0件 / 新クエリはGround/（GroundHeightProbe同型）、BPはIBlueprintPasteWorldの2実装に乗せ、死活表で影響操作（クリック・削除・ポール選択レイ）は当たり判定ゼロで生存
-- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強2・弱1・第3バケツ0 / ADR食い違い2点はADRをplanへ合わせ、重複は据え置き、BPの要素可否判定はIsPlaceableCause 1本へ集約、BlueprintRequest の型分割は質問中
+- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強2・弱1・第3バケツ0 / ADR食い違い2点はADRをplanへ合わせ、重複は据え置き、BPの要素可否判定はIsPlaceableCause 1本へ集約、BlueprintRequest は型を分けず1項目足す（裁定済み）
 
 ---
 
@@ -573,4 +573,5 @@ git commit -m "test(place): 地形めり込み統一とプレビュー当たり�
 - unityプレイ録画テストを Task 4 に含めた: 判定が実地形（TerrainCollider・生成ワールドの端数）とレイに依存し、#1499/#1507 の退行はどちらもユニットテストを通って実地形で出たため。出所: agent前提（planning）
 - サーバー側BP共有plannerとプロトコルの改修（BlueprintPasteElementBlockCause enum を BlueprintPasteCopyDraft.cs に同居、IBlueprintPasteWorld.cs・BlueprintPasteCopyBuilder.cs・BlueprintPasteCopyDraft.cs・BlueprintPasteCopyPlan.cs・BlueprintPasteMaterialAccumulator.cs・BlueprintPastePlanner.cs・ServerBlueprintPasteWorld.cs・BlueprintPasteOperationHandler.cs・BlueprintRequest.cs の変更）: BPの埋まり除外をクライアント判定・リクエスト送信・サーバーは送信値で飛ばす形にするための最小改修。サーバー可変状態の同期ではなく単発リクエストの入力追加なので3点セット（イベント＋初期データ＋購読）は不要。地形を持たないサーバーが送信値を信じる形は既存 BlueprintPasteOrigin.IsGroundFound と同型。出所: ユーザー裁定 2026-10-15 選択「クライアントが除外を送る (推奨)」＋形状は agent前提（planning）
 - Phase 2.6 裁定（ユーザー裁定 2026-10-15）: ADR 0081 を plan に合わせ「BP除外は位置で送る」「境界は ResolveCellY の許容誤差で比べる」を追記。「プレビュー表示→埋まり判定→理由反映」の3系統の繰り返しと電柱・歯車ポールの1セル判定の繰り返しは据え置き（選択「このままでよい (推奨)」）。BPの要素可否の述語は `BlueprintPasteCopyDraft.IsPlaceableCause` 1本へ集約（検査6の指摘を直接修正）。届け先は master へのPRだけ（選択「masterへのPRだけ (推奨)」）。テストケース 10.999f は float 誤差で境界をまたぐおそれがあるため 10.99f に修正。裁定記録: `.decisions/2026-10-15-BP埋まり除外は位置で送り境界はResolveCellYの許容誤差で比べる.md`
+- BlueprintRequest の型分割（ユーザー裁定 2026-10-16）: 操作ごとに型を分けず、貼り付け時だけ値が入る `TerrainSunkBlockPositions`（Key(9)）を1項目足す（提示「推奨: このまま1項目足す」に原文「それで」）。負債: 操作によって null になる欄が1つ増える。裁定記録: `.decisions/2026-10-16-BPリクエストは型を分けず貼り付け専用の除外位置欄を1つ足す.md`
 - user-simulator review（2026-10-15）の適用: enum を新規ファイルにせず `BlueprintPasteCopyDraft.cs` へ同居（1ディレクトリ10ファイル規約。前例 `BlueprintPasteCopyPlan.cs:6`）、R8 に非対称の理由を明記、Task 3 Step 4 に描画本体 Cube に付いた検出器の扱いと Collider がクリック可能になる帰結を明記。いずれも規約・前例の適用と手順の明文化で、挙動・範囲の判断ではない。出所: agent前提（user-simulator 指摘を規約照合のうえ採用）
