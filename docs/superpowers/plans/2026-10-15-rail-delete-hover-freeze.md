@@ -59,7 +59,7 @@
 - Consumes: `IDeleteTarget`（既存。`SetRemovePreviewing()` / `ResetMaterial()` / `IsRemovable(out LocalizationKey?)`）
 - Produces: `public static class DeleteTargetLiveness` — `static bool IsAliveOrWarn(IDeleteTarget target, string destroyedWarning)`（破棄済みなら警告ログを出して false）／ `public class SingleHoverDeletePreview` — `IDeleteTarget Current { get; private set; }` / `void Hover(IDeleteTarget hovered)`（hovered は非 null）/ `void Release()`
 
-- [ ] **Step 1: テスト用 fake に「戻し処理で例外」を足す**
+- [x] **Step 1: テスト用 fake に「戻し処理で例外」を足す**
 
 `FakeDeleteTarget.cs` の `ResetMaterial` を次に置き換え、フィールドを1つ足す:
 
@@ -75,7 +75,7 @@
         }
 ```
 
-- [ ] **Step 2: テストを書く**
+- [x] **Step 2: テストを書く**
 
 `ResetFailureRecoveryTest.cs`:
 
@@ -175,7 +175,7 @@ namespace Client.Tests.UIState
 
 （`FakeRemovalRestoreSender` は既存の `Client.Tests.BuildUndo` のもの。`DestroyedSelectionTest.cs` と同じ使い方）
 
-- [ ] **Step 2b: 離脱処理が1回投げても次の要求で抜けられることを `UIStateControlTest` に足す**
+- [x] **Step 2b: 離脱処理が1回投げても次の要求で抜けられることを `UIStateControlTest` に足す**
 
 `StubUIState` にフィールドを1つ足し、`OnExit` を次に置き換える:
 
@@ -218,7 +218,7 @@ namespace Client.Tests.UIState
 
 （`InvokeUpdate` は reflection 経由なので、`OnExit` の例外は `TargetInvocationException` に包まれて出る）
 
-- [ ] **Step 3: 破棄済み判定ヘルパーと `SingleHoverDeletePreview` を作る**
+- [x] **Step 3: 破棄済み判定ヘルパーと `SingleHoverDeletePreview` を作る**
 
 `DeleteTargetLiveness.cs`（現在 `DragDeleteSelection` の2か所に同形で書かれている判定を1つにまとめる）:
 
@@ -283,7 +283,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
 }
 ```
 
-- [ ] **Step 4: `DeleteObjectService` を `SingleHoverDeletePreview` へ置き換える**
+- [x] **Step 4: `DeleteObjectService` を `SingleHoverDeletePreview` へ置き換える**
 
 フィールド `private IDeleteTarget _deleteTargetObject;` を `private readonly SingleHoverDeletePreview _hoverPreview = new();` に置き換え、3か所を次のとおり変える。
 
@@ -347,7 +347,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         }
 ```
 
-- [ ] **Step 5: `DragDeleteSelection` のキャンセル・確定を「先に空にする」順へ変える**
+- [x] **Step 5: `DragDeleteSelection` のキャンセル・確定を「先に空にする」順へ変える**
 
 `CancelSelection`（現 84-99 行）:
 
@@ -402,12 +402,12 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         }
 ```
 
-- [ ] **Step 6: コンパイルしテストを実行する**
+- [x] **Step 6: コンパイルしテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client.Tests.UIState|Client.Tests.BuildUndo"`
 Expected: ErrorCount 0 / 全 PASS（既存の DragDelete・Undo 系テストが退行しないこと）
 
-- [ ] **Step 7: コミットする**
+- [x] **Step 7: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/ moorestech_client/Assets/Scripts/Client.Tests/UIState/
@@ -425,7 +425,7 @@ git commit -m "fix: 破壊モードで赤プレビューの戻しが例外を出
 - Consumes: Task 1 の修正（例外が出ても抜けられるので、再現中に Editor が詰まない）
 - Produces: `report.md` の「## 結論」節に、次の3つを証拠付きで書く — (A) ホバーで NRE が出るか・出たなら行番号付きスタックと null だった値、(B) レール／橋脚が破壊できない症状が出るか・出たならどの判定で拒否されたか（`IsRemovable` の `DeleteDeniedReason` 値やサーバー側ログ）、(C) 該当橋脚の座標と、その位置が現行の設置判定で置けない理由
 
-- [ ] **Step 1: セーブを用意する**
+- [x] **Step 1: セーブを用意する**
 
 NRE が出ていた時点のセーブは残っていない（1本目の zip は `map.json`・`world.json` だけで `save.json` を含まないことを確認済み）。テスターのセーブは Google Drive から取得済み（`https://drive.google.com/file/d/1eIeRXyIQ2_yr_DbmONivrGJOUYFedWGG/view`、中身は `5/save.json`。10/15 01:06 保存・再現しなくなった後のもの）。地形の `map.json` / `world.json` は1本目（`https://drive.google.com/file/d/10Jv0kh9l7mp6VY_FK8w8XZl9wFFDefd5/view`）に入っている。
 
@@ -439,11 +439,13 @@ unzip -o save.zip && unzip -o map.zip
 
 `save/` はコミットしない（`.gitignore` に追加しない。`git add` 時に report.md とスクショだけを指定する）。
 
-- [ ] **Step 2: セーブを読み込んで起動する**
+- [x] **Step 2: セーブを読み込んで起動する**
 
 先に master データの互換を確かめる。テスターのビルドは 10/15 0:52 配信版なので、その配信ビルドの元コミット（Steam の playtest ブランチ。`bd show moorestech-j8t6x.1` や配布ビルドの記録で確認）の `.moorestech-external-revisions.json` のピンと、この worktree のピンを比べ、異なる場合は差分にセーブが参照するブロック・アイテム GUID の削除が無いかを見る。スキーマ不整合は `MooresmasterLoaderException` で初期化が止まるので、ロード失敗時は migration より先にこれを疑う。
 
 `GeneratedWorldPlayModeSettings.WorldDirectoryPath`（`moorestech_client/Assets/Scripts/Client.Starter/Editor/GeneratedWorldPlayModeSettings.cs:24`、`world_generated`）へ `save.json`・`map.json`・`world.json` を置き、生成ワールドの再生で起動する。置き場の実パスは `uloop execute-dynamic-code` で `Client.Starter.Editor.GeneratedWorldPlayModeSettings.WorldDirectoryPath` を返して確かめる。既存の `world_generated` があれば `world_generated.bak-20261015` へ退避してから置く（消さない）。旧版セーブからの変換は `SaveMigrationChain` がロード時に行うので、ロード時のログ（`uloop get-logs --project-path ./moorestech_client`）に migration の失敗が無いことを先に確かめる。ロードに失敗したら、そのログ行を report.md に書いて Task 2 を止め、`bd note moorestech-cdddu` に残す。
+
+停止理由: `terrain/height_0_0.r16` 欠落でロード失敗。Step 3/4は未実施、成功扱いしない。
 
 - [ ] **Step 3: 該当橋脚へ移動し、破壊モードでホバー・破壊を試す**
 
@@ -456,7 +458,7 @@ unzip -o save.zip && unzip -o map.zip
 - 「本来置けない座標」については、同じ位置に橋脚を置こうとしたときの拒否理由（「地形に埋まっています」等）を記録する
 - Task 1 の修正後なので、NRE が出ても G で抜けられることを録画で確認する（R2 の実プレイ確認）
 
-- [ ] **Step 5: 結論を書いてコミットする**
+- [x] **Step 5: 結論を書いてコミットする**
 
 report.md の `## 結論` に (A)(B)(C) を「観測した事実（ログ行・値・スクショ）」と「推測」を分けて書く。原因を言い切るのは証拠がある場合だけ。
 
@@ -476,9 +478,11 @@ bd note moorestech-cdddu "Task2 観測: <結論の要約1行>"
 - Consumes: Task 2 の `report.md` の結論
 - Produces: 原因の修正と、その入力状態を再現するテスト
 
-- [ ] **Step 1: 実行判定**
+- [x] **Step 1: 実行判定**
 
 report.md の (A) または (B) に、観測した証拠（スタックの行番号と null だった値、または拒否理由の値）があるか確認する。無ければ Task 3 は実行せず、`bd note moorestech-cdddu "Task3 見送り: 原因未確定（Task2 で再現せず）"` を残して Task 4 へ進む。PR 本文に「原因本体は未確定・詰みのみ解消」と明記する。
+
+見送り: Task 2がロード失敗で停止し、原因の証拠がないためStep 2/3は未実施。
 
 - [ ] **Step 2: 証拠がある場合は、修正方針を判断記録に足してから直す**
 
@@ -498,11 +502,14 @@ git commit -m "fix: <特定した原因>"
 
 ### Task 4: moores-code-review で全ブランチレビュー
 
-- [ ] 必ず moores-code-review スキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）。レビュー反映が判定経路・条件式・評価時点に触れたら、Task 2 Step 3 の録画シナリオを反映後のバイナリで再実施してから完了とする
+- [x] 必ず moores-code-review スキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）。レビュー反映が判定経路・条件式・評価時点に触れたら、Task 2 Step 3 の録画シナリオを反映後のバイナリで再実施してから完了とする
+
+
+完了範囲: 全ブランチレビューと関連177件の検証。録画シナリオはterrain不足で起動できず未実施であり、実プレイの成功を意味しない。
 
 ### Task 5: PR 作成とセッション終了可能状態
 
-- [ ] セッション終了可能状態にすること: pr-create スキルで PR を作成し、master とのコンフリクトがあれば master をマージして解消・コンパイル確認のうえ push する（解消の実作業は pr-create 経由で opus subagent に委譲される）。全作業がコミット・push 済みで、このセッションをそのまま閉じても PR がマージ可能な状態になっていることを確認して終える。PR 本文に Discord スレッド（上記2件）と bd `moorestech-cdddu` を張る
+- [x] セッション終了可能状態にすること: pr-create スキルで PR を作成し、master とのコンフリクトがあれば master をマージして解消・コンパイル確認のうえ push する（解消の実作業は pr-create 経由で opus subagent に委譲される）。全作業がコミット・push 済みで、このセッションをそのまま閉じても PR がマージ可能な状態になっていることを確認して終える。PR 本文に Discord スレッド（上記2件）と bd `moorestech-cdddu` を張る
 
 ---
 
@@ -525,3 +532,6 @@ git commit -m "fix: <特定した原因>"
 
 - D1は案Bを採用。`IDeleteTarget.GetPreviewResetKey()`で共有表示インスタンスを識別し、失敗・警告記録を回復モデルへ集約する。ブロック親・車両材質コントローラー・RailChain・接続線自身を返す。同一edgeでも再生成した健全表示はプレビュー可能。削除重複排除キーは独立して維持する。
 - D2は案Aを採用。`DragDeleteSelection`が未着手解放キューを所有し、選択Clear前に移す。各Reset直前に取り出し、DeleteまたはResetの例外後は次のCancel/OnExitで未着手分を回収する。成功時は全Delete→Undo→Reset、送信の再試行はしない。先頭失敗で後続の所有権を失う従来前提を改める。
+
+確認: PR #1505はready、MERGEABLE。CIは実行中のため結果未確定。
+
