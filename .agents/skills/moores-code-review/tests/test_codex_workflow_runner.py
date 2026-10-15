@@ -22,7 +22,7 @@ FAKE_CODEX = Path(__file__).resolve().parent / "fake_codex.py"
 REVIEWERS = ("core-any-callsite-tracer", "core-any-user-intent-fulfillment", "moores-any-precedent-alignment")
 # Refix の直し直し経路と report 未書込の再起動経路を踏ませる上書き（workflow_sim は label、偽 codex は安全化 label で突き合わせる）
 # Overrides that drive the re-fix path; workflow_sim matches raw labels, the fake codex matches sanitized labels
-REFIX_PATH = {"refix:refix-correctness-r1": {"critical_count": 1}, "refix-apply-r1": {"applied": 1, "refix_scope": "source"}}
+REFIX_PATH = {"refix:refix-correctness-r1": {"critical_count": 1, "findings": [{"id": "f1", "severity": "Critical", "summary": "wrong result", "recurs_from": None}]}, "refix-apply-r1": {"applied": 1, "refix_scope": "source"}}
 
 
 def safe(label: str) -> str:

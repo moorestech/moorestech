@@ -83,3 +83,11 @@ const REFIX_APPLY_SCHEMA = {
   },
   required: ['applied', 'escalated', 'compile', 'refix_scope', 'refix_note', 'verify_note', 'warnings', 'infos'],
 }
+
+if (A.verifyByRepro) {
+  INTEGRATOR_SCHEMA.properties.logic_bugs = { type: 'array', items: {
+    type: 'object', properties: { id: { type: 'string' }, summary: { type: 'string' }, fix: { type: 'string' } },
+    required: ['id', 'summary', 'fix'],
+  } }
+  INTEGRATOR_SCHEMA.required.push('logic_bugs')
+}
