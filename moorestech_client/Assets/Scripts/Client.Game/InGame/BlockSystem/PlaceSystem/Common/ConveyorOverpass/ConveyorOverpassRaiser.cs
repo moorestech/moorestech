@@ -86,7 +86,23 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ConveyorOverpass
                 // 持ち上げ後の基準から既存ブロックを上へ走査する
                 // Scan existing blocks upward from the lifted base
                 var lowerBounds = _scanner.ComputeLowerBounds(baseCells, isOccupied);
-                return ConveyorVerticalEnvelope.Solve(lowerBounds, cells[0].y, cells[^1].y, cornerIndex);
+                while (true)
+                {
+                    var solved = ConveyorVerticalEnvelope.Solve(lowerBounds, cells[0].y, cells[^1].y, cornerIndex);
+                    if (!EndpointsReached(solved.feasible)) return solved;
+
+                    // 包絡線で上がった先の占有も下限へ戻す
+                    // Feed occupancy reached by envelope propagation back into the bounds
+                    var collisionFound = false;
+                    for (var i = 0; i < baseCells.Count; i++)
+                    {
+                        var cell = baseCells[i];
+                        if (!isOccupied(new Vector3Int(cell.x, solved.beltY[i], cell.z))) continue;
+                        lowerBounds[i] = solved.beltY[i] + 1;
+                        collisionFound = true;
+                    }
+                    if (!collisionFound) return solved;
+                }
             }
 
             bool NeighborhoodChanged(int i)

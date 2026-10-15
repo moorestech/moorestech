@@ -11,7 +11,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Ground
     {
         private readonly PlacementHeightOffset _placementHeightOffset;
 
-        public GroundConveyorTerrainFloor(PlacementHeightOffset placementHeightOffset)
+        internal GroundConveyorTerrainFloor(PlacementHeightOffset placementHeightOffset)
         {
             _placementHeightOffset = placementHeightOffset;
         }

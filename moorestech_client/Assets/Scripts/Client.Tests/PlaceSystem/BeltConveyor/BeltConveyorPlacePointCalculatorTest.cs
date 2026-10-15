@@ -87,60 +87,59 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
             {
                 var testCase = _testCases[i];
 
-                // isStartDirectionZがどちらの場合でも同一の挙動を期待する
-
-                Debug.Log($"TestCase: {i} startDirectionZ: true");
-                BlockPlaceTest(testCase, true);
-                Debug.Log("  Passed");
-
-                Debug.Log($"TestCase: {i} startDirectionZ: false");
-                BlockPlaceTest(testCase, false);
-                Debug.Log("  Passed");
+                // 両方の開始軸で同じ列を保つ
+                // Preserve the same run for either starting axis
+                AssertPlacement(testCase, true);
+                AssertPlacement(testCase, false);
             }
-        }
 
-        private void BlockPlaceTest(TestCase testCase, bool isStartDirectionZ)
-        {
-            var blockMasterElement = new BlockMasterElement(
-                0,
-                Guid.Empty,
-                "TestBlock",
-                "TestBlockType",
-                                null,
-                1, // placementsPerCost
-                null,
-                "テスト",
-                "テスト",
-                0,
-                false,
-                testCase.BlockSize,
-                null,
-                false, // openable
-                null
-            );
+            #region Internal
 
-            List<PlaceInfo> actual = BeltConveyorPlacePointCalculator.CalculateStraightPoint(
-                testCase.PlaceStartPoint,
-                testCase.PlaceEndPoint,
-                isStartDirectionZ,
-                BlockDirection.North,
-                blockMasterElement,
-                (_, _) => true,
-                _ => false,
-                new FakeConveyorTerrainFloor(new Dictionary<Vector2Int, int>()),
-                out _,
-                out _,
-                out _
-            );
-
-            Assert.AreEqual(testCase.ExpectedPoints.Length, actual.Count);
-            for (var i = 0; i < testCase.ExpectedPoints.Length; i++)
+            void AssertPlacement(TestCase testCase, bool isStartDirectionZ)
             {
-                (Vector3Int position, BlockVerticalDirection? verticalDirection) expected = testCase.ExpectedPoints[i];
+                var blockMasterElement = new BlockMasterElement(
+                    0,
+                    Guid.Empty,
+                    "TestBlock",
+                    "TestBlockType",
+                    null,
+                    1, // placementsPerCost
+                    null,
+                    "テスト",
+                    "テスト",
+                    0,
+                    false,
+                    testCase.BlockSize,
+                    null,
+                    false, // openable
+                    null
+                );
 
-                Assert.AreEqual(expected.position, actual[i].Position);
-                Assert.AreEqual(testCase.ExpectedPoints[i].verticalDirection, actual[i].VerticalDirection);
+                List<PlaceInfo> actual = BeltConveyorPlacePointCalculator.CalculateStraightPoint(
+                    testCase.PlaceStartPoint,
+                    testCase.PlaceEndPoint,
+                    isStartDirectionZ,
+                    BlockDirection.North,
+                    blockMasterElement,
+                    (_, _) => true,
+                    _ => false,
+                    new FakeConveyorTerrainFloor(new Dictionary<Vector2Int, int>()),
+                    out _,
+                    out _,
+                    out _
+                );
+
+                Assert.AreEqual(testCase.ExpectedPoints.Length, actual.Count);
+                for (var i = 0; i < testCase.ExpectedPoints.Length; i++)
+                {
+                    (Vector3Int position, BlockVerticalDirection? verticalDirection) expected = testCase.ExpectedPoints[i];
+
+                    Assert.AreEqual(expected.position, actual[i].Position);
+                    Assert.AreEqual(testCase.ExpectedPoints[i].verticalDirection, actual[i].VerticalDirection);
+                }
             }
+
+            #endregion
         }
 
         // 立体交差不能(高さ2を3セルで跨げない)の端点設置不可フラグが占有判定で上書きされず残ることを検証する

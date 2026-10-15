@@ -251,7 +251,7 @@ ui.tooltip.placeChainGroundNotFound,No ground under the connected layout,No grou
 ui.tooltip.placeChainGroundHeightMismatch,The connected layout does not sit level with the ground,The connected layout does not sit level with the ground,接続先の地面の高さが合っていません,Die verbundene Anordnung liegt nicht eben auf dem Boden,연결된 배치가 지면과 수평이 아닙니다
 ui.tooltip.placeBeltOverpassInfeasible,Cannot step over the obstacle here,Cannot step over the obstacle here,障害物を越えられません,Das Hindernis kann hier nicht überbrückt werden,여기서는 장애물을 넘을 수 없습니다
 ui.tooltip.placeBeltNoSlopeBlock,No sloped conveyor for this family,No sloped conveyor for this family,坂のコンベアがありません,Für diese Baureihe gibt es kein Schrägband,이 계열에는 경사 컨베이어가 없습니다
-ui.tooltip.placeBeltTerrainClimbAbandoned,Terrain too steep to climb; the belt will be placed buried,Terrain too steep to climb; the belt will be placed buried,地形が急で乗り越えられないため、地形に埋めて設置します,Gelände zu steil zum Überqueren; das Band wird eingegraben platziert,지형이 너무 가팔라 넘을 수 없어 묻힌 채로 설치됩니다
+ui.tooltip.placeBeltTerrainClimbAbandoned,Unable to cross the terrain; the belt will be placed buried,Unable to cross the terrain; the belt will be placed buried,地形を乗り越えられないため、地形に埋めて設置します,Das Gelände kann nicht überquert werden; das Band wird eingegraben platziert,지형을 넘을 수 없어 묻힌 채로 설치됩니다
 ui.tooltip.placeMaterialShortage,Missing item: {p0} {p1}/{p2},Missing item: {p0} {p1}/{p2},アイテム不足： {p0} {p1}/{p2},Fehlender Gegenstand: {p0} {p1}/{p2},부족한 아이템: {p0} {p1}/{p2}
 ui.tooltip.placeWireCost,Wire x{p0},Wire x{p0},電線 x{p0},Kabel x{p0},전선 x{p0}
 ui.tooltip.placeWireOutOfRangeNotice,Out of connection range: no wire will be placed,Out of connection range: no wire will be placed,接続範囲外のため配線されません,Außerhalb der Verbindungsreichweite: es wird kein Kabel verlegt,연결 범위를 벗어남: 전선이 설치되지 않습니다

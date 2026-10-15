@@ -117,6 +117,31 @@ namespace Client.Tests.PlaceSystem.ConveyorOverpass
             Assert.IsFalse(result.TerrainClimbAbandoned);
         }
 
+        [TestCase(2)]
+        [TestCase(4)]
+        public void PropagatedSlope_RechecksOccupancy(int obstacleX)
+        {
+            var infos = FlatEastPath(7);
+            var occupied = new HashSet<Vector3Int> { new(obstacleX, 1, 0) };
+            var result = new ConveyorOverpassRaiser().Raise(infos, 6, occupied.Contains, Terrain((3, 2)));
+
+            Assert.IsFalse(result.TerrainClimbAbandoned);
+            Assert.IsTrue(infos.All(info => info.Placeable && !occupied.Contains(info.Position)));
+            Assert.AreEqual(2, infos[obstacleX].Position.y);
+        }
+
+        [Test]
+        public void CornerPropagation_RechecksOccupancy()
+        {
+            var infos = FlatEastPath(7);
+            var occupied = new HashSet<Vector3Int> { new(2, 1, 0) };
+            var result = new ConveyorOverpassRaiser().Raise(infos, 3, occupied.Contains, Terrain((3, 1)));
+
+            Assert.IsFalse(result.TerrainClimbAbandoned);
+            Assert.IsTrue(infos.All(info => info.Placeable && !occupied.Contains(info.Position)));
+            Assert.AreEqual(new[] { 2, 2, 2 }, Ys(infos).Skip(2).Take(3));
+        }
+
         #region Helpers
 
         private static ConveyorOverpassRaiseResult Raise(List<PlaceInfo> infos, FakeConveyorTerrainFloor terrain)

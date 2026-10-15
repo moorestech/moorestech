@@ -14,7 +14,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ConveyorOverpass
         // True only when the terrain-free fallback is placeable
         public readonly bool TerrainClimbAbandoned;
 
-        public ConveyorOverpassRaiseResult(IReadOnlyList<bool> overpassBlocked, bool terrainClimbAbandoned)
+        internal ConveyorOverpassRaiseResult(IReadOnlyList<bool> overpassBlocked, bool terrainClimbAbandoned)
         {
             OverpassBlocked = overpassBlocked;
             TerrainClimbAbandoned = terrainClimbAbandoned;
