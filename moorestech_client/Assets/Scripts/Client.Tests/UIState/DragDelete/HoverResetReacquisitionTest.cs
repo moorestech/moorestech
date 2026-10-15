@@ -63,8 +63,6 @@ namespace Client.Tests.UIState
             preview.Hover(target);
             preview.Release();
 
-            // 正常な対象は次のホバーで再表示できる
-            // A healthy target can show its preview on a later hover
             preview.Hover(target);
             Assert.AreSame(target, preview.Current);
             preview.Release();

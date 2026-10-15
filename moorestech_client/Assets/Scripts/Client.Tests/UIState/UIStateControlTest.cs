@@ -141,8 +141,6 @@ namespace Client.Tests.UIState
             public int EnterCount { get; private set; }
             public int ExitCount { get; private set; }
 
-            // 最初の離脱だけ失敗させる
-            // Fail only the first exit attempt
             public bool ThrowOnFirstExit;
             public bool HoldTransition;
             public SingleHoverDeletePreview HoverPreview;

@@ -59,8 +59,6 @@ namespace Client.Tests.UIState
             preview.Hover(target);
             Assert.Throws<InvalidOperationException>(() => service.CancelSelection());
 
-            // ホバー由来の失敗も選択側で再実行しない
-            // Selection must not retry a reset that already failed during hover
             selection.BeginDrag();
             LogAssert.Expect(LogType.Warning, "[DragDelete] delete preview suppressed because the target's previous reset did not complete");
             Assert.IsTrue(selection.TryAddTarget(target, out _));
