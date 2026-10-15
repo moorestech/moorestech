@@ -28,9 +28,11 @@ return PlaytestRunner.Run("belt-terrain-climb-via-ui", options, async p =>
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig { SpawnPosition = new Vector3(5f, 33.5f, -4f) });
     await p.SkipOpeningSkit();
 
-    // 丘: x=4..5・z=2 の2セルを覆い上面y=33.4（地形最高点を含むセルは33）。足場上面は32
-    // Hill: covers cells x=4..5, z=2 with top y=33.4 (cell containing the max is 33); the scaffold top is 32
-    CreateGroundBox("PlaytestBeltHill", new Vector3(5f, 31.7f, 2.5f), new Vector3(2f, 3.4f, 1f));
+    // 丘: x=4..5・z=2 の2セルを覆い上面y=33.05（地形最高点を含むセルは33）。足場上面は32
+    // Hill: covers cells x=4..5, z=2 with top y=33.05 (cell containing the max is 33); the scaffold top is 32
+    // 下限セル33を保ちつつ、ベルトのモデル上面33.35を箱で隠さない
+    // Keep floor cell 33 while leaving the belt model top at 33.35 visible above the fixture
+    CreateGroundBox("PlaytestBeltHill", new Vector3(5f, 31.525f, 2.5f), new Vector3(2f, 3.05f, 1f));
     // 崖: x=12・z=6 の1セルで上面y=35.4（下限35）。端点32の3セル列では端点へ戻れない
     // Cliff: one cell x=12, z=6 with top y=35.4 (floor 35); a 3-cell run with endpoints at 32 cannot come back down
     CreateGroundBox("PlaytestBeltCliff", new Vector3(12.5f, 32.7f, 6.5f), new Vector3(1f, 5.4f, 1f));
