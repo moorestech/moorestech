@@ -90,7 +90,7 @@ namespace Client.Tests.UIState
         [Test]
         public void 離脱失敗後に入力なしで同じ対象をホバーしても次の要求で抜けられる()
         {
-            var preview = new SingleHoverDeletePreview();
+            var preview = new SingleHoverDeletePreview(new DeletePreviewResetRecovery());
             var broken = new FakeDeleteTarget { ThrowOnReset = true };
             var deleteState = new StubUIState(UIStateEnum.BuildMenu, false)
             {
@@ -108,7 +108,7 @@ namespace Client.Tests.UIState
             // 入力なし更新で同対象を再照準した後にGを押す
             // Aim at the same target on an idle update before pressing G again
             deleteState.HoldTransition = true;
-            LogAssert.Expect(LogType.Warning, "[DragDelete] hover preview suppressed because the target's previous reset did not complete");
+            LogAssert.Expect(LogType.Warning, "[DragDelete] delete preview suppressed because the target's previous reset did not complete");
             InvokeUpdate(control);
             Assert.IsNull(preview.Current);
             deleteState.HoldTransition = false;

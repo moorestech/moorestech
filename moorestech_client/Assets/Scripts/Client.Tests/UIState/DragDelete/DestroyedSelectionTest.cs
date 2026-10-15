@@ -23,7 +23,7 @@ namespace Client.Tests.UIState
         [Test]
         public void DestroyedHoverIsReleasedAndLoggedOnce()
         {
-            var preview = new SingleHoverDeletePreview();
+            var preview = new SingleHoverDeletePreview(new DeletePreviewResetRecovery());
             _selectedObject = new GameObject("HoveredRail");
             preview.Hover(_selectedObject.AddComponent<DestroyableDeleteTarget>());
             Object.DestroyImmediate(_selectedObject);
@@ -40,7 +40,7 @@ namespace Client.Tests.UIState
         public void DestroyedTargetIsSkippedBeforeUndoCapture()
         {
             var history = new BuildOperationHistory();
-            var selection = new DragDeleteSelection(history, new FakeRemovalRestoreSender());
+            var selection = new DragDeleteSelection(history, new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             _selectedObject = new GameObject("SelectedRail");
             var target = _selectedObject.AddComponent<DestroyableDeleteTarget>();
             selection.BeginDrag();
@@ -57,7 +57,7 @@ namespace Client.Tests.UIState
         [Test]
         public void DestroyedTargetIsLoggedDuringCancel()
         {
-            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
+            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             _selectedObject = new GameObject("SelectedRail");
             var target = _selectedObject.AddComponent<DestroyableDeleteTarget>();
             selection.BeginDrag();

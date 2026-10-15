@@ -14,12 +14,14 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         private readonly DragDeleteSelection _selection;
         private readonly IMouseCursorTooltip _tooltip;
         private readonly TooltipOwner _tooltipOwner = new();
-        private readonly SingleHoverDeletePreview _hoverPreview = new();
+        private readonly SingleHoverDeletePreview _hoverPreview;
         private bool _isDragging;
 
         public DeleteObjectService(BuildOperationHistory buildOperationHistory, IMouseCursorTooltip tooltip, IRemovalRestoreSender restoreSender)
         {
-            _selection = new DragDeleteSelection(buildOperationHistory, restoreSender);
+            var resetRecovery = new DeletePreviewResetRecovery();
+            _selection = new DragDeleteSelection(buildOperationHistory, restoreSender, resetRecovery);
+            _hoverPreview = new SingleHoverDeletePreview(resetRecovery);
             _tooltip = tooltip;
         }
 

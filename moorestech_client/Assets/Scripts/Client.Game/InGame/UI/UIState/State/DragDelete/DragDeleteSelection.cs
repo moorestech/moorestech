@@ -13,6 +13,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
     {
         private readonly BuildOperationHistory _buildOperationHistory;
         private readonly IRemovalRestoreSender _restoreSender;
+        private readonly DeletePreviewResetRecovery _resetRecovery;
 
         // 論理削除キーで重複排除する（同一機械の複数メッシュ子などを1件に集約）
         // Dedupe by logical delete key so multiple mesh children of one machine collapse into one
@@ -23,10 +24,11 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         // Fix aim to the first target's category
         public DeleteAimFilter AimFilter { get; private set; } = DeleteAimFilter.Frontmost;
 
-        public DragDeleteSelection(BuildOperationHistory buildOperationHistory, IRemovalRestoreSender restoreSender)
+        public DragDeleteSelection(BuildOperationHistory buildOperationHistory, IRemovalRestoreSender restoreSender, DeletePreviewResetRecovery resetRecovery)
         {
             _buildOperationHistory = buildOperationHistory;
             _restoreSender = restoreSender;
+            _resetRecovery = resetRecovery;
         }
 
         // 新しいドラッグ開始時に選択・キャンセル状態・セッションカテゴリーをリセットする
@@ -67,7 +69,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             if (!AimFilter.IsCategoryRequired) AimFilter = DeleteAimFilter.Category(target.GetDestructionCategory());
 
             _selectedTargets.Add(key, target);
-            target.SetRemovePreviewing();
+            if (_resetRecovery.CanPreview(target)) target.SetRemovePreviewing();
             return true;
         }
 
@@ -91,8 +93,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
 
             foreach (var target in targets)
             {
-                if (!DeleteTargetLiveness.IsAliveOrWarn(target, "[DragDelete] selected target was destroyed before cancel")) continue;
-                target.ResetMaterial();
+                _resetRecovery.Reset(target, "[DragDelete] selected target was destroyed before cancel");
             }
         }
 
@@ -124,7 +125,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
 
             // Delete はサーバー往復の非同期なので即座に赤プレビューだけ戻す（例外を出し得る処理を最後に置く）
             // Delete is async over the server, so clear the red preview now (the throwable step goes last)
-            foreach (var target in committed) target.ResetMaterial();
+            foreach (var target in committed) _resetRecovery.Reset(target, "[DragDelete] selected target was destroyed before reset");
         }
 
         // キャンセルされていない場合のみ削除確定を許可する

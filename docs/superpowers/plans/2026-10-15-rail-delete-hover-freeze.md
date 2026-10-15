@@ -518,3 +518,5 @@ git commit -m "fix: <特定した原因>"
 - Phase 2.6 第3バケツ（本PR外のリファクタ提案）: 赤プレビューの要求者方式 `RailChainRemovePreview`/`RemovePreviewRequests`/`IRemovePreviewable` と、単体ホバー保持 `SingleHoverDeletePreview` の役割が重なる。どちらを正本にするかは本PRでは扱わず、PR本文の「本PR外のリファクタ提案」節に1行で載せる
 
 - Task 1 再レビュー対応: Releaseで参照を外すだけでは入力なしフレームの同対象再HoverでG離脱失敗が再発する。SingleHoverDeletePreviewはReset直前に未完了対象集合へ登録し、正常終了した対象だけ除く。未完了対象はサービス寿命中に再保持せず、対象ごとの初回抑止を警告する。複数対象の連続失敗も保持し、正常終了した対象の再Hoverは許可する。根拠: `.superpowers/sdd/task-1-review.md` Important 1 の静的故障シナリオ。追加テストで離脱失敗→入力なし同対象Hover→再離脱とA/B連続失敗を固定する（Unity実行は本体担当）。
+
+- Task 1 共有回復状態: 選択CancelSelection/CommitDeleteのReset失敗から単体Hoverへ渡る経路もR1/R2の対象となるため、未完了集合・抑止警告・Reset実行をDeletePreviewResetRecoveryへ集約する。DeleteObjectServiceが1インスタンスを作りSingleHoverDeletePreviewとDragDeleteSelectionへ必須constructor注入する。選択へ追加すること自体は維持し、失敗対象の赤表示再要求とReset再実行だけを抑止する。根拠: task-1-review.md再レビューImportant 2。

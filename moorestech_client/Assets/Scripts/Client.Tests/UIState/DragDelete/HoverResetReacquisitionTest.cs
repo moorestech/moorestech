@@ -9,12 +9,12 @@ namespace Client.Tests.UIState
 {
     public class HoverResetReacquisitionTest
     {
-        private const string SuppressionWarning = "[DragDelete] hover preview suppressed because the target's previous reset did not complete";
+        private const string SuppressionWarning = "[DragDelete] delete preview suppressed because the target's previous reset did not complete";
 
         [Test]
         public void IdleHoverBeforeNextExitDoesNotReacquireFailedTarget()
         {
-            var preview = new SingleHoverDeletePreview();
+            var preview = new SingleHoverDeletePreview(new DeletePreviewResetRecovery());
             var broken = new FakeDeleteTarget { ThrowOnReset = true };
             preview.Hover(broken);
             Assert.Throws<InvalidOperationException>(() => preview.Release());
@@ -33,7 +33,7 @@ namespace Client.Tests.UIState
         [Test]
         public void MultipleFailedTargetsStaySuppressedAcrossOtherHovers()
         {
-            var preview = new SingleHoverDeletePreview();
+            var preview = new SingleHoverDeletePreview(new DeletePreviewResetRecovery());
             var first = new FakeDeleteTarget { ThrowOnReset = true };
             var second = new FakeDeleteTarget { ThrowOnReset = true };
             preview.Hover(first);
@@ -58,7 +58,7 @@ namespace Client.Tests.UIState
         [Test]
         public void SuccessfulResetAllowsSameTargetToBeHoveredAgain()
         {
-            var preview = new SingleHoverDeletePreview();
+            var preview = new SingleHoverDeletePreview(new DeletePreviewResetRecovery());
             var target = new FakeDeleteTarget();
             preview.Hover(target);
             preview.Release();

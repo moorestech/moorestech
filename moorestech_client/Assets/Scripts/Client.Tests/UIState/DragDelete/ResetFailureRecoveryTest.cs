@@ -17,7 +17,7 @@ namespace Client.Tests.UIState
         [Test]
         public void HoverChangeDoesNotRetryFailingReset()
         {
-            var preview = new SingleHoverDeletePreview();
+            var preview = new SingleHoverDeletePreview(new DeletePreviewResetRecovery());
             var broken = new FakeDeleteTarget { ThrowOnReset = true };
             var next = new FakeDeleteTarget();
             preview.Hover(broken);
@@ -38,7 +38,7 @@ namespace Client.Tests.UIState
         [Test]
         public void ReleaseAfterFailingResetIsNoOp()
         {
-            var preview = new SingleHoverDeletePreview();
+            var preview = new SingleHoverDeletePreview(new DeletePreviewResetRecovery());
             var broken = new FakeDeleteTarget { ThrowOnReset = true };
             preview.Hover(broken);
 
@@ -52,7 +52,7 @@ namespace Client.Tests.UIState
         [Test]
         public void HoveringSameTargetDoesNotReapply()
         {
-            var preview = new SingleHoverDeletePreview();
+            var preview = new SingleHoverDeletePreview(new DeletePreviewResetRecovery());
             var target = new FakeDeleteTarget();
             preview.Hover(target);
             preview.Hover(target);
@@ -63,7 +63,7 @@ namespace Client.Tests.UIState
         [Test]
         public void CancelSelectionClearsEvenWhenResetThrows()
         {
-            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
+            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             var broken = new FakeDeleteTarget { Removable = true, ThrowOnReset = true };
             selection.BeginDrag();
             Assert.IsTrue(selection.TryAddTarget(broken, out _));
@@ -80,7 +80,7 @@ namespace Client.Tests.UIState
         [Test]
         public void CommitDeleteDoesNotResendWhenResetThrows()
         {
-            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
+            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             var broken = new FakeDeleteTarget { Removable = true, ThrowOnReset = true };
             selection.BeginDrag();
             Assert.IsTrue(selection.TryAddTarget(broken, out _));
@@ -98,7 +98,7 @@ namespace Client.Tests.UIState
         {
             var history = new BuildOperationHistory();
             var sender = new FakeRemovalRestoreSender();
-            var selection = new DragDeleteSelection(history, sender);
+            var selection = new DragDeleteSelection(history, sender, new DeletePreviewResetRecovery());
             var tool = Guid.NewGuid();
             var targets = new[] { new FakeDeleteTarget { Removable = true }, new FakeDeleteTarget { Removable = true } };
             targets[failingIndex].ThrowOnReset = true;

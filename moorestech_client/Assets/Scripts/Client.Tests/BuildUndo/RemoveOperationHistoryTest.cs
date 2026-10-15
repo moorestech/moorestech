@@ -20,7 +20,7 @@ namespace Client.Tests.BuildUndo
         {
             var history = new BuildOperationHistory();
             var sender = new FakeRemovalRestoreSender();
-            var selection = new DragDeleteSelection(history, sender);
+            var selection = new DragDeleteSelection(history, sender, new DeletePreviewResetRecovery());
             var tool = Guid.NewGuid();
             var target = new FakeDeleteTarget { Removable = true };
             target.RemovedObjects.Add(new RemovedConnectionLine(Vector3Int.zero, Vector3Int.right, tool, new FakeConnectionLineCommands(ConnectionLineKind.ElectricWire)));
@@ -43,7 +43,7 @@ namespace Client.Tests.BuildUndo
         public void TargetsWithoutRestorableObjectsDoNotCreateHistory()
         {
             var history = new BuildOperationHistory();
-            var selection = new DragDeleteSelection(history, new FakeRemovalRestoreSender());
+            var selection = new DragDeleteSelection(history, new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             selection.BeginDrag();
             Assert.IsTrue(selection.TryAddTarget(new FakeDeleteTarget { Removable = true }, out _));
             selection.CommitDelete();
