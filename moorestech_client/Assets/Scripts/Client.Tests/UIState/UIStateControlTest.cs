@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Reflection;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
+using Client.Game.InGame.UI.UIState.State.DragDelete;
+using UnityEngine.TestTools;
 using Client.Tests.UIState.Fakes;
 using NUnit.Framework;
 using UnityEngine;
@@ -85,6 +87,37 @@ namespace Client.Tests.UIState
             Assert.AreEqual(1, nextState.EnterCount);
         }
 
+        [Test]
+        public void 離脱失敗後に入力なしで同じ対象をホバーしても次の要求で抜けられる()
+        {
+            var preview = new SingleHoverDeletePreview();
+            var broken = new FakeDeleteTarget { ThrowOnReset = true };
+            var deleteState = new StubUIState(UIStateEnum.BuildMenu, false)
+            {
+                HoverPreview = preview,
+                HoverTarget = broken
+            };
+            var nextState = new StubUIState(null, false);
+            var control = _controlObject.AddComponent<UIStateControl>();
+            control.Construct(CreateDictionary(deleteState, nextState), new FakePlayerObjectController());
+            control.Initialize(UIStateEnum.GameScreen, new UITransitContext(UIStateEnum.GameScreen));
+            preview.Hover(broken);
+            Assert.Throws<TargetInvocationException>(() => InvokeUpdate(control));
+            Assert.AreEqual(UIStateEnum.GameScreen, control.CurrentState);
+
+            // 入力なし更新で同対象を再照準した後にGを押す
+            // Aim at the same target on an idle update before pressing G again
+            deleteState.HoldTransition = true;
+            LogAssert.Expect(LogType.Warning, "[DragDelete] hover preview suppressed because the target's previous reset did not complete");
+            InvokeUpdate(control);
+            Assert.IsNull(preview.Current);
+            deleteState.HoldTransition = false;
+            InvokeUpdate(control);
+            Assert.AreEqual(UIStateEnum.BuildMenu, control.CurrentState);
+            Assert.AreEqual(1, broken.ResetCount);
+            Assert.AreEqual(1, nextState.EnterCount);
+        }
+
         private static UIStateDictionary CreateDictionary(IUIState gameScreen, IUIState buildMenu)
         {
             var result = new UIStateDictionary(null, null, null, null, null, null, null, null, null, null, null, null);
@@ -111,6 +144,9 @@ namespace Client.Tests.UIState
             // 最初の離脱だけ失敗させる
             // Fail only the first exit attempt
             public bool ThrowOnFirstExit;
+            public bool HoldTransition;
+            public SingleHoverDeletePreview HoverPreview;
+            public FakeDeleteTarget HoverTarget;
 
             public StubUIState(UIStateEnum? nextState, bool locksPlayerMovement)
             {
@@ -125,12 +161,18 @@ namespace Client.Tests.UIState
 
             public UITransitContext GetNextUpdate()
             {
+                if (HoldTransition)
+                {
+                    HoverPreview.Hover(HoverTarget);
+                    return null;
+                }
                 return _nextState.HasValue ? new UITransitContext(_nextState.Value) : null;
             }
 
             public void OnExit()
             {
                 ExitCount++;
+                HoverPreview?.Release();
                 if (ThrowOnFirstExit && ExitCount == 1) throw new System.InvalidOperationException("exit failed");
             }
 

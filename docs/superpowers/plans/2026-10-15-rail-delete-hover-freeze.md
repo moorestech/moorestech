@@ -516,3 +516,5 @@ git commit -m "fix: <特定した原因>"
 - unityプレイ録画テスト: Task 2・Task 3 で実施する。Task 1 単独では実プレイで戻し処理の例外を起こす手段が無いため、ユニットテストで状態を固定し、R2 の実プレイ確認は Task 2 Step 4 で再現できた場合に行う
 - 破棄済み判定＋警告ログを `DeleteTargetLiveness.IsAliveOrWarn` 1本へまとめ、単体ホバーの戻し・選択のキャンセル・確定の3か所で共用する。既存2か所の重複と、新設の単体ホバー戻しに判定が無い経路を同時に消す（Phase 2.6 弱2件。出所: シミュレーター予測・確信高→前提宣言〈拒否権つき〉2026-10-15）。警告文言は既存テスト（`DestroyedSelectionTest`）が照合する文字列をそのまま保つ
 - Phase 2.6 第3バケツ（本PR外のリファクタ提案）: 赤プレビューの要求者方式 `RailChainRemovePreview`/`RemovePreviewRequests`/`IRemovePreviewable` と、単体ホバー保持 `SingleHoverDeletePreview` の役割が重なる。どちらを正本にするかは本PRでは扱わず、PR本文の「本PR外のリファクタ提案」節に1行で載せる
+
+- Task 1 再レビュー対応: Releaseで参照を外すだけでは入力なしフレームの同対象再HoverでG離脱失敗が再発する。SingleHoverDeletePreviewはReset直前に未完了対象集合へ登録し、正常終了した対象だけ除く。未完了対象はサービス寿命中に再保持せず、対象ごとの初回抑止を警告する。複数対象の連続失敗も保持し、正常終了した対象の再Hoverは許可する。根拠: `.superpowers/sdd/task-1-review.md` Important 1 の静的故障シナリオ。追加テストで離脱失敗→入力なし同対象Hover→再離脱とA/B連続失敗を固定する（Unity実行は本体担当）。
