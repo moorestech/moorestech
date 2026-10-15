@@ -6,7 +6,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
     // Checks whether a delete target was destroyed and logs why it is skipped
     public static class DeleteTargetLiveness
     {
-        public static bool IsAliveOrWarn(IDeleteTarget target, string destroyedWarning)
+        internal static bool IsAliveOrWarn(IDeleteTarget target, string destroyedWarning)
         {
             if (target is Object unityTarget && unityTarget == null)
             {

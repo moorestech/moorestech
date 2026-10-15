@@ -10,7 +10,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         private readonly HashSet<IDeleteTarget> _incompleteResets = new();
         private readonly HashSet<IDeleteTarget> _warnedIncompleteResets = new();
 
-        public bool CanPreview(IDeleteTarget target)
+        internal bool CanPreview(IDeleteTarget target)
         {
             if (!_incompleteResets.Contains(target)) return true;
 
@@ -22,7 +22,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             return false;
         }
 
-        public void Reset(IDeleteTarget target, string destroyedWarning)
+        internal void Reset(IDeleteTarget target, string destroyedWarning)
         {
             if (!DeleteTargetLiveness.IsAliveOrWarn(target, destroyedWarning)) return;
             if (!CanPreview(target)) return; // silent-ok: 再実行で同じ例外を繰り返さない / CanPreviewが初回警告を記録する

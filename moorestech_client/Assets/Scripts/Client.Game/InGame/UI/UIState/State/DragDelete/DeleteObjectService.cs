@@ -95,8 +95,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
 
                 // 削除不可な対象は理由ツールチップだけ表示する
                 // For a non-removable target only show the denial tooltip
-                var current = _hoverPreview.Current;
-                if (current != null && !current.IsRemovable(out var reason))
+                if (hovered != null && !hovered.IsRemovable(out var reason))
                 {
                     ShowDenyReason(reason);
                 }

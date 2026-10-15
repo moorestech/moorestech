@@ -1,4 +1,6 @@
 using System;
+using System.Reflection;
+using Client.Game.InGame.UI.Tooltip;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.UI.UIState.State.DragDelete;
 using Client.Tests.BuildUndo;
@@ -15,9 +17,9 @@ namespace Client.Tests.UIState
         [TestCase(true)]
         public void SelectionResetFailureCannotBeReacquiredBeforeNextExit(bool commit)
         {
-            var recovery = new DeletePreviewResetRecovery();
-            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), recovery);
-            var preview = new SingleHoverDeletePreview(recovery);
+            var service = new DeleteObjectService(new BuildOperationHistory(), new MouseCursorTooltipState(), new FakeRemovalRestoreSender());
+            var selection = (DragDeleteSelection)typeof(DeleteObjectService).GetField("_selection", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(service);
+            var preview = (SingleHoverDeletePreview)typeof(DeleteObjectService).GetField("_hoverPreview", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(service);
             var target = new FakeDeleteTarget { Removable = true, ThrowOnReset = true };
             selection.BeginDrag();
             Assert.IsTrue(selection.TryAddTarget(target, out _));
@@ -25,7 +27,7 @@ namespace Client.Tests.UIState
             // キャンセルと確定のどちらの失敗もホバーと共有する
             // Share reset failures from both cancellation and commit with hover
             if (commit) Assert.Throws<InvalidOperationException>(() => selection.CommitDelete());
-            else Assert.Throws<InvalidOperationException>(() => selection.CancelSelection());
+            else Assert.Throws<InvalidOperationException>(() => service.CancelSelection());
             Assert.IsFalse(selection.HasSelection());
 
             // 次の離脱入力前の同対象ホバーで再取得しない
@@ -34,8 +36,7 @@ namespace Client.Tests.UIState
             preview.Hover(target);
             preview.Hover(target);
             Assert.IsNull(preview.Current);
-            Assert.DoesNotThrow(() => selection.CancelSelection());
-            Assert.DoesNotThrow(() => preview.Release());
+            Assert.DoesNotThrow(() => service.CancelSelection());
             Assert.AreEqual(1, target.ResetCount);
             Assert.AreEqual(commit ? 1 : 0, target.DeleteCount);
 
@@ -43,7 +44,7 @@ namespace Client.Tests.UIState
             // A later drag must not repeat the failed reset either
             selection.BeginDrag();
             Assert.IsTrue(selection.TryAddTarget(target, out _));
-            Assert.DoesNotThrow(() => selection.CancelSelection());
+            Assert.DoesNotThrow(() => service.CancelSelection());
             Assert.AreEqual(1, target.ResetCount);
             Assert.AreEqual(1, target.SetPreviewCount);
         }
@@ -51,19 +52,19 @@ namespace Client.Tests.UIState
         [Test]
         public void HoverResetFailureIsNotRetriedBySelectionCancel()
         {
-            var recovery = new DeletePreviewResetRecovery();
-            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), recovery);
-            var preview = new SingleHoverDeletePreview(recovery);
+            var service = new DeleteObjectService(new BuildOperationHistory(), new MouseCursorTooltipState(), new FakeRemovalRestoreSender());
+            var selection = (DragDeleteSelection)typeof(DeleteObjectService).GetField("_selection", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(service);
+            var preview = (SingleHoverDeletePreview)typeof(DeleteObjectService).GetField("_hoverPreview", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(service);
             var target = new FakeDeleteTarget { Removable = true, ThrowOnReset = true };
             preview.Hover(target);
-            Assert.Throws<InvalidOperationException>(() => preview.Release());
+            Assert.Throws<InvalidOperationException>(() => service.CancelSelection());
 
             // ホバー由来の失敗も選択側で再実行しない
             // Selection must not retry a reset that already failed during hover
             selection.BeginDrag();
             LogAssert.Expect(LogType.Warning, "[DragDelete] delete preview suppressed because the target's previous reset did not complete");
             Assert.IsTrue(selection.TryAddTarget(target, out _));
-            Assert.DoesNotThrow(() => selection.CancelSelection());
+            Assert.DoesNotThrow(() => service.CancelSelection());
             Assert.AreEqual(1, target.ResetCount);
             Assert.AreEqual(1, target.SetPreviewCount);
             Assert.IsFalse(selection.HasSelection());
@@ -72,13 +73,13 @@ namespace Client.Tests.UIState
         [Test]
         public void SuccessfulSelectionResetAllowsHoverAndDragAgain()
         {
-            var recovery = new DeletePreviewResetRecovery();
-            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), recovery);
-            var preview = new SingleHoverDeletePreview(recovery);
+            var service = new DeleteObjectService(new BuildOperationHistory(), new MouseCursorTooltipState(), new FakeRemovalRestoreSender());
+            var selection = (DragDeleteSelection)typeof(DeleteObjectService).GetField("_selection", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(service);
+            var preview = (SingleHoverDeletePreview)typeof(DeleteObjectService).GetField("_hoverPreview", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(service);
             var target = new FakeDeleteTarget { Removable = true };
             selection.BeginDrag();
             Assert.IsTrue(selection.TryAddTarget(target, out _));
-            selection.CancelSelection();
+            service.CancelSelection();
 
             // 正常な選択解除後は単体ホバーも再ドラッグも通常どおり
             // Healthy selection resets allow both hover and another drag
@@ -87,7 +88,7 @@ namespace Client.Tests.UIState
             preview.Release();
             selection.BeginDrag();
             Assert.IsTrue(selection.TryAddTarget(target, out _));
-            selection.CancelSelection();
+            service.CancelSelection();
             Assert.AreEqual(3, target.ResetCount);
             Assert.AreEqual(3, target.SetPreviewCount);
         }
