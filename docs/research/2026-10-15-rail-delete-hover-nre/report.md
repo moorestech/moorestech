@@ -66,3 +66,12 @@ Task 2 Step 2の「ロードに失敗したらログ行を書いてTask 2を止�
 
 テスターの `terrain/` を含む完全なworldが必要。現資料だけではホバーNRE・新版の撤去不可・設置拒否理由の原因は判定できない。Task 1の例外回復は164件のユニットテストで確認した範囲に限る。
 
+
+## 最終レビュー後の状態（draft・承認待ち）
+
+承認待ち・未完了: 複数Reset失敗時の再帰と元例外詳細の喪失が残る。原因本体は未確定・詰み防止の変更。復元1か所のcatchを明示例外とするか、非同期回復へ変更するかをユーザーへ質問済みで、回答前の安全確定・修正完了とは扱わない。
+
+- コードhead 7025e66853のcompile前置成功。フィルタ `Client.Tests.UIState|Client.Tests.BuildUndo|Client.Tests.RailGraph` は177/177 PASS、Failed0、Skipped0、CompletedAt=2026-10-15T05:24:17.5275030Z。以前の181件は接頭辞を限定しない広いフィルタであり、最終検証と件数が異なる。
+- 本レビューは発火30/失敗0、23/23系統とCodex3/3回収。w7 correctness/structureを確認。bug-passは発火10/失敗0、6/6とCodex1/1回収。
+- 未観測Warningは部分送信時Undo欠落、橋脚経由の共有レールReset迂回、再帰StackOverflow。必要状態・限界件数は未測定。先行例外は型名Warningのみとなり、元例外詳細が最後の例外へ置換される懸念も残る。
+- 実セーブでの起動失敗と未確認範囲は上記のとおり。完全worldによる再観測はmoorestech-cdddu.1、元タスクはmoorestech-cdddu。
