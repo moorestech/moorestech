@@ -13,8 +13,8 @@ using UnityEngine;
 namespace Client.Tests.Interact
 {
     /// <summary>
-    ///     照準優先・ゴースト貫通・近傍フォールバック・選定可否の4規則を検証（ADR 0046）
-    ///     Verifies the four selection rules of ADR 0046: aim first, ghost pass-through, nearby fallback, availability gate
+    ///     照準優先・無当たり判定ゴースト・近傍フォールバック・選定可否の4規則を検証（ADR 0046・0081）
+    ///     Verifies aim priority, collider-free ghosts, nearby fallback, and availability (ADR 0046 and 0081)
     /// </summary>
     public class InteractTargetSelectorTest : InteractTargetSelectorTestFixture
     {
@@ -40,8 +40,8 @@ namespace Client.Tests.Interact
             AimPointProvider.SetViewMode(PlayerViewMode.FirstPerson);
             var target = CreateMapObjectTarget(AimRay().GetPoint(1f));
 
-            // 設置ゴーストは常に照準の手前に出るため、貫通しないと奥の対象を永久に掴めない
-            // The placement ghost always sits in front of the aim, so without pass-through the target behind is unreachable
+            // 設置ゴーストのColliderは本番生成と同じ経路で無効化する
+            // Disable the ghost collider through the same path used by production creation
             var ghostObject = new GameObject("BlockPreview");
             ghostObject.transform.position = AimRay().GetPoint(0.5f);
             ghostObject.AddComponent<BlockPreviewObject>();
@@ -50,6 +50,8 @@ namespace Client.Tests.Interact
             var ghostCollider = new GameObject("BlockPreviewMesh") { layer = LayerConst.BlockLayer };
             ghostCollider.transform.SetParent(ghostObject.transform, false);
             ghostCollider.AddComponent<SphereCollider>().radius = 0.05f;
+            PreviewBlockCreator.DisableColliders(ghostObject);
+            Assert.IsFalse(ghostCollider.GetComponent<SphereCollider>().enabled);
 
             PlayerObject.transform.position = target.transform.position;
             Physics.SyncTransforms();

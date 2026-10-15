@@ -53,7 +53,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         public void 原点nullまたは要素nullを拒否するTest(bool nullList)
         {
             using var context = new BlueprintPasteProtocolTestContext(true, false);
-            var request = BlueprintRequest.CreatePasteRequest(Guid.NewGuid(), 0, new() { Vector3Int.zero }, new List<Vector3Int>());
+            var request = BlueprintRequest.CreatePasteRequest(Guid.NewGuid(), 0, new() { Vector3Int.zero }, new List<BlockPositionInfo>());
             if (nullList) request.Origins = null;
             else request.Origins[0] = null;
             LogAssert.Expect(LogType.Warning, new Regex(@"\[BlueprintPaste\] invalid request"));
@@ -152,7 +152,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             using var context = new BlueprintPasteProtocolTestContext(true, false);
 
-            context.Send(BlueprintRequest.CreatePasteRequest(Guid.NewGuid(), 0, new() { Vector3Int.zero }, new List<Vector3Int>()));
+            context.Send(BlueprintRequest.CreatePasteRequest(Guid.NewGuid(), 0, new() { Vector3Int.zero }, new List<BlockPositionInfo>()));
 
             context.AssertDenied(BlueprintFailureReason.NotFound, 0);
         }

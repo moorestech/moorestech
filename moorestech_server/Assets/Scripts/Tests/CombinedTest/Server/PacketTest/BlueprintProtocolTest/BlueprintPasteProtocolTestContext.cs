@@ -89,7 +89,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
         internal void Paste(BlueprintJsonObject blueprint, int rotation, params Vector3Int[] origins)
         {
-            Send(BlueprintRequest.CreatePasteRequest(blueprint.BlueprintGuid, rotation, origins.ToList(), new List<Vector3Int>()));
+            Send(BlueprintRequest.CreatePasteRequest(blueprint.BlueprintGuid, rotation, origins.ToList(), new List<BlockPositionInfo>()));
         }
 
         internal void Send(BlueprintRequest request)

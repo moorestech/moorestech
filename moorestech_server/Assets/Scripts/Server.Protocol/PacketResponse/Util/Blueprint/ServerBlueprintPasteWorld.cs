@@ -13,22 +13,25 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint
 {
     public class ServerBlueprintPasteWorld : IBlueprintPasteWorld
     {
-        private readonly HashSet<Vector3Int> _terrainSunkBlockPositions;
+        private readonly HashSet<(Vector3Int position, BlockDirection direction, Vector3Int size)> _terrainSunkBlockFootprints;
         private readonly PlacementTargetCatalog _catalog;
         private readonly IGameUnlockStateDataController _unlockState;
         public bool IsPaymentWaived { get; }
 
-        public ServerBlueprintPasteWorld(PlacementTargetCatalog catalog, IGameUnlockStateDataController unlockState, bool isPaymentWaived, IReadOnlyCollection<Vector3Int> terrainSunkBlockPositions)
+        public ServerBlueprintPasteWorld(PlacementTargetCatalog catalog, IGameUnlockStateDataController unlockState, bool isPaymentWaived, IReadOnlyCollection<BlockPositionInfo> terrainSunkBlockFootprints)
         {
-            _terrainSunkBlockPositions = new HashSet<Vector3Int>(terrainSunkBlockPositions);
+            _terrainSunkBlockFootprints = new HashSet<(Vector3Int, BlockDirection, Vector3Int)>();
+            foreach (var footprint in terrainSunkBlockFootprints)
+                _terrainSunkBlockFootprints.Add((footprint.OriginalPos, footprint.BlockDirection, footprint.BlockSize));
             _catalog = catalog;
             _unlockState = unlockState;
             IsPaymentWaived = isPaymentWaived;
         }
 
-        // サーバーはクライアントの埋まり位置を使う
-        // The server uses terrain-sunk positions judged by the client
-        public bool IsTerrainSunk(BlockPositionInfo positionInfo) => _terrainSunkBlockPositions.Contains(positionInfo.OriginalPos);
+        // 同じ最小角の別形状を巻き込まないよう足場の3値で照合する
+        // Match all three footprint values so another shape at the same origin remains placeable
+        public bool IsTerrainSunk(BlockPositionInfo positionInfo) =>
+            _terrainSunkBlockFootprints.Contains((positionInfo.OriginalPos, positionInfo.BlockDirection, positionInfo.BlockSize));
 
         public bool IsOverlapping(BlockPositionInfo positionInfo)
         {

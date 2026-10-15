@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
+using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Blueprint;
@@ -53,7 +54,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             context.Supply(blueprint, 1);
             var wallet = context.Services.GetRequiredService<ConstructionWalletService>();
             var world = new ServerBlueprintPasteWorld(context.Services.GetRequiredService<PlacementTargetCatalog>(),
-                context.Services.GetRequiredService<IGameUnlockStateDataController>(), false, new List<Vector3Int>());
+                context.Services.GetRequiredService<IGameUnlockStateDataController>(), false, new List<BlockPositionInfo>());
             var plan = BlueprintPastePlanner.Plan(blueprint, new[] { new BlueprintPasteOrigin(BlueprintPasteProtocolTestContext.Origin, true) },
                 0, world, wallet.GetQuery(BlueprintPasteProtocolTestContext.PlayerId), ConstructionMaterialAccounting.TallyHeld(context.Inventory.InventoryItems));
 
@@ -124,7 +125,7 @@ namespace Tests.CombinedTest.Server.PacketTest
                 });
 
             var response = context.SendForResponse(BlueprintRequest.CreatePasteRequest(blueprint.BlueprintGuid, 0,
-                new System.Collections.Generic.List<Vector3Int> { BlueprintPasteProtocolTestContext.Origin }, new List<Vector3Int>()));
+                new System.Collections.Generic.List<Vector3Int> { BlueprintPasteProtocolTestContext.Origin }, new List<BlockPositionInfo>()));
 
             Assert.AreEqual(1, ServerContext.WorldBlockDatastore.BlockMasterDictionary.Count);
             Assert.IsFalse(ServerContext.WorldBlockDatastore.Exists(BlueprintPasteProtocolTestContext.Origin + new Vector3Int(3, 0, 0)));

@@ -61,7 +61,7 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint
             // The server has no terrain; incoming origins have already resolved it
             var waived = DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement);
             var inventory = _inventories.GetInventoryData(requesterPlayerId).MainOpenableInventory;
-            var world = new ServerBlueprintPasteWorld(_catalog, _unlockState, waived, request.TerrainSunkBlockPositions.ConvertAll(position => position.Vector3Int));
+            var world = new ServerBlueprintPasteWorld(_catalog, _unlockState, waived, request.TerrainSunkBlockFootprints.ConvertAll(footprint => footprint.ToPositionInfo()));
             var origins = request.Origins.ConvertAll(origin => new BlueprintPasteOrigin(origin.Vector3Int, true));
             var plan = BlueprintPastePlanner.Plan(blueprint, origins, request.RotationStep, world,
                 _wallet.GetQuery(requesterPlayerId), ConstructionMaterialAccounting.TallyHeld(inventory.InventoryItems));
@@ -123,7 +123,8 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint
             {
                 return 0 <= request.RotationStep && request.RotationStep < 4 &&
                        request.Origins != null && 0 < request.Origins.Count && request.Origins.Count <= BlueprintRequest.MaxPasteOrigins &&
-                       request.TerrainSunkBlockPositions != null && request.TerrainSunkBlockPositions.All(position => position != null) &&
+                       request.TerrainSunkBlockFootprints != null && request.TerrainSunkBlockFootprints.All(footprint =>
+                           footprint != null && footprint.Position != null && footprint.Size != null) &&
                        request.Origins.All(origin => origin != null) && Guid.TryParse(request.BlueprintGuidStr, out _);
             }
 

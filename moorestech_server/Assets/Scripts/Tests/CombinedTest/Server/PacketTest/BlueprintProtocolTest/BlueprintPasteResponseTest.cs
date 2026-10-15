@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
@@ -12,6 +13,7 @@ using Server.Protocol.PacketResponse.Util.Blueprint.Planning;
 using Game.Context;
 using NUnit.Framework;
 using Server.Protocol.PacketResponse;
+using Server.Protocol.PacketResponse.Util.Blueprint;
 using Tests.Module.TestMod;
 using UnityEngine;
 
@@ -40,8 +42,12 @@ namespace Tests.CombinedTest.Server.PacketTest
                 .ToDictionary(item => item.itemId, item => item.count);
             var origin = BlueprintPasteProtocolTestContext.Origin;
             var sunk = origin + new Vector3Int(3, 0, 0);
+            var poleSize = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.ElectricPoleId).BlockSize;
             var response = context.SendForResponse(BlueprintRequest.CreatePasteRequest(blueprint.BlueprintGuid, 0,
-                new List<Vector3Int> { origin }, new List<Vector3Int> { sunk }));
+                new List<Vector3Int> { origin }, new List<BlockPositionInfo>
+                {
+                    new(sunk, BlockDirection.North, poleSize),
+                }));
 
             // 埋まる端点と線は生成せず、応答にも含めない
             // Omit the sunk endpoint and its line from both placement and response
@@ -72,7 +78,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // An empty exclusion list restores both endpoints and the saved wire
             var origin = BlueprintPasteProtocolTestContext.Origin;
             var response = context.SendForResponse(BlueprintRequest.CreatePasteRequest(blueprint.BlueprintGuid, 0,
-                new List<Vector3Int> { origin }, new List<Vector3Int>()));
+                new List<Vector3Int> { origin }, new List<BlockPositionInfo>()));
             Assert.IsTrue(response.Success);
             Assert.AreEqual(2, response.PlacedCells.Count);
             var a = ServerContext.WorldBlockDatastore.GetBlock(origin).GetComponent<IElectricWireConnector>();
@@ -94,7 +100,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 既存セルは応答に含めず、新規セルの個体IDを返す
             // Exclude an existing cell and return the new cell's instance ID
             var response = context.SendForResponse(BlueprintRequest.CreatePasteRequest(blueprint.BlueprintGuid,
-                0, new List<Vector3Int> { existingPosition }, new List<Vector3Int>()));
+                0, new List<Vector3Int> { existingPosition }, new List<BlockPositionInfo>()));
             Assert.IsTrue(response.Success);
             Assert.IsFalse(response.HasCostShortage);
             Assert.AreEqual(1, response.PlacedCells.Count);
@@ -115,7 +121,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             context.Supply(blueprint, 63);
             var origins = Enumerable.Range(0, 65)
                 .Select(index => new Vector3Int(10 + index, 0, 10)).ToList();
-            var chunks = BlueprintRequest.CreatePasteRequests(blueprint.BlueprintGuid, 0, origins, new List<Vector3Int>()).ToList();
+            var chunks = BlueprintRequest.CreatePasteRequests(blueprint.BlueprintGuid, 0, origins, new List<BlockPositionInfo>()).ToList();
 
             // 64件目の不足を返し、送信側が次チャンクを止められる
             // Report the 64th-copy shortage so the sender can stop the next chunk
@@ -124,6 +130,42 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.IsTrue(response.HasCostShortage);
             Assert.AreEqual(63, response.PlacedCells.Count);
             Assert.IsNull(ServerContext.WorldBlockDatastore.GetBlock(origins[64]));
+        }
+
+        [Test]
+        public void 同じ最小角でも向きか寸法が違えば埋まり除外しない()
+        {
+            var position = new Vector3Int(10, 20, 30);
+            var size = new Vector3Int(2, 1, 1);
+            var sunk = new BlockPositionInfo(position, BlockDirection.North, size);
+            var world = new ServerBlueprintPasteWorld(null, null, false, new[] { sunk });
+
+            // 同じ位置でも判定時の向きと寸法が揃う要素だけを飛ばす
+            // Skip only the element with the same direction and size used in the terrain check
+            Assert.IsTrue(world.IsTerrainSunk(sunk));
+            Assert.IsFalse(world.IsTerrainSunk(new BlockPositionInfo(position, BlockDirection.East, size)));
+            Assert.IsFalse(world.IsTerrainSunk(new BlockPositionInfo(position, BlockDirection.North, Vector3Int.one)));
+        }
+
+        [Test]
+        public void 重なるドラッグで同じ最小角の別向き要素は置かれる()
+        {
+            using var context = new BlueprintPasteProtocolTestContext(true, false);
+            var blueprint = context.Create(ForUnitTestModBlockId.ElectricPoleId, ForUnitTestModBlockId.ElectricPoleId);
+            blueprint.Blocks[1].Direction = (int)BlockDirection.East;
+            context.Register(blueprint);
+            context.Supply(blueprint, 2);
+            var origin = BlueprintPasteProtocolTestContext.Origin;
+            var poleSize = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.ElectricPoleId).BlockSize;
+            var sunk = new BlockPositionInfo(origin, BlockDirection.North, poleSize);
+
+            // 先行コピーの北向き要素を飛ばしても、同位置の後続東向き要素は残す
+            // Skip the first copy's north-facing element while placing the later east-facing one there
+            var response = context.SendForResponse(BlueprintRequest.CreatePasteRequest(blueprint.BlueprintGuid, 0,
+                new List<Vector3Int> { origin, origin - new Vector3Int(3, 0, 0) }, new List<BlockPositionInfo> { sunk }));
+            Assert.IsTrue(response.Success);
+            Assert.AreEqual(3, response.PlacedCells.Count);
+            Assert.IsTrue(response.PlacedCells.Any(cell => cell.Position.Vector3Int == origin && cell.Direction == (int)BlockDirection.East));
         }
     }
 }

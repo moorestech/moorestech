@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Game.Block.Interface;
 using Game.Blueprint;
 using UnityEngine;
 
@@ -15,12 +16,13 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint.Planning
         internal static bool IsPlaceableCause(BlueprintPasteElementBlockCause cause) => cause == BlueprintPasteElementBlockCause.None;
         public bool IsElementPlaceable(int elementIndex) => IsPlaceableCause(ElementBlockCauses[elementIndex]);
 
-        // サーバーへ送る埋まり要素の位置
-        // Positions of terrain-sunk elements sent to the server
-        public IEnumerable<Vector3Int> TerrainSunkPositions()
+        // サーバーへ送る埋まり要素の足場
+        // Footprints of terrain-sunk elements sent to the server
+        public IEnumerable<BlockPositionInfo> TerrainSunkFootprints()
         {
             for (var i = 0; i < Elements.Count; i++)
-                if (ElementBlockCauses[i] == BlueprintPasteElementBlockCause.TerrainSunk) yield return Elements[i].Position;
+                if (ElementBlockCauses[i] == BlueprintPasteElementBlockCause.TerrainSunk)
+                    yield return BlueprintPlacementElementUtil.ToPositionInfo(Elements[i]);
         }
 
         public Vector3Int Origin { get; }
