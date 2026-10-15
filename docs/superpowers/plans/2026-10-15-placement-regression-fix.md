@@ -672,7 +672,7 @@ git commit -m "fix(place): 地形ゲート付き4設置系の設置Yをフット
 - Consumes: 既存 `List<IItemStack> IItemStackFactory.CreateSplitStacks(ItemId id, int totalCount)`（空アイテム・1未満は空リストを返す）
 - Produces: `public static List<IItemStack> ConnectionLineRefundItems.Create(IReadOnlyList<ConnectToolMaterialCost> materials)`（シグネチャ不変。各スタックの Count が MaxStack 以下になる）。テスト補助 `internal RemoveBlockProtocol.RemoveBlockResponseMessagePack GearChainEditTestWorld.SendRemoveBlock(Vector3Int position)`
 
-- [ ] **Step 1: `ConnectionLineRefundItems.Create` を分割版にする**
+- [x] **Step 1: `ConnectionLineRefundItems.Create` を分割版にする**
 
 14〜26行の `Create` を次に置き換える。
 
@@ -694,7 +694,7 @@ git commit -m "fix(place): 地形ゲート付き4設置系の設置Yをフット
 
 using はそのまま（`Core.Master` は `ConnectToolMaterialCost` に使う。`ItemMaster.EmptyItemId` を使わなくなるが名前空間は残る）。
 
-- [ ] **Step 2: 返却部品の単体テストを書く**
+- [x] **Step 2: 返却部品の単体テストを書く**
 
 `ConnectionLineRefundItemsTest.cs` を作る。テストmodの Test4(`…1234-000000000004`) は MaxStack 100（レベル1）、Test2(`…1234-000000000002`) は 50。
 
@@ -760,7 +760,7 @@ namespace Tests.UnitTest.Game.Chain
 }
 ```
 
-- [ ] **Step 3: テストワールドに撤去送信を足す**
+- [x] **Step 3: テストワールドに撤去送信を足す**
 
 `GearChainEditTestWorld.cs` の `Send` メソッドの直後に追加する（using に `static Server.Protocol.PacketResponse.RemoveBlockProtocol` を足す）。
 
@@ -775,7 +775,7 @@ namespace Tests.UnitTest.Game.Chain
         }
 ```
 
-- [ ] **Step 4: 撤去・切断の回帰テストを書く**
+- [x] **Step 4: 撤去・切断の回帰テストを書く**
 
 `GearChainRefundAboveMaxStackTest.cs` を作る。チェーン素材 Test4 は MaxStack 100、230個は [100,100,30] の3スタックになる。ポール自体の建設コストは Test3 なので、チェーン素材の数には混ざらない。
 
@@ -877,7 +877,7 @@ namespace Tests.CombinedTest.Server.PacketTest.GearChain
 
 注: `ConnectionLineRecord` は `Game.Block.Interface.Component`、`ConnectToolMaterialCost` は `Core.Master`。撤去ではチェーン素材に加えてポール本体の建設コスト（テストmodの GearChainPole は Test3×2、MaxStack 300）も返る場合があるため、境界テストでは Test3 の端数スタックを1枠置いてそちらへ合流させ、空き枠の数がチェーンの3スタックだけで決まるようにしている。
 
-- [ ] **Step 5: コンパイルし、返却まわりのテストを実行する**
+- [x] **Step 5: コンパイルし、返却まわりのテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: ErrorCount 0
@@ -885,7 +885,7 @@ Expected: ErrorCount 0
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "ConnectionLineRefundItemsTest|GearChainRefundAboveMaxStackTest|GearChainDisconnectProtocolTest|ElectricWireRemovalTest|ElectricWireDisconnect|RemoveRailBlockRefundTest|RemoveRailRefundFailureTest|RailConnectionEdit"`
 Expected: 全件 PASS（新設8ケースと、同部品を使う電線・レールの既存テスト）
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Game.Block/Blocks/ConnectionLine/ConnectionLineRefundItems.cs \
