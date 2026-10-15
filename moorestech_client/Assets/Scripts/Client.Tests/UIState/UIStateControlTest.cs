@@ -64,6 +64,27 @@ namespace Client.Tests.UIState
             Assert.AreEqual(false, player.LastUiLock, "メニューを閉じても移動が止まったまま");
         }
 
+        [Test]
+        public void 離脱処理が1回失敗しても次の要求で抜けられる()
+        {
+            var deleteLikeState = new StubUIState(UIStateEnum.BuildMenu, false) { ThrowOnFirstExit = true };
+            var nextState = new StubUIState(null, false);
+            var control = _controlObject.AddComponent<UIStateControl>();
+            control.Construct(CreateDictionary(deleteLikeState, nextState), new FakePlayerObjectController());
+            control.Initialize(UIStateEnum.GameScreen, new UITransitContext(UIStateEnum.GameScreen));
+
+            // 投げたフレームは遷移しない
+            // The frame that throws does not transition
+            Assert.Throws<TargetInvocationException>(() => InvokeUpdate(control));
+            Assert.AreEqual(UIStateEnum.GameScreen, control.CurrentState);
+
+            // 次の要求で抜けられる
+            // The next request leaves the state
+            InvokeUpdate(control);
+            Assert.AreEqual(UIStateEnum.BuildMenu, control.CurrentState);
+            Assert.AreEqual(1, nextState.EnterCount);
+        }
+
         private static UIStateDictionary CreateDictionary(IUIState gameScreen, IUIState buildMenu)
         {
             var result = new UIStateDictionary(null, null, null, null, null, null, null, null, null, null, null, null);
@@ -87,6 +108,10 @@ namespace Client.Tests.UIState
             public int EnterCount { get; private set; }
             public int ExitCount { get; private set; }
 
+            // 最初の離脱だけ失敗させる
+            // Fail only the first exit attempt
+            public bool ThrowOnFirstExit;
+
             public StubUIState(UIStateEnum? nextState, bool locksPlayerMovement)
             {
                 _nextState = nextState;
@@ -106,6 +131,7 @@ namespace Client.Tests.UIState
             public void OnExit()
             {
                 ExitCount++;
+                if (ThrowOnFirstExit && ExitCount == 1) throw new System.InvalidOperationException("exit failed");
             }
 
             public bool LocksPlayerMovement()

@@ -20,6 +20,10 @@ namespace Client.Tests.UIState.Fakes
         public int DeleteCount;
         public bool Removable;
 
+        // 戻し失敗後の状態を検証する
+        // Exercise state recovery after a failing reset
+        public bool ThrowOnReset;
+
         // 拒否時に返す理由キー（未設定なら「拒否だが表示すべき理由が無い」を表す）
         // Reason key returned on denial; unset means "denied without a displayable reason"
         public LocalizationKey? DenyReason;
@@ -34,6 +38,7 @@ namespace Client.Tests.UIState.Fakes
         public void ResetMaterial()
         {
             ResetCount++;
+            if (ThrowOnReset) throw new System.InvalidOperationException("reset failed");
         }
 
         public bool IsRemovable(out LocalizationKey? deniedReason)

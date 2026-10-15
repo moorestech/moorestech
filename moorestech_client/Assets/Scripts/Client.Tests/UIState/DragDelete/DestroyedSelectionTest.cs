@@ -21,6 +21,22 @@ namespace Client.Tests.UIState
         }
 
         [Test]
+        public void DestroyedHoverIsReleasedAndLoggedOnce()
+        {
+            var preview = new SingleHoverDeletePreview();
+            _selectedObject = new GameObject("HoveredRail");
+            preview.Hover(_selectedObject.AddComponent<DestroyableDeleteTarget>());
+            Object.DestroyImmediate(_selectedObject);
+
+            // 破棄済みホバーも参照を解放して警告を残す
+            // Release a destroyed hover and retain its diagnostic
+            LogAssert.Expect(LogType.Warning, "[DragDelete] hovered target was destroyed before reset");
+            preview.Release();
+            Assert.IsNull(preview.Current);
+            Assert.DoesNotThrow(() => preview.Release());
+        }
+
+        [Test]
         public void DestroyedTargetIsSkippedBeforeUndoCapture()
         {
             var history = new BuildOperationHistory();

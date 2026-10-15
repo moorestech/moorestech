@@ -2,7 +2,6 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Mooresmaster.Localization.Generated;
-using UnityEngine;
 
 namespace Client.Game.InGame.UI.UIState.State.DragDelete
 {
@@ -83,19 +82,18 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         // Reset all selections and mark as canceled (ESC behavior)
         public void CancelSelection()
         {
-            foreach (var target in _selectedTargets.Values)
-            {
-                if (target is Object unityTarget && unityTarget == null)
-                {
-                    Debug.LogWarning("[DragDelete] selected target was destroyed before cancel");
-                    continue;
-                }
-                target.ResetMaterial();
-            }
-
+            // 戻し処理が例外でも選択が残らないよう、先に取り出して空にする
+            // Take and empty the selection first so a throwing reset cannot leave it behind
+            var targets = new List<IDeleteTarget>(_selectedTargets.Values);
             _selectedTargets.Clear();
             _canceled = true;
             AimFilter = DeleteAimFilter.Frontmost;
+
+            foreach (var target in targets)
+            {
+                if (!DeleteTargetLiveness.IsAliveOrWarn(target, "[DragDelete] selected target was destroyed before cancel")) continue;
+                target.ResetMaterial();
+            }
         }
 
         // 選択を一括削除し、Ctrl+Z用のUndo履歴も記録する
@@ -109,28 +107,24 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             var committed = new List<IDeleteTarget>();
             foreach (var target in _selectedTargets.Values)
             {
-                if (target is Object unityTarget && unityTarget == null)
-                {
-                    Debug.LogWarning("[DragDelete] selected target was destroyed before commit");
-                    continue;
-                }
+                if (!DeleteTargetLiveness.IsAliveOrWarn(target, "[DragDelete] selected target was destroyed before commit")) continue;
                 committed.Add(target);
             }
             var record = RemoveOperationRecord.CreateFrom(committed, _restoreSender);
-            foreach (var target in committed)
-            {
-                // Delete はサーバー往復の非同期なので即座に赤プレビューだけ戻す
-                // Delete is async over the server, so we just clear the red preview immediately
-                target.Delete();
-                target.ResetMaterial();
-            }
 
+            // 戻しが例外でも再確定で二重送信しないよう先に空にする
+            // Empty the selection first so a throwing reset cannot cause a duplicate send on retry
             _selectedTargets.Clear();
             AimFilter = DeleteAimFilter.Frontmost;
 
-            // Ctrl+Z用のUndo履歴を記録（空バッチはPushしない）
-            // Record the undo history for Ctrl+Z (skip empty batches)
+            // 全件を送ってからUndo履歴を積み、記録と送信済み集合を一致させる
+            // Send all deletions, then push the undo record so it matches exactly what was sent
+            foreach (var target in committed) target.Delete();
             if (record.HasRemovedObjects) _buildOperationHistory.Push(record);
+
+            // Delete はサーバー往復の非同期なので即座に赤プレビューだけ戻す（例外を出し得る処理を最後に置く）
+            // Delete is async over the server, so clear the red preview now (the throwable step goes last)
+            foreach (var target in committed) target.ResetMaterial();
         }
 
         // キャンセルされていない場合のみ削除確定を許可する

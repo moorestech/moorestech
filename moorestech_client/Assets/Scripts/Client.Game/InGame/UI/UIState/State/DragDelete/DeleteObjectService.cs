@@ -14,7 +14,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         private readonly DragDeleteSelection _selection;
         private readonly IMouseCursorTooltip _tooltip;
         private readonly TooltipOwner _tooltipOwner = new();
-        private IDeleteTarget _deleteTargetObject;
+        private readonly SingleHoverDeletePreview _hoverPreview = new();
         private bool _isDragging;
 
         public DeleteObjectService(BuildOperationHistory buildOperationHistory, IMouseCursorTooltip tooltip, IRemovalRestoreSender restoreSender)
@@ -56,11 +56,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
 
                 // 単体プレビューの所有権を選択側へ渡す
                 // Hand off preview ownership from single-hover to the selection
-                if (_deleteTargetObject != null)
-                {
-                    _deleteTargetObject.ResetMaterial();
-                    _deleteTargetObject = null;
-                }
+                _hoverPreview.Release();
 
                 _selection.BeginDrag();
                 _isDragging = true;
@@ -92,24 +88,13 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             {
                 // ホバー対象が変われば旧を戻し新を表示する
                 // Swap preview when the hovered target changes
-                if (hovered != null)
-                {
-                    if (_deleteTargetObject == null || _deleteTargetObject != hovered)
-                    {
-                        if (_deleteTargetObject != null) _deleteTargetObject.ResetMaterial();
-                        _deleteTargetObject = hovered;
-                        _deleteTargetObject.SetRemovePreviewing();
-                    }
-                }
-                else if (_deleteTargetObject != null)
-                {
-                    _deleteTargetObject.ResetMaterial();
-                    _deleteTargetObject = null;
-                }
+                if (hovered != null) _hoverPreview.Hover(hovered);
+                else _hoverPreview.Release();
 
                 // 削除不可な対象は理由ツールチップだけ表示する
                 // For a non-removable target only show the denial tooltip
-                if (_deleteTargetObject != null && !_deleteTargetObject.IsRemovable(out var reason))
+                var current = _hoverPreview.Current;
+                if (current != null && !current.IsRemovable(out var reason))
                 {
                     ShowDenyReason(reason);
                 }
@@ -119,8 +104,11 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             {
                 if (!InputManager.Playable.ScreenLeftClick.GetKeyUp) return;
 
-                if (_isDragging && _selection.CanCommit()) _selection.CommitDelete();
+                // 確定が例外でもドラッグ状態を残さないよう先に下ろす
+                // Lower the drag flag first so a throwing commit cannot leave the drag alive
+                var shouldCommit = _isDragging && _selection.CanCommit();
                 _isDragging = false;
+                if (shouldCommit) _selection.CommitDelete();
             }
 
             // ツールチップへキーを渡す（理由なし拒否は何も出さない）
@@ -149,18 +137,15 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         // Clear the selection, previews, tooltip, and drag state (used by both ESC cancel and mode exit)
         public void CancelSelection()
         {
-            _selection.CancelSelection();
-
-            // ホバー中の赤プレビューを戻す
-            // Reset any single-hover red preview
-            if (_deleteTargetObject != null)
-            {
-                _deleteTargetObject.ResetMaterial();
-                _deleteTargetObject = null;
-            }
-
+            // 例外が出得る戻し処理より先に自分の状態を片付ける
+            // Clear own state before the resets that may throw
             _tooltip.Hide(_tooltipOwner);
             _isDragging = false;
+
+            // 選択とホバー中の赤プレビューを戻す
+            // Reset the selection and any single-hover red preview
+            _selection.CancelSelection();
+            _hoverPreview.Release();
         }
     }
 }
