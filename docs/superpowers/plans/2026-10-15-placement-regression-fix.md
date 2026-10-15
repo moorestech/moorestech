@@ -905,7 +905,7 @@ git commit -m "fix(refund): 接続線の素材返却をMaxStackごとの複数�
 - Consumes: Task 1 の判定箱と Task 2 のY決定（実ゲームの4設置系経由）
 - Produces: 録画と判定ログ（PR本文に添付する）
 
-- [ ] **Step 1: シナリオを用意して実行する**
+- [x] **Step 1: シナリオを用意して実行する**
 
 `unity-playmode-recorded-playtest` スキルの手順に従い、生成ワールドで次を通しで録画する。
 
@@ -916,7 +916,7 @@ git commit -m "fix(refund): 接続線の素材返却をMaxStackごとの複数�
 
 Expected: 1・3・4 は設置可、2 は設置不可。`uloop get-logs --project-path ./moorestech_client --log-type Error` が空
 
-- [ ] **Step 2: 結果を記録してコミットする**
+- [x] **Step 2: 結果を記録してコミットする**
 
 録画・判定ログの置き場はスキルの規定に従う（コードrepoへ記録ファイルをコミットしない）。シナリオファイルを repo に追加した場合だけコミットする。
 
