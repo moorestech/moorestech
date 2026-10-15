@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using UnityEngine;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
@@ -11,16 +13,22 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint
 {
     public class ServerBlueprintPasteWorld : IBlueprintPasteWorld
     {
+        private readonly HashSet<Vector3Int> _terrainSunkBlockPositions;
         private readonly PlacementTargetCatalog _catalog;
         private readonly IGameUnlockStateDataController _unlockState;
         public bool IsPaymentWaived { get; }
 
-        public ServerBlueprintPasteWorld(PlacementTargetCatalog catalog, IGameUnlockStateDataController unlockState, bool isPaymentWaived)
+        public ServerBlueprintPasteWorld(PlacementTargetCatalog catalog, IGameUnlockStateDataController unlockState, bool isPaymentWaived, IReadOnlyCollection<Vector3Int> terrainSunkBlockPositions)
         {
+            _terrainSunkBlockPositions = new HashSet<Vector3Int>(terrainSunkBlockPositions);
             _catalog = catalog;
             _unlockState = unlockState;
             IsPaymentWaived = isPaymentWaived;
         }
+
+        // サーバーはクライアントの埋まり位置を使う
+        // The server uses terrain-sunk positions judged by the client
+        public bool IsTerrainSunk(BlockPositionInfo positionInfo) => _terrainSunkBlockPositions.Contains(positionInfo.OriginalPos);
 
         public bool IsOverlapping(BlockPositionInfo positionInfo)
         {

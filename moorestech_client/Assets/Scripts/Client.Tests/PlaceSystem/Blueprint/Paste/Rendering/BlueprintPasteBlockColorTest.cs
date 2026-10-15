@@ -103,7 +103,7 @@ namespace Client.Tests.PlaceSystem.Blueprint.Paste
         {
             var element = new BlueprintPlacementElement(0, Vector3Int.zero, BlockDirection.North,
                 ForUnitTestModBlockId.BlockId, new Dictionary<string, string>());
-            var draft = new BlueprintPasteCopyDraft(Vector3Int.zero, true, new[] { element }, new[] { nonOverlap },
+            var draft = new BlueprintPasteCopyDraft(Vector3Int.zero, true, new[] { element }, new[] { nonOverlap ? BlueprintPasteElementBlockCause.None : BlueprintPasteElementBlockCause.ExistingBlock },
                 Array.Empty<BlueprintPasteLine>(), 0, 0, 0, true);
             var copy = new BlueprintPasteCopyPlan(draft, state);
             return new BlueprintPastePlan(new[] { copy }, false, Array.Empty<(ItemId, int, int)>());

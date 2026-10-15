@@ -27,13 +27,14 @@ namespace Server.Protocol.PacketResponse
         // Send each run origin and the shared rotation
         [Key(7)] public int RotationStep { get; set; }
         [Key(8)] public List<Vector3IntMessagePack> Origins { get; set; }
+        [Key(9)] public List<Vector3IntMessagePack> TerrainSunkBlockPositions { get; set; }
 
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public BlueprintRequest() { Tag = BlueprintProtocol.ProtocolTag; }
 
         // Operationごとに必要フィールドのみ設定
         // Private constructor; static factories below set only the fields each Operation needs
-        private BlueprintRequest(BlueprintOperation operation, string name, Vector3IntMessagePack min, Vector3IntMessagePack max, string blueprintGuidStr, int rotationStep, List<Vector3IntMessagePack> origins)
+        private BlueprintRequest(BlueprintOperation operation, string name, Vector3IntMessagePack min, Vector3IntMessagePack max, string blueprintGuidStr, int rotationStep, List<Vector3IntMessagePack> origins, List<Vector3IntMessagePack> terrainSunkBlockPositions)
         {
             Tag = BlueprintProtocol.ProtocolTag;
             Operation = operation;
@@ -43,40 +44,42 @@ namespace Server.Protocol.PacketResponse
             BlueprintGuidStr = blueprintGuidStr;
             RotationStep = rotationStep;
             Origins = origins;
+            TerrainSunkBlockPositions = terrainSunkBlockPositions;
         }
 
         public static BlueprintRequest CreateCreateRequest(string name, Vector3Int min, Vector3Int max)
         {
-            return new BlueprintRequest(BlueprintOperation.Create, name, new Vector3IntMessagePack(min), new Vector3IntMessagePack(max), null, 0, null);
+            return new BlueprintRequest(BlueprintOperation.Create, name, new Vector3IntMessagePack(min), new Vector3IntMessagePack(max), null, 0, null, null);
         }
 
         public static BlueprintRequest CreateGetAllRequest()
         {
-            return new BlueprintRequest(BlueprintOperation.GetAll, null, null, null, null, 0, null);
+            return new BlueprintRequest(BlueprintOperation.GetAll, null, null, null, null, 0, null, null);
         }
 
-        public static BlueprintRequest CreatePasteRequest(Guid blueprintGuid, int rotationStep, List<Vector3Int> origins)
+        public static BlueprintRequest CreatePasteRequest(Guid blueprintGuid, int rotationStep, List<Vector3Int> origins, List<Vector3Int> terrainSunkBlockPositions)
         {
             return new BlueprintRequest(BlueprintOperation.Paste, null, null, null, blueprintGuid.ToString(),
-                rotationStep, origins.ConvertAll(origin => new Vector3IntMessagePack(origin)));
+                rotationStep, origins.ConvertAll(origin => new Vector3IntMessagePack(origin)),
+                terrainSunkBlockPositions.ConvertAll(position => new Vector3IntMessagePack(position)));
         }
 
         // 共有上限で区切り、始点からの素材判定順を保つ
         // Split at the shared limit while preserving material evaluation order
         // 送信側は各応答を待ち、不足が出た後の要求を送らない
         // The sender waits for each response and stops sending after a shortage
-        public static IEnumerable<BlueprintRequest> CreatePasteRequests(Guid blueprintGuid, int rotationStep, List<Vector3Int> origins)
+        public static IEnumerable<BlueprintRequest> CreatePasteRequests(Guid blueprintGuid, int rotationStep, List<Vector3Int> origins, List<Vector3Int> terrainSunkBlockPositions)
         {
             for (var offset = 0; offset < origins.Count; offset += MaxPasteOrigins)
             {
                 var count = Math.Min(MaxPasteOrigins, origins.Count - offset);
-                yield return CreatePasteRequest(blueprintGuid, rotationStep, origins.GetRange(offset, count));
+                yield return CreatePasteRequest(blueprintGuid, rotationStep, origins.GetRange(offset, count), terrainSunkBlockPositions);
             }
         }
 
         public static BlueprintRequest CreateDeleteRequest(Guid blueprintGuid)
         {
-            return new BlueprintRequest(BlueprintOperation.Delete, null, null, null, blueprintGuid.ToString(), 0, null);
+            return new BlueprintRequest(BlueprintOperation.Delete, null, null, null, blueprintGuid.ToString(), 0, null, null);
         }
     }
 

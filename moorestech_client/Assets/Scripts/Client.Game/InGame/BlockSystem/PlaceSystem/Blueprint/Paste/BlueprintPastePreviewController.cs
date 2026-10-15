@@ -40,7 +40,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
                     var pos = SlopeBlockPlaceSystem.GetBlockPositionToPlacePosition(placement.Position, placement.Direction, placement.BlockId);
                     var previewObject = _pool.GetObject(placement.BlockId);
                     previewObject.SetTransform(pos, placement.Direction.GetRotation());
-                    previewObject.SetPlaceableColor(copy.IsPlaced && copy.Draft.NonOverlapFlags[i]);
+                    previewObject.SetPlaceableColor(copy.IsPlaced && copy.Draft.IsElementPlaceable(i));
                     previewObject.SetActive(true);
                     copyGhosts.Add(previewObject);
                 }

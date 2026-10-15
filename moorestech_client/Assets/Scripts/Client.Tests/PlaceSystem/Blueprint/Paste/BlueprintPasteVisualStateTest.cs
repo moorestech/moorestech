@@ -42,7 +42,7 @@ namespace Client.Tests.PlaceSystem.Blueprint.Paste
             var element = new BlueprintPlacementElement(0, position, direction, default, new Dictionary<string, string>());
             var line = new BlueprintPasteLine(BlueprintPasteLineKind.ElectricWire, 0, 0, position, position,
                 Guid.Empty, Array.Empty<ConnectToolMaterialCost>(), lineReason);
-            var draft = new BlueprintPasteCopyDraft(position, true, new[] { element }, new[] { nonOverlap },
+            var draft = new BlueprintPasteCopyDraft(position, true, new[] { element }, new[] { nonOverlap ? BlueprintPasteElementBlockCause.None : BlueprintPasteElementBlockCause.ExistingBlock },
                 new[] { line }, 0, 0, 0, true);
             var copy = new BlueprintPasteCopyPlan(draft, BlueprintPasteCopyState.Placeable);
             return new BlueprintPastePlan(new[] { copy }, false, Array.Empty<(ItemId, int, int)>());

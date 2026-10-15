@@ -64,6 +64,8 @@ namespace Tests.CombinedTest.Game.Blueprint.Planning
                 IsPaymentWaived = paymentWaived;
             }
 
+            public bool IsTerrainSunk(BlockPositionInfo positionInfo) => false;
+
             public bool IsOverlapping(BlockPositionInfo positionInfo)
             {
                 return positionInfo.EnumeratePositions().Any(Overlaps.Contains);

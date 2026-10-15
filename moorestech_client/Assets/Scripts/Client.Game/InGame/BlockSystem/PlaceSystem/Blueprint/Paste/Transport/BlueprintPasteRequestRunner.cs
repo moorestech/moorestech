@@ -32,12 +32,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
         }
 
         internal async UniTask<List<BlueprintPlacedCellMessagePack>> Run(Guid blueprintGuid, int rotationStep,
-            List<Vector3Int> origins)
+            List<Vector3Int> origins, List<Vector3Int> terrainSunkBlockPositions)
         {
             var placedCells = new List<BlueprintPlacedCellMessagePack>();
             // 確定応答を待ってから次の64原点を送る
             // Wait for confirmed results before sending the next 64 origins
-            foreach (var request in BlueprintRequest.CreatePasteRequests(blueprintGuid, rotationStep, origins))
+            foreach (var request in BlueprintRequest.CreatePasteRequests(blueprintGuid, rotationStep, origins, terrainSunkBlockPositions))
             {
                 BlueprintResponse response;
                 try

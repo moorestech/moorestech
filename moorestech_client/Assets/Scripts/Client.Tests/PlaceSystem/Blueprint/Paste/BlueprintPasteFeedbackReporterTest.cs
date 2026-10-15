@@ -19,9 +19,25 @@ namespace Client.Tests.PlaceSystem.Blueprint.Paste
         [Test]
         public void 全ブロック重なりは既存ブロック理由を出すTest()
         {
-            var feedback = Report(BlueprintPasteCopyState.AllOverlapped, BlueprintPasteCopyState.AllOverlapped);
+            var feedback = Report(BlueprintPasteCopyState.AllBlocked, BlueprintPasteCopyState.AllBlocked);
             Assert.AreEqual(1, feedback.Lines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBlockedByExistingBlock.Key, feedback.Lines[0].Key.Key);
+        }
+
+        [TestCase(BlueprintPasteCopyState.Placeable)]
+        [TestCase(BlueprintPasteCopyState.AllBlocked)]
+        public void 埋まり要素は部分設置でも全滅でも地形理由だけを出すTest(BlueprintPasteCopyState state)
+        {
+            var draft = new BlueprintPasteCopyDraft(Vector3Int.zero, true, Array.Empty<BlueprintPlacementElement>(),
+                new[] { BlueprintPasteElementBlockCause.TerrainSunk }, Array.Empty<BlueprintPasteLine>(), 0, 0, 0, true);
+            var plan = new BlueprintPastePlan(new[] { new BlueprintPasteCopyPlan(draft, state) }, false, Array.Empty<(ItemId, int, int)>());
+            var feedback = new PlacementFeedback();
+
+            // 地形原因を重なり原因と混同しない
+            // Keep terrain rejection distinct from existing block overlap
+            BlueprintPasteFeedbackReporter.Report(plan, feedback);
+            Assert.AreEqual(1, feedback.Lines.Count);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBlockedByTerrain.Key, feedback.Lines[0].Key.Key);
         }
 
         [Test]
@@ -57,7 +73,7 @@ namespace Client.Tests.PlaceSystem.Blueprint.Paste
             var line = new BlueprintPasteLine(kind, 0, 1, Vector3Int.zero, Vector3Int.right, Guid.NewGuid(),
                 Array.Empty<ConnectToolMaterialCost>(), reason);
             var draft = new BlueprintPasteCopyDraft(Vector3Int.zero, true, Array.Empty<BlueprintPlacementElement>(),
-                Array.Empty<bool>(), new[] { line, line }, 0, 0, 0, true);
+                Array.Empty<BlueprintPasteElementBlockCause>(), new[] { line, line }, 0, 0, 0, true);
             var copy = new BlueprintPasteCopyPlan(draft, BlueprintPasteCopyState.Placeable);
             var plan = new BlueprintPastePlan(new[] { copy, copy }, false, Array.Empty<(ItemId, int, int)>());
             var feedback = new PlacementFeedback();
@@ -98,7 +114,7 @@ namespace Client.Tests.PlaceSystem.Blueprint.Paste
         [Test]
         public void 一部のBPだけ全重複でも重なり理由は出さないTest()
         {
-            Assert.IsEmpty(Report(BlueprintPasteCopyState.Placeable, BlueprintPasteCopyState.AllOverlapped).Lines);
+            Assert.IsEmpty(Report(BlueprintPasteCopyState.Placeable, BlueprintPasteCopyState.AllBlocked).Lines);
         }
 
         [Test]
@@ -118,7 +134,7 @@ namespace Client.Tests.PlaceSystem.Blueprint.Paste
         private static BlueprintPasteCopyPlan Copy(BlueprintPasteCopyState state)
         {
             var draft = new BlueprintPasteCopyDraft(Vector3Int.zero, state != BlueprintPasteCopyState.GroundNotFound,
-                Array.Empty<BlueprintPlacementElement>(), Array.Empty<bool>(), Array.Empty<BlueprintPasteLine>(), 0, 0, 0, true);
+                Array.Empty<BlueprintPlacementElement>(), new[] { state == BlueprintPasteCopyState.AllBlocked ? BlueprintPasteElementBlockCause.ExistingBlock : BlueprintPasteElementBlockCause.None }, Array.Empty<BlueprintPasteLine>(), 0, 0, 0, true);
             return new BlueprintPasteCopyPlan(draft, state);
         }
     }

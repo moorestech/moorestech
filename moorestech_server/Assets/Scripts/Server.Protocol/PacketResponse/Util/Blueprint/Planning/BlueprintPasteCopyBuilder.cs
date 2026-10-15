@@ -15,17 +15,24 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint.Planning
             var coordinatesValid = BlueprintPasteCalculator.TryCalculatePlacements(blueprint, origin.Position, rotationStep, out var elements);
             occupancy = BlueprintPasteCopyOccupancy.Create(elements);
             if (!coordinatesValid)
-                return new BlueprintPasteCopyDraft(origin.Position, origin.IsGroundFound, elements, new List<bool>(),
+                return new BlueprintPasteCopyDraft(origin.Position, origin.IsGroundFound, elements, new List<BlueprintPasteElementBlockCause>(),
                     new List<BlueprintPasteLine>(), 0, 0, 0, false);
-            var nonOverlapFlags = new List<bool>(elements.Count);
+            var blockCauses = new List<BlueprintPasteElementBlockCause>(elements.Count);
             var intersecting = occupancy.FindIntersecting(accepted);
             foreach (var position in occupancy.Positions)
             {
-                nonOverlapFlags.Add(!world.IsOverlapping(position) && !OverlapsAccepted(position));
+                blockCauses.Add(ResolveCause(position));
             }
-            return Create(blueprint, origin, elements, nonOverlapFlags);
+            return Create(blueprint, origin, elements, blockCauses);
 
             #region Internal
+
+            BlueprintPasteElementBlockCause ResolveCause(BlockPositionInfo position)
+            {
+                if (world.IsOverlapping(position) || OverlapsAccepted(position)) return BlueprintPasteElementBlockCause.ExistingBlock;
+                if (world.IsTerrainSunk(position)) return BlueprintPasteElementBlockCause.TerrainSunk;
+                return BlueprintPasteElementBlockCause.None;
+            }
 
             bool OverlapsAccepted(BlockPositionInfo position)
             {
@@ -46,10 +53,10 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint.Planning
         public static BlueprintPasteCopyDraft BuildUnobstructed(BlueprintJsonObject blueprint)
         {
             var elements = BlueprintPasteCalculator.CalculatePlacements(blueprint, Vector3Int.zero, 0);
-            return Create(blueprint, new BlueprintPasteOrigin(Vector3Int.zero, true), elements, elements.Select(_ => true).ToList());
+            return Create(blueprint, new BlueprintPasteOrigin(Vector3Int.zero, true), elements, elements.Select(_ => BlueprintPasteElementBlockCause.None).ToList());
         }
 
-        private static BlueprintPasteCopyDraft Create(BlueprintJsonObject blueprint, BlueprintPasteOrigin origin, List<BlueprintPlacementElement> elements, List<bool> nonOverlapFlags)
+        private static BlueprintPasteCopyDraft Create(BlueprintJsonObject blueprint, BlueprintPasteOrigin origin, List<BlueprintPlacementElement> elements, List<BlueprintPasteElementBlockCause> blockCauses)
         {
             // BP内indexから要素indexを引けるようにする（マスタ欠損ブロックは要素に無い）
             // Map blueprint block indices to element indices (blocks missing from the master have no element)
@@ -59,12 +66,12 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint.Planning
             var lines = new List<BlueprintPasteLine>();
             var evaluator = new BlueprintPasteLineEvaluator();
             var missingEndpointLineCount = 0;
-            var overlappingEndpointLineCount = 0;
+            var blockedEndpointLineCount = 0;
             var unknownConnectToolLineCount = 0;
             ResolveLines(BlueprintPasteLineKind.ElectricWire, blueprint.Wires);
             ResolveLines(BlueprintPasteLineKind.GearChain, blueprint.Chains);
-            return new BlueprintPasteCopyDraft(origin.Position, origin.IsGroundFound, elements, nonOverlapFlags, lines,
-                missingEndpointLineCount, overlappingEndpointLineCount, unknownConnectToolLineCount, true);
+            return new BlueprintPasteCopyDraft(origin.Position, origin.IsGroundFound, elements, blockCauses, lines,
+                missingEndpointLineCount, blockedEndpointLineCount, unknownConnectToolLineCount, true);
 
             #region Internal
 
@@ -80,11 +87,11 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint.Planning
                         continue;
                     }
 
-                    // 片端が重なりで置けない線は張らない（ADR 0077 決定4: 両端が置けた線だけ）
-                    // Skip lines whose endpoint is blocked by an overlap (ADR 0077 decision 4)
-                    if (!nonOverlapFlags[indexA] || !nonOverlapFlags[indexB])
+                    // 片端が配置不可の線は張らない（ADR 0077 決定4: 両端が置けた線だけ）
+                    // Skip lines whose endpoint is blocked by overlap or terrain (ADR 0077 decision 4)
+                    if (!BlueprintPasteCopyDraft.IsPlaceableCause(blockCauses[indexA]) || !BlueprintPasteCopyDraft.IsPlaceableCause(blockCauses[indexB]))
                     {
-                        overlappingEndpointLineCount++;
+                        blockedEndpointLineCount++;
                         continue;
                     }
 

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using Server.Protocol.PacketResponse;
@@ -16,10 +17,12 @@ namespace Client.Tests.PlaceSystem.Blueprint.Paste
         {
             var guid = Guid.Parse("12345678-1234-1234-1234-123456789abc");
             var origins = Enumerable.Range(0, originCount).Select(i => new Vector3Int(-i * 3, i % 4, i * 2)).ToList();
-            var requests = BlueprintRequest.CreatePasteRequests(guid, 3, origins).ToList();
+            var sunk = new List<Vector3Int> { origins[0], origins[^1] };
+            var requests = BlueprintRequest.CreatePasteRequests(guid, 3, origins, sunk).ToList();
 
             // 境界で原点を落としたり重複させず各要求の回転も保つ
             // Preserve every origin exactly once and retain rotation in each request
+            Assert.IsTrue(requests.All(request => request.TerrainSunkBlockPositions.Select(position => position.Vector3Int).SequenceEqual(sunk)));
             Assert.AreEqual(requestCount, requests.Count);
             Assert.AreEqual(lastCount, requests.Last().Origins.Count);
             Assert.IsTrue(requests.All(request => 0 < request.Origins.Count && request.Origins.Count <= BlueprintRequest.MaxPasteOrigins));

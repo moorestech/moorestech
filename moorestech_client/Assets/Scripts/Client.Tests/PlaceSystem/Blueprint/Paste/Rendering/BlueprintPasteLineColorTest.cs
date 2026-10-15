@@ -93,7 +93,7 @@ namespace Client.Tests.PlaceSystem.Blueprint.Paste
             var line = new BlueprintPasteLine(kind, 0, 1, first.Position, second.Position,
                 Guid.Empty, Array.Empty<ConnectToolMaterialCost>(), failureReason);
             var draft = new BlueprintPasteCopyDraft(Vector3Int.zero, true, new[] { first, second },
-                new[] { true, true }, new[] { line }, 0, 0, 0, true);
+                new[] { BlueprintPasteElementBlockCause.None, BlueprintPasteElementBlockCause.None }, new[] { line }, 0, 0, 0, true);
             var copy = new BlueprintPasteCopyPlan(draft, state);
             var plan = new BlueprintPastePlan(new[] { copy }, false, Array.Empty<(ItemId, int, int)>());
             IReadOnlyList<IReadOnlyList<BlockPreviewObject>> ghosts = new[]

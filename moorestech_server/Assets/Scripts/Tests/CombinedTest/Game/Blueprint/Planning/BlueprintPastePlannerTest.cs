@@ -44,19 +44,19 @@ namespace Tests.CombinedTest.Game.Blueprint.Planning
                 BlueprintPastePlannerTestContext.BlockCosts(block, 1));
 
             Assert.IsTrue(result.Copies[0].IsPlaced);
-            CollectionAssert.AreEqual(new[] { false, true }, result.Copies[0].Draft.NonOverlapFlags);
+            CollectionAssert.AreEqual(new[] { BlueprintPasteElementBlockCause.ExistingBlock, BlueprintPasteElementBlockCause.None }, result.Copies[0].Draft.ElementBlockCauses);
             Assert.AreEqual(1, result.Copies[0].EnumerateElementsToPlace().Count());
             Assert.AreEqual(new Vector3Int(2, 0, 0), result.Copies[0].EnumerateElementsToPlace().Single().Position);
         }
 
         [Test]
-        public void 全ブロック重なりはAllOverlappedTest()
+        public void 全ブロック重なりはAllBlockedTest()
         {
             var context = new BlueprintPastePlannerTestContext(false, 0);
             context.World.Overlaps.Add(Vector3Int.zero);
             var result = context.Plan(BlueprintPastePlannerTestContext.Create(ForUnitTestModBlockId.BlockId), 1,
                 new Dictionary<ItemId, int>());
-            Assert.AreEqual(BlueprintPasteCopyState.AllOverlapped, result.Copies[0].State);
+            Assert.AreEqual(BlueprintPasteCopyState.AllBlocked, result.Copies[0].State);
             Assert.IsEmpty(result.EnumerateCopiesToPlace());
             Assert.IsEmpty(result.ShortageRequirements);
         }
