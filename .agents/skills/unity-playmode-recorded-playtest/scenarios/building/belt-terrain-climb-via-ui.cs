@@ -3,6 +3,7 @@
 // End-to-end check of belt terrain climbing (ADR 0081): Ground-layer boxes form a hill and a cliff, and UI drags verify
 // (1) hill cells are lifted and (2) on an unsolvable cliff the belt is placed buried with the notice line in the tooltip
 using Client.Common;
+using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor;
@@ -45,9 +46,10 @@ return PlaytestRunner.Run("belt-terrain-climb-via-ui", options, async p =>
     p.Assert(p.GetBlock(new Vector3Int(8, 32, 2)) != null, "終端は地面の高さ y=32 のまま");
     // サーバー反映だけで撮らず、丘上の表示が同期されてからプレビューを閉じる
     // Wait for hill views to synchronize before closing the preview and capturing the server result
-    await p.WaitBlockGameObject(new Vector3Int(4, 33, 2));
-    await p.WaitBlockGameObject(new Vector3Int(5, 33, 2));
-    await p.WaitBlockGameObject(new Vector3Int(8, 32, 2));
+    var hillViewA = await p.WaitBlockGameObject(new Vector3Int(4, 33, 2));
+    var hillViewB = await p.WaitBlockGameObject(new Vector3Int(5, 33, 2));
+    var endView = await p.WaitBlockGameObject(new Vector3Int(8, 32, 2));
+    await p.Until(() => PlacementAnimationFinished(hillViewA) && PlacementAnimationFinished(hillViewB) && PlacementAnimationFinished(endView), 10f, "丘上と終端の設置アニメーションが完了する");
     await p.ExitToGameScreen();
     await p.Screenshot("01-belt-over-hill");
 
@@ -102,8 +104,14 @@ return PlaytestRunner.Run("belt-terrain-climb-via-ui", options, async p =>
 
     #region Internal
 
-    // 本番の最終Placeable列を読取専用で観測し、検証用の公開APIを増やさない
-    // Observe the production final Placeable list read-only without adding a public testing API
+    // 本番の演出状態と最終Placeable列を読取専用で観測し、検証用APIを増やさない
+    // Observe production animation state and final Placeable cells read-only without adding a testing API
+    bool PlacementAnimationFinished(BlockGameObject block)
+    {
+        var field = typeof(BlockGameObject).GetField("_isShaderAnimating", BindingFlags.Instance | BindingFlags.NonPublic);
+        return !(bool)field.GetValue(block);
+    }
+
     List<PlaceInfo> PreviewCells()
     {
         var system = ClientDIContext.DIContainer.DIContainerResolver.Resolve<BeltConveyorPlaceSystem>();
