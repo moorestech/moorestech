@@ -76,7 +76,7 @@
 - Consumes: なし
 - Produces: `internal void BlockPreviewObject.ConfigureTerrainContact(Vector3Int blockSize)`（シグネチャ不変・形状のみ変更）。`internal bool DetectCurrentGroundOverlap()`（不変）
 
-- [ ] **Step 1: `ConfigureTerrainContact` を書き換える**
+- [x] **Step 1: `ConfigureTerrainContact` を書き換える**
 
 `BlockPreviewObject.cs` の95〜119行を次に置き換える。
 
@@ -113,7 +113,7 @@
         }
 ```
 
-- [ ] **Step 2: 既存の箱形状テスト2件を新しい形状へ合わせる**
+- [x] **Step 2: 既存の箱形状テスト2件を新しい形状へ合わせる**
 
 `PreviewBlockColliderIsolationTest.cs` の `MissingDetectorGetsOneInsetContactVolumeWithoutChangingVisualCollider` で、`ConfigureTerrainContact(new Vector3Int(1, 1, 1))` の2行を `ConfigureTerrainContact(new Vector3Int(1, 3, 1))` にし、y の検査2行を次に置き換える。
 
@@ -155,7 +155,7 @@
 
 `ExistingDetectorRemainsTheOnlyContactSource`（既存検出器あり）は変えない。
 
-- [ ] **Step 3: PlayModeフィクスチャを高さ3のブロックへ切り替える**
+- [x] **Step 3: PlayModeフィクスチャを高さ3のブロックへ切り替える**
 
 `PlacementPreviewProductionWiringTest` は生成判定箱が1個あることを前提にしている。高さ1の `ForUnitTestModBlockId.BlockId` では箱ができなくなるので、`PlacementPreviewPhysicsFixture.cs` の44行目と61行目の `var blockId = ForUnitTestModBlockId.BlockId;` を両方とも次に置き換える。
 
@@ -167,7 +167,7 @@
 
 `PlacementPreviewProductionWiringTest.cs` 本体は変えない（地面は `contact.bounds.center` に置くので箱の高さが変わっても成立する）。
 
-- [ ] **Step 4: 回帰テストを新設する**
+- [x] **Step 4: 回帰テストを新設する**
 
 `PlacementTerrainContactBaseCellSinkTest.cs` を作る。
 
@@ -305,7 +305,7 @@ namespace Client.Tests.PlaceSystem.Common.Preview
 #endif
 ```
 
-- [ ] **Step 5: コンパイルし、接触判定まわりのテストを実行する**
+- [x] **Step 5: コンパイルし、接触判定まわりのテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: ErrorCount 0
@@ -319,7 +319,7 @@ Expected: 4件 PASS（PlayMode遷移を伴うので、終了後に「Domain Relo
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client.Tests.PlaceSystem\.(TrainCostIntegration|Common\.NormalPlacementPreviewStepTest|Common\.PlacementHeightPlaceSystemWiringTest)|GearChainPole|ElectricWire.*Ghost|BeltConveyorPlace"`
 Expected: 全件 PASS（4設置系の配線テストが回帰していない）
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Common/PreviewController/BlockPreviewObject.cs \

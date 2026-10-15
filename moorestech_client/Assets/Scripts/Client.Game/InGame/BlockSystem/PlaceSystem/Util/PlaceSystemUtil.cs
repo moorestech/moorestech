@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using ClassLibrary;
 using Client.Common;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Run;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Ground;
 using Client.Game.InGame.Control;
@@ -31,6 +33,44 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
         {
             var rotatedSize = currentBlockDirection.GetCoordinateConvertAction()(holdingBlock.BlockSize).Abs();
             return TryGetRayHitPlacePointBySize(mainCamera, rotatedSize, heightOffset, out pos, out surface);
+        }
+
+        // 地形ゲート付き設置系の1セル版。地面ヒットのYを占有セルの地形最高点で決め直す（ADR 0047・0080）
+        // Single-cell entry for terrain-gated placements; a ground hit's Y is re-decided from the footprint terrain max (ADR 0047, 0080)
+        public static FootprintGroundedCellResult ResolveFootprintGroundedRayHitBlockPosition(Camera mainCamera, int heightOffset, BlockDirection currentBlockDirection, BlockMasterElement holdingBlock, out Vector3Int pos, out BlockPreviewBoundingBoxSurface surface)
+        {
+            if (!TryGetRayHitBlockPosition(mainCamera, heightOffset, currentBlockDirection, holdingBlock, out var rayHitCell, out surface))
+            {
+                pos = rayHitCell;
+                return FootprintGroundedCellResult.NoPlacementSurface;
+            }
+
+            var surfaceKind = surface == null ? PlacementHitSurfaceKind.Ground : PlacementHitSurfaceKind.BlockFace;
+            return ResolveFootprintGroundedCell(rayHitCell, surfaceKind, currentBlockDirection, holdingBlock.BlockSize, heightOffset, out pos);
+        }
+
+        // 理由行を積める呼び出し側向け。地表なしは理由を積んで不可、照準面なしは理由なしで不可
+        // For callers holding feedback; no ground pushes its reason, no aim surface fails without a line
+        public static bool TryGetFootprintGroundedRayHitBlockPosition(Camera mainCamera, int heightOffset, BlockDirection currentBlockDirection, BlockMasterElement holdingBlock, PlacementFeedback feedback, out Vector3Int pos, out BlockPreviewBoundingBoxSurface surface)
+        {
+            var result = ResolveFootprintGroundedRayHitBlockPosition(mainCamera, heightOffset, currentBlockDirection, holdingBlock, out pos, out surface);
+            if (result == FootprintGroundedCellResult.GroundNotFound) feedback.AddGroundNotFound();
+            // silent-ok: 照準が地面にもブロックにも当たらないのは操作中の通常状態 / プレビューが出ないことでプレイヤーが気づく
+            return result == FootprintGroundedCellResult.Resolved;
+        }
+
+        internal static FootprintGroundedCellResult ResolveFootprintGroundedCell(Vector3Int rayHitCell, PlacementHitSurfaceKind surfaceKind, BlockDirection blockDirection, Vector3Int blockSize, int heightOffset, out Vector3Int pos)
+        {
+            pos = rayHitCell;
+
+            // ブロック面ヒット（積み重ね）は整数グリッド上なので触らない
+            // Block-face hits (stacking) sit on the integer grid and stay untouched
+            if (surfaceKind == PlacementHitSurfaceKind.BlockFace) return FootprintGroundedCellResult.Resolved;
+
+            // 占有セルの地表が取れなければ置けないので、その理由を呼び出し側へ返す
+            // Without ground under the footprint the block cannot be placed, so that reason goes back to the caller
+            if (!PlacementGroundCellResolver.TryResolveCellFromGround(rayHitCell, blockDirection, blockSize, heightOffset, out pos)) return FootprintGroundedCellResult.GroundNotFound;
+            return FootprintGroundedCellResult.Resolved;
         }
 
         // 通常設置とBPのセル解決が共有する、レイキャスト→設置セルの本体

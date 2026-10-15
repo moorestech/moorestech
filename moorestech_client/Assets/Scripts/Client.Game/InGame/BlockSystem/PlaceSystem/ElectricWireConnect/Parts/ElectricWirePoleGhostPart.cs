@@ -51,7 +51,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
 
             // 地面レイキャストで座標算出。距離超過は理由のみ出す
             // Computes the position via ground raycast; beyond range shows only the reason
-            if (!PlaceSystemUtil.TryGetRayHitBlockPosition(_mainCamera, 0, selection.CurrentDirection, poleMaster, out var placePoint, out _)) return false;
+            if (!PlaceSystemUtil.TryGetFootprintGroundedRayHitBlockPosition(_mainCamera, 0, selection.CurrentDirection, poleMaster, feedback, out var placePoint, out _)) return false;
             if (!PlaceSystemUtil.IsPlaceableFromPlayer(placePoint))
             {
                 feedback.AddTooFar();

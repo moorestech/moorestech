@@ -1,5 +1,6 @@
 using System;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Ground;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.UI.Inventory.Main;
@@ -73,14 +74,22 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
 
             // ゴースト位置を算出し距離内か確認
             // Calculate ghost position and ensure it is within placeable distance
-            if (!PlaceSystemUtil.TryGetRayHitBlockPosition(_mainCamera, 0, BlockDirection.North, poleBlockMaster, out var placePos, out _)) return input;
+            var ghostCell = PlaceSystemUtil.ResolveFootprintGroundedRayHitBlockPosition(_mainCamera, 0, BlockDirection.North, poleBlockMaster, out var placePos, out _);
+            // silent-ok: 照準面なしは既定値NoAimSurfaceのまま返す / ゴーストが出ないことでプレイヤーが気づく
+            if (ghostCell == FootprintGroundedCellResult.NoPlacementSurface) return input;
+            if (ghostCell == FootprintGroundedCellResult.GroundNotFound)
+            {
+                input.GhostState = GearChainPoleGhostState.GroundNotFound;
+                return input;
+            }
             if (!PlaceSystemUtil.IsPlaceableFromPlayer(placePos))
             {
-                input.GhostTooFar = true;
+                input.GhostState = GearChainPoleGhostState.TooFar;
                 return input;
             }
 
-            input.HasGhost = true;
+            input.GhostState = GearChainPoleGhostState.Shown;
+
             // BlockId未設定だとプレビュー生成がBlockElement not foundで毎フレーム死ぬ（セル毎BlockId化への追従漏れ）
             // Without BlockId the preview creation dies every frame with BlockElement not found (missed per-cell BlockId migration)
             input.GhostPlaceInfo = new PlaceInfo { Position = placePos, Direction = BlockDirection.North, VerticalDirection = BlockVerticalDirection.Horizontal, Placeable = true, BlockId = poleBlockId };

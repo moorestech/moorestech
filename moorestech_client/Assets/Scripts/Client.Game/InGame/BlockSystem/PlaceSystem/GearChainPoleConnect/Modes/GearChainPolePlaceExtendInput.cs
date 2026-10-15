@@ -19,13 +19,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
         public bool Clicked;
         public bool IsAwaitingResponse;
 
-        // ゴースト候補（レイ命中かつ設置距離内のときのみ有効）
-        // Ghost candidate (valid only when the ray hits within placeable distance)
-        public bool HasGhost;
-
-        // 距離超過でゴーストを出さなかった
-        // No ghost because the cursor is beyond the placeable distance
-        public bool GhostTooFar;
+        // ゴーストを出したか、出さなかった理由（照準面なし・距離超過・地表なし）
+        // Whether a ghost is shown, or why not (no aim surface, beyond reach, no footprint ground)
+        public GearChainPoleGhostState GhostState;
 
         public PlaceInfo GhostPlaceInfo;
         public bool GhostGroundClear;
