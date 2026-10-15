@@ -1,110 +1,110 @@
 using System.Collections.Generic;
+using Client.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
+using Core.Master;
+using Game.Block.Interface;
 using Mooresmaster.Localization.Generated;
 using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
+using Server.Boot;
 using Server.Protocol.PacketResponse;
+using Tests.Module.TestMod;
 using UnityEngine;
 
 namespace Client.Tests.PlaceSystem.Common
 {
     /// <summary>
-    ///     通常設置が地形を設置不可の理由にしないこと（ADR 0047）を入口ごと固定する
-    ///     Pins that normal placement never blocks on terrain (ADR 0047), at its actual entry point
+    ///     通常設置の入口で地形めり込みと理由表示を検証する（ADR 0081）
+    ///     Verifies terrain sinks and feedback through normal placement's entry (ADR 0081)
     /// </summary>
     public class NormalPlacementPreviewStepTest
     {
-        // 地形へ食い込んでいても全セルが設置可のまま、地形干渉行も出ない
-        // Every cell stays placeable and no terrain line is pushed, even while digging into the terrain
-        [Test]
-        public void 地形に食い込んでいても設置可のままで地形干渉行を出さない()
-        {
-            var placeInfos = BuildCells(3);
-            var causes = new List<PlacementBlockCause> { PlacementBlockCause.None, PlacementBlockCause.None, PlacementBlockCause.None };
-            var previewController = new AlwaysGroundOverlappingPreviewController();
-            var feedback = new PlacementFeedback();
+        private GameObject _ground;
 
-            var cursorIndex = NormalPlacementPreviewStep.Apply(previewController, placeInfos, causes, new Vector3Int(1, 0, 0), null, feedback);
+        [SetUp]
+        public void SetUp()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            // 地表は30.6。底セル30は可、29だけ埋まる
+            // The surface is 30.6: base cell 30 is clear, while 29 is sunk
+            _ground = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            _ground.layer = LayerConst.GroundLayer;
+            _ground.transform.position = new Vector3(501.5f, 30.1f, 500.5f);
+            _ground.transform.localScale = new Vector3(20f, 1f, 20f);
+            Physics.SyncTransforms();
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            Object.DestroyImmediate(_ground);
+        }
+
+        [Test]
+        public void 一セル沈めたセルだけ不可でカーソルなら地形理由が出る()
+        {
+            var cells = BuildCells();
+            cells[1].Position = new Vector3Int(501, 29, 500);
+            var feedback = new PlacementFeedback();
+            var preview = new RecordingPreviewController();
+
+            var cursorIndex = Apply(preview, cells, PlacementBlockCause.None, feedback);
 
             Assert.AreEqual(1, cursorIndex);
-            Assert.IsTrue(placeInfos[0].Placeable);
-            Assert.IsTrue(placeInfos[1].Placeable);
-            Assert.IsTrue(placeInfos[2].Placeable);
+            Assert.AreEqual(1, preview.SetPreviewCallCount);
+            Assert.IsTrue(cells[0].Placeable);
+            Assert.IsFalse(cells[1].Placeable);
+            Assert.IsTrue(cells[2].Placeable);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBlockedByTerrain.Key, feedback.Lines[0].Key.Key);
+        }
+
+        [Test]
+        public void 既定Yなら全セル設置可で地形理由を出さない()
+        {
+            var cells = BuildCells();
+            var feedback = new PlacementFeedback();
+
+            Apply(new RecordingPreviewController(), cells, PlacementBlockCause.None, feedback);
+
+            foreach (var cell in cells) Assert.IsTrue(cell.Placeable);
             Assert.IsEmpty(feedback.Lines);
         }
 
-        // 地形接触を一度も問い合わせない。問い合わせたらADR 0047が撤回されている
-        // The terrain contact is never queried; querying it would mean ADR 0047 was revoked
-        [Test]
-        public void 地形接触を問い合わせない()
-        {
-            var placeInfos = BuildCells(1);
-            var causes = new List<PlacementBlockCause> { PlacementBlockCause.None };
-            var previewController = new AlwaysGroundOverlappingPreviewController();
-
-            NormalPlacementPreviewStep.Apply(previewController, placeInfos, causes, new Vector3Int(0, 0, 0), null, new PlacementFeedback());
-
-            Assert.AreEqual(1, previewController.SetPreviewCallCount);
-            Assert.IsFalse(previewController.TerrainContactEnabled);
-            Assert.AreEqual(0, previewController.DetectGroundOverlapsCallCount);
-        }
-
-        // 地形以外の共有原因は従来どおり積まれる
-        // Non-terrain shared causes are reported as before
         [Test]
         public void 既存ブロックの理由は積む()
         {
-            var placeInfos = BuildCells(3);
-            var causes = new List<PlacementBlockCause> { PlacementBlockCause.None, PlacementBlockCause.ExistingBlock, PlacementBlockCause.None };
             var feedback = new PlacementFeedback();
-
-            NormalPlacementPreviewStep.Apply(new AlwaysGroundOverlappingPreviewController(), placeInfos, causes, new Vector3Int(1, 0, 0), null, feedback);
-
+            Apply(new RecordingPreviewController(), BuildCells(), PlacementBlockCause.ExistingBlock, feedback);
             Assert.AreEqual(1, feedback.Lines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBlockedByExistingBlock.Key, feedback.Lines[0].Key.Key);
         }
 
-        private static List<PlaceInfo> BuildCells(int cellCount)
+        private static int Apply(RecordingPreviewController preview, List<PlaceInfo> cells, PlacementBlockCause cursorCause, PlacementFeedback feedback)
         {
-            var placeInfos = new List<PlaceInfo>(cellCount);
-            for (var i = 0; i < cellCount; i++) placeInfos.Add(new PlaceInfo { Position = new Vector3Int(i, 0, 0), Placeable = true });
-            return placeInfos;
+            var causes = new[] { PlacementBlockCause.None, cursorCause, PlacementBlockCause.None };
+            var master = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.BeltConveyorId);
+            return NormalPlacementPreviewStep.Apply(preview, cells, causes, cells[1].Position, master, feedback);
         }
 
-        // 全セルが地形へ接触していると答えるフェイク。呼ばれた回数も数える
-        // A fake answering that every cell touches the terrain, counting how often it is called
-        private class AlwaysGroundOverlappingPreviewController : IPlacementPreviewBlockGameObjectController
+        private static List<PlaceInfo> BuildCells()
+        {
+            var cells = new List<PlaceInfo>();
+            for (var i = 0; i < 3; i++)
+            {
+                cells.Add(new PlaceInfo { Position = new Vector3Int(500 + i, 30, 500), Direction = BlockDirection.North, BlockId = ForUnitTestModBlockId.BeltConveyorId, Placeable = true });
+            }
+            return cells;
+        }
+
+        private class RecordingPreviewController : IPlacementPreviewBlockGameObjectController
         {
             public int SetPreviewCallCount { get; private set; }
-            public int DetectGroundOverlapsCallCount { get; private set; }
-            public bool TerrainContactEnabled { get; private set; }
-
-            private int _previewCellCount;
-
             public bool IsActive => true;
-
-            public void SetPreview(List<PlaceInfo> currentPlaceInfos, BlockMasterElement holdingBlockMaster, bool terrainContactEnabled)
-            {
-                SetPreviewCallCount++;
-                TerrainContactEnabled = terrainContactEnabled;
-                _previewCellCount = currentPlaceInfos.Count;
-            }
-
-            public IReadOnlyList<bool> DetectGroundOverlaps()
-            {
-                DetectGroundOverlapsCallCount++;
-
-                var groundOverlaps = new List<bool>(_previewCellCount);
-                for (var i = 0; i < _previewCellCount; i++) groundOverlaps.Add(true);
-                return groundOverlaps;
-            }
-
+            public void SetPreview(List<PlaceInfo> cells, BlockMasterElement master) => SetPreviewCallCount++;
             public void UpdatePlaceableColors(List<PlaceInfo> placeInfos) { }
-
             public void SetActive(bool active) { }
-
             public bool TryGetPreviewBlock(int index, out BlockPreviewObject previewBlock)
             {
                 previewBlock = null;
