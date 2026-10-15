@@ -14,7 +14,7 @@ using UnityEngine;
 namespace Client.Tests.PlaceSystem.Common.Preview
 {
     /// <summary>
-    ///     本番のプレビュー入口（controller → プール → PreviewBlockCreator）でゴーストを作る土台。MasterHolderは呼び出し側が用意済みであること
+    ///     本番入口でゴーストを作る土台。MasterHolderは呼び出し側が用意
     ///     Builds ghosts through the production entry (controller, pool, PreviewBlockCreator). The caller must have loaded MasterHolder
     /// </summary>
     internal sealed class PreviewGhostViaControllerFixture
@@ -29,7 +29,7 @@ namespace Client.Tests.PlaceSystem.Common.Preview
 
         internal void Initialize()
         {
-            // 非表示の子と複数Colliderを持つ最小Prefabを登録する
+            // 非表示の子と複数Colliderの最小Prefabを登録
             // Register a minimal prefab with a dormant child holding several colliders
             var blockId = ForUnitTestModBlockId.BlockId;
             _prefab = new GameObject("PreviewGhostSourcePrefab");

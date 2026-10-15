@@ -35,7 +35,7 @@ namespace Client.Tests.PlaceSystem.Common.Preview
         {
             var preview = _fixture.SetPreview();
 
-            // 非表示だった子のColliderも本番経路で無効化済み
+            // 非表示の子のColliderも無効化済み
             // Colliders of the formerly dormant child are already disabled by the production path
             var ghost = preview.gameObject;
             var dormant = ghost.transform.Find(_fixture.DormantChild.name).gameObject;
@@ -43,7 +43,7 @@ namespace Client.Tests.PlaceSystem.Common.Preview
             dormant.SetActive(true);
             AssertAllCollidersDisabled(ghost);
 
-            // プールを解放して再利用しても当たり判定は復活しない
+            // 再利用しても当たり判定は復活しない
             // Releasing and reusing the pooled ghost must not restore collisions
             var reused = _fixture.SetPreview();
             Assert.AreSame(preview, reused);

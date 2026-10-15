@@ -12,7 +12,7 @@ namespace Client.Tests.PlaceSystem.Common.Height
     // Replaces selection and rendering dependencies in height wiring tests
     internal static class PlacementHeightWiringFakes
     {
-        // 設置系を1度だけ高さ非対応の本番EmptyPlaceSystemへ切り替えるセレクタ
+        // 設置系を1度だけEmptyPlaceSystemへ切り替える
         // A selector that switches once from the given system to the production height-less EmptyPlaceSystem
         internal sealed class SwitchableSelector : IPlaceSystemSelector
         {

@@ -31,7 +31,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             context.Register(blueprint);
             context.Supply(blueprint, 1);
 
-            // 一基分の費用だけが減ることをアイテム単位で照合する
+            // 一基分の費用だけ減ることを照合
             // Compare each inventory item against the cost of exactly one pole
             var before = context.Inventory.InventoryItems.GroupBy(item => item.Id)
                 .ToDictionary(group => group.Key, group => group.Sum(item => item.Count));
@@ -140,7 +140,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var sunk = new BlockPositionInfo(position, BlockDirection.North, size);
             var world = new ServerBlueprintPasteWorld(null, null, false, new[] { sunk });
 
-            // 同じ位置でも判定時の向きと寸法が揃う要素だけを飛ばす
+            // 向きと寸法が揃う要素だけ飛ばす
             // Skip only the element with the same direction and size used in the terrain check
             Assert.IsTrue(world.IsTerrainSunk(sunk));
             Assert.IsFalse(world.IsTerrainSunk(new BlockPositionInfo(position, BlockDirection.East, size)));
@@ -159,7 +159,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var poleSize = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.ElectricPoleId).BlockSize;
             var sunk = new BlockPositionInfo(origin, BlockDirection.North, poleSize);
 
-            // 先行コピーの北向き要素を飛ばしても、同位置の後続東向き要素は残す
+            // 北向き要素を飛ばしても同位置の東向きは残す
             // Skip the first copy's north-facing element while placing the later east-facing one there
             var response = context.SendForResponse(BlueprintRequest.CreatePasteRequest(blueprint.BlueprintGuid, 0,
                 new List<Vector3Int> { origin, origin - new Vector3Int(3, 0, 0) }, new List<BlockPositionInfo> { sunk }));

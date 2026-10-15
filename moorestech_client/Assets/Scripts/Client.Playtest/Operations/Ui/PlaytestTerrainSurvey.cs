@@ -12,7 +12,7 @@ namespace Client.Playtest.Operations.Ui
         private const float ProbeStartHeight = 1000f;
         private const float ProbeDistance = 1500f;
 
-        // 中心から近い順に、length セルの区間で始点→終点の上昇が minRise..maxRise かつ遮蔽物の無い区間を探す
+        // 中心に近い順に、上昇が範囲内で遮蔽物の無い区間を探す
         // Nearest-first, find a length-cell run whose start-to-end rise is within minRise..maxRise with nothing standing on it
         public static bool TryFindRisingRunAlongX(Vector2Int center, int searchRadius, int length, float minRise, float maxRise, int excludedHalfExtent, out TerrainSlopeRun run)
         {
@@ -36,7 +36,7 @@ namespace Client.Playtest.Operations.Ui
 
             bool IsRising(float[] heights)
             {
-                // 単調に上り、始点→終点の上昇が範囲内の区間だけを採る
+                // 範囲内の単調上昇だけ採る
                 // Accept only monotonically rising runs whose total rise is within range
                 for (var i = 1; i < heights.Length; i++) if (heights[i] < heights[i - 1] - 0.05f) return false;
                 var rise = heights[heights.Length - 1] - heights[0];
@@ -46,7 +46,7 @@ namespace Client.Playtest.Operations.Ui
             #endregion
         }
 
-        // 各セル中心の地表高さを測る。最初に当たるのが地形でなければ（木・岩・ブロック等）その区間は使わない
+        // セル中心の地表高さを測る。地形以外が当たれば区間を捨てる
         // Measure each cell-center surface height; reject the run if the first hit is not terrain (tree, rock, block, ...)
         private static bool TryMeasureRun(Vector2Int start, int length, out float[] heights)
         {

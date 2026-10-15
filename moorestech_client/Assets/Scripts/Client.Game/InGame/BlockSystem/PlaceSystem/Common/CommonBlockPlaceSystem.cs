@@ -162,7 +162,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
                 _previewBlockController.SetActive(true);
 
-                // プレビュー投入と地形めり込み・カーソル理由集約（ADR 0081）
+                // プレビュー投入と理由集約
                 // Submit the preview and report terrain sinks and cursor reasons (ADR 0081)
                 var cursorIndex = NormalPlacementPreviewStep.Apply(_previewBlockController, _currentPlaceInfos, placeCauses, placePoint, holdingBlockMaster, feedback);
 

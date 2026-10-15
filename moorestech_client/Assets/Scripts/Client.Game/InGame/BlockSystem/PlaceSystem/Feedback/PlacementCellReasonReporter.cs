@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Feedback
 {
     /// <summary>
-    ///     セル毎の地形めり込みをPlaceableと理由行へ反映する、全設置系共通の入口（ADR 0081）
+    ///     全設置系共通の埋まり反映入口（ADR 0081）
     ///     The shared entry for every placement system that applies per-cell terrain sinks to Placeable and reason lines (ADR 0081)
     ///     設置系固有の理由は積まない。共有行の後にその系自身が積む
     ///     System-specific reasons are not pushed here; each system pushes its own after these shared lines
@@ -44,7 +44,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Feedback
             }
         }
 
-        // カーソルセル解決→地形めり込みの反映→理由集約を1回で行う（通常設置・ベルトが個別に組んでいた同一手順の集約先）
+        // 解決→埋まり反映→理由集約を1回で行う
         // Resolves the cursor cell, applies terrain sinks, and reports reasons in one call (the shared shape normal/belt each rebuilt)
         // cellCausesはplaceInfosと同じ添字で並走するセル毎の共有原因列（呼び出し側が判定して渡す）
         // cellCauses is the per-cell shared cause column indexed like placeInfos, filled in by the caller that judged them

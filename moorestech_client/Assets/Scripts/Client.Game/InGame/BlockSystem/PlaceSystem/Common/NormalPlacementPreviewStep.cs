@@ -9,7 +9,7 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 {
     /// <summary>
-    ///     通常設置のプレビュー投入と地形めり込み・カーソル理由を集約する（ADR 0081）
+    ///     通常設置プレビューと理由集約（ADR 0081）
     ///     Bundles normal placement previews with terrain sinks and cursor reasons (ADR 0081)
     /// </summary>
     public static class NormalPlacementPreviewStep

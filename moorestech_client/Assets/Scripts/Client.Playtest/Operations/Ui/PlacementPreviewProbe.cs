@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Client.Playtest.Operations.Ui
 {
     /// <summary>
-    ///     通常設置系（単体・ドラッグ・ベルト・橋脚）のプレビューの位置と可否色を録画用に読む
+    ///     設置プレビューの位置と可否色を録画用に読む
     ///     Reads positions and placeable colors of the normal placement previews (single, drag, belt, pier) for recordings
     /// </summary>
     public static class PlacementPreviewProbe

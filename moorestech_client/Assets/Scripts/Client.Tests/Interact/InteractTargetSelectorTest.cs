@@ -14,7 +14,7 @@ using UnityEngine;
 namespace Client.Tests.Interact
 {
     /// <summary>
-    ///     照準優先・無当たり判定ゴースト・近傍フォールバック・選定可否の4規則を検証（ADR 0046・0081）
+    ///     照準・無当たり判定ゴースト・近傍・可否の4規則を検証
     ///     Verifies aim priority, collider-free ghosts, nearby fallback, and availability (ADR 0046 and 0081)
     /// </summary>
     public class InteractTargetSelectorTest : InteractTargetSelectorTestFixture

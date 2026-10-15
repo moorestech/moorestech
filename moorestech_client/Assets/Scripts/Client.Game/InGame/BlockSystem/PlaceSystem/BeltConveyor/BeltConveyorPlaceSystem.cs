@@ -144,7 +144,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             _previewBlockController.SetPreview(_currentPlaceInfos, holdingBlockMaster);
             var terrainSinks = PlacementTerrainSinkQuery.DetectSunkCells(_currentPlaceInfos);
 
-            // 共有の不可原因（既存重複・地形めり込み）は共通Reporterが積む
+            // 共有の不可原因は共通Reporterが積む
             // The shared block causes (existing overlap, terrain sink) are pushed by the shared reporter
             var cursorIndex = PlacementCellReasonReporter.ApplyTerrainSinksAndReport(_currentPlaceInfos, placeCauses, placePoint, terrainSinks, feedback);
 

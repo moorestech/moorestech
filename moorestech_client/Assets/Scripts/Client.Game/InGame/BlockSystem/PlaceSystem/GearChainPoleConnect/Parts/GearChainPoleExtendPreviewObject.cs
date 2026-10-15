@@ -9,7 +9,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
 {
     /// <summary>
     /// 歯車チェーンポール延長のゴーストブロックと接続線の表示。
-    /// PositionGhostは入力フェーズの環境クエリ（配置と地形めり込み判定）、Applyは出力フェーズの表示反映で何も返さない。
+    /// PositionGhostは入力側の問い合わせ、Applyは出力側の表示反映
     /// Ghost pole block and connection line view for gear chain pole extension.
     /// PositionGhost is the input-phase environment query (placement and terrain-sink check); Apply is the output-phase render that returns nothing.
     /// </summary>
