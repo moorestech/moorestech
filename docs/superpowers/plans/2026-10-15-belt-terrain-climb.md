@@ -13,7 +13,7 @@
 1. 通常ベルト（直線・自動坂）のドラッグで、経路途中のセルの地形下限Yが経路本来のYを上回るとき、そのセルは地形下限Y以上に持ち上がる（坂で登って越え、越えたら降りる）。受け入れ: 丘セル x=4,5 の地形下限33・端点32の東向き7セル列で、x=4,5 が y=33 になる（ユニット＋録画）
 2. 経路の水平形状（L字・1コーナー）は変えない。受け入れ: 地形ありでも各セルの XZ が地形なしと一致する
 3. 地形は下限としてだけ効き、谷（地形下限 < 経路Y）では降りない。受け入れ: 地形下限が経路Yより低いセルはYが変わらない
-4. 地形下限Yは端点と同じ「セル内の地形最高点を含むセル」（`PlacementGroundCellResolver.TryResolveCellFromGround`、ADR 0047。heightOffset 0、1x1x1）。受け入れ: `GroundConveyorTerrainFloor` がこの関数をそのまま呼ぶ
+4. 地形下限Yは端点と同じ「セル内の地形最高点を含むセル＋現在のQ/E高さ補正」（`PlacementGroundCellResolver.TryResolveCellFromGround`、ADR 0047。heightOffset は `PlacementHeightOffset.Value`、1x1x1）。受け入れ: `GroundConveyorTerrainFloor` がこの関数を現在の補正値で呼ぶ。Qで1段下げた平地の列は全セルが同じ高さ（平ら）になる
 5. 越え方が複数あるときは既存高架と同じ規則（`ConveyorVerticalEnvelope` をそのまま使う。最低高さ＋狭い隙間の橋渡し）。受け入れ: 丘セル x=2,4（下限1）・x=3（下限なし）・端点0の7セル列で Y が 0,0,1,1,1,0,0 になる
 6. 地形込みで端点へ戻れない（`feasible` に偽がある）ときは、地形を無視した現行の経路で解き直して設置する。既存ブロック起因の `ImpossibleOverpass` はそのまま残る。受け入れ: 3セル列の中央が地形下限2のとき全セル y=0・全セル Placeable・`OverpassBlocked` 全偽。同じ列に既存ブロック (1,0,0)(1,1,0) もあれば端点は従来どおり不可
 7. 6で戻した結果が設置可能（地形なしの解に `feasible` 偽が無い）のときだけ、カーソルツールチップに設置を妨げない案内 `ui.tooltip.placeBeltTerrainClimbAbandoned` を1行出す（カーソルセル位置によらない）。セルは赤にしない。受け入れ: レポーターのユニットテストと録画テストでキーを確認
@@ -22,6 +22,7 @@
 10. 持ち上げた基準Yから既存ブロックの積み上がりを走査する（丘の上の既存ブロックも跨ぐ）。受け入れ: 丘セル x=3（下限1）の上の (3,1,0) に既存ブロックがあると x=3 が y=2 になる
 11. 地表が取れないセル（プローブ失敗）には地形下限を付けない
 12. 変更はクライアントの設置プレビュー・送信列だけ。サーバー・プロトコル・セーブ形式は変えない
+13. L字のコーナーが丘の上にあっても既存のコーナー踊り場規則のまま解く。受け入れ: cornerIndex=2・x=2 の下限1・端点0の5セル列で Y が 0,1,1,1,0 になる
 
 やらないこと: 水平に回り込む経路探索、谷へ降りる追従、地形めり込みによる設置不可判定（全設置系で入れない方針のまま）、電線など接続線の地形判定、坂ベルト手持ちの経路変更、BP貼り付け・張替え設置の経路変更。
 
@@ -42,7 +43,7 @@
 ## 設計検査記録
 
 - 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反1件・修正1件 / 地表探査の本番実装を前例（Ground/PlacementGroundFollowStep）に合わせ Ground/ へ移設。死活表: ベルトのドラッグ・坂ベルト手持ち・既存ブロック高架・不可理由ツールチップはすべて存続
-- Phase 2.6（型閉包・重複・ADR矛盾）: 未実施
+- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強2・弱2・第3バケツ1 / 検査7: ADR決定6の文言を持ち上げ後走査へ統一（ユーザー裁定）、5-B: レポーターは理由そのものを受ける（ユーザー裁定、-1番兵の共用側は bd 後続）、検査6: 端点判定をローカル関数へ、5-C: bool のまま（ユーザー裁定）
 
 ---
 
@@ -51,13 +52,13 @@
 | ファイル | 種別 | 責務 |
 |---|---|---|
 | `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Common/ConveyorOverpass/IConveyorTerrainFloor.cs` | Create | セル列の地形下限Yを答える問い合わせ口 |
-| `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Ground/GroundConveyorTerrainFloor.cs` | Create | 本番実装。`PlacementGroundCellResolver` で地形最高点を含むセルを返す |
+| `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Ground/GroundConveyorTerrainFloor.cs` | Create | 本番実装。`PlacementGroundCellResolver` で「地形最高点を含むセル＋Q/E補正」を返す |
 | `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Common/ConveyorOverpass/ConveyorOverpassRaiseResult.cs` | Create | Raiser の戻り値（セル毎の立体交差不能列＋地形乗り越え断念フラグ） |
 | `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Common/ConveyorOverpass/ConveyorOverpassRaiser.cs` | Modify | 地形で基準を持ち上げて解く→解けなければ地形なしで解き直す |
-| `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/BeltConveyor/Parts/BeltConveyorPlacePointCalculator.cs` | Modify | 地形口を Raiser へ渡し、断念フラグを out で返す |
-| `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/BeltConveyor/Parts/BeltConveyorPlaceRunBuilder.cs` | Modify | 断念フラグを out で中継（坂経路は常に偽） |
+| `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/BeltConveyor/Parts/BeltConveyorPlacePointCalculator.cs` | Modify | コンストラクタで受けた地形口を Raiser へ渡し、断念フラグを out で返す |
+| `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/BeltConveyor/Parts/BeltConveyorPlaceRunBuilder.cs` | Modify | 地形口をコンストラクタで受けて Calculator へ渡し、断念フラグを out で中継（坂経路は常に偽） |
 | `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/BeltConveyor/Parts/BeltConveyorFeedbackReporter.cs` | Create | ベルト固有の不可理由行と断念案内行をフィードバックへ積む（PlaceSystem の `PushBeltReason` を移設） |
-| `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/BeltConveyor/BeltConveyorPlaceSystem.cs` | Modify | 断念フラグを受けてレポーターを呼ぶ（196行→200行未満を保つため local 関数を移設） |
+| `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/BeltConveyor/BeltConveyorPlaceSystem.cs` | Modify | 本番の地形口を組み立てて RunBuilder へ渡し、断念フラグを受けてレポーターを呼ぶ（196行→200行未満を保つため local 関数を移設） |
 | `Localization/localization.csv` | Modify | `ui.tooltip.placeBeltTerrainClimbAbandoned` 行 |
 | `moorestech_client/Assets/Scripts/Client.Localization/_CompileRequester.cs` | Modify（SchemaWatcher 自動） | 再compile印 |
 | `moorestech_web/webui/src/shared/i18n/generated/localizationKeys.ts` | Modify（生成） | webui 側キー |
@@ -66,6 +67,8 @@
 | `moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/ConveyorOverpass/ConveyorOverpassRaiserTest.cs` | Modify | 新シグネチャへ追従 |
 | `moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/ConveyorOverpass/ConveyorOverpassConveyanceTest.cs` | Modify | 新シグネチャへ追従 |
 | `moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/BeltConveyor/BeltConveyorPlacePointCalculatorTest.cs` | Modify | 新シグネチャへ追従 |
+| `moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/BeltConveyor/BeltConveyorPlaceRunAxisTest.cs` | Modify | RunBuilder の新コンストラクタ・新シグネチャへ追従 |
+| `moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/BeltConveyor/BeltConveyorSlopePlacementTest.cs` | Modify | RunBuilder の新コンストラクタ・新シグネチャへ追従 |
 | `moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/BeltConveyor/BeltConveyorFeedbackReporterTest.cs` | Create | 要件7 のユニットテスト |
 | `.agents/skills/unity-playmode-recorded-playtest/scenarios/building/belt-terrain-climb-via-ui.cs` | Create | unityプレイ録画テストのシナリオ |
 
@@ -82,18 +85,22 @@
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Common/ConveyorOverpass/ConveyorOverpassRaiser.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/BeltConveyor/Parts/BeltConveyorPlacePointCalculator.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/BeltConveyor/Parts/BeltConveyorPlaceRunBuilder.cs`
-- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/BeltConveyor/BeltConveyorPlaceSystem.cs`（`out _` を足すだけ。Task 2 で置き換える）
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/BeltConveyor/BeltConveyorPlaceSystem.cs`（RunBuilder の生成に地形口を渡し、`Build` に `out _` を足す。`out _` は Task 2 で置き換える）
 - Create: `moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/ConveyorOverpass/FakeConveyorTerrainFloor.cs`
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/ConveyorOverpass/ConveyorOverpassRaiserTerrainTest.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/ConveyorOverpass/ConveyorOverpassRaiserTest.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/ConveyorOverpass/ConveyorOverpassConveyanceTest.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/BeltConveyor/BeltConveyorPlacePointCalculatorTest.cs`
+- Modify: `moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/BeltConveyor/BeltConveyorPlaceRunAxisTest.cs`
+- Modify: `moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/BeltConveyor/BeltConveyorSlopePlacementTest.cs`
 
 **Interfaces:**
 - Consumes: `PlacementGroundCellResolver.TryResolveCellFromGround(Vector3Int cellPosition, BlockDirection blockDirection, Vector3Int blockSize, int heightOffset, out Vector3Int resolvedPosition)`（既存）
 - Produces:
   - `public interface IConveyorTerrainFloor { bool TryGetFloorY(Vector3Int cell, out int floorY); }`（namespace `Client.Game.InGame.BlockSystem.PlaceSystem.Common.ConveyorOverpass`）
-  - `public class GroundConveyorTerrainFloor : IConveyorTerrainFloor`（namespace `Client.Game.InGame.BlockSystem.PlaceSystem.Ground`。Calculator 側に `using Client.Game.InGame.BlockSystem.PlaceSystem.Ground;` を追加）
+  - `public class GroundConveyorTerrainFloor : IConveyorTerrainFloor { public GroundConveyorTerrainFloor(PlacementHeightOffset placementHeightOffset) }`（namespace `Client.Game.InGame.BlockSystem.PlaceSystem.Ground`。`BeltConveyorPlaceSystem` 側に `using Client.Game.InGame.BlockSystem.PlaceSystem.Ground;` を追加）
+  - `public BeltConveyorPlacePointCalculator(BlockGameObjectDataStore blockGameObjectDataStore, IConveyorTerrainFloor terrainFloor)`
+  - `public BeltConveyorPlaceRunBuilder(BlockGameObjectDataStore blockGameObjectDataStore, CommonBlockPlaceDragState dragState, IConveyorTerrainFloor terrainFloor)`
   - `public readonly struct ConveyorOverpassRaiseResult { public readonly IReadOnlyList<bool> OverpassBlocked; public readonly bool TerrainClimbAbandoned; public ConveyorOverpassRaiseResult(IReadOnlyList<bool> overpassBlocked, bool terrainClimbAbandoned) }`
   - `ConveyorOverpassRaiser.Raise(List<PlaceInfo> placeInfos, int cornerIndex, Func<Vector3Int, bool> isOccupied, IConveyorTerrainFloor terrainFloor) : ConveyorOverpassRaiseResult`
   - `BeltConveyorPlacePointCalculator.CalculateStraightPoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockMasterElement straightBlockMaster, out List<PlacementBlockCause> blockCauses, out List<BeltConveyorPlacementBlockReason> beltReasons, out bool terrainClimbAbandoned)`（インスタンス）
@@ -110,8 +117,8 @@ using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ConveyorOverpass
 {
-    // ベルト経路の各セルで、地形がベルトを持ち上げる下限Yを答える（ADR 0081）
-    // Answers, per belt-path cell, the lower-bound Y the terrain lifts the belt to (ADR 0081)
+    // ベルト経路の各セルで、地形がベルトを持ち上げる下限Y（Q/E補正込み）を答える（ADR 0081）
+    // Answers, per belt-path cell, the lower-bound Y (including the Q/E offset) the terrain lifts the belt to (ADR 0081)
     public interface IConveyorTerrainFloor
     {
         // 地表が取れなければfalse。そのセルには下限を付けない
@@ -124,23 +131,31 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ConveyorOverpass
 `GroundConveyorTerrainFloor.cs`:
 
 ```csharp
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.ConveyorOverpass;
 using Game.Block.Interface;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Ground
 {
-    // 端点と同じ「セル内の地形最高点を含むセル」を地形下限にする（ADR 0047 / ADR 0081 決定5）
-    // Uses the same "cell containing the terrain max" as the endpoints for the terrain lower bound (ADR 0047 / ADR 0081 decision 5)
+    // 端点と同じ「セル内の地形最高点を含むセル＋Q/E補正」を地形下限にする（ADR 0047 / ADR 0081 決定5・8）
+    // Uses the same "cell containing the terrain max plus the Q/E offset" as the endpoints for the terrain lower bound (ADR 0047 / ADR 0081 decisions 5, 8)
     public class GroundConveyorTerrainFloor : IConveyorTerrainFloor
     {
+        private readonly PlacementHeightOffset _placementHeightOffset;
+
+        public GroundConveyorTerrainFloor(PlacementHeightOffset placementHeightOffset)
+        {
+            _placementHeightOffset = placementHeightOffset;
+        }
+
         public bool TryGetFloorY(Vector3Int cell, out int floorY)
         {
-            // ベルトは1x1x1なので向きは結果に効かない。Q/Eの高さ補正は端点側の責務なので0で問う
-            // A belt is 1x1x1 so the direction has no effect; the Q/E offset belongs to the endpoints, so query with 0
+            // ベルトは1x1x1なので向きは結果に効かない。補正は問い合わせ時点の値を読む（ドラッグ中のQ/Eにも追従する）
+            // A belt is 1x1x1 so the direction has no effect; read the offset at query time so Q/E during a drag is followed
             floorY = 0;
             // silent-ok: 地表が無いセルは下限を付けず経路高さのまま置く(ADR 0081) / プレビューでそのセルが持ち上がらないことが見える
-            if (!PlacementGroundCellResolver.TryResolveCellFromGround(cell, BlockDirection.North, Vector3Int.one, 0, out var resolved)) return false;
+            if (!PlacementGroundCellResolver.TryResolveCellFromGround(cell, BlockDirection.North, Vector3Int.one, _placementHeightOffset.Value, out var resolved)) return false;
 
             floorY = resolved.y;
             return true;
@@ -208,13 +223,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ConveyorOverpass
             var terrainLiftedCells = LiftByTerrain();
             var (beltY, feasible) = SolveFrom(terrainLiftedCells);
             var terrainClimbAbandoned = false;
-            if (feasible.Contains(false) && !terrainLiftedCells.SequenceEqual(cells))
+            if (!EndpointsReached(feasible) && !terrainLiftedCells.SequenceEqual(cells))
             {
                 (beltY, feasible) = SolveFrom(cells);
 
                 // 地形なしでも解けないなら既存ブロック起因の不可が出るので、案内は出さない
                 // If even the terrain-free solve fails, the block-caused unplaceability shows instead, so no notice
-                terrainClimbAbandoned = !feasible.Contains(false);
+                terrainClimbAbandoned = EndpointsReached(feasible);
             }
 
             // 上昇したセルとその隣接のみ縦方向を再計算する（無関係なセルの既存方向は維持）
@@ -259,6 +274,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ConveyorOverpass
                 return lifted;
             }
 
+            bool EndpointsReached(bool[] solvedFeasible)
+            {
+                // 包絡線が両端の固定高さへ戻れたか（不可は端点にしか立たない）
+                // Whether the envelope returned to both fixed endpoint heights (infeasibility only appears at endpoints)
+                return !solvedFeasible.Contains(false);
+            }
+
             (int[] beltY, bool[] feasible) SolveFrom(List<Vector3Int> baseCells)
             {
                 // 既存ブロックは持ち上げ後の基準から上へ辿る（丘の上のブロックを見落とさない）
@@ -296,10 +318,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ConveyorOverpass
 
 `BeltConveyorPlacePointCalculator.cs` の変更点:
 
-フィールドに追加（`_blockGameObjectDataStore` の下）:
+フィールドとコンストラクタを置換:
 
 ```csharp
-        private readonly IConveyorTerrainFloor _terrainFloor = new GroundConveyorTerrainFloor();
+        private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
+        private readonly IConveyorTerrainFloor _terrainFloor;
+
+        public BeltConveyorPlacePointCalculator(BlockGameObjectDataStore blockGameObjectDataStore, IConveyorTerrainFloor terrainFloor)
+        {
+            _blockGameObjectDataStore = blockGameObjectDataStore;
+            _terrainFloor = terrainFloor;
+        }
 ```
 
 インスタンス版を置換:
@@ -331,6 +360,18 @@ static 版の署名と Raiser 呼び出しを置換:
 
 - [ ] **Step 4: RunBuilder と PlaceSystem を新シグネチャへ追従させる**
 
+`BeltConveyorPlaceRunBuilder` のコンストラクタを置換:
+
+```csharp
+        public BeltConveyorPlaceRunBuilder(BlockGameObjectDataStore blockGameObjectDataStore, CommonBlockPlaceDragState dragState, IConveyorTerrainFloor terrainFloor)
+        {
+            _placePointCalculator = new BeltConveyorPlacePointCalculator(blockGameObjectDataStore, terrainFloor);
+            _dragState = dragState;
+        }
+```
+
+ファイル先頭に `using Client.Game.InGame.BlockSystem.PlaceSystem.Common.ConveyorOverpass;` を追加。
+
 `BeltConveyorPlaceRunBuilder.Build` を置換:
 
 ```csharp
@@ -358,7 +399,13 @@ static 版の署名と Raiser 呼び出しを置換:
         }
 ```
 
-`BeltConveyorPlaceSystem.cs` の `UpdateCurrentPlaceInfos` 内の呼び出しだけ一時的に:
+`BeltConveyorPlaceSystem.cs` のコンストラクタで RunBuilder の生成を置換（`using Client.Game.InGame.BlockSystem.PlaceSystem.Ground;` を追加）:
+
+```csharp
+            _placeRunBuilder = new BeltConveyorPlaceRunBuilder(blockGameObjectDataStore, _dragState, new GroundConveyorTerrainFloor(placementHeightOffset));
+```
+
+`UpdateCurrentPlaceInfos` 内の呼び出しは一時的に:
 
 ```csharp
                 _currentPlaceInfos = _placeRunBuilder.Build(dragStartPoint, placePoint, _currentBlockDirection, holdingBlock, out var cellCauses, out var cellBeltReasons, out _);
@@ -407,6 +454,9 @@ namespace Client.Tests.PlaceSystem.ConveyorOverpass
 
 - `BeltConveyorPlacePointCalculatorTest.cs` 121行目の呼び出し: `_ => false,` の次行に `new FakeConveyorTerrainFloor(new Dictionary<Vector2Int, int>()),` を挿入し、末尾の `out _,\n out _` を `out _,\n out _,\n out _` にする。153行目の呼び出し: `blockMasterElement, (_, _) => true, obstacle.Contains, new FakeConveyorTerrainFloor(new Dictionary<Vector2Int, int>()), out _, out var beltReasons, out _);`。ファイル先頭に `using Client.Tests.PlaceSystem.ConveyorOverpass;` を追加
 - `ConveyorOverpassConveyanceTest.cs` 59行目の呼び出し: `cell => world.Exists(cell), new FakeConveyorTerrainFloor(new Dictionary<Vector2Int, int>()), out _, out _, out _);`
+- `BeltConveyorPlaceRunAxisTest.cs`: 44・77行目の `new BeltConveyorPlaceRunBuilder(_dataStore, dragState)` → `new BeltConveyorPlaceRunBuilder(_dataStore, dragState, new FakeConveyorTerrainFloor(new Dictionary<Vector2Int, int>()))`。49・56・63・64・80・86行目の `runBuilder.Build(..., out _, out _)` の末尾に `, out _` を足す。先頭に `using Client.Tests.PlaceSystem.ConveyorOverpass;` と（無ければ）`using System.Collections.Generic;` を追加
+- `BeltConveyorSlopePlacementTest.cs`: 58・79・100・116行目の `new BeltConveyorPlaceRunBuilder(_dataStore, new CommonBlockPlaceDragState(new PlacementHeightOffset()))` → `new BeltConveyorPlaceRunBuilder(_dataStore, new CommonBlockPlaceDragState(new PlacementHeightOffset()), new FakeConveyorTerrainFloor(new Dictionary<Vector2Int, int>()))`。59・80・101・117行目の `Build(...)` の末尾の out 2個の後に `, out _` を足す（59行目は `out _, out var beltReasons, out _`、80行目は `out var blockCauses, out _, out _`）。using は RunAxisTest と同じ
+- 置換漏れの確認: `grep -rn "new BeltConveyorPlaceRunBuilder(\|\.Raise(infos\|CalculateStraightPoint(" moorestech_client/Assets/Scripts/Client.Tests` の全行が新シグネチャになっていること
 
 - [ ] **Step 6: 地形乗り越えのテストを書く**
 
@@ -514,6 +564,15 @@ namespace Client.Tests.PlaceSystem.ConveyorOverpass
         }
 
         [Test]
+        public void CornerOnHill_KeepsCornerPlateau()
+        {
+            var infos = FlatEastPath(5);
+            new ConveyorOverpassRaiser().Raise(infos, 2, _ => false, Terrain((2, 1)));
+
+            Assert.AreEqual(new[] { 0, 1, 1, 1, 0 }, Ys(infos));
+        }
+
+        [Test]
         public void NoGroundCell_GetsNoLowerBound()
         {
             var infos = FlatEastPath(5);
@@ -563,7 +622,7 @@ namespace Client.Tests.PlaceSystem.ConveyorOverpass
 }
 ```
 
-期待値の導出（実装者が値を疑ったときの照合用）: `HillInMiddle` は下限 [0,0,0,1,1,0,0] を TwoPass しても同じで端点0は可。`TwoHillsNarrowGap` は下限 [0,0,1,0,1,0,0] の x=3 が幅1の窪みで、必要幅 (1-0)+(1-0)+1=3 > 1 のため 1 で橋渡し。`SteepNextToEndpoint` は下限 [0,2,0] が TwoPass で [1,2,1] となり端点不可→地形なし [0,0,0] へ戻る。`BlockOnHill` は基準 x=3 を1へ持ち上げてから (3,1,0) を走査して下限2、TwoPass で [0,0,1,2,1,0,0]。`HillInMiddle` の `Placeable` 全真は「地形でセルを不可にしない」を確かめる。
+期待値の導出（実装者が値を疑ったときの照合用）: `HillInMiddle` は下限 [0,0,0,1,1,0,0] を TwoPass しても同じで端点0は可。`TwoHillsNarrowGap` は下限 [0,0,1,0,1,0,0] の x=3 が幅1の窪みで、必要幅 (1-0)+(1-0)+1=3 > 1 のため 1 で橋渡し。`SteepNextToEndpoint` は下限 [0,2,0] が TwoPass で [1,2,1] となり端点不可→地形なし [0,0,0] へ戻る。`BlockOnHill` は基準 x=3 を1へ持ち上げてから (3,1,0) を走査して下限2、TwoPass で [0,0,1,2,1,0,0]。`HillInMiddle` の `Placeable` 全真は「地形でセルを不可にしない」を確かめる。`CornerOnHill` は下限 [0,0,1,0,0] の TwoPass で角の前後が揃わないため、踊り場規則が角と前後を1へ引き上げ [0,1,1,1,0]（Raiser テストは XZ を一直線で与えるが、角の扱いは cornerIndex だけで決まる）。
 
 - [ ] **Step 7: コンパイルしテストを実行して通ることを確認する**
 
@@ -593,7 +652,7 @@ git commit -m "feat: ベルトのドラッグ経路が地形の丘を下限と�
 - Consumes: `BeltConveyorPlaceRunBuilder.Build(..., out bool terrainClimbAbandoned)`（Task 1）
 - Produces:
   - `LocalizationKeys.Ui.Tooltip.PlaceBeltTerrainClimbAbandoned`（CSVキー `ui.tooltip.placeBeltTerrainClimbAbandoned` から生成）
-  - `public static class BeltConveyorFeedbackReporter { public static void Report(PlacementFeedback feedback, IReadOnlyList<BeltConveyorPlacementBlockReason> beltReasons, int cursorIndex, bool terrainClimbAbandoned) }`（namespace `Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts`）
+  - `public static class BeltConveyorFeedbackReporter { public static void Report(PlacementFeedback feedback, BeltConveyorPlacementBlockReason cursorCellReason, bool terrainClimbAbandoned) }`（`None`＝カーソルセルに固有理由なし。カーソル位置の -1 番兵は受け取らない）（namespace `Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts`）
 
 - [ ] **Step 1: ローカライズ行を足す**
 
@@ -610,7 +669,6 @@ ui.tooltip.placeBeltTerrainClimbAbandoned,Terrain too steep to climb; the belt w
 `BeltConveyorFeedbackReporter.cs`:
 
 ```csharp
-using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.UI.Tooltip;
 using Mooresmaster.Localization.Generated;
@@ -623,13 +681,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
     /// </summary>
     public static class BeltConveyorFeedbackReporter
     {
-        public static void Report(PlacementFeedback feedback, IReadOnlyList<BeltConveyorPlacementBlockReason> beltReasons, int cursorIndex, bool terrainClimbAbandoned)
+        public static void Report(PlacementFeedback feedback, BeltConveyorPlacementBlockReason cursorCellReason, bool terrainClimbAbandoned)
         {
             // カーソルセルのベルト固有理由（立体交差不能・坂ブロック欠落）
             // The cursor cell's belt-specific reason (impossible overpass, missing slope block)
-            if (0 <= cursorIndex && beltReasons[cursorIndex] != BeltConveyorPlacementBlockReason.None)
+            if (cursorCellReason != BeltConveyorPlacementBlockReason.None)
             {
-                feedback.Add(new TooltipLine(BeltConveyorPlacementBlockReasonTooltipKey.ToKey(beltReasons[cursorIndex])));
+                feedback.Add(new TooltipLine(BeltConveyorPlacementBlockReasonTooltipKey.ToKey(cursorCellReason)));
             }
 
             // 断念は列単位の判断なので、カーソル位置によらず設置を妨げない案内を1行出す（ADR 0081 決定7）
@@ -650,7 +708,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
 ```csharp
             // ベルト固有の理由と地形乗り越え断念の案内はベルト側が積む
             // Belt-specific reasons and the terrain-climb-abandoned notice are pushed on the belt side
-            BeltConveyorFeedbackReporter.Report(feedback, beltReasons, cursorIndex, terrainClimbAbandoned);
+            // カーソルセルが列に無い（-1）ときは固有理由なしとして渡す。-1番兵は共用カーソル解決の既存契約（後続 bd で型化）
+            // When the cursor cell is not in the run (-1), pass "no reason"; the -1 sentinel is the shared cursor resolver's existing contract
+            var cursorCellReason = cursorIndex < 0 ? BeltConveyorPlacementBlockReason.None : beltReasons[cursorIndex];
+            BeltConveyorFeedbackReporter.Report(feedback, cursorCellReason, terrainClimbAbandoned);
 ```
 
 3. `#region Internal` 内の `void PushBeltReason() { ... }` ローカル関数を削除する
@@ -674,7 +735,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
 `BeltConveyorFeedbackReporterTest.cs`:
 
 ```csharp
-using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
@@ -690,12 +750,11 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
     public class BeltConveyorFeedbackReporterTest
     {
         [Test]
-        public void 断念したときはカーソル外でも案内を1行出す()
+        public void 断念したときは固有理由が無くても案内を1行出す()
         {
             var feedback = new PlacementFeedback();
-            var reasons = new List<BeltConveyorPlacementBlockReason> { BeltConveyorPlacementBlockReason.None };
 
-            BeltConveyorFeedbackReporter.Report(feedback, reasons, -1, true);
+            BeltConveyorFeedbackReporter.Report(feedback, BeltConveyorPlacementBlockReason.None, true);
 
             Assert.AreEqual(new[] { LocalizationKeys.Ui.Tooltip.PlaceBeltTerrainClimbAbandoned.Key }, feedback.Lines.Select(line => line.Key.Key).ToArray());
         }
@@ -704,9 +763,8 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
         public void 断念していなければ案内は出さない()
         {
             var feedback = new PlacementFeedback();
-            var reasons = new List<BeltConveyorPlacementBlockReason> { BeltConveyorPlacementBlockReason.None };
 
-            BeltConveyorFeedbackReporter.Report(feedback, reasons, 0, false);
+            BeltConveyorFeedbackReporter.Report(feedback, BeltConveyorPlacementBlockReason.None, false);
 
             Assert.AreEqual(0, feedback.Lines.Count);
         }
@@ -715,9 +773,8 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
         public void カーソルセルの固有理由は従来どおり積む()
         {
             var feedback = new PlacementFeedback();
-            var reasons = new List<BeltConveyorPlacementBlockReason> { BeltConveyorPlacementBlockReason.ImpossibleOverpass };
 
-            BeltConveyorFeedbackReporter.Report(feedback, reasons, 0, false);
+            BeltConveyorFeedbackReporter.Report(feedback, BeltConveyorPlacementBlockReason.ImpossibleOverpass, false);
 
             Assert.AreEqual(new[] { LocalizationKeys.Ui.Tooltip.PlaceBeltOverpassInfeasible.Key }, feedback.Lines.Select(line => line.Key.Key).ToArray());
         }
@@ -887,7 +944,10 @@ git commit -m "test: ベルトの地形乗り越えのunityプレイ録画テス
 
 - [ ] **Step 1: セッション終了可能状態にすること: pr-createスキルでPRを作成し、masterとのコンフリクトがあればmasterをマージして解消・コンパイル確認のうえpushする（解消の実作業はpr-create経由でopus subagentに委譲される）。全作業がコミット・push済みで、このセッションをそのまま閉じてもPRがマージ可能な状態になっていることを確認して終える**
 
-PR本文に、ADR 0081 と `.decisions/2026-10-15-ベルト*` の裁定記録へのリンクを載せる。
+PR本文に、ADR 0081 と `.decisions/2026-10-1[56]-ベルト*`・`2026-10-15-坂ベルト*`・`2026-10-16-丘の上*` の裁定記録へのリンクを載せる。ADR 0081 が参照する `.decisions/2026-10-15-地形めり込み判定は全設置系で入れない.md` と `…別タスクに切り電線の地形埋まりは許容する.md` は別ブランチ（grill/preview-no-collider）にあるため、PR作成時に master に入っているかを確かめ、未マージなら PR 本文にその旨と当該ブランチ名を書く。
+
+PR本文に次の「本PR外のリファクタ提案」節を載せる（plan のタスクには足さない）:
+- 地表問い合わせ口が3本目になる: 既存 `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/ChainPreview/PlacementChainGroundQuery.cs`（`IChainGroundQuery`）・`moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Ground/PlacementGroundFollowStep.cs`（`IPlacementGroundFollower`）と新設 `IConveyorTerrainFloor`／`GroundConveyorTerrainFloor`。いずれも純粋ロジックへ interface で注入し、セルごとに `PlacementGroundCellResolver.TryResolveCellFromGround` で地形由来のセルYを問う同じ役割（違いは戻り値の形と地表なし時の扱い）
 
 ---
 
@@ -895,8 +955,12 @@ PR本文に、ADR 0081 と `.decisions/2026-10-15-ベルト*` の裁定記録へ
 
 - 設計ADR: `docs/adr/0081-belt-drag-climbs-over-terrain.md`（決定1〜7はユーザー裁定。裁定記録は `.decisions/2026-10-15-ベルトの地形迂回はL字のまま上下に乗り越える.md` / `…谷には降りず水平を保つ.md` / `…解けないときは地形を無視した経路に戻す.md` / `2026-10-15-坂ベルト手持ちのドラッグには地形乗り越えを効かせない.md` / `…中間セル高さは端点と同じ地形最高点を含むセル.md` / `…高さ最適化は既存高架と同じ規則.md` / `…諦めたときは設置を妨げない案内を出す.md`）
 - 案内を出す条件は「地形なしで解き直した結果が設置可能なとき」に絞る。地形なしでも解けないときは既存の `ImpossibleOverpass` が赤で出るため、「埋めて設置します」と矛盾する案内を重ねない。出所: agent前提（planning）
-- 端点セルには地形下限を付けない。端点Yはプレイヤーが照準・Q/Eで決めた値で、Q/Eで下げた端点に地形下限を当てると毎回断念へ落ちるため。出所: agent前提（planning）
-- 既存ブロックの走査は地形で持ち上げた基準から行う。地形なしの基準から走査すると丘の上の既存ブロックを見落とし、持ち上げたセルが既存ブロックと重なって赤になるため。出所: agent前提（planning）
+- 端点セルには地形下限を付けない。端点Yはプレイヤーが照準・Q/E・ブロック面で決めた値のため。出所: agent前提（planning）
+- 途中セルの地形下限にも現在のQ/E補正を加える。出所: ユーザー裁定 2026-10-16 提示「Q/Eで設置高さを上下させた状態でベルトをドラッグしたとき、途中セルの地形下限にもその高さ補正を加えるか」→ 選択「加える」（user-simulator review の要裁定から質問）
+- 地形口は RunBuilder→Calculator のコンストラクタで注入する。本物の計算器を通る既存テスト（RunAxisTest・SlopePlacementTest）が Physics の地表探査に依存しないよう、テストからは `FakeConveyorTerrainFloor` を渡すため。出所: agent前提（planning、user-simulator review の追従漏れ指摘から）
+- 既存ブロックの走査は地形で持ち上げた基準から行う（丘の上の既存ブロックも跨ぐ）。出所: ユーザー裁定 2026-10-16 提示「丘の上に既存ブロックがあるときのベルトの扱いは、どちらに揃えるか」→ 選択「plan側に揃える」（Phase 2.6 検査7）
+- 新設レポーターはカーソルセルの理由そのもの（None＝なし）を受け取り、-1番兵を受け取らない。共用カーソル解決の -1 は bd 後続（moorestech-5wy86 の子）。出所: ユーザー裁定 2026-10-16 選択「理由そのものを渡す」（Phase 2.6 検査5-B）
+- Raiser の「端点へ戻れたか」判定はローカル関数1本にまとめ、断念フラグは bool 1個のまま。出所: ユーザー裁定 2026-10-16 原文「それで」（Phase 2.6 弱2件の推奨に同意）
 - 地形の問い合わせは interface `IConveyorTerrainFloor`（Common/ConveyorOverpass）で注入し、地表探査の本番実装は `Ground/` に置く（前例: `Common/IPlacementGroundFollower` と `Ground/PlacementGroundFollowStep`）（`Func<>` 新設禁止・`ConveyorVerticalEnvelope` を純粋ロジックのまま保つ。テストは `FakeConveyorTerrainFloor` で地形を与える）。出所: agent前提（planning）
 - `BeltConveyorPlaceSystem` が196行のため、ベルト固有理由の local 関数 `PushBeltReason` を `BeltConveyorFeedbackReporter` へ移して200行未満を保つ。出所: agent前提（planning）
 - unityプレイ録画テストを含める（Task 3）。地表探査（Physics）→ソルバー→プレビュー→送信→ツールチップの通し経路はユニットテストでは届かないため。地形は Ground レイヤーの箱で作り、生成マップの起伏に依存しない決定的な配置にする。出所: agent前提（planning）
