@@ -102,8 +102,8 @@ namespace Client.Tests.PlaceSystem.Common.Preview
 
             // 同一プール個体を再設定しても専用接触源を増やさない
             // Pool reuse must not add a second contact source.
-            preview.ConfigureTerrainContact(new Vector3Int(1, 1, 1));
-            preview.ConfigureTerrainContact(new Vector3Int(1, 1, 1));
+            preview.ConfigureTerrainContact(new Vector3Int(1, 3, 1));
+            preview.ConfigureTerrainContact(new Vector3Int(1, 3, 1));
 
             var detector = root.GetComponentsInChildren<GroundCollisionDetector>(true).Single();
             var box = detector.GetComponent<BoxCollider>();
@@ -114,8 +114,8 @@ namespace Client.Tests.PlaceSystem.Common.Preview
             Assert.IsNull(root.GetComponent<Rigidbody>());
             Assert.IsTrue(box.isTrigger);
             Assert.AreEqual(LayerConst.BlockLayer, box.gameObject.layer);
-            Assert.AreEqual(inset, box.bounds.min.y, 0.0001f);
-            Assert.AreEqual(1f - inset, box.bounds.max.y, 0.0001f);
+            Assert.AreEqual(1f + inset, box.bounds.min.y, 0.0001f);
+            Assert.AreEqual(3f - inset, box.bounds.max.y, 0.0001f);
             Assert.IsTrue(visualCollider.enabled);
             Assert.IsTrue(visualCollider.isTrigger);
             Assert.AreEqual(LayerConst.BlockLayer, visualCollider.gameObject.layer);
@@ -144,24 +144,24 @@ namespace Client.Tests.PlaceSystem.Common.Preview
         }
 
         [Test]
-        public void InsetUsesTwoFacingContactMarginsAtShallowBoundary()
+        public void InsetUsesTwoFacingContactMarginsAtBaseCellTop()
         {
             var root = new GameObject("Preview");
             SceneManager.MoveGameObjectToScene(root, _scene);
             var preview = root.AddComponent<BlockPreviewObject>();
-            preview.SetTerrainContactEnabled(true, Vector3Int.one);
+            preview.SetTerrainContactEnabled(true, new Vector3Int(1, 2, 1));
             var contact = root.GetComponentsInChildren<GroundCollisionDetector>(true).Single().GetComponent<BoxCollider>();
             var inset = Physics.defaultContactOffset * 2f;
-            var ground = new GameObject("ShallowGround");
+            var ground = new GameObject("BaseCellGround");
             SceneManager.MoveGameObjectToScene(ground, _scene);
             ground.layer = LayerConst.GroundLayer;
             ground.AddComponent<GroundGameObject>();
             var groundBox = ground.AddComponent<BoxCollider>();
             groundBox.size = new Vector3(2f, 1f, 2f);
-            ground.transform.position = new Vector3(0.5f, -0.5f, 0.5f);
+            ground.transform.position = new Vector3(0.5f, 0.5f, 0.5f);
             Physics.SyncTransforms();
-            Assert.AreEqual(inset, contact.bounds.min.y, 0.0001f);
-            Assert.IsFalse(preview.DetectCurrentGroundOverlap(), "flat ground must clear the inset volume");
+            Assert.AreEqual(1f + inset, contact.bounds.min.y, 0.0001f);
+            Assert.IsFalse(preview.DetectCurrentGroundOverlap(), "ground filling the base cell must clear the volume");
             ground.transform.position += Vector3.up * inset * 0.5f;
             Physics.SyncTransforms();
             Assert.IsFalse(preview.DetectCurrentGroundOverlap(), "a bump below the inset stays clear");

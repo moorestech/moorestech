@@ -41,7 +41,9 @@ namespace Client.Tests.PlaceSystem.Common.Preview
             SceneManager.MoveGameObjectToScene(_prefab, _scene);
             _prefab.AddComponent<BoxCollider>();
             _prefab.SetActive(false);
-            var blockId = ForUnitTestModBlockId.BlockId;
+            // 判定箱が生成される高さ2以上の電柱(1x3x1)を使う
+            // Use the 1x3x1 electric pole, tall enough to get a contact volume.
+            var blockId = ForUnitTestModBlockId.ElectricPoleId;
             var master = MasterHolder.BlockMaster.GetBlockMaster(blockId);
             var info = new BlockPrefabInfo(blockId, _prefab, master);
             _previousContainer = ClientContext.BlockGameObjectPrefabContainer;
@@ -58,7 +60,9 @@ namespace Client.Tests.PlaceSystem.Common.Preview
 
         internal BlockPreviewObject SetPreview(Vector3Int position, bool terrainContactEnabled)
         {
-            var blockId = ForUnitTestModBlockId.BlockId;
+            // 判定箱が生成される高さ2以上の電柱(1x3x1)を使う
+            // Use the 1x3x1 electric pole, tall enough to get a contact volume.
+            var blockId = ForUnitTestModBlockId.ElectricPoleId;
             var cell = new PlaceInfo
             {
                 BlockId = blockId, Position = position, Direction = BlockDirection.North, Placeable = true

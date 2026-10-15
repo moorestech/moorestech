@@ -26,11 +26,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
                 return GearChainPoleFrameResult.Show(input.SourcePole, GearChainPolePreviewCommand.Hidden, Array.Empty<TooltipLine>(), GearChainPoleExtendPreviewData.Invalid, Array.Empty<ConstructionMaterialShortage>());
             }
 
-            // 位置なしは非表示。距離外のみ理由を出す
-            // Shows nothing without a position; reports a reason only when out of range
-            if (!input.HasGhost)
+            // 位置なしは非表示。距離外と地表なしだけ理由を出す
+            // Shows nothing without a position; reports a reason only when out of range or without ground
+            if (input.GhostState != GearChainPoleGhostState.Shown)
             {
-                var noGhostLines = input.GhostTooFar ? new[] { PlacementFeedback.TooFarLine() } : Array.Empty<TooltipLine>();
+                var noGhostLines = input.GhostState switch
+                {
+                    GearChainPoleGhostState.TooFar => new[] { PlacementFeedback.TooFarLine() },
+                    GearChainPoleGhostState.GroundNotFound => new[] { PlacementFeedback.GroundNotFoundLine() },
+                    // silent-ok: 照準面なしは理由行を出さない従来挙動 / ゴーストが出ないことでプレイヤーが気づく
+                    _ => Array.Empty<TooltipLine>(),
+                };
                 return GearChainPoleFrameResult.Show(input.SourcePole, GearChainPolePreviewCommand.Hidden, noGhostLines, GearChainPoleExtendPreviewData.Invalid, Array.Empty<ConstructionMaterialShortage>());
             }
 

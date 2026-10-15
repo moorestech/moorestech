@@ -16,17 +16,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
     {
         public BlockMasterElement BlockMasterElement { get; private set; }
         
-        public bool IsCollisionGround
-        {
-            get
-            {
-                foreach (var collisionDetector in _collisionDetectors)
-                {
-                    if (collisionDetector.IsCollision) return true;
-                }
-                return false;
-            }
-        }
         private GroundCollisionDetector[] _collisionDetectors;
         private Collider[][] _contactColliders;
         private bool _terrainContactConfigured;
@@ -99,8 +88,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
             CacheContactColliders();
             if (_collisionDetectors.Length != 0) return;
 
-            // 見た目の張り出しを避け、マスターの占有セル内だけで地形接触を測る
-            // Measure terrain within master occupancy, excluding visual mesh overhang.
+            // 最下段セルはADR 0047の床で沈む許容範囲なので、高さ1は判定箱を持たない
+            // The base cell is ADR 0047's allowed floor sink, so height-1 blocks get no volume.
+            // silent-ok: 高さ1は地形ゲートを持たない仕様(ADR 0080) / 崖に潜った配置はプレイヤーが見た目で気づく
+            if (blockSize.y <= 1) return;
+
+            // 見た目の張り出しを避け、マスター占有の上部セルだけで地形接触を測る
+            // Measure terrain only within the upper occupied cells, excluding visual overhang.
             var contact = new GameObject("PlacementGroundContactVolume");
             _ownedTerrainContact = contact;
             contact.layer = LayerConst.BlockLayer;
@@ -108,11 +102,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
             var body = contact.AddComponent<Rigidbody>();
             body.isKinematic = true;
             body.useGravity = false;
-            var size = new Vector3(blockSize.x, blockSize.y, blockSize.z);
+            var upperHeight = blockSize.y - 1f;
             var inset = Physics.defaultContactOffset * 2f;
             var box = contact.AddComponent<BoxCollider>();
-            box.center = size * 0.5f;
-            box.size = size - Vector3.one * (inset * 2f);
+            box.center = new Vector3(blockSize.x * 0.5f, 1f + upperHeight * 0.5f, blockSize.z * 0.5f);
+            box.size = new Vector3(blockSize.x, upperHeight, blockSize.z) - Vector3.one * (inset * 2f);
             box.isTrigger = true;
             contact.AddComponent<GroundCollisionDetector>();
             CacheContactColliders();

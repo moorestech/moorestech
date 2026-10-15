@@ -38,7 +38,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
             if (!_isActive) return null;
 
             var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
-            if (!PlaceSystemUtil.TryGetRayHitBlockPosition(_mainCamera, HeightOffset, DefaultBlockDirection, holdingBlockMaster, out var placePoint, out _)) return null;
+            if (!PlaceSystemUtil.TryGetFootprintGroundedRayHitBlockPosition(_mainCamera, HeightOffset, DefaultBlockDirection, holdingBlockMaster, feedback, out var placePoint, out _)) return null;
 
             // 距離外なら理由のみ出しプレビュー無し
             // Beyond range, show only the reason and no preview

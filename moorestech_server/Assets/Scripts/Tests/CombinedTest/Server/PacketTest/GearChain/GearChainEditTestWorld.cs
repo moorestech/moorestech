@@ -22,6 +22,7 @@ using Tests.Module.TestMod;
 using Tests.Util.PlayerIdentity;
 using UnityEngine;
 using static Server.Protocol.PacketResponse.GearChainConnectionEditProtocol;
+using static Server.Protocol.PacketResponse.RemoveBlockProtocol;
 
 namespace Tests.CombinedTest.Server.PacketTest.GearChain
 {
@@ -77,6 +78,15 @@ namespace Tests.CombinedTest.Server.PacketTest.GearChain
             var payload = MessagePackSerializer.Serialize(request);
             var bytes = _packet.GetPacketResponse(payload, BoundPacketContext.Bind(_playerId)).Single();
             return MessagePackSerializer.Deserialize<GearChainConnectionEditResponse>(bytes.ToArray());
+        }
+
+        internal RemoveBlockResponseMessagePack SendRemoveBlock(Vector3Int position)
+        {
+            // 撤去も本物のプロトコル経路で要求者へ紐付けて送る
+            // Send removal through the real protocol bound to the requester as well
+            var payload = MessagePackSerializer.Serialize(new RemoveBlockProtocolMessagePack(position));
+            var bytes = _packet.GetPacketResponse(payload, BoundPacketContext.Bind(_playerId)).Single();
+            return MessagePackSerializer.Deserialize<RemoveBlockResponseMessagePack>(bytes.ToArray());
         }
 
         internal void AssertDenied(GearChainConnectionEditResponse response, string reason, string messageId)
