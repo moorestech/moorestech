@@ -16,17 +16,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
     {
         public BlockMasterElement BlockMasterElement { get; private set; }
         
-        public bool IsCollisionGround
-        {
-            get
-            {
-                foreach (var collisionDetector in _collisionDetectors)
-                {
-                    if (collisionDetector.IsCollision) return true;
-                }
-                return false;
-            }
-        }
         private GroundCollisionDetector[] _collisionDetectors;
         private Collider[][] _contactColliders;
         private bool _terrainContactConfigured;

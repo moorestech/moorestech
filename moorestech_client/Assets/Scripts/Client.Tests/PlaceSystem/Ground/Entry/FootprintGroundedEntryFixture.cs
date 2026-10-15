@@ -32,6 +32,9 @@ namespace Client.Tests.PlaceSystem.Ground.Entry
             // 距離判定と照準を実Camera・実プレイヤーで通す
             // Drive reach and aiming with a real camera and player
             Root.transform.Find("Player").position = new Vector3(501.5f, 21, 600.5f);
+            // EditModeのScreenとGameViewの解像度差で中央レイがずれないよう揃える
+            // Align the camera viewport with Screen so EditMode and GameView sizes cannot skew the center ray
+            PlacementCamera.pixelRect = new Rect(0, 0, Screen.width, Screen.height);
             PlacementCamera.transform.position = new Vector3(501.5f, 40, 600.5f);
             Physics.SyncTransforms();
         }

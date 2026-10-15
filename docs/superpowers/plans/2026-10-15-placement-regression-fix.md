@@ -959,6 +959,7 @@ git commit -m "test(playtest): 端数のある地形でポール・橋脚・ベ�
 - 設計ADR: `docs/adr/0080-terrain-contact-gate-ignores-base-cell-sink.md`（判定箱の最下段セル除外・高さ1は箱なし）。関連: `docs/adr/0047-placement-default-height-floor-of-terrain-max.md`
 - ユーザー裁定: `.decisions/2026-10-15-地形ゲート付き設置の判定箱は最下段セルを除き撤去返却はMaxStackで分ける.md`（①判定箱の下端を1セル持ち上げる ②素材をMaxStackごとに分けて返す。原文「ok、これの修正計画を立てて。」）
 - ユーザー裁定: `.decisions/2026-10-15-地形ゲート付き4設置系の設置Yもフットプリント最高点で決める.md`（シミュレーターreviewが「4設置系のYは照準1点floorで、裁定①だけでは斜面で照準位置により赤くなる」を検出→AskUserQuestion で選択「Yを最高点に揃えて同PRで直す」。棄却: planのまま後続issue、ゲート撤去）
+- planning判断: 最高点をfloorして含有セルへ揃える細部は既存ADR 0047に合わせる。最高点化の選択肢説明にfloorの逐語はなく、最高点化のユーザー裁定と細部のplanning判断を区別する。現セッションのplan全文実行指示に従い実装は維持する。一次資料による帰属訂正は `.decisions/2026-10-15-最高点化とfloor細部の帰属を一次資料で区別する.md` を参照。
 - スコープ外の裁定: 旧レールが走れない件（#1429 列車同期の永久待機説）はプレイヤーのログ待ち。地形ゲート撤去案は採らない（同上の裁定）
 - planning判断: 分割は既存 `IItemStackFactory.CreateSplitStacks` を使い、新しい分割関数を作らない（前例 `VeinHandMiningService.cs:108` ほか）
 - planning判断: 修正点を共通部品 `ConnectionLineRefundItems` 1か所に置き、6経路（電線撤去・電線切断・歯車チェーン撤去・歯車チェーン切断・レール撤去返却・レール切断）をまとめて直す。経路ごとの分割はしない

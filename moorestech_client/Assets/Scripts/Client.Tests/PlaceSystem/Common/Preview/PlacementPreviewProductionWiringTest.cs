@@ -74,7 +74,6 @@ namespace Client.Tests.PlaceSystem.Common.Preview
             // Check Enter separately so concurrent Stay cannot hide its absence.
             detector.SendMessage("OnTriggerEnter", ground);
             Assert.IsTrue(detector.IsCollision);
-            Assert.IsTrue(preview.IsCollisionGround);
             CollectionAssert.AreEqual(new[] { false }, _fixture.Controller.DetectGroundOverlaps());
 
             // 実物理の初接触と継続をそれぞれ一ステップ後に読む
@@ -84,19 +83,16 @@ namespace Client.Tests.PlaceSystem.Common.Preview
             ground.transform.position = contact.bounds.center;
             _fixture.Step();
             Assert.IsTrue(detector.IsCollision);
-            Assert.IsTrue(preview.IsCollisionGround);
             CollectionAssert.AreEqual(new[] { true }, _fixture.Controller.DetectGroundOverlaps());
 
             // 接触継続・離脱の結果伝達を検査
             // Check propagation of persistent and cleared contact.
             _fixture.Step();
             Assert.IsTrue(detector.IsCollision, "OnTriggerStay refreshes raw contact after FixedUpdate reset");
-            Assert.IsTrue(preview.IsCollisionGround, "preview retains the refreshed raw notification");
             CollectionAssert.AreEqual(new[] { true }, _fixture.Controller.DetectGroundOverlaps());
             ground.transform.position = Vector3.one * 100f;
             _fixture.Step();
             Assert.IsFalse(detector.IsCollision);
-            Assert.IsFalse(preview.IsCollisionGround);
             CollectionAssert.AreEqual(new[] { false }, _fixture.Controller.DetectGroundOverlaps());
             _fixture.Dispose();
             _fixture = null;
@@ -112,9 +108,10 @@ namespace Client.Tests.PlaceSystem.Common.Preview
             _fixture = new PlacementPreviewPhysicsFixture();
             _fixture.Initialize();
             var preview = _fixture.SetPreview(Vector3Int.zero, true);
+            var detector = preview.GetComponentsInChildren<GroundCollisionDetector>(true).Single();
             var ground = _fixture.CreateGround();
             _fixture.Step();
-            Assert.IsFalse(preview.IsCollisionGround);
+            Assert.IsFalse(detector.IsCollision);
 
             // 同じプール個体を地形へ動かし、物理更新前に同期値を読む
             // Move the same pooled instance into ground and query before physics advances.
@@ -123,15 +120,15 @@ namespace Client.Tests.PlaceSystem.Common.Preview
             ground.transform.position = moved.GetComponentsInChildren<GroundCollisionDetector>(true)
                 .Single().GetComponent<BoxCollider>().bounds.center;
             Assert.AreSame(preview, moved);
-            Assert.IsFalse(preview.IsCollisionGround);
+            Assert.IsFalse(detector.IsCollision);
             CollectionAssert.AreEqual(new[] { true }, _fixture.Controller.DetectGroundOverlaps());
 
             // 逆向き移動も同じフレームで旧通知を使わない
             // Reverse movement likewise must not reuse the prior notification.
             _fixture.Step();
-            Assert.IsTrue(preview.IsCollisionGround);
+            Assert.IsTrue(detector.IsCollision);
             _fixture.SetPreview(Vector3Int.zero, true);
-            Assert.IsTrue(preview.IsCollisionGround);
+            Assert.IsTrue(detector.IsCollision);
             CollectionAssert.AreEqual(new[] { false }, _fixture.Controller.DetectGroundOverlaps());
             _fixture.Dispose();
             _fixture = null;
