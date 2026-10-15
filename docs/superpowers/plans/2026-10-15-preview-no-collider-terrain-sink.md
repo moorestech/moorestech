@@ -593,3 +593,7 @@ git commit -m "test(place): 地形めり込み統一とプレビュー当たり�
 - 項目4（`blueprint-terrain-sink-partial-paste.cs`、19/19 PASS）: `moorestech_client/PlaytestResults/20261016_031418/blueprint-terrain-sink-partial-paste/result.json`・`recording.mp4`
   - BP＝鉄の歯車ベルトコンベア7＋鉄の歯車ベルトコンベア分岐機1。高さ0で斜面上を往復: 8個そろわないフレーム 0/80・0/72、赤を含むフレーム 0（#1499 の点滅なし）
   - Qで-1: 赤5（分岐機を含む (-47..-43,25,-9)）、青3（(-50..-48,25,-9)）。赤はすべて埋まり判定が真、青はすべて偽。地形理由の行が出る。貼り付け後は青の3個（ベルト）だけ置かれ、赤5個は置かれない
+- 再録画（レビュー反映後・HEAD 236451a788、シナリオ変更なし）: 3本とも Success=true
+  - 項目1・3: `moorestech_client/PlaytestResults/20261016_041951/terrain-sink-normal-and-belt-via-ui/result.json`（20/20）
+  - 項目2: `moorestech_client/PlaytestResults/20261016_042126/terrain-default-y-poles-and-pier-via-ui/result.json`（16/16）
+  - 項目4: `moorestech_client/PlaytestResults/20261016_042248/blueprint-terrain-sink-partial-paste/result.json`（19/19。往復中の欠けフレームは0/89・0/80。1段下げると赤5・青3で、青3だけ置かれた）
