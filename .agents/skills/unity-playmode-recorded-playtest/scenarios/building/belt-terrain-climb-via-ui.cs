@@ -41,8 +41,13 @@ return PlaytestRunner.Run("belt-terrain-climb-via-ui", options, async p =>
     await p.DragPlaceViaUi("ベルトコンベア", new Vector3Int(2, 32, 2), new Vector3Int(8, 32, 2));
     await p.Until(() => p.GetBlock(new Vector3Int(4, 33, 2)) != null && p.GetBlock(new Vector3Int(5, 33, 2)) != null, 10f, "丘の上のセルが y=33 に置かれる");
     p.Assert(p.GetBlock(new Vector3Int(8, 32, 2)) != null, "終端は地面の高さ y=32 のまま");
-    await p.Screenshot("01-belt-over-hill");
+    // サーバー反映だけで撮らず、丘上の表示が同期されてからプレビューを閉じる
+    // Wait for hill views to synchronize before closing the preview and capturing the server result
+    await p.WaitBlockGameObject(new Vector3Int(4, 33, 2));
+    await p.WaitBlockGameObject(new Vector3Int(5, 33, 2));
+    await p.WaitBlockGameObject(new Vector3Int(8, 32, 2));
     await p.ExitToGameScreen();
+    await p.Screenshot("01-belt-over-hill");
 
     // ---------------------------------------------------------------- 2. 崖で諦めて埋めて置く
     p.Note("フェーズ2: 崖を横切る3セルドラッグ → 埋めて置く案内が出て、y=32 に設置される");
