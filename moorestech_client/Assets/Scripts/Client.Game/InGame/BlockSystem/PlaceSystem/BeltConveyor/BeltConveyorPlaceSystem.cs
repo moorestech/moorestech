@@ -6,11 +6,11 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Height;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Run;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Ground;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.Inventory.Main;
-using Client.Game.InGame.UI.Tooltip;
 using Client.Input;
 using Common.Debug;
 using Game.Block.Interface;
@@ -50,7 +50,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             _previewBlockController = previewBlockController;
             _localPlayerInventory = localPlayerInventory;
             _constructionWalletQuery = constructionWalletQuery;
-            _placeRunBuilder = new BeltConveyorPlaceRunBuilder(blockGameObjectDataStore, _dragState);
+            _placeRunBuilder = new BeltConveyorPlaceRunBuilder(blockGameObjectDataStore, _dragState, new GroundConveyorTerrainFloor(placementHeightOffset));
         }
 
         // Q/Eで動かす設置高さを読む系
@@ -138,7 +138,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
 
             //プレビュー表示と地面との接触を取得する
             //display preview and get collision with ground
-            var (placeCauses, beltReasons) = UpdateCurrentPlaceInfos();
+            var (placeCauses, beltReasons, terrainClimbAbandoned) = UpdateCurrentPlaceInfos();
 
             _previewBlockController.SetPreview(_currentPlaceInfos, holdingBlockMaster, true);
             var blockGroundOverlapList = _previewBlockController.DetectGroundOverlaps();
@@ -147,9 +147,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             // The shared block cause (existing overlap) is pushed by the shared reporter
             var cursorIndex = PlacementCellReasonReporter.ApplyGroundOverlapsAndReport(_currentPlaceInfos, placeCauses, placePoint, blockGroundOverlapList, feedback);
 
-            // ベルト固有の理由（立体交差不能・坂ブロック欠落）はベルト側が積む
-            // Belt-specific reasons (impossible overpass, missing slope block) are pushed here on the belt side
-            PushBeltReason();
+            // ベルト固有の理由と地形乗り越え断念の案内を積む
+            // Push belt-specific reasons and the terrain-climb-abandoned notice
+            // カーソルが列外なら固有理由なしとして扱う
+            // Treat a cursor outside the run as having no belt-specific reason
+            var cursorCellReason = cursorIndex < 0 ? BeltConveyorPlacementBlockReason.None : beltReasons[cursorIndex];
+            BeltConveyorFeedbackReporter.Report(feedback, cursorCellReason, terrainClimbAbandoned);
 
             // 地面フィルタ後にアイテム数チェック（地面に埋まったエンティティがアイテム枠を消費しないようにする）
             // Check item count after ground filtering (so ground-blocked entities don't consume item quota)
@@ -171,23 +174,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
 
             #region Internal
 
-            void PushBeltReason()
-            {
-                if (cursorIndex < 0) return;
-
-                var beltReason = beltReasons[cursorIndex];
-                if (beltReason == BeltConveyorPlacementBlockReason.None) return;
-
-                feedback.Add(new TooltipLine(BeltConveyorPlacementBlockReasonTooltipKey.ToKey(beltReason)));
-            }
-
-            // 設置点列を更新し、セル毎の共有原因とベルト固有理由の列を返す（PlaceInfo列と同じ添字）
-            // Updates the placement point list and returns the per-cell shared cause and belt reason columns (indexed like the PlaceInfo list)
-            (List<PlacementBlockCause> placeCauses, List<BeltConveyorPlacementBlockReason> beltReasons) UpdateCurrentPlaceInfos()
+            // 原因列と列全体の地形乗り越え断念を返す
+            // Return cause columns and terrain-climb abandonment for the run
+            (List<PlacementBlockCause> placeCauses, List<BeltConveyorPlacementBlockReason> beltReasons, bool terrainClimbAbandoned) UpdateCurrentPlaceInfos()
             {
                 var dragStartPoint = _dragState.ResolveDragStartCell(placePoint);
-                _currentPlaceInfos = _placeRunBuilder.Build(dragStartPoint, placePoint, _currentBlockDirection, holdingBlock, out var cellCauses, out var cellBeltReasons);
-                return (cellCauses, cellBeltReasons);
+                _currentPlaceInfos = _placeRunBuilder.Build(dragStartPoint, placePoint, _currentBlockDirection, holdingBlock, out var cellCauses, out var cellBeltReasons, out var climbAbandoned);
+                return (cellCauses, cellBeltReasons, climbAbandoned);
             }
 
             #endregion

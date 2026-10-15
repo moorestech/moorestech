@@ -23,26 +23,30 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
     public class BeltConveyorPlacePointCalculator
     {
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
+        private readonly IConveyorTerrainFloor _terrainFloor;
 
-        public BeltConveyorPlacePointCalculator(BlockGameObjectDataStore blockGameObjectDataStore)
+        public BeltConveyorPlacePointCalculator(BlockGameObjectDataStore blockGameObjectDataStore, IConveyorTerrainFloor terrainFloor)
         {
             _blockGameObjectDataStore = blockGameObjectDataStore;
+            _terrainFloor = terrainFloor;
         }
 
         // blockCauses・beltReasonsはPlaceInfo列と同じ添字で並走する不可原因の列（共有原因とベルト固有理由を分けて渡す）
         // blockCauses and beltReasons are block-cause columns indexed like the PlaceInfo list, separating shared causes from belt-specific reasons
-        public List<PlaceInfo> CalculateStraightPoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockMasterElement straightBlockMaster, out List<PlacementBlockCause> blockCauses, out List<BeltConveyorPlacementBlockReason> beltReasons)
+        public List<PlaceInfo> CalculateStraightPoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockMasterElement straightBlockMaster, out List<PlacementBlockCause> blockCauses, out List<BeltConveyorPlacementBlockReason> beltReasons, out bool terrainClimbAbandoned)
         {
-            return CalculateStraightPoint(startPoint, endPoint, isStartDirectionZ, blockDirection, straightBlockMaster, IsNotExistBlock, IsOccupied, out blockCauses, out beltReasons);
+            return CalculateStraightPoint(startPoint, endPoint, isStartDirectionZ, blockDirection, straightBlockMaster, IsNotExistBlock, IsOccupied, _terrainFloor, out blockCauses, out beltReasons, out terrainClimbAbandoned);
         }
 
-        public static List<PlaceInfo> CalculateStraightPoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockMasterElement straightBlockMaster, Func<PlaceInfo, BlockMasterElement, bool> isNotExistBlock, Func<Vector3Int, bool> isOccupied, out List<PlacementBlockCause> blockCauses, out List<BeltConveyorPlacementBlockReason> beltReasons)
+        public static List<PlaceInfo> CalculateStraightPoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockMasterElement straightBlockMaster, Func<PlaceInfo, BlockMasterElement, bool> isNotExistBlock, Func<Vector3Int, bool> isOccupied, IConveyorTerrainFloor terrainFloor, out List<PlacementBlockCause> blockCauses, out List<BeltConveyorPlacementBlockReason> beltReasons, out bool terrainClimbAbandoned)
         {
             var (placeInfos, startToCornerDistance) = BeltConveyorStraightPathBuilder.Build(startPoint, endPoint, isStartDirectionZ, blockDirection);
 
-            // 障害物を自動で跨ぐ立体交差プロファイルを後段で重ねる
-            // Layer the auto-overpass profile that steps over obstacles
-            var overpassBlocked = new ConveyorOverpassRaiser().Raise(placeInfos, startToCornerDistance, isOccupied);
+            // 地形の丘と既存ブロックを跨ぐプロファイルを後段で重ねる
+            // Layer the profile that steps over terrain hills and existing blocks
+            var raiseResult = new ConveyorOverpassRaiser().Raise(placeInfos, startToCornerDistance, isOccupied, terrainFloor);
+            var overpassBlocked = raiseResult.OverpassBlocked;
+            terrainClimbAbandoned = raiseResult.TerrainClimbAbandoned;
 
             blockCauses = new List<PlacementBlockCause>(placeInfos.Count);
             beltReasons = new List<BeltConveyorPlacementBlockReason>(placeInfos.Count);

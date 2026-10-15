@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts;
+using Client.Tests.PlaceSystem.ConveyorOverpass;
 using Game.Block.Interface;
 using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
@@ -126,6 +127,8 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
                 blockMasterElement,
                 (_, _) => true,
                 _ => false,
+                new FakeConveyorTerrainFloor(new Dictionary<Vector2Int, int>()),
+                out _,
                 out _,
                 out _
             );
@@ -152,7 +155,7 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
             // isNotExistBlock always returns true (no occupancy); the endpoints must still stay unplaceable.
             var actual = BeltConveyorPlacePointCalculator.CalculateStraightPoint(
                 new Vector3Int(0, 0, 0), new Vector3Int(2, 0, 0), false, BlockDirection.East,
-                blockMasterElement, (_, _) => true, obstacle.Contains, out _, out var beltReasons);
+                blockMasterElement, (_, _) => true, obstacle.Contains, new FakeConveyorTerrainFloor(new Dictionary<Vector2Int, int>()), out _, out var beltReasons, out _);
 
             Assert.IsFalse(actual[0].Placeable);
             Assert.IsFalse(actual[2].Placeable);
