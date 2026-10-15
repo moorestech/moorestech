@@ -18,6 +18,9 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         // 論理削除キーで重複排除する（同一機械の複数メッシュ子などを1件に集約）
         // Dedupe by logical delete key so multiple mesh children of one machine collapse into one
         private readonly Dictionary<object, IDeleteTarget> _selectedTargets = new();
+        // 選択を空にしても未着手の表示解放を保持する
+        // Retain unstarted preview releases after clearing the selection
+        private readonly Queue<IDeleteTarget> _pendingResets = new();
         private bool _canceled;
 
         // 最初の対象のカテゴリーで照準を固定
@@ -86,15 +89,12 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         {
             // 戻し処理が例外でも選択が残らないよう、先に取り出して空にする
             // Take and empty the selection first so a throwing reset cannot leave it behind
-            var targets = new List<IDeleteTarget>(_selectedTargets.Values);
+            foreach (var target in _selectedTargets.Values) _pendingResets.Enqueue(target);
             _selectedTargets.Clear();
             _canceled = true;
             AimFilter = DeleteAimFilter.Frontmost;
 
-            foreach (var target in targets)
-            {
-                _resetRecovery.Reset(target, "[DragDelete] selected target was destroyed before cancel");
-            }
+            ReleasePendingResets("[DragDelete] selected target was destroyed before cancel");
         }
 
         // 選択を一括削除し、Ctrl+Z用のUndo履歴も記録する
@@ -113,6 +113,8 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             }
             var record = RemoveOperationRecord.CreateFrom(committed, _restoreSender);
 
+            foreach (var target in committed) _pendingResets.Enqueue(target);
+
             // 戻しが例外でも再確定で二重送信しないよう先に空にする
             // Empty the selection first so a throwing reset cannot cause a duplicate send on retry
             _selectedTargets.Clear();
@@ -123,9 +125,17 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             foreach (var target in committed) target.Delete();
             if (record.HasRemovedObjects) _buildOperationHistory.Push(record);
 
-            // Delete はサーバー往復の非同期なので即座に赤プレビューだけ戻す（例外を出し得る処理を最後に置く）
-            // Delete is async over the server, so clear the red preview now (the throwable step goes last)
-            foreach (var target in committed) _resetRecovery.Reset(target, "[DragDelete] selected target was destroyed before reset");
+            // 送信と履歴記録の後で表示を戻し、未着手分は次の解除へ残す
+            // Reset after sends and history recording; retain unstarted releases for the next cancellation
+            ReleasePendingResets("[DragDelete] selected target was destroyed before reset");
+        }
+
+        private void ReleasePendingResets(string destroyedWarning)
+        {
+            // 失敗した対象は再試行せず、後続対象の所有権だけ残す
+            // Remove before calling so only unstarted targets remain after an exception
+            while (_pendingResets.Count > 0)
+                _resetRecovery.Reset(_pendingResets.Dequeue(), destroyedWarning);
         }
 
         // キャンセルされていない場合のみ削除確定を許可する

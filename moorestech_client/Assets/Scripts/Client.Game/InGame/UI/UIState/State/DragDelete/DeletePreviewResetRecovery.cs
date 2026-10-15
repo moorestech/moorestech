@@ -7,16 +7,17 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
     // Reset recovery state shared by hover and selection previews
     public class DeletePreviewResetRecovery
     {
-        private readonly HashSet<IDeleteTarget> _incompleteResets = new();
-        private readonly HashSet<IDeleteTarget> _warnedIncompleteResets = new();
+        private readonly HashSet<object> _incompleteResets = new();
+        private readonly HashSet<object> _warnedIncompleteResets = new();
 
         internal bool CanPreview(IDeleteTarget target)
         {
-            if (!_incompleteResets.Contains(target)) return true;
+            var key = target.GetPreviewResetKey();
+            if (!_incompleteResets.Contains(key)) return true;
 
             // 抑止の初回だけ理由を残してログ連打を防ぐ
             // Report the first suppression without repeating the warning each frame
-            if (_warnedIncompleteResets.Add(target))
+            if (_warnedIncompleteResets.Add(key))
                 Debug.LogWarning("[DragDelete] delete preview suppressed because the target's previous reset did not complete");
             // silent-ok: 失敗対象の再保持とReset再実行を避ける / 初回警告と元の例外をUnity Consoleで開発者が確認する
             return false;
@@ -29,9 +30,10 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
 
             // 成功時だけ解除し、例外は呼び出し元へそのまま渡す
             // Clear the mark only on success and let exceptions reach the caller
-            _incompleteResets.Add(target);
+            var key = target.GetPreviewResetKey();
+            _incompleteResets.Add(key);
             target.ResetMaterial();
-            _incompleteResets.Remove(target);
+            _incompleteResets.Remove(key);
         }
     }
 }

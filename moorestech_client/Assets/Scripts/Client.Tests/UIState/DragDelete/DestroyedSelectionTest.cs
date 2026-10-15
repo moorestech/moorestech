@@ -84,6 +84,10 @@ namespace Client.Tests.UIState
         {
             Assert.Fail("Destroyed targets must never be captured");
         }
+        // 復元を共有する表示の寿命を識別する
+        // Identify the lifetime of the shared preview view
+        public object GetPreviewResetKey() => this;
+
         public object GetDeleteTargetKey() { return this; }
         public string GetDestructionCategory() { return "default"; }
     }

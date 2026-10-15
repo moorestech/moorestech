@@ -84,6 +84,10 @@ namespace Client.Tests.UIState
         public bool IsRemovable(out LocalizationKey? reason) => Target.IsRemovable(out reason);
         public void Delete() => Target.Delete();
         public void CollectRemovedObjects(RemovedObjectCollector collector) => Target.CollectRemovedObjects(collector);
+        // 復元を共有する表示の寿命を識別する
+        // Identify the lifetime of the shared preview view
+        public object GetPreviewResetKey() => this;
+
         public object GetDeleteTargetKey() => Target.GetDeleteTargetKey();
         public string GetDestructionCategory() => Target.GetDestructionCategory();
     }

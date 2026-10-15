@@ -520,3 +520,8 @@ git commit -m "fix: <特定した原因>"
 - Task 1 再レビュー対応: Releaseで参照を外すだけでは入力なしフレームの同対象再HoverでG離脱失敗が再発する。SingleHoverDeletePreviewはReset直前に未完了対象集合へ登録し、正常終了した対象だけ除く。未完了対象はサービス寿命中に再保持せず、対象ごとの初回抑止を警告する。複数対象の連続失敗も保持し、正常終了した対象の再Hoverは許可する。根拠: `.superpowers/sdd/task-1-review.md` Important 1 の静的故障シナリオ。追加テストで離脱失敗→入力なし同対象Hover→再離脱とA/B連続失敗を固定する（Unity実行は本体担当）。
 
 - Task 1 共有回復状態: 選択CancelSelection/CommitDeleteのReset失敗から単体Hoverへ渡る経路もR1/R2の対象となるため、未完了集合・抑止警告・Reset実行をDeletePreviewResetRecoveryへ集約する。DeleteObjectServiceが1インスタンスを作りSingleHoverDeletePreviewとDragDeleteSelectionへ必須constructor注入する。選択へ追加すること自体は維持し、失敗対象の赤表示再要求とReset再実行だけを抑止する。根拠: task-1-review.md再レビューImportant 2。
+
+### Step 7 controller判断（ユーザー逐語裁定ではない）
+
+- D1は案Bを採用。`IDeleteTarget.GetPreviewResetKey()`で共有表示インスタンスを識別し、失敗・警告記録を回復モデルへ集約する。ブロック親・車両材質コントローラー・RailChain・接続線自身を返す。同一edgeでも再生成した健全表示はプレビュー可能。削除重複排除キーは独立して維持する。
+- D2は案Aを採用。`DragDeleteSelection`が未着手解放キューを所有し、選択Clear前に移す。各Reset直前に取り出し、DeleteまたはResetの例外後は次のCancel/OnExitで未着手分を回収する。成功時は全Delete→Undo→Reset、送信の再試行はしない。先頭失敗で後続の所有権を失う従来前提を改める。
