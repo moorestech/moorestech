@@ -109,43 +109,34 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             // Returns whether the cursor has a sendable placement run
             bool GroundClickControl()
             {
-                // ビルドメニューの選択ブロックが変わったら連続設置状態をリセット
-                // Reset the continuous placement state when the build-menu selected block changes
+                // 選択変更時に連続設置をリセット
+                // Reset continuous placement when the selection changes
                 if (isSelectionChanged) _dragState.DiscardForBlockChange(target.BlockGuid);
 
-                //基本はプレビュー非表示
                 _previewBlockController.SetActive(false);
 
-                // 手持ちブロックを解決する
-                // Resolve the holding block
                 var holdingBlock = BeltConveyorHoldingBlock.Resolve(target.BlockId);
                 var holdingBlockMaster = holdingBlock.BlockMaster;
 
-                // ブロック設置用のrayが当たっているか、当たっていたら設置位置を取得する
                 if (!TryGetFootprintGroundedRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, feedback, out var placePoint, out var hitSurface)) { return false; }
 
-                // 設置可能な距離かどうか
-                // Whether the cell is within reach
                 if (!IsPlaceableFromPlayer(placePoint)) { feedback.AddTooFar(); return false; }
 
                 _previewBlockController.SetActive(true);
 
-                //クリックされてたらUIがゲームスクリーンの時にホットバーにあるブロックの設置
                 if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi()) _dragState.BeginDrag(placePoint, hitSurface == null ? PlacementHitSurfaceKind.Ground : PlacementHitSurfaceKind.BlockFace);
 
-                //プレビュー表示と地面との接触を取得する
-                //display preview and get collision with ground
                 var (placeCauses, beltReasons, terrainClimbAbandoned) = UpdateCurrentPlaceInfos(placePoint, holdingBlock);
 
                 _previewBlockController.SetPreview(_currentPlaceInfos, holdingBlockMaster, true);
                 var blockGroundOverlapList = _previewBlockController.DetectGroundOverlaps();
 
-                // 共有の不可原因（既存重複）は共通Reporterが積む
-                // The shared block cause (existing overlap) is pushed by the shared reporter
+                // 共通の重複理由を通知
+                // Report shared overlap causes
                 var cursorIndex = PlacementCellReasonReporter.ApplyGroundOverlapsAndReport(_currentPlaceInfos, placeCauses, placePoint, blockGroundOverlapList, feedback);
 
-                // ベルト固有の理由と地形乗り越え断念の案内を積む
-                // Push belt-specific reasons and the terrain-climb-abandoned notice
+                // 固有理由と地形断念を通知
+                // Report belt-specific reasons and terrain-climb abandonment
                 // -1は共用カーソル解決の既存契約。列外なら固有理由なしにする（型化は後続bd）
                 // -1 is the shared cursor resolver's existing contract; use no reason outside the run (typed in follow-up bd)
                 var cursorCellReason = cursorIndex < 0 ? BeltConveyorPlacementBlockReason.None : beltReasons[cursorIndex];

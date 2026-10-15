@@ -47,7 +47,7 @@ namespace Client.Tests.PlaceSystem.Ground.Entry
                 Assert.IsFalse(abandoned);
                 Assert.IsTrue(infos.All(info => info.Placeable));
 
-                // 平地では下げた列が埋まり、上げた列は余白を保つ
+                // 平地は下降で埋設、上昇で余白
                 // A lowered flat run stays buried; a raised run keeps its clearance
                 var flat = builder.Build(new Vector3Int(501, 21 + offset, 604), new Vector3Int(507, 21 + offset, 604), BlockDirection.East, holding, out _, out _, out _);
                 Assert.IsTrue(flat.All(info => info.Position.y == 21 + offset));
@@ -65,7 +65,7 @@ namespace Client.Tests.PlaceSystem.Ground.Entry
             var feedback = new PlacementFeedback();
             system.Enable();
 
-            // 始点を実入力で固定してから照準を丘の向こうへ動かす
+            // 実入力で始点固定後、丘の先へ照準
             // Pin the start through real input, then aim beyond the hill
             ClickPress();
             system.ManualUpdate(new PlaceSystemUpdateContext(target, true, feedback));

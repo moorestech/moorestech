@@ -7,8 +7,8 @@ using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ConveyorOverpass
 {
-    // 地形と障害物の下限を包絡線で解きPlaceInfo列へ反映する
-    // Solve terrain and obstacle lower bounds with the envelope and apply them to PlaceInfo
+    // 包絡線で地形・障害物の下限を設置列に反映
+    // Apply terrain and obstacle lower bounds to the placement run through the envelope
     public class ConveyorOverpassRaiser
     {
         private readonly ConveyorObstacleScanner _scanner = new();

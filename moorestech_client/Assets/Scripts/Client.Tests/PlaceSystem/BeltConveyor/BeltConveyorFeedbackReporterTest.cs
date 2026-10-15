@@ -7,8 +7,8 @@ using NUnit.Framework;
 namespace Client.Tests.PlaceSystem.BeltConveyor
 {
     /// <summary>
-    /// ベルトのツールチップ行の積み方のテスト（ADR 0081 決定7）
-    /// Tests for how belt tooltip lines are pushed (ADR 0081 decision 7)
+    /// ツールチップ行の検証（ADR 0081 決定7）
+    /// Tests for tooltip lines (ADR 0081 decision 7)
     /// </summary>
     public class BeltConveyorFeedbackReporterTest
     {

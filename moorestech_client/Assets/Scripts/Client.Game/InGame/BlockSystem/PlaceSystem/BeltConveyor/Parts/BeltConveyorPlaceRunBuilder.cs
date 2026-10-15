@@ -33,8 +33,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
             // The axis belongs to the drag, so the drag state owns it
             var isStartDirectionZ = _dragState.ResolveDragAxisIsZ(dragStartPoint, placePoint);
 
-            // 坂選択中は地形を参照せず一定勾配の経路を使う
-            // A slope selection uses a constant-grade path without terrain queries
+            // 坂選択時は地形なしの一定勾配
+            // Use a constant grade without terrain for a slope selection
             if (holdingBlock.SlopeGrade.HasValue)
             {
                 terrainClimbAbandoned = false;

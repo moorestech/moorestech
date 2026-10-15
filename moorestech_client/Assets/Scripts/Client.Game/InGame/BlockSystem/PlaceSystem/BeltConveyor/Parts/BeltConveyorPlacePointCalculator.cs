@@ -76,8 +76,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
         {
             var (placeInfos, startToCornerDistance) = BeltConveyorStraightPathBuilder.Build(startPoint, endPoint, isStartDirectionZ, blockDirection);
 
-            // 地形の丘と既存ブロックを跨ぐプロファイルを後段で重ねる
-            // Layer the profile that steps over terrain hills and existing blocks
+            // 地形と既存ブロックの高架を重ねる
+            // Layer the overpass profile for terrain and existing blocks
             var raiseResult = new ConveyorOverpassRaiser().Raise(placeInfos, startToCornerDistance, isOccupied, terrainFloor);
             var overpassBlocked = raiseResult.OverpassBlocked;
             terrainClimbAbandoned = raiseResult.TerrainClimbAbandoned;

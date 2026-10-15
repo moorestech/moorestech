@@ -12,8 +12,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
     {
         public static void Report(PlacementFeedback feedback, BeltConveyorPlacementBlockReason cursorCellReason, bool terrainClimbAbandoned)
         {
-            // カーソルセルのベルト固有理由を積む
-            // Push the cursor cell's belt-specific reason
             if (cursorCellReason != BeltConveyorPlacementBlockReason.None)
             {
                 feedback.Add(new TooltipLine(BeltConveyorPlacementBlockReasonTooltipKey.ToKey(cursorCellReason)));

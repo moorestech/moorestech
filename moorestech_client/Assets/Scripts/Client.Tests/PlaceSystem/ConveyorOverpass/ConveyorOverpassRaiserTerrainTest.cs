@@ -8,8 +8,8 @@ using UnityEngine;
 
 namespace Client.Tests.PlaceSystem.ConveyorOverpass
 {
-    // 地形を下限として乗り越えるベルト列（ADR 0081）の高さプロファイルを検証する
-    // Verifies the height profile of a belt run that climbs over terrain as a lower bound (ADR 0081)
+    // 地形下限の高さ検証（ADR 0081）
+    // Verify height profiles with terrain lower bounds (ADR 0081)
     public class ConveyorOverpassRaiserTerrainTest
     {
         [Test]

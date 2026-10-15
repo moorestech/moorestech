@@ -14,8 +14,8 @@ using Object = UnityEngine.Object;
 
 namespace Client.Tests.PlaceSystem.BeltConveyor
 {
-    // 坂を持たないファミリーだけが地形由来の坂を諦めることをBuild経路で確かめる
-    // Verify through Build that only a family without slopes abandons terrain-caused slopes
+    // Build経路の坂なし地形断念を検証
+    // Verify through Build that only a slope-less family abandons terrain-caused slopes
     public class BeltConveyorTerrainFallbackTest
     {
         private GameObject _dataStoreObject;
@@ -85,8 +85,8 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
             var noTerrain = new FakeConveyorTerrainFloor(new Dictionary<Vector2Int, int>());
             var terrainFreeBuilder = new BeltConveyorPlaceRunBuilder(_dataStore, new CommonBlockPlaceDragState(new PlacementHeightOffset()), noTerrain);
 
-            // 同じ端点から本物の経路生成を通し、全セルの水平位置を比較する
-            // Generate both paths through production code and compare every horizontal cell position
+            // 実経路で同一端点の全セルXZを比較
+            // Compare every cell XZ of production paths with identical endpoints
             var endpoint = new Vector3Int(4, 0, 2);
             var terrainFree = terrainFreeBuilder.Build(Vector3Int.zero, endpoint, BlockDirection.East, holdingBlock, out _, out _, out _);
             var terrain = BuilderWithHill().Build(Vector3Int.zero, endpoint, BlockDirection.East, holdingBlock, out _, out _, out _);
