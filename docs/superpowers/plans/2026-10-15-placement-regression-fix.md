@@ -204,8 +204,10 @@ namespace Client.Tests.PlaceSystem.Common.Preview
             EditorSceneManager.ClosePreviewScene(_scene);
         }
 
-        // 歯車チェーンポール3x4x3・コンパクト1x2x1・レール橋脚3x1x3・ベルト1x1x1
-        // Gear chain pole 3x4x3, compact pole 1x2x1, rail pier 3x1x3, belt 1x1x1.
+        // 歯車ポール3x4x3・小型1x2x1
+        // Gear pole 3x4x3; compact pole 1x2x1
+        // 橋脚3x1x3・ベルト1x1x1
+        // Pier 3x1x3; belt 1x1x1
         [TestCase(3, 4, 3, 0.3f)]
         [TestCase(3, 4, 3, 0.7f)]
         [TestCase(1, 2, 1, 0.3f)]
@@ -370,8 +372,10 @@ git commit -m "fix(place): 地形判定箱を最下段セルの上へ持ち上�
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Ground
 {
     /// <summary>
-    ///     地形ゲート付き設置系のカーソルセル解決の結果。照準面なし・地表なし・解決済みを区別する
-    ///     Result of the terrain-gated placements' cursor cell resolution; separates no aim surface, no ground and resolved
+    ///     - 地形ゲート付きのセル解決結果
+    ///     - 照準面なし・地表なしを区別
+    ///     - Cell resolution for terrain-gated placement
+    ///     - Distinguishes no aim surface from missing ground
     /// </summary>
     public enum FootprintGroundedCellResult
     {
@@ -472,8 +476,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
 `GearChainPolePlaceExtendInput.cs` の22〜28行（`HasGhost`・`GhostTooFar` とそれぞれのコメント2行）を次に置き換える。
 
 ```csharp
-        // ゴーストを出したか、出さなかった理由（照準面なし・距離超過・地表なし）
-        // Whether a ghost is shown, or why not (no aim surface, beyond reach, no footprint ground)
+        // ゴースト表示状態と非表示理由
+        // Ghost visibility and the reason for hiding it
         public GearChainPoleGhostState GhostState;
 ```
 
@@ -710,8 +714,10 @@ using Tests.Module.TestMod;
 
 namespace Tests.UnitTest.Game.Chain
 {
-    // 接続線の返却がMaxStackで分割され総数を保つことを検証する
-    // Verify connection-line refunds split by MaxStack and preserve the total count
+    // - 接続線の素材返却
+    // - Connection-line material refunds
+    // - スタック上限で分割・総数保持
+    // - Split at stack limits and preserve totals
     public class ConnectionLineRefundItemsTest
     {
         private static readonly Guid Stack100ItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000004");
@@ -750,8 +756,8 @@ namespace Tests.UnitTest.Game.Chain
             };
             var stacks = ConnectionLineRefundItems.Create(materials);
 
-            // 素材ごとに自身のMaxStackで分割され、総数が保存される
-            // Each material splits by its own MaxStack and keeps its total
+            // 素材別の上限で分割・総数保持
+            // Split by each material’s limit and preserve totals
             CollectionAssert.AreEqual(new[] { 100, 100, 30 }, stacks.Where(s => s.Id == stack100).Select(s => s.Count).ToArray());
             CollectionAssert.AreEqual(new[] { 50, 50, 20 }, stacks.Where(s => s.Id == stack50).Select(s => s.Count).ToArray());
             Assert.AreEqual(6, stacks.Count);
@@ -793,8 +799,10 @@ using static Tests.CombinedTest.Server.PacketTest.GearChain.GearChainEditTestWor
 
 namespace Tests.CombinedTest.Server.PacketTest.GearChain
 {
-    // MaxStackを超える素材記録の撤去・切断が例外なく総数を返すことを検証する
-    // Verify removal and disconnect of above-MaxStack records refund the full total without throwing
+    // - 上限超過素材の撤去・切断
+    // - Removal and disconnect with above-limit materials
+    // - 例外なし・返却総数を保証
+    // - Preserve totals without throwing
     public class GearChainRefundAboveMaxStackTest
     {
         private const int Remainder = 30;

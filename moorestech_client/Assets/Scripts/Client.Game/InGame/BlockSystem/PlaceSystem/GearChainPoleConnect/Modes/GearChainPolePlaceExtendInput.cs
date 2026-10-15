@@ -19,8 +19,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
         public bool Clicked;
         public bool IsAwaitingResponse;
 
-        // ゴーストを出したか、出さなかった理由（照準面なし・距離超過・地表なし）
-        // Whether a ghost is shown, or why not (no aim surface, beyond reach, no footprint ground)
+        // ゴースト表示状態と非表示理由
+        // Ghost visibility and the reason for hiding it
         public GearChainPoleGhostState GhostState;
 
         public PlaceInfo GhostPlaceInfo;

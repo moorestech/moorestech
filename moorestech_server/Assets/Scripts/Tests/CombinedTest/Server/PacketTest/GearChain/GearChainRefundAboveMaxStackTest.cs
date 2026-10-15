@@ -11,8 +11,10 @@ using static Tests.CombinedTest.Server.PacketTest.GearChain.GearChainEditTestWor
 
 namespace Tests.CombinedTest.Server.PacketTest.GearChain
 {
-    // MaxStackを超える素材記録の撤去・切断が例外なく総数を返すことを検証する
-    // Verify removal and disconnect of above-MaxStack records refund the full total without throwing
+    // - 上限超過素材の撤去・切断
+    // - Removal and disconnect with above-limit materials
+    // - 例外なし・返却総数を保証
+    // - Preserve totals without throwing
     public class GearChainRefundAboveMaxStackTest
     {
         private const int Remainder = 30;

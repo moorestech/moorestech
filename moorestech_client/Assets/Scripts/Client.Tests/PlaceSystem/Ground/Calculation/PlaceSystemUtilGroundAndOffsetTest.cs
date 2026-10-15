@@ -7,13 +7,11 @@ namespace Client.Tests.PlaceSystem.Ground.Calculation
 {
     public class PlaceSystemUtilGroundAndOffsetTest
     {
-        // surfaceType==null (地面ヒット) のフォールバック経路もテスト
-        // Ground-hit fallback path where surfaceType is null
         [Test]
         public void surfaceType_null_地面ヒット時_中央寄せスナップ()
         {
-            // 1x1x1ブロック(奇数サイズ)ではheightOffset=0でhit位置をそのまま使う
-            // For unit block (odd size), heightOffset=0 uses hit position as-is
+            // 単位サイズ・高さ補正なしのスナップ
+            // Snap a unit-sized block without height offset
             var hitPoint = new Vector3(5.3f, 4.0f, 5.7f);
 
             var pos = PlaceSystemUtil.CalcPlacePointBySize(Vector3Int.one, hitPoint, 0, (PreviewSurfaceType?)null, 0f);
@@ -21,8 +19,8 @@ namespace Client.Tests.PlaceSystem.Ground.Calculation
             Assert.AreEqual(new Vector3Int(5, 4, 5), pos);
         }
 
-        // Q/Eで設定するheightOffsetが面ヒット時にもY軸へ反映されること
-        // heightOffset (set by Q/E) must shift Y on face-hit cases too
+        // Q/Eの高さ補正は面ヒットにも有効
+        // Q/E height offset also applies to face hits
         [Test]
         public void XZ_Y_上面_heightOffset_2_でY方向に持ち上がること()
         {

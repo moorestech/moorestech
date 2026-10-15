@@ -1,8 +1,10 @@
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Ground
 {
     /// <summary>
-    ///     地形ゲート付き設置系のカーソルセル解決の結果。照準面なし・地表なし・解決済みを区別する
-    ///     Result of the terrain-gated placements' cursor cell resolution; separates no aim surface, no ground and resolved
+    ///     - 地形ゲート付きのセル解決結果
+    ///     - 照準面なし・地表なしを区別
+    ///     - Cell resolution for terrain-gated placement
+    ///     - Distinguishes no aim surface from missing ground
     /// </summary>
     public enum FootprintGroundedCellResult
     {

@@ -30,8 +30,10 @@ namespace Client.Tests.PlaceSystem.Common.Preview
             EditorSceneManager.ClosePreviewScene(_scene);
         }
 
-        // 歯車チェーンポール3x4x3・コンパクト1x2x1・レール橋脚3x1x3・ベルト1x1x1
-        // Gear chain pole 3x4x3, compact pole 1x2x1, rail pier 3x1x3, belt 1x1x1.
+        // 歯車ポール3x4x3・小型1x2x1
+        // Gear pole 3x4x3; compact pole 1x2x1
+        // 橋脚3x1x3・ベルト1x1x1
+        // Pier 3x1x3; belt 1x1x1
         [TestCase(3, 4, 3, 0.3f)]
         [TestCase(3, 4, 3, 0.7f)]
         [TestCase(1, 2, 1, 0.3f)]

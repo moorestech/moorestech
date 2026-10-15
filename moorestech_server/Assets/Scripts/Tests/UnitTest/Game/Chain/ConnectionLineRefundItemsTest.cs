@@ -9,8 +9,10 @@ using Tests.Module.TestMod;
 
 namespace Tests.UnitTest.Game.Chain
 {
-    // 接続線の返却がMaxStackで分割され総数を保つことを検証する
-    // Verify connection-line refunds split by MaxStack and preserve the total count
+    // - 接続線の素材返却
+    // - Connection-line material refunds
+    // - スタック上限で分割・総数保持
+    // - Split at stack limits and preserve totals
     public class ConnectionLineRefundItemsTest
     {
         private static readonly Guid Stack100ItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000004");
@@ -49,8 +51,8 @@ namespace Tests.UnitTest.Game.Chain
             };
             var stacks = ConnectionLineRefundItems.Create(materials);
 
-            // 素材ごとに自身のMaxStackで分割され、総数が保存される
-            // Each material splits by its own MaxStack and keeps its total
+            // 素材別の上限で分割・総数保持
+            // Split by each material’s limit and preserve totals
             CollectionAssert.AreEqual(new[] { 100, 100, 30 }, stacks.Where(s => s.Id == stack100).Select(s => s.Count).ToArray());
             CollectionAssert.AreEqual(new[] { 50, 50, 20 }, stacks.Where(s => s.Id == stack50).Select(s => s.Count).ToArray());
             Assert.AreEqual(6, stacks.Count);
