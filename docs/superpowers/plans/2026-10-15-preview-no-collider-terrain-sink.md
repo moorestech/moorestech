@@ -576,3 +576,18 @@ git commit -m "test(place): 地形めり込み統一とプレビュー当たり�
 - BlueprintRequest の型分割（ユーザー裁定 2026-10-16）: 操作ごとに型を分けず、貼り付け時だけ値が入る `TerrainSunkBlockPositions`（Key(9)）を1項目足す（提示「推奨: このまま1項目足す」に原文「それで」）。負債: 操作によって null になる欄が1つ増える。裁定記録: `.decisions/2026-10-16-BPリクエストは型を分けず貼り付け専用の除外位置欄を1つ足す.md`
 - user-simulator review（2026-10-15）の適用: enum を新規ファイルにせず `BlueprintPasteCopyDraft.cs` へ同居（1ディレクトリ10ファイル規約。前例 `BlueprintPasteCopyPlan.cs:6`）、R8 に非対称の理由を明記、Task 3 Step 4 に描画本体 Cube に付いた検出器の扱いと Collider がクリック可能になる帰結を明記。いずれも規約・前例の適用と手順の明文化で、挙動・範囲の判断ではない。出所: agent前提（user-simulator 指摘を規約照合のうえ採用）
 - BP埋まり除外の照合キーを位置から（位置・向き・寸法）へ広げた: 重なる間隔のドラッグ貼り付けで同じ最小角を持つ別形状のブロックを誤って飛ばさないため（タスクレビュー Important）。出所: agent前提（実装中のレビュー所見）
+
+### Task 4 録画結果
+
+生成ワールド（PLAYTEST_MAP_MODE=generated・PLAYTEST_SEED=196・毎回新規world）、レビュー修正 94feda004c 適用後のバイナリで Record=true 実行。3本とも Success=true・Asserts 全PASS・動画は0 byteでない（目視: アバター・地面・HUD・ゴースト・ツールチップを確認）。シナリオは `.agents/skills/unity-playmode-recorded-playtest/scenarios/building/` に置いた。
+
+- 項目1・3（`terrain-sink-normal-and-belt-via-ui.cs`、20/20 PASS）: `moorestech_client/PlaytestResults/20261016_031656/terrain-sink-normal-and-belt-via-ui/result.json`・`recording.mp4`
+  - 斜面 start=(-50,-10)、地表 25.44→27.53（16セル）。木のコンベアチェスト(3x2x4) オフセット0: 地表25.435で既定Y=26、プレビュー青、(-50,26,-10) に置けた
+  - Qでオフセット-1: Y=25 で赤、`ui.tooltip.placeBlockedByTerrain`、Web UIのツールチップにも「Blocked by terrain」と出た（英語ロケール）。クリックしても置かれない
+  - ベルト オフセット0のドラッグ (-42..-40): Y=26,26,27、既定Y=26,27,27 なので中央セル (-41,26) が埋まって赤、両端は青で置かれ、中央は置かれない（ベルト列のYは端点間の直線補間で地形に沿わない。地形追従は bd moorestech-5wy86 の範囲）
+  - ベルト Qで-1 のドラッグ (-38..-36): 3セルともY=26（既定Y=27）で赤、置かれない
+- 項目2（`terrain-default-y-poles-and-pier-via-ui.cs`、16/16 PASS）: `moorestech_client/PlaytestResults/20261016_031829/terrain-default-y-poles-and-pier-via-ui/result.json`・`recording.mp4`
+  - 歯車チェーンポール: フットプリント地表最高25.040 → (-55,25,-16)、電線ツールの電柱: 26.550 → (-46,26,-16)、レール橋脚: 27.729 → (-38,27,-16)。3つとも既定Yに置かれ、地形理由は出ず、置いた位置は埋まり判定に掛からない（#1507 の退行なし）
+- 項目4（`blueprint-terrain-sink-partial-paste.cs`、19/19 PASS）: `moorestech_client/PlaytestResults/20261016_031418/blueprint-terrain-sink-partial-paste/result.json`・`recording.mp4`
+  - BP＝鉄の歯車ベルトコンベア7＋鉄の歯車ベルトコンベア分岐機1。高さ0で斜面上を往復: 8個そろわないフレーム 0/80・0/72、赤を含むフレーム 0（#1499 の点滅なし）
+  - Qで-1: 赤5（分岐機を含む (-47..-43,25,-9)）、青3（(-50..-48,25,-9)）。赤はすべて埋まり判定が真、青はすべて偽。地形理由の行が出る。貼り付け後は青の3個（ベルト）だけ置かれ、赤5個は置かれない
