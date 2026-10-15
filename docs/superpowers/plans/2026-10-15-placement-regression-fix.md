@@ -362,7 +362,7 @@ git commit -m "fix(place): 地形判定箱を最下段セルの上へ持ち上�
   - `internal static FootprintGroundedCellResult PlaceSystemUtil.ResolveFootprintGroundedCell(Vector3Int rayHitCell, PlacementHitSurfaceKind surfaceKind, BlockDirection blockDirection, Vector3Int blockSize, int heightOffset, out Vector3Int pos)`
   - `public enum GearChainPoleGhostState { NoAimSurface, TooFar, GroundNotFound, Shown }`（namespace `Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes`）。`GearChainPolePlaceExtendInput` の `HasGhost`（bool）と `GhostTooFar`（bool）を `public GearChainPoleGhostState GhostState;` 1つに置き換える。構造体の既定値は `NoAimSurface`（先頭メンバー）
 
-- [ ] **Step 1: 結果の型を作る**
+- [x] **Step 1: 結果の型を作る**
 
 `Ground/FootprintGroundedCellResult.cs`:
 
@@ -382,7 +382,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Ground
 }
 ```
 
-- [ ] **Step 2: `PlaceSystemUtil` に1セル版の解決を足す**
+- [x] **Step 2: `PlaceSystemUtil` に1セル版の解決を足す**
 
 `PlaceSystemUtil.cs` の `TryGetRayHitBlockPosition`（30〜34行）の直後に追加する。using に `Client.Game.InGame.BlockSystem.PlaceSystem.Common.Run` と `Client.Game.InGame.BlockSystem.PlaceSystem.Feedback` を足す（`Ground` は既にある）。追加後も200行未満（約185行）。
 
@@ -426,7 +426,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Ground
         }
 ```
 
-- [ ] **Step 3: レール橋脚・ベルト・電柱ゴーストを切り替える**
+- [x] **Step 3: レール橋脚・ベルト・電柱ゴーストを切り替える**
 
 3か所とも1行の置き換えで、行数は増えない（`BeltConveyorPlaceSystem.cs` は196行のまま）。
 
@@ -448,7 +448,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Ground
             if (!PlaceSystemUtil.TryGetFootprintGroundedRayHitBlockPosition(_mainCamera, 0, selection.CurrentDirection, poleMaster, feedback, out var placePoint, out _)) return false;
 ```
 
-- [ ] **Step 4: 歯車チェーンポールのゴースト状態を1つの型にする**
+- [x] **Step 4: 歯車チェーンポールのゴースト状態を1つの型にする**
 
 `GearChainPoleConnect/Modes/GearChainPoleGhostState.cs`:
 
@@ -515,7 +515,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
             }
 ```
 
-- [ ] **Step 5: 既存のモード判定テストを新しい型へ合わせ、地表なしのケースを足す**
+- [x] **Step 5: 既存のモード判定テストを新しい型へ合わせ、地表なしのケースを足す**
 
 - `GearChainPoleDecideTestSupport.cs:66` の `HasGhost = true,` → `GhostState = GearChainPoleGhostState.Shown,`
 - `GearChainPolePlaceExtendModeFeedbackTest.cs:145-146` の `input.HasGhost = false;` と `input.GhostTooFar = true;` の2行 → `input.GhostState = GearChainPoleGhostState.TooFar;` の1行
@@ -553,7 +553,7 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
 }
 ```
 
-- [ ] **Step 6: カーソルセル解決の単体テストを書く**
+- [x] **Step 6: カーソルセル解決の単体テストを書く**
 
 `Client.Tests/PlaceSystem/Ground/FootprintGroundedCellResolveTest.cs`。既存 `PlacementGroundCellApplyTest` と同じく既定物理シーンへ Ground レイヤーの箱を置く（他テストと重ならない座標を使う）。
 
@@ -641,7 +641,7 @@ namespace Client.Tests.PlaceSystem.Ground
 }
 ```
 
-- [ ] **Step 7: コンパイルし、関連テストを実行する**
+- [x] **Step 7: コンパイルし、関連テストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: ErrorCount 0
@@ -649,7 +649,7 @@ Expected: ErrorCount 0
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client.Tests.PlaceSystem\.(Ground\.|GearChainPoleConnect\.|TrainRail|TrainCostIntegration|BeltConveyor|ElectricWire)"`
 Expected: 全件 PASS（新設5ケースを含む）。失敗したテストが照準1点の旧Yを前提にしていたら、期待値を「占有セルの地形最高点を含むセル」へ直し、その理由をコミットメッセージに書く
 
-- [ ] **Step 8: コミットする**
+- [x] **Step 8: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/ \
