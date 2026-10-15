@@ -123,23 +123,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             return new Vector3Int(Mathf.FloorToInt(hitPoint.x), Mathf.RoundToInt(hitPoint.y), Mathf.FloorToInt(hitPoint.z));
         }
 
-        public static Vector3Int CalcPlacePoint(BlockMasterElement holdingBlock ,Vector3 hitPoint, int heightOffset, BlockDirection currentBlockDirection, BlockPreviewBoundingBoxSurface boundingBoxSurface, float groundHeightQuantizationStep)
-        {
-            PreviewSurfaceType? surfaceType = boundingBoxSurface == null ? (PreviewSurfaceType?)null : boundingBoxSurface.PreviewSurfaceType;
-            return CalcPlacePoint(holdingBlock, hitPoint, heightOffset, currentBlockDirection, surfaceType, groundHeightQuantizationStep);
-        }
-
-        // groundHeightQuantizationStepは地面ヒット（surfaceType==null）でだけ使う、当たった地形の高さ格子1段
-        // groundHeightQuantizationStep is the hit terrain's height lattice step, used only for a ground hit (surfaceType == null)
-        public static Vector3Int CalcPlacePoint(BlockMasterElement holdingBlock, Vector3 hitPoint, int heightOffset, BlockDirection currentBlockDirection, PreviewSurfaceType? surfaceType, float groundHeightQuantizationStep)
-        {
-            var rotateAction = currentBlockDirection.GetCoordinateConvertAction();
-            var rotatedSize = rotateAction(holdingBlock.BlockSize).Abs();
-            return CalcPlacePointBySize(rotatedSize, hitPoint, heightOffset, surfaceType, groundHeightQuantizationStep);
-        }
-
         // 回転済みサイズで通常設置とBPのセル解決を共通化する
         // Resolve normal placement and blueprint cells from the same rotated size
+        // groundHeightQuantizationStepは地面ヒット（surfaceType==null）でだけ使う、当たった地形の高さ格子1段
+        // groundHeightQuantizationStep is the hit terrain's height lattice step, used only for a ground hit (surfaceType == null)
         public static Vector3Int CalcPlacePointBySize(Vector3Int rotatedSize, Vector3 hitPoint, int heightOffset, PreviewSurfaceType? surfaceType, float groundHeightQuantizationStep)
         {
             if (surfaceType == null)
