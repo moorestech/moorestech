@@ -11,15 +11,9 @@
 # =====================================================================
 """build_workflow_args.py — Workflow へ渡す args と、結合済み Workflow スクリプトを書く。
 
-mode=review（既定）: Step 2 の checks.json（reviewers / verifiers_to_launch）と split_chunks の chunks.tsv、
-investigators/ の YAML model、Fable全般、post-check、Refix、Codex 3本の成果物パスを1つの JSON に畳む。
 mode=bug-pass（`--bug-pass`・SKILL.md Step 7.5）: 系統を workflow_args/bug_pass.py の許可集合へ絞り、
 context から免責の節を外し、前周 Warning の出所（`--carry-from` の本レビュー $RUNDIR）を渡す。
-どちらも共通出力契約を `$RUNDIR/contract.md` へ、scripts/review_workflow/*.js の結合に args を埋め込んだものを
-`$RUNDIR/review_workflow.js`（Workflow の scriptPath。args は渡さない）へ書く。部品は workflow_args/ 配下。
 
-**fail-closed**: セレクタの error 行・chunks.tsv の明示指定不在・post-check 選択の失敗・
-YAML model 未検出・bug-pass の系統0件は黙って空にせず非0終了する。
 
 Builds the Workflow args JSON (review or bug-pass mode), writes the output contract and the
 concatenated workflow script into the run dir, and fails closed on any selection error.
@@ -67,6 +61,7 @@ def main() -> int:
                     help="pr-independent-review 用。Step 6 適用を省き post-check は patch で発火")
     ap.add_argument("--detchecks", default=None,
                     help="report-only 時に convention-guard へ渡す決定論JSON（既定: <run-dir>/detchecks.json）")
+    ap.add_argument("--verify-by-repro", action="store_true", help="採用ロジックバグだけ隔離環境で反証・実証する")
     ap.add_argument("--bug-pass", action="store_true", help="SKILL.md Step 7.5 の最終バグ確認パス")
     ap.add_argument("--carry-from", default=None, help="bug-pass 用。前周 Warning を持ち込む本レビューの $RUNDIR")
     args = ap.parse_args()
@@ -88,6 +83,8 @@ def main() -> int:
         "skillRoot": str(SKILL_ROOT),
         "baseRef": args.base_ref,
         "reportOnly": bool(args.report_only),
+        "verifyByRepro": args.verify_by_repro,
+        "reproVerifierPath": str(SKILL_ROOT / "verifiers/logic-bug-repro.md"),
         "codexWaitMaxMinutes": CODEX_WAIT_MAX_MINUTES,
         "integratorPath": str(SKILL_ROOT / "integrators" / "finding-integrator.md"),
         "orchestratorStepsPath": str(SKILL_ROOT / "references" / "orchestrator-steps.md"),
@@ -179,8 +176,10 @@ def plan_bug_pass(args, run_dir: Path) -> dict | int:
         print("bug-pass の系統が0件（patch が空か、レビュー対象ファイルが無い）", file=sys.stderr)
         return 5
     investigator_count = len(systems) - len(reviewers)
+    context = bug_pass.strip_exemptions(Path(args.context), run_dir)
+    bug_pass.carry_decisions(Path(args.carry_from).resolve(), context)
     return {
-        "userPromptPath": str(bug_pass.strip_exemptions(Path(args.context), run_dir)),
+        "userPromptPath": str(context),
         "checksPath": None,
         "chunksTsv": str(chunks_path) if chunks_path else None,
         "chunksReason": f"bug-pass(split_chunks --threshold={bug_pass.BUG_PASS_CHUNK_THRESHOLD})",

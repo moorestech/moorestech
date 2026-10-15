@@ -44,7 +44,8 @@ if (BUG_PASS) integratorLines.push(
   `Mode : bug-pass — ${A.integrationRulesPath} §7（最終バグ確認の統合）で統合する。免責による suppress を効かせない・Critical は再現手順を1文で書けるものだけ・設計判断は常に0件（design_items=0）。`,
   `前周から持ち込む Warning の出所 : ${A.carriedWarningSources.length ? A.carriedWarningSources.join(', ') : 'なし'}（各ファイルの Warning 節を §7 の格上げ/破棄判定にかける）`,
 )
-const integrated = await agent(integratorLines.join('\n'), { label: 'integrator', phase: 'Integrate', model: 'opus', schema: INTEGRATOR_SCHEMA })
+if (A.verifyByRepro) integratorLines.push('採用 Critical のうち観測可能な誤動作を名指しできるロジックバグだけ logic_bugs に id・summary・fix で列挙する。規約・構造だけの違反、決定論 confirmed は含めない。')
+let integrated = await agent(integratorLines.join('\n'), { label: 'integrator', phase: 'Integrate', model: 'opus', schema: INTEGRATOR_SCHEMA })
 if (!integrated || !integrated.integrated_written) {
   throw new Error('integrator が integrated.md を書けなかった（応答なし or integrated_written=false）。$RUNDIR/agents は残っているので親が integrator だけ再派遣する')
 }

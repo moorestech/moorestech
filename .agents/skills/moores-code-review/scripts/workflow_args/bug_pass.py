@@ -20,6 +20,7 @@ and then narrowed to the allow-lists below; context exemptions are stripped from
 """
 from __future__ import annotations
 
+import json
 import re
 import subprocess
 import sys
@@ -124,3 +125,20 @@ def carried_warning_sources(main_run_dir: Path) -> list[str] | None:
 def expected_systems(reviewers: list, investigator_count: int) -> dict:
     return {"reviewers": len(reviewers), "verifiers": 0, "fable": 0,
             "investigators": investigator_count, "total": len(reviewers) + investigator_count}
+
+
+def carry_decisions(main_run_dir: Path, context: Path) -> None:
+    # 裁定が無い場合も空配列を要求し、記録漏れを親のエラーとして知らせる。
+    # Require an empty array even with no rulings, surfacing missing records to the parent.
+    source = main_run_dir / "step7-decisions.json"
+    if not source.is_file():
+        raise SystemExit(f"Step 7 裁定記録が無い: {source}（裁定0件なら {{\"declined\": []}} を書く）")
+    data = json.loads(source.read_text(encoding="utf-8"))
+    rows = data.get("declined")
+    if not isinstance(rows, list) or any(not isinstance(row, dict) or any(
+            not isinstance(row.get(key), str) or not row[key].strip() for key in ("id", "summary", "reason")) for row in rows):
+        raise SystemExit(f"Step 7 裁定記録が不正: {source}（declined の各項目に id/summary/reason が必要）")
+    with context.open("a", encoding="utf-8") as out:
+        out.write("\n## Step 7 で直さないと確定した指摘\n")
+        out.write(json.dumps(data, ensure_ascii=False) + "\n")
+        out.write("この実行の同一指摘は蒸し返さず、裁定により対象外と報告する。別の故障シナリオは通常どおり検査する。\n")
