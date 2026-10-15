@@ -1,9 +1,0 @@
-{
-  "env": {
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
-  },
-  "enabledPlugins": {
-    "superpowers@superpowers-marketplace": true,
-    "reviw-plugin@reviw-plugins": true
-  }
-}

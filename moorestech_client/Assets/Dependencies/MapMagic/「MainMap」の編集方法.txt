@@ -1,2 +1,0 @@
-MainMap.assetはMapMagic2（https://assetstore.unity.com/packages/tools/terrain/mapmagic-2-165180）という、ノードベースのテレインツールで編集します。
-このアセットは無料なので、このファイルを編集したいときは、ご自身で「PasernalAsset」にMapMagic2アセットを追加し、編集してください。

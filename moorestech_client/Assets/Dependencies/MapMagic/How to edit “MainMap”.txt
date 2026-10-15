@@ -1,2 +1,0 @@
-MainMap.asset is edited with a node-based terrain tool called MapMagic2 (https://assetstore.unity.com/packages/tools/terrain/mapmagic-2-165180).
-This asset is free, so if you want to edit this file, please add the MapMagic2 asset to "PasernalAsset" and edit it yourself.

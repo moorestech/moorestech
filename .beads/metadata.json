@@ -1,7 +1,0 @@
-{
-  "database": "dolt",
-  "backend": "dolt",
-  "dolt_mode": "embedded",
-  "dolt_database": "moorestech",
-  "project_id": "6d770fff-4a4d-48d4-b2ab-09e5490f3d86"
-}
