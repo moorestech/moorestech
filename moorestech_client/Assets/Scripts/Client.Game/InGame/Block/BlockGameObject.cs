@@ -89,7 +89,7 @@ namespace Client.Game.InGame.Block
             
             // プレビュー限定オブジェクトをオフに
             // Turn off preview-only object
-            _previewOnlyObjects = BlockPreviewOnlyObjects.Initialize(gameObject, BlockId);
+            _previewOnlyObjects = BlockPreviewOnlyObjects.Initialize(gameObject, BlockId, false);
             
             // ブロックのステート変化を購読
             // Subscribe to block state changes

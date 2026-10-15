@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Client.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using UnityEngine;
 
@@ -21,21 +20,9 @@ namespace Client.Playtest.Operations.Ui
             // Only pooled objects in use are active, so count active children only
             foreach (Transform child in controller.transform)
             {
-                if (child.gameObject.activeSelf) result.Add(new PlacementPreviewSnapshot(child.position, ReadPreviewColor(child.gameObject)));
+                if (child.gameObject.activeSelf) result.Add(new PlacementPreviewSnapshot(child.position, BlueprintPasteGhostProbe.ReadPreviewColor(child.gameObject)));
             }
             return result;
-        }
-
-        public static Color ReadPreviewColor(GameObject preview)
-        {
-            // 可否色を持つ描画材質だけを読む
-            // Read only renderer materials carrying judgement colors
-            foreach (var renderer in preview.GetComponentsInChildren<Renderer>(true))
-            foreach (var material in renderer.sharedMaterials)
-            {
-                if (material != null && material.HasProperty(MaterialConst.PreviewColorPropertyName)) return material.GetColor(MaterialConst.PreviewColorPropertyName);
-            }
-            return Color.clear;
         }
     }
 
@@ -52,6 +39,5 @@ namespace Client.Playtest.Operations.Ui
 
         public bool IsPlaceable => BlueprintPasteGhostProbe.IsPlaceableColor(Color);
         public bool IsNotPlaceable => BlueprintPasteGhostProbe.IsNotPlaceableColor(Color);
-        public Vector3Int Cell => Vector3Int.RoundToInt(Position);
     }
 }

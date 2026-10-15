@@ -48,7 +48,7 @@ namespace Client.Playtest.Operations.Ui
 
         // 各セル中心の地表高さを測る。最初に当たるのが地形でなければ（木・岩・ブロック等）その区間は使わない
         // Measure each cell-center surface height; reject the run if the first hit is not terrain (tree, rock, block, ...)
-        public static bool TryMeasureRun(Vector2Int start, int length, out float[] heights)
+        private static bool TryMeasureRun(Vector2Int start, int length, out float[] heights)
         {
             heights = new float[length];
             for (var i = 0; i < length; i++)

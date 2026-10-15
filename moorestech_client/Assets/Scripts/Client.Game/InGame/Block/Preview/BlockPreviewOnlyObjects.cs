@@ -8,15 +8,15 @@ namespace Client.Game.InGame.Block.Preview
 {
     internal static class BlockPreviewOnlyObjects
     {
-        internal static List<IPreviewOnlyObject> Initialize(GameObject block, BlockId blockId)
+        internal static List<IPreviewOnlyObject> Initialize(GameObject block, BlockId blockId, bool active)
         {
-            // 実ブロックの表示専用部品を初期化して隠す
-            // Initialize and hide the real block's preview-only visuals
+            // 表示専用部品の初期化と表示切替
+            // Initialize preview-only visuals and set visibility
             var previewOnlyObjects = block.GetComponentsInChildren<IPreviewOnlyObject>(true).ToList();
             foreach (var previewOnlyObject in previewOnlyObjects)
             {
                 previewOnlyObject.Initialize(blockId);
-                previewOnlyObject.SetActive(false);
+                previewOnlyObject.SetActive(active);
             }
             return previewOnlyObjects;
         }

@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Client.Common;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.Block.Preview;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
 using Core.Master;
 using Mooresmaster.Model.BlocksModule;
@@ -35,12 +36,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
             
             // プレビュー限定オブジェクトをオンに
             // Turn on preview-only object
-            var previewOnlyObjects = gameObject.GetComponentsInChildren<IPreviewOnlyObject>(true).ToList();
-            previewOnlyObjects.ForEach(obj =>
-            {
-                obj.Initialize(blockId);
-                obj.SetActive(true);
-            });
+            BlockPreviewOnlyObjects.Initialize(gameObject, blockId, true);
         }
         
         public void SetPreviewStateDetail(PlaceInfo placeInfo)

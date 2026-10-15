@@ -36,7 +36,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Ground
         // Derive the terrain's natural cell with the same tolerance as Y resolution; above the base cell means buried
         internal static bool IsSunkAbove(int blockBaseCellY, float groundMaxHeight, float heightQuantizationStep)
         {
-            return PlacementGroundCellResolver.ResolveCellY(groundMaxHeight, heightQuantizationStep, 0) > blockBaseCellY;
+            return blockBaseCellY < PlacementGroundCellResolver.ResolveCellY(groundMaxHeight, heightQuantizationStep, 0);
         }
     }
 }
