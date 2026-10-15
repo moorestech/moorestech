@@ -19,7 +19,8 @@ namespace Client.Tests.PlaceSystem.Blueprint.Paste
             var transport = new GatedTransport();
             var runner = new BlueprintPasteRequestRunner(transport);
             var origins = Enumerable.Range(0, 129).Select(index => new Vector3Int(index, 0, 0)).ToList();
-            var run = runner.Run(Guid.NewGuid(), 0, origins, new List<BlockPositionInfo>()).AsTask();
+            var run = runner.Run(Guid.NewGuid(), 0, origins,
+                origins.Select(_ => new List<BlockPositionInfo>()).ToList()).AsTask();
 
             // 最初の応答前に二つ目を送らない
             // Do not send the second chunk before the first response

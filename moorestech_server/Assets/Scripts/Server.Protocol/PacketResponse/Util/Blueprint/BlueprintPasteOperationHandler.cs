@@ -56,6 +56,13 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint
                 Notify(BlueprintFailureReason.NotFound, 0);
                 return Failure(BlueprintFailureReason.NotFound);
             }
+            if (!IsValidTerrainSunkFootprintCount(blueprint))
+            {
+                var limit = (long)request.Origins.Count * blueprint.Blocks.Count * BlueprintRequest.MaxTerrainSunkFootprintsPerElement;
+                Debug.LogWarning($"[BlueprintPaste] invalid request terrain sunk footprints={request.TerrainSunkBlockFootprints.Count} limit={limit} player={requesterPlayerId}");
+                Notify(BlueprintFailureReason.InvalidRequest, 0);
+                return Failure(BlueprintFailureReason.InvalidRequest);
+            }
 
             // サーバーには地形がないため、送信原点は地形解決済みとする
             // The server has no terrain; incoming origins have already resolved it
@@ -126,6 +133,14 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint
                        request.TerrainSunkBlockFootprints != null && request.TerrainSunkBlockFootprints.All(footprint =>
                            footprint != null && footprint.Position != null && footprint.Size != null) &&
                        request.Origins.All(origin => origin != null) && Guid.TryParse(request.BlueprintGuidStr, out _);
+            }
+
+            bool IsValidTerrainSunkFootprintCount(BlueprintJsonObject resolvedBlueprint)
+            {
+                // 送信可能な足場数は原点数とBP要素数で決まる
+                // The number of possible footprints is bounded by origins and blueprint elements.
+                return request.TerrainSunkBlockFootprints.Count <=
+                       (long)request.Origins.Count * resolvedBlueprint.Blocks.Count * BlueprintRequest.MaxTerrainSunkFootprintsPerElement;
             }
 
             void NotifyIfAny(BlueprintFailureReason reason, int count)

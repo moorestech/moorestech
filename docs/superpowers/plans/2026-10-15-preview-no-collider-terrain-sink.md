@@ -16,7 +16,7 @@
 - R4 プレビューは当たり判定を持たない: `PreviewBlockCreator.Create` が全Colliderを `enabled=false` にする。受け入れ: 生成直後のプレビュー配下の `Collider.enabled` が全て false、プレビュー配下に Rigidbody・GroundCollisionDetector が無い
 - R5 撤去: `ConfigurePlacementColliders`・`ConfigureTerrainContact`・`SetTerrainContactEnabled`・`DetectCurrentGroundOverlap`・`PlacementGroundContactQuery`・`IPlacementPreviewBlockGameObjectController.DetectGroundOverlaps`・`SetPreview` の `terrainContactEnabled` 引数・歯車チェーンポールの「選択レイ前の前フレームゴーストHide」・`BlockClickDetectUtil`／`DeleteTargetRaycaster` のプレビュー命中スキップ・`GroundCollisionDetector`（クラス・5Prefabの部品・`BlockGameObject` の無効化・`BlockGameObjectColliderSetup` の除外分岐）。受け入れ: `grep -rn "GroundCollisionDetector\|DetectGroundOverlaps\|PlacementGroundContactQuery\|ConfigureTerrainContact" moorestech_client/Assets/Scripts` が0件
 - R6 BP部分設置: 埋まるブロックだけ赤く表示して飛ばし、残りを置く。全ブロックが重なり／埋まりで不可ならBP不可。飛ばしたブロックを端点に持つ電線・歯車チェーンは張らない（ADR 0077 決定4と同じ）。受け入れ: サーバーテストで、埋まり位置を送ったブロックが置かれず素材も消費されず、その端点の線も張られない
-- R7 BPの除外はクライアントが送る: BPリクエストに埋まりブロックの位置列 `TerrainSunkBlockPositions` を載せる。サーバーは地形を検証せず、その位置の要素を不可にする。受け入れ: 位置列が空なら従来どおり全部置く／位置列にある要素だけ置かない
+- R7 BPの除外はクライアントが送る: BPリクエストに埋まりブロックの位置・向き・寸法の足場列 `TerrainSunkBlockFootprints` を原点チャンクごとに載せる。サーバーは地形を検証せず、一致する足場の要素を不可にする。受け入れ: 足場列が空なら従来どおり全部置く／足場列にある要素だけ置かない
 - R8 表示: 不可理由は既存の `PlacementFeedback.AddBlockedByTerrain`（「地形に埋まっています」）を全系統で使う。BPは埋まり要素が1つでもあれば行を出す（重なり行が「全コピーが全滅のときだけ」なのと非対称にするのは、重なりは既存ブロックが見えて赤ゴーストだけで原因が分かるが、地中への食い込みは見た目で分かりにくく、BPにはカーソルセルの理由行も無いため）
 - R9 接続線（電線・歯車チェーン・レール）は地形判定しない（埋まってよい）
 - R10 残すもの: #1507 の「4設置系の設置Yを占有範囲の地形最高点を含むセルにする」、接続線返却の MaxStack 分割はそのまま
@@ -576,6 +576,8 @@ git commit -m "test(place): 地形めり込み統一とプレビュー当たり�
 - BlueprintRequest の型分割（ユーザー裁定 2026-10-16）: 操作ごとに型を分けず、貼り付け時だけ値が入る `TerrainSunkBlockPositions`（Key(9)）を1項目足す（提示「推奨: このまま1項目足す」に原文「それで」）。負債: 操作によって null になる欄が1つ増える。裁定記録: `.decisions/2026-10-16-BPリクエストは型を分けず貼り付け専用の除外位置欄を1つ足す.md`
 - user-simulator review（2026-10-15）の適用: enum を新規ファイルにせず `BlueprintPasteCopyDraft.cs` へ同居（1ディレクトリ10ファイル規約。前例 `BlueprintPasteCopyPlan.cs:6`）、R8 に非対称の理由を明記、Task 3 Step 4 に描画本体 Cube に付いた検出器の扱いと Collider がクリック可能になる帰結を明記。いずれも規約・前例の適用と手順の明文化で、挙動・範囲の判断ではない。出所: agent前提（user-simulator 指摘を規約照合のうえ採用）
 - BP埋まり除外の照合キーを位置から（位置・向き・寸法）へ広げた: 重なる間隔のドラッグ貼り付けで同じ最小角を持つ別形状のブロックを誤って飛ばさないため（タスクレビュー Important）。出所: agent前提（実装中のレビュー所見）
+- D1 は表示原因と埋まり判定を独立列にした: 重なり優先の表示を保ち、重なり解消後も埋まり足場を送って除外するため。出所: agent前提（最終レビュー設計判断・design.md推奨）
+- D2 は埋まり足場を原点チャンクごとに送る: 別チャンクの足場混入と要求サイズの増幅を防ぐため。R7 の位置列名を実装の足場列名へ更新した。出所: agent前提（最終レビュー設計判断・design.md推奨）
 
 ### Task 4 録画結果
 

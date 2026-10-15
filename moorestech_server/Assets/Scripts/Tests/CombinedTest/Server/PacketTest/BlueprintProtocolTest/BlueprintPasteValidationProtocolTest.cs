@@ -64,6 +64,23 @@ namespace Tests.CombinedTest.Server.PacketTest
         }
 
         [Test]
+        public void BP要素数を超える埋まり足場は拒否するTest()
+        {
+            using var context = new BlueprintPasteProtocolTestContext(true, false);
+            var blueprint = context.Create(ForUnitTestModBlockId.BlockId);
+            context.Register(blueprint);
+            var footprint = new BlockPositionInfo(BlueprintPasteProtocolTestContext.Origin, BlockDirection.North, Vector3Int.one);
+            var request = BlueprintRequest.CreatePasteRequest(blueprint.BlueprintGuid, 0,
+                new() { BlueprintPasteProtocolTestContext.Origin }, new() { footprint, footprint });
+            LogAssert.Expect(LogType.Warning, new Regex(@"invalid request terrain sunk footprints=2 limit=1"));
+
+            context.Send(request);
+
+            Assert.IsEmpty(ServerContext.WorldBlockDatastore.BlockMasterDictionary);
+            context.AssertDenied(BlueprintFailureReason.InvalidRequest, 0);
+        }
+
+        [Test]
         public void BP機能が未解放なら無料設置でも拒否するTest()
         {
             using var context = new BlueprintPasteProtocolTestContext(false, true);

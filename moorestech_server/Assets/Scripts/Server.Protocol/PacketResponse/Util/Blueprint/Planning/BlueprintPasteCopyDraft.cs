@@ -21,7 +21,7 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint.Planning
         public IEnumerable<BlockPositionInfo> TerrainSunkFootprints()
         {
             for (var i = 0; i < Elements.Count; i++)
-                if (ElementBlockCauses[i] == BlueprintPasteElementBlockCause.TerrainSunk)
+                if (ElementTerrainSunk[i])
                     yield return BlueprintPlacementElementUtil.ToPositionInfo(Elements[i]);
         }
 
@@ -30,6 +30,7 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint.Planning
         public bool AreCoordinatesValid { get; }
         public IReadOnlyList<BlueprintPlacementElement> Elements { get; }
         public IReadOnlyList<BlueprintPasteElementBlockCause> ElementBlockCauses { get; }
+        public IReadOnlyList<bool> ElementTerrainSunk { get; }
         public IReadOnlyList<BlueprintPasteLine> Lines { get; }
 
         // プレビューは無音で判定し、実行側が省略理由をまとめて報告する
@@ -39,7 +40,8 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint.Planning
         public int UnknownConnectToolLineCount { get; }
 
         public BlueprintPasteCopyDraft(Vector3Int origin, bool isGroundFound, IReadOnlyList<BlueprintPlacementElement> elements,
-            IReadOnlyList<BlueprintPasteElementBlockCause> elementBlockCauses, IReadOnlyList<BlueprintPasteLine> lines,
+            IReadOnlyList<BlueprintPasteElementBlockCause> elementBlockCauses, IReadOnlyList<bool> elementTerrainSunk,
+            IReadOnlyList<BlueprintPasteLine> lines,
             int missingEndpointLineCount, int blockedEndpointLineCount, int unknownConnectToolLineCount, bool areCoordinatesValid)
         {
             Origin = origin;
@@ -50,6 +52,7 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint.Planning
             // Snapshot lists so callers cannot change a completed judgement
             Elements = Array.AsReadOnly(elements.ToArray());
             ElementBlockCauses = Array.AsReadOnly(elementBlockCauses.ToArray());
+            ElementTerrainSunk = Array.AsReadOnly(elementTerrainSunk.ToArray());
             Lines = Array.AsReadOnly(lines.ToArray());
             MissingEndpointLineCount = missingEndpointLineCount;
             BlockedEndpointLineCount = blockedEndpointLineCount;

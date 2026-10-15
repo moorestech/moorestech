@@ -4,6 +4,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Localization;
 using Core.Master;
+using Game.Block.Interface;
 using Game.Blueprint;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
@@ -29,7 +30,7 @@ namespace Client.Tests.PlaceSystem.Blueprint.Paste
         public void 埋まり要素は部分設置でも全滅でも地形理由だけを出すTest(BlueprintPasteCopyState state)
         {
             var draft = new BlueprintPasteCopyDraft(Vector3Int.zero, true, Array.Empty<BlueprintPlacementElement>(),
-                new[] { BlueprintPasteElementBlockCause.TerrainSunk }, Array.Empty<BlueprintPasteLine>(), 0, 0, 0, true);
+                new[] { BlueprintPasteElementBlockCause.TerrainSunk }, new[] { true }, Array.Empty<BlueprintPasteLine>(), 0, 0, 0, true);
             var plan = new BlueprintPastePlan(new[] { new BlueprintPasteCopyPlan(draft, state) }, false, Array.Empty<(ItemId, int, int)>());
             var feedback = new PlacementFeedback();
 
@@ -46,6 +47,29 @@ namespace Client.Tests.PlaceSystem.Blueprint.Paste
             var feedback = Report(BlueprintPasteCopyState.Placeable, BlueprintPasteCopyState.GroundNotFound);
             Assert.AreEqual(1, feedback.Lines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGroundNotFound.Key, feedback.Lines[0].Key.Key);
+        }
+
+        [Test]
+        public void 重なりと埋まりを兼ねる要素は足場と地形理由を残すTest()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var element = new BlueprintPlacementElement(0, Vector3Int.zero, BlockDirection.North,
+                ForUnitTestModBlockId.BlockId, new System.Collections.Generic.Dictionary<string, string>());
+            var other = new BlueprintPlacementElement(1, new Vector3Int(3, 0, 0), BlockDirection.North,
+                ForUnitTestModBlockId.BlockId, new System.Collections.Generic.Dictionary<string, string>());
+            var draft = new BlueprintPasteCopyDraft(Vector3Int.zero, true, new[] { element, other },
+                new[] { BlueprintPasteElementBlockCause.ExistingBlock, BlueprintPasteElementBlockCause.None }, new[] { true, false },
+                Array.Empty<BlueprintPasteLine>(), 0, 0, 0, true);
+            var plan = new BlueprintPastePlan(new[] { new BlueprintPasteCopyPlan(draft, BlueprintPasteCopyState.Placeable) },
+                false, Array.Empty<(ItemId, int, int)>());
+            var feedback = new PlacementFeedback();
+
+            // 重なりを表示原因に保ちつつ埋まり情報を送信と理由行へ使う
+            // Keep overlap as the display cause while using sink data for transport and feedback.
+            BlueprintPasteFeedbackReporter.Report(plan, feedback);
+            Assert.AreEqual(BlueprintPasteElementBlockCause.ExistingBlock, draft.ElementBlockCauses[0]);
+            Assert.AreEqual(Vector3Int.zero, plan.EnumerateCopiesToPlace().Single().Draft.TerrainSunkFootprints().Single().OriginalPos);
+            Assert.IsTrue(feedback.Lines.Any(line => line.Key.Key == LocalizationKeys.Ui.Tooltip.PlaceBlockedByTerrain.Key));
         }
 
         [Test]
@@ -73,7 +97,7 @@ namespace Client.Tests.PlaceSystem.Blueprint.Paste
             var line = new BlueprintPasteLine(kind, 0, 1, Vector3Int.zero, Vector3Int.right, Guid.NewGuid(),
                 Array.Empty<ConnectToolMaterialCost>(), reason);
             var draft = new BlueprintPasteCopyDraft(Vector3Int.zero, true, Array.Empty<BlueprintPlacementElement>(),
-                Array.Empty<BlueprintPasteElementBlockCause>(), new[] { line, line }, 0, 0, 0, true);
+                Array.Empty<BlueprintPasteElementBlockCause>(), Array.Empty<bool>(), new[] { line, line }, 0, 0, 0, true);
             var copy = new BlueprintPasteCopyPlan(draft, BlueprintPasteCopyState.Placeable);
             var plan = new BlueprintPastePlan(new[] { copy, copy }, false, Array.Empty<(ItemId, int, int)>());
             var feedback = new PlacementFeedback();
@@ -134,7 +158,8 @@ namespace Client.Tests.PlaceSystem.Blueprint.Paste
         private static BlueprintPasteCopyPlan Copy(BlueprintPasteCopyState state)
         {
             var draft = new BlueprintPasteCopyDraft(Vector3Int.zero, state != BlueprintPasteCopyState.GroundNotFound,
-                Array.Empty<BlueprintPlacementElement>(), new[] { state == BlueprintPasteCopyState.AllBlocked ? BlueprintPasteElementBlockCause.ExistingBlock : BlueprintPasteElementBlockCause.None }, Array.Empty<BlueprintPasteLine>(), 0, 0, 0, true);
+                Array.Empty<BlueprintPlacementElement>(), new[] { state == BlueprintPasteCopyState.AllBlocked ? BlueprintPasteElementBlockCause.ExistingBlock : BlueprintPasteElementBlockCause.None },
+                new[] { false }, Array.Empty<BlueprintPasteLine>(), 0, 0, 0, true);
             return new BlueprintPasteCopyPlan(draft, state);
         }
     }

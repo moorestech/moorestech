@@ -88,6 +88,25 @@ namespace Tests.CombinedTest.Server.PacketTest
         }
 
         [Test]
+        public void 重なり解消後も受信した埋まり足場には置かない()
+        {
+            using var context = new BlueprintPasteProtocolTestContext(true, false);
+            var blueprint = context.Create(ForUnitTestModBlockId.BlockId);
+            context.Register(blueprint);
+            var origin = BlueprintPasteProtocolTestContext.Origin;
+            var size = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.BlockId).BlockSize;
+            var footprint = new BlockPositionInfo(origin, BlockDirection.North, size);
+
+            // クライアントの重なりが消えても埋まり判定を維持する
+            // Retain the client's terrain exclusion after the overlap disappears.
+            var response = context.SendForResponse(BlueprintRequest.CreatePasteRequest(blueprint.BlueprintGuid, 0,
+                new List<Vector3Int> { origin }, new List<BlockPositionInfo> { footprint }));
+            Assert.IsTrue(response.Success);
+            Assert.IsEmpty(response.PlacedCells);
+            Assert.IsNull(ServerContext.WorldBlockDatastore.GetBlock(origin));
+        }
+
+        [Test]
         public void 応答は実際に置いた個体だけを返すTest()
         {
             using var context = new BlueprintPasteProtocolTestContext(true, false);
@@ -121,7 +140,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             context.Supply(blueprint, 63);
             var origins = Enumerable.Range(0, 65)
                 .Select(index => new Vector3Int(10 + index, 0, 10)).ToList();
-            var chunks = BlueprintRequest.CreatePasteRequests(blueprint.BlueprintGuid, 0, origins, new List<BlockPositionInfo>()).ToList();
+            var chunks = BlueprintRequest.CreatePasteRequests(blueprint.BlueprintGuid, 0, origins,
+                origins.Select(_ => new List<BlockPositionInfo>()).ToList()).ToList();
 
             // 64件目の不足を返し、送信側が次チャンクを止められる
             // Report the 64th-copy shortage so the sender can stop the next chunk

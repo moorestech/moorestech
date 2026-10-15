@@ -16,21 +16,26 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint.Planning
             occupancy = BlueprintPasteCopyOccupancy.Create(elements);
             if (!coordinatesValid)
                 return new BlueprintPasteCopyDraft(origin.Position, origin.IsGroundFound, elements, new List<BlueprintPasteElementBlockCause>(),
-                    new List<BlueprintPasteLine>(), 0, 0, 0, false);
+                    elements.Select(_ => false).ToList(), new List<BlueprintPasteLine>(), 0, 0, 0, false);
             var blockCauses = new List<BlueprintPasteElementBlockCause>(elements.Count);
+            var terrainSunk = new List<bool>(elements.Count);
             var intersecting = occupancy.FindIntersecting(accepted);
             foreach (var position in occupancy.Positions)
             {
-                blockCauses.Add(ResolveCause(position));
+                // 重なり原因を優先して表示しつつ、埋まりの事実は独立して残す
+                // Prefer overlap for display while retaining terrain sink independently
+                var isTerrainSunk = world.IsTerrainSunk(position);
+                terrainSunk.Add(isTerrainSunk);
+                blockCauses.Add(ResolveCause(position, isTerrainSunk));
             }
-            return Create(blueprint, origin, elements, blockCauses);
+            return Create(blueprint, origin, elements, blockCauses, terrainSunk);
 
             #region Internal
 
-            BlueprintPasteElementBlockCause ResolveCause(BlockPositionInfo position)
+            BlueprintPasteElementBlockCause ResolveCause(BlockPositionInfo position, bool isTerrainSunk)
             {
                 if (world.IsOverlapping(position) || OverlapsAccepted(position)) return BlueprintPasteElementBlockCause.ExistingBlock;
-                if (world.IsTerrainSunk(position)) return BlueprintPasteElementBlockCause.TerrainSunk;
+                if (isTerrainSunk) return BlueprintPasteElementBlockCause.TerrainSunk;
                 return BlueprintPasteElementBlockCause.None;
             }
 
@@ -53,10 +58,12 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint.Planning
         public static BlueprintPasteCopyDraft BuildUnobstructed(BlueprintJsonObject blueprint)
         {
             var elements = BlueprintPasteCalculator.CalculatePlacements(blueprint, Vector3Int.zero, 0);
-            return Create(blueprint, new BlueprintPasteOrigin(Vector3Int.zero, true), elements, elements.Select(_ => BlueprintPasteElementBlockCause.None).ToList());
+            return Create(blueprint, new BlueprintPasteOrigin(Vector3Int.zero, true), elements,
+                elements.Select(_ => BlueprintPasteElementBlockCause.None).ToList(), elements.Select(_ => false).ToList());
         }
 
-        private static BlueprintPasteCopyDraft Create(BlueprintJsonObject blueprint, BlueprintPasteOrigin origin, List<BlueprintPlacementElement> elements, List<BlueprintPasteElementBlockCause> blockCauses)
+        private static BlueprintPasteCopyDraft Create(BlueprintJsonObject blueprint, BlueprintPasteOrigin origin,
+            List<BlueprintPlacementElement> elements, List<BlueprintPasteElementBlockCause> blockCauses, List<bool> terrainSunk)
         {
             // BP内indexから要素indexを引けるようにする（マスタ欠損ブロックは要素に無い）
             // Map blueprint block indices to element indices (blocks missing from the master have no element)
@@ -70,7 +77,7 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint.Planning
             var unknownConnectToolLineCount = 0;
             ResolveLines(BlueprintPasteLineKind.ElectricWire, blueprint.Wires);
             ResolveLines(BlueprintPasteLineKind.GearChain, blueprint.Chains);
-            return new BlueprintPasteCopyDraft(origin.Position, origin.IsGroundFound, elements, blockCauses, lines,
+            return new BlueprintPasteCopyDraft(origin.Position, origin.IsGroundFound, elements, blockCauses, terrainSunk, lines,
                 missingEndpointLineCount, blockedEndpointLineCount, unknownConnectToolLineCount, true);
 
             #region Internal

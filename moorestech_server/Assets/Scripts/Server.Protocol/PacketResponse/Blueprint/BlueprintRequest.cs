@@ -11,6 +11,9 @@ namespace Server.Protocol.PacketResponse
     public class BlueprintRequest : ProtocolMessagePackBase
     {
         public const int MaxPasteOrigins = 64;
+        // 各要素が一原点で作る埋まり足場は最大一件
+        // Each element yields at most one sunk footprint per origin.
+        public const int MaxTerrainSunkFootprintsPerElement = 1;
 
         [Key(2)] public BlueprintOperation Operation { get; set; }
         [Key(3)] public string Name { get; set; }
@@ -69,12 +72,19 @@ namespace Server.Protocol.PacketResponse
         // Split at the shared limit while preserving material evaluation order
         // 送信側は各応答を待ち、不足が出た後の要求を送らない
         // The sender waits for each response and stops sending after a shortage
-        public static IEnumerable<BlueprintRequest> CreatePasteRequests(Guid blueprintGuid, int rotationStep, List<Vector3Int> origins, List<BlockPositionInfo> terrainSunkBlockFootprints)
+        public static IEnumerable<BlueprintRequest> CreatePasteRequests(Guid blueprintGuid, int rotationStep, List<Vector3Int> origins, List<List<BlockPositionInfo>> terrainSunkFootprintsPerOrigin)
         {
+            if (origins.Count != terrainSunkFootprintsPerOrigin.Count)
+                throw new ArgumentException("Each paste origin requires an aligned terrain footprint list.");
             for (var offset = 0; offset < origins.Count; offset += MaxPasteOrigins)
             {
                 var count = Math.Min(MaxPasteOrigins, origins.Count - offset);
-                yield return CreatePasteRequest(blueprintGuid, rotationStep, origins.GetRange(offset, count), terrainSunkBlockFootprints);
+                // 同じ原点範囲の足場だけをこの要求へ含める
+                // Include footprints only from this request's origin range.
+                var chunkFootprints = new List<BlockPositionInfo>();
+                for (var index = offset; index < offset + count; index++)
+                    chunkFootprints.AddRange(terrainSunkFootprintsPerOrigin[index]);
+                yield return CreatePasteRequest(blueprintGuid, rotationStep, origins.GetRange(offset, count), chunkFootprints);
             }
         }
 
