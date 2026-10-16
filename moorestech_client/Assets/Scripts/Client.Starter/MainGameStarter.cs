@@ -7,7 +7,6 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
-using Client.Game.InGame.Entity;
 using Client.Game.InGame.Environment;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Map.Outcrop;
@@ -60,7 +59,6 @@ namespace Client.Starter
         
         [SerializeField] private PlayerSystemContainer playerSystemContainer;
         
-        [SerializeField] private EntityObjectDatastore entityObjectDatastore;
         [SerializeField] private TrainCarObjectDatastore trainCarObjectDatastore;
         
         [SerializeField] private UIStateControl uIStateControl;
@@ -126,7 +124,6 @@ namespace Client.Starter
             builder.RegisterComponent(uiRoot);
             builder.RegisterComponent(saveAndQuitPresenter);
 
-            builder.RegisterComponent(entityObjectDatastore);
             builder.RegisterComponent(trainCarObjectDatastore).AsSelf().As<ISkitWorldObjectControl>();
             builder.RegisterComponent(challengeManager);
 

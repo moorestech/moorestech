@@ -67,26 +67,13 @@ namespace Server.Boot
             var serviceProvider = services.BuildServiceProvider();
             var packetResponse = new PacketResponseCreator(serviceProvider);
 
-            // tick順序（仕様2.1）はMasterTickUpdaterの1ファイルに集約し、ここでは1本だけ登録する
-            // The tick order (spec 2.1) lives in MasterTickUpdater; register just that one entry here
-            GameUpdater.AdditionalUpdates.Add(serviceProvider.GetRequiredService<MasterTickUpdater>().Update);
+            // 1tickの全順序（本体・末尾・境界・セーブ）はMasterTickUpdaterの1ファイルに集約し、ここでは1本だけ登録する
+            // The whole tick order (body, tick end, boundary, save) lives in MasterTickUpdater; register just that one entry here
+            GameUpdater.SetMasterTick(serviceProvider.GetRequiredService<MasterTickUpdater>().Update);
 
-            // tick末尾: 固定した入力と予約破壊を一つの更新器で確定する。派生する網の再構築は次tick先頭のRebuildIfDirtyに委ねる
-            // Tick end: commit frozen input and reserved removals through one updater; derived network rebuilding is deferred to RebuildIfDirty at the next tick head
-            GameUpdater.TickEndUpdates.Add(serviceProvider.GetRequiredService<WorldMutationTickEndUpdater>().Update);
-            // 他スレッド処理をtick末尾実行。現サーバーのキューを唯一の入口へ公開する
-            // Run other-thread work at tick end and publish this server's queue as the single entry point
-            var threadActionQueue = serviceProvider.GetRequiredService<ServerThreadActionQueue>();
-            GameUpdater.TickEndUpdates.Add(threadActionQueue.Drain);
-            ServerThreadActionQueueAccess.SetCurrent(threadActionQueue);
-
-            // 全世界変更の確定後が唯一のセーブ可能な安定点（仕様2.1⑦）。将来の初回snapshot取得もこの位置に登録する
-            // The point after every world mutation commits is the only save-stable boundary (spec 2.1-7); future initial-snapshot capture also registers here
-            GameUpdater.FinalTickEndUpdates.Add(serviceProvider.GetRequiredService<WorldSaveCoordinator>().SaveIfRequested);
-
-            // 常時記録のスナップショットはセーブと同じ安定点で取る（Startされるまで何もしない）
-            // Always-on snapshots are captured at the same stable point as saves (inert until Start)
-            GameUpdater.FinalTickEndUpdates.Add(serviceProvider.GetRequiredService<WorldSnapshotRing>().Update);
+            // 現サーバーの別スレッドキューを唯一の入口へ公開する（流すのはMasterTickUpdater）
+            // Publish this server's other-thread queue as the single entry point (MasterTickUpdater drains it)
+            ServerThreadActionQueueAccess.SetCurrent(serviceProvider.GetRequiredService<ServerThreadActionQueue>());
 
             //IBootInitializable実装を一括生成し、起動時初期化のLoadを呼ぶ
             // Create all IBootInitializable implementations and invoke their boot-time Load.

@@ -198,21 +198,22 @@ namespace Tests.CombinedTest.Core.Transport
         }
 
         [Test]
-        public void SetItemNormalizesInvalidInputTest()
+        public void RefundItemsReturnBufferedItemsTest()
         {
             var (_, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var (_, component, _) = CreateSplitterWithDummies(new BlockInstanceId(8));
+            var (splitter, component, _) = CreateSplitterWithDummies(new BlockInstanceId(8));
+            for (var d = 0; d < component.DirectionCount; d++) component.SetMode(d, FilterSplitterMode.Default);
 
-            // count >= 2 を SetItem → 1 個に丸めて格納
-            // SetItem with count >= 2 must be clamped to 1
-            var stack = ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 5);
-            component.SetItem(0, stack);
-            Assert.AreEqual(1, component.GetItem(0).Count);
-
-            // empty を SetItem → null 化されて empty が返る
-            // SetItem with empty must null out the buffer and return empty
-            component.SetItem(0, ServerContext.ItemStackFactory.CreatEmpty());
-            Assert.AreEqual(ItemMaster.EmptyItemId, component.GetItem(0).Id);
+            // 空なら返却物は無く、1個受け取るとその1個だけが方向バッファから返る
+            // Nothing is refunded while empty; after accepting one item exactly that item is refunded from the direction buffer
+            var refund = splitter.GetComponent<IGetRefundItemsInfo>();
+            Assert.AreEqual(0, refund.GetRefundItems().Count);
+            var remain = component.InsertItem(ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 5), InsertItemContext.Empty);
+            Assert.AreEqual(4, remain.Count);
+            var items = refund.GetRefundItems();
+            Assert.AreEqual(1, items.Count);
+            Assert.AreEqual(ForUnitTestItemId.ItemId1, items[0].Id);
+            Assert.AreEqual(1, items[0].Count);
         }
 
         // DummyBlockInventory は同 ID をスタックして 1 スロットにまとめるため、個数比較は Count 合計で行う

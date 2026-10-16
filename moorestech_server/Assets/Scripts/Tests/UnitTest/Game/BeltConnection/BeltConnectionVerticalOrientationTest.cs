@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using Core.Master;
 using Game.Block.Blocks.BeltConveyor.Connection;
 using Game.Block.Interface;
@@ -9,7 +8,6 @@ using NUnit.Framework;
 using Tests.Module.TestMod;
 using Tests.UnitTest.Game.BeltConnection.Fixtures;
 using UnityEngine;
-using UnityEngine.TestTools;
 
 namespace Tests.UnitTest.Game.BeltConnection
 {
@@ -49,7 +47,6 @@ namespace Tests.UnitTest.Game.BeltConnection
                 }
                 world.AssertEdges(expected, "before vertical placement");
                 var position = world.Position(upperSlot);
-                ExpectOrientationLog(direction);
                 Assert.IsTrue(world.World.TryAddBlock(GetBlockId(kind), position, direction, Array.Empty<BlockCreateParam>(), out var vertical));
                 Assert.IsTrue(BeltInventoryConnectionData.TryGet(vertical, out var context));
                 Assert.AreEqual(0, context.Edges.Count);
@@ -79,7 +76,6 @@ namespace Tests.UnitTest.Game.BeltConnection
         {
             var world = new BeltEdgeTestWorld(false, BlockDirection.North);
             if (chestFirst) PlaceChest();
-            ExpectOrientationLog(BlockDirection.UpNorth);
             Assert.IsTrue(world.World.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, Vector3Int.zero, BlockDirection.UpNorth,
                 Array.Empty<BlockCreateParam>(), out var belt));
             if (!chestFirst) PlaceChest();
@@ -94,9 +90,6 @@ namespace Tests.UnitTest.Game.BeltConnection
                 BlockDirection.UpNorth, Array.Empty<BlockCreateParam>(), out _));
             #endregion
         }
-
-        private static void ExpectOrientationLog(BlockDirection direction) => LogAssert.Expect(LogType.Log,
-            new Regex("Belt inventory edges require a horizontal block orientation: " + direction));
 
         private static BlockId GetBlockId(BeltKind kind) => kind switch
         {

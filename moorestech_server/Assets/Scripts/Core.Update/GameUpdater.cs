@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using UniRx;
-using Unity.Profiling;
 
 namespace Core.Update
 {
@@ -23,68 +20,28 @@ namespace Core.Update
             CurrentTick = tick;
         }
 
-        public static IObservable<Unit> UpdateObservable => _updateSubject;
-        private static Subject<Unit> _updateSubject = new();
-
-        public static List<Action> AdditionalUpdates = new();
-
-        // tick末尾処理（予約された破壊の一括確定等）。ブロック更新後・LateUpdate前に実行される
-        // Tick-end handlers (batch-applying reserved removals etc.), run after block updates and before LateUpdate
-        public static List<Action> TickEndUpdates = new();
-
-        // 世界変更完了後のセーブ等を実行する最終tick末尾処理
-        // Final tick-end handlers for saving after all world mutations complete
-        public static List<Action> FinalTickEndUpdates = new();
+        // 1tickの処理順はServer.BootのMasterTickUpdaterが1ファイルで明示する。ここが持つのはその本体1本だけで、外から追加する口は無い
+        // The order inside one tick is declared in Server.Boot's MasterTickUpdater; this holds only that one body, with no way to append from outside
+        private static Action _masterTick = NoMasterTick;
 
         public static void Update()
         {
             CurrentTick++;
-
-            // AdditionalUpdatesのやつ。テストでも呼ぶので関数化
-            // Run additional tick updates first.
-            ExecuteAdditionalUpdates();
-
-            // Updateの実行
-            // Execute Update
-            ExecuteUpdate();
-
-            // tick末尾処理の実行
-            // Execute tick-end handlers
-            ExecuteTickEndUpdates();
-
-            // 世界変更の確定後にだけ最終処理を実行する
-            // Execute final handlers only after world mutations are committed
-            ExecuteFinalTickEndUpdates();
-
-            #region Internal
-
-            void ExecuteUpdate()
-            {
-                var updateProfilerMask = new ProfilerMarker("Update");
-                updateProfilerMask.Begin();
-                _updateSubject.OnNext(Unit.Default);
-                updateProfilerMask.End();
-            }
-
-            #endregion
+            _masterTick();
         }
 
-        // CurrentTickはここでも巻き戻さない。巻き戻すと計測中の差分が負に回り込むため
-        // CurrentTick is never rewound here; rewinding would wrap in-flight elapsed differences
+        // サーバー生成時に1回呼ぶ。作り直しでは前のサーバーの本体を置き換え、2本並ぶことは無い
+        // Called once when a server is created; re-creating replaces the previous server's body, so two never run side by side
+        public static void SetMasterTick(Action tick)
+        {
+            _masterTick = tick;
+        }
+
+        // サーバーの破棄・作り直しの前に呼び、前のサーバーの本体を外してtickを空回りにする。CurrentTickは巻き戻さない（計測中の差分が負に回り込むため）
+        // Called before a server is disposed or re-created; detaches the previous server's body so ticks idle. CurrentTick is never rewound (in-flight differences would wrap)
         public static void ResetUpdate()
         {
-            _updateSubject = new Subject<Unit>();
-
-            // 追加tick更新とtick末尾処理も初期化する
-            // Reset additional tick updates and tick-end handlers as well.
-            AdditionalUpdates.Clear();
-            TickEndUpdates.Clear();
-            FinalTickEndUpdates.Clear();
-        }
-
-        public static void Dispose()
-        {
-            _updateSubject.Dispose();
+            _masterTick = NoMasterTick;
         }
 
         // 秒数をtickに変換するユーティリティ（マスターデータの秒数値を変換する用）
@@ -117,28 +74,10 @@ namespace Core.Update
         // Utility to convert ticks to seconds (for display purposes)
         public static double TicksToSeconds(uint ticks) => ticks * SecondsPerTick;
 
-        private static void ExecuteAdditionalUpdates()
+        // サーバーが無い間のtick本体。進めるのはtick番号だけ
+        // The tick body while no server exists; only the tick number advances
+        private static void NoMasterTick()
         {
-            foreach (var additionalUpdate in AdditionalUpdates)
-            {
-                additionalUpdate();
-            }
-        }
-
-        private static void ExecuteTickEndUpdates()
-        {
-            foreach (var tickEndUpdate in TickEndUpdates)
-            {
-                tickEndUpdate();
-            }
-        }
-
-        private static void ExecuteFinalTickEndUpdates()
-        {
-            foreach (var finalTickEndUpdate in FinalTickEndUpdates)
-            {
-                finalTickEndUpdate();
-            }
         }
 
 #if UNITY_EDITOR
@@ -156,10 +95,7 @@ namespace Core.Update
             for (var i = 0u; i < frameCount; i++)
             {
                 CurrentTick++;
-                ExecuteAdditionalUpdates();
-                _updateSubject.OnNext(Unit.Default);
-                ExecuteTickEndUpdates();
-                ExecuteFinalTickEndUpdates();
+                _masterTick();
             }
         }
 #endif

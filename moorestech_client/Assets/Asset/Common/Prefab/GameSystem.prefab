@@ -119,50 +119,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca603336ea1fec34d95c7abc0b1027ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Client.Game::Client.Game.InGame.Entity.TrainEntityObjectDatastore
---- !u!1 &2450945537476807615
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2845556891987994162}
-  - component: {fileID: 9004822369202094949}
-  m_Layer: 0
-  m_Name: Entity
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &2845556891987994162
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2450945537476807615}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 8466354111555762101}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &9004822369202094949
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2450945537476807615}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 62ef6a44dc084477acae87eea8303e7e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &3231203339800022249
 GameObject:
   m_ObjectHideFlags: 0
@@ -772,7 +728,6 @@ Transform:
   - {fileID: 4052952166693094718}
   - {fileID: 2785706917729460876}
   - {fileID: 5240328362717940094}
-  - {fileID: 2845556891987994162}
   - {fileID: 3329606519850311358}
   - {fileID: 6507186845973413263}
   - {fileID: 8619491189927761611}
@@ -804,7 +759,6 @@ MonoBehaviour:
   outcropGameObjectDatastore: {fileID: 0}
   environmentRoot: {fileID: 0}
   playerSystemContainer: {fileID: 9095410978574352372}
-  entityObjectDatastore: {fileID: 9004822369202094949}
   trainCarObjectDatastore: {fileID: 7885969649220293225}
   uIStateControl: {fileID: 4694271036350155273}
   uiRoot: {fileID: 3100789229707015583}
@@ -820,7 +774,7 @@ MonoBehaviour:
   chainBlockPlacePreviewTutorialManager: {fileID: 0}
   previewBlockController: {fileID: 5250938589678043889}
   railConnectPreviewObject: {fileID: 8373410826899010315}
-  saveAndQuitPresenter: {fileID: 7635949962361503415}
+  saveAndQuitPresenter: {fileID: 0}
   challengeManager: {fileID: 5423992904397564507}
   trainRailObjectManager: {fileID: 8673118626874321022}
   trainCarObjectPreviewController: {fileID: 8514569832414632195}
@@ -1341,17 +1295,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 69fc92d2d835412b9df9dac1b589bf0f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &7635949962361503415 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5570857163455845073, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
-  m_PrefabInstance: {fileID: 2645848407441091686}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cae18fda1ad43d24ca3f3d27fe0d8f08, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &8995564702550197256 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6368471902096402542, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
@@ -1772,14 +1715,6 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 6053104178704590941, guid: 233bc6e7d7905df43829b4ee7a45a832, type: 2}
     - target: {fileID: 4316314732125813925, guid: 42ee904fe6e4fec4aad9679f51dd108b, type: 3}
-      propertyPath: m_SceneBindings.Array.data[0].value
-      value: 
-      objectReference: {fileID: 429958098237230518}
-    - target: {fileID: 4316314732125813925, guid: 42ee904fe6e4fec4aad9679f51dd108b, type: 3}
-      propertyPath: m_SceneBindings.Array.data[1].value
-      value: 
-      objectReference: {fileID: 429958098237230518}
-    - target: {fileID: 4316314732125813925, guid: 42ee904fe6e4fec4aad9679f51dd108b, type: 3}
       propertyPath: m_SceneBindings.Array.data[2].value
       value: 
       objectReference: {fileID: 9198265904747437933}
@@ -1911,11 +1846,6 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 3047147683901691436}
   m_SourcePrefab: {fileID: 100100000, guid: 42ee904fe6e4fec4aad9679f51dd108b, type: 3}
---- !u!1 &429958098237230518 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 5247429179986596211, guid: 42ee904fe6e4fec4aad9679f51dd108b, type: 3}
-  m_PrefabInstance: {fileID: 5558877443884145861}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &472449165917559256 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5452561270368060701, guid: 42ee904fe6e4fec4aad9679f51dd108b, type: 3}

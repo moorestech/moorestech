@@ -13,7 +13,7 @@ namespace Game.Block.Blocks.CleanRoom
     ///     アイテムを中継しつつ搬送レートを汚染計算へ公開するハッチ
     ///     Hatch that relays items and exposes its throughput to pollution
     /// </summary>
-    public class CleanRoomItemHatchComponent : IBlockInventory, IUpdatableBlockComponent, IBlockSaveState, ICleanRoomItemHatch
+    public class CleanRoomItemHatchComponent : IBlockInventory, IUpdatableBlockComponent, IBlockSaveState, ICleanRoomItemHatch, IGetRefundItemsInfo
     {
         public const int TransitSlotCount = 4;
         public const int ThroughputWindowTicks = 20;
@@ -105,9 +105,16 @@ namespace Game.Block.Blocks.CleanRoom
             return itemJsons;
         }
 
-        public IItemStack GetItem(int slot) { CheckDestroy(this); return _transitSlots[slot]; }
-        public void SetItem(int slot, IItemStack itemStack) { CheckDestroy(this); _transitSlots[slot] = itemStack; }
-        public int GetSlotSize() { CheckDestroy(this); return TransitSlotCount; }
+        // 撤去時は中継中のスタックをそのまま返す
+        // On removal the in-transit stacks are refunded as they are
+        public IReadOnlyList<IItemStack> GetRefundItems()
+        {
+            CheckDestroy(this);
+            var items = new List<IItemStack>();
+            foreach (var itemStack in _transitSlots)
+                if (itemStack.Id != ItemMaster.EmptyItemId) items.Add(itemStack);
+            return items;
+        }
 
         public bool IsDestroy { get; private set; }
         public void Destroy()

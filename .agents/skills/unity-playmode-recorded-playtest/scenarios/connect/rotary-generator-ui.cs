@@ -83,11 +83,12 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
              gears.TryGetGearNetwork(generatorBlock.BlockInstanceId, out var generatorNetwork) &&
              steamNetwork.NetworkId.Equals(generatorNetwork.NetworkId), "蒸気機関から発電機まで同一歯車網");
 
-    // 継続補給は準備だけに使い、観測終了時に購読を解除する
-    // Use continuous refill only for setup, disposing its subscription after observation
+    // 蒸気はシナリオ側のフレームループで継続補給し、終了時に止める（GameUpdaterの購読口は廃止済み）
+    // Refill steam from a scenario-side frame loop and stop it at the end (GameUpdater subscription hooks were removed)
     var fluid = p.GetBlock(steamPos).GetComponent<FuelGearGeneratorFluidComponent>();
     var steamId = MasterHolder.FluidMaster.GetFluidId(Guid.Parse("e2a5d2e5-3fa5-47e2-9fc0-68c8552523f8"));
-    using var steamSupply = GameUpdater.UpdateObservable.Subscribe(_ => fluid.AddLiquid(new FluidStack(1d, steamId), default));
+    var steamSupplyActive = true;
+    RefillSteamEveryFrame().Forget();
     await p.Until(() => Detail().CurrentRpm >= 40f && Detail().GenerationState == GearToElectricGenerationState.Idle, 90f, "40 RPM以上で需要なし待機");
     p.Assert(!fluid.IsPipeDisconnected, "蒸気補給が継続している");
 
@@ -132,8 +133,20 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
                         Mathf.Approximately(Detail().GeneratedElectricPower, 0f), 30f, "需要消失後のサーバー状態は待機中・供給0");
     await VerifyPanel("待機中（需要なし）", false);
     await p.Screenshot("rotary-generator-idle");
+    steamSupplyActive = false;
 
     #region Internal
+
+    // 補給はtickより細かいフレーム単位で行い、UI操作中も5tick連続の未補給（切断判定）を作らない。失敗で抜けてもPlayMode終了か撤去で止まる
+    // Refill per frame (finer than a tick) so UI steps never leave 5 ticks unrefilled; on failure it still stops with PlayMode exit or block removal
+    async UniTaskVoid RefillSteamEveryFrame()
+    {
+        while (steamSupplyActive && Application.isPlaying && !fluid.IsDestroy)
+        {
+            fluid.AddLiquid(new FluidStack(1d, steamId), default);
+            await UniTask.Yield();
+        }
+    }
 
     GearToElectricGeneratorBlockStateDetail Detail()
     {

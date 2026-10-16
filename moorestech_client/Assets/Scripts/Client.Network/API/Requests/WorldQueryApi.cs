@@ -85,9 +85,7 @@ namespace Client.Network.API.Requests
             WorldDataResponse ParseWorldResponse(RequestWorldDataProtocol.ResponseWorldDataMessagePack worldData)
             {
                 var blocks = worldData.Blocks.Select(b => new BlockInfo(b));
-                var entities = worldData.Entities.Select(e => new EntityResponse(e));
-
-                return new WorldDataResponse(blocks.ToList(), entities.ToList());
+                return new WorldDataResponse(blocks.ToList());
             }
 
             #endregion

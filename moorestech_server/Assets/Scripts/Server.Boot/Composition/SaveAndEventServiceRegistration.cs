@@ -69,6 +69,7 @@ using Newtonsoft.Json;
 using Server.Event;
 using Server.Event.EventReceive.Train;
 using Server.Event.EventReceive;
+using Server.Event.EventReceive.BeltTransportSync;
 using Server.Event.Notification;
 using Server.Event.EventReceive.UnifiedInventoryEvent;
 using Server.Boot.Loop.PacketProcessing;
@@ -112,7 +113,7 @@ namespace Server.Boot.Composition
             // 退避先はワールドのセーブファイルの隣。登録時に解決すると実セーブ領域をテストからも掴んでしまう
             // The archives sit beside that world's save file; resolving at registration time would grab the real save area even from tests
             services.AddSingleton<SaveArchiveWriter>();
-            services.AddSingleton(SaveMigrationChain.ForCurrentVersion(new ISaveMigrationStep[] { new SaveMigrationStepV1ToV2(), new SaveMigrationStepV2ToV3(), new SaveMigrationStepV3ToV4(), new SaveMigrationStepV4ToV5() }));
+            services.AddSingleton(SaveMigrationChain.ForCurrentVersion(new ISaveMigrationStep[] { new SaveMigrationStepV1ToV2(), new SaveMigrationStepV2ToV3(), new SaveMigrationStepV3ToV4(), new SaveMigrationStepV4ToV5(), new SaveMigrationStepV5ToV6() }));
             services.AddSingleton<MissingMasterPruner>();
             services.AddSingleton<MissingMasterPruneReportStore>();
             services.AddSingleton<IMissingMasterPruneReportLookup>(provider => provider.GetRequiredService<MissingMasterPruneReportStore>());
@@ -152,6 +153,8 @@ namespace Server.Boot.Composition
             services.AddSingleton<TrainUnitTickDiffBundleEventPacket>();
             services.AddSingleton<TrainUnitSnapshotEventPacket>();
             services.AddSingleton<TrainFullSnapshotEventPacket>();
+            services.AddSingleton<BeltTransportTickEventPacket>();
+            services.AddSingleton<BeltTransportFullSnapshotEventPacket>();
             services.AddSingleton<RailNodeRemovedEventPacket>();
             services.AddSingleton<RailConnectionRemovedEventPacket>();
             services.AddSingleton<RidingStateEventPacket>();

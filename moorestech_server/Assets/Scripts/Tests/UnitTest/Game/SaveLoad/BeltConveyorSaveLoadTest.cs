@@ -1,171 +1,63 @@
-using System.Collections.Generic;
-using System.Reflection;
-using Core.Item.Interface;
+using Core.BeltTransport;
 using Core.Master;
 using Core.Update;
-using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Interface;
-using Game.Block.Interface.Extension;
 using Game.Context;
-using Mooresmaster.Model.BlocksModule;
+using Game.SaveLoad.Interface;
+using Game.SaveLoad.Json;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
-using Tests.Module;
 using Tests.Module.TestMod;
 using UnityEngine;
-using Newtonsoft.Json;
-
-using Tests.Util;
+using static Tests.Util.BeltWorldTestUtil;
 
 namespace Tests.UnitTest.Game.SaveLoad
 {
-    /// <summary>
-    /// ベルトコンベアのセーブロードテスト
-    /// BeltConveyor save/load test
-    /// </summary>
+    // ワールド全体のセーブ→ロードを通しても、ベルコン上のアイテムが同じ位置から進み同じtickに届くか
+    // Whether a belt item continues from the same place and arrives on the same tick across a whole-world save and load
     public class BeltConveyorSaveLoadTest
     {
-        [Test]
-        public void NormalSaveLoadTest()
-        {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-
-            var blockFactory = ServerContext.BlockFactory;
-            var beltPosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
-            var beltConveyor = blockFactory.Create(ForUnitTestModBlockId.BeltConveyorId, new BlockInstanceId(1), beltPosInfo);
-            var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.BeltConveyorId);
-            var guid = blockMaster.BlockGuid;
-            var beltParam = blockMaster.BlockParam as BeltConveyorBlockParam;
-
-            var belt = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
-
-            // リフレクションで_inventoryItemsを取得
-            // Get _inventoryItems via reflection
-            var inventoryItemsField = typeof(VanillaBeltConveyorComponent).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
-            var inventoryItems = (VanillaBeltConveyorInventoryItem[])inventoryItemsField.GetValue(belt);
-
-            // ブロックの実際のコネクタを使用してアイテムを設定
-            // Set items using the block's actual connectors
-            var inputConnects = beltParam.InventoryConnectors.InputConnects;
-            var outputConnects = beltParam.InventoryConnectors.OutputConnects;
-            var sourceConnector = inputConnects[0];
-            var goalConnector = outputConnects[0];
-            var totalTicks = GameUpdater.SecondsToTicks(beltParam.TimeOfItemEnterToExit);
-
-            inventoryItems[0] = new VanillaBeltConveyorInventoryItem(new ItemId(1), new ItemInstanceId(0), sourceConnector, goalConnector, totalTicks)
-            {
-                RemainingTicks = (uint)(totalTicks * 0.8),
-            };
-            inventoryItems[2] = new VanillaBeltConveyorInventoryItem(new ItemId(2), new ItemInstanceId(0), sourceConnector, goalConnector, totalTicks)
-            {
-                RemainingTicks = (uint)(totalTicks * 0.85),
-            };
-            inventoryItems[3] = new VanillaBeltConveyorInventoryItem(new ItemId(5), new ItemInstanceId(0), sourceConnector, goalConnector, totalTicks)
-            {
-                RemainingTicks = (uint)(totalTicks * 0.9),
-            };
-
-            // セーブデータ取得
-            // Get save data
-            var states = SaveLoadJsonTestHelper.ThroughJson(belt.SaveKey, belt.GetSaveState());
-            Debug.Log(JsonConvert.SerializeObject(states[belt.SaveKey]));
-
-            // セーブデータをロード（異なるBlockInstanceIdを使用）
-            // Load save data (use different BlockInstanceId)
-            var loadedBeltConveyor = blockFactory.Load(guid, new BlockInstanceId(2), states, beltPosInfo);
-            var newInventoryItems = (VanillaBeltConveyorInventoryItem[])inventoryItemsField.GetValue(loadedBeltConveyor.GetComponent<VanillaBeltConveyorComponent>());
-
-            // アイテムが一致するかチェック
-            // Check that items match
-            Assert.AreEqual(inventoryItems.Length, newInventoryItems.Length);
-            Assert.AreEqual(1, newInventoryItems[0].ItemId.AsPrimitive());
-            Assert.AreEqual((uint)(totalTicks * 0.8), newInventoryItems[0].RemainingTicks);
-            Assert.AreEqual(2, newInventoryItems[2].ItemId.AsPrimitive());
-            Assert.AreEqual((uint)(totalTicks * 0.85), newInventoryItems[2].RemainingTicks);
-            Assert.AreEqual(5, newInventoryItems[3].ItemId.AsPrimitive());
-            Assert.AreEqual((uint)(totalTicks * 0.9), newInventoryItems[3].RemainingTicks);
-
-            // コネクタGuidが復元されているかチェック
-            // Verify connector Guid is restored
-            Assert.IsNotNull(newInventoryItems[0].GoalConnector);
-            Assert.IsNotNull(newInventoryItems[2].GoalConnector);
-            Assert.IsNotNull(newInventoryItems[3].GoalConnector);
-            Assert.AreEqual(goalConnector.ConnectorGuid, newInventoryItems[0].GoalConnector.ConnectorGuid);
-            Assert.AreEqual(goalConnector.ConnectorGuid, newInventoryItems[2].GoalConnector.ConnectorGuid);
-            Assert.AreEqual(goalConnector.ConnectorGuid, newInventoryItems[3].GoalConnector.ConnectorGuid);
-        }
+        private static readonly ItemId ItemA = new(1);
 
         [Test]
-        public void GearSaveLoadTest()
+        public void MidBeltItemKeepsProgressAndArrivalTickAcrossSaveLoad()
         {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var (_, saveProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var source = Inventory(Place(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, -1), BlockDirection.North));
+            for (var z = 0; z < 3; z++) Place(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(0, 0, z), BlockDirection.North);
+            Place(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, 3), BlockDirection.North);
+            source.SetItem(0, ServerContext.ItemStackFactory.Create(ItemA, 1));
 
-            var blockFactory = ServerContext.BlockFactory;
-            var beltPosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
-            var beltConveyor = blockFactory.Create(ForUnitTestModBlockId.GearBeltConveyor, new BlockInstanceId(1), beltPosInfo);
-            var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearBeltConveyor);
-            var guid = blockMaster.BlockGuid;
-            var gearBeltParam = blockMaster.BlockParam as GearBeltConveyorBlockParam;
+            // tick1で出口まで1073、以後毎tick6進むので50tick後は1079-300=779(BeltConveyorRebuildTestと同じ)
+            // 1073 to the exit after tick 1, then 6 per tick, so 1079-300=779 after 50 ticks (same as BeltConveyorRebuildTest)
+            GameUpdater.RunFrames(50);
+            var before = ItemsOnSegmentAt(Vector3Int.zero);
+            Assert.AreEqual(1, before.Length);
+            Assert.AreEqual(779, before[0].DistanceToExit);
+            var saveJson = saveProvider.GetRequiredService<AssembleSaveJsonText>().AssembleSaveJson();
 
-            var belt = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
+            // 新しいサーバーへロードする。最初のtick先頭の再構築で779に戻り、同じtickで6進む
+            // Load into a new server; the first tick-head rebuild puts it back at 779 and the same tick advances it by 6
+            var (_, loadProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            ((WorldLoaderFromJson)loadProvider.GetRequiredService<IWorldSaveDataLoader>()).Load(saveJson);
+            var output = Inventory(ServerContext.WorldBlockDatastore.GetBlock(new Vector3Int(0, 0, 3)));
+            GameUpdater.UpdateOneTick();
+            var after = ItemsOnSegmentAt(Vector3Int.zero);
+            Assert.AreEqual(1, after.Length);
+            Assert.AreEqual(773, after[0].DistanceToExit);
+            Assert.AreEqual(ItemA, after[0].Item.ItemId);
+            Assert.AreEqual(BeltEntryDirection.FromBack, after[0].Item.EntryDirection);
+            Assert.AreNotEqual(before[0].Item.ItemInstanceId, after[0].Item.ItemInstanceId, "instance id is reissued on load");
 
-            // リフレクションで_inventoryItemsを取得
-            // Get _inventoryItems via reflection
-            var inventoryItemsField = typeof(VanillaBeltConveyorComponent).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
-            var inventoryItems = (VanillaBeltConveyorInventoryItem[])inventoryItemsField.GetValue(belt);
-
-            // ブロックの実際のコネクタを使用してアイテムを設定
-            // Set items using the block's actual connectors
-            var inputConnects = gearBeltParam.InventoryConnectors.InputConnects;
-            var outputConnects = gearBeltParam.InventoryConnectors.OutputConnects;
-            var sourceConnector = inputConnects[0];
-            var goalConnector = outputConnects[0];
-            // 歯車ベルトコンベアはRPMによって速度が変わるため、テスト用に任意のtotalTicksを使用
-            // Gear belt conveyor speed varies by RPM, use arbitrary totalTicks for testing
-            uint totalTicks = 100;
-
-            inventoryItems[0] = new VanillaBeltConveyorInventoryItem(new ItemId(1), new ItemInstanceId(0), sourceConnector, goalConnector, totalTicks)
-            {
-                RemainingTicks = (uint)(totalTicks * 0.8),
-            };
-            inventoryItems[2] = new VanillaBeltConveyorInventoryItem(new ItemId(2), new ItemInstanceId(0), sourceConnector, goalConnector, totalTicks)
-            {
-                RemainingTicks = (uint)(totalTicks * 0.85),
-            };
-            inventoryItems[3] = new VanillaBeltConveyorInventoryItem(new ItemId(5), new ItemInstanceId(0), sourceConnector, goalConnector, totalTicks)
-            {
-                RemainingTicks = (uint)(totalTicks * 0.9),
-            };
-
-            // セーブデータ取得
-            // Get save data
-            var saveState = belt.GetSaveState();
-            var states = SaveLoadJsonTestHelper.ThroughJson(belt.SaveKey, saveState);
-            Debug.Log(JsonConvert.SerializeObject(saveState));
-
-            // セーブデータをロード（異なるBlockInstanceIdを使用してGearNetworkの重複登録を避ける）
-            // Load save data (use different BlockInstanceId to avoid duplicate registration in GearNetwork)
-            var loadedBeltConveyor = blockFactory.Load(guid, new BlockInstanceId(2), states, beltPosInfo);
-            var newInventoryItems = (VanillaBeltConveyorInventoryItem[])inventoryItemsField.GetValue(loadedBeltConveyor.GetComponent<VanillaBeltConveyorComponent>());
-
-            // アイテムが一致するかチェック
-            // Check that items match
-            Assert.AreEqual(inventoryItems.Length, newInventoryItems.Length);
-            Assert.AreEqual(1, newInventoryItems[0].ItemId.AsPrimitive());
-            Assert.AreEqual((uint)(totalTicks * 0.8), newInventoryItems[0].RemainingTicks);
-            Assert.AreEqual(2, newInventoryItems[2].ItemId.AsPrimitive());
-            Assert.AreEqual((uint)(totalTicks * 0.85), newInventoryItems[2].RemainingTicks);
-            Assert.AreEqual(5, newInventoryItems[3].ItemId.AsPrimitive());
-            Assert.AreEqual((uint)(totalTicks * 0.9), newInventoryItems[3].RemainingTicks);
-
-            // コネクタGuidが復元されているかチェック
-            // Verify connector Guid is restored
-            Assert.IsNotNull(newInventoryItems[0].GoalConnector);
-            Assert.IsNotNull(newInventoryItems[2].GoalConnector);
-            Assert.IsNotNull(newInventoryItems[3].GoalConnector);
-            Assert.AreEqual(goalConnector.ConnectorGuid, newInventoryItems[0].GoalConnector.ConnectorGuid);
-            Assert.AreEqual(goalConnector.ConnectorGuid, newInventoryItems[2].GoalConnector.ConnectorGuid);
-            Assert.AreEqual(goalConnector.ConnectorGuid, newInventoryItems[3].GoalConnector.ConnectorGuid);
+            // 773=6*128+5なので128tick後に残り5、次のtickで出口に達してチェストへ渡る
+            // 773=6*128+5, so it is 5 away after 128 ticks and reaches the exit and the chest on the next tick
+            GameUpdater.RunFrames(128);
+            Assert.AreEqual(0, CountOf(output, ItemA));
+            Assert.AreEqual(5, ItemsOnSegmentAt(Vector3Int.zero)[0].DistanceToExit);
+            GameUpdater.RunFrames(1);
+            Assert.AreEqual(1, CountOf(output, ItemA));
+            Assert.IsEmpty(ItemsOnSegmentAt(Vector3Int.zero));
         }
     }
 }

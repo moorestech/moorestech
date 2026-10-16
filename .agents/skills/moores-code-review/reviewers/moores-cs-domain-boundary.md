@@ -18,7 +18,7 @@ cwdを読み、patchが**汎用基盤（基底コンポーネント・共通サ�
 
 ### 観点2: Update()内の毎tickポーリング
 - `IUpdatableBlockComponent.Update()`・MonoBehaviourの `Update()`/`LateUpdate()` 内で「状態が変わったかも」という同値判定・`Any()`/`Count > 0` 判定・毎tickの `SetTorqueRequestRate`/`UpdateTorqueRequestRate` 相当の再プッシュが追加されていないか。
-- **正解形**: 変化通知（`OnChangeBlockState` / `OnItemsChanged` 等のUniRx `IObservable`）のSubscribe、または変化を起こす操作の直後にのみ下流へプッシュする。`Update()` は物理進行（搬送tick・採掘進行）専用。前例: `GearBeltConveyorComponent` のctorでの `OnItemsChanged.Subscribe`、`VanillaGearMachineComponent` の `OnChangeBlockState.Subscribe`。
+- **正解形**: 変化通知（`OnChangeBlockState` / `OnItemsChanged` 等のUniRx `IObservable`）のSubscribe、または変化を起こす操作の直後にのみ下流へプッシュする。`Update()` は物理進行（搬送tick・採掘進行）専用。前例: `VanillaGearMinerComponent` のctorでの `OnChangeBlockState.Subscribe`、`VanillaGearMachineComponent` の `OnChangeBlockState.Subscribe`。
 
 ### 観点3: 共通サービスと重複する再実装
 - 新規/変更コンポーネントが、既存共通サービスに実装済みのロジックをコンポーネント内に展開していないか。特に歯車系: `TryResolveRotation`・`GearNetworkDatastore.TryGetGearNetwork`・コネクタ列挙を `SimpleGearService.cs` 以外に書くのは重複。
