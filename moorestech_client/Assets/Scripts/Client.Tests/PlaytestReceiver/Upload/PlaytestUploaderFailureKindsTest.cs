@@ -1,3 +1,4 @@
+using Client.PlaytestReceiver.Credentials;
 using System.IO;
 using System.Threading;
 using Client.PlaytestReceiver;
@@ -165,7 +166,7 @@ namespace Client.Tests.PlaytestReceiver
 
         private string MakeBox(string bundleId)
         {
-            return PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, bundleId, ("manifest.json", "{}"), ("a.bin", "abc"));
+            return PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, bundleId, ("manifest.json", "{\"isEditor\":false}"), ("a.bin", "abc"));
         }
 
         private static string AttemptCount(string box)
@@ -175,9 +176,9 @@ namespace Client.Tests.PlaytestReceiver
 
         private int Upload(FakeUploadApi api)
         {
-            var session = new PlaytestSession(api, new FakeTicketProvider("aabb"));
-            var uploader = new PlaytestUploader(api, session, _directories, PlaytestNoWaitRetrySchedule.Create());
-            return uploader.UploadPendingAsync(CancellationToken.None).GetAwaiter().GetResult();
+            var session = new PlaytestSession(api, new SteamTicketSessionCredential(new FakeTicketProvider("aabb")));
+            var uploader = new PlaytestUploader(api, session, _directories, PlaytestNoWaitRetrySchedule.Create(), Client.PlaytestReceiver.Delivery.PlaytestOutboxScope.ReportsAndProgress);
+            return uploader.UploadPendingAsync(CancellationToken.None).GetAwaiter().GetResult().Sent;
         }
     }
 }

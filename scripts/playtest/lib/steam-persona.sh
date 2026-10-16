@@ -6,6 +6,14 @@ STEAM_API_MAX_TIME="${STEAM_API_MAX_TIME:-20}"
 
 steam_persona_resolve() {
   local steam_id="$1" out="$2"
+  # 開発機はSteamへ問い合わせず、機材名を表示する
+  # Label developer machines without querying Steam
+  case "$steam_id" in
+    dev-*)
+      python3 "$HERE/lib/steam_persona.py" developer "$steam_id" "$out" \
+        || { log "ERROR: 開発機の表示名を書けない: $steam_id"; return 1; }
+      return 0 ;;
+  esac
   if [ -z "${STEAM_PERSONA_CACHE_DIR:-}" ] || [ ! -d "$STEAM_PERSONA_CACHE_DIR" ]; then
     log "ERROR: STEAM_PERSONA_CACHE_DIR が未設定または存在しない（表示名を保存できない）"
     return 1

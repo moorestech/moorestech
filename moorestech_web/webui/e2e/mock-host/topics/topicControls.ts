@@ -1,26 +1,13 @@
+import { pauseMenuControls } from "./pauseMenuControls";
 import type { ServerResponse } from "node:http";
-import { readFileSync } from "node:fs";
 import { WebSocket } from "ws";
 import { Topics } from "../../../src/bridge/transport/protocol";
 import type { TopicPayloads } from "../../../src/bridge/transport/protocol";
 import { L } from "../../../src/shared/i18n/generated/localizationKeys";
-// JavaScriptのcodegen parserには型宣言がない
-// The JavaScript codegen parser has no type declarations
-// @ts-expect-error Importing the plain ESM parser is intentional
-import { parseLocalizationCsv } from "../../../scripts/generate-localization-keys.mjs";
 import { recipeItemAnchorId, researchNodeAnchorId } from "../../../src/shared/tutorialAnchor/anchorIds";
 import * as fx from "../fixtures";
 import { state, topicSubscribers } from "../state";
 import { clone, send, setTopicRevision } from "../wire";
-
-const dictionaries = createDictionaries();
-
-export function serveDictionary(url: string, response: ServerResponse): void {
-  const locale = url.split("/api/i18n/")[1]?.split("?")[0] ?? "japanese";
-  response.writeHead(200, { "Content-Type": "application/json" });
-  response.end(JSON.stringify(dictionaries.get(locale) ?? {}));
-}
-
 // overrideを設定する側と解除する側をkindで区別する。どちらかをシナリオ名の外部テーブルで表すと
 // 登録漏れが型エラーにならず、汚染が別specの遅れた赤として出るため原因を辿れない
 // The kind distinguishes setting an override from clearing one; expressing that through an external table of
@@ -29,11 +16,12 @@ const control = <T extends keyof TopicPayloads>(topic: T, data: TopicPayloads[T]
 // broadcast値は既に開いているページを既定へ戻すためだけに使い、overrideは持たせない
 // The broadcast value only resets pages that are already open; no override is stored
 const clearingControl = <T extends keyof TopicPayloads>(topic: T, data: TopicPayloads[T]) => ({ kind: "clear" as const, topic, data });
-
 // spec共有のSSOT値
 // SSOT value shared with the spec
 export const TUTORIAL_RESEARCH_NODE_PADDING_PX = 8;
+export { serveDictionary } from "./dictionaryControl";
 const controls = {
+  ...pauseMenuControls,
   placement: () => control(Topics.placementMode, {
     selectedTargetType: "raw", selectedName: "Assembler", height: 3, unavailableReason: "", wheelOwnedByTool: false,
   }),
@@ -80,8 +68,6 @@ const controls = {
     visible: false,
     lines: [],
   }),
-  pauseConnected: () => control(Topics.pauseMenu, { disconnected: false, bugReport: { kind: "ready", missing: [] }, page: "top" }),
-  pauseDisconnected: () => control(Topics.pauseMenu, { disconnected: true, bugReport: { kind: "ready", missing: [] }, page: "top" }),
   japanese: () => control(Topics.localization, { locale: "japanese", revision: 1 }),
   english: () => control(Topics.localization, { locale: "english", revision: 1 }),
   challengeActive: () => control(Topics.challengeCurrent, clone(fx.challengeCurrent)),
@@ -186,12 +172,9 @@ const controls = {
   // Puts the full-screen gate into waiting, so e2e and the visual QA can reproduce its look (width, wrapping, fallback copy)
   eventLanguageGateWaiting: () => control(Topics.eventLanguageGate, { waiting: true }),
   eventLanguageGateClosed: () => clearingControl(Topics.eventLanguageGate, { waiting: false }),
-  // 装備枠0のマスタでもHUDが面積を保つかを見るための空装備
-  // Zero equipment slots, for checking the HUD keeps an area under a master with no slots
   equipmentEmpty: () => control(Topics.inventory, { ...clone(fx.inventory), equipment: [], selectedEquipment: 0 }),
 };
 export type TopicScenario = keyof typeof controls;
-
 export function applyTopicControl(url: string, response: ServerResponse): void {
   const params = new URL(url, "http://x").searchParams;
   const scenario = params.get("scenario") ?? "";
@@ -212,41 +195,4 @@ export function applyTopicControl(url: string, response: ServerResponse): void {
     send(ws, { op: params.get("snapshot") === "1" ? "snapshot" : "event", topic: controlValue.topic, revision, data: controlValue.data });
   }
   response.end(JSON.stringify({ ok: true }));
-}
-
-function createDictionaries(): Map<string, Record<string, string>> {
-  const csvUrl = new URL("../../../../../Localization/localization.csv", import.meta.url);
-  const csv = parseLocalizationCsv(readFileSync(csvUrl, "utf8"));
-  const result = new Map<string, Record<string, string>>();
-
-  // Sourceと各言語を本番CSVの同じ行集合から組み立てる
-  // Build Source and every locale from the same production CSV rows
-  result.set("source", {
-    ...Object.fromEntries(csv.rows.map((row: { key: string; source: string }) => [row.key, row.source])),
-    ...fx.itemNameDictionaries.source,
-    ...fx.blockNameDictionaries.source,
-    ...fx.contentLocalizationDictionaries.source,
-  });
-  for (let languageIndex = 0; languageIndex < csv.languageCodes.length; languageIndex += 1) {
-    const languageCode = csv.languageCodes[languageIndex];
-    // 言語追加でfixture側が欠けたとき黙ってspreadがno-opになるため、ここで落として気付けるようにする
-    // A missing fixture would make the spread a silent no-op on a new language, so fail loudly here instead
-    for (const [name, dictionaries] of [
-      ["itemNameDictionaries", fx.itemNameDictionaries],
-      ["blockNameDictionaries", fx.blockNameDictionaries],
-      ["contentLocalizationDictionaries", fx.contentLocalizationDictionaries],
-    ] as const) {
-      if (dictionaries[languageCode] === undefined) throw new Error(`${name} has no entry for ${languageCode}`);
-    }
-    result.set(
-      languageCode,
-      {
-        ...Object.fromEntries(csv.rows.map((row: { key: string; texts: string[] }) => [row.key, row.texts[languageIndex]])),
-        ...fx.itemNameDictionaries[languageCode],
-        ...fx.blockNameDictionaries[languageCode],
-        ...fx.contentLocalizationDictionaries[languageCode],
-      },
-    );
-  }
-  return result;
 }

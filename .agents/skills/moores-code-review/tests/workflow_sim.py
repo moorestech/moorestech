@@ -12,6 +12,8 @@ from pathlib import Path
 
 HARNESS = r"""
 const calls = []
+const logs = []
+const attempts = {}
 // ラベル接頭辞→応答の上書き（Refix の直し直し経路など既定値では通らない分岐を踏ませる）
 // Label-prefix -> response overrides, to drive branches the defaults never reach (e.g. the Refix re-fix path)
 const OVERRIDES = __OVERRIDES__
@@ -32,18 +34,22 @@ const agent = async (prompt, opts) => {
   if (!opts || !opts.model) throw new Error('model 未指定の agent(): ' + String(prompt).slice(0, 60))
   calls.push({ label: opts.label, phase: opts.phase, model: opts.model, schema: opts.schema || null, prompt })
   const answer = fill(opts.schema)
-  for (const [prefix, patch] of Object.entries(OVERRIDES)) if (opts.label.startsWith(prefix)) Object.assign(answer, patch)
+  for (const [prefix, patch] of Object.entries(OVERRIDES)) if (opts.label.startsWith(prefix)) {
+    const index = attempts[prefix] || 0
+    Object.assign(answer, Array.isArray(patch) ? patch[Math.min(index, patch.length - 1)] : patch)
+    attempts[prefix] = index + 1
+  }
   return answer
 }
 const parallel = async (thunks) => Promise.all(thunks.map((t) => t().catch(() => null)))
-const log = () => {}
+const log = (message) => logs.push(message)
 const phase = () => {}
 const args = undefined
 const body = async () => {
 __BODY__
 }
-body().then((r) => console.log(JSON.stringify({ result: r, calls })))
-  .catch((e) => { console.error(String(e && e.stack || e)); process.exit(3) })
+body().then((r) => console.log(JSON.stringify({ result: r, calls, logs })))
+  .catch((e) => { console.error(JSON.stringify({ error: String(e && e.stack || e), calls, logs })); process.exit(3) })
 """
 
 
@@ -60,5 +66,7 @@ def simulate(script_path: Path, overrides: dict | None = None) -> dict:
         path = fh.name
     run = subprocess.run([node_path(), path], capture_output=True, text=True, timeout=60)
     if run.returncode != 0:
-        raise AssertionError(f"Workflow 模擬実行が失敗: {run.stderr[:800]}")
+        failure = AssertionError(f"Workflow 模擬実行が失敗: {run.stderr[:800]}")
+        failure.workflow = json.loads(run.stderr)
+        raise failure
     return json.loads(run.stdout)

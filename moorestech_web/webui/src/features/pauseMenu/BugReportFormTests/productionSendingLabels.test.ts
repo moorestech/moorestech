@@ -24,7 +24,7 @@ describe("BugReportForm production sending labels", () => {
         // 辞書更新後の状態遷移も検査
         // Verify a status transition after replacing dictionaries
         act(() => loadProductionDictionaries(locale));
-        act(() => renderer.update(createElement(BugReportForm, { status: { kind: "submitting", missing: [] }, draft })));
+        act(() => renderer.update(createElement(BugReportForm, { delivery: { kind: "allSent" }, status: { kind: "submitting", missing: [] }, draft })));
         expect(statusTexts(renderer)).toEqual([kind === "feedback" ? feedback : bug]);
         act(() => renderer.unmount());
       });

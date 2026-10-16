@@ -60,3 +60,16 @@ receiver_ack() {
   receiver_curl /dev/null -X POST \
     "$RECEIVER_BASE/v1/inbox/$(url_encode "$kind")/$(url_encode "$steam_id")/$(url_encode "$id")/ack"
 }
+
+# 開発者トークンの管理応答を出力先へ保存する
+# Save developer token administration responses to the output path
+receiver_dev_token_issue() {
+  local machine="$1" out="$2" body
+  body="$(python3 -c 'import json,sys;print(json.dumps({"machine":sys.argv[1]}))' "$machine")" || return 1
+  receiver_curl "$out" -X POST -H "content-type: application/json" --data "$body" "$RECEIVER_BASE/v1/admin/dev-tokens"
+}
+receiver_dev_token_list() { receiver_curl "$1" "$RECEIVER_BASE/v1/admin/dev-tokens"; }
+receiver_dev_token_revoke() {
+  local machine="$1" out="$2"
+  receiver_curl "$out" -X DELETE "$RECEIVER_BASE/v1/admin/dev-tokens/$(url_encode_path "$machine")"
+}

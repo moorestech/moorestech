@@ -69,8 +69,8 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
 
             if (_selection.HasSelection()) _lines.Add(new TooltipLine(LocalizationKeys.Ui.Tooltip.DeleteSelectedCount, new[] { _selection.Count.ToString() }));
 
-            // 長押しで消せる対象（選択かホバー）がある間だけ確定キーを案内する
-            // Show the confirm key only while a hold subject (selection or hover) exists
+            // 対象がある間だけ長押し削除を案内
+            // Show the hold-to-delete hint while a target exists
             if (_selection.HasSelection() || !subject.IsNone) _lines.Add(new TooltipLine(LocalizationKeys.Ui.Tooltip.HoldToDelete));
             _results.AppendTo(_lines);
             if (_lines.Count == 0) _tooltip.Hide(_tooltipOwner);

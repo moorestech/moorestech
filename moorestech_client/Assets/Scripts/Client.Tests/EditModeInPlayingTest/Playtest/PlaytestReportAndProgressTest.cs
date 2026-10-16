@@ -101,8 +101,8 @@ namespace Client.Tests.EditModeInPlayingTest.Playtest
             Assert.AreEqual("感想テスト", (string)manifest["description"]);
             Assert.AreEqual("feedback", (string)manifest["kind"], "選ばれた種別がmanifestに載っていない");
 
-            // 既定の識別は null（開発者のrsync経路）で、取れなかった理由は missing に載る。キー自体が欠けると取り込み側が読む先を失う
-            // The default identity is null (the developer rsync path) with the reason in missing; a missing key robs the ingest side of what it reads
+            // 既定の識別は null（開発者報告のローカル記録）で、取れなかった理由は missing に載る。キー自体が欠けると取り込み側が読む先を失う
+            // The default identity is null (the local developer report) with the reason in missing; a missing key robs the ingest side of what it reads
             Assert.AreEqual(JTokenType.Null, manifest["steamId"].Type, "SteamIDが無いのに実値と同じ形で載っている");
             Assert.IsTrue(((JArray)manifest["missing"]).Any(item => (string)item["item"] == "steamId"), "SteamIDが取れなかった理由がmissingに無い");
 

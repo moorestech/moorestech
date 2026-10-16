@@ -12,7 +12,7 @@ describe("BugReportForm submission results", () => {
     expect(sendButton(renderer).props.disabled).toBe(false);
     await act(async () => sendButton(renderer).props.onClick());
     expect(mocks.dispatchAction).toHaveBeenCalledWith("bug_report.submit", { description: "ベルトが止まる", kind: "bug" });
-    expect(mocks.emitToast).toHaveBeenCalledWith("書き出しました", "info");
+    expect(mocks.emitToast).toHaveBeenCalledWith("バグ報告をoutboxに書き出しました", "info");
     expect(textarea.props.value).toBe("");
     act(() => renderer.unmount());
   });

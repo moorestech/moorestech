@@ -3,6 +3,7 @@ import { createElement, type ReactElement, type ReactNode } from "react";
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { afterEach, vi } from "vitest";
 import { setDictionaries } from "@/shared/i18n/i18nStore";
+import type { PauseMenuData } from "@/bridge";
 import type { BugReportDraft } from "../useBugReportDraft";
 import { useBugReportDraft } from "../useBugReportDraft";
 // Node用パーサーをテストでも使う
@@ -34,23 +35,8 @@ vi.mock("@/shared/ui", () => ({
 
 import { BugReportForm } from "../BugReportForm";
 
+type Delivery = PauseMenuData["delivery"];
 type Status = { kind: "noSession" | "capturing" | "submitting" | "ready"; missing: string[] };
-
-const dictionary = {
-  "ui.bugReport.placeholder": "何が起きた？",
-  "ui.bugReport.send": "バグ報告を送信",
-  "ui.bugReport.sent": "書き出しました",
-  "ui.feedbackReport.send": "感想を送信",
-  "ui.feedbackReport.sent": "感想を書き出しました",
-  "ui.feedbackReport.sending": "感想を書き出しています…",
-  "ui.bugReport.capturePending": "記録を確保しています…",
-  "ui.bugReport.missing": "欠けている項目: {items}",
-  "ui.bugReport.noSession": "ポーズメニューを開き直してください",
-  "ui.bugReport.sending": "書き出しています…",
-  "ui.playtest.reportKind.label": "報告の種別",
-  "ui.playtest.reportKind.bug": "バグ",
-  "ui.playtest.reportKind.feedback": "感想",
-};
 
 afterEach(() => {
   vi.clearAllMocks();
@@ -61,19 +47,19 @@ export function getMocks() {
   return mocks;
 }
 
-function FormWithDraft({ status }: { status: Status }) {
+function FormWithDraft({ status, delivery }: { status: Status; delivery: Delivery }) {
   const draft = useBugReportDraft();
-  return createElement(BugReportForm, { status, draft });
+  return createElement(BugReportForm, { status, draft, delivery });
 }
 
 export async function render(status: Status): Promise<ReactTestRenderer> {
-  return renderElement(createElement(FormWithDraft, { status }));
+  return renderDelivery(status, { kind: "allSent" });
 }
 
 // 描画の初期化を共用する
 // Share renderer initialization
 async function renderElement(element: ReactElement): Promise<ReactTestRenderer> {
-  setDictionaries("japanese", dictionary, {}, {});
+  loadProductionDictionaries("japanese");
   let renderer: ReactTestRenderer;
   await act(async () => {
     renderer = create(element);
@@ -94,7 +80,7 @@ export function statusTexts(renderer: ReactTestRenderer): string[] {
 }
 
 export async function renderMutableDraft(status: Status, draft: BugReportDraft): Promise<ReactTestRenderer> {
-  return renderElement(createElement(BugReportForm, { status, draft }));
+  return renderElement(createElement(BugReportForm, { status, draft, delivery: { kind: "allSent" } }));
 }
 
 // 正規CSVの辞書で再描画する
@@ -108,4 +94,8 @@ export function loadProductionDictionaries(locale: string): void {
     Object.fromEntries(csv.rows.map((row) => [row.key, row.texts[languageIndex]])),
     Object.fromEntries(csv.rows.map((row) => [row.key, row.texts[englishIndex]])),
     Object.fromEntries(csv.rows.map((row) => [row.key, row.source])));
+}
+
+export async function renderDelivery(status: Status, delivery: Delivery): Promise<ReactTestRenderer> {
+  return renderElement(createElement(FormWithDraft, { status, delivery }));
 }

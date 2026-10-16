@@ -87,6 +87,10 @@ namespace Game.Paths
         // Holds the previous session's clean-exit marker and salvaged files; read only at boot
         public static string BugReportLastSessionDirectory => Path.Combine(BugReportDirectory, "last-session");
 
+        // Editorと開発ビルドで同じ機材の資格情報を共有する
+        // Share machine credentials between the Editor and development builds
+        public static string PlaytestDeveloperTokenFilePath => Path.Combine(GameSystemDirectory, "PlaytestReceiver", "developer-token.txt");
+
         // 遠隔実行のアクセストークンと台帳の置き場を一箇所で定義する
         // Define the access token and ledger location for remote execution in one place
         public static string RemoteExecDirectory => Path.Combine(GameSystemDirectory, "RemoteExec");

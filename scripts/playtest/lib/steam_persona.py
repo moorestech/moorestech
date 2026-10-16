@@ -19,6 +19,10 @@ def unresolved(reason: str) -> dict:
     return {"steamPersonaName": "", "steamProfileUrl": "", "steamPersonaMissing": reason}
 
 
+def developer(steam_id: str) -> dict:
+    return {"steamPersonaName": f"開発機 {steam_id[4:]}", "steamProfileUrl": "", "steamPersonaMissing": ""}
+
+
 def extract(response_path: str, steam_id: str) -> dict:
     # 外部応答の解析失敗は、取り込みを止めずに理由へ変換する
     # Convert malformed external responses to a reason without stopping ingestion
@@ -41,6 +45,13 @@ def extract(response_path: str, steam_id: str) -> dict:
 
 if __name__ == "__main__":
     mode, output = sys.argv[1], sys.argv[-1]
-    result = extract(sys.argv[2], sys.argv[3]) if mode == "extract" else unresolved(sys.argv[2])
+    if mode == "extract":
+        result = extract(sys.argv[2], sys.argv[3])
+    elif mode == "developer":
+        result = developer(sys.argv[2])
+    elif mode == "unresolved":
+        result = unresolved(sys.argv[2])
+    else:
+        sys.exit("未知の表示名モード: " + mode)
     with open(output, "w", encoding="utf-8") as target:
         json.dump(result, target, ensure_ascii=False, separators=(",", ":"))

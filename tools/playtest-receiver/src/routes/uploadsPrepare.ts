@@ -10,7 +10,7 @@ import { authorizeUpload } from "./uploadsAuthorize";
 import { verifyDeclaredObjects, type MissingObject } from "./uploadsVerify";
 
 export async function prepareUpload(request: Request, env: Env, kind: PlaytestKind, id: string): Promise<Response> {
-  const steamId = await authorizeUpload(request, env);
+  const steamId = await authorizeUpload(request, env, kind);
   if (typeof steamId !== "string") return steamId;
   const label = `${steamId}/${id}`;
 
@@ -39,6 +39,11 @@ export async function prepareUpload(request: Request, env: Env, kind: PlaytestKi
   if (!declaration.ok) {
     console.warn(`[upload] rejected the declaration of ${label}: ${declaration.error} (${declaration.detail})`);
     return fail(declaration.error, declaration.status);
+  }
+
+  if (id.includes("/__attachments/") && (declaration.files.length !== 1 || declaration.files[0]?.path !== "chunk")) {
+    console.warn(`[upload] rejected invalid commit part declaration: ${label}`);
+    return fail("bad-commit-part", 400);
   }
 
   // DECLAREDは世代付きのwrite-once。同世代は完全一致だけ、縮小は上の世代でだけ許す（箱の上限の迂回と旧宣言分の孤立を防ぐ）

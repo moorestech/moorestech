@@ -23,7 +23,7 @@ describe("BugReportForm report-kind labels", () => {
     act(() => renderer.root.findByProps({ "data-testid": "bug-report-description" }).props.onChange({ currentTarget: { value: "  序盤が長い  " } }));
     await act(async () => sendButton(renderer).props.onClick());
     expect(mocks.dispatchAction).toHaveBeenCalledWith("bug_report.submit", { description: "序盤が長い", kind: "feedback" });
-    expect(mocks.emitToast).toHaveBeenCalledWith("感想を書き出しました", "info");
+    expect(mocks.emitToast).toHaveBeenCalledWith("感想をoutboxに書き出しました", "info");
     expect(sendButton(renderer).children.join("")).toBe("バグ報告を送信");
     act(() => renderer.unmount());
   });
@@ -47,7 +47,7 @@ describe("BugReportForm report-kind labels", () => {
     act(() => renderer.root.findByProps({ "data-testid": "bug-report-description" }).props.onChange({ currentTarget: { value: "感想" } }));
     await act(async () => sendButton(renderer).props.onClick());
     expect(mocks.emitToast).toHaveBeenCalledWith("欠けている項目: video", "error");
-    expect(mocks.emitToast).not.toHaveBeenCalledWith("感想を書き出しました", "info");
+    expect(mocks.emitToast).not.toHaveBeenCalledWith("感想をoutboxに書き出しました", "info");
     act(() => renderer.unmount());
   });
 
@@ -65,7 +65,7 @@ describe("BugReportForm report-kind labels", () => {
     draft.kind = "bug";
     await act(async () => { resolveSubmit(true); });
     expect(mocks.dispatchAction).toHaveBeenCalledWith("bug_report.submit", { description: "感想", kind: "feedback" });
-    expect(mocks.emitToast).toHaveBeenCalledWith("感想を書き出しました", "info");
+    expect(mocks.emitToast).toHaveBeenCalledWith("感想をoutboxに書き出しました", "info");
     act(() => renderer.unmount());
   });
 });
