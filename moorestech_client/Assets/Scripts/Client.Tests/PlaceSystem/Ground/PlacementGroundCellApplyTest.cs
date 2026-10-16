@@ -21,15 +21,26 @@ namespace Client.Tests.PlaceSystem.Ground
             _slabs.Clear();
         }
 
-        // 地表32.4のセルは、その最高点を含むY32へ収まる
-        // A cell over ground at 32.4 lands on Y 32, the cell containing that max
+        // 地表32.4はY32だと0.4m沈むので1段上のY33へ上げる
+        // Ground at 32.4 would sink Y 32 by 0.4 m, so it is raised one cell to Y 33
         [Test]
-        public void 端数のある地表は最高点を含むセルへ収める()
+        public void 沈みが3分の1mを超える地表は1段上げる()
         {
             CreateGroundSlab(new Vector3(100.5f, 31.9f, 200.5f), new Vector3(6f, 1f, 6f));
 
             Assert.IsTrue(TryResolve(new Vector3Int(100, 0, 200), 0, out var resolved));
-            Assert.AreEqual(new Vector3Int(100, 32, 200), resolved);
+            Assert.AreEqual(new Vector3Int(100, 33, 200), resolved);
+        }
+
+        // 地表32.2はY32で0.2m沈むだけなので上げない
+        // Ground at 32.2 only sinks Y 32 by 0.2 m, so it stays
+        [Test]
+        public void 沈みが3分の1m以内の地表はそのセルに置く()
+        {
+            CreateGroundSlab(new Vector3(110.5f, 31.7f, 210.5f), new Vector3(6f, 1f, 6f));
+
+            Assert.IsTrue(TryResolve(new Vector3Int(110, 0, 210), 0, out var resolved));
+            Assert.AreEqual(32, resolved.y);
         }
 
         // 整数ちょうどの地表は沈めない
@@ -43,37 +54,32 @@ namespace Client.Tests.PlaceSystem.Ground
             Assert.AreEqual(32, resolved.y);
         }
 
-        // 許容誤差の境界を直接固定する
-        // Pin the tolerance boundary directly
-        [Test]
-        public void 許容誤差は整数直下だけを引き上げる()
+        // 沈み許容量1/3m＋浮動小数余裕の境界を直接固定する
+        // Pin the boundary of the 1/3 m sink allowance plus the float margin directly
+        [TestCase(32f, 32)]
+        [TestCase(32.2f, 32)]
+        [TestCase(32.333f, 32)]
+        [TestCase(32.334f, 32)]
+        [TestCase(32.336f, 33)]
+        [TestCase(32.4f, 33)]
+        [TestCase(31.99f, 32)]
+        [TestCase(32f - 1e-4f, 32)]
+        public void 沈みが3分の1m以内に収まる最も低いセルを返す(float groundMax, int expectedCellY)
         {
-            // 整数直下の微小誤差は引き上げる
-            // A tiny undershoot below an integer is lifted
-            Assert.AreEqual(32, PlacementGroundCellResolver.ResolveCellY(32f - 1e-4f, 0f, 0));
-
-            // 許容誤差を超える端数は引き上げない
-            // A fraction beyond the tolerance is not lifted
-            Assert.AreEqual(31, PlacementGroundCellResolver.ResolveCellY(31.99f, 0f, 0));
-
-            // 整数ちょうどはそのまま
-            // An exact integer stays as is
-            Assert.AreEqual(32, PlacementGroundCellResolver.ResolveCellY(32f, 0f, 0));
+            Assert.AreEqual(expectedCellY, PlacementGroundCellResolver.ResolveCellY(groundMax, 0));
         }
 
-        // 格子のある地表は「格子1段＋採掘底面クリアランス＋浮動小数余裕」まで整数へ引き上げ、それを超えて下回る地表は1段下のまま
-        // A lattice ground is lifted within one step + mining-bottom clearance + float margin; anything further below stays one cell lower
+        // 整数を格子数段だけ下回って格納された地表（鉱脈パッド）は1段浮かず整数セルになる
+        // Ground stored a few lattice steps under an integer (a vein pad) lands on the integer without floating a cell
         [Test]
-        public void 格子1段とクリアランスぶん整数を下回る地表は整数セルへ収める()
+        public void 格子数段ぶん整数を下回る地表は整数セルへ収める()
         {
             var step = TerrainHeightStorage.StepMeters(600f);
             var padUndershoot = step + (float)TerrainHeightStorage.MiningBottomClearanceMeters;
 
-            Assert.AreEqual(10, PlacementGroundCellResolver.ResolveCellY(10f - 0.9f * step, step, 0));
-            Assert.AreEqual(10, PlacementGroundCellResolver.ResolveCellY(10f - padUndershoot - 0.0005f, step, 0));
-            Assert.AreEqual(9, PlacementGroundCellResolver.ResolveCellY(10f - padUndershoot - 0.0015f, step, 0));
-            Assert.AreEqual(9, PlacementGroundCellResolver.ResolveCellY(10f - 1.5f * step, step, 0));
-            Assert.AreEqual(10, PlacementGroundCellResolver.ResolveCellY(10f, step, 0));
+            Assert.AreEqual(10, PlacementGroundCellResolver.ResolveCellY(10f - 0.9f * step, 0));
+            Assert.AreEqual(10, PlacementGroundCellResolver.ResolveCellY(10f - padUndershoot - 0.0015f, 0));
+            Assert.AreEqual(10, PlacementGroundCellResolver.ResolveCellY(10f - 1.5f * step, 0));
         }
 
         // 手動オフセットは地形解決後に加算される
@@ -84,21 +90,21 @@ namespace Client.Tests.PlaceSystem.Ground
             CreateGroundSlab(new Vector3(500.5f, 19.9f, 600.5f), new Vector3(6f, 1f, 6f));
 
             Assert.IsTrue(TryResolve(new Vector3Int(500, 0, 600), 3, out var resolvedUp));
-            Assert.AreEqual(23, resolvedUp.y);
+            Assert.AreEqual(24, resolvedUp.y);
 
             Assert.IsTrue(TryResolve(new Vector3Int(500, 0, 600), -2, out var resolvedDown));
-            Assert.AreEqual(18, resolvedDown.y);
+            Assert.AreEqual(19, resolvedDown.y);
         }
 
-        // 負の高さでも切り捨て規約は変わらない
-        // The round-down convention is unchanged for negative heights
+        // 負の高さでも同じ沈み許容量で決める（地表-3.4はY-4だと0.6m沈むのでY-3）
+        // Negative heights follow the same sink allowance (ground -3.4 sinks Y -4 by 0.6 m, so Y -3)
         [Test]
-        public void 負の高さでも切り捨てる()
+        public void 負の高さでも同じ沈み許容量で決める()
         {
             CreateGroundSlab(new Vector3(700.5f, -3.9f, 800.5f), new Vector3(6f, 1f, 6f));
 
             Assert.IsTrue(TryResolve(new Vector3Int(700, 0, 800), 0, out var resolved));
-            Assert.AreEqual(-4, resolved.y);
+            Assert.AreEqual(-3, resolved.y);
         }
 
         // XZは書き換えない

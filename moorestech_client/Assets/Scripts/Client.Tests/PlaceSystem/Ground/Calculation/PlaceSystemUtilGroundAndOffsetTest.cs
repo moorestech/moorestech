@@ -14,7 +14,7 @@ namespace Client.Tests.PlaceSystem.Ground.Calculation
             // Snap a unit-sized block without height offset
             var hitPoint = new Vector3(5.3f, 4.0f, 5.7f);
 
-            var pos = PlaceSystemUtil.CalcPlacePointBySize(Vector3Int.one, hitPoint, 0, (PreviewSurfaceType?)null, 0f);
+            var pos = PlaceSystemUtil.CalcPlacePointBySize(Vector3Int.one, hitPoint, 0, (PreviewSurfaceType?)null);
 
             Assert.AreEqual(new Vector3Int(5, 4, 5), pos);
         }
@@ -26,7 +26,7 @@ namespace Client.Tests.PlaceSystem.Ground.Calculation
         {
             var hitPoint = new Vector3(5.5f, 6.0f, 5.5f);
 
-            var pos = PlaceSystemUtil.CalcPlacePointBySize(Vector3Int.one, hitPoint, 2, PreviewSurfaceType.XZ_Y, 0f);
+            var pos = PlaceSystemUtil.CalcPlacePointBySize(Vector3Int.one, hitPoint, 2, PreviewSurfaceType.XZ_Y);
 
             Assert.AreEqual(new Vector3Int(5, 8, 5), pos);
         }
@@ -36,7 +36,7 @@ namespace Client.Tests.PlaceSystem.Ground.Calculation
         {
             var hitPoint = new Vector3(5.5f, 5.5f, 6.0f);
 
-            var pos = PlaceSystemUtil.CalcPlacePointBySize(Vector3Int.one, hitPoint, -1, PreviewSurfaceType.YX_Z, 0f);
+            var pos = PlaceSystemUtil.CalcPlacePointBySize(Vector3Int.one, hitPoint, -1, PreviewSurfaceType.YX_Z);
 
             Assert.AreEqual(new Vector3Int(5, 4, 6), pos);
         }
@@ -46,7 +46,7 @@ namespace Client.Tests.PlaceSystem.Ground.Calculation
         {
             var hitPoint = new Vector3(6.0f, 5.5f, 5.5f);
 
-            var pos = PlaceSystemUtil.CalcPlacePointBySize(Vector3Int.one, hitPoint, 3, PreviewSurfaceType.YZ_X, 0f);
+            var pos = PlaceSystemUtil.CalcPlacePointBySize(Vector3Int.one, hitPoint, 3, PreviewSurfaceType.YZ_X);
 
             Assert.AreEqual(new Vector3Int(6, 8, 5), pos);
         }

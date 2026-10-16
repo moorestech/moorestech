@@ -50,17 +50,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Ground
             return groundPoint;
         }
 
-        // ブロックが占有するセルの地形だけから最高点と、その点を返した地形の高さ格子1段を出す。占有していない隣接セルの地形でYを持ち上げない
-        // Takes the max height, and the height lattice step of the terrain that returned it, from the occupied cells only, so a neighbouring cell never lifts Y
-        public static bool TryGetFootprintMaxGroundHeight(Vector3Int blockPos, BlockDirection blockDirection, Vector3Int blockSize, out float maxHeight, out float maxHeightQuantizationStep)
+        // ブロックが占有するセルの地形だけから最高点を出す。占有していない隣接セルの地形でYを持ち上げない
+        // Takes the max height from the occupied cells only, so a neighbouring cell never lifts Y
+        public static bool TryGetFootprintMaxGroundHeight(Vector3Int blockPos, BlockDirection blockDirection, Vector3Int blockSize, out float maxHeight)
         {
             maxHeight = float.NegativeInfinity;
-            maxHeightQuantizationStep = 0f;
 
             // out引数はローカル関数から書けないため、探査中はローカルへ集める
             // Out parameters cannot be written from local functions, so probing collects into locals
             var highest = float.NegativeInfinity;
-            var highestQuantizationStep = 0f;
             var (minPos, maxPos) = blockPos.GetWorldBlockBoundingBox(blockDirection, blockSize);
 
             // boundingBoxは3次元なので水平の占有セルはXとZで組む。Vector2の暗黙変換に任せると鉛直Yを渡してz=0を探査してしまう
@@ -79,7 +77,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Ground
             }
 
             maxHeight = highest;
-            maxHeightQuantizationStep = highestQuantizationStep;
             return !float.IsNegativeInfinity(maxHeight);
 
             #region Internal
@@ -101,15 +98,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Ground
                 return true;
             }
 
-            // 最高点を更新した探査の地形から格子1段を取る
-            // The lattice step comes from the terrain of the probe that raised the max
+            // 探査点の地表で最高点を更新する
+            // Raise the max with the probed ground height
             bool TryProbeHeight(float worldX, float worldZ)
             {
                 if (!TryRaycastGround(worldX, worldZ, out var groundHit)) return false;
-                if (groundHit.point.y <= highest) return true;
-
-                highest = groundHit.point.y;
-                highestQuantizationStep = GroundHeightQuantization.StepOf(groundHit.collider);
+                highest = Mathf.Max(highest, groundHit.point.y);
                 return true;
             }
 

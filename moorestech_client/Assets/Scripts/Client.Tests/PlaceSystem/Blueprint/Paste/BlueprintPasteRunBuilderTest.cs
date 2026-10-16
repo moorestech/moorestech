@@ -65,11 +65,11 @@ namespace Client.Tests.PlaceSystem
         {
             var start = new Vector3Int(6000, 0, 7000);
             var footprint = new Vector3Int(width, 4, depth);
-            CreateGround(new Vector3(6000 + width * 1.5f, 5f, 7000 + depth * 0.5f), new Vector3(width * 3, 1, depth));
+            CreateGround(new Vector3(6000 + width * 1.5f, 4.7f, 7000 + depth * 0.5f), new Vector3(width * 3, 1, depth));
 
             // 末尾の高地だけ底面探査へ含める
             // Include only the raised tail terrain inside the footprint probe.
-            CreateGround(new Vector3(6000 + width * 3 - 0.5f, 14f, 7000 + depth - 0.5f), Vector3.one);
+            CreateGround(new Vector3(6000 + width * 3 - 0.5f, 13.7f, 7000 + depth - 0.5f), Vector3.one);
             CreateGround(new Vector3(6000 + width * 3 + 0.5f, 80f, 7000 + depth - 0.5f), Vector3.one);
             Physics.SyncTransforms();
 
@@ -88,8 +88,8 @@ namespace Client.Tests.PlaceSystem
         {
             var anchor = new Vector3Int(6000, 0, 7000);
             var footprint = new Vector3Int(2, 4, 3);
-            CreateGround(new Vector3(6001, 5, 7001.5f), new Vector3(2, 1, 3));
-            CreateGround(new Vector3(6001.5f, 14, 7002.5f), Vector3.one);
+            CreateGround(new Vector3(6001, 4.7f, 7001.5f), new Vector3(2, 1, 3));
+            CreateGround(new Vector3(6001.5f, 13.7f, 7002.5f), Vector3.one);
             Physics.SyncTransforms();
 
             // 低いカーソル段を先に補正してから縦のドラッグ始点へ保存する
@@ -108,8 +108,8 @@ namespace Client.Tests.PlaceSystem
             var startAnchor = new Vector3Int(6000, 7, 7000);
             var cursorAnchor = new Vector3Int(6004, 7, 7000);
             var footprint = new Vector3Int(2, 4, 3);
-            CreateGround(new Vector3(6003, 5, 7001.5f), new Vector3(6, 1, 3));
-            CreateGround(new Vector3(6001.5f, 14, 7002.5f), Vector3.one);
+            CreateGround(new Vector3(6003, 4.7f, 7001.5f), new Vector3(6, 1, 3));
+            CreateGround(new Vector3(6001.5f, 13.7f, 7002.5f), Vector3.one);
             Physics.SyncTransforms();
 
             // 同じヒット段で始点だけ底面最高点が高い状況を作る

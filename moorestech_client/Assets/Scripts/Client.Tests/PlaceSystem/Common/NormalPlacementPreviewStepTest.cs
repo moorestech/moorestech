@@ -27,11 +27,11 @@ namespace Client.Tests.PlaceSystem.Common
         public void SetUp()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            // 地表は30.6。底セル30は可、29だけ埋まる
-            // The surface is 30.6: base cell 30 is clear, while 29 is sunk
+            // 地表は30.3。底セル30は可、29だけ埋まる
+            // The surface is 30.3: base cell 30 is clear, while 29 is sunk
             _ground = GameObject.CreatePrimitive(PrimitiveType.Cube);
             _ground.layer = LayerConst.GroundLayer;
-            _ground.transform.position = new Vector3(501.5f, 30.1f, 500.5f);
+            _ground.transform.position = new Vector3(501.5f, 29.8f, 500.5f);
             _ground.transform.localScale = new Vector3(20f, 1f, 20f);
             Physics.SyncTransforms();
         }

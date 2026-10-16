@@ -7,8 +7,8 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Ground
 {
     /// <summary>
-    ///     地形めり込みの唯一の判定。底から1セルより深く沈んだら埋まり（ADR 0081）
-    ///     The single terrain-sink judgement: buried when sunk deeper than one cell from the bottom (ADR 0081)
+    ///     地形めり込みの唯一の判定。底面から許容量より深く沈んだら埋まり（ADR 0082）
+    ///     The single terrain-sink judgement: buried when sunk deeper than the allowance below the bottom (ADR 0082)
     /// </summary>
     public static class PlacementTerrainSinkQuery
     {
@@ -17,8 +17,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Ground
             // 地表が無い場所には埋まりようがない
             // Nothing can be buried where there is no ground
             // silent-ok: 地表欠落は設置Y解決側がGroundNotFoundとして理由行に出す / プレイヤーがツールチップで気づく
-            if (!GroundHeightProbe.TryGetFootprintMaxGroundHeight(blockPos, blockDirection, blockSize, out var groundMax, out var step)) return false;
-            return IsSunkAbove(blockPos.y, groundMax, step);
+            if (!GroundHeightProbe.TryGetFootprintMaxGroundHeight(blockPos, blockDirection, blockSize, out var groundMax)) return false;
+            return IsSunkAbove(blockPos.y, groundMax);
         }
 
         public static List<bool> DetectSunkCells(IReadOnlyList<PlaceInfo> placeInfos)
@@ -32,11 +32,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Ground
             return sinks;
         }
 
-        // 設置Y決定と同じ許容誤差で「地形が自然に置くセル」を出し、底セルより上なら埋まり
-        // Derive the terrain's natural cell with the same tolerance as Y resolution; above the base cell means buried
-        internal static bool IsSunkAbove(int blockBaseCellY, float groundMaxHeight, float heightQuantizationStep)
+        // 設置Y決定と同じ規則で「沈みが許容量に収まる最低セル」を出し、底セルがそれより下なら埋まり
+        // Derive the lowest cell within the sink allowance with the Y-resolution rule; a base cell below it is buried
+        internal static bool IsSunkAbove(int blockBaseCellY, float groundMaxHeight)
         {
-            return blockBaseCellY < PlacementGroundCellResolver.ResolveCellY(groundMaxHeight, heightQuantizationStep, 0);
+            return blockBaseCellY < PlacementGroundCellResolver.ResolveCellY(groundMaxHeight, 0);
         }
     }
 }
