@@ -897,7 +897,7 @@ git commit -m "feat: 設定画面に走りのトグル/ホールド切替を追�
 
 ### Task 6（必須・最終）: PR作成
 
-- [ ] セッション終了可能状態にすること: pr-createスキルでPRを作成し、masterとのコンフリクトがあればmasterをマージして解消・コンパイル確認のうえpushする（解消の実作業はpr-create経由でopus subagentに委譲される）。全作業がコミット・push済みで、このセッションをそのまま閉じてもPRがマージ可能な状態になっていることを確認して終える。
+- [x] セッション終了可能状態にすること: pr-createスキルでPRを作成し、masterとのコンフリクトがあればmasterをマージして解消・コンパイル確認のうえpushする（解消の実作業はpr-create経由でopus subagentに委譲される）。全作業がコミット・push済みで、このセッションをそのまま閉じてもPRがマージ可能な状態になっていることを確認して終える。
 
 ---
 
@@ -921,3 +921,5 @@ git commit -m "feat: 設定画面に走りのトグル/ホールド切替を追�
 - 状態保持は既存保持裁定、反転時点は既存単独押し離し裁定とADR 0082決定8に従う。旧裁定記録は上書きしない。
 - onAnyButtonPressの一イベント一ボタン受容というagent前提を撤回する。StarterAssetsInputsがInputSystemイベント内の全新規押下を記録し、Sprint開始後にも取消を適用する。先行Wは数えない。
 - 不正保存値はToggleへ実修復し、必須recoveredInvalidPreference boolで設定画面へ通知する。起動中の復旧記録は有効設定の明示操作で解除する。
+
+PR #1518 作成・報告ページ公開済み。masterはHEADの祖先で取り込み残なし、MERGEABLE確認済み。最終完了チェックをコミット・pushし、報告headを同期する。
