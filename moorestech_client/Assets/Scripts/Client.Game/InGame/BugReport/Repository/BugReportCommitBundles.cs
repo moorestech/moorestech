@@ -81,16 +81,15 @@ namespace Client.Game.InGame.BugReport
 
                 // 受信側が取得できるoriginの公開済みSHAだけ省略する
                 // Omit only published SHAs reachable from the receiver's origin
-                if (!RepositoryStateProbe.TryGit(root, $"for-each-ref --contains {commit} --format=%(refname) refs/remotes/origin/", out var remoteRefs, out error))
-                {
-                    Record(label, CommitBundleResultKind.RemoteRefsQueryFailed, null, error);
-                    return;
-                }
-                if (!string.IsNullOrWhiteSpace(remoteRefs))
+                var localOk = RepositoryStateProbe.TryGit(root, $"for-each-ref --contains {commit} --format=%(objectname)%09%(refname) refs/remotes/origin/", out var remoteRefs, out error);
+                if (localOk && !string.IsNullOrWhiteSpace(remoteRefs) &&
+                    RepositoryStateProbe.TryGit(root, "ls-remote --heads origin", out var publishedRefs, out error) &&
+                    remoteRefs.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries).Any(line => publishedRefs.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries).Contains(line.Trim().Replace("refs/remotes/origin/", "refs/heads/"))))
                 {
                     Record(label, CommitBundleResultKind.AlreadyPublished, null, null);
                     return;
                 }
+                UnityEngine.Debug.LogWarning($"[BugReport] {label}: origin publication not confirmed; creating bundle ({error ?? "no matching current origin tip"})");
 
                 // bundleは名前付きrefを要求する。作業ツリーには触れず、一時refを必ず解放する
                 // Bundles require a named ref; never touch the working tree and always release the temporary ref

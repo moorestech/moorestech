@@ -33,6 +33,22 @@ namespace Client.Tests.PlaytestReceiver
             PlaytestLaunchProfile.ResetOnPlayMode();
             Directory.Delete(_root, true);
         }
+        [Test]
+        public void 読めない箱と正常箱が共存しても正常箱を処理する()
+        {
+            if (System.Environment.OSVersion.Platform == System.PlatformID.Win32NT || System.Environment.UserName == "root")
+                Assert.Ignore("chmodの権限拒否を再現できる非rootのUnixで検証する");
+            var bad = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "bad", ("manifest.json", "{}"));
+            using (var chmod = System.Diagnostics.Process.Start("/bin/chmod", "000 " + bad)) { chmod.WaitForExit(); Assert.AreEqual(0, chmod.ExitCode); }
+            try
+            {
+                var api = new FakeUploadApi();
+                new PlaytestUploadRunner(api, _directories, new FakeTicketProvider("aabb")).RequestUploadWith(new PlaytestDeveloperTokenRoute("token"));
+                Assert.AreEqual(1, api.CompleteCount);
+                Assert.IsInstanceOf<PlaytestOutboxInventoryUnavailable>(((PlaytestDeliveryPending)PlaytestDeliveryStatusBoard.Current.Value).Inventory);
+            }
+            finally { using var chmod = System.Diagnostics.Process.Start("/bin/chmod", "700 " + bad); chmod.WaitForExit(); }
+        }
 
         [Test]
         public void 恒久失敗箱は完了とせずローカル保存時も失敗件数を残す()

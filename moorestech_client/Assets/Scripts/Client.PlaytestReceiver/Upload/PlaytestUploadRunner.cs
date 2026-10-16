@@ -97,9 +97,6 @@ namespace Client.PlaytestReceiver.Upload
                     acquired = true;
                     var initial = PlaytestOutboxScanner.ReadDeliveryInventory(_directories, route.Scope);
                     PlaytestDeliveryStatusBoard.Set(new PlaytestDeliveryPending(initial));
-                    // 件数不明では送信せず、次回の実読取で復帰する
-                    // Do not upload unknown inventory; a later successful read restores delivery
-                    if (initial is PlaytestOutboxInventoryUnavailable) return;
                     var uploader = new PlaytestUploader(_api, ResolveSession(), _directories, PlaytestUploadRetrySchedule.Default, route.Scope);
                     var summary = await uploader.UploadPendingAsync(Application.exitCancellationToken);
                     // 最新要求がローカル保存なら旧走行の結果で上書きせず、残数だけ更新する

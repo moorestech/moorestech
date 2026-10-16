@@ -23,6 +23,23 @@ namespace Client.Tests.PlaytestReceiver
         {
             Directory.Delete(_root, true);
         }
+        [Test]
+        public void 読めない箱と正常箱が共存しても正常箱を処理する()
+        {
+            if (System.Environment.OSVersion.Platform == System.PlatformID.Win32NT || System.Environment.UserName == "root")
+                Assert.Ignore("chmodの権限拒否を再現できる非rootのUnixで検証する");
+            var directories = PlaytestOutboxTestBoxes.Directories(_root);
+            MakeBox(directories.ReportOutbox, "good", true);
+            var bad = MakeBox(directories.ReportOutbox, "bad", true);
+            using (var chmod = System.Diagnostics.Process.Start("/bin/chmod", "000 " + bad)) { chmod.WaitForExit(); Assert.AreEqual(0, chmod.ExitCode); }
+            try
+            {
+                Assert.AreEqual("good", PlaytestOutboxScanner.ScanPending(directories, Client.PlaytestReceiver.Delivery.PlaytestOutboxScope.ReportsOnly).Single().BundleId);
+                Assert.AreEqual("good", PlaytestOutboxScanner.ScanForEvidence(directories).Single().BundleId);
+                Assert.IsInstanceOf<Client.PlaytestReceiver.Delivery.PlaytestOutboxInventoryUnavailable>(PlaytestOutboxScanner.ReadDeliveryInventory(directories, Client.PlaytestReceiver.Delivery.PlaytestOutboxScope.ReportsOnly));
+            }
+            finally { using var chmod = System.Diagnostics.Process.Start("/bin/chmod", "700 " + bad); chmod.WaitForExit(); }
+        }
 
         [Test]
         public void 報告専用の範囲では進行記録を走査しない()

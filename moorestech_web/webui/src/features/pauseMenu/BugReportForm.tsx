@@ -89,7 +89,19 @@ export function BugReportForm({ status, delivery, draft }: Props) {
   // Delivery status is independent of permission to submit
   function describeDelivery(): string {
     if (delivery.kind === "allSent") return t(L.ui.bugReport.deliveryAllSent);
-    if (delivery.inventory.kind === "unavailable") return t(L.ui.bugReport.deliveryInventoryUnavailable, { reason: delivery.inventory.reason });
+    if (delivery.inventory.kind === "unavailable") {
+      const inventory = t(L.ui.bugReport.deliveryInventoryUnavailable, { reason: delivery.inventory.reason });
+      const keys = {
+        developerTokenMissing: L.ui.bugReport.deliveryLocalOnlyTokenMissingUnknown,
+        developerTokenUnreadable: L.ui.bugReport.deliveryLocalOnlyTokenUnreadableUnknown,
+        distributionUnavailable: L.ui.bugReport.deliveryLocalOnlyDistributionUnavailableUnknown,
+      };
+      switch (delivery.kind) {
+        case "pending": return inventory;
+        case "refused": return `${t(L.ui.bugReport.deliveryRefusedUnknown)} / ${inventory}`;
+        case "localOnly": return `${t(keys[delivery.reason])} / ${inventory}`;
+      }
+    }
     switch (delivery.kind) {
       case "pending": return t(L.ui.bugReport.deliveryPending, { count: delivery.inventory.pendingCount });
       case "refused": return t(L.ui.bugReport.deliveryRefused, { count: delivery.inventory.pendingCount });

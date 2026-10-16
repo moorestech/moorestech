@@ -64,16 +64,24 @@ namespace Client.Tests.BugReport.Repository
             Assert.That(Git(_repository, "for-each-ref refs/bugreport"), Is.Empty);
             Assert.That(manifest.Missing, Is.Empty);
         }
-
-        [TestCase("master")]
-        [TestCase("feature/published")]
-        public void PublishedCommitNeedsNoBundle(string branch)
+        [TestCase("master", "published")]
+        [TestCase("feature/published", "published")]
+        [TestCase("feature/published", "deleted")]
+        [TestCase("feature/published", "rewritten")]
+        [TestCase("feature/published", "unavailable")]
+        public void OnlyCurrentOriginPublicationCanOmitBundle(string branch, string state)
         {
             Git(_repository, $"push origin HEAD:refs/heads/{branch}");
+            // 別クローン側の変更として追跡refを古いまま残す
+            // Change the remote directly to leave this clone's tracking ref stale
+            var origin = Path.Combine(_root, "origin.git");
+            if (state == "deleted") Git(origin, $"update-ref -d refs/heads/{branch}");
+            if (state == "rewritten") Git(origin, $"update-ref refs/heads/{branch} {_published}");
+            if (state == "unavailable") Git(_repository, "remote set-url origin missing-origin.git");
             var manifest = Write(_unpublished);
             Assert.That(manifest.Missing, Is.Empty);
-            Assert.That(Status(), Does.Contain("commits.bundle: not-needed-remote-has-commit"));
-            Assert.That(File.Exists(Path.Combine(_root, "box/commits.bundle")), Is.False);
+            Assert.That(Status(), Does.Contain(state == "published" ? "commits.bundle: not-needed-remote-has-commit" : "commits.bundle: created"));
+            Assert.That(File.Exists(Path.Combine(_root, "box/commits.bundle")), Is.EqualTo(state != "published"));
         }
 
         [Test]
@@ -92,7 +100,6 @@ namespace Client.Tests.BugReport.Repository
             Assert.That(manifest.Missing[0].Item, Is.EqualTo("repo/commits.bundle"));
             Assert.That(Git(_repository, "for-each-ref refs/bugreport"), Is.Empty);
         }
-
         [Test]
         public void MissingOriginStillCreatesSelfContainedBundle()
         {
@@ -103,7 +110,6 @@ namespace Client.Tests.BugReport.Repository
             Assert.That(File.Exists(Path.Combine(_root, "box/commits.bundle")), Is.True);
             Assert.That(Git(_repository, "for-each-ref refs/bugreport"), Is.Empty);
         }
-
         [Test]
         public void IndependentMasterCommitIsImportedAndItsTemporaryRefIsRemoved()
         {
@@ -126,7 +132,6 @@ namespace Client.Tests.BugReport.Repository
             Assert.That(Git(master, "for-each-ref refs/bugreport"), Is.Empty);
             Assert.That(manifest.Missing, Is.Empty);
         }
-
         [Test]
         public void LegacyCompletionKeepsCapturedShaInsteadOfCurrentHead()
         {
@@ -142,7 +147,6 @@ namespace Client.Tests.BugReport.Repository
             Assert.AreEqual(_unpublished, (string)saved["repository"]["commit"]);
             Assert.That(Git(_repository, $"bundle list-heads \"{Path.Combine(box, "repo/commits.bundle")}\""), Does.StartWith(_unpublished));
         }
-
         [TestCase(false)]
         [TestCase(true)]
         public void DirectLegacyEntryPreservesDeclaredOrAlreadyCompletedBytes(bool completed)
@@ -166,19 +170,16 @@ namespace Client.Tests.BugReport.Repository
             Assert.AreEqual("fixed declaration", File.ReadAllText(declared));
             Assert.False(File.Exists(Path.Combine(box, "repo/commits.bundle")));
         }
-
         private BugReportManifest Write(string commit)
         {
             var manifest = new BugReportManifest { Repository = new RepositoryState { Commit = commit } };
             BugReportCommitBundles.Write(Path.Combine(_root, "box"), "test", manifest, _repository, null);
             return manifest;
         }
-
         private string Status()
         {
             return File.ReadAllText(Path.Combine(_root, "box", BugReportBundleLayout.BundleStatusFileName));
         }
-
         private static string Git(string directory, string arguments)
         {
             using var process = Process.Start(new ProcessStartInfo("git", arguments)

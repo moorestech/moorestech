@@ -74,7 +74,15 @@ namespace Client.PlaytestReceiver.Upload
             {
                 foreach (var directory in EnumerateOutboxDirectories(outbox))
                 {
-                    var markers = ReadMarkers(directory);
+                    string[] markers;
+                    // 外部ディスク境界。読めない箱を隔離し、件数不明は在庫表示へ残す
+                    // Isolate unreadable boxes at the disk boundary; inventory still exposes the unknown count
+                    try { markers = ReadMarkers(directory); }
+                    catch (Exception error) when (error is IOException || error is UnauthorizedAccessException)
+                    {
+                        UnityEngine.Debug.LogWarning($"[PlaytestReceiver] cannot scan box {directory}: {error.Message}");
+                        continue;
+                    }
                     if (!markers.Contains(ReadyMarker)) continue;
                     if (IsDelivered(markers)) continue;
                     if (markers.Contains(FailedMarker) && !CanResume(directory, filePolicy, includeCompletionHolds)) continue;

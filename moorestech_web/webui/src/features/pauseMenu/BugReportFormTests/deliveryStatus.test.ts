@@ -40,3 +40,14 @@ it.each(["japanese", "english", "german", "korean"])("%s辞書で件数不明を
   expect(text).not.toContain("ui.bugReport.");
   act(() => renderer.unmount());
 });
+
+it.each(cases.filter(([delivery]) => delivery.kind === "refused" || delivery.kind === "localOnly"))("件数不明でも配送理由 %j を保持する", async (delivery, expected) => {
+  const renderer = await renderDelivery({ kind: "ready", missing: [] }, { ...delivery, inventory: { kind: "unavailable", reason: "access denied" } } as PauseMenuData["delivery"]);
+  await act(async () => loadProductionDictionaries("japanese"));
+  const text = renderer.root.findByProps({ "data-testid": "bug-report-delivery" }).children.join("");
+  expect(text).toContain(expected.split("（")[0]);
+  expect(text).toContain("access denied");
+  expect(text).not.toMatch(/0件|3件/);
+  expect(text).not.toContain("ui.bugReport.");
+  act(() => renderer.unmount());
+});
