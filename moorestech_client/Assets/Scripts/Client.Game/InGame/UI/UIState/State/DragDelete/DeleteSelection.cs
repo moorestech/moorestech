@@ -159,6 +159,10 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         {
             var key = target.GetDeleteTargetKey();
             if (_selectedTargets.ContainsKey(key)) return false;
+            // 破棄済みホバーはキーを読まず参照を解除する
+            // Clear a destroyed hover without reading its key
+            if (HoverPreview != null && IsDestroyed(HoverPreview, "hover")) HoverPreview = null;
+
             // 同じ論理キーでも旧ホバー自身の要求を解放して移譲する
             // Release the actual hover requester before transferring the same logical key
             if (HoverPreview != null && Equals(HoverPreview.GetDeleteTargetKey(), key))

@@ -1,13 +1,44 @@
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
+using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.UI.UIState.State.DragDelete;
 using Client.Tests.BuildUndo;
 using Client.Tests.UIState.Fakes;
 using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Client.Tests.UIState.DragDelete
 {
     public class DeleteSelectionPreviewTest
     {
+        [Test]
+        public void 破棄済みレールの旧ホバーがあっても別対象を箱へ追加できる()
+        {
+            var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
+            var oldGo = new GameObject("DestroyedRailHover");
+            oldGo.AddComponent<RailObjectIdCarrier>().SetRailObjectId(1);
+            var chain = oldGo.AddComponent<BezierRailChain>();
+            chain.SetUseGpuDeform(true);
+            var hovered = oldGo.AddComponent<DeleteTargetRail>();
+            hovered.SetParentBezierRailChain(chain);
+
+            // 実コンポーネントを破棄し、前フレームのホバー参照を残す
+            // Destroy the actual component while retaining the previous frame's hover
+            selection.SetHoverPreview(hovered);
+            Object.DestroyImmediate(oldGo);
+            var selected = new FakeDeleteTarget { Removable = true };
+            LogAssert.Expect(LogType.Warning, "[DragDelete] target was destroyed before hover");
+
+            // 例外なく追加され、破棄済み参照が解放される
+            // Addition succeeds without exceptions and clears the destroyed reference
+            var added = 0;
+            Assert.DoesNotThrow(() => added = selection.AddBoxTargets(new[] { selected }));
+            Assert.AreEqual(1, added);
+            Assert.AreEqual(1, selection.Count);
+            Assert.IsNull(selection.HoverPreview);
+            selection.CancelSelection();
+        }
+
         [TestCase(false, false)]
         [TestCase(false, true)]
         [TestCase(true, false)]
