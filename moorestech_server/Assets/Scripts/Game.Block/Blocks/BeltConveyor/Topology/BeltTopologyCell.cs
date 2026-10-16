@@ -18,9 +18,6 @@ namespace Game.Block.Blocks.BeltConveyor.Topology
         // 歯車を持ち、回転数で速度が変わるマスか
         // Whether the cell carries a gear and runs at a rotation-dependent speed
         public readonly bool IsGearDriven;
-        // 歯車を持ち、回転数で速度が変わるマスか
-        // Whether the cell carries a gear and runs at a rotation-dependent speed
-        public readonly bool IsGearDriven;
         // マスタの出力コネクターが複数ある分配器か（接続数とは無関係）
         // Splitter-type belt with several master output connectors, regardless of how many are connected
         public readonly bool IsSplitter;
