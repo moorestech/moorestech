@@ -1,4 +1,6 @@
 using System;
+using Client.Network.API;
+using Mooresmaster.Localization.Generated;
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
@@ -45,12 +47,25 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Completion
                 // Subscribe before sending the individual request
                 entry.Subscription = entry.Target.OnDeleteCompleted.Subscribe(result => Complete(entry, result));
             }
-            foreach (var entry in _entries) entry.Target.Delete();
+            foreach (var entry in _entries)
+            {
+                // 復元対象のUI期限だけを通知し、最終応答の購読と履歴予約は残す
+                // Report only the UI deadline for restorable targets, retaining response and history
+                if (entry.HasRecord) entry.Deadline = Observable.Timer(PacketExchangeManager.ResponseTimeout).Subscribe(_ =>
+                    Complete(entry, new DeleteCompletion(entry.Key, DeleteCompletionKind.Unconfirmed, LocalizationKeys.Ui.Tooltip.DeleteUndoAwaitingResult)));
+                entry.Target.Delete();
+            }
         }
 
         private void Complete(Entry entry, DeleteCompletion result)
         {
-            if (result.Kind == DeleteCompletionKind.Pending) { _completed.OnNext(result); return; }
+            if (result.Kind == DeleteCompletionKind.Pending || result.Kind == DeleteCompletionKind.Unconfirmed)
+            {
+                if (result.Kind == DeleteCompletionKind.Unconfirmed) Debug.LogWarning($"[DeleteBatch] final response still pending: {result.TargetKey} reason={result.DenyReason}");
+                _completed.OnNext(result);
+                return;
+            }
+            entry.Deadline?.Dispose();
             if (entry.HasRecord && !entry.RecordCompleted)
             {
                 entry.RecordCompleted = true;
@@ -65,17 +80,19 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Completion
             }
             if (result.Kind != DeleteCompletionKind.Succeeded) Debug.LogWarning($"[DeleteBatch] target={result.TargetKey} result={result.Kind} reason={result.DenyReason}");
             _completed.OnNext(result);
-            if (result.Kind != DeleteCompletionKind.Unconfirmed) entry.Subscription.Dispose();
+            entry.Subscription.Dispose();
         }
 
         private sealed class Entry
         {
             internal IDisposable Subscription;
+            internal IDisposable Deadline;
             internal bool RecordCompleted;
             internal readonly IDeleteTarget Target;
+            internal readonly object Key;
             internal readonly RemovedObjectCollector Captured;
             internal bool HasRecord => Captured.Objects.Count > 0 || Captured.UnrecordableCount > 0 || Captured.GetUnrecordableBlocks().Count > 0;
-            internal Entry(IDeleteTarget target, RemovedObjectCollector captured) { Target = target; Captured = captured; }
+            internal Entry(IDeleteTarget target, RemovedObjectCollector captured) { Target = target; Key = target.GetDeleteTargetKey(); Captured = captured; }
         }
     }
 }

@@ -98,7 +98,7 @@ namespace Client.Game.InGame.Block
             var block = BlockGameObject;
             // 応答寿命は表示体より長い。送信時の個体を指定する
             // The response outlives the view; address the instance captured at send time
-            var response = await ClientContext.VanillaApi.Response.Block.BlockRemoveIfInstance(
+            var response = await ClientContext.VanillaApi.Response.Block.BlockRemoveIfInstanceAwaitFinal(
                 block.BlockPosInfo.OriginalPos, block.BlockInstanceId, Application.exitCancellationToken);
             _isDeleteRequesting = false;
             if (response == null)

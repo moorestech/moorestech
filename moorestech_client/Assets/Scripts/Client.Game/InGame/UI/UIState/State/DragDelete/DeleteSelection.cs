@@ -43,15 +43,11 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         }
         // 左ボタン解放: カテゴリー固定を最前面へ戻す（離した直後のホバーが別カテゴリーも拾えるように）
         // Button release: return the category fix to frontmost so the next hover can pick any category
-        public void EndStroke()
-        {
-            AimFilter = DeleteAimFilter.Frontmost;
-        }
+        public void EndStroke() => AimFilter = DeleteAimFilter.Frontmost;
         public DeleteAddOutcome TryAddTarget(IDeleteTarget target)
         {
             if (_strokeCanceled) return DeleteAddOutcome.StrokeDead;
-            if (_results.IsPending(target.GetDeleteTargetKey())) return DeleteAddOutcome.NotRemovable(LocalizationKeys.Ui.Tooltip.DeleteRequestPending);
-            if (!target.IsRemovable(out var denyReason)) return DeleteAddOutcome.NotRemovable(denyReason);
+            if (!IsTargetSelectable(target, out var denyReason)) return DeleteAddOutcome.NotRemovable(denyReason);
             // ストロークカテゴリーと異なるカテゴリーは追加しない（混在防止）
             // Reject a target whose category differs from the stroke category (prevents mixing)
             if (!AimFilter.Accepts(target)) return DeleteAddOutcome.CategoryMismatch();
@@ -80,10 +76,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             HoverPreview = hovered;
             if (HoverPreview != null && !Contains(HoverPreview)) HoverPreview.SetRemovePreviewing();
         }
-        private bool Contains(IDeleteTarget target)
-        {
-            return _selectedTargets.ContainsKey(target.GetDeleteTargetKey());
-        }
+        private bool Contains(IDeleteTarget target) => _selectedTargets.ContainsKey(target.GetDeleteTargetKey());
         // 全選択を解除しストロークを無効化（ESC）
         // Clear all selections and cancel the stroke (ESC)
         public void CancelSelection()
@@ -125,7 +118,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         {
             SetHoverPreview(target);
             reason = null;
-            var removable = target != null && target.IsRemovable(out reason);
+            var removable = target != null && IsTargetSelectable(target, out reason);
             if (HasSelection()) return DeleteHoldSubject.None; // silent-ok: 集合の長押し対象は変更通知で更新済み / serviceが購読する
             return removable ? DeleteHoldSubject.Hovered(target.GetDeleteTargetKey()) : DeleteHoldSubject.None;
         }
@@ -153,13 +146,20 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             CancelSelection();
             return true;
         }
+        // 保留と対象自身の可否を箱・ホバー・追加で共有する
+        // Share pending and target eligibility across box, hover and addition
+        internal bool IsTargetSelectable(IDeleteTarget target, out LocalizationKey? reason)
+        {
+            reason = LocalizationKeys.Ui.Tooltip.DeleteRequestPending;
+            return !_results.IsPending(target.GetDeleteTargetKey()) && target.IsRemovable(out reason);
+        }
         public bool HasSelection() => 0 < _selectedTargets.Count;
         // 既に同じ論理対象が選択済みなら何もしない（Revisionも進めない）
         // No-op when the same logical target is already selected (the revision stays)
         private bool Add(IDeleteTarget target)
         {
             var key = target.GetDeleteTargetKey();
-            if (_selectedTargets.ContainsKey(key) || _results.IsPending(key)) return false; // silent-ok: 選択済み/結果待ちの対象を重複送信しない / 選択赤と結果ツールチップで表示
+            if (_selectedTargets.ContainsKey(key) || !IsTargetSelectable(target, out _)) return false; // silent-ok: 選択済み/結果待ちの対象を重複送信しない / 選択赤と結果ツールチップで表示
             // 破棄済みホバーはキーを読まず参照を解除する
             // Clear a destroyed hover without reading its key
             if (HoverPreview != null && IsDestroyed(HoverPreview, "hover")) HoverPreview = null;

@@ -29,7 +29,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
         // Report each diagnostic once per box operation, then allow it for the next box
         internal void ClearDiagnostics() => _reportedDiagnostics.Clear();
 
-        internal IReadOnlyList<IDeleteTarget> Resolve(Vector3Int min, Vector3Int max)
+        internal IReadOnlyList<IDeleteTarget> Resolve(Vector3Int min, Vector3Int max, DeleteSelection selection)
         {
             var targets = new List<IDeleteTarget>();
             var newlyReportedSkipped = 0;
@@ -94,7 +94,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
             // Drop non-removable targets with their reason logged so count, empty-check and add share one list
             void AddIfRemovable(IDeleteTarget target)
             {
-                if (target.IsRemovable(out var denyReason))
+                if (selection.IsTargetSelectable(target, out var denyReason))
                 {
                     targets.Add(target);
                     return;

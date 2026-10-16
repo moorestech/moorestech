@@ -11,9 +11,11 @@
 ## 現行Interfaces（レビュー反映後）
 
 - `IDeleteTarget.OnDeleteCompleted: IObservable<DeleteCompletion>`。Pending/Succeeded/Rejected/Unconfirmedと論理対象キー・理由を運搬する。既存個別応答を使い、車両だけ既存snapshotのtick完了後の不在・直列要求への拒否通知を使う。
+- `DeleteSelection.IsTargetSelectable(IDeleteTarget,out LocalizationKey?)`は保留中か否かと対象自身の撤去可否を統合し、`DeleteBoxTargetResolver.Resolve(min,max,selection)`、追加、ホバーが共有する。
+- `PacketExchangeManager.GetFinalPacketResponse<T>`と`BlockRemoveIfInstanceAwaitFinal`はUI期限と独立した最終応答取得口。一般の要求APIは従来のタイムアウトを維持する。
 - `DeleteSelection.UpdateStroke(DeleteAimResult)`、`UpdateHoverPreview(IDeleteTarget,out LocalizationKey?)`、`TryCommit(DeleteHoldSubject,out LocalizationKey?)`、`TryCancelSelection()`。`OnSelectionChanged`がRevision変更を通知する。
 - `DeleteHoldConfirm.SetSubject(DeleteHoldSubject)`、`Advance(bool isKeyHeld,float deltaTime)`。選択変化は通知で対象をプッシュし、入力と照準は従来のフレーム更新で取得する。
-- `DeleteCommitBatch`が対象別復元情報を採取し成功分だけで履歴予約を完成する。車両未確認はUndo完成条件に含めない。`DeleteResultFeedback`がホバーと独立した結果と通知を保持する。
+- `DeleteCommitBatch`が対象別復元情報を採取し、非車両の最終応答が揃ってから成功分だけで履歴予約を完成する。10秒の表示期限はUnconfirmed通知のみで、既存sequenceの応答待機と予約を解除しない。車両未確認はUndo完成条件に含めない。`DeleteResultFeedback`がホバーと独立した結果と通知を保持する。
 - `BezierCellBoxIntersection.Intersects(Vector3Int min,Vector3Int max)`。ownerのSetControlPointsで係数を作り、六境界との交差を判定する。旧samplerは廃止。
 - `RightShortPressInputService.TryConsumeShortPressOutsideUi(bool)`、`PlacementTargetPickService.TryPickTargetUnderCursor(bool,out IPlacementTarget)`、`DeleteObjectService.Update(float,bool)`はstateで一度得たUI判定を共有する。
 - `DeleteBoxSelection.EndCell`は最後の有効終点。無効カーソル中もその可視箱を再解決して件数を更新し、理由表示と確定拒否を行う。
@@ -2263,3 +2265,9 @@ Interfaces: BezierCellBoxIntersection.Intersects(min,max)は連続3次Bezierと�
 DeleteObjectState.GetNextUpdateがUIポインター判定を1回取得し、右短押し、スポイト、削除サービスへ同じboolを渡す。helper内の再問い合わせを廃止し他state callerも明示値を渡す。
 
 DeleteBoxSelectionは最後の有効終点を保持する（始点選択時は始点を初期終点とする）。カーソルの面が解決できない間も、その箱を表示して毎フレーム対象を解決し件数を表示する。既存の地面未検出理由を併記してクリック確定を拒否する。有効なカーソルが戻れば終点を更新する。件数そのものはキャッシュしない。
+
+## W7欠落補修（委任既定）
+- 非車両の10秒経過でwaiterを破棄すると遅延拒否/成功を失うため、期限なしの最終応答取得と10秒のUI通知を分離する。既存sequenceと個別要求を保持し、再送はしない。
+- 未確認の非車両を含む当該バッチは履歴予約を最終結果まで保持する。消費済みUndoへ後付けせず、後続バッチは先にUndo可能。永久応答欠落では対象の再選択と当該バッチUndoが保留されることをゲーム内に表示する。車両は記録なしのため他対象Undoを止めない。
+- 選択可否はモデルの共通口に揃え、保留対象だけの箱は0件、ホバー長押しsubjectはNone。遅延拒否が確定すれば再選択可能。
+- 新しいユーザー裁定ではなく既要件の欠落補修。サーバー、個別プロトコル、D5/D7は変更しない。

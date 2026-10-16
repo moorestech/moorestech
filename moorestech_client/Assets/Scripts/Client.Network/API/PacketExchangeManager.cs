@@ -92,7 +92,7 @@ namespace Client.Network.API
                 var expired = new List<int>();
                 foreach (var kv in _responseWaiters)
                 {
-                    if ((DateTime.Now - kv.Value.SendTime).TotalSeconds >= kv.Value.TimeoutSeconds)
+                    if (kv.Value.HasExpired(DateTime.Now))
                         expired.Add(kv.Key);
                 }
 
@@ -121,6 +121,14 @@ namespace Client.Network.API
         public async UniTask<TResponse> GetPacketResponse<TResponse>(ProtocolMessagePackBase request, CancellationToken ct) where TResponse : ProtocolMessagePackBase
         {
             var (response, _) = await GetPacketResponseWithReason<TResponse>(request, ct);
+            return response;
+        }
+
+        // UIの期限と独立して、同じsequenceの最終応答を保持する
+        // Retain the final response for the same sequence independently of the UI deadline
+        public async UniTask<TResponse> GetFinalPacketResponse<TResponse>(ProtocolMessagePackBase request, CancellationToken ct) where TResponse : ProtocolMessagePackBase
+        {
+            var (response, _) = await GetPacketResponseWithReason<TResponse>(request, ct, 0);
             return response;
         }
 

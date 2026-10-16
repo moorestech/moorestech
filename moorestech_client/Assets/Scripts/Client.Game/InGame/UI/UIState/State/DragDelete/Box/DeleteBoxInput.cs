@@ -98,7 +98,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
             void UpdateSelectingEnd()
             {
                 var (min, max) = CellRangeBox.Calc(_selection.StartCell, _selection.EndCell);
-                var targets = _resolver.Resolve(min, max);
+                var targets = _resolver.Resolve(min, max, deleteSelection);
                 tooltipLines.Add(new TooltipLine(LocalizationKeys.Ui.Tooltip.DeleteBoxTargetsInRange, new[] { targets.Count.ToString() }));
                 if (targets.Count == 0) tooltipLines.Add(new TooltipLine(LocalizationKeys.Ui.Tooltip.DeleteBoxEmptyRange));
                 GetVisualizer().ShowSelectingEnd(_selection.StartCell, _selection.EndCell, min, max);
