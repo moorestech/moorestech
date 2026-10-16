@@ -1,7 +1,7 @@
 // 削除ツールで電線・歯車チェーンを切断し、ブロック撤去に巻き込まれた電線・チェーンもCtrl+Zで同じ種類のまま復元されることの録画検証（レールは train/delete-tool-pier-removal-undo-rail.cs）
-// 記録フックは DragDeleteSelection.CommitDelete と BuildUndoService（Ctrl+Z）にあるため、操作は必ず削除ツールUIへの注入で行う
+// 記録フックは DeleteSelection.CommitDelete と BuildUndoService（Ctrl+Z）にあるため、操作は必ず削除ツールUIへの注入で行う
 // Recorded check: the delete tool cuts wires/chains, and Ctrl+Z restores cut and cascaded wires/chains with the same tool kind (rails: train/delete-tool-pier-removal-undo-rail.cs)
-// Recording hooks live in DragDeleteSelection.CommitDelete and BuildUndoService (Ctrl+Z), so every operation is injected into the delete-tool UI
+// Recording hooks live in DeleteSelection.CommitDelete and BuildUndoService (Ctrl+Z), so every operation is injected into the delete-tool UI
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -102,6 +102,7 @@ return PlaytestRunner.Run("delete-tool-cut-and-undo-connection-lines", new Playt
     SemanticInput.MouseButtonDown(0); await UniTask.DelayFrame(10);
     await AimAtBlock(chainC);
     await UniTask.DelayFrame(10); SemanticInput.MouseButtonUp(0);
+    await HoldDeleteConfirm();
     await p.Until(() => p.GetBlock(poleA) == null && p.GetBlock(chainC) == null, 15f, "Step3: AとCが撤去される");
     p.Assert(Connector(poleB).WireConnections.Count == 0 && !ChainPole(chainD).ContainsChainConnection(chainCIdBefore), "Step3: 付いていた電線・チェーンも消える");
     await p.Until(() => !HasClientBlock(poleA) && !HasClientBlock(chainC), 10f, "Step3: クライアントからもA・Cが消える");
@@ -119,6 +120,18 @@ return PlaytestRunner.Run("delete-tool-cut-and-undo-connection-lines", new Playt
     p.Assert(denied.Count == 0 && badLogs.Count == 0, $"全区間: 拒否通知・復元失敗・例外ログが無い: {string.Join(" | ", denied.Concat(badLogs))}");
 
     #region Internal
+
+    // 選択後にFを2秒長押しして撤去を確定する
+    // Hold F for two seconds to confirm deletion after selecting
+    async UniTask HoldDeleteConfirm()
+    {
+        p.Note("F長押しで削除を確定");
+        SemanticInput.KeyDown(Key.F);
+        await p.WaitSeconds(Client.Game.InGame.UI.UIState.State.DragDelete.Confirm.DeleteHoldConfirm.HoldSeconds + 0.3f);
+        SemanticInput.KeyUp(Key.F);
+        await p.WaitSeconds(0.5f);
+    }
+
 
     Guid ToolGuid(string toolName) => Core.Master.MasterHolder.ConnectToolMaster.All.First(t => t.Name == toolName).ConnectToolGuid;
     bool HasClientBlock(Vector3Int pos) => ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(pos, out _);
@@ -162,6 +175,7 @@ return PlaytestRunner.Run("delete-tool-cut-and-undo-connection-lines", new Playt
         var capsules = line.GetComponentsInChildren<CapsuleCollider>();
         await AimUntil(capsules.OrderBy(c => Math.Abs(Array.IndexOf(capsules, c) - capsules.Length / 2)).Select(c => c.transform.position), line);
         SemanticInput.MouseButtonDown(0); await UniTask.DelayFrame(10); SemanticInput.MouseButtonUp(0);
+        await HoldDeleteConfirm();
         await UniTask.DelayFrame(3); await p.WaitSeconds(0.5f);
     }
 
