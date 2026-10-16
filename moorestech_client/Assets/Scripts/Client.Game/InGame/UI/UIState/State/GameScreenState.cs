@@ -1,5 +1,5 @@
 using Client.Game.InGame.Control;
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Mooresmaster.Localization.Generated;
 using System;
 using Client.Game.Common;
