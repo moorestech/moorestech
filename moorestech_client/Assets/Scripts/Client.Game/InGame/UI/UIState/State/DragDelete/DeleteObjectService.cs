@@ -59,7 +59,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             if (_isStroking) AddDenyLine(_selection.UpdateStroke(aim));
             var subject = _selection.UpdateHoverPreview(isPointerOverUi || _isStroking ? null : hovered, out var hoverReason);
             AddDenyLine(hoverReason);
-            _hold.SetSubject(subject);
+            if (!_selection.HasSelection()) _hold.SetSubject(subject);
             if (InputManager.Playable.ScreenLeftClick.GetKeyUp) EndStroke();
 
             UpdateHoldConfirm();
@@ -97,7 +97,8 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             void UpdateHoldConfirm()
             {
                 if (!_hold.Advance(InputManager.Playable.Interact.GetKey, deltaTime)) return;
-                if (!_selection.TryCommit(subject, out var reason)) AddDenyLine(reason);
+                var confirmedSubject = _selection.HasSelection() ? DeleteHoldSubject.Selection(_selection.Revision) : subject;
+                if (!_selection.TryCommit(confirmedSubject, out var reason)) AddDenyLine(reason);
                 _isStroking = false;
             }
 

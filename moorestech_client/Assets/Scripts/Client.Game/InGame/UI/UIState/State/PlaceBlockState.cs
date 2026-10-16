@@ -96,7 +96,6 @@ namespace Client.Game.InGame.UI.UIState.State
 
             #endregion
         }
-
         public UITransitContext GetNextUpdate()
         {
             var isPointerOverUi = UiPointerHitTest.IsPointerOverAnyUi();
@@ -146,13 +145,11 @@ namespace Client.Game.InGame.UI.UIState.State
             // TPS rotates the placement aim only during right-drag
             _cameraPolicyService.UpdateRotationInput();
             if (_placementTargetPickService.TryPickTargetUnderCursor(isPointerOverUi, out var pickedTarget)) _placeSystemStateController.SetTarget(pickedTarget, PlacementOrigin.NonHotbar);
-
             _placeSystemStateController.ManualUpdate();
 
             // カメラ追従の距離カリングだけを駆動する。表示種別は設置対象の購読がプッシュ済み
             // Drive only the camera-following distance culling; the vein kind was already pushed by the target subscription
             _mapVeinRangeView.ManualUpdate();
-
             // Ctrl+Z判定はサービス内部
             // Ctrl+Z detection lives inside the service
             _buildUndoService.ManualUpdate();

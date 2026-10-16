@@ -63,8 +63,8 @@ namespace Client.Game.InGame.Entity.Object
             ClientDIContext.TrainCarRemovalRequests.Remove(TrainCarEntityObject.TrainCarInstanceId, GetDeleteTargetKey()).Subscribe(_deleteCompleted.OnNext);
         }
 
-        // 同一車両の全renderer子は同じTrainCarEntityObjectを指す＝論理削除単位
-        // All renderer children of a car share the same TrainCarEntityObject = the logical delete unit
+        // 同一車両の全renderer子は同じ永続IDを返し、view再生成でも対象を取り違えない
+        // Every renderer child returns the stable car id so recreating a view cannot change the removal identity
         public object GetDeleteTargetKey()
         {
             return TrainCarEntityObject.TrainCarInstanceId;

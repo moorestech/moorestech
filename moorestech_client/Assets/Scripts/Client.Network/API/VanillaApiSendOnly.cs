@@ -17,7 +17,7 @@ using static Server.Protocol.PacketResponse.TrainCarRidingInputProtocol;
 
 namespace Client.Network.API
 {
-    public class VanillaApiSendOnly
+    public class VanillaApiSendOnly : Requests.Removal.ITrainCarRemovalSender
     {
         private readonly PacketSender _packetSender;
         public HotbarCommandApi Hotbar { get; }

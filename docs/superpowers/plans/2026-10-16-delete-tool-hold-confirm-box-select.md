@@ -4,9 +4,21 @@
 
 **Goal:** 削除ツールを「なぞり・箱で対象を選択へ積み上げ、F を 2 秒長押しして一括撤去する」方式へ変え、Shift+左クリック 2 点の直方体（箱）による範囲選択を足す。
 
-**Architecture:** クライアントのみの変更。`DeleteObjectState` が毎フレーム `DeleteObjectService.Update(deltaTime)` を駆動し、サービスが入力（左ドラッグのなぞり／Shift+左クリックの箱／F 長押し／Q・E）を検知して選択モデル `DeleteSelection` へ「足す・ホバー赤・全解除・確定」を指示する。赤プレビューの書き手は `DeleteSelection` の 1 本。箱は `DeleteBoxInput`（入力・セル解決・可視化）→ `DeleteBoxTargetResolver`（AABB に入る撤去可能な `IDeleteTarget` の列を返す 1 本の問い合わせ。撤去不可はここでログして除く）→ `DeleteSelection.AddBoxTargets` を `DeleteBoxInput` 内部で直接呼ぶ一方向。長押しは `DeleteHoldConfirm` が判別子付きの `DeleteHoldSubject` を受け、採掘と同じ `ProgressBarState` へ進捗を流す。サーバー・プロトコルは変更しない。
+**Architecture:** クライアントのみの変更。`DeleteObjectState` が毎フレーム `DeleteObjectService.Update(deltaTime, isPointerOverUi)` を駆動し、サービスが入力（左ドラッグのなぞり／Shift+左クリックの箱／F 長押し／Q・E）を検知して選択モデル `DeleteSelection` へ「足す・ホバー赤・全解除・確定」を指示する。赤プレビューの書き手は `DeleteSelection` の 1 本。箱は `DeleteBoxInput`（入力・セル解決・可視化）→ `DeleteBoxTargetResolver`（AABB に入る撤去可能な `IDeleteTarget` の列を返す 1 本の問い合わせ。撤去不可はここでログして除く）→ `DeleteSelection.AddBoxTargets` を `DeleteBoxInput` 内部で直接呼ぶ一方向。長押しは `DeleteHoldConfirm` が判別子付きの `DeleteHoldSubject` を受け、採掘と同じ `ProgressBarState` へ進捗を流す。サーバー・プロトコルは変更しない。
 
 **Tech Stack:** Unity (C#)、UniRx、Unity InputSystem（`InputManager` / `HybridInput`）、NUnit EditMode テスト（`Client.Tests`）、unity-playmode-recorded-playtest（プレイテスト DSL）。
+
+## 現行Interfaces（レビュー反映後）
+
+- `IDeleteTarget.OnDeleteCompleted: IObservable<DeleteCompletion>`。Pending/Succeeded/Rejected/Unconfirmedと論理対象キー・理由を運搬する。既存個別応答を使い、車両だけ既存snapshotのtick完了後の不在・直列要求への拒否通知を使う。
+- `DeleteSelection.UpdateStroke(DeleteAimResult)`、`UpdateHoverPreview(IDeleteTarget,out LocalizationKey?)`、`TryCommit(DeleteHoldSubject,out LocalizationKey?)`、`TryCancelSelection()`。`OnSelectionChanged`がRevision変更を通知する。
+- `DeleteHoldConfirm.SetSubject(DeleteHoldSubject)`、`Advance(bool isKeyHeld,float deltaTime)`。選択変化は通知で対象をプッシュし、入力と照準は従来のフレーム更新で取得する。
+- `DeleteCommitBatch`が対象別復元情報を採取し成功分だけで履歴予約を完成する。車両未確認はUndo完成条件に含めない。`DeleteResultFeedback`がホバーと独立した結果と通知を保持する。
+- `BezierCellBoxIntersection.Intersects(Vector3Int min,Vector3Int max)`。ownerのSetControlPointsで係数を作り、六境界との交差を判定する。旧samplerは廃止。
+- `RightShortPressInputService.TryConsumeShortPressOutsideUi(bool)`、`PlacementTargetPickService.TryPickTargetUnderCursor(bool,out IPlacementTarget)`、`DeleteObjectService.Update(float,bool)`はstateで一度得たUI判定を共有する。
+- `DeleteBoxSelection.EndCell`は最後の有効終点。無効カーソル中もその可視箱を再解決して件数を更新し、理由表示と確定拒否を行う。
+
+以下の初期実装手順内のコード例は作業記録であり、レビュー反映で上記と末尾の委任既定が置き換える。Requirements/Global Constraintsは引き続き制約とする。
 
 ## Requirements
 
@@ -37,7 +49,7 @@
 - 時間: クライアントの長押し進捗は採掘と同じく `Time.deltaTime` 累積（`DeleteObjectState` が `Time.deltaTime` を渡す）。サーバーの時間 API は触らない。
 - 入力: F は `InputManager.Playable.Interact.GetKey`、Shift は `HybridInput.GetKey(KeyCode.LeftShift)`（前例 `CommonBlockPlaceSystem.cs:128`）、Q/E は `PlacementHeightKeyInput.Apply`、左クリックは `InputManager.Playable.ScreenLeftClick`、UI 上判定は `UiPointerHitTest.IsPointerOverAnyUi()`（1 フレーム 1 回評価）。
 - ローカライズ: `Localization/localization.csv` の列は `key,Source,English,日本語,Deutsch,한국어` の 6 列（言語 4）。C# 側は `uloop compile --project-path ./moorestech_client --force-recompile` の後に通常 `uloop compile`（`docs/development/uloop-troubleshooting.md`）。Web UI 側は `cd moorestech_web/webui && npm run gen:i18n` で `src/shared/i18n/generated/localizationKeys.ts` を再生成してコミット。
-- 定数: 長押し満了 `DeleteHoldConfirm.HoldSeconds = 2f`。レール曲線のサンプル数 `DeleteBoxRailSampler.SampleCount = 64`。
+- 定数: 長押し満了 `DeleteHoldConfirm.HoldSeconds = 2f`。レールは連続Bezierと半開箱の交差判定（サンプル数定数なし）。
 - 命名: 選択モデルは `DeleteSelection`（旧 `DragDeleteSelection`）。ディレクトリ `UI/UIState/State/DragDelete/` と名前空間 `Client.Game.InGame.UI.UIState.State.DragDelete` は据え置く。新規ファイルは `DragDelete/Box/`・`DragDelete/Confirm/` へ置く（10 ファイル制限）。
 - テスト実行: `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "<FullName>"`。ドメインリロードエラー時は 45 秒待って再試行。
 
@@ -93,7 +105,7 @@
 
 | 項目 | 配置 | 前例 |
 |---|---|---|
-| 入力→選択反映サービスをステートから毎フレーム駆動 | `DeleteObjectService.Update(deltaTime)` | `PlaceSystemStateController.ManualUpdate()`、既存 `DeleteObjectService.Update()` |
+| 入力→選択反映サービスをステートから毎フレーム駆動 | `DeleteObjectService.Update(deltaTime, isPointerOverUi)` | `PlaceSystemStateController.ManualUpdate()`、既存 `DeleteObjectService.Update()` |
 | 長押し進捗 | `DeleteHoldConfirm` → `ProgressBarState`（同アセンブリの internal Show/Hide/SetProgress） | `MiningProgressState`（`Client.Game/InGame/Mining/`） |
 | 長押し対象の判別子付き型 | `DeleteHoldSubject`（Kind＋Key） | `DeleteAimFilter`（`.decisions/2026-10-05-削除ツールの照準条件は判別unionで表す.md`） |
 | 2 クリックのセル AABB・Q/E（DI の高さオフセット共用） | `DeleteBoxInput` が `PlacementUnitCellResolver`・`PlacementHeightKeyInput`・DI の `PlacementHeightOffset` を使う | `BlueprintCopySystem`（`.decisions/2026-10-08-BPコピー*.md`、`BlueprintCopySystem.cs:39`） |

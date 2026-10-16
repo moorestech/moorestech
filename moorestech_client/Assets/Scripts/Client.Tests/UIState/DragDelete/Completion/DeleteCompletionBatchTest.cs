@@ -87,6 +87,23 @@ namespace Client.Tests.UIState.DragDelete.Completion
             Assert.AreEqual(2, changes.Count);
         }
 
+        [Test]
+        public void PendingLogicalTargetCannotBeSentTwiceAcrossBatches()
+        {
+            var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
+            var target = TargetWithLine(1);
+            selection.AddBoxTargets(new[] { target });
+            selection.CommitDelete();
+            selection.BeginStroke();
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.DeleteRequestPending, selection.TryAddTarget(target).DenyReason);
+            Assert.AreEqual(0, selection.AddBoxTargets(new[] { target }));
+            selection.CommitDelete();
+            Assert.AreEqual(1, target.DeleteCount);
+            target.Complete(DeleteCompletionKind.Rejected, LocalizationKeys.Ui.Delete.InventoryFull);
+            selection.BeginStroke();
+            Assert.IsTrue(selection.TryAddTarget(target).IsAdded);
+        }
+
         private static FakeDeleteTarget TargetWithLine(int x)
         {
             var target = new FakeDeleteTarget { Removable = true, CompleteImmediately = false };

@@ -1,3 +1,4 @@
+using UnityEngine;
 using System.Collections.Generic;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Tooltip;
@@ -14,7 +15,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Completion
 
         internal void Receive(DeleteCompletion result)
         {
-            var label = _results.TryGetValue(result.TargetKey, out var previous) ? previous.label : result.TargetKey.ToString();
+            var label = _results.TryGetValue(result.TargetKey, out var previous) ? previous.label : Describe(result.TargetKey);
             if (result.Kind == DeleteCompletionKind.Succeeded)
             {
                 _results.Remove(result.TargetKey);
@@ -28,6 +29,11 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Completion
                 var message = result.Kind == DeleteCompletionKind.Unconfirmed ? "denied.deleteUnconfirmed" : "denied.deleteRejected";
                 ClientDIContext.ClientLocalNotificationSource.Notify(NotificationMessagePack.CreateOperationDenied(message, new[] { label }));
             }
+        }
+
+        private static string Describe(object key)
+        {
+            return key is Component view ? $"{view.name} ({view.transform.position})" : key.ToString();
         }
 
         internal void AppendTo(List<TooltipLine> lines)

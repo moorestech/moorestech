@@ -1,7 +1,6 @@
 using Server.Protocol.PacketResponse;
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
-using Client.Game.InGame.UI.UIState.State;
 using Game.Block.Interface;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
@@ -9,8 +8,8 @@ using Cysharp.Threading.Tasks;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
 {
     /// <summary>
-    ///     撤去1バッチの楽観記録（ブロック・線・レール）
-    ///     Optimistic record of one remove batch (blocks, lines, rails)
+    ///     撤去成功分1バッチの復元記録（ブロック・線・レール）
+    ///     Restoration record for confirmed members of one removal batch (blocks, lines, rails)
     /// </summary>
     public class RemoveOperationRecord : IBuildOperationRecord
     {
@@ -30,16 +29,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
         // 空バッチをPushしないためのガード。記録できなかった物だけでも、Undo時に通知するため積む
         // Guard against pushing an empty batch; a batch of only unrecordable things is still pushed so undo can report them
         public bool HasRemovedObjects => 0 < _removedObjects.Count || 0 < _unrecordableCount || 0 < _unrecordableBlocks.Count;
-
-        // 撤去直前の各対象から撤去物を集め、論理キーで重複排除する
-        // Collect removed objects from every target right before removal, deduped by logical key
-        public static RemoveOperationRecord CreateFrom(IReadOnlyList<IDeleteTarget> targets, IRemovalRestoreSender sender)
-        {
-            var collector = new RemovedObjectCollector();
-            foreach (var target in targets) target.CollectRemovedObjects(collector);
-
-            return CreateFromCollectors(new[] { collector }, sender);
-        }
 
         internal static RemoveOperationRecord CreateFromCollectors(IReadOnlyList<RemovedObjectCollector> collectors, IRemovalRestoreSender sender)
         {

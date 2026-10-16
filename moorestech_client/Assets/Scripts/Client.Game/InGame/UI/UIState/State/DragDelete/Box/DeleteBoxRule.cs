@@ -1,11 +1,10 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
 {
     /// <summary>
-    ///     箱選択の「箱に入る」判定（点・曲線サンプル）。セル [min, max] を含む直方体に対する純関数。ブロックは BlueprintCopyTargetRule の箱と IsOverlap を使う
-    ///     Box-selection membership for points and curve samples over the inclusive cell box [min, max]; blocks use BlueprintCopyTargetRule's box with IsOverlap
+    ///     箱選択の「箱に入る」判定（車両位置）。セル [min, max] を含む直方体に対する純関数。ブロックは BlueprintCopyTargetRule の箱と IsOverlap を使う
+    ///     Box-selection membership for car positions over the inclusive cell box [min, max]; blocks use BlueprintCopyTargetRule's box with IsOverlap
     /// </summary>
     public static class DeleteBoxRule
     {
@@ -18,13 +17,5 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
                    && min.z <= point.z && point.z < max.z + 1;
         }
 
-        public static bool IsAnyPointInBox(IReadOnlyList<Vector3> points, Vector3Int min, Vector3Int max)
-        {
-            foreach (var point in points)
-            {
-                if (IsPointInBox(point, min, max)) return true;
-            }
-            return false;
-        }
     }
 }

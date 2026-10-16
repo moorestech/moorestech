@@ -50,6 +50,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Completion
 
         private void Complete(Entry entry, DeleteCompletion result)
         {
+            if (result.Kind == DeleteCompletionKind.Pending) { _completed.OnNext(result); return; }
             if (entry.HasRecord && !entry.RecordCompleted)
             {
                 entry.RecordCompleted = true;

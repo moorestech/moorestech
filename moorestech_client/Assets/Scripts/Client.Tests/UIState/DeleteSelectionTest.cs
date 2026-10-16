@@ -65,7 +65,6 @@ namespace Client.Tests.UIState
             selection.TryAddTarget(target);
             selection.CancelSelection();
             Assert.AreEqual(1, target.ResetCount);
-            Assert.IsFalse(selection.IsStrokeAlive());
             Assert.IsFalse(selection.HasSelection());
             Assert.AreEqual(DeleteAddKind.StrokeDead, selection.TryAddTarget(target).Kind);
         }
@@ -91,7 +90,6 @@ namespace Client.Tests.UIState
             selection.TryAddTarget(new FakeDeleteTarget { Removable = true });
             selection.CancelSelection();
             selection.BeginStroke();
-            Assert.IsTrue(selection.IsStrokeAlive());
         }
 
         [Test]

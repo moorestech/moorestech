@@ -17,15 +17,12 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         // Dedupe by logical delete key so multiple mesh children of one machine collapse into one
         private readonly Dictionary<object, IDeleteTarget> _selectedTargets = new();
         private bool _strokeCanceled;
+        private readonly DeleteResultTracker _results = new();
         private readonly Subject<DeleteCompletion> _deleteCompleted = new();
         public IObservable<DeleteCompletion> OnDeleteCompleted => _deleteCompleted;
         private readonly Subject<int> _selectionChanged = new();
         public IObservable<int> OnSelectionChanged => _selectionChanged;
-        // ストロークごとに最初の対象のカテゴリーで照準を固定
-        // Fix aim to the first target's category, per stroke
         public DeleteAimFilter AimFilter { get; private set; } = DeleteAimFilter.Frontmost;
-        // 集合が変わるたびに進む。長押しの「対象が変わった」検知に使う
-        // Advances whenever the set changes; the hold confirm uses it to detect a changed subject
         public int Revision { get; private set; }
         public int Count => _selectedTargets.Count;
         // 今赤くしているホバー対象（選択済みとは別管理）
@@ -35,6 +32,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         {
             _buildOperationHistory = buildOperationHistory;
             _restoreSender = restoreSender;
+            _deleteCompleted.Subscribe(_results.Receive);
         }
         // ストローク開始: キャンセル解除とカテゴリー固定のリセットだけで、選択は消さない
         // Stroke start: only revives the stroke and resets the category fix; the selection survives
@@ -52,6 +50,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         public DeleteAddOutcome TryAddTarget(IDeleteTarget target)
         {
             if (_strokeCanceled) return DeleteAddOutcome.StrokeDead;
+            if (_results.IsPending(target.GetDeleteTargetKey())) return DeleteAddOutcome.NotRemovable(LocalizationKeys.Ui.Tooltip.DeleteRequestPending);
             if (!target.IsRemovable(out var denyReason)) return DeleteAddOutcome.NotRemovable(denyReason);
             // ストロークカテゴリーと異なるカテゴリーは追加しない（混在防止）
             // Reject a target whose category differs from the stroke category (prevents mixing)
@@ -127,7 +126,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             SetHoverPreview(target);
             reason = null;
             var removable = target != null && target.IsRemovable(out reason);
-            if (HasSelection()) return DeleteHoldSubject.Selection(Revision);
+            if (HasSelection()) return DeleteHoldSubject.None; // silent-ok: 集合の長押し対象は変更通知で更新済み / serviceが購読する
             return removable ? DeleteHoldSubject.Hovered(target.GetDeleteTargetKey()) : DeleteHoldSubject.None;
         }
         internal bool TryCommit(DeleteHoldSubject subject, out LocalizationKey? reason)
@@ -154,14 +153,13 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             CancelSelection();
             return true;
         }
-        public bool IsStrokeAlive() => !_strokeCanceled;
         public bool HasSelection() => 0 < _selectedTargets.Count;
         // 既に同じ論理対象が選択済みなら何もしない（Revisionも進めない）
         // No-op when the same logical target is already selected (the revision stays)
         private bool Add(IDeleteTarget target)
         {
             var key = target.GetDeleteTargetKey();
-            if (_selectedTargets.ContainsKey(key)) return false;
+            if (_selectedTargets.ContainsKey(key) || _results.IsPending(key)) return false; // silent-ok: 選択済み/結果待ちの対象を重複送信しない / 選択赤と結果ツールチップで表示
             // 破棄済みホバーはキーを読まず参照を解除する
             // Clear a destroyed hover without reading its key
             if (HoverPreview != null && IsDestroyed(HoverPreview, "hover")) HoverPreview = null;

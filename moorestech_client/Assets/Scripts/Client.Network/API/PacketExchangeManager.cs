@@ -17,7 +17,7 @@ namespace Client.Network.API
     /// </summary>
     public class PacketExchangeManager
     {
-        private const int DefaultResponseTimeoutSeconds = 10;
+        public static readonly TimeSpan ResponseTimeout = TimeSpan.FromSeconds(10);
         private readonly PacketSender _packetSender;
 
         private readonly Dictionary<int, ResponseWaiter> _responseWaiters = new();
@@ -128,7 +128,7 @@ namespace Client.Network.API
         // For callers that need to distinguish between timeout and other failures
         public UniTask<(TResponse response, PacketWaitCompletionReason reason)> GetPacketResponseWithReason<TResponse>(ProtocolMessagePackBase request, CancellationToken ct) where TResponse : ProtocolMessagePackBase
         {
-            return GetPacketResponseWithReason<TResponse>(request, ct, DefaultResponseTimeoutSeconds);
+            return GetPacketResponseWithReason<TResponse>(request, ct, (int)ResponseTimeout.TotalSeconds);
         }
 
         public async UniTask<(TResponse response, PacketWaitCompletionReason reason)> GetPacketResponseWithReason<TResponse>(ProtocolMessagePackBase request, CancellationToken ct, int timeoutSeconds) where TResponse : ProtocolMessagePackBase

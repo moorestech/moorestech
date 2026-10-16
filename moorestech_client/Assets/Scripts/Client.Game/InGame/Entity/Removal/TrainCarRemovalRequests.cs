@@ -1,3 +1,5 @@
+using Client.Network.API;
+using Client.Network.API.Requests.Removal;
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Context;
@@ -17,6 +19,7 @@ namespace Client.Game.InGame.Entity.Removal
     public sealed class TrainCarRemovalRequests
     {
         private readonly TrainUnitClientCache _cache;
+        private readonly ITrainCarRemovalSender _sender;
         private readonly TrainUnitTickState _ticks;
         private readonly Queue<Request> _queue = new();
         private Request _pending;
@@ -24,14 +27,15 @@ namespace Client.Game.InGame.Entity.Removal
         private bool _unconfirmed;
         private uint _changedTick;
 
-        public TrainCarRemovalRequests(TrainUnitClientCache cache, TrainUnitTickState ticks)
+        public TrainCarRemovalRequests(TrainUnitClientCache cache, TrainUnitTickState ticks, IVanillaApiEvent events, ITrainCarRemovalSender sender)
         {
             _cache = cache;
+            _sender = sender;
             _ticks = ticks;
             cache.OnUnitApplied.Subscribe(_ => MarkChanged());
             cache.OnUnitRemoved.Subscribe(_ => MarkChanged());
             ticks.OnTickCompleted.Subscribe(CheckCompletedTick);
-            ClientContext.VanillaApi.Event.SubscribeEventResponse(NotificationService.EventTag, payload =>
+            events.SubscribeEventResponse(NotificationService.EventTag, payload =>
             {
                 var message = MessagePackSerializer.Deserialize<NotificationMessagePack>(payload);
                 if (message.MessageId == "denied.removeTrainCarInventoryFull" && _pending != null)
@@ -60,19 +64,26 @@ namespace Client.Game.InGame.Entity.Removal
                 Finish(DeleteCompletionKind.Rejected, LocalizationKeys.Ui.Delete.UnknownError);
                 return;
             }
-            ClientContext.VanillaApi.SendOnly.RemoveTrain(_pending.Id);
-            // 既存応答待ちと同じ10秒で未確認を通知。遅延通知との誤対応を防ぎキューは保持する
-            // Report unconfirmed after the existing ten-second response window, retaining the queue to avoid misattribution
+            _pending.Result.OnNext(new DeleteCompletion(_pending.Key, DeleteCompletionKind.Pending, null));
+            _sender.RemoveTrain(_pending.Id);
+            // 既存応答待ちの期限を参照して未確認を通知。遅延通知との誤対応を防ぎキューは保持する
+            // Report unconfirmed after the shared response window, retaining the queue to avoid misattribution
             var request = _pending;
-            Observable.Timer(TimeSpan.FromSeconds(10)).Take(1).Subscribe(_ =>
+            Observable.Timer(PacketExchangeManager.ResponseTimeout).Take(1).Subscribe(_ =>
             {
                 if (!ReferenceEquals(_pending, request)) return; // silent-ok: 既に完了した要求の期限 / 完了結果をUIへ通知済み
-                _unconfirmed = true;
-                Debug.LogWarning($"[TrainDelete] result unconfirmed; later car requests are held: {request.Id}");
-                request.Result.OnNext(new DeleteCompletion(request.Key, DeleteCompletionKind.Unconfirmed, LocalizationKeys.Ui.Tooltip.DeleteTrainQueueHeld));
-                foreach (var queued in _queue)
-                    queued.Result.OnNext(new DeleteCompletion(queued.Key, DeleteCompletionKind.Unconfirmed, LocalizationKeys.Ui.Tooltip.DeleteTrainQueueHeld));
+                ReportUnconfirmed();
             });
+        }
+
+        private void ReportUnconfirmed()
+        {
+            var request = _pending;
+            _unconfirmed = true;
+            Debug.LogWarning($"[TrainDelete] result unconfirmed; later car requests are held: {request.Id}");
+            request.Result.OnNext(new DeleteCompletion(request.Key, DeleteCompletionKind.Unconfirmed, LocalizationKeys.Ui.Tooltip.DeleteTrainQueueHeld));
+            foreach (var queued in _queue)
+                queued.Result.OnNext(new DeleteCompletion(queued.Key, DeleteCompletionKind.Unconfirmed, LocalizationKeys.Ui.Tooltip.DeleteTrainQueueHeld));
         }
 
         private void MarkChanged()
