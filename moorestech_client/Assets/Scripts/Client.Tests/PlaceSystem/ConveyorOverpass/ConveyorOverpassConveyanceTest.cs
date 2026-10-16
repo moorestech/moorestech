@@ -73,6 +73,9 @@ namespace Client.Tests.PlaceSystem.ConveyorOverpass
             // 立体交差プロファイル通りに全ブロックを設置し、両端にチェストを置いてアイテムを流す
             // Place every block along the overpass profile, put chests at both ends and send an item through
             PlaceComputedBelts();
+            // 歯車ベルコンは回転数0だと止まるので、中央の水平マスの横に発電機を置き、坂の歯車連結を通して列全体を基準回転数(10)で駆動する
+            // Gear belts stop at zero RPM, so put a generator beside the middle flat cell and drive the whole line at the base RPM (10) through the slope gear links
+            Assert.IsTrue(world.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, new Vector3Int(middleX, expectedMiddleY, -1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _));
             var itemId = new ItemId(1);
             var source = PlaceChest(start - Vector3Int.right);
             var output = PlaceChest(end + Vector3Int.right);
