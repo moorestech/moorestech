@@ -148,7 +148,7 @@ namespace Client.Tests.BugReport.Repository
             if (completed)
             {
                 Directory.CreateDirectory(Path.Combine(box, "repo"));
-                File.WriteAllText(Path.Combine(box, "repo/bundle-status.txt"), "already completed");
+                File.WriteAllText(Path.Combine(box, "repo/bundle-status.txt"), "commits.bundle: not-needed-origin-has-commit\nmaster-commits.bundle: not-needed-origin-has-commit\n");
             }
             var failure = BugReportCommitBundles.CompleteExisting(box, _repository, _repository, declared);
             if (completed) Assert.IsNull(failure);

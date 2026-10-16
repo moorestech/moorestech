@@ -35,7 +35,7 @@ namespace Client.Tests.PlaytestReceiver
         [Test]
         public void 箱はprepare_全ファイルPUT_completeの順で送られUPLOADEDが置かれ再送されない()
         {
-            var box = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_120000_aaaa", ("manifest.json", "{\"kind\":\"bug\"}"), ("a.bin", "abc"));
+            var box = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_120000_aaaa", ("manifest.json", "{\"kind\":\"bug\",\"isEditor\":false}"), ("a.bin", "abc"));
             var api = new FakeUploadApi();
 
             Assert.AreEqual(1, Upload(api));
@@ -47,13 +47,13 @@ namespace Client.Tests.PlaytestReceiver
             // The receiver settles the file list by verification, so the supplement carries only the raw manifest and the skips
             var supplement = JObject.Parse(api.LastCompleteBody);
             Assert.IsNull(supplement["files"]);
-            Assert.AreEqual("{\"kind\":\"bug\"}", supplement.Value<string>("manifest"));
+            Assert.AreEqual("{\"kind\":\"bug\",\"isEditor\":false}", supplement.Value<string>("manifest"));
         }
 
         [Test]
         public void ackedの応答ならPUTせずcompleteだけ送る()
         {
-            var box = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_120000_aaaa", ("manifest.json", "{}"));
+            var box = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_120000_aaaa", ("manifest.json", "{\"isEditor\":false}"));
             var api = new FakeUploadApi();
             api.EnqueuePrepare(PlaytestApiResult.Responded(200, "{\"outcome\":\"acked\"}"));
 
@@ -65,7 +65,7 @@ namespace Client.Tests.PlaytestReceiver
         [Test]
         public void 上限超と予約名は宣言から外れcompleteのskippedに載る()
         {
-            var box = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_120000_aaaa", ("manifest.json", "{}"), ("ACKED", "x"));
+            var box = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_120000_aaaa", ("manifest.json", "{\"isEditor\":false}"), ("ACKED", "x"));
             using (var stream = new FileStream(Path.Combine(box, "video.mp4"), FileMode.Create)) stream.SetLength(PlaytestReceiverConfig.MaxFileBytes + 1);
             var api = new FakeUploadApi();
 
@@ -90,7 +90,7 @@ namespace Client.Tests.PlaytestReceiver
         [Test]
         public void 恒久的な4xxは再試行せず1回と数える()
         {
-            var box = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_120000_aaaa", ("manifest.json", "{}"));
+            var box = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_120000_aaaa", ("manifest.json", "{\"isEditor\":false}"));
             var api = new FakeUploadApi();
             api.EnqueuePrepare(PlaytestApiResult.Responded(400, "{\"reason\":\"bad-path\"}"));
 
@@ -102,7 +102,7 @@ namespace Client.Tests.PlaytestReceiver
         [Test]
         public void トークンが取れなければ何も送らず数えずに箱を残す()
         {
-            var box = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_120000_aaaa", ("manifest.json", "{}"));
+            var box = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_120000_aaaa", ("manifest.json", "{\"isEditor\":false}"));
             var api = new FakeUploadApi { SessionResult = PlaytestApiResult.TransportFailure("offline") };
 
             Assert.AreEqual(0, Upload(api));
@@ -114,7 +114,7 @@ namespace Client.Tests.PlaytestReceiver
         [Test]
         public void 期限切れの401はトークンを取り直して1回だけやり直す()
         {
-            var box = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_120000_aaaa", ("manifest.json", "{}"));
+            var box = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_120000_aaaa", ("manifest.json", "{\"isEditor\":false}"));
             var api = new FakeUploadApi();
             api.EnqueuePrepare(PlaytestApiResult.Responded(401, "expired"));
 
@@ -127,7 +127,7 @@ namespace Client.Tests.PlaytestReceiver
         [Test]
         public void completeが取り直し後も401なら数えず保留する()
         {
-            var box = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_120000_aaaa", ("manifest.json", "{}"));
+            var box = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_120000_aaaa", ("manifest.json", "{\"isEditor\":false}"));
             var api = new FakeUploadApi();
             api.EnqueueComplete(PlaytestApiResult.Responded(401, "expired"));
             api.EnqueueComplete(PlaytestApiResult.Responded(401, "still"));
@@ -143,7 +143,7 @@ namespace Client.Tests.PlaytestReceiver
         [Test]
         public void 日本語や空白を含む名前も見送らずに送る()
         {
-            PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_120000_aaaa", ("manifest.json", "{}"), ("ユニティ.log", "x"), ("a b.log", "y"));
+            PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_120000_aaaa", ("manifest.json", "{\"isEditor\":false}"), ("ユニティ.log", "x"), ("a b.log", "y"));
             var api = new FakeUploadApi();
 
             Assert.AreEqual(1, Upload(api));

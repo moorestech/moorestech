@@ -96,6 +96,32 @@ namespace Client.Tests.PlaytestReceiver
 
         [TestCase("commits.bundle")]
         [TestCase("master-commits.bundle")]
+        [TestCase("legacy")]
+        public void 消失と旧箱は試行印保存失敗と印解除後にも保留する(string name)
+        {
+            var box = Make();
+            if (name == "legacy")
+            {
+                File.Delete(Path.Combine(box, "repo/bundle-status.txt"));
+                File.WriteAllText(Path.Combine(box, "manifest.json"), "{\"isEditor\":true,\"missing\":[]}");
+            }
+            else File.Delete(Path.Combine(box, "repo", name));
+            Directory.CreateDirectory(Path.Combine(box, PlaytestOutboxScanner.AttemptsMarker));
+            var api = new FakeUploadApi();
+            var session = new PlaytestSession(api, new DeveloperTokenSessionCredential("token"));
+            var uploader = new PlaytestUploader(api, session, _directories, PlaytestNoWaitRetrySchedule.Create(), PlaytestOutboxScope.ReportsOnly);
+            Assert.AreEqual(0, uploader.UploadPendingAsync(CancellationToken.None).GetAwaiter().GetResult().Sent);
+            Directory.Delete(Path.Combine(box, PlaytestOutboxScanner.AttemptsMarker));
+            File.Delete(Path.Combine(box, PlaytestOutboxScanner.FailedMarker));
+            Assert.AreEqual(0, uploader.UploadPendingAsync(CancellationToken.None).GetAwaiter().GetResult().Sent);
+            Assert.IsEmpty(api.Calls);
+            Assert.True(File.Exists(Path.Combine(box, PlaytestOutboxScanner.FailedMarker)));
+            if (name == "legacy") Assert.False(File.Exists(Path.Combine(box, "repo/bundle-status.txt")));
+            else Assert.That(File.ReadAllText(Path.Combine(box, "repo/bundle-status.txt")), Does.Contain(name + ": created"));
+        }
+
+        [TestCase("commits.bundle")]
+        [TestCase("master-commits.bundle")]
         public void 作成済み資料の消失も保留する(string name)
         {
             var box = Make();
@@ -109,7 +135,7 @@ namespace Client.Tests.PlaytestReceiver
             var box = Make();
             File.Delete(Path.Combine(box, "repo/bundle-status.txt"));
             File.WriteAllText(Path.Combine(box, "manifest.json"), "{\"isEditor\":true,\"missing\":[]}");
-            var normal = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20261016_130000_bbbb", ("manifest.json", "{}"));
+            var normal = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20261016_130000_bbbb", ("manifest.json", "{\"isEditor\":false,\"missing\":[]}"));
             var api = new FakeUploadApi();
             new PlaytestUploadRunner(api, _directories, new FakeTicketProvider("aabb")).RequestUploadWith(new PlaytestDeveloperTokenRoute("token"));
             Assert.False(File.Exists(Path.Combine(box, PlaytestOutboxScanner.UploadedMarker)));
@@ -151,8 +177,8 @@ namespace Client.Tests.PlaytestReceiver
             var manifest = JObject.Parse(File.ReadAllText(Path.Combine(box, "manifest.json")));
             Assert.That(manifest["missing"].ToString(), Does.Contain("repo/" + name).And.Contain("配送不能"));
             var status = File.ReadAllText(Path.Combine(box, "repo/bundle-status.txt"));
-            Assert.That(status, Does.Contain(name + ": failed-delivery"));
-            CollectionAssert.DoesNotContain(status.Split('\n'), name + ": created");
+            Assert.That(status, Does.Contain("delivery/" + name + ": failed-delivery"));
+            CollectionAssert.Contains(status.Split('\n'), name + ": created");
         }
 
         private static void WriteSparse(string path, long length)

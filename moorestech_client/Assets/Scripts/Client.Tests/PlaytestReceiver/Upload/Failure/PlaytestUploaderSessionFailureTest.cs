@@ -122,7 +122,7 @@ namespace Client.Tests.PlaytestReceiver
 
         private string MakeBox(string bundleId)
         {
-            return PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, bundleId, ("manifest.json", "{}"), ("a.bin", "abc"));
+            return PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, bundleId, ("manifest.json", "{\"isEditor\":false}"), ("a.bin", "abc"));
         }
 
         private int Upload(FakeUploadApi api)

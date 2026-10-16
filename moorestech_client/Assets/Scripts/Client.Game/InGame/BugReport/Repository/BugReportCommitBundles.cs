@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
@@ -14,7 +15,11 @@ namespace Client.Game.InGame.BugReport
         public static string CompleteExisting(string boxDirectory, string repositoryRoot, string masterDataRoot, string declarationMarkerPath)
         {
             var repoDirectory = Path.Combine(boxDirectory, BugReportBundleLayout.RepositoryDirectoryName);
-            if (File.Exists(Path.Combine(repoDirectory, BugReportBundleLayout.BundleStatusFileName))) return null; // silent-ok: 補完済み / 配送前に実体を再検証する
+            var statusPath = Path.Combine(repoDirectory, BugReportBundleLayout.BundleStatusFileName);
+            var statuses = File.Exists(statusPath) ? File.ReadAllLines(statusPath) : Array.Empty<string>();
+            if (new[] { BugReportBundleLayout.CommitsBundleFileName, BugReportBundleLayout.MasterCommitsBundleFileName }
+                .All(name => statuses.Any(line => line.StartsWith(name + ": ", StringComparison.Ordinal) && !line.Contains(": failed-delivery"))))
+                return null; // silent-ok: 両資料の補完結果あり / 配送前に実体を再検証する
             var path = Path.Combine(boxDirectory, BugReportBundleLayout.ManifestFileName);
             var original = JObject.Parse(File.ReadAllText(path));
             if (original["isEditor"]?.Type != JTokenType.Boolean) return "manifest.isEditor が不明のため元repoを特定できません";

@@ -23,7 +23,7 @@ namespace Client.Tests.PlaytestReceiver
             PlaytestUploadRunner.ResetOnPlayMode();
             _root = Path.Combine(Path.GetTempPath(), "playtest-runner-" + Path.GetRandomFileName());
             _directories = PlaytestOutboxTestBoxes.Directories(_root);
-            PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_120000_aaaa", ("manifest.json", "{}"));
+            PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_120000_aaaa", ("manifest.json", "{\"isEditor\":false}"));
         }
 
         [TearDown]
@@ -60,7 +60,7 @@ namespace Client.Tests.PlaytestReceiver
 
             // シーンで走行役を組み直しても同じ認証済みセッションを使う
             // A runner rebuilt for another scene uses the same authenticated session
-            PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_150000_dddd", ("manifest.json", "{}"));
+            PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_150000_dddd", ("manifest.json", "{\"isEditor\":false}"));
             var second = new PlaytestUploadRunner(api, _directories, new FakeTicketProvider("different"));
             second.RequestUploadWith(new PlaytestSteamRoute());
             Assert.AreEqual(2, api.CompleteCount);
@@ -109,7 +109,7 @@ namespace Client.Tests.PlaytestReceiver
             var api = new FakeUploadApi { PendingPut = gate };
             var runner = new PlaytestUploadRunner(api, _directories, new FakeTicketProvider("aabb"));
             runner.RequestUploadWith(new PlaytestDeveloperTokenRoute("first"));
-            PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_140000_cccc", ("manifest.json", "{}"));
+            PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_140000_cccc", ("manifest.json", "{\"isEditor\":false}"));
             runner.RequestUploadWith(new PlaytestDeveloperTokenRoute("replacement"));
             api.SessionResult = PlaytestApiResult.Responded(200, PlaytestSessionBodies.Allowed("token-replacement", "2999-01-01T00:00:00.000Z"));
             gate.TrySetResult(PlaytestApiResult.Responded(200, "{}"));
@@ -128,7 +128,7 @@ namespace Client.Tests.PlaytestReceiver
             runner.RequestUploadWith(new PlaytestDeveloperTokenRoute("first"));
             runner.RequestUploadWith(new PlaytestDeveloperTokenRoute("replacement"));
             runner.RequestUploadWith(new PlaytestLocalOnlyRoute(PlaytestLocalOnlyReason.DeveloperTokenMissing, PlaytestOutboxScope.ReportsOnly, "removed"));
-            var added = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_140000_cccc", ("manifest.json", "{}"));
+            var added = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_140000_cccc", ("manifest.json", "{\"isEditor\":false}"));
             gate.TrySetResult(PlaytestApiResult.Responded(200, "{}"));
             Assert.AreEqual(1, api.DeveloperSessionCallCount);
             Assert.AreEqual(1, api.CompleteCount);
@@ -157,7 +157,7 @@ namespace Client.Tests.PlaytestReceiver
         [Test]
         public void 走行中の再要求は1本に保たれ終了直後にもう一度走る()
         {
-            PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_130000_bbbb", ("manifest.json", "{}"));
+            PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_130000_bbbb", ("manifest.json", "{\"isEditor\":false}"));
             var gate = new UniTaskCompletionSource<PlaytestApiResult>();
             var api = new FakeUploadApi { PendingPut = gate };
             var runner = new PlaytestUploadRunner(api, _directories, new FakeTicketProvider("aabb"));

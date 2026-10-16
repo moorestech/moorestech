@@ -52,7 +52,7 @@ namespace Client.Tests.PlaytestReceiver
         {
             var box = MakeBox("20260913_120000_aaaa");
             var api = new FakeUploadApi();
-            api.EnqueuePrepare(PreparedWithConflict("manifest.json", 2, 9));
+            api.EnqueuePrepare(PreparedWithConflict("manifest.json", System.Text.Encoding.UTF8.GetByteCount("{\"isEditor\":false}"), 9));
 
             Assert.AreEqual(0, Upload(api));
             CollectionAssert.AreEqual(new[] { "prepare" }, api.Calls);
@@ -118,7 +118,7 @@ namespace Client.Tests.PlaytestReceiver
 
         private string MakeBox(string bundleId)
         {
-            return PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, bundleId, ("manifest.json", "{}"), ("a.bin", "abc"));
+            return PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, bundleId, ("manifest.json", "{\"isEditor\":false}"), ("a.bin", "abc"));
         }
 
         private static string AttemptCount(string box)
