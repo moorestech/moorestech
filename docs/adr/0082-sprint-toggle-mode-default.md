@@ -35,7 +35,7 @@
 - 設定の保存は言語選択と同じ PlayerPrefs（前例: `Client.Localization/Localize.cs`）。Web UI ⇄ Unity は言語と同じ action＋topic の組（前例: `LocalizationActions.cs` の `localization.setLocale`）。
 - 設定画面の UI は言語選択と同じ `ModeSwitch` の択一。
 - 設定画面でホールド→トグルへ切り替えた瞬間も、開始時と同じく走り ON から始める。
-- 判定は `StarterAssetsInputs.sprint` を書く箇所1つに集める。`ThirdPersonController` / `PlayerFlightMotion` は `sprint` を読むだけで変更しない。
+- 走り状態の判定規則は `Client.Input` の `SprintInputResolver` 1か所、`StarterAssetsInputs.sprint` への書き込みは `StarterAssetsInputs.ApplySprint` 1か所。`ThirdPersonController` / `PlayerFlightMotion` は `sprint` を読むだけで変更しない。
 
 ## 帰結
 - 既存プレイヤーも既定でトグルになる（設定未保存のため）。
