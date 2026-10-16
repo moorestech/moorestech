@@ -1,3 +1,4 @@
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.RangeBox;
 using System;
 using UnityEngine;
 
@@ -56,7 +57,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Copy
 
         public static (Vector3Int min, Vector3Int max) CalcBox(Vector3Int a, Vector3Int b)
         {
-            return (Vector3Int.Min(a, b), Vector3Int.Max(a, b));
+            return CellRangeBox.Calc(a, b);
         }
     }
 }

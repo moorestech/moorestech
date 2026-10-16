@@ -3,6 +3,8 @@ using System.Linq;
 using System.Threading;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.RangeBox;
+using Client.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Height;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
@@ -31,7 +33,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Copy
         private readonly BlueprintCopySelection _selection = new();
         private readonly BlueprintCopyClickInput _clickInput = new();
         private readonly CompositeDisposable _subscriptions = new();
-        private BlueprintCopyRangeVisualizer _visualizer;
+        private CellRangeBoxVisualizer _visualizer;
         private int _createRequestId;
 
         public override bool UsesPlacementHeight => true;
@@ -73,7 +75,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Copy
 
         public override void Enable()
         {
-            _visualizer ??= new BlueprintCopyRangeVisualizer();
+            _visualizer ??= new CellRangeBoxVisualizer("BlueprintCopy", MaterialConst.PlaceableColor);
             _selection.Clear();
             _clickInput.Reset();
         }
