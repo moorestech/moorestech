@@ -17,12 +17,13 @@ using Server.Util.MessagePack;
 using Tests.Module.TestMod;
 using Tests.Util;
 using UnityEngine;
+using static Server.Protocol.PacketResponse.AttachTrainCarToUnitProtocol;
 using static Server.Protocol.PacketResponse.PlaceTrainCarOnRailProtocol;
 
 namespace Tests.CombinedTest.Server.PacketTest.TrainPlacement
 {
-    // 隣接する駅ブロックは距離0の辺で自動接続される。その辺を含む経路の設置は通り、未接続の経路だけが拒否されることを固定する
-    // Adjacent station blocks are auto-linked by a zero-length edge; placement through that edge passes while disconnected routes stay rejected
+    // 隣接する駅ブロックは距離0の辺で自動接続される。その辺を含む経路の設置・連結は通り、未接続の経路だけが拒否されることを固定する
+    // Adjacent station blocks are auto-linked by a zero-length edge; placement and attachment through that edge pass while disconnected routes stay rejected
     public class TrainPlacementAcrossStationBoundaryTest
     {
         private const int PlayerId = 1;
@@ -30,7 +31,7 @@ namespace Tests.CombinedTest.Server.PacketTest.TrainPlacement
         [Test]
         public void 隣接駅の境界をまたぐ設置は距離0の辺を含んでも成功する()
         {
-            var layout = SetupAdjacentStations();
+            var layout = AdjacentStationLayout.Setup();
             SupplyMaterials(layout.Environment);
 
             // 先頭は2駅目の内部、最後尾は1駅目の内部。中間に距離0の辺を含む
@@ -46,7 +47,7 @@ namespace Tests.CombinedTest.Server.PacketTest.TrainPlacement
         [Test]
         public void 隣の駅のノードを起点にした経路でもぴったり収まる設置は成功する()
         {
-            var layout = SetupAdjacentStations();
+            var layout = AdjacentStationLayout.Setup();
             SupplyMaterials(layout.Environment);
 
             // 駅スナップが隣の駅の出口を起点に選ぶと、末尾に距離0の辺が付いた経路になる
@@ -61,7 +62,7 @@ namespace Tests.CombinedTest.Server.PacketTest.TrainPlacement
         [Test]
         public void 未接続のノード対を含む経路はInvalidRailPositionで拒否される()
         {
-            var layout = SetupAdjacentStations();
+            var layout = AdjacentStationLayout.Setup();
             SupplyMaterials(layout.Environment);
 
             // 2駅目の出口と1駅目の入口は直接つながっていない
@@ -81,79 +82,41 @@ namespace Tests.CombinedTest.Server.PacketTest.TrainPlacement
             Assert.AreEqual(0, layout.Environment.GetITrainLookupDatastore().GetRegisteredTrains().Count);
         }
 
+        [Test]
+        public void 駅境界に止まる編成の先頭へ隣駅ノードまで含む経路の車両を連結できる()
+        {
+            var layout = AdjacentStationLayout.Setup();
+            SupplyMaterials(layout.Environment);
+
+            // 1駅目にぴったり収まる編成を置く。先頭は駅境界のノード上
+            // Place a train that exactly fills the 1st station; its head sits on the boundary node
+            var target = new RailPosition(new List<IRailNode> { layout.FirstExit, layout.FirstEntry }, layout.TrainLength, 0);
+            Assert.IsTrue(ExecutePlace(layout.Environment, target.CreateSaveSnapshot(), layout.TrainCarGuid).Success);
+            var targetTrain = layout.Environment.GetITrainLookupDatastore().GetRegisteredTrains().Last();
+
+            // 2駅目に収まる車両を、隣の駅の出口まで含んだ経路（連結スナップが作る形）で先頭へ連結する
+            // Attach a car filling the 2nd station with the route the attach snap produces, reaching back to the neighbour's exit
+            SupplyMaterials(layout.Environment);
+            var attaching = new RailPositionSaveData
+            {
+                TrainLength = layout.TrainLength,
+                DistanceToNextNode = 0,
+                RailSnapshot = new List<ConnectionDestination> { layout.SecondExit.ConnectionDestination, layout.SecondEntry.ConnectionDestination, layout.FirstExit.ConnectionDestination },
+            };
+            var packet = MessagePackSerializer.Serialize(new AttachTrainCarToUnitRequestMessagePack(targetTrain.TrainUnitInstanceId, new RailPositionSnapshotMessagePack(attaching), layout.TrainCarGuid, false, true));
+            var responses = layout.Environment.PacketResponseCreator.GetPacketResponse(packet, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
+            Assert.AreEqual(1, responses.Count, "連結は応答を返すべき（例外で握られていない） / Attachment must answer instead of throwing");
+            var response = MessagePackSerializer.Deserialize<AttachTrainCarToUnitResponseMessagePack>(responses[0]);
+
+            Assert.IsTrue(response.Success, $"境界をまたぐ連結は成功するべき / Attachment across the boundary should succeed: {response.FailureType}");
+            Assert.AreEqual(2, targetTrain.Cars.Count);
+            // 連結後の編成の位置は、本体の外に出る距離0ノードを持たない
+            // After attachment the train position carries no zero-length node outside its body
+            var nodes = targetTrain.RailPosition.GetRailNodes();
+            Assert.IsTrue(nodes[nodes.Count - 1].GetDistanceToNode(nodes[nodes.Count - 2]) > 0, "最後尾の外に距離0ノードが残らないべき / No zero-length node should trail the rear");
+        }
+
         #region TestUtil
-
-        private readonly struct AdjacentStationLayout
-        {
-            public AdjacentStationLayout(TrainTestEnvironment environment, RailNode firstEntry, RailNode firstExit, RailNode secondEntry, RailNode secondExit, int secondInternalLength, int trainLength, Guid trainCarGuid)
-            {
-                Environment = environment;
-                FirstEntry = firstEntry;
-                FirstExit = firstExit;
-                SecondEntry = secondEntry;
-                SecondExit = secondExit;
-                SecondInternalLength = secondInternalLength;
-                TrainLength = trainLength;
-                TrainCarGuid = trainCarGuid;
-            }
-
-            public TrainTestEnvironment Environment { get; }
-            public RailNode FirstEntry { get; }
-            public RailNode FirstExit { get; }
-            public RailNode SecondEntry { get; }
-            public RailNode SecondExit { get; }
-            public int SecondInternalLength { get; }
-            public int TrainLength { get; }
-            public Guid TrainCarGuid { get; }
-        }
-
-        private static AdjacentStationLayout SetupAdjacentStations()
-        {
-            // 駅を2つ進行方向に隣接させ、自動接続された距離0の辺の両端を探す
-            // Place two stations end to end and locate both ends of the auto-linked zero-length edge
-            var environment = TrainTestHelper.CreateEnvironment();
-            var stationLength = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainStation).BlockSize.z;
-            var (_, first) = TrainTestHelper.PlaceBlockWithRailComponents(environment, ForUnitTestModBlockId.TestTrainStation, Vector3Int.zero, BlockDirection.East);
-            var (_, second) = TrainTestHelper.PlaceBlockWithRailComponents(environment, ForUnitTestModBlockId.TestTrainStation, new Vector3Int(stationLength, 0, 0), BlockDirection.East);
-            var graph = environment.GetRailGraphDatastore();
-            var firstNodes = new[] { first[0].FrontNode, first[0].BackNode, first[1].FrontNode, first[1].BackNode };
-            var secondNodes = new[] { second[0].FrontNode, second[0].BackNode, second[1].FrontNode, second[1].BackNode };
-
-            var (firstExit, secondEntry) = FindZeroLengthLink();
-            var (firstEntry, _) = FindInternalNeighbour(firstNodes, firstExit, true);
-            var (secondExit, secondInternalLength) = FindInternalNeighbour(secondNodes, secondEntry, false);
-
-            var trainCarMaster = MasterHolder.TrainUnitMaster.Train.TrainCars[0];
-            var trainLength = TrainLengthConverter.ToRailUnits(trainCarMaster.Length);
-            Assert.AreEqual(secondInternalLength, trainLength, "テスト用マスタでは駅内部長と車両長が一致する前提 / The test master pairs the station length with the car length");
-            return new AdjacentStationLayout(environment, firstEntry, firstExit, secondEntry, secondExit, secondInternalLength, trainLength, trainCarMaster.TrainCarGuid);
-
-            #region Internal
-
-            (RailNode from, RailNode to) FindZeroLengthLink()
-            {
-                foreach (var a in firstNodes)
-                foreach (var b in secondNodes)
-                    if (graph.GetDistanceBetweenNodes(a, b) == 0) return (a, b);
-                Assert.Fail("隣接駅の距離0接続が見つからない / Zero-length link between adjacent stations not found");
-                return (null, null);
-            }
-
-            // anchorへ向かう辺(towardAnchor)か、anchorから出る辺かで駅内部の相手ノードを探す
-            // Find the internal partner node by the edge into the anchor (towardAnchor) or out of it
-            (RailNode node, int distance) FindInternalNeighbour(RailNode[] candidates, RailNode anchor, bool towardAnchor)
-            {
-                foreach (var node in candidates)
-                {
-                    var distance = towardAnchor ? graph.GetDistanceBetweenNodes(node, anchor) : graph.GetDistanceBetweenNodes(anchor, node);
-                    if (0 < distance) return (node, distance);
-                }
-                Assert.Fail("駅内部の辺が見つからない / Station internal edge not found");
-                return (null, -1);
-            }
-
-            #endregion
-        }
 
         private static void SupplyMaterials(TrainTestEnvironment environment)
         {
