@@ -1,6 +1,7 @@
 using System.IO;
 using System.Linq;
 using Client.Game.InGame.BugReport.Capture;
+using Client.Game.InGame.BugReport.Submit;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
@@ -8,11 +9,13 @@ using Client.Playtest;
 using Client.Playtest.Operations;
 using Client.Playtest.WebUi;
 using Client.PlaytestReceiver.Delivery;
+using Client.PlaytestReceiver.Upload;
 using Cysharp.Threading.Tasks;
 using Game.Paths;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VContainer;
+using UniRx;
 
 // 録画前にGameViewへフォーカスし単体入力を実測する
 // Focus GameView and verify one input before recording
@@ -78,28 +81,54 @@ return PlaytestRunner.Run("developer-report-delivery", new PlaytestRunOptions { 
     }
     await p.Until(() => capture.Status.Value.Kind == BugReportCaptureStatus.Ready, 45f, "報告資料の確保");
     p.Note(hasToken ? "本番受け口へ報告を送信します" : "未設定のため、この機材へ報告を保存します");
-    await p.ClickWebUi("bug-report-send");
-    await p.Until(() => Directory.GetDirectories(outbox).Except(previous).Any(d => File.Exists(Path.Combine(d, "READY"))), 120f, "新しいREADY箱");
-    var box = Directory.GetDirectories(outbox).Except(previous).First(d => File.Exists(Path.Combine(d, "READY")));
-    p.Note("報告ID: " + Path.GetFileName(box));
-    await p.Until(() => menu.CurrentPage.Value == PauseMenuPage.Top, 15f, "送信後のトップ");
-    await p.ClickWebUi("pause-menu-open-bug-report");
-    if (hasToken)
+    FileStream pendingBoxLock = null;
+    System.IDisposable pendingSubscription = null;
+    try
     {
-        if (PlaytestDeliveryStatusBoard.Current.Value is PlaytestDeliveryPending)
+        if (hasToken)
         {
+            // 検証用に新しい実箱をロックし、本番Runnerが通知したPendingを撮影可能に保つ
+            // Fixture: lock the new real box to retain the Pending state emitted by the production runner
+            p.Note("検証用に実箱を一時ロックして送信待ちを撮影し、解除後に本番配送します");
+            pendingSubscription = PlaytestDeliveryStatusBoard.Current.Subscribe(status =>
+            {
+                if (status is not PlaytestDeliveryPending || pendingBoxLock != null) return; // silent-ok: 対象通知だけ処理 / 後続assertでロック取得を確認
+                var readyBox = Directory.GetDirectories(outbox).Except(previous).FirstOrDefault(d => File.Exists(Path.Combine(d, "READY")));
+                if (readyBox != null) pendingBoxLock = PlaytestOutboxAccess.AcquireBox(readyBox);
+            });
+        }
+        await p.ClickWebUi("bug-report-send");
+        await p.Until(() => Directory.GetDirectories(outbox).Except(previous).Any(d => File.Exists(Path.Combine(d, "READY"))), 120f, "新しいREADY箱");
+        var box = Directory.GetDirectories(outbox).Except(previous).First(d => File.Exists(Path.Combine(d, "READY")));
+        p.Note("報告ID: " + Path.GetFileName(box));
+        await p.Until(() => menu.CurrentPage.Value == PauseMenuPage.Top, 15f, "送信後のトップ");
+        await p.ClickWebUi("pause-menu-open-bug-report");
+        if (hasToken)
+        {
+            p.Assert(pendingBoxLock != null, "検証用の実箱ロックを取得した");
             await PlaytestWebUiOps.WaitWebUiTextContains("bug-report-delivery", "送信待ち", 15f);
             await p.Screenshot("03-pending");
+            pendingSubscription.Dispose();
+            pendingSubscription = null;
+            pendingBoxLock.Dispose();
+            pendingBoxLock = null;
+            p.Note("検証用ロックを解除し、本番Runnerへ送信を再要求します");
+            resolver.Resolve<IPlaytestUploadRequester>().RequestUpload();
+            await p.Until(() => File.Exists(Path.Combine(box, "UPLOADED")), 240f, "本番への送信完了印");
+            await PlaytestWebUiOps.WaitWebUiTextContains("bug-report-delivery", "すべての報告を送信しました", 30f);
+            p.Assert(PlaytestDeliveryStatusBoard.Current.Value is PlaytestDeliveryAllSent, "全報告の送信が完了");
+            await p.Screenshot("04-all-sent");
         }
-        await p.Until(() => File.Exists(Path.Combine(box, "UPLOADED")), 240f, "本番への送信完了印");
-        await PlaytestWebUiOps.WaitWebUiTextContains("bug-report-delivery", "すべての報告を送信しました", 30f);
-        p.Assert(PlaytestDeliveryStatusBoard.Current.Value is PlaytestDeliveryAllSent, "全報告の送信が完了");
-        await p.Screenshot("04-all-sent");
+        else
+        {
+            p.Assert(!File.Exists(Path.Combine(box, "UPLOADED")), "未設定時に送信しない");
+            await PlaytestWebUiOps.WaitWebUiTextContains("bug-report-delivery", "開発者トークンが未設定", 15f);
+            await p.Screenshot("03-local-saved");
+        }
     }
-    else
+    finally
     {
-        p.Assert(!File.Exists(Path.Combine(box, "UPLOADED")), "未設定時に送信しない");
-        await PlaytestWebUiOps.WaitWebUiTextContains("bug-report-delivery", "開発者トークンが未設定", 15f);
-        await p.Screenshot("03-local-saved");
+        pendingSubscription?.Dispose();
+        pendingBoxLock?.Dispose();
     }
 });
