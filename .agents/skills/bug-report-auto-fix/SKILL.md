@@ -91,6 +91,8 @@ poller は cwd を `$CANON` にして起動する（`scripts/bugreport/inbox-pol
 
 ## Step 1: 読む
 
+箱を読む最初の一手は `python3 scripts/bugreport/triage.py <箱> --out <dir>`（出力先は箱の外）。
+
 1. `$RUN/manifest.json`（説明文・`snapshotTicks`・`missing`・`clientState`・`repository`）と `$RUN/run.env` のフラグ・報告の確保時に Editor が書いた `$RUN/repo/bundle-status.txt` を読む。上の既定表のフラグが1つでも立っていたら、再現環境が報告時と違うことを summary に必ず書く
 2. `$RUN/logs/unity.log` の Error/Exception 行、`$RUN/frames/`（3秒に1枚の静止画の連番。最長約140秒の録画で最大47枚。Read で数枚見る）、`$RUN/screenshot.png`
 3. パケットログを可読化: `bash $CANON/.agents/skills/bug-report-auto-fix/scripts/run-edc.sh $WORKTREE/moorestech_client $CANON/.agents/skills/bug-report-auto-fix/scripts/edc/dump-packets.cs $RUN`（Editor が未起動なら先に `uloop launch $WORKTREE/moorestech_client`）。`$RUN/packets.jsonl` の末尾（報告直前の操作）を読む
