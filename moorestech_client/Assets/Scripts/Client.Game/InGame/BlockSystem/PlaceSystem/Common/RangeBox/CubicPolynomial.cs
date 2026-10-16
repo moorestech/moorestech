@@ -31,7 +31,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.RangeBox
             {
                 var left = cuts[i];
                 var leftValue = Evaluate(left) - boundary;
-                if (leftValue == 0) roots.Add(left);
+                // 極値接触の評価誤差だけを許容する
+                // Allow Horner evaluation rounding only for contact at stationary cuts
+                var magnitude = ((Math.Abs(_a) * left + Math.Abs(_b)) * left + Math.Abs(_c)) * left + Math.Abs(_d) + Math.Abs(boundary);
+                var touchesAtExtremum = 0 < left && left < 1 && Math.Abs(leftValue) <= 16 * 2.2204460492503131e-16 * magnitude;
+                if (leftValue == 0 || touchesAtExtremum) roots.Add(left);
                 if (i + 1 == cuts.Length) continue;
                 var right = cuts[i + 1];
                 var rightValue = Evaluate(right) - boundary;

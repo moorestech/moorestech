@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useTopicStore } from "../store/topicStore";
 import { Topics } from "../transport/protocol";
 import { sendAction } from "../transport/webSocketClient";
+import { resolveTutorialAnchor } from "../../shared/tutorialAnchor/resolveAnchor";
 import { initDomQueryResponder } from "./domQueryResponder";
 
 vi.mock("../transport/webSocketClient", () => ({ sendAction: vi.fn().mockResolvedValue({ ok: true }) }));
@@ -18,7 +19,7 @@ beforeEach(() => {
   // jsdomの空の算出値を、ブラウザーの初期値へ揃える
   // Supply browser initial computed values that jsdom leaves empty
   const defaults = document.createElement("style");
-  defaults.textContent = "* { position: static; overflow: visible; transform: none; filter: none; perspective: none; backdrop-filter: none; will-change: auto; contain: none; clip-path: none; border-width: 0px; }";
+  defaults.textContent = "* { position: static; overflow: visible; overflow-x: visible; overflow-y: visible; transform: none; filter: none; perspective: none; backdrop-filter: none; will-change: auto; contain: none; clip-path: none; border-width: 0px; }";
   document.body.append(defaults);
   element = document.createElement("div");
   element.dataset.testid = "hud";
@@ -66,7 +67,8 @@ describe("DOMの可視性とクリック可否", () => {
   // Text waits reject complete ancestor clipping independently of pointer transparency
   it.each(["hidden", "auto", "scroll", "clip"])("overflow:%s祖先の外は表示済みにしない", (overflow) => {
     const parent = document.createElement("div");
-    parent.style.overflow = overflow;
+    parent.style.overflowX = overflow;
+    parent.style.overflowY = overflow;
     document.body.append(parent);
     parent.append(element);
     vi.spyOn(parent, "getBoundingClientRect").mockReturnValue(new DOMRect(200, 200, 300, 100));
@@ -74,9 +76,32 @@ describe("DOMの可視性とクリック可否", () => {
     expect(query()).toMatchObject({ found: true, visible: false, hitTestPassed: false });
   });
 
+  it.each(["x", "y"])("overflow-%s:clipは可視の他軸を切らない", (axis) => {
+    const parent = document.createElement("div");
+    parent.style.position = "relative";
+    parent.style.overflowX = axis === "x" ? "clip" : "visible";
+    parent.style.overflowY = axis === "y" ? "clip" : "visible";
+    document.body.append(parent);
+    parent.append(element);
+    vi.spyOn(parent, "getBoundingClientRect").mockReturnValue(new DOMRect(200, 200, 300, 100));
+    vi.mocked(element.getBoundingClientRect).mockReturnValue(
+      axis === "x" ? new DOMRect(200, 340, 170, 28) : new DOMRect(540, 200, 170, 28),
+    );
+    vi.mocked(document.elementFromPoint).mockReturnValue(element);
+    expect(query()).toMatchObject({ found: true, visible: true, hitTestPassed: true });
+    element.dataset.tutorialAnchor = "hud";
+    expect(resolveTutorialAnchor("hud")).toMatchObject({
+      status: "ready",
+      clip: axis === "x"
+        ? { left: 200, right: 500, top: 0, bottom: innerHeight }
+        : { left: 0, right: innerWidth, top: 200, bottom: 300 },
+    });
+  });
+
   it("クリップ内に一部が残る透過HUDは表示済みとする", () => {
     const parent = document.createElement("div");
-    parent.style.overflow = "hidden";
+    parent.style.overflowX = "hidden";
+    parent.style.overflowY = "hidden";
     document.body.append(parent);
     parent.append(element);
     element.style.pointerEvents = "none";
@@ -87,7 +112,8 @@ describe("DOMの可視性とクリック可否", () => {
 
   it("viewportを包含ブロックとするfixed要素は祖先のoverflowから脱出する", () => {
     const parent = document.createElement("div");
-    parent.style.overflow = "hidden";
+    parent.style.overflowX = "hidden";
+    parent.style.overflowY = "hidden";
     document.body.append(parent);
     parent.append(element);
     element.style.position = "fixed";
