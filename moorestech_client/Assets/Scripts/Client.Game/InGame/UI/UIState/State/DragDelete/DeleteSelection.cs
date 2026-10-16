@@ -1,4 +1,5 @@
 using Mooresmaster.Localization.Generated;
+using Client.Game.InGame.Block;
 using Client.Game.InGame.UI.UIState.State.DragDelete.Confirm;
 using System;
 using UniRx;
@@ -19,6 +20,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         // 論理削除キーで重複排除する（同一機械の複数メッシュ子などを1件に集約）
         // Dedupe by logical delete key so multiple mesh children of one machine collapse into one
         private readonly Dictionary<object, IDeleteTarget> _selectedTargets = new();
+        private readonly CompositeDisposable _placeAnimationSubscriptions = new();
         private bool _strokeCanceled;
         private IDeleteTarget _hoverTarget;
         private readonly DeleteResultTracker _results = new();
@@ -93,6 +95,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             // Clear logical state and the hold subject before any reset can throw
             _pendingResets.Enqueue(_selectedTargets.Values);
             _selectedTargets.Clear();
+            _placeAnimationSubscriptions.Clear();
             _hoverTarget = null;
             _strokeCanceled = true;
             AimFilter = DeleteAimFilter.Frontmost;
@@ -176,6 +179,16 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             if (HoverPreview != null && ((HoverPreview is UnityEngine.Object view && view == null) || Equals(HoverPreview.GetDeleteTargetKey(), key))) _hoverPreview.Release();
             _selectedTargets.Add(key, target);
             if (_resetRecovery.CanPreview(target)) target.SetRemovePreviewing();
+            // 設置演出で戻された赤を、選択が続く間だけ復元する
+            // Restore red after placement animation only while selection still owns the target
+            if (target is BlockGameObjectChild child)
+            {
+                child.BlockGameObject.OnFinishedPlaceAnimation.Take(1).Subscribe(_ =>
+                {
+                    if (_selectedTargets.TryGetValue(key, out var selected) && ReferenceEquals(selected, target) &&
+                        DeleteTargetLiveness.IsAliveOrWarn(target, "[DragDelete] selected target destroyed after placement") && _resetRecovery.CanPreview(target)) target.SetRemovePreviewing();
+                }).AddTo(_placeAnimationSubscriptions);
+            }
             Revision++;
             _selectionChanged.OnNext(Revision);
             return true;

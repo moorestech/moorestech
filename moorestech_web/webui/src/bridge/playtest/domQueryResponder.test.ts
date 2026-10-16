@@ -15,6 +15,11 @@ beforeEach(() => {
   vi.mocked(sendAction).mockClear().mockResolvedValue({ ok: true });
   vi.stubGlobal("CSS", { escape: (value: string) => value });
   useTopicStore.setState({ topics: {}, status: "open" });
+  // jsdomの空の算出値を、ブラウザーの初期値へ揃える
+  // Supply browser initial computed values that jsdom leaves empty
+  const defaults = document.createElement("style");
+  defaults.textContent = "* { position: static; overflow: visible; transform: none; filter: none; perspective: none; backdrop-filter: none; will-change: auto; contain: none; clip-path: none; border-width: 0px; }";
+  document.body.append(defaults);
   element = document.createElement("div");
   element.dataset.testid = "hud";
   element.innerText = "Height: 1";
@@ -55,5 +60,38 @@ describe("DOMの可視性とクリック可否", () => {
   it("存在しない要素は可視にしない", () => {
     element.remove();
     expect(query()).toMatchObject({ found: false, visible: false, hitTestPassed: false });
+  });
+
+  // 表示待機はクリック透過と区別し、祖先による完全な切り取りを拒む
+  // Text waits reject complete ancestor clipping independently of pointer transparency
+  it.each(["hidden", "auto", "scroll", "clip"])("overflow:%s祖先の外は表示済みにしない", (overflow) => {
+    const parent = document.createElement("div");
+    parent.style.overflow = overflow;
+    document.body.append(parent);
+    parent.append(element);
+    vi.spyOn(parent, "getBoundingClientRect").mockReturnValue(new DOMRect(200, 200, 300, 100));
+    vi.mocked(element.getBoundingClientRect).mockReturnValue(new DOMRect(200, 340, 170, 28));
+    expect(query()).toMatchObject({ found: true, visible: false, hitTestPassed: false });
+  });
+
+  it("クリップ内に一部が残る透過HUDは表示済みとする", () => {
+    const parent = document.createElement("div");
+    parent.style.overflow = "hidden";
+    document.body.append(parent);
+    parent.append(element);
+    element.style.pointerEvents = "none";
+    vi.spyOn(parent, "getBoundingClientRect").mockReturnValue(new DOMRect(200, 200, 300, 100));
+    vi.mocked(element.getBoundingClientRect).mockReturnValue(new DOMRect(200, 290, 170, 28));
+    expect(query()).toMatchObject({ found: true, visible: true, hitTestPassed: false });
+  });
+
+  it("viewportを包含ブロックとするfixed要素は祖先のoverflowから脱出する", () => {
+    const parent = document.createElement("div");
+    parent.style.overflow = "hidden";
+    document.body.append(parent);
+    parent.append(element);
+    element.style.position = "fixed";
+    vi.spyOn(parent, "getBoundingClientRect").mockReturnValue(new DOMRect(200, 200, 300, 100));
+    expect(query()).toMatchObject({ found: true, visible: true });
   });
 });

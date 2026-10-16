@@ -37,6 +37,9 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             _selection = new DeleteSelection(buildOperationHistory, restoreSender, new DeletePreviewResetRecovery());
             _box = new DeleteBoxInput(mainCamera, boxTargetResolver, heightOffset);
             _hold = new DeleteHoldConfirm(progressBar);
+            // モード外の解放も受け、次の押下を受理できるようにする
+            // Observe releases outside delete mode so the next press can start a fresh hold
+            InputManager.Playable.Interact.OnGetKeyUp += () => _hold.Advance(false, 0f);
             _tooltip = tooltip;
             _selection.OnDeleteCompleted.Subscribe(_results.Receive);
             _selection.OnSelectionChanged.Subscribe(_ => _hold.SetSubject(_selection.HasSelection() ? DeleteHoldSubject.Selection(_selection.Revision) : DeleteHoldSubject.None));
