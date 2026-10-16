@@ -128,10 +128,34 @@ namespace Client.Tests.BugReport.Repository
             File.WriteAllText(Path.Combine(_repository, "later.txt"), "later");
             Git(_repository, "add .");
             Git(_repository, "commit -m later");
-            Assert.IsNull(BugReportCommitBundles.CompleteExisting(box, _repository, _repository));
+            Assert.IsNull(BugReportCommitBundles.CompleteExisting(box, _repository, _repository, Path.Combine(box, "UPLOAD_DECLARED")));
             var saved = Newtonsoft.Json.Linq.JObject.Parse(File.ReadAllText(Path.Combine(box, "manifest.json")));
             Assert.AreEqual(_unpublished, (string)saved["repository"]["commit"]);
             Assert.That(Git(_repository, $"bundle list-heads \"{Path.Combine(box, "repo/commits.bundle")}\""), Does.StartWith(_unpublished));
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void DirectLegacyEntryPreservesDeclaredOrAlreadyCompletedBytes(bool completed)
+        {
+            var box = Path.Combine(_root, "protected-legacy");
+            Directory.CreateDirectory(box);
+            var path = Path.Combine(box, "manifest.json");
+            const string original = "{\"isEditor\":true,\"missing\":[]}";
+            File.WriteAllText(path, original);
+            var declared = Path.Combine(box, "UPLOAD_DECLARED");
+            File.WriteAllText(declared, "fixed declaration");
+            if (completed)
+            {
+                Directory.CreateDirectory(Path.Combine(box, "repo"));
+                File.WriteAllText(Path.Combine(box, "repo/bundle-status.txt"), "already completed");
+            }
+            var failure = BugReportCommitBundles.CompleteExisting(box, _repository, _repository, declared);
+            if (completed) Assert.IsNull(failure);
+            else Assert.That(failure, Does.Contain("既宣言"));
+            Assert.AreEqual(original, File.ReadAllText(path));
+            Assert.AreEqual("fixed declaration", File.ReadAllText(declared));
+            Assert.False(File.Exists(Path.Combine(box, "repo/commits.bundle")));
         }
 
         private BugReportManifest Write(string commit)

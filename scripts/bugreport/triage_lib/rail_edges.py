@@ -1,17 +1,16 @@
-from . import cell
-from .train_timeline import snapshots
+from . import cell, read_json
+from .train_timeline import snapshot_paths
 from .validation import required, objects
 
 
 def summarize(box):
-    latest = None
-    for latest in snapshots(box):
-        pass
+    paths = snapshot_paths(box)
     lines = ['## レール']
-    if latest is None:
+    if not paths:
         return lines + ['スナップショットが無い']
-    tick, snapshot = latest
-    path = box / f'snapshots/tick_{tick}.json'
+    path = paths[-1]
+    tick = int(path.stem.removeprefix('tick_'))
+    snapshot = read_json(path)
     edges = required(snapshot, 'railSegments', list, path, '')
     objects(edges, path, 'railSegments')
     lines.append(f'tick={tick} / レール: {len(edges)} 件')

@@ -7,19 +7,27 @@ namespace Client.WebUiHost.Game.Topics
     // Send only state-specific fields; WebUiJson omits null fields
     public sealed class PlaytestDeliveryDto
     {
-        public string Kind;
-        public int? PendingCount;
-        public int? FailedCount;
-        public string Reason;
+        public readonly string Kind;
+        public readonly int? PendingCount;
+        public readonly int? FailedCount;
+        public readonly string Reason;
+
+        private PlaytestDeliveryDto(string kind, int? pendingCount, int? failedCount, string reason)
+        {
+            Kind = kind;
+            PendingCount = pendingCount;
+            FailedCount = failedCount;
+            Reason = reason;
+        }
 
         internal static PlaytestDeliveryDto From(PlaytestDeliveryStatus status)
         {
             return status switch
             {
-                PlaytestDeliveryLocalOnly local => new PlaytestDeliveryDto { Kind = "localOnly", PendingCount = local.PendingCount, FailedCount = local.FailedCount, Reason = DescribeReason(local.Reason) },
-                PlaytestDeliveryPending pending => new PlaytestDeliveryDto { Kind = "pending", PendingCount = pending.PendingCount, FailedCount = pending.FailedCount },
-                PlaytestDeliveryRefused refused => new PlaytestDeliveryDto { Kind = "refused", PendingCount = refused.PendingCount, FailedCount = refused.FailedCount },
-                PlaytestDeliveryAllSent => new PlaytestDeliveryDto { Kind = "allSent" },
+                PlaytestDeliveryLocalOnly local => new PlaytestDeliveryDto("localOnly", local.PendingCount, local.FailedCount, DescribeReason(local.Reason)),
+                PlaytestDeliveryPending pending => new PlaytestDeliveryDto("pending", pending.PendingCount, pending.FailedCount, null),
+                PlaytestDeliveryRefused refused => new PlaytestDeliveryDto("refused", refused.PendingCount, refused.FailedCount, null),
+                PlaytestDeliveryAllSent => new PlaytestDeliveryDto("allSent", null, null, null),
                 _ => throw new ArgumentOutOfRangeException(nameof(status), status, "Unknown delivery status"),
             };
 

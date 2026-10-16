@@ -1,5 +1,8 @@
 using System;
 using System.IO;
+using System.Threading;
+using Client.PlaytestReceiver.Credentials;
+using Client.PlaytestReceiver.Upload.Attempt;
 using Client.PlaytestReceiver;
 using Client.PlaytestReceiver.Delivery;
 using Client.PlaytestReceiver.Upload;
@@ -38,13 +41,19 @@ namespace Client.Tests.PlaytestReceiver
         }
 
         [Test]
-        public void 合計上限で落ちるマスタ資料も欠損と配送不能にする()
+        public void 合計上限で必須ワールドが落ちてもHTTPを始めない()
         {
             var box = Make();
             WriteSparse(Path.Combine(box, "world/save.json"), PlaytestReceiverConfig.MaxFileBytes);
             WriteSparse(Path.Combine(box, "repo/commits.bundle"), PlaytestReceiverConfig.MaxFileBytes);
             WriteSparse(Path.Combine(box, "repo/master-commits.bundle"), PlaytestReceiverConfig.MaxBundleBytes - 2 * PlaytestReceiverConfig.MaxFileBytes + 1);
-            AssertHeld(box, "master-commits.bundle");
+            var declaration = PlaytestBoxDeclaration.Build(PlaytestOutboxScanner.ScanPending(_directories, PlaytestOutboxScope.ReportsOnly)[0]);
+            Assert.That(declaration.MissingRequiredReason, Does.Contain("world/save.json"));
+            var api = new FakeUploadApi();
+            var session = new PlaytestSession(api, new DeveloperTokenSessionCredential("token"));
+            var uploader = new PlaytestUploader(api, session, _directories, PlaytestNoWaitRetrySchedule.Create(), PlaytestOutboxScope.ReportsOnly);
+            Assert.AreEqual(0, uploader.UploadPendingAsync(CancellationToken.None).GetAwaiter().GetResult().Sent);
+            Assert.IsEmpty(api.Calls);
         }
 
         [Test]
@@ -61,10 +70,73 @@ namespace Client.Tests.PlaytestReceiver
             Assert.AreEqual(0, api.CompleteCount);
         }
 
+        [TestCase("commits.bundle", "marker")]
+        [TestCase("master-commits.bundle", "marker")]
+        [TestCase("commits.bundle", "manifest")]
+        [TestCase("master-commits.bundle", "manifest")]
+        [TestCase("commits.bundle", "attempt")]
+        [TestCase("master-commits.bundle", "attempt")]
+        public void 記録失敗後の再試行もHTTPへ進まない(string name, string failure)
+        {
+            var box = Make();
+            WriteSparse(Path.Combine(box, "repo", name), PlaytestReceiverConfig.MaxFileBytes + 1);
+            if (failure == "manifest") File.WriteAllText(Path.Combine(box, "manifest.json"), "{\"missing\":42}");
+            if (failure == "marker") Directory.CreateDirectory(Path.Combine(box, PlaytestOutboxScanner.FailedMarker));
+            if (failure == "attempt")
+            {
+                Directory.CreateDirectory(Path.Combine(box, PlaytestOutboxScanner.AttemptsMarker));
+            }
+            var api = new FakeUploadApi();
+            var session = new PlaytestSession(api, new DeveloperTokenSessionCredential("token"));
+            var uploader = new PlaytestUploader(api, session, _directories, PlaytestNoWaitRetrySchedule.Create(), PlaytestOutboxScope.ReportsOnly);
+            Assert.AreEqual(0, uploader.UploadPendingAsync(CancellationToken.None).GetAwaiter().GetResult().Sent);
+            Assert.IsEmpty(api.Calls);
+            Assert.False(File.Exists(Path.Combine(box, PlaytestOutboxScanner.UploadedMarker)));
+        }
+
+        [TestCase("commits.bundle")]
+        [TestCase("master-commits.bundle")]
+        public void 作成済み資料の消失も保留する(string name)
+        {
+            var box = Make();
+            File.Delete(Path.Combine(box, "repo", name));
+            AssertHeld(box, name);
+        }
+
+        [Test]
+        public void 資料未補完のEditor箱だけ保留し正常箱は送る()
+        {
+            var box = Make();
+            File.Delete(Path.Combine(box, "repo/bundle-status.txt"));
+            File.WriteAllText(Path.Combine(box, "manifest.json"), "{\"isEditor\":true,\"missing\":[]}");
+            var normal = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20261016_130000_bbbb", ("manifest.json", "{}"));
+            var api = new FakeUploadApi();
+            new PlaytestUploadRunner(api, _directories, new FakeTicketProvider("aabb")).RequestUploadWith(new PlaytestDeveloperTokenRoute("token"));
+            Assert.False(File.Exists(Path.Combine(box, PlaytestOutboxScanner.UploadedMarker)));
+            Assert.True(File.Exists(Path.Combine(box, PlaytestOutboxScanner.FailedMarker)));
+            Assert.True(File.Exists(Path.Combine(normal, PlaytestOutboxScanner.UploadedMarker)));
+            Assert.AreEqual(1, api.CompleteCount);
+        }
+
+        [Test]
+        public void 必須資料は補助ログより先に宣言枠へ入る()
+        {
+            var box = Make();
+            WriteSparse(Path.Combine(box, "world/save.json"), 1024 * 1024);
+            WriteSparse(Path.Combine(box, "repo/commits.bundle"), 80L * 1024 * 1024);
+            WriteSparse(Path.Combine(box, "logs/a.log"), PlaytestReceiverConfig.MaxFileBytes);
+            WriteSparse(Path.Combine(box, "logs/b.log"), PlaytestReceiverConfig.MaxFileBytes);
+            var declaration = PlaytestBoxDeclaration.Build(PlaytestOutboxScanner.ScanPending(_directories, PlaytestOutboxScope.ReportsOnly)[0]);
+            Assert.IsNull(declaration.MissingRequiredReason);
+            Assert.That(declaration.Skipped, Has.Some.Matches<PlaytestSkippedFile>(file => file.Path == "logs/b.log"));
+        }
+
         private string Make()
         {
             var box = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20261016_120000_aaaa", ("manifest.json", "{\"missing\":[]}"));
             Directory.CreateDirectory(Path.Combine(box, "repo"));
+            WriteSparse(Path.Combine(box, "repo/commits.bundle"), 1);
+            WriteSparse(Path.Combine(box, "repo/master-commits.bundle"), 1);
             File.WriteAllText(Path.Combine(box, "repo/bundle-status.txt"), "commits.bundle: created\nmaster-commits.bundle: created\n");
             return box;
         }

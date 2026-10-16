@@ -23,10 +23,10 @@ if [ -n "$MASTER_COMMIT" ] && [ -d "$MASTER" ]; then
   # 差分bundleの前提をマスタ側でも取得し、取得失敗を復元欠損へ残す
   # Fetch master prerequisites before the incremental bundle and surface fetch failures as restoration gaps
   git -C "$MASTER" fetch -q origin master \
-    || { MASTER_FAILED=1; log "master origin/master の fetch に失敗した。マスタ復元は未確認"; }
+    || { log "master origin/master の fetch に失敗した。マスタ復元は未確認"; }
   if [ -f "$RUN/repo/master-commits.bundle" ]; then
     git -C "$MASTER" fetch -q "$RUN/repo/master-commits.bundle" '+refs/bugreport/*:refs/bugreport/*' \
-      || { MASTER_FAILED=1; log "master-commits.bundle を取り込めなかった。マスタの未pushコミットは使えない: $RUN/repo/master-commits.bundle"; }
+      || { log "master-commits.bundle を取り込めなかった。マスタの未pushコミットは使えない: $RUN/repo/master-commits.bundle"; }
   else
     log "master-commits.bundle が箱に無い。マスタの報告コミットは手元の参照にある場合だけ使える"
   fi
@@ -40,7 +40,16 @@ if [ -n "$MASTER_COMMIT" ] && [ -d "$MASTER" ]; then
       MASTER_FAILED=1
     fi
   fi
-  if [ "$MASTER_FAILED" = "0" ]; then MASTER_WORKTREE="$MASTER_WORKTREES/bugfix-$ID"; MASTER_DIR="$MASTER_WORKTREE/server_v8"; fi
+  # 取得手段の診断ではなく、復元先HEADで最終判定する
+  # Judge the restored HEAD rather than individual fetch attempts
+  restored_master="$MASTER_WORKTREES/bugfix-$ID"
+  if [ "$MASTER_FAILED" = "0" ] && [ "$(git -C "$restored_master" rev-parse HEAD)" = "$MASTER_COMMIT" ]; then
+    MASTER_WORKTREE="$restored_master"
+    MASTER_DIR="$MASTER_WORKTREE/server_v8"
+  else
+    MASTER_FAILED=1
+    log "master復元先のHEADを確認できない: $restored_master commit=$MASTER_COMMIT"
+  fi
 else
   log "master data の worktree を作らない（commit='$MASTER_COMMIT' repo='$MASTER'）"
 fi

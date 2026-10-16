@@ -143,11 +143,11 @@ namespace Client.Tests.PlaytestReceiver
         [Test]
         public void 日本語や空白を含む名前も見送らずに送る()
         {
-            PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_120000_aaaa", ("ユニティ.log", "x"), ("a b.log", "y"));
+            PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_120000_aaaa", ("manifest.json", "{}"), ("ユニティ.log", "x"), ("a b.log", "y"));
             var api = new FakeUploadApi();
 
             Assert.AreEqual(1, Upload(api));
-            CollectionAssert.AreEqual(new[] { "prepare", "put:a b.log", "put:ユニティ.log", "complete" }, api.Calls);
+            CollectionAssert.AreEqual(new[] { "prepare", "put:manifest.json", "put:a b.log", "put:ユニティ.log", "complete" }, api.Calls);
             StringAssert.Contains("\"skipped\":[]", api.LastCompleteBody);
         }
 

@@ -9,7 +9,7 @@ export function developerSubjectOf(machine: string): string {
   return `${DEVELOPER_SUBJECT_PREFIX}${machine}`;
 }
 
-export function isDeveloperSubject(sub: string): boolean {
+function isDeveloperSubject(sub: string): boolean {
   return sub.startsWith(DEVELOPER_SUBJECT_PREFIX);
 }
 

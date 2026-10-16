@@ -78,45 +78,50 @@ namespace Client.PlaytestReceiver.Upload
                 return;
             }
             _running = true;
-            RunAsync(route).Forget();
-        }
-
-        private async UniTaskVoid RunAsync(PlaytestDeliveryRoute route)
-        {
-            // 途中で何が起きても走行フラグを戻し、再走行の要求も例外経路で評価する。取りこぼすと以後のアップロードが止まる
-            // The flag is always cleared and a pending rerun is honoured even on the exception path; missing either stops later uploads
-            try
-            {
-                var initial = PlaytestOutboxScanner.ReadDeliveryInventory(_directories, route.Scope);
-                PlaytestDeliveryStatusBoard.Set(new PlaytestDeliveryPending(initial.PendingCount, initial.FailedCount));
-                var uploader = new PlaytestUploader(_api, ResolveSession(), _directories, PlaytestUploadRetrySchedule.Default, route.Scope);
-                var summary = await uploader.UploadPendingAsync(Application.exitCancellationToken);
-                // 最新要求がローカル保存なら旧走行の結果で上書きせず、残数だけ更新する
-                // If the latest request stays local, preserve that state and only refresh its pending count
-                if (_latestRoute is PlaytestLocalOnlyRoute local)
-                {
-                    PublishLocalOnly(local);
-                    return;
-                }
-                var remaining = PlaytestOutboxScanner.ReadDeliveryInventory(_directories, route.Scope);
-                PlaytestDeliveryStatusBoard.Set(summary.End == PlaytestUploadRunEnd.SessionRefused
-                    ? new PlaytestDeliveryRefused(remaining.PendingCount, remaining.FailedCount)
-                    : remaining.PendingCount == 0 && remaining.FailedCount == 0 ? PlaytestDeliveryAllSent.Instance : new PlaytestDeliveryPending(remaining.PendingCount, remaining.FailedCount));
-                Debug.Log($"[PlaytestReceiver] upload run finished: {summary.Sent} box(es) sent");
-            }
-            finally
-            {
-                _running = false;
-                if (_rerunRequested)
-                {
-                    _rerunRequested = false;
-                    var rerunRoute = _rerunRoute;
-                    _rerunRoute = null;
-                    RequestUploadWith(rerunRoute);
-                }
-            }
+            RunAsync().Forget();
 
             #region Internal
+
+            async UniTaskVoid RunAsync()
+            {
+                // 途中で何が起きても走行フラグを戻し、再走行の要求も例外経路で評価する。取りこぼすと以後のアップロードが止まる
+                // The flag is always cleared and a pending rerun is honoured even on the exception path; missing either stops later uploads
+                var acquired = false;
+                try
+                {
+                    await PlaytestOutboxAccess.Gate.WaitAsync(Application.exitCancellationToken);
+                    acquired = true;
+                    var initial = PlaytestOutboxScanner.ReadDeliveryInventory(_directories, route.Scope);
+                    PlaytestDeliveryStatusBoard.Set(new PlaytestDeliveryPending(initial.PendingCount, initial.FailedCount));
+                    var uploader = new PlaytestUploader(_api, ResolveSession(), _directories, PlaytestUploadRetrySchedule.Default, route.Scope);
+                    var summary = await uploader.UploadPendingAsync(Application.exitCancellationToken);
+                    // 最新要求がローカル保存なら旧走行の結果で上書きせず、残数だけ更新する
+                    // If the latest request stays local, preserve that state and only refresh its pending count
+                    if (_latestRoute is PlaytestLocalOnlyRoute local)
+                    {
+                        PublishLocalOnly(local);
+                        return;
+                    }
+                    var remaining = PlaytestOutboxScanner.ReadDeliveryInventory(_directories, route.Scope);
+                    PlaytestDeliveryStatusBoard.Set(summary.End == PlaytestUploadRunEnd.SessionRefused
+                        ? new PlaytestDeliveryRefused(remaining.PendingCount, remaining.FailedCount)
+                        : remaining.PendingCount == 0 && remaining.FailedCount == 0 ? PlaytestDeliveryAllSent.Instance : new PlaytestDeliveryPending(remaining.PendingCount, remaining.FailedCount));
+                    Debug.Log($"[PlaytestReceiver] upload run finished: {summary.Sent} box(es) sent");
+                }
+                finally
+                {
+                    if (acquired) PlaytestOutboxAccess.Gate.Release();
+                    _running = false;
+                    if (_rerunRequested)
+                    {
+                        _rerunRequested = false;
+                        var rerunRoute = _rerunRoute;
+                        _rerunRoute = null;
+                        RequestUploadWith(rerunRoute);
+                    }
+                }
+
+            }
 
             PlaytestSession ResolveSession()
             {

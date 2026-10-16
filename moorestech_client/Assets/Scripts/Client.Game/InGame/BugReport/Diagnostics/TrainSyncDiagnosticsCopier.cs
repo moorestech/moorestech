@@ -9,7 +9,7 @@ namespace Client.Game.InGame.BugReport.Diagnostics
     {
         private const int MaxFiles = 8;
 
-        public static void Copy(string sourceDirectory, DateTime playStartedAtUtc, string bundleDirectory, BugReportManifest manifest)
+        public static void Copy(string sourceDirectory, string bundleDirectory, BugReportManifest manifest)
         {
             // silent-ok: 停滞がない再生は置き場もない / 箱を読む人はtrain-syncの不在を停滞なしと読む
             if (!Directory.Exists(sourceDirectory)) return;
@@ -21,7 +21,6 @@ namespace Client.Game.InGame.BugReport.Diagnostics
             try
             {
                 files = new DirectoryInfo(sourceDirectory).GetFiles("stall-*.json")
-                    .Where(file => playStartedAtUtc <= file.LastWriteTimeUtc)
                     .OrderByDescending(file => file.LastWriteTimeUtc).ThenBy(file => file.Name).ToArray();
             }
             catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e))

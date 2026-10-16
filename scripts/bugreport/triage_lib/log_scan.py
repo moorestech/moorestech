@@ -1,4 +1,5 @@
 import re
+import sys
 from . import cell, read_json
 
 MAX_IMPORTANT_LOG_ROWS = 200
@@ -48,8 +49,16 @@ def stalls(box):
     lines = ['## 停滞診断']
     files = sorted((box / 'logs/train-sync').glob('*.json'))
     for path in files:
-        value = read_json(path)
-        reasons = ' / '.join(f'{key}={cell(value[key]) if key in value else "欠損"}'
-                             for key in ('WaitingReason', 'WaitingReasonAtCapture', 'CaptureReason'))
-        lines.append(f'- {path.name}: {reasons}')
+        # 個別の外部JSON破損を記録し、次の診断を読む
+        # Record individual external JSON corruption and continue with the next diagnostic
+        try:
+            value = read_json(path)
+            reasons = ' / '.join(f'{key}={cell(value[key]) if key in value else "欠損"}'
+                                 for key in ('WaitingReason', 'WaitingReasonAtCapture', 'CaptureReason'))
+            lines.append(f'- {path.name}: {reasons}')
+        except (OSError, ValueError) as error:
+            reason = f'停滞診断調査失敗: {path}: {error}'
+            print(reason, file=sys.stderr)
+            lines.append(reason)
+
     return lines if files else lines + ['停滞診断ファイルが無い']

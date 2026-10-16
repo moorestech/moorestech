@@ -67,7 +67,7 @@ public sealed class PlaytestDeveloperTokenWindow : EditorWindow
         {
             var result = DeveloperTokenEditorFile.Write(GameSystemPaths.PlaytestDeveloperTokenFilePath, _input);
             if (result.Kind == DeveloperTokenWindowResultKind.Saved) _input = "";
-            SetResult(result.Kind, result.Data);
+            SetResult(result.Kind, result.Detail);
             RefreshStatus();
         }
 
@@ -75,7 +75,7 @@ public sealed class PlaytestDeveloperTokenWindow : EditorWindow
         {
             var result = DeveloperTokenEditorFile.Delete(GameSystemPaths.PlaytestDeveloperTokenFilePath);
             if (result.Kind == DeveloperTokenWindowResultKind.Deleted) _input = "";
-            SetResult(result.Kind, result.Data);
+            SetResult(result.Kind, result.Detail);
             RefreshStatus();
         }
 
@@ -85,7 +85,7 @@ public sealed class PlaytestDeveloperTokenWindow : EditorWindow
             var read = PlaytestDeveloperTokenFile.Read(GameSystemPaths.PlaytestDeveloperTokenFilePath);
             if (!(read is PlaytestDeveloperTokenPresent present))
             {
-                SetResult(DeveloperTokenWindowResultKind.CredentialRequired, new DeveloperTokenWindowResultData(""));
+                SetResult(DeveloperTokenWindowResultKind.CredentialRequired, "");
                 return;
             }
             _checking = true;
@@ -95,17 +95,17 @@ public sealed class PlaytestDeveloperTokenWindow : EditorWindow
             if (response.IsCanceled || cancellation.IsCancellationRequested) return;
             _checking = false;
             if (response.Result.Kind != PlaytestApiResultKind.Responded)
-                SetResult(DeveloperTokenWindowResultKind.Unreachable, new DeveloperTokenWindowResultData(response.Result.Detail));
+                SetResult(DeveloperTokenWindowResultKind.Unreachable, response.Result.Detail);
             else if (response.Result.StatusCode == 401)
-                SetResult(DeveloperTokenWindowResultKind.Refused, new DeveloperTokenWindowResultData(""));
+                SetResult(DeveloperTokenWindowResultKind.Refused, "");
             else if (response.Result.StatusCode != 200)
-                SetResult(DeveloperTokenWindowResultKind.HttpFailed, new DeveloperTokenWindowResultData(response.Result.StatusCode.ToString()));
+                SetResult(DeveloperTokenWindowResultKind.HttpFailed, response.Result.StatusCode.ToString());
             else
             {
                 var parsed = PlaytestSessionResponse.Parse(response.Result.Body);
                 if (parsed == null || !parsed.SteamId.StartsWith("dev-", StringComparison.Ordinal))
-                    SetResult(DeveloperTokenWindowResultKind.MalformedResponse, new DeveloperTokenWindowResultData(""));
-                else SetResult(DeveloperTokenWindowResultKind.Connected, new DeveloperTokenWindowResultData(parsed.SteamId));
+                    SetResult(DeveloperTokenWindowResultKind.MalformedResponse, "");
+                else SetResult(DeveloperTokenWindowResultKind.Connected, parsed.SteamId);
             }
         }
 
@@ -133,7 +133,7 @@ public sealed class PlaytestDeveloperTokenWindow : EditorWindow
         }
     }
 
-    private void SetResult(DeveloperTokenWindowResultKind kind, DeveloperTokenWindowResultData data)
+    private void SetResult(DeveloperTokenWindowResultKind kind, string detail)
     {
         // 固定結果から表示とログの重要度を一緒に決める
         // Derive presentation and log severity together from the fixed result
@@ -141,15 +141,15 @@ public sealed class PlaytestDeveloperTokenWindow : EditorWindow
         {
             DeveloperTokenWindowResultKind.InvalidToken => ("保存できません: mdt_ + 小文字16進64桁を入力してください。", MessageType.Warning),
             DeveloperTokenWindowResultKind.Saved => ("保存しました。", MessageType.Info),
-            DeveloperTokenWindowResultKind.SaveFailed => ($"保存できません: {data.Detail}", MessageType.Error),
+            DeveloperTokenWindowResultKind.SaveFailed => ($"保存できません: {detail}", MessageType.Error),
             DeveloperTokenWindowResultKind.Deleted => ("削除しました。", MessageType.Info),
-            DeveloperTokenWindowResultKind.DeleteFailed => ($"削除できません: {data.Detail}", MessageType.Error),
+            DeveloperTokenWindowResultKind.DeleteFailed => ($"削除できません: {detail}", MessageType.Error),
             DeveloperTokenWindowResultKind.CredentialRequired => ("接続確認できません: 有効なトークンを保存してください。", MessageType.Warning),
-            DeveloperTokenWindowResultKind.Unreachable => ($"到達できません: {data.Detail}", MessageType.Error),
+            DeveloperTokenWindowResultKind.Unreachable => ($"到達できません: {detail}", MessageType.Error),
             DeveloperTokenWindowResultKind.Refused => ("受け口に拒否されました（失効か打ち間違い）", MessageType.Warning),
-            DeveloperTokenWindowResultKind.HttpFailed => ($"接続確認に失敗しました: HTTP {data.Detail}", MessageType.Error),
+            DeveloperTokenWindowResultKind.HttpFailed => ($"接続確認に失敗しました: HTTP {detail}", MessageType.Error),
             DeveloperTokenWindowResultKind.MalformedResponse => ("接続確認に失敗しました: 開発機セッション応答が不正です。", MessageType.Error),
-            DeveloperTokenWindowResultKind.Connected => ($"受け口に {data.Detail} として認識されました", MessageType.Info),
+            DeveloperTokenWindowResultKind.Connected => ($"受け口に {detail} として認識されました", MessageType.Info),
             _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown developer token result"),
         };
         if (_resultType == MessageType.Error) Debug.LogError($"[PlaytestReceiver] {_result}");

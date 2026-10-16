@@ -6,11 +6,11 @@ using Client.PlaytestReceiver.Credentials;
 
 internal static class DeveloperTokenEditorFile
 {
-    internal static (DeveloperTokenWindowResultKind Kind, DeveloperTokenWindowResultData Data) Write(string path, string input)
+    internal static (DeveloperTokenWindowResultKind Kind, string Detail) Write(string path, string input)
     {
         var token = input.Trim();
         if (!Regex.IsMatch(token, PlaytestDeveloperTokenFile.TokenPattern))
-            return (DeveloperTokenWindowResultKind.InvalidToken, new DeveloperTokenWindowResultData(""));
+            return (DeveloperTokenWindowResultKind.InvalidToken, "");
         var temporary = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
         string failure = null;
         // 外部ディスク境界。同じディレクトリで書き終えてから原子的に公開する
@@ -34,7 +34,7 @@ internal static class DeveloperTokenEditorFile
         {
             failure = exception.Message;
         }
-        if (failure == null) return (DeveloperTokenWindowResultKind.Saved, new DeveloperTokenWindowResultData(""));
+        if (failure == null) return (DeveloperTokenWindowResultKind.Saved, "");
 
         // 一時ファイルの後片付けも外部ディスク境界。失敗を元の理由へ足して画面とログへ渡す
         // Temporary-file cleanup is an external disk boundary; retain its failure for the UI and log
@@ -43,10 +43,10 @@ internal static class DeveloperTokenEditorFile
         {
             failure += $" / 一時ファイルを削除できません: {temporary}: {exception.Message}";
         }
-        return (DeveloperTokenWindowResultKind.SaveFailed, new DeveloperTokenWindowResultData(failure));
+        return (DeveloperTokenWindowResultKind.SaveFailed, failure);
     }
 
-    internal static (DeveloperTokenWindowResultKind Kind, DeveloperTokenWindowResultData Data) Delete(string path)
+    internal static (DeveloperTokenWindowResultKind Kind, string Detail) Delete(string path)
     {
         string failure = null;
         // 外部ディスク境界。結果は呼び手が画面とログの両方へ表示する
@@ -57,8 +57,8 @@ internal static class DeveloperTokenEditorFile
             failure = exception.Message;
         }
         return failure == null
-            ? (DeveloperTokenWindowResultKind.Deleted, new DeveloperTokenWindowResultData(""))
-            : (DeveloperTokenWindowResultKind.DeleteFailed, new DeveloperTokenWindowResultData(failure));
+            ? (DeveloperTokenWindowResultKind.Deleted, "")
+            : (DeveloperTokenWindowResultKind.DeleteFailed, failure);
     }
 }
 #endif

@@ -70,6 +70,19 @@ namespace Client.Tests.PlaytestReceiver
         }
 
         [Test]
+        public void 旧SHIPPED箱を再送も未送件数にも含めない()
+        {
+            var directories = PlaytestOutboxTestBoxes.Directories(_root);
+            var box = MakeBox(directories.ReportOutbox, "20260913_120000_bbbb", true);
+            File.WriteAllText(Path.Combine(box, "SHIPPED"), "delivered");
+            Assert.IsEmpty(PlaytestOutboxScanner.ScanPending(directories, Client.PlaytestReceiver.Delivery.PlaytestOutboxScope.ReportsOnly));
+            var counts = PlaytestOutboxScanner.ReadDeliveryInventory(directories, Client.PlaytestReceiver.Delivery.PlaytestOutboxScope.ReportsOnly);
+            Assert.AreEqual(0, counts.PendingCount);
+            Assert.AreEqual(0, counts.FailedCount);
+            Assert.IsEmpty(PlaytestOutboxScanner.ListPayloadFiles(box));
+        }
+
+        [Test]
         public void マーカーは送らず中身だけを相対パスで拾う()
         {
             var reports = MakeOutbox("BugReports");

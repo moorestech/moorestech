@@ -9,8 +9,20 @@ namespace Client.PlaytestReceiver.BoxFilePolicies
     {
         // manifest・world/・snapshots/ は再現の土台。欠けた箱は届いても ReplayCheck が必ず Reject する
         // manifest, world/ and snapshots/ are the reproduction's foundation; a box lacking them always gets rejected by ReplayCheck
+        public string ValidateBeforeUpload(string boxDirectory, PlaytestBoxDeclaration declaration)
+        {
+            return PlaytestCommitEvidenceFailure.ValidateAndRecord(boxDirectory, declaration);
+        }
+
+        internal static bool IsCommitBundle(string path)
+        {
+            return path == BugReportBundleLayout.RepositoryDirectoryName + "/" + BugReportBundleLayout.CommitsBundleFileName ||
+                   path == BugReportBundleLayout.RepositoryDirectoryName + "/" + BugReportBundleLayout.MasterCommitsBundleFileName;
+        }
+
         public PlaytestBundleFileRank RankOf(string relativePath)
         {
+            if (IsCommitBundle(relativePath)) return PlaytestBundleFileRank.Required;
             if (relativePath == BugReportBundleLayout.ManifestFileName) return PlaytestBundleFileRank.Required;
             var firstSegment = FirstDirectorySegment();
             if (firstSegment == BugReportBundleLayout.WorldDirectoryName || firstSegment == BugReportBundleLayout.SnapshotDirectoryName) return PlaytestBundleFileRank.Required;

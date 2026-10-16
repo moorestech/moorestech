@@ -7,6 +7,11 @@ namespace Client.PlaytestReceiver.BoxFilePolicies
     // Ranks paths in a progress record box; the record itself is the box's whole point and is required, anything else supporting
     public sealed class ProgressRecordBoxFilePolicy : IPlaytestBoxFilePolicy
     {
+        public string ValidateBeforeUpload(string boxDirectory, PlaytestBoxDeclaration declaration)
+        {
+            return null; // silent-ok: 進行記録にgit資料は無い / 必須本文は宣言が検査する
+        }
+
         public PlaytestBundleFileRank RankOf(string relativePath)
         {
             return relativePath == ProgressRecordPaths.RecordFileName ? PlaytestBundleFileRank.Required : PlaytestBundleFileRank.Supporting;

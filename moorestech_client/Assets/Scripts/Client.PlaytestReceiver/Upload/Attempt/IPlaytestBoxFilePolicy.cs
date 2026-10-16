@@ -16,5 +16,6 @@ namespace Client.PlaytestReceiver.Upload.Attempt
     public interface IPlaytestBoxFilePolicy
     {
         PlaytestBundleFileRank RankOf(string relativePath);
+        string ValidateBeforeUpload(string boxDirectory, PlaytestBoxDeclaration declaration);
     }
 }

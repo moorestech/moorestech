@@ -11,14 +11,15 @@ namespace Client.Game.InGame.BugReport
     {
         // 旧箱は元のmanifestのSHAだけを補完し、記録時のメタデータを変えない
         // Complete legacy evidence using only original manifest SHAs without changing capture metadata
-        public static string CompleteExisting(string boxDirectory, string repositoryRoot, string masterDataRoot)
+        public static string CompleteExisting(string boxDirectory, string repositoryRoot, string masterDataRoot, string declarationMarkerPath)
         {
+            var repoDirectory = Path.Combine(boxDirectory, BugReportBundleLayout.RepositoryDirectoryName);
+            if (File.Exists(Path.Combine(repoDirectory, BugReportBundleLayout.BundleStatusFileName))) return null; // silent-ok: 補完済み / 配送前に実体を再検証する
             var path = Path.Combine(boxDirectory, BugReportBundleLayout.ManifestFileName);
             var original = JObject.Parse(File.ReadAllText(path));
             if (original["isEditor"]?.Type != JTokenType.Boolean) return "manifest.isEditor が不明のため元repoを特定できません";
             if (!(bool)original["isEditor"]) return null; // silent-ok: ビルド箱にEditorのgit資料を足さない / buildInfoで出所を表示
-            var repoDirectory = Path.Combine(boxDirectory, BugReportBundleLayout.RepositoryDirectoryName);
-            if (File.Exists(Path.Combine(repoDirectory, BugReportBundleLayout.BundleStatusFileName))) return null;
+            if (File.Exists(declarationMarkerPath)) return "既宣言の旧箱には資料を追加できません。元箱を維持して復旧を依頼してください";
             var repository = original["repository"]?.ToObject<RepositoryState>();
             var master = original["masterData"]?.ToObject<RepositoryState>();
             var failure = Validate(repositoryRoot, repository?.Commit) ?? Validate(masterDataRoot, master?.Commit);
@@ -65,16 +66,16 @@ namespace Client.Game.InGame.BugReport
 
             void WriteOne(string label, string root, string commit)
             {
-                if (string.IsNullOrEmpty(commit)) { Record(CommitBundleResultKind.SkippedNoCommit, null, null); return; }
-                if (!Directory.Exists(root)) { Record(CommitBundleResultKind.SkippedNoRepository, root, null); return; }
+                if (string.IsNullOrEmpty(commit)) { Record(label, CommitBundleResultKind.SkippedNoCommit, null, null); return; }
+                if (!Directory.Exists(root)) { Record(label, CommitBundleResultKind.SkippedNoRepository, root, null); return; }
                 if (RepositoryStateProbe.TryGit(root, $"merge-base --is-ancestor {commit} origin/master", out _, out _))
                 {
-                    Record(CommitBundleResultKind.AlreadyPublished, null, null);
+                    Record(label, CommitBundleResultKind.AlreadyPublished, null, null);
                     return;
                 }
                 if (!RepositoryStateProbe.TryGit(root, $"cat-file -e {commit}^{{commit}}", out _, out var error))
                 {
-                    Record(CommitBundleResultKind.CommitNotFound, commit, error);
+                    Record(label, CommitBundleResultKind.CommitNotFound, commit, error);
                     return;
                 }
 
@@ -89,22 +90,22 @@ namespace Client.Game.InGame.BugReport
                     Directory.CreateDirectory(repoDirectory);
                     if (!RepositoryStateProbe.TryGit(root, $"update-ref {reference} {commit}", out _, out error))
                     {
-                        Record(CommitBundleResultKind.UpdateRefFailed, null, error);
+                        Record(label, CommitBundleResultKind.UpdateRefFailed, null, error);
                         return;
                     }
                     if (RepositoryStateProbe.TryGit(root, $"bundle create \"{output}\" origin/master..{reference}", out _, out error))
-                        Record(CommitBundleResultKind.Created, null, null);
+                        Record(label, CommitBundleResultKind.Created, null, null);
                     else
                     {
                         File.Delete(output);
-                        Record(CommitBundleResultKind.BundleCreateFailed, null, error);
+                        Record(label, CommitBundleResultKind.BundleCreateFailed, null, error);
                     }
                 }
                 // 外部ディスクIOの失敗をこの資料だけへ隔離する
                 // Isolate external disk IO failures to this evidence item
                 catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e))
                 {
-                    Record(CommitBundleResultKind.BundleCreateFailed, null, e.Message);
+                    Record(label, CommitBundleResultKind.BundleCreateFailed, null, e.Message);
                 }
                 finally
                 {
@@ -112,23 +113,24 @@ namespace Client.Game.InGame.BugReport
                         manifest.AddMissing("repo/" + label, "一時refを削除できなかった: " + cleanupError);
                 }
 
-                void Record(CommitBundleResultKind kind, string context, string reason)
+            }
+
+            void Record(string label, CommitBundleResultKind kind, string context, string reason)
+            {
+                var state = kind switch
                 {
-                    var state = kind switch
-                    {
-                        CommitBundleResultKind.SkippedNoCommit => "skipped-no-commit",
-                        CommitBundleResultKind.SkippedNoRepository => $"skipped-no-repo ({context})",
-                        CommitBundleResultKind.AlreadyPublished => "not-needed-origin-has-commit",
-                        CommitBundleResultKind.CommitNotFound => $"failed-commit-not-found ({context})",
-                        CommitBundleResultKind.UpdateRefFailed => "failed-update-ref",
-                        CommitBundleResultKind.Created => "created",
-                        CommitBundleResultKind.BundleCreateFailed => "failed-bundle-create",
-                        _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown bundle result"),
-                    };
-                    status.Append(label).Append(": ").Append(state).Append('\n');
-                    if (kind is CommitBundleResultKind.CommitNotFound or CommitBundleResultKind.UpdateRefFailed or CommitBundleResultKind.BundleCreateFailed)
-                        manifest.AddMissing("repo/" + label, reason ?? state);
-                }
+                    CommitBundleResultKind.SkippedNoCommit => "skipped-no-commit",
+                    CommitBundleResultKind.SkippedNoRepository => $"skipped-no-repo ({context})",
+                    CommitBundleResultKind.AlreadyPublished => "not-needed-origin-has-commit",
+                    CommitBundleResultKind.CommitNotFound => $"failed-commit-not-found ({context})",
+                    CommitBundleResultKind.UpdateRefFailed => "failed-update-ref",
+                    CommitBundleResultKind.Created => "created",
+                    CommitBundleResultKind.BundleCreateFailed => "failed-bundle-create",
+                    _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown bundle result"),
+                };
+                status.Append(label).Append(": ").Append(state).Append('\n');
+                if (kind is CommitBundleResultKind.CommitNotFound or CommitBundleResultKind.UpdateRefFailed or CommitBundleResultKind.BundleCreateFailed)
+                    manifest.AddMissing("repo/" + label, reason ?? state);
             }
 
             #endregion

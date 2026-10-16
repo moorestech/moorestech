@@ -38,28 +38,6 @@ import { BugReportForm } from "../BugReportForm";
 type Delivery = PauseMenuData["delivery"];
 type Status = { kind: "noSession" | "capturing" | "submitting" | "ready"; missing: string[] };
 
-const dictionary = {
-  "ui.bugReport.deliveryPending": "送信待ち {count}件",
-  "ui.bugReport.deliveryRefused": "受け口に拒否されました。トークン失効の可能性があります（送信待ち{count}件）",
-  "ui.bugReport.deliveryLocalOnlyTokenMissing": "未送信: 開発者トークンが未設定です（この機材に{count}件保存）",
-  "ui.bugReport.deliveryLocalOnlyTokenUnreadable": "未送信: 開発者トークンを読めません（この機材に{count}件保存）",
-  "ui.bugReport.deliveryLocalOnlySteamNotRunning": "未送信: Steamが起動していません（この機材に{count}件保存）",
-  "ui.bugReport.deliveryAllSent": "すべての報告を送信しました",
-  "ui.bugReport.placeholder": "何が起きた？",
-  "ui.bugReport.send": "バグ報告を送信",
-  "ui.bugReport.sent": "書き出しました",
-  "ui.feedbackReport.send": "感想を送信",
-  "ui.feedbackReport.sent": "感想を書き出しました",
-  "ui.feedbackReport.sending": "感想を書き出しています…",
-  "ui.bugReport.capturePending": "記録を確保しています…",
-  "ui.bugReport.missing": "欠けている項目: {items}",
-  "ui.bugReport.noSession": "ポーズメニューを開き直してください",
-  "ui.bugReport.sending": "書き出しています…",
-  "ui.playtest.reportKind.label": "報告の種別",
-  "ui.playtest.reportKind.bug": "バグ",
-  "ui.playtest.reportKind.feedback": "感想",
-};
-
 afterEach(() => {
   vi.clearAllMocks();
   mocks.dispatchAction.mockImplementation(async () => true);
@@ -81,7 +59,7 @@ export async function render(status: Status): Promise<ReactTestRenderer> {
 // 描画の初期化を共用する
 // Share renderer initialization
 async function renderElement(element: ReactElement): Promise<ReactTestRenderer> {
-  setDictionaries("japanese", dictionary, {}, {});
+  loadProductionDictionaries("japanese");
   let renderer: ReactTestRenderer;
   await act(async () => {
     renderer = create(element);

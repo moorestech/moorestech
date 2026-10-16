@@ -21,7 +21,7 @@ namespace Client.PlaytestReceiver.Upload
         public const string SkippedMarker = "UPLOAD_SKIPPED";
         public const string DeclaredMarker = "UPLOAD_DECLARED";
 
-        private static readonly string[] Markers = { ReadyMarker, UploadedMarker, FailedMarker, AttemptsMarker, SkippedMarker, DeclaredMarker };
+        private static readonly string[] Markers = { ReadyMarker, UploadedMarker, FailedMarker, AttemptsMarker, SkippedMarker, DeclaredMarker, "SHIPPED" };
 
         public static IReadOnlyList<PlaytestOutboxBox> ScanPending(PlaytestOutboxDirectories directories, PlaytestOutboxScope scope)
         {
@@ -42,7 +42,7 @@ namespace Client.PlaytestReceiver.Upload
                 foreach (var directory in Directory.GetDirectories(outbox))
                 {
                     if (!File.Exists(Path.Combine(directory, ReadyMarker))) continue;
-                    if (File.Exists(Path.Combine(directory, UploadedMarker))) continue;
+                    if (IsDelivered(directory)) continue;
                     if (File.Exists(Path.Combine(directory, FailedMarker))) continue;
                     yield return new PlaytestOutboxBox(directory, Path.GetFileName(directory), kind, filePolicy);
                 }
@@ -51,7 +51,7 @@ namespace Client.PlaytestReceiver.Upload
             #endregion
         }
 
-        public static PlaytestOutboxDeliveryCounts ReadDeliveryInventory(PlaytestOutboxDirectories directories, PlaytestOutboxScope scope)
+        internal static PlaytestOutboxDeliveryCounts ReadDeliveryInventory(PlaytestOutboxDirectories directories, PlaytestOutboxScope scope)
         {
             var pending = 0;
             var failed = 0;
@@ -69,13 +69,22 @@ namespace Client.PlaytestReceiver.Upload
                 foreach (var directory in Directory.GetDirectories(outbox))
                 {
                     if (!File.Exists(Path.Combine(directory, ReadyMarker))) continue;
-                    if (File.Exists(Path.Combine(directory, UploadedMarker))) continue;
-                    if (File.Exists(Path.Combine(directory, FailedMarker))) failed++;
+                    if (IsDelivered(directory)) continue;
+                    // 印を書けない同名ディレクトリも失敗として画面へ残す
+                    // A directory blocking the failure marker also remains visible as failed
+                    var blockedMarker = Directory.Exists(Path.Combine(directory, FailedMarker));
+                    if (blockedMarker) UnityEngine.Debug.LogWarning($"[PlaytestReceiver] failure marker is a directory: {directory}");
+                    if (blockedMarker || File.Exists(Path.Combine(directory, FailedMarker))) failed++;
                     else pending++;
                 }
             }
 
             #endregion
+        }
+
+        private static bool IsDelivered(string directory)
+        {
+            return File.Exists(Path.Combine(directory, UploadedMarker)) || File.Exists(Path.Combine(directory, "SHIPPED"));
         }
 
         public static IReadOnlyList<string> ListPayloadFiles(string boxDirectory)

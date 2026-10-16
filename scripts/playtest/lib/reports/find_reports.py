@@ -3,6 +3,7 @@
 Display report locations without changing their state.
 """
 import json
+import stat
 from pathlib import Path
 import sys
 
@@ -29,8 +30,19 @@ def text(value):
 
 
 def newest(paths, limit):
-    return sorted((p for p in paths if p.is_dir()),
-                  key=lambda path: (path.stat().st_mtime_ns, str(path)), reverse=True)[:limit]
+    entries = []
+    for path in paths:
+        # 外部ディスク競合はその箱の所在・理由を残して隔離する
+        # Isolate external disk races while retaining the affected location and reason
+        try:
+            info = path.stat()
+            if stat.S_ISDIR(info.st_mode):
+                entries.append((info.st_mtime_ns, str(path), path))
+        except OSError as error:
+            reason = f'読取失敗: {path}: {error}'
+            print(reason, file=sys.stderr)
+            print(reason)
+    return [entry[2] for entry in sorted(entries, reverse=True)[:limit]]
 
 
 def page(source, cursor_path):
@@ -52,7 +64,7 @@ def local(logs, limit):
         print(f'報告ディレクトリが無い: {reports}')
     # 判定用schemaは使わず、壊れた箱も所在と欠損理由を表示する
     # Avoid decision schemas so broken boxes retain their location and error
-    for box in newest(reports.glob('*/*'), limit):
+    for box in newest((p for p in reports.glob('*/*') if not p.name.endswith('.partial')), limit):
         meta, manifest = read(box / 'ingest.json'), read(box / 'manifest.json')
         if 'steamPersonaName' in meta and not isinstance(meta['steamPersonaName'], str):
             reason = f'{box / "ingest.json"}: steamPersonaName: 文字列が必要'
@@ -67,6 +79,9 @@ def local(logs, limit):
         for value in (meta, manifest):
             if 'readError' in value:
                 print('読取失敗: ' + value['readError'])
+    print('## 運搬中／未完了')
+    for box in newest(reports.glob('*/*.partial'), sys.maxsize):
+        print(f'{box.name}\t運搬中／未完了\t{box}')
     root = logs / 'harness/bug-report'
     print('## 自動修正')
     for name in ('inbox', 'runs'):
@@ -79,6 +94,9 @@ def local(logs, limit):
         # inboxは未処理を全件示し、runsだけ表示上限を適用する
         # Show every pending inbox box and limit only completed or active runs
         for box in newest(paths, limit if name == 'runs' else sys.maxsize):
+            if name == 'inbox' and box.name.endswith('.partial'):
+                print(f'{box.name}\t運搬中／未完了\t{box}')
+                continue
             result = box / 'fix-result.json'
             status = read(result) if result.is_file() else '結果ファイルなし'
             print(f'{box.name}\t{text(status)}\t{box}')
