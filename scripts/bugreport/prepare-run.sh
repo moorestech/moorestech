@@ -16,6 +16,10 @@ log() { echo "[prepare] $*" >&2; }
 
 [ -d "$RUN" ] || { log "run ディレクトリが無い: $RUN"; exit 1; }
 
+# 分割資料の破損時は別コミットへ縮退する前に止める
+# Stop on corrupt transferred evidence before falling back to a different commit
+python3 "$HERE/lib/restore-commit-transfer.py" "$RUN" || { log "コミット資料を復元できないため準備を中断"; exit 1; }
+
 # manifest は欠損しうる外部入力。読めない項目は空にし理由を全部ログして続行する（添付が欠けても残った資料で調査する裁定）
 # The manifest is fallible external input: unreadable fields become empty, every reason is logged, and the run continues
 read_manifest() {

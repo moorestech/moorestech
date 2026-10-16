@@ -19,6 +19,10 @@ restore_master_worktree() {
     log "マスタの未追跡ファイルが箱に無い。未追跡分を欠いたまま続行する"
   fi
 }
+# 単独で呼ぶ入口でも同じ断片検証を通す
+# Standalone callers use the same part verification
+python3 "$(dirname "${BASH_SOURCE[0]}")/restore-commit-transfer.py" "$RUN" \
+  || { log "masterコミット資料の復元に失敗したため中断"; return 1; }
 if [ -n "$MASTER_COMMIT" ] && [ -d "$MASTER" ]; then
   # 差分bundleの前提をマスタ側でも取得し、取得失敗を復元欠損へ残す
   # Fetch master prerequisites before the incremental bundle and surface fetch failures as restoration gaps

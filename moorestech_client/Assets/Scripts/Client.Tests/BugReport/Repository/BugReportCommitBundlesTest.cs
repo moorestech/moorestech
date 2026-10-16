@@ -45,17 +45,18 @@ namespace Client.Tests.BugReport.Repository
         public void UnpublishedCommitCreatesImportableBundleAndRemovesTemporaryRef()
         {
             var manifest = Write(_unpublished);
+            File.WriteAllText(Path.Combine(_root, "box/commits.bundle.lock"), "another writer's final-path lock");
+            manifest = Write(_unpublished);
             Assert.That(Status(), Does.Contain("commits.bundle: created"));
             Assert.That(Status(), Does.Contain("master-commits.bundle: skipped-no-commit"));
             var destination = Path.Combine(_root, "import");
             Directory.CreateDirectory(destination);
             Git(destination, "init");
 
-            // 差分bundleの前提コミットを先に取り込む。再現側もorigin/masterを取得してからbundleを読む
-            // Import the incremental bundle prerequisite first, matching the receiver fetching origin/master before the bundle
-            Git(destination, $"fetch \"{Path.Combine(_root, "origin.git")}\" master");
+            // 空repoでも報告SHAを復元し、受信側の履歴に依存しない
+            // Restore the report SHA in an empty repository without prerequisite history
             Git(destination, $"fetch \"{Path.Combine(_root, "box/commits.bundle")}\" '+refs/bugreport/*:refs/bugreport/*'".Replace("'", ""));
-            Assert.That(Git(destination, "rev-parse refs/bugreport/test").Trim(), Is.EqualTo(_unpublished));
+            Assert.That(Git(destination, "rev-parse FETCH_HEAD").Trim(), Is.EqualTo(_unpublished));
             Assert.That(Git(_repository, "for-each-ref refs/bugreport"), Is.Empty);
             Assert.That(manifest.Missing, Is.Empty);
         }
@@ -86,13 +87,13 @@ namespace Client.Tests.BugReport.Repository
         }
 
         [Test]
-        public void MissingOriginFailsWithoutLeavingRefOrBundle()
+        public void MissingOriginStillCreatesSelfContainedBundle()
         {
             Git(_repository, "update-ref -d refs/remotes/origin/master");
             var manifest = Write(_unpublished);
-            Assert.That(Status(), Does.Contain("commits.bundle: failed-bundle-create"));
-            Assert.That(manifest.Missing.Count, Is.EqualTo(1));
-            Assert.That(File.Exists(Path.Combine(_root, "box/commits.bundle")), Is.False);
+            Assert.That(Status(), Does.Contain("commits.bundle: created"));
+            Assert.That(manifest.Missing, Is.Empty);
+            Assert.That(File.Exists(Path.Combine(_root, "box/commits.bundle")), Is.True);
             Assert.That(Git(_repository, "for-each-ref refs/bugreport"), Is.Empty);
         }
 
@@ -110,9 +111,10 @@ namespace Client.Tests.BugReport.Repository
             var manifest = new BugReportManifest { Repository = new RepositoryState { Commit = _unpublished }, MasterData = new RepositoryState { Commit = commit } };
             BugReportCommitBundles.Write(Path.Combine(_root, "box"), "master-test", manifest, _repository, master);
             Assert.That(Status(), Does.Contain("master-commits.bundle: created"));
-            Git(_root, "clone origin.git import-master");
+            Directory.CreateDirectory(Path.Combine(_root, "import-master"));
+            Git(Path.Combine(_root, "import-master"), "init");
             var destination = Path.Combine(_root, "import-master");
-            Git(destination, $"fetch \"{Path.Combine(_root, "box/master-commits.bundle")}\" refs/bugreport/master-test");
+            Git(destination, $"fetch \"{Path.Combine(_root, "box/master-commits.bundle")}\" +refs/bugreport/*:refs/bugreport/*");
             Assert.AreEqual(commit, Git(destination, "rev-parse FETCH_HEAD").Trim());
             Assert.That(Git(master, "for-each-ref refs/bugreport"), Is.Empty);
             Assert.That(manifest.Missing, Is.Empty);

@@ -1,5 +1,9 @@
 using Client.PlaytestReceiver.Upload.Attempt;
 using Game.Paths;
+using Client.PlaytestReceiver.Upload;
+using Client.PlaytestReceiver.BoxFilePolicies.CommitTransfer;
+using System.Linq;
+using System.IO;
 
 namespace Client.PlaytestReceiver.BoxFilePolicies
 {
@@ -9,6 +13,21 @@ namespace Client.PlaytestReceiver.BoxFilePolicies
     {
         // manifest・world/・snapshots/ は再現の土台。欠けた箱は届いても ReplayCheck が必ず Reject する
         // manifest, world/ and snapshots/ are the reproduction's foundation; a box lacking them always gets rejected by ReplayCheck
+        public bool CanResumeHold(string directory) => CommitEvidenceTransfer.IsCapacityHold(directory);
+
+        public System.Collections.Generic.IReadOnlyList<PlaytestOutboxBox> PrepareAttachments(PlaytestOutboxBox box) => CommitEvidenceTransfer.Prepare(box);
+
+        public System.Collections.Generic.IReadOnlyList<string> ListPayloadFiles(string directory)
+        {
+            var transferred = File.Exists(Path.Combine(directory, CommitEvidenceTransfer.IndexPath));
+            return PlaytestOutboxScanner.ListPayloadFiles(directory).Where(path =>
+            {
+                var relative = PlaytestOutboxScanner.ToRelativePath(directory, path);
+                return !relative.StartsWith(CommitEvidenceTransfer.PartsDirectory + "/", System.StringComparison.Ordinal) &&
+                       relative != CommitEvidenceTransfer.IndexPath + ".tmp" && !(transferred && IsCommitBundle(relative));
+            }).ToList();
+        }
+
         public string ValidateBeforeUpload(string boxDirectory, PlaytestBoxDeclaration declaration)
         {
             return PlaytestCommitEvidenceFailure.ValidateAndRecord(boxDirectory, declaration);
@@ -22,7 +41,7 @@ namespace Client.PlaytestReceiver.BoxFilePolicies
 
         public PlaytestBundleFileRank RankOf(string relativePath)
         {
-            if (IsCommitBundle(relativePath)) return PlaytestBundleFileRank.Required;
+            if (IsCommitBundle(relativePath) || relativePath == CommitEvidenceTransfer.IndexPath) return PlaytestBundleFileRank.Required;
             if (relativePath == BugReportBundleLayout.ManifestFileName) return PlaytestBundleFileRank.Required;
             var firstSegment = FirstDirectorySegment();
             if (firstSegment == BugReportBundleLayout.WorldDirectoryName || firstSegment == BugReportBundleLayout.SnapshotDirectoryName) return PlaytestBundleFileRank.Required;

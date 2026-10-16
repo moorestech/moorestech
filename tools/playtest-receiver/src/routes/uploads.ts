@@ -2,6 +2,7 @@ import type { Env } from "../env";
 import { fail, requireMethod } from "../http";
 import { isKind, isSafeSegment } from "../keys";
 import { completeUpload } from "./uploadsComplete";
+import { PARTS_DIRECTORY } from "../uploads/commitTransfer";
 import { prepareUpload } from "./uploadsPrepare";
 
 // アップロード経路の一致判定とディスパッチをここへ寄せる。一致しなければnullでindex.tsの次の経路へ委ねる
@@ -28,16 +29,23 @@ export async function routeUploads(request: Request, env: Env, segments: string[
     return fail("bad-path", 400);
   }
 
-  const rest = segments.slice(4);
+  let uploadId = id;
+  let rest = segments.slice(4);
+  // 断片は親箱配下の専用口に限定し、通常箱の上限は変更しない
+  // Limit parts to a dedicated child endpoint without changing normal box limits
+  if (kind === "report" && rest.length === 3 && rest[0] === PARTS_DIRECTORY && /^[0-9]{6}$/.test(rest[1] as string)) {
+    uploadId = `${id}/${PARTS_DIRECTORY}/${rest[1]}`;
+    rest = rest.slice(2);
+  }
   if (rest.length === 1 && rest[0] === "prepare") {
     const denied = requireMethod(request, ["POST"], "upload prepare");
     if (denied !== null) return denied;
-    return prepareUpload(request, env, kind, id);
+    return prepareUpload(request, env, kind, uploadId);
   }
   if (rest.length === 1 && rest[0] === "complete") {
     const denied = requireMethod(request, ["POST"], "upload complete");
     if (denied !== null) return denied;
-    return completeUpload(request, env, kind, id);
+    return completeUpload(request, env, kind, uploadId);
   }
   const denied = requireMethod(request, ["PUT"], "upload put");
   if (denied !== null) return denied;

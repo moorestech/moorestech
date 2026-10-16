@@ -111,6 +111,22 @@ namespace Client.Tests.BugReport.Diagnostics
         }
 
         [Test]
+        public void 検索権限を失った親は診断なしに畳まない()
+        {
+            if (UnityEngine.Application.platform == UnityEngine.RuntimePlatform.WindowsEditor) Assert.Ignore("Unix permission test");
+            var parent = Path.Combine(_root, "restricted");
+            var source = Path.Combine(parent, "source");
+            Directory.CreateDirectory(source);
+            File.WriteAllText(Path.Combine(source, "stall-a.json"), "{}");
+            var manifest = new BugReportManifest();
+            using (var process = System.Diagnostics.Process.Start("/bin/chmod", "600 " + parent)) process.WaitForExit();
+            try { TrainSyncDiagnosticsCopier.Copy(source, Path.Combine(_root, "box"), manifest); }
+            finally { using var process = System.Diagnostics.Process.Start("/bin/chmod", "700 " + parent); process.WaitForExit(); }
+            Assert.That(manifest.Missing.Count, Is.EqualTo(1));
+            Assert.That(manifest.Missing[0].Item, Is.EqualTo("logs/train-sync"));
+        }
+
+        [Test]
         public void CopyFailureIsDeclaredMissing()
         {
             var source = Path.Combine(_root, "source");

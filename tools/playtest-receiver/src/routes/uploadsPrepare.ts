@@ -41,6 +41,11 @@ export async function prepareUpload(request: Request, env: Env, kind: PlaytestKi
     return fail(declaration.error, declaration.status);
   }
 
+  if (id.includes("/__attachments/") && (declaration.files.length !== 1 || declaration.files[0]?.path !== "chunk")) {
+    console.warn(`[upload] rejected invalid commit part declaration: ${label}`);
+    return fail("bad-commit-part", 400);
+  }
+
   // DECLAREDは世代付きのwrite-once。同世代は完全一致だけ、縮小は上の世代でだけ許す（箱の上限の迂回と旧宣言分の孤立を防ぐ）
   // DECLARED is generation-scoped write-once: a generation matches exactly, only a higher one may shrink (no dodging limits, no orphaned files)
   const settlement = await settleDeclaration(env.BUCKET, kind, steamId, id, { generation: declaration.generation, files: declaration.files });

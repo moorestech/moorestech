@@ -1,3 +1,4 @@
+import { transferFiles } from "../uploads/commitTransfer";
 import { isAcked, READY_MARKER } from "../bundleMarkers";
 import { DECLARATION_UNREADABLE_REASON } from "../contract";
 import type { Env } from "../env";
@@ -28,11 +29,20 @@ export async function completeUpload(request: Request, env: Env, kind: PlaytestK
     console.warn(`[upload] refused complete of ${steamId}/${id} because its DECLARED ${declared.reason}`);
     return fail(DECLARATION_UNREADABLE_REASON, 409);
   }
-  const verified = await verifyDeclaredObjects(env.BUCKET, kind, steamId, id, declared.declaration.files);
+  const transferred = await transferFiles(env.BUCKET, kind, steamId, id, declared.declaration.files);
+  if (typeof transferred === "string") {
+    console.warn(`[upload] refused incomplete commit transfer ${steamId}/${id}: ${transferred}`);
+    return fail("invalid-commit-transfer", 409);
+  }
+  const verified = await verifyDeclaredObjects(env.BUCKET, kind, steamId, id, [...declared.declaration.files, ...transferred]);
   if (verified.missing.length > 0) {
     console.warn(`[upload] ${steamId}/${id} is incomplete: ${verified.missing.map((m) => `${m.path}(${m.actualBytes ?? "absent"}/${m.expectedBytes})`).join(", ")}`);
     return json({ reason: "incomplete", missing: verified.missing }, 409);
   }
+
+  // 断片だけでは一覧に載せず、親の全資料照合で初めて公開する
+  // Parts never enter the inbox independently; publish only after the parent verifies all evidence
+  if (id.includes("/__attachments/")) return json({ ready: true });
 
   // ファイル一覧は照合済みの側を使い、クライアントの申告は使わない。本文はmanifest原文とskippedの補足だけ
   // The file list comes from the verified side, never the client's claim; the body only supplements the raw manifest and skipped

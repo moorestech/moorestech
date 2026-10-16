@@ -4,8 +4,8 @@ from .validation import required, objects
 
 
 def summarize(box):
-    paths = snapshot_paths(box)
     lines = ['## レール']
+    paths = snapshot_paths(box, lines)
     if not paths:
         return lines + ['スナップショットが無い']
     path = paths[-1]

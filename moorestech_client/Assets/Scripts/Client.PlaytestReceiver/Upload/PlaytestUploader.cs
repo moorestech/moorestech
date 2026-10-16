@@ -55,6 +55,7 @@ namespace Client.PlaytestReceiver.Upload
         {
             try
             {
+                using var boxLock = PlaytestOutboxAccess.AcquireBox(box.Directory);
                 return await UploadOneAsync(box, token);
             }
             catch (IOException exception)
@@ -112,16 +113,15 @@ namespace Client.PlaytestReceiver.Upload
 
             #region Internal
 
-            // 1試行。箱のファイルの読み書きは外部境界（消えた・他プロセスに掴まれた）で、例外は試行失敗に変えて判定をDecide一本に集める
-            // One attempt; the box's file I/O is an external boundary (vanished or locked files), so an exception becomes a failed attempt and Decide stays the single verdict
             async UniTask<(BoxOutcome? Outcome, PlaytestUploadAttemptFailure Failure)> RunAttemptAsync()
             {
+                // 外部JSONパース・ディスクIO境界。消失やロックの失敗をDecideへ渡す
+                // External JSON parsing and disk IO boundary; lost or locked files enter the single Decide verdict
                 try
                 {
-                    if (declaration == null)
-                    {
-                        declaration = PlaytestBoxDeclaration.Build(box);
-                    }
+                    var attachmentFailure = await new PlaytestUploadAttachments(_api, _session).RunAsync(box, token);
+                    if (attachmentFailure != null) return (null, attachmentFailure);
+                    if (declaration == null) declaration = PlaytestBoxDeclaration.Build(box);
                     if (IsUnsendable(declaration)) return (BoxOutcome.BoxDeferred, null);
                     var failure = await attemptRunner.RunAsync(box, declaration, sentPaths, token);
                     if (failure != null) return (null, failure);

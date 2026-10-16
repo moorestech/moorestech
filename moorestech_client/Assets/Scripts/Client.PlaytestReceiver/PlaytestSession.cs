@@ -76,6 +76,11 @@ namespace Client.PlaytestReceiver
 
                 // 更新時刻は受け口が名乗った期限から逆算する。寿命の正本を受け口1箇所に保つ
                 // The refresh time is derived from the expiry the receiver states, keeping the lifetime's source there alone
+                if (parsed.ExpiresAtUtc < DateTime.MinValue.AddSeconds(PlaytestReceiverConfig.TokenRefreshMarginSeconds))
+                {
+                    Debug.LogWarning("[PlaytestReceiver] session expiry is outside the refreshable range");
+                    return PlaytestSessionResult.Failed(PlaytestSessionOutcome.MalformedResponse, "session expiry is outside the refreshable range");
+                }
                 _token = parsed.Token;
                 _tokenRefreshAtUtc = parsed.ExpiresAtUtc.AddSeconds(-PlaytestReceiverConfig.TokenRefreshMarginSeconds);
 

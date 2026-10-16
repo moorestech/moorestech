@@ -30,10 +30,10 @@ def summarize(box):
             groups[-1].update(last=last, end=text, count=groups[-1]['count'] + 1)
         else:
             groups.append(dict(first=first, last=last, text=text, end=text, key=key, count=1))
-    important = [g for g in groups if re.search(r'\b(error|exception|warning)\b', g['key'], re.I)]
+    important = [g for g in groups if re.search(r'\b(error|exception|assert|warning)\b', g['key'], re.I)]
     # エラーを優先し、同じ優先度では末尾を残して元位置順に表示する
     # Prefer errors and recent entries, then display the selection in source order
-    selected = sorted(important, key=lambda g: (bool(re.search(r'\b(error|exception)\b', g['key'], re.I)), g['last']))[-MAX_IMPORTANT_LOG_ROWS:]
+    selected = sorted(important, key=lambda g: (bool(re.search(r'\b(error|exception|assert)\b', g['key'], re.I)), g['last']))[-MAX_IMPORTANT_LOG_ROWS:]
     for group in sorted(selected, key=lambda g: g['first']):
         lines.append(f"{group['text']} ×{group['count']} [unity.log:{group['first']}-{group['last']}]")
         if group['count'] > 1:

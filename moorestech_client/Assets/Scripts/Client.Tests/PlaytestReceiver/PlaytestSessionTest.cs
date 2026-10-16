@@ -125,6 +125,19 @@ namespace Client.Tests.PlaytestReceiver
             CollectionAssert.AreEqual(new[] { "post-session", "release" }, api.Events);
         }
 
+        [TestCase("0001-01-01T00:00:00Z", false)]
+        [TestCase("0001-01-01T00:14:59Z", false)]
+        [TestCase("0001-01-01T00:15:00Z", true)]
+        public void 更新余裕を引けない期限は保存前に契約違反へ返す(string expiry, bool valid)
+        {
+            var api = ApiAnswering(PlaytestSessionBodies.Allowed("token", expiry), PlaytestSessionBodies.AllowedFarFuture);
+            var session = new PlaytestSession(api, new SteamTicketSessionCredential(new FakeTicketProvider("aabb")));
+            var result = Authenticate(session, IssuedAt);
+            if (valid) Assert.IsInstanceOf<PlaytestSessionAuthenticated>(result);
+            else Assert.AreEqual(PlaytestSessionOutcome.MalformedResponse, ((PlaytestSessionFailed)result).Outcome);
+            Assert.IsInstanceOf<PlaytestSessionAuthenticated>(Authenticate(session, IssuedAt));
+        }
+
         private static FakeApi ApiAnswering(params string[] bodies)
         {
             var api = new FakeApi();

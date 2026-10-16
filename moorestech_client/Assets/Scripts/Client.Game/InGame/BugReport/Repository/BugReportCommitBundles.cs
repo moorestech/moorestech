@@ -86,8 +86,9 @@ namespace Client.Game.InGame.BugReport
 
                 // bundleは名前付きrefを要求する。作業ツリーには触れず、一時refを必ず解放する
                 // Bundles require a named ref; never touch the working tree and always release the temporary ref
-                var reference = "refs/bugreport/" + bundleId;
+                var reference = "refs/bugreport/" + bundleId + "-" + Guid.NewGuid().ToString("N");
                 var output = Path.GetFullPath(Path.Combine(repoDirectory, label));
+                var temporary = output + "." + Guid.NewGuid().ToString("N") + ".tmp";
                 // 外部gitプロセスとディスクIOの境界で、この資料の失敗を欠損へ残す
                 // At the external git process and disk IO boundary, record this evidence failure as missing
                 try
@@ -98,11 +99,14 @@ namespace Client.Game.InGame.BugReport
                         Record(label, CommitBundleResultKind.UpdateRefFailed, null, error);
                         return;
                     }
-                    if (RepositoryStateProbe.TryGit(root, $"bundle create \"{output}\" origin/master..{reference}", out _, out error))
+                    if (RepositoryStateProbe.TryGit(root, $"bundle create \"{temporary}\" {reference}", out _, out error))
+                    {
+                        if (File.Exists(output)) File.Replace(temporary, output, null);
+                        else File.Move(temporary, output);
                         Record(label, CommitBundleResultKind.Created, null, null);
+                    }
                     else
                     {
-                        File.Delete(output);
                         Record(label, CommitBundleResultKind.BundleCreateFailed, null, error);
                     }
                 }
@@ -114,6 +118,11 @@ namespace Client.Game.InGame.BugReport
                 }
                 finally
                 {
+                    // 自分の一時ファイルだけを片付け、他writerの公開済み資料は消さない
+                    // Clean only this invocation's temporary output, never another writer's published evidence
+                    try { File.Delete(temporary); }
+                    catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e))
+                    { manifest.AddMissing("repo/" + label, "一時出力を削除できなかった: " + e.Message); }
                     if (!RepositoryStateProbe.TryGit(root, $"update-ref -d {reference}", out _, out var cleanupError))
                         manifest.AddMissing("repo/" + label, "一時refを削除できなかった: " + cleanupError);
                 }

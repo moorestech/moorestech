@@ -19,11 +19,33 @@ namespace Client.PlaytestReceiver.Upload
         public const string FailedMarker = "UPLOAD_FAILED";
         public const string AttemptsMarker = "UPLOAD_ATTEMPTS";
         public const string SkippedMarker = "UPLOAD_SKIPPED";
+        public const string CompletionHoldPrefix = "evidence-completion-required: ";
+        public const string LockMarker = "UPLOAD_LOCK";
         public const string DeclaredMarker = "UPLOAD_DECLARED";
 
-        private static readonly string[] Markers = { ReadyMarker, UploadedMarker, FailedMarker, AttemptsMarker, SkippedMarker, DeclaredMarker, "SHIPPED" };
+        private static readonly string[] Markers = { ReadyMarker, UploadedMarker, FailedMarker, AttemptsMarker, SkippedMarker, DeclaredMarker, LockMarker, "SHIPPED" };
 
         public static IReadOnlyList<PlaytestOutboxBox> ScanPending(PlaytestOutboxDirectories directories, PlaytestOutboxScope scope)
+        {
+            return Scan(directories, scope, false);
+        }
+
+        public static IReadOnlyList<PlaytestOutboxBox> ScanForEvidence(PlaytestOutboxDirectories directories)
+        {
+            return Scan(directories, PlaytestOutboxScope.ReportsOnly, true);
+        }
+
+        public static bool IsCompletionHold(string directory)
+        {
+            if (File.Exists(Path.Combine(directory, DeclaredMarker))) return false; // silent-ok: 宣言済み本文は不変 / 保留を画面に保持
+            var path = Path.Combine(directory, FailedMarker);
+            if (!File.Exists(path)) return false; // silent-ok: 保留印なし / 通常走査で配送する
+            var reason = File.ReadAllText(path);
+            return reason.StartsWith(CompletionHoldPrefix, StringComparison.Ordinal) ||
+                   reason == "repo/commit-evidence: Editorで元SHAの資料補完が必要です";
+        }
+
+        private static IReadOnlyList<PlaytestOutboxBox> Scan(PlaytestOutboxDirectories directories, PlaytestOutboxScope scope, bool includeCompletionHolds)
         {
             var boxes = new List<PlaytestOutboxBox>();
             boxes.AddRange(ScanOne(directories.ReportOutbox, PlaytestUploadKind.Report, directories.ReportFilePolicy));
@@ -42,7 +64,7 @@ namespace Client.PlaytestReceiver.Upload
                     var markers = ReadMarkers(directory);
                     if (!markers.Contains(ReadyMarker)) continue;
                     if (IsDelivered(markers)) continue;
-                    if (markers.Contains(FailedMarker)) continue;
+                    if (markers.Contains(FailedMarker) && !filePolicy.CanResumeHold(directory) && !(includeCompletionHolds && IsCompletionHold(directory))) continue;
                     yield return new PlaytestOutboxBox(directory, Path.GetFileName(directory), kind, filePolicy);
                 }
             }

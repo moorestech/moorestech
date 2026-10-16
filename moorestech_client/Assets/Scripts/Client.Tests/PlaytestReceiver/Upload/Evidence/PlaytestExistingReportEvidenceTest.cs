@@ -74,7 +74,7 @@ namespace Client.Tests.PlaytestReceiver
 
         [TestCase(false)]
         [TestCase(true)]
-        public void 旧箱の保留印解除後はEditor補完を経て再送できる(bool previousHoldStatus)
+        public void 開発ビルドで保留された旧箱をEditor補完で自動再送できる(bool previousHoldStatus)
         {
             var repository = Path.Combine(_root, "source");
             Directory.CreateDirectory(repository);
@@ -99,15 +99,13 @@ namespace Client.Tests.PlaytestReceiver
                 Directory.CreateDirectory(Path.Combine(_box, "repo"));
                 File.WriteAllText(Path.Combine(_box, "repo/bundle-status.txt"), "commit-evidence: failed-delivery (legacy)\n");
             }
-            // 保留しても補完証拠は生まれず、印解除後に元SHAの資料を作る
-            // Holding creates no completion proof; clearing markers still requires evidence from original SHAs
+            // ビルドの走査で保留された箱もEditor補完で元SHAの資料を作る
+            // Editor completion restores original-SHA evidence even after a build scan held the box
             var api = new FakeUploadApi();
             var session = new Client.PlaytestReceiver.PlaytestSession(api, new Client.PlaytestReceiver.Credentials.DeveloperTokenSessionCredential("token"));
             var uploader = new PlaytestUploader(api, session, _directories, PlaytestNoWaitRetrySchedule.Create(), Client.PlaytestReceiver.Delivery.PlaytestOutboxScope.ReportsOnly);
             Assert.AreEqual(0, uploader.UploadPendingAsync(System.Threading.CancellationToken.None).GetAwaiter().GetResult().Sent);
             Assert.IsEmpty(api.Calls);
-            File.Delete(Path.Combine(_box, PlaytestOutboxScanner.FailedMarker));
-            File.Delete(Path.Combine(_box, PlaytestOutboxScanner.AttemptsMarker));
             PlaytestExistingReportEvidence.Complete(_directories, repository, repository);
             Assert.True(File.Exists(Path.Combine(_box, "repo/commits.bundle")));
             Assert.True(File.Exists(Path.Combine(_box, "repo/master-commits.bundle")));

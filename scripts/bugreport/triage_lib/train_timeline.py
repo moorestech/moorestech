@@ -1,12 +1,22 @@
+import re
 import struct
 import sys
 from . import cell, read_json
 from .validation import required, objects
 
 
-def snapshot_paths(box):
-    return sorted((box / 'snapshots').glob('tick_*.json'),
-                  key=lambda path: int(path.stem.removeprefix('tick_')))
+def snapshot_paths(box, diagnostics):
+    paths = []
+    # 外部の名前は個別検証し、正常資料を不正名から隔離する
+    # Validate external names individually to isolate intact evidence from malformed names
+    for path in (box / 'snapshots').glob('tick_*.json'):
+        if not re.fullmatch(r'tick_[0-9]+', path.stem):
+            reason = f'スナップショット名が不正: {path}: tickには非負整数が必要'
+            print(reason, file=sys.stderr)
+            diagnostics.append(reason)
+            continue
+        paths.append(path)
+    return sorted(paths, key=lambda path: int(path.stem.removeprefix('tick_')))
 
 
 def decode(bits, field):
@@ -21,7 +31,7 @@ def summarize(box):
     lines = ['## 列車', '| train | tick | IsAutoRun | speed | distance | Diagram | 先頭ノード |',
              '| --- | --- | --- | --- | --- | --- | --- |']
     count = 0
-    for path in snapshot_paths(box):
+    for path in snapshot_paths(box, lines):
         # 外部ファイル単位の失敗を結果とstderrへ残し、正常な資料を続ける
         # Retain per-file external failures in the result and stderr while continuing intact evidence
         try:

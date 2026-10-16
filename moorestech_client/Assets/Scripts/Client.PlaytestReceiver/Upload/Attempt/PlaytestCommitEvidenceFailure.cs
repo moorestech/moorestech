@@ -36,7 +36,10 @@ namespace Client.PlaytestReceiver.BoxFilePolicies
             var reason = string.Join("; ", skipped.Select(file => file.Path + ": " + file.Reason));
             // 送れないコミット資料を成功扱いにせず、画面の失敗件数へ残す
             // Keep unsendable commit evidence in the UI failure count rather than reporting success
-            File.WriteAllText(Path.Combine(directory, PlaytestOutboxScanner.FailedMarker), reason);
+            var completionOnly = skipped.Count == 1 && skipped[0].Path == "repo/commit-evidence" &&
+                                 manifest["isEditor"]?.Type == JTokenType.Boolean && (bool)manifest["isEditor"];
+            File.WriteAllText(Path.Combine(directory, PlaytestOutboxScanner.FailedMarker),
+                completionOnly ? PlaytestOutboxScanner.CompletionHoldPrefix + reason : reason);
             Debug.LogWarning($"[PlaytestReceiver] commit evidence cannot be delivered; box held: {Path.GetFileName(directory)}: {reason}");
             if (File.Exists(Path.Combine(directory, PlaytestOutboxScanner.DeclaredMarker)))
             {
