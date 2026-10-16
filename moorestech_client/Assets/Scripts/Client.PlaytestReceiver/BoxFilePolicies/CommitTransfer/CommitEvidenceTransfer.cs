@@ -46,7 +46,12 @@ namespace Client.PlaytestReceiver.BoxFilePolicies.CommitTransfer
                     payloads.Sum(path => new FileInfo(path).Length) <= PlaytestReceiverConfig.MaxBundleBytes && payloads.Count <= PlaytestReceiverConfig.MaxBundleFiles))
                     return Array.Empty<PlaytestOutboxBox>(); // silent-ok: 通常宣言の上限内 / 配送時にも上限を検証
                 if (File.Exists(Path.Combine(box.Directory, PlaytestOutboxScanner.DeclaredMarker)))
-                    throw new IOException("Already declared commit evidence cannot be changed to a multipart transfer");
+                {
+                    // 既宣言は分割せず、通常の必須資料検証で保留理由を記録する
+                    // Preserve declared evidence and let required-file validation record the hold
+                    UnityEngine.Debug.LogWarning("[PlaytestReceiver] preserving declared commit evidence; validating the original declaration without multipart conversion");
+                    return Array.Empty<PlaytestOutboxBox>();
+                }
                 WriteIndex(box.Directory, bundles, indexPath);
             }
 

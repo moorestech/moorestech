@@ -33,15 +33,20 @@ namespace Client.Tests.PlaytestReceiver
 
         [TestCase("commits.bundle")]
         [TestCase("master-commits.bundle")]
-        public void 単体上限を超えるコミット資料は送信成功にしない(string name)
+        public void 単体上限を超えるコミット資料は分割して全て送る(string name)
         {
             var box = Make();
             WriteSparse(Path.Combine(box, "repo", name), PlaytestReceiverConfig.MaxFileBytes + 1);
-            AssertHeld(box, name);
+            var api = new FakeUploadApi();
+            new PlaytestUploadRunner(api, _directories, new FakeTicketProvider("aabb")).RequestUploadWith(new PlaytestDeveloperTokenRoute("token"));
+            Assert.AreEqual(4, api.CompleteCount);
+            Assert.True(File.Exists(Path.Combine(box, PlaytestOutboxScanner.UploadedMarker)));
+            Assert.That(api.LastPreparedPaths, Does.Contain("repo/commit-transfer.json"));
+            Assert.That(api.LastPreparedPaths, Does.Not.Contain("repo/" + name));
         }
 
         [Test]
-        public void 合計上限で必須ワールドが落ちてもHTTPを始めない()
+        public void 合計上限でもコミット分割後に必須ワールドを保持して送る()
         {
             var box = Make();
             WriteSparse(Path.Combine(box, "world/save.json"), PlaytestReceiverConfig.MaxFileBytes);
@@ -52,8 +57,9 @@ namespace Client.Tests.PlaytestReceiver
             var api = new FakeUploadApi();
             var session = new PlaytestSession(api, new DeveloperTokenSessionCredential("token"));
             var uploader = new PlaytestUploader(api, session, _directories, PlaytestNoWaitRetrySchedule.Create(), PlaytestOutboxScope.ReportsOnly);
-            Assert.AreEqual(0, uploader.UploadPendingAsync(CancellationToken.None).GetAwaiter().GetResult().Sent);
-            Assert.IsEmpty(api.Calls);
+            Assert.AreEqual(1, uploader.UploadPendingAsync(CancellationToken.None).GetAwaiter().GetResult().Sent);
+            Assert.AreEqual(3, api.CompleteCount);
+            Assert.That(api.LastPreparedPaths, Does.Contain("world/save.json").And.Contain("repo/commit-transfer.json"));
         }
 
         [Test]
@@ -68,6 +74,8 @@ namespace Client.Tests.PlaytestReceiver
             CollectionAssert.AreEqual(before, File.ReadAllBytes(Path.Combine(box, "manifest.json")));
             Assert.True(File.Exists(Path.Combine(box, PlaytestOutboxScanner.FailedMarker)));
             Assert.AreEqual(0, api.CompleteCount);
+            Assert.IsEmpty(api.Calls);
+            Assert.False(File.Exists(Path.Combine(box, "repo/commit-transfer.json")));
         }
 
         [TestCase("commits.bundle", "marker")]
@@ -79,7 +87,7 @@ namespace Client.Tests.PlaytestReceiver
         public void 記録失敗後の再試行もHTTPへ進まない(string name, string failure)
         {
             var box = Make();
-            WriteSparse(Path.Combine(box, "repo", name), PlaytestReceiverConfig.MaxFileBytes + 1);
+            File.Delete(Path.Combine(box, "repo", name));
             if (failure == "manifest") File.WriteAllText(Path.Combine(box, "manifest.json"), "{\"missing\":42}");
             if (failure == "marker") Directory.CreateDirectory(Path.Combine(box, PlaytestOutboxScanner.FailedMarker));
             if (failure == "attempt")
