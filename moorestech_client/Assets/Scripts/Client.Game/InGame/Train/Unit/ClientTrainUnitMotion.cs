@@ -80,6 +80,13 @@ namespace Client.Game.InGame.Train.Unit
                     }
                     if (0 < distanceToMove)
                     {
+                        // 行き止まりの超過時は速度だけ止める
+                        // Match the server's dead-end stop while preserving fractional distance.
+                        if (!railPosition.GetNodeApproaching().ConnectedNodes.Any())
+                        {
+                            currentSpeed = 0;
+                            break;
+                        }
                         Debug.LogWarning("1st hashよりApplySnapshotTrainUnitのtickが前ならこれは想定内です。次のhash検証でmismatchになる可能性あり");
                         break;
                     }
