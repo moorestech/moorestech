@@ -25,13 +25,13 @@ namespace Client.Game.InGame.UI.UIState.State.PlacementPick
             _blockPickResolver = blockPickResolver;
         }
 
-        public bool TryPickTargetUnderCursor(out IPlacementTarget pickedTarget)
+        public bool TryPickTargetUnderCursor(bool isPointerOverUi, out IPlacementTarget pickedTarget)
         {
             pickedTarget = null;
 
             //TODO InputSystem対応
             if (!HybridInput.GetMouseButtonDown(2)) return false;
-            if (UiPointerHitTest.IsPointerOverAnyUi()) return false;
+            if (isPointerOverUi) return false;
             // 左ドラッグ中はスポイトしない（遷移先でGetKeyUpが拾われ意図せず設置されるのを防ぐ）
             // Skip picking during a left-drag (the release would be consumed as a place click in the next state)
             if (HybridInput.GetMouseButton(0)) return false;

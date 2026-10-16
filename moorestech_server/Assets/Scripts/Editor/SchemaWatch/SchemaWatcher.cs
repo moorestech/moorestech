@@ -7,7 +7,7 @@ public static class SchemaWatcher
 {
     private const float CheckInterval = 1f;
     private static readonly SchemaWatchOrchestrator orchestrator;
-    private static float timer;
+    private static double lastCheckTime;
 
     static SchemaWatcher()
     {
@@ -48,13 +48,14 @@ public static class SchemaWatcher
 
     private static void Update()
     {
-        timer += Time.deltaTime;
-        if (timer < CheckInterval)
+        // EditModeでも監視を進め、起動中の遅延再コンパイルを防ぐ。
+        // Advance monitoring in EditMode to avoid delayed recompilation during boot.
+        if (EditorApplication.timeSinceStartup - lastCheckTime < CheckInterval)
         {
             return;
         }
 
-        timer = 0f;
+        lastCheckTime = EditorApplication.timeSinceStartup;
         CheckForChanges();
     }
 

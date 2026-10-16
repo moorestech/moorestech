@@ -185,6 +185,7 @@ namespace Client.Starter.Registration
             builder.Register<RailGraphSnapshotApplier>(Lifetime.Singleton);
             builder.Register<TrainUnitClientCache>(Lifetime.Singleton);
             builder.Register<TrainUnitTickState>(Lifetime.Singleton);
+            builder.Register<Client.Game.InGame.Entity.Removal.TrainCarRemovalRequests>(Lifetime.Singleton);
             builder.RegisterInstance(new TrainSynchronizationDiagnosticWriter(TrainSynchronizationDiagnosticDirectory.Resolve()));
             builder.Register<TrainSynchronizationDiagnostics>(Lifetime.Singleton);
             builder.Register<TrainUnitFutureMessageBuffer>(Lifetime.Singleton);

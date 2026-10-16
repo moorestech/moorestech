@@ -28,10 +28,11 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
                 Cell(0, 0, 2, BlockDirection.East, BlockVerticalDirection.Horizontal, true),
             };
 
-            var result = BeltConveyorStraightCellBlockResolver.ResolveStraightRun(cells, Family, NoneReasons(cells.Count));
+            var result = BeltConveyorStraightCellBlockResolver.ResolveStraightRun(cells, Family, NoneReasons(cells.Count), out var unavailableSlope);
 
             // セルを縮約せず配置属性を維持する
             // Preserve placement attributes without collapsing cells
+            Assert.IsFalse(unavailableSlope);
             Assert.AreEqual(cells.Count, result.Count);
             Assert.IsTrue(result.All(info => info.BlockId == StraightBlock));
             for (var i = 0; i < cells.Count; i++)
@@ -51,8 +52,9 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
                 Cell(0, 1, 1, BlockDirection.North, BlockVerticalDirection.Down, true),
             };
 
-            var result = BeltConveyorStraightCellBlockResolver.ResolveStraightRun(cells, Family, NoneReasons(cells.Count));
+            var result = BeltConveyorStraightCellBlockResolver.ResolveStraightRun(cells, Family, NoneReasons(cells.Count), out var unavailableSlope);
 
+            Assert.IsFalse(unavailableSlope);
             Assert.AreEqual(UpBlock, result[0].BlockId);
             Assert.AreEqual(DownBlock, result[1].BlockId);
             Assert.AreEqual(BlockVerticalDirection.Up, result[0].VerticalDirection);
@@ -68,8 +70,9 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
             };
 
             var beltReasons = NoneReasons(cells.Count);
-            var result = BeltConveyorStraightCellBlockResolver.ResolveStraightRun(cells, SlopelessFamily, beltReasons);
+            var result = BeltConveyorStraightCellBlockResolver.ResolveStraightRun(cells, SlopelessFamily, beltReasons, out var unavailableSlope);
 
+            Assert.IsTrue(unavailableSlope);
             Assert.AreEqual(StraightBlock, result[0].BlockId);
             Assert.IsFalse(result[0].Placeable);
 
@@ -87,8 +90,9 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
             };
             var beltReasons = new List<BeltConveyorPlacementBlockReason> { BeltConveyorPlacementBlockReason.ImpossibleOverpass };
 
-            BeltConveyorStraightCellBlockResolver.ResolveStraightRun(cells, SlopelessFamily, beltReasons);
+            BeltConveyorStraightCellBlockResolver.ResolveStraightRun(cells, SlopelessFamily, beltReasons, out var unavailableSlope);
 
+            Assert.IsTrue(unavailableSlope);
             Assert.AreEqual(BeltConveyorPlacementBlockReason.ImpossibleOverpass, beltReasons[0]);
         }
 

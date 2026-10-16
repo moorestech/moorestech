@@ -5,6 +5,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Context;
 using Cysharp.Threading.Tasks;
+using Game.Block.Interface;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Util.Blueprint.Planning;
 using UnityEngine;
@@ -25,7 +26,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
         {
             // 解放時の原点を複製し、後のプレビュー更新から切り離す
             // Snapshot release origins independently of later preview updates
-            var origins = plan.EnumerateCopiesToPlace().Select(copy => copy.Draft.Origin).ToList();
+            var origins = new List<Vector3Int>();
+            var terrainSunkFootprintsPerOrigin = new List<List<BlockPositionInfo>>();
+            foreach (var copy in plan.EnumerateCopiesToPlace())
+            {
+                origins.Add(copy.Draft.Origin);
+                terrainSunkFootprintsPerOrigin.Add(copy.Draft.TerrainSunkFootprints().ToList());
+            }
             if (origins.Count == 0)
             {
                 Debug.Log("[BlueprintPaste] release skipped: no placeable blueprint copies");
@@ -34,7 +41,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
 
             var history = ClientDIContext.BuildOperationHistory;
             var reservation = history.Reserve();
-            _pending.Enqueue(new PendingPaste(blueprintGuid, rotationStep, origins, history, reservation));
+            _pending.Enqueue(new PendingPaste(blueprintGuid, rotationStep, origins, terrainSunkFootprintsPerOrigin, history, reservation));
             if (_isProcessing)
             {
                 Debug.Log($"[BlueprintPaste] queued drag behind pending paste count={_pending.Count}");
@@ -51,7 +58,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
                 var operation = _pending.Dequeue();
                 // 操作間では不足状態を共有せず、操作内だけ逐次送信する
                 // Each operation sends its chunks sequentially with an independent shortage stop
-                var placedCells = await _runner.Run(operation.BlueprintGuid, operation.RotationStep, operation.Origins);
+                var placedCells = await _runner.Run(operation.BlueprintGuid, operation.RotationStep, operation.Origins, operation.TerrainSunkFootprintsPerOrigin);
                 var record = PlaceOperationRecord.CreateFromPlacedCells(placedCells);
                 if (record.HasCells)
                 {
@@ -72,15 +79,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
             public readonly Guid BlueprintGuid;
             public readonly int RotationStep;
             public readonly List<Vector3Int> Origins;
+            public readonly List<List<BlockPositionInfo>> TerrainSunkFootprintsPerOrigin;
             public readonly BuildOperationHistory History;
             public readonly LinkedListNode<IBuildOperationRecord> Reservation;
 
-            public PendingPaste(Guid blueprintGuid, int rotationStep, List<Vector3Int> origins,
+            public PendingPaste(Guid blueprintGuid, int rotationStep, List<Vector3Int> origins, List<List<BlockPositionInfo>> terrainSunkFootprintsPerOrigin,
                 BuildOperationHistory history, LinkedListNode<IBuildOperationRecord> reservation)
             {
                 BlueprintGuid = blueprintGuid;
                 RotationStep = rotationStep;
                 Origins = origins;
+                TerrainSunkFootprintsPerOrigin = terrainSunkFootprintsPerOrigin;
                 History = history;
                 Reservation = reservation;
             }

@@ -11,6 +11,7 @@ test.afterEach(async ({ page }) => {
 });
 
 test("配置モードHUDを右上のクラフト枠で表示する", async ({ page }) => {
+  await setTopicScenario(page, "english");
   await setTopicScenario(page, "placement");
   await setUiState(page, "PlaceBlock");
   await page.goto("/");
@@ -29,6 +30,7 @@ test("配置モードHUDを右上のクラフト枠で表示する", async ({ pa
 });
 
 test("配置対象connectToolをGuidだけの配信から辞書表示名へ解決する", async ({ page }) => {
+  await setTopicScenario(page, "japanese");
   await setTopicScenario(page, "placementConnectTool");
   await setUiState(page, "PlaceBlock");
   await page.goto("/");
@@ -39,6 +41,7 @@ test("配置対象connectToolをGuidだけの配信から辞書表示名へ解�
 });
 
 test("配置対象trainCarをGuidだけの配信から辞書表示名へ解決する", async ({ page }) => {
+  await setTopicScenario(page, "japanese");
   await setTopicScenario(page, "placementTrainCar");
   await setUiState(page, "PlaceBlock");
   await page.goto("/");
@@ -50,6 +53,7 @@ test("配置対象trainCarをGuidだけの配信から辞書表示名へ解決�
 
 test("横長画面でも配置モードHUDを実画面右上へ固定する", async ({ page }) => {
   await page.setViewportSize({ width: 2432, height: 786 });
+  await setTopicScenario(page, "english");
   await setTopicScenario(page, "placement");
   await setUiState(page, "PlaceBlock");
   await page.goto("/");
@@ -63,7 +67,8 @@ test("横長画面でも配置モードHUDを実画面右上へ固定する", as
   expect(hudBox!.width).toBeCloseTo(288 * 786 / 720, 1);
 });
 
-test("削除モードをuGUI準拠の上下警告帯だけで表示する", async ({ page }) => {
+test("削除モードをuGUI準拠の上下警告帯で表示する", async ({ page }) => {
+  await setTopicScenario(page, "english");
   await setUiState(page, "DeleteBar");
   await page.goto("/");
 
@@ -89,3 +94,26 @@ test("削除モードをuGUI準拠の上下警告帯だけで表示する", asyn
     expect(background).toBe(expectedPattern);
   }
 });
+
+for (const viewport of [{ width: 1280, height: 720 }, { width: 2432, height: 786 }]) {
+  test(`削除箱の高さだけを右上に表示して更新する ${viewport.width}`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await setTopicScenario(page, "english");
+    await setTopicScenario(page, "placementUnavailable");
+    await setUiState(page, "DeleteBar");
+    await page.goto("/");
+    const hud = page.getByTestId("delete-box-height-hud");
+    await expect(hud).toHaveText("Height: 3");
+    await expect(page.getByTestId("placement-mode-hud")).toHaveCount(0);
+    await expect(page.getByTestId("operation-mode-warning")).toHaveCount(0);
+    await expect(hud).toHaveCSS("pointer-events", "none");
+    await expectAtViewportTopCorner(hud, "right", 40);
+    const rect = await hud.boundingBox();
+    expect(rect!.width).toBeCloseTo(288 * viewport.height / 720, 1);
+    await page.screenshot({ path: `test-results/delete-height-${viewport.width}.png` });
+    await setTopicScenario(page, "placementEmpty");
+    await expect(hud).toHaveText("Height: 0");
+    await setUiState(page, "GameScreen");
+    await expect(hud).toHaveCount(0);
+  });
+}

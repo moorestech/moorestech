@@ -63,16 +63,16 @@ namespace Client.Tests.UIState
         [Test]
         public void CancelSelectionClearsEvenWhenResetThrows()
         {
-            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
+            var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             var broken = new FakeDeleteTarget { Removable = true, ThrowOnReset = true };
-            selection.BeginDrag();
-            Assert.IsTrue(selection.TryAddTarget(broken, out _));
+            selection.BeginStroke();
+            Assert.IsTrue(selection.TryAddTarget(broken).IsAdded);
 
             // 例外が出ても選択は空になり、2回目のキャンセルは触れない
             // The selection is emptied despite the throw, and a second cancel touches nothing
             Assert.Throws<InvalidOperationException>(() => selection.CancelSelection());
             Assert.IsFalse(selection.HasSelection());
-            Assert.IsFalse(selection.CanCommit());
+            Assert.IsFalse(selection.HasSelection());
             Assert.DoesNotThrow(() => selection.CancelSelection());
             Assert.AreEqual(1, broken.ResetCount);
         }
@@ -80,10 +80,10 @@ namespace Client.Tests.UIState
         [Test]
         public void CommitDeleteDoesNotResendWhenResetThrows()
         {
-            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
+            var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             var broken = new FakeDeleteTarget { Removable = true, ThrowOnReset = true };
-            selection.BeginDrag();
-            Assert.IsTrue(selection.TryAddTarget(broken, out _));
+            selection.BeginStroke();
+            Assert.IsTrue(selection.TryAddTarget(broken).IsAdded);
 
             // 確定で例外が出ても選択は空になり、再確定で二重送信しない
             // A throw during commit still empties the selection, so a retry never resends
@@ -98,11 +98,11 @@ namespace Client.Tests.UIState
         {
             var history = new BuildOperationHistory();
             var sender = new FakeRemovalRestoreSender();
-            var selection = new DragDeleteSelection(history, sender, new DeletePreviewResetRecovery());
+            var selection = new DeleteSelection(history, sender, new DeletePreviewResetRecovery());
             var tool = Guid.NewGuid();
             var targets = new[] { new FakeDeleteTarget { Removable = true }, new FakeDeleteTarget { Removable = true } };
             targets[failingIndex].ThrowOnReset = true;
-            selection.BeginDrag();
+            selection.BeginStroke();
 
             // 各対象に別の復元可能な線を記録する
             // Give each target a distinct restorable connection
@@ -111,7 +111,7 @@ namespace Client.Tests.UIState
                 var position = Vector3Int.right * index;
                 targets[index].RemovedObjects.Add(new RemovedConnectionLine(position, position + Vector3Int.up, tool,
                     new FakeConnectionLineCommands(ConnectionLineKind.ElectricWire)));
-                Assert.IsTrue(selection.TryAddTarget(targets[index], out _));
+                Assert.IsTrue(selection.TryAddTarget(targets[index]).IsAdded);
             }
 
             // 最初または途中の戻しが失敗しても全件送信済み

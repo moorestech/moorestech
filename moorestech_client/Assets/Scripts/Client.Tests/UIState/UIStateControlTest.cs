@@ -71,15 +71,15 @@ namespace Client.Tests.UIState
         [Test]
         public void 選択とホバーの復元が失敗しても次の要求で抜けられる()
         {
-            var service = new DeleteObjectService(new BuildOperationHistory(), new MouseCursorTooltipState(), new FakeRemovalRestoreSender());
-            var selection = (DragDeleteSelection)typeof(DeleteObjectService).GetField("_selection", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(service);
-            var hover = (SingleHoverDeletePreview)typeof(DeleteObjectService).GetField("_hoverPreview", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(service);
+            var service = new DeleteObjectService(new BuildOperationHistory(), new MouseCursorTooltipState(), new FakeRemovalRestoreSender(), new Client.Game.InGame.UI.ProgressBar.ProgressBarState(), null, new Client.Game.InGame.BlockSystem.PlaceSystem.Common.PlacementHeightOffset(), new Client.Game.InGame.UI.UIState.State.DragDelete.Box.DeleteBoxTargetResolver(null, null));
+            var selection = (DeleteSelection)typeof(DeleteObjectService).GetField("_selection", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(service);
+            var hover = (SingleHoverDeletePreview)typeof(DeleteSelection).GetField("_hoverPreview", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(selection);
             var first = new FakeDeleteTarget { Removable = true, ThrowOnReset = true };
             var second = new FakeDeleteTarget { Removable = true, ThrowOnReset = true };
             var hovered = new FakeDeleteTarget { ThrowOnReset = true };
-            selection.BeginDrag();
-            Assert.IsTrue(selection.TryAddTarget(first, out _));
-            Assert.IsTrue(selection.TryAddTarget(second, out _));
+            selection.BeginStroke();
+            Assert.IsTrue(selection.TryAddTarget(first).IsAdded);
+            Assert.IsTrue(selection.TryAddTarget(second).IsAdded);
             hover.Hover(hovered);
             var deleteLikeState = new StubUIState(UIStateEnum.BuildMenu, false) { DeleteService = service };
             var nextState = new StubUIState(null, false);
@@ -182,7 +182,7 @@ namespace Client.Tests.UIState
             {
                 ExitCount++;
                 HoverPreview?.Release();
-                DeleteService?.CancelSelection();
+                DeleteService?.ClearAll();
             }
 
             public bool LocksPlayerMovement()

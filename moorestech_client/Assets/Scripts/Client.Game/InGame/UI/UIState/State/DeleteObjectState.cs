@@ -1,3 +1,9 @@
+using Client.Game.InGame.Control;
+using Client.Game.InGame.Block;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
+using Client.Game.InGame.Train.View.Object.Core;
+using Client.Game.InGame.UI.ProgressBar;
+using Client.Game.InGame.UI.UIState.State.DragDelete.Box;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
 using System.Collections.Generic;
 using Mooresmaster.Localization.Generated;
@@ -22,10 +28,11 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly DeleteObjectService _deleteObjectService;
         private readonly BuildUndoService _buildUndoService;
 
-        public DeleteObjectState(IRemovalRestoreSender restoreSender, UiStateCameraPolicyService cameraPolicyService, BuildOperationHistory buildOperationHistory, BuildUndoService buildUndoService, PlacementTargetPickService placementTargetPickService, RightShortPressInputService rightShortPressInputService, IMouseCursorTooltip tooltip)
+        public DeleteObjectState(IRemovalRestoreSender restoreSender, UiStateCameraPolicyService cameraPolicyService, BuildOperationHistory buildOperationHistory, BuildUndoService buildUndoService, PlacementTargetPickService placementTargetPickService, RightShortPressInputService rightShortPressInputService, IMouseCursorTooltip tooltip, ProgressBarState progressBar, Camera mainCamera, PlacementHeightOffset heightOffset, BlockGameObjectDataStore blockGameObjectDataStore, TrainCarObjectDatastore trainCarObjectDatastore)
         {
             _cameraPolicyService = cameraPolicyService;
-            _deleteObjectService = new DeleteObjectService(buildOperationHistory, tooltip, restoreSender);
+            var boxTargetResolver = new DeleteBoxTargetResolver(blockGameObjectDataStore, trainCarObjectDatastore);
+            _deleteObjectService = new DeleteObjectService(buildOperationHistory, tooltip, restoreSender, progressBar, mainCamera, heightOffset, boxTargetResolver);
             _buildUndoService = buildUndoService;
             _placementTargetPickService = placementTargetPickService;
             _rightShortPressInputService = rightShortPressInputService;
@@ -44,9 +51,10 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public UITransitContext GetNextUpdate()
         {
+            var isPointerOverUi = UiPointerHitTest.IsPointerOverAnyUi();
             // パネル外の右短押し状態を毎フレーム取得（ManualUpdateが走る前に）
             // Evaluate right short press state every frame before early returns (ManualUpdate runs internally)
-            var isRightShortPressed = _rightShortPressInputService.TryConsumeShortPressOutsideUi();
+            var isRightShortPressed = _rightShortPressInputService.TryConsumeShortPressOutsideUi(isPointerOverUi);
 
             // モード遷移を判定する（ESCはモードを抜けず削除サービス側で選択キャンセルに使う）
             // Handle mode transitions (ESC stays in the mode and is used as selection cancel by the delete service)
@@ -59,7 +67,7 @@ namespace Client.Game.InGame.UI.UIState.State
 
             // 削除インタラクションはサービスに委譲する
             // Delegate the delete interaction to the service
-            _deleteObjectService.Update();
+            _deleteObjectService.Update(Time.deltaTime, isPointerOverUi);
 
             // Ctrl+Z判定はサービス内部
             // Ctrl+Z detection lives inside the service
@@ -80,14 +88,14 @@ namespace Client.Game.InGame.UI.UIState.State
                 // ESC/パネル外の右短押しはまず削除選択のキャンセルに使い、キャンセルする選択が無ければ破壊モードを抜ける
                 // ESC and a right short press outside UI first cancel the delete selection; with nothing to cancel they leave destroy mode
                 var isCancelRequested = InputManager.UI.CloseUI.GetKeyDown || isRightShortPressed;
-                if (isCancelRequested && !_deleteObjectService.TryCancelSelection())
+                if (isCancelRequested && !_deleteObjectService.TryCancel())
                 {
                     return new UITransitContext(UIStateEnum.GameScreen);
                 }
 
                 // ミドルクリックで設置物をスポイトし設置モードへ移る
                 // Middle-click eyedrops a placed object and switches to placement mode
-                if (_placementTargetPickService.TryPickTargetUnderCursor(out var pickedTarget))
+                if (_placementTargetPickService.TryPickTargetUnderCursor(isPointerOverUi, out var pickedTarget))
                     return new UITransitContext(UIStateEnum.PlaceBlock, UITransitContextContainer.Create(new PlacementSelection(pickedTarget, PlacementOrigin.NonHotbar)));
 
                 return null;
@@ -99,7 +107,7 @@ namespace Client.Game.InGame.UI.UIState.State
         public void OnExit()
         {
             _cameraPolicyService.ExitToNeutral();
-            _deleteObjectService.CancelSelection();
+            _deleteObjectService.ClearAll();
         }
 
         public void RestoreAfterApplicationFocus()
@@ -123,6 +131,10 @@ namespace Client.Game.InGame.UI.UIState.State
         public static readonly IReadOnlyList<KeyHint> Hints = new[]
         {
             new KeyHint(LocalizationKeys.Ui.KeyHint.Key.LeftDrag, LocalizationKeys.Ui.KeyHint.Text.DragSelect),
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.ShiftLeftClick, LocalizationKeys.Ui.KeyHint.Text.BoxSelect),
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.Q, LocalizationKeys.Ui.KeyHint.Text.LowerBoxHeight),
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.E, LocalizationKeys.Ui.KeyHint.Text.RaiseBoxHeight),
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.FHold, LocalizationKeys.Ui.KeyHint.Text.DeleteSelected),
             new KeyHint(LocalizationKeys.Ui.KeyHint.Key.G, LocalizationKeys.Ui.KeyHint.Text.ExitDeleteMode),
             new KeyHint(LocalizationKeys.Ui.KeyHint.Key.B, LocalizationKeys.Ui.KeyHint.Text.BuildMenu),
             new KeyHint(LocalizationKeys.Ui.KeyHint.Key.Tab, LocalizationKeys.Ui.KeyHint.Text.Inventory),

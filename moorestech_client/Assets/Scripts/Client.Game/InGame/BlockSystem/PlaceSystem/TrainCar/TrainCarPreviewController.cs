@@ -1,4 +1,5 @@
 using System;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Common.Asset;
 using Client.Game.InGame.Train.View.Object.Material;
 using Client.Game.InGame.Train.View.Object.Pose;
@@ -81,7 +82,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                 _currentTrainCarGuid = targetTrainCarGuid;
                 _poseUpdater = ResolvePoseUpdater(_previewObject, trainCarMasterElement);
                 _materialController = new TrainCarMaterialController(_previewObject);
-                DisableColliders(_previewObject);
+                PreviewBlockCreator.DisableColliders(_previewObject);
                 return true;
             }
 
@@ -103,17 +104,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     throw new InvalidOperationException($"Train preview prefab has no TrainCarRailPositionVisualPoseUpdater on root. AddressablePath:{masterElement.AddressablePath}");
                 }
                 return poseUpdater;
-            }
-
-            void DisableColliders(GameObject targetObject)
-            {
-                // preview が設置 raycast を阻害しないよう collider を無効化する
-                // Disable colliders so the preview does not interfere with placement raycasts
-                var colliders = targetObject.GetComponentsInChildren<Collider>(true);
-                for (var i = 0; i < colliders.Length; i++)
-                {
-                    colliders[i].enabled = false;
-                }
             }
 
             #endregion

@@ -35,6 +35,26 @@ namespace Client.Tests.UIState
         }
 
         [Test]
+        public void DeleteObjectHintsMatchAdr()
+        {
+            var expected = new[]
+            {
+                (LocalizationKeys.Ui.KeyHint.Key.LeftDrag, LocalizationKeys.Ui.KeyHint.Text.DragSelect),
+                (LocalizationKeys.Ui.KeyHint.Key.ShiftLeftClick, LocalizationKeys.Ui.KeyHint.Text.BoxSelect),
+                (LocalizationKeys.Ui.KeyHint.Key.Q, LocalizationKeys.Ui.KeyHint.Text.LowerBoxHeight),
+                (LocalizationKeys.Ui.KeyHint.Key.E, LocalizationKeys.Ui.KeyHint.Text.RaiseBoxHeight),
+                (LocalizationKeys.Ui.KeyHint.Key.FHold, LocalizationKeys.Ui.KeyHint.Text.DeleteSelected),
+                (LocalizationKeys.Ui.KeyHint.Key.G, LocalizationKeys.Ui.KeyHint.Text.ExitDeleteMode),
+                (LocalizationKeys.Ui.KeyHint.Key.B, LocalizationKeys.Ui.KeyHint.Text.BuildMenu),
+                (LocalizationKeys.Ui.KeyHint.Key.Tab, LocalizationKeys.Ui.KeyHint.Text.Inventory),
+                (LocalizationKeys.Ui.KeyHint.Key.MiddleClick, LocalizationKeys.Ui.KeyHint.Text.PickPlacedObject),
+                (LocalizationKeys.Ui.KeyHint.Key.CtrlZ, LocalizationKeys.Ui.KeyHint.Text.Undo),
+                (LocalizationKeys.Ui.KeyHint.Key.V, LocalizationKeys.Ui.KeyHint.Text.ToggleView),
+            };
+            AssertHints(expected, DeleteObjectStateHints.Hints);
+        }
+
+        [Test]
         public void PlaceBlockHintsUseImplementationDirectionForHeight()
         {
             var hints = PlaceBlockStateHints.Hints;
@@ -56,7 +76,7 @@ namespace Client.Tests.UIState
         public void EveryScreenHintCountMatchesAdr()
         {
             Assert.AreEqual(10, PlaceBlockStateHints.Hints.Count);
-            Assert.AreEqual(7, DeleteObjectStateHints.Hints.Count);
+            Assert.AreEqual(11, DeleteObjectStateHints.Hints.Count);
             Assert.AreEqual(6, PlayerInventoryStateHints.Hints.Count);
             Assert.AreEqual(5, SubInventoryStateHints.Hints.Count);
             Assert.AreEqual(2, ResearchTreeStateHints.Hints.Count);
@@ -82,7 +102,7 @@ namespace Client.Tests.UIState
                 LocalizationKeys.Ui.KeyHint.Key.CtrlZ, LocalizationKeys.Ui.KeyHint.Key.DriveKeys,
                 LocalizationKeys.Ui.KeyHint.Key.BranchKeys, LocalizationKeys.Ui.KeyHint.Key.LeftAltHold,
                 LocalizationKeys.Ui.KeyHint.Key.MiddleClick,
-                LocalizationKeys.Ui.KeyHint.Key.LeftDrag, LocalizationKeys.Ui.KeyHint.Key.RightClick,
+                LocalizationKeys.Ui.KeyHint.Key.LeftDrag, LocalizationKeys.Ui.KeyHint.Key.FHold, LocalizationKeys.Ui.KeyHint.Key.RightClick,
                 LocalizationKeys.Ui.KeyHint.Key.DoubleClick, LocalizationKeys.Ui.KeyHint.Key.ShiftLeftClick,
             }.Select(key => key.Key).ToArray();
 

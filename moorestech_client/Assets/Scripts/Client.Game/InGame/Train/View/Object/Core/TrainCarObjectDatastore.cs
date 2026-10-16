@@ -10,6 +10,13 @@ namespace Client.Game.InGame.Train.View.Object.Core
     {
         private readonly Dictionary<TrainCarInstanceId, TrainCarEntityObject> _entities = new();
 
+        // 箱選択が車両を走査するための列挙口
+        // Enumeration entry for box selection to scan train cars
+        public IEnumerable<TrainCarEntityObject> EnumerateTrainCars()
+        {
+            foreach (var car in _entities.Values) yield return car;
+        }
+
         private TrainCarObjectFactory _carObjectFactory;
 
         [Inject]

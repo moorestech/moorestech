@@ -14,12 +14,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
     {
         // beltReasonsはcellsと同じ添字で並走するベルト固有理由の列。坂ブロック欠落で不可になったセルはここへ書き戻す
         // beltReasons is the belt-specific reason column indexed like cells; cells blocked by a missing slope block are written back into it
-        public static List<PlaceInfo> ResolveStraightRun(IReadOnlyList<PlaceInfo> cells, BeltConveyorFamily family, IList<BeltConveyorPlacementBlockReason> beltReasons)
+        public static List<PlaceInfo> ResolveStraightRun(IReadOnlyList<PlaceInfo> cells, BeltConveyorFamily family, IList<BeltConveyorPlacementBlockReason> beltReasons, out bool hasUnavailableSlope)
         {
             // 経路の各セルを縮約せず1ブロックへ変換する
             // Convert every path cell to one block without collapsing the path
+            var unavailableSlope = false;
             var result = new List<PlaceInfo>(cells.Count);
             for (var i = 0; i < cells.Count; i++) result.Add(ResolveCell(i));
+            hasUnavailableSlope = unavailableSlope;
             return result;
 
             #region Internal
@@ -54,6 +56,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
                     blockId = slopeBlockId.Value;
                     return;
                 }
+
+                unavailableSlope = true;
 
                 // 先に立った原因を優先する（先に不可なら坂欠落は後追いの理由でしかない）
                 // The earlier cause wins; an already-blocked cell only gains the slope gap as a follow-on reason

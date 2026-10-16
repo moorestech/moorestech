@@ -1,4 +1,5 @@
 using System;
+using UniRx;
 
 namespace Client.Game.InGame.Train.Unit
 {
@@ -18,6 +19,8 @@ namespace Client.Game.InGame.Train.Unit
     // Centralize tick state for client train simulation.
     public sealed class TrainUnitTickState
     {
+        private readonly Subject<uint> _tickCompleted = new();
+        public IObservable<uint> OnTickCompleted => _tickCompleted;
         private ulong _appliedTickUnifiedId = 0;
         private ulong _maxBufferedTickUnifiedId = 0;
         private SynchronizationPhase _phase;
@@ -90,6 +93,9 @@ namespace Client.Game.InGame.Train.Unit
         {
             var tick = GetTick() + 1;
             _appliedTickUnifiedId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(tick, 0);
+            // hash gate通過後だけ前tick全体の完了を知らせる
+            // Announce the completed tick only after the hash gate permits advancement
+            _tickCompleted.OnNext(tick - 1);
         }
 
         private enum SynchronizationPhase

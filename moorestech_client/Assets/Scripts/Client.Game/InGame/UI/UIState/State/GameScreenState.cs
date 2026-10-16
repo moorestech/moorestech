@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using Client.Game.InGame.Control;
+using System.Collections.Generic;
 using Mooresmaster.Localization.Generated;
 using System;
 using Client.Game.Common;
@@ -40,6 +41,7 @@ namespace Client.Game.InGame.UI.UIState.State
             // 遷移判定より先に左Alt自由カーソルの入力を処理する
             // Handle the left-Alt free-cursor input before any transition check
             _cameraPolicyService.UpdateGameplayFreeCursorInput();
+            var isPointerOverUi = UiPointerHitTest.IsPointerOverAnyUi();
 
             if (InputManager.UI.OpenInventory.GetKeyDown) return new UITransitContext(UIStateEnum.PlayerInventory);
             if (InputManager.UI.OpenMenu.GetKeyDown) return new UITransitContext(UIStateEnum.PauseMenu);
@@ -51,7 +53,7 @@ namespace Client.Game.InGame.UI.UIState.State
 
             // ミドルクリックで設置物をスポイトし配置モードへ入る
             // Middle-click eyedrops a placed object and enters placement mode
-            if (_placementTargetPickService.TryPickTargetUnderCursor(out var pickedTarget))
+            if (_placementTargetPickService.TryPickTargetUnderCursor(isPointerOverUi, out var pickedTarget))
                 return new UITransitContext(UIStateEnum.PlaceBlock, UITransitContextContainer.Create(new PlacementSelection(pickedTarget, PlacementOrigin.NonHotbar)));
 
             // キー/Web選択で建築モードへ遷移

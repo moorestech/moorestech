@@ -43,6 +43,7 @@ namespace Client.Starter.Registration
         {
             builder.RegisterInstance(initialHandshakeResponse);
             builder.RegisterInstance(ClientContext.VanillaApi.Event);
+            builder.RegisterInstance<Client.Network.API.Requests.Removal.ITrainCarRemovalSender>(ClientContext.VanillaApi.SendOnly);
             builder.Register<LocalPlayerInventoryController>(Lifetime.Singleton);
             builder.Register<ILocalPlayerInventory, LocalPlayerInventory>(Lifetime.Singleton);
             builder.RegisterEntryPoint<NetworkEventInventoryUpdater>();

@@ -12,6 +12,7 @@ namespace Client.Network.API
         private readonly PacketExchangeManager _packetExchangeManager;
         private readonly InitialHandshakeClient _initialHandshakeClient;
 
+        public Requests.Removal.RemovalRequestApi Removal { get; }
         public WorldQueryApi World { get; }
         public ProgressionQueryApi Progression { get; }
         public TrainRequestApi Train { get; }
@@ -22,6 +23,7 @@ namespace Client.Network.API
         {
             _packetExchangeManager = packetExchangeManager;
             _initialHandshakeClient = new InitialHandshakeClient(ServerContext.GetService<IItemStackLevelUnlocker>());
+            Removal = new Requests.Removal.RemovalRequestApi(packetExchangeManager);
             World = new WorldQueryApi(packetExchangeManager);
             Progression = new ProgressionQueryApi(packetExchangeManager);
             Train = new TrainRequestApi(packetExchangeManager);

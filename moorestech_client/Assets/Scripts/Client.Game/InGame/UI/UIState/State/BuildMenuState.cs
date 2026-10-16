@@ -1,3 +1,4 @@
+using Client.Game.InGame.Control;
 using System.Collections.Generic;
 using Mooresmaster.Localization.Generated;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
@@ -39,9 +40,10 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public UITransitContext GetNextUpdate()
         {
+            var isPointerOverUi = UiPointerHitTest.IsPointerOverAnyUi();
             // パネル外の右短押し状態を毎フレーム取得（ManualUpdateが走る前に）
             // Evaluate right short press state every frame before early returns (ManualUpdate runs internally)
-            var isRightShortPressed = _rightShortPressInputService.TryConsumeShortPressOutsideUi();
+            var isRightShortPressed = _rightShortPressInputService.TryConsumeShortPressOutsideUi(isPointerOverUi);
 
             if (_buildMenuSelection.TryConsumeSelectedTarget(out var target))
                 return new UITransitContext(UIStateEnum.PlaceBlock, UITransitContextContainer.Create(new PlacementSelection(target, PlacementOrigin.NonHotbar)));

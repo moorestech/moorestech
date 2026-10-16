@@ -88,7 +88,7 @@ namespace Client.Tests.PlaceSystem.Feedback
             var cellCauses = new List<PlacementBlockCause> { PlacementBlockCause.None, PlacementBlockCause.ExistingBlock, PlacementBlockCause.None };
             var feedback = new PlacementFeedback();
 
-            PlacementCellReasonReporter.ApplyGroundOverlapsAndReport(placeInfos, cellCauses, new Vector3Int(1, 0, 0), new List<bool> { false, false, false }, feedback);
+            PlacementCellReasonReporter.ApplyTerrainSinksAndReport(placeInfos, cellCauses, new Vector3Int(1, 0, 0), new List<bool> { false, false, false }, feedback);
 
             Assert.AreEqual(1, feedback.Lines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBlockedByExistingBlock.Key, feedback.Lines[0].Key.Key);
@@ -101,7 +101,7 @@ namespace Client.Tests.PlaceSystem.Feedback
             var cellCauses = new List<PlacementBlockCause> { PlacementBlockCause.ExistingBlock, PlacementBlockCause.None, PlacementBlockCause.None };
             var feedback = new PlacementFeedback();
 
-            PlacementCellReasonReporter.ApplyGroundOverlapsAndReport(placeInfos, cellCauses, new Vector3Int(1, 0, 0), new List<bool> { false, false, false }, feedback);
+            PlacementCellReasonReporter.ApplyTerrainSinksAndReport(placeInfos, cellCauses, new Vector3Int(1, 0, 0), new List<bool> { false, false, false }, feedback);
 
             Assert.IsEmpty(feedback.Lines);
         }
@@ -109,13 +109,13 @@ namespace Client.Tests.PlaceSystem.Feedback
         // どのセルも設置可のまま残る
         // Every cell stays placeable
         [Test]
-        public void 地形を見ない入口は地形の理由を積まない()
+        public void 埋まりが無い列は地形の理由を積まない()
         {
             var placeInfos = BuildDragCells(3);
             var cellCauses = new List<PlacementBlockCause> { PlacementBlockCause.None, PlacementBlockCause.None, PlacementBlockCause.None };
             var feedback = new PlacementFeedback();
 
-            var cursorIndex = PlacementCellReasonReporter.ResolveCursorAndReportCauses(placeInfos, cellCauses, new Vector3Int(1, 0, 0), feedback);
+            var cursorIndex = PlacementCellReasonReporter.ApplyTerrainSinksAndReport(placeInfos, cellCauses, new Vector3Int(1, 0, 0), new[] { false, false, false }, feedback);
 
             Assert.AreEqual(1, cursorIndex);
             Assert.IsTrue(placeInfos[0].Placeable);
@@ -124,16 +124,16 @@ namespace Client.Tests.PlaceSystem.Feedback
             Assert.IsEmpty(feedback.Lines);
         }
 
-        // 地形以外の共有原因は地形を見ない入口でも積まれる
-        // Non-terrain shared causes are still reported by the terrain-blind entry
+        // 地形以外の共有原因は埋まりが無い列でも積まれる
+        // Non-terrain shared causes are still reported by the terrain-clear run
         [Test]
-        public void 地形を見ない入口でも既存ブロックの理由は積む()
+        public void 埋まりが無い列でも既存ブロックの理由は積む()
         {
             var placeInfos = BuildDragCells(3);
             var cellCauses = new List<PlacementBlockCause> { PlacementBlockCause.None, PlacementBlockCause.ExistingBlock, PlacementBlockCause.None };
             var feedback = new PlacementFeedback();
 
-            PlacementCellReasonReporter.ResolveCursorAndReportCauses(placeInfos, cellCauses, new Vector3Int(1, 0, 0), feedback);
+            PlacementCellReasonReporter.ApplyTerrainSinksAndReport(placeInfos, cellCauses, new Vector3Int(1, 0, 0), new[] { false, false, false }, feedback);
 
             Assert.AreEqual(1, feedback.Lines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBlockedByExistingBlock.Key, feedback.Lines[0].Key.Key);

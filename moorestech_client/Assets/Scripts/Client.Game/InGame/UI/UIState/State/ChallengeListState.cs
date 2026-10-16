@@ -1,3 +1,4 @@
+using Client.Game.InGame.Control;
 using System.Collections.Generic;
 using Mooresmaster.Localization.Generated;
 using Client.Game.InGame.UI.UIState.State.CancelInput;
@@ -26,7 +27,8 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public UITransitContext GetNextUpdate()
         {
-            var isRightShortPressed = _rightShortPressInputService.TryConsumeShortPressOutsideUi();
+            var isPointerOverUi = UiPointerHitTest.IsPointerOverAnyUi();
+            var isRightShortPressed = _rightShortPressInputService.TryConsumeShortPressOutsideUi(isPointerOverUi);
             //TODO InputManagerに移す
             if (InputManager.UI.CloseUI.GetKeyDown || HybridInput.GetKeyDown(KeyCode.T) || isRightShortPressed) return new UITransitContext(UIStateEnum.GameScreen);
             if (InputManager.UI.OpenInventory.GetKeyDown) return new UITransitContext(UIStateEnum.PlayerInventory);
