@@ -14,6 +14,17 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using VContainer;
 
+// 録画前にGameViewへフォーカスし単体入力を実測する
+// Focus GameView and verify one input before recording
+Resources.FindObjectsOfTypeAll<UnityEditor.EditorWindow>().First(w => w.GetType().Name == "GameView").Focus();
+await UniTask.DelayFrame(3);
+var control = ClientDIContext.DIContainer.DIContainerResolver.Resolve<UIStateControl>();
+await Client.Playtest.Input.SemanticInput.TapKey(Key.Escape);
+await UniTask.DelayFrame(3);
+if (control.CurrentState != UIStateEnum.PauseMenu) throw new System.Exception("Escape入力の事前検証が失敗しました");
+await Client.Playtest.Input.SemanticInput.TapKey(Key.Escape);
+await UniTask.DelayFrame(3);
+
 return PlaytestRunner.Run("developer-report-delivery", new PlaytestRunOptions { Record = true }, async p =>
 {
     // 非表示のGameViewが録画開始を止めないよう表タブへ出す
@@ -25,7 +36,7 @@ return PlaytestRunner.Run("developer-report-delivery", new PlaytestRunOptions { 
     dock.GetType().GetProperty("selected", flags).SetValue(dock, panes.IndexOf(gameView));
     await p.Until(() => Time.timeScale > 0f, 15f, "録画開始後のゲーム進行");
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
-    await p.SkipOpeningSkit();
+    await Client.Playtest.Operations.Ui.PlaytestSkitOps.SkipOpeningSkitIfPlaying(3f);
     await p.Screenshot("01-gameplay");
     var resolver = ClientDIContext.DIContainer.DIContainerResolver;
     var menu = resolver.Resolve<PauseMenuStateService>();
