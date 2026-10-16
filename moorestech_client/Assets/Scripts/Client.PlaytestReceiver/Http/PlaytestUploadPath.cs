@@ -66,7 +66,7 @@ namespace Client.PlaytestReceiver.Http
         // Each segment is escaped so a name with # or ? cannot silently become another key; the receiver decodes exactly once
         private static string Escape(string segment)
         {
-            return Uri.EscapeDataString(segment);
+            return string.Join("/", System.Array.ConvertAll(segment.Split('/'), Uri.EscapeDataString));
         }
     }
 }

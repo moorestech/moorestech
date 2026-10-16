@@ -26,8 +26,8 @@ now_utc() { date -u +%Y-%m-%dT%H:%M:%SZ; }
 mkdir "$LOCK" 2>/dev/null || { log "別のランが進行中（${LOCK}）"; exit 0; }
 trap 'rmdir "$LOCK"' EXIT
 
-# READY 付きの箱だけを対象にし、運搬中の <id>.partial は掴まない（ship-outbox の原子性と対）
-# Only READY boxes qualify; in-flight <id>.partial boxes are never picked up (pairs with ship-outbox's atomicity)
+# READY 付きの箱だけを対象にし、運搬中の <id>.partial は掴まない（enqueue-autofix.sh の原子的 mvと対）
+# Only READY boxes qualify; in-flight <id>.partial boxes are never picked up (pairs with enqueue-autofix.sh's atomic mv)
 shopt -s nullglob
 [ -d "$INBOX" ] || { log "inbox が無いので何もしない: $INBOX"; exit 0; }
 

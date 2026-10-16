@@ -24,6 +24,7 @@ namespace Client.Tests.WebUi.WireContracts
             var dto = new PauseMenuDto
             {
                 Disconnected = true,
+                Delivery = PlaytestDeliveryDto.From(Client.PlaytestReceiver.Delivery.PlaytestDeliveryAllSent.Instance),
                 BugReport = new BugReportStatusDto { Kind = BugReportCaptureStatus.Capturing, Missing = new List<string> { "video" } },
                 Page = PauseMenuPageContract.ToContractText(PauseMenuPage.BugReport),
             };

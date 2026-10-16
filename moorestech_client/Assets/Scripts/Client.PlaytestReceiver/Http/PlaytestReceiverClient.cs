@@ -33,6 +33,15 @@ namespace Client.PlaytestReceiver.Http
             return SendWithHttpTimeoutAsync(request, token);
         }
 
+        public UniTask<PlaytestApiResult> PostDeveloperSessionAsync(string developerToken, CancellationToken token)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/v1/session/developer")
+            {
+                Content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(new { token = developerToken }), Encoding.UTF8, "application/json"),
+            };
+            return SendWithHttpTimeoutAsync(request, token);
+        }
+
         public UniTask<PlaytestApiResult> PostPrepareAsync(string bearerToken, PlaytestUploadKind kind, string bundleId, int generation, IReadOnlyList<PlaytestDeclaredFile> files, CancellationToken token)
         {
             var request = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/v1/uploads/{PlaytestUploadPath.ForPrepare(kind, bundleId)}")

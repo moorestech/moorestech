@@ -9,6 +9,8 @@ description: >
 
 # Train System
 
+列車が見た目だけ止まるときは、まず unity.log の `[TrainSynchronization] Permanently waiting` と箱の `logs/train-sync/` を見る。
+
 Single reference for all train/rail work. Read the shared contracts first, then the section matching your change.
 
 各セクションは元の6スキルを集約した要約。詳細な元ドキュメントは `references/` に完全な形で保存してある:

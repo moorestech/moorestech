@@ -1,3 +1,4 @@
+using Client.PlaytestReceiver.Delivery;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -7,7 +8,6 @@ using Client.PlaytestReceiver.Upload.Attempt;
 using Client.PlaytestReceiver.Upload.Failure;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
-
 namespace Client.PlaytestReceiver.Upload
 {
     // 未送の箱を古い順に受け口へ送る。トークンの寿命と401時の取り直しはセッションに任せる
@@ -19,43 +19,43 @@ namespace Client.PlaytestReceiver.Upload
             Sent,
             BoxDeferred,
             RunAborted,
+            SessionRefused,
         }
-
+        private readonly PlaytestOutboxScope _scope;
         private readonly IPlaytestReceiverApi _api;
         private readonly PlaytestSession _session;
         private readonly PlaytestOutboxDirectories _directories;
         private readonly PlaytestUploadRetrySchedule _retry;
-
-        public PlaytestUploader(IPlaytestReceiverApi api, PlaytestSession session, PlaytestOutboxDirectories directories, PlaytestUploadRetrySchedule retry)
+        public PlaytestUploader(IPlaytestReceiverApi api, PlaytestSession session, PlaytestOutboxDirectories directories, PlaytestUploadRetrySchedule retry, PlaytestOutboxScope scope)
         {
+            _scope = scope;
             _api = api;
             _session = session;
             _directories = directories;
             _retry = retry;
         }
-
-        public async UniTask<int> UploadPendingAsync(CancellationToken token)
+        public async UniTask<PlaytestUploadRunSummary> UploadPendingAsync(CancellationToken token)
         {
-            var boxes = PlaytestOutboxScanner.ScanPending(_directories);
+            var boxes = PlaytestOutboxScanner.ScanPending(_directories, _scope);
             var sent = 0;
             for (var index = 0; index < boxes.Count; index++)
             {
                 var outcome = await UploadWithinBookkeepingBoundaryAsync(boxes[index], token);
                 if (outcome == BoxOutcome.Sent) sent++;
+                if (outcome == BoxOutcome.SessionRefused) return new PlaytestUploadRunSummary(PlaytestUploadRunEnd.SessionRefused, sent);
                 if (outcome != BoxOutcome.RunAborted) continue;
-
                 Debug.LogWarning($"[PlaytestReceiver] stopping this run; {boxes.Count - index} box(es) carried over to a later run");
                 break;
             }
-            return sent;
+            return new PlaytestUploadRunSummary(PlaytestUploadRunEnd.Finished, sent);
         }
-
         // 試行中のファイルI/Oは試行失敗としてDecideへ回る。ここで捕まるのは印（UPLOAD_ATTEMPTS等）の書き込み自体の失敗だけで、箱へ記録できないので理由をログへ残して持ち越す
         // File I/O during an attempt already goes to Decide as a failed attempt; only a failure to write the markers themselves (UPLOAD_ATTEMPTS and the like) lands here, and since the box cannot record it, the reason is logged and the box deferred
         private async UniTask<BoxOutcome> UploadWithinBookkeepingBoundaryAsync(PlaytestOutboxBox box, CancellationToken token)
         {
             try
             {
+                using var boxLock = PlaytestOutboxAccess.AcquireBox(box.Directory);
                 return await UploadOneAsync(box, token);
             }
             catch (IOException exception)
@@ -94,9 +94,10 @@ namespace Client.PlaytestReceiver.Upload
                     case PlaytestUploadFailureKind.Retryable:
                     case PlaytestUploadFailureKind.RetryableThenPermanentForBox:
                         break;
+                    case PlaytestUploadFailureKind.Unauthorized:
                     case PlaytestUploadFailureKind.SessionRefused:
                         Debug.LogWarning($"[PlaytestReceiver] the session was refused; not counting {box.BundleId} and stopping the run: {decision.Description}");
-                        return BoxOutcome.RunAborted;
+                        return BoxOutcome.SessionRefused;
                     default:
                         PlaytestUploadAttemptLog.Increment(box.Directory, decision.Description);
                         return BoxOutcome.BoxDeferred;
@@ -112,22 +113,28 @@ namespace Client.PlaytestReceiver.Upload
 
             #region Internal
 
-            // 1試行。箱のファイルの読み書きは外部境界（消えた・他プロセスに掴まれた）で、例外は試行失敗に変えて判定をDecide一本に集める
-            // One attempt; the box's file I/O is an external boundary (vanished or locked files), so an exception becomes a failed attempt and Decide stays the single verdict
             async UniTask<(BoxOutcome? Outcome, PlaytestUploadAttemptFailure Failure)> RunAttemptAsync()
             {
+                // 外部JSONパース・ディスクIO境界。消失やロックの失敗をDecideへ渡す
+                // External JSON parsing and disk IO boundary; lost or locked files enter the single Decide verdict
                 try
                 {
-                    if (declaration == null)
-                    {
-                        declaration = PlaytestBoxDeclaration.Build(box);
-                        if (IsUnsendable(declaration)) return (BoxOutcome.BoxDeferred, null);
-                    }
+                    var attachmentFailure = await new PlaytestUploadAttachments(_api, _session).RunAsync(box, token);
+                    if (attachmentFailure != null) return (null, attachmentFailure);
+                    if (declaration == null) declaration = PlaytestBoxDeclaration.Build(box);
+                    if (IsUnsendable(declaration)) return (BoxOutcome.BoxDeferred, null);
                     var failure = await attemptRunner.RunAsync(box, declaration, sentPaths, token);
                     if (failure != null) return (null, failure);
                     PlaytestUploadAttemptLog.MarkUploaded(box.Directory);
                     Debug.Log($"[PlaytestReceiver] uploaded {PlaytestUploadPath.KindSegment(box.Kind)}/{box.BundleId} ({declaration.Files.Count} files, {declaration.Skipped.Count} skipped)");
                     return (BoxOutcome.Sent, null);
+                }
+                // 外部manifest JSONの解析失敗を保留として記録する
+                // Record external manifest JSON parse failures as deferred attempts
+                catch (Newtonsoft.Json.JsonException exception)
+                {
+                    Debug.LogWarning($"[PlaytestReceiver] holding {box.BundleId}: invalid evidence manifest: {exception.Message}");
+                    return (null, PlaytestUploadAttemptFailure.AtLocalFiles(PlaytestApiResult.LocalFileUnavailable($"invalid evidence manifest: {exception.Message}")));
                 }
                 catch (IOException exception)
                 {
@@ -157,14 +164,23 @@ namespace Client.PlaytestReceiver.Upload
             // A box missing a file its policy ranks required, or with nothing to send, never reaches the receiver and is counted as permanent (no forged HTTP response)
             bool IsUnsendable(PlaytestBoxDeclaration candidate)
             {
+                if (candidate.Files.Count == 0)
+                {
+                    PlaytestUploadAttemptLog.Increment(box.Directory, $"nothing to send: every file was skipped ({candidate.Skipped.Count} skipped)");
+                    return true;
+                }
+                var evidenceFailure = box.FilePolicy.ValidateBeforeUpload(box.Directory, candidate);
+                if (evidenceFailure != null)
+                {
+                    PlaytestUploadAttemptLog.Increment(box.Directory, evidenceFailure);
+                    return true;
+                }
                 if (candidate.MissingRequiredReason != null)
                 {
                     PlaytestUploadAttemptLog.Increment(box.Directory, $"not sending a box without its required files: {candidate.MissingRequiredReason}");
                     return true;
                 }
-                if (candidate.Files.Count != 0) return false;
-                PlaytestUploadAttemptLog.Increment(box.Directory, $"nothing to send: every file was skipped ({candidate.Skipped.Count} skipped)");
-                return true;
+                return false;
             }
 
             // 1ファイルだけが直らない。見送りを箱へ記録して次回起動以降も宣言へ戻さず（受け口は宣言の拡大を拒む）、縮小した宣言を次の世代でやり直す

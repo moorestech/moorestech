@@ -47,6 +47,11 @@ namespace Client.PlaytestReceiver.Upload.Attempt
             Detail = detail;
         }
 
+        internal PlaytestUploadAttemptFailure ForAttachment(string bundleId)
+        {
+            return new PlaytestUploadAttemptFailure(Stage, "", Result, $"attachment {bundleId}/{Path}: {Detail}");
+        }
+
         public static PlaytestUploadAttemptFailure AtPrepare(PlaytestApiResult result)
         {
             return new PlaytestUploadAttemptFailure(PlaytestUploadStage.Prepare, "", result, "");

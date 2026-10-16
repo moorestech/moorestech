@@ -1,7 +1,7 @@
 import type { Env } from "../env";
 import { fail, json, requireMethod } from "../http";
 import { authenticateUserTicket } from "../steamAuth";
-import { signToken, tokenExpiresAtSeconds } from "../token";
+import { signToken, tokenExpiresAtSeconds, type SessionPrincipal } from "../token";
 
 // hexエンコードされたバイナリチケットは必ず偶数長。奇数長は形の時点で弾く
 // A hex-encoded binary ticket is always even length; odd lengths are rejected by shape alone
@@ -29,8 +29,12 @@ async function postSession(request: Request, env: Env, steamFetch: typeof fetch)
     return fail("steam-unavailable", 503);
   }
 
+  return issueSessionResponse(env, { kind: "steam", subject: verified.steamId });
+}
+
+export async function issueSessionResponse(env: Env, principal: SessionPrincipal): Promise<Response> {
   const nowSeconds = Math.floor(Date.now() / 1000);
-  const token = await signToken(env.SESSION_HMAC_SECRET, verified.steamId, nowSeconds);
+  const token = await signToken(env.SESSION_HMAC_SECRET, principal, nowSeconds);
   if (token === null) {
     // SESSION_HMAC_SECRET未設定はtoken.ts側で既にwarn済み。ここでは200へtoken:nullを漏らさず500へ畳む
     // token.ts already warns about a missing SESSION_HMAC_SECRET; here we must not leak token:null in a 200
@@ -38,7 +42,7 @@ async function postSession(request: Request, env: Env, steamFetch: typeof fetch)
     return fail("server-misconfigured", 500);
   }
   const expiresAt = new Date(tokenExpiresAtSeconds(nowSeconds) * 1000).toISOString();
-  return json({ steamId: verified.steamId, allowed: true, token, expiresAt });
+  return json({ steamId: principal.subject, allowed: true, token, expiresAt });
 }
 
 async function readTicket(request: Request): Promise<string | null> {

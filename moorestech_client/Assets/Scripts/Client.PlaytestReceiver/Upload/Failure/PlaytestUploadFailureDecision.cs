@@ -2,8 +2,8 @@ namespace Client.PlaytestReceiver.Upload.Failure
 {
     internal enum PlaytestUploadFailureKind
     {
-        // 権利の問題（取り直しても残る401・受け口の403）。箱を数える
-        // A permission matter (a 401 surviving a refresh, a receiver 403); the box is counted
+        // 権利の問題（取り直しても残る401・受け口の403）。数えずに走行を止める
+        // A permission matter (a 401 surviving a refresh, a receiver 403); stop the run without counting
         Unauthorized,
 
         // 待てば直りうる。同一走行内で表の回数だけやり直し、尽きたら数えずに持ち越す

@@ -5,6 +5,8 @@ using System.IO;
 using System.Text;
 using Client.Game.InGame.BugReport.BuildOrigin;
 using Client.Game.InGame.BugReport.Capture;
+using Client.Game.InGame.BugReport.Diagnostics;
+using Client.Game.InGame.Train.Network.Diagnostics;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.BugReport.Recording;
 using Cysharp.Threading.Tasks;
@@ -56,6 +58,7 @@ namespace Client.Game.InGame.BugReport
             var repositoryRoot = RepositoryStateProbe.RepositoryRoot;
             var masterDataRoot = RepositoryStateProbe.MasterDataRoot;
             var ffmpegPath = FfmpegLocator.Find();
+            var trainDiagnosticsDirectory = TrainSynchronizationDiagnosticDirectory.Resolve();
 
             // 見出しが積んだ欠損（steamId等）を消さないよう、確保時の欠損は上書きせず後ろへ足す
             // The capture's gaps are appended rather than assigned, so the header's own gaps (steamId and friends) survive
@@ -85,7 +88,8 @@ namespace Client.Game.InGame.BugReport
                 try { WriteFrameTicks(); } catch (Exception e) when (IsDiskFailure(e)) { manifest.AddMissing(BugReportBundleLayout.FrameTicksFileName, $"書き出しに失敗した: {e.Message}"); }
                 try { WriteLogs(); } catch (Exception e) when (IsDiskFailure(e)) { manifest.AddMissing(BugReportBundleLayout.LogsDirectoryName, $"書き出しに失敗した: {e.Message}"); }
                 try { CopyScreenshot(); } catch (Exception e) when (IsDiskFailure(e)) { manifest.AddMissing("screenshot", $"コピーに失敗した: {e.Message}"); }
-                BugReportRepositoryFiles.Write(directory, manifest, buildOrigin, repositoryRoot, masterDataRoot);
+                TrainSyncDiagnosticsCopier.Copy(trainDiagnosticsDirectory, directory, manifest);
+                BugReportRepositoryFiles.Write(directory, Path.GetFileName(directory), manifest, buildOrigin, repositoryRoot, masterDataRoot);
                 ServerDataLocation.Record(data.ServerDataDirectory, manifest, repositoryRoot, masterDataRoot);
             });
 

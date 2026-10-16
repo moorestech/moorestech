@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Client.PlaytestReceiver.Delivery;
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.Presenter.PauseMenu;
@@ -32,6 +33,7 @@ namespace Client.WebUiHost.Game.Topics
             // Publishes only changes; restores via snapshot
             state.OnDisconnectedChanged.Skip(1).Subscribe(_ => Publish()).AddTo(_subscriptions);
             bugReportCaptureSession.Status.Skip(1).Subscribe(_ => Publish()).AddTo(_subscriptions);
+            PlaytestDeliveryStatusBoard.Current.Skip(1).Subscribe(_ => Publish()).AddTo(_subscriptions);
             pauseMenuStateService.CurrentPage.Skip(1).Subscribe(_ => Publish()).AddTo(_subscriptions);
         }
 
@@ -55,6 +57,7 @@ namespace Client.WebUiHost.Game.Topics
             var status = _bugReportCaptureSession.Status.Value;
             return WebUiJson.Serialize(new PauseMenuDto
             {
+                Delivery = PlaytestDeliveryDto.From(PlaytestDeliveryStatusBoard.Current.Value),
                 Disconnected = _state.IsDisconnected,
                 Page = PauseMenuPageContract.ToContractText(_pauseMenuStateService.CurrentPage.Value),
                 BugReport = new BugReportStatusDto
@@ -68,6 +71,7 @@ namespace Client.WebUiHost.Game.Topics
 
     public class PauseMenuDto
     {
+        public PlaytestDeliveryDto Delivery;
         public bool Disconnected;
         public BugReportStatusDto BugReport;
         public string Page;

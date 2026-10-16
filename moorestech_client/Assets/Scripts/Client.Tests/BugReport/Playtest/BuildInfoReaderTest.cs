@@ -80,7 +80,7 @@ namespace Client.Tests.BugReport
             var origin = BuildOriginReading.WithoutInfo("build-info.json が無い");
             var manifest = BugReportManifest.CreateHeader("説明", PlaytestReportKind.Bug, null, EmptyPlaytestSessionIdentity.DeveloperModeReason, origin);
 
-            BugReportRepositoryFiles.Write(directory, manifest, origin, RepositoryStateProbe.RepositoryRoot, RepositoryStateProbe.MasterDataRoot);
+            BugReportRepositoryFiles.Write(directory, Path.GetFileName(directory), manifest, origin, RepositoryStateProbe.RepositoryRoot, RepositoryStateProbe.MasterDataRoot);
 
             Assert.IsNull(manifest.Repository, "出所不明なのにリポジトリ状態を名乗っている");
             Assert.IsNull(manifest.MasterData);

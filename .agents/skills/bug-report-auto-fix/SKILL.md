@@ -24,7 +24,7 @@ hooks:
 `$RUN = $BUG_REPORT_RUNDIR_BASE/<run-id>`（既定 `~/hermes-agent/data/repos/moorestech_logs/harness/bug-report/runs/<run-id>`）。
 `$RUN/run.env` に `WORKTREE`・`MASTER_DIR`・`SERVER_DATA_DIR`・`WORLD_DIR`・`WORLD_MATERIALIZE_PENDING`・`WORLD_NOT_CAPTURED`・`WORLD_MAP_MODE`・`WORLD_SEED`（箱の `world.json` の `mapMode`・`seed`。読めなければ空）・`REPORT_COMMIT`・`REPORT_BRANCH`・`LATEST_TICK` と、
 **再現環境の欠けを表すフラグ**（`COMMIT_MISSING`・`DIFF_APPLY_FAILED`・`DIFF_ABSENT`・`UNTRACKED_FAILED`・`MASTER_FAILED`・`MASTER_DIFF_APPLY_FAILED`・`MASTER_DIFF_ABSENT`・`MASTER_UNTRACKED_FAILED`・`REPORTER_UNCLAIM_FAILED`）がある。
-`$RUN/repo/bundle-status.txt` は運搬側が付けた bundle の3状態（`created` / `not-needed-origin-has-commit` / `failed-*` / `skipped-*`）で、`failed-*` は報告者のローカルコミットが受け側に無いことを意味する。
+`$RUN/repo/bundle-status.txt` は報告の確保時に Editor が書いた bundle の状態（`created` / `not-needed-remote-has-commit` / `failed-*` / `skipped-*`）で、`failed-*` は報告者のローカルコミットが受け側に無いことを意味する。
 `SERVER_DATA_DIR` は**記録時にサーバーが実際にマスタを読んだ置き場**（manifest の `serverData` から受け側の worktree 配下へ解決した値）。`MASTER_DIR` とは一致しないことがあり、再生・観察には必ず `SERVER_DATA_DIR` を使う。作業は必ず `$WORKTREE` で行う。
 `$RUN`・`$WORKTREE` 等は本ドキュメント上のプレースホルダである。コマンドへ渡すときは `. $RUN/run.env` で読み込むか、実値の絶対パスへ展開して書く。
 「バンドル」＝報告1件分の記録一式であり、運搬後は `$RUN` そのものを指す（`manifest.json`・`snapshots/`・`frames/`・`logs/`・`world/`）。
@@ -77,7 +77,7 @@ poller は cwd を `$CANON` にして起動する（`scripts/bugreport/inbox-pol
 | `COMMIT_MISSING=1` / `DIFF_APPLY_FAILED=1` / `DIFF_ABSENT=1` / `UNTRACKED_FAILED=1` | 止まらず進む。再現環境が報告時と違う旨を `summary` と PR 本文に必ず書く |
 | `MASTER_FAILED=1` / `MASTER_DIFF_APPLY_FAILED=1` / `MASTER_DIFF_ABSENT=1` / `MASTER_UNTRACKED_FAILED=1` | 止まらず進む。**マスタデータが報告時と違う**（レシピ・ブロック定義が別物でありうる）ため、`not_reproduced` の判定はこれを踏まえ、`summary` と PR 本文に必ず書く |
 | `REPORTER_UNCLAIM_FAILED=1` | 報告者の持ち主未定化が完了していない。版2セーブには `players` 節がなく付け替えられず、ロード時変換は持ち物最大の人を候補にするため報告者と一致する保証がない。理由を `summary` と PR 本文に書く |
-| `$RUN/repo/bundle-status.txt` に `failed-*` がある | 報告者のローカルコミットが受け側に無い。`COMMIT_MISSING=1` と同じ扱いで `summary` と PR 本文に書く |
+| 報告の確保時に Editor が書いた `$RUN/repo/bundle-status.txt` に `failed-*` がある | 報告者のローカルコミットが受け側に無い。`COMMIT_MISSING=1` と同じ扱いで `summary` と PR 本文に書く |
 | バンドルの欠損（動画・スナップショット・パケットログ） | 残った資料で進める。欠損項目を `summary` に書く |
 | Step 3 の観察で症状が出ない | 追加シナリオを最大3本試し、それでも出なければ `not_reproduced` |
 | `materialize-world.cs` が `ERROR:` を返す（壊れた `worldDefinition` 宣言・宣言と中身の食い違い・生成ワールドの地形を引き当てられない箱） | Step 3 を飛ばし、返った理由を `summary` に書いて Step 4 へ。地形の無い `world/` を土台に起動しない |
@@ -91,7 +91,9 @@ poller は cwd を `$CANON` にして起動する（`scripts/bugreport/inbox-pol
 
 ## Step 1: 読む
 
-1. `$RUN/manifest.json`（説明文・`snapshotTicks`・`missing`・`clientState`・`repository`）と `$RUN/run.env` のフラグ・`$RUN/repo/bundle-status.txt` を読む。上の既定表のフラグが1つでも立っていたら、再現環境が報告時と違うことを summary に必ず書く
+箱を読む最初の一手は `python3 scripts/bugreport/triage.py <箱> --out <dir>`（出力先は箱の外）。
+
+1. `$RUN/manifest.json`（説明文・`snapshotTicks`・`missing`・`clientState`・`repository`）と `$RUN/run.env` のフラグ・報告の確保時に Editor が書いた `$RUN/repo/bundle-status.txt` を読む。上の既定表のフラグが1つでも立っていたら、再現環境が報告時と違うことを summary に必ず書く
 2. `$RUN/logs/unity.log` の Error/Exception 行、`$RUN/frames/`（3秒に1枚の静止画の連番。最長約140秒の録画で最大47枚。Read で数枚見る）、`$RUN/screenshot.png`
 3. パケットログを可読化: `bash $CANON/.agents/skills/bug-report-auto-fix/scripts/run-edc.sh $WORKTREE/moorestech_client $CANON/.agents/skills/bug-report-auto-fix/scripts/edc/dump-packets.cs $RUN`（Editor が未起動なら先に `uloop launch $WORKTREE/moorestech_client`）。`$RUN/packets.jsonl` の末尾（報告直前の操作）を読む
 4. `bd create "bug-report <run-id>: <説明文の要約>" --type=bug --priority=2 --description="<manifest要約と $RUN パス>"` で追跡 issue を作り、続けて `bd update` の `--claim` で着手する（claim は素のコマンド単体で打つ。パイプ・リダイレクト・複数コマンドの混在は hook に拒否される）

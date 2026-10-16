@@ -23,6 +23,34 @@ namespace Client.Tests.PlaytestReceiver
         {
             Directory.Delete(_root, true);
         }
+        [Test]
+        public void 読めない箱と正常箱が共存しても正常箱を処理する()
+        {
+            if (System.Environment.OSVersion.Platform == System.PlatformID.Win32NT || System.Environment.UserName == "root")
+                Assert.Ignore("chmodの権限拒否を再現できる非rootのUnixで検証する");
+            var directories = PlaytestOutboxTestBoxes.Directories(_root);
+            MakeBox(directories.ReportOutbox, "good", true);
+            var bad = MakeBox(directories.ReportOutbox, "bad", true);
+            using (var chmod = System.Diagnostics.Process.Start("/bin/chmod", "000 " + bad)) { chmod.WaitForExit(); Assert.AreEqual(0, chmod.ExitCode); }
+            try
+            {
+                Assert.AreEqual("good", PlaytestOutboxScanner.ScanPending(directories, Client.PlaytestReceiver.Delivery.PlaytestOutboxScope.ReportsOnly).Single().BundleId);
+                Assert.AreEqual("good", PlaytestOutboxScanner.ScanForEvidence(directories).Single().BundleId);
+                Assert.IsInstanceOf<Client.PlaytestReceiver.Delivery.PlaytestOutboxInventoryUnavailable>(PlaytestOutboxScanner.ReadDeliveryInventory(directories, Client.PlaytestReceiver.Delivery.PlaytestOutboxScope.ReportsOnly));
+            }
+            finally { using var chmod = System.Diagnostics.Process.Start("/bin/chmod", "700 " + bad); chmod.WaitForExit(); }
+        }
+
+        [Test]
+        public void 報告専用の範囲では進行記録を走査しない()
+        {
+            var directories = PlaytestOutboxTestBoxes.Directories(_root);
+            MakeBox(directories.ReportOutbox, "20260913_120000_bbbb", true);
+            MakeBox(directories.ProgressOutbox, "20260913_125959_dddd", true);
+            var boxes = PlaytestOutboxScanner.ScanPending(directories, Client.PlaytestReceiver.Delivery.PlaytestOutboxScope.ReportsOnly);
+            Assert.AreEqual(1, boxes.Count);
+            Assert.AreEqual(PlaytestUploadKind.Report, boxes[0].Kind);
+        }
 
         [Test]
         public void READYがある箱だけを古い順にkindと格付け付きで拾う()
@@ -35,7 +63,7 @@ namespace Client.Tests.PlaytestReceiver
             MakeBox(reports, "20260913_130000_cccc", withReady: false);
             MakeBox(progress, "20260913_125959_dddd", withReady: true);
 
-            var boxes = PlaytestOutboxScanner.ScanPending(directories);
+            var boxes = PlaytestOutboxScanner.ScanPending(directories, Client.PlaytestReceiver.Delivery.PlaytestOutboxScope.ReportsAndProgress);
 
             Assert.AreEqual(3, boxes.Count);
             Assert.AreEqual(new[] { "20260913_110000_aaaa", "20260913_120000_bbbb", "20260913_125959_dddd" }, boxes.Select(box => box.BundleId).ToArray());
@@ -55,7 +83,20 @@ namespace Client.Tests.PlaytestReceiver
             var failed = MakeBox(reports, "20260913_121000_cccc", withReady: true);
             File.WriteAllText(Path.Combine(failed, PlaytestOutboxScanner.FailedMarker), "");
 
-            Assert.IsEmpty(PlaytestOutboxScanner.ScanPending(directories));
+            Assert.IsEmpty(PlaytestOutboxScanner.ScanPending(directories, Client.PlaytestReceiver.Delivery.PlaytestOutboxScope.ReportsAndProgress));
+        }
+
+        [Test]
+        public void 旧SHIPPED箱を再送も未送件数にも含めない()
+        {
+            var directories = PlaytestOutboxTestBoxes.Directories(_root);
+            var box = MakeBox(directories.ReportOutbox, "20260913_120000_bbbb", true);
+            File.WriteAllText(Path.Combine(box, "SHIPPED"), "delivered");
+            Assert.IsEmpty(PlaytestOutboxScanner.ScanPending(directories, Client.PlaytestReceiver.Delivery.PlaytestOutboxScope.ReportsOnly));
+            var counts = (Client.PlaytestReceiver.Delivery.PlaytestOutboxDeliveryCounts)PlaytestOutboxScanner.ReadDeliveryInventory(directories, Client.PlaytestReceiver.Delivery.PlaytestOutboxScope.ReportsOnly);
+            Assert.AreEqual(0, counts.PendingCount);
+            Assert.AreEqual(0, counts.FailedCount);
+            Assert.IsEmpty(PlaytestOutboxScanner.ListPayloadFiles(box));
         }
 
         [Test]

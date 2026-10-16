@@ -48,14 +48,36 @@ describe("UiStateDataSchema", () => {
 
 describe("PauseMenuDataSchema", () => {
   it("bugReport を持つ", () => {
-    const parsed = PauseMenuDataSchema.parse({ disconnected: false, bugReport: { kind: "capturing", missing: ["video"] }, page: "top" });
+    const parsed = PauseMenuDataSchema.parse({ disconnected: false, delivery: { kind: "allSent" }, bugReport: { kind: "capturing", missing: ["video"] }, page: "top" });
     expect(parsed.bugReport.missing).toEqual(["video"]);
   });
 
   // 送信可否はC#が出した結論そのものを受け取る。組み立て直せる形にすると判定が2本になる
   // The send-permission verdict arrives exactly as C# decided it; a re-assemblable shape would make two rules
   it("未知の kind と kind 抜きの確保状態を弾く", () => {
-    expect(PauseMenuDataSchema.safeParse({ disconnected: false, bugReport: { kind: "sending", missing: [] }, page: "top" }).success).toBe(false);
-    expect(PauseMenuDataSchema.safeParse({ disconnected: false, bugReport: { hasSession: true, capturePending: false, missing: [] }, page: "top" }).success).toBe(false);
+    expect(PauseMenuDataSchema.safeParse({ disconnected: false, delivery: { kind: "allSent" }, bugReport: { kind: "sending", missing: [] }, page: "top" }).success).toBe(false);
+    expect(PauseMenuDataSchema.safeParse({ disconnected: false, delivery: { kind: "allSent" }, bugReport: { hasSession: true, capturePending: false, missing: [] }, page: "top" }).success).toBe(false);
   });
+});
+
+// 不要なフィールドや未知の理由は表示契約違反として拒否する
+// Reject redundant fields and unknown reasons as display contract violations
+it("deliveryの各状態だけを受理し、欠損と不正値を拒否する", () => {
+  const base = { disconnected: false, bugReport: { kind: "ready", missing: [] }, page: "top" };
+  for (const delivery of [{ kind: "allSent" }, { kind: "pending", inventory: { kind: "known", pendingCount: 0, failedCount: 0 } }, { kind: "refused", inventory: { kind: "known", pendingCount: 2, failedCount: 0 } }, { kind: "localOnly", reason: "distributionUnavailable", inventory: { kind: "known", pendingCount: 1, failedCount: 0 } }]) {
+    expect(PauseMenuDataSchema.safeParse({ ...base, delivery }).success).toBe(true);
+  }
+  for (const delivery of [{ kind: "allSent", inventory: { kind: "known", pendingCount: 0, failedCount: 0 } }, { kind: "localOnly", reason: "unknown", inventory: { kind: "known", pendingCount: 1, failedCount: 0 } }, { kind: "pending", inventory: { kind: "known", pendingCount: -1, failedCount: 0 } }, { kind: "pending", inventory: { kind: "known", pendingCount: 0.5, failedCount: 0 } }]) {
+    expect(PauseMenuDataSchema.safeParse({ ...base, delivery }).success).toBe(false);
+  }
+  expect(PauseMenuDataSchema.safeParse(base).success).toBe(false);
+});
+
+it("件数不明を4状態内で受理し、未知と件数の混在を拒否する", () => {
+  const base = { disconnected: false, bugReport: { kind: "ready", missing: [] }, page: "top" };
+  for (const status of [{ kind: "pending" }, { kind: "refused" }, { kind: "localOnly", reason: "developerTokenMissing" }]) {
+    const inventory = { kind: "unavailable", reason: "denied" };
+    expect(PauseMenuDataSchema.safeParse({ ...base, delivery: { ...status, inventory } }).success).toBe(true);
+    expect(PauseMenuDataSchema.safeParse({ ...base, delivery: { ...status, inventory: { ...inventory, pendingCount: 0 } } }).success).toBe(false);
+  }
 });

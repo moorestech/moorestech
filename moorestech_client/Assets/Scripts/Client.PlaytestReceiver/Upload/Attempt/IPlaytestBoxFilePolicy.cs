@@ -15,6 +15,10 @@ namespace Client.PlaytestReceiver.Upload.Attempt
     // Ranks a path inside a box; only the per-kind implementations know a box's layout, and the uploader sees nothing but the rank
     public interface IPlaytestBoxFilePolicy
     {
+        bool CanResumeHold(string directory);
+        System.Collections.Generic.IReadOnlyList<PlaytestOutboxBox> PrepareAttachments(PlaytestOutboxBox box);
+        System.Collections.Generic.IReadOnlyList<string> ListPayloadFiles(string directory);
         PlaytestBundleFileRank RankOf(string relativePath);
+        string ValidateBeforeUpload(string boxDirectory, PlaytestBoxDeclaration declaration);
     }
 }

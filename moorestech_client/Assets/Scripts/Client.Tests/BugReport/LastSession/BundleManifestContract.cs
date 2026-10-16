@@ -9,8 +9,8 @@ using NUnit.Framework;
 
 namespace Client.Tests
 {
-    // plan C の prepare-run.sh / ship-outbox.sh が読むキーの検査。bug の箱と crash の箱で別々に書くと片側だけ欠けても気づけない
-    // Checks the keys plan C's prepare-run.sh and ship-outbox.sh read; written separately per box kind, a gap on one side goes unnoticed
+    // plan C の prepare-run.sh が読むキーの検査。bug の箱と crash の箱で別々に書くと片側だけ欠けても気づけない
+    // Checks the keys plan C's prepare-run.sh read; written separately per box kind, a gap on one side goes unnoticed
     public static class BundleManifestContract
     {
         public static void AssertPlanC(string bundle, JObject manifest)

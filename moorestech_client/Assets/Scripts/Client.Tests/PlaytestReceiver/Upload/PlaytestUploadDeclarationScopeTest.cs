@@ -1,3 +1,4 @@
+using Client.PlaytestReceiver.Credentials;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -32,7 +33,7 @@ namespace Client.Tests.PlaytestReceiver
         [Test]
         public void 宣言は必須_補助_静止画の順に並ぶ()
         {
-            var box = MakeBox(("frames/frame_0001.jpg", "f"), ("logs/unity.log", "l"), ("video.mp4", "v"), ("world/world.json", "w"), ("snapshots/s.json", "s"), ("manifest.json", "{}"), ("frames.tsv", "t"));
+            var box = MakeBox(("frames/frame_0001.jpg", "f"), ("logs/unity.log", "l"), ("video.mp4", "v"), ("world/world.json", "w"), ("snapshots/s.json", "s"), ("manifest.json", "{\"isEditor\":false}"), ("frames.tsv", "t"));
 
             var declaration = PlaytestBoxDeclaration.Build(Box(box));
             var expected = new[] { "manifest.json", "snapshots/s.json", "world/world.json", "frames.tsv", "logs/unity.log", "video.mp4", "frames/frame_0001.jpg" };
@@ -42,7 +43,7 @@ namespace Client.Tests.PlaytestReceiver
         [Test]
         public void 件数上限で落ちるのは静止画だけで箱は送られる()
         {
-            var box = MakeBox(("manifest.json", "{}"), ("world/world.json", "w"), ("snapshots/s.json", "s"));
+            var box = MakeBox(("manifest.json", "{\"isEditor\":false}"), ("world/world.json", "w"), ("snapshots/s.json", "s"));
             for (var i = 0; i < PlaytestReceiverConfig.MaxBundleFiles; i++) File.WriteAllText(Path.Combine(box, "frames", $"frame_{i:D4}.jpg"), "f");
 
             var declaration = PlaytestBoxDeclaration.Build(Box(box));
@@ -55,7 +56,7 @@ namespace Client.Tests.PlaytestReceiver
         [Test]
         public void 必須群が件数上限に掛かった箱は受け口へ行かず1回と数える()
         {
-            var box = MakeBox(("manifest.json", "{}"));
+            var box = MakeBox(("manifest.json", "{\"isEditor\":false}"));
             for (var i = 0; i < PlaytestReceiverConfig.MaxBundleFiles; i++) File.WriteAllText(Path.Combine(box, "snapshots", $"s_{i:D4}.json"), "s");
             var api = new FakeUploadApi();
 
@@ -67,7 +68,7 @@ namespace Client.Tests.PlaytestReceiver
         [Test]
         public void 署名付きPUTの4xxはそのファイルだけ見送り縮小した宣言で送る()
         {
-            var box = MakeBox(("manifest.json", "{}"), ("a.bin", "abc"));
+            var box = MakeBox(("manifest.json", "{\"isEditor\":false}"), ("a.bin", "abc"));
             var api = new FakeUploadApi();
             api.EnqueuePut("a.bin", PlaytestApiResult.Responded(400, "<Error><Code>InvalidArgument</Code></Error>"));
 
@@ -83,7 +84,7 @@ namespace Client.Tests.PlaytestReceiver
         [Test]
         public void R2が拒んだファイルの見送りは次回起動の宣言にも残る()
         {
-            var box = MakeBox(("manifest.json", "{}"), ("a.bin", "abc"));
+            var box = MakeBox(("manifest.json", "{\"isEditor\":false}"), ("a.bin", "abc"));
             var api = new FakeUploadApi();
             api.EnqueuePut("a.bin", PlaytestApiResult.Responded(400, ""));
             for (var i = 0; i < 4; i++) api.EnqueueComplete(PlaytestApiResult.Responded(503, ""));
@@ -106,7 +107,7 @@ namespace Client.Tests.PlaytestReceiver
         [Test]
         public void 必須ファイルがR2に拒まれ続けた箱は見送りを記録せず再試行後に1回と数え次の走行で送れる()
         {
-            var box = MakeBox(("manifest.json", "{}"), ("a.bin", "abc"));
+            var box = MakeBox(("manifest.json", "{\"isEditor\":false}"), ("a.bin", "abc"));
             var api = new FakeUploadApi();
             var attempts = 1 + PlaytestUploadRetrySchedule.Default.Delays.Count;
             for (var i = 0; i < attempts; i++) api.EnqueuePut("manifest.json", PlaytestApiResult.Responded(400, "<Error><Code>InvalidArgument</Code></Error>"));
@@ -127,7 +128,7 @@ namespace Client.Tests.PlaytestReceiver
         [Test]
         public void 前回の宣言に無かったファイルは次の走行の宣言にも入れない()
         {
-            var box = MakeBox(("manifest.json", "{}"), ("world/world.json", "w"), ("snapshots/s.json", "s"));
+            var box = MakeBox(("manifest.json", "{\"isEditor\":false}"), ("world/world.json", "w"), ("snapshots/s.json", "s"));
             var frameCount = PlaytestReceiverConfig.MaxBundleFiles - 3 + 1;
             for (var i = 0; i < frameCount; i++) File.WriteAllText(Path.Combine(box, "frames", $"frame_{i:D4}.jpg"), "f");
             var droppedByCap = $"frames/frame_{frameCount - 1:D4}.jpg";
@@ -158,9 +159,9 @@ namespace Client.Tests.PlaytestReceiver
 
         private int Upload(FakeUploadApi api)
         {
-            var session = new PlaytestSession(api, new FakeTicketProvider("aabb"));
-            var uploader = new PlaytestUploader(api, session, _directories, PlaytestNoWaitRetrySchedule.Create());
-            return uploader.UploadPendingAsync(CancellationToken.None).GetAwaiter().GetResult();
+            var session = new PlaytestSession(api, new SteamTicketSessionCredential(new FakeTicketProvider("aabb")));
+            var uploader = new PlaytestUploader(api, session, _directories, PlaytestNoWaitRetrySchedule.Create(), Client.PlaytestReceiver.Delivery.PlaytestOutboxScope.ReportsAndProgress);
+            return uploader.UploadPendingAsync(CancellationToken.None).GetAwaiter().GetResult().Sent;
         }
     }
 }

@@ -61,7 +61,7 @@ plan E の人手検証（配布ビルド → steamcmd → 検証機 smoke）を 
 - クライアントの `PlaytestUploader` は Worker への PUT をやめ、発行された URL への PUT に変わる。契約（`contract.json`）とクライアント側の定数テストを更新する。
 - Worker の `putUpload`（ストリーミング中継）は削除する。`complete` は R2 の列挙を行うため、Worker の CPU はファイル数に比例するが1ファイルあたり数十 µs で無料枠に収まる。
 - PUT されたが `complete` まで届かなかったオブジェクトは、次回起動の再送で同じキーへ上書きされる。自動削除はしない。
-- 開発者モード（Editor）の rsync 経路でも `world/` の除外規則は同じ（判定は `mapMode`）。
+- 開発者トークンで同じ受け口へ送る経路（ADR 0081）でも `world/` の除外規則は同じ（判定は `mapMode`）。
 - Mac mini 側の取り込み（`scripts/playtest/ingest.sh`）は READY の一覧を読むだけなので変更しない。再現時に地形が要る場合は、`world.json` と同じビルドの同梱スナップショットから引き当てる。
 - クライアントの送信期限がアイドル期限に変わるため、`PlaytestReceiverConfig.UploadTimeout`（サイズ比例）と `contract.json` の対応定数・テストを置き換える。
 - 検証機の smoke（`run-smoke.ps1` phase2）は、報告の箱が約 17MB になり、再試行も入るため 300 秒の待ちで完了する見込み。

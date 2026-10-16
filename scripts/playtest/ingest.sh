@@ -97,6 +97,8 @@ ingest_one() {
       receiver_get_object "$kind" "$steam_id" "$id" "$rel" "$partial/$rel" \
         || { log "ERROR: 取得失敗 $id/$rel"; rm -rf "$partial"; return 1; }
     done <<< "$files"
+    python3 "$HERE/../bugreport/lib/restore-commit-transfer.py" "$partial" \
+      || { log "ERROR: コミット資料の復元失敗（ack しない）: $kind/$steam_id/$id"; rm -rf "$partial"; return 1; }
     steam_persona_resolve "$steam_id" "$persona_file" \
       || { log "ERROR: 表示名の結果を書けない $kind/$steam_id/$id（ack しない）"; rm -rf "$partial"; return 1; }
     python3 "$HERE/lib/ingest_metadata.py" \

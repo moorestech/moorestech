@@ -1,5 +1,7 @@
 import type { Env } from "./env";
 import { fail, notFound } from "./http";
+import { routeDeveloperSession } from "./routes/developerSession";
+import { routeAdminDevTokens } from "./routes/adminDevTokens";
 import { routeAdmin } from "./routes/admin";
 import { routeSession } from "./routes/session";
 import { routeUploads } from "./routes/uploads";
@@ -14,8 +16,14 @@ export async function handle(request: Request, env: Env, steamFetch: typeof fetc
   const session = await routeSession(request, env, steamFetch, segments);
   if (session !== null) return session;
 
+  const developerSession = await routeDeveloperSession(request, env, segments);
+  if (developerSession !== null) return developerSession;
+
   const uploads = await routeUploads(request, env, segments);
   if (uploads !== null) return uploads;
+
+  const adminDevTokens = await routeAdminDevTokens(request, env, segments);
+  if (adminDevTokens !== null) return adminDevTokens;
 
   const admin = await routeAdmin(request, env, segments);
   if (admin !== null) return admin;

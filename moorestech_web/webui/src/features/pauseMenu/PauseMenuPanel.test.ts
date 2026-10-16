@@ -103,7 +103,7 @@ describe("PauseMenuPanel", () => {
 
 async function render(page: Page): Promise<ReactTestRenderer> {
   setDictionaries("japanese", {}, {}, {});
-  mocks.pauseMenu.current = { disconnected: false, bugReport: ready, page };
+  mocks.pauseMenu.current = { disconnected: false, delivery: { kind: "allSent" }, bugReport: ready, page };
   let renderer: ReactTestRenderer;
   await act(async () => {
     renderer = create(createElement(PauseMenuPanel));
@@ -112,7 +112,7 @@ async function render(page: Page): Promise<ReactTestRenderer> {
 }
 
 async function setPage(renderer: ReactTestRenderer, page: Page) {
-  mocks.pauseMenu.current = { disconnected: false, bugReport: ready, page };
+  mocks.pauseMenu.current = { disconnected: false, delivery: { kind: "allSent" }, bugReport: ready, page };
   await act(async () => renderer.update(createElement(PauseMenuPanel)));
 }
 

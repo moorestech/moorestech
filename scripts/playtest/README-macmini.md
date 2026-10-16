@@ -79,3 +79,17 @@ Hermes 内蔵 cron で毎朝9時に投稿する。手順は `scripts/playtest/he
 
 - 手動確認: `/usr/bin/python3 /Users/sakastudio/hermes-agent/data/repos/moorestech/scripts/playtest/digest.py --date yesterday`（logs の既定はスクリプト位置から導出。別の場所なら `MOORESTECH_LOGS`）
 - 全文は `moorestech_logs/harness/playtest/digests/<日付>.md`。次の取り込み周期（最大5分）で logs repo へ commit される
+
+## 開発者トークン
+
+管理キーを設定した環境で次を実行する。機材名は小文字英数字で始まる1〜32文字の小文字英数字・ハイフン。
+
+```bash
+bash scripts/playtest/dev-token.sh issue macbook
+bash scripts/playtest/dev-token.sh list
+bash scripts/playtest/dev-token.sh revoke macbook
+```
+
+`issue` の標準出力はトークン1行だけ。Unity の `moorestech/Playtest/Developer Token` に貼り付けて保存する。生トークンをログ・repoへ残さない。`list` は `machine<TAB>createdAt`、`revoke` は該当機材の送信を即時失効する。すべて成功0・失敗1。
+
+開発機の報告は `reports/dev-<機材名>/<id>/` に取り込まれる。Steamには問い合わせず「開発機 <機材名>」を表示名にし、ダイジェストにも表示する。自動修正への投入はテスターと同じく人が選ぶ。
