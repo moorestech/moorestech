@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using Client.Common;
 using Client.Common.Asset;
 using Client.Game.InGame.Entity.Object;
 using Client.Game.InGame.Riding;
 using Client.Game.InGame.Train.View.Object.Material;
 using Client.Game.InGame.Train.View.Object.Pose;
 using Client.Game.InGame.Train.View.Object.Processors;
+using Client.Game.InGame.UI.UIState.State;
 using Core.Master;
 using Game.Train.Unit;
 using Mooresmaster.Model.TrainModule;
@@ -149,7 +151,21 @@ namespace Client.Game.InGame.Train.View.Object.Core
                         target.AddComponent<MeshCollider>();
                     }
 
+                    // 破壊・インタラクトのレイが当たるようプレハブ側のレイヤー設定に依存せずBlockへ揃える
+                    // Force the Block layer so delete/interact rays hit regardless of the prefab's layer setup
+                    target.layer = LayerConst.BlockLayer;
+
                     childObject.Initialize(trainEntityObject, materialController);
+                }
+
+                // 床などプレハブ既存のコライダーもレイを遮るので、対象を持たないものへ削除対象を付ける
+                // Prefab colliders such as the floor also block rays, so give target-less ones a delete target
+                var colliders = targetTrainObject.GetComponentsInChildren<Collider>(true);
+                for (var i = 0; i < colliders.Length; i++)
+                {
+                    var target = colliders[i].gameObject;
+                    if (target.GetComponentInChildren<IDeleteTarget>(true) != null) continue;
+                    target.AddComponent<TrainCarEntityChildrenObject>().Initialize(trainEntityObject, materialController);
                 }
             }
 
