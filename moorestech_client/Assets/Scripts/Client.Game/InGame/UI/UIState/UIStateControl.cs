@@ -94,19 +94,20 @@ namespace Client.Game.InGame.UI.UIState
             // 移動可否は画面自身の宣言に従い、OnEnterより先に確定させる
             // Movement follows the screen's own declaration and is settled before OnEnter runs
             var uiState = _uiStateDictionary.GetState(state);
-            ApplyMovementLock(uiState);
+            ApplyPlayerInputPolicy(uiState);
 
             // 入れ子ポーズの出入りでも宣言が変わるため、サブステート遷移を購読して再適用する
             // The declaration also changes when a nested pause opens or closes, so re-apply on each sub-state transition
             if (uiState is INestedPauseScreenState nestedPauseScreen)
-                _subStateMovementLockSubscription = nestedPauseScreen.OnSubStateChanged.Subscribe(_ => ApplyMovementLock(uiState));
+                _subStateMovementLockSubscription = nestedPauseScreen.OnSubStateChanged.Subscribe(_ => ApplyPlayerInputPolicy(uiState));
 
             uiState.OnEnter(context);
         }
 
-        private void ApplyMovementLock(IUIState uiState)
+        private void ApplyPlayerInputPolicy(IUIState uiState)
         {
             _playerObjectController.SetMovementLock(PlayerMovementLockReason.Ui, uiState.LocksPlayerMovement());
+            _playerObjectController.SetSprintToggleAllowed(uiState.AllowsSprintToggle());
         }
 
         private void DisposeSubStateMovementLockSubscription()

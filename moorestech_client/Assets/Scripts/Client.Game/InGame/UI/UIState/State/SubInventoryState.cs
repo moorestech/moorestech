@@ -179,6 +179,8 @@ namespace Client.Game.InGame.UI.UIState.State
             CurrentSubInventorySource = null;
         }
 
+        public bool AllowsSprintToggle() => false;
+
         public bool LocksPlayerMovement()
         {
             return false;

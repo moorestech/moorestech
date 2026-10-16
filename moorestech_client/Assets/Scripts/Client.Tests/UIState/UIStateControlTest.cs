@@ -10,7 +10,6 @@ using UnityEngine.TestTools;
 using Client.Tests.UIState.Fakes;
 using NUnit.Framework;
 using UnityEngine;
-
 namespace Client.Tests.UIState
 {
     public class UIStateControlTest
@@ -21,13 +20,11 @@ namespace Client.Tests.UIState
         {
             _controlObject = new GameObject("UIStateControl");
         }
-
         [TearDown]
         public void TearDown()
         {
             Object.DestroyImmediate(_controlObject);
         }
-
         [Test]
         public void TransitionDoesNotRequirePlayerViewController()
         {
@@ -37,9 +34,7 @@ namespace Client.Tests.UIState
             var control = _controlObject.AddComponent<UIStateControl>();
             control.Construct(dictionary, new FakePlayerObjectController());
             control.Initialize(UIStateEnum.GameScreen, new UITransitContext(UIStateEnum.GameScreen));
-
             InvokeUpdate(control);
-
             Assert.AreEqual(UIStateEnum.BuildMenu, control.CurrentState);
             Assert.AreEqual(1, firstState.ExitCount);
             Assert.AreEqual(1, secondState.EnterCount);
@@ -58,9 +53,11 @@ namespace Client.Tests.UIState
             // The initial screen's declaration is applied as well
             control.Initialize(UIStateEnum.GameScreen, new UITransitContext(UIStateEnum.GameScreen));
             Assert.AreEqual(false, player.LastUiLock);
+            Assert.IsTrue(player.LastSprintToggleAllowed);
 
             InvokeUpdate(control);
             Assert.AreEqual(UIStateEnum.BuildMenu, control.CurrentState);
+            Assert.IsFalse(player.LastSprintToggleAllowed);
             Assert.AreEqual(true, player.LastUiLock, "メニュー画面へ入っても移動が止まらない");
 
             InvokeUpdate(control);
@@ -184,6 +181,8 @@ namespace Client.Tests.UIState
                 HoverPreview?.Release();
                 DeleteService?.ClearAll();
             }
+
+            public bool AllowsSprintToggle() => !_locksPlayerMovement;
 
             public bool LocksPlayerMovement()
             {

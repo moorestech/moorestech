@@ -1,8 +1,9 @@
+using System;
 using Client.Input;
-using UnityEngine;
-#if ENABLE_INPUT_SYSTEM && STARTER_ASSETS_PACKAGES_CHECKED
+using UniRx;
 using UnityEngine.InputSystem;
-#endif
+using UnityEngine.InputSystem.Utilities;
+using UnityEngine;
 
 namespace StarterAssets
 {
@@ -15,6 +16,41 @@ namespace StarterAssets
 		public Vector2 look;
 		public bool jump;
 		public bool sprint;
+        private SprintInputResolver _sprintResolver;
+        private IDisposable _modeSubscription;
+        private IDisposable _buttonSubscription;
+
+        private void Awake()
+        {
+            // 現在の方式を読み、設定変更を入力へ反映する
+            // Read the current mode and apply setting changes to input
+            _sprintResolver = new SprintInputResolver(SprintInputModePreference.Current);
+            _modeSubscription = SprintInputModePreference.OnChanged.Subscribe(mode =>
+            {
+                _sprintResolver.SetMode(mode);
+                ApplySprint();
+            });
+            ApplySprint();
+        }
+
+        private void OnEnable()
+        {
+            // Sprint以外の押下は修飾操作として扱う
+            // Treat non-sprint presses as modifier operations
+            _buttonSubscription = InputSystem.onAnyButtonPress.Call(control =>
+            {
+                // silent-ok: Sprint自身は修飾操作ではない / 入力テストで確認する
+                if (InputManager.Player.Sprint.IsBoundControl(control)) return;
+                _sprintResolver.OnOtherButtonPressed();
+            });
+        }
+
+        private void OnDisable() => _buttonSubscription.Dispose();
+        private void OnDestroy() => _modeSubscription.Dispose();
+
+        public void SetSprintToggleAllowed(bool allowed) => _sprintResolver.SetToggleAllowed(allowed);
+
+        private void ApplySprint() => sprint = inputEnable && _sprintResolver.IsSprinting;
 
 		[Header("Movement Settings")]
 		public bool analogMovement;
@@ -37,7 +73,8 @@ namespace StarterAssets
 			jump = false;
 			look = Vector2.zero;
 			move = enable ? InputManager.Player.Move.ReadValue<Vector2>() : Vector2.zero;
-			sprint = enable && InputManager.Player.Sprint.GetKey;
+			_sprintResolver.ResyncHeld(enable && InputManager.Player.Sprint.GetKey);
+            ApplySprint();
 		}
 
 #if ENABLE_INPUT_SYSTEM && STARTER_ASSETS_PACKAGES_CHECKED
@@ -93,7 +130,11 @@ namespace StarterAssets
 		public void SprintInput(bool newSprintState)
 		{
             if (!inputEnable) return;
-			sprint = newSprintState;
+			// 押下列の解決は入力層に集める
+            // Keep press-sequence resolution in the input layer
+            if (newSprintState) _sprintResolver.OnSprintPressed();
+            else _sprintResolver.OnSprintReleased();
+            ApplySprint();
 		}
 
 #if !UNITY_IOS || !UNITY_ANDROID

@@ -84,7 +84,7 @@
   - `InputKey.IsBoundControl(InputControl control) : bool`
   - `SprintInputModePreference.PreferenceKey`（`internal const string`。テストの退避・復元用。`Client.Input`→`Client.Tests` の InternalsVisibleTo は既存）
 
-- [ ] **Step 1: テストを書く** — `SprintInputResolverTest.cs`（純C#。加えて `SprintInputModePreferenceTest.cs` に「未保存→Toggle」「"Hold"保存→Hold」「"2"保存→Toggle＋LogWarning（`LogAssert.Expect(LogType.Warning, new Regex("Unknown saved sprint mode"))`）」の3ケースを置く。PlayerPrefs は SetUp で `PlayerPrefs.HasKey/GetString(SprintInputModePreference.PreferenceKey)` を退避し TearDown で復元する（前例 `LocalizationLanguageSelectionContractTest`））
+- [x] **Step 1: テストを書く** — `SprintInputResolverTest.cs`（純C#。加えて `SprintInputModePreferenceTest.cs` に「未保存→Toggle」「"Hold"保存→Hold」「"2"保存→Toggle＋LogWarning（`LogAssert.Expect(LogType.Warning, new Regex("Unknown saved sprint mode"))`）」の3ケースを置く。PlayerPrefs は SetUp で `PlayerPrefs.HasKey/GetString(SprintInputModePreference.PreferenceKey)` を退避し TearDown で復元する（前例 `LocalizationLanguageSelectionContractTest`））
 
 ```csharp
 using Client.Input;
@@ -167,7 +167,7 @@ namespace Client.Tests.Player
 }
 ```
 
-- [ ] **Step 2: 実装を書く**
+- [x] **Step 2: 実装を書く**
 
 `SprintInputMode.cs`:
 ```csharp
@@ -319,12 +319,12 @@ namespace Client.Input
 ```
 （`using UnityEngine.InputSystem;` は既存。`Contains` に `using System.Linq;` が無ければ追加する）
 
-- [ ] **Step 3: コンパイルしテストを実行**
+- [x] **Step 3: コンパイルしテストを実行**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "SprintInputResolverTest|SprintInputModePreferenceTest"`（`--filter-type regex`）
 Expected: ErrorCount 0 / 10 PASS
 
-- [ ] **Step 4: コミット**
+- [x] **Step 4: コミット**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Input moorestech_client/Assets/Scripts/Client.Tests/Player/SprintInputResolverTest.cs*

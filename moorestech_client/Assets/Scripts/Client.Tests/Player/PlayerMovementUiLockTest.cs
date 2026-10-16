@@ -15,6 +15,8 @@ namespace Client.Tests.Player
     /// </summary>
     public class PlayerMovementUiLockTest : InputTestFixture
     {
+        private bool _hadSavedMode;
+        private string _savedMode;
         private GameObject _playerRoot;
         private Keyboard _keyboard;
         private StarterAssetsInputs _inputs;
@@ -23,6 +25,11 @@ namespace Client.Tests.Player
         public override void Setup()
         {
             base.Setup();
+            // テストが開発者の設定を変更しないよう退避する
+            // Preserve the developer preference across the test
+            _hadSavedMode = PlayerPrefs.HasKey("SprintInputMode");
+            _savedMode = PlayerPrefs.GetString("SprintInputMode");
+            SprintInputModePreference.SetMode(SprintInputMode.Hold);
             _keyboard = InputSystem.AddDevice<Keyboard>();
 
             // 押下の読み直しはInputManager経由なので、他テストが張った静的キャッシュを捨てて張り直す
@@ -36,7 +43,7 @@ namespace Client.Tests.Player
 
             _playerRoot = new GameObject("PlayerMovementUiLockTestPlayer");
             _playerRoot.AddComponent<CharacterController>();
-            _inputs = _playerRoot.AddComponent<StarterAssetsInputs>();
+            _inputs = StarterAssetsInputTestLifecycle.AddInitializedInputs(_playerRoot);
             var thirdPersonController = _playerRoot.AddComponent<ThirdPersonController>();
 
             _controller = _playerRoot.AddComponent<PlayerObjectController>();
@@ -46,7 +53,10 @@ namespace Client.Tests.Player
 
         public override void TearDown()
         {
+            StarterAssetsInputTestLifecycle.ReleaseInputs(_inputs);
             Object.DestroyImmediate(_playerRoot);
+            if (_hadSavedMode) PlayerPrefs.SetString("SprintInputMode", _savedMode);
+            else PlayerPrefs.DeleteKey("SprintInputMode");
             TestReflection.ResetInputManagerCache();
             base.TearDown();
         }

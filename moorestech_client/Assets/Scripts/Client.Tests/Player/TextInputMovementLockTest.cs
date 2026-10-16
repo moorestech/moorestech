@@ -17,6 +17,8 @@ namespace Client.Tests.Player
     /// </summary>
     public class TextInputMovementLockTest : InputTestFixture
     {
+        private bool _hadSavedMode;
+        private string _savedMode;
         private GameObject _playerRoot;
         private Keyboard _keyboard;
         private StarterAssetsInputs _inputs;
@@ -26,6 +28,11 @@ namespace Client.Tests.Player
         public override void Setup()
         {
             base.Setup();
+            // テストが開発者の設定を変更しないよう退避する
+            // Preserve the developer preference across the test
+            _hadSavedMode = PlayerPrefs.HasKey("SprintInputMode");
+            _savedMode = PlayerPrefs.GetString("SprintInputMode");
+            SprintInputModePreference.SetMode(SprintInputMode.Hold);
             _keyboard = InputSystem.AddDevice<Keyboard>();
 
             // 押下の読み直しはInputManager経由なので、静的キャッシュを捨ててデバイス登録後に張り直す
@@ -36,7 +43,7 @@ namespace Client.Tests.Player
 
             _playerRoot = new GameObject("TextInputMovementLockTestPlayer");
             _playerRoot.AddComponent<CharacterController>();
-            _inputs = _playerRoot.AddComponent<StarterAssetsInputs>();
+            _inputs = StarterAssetsInputTestLifecycle.AddInitializedInputs(_playerRoot);
             var thirdPersonController = _playerRoot.AddComponent<ThirdPersonController>();
             _controller = _playerRoot.AddComponent<PlayerObjectController>();
             typeof(PlayerObjectController).GetField("controller", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(_controller, thirdPersonController);
@@ -48,7 +55,10 @@ namespace Client.Tests.Player
 
         public override void TearDown()
         {
+            StarterAssetsInputTestLifecycle.ReleaseInputs(_inputs);
             Object.DestroyImmediate(_playerRoot);
+            if (_hadSavedMode) PlayerPrefs.SetString("SprintInputMode", _savedMode);
+            else PlayerPrefs.DeleteKey("SprintInputMode");
             WebUiInputExclusivity.SetState(false, false);
             TestReflection.ResetInputManagerCache();
             base.TearDown();
@@ -102,7 +112,7 @@ namespace Client.Tests.Player
         {
             var playerRoot = new GameObject("TextInputMovementLockTestLatePlayer");
             playerRoot.AddComponent<CharacterController>();
-            var inputs = playerRoot.AddComponent<StarterAssetsInputs>();
+            var inputs = StarterAssetsInputTestLifecycle.AddInitializedInputs(playerRoot);
             var thirdPersonController = playerRoot.AddComponent<ThirdPersonController>();
             var controller = playerRoot.AddComponent<PlayerObjectController>();
             typeof(PlayerObjectController).GetField("controller", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(controller, thirdPersonController);
@@ -111,6 +121,7 @@ namespace Client.Tests.Player
             new TextInputMovementLockApplier(controller).Initialize(new ReactiveProperty<bool>(true));
 
             Assert.IsFalse(inputs.inputEnable);
+            StarterAssetsInputTestLifecycle.ReleaseInputs(inputs);
             Object.DestroyImmediate(playerRoot);
         }
 
