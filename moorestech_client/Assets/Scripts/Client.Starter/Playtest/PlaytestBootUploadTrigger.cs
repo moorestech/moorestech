@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading;
 using Client.Game.InGame.BugReport.Submit;
 using VContainer.Unity;
 using Client.Game.InGame.BugReport;
@@ -19,37 +20,36 @@ namespace Client.Starter.Playtest
         {
             // MainGame起動で溜まった箱を送る（Editorの直接再生にはタイトルの押し場が無い）
             // Send accumulated boxes on MainGame startup; direct Editor playback has no title push site
-            CompleteAndRequestAsync().Forget();
+            CompleteAndRequestAsync(Application.exitCancellationToken).Forget();
+        }
 
-            #region Internal
-
-            async UniTaskVoid CompleteAndRequestAsync()
-            {
+        private async UniTask CompleteAndRequestAsync(CancellationToken cancellationToken)
+        {
 #if UNITY_EDITOR
-                var repositoryRoot = RepositoryStateProbe.RepositoryRoot;
-                var masterDataRoot = RepositoryStateProbe.MasterDataRoot;
-                await PlaytestOutboxAccess.Gate.WaitAsync(Application.exitCancellationToken);
-                // 外部ディスクIOの箱補完失敗を隔離する
-                // Isolate external disk IO failures while completing outbox evidence
-                try
-                {
-                    // gitと資料IOだけをワーカーへ移し、Unity APIは先に取得する
-                    // Move git and evidence IO to a worker after capturing Unity paths
-                    await UniTask.RunOnThreadPool(() => PlaytestExistingReportEvidence.Complete(_directories, repositoryRoot, masterDataRoot));
-                }
-                // 外部ディスク列挙境界。配送要求へ進めて件数不明を画面にも表示する
-                // External disk enumeration boundary: continue to delivery so unreadable inventory reaches the UI
-                catch (Exception error) when (error is IOException || error is UnauthorizedAccessException)
-                {
-                    Debug.LogWarning($"[PlaytestReceiver] legacy outbox enumeration failed: {error.Message}");
-                }
-                finally { PlaytestOutboxAccess.Gate.Release(); }
-                await UniTask.SwitchToMainThread();
-#endif
-                _uploadRequester.RequestUpload();
+            var repositoryRoot = RepositoryStateProbe.RepositoryRoot;
+            var masterDataRoot = RepositoryStateProbe.MasterDataRoot;
+            await PlaytestOutboxAccess.Gate.WaitAsync(cancellationToken);
+            // 外部ディスクIOの箱補完失敗を隔離する
+            // Isolate external disk IO failures while completing outbox evidence
+            try
+            {
+                // gitと資料IOだけをワーカーへ移し、Unity APIは先に取得する
+                // Move git and evidence IO to a worker after capturing Unity paths
+                await UniTask.RunOnThreadPool(() => PlaytestExistingReportEvidence.Complete(_directories, repositoryRoot, masterDataRoot), cancellationToken: cancellationToken);
             }
-
-            #endregion
+            // 外部ディスク列挙境界。配送要求へ進めて件数不明を画面にも表示する
+            // External disk enumeration boundary: continue to delivery so unreadable inventory reaches the UI
+            catch (Exception error) when (error is IOException || error is UnauthorizedAccessException)
+            {
+                Debug.LogWarning($"[PlaytestReceiver] legacy outbox enumeration failed: {error.Message}");
+            }
+            finally { PlaytestOutboxAccess.Gate.Release(); }
+            await UniTask.SwitchToMainThread(cancellationToken);
+#endif
+            // 終了済みの再生から送信要求を持ち越さない
+            // Never carry an upload request beyond the captured play lifetime
+            cancellationToken.ThrowIfCancellationRequested();
+            _uploadRequester.RequestUpload();
         }
     }
 }
