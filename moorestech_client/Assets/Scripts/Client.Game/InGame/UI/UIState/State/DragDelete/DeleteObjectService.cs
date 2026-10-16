@@ -42,7 +42,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             _selection.OnSelectionChanged.Subscribe(_ => _hold.SetSubject(_selection.HasSelection() ? DeleteHoldSubject.Selection(_selection.Revision) : DeleteHoldSubject.None));
         }
 
-        public void Update(float deltaTime)
+        public void Update(float deltaTime, bool isPointerOverUi)
         {
             _lines.Clear();
 
@@ -50,7 +50,6 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             // Resolve the frontmost target in the stroke category, or overall outside a stroke
             var aim = DeleteTargetRaycaster.AimAt(_selection.AimFilter);
             var hovered = aim.Target;
-            var isPointerOverUi = UiPointerHitTest.IsPointerOverAnyUi();
 
             // 箱は終点確定のフレームに選択へ直接足す
             // The box adds to the selection itself on the frame the end point is confirmed

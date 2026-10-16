@@ -43,6 +43,34 @@ namespace Client.Tests.UIState.DragDelete.Completion
             Assert.IsFalse(curve.Intersects(Vector3Int.zero, Vector3Int.zero));
         }
 
+        [Test]
+        public void NonBinaryUpperTangenciesStayOutsideWhileLowerTangenciesAndNarrowCrossingsEnter()
+        {
+            for (var q = 1; q <= 30; q++)
+            {
+                // y=1+(3qt-1)^2 は t=1/(3q) で上面にだけ接する
+                // y=1+(3qt-1)^2 touches only the upper face at t=1/(3q)
+                var outside = Vertical(2, 2-2*q, 3*q*q+2-4*q, 9*q*q-6*q+2);
+                Assert.IsFalse(outside.Intersects(Vector3Int.zero, Vector3Int.zero), $"upper q={q}");
+                var lower = Vertical(-1, 2*q-1, -3*q*q+4*q-1, -9*q*q+6*q-1);
+                Assert.IsTrue(lower.Intersects(Vector3Int.zero, Vector3Int.zero), $"lower q={q}");
+                var crossing = Vertical(1.99999f, 2-2*q, 3*q*q+2-4*q, 9*q*q-6*q+2);
+                Assert.IsTrue(crossing.Intersects(Vector3Int.zero, Vector3Int.zero), $"crossing q={q}");
+            }
+        }
+
+        [Test]
+        public void CubicNonBinaryUpperTangenciesStayOutside()
+        {
+            for (var q = 1; q <= 30; q++)
+            {
+                // y=1+(3qt-1)^2(3t+3) は上面以外へ入らない
+                // y=1+(3qt-1)^2(3t+3) never enters through the upper face
+                var curve = Vertical(4, 5-6*q, 6-18*q+9*q*q, 54*q*q-36*q+7);
+                Assert.IsFalse(curve.Intersects(Vector3Int.zero, Vector3Int.zero), $"cubic q={q}");
+            }
+        }
+
         private static BezierCellBoxIntersection Vertical(float p0, float p1, float p2, float p3)
         {
             return new BezierCellBoxIntersection(new Vector3(.5f, p0, .5f), new Vector3(.5f, p1, .5f), new Vector3(.5f, p2, .5f), new Vector3(.5f, p3, .5f));

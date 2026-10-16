@@ -2245,3 +2245,9 @@ planning 中に生じた判断（出所の 3 種: ユーザー裁定／シミュ
 Architecture: block/car/railのownerは初期化またはRebuildで代表削除対象を保持する。Resolverは既存ownerの参照を読み、構成を毎フレーム再検索しない。railのRebuild/Clearで古い子参照を破棄し新子へ交換する。曲線はSetControlPoints時にBezierCellBoxIntersectionの係数を更新する。対象列・車両位置・撤去可否は毎フレーム更新する。
 
 Interfaces: BezierCellBoxIntersection.Intersects(min,max)は連続3次Bezierと半開セル箱を評価する。各軸の境界根と微分根により単調区間を分け、境界点と区間内部を検査する。旧DeleteBoxRailSampler/SampleCount=64は廃止し、計画内の64点方式の記述はこの変更で置き換える。ユーザー承認済みの「途中が箱に触れれば対象」を優先したagent既定であり、新しいユーザー裁定ではない。
+
+## レビュー反映の委任既定: D4/W02
+
+DeleteObjectState.GetNextUpdateがUIポインター判定を1回取得し、右短押し、スポイト、削除サービスへ同じboolを渡す。helper内の再問い合わせを廃止し他state callerも明示値を渡す。
+
+DeleteBoxSelectionは最後の有効終点を保持する（始点選択時は始点を初期終点とする）。カーソルの面が解決できない間も、その箱を表示して毎フレーム対象を解決し件数を表示する。既存の地面未検出理由を併記してクリック確定を拒否する。有効なカーソルが戻れば終点を更新する。件数そのものはキャッシュしない。

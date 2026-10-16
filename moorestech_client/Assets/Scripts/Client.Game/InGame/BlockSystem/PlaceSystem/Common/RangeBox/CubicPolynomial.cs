@@ -8,27 +8,31 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.RangeBox
     internal readonly struct CubicPolynomial
     {
         private readonly double _a, _b, _c, _d;
+        private readonly double[] _monotoneCuts;
         internal CubicPolynomial(double p0, double p1, double p2, double p3)
         {
             _a = -p0 + 3 * p1 - 3 * p2 + p3;
             _b = 3 * p0 - 6 * p1 + 3 * p2;
             _c = -3 * p0 + 3 * p1;
             _d = p0;
+            _monotoneCuts = Array.Empty<double>();
+            var cuts = new List<double> { 0, 1 };
+            AddDerivativeRoots(cuts);
+            cuts.Sort();
+            _monotoneCuts = cuts.ToArray();
         }
 
         internal double Evaluate(double t) => ((_a * t + _b) * t + _c) * t + _d;
 
         internal void AddBoundaryRoots(double boundary, List<double> roots)
         {
-            var cuts = new List<double> { 0, 1 };
-            AddDerivativeRoots(cuts);
-            cuts.Sort();
-            for (var i = 0; i < cuts.Count; i++)
+            var cuts = _monotoneCuts;
+            for (var i = 0; i < cuts.Length; i++)
             {
                 var left = cuts[i];
                 var leftValue = Evaluate(left) - boundary;
                 if (leftValue == 0) roots.Add(left);
-                if (i + 1 == cuts.Count) continue;
+                if (i + 1 == cuts.Length) continue;
                 var right = cuts[i + 1];
                 var rightValue = Evaluate(right) - boundary;
                 if (leftValue == 0 || rightValue == 0 || Math.Sign(leftValue) == Math.Sign(rightValue)) continue;

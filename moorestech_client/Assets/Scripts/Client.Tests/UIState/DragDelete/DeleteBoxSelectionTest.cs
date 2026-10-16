@@ -20,6 +20,19 @@ namespace Client.Tests.UIState.DragDelete
         }
 
         [Test]
+        public void LastValidEndSurvivesMissingCursorUntilNextValidCell()
+        {
+            var selection = new DeleteBoxSelection();
+            selection.SelectStart(new Vector3Int(2, 3, 4));
+            Assert.AreEqual(selection.StartCell, selection.EndCell);
+            selection.SetEndCell(new Vector3Int(8, 9, 10));
+            Assert.AreEqual(new Vector3Int(8, 9, 10), selection.EndCell);
+            selection.Clear();
+            selection.SelectStart(Vector3Int.zero);
+            Assert.AreEqual(Vector3Int.zero, selection.EndCell);
+        }
+
+        [Test]
         public void 終点待ち中にもう一度始点は選べない()
         {
             var selection = new DeleteBoxSelection();

@@ -1,3 +1,4 @@
+using Client.Game.InGame.Control;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.Train.View.Object.Core;
@@ -50,9 +51,10 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public UITransitContext GetNextUpdate()
         {
+            var isPointerOverUi = UiPointerHitTest.IsPointerOverAnyUi();
             // パネル外の右短押し状態を毎フレーム取得（ManualUpdateが走る前に）
             // Evaluate right short press state every frame before early returns (ManualUpdate runs internally)
-            var isRightShortPressed = _rightShortPressInputService.TryConsumeShortPressOutsideUi();
+            var isRightShortPressed = _rightShortPressInputService.TryConsumeShortPressOutsideUi(isPointerOverUi);
 
             // モード遷移を判定する（ESCはモードを抜けず削除サービス側で選択キャンセルに使う）
             // Handle mode transitions (ESC stays in the mode and is used as selection cancel by the delete service)
@@ -65,7 +67,7 @@ namespace Client.Game.InGame.UI.UIState.State
 
             // 削除インタラクションはサービスに委譲する
             // Delegate the delete interaction to the service
-            _deleteObjectService.Update(Time.deltaTime);
+            _deleteObjectService.Update(Time.deltaTime, isPointerOverUi);
 
             // Ctrl+Z判定はサービス内部
             // Ctrl+Z detection lives inside the service
@@ -93,7 +95,7 @@ namespace Client.Game.InGame.UI.UIState.State
 
                 // ミドルクリックで設置物をスポイトし設置モードへ移る
                 // Middle-click eyedrops a placed object and switches to placement mode
-                if (_placementTargetPickService.TryPickTargetUnderCursor(out var pickedTarget))
+                if (_placementTargetPickService.TryPickTargetUnderCursor(isPointerOverUi, out var pickedTarget))
                     return new UITransitContext(UIStateEnum.PlaceBlock, UITransitContextContainer.Create(new PlacementSelection(pickedTarget, PlacementOrigin.NonHotbar)));
 
                 return null;

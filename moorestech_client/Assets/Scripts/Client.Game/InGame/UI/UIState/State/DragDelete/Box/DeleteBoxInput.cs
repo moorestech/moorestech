@@ -56,13 +56,15 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
             if (click == DeleteBoxClick.ReleasedOverUi) Debug.Log("[DeleteBox] click ignored: released over UI");
             var isClicked = click == DeleteBoxClick.Confirmed;
 
-            if (!PlacementUnitCellResolver.TryGetCursorCell(_mainCamera, _heightOffset.Value, out var cursorCell))
+            var hasCursorCell = PlacementUnitCellResolver.TryGetCursorCell(_mainCamera, _heightOffset.Value, out var cursorCell);
+            if (!hasCursorCell)
             {
                 if (isClicked) Debug.Log("[DeleteBox] click refused: cursor has no placement surface");
-                if (IsSelectingEnd) ShowStart(_selection.StartCell);
-                else _visualizer?.HideAll();
-                return;
+                if (!IsSelectingEnd) { _visualizer?.HideAll(); return; } // silent-ok: 始点未選択で指す面なし / 始点表示を隠して未選択を示す
+                tooltipLines.Add(new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceGroundNotFound));
+                isClicked = false;
             }
+            else if (IsSelectingEnd) _selection.SetEndCell(cursorCell);
 
             if (IsSelectingEnd) UpdateSelectingEnd();
             else UpdateIdle();
@@ -85,16 +87,21 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
                 // Show the start candidate only while Shift is held
                 if (isShiftHeld) ShowStart(cursorCell);
                 else _visualizer?.HideAll();
-                if (isClicked) _selection.SelectStart(cursorCell);
+                if (isClicked)
+                {
+                    _selection.SelectStart(cursorCell);
+                    isClicked = false;
+                    UpdateSelectingEnd();
+                }
             }
 
             void UpdateSelectingEnd()
             {
-                var (min, max) = CellRangeBox.Calc(_selection.StartCell, cursorCell);
+                var (min, max) = CellRangeBox.Calc(_selection.StartCell, _selection.EndCell);
                 var targets = _resolver.Resolve(min, max);
                 tooltipLines.Add(new TooltipLine(LocalizationKeys.Ui.Tooltip.DeleteBoxTargetsInRange, new[] { targets.Count.ToString() }));
                 if (targets.Count == 0) tooltipLines.Add(new TooltipLine(LocalizationKeys.Ui.Tooltip.DeleteBoxEmptyRange));
-                GetVisualizer().ShowSelectingEnd(_selection.StartCell, cursorCell, min, max);
+                GetVisualizer().ShowSelectingEnd(_selection.StartCell, _selection.EndCell, min, max);
                 if (!isClicked) return;
 
                 // 空範囲拒否を表示とログへ記録

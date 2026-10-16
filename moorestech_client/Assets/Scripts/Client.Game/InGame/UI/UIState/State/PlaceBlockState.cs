@@ -1,3 +1,4 @@
+using Client.Game.InGame.Control;
 using System.Collections.Generic;
 using System;
 using Client.Game.InGame.Block;
@@ -98,9 +99,10 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public UITransitContext GetNextUpdate()
         {
+            var isPointerOverUi = UiPointerHitTest.IsPointerOverAnyUi();
             // パネル外の右短押し状態を毎フレーム取得（ManualUpdateが走る前に）
             // Evaluate right short press state every frame before early returns (ManualUpdate runs internally)
-            var isRightShortPressed = _rightShortPressInputService.TryConsumeShortPressOutsideUi();
+            var isRightShortPressed = _rightShortPressInputService.TryConsumeShortPressOutsideUi(isPointerOverUi);
 
             if (_skitManager.IsPlayingSkit) return new UITransitContext(UIStateEnum.Story);
 
@@ -143,7 +145,7 @@ namespace Client.Game.InGame.UI.UIState.State
             // TPSのみ右ドラッグで設置照準回転
             // TPS rotates the placement aim only during right-drag
             _cameraPolicyService.UpdateRotationInput();
-            if (_placementTargetPickService.TryPickTargetUnderCursor(out var pickedTarget)) _placeSystemStateController.SetTarget(pickedTarget, PlacementOrigin.NonHotbar);
+            if (_placementTargetPickService.TryPickTargetUnderCursor(isPointerOverUi, out var pickedTarget)) _placeSystemStateController.SetTarget(pickedTarget, PlacementOrigin.NonHotbar);
 
             _placeSystemStateController.ManualUpdate();
 

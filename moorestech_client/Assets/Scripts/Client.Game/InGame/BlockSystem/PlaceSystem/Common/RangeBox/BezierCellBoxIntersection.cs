@@ -28,11 +28,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.RangeBox
                 if (AddFace(axis, min[axis])) return true;
                 if (AddFace(axis, (double)max[axis] + 1)) return true;
             }
+            if (Contains(0, -1, 0) || Contains(1, -1, 0)) return true;
             _cuts.Sort();
             for (var i = 0; i < _cuts.Count; i++)
             {
-                if (Contains(_cuts[i], -1, 0)) return true;
-                if (i + 1 < _cuts.Count && Contains((_cuts[i] + _cuts[i + 1]) / 2, -1, 0)) return true;
+                // 根は上で境界由来座標を固定済み。丸めた根を通常点として再評価しない
+                // Roots were tested with their boundary coordinate pinned; never re-evaluate rounded roots as ordinary points
+                if (i + 1 < _cuts.Count && _cuts[i] < _cuts[i + 1] && Contains((_cuts[i] + _cuts[i + 1]) / 2, -1, 0)) return true;
             }
             return false;
 
