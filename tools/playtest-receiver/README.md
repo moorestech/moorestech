@@ -126,6 +126,8 @@ curl -sS -X DELETE "$PLAYTEST_RECEIVER_BASE/v1/admin/dev-tokens/macbook" -H "X-A
 
 同名への再発行は409 `machine-already-has-token`。失効してから発行し直す。開発機の報告は `reports/dev-<machine>/<id>/` に入り、進行記録は prepare・complete の両方で403 `developer-progress-not-accepted`。失効後の交換は401 `invalid-developer-token`、発行済みセッションの prepare・complete も401 `developer-token-revoked` になる。
 
+失効時は機材索引に内部用の墓標を残し、一覧には表示しない。再発行はその墓標を条件付きで置き換えるため、遅れた失効が新しい発行を消さない。発行途中のR2障害で予約だけ残った場合はログに機材名と対処を出し、管理者がその機材を失効してから再発行する。失効途中の削除失敗は再度失効して回収する。遅れて書かれた旧ハッシュは交換を拒否した際に削除し、削除失敗はログに対象ハッシュを出すので管理者がR2からそのキーを削除できる。
+
 ## 開発
 
 ```bash

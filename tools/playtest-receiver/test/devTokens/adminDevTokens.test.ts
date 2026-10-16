@@ -51,6 +51,8 @@ it("存在しない機材の失効は404", async () => {
 it("失効すると両方の索引が消え再発行できる", async () => {
   const original = await issue("macbook");
   await admin("DELETE", "/macbook", "", workerEnv.ADMIN_KEY);
-  expect((await workerEnv.BUCKET.list()).objects).toHaveLength(0);
+  expect((await workerEnv.BUCKET.list()).objects.map(row => row.key)).toEqual(["devtokens/by-machine/macbook"]);
+  const listing = await admin("GET", "", "", workerEnv.ADMIN_KEY);
+  expect(await listing.json()).toEqual({ machines: [] });
   expect(await issue("macbook")).not.toBe(original);
 });
