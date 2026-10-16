@@ -39,16 +39,15 @@ namespace Client.Tests.PlaceSystem.Ground
 
             // 前提: 格納された地表は整数を1段未満だけ下回る
             // Premise: the stored surface is under the integer by less than one step
-            var step = TerrainHeightStorage.StepMeters(TerrainHeightRange);
+            var step = TerrainHeightRange / TerrainHeightStorage.Steps;
             Assert.That(padHeight, Is.LessThan((float)PadIntegerY));
             Assert.That(PadIntegerY - padHeight, Is.LessThan(step));
 
-            // 地表探査は実地形のTerrainDataから格子1段を返す
-            // Ground probing returns one lattice step from the actual terrain's TerrainData
+            // 地表探査は格納された地表高をそのまま返す
+            // Ground probing returns the stored surface height as is
             var cell = new Vector3Int(3010, 0, 3010);
-            Assert.IsTrue(GroundHeightProbe.TryGetFootprintMaxGroundHeight(cell, BlockDirection.North, new Vector3Int(2, 1, 2), out var groundHeight, out var probedStep));
+            Assert.IsTrue(GroundHeightProbe.TryGetFootprintMaxGroundHeight(cell, BlockDirection.North, new Vector3Int(2, 1, 2), out var groundHeight));
             Assert.AreEqual(padHeight, groundHeight, 1e-4f);
-            Assert.AreEqual(step, probedStep, 1e-7f);
 
             Assert.IsTrue(PlacementGroundCellResolver.TryResolveCellFromGround(cell, BlockDirection.North, new Vector3Int(2, 1, 2), 0, out var resolved));
             Assert.AreEqual(PadIntegerY, resolved.y);
@@ -64,9 +63,9 @@ namespace Client.Tests.PlaceSystem.Ground
             var productionPadHeight = SurfaceQuantization.PadHeight(boxBottom, config, "fixture");
             var padHeight = CreatePadTerrain(Mathf.RoundToInt(productionPadHeight / TerrainHeightRange * TerrainHeightStorage.Steps));
 
-            // 前提: 格納された地表は整数を1段より多く下回る（旧許容step+0.001では余裕が誤差の桁しかない）
-            // Premise: the stored surface is more than one step under the integer (the old step+0.001 tolerance left only float-error headroom)
-            var step = TerrainHeightStorage.StepMeters(TerrainHeightRange);
+            // 前提: 地表は整数を1段超下回る
+            // Premise: surface is over one step under the integer
+            var step = TerrainHeightRange / TerrainHeightStorage.Steps;
             Assert.AreEqual(productionPadHeight, padHeight, 1e-4f);
             Assert.That(boxBottom - productionPadHeight, Is.GreaterThan(step));
 
@@ -76,18 +75,13 @@ namespace Client.Tests.PlaceSystem.Ground
         }
 
         [Test]
-        public void 地面ヒットの設置点も格子1段ぶん整数へ引き上げる()
+        public void 地面ヒットの設置点も格子1段下の地表を整数セルへ置く()
         {
-            var step = TerrainHeightStorage.StepMeters(TerrainHeightRange);
+            var step = TerrainHeightRange / TerrainHeightStorage.Steps;
             var hitPoint = new Vector3(5.3f, PadIntegerY - 0.9f * step, 5.7f);
 
-            var lifted = PlaceSystemUtil.CalcPlacePointBySize(Vector3Int.one, hitPoint, 0, (PreviewSurfaceType?)null, step);
-            Assert.AreEqual(new Vector3Int(5, PadIntegerY, 5), lifted);
-
-            // 格子の無い地面では従来どおり1段下
-            // On ground without a lattice it stays one cell lower as before
-            var unlifted = PlaceSystemUtil.CalcPlacePointBySize(Vector3Int.one, hitPoint, 0, (PreviewSurfaceType?)null, 0f);
-            Assert.AreEqual(new Vector3Int(5, PadIntegerY - 1, 5), unlifted);
+            var resolved = PlaceSystemUtil.CalcPlacePointBySize(Vector3Int.one, hitPoint, 0, (PreviewSurfaceType?)null);
+            Assert.AreEqual(new Vector3Int(5, PadIntegerY, 5), resolved);
         }
 
         // 全面を指定の格納段で埋めた地形を作り、Raycastで測った地表高を返す

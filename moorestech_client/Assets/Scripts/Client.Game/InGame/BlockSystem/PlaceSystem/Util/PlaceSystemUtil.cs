@@ -35,8 +35,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             return TryGetRayHitPlacePointBySize(mainCamera, rotatedSize, heightOffset, out pos, out surface);
         }
 
-        // 地形ゲート付き設置系の1セル版。地面ヒットのYを占有セルの地形最高点で決め直す（ADR 0047・0080）
-        // Single-cell entry for terrain-gated placements; a ground hit's Y is re-decided from the footprint terrain max (ADR 0047, 0080)
+        // 地形ゲート付き1セル版。Yは占有セル最高点で決める
+        // Single-cell terrain-gated entry; Y comes from the footprint max
         public static FootprintGroundedCellResult ResolveFootprintGroundedRayHitBlockPosition(Camera mainCamera, int heightOffset, BlockDirection currentBlockDirection, BlockMasterElement holdingBlock, out Vector3Int pos, out BlockPreviewBoundingBoxSurface surface)
         {
             if (!TryGetRayHitBlockPosition(mainCamera, heightOffset, currentBlockDirection, holdingBlock, out var rayHitCell, out surface))
@@ -88,11 +88,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             if (!TryRaycastPlacementSurface(mainCamera, out var hit, out surface)) return false;
             hitPoint = hit.point;
 
-            // 地面ヒットだけ、当たった地形の高さ格子1段をY決定へ渡す
-            // Only a ground hit hands the hit terrain's height lattice step to the Y decision
-            var groundHeightQuantizationStep = surface == null ? GroundHeightQuantization.StepOf(hit.collider) : 0f;
             var surfaceType = surface == null ? (PreviewSurfaceType?)null : surface.PreviewSurfaceType;
-            pos = CalcPlacePointBySize(rotatedSize, hit.point, heightOffset, surfaceType, groundHeightQuantizationStep);
+            pos = CalcPlacePointBySize(rotatedSize, hit.point, heightOffset, surfaceType);
             return true;
         }
 
@@ -125,9 +122,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
 
         // 回転済みサイズで通常設置とBPのセル解決を共通化する
         // Resolve normal placement and blueprint cells from the same rotated size
-        // groundHeightQuantizationStepは地面ヒット（surfaceType==null）でだけ使う、当たった地形の高さ格子1段
-        // groundHeightQuantizationStep is the hit terrain's height lattice step, used only for a ground hit (surfaceType == null)
-        public static Vector3Int CalcPlacePointBySize(Vector3Int rotatedSize, Vector3 hitPoint, int heightOffset, PreviewSurfaceType? surfaceType, float groundHeightQuantizationStep)
+        public static Vector3Int CalcPlacePointBySize(Vector3Int rotatedSize, Vector3 hitPoint, int heightOffset, PreviewSurfaceType? surfaceType)
         {
             if (surfaceType == null)
             {
@@ -135,9 +130,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
                 point.x = Mathf.FloorToInt(hitPoint.x + (rotatedSize.x % 2 == 0 ? 0.5f : 0));
                 point.z = Mathf.FloorToInt(hitPoint.z + (rotatedSize.z % 2 == 0 ? 0.5f : 0));
 
-                // 地面ヒットのYは地形追従と同じ規約で決め、TerrainDataの格子で整数を僅かに下回る地表を1段沈めない
-                // A ground hit's Y follows the terrain-follow rule, so a surface just under an integer on the TerrainData lattice does not sink a cell
-                point.y = PlacementGroundCellResolver.ResolveCellY(hitPoint.y, groundHeightQuantizationStep, heightOffset);
+                // Yは地形追従と同じ許容量規約で決める
+                // Y follows the same allowance rule as terrain following
+                point.y = PlacementGroundCellResolver.ResolveCellY(hitPoint.y, heightOffset);
                 point -= new Vector3Int(rotatedSize.x, 0, rotatedSize.z) / 2;
 
                 return point;

@@ -39,11 +39,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
                 heightOffset, out origin);
         }
 
-        public static Vector3Int ResolveOrigin(Vector3Int footprintSize, Vector3 hitPoint, PreviewSurfaceType? surfaceType, float groundHeightQuantizationStep, int heightOffset)
+        public static Vector3Int ResolveOrigin(Vector3Int footprintSize, Vector3 hitPoint, PreviewSurfaceType? surfaceType, int heightOffset)
         {
             // 外接箱を通常セル規則で解決
             // Resolve the extent with ordinary cell rules.
-            var origin = PlaceSystemUtil.CalcPlacePointBySize(footprintSize, hitPoint, heightOffset, surfaceType, groundHeightQuantizationStep);
+            var origin = PlaceSystemUtil.CalcPlacePointBySize(footprintSize, hitPoint, heightOffset, surfaceType);
             return AlignSideFace(origin, hitPoint, surfaceType, heightOffset);
         }
 

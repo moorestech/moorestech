@@ -16,9 +16,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             return PlaceSystemUtil.TryGetRayHitPlacePointBySize(mainCamera, UnitSize, heightOffset, out cell, out _);
         }
 
-        public static Vector3Int ResolveCell(Vector3 hitPoint, PreviewSurfaceType? surfaceType, float groundHeightQuantizationStep, int heightOffset)
+        public static Vector3Int ResolveCell(Vector3 hitPoint, PreviewSurfaceType? surfaceType, int heightOffset)
         {
-            return PlaceSystemUtil.CalcPlacePointBySize(UnitSize, hitPoint, heightOffset, surfaceType, groundHeightQuantizationStep);
+            return PlaceSystemUtil.CalcPlacePointBySize(UnitSize, hitPoint, heightOffset, surfaceType);
         }
     }
 }
