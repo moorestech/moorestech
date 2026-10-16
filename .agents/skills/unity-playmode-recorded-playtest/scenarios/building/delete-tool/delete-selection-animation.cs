@@ -94,7 +94,15 @@ return PlaytestRunner.Run("delete-selection-animation", new PlaytestRunOptions {
             // Verify Escape also clears body colors applied after animation completion
             await p.PressKey(Key.Escape);
             p.Assert(!HasTooltipLine(LocalizationKeys.Ui.Tooltip.DeleteSelectedCount), "完了後ESCで選択件数が消える");
-            var redAfterCancel = renderers.SelectMany(r => r.sharedMaterials).Count(m => m.shader == previewShader && m.HasProperty(MaterialConst.PreviewColorPropertyName) && Vector4.Distance(m.GetColor(MaterialConst.PreviewColorPropertyName), MaterialConst.NotPlaceableColor) < 0.01f);
+            var redAfterCancel = 0;
+            foreach (var renderer in renderers)
+            foreach (var material in renderer.sharedMaterials)
+            {
+                if (material.shader != previewShader || !material.HasProperty(MaterialConst.PreviewColorPropertyName)) continue;
+                var color = material.GetColor(MaterialConst.PreviewColorPropertyName);
+                var expected = MaterialConst.NotPlaceableColor;
+                if (Mathf.Abs(color.r-expected.r) < 0.01f && Mathf.Abs(color.g-expected.g) < 0.01f && Mathf.Abs(color.b-expected.b) < 0.01f) redAfterCancel++;
+            }
             p.Note($"完了後ESC: red材質数={redAfterCancel}");
             p.Assert(redAfterCancel == 0, "完了後ESCで同じ本体Renderer群の赤が消える");
             p.Assert(p.GetBlock(cell) != null, "完了後ESCでもサーバー対象を保持");
