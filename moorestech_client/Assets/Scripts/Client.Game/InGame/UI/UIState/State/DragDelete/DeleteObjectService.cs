@@ -1,166 +1,165 @@
-using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
+using System.Collections.Generic;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
 using Client.Game.InGame.Control;
+using Client.Game.InGame.UI.ProgressBar;
 using Client.Game.InGame.UI.Tooltip;
+using Client.Game.InGame.UI.UIState.State.DragDelete.Box;
+using Client.Game.InGame.UI.UIState.State.DragDelete.Confirm;
 using Client.Input;
 using Mooresmaster.Localization.Generated;
+using UnityEngine;
 
 namespace Client.Game.InGame.UI.UIState.State.DragDelete
 {
-    // 破壊モードの削除インタラクション（ホバー・ドラッグ選択・一括削除・ESCキャンセル）を担うサービス
-    // Service owning destroy-mode delete interaction (hover, drag selection, bulk delete, ESC cancel)
+    // 破壊モードの削除インタラクション（箱・なぞり・ホバー・F長押し確定・ツールチップ）を毎フレーム束ねる司令塔
+    // Per-frame conductor of destroy-mode interaction (box, stroke, hover, F hold-to-confirm, tooltip)
     public class DeleteObjectService
     {
-        private readonly DragDeleteSelection _selection;
+        private readonly DeleteSelection _selection;
+        private readonly DeleteBoxInput _box;
+        private readonly DeleteHoldConfirm _hold;
         private readonly IMouseCursorTooltip _tooltip;
         private readonly TooltipOwner _tooltipOwner = new();
-        private IDeleteTarget _deleteTargetObject;
-        private bool _isDragging;
+        private readonly List<TooltipLine> _lines = new();
+        private bool _isStroking;
 
-        public DeleteObjectService(BuildOperationHistory buildOperationHistory, IMouseCursorTooltip tooltip, IRemovalRestoreSender restoreSender)
+        public DeleteObjectService(BuildOperationHistory buildOperationHistory, IMouseCursorTooltip tooltip, IRemovalRestoreSender restoreSender, ProgressBarState progressBar, Camera mainCamera, PlacementHeightOffset heightOffset, DeleteBoxTargetResolver boxTargetResolver)
         {
-            _selection = new DragDeleteSelection(buildOperationHistory, restoreSender);
+            _selection = new DeleteSelection(buildOperationHistory, restoreSender);
+            _box = new DeleteBoxInput(mainCamera, boxTargetResolver, heightOffset);
+            _hold = new DeleteHoldConfirm(progressBar);
             _tooltip = tooltip;
         }
 
-        public void Update()
+        public void Update(float deltaTime)
         {
-            // 拒否理由ツールチップを毎フレーム先に消す（自分が出した分だけ消えるので他者の表示は残る）
-            // Reset the denial-reason tooltip at the start of each frame (only our own showing clears, others survive)
-            _tooltip.Hide(_tooltipOwner);
+            _lines.Clear();
 
-            // 固定カテゴリー内の最前面を取る
-            // Resolve the frontmost target in the fixed category, or overall if unfixed
+            // 固定カテゴリー内の最前面を取る（ストローク外は最前面）
+            // Resolve the frontmost target in the stroke category, or overall outside a stroke
             var aim = DeleteTargetRaycaster.AimAt(_selection.AimFilter);
             var hovered = aim.Target;
+            var isPointerOverUi = UiPointerHitTest.IsPointerOverAnyUi();
 
-            // 左クリック開始でドラッグ選択を開始する
-            // Begin a drag selection on left-click down
-            HandleDragStart();
+            // 箱は終点確定のフレームに選択へ直接足す
+            // The box adds to the selection itself on the frame the end point is confirmed
+            _box.Update(_selection, _lines, isPointerOverUi);
 
-            // ドラッグ中は選択へ追加、ボタン非押下時のみ単体ホバー表示（ESCキャンセル後の押下中は何も出さない）
-            // Dragging accumulates the selection; single hover shows only while the button is up (nothing during a dead post-ESC hold)
-            if (_isDragging) UpdateDragSelection();
-            else if (!InputManager.Playable.ScreenLeftClick.GetKey) UpdateSingleHoverPreview();
+            HandleStrokeStart();
+            if (_isStroking) UpdateStroke();
+            else if (!InputManager.Playable.ScreenLeftClick.GetKey) UpdateHoverPreview();
+            if (InputManager.Playable.ScreenLeftClick.GetKeyUp) EndStroke();
 
-            // 左クリック離しで選択を確定して削除する
-            // Commit and delete the selection on left-click release
-            HandleRelease();
+            UpdateHoldConfirm();
+
+            if (_selection.HasSelection()) _lines.Add(new TooltipLine(LocalizationKeys.Ui.Tooltip.DeleteSelectedCount, new[] { _selection.Count.ToString() }));
+            if (_lines.Count == 0) _tooltip.Hide(_tooltipOwner);
+            else _tooltip.Show(_tooltipOwner, _lines.ToArray());
 
             #region Internal
 
-            void HandleDragStart()
+            // 箱の物である押下（終点待ち・Shift）ではなぞりを始めない
+            // A press the box owns (awaiting end / Shift) never starts a stroke
+            void HandleStrokeStart()
             {
                 if (!InputManager.Playable.ScreenLeftClick.GetKeyDown) return;
-                if (UiPointerHitTest.IsPointerOverAnyUi()) return;
+                if (isPointerOverUi) return;
+                if (_box.ClaimsLeftPress()) return;
 
-                // 単体プレビューの所有権を選択側へ渡す
-                // Hand off preview ownership from single-hover to the selection
-                if (_deleteTargetObject != null)
-                {
-                    _deleteTargetObject.ResetMaterial();
-                    _deleteTargetObject = null;
-                }
-
-                _selection.BeginDrag();
-                _isDragging = true;
+                // ホバーの赤は選択側が引き継ぐ（追加時に再び赤になる）
+                // The selection takes over the hover red (adding re-reds it)
+                _selection.SetHoverPreview(null);
+                _selection.BeginStroke();
+                _isStroking = true;
             }
 
-            void UpdateDragSelection()
+            void UpdateStroke()
             {
-                // キャンセル済みドラッグは何もしない（ESC後は離すまで不活性）
-                // A canceled drag is inert until the button is released
-                if (!_selection.CanCommit()) return;
-
-                // 別カテゴリーのみ狙うなら理由を表示
-                // Show the denial when a drag aims only at another category
+                if (!_selection.IsStrokeAlive()) return;
                 if (hovered == null)
                 {
-                    ShowDenyReason(aim.GetDragDenyReason());
+                    AddDenyLine(aim.GetDragDenyReason());
                     return;
                 }
-
-                // 削除可否・カテゴリー整合の判定と追加をサービス側へ集約し、拒否理由だけ受け取って表示する
-                // Delegate the removable/category judgement and the add to the service; just receive and show the deny reason
-                if (!_selection.TryAddTarget(hovered, out var denyReason))
-                {
-                    ShowDenyReason(denyReason);
-                }
+                var outcome = _selection.TryAddTarget(hovered);
+                if (!outcome.IsAdded) AddDenyLine(outcome.DenyReason);
             }
 
-            void UpdateSingleHoverPreview()
+            // 離した時点でカテゴリー固定を最前面へ戻す（選択は残る）
+            // Releasing the button returns the category fix to frontmost (the selection stays)
+            void EndStroke()
             {
-                // ホバー対象が変われば旧を戻し新を表示する
-                // Swap preview when the hovered target changes
-                if (hovered != null)
+                _isStroking = false;
+                _selection.EndStroke();
+            }
+
+            void UpdateHoverPreview()
+            {
+                _selection.SetHoverPreview(hovered);
+                // 削除不可な対象は理由行だけ積む（理由なし拒否は何も出さない）
+                // For a non-removable target only add the denial line (a reasonless denial adds nothing)
+                if (hovered != null && !hovered.IsRemovable(out var reason)) AddDenyLine(reason);
+            }
+
+            // 長押しの対象: 選択があれば集合（Revision）、無ければ撤去可能なホバー1件、どちらも無ければ None
+            // Hold subject: the selection (by revision) when present, else the single removable hovered target, else None
+            void UpdateHoldConfirm()
+            {
+                var subject = DeleteHoldSubject.None;
+                var hoverTarget = _selection.HoverPreview;
+                if (_selection.HasSelection()) subject = DeleteHoldSubject.Selection(_selection.Revision);
+                else if (hoverTarget != null && hoverTarget.IsRemovable(out _)) subject = DeleteHoldSubject.Hovered(hoverTarget.GetDeleteTargetKey());
+
+                if (!_hold.Advance(InputManager.Playable.Interact.GetKey, subject, deltaTime)) return;
+
+                // ホバー1件の暗黙選択: 足せなければ（撤去可否が直前に変わった）確定しない
+                // Implicit single selection: if it cannot join (removability changed meanwhile) nothing is committed
+                if (subject.Kind == DeleteHoldSubjectKind.Hovered)
                 {
-                    if (_deleteTargetObject == null || _deleteTargetObject != hovered)
+                    _selection.BeginStroke();
+                    var outcome = _selection.TryAddTarget(hoverTarget);
+                    if (!outcome.IsAdded)
                     {
-                        if (_deleteTargetObject != null) _deleteTargetObject.ResetMaterial();
-                        _deleteTargetObject = hovered;
-                        _deleteTargetObject.SetRemovePreviewing();
+                        Debug.Log($"[DragDelete] implicit hover commit refused: {outcome.Kind}");
+                        _selection.SetHoverPreview(null);
+                        return;
                     }
                 }
-                else if (_deleteTargetObject != null)
-                {
-                    _deleteTargetObject.ResetMaterial();
-                    _deleteTargetObject = null;
-                }
-
-                // 削除不可な対象は理由ツールチップだけ表示する
-                // For a non-removable target only show the denial tooltip
-                if (_deleteTargetObject != null && !_deleteTargetObject.IsRemovable(out var reason))
-                {
-                    ShowDenyReason(reason);
-                }
+                _selection.CommitDelete();
+                _isStroking = false;
             }
 
-            void HandleRelease()
-            {
-                if (!InputManager.Playable.ScreenLeftClick.GetKeyUp) return;
-
-                if (_isDragging && _selection.CanCommit()) _selection.CommitDelete();
-                _isDragging = false;
-            }
-
-            // ツールチップへキーを渡す（理由なし拒否は何も出さない）
-            // Push the key to the tooltip (a reasonless denial shows nothing)
-            void ShowDenyReason(LocalizationKey? denyReasonKey)
+            void AddDenyLine(LocalizationKey? denyReasonKey)
             {
                 if (!denyReasonKey.HasValue) return;
-
-                _tooltip.Show(_tooltipOwner, denyReasonKey.Value);
+                _lines.Add(new TooltipLine(denyReasonKey.Value));
             }
 
             #endregion
         }
 
-        // 選択があればキャンセルしtrueを返す。選択が無ければfalseを返し、呼び出し側がモード終了を判断する
-        // Cancel the selection and return true if one exists; return false (nothing to cancel) so the caller can decide to exit the mode
-        public bool TryCancelSelection()
+        // ESC/右短押し: 長押しを戻し、終点待ちの箱 → 選択の全解除 の順に1段だけ畳む。畳む物が無ければ false（呼び出し側がモード終了を判断）
+        // ESC / right short press: reset the hold, then fold the pending box, else clear the selection; false when nothing to fold (caller decides to exit)
+        public bool TryCancel()
         {
+            _hold.Reset();
+            if (_box.TryCancel()) return true;
             if (!_selection.HasSelection()) return false;
-
-            CancelSelection();
+            _selection.CancelSelection();
             return true;
         }
 
-        // 選択とプレビュー・ツールチップ・ドラッグ状態を全て片付ける（ESCの選択キャンセルとモード離脱の両方で使う）
-        // Clear the selection, previews, tooltip, and drag state (used by both ESC cancel and mode exit)
-        public void CancelSelection()
+        // モード離脱: 選択・箱（高さ含む）・長押し・ツールチップを全て片付ける
+        // Mode exit: clear selection, box (including height), hold and tooltip
+        public void ClearAll()
         {
             _selection.CancelSelection();
-
-            // ホバー中の赤プレビューを戻す
-            // Reset any single-hover red preview
-            if (_deleteTargetObject != null)
-            {
-                _deleteTargetObject.ResetMaterial();
-                _deleteTargetObject = null;
-            }
-
+            _box.Clear();
+            _hold.Reset();
             _tooltip.Hide(_tooltipOwner);
-            _isDragging = false;
+            _isStroking = false;
         }
     }
 }
