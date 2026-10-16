@@ -114,3 +114,5 @@
 - Cloudflare アカウントに Worker と R2 バケットが増え、Steam Web API の publisher key を Worker secret として管理する。
 - Mac mini に steamcmd と Steam ビルド資格情報が置かれる。
 - テスターのセーブに除去データと世代付き元セーブが並ぶため、セーブディレクトリの容量が増える。
+
+開発者の同一受け口への認証・人による選別の現在の採用根拠: `.decisions/2026-10-16-開発者報告の実装planを共通制約として無人実行する.md`。旧Steamテスター向けの引用を、新しい開発者要件の引用として扱わない。
