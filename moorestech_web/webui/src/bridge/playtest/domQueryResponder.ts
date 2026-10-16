@@ -115,7 +115,7 @@ function queryElement(request: DomQueryRequest): DomQueryResult {
     // Inspect the actual hit at the rectangle center to detect blocked clicks
     const hitElement = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
     hitTestPassed = hitElement !== null && (
-      hitElement === element || element.contains(hitElement) || hitElement.contains(element)
+      hitElement === element || element.contains(hitElement)
     );
   }
 

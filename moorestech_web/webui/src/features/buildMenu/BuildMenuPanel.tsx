@@ -91,6 +91,7 @@ export function BuildMenuPanel() {
               <BuildMenuSearchInput value={query} onChange={changeQuery} />
               <ScrollArea
                 className={styles.scroll}
+                data-testid="build-menu-scroll-area"
                 type="auto"
                 viewportRef={scroll.attachViewport}
                 onScrollPositionChange={({ y }) => scroll.handleScroll(y)}

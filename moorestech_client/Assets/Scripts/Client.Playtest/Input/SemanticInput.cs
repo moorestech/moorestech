@@ -147,6 +147,19 @@ namespace Client.Playtest.Input
             return Mouse.current.position.ReadValue();
         }
 
+        // ホイール量を実マウス状態として注入し、CEF側へ通常フレームで転送する
+        // Inject wheel movement as mouse state so CEF forwards it on a regular frame
+        public static void MouseWheel(float deltaY)
+        {
+            EnsureDevices();
+            InputSystem.QueueStateEvent(Mouse.current, new MouseState
+            {
+                position = Mouse.current.position.ReadValue(),
+                scroll = new Vector2(0f, deltaY),
+                buttons = CurrentButtons(),
+            });
+        }
+
         #region Internal
 
         private static void QueueKeyboardState()
