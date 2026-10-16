@@ -89,6 +89,8 @@ namespace Client.PlaytestReceiver.Upload
                 // 途中で何が起きても走行フラグを戻し、再走行の要求も例外経路で評価する。取りこぼすと以後のアップロードが止まる
                 // The flag is always cleared and a pending rerun is honoured even on the exception path; missing either stops later uploads
                 var acquired = false;
+                // 外部ディスクIOの走査失敗を隔離する
+                // Isolate external disk IO failures during outbox enumeration
                 try
                 {
                     await PlaytestOutboxAccess.Gate.WaitAsync(Application.exitCancellationToken);

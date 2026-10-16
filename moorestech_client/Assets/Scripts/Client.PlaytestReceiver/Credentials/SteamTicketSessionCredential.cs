@@ -13,7 +13,7 @@ namespace Client.PlaytestReceiver.Credentials
 
         public bool AcceptsSubject(string subject)
         {
-            return ulong.TryParse(subject, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var id) && id > 0;
+            return ulong.TryParse(subject, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var id) && 0 < id;
         }
 
         public async UniTask<PlaytestCredentialPost> PostSessionAsync(IPlaytestReceiverApi api, CancellationToken token)

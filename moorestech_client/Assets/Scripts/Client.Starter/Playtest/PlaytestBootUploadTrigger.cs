@@ -29,6 +29,8 @@ namespace Client.Starter.Playtest
                 var repositoryRoot = RepositoryStateProbe.RepositoryRoot;
                 var masterDataRoot = RepositoryStateProbe.MasterDataRoot;
                 await PlaytestOutboxAccess.Gate.WaitAsync(Application.exitCancellationToken);
+                // 外部ディスクIOの箱補完失敗を隔離する
+                // Isolate external disk IO failures while completing outbox evidence
                 try
                 {
                     // gitと資料IOだけをワーカーへ移し、Unity APIは先に取得する
