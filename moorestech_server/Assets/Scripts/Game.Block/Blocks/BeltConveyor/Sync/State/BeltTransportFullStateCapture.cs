@@ -26,7 +26,7 @@ namespace Game.Block.Blocks.BeltConveyor.Sync.State
                 var bufferItem = default(BeltItem);
                 if (segment is BeltBufferedSegment buffered) hasBufferItem = buffered.Buffer.TryGetItem(out bufferItem);
                 var bufferSnapshot = hasBufferItem ? new BeltItemSnapshot(bufferItem, 0) : default;
-                return new BeltSegmentState(shape, segment.PriorityOrder, items, hasBufferItem, bufferSnapshot);
+                return new BeltSegmentState(shape, segment.PriorityOrder, segment.Speed, items, hasBufferItem, bufferSnapshot);
             }
 
             #endregion

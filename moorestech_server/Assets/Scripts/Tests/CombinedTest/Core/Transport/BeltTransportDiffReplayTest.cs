@@ -51,7 +51,7 @@ namespace Tests.CombinedTest.Core.Transport
             // (c) the branch outputs forward to a belt -> chest, left straight into a chest, right into a dead-end belt
             var sourceBranch = Inventory(Place(ForUnitTestModBlockId.ChestId, new Vector3Int(20, 0, -2), BlockDirection.North));
             Place(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(20, 0, -1), BlockDirection.North);
-            Place(ForUnitTestModBlockId.GearBeltConveyorSplitter, new Vector3Int(20, 0, 0), BlockDirection.North);
+            Place(ForUnitTestModBlockId.BeltConveyorSplitter, new Vector3Int(20, 0, 0), BlockDirection.North);
             Place(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(20, 0, 1), BlockDirection.North);
             var sinkBranchForward = Inventory(Place(ForUnitTestModBlockId.ChestId, new Vector3Int(20, 0, 2), BlockDirection.North));
             var sinkBranchLeft = Inventory(Place(ForUnitTestModBlockId.ChestId, new Vector3Int(19, 0, 0), BlockDirection.North));

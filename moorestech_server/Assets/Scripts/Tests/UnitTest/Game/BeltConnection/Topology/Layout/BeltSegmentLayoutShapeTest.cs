@@ -61,7 +61,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology.Layout
         public void SplitterIsBranchAndSpeedChangeCutsFeedingRun()
         {
             var world = NewWorld();
-            Place(world, ForUnitTestModBlockId.GearBeltConveyorSplitter, Vector3Int.zero, BlockDirection.North);
+            Place(world, ForUnitTestModBlockId.BeltConveyorSplitter, Vector3Int.zero, BlockDirection.North);
             Place(world, ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(0, 0, 1), BlockDirection.North);
             Place(world, ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(-1, 0, 0), BlockDirection.West);
             Place(world, ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(1, 0, 0), BlockDirection.East);
@@ -99,7 +99,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology.Layout
             var world = NewWorld();
             Place(world, BeltTestMaster.Fast, new Vector3Int(0, 0, -2), BlockDirection.North);
             Place(world, BeltTestMaster.Fast, new Vector3Int(0, 0, -1), BlockDirection.North);
-            Place(world, ForUnitTestModBlockId.GearBeltConveyorSplitter, Vector3Int.zero, BlockDirection.North);
+            Place(world, ForUnitTestModBlockId.BeltConveyorSplitter, Vector3Int.zero, BlockDirection.North);
             Place(world, ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(0, 0, 1), BlockDirection.North);
             var layouts = BuildLayouts(world);
 
@@ -119,7 +119,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology.Layout
         public void SplitterIsBranchRegardlessOfConnectedOutputs(bool connectFront)
         {
             var world = NewWorld();
-            Place(world, ForUnitTestModBlockId.GearBeltConveyorSplitter, Vector3Int.zero, BlockDirection.North);
+            Place(world, ForUnitTestModBlockId.BeltConveyorSplitter, Vector3Int.zero, BlockDirection.North);
             if (connectFront) Place(world, ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(0, 0, 1), BlockDirection.North);
             var layouts = BuildLayouts(world);
 

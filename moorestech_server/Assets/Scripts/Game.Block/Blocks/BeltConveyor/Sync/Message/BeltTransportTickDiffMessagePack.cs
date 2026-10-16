@@ -13,6 +13,7 @@ namespace Game.Block.Blocks.BeltConveyor.Sync.Message
         [Key(1)] public uint TickSequenceId { get; set; }
         [Key(2)] public BeltMachineInsertMessagePack[] Inserts { get; set; }
         [Key(3)] public BeltMachineExtractMessagePack[] Extracts { get; set; }
+        [Key(4)] public BeltSegmentSpeedMessagePack[] SpeedChanges { get; set; }
 
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public BeltTransportTickDiffMessagePack() { }
@@ -25,6 +26,8 @@ namespace Game.Block.Blocks.BeltConveyor.Sync.Message
             for (var i = 0; i < Inserts.Length; i++) Inserts[i] = new BeltMachineInsertMessagePack(diff.Inserts[i]);
             Extracts = new BeltMachineExtractMessagePack[diff.Extracts.Length];
             for (var i = 0; i < Extracts.Length; i++) Extracts[i] = new BeltMachineExtractMessagePack(diff.Extracts[i]);
+            SpeedChanges = new BeltSegmentSpeedMessagePack[diff.SpeedChanges.Length];
+            for (var i = 0; i < SpeedChanges.Length; i++) SpeedChanges[i] = new BeltSegmentSpeedMessagePack(diff.SpeedChanges[i]);
         }
 
         public BeltTickDiff ToDiff()
@@ -33,7 +36,9 @@ namespace Game.Block.Blocks.BeltConveyor.Sync.Message
             for (var i = 0; i < inserts.Length; i++) inserts[i] = Inserts[i].ToRecord();
             var extracts = new BeltMachineExtractRecord[Extracts.Length];
             for (var i = 0; i < extracts.Length; i++) extracts[i] = Extracts[i].ToRecord();
-            return new BeltTickDiff(inserts, extracts);
+            var speedChanges = new BeltSegmentSpeedRecord[SpeedChanges.Length];
+            for (var i = 0; i < speedChanges.Length; i++) speedChanges[i] = SpeedChanges[i].ToRecord();
+            return new BeltTickDiff(speedChanges, inserts, extracts);
         }
     }
 }

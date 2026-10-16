@@ -53,7 +53,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Transport
             // 分配器の左右はそれぞれベルト1マスでチェストへ、正面は横から入るベルトと合流する
             // The splitter's sides each run one belt cell into a chest; its front meets a belt entering from the side
             var splitterMachine = Place(world, ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, -1), BlockDirection.North);
-            var splitter = Place(world, ForUnitTestModBlockId.GearBeltConveyorSplitter, new Vector3Int(0, 0, 0), BlockDirection.North);
+            var splitter = Place(world, ForUnitTestModBlockId.BeltConveyorSplitter, new Vector3Int(0, 0, 0), BlockDirection.North);
             Place(world, ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(-1, 0, 0), BlockDirection.West);
             Place(world, ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(1, 0, 0), BlockDirection.East);
             var westChest = Inventory(Place(world, ForUnitTestModBlockId.ChestId, new Vector3Int(-2, 0, 0), BlockDirection.North));

@@ -43,6 +43,7 @@ namespace Tests.Module.TestMod
         public static BlockId TestGearBeltConveyorDown => GetBlock("00000000-0000-0000-0000-0000000000a2");
         public static BlockId SmallGearBeltConveyor => GetBlock("00000000-0000-0000-0000-000000000030");
         public static BlockId GearBeltConveyorSplitter => GetBlock("eccb9f59-4439-4caf-9ae8-67da50549040");
+        public static BlockId BeltConveyorSplitter => GetBlock("00000000-0000-0000-0000-0000000000b1");
         
         public static BlockId MachineRecipeTest1 => GetBlock("00000000-0000-0000-0000-000000000019");
         public static BlockId MachineRecipeTest2 => GetBlock("00000000-0000-0000-0000-00000000001a");

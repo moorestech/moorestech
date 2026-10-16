@@ -46,7 +46,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event.BeltTransportSync
 
             var sourceBranch = Inventory(Place(ForUnitTestModBlockId.ChestId, new Vector3Int(20, 0, -2), BlockDirection.North));
             Place(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(20, 0, -1), BlockDirection.North);
-            Place(ForUnitTestModBlockId.GearBeltConveyorSplitter, new Vector3Int(20, 0, 0), BlockDirection.North);
+            Place(ForUnitTestModBlockId.BeltConveyorSplitter, new Vector3Int(20, 0, 0), BlockDirection.North);
             Place(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(20, 0, 1), BlockDirection.North);
             Place(ForUnitTestModBlockId.ChestId, new Vector3Int(20, 0, 2), BlockDirection.North);
             Place(ForUnitTestModBlockId.ChestId, new Vector3Int(19, 0, 0), BlockDirection.North);

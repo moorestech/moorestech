@@ -44,6 +44,7 @@ namespace Game.Block.Blocks.BeltConveyor.Sync.State
             uint MixContents(uint current, BeltSegmentState state)
             {
                 var hash = Mix(current, state.PriorityOrder);
+                hash = Mix(hash, state.CurrentSpeed);
                 hash = Mix(hash, state.Items.Length);
                 foreach (var item in state.Items) hash = MixItem(hash, item);
                 hash = Mix(hash, state.HasBufferItem ? 1 : 0);

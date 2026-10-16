@@ -38,12 +38,17 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
             var second = NewItem(ItemB, BeltEntryDirection.FromLeft);
             recorder.RecordInsert(3, BeltDirection.Back, first);
             recorder.RecordExtract(5, BeltDirection.Front);
+            recorder.RecordSpeed(4, 72);
             recorder.RecordInsert(1, BeltDirection.Left, second);
             recorder.RecordExtract(2, BeltDirection.Right);
+            recorder.RecordSpeed(0, 0);
 
-            // 搬入・搬出それぞれ記録した順に、項目を保ったまま出てくる
-            // Inserts and extracts each come out in recorded order with every field intact
+            // 速度・搬入・搬出それぞれ記録した順に、項目を保ったまま出てくる
+            // Speeds, inserts and extracts each come out in recorded order with every field intact
             var diff = recorder.TakeTickDiff();
+            Assert.AreEqual(2, diff.SpeedChanges.Length);
+            Assert.AreEqual((4, 72), (diff.SpeedChanges[0].SegmentIndex, diff.SpeedChanges[0].Speed));
+            Assert.AreEqual((0, 0), (diff.SpeedChanges[1].SegmentIndex, diff.SpeedChanges[1].Speed));
             Assert.AreEqual(2, diff.Inserts.Length);
             Assert.AreEqual(3, diff.Inserts[0].SegmentIndex);
             Assert.AreEqual(BeltDirection.Back, diff.Inserts[0].InputDirection);
@@ -58,7 +63,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
             // 取り出した後は空で、取り出した差分は後の記録に影響されない
             // Empty after taking, and the taken diff is unaffected by later records
             var afterTake = recorder.TakeTickDiff();
-            Assert.AreEqual(0, afterTake.Inserts.Length + afterTake.Extracts.Length);
+            Assert.AreEqual(0, afterTake.SpeedChanges.Length + afterTake.Inserts.Length + afterTake.Extracts.Length);
             recorder.RecordExtract(9, BeltDirection.Front);
             Assert.AreEqual(2, diff.Extracts.Length);
             Assert.AreEqual(1, recorder.TakeTickDiff().Extracts.Length);
@@ -88,7 +93,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
 
             var insert = new BeltMachineInsertRecord(0, BeltDirection.Back, NewItem(ItemB, BeltEntryDirection.FromBack));
             LogAssert.Expect(LogType.Error, new Regex("diverged"));
-            Assert.IsFalse(replica.Tick(new BeltTickDiff(new[] { insert }, new BeltMachineExtractRecord[0])));
+            Assert.IsFalse(replica.Tick(new BeltTickDiff(new BeltSegmentSpeedRecord[0], new[] { insert }, new BeltMachineExtractRecord[0])));
             Assert.AreEqual(1, ItemCount(replica.CaptureFullState()), "the unplaceable item was not added");
         }
 
@@ -106,7 +111,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
 
             var extract = new BeltMachineExtractRecord(0, output.Direction);
             LogAssert.Expect(LogType.Error, new Regex("diverged"));
-            Assert.IsFalse(replica.Tick(new BeltTickDiff(new BeltMachineInsertRecord[0], new[] { extract })));
+            Assert.IsFalse(replica.Tick(new BeltTickDiff(new BeltSegmentSpeedRecord[0], new BeltMachineInsertRecord[0], new[] { extract })));
 
             // 未消費の予告は持ち越さない。次のtickに出口へ来たアイテムを勝手に受け入れない
             // The unconsumed announcement is not carried over, so a later item reaching the exit is not silently accepted

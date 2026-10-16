@@ -19,6 +19,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
                 var a = actual.Segments[i];
                 AreEqualShapes(e.Shape, a.Shape, $"segment {i}");
                 Assert.AreEqual(e.PriorityOrder, a.PriorityOrder, $"segment {i} priority order");
+                Assert.AreEqual(e.CurrentSpeed, a.CurrentSpeed, $"segment {i} current speed");
                 Assert.AreEqual(e.Items.Length, a.Items.Length, $"segment {i} item count");
                 for (var j = 0; j < e.Items.Length; j++) AreEqualItems(e.Items[j], a.Items[j], $"segment {i} item {j}");
                 Assert.AreEqual(e.HasBufferItem, a.HasBufferItem, $"segment {i} has buffer item");
@@ -37,6 +38,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
                 AreEqualLayout(assembly.Layouts[i], state.Shape, $"segment {i}");
                 var segment = assembly.Segments[i];
                 Assert.AreEqual(segment.PriorityOrder, state.PriorityOrder, $"segment {i} priority order against server");
+                Assert.AreEqual(segment.Speed, state.CurrentSpeed, $"segment {i} current speed against server");
                 var items = segment.CaptureItems();
                 Assert.AreEqual(items.Length, state.Items.Length, $"segment {i} item count against server");
                 for (var j = 0; j < items.Length; j++)

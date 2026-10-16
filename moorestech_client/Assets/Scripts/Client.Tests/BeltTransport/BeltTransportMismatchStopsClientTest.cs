@@ -111,7 +111,7 @@ namespace Client.Tests.BeltTransport
                 var realDiff = real.ToDiff();
                 if (!TryFindMachineOutputAbsentFrom(realDiff, out var forgedExtract)) return null;
                 var extracts = new List<BeltMachineExtractRecord>(realDiff.Extracts) { forgedExtract };
-                return new BeltTransportTickDiffMessagePack(real.ServerTick, real.TickSequenceId, new BeltTickDiff(realDiff.Inserts, extracts.ToArray()));
+                return new BeltTransportTickDiffMessagePack(real.ServerTick, real.TickSequenceId, new BeltTickDiff(realDiff.SpeedChanges, realDiff.Inserts, extracts.ToArray()));
             }
 
             BeltTransportTickDiffMessagePack FindTickDiff(List<EventMessagePack> events)

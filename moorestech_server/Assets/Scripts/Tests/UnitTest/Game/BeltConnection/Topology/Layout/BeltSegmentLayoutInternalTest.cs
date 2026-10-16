@@ -93,7 +93,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology.Layout
         public void BranchIntoMergeGoesThroughInternalSegment()
         {
             var world = NewWorld();
-            Place(world, ForUnitTestModBlockId.GearBeltConveyorSplitter, Vector3Int.zero, BlockDirection.North);
+            Place(world, ForUnitTestModBlockId.BeltConveyorSplitter, Vector3Int.zero, BlockDirection.North);
             Place(world, ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(0, 0, 1), BlockDirection.North);
             Place(world, ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(1, 0, 1), BlockDirection.West);
             var layouts = BuildLayouts(world);

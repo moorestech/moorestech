@@ -74,7 +74,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
         internal static void PlaceBranch(IWorldBlockDatastore world, int x)
         {
             Place(world, ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(x, 0, -1), BlockDirection.North);
-            Place(world, ForUnitTestModBlockId.GearBeltConveyorSplitter, new Vector3Int(x, 0, 0), BlockDirection.North);
+            Place(world, ForUnitTestModBlockId.BeltConveyorSplitter, new Vector3Int(x, 0, 0), BlockDirection.North);
             Place(world, ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(x, 0, 1), BlockDirection.North);
             Place(world, ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(x - 1, 0, 0), BlockDirection.West);
             Place(world, ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(x + 1, 0, 0), BlockDirection.East);

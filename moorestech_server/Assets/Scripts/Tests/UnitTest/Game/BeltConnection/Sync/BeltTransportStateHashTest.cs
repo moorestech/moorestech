@@ -38,6 +38,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
         [TestCase("CellForward")]
         [TestCase("Capacity")]
         [TestCase("Speed")]
+        [TestCase("CurrentSpeed")]
         [TestCase("Forward")]
         [TestCase("Kind")]
         [TestCase("Internal")]
@@ -63,6 +64,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
                 case "CellForward": changed.CellForward = BeltDirection.Left; break;
                 case "Capacity": changed.Capacity = 2; break;
                 case "Speed": changed.Speed = 9; break;
+                case "CurrentSpeed": changed.CurrentSpeed = 9; break;
                 case "Forward": changed.Forward = BeltDirection.Right; break;
                 case "Kind": changed.MergeKind = BeltSegmentKind.Branch; break;
                 case "Internal": changed.FirstIsInternal = true; break;
@@ -106,6 +108,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
             public BeltDirection CellForward = BeltDirection.Front;
             public int Capacity = 1;
             public int Speed = 8;
+            public int CurrentSpeed = 8;
             public BeltDirection Forward = BeltDirection.Front;
             public BeltSegmentKind MergeKind = BeltSegmentKind.Merge;
             public bool FirstIsInternal;
@@ -126,14 +129,14 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
                 var running = HasRunningItem
                     ? new[] { new BeltItemSnapshot(new BeltItem(ItemId, ItemInstance, ItemEntry), ItemDistance) }
                     : Array.Empty<BeltItemSnapshot>();
-                var normal = new BeltSegmentState(normalShape, 0, running, false, default);
+                var normal = new BeltSegmentState(normalShape, 0, CurrentSpeed, running, false, default);
 
                 // 合流segment: 通常segmentからの入力1本、buffer内アイテム1個
                 // Merge segment: one input from the normal segment, one buffered item
                 var mergeShape = new BeltSegmentShape(MergeKind, false, new[] { new BeltCellShape(new Vector3Int(0, 0, 2), BeltDirection.Front) }, 1, 8, BeltDirection.Front,
                     new[] { new BeltLinkShape(BeltDirection.Back, BeltEntryDirection.FromBack, InputPartner) }, Array.Empty<BeltLinkShape>());
                 var buffered = new BeltItemSnapshot(new BeltItem(new ItemId(3), BufferInstance, BufferEntry), 0);
-                var merge = new BeltSegmentState(mergeShape, MergeOrder, Array.Empty<BeltItemSnapshot>(), HasBuffer, HasBuffer ? buffered : default);
+                var merge = new BeltSegmentState(mergeShape, MergeOrder, 8, Array.Empty<BeltItemSnapshot>(), HasBuffer, HasBuffer ? buffered : default);
                 return new BeltTransportFullState(new[] { normal, merge });
             }
         }

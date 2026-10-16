@@ -82,6 +82,7 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
         // Advances the assembly one tick and returns that tick's report (rebuilt at the head, settled diff); splitting transport from taking the diff would leak it into the next tick
         public BeltTransportTickReport Tick()
         {
+            Assembly.ApplyGearDriveSpeeds();
             Assembly.Simulation.Tick();
             var report = new BeltTransportTickReport(_rebuiltSinceLastTick, _diffRecorder.TakeTickDiff());
             _rebuiltSinceLastTick = false;

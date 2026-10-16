@@ -66,12 +66,17 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
                 new BeltMachineInsertRecord(0, BeltDirection.Back, new BeltItem(ItemC, ItemInstanceId.Create(), BeltEntryDirection.FromBackAbove))
             };
             var extracts = new[] { new BeltMachineExtractRecord(5, BeltDirection.Front), new BeltMachineExtractRecord(2, BeltDirection.Right) };
+            var speedChanges = new[] { new BeltSegmentSpeedRecord(4, 72), new BeltSegmentSpeedRecord(0, 0) };
             Assert.AreNotEqual(0L, inserts[0].ItemInstanceId.AsPrimitive(), "instance ids are non-zero");
 
-            var message = RoundTrip(new BeltTransportTickDiffMessagePack(ServerTick, TickSequenceId, new BeltTickDiff(inserts, extracts)));
+            var message = RoundTrip(new BeltTransportTickDiffMessagePack(ServerTick, TickSequenceId, new BeltTickDiff(speedChanges, inserts, extracts)));
             Assert.AreEqual(ServerTick, message.ServerTick);
             Assert.AreEqual(TickSequenceId, message.TickSequenceId);
             var decoded = message.ToDiff();
+
+            Assert.AreEqual(speedChanges.Length, decoded.SpeedChanges.Length, "speed change count");
+            for (var i = 0; i < speedChanges.Length; i++)
+                Assert.AreEqual((speedChanges[i].SegmentIndex, speedChanges[i].Speed), (decoded.SpeedChanges[i].SegmentIndex, decoded.SpeedChanges[i].Speed), $"speed change {i}");
 
             Assert.AreEqual(inserts.Length, decoded.Inserts.Length, "insert count");
             for (var i = 0; i < inserts.Length; i++)
@@ -95,6 +100,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
         {
             var message = RoundTrip(new BeltTransportTickDiffMessagePack(ServerTick, TickSequenceId, BeltTickDiff.Empty));
             var decoded = message.ToDiff();
+            Assert.AreEqual(0, decoded.SpeedChanges.Length);
             Assert.AreEqual(0, decoded.Inserts.Length);
             Assert.AreEqual(0, decoded.Extracts.Length);
             Assert.AreEqual(ServerTick, message.ServerTick);

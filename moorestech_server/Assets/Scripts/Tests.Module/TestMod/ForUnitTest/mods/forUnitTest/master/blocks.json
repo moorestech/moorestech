@@ -4232,6 +4232,110 @@
     },
     {
       "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "BeltConveyorSplitter",
+      "blockType": "BeltConveyor",
+      "blockParam": {
+        "beltSpeedPerSecond": 10,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "connectorGuid": "70feded1-8116-44a3-9e47-5de749ed42d0",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ]
+              ]
+            }
+          ],
+          "outputConnects": [
+            {
+              "connectorGuid": "14d6e747-ea5b-4791-bd7c-7fdcca100832",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ]
+            },
+            {
+              "connectorGuid": "455ab40e-0fae-4e1d-bbc8-7b5802fcddaa",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  -1,
+                  0
+                ]
+              ]
+            },
+            {
+              "connectorGuid": "7c7aead7-1fbc-4a6e-a35b-06094d7bdbee",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  -1,
+                  0
+                ]
+              ]
+            }
+          ]
+        },
+        "slopeType": "Straight"
+      },
+      "blockGuid": "00000000-0000-0000-0000-0000000000b1",
+      "category": "テスト",
+      "subCategory": "BeltConveyor",
+      "placementsPerCost": 1,
+      "openable": false
+    },
+    {
+      "blockSize": [
         3,
         1,
         8
@@ -5367,6 +5471,9 @@
     },
     {
       "straightBlockGuid": "eccb9f59-4439-4caf-9ae8-67da50549040"
+    },
+    {
+      "straightBlockGuid": "00000000-0000-0000-0000-0000000000b1"
     }
   ],
   "blockDestructionCategories": [

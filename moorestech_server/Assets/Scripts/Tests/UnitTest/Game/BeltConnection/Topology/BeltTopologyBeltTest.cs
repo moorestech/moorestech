@@ -77,7 +77,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology
         public void SplitterFlagFollowsMasterOutputsNotConnections(bool connectAllOutputs)
         {
             var world = NewWorld();
-            Place(world, ForUnitTestModBlockId.GearBeltConveyorSplitter, Vector3Int.zero, BlockDirection.North);
+            Place(world, ForUnitTestModBlockId.BeltConveyorSplitter, Vector3Int.zero, BlockDirection.North);
             Place(world, ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(0, 0, 1), BlockDirection.North);
             if (connectAllOutputs)
             {

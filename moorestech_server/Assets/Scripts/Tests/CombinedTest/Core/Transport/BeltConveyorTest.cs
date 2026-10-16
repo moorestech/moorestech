@@ -95,16 +95,16 @@ namespace Tests.CombinedTest.Core.Transport
             Assert.AreEqual(ItemA, ItemsOnSegmentAt(Vector3Int.zero)[0].Item.ItemId);
         }
 
-        // 歯車ベルトコンベアスプリッタが2方向に分配できるかのテスト
-        // The gear belt splitter distributes evenly to its two outputs
+        // ベルトコンベア分岐器が2方向に分配できるかのテスト
+        // The belt splitter distributes evenly to its two outputs
         [Test]
-        public void GearBeltConveyorSplitterDistributesToTwoChestsTest()
+        public void BeltConveyorSplitterDistributesToTwoChestsTest()
         {
             CreateServer();
 
-            // スプリッター本体とチェストを配置する。搬送速度はマスタ固定なので歯車の動力は要らない
-            // Place the splitter and chests; transport speed is fixed by the master so no gear power is needed
-            Place(ForUnitTestModBlockId.GearBeltConveyorSplitter, Vector3Int.zero, BlockDirection.North);
+            // 分岐器本体とチェストを配置する。歯車の無い分岐器なので動力は要らない
+            // Place the splitter and chests; this splitter has no gear, so no power is needed
+            Place(ForUnitTestModBlockId.BeltConveyorSplitter, Vector3Int.zero, BlockDirection.North);
             var source = Inventory(Place(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, -1), BlockDirection.North));
             var outputA = Inventory(Place(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, 1), BlockDirection.North));
             var outputB = Inventory(Place(ForUnitTestModBlockId.ChestId, new Vector3Int(-1, 0, 0), BlockDirection.North));

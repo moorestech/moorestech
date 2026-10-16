@@ -111,18 +111,19 @@ namespace Tests.CombinedTest.Core
         }
 
         [Test]
-        public void GearBeltConveyorRequestsNoTorqueTest()
+        public void GearBeltConveyorRequestsMasterBaseTorqueTest()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            // 歯車ベルトは載っているアイテムの数によらずトルクを消費しない。マスタの基準トルクが正でも要求は0
-            // A gear belt consumes no torque regardless of the items it carries; the request is zero even though the master base torque is positive
+            // 歯車ベルトは載っているアイテムの有無によらずマスタの基準トルクをそのまま要求する（待機率も掛けない）
+            // A gear belt asks for the master base torque as is, regardless of the items it carries (no idle rate either)
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGearBeltConveyor, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
             var param = (GearBeltConveyorBlockParam)block.BlockMasterElement.BlockParam;
             var gear = block.GetComponent<GearEnergyTransformer>();
             var baseRpm = new RPM((float)param.GearConsumption.BaseRpm);
-            Assert.Less(0f, GearConsumptionCalculator.CalcRequiredTorque(param.GearConsumption, baseRpm).AsPrimitive());
-            Assert.AreEqual(0f, gear.GetRequiredTorque(baseRpm, true).AsPrimitive(), 0.0001f);
+            var baseTorque = GearConsumptionCalculator.CalcRequiredTorque(param.GearConsumption, baseRpm).AsPrimitive();
+            Assert.Less(0f, baseTorque);
+            Assert.AreEqual(baseTorque, gear.GetRequiredTorque(baseRpm, true).AsPrimitive(), 0.0001f);
         }
 
         [Test]

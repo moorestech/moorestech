@@ -40,6 +40,20 @@ namespace Game.Block.Blocks.BeltConveyor.Sync.Replica
         public bool Tick(BeltTickDiff diff)
         {
             var consistent = true;
+            // 速度はサーバーと同じく搬送の前に差し替える（tick中は固定）
+            // Speeds are swapped before the transport like on the server (fixed during the tick)
+            foreach (var change in diff.SpeedChanges)
+            {
+                var inRange = 0 <= change.SegmentIndex && change.SegmentIndex < Segments.Length;
+                if (inRange && 0 <= change.Speed && change.Speed <= BeltConstants.MaxSpeed)
+                {
+                    Segments[change.SegmentIndex].SetSpeed(change.Speed);
+                    continue;
+                }
+                Debug.LogError($"[BeltTransport] replica got speed {change.Speed} for segment {change.SegmentIndex} (segments: {Segments.Length}); the replica has diverged from the server.");
+                consistent = false;
+            }
+
             foreach (var insert in diff.Inserts)
             {
                 // 範囲外のsegment番号も載らない搬入と同じく食い違いとして報告する

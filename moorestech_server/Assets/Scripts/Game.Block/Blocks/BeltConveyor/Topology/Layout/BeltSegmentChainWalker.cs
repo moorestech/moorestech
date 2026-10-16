@@ -5,8 +5,8 @@ namespace Game.Block.Blocks.BeltConveyor.Topology.Layout
 {
     // マス一覧を、1本のsegmentにまとめられる連鎖へ切り分ける
     // Splits the cell list into chains that each become one segment
-    // まとめられる条件: 送り側が分配器でも合流でもなく出力がベルト1本、受け側の入力がその1本だけ、速度が同じ
-    // A link is kept when the sender is neither a splitter nor a merge and has exactly one belt output, the receiver has only that input, and speeds match
+    // まとめられる条件: 送り側が分配器でも合流でもなく出力がベルト1本、受け側の入力がその1本だけ、速度と歯車駆動の有無が同じ
+    // A link is kept when the sender is neither a splitter nor a merge and has exactly one belt output, the receiver has only that input, and speed and gear drive match
     internal static class BeltSegmentChainWalker
     {
         // 連鎖は先頭マスの座標順。輪は先行マスを持たないので、残ったマスのうち座標最小のものを先頭にする
@@ -41,7 +41,8 @@ namespace Game.Block.Blocks.BeltConveyor.Topology.Layout
                 ref readonly var output = ref cell.Outputs[0];
                 if (output.PartnerKind != BeltTopologyPartnerKind.Belt || !cellIndexByBlock.TryGetValue(output.PartnerBlock.BlockInstanceId, out var next)) return -1;
                 var target = cells[next];
-                return target.Inputs.Length == 1 && target.BeltSpeedPerTick == cell.BeltSpeedPerTick ? next : -1;
+                var sameDrive = target.BeltSpeedPerTick == cell.BeltSpeedPerTick && target.IsGearDriven == cell.IsGearDriven;
+                return target.Inputs.Length == 1 && sameDrive ? next : -1;
             }
 
             int[] WalkFrom(int start)

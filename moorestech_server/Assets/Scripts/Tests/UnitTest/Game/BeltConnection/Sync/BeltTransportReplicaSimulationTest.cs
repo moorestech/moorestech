@@ -75,7 +75,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
                 var diff = BeltTickDiff.Empty;
                 if (TickServerAndCountHandoff(assembly))
                 {
-                    diff = new BeltTickDiff(new BeltMachineInsertRecord[0], new[] { extract });
+                    diff = new BeltTickDiff(new BeltSegmentSpeedRecord[0], new BeltMachineInsertRecord[0], new[] { extract });
                     handoffs++;
                 }
                 Assert.IsTrue(replica.Tick(diff), $"replay at tick {tick}");

@@ -15,6 +15,7 @@ namespace Game.Block.Blocks.BeltConveyor.Sync.Message
         // 合流・分岐のbufferにアイテムがある時だけ載り、無ければnull
         // Present only when a merge or branch buffer holds an item; null otherwise
         [Key(3)] public BeltItemSnapshotMessagePack BufferItem { get; set; }
+        [Key(4)] public int CurrentSpeed { get; set; }
 
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public BeltSegmentStateMessagePack() { }
@@ -23,6 +24,7 @@ namespace Game.Block.Blocks.BeltConveyor.Sync.Message
         {
             Shape = new BeltSegmentShapeMessagePack(state.Shape);
             PriorityOrder = state.PriorityOrder;
+            CurrentSpeed = state.CurrentSpeed;
             Items = new BeltItemSnapshotMessagePack[state.Items.Length];
             for (var i = 0; i < Items.Length; i++) Items[i] = new BeltItemSnapshotMessagePack(state.Items[i]);
             BufferItem = state.HasBufferItem ? new BeltItemSnapshotMessagePack(state.BufferItem) : null;
@@ -33,7 +35,7 @@ namespace Game.Block.Blocks.BeltConveyor.Sync.Message
             var items = new BeltItemSnapshot[Items.Length];
             for (var i = 0; i < items.Length; i++) items[i] = Items[i].ToSnapshot();
             var hasBufferItem = BufferItem != null;
-            return new BeltSegmentState(Shape.ToShape(), PriorityOrder, items, hasBufferItem, hasBufferItem ? BufferItem.ToSnapshot() : default);
+            return new BeltSegmentState(Shape.ToShape(), PriorityOrder, CurrentSpeed, items, hasBufferItem, hasBufferItem ? BufferItem.ToSnapshot() : default);
         }
     }
 }

@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using Core.BeltTransport;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
+using Game.Block.Interface.Extension;
+using Game.Gear.Common;
+using Game.Block.Interface.Extension;
+using Game.Gear.Common;
 using Game.World.Interface.DataStore;
 using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.InventoryConnectsModule;
@@ -120,7 +124,10 @@ namespace Game.Block.Blocks.BeltConveyor.Topology
                     var speed = BeltSpeedConversion.ToPerTick(speedPerSecond);
                     Array.Sort(inputs[i], BeltTopologyOrder.Connection);
                     Array.Sort(outputs[i], BeltTopologyOrder.Connection);
-                    result.Add(new BeltTopologyCell(block.BlockPositionInfo.OriginalPos, block.BlockInstanceId, block, works[i].Forward, speed, IsSplitter(param),
+                    // 歯車を持つマスは組が回転数から速度を決める。segmentの結合条件にも使う
+                    // A cell with a gear gets its speed from the rotation; the chain rule uses it too
+                    var isGearDriven = block.ExistsComponent<IGearEnergyTransformer>();
+                    result.Add(new BeltTopologyCell(block.BlockPositionInfo.OriginalPos, block.BlockInstanceId, block, works[i].Forward, speed, isGearDriven, IsSplitter(param),
                         inputs[i], outputs[i]));
                 }
                 return result;

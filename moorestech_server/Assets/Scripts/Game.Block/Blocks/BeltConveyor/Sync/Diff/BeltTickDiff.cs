@@ -6,13 +6,15 @@ namespace Game.Block.Blocks.BeltConveyor.Sync.Diff
     // One tick's machine handoff diff; inserts in the order they happened during block updates, extracts in the order they settled during the transport tick
     public sealed class BeltTickDiff
     {
-        public static readonly BeltTickDiff Empty = new(Array.Empty<BeltMachineInsertRecord>(), Array.Empty<BeltMachineExtractRecord>());
+        public static readonly BeltTickDiff Empty = new(Array.Empty<BeltSegmentSpeedRecord>(), Array.Empty<BeltMachineInsertRecord>(), Array.Empty<BeltMachineExtractRecord>());
 
+        public readonly BeltSegmentSpeedRecord[] SpeedChanges;
         public readonly BeltMachineInsertRecord[] Inserts;
         public readonly BeltMachineExtractRecord[] Extracts;
 
-        public BeltTickDiff(BeltMachineInsertRecord[] inserts, BeltMachineExtractRecord[] extracts)
+        public BeltTickDiff(BeltSegmentSpeedRecord[] speedChanges, BeltMachineInsertRecord[] inserts, BeltMachineExtractRecord[] extracts)
         {
+            SpeedChanges = speedChanges;
             Inserts = inserts;
             Extracts = extracts;
         }

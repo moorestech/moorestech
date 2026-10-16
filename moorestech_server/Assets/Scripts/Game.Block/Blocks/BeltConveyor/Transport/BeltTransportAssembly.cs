@@ -4,6 +4,7 @@ using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.BeltConveyor.Sync.Diff;
 using Game.Block.Blocks.BeltConveyor.Sync.State;
+using Game.Block.Blocks.BeltConveyor.Transport.Drive;
 using Game.Block.Blocks.BeltConveyor.Topology.Layout;
 using Game.Block.Blocks.BeltConveyor.Transport.Rebuild;
 using Game.Block.Interface;
@@ -30,6 +31,9 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
         // blockがどのsegmentのどのマスかを引く。再構築の復元とセーブの切り出しが使う
         // Looks up which segment and cell a block is; used by rebuild restoration and save extraction
         public readonly BeltCellLocator Locator;
+        // 歯車ベルコンのsegmentに回転数から速度を与える。組の生成時に構成から作る
+        // Gives gear-belt segments their rotation-derived speed; built from the layouts with the assembly
+        private readonly BeltGearDrive _gearDrive;
         // 面(押し込まれるベルコンのblock＋機械のblock)ごとに受け口を1つ持つ
         // One supply port per face (the pushed belt block plus the machine block)
         private readonly Dictionary<BeltMachineSupplyKey, BeltMachineSupplyPort> _supplyPortByFace;
@@ -43,6 +47,7 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
             Segments = segments;
             Simulation = new BeltSimulation(segments);
             Locator = new BeltCellLocator(layouts);
+            _gearDrive = BeltGearDrive.Build(layouts);
             _supplyPortByFace = supplyPortByFace;
             _diffRecorder = diffRecorder;
         }
@@ -51,6 +56,13 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
         // Push from a machine into the port of its face at entry length 1
         // 受け口が無い面は接続解決が接続を作らなかった面(縦置きのベルコン等)で、通常の配置では起きないので無音で拒否する
         // A face without a port is one the connection resolver never connected (such as a vertically placed belt); it never occurs in normal placement, so reject silently
+        // 歯車の回転数は同tickの歯車更新で確定済み。搬送tickの前に速度へ写す
+        // Gear rotation is settled by this tick's gear update; map it onto the speeds before the transport tick
+        public void ApplyGearDriveSpeeds()
+        {
+            _gearDrive.ApplySpeeds(Segments, _diffRecorder);
+        }
+
         public bool TrySupplyFromMachine(BlockInstanceId beltBlockInstanceId, in InsertItemContext context, ItemId itemId, ItemInstanceId itemInstanceId)
         {
             if (!_supplyPortByFace.TryGetValue(new BeltMachineSupplyKey(beltBlockInstanceId, context.SourceBlockInstanceId), out var port)) return false;

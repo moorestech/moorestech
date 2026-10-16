@@ -20,7 +20,7 @@ namespace Game.Block.Blocks.BeltConveyor.Sync.Replica
             {
                 var shape = states[i].Shape;
                 shapes[i] = shape;
-                segments[i] = BeltTransportAssembler.CreateSegment(shape.Kind, shape.Capacity, shape.Speed, states[i].PriorityOrder, shape.Forward);
+                segments[i] = BeltTransportAssembler.CreateSegment(shape.Kind, shape.Capacity, states[i].CurrentSpeed, states[i].PriorityOrder, shape.Forward);
             }
 
             var machineReceivers = new Dictionary<(int, BeltDirection), BeltReplicaMachineReceiver>();
