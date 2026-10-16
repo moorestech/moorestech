@@ -61,7 +61,6 @@ namespace Client.Game.InGame.BugReport
                 }
                 return false;
             }
-
             #endregion
         }
         // 失敗した問い合わせは結果へ理由を積む。捨てると「取れなかった」と「空だった」が同じ見た目になる
@@ -93,7 +92,6 @@ namespace Client.Game.InGame.BugReport
                 Debug.LogWarning(absentReason);
                 return BuildOriginReading.WithoutInfo(absentReason);
             }
-
             // ディスク読みは外部境界（ロック・権限・容量）。読めない出所は起動を落とさず「出所不明」へ畳む
             // The disk read is an external boundary (locks, permissions, capacity); an unreadable origin folds into "unknown" instead of failing the boot
             string json;
@@ -113,13 +111,9 @@ namespace Client.Game.InGame.BugReport
         }
         // 焼き込み情報だけが欲しい消費側（進行記録）への射影。Editorと焼き込み情報の無いビルドではnull
         // A projection for consumers that want only the baked info (progress records); null for the Editor and for a build without info
-        public static BuildInfo ReadBuildInfo()
-        {
-            return ReadBuildOrigin().BuildInfo;
-        }
+        public static BuildInfo ReadBuildInfo() => ReadBuildOrigin().BuildInfo;
         internal static bool TryGit(string workingDirectory, string arguments, out string stdout, out string error)
             => TryGit(workingDirectory, arguments, false, out stdout, out error);
-
         internal static bool TryGit(string workingDirectory, string arguments, bool remoteQuery, out string stdout, out string error)
         {
             const int remoteTimeoutMilliseconds = 15000;
@@ -137,7 +131,6 @@ namespace Client.Game.InGame.BugReport
                 RedirectStandardError = true,
                 CreateNoWindow = true,
             };
-
             // 公開確認は認証UIを出さず、失敗時にローカル資料へ切り替える
             // Publication checks never prompt; failures fall back to local evidence
             if (remoteQuery)
@@ -152,7 +145,6 @@ namespace Client.Game.InGame.BugReport
             try
             {
                 using var process = Process.Start(startInfo);
-
                 // stderrを先に非同期で排水する。stdoutだけ読むと64KB超のstderrで子がwriteブロックしハングする
                 // Drain stderr asynchronously first; reading only stdout hangs the child once stderr exceeds the 64KB pipe
                 var timer = Stopwatch.StartNew();
@@ -171,8 +163,14 @@ namespace Client.Game.InGame.BugReport
                     {
                         using var killer = Process.Start(new ProcessStartInfo
                         {
-                            FileName = windows ? "taskkill.exe" : "/usr/bin/pkill",
-                            Arguments = windows ? $"/F /T /PID {process.Id}" : $"-KILL -P {process.Id}",
+                            FileName = windows ? "taskkill.exe" : "/bin/sh",
+                            // 親を停止してから子孫を集め、末端から終了して全PIDの消滅を期限内で確認する
+                            // Freeze parents before collecting descendants, kill leaves first, then bound verification of all PIDs
+                            Arguments = windows ? $"/F /T /PID {process.Id}" : "-c \"" +
+                                "collect() { kill -STOP $1 || return; for child in $(/usr/bin/pgrep -P $1); do collect $child; done; pids=\\\"$pids $1\\\"; }; " +
+                                $"collect {process.Id}; for pid in $pids; do kill -KILL $pid; done; " +
+                                $"for attempt in 1 2 3 4 5 6 7 8 9 10; do alive=; for pid in $pids; do [ $pid = {process.Id} ] && continue; kill -0 $pid 2>/dev/null && alive=1; done; " +
+                                "[ -z $alive ] && exit 0; sleep 0.1; done; echo 'git descendants still present' >&2; exit 2\"",
                             UseShellExecute = false, CreateNoWindow = true,
                         });
                         if (!killer.WaitForExit(1500)) { killer.Kill(); Debug.LogError("git transport cleanup timed out"); }
