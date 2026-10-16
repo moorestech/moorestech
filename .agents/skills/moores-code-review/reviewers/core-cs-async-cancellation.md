@@ -26,7 +26,7 @@ cwd を読み、patch が追加・変更した非同期処理のうち **「待�
 - レッドフラグ: 呼び出し先が `CancellationToken` 引数を持つのに、patch の呼び出し側がそれを渡していない。呼び出し側が自分でもトークンを持っている / 取得できるのに素通ししていない
 - 前例の受け皿: `Client.Common/Asset/AddressableLoader.LoadAsync<T>(string address, CancellationToken ct)` はトークンを受け取る。ここへ渡さない Addressable ロードは、ロード完了前に持ち主が消えても走り続ける
 - 直し方: 呼び出し鎖の端まで `CancellationToken` を引数として貫通させる。**新しい引数はデフォルト値を付けず、呼び出し側を全部変更する** (AGENTS.md「デフォルト引数は基本使用禁止・呼び出し側を変更する」)
-- 前例: PR1095 `EquipmentHeldItemModel` (非同期ロードにトークンを伝搬しておらず、装備が切り替わっても前のロードが生き残る形だった)
+- 前例: `EquipmentHeldItemModel` (非同期ロードにトークンを伝搬しておらず、装備が切り替わっても前のロードが生き残る形だった)
 
 ### 2. 破棄で止まらない `await` (トークンの出所が無い)
 - レッドフラグ: `MonoBehaviour` 内の `async` メソッドが `await` した後に `this` / 自分の子オブジェクト / シーン依存の状態へ触っているのに、`GetCancellationTokenOnDestroy()` 由来のトークンを使っていない。await 明けに「破棄済みオブジェクトへの代入」が起こりうる

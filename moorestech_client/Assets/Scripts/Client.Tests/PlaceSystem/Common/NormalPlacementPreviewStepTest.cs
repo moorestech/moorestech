@@ -47,6 +47,7 @@ namespace Client.Tests.PlaceSystem.Common
             NormalPlacementPreviewStep.Apply(previewController, placeInfos, causes, new Vector3Int(0, 0, 0), null, new PlacementFeedback());
 
             Assert.AreEqual(1, previewController.SetPreviewCallCount);
+            Assert.IsFalse(previewController.TerrainContactEnabled);
             Assert.AreEqual(0, previewController.DetectGroundOverlapsCallCount);
         }
 
@@ -78,14 +79,16 @@ namespace Client.Tests.PlaceSystem.Common
         {
             public int SetPreviewCallCount { get; private set; }
             public int DetectGroundOverlapsCallCount { get; private set; }
+            public bool TerrainContactEnabled { get; private set; }
 
             private int _previewCellCount;
 
             public bool IsActive => true;
 
-            public void SetPreview(List<PlaceInfo> currentPlaceInfos, BlockMasterElement holdingBlockMaster)
+            public void SetPreview(List<PlaceInfo> currentPlaceInfos, BlockMasterElement holdingBlockMaster, bool terrainContactEnabled)
             {
                 SetPreviewCallCount++;
+                TerrainContactEnabled = terrainContactEnabled;
                 _previewCellCount = currentPlaceInfos.Count;
             }
 

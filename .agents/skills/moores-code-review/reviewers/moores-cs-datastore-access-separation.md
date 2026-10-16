@@ -12,7 +12,7 @@ keywords:
   - ".Add("
 ---
 
-# Lens: DataStoreアクセス分離（PR988由来）
+# Lens: DataStoreアクセス分離
 
 ## あなたの役割
 cwdを読み、patchが**可変状態を持つDataStoreのアクセス経路**を「読み取り＝公開可 / 変更＝DI注入のみ」に分離できていない箇所を返す。

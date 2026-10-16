@@ -1,4 +1,5 @@
 using System.Reflection;
+using Client.Common;
 using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
@@ -60,6 +61,7 @@ namespace Client.Tests.PlaceSystem.TrainCostIntegration
             PlacementCamera = CreateObject("Camera").AddComponent<Camera>();
             PlacementCamera.transform.SetPositionAndRotation(new Vector3(0, 10, 0), Quaternion.Euler(90, 0, 0));
             var ground = CreateObject("Ground");
+            ground.layer = LayerConst.GroundLayer;
             ground.transform.position = new Vector3(0, -0.5f, 0);
             ground.AddComponent<BoxCollider>().size = new Vector3(100, 1, 100);
             ground.AddComponent<GroundGameObject>();

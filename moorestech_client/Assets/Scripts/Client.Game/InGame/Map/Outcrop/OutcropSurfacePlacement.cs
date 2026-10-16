@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Client.Game.InGame.Environment.Terrain;
 using Game.MapGeneration.Surface;
 using UnityEngine;
@@ -15,17 +16,21 @@ namespace Client.Game.InGame.Map.Outcrop
         private readonly GameObject _instance;
         private readonly OutcropPrefab _outcrop;
         private readonly Bounds _veinBounds;
+        private readonly IReadOnlyList<Terrain> _ownedTerrains;
 
-        private OutcropSurfacePlacement(GameObject instance, OutcropPrefab outcrop, Bounds veinBounds)
+        private OutcropSurfacePlacement(GameObject instance, OutcropPrefab outcrop, Bounds veinBounds, IReadOnlyList<Terrain> ownedTerrains)
         {
             _instance = instance;
             _outcrop = outcrop;
             _veinBounds = veinBounds;
+            _ownedTerrains = ownedTerrains;
         }
 
-        public static void Place(GameObject instance, OutcropPrefab outcrop, Bounds veinBounds, TerrainSurfacePresentation presentation)
+        // ownedTerrainsはワールド生成が建てた地形だけ。非表示でも接地に使い、無関係な地形は見ない
+        // ownedTerrains holds only terrain built by world generation; hidden ones still ground, unrelated ones are never consulted
+        public static void Place(GameObject instance, OutcropPrefab outcrop, Bounds veinBounds, TerrainSurfacePresentation presentation, IReadOnlyList<Terrain> ownedTerrains)
         {
-            presentation.Accept(new OutcropSurfacePlacement(instance, outcrop, veinBounds));
+            presentation.Accept(new OutcropSurfacePlacement(instance, outcrop, veinBounds, ownedTerrains));
         }
 
         public void VisitLegacy()
@@ -55,10 +60,16 @@ namespace Client.Game.InGame.Map.Outcrop
             Terrain FindContainingTerrain()
             {
                 Terrain selected = null;
-                foreach (var candidate in Terrain.activeTerrains)
+                foreach (var candidate in _ownedTerrains)
                 {
+                    // 生成側が建てた地形のデータ欠落は契約違反として止める
+                    // Missing data on generator-built terrain is a contract violation
+                    if (candidate.terrainData == null)
+                        throw SurfaceContractFailure.Create($"[OutcropSurfacePlacement] Terrain '{candidate.name}' has no TerrainData.");
                     var origin = candidate.transform.position;
                     var size = candidate.terrainData.size;
+                    // silent-ok: 範囲外は対象外 / 全候補が外れたら起動失敗を進行記録で開発者へ送る
+                    // Outside terrain is skipped; exhausting candidates fails startup and reaches developers through progress records
                     if (center.x < origin.x || origin.x + size.x < center.x ||
                         center.z < origin.z || origin.z + size.z < center.z) continue;
 

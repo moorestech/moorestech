@@ -113,19 +113,10 @@ namespace Game.Block.Factory.BlockTemplate.Utility
         static private void RegisterStationBlocksInternal(RailComponent[] components, IRailGraphDatastore railGraphDatastore, bool connectNeighbors)
         {
             var connectionMap = railGraphDatastore.GetRailPositionToConnectionDestination();
-            var roundedPosition0 = RoundRailPosition(components[0].Position);
-            var roundedPosition1 = RoundRailPosition(components[1].Position);
+            var roundedPosition0 = RailComponent.RoundRailPosition(components[0].Position);
+            var roundedPosition1 = RailComponent.RoundRailPosition(components[1].Position);
             RegisterStationBlock(components, connectionMap, roundedPosition0, 0, connectNeighbors, railGraphDatastore);
             RegisterStationBlock(components, connectionMap, roundedPosition1, 1, connectNeighbors, railGraphDatastore);
-        }
-
-        static private Vector3Int RoundRailPosition(Vector3 position)
-        {
-            var roundedPosition = new Vector3Int();
-            roundedPosition.x = Mathf.RoundToInt(position.x * 2f);
-            roundedPosition.y = Mathf.RoundToInt(position.y * 2f);
-            roundedPosition.z = Mathf.RoundToInt(position.z * 2f);
-            return roundedPosition;
         }
 
         static private void RegisterStationBlock(RailComponent[] components, Dictionary<Vector3Int, (ConnectionDestination first, ConnectionDestination second)> connectionMap, Vector3Int roundedPosition, int componentIndex, bool connectNeighbors,IRailGraphDatastore railGraphDatastore)

@@ -11,28 +11,21 @@ namespace Game.Block.Blocks.GearToElectric
     {
         public const string GearGeneratorBlockStateDetailKey = "GearToElectricGenerator";
 
-        // 充電率（バッテリー残量 / 容量）
-        // Charge rate (battery remaining / capacity)
-        [Key(7)] public float ChargeRate { get; set; }
-
-        // 直近の電力tickで実際に放電（発電）した電力
-        // Power actually discharged (generated) on the latest electric tick
+        // 直近の電力tickで網へ渡した電力
+        // Power handed to the network on the latest electric tick
         [Key(8)] public float GeneratedElectricPower { get; set; }
-
-        [Key(9)] public float BatteryRemaining { get; set; }
+        [Key(10)] public GearToElectricGenerationState GenerationState { get; set; }
 
         public GearToElectricGeneratorBlockStateDetail(
             bool isClockwise,
             RPM currentRpm,
             Torque currentTorque,
-            float chargeRate,
-            ElectricPower generatedPower,
-            float batteryRemaining) :
+            ElectricPower suppliedPower,
+            GearToElectricGenerationState generationState) :
             base(isClockwise, currentRpm.AsPrimitive(), currentTorque.AsPrimitive(), GearRole.Consumer)
         {
-            ChargeRate = chargeRate;
-            GeneratedElectricPower = generatedPower.AsPrimitive();
-            BatteryRemaining = batteryRemaining;
+            GeneratedElectricPower = suppliedPower.AsPrimitive();
+            GenerationState = generationState;
         }
 
         [Obsolete("Deserialize only")]

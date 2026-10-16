@@ -142,8 +142,7 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
         public void GhostTooFarReportsTooFarLineTest()
         {
             var input = GearChainPoleDecideInputs.CreateGhostReadyInput(sourcePole: null);
-            input.HasGhost = false;
-            input.GhostTooFar = true;
+            input.GhostState = GearChainPoleGhostState.TooFar;
 
             var result = GearChainPolePlaceExtendMode.Decide(input);
 
@@ -158,7 +157,7 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
         public void NoGhostWithoutDistanceExcessReportsNoLineTest()
         {
             var input = GearChainPoleDecideInputs.CreateGhostReadyInput(sourcePole: null);
-            input.HasGhost = false;
+            input.GhostState = GearChainPoleGhostState.NoAimSurface;
 
             var result = GearChainPolePlaceExtendMode.Decide(input);
 
@@ -173,7 +172,7 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
         {
             var input = GearChainPoleDecideInputs.CreateGhostReadyInput(sourcePole: null);
             input.HitPole = new FakeGearChainPole(new Vector3Int(1, 0, 1));
-            input.GhostTooFar = true;
+            input.GhostState = GearChainPoleGhostState.TooFar;
 
             var result = GearChainPolePlaceExtendMode.Decide(input);
 

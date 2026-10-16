@@ -1,11 +1,11 @@
 # ユースケース: キー・マウス・画面UIを注入する / 入力が効かない
 
-## 鉄則: 世界は2つあり両立しない。必ず(A)だけで通す
+## 鉄則: InputSystemへ注入する
 
-- **(A) InputSystem直接注入** — `InputSystem.QueueStateEvent(...)`。フォーカス不要・決定論的。
+- **InputSystem直接注入** — `InputSystem.QueueStateEvent(...)`。フォーカスと入力デバイスの有効状態を確認して使う。
   DSLでは `Client.Playtest/Input/SemanticInput.cs` がこれを抽象化している（**第一選択**）
-- **(B) OS入力** — `uloop simulate-keyboard` / `simulate-mouse-input` は**禁止**。
-  Editorを前面化させ、実OSマウス状態が毎フレーム`Mouse.current`にforwardされて(A)の注入を上書き無効化する。
+- **OS入力** — `uloop simulate-keyboard` / `simulate-mouse-input` は**禁止**。
+  OS入力を混ぜると実OSマウス状態が`Mouse.current`に転送され、InputSystem注入を上書きする。
   一度汚染するとPlayMode再起動でしか戻らない（ESC1回のsimulateで以降全注入が死んだ実績あり）
 
 さらに: **スニペットから`InputSystem.Update()`を呼ばない**。editor-update文脈になり
@@ -69,9 +69,8 @@ KeyboardStateは**全量スナップショット**なので押下中キー集合
 
 ## de-risk probe（長いシナリオ・録画前の必須ゲート）
 
-本番前に「単体入力1つで期待状態が1つ成立するか」を確認する。
-1点注入→0.5秒→内部状態read。ダメなら (a)`Mouse.current.position`が注入値か実OSカーソルか
-(b)無マスクraycastの当たりlayer (c)狙い座標 (d)OS simulate-*汚染 の順で切り分け。
+録画前に`InputSystem.settings.backgroundBehavior`、`Application.isFocused`、`Keyboard.current.enabled`、`Mouse.current.enabled`を読み、単体入力1つで期待状態が成立するか確認する。入力デバイスが無効なら`uloop focus-window`でEditorを前面化し、Editor経由で`GameView.Focus()`した後、有効状態を再確認して`QueueStateEvent`を使う。OS入力シミュレーションは使わない。背景動作を求められた場合は、背景のまま入力デバイスが有効で操作が成立することを実測する。前面での成功は背景動作の証拠にしない。
+1点注入→0.5秒→内部状態read。ダメなら (a)フォーカスとデバイス有効状態 (b)`Mouse.current.position`が注入値か実OSカーソルか (c)無マスクraycastの当たりlayer (d)狙い座標 (e)OS simulate-*汚染 の順で切り分け。
 
 ## カメラと視界（照準の前提）
 

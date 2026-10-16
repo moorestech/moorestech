@@ -1,13 +1,5 @@
-import type {
-  PlayerInventoryData,
-  SkitPresentationData,
-  RecipeViewerItemListData,
-  BlockInventoryWireData,
-  ModalRequest,
-  ProgressData,
-  UiStateData,
-  TrainRidingData,
-} from "../../src/bridge/contract/payloadTypes";
+import type { BlockInventoryWireData } from "./types/blockInventoryWireData";
+import type { PlayerInventoryData, SkitPresentationData, RecipeViewerItemListData, ModalRequest, ProgressData, UiStateData, TrainRidingData } from "../../src/bridge/contract/payloadTypes";
 import { CHEST_BLOCK_GUID, TANK_BLOCK_GUID } from "./fixtures/blockLocalizationFixtures";
 import { WATER_FLUID_GUID } from "./fixtures/contentLocalizationFixtures";
 

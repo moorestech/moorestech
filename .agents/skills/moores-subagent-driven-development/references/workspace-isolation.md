@@ -1,10 +1,10 @@
 # ワークスペース隔離（最初のsubagent派遣前・必須）の手順
 
-SKILL.md ゲート1の実行手順。根拠は `.decisions/2026-08-13-SDDはworktree隔離を必須ゲートにする.md`。
+SKILL.md ゲート1の実行手順。
 
 ## なぜ必須か
 
-本体ワーキングツリーは他セッション・並行エージェントと共有されており、subagentのコミットが無関係な作業を巻き込む事故が実際に起きている。隔離は「あれば良いもの」ではなく最初の派遣（SDD本体ならタスク1、単一subagentモードならその1体）の前提条件である。
+本体ワーキングツリーは他セッション・並行エージェントと共有されており、隔離しないとsubagentのコミットが無関係な作業を巻き込む。隔離は「あれば良いもの」ではなく最初の派遣（SDD本体ならタスク1、単一subagentモードならその1体）の前提条件である。
 
 ## 例外は2つだけ
 
@@ -60,5 +60,5 @@ cp -Rc "$MAIN/moorestech_client/Library" ~/hermes-agent/data/worktrees/moorestec
 - 以降の編集・`uloop`各コマンド・テスト・コミットは**すべてworktree側の絶対パス**で行う。`--project-path`もworktree側を指す
 - 有料アセット(`PersonalAssets`)は本体にしか存在しない。計画がこれに依存する場合は着手前に人間へエスカレーションする
 - PlayModeの内蔵サーバーはポート0（OS採番）で起動するため、複数worktreeのPlayMode同時実行はポート衝突しない（`ServerConnectionInitializer` 参照）。計画を直列化する必要はない
-- worktreeの後始末（削除するか・いつ畳むか）はこのスキルでは決めない。環境ローカル規約（例: CLAUDE.local.md）が正本（`.decisions/2026-09-13-worktree後始末の正本はCLAUDE.local.mdとしSDDからは具体指示を抜く.md`）
+- worktreeの後始末（削除するか・いつ畳むか）はこのスキルでは決めない。環境ローカル規約（例: CLAUDE.local.md）が正本。
 - 環境ローカル規約がworktree作成コマンドを定めている場合（例: CLAUDE.local.md の `moores-wt new`）はそちらを使い、上の手動手順は使わない

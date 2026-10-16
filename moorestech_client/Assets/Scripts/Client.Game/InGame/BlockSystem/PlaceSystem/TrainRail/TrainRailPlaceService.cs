@@ -38,7 +38,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
             if (!_isActive) return null;
 
             var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
-            if (!PlaceSystemUtil.TryGetRayHitBlockPosition(_mainCamera, HeightOffset, DefaultBlockDirection, holdingBlockMaster, out var placePoint, out _)) return null;
+            if (!PlaceSystemUtil.TryGetFootprintGroundedRayHitBlockPosition(_mainCamera, HeightOffset, DefaultBlockDirection, holdingBlockMaster, feedback, out var placePoint, out _)) return null;
 
             // 距離外なら理由のみ出しプレビュー無し
             // Beyond range, show only the reason and no preview
@@ -51,7 +51,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
             RotationRailComponent();
             
             var placeInfos = new List<PlaceInfo> { CreatePlaceInfo() };
-            _previewBlockController.SetPreview(placeInfos, holdingBlockMaster);
+            _previewBlockController.SetPreview(placeInfos, holdingBlockMaster, true);
             var groundOverlaps = _previewBlockController.DetectGroundOverlaps();
 
             // 地面に埋まるセルを設置不可にし、その理由を積む。レール1セルは共有原因を判定しないためNone列を渡す

@@ -16,11 +16,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
         /// プレビューブロックを配置する。地形を設置不可の理由にするかは呼び出し側が決める
         /// Places the preview blocks; whether terrain blocks placement is the caller's decision
         /// </summary>
-        public void SetPreview(List<PlaceInfo> currentPlaceInfos, BlockMasterElement holdingBlockMaster);
+        public void SetPreview(List<PlaceInfo> currentPlaceInfos, BlockMasterElement holdingBlockMaster, bool terrainContactEnabled);
 
         /// <summary>
-        /// 直近の物理ステップ時点の地形接触を、直前のSetPreviewの並び順で返す
-        /// Returns the terrain contact as of the last physics step, ordered by the preceding SetPreview
+        /// 現配置の地形接触を同期判定し、直前のSetPreviewの並び順で返す
+        /// Queries terrain contact at current poses, ordered by the preceding SetPreview
         /// </summary>
         public IReadOnlyList<bool> DetectGroundOverlaps();
 

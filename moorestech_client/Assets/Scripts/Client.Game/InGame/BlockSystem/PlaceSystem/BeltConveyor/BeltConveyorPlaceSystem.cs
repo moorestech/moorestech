@@ -125,7 +125,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             var holdingBlockMaster = holdingBlock.BlockMaster;
 
             // ブロック設置用のrayが当たっているか、当たっていたら設置位置を取得する
-            if (!TryGetRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, out var placePoint, out var hitSurface)) { return false; }
+            if (!TryGetFootprintGroundedRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, feedback, out var placePoint, out var hitSurface)) { return false; }
 
             // 設置可能な距離かどうか
             // Whether the cell is within reach
@@ -140,7 +140,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             //display preview and get collision with ground
             var (placeCauses, beltReasons) = UpdateCurrentPlaceInfos();
 
-            _previewBlockController.SetPreview(_currentPlaceInfos, holdingBlockMaster);
+            _previewBlockController.SetPreview(_currentPlaceInfos, holdingBlockMaster, true);
             var blockGroundOverlapList = _previewBlockController.DetectGroundOverlaps();
 
             // 共有の不可原因（既存重複）は共通Reporterが積む

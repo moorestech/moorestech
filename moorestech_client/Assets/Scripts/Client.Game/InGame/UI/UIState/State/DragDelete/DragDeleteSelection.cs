@@ -2,7 +2,6 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Mooresmaster.Localization.Generated;
-using UnityEngine;
 
 namespace Client.Game.InGame.UI.UIState.State.DragDelete
 {
@@ -14,20 +13,25 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
     {
         private readonly BuildOperationHistory _buildOperationHistory;
         private readonly IRemovalRestoreSender _restoreSender;
+        private readonly DeletePreviewResetRecovery _resetRecovery;
 
         // 論理削除キーで重複排除する（同一機械の複数メッシュ子などを1件に集約）
         // Dedupe by logical delete key so multiple mesh children of one machine collapse into one
         private readonly Dictionary<object, IDeleteTarget> _selectedTargets = new();
+        // 選択を空にしても未着手の表示解放を保持する
+        // Retain unstarted preview releases after clearing the selection
+        private readonly Queue<IDeleteTarget> _pendingResets = new();
         private bool _canceled;
 
         // 最初の対象のカテゴリーで照準を固定
         // Fix aim to the first target's category
         public DeleteAimFilter AimFilter { get; private set; } = DeleteAimFilter.Frontmost;
 
-        public DragDeleteSelection(BuildOperationHistory buildOperationHistory, IRemovalRestoreSender restoreSender)
+        public DragDeleteSelection(BuildOperationHistory buildOperationHistory, IRemovalRestoreSender restoreSender, DeletePreviewResetRecovery resetRecovery)
         {
             _buildOperationHistory = buildOperationHistory;
             _restoreSender = restoreSender;
+            _resetRecovery = resetRecovery;
         }
 
         // 新しいドラッグ開始時に選択・キャンセル状態・セッションカテゴリーをリセットする
@@ -68,7 +72,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             if (!AimFilter.IsCategoryRequired) AimFilter = DeleteAimFilter.Category(target.GetDestructionCategory());
 
             _selectedTargets.Add(key, target);
-            target.SetRemovePreviewing();
+            if (_resetRecovery.CanPreview(target)) target.SetRemovePreviewing();
             return true;
         }
 
@@ -83,19 +87,14 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         // Reset all selections and mark as canceled (ESC behavior)
         public void CancelSelection()
         {
-            foreach (var target in _selectedTargets.Values)
-            {
-                if (target is Object unityTarget && unityTarget == null)
-                {
-                    Debug.LogWarning("[DragDelete] selected target was destroyed before cancel");
-                    continue;
-                }
-                target.ResetMaterial();
-            }
-
+            // 戻し処理が例外でも選択が残らないよう、先に取り出して空にする
+            // Take and empty the selection first so a throwing reset cannot leave it behind
+            foreach (var target in _selectedTargets.Values) _pendingResets.Enqueue(target);
             _selectedTargets.Clear();
             _canceled = true;
             AimFilter = DeleteAimFilter.Frontmost;
+
+            ReleasePendingResets("[DragDelete] selected target was destroyed before cancel");
         }
 
         // 選択を一括削除し、Ctrl+Z用のUndo履歴も記録する
@@ -109,28 +108,52 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             var committed = new List<IDeleteTarget>();
             foreach (var target in _selectedTargets.Values)
             {
-                if (target is Object unityTarget && unityTarget == null)
-                {
-                    Debug.LogWarning("[DragDelete] selected target was destroyed before commit");
-                    continue;
-                }
+                if (!DeleteTargetLiveness.IsAliveOrWarn(target, "[DragDelete] selected target was destroyed before commit")) continue;
                 committed.Add(target);
             }
             var record = RemoveOperationRecord.CreateFrom(committed, _restoreSender);
-            foreach (var target in committed)
-            {
-                // Delete はサーバー往復の非同期なので即座に赤プレビューだけ戻す
-                // Delete is async over the server, so we just clear the red preview immediately
-                target.Delete();
-                target.ResetMaterial();
-            }
 
+            foreach (var target in committed) _pendingResets.Enqueue(target);
+
+            // 戻しが例外でも再確定で二重送信しないよう先に空にする
+            // Empty the selection first so a throwing reset cannot cause a duplicate send on retry
             _selectedTargets.Clear();
             AimFilter = DeleteAimFilter.Frontmost;
 
-            // Ctrl+Z用のUndo履歴を記録（空バッチはPushしない）
-            // Record the undo history for Ctrl+Z (skip empty batches)
+            // 全件を送ってからUndo履歴を積み、記録と送信済み集合を一致させる
+            // Send all deletions, then push the undo record so it matches exactly what was sent
+            foreach (var target in committed) target.Delete();
             if (record.HasRemovedObjects) _buildOperationHistory.Push(record);
+
+            // 送信と履歴記録の後で全対象の表示を戻す
+            // Reset every preview after sends and history recording
+            ReleasePendingResets("[DragDelete] selected target was destroyed before reset");
+        }
+
+        private void ReleasePendingResets(string destroyedWarning)
+        {
+            // 失敗時も残りを解放して次の離脱を守る
+            // Drain remaining releases on failure so the next exit input can proceed
+            while (_pendingResets.Count > 0)
+            {
+                var target = _pendingResets.Dequeue();
+                var completed = false;
+                try
+                {
+                    _resetRecovery.Reset(target, destroyedWarning);
+                    completed = true;
+                }
+                finally
+                {
+                    if (!completed)
+                    {
+                        // 後続例外でも失敗対象の診断を残す
+                        // Diagnose each failed target even if a later exception replaces it
+                        UnityEngine.Debug.LogWarning($"[DragDelete] preview reset failed for {target.GetType().Name}; releasing remaining targets");
+                        ReleasePendingResets(destroyedWarning);
+                    }
+                }
+            }
         }
 
         // キャンセルされていない場合のみ削除確定を許可する

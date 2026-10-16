@@ -21,10 +21,24 @@ namespace Client.Tests.UIState
         }
 
         [Test]
+        public void DestroyedHoverIsReleasedAndLoggedOnce()
+        {
+            var preview = new SingleHoverDeletePreview(new DeletePreviewResetRecovery());
+            _selectedObject = new GameObject("HoveredRail");
+            preview.Hover(_selectedObject.AddComponent<DestroyableDeleteTarget>());
+            Object.DestroyImmediate(_selectedObject);
+
+            LogAssert.Expect(LogType.Warning, "[DragDelete] hovered target was destroyed before reset");
+            preview.Release();
+            Assert.IsNull(preview.Current);
+            Assert.DoesNotThrow(() => preview.Release());
+        }
+
+        [Test]
         public void DestroyedTargetIsSkippedBeforeUndoCapture()
         {
             var history = new BuildOperationHistory();
-            var selection = new DragDeleteSelection(history, new FakeRemovalRestoreSender());
+            var selection = new DragDeleteSelection(history, new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             _selectedObject = new GameObject("SelectedRail");
             var target = _selectedObject.AddComponent<DestroyableDeleteTarget>();
             selection.BeginDrag();
@@ -41,7 +55,7 @@ namespace Client.Tests.UIState
         [Test]
         public void DestroyedTargetIsLoggedDuringCancel()
         {
-            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
+            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             _selectedObject = new GameObject("SelectedRail");
             var target = _selectedObject.AddComponent<DestroyableDeleteTarget>();
             selection.BeginDrag();
@@ -70,6 +84,10 @@ namespace Client.Tests.UIState
         {
             Assert.Fail("Destroyed targets must never be captured");
         }
+        // 復元を共有する表示の寿命を識別する
+        // Identify the lifetime of the shared preview view
+        public object GetPreviewResetKey() => this;
+
         public object GetDeleteTargetKey() { return this; }
         public string GetDestructionCategory() { return "default"; }
     }

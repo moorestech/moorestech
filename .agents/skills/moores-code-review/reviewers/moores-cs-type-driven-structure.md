@@ -8,7 +8,7 @@ extensions:
   - .cs
 ---
 
-# Lens: 型による不正状態の排除と配置構造（PR987/996/997由来）
+# Lens: 型による不正状態の排除と配置構造
 
 ## あなたの役割
 cwdを読み、patchが**「規約上ありえない状態」を型で排除せず、規律頼みにしている**Critical、および**データクラスの配置規約違反**の箇所を返す。
@@ -23,10 +23,10 @@ cwdを読み、patchが**「規約上ありえない状態」を型で排除せ�
 - **正解形**: 判別子＋種別ごとのペイロード型（`IXxxPayload` または static factoryで有効フィールドのみ設定）。前例: `RailConnectionEditRequest`（`RailEditMode`＋static factory）、`BlueprintRequest`（`BlueprintOperation`＋private ctor＋static factory）。
 - **正解形の適用限界（重要）**: 上記前例はいずれも**振る舞いを持てないプロトコルDTO**であり、外部switchが正当なのはその文脈だけ。ペイロード分割された型ファミリーでも、それが**振る舞いを持つべきドメインオブジェクト**なら外部switchは正解形ではなく基準5の対象になる。「BlueprintRequestと同型だからOK」とDTO前例をドメイン型に流用して合格させない。
 
-### 5. 振る舞いを持つ型ファミリーへの外部switch分岐（多態化漏れ・PR1045由来）
+### 5. 振る舞いを持つ型ファミリーへの外部switch分岐（多態化漏れ）
 - レッドフラグ: 共通interface（**特にメンバーゼロのマーカーinterface**）を実装する型ファミリーに対し、利用側サービスが `switch (obj) { case ConcreteA a: ... case ConcreteB b: ... }` や `is` キャスト連鎖で**種別ごとの処理本体**を分岐実行している。処理が各具象型のデータだけで完結するのに、ロジックが利用側に置かれている。
-- なぜ悪いか: 種別追加のたびに利用側switchの修正が必要（default無しなら無言スキップ）。マーカーinterfaceは型の意味を何も保証しない。実例: `IBuildOperationRecord`（空interface）＋`BuildUndoService`内の型switch → `UndoAsync` をinterfaceに定義し各レコードへ封じ込めるのが裁定（PR1045）。
-- **正解形**: interfaceに振る舞いメソッド（`UndoAsync(deps)` 等）を定義し、種別ごとの処理を各実装型へ封じ込める。利用側は `record.UndoAsync(...)` を呼ぶだけにする。処理に必要な外部依存はメソッド引数かコンストラクタで渡す。**封じ込めの後始末まで修正方針に含める**: 旧利用側のためだけに公開していた選択・判定用publicメソッド（`SelectXxx`/`IsYyy`等）はprivate化または削除し、それらのpublic APIを直接叩くテストは振る舞いメソッド経由（またはフェイク実装）に書き換える（PR1045: `SelectUndoableCells`/`SelectReplaceableCells` 削除が追加指摘になった）。
+- なぜ悪いか: 種別追加のたびに利用側switchの修正が必要（default無しなら無言スキップ）。マーカーinterfaceは型の意味を何も保証しない。実例: `IBuildOperationRecord`（空interface）＋`BuildUndoService`内の型switch → `UndoAsync` をinterfaceに定義し各レコードへ封じ込めるのが正解形。
+- **正解形**: interfaceに振る舞いメソッド（`UndoAsync(deps)` 等）を定義し、種別ごとの処理を各実装型へ封じ込める。利用側は `record.UndoAsync(...)` を呼ぶだけにする。処理に必要な外部依存はメソッド引数かコンストラクタで渡す。**封じ込めの後始末まで修正方針に含める**: 旧利用側のためだけに公開していた選択・判定用publicメソッド（`SelectXxx`/`IsYyy`等）はprivate化または削除し、それらのpublic APIを直接叩くテストは振る舞いメソッド経由（またはフェイク実装）に書き換える（例: `SelectUndoableCells`/`SelectReplaceableCells` の削除）。
 - **例外（Criticalにしない）**: 振る舞いを持てないDTO/MessagePack型への表示・変換switch、パターンマッチが1箇所かつ2分岐でロジックが数行のもの（備考に留める）。判断が割れるなら `設計判断: あり` で上げる。
 
 ### 2. Context/Selectorへの無秩序なフィールド追加（god object化）

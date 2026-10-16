@@ -46,9 +46,9 @@ PRのタイトルと概要を作成する。
 
 すべてのPRで報告ページ（`https://review.moores.tech/pr/<PR番号>/report/`）を公開し、PR本文の先頭行にそのURLを1本だけh1見出し（`# https://review.moores.tech/pr/<PR番号>/report/`）で大きく張る。リンク文字列で包まずURLそのものを見出しにする。書式・manifest・公開手順は [references/pr-report.md](references/pr-report.md) が正本。
 
-1. タスク中に撮った画像・動画（スクリーンショット、unityプレイ録画テストの `recording.mp4`、Playwright の撮影など）を**全部**集め、変更後の状態と一致することを確認する。
-2. 見た目が変わる変更（Web UI・ゲーム内UI・演出など）で素材が無い・古い・主要状態が欠ける場合は、既存のcaptureスクリプト・Playwright・unityプレイ録画テストで撮る。
-3. PR作業のscratch（コミットしない場所）に `manifest.json` を書く。素材が本当に無い変更だけ `no_media_reason` に理由を書く。
+1. 受入条件を現行headで示す最終成功素材（スクリーンショット、unityプレイ録画テストの `recording.mp4`、Playwright の撮影など）と、説明に必要な診断素材を選ぶ。古い素材や失敗素材を成功の証拠に使わず、原本は既存の記録先へ保全する。
+2. 見た目が変わる変更（Web UI・ゲーム内UI・演出など）で選んだ素材が無い・古い・主要状態が欠ける場合は、必要な状態だけ既存のcaptureスクリプト・Playwright・unityプレイ録画テストで撮る。
+3. PR作業のscratch（コミットしない場所）に `manifest.json` を書く。非visual変更では素材生成を目的としたUI録画を行わず、`no_media_reason`に理由を書く。
 
 禁止: PR本文に画像・動画のURLを個別に並べる、`docs/pr-assets/` へ素材をコミットする、ローカルパス・`file://`・tailnet（share）のURLを書く。
 

@@ -62,7 +62,8 @@ description: moorestech専用の計画実行。現在のセッションで、独
 2. ワークスペース隔離（ゲート1）
 3. 隔離worktree側をcwdにして `scripts/sdd-memo` を実行し、実行メモに計画のパスと現在地を書く。既存のメモに未回答の質問があれば引き継ぐ
 4. 計画を一度読み、**事前計画レビュー**を行う: タスク間・Global Constraintsとの矛盾、レビュー基準で欠陥になる義務付け、`moores-code-review/references/moores-reviewer-digest.md` 違反を洗い出す。後続タスクに係るものは一括で人間へ提示し、係らないものは推奨案で進めてメモへ書く（問題なければ無言で進む）。詳細: controller-gates.md
-5. 規模判定を1行で声に出す
+5. 受入条件から提出に必要な映像証拠を先に選ぶ。再テストだけを理由に撮り直さず、見た目・対象操作・状態判定の変更で旧証拠が無効になった経路だけ再撮影する。詳細: controller-gates.md
+6. 規模判定を1行で声に出す
 
 ## 単一subagent実装モード（閾値未満）
 
@@ -107,7 +108,7 @@ description: moorestech専用の計画実行。現在のセッションで、独
 
 - SDD本体: タスクごとに `Task N: complete (commits <base7>..<head7>, review clean)`
 - 単一モード: `dispatched` / `continuation #k from Task N base <sha7>`（PARTIAL継続のみ。この行数がそのまま継続回数） / `switched to SDD per-task …` / `complete`
-- 単一モードの復旧順: **台帳 → 元subagentの生存確認（手段は runtime-*.md。生きていれば結果を待つ） → 報告ファイル → `git log`**。`dispatched` だけで `complete` が無いとき、生存確認なしに再派遣しない（死亡と決めつけて再派遣し同一worktreeを二重編集した実事故がある）
+- 単一モードの復旧順: **台帳 → 元subagentの生存確認（手段は runtime-*.md。生きていれば結果を待つ） → 報告ファイル → `git log`**。`dispatched` だけで `complete` が無いとき、生存確認なしに再派遣しない（生きている subagent と同じworktreeを二重編集するため）
 - `git clean -fdx` は台帳を消す。発生したら `git log` から復旧する
 - 実行メモは台帳の代わりにならない（人間向けの現在地と質問の置き場）。compaction後は台帳と併せてメモも読み、未回答の質問を引き継ぐ
 
