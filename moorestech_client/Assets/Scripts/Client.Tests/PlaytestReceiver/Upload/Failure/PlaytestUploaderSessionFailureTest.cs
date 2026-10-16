@@ -91,6 +91,35 @@ namespace Client.Tests.PlaytestReceiver
             CollectionAssert.AreEqual(new[] { "prepare", "put:manifest.json", "put:a.bin", "complete" }, api.Calls);
         }
 
+        [TestCase(false, 401)]
+        [TestCase(false, 403)]
+        [TestCase(true, 401)]
+        [TestCase(true, 403)]
+        public void 正常交換後の認可拒否は走行を止め箱を数えない(bool complete, int status)
+        {
+            var first = MakeBox("20260913_110000_aaaa");
+            MakeBox("20260913_120000_bbbb");
+            var api = new FakeUploadApi();
+            if (complete)
+            {
+                api.EnqueueComplete(PlaytestApiResult.Responded(status, "refused"));
+                if (status == 401) api.EnqueueComplete(PlaytestApiResult.Responded(status, "still refused"));
+            }
+            else
+            {
+                api.EnqueuePrepare(PlaytestApiResult.Responded(status, "refused"));
+                if (status == 401) api.EnqueuePrepare(PlaytestApiResult.Responded(status, "still refused"));
+            }
+            var session = new PlaytestSession(api, new SteamTicketSessionCredential(new FakeTicketProvider("aabb")));
+            var uploader = new PlaytestUploader(api, session, _directories, PlaytestNoWaitRetrySchedule.Create(), Client.PlaytestReceiver.Delivery.PlaytestOutboxScope.ReportsAndProgress);
+            var summary = uploader.UploadPendingAsync(CancellationToken.None).GetAwaiter().GetResult();
+            Assert.AreEqual(PlaytestUploadRunEnd.SessionRefused, summary.End);
+            Assert.AreEqual(0, summary.Sent);
+            Assert.AreEqual(status == 401 ? 2 : 1, api.Calls.FindAll(call => call == (complete ? "complete" : "prepare")).Count);
+            Assert.IsFalse(File.Exists(Path.Combine(first, PlaytestOutboxScanner.AttemptsMarker)));
+            Assert.IsFalse(File.Exists(Path.Combine(first, PlaytestOutboxScanner.FailedMarker)));
+        }
+
         private string MakeBox(string bundleId)
         {
             return PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, bundleId, ("manifest.json", "{}"), ("a.bin", "abc"));

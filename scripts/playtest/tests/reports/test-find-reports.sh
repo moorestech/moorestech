@@ -50,4 +50,17 @@ bash "$HERE/find-reports.sh" > "$WORK/failed"
 grep -q 'status=500' "$WORK/failed"
 grep -q '## 取り込み済み' "$WORK/failed"
 grep -q '## 自動修正' "$WORK/failed"
+# 隔離された実箱と壊れた表示名も、所在を残して残りの一覧を続ける
+# Retain quarantined box locations and malformed names while continuing the listing
+mkdir -p "$LOGS/harness/bug-report/inbox/.remote-exec-held/held-A" "$LOGS/harness/bug-report/inbox/.duplicate/dup-A"
+echo '{"steamPersonaName":42}' > "$LOGS/harness/playtest/reports/123/newer/ingest.json"
+bash "$HERE/find-reports.sh" > "$WORK/invalid" 2> "$WORK/invalid-errors"
+python3 - "$WORK/invalid" "$WORK/invalid-errors" <<'CHECK'
+import sys
+s, errors = (open(path).read() for path in sys.argv[1:])
+assert 'held-A\t保留\t' in s and 'dup-A\t重複\t' in s
+assert '.remote-exec-held\t' not in s and '.duplicate\t' not in s
+assert 'steamPersonaName' in s and 'steamPersonaName' in errors
+assert 'newer' in s and '## 自動修正' in s and 'run1' in s
+CHECK
 echo 'PASS find-reports pagination, mtime ordering, limit and receiver failure'

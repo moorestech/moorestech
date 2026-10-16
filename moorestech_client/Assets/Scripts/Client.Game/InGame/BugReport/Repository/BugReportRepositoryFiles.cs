@@ -25,7 +25,7 @@ namespace Client.Game.InGame.BugReport
             switch (buildOrigin.Kind)
             {
                 case BuildOriginKind.Editor:
-                    WriteWorkingTreeState(directory, bundleId, manifest, repositoryRoot, masterDataRoot);
+                    WriteWorkingTreeState();
                     return;
                 case BuildOriginKind.BakedBuild:
                     WriteBakedState(manifest, buildOrigin);
@@ -36,17 +36,22 @@ namespace Client.Game.InGame.BugReport
                 default:
                     throw new ArgumentOutOfRangeException(nameof(buildOrigin), buildOrigin.Kind, "未知の出所の種類");
             }
+
+            #region Internal
+
+            // ディスクは外部資源。本体repoとマスタrepoを別々に隔離し、片方の失敗でもう片方の状態まで落とさない
+            // Disk is an external resource; the two repositories are isolated separately so one failure never drops the other's state
+            void WriteWorkingTreeState()
+            {
+                var repo = Path.Combine(directory, BugReportBundleLayout.RepositoryDirectoryName);
+                manifest.Repository = WriteIsolated(repositoryRoot, repo, HeadDiffFileName, "untracked", manifest);
+                manifest.MasterData = WriteIsolated(masterDataRoot, repo, MasterDiffFileName, "master-untracked", manifest);
+                BugReportCommitBundles.Write(repo, bundleId, manifest, repositoryRoot, masterDataRoot);
+            }
+
+            #endregion
         }
 
-        // ディスクは外部資源。本体repoとマスタrepoを別々に隔離し、片方の失敗でもう片方の状態まで落とさない
-        // Disk is an external resource; the two repositories are isolated separately so one failure never drops the other's state
-        private static void WriteWorkingTreeState(string directory, string bundleId, BugReportManifest manifest, string repositoryRoot, string masterDataRoot)
-        {
-            var repo = Path.Combine(directory, BugReportBundleLayout.RepositoryDirectoryName);
-            manifest.Repository = WriteIsolated(repositoryRoot, repo, HeadDiffFileName, "untracked", manifest);
-            manifest.MasterData = WriteIsolated(masterDataRoot, repo, MasterDiffFileName, "master-untracked", manifest);
-            BugReportCommitBundles.Write(repo, bundleId, manifest, repositoryRoot, masterDataRoot);
-        }
 
         // ビルド実行にはgitも作業ツリーも無い。焼き込んだ状態だけを載せ、取れない分は理由付きで欠損に残す
         // A build has neither git nor a working tree; it carries only the baked state and records the rest as missing

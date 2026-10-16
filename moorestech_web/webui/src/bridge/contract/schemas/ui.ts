@@ -53,7 +53,7 @@ const BugReportStatusSchema = z.discriminatedUnion("kind", [
 ]);
 // 送信状態ごとの必須値を契約で固定する
 // Pin the required fields of each delivery state at the boundary
-export const DeliveryStatusSchema = z.discriminatedUnion("kind", [
+const DeliveryStatusSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("localOnly"), reason: z.enum(["developerTokenMissing", "developerTokenUnreadable", "steamNotRunning"]), pendingCount: z.number().int().nonnegative() }).strict(),
   z.object({ kind: z.literal("pending"), pendingCount: z.number().int().nonnegative() }).strict(),
   z.object({ kind: z.literal("refused"), pendingCount: z.number().int().nonnegative() }).strict(),

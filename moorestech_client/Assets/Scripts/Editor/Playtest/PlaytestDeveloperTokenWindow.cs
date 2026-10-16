@@ -1,14 +1,12 @@
+#if UNITY_EDITOR
 using System;
-using System.IO;
-using System.Text.RegularExpressions;
 using System.Threading;
 using Client.PlaytestReceiver;
 using Client.PlaytestReceiver.Credentials;
 using Client.PlaytestReceiver.Http;
+using Client.PlaytestReceiver.Http.Responses;
 using Cysharp.Threading.Tasks;
 using Game.Paths;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -59,9 +57,59 @@ public sealed class PlaytestDeveloperTokenWindow : EditorWindow
             if (GUILayout.Button("接続確認")) CheckConnectionAsync(_lifetime.Token).Forget();
         }
         if (_checking) EditorGUILayout.HelpBox("接続確認中…", MessageType.Info);
-        if (_result.Length > 0) EditorGUILayout.HelpBox(_result, _resultType);
+        if (0 < _result.Length) EditorGUILayout.HelpBox(_result, _resultType);
         EditorGUILayout.LabelField("Mac mini: scripts/playtest/dev-token.sh issue <機材名>", EditorStyles.wordWrappedLabel);
         EditorGUILayout.LabelField(GameSystemPaths.PlaytestDeveloperTokenFilePath, EditorStyles.wordWrappedLabel);
+
+        #region Internal
+
+        void SaveToken()
+        {
+            var result = DeveloperTokenEditorFile.Write(GameSystemPaths.PlaytestDeveloperTokenFilePath, _input);
+            if (result.Kind == DeveloperTokenWindowResultKind.Saved) _input = "";
+            SetResult(result.Kind, result.Data);
+            RefreshStatus();
+        }
+
+        void DeleteToken()
+        {
+            var result = DeveloperTokenEditorFile.Delete(GameSystemPaths.PlaytestDeveloperTokenFilePath);
+            if (result.Kind == DeveloperTokenWindowResultKind.Deleted) _input = "";
+            SetResult(result.Kind, result.Data);
+            RefreshStatus();
+        }
+
+        async UniTask CheckConnectionAsync(CancellationToken cancellation)
+        {
+            RefreshStatus();
+            var read = PlaytestDeveloperTokenFile.Read(GameSystemPaths.PlaytestDeveloperTokenFilePath);
+            if (!(read is PlaytestDeveloperTokenPresent present))
+            {
+                SetResult(DeveloperTokenWindowResultKind.CredentialRequired, new DeveloperTokenWindowResultData(""));
+                return;
+            }
+            _checking = true;
+            var response = await new PlaytestReceiverClient(PlaytestReceiverConfig.BaseUrl)
+                .PostDeveloperSessionAsync(present.Token, cancellation).SuppressCancellationThrow();
+            // silent-ok: 閉じた画面には結果を反映しない / 次の接続確認時に状態を再読取する
+            if (response.IsCanceled || cancellation.IsCancellationRequested) return;
+            _checking = false;
+            if (response.Result.Kind != PlaytestApiResultKind.Responded)
+                SetResult(DeveloperTokenWindowResultKind.Unreachable, new DeveloperTokenWindowResultData(response.Result.Detail));
+            else if (response.Result.StatusCode == 401)
+                SetResult(DeveloperTokenWindowResultKind.Refused, new DeveloperTokenWindowResultData(""));
+            else if (response.Result.StatusCode != 200)
+                SetResult(DeveloperTokenWindowResultKind.HttpFailed, new DeveloperTokenWindowResultData(response.Result.StatusCode.ToString()));
+            else
+            {
+                var parsed = PlaytestSessionResponse.Parse(response.Result.Body);
+                if (parsed == null || !parsed.SteamId.StartsWith("dev-", StringComparison.Ordinal))
+                    SetResult(DeveloperTokenWindowResultKind.MalformedResponse, new DeveloperTokenWindowResultData(""));
+                else SetResult(DeveloperTokenWindowResultKind.Connected, new DeveloperTokenWindowResultData(parsed.SteamId));
+            }
+        }
+
+        #endregion
     }
 
     private void RefreshStatus()
@@ -85,96 +133,28 @@ public sealed class PlaytestDeveloperTokenWindow : EditorWindow
         }
     }
 
-    private void SaveToken()
+    private void SetResult(DeveloperTokenWindowResultKind kind, DeveloperTokenWindowResultData data)
     {
-        var token = _input.Trim();
-        if (!Regex.IsMatch(token, PlaytestDeveloperTokenFile.TokenPattern))
+        // 固定結果から表示とログの重要度を一緒に決める
+        // Derive presentation and log severity together from the fixed result
+        (_result, _resultType) = kind switch
         {
-            SetResult("保存できません: mdt_ + 小文字16進64桁を入力してください。", MessageType.Warning);
-            return;
-        }
-        // ディスクIO境界。保存失敗を画面にも示す
-        // Disk IO boundary: expose persistence failures in the window as well
-        try
-        {
-            PlaytestDeveloperTokenFile.Write(GameSystemPaths.PlaytestDeveloperTokenFilePath, token);
-            _input = "";
-            SetResult("保存しました。", MessageType.Info);
-        }
-        catch (Exception exception) when (exception is IOException || exception is UnauthorizedAccessException)
-        {
-            SetResult($"保存できません: {exception.Message}", MessageType.Error);
-        }
-        RefreshStatus();
-    }
-
-    private void DeleteToken()
-    {
-        // ディスクIO境界。削除失敗を成功扱いにしない
-        // Disk IO boundary: do not report deletion failures as success
-        try
-        {
-            PlaytestDeveloperTokenFile.Delete(GameSystemPaths.PlaytestDeveloperTokenFilePath);
-            _input = "";
-            SetResult("削除しました。", MessageType.Info);
-        }
-        catch (Exception exception) when (exception is IOException || exception is UnauthorizedAccessException)
-        {
-            SetResult($"削除できません: {exception.Message}", MessageType.Error);
-        }
-        RefreshStatus();
-    }
-
-    private async UniTask CheckConnectionAsync(CancellationToken cancellation)
-    {
-        RefreshStatus();
-        var read = PlaytestDeveloperTokenFile.Read(GameSystemPaths.PlaytestDeveloperTokenFilePath);
-        if (!(read is PlaytestDeveloperTokenPresent present))
-        {
-            SetResult("接続確認できません: 有効なトークンを保存してください。", MessageType.Warning);
-            return;
-        }
-        _checking = true;
-        var response = await new PlaytestReceiverClient(PlaytestReceiverConfig.BaseUrl)
-            .PostDeveloperSessionAsync(present.Token, cancellation).SuppressCancellationThrow();
-        // 閉じたウィンドウへ非同期結果を反映しない
-        // Never apply an asynchronous result to a closed window
-        if (response.IsCanceled || cancellation.IsCancellationRequested) return;
-        _checking = false;
-        if (response.Result.Kind != PlaytestApiResultKind.Responded)
-            SetResult($"到達できません: {response.Result.Detail}", MessageType.Error);
-        else if (response.Result.StatusCode == 401)
-            SetResult("受け口に拒否されました（失効か打ち間違い）", MessageType.Warning);
-        else if (response.Result.StatusCode != 200)
-            SetResult($"接続確認に失敗しました: HTTP {response.Result.StatusCode}", MessageType.Error);
-        else ShowIdentity(response.Result.Body);
-    }
-
-    private void ShowIdentity(string body)
-    {
-        // 外部入力JSON境界。応答破損を画面とログへ残す
-        // External JSON boundary: expose malformed responses in both the window and log
-        try
-        {
-            var identity = JObject.Parse(body)["steamId"];
-            if (identity?.Type != JTokenType.String || !identity.Value<string>().StartsWith("dev-"))
-            {
-                SetResult("接続確認に失敗しました: 応答に開発機の steamId がありません。", MessageType.Error);
-                return;
-            }
-            SetResult($"受け口に {identity.Value<string>()} として認識されました", MessageType.Info);
-        }
-        catch (JsonException exception)
-        {
-            SetResult($"接続確認に失敗しました: 応答JSONを読めません（{exception.Message}）", MessageType.Error);
-        }
-    }
-
-    private void SetResult(string message, MessageType type)
-    {
-        _result = message;
-        _resultType = type;
-        Debug.Log($"[PlaytestReceiver] {message}");
+            DeveloperTokenWindowResultKind.InvalidToken => ("保存できません: mdt_ + 小文字16進64桁を入力してください。", MessageType.Warning),
+            DeveloperTokenWindowResultKind.Saved => ("保存しました。", MessageType.Info),
+            DeveloperTokenWindowResultKind.SaveFailed => ($"保存できません: {data.Detail}", MessageType.Error),
+            DeveloperTokenWindowResultKind.Deleted => ("削除しました。", MessageType.Info),
+            DeveloperTokenWindowResultKind.DeleteFailed => ($"削除できません: {data.Detail}", MessageType.Error),
+            DeveloperTokenWindowResultKind.CredentialRequired => ("接続確認できません: 有効なトークンを保存してください。", MessageType.Warning),
+            DeveloperTokenWindowResultKind.Unreachable => ($"到達できません: {data.Detail}", MessageType.Error),
+            DeveloperTokenWindowResultKind.Refused => ("受け口に拒否されました（失効か打ち間違い）", MessageType.Warning),
+            DeveloperTokenWindowResultKind.HttpFailed => ($"接続確認に失敗しました: HTTP {data.Detail}", MessageType.Error),
+            DeveloperTokenWindowResultKind.MalformedResponse => ("接続確認に失敗しました: 開発機セッション応答が不正です。", MessageType.Error),
+            DeveloperTokenWindowResultKind.Connected => ($"受け口に {data.Detail} として認識されました", MessageType.Info),
+            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown developer token result"),
+        };
+        if (_resultType == MessageType.Error) Debug.LogError($"[PlaytestReceiver] {_result}");
+        else if (_resultType == MessageType.Warning) Debug.LogWarning($"[PlaytestReceiver] {_result}");
         Repaint();
     }
 }
+#endif

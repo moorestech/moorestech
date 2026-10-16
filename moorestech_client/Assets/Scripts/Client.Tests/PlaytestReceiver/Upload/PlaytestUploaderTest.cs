@@ -88,23 +88,6 @@ namespace Client.Tests.PlaytestReceiver
         }
 
         [Test]
-        public void 受け口の403が5回に達した箱はUPLOAD_FAILEDになり後続の箱を塞がない()
-        {
-            var stuck = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_110000_aaaa", ("manifest.json", "{}"));
-            var api = new FakeUploadApi();
-            for (var i = 0; i < PlaytestUploadAttemptLog.MaxAttempts; i++) api.EnqueuePrepare(PlaytestApiResult.Responded(403, "revoked"));
-            LogAssert.Expect(LogType.Error, new Regex(".*giving up on 20260913_110000_aaaa.*"));
-            for (var attempt = 0; attempt < PlaytestUploadAttemptLog.MaxAttempts; attempt++) Upload(api);
-
-            Assert.IsTrue(File.Exists(Path.Combine(stuck, PlaytestOutboxScanner.FailedMarker)));
-            Assert.AreEqual(PlaytestUploadAttemptLog.MaxAttempts, api.Calls.FindAll(call => call == "prepare").Count, "権利の問題は同一走行内で再試行しない");
-
-            var later = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_120000_bbbb", ("manifest.json", "{}"));
-            Assert.AreEqual(1, Upload(api));
-            Assert.IsTrue(File.Exists(Path.Combine(later, PlaytestOutboxScanner.UploadedMarker)));
-        }
-
-        [Test]
         public void 恒久的な4xxは再試行せず1回と数える()
         {
             var box = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_120000_aaaa", ("manifest.json", "{}"));
@@ -142,7 +125,7 @@ namespace Client.Tests.PlaytestReceiver
         }
 
         [Test]
-        public void completeが取り直し後も401なら1回と数える()
+        public void completeが取り直し後も401なら数えず保留する()
         {
             var box = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_120000_aaaa", ("manifest.json", "{}"));
             var api = new FakeUploadApi();
@@ -151,7 +134,7 @@ namespace Client.Tests.PlaytestReceiver
 
             Assert.AreEqual(0, Upload(api));
             Assert.AreEqual(2, api.CompleteCount);
-            Assert.AreEqual("1", File.ReadAllText(Path.Combine(box, PlaytestOutboxScanner.AttemptsMarker)).Split('\n')[0]);
+            Assert.IsFalse(File.Exists(Path.Combine(box, PlaytestOutboxScanner.AttemptsMarker)));
             Assert.IsFalse(File.Exists(Path.Combine(box, PlaytestOutboxScanner.UploadedMarker)));
         }
 

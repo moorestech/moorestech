@@ -88,7 +88,7 @@ namespace Client.PlaytestReceiver.Upload
             try
             {
                 PlaytestDeliveryStatusBoard.Set(new PlaytestDeliveryPending(PlaytestOutboxScanner.ScanPending(_directories, route.Scope).Count));
-                var uploader = new PlaytestUploader(_api, ResolveSession(route), _directories, PlaytestUploadRetrySchedule.Default, route.Scope);
+                var uploader = new PlaytestUploader(_api, ResolveSession(), _directories, PlaytestUploadRetrySchedule.Default, route.Scope);
                 var summary = await uploader.UploadPendingAsync(Application.exitCancellationToken);
                 // 最新要求がローカル保存なら旧走行の結果で上書きせず、残数だけ更新する
                 // If the latest request stays local, preserve that state and only refresh its pending count
@@ -114,6 +114,29 @@ namespace Client.PlaytestReceiver.Upload
                     RequestUploadWith(rerunRoute);
                 }
             }
+
+            #region Internal
+
+            PlaytestSession ResolveSession()
+            {
+                // 認証方式と開発者トークンごとに寿命管理を分ける
+                // Keep credential lifetimes separate by authentication kind and developer token
+                switch (route)
+                {
+                    case PlaytestSteamRoute:
+                        return _sharedSession ??= new PlaytestSession(_api, new SteamTicketSessionCredential(_ticketProvider));
+                    case PlaytestDeveloperTokenRoute developer:
+                        if (_developerSession == null || _developerSessionToken != developer.DeveloperToken)
+                        {
+                            _developerSessionToken = developer.DeveloperToken;
+                            _developerSession = new PlaytestSession(_api, new DeveloperTokenSessionCredential(developer.DeveloperToken));
+                        }
+                        return _developerSession;
+                    default: throw new System.ArgumentException("A local-only route cannot start an upload", nameof(route));
+                }
+            }
+
+            #endregion
         }
 
         private void PublishLocalOnly(PlaytestLocalOnlyRoute local)
@@ -122,23 +145,5 @@ namespace Client.PlaytestReceiver.Upload
             Debug.Log($"[PlaytestReceiver] boxes stay local: {local.Detail}");
         }
 
-        private PlaytestSession ResolveSession(PlaytestDeliveryRoute route)
-        {
-            // 認証方式と開発者トークンごとに寿命管理を分ける
-            // Keep credential lifetimes separate by authentication kind and developer token
-            switch (route)
-            {
-                case PlaytestSteamRoute:
-                    return _sharedSession ??= new PlaytestSession(_api, new SteamTicketSessionCredential(_ticketProvider));
-                case PlaytestDeveloperTokenRoute developer:
-                    if (_developerSession == null || _developerSessionToken != developer.DeveloperToken)
-                    {
-                        _developerSessionToken = developer.DeveloperToken;
-                        _developerSession = new PlaytestSession(_api, new DeveloperTokenSessionCredential(developer.DeveloperToken));
-                    }
-                    return _developerSession;
-                default: throw new System.ArgumentException("A local-only route cannot start an upload", nameof(route));
-            }
-        }
     }
 }

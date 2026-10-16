@@ -7,7 +7,7 @@ namespace Client.Game.InGame.BugReport.Diagnostics
 {
     public static class TrainSyncDiagnosticsCopier
     {
-        public const int MaxFiles = 8;
+        private const int MaxFiles = 8;
 
         public static void Copy(string sourceDirectory, DateTime playStartedAtUtc, string bundleDirectory, BugReportManifest manifest)
         {
@@ -15,33 +15,37 @@ namespace Client.Game.InGame.BugReport.Diagnostics
             if (!Directory.Exists(sourceDirectory)) return;
             var item = BugReportBundleLayout.LogsDirectoryName + "/" + BugReportBundleLayout.TrainSyncDiagnosticsDirectoryName;
 
-            // 診断ファイルは外部ディスク資源。列挙失敗も個別コピー失敗も欠損として報告する
-            // Diagnostic files are external disk resources; report enumeration and individual copy failures as gaps
+            FileInfo[] files;
+            // 外部ディスク境界。列挙とメタデータ取得だけを隔離する
+            // External disk boundary: isolate enumeration and metadata access only
             try
             {
-                var files = new DirectoryInfo(sourceDirectory).GetFiles("stall-*.json")
-                    .Where(file => file.LastWriteTimeUtc >= playStartedAtUtc)
+                files = new DirectoryInfo(sourceDirectory).GetFiles("stall-*.json")
+                    .Where(file => playStartedAtUtc <= file.LastWriteTimeUtc)
                     .OrderByDescending(file => file.LastWriteTimeUtc).ThenBy(file => file.Name).ToArray();
-                if (files.Length > MaxFiles)
-                    manifest.AddMissing(item, $"停滞診断が多すぎるため新しい{MaxFiles}件だけ入れた（全{files.Length}件）");
-
-                foreach (var file in files.Take(MaxFiles))
-                {
-                    try
-                    {
-                        var destination = Path.Combine(bundleDirectory, item);
-                        Directory.CreateDirectory(destination);
-                        File.Copy(file.FullName, Path.Combine(destination, file.Name));
-                    }
-                    catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e))
-                    {
-                        manifest.AddMissing(item + "/" + file.Name, e.Message);
-                    }
-                }
             }
             catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e))
             {
                 manifest.AddMissing(item, e.Message);
+                return;
+            }
+            if (MaxFiles < files.Length)
+                manifest.AddMissing(item, $"停滞診断が多すぎるため新しい{MaxFiles}件だけ入れた（全{files.Length}件）");
+
+            // 個別コピーの外部ディスク失敗を欠損として報告する
+            // Report each external disk copy failure as a missing evidence item
+            foreach (var file in files.Take(MaxFiles))
+            {
+                try
+                {
+                    var destination = Path.Combine(bundleDirectory, item);
+                    Directory.CreateDirectory(destination);
+                    File.Copy(file.FullName, Path.Combine(destination, file.Name));
+                }
+                catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e))
+                {
+                    manifest.AddMissing(item + "/" + file.Name, e.Message);
+                }
             }
         }
     }

@@ -4,7 +4,7 @@ import { DEVELOPER_SUBJECT_PREFIX, isDeveloperSubject } from "./developerSubject
 const BY_HASH = "devtokens/by-hash/";
 const BY_MACHINE = "devtokens/by-machine/";
 export const DEV_TOKEN_PATTERN = /^mdt_[0-9a-f]{64}$/;
-export type IssueResult = { kind: "issued"; token: string } | { kind: "exists" };
+type IssueResult = { kind: "issued"; token: string } | { kind: "exists" };
 type MachineRecord = { hash: string; createdAt: string; revoked?: true };
 
 // 生値は応答だけに使い、台帳にはSHA-256を保存する

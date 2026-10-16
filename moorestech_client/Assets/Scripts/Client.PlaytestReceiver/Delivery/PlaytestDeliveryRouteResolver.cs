@@ -6,7 +6,7 @@ namespace Client.PlaytestReceiver.Delivery
 {
     public static class PlaytestDeliveryRouteResolver
     {
-        public static PlaytestDeliveryRoute ResolveCurrent()
+        internal static PlaytestDeliveryRoute ResolveCurrent()
         {
             // 配布版は開発者トークンのファイルを読まない
             // Distribution builds never read the developer token file

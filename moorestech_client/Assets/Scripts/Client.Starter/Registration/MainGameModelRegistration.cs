@@ -66,7 +66,9 @@ namespace Client.Starter.Registration
             builder.RegisterInstance(PlaytestOutboxDirectories.FromGameSystemPaths());
             builder.RegisterInstance<IPlaytestSteamTicketProvider>(new PlaytestSteamTicketProvider());
             builder.Register<PlaytestUploadRunner>(Lifetime.Singleton).As<IPlaytestUploadRequester>();
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
             builder.RegisterEntryPoint<PlaytestBootUploadTrigger>();
+#endif
 
             // 操作枠と設置数の状態購読を登録
             // Register state subscriptions for hotbar and remaining placements

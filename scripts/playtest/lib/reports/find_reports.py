@@ -54,7 +54,13 @@ def local(logs, limit):
     # Avoid decision schemas so broken boxes retain their location and error
     for box in newest(reports.glob('*/*'), limit):
         meta, manifest = read(box / 'ingest.json'), read(box / 'manifest.json')
-        reporter = tester_label(meta) if meta.get('steamPersonaName') else meta.get('steamId', box.parent.name)
+        if 'steamPersonaName' in meta and not isinstance(meta['steamPersonaName'], str):
+            reason = f'{box / "ingest.json"}: steamPersonaName: 文字列が必要'
+            print(reason, file=sys.stderr)
+            print(f'{box.name}\t読取失敗: {reason}\t{box}')
+            reporter = '表示名不正'
+        else:
+            reporter = tester_label(meta) if meta.get('steamPersonaName') else meta.get('steamId', box.parent.name)
         queued = (box / 'AUTOFIX_QUEUED').exists()
         print(f'{box.name}\t{text(reporter)}\t{text(manifest.get("kind", "missing"))}\t'
               f'{text(manifest.get("description", ""))[:40]}\tAUTOFIX_QUEUED={queued}\t{box}')
@@ -68,13 +74,18 @@ def local(logs, limit):
         print(f'### {name}')
         if not directory.is_dir():
             print(f'ディレクトリが無い: {directory}')
-        paths = directory.glob('*')
+        held = {'.remote-exec-held': '保留', '.duplicate': '重複'}
+        paths = (path for path in directory.glob('*') if name != 'inbox' or path.name not in held)
         # inboxは未処理を全件示し、runsだけ表示上限を適用する
         # Show every pending inbox box and limit only completed or active runs
         for box in newest(paths, limit if name == 'runs' else sys.maxsize):
             result = box / 'fix-result.json'
             status = read(result) if result.is_file() else '結果ファイルなし'
             print(f'{box.name}\t{text(status)}\t{box}')
+        if name == 'inbox':
+            for parent, state in held.items():
+                for box in newest((directory / parent).glob('*'), sys.maxsize):
+                    print(f'{box.name}\t{state}\t{box}')
 
 
 if __name__ == '__main__':

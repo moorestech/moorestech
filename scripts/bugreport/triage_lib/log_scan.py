@@ -26,5 +26,7 @@ def stalls(box):
     files = sorted((box / 'logs/train-sync').glob('*.json'))
     for path in files:
         value = read_json(path)
-        lines.append(f'- {path.name}: {cell(value.get("reason", "reasonが無い"))}')
+        reasons = ' / '.join(f'{key}={cell(value[key]) if key in value else "欠損"}'
+                             for key in ('WaitingReason', 'WaitingReasonAtCapture', 'CaptureReason'))
+        lines.append(f'- {path.name}: {reasons}')
     return lines if files else lines + ['停滞診断ファイルが無い']

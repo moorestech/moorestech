@@ -99,6 +99,7 @@ namespace Client.PlaytestReceiver.Upload
                     case PlaytestUploadFailureKind.Retryable:
                     case PlaytestUploadFailureKind.RetryableThenPermanentForBox:
                         break;
+                    case PlaytestUploadFailureKind.Unauthorized:
                     case PlaytestUploadFailureKind.SessionRefused:
                         Debug.LogWarning($"[PlaytestReceiver] the session was refused; not counting {box.BundleId} and stopping the run: {decision.Description}");
                         return BoxOutcome.SessionRefused;

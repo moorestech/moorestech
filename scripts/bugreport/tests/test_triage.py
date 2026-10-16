@@ -19,15 +19,18 @@ def test_triage(tmp_path):
     (box / 'logs/unity.log').write_text('Error test\nError test\nWarning test\n'
                                         '[TrainSynchronization] Permanently waiting\n')
     bits = struct.unpack('<q', struct.pack('<d', 1.25))[0]
+    distance = struct.unpack('<q', struct.pack('<d', 9.5))[0]
     train = {'TrainUnitInstanceId': 'train1', 'IsAutoRun': True,
-             'CurrentSpeedBits': bits, 'AccumulatedDistanceBits': bits,
+             'CurrentSpeedBits': bits, 'AccumulatedDistanceBits': distance,
              'Diagram': {'Entries': [{}, {}], 'CurrentIndex': 1},
              'railPositionSaveData': {'RailSnapshot': [{'node': 1}]}}
     edge = {'A': 'a', 'B': 'b', 'Length': 123, 'RailTypeGuid': '12345678-rest', 'IsDrawable': True}
     for tick in (200, 100):
         train['IsAutoRun'] = tick == 100
-        write(box / f'snapshots/tick_{tick}.json', {'trainUnits': [train], 'railSegments': [edge, edge]})
-    write(box / 'logs/train-sync/stall-test.json', {'reason': 'waiting'})
+        train['railPositionSaveData']['RailSnapshot'] = [{'node': tick}, {'node': 'second'}]
+        edge = dict(edge, A=f'a{tick}', B=f'b{tick}', Length=tick + 7, IsDrawable=tick == 100)
+        write(box / f'snapshots/tick_{tick}.json', {'trainUnits': [train], 'railSegments': [edge]})
+    write(box / 'logs/train-sync/stall-test.json', {'WaitingReason': 'HashMismatch', 'WaitingReasonAtCapture': 'ReceivedTickGap', 'CaptureReason': 'PermanentlyWaiting'})
     before = {p.relative_to(box): p.read_bytes() for p in box.rglob('*') if p.is_file()}
     result = subprocess.run([sys.executable, str(SCRIPT), str(box), '--out', str(out)],
                             capture_output=True, text=True, check=True)
@@ -39,8 +42,13 @@ def test_triage(tmp_path):
     assert '[TrainSynchronization] Permanently waiting' in report
     rows = [line for line in report.splitlines() if line.startswith('| "train1"')]
     assert len(rows) == 2 and '| 100 |' in rows[0] and '| 200 |' in rows[1]
-    assert '1.25' in rows[0] and '登録2 / index=1' in rows[0]
-    assert 'レール: 2 件' in report and 'video.mp4 が無い' in report
+    assert rows[0] == '| "train1" | 100 | "True" | 1.25 | 9.5 | "登録2 / index=1" | {"node": 100} |'
+    assert rows[1] == '| "train1" | 200 | "False" | 1.25 | 9.5 | "登録2 / index=1" | {"node": 200} |'
+    assert '- "a200" → "b200" (207, 12345678, False)' in report
+    assert 'a100' not in report
+    assert 'レール: 1 件' in report and 'video.mp4 が無い' in report
+    for reason in ('WaitingReason="HashMismatch"', 'WaitingReasonAtCapture="ReceivedTickGap"', 'CaptureReason="PermanentlyWaiting"'):
+        assert reason in report
     assert 'stall-test.json' in report and 'Editor' in report
     assert before == {p.relative_to(box): p.read_bytes() for p in box.rglob('*') if p.is_file()}
 

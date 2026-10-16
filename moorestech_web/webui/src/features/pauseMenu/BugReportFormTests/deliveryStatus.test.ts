@@ -17,4 +17,5 @@ it.each(cases)("送信状況 %j と送信可否を同時に表示する", async 
   await act(async () => loadProductionDictionaries("japanese"));
   expect(renderer.root.findByProps({ "data-testid": "bug-report-delivery" }).children.join("")).toBe(expected);
   expect(statusTexts(renderer)).toHaveLength(1);
+  act(() => renderer.unmount());
 });

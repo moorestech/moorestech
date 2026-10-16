@@ -21,19 +21,24 @@ namespace Client.WebUiHost.Game.Topics
                 PlaytestDeliveryAllSent => new PlaytestDeliveryDto { Kind = "allSent" },
                 _ => throw new ArgumentOutOfRangeException(nameof(status), status, "Unknown delivery status"),
             };
+
+            #region Internal
+
+            // 理由をwire契約の語彙へ変換する
+            // Map reasons into the wire contract vocabulary
+            string DescribeReason(PlaytestLocalOnlyReason reason)
+            {
+                return reason switch
+                {
+                    PlaytestLocalOnlyReason.DeveloperTokenMissing => "developerTokenMissing",
+                    PlaytestLocalOnlyReason.DeveloperTokenUnreadable => "developerTokenUnreadable",
+                    PlaytestLocalOnlyReason.SteamNotRunning => "steamNotRunning",
+                    _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, "Unknown local-only reason"),
+                };
+            }
+
+            #endregion
         }
 
-        // 理由をwire契約の語彙へ変換する
-        // Map reasons into the wire contract vocabulary
-        private static string DescribeReason(PlaytestLocalOnlyReason reason)
-        {
-            return reason switch
-            {
-                PlaytestLocalOnlyReason.DeveloperTokenMissing => "developerTokenMissing",
-                PlaytestLocalOnlyReason.DeveloperTokenUnreadable => "developerTokenUnreadable",
-                PlaytestLocalOnlyReason.SteamNotRunning => "steamNotRunning",
-                _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, "Unknown local-only reason"),
-            };
-        }
     }
 }
