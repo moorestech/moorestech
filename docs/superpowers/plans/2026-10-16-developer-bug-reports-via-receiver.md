@@ -842,7 +842,7 @@ git commit -m "feat(bugreport): Unity不要のトリアージと報告の所在�
 - Create: `moorestech_client/Assets/Scripts/Client.Tests/PlaytestReceiver/RealReceiver/DeveloperReportRealReceiverCheck.cs`（[Explicit] の実機確認テスト）
 - 記録は `../moorestech_logs/harness/sdd/<branch>/verification.md` に書き、PR の報告に載せる。
 
-- [ ] **Step 1: 受け口を反映する**
+- [x] **Step 1: 受け口を反映する**
 
 1. `~/hermes-agent/data/HERMES-OPS.md` と `tools/playtest-receiver/README.md` の反映手順を読む。
 2. その手順どおり `cd tools/playtest-receiver && pnpm test && pnpm run deploy` を行う（wrangler の認証プロファイルは README の手順に従う）。
@@ -850,7 +850,7 @@ git commit -m "feat(bugreport): Unity不要のトリアージと報告の所在�
    - `curl -s -o /dev/null -w '%{http_code}' -X POST https://playtest.moores.tech/v1/session/developer -d '{"token":"x"}'` が 400。
    - 管理キーつきの `GET /v1/admin/dev-tokens` が 200。
 
-- [ ] **Step 2: トークンを発行する**
+- [x] **Step 2: トークンを発行する**
 
 `scripts/playtest/dev-token.sh issue macmini` と `scripts/playtest/dev-token.sh issue winbuild` を実行する。値は会話・ログ・コミットに残さない。Mac mini のトークンは検証後も常設する（裁定）。Mac mini 上の全 worktree の Editor が共通の outbox から本番へ送る前提を verification.md に書く。Mac への受け渡しは一時ファイル経由で行い、ウィンドウへ貼り付けたら一時ファイルは消す。
 
@@ -931,3 +931,9 @@ git commit -m "test(playtest): 本番受け口への開発者経路の実機確�
 ADR 0081の「既存要件を満たす実装上の既定」に従い、JWTを現ハッシュへ束縛、失敗件数の表示、再生IDの診断分離、旧Editor箱の元SHA補完、失効競合409を反映する。人による投入後のinbox監視は継続する。重要ログはTask 9の最大200件を維持し、反復集約・エラー優先・末尾選択と元位置を加える。
 
 大容量コミット資料は既存PlaytestReceiverConfigの上限（単体100MiB・箱256MiB・128ファイル）を参照し、本体/masterのbundleを子転送へ分割する。転送計画の各断片を先行送信し、親の公開時にWorkerが存在・長さを照合する。ingestとprepare-run/prepare-masterは長さ・SHA256を検証し元bundleへ復元する。未push資料は空repoへ復元できる自己完結bundleとして生成する。この実装既定は既存の資料運搬要求を満たすためのもので、新しいユーザー裁定ではない。合成入力による分割・再送・復元検査と、本番大容量送信・2Editor並行の実測を区別する。Windows実送信はライセンス阻害のまま未完了とする。
+
+### 実行・検証の現在地
+
+全ブランチレビューは60/60系統、最終bug-passは20/20系統と外部監査1本を回収し、修正後RefixのCriticalは0件。Unity関連440件とSaveLoad235件が成功、規約confirmed・比較候補は0件。最新Workerは本番へ反映済み。
+
+最新の自己完結コミットbundleは4,461,955,168bytes・43断片。ローカル復元後のSHA256と空repoのbundle検証は成功。本番R2は現在約8.44GB使用しており、追加課金が生じ得るため上限0.30USDの承認待ちで大容量実送信を保留する。過去c53745の小箱Mac実送信・録画成功を最新分割経路の実測には数えない。Windowsはライセンス未認証exit198で未確認。Task10とTask11の反映後録画・本番一貫検証、Task12の終了可能状態は未達としてチェックを残す。
