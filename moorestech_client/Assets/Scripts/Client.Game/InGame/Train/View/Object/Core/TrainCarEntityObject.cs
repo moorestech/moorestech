@@ -1,3 +1,4 @@
+using Client.Game.InGame.Entity.Object;
 using System;
 using Client.Game.InGame.Interact;
 using Client.Game.InGame.Interact.Selection;
@@ -14,6 +15,8 @@ namespace Client.Game.InGame.Train.View.Object.Core
     [RequireComponent(typeof(Rigidbody))]
     public class TrainCarEntityObject : MonoBehaviour, IInteractRayTarget
     {
+        internal TrainCarEntityChildrenObject DeleteTarget { get; private set; }
+        internal void RegisterDeleteTarget(TrainCarEntityChildrenObject target) => DeleteTarget ??= target;
         public TrainCarInstanceId TrainCarInstanceId { get; private set; }
 
         // 当たり判定だけの子から車両のインタラクト面へ案内する
@@ -30,6 +33,7 @@ namespace Client.Game.InGame.Train.View.Object.Core
             // 通常描画 entity に必要な ID と master 情報だけを保持する
             // Keep only the id and master data required by the runtime entity
             TrainCarInstanceId = trainCarInstanceId;
+            DeleteTarget = null;
             _trainCarMasterElement = trainCarMasterElement;
 
             // 乗車と接触判定用の Rigidbody だけを初期化する

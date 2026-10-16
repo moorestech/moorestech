@@ -35,6 +35,11 @@
 - `Localization/localization.csv` は Assets 外にあり、`Client.Localization/csc.rsp` の `/additionalfile` 経由で SourceGenerator に渡る。AssetDatabase が監視しないので、CSV 変更だけでは再生成されない。master へ rebase した直後に出やすい
 - 対処: コードを疑う前に `uloop compile --project-path ./moorestech_client --force-recompile` を1回挟み、続けて通常の `uloop compile` で結果を読む（force 版はエラー本文を返さず `COMPILE_RESULT_UNKNOWN` になることがある。v3 では値なしのフラグ）
 
+### PlayMode起動中の再コンパイル後、初期化済みのUIでNullReferenceが反復する
+- Editor.logで `SchemaWatchOrchestrator:CheckForChanges` の変更検出→再コンパイル→Domain Reload→NullReferenceの順序を確認する。起動途中のreloadは初期化済みの非シリアライズ状態を失わせるため、null補完で続行しない
+- PlayModeを停止し、`uloop execute-dynamic-code --project-path ./moorestech_client --code 'SchemaWatcher.CheckForChanges();'` で未検出の変更を処理してから通常compileの完了を確認し、正規の起動入口で再起動する
+- SchemaWatcherの監視間隔は `EditorApplication.timeSinceStartup` で測る。EditModeでも進む時計を使い、ゲームの `Time.deltaTime` に依存させない
+
 ### regex フィルタで除外したはずの重いテストが走る
 - `--filter-type regex` の値は Unity TestRunner の groupNames として渡り、テストケースだけでなく親 suite（namespace・fixture）の FullName にも照合される。親が一致すると配下は全件走る。否定先読み（`^(?!.*Foo\.).*Bar.*$`）は namespace ノードで一致してしまい除外にならない
 - 対処: 走らせたいクラスを肯定形で列挙する（`ClassA|ClassB`、または `--filter-type class`）。除外は効かない前提でフィルタを組む

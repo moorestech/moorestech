@@ -1,3 +1,4 @@
+using Client.Game.InGame.Entity.Removal;
 using Client.Game.InGame.UI.UIState.State.DragDelete;
 using Client.Game.InGame.UI.Notification;
 using Client.Game.InGame.Block;
@@ -12,6 +13,7 @@ namespace Client.Game.InGame.Context
     {
         public static DIContainer DIContainer { get; private set; }
         public static BlockGameObjectDataStore BlockGameObjectDataStore { get; set; }
+        public static TrainCarRemovalRequests TrainCarRemovalRequests { get; private set; }
         public static BuildOperationHistory BuildOperationHistory { get; private set; }
 
         public static BlockAttachedConnectionResolver BlockAttachedConnectionResolver { get; private set; }
@@ -22,6 +24,7 @@ namespace Client.Game.InGame.Context
         public ClientDIContext(DIContainer diContainer)
         {
             DIContainer = diContainer;
+            TrainCarRemovalRequests = diContainer.DIContainerResolver.Resolve<TrainCarRemovalRequests>();
             ClientLocalNotificationSource = diContainer.DIContainerResolver.Resolve<ClientLocalNotificationSource>();
             ConnectionLineRegistry = diContainer.DIContainerResolver.Resolve<ConnectionLineRegistry>();
             BlockGameObjectDataStore = diContainer.DIContainerResolver.Resolve<BlockGameObjectDataStore>();

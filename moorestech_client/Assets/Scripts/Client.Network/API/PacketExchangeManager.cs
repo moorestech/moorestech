@@ -17,7 +17,7 @@ namespace Client.Network.API
     /// </summary>
     public class PacketExchangeManager
     {
-        private const int DefaultResponseTimeoutSeconds = 10;
+        public static readonly TimeSpan ResponseTimeout = TimeSpan.FromSeconds(10);
         private readonly PacketSender _packetSender;
 
         private readonly Dictionary<int, ResponseWaiter> _responseWaiters = new();
@@ -92,7 +92,7 @@ namespace Client.Network.API
                 var expired = new List<int>();
                 foreach (var kv in _responseWaiters)
                 {
-                    if ((DateTime.Now - kv.Value.SendTime).TotalSeconds >= kv.Value.TimeoutSeconds)
+                    if (kv.Value.HasExpired(DateTime.Now))
                         expired.Add(kv.Key);
                 }
 
@@ -124,11 +124,19 @@ namespace Client.Network.API
             return response;
         }
 
+        // UIの期限と独立して、同じsequenceの最終応答を保持する
+        // Retain the final response for the same sequence independently of the UI deadline
+        public async UniTask<TResponse> GetFinalPacketResponse<TResponse>(ProtocolMessagePackBase request, CancellationToken ct) where TResponse : ProtocolMessagePackBase
+        {
+            var (response, _) = await GetPacketResponseWithReason<TResponse>(request, ct, 0);
+            return response;
+        }
+
         // 完了理由が必要な呼び出し元向け（タイムアウトを区別したい場合に使う）
         // For callers that need to distinguish between timeout and other failures
         public UniTask<(TResponse response, PacketWaitCompletionReason reason)> GetPacketResponseWithReason<TResponse>(ProtocolMessagePackBase request, CancellationToken ct) where TResponse : ProtocolMessagePackBase
         {
-            return GetPacketResponseWithReason<TResponse>(request, ct, DefaultResponseTimeoutSeconds);
+            return GetPacketResponseWithReason<TResponse>(request, ct, (int)ResponseTimeout.TotalSeconds);
         }
 
         public async UniTask<(TResponse response, PacketWaitCompletionReason reason)> GetPacketResponseWithReason<TResponse>(ProtocolMessagePackBase request, CancellationToken ct, int timeoutSeconds) where TResponse : ProtocolMessagePackBase

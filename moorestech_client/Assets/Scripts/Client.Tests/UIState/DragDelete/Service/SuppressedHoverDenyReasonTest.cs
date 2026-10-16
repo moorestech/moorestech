@@ -54,21 +54,21 @@ namespace Client.Tests.UIState
             // 戻し失敗後に撤去拒否が届く順序を再現する
             // Reproduce a removal denial arriving after a failed preview reset
             var tooltip = new MouseCursorTooltipState();
-            var service = new DeleteObjectService(new BuildOperationHistory(), tooltip, new FakeRemovalRestoreSender());
-            service.Update();
+            var service = new DeleteObjectService(new BuildOperationHistory(), tooltip, new FakeRemovalRestoreSender(), new Client.Game.InGame.UI.ProgressBar.ProgressBarState(), camera, new Client.Game.InGame.BlockSystem.PlaceSystem.Common.PlacementHeightOffset(), new Client.Game.InGame.UI.UIState.State.DragDelete.Box.DeleteBoxTargetResolver(null, null));
+            service.Update(0, false);
             Assert.AreEqual(1, target.Target.SetPreviewCount);
-            Assert.Throws<InvalidOperationException>(() => service.CancelSelection());
+            Assert.Throws<InvalidOperationException>(() => service.ClearAll());
             target.Target.Removable = false;
             target.Target.DenyReason = LocalizationKeys.Ui.Delete.RailHasVehicle;
 
             // 再保持を抑止しても毎フレームのHide後に理由を再表示する
             // Redisplay denial after each frame's Hide while suppressing reacquisition
             LogAssert.Expect(LogType.Warning, "[DragDelete] delete preview suppressed because the target's previous reset did not complete");
-            service.Update();
+            service.Update(0, false);
             Assert.IsTrue(tooltip.GetPresentation().Visible);
-            service.Update();
+            service.Update(0, false);
             Assert.AreEqual(LocalizationKeys.Ui.Delete.RailHasVehicle, tooltip.GetPresentation().Lines[0].Key);
-            Assert.DoesNotThrow(() => service.CancelSelection());
+            Assert.DoesNotThrow(() => service.ClearAll());
             Assert.AreEqual(1, target.Target.ResetCount);
             Assert.AreEqual(1, target.Target.SetPreviewCount);
         }
@@ -79,6 +79,7 @@ namespace Client.Tests.UIState
     public class HoverDenyReasonTarget : MonoBehaviour, IDeleteTarget
     {
         public readonly FakeDeleteTarget Target = new();
+        public IObservable<Client.Game.InGame.UI.UIState.State.DragDelete.Completion.DeleteCompletion> OnDeleteCompleted => Target.OnDeleteCompleted;
         public void SetRemovePreviewing() => Target.SetRemovePreviewing();
         public void ResetMaterial() => Target.ResetMaterial();
         public bool IsRemovable(out LocalizationKey? reason) => Target.IsRemovable(out reason);

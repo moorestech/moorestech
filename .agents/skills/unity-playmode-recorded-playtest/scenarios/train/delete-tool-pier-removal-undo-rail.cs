@@ -1,7 +1,7 @@
 // 削除ツールで橋脚を撤去するとレールも巻き込まれて素材が返り、Ctrl+Zで橋脚とレールが同じ種類・同じ往復2辺で戻ることの録画検証（電線・チェーンは connect/delete-tool-cut-and-undo-connection-lines.cs）
-// 記録フックは DragDeleteSelection.CommitDelete と BuildUndoService（Ctrl+Z）にあるため、操作は必ず削除ツールUIへの注入で行う
+// 記録フックは DeleteSelection.CommitDelete と BuildUndoService（Ctrl+Z）にあるため、操作は必ず削除ツールUIへの注入で行う
 // Recorded check: removing a pier with the delete tool drops its rail with a refund, and Ctrl+Z restores pier and rail with the same type and both directed edges (wires/chains: connect/delete-tool-cut-and-undo-connection-lines.cs)
-// Recording hooks live in DragDeleteSelection.CommitDelete and BuildUndoService (Ctrl+Z), so every operation is injected into the delete-tool UI
+// Recording hooks live in DeleteSelection.CommitDelete and BuildUndoService (Ctrl+Z), so every operation is injected into the delete-tool UI
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +10,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State.DragDelete;
 using Client.Playtest;
+using Client.Playtest.Operations.Ui;
 using Client.Playtest.Input;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
@@ -35,13 +36,9 @@ return PlaytestRunner.Run("delete-tool-pier-removal-undo-rail", new PlaytestRunO
     // 在庫の消費と返却を見るため無料設置は切る
     // Disable free placement to observe consumption and refunds
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig { FreeBlockPlacement = false, SpawnPosition = new Vector3(8f, 33.5f, -6f) });
-    await p.SkipOpeningSkit();
+    await p.SkipOpeningSkitIfPlaying();
 
-    // GameViewへプレイフォーカスを当て直す（CEF起動等で外れるとInputSystemがキーボード・マウスを無効化し注入が届かない）
-    // Re-give the Game view play focus (losing it, e.g. to CEF startup, disables InputSystem devices and drops injection)
-    foreach (var windowType in new[] { "SceneHierarchyWindow", "GameView" }) { Resources.FindObjectsOfTypeAll<UnityEditor.EditorWindow>().First(w => w.GetType().Name == windowType).Focus(); await UniTask.DelayFrame(5); }
-    foreach (var device in InputSystem.devices) if (!device.enabled) InputSystem.EnableDevice(device);
-    await p.Until(() => Application.isFocused && Keyboard.current.enabled, 10f, "環境: GameViewがプレイフォーカスを持ち入力デバイスが有効");
+    await PlaytestUiOps.FocusGameViewAndEnableInput(p);
     p.Hotbar.UnlockConnectTool("レール");
     await p.PrepareBlockForUiPlacement("レール橋脚", 5);
     foreach (var item in new[] { "補強棒材", "鉄板" }) await p.GiveItem(item, 64);
@@ -73,6 +70,7 @@ return PlaytestRunner.Run("delete-tool-pier-removal-undo-rail", new PlaytestRunO
     await p.Screenshot("02-hover-pier-rail-red");
     var plateBefore = p.CountItem("鉄板"); var rodBefore = p.CountItem("補強棒材");
     SemanticInput.MouseButtonDown(0); await UniTask.DelayFrame(10); SemanticInput.MouseButtonUp(0);
+    await HoldDeleteConfirm();
     await p.Until(() => p.GetBlock(pierE) == null && plateBefore < p.CountItem("鉄板") && rodBefore < p.CountItem("補強棒材"), 15f, "Step1: 橋脚Eが撤去されレール素材が返却される");
     p.Assert(!RailOf(pierF).FrontNode.ConnectedNodes.Any() && !RailOf(pierF).BackNode.ConnectedNodes.Any(), "Step1: 橋脚Fからレールが消える");
     await p.Until(() => !HasClientBlock(pierE), 10f, "Step1: クライアントからも橋脚Eが消える");
@@ -88,10 +86,34 @@ return PlaytestRunner.Run("delete-tool-pier-removal-undo-rail", new PlaytestRunO
     await p.WaitSeconds(0.5f);
     await p.Screenshot("03-pier-and-rail-restored");
 
+    // Step 3: レール中点を跨ぐ箱でedgeを選び、F長押しで撤去する
+    // Step 3: box-select across the rail midpoint and remove the edge by holding F
+    p.Note("Step 3: レール中点を跨ぐ箱で選択してF長押し撤去");
+    var edgesBefore = Client.Game.InGame.Train.RailGraph.TrainRailObjectManager.Instance.EnumerateRailChains().Count();
+    await DeleteBoxScenarioInput.Start(p, new Vector3Int(13, 32, 9));
+    await p.PressKey(Key.E);
+    await DeleteBoxScenarioInput.AimAtGround(p, new Vector3Int(15, 32, 11));
+    await p.Until(() => 1 <= DeleteBoxScenarioInput.ReadRequiredTooltipCount(Mooresmaster.Localization.Generated.LocalizationKeys.Ui.Tooltip.DeleteBoxTargetsInRange), 5f, "高さ33の箱にレールedgeが入る");
+    await DeleteBoxScenarioInput.Click();
+    await HoldDeleteConfirm();
+    await p.Until(() => Client.Game.InGame.Train.RailGraph.TrainRailObjectManager.Instance.EnumerateRailChains().Count() < edgesBefore, 15f, "Step3: 箱選択したレールedgeが消える");
+    await p.Screenshot("04-box-rail-removed");
+
     await p.WaitSeconds(1f);
     p.Assert(denied.Count == 0 && badLogs.Count == 0, $"全区間: 拒否通知・復元失敗・例外ログが無い: {string.Join(" | ", denied.Concat(badLogs))}");
 
     #region Internal
+
+    // 選択後にFを2秒長押しして撤去を確定する
+    // Hold F for two seconds to confirm deletion after selecting
+    async UniTask HoldDeleteConfirm()
+    {
+        p.Note("F長押しで削除を確定");
+        SemanticInput.KeyDown(Key.F);
+        await p.WaitSeconds(2f + 0.3f);
+        SemanticInput.KeyUp(Key.F);
+        await p.WaitSeconds(0.5f);
+    }
 
     Guid ToolGuid(string toolName) => Core.Master.MasterHolder.ConnectToolMaster.All.First(t => t.Name == toolName).ConnectToolGuid;
     Game.Block.Blocks.TrainRail.RailComponent RailOf(Vector3Int pos) => p.GetBlock(pos)?.GetComponent<Game.Block.Blocks.TrainRail.RailComponent>();

@@ -12,6 +12,7 @@ namespace Client.Playtest.WebUi
     public class DomQueryResult
     {
         public bool Found;
+        public bool Visible;
         public float X;
         public float Y;
         public float Width;
@@ -125,6 +126,7 @@ namespace Client.Playtest.WebUi
                 // Validate each externally sourced WS value before admitting it to the pending dictionary
                 if (!TryReadString("requestId", out var requestId) ||
                     !TryReadBool("found", out var found) ||
+                    !TryReadBool("visible", out var visible) ||
                     !TryReadFloat("x", out var x) ||
                     !TryReadFloat("y", out var y) ||
                     !TryReadFloat("width", out var width) ||
@@ -141,6 +143,7 @@ namespace Client.Playtest.WebUi
                 var result = new DomQueryResult
                 {
                     Found = found,
+                    Visible = visible,
                     X = x,
                     Y = y,
                     Width = width,

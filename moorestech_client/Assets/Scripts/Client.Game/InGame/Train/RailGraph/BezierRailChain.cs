@@ -1,10 +1,10 @@
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.RangeBox;
 using System.Collections.Generic;
 using Client.Common;
 using Client.Game.InGame.Block;
 using Cysharp.Threading.Tasks;
 using Game.Train.RailCalc;
 using UnityEngine;
-
 /// <summary>
 /// 1本のベジエ曲線上にFBXレールモジュールを並べる親オブジェクト
 /// Hosts multiple BezierRailMesh segments under a single spline definition
@@ -18,7 +18,6 @@ namespace Client.Game.InGame.Train.RailGraph
         [SerializeField] private GameObject _quarterModulePrefab;
         [SerializeField] private GameObject _eighthModulePrefab;
         [SerializeField] private bool _useMeshCollider = true;
-
         private Vector3 _point0 = new(0f, 0f, 0f);
         private Vector3 _point1 = new(0f, 0f, 2f);
         private Vector3 _point2 = new(0f, 0f, 4f);
@@ -31,20 +30,19 @@ namespace Client.Game.InGame.Train.RailGraph
         private float[] _arcLengths;
         private bool _useGpuDeform;
         private Color _previewColor = MaterialConst.PlaceableColor;
-
         private readonly BezierRailChainSegments _segments = new();
         private readonly RailChainRemoveMaterial _removePreview = new();
-        
         private RailGraphClientCache _railGraphClientCache;
         private RendererShaderAnimation _rendererShaderAnimation;
-        
         public bool IsRemoving { get; private set; }
-        
+        internal DeleteTargetRail DeleteTarget { get; private set; }
+        private BezierCellBoxIntersection _boxIntersection;
+        internal void RegisterDeleteTarget(DeleteTargetRail target) => DeleteTarget ??= target;
+        internal bool IntersectsCellBox(Vector3Int min, Vector3Int max) => _boxIntersection.Intersects(min, max);
         public void SetRailGraphCache(RailGraphClientCache cache)
         {
             _railGraphClientCache = cache;
         }
-
         // GPU変形の使用を設定する
         // Configure GPU deform usage
         public void SetUseGpuDeform(bool enable)
@@ -52,7 +50,6 @@ namespace Client.Game.InGame.Train.RailGraph
             _useGpuDeform = enable;
             _segments.SetUseGpuDeform(_useGpuDeform);
         }
-
         // プレビュー色を設定する
         // Set preview color
         public void SetPreviewColor(Color color)
@@ -60,27 +57,23 @@ namespace Client.Game.InGame.Train.RailGraph
             _previewColor = color;
             _segments.SetPreviewColor(_previewColor);
         }
-        
         public async UniTask PlaceAnimation()
         {
             _rendererShaderAnimation ??= gameObject.AddComponent<RendererShaderAnimation>();
             await _rendererShaderAnimation.PlaceAnimation();
             if (this == null) return;
-
             // 設置アニメの材質リセットで置換器が古くなるため、作り直してから赤を戻す
             // The place animation's material reset stales the replacer, so recapture before restoring red
             _removePreview.Release();
             if (!_useGpuDeform) _removePreview.Capture(gameObject);
             if (TryGetComponent<RailChainRemovePreview>(out var preview)) preview.Reapply();
         }
-        
         public async UniTask RemoveAnimation()
         {
             IsRemoving = true;
             _rendererShaderAnimation ??= gameObject.AddComponent<RendererShaderAnimation>();
             await _rendererShaderAnimation.RemoveAnimation();
         }
-
         // MeshColliderの使用可否を設定する
         // Configure MeshCollider usage
         public void SetUseMeshCollider(bool useMeshCollider)
@@ -88,7 +81,6 @@ namespace Client.Game.InGame.Train.RailGraph
             _useMeshCollider = useMeshCollider;
             _segments.SetUseMeshCollider(_useMeshCollider);
         }
-        
         /// <summary>外部コードから制御点を再設定する</summary>
         public void SetControlPoints(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3)
         {
@@ -96,27 +88,26 @@ namespace Client.Game.InGame.Train.RailGraph
             _point1 = p1;
             _point2 = p2;
             _point3 = p3;
+            _boxIntersection = new BezierCellBoxIntersection(p0, p1, p2, p3);
         }
-
         public void Rebuild()
         {
             // ベジエチェーンを最新情報で組み直す
             // Rebuild full chain along the current control points
             _removePreview.Release();
+            DeleteTarget = null;
             _segments.Clear(transform);
             if (_modulePrefab == null)
             {
                 Debug.LogWarning("[BezierRailChain] rebuild skipped: module prefab missing");
                 return;
             }
-
             var moduleLength = _segments.GetModuleLength(_modulePrefab, _forwardAxis, _upAxis, 0f);
             if (moduleLength <= 0f)
             {
                 Debug.LogWarning("[BezierRailChain] rebuild skipped: module length unavailable");
                 return;
             }
-
             _curveSampleCountCache = _useGpuDeform ? Mathf.Clamp(_curveSamples, 8, BezierRailMesh.MaxCurveSamples) : _curveSamples;
             _curveLength = BezierUtility.BuildArcLengthTable(_point0, _point1, _point2, _point3, _curveSampleCountCache, ref _arcLengths);
             if (_curveLength <= 1e-4f)
@@ -124,7 +115,7 @@ namespace Client.Game.InGame.Train.RailGraph
                 Debug.LogWarning("[BezierRailChain] rebuild skipped: curve too short");
                 return;
             }
-
+            _boxIntersection ??= new BezierCellBoxIntersection(_point0, _point1, _point2, _point3);
             // メッシュ生成へ現在の曲線設定を渡す
             // Pass current curve settings to mesh creation
             _segments.Configure(new BezierRailChainSegments.Settings
@@ -147,14 +138,12 @@ namespace Client.Game.InGame.Train.RailGraph
             });
             var offset = 0f;
             var fullSegmentCount = Mathf.Max(0, Mathf.FloorToInt(_curveLength / moduleLength));
-
             for (var i = 0; i < fullSegmentCount; i++)
             {
                 var segment = _segments.CreateSegmentGO(i, _modulePrefab);
                 _segments.ConfigureSegmentInstance(segment, offset, moduleLength);
                 offset += moduleLength;
             }
-
             var remainder = Mathf.Max(0f, _curveLength - offset);
             if (remainder > 1e-4f)
             {
@@ -162,33 +151,29 @@ namespace Client.Game.InGame.Train.RailGraph
                 // Generate extra remainder coverage and let end clamping shrink the last segment
                 _segments.FillRemainder(remainder, moduleLength, offset, _halfModulePrefab, _quarterModulePrefab, _eighthModulePrefab);
             }
-
             if (!_useGpuDeform) _removePreview.Capture(gameObject);
-
             // 組み直しで消えた赤を戻す
             // Restore the red lost by the rebuild
             if (TryGetComponent<RailChainRemovePreview>(out var preview)) preview.Reapply();
         }
-
         private void OnDestroy()
         {
             _removePreview.Release();
+            DeleteTarget = null;
             _segments.Clear(transform);
         }
-
         private void OnDisable()
         {
             _removePreview.Release();
+            DeleteTarget = null;
             _segments.Clear(transform);
         }
-
         // 撤去アニメ中の扱いは赤の唯一の書き手 RailChainRemovePreview が判断する
         // The sole red writer RailChainRemovePreview decides how to treat a rail under removal animation
         internal void SetRemovePreviewing()
         {
             _removePreview.SetRed(gameObject, _useGpuDeform, _segments);
         }
-
         internal void ResetMaterial()
         {
             _removePreview.Reset(_useGpuDeform, _previewColor, _segments);

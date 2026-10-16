@@ -12,6 +12,10 @@ namespace Client.Network.API
             SendTime = DateTime.Now;
         }
 
+        // UIの期限とは独立した待機は期限切れにしない
+        // A wait independent of the UI deadline does not expire
+        public bool HasExpired(DateTime now) => TimeoutSeconds > 0 && (now - SendTime).TotalSeconds >= TimeoutSeconds;
+
         public Subject<(byte[] data, PacketWaitCompletionReason reason)> WaitSubject { get; }
         public int TimeoutSeconds { get; }
         public DateTime SendTime { get; }

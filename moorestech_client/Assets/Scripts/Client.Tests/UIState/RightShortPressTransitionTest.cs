@@ -1,3 +1,4 @@
+using Client.Game.InGame.UI.ProgressBar;
 using Client.Tests.BuildUndo;
 using System;
 using System.Runtime.Serialization;
@@ -65,7 +66,7 @@ namespace Client.Tests.UIState
         {
             var tooltip = CreateMouseCursorTooltip();
             var rightShortPressInputService = new RightShortPressInputService(new RightShortPressInput());
-            var state = new DeleteObjectState(new FakeRemovalRestoreSender(), CreateCameraPolicy(new FakePlayerCameraInteractionApplier()), new BuildOperationHistory(), new BuildUndoService(new BuildOperationHistory(), null), new PlacementTargetPickService(null, null), rightShortPressInputService, tooltip);
+            var state = new DeleteObjectState(new FakeRemovalRestoreSender(), CreateCameraPolicy(new FakePlayerCameraInteractionApplier()), new BuildOperationHistory(), new BuildUndoService(new BuildOperationHistory(), null), new PlacementTargetPickService(null, null), rightShortPressInputService, tooltip, new ProgressBarState(), CreateObject("DeleteTestCamera", true).AddComponent<Camera>(), new PlacementHeightOffset(), null, null);
             state.OnEnter(new UITransitContext(UIStateEnum.DeleteBar));
 
             var transit = PressAndReleaseRightButton(state);

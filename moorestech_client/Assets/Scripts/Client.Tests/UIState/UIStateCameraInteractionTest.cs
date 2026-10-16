@@ -1,3 +1,5 @@
+using UnityEngine;
+using Client.Game.InGame.UI.ProgressBar;
 using Client.Tests.BuildUndo;
 using System.Runtime.Serialization;
 using Client.Game.InGame.Block;
@@ -89,7 +91,7 @@ namespace Client.Tests.UIState
             // Share the history with the service (avoids the trap of recording into a different instance than the one popped)
             var buildOperationHistory = new BuildOperationHistory();
             var rightShortPressInputService = new RightShortPressInputService(new RightShortPressInput());
-            var state = new DeleteObjectState(new FakeRemovalRestoreSender(), CreateCameraPolicy(applier), buildOperationHistory, new BuildUndoService(buildOperationHistory, null), new PlacementTargetPickService(null, null), rightShortPressInputService, new MouseCursorTooltipState());
+            var state = new DeleteObjectState(new FakeRemovalRestoreSender(), CreateCameraPolicy(applier), buildOperationHistory, new BuildUndoService(buildOperationHistory, null), new PlacementTargetPickService(null, null), rightShortPressInputService, new MouseCursorTooltipState(), new ProgressBarState(), CreateObject("DeleteTestCamera", true).AddComponent<Camera>(), new PlacementHeightOffset(), null, null);
             state.OnEnter(new UITransitContext(UIStateEnum.DeleteBar));
             CollectionAssert.AreEqual(new[] { "Mode:PointerFree" }, applier.Calls);
 

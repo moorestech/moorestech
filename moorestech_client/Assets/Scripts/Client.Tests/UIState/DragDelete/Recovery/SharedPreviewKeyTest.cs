@@ -17,7 +17,7 @@ namespace Client.Tests.UIState
         {
             var recovery = new DeletePreviewResetRecovery();
             var hover = new SingleHoverDeletePreview(recovery);
-            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), recovery);
+            var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), recovery);
             var view = new object();
             var first = new FakeDeleteTarget { PreviewResetKey = view, ThrowOnReset = true };
             var other = new FakeDeleteTarget { PreviewResetKey = view, Removable = true, ThrowOnReset = true };
@@ -30,8 +30,8 @@ namespace Client.Tests.UIState
             hover.Hover(other);
             hover.Hover(first);
             Assert.IsNull(hover.Current);
-            selection.BeginDrag();
-            Assert.IsTrue(selection.TryAddTarget(other, out _));
+            selection.BeginStroke();
+            Assert.IsTrue(selection.TryAddTarget(other).IsAdded);
             if (commit) selection.CommitDelete();
             else selection.CancelSelection();
             Assert.AreEqual(0, other.ResetCount);
@@ -44,11 +44,11 @@ namespace Client.Tests.UIState
         public void SelectionFailureSuppressesOtherHoverWrapper()
         {
             var recovery = new DeletePreviewResetRecovery();
-            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), recovery);
+            var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), recovery);
             var view = new object();
             var selected = new FakeDeleteTarget { PreviewResetKey = view, Removable = true, ThrowOnReset = true };
-            selection.BeginDrag();
-            Assert.IsTrue(selection.TryAddTarget(selected, out _));
+            selection.BeginStroke();
+            Assert.IsTrue(selection.TryAddTarget(selected).IsAdded);
             Assert.Throws<InvalidOperationException>(() => selection.CommitDelete());
 
             // 選択から単体ホバーへ渡る方向でも同一表示の失敗を共有する

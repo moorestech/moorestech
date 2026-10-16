@@ -49,7 +49,7 @@ namespace Client.Tests.BuildUndo
             };
             var sender = new FakeRemovalRestoreSender();
 
-            var record = RemoveOperationRecord.CreateFrom(targets, sender);
+            var record = RemovalRecordTestCapture.CreateFrom(targets, sender);
             record.UndoAsync(new FakeOccupancy(false)).GetAwaiter().GetResult();
 
             Assert.IsTrue(record.HasRemovedObjects);
@@ -66,7 +66,7 @@ namespace Client.Tests.BuildUndo
             var block = new RemovedBlock(Vector3Int.zero, ForUnitTestModBlockId.MachineId, BlockDirection.North, Array.Empty<BlockCreateParam>());
             var chain = new RemovedConnectionLine(Vector3Int.zero, new Vector3Int(3, 0, 0), guid, new FakeConnectionLineCommands(ConnectionLineKind.GearChain));
             var sender = new FakeRemovalRestoreSender();
-            var record = RemoveOperationRecord.CreateFrom(new List<IDeleteTarget> { new FakeDeleteTarget { RemovedObjects = { block, chain } } }, sender);
+            var record = RemovalRecordTestCapture.CreateFrom(new List<IDeleteTarget> { new FakeDeleteTarget { RemovedObjects = { block, chain } } }, sender);
 
             if (!lineSent) LogAssert.Expect(LogType.Warning, $"[RemovalRestore] skip re-place: footprint occupied at {Vector3Int.zero}");
             if (!lineSent) LogAssert.Expect(LogType.Warning, $"[RemovalRestore] skip line restore: endpoint block not restored {Vector3Int.zero}-{new Vector3Int(3, 0, 0)}");
@@ -87,7 +87,7 @@ namespace Client.Tests.BuildUndo
             var tool = Guid.NewGuid();
             var line = new RemovedConnectionLine(posA, posB, tool, new FakeConnectionLineCommands(kind));
             var sender = new FakeRemovalRestoreSender();
-            var record = RemoveOperationRecord.CreateFrom(new List<IDeleteTarget> { new FakeDeleteTarget { RemovedObjects = { line } } }, sender);
+            var record = RemovalRecordTestCapture.CreateFrom(new List<IDeleteTarget> { new FakeDeleteTarget { RemovedObjects = { line } } }, sender);
 
             record.UndoAsync(new FakeOccupancy(false)).GetAwaiter().GetResult();
 
@@ -105,7 +105,7 @@ namespace Client.Tests.BuildUndo
             var tool = Guid.NewGuid();
             var line = new RemovedConnectionLine(posA, posB, tool, new FakeConnectionLineCommands(ConnectionLineKind.ElectricWire));
             var sender = new FakeRemovalRestoreSender();
-            var record = RemoveOperationRecord.CreateFrom(new List<IDeleteTarget> { new FakeDeleteTarget { RemovedObjects = { line } } }, sender);
+            var record = RemovalRecordTestCapture.CreateFrom(new List<IDeleteTarget> { new FakeDeleteTarget { RemovedObjects = { line } } }, sender);
 
             record.UndoAsync(new FakeOccupancy(false)).GetAwaiter().GetResult();
 
@@ -120,7 +120,7 @@ namespace Client.Tests.BuildUndo
             LogAssert.Expect(LogType.Warning, "[RemovalRestore] unrecordable: rail node not synced");
             var target = new FakeDeleteTarget { UnrecordableReasons = { "rail node not synced" } };
             var sender = new FakeRemovalRestoreSender();
-            var record = RemoveOperationRecord.CreateFrom(new List<IDeleteTarget> { target }, sender);
+            var record = RemovalRecordTestCapture.CreateFrom(new List<IDeleteTarget> { target }, sender);
 
             Assert.IsTrue(record.HasRemovedObjects);
             record.UndoAsync(new FakeOccupancy(false)).GetAwaiter().GetResult();
@@ -133,7 +133,7 @@ namespace Client.Tests.BuildUndo
         {
             var block = new RemovedBlock(Vector3Int.zero, ForUnitTestModBlockId.MachineId, BlockDirection.North, Array.Empty<BlockCreateParam>());
             var sender = new FakeRemovalRestoreSender();
-            var record = RemoveOperationRecord.CreateFrom(new[] { new FakeDeleteTarget { RemovedObjects = { block } } }, sender);
+            var record = RemovalRecordTestCapture.CreateFrom(new[] { new FakeDeleteTarget { RemovedObjects = { block } } }, sender);
 
             record.UndoAsync(new FakeOccupancy(BlockFootprintOccupancy.SameBlockPresent)).GetAwaiter().GetResult();
             Assert.IsEmpty(sender.Sent);
@@ -147,7 +147,7 @@ namespace Client.Tests.BuildUndo
             target.UnrecordableBlocks.Add((Vector3Int.zero, BlockDirection.North, ForUnitTestModBlockId.MachineId, "missing create params"));
             var sender = new FakeRemovalRestoreSender();
             LogAssert.Expect(LogType.Warning, "[RemovalRestore] unrecordable: missing create params");
-            var record = RemoveOperationRecord.CreateFrom(new[] { target }, sender);
+            var record = RemovalRecordTestCapture.CreateFrom(new[] { target }, sender);
 
             record.UndoAsync(new FakeOccupancy(occupancy)).GetAwaiter().GetResult();
             if (expectedSkipped == 0) Assert.IsEmpty(sender.Sent);
@@ -159,7 +159,7 @@ namespace Client.Tests.BuildUndo
         {
             // 何も記録しない対象だけなら履歴に積まない
             // Targets recording nothing produce no history entry
-            var record = RemoveOperationRecord.CreateFrom(new List<IDeleteTarget> { new FakeDeleteTarget() }, new FakeRemovalRestoreSender());
+            var record = RemovalRecordTestCapture.CreateFrom(new List<IDeleteTarget> { new FakeDeleteTarget() }, new FakeRemovalRestoreSender());
             Assert.IsFalse(record.HasRemovedObjects);
         }
 

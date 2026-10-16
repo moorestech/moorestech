@@ -145,7 +145,9 @@ namespace Client.Input
             _suppressionScope = suppressionScope;
             key.started += _ => { if (!IsSuppressed()) OnGetKeyDown?.Invoke(); };
             key.performed += _ => { if (!IsSuppressed()) OnGetKey?.Invoke(); };
-            key.canceled += _ => { if (!IsSuppressed()) OnGetKeyUp?.Invoke(); };
+            // 解放待ちラッチへ、入力抑止中も実解放を届ける
+            // Deliver releases during suppression so release-wait latches can reset
+            key.canceled += _ => OnGetKeyUp?.Invoke();
         }
         
         public bool GetKeyDown => ReadButton(_inputAction.WasPressedThisFrame() || TestKeyDown);
