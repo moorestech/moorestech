@@ -141,6 +141,9 @@ ui.pauseMenu.settings,Settings,Settings,設定,Einstellungen,설정
 ui.pauseMenu.bugReport,Bug report,Bug report,バグ報告,Fehlerbericht,버그 신고
 ui.pauseMenu.back,Back,Back,戻る,Zurück,돌아가기
 ui.settings.language,Language,Language,言語,Sprache,언어
+ui.settings.sprintMode,Sprint,Sprint,走り,Sprinten,달리기
+ui.settings.sprintModeToggle,Toggle,Toggle,トグル,Umschalten,토글
+ui.settings.sprintModeHold,Hold,Hold,ホールド,Halten,누르기
 ui.recipe.catalogTitle,CRAFT RECIPE,CRAFT RECIPE,クラフトレシピ,HANDWERKSREZEPT,제작 레시피
 ui.recipe.selectItemHint,Select an item from the list on the right,Select an item from the list on the right,右のリストからアイテムを選択してください,Wählen Sie einen Gegenstand aus der Liste rechts,오른쪽 목록에서 아이템을 선택하세요
 ui.recipe.materialTooltip,{itemName}\nOwned: {ownedCount}\nRequired: {requiredCount}\nClick to view recipes for this item,{itemName}\nOwned: {ownedCount}\nRequired: {requiredCount}\nClick to view recipes for this item,{itemName}\n所持数: {ownedCount}\n必要数: {requiredCount}\nクリックでこのアイテムのレシピを確認,"{itemName}\nBestand: {ownedCount}\nBenötigt: {requiredCount}\nKlicken Sie, um Rezepte für diesen Gegenstand zu sehen",{itemName}\n보유: {ownedCount}\n필요: {requiredCount}\n클릭하면 이 아이템의 레시피를 볼 수 있습니다
@@ -385,6 +388,7 @@ ui.notification.deleteUnconfirmed,Removal of {0} is unconfirmed. Undo or train-c
 ui.notification.deleteRejected,Removal of {0} was refused. Check the delete tool for the reason.,Removal of {0} was refused. Check the delete tool for the reason.,{0} を撤去できませんでした。理由は削除ツールで確認できます。,Entfernung von {0} abgelehnt. Grund im Löschwerkzeug.,{0} 철거가 거부되었습니다. 삭제 도구에서 이유를 확인하세요.
 ui.tooltip.deleteRequestPending,Waiting for this removal result,Waiting for this removal result,この対象の撤去結果を確認中です,Warte auf das Ergebnis dieser Entfernung,이 대상의 철거 결과를 확인 중입니다
 ui.tooltip.deleteUndoAwaitingResult,Undo for this removal and all earlier operations waits for the final server response.,Undo for this removal and all earlier operations waits for the final server response.,この撤去と、それ以前の操作のUndoはサーバーの最終応答まで保留中です。,Das Rückgängigmachen dieser Entfernung und aller vorherigen Aktionen wartet auf die endgültige Serverantwort.,이 철거와 그 이전 모든 작업의 실행 취소는 서버의 최종 응답까지 보류됩니다.
+ui.settings.sprintModeRecovered,Sprint settings were repaired. Choose a mode to dismiss.,Sprint settings were repaired. Choose a mode to dismiss.,走り設定を復旧しました。方式を選ぶと通知が消えます。,Die Laufeinstellung wurde wiederhergestellt. Wähle einen Modus zum Bestätigen.,달리기 설정을 복구했습니다. 방식을 선택하면 알림이 사라집니다.
 ui.bugReport.deliveryLocalOnlyTokenMissingUnknown,Not sent: no developer token is set,Not sent: no developer token is set,未送信: 開発者トークンが未設定です,Nicht gesendet: Kein Entwicklertoken festgelegt,미전송: 개발자 토큰이 설정되지 않았습니다
 ui.bugReport.deliveryLocalOnlyTokenUnreadableUnknown,Not sent: the developer token cannot be read,Not sent: the developer token cannot be read,未送信: 開発者トークンを読めません,Nicht gesendet: Entwicklertoken nicht lesbar,미전송: 개발자 토큰을 읽을 수 없습니다
 ui.bugReport.deliveryLocalOnlyDistributionUnavailableUnknown,Not sent: check build-info and Steam,Not sent: check build-info and Steam,未送信: build-infoとSteamの送信条件を確認してください,Nicht gesendet: build-info und Steam prüfen,미전송: build-info 및 Steam 전송 조건을 확인하세요

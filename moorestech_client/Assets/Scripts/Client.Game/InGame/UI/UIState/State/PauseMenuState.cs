@@ -26,6 +26,8 @@ namespace Client.Game.InGame.UI.UIState.State
         {
         }
 
+        public bool AllowsSprintToggle() => false;
+
         public bool LocksPlayerMovement()
         {
             return true;

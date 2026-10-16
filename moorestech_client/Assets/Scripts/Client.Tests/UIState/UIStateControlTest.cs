@@ -10,7 +10,6 @@ using UnityEngine.TestTools;
 using Client.Tests.UIState.Fakes;
 using NUnit.Framework;
 using UnityEngine;
-
 namespace Client.Tests.UIState
 {
     public class UIStateControlTest
@@ -21,35 +20,30 @@ namespace Client.Tests.UIState
         {
             _controlObject = new GameObject("UIStateControl");
         }
-
         [TearDown]
         public void TearDown()
         {
             Object.DestroyImmediate(_controlObject);
         }
-
         [Test]
         public void TransitionDoesNotRequirePlayerViewController()
         {
-            var firstState = new StubUIState(UIStateEnum.BuildMenu, false);
-            var secondState = new StubUIState(null, false);
+            var firstState = new StubUIState(UIStateEnum.BuildMenu, false, true);
+            var secondState = new StubUIState(null, false, false);
             var dictionary = CreateDictionary(firstState, secondState);
             var control = _controlObject.AddComponent<UIStateControl>();
             control.Construct(dictionary, new FakePlayerObjectController());
             control.Initialize(UIStateEnum.GameScreen, new UITransitContext(UIStateEnum.GameScreen));
-
             InvokeUpdate(control);
-
             Assert.AreEqual(UIStateEnum.BuildMenu, control.CurrentState);
             Assert.AreEqual(1, firstState.ExitCount);
             Assert.AreEqual(1, secondState.EnterCount);
         }
-
         [Test]
         public void 画面の宣言どおりに自機の移動を止めて戻す()
         {
-            var worldState = new StubUIState(UIStateEnum.BuildMenu, false);
-            var menuState = new StubUIState(UIStateEnum.GameScreen, true);
+            var worldState = new StubUIState(UIStateEnum.BuildMenu, false, true);
+            var menuState = new StubUIState(UIStateEnum.GameScreen, true, false);
             var player = new FakePlayerObjectController();
             var control = _controlObject.AddComponent<UIStateControl>();
             control.Construct(CreateDictionary(worldState, menuState), player);
@@ -58,16 +52,17 @@ namespace Client.Tests.UIState
             // The initial screen's declaration is applied as well
             control.Initialize(UIStateEnum.GameScreen, new UITransitContext(UIStateEnum.GameScreen));
             Assert.AreEqual(false, player.LastUiLock);
+            Assert.IsTrue(player.LastSprintToggleAllowed);
 
             InvokeUpdate(control);
             Assert.AreEqual(UIStateEnum.BuildMenu, control.CurrentState);
+            Assert.IsFalse(player.LastSprintToggleAllowed);
             Assert.AreEqual(true, player.LastUiLock, "メニュー画面へ入っても移動が止まらない");
 
             InvokeUpdate(control);
             Assert.AreEqual(UIStateEnum.GameScreen, control.CurrentState);
             Assert.AreEqual(false, player.LastUiLock, "メニューを閉じても移動が止まったまま");
         }
-
         [Test]
         public void 選択とホバーの復元が失敗しても次の要求で抜けられる()
         {
@@ -81,8 +76,8 @@ namespace Client.Tests.UIState
             Assert.IsTrue(selection.TryAddTarget(first).IsAdded);
             Assert.IsTrue(selection.TryAddTarget(second).IsAdded);
             hover.Hover(hovered);
-            var deleteLikeState = new StubUIState(UIStateEnum.BuildMenu, false) { DeleteService = service };
-            var nextState = new StubUIState(null, false);
+            var deleteLikeState = new StubUIState(UIStateEnum.BuildMenu, false, true) { DeleteService = service };
+            var nextState = new StubUIState(null, false, false);
             var control = _controlObject.AddComponent<UIStateControl>();
             control.Construct(CreateDictionary(deleteLikeState, nextState), new FakePlayerObjectController());
             control.Initialize(UIStateEnum.GameScreen, new UITransitContext(UIStateEnum.GameScreen));
@@ -103,12 +98,12 @@ namespace Client.Tests.UIState
         {
             var preview = new SingleHoverDeletePreview(new DeletePreviewResetRecovery());
             var broken = new FakeDeleteTarget { ThrowOnReset = true };
-            var deleteState = new StubUIState(UIStateEnum.BuildMenu, false)
+            var deleteState = new StubUIState(UIStateEnum.BuildMenu, false, true)
             {
                 HoverPreview = preview,
                 HoverTarget = broken
             };
-            var nextState = new StubUIState(null, false);
+            var nextState = new StubUIState(null, false, false);
             var control = _controlObject.AddComponent<UIStateControl>();
             control.Construct(CreateDictionary(deleteState, nextState), new FakePlayerObjectController());
             control.Initialize(UIStateEnum.GameScreen, new UITransitContext(UIStateEnum.GameScreen));
@@ -149,6 +144,7 @@ namespace Client.Tests.UIState
         {
             private readonly UIStateEnum? _nextState;
             private readonly bool _locksPlayerMovement;
+            private readonly bool _allowsSprintToggle;
             public int EnterCount { get; private set; }
             public int ExitCount { get; private set; }
 
@@ -157,10 +153,11 @@ namespace Client.Tests.UIState
             public SingleHoverDeletePreview HoverPreview;
             public FakeDeleteTarget HoverTarget;
 
-            public StubUIState(UIStateEnum? nextState, bool locksPlayerMovement)
+            public StubUIState(UIStateEnum? nextState, bool locksPlayerMovement, bool allowsSprintToggle)
             {
                 _nextState = nextState;
                 _locksPlayerMovement = locksPlayerMovement;
+                _allowsSprintToggle = allowsSprintToggle;
             }
 
             public void OnEnter(UITransitContext context)
@@ -184,6 +181,8 @@ namespace Client.Tests.UIState
                 HoverPreview?.Release();
                 DeleteService?.ClearAll();
             }
+
+            public bool AllowsSprintToggle() => _allowsSprintToggle;
 
             public bool LocksPlayerMovement()
             {

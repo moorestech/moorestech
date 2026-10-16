@@ -33,6 +33,7 @@
     "train_timetable.set_auto_run",
     "train_station.set_name",
     "localization.setLocale",
+    "settings.setSprintInputMode",
     "debug.echo",
     "tutorial.anchor_ack",
     "skit.advance",

@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
-
 namespace Client.Input
 {
     public static class InputManager
@@ -13,12 +13,8 @@ namespace Client.Input
         private static UIInputManager ui;
         private static MoorestechInputSettings _instance;
         public static PayerInputManager Player => player ??= new PayerInputManager(Instance);
-        
         public static PlayableInputManager Playable => playable ??= new PlayableInputManager(Instance);
-        
         public static UIInputManager UI => ui ??= new UIInputManager(Instance);
-        
-        
         private static MoorestechInputSettings Instance
         {
             get
@@ -28,7 +24,6 @@ namespace Client.Input
                     _instance = new MoorestechInputSettings();
                     _instance.Enable();
                 }
-                
                 return _instance;
             }
         }
@@ -154,6 +149,13 @@ namespace Client.Input
         public bool GetKey => ReadButton(_inputAction.IsPressed());
         public bool GetKeyUp => ReadButton(_inputAction.WasReleasedThisFrame());
         
+        // このキーに割り当てた実コントロールか（修飾キー判定で自分自身を除くため）
+        // Whether the control is bound to this key (to exclude itself when detecting modifier use)
+        public bool IsBoundControl(InputControl control)
+        {
+            return _inputAction.controls.Contains(control);
+        }
+
         public event Action OnGetKeyDown;
         public event Action OnGetKey;
         public event Action OnGetKeyUp;

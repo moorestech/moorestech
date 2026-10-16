@@ -22,6 +22,14 @@ export type PauseMenuActionResult = { handled: false } | { handled: true };
 // ポーズ画面の状態変更を反映
 // Applies pause-page state changes
 export function applyPauseMenuAction(inv: PlayerInventoryData, type: string, payload: unknown): PauseMenuActionResult {
+  // 設定の変更も本物と同じtopic経由で選択へ反映する
+  // Reflect setting changes through the topic, matching the real host
+  if (type === "settings.setSprintInputMode") {
+    const data = { ...payload as ActionPayloads["settings.setSprintInputMode"], recoveredInvalidPreference: false };
+    state.topicOverrides.set(Topics.sprintInputMode, data);
+    for (const sub of subscribersOf(Topics.sprintInputMode)) send(sub, { op: "event", topic: Topics.sprintInputMode, data });
+    return { handled: true };
+  }
   if (type === "pause_menu.show_page") {
     applyPauseMenuShowPage(inv, payload as ActionPayloads["pause_menu.show_page"]);
     return { handled: true };

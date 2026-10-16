@@ -31,6 +31,7 @@ vi.mock("@/shared/ui", async () => ({
     createElement("mock-mode-switch", { value, onChange, "data-testid": testId }),
 }));
 vi.mock("@/features/settings", () => ({
+  SprintModeSelect: () => createElement("mock-sprint-mode-select", { "data-testid": "sprint-mode-select" }),
   LanguageSelect: () => createElement("mock-language-select", { "data-testid": "language-select" }),
 }));
 
@@ -71,6 +72,7 @@ describe("PauseMenuPanel", () => {
   it("設定画面は言語選択と戻るボタンを出し、戻るはtopへのshow_pageを送る", async () => {
     const renderer = await render("settings");
     expect(byTestId(renderer, "language-select")).toHaveLength(1);
+    expect(byTestId(renderer, "sprint-mode-select")).toHaveLength(1);
     expect(byTestId(renderer, "pause-menu-back")[0].type).toBe("button");
     expect(byTestId(renderer, "pause-menu-back")[0].props["data-tutorial-anchor"]).toBe("pause.back-to-top");
     await act(async () => byTestId(renderer, "pause-menu-back")[0].props.onClick());

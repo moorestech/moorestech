@@ -16,6 +16,7 @@ namespace Client.Game.InGame.Player
         public void SetAnimationState(string state);
         public void SetMovementLock(PlayerMovementLockReason reason, bool isLocked);
         public void SetModelVisible(bool visible);
+        public void SetSprintToggleAllowed(bool allowed);
     }
     
     public class PlayerObjectController : MonoBehaviour, IPlayerObjectController
@@ -27,6 +28,7 @@ namespace Client.Game.InGame.Player
         [SerializeField] private Animator animator;
         private readonly PlayerModelVisibility _modelVisibility = new();
         private readonly HashSet<PlayerMovementLockReason> _movementLocks = new();
+        private StarterAssetsInputs _starterAssetsInputs;
         private PlayerRideFollow _rideFollow;
         private PlayerFlyModeController _flyMode;
         private bool _isModelVisible = true;
@@ -38,6 +40,7 @@ namespace Client.Game.InGame.Player
         // Resolve references and settle the recovery target only; terrain colliders do not exist yet, so no warp and no gravity
         public void Initialize(Vector3 initialPlayerPosition, Vector3 worldSpawnPosition)
         {
+            _starterAssetsInputs = controller.GetComponent<StarterAssetsInputs>();
             controller.Initialize();
             _rideFollow = new PlayerRideFollow(transform, GetComponent<CharacterController>(), controller);
             _flyMode = new PlayerFlyModeController(controller);
@@ -141,6 +144,10 @@ namespace Client.Game.InGame.Player
             else _movementLocks.Remove(reason);
             ApplyMovementLock();
         }
+
+        // 画面の入力方針を自機へ渡す
+        // Push the screen input policy to the player
+        public void SetSprintToggleAllowed(bool allowed) => _starterAssetsInputs.SetSprintToggleAllowed(allowed);
 
         private void ApplyMovementLock()
         {

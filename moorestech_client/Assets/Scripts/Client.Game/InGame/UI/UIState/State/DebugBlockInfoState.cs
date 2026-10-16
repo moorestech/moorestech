@@ -125,6 +125,8 @@ namespace Client.Game.InGame.UI.UIState.State
             _inGameCameraController.SetControllable(false);
         }
 
+        public bool AllowsSprintToggle() => false;
+
         public bool LocksPlayerMovement()
         {
             return false;
