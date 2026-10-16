@@ -58,7 +58,7 @@ return PlaytestRunner.Run("developer-report-delivery", new PlaytestRunOptions { 
     await p.UntilWebUiElement("language-select", 15f);
     await p.ClickWebUi("language-select-option-japanese");
     await p.UntilWebUiElement("pause-menu-locale-japanese", 15f);
-    await p.PressKey(Key.Escape);
+    await p.ClickWebUi("pause-menu-back");
     await p.Until(() => menu.CurrentPage.Value == PauseMenuPage.Top, 15f, "設定から戻る");
     await p.ClickWebUi("pause-menu-open-bug-report");
     await p.UntilWebUiElement("bug-report-description", 15f);
