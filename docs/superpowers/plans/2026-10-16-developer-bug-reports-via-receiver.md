@@ -58,7 +58,7 @@
 ## Global Constraints
 
 - 受け口の送り先は本番 `https://playtest.moores.tech`。staging は使わない。
-- 開発者トークンを使ってよいのは `#if UNITY_EDITOR || DEVELOPMENT_BUILD` のときだけ。配布ビルドのコードには経路そのものを入れない（前例: `PlaytestReceiverConfig.BaseUrl` の環境変数上書き）。
+- 開発者トークン経路の選択（`PlaytestDeliveryRouteResolver.Resolve` の DeveloperMode 分岐）は `#if UNITY_EDITOR || DEVELOPMENT_BUILD` で閉じる。配布ビルドではこの分岐が消え、開発者トークンを読まない。経路の型そのものは #if で囲まない（テストから使えるように）（前例: `PlaytestReceiverConfig.BaseUrl` の環境変数上書き）。
 - 開発者トークンの形は `mdt_` + 小文字16進64桁。機材名は `^[a-z0-9][a-z0-9-]{0,31}$`。セッションの sub は `dev-<機材名>`。
 - R2 の台帳キー:
   - `devtokens/by-hash/<sha256hex>` → `{"machine": "...", "createdAt": "<ISO>"}`
@@ -74,7 +74,7 @@
 ## 設計検査記録
 
 - 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反2件・修正2件 / BugReport直下とClient.Tests/BugReport直下が10ファイル超のため新設をRepository/・Diagnostics/へ。パリティ: 配布版のSteam経路・タイトルゲートは不変（死ぬ操作なし）
-- Phase 2.6（型閉包・重複・ADR矛盾）: 未実施
+- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強6・弱11・第3バケツ3 / 強: 判別union化・Resolveを評価済み2状態に・PlaytestKind型・allSent表示を裁定どおりに（4件反映）、Board読み書き分離はこのまま。弱: 4件反映・7件このまま
 
 ---
 
@@ -130,6 +130,8 @@
 
 `src/devTokens/developerSubject.ts`:
 ```ts
+import type { PlaytestKind } from "../keys";
+
 // 開発機のセッションはsubの接頭辞で見分ける。SteamIDは数字だけなので衝突しない
 // Developer sessions are told apart by the sub prefix; Steam IDs are digits only, so they never collide
 export const DEVELOPER_SUBJECT_PREFIX = "dev-";
@@ -145,7 +147,7 @@ export function isDeveloperSubject(sub: string): boolean {
 
 // 開発機は進行記録を送らない（テスターの集計に混ぜない）。拒否理由はwarnに残す
 // Developer machines never send progress records (kept out of tester stats); the refusal is warned
-export function refusesDeveloperProgress(kind: string, sub: string): boolean {
+export function refusesDeveloperProgress(kind: PlaytestKind, sub: string): boolean {
   if (kind !== "progress" || !isDeveloperSubject(sub)) return false;
   console.warn(`[uploads] refused: progress records are not accepted from developer machine ${sub}`);
   return true;
@@ -181,7 +183,7 @@ export async function findMachineByToken(env: Env, token: string): Promise<strin
   return typeof record.machine === "string" ? record.machine : null;
 }
 
-export async function listDevTokens(env: Env): Promise<{ machine: string; createdAt: string }[]> {
+export async function listDevTokens(env: Env): Promise<readonly { machine: string; createdAt: string }[]> {
   const listed = await env.BUCKET.list({ prefix: BY_MACHINE });
   const rows = await Promise.all(listed.objects.map(async (entry) => {
     const object = await env.BUCKET.get(entry.key);
@@ -200,16 +202,19 @@ export async function revokeDevToken(env: Env, machine: string): Promise<boolean
   return true;
 }
 
-function randomHex(bytes: number): string {
-  return [...crypto.getRandomValues(new Uint8Array(bytes))].map((b) => b.toString(16).padStart(2, "0")).join("");
+function toHex(bytes: Uint8Array): string {
+  return [...bytes].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+function randomHex(byteCount: number): string {
+  return toHex(crypto.getRandomValues(new Uint8Array(byteCount)));
 }
 
 async function sha256Hex(text: string): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
-  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
+  return toHex(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text))));
 }
 ```
-`listDevTokens` で by-machine の読み出しが null になるのは、一覧と失効の競合だけ。その行は createdAt を空にして返す（silent-ok: 一覧は表示用。管理者は次の一覧で消えたことに気づく）。この旨をコメントで書く。
+R2 の JSON 読み（`get`→null 判定→`json()`）は `findMachineByToken`・`listDevTokens`・`revokeDevToken` の3か所で同じなので、`readJson<T>(env, key): Promise<T | null>` を1本作ってそれを使う（裁定: 弱指摘③）。`listDevTokens` で by-machine の読み出しが null になるのは、一覧と失効の競合だけ。その行は createdAt を空にして返す（silent-ok: 一覧は表示用。管理者は次の一覧で消えたことに気づく）。この旨をコメントで書く。
 
 - [ ] **Step 2: 経路を書く**
 
@@ -375,28 +380,39 @@ public interface IPlaytestSessionCredential
     UniTask<PlaytestCredentialPost> PostSessionAsync(IPlaytestReceiverApi api, CancellationToken token);
 }
 
-public sealed class PlaytestCredentialPost
+// 送ったか・送る前に失敗したかの2状態。種別ごとに要るものだけを持つ（判別 union）
+// Two states: sent, or failed before sending; each subtype carries only what it needs
+public abstract class PlaytestCredentialPost { }
+public sealed class PlaytestCredentialSent : PlaytestCredentialPost
 {
-    public readonly PlaytestApiResult Response;      // 送った場合の応答
-    public readonly PlaytestSessionResult Failure;   // 送る前の失敗（TicketUnavailable 等）
-    public static PlaytestCredentialPost Sent(PlaytestApiResult response);
-    public static PlaytestCredentialPost NotSent(PlaytestSessionResult failure);
-    public readonly bool WasSent;
+    public readonly PlaytestApiResult Response;
+    public PlaytestCredentialSent(PlaytestApiResult response);
 }
+public sealed class PlaytestCredentialNotSent : PlaytestCredentialPost
+{
+    public readonly PlaytestSessionResult Failure;   // TicketUnavailable 等
+    public PlaytestCredentialNotSent(PlaytestSessionResult failure);
+}
+
+// トークンファイルの読み取り結果（3状態）
+// Result of reading the token file (three states)
+public abstract class PlaytestDeveloperTokenRead { }
+public sealed class PlaytestDeveloperTokenPresent : PlaytestDeveloperTokenRead { public readonly string Token; public PlaytestDeveloperTokenPresent(string token); }
+public sealed class PlaytestDeveloperTokenAbsent : PlaytestDeveloperTokenRead { }
+public sealed class PlaytestDeveloperTokenUnreadable : PlaytestDeveloperTokenRead { public readonly string Reason; public PlaytestDeveloperTokenUnreadable(string reason); }
 ```
-  - `PlaytestCredentialPost` は2状態なので、`Sent`/`NotSent` のファクトリ以外で作らせない。`WasSent` は `Response != null` から導かず、ファクトリで決めた readonly の bool を持つ。
-  - `SteamTicketSessionCredential` はコンストラクタで `IPlaytestSteamTicketProvider` を受け取る。既存 L55-68 の「チケット取得→null なら `NotSent(Failed(TicketUnavailable,...))`→`PostSessionAsync`→finally で Release」をそのまま移す。
+  - 判別は C# のパターンマッチ（`switch (post) { case PlaytestCredentialSent sent: ... }`）で行う。派生クラスは上の2つ・3つだけで、外に増やさない（sealed）。
+  - `SteamTicketSessionCredential` はコンストラクタで `IPlaytestSteamTicketProvider` を受け取る。既存 L55-68 の「チケット取得→null なら `new PlaytestCredentialNotSent(Failed(TicketUnavailable,...))`→`PostSessionAsync`→finally で Release」をそのまま移す。
   - `DeveloperTokenSessionCredential` はコンストラクタで `string developerToken` を受け取り、 `api.PostDeveloperSessionAsync(developerToken, token)`。
   - `IPlaytestReceiverApi.PostDeveloperSessionAsync(string developerToken, CancellationToken token)` → `POST {base}/v1/session/developer` body `{"token":"..."}`。JSON は `JsonConvert.SerializeObject(new { token = developerToken })` で組み、文字列連結しない。
   - `GameSystemPaths.PlaytestDeveloperTokenFilePath => Path.Combine(GameSystemDirectory, "PlaytestReceiver", "developer-token.txt")`。
   - `PlaytestDeveloperTokenFile`:
-    - `PlaytestDeveloperTokenRead Read(string path)`。3状態は `Present(token)` / `Absent` / `Unreadable(reason)`。
+    - `PlaytestDeveloperTokenRead Read(string path)`。上の3派生のどれかを返す。
     - `void Write(string path, string token)` と `void Delete(string path)`。
     - `public const string TokenPattern = "^mdt_[0-9a-f]{64}$"`。
-    - `PlaytestDeveloperTokenRead` は判別用の `enum PlaytestDeveloperTokenReadKind { Present, Absent, Unreadable }` と `Token`・`Reason` を持つ。
-    - 形が `TokenPattern` に合わない中身は `Unreadable("トークンの形が違う")` にする。前後の空白と改行は trim する。
-    - ファイル読み書きはディスクIO境界なので、`IOException`・`UnauthorizedAccessException` を catch し、`Unreadable(reason)` と `Debug.LogWarning` に変える。
-- 既存の `PlaytestSession.AuthenticateOnceAsync` は、`var post = await _credential.PostSessionAsync(_api, token); if (!post.WasSent) return post.Failure; var response = post.Response;` に置き換える。以降（401→TicketRejected、200以外→Unreachable、Parse）は変えない。
+    - 形が `TokenPattern` に合わない中身は `PlaytestDeveloperTokenUnreadable("トークンの形が違う")` にする。前後の空白と改行は trim する。
+    - ファイル読み書きはディスクIO境界なので、`IOException`・`UnauthorizedAccessException` を catch し、`PlaytestDeveloperTokenUnreadable(reason)` と `Debug.LogWarning` に変える。
+- 既存の `PlaytestSession.AuthenticateOnceAsync` は、`var post = await _credential.PostSessionAsync(_api, token); if (post is PlaytestCredentialNotSent notSent) return notSent.Failure; var response = ((PlaytestCredentialSent)post).Response;`（switch 式で書いてもよい） に置き換える。以降（401→TicketRejected、200以外→Unreachable、Parse）は変えない。
 
 - [ ] **Step 1: テストを書く**
 
@@ -448,90 +464,95 @@ git commit -m "feat(playtest): セッションの資格情報を差し替え可�
 - Produces:
 ```csharp
 public enum PlaytestOutboxScope { ReportsAndProgress, ReportsOnly }
-public enum PlaytestDeliveryRouteKind { Steam, DeveloperToken, LocalOnly }
 public enum PlaytestLocalOnlyReason { DeveloperTokenMissing, DeveloperTokenUnreadable, SteamNotRunning }
 
-public sealed class PlaytestDeliveryRoute
+// 送信経路（判別 union）。経路ごとに要るものだけを持つ
+// Delivery route as a discriminated union; each route carries only what it needs
+public abstract class PlaytestDeliveryRoute { public abstract PlaytestOutboxScope Scope { get; } }
+public sealed class PlaytestSteamRoute : PlaytestDeliveryRoute { public override PlaytestOutboxScope Scope => PlaytestOutboxScope.ReportsAndProgress; }
+public sealed class PlaytestDeveloperTokenRoute : PlaytestDeliveryRoute
 {
-    public readonly PlaytestDeliveryRouteKind Kind;
-    public readonly PlaytestOutboxScope Scope;                // LocalOnly でも件数の数え方に使う
-    public readonly string DeveloperToken;                    // DeveloperToken のときだけ値を持つ
-    public readonly PlaytestLocalOnlyReason LocalOnlyReason;  // LocalOnly のときだけ意味を持つ
-    public readonly string LocalOnlyDetail;                   // ログ用の理由
-    public static PlaytestDeliveryRoute Steam();
-    public static PlaytestDeliveryRoute Developer(string developerToken);
-    public static PlaytestDeliveryRoute LocalOnly(PlaytestLocalOnlyReason reason, PlaytestOutboxScope scope, string detail);
+    public readonly string DeveloperToken;
+    public PlaytestDeveloperTokenRoute(string developerToken);
+    public override PlaytestOutboxScope Scope => PlaytestOutboxScope.ReportsOnly;
+}
+public sealed class PlaytestLocalOnlyRoute : PlaytestDeliveryRoute
+{
+    public readonly PlaytestLocalOnlyReason Reason;
+    public readonly string Detail;          // ログ用の理由
+    private readonly PlaytestOutboxScope _scope;
+    public PlaytestLocalOnlyRoute(PlaytestLocalOnlyReason reason, PlaytestOutboxScope scope, string detail);
+    public override PlaytestOutboxScope Scope => _scope;
 }
 
 public static class PlaytestDeliveryRouteResolver
 {
-    // 起動形態とトークンの読み取り結果から経路を決める唯一の場所
-    // The single place that picks the route from the launch kind and the token read
-    public static PlaytestDeliveryRoute Resolve(PlaytestLaunchKind launchKind, PlaytestDeveloperTokenRead tokenRead);
-    public static PlaytestDeliveryRoute ResolveCurrent();     // PlaytestLaunchProfile.Resolve() と PlaytestDeveloperTokenFile.Read(GameSystemPaths.PlaytestDeveloperTokenFilePath)
+    // 起動形態とトークンの読み取り結果から経路を決める唯一の場所。起動形態は評価済みの2状態だけを受ける
+    // The single place that picks the route; the launch kind arrives already evaluated as two states
+    public static PlaytestDeliveryRoute Resolve(bool isDistribution, PlaytestDeveloperTokenRead tokenRead);
+    public static PlaytestDeliveryRoute ResolveCurrent();     // Resolve(PlaytestLaunchProfile.Resolve() == Distribution, PlaytestDeveloperTokenFile.Read(GameSystemPaths.PlaytestDeveloperTokenFilePath))
 }
 
-public enum PlaytestDeliveryStatusKind { LocalOnly, Pending, Refused, AllSent }
-public sealed class PlaytestDeliveryStatus
-{
-    public readonly PlaytestDeliveryStatusKind Kind;
-    public readonly int PendingCount;
-    public readonly PlaytestLocalOnlyReason LocalOnlyReason; // Kind==LocalOnly のときだけ意味を持つ
-    public static PlaytestDeliveryStatus LocalOnly(PlaytestLocalOnlyReason reason, int pendingCount);
-    public static PlaytestDeliveryStatus Pending(int pendingCount);
-    public static PlaytestDeliveryStatus Refused(int pendingCount);
-    public static readonly PlaytestDeliveryStatus AllSent;
-}
+// 画面に出す送信状況（判別 union）
+// Delivery status shown on screen (discriminated union)
+public abstract class PlaytestDeliveryStatus { }
+public sealed class PlaytestDeliveryLocalOnly : PlaytestDeliveryStatus { public readonly PlaytestLocalOnlyReason Reason; public readonly int PendingCount; public PlaytestDeliveryLocalOnly(PlaytestLocalOnlyReason reason, int pendingCount); }
+public sealed class PlaytestDeliveryPending : PlaytestDeliveryStatus { public readonly int PendingCount; public PlaytestDeliveryPending(int pendingCount); }
+public sealed class PlaytestDeliveryRefused : PlaytestDeliveryStatus { public readonly int PendingCount; public PlaytestDeliveryRefused(int pendingCount); }
+public sealed class PlaytestDeliveryAllSent : PlaytestDeliveryStatus { public static readonly PlaytestDeliveryAllSent Instance = new(); }
 
 public static class PlaytestDeliveryStatusBoard
 {
-    private static readonly ReactiveProperty<PlaytestDeliveryStatus> _current = new(PlaytestDeliveryStatus.Pending(0));
+    private static readonly ReactiveProperty<PlaytestDeliveryStatus> _current = new(new PlaytestDeliveryPending(0));
     public static IReadOnlyReactiveProperty<PlaytestDeliveryStatus> Current => _current;
-    internal static void Set(PlaytestDeliveryStatus status);   // 書き手は PlaytestUploadRunner だけ
+    internal static void Set(PlaytestDeliveryStatus status);   // 書き手は PlaytestUploadRunner だけ（internal で限定。裁定: このままでよい）
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     internal static void ResetOnPlayMode();                     // Pending(0) に戻す
 }
 
+// 1走行の結果。止まった理由を種類で返す
+// Result of one upload run; why it stopped is returned as a kind
+public enum PlaytestUploadRunEnd { Finished, SessionRefused }
 public sealed class PlaytestUploadRunSummary
 {
+    public readonly PlaytestUploadRunEnd End;
     public readonly int Sent;
-    public readonly bool SessionRefused;
-    public readonly int CarriedOver;
+    public PlaytestUploadRunSummary(PlaytestUploadRunEnd end, int sent);
 }
 ```
 `Resolve` の規則:
-- `Distribution` なら `Steam()`（Scope=ReportsAndProgress）。
+- `isDistribution` なら `PlaytestSteamRoute`。
 - `DeveloperMode` かつ `#if UNITY_EDITOR || DEVELOPMENT_BUILD` のとき:
-  - Present なら `Developer(token)`（Scope=ReportsOnly）。
-  - Absent なら `LocalOnly(DeveloperTokenMissing, ReportsOnly, "...")`。
-  - Unreadable なら `LocalOnly(DeveloperTokenUnreadable, ReportsOnly, reason)`。
-- それ以外（開発ビルドでない DeveloperMode＝build-info はあるが Steam が起動していない）は `LocalOnly(SteamNotRunning, ReportsAndProgress, ...)`。
-- `NotEvaluated` は `Resolve` に渡さない（`ResolveCurrent` が `PlaytestLaunchProfile.Resolve()` を経由するので来ない）。万一来たら例外にする。
+  - Present なら `PlaytestDeveloperTokenRoute(token)`。
+  - Absent なら `PlaytestLocalOnlyRoute(DeveloperTokenMissing, ReportsOnly, "...")`。
+  - Unreadable なら `PlaytestLocalOnlyRoute(DeveloperTokenUnreadable, ReportsOnly, reason)`。
+- それ以外（開発ビルドでない DeveloperMode＝build-info はあるが Steam が起動していない）は `PlaytestLocalOnlyRoute(SteamNotRunning, ReportsAndProgress, ...)`。
+- `#if` は Resolve のこの分岐だけに置く。経路の型そのものは囲まない（テストから使えるように。裁定: 弱指摘④）。
 
 ランナーの変更:
 - コンストラクタは `PlaytestUploadRunner(IPlaytestReceiverApi api, PlaytestOutboxDirectories directories, IPlaytestSteamTicketProvider ticketProvider)` のまま。
 - 静的な `_sharedSession` を「Steam 用の1本」と「開発者トークン用（トークン文字列ごとに作り直す）」に分けて持つ。後者は `_developerSession` と `_developerSessionToken` の静的フィールドにし、どちらも `ResetOnPlayMode` で消す。
 - `RequestUpload()` の流れ:
   1. `var route = PlaytestDeliveryRouteResolver.ResolveCurrent();`
-  2. `LocalOnly` なら、`PlaytestOutboxScanner.ScanPending(_directories, route.Scope).Count` を数えて `Set(LocalOnly(reason, count))` し、`Debug.Log($"[PlaytestReceiver] boxes stay local: {route.LocalOnlyDetail}")` を出して return する。
+  2. `route is PlaytestLocalOnlyRoute local` なら、`PlaytestOutboxScanner.ScanPending(_directories, local.Scope).Count` を数えて `Set(new PlaytestDeliveryLocalOnly(local.Reason, count))` し、`Debug.Log($"[PlaytestReceiver] boxes stay local: {local.Detail}")` を出して return する。
   3. それ以外は既存の再入防止（`_running`/`_rerunRequested`）を通し、`RunAsync(route)` を走らせる。
 - `RunAsync`:
-  1. `Set(Pending(scanCount))`
+  1. `Set(new PlaytestDeliveryPending(scanCount))`。セッションは `PlaytestSteamRoute` なら Steam 用の1本、`PlaytestDeveloperTokenRoute` ならトークンごとの1本を使う（switch で分ける）
   2. `var summary = await uploader.UploadPendingAsync(token);`
-  3. 残数を数え直す。`summary.SessionRefused` なら `Set(Refused(remaining))`、残数0なら `Set(AllSent)`、それ以外は `Set(Pending(remaining))`。
-- `PlaytestUploader` のコンストラクタは `PlaytestOutboxScope scope` を受け取る。`UploadPendingAsync` は `ScanPending(_directories, _scope)` を使い、`SessionRefused` で止めたときは `SessionRefused=true` を返す。
+  3. 残数を数え直す。`summary.End == SessionRefused` なら `Set(new PlaytestDeliveryRefused(remaining))`、残数0なら `Set(PlaytestDeliveryAllSent.Instance)`、それ以外は `Set(new PlaytestDeliveryPending(remaining))`。
+- `PlaytestUploader` のコンストラクタは `PlaytestOutboxScope scope` を受け取る。`UploadPendingAsync` は `ScanPending(_directories, _scope)` を使い、`SessionRefused` で止めたときは `End=SessionRefused`、最後まで回ったら `End=Finished` を返す。
 - `PlaytestOutboxScanner.ScanPending(directories, scope)`: `ReportsOnly` のとき progress outbox を走査しない。
 - `PlaytestBootUploadTrigger : IStartable`: `Start()` で `_uploadRequester.RequestUpload()` を1回呼ぶ。コメントに「MainGame 起動で溜まった箱を送る（Editor の直接再生にはタイトルの押し場が無い）」と書く。
 
 - [ ] **Step 1: テストを書く**
 
-`PlaytestDeliveryRouteResolverTest`: 上の規則の各行を1ケースずつ。Distribution×Absent で Steam になる（配布版は開発者トークンを見ない）ことも含める。
+`PlaytestDeliveryRouteResolverTest`: 上の規則の各行を1ケースずつ。`isDistribution=true`×Absent で Steam になる（配布版は開発者トークンを見ない）ことも含める。
 
 `PlaytestUploadRunnerTest`:
 - 既存の「配布版は送信時に認証し開発者モードは送らない」を2つに分ける。
-- 開発者モード＋トークン無し → API 呼び出し0、`PlaytestDeliveryStatusBoard.Current.Value.Kind==LocalOnly`、`PendingCount==1`。
-- 開発者モード＋トークン有り（一時ファイルにトークンを書く。経路はテストから差し込めるよう、ランナーに `internal void RequestUploadWith(PlaytestDeliveryRoute route)` を足し、`RequestUpload()` は `RequestUploadWith(ResolveCurrent())` とする）→ `PostDeveloperSessionAsync` が1回、報告箱1つが送られる。progress outbox に置いた箱は送られず、`UPLOADED` が付かない。状態は AllSent。
-- 開発者トークンが 401 → `Refused(1)`。
+- 開発者モード＋トークン無し → API 呼び出し0、`PlaytestDeliveryStatusBoard.Current.Value` が `PlaytestDeliveryLocalOnly` で `PendingCount==1`。
+- 開発者モード＋トークン有り（一時ファイルにトークンを書く。経路はテストから差し込めるよう、ランナーに `internal void RequestUploadWith(PlaytestDeliveryRoute route)` を足し、`RequestUpload()` は `RequestUploadWith(ResolveCurrent())` とする）→ `PostDeveloperSessionAsync` が1回、報告箱1つが送られる。progress outbox に置いた箱は送られず、`UPLOADED` が付かない。状態は `PlaytestDeliveryAllSent`。
+- 開発者トークンが 401 → `PlaytestDeliveryRefused` で `PendingCount==1`。
 
 `PlaytestOutboxScannerTest`: `ReportsOnly` で progress の箱が出ない。
 
@@ -590,7 +611,7 @@ git commit -m "feat(editor): 開発者トークンを貼り付け・接続確認
 - Create: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/C2/PlaytestDeliveryDto.cs`（`Kind`・`PendingCount`・`LocalOnlyReason` と、enum から契約文字列への変換）
 - Modify: `moorestech_web/webui/src/bridge/contract/schemas/ui.ts`（`PauseMenuDataSchema.delivery`）
 - Modify: `moorestech_web/webui/src/features/pauseMenu/BugReportForm.tsx`（送信状況の1行 `data-testid="bug-report-delivery"`）
-- Modify: `Localization/localization.csv`（5キー×4言語）→ `cd moorestech_web/webui && npm run gen:i18n`
+- Modify: `Localization/localization.csv`（6キー×4言語）→ `cd moorestech_web/webui && npm run gen:i18n`
 - Modify: `moorestech_web/webui/src/features/pauseMenu/BugReportFormTests/testSupport.ts`（Status 型と辞書）
 - Test: `moorestech_web/webui/src/features/pauseMenu/BugReportFormTests/deliveryStatus.test.ts`、`moorestech_web/webui/src/bridge/contract/schemas/__tests__/ui.test.ts`（delivery の受理・拒否）、`moorestech_client/Assets/Scripts/Client.Tests/WebUiHost/PauseMenuTopicDeliveryTest.cs`（DTO の JSON 形。既存の WebUiHost テストの置き場に合わせる）
 
@@ -614,7 +635,7 @@ C# 側の DTO は kind ごとに要るフィールドだけを出す。`WebUiJso
 - `ui.bugReport.deliveryLocalOnlySteamNotRunning`: "Not sent: Steam is not running ({count} kept on this machine)" / "未送信: Steamが起動していません（この機材に{count}件保存）"
 - `ui.bugReport.deliveryPending`: "{count} report(s) waiting to be sent" / "送信待ち {count}件"
 - `ui.bugReport.deliveryRefused`: "The receiver refused this machine; the token may be revoked ({count} waiting)" / "受け口に拒否されました。トークン失効の可能性があります（送信待ち{count}件）"
-- `allSent` は何も出さない（成功の常時表示はノイズになる）。ただし `pending` が0件になった瞬間も何も出さない。
+- `ui.bugReport.deliveryAllSent`: "All reports have been sent" / "すべての報告を送信しました"（裁定「送信待ちと送信完了を区別して見せる」に従い、完了も1行で出す）
 
 BugReportForm: 既存の `describeStatus() ?? describeMissing()` の行とは別に、`describeDelivery()` の行を1本足す（送信可否と送信状況は独立なので混ぜない）。
 
@@ -622,7 +643,7 @@ BugReportForm: 既存の `describeStatus() ?? describeMissing()` の行とは別
 
 `deliveryStatus.test.ts`:
 - 各 kind で `bug-report-delivery` の文言が日本語辞書どおりになる。件数が埋まる。
-- `allSent` のとき要素が無い。
+- `allSent` のとき「すべての報告を送信しました」が出る。
 - 送信可否の行と同時に出る。
 
 `ui.test.ts`:
@@ -835,7 +856,7 @@ git commit -m "feat(bugreport): Unity不要のトリアージと報告の所在�
 この worktree の Editor で、`unity-playmode-recorded-playtest` スキルにより録画つきで次を行う:
 1. トークン無しで再生 → ポーズ → バグ報告画面に「未送信: 開発者トークンが未設定です（この機材にN件保存）」が出る。
 2. 再生を止め、`PlaytestDeveloperTokenFile.Write`（エディタ拡張の保存と同じ関数）でトークンを設定する。ウィンドウの「接続確認」が `dev-macmini-wt` を表示する。
-3. 再生 → バグ報告を1件送る → 画面が「送信待ち」から表示なし（全件送信済み）になる。
+3. 再生 → バグ報告を1件送る → 画面が「送信待ち」から「すべての報告を送信しました」になる。
 4. `scripts/playtest/ingest.sh` を1回手で回す（常駐の5分周期を待ってもよい）。
 5. `moorestech_logs/harness/playtest/reports/dev-macmini-wt/<id>/` に manifest、`repo/bundle-status.txt`、`repo/commits.bundle`（このブランチは未 push のコミットを持つので created）、`logs/` があることを確かめる。`ingest.json` の steamPersonaName が「開発機 macmini-wt」であること。
 6. 進行記録の outbox に箱があっても、受け口の inbox に progress の dev 行が出ないこと。
@@ -888,4 +909,15 @@ git commit -m "test(playtest): 本番受け口への開発者経路の実機確�
 - 出所: agent前提。送信状況は既存の `bugReport`（送信可否）とは別のフィールド・別の行にする。送信可否と送信状況は独立に変わるため。
 - 出所: agent前提。失効したトークンで発行済みのセッショントークンは、最長1時間有効のまま残る（受け口は token に失効台帳を引かない）。やらないことに記載。
 - 出所: agent前提。`BugReport/` 直下が10ファイルを超えているので、新設の bundle 処理は `BugReport/Repository/` に置き、既存の repository 系2ファイルも移す。
-- unityプレイ録画テスト: 含める（Task 10 Step 3）。バグ報告画面の表示変化（ローカル保存のみ→送信待ち→表示なし）はランタイムの UI なので録画で確かめる。
+- unityプレイ録画テスト: 含める（Task 10 Step 3）。バグ報告画面の表示変化（ローカル保存のみ→送信待ち→すべて送信済み）はランタイムの UI なので録画で確かめる。
+- 出所: シミュレーター予測（確信高・拒否権つき前提宣言）2026-10-16。Phase 2.6 強: `PlaytestCredentialPost`・`PlaytestDeveloperTokenRead`・`PlaytestDeliveryRoute`・`PlaytestDeliveryStatus` を sealed 派生の判別 union にする／`Resolve` は評価済みの `bool isDistribution` を受ける（NotEvaluated の例外を消す）／受け口の `refusesDeveloperProgress` は `PlaytestKind` 型を受ける。
+- 出所: 検査7（plan と裁定の食い違い）。裁定「送信待ちと送信完了を区別して見せる」が優先なので、`allSent` も「すべての報告を送信しました」を1行出す（質問せず plan を裁定へ合わせた）。
+- 出所: ユーザー裁定 2026-10-16 質問「送信状況の置き場は読む口と書く口を別の interface に分けるか」→ 選択「このままでよい」（書く口は internal で限定）。
+- 出所: ユーザー裁定 2026-10-16 質問「弱い指摘11件のうち推奨4件だけ反映でよいか」→ 選択「推奨の4件だけ拾う」。①走行結果を `PlaytestUploadRunEnd` の種類で返す ②トークン一覧を readonly で返す ③16進変換と R2 の JSON 読みを1関数ずつにする ④制約文を「経路の選択を #if で閉じる」に直す。残り7件（`dev-` 接頭辞の文字列判定、`Pending(0)` 初期値、主スレッド前提、押し場3口、契約型の置き場、受け口の dev 分岐、bash の `dev-*`）はこのまま。
+
+## 本PR外のリファクタ提案（Phase 2.6 第3バケツ。plan のタスクにはしない）
+
+- `Client.Starter/Playtest/TitleGates/PlaytestTitleGates.cs:60,158` の `uploadsEnabled = distributionBuild && ...` ↔ 新設 `PlaytestDeliveryRouteResolver`。送信可否の判定がタイトルゲート側にも残る。
+- `scripts/playtest/dashboard/collect_reports.py`・`digest_candidates.py:18 load_candidate_reports`・`digest_reporter.py:26 reporter_label` ↔ 新設 `scripts/playtest/lib/find_reports.py`。取り込み済みの列挙と報告者表示が重なる。実装時に既存関数を import して使えるなら使う（使えない理由があれば PR に書く）。
+- `scripts/bugreport/read-manifest.py`・`scripts/playtest/digest_schema.py` ↔ 新設 `triage_lib/manifest_summary.py`。manifest の読みが重なる。
+
