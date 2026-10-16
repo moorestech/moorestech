@@ -83,7 +83,7 @@ namespace Client.Game.InGame.BugReport
                 // Omit only published SHAs reachable from the receiver's origin
                 var localOk = RepositoryStateProbe.TryGit(root, $"for-each-ref --contains {commit} --format=%(objectname)%09%(refname) refs/remotes/origin/", out var remoteRefs, out error);
                 if (localOk && !string.IsNullOrWhiteSpace(remoteRefs) &&
-                    RepositoryStateProbe.TryGit(root, "ls-remote --heads origin", out var publishedRefs, out error) &&
+                    RepositoryStateProbe.TryGit(root, "ls-remote --heads origin", true, out var publishedRefs, out error) &&
                     remoteRefs.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries).Any(line => publishedRefs.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries).Contains(line.Trim().Replace("refs/remotes/origin/", "refs/heads/"))))
                 {
                     Record(label, CommitBundleResultKind.AlreadyPublished, null, null);

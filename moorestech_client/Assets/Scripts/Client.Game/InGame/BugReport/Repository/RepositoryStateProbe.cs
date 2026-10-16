@@ -6,28 +6,8 @@ using Client.Game.InGame.BugReport.BuildOrigin;
 using Game.Paths;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
-
 namespace Client.Game.InGame.BugReport
 {
-    public sealed class RepositoryProbeResult
-    {
-        public RepositoryState State;
-        public string DiffText = "";
-        public List<string> UntrackedFiles = new();
-
-        // HEADすら取れず状態を1つも名乗れないときの理由。これが入った結果は State が null
-        // Why nothing at all could be read (not even HEAD); such a result carries a null State
-        public string Error;
-
-        // 取れた問い合わせは使いつつ、取れなかった問い合わせの理由を1つずつ残す
-        // Keeps whatever could be read while recording, one by one, why the rest could not
-        public List<string> QueryFailures = new();
-
-        // 追跡ファイルに変更がある状態。未追跡だけのdirtyと区別しないと「差分が空」の異常を検出できない
-        // Tracked files have changes; without separating this from untracked-only dirt, an empty diff cannot be flagged
-        public bool TrackedChangesPresent;
-    }
-
     // ・Editorはgitで状態取得
     // ・ビルドは焼込情報を参照
     // - Probe Editor working trees via git
@@ -36,11 +16,9 @@ namespace Client.Game.InGame.BugReport
     {
         public const string BuildInfoFileName = "build-info.json";
         public static string RepositoryRoot => Path.GetFullPath(Path.Combine(Application.dataPath, "..", ".."));
-
         // マスタrepoの置き場はピンの relativePath だけが定義元。隣の名前を推測すると別repoの状態をマスタとして名乗る
         // The pin's relativePath is the sole definition of where the master repo sits; guessing the neighbour's name would report another repo as the master
         public static string MasterDataRoot => MasterDataRootLocator.ResolveForPrimaryRepository();
-
         // 作業ツリーは書き換えない。bundle作成時だけ refs/bugreport/* の一時ref操作を許す
         // Never modifies the working tree; temporary refs/bugreport/* mutations are allowed only for bundle creation
         public static RepositoryProbeResult ProbeGit(string repositoryRoot)
@@ -52,21 +30,18 @@ namespace Client.Game.InGame.BugReport
                 result.Error = $"ディレクトリが無い: {repositoryRoot}";
                 return result;
             }
-
             if (!TryGit(repositoryRoot, "rev-parse HEAD", out var commit, out var error))
             {
                 Debug.LogWarning($"リポジトリ状態を取れません: {error}");
                 result.Error = error;
                 return result;
             }
-
             var branchRead = Query(repositoryRoot, "rev-parse --abbrev-ref HEAD", result, out var branch);
             var statusRead = Query(repositoryRoot, "status --porcelain", result, out var status);
             // バイナリ差分まで持ち帰らないと、画像やアセットの未コミット変更が欠けたまま別の状態で再現される
             // Without binary diffs the uncommitted changes to images and assets are lost and reproduction runs a different state
             Query(repositoryRoot, "diff --binary --full-index HEAD", result, out var diff);
             Query(repositoryRoot, "ls-files --others --exclude-standard", result, out var untracked);
-
             // status が取れないときに Dirty=false と名乗ると「差分なしのクリーンな作業ツリー」として再現されてしまう
             // Claiming Dirty=false when status is unreadable would reproduce the report as a clean working tree with no edits
             var dirty = !statusRead || status.Trim().Length > 0;
@@ -75,9 +50,7 @@ namespace Client.Game.InGame.BugReport
             result.DiffText = diff;
             result.UntrackedFiles = new List<string>(untracked.Split('\n', StringSplitOptions.RemoveEmptyEntries));
             return result;
-
             #region Internal
-
             // 未追跡だけのdirtyでは diff HEAD は空が正常。先頭2文字が ?? 以外の行だけを追跡ファイルの変更とみなす
             // With untracked-only dirt an empty diff HEAD is normal; only lines whose first two characters are not ?? count as tracked changes
             bool HasTrackedChange()
@@ -91,7 +64,6 @@ namespace Client.Game.InGame.BugReport
 
             #endregion
         }
-
         // 失敗した問い合わせは結果へ理由を積む。捨てると「取れなかった」と「空だった」が同じ見た目になる
         // A failed query pushes its reason into the result; discarding it makes "unreadable" and "empty" look identical
         private static bool Query(string repositoryRoot, string arguments, RepositoryProbeResult result, out string stdout)
@@ -101,7 +73,6 @@ namespace Client.Game.InGame.BugReport
             result.QueryFailures.Add(error);
             return false;
         }
-
         // 出所を読む唯一の実装（ADR 0059・F01）。Editor・焼き込み情報つきビルド・焼き込み情報の無いビルドの3状態で返す
         // The sole implementation reading the origin (ADR 0059, F01), returning one of three states: Editor, baked build, build without info
         // パースと既存消費側への射影は BuildInfoJson へ委譲する（本ファイルの行数分割）
@@ -115,7 +86,6 @@ namespace Client.Game.InGame.BugReport
                 Debug.Log("Editor実行のため build-info.json は読まず buildInfo は null になります（作業ツリーの状態はgit probeが名乗る）");
                 return BuildOriginReading.Editor();
             }
-
             var path = GameSystemPaths.BuildInfoFilePath;
             if (!File.Exists(path))
             {
@@ -137,21 +107,22 @@ namespace Client.Game.InGame.BugReport
                 Debug.LogError(unreadableReason);
                 return BuildOriginReading.WithoutInfo(unreadableReason);
             }
-
             var buildInfo = BuildInfoJson.Parse(json);
             if (buildInfo == null) return BuildOriginReading.WithoutInfo($"配布ビルドの build-info.json を解釈できないため出所が不明 path:{path}");
             return BuildOriginReading.Baked(buildInfo);
         }
-
         // 焼き込み情報だけが欲しい消費側（進行記録）への射影。Editorと焼き込み情報の無いビルドではnull
         // A projection for consumers that want only the baked info (progress records); null for the Editor and for a build without info
         public static BuildInfo ReadBuildInfo()
         {
             return ReadBuildOrigin().BuildInfo;
         }
-
         internal static bool TryGit(string workingDirectory, string arguments, out string stdout, out string error)
+            => TryGit(workingDirectory, arguments, false, out stdout, out error);
+
+        internal static bool TryGit(string workingDirectory, string arguments, bool remoteQuery, out string stdout, out string error)
         {
+            const int remoteTimeoutMilliseconds = 15000;
             // quotepathを切らないと非ASCIIのパスが\xxx形式へ化け、未追跡ファイルのコピー元を見失う
             // Without disabling quotepath, non-ASCII paths come back escaped and the untracked copy loses its source
             // 所有者が実行ユーザーと違うだけでgitはdubious ownershipで全問い合わせを拒む。読み取り専用の問い合わせに所有者判定は要らない
@@ -167,6 +138,15 @@ namespace Client.Game.InGame.BugReport
                 CreateNoWindow = true,
             };
 
+            // 公開確認は認証UIを出さず、失敗時にローカル資料へ切り替える
+            // Publication checks never prompt; failures fall back to local evidence
+            if (remoteQuery)
+            {
+                startInfo.EnvironmentVariables["GIT_TERMINAL_PROMPT"] = "0";
+                startInfo.EnvironmentVariables["GIT_SSH_COMMAND"] = "ssh -oBatchMode=yes -oStrictHostKeyChecking=yes";
+                startInfo.EnvironmentVariables["GIT_SSH_VARIANT"] = "ssh";
+                startInfo.Arguments = "-c credential.helper= -c core.askPass= " + startInfo.Arguments;
+            }
             // 外部プロセス起動は例外を返す境界のため、ここに限りcatchして失敗理由へ変換する
             // Process spawning is an external boundary; only here we catch and convert failures into a reason
             try
@@ -175,8 +155,35 @@ namespace Client.Game.InGame.BugReport
 
                 // stderrを先に非同期で排水する。stdoutだけ読むと64KB超のstderrで子がwriteブロックしハングする
                 // Drain stderr asynchronously first; reading only stdout hangs the child once stderr exceeds the 64KB pipe
+                var timer = Stopwatch.StartNew();
                 var stderrTask = process.StandardError.ReadToEndAsync();
-                stdout = process.StandardOutput.ReadToEnd();
+                var stdoutTask = process.StandardOutput.ReadToEndAsync();
+                var reads = System.Threading.Tasks.Task.WhenAll(stdoutTask, stderrTask);
+                // 外部プロセス境界でpipe終端とgit終了を同じ期限内で待ち、自分のtransportも停止する
+                // At the external process boundary, bound pipe EOF and git exit and stop our transport on expiry
+                if (remoteQuery && (!reads.Wait(remoteTimeoutMilliseconds) ||
+                    !process.WaitForExit((int)Math.Max(0, remoteTimeoutMilliseconds - timer.ElapsedMilliseconds))))
+                {
+                    stdout = "";
+                    error = $"git {arguments} timed out after {remoteTimeoutMilliseconds}ms";
+                    var windows = System.Environment.OSVersion.Platform == PlatformID.Win32NT;
+                    try
+                    {
+                        using var killer = Process.Start(new ProcessStartInfo
+                        {
+                            FileName = windows ? "taskkill.exe" : "/usr/bin/pkill",
+                            Arguments = windows ? $"/F /T /PID {process.Id}" : $"-KILL -P {process.Id}",
+                            UseShellExecute = false, CreateNoWindow = true,
+                        });
+                        if (!killer.WaitForExit(1500)) { killer.Kill(); Debug.LogError("git transport cleanup timed out"); }
+                        else if (killer.ExitCode != 0 && killer.ExitCode != 1) Debug.LogError($"git transport cleanup failed: {killer.ExitCode}");
+                    }
+                    finally { if (!process.HasExited) process.Kill(); }
+                    if (!process.WaitForExit(1500)) Debug.LogError($"git cleanup incomplete: PID {process.Id}");
+                    Debug.LogWarning(error);
+                    return false;
+                }
+                stdout = stdoutTask.GetAwaiter().GetResult();
                 process.WaitForExit();
                 error = process.ExitCode == 0 ? null : $"git {arguments} failed ({process.ExitCode}): {stderrTask.Result.Trim()}";
                 return process.ExitCode == 0;
