@@ -10,10 +10,6 @@ using NUnit.Framework;
 
 namespace Client.Tests.UIState
 {
-    /// <summary>
-    ///     DeleteSelectionの選択ロジックを検証するテスト
-    ///     Tests verifying the selection logic of DeleteSelection
-    /// </summary>
     public class DeleteSelectionTest
     {
         private static DeleteSelection Create() => new(new BuildOperationHistory(), new FakeRemovalRestoreSender());
@@ -98,8 +94,6 @@ namespace Client.Tests.UIState
             Assert.IsTrue(selection.IsStrokeAlive());
         }
 
-        // 新方式: なぞりを離しても選択は残り、カテゴリー固定は EndStroke で最前面へ戻る
-        // New behavior: the selection survives strokes and the category fix returns to frontmost on EndStroke
         [Test]
         public void EndStrokeKeepsSelectionAndResetsCategory()
         {

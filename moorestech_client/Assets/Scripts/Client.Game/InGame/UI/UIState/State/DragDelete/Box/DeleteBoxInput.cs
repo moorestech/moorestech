@@ -81,7 +81,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
 
             void UpdateIdle()
             {
-                // Shiftを押している間だけ始点候補を示す
+                // Shift中だけ始点候補を表示
                 // Show the start candidate only while Shift is held
                 if (isShiftHeld) ShowStart(cursorCell);
                 else _visualizer?.HideAll();
@@ -97,8 +97,8 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
                 GetVisualizer().ShowSelectingEnd(_selection.StartCell, cursorCell, min, max);
                 if (!isClicked) return;
 
-                // 空範囲は確定を拒み、ツールチップとログへ理由を残す
-                // Refuse an empty range, leaving its reason in tooltip and log
+                // 空範囲拒否を表示とログへ記録
+                // Record empty-range refusal in the tooltip and log
                 if (targets.Count == 0)
                 {
                     Debug.Log($"[DeleteBox] end click refused: no removable targets in {min}-{max}");

@@ -4,8 +4,12 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.RangeBox
 {
     /// <summary>
-    ///     始点（赤）・終点（緑）のセルと半透明の範囲箱を表示する。名前接頭辞と範囲色は利用側が決める
-    ///     Shows red start and green end cells with a translucent range box; the caller picks the name prefix and range color
+    ///     - 始点は赤、終点は緑
+    ///     - 範囲箱は半透明
+    ///     - 名前接頭辞・範囲色は呼出側指定
+    ///     - Red start and green end markers
+    ///     - Translucent range box
+    ///     - Caller specifies name prefix and range color
     /// </summary>
     public class CellRangeBoxVisualizer
     {
@@ -50,8 +54,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.RangeBox
         {
             PlaceCell(_startMarker, startCell);
             PlaceCell(_endMarker, hoverCell);
-            // セル境界から中心とサイズを計算する
-            // Calculate center and size from cell boundaries
             var bounds = CellRangeBox.ToWorldBounds(min, max);
             _rangeBox.transform.position = bounds.center;
             _rangeBox.transform.localScale = bounds.size;

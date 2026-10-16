@@ -22,15 +22,13 @@ namespace Client.Tests.UIState.DragDelete
             var hovered = oldGo.AddComponent<DeleteTargetRail>();
             hovered.SetParentBezierRailChain(chain);
 
-            // 実コンポーネントを破棄し、前フレームのホバー参照を残す
-            // Destroy the actual component while retaining the previous frame's hover
+            // 前フレームのホバーを残して実体を破棄
+            // Destroy the actual component while retaining the previous frame hover
             selection.SetHoverPreview(hovered);
             Object.DestroyImmediate(oldGo);
             var selected = new FakeDeleteTarget { Removable = true };
             LogAssert.Expect(LogType.Warning, "[DragDelete] target was destroyed before hover");
 
-            // 例外なく追加され、破棄済み参照が解放される
-            // Addition succeeds without exceptions and clears the destroyed reference
             var added = 0;
             Assert.DoesNotThrow(() => added = selection.AddBoxTargets(new[] { selected }));
             Assert.AreEqual(1, added);

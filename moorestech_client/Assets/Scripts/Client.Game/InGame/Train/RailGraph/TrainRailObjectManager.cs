@@ -144,8 +144,8 @@ namespace Client.Game.InGame.Train.RailGraph
             var railObjectId = RailObjectIdCodec.ComputeRailObjectId(canonicalFrom, canonicalTo);
             if (_railObjs.ContainsKey(railObjectId)) return;
 
-            // 制御点の生成と表示初期化は描画ファクトリーへ委譲する
-            // Delegate control-point generation and view initialization to the rail factory
+            // 制御点生成と表示初期化を委譲
+            // Delegate control-point creation and view initialization
             if (!TrainRailLineFactory.TrySpawn(_railPrefab, transform, _cache, canonicalFrom, canonicalTo, out var lineObject, out var denyReason))
             {
                 Debug.LogWarning($"[RailGraph] line activation deferred: {denyReason}");

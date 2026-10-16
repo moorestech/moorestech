@@ -62,8 +62,8 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             // Reject a target whose category differs from the stroke category (prevents mixing)
             if (!AimFilter.Accepts(target)) return DeleteAddOutcome.CategoryMismatch();
 
-            // 最初の追加でストロークのカテゴリーを固定する
-            // Fix the stroke category on the first added target
+            // 最初の追加でカテゴリー固定
+            // Lock the category on the first addition
             if (!AimFilter.IsCategoryRequired) AimFilter = DeleteAimFilter.Category(target.GetDestructionCategory());
             return Add(target) ? DeleteAddOutcome.Added : DeleteAddOutcome.AlreadySelected;
         }
@@ -95,8 +95,8 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             return _selectedTargets.ContainsKey(target.GetDeleteTargetKey());
         }
 
-        // 選択を全てリセットしてストロークを死に状態にする（ESC操作）
-        // Reset all selections and mark the stroke as canceled (ESC behavior)
+        // 全選択を解除しストロークを無効化（ESC）
+        // Clear all selections and cancel the stroke (ESC)
         public void CancelSelection()
         {
             foreach (var target in _selectedTargets.Values)
@@ -185,8 +185,8 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             if (!Contains(HoverPreview)) HoverPreview.ResetMaterial();
         }
 
-        // Unity オブジェクトの破棄済み判定（墓標は警告を出して読み飛ばす）
-        // Unity destroyed-object check (tombstones are skipped with a warning)
+        // 破棄済みUnity対象を警告付きで判定
+        // Detect destroyed Unity targets with a warning
         private static bool IsDestroyed(IDeleteTarget target, string phase)
         {
             if (target is not Object unityTarget || unityTarget != null) return false;

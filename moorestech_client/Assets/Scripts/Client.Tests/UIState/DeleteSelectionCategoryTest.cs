@@ -16,8 +16,6 @@ namespace Client.Tests.UIState
         [Test]
         public void DefaultStartAllowsMultipleDefaultTargets()
         {
-            // default開始ではdefault同士を複数選択できる
-            // A default-started session can multi-select default targets
             var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
             var first = new FakeDeleteTarget { Removable = true, Category = "default" };
             var second = new FakeDeleteTarget { Removable = true, Category = "default" };
@@ -34,8 +32,8 @@ namespace Client.Tests.UIState
         [Test]
         public void DefaultStartRejectsFoundationTarget()
         {
-            // default開始では土台カテゴリーを追加選択できず、拒否理由が返る
-            // A default-started session rejects a foundation target and returns the deny reason
+            // 拒否理由も検証
+            // Also verify the rejection reason
             var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
             var start = new FakeDeleteTarget { Removable = true, Category = "default" };
             var foundation = new FakeDeleteTarget { Removable = true, Category = "foundation" };
@@ -56,8 +54,8 @@ namespace Client.Tests.UIState
         [Test]
         public void FoundationStartRejectsDefaultTarget()
         {
-            // 土台開始では土台だけ選択でき、defaultは追加選択できない
-            // A foundation-started session accepts only foundation, not default
+            // 土台同士は追加可能
+            // Additional foundation targets are accepted
             var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
             var foundationA = new FakeDeleteTarget { Removable = true, Category = "foundation" };
             var foundationB = new FakeDeleteTarget { Removable = true, Category = "foundation" };
@@ -77,8 +75,6 @@ namespace Client.Tests.UIState
         [Test]
         public void CategoryLockResetsAfterCommit()
         {
-            // 破壊完了後は次のセッションへカテゴリー固定が漏れない
-            // The category lock does not leak into the next session after a commit
             var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
             var foundation = new FakeDeleteTarget { Removable = true, Category = "foundation" };
             var defaultTarget = new FakeDeleteTarget { Removable = true, Category = "default" };
@@ -98,8 +94,6 @@ namespace Client.Tests.UIState
         [Test]
         public void CategoryLockResetsAfterCancel()
         {
-            // キャンセル後は次のセッションへカテゴリー固定が漏れない
-            // The category lock does not leak into the next session after a cancel
             var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
             var foundation = new FakeDeleteTarget { Removable = true, Category = "foundation" };
             var defaultTarget = new FakeDeleteTarget { Removable = true, Category = "default" };
@@ -119,8 +113,6 @@ namespace Client.Tests.UIState
         [Test]
         public void AimFilterIsFixedByFirstTargetAndResetOnNewDrag()
         {
-            // 最初の対象で固定、新ドラッグで解除
-            // The first target fixes the filter; a new drag resets it
             var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
             selection.BeginStroke();
             Assert.IsFalse(selection.AimFilter.IsCategoryRequired);

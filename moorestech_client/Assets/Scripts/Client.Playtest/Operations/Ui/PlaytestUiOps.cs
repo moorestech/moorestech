@@ -160,8 +160,8 @@ namespace Client.Playtest.Operations.Ui
                 await UniTask.DelayFrame(5);
             }
 
-            // キーとマウスの両方が有効になったことを待ち、失敗は環境準備段階で示す
-            // Wait for both keyboard and mouse to become enabled, reporting failures during environment setup
+            // キー・マウス有効化失敗を準備段階で示す
+            // Report keyboard or mouse activation failures during setup
             SemanticInput.EnsureDevices();
             foreach (var device in InputSystem.devices)
                 if (!device.enabled) InputSystem.EnableDevice(device);

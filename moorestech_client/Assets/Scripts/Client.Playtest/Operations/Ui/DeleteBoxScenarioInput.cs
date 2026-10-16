@@ -52,8 +52,8 @@ namespace Client.Playtest.Operations.Ui
             driver.Assert(HasTooltipLine(LocalizationKeys.Ui.Tooltip.DeleteBoxTargetsInRange), "0件クリックは終点待ちに留まる");
             driver.Assert(ReadRequiredTooltipCount(LocalizationKeys.Ui.Tooltip.DeleteSelectedCount) == selectedCount, "0件クリックは既存選択を変えない");
 
-            // 実キーで高さを往復し、マーカー位置にも反映されたことを確かめる
-            // Change height through real keys and check the resulting marker positions
+            // 実キーの高さ往復をマーカーでも検証
+            // Check real-key height changes against marker positions
             var height = ClientDIContext.DIContainer.DIContainerResolver.Resolve<PlacementHeightOffset>();
             var markerY = GameObject.Find("DeleteBoxEndMarker").transform.position.y;
             await driver.PressKey(Key.E);
@@ -98,8 +98,8 @@ namespace Client.Playtest.Operations.Ui
             return ClientDIContext.DIContainer.DIContainerResolver.Resolve<MouseCursorTooltipState>();
         }
 
-        // 実レイキャストで対象のブロックを拾えるコライダー中心を照準する
-        // Aim at a collider center that the real delete raycast resolves to the intended block
+        // 実レイで対象を拾えるコライダー中心へ照準
+        // Aim at a collider center that resolves to the target through the real raycast
         public static async UniTask AimAtCell(PlaytestDriver driver, Vector3Int pos)
         {
             var block = ClientDIContext.BlockGameObjectDataStore.GetBlockGameObject(pos);

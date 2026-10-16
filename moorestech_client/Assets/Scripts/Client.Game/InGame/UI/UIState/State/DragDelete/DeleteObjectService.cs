@@ -13,8 +13,12 @@ using UnityEngine;
 
 namespace Client.Game.InGame.UI.UIState.State.DragDelete
 {
-    // 破壊モードの削除インタラクション（箱・なぞり・ホバー・F長押し確定・ツールチップ）を毎フレーム束ねる司令塔
-    // Per-frame conductor of destroy-mode interaction (box, stroke, hover, F hold-to-confirm, tooltip)
+    // - 箱・なぞり・ホバー入力を統括
+    // - F長押し確定を処理
+    // - ツールチップを更新
+    // - Coordinate box, stroke and hover input
+    // - Process F hold confirmation
+    // - Update the tooltip
     public class DeleteObjectService
     {
         private readonly DeleteSelection _selection;
@@ -151,8 +155,8 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             return true;
         }
 
-        // モード離脱: 選択・箱（高さ含む）・長押し・ツールチップを全て片付ける
-        // Mode exit: clear selection, box (including height), hold and tooltip
+        // 選択・箱・高さ・長押し・ツールチップを全解除
+        // Clear selection, box, height, hold and tooltip
         public void ClearAll()
         {
             _selection.CancelSelection();

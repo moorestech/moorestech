@@ -15,8 +15,8 @@ namespace Client.Game.InGame.Train.RailGraph
             int fromNodeId, int toNodeId, out BezierRailChain chain, out string denyReason)
         {
             chain = null;
-            // 同期途中の未成立と端点欠落を区別して呼び出し元へ渡す
-            // Distinguish an incomplete synchronized pair from missing endpoints for the caller
+            // 未成立と端点欠落を呼出側へ区別して返す
+            // Return distinct reasons for incomplete pairing and missing endpoints
             if (!HasPairedConnection(cache, fromNodeId, toNodeId))
             {
                 denyReason = "connection pair is not drawable yet";
