@@ -10,7 +10,7 @@ namespace Client.PlaytestReceiver.Credentials
     }
     public sealed class PlaytestCredentialNotSent : PlaytestCredentialPost
     {
-        public readonly PlaytestSessionResult Failure;
-        public PlaytestCredentialNotSent(PlaytestSessionResult failure) { Failure = failure; }
+        public readonly PlaytestSessionFailed Failure;
+        public PlaytestCredentialNotSent(PlaytestSessionFailed failure) { Failure = failure; }
     }
 }

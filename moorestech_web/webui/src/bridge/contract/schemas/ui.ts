@@ -53,10 +53,15 @@ const BugReportStatusSchema = z.discriminatedUnion("kind", [
 ]);
 // 送信状態ごとの必須値を契約で固定する
 // Pin the required fields of each delivery state at the boundary
+const PlaytestDeliveryInventorySchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("known"), pendingCount: z.number().int().nonnegative(), failedCount: z.number().int().nonnegative() }).strict(),
+  z.object({ kind: z.literal("unavailable"), reason: z.string().min(1) }).strict(),
+]);
+
 const DeliveryStatusSchema = z.discriminatedUnion("kind", [
-  z.object({ kind: z.literal("localOnly"), reason: z.enum(["developerTokenMissing", "developerTokenUnreadable", "steamNotRunning"]), pendingCount: z.number().int().nonnegative(), failedCount: z.number().int().nonnegative() }).strict(),
-  z.object({ kind: z.literal("pending"), pendingCount: z.number().int().nonnegative(), failedCount: z.number().int().nonnegative() }).strict(),
-  z.object({ kind: z.literal("refused"), pendingCount: z.number().int().nonnegative(), failedCount: z.number().int().nonnegative() }).strict(),
+  z.object({ kind: z.literal("localOnly"), reason: z.enum(["developerTokenMissing", "developerTokenUnreadable", "distributionUnavailable"]), inventory: PlaytestDeliveryInventorySchema }).strict(),
+  z.object({ kind: z.literal("pending"), inventory: PlaytestDeliveryInventorySchema }).strict(),
+  z.object({ kind: z.literal("refused"), inventory: PlaytestDeliveryInventorySchema }).strict(),
   z.object({ kind: z.literal("allSent") }).strict(),
 ]);
 export const PauseMenuDataSchema = z.object({

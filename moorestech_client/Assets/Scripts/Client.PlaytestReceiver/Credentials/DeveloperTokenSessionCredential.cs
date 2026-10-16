@@ -9,6 +9,8 @@ namespace Client.PlaytestReceiver.Credentials
         private readonly string _developerToken;
         public DeveloperTokenSessionCredential(string developerToken) { _developerToken = developerToken; }
 
+        public bool AcceptsSubject(string subject) { return subject.StartsWith("dev-", System.StringComparison.Ordinal); }
+
         public async UniTask<PlaytestCredentialPost> PostSessionAsync(IPlaytestReceiverApi api, CancellationToken token)
         {
             return new PlaytestCredentialSent(await api.PostDeveloperSessionAsync(_developerToken, token));

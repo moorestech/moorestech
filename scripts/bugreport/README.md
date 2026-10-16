@@ -28,3 +28,5 @@ Task 9 で追加する道具は次のように使う。
 コミットbundleが `PlaytestReceiverConfig.MaxFileBytes`（100MiB）または `MaxBundleBytes`（256MiB）で除外される箱は、`UPLOAD_FAILED` に理由を残して送信を保留する。未宣言なら `manifest.missing` と `repo/bundle-status.txt` にも配送不能を記録する。既宣言の本文は書き換えない。大容量bundleの分割運搬は未実装であり、上限超過の解決には追加設計が必要。失敗印だけ消しても容量制約は解消しない。
 
 初回宣言前の旧Editor箱は、起動時に元manifestの本体・master SHAを現在の明示repoで確認してbundleを補完する。不明SHA・repo欠落・既宣言での追加は理由付き保留。元HEAD・branch・dirtyを現在値で上書きしない。
+
+旧Editor箱の資料を再補完するときは、まず退避コピーと元manifestのSHAを確認する。`repo/bundle-status.txt` に両資料の結果があり `failed-delivery` でない箱は自動補完し直さない。未宣言の箱に限り、元SHAの資料を復元して状態記録を修正してから失敗印を解除する。既宣言の箱の本文は変えず、新しい報告として取り直す。失敗印の解除だけでは欠損資料は復旧しない。

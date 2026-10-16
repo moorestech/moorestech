@@ -33,7 +33,7 @@ namespace Client.PlaytestReceiver.Delivery
             }
 #else
             if (isDistribution) return new PlaytestSteamRoute();
-            return new PlaytestLocalOnlyRoute(PlaytestLocalOnlyReason.SteamNotRunning, PlaytestOutboxScope.ReportsAndProgress, "Steam is not running");
+            return new PlaytestLocalOnlyRoute(PlaytestLocalOnlyReason.DistributionUnavailable, PlaytestOutboxScope.ReportsAndProgress, "Distribution delivery unavailable; check build-info and Steam");
 #endif
         }
     }

@@ -6,6 +6,7 @@ namespace Client.PlaytestReceiver.Credentials
 {
     public interface IPlaytestSessionCredential
     {
+        bool AcceptsSubject(string subject);
         UniTask<PlaytestCredentialPost> PostSessionAsync(IPlaytestReceiverApi api, CancellationToken token);
     }
 }

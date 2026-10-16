@@ -80,6 +80,28 @@ namespace Client.Tests.BugReport.Diagnostics
         }
 
         [Test]
+        public void 書込途中の一時JSONは収集しない()
+        {
+            var source = Path.Combine(_root, "source");
+            Directory.CreateDirectory(source);
+            File.WriteAllText(Path.Combine(source, "stall-writing.json.tmp"), "{unfinished");
+            var reportType = typeof(TrainSynchronizationDiagnosticWriter).Assembly.GetType("Client.Game.InGame.Train.Network.Diagnostics.TrainSynchronizationDiagnosticReport");
+            var report = Activator.CreateInstance(reportType);
+            reportType.GetField("CapturedAtUtc").SetValue(report, DateTime.UtcNow);
+            reportType.GetField("WaitingReason").SetValue(report, "complete diagnostic");
+            var writer = new TrainSynchronizationDiagnosticWriter(source);
+            typeof(TrainSynchronizationDiagnosticWriter).GetMethod("Write", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(writer, new[] { report });
+            var manifest = new BugReportManifest();
+            var box = Path.Combine(_root, "box");
+            TrainSyncDiagnosticsCopier.Copy(source, box, manifest);
+            var copied = Directory.GetFiles(Path.Combine(box, "logs/train-sync"));
+            Assert.AreEqual(1, copied.Length);
+            Assert.AreEqual("complete diagnostic", (string)Newtonsoft.Json.Linq.JObject.Parse(File.ReadAllText(copied[0]))["WaitingReason"]);
+            Assert.IsEmpty(manifest.Missing);
+            Assert.AreEqual(1, Directory.GetFiles(source, "*.tmp").Length, "writer must publish its own temporary file");
+        }
+
+        [Test]
         public void AbsentDirectoryLeavesNoMissingOrDestination()
         {
             var manifest = new BugReportManifest();

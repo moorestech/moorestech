@@ -68,12 +68,18 @@ namespace Client.PlaytestReceiver
                 var parsed = PlaytestSessionResponse.Parse(response.Body);
                 if (parsed == null) return PlaytestSessionResult.Failed(PlaytestSessionOutcome.MalformedResponse, "malformed session response");
 
+                if (!_credential.AcceptsSubject(parsed.SteamId))
+                {
+                    Debug.LogWarning("[PlaytestReceiver] session subject does not match credential kind");
+                    return PlaytestSessionResult.Failed(PlaytestSessionOutcome.MalformedResponse, "session subject does not match credential kind");
+                }
+
                 // 更新時刻は受け口が名乗った期限から逆算する。寿命の正本を受け口1箇所に保つ
                 // The refresh time is derived from the expiry the receiver states, keeping the lifetime's source there alone
                 _token = parsed.Token;
                 _tokenRefreshAtUtc = parsed.ExpiresAtUtc.AddSeconds(-PlaytestReceiverConfig.TokenRefreshMarginSeconds);
 
-                return PlaytestSessionResult.Authenticated();
+                return new PlaytestSessionAuthenticated(parsed);
             }
 
             #endregion
@@ -111,11 +117,12 @@ namespace Client.PlaytestReceiver
             if (!forceRenew && _token != null && utcNow < _tokenRefreshAtUtc) return PlaytestTokenAvailability.Usable;
 
             var result = await AuthenticateAsync(utcNow, token);
-            if (result.Outcome == PlaytestSessionOutcome.Authenticated) return PlaytestTokenAvailability.Usable;
+            if (result is PlaytestSessionAuthenticated) return PlaytestTokenAvailability.Usable;
 
+            var failed = (PlaytestSessionFailed)result;
             _token = null;
-            Debug.LogWarning($"[PlaytestReceiver] could not refresh the session token: {result.Outcome} {result.Detail}");
-            return PlaytestTokenAvailability.Unavailable(result);
+            Debug.LogWarning($"[PlaytestReceiver] could not refresh the session token: {failed.Outcome} {failed.Detail}");
+            return PlaytestTokenAvailability.Unavailable(failed);
         }
     }
 }

@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using Client.PlaytestReceiver.Credentials;
 using Client.Game.InGame.BugReport.Submit;
 using Client.PlaytestReceiver.Delivery;
@@ -92,7 +94,10 @@ namespace Client.PlaytestReceiver.Upload
                     await PlaytestOutboxAccess.Gate.WaitAsync(Application.exitCancellationToken);
                     acquired = true;
                     var initial = PlaytestOutboxScanner.ReadDeliveryInventory(_directories, route.Scope);
-                    PlaytestDeliveryStatusBoard.Set(new PlaytestDeliveryPending(initial.PendingCount, initial.FailedCount));
+                    PlaytestDeliveryStatusBoard.Set(new PlaytestDeliveryPending(initial));
+                    // 件数不明では送信せず、次回の実読取で復帰する
+                    // Do not upload unknown inventory; a later successful read restores delivery
+                    if (initial is PlaytestOutboxInventoryUnavailable) return;
                     var uploader = new PlaytestUploader(_api, ResolveSession(), _directories, PlaytestUploadRetrySchedule.Default, route.Scope);
                     var summary = await uploader.UploadPendingAsync(Application.exitCancellationToken);
                     // 最新要求がローカル保存なら旧走行の結果で上書きせず、残数だけ更新する
@@ -104,9 +109,18 @@ namespace Client.PlaytestReceiver.Upload
                     }
                     var remaining = PlaytestOutboxScanner.ReadDeliveryInventory(_directories, route.Scope);
                     PlaytestDeliveryStatusBoard.Set(summary.End == PlaytestUploadRunEnd.SessionRefused
-                        ? new PlaytestDeliveryRefused(remaining.PendingCount, remaining.FailedCount)
-                        : remaining.PendingCount == 0 && remaining.FailedCount == 0 ? PlaytestDeliveryAllSent.Instance : new PlaytestDeliveryPending(remaining.PendingCount, remaining.FailedCount));
+                        ? new PlaytestDeliveryRefused(remaining)
+                        : remaining is PlaytestOutboxDeliveryCounts counts && counts.PendingCount == 0 && counts.FailedCount == 0 ? PlaytestDeliveryAllSent.Instance : new PlaytestDeliveryPending(remaining));
                     Debug.Log($"[PlaytestReceiver] upload run finished: {summary.Sent} box(es) sent");
+                }
+                // 走査中の外部ディスク変化も件数不明として通知する
+                // Report disk changes during upload enumeration as unavailable inventory
+                catch (Exception error) when (error is IOException || error is UnauthorizedAccessException)
+                {
+                    Debug.LogWarning($"[PlaytestReceiver] upload inventory unavailable: {error.Message}");
+                    var unavailable = new PlaytestOutboxInventoryUnavailable(error.Message);
+                    PlaytestDeliveryStatusBoard.Set(_latestRoute is PlaytestLocalOnlyRoute local
+                        ? new PlaytestDeliveryLocalOnly(local.Reason, unavailable) : new PlaytestDeliveryPending(unavailable));
                 }
                 finally
                 {
@@ -148,7 +162,7 @@ namespace Client.PlaytestReceiver.Upload
         private void PublishLocalOnly(PlaytestLocalOnlyRoute local)
         {
             var counts = PlaytestOutboxScanner.ReadDeliveryInventory(_directories, local.Scope);
-            PlaytestDeliveryStatusBoard.Set(new PlaytestDeliveryLocalOnly(local.Reason, counts.PendingCount, counts.FailedCount));
+            PlaytestDeliveryStatusBoard.Set(new PlaytestDeliveryLocalOnly(local.Reason, counts));
             Debug.Log($"[PlaytestReceiver] boxes stay local: {local.Detail}");
         }
 

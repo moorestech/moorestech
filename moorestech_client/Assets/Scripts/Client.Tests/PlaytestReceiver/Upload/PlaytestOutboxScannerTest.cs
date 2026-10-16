@@ -76,7 +76,7 @@ namespace Client.Tests.PlaytestReceiver
             var box = MakeBox(directories.ReportOutbox, "20260913_120000_bbbb", true);
             File.WriteAllText(Path.Combine(box, "SHIPPED"), "delivered");
             Assert.IsEmpty(PlaytestOutboxScanner.ScanPending(directories, Client.PlaytestReceiver.Delivery.PlaytestOutboxScope.ReportsOnly));
-            var counts = PlaytestOutboxScanner.ReadDeliveryInventory(directories, Client.PlaytestReceiver.Delivery.PlaytestOutboxScope.ReportsOnly);
+            var counts = (Client.PlaytestReceiver.Delivery.PlaytestOutboxDeliveryCounts)PlaytestOutboxScanner.ReadDeliveryInventory(directories, Client.PlaytestReceiver.Delivery.PlaytestOutboxScope.ReportsOnly);
             Assert.AreEqual(0, counts.PendingCount);
             Assert.AreEqual(0, counts.FailedCount);
             Assert.IsEmpty(PlaytestOutboxScanner.ListPayloadFiles(box));

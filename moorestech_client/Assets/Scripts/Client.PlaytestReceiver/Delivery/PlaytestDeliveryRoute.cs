@@ -1,7 +1,7 @@
 namespace Client.PlaytestReceiver.Delivery
 {
     public enum PlaytestOutboxScope { ReportsAndProgress, ReportsOnly }
-    public enum PlaytestLocalOnlyReason { DeveloperTokenMissing, DeveloperTokenUnreadable, SteamNotRunning }
+    public enum PlaytestLocalOnlyReason { DeveloperTokenMissing, DeveloperTokenUnreadable, DistributionUnavailable }
     public abstract class PlaytestDeliveryRoute { public abstract PlaytestOutboxScope Scope { get; } }
     public sealed class PlaytestSteamRoute : PlaytestDeliveryRoute
     {

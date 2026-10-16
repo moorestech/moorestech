@@ -75,25 +75,31 @@ export function BugReportForm({ status, delivery, draft }: Props) {
         data-testid="bug-report-description"
       />
       {statusLine && <span className={styles.status} data-testid="bug-report-status">{statusLine}</span>}
-      <span className={styles.status} data-testid="bug-report-delivery">{describeDelivery()}{delivery.kind !== "allSent" && delivery.failedCount > 0 ? ` / ${t(L.ui.bugReport.deliveryFailed, { count: delivery.failedCount })}` : ""}</span>
+      <span className={styles.status} data-testid="bug-report-delivery">{describeDelivery()}{describeFailedDelivery()}</span>
       <Button onClick={send} disabled={blocked} data-testid="bug-report-send">{t(reportLabels(draft.kind).send)}</Button>
     </>
   );
 
+  function describeFailedDelivery(): string {
+    if (delivery.kind === "allSent" || delivery.inventory.kind !== "known" || delivery.inventory.failedCount === 0) return "";
+    return ` / ${t(L.ui.bugReport.deliveryFailed, { count: delivery.inventory.failedCount })}`;
+  }
+
   // 送信可否とは独立した配送状況を伝える
   // Delivery status is independent of permission to submit
   function describeDelivery(): string {
+    if (delivery.kind === "allSent") return t(L.ui.bugReport.deliveryAllSent);
+    if (delivery.inventory.kind === "unavailable") return t(L.ui.bugReport.deliveryInventoryUnavailable, { reason: delivery.inventory.reason });
     switch (delivery.kind) {
-      case "allSent": return t(L.ui.bugReport.deliveryAllSent);
-      case "pending": return t(L.ui.bugReport.deliveryPending, { count: delivery.pendingCount });
-      case "refused": return t(L.ui.bugReport.deliveryRefused, { count: delivery.pendingCount });
+      case "pending": return t(L.ui.bugReport.deliveryPending, { count: delivery.inventory.pendingCount });
+      case "refused": return t(L.ui.bugReport.deliveryRefused, { count: delivery.inventory.pendingCount });
       case "localOnly": {
         const keys = {
           developerTokenMissing: L.ui.bugReport.deliveryLocalOnlyTokenMissing,
           developerTokenUnreadable: L.ui.bugReport.deliveryLocalOnlyTokenUnreadable,
-          steamNotRunning: L.ui.bugReport.deliveryLocalOnlySteamNotRunning,
+          distributionUnavailable: L.ui.bugReport.deliveryLocalOnlyDistributionUnavailable,
         };
-        return t(keys[delivery.reason], { count: delivery.pendingCount });
+        return t(keys[delivery.reason], { count: delivery.inventory.pendingCount });
       }
     }
   }

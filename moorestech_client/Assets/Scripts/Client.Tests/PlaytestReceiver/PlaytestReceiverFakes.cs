@@ -146,7 +146,9 @@ namespace Client.Tests.PlaytestReceiver
         {
             DeveloperTokens.Add(developerToken);
             DeveloperSessionCallCount++;
-            return PostSessionAsync(developerToken, token);
+            SessionCallCount++;
+            return UniTask.FromResult(SessionResult.StatusCode == 200
+                ? PlaytestApiResult.Responded(200, SessionResult.Body.Replace("7656", "dev-test")) : SessionResult);
         }
 
         public UniTask<PlaytestApiResult> PostPrepareAsync(string bearerToken, PlaytestUploadKind kind, string bundleId, int generation, IReadOnlyList<PlaytestDeclaredFile> files, CancellationToken token)

@@ -20,7 +20,7 @@ namespace Client.PlaytestReceiver
             Detail = detail;
         }
 
-        public static PlaytestTokenAvailability Unavailable(PlaytestSessionResult failed)
+        public static PlaytestTokenAvailability Unavailable(PlaytestSessionFailed failed)
         {
             return new PlaytestTokenAvailability(false, failed.Outcome, failed.Detail);
         }

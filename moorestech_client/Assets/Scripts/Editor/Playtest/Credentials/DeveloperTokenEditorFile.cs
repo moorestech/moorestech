@@ -25,8 +25,15 @@ internal static class DeveloperTokenEditorFile
                 failure = DeveloperTokenEditorPermissions.RestrictToOwner(temporary, false);
                 if (failure == null)
                 {
-                    if (File.Exists(path)) File.Replace(temporary, path, null);
-                    else File.Move(temporary, path);
+                    // Windowsの置換は置換先ACLを保つため、旧ファイルも公開前に制限する
+                    // Windows replacement retains destination ACLs, so restrict the existing file before publication
+                    if (File.Exists(path)) failure = DeveloperTokenEditorPermissions.RestrictToOwner(path, false);
+                    if (failure == null)
+                    {
+                        if (File.Exists(path)) File.Replace(temporary, path, null);
+                        else File.Move(temporary, path);
+                        failure = DeveloperTokenEditorPermissions.RestrictToOwner(path, false);
+                    }
                 }
             }
         }

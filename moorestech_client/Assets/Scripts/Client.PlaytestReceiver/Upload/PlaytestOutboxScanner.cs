@@ -37,13 +37,12 @@ namespace Client.PlaytestReceiver.Upload
 
             IEnumerable<PlaytestOutboxBox> ScanOne(string outbox, PlaytestUploadKind kind, IPlaytestBoxFilePolicy filePolicy)
             {
-                if (!Directory.Exists(outbox)) yield break;
-
-                foreach (var directory in Directory.GetDirectories(outbox))
+                foreach (var directory in EnumerateOutboxDirectories(outbox))
                 {
-                    if (!File.Exists(Path.Combine(directory, ReadyMarker))) continue;
-                    if (IsDelivered(directory)) continue;
-                    if (File.Exists(Path.Combine(directory, FailedMarker))) continue;
+                    var markers = ReadMarkers(directory);
+                    if (!markers.Contains(ReadyMarker)) continue;
+                    if (IsDelivered(markers)) continue;
+                    if (markers.Contains(FailedMarker)) continue;
                     yield return new PlaytestOutboxBox(directory, Path.GetFileName(directory), kind, filePolicy);
                 }
             }
@@ -51,13 +50,23 @@ namespace Client.PlaytestReceiver.Upload
             #endregion
         }
 
-        internal static PlaytestOutboxDeliveryCounts ReadDeliveryInventory(PlaytestOutboxDirectories directories, PlaytestOutboxScope scope)
+        internal static PlaytestOutboxInventoryRead ReadDeliveryInventory(PlaytestOutboxDirectories directories, PlaytestOutboxScope scope)
         {
             var pending = 0;
             var failed = 0;
-            Count(directories.ReportOutbox);
-            if (scope == PlaytestOutboxScope.ReportsAndProgress) Count(directories.ProgressOutbox);
-            return new PlaytestOutboxDeliveryCounts(pending, failed);
+            // 外部ディスク境界。読取不能は件数不明として画面とログへ渡す
+            // External disk boundary: expose unreadable inventory to the UI and log without invented counts
+            try
+            {
+                Count(directories.ReportOutbox);
+                if (scope == PlaytestOutboxScope.ReportsAndProgress) Count(directories.ProgressOutbox);
+                return new PlaytestOutboxDeliveryCounts(pending, failed);
+            }
+            catch (Exception exception) when (exception is IOException || exception is UnauthorizedAccessException)
+            {
+                UnityEngine.Debug.LogWarning($"[PlaytestReceiver] outbox inventory unavailable: {exception.Message}");
+                return new PlaytestOutboxInventoryUnavailable(exception.Message);
+            }
 
             #region Internal
 
@@ -65,16 +74,16 @@ namespace Client.PlaytestReceiver.Upload
             {
                 // 存在しないoutboxはまだ報告を作っていない状態
                 // An absent outbox means no report has been created yet
-                if (!Directory.Exists(outbox)) return;
-                foreach (var directory in Directory.GetDirectories(outbox))
+                foreach (var directory in EnumerateOutboxDirectories(outbox))
                 {
-                    if (!File.Exists(Path.Combine(directory, ReadyMarker))) continue;
-                    if (IsDelivered(directory)) continue;
+                    var markers = ReadMarkers(directory);
+                    if (!markers.Contains(ReadyMarker)) continue;
+                    if (IsDelivered(markers)) continue;
                     // 印を書けない同名ディレクトリも失敗として画面へ残す
                     // A directory blocking the failure marker also remains visible as failed
                     var blockedMarker = Directory.Exists(Path.Combine(directory, FailedMarker));
                     if (blockedMarker) UnityEngine.Debug.LogWarning($"[PlaytestReceiver] failure marker is a directory: {directory}");
-                    if (blockedMarker || File.Exists(Path.Combine(directory, FailedMarker))) failed++;
+                    if (blockedMarker || markers.Contains(FailedMarker)) failed++;
                     else pending++;
                 }
             }
@@ -82,9 +91,28 @@ namespace Client.PlaytestReceiver.Upload
             #endregion
         }
 
-        private static bool IsDelivered(string directory)
+        private static string[] EnumerateOutboxDirectories(string outbox)
         {
-            return File.Exists(Path.Combine(directory, UploadedMarker)) || File.Exists(Path.Combine(directory, "SHIPPED"));
+            // 外部ディスク境界。未作成だけを空扱いし、権限エラーは呼び手へ伝える
+            // External disk boundary: only an absent root is empty; access failures reach the caller
+            try { return Directory.GetDirectories(outbox); }
+            catch (DirectoryNotFoundException)
+            {
+                // silent-ok: 未作成のoutboxには箱がない / 作成後の次回要求で再走査する
+                return Array.Empty<string>();
+            }
+        }
+
+        private static string[] ReadMarkers(string directory)
+        {
+            // File.Existsは権限拒否もfalseへ畳むため、箱の読取成功を先に確定する
+            // File.Exists folds access denial into false, so verify box enumeration before classifying markers
+            return Directory.GetFiles(directory).Select(Path.GetFileName).ToArray();
+        }
+
+        private static bool IsDelivered(string[] markers)
+        {
+            return markers.Contains(UploadedMarker) || markers.Contains("SHIPPED");
         }
 
         public static IReadOnlyList<string> ListPayloadFiles(string boxDirectory)

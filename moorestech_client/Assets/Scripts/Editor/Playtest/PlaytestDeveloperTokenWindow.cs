@@ -4,7 +4,6 @@ using System.Threading;
 using Client.PlaytestReceiver;
 using Client.PlaytestReceiver.Credentials;
 using Client.PlaytestReceiver.Http;
-using Client.PlaytestReceiver.Http.Responses;
 using Cysharp.Threading.Tasks;
 using Game.Paths;
 using UnityEditor;
@@ -89,23 +88,25 @@ public sealed class PlaytestDeveloperTokenWindow : EditorWindow
                 return;
             }
             _checking = true;
-            var response = await new PlaytestReceiverClient(PlaytestReceiverConfig.BaseUrl)
-                .PostDeveloperSessionAsync(present.Token, cancellation).SuppressCancellationThrow();
+            var session = new PlaytestSession(new PlaytestReceiverClient(PlaytestReceiverConfig.BaseUrl), new DeveloperTokenSessionCredential(present.Token));
+            var response = await session.AuthenticateAsync(DateTime.UtcNow, cancellation).SuppressCancellationThrow();
             // silent-ok: 閉じた画面には結果を反映しない / 次の接続確認時に状態を再読取する
             if (response.IsCanceled || cancellation.IsCancellationRequested) return;
             _checking = false;
-            if (response.Result.Kind != PlaytestApiResultKind.Responded)
-                SetResult(DeveloperTokenWindowResultKind.Unreachable, response.Result.Detail);
-            else if (response.Result.StatusCode == 401)
-                SetResult(DeveloperTokenWindowResultKind.Refused, "");
-            else if (response.Result.StatusCode != 200)
-                SetResult(DeveloperTokenWindowResultKind.HttpFailed, response.Result.StatusCode.ToString());
+            // 実送信と同じ検証済み結果を表示する
+            // Display the same validated result used for production delivery
+            if (response.Result is PlaytestSessionAuthenticated authenticated)
+                SetResult(DeveloperTokenWindowResultKind.Connected, authenticated.Response.SteamId);
             else
             {
-                var parsed = PlaytestSessionResponse.Parse(response.Result.Body);
-                if (parsed == null || !parsed.SteamId.StartsWith("dev-", StringComparison.Ordinal))
-                    SetResult(DeveloperTokenWindowResultKind.MalformedResponse, "");
-                else SetResult(DeveloperTokenWindowResultKind.Connected, parsed.SteamId);
+                var failed = (PlaytestSessionFailed)response.Result;
+                var kind = failed.Outcome switch
+                {
+                    PlaytestSessionOutcome.TicketRejected => DeveloperTokenWindowResultKind.Refused,
+                    PlaytestSessionOutcome.MalformedResponse => DeveloperTokenWindowResultKind.MalformedResponse,
+                    _ => DeveloperTokenWindowResultKind.Unreachable,
+                };
+                SetResult(kind, failed.Detail);
             }
         }
 
@@ -147,7 +148,6 @@ public sealed class PlaytestDeveloperTokenWindow : EditorWindow
             DeveloperTokenWindowResultKind.CredentialRequired => ("接続確認できません: 有効なトークンを保存してください。", MessageType.Warning),
             DeveloperTokenWindowResultKind.Unreachable => ($"到達できません: {detail}", MessageType.Error),
             DeveloperTokenWindowResultKind.Refused => ("受け口に拒否されました（失効か打ち間違い）", MessageType.Warning),
-            DeveloperTokenWindowResultKind.HttpFailed => ($"接続確認に失敗しました: HTTP {detail}", MessageType.Error),
             DeveloperTokenWindowResultKind.MalformedResponse => ("接続確認に失敗しました: 開発機セッション応答が不正です。", MessageType.Error),
             DeveloperTokenWindowResultKind.Connected => ($"受け口に {detail} として認識されました", MessageType.Info),
             _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown developer token result"),

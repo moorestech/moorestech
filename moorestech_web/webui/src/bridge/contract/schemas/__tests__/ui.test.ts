@@ -64,11 +64,20 @@ describe("PauseMenuDataSchema", () => {
 // Reject redundant fields and unknown reasons as display contract violations
 it("deliveryの各状態だけを受理し、欠損と不正値を拒否する", () => {
   const base = { disconnected: false, bugReport: { kind: "ready", missing: [] }, page: "top" };
-  for (const delivery of [{ kind: "allSent" }, { kind: "pending", pendingCount: 0, failedCount: 0 }, { kind: "refused", pendingCount: 2, failedCount: 0 }, { kind: "localOnly", reason: "steamNotRunning", pendingCount: 1, failedCount: 0 }]) {
+  for (const delivery of [{ kind: "allSent" }, { kind: "pending", inventory: { kind: "known", pendingCount: 0, failedCount: 0 } }, { kind: "refused", inventory: { kind: "known", pendingCount: 2, failedCount: 0 } }, { kind: "localOnly", reason: "distributionUnavailable", inventory: { kind: "known", pendingCount: 1, failedCount: 0 } }]) {
     expect(PauseMenuDataSchema.safeParse({ ...base, delivery }).success).toBe(true);
   }
-  for (const delivery of [{ kind: "allSent", pendingCount: 0, failedCount: 0 }, { kind: "localOnly", reason: "unknown", pendingCount: 1, failedCount: 0 }, { kind: "pending", pendingCount: -1, failedCount: 0 }, { kind: "pending", pendingCount: 0.5, failedCount: 0 }]) {
+  for (const delivery of [{ kind: "allSent", inventory: { kind: "known", pendingCount: 0, failedCount: 0 } }, { kind: "localOnly", reason: "unknown", inventory: { kind: "known", pendingCount: 1, failedCount: 0 } }, { kind: "pending", inventory: { kind: "known", pendingCount: -1, failedCount: 0 } }, { kind: "pending", inventory: { kind: "known", pendingCount: 0.5, failedCount: 0 } }]) {
     expect(PauseMenuDataSchema.safeParse({ ...base, delivery }).success).toBe(false);
   }
   expect(PauseMenuDataSchema.safeParse(base).success).toBe(false);
+});
+
+it("件数不明を4状態内で受理し、未知と件数の混在を拒否する", () => {
+  const base = { disconnected: false, bugReport: { kind: "ready", missing: [] }, page: "top" };
+  for (const status of [{ kind: "pending" }, { kind: "refused" }, { kind: "localOnly", reason: "developerTokenMissing" }]) {
+    const inventory = { kind: "unavailable", reason: "denied" };
+    expect(PauseMenuDataSchema.safeParse({ ...base, delivery: { ...status, inventory } }).success).toBe(true);
+    expect(PauseMenuDataSchema.safeParse({ ...base, delivery: { ...status, inventory: { ...inventory, pendingCount: 0 } } }).success).toBe(false);
+  }
 });

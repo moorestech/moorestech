@@ -55,7 +55,7 @@ internal static class DeliveryRouteProbe
 #else
             Require(direct.Scope == PlaytestOutboxScope.ReportsAndProgress && current.Scope == direct.Scope);
             if (distribution) Require(direct is PlaytestSteamRoute && current is PlaytestSteamRoute);
-            else Require(direct is PlaytestLocalOnlyRoute local && local.Reason == PlaytestLocalOnlyReason.SteamNotRunning
+            else Require(direct is PlaytestLocalOnlyRoute local && local.Reason == PlaytestLocalOnlyReason.DistributionUnavailable
                          && current is PlaytestLocalOnlyRoute);
 #endif
         }

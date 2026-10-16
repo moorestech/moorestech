@@ -20,7 +20,7 @@ namespace Client.Tests.PlaytestReceiver
 
             var result = Authenticate(session, IssuedAt);
 
-            Assert.AreEqual(PlaytestSessionOutcome.Authenticated, result.Outcome);
+            Assert.IsInstanceOf<PlaytestSessionAuthenticated>(result);
             Assert.AreEqual("tok-1", session.GetValidTokenAsync(IssuedAt, CancellationToken.None).GetAwaiter().GetResult());
             Assert.AreEqual(1, api.SessionCallCount);
         }
@@ -76,7 +76,7 @@ namespace Client.Tests.PlaytestReceiver
             var api = new FakeApi();
             var session = new PlaytestSession(api, new SteamTicketSessionCredential(new FakeTicketProvider(null)));
 
-            Assert.AreEqual(PlaytestSessionOutcome.TicketUnavailable, Authenticate(session, IssuedAt).Outcome);
+            Assert.AreEqual(PlaytestSessionOutcome.TicketUnavailable, ((PlaytestSessionFailed)Authenticate(session, IssuedAt)).Outcome);
             Assert.AreEqual(0, api.SessionCallCount);
         }
 
@@ -91,8 +91,8 @@ namespace Client.Tests.PlaytestReceiver
             var second = session.AuthenticateAsync(IssuedAt, CancellationToken.None);
             gate.TrySetResult("aabb");
 
-            Assert.AreEqual(PlaytestSessionOutcome.Authenticated, first.GetAwaiter().GetResult().Outcome);
-            Assert.AreEqual(PlaytestSessionOutcome.Authenticated, second.GetAwaiter().GetResult().Outcome);
+            Assert.IsInstanceOf<PlaytestSessionAuthenticated>(first.GetAwaiter().GetResult());
+            Assert.IsInstanceOf<PlaytestSessionAuthenticated>(second.GetAwaiter().GetResult());
             Assert.AreEqual(1, api.SessionCallCount);
         }
 
@@ -109,7 +109,7 @@ namespace Client.Tests.PlaytestReceiver
             Assert.Catch<OperationCanceledException>(() => session.AuthenticateAsync(IssuedAt, cancelled.Token).GetAwaiter().GetResult());
             CollectionAssert.AreEqual(new[] { "release" }, api.Events);
 
-            Assert.AreEqual(PlaytestSessionOutcome.Authenticated, Authenticate(session, IssuedAt).Outcome);
+            Assert.IsInstanceOf<PlaytestSessionAuthenticated>(Authenticate(session, IssuedAt));
         }
 
         [Test]
@@ -142,7 +142,8 @@ namespace Client.Tests.PlaytestReceiver
             var api = new FakeApi();
             api.SessionResponses.Add(response);
             var result = Authenticate(new PlaytestSession(api, new SteamTicketSessionCredential(new FakeTicketProvider("aabb"))), IssuedAt);
-            Assert.AreEqual(expected, result.Outcome, result.Detail);
+            if (expected == PlaytestSessionOutcome.Authenticated) Assert.IsInstanceOf<PlaytestSessionAuthenticated>(result);
+            else Assert.AreEqual(expected, ((PlaytestSessionFailed)result).Outcome, ((PlaytestSessionFailed)result).Detail);
         }
     }
 }

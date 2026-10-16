@@ -14,31 +14,30 @@ namespace Client.PlaytestReceiver
         MalformedResponse,
     }
 
-    // 認証1回の結末。生成口は成功と失敗の2本に絞る
-    // The outcome of one authentication has separate success and failure factories
-    public sealed class PlaytestSessionResult
+    // 成功だけが検証済み応答を持ち、失敗だけが理由を持つ
+    // Only success carries a validated response and only failure carries an error
+    public abstract class PlaytestSessionResult
     {
-        public PlaytestSessionOutcome Outcome { get; }
+        private protected PlaytestSessionResult() { }
+        public static PlaytestSessionFailed Failed(PlaytestSessionOutcome outcome, string detail)
+        { return new PlaytestSessionFailed(outcome, detail); }
+    }
 
-        // ログ専用。テスター向けの文言には出さない
-        // For developer logs only; never shown to testers
-        public string Detail { get; }
+    public sealed class PlaytestSessionAuthenticated : PlaytestSessionResult
+    {
+        public readonly Client.PlaytestReceiver.Http.Responses.PlaytestSessionResponse Response;
+        internal PlaytestSessionAuthenticated(Client.PlaytestReceiver.Http.Responses.PlaytestSessionResponse response) { Response = response; }
+    }
 
-        private PlaytestSessionResult(PlaytestSessionOutcome outcome, string detail)
+    public sealed class PlaytestSessionFailed : PlaytestSessionResult
+    {
+        public readonly PlaytestSessionOutcome Outcome;
+        public readonly string Detail;
+        internal PlaytestSessionFailed(PlaytestSessionOutcome outcome, string detail)
         {
+            if (outcome == PlaytestSessionOutcome.Authenticated) throw new ArgumentException("Failure cannot be authenticated", nameof(outcome));
             Outcome = outcome;
-            Detail = detail ?? "";
-        }
-
-        public static PlaytestSessionResult Authenticated()
-        {
-            return new PlaytestSessionResult(PlaytestSessionOutcome.Authenticated, "");
-        }
-
-        public static PlaytestSessionResult Failed(PlaytestSessionOutcome outcome, string detail)
-        {
-            if (outcome == PlaytestSessionOutcome.Authenticated) throw new ArgumentException("a failed session result cannot be Authenticated", nameof(outcome));
-            return new PlaytestSessionResult(outcome, detail);
+            Detail = detail;
         }
     }
 }

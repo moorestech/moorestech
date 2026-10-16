@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using Client.Game.InGame.BugReport.Submit;
 using VContainer.Unity;
 using Client.Game.InGame.BugReport;
@@ -32,6 +34,12 @@ namespace Client.Starter.Playtest
                     // gitと資料IOだけをワーカーへ移し、Unity APIは先に取得する
                     // Move git and evidence IO to a worker after capturing Unity paths
                     await UniTask.RunOnThreadPool(() => PlaytestExistingReportEvidence.Complete(_directories, repositoryRoot, masterDataRoot));
+                }
+                // 外部ディスク列挙境界。配送要求へ進めて件数不明を画面にも表示する
+                // External disk enumeration boundary: continue to delivery so unreadable inventory reaches the UI
+                catch (Exception error) when (error is IOException || error is UnauthorizedAccessException)
+                {
+                    Debug.LogWarning($"[PlaytestReceiver] legacy outbox enumeration failed: {error.Message}");
                 }
                 finally { PlaytestOutboxAccess.Gate.Release(); }
                 await UniTask.SwitchToMainThread();

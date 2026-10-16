@@ -42,10 +42,10 @@ namespace Client.Tests.PlaytestReceiver
             var runner = new PlaytestUploadRunner(new FakeUploadApi(), _directories, new FakeTicketProvider("aabb"));
             runner.RequestUploadWith(new PlaytestDeveloperTokenRoute("token"));
             var pending = (PlaytestDeliveryPending)PlaytestDeliveryStatusBoard.Current.Value;
-            Assert.AreEqual(0, pending.PendingCount);
-            Assert.AreEqual(1, pending.FailedCount);
+            Assert.AreEqual(0, ((PlaytestOutboxDeliveryCounts)pending.Inventory).PendingCount);
+            Assert.AreEqual(1, ((PlaytestOutboxDeliveryCounts)pending.Inventory).FailedCount);
             runner.RequestUploadWith(new PlaytestLocalOnlyRoute(PlaytestLocalOnlyReason.DeveloperTokenMissing, PlaytestOutboxScope.ReportsOnly, "removed"));
-            Assert.AreEqual(1, ((PlaytestDeliveryLocalOnly)PlaytestDeliveryStatusBoard.Current.Value).FailedCount);
+            Assert.AreEqual(1, ((PlaytestOutboxDeliveryCounts)((PlaytestDeliveryLocalOnly)PlaytestDeliveryStatusBoard.Current.Value).Inventory).FailedCount);
         }
 
         [Test]
@@ -74,7 +74,7 @@ namespace Client.Tests.PlaytestReceiver
             var runner = new PlaytestUploadRunner(api, _directories, new FakeTicketProvider("aabb"));
             runner.RequestUploadWith(PlaytestDeliveryRouteResolver.Resolve(false, new PlaytestDeveloperTokenAbsent()));
             Assert.AreEqual(0, api.SessionCallCount + api.PutAttemptCount);
-            Assert.AreEqual(1, ((PlaytestDeliveryLocalOnly)PlaytestDeliveryStatusBoard.Current.Value).PendingCount);
+            Assert.AreEqual(1, ((PlaytestOutboxDeliveryCounts)((PlaytestDeliveryLocalOnly)PlaytestDeliveryStatusBoard.Current.Value).Inventory).PendingCount);
         }
 
         [Test]
@@ -99,7 +99,7 @@ namespace Client.Tests.PlaytestReceiver
             var api = new FakeUploadApi { SessionResult = PlaytestApiResult.Responded(401, "{}") };
             var runner = new PlaytestUploadRunner(api, _directories, new FakeTicketProvider("aabb"));
             runner.RequestUploadWith(new PlaytestDeveloperTokenRoute("refused"));
-            Assert.AreEqual(1, ((PlaytestDeliveryRefused)PlaytestDeliveryStatusBoard.Current.Value).PendingCount);
+            Assert.AreEqual(1, ((PlaytestOutboxDeliveryCounts)((PlaytestDeliveryRefused)PlaytestDeliveryStatusBoard.Current.Value).Inventory).PendingCount);
         }
 
         [Test]
@@ -135,7 +135,7 @@ namespace Client.Tests.PlaytestReceiver
             Assert.IsFalse(File.Exists(Path.Combine(added, PlaytestOutboxScanner.UploadedMarker)));
             var status = (PlaytestDeliveryLocalOnly)PlaytestDeliveryStatusBoard.Current.Value;
             Assert.AreEqual(PlaytestLocalOnlyReason.DeveloperTokenMissing, status.Reason);
-            Assert.AreEqual(1, status.PendingCount);
+            Assert.AreEqual(1, ((PlaytestOutboxDeliveryCounts)status.Inventory).PendingCount);
         }
 
         [Test]
@@ -146,11 +146,11 @@ namespace Client.Tests.PlaytestReceiver
             var runner = new PlaytestUploadRunner(api, _directories, new FakeTicketProvider("aabb"));
             runner.RequestUploadWith(new PlaytestDeveloperTokenRoute("first"));
             runner.RequestUploadWith(new PlaytestLocalOnlyRoute(PlaytestLocalOnlyReason.DeveloperTokenUnreadable, PlaytestOutboxScope.ReportsOnly, "unreadable"));
-            Assert.AreEqual(1, ((PlaytestDeliveryLocalOnly)PlaytestDeliveryStatusBoard.Current.Value).PendingCount);
+            Assert.AreEqual(1, ((PlaytestOutboxDeliveryCounts)((PlaytestDeliveryLocalOnly)PlaytestDeliveryStatusBoard.Current.Value).Inventory).PendingCount);
             gate.TrySetResult(PlaytestApiResult.Responded(200, "{}"));
             var status = (PlaytestDeliveryLocalOnly)PlaytestDeliveryStatusBoard.Current.Value;
             Assert.AreEqual(PlaytestLocalOnlyReason.DeveloperTokenUnreadable, status.Reason);
-            Assert.AreEqual(0, status.PendingCount);
+            Assert.AreEqual(0, ((PlaytestOutboxDeliveryCounts)status.Inventory).PendingCount);
             Assert.AreEqual(1, api.CompleteCount);
         }
 

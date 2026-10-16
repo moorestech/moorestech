@@ -11,6 +11,11 @@ namespace Client.PlaytestReceiver.Credentials
         private readonly IPlaytestSteamTicketProvider _ticketProvider;
         public SteamTicketSessionCredential(IPlaytestSteamTicketProvider ticketProvider) { _ticketProvider = ticketProvider; }
 
+        public bool AcceptsSubject(string subject)
+        {
+            return ulong.TryParse(subject, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var id) && id > 0;
+        }
+
         public async UniTask<PlaytestCredentialPost> PostSessionAsync(IPlaytestReceiverApi api, CancellationToken token)
         {
             var ticketHex = await _ticketProvider.RequestWebApiTicketHexAsync(token);

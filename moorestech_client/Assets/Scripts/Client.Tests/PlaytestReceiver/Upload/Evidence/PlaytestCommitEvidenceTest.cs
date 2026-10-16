@@ -173,7 +173,7 @@ namespace Client.Tests.PlaytestReceiver
             new PlaytestUploadRunner(api, _directories, new FakeTicketProvider("aabb")).RequestUploadWith(new PlaytestDeveloperTokenRoute("token"));
             Assert.AreEqual(0, api.CompleteCount);
             Assert.False(File.Exists(Path.Combine(box, PlaytestOutboxScanner.UploadedMarker)));
-            Assert.AreEqual(1, ((PlaytestDeliveryPending)PlaytestDeliveryStatusBoard.Current.Value).FailedCount);
+            Assert.AreEqual(1, ((PlaytestOutboxDeliveryCounts)((PlaytestDeliveryPending)PlaytestDeliveryStatusBoard.Current.Value).Inventory).FailedCount);
             var manifest = JObject.Parse(File.ReadAllText(Path.Combine(box, "manifest.json")));
             Assert.That(manifest["missing"].ToString(), Does.Contain("repo/" + name).And.Contain("配送不能"));
             var status = File.ReadAllText(Path.Combine(box, "repo/bundle-status.txt"));

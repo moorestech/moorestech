@@ -902,7 +902,7 @@ git commit -m "test(playtest): 本番受け口への開発者経路の実機確�
 ## 判断記録（ADR）
 
 - 設計 ADR: `docs/adr/0081-developer-bug-reports-via-receiver-with-per-machine-tokens.md`。裁定は `.decisions/2026-10-16-開発者*.md` の5本。
-- 出所: ユーザー裁定 2026-10-16「CFへ一本化しrsync廃止」「開発者トークンを機材ごとに発行」＋原文「エディタ拡張でセットできるようにして」「テスター報告と同じく人が選ぶ」、推奨7点への原文「それで」、「Mac・Windows両方」「次回再生時に再送」。
+- 出所: ユーザー裁定 2026-10-16「CFへ一本化しrsync廃止」「開発者トークンを機材ごとに発行」＋原文「エディタ拡張でセットできるようにして」「テスター報告と同じく人が選ぶ」、過去引用「それで」（提示7点の逐語原文は未保全のため引用単独の含意検査不能。現在の採用根拠は `.decisions/2026-10-16-開発者報告の実装planを共通制約として無人実行する.md`）、「Mac・Windows両方」「次回再生時に再送」。
 - 出所: シミュレーター予測（確信高・拒否権つき前提宣言）2026-10-16。異常終了箱も開発者トークンで送る（Requirements 6）。
 - 出所: agent前提（winbuild に Unity 6000.3.8f1 と `C:\dev\moorestech` が実在。判事が ssh で実測）。Windows の確認は winbuild の Editor のバッチモードで、[Explicit] テストを使って行う。GUI 操作は ssh 越しに難しいので、画面の確認は Mac の録画で行う。
 - 出所: agent前提（ADR 0070 で manifest の steamId はローカルの値）。開発機の manifest の steamId は空のままにし、識別は受け口の置き場が担う。
