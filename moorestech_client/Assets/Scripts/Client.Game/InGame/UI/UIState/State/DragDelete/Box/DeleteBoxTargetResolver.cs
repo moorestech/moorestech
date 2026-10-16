@@ -1,0 +1,104 @@
+using System.Collections.Generic;
+using Client.Game.InGame.Block;
+using Client.Game.InGame.Entity.Object;
+using Client.Game.InGame.Train.RailGraph;
+using Client.Game.InGame.Train.View.Object.Core;
+using Game.Block.Interface.Extension;
+using Game.Blueprint;
+using UnityEngine;
+
+namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
+{
+    /// <summary>
+    ///     AABBに入る撤去可能な削除対象（ブロック・レール edge・列車車両）の列を返す1本の問い合わせ。撤去不可は件数と理由をログして除く。接続線は端点ブロックの撤去に巻き込まれるので含めない
+    ///     One query returning the removable delete targets (blocks, rail edges, train cars) inside an AABB; non-removable ones are logged and dropped, connection lines ride on their endpoint blocks
+    /// </summary>
+    public class DeleteBoxTargetResolver
+    {
+        private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
+        private readonly TrainCarObjectDatastore _trainCarObjectDatastore;
+
+        public DeleteBoxTargetResolver(BlockGameObjectDataStore blockGameObjectDataStore, TrainCarObjectDatastore trainCarObjectDatastore)
+        {
+            _blockGameObjectDataStore = blockGameObjectDataStore;
+            _trainCarObjectDatastore = trainCarObjectDatastore;
+        }
+
+        public IReadOnlyList<IDeleteTarget> Resolve(Vector3Int min, Vector3Int max)
+        {
+            var targets = new List<IDeleteTarget>();
+            var skipped = 0;
+            // ブロックの箱判定はBPコピーと同じ箱とIsOverlapを使う（複製しない）
+            // Blocks use the same box and IsOverlap as blueprint copy (no duplicate rule)
+            var box = BlueprintCopyTargetRule.CreateBox(min, max);
+            CollectBlocks();
+            CollectRails();
+            CollectTrainCars();
+            if (skipped > 0) Debug.Log($"[DeleteBox] {skipped} non-removable target(s) excluded from {min}-{max}");
+            return targets;
+
+            #region Internal
+
+            void CollectBlocks()
+            {
+                foreach (var block in _blockGameObjectDataStore.BlockGameObjectByInstanceIdDictionary.Values)
+                {
+                    if (!block.BlockPosInfo.IsOverlap(box)) continue;
+                    var child = block.GetComponentInChildren<BlockGameObjectChild>(true);
+                    if (child == null)
+                    {
+                        Debug.LogWarning($"[DeleteBox] block has no BlockGameObjectChild: {block.BlockPosInfo.OriginalPos}");
+                        continue;
+                    }
+                    AddIfRemovable(child);
+                }
+            }
+
+            void CollectRails()
+            {
+                foreach (var chain in TrainRailObjectManager.Instance.EnumerateRailChains())
+                {
+                    if (chain.IsRemoving) continue;
+                    if (!DeleteBoxRailSampler.IntersectsCellBox(chain, min, max)) continue;
+                    var rail = chain.GetComponentInChildren<DeleteTargetRail>(true);
+                    if (rail == null)
+                    {
+                        Debug.LogWarning($"[DeleteBox] rail chain has no DeleteTargetRail: {chain.name}");
+                        continue;
+                    }
+                    AddIfRemovable(rail);
+                }
+            }
+
+            void CollectTrainCars()
+            {
+                foreach (var car in _trainCarObjectDatastore.EnumerateTrainCars())
+                {
+                    if (!DeleteBoxRule.IsPointInBox(car.transform.position, min, max)) continue;
+                    var child = car.GetComponentInChildren<TrainCarEntityChildrenObject>(true);
+                    if (child == null)
+                    {
+                        Debug.LogWarning($"[DeleteBox] train car has no TrainCarEntityChildrenObject: {car.TrainCarInstanceId}");
+                        continue;
+                    }
+                    AddIfRemovable(child);
+                }
+            }
+
+            // 撤去不可は理由をログして除く（表示件数・0件拒否・追加が同じ列を使う）
+            // Drop non-removable targets with their reason logged so count, empty-check and add share one list
+            void AddIfRemovable(IDeleteTarget target)
+            {
+                if (target.IsRemovable(out var denyReason))
+                {
+                    targets.Add(target);
+                    return;
+                }
+                skipped++;
+                Debug.Log($"[DeleteBox] skipped non-removable target key={target.GetDeleteTargetKey()} reason={denyReason?.Key ?? "(none)"}");
+            }
+
+            #endregion
+        }
+    }
+}
