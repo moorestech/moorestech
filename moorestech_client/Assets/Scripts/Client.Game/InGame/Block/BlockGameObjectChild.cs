@@ -77,6 +77,10 @@ namespace Client.Game.InGame.Block
             DeleteAsync().Forget();
         }
 
+        // 復元を共有する表示の寿命を識別する
+        // Identify the lifetime of the shared preview view
+        public object GetPreviewResetKey() => BlockGameObject;
+
         // 同一ブロックの全メッシュ子は同じBlockGameObjectを指す＝論理削除単位
         // All mesh children of a block share the same BlockGameObject = the logical delete unit
         public object GetDeleteTargetKey()

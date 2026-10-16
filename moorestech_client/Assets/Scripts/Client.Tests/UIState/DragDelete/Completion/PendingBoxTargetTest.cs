@@ -46,7 +46,7 @@ namespace Client.Tests.UIState.DragDelete.Completion
             child.Initialize(car, null);
             var entities = (Dictionary<TrainCarInstanceId, TrainCarEntityObject>)typeof(TrainCarObjectDatastore).GetField("_entities", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(cars);
             entities.Add(car.TrainCarInstanceId, car);
-            var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
+            var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             var pending = new FakeDeleteTarget { Key = car.TrainCarInstanceId, Removable = true, CompleteImmediately = false };
             selection.AddBoxTargets(new[] { pending });
             selection.CommitDelete();

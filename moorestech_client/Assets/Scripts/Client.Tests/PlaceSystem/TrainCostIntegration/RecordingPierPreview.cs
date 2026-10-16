@@ -15,11 +15,6 @@ namespace Client.Tests.PlaceSystem.TrainCostIntegration
             UpdatePlaceableColors(placeInfos);
         }
 
-        public IReadOnlyList<bool> DetectGroundOverlaps()
-        {
-            return new[] { false };
-        }
-
         public void UpdatePlaceableColors(List<PlaceInfo> placeInfos)
         {
             // 可変PlaceInfoの参照ではなく描画時点の値を記録する

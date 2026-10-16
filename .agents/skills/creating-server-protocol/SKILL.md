@@ -29,7 +29,7 @@ description: |
 | 2 | 初期データ（ログイン/再接続時の全量復元） | `InitialHandshakeProtocol`のResponseに同梱 or `va:get*`プロトコル |
 | 3 | クライアント購読（受信→クライアント側DataStore反映） | `SubscribeEventResponse(XxxEventPacket.EventTag, ...)`する`*EventHandler`（`IInitializable`/`RegisterEntryPoint`） |
 
-**禁止**: 他プロトコル（研究完了・チャレンジ等）の応答をパースして別状態を間接導出する`*Applier`。「新規プロトコル・イベントは作らない」とspecに書くのは新規パターンでありユーザー裁定が必要（PR988でApplier 2種が全廃され3点セットに作り直された）。
+**禁止**: 他プロトコル（研究完了・チャレンジ等）の応答をパースして別状態を間接導出する`*Applier`。「新規プロトコル・イベントは作らない」とspecに書くのは新規パターンでありユーザー裁定が必要（間接導出のApplierは結局3点セットへ作り直すことになるため）。
 **前例**: `UnlockedEventPacket`+`GetGameUnlockStateProtocol`+`ClientGameUnlockStateDatastore`、`ItemStackLevelUnlockEventPacket`+`InitialHandshakeProtocol.ItemStackLevels`+`ItemStackLevelEventHandler`。
 **順序**: 初期適用はそれに依存するデータ（インベントリ等）の取得より**先**に行う（`VanillaApiWithResponse.InitialHandShake`参照）。
 
@@ -252,7 +252,7 @@ services.AddSingleton<YourEventPacket>();
 - `[Obsolete]`付き引数なしコンストラクタは省略不可
 - イベント購読はUniRxの`.Subscribe()`を使用
 - コードのコメントは日本語・英語の2行セット
-- リクエストのペイロードに送り手の`playerId`を載せない。送り手のIDはハンドシェイクで接続に紐づいた`context.PlayerId.Value`から取得する。未紐づけ接続の要求は`PacketResponseCreator`が一括で無視する（ADR 0073、`.decisions/2026-09-27-サーバーは接続に紐づいたプレイヤーIDだけを信じる.md`）。イベント・レスポンスの表示用IDは対象外。
+- リクエストのペイロードに送り手の`playerId`を載せない。送り手のIDはハンドシェイクで接続に紐づいた`context.PlayerId.Value`から取得する。未紐づけ接続の要求は`PacketResponseCreator`が一括で無視する。イベント・レスポンスの表示用IDは対象外。
 
 ## Request/Response メッセージ設計原則
 

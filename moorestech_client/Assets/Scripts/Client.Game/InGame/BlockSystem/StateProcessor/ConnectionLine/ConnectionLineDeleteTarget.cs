@@ -135,6 +135,10 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
             return _commands;
         }
 
+        // 復元を共有する表示の寿命を識別する
+        // Identify the lifetime of the shared preview view
+        public object GetPreviewResetKey() => this;
+
         // 線は1本ごとに1つのGameObjectなので自身を論理キーにする
         // Each line owns one GameObject, so the component itself is the logical key
         public object GetDeleteTargetKey()

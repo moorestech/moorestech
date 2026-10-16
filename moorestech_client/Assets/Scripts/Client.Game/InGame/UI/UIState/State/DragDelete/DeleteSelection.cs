@@ -13,10 +13,14 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
     {
         private readonly BuildOperationHistory _buildOperationHistory;
         private readonly IRemovalRestoreSender _restoreSender;
+        private readonly DeletePreviewResetRecovery _resetRecovery;
+        private readonly SingleHoverDeletePreview _hoverPreview;
+        private readonly DeletePreviewReleaseQueue _pendingResets;
         // 論理削除キーで重複排除する（同一機械の複数メッシュ子などを1件に集約）
         // Dedupe by logical delete key so multiple mesh children of one machine collapse into one
         private readonly Dictionary<object, IDeleteTarget> _selectedTargets = new();
         private bool _strokeCanceled;
+        private IDeleteTarget _hoverTarget;
         private readonly DeleteResultTracker _results = new();
         private readonly Subject<DeleteCompletion> _deleteCompleted = new();
         public IObservable<DeleteCompletion> OnDeleteCompleted => _deleteCompleted;
@@ -27,11 +31,14 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         public int Count => _selectedTargets.Count;
         // 今赤くしているホバー対象（選択済みとは別管理）
         // The hovered target currently shown red (tracked apart from the selection)
-        public IDeleteTarget HoverPreview { get; private set; }
-        public DeleteSelection(BuildOperationHistory buildOperationHistory, IRemovalRestoreSender restoreSender)
+        public IDeleteTarget HoverPreview => _hoverPreview.Current;
+        public DeleteSelection(BuildOperationHistory buildOperationHistory, IRemovalRestoreSender restoreSender, DeletePreviewResetRecovery resetRecovery)
         {
             _buildOperationHistory = buildOperationHistory;
             _restoreSender = restoreSender;
+            _resetRecovery = resetRecovery;
+            _hoverPreview = new SingleHoverDeletePreview(resetRecovery);
+            _pendingResets = new DeletePreviewReleaseQueue(resetRecovery);
             _deleteCompleted.Subscribe(_results.Receive);
         }
         // ストローク開始: キャンセル解除とカテゴリー固定のリセットだけで、選択は消さない
@@ -71,43 +78,47 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         // Hover swap: un-red the previous hover unless it is selected, then red the new one (null clears)
         public void SetHoverPreview(IDeleteTarget hovered)
         {
-            if (ReferenceEquals(HoverPreview, hovered)) return;
-            ResetHoverPreview();
-            HoverPreview = hovered;
-            if (HoverPreview != null && !Contains(HoverPreview)) HoverPreview.SetRemovePreviewing();
+            _hoverTarget = hovered;
+            if (hovered == null || _selectedTargets.ContainsKey(hovered.GetDeleteTargetKey())) _hoverPreview.Release();
+            else _hoverPreview.Hover(hovered);
         }
-        private bool Contains(IDeleteTarget target) => _selectedTargets.ContainsKey(target.GetDeleteTargetKey());
-        // 全選択を解除しストロークを無効化（ESC）
-        // Clear all selections and cancel the stroke (ESC)
         public void CancelSelection()
         {
-            foreach (var target in _selectedTargets.Values)
-            {
-                if (IsDestroyed(target, "cancel")) continue;
-                target.ResetMaterial();
-            }
+            ClearSelectionState();
+            ReleasePreviews("[DragDelete] selected target was destroyed before cancel");
+        }
+        private void ClearSelectionState()
+        {
+            // 戻し処理より先に論理状態と長押しsubjectを解除する
+            // Clear logical state and the hold subject before any reset can throw
+            _pendingResets.Enqueue(_selectedTargets.Values);
             _selectedTargets.Clear();
-            ResetHoverPreview();
-            HoverPreview = null;
+            _hoverTarget = null;
             _strokeCanceled = true;
             AimFilter = DeleteAimFilter.Frontmost;
             Revision++;
             _selectionChanged.OnNext(Revision);
+        }
+        private void ReleasePreviews(string destroyedWarning)
+        {
+            try { _pendingResets.Drain(destroyedWarning); }
+            finally { _hoverPreview.Release(); }
         }
         public void CommitDelete()
         {
             var committed = new List<IDeleteTarget>();
             foreach (var target in _selectedTargets.Values)
             {
-                if (!IsDestroyed(target, "commit")) committed.Add(target);
+                if (DeleteTargetLiveness.IsAliveOrWarn(target, "[DragDelete] selected target was destroyed before commit")) committed.Add(target);
             }
-            // 採取と購読を済ませてからプレビューを戻し、送信する
-            // Capture and subscribe before clearing previews and sending
+            // 採取後に論理選択を空にし、表示解除に失敗しても要求とUndoを失わない
+            // Clear logical selection after capture so failed preview resets cannot lose requests or undo
             var batch = new DeleteCommitBatch(committed, _buildOperationHistory, _restoreSender);
             batch.OnCompleted.Subscribe(_deleteCompleted.OnNext);
-            CancelSelection();
+            ClearSelectionState();
             foreach (var target in committed) _deleteCompleted.OnNext(new DeleteCompletion(target.GetDeleteTargetKey(), DeleteCompletionKind.Pending, null));
             batch.Send();
+            ReleasePreviews("[DragDelete] selected target was destroyed before reset");
         }
         internal LocalizationKey? UpdateStroke(DeleteAimResult aim)
         {
@@ -128,7 +139,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             if (subject.Kind == DeleteHoldSubjectKind.Hovered)
             {
                 BeginStroke();
-                var outcome = TryAddTarget(HoverPreview);
+                var outcome = TryAddTarget(_hoverTarget);
                 if (!outcome.IsAdded)
                 {
                     reason = outcome.DenyReason;
@@ -160,36 +171,13 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         {
             var key = target.GetDeleteTargetKey();
             if (_selectedTargets.ContainsKey(key) || !IsTargetSelectable(target, out _)) return false; // silent-ok: 選択済み/結果待ちの対象を重複送信しない / 選択赤と結果ツールチップで表示
-            // 破棄済みホバーはキーを読まず参照を解除する
-            // Clear a destroyed hover without reading its key
-            if (HoverPreview != null && IsDestroyed(HoverPreview, "hover")) HoverPreview = null;
-            // 同じ論理キーでも旧ホバー自身の要求を解放して移譲する
-            // Release the actual hover requester before transferring the same logical key
-            if (HoverPreview != null && Equals(HoverPreview.GetDeleteTargetKey(), key))
-            {
-                ResetHoverPreview();
-                HoverPreview = null;
-            }
+            // 同一論理対象への移譲前に旧ホバーを必ず手放す
+            // Release the old hover before transferring ownership of the same logical target
+            if (HoverPreview != null && ((HoverPreview is UnityEngine.Object view && view == null) || Equals(HoverPreview.GetDeleteTargetKey(), key))) _hoverPreview.Release();
             _selectedTargets.Add(key, target);
-            target.SetRemovePreviewing();
+            if (_resetRecovery.CanPreview(target)) target.SetRemovePreviewing();
             Revision++;
             _selectionChanged.OnNext(Revision);
-            return true;
-        }
-        // ホバーの赤を戻す（選択済みなら選択側が赤を持つので触らない・破棄済みは飛ばす）
-        // Un-red the hover (a selected one keeps its red via the selection; skip destroyed ones)
-        private void ResetHoverPreview()
-        {
-            if (HoverPreview == null) return;
-            if (IsDestroyed(HoverPreview, "hover")) return;
-            if (!Contains(HoverPreview)) HoverPreview.ResetMaterial();
-        }
-        // 破棄済みUnity対象を警告付きで判定
-        // Detect destroyed Unity targets with a warning
-        private static bool IsDestroyed(IDeleteTarget target, string phase)
-        {
-            if (target is not UnityEngine.Object unityTarget || unityTarget != null) return false;
-            Debug.LogWarning($"[DragDelete] target was destroyed before {phase}");
             return true;
         }
     }

@@ -52,10 +52,6 @@ namespace Client.Game.InGame.Context
             if (!collider.enabled) return false;
             if (collider.gameObject.layer != LayerConst.BlockLayer) return false;
 
-            // 設置判定専用の小型Colliderはクリック当たりとして数えない
-            // Placement-check-only colliders don't count as click targets
-            if (collider.TryGetComponent<GroundCollisionDetector>(out _)) return false;
-
             return IsActiveAndNotPreview(blockRoot, collider.transform);
         }
 

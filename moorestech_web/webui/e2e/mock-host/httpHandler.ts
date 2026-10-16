@@ -1,16 +1,17 @@
-import { createServer, type Server, type ServerResponse } from "node:http";
+import type { BlockInventoryWireData } from "./types/blockInventoryWireData";
+import { createServer, type Server } from "node:http";
 import { readFile } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Topics } from "../../src/bridge/transport/protocol";
-import { BLOCK_ICON_PREFIX, FLUID_ICON_PREFIX, ITEM_ICON_PREFIX } from "../../src/bridge/transport/httpEndpoints";
-import type { BlockInventoryWireData, UiStateData } from "../../src/bridge/contract/payloadTypes";
+import type { UiStateData } from "../../src/bridge/contract/payloadTypes";
 import * as fx from "./fixtures";
 import { send, clone } from "./wire";
 import { received, state, connections, subscribersOf } from "./state";
 import { applyTopicControl, serveDictionary } from "./topics/topicControls";
 import { applyPresentationControl } from "./topics/presentationControls";
-import { contentType, fluidIconDirectory, fluidIconFiles, fluidIconSeed, iconDirectory, iconFiles, injectDemoBackground, placeholderIcon, realIconFor } from "./assets/demoAssets";
+import { contentType, injectDemoBackground } from "./assets/demoAssets";
+import { serveGameIcon } from "./assets/iconEndpoints";
 import { serveLanguageCatalog } from "./localization/transport";
 export { injectDemoBackground } from "./assets/demoAssets";
 
@@ -43,23 +44,6 @@ const DIST = fileURLToPath(new URL("../../dist", import.meta.url));
 // DEMO(採点用): 高密度データとプレースホルダアイコンを配信
 // DEMO (scoring): serve dense data and placeholder icons
 const DEMO = process.env.MOCK_DEMO === "1";
-
-// item/block/fluidの3分岐が共有する「実アセット→placeholder→404」の3段だけを括る(D9)
-// Consolidates only the shared real-asset -> placeholder -> 404 fallback chain across the item/block/fluid branches (D9)
-function respondGameIcon(res: ServerResponse, real: Buffer | null, placeholderSeed: number): void {
-  if (!DEMO) {
-    res.statusCode = 404;
-    res.end();
-    return;
-  }
-  if (real) {
-    res.setHeader("content-type", "image/jpeg");
-    res.end(real);
-    return;
-  }
-  res.setHeader("content-type", "image/svg+xml");
-  res.end(placeholderIcon(placeholderSeed));
-}
 
 export function createMockHttpServer(): Server {
   return createServer(async (req, res) => {
@@ -181,35 +165,7 @@ export function createMockHttpServer(): Server {
     // presentationControls.tsへ分離
     // Split into presentationControls.ts
     if (applyPresentationControl(url, res)) return;
-    // アイテムとブロックのアイコンは本番 httpEndpoints と同じ2経路を同形で配信する
-    // Item and block icons are served identically on the same two paths as production httpEndpoints
-    const isBlockIcon = url.startsWith(BLOCK_ICON_PREFIX);
-    if (url.startsWith(ITEM_ICON_PREFIX) || isBlockIcon) {
-      // DEMO時は実ゲームアイコン(無ければプレースホルダ)、通常時は404で#idフォールバック
-      // DEMO serves real game icons (placeholder if absent); otherwise 404 for the #id fallback
-      const id = Number(url.split("/").pop()?.replace(".png", "")) || 0;
-      // ブロック画像は実アセットが無いため常にプレースホルダ（実ホストはBlockImageContainerのPNG）
-      // Block images have no real asset so always use the placeholder (the real host renders BlockImageContainer PNGs)
-      const real = DEMO && !isBlockIcon ? realIconFor(id, iconDirectory, iconFiles) : null;
-      respondGameIcon(res, real, id);
-      return;
-    }
-    // 液体アイコンはguidベースで別配信
-    // Fluid icons are served separately, keyed by guid
-    if (url.startsWith(FLUID_ICON_PREFIX)) {
-      // DEMOは実/プレースホルダ、他は404。guid欠落は即404
-      // DEMO: real/placeholder icon; otherwise 404. A missing guid is an immediate 404
-      const guid = url.split("/").pop()?.replace(".png", "") ?? "";
-      if (!guid) {
-        res.statusCode = 404;
-        res.end();
-        return;
-      }
-      const seed = fluidIconSeed(guid);
-      const real = DEMO ? realIconFor(seed, fluidIconDirectory, fluidIconFiles) : null;
-      respondGameIcon(res, real, seed);
-      return;
-    }
+    if (serveGameIcon(url, res, DEMO)) return;
     // 静的配信（SPA なので未知パスは index.html）
     // Static serving; unknown paths fall back to index.html (SPA)
     const rel = url === "/" ? "/index.html" : url.split("?")[0];

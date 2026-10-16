@@ -27,7 +27,7 @@ await p.ExitToGameScreen();
    `PrepareBlockForUiPlacement`は不要。在庫消費まで検証するときのみ`FreeBlockPlacement=false`にして
    `PrepareBlockForUiPlacement`（アンロック+建設コスト付与）を使う
 3. **プレイヤーは設置エリアの南側に立たせる**: 設置カメラは**北向き・浅いピッチ**（旧トップダウンから変更）。
-   足元・背後のセルは画面外になり `AimAtWorldPosition` が「off-screen」例外で失敗する（黙った空振りは廃止済み）
+   足元・背後のセルは画面外になり `AimAtWorldPosition` が「off-screen」例外で失敗する
 4. **カメラから遠いセル→近いセルの順に設置**: 浅いカメラでは手前の既設ブロック天面/側面が
    奥セルへの照準レイを奪い誤設置する。単クリック設置は隣接セルが埋まる前に行う
 

@@ -28,7 +28,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
                 var a = before.Elements[index];
                 var b = after.Elements[index];
                 if (a.BlockId != b.BlockId || a.Position != b.Position || a.Direction != b.Direction ||
-                    before.NonOverlapFlags[index] != after.NonOverlapFlags[index]) return false;
+                    before.ElementBlockCauses[index] != after.ElementBlockCauses[index]) return false;
             }
 
             // 接続可否と端点変更も描画の更新条件に含める

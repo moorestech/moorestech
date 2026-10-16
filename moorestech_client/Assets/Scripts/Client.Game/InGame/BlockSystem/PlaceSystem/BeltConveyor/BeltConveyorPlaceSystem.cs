@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Ground;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
@@ -125,7 +126,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             var holdingBlockMaster = holdingBlock.BlockMaster;
 
             // ブロック設置用のrayが当たっているか、当たっていたら設置位置を取得する
-            if (!TryGetRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, out var placePoint, out var hitSurface)) { return false; }
+            if (!TryGetFootprintGroundedRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, feedback, out var placePoint, out var hitSurface)) { return false; }
 
             // 設置可能な距離かどうか
             // Whether the cell is within reach
@@ -141,11 +142,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             var (placeCauses, beltReasons) = UpdateCurrentPlaceInfos();
 
             _previewBlockController.SetPreview(_currentPlaceInfos, holdingBlockMaster);
-            var blockGroundOverlapList = _previewBlockController.DetectGroundOverlaps();
+            var terrainSinks = PlacementTerrainSinkQuery.DetectSunkCells(_currentPlaceInfos);
 
-            // 共有の不可原因（既存重複）は共通Reporterが積む
-            // The shared block cause (existing overlap) is pushed by the shared reporter
-            var cursorIndex = PlacementCellReasonReporter.ApplyGroundOverlapsAndReport(_currentPlaceInfos, placeCauses, placePoint, blockGroundOverlapList, feedback);
+            // 共有の不可原因は共通Reporterが積む
+            // The shared block causes (existing overlap, terrain sink) are pushed by the shared reporter
+            var cursorIndex = PlacementCellReasonReporter.ApplyTerrainSinksAndReport(_currentPlaceInfos, placeCauses, placePoint, terrainSinks, feedback);
 
             // ベルト固有の理由（立体交差不能・坂ブロック欠落）はベルト側が積む
             // Belt-specific reasons (impossible overpass, missing slope block) are pushed here on the belt side

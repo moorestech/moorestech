@@ -46,12 +46,17 @@ namespace Client.Game.InGame.Map.Outcrop
             _handshakeResponse = handshakeResponse;
         }
 
-        public void StartOutcropInstantiation(TerrainSurfacePresentation presentation)
+        public void StartOutcropInstantiation(BuiltWorldTerrain builtTerrain)
         {
             // 二重開始は露頭を重ねるので落とす
             // A second start would stack duplicate outcrops
             if (_initializationTask != null)
                 throw new InvalidOperationException("[OutcropGameObjectDatastore] StartOutcropInstantiationが二重に呼ばれました");
+
+            // 接地候補は今回建てた地形だけ。冒頭スキットで非表示でも含み、環境prefab内の旧地形は見ない
+            // Grounding candidates are only the terrain this build created: included even when hidden by the opening skit, legacy terrain in the environment prefab is never seen
+            var ownedTerrains = builtTerrain.Terrains;
+            var presentation = builtTerrain.Layout.SurfacePresentation;
 
             // 完了と例外を起動待機境界へ伝播させる
             // Propagate completion and exceptions to the startup wait boundary
@@ -108,7 +113,7 @@ namespace Client.Game.InGame.Map.Outcrop
                 // Ground against the completed presentation contract
                 var bounds = new Bounds(center, new Vector3(layout.MaxX - layout.MinX + 1,
                     layout.MaxY - layout.MinY + 1, layout.MaxZ - layout.MinZ + 1));
-                OutcropSurfacePlacement.Place(instance, outcrop, bounds, presentation);
+                OutcropSurfacePlacement.Place(instance, outcrop, bounds, presentation, ownedTerrains);
 
                 // 全階層を採掘レイヤー化
                 // Apply mining layer to all children

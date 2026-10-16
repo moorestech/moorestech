@@ -12,6 +12,7 @@ namespace Client.Tests.Map.Surface
     public class OutcropSurfacePlacementTest
     {
         private readonly List<UnityEngine.Object> _created = new();
+        private GameObject _terrainObject;
         private Bounds _veinBounds;
         private float _groundY;
 
@@ -26,11 +27,11 @@ namespace Client.Tests.Map.Surface
                 for (var x = 0; x < 33; x++) heights[z, x] = 0.5f;
             data.SetHeights(0, 0, heights);
             var translation = SurfaceTerrainIsolation.ResolveTranslation(Vector2.zero);
-            var terrainObject = Terrain.CreateTerrainGameObject(data);
-            terrainObject.transform.position = translation + Vector3.up * 2f;
+            _terrainObject = Terrain.CreateTerrainGameObject(data);
+            _terrainObject.transform.position = translation + Vector3.up * 2f;
             _created.Add(data);
-            _created.Add(terrainObject);
-            _groundY = terrainObject.GetComponent<Terrain>().SampleHeight(translation + new Vector3(16f, 0f, 16f)) + 2f;
+            _created.Add(_terrainObject);
+            _groundY = _terrainObject.GetComponent<Terrain>().SampleHeight(translation + new Vector3(16f, 0f, 16f)) + 2f;
             _veinBounds = new Bounds(translation + new Vector3(16f, 15f, 16f), new Vector3(5f, 6f, 5f));
         }
 
@@ -93,7 +94,7 @@ namespace Client.Tests.Map.Surface
             var missing = new Bounds(SurfaceTerrainIsolation.ResolveTranslation(Vector2.zero), Vector3.one);
             var outcrop = OutcropPrefab.Create(root, Grounded);
             LogAssert.Expect(LogType.Error, new Regex("\\[OutcropSurfacePlacement\\] No terrain contains"));
-            Assert.Throws<InvalidOperationException>(() => OutcropSurfacePlacement.Place(root, outcrop, missing, Grounded));
+            Assert.Throws<InvalidOperationException>(() => OutcropSurfacePlacement.Place(root, outcrop, missing, Grounded, OwnedTerrains));
         }
 
         [TestCase(false)]
@@ -156,13 +157,15 @@ namespace Client.Tests.Map.Surface
             Assert.That(center.z, Is.EqualTo(_veinBounds.center.z).Within(0.001f));
         }
 
+        private Terrain[] OwnedTerrains => new[] { _terrainObject.GetComponent<Terrain>() };
+
         private static TerrainSurfacePresentation Grounded => new TerrainSurfacePresentation.Grounded(SurfaceEnvelope.GeneratedV5);
 
         private void Place(GameObject root, TerrainSurfacePresentation presentation)
         {
             var outcrop = OutcropPrefab.Create(root, presentation);
             Assert.That(outcrop.ContractViolation, Is.Null);
-            OutcropSurfacePlacement.Place(root, outcrop, _veinBounds, presentation);
+            OutcropSurfacePlacement.Place(root, outcrop, _veinBounds, presentation, OwnedTerrains);
         }
 
         private GameObject CreateMesh(float pivot, float width)

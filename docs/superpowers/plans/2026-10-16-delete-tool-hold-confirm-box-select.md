@@ -10,6 +10,8 @@
 
 ## 現行Interfaces（レビュー反映後）
 
+- `IDeleteTarget.GetPreviewResetKey()`は論理削除IDと別に表示寿命を表す。`DeleteSelection(history,sender,resetRecovery)`が共有回復状態をホバーと選択へ渡し、解除失敗済みの表示を再保持しない。
+- `SingleHoverDeletePreview`は解除前に参照を外す。`DeletePreviewReleaseQueue`は未着手の解除を保持してfinallyで残りをdrainし、例外を隠さず次の離脱を可能にする。
 - `IDeleteTarget.OnDeleteCompleted: IObservable<DeleteCompletion>`。Pending/Succeeded/Rejected/Unconfirmedと論理対象キー・理由を運搬する。既存個別応答を使い、車両だけ既存snapshotのtick完了後の不在・直列要求への拒否通知を使う。
 - `DeleteSelection.IsTargetSelectable(IDeleteTarget,out LocalizationKey?)`は保留中か否かと対象自身の撤去可否を統合し、`DeleteBoxTargetResolver.Resolve(min,max,selection)`、追加、ホバーが共有する。
 - `PacketExchangeManager.GetFinalPacketResponse<T>`と`BlockRemoveIfInstanceAwaitFinal`はUI期限と独立した最終応答取得口。一般の要求APIは従来のタイムアウトを維持する。
@@ -2271,3 +2273,7 @@ DeleteBoxSelectionは最後の有効終点を保持する（始点選択時は�
 - 未確認の非車両を含む当該バッチは履歴予約を最終結果まで保持する。消費済みUndoへ後付けせず、後続バッチは先にUndo可能。永久応答欠落では対象の再選択と当該バッチUndoが保留されることをゲーム内に表示する。車両は記録なしのため他対象Undoを止めない。
 - 選択可否はモデルの共通口に揃え、保留対象だけの箱は0件、ホバー長押しsubjectはNone。遅延拒否が確定すれば再選択可能。
 - 新しいユーザー裁定ではなく既要件の欠落補修。サーバー、個別プロトコル、D5/D7は変更しない。
+
+## master統合の設計対応
+masterの共有表示identity・pending release・drainを新DeleteSelectionへ移植。旧DragDeleteSelectionは復活させない。選択・Revision・長押しsubjectを解除処理より先に空にし、F確定では対象採取→論理選択解除→個別送信→表示解除の順にする。表示解除が失敗しても全送信と結果ベースのUndo予約を失わず、送信自体が例外なら未着手の表示解除は次のClearAllまで保持する。serviceの長押し/なぞり状態は例外が出得る確定や解除の前に戻す。
+ホバー表示の再保持が抑止されても照準対象は別に保持し、撤去可否とF確定はその対象で判定する。表示の復元IDはblock owner/car material controller/rail chain/line view、論理削除IDは従来の安定IDを維持。masterのプレビュー限定オブジェクト初期化統合も取り込み、ownerによる削除対象保持は維持する。

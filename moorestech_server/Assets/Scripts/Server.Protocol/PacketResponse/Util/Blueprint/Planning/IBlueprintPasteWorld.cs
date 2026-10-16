@@ -5,6 +5,7 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint.Planning
 {
     public interface IBlueprintPasteWorld
     {
+        bool IsTerrainSunk(BlockPositionInfo positionInfo);
         bool IsOverlapping(BlockPositionInfo positionInfo);
         bool IsBlockUnlocked(Guid blockGuid);
         bool IsConnectToolUnlocked(Guid connectToolGuid);

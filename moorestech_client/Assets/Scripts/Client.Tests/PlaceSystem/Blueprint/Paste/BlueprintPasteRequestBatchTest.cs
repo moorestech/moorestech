@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using Game.Block.Interface;
 using NUnit.Framework;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
@@ -16,10 +18,23 @@ namespace Client.Tests.PlaceSystem.Blueprint.Paste
         {
             var guid = Guid.Parse("12345678-1234-1234-1234-123456789abc");
             var origins = Enumerable.Range(0, originCount).Select(i => new Vector3Int(-i * 3, i % 4, i * 2)).ToList();
-            var requests = BlueprintRequest.CreatePasteRequests(guid, 3, origins).ToList();
+            var sunkPerOrigin = origins.Select((origin, index) => index % 3 == 0
+                ? new List<BlockPositionInfo> { new(origin, BlockDirection.North, Vector3Int.one) }
+                : new List<BlockPositionInfo>()).ToList();
+            sunkPerOrigin[^1].Add(new BlockPositionInfo(origins[^1], BlockDirection.East, new Vector3Int(2, 1, 1)));
+            var requests = BlueprintRequest.CreatePasteRequests(guid, 3, origins, sunkPerOrigin).ToList();
 
             // 境界で原点を落としたり重複させず各要求の回転も保つ
             // Preserve every origin exactly once and retain rotation in each request
+            for (var chunk = 0; chunk < requests.Count; chunk++)
+            {
+                var expected = sunkPerOrigin.Skip(chunk * BlueprintRequest.MaxPasteOrigins)
+                    .Take(BlueprintRequest.MaxPasteOrigins).SelectMany(footprints => footprints)
+                    .Select(footprint => (footprint.OriginalPos, footprint.BlockDirection, footprint.BlockSize));
+                var actual = requests[chunk].TerrainSunkBlockFootprints.Select(footprint => footprint.ToPositionInfo())
+                    .Select(footprint => (footprint.OriginalPos, footprint.BlockDirection, footprint.BlockSize));
+                CollectionAssert.AreEqual(expected, actual);
+            }
             Assert.AreEqual(requestCount, requests.Count);
             Assert.AreEqual(lastCount, requests.Last().Origins.Count);
             Assert.IsTrue(requests.All(request => 0 < request.Origins.Count && request.Origins.Count <= BlueprintRequest.MaxPasteOrigins));

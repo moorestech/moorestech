@@ -125,6 +125,10 @@ namespace Client.Game.InGame.Train.RailGraph
             _deleteCompleted.OnNext(new DeleteCompletion(key, kind, reason));
         }
 
+        // 復元を共有する表示の寿命を識別する
+        // Identify the lifetime of the shared preview view
+        public object GetPreviewResetKey() => RailChain;
+
         // 削除はedge単位なのでrailObjectId（edge）を論理キーにする。同一edgeの重複だけ排除
         // Delete is per-edge, so the railObjectId is the logical key; only same-edge duplicates are deduped
         public object GetDeleteTargetKey()

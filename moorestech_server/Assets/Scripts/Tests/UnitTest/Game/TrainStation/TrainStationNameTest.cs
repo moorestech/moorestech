@@ -20,7 +20,7 @@ namespace Tests.UnitTest.Game
             var env = TrainTestHelper.CreateEnvironment();
             var block = TrainTestHelper.PlaceBlock(env, ForUnitTestModBlockId.TestTrainStation, Vector3Int.zero, BlockDirection.North);
             var station = block.GetComponent<TrainStationComponent>();
-            Assert.AreEqual(string.Empty, station.StationName, "新設駅の初期名は空");
+            Assert.AreEqual("Test1 Station", station.StationName, "新設駅は最寄り鉱脈の名前");
 
             // 名前変更はコンポーネントとブロックの両方から通知する
             // A name change must notify both component and block subscribers
@@ -41,18 +41,19 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual("北駅", decoded.StationName);
         }
 
-        [Test]
-        public void SavedStationNameRestoresWithoutChangingSaveFormat()
+        [TestCase("test")]
+        [TestCase("")]
+        public void SavedStationNameRestoresWithoutChangingSaveFormat(string savedName)
         {
-            var original = new TrainStationComponent("test");
+            var original = new TrainStationComponent(savedName);
             var states = new Dictionary<string, object> { [original.SaveKey] = JToken.FromObject(original.GetSaveState()) };
 
             // 既存の文字列名を保存状態からそのまま復元する
             // Restore an existing string name directly from the saved component state
             var restored = new TrainStationComponent(states);
 
-            Assert.AreEqual("test", restored.StationName);
-            Assert.AreEqual("test", ((TrainStationComponent.TrainStationComponentSaveData)restored.GetSaveState()).stationName);
+            Assert.AreEqual(savedName, restored.StationName);
+            Assert.AreEqual(savedName, ((TrainStationComponent.TrainStationComponentSaveData)restored.GetSaveState()).stationName);
         }
     }
 }

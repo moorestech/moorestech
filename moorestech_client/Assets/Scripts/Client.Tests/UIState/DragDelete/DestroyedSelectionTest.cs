@@ -24,10 +24,24 @@ namespace Client.Tests.UIState
         }
 
         [Test]
+        public void DestroyedHoverIsReleasedAndLoggedOnce()
+        {
+            var preview = new SingleHoverDeletePreview(new DeletePreviewResetRecovery());
+            _selectedObject = new GameObject("HoveredRail");
+            preview.Hover(_selectedObject.AddComponent<DestroyableDeleteTarget>());
+            UnityEngine.Object.DestroyImmediate(_selectedObject);
+
+            LogAssert.Expect(LogType.Warning, "[DragDelete] hovered target was destroyed before reset");
+            preview.Release();
+            Assert.IsNull(preview.Current);
+            Assert.DoesNotThrow(() => preview.Release());
+        }
+
+        [Test]
         public void DestroyedTargetIsSkippedBeforeUndoCapture()
         {
             var history = new BuildOperationHistory();
-            var selection = new DeleteSelection(history, new FakeRemovalRestoreSender());
+            var selection = new DeleteSelection(history, new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             _selectedObject = new GameObject("SelectedRail");
             var target = _selectedObject.AddComponent<DestroyableDeleteTarget>();
             selection.BeginStroke();
@@ -36,7 +50,7 @@ namespace Client.Tests.UIState
 
             // 破棄済みを記録へ渡さず理由を残す
             // Do not pass a destroyed target into capture; leave a diagnostic
-            LogAssert.Expect(LogType.Warning, "[DragDelete] target was destroyed before commit");
+            LogAssert.Expect(LogType.Warning, "[DragDelete] selected target was destroyed before commit");
             selection.CommitDelete();
             Assert.IsFalse(history.TryPop(out _));
         }
@@ -44,7 +58,7 @@ namespace Client.Tests.UIState
         [Test]
         public void DestroyedTargetIsLoggedDuringCancel()
         {
-            var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
+            var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             _selectedObject = new GameObject("SelectedRail");
             var target = _selectedObject.AddComponent<DestroyableDeleteTarget>();
             selection.BeginStroke();
@@ -53,7 +67,7 @@ namespace Client.Tests.UIState
 
             // キャンセルで失った対象も理由を記録する
             // Log a target lost before canceling the selection
-            LogAssert.Expect(LogType.Warning, "[DragDelete] target was destroyed before cancel");
+            LogAssert.Expect(LogType.Warning, "[DragDelete] selected target was destroyed before cancel");
             selection.CancelSelection();
             Assert.IsFalse(selection.HasSelection());
         }
@@ -74,6 +88,7 @@ namespace Client.Tests.UIState
         {
             Assert.Fail("Destroyed targets must never be captured");
         }
+        public object GetPreviewResetKey() => this;
         public object GetDeleteTargetKey() { return this; }
         public string GetDestructionCategory() { return "default"; }
     }

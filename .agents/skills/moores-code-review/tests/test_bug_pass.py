@@ -37,6 +37,7 @@ def build(run_dir: Path, *extra: str) -> subprocess.CompletedProcess:
 def main_run(root: Path) -> Path:
     main = root / "main"
     (main / "agents").mkdir(parents=True)
+    (main / "step7-decisions.json").write_text('{"declined": []}', encoding="utf-8")
     (main / "integrated.md").write_text("## Warning\n- a.cs:1: w\n", encoding="utf-8")
     (main / "agents/refix-correctness-w7-r1.md").write_text("Warning:\n- b.cs:2: w\n", encoding="utf-8")
     (main / "agents/rev-core-any-efficiency.md").write_text("x", encoding="utf-8")
@@ -129,7 +130,7 @@ class AssembledWorkflowTest(unittest.TestCase):
         return run_dir / "review_workflow.js"
 
     def test_review_and_bug_pass_scripts_resolve_with_embedded_args(self):
-        refix_path = {"refix:refix-correctness-r1": {"critical_count": 1}, "refix-apply-r1": {"applied": 1, "refix_scope": "source"}}
+        refix_path = {"refix:refix-correctness-r1": {"critical_count": 1, "findings": [{"id": "f1", "severity": "Critical", "summary": "wrong result", "recurs_from": None}]}, "refix-apply-r1": {"applied": 1, "refix_scope": "source"}}
         with tempfile.TemporaryDirectory() as td:
             for bug in (False, True):
                 out = workflow_sim.simulate(self._built(Path(td), bug), refix_path)

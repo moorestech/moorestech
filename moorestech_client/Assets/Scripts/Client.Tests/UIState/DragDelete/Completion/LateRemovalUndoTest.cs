@@ -20,7 +20,7 @@ namespace Client.Tests.UIState.DragDelete.Completion
         {
             var history = new BuildOperationHistory();
             var sender = new FakeRemovalRestoreSender();
-            var selection = new DeleteSelection(history, sender);
+            var selection = new DeleteSelection(history, sender, new DeletePreviewResetRecovery());
             var immediate = Target(1);
             var late = Target(2);
             selection.AddBoxTargets(new[] { immediate, late });
@@ -56,7 +56,7 @@ namespace Client.Tests.UIState.DragDelete.Completion
         {
             var history = new BuildOperationHistory();
             var sender = new FakeRemovalRestoreSender();
-            var selection = new DeleteSelection(history, sender);
+            var selection = new DeleteSelection(history, sender, new DeletePreviewResetRecovery());
             var first = Target(1);
             selection.AddBoxTargets(new[] { first });
             selection.CommitDelete();

@@ -7,14 +7,15 @@ using Client.Game.InGame.Interact;
 using Client.Game.InGame.Interact.Selection;
 using Client.Input;
 using Client.Tests.Common;
+using Client.Tests.PlaceSystem.Common.Preview;
 using NUnit.Framework;
 using UnityEngine;
 
 namespace Client.Tests.Interact
 {
     /// <summary>
-    ///     照準優先・ゴースト貫通・近傍フォールバック・選定可否の4規則を検証（ADR 0046）
-    ///     Verifies the four selection rules of ADR 0046: aim first, ghost pass-through, nearby fallback, availability gate
+    ///     照準・無当たり判定ゴースト・近傍・可否の4規則を検証
+    ///     Verifies aim priority, collider-free ghosts, nearby fallback, and availability (ADR 0046 and 0081)
     /// </summary>
     public class InteractTargetSelectorTest : InteractTargetSelectorTestFixture
     {
@@ -40,21 +41,20 @@ namespace Client.Tests.Interact
             AimPointProvider.SetViewMode(PlayerViewMode.FirstPerson);
             var target = CreateMapObjectTarget(AimRay().GetPoint(1f));
 
-            // 設置ゴーストは常に照準の手前に出るため、貫通しないと奥の対象を永久に掴めない
-            // The placement ghost always sits in front of the aim, so without pass-through the target behind is unreachable
-            var ghostObject = new GameObject("BlockPreview");
+            // 設置ゴーストは本番のプレビュー入口で作り、奥の対象の手前に置く
+            // Build the ghost through the production preview entry and put it in front of the target
+            var ghostFixture = new PreviewGhostViaControllerFixture();
+            ghostFixture.Initialize();
+            var ghostObject = ghostFixture.SetPreview().gameObject;
             ghostObject.transform.position = AimRay().GetPoint(0.5f);
-            ghostObject.AddComponent<BlockPreviewObject>();
-            TargetObjects.Add(ghostObject);
-
-            var ghostCollider = new GameObject("BlockPreviewMesh") { layer = LayerConst.BlockLayer };
-            ghostCollider.transform.SetParent(ghostObject.transform, false);
-            ghostCollider.AddComponent<SphereCollider>().radius = 0.05f;
-
+            foreach (var collider in ghostObject.GetComponentsInChildren<Collider>(true)) Assert.IsFalse(collider.enabled, collider.name);
+            Assert.IsNotEmpty(ghostObject.GetComponents<Collider>());
             PlayerObject.transform.position = target.transform.position;
             Physics.SyncTransforms();
 
-            Assert.AreSame(target, new InteractTargetSelector().Scan().Primary);
+            var primary = new InteractTargetSelector().Scan().Primary;
+            ghostFixture.Dispose();
+            Assert.AreSame(target, primary);
         }
 
         [Test]

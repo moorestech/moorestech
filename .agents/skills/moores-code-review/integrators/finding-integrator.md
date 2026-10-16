@@ -16,8 +16,7 @@
 - `Checks` — 決定論チェック結果 checks.json のパス。bug-pass では `なし`（決定論チェックは本レビューで確認済み）
 
 **起動計画に含まれない系統・派遣プロンプトが渡していない入力は、読まない・検査しない・欠員に数えない。**
-モード（review / bug-pass / report-only）で起動する系統と入力が変わるため、ファイル名を固定で前提にしない
-（2026-10-07 Codex 監査: bug-pass で起動しない user-intent の検査を要求し、不存在のレポートで止まる矛盾）。
+モード（review / bug-pass / report-only）で起動する系統と入力が変わるため、ファイル名を固定で前提にしない。
 
 ## 手順
 
@@ -29,16 +28,16 @@
    - `agents/<name>.md`（`起動計画の系統` の各名前）— reviewer・Fable・investigator・verifierの報告
    - 起動された Codex ジョブ（`codex-<種類>`）の `<Run dir>/codex-<種類>.final.md` — Codex監査の**結論**（正本）。
      **起動されたジョブの final が空・不在でもスキップ扱いにしない。** `.out.md`（stdout）はツール実行ログの副産物で、完走しても
-     結論が入らないことがある（2026-08-18実測）。必ず先に回収を試みる:
+     結論が入らないことがある。必ず先に回収を試みる:
      `python3 .claude/skills/moores-code-review/scripts/codex_recover.py --prompt <run dir>/codex-<種類>.md --out <run dir>/codex-<種類>.out.md`
      exit 0 → 生成/既存の `.final.md` を読んで**通常の1系統として統合する**。exit 3（未完走）/ exit 4（セッション不在）/
      exit 5（認証失効＝環境起因の欠員。「codex不在」とは書かない）のときだけ縮退と記録し、終了コードを「系統別回収状況」に併記する。`.out.md` をgrepして欠員判定しない。
      列挙されていない種類（bug-pass の俯瞰・設計整合など）は起動されていないので読まず、欠員にも書かない
    - `Checks` が指す checks.json（`なし` なら読まない）— 決定論confirmed（裏取り不要でそのまま採用）と候補群
    - `User prompt` — suppressed裁定の出所ラベル検証に使う（bug-pass は suppress を効かせないので §7 に従う）
-3. **実コード照合**: Codexの各指摘とreviewerのCriticalは該当コードをReadして
-   裏取りする（§1）。棄却できるのは§1.5の4条件（事実誤り・不可能の証明・処置済み・
-   純スタイル）を引用できる場合のみ。Fableの`[検証済み]`はspot-checkで足りる。
+3. **実コード照合**: patch の変更行と指摘位置を照合し、変更行の外なら `因果:` を検査する。因果欠落・既存負債だけの指摘は §1.5(5) で棄却し、件数を報告する（confirmed は除く）。 Codexの各指摘とreviewerのCriticalは該当コードをReadして
+   裏取りする（§1）。棄却できるのは§1.5の5条件（事実誤り・不可能の証明・処置済み・
+   純スタイル・因果欠落）を引用できる場合のみ。Fableの`[検証済み]`はspot-checkで足りる。
 4. **統合**: 重複排除（§2・起動された Codex は本数によらず1系統）・Warning/Info統合（§2.5・昇格規則含む）・
    suppressed統合（§2.6）・採用Criticalごとの同型全数掃引（§2.7・0件でも掃引記録を残す）。
 5. **系統間矛盾の検証**: 2系統が正反対の判定を返した場合、どちらの適用条件が本件に
@@ -83,10 +82,10 @@ bug-pass では常に「なし」（integration-rules §7）
 ## 系統別回収状況
 起動された全系統の1行判定表。**欠員の権威はあなた**: 起動計画の各系統について `agents/<name>.md` の実在と非空を
 突き合わせ、無いものを欠員として明記する（オーケストレータ/Workflow の「応答なし」は自己申告ベースの参考情報）。
-起動計画に `rev-core-any-user-intent-fulfillment` が含まれるときだけ（bug-pass・発火しなかった回は対象外）、`agents/rev-core-any-user-intent-fulfillment.md` を統合を始める前に `python3 <Skill root>/scripts/s5_shape_gate.py --report <Run dir>/agents/rev-core-any-user-intent-fulfillment.md` で §5 の形を機械検査する（レポートが無ければゲートは走らせず、欠員として記録する）。終了コード 1（節が無い・決定ごとの「読み1／読み2／両立判定」の欠け・件数不一致）なら、その系統は欠員として `missing_systems` に入れ、系統別回収状況の行に `差し戻し（§5形式欠落 N件）` と書く。**「回収」「判定済み」と書かない・§5 の結論（「全件両立」等）を統合結果へ要約しない**（PR #1457 では10件中7件が形を欠いたまま「回収（決定10件判定済み）」とまとめられた）。オーケストレータが後で `s5_shape_gate.py <Run dir>` を走らせ、integrated.md がこの系統を差し戻し／欠員と書いていなければ統合結果ごと差し戻す。節の中身の当否はここでも判定しない。
+起動計画に `rev-core-any-user-intent-fulfillment` が含まれるときだけ（bug-pass・発火しなかった回は対象外）、`agents/rev-core-any-user-intent-fulfillment.md` を統合を始める前に `python3 <Skill root>/scripts/s5_shape_gate.py --report <Run dir>/agents/rev-core-any-user-intent-fulfillment.md` で §5 の形を機械検査する（レポートが無ければゲートは走らせず、欠員として記録する）。終了コード 1（節が無い・決定ごとの「読み1／読み2／両立判定」の欠け・件数不一致）なら、その系統は欠員として `missing_systems` に入れ、系統別回収状況の行に `差し戻し（§5形式欠落 N件）` と書く。**「回収」「判定済み」と書かない・§5 の結論（「全件両立」等）を統合結果へ要約しない**（形を欠いたまま「判定済み」とまとめると中身の欠落が見えなくなる）。オーケストレータが後で `s5_shape_gate.py <Run dir>` を走らせ、integrated.md がこの系統を差し戻し／欠員と書いていなければ統合結果ごと差し戻す。節の中身の当否はここでも判定しない。
 Codexは「完走したが回収失敗（recoverで回収し統合済み）」と「真の欠員（exit 3/4/5）」を
 必ず書き分ける — 前者を欠員として書くと、外部監査の結論が現に存在するのにPR本文とレビュー記録へ
-偽の縮退申告が残る（2026-08-18 PR#1167 実害）
+偽の縮退申告が残る
 ```
 
 ## 返答（コンパクト・最終メッセージ）

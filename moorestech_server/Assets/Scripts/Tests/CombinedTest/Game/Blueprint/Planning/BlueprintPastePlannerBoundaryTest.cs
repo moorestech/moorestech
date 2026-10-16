@@ -79,7 +79,7 @@ namespace Tests.CombinedTest.Game.Blueprint.Planning
             // The second copy needs two cells; the third would fit the remaining one
             CollectionAssert.AreEqual(new[] { BlueprintPasteCopyState.Placeable, BlueprintPasteCopyState.MaterialShortage,
                 BlueprintPasteCopyState.MaterialShortage }, plan.Copies.Select(copy => copy.State));
-            CollectionAssert.AreEqual(new[] { false, true }, plan.Copies[2].Draft.NonOverlapFlags);
+            CollectionAssert.AreEqual(new[] { BlueprintPasteElementBlockCause.ExistingBlock, BlueprintPasteElementBlockCause.None }, plan.Copies[2].Draft.ElementBlockCauses);
         }
     }
 }

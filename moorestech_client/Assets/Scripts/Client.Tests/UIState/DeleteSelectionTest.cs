@@ -12,7 +12,7 @@ namespace Client.Tests.UIState
 {
     public class DeleteSelectionTest
     {
-        private static DeleteSelection Create() => new(new BuildOperationHistory(), new FakeRemovalRestoreSender());
+        private static DeleteSelection Create() => new(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
 
         [Test]
         public void AddRemovableTargetAddsAndPreviews()

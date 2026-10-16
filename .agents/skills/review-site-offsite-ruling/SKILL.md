@@ -14,8 +14,7 @@ description: |
 
 裁定サイトはボタンで裁定する前提の機構だが、実際の裁定はチャットでの議論で決まることが多い。
 その差分を放置すると、**サイト・台帳・PRのどれを見ても裁定が見つからない**状態になる
-（PR本文と `.decisions/` だけ更新して「裁定を記録した」と報告したのが実際の事故。ユーザーから
-「それって裁定サイトは更新したってこと？」と指摘された）。本スキルはその書き戻しだけを担う。
+（PR本文と `.decisions/` だけ更新しても、裁定サイトは更新されない）。本スキルはその書き戻しだけを担う。
 
 **指摘の是非は判断しない。** 裁定そのものが未確定なら、書き戻す前に moores-grill-with-docs で確定させる。
 
@@ -56,7 +55,7 @@ HOME=/Users/sakastudio gh pr view <番号> --repo moorestech/moorestech --json l
 無人apply（`/pr-adjudicated-apply`）の対象になる**。poller は `completed:true` を見た次のtick（120秒間隔）で
 採用件数を数え、1件でもあれば apply スロット（`~/hermes-agent/data/worktrees/moorestech/pr-apply` / `pr-apply-2`）を
 `origin/master` へリセットし、そこを cwd に cmux ワークスペースで対話モード claude を
-`/pr-adjudicated-apply <番号>` 付きでフォアグラウンド起動する（ADR 0023。2026-08-20 までは `claude -p` だった）。
+`/pr-adjudicated-apply <番号>` 付きでフォアグラウンド起動する（詳細は ADR 0023）。
 つまり decision の選択は「文書上の意味」ではなく「誰が直すか」の指定である。
 
 | 状況 | decision | 理由 |
@@ -100,9 +99,8 @@ python3 .agents/skills/review-site-offsite-ruling/scripts/adjudicate.py --pr 117
 「片付いて見えるから完了にしておく」は、無人applyが手直し済みのコードへ重ねて入る事故になる。
 
 外部repoピン（`.moorestech-external-revisions.json`）のPR側とmaster側の分岐は、完了を押す前提条件ではない。
-無人applyは事前のmasterコンフリクト解消でピンをPR側（ours）に採って続行する
-（`.decisions/2026-08-19-applyのピン衝突はPR側を採って続行する.md`）。PRの検証に master側マスタの内容も
-要る場合だけ、`moorestech_master` 側で統合コミットを作ってピンを張り直す（2026-08-14裁定）。これはapplyの
+無人applyは事前のmasterコンフリクト解消でピンをPR側（ours）に採って続行する。PRの検証に master側マスタの内容も
+要る場合だけ、`moorestech_master` 側で統合コミットを作ってピンを張り直す。これはapplyの
 機械的解消が代行しない判断なので、該当するなら完了を押す前に済ませる。
 
 ## Step 5: シャドー台帳へ記録する（`$LOGS`）
@@ -149,7 +147,7 @@ pollerは `独立レビュー:裁定待ち` に留まる（理由を1行）。
 
 ## Step 8: 報告に必ず書くこと
 
-「更新した」だけで終えない。**どこを更新し、どこを更新していないか**を並べる（冒頭の事故がこの省略で起きた）。
+「更新した」だけで終えない。**どこを更新し、どこを更新していないか**を並べる。
 
 - 更新した先（サイト・台帳・`.decisions/`・PR本文・bd）とその状態
 - 未裁定で残った指摘のid一覧と、なぜ完了にしていないか

@@ -11,11 +11,11 @@ export default defineConfig({
   // Run serially since specs share mock-host global state (e.g. currentBlock)
   fullyParallel: false,
   workers: 1,
-  // 各機能の「動作する動画」を mp4 で残す（CEF 不要のブラウザ録画）
-  // Keep a working-feature mp4 per spec (browser recording, no CEF needed)
+  // 明示フラグがあるときだけ録画する
+  // Record only when the opt-in flag is set
   use: {
     baseURL: `http://127.0.0.1:${PORT}`,
-    video: "on",
+    video: process.env.MOORESTECH_E2E_RECORD === "1" ? "on" : "off",
     trace: "retain-on-failure",
   },
   webServer: {

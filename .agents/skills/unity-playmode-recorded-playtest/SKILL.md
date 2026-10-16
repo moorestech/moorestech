@@ -1,11 +1,11 @@
 ---
 name: unity-playmode-recorded-playtest
-description: 'Unity Editor を PlayMode 起動し、録画付きで end-to-end gameplay を検証する枠組み。第一選択はプレイテストDSL（Client.Playtest asmdef + 本スキル同梱の scripts/run-scenario.sh）による1コマンド一発実行で、preflight→PlayMode起動→シナリオ投入→result.json回収まで自動化される（実測ready~26秒）。UI経路設置（ビルドメニュー→クリック/ドラッグ）とホットバー割当（建築ショートカット。歯車チェーンポール等）もDSLで操作可能。ユースケース別の詳細は references/ を参照（本文にルーティング表）。DSLが無いブランチのみレガシー手動フローへフォールバック。Use When: 「Unity をコードで動かして録画したい」「フォーカス無しで PlayMode テスト」「Recorder を CLI 制御」「実プレイで動くか確認」「キーマウ操作でE2E検証」「MonoBehaviour Update を回した状態で API 叩いて検証」「ロジック単体テストでは捕まらないシナリオを通しで確認」「プレイテストDSLでシナリオ実行」と言われた場合。フォーカス不要が必須要件のとき積極的に起動する。入力は必ず InputSystem QueueStateEvent で注入し OS simulate-keyboard/simulate-mouse-input は使わない（前面化して注入を汚染する・最重要）。masterデータはブランチ互換コミットへピン留めした worktree を使う（スキーマ不整合は MooresmasterLoaderException で初期化が無言死する）。録画には操作オーバーレイ（アクションログ・キー・カーソル）が自動で焼き込まれ、アクション間0.5秒インターバルが自動挿入される。'
+description: 'Unity Editor を PlayMode 起動し、録画付きで end-to-end gameplay を検証する枠組み。第一選択はプレイテストDSL（Client.Playtest asmdef + 本スキル同梱の scripts/run-scenario.sh）による1コマンド一発実行で、preflight→PlayMode起動→シナリオ投入→result.json回収まで自動化される（実測ready~26秒）。UI経路設置（ビルドメニュー→クリック/ドラッグ）とホットバー割当（建築ショートカット。歯車チェーンポール等）もDSLで操作可能。ユースケース別の詳細は references/ を参照（本文にルーティング表）。DSLが無いブランチのみレガシー手動フローへフォールバック。Use When: 「Unity をコードで動かして録画したい」「フォーカス無しで PlayMode テスト」「Recorder を CLI 制御」「実プレイで動くか確認」「キーマウ操作でE2E検証」「MonoBehaviour Update を回した状態で API 叩いて検証」「ロジック単体テストでは捕まらないシナリオを通しで確認」「プレイテストDSLでシナリオ実行」と言われた場合。背景動作が必要なときは入力デバイスの有効状態を実測する。入力は必ず InputSystem QueueStateEvent で注入し OS simulate-keyboard/simulate-mouse-input は使わない（OS入力とInputSystem注入を混在させない）。masterデータはブランチ互換コミットへピン留めした worktree を使う（スキーマ不整合は MooresmasterLoaderException で初期化が無言死する）。録画には操作オーバーレイ（アクションログ・キー・カーソル）が自動で焼き込まれ、アクション間0.5秒インターバルが自動挿入される。'
 ---
 
 # unity-playmode-recorded-playtest
 
-Unity PlayModeをCLIから自動操作し、シナリオを録画付きでend-to-end検証する。フォーカス不要・本物のMonoBehaviour Updateを回した状態で動作する。EditModeテストでは走らない本番アセット・UI Prefab・操作系のバグを機械的に捕まえるのが目的（実績: PlaceBlock中のTab遷移死・歯車ポール設置不能の実バグ2件をUI経路E2Eが検出）。
+Unity PlayModeをCLIから自動操作し、本物のMonoBehaviour Updateを回した状態で検証する。入力にはフォーカスとデバイスの有効状態を事前確認する。EditModeテストでは走らない本番アセット・UI Prefab・操作系のバグを機械的に捕まえるのが目的（実績: PlaceBlock中のTab遷移死・歯車ポール設置不能の実バグ2件をUI経路E2Eが検出）。
 
 ## 実行方式の選択（最初に判定する）
 
@@ -35,11 +35,19 @@ ls <repo-root>/moorestech_client/Assets/Scripts/Client.Playtest/ 2>/dev/null
 ```bash
 cd <repo-root>   # 必ずpwd確認（worktree頻用）
 SKILL=.claude/skills/unity-playmode-recorded-playtest
-uloop control-play-mode --project-path ./moorestech_client --action stop   # 前回状態の持ち越し防止
-"$SKILL/scripts/run-scenario.sh" ./moorestech_client "$SKILL/scenarios/building/belt-line-via-ui.cs"
+SCRATCH="$PWD/moorestech_client/PlaytestResults/scratch"
+mkdir -p "$SCRATCH"
+cp "$SKILL/scenarios/building/belt-line-via-ui.cs" "$SCRATCH/belt-line-via-ui.cs"
 ```
 
-これが通れば環境は健全。通らなければ troubleshooting.md。
+調査・環境確認ではコピー内の`PlaytestRunOptions.Record`を`false`へ変更してから、次を実行する。
+
+```bash
+uloop control-play-mode --project-path ./moorestech_client --action stop   # 前回状態の持ち越し防止
+"$SKILL/scripts/run-scenario.sh" ./moorestech_client "$SCRATCH/belt-line-via-ui.cs"
+```
+
+これが通れば環境は健全。通らなければ troubleshooting.md。提出用の最終実行は`Record=true`のシナリオを使い、動画・スクショ・実プレイ視点の目視も完了する。
 
 ## 絶対規則（全ユースケース共通・違反すると必ず死ぬ）
 
@@ -47,13 +55,13 @@ uloop control-play-mode --project-path ./moorestech_client --action stop   # 前
    共有moorestech_masterのHEADや他ブランチ用の既存worktreeは別スキーマに進んでいることがあり、使うと`MooresmasterLoaderException`で初期化が**無言死**する。互換コミットは作業中プロジェクトの`.moorestech-external-revisions.json`の`moorestech_master.commitHash`で、Unityが作業ツリー版を実チェックアウト値へ常時書き戻すため**コミット済み(`git show HEAD:`)の値が正**。
    `run-scenario.sh`/`preflight.sh`はこのコミット済みcommitHashにHEADが一致するmoorestech_master worktreeを**自動解決**する（第3/第2引数省略時）。未作成なら自動解決が失敗しエラーになるので、作業中ブランチ用に1つ作る:
    `git -C ../moorestech_master worktree add <path> <互換コミット>`（作成後は第3引数で明示してもよい）
-2. **OSレベル入力シミュレート禁止**（simulate-keyboard/simulate-mouse-input）。Editorを前面化させ実OSマウスが毎フレーム注入を上書きし、PlayMode再起動まで回復しない。注入は`SemanticInput`（QueueStateEvent）一択。**スニペットから`InputSystem.Update()`も呼ばない**
+2. **OSレベル入力シミュレート禁止**（simulate-keyboard/simulate-mouse-input）。OS入力と注入を混在させると実OSマウスが注入値を上書きし、PlayMode再起動まで回復しない。注入は`SemanticInput`（QueueStateEvent）一択。**スニペットから`InputSystem.Update()`も呼ばない**
 3. **固定sleepで待たない**。`p.Until(条件, timeout, ラベル)`かファイル出現ポーリング（result.json / ready.marker）で待つ
 4. **シナリオ実行前にPlayModeを止める**。走ったままだと前回のワールド状態を引き継ぐ
 5. **legacy `UnityEngine.Input`直読みは注入で駆動不可**。主要経路は`Client.Input.HybridInput`へ移行済み。新たに駆動しない入力を見つけたらHybridInput化する（input-injection.md）
 6. `.moorestech-external-revisions.json` / `_CompileRequester.cs` はUnityが自動書き換えする。スキーマ未更新なら`git checkout --`で戻しコミットしない
 7. **run-testsとプレイテストを並走させない**（run-testsはUnityMcpSettings.jsonを退避し、衝突すると全uloopコマンドが死ぬ）
-8. 検証完了の定義は4つ全部: 動画生成（0 byte不可）/ result.jsonのAsserts全PASS / スクショに期待UIが映る / **絵が実プレイ視点**（アバター・地面・HUD）
+8. 調査用は`PlaytestRunOptions.Record=false`で実行し、`result.json`の`Success`と`Asserts`で判定する。提出用の最終実行は`Record=true`とし、動画生成（0 byte不可）/ Asserts全PASS / 期待UIのスクショ / **実プレイ視点**（アバター・地面・HUD）の目視を完了条件とする。調査用の成功を最終録画の代わりにしない
 9. 作業終了前に必ず全てコミットする
 
 ## 動画の可読性ルール（オーバーレイ・ナレーション・0.5秒インターバル）
@@ -73,7 +81,7 @@ uloop control-play-mode --project-path ./moorestech_client --action stop   # 前
 4. スニペットで使うAPI/フィールド名の実在確認（実ファイルをReadして確認。存在しない名前はpollingを無限ループ化させる）
 5. Step単位の実行計画（各Stepのコマンドと期待結果）
 
-**scout報告の否定的断定は裏取りするまで採用しない。** 「〜は関係ない・不要・ゲートにならない」型の断定は、コード静的読みだけでは間違うことがある（実例: 2026-07-18、scoutが「全車fuelSlots=0で燃料は走行のゲートにならない」と断定→実際は燃料切れが走行しない真因で、誤誘導により3〜4ランを浪費）。シナリオが原因不明で失敗したら、scoutが「排除した」要因こそ最小実験（EDCで直接コマンド投入等）で真っ先に検証する。
+**scout報告の否定的断定は裏取りするまで採用しない。** 「〜は関係ない・不要・ゲートにならない」型の断定は、コード静的読みだけでは間違うことがある。シナリオが原因不明で失敗したら、scoutが「排除した」要因こそ最小実験（EDCで直接コマンド投入等）で真っ先に検証する。
 
 ## Available scripts / scenarios（すべて本スキル同梱）
 

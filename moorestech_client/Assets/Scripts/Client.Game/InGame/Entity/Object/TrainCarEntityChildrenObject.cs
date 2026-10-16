@@ -63,6 +63,10 @@ namespace Client.Game.InGame.Entity.Object
             ClientDIContext.TrainCarRemovalRequests.Remove(TrainCarEntityObject.TrainCarInstanceId, GetDeleteTargetKey()).Subscribe(_deleteCompleted.OnNext);
         }
 
+        // 復元を共有する表示の寿命を識別する
+        // Identify the lifetime of the shared preview view
+        public object GetPreviewResetKey() => _materialController;
+
         // 同一車両の全renderer子は同じ永続IDを返し、view再生成でも対象を取り違えない
         // Every renderer child returns the stable car id so recreating a view cannot change the removal identity
         public object GetDeleteTargetKey()

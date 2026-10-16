@@ -21,7 +21,7 @@ namespace Client.Tests.UIState.DragDelete.Completion
         {
             var history = new BuildOperationHistory();
             var sender = new FakeRemovalRestoreSender();
-            var selection = new DeleteSelection(history, sender);
+            var selection = new DeleteSelection(history, sender, new DeletePreviewResetRecovery());
             var success = TargetWithLine(1);
             var rejected = TargetWithLine(2);
             selection.AddBoxTargets(new[] { success, rejected });
@@ -41,7 +41,7 @@ namespace Client.Tests.UIState.DragDelete.Completion
         public void UnconfirmedCarDoesNotBlockRecordedSuccessAndLaterResultIsDelivered()
         {
             var history = new BuildOperationHistory();
-            var selection = new DeleteSelection(history, new FakeRemovalRestoreSender());
+            var selection = new DeleteSelection(history, new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             var recorded = TargetWithLine(1);
             var car = new FakeDeleteTarget { Removable = true, CompleteImmediately = false };
             var results = new List<DeleteCompletion>();
@@ -60,7 +60,7 @@ namespace Client.Tests.UIState.DragDelete.Completion
         public void AllRejectedCreatesNoUndoAndReportsEveryTarget()
         {
             var history = new BuildOperationHistory();
-            var selection = new DeleteSelection(history, new FakeRemovalRestoreSender());
+            var selection = new DeleteSelection(history, new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             var target = TargetWithLine(1);
             var results = new List<DeleteCompletion>();
             selection.OnDeleteCompleted.Subscribe(results.Add);
@@ -75,7 +75,7 @@ namespace Client.Tests.UIState.DragDelete.Completion
         [Test]
         public void SelectionChangePushResetsHoldBeforeTheNextAdvance()
         {
-            var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
+            var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             var changes = new List<int>();
             selection.OnSelectionChanged.Subscribe(changes.Add);
             var target = new FakeDeleteTarget { Removable = true };
@@ -90,7 +90,7 @@ namespace Client.Tests.UIState.DragDelete.Completion
         [Test]
         public void PendingLogicalTargetCannotBeSentTwiceAcrossBatches()
         {
-            var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
+            var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             var target = TargetWithLine(1);
             selection.AddBoxTargets(new[] { target });
             selection.CommitDelete();

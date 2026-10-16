@@ -14,7 +14,7 @@ namespace Client.Tests.UIState.DragDelete
         [Test]
         public void 破棄済みレールの旧ホバーがあっても別対象を箱へ追加できる()
         {
-            var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
+            var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             var oldGo = new GameObject("DestroyedRailHover");
             oldGo.AddComponent<RailObjectIdCarrier>().SetRailObjectId(1);
             var chain = oldGo.AddComponent<BezierRailChain>();
@@ -27,7 +27,7 @@ namespace Client.Tests.UIState.DragDelete
             selection.SetHoverPreview(hovered);
             Object.DestroyImmediate(oldGo);
             var selected = new FakeDeleteTarget { Removable = true };
-            LogAssert.Expect(LogType.Warning, "[DragDelete] target was destroyed before hover");
+            LogAssert.Expect(LogType.Warning, "[DragDelete] hovered target was destroyed before reset");
 
             var added = 0;
             Assert.DoesNotThrow(() => added = selection.AddBoxTargets(new[] { selected }));
@@ -43,7 +43,7 @@ namespace Client.Tests.UIState.DragDelete
         [TestCase(true, true)]
         public void 同じキーの別ラッパーを選んでも旧ホバー要求が残らない(bool box, bool commit)
         {
-            var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
+            var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             var key = new object();
             var hovered = new FakeDeleteTarget { Key = key, Removable = true };
             var selected = new FakeDeleteTarget { Key = key, Removable = true };

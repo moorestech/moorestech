@@ -16,7 +16,7 @@ namespace Client.Tests.UIState
         [Test]
         public void DefaultStartAllowsMultipleDefaultTargets()
         {
-            var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
+            var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             var first = new FakeDeleteTarget { Removable = true, Category = "default" };
             var second = new FakeDeleteTarget { Removable = true, Category = "default" };
 
@@ -34,7 +34,7 @@ namespace Client.Tests.UIState
         {
             // 拒否理由も検証
             // Also verify the rejection reason
-            var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
+            var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             var start = new FakeDeleteTarget { Removable = true, Category = "default" };
             var foundation = new FakeDeleteTarget { Removable = true, Category = "foundation" };
 
@@ -56,7 +56,7 @@ namespace Client.Tests.UIState
         {
             // 土台同士は追加可能
             // Additional foundation targets are accepted
-            var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
+            var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             var foundationA = new FakeDeleteTarget { Removable = true, Category = "foundation" };
             var foundationB = new FakeDeleteTarget { Removable = true, Category = "foundation" };
             var defaultTarget = new FakeDeleteTarget { Removable = true, Category = "default" };
@@ -75,7 +75,7 @@ namespace Client.Tests.UIState
         [Test]
         public void CategoryLockResetsAfterCommit()
         {
-            var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
+            var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             var foundation = new FakeDeleteTarget { Removable = true, Category = "foundation" };
             var defaultTarget = new FakeDeleteTarget { Removable = true, Category = "default" };
 
@@ -94,7 +94,7 @@ namespace Client.Tests.UIState
         [Test]
         public void CategoryLockResetsAfterCancel()
         {
-            var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
+            var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             var foundation = new FakeDeleteTarget { Removable = true, Category = "foundation" };
             var defaultTarget = new FakeDeleteTarget { Removable = true, Category = "default" };
 
@@ -113,7 +113,7 @@ namespace Client.Tests.UIState
         [Test]
         public void AimFilterIsFixedByFirstTargetAndResetOnNewDrag()
         {
-            var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
+            var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             selection.BeginStroke();
             Assert.IsFalse(selection.AimFilter.IsCategoryRequired);
 

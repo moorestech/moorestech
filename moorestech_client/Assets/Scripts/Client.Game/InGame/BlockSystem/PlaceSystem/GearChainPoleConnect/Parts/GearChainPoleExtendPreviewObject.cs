@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Ground;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse;
@@ -8,9 +9,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
 {
     /// <summary>
     /// 歯車チェーンポール延長のゴーストブロックと接続線の表示。
-    /// PositionGhostは入力フェーズの環境クエリ（配置と地面判定）、Applyは出力フェーズの表示反映で何も返さない。
+    /// PositionGhostは入力側の問い合わせ、Applyは出力側の表示反映
     /// Ghost pole block and connection line view for gear chain pole extension.
-    /// PositionGhost is the input-phase environment query (placement and ground detect); Apply is the output-phase render that returns nothing.
+    /// PositionGhost is the input-phase environment query (placement and terrain-sink check); Apply is the output-phase render that returns nothing.
     /// </summary>
     public class GearChainPoleExtendPreviewObject
     {
@@ -24,20 +25,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
         }
 
         /// <summary>
-        /// ゴーストを配置して地面クリアかを返す入力フェーズのクエリ。表示可否の最終判定はApplyで行う
-        /// Input-phase query that positions the ghost and returns ground clearance. Final visibility is applied by Apply
+        /// ゴーストを配置し地形めり込みが無いかを返す入力フェーズのクエリ
+        /// Input-phase query that positions the ghost and returns whether it is free of terrain sink
         /// </summary>
         public bool PositionGhost(PlaceInfo placeInfo, BlockMasterElement poleBlockMaster)
         {
             _positionedPlaceInfos.Clear();
             _positionedPlaceInfos.Add(placeInfo);
 
-            // 地面判定はゴーストの物理接触を読むため、配置と有効化が必要
-            // Ground detect reads the ghost's physics contact, so it must be positioned and activated
             _ghostController.SetActive(true);
             _ghostController.SetPreview(_positionedPlaceInfos, poleBlockMaster);
-            var groundOverlapList = _ghostController.DetectGroundOverlaps();
-            return !groundOverlapList[0];
+            return !PlacementTerrainSinkQuery.IsSunk(placeInfo.Position, placeInfo.Direction, poleBlockMaster.BlockSize);
         }
 
         /// <summary>

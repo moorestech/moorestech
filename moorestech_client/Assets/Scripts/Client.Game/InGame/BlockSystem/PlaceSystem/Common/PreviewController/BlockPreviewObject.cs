@@ -1,8 +1,8 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Client.Common;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.Block.Preview;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
 using Core.Master;
 using Mooresmaster.Model.BlocksModule;
@@ -16,18 +16,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
     {
         public BlockMasterElement BlockMasterElement { get; private set; }
         
-        public bool IsCollisionGround
-        {
-            get
-            {
-                foreach (var collisionDetector in _collisionDetectors)
-                {
-                    if (collisionDetector.IsCollision) return true;
-                }
-                return false;
-            }
-        }
-        private GroundCollisionDetector[] _collisionDetectors;
         private RendererMaterialReplacerController _rendererMaterialReplacerController;
         private IBlockPreviewStateProcessor[] _blockPreviewStateProcessors;
         
@@ -40,7 +28,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
             _rendererMaterialReplacerController.CopyAndSetMaterial(placeMaterial);
             
             _blockPreviewStateProcessors = GetComponentsInChildren<IBlockPreviewStateProcessor>(true);
-            _collisionDetectors = GetComponentsInChildren<GroundCollisionDetector>(true);
             
             SetPlaceableColor(true);
             
@@ -49,12 +36,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
             
             // プレビュー限定オブジェクトをオンに
             // Turn on preview-only object
-            var previewOnlyObjects = gameObject.GetComponentsInChildren<IPreviewOnlyObject>(true).ToList();
-            previewOnlyObjects.ForEach(obj =>
-            {
-                obj.Initialize(blockId);
-                obj.SetActive(true);
-            });
+            BlockPreviewOnlyObjects.Initialize(gameObject, blockId, true);
         }
         
         public void SetPreviewStateDetail(PlaceInfo placeInfo)
@@ -76,12 +58,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
         {
             var color = isPlaceable ? MaterialConst.PlaceableColor : MaterialConst.NotPlaceableColor;
             _rendererMaterialReplacerController.SetColor(MaterialConst.PreviewColorPropertyName, color);
-        }
-        
-        public void SetTriggerCollider(bool isTrigger)
-        {
-            var childrenColliders = GetComponentsInChildren<Collider>();
-            foreach (var childrenCollider in childrenColliders) childrenCollider.isTrigger = isTrigger;
         }
         
         public void SetActive(bool active)

@@ -92,19 +92,6 @@ namespace Client.Tests.Block
         }
 
         [Test]
-        public void IsClickableCollider_GroundCollisionDetectorCollider_IsNotClickable()
-        {
-            // 設置判定専用Colliderはクリック当たりとして数えない
-            // Placement-check-only colliders don't count as click targets
-            var blockObj = CreateBlockRoot();
-            var colliderChild = CreateChild(blockObj, "GroundCheck");
-            colliderChild.AddComponent<GroundCollisionDetector>();
-            var collider = colliderChild.AddComponent<BoxCollider>();
-
-            Assert.IsFalse(BlockGameObjectColliderSetup.IsClickableCollider(blockObj.transform, collider));
-        }
-
-        [Test]
         public void IsClickableCollider_PreviewOnlyOrInactiveSubtree_IsNotClickable()
         {
             // PreviewOnly配下と非アクティブ祖先配下は実体Colliderとして扱わない

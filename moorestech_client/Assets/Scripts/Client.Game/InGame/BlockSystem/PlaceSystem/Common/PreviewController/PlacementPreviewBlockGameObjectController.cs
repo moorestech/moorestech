@@ -55,16 +55,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
             UpdatePlaceableColors(placePointInfos);
         }
         
-        public IReadOnlyList<bool> DetectGroundOverlaps()
-        {
-            // 直近の物理ステップ時点の接触を返す。可否も色も決めない
-            // Returns the contact as of the last physics step; placeability and color stay with the caller
-            var groundOverlaps = new List<bool>(_activePreviewBlocks.Count);
-            foreach (var previewBlock in _activePreviewBlocks) groundOverlaps.Add(previewBlock.IsCollisionGround);
-
-            return groundOverlaps;
-        }
-        
         public void UpdatePlaceableColors(List<PlaceInfo> placeInfos)
         {
             for (var i = 0; i < _activePreviewBlocks.Count && i < placeInfos.Count; i++)

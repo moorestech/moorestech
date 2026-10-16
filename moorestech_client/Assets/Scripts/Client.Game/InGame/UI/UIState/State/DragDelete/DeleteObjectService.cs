@@ -34,7 +34,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
 
         public DeleteObjectService(BuildOperationHistory buildOperationHistory, IMouseCursorTooltip tooltip, IRemovalRestoreSender restoreSender, ProgressBarState progressBar, Camera mainCamera, PlacementHeightOffset heightOffset, DeleteBoxTargetResolver boxTargetResolver)
         {
-            _selection = new DeleteSelection(buildOperationHistory, restoreSender);
+            _selection = new DeleteSelection(buildOperationHistory, restoreSender, new DeletePreviewResetRecovery());
             _box = new DeleteBoxInput(mainCamera, boxTargetResolver, heightOffset);
             _hold = new DeleteHoldConfirm(progressBar);
             _tooltip = tooltip;
@@ -98,8 +98,8 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             {
                 if (!_hold.Advance(InputManager.Playable.Interact.GetKey, deltaTime)) return;
                 var confirmedSubject = _selection.HasSelection() ? DeleteHoldSubject.Selection(_selection.Revision) : subject;
-                if (!_selection.TryCommit(confirmedSubject, out var reason)) AddDenyLine(reason);
                 _isStroking = false;
+                if (!_selection.TryCommit(confirmedSubject, out var reason)) AddDenyLine(reason);
             }
 
             void AddDenyLine(LocalizationKey? denyReasonKey)
@@ -124,11 +124,11 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         // Clear selection, box, height, hold and tooltip
         public void ClearAll()
         {
-            _selection.CancelSelection();
             _box.Clear();
             _hold.Reset();
             _tooltip.Hide(_tooltipOwner);
             _isStroking = false;
+            _selection.CancelSelection();
         }
     }
 }

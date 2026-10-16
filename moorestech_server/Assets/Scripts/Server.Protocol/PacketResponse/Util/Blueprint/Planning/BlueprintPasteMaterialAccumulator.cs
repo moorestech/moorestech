@@ -27,7 +27,7 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint.Planning
         {
             for (var i = 0; i < draft.Elements.Count; i++)
             {
-                if (!draft.NonOverlapFlags[i]) continue;
+                if (!draft.IsElementPlaceable(i)) continue;
                 var blockId = draft.Elements[i].BlockId;
                 _cellCounts.TryGetValue(blockId, out var count);
                 _cellCounts[blockId] = count + 1;

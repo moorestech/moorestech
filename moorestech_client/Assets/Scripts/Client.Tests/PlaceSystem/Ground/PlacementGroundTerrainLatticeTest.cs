@@ -7,7 +7,6 @@ using Game.Block.Interface;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Surface;
 using Game.MapGeneration.Surface;
-using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -82,12 +81,12 @@ namespace Client.Tests.PlaceSystem.Ground
             var step = TerrainHeightStorage.StepMeters(TerrainHeightRange);
             var hitPoint = new Vector3(5.3f, PadIntegerY - 0.9f * step, 5.7f);
 
-            var lifted = PlaceSystemUtil.CalcPlacePoint(MakeUnitBlock(), hitPoint, 0, BlockDirection.North, (PreviewSurfaceType?)null, step);
+            var lifted = PlaceSystemUtil.CalcPlacePointBySize(Vector3Int.one, hitPoint, 0, (PreviewSurfaceType?)null, step);
             Assert.AreEqual(new Vector3Int(5, PadIntegerY, 5), lifted);
 
             // 格子の無い地面では従来どおり1段下
             // On ground without a lattice it stays one cell lower as before
-            var unlifted = PlaceSystemUtil.CalcPlacePoint(MakeUnitBlock(), hitPoint, 0, BlockDirection.North, (PreviewSurfaceType?)null, 0f);
+            var unlifted = PlaceSystemUtil.CalcPlacePointBySize(Vector3Int.one, hitPoint, 0, (PreviewSurfaceType?)null, 0f);
             Assert.AreEqual(new Vector3Int(5, PadIntegerY - 1, 5), unlifted);
         }
 
@@ -112,10 +111,5 @@ namespace Client.Tests.PlaceSystem.Ground
             return padPoint.y;
         }
 
-        private static BlockMasterElement MakeUnitBlock()
-        {
-            return new BlockMasterElement(0, Guid.Empty, "TestBlock", "TestBlockType", null, 1, null, "テスト", "テスト", 0, false,
-                new Vector3Int(1, 1, 1), null, false, null);
-        }
     }
 }

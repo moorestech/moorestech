@@ -17,6 +17,7 @@ using Client.Game.InGame.SoundEffect;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Input;
 using Common.Debug;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Input;
 using Core.Master;
 using Game.Block.Interface;
 using Game.Construction;
@@ -112,22 +113,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         {
             _currentBlockDirection = target.ResolveDirectionOnSelection(_currentBlockDirection, isSelectionChanged);
             PlacementHeightKeyInput.Apply(_placementHeightOffset);
-            BlockDirectionControl();
+            _currentBlockDirection = PlacementDirectionKeyInput.Apply(_currentBlockDirection);
             var isSendable = GroundClickControl(out var wirePlaceable);
             PlaceBlockOnRelease(isSendable, wirePlaceable);
 
             #region Internal
-
-            void BlockDirectionControl()
-            {
-                if (InputManager.Playable.BlockPlaceRotation.GetKeyDown)
-                    // 東西南北の向きを変更する
-                    _currentBlockDirection = _currentBlockDirection.HorizonRotation();
-
-                //TODo シフトはインプットマネージャーに入れる
-                if (HybridInput.GetKey(KeyCode.LeftShift) && InputManager.Playable.BlockPlaceRotation.GetKeyDown)
-                    _currentBlockDirection = _currentBlockDirection.VerticalRotation();
-            }
 
             // 戻り値はカーソル位置に送信できる設置列があるか
             // Returns whether the cursor has a sendable placement run
@@ -172,8 +162,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
                 _previewBlockController.SetActive(true);
 
-                // プレビュー投入とカーソル理由集約。地形との重なりは設置不可の理由にしない（ADR 0047）
-                // Submit the preview and report the cursor reasons; terrain overlap never blocks placement (ADR 0047)
+                // プレビュー投入と理由集約
+                // Submit the preview and report terrain sinks and cursor reasons (ADR 0081)
                 var cursorIndex = NormalPlacementPreviewStep.Apply(_previewBlockController, _currentPlaceInfos, placeCauses, placePoint, holdingBlockMaster, feedback);
 
                 // 設置可否の評価と色更新
