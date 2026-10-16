@@ -546,7 +546,7 @@ public sealed class PlaytestUploadRunSummary
 - `PlaytestOutboxScanner.ScanPending(directories, scope)`: `ReportsOnly` のとき progress outbox を走査しない。
 - `PlaytestBootUploadTrigger : IStartable`: `Start()` で `_uploadRequester.RequestUpload()` を1回呼ぶ。コメントに「MainGame 起動で溜まった箱を送る（Editor の直接再生にはタイトルの押し場が無い）」と書く。
 
-- [ ] **Step 1: テストを書く**
+- [x] **Step 1: テストを書く**
 
 `PlaytestDeliveryRouteResolverTest`: 上の規則の各行を1ケースずつ。Editor（テストは Editor で走る）では `isDistribution=true` でも開発者経路になること（開発ビルドの Steam 起動中を表す）も含める。配布ビルド側の分岐は #if の外なので EditMode では通らない。これは Task 10 の配布ビルド smoke（既存）で確かめる旨をテストのコメントに書く。
 
@@ -558,14 +558,14 @@ public sealed class PlaytestUploadRunSummary
 
 `PlaytestOutboxScannerTest`: `ReportsOnly` で progress の箱が出ない。
 
-- [ ] **Step 2: 実装を書く**（上の Interfaces どおり。ランナーのコンストラクタは変えないので、`PlaytestTitleGateView.cs` は触らない）
+- [x] **Step 2: 実装を書く**（上の Interfaces どおり。ランナーのコンストラクタは変えないので、`PlaytestTitleGateView.cs` は触らない）
 
-- [ ] **Step 3: コンパイルしテストを通す**
+- [x] **Step 3: コンパイルしテストを通す**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client.Tests.PlaytestReceiver|PlaytestTitleGate"`
 Expected: ErrorCount 0 / 全 PASS。
 
-- [ ] **Step 4: コミットする**
+- [x] **Step 4: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.PlaytestReceiver moorestech_client/Assets/Scripts/Client.Starter moorestech_client/Assets/Scripts/Client.Tests/PlaytestReceiver
@@ -589,17 +589,17 @@ git commit -m "feat(playtest): 送信経路を1か所で決め、開発機は報
 - 発行手順の1行案内（Mac mini で `scripts/playtest/dev-token.sh issue <機材名>`）を出す。
 - 非同期は `UniTask` を `.Forget()` で投げ、結果はフィールドに書いて `Repaint()` する。
 
-- [ ] **Step 1: 実装を書く**（前例 `Scripts/Editor/MapAuthoring/MapAuthoringWindow.cs` の `ShowWindow` 形）
-- [ ] **Step 2: コンパイルする**
+- [x] **Step 1: 実装を書く**（前例 `Scripts/Editor/MapAuthoring/MapAuthoringWindow.cs` の `ShowWindow` 形）
+- [x] **Step 2: コンパイルする**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: ErrorCount 0。
 
-- [ ] **Step 3: 動作を確かめる**
+- [x] **Step 3: 動作を確かめる**
 
 `uloop execute-dynamic-code` で `EditorWindow.GetWindow` によりウィンドウを開き、スクリーンショットで描画を確かめる（未設定の表示）。保存・削除はファイルの往復で確かめる。
 
-- [ ] **Step 4: コミットする**
+- [x] **Step 4: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Editor/Playtest
@@ -642,7 +642,7 @@ C# 側の DTO は kind ごとに要るフィールドだけを出す。`WebUiJso
 
 BugReportForm: 既存の `describeStatus() ?? describeMissing()` の行とは別に、`describeDelivery()` の行を1本足す（送信可否と送信状況は独立なので混ぜない）。
 
-- [ ] **Step 1: テストを書く**
+- [x] **Step 1: テストを書く**
 
 `deliveryStatus.test.ts`:
 - 各 kind で `bug-report-delivery` の文言が日本語辞書どおりになる。件数が埋まる。
@@ -656,13 +656,13 @@ BugReportForm: 既存の `describeStatus() ?? describeMissing()` の行とは別
 
 C# の `PauseMenuTopicDeliveryTest`: `PlaytestDeliveryStatusBoard.Set(...)` の各値で `GetSnapshotJsonAsync()` の `delivery` が上の形になる。`ResetOnPlayMode` で後始末する。
 
-- [ ] **Step 2: 実装を書く**
-- [ ] **Step 3: テストを通す**
+- [x] **Step 2: 実装を書く**
+- [x] **Step 3: テストを通す**
 
 Run: `cd moorestech_web/webui && npm run gen:i18n && npx vitest run`（全体。transport と mock-host の波及も見る） → `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "PauseMenuTopic"`
 Expected: 全 PASS / ErrorCount 0。
 
-- [ ] **Step 4: コミットする**
+- [x] **Step 4: コミットする**
 
 ```bash
 git add Localization/localization.csv moorestech_web/webui moorestech_client/Assets/Scripts/Client.WebUiHost moorestech_client/Assets/Scripts/Client.Tests

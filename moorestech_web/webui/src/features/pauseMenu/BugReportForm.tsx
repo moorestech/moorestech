@@ -11,10 +11,11 @@ import styles from "./style.module.css";
 
 type Props = {
   status: PauseMenuData["bugReport"];
+  delivery: PauseMenuData["delivery"];
   draft: BugReportDraft;
 };
 
-export function BugReportForm({ status, draft }: Props) {
+export function BugReportForm({ status, delivery, draft }: Props) {
   const { t } = useI18n();
   const [sending, setSending] = useState(false);
 
@@ -74,9 +75,28 @@ export function BugReportForm({ status, draft }: Props) {
         data-testid="bug-report-description"
       />
       {statusLine && <span className={styles.status} data-testid="bug-report-status">{statusLine}</span>}
+      <span className={styles.status} data-testid="bug-report-delivery">{describeDelivery()}</span>
       <Button onClick={send} disabled={blocked} data-testid="bug-report-send">{t(reportLabels(draft.kind).send)}</Button>
     </>
   );
+
+  // 送信可否とは独立した配送状況を伝える
+  // Delivery status is independent of permission to submit
+  function describeDelivery(): string {
+    switch (delivery.kind) {
+      case "allSent": return t(L.ui.bugReport.deliveryAllSent);
+      case "pending": return t(L.ui.bugReport.deliveryPending, { count: delivery.pendingCount });
+      case "refused": return t(L.ui.bugReport.deliveryRefused, { count: delivery.pendingCount });
+      case "localOnly": {
+        const keys = {
+          developerTokenMissing: L.ui.bugReport.deliveryLocalOnlyTokenMissing,
+          developerTokenUnreadable: L.ui.bugReport.deliveryLocalOnlyTokenUnreadable,
+          steamNotRunning: L.ui.bugReport.deliveryLocalOnlySteamNotRunning,
+        };
+        return t(keys[delivery.reason], { count: delivery.pendingCount });
+      }
+    }
+  }
 
   // 種別別の表示キーをここに集め、完了通知は送信開始時の種別を使う
   // Keep kind-specific display keys together; completion uses the kind captured at submission
