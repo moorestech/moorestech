@@ -73,7 +73,7 @@
 
 ## 設計検査記録
 
-- 配置検査（spec-architecture-review Phase 1〜2.5）: 未実施
+- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反2件・修正2件 / BugReport直下とClient.Tests/BugReport直下が10ファイル超のため新設をRepository/・Diagnostics/へ。パリティ: 配布版のSteam経路・タイトルゲートは不変（死ぬ操作なし）
 - Phase 2.6（型閉包・重複・ADR矛盾）: 未実施
 
 ---
@@ -95,7 +95,7 @@
 | 11 | MainGame 起動時の押し出し `PlaytestBootUploadTrigger` | Client.Starter/Playtest/ | `IStartable`。前例: `MainGameInteractionRegistration.cs:129` |
 | 12 | エディタ拡張 `PlaytestDeveloperTokenWindow` | moorestech_client/Assets/Scripts/Editor/Playtest/ | 前例: `Scripts/Editor/MapAuthoring/MapAuthoringWindow.cs`（MenuItem `moorestech/...`） |
 | 13 | git bundle `BugReportCommitBundles` | Client.Game/InGame/BugReport/Repository/ | 前例: `BugReportRepositoryFiles.cs`（Editor 起源だけで git を起動） |
-| 14 | 停滞診断の同梱 `TrainSyncDiagnosticsCopier` | Client.Game/InGame/BugReport/ | 前例: `BugReportWorldFilesCopier.cs` |
+| 14 | 停滞診断の同梱 `TrainSyncDiagnosticsCopier` | Client.Game/InGame/BugReport/Diagnostics/（直下は既に11ファイル） | 前例: `BugReportWorldFilesCopier.cs` |
 | 15 | 停滞診断の置き場 `TrainSynchronizationDiagnosticDirectory` | Client.Game/InGame/Train/Network/Diagnostics/ | 書き手（`MainGameInteractionRegistration.cs:188`）と読み手が同じ定義を使う |
 | 16 | `triage.py` | scripts/bugreport/triage/ | python3 標準ライブラリのみ。ffmpeg は任意 |
 | 17 | `find-reports.sh` | scripts/playtest/ | 前例: `ingest.sh` の env 読み込みと `receiver-api.sh` |
@@ -652,12 +652,12 @@ git commit -m "feat(webui): バグ報告画面に受け口への送信状況を�
 - Move: `BugReportRepositoryFiles.cs` と `RepositoryStateProbe.cs` を `Client.Game/InGame/BugReport/Repository/` へ移す（BugReport 直下は既に10ファイルを超えているため、新設ファイルの置き場を作る。移動は Unity の .meta を保つため `uloop execute-dynamic-code` で `AssetDatabase.MoveAsset` を使う）。
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/BugReport/Repository/BugReportRepositoryFiles.cs`（`WriteWorkingTreeState` の末尾で bundle を作る。引数に `bundleId` を足し、呼び出し元 `BugReportBundleWriter.cs:88` と `LastSession/CrashBundleWriter.cs:91` を更新）
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/BugReport/Repository/RepositoryStateProbe.cs`（`TryGit` を internal にし、「作業ツリーを書き換えない」注記に例外 `refs/bugreport/*` の一時 ref を明記）
-- Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/BugReport/TrainSyncDiagnosticsCopier.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/BugReport/Diagnostics/TrainSyncDiagnosticsCopier.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Network/Diagnostics/TrainSynchronizationDiagnosticDirectory.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Starter/Registration/MainGameInteractionRegistration.cs:188`（同じ定義を使う）
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/BugReport/BugReportBundleWriter.cs`（L55-58 で停滞診断の置き場と再生開始時刻を主スレッドで読み、thread pool 内で copier を呼ぶ）
 - Modify: `moorestech_server/Assets/Scripts/Game.Paths/BugReportBundleLayout.cs`（`CommitsBundleFileName="commits.bundle"`・`MasterCommitsBundleFileName="master-commits.bundle"`・`BundleStatusFileName="bundle-status.txt"`・`TrainSyncDiagnosticsDirectoryName="train-sync"`）
-- Test: `moorestech_client/Assets/Scripts/Client.Tests/BugReport/Repository/BugReportCommitBundlesTest.cs`、`moorestech_client/Assets/Scripts/Client.Tests/BugReport/TrainSyncDiagnosticsCopierTest.cs`
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/BugReport/Repository/BugReportCommitBundlesTest.cs`、`moorestech_client/Assets/Scripts/Client.Tests/BugReport/Diagnostics/TrainSyncDiagnosticsCopierTest.cs`
 
 **Interfaces:**
 - Produces:
