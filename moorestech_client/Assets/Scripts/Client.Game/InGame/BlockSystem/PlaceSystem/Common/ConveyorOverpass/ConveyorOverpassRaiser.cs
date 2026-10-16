@@ -7,24 +7,30 @@ using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ConveyorOverpass
 {
-    // 障害物スキャン→包絡線→PlaceInfo列にY上昇・縦方向再計算・設置可否を反映する
-    // Scan obstacles -> envelope -> apply raised Y, recompute vertical direction, and mark placeability on the PlaceInfo list.
+    // 包絡線で地形・障害物の下限を設置列に反映
+    // Apply terrain and obstacle lower bounds to the placement run through the envelope
     public class ConveyorOverpassRaiser
     {
         private readonly ConveyorObstacleScanner _scanner = new();
 
-        // 戻り値は「立体交差が組めずこの呼び出しで設置不可にしたセル」の列（placeInfosと同じ添字）。理由の文言は呼び出し側が持つ
-        // Returns the per-cell column of "cells this call made unplaceable because no overpass fits" (indexed like placeInfos); the wording belongs to the caller
-        public IReadOnlyList<bool> Raise(List<PlaceInfo> placeInfos, int cornerIndex, Func<Vector3Int, bool> isOccupied)
+        public ConveyorOverpassRaiseResult Raise(List<PlaceInfo> placeInfos, int cornerIndex, Func<Vector3Int, bool> isOccupied, IConveyorTerrainFloor terrainFloor)
         {
             var overpassBlocked = new bool[placeInfos.Count];
-            if (placeInfos.Count == 0) return overpassBlocked;
+            if (placeInfos.Count == 0) return new ConveyorOverpassRaiseResult(overpassBlocked, false);
 
-            // 障害物下限から最終ベルト高さプロファイルと端点可否を求める
-            // Compute the final belt-height profile and endpoint feasibility from the obstacle lower bounds.
+            // 地形で持ち上げた基準から解き、端点へ戻れなければ地形なしで解き直す
+            // Solve from the terrain-lifted base, then retry without terrain if endpoints cannot be reached
             var cells = placeInfos.Select(info => info.Position).ToList();
-            var lowerBounds = _scanner.ComputeLowerBounds(cells, isOccupied);
-            var (beltY, feasible) = ConveyorVerticalEnvelope.Solve(lowerBounds, cells[0].y, cells[^1].y, cornerIndex);
+            var terrainLiftedCells = LiftByTerrain();
+            var (beltY, feasible) = SolveFrom(terrainLiftedCells);
+            var terrainClimbAbandoned = false;
+            if (!EndpointsReached(feasible) && !terrainLiftedCells.SequenceEqual(cells))
+            {
+                (beltY, feasible) = SolveFrom(cells);
+                // 地形なしでも解けない場合は不可理由を優先して案内を出さない
+                // If the terrain-free solve still fails, show the block reason instead of the notice
+                terrainClimbAbandoned = EndpointsReached(feasible);
+            }
 
             // 上昇したセルとその隣接のみ縦方向を再計算する（無関係なセルの既存方向は維持）
             // Recompute vertical direction only for raised cells and their neighbors (untouched cells keep their existing direction).
@@ -49,9 +55,55 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ConveyorOverpass
                 }
             }
 
-            return overpassBlocked;
+            return new ConveyorOverpassRaiseResult(overpassBlocked, terrainClimbAbandoned);
 
             #region Internal
+
+            List<Vector3Int> LiftByTerrain()
+            {
+                // 端点を固定し、谷では下げず丘だけ持ち上げる
+                // Keep endpoints fixed and lift only hills, never lower for valleys
+                var lifted = new List<Vector3Int>(cells);
+                for (var i = 1; i < lifted.Count - 1; i++)
+                {
+                    // silent-ok: 地表が無いセルは下限を付けない(ADR 0081) / プレビューでそのセルが持ち上がらないことが見える
+                    if (!terrainFloor.TryGetFloorY(lifted[i], out var floorY)) continue;
+                    if (floorY <= lifted[i].y) continue;
+                    lifted[i] = new Vector3Int(lifted[i].x, floorY, lifted[i].z);
+                }
+                return lifted;
+            }
+
+            bool EndpointsReached(bool[] solvedFeasible)
+            {
+                // 包絡線が両端の固定高さへ戻れたかを判定する
+                // Check whether the envelope reached both fixed endpoint heights
+                return !solvedFeasible.Contains(false);
+            }
+
+            (int[] beltY, bool[] feasible) SolveFrom(List<Vector3Int> baseCells)
+            {
+                // 持ち上げ後の基準から既存ブロックを上へ走査する
+                // Scan existing blocks upward from the lifted base
+                var lowerBounds = _scanner.ComputeLowerBounds(baseCells, isOccupied);
+                while (true)
+                {
+                    var solved = ConveyorVerticalEnvelope.Solve(lowerBounds, cells[0].y, cells[^1].y, cornerIndex);
+                    if (!EndpointsReached(solved.feasible)) return solved;
+
+                    // 包絡線で上がった先の占有も下限へ戻す
+                    // Feed occupancy reached by envelope propagation back into the bounds
+                    var collisionFound = false;
+                    for (var i = 0; i < baseCells.Count; i++)
+                    {
+                        var cell = baseCells[i];
+                        if (!isOccupied(new Vector3Int(cell.x, solved.beltY[i], cell.z))) continue;
+                        lowerBounds[i] = solved.beltY[i] + 1;
+                        collisionFound = true;
+                    }
+                    if (!collisionFound) return solved;
+                }
+            }
 
             bool NeighborhoodChanged(int i)
             {

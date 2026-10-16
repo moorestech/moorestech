@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Ground;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
@@ -7,11 +6,11 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Height;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Run;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Ground;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.Inventory.Main;
-using Client.Game.InGame.UI.Tooltip;
 using Client.Input;
 using Common.Debug;
 using Game.Block.Interface;
@@ -51,7 +50,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             _previewBlockController = previewBlockController;
             _localPlayerInventory = localPlayerInventory;
             _constructionWalletQuery = constructionWalletQuery;
-            _placeRunBuilder = new BeltConveyorPlaceRunBuilder(blockGameObjectDataStore, _dragState);
+            _placeRunBuilder = new BeltConveyorPlaceRunBuilder(blockGameObjectDataStore, _dragState, new GroundConveyorTerrainFloor(placementHeightOffset));
         }
 
         // Q/Eで動かす設置高さを読む系
@@ -90,7 +89,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             _currentBlockDirection = target.ResolveDirectionOnSelection(_currentBlockDirection, isSelectionChanged);
             PlacementHeightKeyInput.Apply(_placementHeightOffset);
             _currentBlockDirection = BeltConveyorInputControl.RotateDirection(_currentBlockDirection);
-            var isSendable = GroundClickControl(target, isSelectionChanged, feedback);
+            var isSendable = GroundClickControl();
             PlaceBlockOnRelease();
 
             #region Internal
@@ -106,89 +105,69 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
                 TrySendOnClickRelease(_currentPlaceInfos, true);
             }
 
-            #endregion
-        }
-
-        // 戻り値はカーソル位置に送信できる設置列があるか
-        // Returns whether the cursor has a sendable placement run
-        private bool GroundClickControl(BlockPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback)
-        {
-            // ビルドメニューの選択ブロックが変わったら連続設置状態をリセット
-            // Reset the continuous placement state when the build-menu selected block changes
-            if (isSelectionChanged) _dragState.DiscardForBlockChange(target.BlockGuid);
-
-            //基本はプレビュー非表示
-            _previewBlockController.SetActive(false);
-
-            // 手持ちブロックを解決する
-            // Resolve the holding block
-            var holdingBlock = BeltConveyorHoldingBlock.Resolve(target.BlockId);
-            var holdingBlockMaster = holdingBlock.BlockMaster;
-
-            // ブロック設置用のrayが当たっているか、当たっていたら設置位置を取得する
-            if (!TryGetFootprintGroundedRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, feedback, out var placePoint, out var hitSurface)) { return false; }
-
-            // 設置可能な距離かどうか
-            // Whether the cell is within reach
-            if (!IsPlaceableFromPlayer(placePoint)) { feedback.AddTooFar(); return false; }
-
-            _previewBlockController.SetActive(true);
-
-            //クリックされてたらUIがゲームスクリーンの時にホットバーにあるブロックの設置
-            if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi()) _dragState.BeginDrag(placePoint, hitSurface == null ? PlacementHitSurfaceKind.Ground : PlacementHitSurfaceKind.BlockFace);
-
-            //プレビュー表示と地面との接触を取得する
-            //display preview and get collision with ground
-            var (placeCauses, beltReasons) = UpdateCurrentPlaceInfos();
-
-            _previewBlockController.SetPreview(_currentPlaceInfos, holdingBlockMaster);
-            var terrainSinks = PlacementTerrainSinkQuery.DetectSunkCells(_currentPlaceInfos);
-
-            // 共有の不可原因は共通Reporterが積む
-            // The shared block causes (existing overlap, terrain sink) are pushed by the shared reporter
-            var cursorIndex = PlacementCellReasonReporter.ApplyTerrainSinksAndReport(_currentPlaceInfos, placeCauses, placePoint, terrainSinks, feedback);
-
-            // ベルト固有の理由（立体交差不能・坂ブロック欠落）はベルト側が積む
-            // Belt-specific reasons (impossible overpass, missing slope block) are pushed here on the belt side
-            PushBeltReason();
-
-            // 地面フィルタ後にアイテム数チェック（地面に埋まったエンティティがアイテム枠を消費しないようにする）
-            // Check item count after ground filtering (so ground-blocked entities don't consume item quota)
-            // ファミリー内は建設コストと設置数/1セットが一致する（マスタ検証済み）ので先頭の設置可セルを代表にする
-            // Cost and placementsPerCost match within a family (validated at master load), so the first placeable cell is representative
-            var representativeIndex = _currentPlaceInfos.FindIndex(info => info.Placeable);
-            if (0 <= representativeIndex)
+            // 戻り値はカーソル位置に送信できる設置列があるか
+            // Returns whether the cursor has a sendable placement run
+            bool GroundClickControl()
             {
-                var representativeBlockId = _currentPlaceInfos[representativeIndex].BlockId;
-                ConstructionMaterialShortageReporter.ReportShortages(_currentPlaceInfos, representativeBlockId, _constructionWalletQuery, _localPlayerInventory, feedback);
-                ConstructionCostPreviewMarker.MarkUnaffordableCellsAsNotPlaceable(_currentPlaceInfos, representativeBlockId, _constructionWalletQuery, _localPlayerInventory);
+                // 選択変更時に連続設置をリセット
+                // Reset continuous placement when the selection changes
+                if (isSelectionChanged) _dragState.DiscardForBlockChange(target.BlockGuid);
+
+                _previewBlockController.SetActive(false);
+
+                var holdingBlock = BeltConveyorHoldingBlock.Resolve(target.BlockId);
+                var holdingBlockMaster = holdingBlock.BlockMaster;
+
+                if (!TryGetFootprintGroundedRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, feedback, out var placePoint, out var hitSurface)) { return false; }
+
+                if (!IsPlaceableFromPlayer(placePoint)) { feedback.AddTooFar(); return false; }
+
+                _previewBlockController.SetActive(true);
+
+                if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi()) _dragState.BeginDrag(placePoint, hitSurface == null ? PlacementHitSurfaceKind.Ground : PlacementHitSurfaceKind.BlockFace);
+
+                var (placeCauses, beltReasons, terrainClimbAbandoned) = UpdateCurrentPlaceInfos(placePoint, holdingBlock);
+
+                _previewBlockController.SetPreview(_currentPlaceInfos, holdingBlockMaster);
+                var terrainSinks = PlacementTerrainSinkQuery.DetectSunkCells(_currentPlaceInfos);
+
+                // 共通の重複・地形埋まり理由を通知
+                // Report shared overlap and terrain-sink causes
+                var cursorIndex = PlacementCellReasonReporter.ApplyTerrainSinksAndReport(_currentPlaceInfos, placeCauses, placePoint, terrainSinks, feedback);
+
+                // 固有理由と地形断念を通知
+                // Report belt-specific reasons and terrain-climb abandonment
+                // -1は共用カーソル解決の既存契約。列外なら固有理由なしにする（型化は後続bd）
+                // -1 is the shared cursor resolver's existing contract; use no reason outside the run (typed in follow-up bd)
+                var cursorCellReason = cursorIndex < 0 ? BeltConveyorPlacementBlockReason.None : beltReasons[cursorIndex];
+                BeltConveyorFeedbackReporter.Report(feedback, cursorCellReason, terrainClimbAbandoned);
+
+                // 地面フィルタ後にアイテム数チェック（地面に埋まったエンティティがアイテム枠を消費しないようにする）
+                // Check item count after ground filtering (so ground-blocked entities don't consume item quota)
+                // ファミリー内は建設コストと設置数/1セットが一致する（マスタ検証済み）ので先頭の設置可セルを代表にする
+                // Cost and placementsPerCost match within a family (validated at master load), so the first placeable cell is representative
+                var representativeIndex = _currentPlaceInfos.FindIndex(info => info.Placeable);
+                if (0 <= representativeIndex)
+                {
+                    var representativeBlockId = _currentPlaceInfos[representativeIndex].BlockId;
+                    ConstructionMaterialShortageReporter.ReportShortages(_currentPlaceInfos, representativeBlockId, _constructionWalletQuery, _localPlayerInventory, feedback);
+                    ConstructionCostPreviewMarker.MarkUnaffordableCellsAsNotPlaceable(_currentPlaceInfos, representativeBlockId, _constructionWalletQuery, _localPlayerInventory);
+                }
+
+                // 最終的なPlaceable状態でプレビュー色を更新
+                // Update preview colors based on the final Placeable state
+                _previewBlockController.UpdatePlaceableColors(_currentPlaceInfos);
+
+                return true;
             }
 
-            // 最終的なPlaceable状態でプレビュー色を更新
-            // Update preview colors based on the final Placeable state
-            _previewBlockController.UpdatePlaceableColors(_currentPlaceInfos);
-
-            return true;
-
-            #region Internal
-
-            void PushBeltReason()
-            {
-                if (cursorIndex < 0) return;
-
-                var beltReason = beltReasons[cursorIndex];
-                if (beltReason == BeltConveyorPlacementBlockReason.None) return;
-
-                feedback.Add(new TooltipLine(BeltConveyorPlacementBlockReasonTooltipKey.ToKey(beltReason)));
-            }
-
-            // 設置点列を更新し、セル毎の共有原因とベルト固有理由の列を返す（PlaceInfo列と同じ添字）
-            // Updates the placement point list and returns the per-cell shared cause and belt reason columns (indexed like the PlaceInfo list)
-            (List<PlacementBlockCause> placeCauses, List<BeltConveyorPlacementBlockReason> beltReasons) UpdateCurrentPlaceInfos()
+            // 原因列と列全体の地形乗り越え断念を返す
+            // Return cause columns and terrain-climb abandonment for the run
+            (List<PlacementBlockCause> placeCauses, List<BeltConveyorPlacementBlockReason> beltReasons, bool terrainClimbAbandoned) UpdateCurrentPlaceInfos(Vector3Int placePoint, BeltConveyorHoldingBlock holdingBlock)
             {
                 var dragStartPoint = _dragState.ResolveDragStartCell(placePoint);
-                _currentPlaceInfos = _placeRunBuilder.Build(dragStartPoint, placePoint, _currentBlockDirection, holdingBlock, out var cellCauses, out var cellBeltReasons);
-                return (cellCauses, cellBeltReasons);
+                _currentPlaceInfos = _placeRunBuilder.Build(dragStartPoint, placePoint, _currentBlockDirection, holdingBlock, out var cellCauses, out var cellBeltReasons, out var climbAbandoned);
+                return (cellCauses, cellBeltReasons, climbAbandoned);
             }
 
             #endregion
