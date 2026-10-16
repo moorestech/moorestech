@@ -74,3 +74,11 @@ BW01: PlaytestBootUploadTriggerのGate取得後worker待ち/main thread復帰に
 `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value 'Tests\.(UnitTest|CombinedTest)\..*(SaveLoad|SaveJsonFile)'` は235/235成功・失敗0・skip0、2026-10-16T07:46:40Z完了（verification-save-load.json）。世界セーブ形式の変更はなく、既存互換テストも維持された。
 
 残件は本番Macで自己完結大容量bundleの子転送→親公開→ingest復元/ACKを通すこと、Windows実機送信未確認、BW01未再現Warning。これらを単体/合成成功で完了扱いにしない。Editor PID36131は起動/終了せずrootへ返す。実outboxの混入IDは削除しない。
+
+## 機械規約の最終補正
+
+9730a5f34f: PlaytestUploadRunnerのUploadPendingAsync→ScanPendingの外部ディスク列挙、PlaytestBootUploadTriggerのComplete→ScanForEvidenceの外部ディスク列挙を確認し、各try直前へ短い日英の境界根拠コメントを置いた。catchの対象・通知・制御フローは変更しない。SteamTicketSessionCredentialの`id > 0`を同値の`0 < id`へ変更した。
+
+`uloop compile --project-path ./moorestech_client` はSuccess=true、Error0、Warning8（verification-mechanical-compile.json）。意味不変のコメント/比較式補正なので大規模テストは再実行せず、直前の関連440/SaveLoad235成功を維持する。
+
+`python3 .agents/skills/moores-code-review/scripts/review_diff.py 090a8f57dddc62bd2b4091eb5e772d41db1a1e1c..HEAD` で全PR差分をpatch-mechanical-final.diffへ出力し、`python3 .agents/skills/moores-code-review/scripts/deterministic_checks.py <patch> --repo-root <専用worktree>` を実行。checks-mechanical-final.jsonはconfirmed0・comparison_operator0。他の候補を新たに裁定済みとする主張ではない。全実装ファイル200行未満を維持。
