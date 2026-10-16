@@ -5,7 +5,7 @@
 
 ## Context
 
-Editor・開発ビルドのバグ報告は outbox に置かれ、運搬スクリプト（Tailscale経由rsync）が Mac mini の inbox へ運ぶ設計だった。MacBook ではこのスクリプトが未設定のまま、開発者報告が約1か月届いていなかった。ゲーム側は「developer mode; outbox boxes are left for the rsync path」とログを1行出すだけで、誰も気づけなかった（原因: 実測（証拠: MacBook に `~/.config/moorestech/bugreport-shipper.env` と launchd 登録が無い／outbox に 2026-10-12 と 2026-10-15 の箱が READY のまま残っていた／`PlaytestUploadRunner.RequestUpload` の配布版ゲート））。rsync を選んだときの前提「HTTPの受け口が無い」は、ADR 0061 で受け口ができた時点で消えている。
+Editor・開発ビルドのバグ報告は outbox に置かれ、運搬スクリプト（Tailscale経由rsync）が Mac mini の inbox へ運ぶ設計だった。MacBook ではこのスクリプトが未設定のまま、開発者報告が約1か月届いていなかった。ゲーム側は開発者モードでは旧運搬経路に残す旨のログを1行出すだけで、誰も気づけなかった（原因: 実測（証拠: MacBook に 旧運搬の設定ファイル と launchd 登録が無い／outbox に 2026-10-12 と 2026-10-15 の箱が READY のまま残っていた／`PlaytestUploadRunner.RequestUpload` の配布版ゲート））。rsync を選んだときの前提「HTTPの受け口が無い」は、ADR 0061 で受け口ができた時点で消えている。
 
 調査の手間も大きかった。報告の在処（受け口・取り込み済み・inbox・開発機の outbox）を順に探し、箱の外にある列車同期の停滞診断を scp で取り、箱の中身は使い捨てのスクリプトで読んだ。
 

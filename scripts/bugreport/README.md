@@ -1,16 +1,14 @@
-# バグ報告の運搬（MacBook側）
+# 開発機のバグ報告
 
-1. `~/.config/moorestech/bugreport-shipper.env` を作る:
-   ```
-   MACMINI_SSH=sakastudio@<Mac miniのTailscaleホスト名>
-   MACMINI_INBOX=hermes-agent/data/repos/moorestech_logs/harness/bug-report/inbox
-   ```
-2. plist を配置する。**`com.moorestech.bugreport-shipper.plist` の `/Users/katsumi/...` はプレースホルダなので、コピー後に自分のユーザー名・repo の実パスへ必ず書き換える**（`ProgramArguments` のスクリプトパスと `StandardOutPath`/`StandardErrorPath` の3箇所。書き換えずに読み込むとパスが存在せず即失敗する）:
-   ```
-   mkdir -p ~/Library/Logs/moorestech
-   cp scripts/bugreport/launchd/com.moorestech.bugreport-shipper.plist ~/Library/LaunchAgents/
-   # ~/Library/LaunchAgents/com.moorestech.bugreport-shipper.plist を編集して /Users/katsumi/... を実パスへ置換
-   launchctl load ~/Library/LaunchAgents/com.moorestech.bugreport-shipper.plist
-   ```
-3. 手動実行: `bash scripts/bugreport/ship-outbox.sh`。ログは `~/Library/Logs/moorestech/bugreport-shipper.log`
-4. Tailscale で届かないときは何もしない（裁定 2026-09-11）。箱は outbox に残り、次回接続時に送られる
+1. Mac mini で `bash scripts/playtest/dev-token.sh issue <機材名>` を実行する。
+2. 発行されたトークンを Editor の `moorestech/Playtest/Developer Token` に貼り付け、保存する。
+
+報告は受け口へ送られ、未送信の箱は MainGame 起動時と報告送信時に再送される。開発機から進行記録は送らない。開発者報告も自動修正へは自動投入せず、人が選んで投入する。
+
+## 調査道具
+
+Task 9 で追加する道具は次のように使う。
+
+- `bash scripts/playtest/find-reports.sh`: 受け口の未取り込み・取り込み済み報告、自動修正 inbox とランをまとめて確認する。
+- `python3 scripts/bugreport/triage.py <箱>`: Unity を起動せず manifest、エラー・警告、列車同期診断、列車の tick 時系列、レールの有向辺、動画のコンタクトシートを確認する。
+- `bash scripts/playtest/enqueue-autofix.sh <steamId または dev-機材名> <報告ID>`: 選んだ取り込み済み報告を自動修正へ投入する。
