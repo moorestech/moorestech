@@ -56,12 +56,19 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint
                 Notify(BlueprintFailureReason.NotFound, 0);
                 return Failure(BlueprintFailureReason.NotFound);
             }
+            if (!IsValidTerrainSunkFootprintCount(blueprint))
+            {
+                var limit = (long)request.Origins.Count * blueprint.Blocks.Count * BlueprintRequest.MaxTerrainSunkFootprintsPerElement;
+                Debug.LogWarning($"[BlueprintPaste] invalid request terrain sunk footprints={request.TerrainSunkBlockFootprints.Count} limit={limit} player={requesterPlayerId}");
+                Notify(BlueprintFailureReason.InvalidRequest, 0);
+                return Failure(BlueprintFailureReason.InvalidRequest);
+            }
 
             // サーバーには地形がないため、送信原点は地形解決済みとする
             // The server has no terrain; incoming origins have already resolved it
             var waived = DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement);
             var inventory = _inventories.GetInventoryData(requesterPlayerId).MainOpenableInventory;
-            var world = new ServerBlueprintPasteWorld(_catalog, _unlockState, waived);
+            var world = new ServerBlueprintPasteWorld(_catalog, _unlockState, waived, request.TerrainSunkBlockFootprints.ConvertAll(footprint => footprint.ToPositionInfo()));
             var origins = request.Origins.ConvertAll(origin => new BlueprintPasteOrigin(origin.Vector3Int, true));
             var plan = BlueprintPastePlanner.Plan(blueprint, origins, request.RotationStep, world,
                 _wallet.GetQuery(requesterPlayerId), ConstructionMaterialAccounting.TallyHeld(inventory.InventoryItems));
@@ -106,10 +113,11 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint
                 LogIfAny("missing block master", blueprint.Blocks.Count - firstDraft.Elements.Count);
                 LogIfAny("line endpoint missing", plan.Copies.Sum(copy => copy.Draft.MissingEndpointLineCount));
                 LogIfAny("unknown connect tool", plan.Copies.Sum(copy => copy.Draft.UnknownConnectToolLineCount));
-                LogIfAny("line endpoint overlaps", plan.Copies.Sum(copy => copy.Draft.OverlappingEndpointLineCount));
-                LogIfAny("block overlaps", plan.Copies.Sum(copy => copy.Draft.NonOverlapFlags.Count(flag => !flag)));
+                LogIfAny("line endpoint blocked", plan.Copies.Sum(copy => copy.Draft.BlockedEndpointLineCount));
+                LogIfAny("block overlaps", plan.Copies.Sum(copy => copy.Draft.ElementBlockCauses.Count(cause => cause == BlueprintPasteElementBlockCause.ExistingBlock)));
+                LogIfAny("terrain sunk", plan.Copies.Sum(copy => copy.Draft.ElementBlockCauses.Count(cause => cause == BlueprintPasteElementBlockCause.TerrainSunk)));
                 LogIfAny("NoResolvedBlocks", plan.CountCopies(BlueprintPasteCopyState.NoResolvedBlocks));
-                LogIfAny("AllOverlapped", plan.CountCopies(BlueprintPasteCopyState.AllOverlapped));
+                LogIfAny("AllBlocked", plan.CountCopies(BlueprintPasteCopyState.AllBlocked));
             }
 
             void LogIfAny(string reason, int count)
@@ -122,7 +130,17 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint
             {
                 return 0 <= request.RotationStep && request.RotationStep < 4 &&
                        request.Origins != null && 0 < request.Origins.Count && request.Origins.Count <= BlueprintRequest.MaxPasteOrigins &&
+                       request.TerrainSunkBlockFootprints != null && request.TerrainSunkBlockFootprints.All(footprint =>
+                           footprint != null && footprint.Position != null && footprint.Size != null) &&
                        request.Origins.All(origin => origin != null) && Guid.TryParse(request.BlueprintGuidStr, out _);
+            }
+
+            bool IsValidTerrainSunkFootprintCount(BlueprintJsonObject resolvedBlueprint)
+            {
+                // 送信可能な足場数は原点数とBP要素数で決まる
+                // The number of possible footprints is bounded by origins and blueprint elements.
+                return request.TerrainSunkBlockFootprints.Count <=
+                       (long)request.Origins.Count * resolvedBlueprint.Blocks.Count * BlueprintRequest.MaxTerrainSunkFootprintsPerElement;
             }
 
             void NotifyIfAny(BlueprintFailureReason reason, int count)

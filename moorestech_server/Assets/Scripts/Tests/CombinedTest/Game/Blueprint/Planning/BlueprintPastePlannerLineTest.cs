@@ -37,7 +37,7 @@ namespace Tests.CombinedTest.Game.Blueprint.Planning
             var result = context.Plan(WiredBlueprint(), 1, new Dictionary<ItemId, int>());
             Assert.IsTrue(result.Copies[0].IsPlaced);
             Assert.IsEmpty(result.Copies[0].Draft.Lines);
-            Assert.AreEqual(1, result.Copies[0].Draft.OverlappingEndpointLineCount);
+            Assert.AreEqual(1, result.Copies[0].Draft.BlockedEndpointLineCount);
         }
 
         [Test]

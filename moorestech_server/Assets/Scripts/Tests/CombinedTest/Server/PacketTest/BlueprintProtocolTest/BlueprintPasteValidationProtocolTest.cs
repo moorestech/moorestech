@@ -53,13 +53,30 @@ namespace Tests.CombinedTest.Server.PacketTest
         public void 原点nullまたは要素nullを拒否するTest(bool nullList)
         {
             using var context = new BlueprintPasteProtocolTestContext(true, false);
-            var request = BlueprintRequest.CreatePasteRequest(Guid.NewGuid(), 0, new() { Vector3Int.zero });
+            var request = BlueprintRequest.CreatePasteRequest(Guid.NewGuid(), 0, new() { Vector3Int.zero }, new List<BlockPositionInfo>());
             if (nullList) request.Origins = null;
             else request.Origins[0] = null;
             LogAssert.Expect(LogType.Warning, new Regex(@"\[BlueprintPaste\] invalid request"));
 
             context.Send(request);
 
+            context.AssertDenied(BlueprintFailureReason.InvalidRequest, 0);
+        }
+
+        [Test]
+        public void BP要素数を超える埋まり足場は拒否するTest()
+        {
+            using var context = new BlueprintPasteProtocolTestContext(true, false);
+            var blueprint = context.Create(ForUnitTestModBlockId.BlockId);
+            context.Register(blueprint);
+            var footprint = new BlockPositionInfo(BlueprintPasteProtocolTestContext.Origin, BlockDirection.North, Vector3Int.one);
+            var request = BlueprintRequest.CreatePasteRequest(blueprint.BlueprintGuid, 0,
+                new() { BlueprintPasteProtocolTestContext.Origin }, new() { footprint, footprint });
+            LogAssert.Expect(LogType.Warning, new Regex(@"invalid request terrain sunk footprints=2 limit=1"));
+
+            context.Send(request);
+
+            Assert.IsEmpty(ServerContext.WorldBlockDatastore.BlockMasterDictionary);
             context.AssertDenied(BlueprintFailureReason.InvalidRequest, 0);
         }
 
@@ -126,7 +143,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             BlueprintPasteProtocolTestContext.Place(block, origin);
 
             LogAssert.Expect(LogType.Warning, new Regex(@"skipped block overlaps count=2 "));
-            LogAssert.Expect(LogType.Warning, new Regex(@"skipped AllOverlapped count=2 "));
+            LogAssert.Expect(LogType.Warning, new Regex(@"skipped AllBlocked count=2 "));
             context.Paste(blueprint, 0, origin, origin);
 
             Assert.AreEqual(1, ServerContext.WorldBlockDatastore.BlockMasterDictionary.Count);
@@ -152,7 +169,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             using var context = new BlueprintPasteProtocolTestContext(true, false);
 
-            context.Send(BlueprintRequest.CreatePasteRequest(Guid.NewGuid(), 0, new() { Vector3Int.zero }));
+            context.Send(BlueprintRequest.CreatePasteRequest(Guid.NewGuid(), 0, new() { Vector3Int.zero }, new List<BlockPositionInfo>()));
 
             context.AssertDenied(BlueprintFailureReason.NotFound, 0);
         }

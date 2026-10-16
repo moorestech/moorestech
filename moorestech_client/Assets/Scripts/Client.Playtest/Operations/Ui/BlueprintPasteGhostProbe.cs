@@ -37,22 +37,18 @@ namespace Client.Playtest.Operations.Ui
                 if (child.gameObject.activeSelf) result.Add(new BlueprintPasteGhostSnapshot(child.position, ReadPreviewColor(child.gameObject)));
             }
             return result;
+        }
 
-            #region Internal
-
-            Color ReadPreviewColor(GameObject ghost)
+        public static Color ReadPreviewColor(GameObject ghost)
+        {
+            // 可否色を持つ描画材質だけを読む
+            // Read only renderer materials carrying judgement colors.
+            foreach (var renderer in ghost.GetComponentsInChildren<Renderer>(true))
+            foreach (var material in renderer.sharedMaterials)
             {
-                // 可否色を持つ描画材質だけを読む
-                // Read only renderer materials carrying judgement colors.
-                foreach (var renderer in ghost.GetComponentsInChildren<Renderer>(true))
-                foreach (var material in renderer.sharedMaterials)
-                {
-                    if (material != null && material.HasProperty(MaterialConst.PreviewColorPropertyName)) return material.GetColor(MaterialConst.PreviewColorPropertyName);
-                }
-                return Color.clear;
+                if (material != null && material.HasProperty(MaterialConst.PreviewColorPropertyName)) return material.GetColor(MaterialConst.PreviewColorPropertyName);
             }
-
-            #endregion
+            return Color.clear;
         }
 
         public bool AreAllGhostsColored(int count, bool placeable)
