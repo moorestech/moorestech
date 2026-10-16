@@ -44,21 +44,38 @@ namespace Tests.CombinedTest.Game.Blueprint.Planning
                 BlueprintPastePlannerTestContext.BlockCosts(block, 1));
 
             Assert.IsTrue(result.Copies[0].IsPlaced);
-            CollectionAssert.AreEqual(new[] { false, true }, result.Copies[0].Draft.NonOverlapFlags);
+            CollectionAssert.AreEqual(new[] { BlueprintPasteElementBlockCause.ExistingBlock, BlueprintPasteElementBlockCause.None }, result.Copies[0].Draft.ElementBlockCauses);
             Assert.AreEqual(1, result.Copies[0].EnumerateElementsToPlace().Count());
             Assert.AreEqual(new Vector3Int(2, 0, 0), result.Copies[0].EnumerateElementsToPlace().Single().Position);
         }
 
         [Test]
-        public void 全ブロック重なりはAllOverlappedTest()
+        public void 全ブロック重なりはAllBlockedTest()
         {
             var context = new BlueprintPastePlannerTestContext(false, 0);
             context.World.Overlaps.Add(Vector3Int.zero);
             var result = context.Plan(BlueprintPastePlannerTestContext.Create(ForUnitTestModBlockId.BlockId), 1,
                 new Dictionary<ItemId, int>());
-            Assert.AreEqual(BlueprintPasteCopyState.AllOverlapped, result.Copies[0].State);
+            Assert.AreEqual(BlueprintPasteCopyState.AllBlocked, result.Copies[0].State);
             Assert.IsEmpty(result.EnumerateCopiesToPlace());
             Assert.IsEmpty(result.ShortageRequirements);
+        }
+
+        [Test]
+        public void 重なりと埋まりを兼ねる要素は両方の情報を保持するTest()
+        {
+            var context = new BlueprintPastePlannerTestContext(true, 0);
+            context.World.Overlaps.Add(Vector3Int.zero);
+            context.World.Sunk.Add(Vector3Int.zero);
+            var plan = context.Plan(BlueprintPastePlannerTestContext.Create(ForUnitTestModBlockId.BlockId), 1,
+                new Dictionary<ItemId, int>());
+            var draft = plan.Copies[0].Draft;
+
+            // 表示優先度を保ちながら地形判定も転送用に残す
+            // Preserve overlap display priority while retaining terrain data for transport.
+            Assert.AreEqual(BlueprintPasteElementBlockCause.ExistingBlock, draft.ElementBlockCauses[0]);
+            Assert.IsTrue(draft.ElementTerrainSunk[0]);
+            Assert.AreEqual(Vector3Int.zero, draft.TerrainSunkFootprints().Single().OriginalPos);
         }
 
         [Test]

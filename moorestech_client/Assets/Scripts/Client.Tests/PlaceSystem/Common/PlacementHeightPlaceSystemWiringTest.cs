@@ -18,6 +18,7 @@ using Tests.Module.TestMod;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Object = UnityEngine.Object;
+using static Client.Tests.PlaceSystem.Common.Height.PlacementHeightWiringFakes;
 
 namespace Client.Tests.PlaceSystem.Common
 {
@@ -155,48 +156,5 @@ namespace Client.Tests.PlaceSystem.Common
             return (system, dataStoreObject);
         }
 
-        // 設置系を1度だけ高さ非対応の本番EmptyPlaceSystemへ切り替えるセレクタ
-        // A selector that switches once from the given system to the production height-less EmptyPlaceSystem
-        private class SwitchableSelector : IPlaceSystemSelector
-        {
-            public IPlaceSystem EmptyPlaceSystem { get; } = new EmptyPlaceSystem();
-
-            private IPlaceSystem _current;
-
-            public SwitchableSelector(IPlaceSystem current)
-            {
-                _current = current;
-            }
-
-            public void SwitchToEmpty()
-            {
-                _current = EmptyPlaceSystem;
-            }
-
-            public IPlaceSystem GetCurrentPlaceSystem(PlaceSystemUpdateContext context) => _current;
-        }
-
-        // Disable()内のSetActive(false)以外は呼ばれない前提のno-opフェイク
-        // A no-op fake; only SetActive(false) inside Disable() is expected to run
-        private class NullPreviewController : IPlacementPreviewBlockGameObjectController
-        {
-            public bool IsActive { get; private set; }
-            public void SetPreview(List<PlaceInfo> currentPlaceInfos, BlockMasterElement holdingBlockMaster, bool terrainContactEnabled) { }
-            public IReadOnlyList<bool> DetectGroundOverlaps() => new List<bool>();
-            public void UpdatePlaceableColors(List<PlaceInfo> placeInfos) { }
-            public void SetActive(bool active) => IsActive = active;
-
-            public bool TryGetPreviewBlock(int index, out BlockPreviewObject previewBlock)
-            {
-                previewBlock = null;
-                return false;
-            }
-        }
-
-        private class NullPresenter : IPlacementFeedbackPresenter
-        {
-            public void Present(PlacementFeedback feedback) { }
-            public void Hide() { }
-        }
     }
 }

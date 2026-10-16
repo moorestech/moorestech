@@ -1,3 +1,4 @@
+using Client.Game.InGame.Control;
 using System.Collections.Generic;
 using Mooresmaster.Localization.Generated;
 using System.Threading;
@@ -33,9 +34,10 @@ namespace Client.Game.InGame.UI.UIState.State
         
         public UITransitContext GetNextUpdate()
         {
+            var isPointerOverUi = UiPointerHitTest.IsPointerOverAnyUi();
             // 毎フレーム押下を追跡するため先に評価する（短絡で押下開始を取りこぼさない）
             // Evaluate first so the press is tracked every frame (short-circuiting would miss the press start)
-            var isRightShortPressed = _rightShortPressInputService.TryConsumeShortPressOutsideUi();
+            var isRightShortPressed = _rightShortPressInputService.TryConsumeShortPressOutsideUi(isPointerOverUi);
 
             // Rでリサーチツリーへ、Tab/ESC/パネル外の右短押しでゲーム画面へ戻る
             // Go to research tree with R, or back to game screen with Tab/ESC/right short press outside UI

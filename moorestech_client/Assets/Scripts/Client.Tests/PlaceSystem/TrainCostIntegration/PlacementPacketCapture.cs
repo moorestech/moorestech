@@ -18,6 +18,7 @@ namespace Client.Tests.PlaceSystem.TrainCostIntegration
     internal sealed class PlacementPacketCapture : IDisposable
     {
         internal readonly VanillaApi Api;
+        internal readonly Dictionary<int, ResponseWaiter> Waiters = new();
         private readonly Socket _peer;
         private readonly ServerCommunicator _communicator;
         private readonly Subject<EventMessagePack> _events = new();
@@ -40,7 +41,7 @@ namespace Client.Tests.PlaceSystem.TrainCostIntegration
             // Avoid perpetual receive loops in EditMode while retaining the real request-sending path
             var exchange = (PacketExchangeManager)FormatterServices.GetUninitializedObject(typeof(PacketExchangeManager));
             TestReflection.SetField(exchange, "_packetSender", sender);
-            TestReflection.SetField(exchange, "_responseWaiters", new Dictionary<int, ResponseWaiter>());
+            TestReflection.SetField(exchange, "_responseWaiters", Waiters);
             TestReflection.SetField(exchange, "_eventPacketSubject", _events);
             Api = new VanillaApi(exchange, sender, _communicator);
 

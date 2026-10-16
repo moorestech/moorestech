@@ -2,8 +2,6 @@ using Game.Train.RailGraph.Utility;
 using System.Collections.Generic;
 using CommandForgeGenerator.Command;
 using Cysharp.Threading.Tasks;
-using Game.Train.RailGraph;
-using Game.Train.RailCalc;
 using UnityEngine;
 
 namespace Client.Game.InGame.Train.RailGraph
@@ -16,7 +14,7 @@ namespace Client.Game.InGame.Train.RailGraph
     {
         public static TrainRailObjectManager Instance { get; private set; }
         [SerializeField] private BezierRailChain _railPrefab;
-        private readonly Dictionary<ulong, GameObject> _railObjs = new();
+        private readonly Dictionary<ulong, BezierRailChain> _railObjs = new();
         private RailGraphClientCache _cache;
 
         private void Awake()
@@ -35,7 +33,7 @@ namespace Client.Game.InGame.Train.RailGraph
             {
                 if (gobj != null)
                 {
-                    Destroy(gobj);
+                    Destroy(gobj.gameObject);
                 }
             }
             _railObjs.Clear();
@@ -54,8 +52,20 @@ namespace Client.Game.InGame.Train.RailGraph
         {
             chain = null;
             if (!_railObjs.TryGetValue(railObjectId, out var gobj) || gobj == null) return false;
-            chain = gobj.GetComponent<BezierRailChain>();
+            chain = gobj;
             return chain != null;
+        }
+
+        // 箱選択が全レール edge を走査するための列挙口
+        // Enumeration entry for box selection to scan every rail edge
+        public IEnumerable<BezierRailChain> EnumerateRailChains()
+        {
+            foreach (var gobj in _railObjs.Values)
+            {
+                // silent-ok: 撤去済みedgeは辞書除去とDestroyがずれる正常経路 / 箱選択の録画シナリオで件数を確認する
+                if (gobj == null) continue;
+                yield return gobj;
+            }
         }
 
         internal void OnCacheRebuilt(RailGraphClientCache cache)
@@ -71,7 +81,7 @@ namespace Client.Game.InGame.Train.RailGraph
                 {
                     if (gobj != null)
                     {
-                        Destroy(gobj);
+                        Destroy(gobj.gameObject);
                     }
                 }
                 _railObjs.Clear();
@@ -119,9 +129,8 @@ namespace Client.Game.InGame.Train.RailGraph
                     {
                         UniTask.Create(async () =>
                         {
-                            var bezierRailChain = gobj.GetComponent<BezierRailChain>();
-                            await bezierRailChain.RemoveAnimation();
-                            Destroy(gobj);
+                            await gobj.RemoveAnimation();
+                            Destroy(gobj.gameObject);
                         }).Forget();
                     }
                 }
@@ -131,60 +140,19 @@ namespace Client.Game.InGame.Train.RailGraph
 
         private void TryActivateLine(int fromNodeId, int toNodeId)
         {
-            if (!HasPairedConnection(fromNodeId, toNodeId))
-                return;
-
             var (canonicalFrom, canonicalTo) = RailSegmentPairing.SelectCanonicalPair(fromNodeId, toNodeId);
             var railObjectId = RailObjectIdCodec.ComputeRailObjectId(canonicalFrom, canonicalTo);
-            if (_railObjs.ContainsKey(railObjectId))
-                return;
-            if (_cache == null)
-                return;
-            if (!_cache.TryGetNode(canonicalFrom, out var startNode))
-                return;
-            if (!_cache.TryGetNode(canonicalTo, out var endNode))
-                return;
+            if (_railObjs.ContainsKey(railObjectId)) return;
 
-            var lineObject = SpawnRail($"RailLine_{canonicalFrom}_{canonicalTo}", startNode, endNode);
-            RailColliderObjectIdBinder.Apply(lineObject, railObjectId);
-            lineObject.transform.SetParent(transform, false);
+            // 制御点生成と表示初期化を委譲
+            // Delegate control-point creation and view initialization
+            if (!TrainRailLineFactory.TrySpawn(_railPrefab, transform, _cache, canonicalFrom, canonicalTo, out var lineObject, out var denyReason))
+            {
+                Debug.LogWarning($"[RailGraph] line activation deferred: {denyReason}");
+                return;
+            }
+            RailColliderObjectIdBinder.Apply(lineObject.gameObject, railObjectId);
             _railObjs[railObjectId] = lineObject;
-            
-            #region  Internal
-            bool HasPairedConnection(int fromNodeId, int toNodeId)
-            {
-                if (_cache == null)
-                    return false;
-                
-                // 双方向の接続と描画フラグを確認する
-                // Check paired connection and drawable flags
-                if (!_cache.TryGetRailSegment(fromNodeId, toNodeId, out var directSegment))
-                    return false;
-                if (!directSegment.IsDrawable)
-                    return false;
-                
-                var oppositeSource = toNodeId ^ 1;
-                var oppositeTarget = fromNodeId ^ 1;
-                if (!_cache.TryGetRailSegment(oppositeSource, oppositeTarget, out var oppositeSegment))
-                    return false;
-                return oppositeSegment.IsDrawable;
-            }
-            
-            GameObject SpawnRail(string name, IRailNode startNode, IRailNode endNode)
-            {
-                var instance = Instantiate(_railPrefab, transform);
-                // 描画用の制御点を生成
-                // Build render control points
-                BezierUtility.BuildRenderControlPoints(startNode.FrontControlPoint, endNode.BackControlPoint, out var p0, out var p1, out var p2, out var p3);
-                instance.SetControlPoints(p0, p1, p2, p3);
-                instance.SetRailGraphCache(_cache);
-                instance.Rebuild();
-                instance.PlaceAnimation().Forget();
-                instance.name = name;
-                return instance.gameObject;
-            }
-            
-            #endregion
         }
 
     }

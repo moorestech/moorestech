@@ -1,3 +1,6 @@
+using System;
+using UniRx;
+using Client.Game.InGame.UI.UIState.State.DragDelete.Completion;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
 using Core.Master;
 using Game.Block.Interface;
@@ -15,10 +18,20 @@ namespace Client.Tests.UIState.Fakes
     /// </summary>
     public class FakeDeleteTarget : IDeleteTarget
     {
+        private readonly Subject<DeleteCompletion> _completed = new();
+        public IObservable<DeleteCompletion> OnDeleteCompleted => _completed;
+        public bool CompleteImmediately = true;
+        public void Complete(DeleteCompletionKind kind, LocalizationKey? reason) => _completed.OnNext(new DeleteCompletion(GetDeleteTargetKey(), kind, reason));
         public int SetPreviewCount;
         public int ResetCount;
         public int DeleteCount;
         public bool Removable;
+
+        // 戻し失敗後の状態を検証する
+        // Exercise state recovery after a failing reset
+        public bool ThrowOnReset;
+        public bool ThrowOnDelete;
+        public object PreviewResetKey;
 
         // 拒否時に返す理由キー（未設定なら「拒否だが表示すべき理由が無い」を表す）
         // Reason key returned on denial; unset means "denied without a displayable reason"
@@ -34,6 +47,7 @@ namespace Client.Tests.UIState.Fakes
         public void ResetMaterial()
         {
             ResetCount++;
+            if (ThrowOnReset) throw new System.InvalidOperationException("reset failed");
         }
 
         public bool IsRemovable(out LocalizationKey? deniedReason)
@@ -59,6 +73,8 @@ namespace Client.Tests.UIState.Fakes
         public void Delete()
         {
             DeleteCount++;
+            if (ThrowOnDelete) throw new System.InvalidOperationException("delete failed");
+            if (CompleteImmediately) Complete(DeleteCompletionKind.Succeeded, null);
 
             // 削除後は端点情報を読めなくなる状況を再現する
             // Simulate endpoint information becoming unavailable after deletion
@@ -66,6 +82,10 @@ namespace Client.Tests.UIState.Fakes
             UnrecordableReasons.Clear();
             UnrecordableBlocks.Clear();
         }
+
+        // 復元を共有する表示の寿命を識別する
+        // Identify the lifetime of the shared preview view
+        public object GetPreviewResetKey() => PreviewResetKey ?? this;
 
         public object GetDeleteTargetKey()
         {

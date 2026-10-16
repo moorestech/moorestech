@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Client.Common;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.DragDelete;
@@ -21,13 +20,12 @@ namespace Client.Game.InGame.Control
             var mask = LayerConst.BlockOnlyLayerMask | LayerConst.ConnectionLineOnlyLayerMask;
             var hitCount = BlockClickDetectUtil.RaycastAimAll(mask, BlockClickDetectUtil.AimRayDistance, out var hits);
 
-            // 設置ゴーストは貫通し、それ以外のヒットを候補へ積む
-            // Pass through placement ghosts and collect every other hit as a candidate
+            // 全ヒットを候補へ積む
+            // Collect every hit as a candidate
             HitCandidates.Clear();
             for (var i = 0; i < hitCount; i++)
             {
                 var collider = hits[i].collider;
-                if (collider.GetComponentInParent<BlockPreviewObject>() != null) continue;
                 HitCandidates.Add(new DeleteTargetHit(hits[i].distance, ResolveTarget(collider)));
             }
 

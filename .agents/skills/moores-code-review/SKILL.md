@@ -38,7 +38,7 @@ moorestechのコードレビューを **決定論チェック → 5系統の並�
 
 ### 回収時の突合（本体）
 
-Workflow の返り値を報告へ転記する前に、**`python3 .claude/skills/moores-code-review/scripts/s5_shape_gate.py $RUNDIR` を必ず走らせる**（user-intent reviewer の §5 が決定ごとに「読み1／読み2／両立判定」を揃えているか・形の欠けた §5 を integrated.md が回収扱いしていないかの形式検査。中身は判定しない）。終了コード 1 なら stderr の欠け一覧を添えて core-any-user-intent-fulfillment だけ Agent で再起動（差し戻し）→ integrator だけ再派遣し、再度ゲートを通す。2回目も 1 なら報告冒頭に「§5 形式欠落（差し戻し後も未解消）」と書き、user-intent 系統を欠員として扱う。続けて `systems.planned` が `checks.json` 由来の `systems.expected.total` と一致し `systems.missing` が空かを見る。不一致・欠員は報告に転記し、欠員分だけ Agent で再起動→integrator だけ再派遣してよい。Codex の欠員申告は `codex_recover.py` の終了コード付きでなければ受け付けない（orchestrator-steps.md Step 5）。`postfix.warnings/infos` と `postCheckSelection.note` は integrated.md に載らないので Step 7 の報告へ転記する。report-only では final.diff / checks-final.json / design.md は生成されない。 `refix` は、`refix.scope` が `source` なら 1 周以上の round と各 `report` の実在を確認する。`refix.unresolved` が true なら最終 round の Critical は直っていないので、報告冒頭に「反映 diff 再レビュー未収束（N 周）」と書き、Step 7 の AskUserQuestion に「手で直す / 未修正のまま進める」を載せる（黙って収束扱いにしない）。各 round の `warnings/infos` を報告へ転記する（収束した最終周は `agents/refix-correctness-r<N>.md` の Warning/Info 節を本体が Read してよい）。`scope` が `non-source`/`none` なら「反映 diff は doc/テスト/コメントのみ（再レビュー不要）」と 1 行書く。体数不一致・モデル割り当て違い・成果物欠落があれば、再派遣を重ねる前に transcript（`~/.claude/projects/<プロジェクト>/<セッションID>/subagents/*.meta.json`）で実測し、スキル記述の穴なら `references/skill-improvement.md` で恒久対応する。欠員のある統合結果は「全系統レビュー済み」を偽装するので採用しない。
+Workflow の返り値を報告へ転記する前に、**`python3 .claude/skills/moores-code-review/scripts/s5_shape_gate.py $RUNDIR` を必ず走らせる**（user-intent reviewer の §5 が決定ごとに「読み1／読み2／両立判定」を揃えているか・形の欠けた §5 を integrated.md が回収扱いしていないかの形式検査。中身は判定しない）。終了コード 1 なら stderr の欠け一覧を添えて core-any-user-intent-fulfillment だけ Agent で再起動（差し戻し）→ integrator だけ再派遣し、再度ゲートを通す。2回目も 1 なら報告冒頭に「§5 形式欠落（差し戻し後も未解消）」と書き、user-intent 系統を欠員として扱う。続けて `systems.planned` が `checks.json` 由来の `systems.expected.total` と一致し `systems.missing` が空かを見る。不一致・欠員は報告に転記し、欠員分だけ Agent で再起動→integrator だけ再派遣してよい。Codex の欠員申告は `codex_recover.py` の終了コード付きでなければ受け付けない（orchestrator-steps.md Step 5）。`postfix.warnings/infos` と `postCheckSelection.note` は integrated.md に載らないので Step 7 の報告へ転記する。report-only では final.diff / checks-final.json / design.md は生成されない。 `refix` は、`refix.scope` が `source` なら 1 周以上の round と各 `report` の実在を確認する。`refix.unresolved` が true なら最終 round の Critical は直っていないので、報告冒頭に「反映 diff 再レビュー未収束（N 周）」と書き、Step 7 の AskUserQuestion に「手で直す / 未修正のまま進める」を載せる（黙って収束扱いにしない）。`refix.loop_stuck` は同一指摘の2周連続で早期未収束になったことを示す。各 round の `warnings/infos` を報告へ転記する（収束した最終周は `agents/refix-correctness-r<N>.md` の Warning/Info 節を本体が Read してよい）。`scope` が `non-source`/`none` なら「反映 diff は doc/テスト/コメントのみ（再レビュー不要）」と 1 行書く。体数不一致・モデル割り当て違い・成果物欠落があれば、再派遣を重ねる前に transcript（`~/.claude/projects/<プロジェクト>/<セッションID>/subagents/*.meta.json`）で実測し、スキル記述の穴なら `references/skill-improvement.md` で恒久対応する。欠員のある統合結果は「全系統レビュー済み」を偽装するので採用しない。
 
 ## Step 0: 実行ディレクトリ `$RUNDIR` を作る
 
@@ -120,6 +120,10 @@ Run dir : <$RUNDIRの実値> / Patch path : <PATCH_PATH> / User prompt : <USER_P
 
 オーケストレータが返答せず死んだら、$RUNDIR の残骸を引き継いで再派遣する（テンプレに「$RUNDIR 内の完了済み工程はスキップして続きから」と1行足す）。
 
+### 任意の反証・実証
+
+ユーザーが「実証つきで」等を明示したときだけ、args 生成に `--verify-by-repro`（`verifyByRepro=true`）を付ける。既定はオフで、無効時は追加の agent・プロンプト・構造化項目を発生させない。統合後に採用ロジックバグだけ `verifiers/logic-bug-repro.md` の隔離実証へ渡す。反証済みは §1.5 の根拠付きで棄却、再現できずは残す。結果は Workflow の `reproResults` と報告に載せる。
+
 ## Step 7: 報告＋AskUserQuestion ⑥
 
 1. **統合報告** — Critical/Warning/Info件数、各指摘の出所（決定論/reviewer名/Codex/Fable/N系統一致）、適用した修正、コンパイル・テスト結果。Warningは1件1行で全件載せる（保険としてコンテキストに乗せるのが目的。黙って落とさない）。Infoは末尾に圧縮列挙。raw出力やレビュー表をそのまま貼らない。Codex/Fableをスキップした場合はその旨を明記。
@@ -132,6 +136,7 @@ Run dir : <$RUNDIRの実値> / Patch path : <PATCH_PATH> / User prompt : <USER_P
    - **載せてよいのは本質的な設計判断のみ**（アーキテクチャ・パターン選択・スコープ影響・両立不能な指摘・サブエージェントの `設計判断: あり`）。載せない対象は `references/integration-rules.md` §4 の「AskUserQuestionに載せるの禁止」に従う。
    - **design.md に無い選択肢を本体が足すのも禁止** — 「現状維持」「別issueへ」を付け足さない。推奨は design.md の「（推奨）」に揃える（推奨の決め方の正本は `references/integration-rules.md` §4）。
    - **設問は「症状 → 原因 → 推奨」の順**。書き出しはコードを読まなくても分かるゲーム上・開発上の症状、原因は1〜2行、推奨を第1選択肢に置き末尾に `（推奨）`、各選択肢に症状が消える理由を1行。観点名・レビュアー名・「N系統一致」は設問の主役にせず報告本文へ。症状を1文で書けない指摘は設問にせず Warning へ落とす。判定基準: **その設問だけを読んだ人が、コードを開かずに選べるか**。
+   - **裁定の引き継ぎ**: Step 7 完了時に `$RUNDIR/step7-decisions.json` を書く。直さないと確定した指摘だけ `{"declined":[{"id":"D1","summary":"指摘の問題と対象","reason":"ユーザーが直さないと決めた理由"}]}` に記録する。裁定0件なら `{"declined":[]}`。bug-pass はこの裁定を context に保持し、同一指摘を蒸し返さない。
 3. **レビュー記録を生成する**（Step 7.5 の bug-pass が終わってから。bug-pass の結果も同じ記録に書く） — 記録はコードrepoでなく記録repo `$LOGS`（`../moorestech_logs`）へ書く（featureブランチが記録に触れてマージ衝突する構造を断つため。コードrepo側へ書き戻さない）。`$LOGS/harness/moores-code-review/records/TEMPLATE.md` に従い `$LOGS/harness/moores-code-review/records/YYYY-MM-DD-<topic>.md` を書く（対象SHA2つ・系統別1行判定表・適用修正・AskUserQuestion裁定・破棄指摘・セッションID）。diff本体は保存せずbase/head SHAのみ（dirty込みなら注記＋`--stat`要約）。同ブランチの再レビューは`-r2`付き新ファイル。`$LOGS/harness/moores-code-review/eval-log.md` に集計1行＋記録への相対リンクを足す。
 4. **`$RUNDIR` 配下は削除しない**。patch/context/audit×3/checks×2/最終diffは、記録が主張するverdictの実入力であり、消すと後から「何をどう測ってその結論に至ったか」を再現できない。記録本文に `- rundir: runs/<ts>/` の1行を入れて、記録から実入力へ辿れるようにする。
 
@@ -140,7 +145,7 @@ Run dir : <$RUNDIRの実値> / Patch path : <PATCH_PATH> / User prompt : <USER_P
 Step 7 の裁定反映（w7 の Refix を含む）が収束した後、記録・PR 作成の前に**1回だけ**回す。裁定0件でも回す。report-only（pr-independent-review からの呼び出し）では回さない。最終 head の PR 全体 diff を、正しさ（誤動作）を見る系統だけで見直し、context の免責を効かせず、前周の Warning を「再現できれば Critical・できなければ落とす」で判定し直す。系統の選択は `scripts/workflow_args/bug_pass.py`、統合規則は `references/integration-rules.md` §7、Workflow 内の差分は orchestrator-steps.md「bug-pass モードの差分」が正本。
 
 1. `BPDIR=<$RUNDIRの実値>/bug-pass` を作り、Step 1 と同じ base で末尾を最終 HEAD にした PR 全体 diff を `review_diff.py` 経由で `$BPDIR/patch.diff` に書く（未コミット分があれば `--cached`・引数なしも連結。修正コミットだけに絞らない）。
-2. Codex はバグ狩り1本だけ: `scripts/codex-bughunt-template.md` を最終 diff で埋めて `$BPDIR/codex-bughunt.md` に書き（4カテゴリ context は「目指す」「尊重すべき制約」だけ貼る）、Step 2-2 と同じ形で `-o $BPDIR/codex-bughunt.final.md` を付けて `run_in_background` で起動する。
+2. `scripts/workflow_args/bug_pass.py` の `strip_exemptions` と `carry_decisions` で裁定を含む context を先に用意し、Codex にもその全文を渡す。Codex はバグ狩り1本だけ: `scripts/codex-bughunt-template.md` を最終 diff で埋めて `$BPDIR/codex-bughunt.md` に書き（context は「目指す」「尊重すべき制約」と Step 7 の裁定を貼る）、Step 2-2 と同じ形で `-o $BPDIR/codex-bughunt.final.md` を付けて `run_in_background` で起動する。
 3. args とスクリプトを作る:
 
        python3 .claude/skills/moores-code-review/scripts/build_workflow_args.py --bug-pass --carry-from <$RUNDIRの実値> --run-dir $BPDIR --patch $BPDIR/patch.diff --context <USER_PROMPT_PATH> --repo-root "$(pwd)" --base-ref <base SHA>

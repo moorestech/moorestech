@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Game.Block.Interface;
 using MessagePack;
 using Server.Util.MessagePack;
 using UnityEngine;
@@ -10,6 +11,9 @@ namespace Server.Protocol.PacketResponse
     public class BlueprintRequest : ProtocolMessagePackBase
     {
         public const int MaxPasteOrigins = 64;
+        // 各要素が一原点で作る埋まり足場は最大一件
+        // Each element yields at most one sunk footprint per origin.
+        public const int MaxTerrainSunkFootprintsPerElement = 1;
 
         [Key(2)] public BlueprintOperation Operation { get; set; }
         [Key(3)] public string Name { get; set; }
@@ -27,13 +31,14 @@ namespace Server.Protocol.PacketResponse
         // Send each run origin and the shared rotation
         [Key(7)] public int RotationStep { get; set; }
         [Key(8)] public List<Vector3IntMessagePack> Origins { get; set; }
+        [Key(9)] public List<BlueprintPasteFootprintMessagePack> TerrainSunkBlockFootprints { get; set; }
 
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public BlueprintRequest() { Tag = BlueprintProtocol.ProtocolTag; }
 
         // Operationごとに必要フィールドのみ設定
         // Private constructor; static factories below set only the fields each Operation needs
-        private BlueprintRequest(BlueprintOperation operation, string name, Vector3IntMessagePack min, Vector3IntMessagePack max, string blueprintGuidStr, int rotationStep, List<Vector3IntMessagePack> origins)
+        private BlueprintRequest(BlueprintOperation operation, string name, Vector3IntMessagePack min, Vector3IntMessagePack max, string blueprintGuidStr, int rotationStep, List<Vector3IntMessagePack> origins, List<BlueprintPasteFootprintMessagePack> terrainSunkBlockFootprints)
         {
             Tag = BlueprintProtocol.ProtocolTag;
             Operation = operation;
@@ -43,40 +48,49 @@ namespace Server.Protocol.PacketResponse
             BlueprintGuidStr = blueprintGuidStr;
             RotationStep = rotationStep;
             Origins = origins;
+            TerrainSunkBlockFootprints = terrainSunkBlockFootprints;
         }
 
         public static BlueprintRequest CreateCreateRequest(string name, Vector3Int min, Vector3Int max)
         {
-            return new BlueprintRequest(BlueprintOperation.Create, name, new Vector3IntMessagePack(min), new Vector3IntMessagePack(max), null, 0, null);
+            return new BlueprintRequest(BlueprintOperation.Create, name, new Vector3IntMessagePack(min), new Vector3IntMessagePack(max), null, 0, null, null);
         }
 
         public static BlueprintRequest CreateGetAllRequest()
         {
-            return new BlueprintRequest(BlueprintOperation.GetAll, null, null, null, null, 0, null);
+            return new BlueprintRequest(BlueprintOperation.GetAll, null, null, null, null, 0, null, null);
         }
 
-        public static BlueprintRequest CreatePasteRequest(Guid blueprintGuid, int rotationStep, List<Vector3Int> origins)
+        public static BlueprintRequest CreatePasteRequest(Guid blueprintGuid, int rotationStep, List<Vector3Int> origins, List<BlockPositionInfo> terrainSunkBlockFootprints)
         {
             return new BlueprintRequest(BlueprintOperation.Paste, null, null, null, blueprintGuid.ToString(),
-                rotationStep, origins.ConvertAll(origin => new Vector3IntMessagePack(origin)));
+                rotationStep, origins.ConvertAll(origin => new Vector3IntMessagePack(origin)),
+                terrainSunkBlockFootprints.ConvertAll(footprint => new BlueprintPasteFootprintMessagePack(footprint)));
         }
 
         // 共有上限で区切り、始点からの素材判定順を保つ
         // Split at the shared limit while preserving material evaluation order
         // 送信側は各応答を待ち、不足が出た後の要求を送らない
         // The sender waits for each response and stops sending after a shortage
-        public static IEnumerable<BlueprintRequest> CreatePasteRequests(Guid blueprintGuid, int rotationStep, List<Vector3Int> origins)
+        public static IEnumerable<BlueprintRequest> CreatePasteRequests(Guid blueprintGuid, int rotationStep, List<Vector3Int> origins, List<List<BlockPositionInfo>> terrainSunkFootprintsPerOrigin)
         {
+            if (origins.Count != terrainSunkFootprintsPerOrigin.Count)
+                throw new ArgumentException("Each paste origin requires an aligned terrain footprint list.");
             for (var offset = 0; offset < origins.Count; offset += MaxPasteOrigins)
             {
                 var count = Math.Min(MaxPasteOrigins, origins.Count - offset);
-                yield return CreatePasteRequest(blueprintGuid, rotationStep, origins.GetRange(offset, count));
+                // 同じ原点範囲の足場だけをこの要求へ含める
+                // Include footprints only from this request's origin range.
+                var chunkFootprints = new List<BlockPositionInfo>();
+                for (var index = offset; index < offset + count; index++)
+                    chunkFootprints.AddRange(terrainSunkFootprintsPerOrigin[index]);
+                yield return CreatePasteRequest(blueprintGuid, rotationStep, origins.GetRange(offset, count), chunkFootprints);
             }
         }
 
         public static BlueprintRequest CreateDeleteRequest(Guid blueprintGuid)
         {
-            return new BlueprintRequest(BlueprintOperation.Delete, null, null, null, blueprintGuid.ToString(), 0, null);
+            return new BlueprintRequest(BlueprintOperation.Delete, null, null, null, blueprintGuid.ToString(), 0, null, null);
         }
     }
 

@@ -66,7 +66,7 @@ namespace Client.Tests.Map.Surface
                 Assert.That(outcrop.ContractViolation, Is.Null, element.OutcropAddressablePath);
                 var instance = UnityEngine.Object.Instantiate(prefab, Vector3.zero, Quaternion.identity);
                 _created.Add(instance);
-                OutcropSurfacePlacement.Place(instance, outcrop, bounds, grounded);
+                OutcropSurfacePlacement.Place(instance, outcrop, bounds, grounded, new[] { terrainObject.GetComponent<Terrain>() });
 
                 // 実meshの全頂点を平坦面と比較する
                 // Compare every actual mesh vertex with the flat surface

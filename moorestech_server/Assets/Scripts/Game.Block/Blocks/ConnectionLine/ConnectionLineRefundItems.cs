@@ -17,10 +17,10 @@ namespace Game.Block.Blocks.ConnectionLine
             if (materials == null) return result;
             foreach (var material in materials)
             {
-                // 数0と空アイテムは返さない
-                // Skip zero counts and the empty item
-                if (material.Count <= 0 || material.ItemId == ItemMaster.EmptyItemId) continue;
-                result.Add(ServerContext.ItemStackFactory.Create(material.ItemId, material.Count));
+                // 長い線は素材数がMaxStackを超えるので、スタック上限ごとに分けて返す
+                // Long lines can exceed MaxStack, so split each material into max-size stacks
+                // silent-ok: 数1未満と空アイテムは返却物が無いだけ / CreateSplitStacksが空リストを返し総数テストで固定
+                result.AddRange(ServerContext.ItemStackFactory.CreateSplitStacks(material.ItemId, material.Count));
             }
             return result;
         }

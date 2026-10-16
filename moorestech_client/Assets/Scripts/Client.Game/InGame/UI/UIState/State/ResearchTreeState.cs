@@ -1,3 +1,4 @@
+using Client.Game.InGame.Control;
 using System.Collections.Generic;
 using Mooresmaster.Localization.Generated;
 using Client.Game.InGame.UI.UIState.State.CancelInput;
@@ -32,7 +33,8 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public UITransitContext GetNextUpdate()
         {
-            var isRightShortPressed = _rightShortPressInputService.TryConsumeShortPressOutsideUi();
+            var isPointerOverUi = UiPointerHitTest.IsPointerOverAnyUi();
+            var isRightShortPressed = _rightShortPressInputService.TryConsumeShortPressOutsideUi(isPointerOverUi);
 
             // Tabでインベントリへ、ESC/R/パネル外の右短押しでゲーム画面へ戻る
             // Go to inventory with Tab, or back to game screen with ESC, R or a right short press outside the panel

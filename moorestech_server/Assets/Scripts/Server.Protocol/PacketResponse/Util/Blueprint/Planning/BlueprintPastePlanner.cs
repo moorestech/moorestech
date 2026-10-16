@@ -29,7 +29,7 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint.Planning
                 // 状態確定後だけ予約し、不変の結果を作る
                 // Reserve only accepted copies and construct an immutable final result
                 if (state == BlueprintPasteCopyState.Placeable)
-                    occupied.Add(occupancy.SelectPlaced(draft.NonOverlapFlags));
+                    occupied.Add(occupancy.SelectPlaced(draft.ElementBlockCauses.Select(BlueprintPasteCopyDraft.IsPlaceableCause).ToList()));
                 copies.Add(new BlueprintPasteCopyPlan(draft, state));
             }
             return new BlueprintPastePlan(copies, isPaymentWaived, shortageRequirements);
@@ -41,7 +41,7 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint.Planning
                 if (!draft.AreCoordinatesValid) return BlueprintPasteCopyState.InvalidCoordinates;
                 if (draft.Elements.Count == 0) return BlueprintPasteCopyState.NoResolvedBlocks;
                 if (!draft.IsGroundFound) return BlueprintPasteCopyState.GroundNotFound;
-                if (draft.NonOverlapFlags.All(flag => !flag)) return BlueprintPasteCopyState.AllOverlapped;
+                if (draft.ElementBlockCauses.All(cause => !BlueprintPasteCopyDraft.IsPlaceableCause(cause))) return BlueprintPasteCopyState.AllBlocked;
                 // 解放状態は原点に依存せず、最初の適格コピーで一度だけ調べる
                 // Unlock state is origin-independent, so inspect it once for the first eligible copy
                 if (!isUnlocked.HasValue) isUnlocked = IsUnlocked(draft);

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Ground;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
@@ -38,7 +39,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
             if (!_isActive) return null;
 
             var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
-            if (!PlaceSystemUtil.TryGetRayHitBlockPosition(_mainCamera, HeightOffset, DefaultBlockDirection, holdingBlockMaster, out var placePoint, out _)) return null;
+            if (!PlaceSystemUtil.TryGetFootprintGroundedRayHitBlockPosition(_mainCamera, HeightOffset, DefaultBlockDirection, holdingBlockMaster, feedback, out var placePoint, out _)) return null;
 
             // 距離外なら理由のみ出しプレビュー無し
             // Beyond range, show only the reason and no preview
@@ -51,12 +52,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
             RotationRailComponent();
             
             var placeInfos = new List<PlaceInfo> { CreatePlaceInfo() };
-            _previewBlockController.SetPreview(placeInfos, holdingBlockMaster, true);
-            var groundOverlaps = _previewBlockController.DetectGroundOverlaps();
+            _previewBlockController.SetPreview(placeInfos, holdingBlockMaster);
+            var terrainSinks = PlacementTerrainSinkQuery.DetectSunkCells(placeInfos);
 
             // 地面に埋まるセルを設置不可にし、その理由を積む。レール1セルは共有原因を判定しないためNone列を渡す
             // Mark ground-buried cells unplaceable and report that reason; the single rail cell judges no shared cause, so a None column is passed
-            PlacementCellReasonReporter.ApplyGroundOverlapsAndReport(placeInfos, new[] { PlacementBlockCause.None }, placePoint, groundOverlaps, feedback);
+            PlacementCellReasonReporter.ApplyTerrainSinksAndReport(placeInfos, new[] { PlacementBlockCause.None }, placePoint, terrainSinks, feedback);
 
             // 最終的なPlaceable状態でプレビュー色を更新
             // Update preview colors based on the final Placeable state

@@ -1,3 +1,5 @@
+using System;
+using Client.Game.InGame.UI.UIState.State.DragDelete.Completion;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
 using Mooresmaster.Localization.Generated;
 
@@ -32,6 +34,7 @@ namespace Client.Game.InGame.UI.UIState.State
         ///     Delete the target object
         /// </summary>
         void Delete();
+        IObservable<DeleteCompletion> OnDeleteCompleted { get; }
 
         // 自身と撤去に巻き込まれる物を削除送信前に記録する
         // Record self and objects removed alongside it before sending deletion
@@ -42,6 +45,10 @@ namespace Client.Game.InGame.UI.UIState.State
         ///     Key identifying the logical delete target, used to dedupe duplicate selection of the same machine/train/rail edge
         /// </summary>
         object GetDeleteTargetKey();
+
+        // 同じ表示を復元する子で共有し、表示再生成時には変わるキー
+        // Shared by wrappers restoring one view; changes when the view is recreated
+        object GetPreviewResetKey();
 
         /// <summary>
         ///     破壊カテゴリー（同一破壊セッションで混在させないための区別。未設定はdefault）

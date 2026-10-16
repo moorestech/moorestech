@@ -13,7 +13,7 @@ import { KeyHintHud } from "@/features/keyHint";
 import { BuildMenuPanel } from "@/features/buildMenu";
 import { ChallengePanel, CurrentChallengeHud } from "@/features/challenge";
 import { PauseMenuPanel } from "@/features/pauseMenu";
-import { DeleteModeWarningBands, PlacementModeHud } from "@/features/modeHud";
+import { DeleteModeWarningBands, PlacementModeHud, DeleteBoxHeightHud } from "@/features/modeHud";
 import { Crosshair } from "@/features/commonHud";
 import { TrainRidingHud } from "@/features/trainHud";
 import { CursorTooltip } from "@/shared/tooltip";
@@ -109,7 +109,7 @@ export default function App() {
         {/* Expand screen-edge HUDs to the logical viewport while their content dimensions retain stage scaling */}
         <div className={styles.viewportOverlay} data-web-ui-transparent>
           {uiState === UiStateNames.placeBlock && <PlacementModeHud />}
-          {uiState === UiStateNames.deleteBar && <DeleteModeWarningBands />}
+          {uiState === UiStateNames.deleteBar && <><DeleteModeWarningBands /><DeleteBoxHeightHud /></>}
           <CurrentChallengeHud />
           <KeyHintHud />
           {/* 常時表示HUD族の可否は screenAllowsGrab と対称にここで合成する */}

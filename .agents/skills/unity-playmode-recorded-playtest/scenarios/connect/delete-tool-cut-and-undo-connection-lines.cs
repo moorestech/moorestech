@@ -1,7 +1,7 @@
 // 削除ツールで電線・歯車チェーンを切断し、ブロック撤去に巻き込まれた電線・チェーンもCtrl+Zで同じ種類のまま復元されることの録画検証（レールは train/delete-tool-pier-removal-undo-rail.cs）
-// 記録フックは DragDeleteSelection.CommitDelete と BuildUndoService（Ctrl+Z）にあるため、操作は必ず削除ツールUIへの注入で行う
+// 記録フックは DeleteSelection.CommitDelete と BuildUndoService（Ctrl+Z）にあるため、操作は必ず削除ツールUIへの注入で行う
 // Recorded check: the delete tool cuts wires/chains, and Ctrl+Z restores cut and cascaded wires/chains with the same tool kind (rails: train/delete-tool-pier-removal-undo-rail.cs)
-// Recording hooks live in DragDeleteSelection.CommitDelete and BuildUndoService (Ctrl+Z), so every operation is injected into the delete-tool UI
+// Recording hooks live in DeleteSelection.CommitDelete and BuildUndoService (Ctrl+Z), so every operation is injected into the delete-tool UI
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +11,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State.DragDelete;
 using Client.Playtest;
+using Client.Playtest.Operations.Ui;
 using Client.Playtest.Input;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
@@ -36,13 +37,9 @@ return PlaytestRunner.Run("delete-tool-cut-and-undo-connection-lines", new Playt
     // 在庫の消費と返却を見るため無料設置は切る
     // Disable free placement to observe consumption and refunds
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig { FreeBlockPlacement = false, SpawnPosition = new Vector3(8f, 33.5f, -6f) });
-    await p.SkipOpeningSkit();
+    await p.SkipOpeningSkitIfPlaying();
 
-    // GameViewへプレイフォーカスを当て直す（CEF起動等で外れるとInputSystemがキーボード・マウスを無効化し注入が届かない）
-    // Re-give the Game view play focus (losing it, e.g. to CEF startup, disables InputSystem devices and drops injection)
-    foreach (var windowType in new[] { "SceneHierarchyWindow", "GameView" }) { Resources.FindObjectsOfTypeAll<UnityEditor.EditorWindow>().First(w => w.GetType().Name == windowType).Focus(); await UniTask.DelayFrame(5); }
-    foreach (var device in InputSystem.devices) if (!device.enabled) InputSystem.EnableDevice(device);
-    await p.Until(() => Application.isFocused && Keyboard.current.enabled, 10f, "環境: GameViewがプレイフォーカスを持ち入力デバイスが有効");
+    await PlaytestUiOps.FocusGameViewAndEnableInput(p);
     foreach (var tool in new[] { "電線", "歯車チェーン" }) p.Hotbar.UnlockConnectTool(tool);
     foreach (var block in new[] { "電柱", "歯車チェーンポール" }) await p.PrepareBlockForUiPlacement(block, 5);
     foreach (var item in new[] { "銅のワイヤー", "鉄のワイヤー" }) await p.GiveItem(item, 64);
@@ -52,11 +49,15 @@ return PlaytestRunner.Run("delete-tool-cut-and-undo-connection-lines", new Playt
     // Poles go server-side so no auto-connect runs; poleNear is within A's range but left unwired (detects auto-connect suppression)
     var poleA = new Vector3Int(5, 32, 4); var poleB = new Vector3Int(11, 32, 4); var poleNear = new Vector3Int(5, 32, 0);
     var chainC = new Vector3Int(5, 32, 9); var chainD = new Vector3Int(9, 32, 9);
+    // 固定worldの保存済み接続を再利用せず、未接続のfixtureから始める
+    // Start with fresh fixtures instead of reusing saved connections in the fixed world
+    foreach (var pos in new[] { poleA, poleB, poleNear, chainC, chainD })
+        p.Assert(p.GetBlock(pos) == null, $"準備: 接続fixture位置{pos}は空いている");
     foreach (var pos in new[] { poleA, poleB, poleNear }) p.PlaceBlockDirect("電柱", pos, BlockDirection.North);
     foreach (var pos in new[] { chainC, chainD }) p.PlaceBlockDirect("歯車チェーンポール", pos, BlockDirection.North);
     foreach (var pos in new[] { poleA, poleB, poleNear, chainC, chainD }) await p.WaitBlockGameObject(pos);
     var playerId = ClientContext.PlayerConnectionSetting.PlayerId;
-    p.Assert(Server.Protocol.PacketResponse.Util.ElectricWire.Connection.ElectricWireSystemUtil.TryConnect(poleA, poleB, playerId, wireTool, out var wireFail), $"準備: A-B を電線で接続 {wireFail}");
+    p.Assert(Server.Protocol.PacketResponse.Util.ElectricWire.Connection.ElectricWireSystemUtil.TryConnect(poleA, poleB, playerId, wireTool, false, out var wireFail), $"準備: A-B を電線で接続 {wireFail}");
     p.Assert(Server.Protocol.PacketResponse.Util.GearChain.GearChainSystemUtil.TryConnect(chainC, chainD, playerId, chainTool, out var chainFail), $"準備: C-D をチェーンで接続 {chainFail}");
 
     await p.Until(() => LinesOf(poleA).Count == 1 && LinesOf(chainC).Count == 1, 15f, "準備: クライアントに電線・チェーンが出る");
@@ -102,6 +103,7 @@ return PlaytestRunner.Run("delete-tool-cut-and-undo-connection-lines", new Playt
     SemanticInput.MouseButtonDown(0); await UniTask.DelayFrame(10);
     await AimAtBlock(chainC);
     await UniTask.DelayFrame(10); SemanticInput.MouseButtonUp(0);
+    await HoldDeleteConfirm();
     await p.Until(() => p.GetBlock(poleA) == null && p.GetBlock(chainC) == null, 15f, "Step3: AとCが撤去される");
     p.Assert(Connector(poleB).WireConnections.Count == 0 && !ChainPole(chainD).ContainsChainConnection(chainCIdBefore), "Step3: 付いていた電線・チェーンも消える");
     await p.Until(() => !HasClientBlock(poleA) && !HasClientBlock(chainC), 10f, "Step3: クライアントからもA・Cが消える");
@@ -119,6 +121,18 @@ return PlaytestRunner.Run("delete-tool-cut-and-undo-connection-lines", new Playt
     p.Assert(denied.Count == 0 && badLogs.Count == 0, $"全区間: 拒否通知・復元失敗・例外ログが無い: {string.Join(" | ", denied.Concat(badLogs))}");
 
     #region Internal
+
+    // 選択後にFを2秒長押しして撤去を確定する
+    // Hold F for two seconds to confirm deletion after selecting
+    async UniTask HoldDeleteConfirm()
+    {
+        p.Note("F長押しで削除を確定");
+        SemanticInput.KeyDown(Key.F);
+        await p.WaitSeconds(2f + 0.3f);
+        SemanticInput.KeyUp(Key.F);
+        await p.WaitSeconds(0.5f);
+    }
+
 
     Guid ToolGuid(string toolName) => Core.Master.MasterHolder.ConnectToolMaster.All.First(t => t.Name == toolName).ConnectToolGuid;
     bool HasClientBlock(Vector3Int pos) => ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(pos, out _);
@@ -162,6 +176,7 @@ return PlaytestRunner.Run("delete-tool-cut-and-undo-connection-lines", new Playt
         var capsules = line.GetComponentsInChildren<CapsuleCollider>();
         await AimUntil(capsules.OrderBy(c => Math.Abs(Array.IndexOf(capsules, c) - capsules.Length / 2)).Select(c => c.transform.position), line);
         SemanticInput.MouseButtonDown(0); await UniTask.DelayFrame(10); SemanticInput.MouseButtonUp(0);
+        await HoldDeleteConfirm();
         await UniTask.DelayFrame(3); await p.WaitSeconds(0.5f);
     }
 

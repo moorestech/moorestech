@@ -1,3 +1,5 @@
+using UnityEngine;
+using Client.Game.InGame.UI.ProgressBar;
 using Client.Tests.BuildUndo;
 using System.Runtime.Serialization;
 using Client.Game.InGame.Block;
@@ -116,7 +118,7 @@ namespace Client.Tests.UIState
             // Share the history with the service (avoids the trap of recording into a different instance than the one popped)
             var buildOperationHistory = new BuildOperationHistory();
             var rightShortPressInputService = new RightShortPressInputService(new RightShortPressInput());
-            return new DeleteObjectState(new FakeRemovalRestoreSender(), CreateCameraPolicy(applier, viewModeController), buildOperationHistory, new BuildUndoService(buildOperationHistory, null), new PlacementTargetPickService(null, null), rightShortPressInputService, new MouseCursorTooltipState());
+            return new DeleteObjectState(new FakeRemovalRestoreSender(), CreateCameraPolicy(applier, viewModeController), buildOperationHistory, new BuildUndoService(buildOperationHistory, null), new PlacementTargetPickService(null, null), rightShortPressInputService, new MouseCursorTooltipState(), new ProgressBarState(), CreateObject("DeleteTestCamera", true).AddComponent<Camera>(), new PlacementHeightOffset(), null, null);
         }
 
         // 鉱脈ゼロの台帳。PlaceBlockStateはコンストラクタで表示を解決するため実体が要る

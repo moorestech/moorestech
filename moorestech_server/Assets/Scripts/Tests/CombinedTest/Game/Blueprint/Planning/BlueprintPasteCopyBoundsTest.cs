@@ -24,7 +24,7 @@ namespace Tests.CombinedTest.Game.Blueprint.Planning
 
             Assert.AreEqual(64, plan.EnumerateCopiesToPlace().Count());
             Assert.AreEqual(6400, plan.EnumerateCopiesToPlace().Sum(copy => copy.EnumerateElementsToPlace().Count()));
-            Assert.IsTrue(plan.Copies.All(copy => copy.Draft.NonOverlapFlags.All(flag => flag)));
+            Assert.IsTrue(plan.Copies.All(copy => copy.Draft.ElementBlockCauses.All(cause => cause == BlueprintPasteElementBlockCause.None)));
         }
 
         [TestCase(0)]

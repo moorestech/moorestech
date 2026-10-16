@@ -10,14 +10,9 @@ namespace Client.Tests.PlaceSystem.TrainCostIntegration
         internal readonly List<bool> ColorUpdates = new();
         public bool IsActive { get; private set; }
 
-        public void SetPreview(List<PlaceInfo> placeInfos, BlockMasterElement master, bool terrainContactEnabled)
+        public void SetPreview(List<PlaceInfo> placeInfos, BlockMasterElement master)
         {
             UpdatePlaceableColors(placeInfos);
-        }
-
-        public IReadOnlyList<bool> DetectGroundOverlaps()
-        {
-            return new[] { false };
         }
 
         public void UpdatePlaceableColors(List<PlaceInfo> placeInfos)

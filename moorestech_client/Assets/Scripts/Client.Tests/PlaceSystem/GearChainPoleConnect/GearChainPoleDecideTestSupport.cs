@@ -63,7 +63,7 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
             var input = new GearChainPolePlaceExtendInput
             {
                 SourcePole = sourcePole,
-                HasGhost = true,
+                GhostState = GearChainPoleGhostState.Shown,
                 GhostPlaceInfo = new PlaceInfo { Position = placePos, Placeable = true },
                 GhostGroundClear = true,
                 GhostCenter = placePos + new Vector3(0.5f, 0.5f, 0.5f),

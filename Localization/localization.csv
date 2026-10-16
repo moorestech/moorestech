@@ -212,6 +212,7 @@ ui.keyHint.key.middleClick,Middle Click,Middle Click,中クリック,Mittelklick
 ui.keyHint.key.leftDrag,Left Drag,Left Drag,左ドラッグ,Mit links ziehen,왼쪽 드래그
 ui.keyHint.key.rightClick,Right Click,Right Click,右クリック,Rechtsklick,오른쪽 클릭
 ui.keyHint.key.doubleClick,Double Click,Double Click,ダブルクリック,Doppelklick,더블 클릭
+ui.keyHint.key.fHold,F (Hold),F (Hold),F（長押し）,F (halten),F (길게 누르기)
 ui.keyHint.key.shiftLeftClick,Shift + Left Click,Shift + Left Click,Shift+左クリック,Umschalt + Linksklick,Shift + 왼쪽 클릭
 ui.keyHint.text.inventory,Inventory,Inventory,インベントリ,Inventar,인벤토리
 ui.keyHint.text.closeInventory,Close Inventory,Close Inventory,インベントリを閉じる,Inventar schließen,인벤토리 닫기
@@ -232,6 +233,10 @@ ui.keyHint.text.lowerHeight,Lower Placement Height,Lower Placement Height,設置
 ui.keyHint.text.raiseHeight,Raise Placement Height,Raise Placement Height,設置高さを上げる,Bauhöhe erhöhen,설치 높이 높이기
 ui.keyHint.text.undo,Undo,Undo,元に戻す,Rückgängig,실행 취소
 ui.keyHint.text.dragSelect,Select Together,Select Together,まとめて選択,Gemeinsam auswählen,함께 선택
+ui.keyHint.text.boxSelect,Box Select,Box Select,範囲選択,Bereich auswählen,범위 선택
+ui.keyHint.text.lowerBoxHeight,Lower Range Height,Lower Range Height,範囲の高さを下げる,Bereichshöhe senken,범위 높이 낮추기
+ui.keyHint.text.raiseBoxHeight,Raise Range Height,Raise Range Height,範囲の高さを上げる,Bereichshöhe erhöhen,범위 높이 높이기
+ui.keyHint.text.deleteSelected,Delete Selected,Delete Selected,選択を削除,Auswahl entfernen,선택 삭제
 ui.keyHint.text.bulkMove,Move All,Move All,一括移動,Alles verschieben,전체 이동
 ui.keyHint.text.halveOrPlaceOne,Take Half / Place One,Take Half / Place One,半分取る / 1個置く,Hälfte nehmen / einzeln ablegen,절반 집기 / 하나 놓기
 ui.keyHint.text.distributeEvenly,Distribute Evenly,Distribute Evenly,均等分配,Gleichmäßig verteilen,균등 분배
@@ -251,6 +256,7 @@ ui.tooltip.placeChainGroundNotFound,No ground under the connected layout,No grou
 ui.tooltip.placeChainGroundHeightMismatch,The connected layout does not sit level with the ground,The connected layout does not sit level with the ground,接続先の地面の高さが合っていません,Die verbundene Anordnung liegt nicht eben auf dem Boden,연결된 배치가 지면과 수평이 아닙니다
 ui.tooltip.placeBeltOverpassInfeasible,Cannot step over the obstacle here,Cannot step over the obstacle here,障害物を越えられません,Das Hindernis kann hier nicht überbrückt werden,여기서는 장애물을 넘을 수 없습니다
 ui.tooltip.placeBeltNoSlopeBlock,No sloped conveyor for this family,No sloped conveyor for this family,坂のコンベアがありません,Für diese Baureihe gibt es kein Schrägband,이 계열에는 경사 컨베이어가 없습니다
+ui.tooltip.placeBeltTerrainClimbAbandoned,Unable to cross the terrain; the belt will be placed buried,Unable to cross the terrain; the belt will be placed buried,地形を乗り越えられないため、地形に埋めて設置します,Das Gelände kann nicht überquert werden; das Band wird eingegraben platziert,지형을 넘을 수 없어 묻힌 채로 설치됩니다
 ui.tooltip.placeMaterialShortage,Missing item: {p0} {p1}/{p2},Missing item: {p0} {p1}/{p2},アイテム不足： {p0} {p1}/{p2},Fehlender Gegenstand: {p0} {p1}/{p2},부족한 아이템: {p0} {p1}/{p2}
 ui.tooltip.placeWireCost,Wire x{p0},Wire x{p0},電線 x{p0},Kabel x{p0},전선 x{p0}
 ui.tooltip.placeWireOutOfRangeNotice,Out of connection range: no wire will be placed,Out of connection range: no wire will be placed,接続範囲外のため配線されません,Außerhalb der Verbindungsreichweite: es wird kein Kabel verlegt,연결 범위를 벗어남: 전선이 설치되지 않습니다
@@ -346,6 +352,10 @@ ui.blockInventory.stationNamePlaceholder,Enter a station name,Enter a station na
 ui.blockInventory.stationNameApply,Set,Set,決定,Übernehmen,확인
 ui.tooltip.blueprintCopyBlocksInRange,Blocks in range: {p0},Blocks in range: {p0},範囲内のブロック: {p0},Blöcke im Bereich: {p0},범위 내 블록: {p0}
 ui.tooltip.blueprintCopyEmptyRange,No blocks in range,No blocks in range,範囲にブロックがありません,Keine Blöcke im Bereich,범위에 블록이 없습니다
+ui.tooltip.deleteBoxTargetsInRange,Targets in range: {p0},Targets in range: {p0},範囲内の対象: {p0},Ziele im Bereich: {p0},범위 내 대상: {p0}
+ui.tooltip.deleteBoxEmptyRange,No targets in range,No targets in range,範囲に対象がありません,Keine Ziele im Bereich,범위에 대상이 없습니다
+ui.tooltip.deleteSelectedCount,Selected: {p0},Selected: {p0},選択中: {p0}件,Ausgewählt: {p0},선택 중: {p0}개
+ui.tooltip.holdToDelete,Hold F to delete,Hold F to delete,F長押しで削除,F gedrückt halten zum Entfernen,F를 길게 눌러 삭제
 ui.notification.blueprintCreateRequestFailed,Blueprint could not be created because the request failed,Blueprint could not be created because the request failed,通信に失敗したためブループリントを作成できませんでした,Der Bauplan konnte wegen eines Verbindungsfehlers nicht erstellt werden,요청에 실패하여 설계도를 만들지 못했습니다
 ui.notification.blueprintCreateInvalidName,Blueprint name is invalid,Blueprint name is invalid,ブループリント名が無効です,Der Bauplanname ist ungültig,설계도 이름이 올바르지 않습니다
 ui.notification.blueprintCreateEmptyArea,No blocks in the selected area,No blocks in the selected area,選択範囲にブロックがありません,Keine Blöcke im ausgewählten Bereich,선택한 범위에 블록이 없습니다
@@ -359,3 +369,11 @@ ui.notification.blueprintPasteInvalidRequest,Blueprint paste request is invalid,
 ui.notification.blueprintPastePlacementFailed,{p0} blueprints could not be fully placed,{p0} blueprints could not be fully placed,ブループリント{p0}個の一部を設置できませんでした,{p0} Baupläne konnten nicht vollständig platziert werden,설계도 {p0}개를 완전히 배치하지 못했습니다
 ui.tooltip.placeBlueprintNotUnlocked,Blueprint contains locked blocks or connections,Blueprint contains locked blocks or connections,未解放のブロックまたは接続を含みます,Der Bauplan enthält gesperrte Blöcke oder Verbindungen,설계도에 해금되지 않은 블록 또는 연결이 포함되어 있습니다
 ui.tooltip.placeBlueprintMissingBlocks,Blueprint has no available blocks,Blueprint has no available blocks,使用可能なブロックがないブループリントです,Der Bauplan enthält keine verfügbaren Blöcke,설계도에 사용 가능한 블록이 없습니다
+ui.tooltip.deleteResultPending,Deletion pending: {0},Deletion pending: {0},撤去結果待ち: {0},Entfernung ausstehend: {0},철거 결과 대기: {0}
+ui.tooltip.deleteResultUnconfirmed,Deletion result unconfirmed: {0},Deletion result unconfirmed: {0},撤去結果を確認できません: {0},Entfernung nicht bestätigt: {0},철거 결과 확인 불가: {0}
+ui.tooltip.deleteResultRejected,Removal refused: {0},Removal refused: {0},撤去できませんでした: {0},Entfernung abgelehnt: {0},철거 거부됨: {0}
+ui.tooltip.deleteTrainQueueHeld,Further train-car removals are held until this result is confirmed.,Further train-car removals are held until this result is confirmed.,結果が確認されるまで、後続の車両撤去は保留中です。,Weitere Wagenentfernungen warten auf die Bestätigung.,결과가 확인될 때까지 다음 차량 철거가 보류됩니다.
+ui.notification.deleteUnconfirmed,Removal of {0} is unconfirmed. Undo or train-car requests may be held; check the delete tool.,Removal of {0} is unconfirmed. Undo or train-car requests may be held; check the delete tool.,{0} の撤去結果が未確認です。Undoまたは車両撤去が保留中です。削除ツールで確認してください。,Die Entfernung von {0} ist unbestätigt. Prüfe das Löschwerkzeug.,{0} 철거 결과가 미확인입니다. 삭제 도구에서 보류 상태를 확인하세요.
+ui.notification.deleteRejected,Removal of {0} was refused. Check the delete tool for the reason.,Removal of {0} was refused. Check the delete tool for the reason.,{0} を撤去できませんでした。理由は削除ツールで確認できます。,Entfernung von {0} abgelehnt. Grund im Löschwerkzeug.,{0} 철거가 거부되었습니다. 삭제 도구에서 이유를 확인하세요.
+ui.tooltip.deleteRequestPending,Waiting for this removal result,Waiting for this removal result,この対象の撤去結果を確認中です,Warte auf das Ergebnis dieser Entfernung,이 대상의 철거 결과를 확인 중입니다
+ui.tooltip.deleteUndoAwaitingResult,Undo for this removal and all earlier operations waits for the final server response.,Undo for this removal and all earlier operations waits for the final server response.,この撤去と、それ以前の操作のUndoはサーバーの最終応答まで保留中です。,Das Rückgängigmachen dieser Entfernung und aller vorherigen Aktionen wartet auf die endgültige Serverantwort.,이 철거와 그 이전 모든 작업의 실행 취소는 서버의 최종 응답까지 보류됩니다.

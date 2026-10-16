@@ -5,7 +5,7 @@
 // A diff that applies review output is never re-reviewed otherwise (c9baa79). Later rounds see only what changed
 // since the last review and ask only "did the fix break something / does it match the stated fix".
 const REFIX_MAX_ROUNDS = A.refixMaxRounds || 3
-const refix = { enabled: !A.reportOnly, scope: apply ? apply.refix_scope : null, note: apply ? apply.refix_note : '', rounds: [], unresolved: false }
+const refix = { enabled: !A.reportOnly, scope: apply ? apply.refix_scope : null, note: apply ? apply.refix_note : '', rounds: [], unresolved: false, loop_stuck: false }
 if (apply) {
   if (apply.refix_scope === 'error') {
     throw new Error(`反映 diff を作れなかった（${apply.refix_note}）。修正は適用済みなので、親が refix_snapshot.py の snapshot/diff を手で通してから resumeFromRunId で再開する`)
@@ -15,11 +15,18 @@ if (apply) {
   let refixOf = `${A.runDir}/integrated.md の「採用Critical」の修正方針`
   if (scope !== 'source') log(`Refix: 反映 diff が ${scope}（doc/テスト/コメントのみ or 差分なし）→ 再レビュー不要（0トークン）`)
   for (let round = 1; scope === 'source' && round <= REFIX_MAX_ROUNDS; round++) {
-    const sys = { kind: 'refix', name: `refix-correctness-r${round}`, path: A.refixReviewerPath, model: 'opus', patchOverride: diffPath, refixOf }
+    const sys = { kind: 'refix', name: `refix-correctness-r${round}`, path: A.refixReviewerPath, model: 'opus', patchOverride: diffPath, refixOf, previousCritical: refixHistory }
     const r = await runSystem(sys, 'Refix')
     if (!r.ok) throw new Error(`${sys.name} が応答しなかった。${diffPath} は残っているので親が該当 round だけ再派遣する`)
-    const entry = { round, name: r.name, model: r.model, critical: r.result.critical_count, design: r.result.design_judgement, report: `${A.runDir}/agents/${r.name}.md` }
+    const recurrence = trackRefix(r.result, round, refixHistory)
+    const entry = { round, recurrence, findings: r.result.findings, name: r.name, model: r.model, critical: r.result.critical_count, design: r.result.design_judgement, report: `${A.runDir}/agents/${r.name}.md` }
     refix.rounds.push(entry)
+    if (recurrence.stuck) {
+      refix.unresolved = true
+      refix.loop_stuck = true
+      log(`Refix r${round}: 同じ指摘が2周連続（前回の修正が不完全な可能性）→ loop stuck として親へ申告`)
+      break
+    }
     if (r.result.critical_count === 0) { log(`Refix r${round}: Critical なし → 収束`); break }
     if (round === REFIX_MAX_ROUNDS) {
       // 上限で止める: 指摘は尽きないので「再現可能な誤動作が無くなること」が収束条件。超えたら親へ未収束として渡す
@@ -39,6 +46,7 @@ if (apply) {
     const fixPrompt = [
       `Read this : ${A.integrationRulesPath}（§3〜§5 の適用区分・安全規則）— 反映 diff 再レビューの Critical を直し直す係。`,
       `Refix report : ${entry.report}`,
+      `構造化指摘（再発は Critical に昇格済み）: ${JSON.stringify(entry.findings)}`,
       `Run dir : ${A.runDir}`,
       `Repo root : ${A.repoRoot}（修正はこの作業ツリーだけに加える）`,
       `Skill root : ${A.skillRoot}`,

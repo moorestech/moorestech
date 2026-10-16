@@ -31,6 +31,15 @@ namespace Client.Network.API.Requests
             return await _packetExchangeManager.GetPacketResponse<RemoveBlockProtocol.RemoveBlockResponseMessagePack>(request, ct);
         }
 
+        // 削除ツールは表示期限後も同一個体への最終応答を待つ
+        // The delete tool awaits the final instance response beyond its UI deadline
+        public async UniTask<RemoveBlockProtocol.RemoveBlockResponseMessagePack> BlockRemoveIfInstanceAwaitFinal(
+            Vector3Int pos, BlockInstanceId expectedInstanceId, CancellationToken ct)
+        {
+            var request = new RemoveBlockProtocol.RemoveBlockProtocolMessagePack(pos, expectedInstanceId);
+            return await _packetExchangeManager.GetFinalPacketResponse<RemoveBlockProtocol.RemoveBlockResponseMessagePack>(request, ct);
+        }
+
         // ElectricToGear の出力モードを切り替える
         // Switch the output mode of an ElectricToGear block
         public async UniTask<SetElectricToGearOutputModeResponse> SetElectricToGearOutputMode(

@@ -60,7 +60,7 @@ namespace Client.Tests.BuildUndo
             Assert.AreEqual(1, collector.Objects.Count);
             var target = new FakeDeleteTarget { RemovedObjects = { collector.Objects[0] } };
             var sender = new FakeRemovalRestoreSender();
-            var record = RemoveOperationRecord.CreateFrom(new[] { target }, sender);
+            var record = RemovalRecordTestCapture.CreateFrom(new[] { target }, sender);
             record.UndoAsync(new EmptyOccupancy()).GetAwaiter().GetResult();
 
             Assert.AreEqual(1, sender.PlacedBatches.Count);

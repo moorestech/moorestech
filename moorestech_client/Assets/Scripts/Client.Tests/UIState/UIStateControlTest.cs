@@ -1,7 +1,12 @@
 using System.Collections.Generic;
 using System.Reflection;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
+using Client.Game.InGame.UI.Tooltip;
+using Client.Tests.BuildUndo;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
+using Client.Game.InGame.UI.UIState.State.DragDelete;
+using UnityEngine.TestTools;
 using Client.Tests.UIState.Fakes;
 using NUnit.Framework;
 using UnityEngine;
@@ -11,7 +16,6 @@ namespace Client.Tests.UIState
     public class UIStateControlTest
     {
         private GameObject _controlObject;
-
         [SetUp]
         public void SetUp()
         {
@@ -64,6 +68,67 @@ namespace Client.Tests.UIState
             Assert.AreEqual(false, player.LastUiLock, "メニューを閉じても移動が止まったまま");
         }
 
+        [Test]
+        public void 選択とホバーの復元が失敗しても次の要求で抜けられる()
+        {
+            var service = new DeleteObjectService(new BuildOperationHistory(), new MouseCursorTooltipState(), new FakeRemovalRestoreSender(), new Client.Game.InGame.UI.ProgressBar.ProgressBarState(), null, new Client.Game.InGame.BlockSystem.PlaceSystem.Common.PlacementHeightOffset(), new Client.Game.InGame.UI.UIState.State.DragDelete.Box.DeleteBoxTargetResolver(null, null));
+            var selection = (DeleteSelection)typeof(DeleteObjectService).GetField("_selection", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(service);
+            var hover = (SingleHoverDeletePreview)typeof(DeleteSelection).GetField("_hoverPreview", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(selection);
+            var first = new FakeDeleteTarget { Removable = true, ThrowOnReset = true };
+            var second = new FakeDeleteTarget { Removable = true, ThrowOnReset = true };
+            var hovered = new FakeDeleteTarget { ThrowOnReset = true };
+            selection.BeginStroke();
+            Assert.IsTrue(selection.TryAddTarget(first).IsAdded);
+            Assert.IsTrue(selection.TryAddTarget(second).IsAdded);
+            hover.Hover(hovered);
+            var deleteLikeState = new StubUIState(UIStateEnum.BuildMenu, false) { DeleteService = service };
+            var nextState = new StubUIState(null, false);
+            var control = _controlObject.AddComponent<UIStateControl>();
+            control.Construct(CreateDictionary(deleteLikeState, nextState), new FakePlayerObjectController());
+            control.Initialize(UIStateEnum.GameScreen, new UITransitContext(UIStateEnum.GameScreen));
+            // 投げたフレームは遷移しない
+            // The frame that throws does not transition
+            Assert.Throws<TargetInvocationException>(() => InvokeUpdate(control));
+            Assert.AreEqual(UIStateEnum.GameScreen, control.CurrentState);
+            foreach (var target in new[] { first, second, hovered }) Assert.AreEqual(1, target.ResetCount);
+            // 次の要求で抜けられる
+            // The next request leaves the state
+            InvokeUpdate(control);
+            Assert.AreEqual(UIStateEnum.BuildMenu, control.CurrentState);
+            Assert.AreEqual(1, nextState.EnterCount);
+            foreach (var target in new[] { first, second, hovered }) Assert.AreEqual(1, target.ResetCount);
+        }
+        [Test]
+        public void 離脱失敗後に入力なしで同じ対象をホバーしても次の要求で抜けられる()
+        {
+            var preview = new SingleHoverDeletePreview(new DeletePreviewResetRecovery());
+            var broken = new FakeDeleteTarget { ThrowOnReset = true };
+            var deleteState = new StubUIState(UIStateEnum.BuildMenu, false)
+            {
+                HoverPreview = preview,
+                HoverTarget = broken
+            };
+            var nextState = new StubUIState(null, false);
+            var control = _controlObject.AddComponent<UIStateControl>();
+            control.Construct(CreateDictionary(deleteState, nextState), new FakePlayerObjectController());
+            control.Initialize(UIStateEnum.GameScreen, new UITransitContext(UIStateEnum.GameScreen));
+            preview.Hover(broken);
+            Assert.Throws<TargetInvocationException>(() => InvokeUpdate(control));
+            Assert.AreEqual(UIStateEnum.GameScreen, control.CurrentState);
+
+            // 入力なし更新で同対象を再照準した後にGを押す
+            // Aim at the same target on an idle update before pressing G again
+            deleteState.HoldTransition = true;
+            LogAssert.Expect(LogType.Warning, "[DragDelete] delete preview suppressed because the target's previous reset did not complete");
+            InvokeUpdate(control);
+            Assert.IsNull(preview.Current);
+            deleteState.HoldTransition = false;
+            InvokeUpdate(control);
+            Assert.AreEqual(UIStateEnum.BuildMenu, control.CurrentState);
+            Assert.AreEqual(1, broken.ResetCount);
+            Assert.AreEqual(1, nextState.EnterCount);
+        }
+
         private static UIStateDictionary CreateDictionary(IUIState gameScreen, IUIState buildMenu)
         {
             var result = new UIStateDictionary(null, null, null, null, null, null, null, null, null, null, null, null);
@@ -87,6 +152,11 @@ namespace Client.Tests.UIState
             public int EnterCount { get; private set; }
             public int ExitCount { get; private set; }
 
+            public DeleteObjectService DeleteService;
+            public bool HoldTransition;
+            public SingleHoverDeletePreview HoverPreview;
+            public FakeDeleteTarget HoverTarget;
+
             public StubUIState(UIStateEnum? nextState, bool locksPlayerMovement)
             {
                 _nextState = nextState;
@@ -100,12 +170,19 @@ namespace Client.Tests.UIState
 
             public UITransitContext GetNextUpdate()
             {
+                if (HoldTransition)
+                {
+                    HoverPreview.Hover(HoverTarget);
+                    return null;
+                }
                 return _nextState.HasValue ? new UITransitContext(_nextState.Value) : null;
             }
 
             public void OnExit()
             {
                 ExitCount++;
+                HoverPreview?.Release();
+                DeleteService?.ClearAll();
             }
 
             public bool LocksPlayerMovement()

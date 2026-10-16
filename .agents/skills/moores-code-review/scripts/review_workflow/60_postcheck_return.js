@@ -51,6 +51,7 @@ return {
   },
   codexWait,
   integrated,
+  reproResults,
   apply,
   refix,
   postCheckSelection,

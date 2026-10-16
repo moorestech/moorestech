@@ -23,10 +23,10 @@ namespace Client.Game.InGame.UI.UIState.State.CancelInput
 
         // 毎フレーム呼ぶ。右短押しが成立したフレームだけtrue
         // Call every frame; true only on the frame a short press outside UI is confirmed
-        public bool TryConsumeShortPressOutsideUi()
+        public bool TryConsumeShortPressOutsideUi(bool isPointerOverUi)
         {
             var isDeltaMeasured = HybridInput.TryGetMouseDelta(out var pointerDelta);
-            _rightShortPressInput.ManualUpdate(HybridInput.GetMouseButton(1), isDeltaMeasured, pointerDelta, UiPointerHitTest.IsPointerOverAnyUi());
+            _rightShortPressInput.ManualUpdate(HybridInput.GetMouseButton(1), isDeltaMeasured, pointerDelta, isPointerOverUi);
             return _rightShortPressInput.TryConsumeShortPress();
         }
 
