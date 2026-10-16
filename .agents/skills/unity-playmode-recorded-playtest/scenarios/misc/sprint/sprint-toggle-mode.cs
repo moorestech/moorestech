@@ -61,7 +61,7 @@ return PlaytestRunner.Run("sprint-toggle-mode", options, async p =>
     {
         p.Note("背景入力Tab往復成功: " + probe);
         p.Assert(!PlayerPrefs.HasKey("SprintInputMode") && SprintInputModePreference.Current == SprintInputMode.Toggle, "保存値なしの既定Toggle");
-        p.Assert(Time.timeScale == 1f, "速度測定のtimeScale=1");
+        await p.Until(() => Time.timeScale == 1f, 10f, "録画開始後のtimeScale=1復帰");
 
         // 加速後の水平移動量を同じ足場で比較する
         // Compare horizontal displacement after acceleration on the same scaffold
