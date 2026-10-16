@@ -608,7 +608,7 @@ git commit -m "feat(editor): 開発者トークンを貼り付け・接続確認
 
 **Files:**
 - Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/C2/PauseMenuTopic.cs`（`Delivery` を DTO に足し、`PlaytestDeliveryStatusBoard.Current` の変化で Publish する）
-- Create: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/C2/PlaytestDeliveryDto.cs`（`Kind`・`PendingCount`・`LocalOnlyReason` と、enum から契約文字列への変換）
+- Create: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/C2/PlaytestDeliveryDto.cs`（`Kind`・`PendingCount`・`Reason`。`PlaytestDeliveryStatus` の派生を switch で kind 文字列と reason 文字列へ写す）
 - Modify: `moorestech_web/webui/src/bridge/contract/schemas/ui.ts`（`PauseMenuDataSchema.delivery`）
 - Modify: `moorestech_web/webui/src/features/pauseMenu/BugReportForm.tsx`（送信状況の1行 `data-testid="bug-report-delivery"`）
 - Modify: `Localization/localization.csv`（6キー×4言語）→ `cd moorestech_web/webui && npm run gen:i18n`
