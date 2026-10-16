@@ -23,6 +23,8 @@ namespace Client.Input
         // Entering toggle starts sprinting, the same as at game start
         public void SetMode(SprintInputMode mode)
         {
+            // silent-ok: 同値確認は走り状態と押下列を変更しない / 復旧通知解除とResolverテストで保持を確認する
+            if (_mode == mode) return;
             _mode = mode;
             _isCleanTap = false;
             IsSprinting = mode == SprintInputMode.Toggle || _isHeld;

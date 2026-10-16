@@ -5,6 +5,23 @@ namespace Client.Tests.Player
 {
     public class SprintInputResolverTest
     {
+        [Test]
+        public void 同じ方式の再適用は歩きと進行中の押下を保持する()
+        {
+            var resolver = new SprintInputResolver(SprintInputMode.Toggle);
+            resolver.OnSprintPressed();
+            resolver.OnSprintReleased();
+            resolver.SetMode(SprintInputMode.Toggle);
+            Assert.IsFalse(resolver.IsSprinting);
+
+            // 同値適用は次の単独タップ候補も失効させない
+            // Reapplying the same mode must preserve a pending clean tap
+            resolver.OnSprintPressed();
+            resolver.SetMode(SprintInputMode.Toggle);
+            resolver.OnSprintReleased();
+            Assert.IsTrue(resolver.IsSprinting);
+        }
+
         [TestCase(SprintInputMode.Toggle)]
         [TestCase(SprintInputMode.Hold)]
         public void 継続押下で複合操作の取消を戻さない(SprintInputMode mode)
