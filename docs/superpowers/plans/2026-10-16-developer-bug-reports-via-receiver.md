@@ -18,8 +18,8 @@
    - 受け入れ: vitest で、発行→交換→アップロード→失効後の交換401 が通る。管理キーが無いと401。
 2. 開発者トークンを交換すると、Steam のセッションと同じ形の応答（steamId=`dev-<機材名>`, allowed, token, expiresAt）が返る。その token で上げた箱は `reports/dev-<機材名>/<id>/` に置かれる。
    - 受け入れ: vitest。
-3. 受け口は `dev-` の sub からの進行記録（kind=progress）の prepare・complete を 403 で拒否し、理由を warn に出す。
-   - 受け入れ: vitest。
+3. 受け口は `dev-` の sub からの進行記録（kind=progress）の prepare・complete を 403 で拒否し、理由を warn に出す。また `dev-` の sub の prepare・complete では毎回台帳を確かめ、失効済みの機材なら 401 `developer-token-revoked` にする（失効を即時に効かせる）。
+   - 受け入れ: vitest（失効直後に、発行済みセッションでの prepare が 401）。
 4. Mac mini から `scripts/playtest/dev-token.sh issue|list|revoke <機材名>` で開発者トークンを扱える。取り込みは `dev-*` の Steam 表示名を Steam に問い合わせず「開発機 <機材名>」とし、ダイジェストにはそれが出る。
    - 受け入れ: bash テスト。
 5. 開発者トークンは Unity のエディタ拡張（メニュー `moorestech/Playtest/Developer Token`）で貼り付け・保存・削除・接続確認ができる。保存先は機材ローカルのファイル `<GameSystemDirectory>/PlaytestReceiver/developer-token.txt` で、Editor と開発ビルドが同じファイルを読む。
@@ -51,7 +51,6 @@
 **やらないこと（スコープ境界）:**
 - 配布版の Steam 認証経路の変更。
 - タイトルゲート（同意・前回異常終了）の挙動変更。開発者経路の押し場は、MainGame 起動と報告送信の2つにする。
-- 失効したトークンで既に発行済みのセッショントークン（有効1時間）を即時無効にする仕組み。
 - 開発者報告の自動修正への自動投入（裁定: 人が投入する）。
 - Steam 表示名キャッシュの掃除。
 
@@ -238,7 +237,9 @@ R2 の JSON 読み（`get`→null 判定→`json()`）は `findMachineByToken`�
 `uploadsPrepare.ts`・`uploadsComplete.ts` では、`const steamId = await authorizeUpload(...)` の直後に次を入れる:
 ```ts
 if (refusesDeveloperProgress(kind, steamId)) return fail("developer-progress-not-accepted", 403);
+if (await isRevokedDeveloper(env, steamId)) return fail("developer-token-revoked", 401);
 ```
+`isRevokedDeveloper(env, sub)` は `devTokenStore.ts` に置く。`isDeveloperSubject(sub)` が偽なら false。真なら `env.BUCKET.head("devtokens/by-machine/" + sub.slice(4))` が null のとき warn して true を返す。クライアントは 401 を既存どおり「セッション拒否」と扱い、1回だけセッションを取り直す。取り直しも交換で 401 になるので、走行は `SessionRefused` で止まる（画面は「受け口に拒否されました」）。
 
 - [ ] **Step 3: テストを書く**
 
@@ -258,6 +259,7 @@ if (refusesDeveloperProgress(kind, steamId)) return fail("developer-progress-not
 
 `test/devTokens/developerProgress.test.ts` の検査:
 - dev の token で `prepare("progress", ...)` と `complete("progress", ...)` が 403 `developer-progress-not-accepted` になり、warn が出る。
+- 発行済みセッションの token で、失効後の `prepare("report", ...)` と `complete("report", ...)` が 401 `developer-token-revoked` になる。
 - Steam の sub（`STEAM_ID`）の progress は 200 のまま。
 
 各テストの `beforeEach` で `clean()` を呼ぶ。
@@ -456,7 +458,6 @@ git commit -m "feat(playtest): セッションの資格情報を差し替え可�
 - Modify: `moorestech_client/Assets/Scripts/Client.PlaytestReceiver/Upload/PlaytestUploader.cs`（戻り値を `PlaytestUploadRunSummary` に。範囲 `PlaytestOutboxScope` を受け取る）
 - Modify: `moorestech_client/Assets/Scripts/Client.PlaytestReceiver/Upload/PlaytestOutboxScanner.cs`（`ScanPending(directories, scope)`）
 - Modify: `moorestech_client/Assets/Scripts/Client.Starter/Registration/MainGameModelRegistration.cs`（`PlaytestBootUploadTrigger` を `IStartable` で登録）
-- Modify: `moorestech_client/Assets/Scripts/Client.MainMenu/Playtest/PlaytestTitleGateView.cs`（ランナーの新しいコンストラクタに合わせる）
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/PlaytestReceiver/Delivery/PlaytestDeliveryRouteResolverTest.cs`、`moorestech_client/Assets/Scripts/Client.Tests/PlaytestReceiver/Upload/PlaytestUploadRunnerTest.cs`（開発者モードのケースを書き換える）、`moorestech_client/Assets/Scripts/Client.Tests/PlaytestReceiver/Upload/PlaytestOutboxScannerTest.cs`（範囲の1ケースを追加）
 
 **Interfaces:**
@@ -521,12 +522,13 @@ public sealed class PlaytestUploadRunSummary
 }
 ```
 `Resolve` の規則:
-- `isDistribution` なら `PlaytestSteamRoute`。
-- `DeveloperMode` かつ `#if UNITY_EDITOR || DEVELOPMENT_BUILD` のとき:
+- `#if UNITY_EDITOR || DEVELOPMENT_BUILD` の中では `isDistribution` を見ない（開発ビルドは build-info.json を持ち、Steam 起動中は Distribution と判定されるため。開発ビルドで Steam 経路に入ると進行記録がテスター集計に混ざる）。
+- `#if` の外（配布ビルド）では、`isDistribution` なら `PlaytestSteamRoute`。
+- `#if UNITY_EDITOR || DEVELOPMENT_BUILD` のとき（isDistribution に関係なく）:
   - Present なら `PlaytestDeveloperTokenRoute(token)`。
   - Absent なら `PlaytestLocalOnlyRoute(DeveloperTokenMissing, ReportsOnly, "...")`。
   - Unreadable なら `PlaytestLocalOnlyRoute(DeveloperTokenUnreadable, ReportsOnly, reason)`。
-- それ以外（開発ビルドでない DeveloperMode＝build-info はあるが Steam が起動していない）は `PlaytestLocalOnlyRoute(SteamNotRunning, ReportsAndProgress, ...)`。
+- 配布ビルドで `isDistribution` が偽（build-info はあるが Steam が起動していない）なら `PlaytestLocalOnlyRoute(SteamNotRunning, ReportsAndProgress, ...)`。
 - `#if` は Resolve のこの分岐だけに置く。経路の型そのものは囲まない（テストから使えるように。裁定: 弱指摘④）。
 
 ランナーの変更:
@@ -546,7 +548,7 @@ public sealed class PlaytestUploadRunSummary
 
 - [ ] **Step 1: テストを書く**
 
-`PlaytestDeliveryRouteResolverTest`: 上の規則の各行を1ケースずつ。`isDistribution=true`×Absent で Steam になる（配布版は開発者トークンを見ない）ことも含める。
+`PlaytestDeliveryRouteResolverTest`: 上の規則の各行を1ケースずつ。Editor（テストは Editor で走る）では `isDistribution=true` でも開発者経路になること（開発ビルドの Steam 起動中を表す）も含める。配布ビルド側の分岐は #if の外なので EditMode では通らない。これは Task 10 の配布ビルド smoke（既存）で確かめる旨をテストのコメントに書く。
 
 `PlaytestUploadRunnerTest`:
 - 既存の「配布版は送信時に認証し開発者モードは送らない」を2つに分ける。
@@ -556,7 +558,7 @@ public sealed class PlaytestUploadRunSummary
 
 `PlaytestOutboxScannerTest`: `ReportsOnly` で progress の箱が出ない。
 
-- [ ] **Step 2: 実装を書く**（上の Interfaces どおり。`PlaytestTitleGateView.cs` と `MainGameModelRegistration.cs` の呼び出しを合わせる）
+- [ ] **Step 2: 実装を書く**（上の Interfaces どおり。ランナーのコンストラクタは変えないので、`PlaytestTitleGateView.cs` は触らない）
 
 - [ ] **Step 3: コンパイルしテストを通す**
 
@@ -566,7 +568,7 @@ Expected: ErrorCount 0 / 全 PASS。
 - [ ] **Step 4: コミットする**
 
 ```bash
-git add moorestech_client/Assets/Scripts/Client.PlaytestReceiver moorestech_client/Assets/Scripts/Client.Starter moorestech_client/Assets/Scripts/Client.MainMenu moorestech_client/Assets/Scripts/Client.Tests/PlaytestReceiver
+git add moorestech_client/Assets/Scripts/Client.PlaytestReceiver moorestech_client/Assets/Scripts/Client.Starter moorestech_client/Assets/Scripts/Client.Tests/PlaytestReceiver
 git commit -m "feat(playtest): 送信経路を1か所で決め、開発機は報告だけを開発者トークンで送る"
 ```
 
@@ -613,6 +615,7 @@ git commit -m "feat(editor): 開発者トークンを貼り付け・接続確認
 - Modify: `moorestech_web/webui/src/features/pauseMenu/BugReportForm.tsx`（送信状況の1行 `data-testid="bug-report-delivery"`）
 - Modify: `Localization/localization.csv`（6キー×4言語）→ `cd moorestech_web/webui && npm run gen:i18n`
 - Modify: `moorestech_web/webui/src/features/pauseMenu/BugReportFormTests/testSupport.ts`（Status 型と辞書）
+- Modify（delivery 必須化の波及。`bugReport:` を持つ PauseMenu データ全部）: `moorestech_web/webui/src/features/pauseMenu/PauseMenuPanel.test.ts`、`moorestech_web/webui/src/bridge/transport/webSocketClient.test.ts`、`moorestech_web/webui/e2e/mock-host/topics/topicFixtures.ts`、`moorestech_web/webui/e2e/mock-host/topics/topicControls.ts`。着手時に `git grep -n "bugReport:" moorestech_web/webui` で取りこぼしが無いか確かめる
 - Test: `moorestech_web/webui/src/features/pauseMenu/BugReportFormTests/deliveryStatus.test.ts`、`moorestech_web/webui/src/bridge/contract/schemas/__tests__/ui.test.ts`（delivery の受理・拒否）、`moorestech_client/Assets/Scripts/Client.Tests/WebUiHost/PauseMenuTopicDeliveryTest.cs`（DTO の JSON 形。既存の WebUiHost テストの置き場に合わせる）
 
 **Interfaces:**
@@ -656,7 +659,7 @@ C# の `PauseMenuTopicDeliveryTest`: `PlaytestDeliveryStatusBoard.Set(...)` の�
 - [ ] **Step 2: 実装を書く**
 - [ ] **Step 3: テストを通す**
 
-Run: `cd moorestech_web/webui && npm run gen:i18n && npx vitest run src/features/pauseMenu src/bridge/contract` → `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "PauseMenuTopic"`
+Run: `cd moorestech_web/webui && npm run gen:i18n && npx vitest run`（全体。transport と mock-host の波及も見る） → `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "PauseMenuTopic"`
 Expected: 全 PASS / ErrorCount 0。
 
 - [ ] **Step 4: コミットする**
@@ -849,16 +852,16 @@ git commit -m "feat(bugreport): Unity不要のトリアージと報告の所在�
 
 - [ ] **Step 2: トークンを発行する**
 
-`scripts/playtest/dev-token.sh issue macmini-wt` と `scripts/playtest/dev-token.sh issue winbuild` を実行する。値は会話・ログ・コミットに残さない。Mac は一時ファイル経由で Editor に渡し、渡したら消す。
+`scripts/playtest/dev-token.sh issue macmini` と `scripts/playtest/dev-token.sh issue winbuild` を実行する。値は会話・ログ・コミットに残さない。Mac mini のトークンは検証後も常設する（裁定）。Mac mini 上の全 worktree の Editor が共通の outbox から本番へ送る前提を verification.md に書く。Mac への受け渡しは一時ファイル経由で行い、ウィンドウへ貼り付けたら一時ファイルは消す。
 
 - [ ] **Step 3: Mac の Editor で通す（unityプレイ録画テストを兼ねる）**
 
 この worktree の Editor で、`unity-playmode-recorded-playtest` スキルにより録画つきで次を行う:
 1. トークン無しで再生 → ポーズ → バグ報告画面に「未送信: 開発者トークンが未設定です（この機材にN件保存）」が出る。
-2. 再生を止め、`PlaytestDeveloperTokenFile.Write`（エディタ拡張の保存と同じ関数）でトークンを設定する。ウィンドウの「接続確認」が `dev-macmini-wt` を表示する。
+2. 再生を止め、メニュー `moorestech/Playtest/Developer Token` のウィンドウからトークンを貼り付けて保存する（`uloop execute-dynamic-code` でウィンドウのフィールドへ値を入れ、保存ボタンと同じ処理を呼ぶ。保存後のスクリーンショットを残す）。続けて「接続確認」で `dev-macmini` が表示されることを確かめる。
 3. 再生 → バグ報告を1件送る → 画面が「送信待ち」から「すべての報告を送信しました」になる。
 4. `scripts/playtest/ingest.sh` を1回手で回す（常駐の5分周期を待ってもよい）。
-5. `moorestech_logs/harness/playtest/reports/dev-macmini-wt/<id>/` に manifest、`repo/bundle-status.txt`、`repo/commits.bundle`（このブランチは未 push のコミットを持つので created）、`logs/` があることを確かめる。`ingest.json` の steamPersonaName が「開発機 macmini-wt」であること。
+5. `moorestech_logs/harness/playtest/reports/dev-macmini/<id>/` に manifest、`repo/bundle-status.txt`、`repo/commits.bundle`（このブランチは未 push のコミットを持つので created）、`logs/` があることを確かめる。`ingest.json` の steamPersonaName が「開発機 macmini」であること。
 6. 進行記録の outbox に箱があっても、受け口の inbox に progress の dev 行が出ないこと。
 
 - [ ] **Step 4: Windows の Editor で通す**
@@ -907,7 +910,8 @@ git commit -m "test(playtest): 本番受け口への開発者経路の実機確�
 - 出所: agent前提（前例 `Client.RemoteExec/Access/RemoteExecAccessFile.cs`）。トークンは EditorPrefs ではなく GameSystemPaths 配下のファイルに置く。開発ビルドも同じファイルを読める。
 - 出所: agent前提。開発機の押し場は「MainGame 起動」と「報告送信」の2つ。タイトルゲートの `uploadsEnabled` は配布版の同意ゲートなので変えない。
 - 出所: agent前提。送信状況は既存の `bugReport`（送信可否）とは別のフィールド・別の行にする。送信可否と送信状況は独立に変わるため。
-- 出所: agent前提。失効したトークンで発行済みのセッショントークンは、最長1時間有効のまま残る（受け口は token に失効台帳を引かない）。やらないことに記載。
+- 出所: ユーザー裁定 2026-10-16 選択「失効を即時に効かせる」。`dev-` の prepare・complete ごとに台帳を head し、無ければ 401 にする。
+- 出所: ユーザー裁定 2026-10-16 選択「置いたままにする」。Mac mini の開発者トークン（機材名 macmini）は検証後も常設する。
 - 出所: agent前提。`BugReport/` 直下が10ファイルを超えているので、新設の bundle 処理は `BugReport/Repository/` に置き、既存の repository 系2ファイルも移す。
 - unityプレイ録画テスト: 含める（Task 10 Step 3）。バグ報告画面の表示変化（ローカル保存のみ→送信待ち→すべて送信済み）はランタイムの UI なので録画で確かめる。
 - 出所: シミュレーター予測（確信高・拒否権つき前提宣言）2026-10-16。Phase 2.6 強: `PlaytestCredentialPost`・`PlaytestDeveloperTokenRead`・`PlaytestDeliveryRoute`・`PlaytestDeliveryStatus` を sealed 派生の判別 union にする／`Resolve` は評価済みの `bool isDistribution` を受ける（NotEvaluated の例外を消す）／受け口の `refusesDeveloperProgress` は `PlaytestKind` 型を受ける。
