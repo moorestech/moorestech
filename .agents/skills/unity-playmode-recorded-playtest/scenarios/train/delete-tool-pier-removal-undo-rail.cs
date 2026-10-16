@@ -35,7 +35,7 @@ return PlaytestRunner.Run("delete-tool-pier-removal-undo-rail", new PlaytestRunO
     // 在庫の消費と返却を見るため無料設置は切る
     // Disable free placement to observe consumption and refunds
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig { FreeBlockPlacement = false, SpawnPosition = new Vector3(8f, 33.5f, -6f) });
-    await p.SkipOpeningSkit();
+    await p.SkipOpeningSkitIfPlaying();
 
     await PlaytestUiOps.FocusGameViewAndEnableInput(p);
     p.Hotbar.UnlockConnectTool("レール");

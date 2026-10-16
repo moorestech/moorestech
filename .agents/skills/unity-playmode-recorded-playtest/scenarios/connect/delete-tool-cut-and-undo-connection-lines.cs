@@ -37,7 +37,7 @@ return PlaytestRunner.Run("delete-tool-cut-and-undo-connection-lines", new Playt
     // 在庫の消費と返却を見るため無料設置は切る
     // Disable free placement to observe consumption and refunds
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig { FreeBlockPlacement = false, SpawnPosition = new Vector3(8f, 33.5f, -6f) });
-    await p.SkipOpeningSkit();
+    await p.SkipOpeningSkitIfPlaying();
 
     await PlaytestUiOps.FocusGameViewAndEnableInput(p);
     foreach (var tool in new[] { "電線", "歯車チェーン" }) p.Hotbar.UnlockConnectTool(tool);
@@ -53,7 +53,7 @@ return PlaytestRunner.Run("delete-tool-cut-and-undo-connection-lines", new Playt
     foreach (var pos in new[] { chainC, chainD }) p.PlaceBlockDirect("歯車チェーンポール", pos, BlockDirection.North);
     foreach (var pos in new[] { poleA, poleB, poleNear, chainC, chainD }) await p.WaitBlockGameObject(pos);
     var playerId = ClientContext.PlayerConnectionSetting.PlayerId;
-    p.Assert(Server.Protocol.PacketResponse.Util.ElectricWire.Connection.ElectricWireSystemUtil.TryConnect(poleA, poleB, playerId, wireTool, out var wireFail), $"準備: A-B を電線で接続 {wireFail}");
+    p.Assert(Server.Protocol.PacketResponse.Util.ElectricWire.Connection.ElectricWireSystemUtil.TryConnect(poleA, poleB, playerId, wireTool, false, out var wireFail), $"準備: A-B を電線で接続 {wireFail}");
     p.Assert(Server.Protocol.PacketResponse.Util.GearChain.GearChainSystemUtil.TryConnect(chainC, chainD, playerId, chainTool, out var chainFail), $"準備: C-D をチェーンで接続 {chainFail}");
 
     await p.Until(() => LinesOf(poleA).Count == 1 && LinesOf(chainC).Count == 1, 15f, "準備: クライアントに電線・チェーンが出る");
