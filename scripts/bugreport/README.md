@@ -25,7 +25,9 @@ Task 9 で追加する道具は次のように使う。
 
 画面の「送信できない報告」は `UPLOAD_FAILED` の箱の件数。通常の送信待ちと区別し、1件でも残っている間は「すべて送信済み」にしない。復旧は上記の隔離・試行印の手順で行う。
 
-コミットbundleが `PlaytestReceiverConfig.MaxFileBytes`（100MiB）または `MaxBundleBytes`（256MiB）で除外される箱は、`UPLOAD_FAILED` に理由を残して送信を保留する。未宣言なら `manifest.missing` と `repo/bundle-status.txt` にも配送不能を記録する。既宣言の本文は書き換えない。大容量bundleの分割運搬は未実装であり、上限超過の解決には追加設計が必要。失敗印だけ消しても容量制約は解消しない。
+コミットbundleを含む未宣言箱が `PlaytestReceiverConfig.MaxFileBytes`（100MiB）・`MaxBundleBytes`（256MiB）・`MaxBundleFiles`（128件）を超える場合、bundleを `__attachments/<番号>/chunk` へ分割して送る。`repo/commit-transfer.json` が本体/masterの元path・長さ・断片のSHA256を保持する。子転送が揃うまで親は取り込み一覧へ公開されない。ingestは全断片の長さ・SHA256を検証して `repo/commits.bundle` と `repo/master-commits.bundle` を復元し、成功後にACKする。prepare-run/prepare-masterも同じ復元処理を通る。
+
+未宣言で容量だけを理由に保留された箱は、同じ分割計画を完成させて再試行する。既宣言本文は書き換えず、資格情報など別の恒久失敗は解除しない。分割対象はコミットbundleであり、他の必須資料の上限超過まで解消するものではない。本番大容量の送信から復元までの実測は単体検査と別に記録する。
 
 初回宣言前の旧Editor箱は、起動時に元manifestの本体・master SHAを現在の明示repoで確認してbundleを補完する。不明SHA・repo欠落・既宣言での追加は理由付き保留。元HEAD・branch・dirtyを現在値で上書きしない。
 
