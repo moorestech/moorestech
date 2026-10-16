@@ -43,6 +43,10 @@ class DigestReporterTest(unittest.TestCase):
         self.assertNotIn("## 投入候補", out)
         self.assertNotIn("enqueue-autofix.sh", out)
 
+    def test_developer_reporter_label(self):
+        meta = {"steamId": "dev-macbook", **steam_persona.developer("dev-macbook")}
+        self.assertEqual(reporter.reporter_label(meta), "開発機 macbook（SteamID dev-macbook）")
+
     def test_old_ingest_has_unresolved_name(self):
         box = self.root / "harness/playtest/reports/7656002/20260912_110000_fb1"
         meta = json.loads((box / "ingest.json").read_text(encoding="utf-8"))

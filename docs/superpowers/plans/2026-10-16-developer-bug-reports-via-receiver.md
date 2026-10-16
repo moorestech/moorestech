@@ -125,7 +125,7 @@
   - prepare・complete: sub が `dev-` で kind=progress → 403 `developer-progress-not-accepted`
 - Produces（TS）: `DEVELOPER_SUBJECT_PREFIX = "dev-"`、`isDeveloperSubject(sub: string): boolean`、`developerSubjectOf(machine: string): string`
 
-- [ ] **Step 1: 台帳と判定を書く**
+- [x] **Step 1: 台帳と判定を書く**
 
 `src/devTokens/developerSubject.ts`:
 ```ts
@@ -215,7 +215,7 @@ async function sha256Hex(text: string): Promise<string> {
 ```
 R2 の JSON 読み（`get`→null 判定→`json()`）は `findMachineByToken`・`listDevTokens`・`revokeDevToken` の3か所で同じなので、`readJson<T>(env, key): Promise<T | null>` を1本作ってそれを使う（裁定: 弱指摘③）。`listDevTokens` で by-machine の読み出しが null になるのは、一覧と失効の競合だけ。その行は createdAt を空にして返す（silent-ok: 一覧は表示用。管理者は次の一覧で消えたことに気づく）。この旨をコメントで書く。
 
-- [ ] **Step 2: 経路を書く**
+- [x] **Step 2: 経路を書く**
 
 `src/routes/developerSession.ts`:
 - 形は `routes/session.ts` に合わせる。
@@ -241,7 +241,7 @@ if (await isRevokedDeveloper(env, steamId)) return fail("developer-token-revoked
 ```
 `isRevokedDeveloper(env, sub)` は `devTokenStore.ts` に置く。`isDeveloperSubject(sub)` が偽なら false。真なら `env.BUCKET.head("devtokens/by-machine/" + sub.slice(4))` が null のとき warn して true を返す。クライアントは 401 を既存どおり「セッション拒否」と扱い、1回だけセッションを取り直す。取り直しも交換で 401 になるので、走行は `SessionRefused` で止まる（画面は「受け口に拒否されました」）。
 
-- [ ] **Step 3: テストを書く**
+- [x] **Step 3: テストを書く**
 
 `test/devTokens/developerSession.test.ts` の検査:
 - 発行（管理API）→ 交換が 200 で、4キーの形と `steamId==="dev-macbook"`。`verifyToken` が sub `dev-macbook` を返す。
@@ -264,12 +264,12 @@ if (await isRevokedDeveloper(env, steamId)) return fail("developer-token-revoked
 
 各テストの `beforeEach` で `clean()` を呼ぶ。
 
-- [ ] **Step 4: テストと型検査を通す**
+- [x] **Step 4: テストと型検査を通す**
 
 Run: `cd tools/playtest-receiver && pnpm test && pnpm typecheck`
 Expected: 全 PASS、型エラー0。
 
-- [ ] **Step 5: README を更新してコミットする**
+- [x] **Step 5: README を更新してコミットする**
 
 エンドポイント表に4行を足し、「開発者トークン」の節に発行→Editor 設定→失効の手順を書く。
 

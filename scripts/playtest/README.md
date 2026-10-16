@@ -14,6 +14,11 @@ export STEAM_WEB_API_KEY=<Steam Web API の publisher key>
 
 受け口 Worker 側は別途 R2 API トークン（Object Read & Write、バケット `moorestech-playtest` に限定）を作り `wrangler secret put R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` で Worker の secrets へ入れる（`tools/playtest-receiver/README.md` 手順2b）。この env.sh 側には何も追加しない。
 
+## 開発者の報告
+
+`dev-token.sh issue <機材名>` で発行したトークンを Unity の `moorestech/Playtest/Developer Token` に保存する。`list` で一覧、`revoke <機材名>` で即時失効できる。管理キー・envの読み込みは取り込みと共通。発行の標準出力はトークン1行のみなので安全に扱い、ログやrepoへ残さない。
+開発機は Steam 表示名の照会を行わず「開発機 <機材名>」としてダイジェストに出る。操作詳細は `README-macmini.md` の「開発者トークン」を参照。
+
 ## 配布工程
 
 Windows と Mac（Apple Silicon）の配布ビルドを焼き、1つの Steam ビルドに両 depot を入れて `playtest-staging` へ上げる。Windows は検証機で通し検証し、Mac は `promotion.md` の手順で人が確認する。`playtest` への反映は確認後に Steamworks Web UI で手動実行する。
