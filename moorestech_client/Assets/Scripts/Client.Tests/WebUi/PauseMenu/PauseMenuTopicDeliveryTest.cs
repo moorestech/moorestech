@@ -33,8 +33,8 @@ namespace Client.Tests.WebUi
 
         private static void AssertDelivery(PlaytestDeliveryStatus status, JObject expected)
         {
-            // 状態変更を購読した配信とsnapshotの形を同時に確かめる
-            // Verify publication on status change and the snapshot shape together
+            // 購読配信とスナップショットを検証
+            // Verify status-change publication and the snapshot together
             var hub = new WebSocketHub();
             using var topic = new PauseMenuTopic(hub, new NetworkDisconnectState(), new BugReportCaptureSession(new NullBugReportCaptureSources()), new PauseMenuStateService());
             var before = hub.GetTopicRevision(PauseMenuTopic.TopicName);

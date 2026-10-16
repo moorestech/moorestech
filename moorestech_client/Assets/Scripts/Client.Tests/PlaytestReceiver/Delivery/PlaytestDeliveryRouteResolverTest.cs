@@ -6,8 +6,8 @@ namespace Client.Tests.PlaytestReceiver
 {
     public class PlaytestDeliveryRouteResolverTest
     {
-        // 配布ビルド側の分岐はTask 10の配布ビルドsmokeで確認する
-        // Distribution branches are checked by the shipped-build smoke in Task 10
+        // Task10で配布smokeを確認
+        // Check distribution branches with the Task 10 shipped-build smoke
         [TestCase(false)]
         [TestCase(true)]
         public void Editorでは起動形態に関わらず開発者認証を選ぶ(bool isDistribution)

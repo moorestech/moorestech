@@ -32,8 +32,8 @@ namespace Client.Tests.PlaytestReceiver.Credentials
             api.DeveloperSessionResponses.Add(PlaytestApiResult.Responded(status, PlaytestSessionBodies.AllowedFarFuture));
             var session = new PlaytestSession(api, new DeveloperTokenSessionCredential(developerToken));
 
-            // Steam経路を通らず資格情報そのものを受け口へ渡す
-            // Send the credential itself to the receiver without calling the Steam route
+            // Steamを介さず資格情報を渡す
+            // Send credentials without using the Steam route
             var result = session.AuthenticateAsync(DateTime.UtcNow, CancellationToken.None).GetAwaiter().GetResult();
             Assert.AreEqual(outcome, result.Outcome);
             CollectionAssert.AreEqual(new[] { developerToken }, api.DeveloperTokens);

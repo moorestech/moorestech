@@ -135,7 +135,7 @@ public sealed class PlaytestDeveloperTokenWindow : EditorWindow
 
     private void SetResult(DeveloperTokenWindowResultKind kind, string detail)
     {
-        // 固定結果から表示とログの重要度を一緒に決める
+        // 結果別に表示・ログ重要度を統一
         // Derive presentation and log severity together from the fixed result
         (_result, _resultType) = kind switch
         {

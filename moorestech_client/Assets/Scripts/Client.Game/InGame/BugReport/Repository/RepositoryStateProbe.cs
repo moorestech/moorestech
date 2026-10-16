@@ -28,8 +28,10 @@ namespace Client.Game.InGame.BugReport
         public bool TrackedChangesPresent;
     }
 
-    // Editor実行時は git で作業ツリーの状態を取り、ビルド実行時は焼き込まれた build-info.json を読む
-    // Probes the working tree via git when running in the Editor; reads the baked build-info.json in a build
+    // ・Editorはgitで状態取得
+    // ・ビルドは焼込情報を参照
+    // - Probe Editor working trees via git
+    // - Read baked build-info.json in builds
     public static class RepositoryStateProbe
     {
         public const string BuildInfoFileName = "build-info.json";

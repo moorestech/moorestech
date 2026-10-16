@@ -40,8 +40,8 @@ namespace Client.Tests.PlaytestReceiver
             Assert.IsTrue(File.Exists(Path.Combine(bundle.BundleDirectory, "repo", "bundle-status.txt")));
             Debug.Log("[RealReceiverCheck] bundle=" + bundle.BundleDirectory);
 
-            // 実HTTPと本番の走行役で送信完了印まで待つ
-            // Use real HTTP and the production runner through the uploaded marker
+            // 実HTTPと本番走行役で完了待ち
+            // Wait for the uploaded marker using real HTTP and the production runner
             PlaytestUploadRunner.ResetOnPlayMode();
             var runner = new PlaytestUploadRunner(new PlaytestReceiverClient(PlaytestReceiverConfig.BaseUrl),
                 PlaytestOutboxDirectories.FromGameSystemPaths(), new PlaytestSteamTicketProvider());
