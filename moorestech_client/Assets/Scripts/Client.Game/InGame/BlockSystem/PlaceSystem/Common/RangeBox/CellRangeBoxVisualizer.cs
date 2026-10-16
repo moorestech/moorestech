@@ -1,24 +1,28 @@
 using Client.Common;
 using UnityEngine;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Copy
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.RangeBox
 {
     /// <summary>
-    ///     始点（赤）・終点（緑）のセルと半透明の範囲を表示する
-    ///     Shows red start and green end cells with a translucent range box
+    ///     - 始点は赤、終点は緑
+    ///     - 範囲箱は半透明
+    ///     - 名前接頭辞・範囲色は呼出側指定
+    ///     - Red start and green end markers
+    ///     - Translucent range box
+    ///     - Caller specifies name prefix and range color
     /// </summary>
-    public class BlueprintCopyRangeVisualizer
+    public class CellRangeBoxVisualizer
     {
         private static readonly Color EndMarkerColor = new(0.3f, 0.85f, 0.35f, 1f);
         private readonly GameObject _startMarker;
         private readonly GameObject _endMarker;
         private readonly GameObject _rangeBox;
 
-        public BlueprintCopyRangeVisualizer()
+        public CellRangeBoxVisualizer(string objectNamePrefix, Color rangeColor)
         {
-            _startMarker = CreateCube("BlueprintCopyStartMarker", MaterialConst.NotPlaceableColor);
-            _endMarker = CreateCube("BlueprintCopyEndMarker", EndMarkerColor);
-            _rangeBox = CreateCube("BlueprintCopyRangeBox", MaterialConst.PlaceableColor);
+            _startMarker = CreateCube(objectNamePrefix + "StartMarker", MaterialConst.NotPlaceableColor);
+            _endMarker = CreateCube(objectNamePrefix + "EndMarker", EndMarkerColor);
+            _rangeBox = CreateCube(objectNamePrefix + "RangeBox", rangeColor);
 
             #region Internal
 
@@ -27,7 +31,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Copy
                 var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
                 cube.name = name;
                 Object.Destroy(cube.GetComponent<Collider>());
-
                 // 設置プレビュー材質を複製して色を付ける
                 // Clone the placement preview material and tint it
                 var material = new Material(MaterialConst.GetPreviewPlaceBlockMaterial());
@@ -51,12 +54,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Copy
         {
             PlaceCell(_startMarker, startCell);
             PlaceCell(_endMarker, hoverCell);
-
-            // セル境界から中心とサイズを計算する
-            // Calculate center and size from cell boundaries
-            var size = new Vector3(max.x - min.x + 1, max.y - min.y + 1, max.z - min.z + 1);
-            _rangeBox.transform.position = new Vector3(min.x, min.y, min.z) + size * 0.5f;
-            _rangeBox.transform.localScale = size;
+            var bounds = CellRangeBox.ToWorldBounds(min, max);
+            _rangeBox.transform.position = bounds.center;
+            _rangeBox.transform.localScale = bounds.size;
             _rangeBox.SetActive(true);
         }
 

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using ClassLibrary;
 using Client.Game.InGame.UI.UIState;
 using Client.Playtest.Input;
@@ -6,6 +7,7 @@ using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using Object = UnityEngine.Object;
 
 namespace Client.Playtest.Operations.Ui
@@ -143,5 +145,29 @@ namespace Client.Playtest.Operations.Ui
                 await UniTask.Yield();
             }
         }
+#if UNITY_EDITOR
+        // CEF等へフォーカスが移るとデバイスが無効になるため、注入前にEditorの入力環境を整える
+        // Losing focus to CEF can disable devices; restore the Editor input environment before injection
+        public static async UniTask FocusGameViewAndEnableInput(PlaytestDriver driver)
+        {
+            foreach (var windowType in new[] { "SceneHierarchyWindow", "GameView" })
+            {
+                var type = typeof(UnityEditor.EditorWindow).Assembly.GetType($"UnityEditor.{windowType}");
+                driver.Assert(type != null, $"環境: Editorウィンドウ型が見つからない: {windowType}");
+                var window = UnityEditor.EditorWindow.GetWindow(type);
+                driver.Assert(window != null, $"環境: Editorウィンドウを取得できない: {windowType}");
+                window.Focus();
+                await UniTask.DelayFrame(5);
+            }
+
+            // キー・マウス有効化失敗を準備段階で示す
+            // Report keyboard or mouse activation failures during setup
+            SemanticInput.EnsureDevices();
+            foreach (var device in InputSystem.devices)
+                if (!device.enabled) InputSystem.EnableDevice(device);
+            await driver.Until(() => Application.isFocused && Keyboard.current.enabled && Mouse.current.enabled,
+                10f, "環境: GameViewがプレイフォーカスを持ちキーボードとマウスが有効");
+        }
+#endif
     }
 }

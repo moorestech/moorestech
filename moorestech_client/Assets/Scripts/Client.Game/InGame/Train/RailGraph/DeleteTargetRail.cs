@@ -1,3 +1,7 @@
+using Cysharp.Threading.Tasks;
+using Server.Protocol.PacketResponse;
+using UniRx;
+using Client.Game.InGame.UI.UIState.State.DragDelete.Completion;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
 using System;
 using Client.Game.Common;
@@ -10,7 +14,10 @@ using UnityEngine;
 namespace Client.Game.InGame.Train.RailGraph
 {
     public class DeleteTargetRail : MonoBehaviour, IDeleteTarget
-    {       
+    {
+        private readonly Subject<DeleteCompletion> _deleteCompleted = new();
+        public IObservable<DeleteCompletion> OnDeleteCompleted => _deleteCompleted;
+       
         public BezierRailChain RailChain { get; private set; }
         private RailObjectIdCarrier _railObjectIdCarrier;
         private RailGraphClientCache _railGraphClientCache;
@@ -32,6 +39,7 @@ namespace Client.Game.InGame.Train.RailGraph
         public void SetParentBezierRailChain(BezierRailChain parent)
         {
             RailChain = parent;
+            parent.RegisterDeleteTarget(this);
         }
 
         public void SetRemovePreviewing()
@@ -74,8 +82,11 @@ namespace Client.Game.InGame.Train.RailGraph
             RemovedRail.Capture(_railGraphClientCache, fromId, toId, RemovedRailCaptureContext.Direct, collector);
         }
 
-        public void Delete()
+        public void Delete() => DeleteAsync().Forget();
+
+        private async UniTask DeleteAsync()
         {
+            var key = GetDeleteTargetKey();
             var carrier = RailObjectIdCarrier;
             var railObjectId = carrier.GetRailObjectId();
             var (fromId, toId) = RailObjectIdCodec.Decode(railObjectId);
@@ -85,15 +96,33 @@ namespace Client.Game.InGame.Train.RailGraph
             if (!_railGraphClientCache.TryGetNode(fromId, out var fromNode))
             {
                 Debug.LogWarning($"[RailDelete] endpoint node not found: node={fromId} edge={fromId}->{toId}");
+                _deleteCompleted.OnNext(new DeleteCompletion(key, DeleteCompletionKind.Rejected, LocalizationKeys.Ui.Delete.UnknownError));
                 return;
             }
             if (!_railGraphClientCache.TryGetNode(toId, out var toNode))
             {
                 Debug.LogWarning($"[RailDelete] endpoint node not found: node={toId} edge={fromId}->{toId}");
+                _deleteCompleted.OnNext(new DeleteCompletion(key, DeleteCompletionKind.Rejected, LocalizationKeys.Ui.Delete.UnknownError));
                 return;
             }
             
-            ClientContext.VanillaApi.SendOnly.DisconnectRail(fromNode.NodeId, fromNode.NodeGuid, toNode.NodeId, toNode.NodeGuid);
+            // 既存応答を待ち、描画体の破棄には待機を連動させない
+            // Await the existing response independently of view destruction
+            var response = await ClientContext.VanillaApi.Response.Removal.DisconnectRail(fromNode.NodeId, fromNode.NodeGuid, toNode.NodeId, toNode.NodeGuid, Application.exitCancellationToken);
+            var kind = response == null ? DeleteCompletionKind.Unconfirmed : response.Success ? DeleteCompletionKind.Succeeded : DeleteCompletionKind.Rejected;
+            LocalizationKey? reason = kind == DeleteCompletionKind.Succeeded ? null : LocalizationKeys.Ui.Delete.UnknownError;
+            if (response != null && !response.Success)
+            {
+                reason = response.FailureReason switch
+                {
+                    RailConnectionEditProtocol.RailConnectionEditFailureReason.NodeInUseByTrain => LocalizationKeys.Ui.Delete.RailHasVehicle,
+                    RailConnectionEditProtocol.RailConnectionEditFailureReason.StationInternalEdge => LocalizationKeys.Ui.Delete.StationInternalRail,
+                    RailConnectionEditProtocol.RailConnectionEditFailureReason.NotEnoughInventorySpace => LocalizationKeys.Ui.Delete.InventoryFull,
+                    _ => LocalizationKeys.Ui.Delete.UnknownError,
+                };
+            }
+            if (kind != DeleteCompletionKind.Succeeded) Debug.LogWarning($"[RailDelete] {key}: {kind} reason={reason}");
+            _deleteCompleted.OnNext(new DeleteCompletion(key, kind, reason));
         }
 
         // 復元を共有する表示の寿命を識別する

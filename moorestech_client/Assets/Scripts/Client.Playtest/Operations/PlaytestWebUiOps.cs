@@ -63,6 +63,23 @@ namespace Client.Playtest.Operations
             throw new TimeoutException($"Web UI element did not become available: {testid}");
         }
 
+        public static async UniTask ScrollDownUntilWebUiElementIsClickable(string testid, string scrollAreaTestid, float timeoutSeconds)
+        {
+            // カテゴリ見出しへの移動後、枠外にあるスロットを実際のホイール入力で表示領域へ送る
+            // After jumping to a category heading, wheel clipped slots into the visible scroll area
+            var scrollArea = await ResolveScreenPointUntil(scrollAreaTestid, timeoutSeconds);
+            await SemanticInput.MouseGlideTo(scrollArea.ScreenPosition, MouseGlideSeconds);
+            var deadline = Time.realtimeSinceStartup + timeoutSeconds;
+            while (Time.realtimeSinceStartup <= deadline)
+            {
+                var target = await QueryWithinDeadline(testid, deadline);
+                if (IsUsable(target)) return;
+                SemanticInput.MouseWheel(-120f);
+                await UniTask.DelayFrame(5);
+            }
+            throw new TimeoutException($"Web UI element stayed outside the scroll area: {testid}");
+        }
+
         public static async UniTask WaitWebUiTextContains(string testid, string expected, float timeoutSeconds)
         {
             // 辞書更新後のReact再描画を待ち、対象要素の実表示文字列を検証する
@@ -71,7 +88,7 @@ namespace Client.Playtest.Operations
             while (Time.realtimeSinceStartup <= deadline)
             {
                 var result = await QueryWithinDeadline(testid, deadline);
-                if (IsUsable(result) && result.Text.Contains(expected)) return;
+                if (result.Found && result.Visible && result.Text.Contains(expected)) return;
                 await UniTask.DelayFrame(2);
             }
             throw new TimeoutException($"Web UI text did not contain '{expected}': {testid}");

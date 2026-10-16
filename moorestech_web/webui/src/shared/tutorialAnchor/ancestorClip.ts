@@ -35,7 +35,20 @@ export function ancestorClipRect(element: HTMLElement): ClipRect {
       if (containsAbsolute) escape = "static";
     }
     if (clipsHere) {
-      if (clipsContent(style)) clip = intersect(clip, paddingBox(node, style));
+      const clipsBoth = clipsContent(style);
+      const clipsX = clipsBoth || style.overflowX !== "visible";
+      const clipsY = clipsBoth || style.overflowY !== "visible";
+      // 可視軸の境界は保ち、切る軸だけ交差させる
+      // Preserve visible axes and intersect only axes that clip
+      if (clipsX || clipsY) {
+        const box = paddingBox(node, style);
+        clip = {
+          left: clipsX ? Math.max(clip.left, box.left) : clip.left,
+          right: clipsX ? Math.min(clip.right, box.right) : clip.right,
+          top: clipsY ? Math.max(clip.top, box.top) : clip.top,
+          bottom: clipsY ? Math.min(clip.bottom, box.bottom) : clip.bottom,
+        };
+      }
 
       // 捕捉された祖先自身のpositionが、これより上での脱出力になる
       // The captured ancestor's own position becomes the escape in effect above it
@@ -79,7 +92,7 @@ function createsFixedContainingBlock(style: CSSStyleDeclaration) {
 }
 
 function clipsContent(style: CSSStyleDeclaration) {
-  return style.overflow !== "visible" || style.clipPath !== "none" ||
+  return style.clipPath !== "none" ||
     style.contain.includes("paint") || style.contain.includes("strict") || style.contain === "content";
 }
 
@@ -93,9 +106,4 @@ function paddingBox(node: HTMLElement, style: CSSStyleDeclaration): ClipRect {
     right: box.right - (parseFloat(style.borderRightWidth) || 0),
     bottom: box.bottom - (parseFloat(style.borderBottomWidth) || 0),
   };
-}
-
-function intersect(a: ClipRect, b: ClipRect): ClipRect {
-  return { left: Math.max(a.left, b.left), top: Math.max(a.top, b.top),
-    right: Math.min(a.right, b.right), bottom: Math.min(a.bottom, b.bottom) };
 }

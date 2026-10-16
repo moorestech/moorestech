@@ -44,8 +44,9 @@ namespace Client.Tests.UIState
             var material = new TrainCarMaterialController(CreateObject());
             var first = CreateObject().AddComponent<TrainCarEntityChildrenObject>();
             var other = CreateObject().AddComponent<TrainCarEntityChildrenObject>();
-            first.Initialize(null, material);
-            other.Initialize(null, material);
+            var owner = CreateObject().AddComponent<Client.Game.InGame.Train.View.Object.Core.TrainCarEntityObject>();
+            first.Initialize(owner, material);
+            other.Initialize(owner, material);
             Assert.AreSame(material, first.GetPreviewResetKey());
             Assert.AreSame(first.GetPreviewResetKey(), other.GetPreviewResetKey());
             AssertSharedFailure(first.GetPreviewResetKey(), other.GetPreviewResetKey());

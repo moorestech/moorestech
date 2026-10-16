@@ -20,15 +20,15 @@ namespace Client.Tests.BuildUndo
         {
             var history = new BuildOperationHistory();
             var sender = new FakeRemovalRestoreSender();
-            var selection = new DragDeleteSelection(history, sender, new DeletePreviewResetRecovery());
+            var selection = new DeleteSelection(history, sender, new DeletePreviewResetRecovery());
             var tool = Guid.NewGuid();
             var target = new FakeDeleteTarget { Removable = true };
             target.RemovedObjects.Add(new RemovedConnectionLine(Vector3Int.zero, Vector3Int.right, tool, new FakeConnectionLineCommands(ConnectionLineKind.ElectricWire)));
 
             // 確定で消えても先に記録した線を復元
             // Restore the captured line even if commit erases the target
-            selection.BeginDrag();
-            Assert.IsTrue(selection.TryAddTarget(target, out _));
+            selection.BeginStroke();
+            Assert.IsTrue(selection.TryAddTarget(target).IsAdded);
             selection.CommitDelete();
             Assert.AreEqual(1, target.DeleteCount);
             Assert.IsEmpty(target.RemovedObjects);
@@ -43,9 +43,9 @@ namespace Client.Tests.BuildUndo
         public void TargetsWithoutRestorableObjectsDoNotCreateHistory()
         {
             var history = new BuildOperationHistory();
-            var selection = new DragDeleteSelection(history, new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
-            selection.BeginDrag();
-            Assert.IsTrue(selection.TryAddTarget(new FakeDeleteTarget { Removable = true }, out _));
+            var selection = new DeleteSelection(history, new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
+            selection.BeginStroke();
+            Assert.IsTrue(selection.TryAddTarget(new FakeDeleteTarget { Removable = true }).IsAdded);
             selection.CommitDelete();
             Assert.IsFalse(history.TryPop(out _));
         }

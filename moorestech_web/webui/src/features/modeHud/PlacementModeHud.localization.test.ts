@@ -35,9 +35,23 @@ vi.mock("@/shared/tutorialAnchor", () => ({
   TutorialAnchorIds: { placementHud: "placement-hud" },
 }));
 
-import { PlacementModeHud } from "./PlacementModeHud";
+import { PlacementModeHud, DeleteBoxHeightHud } from "./PlacementModeHud";
 
 describe("PlacementModeHud localization", () => {
+  it("削除箱は共用高さの更新だけを表示する", () => {
+    topicState.placement = { selectedTargetType: "raw", selectedName: "STALE TARGET", height: 3, unavailableReason: "STALE WARNING" };
+    setDictionary({});
+    let renderer: ReactTestRenderer;
+    act(() => { renderer = create(createElement(DeleteBoxHeightHud)); });
+    expect(JSON.stringify(renderer!.toJSON())).toContain("Height: 3");
+    expect(JSON.stringify(renderer!.toJSON())).not.toMatch(/STALE|Placement|Selected:/);
+    topicState.placement = { ...topicState.placement, height: -1 };
+    act(() => { renderer!.update(createElement(DeleteBoxHeightHud)); });
+    expect(JSON.stringify(renderer!.toJSON())).toContain("Height: -1");
+    act(() => renderer!.unmount());
+    topicState.placement = { selectedTargetType: "block", selectedBlockGuid: blockGuid, height: 2, unavailableReason: "" };
+  });
+
   it("block Guidを現在辞書の表示名へ解決する", () => {
     setDictionary({ [blockNameKey(blockGuid)]: "Localized Assembler" });
 

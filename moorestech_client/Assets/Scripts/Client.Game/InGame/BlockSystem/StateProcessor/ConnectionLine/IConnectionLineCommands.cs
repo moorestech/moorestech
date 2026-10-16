@@ -1,3 +1,5 @@
+using Cysharp.Threading.Tasks;
+using Client.Game.InGame.UI.UIState.State.DragDelete.Completion;
 using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
 using UnityEngine;
@@ -9,7 +11,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
     public interface IConnectionLineCommands
     {
         ConnectionLineKind Kind { get; }
-        void SendDisconnect(Vector3Int posA, Vector3Int posB);
+        UniTask<DeleteCompletion> Disconnect(object key, Vector3Int posA, Vector3Int posB);
         void SendRestore(IRemovalRestoreSender sender, Vector3Int posA, Vector3Int posB, Guid connectToolGuid);
     }
 }

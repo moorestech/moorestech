@@ -1,3 +1,4 @@
+import { ancestorClipRect } from "../../shared/tutorialAnchor/ancestorClip";
 import { useTopicStore } from "../store/topicStore";
 import { Topics } from "../transport/protocol";
 import { subscriptions } from "../transport/subscriptionManager";
@@ -12,6 +13,7 @@ type DomQueryRequest = {
 type DomQueryResult = {
   requestId: string;
   found: boolean;
+  visible: boolean;
   x: number;
   y: number;
   width: number;
@@ -98,6 +100,7 @@ function queryElement(request: DomQueryRequest): DomQueryResult {
     return {
       requestId: request.requestId,
       found: false,
+      visible: false,
       x: 0,
       y: 0,
       width: 0,
@@ -110,18 +113,20 @@ function queryElement(request: DomQueryRequest): DomQueryResult {
 
   const rect = element.getBoundingClientRect();
   let hitTestPassed = false;
-  if (isElementVisible(element, rect)) {
+  const visible = isElementVisible(element, rect);
+  if (visible) {
     // 矩形中心の実ヒット要素を調べ、遮蔽物による空クリックを検出する
     // Inspect the actual hit at the rectangle center to detect blocked clicks
     const hitElement = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
     hitTestPassed = hitElement !== null && (
-      hitElement === element || element.contains(hitElement) || hitElement.contains(element)
+      hitElement === element || element.contains(hitElement)
     );
   }
 
   return {
     requestId: request.requestId,
     found: true,
+    visible,
     x: rect.x,
     y: rect.y,
     width: rect.width,
@@ -137,8 +142,10 @@ function isElementVisible(element: HTMLElement, rect: DOMRect): boolean {
   const style = getComputedStyle(element);
   if (style.display === "none" || style.visibility === "hidden") return false;
 
-  // 面積があり、viewportと交差する要素だけをクリック可能とみなす
-  // Treat only non-empty elements intersecting the viewport as clickable
+  // 祖先のoverflowと画面の交差に、実際に見える面積が必要
+  // Require visible area inside both ancestor overflow clips and the viewport
   if (rect.width <= 0 || rect.height <= 0) return false;
-  return rect.bottom > 0 && rect.right > 0 && rect.top < innerHeight && rect.left < innerWidth;
+  const clip = ancestorClipRect(element);
+  return Math.max(rect.left, clip.left) < Math.min(rect.right, clip.right) &&
+    Math.max(rect.top, clip.top) < Math.min(rect.bottom, clip.bottom);
 }

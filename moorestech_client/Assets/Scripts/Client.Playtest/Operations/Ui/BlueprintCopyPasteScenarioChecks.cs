@@ -34,6 +34,7 @@ namespace Client.Playtest.Operations.Ui
             _playtest.Assert(_playtest.CurrentUiState == UIStateEnum.BuildMenu, $"ビルドメニューが開く ({entryTestid})");
             await _playtest.UntilWebUiElement("build-menu-panel", 15f);
             await _playtest.ClickWebUi(categoryTestid);
+            await PlaytestWebUiOps.ScrollDownUntilWebUiElementIsClickable(entryTestid, "build-menu-scroll-area", 15f);
             var deadline = Time.realtimeSinceStartup + 20f;
             while (_playtest.CurrentUiState != UIStateEnum.PlaceBlock && Time.realtimeSinceStartup < deadline)
             {

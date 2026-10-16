@@ -49,6 +49,7 @@ namespace Client.Playtest.Operations.Ui
             var (categoryGuid, _) = MasterHolder.BuildMenuCategoryMaster
                 .GetGuidPair(blockMaster.Category, blockMaster.SubCategory);
             await PlaytestWebUiOps.ClickWebUi($"build-menu-category-{categoryGuid:D}", 15f);
+            await PlaytestWebUiOps.ScrollDownUntilWebUiElementIsClickable(webUiTestid, "build-menu-scroll-area", 15f);
 
             // 非同期BPライブラリ更新が選択を破棄するレースに備え、PlaceBlock遷移までクリックを繰り返す
             // Retry clicks until PlaceBlock to survive an async blueprint-library rebuild discarding selection

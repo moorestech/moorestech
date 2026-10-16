@@ -1,8 +1,9 @@
 // 建築UI Ctrl+ZアンドゥのE2E検証
-// 記録フックは PlaceSystemUtil.SendPlaceBlockProtocol(設置) と DragDeleteSelection.CommitDelete(撤去) のため、必ずUI経路で操作する（SendOnly直送は履歴に積まれず偽陰性になる）
+// 記録フックは PlaceSystemUtil.SendPlaceBlockProtocol(設置) と DeleteSelection.CommitDelete(撤去) のため、必ずUI経路で操作する（SendOnly直送は履歴に積まれず偽陰性になる）
 // End-to-end check of the build-UI Ctrl+Z undo.
-// Recording hooks live in PlaceSystemUtil.SendPlaceBlockProtocol (place) and DragDeleteSelection.CommitDelete (remove), so operate strictly via UI (direct SendOnly bypasses history = false negative).
+// Recording hooks live in PlaceSystemUtil.SendPlaceBlockProtocol (place) and DeleteSelection.CommitDelete (remove), so operate strictly via UI (direct SendOnly bypasses history = false negative).
 using Client.Playtest;
+using Client.Playtest.Operations.Ui;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Client.Game.InGame.UI.UIState;
@@ -17,6 +18,7 @@ return PlaytestRunner.Run("build-undo-ctrl-z", options, async p =>
     // 足場+ワープ+無料設置
     // Ground + warp + free placement
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
+    await PlaytestUiOps.FocusGameViewAndEnableInput(p);
 
     // 設置カメラは北向き・浅いピッチのため、設置セルの南側に立つ
     // The placement camera faces north at a shallow pitch, so stand south of the target cell
@@ -74,6 +76,18 @@ return PlaytestRunner.Run("build-undo-ctrl-z", options, async p =>
 
     #region Internal
 
+    // 選択後にFを2秒長押しして撤去を確定する
+    // Hold F for two seconds to confirm deletion after selecting
+    async UniTask HoldDeleteConfirm()
+    {
+        p.Note("F長押しで削除を確定");
+        SemanticInput.KeyDown(Key.F);
+        await p.WaitSeconds(2f + 0.3f);
+        SemanticInput.KeyUp(Key.F);
+        await p.WaitSeconds(0.5f);
+    }
+
+
     // Ctrl+Zを注入する。HybridInputはLeftCtrl(GetKey保持)+Z(GetKeyDown)を見るため、
     // LeftCtrl押下→(保持したまま)Z押下→Z解放→LeftCtrl解放の順でQueueStateEventを送る
     // Inject Ctrl+Z. HybridInput checks LeftCtrl held (GetKey) plus Z (GetKeyDown),
@@ -100,6 +114,7 @@ return PlaytestRunner.Run("build-undo-ctrl-z", options, async p =>
         SemanticInput.MouseButtonDown(0);
         await UniTask.DelayFrame(10);
         SemanticInput.MouseButtonUp(0);
+        await HoldDeleteConfirm();
         await UniTask.DelayFrame(3);
         await driver.WaitSeconds(0.5f);
     }

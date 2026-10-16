@@ -79,7 +79,8 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public UITransitContext GetNextUpdate()
         {
-            var isRightShortPressed = _rightShortPressInputService.TryConsumeShortPressOutsideUi();
+            var isPointerOverUi = UiPointerHitTest.IsPointerOverAnyUi();
+            var isRightShortPressed = _rightShortPressInputService.TryConsumeShortPressOutsideUi(isPointerOverUi);
             if (_shouldClose || InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.OpenInventory.GetKeyDown || isRightShortPressed || IsOutOfReach())
             {
                 return new UITransitContext(UIStateEnum.GameScreen);

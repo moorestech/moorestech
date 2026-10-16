@@ -256,6 +256,7 @@ The skill's whitelist principle covers this document too: read the relevant sect
 - 配置モードの状態表示は、`.viewportOverlay` の実画面右上へ独立して固定し、`GamePanel variant="craft"` に収める。クラフトレシピ詳細と同じ半透明ネイビー面・1px枠・内周線・右下グリップをそのまま再利用する。
 - 配置HUDは「`--text-muted` の従属見出し → `FadeRule` → `--text-high-contrast` の詳細一覧」とし、警告だけ `--text-insufficient` を使う。Mantineの `Paper` / `Stack` / `Title` / `Text` は使わない。
 - 削除モードでは説明パネルを出さず、uGUI正本の `delete bar.png` と同じ黄黒斜線帯を実viewport上下端へ表示する。正本の1920設計・高さ60px・端中央配置で画面内に見える半幅を1280基準へ換算し、帯高は20pxとする。
+- 削除箱の高さは配置と共用の `placementMode.height` を既存の高さ行で実画面右上へ表示する。配置HUDと同じ位置・幅トークンを使い、面を付けず `keyHintText` の文字影で世界背景から区別する。配置モード名・選択対象名・配置不能理由は表示しない。
 - 削除警告帯はCSSの `repeating-linear-gradient` で再現し、色・帯高・斜線周期・角度は `--delete-mode-warning-*` 固定長トークンへ集約する。画像アセットはWebへ移植しない。
 - `delete.hud` のチュートリアルアンカーはstage全面の親ではなく下側警告帯へ付け、吹き出しを画面内へ保つ。
 - 位置・幅・間隔・文字サイズは `--operation-hud-*` 固定長トークンで管理する。
