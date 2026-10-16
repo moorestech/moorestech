@@ -25,7 +25,7 @@ namespace StarterAssets
             // 現在の方式を読み、設定変更を入力へ反映する
             // Read the current mode and apply setting changes to input
             _sprintResolver = new SprintInputResolver(SprintInputModePreference.Current);
-            _modeSubscription = SprintInputModePreference.OnChanged.Subscribe(mode =>
+            _modeSubscription = SprintInputModePreference.OnSprintInputModeChanged.Subscribe(mode =>
             {
                 _sprintResolver.SetMode(mode);
                 ApplySprint();
@@ -35,6 +35,11 @@ namespace StarterAssets
 
         private void OnEnable()
         {
+            // 未観測期間をまたぐ押下候補は破棄する
+            // Discard tap candidates spanning an unobserved interval
+            _sprintResolver.ResyncHeld(inputEnable && InputManager.Player.Sprint.GetKey);
+            ApplySprint();
+
             // Sprint以外の押下は修飾操作として扱う
             // Treat non-sprint presses as modifier operations
             _buttonSubscription = InputSystem.onAnyButtonPress.Call(control =>

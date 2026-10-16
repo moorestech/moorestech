@@ -5,6 +5,35 @@ namespace Client.Tests.Player
 {
     public class SprintInputResolverTest
     {
+        [TestCase(SprintInputMode.Toggle)]
+        [TestCase(SprintInputMode.Hold)]
+        public void 継続押下で複合操作の取消を戻さない(SprintInputMode mode)
+        {
+            var resolver = new SprintInputResolver(mode);
+            resolver.OnSprintPressed();
+            resolver.OnOtherButtonPressed();
+            resolver.OnSprintPressed();
+            Assert.IsTrue(resolver.IsSprinting);
+            resolver.OnSprintReleased();
+            Assert.AreEqual(mode == SprintInputMode.Toggle, resolver.IsSprinting);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void 禁止画面をまたぐ押下は解放時に反転しない(bool pressBeforeMenu)
+        {
+            var resolver = new SprintInputResolver(SprintInputMode.Toggle);
+            if (pressBeforeMenu) resolver.OnSprintPressed();
+            resolver.SetToggleAllowed(false);
+            if (!pressBeforeMenu) resolver.OnSprintPressed();
+            resolver.SetToggleAllowed(true);
+            resolver.OnSprintReleased();
+            Assert.IsTrue(resolver.IsSprinting);
+            resolver.OnSprintPressed();
+            resolver.OnSprintReleased();
+            Assert.IsFalse(resolver.IsSprinting);
+        }
+
         [Test]
         public void 押下中にホールドへ切り替えると走りを維持する()
         {

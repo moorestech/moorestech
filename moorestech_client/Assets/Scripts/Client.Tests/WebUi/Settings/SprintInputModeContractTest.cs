@@ -45,7 +45,7 @@ namespace Client.Tests.WebUi.Settings
             SprintInputModePreference.SetMode(mode == SprintInputMode.Toggle ? SprintInputMode.Hold : SprintInputMode.Toggle);
             var revisionBefore = hub.GetTopicRevision(SprintInputModeTopic.TopicName);
             var changes = 0;
-            using var subscription = SprintInputModePreference.OnChanged.Subscribe(_ => changes++);
+            using var subscription = SprintInputModePreference.OnSprintInputModeChanged.Subscribe(_ => changes++);
 
             // 登録済みactionとsnapshotを通してwire契約を検証する
             // Verify the wire contract through the registered action and snapshot
@@ -66,7 +66,7 @@ namespace Client.Tests.WebUi.Settings
         public async Task InvalidValueLeavesPreferenceUnchanged(string wire)
         {
             var changes = 0;
-            using var subscription = SprintInputModePreference.OnChanged.Subscribe(_ => changes++);
+            using var subscription = SprintInputModePreference.OnSprintInputModeChanged.Subscribe(_ => changes++);
             var result = await new SetSprintInputModeActionHandler().ExecuteAsync(new JObject { ["mode"] = wire });
             Assert.IsFalse(result.Ok);
             Assert.AreEqual("unknown_sprint_mode", result.Error);

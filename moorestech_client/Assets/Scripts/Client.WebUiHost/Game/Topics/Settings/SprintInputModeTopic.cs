@@ -20,7 +20,7 @@ namespace Client.WebUiHost.Game.Topics
 
         public SprintInputModeTopic(WebSocketHub hub)
         {
-            _modeSubscription = SprintInputModePreference.OnChanged.Subscribe(_ => hub.Publish(TopicName, BuildJson()));
+            _modeSubscription = SprintInputModePreference.OnSprintInputModeChanged.Subscribe(_ => hub.Publish(TopicName, BuildJson()));
         }
 
         public UniTask<string> GetSnapshotJsonAsync()

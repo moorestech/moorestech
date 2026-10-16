@@ -27,8 +27,8 @@ namespace Client.Tests.Player
             base.Setup();
             // テストが開発者の設定を変更しないよう退避する
             // Preserve the developer preference across the test
-            _hadSavedMode = PlayerPrefs.HasKey("SprintInputMode");
-            _savedMode = PlayerPrefs.GetString("SprintInputMode");
+            _hadSavedMode = PlayerPrefs.HasKey(SprintInputModePreference.PreferenceKey);
+            _savedMode = PlayerPrefs.GetString(SprintInputModePreference.PreferenceKey);
             SprintInputModePreference.SetMode(SprintInputMode.Hold);
             _keyboard = InputSystem.AddDevice<Keyboard>();
 
@@ -55,8 +55,8 @@ namespace Client.Tests.Player
         {
             StarterAssetsInputTestLifecycle.ReleaseInputs(_inputs);
             Object.DestroyImmediate(_playerRoot);
-            if (_hadSavedMode) PlayerPrefs.SetString("SprintInputMode", _savedMode);
-            else PlayerPrefs.DeleteKey("SprintInputMode");
+            if (_hadSavedMode) PlayerPrefs.SetString(SprintInputModePreference.PreferenceKey, _savedMode);
+            else PlayerPrefs.DeleteKey(SprintInputModePreference.PreferenceKey);
             TestReflection.ResetInputManagerCache();
             base.TearDown();
         }

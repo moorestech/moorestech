@@ -26,9 +26,9 @@ namespace Client.Tests.Player
             InputSystem.Update();
             // 開発者自身の設定を壊さないよう退避してから既定（未保存）にする
             // Stash the developer's own setting, then start from the unsaved default
-            _hadSavedMode = PlayerPrefs.HasKey("SprintInputMode");
-            _savedMode = PlayerPrefs.GetString("SprintInputMode");
-            PlayerPrefs.DeleteKey("SprintInputMode");
+            _hadSavedMode = PlayerPrefs.HasKey(SprintInputModePreference.PreferenceKey);
+            _savedMode = PlayerPrefs.GetString(SprintInputModePreference.PreferenceKey);
+            PlayerPrefs.DeleteKey(SprintInputModePreference.PreferenceKey);
 
             _root = new GameObject("SprintToggleInputTest");
             _inputs = StarterAssetsInputTestLifecycle.AddInitializedInputs(_root);
@@ -38,10 +38,30 @@ namespace Client.Tests.Player
         {
             StarterAssetsInputTestLifecycle.ReleaseInputs(_inputs);
             Object.DestroyImmediate(_root);
-            if (_hadSavedMode) PlayerPrefs.SetString("SprintInputMode", _savedMode);
-            else PlayerPrefs.DeleteKey("SprintInputMode");
+            if (_hadSavedMode) PlayerPrefs.SetString(SprintInputModePreference.PreferenceKey, _savedMode);
+            else PlayerPrefs.DeleteKey(SprintInputModePreference.PreferenceKey);
             TestReflection.ResetInputManagerCache();
             base.TearDown();
+        }
+
+        [Test]
+        public void 非アクティブ期間をまたぐ押下は反転しない()
+        {
+            Press(_keyboard.leftShiftKey);
+            _inputs.SprintInput(true);
+            // EditModeでは無効化と復帰の通知を明示する
+            // Explicitly deliver disable and enable callbacks in EditMode
+            TestReflection.InvokePrivate(_inputs, "OnDisable");
+            _root.SetActive(false);
+            Press(_keyboard.rKey);
+            _root.SetActive(true);
+            TestReflection.InvokePrivate(_inputs, "OnEnable");
+            Release(_keyboard.leftShiftKey);
+            _inputs.SprintInput(false);
+            Assert.IsTrue(_inputs.sprint);
+            _inputs.SprintInput(true);
+            _inputs.SprintInput(false);
+            Assert.IsFalse(_inputs.sprint);
         }
 
         [Test]

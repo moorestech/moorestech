@@ -59,7 +59,7 @@ namespace Client.Tests.Player
         public void 方式変更は保存後に一度通知して同値では通知しない()
         {
             var count = 0;
-            using var subscription = SprintInputModePreference.OnChanged.Subscribe(mode =>
+            using var subscription = SprintInputModePreference.OnSprintInputModeChanged.Subscribe(mode =>
             {
                 Assert.AreEqual(SprintInputMode.Hold, mode);
                 Assert.AreEqual("Hold", PlayerPrefs.GetString(SprintInputModePreference.PreferenceKey));

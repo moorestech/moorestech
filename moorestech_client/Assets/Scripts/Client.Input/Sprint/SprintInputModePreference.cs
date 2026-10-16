@@ -11,9 +11,9 @@ namespace Client.Input
     public static class SprintInputModePreference
     {
         internal const string PreferenceKey = "SprintInputMode";
-        private static readonly Subject<SprintInputMode> ChangedSubject = new();
+        private static readonly Subject<SprintInputMode> SprintInputModeChangedSubject = new();
 
-        public static IObservable<SprintInputMode> OnChanged => ChangedSubject;
+        public static IObservable<SprintInputMode> OnSprintInputModeChanged => SprintInputModeChangedSubject;
 
         public static SprintInputMode Current => Load();
 
@@ -22,7 +22,7 @@ namespace Client.Input
             if (Load() == mode) return;
             PlayerPrefs.SetString(PreferenceKey, mode.ToString());
             PlayerPrefs.Save();
-            ChangedSubject.OnNext(mode);
+            SprintInputModeChangedSubject.OnNext(mode);
         }
 
         private static SprintInputMode Load()

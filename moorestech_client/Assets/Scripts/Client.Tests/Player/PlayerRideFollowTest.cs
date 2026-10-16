@@ -11,10 +11,13 @@ namespace Client.Tests.Player
     public class PlayerRideFollowTest
     {
         private readonly List<GameObject> _createdObjects = new();
+        private readonly List<StarterAssetsInputs> _createdInputs = new();
 
         [TearDown]
         public void TearDown()
         {
+            foreach (var inputs in _createdInputs) StarterAssetsInputTestLifecycle.ReleaseInputs(inputs);
+            _createdInputs.Clear();
             foreach (var created in _createdObjects)
             {
                 if (created != null) Object.DestroyImmediate(created);
@@ -77,7 +80,7 @@ namespace Client.Tests.Player
             var playerRoot = new GameObject("PlayerRideFollowTestPlayer");
             _createdObjects.Add(playerRoot);
             playerRoot.AddComponent<CharacterController>();
-            playerRoot.AddComponent<StarterAssetsInputs>();
+            _createdInputs.Add(StarterAssetsInputTestLifecycle.AddInitializedInputs(playerRoot));
             thirdPersonController = playerRoot.AddComponent<ThirdPersonController>();
 
             var playerObjectController = playerRoot.AddComponent<PlayerObjectController>();

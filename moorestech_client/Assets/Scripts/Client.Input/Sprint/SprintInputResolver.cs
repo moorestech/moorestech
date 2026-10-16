@@ -31,12 +31,15 @@ namespace Client.Input
         public void SetToggleAllowed(bool allowed)
         {
             _isToggleAllowed = allowed;
+            if (!allowed) _isCleanTap = false;
         }
 
         public void OnSprintPressed()
         {
+            // 継続通知では取消済み候補を復活させない
+            // Continued input must not revive a cancelled tap
+            if (!_isHeld) _isCleanTap = _isToggleAllowed;
             _isHeld = true;
-            _isCleanTap = true;
             if (_mode == SprintInputMode.Hold) IsSprinting = true;
         }
 
