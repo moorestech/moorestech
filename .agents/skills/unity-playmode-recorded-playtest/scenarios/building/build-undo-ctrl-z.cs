@@ -3,6 +3,7 @@
 // End-to-end check of the build-UI Ctrl+Z undo.
 // Recording hooks live in PlaceSystemUtil.SendPlaceBlockProtocol (place) and DeleteSelection.CommitDelete (remove), so operate strictly via UI (direct SendOnly bypasses history = false negative).
 using Client.Playtest;
+using Client.Playtest.Operations.Ui;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Client.Game.InGame.UI.UIState;
@@ -17,6 +18,7 @@ return PlaytestRunner.Run("build-undo-ctrl-z", options, async p =>
     // 足場+ワープ+無料設置
     // Ground + warp + free placement
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
+    await PlaytestUiOps.FocusGameViewAndEnableInput(p);
 
     // 設置カメラは北向き・浅いピッチのため、設置セルの南側に立つ
     // The placement camera faces north at a shallow pitch, so stand south of the target cell

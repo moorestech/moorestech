@@ -10,6 +10,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State.DragDelete;
 using Client.Playtest;
+using Client.Playtest.Operations.Ui;
 using Client.Playtest.Input;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
@@ -36,11 +37,7 @@ return PlaytestRunner.Run("delete-tool-pier-removal-undo-rail", new PlaytestRunO
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig { FreeBlockPlacement = false, SpawnPosition = new Vector3(8f, 33.5f, -6f) });
     await p.SkipOpeningSkit();
 
-    // GameViewへプレイフォーカスを当て直す（CEF起動等で外れるとInputSystemがキーボード・マウスを無効化し注入が届かない）
-    // Re-give the Game view play focus (losing it, e.g. to CEF startup, disables InputSystem devices and drops injection)
-    foreach (var windowType in new[] { "SceneHierarchyWindow", "GameView" }) { Resources.FindObjectsOfTypeAll<UnityEditor.EditorWindow>().First(w => w.GetType().Name == windowType).Focus(); await UniTask.DelayFrame(5); }
-    foreach (var device in InputSystem.devices) if (!device.enabled) InputSystem.EnableDevice(device);
-    await p.Until(() => Application.isFocused && Keyboard.current.enabled, 10f, "環境: GameViewがプレイフォーカスを持ち入力デバイスが有効");
+    await PlaytestUiOps.FocusGameViewAndEnableInput(p);
     p.Hotbar.UnlockConnectTool("レール");
     await p.PrepareBlockForUiPlacement("レール橋脚", 5);
     foreach (var item in new[] { "補強棒材", "鉄板" }) await p.GiveItem(item, 64);

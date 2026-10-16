@@ -3,6 +3,7 @@
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State.DragDelete.Confirm;
 using Client.Playtest;
+using Client.Playtest.Operations.Ui;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using static Client.Playtest.Operations.Ui.DeleteBoxScenarioInput;
@@ -16,6 +17,7 @@ var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("delete-tool-box-select-hold-confirm", options, async p =>
 {
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
+    await PlaytestUiOps.FocusGameViewAndEnableInput(p);
     p.WarpPlayer(new Vector3(2.5f, 33.5f, -2f));
 
     // 準備: 木のチェストを一列に3つ直置き
