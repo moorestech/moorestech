@@ -24,16 +24,16 @@ namespace Client.Tests.UIState
         public void DestroyedTargetIsSkippedBeforeUndoCapture()
         {
             var history = new BuildOperationHistory();
-            var selection = new DragDeleteSelection(history, new FakeRemovalRestoreSender());
+            var selection = new DeleteSelection(history, new FakeRemovalRestoreSender());
             _selectedObject = new GameObject("SelectedRail");
             var target = _selectedObject.AddComponent<DestroyableDeleteTarget>();
-            selection.BeginDrag();
-            Assert.IsTrue(selection.TryAddTarget(target, out _));
+            selection.BeginStroke();
+            Assert.IsTrue(selection.TryAddTarget(target).IsAdded);
             Object.DestroyImmediate(_selectedObject);
 
             // 破棄済みを記録へ渡さず理由を残す
             // Do not pass a destroyed target into capture; leave a diagnostic
-            LogAssert.Expect(LogType.Warning, "[DragDelete] selected target was destroyed before commit");
+            LogAssert.Expect(LogType.Warning, "[DragDelete] target was destroyed before commit");
             selection.CommitDelete();
             Assert.IsFalse(history.TryPop(out _));
         }
@@ -41,16 +41,16 @@ namespace Client.Tests.UIState
         [Test]
         public void DestroyedTargetIsLoggedDuringCancel()
         {
-            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
+            var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
             _selectedObject = new GameObject("SelectedRail");
             var target = _selectedObject.AddComponent<DestroyableDeleteTarget>();
-            selection.BeginDrag();
-            Assert.IsTrue(selection.TryAddTarget(target, out _));
+            selection.BeginStroke();
+            Assert.IsTrue(selection.TryAddTarget(target).IsAdded);
             Object.DestroyImmediate(_selectedObject);
 
             // キャンセルで失った対象も理由を記録する
             // Log a target lost before canceling the selection
-            LogAssert.Expect(LogType.Warning, "[DragDelete] selected target was destroyed before cancel");
+            LogAssert.Expect(LogType.Warning, "[DragDelete] target was destroyed before cancel");
             selection.CancelSelection();
             Assert.IsFalse(selection.HasSelection());
         }

@@ -26,11 +26,13 @@ namespace Client.Tests.UIState
         {
             // 理由キー無しの拒否はnullで表現され、表示経路が辞書引きへ到達しない
             // A reasonless denial is expressed as null so the display path never reaches the lookup
-            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
+            var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
             var target = new FakeDeleteTarget { Removable = false, DenyReason = null };
 
-            selection.BeginDrag();
-            var added = selection.TryAddTarget(target, out var denyReason);
+            selection.BeginStroke();
+            var outcome = selection.TryAddTarget(target);
+            var added = outcome.IsAdded;
+            var denyReason = outcome.DenyReason;
 
             // 先に表示経路をなぞり、空キーが流れた場合の辞書引き例外をそのまま失敗として捕まえる
             // Walk the display path first so a leaked empty key surfaces as the lookup exception itself
@@ -44,12 +46,14 @@ namespace Client.Tests.UIState
         {
             // ESCキャンセル後の拒否も理由なし拒否として安全に扱える
             // A denial after an ESC cancel is also handled safely as a reasonless denial
-            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
+            var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
             var target = new FakeDeleteTarget { Removable = true };
 
-            selection.BeginDrag();
+            selection.BeginStroke();
             selection.CancelSelection();
-            var added = selection.TryAddTarget(target, out var denyReason);
+            var outcome = selection.TryAddTarget(target);
+            var added = outcome.IsAdded;
+            var denyReason = outcome.DenyReason;
 
             Assert.IsFalse(added);
             Assert.IsFalse(denyReason.HasValue);
@@ -61,15 +65,17 @@ namespace Client.Tests.UIState
         {
             // 理由キーがある拒否は従来どおり文言まで解決される
             // A denial that carries a reason key still resolves all the way to its wording
-            var selection = new DragDeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
+            var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender());
             var target = new FakeDeleteTarget
             {
                 Removable = false,
                 DenyReason = LocalizationKeys.Ui.Delete.RailHasVehicle,
             };
 
-            selection.BeginDrag();
-            var added = selection.TryAddTarget(target, out var denyReason);
+            selection.BeginStroke();
+            var outcome = selection.TryAddTarget(target);
+            var added = outcome.IsAdded;
+            var denyReason = outcome.DenyReason;
 
             Assert.IsFalse(added);
             Assert.IsTrue(denyReason.HasValue);
