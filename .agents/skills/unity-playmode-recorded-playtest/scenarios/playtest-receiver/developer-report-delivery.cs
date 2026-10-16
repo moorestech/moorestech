@@ -107,6 +107,7 @@ return PlaytestRunner.Run("developer-report-delivery", new PlaytestRunOptions { 
         {
             p.Assert(pendingBoxLock != null, "検証用の実箱ロックを取得した");
             await PlaytestWebUiOps.WaitWebUiTextContains("bug-report-delivery", "送信待ち", 15f);
+            p.Assert(!File.Exists(Path.Combine(box, "UPLOADED")), "検証用ロック中は未送信の実箱を保持する");
             await p.Screenshot("03-pending");
             pendingSubscription.Dispose();
             pendingSubscription = null;
