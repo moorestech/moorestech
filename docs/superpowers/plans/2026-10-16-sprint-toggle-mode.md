@@ -628,7 +628,7 @@ git commit -m "feat: 走りトグルを入力へ接続しメニュー中の反�
   - topic `settings.sprintInputMode` payload `{ mode: "toggle" | "hold" }`
   - action `settings.setSprintInputMode` payload `{ mode: "toggle" | "hold" }`、不明値は `ActionResult.Fail("unknown_sprint_mode")`
 
-- [ ] **Step 1: C# 側**
+- [x] **Step 1: C# 側**
 
 `SprintInputModeTopic.cs`（`LocalizationTopic` と同形。`EnsureRegistered` は不要）:
 ```csharp
@@ -737,7 +737,7 @@ namespace Client.WebUiHost.Game.Actions
 
 `WebUiGameBinder.cs`: `LocalizationActions.Register(hub);` の直下に `SettingsActions.Register(hub);`、topic 登録群の末尾に `hub.RegisterTopic(SprintInputModeTopic.TopicName, new SprintInputModeTopic(hub));`。
 
-- [ ] **Step 2: C# 契約テスト** — `SprintInputModeContractTest.cs`（`LocalizationLanguageSelectionContractTest` 同形）
+- [x] **Step 2: C# 契約テスト** — `SprintInputModeContractTest.cs`（`LocalizationLanguageSelectionContractTest` 同形）
 
 ```csharp
 using System.Threading.Tasks;
@@ -803,7 +803,7 @@ namespace Client.Tests.WebUi.Settings
 ```
 （`ResolveAction` の戻り型・`ActionResult.Error` の名前は `LocalizationLanguageSelectionContractTest.cs:150` 付近の実例に合わせる）
 
-- [ ] **Step 3: Web 側**
+- [x] **Step 3: Web 側**
 
 `schemas/ui.ts`（`LocalizationDataSchema` の直下）:
 ```ts
@@ -870,13 +870,13 @@ export function SprintModeSelect() {
 
 `SprintModeSelect.test.ts`（`LanguageSelect.test.ts` のモック構成を踏襲）: (1) topic `{mode:"toggle"}` で ModeSwitch の `value` が `"toggle"`、(2) `onChange("hold")` で `dispatchAction` が `("settings.setSprintInputMode", {mode:"hold"})` で呼ばれる、(3) topic 未着（`useTopic` が undefined）では ModeSwitch を描かない、の3ケース。
 
-- [ ] **Step 4: 検証**
+- [x] **Step 4: 検証**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "SprintInputModeContractTest|LocalizationLanguageSelectionContractTest"`
 Run: `cd moorestech_web/webui && npx tsc --noEmit && npx vitest run src/features/settings src/features/pauseMenu src/bridge src/shared/i18n`
 Expected: すべて PASS（`localizationKeysFreshness`・`allScreensI18n` テスト含む）
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 ```bash
 git add moorestech_client/Assets moorestech_web/webui/src Localization/localization.csv
