@@ -1,6 +1,5 @@
 using Client.Common;
 using Client.Game.InGame.Block;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.Control.ViewMode;
 using UnityEngine;
 
@@ -64,8 +63,8 @@ namespace Client.Game.InGame.Control
         private static RaycastHit[] HitBuffer = new RaycastHit[32];
 
         /// <summary>
-        ///     照準レイの最前面の実体ヒットを返す。設置ゴーストのみ貫通する（InteractTargetSelectorと共通の規則）
-        ///     Returns the aim ray's frontmost solid hit; only placement ghosts are penetrated (shared rule with InteractTargetSelector)
+        ///     照準レイの最前面の実体ヒットを返す
+        ///     Returns the aim ray's frontmost solid hit
         /// </summary>
         public static bool TryGetFrontmostSolidHit(int layerMask, float maxDistance, out RaycastHit frontmostHit)
         {
@@ -73,14 +72,13 @@ namespace Client.Game.InGame.Control
 
             var hitCount = RaycastAimAll(layerMask, maxDistance, out var hits);
 
-            // 手前のプレビューゴーストだけを貫通対象にする。並べ替えずに最小距離を1回の走査で選ぶ
-            // Only nearby preview ghosts are penetrated; the nearest is picked in one scan instead of sorting
+            // 最小距離のヒットを1回の走査で選ぶ
+            // Pick the nearest hit in one scan without sorting
             var found = false;
             for (var index = 0; index < hitCount; index++)
             {
                 var hit = hits[index];
                 if (found && frontmostHit.distance <= hit.distance) continue;
-                if (hit.collider.GetComponentInParent<BlockPreviewObject>() != null) continue;
 
                 frontmostHit = hit;
                 found = true;

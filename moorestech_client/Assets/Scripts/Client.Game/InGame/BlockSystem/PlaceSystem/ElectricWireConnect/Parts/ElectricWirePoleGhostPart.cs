@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Ground;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
@@ -69,16 +70,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
             var placeInfos = run.Cells;
             var isPositionFree = placeInfos[0].Placeable;
 
-            // 地面判定はゴーストの物理接触を読むため、判定前に有効化する（前例: GearChainPoleExtendPreviewObject.PositionGhost）
-            // Ground detect reads the ghost's physics contact, so activate it before judging (precedent: GearChainPoleExtendPreviewObject.PositionGhost)
             _previewBlockController.SetActive(true);
 
-            _previewBlockController.SetPreview(placeInfos, poleMaster, true);
-            var groundOverlaps = _previewBlockController.DetectGroundOverlaps();
+            _previewBlockController.SetPreview(placeInfos, poleMaster);
 
-            // 接触は可否として返すだけ。塗りとPlaceableの確定はモード側が持つ
-            // Contact is only returned as a judgement; painting and Placeable stay with the mode
-            var isGroundClear = !groundOverlaps[0];
+            // めり込みは可否として返すだけ。塗りとPlaceableの確定はモード側が持つ
+            // The sink is only returned as a judgement; painting and Placeable stay with the mode
+            var isGroundClear = !PlacementTerrainSinkQuery.IsSunk(placeInfos[0].Position, placeInfos[0].Direction, poleMaster.BlockSize);
 
             evaluation = new ElectricWirePoleGhostEvaluation(placeInfos, poleMaster, poleBlockId, isGroundClear, isPositionFree, materialShortages, poleConstructionItemCounts);
 

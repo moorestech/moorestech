@@ -1,4 +1,5 @@
 using System;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Ground;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Common.Debug;
@@ -24,6 +25,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
 
         // 占有と解放は既存のクライアント情報へ委譲する
         // Delegate occupancy and unlock checks to existing client state
+        // 全設置系と同じ地表サンプルで判定する
+        // Use the same terrain samples as all other placement systems
+        public bool IsTerrainSunk(BlockPositionInfo positionInfo) => PlacementTerrainSinkQuery.IsSunk(positionInfo.OriginalPos, positionInfo.BlockDirection, positionInfo.BlockSize);
         public bool IsOverlapping(BlockPositionInfo positionInfo) => _blocks.IsOverlapPositionInfo(positionInfo);
         public bool IsBlockUnlocked(Guid blockGuid) => _targets.IsBlockUnlocked(blockGuid, IsPaymentWaived);
         public bool IsConnectToolUnlocked(Guid connectToolGuid) => _targets.IsConnectToolUnlocked(connectToolGuid);

@@ -20,7 +20,7 @@ namespace Tests.CombinedTest.Game.Blueprint.Planning
             var plan = BlueprintPastePlanner.Plan(BlueprintPastePlannerTestContext.Create(block), origins, 0,
                 context.World, context.Wallet, BlueprintPastePlannerTestContext.BlockCosts(block, 2));
 
-            CollectionAssert.AreEqual(new[] { BlueprintPasteCopyState.Placeable, BlueprintPasteCopyState.AllOverlapped,
+            CollectionAssert.AreEqual(new[] { BlueprintPasteCopyState.Placeable, BlueprintPasteCopyState.AllBlocked,
                 BlueprintPasteCopyState.Placeable }, plan.Copies.Select(copy => copy.State));
             Assert.AreEqual(2, plan.EnumerateCopiesToPlace().Count());
             Assert.IsEmpty(plan.ShortageRequirements);
@@ -39,7 +39,7 @@ namespace Tests.CombinedTest.Game.Blueprint.Planning
             // 重複分を除き2・1・2個を配置
             // Place two, one and two blocks excluding overlap costs.
             Assert.AreEqual(3, plan.EnumerateCopiesToPlace().Count());
-            CollectionAssert.AreEqual(new[] { false, true }, plan.Copies[1].Draft.NonOverlapFlags);
+            CollectionAssert.AreEqual(new[] { BlueprintPasteElementBlockCause.ExistingBlock, BlueprintPasteElementBlockCause.None }, plan.Copies[1].Draft.ElementBlockCauses);
             CollectionAssert.AreEqual(new[] { Vector3Int.zero, new Vector3Int(2, 0, 0), new Vector3Int(4, 0, 0),
                 new Vector3Int(10, 0, 0), new Vector3Int(12, 0, 0) },
                 plan.EnumerateCopiesToPlace().SelectMany(copy => copy.EnumerateElementsToPlace()).Select(element => element.Position));
@@ -74,7 +74,7 @@ namespace Tests.CombinedTest.Game.Blueprint.Planning
 
             // 幅3の箱の重複・隣接境界を検証
             // Verify overlap and adjacency boundaries for a width-three box.
-            CollectionAssert.AreEqual(new[] { BlueprintPasteCopyState.Placeable, BlueprintPasteCopyState.AllOverlapped,
+            CollectionAssert.AreEqual(new[] { BlueprintPasteCopyState.Placeable, BlueprintPasteCopyState.AllBlocked,
                 BlueprintPasteCopyState.Placeable }, plan.Copies.Select(copy => copy.State));
         }
 
@@ -90,8 +90,8 @@ namespace Tests.CombinedTest.Game.Blueprint.Planning
             var plan = BlueprintPastePlanner.Plan(blueprint, Origins(Vector3Int.zero), rotation,
                 context.World, context.Wallet, new Dictionary<ItemId, int>());
 
-            Assert.AreEqual(BlueprintPasteCopyState.AllOverlapped, plan.Copies[0].State);
-            Assert.IsFalse(plan.Copies[0].Draft.NonOverlapFlags.Single());
+            Assert.AreEqual(BlueprintPasteCopyState.AllBlocked, plan.Copies[0].State);
+            Assert.AreEqual(BlueprintPasteElementBlockCause.ExistingBlock, plan.Copies[0].Draft.ElementBlockCauses.Single());
         }
 
         [Test]
@@ -104,7 +104,7 @@ namespace Tests.CombinedTest.Game.Blueprint.Planning
                 context.World, context.Wallet, BlueprintPastePlannerTestContext.BlockCosts(block, 4));
 
             Assert.AreEqual(2, plan.EnumerateCopiesToPlace().Count());
-            Assert.IsTrue(plan.Copies[1].Draft.NonOverlapFlags.All(flag => flag));
+            Assert.IsTrue(plan.Copies[1].Draft.ElementBlockCauses.All(cause => cause == BlueprintPasteElementBlockCause.None));
         }
 
         [Test]
@@ -129,7 +129,7 @@ namespace Tests.CombinedTest.Game.Blueprint.Planning
                 context.World, context.Wallet, new Dictionary<ItemId, int>());
 
             Assert.AreEqual(2, plan.CountCopies(BlueprintPasteCopyState.MaterialShortage));
-            Assert.IsTrue(plan.Copies[1].Draft.NonOverlapFlags.Single());
+            Assert.AreEqual(BlueprintPasteElementBlockCause.None, plan.Copies[1].Draft.ElementBlockCauses.Single());
         }
 
         private static BlueprintPasteOrigin[] Origins(params Vector3Int[] positions)

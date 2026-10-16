@@ -4,6 +4,7 @@ using System.Linq;
 using Client.Common;
 using Client.Game.Common;
 using Client.Game.InGame.Block.Interact;
+using Client.Game.InGame.Block.Preview;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.Context;
@@ -82,19 +83,13 @@ namespace Client.Game.InGame.Block
                 Interactable.Initialize(this);
             }
 
-            // 地面との衝突判定を無効化
-            foreach (var groundCollisionDetector in gameObject.GetComponentsInChildren<GroundCollisionDetector>(true))
-            {
-                groundCollisionDetector.enabled = false;
-            }
-            
             // IBlockGameObjectInnerComponentおよび、継承しているBlockStateChangeProcessorsの初期化
             // Initialize IBlockGameObjectInnerComponent and inherited BlockStateChangeProcessors
             foreach (var state in gameObject.GetComponentsInChildren<IBlockGameObjectInnerComponent>()) state.Initialize(this);
             
             // プレビュー限定オブジェクトをオフに
             // Turn off preview-only object
-            OffPreviewOnlyObjectsActive();
+            _previewOnlyObjects = BlockPreviewOnlyObjects.Initialize(gameObject, BlockId, false);
             
             // ブロックのステート変化を購読
             // Subscribe to block state changes
@@ -105,16 +100,6 @@ namespace Client.Game.InGame.Block
             AddBoundingBox().Forget();
 
             #region Internal
-            
-            void OffPreviewOnlyObjectsActive()
-            {
-                _previewOnlyObjects = gameObject.GetComponentsInChildren<IPreviewOnlyObject>(true).ToList();
-                _previewOnlyObjects.ForEach(obj =>
-                {
-                    obj.Initialize(BlockId);
-                    obj.SetActive(false);
-                });
-            }
             
             void SubscribeBlockState()
             {

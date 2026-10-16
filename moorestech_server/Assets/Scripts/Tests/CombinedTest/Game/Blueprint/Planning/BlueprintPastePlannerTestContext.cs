@@ -55,6 +55,7 @@ namespace Tests.CombinedTest.Game.Blueprint.Planning
         internal sealed class TestWorld : IBlueprintPasteWorld
         {
             internal readonly HashSet<Vector3Int> Overlaps = new();
+            internal readonly HashSet<Vector3Int> Sunk = new();
             internal readonly HashSet<Guid> Locked = new();
             internal int BlockUnlockChecks;
             public bool IsPaymentWaived { get; }
@@ -63,6 +64,8 @@ namespace Tests.CombinedTest.Game.Blueprint.Planning
             {
                 IsPaymentWaived = paymentWaived;
             }
+
+            public bool IsTerrainSunk(BlockPositionInfo positionInfo) => Sunk.Contains(positionInfo.OriginalPos);
 
             public bool IsOverlapping(BlockPositionInfo positionInfo)
             {

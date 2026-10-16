@@ -10,7 +10,7 @@ namespace Client.Tests.PlaceSystem.Ground.Entry
         public bool IsActive { get; private set; }
         public readonly List<PlaceInfo> Cells = new();
 
-        public void SetPreview(List<PlaceInfo> placeInfos, BlockMasterElement master, bool terrainContactEnabled)
+        public void SetPreview(List<PlaceInfo> placeInfos, BlockMasterElement master)
         {
             // 更新後の内部リスト交換に影響されず入口の出力を残す
             // Preserve entry output independently of later internal list replacements
@@ -18,7 +18,6 @@ namespace Client.Tests.PlaceSystem.Ground.Entry
             Cells.AddRange(placeInfos);
         }
 
-        public IReadOnlyList<bool> DetectGroundOverlaps() => new bool[Cells.Count];
         public void UpdatePlaceableColors(List<PlaceInfo> placeInfos) { }
         public void SetActive(bool active) => IsActive = active;
 

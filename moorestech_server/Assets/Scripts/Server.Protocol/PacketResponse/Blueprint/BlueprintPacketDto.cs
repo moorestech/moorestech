@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Game.Block.Interface;
 using Game.Blueprint;
 using MessagePack;
 using Server.Util.MessagePack;
@@ -62,6 +63,31 @@ namespace Server.Protocol.PacketResponse
             Direction = direction;
             BlockId = blockId;
             BlockInstanceId = blockInstanceId;
+        }
+    }
+
+    [MessagePackObject]
+    public class BlueprintPasteFootprintMessagePack
+    {
+        [Key(0)] public Vector3IntMessagePack Position { get; set; }
+        [Key(1)] public int Direction { get; set; }
+        [Key(2)] public Vector3IntMessagePack Size { get; set; }
+
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        public BlueprintPasteFootprintMessagePack() { }
+
+        public BlueprintPasteFootprintMessagePack(BlockPositionInfo footprint)
+        {
+            Position = new Vector3IntMessagePack(footprint.OriginalPos);
+            Direction = (int)footprint.BlockDirection;
+            Size = new Vector3IntMessagePack(footprint.BlockSize);
+        }
+
+        // 地形判定に使った足場を受信側でも同じ形に復元する
+        // Restore the same footprint used by the client's terrain judgement
+        public BlockPositionInfo ToPositionInfo()
+        {
+            return new BlockPositionInfo(Position.Vector3Int, (BlockDirection)Direction, Size.Vector3Int);
         }
     }
 

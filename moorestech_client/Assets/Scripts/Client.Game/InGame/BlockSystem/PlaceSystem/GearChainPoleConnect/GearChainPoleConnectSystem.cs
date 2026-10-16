@@ -56,10 +56,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
             // Consume: apply placement responses up to the previous frame to the source
             if (_requestSender.TryConsumePlacedPole(out var placedPole)) _sourcePole = placedPole;
 
-            // 前フレームのゴーストを隠してから実ポールの選択レイを集める。
-            // Hide the previous ghost before collecting the selection ray for real poles.
-            _previewObject.Hide();
-
             // 集める→決める: ビルドメニュー選択種別でモードを分岐し、入力スナップショットから結果を得る
             // Collect → decide: branch the mode by the build-menu selection type and map the input snapshot to a result
             // ブロック選択（歯車ポール）なら設置延長、接続ツール選択ならチェーン接続モード

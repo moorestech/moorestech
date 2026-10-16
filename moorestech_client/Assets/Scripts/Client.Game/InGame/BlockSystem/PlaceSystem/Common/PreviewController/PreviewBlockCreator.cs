@@ -15,10 +15,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
             
             var preview = block.AddComponent<BlockPreviewObject>();
             preview.Initialize(blockId);
-            // 初期化が有効化した子も含めて物理設定を確定する
-            // Finalize physics settings after preview-only children activate.
-            preview.ConfigurePlacementColliders();
+            DisableColliders(block);
             return preview;
+        }
+
+        internal static void DisableColliders(GameObject block)
+        {
+            // 初期化で有効化した子も含め当たり判定を全て切る（ADR 0081）
+            // Disable every collider, including children activated by initialization (ADR 0081)
+            foreach (var collider in block.GetComponentsInChildren<Collider>(true)) collider.enabled = false;
         }
     }
 }

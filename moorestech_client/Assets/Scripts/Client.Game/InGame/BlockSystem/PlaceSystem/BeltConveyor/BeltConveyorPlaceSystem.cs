@@ -128,12 +128,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
 
                 var (placeCauses, beltReasons, terrainClimbAbandoned) = UpdateCurrentPlaceInfos(placePoint, holdingBlock);
 
-                _previewBlockController.SetPreview(_currentPlaceInfos, holdingBlockMaster, true);
-                var blockGroundOverlapList = _previewBlockController.DetectGroundOverlaps();
+                _previewBlockController.SetPreview(_currentPlaceInfos, holdingBlockMaster);
+                var terrainSinks = PlacementTerrainSinkQuery.DetectSunkCells(_currentPlaceInfos);
 
-                // 共通の重複理由を通知
-                // Report shared overlap causes
-                var cursorIndex = PlacementCellReasonReporter.ApplyGroundOverlapsAndReport(_currentPlaceInfos, placeCauses, placePoint, blockGroundOverlapList, feedback);
+                // 共通の重複・地形埋まり理由を通知
+                // Report shared overlap and terrain-sink causes
+                var cursorIndex = PlacementCellReasonReporter.ApplyTerrainSinksAndReport(_currentPlaceInfos, placeCauses, placePoint, terrainSinks, feedback);
 
                 // 固有理由と地形断念を通知
                 // Report belt-specific reasons and terrain-climb abandonment
