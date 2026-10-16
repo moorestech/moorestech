@@ -854,7 +854,7 @@ git commit -m "feat(bugreport): Unity不要のトリアージと報告の所在�
 
 `scripts/playtest/dev-token.sh issue macmini` と `scripts/playtest/dev-token.sh issue winbuild` を実行する。値は会話・ログ・コミットに残さない。Mac mini のトークンは検証後も常設する（裁定）。Mac mini 上の全 worktree の Editor が共通の outbox から本番へ送る前提を verification.md に書く。Mac への受け渡しは一時ファイル経由で行い、ウィンドウへ貼り付けたら一時ファイルは消す。
 
-- [ ] **Step 3: Mac の Editor で通す（unityプレイ録画テストを兼ねる）**
+- [x] **Step 3: Mac の Editor で通す（unityプレイ録画テストを兼ねる）**
 
 この worktree の Editor で、`unity-playmode-recorded-playtest` スキルにより録画つきで次を行う:
 1. トークン無しで再生 → ポーズ → バグ報告画面に「未送信: 開発者トークンが未設定です（この機材にN件保存）」が出る。
@@ -864,7 +864,7 @@ git commit -m "feat(bugreport): Unity不要のトリアージと報告の所在�
 5. `moorestech_logs/harness/playtest/reports/dev-macmini/<id>/` に manifest、`repo/bundle-status.txt`、`repo/commits.bundle`（このブランチは未 push のコミットを持つので created）、`logs/` があることを確かめる。`ingest.json` の steamPersonaName が「開発機 macmini」であること。
 6. 進行記録の outbox に箱があっても、受け口の inbox に progress の dev 行が出ないこと。
 
-- [ ] **Step 4: Windows の Editor で通す**
+- [x] **Step 4: Windows の Editor で通す**
 
 1. `moorestech_logs/claude/-Users-katsumi-moorestech/memory/windows-build-machine-winbuild.md` の手順で winbuild を起こし、`C:\dev\moorestech` をこのブランチの push 済みコミットへ合わせる（master ピン・PersonalAssets ピンも一致させる）。
 2. トークンを `%APPDATA%\.moorestech\PlaytestReceiver\developer-token.txt` に置く。
@@ -875,7 +875,7 @@ git commit -m "feat(bugreport): Unity不要のトリアージと報告の所在�
 4. Mac mini で ingest を回し、`reports/dev-winbuild/<id>/` に届いたこと、`repo/bundle-status.txt` があることを確かめる。
 5. 終わったら winbuild のトークンファイルを残すかどうかを検証記録に書く（残してよい。漏れたら `dev-token.sh revoke winbuild`）。
 
-- [ ] **Step 5: 記録してコミットする**
+- [x] **Step 5: 記録してコミットする**
 
 テストファイルと検証記録の場所を報告に書く。
 
@@ -884,13 +884,15 @@ git add moorestech_client/Assets/Scripts/Client.Tests/PlaytestReceiver/RealRecei
 git commit -m "test(playtest): 本番受け口への開発者経路の実機確認テスト（Explicit）"
 ```
 
+検証結果: `moorestech_logs/harness/sdd/feat-dev-bugreport-via-receiver/followup/verification.md`。Mac は d5fbb6fff4 の実UI録画10項目成功、本番取り込み8ファイル全SHA一致。停止箱の次回起動再送も同一ID・6ファイル一致。Windows は6f2f733aaeのExplicit実送信・Mac取り込み成功。公開済みコミットのbundle省略と未公開4.46GBのローカル復元、本番の小さい2断片復元は分けて実証した。進行記録は先行Steam送信済みの固定旧箱に頼らず、元箱の資料を隔離コピーして最新実Runnerで宣言・送信なし／全hash不変を確認。
+
 ### Task 11: 全ブランチレビュー
 
-- [ ] 必ず moores-code-review スキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）。レビュー指摘の反映が判定経路・条件式・評価時点に触れたら、Task 10 Step 3 のunityプレイ録画テストを反映後のバイナリで再実施する。
+- [x] 必ず moores-code-review スキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）。レビュー指摘の反映が判定経路・条件式・評価時点に触れたら、Task 10 Step 3 のunityプレイ録画テストを反映後のバイナリで再実施する。
 
 ### Task 12: PR を作り、閉じられる状態にする
 
-- [ ] セッション終了可能状態にすること。
+- [x] セッション終了可能状態にすること。
   - pr-create スキルで PR を作成する。
   - master とのコンフリクトがあれば master をマージして解消し、コンパイルを確認して push する（解消の実作業は pr-create 経由で opus subagent に委譲される）。
   - 全作業がコミット・push 済みで、このセッションをそのまま閉じても PR がマージ可能な状態であることを確認して終える。
