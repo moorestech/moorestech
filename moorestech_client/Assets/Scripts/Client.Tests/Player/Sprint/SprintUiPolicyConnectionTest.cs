@@ -38,8 +38,8 @@ namespace Client.Tests.Player
             TestReflection.SetField(player, "controller", movement);
             player.Initialize(Vector3.zero, Vector3.zero);
 
-            // 移動可能かつ反転禁止の画面を独立して宣言する
-            // Declare a movable screen with sprint toggling disabled
+            // 移動可・走り反転不可の画面を宣言
+            // Declare a screen allowing movement but disabling sprint toggling
             var dictionary = new UIStateDictionary(null, null, null, null, null, null, null, null, null, null, null, null);
             var states = TestReflection.GetField<Dictionary<UIStateEnum, IUIState>>(dictionary, "_stateDictionary");
             states[UIStateEnum.GameScreen] = new ScreenPolicy(true, null);

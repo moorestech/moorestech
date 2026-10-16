@@ -22,8 +22,8 @@ namespace StarterAssets
 
         private void Awake()
         {
-            // 現在の方式を読み、設定変更を入力へ反映する
-            // Read the current mode and apply setting changes to input
+            // 現在の方式と設定変更を入力へ反映
+            // Apply the current mode and setting changes to input
             _sprintResolver = new SprintInputResolver(SprintInputModePreference.Current);
             _modeSubscription = SprintInputModePreference.OnSprintInputModeChanged.Subscribe(mode =>
             {
@@ -40,7 +40,7 @@ namespace StarterAssets
             _sprintResolver.ResyncHeld(inputEnable && InputManager.Player.Sprint.GetKey);
             ApplySprint();
 
-            // Sprint以外の押下は修飾操作として扱う
+            // 走り以外の押下は修飾操作とする
             // Treat non-sprint presses as modifier operations
             _buttonSubscription = InputSystem.onAnyButtonPress.Call(control =>
             {

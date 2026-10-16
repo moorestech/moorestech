@@ -5,8 +5,12 @@ using UnityEngine;
 namespace Client.Input
 {
     /// <summary>
-    /// 走りの操作方式を端末ごとに保存し、変化を通知する（言語設定と同じPlayerPrefs）
-    /// Stores the sprint input mode per device and notifies changes (same PlayerPrefs as the language setting)
+    /// - 端末ごとの走り方式保存
+    /// - 言語設定と同じ保存先
+    /// - 方式の変化通知
+    /// - Stores sprint mode per device
+    /// - Uses the same store as language settings
+    /// - Notifies mode changes
     /// </summary>
     public static class SprintInputModePreference
     {
@@ -36,8 +40,8 @@ namespace Client.Input
             var saved = PlayerPrefs.GetString(PreferenceKey);
             if (Enum.TryParse(saved, out SprintInputMode mode) && Enum.IsDefined(typeof(SprintInputMode), mode)) return mode;
 
-            // 壊れた保存値は既定へ戻し、開発者ログに残す
-            // A corrupt saved value falls back to the default and is logged for developers
+            // 不正保存値は既定へ戻しログに残す
+            // Fall back to the default for invalid saved values and log it
             Debug.LogWarning($"[SprintInputModePreference] Unknown saved sprint mode '{saved}'. Using Toggle.");
             return SprintInputMode.Toggle;
         }

@@ -9,8 +9,10 @@ using UniRx;
 namespace Client.WebUiHost.Game.Topics
 {
     /// <summary>
-    /// 走りの操作方式を snapshot と変化時 event で配信する
-    /// Publishes the sprint input mode as a snapshot and on each change
+    /// - 走り方式の初期値配信
+    /// - 走り方式の変化通知
+    /// - Publishes the initial sprint mode
+    /// - Publishes sprint mode changes
     /// </summary>
     public class SprintInputModeTopic : ITopicHandler, IDisposable
     {

@@ -28,8 +28,8 @@ namespace Client.Tests.Player
             _root = new GameObject(nameof(SprintAnalogInputTest));
             _inputs = StarterAssetsInputTestLifecycle.AddInitializedInputs(_root);
 
-            // 実actionからSendMessagesでOnSprintへ配送する
-            // Deliver the real action to OnSprint through SendMessages
+            // 実入力をメッセージ経由で配送
+            // Deliver real input through SendMessages
             _settings = new MoorestechInputSettings();
             _playerInput = _root.AddComponent<PlayerInput>();
             _playerInput.notificationBehavior = PlayerNotifications.SendMessages;

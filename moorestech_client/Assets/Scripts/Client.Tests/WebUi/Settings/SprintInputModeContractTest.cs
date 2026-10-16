@@ -47,7 +47,7 @@ namespace Client.Tests.WebUi.Settings
             var changes = 0;
             using var subscription = SprintInputModePreference.OnSprintInputModeChanged.Subscribe(_ => changes++);
 
-            // 登録済みactionとsnapshotを通してwire契約を検証する
+            // 登録済み経路で通信契約を検証
             // Verify the wire contract through the registered action and snapshot
             var result = await hub.ResolveAction("settings.setSprintInputMode").ExecuteAsync(new JObject { ["mode"] = wire });
             var snapshot = JObject.Parse(await topic.GetSnapshotJsonAsync());
