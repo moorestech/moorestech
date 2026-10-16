@@ -19,14 +19,6 @@ namespace Client.Playtest.Operations.Ui
     // Exercise recorded delete-box inputs and inspect the displayed count and height
     public static class DeleteBoxScenarioInput
     {
-        public static async UniTask Select(PlaytestDriver driver, Vector3Int start, Vector3Int end)
-        {
-            await Start(driver, start);
-            await AimAtGround(driver, end);
-            await driver.Until(() => TooltipParam(LocalizationKeys.Ui.Tooltip.DeleteBoxTargetsInRange) >= 1, 5f, "レールを跨ぐ箱に撤去対象がある");
-            await Click();
-        }
-
         public static async UniTask Start(PlaytestDriver driver, Vector3Int cell)
         {
             await AimAtGround(driver, cell);
@@ -58,7 +50,7 @@ namespace Client.Playtest.Operations.Ui
             await driver.Until(() => HasTooltipLine(LocalizationKeys.Ui.Tooltip.DeleteBoxEmptyRange), 5f, "空範囲の理由が表示される");
             await Click();
             driver.Assert(HasTooltipLine(LocalizationKeys.Ui.Tooltip.DeleteBoxTargetsInRange), "0件クリックは終点待ちに留まる");
-            driver.Assert(TooltipParam(LocalizationKeys.Ui.Tooltip.DeleteSelectedCount) == selectedCount, "0件クリックは既存選択を変えない");
+            driver.Assert(ReadRequiredTooltipCount(LocalizationKeys.Ui.Tooltip.DeleteSelectedCount) == selectedCount, "0件クリックは既存選択を変えない");
 
             // 実キーで高さを往復し、マーカー位置にも反映されたことを確かめる
             // Change height through real keys and check the resulting marker positions
@@ -77,7 +69,7 @@ namespace Client.Playtest.Operations.Ui
             await driver.WaitSeconds(0.2f);
             driver.Assert(driver.CurrentUiState == UIStateEnum.DeleteBar, "箱待ちESCは削除モードに留まる");
             driver.Assert(!HasTooltipLine(LocalizationKeys.Ui.Tooltip.DeleteBoxTargetsInRange), "箱待ちESCで箱を畳む");
-            driver.Assert(TooltipParam(LocalizationKeys.Ui.Tooltip.DeleteSelectedCount) == selectedCount, "箱待ちESCは既存選択を残す");
+            driver.Assert(ReadRequiredTooltipCount(LocalizationKeys.Ui.Tooltip.DeleteSelectedCount) == selectedCount, "箱待ちESCは既存選択を残す");
             driver.Assert(height.Value == 0, "箱待ちESCで高さを地表へ戻す");
         }
 
@@ -91,12 +83,14 @@ namespace Client.Playtest.Operations.Ui
             return string.Join("|", Tooltip().GetPresentation().Lines.Select(line => line.Key.Key + ":" + string.Join(",", line.TextParams ?? System.Array.Empty<string>())));
         }
 
-        // 任意行の欠落は0件として観測し、呼び出し元のアサートで期待値と比較する
-        // Observe an absent optional line as zero and compare against expectations in caller assertions
-        public static int TooltipParam(LocalizationKey key)
+        // 必須件数の欠落や破損は録画失敗として表面化させる
+        // Fail the recording when a required count is missing or malformed
+        public static int ReadRequiredTooltipCount(LocalizationKey key)
         {
             var line = Tooltip().GetPresentation().Lines.FirstOrDefault(item => item.Key.Key == key.Key);
-            return line.TextParams != null && line.TextParams.Count > 0 && int.TryParse(line.TextParams[0], out var count) ? count : 0;
+            if (line.TextParams != null && 0 < line.TextParams.Count && int.TryParse(line.TextParams[0], out var count)) return count;
+            var actual = line.TextParams == null ? "<missing>" : string.Join(",", line.TextParams);
+            throw new System.InvalidOperationException($"Required tooltip count {key.Key} is invalid: {actual}");
         }
 
         private static MouseCursorTooltipState Tooltip()

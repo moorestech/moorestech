@@ -88,7 +88,7 @@ namespace Client.Playtest.Operations
             while (Time.realtimeSinceStartup <= deadline)
             {
                 var result = await QueryWithinDeadline(testid, deadline);
-                if (IsUsable(result) && result.Text.Contains(expected)) return;
+                if (result.Found && result.Visible && result.Text.Contains(expected)) return;
                 await UniTask.DelayFrame(2);
             }
             throw new TimeoutException($"Web UI text did not contain '{expected}': {testid}");

@@ -13,9 +13,9 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
         // Inclusive at the min faces, exclusive at the far faces of the max cell (max+1)
         public static bool IsPointInBox(Vector3 point, Vector3Int min, Vector3Int max)
         {
-            return point.x >= min.x && point.x < max.x + 1
-                   && point.y >= min.y && point.y < max.y + 1
-                   && point.z >= min.z && point.z < max.z + 1;
+            return min.x <= point.x && point.x < max.x + 1
+                   && min.y <= point.y && point.y < max.y + 1
+                   && min.z <= point.z && point.z < max.z + 1;
         }
 
         public static bool IsAnyPointInBox(IReadOnlyList<Vector3> points, Vector3Int min, Vector3Int max)

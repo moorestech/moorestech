@@ -93,7 +93,7 @@ return PlaytestRunner.Run("delete-tool-pier-removal-undo-rail", new PlaytestRunO
     await DeleteBoxScenarioInput.Start(p, new Vector3Int(13, 32, 9));
     await p.PressKey(Key.E);
     await DeleteBoxScenarioInput.AimAtGround(p, new Vector3Int(15, 32, 11));
-    await p.Until(() => DeleteBoxScenarioInput.TooltipParam(Mooresmaster.Localization.Generated.LocalizationKeys.Ui.Tooltip.DeleteBoxTargetsInRange) >= 1, 5f, "高さ33の箱にレールedgeが入る");
+    await p.Until(() => 1 <= DeleteBoxScenarioInput.ReadRequiredTooltipCount(Mooresmaster.Localization.Generated.LocalizationKeys.Ui.Tooltip.DeleteBoxTargetsInRange), 5f, "高さ33の箱にレールedgeが入る");
     await DeleteBoxScenarioInput.Click();
     await HoldDeleteConfirm();
     await p.Until(() => Client.Game.InGame.Train.RailGraph.TrainRailObjectManager.Instance.EnumerateRailChains().Count() < edgesBefore, 15f, "Step3: 箱選択したレールedgeが消える");
@@ -110,7 +110,7 @@ return PlaytestRunner.Run("delete-tool-pier-removal-undo-rail", new PlaytestRunO
     {
         p.Note("F長押しで削除を確定");
         SemanticInput.KeyDown(Key.F);
-        await p.WaitSeconds(Client.Game.InGame.UI.UIState.State.DragDelete.Confirm.DeleteHoldConfirm.HoldSeconds + 0.3f);
+        await p.WaitSeconds(2f + 0.3f);
         SemanticInput.KeyUp(Key.F);
         await p.WaitSeconds(0.5f);
     }

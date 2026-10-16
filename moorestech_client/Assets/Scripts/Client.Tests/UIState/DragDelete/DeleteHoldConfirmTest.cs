@@ -18,7 +18,6 @@ namespace Client.Tests.UIState.DragDelete
             Assert.AreEqual(0.5f, bar.CurrentProgress, 0.001f);
             Assert.IsTrue(hold.Advance(true, SelectionRev1, 1f));
             Assert.IsFalse(bar.IsShown);
-            Assert.IsFalse(hold.IsHolding);
         }
 
         [Test]
@@ -48,13 +47,26 @@ namespace Client.Tests.UIState.DragDelete
         }
 
         [Test]
+        public void 別のホバーキーへ移ったらその対象だけで2秒待つ()
+        {
+            var bar = new ProgressBarState();
+            var hold = new DeleteHoldConfirm(bar);
+            var first = DeleteHoldSubject.Hovered(new object());
+            var second = DeleteHoldSubject.Hovered(new object());
+            Assert.IsFalse(hold.Advance(true, first, 1.5f));
+            Assert.IsFalse(hold.Advance(true, second, 0.5f));
+            Assert.AreEqual(0.25f, bar.CurrentProgress, 0.001f);
+            Assert.IsFalse(hold.Advance(true, second, 1f));
+            Assert.IsTrue(hold.Advance(true, second, 0.5f));
+        }
+
+        [Test]
         public void 対象が無いときはバーを出さない()
         {
             var bar = new ProgressBarState();
             var hold = new DeleteHoldConfirm(bar);
             Assert.IsFalse(hold.Advance(true, DeleteHoldSubject.None, 1f));
             Assert.IsFalse(bar.IsShown);
-            Assert.IsFalse(hold.IsHolding);
         }
 
         [Test]
@@ -101,7 +113,6 @@ namespace Client.Tests.UIState.DragDelete
             hold.Reset();
             Assert.AreEqual(0f, bar.CurrentProgress);
             Assert.IsFalse(bar.IsShown);
-            Assert.IsFalse(hold.IsHolding);
         }
     }
 }

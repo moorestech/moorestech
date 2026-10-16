@@ -11,21 +11,38 @@ namespace Client.Game.InGame.Train.RailGraph
     /// </summary>
     internal static class TrainRailLineFactory
     {
-        internal static bool HasPairedConnection(RailGraphClientCache cache, int fromNodeId, int toNodeId)
+        internal static bool TrySpawn(BezierRailChain prefab, Transform parent, RailGraphClientCache cache,
+            int fromNodeId, int toNodeId, out BezierRailChain chain, out string denyReason)
         {
-            if (cache == null) return false;
+            chain = null;
+            // 同期途中の未成立と端点欠落を区別して呼び出し元へ渡す
+            // Distinguish an incomplete synchronized pair from missing endpoints for the caller
+            if (!HasPairedConnection(cache, fromNodeId, toNodeId))
+            {
+                denyReason = "connection pair is not drawable yet";
+                return false;
+            }
+            if (!cache.TryGetNode(fromNodeId, out var startNode) || !cache.TryGetNode(toNodeId, out var endNode))
+            {
+                denyReason = $"rail endpoints missing: {fromNodeId}->{toNodeId}";
+                return false;
+            }
+            chain = Spawn(prefab, parent, cache, startNode, endNode, fromNodeId, toNodeId);
+            denyReason = null;
+            return true;
+        }
 
+        private static bool HasPairedConnection(RailGraphClientCache cache, int fromNodeId, int toNodeId)
+        {
             // 双方向の接続と描画フラグを確認する
             // Check the connections and drawable flags in both directions
             if (!cache.TryGetRailSegment(fromNodeId, toNodeId, out var directSegment)) return false;
             if (!directSegment.IsDrawable) return false;
-            var oppositeSource = toNodeId ^ 1;
-            var oppositeTarget = fromNodeId ^ 1;
-            if (!cache.TryGetRailSegment(oppositeSource, oppositeTarget, out var oppositeSegment)) return false;
+            if (!cache.TryGetRailSegment(toNodeId ^ 1, fromNodeId ^ 1, out var oppositeSegment)) return false;
             return oppositeSegment.IsDrawable;
         }
 
-        internal static GameObject Spawn(BezierRailChain prefab, Transform parent, RailGraphClientCache cache,
+        private static BezierRailChain Spawn(BezierRailChain prefab, Transform parent, RailGraphClientCache cache,
             IRailNode startNode, IRailNode endNode, int fromNodeId, int toNodeId)
         {
             var instance = Object.Instantiate(prefab, parent);
@@ -39,7 +56,7 @@ namespace Client.Game.InGame.Train.RailGraph
             instance.Rebuild();
             instance.PlaceAnimation().Forget();
             instance.name = $"RailLine_{fromNodeId}_{toNodeId}";
-            return instance.gameObject;
+            return instance;
         }
     }
 }

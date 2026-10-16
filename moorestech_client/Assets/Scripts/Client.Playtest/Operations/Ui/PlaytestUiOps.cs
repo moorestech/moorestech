@@ -152,7 +152,11 @@ namespace Client.Playtest.Operations.Ui
         {
             foreach (var windowType in new[] { "SceneHierarchyWindow", "GameView" })
             {
-                Resources.FindObjectsOfTypeAll<UnityEditor.EditorWindow>().First(window => window.GetType().Name == windowType).Focus();
+                var type = typeof(UnityEditor.EditorWindow).Assembly.GetType($"UnityEditor.{windowType}");
+                driver.Assert(type != null, $"環境: Editorウィンドウ型が見つからない: {windowType}");
+                var window = UnityEditor.EditorWindow.GetWindow(type);
+                driver.Assert(window != null, $"環境: Editorウィンドウを取得できない: {windowType}");
+                window.Focus();
                 await UniTask.DelayFrame(5);
             }
 

@@ -97,7 +97,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
 
             void UpdateHoverPreview()
             {
-                _selection.SetHoverPreview(hovered);
+                _selection.SetHoverPreview(isPointerOverUi ? null : hovered);
                 // 削除不可な対象は理由行だけ積む（理由なし拒否は何も出さない）
                 // For a non-removable target only add the denial line (a reasonless denial adds nothing)
                 if (hovered != null && !hovered.IsRemovable(out var reason)) AddDenyLine(reason);
@@ -110,7 +110,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
                 var subject = DeleteHoldSubject.None;
                 var hoverTarget = _selection.HoverPreview;
                 if (_selection.HasSelection()) subject = DeleteHoldSubject.Selection(_selection.Revision);
-                else if (hoverTarget != null && hoverTarget.IsRemovable(out _)) subject = DeleteHoldSubject.Hovered(hoverTarget.GetDeleteTargetKey());
+                else if (!isPointerOverUi && hoverTarget != null && hoverTarget.IsRemovable(out _)) subject = DeleteHoldSubject.Hovered(hoverTarget.GetDeleteTargetKey());
 
                 if (!_hold.Advance(InputManager.Playable.Interact.GetKey, subject, deltaTime)) return;
 

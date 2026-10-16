@@ -37,7 +37,7 @@ return PlaytestRunner.Run("delete-tool-box-select-hold-confirm", options, async 
     SemanticInput.MouseButtonDown(0); await UniTask.DelayFrame(10); SemanticInput.MouseButtonUp(0);
     await p.WaitSeconds(1.0f);
     p.Assert(p.GetBlock(cells[0]) != null, "Step1: 離しただけでは撤去されない");
-    p.Assert(TooltipParam(LocalizationKeys.Ui.Tooltip.DeleteSelectedCount) == 1, $"Step1: ツールチップに選択件数1が出る 実際:{TooltipText()}");
+    p.Assert(ReadRequiredTooltipCount(LocalizationKeys.Ui.Tooltip.DeleteSelectedCount) == 1, $"Step1: ツールチップに選択件数1が出る 実際:{TooltipText()}");
     await p.Screenshot("02-stroke-kept");
 
     // 箱待ちだけを畳み、選択を残す。Fの対象はホバーでなく選択になる
@@ -49,9 +49,9 @@ return PlaytestRunner.Run("delete-tool-box-select-hold-confirm", options, async 
     // Step 2: F hold confirms
     p.Note("Step 2: F長押し2秒で選択を削除");
     SemanticInput.KeyDown(Key.F);
-    await p.WaitSeconds(DeleteHoldConfirm.HoldSeconds * 0.5f);
+    await p.WaitSeconds(2f * 0.5f);
     await p.Screenshot("03-holding");
-    await p.WaitSeconds(DeleteHoldConfirm.HoldSeconds * 0.5f + 0.3f);
+    await p.WaitSeconds(2f * 0.5f + 0.3f);
     SemanticInput.KeyUp(Key.F);
     await p.Until(() => p.GetBlock(cells[0]) == null, 15f, "Step2: F長押し満了でチェスト1が撤去される");
     p.Assert(p.GetBlock(cells[1]) != null, "Step2: 選択があるとき別のホバー対象を消さない");
@@ -70,10 +70,10 @@ return PlaytestRunner.Run("delete-tool-box-select-hold-confirm", options, async 
     await p.PressKey(Key.Escape);
     await p.WaitSeconds(0.5f);
     p.Assert(p.CurrentUiState == UIStateEnum.DeleteBar, "Step4: 選択があるときのESCは破壊モードに留まる");
-    p.Assert(TooltipParam(LocalizationKeys.Ui.Tooltip.DeleteSelectedCount) == 0, $"Step4: 全解除で件数行が消える 実際:{TooltipText()}");
+    p.Assert(!HasTooltipLine(LocalizationKeys.Ui.Tooltip.DeleteSelectedCount), $"Step4: 全解除で件数行が消える 実際:{TooltipText()}");
     await BoxSelect(cells[1] + new Vector3Int(-1, 0, -1), cells[2] + new Vector3Int(1, 0, 1), 2, "Step4");
     SemanticInput.KeyDown(Key.F);
-    await p.WaitSeconds(DeleteHoldConfirm.HoldSeconds + 0.3f);
+    await p.WaitSeconds(2f + 0.3f);
     SemanticInput.KeyUp(Key.F);
     await p.Until(() => p.GetBlock(cells[1]) == null && p.GetBlock(cells[2]) == null, 15f, "Step4: 箱の2件がまとめて撤去される");
     await p.Screenshot("07-box-deleted");
@@ -98,13 +98,13 @@ return PlaytestRunner.Run("delete-tool-box-select-hold-confirm", options, async 
     await p.WaitSeconds(0.5f);
     await p.PressKey(Key.Escape);
     await AimAtCell(p, cells[2]);
-    await p.WaitSeconds(DeleteHoldConfirm.HoldSeconds + 0.3f);
+    await p.WaitSeconds(2f + 0.3f);
     p.Assert(p.GetBlock(cells[1]) != null && p.GetBlock(cells[2]) != null, "ESC後のF押し続けは選択もホバーも撤去しない");
-    p.Assert(TooltipParam(LocalizationKeys.Ui.Tooltip.DeleteSelectedCount) == 0, "選択解除ESCで選択が空になる");
+    p.Assert(!HasTooltipLine(LocalizationKeys.Ui.Tooltip.DeleteSelectedCount), "選択解除ESCで選択が空になる");
     SemanticInput.KeyUp(Key.F);
     await UniTask.DelayFrame(3);
     SemanticInput.KeyDown(Key.F);
-    await p.WaitSeconds(DeleteHoldConfirm.HoldSeconds + 0.3f);
+    await p.WaitSeconds(2f + 0.3f);
     SemanticInput.KeyUp(Key.F);
     await p.Until(() => p.GetBlock(cells[2]) == null, 15f, "空選択ならFでホバー1件を撤去する");
     p.Assert(p.GetBlock(cells[1]) != null, "ホバー以外のブロックを残す");
@@ -128,7 +128,7 @@ return PlaytestRunner.Run("delete-tool-box-select-hold-confirm", options, async 
         SemanticInput.KeyUp(Key.LeftShift);
         await p.Until(() => GameObject.Find("DeleteBoxStartMarker") != null && GameObject.Find("DeleteBoxStartMarker").activeSelf, 5f, $"{label}: 始点マーカーが出る");
         await AimAtGround(p, endCell);
-        await p.Until(() => TooltipParam(LocalizationKeys.Ui.Tooltip.DeleteBoxTargetsInRange) == expectedCount, 5f, $"{label}: 範囲内の対象{expectedCount}件 実際:{TooltipText()}");
+        await p.Until(() => ReadRequiredTooltipCount(LocalizationKeys.Ui.Tooltip.DeleteBoxTargetsInRange) == expectedCount, 5f, $"{label}: 範囲内の対象{expectedCount}件 実際:{TooltipText()}");
         await p.Screenshot($"05-{label}-box-end-hover");
         SemanticInput.MouseButtonDown(0);
         await UniTask.DelayFrame(5);

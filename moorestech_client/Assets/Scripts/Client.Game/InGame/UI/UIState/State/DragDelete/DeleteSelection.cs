@@ -90,7 +90,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             if (HoverPreview != null && !Contains(HoverPreview)) HoverPreview.SetRemovePreviewing();
         }
 
-        public bool Contains(IDeleteTarget target)
+        private bool Contains(IDeleteTarget target)
         {
             return _selectedTargets.ContainsKey(target.GetDeleteTargetKey());
         }
@@ -150,7 +150,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
 
         public bool HasSelection()
         {
-            return _selectedTargets.Count > 0;
+            return 0 < _selectedTargets.Count;
         }
 
         // 既に同じ論理対象が選択済みなら何もしない（Revisionも進めない）
@@ -159,6 +159,13 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         {
             var key = target.GetDeleteTargetKey();
             if (_selectedTargets.ContainsKey(key)) return false;
+            // 同じ論理キーでも旧ホバー自身の要求を解放して移譲する
+            // Release the actual hover requester before transferring the same logical key
+            if (HoverPreview != null && Equals(HoverPreview.GetDeleteTargetKey(), key))
+            {
+                ResetHoverPreview();
+                HoverPreview = null;
+            }
             _selectedTargets.Add(key, target);
             target.SetRemovePreviewing();
             Revision++;

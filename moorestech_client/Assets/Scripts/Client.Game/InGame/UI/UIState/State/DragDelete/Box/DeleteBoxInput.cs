@@ -32,9 +32,9 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
         private CellRangeBoxVisualizer _visualizer;
         private bool _isPressRegistered;
 
-        public bool IsSelectingEnd => _selection.Phase == DeleteBoxPhase.SelectingEnd;
+        private bool IsSelectingEnd => _selection.Phase == DeleteBoxPhase.SelectingEnd;
 
-        public DeleteBoxInput(Camera mainCamera, DeleteBoxTargetResolver resolver, PlacementHeightOffset heightOffset)
+        internal DeleteBoxInput(Camera mainCamera, DeleteBoxTargetResolver resolver, PlacementHeightOffset heightOffset)
         {
             _mainCamera = mainCamera;
             _resolver = resolver;
@@ -43,12 +43,12 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
 
         // 終点待ち中かShift押下中は左押下は箱の物（この間なぞりは始まらない）
         // While awaiting the end point or holding Shift, the left press belongs to the box (no stroke starts)
-        public bool ClaimsLeftPress()
+        internal bool ClaimsLeftPress()
         {
             return IsSelectingEnd || HybridInput.GetKey(KeyCode.LeftShift);
         }
 
-        public void Update(DeleteSelection deleteSelection, List<TooltipLine> tooltipLines, bool isPointerOverUi)
+        internal void Update(DeleteSelection deleteSelection, List<TooltipLine> tooltipLines, bool isPointerOverUi)
         {
             PlacementHeightKeyInput.Apply(_heightOffset);
             var isShiftHeld = HybridInput.GetKey(KeyCode.LeftShift);
@@ -126,8 +126,9 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
 
         // 終点待ちなら箱を畳んで true（ESCの1段目）
         // Fold the pending box and return true (first ESC stage)
-        public bool TryCancel()
+        internal bool TryCancel()
         {
+            _isPressRegistered = false;
             if (!IsSelectingEnd) return false;
             Clear();
             return true;
@@ -135,7 +136,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
 
         // 局面・高さ・押下・表示を戻す（箱を畳む・確定後・モード離脱）
         // Reset phase, height, press and visuals (fold, after confirm, mode exit)
-        public void Clear()
+        internal void Clear()
         {
             _selection.Clear();
             _resolver.ClearDiagnostics();

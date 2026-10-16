@@ -10,10 +10,10 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
     /// </summary>
     public static class DeleteBoxRailSampler
     {
-        public const int SampleCount = 64;
+        private const int SampleCount = 64;
         private static readonly List<Vector3> SampleBuffer = new(SampleCount);
 
-        public static bool IntersectsCellBox(BezierRailMesh mesh, Vector3Int min, Vector3Int max)
+        internal static bool IntersectsCellBox(BezierRailMesh mesh, Vector3Int min, Vector3Int max)
         {
             // 各メッシュ子は同じ制御点を持つ（BezierRailChainSegments が全子へ同じ Point0..3 を渡す）ので先頭の1つで曲線を評価する
             // Every mesh child carries the same control points (BezierRailChainSegments hands all children the same Point0..3), so evaluate through the first one

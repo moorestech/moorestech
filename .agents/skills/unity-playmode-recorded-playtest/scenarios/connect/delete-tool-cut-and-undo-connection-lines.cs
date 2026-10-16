@@ -124,7 +124,7 @@ return PlaytestRunner.Run("delete-tool-cut-and-undo-connection-lines", new Playt
     {
         p.Note("F長押しで削除を確定");
         SemanticInput.KeyDown(Key.F);
-        await p.WaitSeconds(Client.Game.InGame.UI.UIState.State.DragDelete.Confirm.DeleteHoldConfirm.HoldSeconds + 0.3f);
+        await p.WaitSeconds(2f + 0.3f);
         SemanticInput.KeyUp(Key.F);
         await p.WaitSeconds(0.5f);
     }

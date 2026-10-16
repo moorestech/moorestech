@@ -26,19 +26,24 @@ namespace Client.Tests.UIState
             selection.BeginStroke();
             Assert.AreEqual(DeleteAddKind.Added, selection.TryAddTarget(target).Kind);
             Assert.AreEqual(1, target.SetPreviewCount);
-            Assert.IsTrue(selection.Contains(target));
+            Assert.AreEqual(1, selection.Count);
         }
 
         [Test]
-        public void AddSameTargetTwiceReportsAlreadySelected()
+        public void AddDifferentWrappersWithSameKeyReportsAlreadySelected()
         {
             var selection = Create();
             var target = new FakeDeleteTarget { Removable = true };
             selection.BeginStroke();
             selection.TryAddTarget(target);
-            Assert.AreEqual(DeleteAddKind.AlreadySelected, selection.TryAddTarget(target).Kind);
+            var revision = selection.Revision;
+            var wrapper = new FakeDeleteTarget { Removable = true, Key = target };
+            Assert.AreEqual(DeleteAddKind.AlreadySelected, selection.TryAddTarget(wrapper).Kind);
+            Assert.AreEqual(revision, selection.Revision);
             Assert.AreEqual(1, target.SetPreviewCount);
             Assert.AreEqual(1, selection.Count);
+            selection.CommitDelete();
+            Assert.AreEqual(1, target.DeleteCount + wrapper.DeleteCount);
         }
 
         [Test]
@@ -112,7 +117,6 @@ namespace Client.Tests.UIState
             selection.BeginStroke();
             Assert.IsTrue(selection.TryAddTarget(block).IsAdded);
             Assert.AreEqual(2, selection.Count);
-            Assert.IsTrue(selection.Contains(line));
         }
 
         [Test]
@@ -123,10 +127,16 @@ namespace Client.Tests.UIState
             selection.BeginStroke();
             selection.TryAddTarget(line);
             var block = new FakeDeleteTarget { Removable = true };
-            var added = selection.AddBoxTargets(new List<IDeleteTarget> { block, block, line });
+            var wrapper = new FakeDeleteTarget { Removable = true, Key = block };
+            var added = selection.AddBoxTargets(new List<IDeleteTarget> { block, wrapper, line });
             Assert.AreEqual(1, added);
             Assert.AreEqual(2, selection.Count);
             Assert.AreEqual(1, block.SetPreviewCount);
+            var revision = selection.Revision;
+            Assert.AreEqual(0, selection.AddBoxTargets(new[] { wrapper }));
+            Assert.AreEqual(revision, selection.Revision);
+            selection.CommitDelete();
+            Assert.AreEqual(1, block.DeleteCount + wrapper.DeleteCount);
         }
 
         [Test]

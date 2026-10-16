@@ -8,14 +8,14 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Confirm
     /// </summary>
     public class DeleteHoldConfirm
     {
-        public const float HoldSeconds = 2f;
+        private const float HoldSeconds = 2f;
 
         private readonly ProgressBarState _progressBar;
         private DeleteHoldSubject _subject = DeleteHoldSubject.None;
         private float _heldSeconds;
         private bool _awaitRelease;
 
-        public bool IsHolding { get; private set; }
+        private bool _isHolding;
 
         public DeleteHoldConfirm(ProgressBarState progressBar)
         {
@@ -35,7 +35,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Confirm
                 return false;
             }
 
-            if (!IsHolding || !_subject.Equals(subject)) Begin(subject);
+            if (!_isHolding || !_subject.Equals(subject)) Begin();
 
             _heldSeconds += deltaTime;
             _progressBar.SetProgress(_heldSeconds / HoldSeconds);
@@ -44,6 +44,18 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Confirm
             Reset();
             _awaitRelease = true;
             return true;
+
+            #region Internal
+
+            void Begin()
+            {
+                if (!_isHolding) _progressBar.Show();
+                _isHolding = true;
+                _subject = subject;
+                _heldSeconds = 0f;
+            }
+
+            #endregion
         }
 
         // 取りやめた押下から別の対象への確定を連鎖させない
@@ -56,19 +68,12 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Confirm
 
         public void Reset()
         {
-            if (IsHolding) _progressBar.Hide();
-            if (_heldSeconds > 0f) _progressBar.SetProgress(0f);
-            IsHolding = false;
+            if (_isHolding) _progressBar.Hide();
+            if (0f < _heldSeconds) _progressBar.SetProgress(0f);
+            _isHolding = false;
             _subject = DeleteHoldSubject.None;
             _heldSeconds = 0f;
         }
 
-        private void Begin(DeleteHoldSubject subject)
-        {
-            if (!IsHolding) _progressBar.Show();
-            IsHolding = true;
-            _subject = subject;
-            _heldSeconds = 0f;
-        }
     }
 }

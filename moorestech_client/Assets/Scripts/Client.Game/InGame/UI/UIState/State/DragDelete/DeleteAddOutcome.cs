@@ -17,11 +17,11 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
     /// </summary>
     public readonly struct DeleteAddOutcome
     {
-        public static DeleteAddOutcome Added => new(DeleteAddKind.Added, null);
-        public static DeleteAddOutcome AlreadySelected => new(DeleteAddKind.AlreadySelected, null);
-        public static DeleteAddOutcome StrokeDead => new(DeleteAddKind.StrokeDead, null);
-        public static DeleteAddOutcome NotRemovable(LocalizationKey? reason) => new(DeleteAddKind.NotRemovable, reason);
-        public static DeleteAddOutcome CategoryMismatch() => new(DeleteAddKind.CategoryMismatch, LocalizationKeys.Ui.Delete.DifferentCategorySelection);
+        internal static DeleteAddOutcome Added => new(DeleteAddKind.Added, null);
+        internal static DeleteAddOutcome AlreadySelected => new(DeleteAddKind.AlreadySelected, null);
+        internal static DeleteAddOutcome StrokeDead => new(DeleteAddKind.StrokeDead, null);
+        internal static DeleteAddOutcome NotRemovable(LocalizationKey? reason) => new(DeleteAddKind.NotRemovable, reason);
+        internal static DeleteAddOutcome CategoryMismatch() => new(DeleteAddKind.CategoryMismatch, LocalizationKeys.Ui.Delete.DifferentCategorySelection);
 
         public DeleteAddKind Kind { get; }
         public LocalizationKey? DenyReason { get; }

@@ -12,6 +12,7 @@ type DomQueryRequest = {
 type DomQueryResult = {
   requestId: string;
   found: boolean;
+  visible: boolean;
   x: number;
   y: number;
   width: number;
@@ -98,6 +99,7 @@ function queryElement(request: DomQueryRequest): DomQueryResult {
     return {
       requestId: request.requestId,
       found: false,
+      visible: false,
       x: 0,
       y: 0,
       width: 0,
@@ -110,7 +112,8 @@ function queryElement(request: DomQueryRequest): DomQueryResult {
 
   const rect = element.getBoundingClientRect();
   let hitTestPassed = false;
-  if (isElementVisible(element, rect)) {
+  const visible = isElementVisible(element, rect);
+  if (visible) {
     // 矩形中心の実ヒット要素を調べ、遮蔽物による空クリックを検出する
     // Inspect the actual hit at the rectangle center to detect blocked clicks
     const hitElement = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
@@ -122,6 +125,7 @@ function queryElement(request: DomQueryRequest): DomQueryResult {
   return {
     requestId: request.requestId,
     found: true,
+    visible,
     x: rect.x,
     y: rect.y,
     width: rect.width,

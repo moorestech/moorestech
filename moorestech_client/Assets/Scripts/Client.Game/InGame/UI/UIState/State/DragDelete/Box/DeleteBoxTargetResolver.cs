@@ -19,7 +19,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
         private readonly TrainCarObjectDatastore _trainCarObjectDatastore;
 
-        public DeleteBoxTargetResolver(BlockGameObjectDataStore blockGameObjectDataStore, TrainCarObjectDatastore trainCarObjectDatastore)
+        internal DeleteBoxTargetResolver(BlockGameObjectDataStore blockGameObjectDataStore, TrainCarObjectDatastore trainCarObjectDatastore)
         {
             _blockGameObjectDataStore = blockGameObjectDataStore;
             _trainCarObjectDatastore = trainCarObjectDatastore;
@@ -29,7 +29,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
         // Report each diagnostic once per box operation, then allow it for the next box
         internal void ClearDiagnostics() => _reportedDiagnostics.Clear();
 
-        public IReadOnlyList<IDeleteTarget> Resolve(Vector3Int min, Vector3Int max)
+        internal IReadOnlyList<IDeleteTarget> Resolve(Vector3Int min, Vector3Int max)
         {
             var targets = new List<IDeleteTarget>();
             var newlyReportedSkipped = 0;
@@ -39,7 +39,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
             CollectBlocks();
             CollectRails();
             CollectTrainCars();
-            if (newlyReportedSkipped > 0) Debug.Log($"[DeleteBox] {newlyReportedSkipped} newly reported non-removable target(s) excluded from {min}-{max}");
+            if (0 < newlyReportedSkipped) Debug.Log($"[DeleteBox] {newlyReportedSkipped} newly reported non-removable target(s) excluded from {min}-{max}");
             return targets;
 
             #region Internal

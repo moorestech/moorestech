@@ -19,8 +19,8 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Confirm
         public static DeleteHoldSubject Selection(int revision) => new(DeleteHoldSubjectKind.Selection, revision);
         public static DeleteHoldSubject Hovered(object targetKey) => new(DeleteHoldSubjectKind.Hovered, targetKey);
 
-        public DeleteHoldSubjectKind Kind { get; }
-        public bool IsNone => Kind == DeleteHoldSubjectKind.None;
+        internal DeleteHoldSubjectKind Kind { get; }
+        internal bool IsNone => Kind == DeleteHoldSubjectKind.None;
         private readonly object _key;
 
         private DeleteHoldSubject(DeleteHoldSubjectKind kind, object key)
