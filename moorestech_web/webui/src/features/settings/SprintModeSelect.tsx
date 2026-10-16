@@ -1,4 +1,4 @@
-import { Title } from "@mantine/core";
+import { Text, Title } from "@mantine/core";
 import { dispatchAction, Topics, useTopic, type SprintInputMode } from "@/bridge";
 import { L, useI18n } from "@/shared/i18n";
 import { ModeSwitch } from "@/shared/ui";
@@ -7,12 +7,14 @@ import { ModeSwitch } from "@/shared/ui";
 // Exclusive selector for the sprint input mode; the settings.sprintInputMode topic is authoritative
 export function SprintModeSelect() {
   const { t } = useI18n();
-  const mode = useTopic(Topics.sprintInputMode)?.mode;
+  const preference = useTopic(Topics.sprintInputMode);
+  const mode = preference?.mode;
   const label = t(L.ui.settings.sprintMode);
 
   return (
     <section aria-label={label}>
       <Title order={2}>{label}</Title>
+      {preference?.recoveredInvalidPreference && <Text role="status">{t(L.ui.settings.sprintModeRecovered)}</Text>}
       {mode !== undefined && (
         <ModeSwitch<SprintInputMode>
           value={mode}

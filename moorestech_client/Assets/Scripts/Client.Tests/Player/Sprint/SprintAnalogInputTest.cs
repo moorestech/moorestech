@@ -4,6 +4,7 @@ using NUnit.Framework;
 using StarterAssets;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
 
 namespace Client.Tests.Player
 {
@@ -27,6 +28,7 @@ namespace Client.Tests.Player
             TestReflection.ResetInputManagerCache();
             _root = new GameObject(nameof(SprintAnalogInputTest));
             _inputs = StarterAssetsInputTestLifecycle.AddInitializedInputs(_root);
+            _inputs.runInEditMode = true;
 
             // 実入力をメッセージ経由で配送
             // Deliver real input through SendMessages
@@ -44,11 +46,33 @@ namespace Client.Tests.Player
             TestReflection.InvokePrivate(_playerInput, "OnDisable");
             StarterAssetsInputTestLifecycle.ReleaseInputs(_inputs);
             Object.DestroyImmediate(_root);
-            _settings.Dispose();
+            _settings.asset.Disable();
+            Object.DestroyImmediate(_settings.asset);
             if (_hadMode) PlayerPrefs.SetString(SprintInputModePreference.PreferenceKey, _savedMode);
             else PlayerPrefs.DeleteKey(SprintInputModePreference.PreferenceKey);
             TestReflection.ResetInputManagerCache();
             base.TearDown();
+        }
+
+        [TestCase(false, false)]
+        [TestCase(true, false)]
+        [TestCase(false, true)]
+        public void 実PlayerInputで単独と先行キーと同時押下を区別する(bool precedingW, bool simultaneousR)
+        {
+            var keyboard = InputSystem.AddDevice<Keyboard>();
+            // 新しいデバイスへ実PlayerInputの配送先を切り替える
+            // Route real PlayerInput delivery to the new device
+            var mouse = InputSystem.AddDevice<Mouse>();
+            _playerInput.SwitchCurrentControlScheme("KeyboardMouse", keyboard, mouse);
+            Assert.AreEqual("KeyboardMouse", _playerInput.currentControlScheme);
+            if (precedingW) Press(keyboard.wKey);
+            var pressed = simultaneousR ? new KeyboardState(Key.LeftShift, Key.R)
+                : precedingW ? new KeyboardState(Key.W, Key.LeftShift) : new KeyboardState(Key.LeftShift);
+            InputSystem.QueueStateEvent(keyboard, pressed);
+            InputSystem.Update();
+            InputSystem.QueueStateEvent(keyboard, precedingW ? new KeyboardState(Key.W) : new KeyboardState());
+            InputSystem.Update();
+            Assert.AreEqual(simultaneousR, _inputs.sprint);
         }
 
         [Test]

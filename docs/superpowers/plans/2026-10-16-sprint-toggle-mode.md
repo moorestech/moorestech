@@ -915,3 +915,9 @@ git commit -m "feat: 設定画面に走りのトグル/ホールド切替を追�
 - Phase 2.6 裁定（シミュレーター予測→ユーザー承認 2026-10-16）: Web側の走り方式の型はスキーマから導出した `SprintInputMode` 1本にする（選択「1本にする」）。軽微4件のうち保存値の未定義値（`Enum.IsDefined`）だけ拾う（選択「保存値の未定義値を弾く」）
 - Phase 2.6 前提宣言（シミュレーター予測・確信高。ユーザー拒否権つき）: 型は Interface 層へ切り出さず Client.Input に置く（クライアント内参照のみ・前例 Localize）／`t()` の欠損分岐は足さない（翻訳器が `[!key]` を返し、鮮度テストが担保）／ADR 0082 の agent前提を「判定規則は Resolver、書き込みは ApplySprint」へ修正済み
 - review 反映（user-simulator review・Fable判事）: 既存ホールドテストを無条件にホールド化（既定トグルでは誤って通るため）、`AllowsSprintToggle` の全件表テスト追加、Wを押したままのタップのテスト追加、テストの PlayerPrefs を退避・復元に統一
+
+## レビュー後の実装前提
+
+- 状態保持は既存保持裁定、反転時点は既存単独押し離し裁定とADR 0082決定8に従う。旧裁定記録は上書きしない。
+- onAnyButtonPressの一イベント一ボタン受容というagent前提を撤回する。StarterAssetsInputsがInputSystemイベント内の全新規押下を記録し、Sprint開始後にも取消を適用する。先行Wは数えない。
+- 不正保存値はToggleへ実修復し、必須recoveredInvalidPreference boolで設定画面へ通知する。起動中の復旧記録は有効設定の明示操作で解除する。

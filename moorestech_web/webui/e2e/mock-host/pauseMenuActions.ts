@@ -25,7 +25,7 @@ export function applyPauseMenuAction(inv: PlayerInventoryData, type: string, pay
   // 設定の変更も本物と同じtopic経由で選択へ反映する
   // Reflect setting changes through the topic, matching the real host
   if (type === "settings.setSprintInputMode") {
-    const data = payload as ActionPayloads["settings.setSprintInputMode"];
+    const data = { ...payload as ActionPayloads["settings.setSprintInputMode"], recoveredInvalidPreference: false };
     state.topicOverrides.set(Topics.sprintInputMode, data);
     for (const sub of subscribersOf(Topics.sprintInputMode)) send(sub, { op: "event", topic: Topics.sprintInputMode, data });
     return { handled: true };

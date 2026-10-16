@@ -31,8 +31,13 @@
    出所: ユーザー裁定 2026-10-16 選択「Shift単独の押し離しだけで切替」（シミュレーター予測A・中で的中）
    棄却: 押した瞬間に常に反転／建築・削除モード中は反転しない
 
+## 既存裁定の読み方
+- 状態保持の裁定は「止まっても走り状態を保ち、Shift操作でだけ切り替える」を定める。反転時点は決定8の単独押し離し裁定が定める。保持の過去記録にある「Shift押下で反転」は時点の根拠にしない。過去の裁定ファイルは履歴として保持する。
+
 ## agent前提
 - 設定の保存は言語選択と同じ PlayerPrefs（前例: `Client.Localization/Localize.cs`）。Web UI ⇄ Unity は言語と同じ action＋topic の組（前例: `LocalizationActions.cs` の `localization.setLocale`）。
+- 不正な保存値はToggleへ実修復し、起動中は設定画面へ復旧記録を表示する。有効方式の明示選択で復旧記録を解除する。
+- 同一InputSystemイベント内の全新規ボタン押下を扱い、Sprint開始と他キーの同時押下は単独候補にしない。先行して保持されたキーは新規押下に数えない。
 - 設定画面の UI は言語選択と同じ `ModeSwitch` の択一。
 - 設定画面でホールド→トグルへ切り替えた瞬間も、開始時と同じく走り ON から始める。
 - 走り状態の判定規則は `Client.Input` の `SprintInputResolver` 1か所、`StarterAssetsInputs.sprint` への書き込みは `StarterAssetsInputs.ApplySprint` 1か所。`ThirdPersonController` / `PlayerFlightMotion` は `sprint` を読むだけで変更しない。

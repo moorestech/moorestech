@@ -37,12 +37,18 @@ namespace Client.WebUiHost.Game.Topics
 
         private static string BuildJson()
         {
-            return WebUiJson.Serialize(new SprintInputModeData { Mode = SprintInputModeWire.ToWire(SprintInputModePreference.Current) });
+            var mode = SprintInputModePreference.Current;
+            return WebUiJson.Serialize(new SprintInputModeData
+            {
+                Mode = SprintInputModeWire.ToWire(mode),
+                RecoveredInvalidPreference = SprintInputModePreference.RecoveredInvalidPreference,
+            });
         }
 
         private class SprintInputModeData
         {
             public string Mode;
+            public bool RecoveredInvalidPreference;
         }
     }
 }

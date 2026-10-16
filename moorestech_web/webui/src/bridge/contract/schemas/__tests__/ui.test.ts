@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { NestedPauseSubStateNames } from "@/bridge";
-import { NotificationDataSchema, PauseMenuDataSchema, UiStateDataSchema } from "../ui";
+import { NotificationDataSchema, PauseMenuDataSchema, SprintInputModeDataSchema, UiStateDataSchema } from "../ui";
 
 describe("NotificationDataSchema", () => {
   it("itemId: nullをomittedと同様に受理する（シリアライザ揺れ耐性）", () => {
@@ -58,4 +58,12 @@ describe("PauseMenuDataSchema", () => {
     expect(PauseMenuDataSchema.safeParse({ disconnected: false, bugReport: { kind: "sending", missing: [] }, page: "top" }).success).toBe(false);
     expect(PauseMenuDataSchema.safeParse({ disconnected: false, bugReport: { hasSession: true, capturePending: false, missing: [] }, page: "top" }).success).toBe(false);
   });
+});
+
+// 復旧情報を欠損させた正常表示を境界で拒否する
+// Reject normal-looking payloads that omit recovery information
+it("走り設定は復旧状態を必須で運ぶ", () => {
+  expect(SprintInputModeDataSchema.safeParse({ mode: "toggle" }).success).toBe(false);
+  expect(SprintInputModeDataSchema.safeParse({ mode: "toggle", recoveredInvalidPreference: true }).success).toBe(true);
+  expect(SprintInputModeDataSchema.safeParse({ mode: "hold", recoveredInvalidPreference: false }).success).toBe(true);
 });

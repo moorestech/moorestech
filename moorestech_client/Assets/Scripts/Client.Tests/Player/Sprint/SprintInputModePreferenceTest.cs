@@ -19,12 +19,14 @@ namespace Client.Tests.Player
             // Preserve the device preference to isolate each test
             _hadSavedMode = PlayerPrefs.HasKey(SprintInputModePreference.PreferenceKey);
             _savedMode = PlayerPrefs.GetString(SprintInputModePreference.PreferenceKey);
+            SprintInputModePreference.SetMode(SprintInputMode.Toggle);
             PlayerPrefs.DeleteKey(SprintInputModePreference.PreferenceKey);
         }
 
         [TearDown]
         public void TearDown()
         {
+            SprintInputModePreference.SetMode(SprintInputMode.Toggle);
             // テスト前の保存状態を戻す
             // Restore the persisted state from before the test
             if (_hadSavedMode)
@@ -53,6 +55,13 @@ namespace Client.Tests.Player
             PlayerPrefs.SetString(SprintInputModePreference.PreferenceKey, "2");
             LogAssert.Expect(LogType.Warning, new Regex("Unknown saved sprint mode"));
             Assert.AreEqual(SprintInputMode.Toggle, SprintInputModePreference.Current);
+            Assert.AreEqual("Toggle", PlayerPrefs.GetString(SprintInputModePreference.PreferenceKey));
+            Assert.IsTrue(SprintInputModePreference.RecoveredInvalidPreference);
+            var changes = 0;
+            using var subscription = SprintInputModePreference.OnSprintInputModeChanged.Subscribe(_ => changes++);
+            SprintInputModePreference.SetMode(SprintInputMode.Toggle);
+            Assert.IsFalse(SprintInputModePreference.RecoveredInvalidPreference);
+            Assert.AreEqual(1, changes);
         }
 
         [Test]

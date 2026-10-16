@@ -22,12 +22,14 @@ namespace Client.Tests.WebUi.Settings
             // Stash the developer preference and start unsaved
             _hadSavedMode = PlayerPrefs.HasKey(SprintInputModePreference.PreferenceKey);
             _savedMode = PlayerPrefs.GetString(SprintInputModePreference.PreferenceKey);
+            SprintInputModePreference.SetMode(SprintInputMode.Toggle);
             PlayerPrefs.DeleteKey(SprintInputModePreference.PreferenceKey);
         }
 
         [TearDown]
         public void TearDown()
         {
+            SprintInputModePreference.SetMode(SprintInputMode.Toggle);
             // 保存値を復元して他テストへ漏らさない
             // Restore persistence to avoid leaking into other tests
             if (_hadSavedMode) PlayerPrefs.SetString(SprintInputModePreference.PreferenceKey, _savedMode);
@@ -55,6 +57,7 @@ namespace Client.Tests.WebUi.Settings
             Assert.AreEqual(mode, SprintInputModePreference.Current);
             Assert.AreEqual(mode.ToString(), PlayerPrefs.GetString(SprintInputModePreference.PreferenceKey));
             Assert.AreEqual(wire, snapshot["mode"]?.Value<string>());
+            Assert.IsFalse(snapshot["recoveredInvalidPreference"].Value<bool>());
             Assert.AreEqual(1, changes);
             Assert.AreEqual(revisionBefore + 1, hub.GetTopicRevision(SprintInputModeTopic.TopicName));
         }
@@ -73,6 +76,25 @@ namespace Client.Tests.WebUi.Settings
             Assert.AreEqual(SprintInputMode.Toggle, SprintInputModePreference.Current);
             Assert.IsFalse(PlayerPrefs.HasKey(SprintInputModePreference.PreferenceKey));
             Assert.AreEqual(0, changes);
+        }
+
+        [Test]
+        public async Task InvalidPersistenceIsRepairedAndAcknowledgedThroughRegisteredAction()
+        {
+            var hub = new WebSocketHub();
+            SettingsActions.Register(hub);
+            using var topic = new SprintInputModeTopic(hub);
+            PlayerPrefs.SetString(SprintInputModePreference.PreferenceKey, "2");
+            UnityEngine.TestTools.LogAssert.Expect(LogType.Warning, new System.Text.RegularExpressions.Regex("Unknown saved sprint mode"));
+            var recovered = JObject.Parse(await topic.GetSnapshotJsonAsync());
+            Assert.IsTrue(recovered["recoveredInvalidPreference"].Value<bool>());
+            Assert.AreEqual("Toggle", PlayerPrefs.GetString(SprintInputModePreference.PreferenceKey));
+            var revision = hub.GetTopicRevision(SprintInputModeTopic.TopicName);
+            var result = await hub.ResolveAction("settings.setSprintInputMode").ExecuteAsync(new JObject { ["mode"] = "toggle" });
+            var acknowledged = JObject.Parse(await topic.GetSnapshotJsonAsync());
+            Assert.IsTrue(result.Ok);
+            Assert.IsFalse(acknowledged["recoveredInvalidPreference"].Value<bool>());
+            Assert.AreEqual(revision + 1, hub.GetTopicRevision(SprintInputModeTopic.TopicName));
         }
 
         [Test]

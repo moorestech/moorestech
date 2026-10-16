@@ -20,12 +20,19 @@ namespace Client.Input
         public static IObservable<SprintInputMode> OnSprintInputModeChanged => SprintInputModeChangedSubject;
 
         public static SprintInputMode Current => Load();
+        public static bool RecoveredInvalidPreference { get; private set; }
 
         public static void SetMode(SprintInputMode mode)
         {
-            if (Load() == mode) return;
+            var current = Load();
+            var requiresNotification = current != mode || RecoveredInvalidPreference;
+            // 明示選択は復旧記録も確定して解除する
+            // Explicit selection acknowledges and clears recovery
             PlayerPrefs.SetString(PreferenceKey, mode.ToString());
             PlayerPrefs.Save();
+            RecoveredInvalidPreference = false;
+            // silent-ok: 保存済みの同値選択は変更通知不要 / 保存テストで再通知がないことを確認する
+            if (!requiresNotification) return;
             SprintInputModeChangedSubject.OnNext(mode);
         }
 
@@ -40,9 +47,12 @@ namespace Client.Input
             var saved = PlayerPrefs.GetString(PreferenceKey);
             if (Enum.TryParse(saved, out SprintInputMode mode) && Enum.IsDefined(typeof(SprintInputMode), mode)) return mode;
 
-            // 不正保存値は既定へ戻しログに残す
-            // Fall back to the default for invalid saved values and log it
+            // 不正値を実修復し、設定画面まで復旧記録を届ける
+            // Repair invalid persistence and expose recovery to settings
             Debug.LogWarning($"[SprintInputModePreference] Unknown saved sprint mode '{saved}'. Using Toggle.");
+            PlayerPrefs.SetString(PreferenceKey, SprintInputMode.Toggle.ToString());
+            PlayerPrefs.Save();
+            RecoveredInvalidPreference = true;
             return SprintInputMode.Toggle;
         }
     }

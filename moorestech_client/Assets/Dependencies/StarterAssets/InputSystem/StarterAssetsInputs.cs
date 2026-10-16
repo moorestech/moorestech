@@ -19,6 +19,7 @@ namespace StarterAssets
         private SprintInputResolver _sprintResolver;
         private IDisposable _modeSubscription;
         private IDisposable _buttonSubscription;
+        private bool _otherButtonPressedInEvent;
 
         private void Awake()
         {
@@ -40,13 +41,18 @@ namespace StarterAssets
             _sprintResolver.ResyncHeld(inputEnable && InputManager.Player.Sprint.GetKey);
             ApplySprint();
 
-            // 走り以外の押下は修飾操作とする
-            // Treat non-sprint presses as modifier operations
-            _buttonSubscription = InputSystem.onAnyButtonPress.Call(control =>
+            // 状態適用前に全新規押下を記録し、実通知順に依存させない
+            // Record every new press before state application, independent of callback order
+            _buttonSubscription = InputSystem.onEvent.Call(eventPtr =>
             {
-                // silent-ok: Sprint自身は修飾操作ではない / 入力テストで確認する
-                if (InputManager.Player.Sprint.IsBoundControl(control)) return;
-                _sprintResolver.OnOtherButtonPressed();
+                _otherButtonPressedInEvent = false;
+                foreach (var control in eventPtr.GetAllButtonPresses())
+                {
+                    // silent-ok: 先行保持とSprint自身は修飾操作ではない / 実PlayerInputテストで確認する
+                    if (control.IsPressed() || InputManager.Player.Sprint.IsBoundControl(control)) continue;
+                    _otherButtonPressedInEvent = true;
+                }
+                if (_otherButtonPressedInEvent) _sprintResolver.OnOtherButtonPressed();
             });
         }
 
@@ -139,6 +145,7 @@ namespace StarterAssets
             // Keep press-sequence resolution in the input layer
             if (newSprintState) _sprintResolver.OnSprintPressed();
             else _sprintResolver.OnSprintReleased();
+            if (newSprintState && _otherButtonPressedInEvent) _sprintResolver.OnOtherButtonPressed();
             ApplySprint();
 		}
 
