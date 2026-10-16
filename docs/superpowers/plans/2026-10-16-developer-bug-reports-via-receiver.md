@@ -767,8 +767,8 @@ git commit -m "feat(bugreport): 報告の確保時に未pushコミットのbundl
   - `docs/adr/0064-playtest-uploads-go-direct-to-r2-and-omit-generated-world-files.md:64`
   - `docs/bug-report-system-open-questions.md:42`
 
-- [ ] **Step 1: 削除と書き換えを行う**
-- [ ] **Step 2: 残りを確かめる**
+- [x] **Step 1: 削除と書き換えを行う**
+- [x] **Step 2: 残りを確かめる**
 
 Run: `git grep -n "ship-outbox\|bugreport-shipper\|rsync path\|SHIP_BLOCKED" -- ':!docs/superpowers/plans'`
 Expected: 0件。
@@ -776,7 +776,7 @@ Expected: 0件。
 Run: `bash scripts/bugreport/tests/test-inbox-poller.sh && bash scripts/bugreport/tests/test-prepare-run.sh && bash scripts/playtest/tests/test-enqueue-autofix.sh`
 Expected: 全 PASS。
 
-- [ ] **Step 3: コミットする**
+- [x] **Step 3: コミットする**
 
 ```bash
 git add -A scripts/bugreport scripts/playtest .agents/skills/bug-report-auto-fix docs moorestech_client/Assets/Scripts/Client.Tests
@@ -811,7 +811,7 @@ git commit -m "chore(bugreport): rsync運搬スクリプトを廃止し記述を
   3. **自動修正**: `harness/bug-report/inbox/` の箱と、`harness/bug-report/runs/` の新しい N 件の状態（ラン記録の結果ファイルがあればその値）。
   - 受け口に届かないときはその節に理由を出し、残りの節は続けて出す。
 
-- [ ] **Step 1: テストを書く**
+- [x] **Step 1: テストを書く**
 
 `test_triage.py`:
 - 一時ディレクトリに最小の箱を作る。manifest、`logs/unity.log` に Error 2行（同文）と Warning 1行と `[TrainSynchronization] Permanently waiting` 1行、`snapshots/tick_100.json` と `tick_200.json` に trainUnits 1件と railSegments 2件。
@@ -823,13 +823,13 @@ git commit -m "chore(bugreport): rsync運搬スクリプトを廃止し記述を
 - `CURL_CMD` を偽にして受け口が1件を返すようにする。偽の `LOGS` に2件の報告と1件の inbox を置く。3節が出て、新しい順になっている。
 - 受け口が500のとき、理由行と残り2節が出る。
 
-- [ ] **Step 2: 実装を書く**（各ファイル200行未満）
-- [ ] **Step 3: テストと実データ確認を行う**
+- [x] **Step 2: 実装を書く**（各ファイル200行未満）
+- [x] **Step 3: テストと実データ確認を行う**
 
 Run: `python3 -m pytest scripts/bugreport/tests/test_triage.py -q && bash scripts/playtest/tests/test-find-reports.sh && python3 scripts/bugreport/triage.py <上の実箱> --out "$TMPDIR/triage-check"`
 Expected: PASS。実箱で列車表に `IsAutoRun` の True→False の変化が見え、`[TrainSynchronization] Permanently waiting` の行が出る。
 
-- [ ] **Step 4: コミットする**
+- [x] **Step 4: コミットする**
 
 ```bash
 git add scripts/bugreport scripts/playtest .agents/skills/ref-train-system .agents/skills/bug-report-auto-fix
