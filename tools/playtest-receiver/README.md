@@ -7,6 +7,10 @@ Mac mini（plan H の `scripts/playtest/ingest.sh`）が管理APIで取り込む
 
 | メソッド | パス | 認証 | 用途 |
 |---|---|---|---|
+| POST | `/v1/session/developer` | なし（開発者トークン） | 開発機の1時間セッションを発行 |
+| POST | `/v1/admin/dev-tokens` | `X-Admin-Key` | 機材名で開発者トークンを発行 |
+| GET | `/v1/admin/dev-tokens` | `X-Admin-Key` | 発行済み機材の一覧 |
+| DELETE | `/v1/admin/dev-tokens/{machine}` | `X-Admin-Key` | 機材のトークンを失効 |
 | POST | `/v1/session` | なし（Steamチケット） | チケット検証＋1時間トークン発行 |
 | POST | `/v1/uploads/{kind}/{id}/prepare` | `Authorization: Bearer` | ファイル宣言を受け、ファイルごとの署名付き R2 PUT URL を発行する |
 | PUT | `/v1/uploads/{kind}/{id}/{path...}` | なし（410固定） | 廃止。旧クライアントの中継PUTは410 `direct-upload-required`（ADR 0064） |
@@ -105,6 +109,22 @@ BASE="$PLAYTEST_RECEIVER_BASE"
 curl -s -o /dev/null -w '%{http_code}\n' "$BASE/v1/inbox"                          # 401 を期待
 curl -s -o /dev/null -w '%{http_code}\n' -X POST -d '{"ticket":"00"}' "$BASE/v1/session"  # 401 を期待（無効チケット）
 ```
+
+## 開発者トークン
+
+管理者が機材ごとに発行し、返った `mdt_` + 小文字16進64桁の値を機材の Unity メニュー `moorestech/Playtest/Developer Token` に貼り付けて保存する。生値は発行時にだけ返り、R2 には SHA-256 と機材名・作成日時だけを保存する。機材名は小文字英数字で始まる1〜32文字の小文字英数字・ハイフン。
+
+```bash
+. ~/hermes-agent/data/services/playtest/env.sh
+curl -sS -X POST "$PLAYTEST_RECEIVER_BASE/v1/admin/dev-tokens" -H "X-Admin-Key: $PLAYTEST_ADMIN_KEY" -H 'Content-Type: application/json' -d '{"machine":"macbook"}'
+curl -sS "$PLAYTEST_RECEIVER_BASE/v1/admin/dev-tokens" -H "X-Admin-Key: $PLAYTEST_ADMIN_KEY"
+# 発行された値を設定して接続確認する（200、steamId は dev-macbook）
+read -r DEV_TOKEN
+curl -sS -X POST "$PLAYTEST_RECEIVER_BASE/v1/session/developer" -H 'Content-Type: application/json' -d "{\"token\":\"$DEV_TOKEN\"}"
+curl -sS -X DELETE "$PLAYTEST_RECEIVER_BASE/v1/admin/dev-tokens/macbook" -H "X-Admin-Key: $PLAYTEST_ADMIN_KEY"
+```
+
+同名への再発行は409 `machine-already-has-token`。失効してから発行し直す。開発機の報告は `reports/dev-<machine>/<id>/` に入り、進行記録は prepare・complete の両方で403 `developer-progress-not-accepted`。失効後の交換は401 `invalid-developer-token`、発行済みセッションの prepare・complete も401 `developer-token-revoked` になる。
 
 ## 開発
 
