@@ -39,6 +39,7 @@ namespace Client.Game.InGame.Train.RailGraph
         public void SetParentBezierRailChain(BezierRailChain parent)
         {
             RailChain = parent;
+            parent.RegisterDeleteTarget(this);
         }
 
         public void SetRemovePreviewing()

@@ -26,6 +26,7 @@ namespace Client.Game.InGame.Entity.Object
             // 子 renderer から車両 entity と material 制御へたどれるようにする
             // Let renderer children resolve the train entity and material controller
             TrainCarEntityObject = trainCarEntityObject;
+            trainCarEntityObject.RegisterDeleteTarget(this);
             _materialController = materialController;
         }
 

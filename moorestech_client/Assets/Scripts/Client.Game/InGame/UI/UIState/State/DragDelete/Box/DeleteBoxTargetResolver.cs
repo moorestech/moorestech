@@ -49,7 +49,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
                 foreach (var block in _blockGameObjectDataStore.BlockGameObjectByInstanceIdDictionary.Values)
                 {
                     if (!block.BlockPosInfo.IsOverlap(box)) continue;
-                    var child = block.GetComponentInChildren<BlockGameObjectChild>(true);
+                    var child = block.DeleteTarget;
                     if (child == null)
                     {
                         LogWarningOnce($"[DeleteBox] block has no BlockGameObjectChild: {block.BlockPosInfo.OriginalPos}");
@@ -64,19 +64,13 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
                 foreach (var chain in TrainRailObjectManager.Instance.EnumerateRailChains())
                 {
                     if (chain.IsRemoving) continue;
-                    var mesh = chain.GetComponentInChildren<BezierRailMesh>();
-                    if (mesh == null)
-                    {
-                        LogWarningOnce($"[DeleteBox] rail chain has no BezierRailMesh: {chain.name}");
-                        continue;
-                    }
-                    if (!DeleteBoxRailSampler.IntersectsCellBox(mesh, min, max)) continue;
-                    var rail = chain.GetComponentInChildren<DeleteTargetRail>(true);
+                    var rail = chain.DeleteTarget;
                     if (rail == null)
                     {
                         LogWarningOnce($"[DeleteBox] rail chain has no DeleteTargetRail: {chain.name}");
                         continue;
                     }
+                    if (!chain.IntersectsCellBox(min, max)) continue;
                     AddIfRemovable(rail);
                 }
             }
@@ -86,7 +80,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
                 foreach (var car in _trainCarObjectDatastore.EnumerateTrainCars())
                 {
                     if (!DeleteBoxRule.IsPointInBox(car.transform.position, min, max)) continue;
-                    var child = car.GetComponentInChildren<TrainCarEntityChildrenObject>(true);
+                    var child = car.DeleteTarget;
                     if (child == null)
                     {
                         LogWarningOnce($"[DeleteBox] train car has no TrainCarEntityChildrenObject: {car.TrainCarInstanceId}");

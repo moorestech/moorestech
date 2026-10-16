@@ -2239,3 +2239,9 @@ planning 中に生じた判断（出所の 3 種: ユーザー裁定／シミュ
 - Architecture: DeleteCommitBatch は送信前に各対象の復元情報を採取し、BuildOperationHistory.Reserve/Completeで成功分だけのUndoを作る。車両の未確認はUndo対象群の完了を待たせない。DeleteResultFeedbackはホバーと独立に対象別結果を保持し、モード離脱時も既存通知へ結果を届ける。
 - 選択規則はDeleteSelection.UpdateStroke/UpdateHoverPreview/TryCommit/TryCancelSelectionへ集約する。OnSelectionChangedを購読してDeleteHoldConfirm.SetSubjectへプッシュし、Advanceはキー状態と時間だけを進める。
 - 情報不足: 車両要求には対象ID付き応答がない。既存通知で確認できない場合はUnconfirmedとして表示し、遅延通知の誤帰属を避け後続車両要求を保留する。後から同期結果が判明すれば表示を更新し保留を再開する。他プレイヤーの同時削除とは因果を区別できず、確認できるのは対象不在という達成状態である。
+
+## レビュー反映の委任既定: D3/D6
+
+Architecture: block/car/railのownerは初期化またはRebuildで代表削除対象を保持する。Resolverは既存ownerの参照を読み、構成を毎フレーム再検索しない。railのRebuild/Clearで古い子参照を破棄し新子へ交換する。曲線はSetControlPoints時にBezierCellBoxIntersectionの係数を更新する。対象列・車両位置・撤去可否は毎フレーム更新する。
+
+Interfaces: BezierCellBoxIntersection.Intersects(min,max)は連続3次Bezierと半開セル箱を評価する。各軸の境界根と微分根により単調区間を分け、境界点と区間内部を検査する。旧DeleteBoxRailSampler/SampleCount=64は廃止し、計画内の64点方式の記述はこの変更で置き換える。ユーザー承認済みの「途中が箱に触れれば対象」を優先したagent既定であり、新しいユーザー裁定ではない。
