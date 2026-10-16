@@ -1,8 +1,11 @@
 # ADR 0047: ブロック設置の既定Yは地形最高点を含むセルにする
 
-- Status: Accepted
+- Status: Superseded by ADR 0082
 - Date: 2026-08-30
 - Supersedes: ADR 0037 の「設置セルYを地形最高点を上回る最初のセルにする」決定（フットプリント最高点プローブとドラッグの地形追従は維持）
+
+> ADR 0082 が既定Yを反転した。既定Yは地形最高点を含むセル（floor）ではなく ceil(最高点−1/3−0.001)（底面から1/3mまでの埋まりを許容）。
+> ADR 0082 reverses the default Y: it is ceil(terrain max − 1/3 − 0.001) (up to 1/3 m of sink tolerated), not the cell containing the terrain max (floor).
 
 ## Context
 

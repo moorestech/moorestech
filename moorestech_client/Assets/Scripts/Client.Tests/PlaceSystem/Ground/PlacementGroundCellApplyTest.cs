@@ -74,7 +74,7 @@ namespace Client.Tests.PlaceSystem.Ground
         [Test]
         public void 格子数段ぶん整数を下回る地表は整数セルへ収める()
         {
-            var step = TerrainHeightStorage.StepMeters(600f);
+            var step = 600f / TerrainHeightStorage.Steps;
             var padUndershoot = step + (float)TerrainHeightStorage.MiningBottomClearanceMeters;
 
             Assert.AreEqual(10, PlacementGroundCellResolver.ResolveCellY(10f - 0.9f * step, 0));

@@ -39,7 +39,7 @@ namespace Client.Tests.PlaceSystem.Ground
 
             // 前提: 格納された地表は整数を1段未満だけ下回る
             // Premise: the stored surface is under the integer by less than one step
-            var step = TerrainHeightStorage.StepMeters(TerrainHeightRange);
+            var step = TerrainHeightRange / TerrainHeightStorage.Steps;
             Assert.That(padHeight, Is.LessThan((float)PadIntegerY));
             Assert.That(PadIntegerY - padHeight, Is.LessThan(step));
 
@@ -65,7 +65,7 @@ namespace Client.Tests.PlaceSystem.Ground
 
             // 前提: 格納された地表は整数を1段より多く下回る
             // Premise: the stored surface is more than one step under the integer
-            var step = TerrainHeightStorage.StepMeters(TerrainHeightRange);
+            var step = TerrainHeightRange / TerrainHeightStorage.Steps;
             Assert.AreEqual(productionPadHeight, padHeight, 1e-4f);
             Assert.That(boxBottom - productionPadHeight, Is.GreaterThan(step));
 
@@ -77,7 +77,7 @@ namespace Client.Tests.PlaceSystem.Ground
         [Test]
         public void 地面ヒットの設置点も格子1段下の地表を整数セルへ置く()
         {
-            var step = TerrainHeightStorage.StepMeters(TerrainHeightRange);
+            var step = TerrainHeightRange / TerrainHeightStorage.Steps;
             var hitPoint = new Vector3(5.3f, PadIntegerY - 0.9f * step, 5.7f);
 
             var resolved = PlaceSystemUtil.CalcPlacePointBySize(Vector3Int.one, hitPoint, 0, (PreviewSurfaceType?)null);

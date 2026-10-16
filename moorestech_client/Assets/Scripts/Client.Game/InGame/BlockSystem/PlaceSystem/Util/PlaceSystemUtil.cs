@@ -35,8 +35,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             return TryGetRayHitPlacePointBySize(mainCamera, rotatedSize, heightOffset, out pos, out surface);
         }
 
-        // 地形ゲート付き設置系の1セル版。地面ヒットのYを占有セルの地形最高点で決め直す（ADR 0047・0080）
-        // Single-cell entry for terrain-gated placements; a ground hit's Y is re-decided from the footprint terrain max (ADR 0047, 0080)
+        // 地形ゲート付き設置系の1セル版。地面ヒットのYを占有セルの地形最高点で決め直す（ADR 0082・0080）
+        // Single-cell entry for terrain-gated placements; a ground hit's Y is re-decided from the footprint terrain max (ADR 0082, 0080)
         public static FootprintGroundedCellResult ResolveFootprintGroundedRayHitBlockPosition(Camera mainCamera, int heightOffset, BlockDirection currentBlockDirection, BlockMasterElement holdingBlock, out Vector3Int pos, out BlockPreviewBoundingBoxSurface surface)
         {
             if (!TryGetRayHitBlockPosition(mainCamera, heightOffset, currentBlockDirection, holdingBlock, out var rayHitCell, out surface))
