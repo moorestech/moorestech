@@ -79,9 +79,9 @@ namespace Client.Game.InGame.BugReport
                     return;
                 }
 
-                // 公開済みのfeatureも含め、remote追跡ref全体で収録済みSHAを判定する
-                // Check all remote tracking refs, including published feature branches
-                if (!RepositoryStateProbe.TryGit(root, $"for-each-ref --contains {commit} --format=%(refname) refs/remotes/", out var remoteRefs, out error))
+                // 受信側が取得できるoriginの公開済みSHAだけ省略する
+                // Omit only published SHAs reachable from the receiver's origin
+                if (!RepositoryStateProbe.TryGit(root, $"for-each-ref --contains {commit} --format=%(refname) refs/remotes/origin/", out var remoteRefs, out error))
                 {
                     Record(label, CommitBundleResultKind.RemoteRefsQueryFailed, null, error);
                     return;

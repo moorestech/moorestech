@@ -41,9 +41,13 @@ namespace Client.Tests.BugReport.Repository
             Directory.Delete(_root, true);
         }
 
-        [Test]
-        public void UnpublishedCommitCreatesImportableBundleAndRemovesTemporaryRef()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void UnpublishedCommitCreatesImportableBundleAndRemovesTemporaryRef(bool publishedToOtherRemote)
         {
+            // 別remoteだけの公開は受信側のoriginから復元できない
+            // A commit published only to another remote cannot be restored from the receiver's origin
+            if (publishedToOtherRemote) Git(_repository, $"update-ref refs/remotes/other/feature/published {_unpublished}");
             var manifest = Write(_unpublished);
             File.WriteAllText(Path.Combine(_root, "box/commits.bundle.lock"), "another writer's final-path lock");
             manifest = Write(_unpublished);

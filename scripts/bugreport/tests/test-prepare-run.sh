@@ -6,6 +6,7 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 TMP="$(mktemp -d)"; trap 'rm -rf "${TMP:?}"' EXIT
 
 source "$HERE/review/git-fixture.sh"
+source "$HERE/review/published-feature-cases.sh"
 
 RUN="$TMP/runs/r1"; mkdir -p "$RUN/repo" "$RUN/snapshots" "$RUN/world"
 cp "$TMP/commits.bundle" "$RUN/repo/commits.bundle"

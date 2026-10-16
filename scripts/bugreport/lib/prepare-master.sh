@@ -32,7 +32,12 @@ if [ -n "$MASTER_COMMIT" ] && [ -d "$MASTER" ]; then
     git -C "$MASTER" fetch -q "$RUN/repo/master-commits.bundle" '+refs/bugreport/*:refs/bugreport/*' \
       || { log "master-commits.bundle を取り込めなかった。マスタの未pushコミットは使えない: $RUN/repo/master-commits.bundle"; }
   else
-    log "master-commits.bundle が箱に無い。マスタの報告コミットは手元の参照にある場合だけ使える"
+    log "master-commits.bundle が箱に無い。不足するマスタの報告コミットは origin から取得する"
+  fi
+  # 公開featureのSHAを取得してから指定コミットで復元する
+  # Fetch the published feature SHA before restoring the requested commit
+  if ! git -C "$MASTER" cat-file -e "$MASTER_COMMIT^{commit}" 2>/dev/null; then
+    git -C "$MASTER" fetch -q origin "$MASTER_COMMIT" || log "マスタの報告SHAの取得に失敗した: $MASTER_COMMIT"
   fi
   if [ -e "$MASTER_WORKTREES/bugfix-$ID" ]; then
     log "master worktree が既に存在するため再利用する: $MASTER_WORKTREES/bugfix-$ID"

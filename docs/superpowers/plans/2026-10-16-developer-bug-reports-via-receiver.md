@@ -706,7 +706,7 @@ public static class TrainSynchronizationDiagnosticDirectory
 `BugReportCommitBundles.Write` は、ラベル `commits.bundle`（repo=repositoryRoot, commit=manifest.Repository?.Commit）と `master-commits.bundle`（repo=masterDataRoot, commit=manifest.MasterData?.Commit）について、`ship-outbox.sh` の `attach_bundle` と同じ順序で判定して1行ずつ書く:
 1. commit が空 → `skipped-no-commit`
 2. repo ディレクトリが無い → `skipped-no-repo (<path>)`
-3. `for-each-ref --contains <commit> refs/remotes/` が成功しremote追跡refを返す → `not-needed-remote-has-commit`
+3. `for-each-ref --contains <commit> refs/remotes/origin/` が成功しorigin追跡refを返す → `not-needed-remote-has-commit`。受信側はbundle取込後も不足するSHAをoriginから直接取得する。別remoteだけの公開では省略せず自己完結bundleを生成する。
 4. `cat-file -e <commit>^{commit}` が非0 → `failed-commit-not-found (<commit>)`
 5. `update-ref refs/bugreport/<id> <commit>`
 6. `bundle create <out> origin/master..refs/bugreport/<id>` が0 → `created`。非0なら out を消して `failed-bundle-create`。

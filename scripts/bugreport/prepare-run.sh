@@ -47,7 +47,12 @@ if [ -f "$RUN/repo/commits.bundle" ]; then
   git -C "$REPO" fetch -q "$RUN/repo/commits.bundle" '+refs/bugreport/*:refs/bugreport/*' \
     || log "commits.bundle を取り込めなかった。報告者の未pushコミットは使えない: $RUN/repo/commits.bundle"
 else
-  log "commits.bundle が箱に無い。報告コミットは手元の参照にある場合だけ使える"
+  log "commits.bundle が箱に無い。不足する報告コミットは origin から取得する"
+fi
+# 公開featureはmasterのfetchでは届かないため、未取得SHAを直接取得する
+# Fetch a missing SHA explicitly because fetching master does not retrieve published feature commits
+if [ -n "$REPORT_COMMIT" ] && ! git -C "$REPO" cat-file -e "$REPORT_COMMIT^{commit}" 2>/dev/null; then
+  git -C "$REPO" fetch -q origin "$REPORT_COMMIT" || log "報告SHAの取得に失敗した: $REPORT_COMMIT"
 fi
 if [ -n "$REPORT_COMMIT" ] && git -C "$REPO" cat-file -e "$REPORT_COMMIT^{commit}" 2>/dev/null; then base="$REPORT_COMMIT"; else base="origin/master"; COMMIT_MISSING=1; log "報告コミットが無いため origin/master を土台にする: '$REPORT_COMMIT'"; fi
 git -C "$REPO" worktree add -q -b "bugfix/$ID" "$WORKTREE" "$base" || { log "worktree を作れなかった（base=${base}）。この run は準備できない"; exit 1; }
