@@ -38,13 +38,20 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
             var collector = new RemovedObjectCollector();
             foreach (var target in targets) target.CollectRemovedObjects(collector);
 
+            return CreateFromCollectors(new[] { collector }, sender);
+        }
+
+        internal static RemoveOperationRecord CreateFromCollectors(IReadOnlyList<RemovedObjectCollector> collectors, IRemovalRestoreSender sender)
+        {
             var seenKeys = new HashSet<object>();
             var unique = new List<IRemovedObject>();
-            foreach (var removedObject in collector.Objects)
+            var merged = new RemovedObjectCollector();
+            foreach (var collector in collectors) merged.MergeFrom(collector);
+            foreach (var removedObject in merged.Objects)
             {
                 if (seenKeys.Add(removedObject.RestoreKey)) unique.Add(removedObject);
             }
-            return new RemoveOperationRecord(unique, collector.UnrecordableCount, new List<RemovedObjectCollector.UnrecordableBlock>(collector.GetUnrecordableBlocks()), sender);
+            return new RemoveOperationRecord(unique, merged.UnrecordableCount, new List<RemovedObjectCollector.UnrecordableBlock>(merged.GetUnrecordableBlocks()), sender);
         }
 
         public UniTask UndoAsync(IBlockOccupancyQuery occupancy)

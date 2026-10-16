@@ -13,10 +13,12 @@ namespace Client.Tests.UIState.DragDelete
         {
             var bar = new ProgressBarState();
             var hold = new DeleteHoldConfirm(bar);
-            Assert.IsFalse(hold.Advance(true, SelectionRev1, 1f));
+            hold.SetSubject(SelectionRev1);
+            Assert.IsFalse(hold.Advance(true, 1f));
             Assert.IsTrue(bar.IsShown);
             Assert.AreEqual(0.5f, bar.CurrentProgress, 0.001f);
-            Assert.IsTrue(hold.Advance(true, SelectionRev1, 1f));
+            hold.SetSubject(SelectionRev1);
+            Assert.IsTrue(hold.Advance(true, 1f));
             Assert.IsFalse(bar.IsShown);
         }
 
@@ -25,10 +27,13 @@ namespace Client.Tests.UIState.DragDelete
         {
             var bar = new ProgressBarState();
             var hold = new DeleteHoldConfirm(bar);
-            hold.Advance(true, SelectionRev1, 1f);
-            Assert.IsFalse(hold.Advance(false, SelectionRev1, 0.1f));
+            hold.SetSubject(SelectionRev1);
+            hold.Advance(true, 1f);
+            hold.SetSubject(SelectionRev1);
+            Assert.IsFalse(hold.Advance(false, 0.1f));
             Assert.IsFalse(bar.IsShown);
-            Assert.IsFalse(hold.Advance(true, SelectionRev1, 1.5f));
+            hold.SetSubject(SelectionRev1);
+            Assert.IsFalse(hold.Advance(true, 1.5f));
             Assert.AreEqual(0.75f, bar.CurrentProgress, 0.001f);
         }
 
@@ -37,13 +42,17 @@ namespace Client.Tests.UIState.DragDelete
         {
             var bar = new ProgressBarState();
             var hold = new DeleteHoldConfirm(bar);
-            hold.Advance(true, DeleteHoldSubject.Selection(1), 1.5f);
-            Assert.IsFalse(hold.Advance(true, DeleteHoldSubject.Selection(2), 1f));
+            hold.SetSubject(DeleteHoldSubject.Selection(1));
+            hold.Advance(true, 1.5f);
+            hold.SetSubject(DeleteHoldSubject.Selection(2));
+            Assert.IsFalse(hold.Advance(true, 1f));
             Assert.AreEqual(0.5f, bar.CurrentProgress, 0.001f);
             var key = new object();
-            Assert.IsFalse(hold.Advance(true, DeleteHoldSubject.Hovered(key), 1f));
+            hold.SetSubject(DeleteHoldSubject.Hovered(key));
+            Assert.IsFalse(hold.Advance(true, 1f));
             Assert.AreEqual(0.5f, bar.CurrentProgress, 0.001f);
-            Assert.IsTrue(hold.Advance(true, DeleteHoldSubject.Hovered(key), 1f), "the same hovered key continues the hold");
+            hold.SetSubject(DeleteHoldSubject.Hovered(key));
+            Assert.IsTrue(hold.Advance(true, 1f), "the same hovered key continues the hold");
         }
 
         [Test]
@@ -53,11 +62,15 @@ namespace Client.Tests.UIState.DragDelete
             var hold = new DeleteHoldConfirm(bar);
             var first = DeleteHoldSubject.Hovered(new object());
             var second = DeleteHoldSubject.Hovered(new object());
-            Assert.IsFalse(hold.Advance(true, first, 1.5f));
-            Assert.IsFalse(hold.Advance(true, second, 0.5f));
+            hold.SetSubject(first);
+            Assert.IsFalse(hold.Advance(true, 1.5f));
+            hold.SetSubject(second);
+            Assert.IsFalse(hold.Advance(true, 0.5f));
             Assert.AreEqual(0.25f, bar.CurrentProgress, 0.001f);
-            Assert.IsFalse(hold.Advance(true, second, 1f));
-            Assert.IsTrue(hold.Advance(true, second, 0.5f));
+            hold.SetSubject(second);
+            Assert.IsFalse(hold.Advance(true, 1f));
+            hold.SetSubject(second);
+            Assert.IsTrue(hold.Advance(true, 0.5f));
         }
 
         [Test]
@@ -65,7 +78,8 @@ namespace Client.Tests.UIState.DragDelete
         {
             var bar = new ProgressBarState();
             var hold = new DeleteHoldConfirm(bar);
-            Assert.IsFalse(hold.Advance(true, DeleteHoldSubject.None, 1f));
+            hold.SetSubject(DeleteHoldSubject.None);
+            Assert.IsFalse(hold.Advance(true, 1f));
             Assert.IsFalse(bar.IsShown);
         }
 
@@ -74,11 +88,15 @@ namespace Client.Tests.UIState.DragDelete
         {
             var bar = new ProgressBarState();
             var hold = new DeleteHoldConfirm(bar);
-            Assert.IsTrue(hold.Advance(true, SelectionRev1, 2f));
-            Assert.IsFalse(hold.Advance(true, DeleteHoldSubject.Selection(2), 5f));
+            hold.SetSubject(SelectionRev1);
+            Assert.IsTrue(hold.Advance(true, 2f));
+            hold.SetSubject(DeleteHoldSubject.Selection(2));
+            Assert.IsFalse(hold.Advance(true, 5f));
             Assert.IsFalse(bar.IsShown);
-            hold.Advance(false, DeleteHoldSubject.Selection(2), 0.1f);
-            Assert.IsTrue(hold.Advance(true, DeleteHoldSubject.Selection(2), 2f));
+            hold.SetSubject(DeleteHoldSubject.Selection(2));
+            hold.Advance(false, 0.1f);
+            hold.SetSubject(DeleteHoldSubject.Selection(2));
+            Assert.IsTrue(hold.Advance(true, 2f));
         }
 
         [Test]
@@ -86,14 +104,18 @@ namespace Client.Tests.UIState.DragDelete
         {
             var bar = new ProgressBarState();
             var hold = new DeleteHoldConfirm(bar);
-            hold.Advance(true, SelectionRev1, 1f);
+            hold.SetSubject(SelectionRev1);
+            hold.Advance(true, 1f);
             hold.Cancel(true);
             Assert.AreEqual(0f, bar.CurrentProgress);
             var hovered = DeleteHoldSubject.Hovered(new object());
-            Assert.IsFalse(hold.Advance(true, hovered, 5f));
+            hold.SetSubject(hovered);
+            Assert.IsFalse(hold.Advance(true, 5f));
             Assert.IsFalse(bar.IsShown);
-            hold.Advance(false, hovered, 0.1f);
-            Assert.IsTrue(hold.Advance(true, hovered, 2f));
+            hold.SetSubject(hovered);
+            hold.Advance(false, 0.1f);
+            hold.SetSubject(hovered);
+            Assert.IsTrue(hold.Advance(true, 2f));
         }
 
         [Test]
@@ -101,7 +123,8 @@ namespace Client.Tests.UIState.DragDelete
         {
             var hold = new DeleteHoldConfirm(new ProgressBarState());
             hold.Cancel(false);
-            Assert.IsTrue(hold.Advance(true, SelectionRev1, 2f));
+            hold.SetSubject(SelectionRev1);
+            Assert.IsTrue(hold.Advance(true, 2f));
         }
 
         [Test]
@@ -109,7 +132,8 @@ namespace Client.Tests.UIState.DragDelete
         {
             var bar = new ProgressBarState();
             var hold = new DeleteHoldConfirm(bar);
-            hold.Advance(true, SelectionRev1, 1f);
+            hold.SetSubject(SelectionRev1);
+            hold.Advance(true, 1f);
             hold.Reset();
             Assert.AreEqual(0f, bar.CurrentProgress);
             Assert.IsFalse(bar.IsShown);

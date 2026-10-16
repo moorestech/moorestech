@@ -24,18 +24,18 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Confirm
 
         // 毎フレーム呼ぶ。満了したフレームだけ true。離す・対象が変わる・対象なしで進捗は0へ戻る
         // Call every frame; true only on the frame the hold completes. Release, a changed subject, or no subject resets progress
-        public bool Advance(bool isKeyHeld, DeleteHoldSubject subject, float deltaTime)
+        public bool Advance(bool isKeyHeld, float deltaTime)
         {
             // 満了直後に押し続けても次の対象へ連続確定しない
             // Keeping the key down after completion must not chain into the next subject
             if (!isKeyHeld) _awaitRelease = false;
-            if (!isKeyHeld || subject.IsNone || _awaitRelease)
+            if (!isKeyHeld || _subject.IsNone || _awaitRelease)
             {
                 Reset();
                 return false;
             }
 
-            if (!_isHolding || !_subject.Equals(subject)) Begin();
+            if (!_isHolding) Begin();
 
             _heldSeconds += deltaTime;
             _progressBar.SetProgress(_heldSeconds / HoldSeconds);
@@ -51,11 +51,17 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Confirm
             {
                 if (!_isHolding) _progressBar.Show();
                 _isHolding = true;
-                _subject = subject;
                 _heldSeconds = 0f;
             }
 
             #endregion
+        }
+
+        public void SetSubject(DeleteHoldSubject subject)
+        {
+            if (_subject.Equals(subject)) return; // silent-ok: 同一対象への照準更新 / 進捗表示を保持
+            Reset();
+            _subject = subject;
         }
 
         // 取りやめた押下から別の対象への確定を連鎖させない
@@ -71,7 +77,6 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Confirm
             if (_isHolding) _progressBar.Hide();
             if (0f < _heldSeconds) _progressBar.SetProgress(0f);
             _isHolding = false;
-            _subject = DeleteHoldSubject.None;
             _heldSeconds = 0f;
         }
 

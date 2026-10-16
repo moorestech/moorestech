@@ -1,3 +1,5 @@
+using System;
+using Client.Game.InGame.UI.UIState.State.DragDelete.Completion;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
 using Mooresmaster.Localization.Generated;
 
@@ -32,6 +34,7 @@ namespace Client.Game.InGame.UI.UIState.State
         ///     Delete the target object
         /// </summary>
         void Delete();
+        IObservable<DeleteCompletion> OnDeleteCompleted { get; }
 
         // 自身と撤去に巻き込まれる物を削除送信前に記録する
         // Record self and objects removed alongside it before sending deletion

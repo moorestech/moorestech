@@ -1,3 +1,6 @@
+using System;
+using UniRx;
+using Client.Game.InGame.UI.UIState.State.DragDelete.Completion;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
 using Client.Game.InGame.UI.UIState.State;
@@ -17,7 +20,7 @@ namespace Client.Tests.UIState
         [TearDown]
         public void TearDown()
         {
-            if (_selectedObject != null) Object.DestroyImmediate(_selectedObject);
+            if (_selectedObject != null) UnityEngine.Object.DestroyImmediate(_selectedObject);
         }
 
         [Test]
@@ -29,7 +32,7 @@ namespace Client.Tests.UIState
             var target = _selectedObject.AddComponent<DestroyableDeleteTarget>();
             selection.BeginStroke();
             Assert.IsTrue(selection.TryAddTarget(target).IsAdded);
-            Object.DestroyImmediate(_selectedObject);
+            UnityEngine.Object.DestroyImmediate(_selectedObject);
 
             // 破棄済みを記録へ渡さず理由を残す
             // Do not pass a destroyed target into capture; leave a diagnostic
@@ -46,7 +49,7 @@ namespace Client.Tests.UIState
             var target = _selectedObject.AddComponent<DestroyableDeleteTarget>();
             selection.BeginStroke();
             Assert.IsTrue(selection.TryAddTarget(target).IsAdded);
-            Object.DestroyImmediate(_selectedObject);
+            UnityEngine.Object.DestroyImmediate(_selectedObject);
 
             // キャンセルで失った対象も理由を記録する
             // Log a target lost before canceling the selection
@@ -58,6 +61,7 @@ namespace Client.Tests.UIState
 
     public class DestroyableDeleteTarget : MonoBehaviour, IDeleteTarget
     {
+        public IObservable<DeleteCompletion> OnDeleteCompleted => Observable.Empty<DeleteCompletion>();
         public void SetRemovePreviewing() { }
         public void ResetMaterial() { }
         public bool IsRemovable(out LocalizationKey? deniedReason)

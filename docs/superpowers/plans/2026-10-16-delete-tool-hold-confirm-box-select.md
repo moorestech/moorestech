@@ -2230,3 +2230,12 @@ planning 中に生じた判断（出所の 3 種: ユーザー裁定／シミュ
 - `DeleteHoldConfirm.Cancel(bool isKeyHeld)` は押下中のキャンセルに離すまでの再確定抑止を付ける。`Reset` は進捗だけを戻す。非ストローク中のホバーは左ボタン押下中も照準に追従する。
 - Task 7 の新規録画では、箱待ちESCで既存選択を残す、次のESCで選択解除、空のESCでモード終了、0件拒否で終点待ち維持、Q/Eで共用高さとマーカー位置を往復、箱キャンセルで高さ0、選択がホバーより優先、押下中ESC後の再確定抑止、空選択のホバー確定を実測する。
 - ホバー暗黙確定の最終再検査で拒否される防御分岐は、同期フレーム内の可否反転を実入力から安定して発火できないため、録画で通ったとは扱わない。
+
+## レビュー反映の委任既定: D1/D2
+
+ユーザーの推奨案実行委任に基づくagent既定であり、新しいユーザー裁定ではない。R13の個別送信・サーバー無変更を維持する。
+
+- Interfaces: IDeleteTarget.OnDeleteCompleted は TargetKey/Kind/DenyReason を通知する。Kind は Pending/Succeeded/Rejected/Unconfirmed。block/rail/wire/chain は既存個別応答を受信する。車両は既存同期のtick完了後に全編成のcar ID不在を確認し、ID無し拒否通知に対応するため送信を直列化する。送信済み/表示体破棄は成功根拠にしない。
+- Architecture: DeleteCommitBatch は送信前に各対象の復元情報を採取し、BuildOperationHistory.Reserve/Completeで成功分だけのUndoを作る。車両の未確認はUndo対象群の完了を待たせない。DeleteResultFeedbackはホバーと独立に対象別結果を保持し、モード離脱時も既存通知へ結果を届ける。
+- 選択規則はDeleteSelection.UpdateStroke/UpdateHoverPreview/TryCommit/TryCancelSelectionへ集約する。OnSelectionChangedを購読してDeleteHoldConfirm.SetSubjectへプッシュし、Advanceはキー状態と時間だけを進める。
+- 情報不足: 車両要求には対象ID付き応答がない。既存通知で確認できない場合はUnconfirmedとして表示し、遅延通知の誤帰属を避け後続車両要求を保留する。後から同期結果が判明すれば表示を更新し保留を再開する。他プレイヤーの同時削除とは因果を区別できず、確認できるのは対象不在という達成状態である。

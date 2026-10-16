@@ -1,3 +1,6 @@
+using System;
+using UniRx;
+using Client.Game.InGame.UI.UIState.State.DragDelete.Completion;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
 using Core.Master;
 using Game.Block.Interface;
@@ -15,6 +18,10 @@ namespace Client.Tests.UIState.Fakes
     /// </summary>
     public class FakeDeleteTarget : IDeleteTarget
     {
+        private readonly Subject<DeleteCompletion> _completed = new();
+        public IObservable<DeleteCompletion> OnDeleteCompleted => _completed;
+        public bool CompleteImmediately = true;
+        public void Complete(DeleteCompletionKind kind, LocalizationKey? reason) => _completed.OnNext(new DeleteCompletion(GetDeleteTargetKey(), kind, reason));
         public int SetPreviewCount;
         public int ResetCount;
         public int DeleteCount;
@@ -59,6 +66,7 @@ namespace Client.Tests.UIState.Fakes
         public void Delete()
         {
             DeleteCount++;
+            if (CompleteImmediately) Complete(DeleteCompletionKind.Succeeded, null);
 
             // 削除後は端点情報を読めなくなる状況を再現する
             // Simulate endpoint information becoming unavailable after deletion

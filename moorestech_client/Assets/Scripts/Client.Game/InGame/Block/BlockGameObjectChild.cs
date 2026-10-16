@@ -1,3 +1,6 @@
+using System;
+using UniRx;
+using Client.Game.InGame.UI.UIState.State.DragDelete.Completion;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
 using Client.Game.Common;
 using Client.Game.InGame.Block.Interact;
@@ -14,6 +17,9 @@ namespace Client.Game.InGame.Block
 {
     public class BlockGameObjectChild : MonoBehaviour, IDeleteTarget, IInteractRayTarget
     {
+        private readonly Subject<DeleteCompletion> _deleteCompleted = new();
+        public IObservable<DeleteCompletion> OnDeleteCompleted => _deleteCompleted;
+
         private const float RemoveDeniedReasonDisplaySeconds = 2f;
 
         public BlockGameObject BlockGameObject { get; private set; }
@@ -88,43 +94,37 @@ namespace Client.Game.InGame.Block
         private async UniTask DeleteAsync()
         {
             _isDeleteRequesting = true;
-            var blockPosition = BlockGameObject.BlockPosInfo.OriginalPos;
-            var response = await ClientContext.VanillaApi.Response.Block.BlockRemove(blockPosition, this.GetCancellationTokenOnDestroy());
+            var key = GetDeleteTargetKey();
+            var block = BlockGameObject;
+            // 応答寿命は表示体より長い。送信時の個体を指定する
+            // The response outlives the view; address the instance captured at send time
+            var response = await ClientContext.VanillaApi.Response.Block.BlockRemoveIfInstance(
+                block.BlockPosInfo.OriginalPos, block.BlockInstanceId, Application.exitCancellationToken);
             _isDeleteRequesting = false;
-
-
-            // TODO 基盤通知システムができたらそちらの方に移行する
-
-            // 削除拒否理由を既存の削除UIツールチップに渡す
-            // Pass the denial reason to the existing delete UI tooltip flow.
-            if (response == null || response.Success) return;
-            SetRemoveDeniedReason(response.FailureReason);
-
-            #region Internal
-
-            void SetRemoveDeniedReason(RemoveBlockProtocol.RemoveBlockFailureReason failureReason)
+            if (response == null)
             {
-                var reasonKey = GetRemoveDeniedReasonKey(failureReason);
-                if (!reasonKey.HasValue) return;
-
-                // 一定時間だけIsRemovableから理由を返して表示する
-                // Return the reason from IsRemovable for a short display window.
-                _removeDeniedReason = reasonKey;
+                Debug.LogWarning($"[Delete] block result unconfirmed: {key}");
+                _deleteCompleted.OnNext(new DeleteCompletion(key, DeleteCompletionKind.Unconfirmed, LocalizationKeys.Ui.Delete.UnknownError));
+                return;
+            }
+            var reason = response.Success ? (LocalizationKey?)null : GetReason(response.FailureReason);
+            if (!response.Success)
+            {
+                Debug.Log($"[Delete] block rejected: {key} reason={response.FailureReason}");
+                _removeDeniedReason = reason;
                 _removeDeniedReasonUntil = Time.time + RemoveDeniedReasonDisplaySeconds;
             }
+            _deleteCompleted.OnNext(new DeleteCompletion(key, response.Success ? DeleteCompletionKind.Succeeded : DeleteCompletionKind.Rejected, reason));
+        }
 
-            static LocalizationKey? GetRemoveDeniedReasonKey(RemoveBlockProtocol.RemoveBlockFailureReason failureReason)
+        private static LocalizationKey GetReason(RemoveBlockProtocol.RemoveBlockFailureReason reason)
+        {
+            return reason switch
             {
-                return failureReason switch
-                {
-                    RemoveBlockProtocol.RemoveBlockFailureReason.NodeInUseByTrain => LocalizationKeys.Ui.Delete.RailHasVehicle,
-                    RemoveBlockProtocol.RemoveBlockFailureReason.InventoryFull => LocalizationKeys.Ui.Delete.InventoryFull,
-                    RemoveBlockProtocol.RemoveBlockFailureReason.Unknown => LocalizationKeys.Ui.Delete.BlockDeleteFailed,
-                    _ => null,
-                };
-            }
-
-            #endregion
+                RemoveBlockProtocol.RemoveBlockFailureReason.NodeInUseByTrain => LocalizationKeys.Ui.Delete.RailHasVehicle,
+                RemoveBlockProtocol.RemoveBlockFailureReason.InventoryFull => LocalizationKeys.Ui.Delete.InventoryFull,
+                _ => LocalizationKeys.Ui.Delete.BlockDeleteFailed,
+            };
         }
     }
 }

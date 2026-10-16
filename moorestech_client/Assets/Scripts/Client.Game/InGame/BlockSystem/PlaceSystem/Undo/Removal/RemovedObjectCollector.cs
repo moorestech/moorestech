@@ -21,6 +21,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
         }
         public int UnrecordableCount => _unrecordableKeys.Count;
 
+        internal void MergeFrom(RemovedObjectCollector other)
+        {
+            _objects.AddRange(other._objects);
+            _unrecordableKeys.UnionWith(other._unrecordableKeys);
+            foreach (var block in other._unrecordableBlocks)
+            {
+                var exists = false;
+                foreach (var current in _unrecordableBlocks) if (current.Position == block.Position) exists = true;
+                if (!exists) _unrecordableBlocks.Add(block);
+            }
+        }
+
         public void Add(IRemovedObject removed)
         {
             _objects.Add(removed);

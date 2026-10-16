@@ -1,3 +1,6 @@
+using System;
+using UniRx;
+using Client.Game.InGame.UI.UIState.State.DragDelete.Completion;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
 using Client.Game.Common;
 using Client.Game.InGame.Context;
@@ -11,6 +14,9 @@ namespace Client.Game.InGame.Entity.Object
 {
     public class TrainCarEntityChildrenObject : MonoBehaviour, IDeleteTarget
     {
+        private readonly Subject<DeleteCompletion> _deleteCompleted = new();
+        public IObservable<DeleteCompletion> OnDeleteCompleted => _deleteCompleted;
+
         public TrainCarEntityObject TrainCarEntityObject { get; private set; }
 
         private TrainCarMaterialController _materialController;
@@ -53,14 +59,14 @@ namespace Client.Game.InGame.Entity.Object
         {
             // サーバーへ列車削除を依頼する
             // Request train removal from the server
-            ClientContext.VanillaApi.SendOnly.RemoveTrain(TrainCarEntityObject.TrainCarInstanceId);
+            ClientDIContext.TrainCarRemovalRequests.Remove(TrainCarEntityObject.TrainCarInstanceId, GetDeleteTargetKey()).Subscribe(_deleteCompleted.OnNext);
         }
 
         // 同一車両の全renderer子は同じTrainCarEntityObjectを指す＝論理削除単位
         // All renderer children of a car share the same TrainCarEntityObject = the logical delete unit
         public object GetDeleteTargetKey()
         {
-            return TrainCarEntityObject;
+            return TrainCarEntityObject.TrainCarInstanceId;
         }
 
         // 車両はカテゴリー対象外なのでdefault扱い

@@ -1,3 +1,6 @@
+using Cysharp.Threading.Tasks;
+using UniRx;
+using Client.Game.InGame.UI.UIState.State.DragDelete.Completion;
 using Client.Game.InGame.UI.UIState.State.RemovePreview;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
 using System;
@@ -17,6 +20,9 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
     /// </summary>
     public class ConnectionLineDeleteTarget : MonoBehaviour, IDeleteTarget, IRemovePreviewable
     {
+        private readonly Subject<DeleteCompletion> _deleteCompleted = new();
+        public IObservable<DeleteCompletion> OnDeleteCompleted => _deleteCompleted;
+
         public BlockInstanceId FromId { get; private set; }
         public BlockInstanceId ToId { get; private set; }
         public Guid ConnectToolGuid { get; private set; }
@@ -106,17 +112,22 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine
             RemovedConnectionLine.Capture(this, collector);
         }
 
-        public void Delete()
+        public void Delete() => DeleteAsync().Forget();
+
+        private async UniTask DeleteAsync()
         {
+            var key = GetDeleteTargetKey();
             // 両端を解決して種類別の切断要求を送る
             // Resolve both ends and send the per-kind disconnect request
             if (!TryResolveEndpointPositions(out var fromPos, out var toPos))
             {
                 Debug.LogWarning($"[ConnectionLineDelete] endpoint block not found: from={FromId} to={ToId}");
+                _deleteCompleted.OnNext(new DeleteCompletion(key, DeleteCompletionKind.Rejected, LocalizationKeys.Ui.Delete.UnknownError));
                 return;
             }
 
-            _commands.SendDisconnect(fromPos, toPos);
+            var result = await _commands.Disconnect(key, fromPos, toPos);
+            _deleteCompleted.OnNext(result);
         }
 
         public IConnectionLineCommands GetLineCommands()

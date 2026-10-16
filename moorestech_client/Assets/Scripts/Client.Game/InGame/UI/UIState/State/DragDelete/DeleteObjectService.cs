@@ -1,3 +1,5 @@
+using UniRx;
+using Client.Game.InGame.UI.UIState.State.DragDelete.Completion;
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
@@ -28,6 +30,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         private readonly TooltipOwner _tooltipOwner = new();
         private readonly List<TooltipLine> _lines = new();
         private bool _isStroking;
+        private readonly DeleteResultFeedback _results = new();
 
         public DeleteObjectService(BuildOperationHistory buildOperationHistory, IMouseCursorTooltip tooltip, IRemovalRestoreSender restoreSender, ProgressBarState progressBar, Camera mainCamera, PlacementHeightOffset heightOffset, DeleteBoxTargetResolver boxTargetResolver)
         {
@@ -35,6 +38,8 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             _box = new DeleteBoxInput(mainCamera, boxTargetResolver, heightOffset);
             _hold = new DeleteHoldConfirm(progressBar);
             _tooltip = tooltip;
+            _selection.OnDeleteCompleted.Subscribe(_results.Receive);
+            _selection.OnSelectionChanged.Subscribe(_ => _hold.SetSubject(_selection.HasSelection() ? DeleteHoldSubject.Selection(_selection.Revision) : DeleteHoldSubject.None));
         }
 
         public void Update(float deltaTime)
@@ -52,13 +57,16 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             _box.Update(_selection, _lines, isPointerOverUi);
 
             HandleStrokeStart();
-            if (_isStroking) UpdateStroke();
-            else UpdateHoverPreview();
+            if (_isStroking) AddDenyLine(_selection.UpdateStroke(aim));
+            var subject = _selection.UpdateHoverPreview(isPointerOverUi || _isStroking ? null : hovered, out var hoverReason);
+            AddDenyLine(hoverReason);
+            _hold.SetSubject(subject);
             if (InputManager.Playable.ScreenLeftClick.GetKeyUp) EndStroke();
 
             UpdateHoldConfirm();
 
             if (_selection.HasSelection()) _lines.Add(new TooltipLine(LocalizationKeys.Ui.Tooltip.DeleteSelectedCount, new[] { _selection.Count.ToString() }));
+            _results.AppendTo(_lines);
             if (_lines.Count == 0) _tooltip.Hide(_tooltipOwner);
             else _tooltip.Show(_tooltipOwner, _lines.ToArray());
 
@@ -79,18 +87,6 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
                 _isStroking = true;
             }
 
-            void UpdateStroke()
-            {
-                if (!_selection.IsStrokeAlive()) return;
-                if (hovered == null)
-                {
-                    AddDenyLine(aim.GetDragDenyReason());
-                    return;
-                }
-                var outcome = _selection.TryAddTarget(hovered);
-                if (!outcome.IsAdded) AddDenyLine(outcome.DenyReason);
-            }
-
             // 離した時点でカテゴリー固定を最前面へ戻す（選択は残る）
             // Releasing the button returns the category fix to frontmost (the selection stays)
             void EndStroke()
@@ -99,39 +95,10 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
                 _selection.EndStroke();
             }
 
-            void UpdateHoverPreview()
-            {
-                _selection.SetHoverPreview(isPointerOverUi ? null : hovered);
-                // 削除不可な対象は理由行だけ積む（理由なし拒否は何も出さない）
-                // For a non-removable target only add the denial line (a reasonless denial adds nothing)
-                if (hovered != null && !hovered.IsRemovable(out var reason)) AddDenyLine(reason);
-            }
-
-            // 長押しの対象: 選択があれば集合（Revision）、無ければ撤去可能なホバー1件、どちらも無ければ None
-            // Hold subject: the selection (by revision) when present, else the single removable hovered target, else None
             void UpdateHoldConfirm()
             {
-                var subject = DeleteHoldSubject.None;
-                var hoverTarget = _selection.HoverPreview;
-                if (_selection.HasSelection()) subject = DeleteHoldSubject.Selection(_selection.Revision);
-                else if (!isPointerOverUi && hoverTarget != null && hoverTarget.IsRemovable(out _)) subject = DeleteHoldSubject.Hovered(hoverTarget.GetDeleteTargetKey());
-
-                if (!_hold.Advance(InputManager.Playable.Interact.GetKey, subject, deltaTime)) return;
-
-                // ホバー1件の暗黙選択: 足せなければ（撤去可否が直前に変わった）確定しない
-                // Implicit single selection: if it cannot join (removability changed meanwhile) nothing is committed
-                if (subject.Kind == DeleteHoldSubjectKind.Hovered)
-                {
-                    _selection.BeginStroke();
-                    var outcome = _selection.TryAddTarget(hoverTarget);
-                    if (!outcome.IsAdded)
-                    {
-                        Debug.Log($"[DragDelete] implicit hover commit refused: {outcome.Kind}");
-                        _selection.SetHoverPreview(null);
-                        return;
-                    }
-                }
-                _selection.CommitDelete();
+                if (!_hold.Advance(InputManager.Playable.Interact.GetKey, deltaTime)) return;
+                if (!_selection.TryCommit(subject, out var reason)) AddDenyLine(reason);
                 _isStroking = false;
             }
 
@@ -150,9 +117,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         {
             _hold.Cancel(InputManager.Playable.Interact.GetKey);
             if (_box.TryCancel()) return true;
-            if (!_selection.HasSelection()) return false;
-            _selection.CancelSelection();
-            return true;
+            return _selection.TryCancelSelection();
         }
 
         // 選択・箱・高さ・長押し・ツールチップを全解除
