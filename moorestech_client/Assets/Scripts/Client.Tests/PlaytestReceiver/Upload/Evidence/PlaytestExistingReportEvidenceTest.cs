@@ -72,9 +72,11 @@ namespace Client.Tests.PlaytestReceiver
             Assert.True(File.Exists(Path.Combine(normal, PlaytestOutboxScanner.UploadedMarker)));
         }
 
-        [TestCase(false)]
-        [TestCase(true)]
-        public void 開発ビルドで保留された旧箱をEditor補完で自動再送できる(bool previousHoldStatus)
+        [TestCase(false, null)]
+        [TestCase(true, null)]
+        [TestCase(false, "元repoまたはmanifestのSHAを特定できないため送信を保留しました")]
+        [TestCase(false, "元SHA aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa を指定repoで確認できません: missing")]
+        public void 開発ビルドで保留された旧箱をEditor補完で自動再送できる(bool previousHoldStatus, string legacyReason)
         {
             var repository = Path.Combine(_root, "source");
             Directory.CreateDirectory(repository);
@@ -106,11 +108,58 @@ namespace Client.Tests.PlaytestReceiver
             var uploader = new PlaytestUploader(api, session, _directories, PlaytestNoWaitRetrySchedule.Create(), Client.PlaytestReceiver.Delivery.PlaytestOutboxScope.ReportsOnly);
             Assert.AreEqual(0, uploader.UploadPendingAsync(System.Threading.CancellationToken.None).GetAwaiter().GetResult().Sent);
             Assert.IsEmpty(api.Calls);
+            if (legacyReason != null) File.WriteAllText(Path.Combine(_box, PlaytestOutboxScanner.FailedMarker), legacyReason);
             PlaytestExistingReportEvidence.Complete(_directories, repository, repository);
             Assert.True(File.Exists(Path.Combine(_box, "repo/commits.bundle")));
             Assert.True(File.Exists(Path.Combine(_box, "repo/master-commits.bundle")));
             Assert.AreEqual(1, uploader.UploadPendingAsync(System.Threading.CancellationToken.None).GetAwaiter().GetResult().Sent);
             Assert.AreEqual(1, api.CompleteCount);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void 読取不能な保留印を残して正常箱の走査を続ける(bool evidence)
+        {
+            var marker = Path.Combine(_box, PlaytestOutboxScanner.FailedMarker);
+            File.WriteAllText(marker, "unreadable hold");
+            var normal = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20261016_130000_bbbb", ("manifest.json", "{}"));
+            using var locked = Environment.OSVersion.Platform == PlatformID.Win32NT ? new FileStream(marker, FileMode.Open, FileAccess.ReadWrite, FileShare.None) : null;
+            if (locked == null) SetMode("000");
+            // 権限は必ず戻し、失敗箱を配送可能に変えない
+            // Always restore permissions without making the failed box eligible for delivery
+            try
+            {
+                var boxes = evidence ? PlaytestOutboxScanner.ScanForEvidence(_directories) :
+                    PlaytestOutboxScanner.ScanPending(_directories, Client.PlaytestReceiver.Delivery.PlaytestOutboxScope.ReportsOnly);
+                Assert.That(boxes.Count, Is.EqualTo(1));
+                Assert.That(boxes[0].Directory, Is.EqualTo(normal));
+                Assert.True(File.Exists(marker));
+            }
+            finally { if (locked == null) SetMode("600"); }
+
+            void SetMode(string mode)
+            {
+                using var process = Process.Start("/bin/chmod", mode + " " + marker);
+                process.WaitForExit();
+                Assert.That(process.ExitCode, Is.Zero);
+            }
+        }
+
+        [TestCase(true, false, false, true)]
+        [TestCase(true, true, false, false)]
+        [TestCase(true, false, true, false)]
+        [TestCase(false, false, false, false)]
+        public void 旧形式は未宣言で未補完のEditor箱だけ解除する(bool editor, bool declared, bool completed, bool expected)
+        {
+            File.WriteAllText(Path.Combine(_box, "manifest.json"), new JObject { ["isEditor"] = editor }.ToString());
+            File.WriteAllText(Path.Combine(_box, PlaytestOutboxScanner.FailedMarker), "元repoまたはmanifestのSHAを特定できないため送信を保留しました");
+            if (declared) File.WriteAllText(Path.Combine(_box, PlaytestOutboxScanner.DeclaredMarker), "declared");
+            if (completed)
+            {
+                Directory.CreateDirectory(Path.Combine(_box, "repo"));
+                File.WriteAllText(Path.Combine(_box, "repo/bundle-status.txt"), "commits.bundle: created\nmaster-commits.bundle: created\n");
+            }
+            Assert.That(PlaytestOutboxScanner.IsCompletionHold(_box), Is.EqualTo(expected));
         }
 
         private static string Git(string directory, string arguments)

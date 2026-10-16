@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Client.PlaytestReceiver.Http;
 using Client.PlaytestReceiver.Upload.Attempt;
 
@@ -41,8 +43,19 @@ namespace Client.PlaytestReceiver.Upload
             var path = Path.Combine(directory, FailedMarker);
             if (!File.Exists(path)) return false; // silent-ok: 保留印なし / 通常走査で配送する
             var reason = File.ReadAllText(path);
-            return reason.StartsWith(CompletionHoldPrefix, StringComparison.Ordinal) ||
-                   reason == "repo/commit-evidence: Editorで元SHAの資料補完が必要です";
+            if (reason.StartsWith(CompletionHoldPrefix, StringComparison.Ordinal) ||
+                reason == "repo/commit-evidence: Editorで元SHAの資料補完が必要です") return true;
+            // 旧Editorの理由は未補完の実体と照合する
+            // Match legacy Editor reasons against evidence still awaiting completion
+            var legacy = reason == "元repoまたはmanifestのSHAを特定できないため送信を保留しました" ||
+                         System.Text.RegularExpressions.Regex.IsMatch(reason, @"\A元SHA [0-9a-fA-F]{40} を指定repoで確認できません: ");
+            if (!legacy) return false; // silent-ok: 他の恒久失敗は維持 / 保留印と画面に残る
+            var manifest = JObject.Parse(File.ReadAllText(Path.Combine(directory, "manifest.json")));
+            if (manifest["isEditor"]?.Type != JTokenType.Boolean || !(bool)manifest["isEditor"]) return false; // silent-ok: Editor箱だけ補完 / 保留印を維持
+            var statusPath = Path.Combine(directory, "repo/bundle-status.txt");
+            var statuses = File.Exists(statusPath) ? File.ReadAllLines(statusPath) : Array.Empty<string>();
+            return !new[] { "commits.bundle", "master-commits.bundle" }.All(name =>
+                statuses.Any(line => line.StartsWith(name + ": ", StringComparison.Ordinal) && !line.Contains(": failed-delivery")));
         }
 
         private static IReadOnlyList<PlaytestOutboxBox> Scan(PlaytestOutboxDirectories directories, PlaytestOutboxScope scope, bool includeCompletionHolds)
@@ -64,12 +77,27 @@ namespace Client.PlaytestReceiver.Upload
                     var markers = ReadMarkers(directory);
                     if (!markers.Contains(ReadyMarker)) continue;
                     if (IsDelivered(markers)) continue;
-                    if (markers.Contains(FailedMarker) && !filePolicy.CanResumeHold(directory) && !(includeCompletionHolds && IsCompletionHold(directory))) continue;
+                    if (markers.Contains(FailedMarker) && !CanResume(directory, filePolicy, includeCompletionHolds)) continue;
                     yield return new PlaytestOutboxBox(directory, Path.GetFileName(directory), kind, filePolicy);
                 }
             }
 
             #endregion
+        }
+
+        private static bool CanResume(string directory, IPlaytestBoxFilePolicy filePolicy, bool includeCompletionHolds)
+        {
+            // 外部ディスク・JSON境界。読めない箱だけ保留し、印を画面へ残す
+            // Isolate external disk and JSON failures to this box; preserve its visible failure marker
+            try
+            {
+                return filePolicy.CanResumeHold(directory) || (includeCompletionHolds && IsCompletionHold(directory));
+            }
+            catch (Exception error) when (error is IOException || error is UnauthorizedAccessException || error is JsonException)
+            {
+                UnityEngine.Debug.LogWarning($"[PlaytestReceiver] cannot classify held box {directory}: {error.Message}");
+                return false;
+            }
         }
 
         internal static PlaytestOutboxInventoryRead ReadDeliveryInventory(PlaytestOutboxDirectories directories, PlaytestOutboxScope scope)
