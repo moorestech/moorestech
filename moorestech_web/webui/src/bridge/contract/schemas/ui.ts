@@ -37,6 +37,10 @@ export const LocalizationDataSchema = z.object({
   locale: z.string().min(1),
   revision: z.number().int().nonnegative(),
 });
+// 走りの操作方式。既定はUnity側が決める
+// Sprint input mode; Unity owns the default
+export const SprintInputModeDataSchema = z.object({ mode: z.enum(["toggle", "hold"]), recoveredInvalidPreference: z.boolean() });
+
 // 出展モードの言語選択ゲートの待機。開始を止めるゲートはこれ1枚なので順序は持たない
 // The wait of event mode's language gate; it is the only gate holding the start, so no order travels with it
 export const EventLanguageGateDataSchema = z.object({ waiting: z.boolean() });
@@ -51,9 +55,23 @@ const BugReportStatusSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("submitting"), ...BugReportMissingField }).strict(),
   z.object({ kind: z.literal("ready"), ...BugReportMissingField }).strict(),
 ]);
+// 送信状態ごとの必須値を契約で固定する
+// Pin the required fields of each delivery state at the boundary
+const PlaytestDeliveryInventorySchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("known"), pendingCount: z.number().int().nonnegative(), failedCount: z.number().int().nonnegative() }).strict(),
+  z.object({ kind: z.literal("unavailable"), reason: z.string().min(1) }).strict(),
+]);
+
+const DeliveryStatusSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("localOnly"), reason: z.enum(["developerTokenMissing", "developerTokenUnreadable", "distributionUnavailable"]), inventory: PlaytestDeliveryInventorySchema }).strict(),
+  z.object({ kind: z.literal("pending"), inventory: PlaytestDeliveryInventorySchema }).strict(),
+  z.object({ kind: z.literal("refused"), inventory: PlaytestDeliveryInventorySchema }).strict(),
+  z.object({ kind: z.literal("allSent") }).strict(),
+]);
 export const PauseMenuDataSchema = z.object({
   disconnected: z.boolean(),
   bugReport: BugReportStatusSchema,
+  delivery: DeliveryStatusSchema,
   page: z.enum(["top", "settings", "bugReport"]),
 });
 const PlacementModeCommonFields = {

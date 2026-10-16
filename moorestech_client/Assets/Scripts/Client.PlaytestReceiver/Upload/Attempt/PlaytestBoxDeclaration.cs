@@ -55,7 +55,7 @@ namespace Client.PlaytestReceiver.Upload.Attempt
             long total = 0;
             // 優先度順（必須→補助→静止画）、同順位は序数順。上限で落ちるのは常に後ろの静止画で、実行ごとにも変わらない
             // Priority order (required, supporting, stills), ordinal within a rank; the caps always drop trailing stills, identically on every run
-            var payloads = PlaytestOutboxScanner.ListPayloadFiles(box.Directory)
+            var payloads = box.FilePolicy.ListPayloadFiles(box.Directory)
                 .Select(absolute => (Absolute: absolute, Relative: PlaytestOutboxScanner.ToRelativePath(box.Directory, absolute)))
                 .OrderBy(file => box.FilePolicy.RankOf(file.Relative))
                 .ThenBy(file => file.Relative, StringComparer.Ordinal);

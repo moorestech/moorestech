@@ -17,7 +17,7 @@ if (apply) {
   for (let round = 1; scope === 'source' && round <= REFIX_MAX_ROUNDS; round++) {
     const sys = { kind: 'refix', name: `refix-correctness-r${round}`, path: A.refixReviewerPath, model: 'opus', patchOverride: diffPath, refixOf, previousCritical: refixHistory }
     const r = await runSystem(sys, 'Refix')
-    if (!r.ok) throw new Error(`${sys.name} が応答しなかった。${diffPath} は残っているので親が該当 round だけ再派遣する`)
+    if (!r.ok) throw new Error(`${sys.name} が正常完了しなかった（Refix r${round}: ${r.error || '応答なし'}）。${diffPath} は残っているので親が該当 round だけ再派遣する`)
     const recurrence = trackRefix(r.result, round, refixHistory)
     const entry = { round, recurrence, findings: r.result.findings, name: r.name, model: r.model, critical: r.result.critical_count, design: r.result.design_judgement, report: `${A.runDir}/agents/${r.name}.md` }
     refix.rounds.push(entry)

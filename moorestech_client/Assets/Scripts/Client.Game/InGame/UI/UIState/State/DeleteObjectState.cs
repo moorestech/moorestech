@@ -115,6 +115,8 @@ namespace Client.Game.InGame.UI.UIState.State
             _cameraPolicyService.RestoreAfterApplicationFocus();
         }
 
+        public bool AllowsSprintToggle() => true;
+
         public bool LocksPlayerMovement()
         {
             return false;

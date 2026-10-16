@@ -22,12 +22,12 @@ namespace Client.Tests.PlaceSystem.Ground.Entry
             Wallet = new ConstructionWalletQuery(new ClientRemainingPlacementCountDatastore());
             Preview = new RecordingGroundedPreview();
 
-            // 照準の20.8と占有隅の21.29を別セルにする
-            // Put the aim at 20.8 and the footprint corner at 21.29 in different cells
+            // 照準20.2と最高点を別セルにする
+            // Aim at 20.2 and footprint max in different cells
             Ground = Root.transform.Find("Ground").gameObject;
             var rotation = Quaternion.Euler(0, 0, 45);
             Ground.GetComponent<BoxCollider>().size = new Vector3(20, 2, 20);
-            Ground.transform.SetPositionAndRotation(new Vector3(501.5f, 20.8f, 600.5f) - rotation * Vector3.up, rotation);
+            Ground.transform.SetPositionAndRotation(new Vector3(501.5f, 20.2f, 600.5f) - rotation * Vector3.up, rotation);
 
             // 距離判定と照準を実Camera・実プレイヤーで通す
             // Drive reach and aiming with a real camera and player

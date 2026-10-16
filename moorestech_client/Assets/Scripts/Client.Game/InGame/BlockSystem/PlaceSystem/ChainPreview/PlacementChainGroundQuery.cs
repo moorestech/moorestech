@@ -6,7 +6,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview
 {
     /// <summary>
     ///     通常設置と同じ地表解決で連結セルを判定する本番実装
-    ///     Production ground query using the same terrain resolution (ADR 0047 floor rule) as normal placement
+    ///     Production ground query using the same terrain resolution (ADR 0082 sink-allowance rule) as normal placement
     /// </summary>
     public class PlacementChainGroundQuery : IChainGroundQuery
     {

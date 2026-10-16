@@ -22,6 +22,10 @@ namespace Client.Game.InGame.UI.UIState.State
         /// </summary>
         public bool LocksPlayerMovement();
 
+        // メニュー操作のShiftで走りを反転させない
+        // Prevent menu Shift operations from flipping sprint
+        public bool AllowsSprintToggle();
+
         /// <summary>
         /// この画面の操作ヒント。遷移判定と同じ場所で宣言し、ずれを構造的に防ぐ（ADR-0032）
         /// This screen's key hints, declared beside the transition checks so they cannot drift (ADR-0032)

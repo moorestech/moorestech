@@ -1,11 +1,13 @@
 import type { Env } from "../env";
 import { fail } from "../http";
-import { isSafeSegment } from "../keys";
+import { refusesDeveloperProgress } from "../devTokens/developerSubject";
+import { isRevokedDeveloper } from "../devTokens/devTokenStore";
+import { isSafeSegment, type PlaytestKind } from "../keys";
 import { verifyToken } from "../token";
 
 // Bearerトークンだけが置き場を決める。戻り値はsteamIdか、そのまま返す拒否応答
 // Only the bearer token decides the destination; returns the steamId or a rejection response to return as-is
-export async function authorizeUpload(request: Request, env: Env): Promise<string | Response> {
+export async function authorizeUpload(request: Request, env: Env, kind: PlaytestKind): Promise<string | Response> {
   const header = request.headers.get("authorization") ?? "";
   if (!header.startsWith("Bearer ")) {
     console.warn("[upload] rejected: missing or malformed Authorization header");
@@ -17,11 +19,16 @@ export async function authorizeUpload(request: Request, env: Env): Promise<strin
     return fail("server-misconfigured", 500);
   }
   if (verification.kind === "rejected") return fail("unauthorized", 401); // verifyToken自身が理由をwarn済み / verifyToken already warned its reason
-  if (!isSafeSegment(verification.steamId)) {
+  if (!isSafeSegment(verification.principal.subject)) {
     // steamIdはR2キーの構成要素になる。token偽造は出来ないが、キー安全性はここでも保証する
     // steamId becomes part of the R2 key; the token can't be forged, but key safety is still enforced here too
-    console.warn(`[upload] rejected a token whose steamId is not a safe key segment: ${verification.steamId}`);
+    console.warn(`[upload] rejected a token whose steamId is not a safe key segment: ${verification.principal.subject}`);
     return fail("unauthorized", 401);
   }
-  return verification.steamId;
+  const principal = verification.principal;
+  if (principal.kind === "developer") {
+    if (refusesDeveloperProgress(kind, principal.subject)) return fail("developer-progress-not-accepted", 403);
+    if (await isRevokedDeveloper(env, principal.subject, principal.credentialHash)) return fail("developer-token-revoked", 401);
+  }
+  return principal.subject;
 }

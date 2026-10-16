@@ -17,5 +17,6 @@ export function declaredMarkerKey(kind: PlaytestKind, steamId: string, id: strin
 // 取り込み済みかの正本はACKEDマーカーだけ。索引やREADYの有無からは推測しない
 // The ACKED marker is the only source of truth for "already ingested"; never infer it from the index or READY
 export async function isAcked(bucket: R2Bucket, kind: PlaytestKind, steamId: string, id: string): Promise<boolean> {
-  return (await bucket.head(ackedMarkerKey(kind, steamId, id))) !== null;
+  const parent = id.split("/__attachments/")[0] as string;
+  return (await bucket.head(ackedMarkerKey(kind, steamId, parent))) !== null;
 }

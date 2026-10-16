@@ -1,5 +1,5 @@
 import { Topics, useTopic } from "@/bridge";
-import { LanguageSelect } from "@/features/settings";
+import { LanguageSelect, SprintModeSelect } from "@/features/settings";
 import { L, useI18n } from "@/shared/i18n";
 import { tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
 import { BugReportForm } from "./BugReportForm";
@@ -27,8 +27,8 @@ export function PauseMenuPanel() {
     if (!data) return <PauseMenuTopPage disconnected={false} />;
     switch (data.page) {
       case "top": return <PauseMenuTopPage disconnected={data.disconnected} />;
-      case "settings": return <PauseMenuSubPage title={t(L.ui.pauseMenu.settings)}><LanguageSelect /></PauseMenuSubPage>;
-      case "bugReport": return <PauseMenuSubPage title={t(L.ui.pauseMenu.bugReport)}><BugReportForm status={data.bugReport} draft={draft} /></PauseMenuSubPage>;
+      case "settings": return <PauseMenuSubPage title={t(L.ui.pauseMenu.settings)}><LanguageSelect /><SprintModeSelect /></PauseMenuSubPage>;
+      case "bugReport": return <PauseMenuSubPage title={t(L.ui.pauseMenu.bugReport)}><BugReportForm status={data.bugReport} delivery={data.delivery} draft={draft} /></PauseMenuSubPage>;
       default:
         console.warn(`[PauseMenuPanel] Unknown pause menu page: ${String(data.page)}. Rendering the top page.`);
         return <PauseMenuTopPage disconnected={data.disconnected} />;

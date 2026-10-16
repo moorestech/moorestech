@@ -1,4 +1,4 @@
-import type { SlotRef, BlockSlotRef, TrainTimetableStop } from "../contract/payloadTypes";
+import type { SlotRef, BlockSlotRef, TrainTimetableStop, SprintInputMode } from "../contract/payloadTypes";
 
 // C# UIStateEnum 由来の state 名。文字列リテラルの散在を防ぐ
 // State names from the C# UIStateEnum; prevents scattered string literals
@@ -76,6 +76,7 @@ export type ActionPayloads = {
   "pause_menu.show_page": { page: PauseMenuPageName };
   "bug_report.submit": { description: string; kind: PauseMenuReportKind };
   "localization.setLocale": { locale: string };
+  "settings.setSprintInputMode": { mode: SprintInputMode };
   "event_mode.select_language": { locale: string };
   "research.complete": { researchGuid: string };
   "machine_recipe.select": { operation: "set" | "clear"; recipeGuid?: string };
@@ -130,6 +131,7 @@ export const ACTION_TYPES = [
   "pause_menu.show_page",
   "bug_report.submit",
   "localization.setLocale",
+  "settings.setSprintInputMode",
   "event_mode.select_language",
   "research.complete",
   "machine_recipe.select",

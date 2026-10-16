@@ -65,6 +65,8 @@ namespace Client.Tests.PlaytestReceiver
 
     internal sealed class FakeApi : IPlaytestReceiverApi
     {
+        public readonly List<PlaytestApiResult> DeveloperSessionResponses = new();
+        public readonly List<string> DeveloperTokens = new();
         public readonly List<PlaytestApiResult> SessionResponses = new();
         public readonly List<string> Events = new();
         public int SessionCallCount;
@@ -78,6 +80,13 @@ namespace Client.Tests.PlaytestReceiver
             var response = SessionResponses[SessionCallCount];
             SessionCallCount++;
             return UniTask.FromResult(response);
+        }
+
+        public UniTask<PlaytestApiResult> PostDeveloperSessionAsync(string developerToken, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+            DeveloperTokens.Add(developerToken);
+            return UniTask.FromResult(DeveloperSessionResponses[DeveloperTokens.Count - 1]);
         }
 
         public UniTask<PlaytestApiResult> PostPrepareAsync(string bearerToken, PlaytestUploadKind kind, string bundleId, int generation, IReadOnlyList<PlaytestDeclaredFile> files, CancellationToken token)
@@ -101,8 +110,11 @@ namespace Client.Tests.PlaytestReceiver
     internal sealed class FakeUploadApi : IPlaytestReceiverApi
     {
         public readonly List<string> Calls = new();
+        public readonly List<string> DeveloperTokens = new();
+        public readonly List<string> PrepareBearerTokens = new();
         public int SessionCallCount;
         public int PutAttemptCount;
+        public int DeveloperSessionCallCount;
         public int SessionCallsAtFirstPrepare = -1;
         public int CompleteCount;
         public string LastCompleteBody = "";
@@ -130,11 +142,21 @@ namespace Client.Tests.PlaytestReceiver
             return UniTask.FromResult(SessionResult);
         }
 
+        public UniTask<PlaytestApiResult> PostDeveloperSessionAsync(string developerToken, CancellationToken token)
+        {
+            DeveloperTokens.Add(developerToken);
+            DeveloperSessionCallCount++;
+            SessionCallCount++;
+            return UniTask.FromResult(SessionResult.StatusCode == 200
+                ? PlaytestApiResult.Responded(200, SessionResult.Body.Replace("7656", "dev-test")) : SessionResult);
+        }
+
         public UniTask<PlaytestApiResult> PostPrepareAsync(string bearerToken, PlaytestUploadKind kind, string bundleId, int generation, IReadOnlyList<PlaytestDeclaredFile> files, CancellationToken token)
         {
             // 最初のprepare時点で認証済みだったかを記録する
             // Record whether authentication preceded the first prepare
             if (SessionCallsAtFirstPrepare == -1) SessionCallsAtFirstPrepare = SessionCallCount;
+            PrepareBearerTokens.Add(bearerToken);
             Calls.Add("prepare");
             LastPreparedPaths = files.Select(file => file.Path).ToList();
             PreparedGenerations.Add(generation);

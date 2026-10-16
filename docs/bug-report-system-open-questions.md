@@ -39,7 +39,7 @@
 - plan は「MacBook で報告 → Mac mini が自動修正 → draft PR」の実機横断運用を初版の完成条件としている
   （`.decisions/2026-09-11-バグ報告システム初版の完成条件はMacのEditorまでとする.md`）。
 - 本セッションは **Mac mini 上の無人実行**であり、MacBook 側の Editor 操作・launchd 有効化・実機報告を行えない。
-- 成果物（`ship-outbox.sh`・launchd plist・`prepare-run.sh`・`inbox-poller.sh`・手順書・スキル）は完成させたが、
+- 成果物（旧運搬スクリプト一式（ADR 0081 で廃止）・`prepare-run.sh`・`inbox-poller.sh`・手順書・スキル）は完成させたが、
   **実運用の1件通しは未実施**。
 - **裁定を求める点:** 初版の完成判定を「成果物完成＋ローカルリハーサル」までとするか、実運用1件を別タスクとして切るか。
 

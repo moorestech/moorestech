@@ -31,9 +31,9 @@ namespace Client.Tests.PlaceSystem.Ground
         [Test]
         public void 地面ヒットの横方向列は各セルが地形へ追従する()
         {
-            CreateCellSlab(1000, 1100, 9.9f);
-            CreateCellSlab(1001, 1100, 13.9f);
-            CreateCellSlab(1002, 1100, 17.9f);
+            CreateCellSlab(1000, 1100, 9.7f);
+            CreateCellSlab(1001, 1100, 13.7f);
+            CreateCellSlab(1002, 1100, 17.7f);
 
             var run = BuildRun(new Vector3Int(1000, 0, 1100), new Vector3Int(1002, 0, 1100));
 
@@ -82,7 +82,7 @@ namespace Client.Tests.PlaceSystem.Ground
         [Test]
         public void 地表の無いセルは設置不可になり他セルは解決される()
         {
-            CreateCellSlab(1600, 1700, 5.9f);
+            CreateCellSlab(1600, 1700, 5.7f);
 
             var run = BuildRun(new Vector3Int(1600, 0, 1700), new Vector3Int(1601, 0, 1700));
 

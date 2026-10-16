@@ -9,6 +9,8 @@ namespace Client.Tests.UIState.Fakes
     {
         public bool? LastUiLock { get; private set; }
         public int UiLockCallCount { get; private set; }
+        public bool LastSprintToggleAllowed { get; private set; }
+        public void SetSprintToggleAllowed(bool allowed) => LastSprintToggleAllowed = allowed;
         public Vector3 Position => Vector3.zero;
 
         public void SetMovementLock(PlayerMovementLockReason reason, bool isLocked)

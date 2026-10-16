@@ -87,6 +87,8 @@ namespace Client.Game.InGame.UI.UIState.State
             _localPlayerEquipment.Initialize(response.Equipment, response.SelectedEquipmentIndex);
         }
 
+        public bool AllowsSprintToggle() => false;
+
         public bool LocksPlayerMovement()
         {
             return false;

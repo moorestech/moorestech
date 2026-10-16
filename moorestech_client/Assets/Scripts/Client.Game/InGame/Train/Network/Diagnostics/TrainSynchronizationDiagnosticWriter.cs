@@ -17,6 +17,7 @@ namespace Client.Game.InGame.Train.Network.Diagnostics
         internal void Write(TrainSynchronizationDiagnosticReport report)
         {
             var path = Path.Combine(_directory, $"stall-{report.CapturedAtUtc:yyyyMMddTHHmmssfffZ}-{Guid.NewGuid():N}.json");
+            var temporary = path + ".tmp";
             var json = JsonConvert.SerializeObject(report, Formatting.Indented);
 
             // ディスク境界だけを隔離し、保存失敗をログに残す。
@@ -24,7 +25,10 @@ namespace Client.Game.InGame.Train.Network.Diagnostics
             try
             {
                 Directory.CreateDirectory(_directory);
-                File.WriteAllText(path, json);
+                // コピー対象の*.jsonには書き終えた本文だけを公開する
+                // Publish only a complete document under the copied *.json pattern
+                File.WriteAllText(temporary, json);
+                File.Move(temporary, path);
             }
             catch (Exception exception) when (exception is IOException || exception is UnauthorizedAccessException)
             {

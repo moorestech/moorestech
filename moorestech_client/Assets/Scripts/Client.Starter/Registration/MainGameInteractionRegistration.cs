@@ -192,7 +192,7 @@ namespace Client.Starter.Registration
             builder.Register<BeltItemObjectPresenter>(Lifetime.Singleton);
             builder.Register<TrainUnitTickState>(Lifetime.Singleton);
             builder.Register<Client.Game.InGame.Entity.Removal.TrainCarRemovalRequests>(Lifetime.Singleton);
-            builder.RegisterInstance(new TrainSynchronizationDiagnosticWriter(System.IO.Path.Combine(UnityEngine.Application.persistentDataPath, "Logs", "TrainSynchronization")));
+            builder.RegisterInstance(new TrainSynchronizationDiagnosticWriter(TrainSynchronizationDiagnosticDirectory.Resolve()));
             builder.Register<TrainSynchronizationDiagnostics>(Lifetime.Singleton);
             builder.Register<TrainUnitFutureMessageBuffer>(Lifetime.Singleton);
             builder.Register<TrainUnitSnapshotApplier>(Lifetime.Singleton);

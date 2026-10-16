@@ -15,7 +15,7 @@ namespace Client.Tests.PlaceSystem
         {
             // 全側面の接面と横方向中心を検証
             // Verify contact and horizontal centering on every side face.
-            var origin = BlueprintPasteOriginResolver.ResolveOrigin(new Vector3Int(3, 4, 2), new Vector3(5f, 32.4f, 10.3f), surface, 0f, 0);
+            var origin = BlueprintPasteOriginResolver.ResolveOrigin(new Vector3Int(3, 4, 2), new Vector3(5f, 32.4f, 10.3f), surface, 0);
             Assert.AreEqual(new Vector3Int(expectedX, 32, expectedZ), origin);
         }
 
@@ -23,28 +23,28 @@ namespace Client.Tests.PlaceSystem
         [TestCase(-2, 30)]
         public void 側面のQEは縦へ足すTest(int offset, int expectedY)
         {
-            var origin = BlueprintPasteOriginResolver.ResolveOrigin(new Vector3Int(3, 4, 2), new Vector3(5f, 32.4f, 10.3f), PreviewSurfaceType.YZ_X, 0f, offset);
+            var origin = BlueprintPasteOriginResolver.ResolveOrigin(new Vector3Int(3, 4, 2), new Vector3(5f, 32.4f, 10.3f), PreviewSurfaceType.YZ_X, offset);
             Assert.AreEqual(expectedY, origin.y);
         }
 
         [Test]
         public void 負の高さの側面も床関数で最下段をそろえるTest()
         {
-            var origin = BlueprintPasteOriginResolver.ResolveOrigin(new Vector3Int(3, 4, 2), new Vector3(5f, -0.2f, 10.3f), PreviewSurfaceType.YZ_X, 0f, 0);
+            var origin = BlueprintPasteOriginResolver.ResolveOrigin(new Vector3Int(3, 4, 2), new Vector3(5f, -0.2f, 10.3f), PreviewSurfaceType.YZ_X, 0);
             Assert.AreEqual(-1, origin.y);
         }
 
         [Test]
         public void 地面はXZがカーソル中心Test()
         {
-            var origin = BlueprintPasteOriginResolver.ResolveOrigin(new Vector3Int(4, 2, 3), new Vector3(10.2f, 32f, 10.7f), null, 0f, 0);
+            var origin = BlueprintPasteOriginResolver.ResolveOrigin(new Vector3Int(4, 2, 3), new Vector3(10.2f, 32f, 10.7f), null, 0);
             Assert.AreEqual(new Vector3Int(8, 32, 9), origin);
         }
 
         [Test]
         public void 地面のQEは縦へ一度だけ足すTest()
         {
-            var origin = BlueprintPasteOriginResolver.ResolveOrigin(new Vector3Int(4, 2, 3), new Vector3(10.2f, 32f, 10.7f), null, 0f, 2);
+            var origin = BlueprintPasteOriginResolver.ResolveOrigin(new Vector3Int(4, 2, 3), new Vector3(10.2f, 32f, 10.7f), null, 2);
             Assert.AreEqual(new Vector3Int(8, 34, 9), origin);
         }
 
@@ -52,7 +52,7 @@ namespace Client.Tests.PlaceSystem
         [TestCase(PreviewSurfaceType.XZ_Origin, 32)]
         public void 上下面は通常の面外側へ置きQEを足すTest(PreviewSurfaceType surface, int expectedY)
         {
-            var origin = BlueprintPasteOriginResolver.ResolveOrigin(new Vector3Int(2, 3, 2), new Vector3(4.2f, 33f, 4.2f), surface, 0f, 2);
+            var origin = BlueprintPasteOriginResolver.ResolveOrigin(new Vector3Int(2, 3, 2), new Vector3(4.2f, 33f, 4.2f), surface, 2);
             Assert.AreEqual(new Vector3Int(3, expectedY, 3), origin);
         }
     }

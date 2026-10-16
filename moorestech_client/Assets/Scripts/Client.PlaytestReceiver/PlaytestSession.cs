@@ -2,27 +2,27 @@ using System;
 using System.Threading;
 using Client.PlaytestReceiver.Http;
 using Client.PlaytestReceiver.Http.Responses;
-using Client.PlaytestReceiver.Steam;
+using Client.PlaytestReceiver.Credentials;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace Client.PlaytestReceiver
 {
-    // Steamチケットと受け口トークンの保持者。トークンの寿命管理と401時の取り直しはここ1箇所
-    // Holder of the Steam ticket exchange and the receiver token; token lifetime and the 401 refresh live here alone
+    // 資格情報の交換と受け口トークンの保持者。トークンの寿命管理と401時の取り直しはここ1箇所
+    // Holder of the credential exchange and the receiver token; token lifetime and the 401 refresh live here alone
     public sealed class PlaytestSession
     {
         private readonly IPlaytestReceiverApi _api;
-        private readonly IPlaytestSteamTicketProvider _ticketProvider;
+        private readonly IPlaytestSessionCredential _credential;
 
         private string _token;
         private DateTime _tokenRefreshAtUtc;
         private UniTaskCompletionSource<PlaytestSessionResult> _inFlight;
 
-        public PlaytestSession(IPlaytestReceiverApi api, IPlaytestSteamTicketProvider ticketProvider)
+        public PlaytestSession(IPlaytestReceiverApi api, IPlaytestSessionCredential credential)
         {
             _api = api;
-            _ticketProvider = ticketProvider;
+            _credential = credential;
         }
 
         // 認証は常に1本。重なった呼び手は実行中の認証に相乗りし、同じ結果を受け取る
@@ -52,20 +52,9 @@ namespace Client.PlaytestReceiver
 
             async UniTask<PlaytestSessionResult> AuthenticateOnceAsync()
             {
-                var ticketHex = await _ticketProvider.RequestWebApiTicketHexAsync(token);
-                if (ticketHex == null) return PlaytestSessionResult.Failed(PlaytestSessionOutcome.TicketUnavailable, "no web api ticket");
-
-                // 受け口の検証が終わった直後に解放する。打ち切りで抜けても発行済みチケットを残さない
-                // Released right after the receiver's verification; a cancelled request never leaves the issued ticket behind
-                PlaytestApiResult response;
-                try
-                {
-                    response = await _api.PostSessionAsync(ticketHex, token);
-                }
-                finally
-                {
-                    _ticketProvider.ReleaseWebApiTicket();
-                }
+                var post = await _credential.PostSessionAsync(_api, token);
+                if (post is PlaytestCredentialNotSent notSent) return notSent.Failure;
+                var response = ((PlaytestCredentialSent)post).Response;
 
                 if (response.Kind != PlaytestApiResultKind.Responded) return PlaytestSessionResult.Failed(PlaytestSessionOutcome.Unreachable, response.Detail);
 
@@ -79,12 +68,23 @@ namespace Client.PlaytestReceiver
                 var parsed = PlaytestSessionResponse.Parse(response.Body);
                 if (parsed == null) return PlaytestSessionResult.Failed(PlaytestSessionOutcome.MalformedResponse, "malformed session response");
 
+                if (!_credential.AcceptsSubject(parsed.SteamId))
+                {
+                    Debug.LogWarning("[PlaytestReceiver] session subject does not match credential kind");
+                    return PlaytestSessionResult.Failed(PlaytestSessionOutcome.MalformedResponse, "session subject does not match credential kind");
+                }
+
                 // 更新時刻は受け口が名乗った期限から逆算する。寿命の正本を受け口1箇所に保つ
                 // The refresh time is derived from the expiry the receiver states, keeping the lifetime's source there alone
+                if (parsed.ExpiresAtUtc < DateTime.MinValue.AddSeconds(PlaytestReceiverConfig.TokenRefreshMarginSeconds))
+                {
+                    Debug.LogWarning("[PlaytestReceiver] session expiry is outside the refreshable range");
+                    return PlaytestSessionResult.Failed(PlaytestSessionOutcome.MalformedResponse, "session expiry is outside the refreshable range");
+                }
                 _token = parsed.Token;
                 _tokenRefreshAtUtc = parsed.ExpiresAtUtc.AddSeconds(-PlaytestReceiverConfig.TokenRefreshMarginSeconds);
 
-                return PlaytestSessionResult.Authenticated();
+                return new PlaytestSessionAuthenticated(parsed);
             }
 
             #endregion
@@ -122,11 +122,12 @@ namespace Client.PlaytestReceiver
             if (!forceRenew && _token != null && utcNow < _tokenRefreshAtUtc) return PlaytestTokenAvailability.Usable;
 
             var result = await AuthenticateAsync(utcNow, token);
-            if (result.Outcome == PlaytestSessionOutcome.Authenticated) return PlaytestTokenAvailability.Usable;
+            if (result is PlaytestSessionAuthenticated) return PlaytestTokenAvailability.Usable;
 
+            var failed = (PlaytestSessionFailed)result;
             _token = null;
-            Debug.LogWarning($"[PlaytestReceiver] could not refresh the session token: {result.Outcome} {result.Detail}");
-            return PlaytestTokenAvailability.Unavailable(result);
+            Debug.LogWarning($"[PlaytestReceiver] could not refresh the session token: {failed.Outcome} {failed.Detail}");
+            return PlaytestTokenAvailability.Unavailable(failed);
         }
     }
 }

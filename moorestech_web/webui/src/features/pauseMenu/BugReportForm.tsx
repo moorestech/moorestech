@@ -11,10 +11,11 @@ import styles from "./style.module.css";
 
 type Props = {
   status: PauseMenuData["bugReport"];
+  delivery: PauseMenuData["delivery"];
   draft: BugReportDraft;
 };
 
-export function BugReportForm({ status, draft }: Props) {
+export function BugReportForm({ status, delivery, draft }: Props) {
   const { t } = useI18n();
   const [sending, setSending] = useState(false);
 
@@ -74,9 +75,46 @@ export function BugReportForm({ status, draft }: Props) {
         data-testid="bug-report-description"
       />
       {statusLine && <span className={styles.status} data-testid="bug-report-status">{statusLine}</span>}
+      <span className={styles.status} data-testid="bug-report-delivery">{describeDelivery()}{describeFailedDelivery()}</span>
       <Button onClick={send} disabled={blocked} data-testid="bug-report-send">{t(reportLabels(draft.kind).send)}</Button>
     </>
   );
+
+  function describeFailedDelivery(): string {
+    if (delivery.kind === "allSent" || delivery.inventory.kind !== "known" || delivery.inventory.failedCount === 0) return "";
+    return ` / ${t(L.ui.bugReport.deliveryFailed, { count: delivery.inventory.failedCount })}`;
+  }
+
+  // 送信可否とは独立した配送状況を伝える
+  // Delivery status is independent of permission to submit
+  function describeDelivery(): string {
+    if (delivery.kind === "allSent") return t(L.ui.bugReport.deliveryAllSent);
+    if (delivery.inventory.kind === "unavailable") {
+      const inventory = t(L.ui.bugReport.deliveryInventoryUnavailable, { reason: delivery.inventory.reason });
+      const keys = {
+        developerTokenMissing: L.ui.bugReport.deliveryLocalOnlyTokenMissingUnknown,
+        developerTokenUnreadable: L.ui.bugReport.deliveryLocalOnlyTokenUnreadableUnknown,
+        distributionUnavailable: L.ui.bugReport.deliveryLocalOnlyDistributionUnavailableUnknown,
+      };
+      switch (delivery.kind) {
+        case "pending": return inventory;
+        case "refused": return `${t(L.ui.bugReport.deliveryRefusedUnknown)} / ${inventory}`;
+        case "localOnly": return `${t(keys[delivery.reason])} / ${inventory}`;
+      }
+    }
+    switch (delivery.kind) {
+      case "pending": return t(L.ui.bugReport.deliveryPending, { count: delivery.inventory.pendingCount });
+      case "refused": return t(L.ui.bugReport.deliveryRefused, { count: delivery.inventory.pendingCount });
+      case "localOnly": {
+        const keys = {
+          developerTokenMissing: L.ui.bugReport.deliveryLocalOnlyTokenMissing,
+          developerTokenUnreadable: L.ui.bugReport.deliveryLocalOnlyTokenUnreadable,
+          distributionUnavailable: L.ui.bugReport.deliveryLocalOnlyDistributionUnavailable,
+        };
+        return t(keys[delivery.reason], { count: delivery.inventory.pendingCount });
+      }
+    }
+  }
 
   // 種別別の表示キーをここに集め、完了通知は送信開始時の種別を使う
   // Keep kind-specific display keys together; completion uses the kind captured at submission

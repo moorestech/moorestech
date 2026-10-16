@@ -36,6 +36,7 @@ import type {
   SlotRefSchema,
   UiStateDataSchema,
   LocalizationDataSchema,
+  SprintInputModeDataSchema,
   EventLanguageGateDataSchema,
   ChallengeNodeDataSchema,
   ChallengeTreeDataSchema,
@@ -68,6 +69,8 @@ export type ModalRequest = z.infer<typeof ModalRequestSchema>;
 export type ModalData = z.infer<typeof ModalDataSchema>;
 export type ProgressData = z.infer<typeof ProgressDataSchema>;
 export type UiStateData = z.infer<typeof UiStateDataSchema>;
+export type SprintInputModeData = z.infer<typeof SprintInputModeDataSchema>;
+export type SprintInputMode = SprintInputModeData["mode"];
 export type LocalizationData = z.infer<typeof LocalizationDataSchema>;
 export type EventLanguageGateData = z.infer<typeof EventLanguageGateDataSchema>;
 export type PauseMenuData = z.infer<typeof PauseMenuDataSchema>;

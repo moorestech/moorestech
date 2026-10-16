@@ -134,6 +134,8 @@ namespace Client.Game.InGame.UI.UIState.State
 
         // 表示中のサブステートが宣言した移動可否をそのまま返す
         // Return the movement lock declared by whichever sub-state is currently showing
+        public bool AllowsSprintToggle() => false;
+
         public bool LocksPlayerMovement()
         {
             return _subStateController.CurrentSubStateLocksPlayerMovement();

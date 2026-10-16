@@ -5,8 +5,8 @@ using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Ground
 {
-    // 端点と同じ地形最高点を含むセルにQ/E補正を加える（ADR 0047 / 0081）
-    // Adds the Q/E offset to the cell containing the terrain maximum, as for endpoints (ADR 0047 / 0081)
+    // 端点と同じ既定セルにQ/E補正を加える
+    // Adds the Q/E offset to the same default cell as endpoints
     public class GroundConveyorTerrainFloor : IConveyorTerrainFloor
     {
         private readonly PlacementHeightOffset _placementHeightOffset;

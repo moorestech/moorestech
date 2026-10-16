@@ -115,6 +115,8 @@ namespace Client.Tests.UIState.NestedPause
             {
             }
 
+            public bool AllowsSprintToggle() => false;
+
             public bool LocksPlayerMovement()
             {
                 return _locksPlayerMovement;
@@ -145,6 +147,8 @@ namespace Client.Tests.UIState.NestedPause
             public void OnExit()
             {
             }
+
+            public bool AllowsSprintToggle() => false;
 
             public bool LocksPlayerMovement()
             {

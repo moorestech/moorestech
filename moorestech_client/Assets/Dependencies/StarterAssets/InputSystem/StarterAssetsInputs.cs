@@ -1,8 +1,9 @@
+using System;
 using Client.Input;
-using UnityEngine;
-#if ENABLE_INPUT_SYSTEM && STARTER_ASSETS_PACKAGES_CHECKED
+using UniRx;
 using UnityEngine.InputSystem;
-#endif
+using UnityEngine.InputSystem.Utilities;
+using UnityEngine;
 
 namespace StarterAssets
 {
@@ -15,6 +16,52 @@ namespace StarterAssets
 		public Vector2 look;
 		public bool jump;
 		public bool sprint;
+        private SprintInputResolver _sprintResolver;
+        private IDisposable _modeSubscription;
+        private IDisposable _buttonSubscription;
+        private bool _otherButtonPressedInEvent;
+
+        private void Awake()
+        {
+            // 現在の方式と設定変更を入力へ反映
+            // Apply the current mode and setting changes to input
+            _sprintResolver = new SprintInputResolver(SprintInputModePreference.Current);
+            _modeSubscription = SprintInputModePreference.OnSprintInputModeChanged.Subscribe(mode =>
+            {
+                _sprintResolver.SetMode(mode);
+                ApplySprint();
+            });
+            ApplySprint();
+        }
+
+        private void OnEnable()
+        {
+            // 未観測期間をまたぐ押下候補は破棄する
+            // Discard tap candidates spanning an unobserved interval
+            _sprintResolver.ResyncHeld(inputEnable && InputManager.Player.Sprint.GetKey);
+            ApplySprint();
+
+            // 状態適用前に全新規押下を記録し、実通知順に依存させない
+            // Record every new press before state application, independent of callback order
+            _buttonSubscription = InputSystem.onEvent.Call(eventPtr =>
+            {
+                _otherButtonPressedInEvent = false;
+                foreach (var control in eventPtr.GetAllButtonPresses())
+                {
+                    // silent-ok: 先行保持とSprint自身は修飾操作ではない / 実PlayerInputテストで確認する
+                    if (control.IsPressed() || InputManager.Player.Sprint.IsBoundControl(control)) continue;
+                    _otherButtonPressedInEvent = true;
+                }
+                if (_otherButtonPressedInEvent) _sprintResolver.OnOtherButtonPressed();
+            });
+        }
+
+        private void OnDisable() => _buttonSubscription.Dispose();
+        private void OnDestroy() => _modeSubscription.Dispose();
+
+        public void SetSprintToggleAllowed(bool allowed) => _sprintResolver.SetToggleAllowed(allowed);
+
+        private void ApplySprint() => sprint = inputEnable && _sprintResolver.IsSprinting;
 
 		[Header("Movement Settings")]
 		public bool analogMovement;
@@ -37,7 +84,8 @@ namespace StarterAssets
 			jump = false;
 			look = Vector2.zero;
 			move = enable ? InputManager.Player.Move.ReadValue<Vector2>() : Vector2.zero;
-			sprint = enable && InputManager.Player.Sprint.GetKey;
+			_sprintResolver.ResyncHeld(enable && InputManager.Player.Sprint.GetKey);
+            ApplySprint();
 		}
 
 #if ENABLE_INPUT_SYSTEM && STARTER_ASSETS_PACKAGES_CHECKED
@@ -93,7 +141,12 @@ namespace StarterAssets
 		public void SprintInput(bool newSprintState)
 		{
             if (!inputEnable) return;
-			sprint = newSprintState;
+			// 押下列の解決は入力層に集める
+            // Keep press-sequence resolution in the input layer
+            if (newSprintState) _sprintResolver.OnSprintPressed();
+            else _sprintResolver.OnSprintReleased();
+            if (newSprintState && _otherButtonPressedInEvent) _sprintResolver.OnOtherButtonPressed();
+            ApplySprint();
 		}
 
 #if !UNITY_IOS || !UNITY_ANDROID

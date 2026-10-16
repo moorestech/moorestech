@@ -88,7 +88,7 @@ namespace Client.Game.InGame.BugReport.LastSession
             var ledgerPlacement = RemoteExecBundleLedgerPlacement.None(artifacts.LastSessionDirectory);
             try { ledgerPlacement = RemoteExecBundleMark.ApplyForSalvagedSessions(manifest, directory, artifacts.LastSessionDirectory); }
             catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e)) { manifest.AddMissing(BugReportBundleLayout.RemoteExecDirectoryName, $"台帳の元パスを解決できなかった: {e.Message}"); }
-            BugReportRepositoryFiles.Write(directory, manifest, buildOrigin, repositoryRoot, masterDataRoot);
+            BugReportRepositoryFiles.Write(directory, Path.GetFileName(directory), manifest, buildOrigin, repositoryRoot, masterDataRoot);
 
             if (BugReportOutbox.TryFinishBundle(directory, manifest))
             {

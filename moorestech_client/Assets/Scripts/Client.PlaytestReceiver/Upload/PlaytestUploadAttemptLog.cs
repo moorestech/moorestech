@@ -39,7 +39,7 @@ namespace Client.PlaytestReceiver.Upload
             void MarkFailed()
             {
                 File.WriteAllText(Path.Combine(boxDirectory, PlaytestOutboxScanner.FailedMarker), reason);
-                Debug.LogError($"[PlaytestReceiver] giving up on {Path.GetFileName(boxDirectory)} after {MaxAttempts} attempts: {reason}. 手動で送る場合は rsync 経路を使うこと");
+                Debug.LogError($"[PlaytestReceiver] giving up on {Path.GetFileName(boxDirectory)} after {MaxAttempts} attempts: {reason}. scripts/bugreport/README.md の「隔離された報告の再送」に従い原因を修正して再送してください");
             }
 
             #endregion

@@ -50,8 +50,8 @@ if [ -e "${BUG_RUNS}/${ID}" ]; then
   exit 5
 fi
 
-# manifest は壊れうる外部入力。読めない理由をログして空を返す（無音で握り潰さない。ship-outbox.sh前例）
-# manifest is fallible external input: log why it could not be read and return empty (precedent: ship-outbox.sh)
+# manifest は壊れうる外部入力。読めない理由をログして空を返す（下の投入拒否と同じく、無音で握り潰さない）
+# manifest is fallible external input: log why it could not be read and return empty (as with the enqueue refusal below)
 KIND_ERR="$(mktemp)"
 MANIFEST_KIND="$(python3 -c '
 import json,sys
@@ -91,12 +91,10 @@ if [ "$REMOTE_EXEC" = 1 ] && [ "$FORCE" != 1 ]; then
 fi
 if [ "$REMOTE_EXEC" = 1 ]; then log "--force で遠隔実行あり/不明の箱を投入する: ${ID}"; fi
 
-# .partial へ組んでから mv で公開する。poller が途中の箱を掴まないため（plan C と同じ作法）。
-# 既に公開済み/組立中の箱があれば無言で消さず据え置く（前例 ship-outbox.sh:96-103。並行実行や
-# 中断後の再実行で poller 未回収の箱を壊さないため）
-# Build in .partial and publish with mv so the poller never sees a half box (same idiom as plan C).
-# A pre-existing published/partial box is left alone rather than silently deleted (precedent:
-# ship-outbox.sh:96-103), so a concurrent run or a resume-after-interrupt never corrupts an unclaimed box
+# .partial へ組んでから mv で公開し、poller が途中の箱を掴むのを防ぐ
+# Build in .partial and publish with mv so the poller never sees an incomplete box
+# 下の既存箱チェックで拒否し、並行実行や中断後の再実行で未回収の箱を壊さない
+# The existing-box check below rejects concurrent or resumed runs to preserve unclaimed boxes
 PARTIAL="${BUG_INBOX}/${ID}.partial"
 mkdir -p "${BUG_INBOX}"
 if [ -e "${PARTIAL}" ] || [ -e "${BUG_INBOX}/${ID}" ]; then

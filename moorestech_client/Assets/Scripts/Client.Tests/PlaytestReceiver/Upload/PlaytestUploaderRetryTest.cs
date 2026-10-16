@@ -1,3 +1,4 @@
+using Client.PlaytestReceiver.Credentials;
 using System.IO;
 using System.Threading;
 using Client.PlaytestReceiver;
@@ -146,14 +147,14 @@ namespace Client.Tests.PlaytestReceiver
 
         private string MakeBox(string bundleId, string payloadName)
         {
-            return PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, bundleId, ("manifest.json", "{}"), (payloadName, "abc"));
+            return PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, bundleId, ("manifest.json", "{\"isEditor\":false}"), (payloadName, "abc"));
         }
 
         private int Upload(FakeUploadApi api)
         {
-            var session = new PlaytestSession(api, new FakeTicketProvider("aabb"));
-            var uploader = new PlaytestUploader(api, session, _directories, PlaytestNoWaitRetrySchedule.Create());
-            return uploader.UploadPendingAsync(CancellationToken.None).GetAwaiter().GetResult();
+            var session = new PlaytestSession(api, new SteamTicketSessionCredential(new FakeTicketProvider("aabb")));
+            var uploader = new PlaytestUploader(api, session, _directories, PlaytestNoWaitRetrySchedule.Create(), Client.PlaytestReceiver.Delivery.PlaytestOutboxScope.ReportsAndProgress);
+            return uploader.UploadPendingAsync(CancellationToken.None).GetAwaiter().GetResult().Sent;
         }
     }
 }

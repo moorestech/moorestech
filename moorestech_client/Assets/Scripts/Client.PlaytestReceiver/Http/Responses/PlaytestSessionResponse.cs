@@ -6,16 +6,18 @@ using UnityEngine;
 
 namespace Client.PlaytestReceiver.Http.Responses
 {
-    // POST /v1/session の200応答。SteamIDは契約検査に使い、トークンと期限だけを保持する
-    // The 200 body of POST /v1/session validates the SteamID contract and retains only the token and expiry
-    internal sealed class PlaytestSessionResponse
+    // POST /v1/session の200応答。検証済み識別子とトークン・期限を保持する
+    // The 200 body of POST /v1/session retains the validated identity, token and expiry
+    public sealed class PlaytestSessionResponse
     {
-        private PlaytestSessionResponse(string token, DateTime expiresAtUtc)
+        private PlaytestSessionResponse(string steamId, string token, DateTime expiresAtUtc)
         {
+            SteamId = steamId;
             Token = token;
             ExpiresAtUtc = expiresAtUtc;
         }
 
+        public string SteamId { get; }
         public string Token { get; }
         public DateTime ExpiresAtUtc { get; }
 
@@ -62,7 +64,7 @@ namespace Client.PlaytestReceiver.Http.Responses
                 return null;
             }
 
-            return new PlaytestSessionResponse(token, expiresAt.UtcDateTime);
+            return new PlaytestSessionResponse(steamId, token, expiresAt.UtcDateTime);
         }
     }
 }
