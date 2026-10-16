@@ -23,7 +23,31 @@ function reviewPrompt(s) {
     `User prompt : ${A.userPromptPath}`,
     `Output contract : ${A.contractPath}`,
   ]
-  return [...head, ...lines, `Write full report to : ${A.runDir}/agents/${s.name}.md`, ...footer].join('\n')
+  const ending = s.kind === 'refix' ? [...footer.slice(0, -1),
+    '返答は REFIX_REPORT_SCHEMA の構造化出力。全文は指定ファイルへ書き、返答の findings には全 Critical / Warning を1件ずつ id・severity・summary・recurs_from（再発でなければ null）付きで列挙する。Critical の列挙数を critical_count と必ず一致させる。本文の詳細はファイルに置くが、findings の省略は禁止。',
+  ] : footer
+  return [...head, ...lines, `Write full report to : ${A.runDir}/agents/${s.name}.md`, ...ending].join('\n')
+}
+
+// Refix の構造化返答を履歴更新前に検証し、欠落を再要求へ渡す。
+// Validate structured Refix responses before history mutation and pass omissions into retries.
+function refixContractError(result) {
+  if (!Array.isArray(result.findings)) return 'Refix findings が無い（全 Critical / Warning を列挙する）'
+  const errors = []
+  const ids = new Set()
+  result.findings.forEach((f, index) => {
+    if (!f || typeof f !== 'object') { errors.push(`findings[${index}] がオブジェクトでない`); return }
+    const missing = ['id', 'severity', 'summary', 'recurs_from'].filter((key) => !Object.hasOwn(f, key))
+    if (missing.length) errors.push(`findings[${index}] 欠落: ${missing.join(', ')}`)
+    if (typeof f.id !== 'string' || !f.id.trim() || ids.has(f.id)) errors.push(`findings[${index}] id が空か重複`)
+    ids.add(f.id)
+    if (!['Critical', 'Warning'].includes(f.severity)) errors.push(`findings[${index}] severity が不正`)
+    if (typeof f.summary !== 'string' || !f.summary.trim()) errors.push(`findings[${index}] summary が空`)
+    if (f.recurs_from !== null && (typeof f.recurs_from !== 'string' || !f.recurs_from.trim())) errors.push(`findings[${index}] recurs_from が不正`)
+  })
+  const count = result.findings.filter((f) => f && f.severity === 'Critical').length
+  if (!Number.isInteger(result.critical_count) || result.critical_count < 0 || count !== result.critical_count) errors.push(`Critical 件数と findings が不一致: critical_count=${result.critical_count}, 列挙=${count}, 差=${result.critical_count - count}`)
+  return errors.length ? `Refix 構造化契約不整合: ${errors.join(' / ')}` : null
 }
 
 // 起動失敗・report未書込は1回だけ再起動。fable は quota 切れ（応答なし）に限り opus で再起動（手順書の規則）
@@ -31,15 +55,17 @@ function reviewPrompt(s) {
 async function runSystem(s, phaseName) {
   let model = s.model
   let result = null
+  let reason = null
   for (let attempt = 1; attempt <= RETRY_BUDGET; attempt++) {
-    result = await agent(reviewPrompt(s), { label: `${s.kind}:${s.name}`, phase: phaseName, model, schema: s.kind === 'refix' ? REFIX_REPORT_SCHEMA : REPORT_SCHEMA })
-    if (result && result.report_written) return { name: s.name, kind: s.kind, model, attempts: attempt, ok: true, result }
-    const reason = result ? 'report 未書込' : '応答なし（起動失敗/上限）'
+    const prompt = reviewPrompt(s) + (s.kind === 'refix' && reason ? `\n前回応答は不正: ${reason}。指摘内容・重大度を変更せず、レポートの全指摘を構造化返答へ転記して契約を満たすこと。` : '')
+    result = await agent(prompt, { label: `${s.kind}:${s.name}`, phase: phaseName, model, schema: s.kind === 'refix' ? REFIX_REPORT_SCHEMA : REPORT_SCHEMA })
+    reason = !result ? '応答なし（起動失敗/上限）' : !result.report_written ? 'report 未書込' : s.kind === 'refix' ? refixContractError(result) : null
+    if (!reason) return { name: s.name, kind: s.kind, model, attempts: attempt, ok: true, result }
     if (attempt < RETRY_BUDGET) log(`${s.name}: ${reason} → 再起動 ${attempt}/${RETRY_BUDGET - 1}`)
     else log(`${s.name}: ${reason} → 予算切れ、欠員として申告`)
     if (model === 'fable' && result === null) model = 'opus'
   }
-  return { name: s.name, kind: s.kind, model, attempts: RETRY_BUDGET, ok: false, result }
+  return { name: s.name, kind: s.kind, model, attempts: RETRY_BUDGET, ok: false, result, error: reason }
 }
 
 // parallel の falsy 枠を名前付きの欠員へ戻す（添字で突き合わせ、`.filter(Boolean)` で名前を失わない）
