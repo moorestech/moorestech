@@ -18,6 +18,7 @@ namespace Client.PlaytestReceiver.Upload
         private static bool _running;
         private static bool _rerunRequested;
         private static PlaytestDeliveryRoute _rerunRoute;
+        private static PlaytestDeliveryRoute _latestRoute;
         private static PlaytestSession _sharedSession;
         private static PlaytestSession _developerSession;
         private static string _developerSessionToken;
@@ -43,6 +44,7 @@ namespace Client.PlaytestReceiver.Upload
             _running = false;
             _rerunRequested = false;
             _rerunRoute = null;
+            _latestRoute = null;
             _sharedSession = null;
             _developerSession = null;
             _developerSessionToken = null;
@@ -55,12 +57,14 @@ namespace Client.PlaytestReceiver.Upload
 
         internal void RequestUploadWith(PlaytestDeliveryRoute route)
         {
+            _latestRoute = route;
             // 送信しない場合も理由と対象件数を画面・ログへ出す
             // Publish the reason and relevant count to the UI and log when staying local
             if (route is PlaytestLocalOnlyRoute local)
             {
-                PlaytestDeliveryStatusBoard.Set(new PlaytestDeliveryLocalOnly(local.Reason, PlaytestOutboxScanner.ScanPending(_directories, local.Scope).Count));
-                Debug.Log($"[PlaytestReceiver] boxes stay local: {local.Detail}");
+                _rerunRequested = false;
+                _rerunRoute = null;
+                PublishLocalOnly(local);
                 return;
             }
 
@@ -86,6 +90,13 @@ namespace Client.PlaytestReceiver.Upload
                 PlaytestDeliveryStatusBoard.Set(new PlaytestDeliveryPending(PlaytestOutboxScanner.ScanPending(_directories, route.Scope).Count));
                 var uploader = new PlaytestUploader(_api, ResolveSession(route), _directories, PlaytestUploadRetrySchedule.Default, route.Scope);
                 var summary = await uploader.UploadPendingAsync(Application.exitCancellationToken);
+                // 最新要求がローカル保存なら旧走行の結果で上書きせず、残数だけ更新する
+                // If the latest request stays local, preserve that state and only refresh its pending count
+                if (_latestRoute is PlaytestLocalOnlyRoute local)
+                {
+                    PublishLocalOnly(local);
+                    return;
+                }
                 var remaining = PlaytestOutboxScanner.ScanPending(_directories, route.Scope).Count;
                 PlaytestDeliveryStatusBoard.Set(summary.End == PlaytestUploadRunEnd.SessionRefused
                     ? new PlaytestDeliveryRefused(remaining)
@@ -103,6 +114,12 @@ namespace Client.PlaytestReceiver.Upload
                     RequestUploadWith(rerunRoute);
                 }
             }
+        }
+
+        private void PublishLocalOnly(PlaytestLocalOnlyRoute local)
+        {
+            PlaytestDeliveryStatusBoard.Set(new PlaytestDeliveryLocalOnly(local.Reason, PlaytestOutboxScanner.ScanPending(_directories, local.Scope).Count));
+            Debug.Log($"[PlaytestReceiver] boxes stay local: {local.Detail}");
         }
 
         private PlaytestSession ResolveSession(PlaytestDeliveryRoute route)

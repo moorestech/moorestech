@@ -103,6 +103,41 @@ namespace Client.Tests.PlaytestReceiver
         }
 
         [Test]
+        public void 走行中の別トークン再要求を最新のローカル保存要求が解除する()
+        {
+            var gate = new UniTaskCompletionSource<PlaytestApiResult>();
+            var api = new FakeUploadApi { PendingPut = gate };
+            var runner = new PlaytestUploadRunner(api, _directories, new FakeTicketProvider("aabb"));
+            runner.RequestUploadWith(new PlaytestDeveloperTokenRoute("first"));
+            runner.RequestUploadWith(new PlaytestDeveloperTokenRoute("replacement"));
+            runner.RequestUploadWith(new PlaytestLocalOnlyRoute(PlaytestLocalOnlyReason.DeveloperTokenMissing, PlaytestOutboxScope.ReportsOnly, "removed"));
+            var added = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_140000_cccc", ("manifest.json", "{}"));
+            gate.TrySetResult(PlaytestApiResult.Responded(200, "{}"));
+            Assert.AreEqual(1, api.DeveloperSessionCallCount);
+            Assert.AreEqual(1, api.CompleteCount);
+            Assert.IsFalse(File.Exists(Path.Combine(added, PlaytestOutboxScanner.UploadedMarker)));
+            var status = (PlaytestDeliveryLocalOnly)PlaytestDeliveryStatusBoard.Current.Value;
+            Assert.AreEqual(PlaytestLocalOnlyReason.DeveloperTokenMissing, status.Reason);
+            Assert.AreEqual(1, status.PendingCount);
+        }
+
+        [Test]
+        public void 走行中のローカル保存表示は走行終了でも維持して残数を更新する()
+        {
+            var gate = new UniTaskCompletionSource<PlaytestApiResult>();
+            var api = new FakeUploadApi { PendingPut = gate };
+            var runner = new PlaytestUploadRunner(api, _directories, new FakeTicketProvider("aabb"));
+            runner.RequestUploadWith(new PlaytestDeveloperTokenRoute("first"));
+            runner.RequestUploadWith(new PlaytestLocalOnlyRoute(PlaytestLocalOnlyReason.DeveloperTokenUnreadable, PlaytestOutboxScope.ReportsOnly, "unreadable"));
+            Assert.AreEqual(1, ((PlaytestDeliveryLocalOnly)PlaytestDeliveryStatusBoard.Current.Value).PendingCount);
+            gate.TrySetResult(PlaytestApiResult.Responded(200, "{}"));
+            var status = (PlaytestDeliveryLocalOnly)PlaytestDeliveryStatusBoard.Current.Value;
+            Assert.AreEqual(PlaytestLocalOnlyReason.DeveloperTokenUnreadable, status.Reason);
+            Assert.AreEqual(0, status.PendingCount);
+            Assert.AreEqual(1, api.CompleteCount);
+        }
+
+        [Test]
         public void 走行中の再要求は1本に保たれ終了直後にもう一度走る()
         {
             PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_130000_bbbb", ("manifest.json", "{}"));
