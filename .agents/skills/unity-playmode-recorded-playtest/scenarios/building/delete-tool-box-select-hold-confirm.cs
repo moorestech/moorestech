@@ -23,6 +23,11 @@ return PlaytestRunner.Run("delete-tool-box-select-hold-confirm", options, async 
     // 準備: 木のチェストを一列に3つ直置き
     // Setup: place three wooden chests in a row directly
     var cells = new[] { new Vector3Int(2, 32, 4), new Vector3Int(4, 32, 4), new Vector3Int(6, 32, 4) };
+    // 固定worldの既存物を混ぜず、空き場で元の件数を検証する
+    // Verify the original count in a clear area without fixed-world fixtures
+    for (var x = 1; x <= 11; x++)
+    for (var z = 1; z <= 8; z++)
+        p.Assert(p.GetBlock(new Vector3Int(x, 32, z)) == null, $"準備: fixture範囲({x},32,{z})は空いている");
     foreach (var cell in cells) PlaytestBlockOps.PlaceBlockDirect("木のチェスト", cell, BlockDirection.North);
     foreach (var cell in cells) await p.WaitBlockGameObject(cell);
     await p.Screenshot("01-prepared");

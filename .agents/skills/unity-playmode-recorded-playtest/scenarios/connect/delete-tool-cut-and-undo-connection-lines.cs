@@ -49,6 +49,10 @@ return PlaytestRunner.Run("delete-tool-cut-and-undo-connection-lines", new Playt
     // Poles go server-side so no auto-connect runs; poleNear is within A's range but left unwired (detects auto-connect suppression)
     var poleA = new Vector3Int(5, 32, 4); var poleB = new Vector3Int(11, 32, 4); var poleNear = new Vector3Int(5, 32, 0);
     var chainC = new Vector3Int(5, 32, 9); var chainD = new Vector3Int(9, 32, 9);
+    // 固定worldの保存済み接続を再利用せず、未接続のfixtureから始める
+    // Start with fresh fixtures instead of reusing saved connections in the fixed world
+    foreach (var pos in new[] { poleA, poleB, poleNear, chainC, chainD })
+        p.Assert(p.GetBlock(pos) == null, $"準備: 接続fixture位置{pos}は空いている");
     foreach (var pos in new[] { poleA, poleB, poleNear }) p.PlaceBlockDirect("電柱", pos, BlockDirection.North);
     foreach (var pos in new[] { chainC, chainD }) p.PlaceBlockDirect("歯車チェーンポール", pos, BlockDirection.North);
     foreach (var pos in new[] { poleA, poleB, poleNear, chainC, chainD }) await p.WaitBlockGameObject(pos);
