@@ -164,8 +164,8 @@ namespace Client.Game.InGame.BugReport
                         using var killer = Process.Start(new ProcessStartInfo
                         {
                             FileName = windows ? "taskkill.exe" : "/bin/sh",
-                            // 親を停止してから子孫を集め、末端から終了して全PIDの消滅を期限内で確認する
-                            // Freeze parents before collecting descendants, kill leaves first, then bound verification of all PIDs
+                            // 停止した子孫を持つUnixの回収shellは中断せず、有限木を末端から終了・確認する
+                            // Never interrupt the Unix collector holding stopped descendants; kill and verify its finite tree leaves first
                             Arguments = windows ? $"/F /T /PID {process.Id}" : "-c \"" +
                                 "collect() { kill -STOP $1 || return; for child in $(/usr/bin/pgrep -P $1); do collect $child; done; pids=\\\"$pids $1\\\"; }; " +
                                 $"collect {process.Id}; for pid in $pids; do kill -KILL $pid; done; " +
@@ -173,7 +173,8 @@ namespace Client.Game.InGame.BugReport
                                 "[ -z $alive ] && exit 0; sleep 0.1; done; echo 'git descendants still present' >&2; exit 2\"",
                             UseShellExecute = false, CreateNoWindow = true,
                         });
-                        if (!killer.WaitForExit(1500)) { killer.Kill(); Debug.LogError("git transport cleanup timed out"); }
+                        if (!windows && !killer.WaitForExit(1500)) { Debug.LogWarning("git transport cleanup exceeded 1500ms; waiting for descendant cleanup"); killer.WaitForExit(); }
+                        if (windows && !killer.WaitForExit(1500)) { killer.Kill(); Debug.LogError("git transport cleanup timed out"); }
                         else if (killer.ExitCode != 0 && killer.ExitCode != 1) Debug.LogError($"git transport cleanup failed: {killer.ExitCode}");
                     }
                     finally { if (!process.HasExited) process.Kill(); }
