@@ -1,20 +1,16 @@
 // 削除ツールの新方式: なぞり選択は離しても残り、F長押し(2秒)で確定。Shift+クリック2点の箱で範囲選択。ESCで全解除。Ctrl+Zで復元
 // New delete-tool flow: stroke selection survives release, F hold (2s) confirms; Shift+click two-point box selects a range; ESC clears; Ctrl+Z restores
-using System.Linq;
-using Client.Game.InGame.Context;
-using Client.Game.InGame.UI.Tooltip;
 using Client.Game.InGame.UI.UIState;
-using Client.Game.InGame.UI.UIState.State.DragDelete;
 using Client.Game.InGame.UI.UIState.State.DragDelete.Confirm;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
+using static Client.Playtest.Operations.Ui.DeleteBoxScenarioInput;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using Mooresmaster.Localization.Generated;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using VContainer;
 
 var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("delete-tool-box-select-hold-confirm", options, async p =>
@@ -35,12 +31,17 @@ return PlaytestRunner.Run("delete-tool-box-select-hold-confirm", options, async 
     // Step 1: なぞって離しても消えない
     // Step 1: a stroke that is released does not delete
     p.Note("Step 1: チェスト1をなぞって離す→赤いまま残り、消えない");
-    await AimAtCell(cells[0]);
+    await AimAtCell(p, cells[0]);
     SemanticInput.MouseButtonDown(0); await UniTask.DelayFrame(10); SemanticInput.MouseButtonUp(0);
     await p.WaitSeconds(1.0f);
     p.Assert(p.GetBlock(cells[0]) != null, "Step1: 離しただけでは撤去されない");
     p.Assert(TooltipParam(LocalizationKeys.Ui.Tooltip.DeleteSelectedCount) == 1, $"Step1: ツールチップに選択件数1が出る 実際:{TooltipText()}");
     await p.Screenshot("02-stroke-kept");
+
+    // 箱待ちだけを畳み、選択を残す。Fの対象はホバーでなく選択になる
+    // Fold only the pending box, keeping the selection; F must target selection rather than hover
+    await CheckEmptyBoxAndHeight(p, new Vector3Int(8, 32, 6), 1);
+    await AimAtCell(p, cells[1]);
 
     // Step 2: F長押しで確定
     // Step 2: F hold confirms
@@ -51,6 +52,7 @@ return PlaytestRunner.Run("delete-tool-box-select-hold-confirm", options, async 
     await p.WaitSeconds(DeleteHoldConfirm.HoldSeconds * 0.5f + 0.3f);
     SemanticInput.KeyUp(Key.F);
     await p.Until(() => p.GetBlock(cells[0]) == null, 15f, "Step2: F長押し満了でチェスト1が撤去される");
+    p.Assert(p.GetBlock(cells[1]) != null, "Step2: 選択があるとき別のホバー対象を消さない");
     await p.Screenshot("04-deleted");
 
     // Step 3: Shift+クリック2点の箱でチェスト2・3を選ぶ（終点確定だけでは消えない）
@@ -86,29 +88,35 @@ return PlaytestRunner.Run("delete-tool-box-select-hold-confirm", options, async 
     await p.Until(() => p.GetBlock(cells[1]) != null && p.GetBlock(cells[2]) != null, 15f, "Step5: Ctrl+Zで2件とも復元される");
     await p.Screenshot("08-undone");
 
+    // 押下中ESC後は離すまで新しいホバーを消さず、離した次の押下は単体撤去する
+    // ESC during a hold blocks the new hover until release; the next hold deletes the hovered object
+    await AimAtCell(p, cells[1]);
+    await Click();
+    SemanticInput.KeyDown(Key.F);
+    await p.WaitSeconds(0.5f);
+    await p.PressKey(Key.Escape);
+    await AimAtCell(p, cells[2]);
+    await p.WaitSeconds(DeleteHoldConfirm.HoldSeconds + 0.3f);
+    p.Assert(p.GetBlock(cells[1]) != null && p.GetBlock(cells[2]) != null, "ESC後のF押し続けは選択もホバーも撤去しない");
+    p.Assert(TooltipParam(LocalizationKeys.Ui.Tooltip.DeleteSelectedCount) == 0, "選択解除ESCで選択が空になる");
+    SemanticInput.KeyUp(Key.F);
+    await UniTask.DelayFrame(3);
+    SemanticInput.KeyDown(Key.F);
+    await p.WaitSeconds(DeleteHoldConfirm.HoldSeconds + 0.3f);
+    SemanticInput.KeyUp(Key.F);
+    await p.Until(() => p.GetBlock(cells[2]) == null, 15f, "空選択ならFでホバー1件を撤去する");
+    p.Assert(p.GetBlock(cells[1]) != null, "ホバー以外のブロックを残す");
+    await p.PressKey(Key.Escape);
+    await p.WaitUiState(UIStateEnum.GameScreen, 10f);
+    await p.Screenshot("09-hover-and-exit");
+
     #region Internal
-
-    MouseCursorTooltipState Tooltip() => ClientDIContext.DIContainer.DIContainerResolver.Resolve<MouseCursorTooltipState>();
-
-    string TooltipText()
-    {
-        var presentation = Tooltip().GetPresentation();
-        return string.Join("|", presentation.Lines.Select(line => line.Key.Key + ":" + string.Join(",", line.TextParams ?? System.Array.Empty<string>())));
-    }
-
-    // 指定キーの行の第1引数を整数で読む（行が無ければ 0）
-    // Read the first param of the line with the given key as an int (0 when absent)
-    int TooltipParam(LocalizationKey key)
-    {
-        var line = Tooltip().GetPresentation().Lines.FirstOrDefault(l => l.Key.Key == key.Key);
-        return line.TextParams != null && line.TextParams.Count > 0 && int.TryParse(line.TextParams[0], out var n) ? n : 0;
-    }
 
     // Shift+クリックで始点、クリックで終点。終点待ち中の件数が expectedCount になることを確かめる
     // Shift+click the start, click the end; assert the pending count equals expectedCount
     async UniTask BoxSelect(Vector3Int startCell, Vector3Int endCell, int expectedCount, string label)
     {
-        await AimAtGround(startCell);
+        await AimAtGround(p, startCell);
         SemanticInput.KeyDown(Key.LeftShift);
         await UniTask.DelayFrame(3);
         SemanticInput.MouseButtonDown(0);
@@ -117,34 +125,13 @@ return PlaytestRunner.Run("delete-tool-box-select-hold-confirm", options, async 
         await UniTask.DelayFrame(3);
         SemanticInput.KeyUp(Key.LeftShift);
         await p.Until(() => GameObject.Find("DeleteBoxStartMarker") != null && GameObject.Find("DeleteBoxStartMarker").activeSelf, 5f, $"{label}: 始点マーカーが出る");
-        await AimAtGround(endCell);
+        await AimAtGround(p, endCell);
         await p.Until(() => TooltipParam(LocalizationKeys.Ui.Tooltip.DeleteBoxTargetsInRange) == expectedCount, 5f, $"{label}: 範囲内の対象{expectedCount}件 実際:{TooltipText()}");
         await p.Screenshot($"05-{label}-box-end-hover");
         SemanticInput.MouseButtonDown(0);
         await UniTask.DelayFrame(5);
         SemanticInput.MouseButtonUp(0);
         await p.WaitSeconds(0.5f);
-    }
-
-    // ブロックの各コライダー中心のうち削除ツールの実レイキャストが当該ブロックを返す点を照準する
-    // Aim at the collider center where the real delete-tool raycast returns that block
-    async UniTask AimAtCell(Vector3Int pos)
-    {
-        var block = ClientDIContext.BlockGameObjectDataStore.GetBlockGameObject(pos);
-        foreach (var point in block.GetComponentsInChildren<Collider>().Select(c => c.bounds.center).OrderBy(c => Vector3.Distance(c, Camera.main.transform.position)).ToList())
-        {
-            await p.AimAt(point);
-            var target = Client.Game.InGame.Control.DeleteTargetRaycaster.AimAt(DeleteAimFilter.Frontmost).Target;
-            if (target is Client.Game.InGame.Block.BlockGameObjectChild child && ReferenceEquals(child.BlockGameObject, block)) return;
-        }
-        p.Assert(false, $"AimAtCell: {pos} を照準できない");
-    }
-
-    // 地面セルの上面を照準する。1x1設置と同じ解決で上のセルが選ばれる
-    // Aim at the top face of a ground cell; the 1x1 placement rule resolves to the cell above it
-    async UniTask AimAtGround(Vector3Int cellAboveGround)
-    {
-        await p.AimAt(new Vector3(cellAboveGround.x + 0.5f, cellAboveGround.y - 0.02f, cellAboveGround.z + 0.5f));
     }
 
     #endregion

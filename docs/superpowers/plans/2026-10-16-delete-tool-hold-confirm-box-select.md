@@ -13,9 +13,9 @@
 設計 ADR: `docs/adr/0079-delete-tool-accumulates-selection-and-confirms-with-f-hold-and-box-select.md`。裁定: `.decisions/2026-10-16-削除ツール*.md`（12 件）。
 
 - R1 なぞり選択（左ドラッグ）は残す。左ボタンを離しても選択は消えず、何度なぞっても同じ選択集合へ追加される。受け入れ: なぞって離した後も対象は赤プレビューのまま残り、撤去要求は送られない。
-- R2 1 回のなぞり（ストローク）に入るのは同じ破壊カテゴリーだけ（現行どおり）。カテゴリー固定はストローク開始でリセットされ、左ボタンを離した時点でも最前面へ戻り、箱の影響を受けない。受け入れ: 既存 `DragDeleteSelectionCategoryTest` 相当が通り、離した直後のホバーは別カテゴリーも拾う。
+- R2 1 回のなぞり（ストローク）に入るのは同じ破壊カテゴリーだけ（現行どおり）。カテゴリー固定はストローク開始でリセットされ、左ボタンを離した時点でも最前面へ戻り、箱の影響を受けない。受け入れ: 既存 `DeleteSelectionCategoryTest` 相当が通り、離した直後のホバーは別カテゴリーも拾う。
 - R3 削除の確定は F キー長押し（`InputManager.Playable.Interact`）。件数に関係なく一定 2 秒（定数）。進捗は採掘と同じ画面固定の進捗バー（`ProgressBarState`）へ 0→1 で出す。受け入れ: 2 秒未満で離すと進捗が 0 に戻り選択は残る。満了で選択を全部撤去し 1 つの Undo バッチを積む。
-- R4 F 長押しは「F を離す」「選択集合が変わる」「（空選択時）ホバー対象が変わる」「ESC（箱を畳む段・選択を解除する段のどちらでも）」のいずれでも進捗 0 に戻る。満了後は F を一度離すまで次の長押しを始めない。受け入れ: `DeleteHoldConfirmTest`。
+- R4 F 長押しは「F を離す」「選択集合が変わる」「（空選択時）ホバー対象が変わる」「ESC（箱を畳む段・選択を解除する段のどちらでも）」のいずれでも進捗 0 に戻る。満了後と押下中のキャンセル後は F を一度離すまで次の長押しを始めない。受け入れ: `DeleteHoldConfirmTest`。
 - R5 選択が空で F を長押しすると、ホバー中の 1 件（撤去可能なもの）を暗黙の選択として撤去する。選択が 1 件以上あればホバー対象は含めない。ホバーも選択も無ければ進捗バーを出さない。
 - R6 箱選択: Shift を押しながら左クリック（UI 外で押下→解放）で始点セル、次の左クリックで終点セル。セルは 1x1 設置と同じ `PlacementUnitCellResolver.TryGetCursorCell`。Q/E は設置モードと共用の `PlacementHeightOffset`（DI シングルトン。HUD に高さが出る）を動かし、始点・終点どちらにも効く。箱を畳む・削除モードを離れるときに `ResetToGround()` で地表へ戻し、設置モードへ持ち越さない。
 - R7 箱は始点・終点セルを対角とする AABB（セル [min, max] を含む直方体）。破壊カテゴリーを問わず、占有セルが 1 つでも交差するブロック・曲線上の点が 1 つでも箱内のレール edge・位置が箱内の列車車両を全て選択へ足す。接続線は箱では選ばない。遮蔽は問わない（レイキャスト不使用）。
@@ -23,7 +23,7 @@
 - R9 箱で足した対象は選択時に固定（対象の集合）。後から箱内へ入った対象は含めず、選んだ車両が動いても消す。選択後に破棄された対象は確定時に読み飛ばす（既存の `destroyed before commit`）。
 - R10 選択の個別除外は作らない。ESC／パネル外右短押しは「終点待ちの箱を畳む → 選択の全解除 → 破壊モード終了」の順で 1 段ずつ効く。モード離脱（G/B/Tab/スポイト）で選択・箱・進捗・高さを全て片付ける。
 - R11 選択がある間はカーソルツールチップに「選択中: N件」を常時出す。拒否理由（異なるカテゴリー・撤去不可）は同じツールチップの別行として出す。
-- R12 箱で非撤去可の対象（駅内部レール等）は `DeleteBoxTargetResolver` が件数と理由を `Debug.Log` へ残して除く（無音の縮退禁止）。表示件数・0 件拒否・追加は同じ列を使う。
+- R12 箱で非撤去可の対象（駅内部レール等）は `DeleteBoxTargetResolver` が件数と理由を `Debug.Log` へ残して除く（無音の縮退禁止）。同一箱操作の同じ理由は初回のみ記録し、箱を畳むと記録済み状態を破棄する。表示件数・0 件拒否・追加は同じ列を使う。
 - R13 一部が撤去できないときは消せる対象だけ消し、拒否理由を対象ごとに現行どおり表示（サーバー変更なし・個別送信のまま）。
 - R14 ホバーの赤プレビューと選択済みの赤プレビューは同じ表示。ホバーが選択済み対象から外れてもその対象の赤は戻さない。赤を付け外しする書き手は `DeleteSelection` だけ。
 - R15 キーヒント（破壊モード）: 左ドラッグ まとめて選択／Shift+左クリック 範囲選択／Q 範囲の高さを下げる／E 範囲の高さを上げる／F（長押し） 選択を削除／G 破壊モード終了／B ビルドメニュー／Tab インベントリ／中クリック 設置物をスポイト／Ctrl+Z 元に戻す／V 視点切替（11 件）。ADR 0032 の表と `UIStateKeyHintCatalogTest` を同時更新。
@@ -71,7 +71,7 @@
 | Modify | `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/View/Object/Core/TrainCarObjectDatastore.cs` | `EnumerateTrainCars()` 追加 |
 | Modify | `Localization/localization.csv`、`moorestech_web/webui/src/shared/i18n/generated/localizationKeys.ts` | キー追加・再生成 |
 | Modify | `docs/adr/0032-key-hint-hud-owned-by-ui-state.md` | 破壊モード行を 11 件へ |
-| Test | `Client.Tests/PlaceSystem/Common/RangeBox/CellRangeBoxTest.cs`、`Client.Tests/UIState/DragDelete/DeleteBoxRuleTest.cs`、`Client.Tests/UIState/DragDelete/DeleteBoxSelectionTest.cs`、`Client.Tests/UIState/DragDelete/DeleteHoldConfirmTest.cs`、`Client.Tests/UIState/DeleteSelectionTest.cs`（旧 `DragDeleteSelectionTest.cs`）、既存 `DragDeleteDenyReasonTest.cs`／`DragDeleteSelectionCategoryTest.cs`／`DragDelete/DestroyedSelectionTest.cs`／`BuildUndo/RemoveOperationHistoryTest.cs`／`UIStateKeyHintCatalogTest.cs`／`UIStateFocusRestorationTest.cs`／`UIStateCameraInteractionTest.cs`／`RightShortPressTransitionTest.cs` | 更新 |
+| Test | `Client.Tests/PlaceSystem/Common/RangeBox/CellRangeBoxTest.cs`、`Client.Tests/UIState/DragDelete/DeleteBoxRuleTest.cs`、`Client.Tests/UIState/DragDelete/DeleteBoxSelectionTest.cs`、`Client.Tests/UIState/DragDelete/DeleteHoldConfirmTest.cs`、`Client.Tests/UIState/DeleteSelectionTest.cs`（旧 `DragDeleteSelectionTest.cs`）、既存 `DragDeleteDenyReasonTest.cs`／`DeleteSelectionCategoryTest.cs`／`DragDelete/DestroyedSelectionTest.cs`／`BuildUndo/RemoveOperationHistoryTest.cs`／`UIStateKeyHintCatalogTest.cs`／`UIStateFocusRestorationTest.cs`／`UIStateCameraInteractionTest.cs`／`RightShortPressTransitionTest.cs` | 更新 |
 | Scenario | `.claude/skills/unity-playmode-recorded-playtest/scenarios/building/delete-tool-box-select-hold-confirm.cs`（新規）、`scenarios/building/build-undo-ctrl-z.cs`／`scenarios/train/delete-tool-pier-removal-undo-rail.cs`／`scenarios/connect/delete-tool-cut-and-undo-connection-lines.cs`（更新） | unityプレイ録画テスト |
 
 ### データフロー地図（Phase 1.5）
@@ -79,7 +79,7 @@
 ```
 （DeleteObjectState.GetNextUpdate 毎フレーム）
   → DeleteObjectService.Update(deltaTime)
-      → DeleteBoxInput.Update(selection, lines)   … Shift+クリック/クリック/Q・E → DeleteBoxSelection（局面）→ 終点確定時 Resolver.Resolve(min,max) → selection.AddBoxTargets（箱入力が直接書く）
+      → DeleteBoxInput.Update(selection, lines, isPointerOverUi)   … Shift+クリック/クリック/Q・E → DeleteBoxSelection（局面）→ 終点確定時 Resolver.Resolve(min,max) → selection.AddBoxTargets（箱入力が直接書く）
       → DeleteSelection.BeginStroke / TryAddTarget / EndStroke / SetHoverPreview / CancelSelection / CommitDelete   ［共有選択集合＝唯一の書き込み先・赤プレビューの唯一の書き手］
       → DeleteHoldConfirm.Advance(F, DeleteHoldSubject, dt) → 満了で DeleteSelection.CommitDelete
       → IMouseCursorTooltip.Show(lines)           … 読み手（件数・拒否理由）
@@ -333,7 +333,7 @@ git commit -m "refactor: BPコピーの範囲ビジュアライザとセルAABB�
 - Consumes: `BezierRailMeshData.EvaluatePosition(BezierRailMesh mesh, float t)`（internal static、同アセンブリ `Client.Game`）、`BezierRailChain`、`TrainCarEntityObject`
 - Produces:
   - `public static class DeleteBoxRule { public static bool IsPointInBox(Vector3 point, Vector3Int min, Vector3Int max); public static bool IsAnyPointInBox(IReadOnlyList<Vector3> points, Vector3Int min, Vector3Int max); }`（ブロックの判定は既存 `BlueprintCopyTargetRule.CreateBox(min,max)`＋`positionInfo.IsOverlap(box)` を使い、ここには置かない）
-  - `public static class DeleteBoxRailSampler { public const int SampleCount = 64; public static bool IntersectsCellBox(BezierRailChain chain, Vector3Int min, Vector3Int max); }`
+  - `public static class DeleteBoxRailSampler { public const int SampleCount = 64; public static bool IntersectsCellBox(BezierRailMesh mesh, Vector3Int min, Vector3Int max); }`
   - `TrainRailObjectManager.EnumerateRailChains()` : `public IEnumerable<BezierRailChain>`
   - `TrainCarObjectDatastore.EnumerateTrainCars()` : `public IEnumerable<TrainCarEntityObject>`
 
@@ -427,17 +427,10 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
         public const int SampleCount = 64;
         private static readonly List<Vector3> SampleBuffer = new(SampleCount);
 
-        public static bool IntersectsCellBox(BezierRailChain chain, Vector3Int min, Vector3Int max)
+        public static bool IntersectsCellBox(BezierRailMesh mesh, Vector3Int min, Vector3Int max)
         {
             // 各メッシュ子は同じ制御点を持つ（BezierRailChainSegments が全子へ同じ Point0..3 を渡す）ので先頭の1つで曲線を評価する
             // Every mesh child carries the same control points (BezierRailChainSegments hands all children the same Point0..3), so evaluate through the first one
-            var mesh = chain.GetComponentInChildren<BezierRailMesh>();
-            if (mesh == null)
-            {
-                Debug.LogWarning($"[DeleteBox] rail chain has no BezierRailMesh: {chain.name}");
-                return false;
-            }
-
             SampleBuffer.Clear();
             for (var i = 0; i < SampleCount; i++)
             {
@@ -500,7 +493,7 @@ git commit -m "feat: 削除ツールの箱に入る判定（点・レール曲�
 - Rename: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DragDeleteSelection.cs` → `.../DragDelete/DeleteSelection.cs`（`.meta` も `git mv`）
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DeleteAddOutcome.cs`
 - Rename: `moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDeleteSelectionTest.cs` → `.../UIState/DeleteSelectionTest.cs`（`.meta` も）
-- Modify: `moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDeleteDenyReasonTest.cs`、`.../UIState/DragDeleteSelectionCategoryTest.cs`、`.../UIState/DragDelete/DestroyedSelectionTest.cs`、`.../BuildUndo/RemoveOperationHistoryTest.cs:23,30,46,47`（型名・`BeginDrag`→`BeginStroke`・`CanCommit`→`IsStrokeAlive`・`TryAddTarget(t, out r)`→`TryAddTarget(t)` の結果型）
+- Modify: `moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDeleteDenyReasonTest.cs`、`.../UIState/DeleteSelectionCategoryTest.cs`、`.../UIState/DragDelete/DestroyedSelectionTest.cs`、`.../BuildUndo/RemoveOperationHistoryTest.cs:23,30,46,47`（型名・`BeginDrag`→`BeginStroke`・`CanCommit`→`IsStrokeAlive`・`TryAddTarget(t, out r)`→`TryAddTarget(t)` の結果型）
 - Modify: `.claude/skills/unity-playmode-recorded-playtest/scenarios/building/build-undo-ctrl-z.cs:2-4`（コメント中の `DragDeleteSelection.CommitDelete` → `DeleteSelection.CommitDelete`）
 
 **Interfaces:**
@@ -967,7 +960,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
 
 ```bash
 cd moorestech_client/Assets/Scripts/Client.Tests
-sed -i '' -e 's/DragDeleteSelection/DeleteSelection/g' -e 's/BeginDrag()/BeginStroke()/g' -e 's/CanCommit()/IsStrokeAlive()/g' UIState/DragDeleteDenyReasonTest.cs UIState/DragDeleteSelectionCategoryTest.cs UIState/DragDelete/DestroyedSelectionTest.cs BuildUndo/RemoveOperationHistoryTest.cs
+sed -i '' -e 's/DragDeleteSelection/DeleteSelection/g' -e 's/BeginDrag()/BeginStroke()/g' -e 's/CanCommit()/IsStrokeAlive()/g' UIState/DragDeleteDenyReasonTest.cs UIState/DeleteSelectionCategoryTest.cs UIState/DragDelete/DestroyedSelectionTest.cs BuildUndo/RemoveOperationHistoryTest.cs
 grep -rn "TryAddTarget(.*out " UIState BuildUndo   # 残った out 版の呼び出しを DeleteAddOutcome 版へ手で直す（例: `Assert.IsFalse(selection.TryAddTarget(t, out var r))` → `var o = selection.TryAddTarget(t); Assert.IsFalse(o.IsAdded); Assert.AreEqual(expected, o.DenyReason)`）
 grep -rn "DragDeleteSelection\|BeginDrag\|CanCommit" . ../Client.Game   # DeleteObjectService.cs 以外に残っていないこと
 sed -i '' 's/DragDeleteSelection\.CommitDelete/DeleteSelection.CommitDelete/g' ../../../../.claude/skills/unity-playmode-recorded-playtest/scenarios/building/build-undo-ctrl-z.cs
@@ -977,7 +970,7 @@ sed -i '' 's/DragDeleteSelection\.CommitDelete/DeleteSelection.CommitDelete/g' .
 
 - [ ] **Step 5: コンパイルしテストを実行する**
 
-Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "DeleteSelectionTest|DragDeleteDenyReasonTest|DragDeleteSelectionCategoryTest|DestroyedSelectionTest|RemoveOperationHistoryTest"`
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "DeleteSelectionTest|DragDeleteDenyReasonTest|DeleteSelectionCategoryTest|DestroyedSelectionTest|RemoveOperationHistoryTest"`
 Expected: ErrorCount 0 / 全 PASS。`DeleteSelection.cs` が 200 行以下。
 
 - [ ] **Step 6: コミットする**
@@ -1017,7 +1010,7 @@ git commit -m "feat: 削除ツールの選択集合をDeleteSelectionへ改め�
       public bool IsHolding { get; }
       // 毎フレーム呼ぶ。満了したフレームだけ true を返し内部を戻す
       public bool Advance(bool isKeyHeld, DeleteHoldSubject subject, float deltaTime);
-      public void Reset();
+      public void Cancel(bool isKeyHeld); public void Reset();
   }
   ```
 
@@ -1212,9 +1205,18 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Confirm
             return true;
         }
 
+        // 取りやめた押下から別の対象への確定を連鎖させない
+        // A cancelled key hold must not chain into confirmation of another target
+        public void Cancel(bool isKeyHeld)
+        {
+            Reset();
+            _awaitRelease = isKeyHeld;
+        }
+
         public void Reset()
         {
             if (IsHolding) _progressBar.Hide();
+            if (_heldSeconds > 0f) _progressBar.SetProgress(0f);
             IsHolding = false;
             _subject = DeleteHoldSubject.None;
             _heldSeconds = 0f;
@@ -1266,13 +1268,13 @@ git commit -m "feat: 削除ツールのF長押し確定（2秒・進捗バー・
       public DeleteBoxTargetResolver(BlockGameObjectDataStore blockGameObjectDataStore, TrainCarObjectDatastore trainCarObjectDatastore);
       public IReadOnlyList<IDeleteTarget> Resolve(Vector3Int min, Vector3Int max);   // 撤去可能な対象だけの新しい List。撤去不可は件数と理由をログ
   }
-  public enum DeleteBoxClick { None, Confirmed, ReleasedOverUi }
+  internal enum DeleteBoxClick { None, Confirmed, ReleasedOverUi }
   public class DeleteBoxInput
   {
       public DeleteBoxInput(Camera mainCamera, DeleteBoxTargetResolver resolver, PlacementHeightOffset heightOffset);
       public bool IsSelectingEnd { get; }
       public bool ClaimsLeftPress();                                       // 終点待ち中か Shift 押下中。true の間は左押下は箱の物（なぞりは始めない）
-      public void Update(DeleteSelection selection, List<TooltipLine> tooltipLines);   // 毎フレーム。終点確定のフレームに selection.AddBoxTargets を呼ぶ
+      public void Update(DeleteSelection selection, List<TooltipLine> tooltipLines, bool isPointerOverUi);   // 毎フレーム。終点確定のフレームに selection.AddBoxTargets を呼ぶ
       public bool TryCancel();                                             // 終点待ちを畳めたら true
       public void Clear();                                                 // 局面・高さ（ResetToGround）・表示を全て戻す
   }
@@ -1388,6 +1390,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
     /// </summary>
     public class DeleteBoxTargetResolver
     {
+        private readonly HashSet<string> _reportedDiagnostics = new();
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
         private readonly TrainCarObjectDatastore _trainCarObjectDatastore;
 
@@ -1397,17 +1400,21 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
             _trainCarObjectDatastore = trainCarObjectDatastore;
         }
 
+        // 箱操作ごとに診断を一度だけ出し、次の箱では再び報告する
+        // Report each diagnostic once per box operation, then allow it for the next box
+        internal void ClearDiagnostics() => _reportedDiagnostics.Clear();
+
         public IReadOnlyList<IDeleteTarget> Resolve(Vector3Int min, Vector3Int max)
         {
             var targets = new List<IDeleteTarget>();
-            var skipped = 0;
+            var newlyReportedSkipped = 0;
             // ブロックの箱判定はBPコピーと同じ箱とIsOverlapを使う（複製しない）
             // Blocks use the same box and IsOverlap as blueprint copy (no duplicate rule)
             var box = BlueprintCopyTargetRule.CreateBox(min, max);
             CollectBlocks();
             CollectRails();
             CollectTrainCars();
-            if (skipped > 0) Debug.Log($"[DeleteBox] {skipped} non-removable target(s) excluded from {min}-{max}");
+            if (newlyReportedSkipped > 0) Debug.Log($"[DeleteBox] {newlyReportedSkipped} newly reported non-removable target(s) excluded from {min}-{max}");
             return targets;
 
             #region Internal
@@ -1420,7 +1427,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
                     var child = block.GetComponentInChildren<BlockGameObjectChild>(true);
                     if (child == null)
                     {
-                        Debug.LogWarning($"[DeleteBox] block has no BlockGameObjectChild: {block.BlockPosInfo.OriginalPos}");
+                        LogWarningOnce($"[DeleteBox] block has no BlockGameObjectChild: {block.BlockPosInfo.OriginalPos}");
                         continue;
                     }
                     AddIfRemovable(child);
@@ -1432,11 +1439,17 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
                 foreach (var chain in TrainRailObjectManager.Instance.EnumerateRailChains())
                 {
                     if (chain.IsRemoving) continue;
-                    if (!DeleteBoxRailSampler.IntersectsCellBox(chain, min, max)) continue;
+                    var mesh = chain.GetComponentInChildren<BezierRailMesh>();
+                    if (mesh == null)
+                    {
+                        LogWarningOnce($"[DeleteBox] rail chain has no BezierRailMesh: {chain.name}");
+                        continue;
+                    }
+                    if (!DeleteBoxRailSampler.IntersectsCellBox(mesh, min, max)) continue;
                     var rail = chain.GetComponentInChildren<DeleteTargetRail>(true);
                     if (rail == null)
                     {
-                        Debug.LogWarning($"[DeleteBox] rail chain has no DeleteTargetRail: {chain.name}");
+                        LogWarningOnce($"[DeleteBox] rail chain has no DeleteTargetRail: {chain.name}");
                         continue;
                     }
                     AddIfRemovable(rail);
@@ -1451,7 +1464,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
                     var child = car.GetComponentInChildren<TrainCarEntityChildrenObject>(true);
                     if (child == null)
                     {
-                        Debug.LogWarning($"[DeleteBox] train car has no TrainCarEntityChildrenObject: {car.TrainCarInstanceId}");
+                        LogWarningOnce($"[DeleteBox] train car has no TrainCarEntityChildrenObject: {car.TrainCarInstanceId}");
                         continue;
                     }
                     AddIfRemovable(child);
@@ -1467,8 +1480,17 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
                     targets.Add(target);
                     return;
                 }
-                skipped++;
-                Debug.Log($"[DeleteBox] skipped non-removable target key={target.GetDeleteTargetKey()} reason={denyReason?.Key ?? "(none)"}");
+                var diagnostic = $"[DeleteBox] skipped non-removable target key={target.GetDeleteTargetKey()} reason={denyReason?.Key ?? "(none)"}";
+                // silent-ok: 同一箱で報告済みの理由だけ抑止 / 最初の検出時に開発者ログへ出力済み
+                if (!_reportedDiagnostics.Add(diagnostic)) return;
+                newlyReportedSkipped++;
+                Debug.Log(diagnostic);
+            }
+
+            void LogWarningOnce(string diagnostic)
+            {
+                // silent-ok: 同一箱で報告済みの欠落だけ抑止 / 最初の検出時に開発者警告へ出力済み
+                if (_reportedDiagnostics.Add(diagnostic)) Debug.LogWarning(diagnostic);
             }
 
             #endregion
@@ -1494,7 +1516,7 @@ using UnityEngine;
 
 namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
 {
-    public enum DeleteBoxClick
+    internal enum DeleteBoxClick
     {
         None,
         Confirmed,
@@ -1530,9 +1552,8 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
             return IsSelectingEnd || HybridInput.GetKey(KeyCode.LeftShift);
         }
 
-        public void Update(DeleteSelection deleteSelection, List<TooltipLine> tooltipLines)
+        public void Update(DeleteSelection deleteSelection, List<TooltipLine> tooltipLines, bool isPointerOverUi)
         {
-            _visualizer ??= new CellRangeBoxVisualizer("DeleteBox", MaterialConst.NotPlaceableColor);
             PlacementHeightKeyInput.Apply(_heightOffset);
             var isShiftHeld = HybridInput.GetKey(KeyCode.LeftShift);
             var click = ConsumeClick();
@@ -1542,8 +1563,8 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
             if (!PlacementUnitCellResolver.TryGetCursorCell(_mainCamera, _heightOffset.Value, out var cursorCell))
             {
                 if (isClicked) Debug.Log("[DeleteBox] click refused: cursor has no placement surface");
-                if (IsSelectingEnd) _visualizer.ShowSelectingStart(_selection.StartCell);
-                else _visualizer.HideAll();
+                if (IsSelectingEnd) ShowStart(_selection.StartCell);
+                else _visualizer?.HideAll();
                 return;
             }
 
@@ -1556,7 +1577,6 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
             // Fold a press the box owns (ClaimsLeftPress) and a release outside UI into one click; a release over UI is dropped with a reason
             DeleteBoxClick ConsumeClick()
             {
-                var isPointerOverUi = UiPointerHitTest.IsPointerOverAnyUi();
                 if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !isPointerOverUi && ClaimsLeftPress()) _isPressRegistered = true;
                 if (!InputManager.Playable.ScreenLeftClick.GetKeyUp || !_isPressRegistered) return DeleteBoxClick.None;
                 _isPressRegistered = false;
@@ -1567,8 +1587,8 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
             {
                 // Shiftを押している間だけ始点候補を示す
                 // Show the start candidate only while Shift is held
-                if (isShiftHeld) _visualizer.ShowSelectingStart(cursorCell);
-                else _visualizer.HideAll();
+                if (isShiftHeld) ShowStart(cursorCell);
+                else _visualizer?.HideAll();
                 if (isClicked) _selection.SelectStart(cursorCell);
             }
 
@@ -1578,7 +1598,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
                 var targets = _resolver.Resolve(min, max);
                 tooltipLines.Add(new TooltipLine(LocalizationKeys.Ui.Tooltip.DeleteBoxTargetsInRange, new[] { targets.Count.ToString() }));
                 if (targets.Count == 0) tooltipLines.Add(new TooltipLine(LocalizationKeys.Ui.Tooltip.DeleteBoxEmptyRange));
-                _visualizer.ShowSelectingEnd(_selection.StartCell, cursorCell, min, max);
+                GetVisualizer().ShowSelectingEnd(_selection.StartCell, cursorCell, min, max);
                 if (!isClicked) return;
 
                 // 空範囲は確定を拒み、ツールチップとログへ理由を残す
@@ -1591,6 +1611,18 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
                 var added = deleteSelection.AddBoxTargets(targets);
                 Debug.Log($"[DeleteBox] added={added} of {targets.Count} selected={deleteSelection.Count}");
                 Clear();
+            }
+
+            // 始点を実際に表示するときだけ可視化オブジェクトを作る
+            // Create the visualizer only when the start marker is actually shown
+            void ShowStart(Vector3Int cell)
+            {
+                GetVisualizer().ShowSelectingStart(cell);
+            }
+
+            CellRangeBoxVisualizer GetVisualizer()
+            {
+                return _visualizer ??= new CellRangeBoxVisualizer("DeleteBox", MaterialConst.NotPlaceableColor);
             }
 
             #endregion
@@ -1610,6 +1642,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
         public void Clear()
         {
             _selection.Clear();
+            _resolver.ClearDiagnostics();
             _heightOffset.ResetToGround();
             _isPressRegistered = false;
             _visualizer?.HideAll();
@@ -1756,14 +1789,15 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             // Resolve the frontmost target in the stroke category, or overall outside a stroke
             var aim = DeleteTargetRaycaster.AimAt(_selection.AimFilter);
             var hovered = aim.Target;
+            var isPointerOverUi = UiPointerHitTest.IsPointerOverAnyUi();
 
             // 箱は終点確定のフレームに選択へ直接足す
             // The box adds to the selection itself on the frame the end point is confirmed
-            _box.Update(_selection, _lines);
+            _box.Update(_selection, _lines, isPointerOverUi);
 
             HandleStrokeStart();
             if (_isStroking) UpdateStroke();
-            else if (!InputManager.Playable.ScreenLeftClick.GetKey) UpdateHoverPreview();
+            else UpdateHoverPreview();
             if (InputManager.Playable.ScreenLeftClick.GetKeyUp) EndStroke();
 
             UpdateHoldConfirm();
@@ -1779,7 +1813,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             void HandleStrokeStart()
             {
                 if (!InputManager.Playable.ScreenLeftClick.GetKeyDown) return;
-                if (UiPointerHitTest.IsPointerOverAnyUi()) return;
+                if (isPointerOverUi) return;
                 if (_box.ClaimsLeftPress()) return;
 
                 // ホバーの赤は選択側が引き継ぐ（追加時に再び赤になる）
@@ -1858,7 +1892,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         // ESC / right short press: reset the hold, then fold the pending box, else clear the selection; false when nothing to fold (caller decides to exit)
         public bool TryCancel()
         {
-            _hold.Reset();
+            _hold.Cancel(InputManager.Playable.Interact.GetKey);
             if (_box.TryCancel()) return true;
             if (!_selection.HasSelection()) return false;
             _selection.CancelSelection();
@@ -1994,15 +2028,12 @@ git commit -m "feat: 削除ツールを選択積み上げ→F長押し確定へ�
 ```csharp
 // 削除ツールの新方式: なぞり選択は離しても残り、F長押し(2秒)で確定。Shift+クリック2点の箱で範囲選択。ESCで全解除。Ctrl+Zで復元
 // New delete-tool flow: stroke selection survives release, F hold (2s) confirms; Shift+click two-point box selects a range; ESC clears; Ctrl+Z restores
-using System.Linq;
-using Client.Game.InGame.Context;
-using Client.Game.InGame.UI.Tooltip;
 using Client.Game.InGame.UI.UIState;
-using Client.Game.InGame.UI.UIState.State.DragDelete;
 using Client.Game.InGame.UI.UIState.State.DragDelete.Confirm;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
+using static Client.Playtest.Operations.Ui.DeleteBoxScenarioInput;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using Mooresmaster.Localization.Generated;
@@ -2028,12 +2059,17 @@ return PlaytestRunner.Run("delete-tool-box-select-hold-confirm", options, async 
     // Step 1: なぞって離しても消えない
     // Step 1: a stroke that is released does not delete
     p.Note("Step 1: チェスト1をなぞって離す→赤いまま残り、消えない");
-    await AimAtCell(cells[0]);
+    await AimAtCell(p, cells[0]);
     SemanticInput.MouseButtonDown(0); await UniTask.DelayFrame(10); SemanticInput.MouseButtonUp(0);
     await p.WaitSeconds(1.0f);
     p.Assert(p.GetBlock(cells[0]) != null, "Step1: 離しただけでは撤去されない");
     p.Assert(TooltipParam(LocalizationKeys.Ui.Tooltip.DeleteSelectedCount) == 1, $"Step1: ツールチップに選択件数1が出る 実際:{TooltipText()}");
     await p.Screenshot("02-stroke-kept");
+
+    // 箱待ちだけを畳み、選択を残す。Fの対象はホバーでなく選択になる
+    // Fold only the pending box, keeping the selection; F must target selection rather than hover
+    await CheckEmptyBoxAndHeight(p, new Vector3Int(8, 32, 6), 1);
+    await AimAtCell(p, cells[1]);
 
     // Step 2: F長押しで確定
     // Step 2: F hold confirms
@@ -2044,6 +2080,7 @@ return PlaytestRunner.Run("delete-tool-box-select-hold-confirm", options, async 
     await p.WaitSeconds(DeleteHoldConfirm.HoldSeconds * 0.5f + 0.3f);
     SemanticInput.KeyUp(Key.F);
     await p.Until(() => p.GetBlock(cells[0]) == null, 15f, "Step2: F長押し満了でチェスト1が撤去される");
+    p.Assert(p.GetBlock(cells[1]) != null, "Step2: 選択があるとき別のホバー対象を消さない");
     await p.Screenshot("04-deleted");
 
     // Step 3: Shift+クリック2点の箱でチェスト2・3を選ぶ（終点確定だけでは消えない）
@@ -2070,63 +2107,59 @@ return PlaytestRunner.Run("delete-tool-box-select-hold-confirm", options, async 
     // Step 5: Ctrl+Zで2件が戻る
     // Step 5: Ctrl+Z restores both
     p.Note("Step 5: Ctrl+Zで箱の2件が1バッチで戻る");
-    foreach (var (key, down) in new[] { (Key.LeftCtrl, true), (Key.Z, true), (Key.Z, false), (Key.LeftCtrl, false) }) { if (down) SemanticInput.KeyDown(key); else SemanticInput.KeyUp(key); await UniTask.DelayFrame(3); }
+    foreach (var (key, down) in new[] { (Key.LeftCtrl, true), (Key.Z, true), (Key.Z, false), (Key.LeftCtrl, false) })
+    {
+        if (down) SemanticInput.KeyDown(key);
+        else SemanticInput.KeyUp(key);
+        await UniTask.DelayFrame(3);
+    }
     await p.Until(() => p.GetBlock(cells[1]) != null && p.GetBlock(cells[2]) != null, 15f, "Step5: Ctrl+Zで2件とも復元される");
     await p.Screenshot("08-undone");
 
+    // 押下中ESC後は離すまで新しいホバーを消さず、離した次の押下は単体撤去する
+    // ESC during a hold blocks the new hover until release; the next hold deletes the hovered object
+    await AimAtCell(p, cells[1]);
+    await Click();
+    SemanticInput.KeyDown(Key.F);
+    await p.WaitSeconds(0.5f);
+    await p.PressKey(Key.Escape);
+    await AimAtCell(p, cells[2]);
+    await p.WaitSeconds(DeleteHoldConfirm.HoldSeconds + 0.3f);
+    p.Assert(p.GetBlock(cells[1]) != null && p.GetBlock(cells[2]) != null, "ESC後のF押し続けは選択もホバーも撤去しない");
+    p.Assert(TooltipParam(LocalizationKeys.Ui.Tooltip.DeleteSelectedCount) == 0, "選択解除ESCで選択が空になる");
+    SemanticInput.KeyUp(Key.F);
+    await UniTask.DelayFrame(3);
+    SemanticInput.KeyDown(Key.F);
+    await p.WaitSeconds(DeleteHoldConfirm.HoldSeconds + 0.3f);
+    SemanticInput.KeyUp(Key.F);
+    await p.Until(() => p.GetBlock(cells[2]) == null, 15f, "空選択ならFでホバー1件を撤去する");
+    p.Assert(p.GetBlock(cells[1]) != null, "ホバー以外のブロックを残す");
+    await p.PressKey(Key.Escape);
+    await p.WaitUiState(UIStateEnum.GameScreen, 10f);
+    await p.Screenshot("09-hover-and-exit");
+
     #region Internal
-
-    MouseCursorTooltipState Tooltip() => ClientDIContext.DIContainer.Resolve<MouseCursorTooltipState>();
-
-    string TooltipText()
-    {
-        var presentation = Tooltip().GetPresentation();
-        return string.Join("|", presentation.Lines.Select(line => line.Key.Key + ":" + string.Join(",", line.TextParams ?? System.Array.Empty<string>())));
-    }
-
-    // 指定キーの行の第1引数を整数で読む（行が無ければ 0）
-    // Read the first param of the line with the given key as an int (0 when absent)
-    int TooltipParam(LocalizationKey key)
-    {
-        var line = Tooltip().GetPresentation().Lines.FirstOrDefault(l => l.Key.Key == key.Key);
-        return line.TextParams != null && line.TextParams.Count > 0 && int.TryParse(line.TextParams[0], out var n) ? n : 0;
-    }
 
     // Shift+クリックで始点、クリックで終点。終点待ち中の件数が expectedCount になることを確かめる
     // Shift+click the start, click the end; assert the pending count equals expectedCount
     async UniTask BoxSelect(Vector3Int startCell, Vector3Int endCell, int expectedCount, string label)
     {
-        await AimAtGround(startCell);
-        SemanticInput.KeyDown(Key.LeftShift); await UniTask.DelayFrame(3);
-        SemanticInput.MouseButtonDown(0); await UniTask.DelayFrame(5); SemanticInput.MouseButtonUp(0); await UniTask.DelayFrame(3);
+        await AimAtGround(p, startCell);
+        SemanticInput.KeyDown(Key.LeftShift);
+        await UniTask.DelayFrame(3);
+        SemanticInput.MouseButtonDown(0);
+        await UniTask.DelayFrame(5);
+        SemanticInput.MouseButtonUp(0);
+        await UniTask.DelayFrame(3);
         SemanticInput.KeyUp(Key.LeftShift);
         await p.Until(() => GameObject.Find("DeleteBoxStartMarker") != null && GameObject.Find("DeleteBoxStartMarker").activeSelf, 5f, $"{label}: 始点マーカーが出る");
-        await AimAtGround(endCell);
+        await AimAtGround(p, endCell);
         await p.Until(() => TooltipParam(LocalizationKeys.Ui.Tooltip.DeleteBoxTargetsInRange) == expectedCount, 5f, $"{label}: 範囲内の対象{expectedCount}件 実際:{TooltipText()}");
         await p.Screenshot($"05-{label}-box-end-hover");
-        SemanticInput.MouseButtonDown(0); await UniTask.DelayFrame(5); SemanticInput.MouseButtonUp(0);
+        SemanticInput.MouseButtonDown(0);
+        await UniTask.DelayFrame(5);
+        SemanticInput.MouseButtonUp(0);
         await p.WaitSeconds(0.5f);
-    }
-
-    // ブロックの各コライダー中心のうち削除ツールの実レイキャストが当該ブロックを返す点を照準する
-    // Aim at the collider center where the real delete-tool raycast returns that block
-    async UniTask AimAtCell(Vector3Int pos)
-    {
-        var block = ClientDIContext.BlockGameObjectDataStore.GetBlockGameObject(pos);
-        foreach (var point in block.GetComponentsInChildren<Collider>().Select(c => c.bounds.center).OrderBy(c => Vector3.Distance(c, Camera.main.transform.position)).ToList())
-        {
-            await p.AimAt(point);
-            var target = Client.Game.InGame.Control.DeleteTargetRaycaster.AimAt(DeleteAimFilter.Frontmost).Target;
-            if (target is Client.Game.InGame.Block.BlockGameObjectChild child && ReferenceEquals(child.BlockGameObject, block)) return;
-        }
-        p.Assert(false, $"AimAtCell: {pos} を照準できない");
-    }
-
-    // 地面セルの上面を照準する。1x1設置と同じ解決で上のセルが選ばれる
-    // Aim at the top face of a ground cell; the 1x1 placement rule resolves to the cell above it
-    async UniTask AimAtGround(Vector3Int cellAboveGround)
-    {
-        await p.AimAt(new Vector3(cellAboveGround.x + 0.5f, cellAboveGround.y - 0.02f, cellAboveGround.z + 0.5f));
     }
 
     #endregion
@@ -2177,7 +2210,7 @@ planning 中に生じた判断（出所の 3 種: ユーザー裁定／シミュ
 - 長押しの対象は `object/null` でなく判別子付きの `DeleteHoldSubject { None | Selection(revision) | Hovered(key) }`。出所: シミュレーター予測→ユーザー承認 2026-10-16（前提宣言に異議なし。前例 `.decisions/2026-10-05-削除ツールの照準条件は判別unionで表す.md`）
 - 箱の件数表示・0 件拒否・追加は `DeleteBoxTargetResolver.Resolve` が撤去可否を判定して返す 1 本の列を使い、撤去不可は Resolver が件数と理由をログ。`AddBoxTargets` は足すだけ。出所: シミュレーター予測→ユーザー承認 2026-10-16（前提宣言に異議なし。Phase 2.6 検査6）
 - 箱の局面は `enum DeleteBoxPhase`＋`StartCell`＋throw ガードのまま（`BlueprintCopySelection` と同形の前例）。棄却: 局面ごとのペイロード型。出所: ユーザー裁定 2026-10-16 選択「このままでよい」（Phase 2.6 5-A）
-- 箱入力の 1 フレーム結果 `DeleteBoxStep` 構造体は作らず、`DeleteBoxInput.Update(DeleteSelection, lines)` が終点確定のフレームに `AddBoxTargets` を直接呼ぶ。棄却: bool＋ペイロード構造体／判別子＋ペイロード型。出所: ユーザー委任 2026-10-16 原文「良く分からないけど進めで承認」→ 推奨（review 判事 Warning「引数を返す複雑性」）を採用した agent 判断
+- 箱入力の 1 フレーム結果 `DeleteBoxStep` 構造体は作らず、`DeleteBoxInput.Update(DeleteSelection, lines, isPointerOverUi)` が終点確定のフレームに `AddBoxTargets` を直接呼ぶ。棄却: bool＋ペイロード構造体／判別子＋ペイロード型。出所: ユーザー委任 2026-10-16 原文「良く分からないけど進めで承認」→ 推奨（review 判事 Warning「引数を返す複雑性」）を採用した agent 判断
 - Phase 2.6 の弱い発火 5 件は全部拾う: `TryAddTarget` の失敗理由を `DeleteAddOutcome`（Kind＋DenyReason）で区別、`ConsumeClick` の UI 上解放を `DeleteBoxClick.ReleasedOverUi` として理由付きで捨てる、赤プレビューの書き手を `DeleteSelection`（`SetHoverPreview`）へ一本化し `DeleteHoverPreview` クラスは作らない、破棄済み判定を `IsDestroyed` に集約、左押下の所有判定を `DeleteBoxInput.ClaimsLeftPress()` に寄せてサービスは聞くだけ、`EnumerateRailChains` の `continue` に `silent-ok`。棄却: 3 件だけ／silent-ok だけ。出所: ユーザー裁定 2026-10-16 選択「全部拾う」
 - review 判事（user-simulator review モード）の確信あり指摘 5 件を適用: 車両の列挙は `EntityObjectDatastore`（ベルト上アイテムのみ）でなく `TrainCarObjectDatastore.EnumerateTrainCars()`、`RemoveOperationHistoryTest.cs` を改名の波及先に追加、`CellRangeBoxTest` は `Common/RangeBox/` へ（`Common/` 直下 11 ファイル）、ブロックの箱判定は `BlueprintCopyTargetRule.CreateBox`＋`IsOverlap` を直接使い `DeleteBoxRule` に複製しない、`TryCancel` の先頭で `_hold.Reset()`（箱を畳む段でも進捗 0）。Warning から: 左ボタン解放で `EndStroke()` によりカテゴリー固定を最前面へ戻す、橋脚撤去シナリオにレールを跨ぐ箱の 1 ステップを足す、csv の列数表現を直す。出所: シミュレーター予測（review）→ agent 適用（事実は実ファイル行番号で裏取り済み）
 - `TrainRailObjectManager.cs` へ `EnumerateRailChains()` を足す（`FindObjectsByType` で設置プレビューのチェーンまで拾うのを避ける）。出所: agent前提
@@ -2189,3 +2222,11 @@ planning 中に生じた判断（出所の 3 種: ユーザー裁定／シミュ
 - 箱の対象解決（`DeleteBoxTargetResolver`）と入力（`DeleteBoxInput`）は EditMode ユニットテストで直接は検証しない（`BlockGameObjectDataStore`・レール・カメラのレイキャストが要る）。純関数 `DeleteBoxRule`・モデル `DeleteBoxSelection`・`DeleteHoldConfirm`・`DeleteSelection` をユニットテストで固め、配線は Task 7 の unityプレイ録画テスト（レールを跨ぐ箱を含む）で通す。EditModeInPlayingTest は録画テストが上位互換のため作らない。出所: agent前提
 - `ProgressBarState` の `Show/Hide/SetProgress` は internal だが `DeleteHoldConfirm` は同アセンブリ（Client.Game）なので採掘と同じく直接呼ぶ。出所: agent前提（MiningProgressState 前例）
 - `TrainCarObjectDatastore.cs`・`TrainRailObjectManager.cs` への列挙口追加は読み取り専用で、変更系は露出しない（Datastore レンズ対象）。出所: agent前提
+
+### Task 1〜6 レビュー反映
+
+- Resolver は動く車両の範囲出入りを表示へ反映するため毎フレーム再解決する。同じ箱操作の診断は `HashSet<string>` で初回だけ出す（前例 `BlockGameObjectColliderSetup`）。範囲のキャッシュによる古い件数表示は採用しない。mesh 欠落診断も Resolver に集める。
+- `DeleteBoxInput.Update` はサービス側で一度だけ評価した `isPointerOverUi` を受け取る。`ClearDiagnostics` は箱を畳む時に呼ぶ内部API。`DeleteBoxRailSampler` は Resolver が確認済みの `BezierRailMesh` を受ける。
+- `DeleteHoldConfirm.Cancel(bool isKeyHeld)` は押下中のキャンセルに離すまでの再確定抑止を付ける。`Reset` は進捗だけを戻す。非ストローク中のホバーは左ボタン押下中も照準に追従する。
+- Task 7 の新規録画では、箱待ちESCで既存選択を残す、次のESCで選択解除、空のESCでモード終了、0件拒否で終点待ち維持、Q/Eで共用高さとマーカー位置を往復、箱キャンセルで高さ0、選択がホバーより優先、押下中ESC後の再確定抑止、空選択のホバー確定を実測する。
+- ホバー暗黙確定の最終再検査で拒否される防御分岐は、同期フレーム内の可否反転を実入力から安定して発火できないため、録画で通ったとは扱わない。

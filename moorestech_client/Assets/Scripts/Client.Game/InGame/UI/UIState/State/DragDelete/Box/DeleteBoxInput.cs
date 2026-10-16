@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
 {
-    public enum DeleteBoxClick
+    internal enum DeleteBoxClick
     {
         None,
         Confirmed,
@@ -94,8 +94,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
                 var targets = _resolver.Resolve(min, max);
                 tooltipLines.Add(new TooltipLine(LocalizationKeys.Ui.Tooltip.DeleteBoxTargetsInRange, new[] { targets.Count.ToString() }));
                 if (targets.Count == 0) tooltipLines.Add(new TooltipLine(LocalizationKeys.Ui.Tooltip.DeleteBoxEmptyRange));
-                _visualizer ??= new CellRangeBoxVisualizer("DeleteBox", MaterialConst.NotPlaceableColor);
-                _visualizer.ShowSelectingEnd(_selection.StartCell, cursorCell, min, max);
+                GetVisualizer().ShowSelectingEnd(_selection.StartCell, cursorCell, min, max);
                 if (!isClicked) return;
 
                 // 空範囲は確定を拒み、ツールチップとログへ理由を残す
@@ -114,8 +113,12 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
             // Create the visualizer only when the start marker is actually shown
             void ShowStart(Vector3Int cell)
             {
-                _visualizer ??= new CellRangeBoxVisualizer("DeleteBox", MaterialConst.NotPlaceableColor);
-                _visualizer.ShowSelectingStart(cell);
+                GetVisualizer().ShowSelectingStart(cell);
+            }
+
+            CellRangeBoxVisualizer GetVisualizer()
+            {
+                return _visualizer ??= new CellRangeBoxVisualizer("DeleteBox", MaterialConst.NotPlaceableColor);
             }
 
             #endregion
@@ -135,6 +138,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
         public void Clear()
         {
             _selection.Clear();
+            _resolver.ClearDiagnostics();
             _heightOffset.ResetToGround();
             _isPressRegistered = false;
             _visualizer?.HideAll();

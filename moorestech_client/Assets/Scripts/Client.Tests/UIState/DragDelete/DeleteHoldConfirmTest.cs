@@ -70,12 +70,36 @@ namespace Client.Tests.UIState.DragDelete
         }
 
         [Test]
+        public void 押下中のキャンセル後は離すまでホバーを削除しない()
+        {
+            var bar = new ProgressBarState();
+            var hold = new DeleteHoldConfirm(bar);
+            hold.Advance(true, SelectionRev1, 1f);
+            hold.Cancel(true);
+            Assert.AreEqual(0f, bar.CurrentProgress);
+            var hovered = DeleteHoldSubject.Hovered(new object());
+            Assert.IsFalse(hold.Advance(true, hovered, 5f));
+            Assert.IsFalse(bar.IsShown);
+            hold.Advance(false, hovered, 0.1f);
+            Assert.IsTrue(hold.Advance(true, hovered, 2f));
+        }
+
+        [Test]
+        public void キーを押していないキャンセル後は次の押下を受け付ける()
+        {
+            var hold = new DeleteHoldConfirm(new ProgressBarState());
+            hold.Cancel(false);
+            Assert.IsTrue(hold.Advance(true, SelectionRev1, 2f));
+        }
+
+        [Test]
         public void Resetで進捗とバーを戻す()
         {
             var bar = new ProgressBarState();
             var hold = new DeleteHoldConfirm(bar);
             hold.Advance(true, SelectionRev1, 1f);
             hold.Reset();
+            Assert.AreEqual(0f, bar.CurrentProgress);
             Assert.IsFalse(bar.IsShown);
             Assert.IsFalse(hold.IsHolding);
         }

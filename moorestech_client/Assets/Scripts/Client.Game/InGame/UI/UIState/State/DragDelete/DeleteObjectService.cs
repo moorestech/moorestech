@@ -49,7 +49,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
 
             HandleStrokeStart();
             if (_isStroking) UpdateStroke();
-            else if (!InputManager.Playable.ScreenLeftClick.GetKey) UpdateHoverPreview();
+            else UpdateHoverPreview();
             if (InputManager.Playable.ScreenLeftClick.GetKeyUp) EndStroke();
 
             UpdateHoldConfirm();
@@ -144,7 +144,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         // ESC / right short press: reset the hold, then fold the pending box, else clear the selection; false when nothing to fold (caller decides to exit)
         public bool TryCancel()
         {
-            _hold.Reset();
+            _hold.Cancel(InputManager.Playable.Interact.GetKey);
             if (_box.TryCancel()) return true;
             if (!_selection.HasSelection()) return false;
             _selection.CancelSelection();

@@ -46,6 +46,14 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Confirm
             return true;
         }
 
+        // 取りやめた押下から別の対象への確定を連鎖させない
+        // A cancelled key hold must not chain into confirmation of another target
+        public void Cancel(bool isKeyHeld)
+        {
+            Reset();
+            _awaitRelease = isKeyHeld;
+        }
+
         public void Reset()
         {
             if (IsHolding) _progressBar.Hide();

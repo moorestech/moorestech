@@ -15,6 +15,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
     /// </summary>
     public class DeleteBoxTargetResolver
     {
+        private readonly HashSet<string> _reportedDiagnostics = new();
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
         private readonly TrainCarObjectDatastore _trainCarObjectDatastore;
 
@@ -24,17 +25,21 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
             _trainCarObjectDatastore = trainCarObjectDatastore;
         }
 
+        // 箱操作ごとに診断を一度だけ出し、次の箱では再び報告する
+        // Report each diagnostic once per box operation, then allow it for the next box
+        internal void ClearDiagnostics() => _reportedDiagnostics.Clear();
+
         public IReadOnlyList<IDeleteTarget> Resolve(Vector3Int min, Vector3Int max)
         {
             var targets = new List<IDeleteTarget>();
-            var skipped = 0;
+            var newlyReportedSkipped = 0;
             // ブロックの箱判定はBPコピーと同じ箱とIsOverlapを使う（複製しない）
             // Blocks use the same box and IsOverlap as blueprint copy (no duplicate rule)
             var box = BlueprintCopyTargetRule.CreateBox(min, max);
             CollectBlocks();
             CollectRails();
             CollectTrainCars();
-            if (skipped > 0) Debug.Log($"[DeleteBox] {skipped} non-removable target(s) excluded from {min}-{max}");
+            if (newlyReportedSkipped > 0) Debug.Log($"[DeleteBox] {newlyReportedSkipped} newly reported non-removable target(s) excluded from {min}-{max}");
             return targets;
 
             #region Internal
@@ -47,7 +52,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
                     var child = block.GetComponentInChildren<BlockGameObjectChild>(true);
                     if (child == null)
                     {
-                        Debug.LogWarning($"[DeleteBox] block has no BlockGameObjectChild: {block.BlockPosInfo.OriginalPos}");
+                        LogWarningOnce($"[DeleteBox] block has no BlockGameObjectChild: {block.BlockPosInfo.OriginalPos}");
                         continue;
                     }
                     AddIfRemovable(child);
@@ -59,11 +64,17 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
                 foreach (var chain in TrainRailObjectManager.Instance.EnumerateRailChains())
                 {
                     if (chain.IsRemoving) continue;
-                    if (!DeleteBoxRailSampler.IntersectsCellBox(chain, min, max)) continue;
+                    var mesh = chain.GetComponentInChildren<BezierRailMesh>();
+                    if (mesh == null)
+                    {
+                        LogWarningOnce($"[DeleteBox] rail chain has no BezierRailMesh: {chain.name}");
+                        continue;
+                    }
+                    if (!DeleteBoxRailSampler.IntersectsCellBox(mesh, min, max)) continue;
                     var rail = chain.GetComponentInChildren<DeleteTargetRail>(true);
                     if (rail == null)
                     {
-                        Debug.LogWarning($"[DeleteBox] rail chain has no DeleteTargetRail: {chain.name}");
+                        LogWarningOnce($"[DeleteBox] rail chain has no DeleteTargetRail: {chain.name}");
                         continue;
                     }
                     AddIfRemovable(rail);
@@ -78,7 +89,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
                     var child = car.GetComponentInChildren<TrainCarEntityChildrenObject>(true);
                     if (child == null)
                     {
-                        Debug.LogWarning($"[DeleteBox] train car has no TrainCarEntityChildrenObject: {car.TrainCarInstanceId}");
+                        LogWarningOnce($"[DeleteBox] train car has no TrainCarEntityChildrenObject: {car.TrainCarInstanceId}");
                         continue;
                     }
                     AddIfRemovable(child);
@@ -94,8 +105,17 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
                     targets.Add(target);
                     return;
                 }
-                skipped++;
-                Debug.Log($"[DeleteBox] skipped non-removable target key={target.GetDeleteTargetKey()} reason={denyReason?.Key ?? "(none)"}");
+                var diagnostic = $"[DeleteBox] skipped non-removable target key={target.GetDeleteTargetKey()} reason={denyReason?.Key ?? "(none)"}";
+                // silent-ok: 同一箱で報告済みの理由だけ抑止 / 最初の検出時に開発者ログへ出力済み
+                if (!_reportedDiagnostics.Add(diagnostic)) return;
+                newlyReportedSkipped++;
+                Debug.Log(diagnostic);
+            }
+
+            void LogWarningOnce(string diagnostic)
+            {
+                // silent-ok: 同一箱で報告済みの欠落だけ抑止 / 最初の検出時に開発者警告へ出力済み
+                if (_reportedDiagnostics.Add(diagnostic)) Debug.LogWarning(diagnostic);
             }
 
             #endregion
