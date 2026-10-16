@@ -92,6 +92,8 @@ Expected: ErrorCount 0 / 全PASS。加えて `grep -rn "FloorToInt(.*ground\|Qua
 
 ## 判断記録（ADR）
 
+- 範囲削除・BPコピーの箱を旧規則ブロック向けに広げる bug-pass 自動修正は採らない（別タスク bd に積む）。出所: ユーザー裁定 2026-10-16 原文「このまま進めて良い」（推奨「戻して別タスクに積む」に対して）。`.decisions/2026-10-16-範囲削除とBPコピーの箱は旧規則ブロック向けに広げない.md`
+
 - user-simulator review: 適用推奨0・Warning1（旧floor規則を焼き込んだ fixture 3本が Files から脱落）→ Files・Step 2 に追記し、実装で fixture 側を直した。出所: シミュレーター予測（ユーザー未提示の機械的修正）
 
 - 設計: docs/adr/0082-terrain-sink-tolerance-one-third-meter-and-auto-raise.md、`.decisions/2026-10-16-地形埋まりは底面から3分の1mまで許容し既定高さを自動で1段上げる.md`
