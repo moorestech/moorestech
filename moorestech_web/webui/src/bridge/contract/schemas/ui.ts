@@ -37,6 +37,10 @@ export const LocalizationDataSchema = z.object({
   locale: z.string().min(1),
   revision: z.number().int().nonnegative(),
 });
+// 走りの操作方式。既定はUnity側が決める
+// Sprint input mode; Unity owns the default
+export const SprintInputModeDataSchema = z.object({ mode: z.enum(["toggle", "hold"]) });
+
 // 出展モードの言語選択ゲートの待機。開始を止めるゲートはこれ1枚なので順序は持たない
 // The wait of event mode's language gate; it is the only gate holding the start, so no order travels with it
 export const EventLanguageGateDataSchema = z.object({ waiting: z.boolean() });

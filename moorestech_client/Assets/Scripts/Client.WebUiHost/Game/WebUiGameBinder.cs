@@ -92,6 +92,7 @@ namespace Client.WebUiHost.Game
             // 現在言語トピックは開始ゲートより前に登録済み。ゲートを通らない接続経路のためここでも冪等に確かめる
             // The current-locale topic is registered ahead of the start gates; this idempotent call covers paths that skip them
             LocalizationTopic.EnsureRegistered(hub);
+            hub.RegisterTopic(SprintInputModeTopic.TopicName, new SprintInputModeTopic(hub));
             // ポーズメニューの切断表示を登録する
             // Register the pause-menu disconnect presentation
             var networkDisconnectState = resolver.Resolve<NetworkDisconnectState>();
@@ -106,15 +107,12 @@ namespace Client.WebUiHost.Game
             // Connect the common HUD to each state's notifications
             hub.RegisterTopic(CrosshairTopic.TopicName, new CrosshairTopic(hub, resolver.Resolve<CrosshairVisibility>()));
             hub.RegisterTopic(UiVisibilityTopic.TopicName, new UiVisibilityTopic(hub, resolver.Resolve<UIRoot>()));
-
             // 通知トピックを登録
             // Register the notification topic
             hub.RegisterTopic(NotificationTopic.TopicName, new NotificationTopic(hub, ClientContext.VanillaApi.Event, ClientDIContext.ClientLocalNotificationSource));
-
             // ゲーム内ツールチップ状態を Web へ接続する
             // Connect the in-game tooltip state to the web
             hub.RegisterTopic(TooltipTopic.TopicName, new TooltipTopic(hub, resolver.Resolve<MouseCursorTooltipState>()));
-
             // クラフトレシピトピックを登録
             // Register the craft-recipes topic
             var unlockStateData = ClientDIContext.DIContainer
@@ -122,12 +120,10 @@ namespace Client.WebUiHost.Game
                 .Resolve<IGameUnlockStateData>();
             var craftingRecipesTopic = new CraftingRecipesTopic(hub, unlockStateData);
             hub.RegisterTopic(CraftingRecipesTopic.TopicName, craftingRecipesTopic);
-
             // 機械レシピトピックを登録
             // Register the machine-recipes topic
             var machineRecipesTopic = new MachineRecipesTopic(hub, unlockStateData);
             hub.RegisterTopic(MachineRecipesTopic.TopicName, machineRecipesTopic);
-
             // アイテムリストトピックを登録
             // Register the item-list topic
             var recipeContainer = ClientDIContext.DIContainer
@@ -135,19 +131,16 @@ namespace Client.WebUiHost.Game
                 .Resolve<ItemRecipeViewerDataContainer>();
             var itemListTopic = new RecipeViewerItemListTopic(hub, recipeContainer);
             hub.RegisterTopic(RecipeViewerItemListTopic.TopicName, itemListTopic);
-
             // 研究ツリートピックを登録（充足の正本はサーバーstateなので所持変化でも取り直す）
             // Register the research-tree topic (server state owns sufficiency, so inventory moves refetch too)
             var researchTopic = new ResearchTopic(hub, uiStateControl, controller);
             hub.RegisterTopic(ResearchTopic.TopicName, researchTopic);
-
             // チャレンジツリーと常駐HUDは同じイベント駆動状態を共有する
             // The challenge tree and persistent HUD share the same event-driven state
             var initialHandshake = resolver.Resolve<InitialHandshakeResponse>();
             var challengeState = new ChallengeTopicState(hub, initialHandshake);
             hub.RegisterTopic(ChallengeTreeTopic.TopicName, new ChallengeTreeTopic(challengeState));
             hub.RegisterTopic(ChallengeCurrentTopic.TopicName, new ChallengeCurrentTopic(challengeState));
-
             // ビルドメニュートピックを登録（BP名入力ブリッジも同時に張る）
             // Register the build-menu topic (also wires the blueprint-name input bridge)
             var blueprintLibrary = resolver.Resolve<ClientBlueprintLibrary>();
@@ -159,12 +152,10 @@ namespace Client.WebUiHost.Game
             var buildMenuTopic = new BuildMenuTopic(hub, uiStateControl, blueprintLibrary, placementTargetResolver, constructionWalletQuery, controller, thumbnails);
             hub.RegisterTopic(BuildMenuTopic.TopicName, buildMenuTopic);
             new BlueprintNameInputWebBridge(blueprintNameInputState, modalService);
-
             // ホットバーのtopic/actionをまとめて登録（前例 C4WebUiRegistration）
             // Register the hotbar topic/actions together (precedent: C4WebUiRegistration)
             var clientHotbarDatastore = resolver.Resolve<ClientHotbarDatastore>();
             HotbarWebUiRegistration.Register(hub, clientHotbarDatastore, placementTargetResolver, blueprintLibrary, resolver.Resolve<PlaceSystemStateController>(), uiStateControl, thumbnails);
-
             // action ハンドラ登録
             // Register action handlers
             // debug.echo は EchoActionHandler と同じくエディタ/開発ビルド限定で登録する
@@ -173,6 +164,7 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new EchoActionHandler());
 #endif
             LocalizationActions.Register(hub);
+            SettingsActions.Register(hub);
             hub.RegisterAction(new MoveItemActionHandler(controller));
             hub.RegisterAction(new SplitGrabActionHandler(controller));
             hub.RegisterAction(new SplitDragActionHandler(controller));

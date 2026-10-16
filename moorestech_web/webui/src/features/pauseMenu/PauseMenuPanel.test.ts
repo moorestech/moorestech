@@ -31,6 +31,7 @@ vi.mock("@/shared/ui", async () => ({
     createElement("mock-mode-switch", { value, onChange, "data-testid": testId }),
 }));
 vi.mock("@/features/settings", () => ({
+  SprintModeSelect: () => createElement("mock-sprint-mode-select", { "data-testid": "sprint-mode-select" }),
   LanguageSelect: () => createElement("mock-language-select", { "data-testid": "language-select" }),
 }));
 

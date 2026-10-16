@@ -351,7 +351,7 @@ git commit -m "feat: 走りのトグル/ホールド判定と方式の保存を�
   - `IPlayerObjectController.SetSprintToggleAllowed(bool allowed)`
   - `StarterAssetsInputs.SetSprintToggleAllowed(bool allowed)`
 
-- [ ] **Step 1: テストを書く** — `SprintToggleInputTest.cs`（`PlayerMovementUiLockTest` の Setup を踏襲。InputTestFixture）
+- [x] **Step 1: テストを書く** — `SprintToggleInputTest.cs`（`PlayerMovementUiLockTest` の Setup を踏襲。InputTestFixture）
 
 ```csharp
 using Client.Input;
@@ -492,7 +492,7 @@ namespace Client.Tests.Player
 ```
 （`Click` が InputTestFixture に無ければ `Press(_mouse.leftButton); Release(_mouse.leftButton);` に置き換える。テスト中の `onAnyButtonPress` は `Press` で同期発火する）
 
-- [ ] **Step 2: StarterAssetsInputs を書き換える**
+- [x] **Step 2: StarterAssetsInputs を書き換える**
 
 フィールド・初期化:
 ```csharp
@@ -563,7 +563,7 @@ namespace Client.Tests.Player
 using 追加: `using System;` `using UniRx;`（`UnityEngine.InputSystem` は `#if` 外でも必要なので `onAnyButtonPress` を使う箇所の using を `#if ENABLE_INPUT_SYSTEM` の外へ出す）。asmdef（`StarterAssetsInputs`）に `UniRx` 参照が無ければ追加する。`InputSystem.onAnyButtonPress.Call` は InputSystem 1.1+ の `InputControlExtensions` 拡張（`using UnityEngine.InputSystem.Utilities;` が要る場合あり）。
 ファイルが200行を超えそうなら解決器との接続部を `SprintInputBinding`（同ディレクトリの純C#クラス）へ切り出す。
 
-- [ ] **Step 3: IUIState 宣言とプッシュ経路**
+- [x] **Step 3: IUIState 宣言とプッシュ経路**
 
 `IUIState.cs` に追加:
 ```csharp
@@ -594,7 +594,7 @@ using 追加: `using System;` `using UniRx;`（`UnityEngine.InputSystem` は `#i
 ```
 `_starterAssetsInputs` は `Initialize` 冒頭で `_starterAssetsInputs = controller.GetComponent<StarterAssetsInputs>();`（同一GameObjectに既存。Prefab変更不要）。`FakePlayerObjectController` は呼び出し値を記録するだけの実装を足す。
 
-- [ ] **Step 4: コンパイル・テスト**
+- [x] **Step 4: コンパイル・テスト**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "SprintToggleInputTest|SprintInputResolverTest|SprintInputModePreferenceTest|PlayerMovementUiLockTest|TextInputMovementLockTest|PlayerFlightMotionTest|UIState"`
 Expected: ErrorCount 0 / 全 PASS。
@@ -603,7 +603,7 @@ Expected: ErrorCount 0 / 全 PASS。
 
 `UIStateSprintToggleDeclarationTest`: `UIStateMovementLockDeclarationTest` を複製し、期待表を `GameScreen=true, PlaceBlock=true, DeleteBar=true, それ以外=false`、検査メソッドを `AllowsSprintToggle()` に変える（画面を足すと突き合わせが落ちて宣言の見直しを強制する）。
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 ```bash
 git add moorestech_client/Assets

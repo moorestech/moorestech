@@ -36,6 +36,7 @@ const topicFixtures: TopicFixtureRegistry = {
   [Topics.researchTree]: () => state.researchTree,
   [Topics.buildMenu]: () => fx.buildMenu,
   [Topics.hotbar]: () => fx.hotbar,
+  [Topics.sprintInputMode]: () => ({ mode: "toggle" }),
   [Topics.localization]: () => ({ locale: "japanese", revision: 1 }),
   // 通常のe2eは出展モードではないので待機しない。欠けるとsnapshotが返らずrestoringのまま全操作が塞がる
   // Regular e2e is not event mode, so it never waits; a missing entry returns no snapshot and wedges everything in restoring
