@@ -61,7 +61,7 @@ it("両方が空索引を読んでも、先に予約した発行だけ201で後�
   expect(responses.map(row => row.status).sort()).toEqual([201, 409]);
   expect(await responses.find(row => row.status === 409)!.json()).toEqual({ reason: "machine-already-has-token" });
   const { token } = await responses.find(row => row.status === 201)!.json() as { token: string };
-  expect(await findMachineByToken(workerEnv, token)).toBe("macbook");
+  expect(await findMachineByToken(workerEnv, token)).toEqual({ machine: "macbook", credentialHash: expect.stringMatching(/^[0-9a-f]{64}$/) });
   await revokeDevToken(workerEnv, "macbook");
   expect(await findMachineByToken(workerEnv, token)).toBeNull();
 });
@@ -76,7 +76,7 @@ it("予約後の書込失敗は有効にならず、失効して再発行でき�
   });
   await expect(issueDevToken(env, "macbook", NOW)).rejects.toThrow("R2 unavailable");
   expect(error).toHaveBeenCalledWith(expect.stringContaining("revoke before retrying"), expect.any(Error));
-  expect(await isRevokedDeveloper(workerEnv, "dev-macbook")).toBe(true);
+  expect(await isRevokedDeveloper(workerEnv, "dev-macbook", (await (await workerEnv.BUCKET.get(MACHINE_KEY))!.json<{ hash: string }>()).hash)).toBe(true);
   expect(await issueDevToken(workerEnv, "macbook", NOW)).toEqual({ kind: "exists" });
   await revokeDevToken(workerEnv, "macbook");
   expect((await issueDevToken(workerEnv, "macbook", NOW)).kind).toBe("issued");
@@ -118,9 +118,9 @@ it("失効のhash削除失敗後も拒否し、再失効で回収できる", asy
   await expect(revokeDevToken(env, "macbook")).rejects.toThrow("delete failed");
   expect(error).toHaveBeenCalledWith(expect.stringContaining("retry revoke"), expect.any(Error));
   expect(await findMachineByToken(workerEnv, issued.token)).toBeNull();
-  expect(await isRevokedDeveloper(workerEnv, "dev-macbook")).toBe(true);
+  expect(await isRevokedDeveloper(workerEnv, "dev-macbook", (await (await workerEnv.BUCKET.get(MACHINE_KEY))!.json<{ hash: string }>()).hash)).toBe(true);
   expect(await listDevTokens(workerEnv)).toEqual([]);
-  expect(await revokeDevToken(workerEnv, "macbook")).toBe(true);
+  expect(await revokeDevToken(workerEnv, "macbook")).toEqual({ kind: "revoked" });
   expect((await workerEnv.BUCKET.list({ prefix: "devtokens/by-hash/" })).objects).toHaveLength(0);
 });
 
@@ -136,13 +136,17 @@ it("遅れた失効CASが、新しく発行した機材索引を破壊しない"
       return workerEnv.BUCKET.put(key, value, options);
     },
   });
-  const delayed = revokeDevToken(env, "macbook");
+  const delayed = handle(new Request("https://x/v1/admin/dev-tokens/macbook", {
+    method: "DELETE", headers: { "x-admin-key": env.ADMIN_KEY },
+  }), env, noNetwork);
   await reachedCas.promise;
   await revokeDevToken(workerEnv, "macbook");
   const second = await issueDevToken(workerEnv, "macbook", NOW);
   if (second.kind !== "issued") throw new Error("expected issuance");
   continueCas.release();
-  expect(await delayed).toBe(true);
+  const response = await delayed;
+  expect(response.status).toBe(409);
+  expect(await response.json()).toEqual({ reason: "revocation-superseded" });
   expect(await findMachineByToken(workerEnv, first.token)).toBeNull();
-  expect(await findMachineByToken(workerEnv, second.token)).toBe("macbook");
+  expect(await findMachineByToken(workerEnv, second.token)).toEqual({ machine: "macbook", credentialHash: expect.stringMatching(/^[0-9a-f]{64}$/) });
 });

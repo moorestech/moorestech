@@ -19,7 +19,9 @@ export async function routeAdminDevTokens(request: Request, env: Env, segments: 
     const deniedMethod = requireMethod(request, ["DELETE"], "/v1/admin/dev-tokens/{machine}");
     if (deniedMethod !== null) return deniedMethod;
     const machine = segments[3]!;
-    if (await revokeDevToken(env, machine)) return json({ revoked: machine });
+    const result = await revokeDevToken(env, machine);
+    if (result.kind === "revoked") return json({ revoked: machine });
+    if (result.kind === "superseded") return fail("revocation-superseded", 409);
   }
   console.warn("[dev-tokens] rejected: machine or route not found");
   return fail("not-found", 404);

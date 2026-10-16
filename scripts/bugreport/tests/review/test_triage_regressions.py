@@ -113,3 +113,61 @@ def test_stall_missing_fields_are_named(tmp_path):
     text = '\n'.join(log_scan.stalls(tmp_path))
     for field in ('WaitingReason', 'WaitingReasonAtCapture', 'CaptureReason'):
         assert field + '=欠損' in text
+
+
+def test_cli_video_conversion_is_connected(tmp_path, monkeypatch):
+    box, out, binary = tmp_path / 'box', tmp_path / 'out', tmp_path / 'bin'
+    box.mkdir()
+    binary.mkdir()
+    (box / 'manifest.json').write_text('{"missing":[]}')
+    (box / 'video.mp4').write_bytes(b'video')
+    ffmpeg = binary / 'ffmpeg'
+    marker = tmp_path / 'called'
+    ffmpeg.write_text(f'#!{sys.executable}\nimport sys\nfrom pathlib import Path\nPath({str(marker)!r}).write_text(" ".join(sys.argv))\nPath(sys.argv[-1]).write_bytes(b"NEW_BOX")\n')
+    ffmpeg.chmod(0o755)
+    monkeypatch.setenv('PATH', str(binary))
+    result, text = report(box, out)
+    assert str(box / 'video.mp4') in marker.read_text()
+    assert (out / 'contact-sheet.png').read_bytes() == b'NEW_BOX'
+    assert 'contact-sheet.png を生成' in text and result.stdout == text
+
+
+@pytest.mark.skipif(sys.platform != 'darwin', reason='macOS immutable file regression')
+def test_cli_locked_previous_sheet_keeps_report(tmp_path):
+    import os
+    import stat
+    box, out = tmp_path / 'box', tmp_path / 'out'
+    box.mkdir()
+    out.mkdir()
+    (box / 'manifest.json').write_text('{"missing":[]}')
+    target = out / 'contact-sheet.png'
+    target.write_bytes(b'OLD_BOX')
+    os.chflags(target, stat.UF_IMMUTABLE)
+    try:
+        result, text = report(box, out)
+        assert '動画調査失敗' in text and '今回の成果物ではありません' in text
+        assert '動画調査失敗' in result.stderr and '## manifest' in text
+        assert 'contact-sheet.png を生成' not in text
+    finally:
+        os.chflags(target, 0)
+
+
+def test_real_log_repeats_keep_unique_late_error_and_locations(tmp_path):
+    (tmp_path / 'logs').mkdir()
+    rows = [f'12:00:00.{i:03d}\t{i}\tWarning\tRepeated\nStack()' for i in range(201)]
+    rows += ['12:00:01.000\t202\tError\tUnique cause']
+    (tmp_path / 'logs/unity.log').write_text('\n'.join(rows))
+    text = '\n'.join(log_scan.summarize(tmp_path))
+    assert '×201 [unity.log:1-402]' in text
+    assert 'Unique cause ×1 [unity.log:403-403]' in text
+    assert '反復末尾: 12:00:00.200' in text
+
+
+def test_log_limit_prefers_errors_and_recent_warnings(tmp_path):
+    (tmp_path / 'logs').mkdir()
+    rows = ['Error original cause'] + [f'Warning {i}' for i in range(250)]
+    (tmp_path / 'logs/unity.log').write_text('\n'.join(rows))
+    text = '\n'.join(log_scan.summarize(tmp_path))
+    assert text.count('×1 [unity.log:') == 200
+    assert 'Error original cause' in text and 'Warning 249' in text
+    assert '重要ログ省略: 51 集約件' in text

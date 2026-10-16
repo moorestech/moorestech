@@ -1,5 +1,5 @@
 import type { Env } from "../env";
-import { DEVELOPER_SUBJECT_PREFIX, isDeveloperSubject } from "./developerSubject";
+import { DEVELOPER_SUBJECT_PREFIX } from "./developerSubject";
 
 const BY_HASH = "devtokens/by-hash/";
 const BY_MACHINE = "devtokens/by-machine/";
@@ -33,17 +33,16 @@ export async function issueDevToken(env: Env, machine: string, now: Date): Promi
   return { kind: "issued", token };
 }
 
-export async function findMachineByToken(env: Env, token: string): Promise<string | null> {
+export async function findMachineByToken(env: Env, token: string): Promise<{ machine: string; credentialHash: string } | null> {
   const hash = await sha256Hex(token);
   const record = await readJson<{ machine?: unknown }>(env, BY_HASH + hash);
   if (record === null || typeof record.machine !== "string") return null;
-  const machine = await readJson<MachineRecord>(env, BY_MACHINE + record.machine);
-  if (machine === null || machine.revoked === true || machine.hash !== hash) {
+  if (!await isActiveCredential(env, record.machine, hash)) {
     console.warn("[dev-tokens] rejected: token indexes do not match an active machine");
     await removeStaleHash(env, hash);
     return null;
   }
-  return record.machine;
+  return { machine: record.machine, credentialHash: hash };
 }
 
 // 一覧は機材索引を読み、表示順を固定する
@@ -66,9 +65,9 @@ export async function listDevTokens(env: Env): Promise<readonly { machine: strin
 
 // 墓標を先に確定し、既存セッションにも失効を効かせる
 // Commit the tombstone first so revocation also applies to existing sessions
-export async function revokeDevToken(env: Env, machine: string): Promise<boolean> {
+export async function revokeDevToken(env: Env, machine: string): Promise<{ kind: "revoked" } | { kind: "notFound" } | { kind: "superseded" }> {
   const object = await env.BUCKET.get(BY_MACHINE + machine);
-  if (object === null) return false;
+  if (object === null) return { kind: "notFound" };
   const record = await object.json<MachineRecord>();
   if (record.revoked !== true) {
     // 墓標をCASで確定し、遅れた失効が新しい発行を消さないようにする
@@ -78,7 +77,7 @@ export async function revokeDevToken(env: Env, machine: string): Promise<boolean
     });
     if (revoked === null) {
       console.warn(`[dev-tokens] revocation superseded by another operation for ${machine}`);
-      return true;
+      return { kind: "superseded" };
     }
   }
   // 墓標は次の発行がCASで置換する。再試行は旧hashだけを掃除する
@@ -91,18 +90,23 @@ export async function revokeDevToken(env: Env, machine: string): Promise<boolean
     console.error(`[dev-tokens] revocation cleanup failed for ${machine}; retry revoke to remove the old hash`, error);
     throw error;
   }
+  return { kind: "revoked" };
+}
+
+export async function isRevokedDeveloper(env: Env, sub: string, credentialHash: string): Promise<boolean> {
+  const machine = sub.slice(DEVELOPER_SUBJECT_PREFIX.length);
+  if (await isActiveCredential(env, machine, credentialHash)) return false;
+  console.warn(`[uploads] refused: developer token revoked or superseded for ${sub}`);
   return true;
 }
 
-export async function isRevokedDeveloper(env: Env, sub: string): Promise<boolean> {
-  if (!isDeveloperSubject(sub)) return false;
-  const machine = sub.slice(DEVELOPER_SUBJECT_PREFIX.length);
+// 交換とアップロードは同じ発行世代と双方向索引で認可する
+// Exchange and upload authorize the same issuance generation and both indexes
+async function isActiveCredential(env: Env, machine: string, credentialHash: string): Promise<boolean> {
   const record = await readJson<MachineRecord>(env, BY_MACHINE + machine);
-  const reverse = record === null || record.revoked === true ? null
-    : await readJson<{ machine: string }>(env, BY_HASH + record.hash);
-  if (reverse?.machine === machine) return false;
-  console.warn(`[uploads] refused: developer token revoked or incomplete for ${sub}`);
-  return true;
+  if (record === null || record.revoked === true || record.hash !== credentialHash) return false;
+  const reverse = await readJson<{ machine: string }>(env, BY_HASH + credentialHash);
+  return reverse?.machine === machine;
 }
 
 function alreadyExists(machine: string): IssueResult {

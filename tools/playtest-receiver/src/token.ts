@@ -1,15 +1,18 @@
 import { TOKEN_TTL_SECONDS } from "./contract";
 import { constantTimeEquals } from "./http";
 
+export type SessionPrincipal = { kind: "steam"; subject: string } | { kind: "developer"; subject: string; credentialHash: string };
+
 interface TokenPayload {
   sub: string;
   iat: number;
   exp: number;
+  credentialHash?: string;
 }
 
 // misconfiguredはサーバー側の設定欠落。呼び出し側はクライアントの落ち度（401）と区別して500を返す
 // misconfigured is a missing server-side setting; the caller answers 500, distinct from a client fault (401)
-export type TokenVerification = { kind: "ok"; steamId: string } | { kind: "rejected"; reason: string } | { kind: "misconfigured" };
+export type TokenVerification = { kind: "ok"; principal: SessionPrincipal } | { kind: "rejected"; reason: string } | { kind: "misconfigured" };
 
 // 失効時刻の計算はここ1箇所。署名するexpとセッション応答のexpiresAtが必ず一致する
 // Expiry is computed only here, so the signed exp and the session response's expiresAt always agree
@@ -19,10 +22,11 @@ export function tokenExpiresAtSeconds(nowSeconds: number): number {
 
 // 秘密鍵が無ければ署名できない。呼び出し側が500を返せるようnullへ畳む（例外にはしない）
 // Without a secret there is nothing to sign, so this collapses to null and lets the caller answer 500
-export async function signToken(secret: string, steamId: string, nowSeconds: number): Promise<string | null> {
+export async function signToken(secret: string, principal: SessionPrincipal, nowSeconds: number): Promise<string | null> {
   if (!isSecretConfigured(secret)) return null;
   const header = encode(JSON.stringify({ alg: "HS256", typ: "JWT" }));
-  const payload: TokenPayload = { sub: steamId, iat: nowSeconds, exp: tokenExpiresAtSeconds(nowSeconds) };
+  const payload: TokenPayload = { sub: principal.subject, iat: nowSeconds, exp: tokenExpiresAtSeconds(nowSeconds) };
+  if (principal.kind === "developer") payload.credentialHash = principal.credentialHash;
   const body = encode(JSON.stringify(payload));
   const signature = await sign(secret, `${header}.${body}`);
   return `${header}.${body}.${signature}`;
@@ -43,7 +47,11 @@ export async function verifyToken(secret: string, token: string, nowSeconds: num
   if (typeof payload === "string") return reject(payload);
   if (payload.exp <= nowSeconds) return reject("expired");
   if (payload.sub.length === 0) return reject("empty-sub");
-  return { kind: "ok", steamId: payload.sub };
+  if (payload.sub.startsWith("dev-")) {
+    if (typeof payload.credentialHash !== "string" || !/^[0-9a-f]{64}$/.test(payload.credentialHash)) return reject("missing-credential-hash");
+    return { kind: "ok", principal: { kind: "developer", subject: payload.sub, credentialHash: payload.credentialHash } };
+  }
+  return { kind: "ok", principal: { kind: "steam", subject: payload.sub } };
 }
 
 function reject(reason: string): TokenVerification {
@@ -70,7 +78,7 @@ function decodePayload(body: string): TokenPayload | "bad-payload-shape" | "bad-
     if (typeof parsed?.sub !== "string" || typeof parsed.exp !== "number" || typeof parsed.iat !== "number") {
       return "bad-payload-shape";
     }
-    return { sub: parsed.sub, iat: parsed.iat, exp: parsed.exp };
+    return { sub: parsed.sub, iat: parsed.iat, exp: parsed.exp, credentialHash: parsed.credentialHash };
   } catch {
     return "bad-payload-encoding";
   }

@@ -16,7 +16,7 @@ export const noNetwork: typeof fetch = (async () => {
 }) as unknown as typeof fetch;
 
 export async function bearer(steamId = STEAM_ID): Promise<string> {
-  return `Bearer ${await signToken(workerEnv.SESSION_HMAC_SECRET, steamId, Math.floor(Date.now() / 1000))}`;
+  return `Bearer ${await signToken(workerEnv.SESSION_HMAC_SECRET, { kind: "steam", subject: steamId }, Math.floor(Date.now() / 1000))}`;
 }
 
 export async function clean(): Promise<void> {

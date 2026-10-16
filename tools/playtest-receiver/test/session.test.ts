@@ -26,7 +26,7 @@ describe("POST /v1/session", () => {
     expect(Object.keys(body).sort()).toEqual(["allowed", "expiresAt", "steamId", "token"]);
     expect(body.steamId).toBe("76561198000000001");
     expect(body.allowed).toBe(true);
-    expect(await verifyToken(workerEnv.SESSION_HMAC_SECRET, body.token, Math.floor(Date.now() / 1000))).toEqual({ kind: "ok", steamId: "76561198000000001" });
+    expect(await verifyToken(workerEnv.SESSION_HMAC_SECRET, body.token, Math.floor(Date.now() / 1000))).toEqual({ kind: "ok", principal: { kind: "steam", subject: "76561198000000001" } });
 
     // expiresAtはUTCのISO8601で、署名済みトークンのexp（発行時刻+TTL）と一致する
     // expiresAt is a UTC ISO8601 string equal to the signed token's exp (issue time + TTL)

@@ -1,8 +1,8 @@
 import type { Env } from "../env";
-import { fail, json, requireMethod } from "../http";
+import { fail, requireMethod } from "../http";
 import { DEV_TOKEN_PATTERN, findMachineByToken } from "../devTokens/devTokenStore";
 import { developerSubjectOf } from "../devTokens/developerSubject";
-import { signToken, tokenExpiresAtSeconds } from "../token";
+import { issueSessionResponse } from "./session";
 
 // Steam経路と同じセッション応答へ交換する
 // Exchange a developer credential for the same session response as Steam
@@ -17,11 +17,7 @@ export async function routeDeveloperSession(request: Request, env: Env, segments
     console.warn("[developer-session] rejected: invalid developer token");
     return fail("invalid-developer-token", 401);
   }
-  const sub = developerSubjectOf(machine);
-  const now = Math.floor(Date.now() / 1000);
-  const token = await signToken(env.SESSION_HMAC_SECRET, sub, now);
-  if (token === null) return fail("server-misconfigured", 500);
-  return json({ steamId: sub, allowed: true, token, expiresAt: new Date(tokenExpiresAtSeconds(now) * 1000).toISOString() });
+  return issueSessionResponse(env, { kind: "developer", subject: developerSubjectOf(machine.machine), credentialHash: machine.credentialHash });
 }
 
 async function readToken(request: Request): Promise<string | null> {

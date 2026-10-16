@@ -6,6 +6,17 @@ from pathlib import Path
 
 
 def summarize(box, out):
+    # 外部ディスク操作の失敗を動画節に隔離する
+    # Isolate external disk failures within the video section
+    try:
+        return generate(box, out)
+    except OSError as error:
+        reason = f'動画調査失敗: {error}。既存contact-sheet.pngは今回の成果物ではありません'
+        print(reason, file=sys.stderr)
+        return ['## 動画', reason]
+
+
+def generate(box, out):
     lines = ['## 動画']
     target = out / 'contact-sheet.png'
     target.unlink(missing_ok=True)

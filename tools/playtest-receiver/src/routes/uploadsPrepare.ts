@@ -1,5 +1,3 @@
-import { refusesDeveloperProgress } from "../devTokens/developerSubject";
-import { isRevokedDeveloper } from "../devTokens/devTokenStore";
 import { isAcked } from "../bundleMarkers";
 import { DECLARATION_CONFLICT_REASON, DECLARATION_UNREADABLE_REASON, PREPARE_OUTCOME_ACKED, PREPARE_OUTCOME_PREPARED, UPLOAD_URL_TTL_SECONDS } from "../contract";
 import type { Env } from "../env";
@@ -12,10 +10,8 @@ import { authorizeUpload } from "./uploadsAuthorize";
 import { verifyDeclaredObjects, type MissingObject } from "./uploadsVerify";
 
 export async function prepareUpload(request: Request, env: Env, kind: PlaytestKind, id: string): Promise<Response> {
-  const steamId = await authorizeUpload(request, env);
+  const steamId = await authorizeUpload(request, env, kind);
   if (typeof steamId !== "string") return steamId;
-  if (refusesDeveloperProgress(kind, steamId)) return fail("developer-progress-not-accepted", 403);
-  if (await isRevokedDeveloper(env, steamId)) return fail("developer-token-revoked", 401);
   const label = `${steamId}/${id}`;
 
   // 署名設定が空のまま動くと、R2が必ず拒否するURLを200で配ってしまう。発行前に500で止める

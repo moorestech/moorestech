@@ -1,5 +1,3 @@
-import { refusesDeveloperProgress } from "../devTokens/developerSubject";
-import { isRevokedDeveloper } from "../devTokens/devTokenStore";
 import { isAcked, READY_MARKER } from "../bundleMarkers";
 import { DECLARATION_UNREADABLE_REASON } from "../contract";
 import type { Env } from "../env";
@@ -10,10 +8,8 @@ import { authorizeUpload } from "./uploadsAuthorize";
 import { verifyDeclaredObjects } from "./uploadsVerify";
 
 export async function completeUpload(request: Request, env: Env, kind: PlaytestKind, id: string): Promise<Response> {
-  const steamId = await authorizeUpload(request, env);
+  const steamId = await authorizeUpload(request, env, kind);
   if (typeof steamId !== "string") return steamId;
-  if (refusesDeveloperProgress(kind, steamId)) return fail("developer-progress-not-accepted", 403);
-  if (await isRevokedDeveloper(env, steamId)) return fail("developer-token-revoked", 401);
 
   // ACKED後のcompleteで索引を作り直すと取り込み済みが未ACKへ戻る。書かずに冪等の成功を返す
   // Re-creating the index after ACKED would resurrect an ingested bundle as pending, so answer an idempotent success without writing

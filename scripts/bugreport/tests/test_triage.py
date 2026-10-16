@@ -28,7 +28,7 @@ def test_triage(tmp_path):
     for tick in (200, 100):
         train['IsAutoRun'] = tick == 100
         train['railPositionSaveData']['RailSnapshot'] = [{'node': tick}, {'node': 'second'}]
-        edge = dict(edge, A=f'a{tick}', B=f'b{tick}', Length=tick + 7, IsDrawable=tick == 100)
+        edge = dict(edge, A=f'a{tick}', B=f'b{tick}', Length=tick + 7, IsDrawable=tick == 100, RailTypeGuid=f'{tick:08d}-rest')
         write(box / f'snapshots/tick_{tick}.json', {'trainUnits': [train], 'railSegments': [edge]})
     write(box / 'logs/train-sync/stall-test.json', {'WaitingReason': 'HashMismatch', 'WaitingReasonAtCapture': 'ReceivedTickGap', 'CaptureReason': 'PermanentlyWaiting'})
     before = {p.relative_to(box): p.read_bytes() for p in box.rglob('*') if p.is_file()}
@@ -44,7 +44,7 @@ def test_triage(tmp_path):
     assert len(rows) == 2 and '| 100 |' in rows[0] and '| 200 |' in rows[1]
     assert rows[0] == '| "train1" | 100 | "True" | 1.25 | 9.5 | "登録2 / index=1" | {"node": 100} |'
     assert rows[1] == '| "train1" | 200 | "False" | 1.25 | 9.5 | "登録2 / index=1" | {"node": 200} |'
-    assert '- "a200" → "b200" (207, 12345678, False)' in report
+    assert '- "a200" → "b200" (207, 00000200, False)' in report
     assert 'a100' not in report
     assert 'レール: 1 件' in report and 'video.mp4 が無い' in report
     for reason in ('WaitingReason="HashMismatch"', 'WaitingReasonAtCapture="ReceivedTickGap"', 'CaptureReason="PermanentlyWaiting"'):

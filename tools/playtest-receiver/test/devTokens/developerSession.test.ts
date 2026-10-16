@@ -14,7 +14,7 @@ it("発行・交換したセッションで開発機の報告を完成できる"
   expect(body.steamId).toBe("dev-macbook");
   expect(body.allowed).toBe(true);
   expect(await verifyToken(workerEnv.SESSION_HMAC_SECRET, body.token, Math.floor(Date.now() / 1000)))
-    .toEqual({ kind: "ok", steamId: "dev-macbook" });
+    .toEqual({ kind: "ok", principal: { kind: "developer", subject: "dev-macbook", credentialHash: expect.stringMatching(/^[0-9a-f]{64}$/) } });
   expect(Date.parse(body.expiresAt)).toBeGreaterThan(Date.now());
   expect((await upload("prepare", "report", body.token, declaration({ "manifest.json": 2 }))).status).toBe(200);
   await putDirect("report", "dev-macbook", ID, "manifest.json", "{}");
@@ -43,4 +43,23 @@ it("署名設定が欠けたら500", async () => {
   }), { ...workerEnv, SESSION_HMAC_SECRET: "" }, noNetwork);
   expect(response.status).toBe(500);
   expect(await response.json()).toEqual({ reason: "server-misconfigured" });
+});
+
+
+it("同秒に同名再発行しても旧JWTはprepareとcompleteへ復活しない", async () => {
+  const first = await issue("macbook");
+  const old = await (await exchange(JSON.stringify({ token: first }))).json() as { token: string };
+  expect((await upload("prepare", "report", old.token, declaration({ "manifest.json": 2 }))).status).toBe(200);
+  await putDirect("report", "dev-macbook", ID, "manifest.json", "{}");
+  expect((await admin("DELETE", "/macbook", "", workerEnv.ADMIN_KEY)).status).toBe(200);
+  const second = await issue("macbook");
+  const current = await (await exchange(JSON.stringify({ token: second }))).json() as { token: string };
+  for (const action of ["prepare", "complete"] as const) {
+    const body = action === "prepare" ? declaration({ "manifest.json": 2 }) : "{}";
+    const refused = await upload(action, "report", old.token, body);
+    expect(refused.status).toBe(401);
+    expect(await refused.json()).toEqual({ reason: "developer-token-revoked" });
+    expect((await upload(action, "report", current.token, body)).status).toBe(200);
+  }
+  expect((await exchange(JSON.stringify({ token: first }))).status).toBe(401);
 });
