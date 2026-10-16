@@ -90,7 +90,11 @@ return PlaytestRunner.Run("delete-tool-pier-removal-undo-rail", new PlaytestRunO
     // Step 3: box-select across the rail midpoint and remove the edge by holding F
     p.Note("Step 3: レール中点を跨ぐ箱で選択してF長押し撤去");
     var edgesBefore = Client.Game.InGame.Train.RailGraph.TrainRailObjectManager.Instance.EnumerateRailChains().Count();
-    await Client.Playtest.Operations.Ui.DeleteBoxScenarioInput.Select(p, new Vector3Int(13, 32, 9), new Vector3Int(15, 32, 11));
+    await DeleteBoxScenarioInput.Start(p, new Vector3Int(13, 32, 9));
+    await p.PressKey(Key.E);
+    await DeleteBoxScenarioInput.AimAtGround(p, new Vector3Int(15, 32, 11));
+    await p.Until(() => DeleteBoxScenarioInput.TooltipParam(Mooresmaster.Localization.Generated.LocalizationKeys.Ui.Tooltip.DeleteBoxTargetsInRange) >= 1, 5f, "高さ33の箱にレールedgeが入る");
+    await DeleteBoxScenarioInput.Click();
     await HoldDeleteConfirm();
     await p.Until(() => Client.Game.InGame.Train.RailGraph.TrainRailObjectManager.Instance.EnumerateRailChains().Count() < edgesBefore, 15f, "Step3: 箱選択したレールedgeが消える");
     await p.Screenshot("04-box-rail-removed");
