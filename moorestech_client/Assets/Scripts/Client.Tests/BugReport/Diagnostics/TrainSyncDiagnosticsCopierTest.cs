@@ -114,6 +114,7 @@ namespace Client.Tests.BugReport.Diagnostics
         public void 検索権限を失った親は診断なしに畳まない()
         {
             if (UnityEngine.Application.platform == UnityEngine.RuntimePlatform.WindowsEditor) Assert.Ignore("Unix permission test");
+            if (Environment.UserName == "root") Assert.Ignore("root実行ではchmodで権限拒否を再現できないためスキップ（非rootの開発機で検証される）");
             var parent = Path.Combine(_root, "restricted");
             var source = Path.Combine(parent, "source");
             Directory.CreateDirectory(source);

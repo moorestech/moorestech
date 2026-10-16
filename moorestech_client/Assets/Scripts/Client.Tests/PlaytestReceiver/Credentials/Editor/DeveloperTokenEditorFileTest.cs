@@ -49,6 +49,7 @@ namespace Client.Tests.PlaytestReceiver.Credentials
         public void 同じ保存先の書込み失敗でも旧トークンを維持する()
         {
             if (Path.DirectorySeparatorChar == '\\') Assert.Ignore("Unixディレクトリ権限の障害注入。Windowsの同等検証は未実施");
+            if (Environment.UserName == "root") Assert.Ignore("root実行ではchmodで権限拒否を再現できないためスキップ（非rootの開発機で検証される）");
             File.WriteAllText(_path, Token);
             var replacement = "mdt_" + new string('b', 64);
             SetDirectoryMode("500");

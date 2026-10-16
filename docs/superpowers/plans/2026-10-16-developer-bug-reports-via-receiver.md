@@ -706,7 +706,7 @@ public static class TrainSynchronizationDiagnosticDirectory
 `BugReportCommitBundles.Write` は、ラベル `commits.bundle`（repo=repositoryRoot, commit=manifest.Repository?.Commit）と `master-commits.bundle`（repo=masterDataRoot, commit=manifest.MasterData?.Commit）について、`ship-outbox.sh` の `attach_bundle` と同じ順序で判定して1行ずつ書く:
 1. commit が空 → `skipped-no-commit`
 2. repo ディレクトリが無い → `skipped-no-repo (<path>)`
-3. `merge-base --is-ancestor <commit> origin/master` が0 → `not-needed-origin-has-commit`
+3. `for-each-ref --contains <commit> refs/remotes/` が成功しremote追跡refを返す → `not-needed-remote-has-commit`
 4. `cat-file -e <commit>^{commit}` が非0 → `failed-commit-not-found (<commit>)`
 5. `update-ref refs/bugreport/<id> <commit>`
 6. `bundle create <out> origin/master..refs/bugreport/<id>` が0 → `created`。非0なら out を消して `failed-bundle-create`。
@@ -728,7 +728,7 @@ public static class TrainSynchronizationDiagnosticDirectory
 `BugReportCommitBundlesTest`:
 - 一時ディレクトリに `git init --bare origin.git` と、それを clone した作業 repo を作る。初回コミットを push し、2つ目を push しない。
 - その commit で Write すると `commits.bundle: created`。bundle を別の空 repo へ `git fetch <bundle> '+refs/bugreport/*:refs/bugreport/*'` すると commit が取れる。
-- push 済みの commit なら `not-needed-origin-has-commit`。
+- push 済みの commit なら `not-needed-remote-has-commit`。
 - manifest の commit が null なら `skipped-no-commit`。
 - 存在しない SHA なら `failed-commit-not-found` で、manifest.Missing に1件入る。
 - 実行後に `refs/bugreport/*` が残っていない（`git for-each-ref refs/bugreport` が空）。

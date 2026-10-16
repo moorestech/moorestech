@@ -73,14 +73,22 @@ namespace Client.Game.InGame.BugReport
             {
                 if (string.IsNullOrEmpty(commit)) { Record(label, CommitBundleResultKind.SkippedNoCommit, null, null); return; }
                 if (!Directory.Exists(root)) { Record(label, CommitBundleResultKind.SkippedNoRepository, root, null); return; }
-                if (RepositoryStateProbe.TryGit(root, $"merge-base --is-ancestor {commit} origin/master", out _, out _))
-                {
-                    Record(label, CommitBundleResultKind.AlreadyPublished, null, null);
-                    return;
-                }
                 if (!RepositoryStateProbe.TryGit(root, $"cat-file -e {commit}^{{commit}}", out _, out var error))
                 {
                     Record(label, CommitBundleResultKind.CommitNotFound, commit, error);
+                    return;
+                }
+
+                // 公開済みのfeatureも含め、remote追跡ref全体で収録済みSHAを判定する
+                // Check all remote tracking refs, including published feature branches
+                if (!RepositoryStateProbe.TryGit(root, $"for-each-ref --contains {commit} --format=%(refname) refs/remotes/", out var remoteRefs, out error))
+                {
+                    Record(label, CommitBundleResultKind.RemoteRefsQueryFailed, null, error);
+                    return;
+                }
+                if (!string.IsNullOrWhiteSpace(remoteRefs))
+                {
+                    Record(label, CommitBundleResultKind.AlreadyPublished, null, null);
                     return;
                 }
 
@@ -135,15 +143,16 @@ namespace Client.Game.InGame.BugReport
                 {
                     CommitBundleResultKind.SkippedNoCommit => "skipped-no-commit",
                     CommitBundleResultKind.SkippedNoRepository => $"skipped-no-repo ({context})",
-                    CommitBundleResultKind.AlreadyPublished => "not-needed-origin-has-commit",
+                    CommitBundleResultKind.AlreadyPublished => "not-needed-remote-has-commit",
                     CommitBundleResultKind.CommitNotFound => $"failed-commit-not-found ({context})",
+                    CommitBundleResultKind.RemoteRefsQueryFailed => "failed-remote-refs-query",
                     CommitBundleResultKind.UpdateRefFailed => "failed-update-ref",
                     CommitBundleResultKind.Created => "created",
                     CommitBundleResultKind.BundleCreateFailed => "failed-bundle-create",
                     _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown bundle result"),
                 };
                 status.Append(label).Append(": ").Append(state).Append('\n');
-                if (kind is CommitBundleResultKind.CommitNotFound or CommitBundleResultKind.UpdateRefFailed or CommitBundleResultKind.BundleCreateFailed)
+                if (kind is CommitBundleResultKind.CommitNotFound or CommitBundleResultKind.RemoteRefsQueryFailed or CommitBundleResultKind.UpdateRefFailed or CommitBundleResultKind.BundleCreateFailed)
                     manifest.AddMissing("repo/" + label, reason ?? state);
             }
 

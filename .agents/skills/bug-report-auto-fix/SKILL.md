@@ -24,7 +24,7 @@ hooks:
 `$RUN = $BUG_REPORT_RUNDIR_BASE/<run-id>`（既定 `~/hermes-agent/data/repos/moorestech_logs/harness/bug-report/runs/<run-id>`）。
 `$RUN/run.env` に `WORKTREE`・`MASTER_DIR`・`SERVER_DATA_DIR`・`WORLD_DIR`・`WORLD_MATERIALIZE_PENDING`・`WORLD_NOT_CAPTURED`・`WORLD_MAP_MODE`・`WORLD_SEED`（箱の `world.json` の `mapMode`・`seed`。読めなければ空）・`REPORT_COMMIT`・`REPORT_BRANCH`・`LATEST_TICK` と、
 **再現環境の欠けを表すフラグ**（`COMMIT_MISSING`・`DIFF_APPLY_FAILED`・`DIFF_ABSENT`・`UNTRACKED_FAILED`・`MASTER_FAILED`・`MASTER_DIFF_APPLY_FAILED`・`MASTER_DIFF_ABSENT`・`MASTER_UNTRACKED_FAILED`・`REPORTER_UNCLAIM_FAILED`）がある。
-`$RUN/repo/bundle-status.txt` は報告の確保時に Editor が書いた bundle の状態（`created` / `not-needed-origin-has-commit` / `failed-*` / `skipped-*`）で、`failed-*` は報告者のローカルコミットが受け側に無いことを意味する。
+`$RUN/repo/bundle-status.txt` は報告の確保時に Editor が書いた bundle の状態（`created` / `not-needed-remote-has-commit` / `failed-*` / `skipped-*`）で、`failed-*` は報告者のローカルコミットが受け側に無いことを意味する。
 `SERVER_DATA_DIR` は**記録時にサーバーが実際にマスタを読んだ置き場**（manifest の `serverData` から受け側の worktree 配下へ解決した値）。`MASTER_DIR` とは一致しないことがあり、再生・観察には必ず `SERVER_DATA_DIR` を使う。作業は必ず `$WORKTREE` で行う。
 `$RUN`・`$WORKTREE` 等は本ドキュメント上のプレースホルダである。コマンドへ渡すときは `. $RUN/run.env` で読み込むか、実値の絶対パスへ展開して書く。
 「バンドル」＝報告1件分の記録一式であり、運搬後は `$RUN` そのものを指す（`manifest.json`・`snapshots/`・`frames/`・`logs/`・`world/`）。

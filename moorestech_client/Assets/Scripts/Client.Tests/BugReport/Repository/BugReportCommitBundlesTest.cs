@@ -61,11 +61,14 @@ namespace Client.Tests.BugReport.Repository
             Assert.That(manifest.Missing, Is.Empty);
         }
 
-        [Test]
-        public void PublishedCommitNeedsNoBundle()
+        [TestCase("master")]
+        [TestCase("feature/published")]
+        public void PublishedCommitNeedsNoBundle(string branch)
         {
-            Write(_published);
-            Assert.That(Status(), Does.Contain("commits.bundle: not-needed-origin-has-commit"));
+            Git(_repository, $"push origin HEAD:refs/heads/{branch}");
+            var manifest = Write(_unpublished);
+            Assert.That(manifest.Missing, Is.Empty);
+            Assert.That(Status(), Does.Contain("commits.bundle: not-needed-remote-has-commit"));
             Assert.That(File.Exists(Path.Combine(_root, "box/commits.bundle")), Is.False);
         }
 
@@ -150,7 +153,7 @@ namespace Client.Tests.BugReport.Repository
             if (completed)
             {
                 Directory.CreateDirectory(Path.Combine(box, "repo"));
-                File.WriteAllText(Path.Combine(box, "repo/bundle-status.txt"), "commits.bundle: not-needed-origin-has-commit\nmaster-commits.bundle: not-needed-origin-has-commit\n");
+                File.WriteAllText(Path.Combine(box, "repo/bundle-status.txt"), "commits.bundle: not-needed-remote-has-commit\nmaster-commits.bundle: not-needed-remote-has-commit\n");
             }
             var failure = BugReportCommitBundles.CompleteExisting(box, _repository, _repository, declared);
             if (completed) Assert.IsNull(failure);

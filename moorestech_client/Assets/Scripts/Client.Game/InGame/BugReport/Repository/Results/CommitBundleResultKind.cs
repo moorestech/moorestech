@@ -6,6 +6,7 @@ namespace Client.Game.InGame.BugReport
         SkippedNoRepository,
         AlreadyPublished,
         CommitNotFound,
+        RemoteRefsQueryFailed,
         UpdateRefFailed,
         Created,
         BundleCreateFailed,
