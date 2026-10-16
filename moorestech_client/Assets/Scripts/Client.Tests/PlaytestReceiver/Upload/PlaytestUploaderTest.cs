@@ -171,8 +171,8 @@ namespace Client.Tests.PlaytestReceiver
         private int Upload(FakeUploadApi api)
         {
             var session = new PlaytestSession(api, new SteamTicketSessionCredential(new FakeTicketProvider("aabb")));
-            var uploader = new PlaytestUploader(api, session, _directories, PlaytestNoWaitRetrySchedule.Create());
-            return uploader.UploadPendingAsync(CancellationToken.None).GetAwaiter().GetResult();
+            var uploader = new PlaytestUploader(api, session, _directories, PlaytestNoWaitRetrySchedule.Create(), Client.PlaytestReceiver.Delivery.PlaytestOutboxScope.ReportsAndProgress);
+            return uploader.UploadPendingAsync(CancellationToken.None).GetAwaiter().GetResult().Sent;
         }
     }
 }

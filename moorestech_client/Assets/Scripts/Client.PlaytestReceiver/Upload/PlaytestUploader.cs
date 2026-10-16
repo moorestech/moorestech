@@ -1,3 +1,4 @@
+using Client.PlaytestReceiver.Delivery;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -19,35 +20,39 @@ namespace Client.PlaytestReceiver.Upload
             Sent,
             BoxDeferred,
             RunAborted,
+            SessionRefused,
         }
 
+        private readonly PlaytestOutboxScope _scope;
         private readonly IPlaytestReceiverApi _api;
         private readonly PlaytestSession _session;
         private readonly PlaytestOutboxDirectories _directories;
         private readonly PlaytestUploadRetrySchedule _retry;
 
-        public PlaytestUploader(IPlaytestReceiverApi api, PlaytestSession session, PlaytestOutboxDirectories directories, PlaytestUploadRetrySchedule retry)
+        public PlaytestUploader(IPlaytestReceiverApi api, PlaytestSession session, PlaytestOutboxDirectories directories, PlaytestUploadRetrySchedule retry, PlaytestOutboxScope scope)
         {
+            _scope = scope;
             _api = api;
             _session = session;
             _directories = directories;
             _retry = retry;
         }
 
-        public async UniTask<int> UploadPendingAsync(CancellationToken token)
+        public async UniTask<PlaytestUploadRunSummary> UploadPendingAsync(CancellationToken token)
         {
-            var boxes = PlaytestOutboxScanner.ScanPending(_directories);
+            var boxes = PlaytestOutboxScanner.ScanPending(_directories, _scope);
             var sent = 0;
             for (var index = 0; index < boxes.Count; index++)
             {
                 var outcome = await UploadWithinBookkeepingBoundaryAsync(boxes[index], token);
                 if (outcome == BoxOutcome.Sent) sent++;
+                if (outcome == BoxOutcome.SessionRefused) return new PlaytestUploadRunSummary(PlaytestUploadRunEnd.SessionRefused, sent);
                 if (outcome != BoxOutcome.RunAborted) continue;
 
                 Debug.LogWarning($"[PlaytestReceiver] stopping this run; {boxes.Count - index} box(es) carried over to a later run");
                 break;
             }
-            return sent;
+            return new PlaytestUploadRunSummary(PlaytestUploadRunEnd.Finished, sent);
         }
 
         // 試行中のファイルI/Oは試行失敗としてDecideへ回る。ここで捕まるのは印（UPLOAD_ATTEMPTS等）の書き込み自体の失敗だけで、箱へ記録できないので理由をログへ残して持ち越す
@@ -96,7 +101,7 @@ namespace Client.PlaytestReceiver.Upload
                         break;
                     case PlaytestUploadFailureKind.SessionRefused:
                         Debug.LogWarning($"[PlaytestReceiver] the session was refused; not counting {box.BundleId} and stopping the run: {decision.Description}");
-                        return BoxOutcome.RunAborted;
+                        return BoxOutcome.SessionRefused;
                     default:
                         PlaytestUploadAttemptLog.Increment(box.Directory, decision.Description);
                         return BoxOutcome.BoxDeferred;

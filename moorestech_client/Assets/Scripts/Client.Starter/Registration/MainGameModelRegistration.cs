@@ -28,6 +28,7 @@ using Client.PlaytestReceiver.Http;
 using Client.PlaytestReceiver.Steam;
 using Client.PlaytestReceiver.Upload;
 using Client.Starter.PlaytestSmoke;
+using Client.Starter.Playtest;
 using Core.Item.Interface;
 using Game.Construction;
 using Game.Context;
@@ -65,6 +66,7 @@ namespace Client.Starter.Registration
             builder.RegisterInstance(PlaytestOutboxDirectories.FromGameSystemPaths());
             builder.RegisterInstance<IPlaytestSteamTicketProvider>(new PlaytestSteamTicketProvider());
             builder.Register<PlaytestUploadRunner>(Lifetime.Singleton).As<IPlaytestUploadRequester>();
+            builder.RegisterEntryPoint<PlaytestBootUploadTrigger>();
 
             // 操作枠と設置数の状態購読を登録
             // Register state subscriptions for hotbar and remaining placements

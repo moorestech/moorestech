@@ -416,7 +416,7 @@ public sealed class PlaytestDeveloperTokenUnreadable : PlaytestDeveloperTokenRea
     - ファイル読み書きはディスクIO境界なので、`IOException`・`UnauthorizedAccessException` を catch し、`PlaytestDeveloperTokenUnreadable(reason)` と `Debug.LogWarning` に変える。
 - 既存の `PlaytestSession.AuthenticateOnceAsync` は、`var post = await _credential.PostSessionAsync(_api, token); if (post is PlaytestCredentialNotSent notSent) return notSent.Failure; var response = ((PlaytestCredentialSent)post).Response;`（switch 式で書いてもよい） に置き換える。以降（401→TicketRejected、200以外→Unreachable、Parse）は変えない。
 
-- [ ] **Step 1: テストを書く**
+- [x] **Step 1: テストを書く**
 
 `PlaytestDeveloperTokenFileTest`（一時ディレクトリで行う）:
 - Write→Read が Present で同じ値になる。
@@ -430,14 +430,14 @@ public sealed class PlaytestDeveloperTokenUnreadable : PlaytestDeveloperTokenRea
 - 送られたトークンが記録されている。
 - 401 なら `TicketRejected`。
 
-- [ ] **Step 2: 実装を書く**（上の Interfaces どおり）
+- [x] **Step 2: 実装を書く**（上の Interfaces どおり）
 
-- [ ] **Step 3: コンパイルしテストを通す**
+- [x] **Step 3: コンパイルしテストを通す**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client.Tests.PlaytestReceiver"`
 Expected: ErrorCount 0 / 全 PASS（既存の PlaytestSession・Uploader 系も含む）。
 
-- [ ] **Step 4: コミットする**
+- [x] **Step 4: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.PlaytestReceiver moorestech_client/Assets/Scripts/Client.Tests/PlaytestReceiver moorestech_server/Assets/Scripts/Game.Paths/GameSystemPaths.cs

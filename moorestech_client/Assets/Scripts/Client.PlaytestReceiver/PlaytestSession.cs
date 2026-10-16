@@ -8,8 +8,8 @@ using UnityEngine;
 
 namespace Client.PlaytestReceiver
 {
-    // Steamチケットと受け口トークンの保持者。トークンの寿命管理と401時の取り直しはここ1箇所
-    // Holder of the Steam ticket exchange and the receiver token; token lifetime and the 401 refresh live here alone
+    // 資格情報の交換と受け口トークンの保持者。トークンの寿命管理と401時の取り直しはここ1箇所
+    // Holder of the credential exchange and the receiver token; token lifetime and the 401 refresh live here alone
     public sealed class PlaytestSession
     {
         private readonly IPlaytestReceiverApi _api;

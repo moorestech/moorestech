@@ -25,6 +25,17 @@ namespace Client.Tests.PlaytestReceiver
         }
 
         [Test]
+        public void 報告専用の範囲では進行記録を走査しない()
+        {
+            var directories = PlaytestOutboxTestBoxes.Directories(_root);
+            MakeBox(directories.ReportOutbox, "20260913_120000_bbbb", true);
+            MakeBox(directories.ProgressOutbox, "20260913_125959_dddd", true);
+            var boxes = PlaytestOutboxScanner.ScanPending(directories, Client.PlaytestReceiver.Delivery.PlaytestOutboxScope.ReportsOnly);
+            Assert.AreEqual(1, boxes.Count);
+            Assert.AreEqual(PlaytestUploadKind.Report, boxes[0].Kind);
+        }
+
+        [Test]
         public void READYがある箱だけを古い順にkindと格付け付きで拾う()
         {
             var directories = PlaytestOutboxTestBoxes.Directories(_root);
@@ -35,7 +46,7 @@ namespace Client.Tests.PlaytestReceiver
             MakeBox(reports, "20260913_130000_cccc", withReady: false);
             MakeBox(progress, "20260913_125959_dddd", withReady: true);
 
-            var boxes = PlaytestOutboxScanner.ScanPending(directories);
+            var boxes = PlaytestOutboxScanner.ScanPending(directories, Client.PlaytestReceiver.Delivery.PlaytestOutboxScope.ReportsAndProgress);
 
             Assert.AreEqual(3, boxes.Count);
             Assert.AreEqual(new[] { "20260913_110000_aaaa", "20260913_120000_bbbb", "20260913_125959_dddd" }, boxes.Select(box => box.BundleId).ToArray());
@@ -55,7 +66,7 @@ namespace Client.Tests.PlaytestReceiver
             var failed = MakeBox(reports, "20260913_121000_cccc", withReady: true);
             File.WriteAllText(Path.Combine(failed, PlaytestOutboxScanner.FailedMarker), "");
 
-            Assert.IsEmpty(PlaytestOutboxScanner.ScanPending(directories));
+            Assert.IsEmpty(PlaytestOutboxScanner.ScanPending(directories, Client.PlaytestReceiver.Delivery.PlaytestOutboxScope.ReportsAndProgress));
         }
 
         [Test]

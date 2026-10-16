@@ -112,6 +112,7 @@ namespace Client.Tests.PlaytestReceiver
         public readonly List<string> Calls = new();
         public int SessionCallCount;
         public int PutAttemptCount;
+        public int DeveloperSessionCallCount;
         public int SessionCallsAtFirstPrepare = -1;
         public int CompleteCount;
         public string LastCompleteBody = "";
@@ -141,6 +142,7 @@ namespace Client.Tests.PlaytestReceiver
 
         public UniTask<PlaytestApiResult> PostDeveloperSessionAsync(string developerToken, CancellationToken token)
         {
+            DeveloperSessionCallCount++;
             return PostSessionAsync(developerToken, token);
         }
 

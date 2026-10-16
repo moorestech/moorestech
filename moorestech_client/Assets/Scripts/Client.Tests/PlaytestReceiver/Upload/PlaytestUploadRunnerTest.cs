@@ -1,4 +1,6 @@
 using System.IO;
+using Client.PlaytestReceiver.Delivery;
+using Client.PlaytestReceiver.Credentials;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.BugReport.Submit;
 using Client.PlaytestReceiver;
@@ -39,43 +41,65 @@ namespace Client.Tests.PlaytestReceiver
             var first = new PlaytestUploadRunner(api, _directories, new FakeTicketProvider("aabb"));
             PlaytestLaunchProfile.Apply(PlaytestLaunchKind.Distribution, new LocalSteamSessionIdentity("76561198000000001"));
 
-            first.RequestUpload();
+            first.RequestUploadWith(new PlaytestSteamRoute());
             Assert.AreEqual(1, api.SessionCallCount);
 
             // シーンで走行役を組み直しても同じ認証済みセッションを使う
             // A runner rebuilt for another scene uses the same authenticated session
             PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_150000_dddd", ("manifest.json", "{}"));
             var second = new PlaytestUploadRunner(api, _directories, new FakeTicketProvider("different"));
-            second.RequestUpload();
+            second.RequestUploadWith(new PlaytestSteamRoute());
             Assert.AreEqual(2, api.CompleteCount);
             Assert.AreEqual(1, api.SessionCallCount);
         }
 
         [Test]
-        public void 配布版は送信時に認証し開発者モードは送らない()
+        public void 開発者トークン無しは報告をローカル保存する()
         {
-            // 送るかどうかは押し場ではなく走行役が配布版判定から決める。押し場を増やしても判定は増えない
-            // The runner, not the push site, decides from the launch kind; adding push sites never adds another decision
             var api = new FakeUploadApi();
-            IPlaytestUploadRequester runner = new PlaytestUploadRunner(api, _directories, new FakeTicketProvider("aabb"));
-
-            PlaytestLaunchProfile.Apply(PlaytestLaunchKind.DeveloperMode, new EmptyPlaytestSessionIdentity(EmptyPlaytestSessionIdentity.DeveloperModeReason));
-            runner.RequestUpload();
+            var runner = new PlaytestUploadRunner(api, _directories, new FakeTicketProvider("aabb"));
+            runner.RequestUploadWith(PlaytestDeliveryRouteResolver.Resolve(false, new PlaytestDeveloperTokenAbsent()));
             Assert.AreEqual(0, api.SessionCallCount + api.PutAttemptCount);
+            Assert.AreEqual(1, ((PlaytestDeliveryLocalOnly)PlaytestDeliveryStatusBoard.Current.Value).PendingCount);
+        }
 
-            PlaytestLaunchProfile.Apply(PlaytestLaunchKind.Distribution, new LocalSteamSessionIdentity("76561198000000001"));
-            runner.RequestUpload();
-            Assert.AreEqual(1, api.PutAttemptCount);
+        [Test]
+        public void 開発者トークンは報告だけを送って進行記録を残す()
+        {
+            var api = new FakeUploadApi();
+            var runner = new PlaytestUploadRunner(api, _directories, new FakeTicketProvider("aabb"));
+            var progress = PlaytestOutboxTestBoxes.Make(_directories.ProgressOutbox, "20260913_130000_bbbb", ("manifest.json", "{}"));
+            var file = Path.Combine(_root, "developer-token.txt");
+            File.WriteAllText(file, "mdt_" + new string('a', 64));
+            var route = PlaytestDeliveryRouteResolver.Resolve(false, PlaytestDeveloperTokenFile.Read(file));
+            runner.RequestUploadWith(route);
+            Assert.AreEqual(1, api.DeveloperSessionCallCount);
             Assert.AreEqual(1, api.CompleteCount);
-            Assert.AreEqual(1, api.SessionCallCount);
-            Assert.AreEqual(1, api.SessionCallsAtFirstPrepare);
+            Assert.IsFalse(File.Exists(Path.Combine(progress, PlaytestOutboxScanner.UploadedMarker)));
+            Assert.IsInstanceOf<PlaytestDeliveryAllSent>(PlaytestDeliveryStatusBoard.Current.Value);
+        }
 
-            // 別の走行でも同じトークンを再利用する
-            // A later run reuses the same token
+        [Test]
+        public void 開発者トークンの拒否を状態へ出す()
+        {
+            var api = new FakeUploadApi { SessionResult = PlaytestApiResult.Responded(401, "{}") };
+            var runner = new PlaytestUploadRunner(api, _directories, new FakeTicketProvider("aabb"));
+            runner.RequestUploadWith(new PlaytestDeveloperTokenRoute("refused"));
+            Assert.AreEqual(1, ((PlaytestDeliveryRefused)PlaytestDeliveryStatusBoard.Current.Value).PendingCount);
+        }
+
+        [Test]
+        public void 走行中に交換した開発者トークンを再走行で使う()
+        {
+            var gate = new UniTaskCompletionSource<PlaytestApiResult>();
+            var api = new FakeUploadApi { PendingPut = gate };
+            var runner = new PlaytestUploadRunner(api, _directories, new FakeTicketProvider("aabb"));
+            runner.RequestUploadWith(new PlaytestDeveloperTokenRoute("first"));
             PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_140000_cccc", ("manifest.json", "{}"));
-            runner.RequestUpload();
+            runner.RequestUploadWith(new PlaytestDeveloperTokenRoute("replacement"));
+            gate.TrySetResult(PlaytestApiResult.Responded(200, "{}"));
+            Assert.AreEqual(2, api.DeveloperSessionCallCount);
             Assert.AreEqual(2, api.CompleteCount);
-            Assert.AreEqual(1, api.SessionCallCount);
         }
 
         [Test]
@@ -84,11 +108,11 @@ namespace Client.Tests.PlaytestReceiver
             PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_130000_bbbb", ("manifest.json", "{}"));
             var gate = new UniTaskCompletionSource<PlaytestApiResult>();
             var api = new FakeUploadApi { PendingPut = gate };
-            IPlaytestUploadRequester runner = new PlaytestUploadRunner(api, _directories, new FakeTicketProvider("aabb"));
+            var runner = new PlaytestUploadRunner(api, _directories, new FakeTicketProvider("aabb"));
             PlaytestLaunchProfile.Apply(PlaytestLaunchKind.Distribution, new LocalSteamSessionIdentity("76561198000000001"));
 
-            runner.RequestUpload();
-            runner.RequestUpload();
+            runner.RequestUploadWith(new PlaytestSteamRoute());
+            runner.RequestUploadWith(new PlaytestSteamRoute());
 
             // 1本目が最初のPUTで止まっている間は、2本目が走っていないので PUT は1回しか起きない
             // While the first run is parked on its first PUT, no second run exists, so exactly one PUT happened
