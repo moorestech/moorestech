@@ -888,8 +888,8 @@ git commit -m "feat: 設定画面に走りのトグル/ホールド切替を追�
 **Files:**
 - Create: 録画シナリオ（`unity-playmode-recorded-playtest` スキルの DSL 置き場の規約に従う）
 
-- [ ] **Step 1:** `unity-playmode-recorded-playtest` スキルで PlayMode を起動し、次を録画で確認する: (a) 起動直後 W 押しで走り速度、(b) Shift 単独タップで歩き速度に落ちる、(c) PlaceBlock 中に Shift+R で縦回転しても走り/歩きが変わらない、(d) インベントリを開いて Shift タップしても変わらない、(e) ポーズメニュー→設定でホールドを選ぶと Shift 押下中だけ走る。速度はプレイヤーの水平移動量（m/s）をログで観測値として残す。
-- [ ] **Step 2:** 結果（result.json・録画パス・観測値）を報告ファイルに記録してコミットする。
+- [x] **Step 1:** `unity-playmode-recorded-playtest` スキルで PlayMode を起動し、次を録画で確認する: (a) 起動直後 W 押しで走り速度、(b) Shift 単独タップで歩き速度に落ちる、(c) PlaceBlock 中に Shift+R で縦回転しても走り/歩きが変わらない、(d) インベントリを開いて Shift タップしても変わらない、(e) ポーズメニュー→設定でホールドを選ぶと Shift 押下中だけ走る。速度はプレイヤーの水平移動量（m/s）をログで観測値として残す。
+- [x] **Step 2:** 結果（result.json・録画パス・観測値）を報告ファイルに記録してコミットする。
 
 ### Task 5（必須・最終）: 全ブランチレビュー
 
