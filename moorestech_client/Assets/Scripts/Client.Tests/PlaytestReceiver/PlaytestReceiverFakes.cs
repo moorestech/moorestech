@@ -110,6 +110,8 @@ namespace Client.Tests.PlaytestReceiver
     internal sealed class FakeUploadApi : IPlaytestReceiverApi
     {
         public readonly List<string> Calls = new();
+        public readonly List<string> DeveloperTokens = new();
+        public readonly List<string> PrepareBearerTokens = new();
         public int SessionCallCount;
         public int PutAttemptCount;
         public int DeveloperSessionCallCount;
@@ -142,6 +144,7 @@ namespace Client.Tests.PlaytestReceiver
 
         public UniTask<PlaytestApiResult> PostDeveloperSessionAsync(string developerToken, CancellationToken token)
         {
+            DeveloperTokens.Add(developerToken);
             DeveloperSessionCallCount++;
             return PostSessionAsync(developerToken, token);
         }
@@ -151,6 +154,7 @@ namespace Client.Tests.PlaytestReceiver
             // 最初のprepare時点で認証済みだったかを記録する
             // Record whether authentication preceded the first prepare
             if (SessionCallsAtFirstPrepare == -1) SessionCallsAtFirstPrepare = SessionCallCount;
+            PrepareBearerTokens.Add(bearerToken);
             Calls.Add("prepare");
             LastPreparedPaths = files.Select(file => file.Path).ToList();
             PreparedGenerations.Add(generation);

@@ -925,3 +925,9 @@ git commit -m "test(playtest): 本番受け口への開発者経路の実機確�
 - `scripts/playtest/dashboard/collect_reports.py`・`digest_candidates.py:18 load_candidate_reports`・`digest_reporter.py:26 reporter_label` ↔ 新設 `scripts/playtest/lib/find_reports.py`。取り込み済みの列挙と報告者表示が重なる。実装時に既存関数を import して使えるなら使う（使えない理由があれば PR に書く）。
 - `scripts/bugreport/read-manifest.py`・`scripts/playtest/digest_schema.py` ↔ 新設 `triage_lib/manifest_summary.py`。manifest の読みが重なる。
 
+
+### 最終レビューでの実装既定
+
+ADR 0081の「既存要件を満たす実装上の既定」に従い、JWTを現ハッシュへ束縛、失敗件数の表示、再生IDの診断分離、旧Editor箱の元SHA補完、失効競合409を反映する。人による投入後のinbox監視は継続する。重要ログはTask 9の最大200件を維持し、反復集約・エラー優先・末尾選択と元位置を加える。
+
+大容量コミット資料は欠損表示と配送保留までを実装する。単体100MiB・箱256MiBは既存PlaytestReceiverConfig定数を参照する。複数転送単位による完全運搬は新protocolの設計判断待ちで、完了に数えない。Windows実送信はライセンス阻害のまま未完了とする。

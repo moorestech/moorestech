@@ -96,6 +96,44 @@ namespace Client.Tests.BugReport.Repository
             Assert.That(Git(_repository, "for-each-ref refs/bugreport"), Is.Empty);
         }
 
+        [Test]
+        public void IndependentMasterCommitIsImportedAndItsTemporaryRefIsRemoved()
+        {
+            Git(_root, "clone origin.git master-work");
+            var master = Path.Combine(_root, "master-work");
+            Git(master, "config user.email test@example.invalid");
+            Git(master, "config user.name Test");
+            File.WriteAllText(Path.Combine(master, "master.json"), "{}");
+            Git(master, "add .");
+            Git(master, "commit -m master-only");
+            var commit = Git(master, "rev-parse HEAD").Trim();
+            var manifest = new BugReportManifest { Repository = new RepositoryState { Commit = _unpublished }, MasterData = new RepositoryState { Commit = commit } };
+            BugReportCommitBundles.Write(Path.Combine(_root, "box"), "master-test", manifest, _repository, master);
+            Assert.That(Status(), Does.Contain("master-commits.bundle: created"));
+            Git(_root, "clone origin.git import-master");
+            var destination = Path.Combine(_root, "import-master");
+            Git(destination, $"fetch \"{Path.Combine(_root, "box/master-commits.bundle")}\" refs/bugreport/master-test");
+            Assert.AreEqual(commit, Git(destination, "rev-parse FETCH_HEAD").Trim());
+            Assert.That(Git(master, "for-each-ref refs/bugreport"), Is.Empty);
+            Assert.That(manifest.Missing, Is.Empty);
+        }
+
+        [Test]
+        public void LegacyCompletionKeepsCapturedShaInsteadOfCurrentHead()
+        {
+            var box = Path.Combine(_root, "legacy");
+            Directory.CreateDirectory(box);
+            var original = new BugReportManifest { IsEditor = true, Repository = new RepositoryState { Commit = _unpublished }, MasterData = new RepositoryState { Commit = _published } };
+            File.WriteAllText(Path.Combine(box, "manifest.json"), original.ToJson());
+            File.WriteAllText(Path.Combine(_repository, "later.txt"), "later");
+            Git(_repository, "add .");
+            Git(_repository, "commit -m later");
+            Assert.IsNull(BugReportCommitBundles.CompleteExisting(box, _repository, _repository));
+            var saved = Newtonsoft.Json.Linq.JObject.Parse(File.ReadAllText(Path.Combine(box, "manifest.json")));
+            Assert.AreEqual(_unpublished, (string)saved["repository"]["commit"]);
+            Assert.That(Git(_repository, $"bundle list-heads \"{Path.Combine(box, "repo/commits.bundle")}\""), Does.StartWith(_unpublished));
+        }
+
         private BugReportManifest Write(string commit)
         {
             var manifest = new BugReportManifest { Repository = new RepositoryState { Commit = commit } };

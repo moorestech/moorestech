@@ -51,6 +51,33 @@ namespace Client.PlaytestReceiver.Upload
             #endregion
         }
 
+        public static PlaytestOutboxDeliveryCounts ReadDeliveryInventory(PlaytestOutboxDirectories directories, PlaytestOutboxScope scope)
+        {
+            var pending = 0;
+            var failed = 0;
+            Count(directories.ReportOutbox);
+            if (scope == PlaytestOutboxScope.ReportsAndProgress) Count(directories.ProgressOutbox);
+            return new PlaytestOutboxDeliveryCounts(pending, failed);
+
+            #region Internal
+
+            void Count(string outbox)
+            {
+                // 存在しないoutboxはまだ報告を作っていない状態
+                // An absent outbox means no report has been created yet
+                if (!Directory.Exists(outbox)) return;
+                foreach (var directory in Directory.GetDirectories(outbox))
+                {
+                    if (!File.Exists(Path.Combine(directory, ReadyMarker))) continue;
+                    if (File.Exists(Path.Combine(directory, UploadedMarker))) continue;
+                    if (File.Exists(Path.Combine(directory, FailedMarker))) failed++;
+                    else pending++;
+                }
+            }
+
+            #endregion
+        }
+
         public static IReadOnlyList<string> ListPayloadFiles(string boxDirectory)
         {
             // 印は箱の直下にしか置かれない。名前だけで判定すると logs/READY のような中身まで落ちる

@@ -42,7 +42,7 @@ namespace Client.PlaytestReceiver.Upload.Attempt
             Files = files;
             Skipped = skipped;
             _filePolicy = filePolicy;
-            var missingRequired = skipped.FirstOrDefault(file => filePolicy.RankOf(file.Path) == PlaytestBundleFileRank.Required);
+            var missingRequired = skipped.FirstOrDefault(file => filePolicy.RankOf(file.Path) == PlaytestBundleFileRank.Required || PlaytestCommitEvidenceFailure.IsCommitBundle(file.Path));
             MissingRequiredReason = missingRequired == null ? null : $"{missingRequired.Path} was skipped ({missingRequired.Reason})";
         }
 

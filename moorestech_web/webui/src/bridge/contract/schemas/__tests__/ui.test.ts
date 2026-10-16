@@ -64,10 +64,10 @@ describe("PauseMenuDataSchema", () => {
 // Reject redundant fields and unknown reasons as display contract violations
 it("deliveryの各状態だけを受理し、欠損と不正値を拒否する", () => {
   const base = { disconnected: false, bugReport: { kind: "ready", missing: [] }, page: "top" };
-  for (const delivery of [{ kind: "allSent" }, { kind: "pending", pendingCount: 0 }, { kind: "refused", pendingCount: 2 }, { kind: "localOnly", reason: "steamNotRunning", pendingCount: 1 }]) {
+  for (const delivery of [{ kind: "allSent" }, { kind: "pending", pendingCount: 0, failedCount: 0 }, { kind: "refused", pendingCount: 2, failedCount: 0 }, { kind: "localOnly", reason: "steamNotRunning", pendingCount: 1, failedCount: 0 }]) {
     expect(PauseMenuDataSchema.safeParse({ ...base, delivery }).success).toBe(true);
   }
-  for (const delivery of [{ kind: "allSent", pendingCount: 0 }, { kind: "localOnly", reason: "unknown", pendingCount: 1 }, { kind: "pending", pendingCount: -1 }, { kind: "pending", pendingCount: 0.5 }]) {
+  for (const delivery of [{ kind: "allSent", pendingCount: 0, failedCount: 0 }, { kind: "localOnly", reason: "unknown", pendingCount: 1, failedCount: 0 }, { kind: "pending", pendingCount: -1, failedCount: 0 }, { kind: "pending", pendingCount: 0.5, failedCount: 0 }]) {
     expect(PauseMenuDataSchema.safeParse({ ...base, delivery }).success).toBe(false);
   }
   expect(PauseMenuDataSchema.safeParse(base).success).toBe(false);

@@ -18,3 +18,13 @@ Task 9 で追加する道具は次のように使う。
 `UPLOAD_FAILED` のある箱は自動再試行の対象から外れる。まず `UPLOAD_FAILED` と `UPLOAD_ATTEMPTS` の理由、および受け口の応答を調べ、資格情報・受け口・箱の必須資料の問題を修正する。
 対象箱を退避コピーしてから、その箱の `UPLOAD_FAILED` と `UPLOAD_ATTEMPTS` だけを削除し、ゲームを次回起動するか新しい報告を送信して再送を要求する。`UPLOADED` ができたことと配送表示を確認する。
 `UPLOAD_DECLARED` と `UPLOAD_SKIPPED` は残す。受け口は宣言の拡大を許さないため、これらを消して同じIDへ資料を追加しない。欠けた資料を追加する必要がある場合は、元箱を保存したうえで新しいIDの報告として採取し直す。
+
+### 再生ごとの列車診断と配送不能の表示
+
+列車同期の診断は `persistentDataPath/Logs/TrainSynchronization/<再生ID>/` に保存する。IDはプロセス・再生ごとに一意で、書き手と報告収集は同じディレクトリを使う。再生終了後も診断は残す。不要と判断した過去IDのディレクトリだけを手動削除できる。既存の直下診断は自動削除せず、新しい再生の報告にも混ぜない。異常終了箱へ次の再生IDを流用しない。
+
+画面の「送信できない報告」は `UPLOAD_FAILED` の箱の件数。通常の送信待ちと区別し、1件でも残っている間は「すべて送信済み」にしない。復旧は上記の隔離・試行印の手順で行う。
+
+コミットbundleが `PlaytestReceiverConfig.MaxFileBytes`（100MiB）または `MaxBundleBytes`（256MiB）で除外される箱は、`UPLOAD_FAILED` に理由を残して送信を保留する。未宣言なら `manifest.missing` と `repo/bundle-status.txt` にも配送不能を記録する。既宣言の本文は書き換えない。大容量bundleの分割運搬は未実装であり、上限超過の解決には追加設計が必要。失敗印だけ消しても容量制約は解消しない。
+
+初回宣言前の旧Editor箱は、起動時に元manifestの本体・master SHAを現在の明示repoで確認してbundleを補完する。不明SHA・repo欠落・既宣言での追加は理由付き保留。元HEAD・branch・dirtyを現在値で上書きしない。

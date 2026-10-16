@@ -18,9 +18,17 @@ internal static class DeveloperTokenEditorFile
         try
         {
             Directory.CreateDirectory(Path.GetDirectoryName(path));
-            File.WriteAllText(temporary, token);
-            if (File.Exists(path)) File.Replace(temporary, path, null);
-            else File.Move(temporary, path);
+            failure = DeveloperTokenEditorPermissions.RestrictToOwner(Path.GetDirectoryName(path), true);
+            if (failure == null)
+            {
+                File.WriteAllText(temporary, token);
+                failure = DeveloperTokenEditorPermissions.RestrictToOwner(temporary, false);
+                if (failure == null)
+                {
+                    if (File.Exists(path)) File.Replace(temporary, path, null);
+                    else File.Move(temporary, path);
+                }
+            }
         }
         catch (Exception exception) when (exception is IOException || exception is UnauthorizedAccessException)
         {

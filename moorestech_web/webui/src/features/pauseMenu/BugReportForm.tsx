@@ -75,7 +75,7 @@ export function BugReportForm({ status, delivery, draft }: Props) {
         data-testid="bug-report-description"
       />
       {statusLine && <span className={styles.status} data-testid="bug-report-status">{statusLine}</span>}
-      <span className={styles.status} data-testid="bug-report-delivery">{describeDelivery()}</span>
+      <span className={styles.status} data-testid="bug-report-delivery">{describeDelivery()}{delivery.kind !== "allSent" && delivery.failedCount > 0 ? ` / ${t(L.ui.bugReport.deliveryFailed, { count: delivery.failedCount })}` : ""}</span>
       <Button onClick={send} disabled={blocked} data-testid="bug-report-send">{t(reportLabels(draft.kind).send)}</Button>
     </>
   );

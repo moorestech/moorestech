@@ -87,7 +87,8 @@ namespace Client.PlaytestReceiver.Upload
             // The flag is always cleared and a pending rerun is honoured even on the exception path; missing either stops later uploads
             try
             {
-                PlaytestDeliveryStatusBoard.Set(new PlaytestDeliveryPending(PlaytestOutboxScanner.ScanPending(_directories, route.Scope).Count));
+                var initial = PlaytestOutboxScanner.ReadDeliveryInventory(_directories, route.Scope);
+                PlaytestDeliveryStatusBoard.Set(new PlaytestDeliveryPending(initial.PendingCount, initial.FailedCount));
                 var uploader = new PlaytestUploader(_api, ResolveSession(), _directories, PlaytestUploadRetrySchedule.Default, route.Scope);
                 var summary = await uploader.UploadPendingAsync(Application.exitCancellationToken);
                 // 最新要求がローカル保存なら旧走行の結果で上書きせず、残数だけ更新する
@@ -97,10 +98,10 @@ namespace Client.PlaytestReceiver.Upload
                     PublishLocalOnly(local);
                     return;
                 }
-                var remaining = PlaytestOutboxScanner.ScanPending(_directories, route.Scope).Count;
+                var remaining = PlaytestOutboxScanner.ReadDeliveryInventory(_directories, route.Scope);
                 PlaytestDeliveryStatusBoard.Set(summary.End == PlaytestUploadRunEnd.SessionRefused
-                    ? new PlaytestDeliveryRefused(remaining)
-                    : remaining == 0 ? PlaytestDeliveryAllSent.Instance : new PlaytestDeliveryPending(remaining));
+                    ? new PlaytestDeliveryRefused(remaining.PendingCount, remaining.FailedCount)
+                    : remaining.PendingCount == 0 && remaining.FailedCount == 0 ? PlaytestDeliveryAllSent.Instance : new PlaytestDeliveryPending(remaining.PendingCount, remaining.FailedCount));
                 Debug.Log($"[PlaytestReceiver] upload run finished: {summary.Sent} box(es) sent");
             }
             finally
@@ -141,7 +142,8 @@ namespace Client.PlaytestReceiver.Upload
 
         private void PublishLocalOnly(PlaytestLocalOnlyRoute local)
         {
-            PlaytestDeliveryStatusBoard.Set(new PlaytestDeliveryLocalOnly(local.Reason, PlaytestOutboxScanner.ScanPending(_directories, local.Scope).Count));
+            var counts = PlaytestOutboxScanner.ReadDeliveryInventory(_directories, local.Scope);
+            PlaytestDeliveryStatusBoard.Set(new PlaytestDeliveryLocalOnly(local.Reason, counts.PendingCount, counts.FailedCount));
             Debug.Log($"[PlaytestReceiver] boxes stay local: {local.Detail}");
         }
 

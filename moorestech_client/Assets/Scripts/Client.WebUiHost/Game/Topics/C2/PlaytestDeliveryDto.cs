@@ -9,15 +9,16 @@ namespace Client.WebUiHost.Game.Topics
     {
         public string Kind;
         public int? PendingCount;
+        public int? FailedCount;
         public string Reason;
 
         internal static PlaytestDeliveryDto From(PlaytestDeliveryStatus status)
         {
             return status switch
             {
-                PlaytestDeliveryLocalOnly local => new PlaytestDeliveryDto { Kind = "localOnly", PendingCount = local.PendingCount, Reason = DescribeReason(local.Reason) },
-                PlaytestDeliveryPending pending => new PlaytestDeliveryDto { Kind = "pending", PendingCount = pending.PendingCount },
-                PlaytestDeliveryRefused refused => new PlaytestDeliveryDto { Kind = "refused", PendingCount = refused.PendingCount },
+                PlaytestDeliveryLocalOnly local => new PlaytestDeliveryDto { Kind = "localOnly", PendingCount = local.PendingCount, FailedCount = local.FailedCount, Reason = DescribeReason(local.Reason) },
+                PlaytestDeliveryPending pending => new PlaytestDeliveryDto { Kind = "pending", PendingCount = pending.PendingCount, FailedCount = pending.FailedCount },
+                PlaytestDeliveryRefused refused => new PlaytestDeliveryDto { Kind = "refused", PendingCount = refused.PendingCount, FailedCount = refused.FailedCount },
                 PlaytestDeliveryAllSent => new PlaytestDeliveryDto { Kind = "allSent" },
                 _ => throw new ArgumentOutOfRangeException(nameof(status), status, "Unknown delivery status"),
             };

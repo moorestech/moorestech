@@ -4,11 +4,11 @@ import type { PauseMenuData } from "@/bridge";
 import { loadProductionDictionaries, renderDelivery, statusTexts } from "./testSupport";
 
 const cases: [PauseMenuData["delivery"], string][] = [
-  [{ kind: "localOnly", reason: "developerTokenMissing", pendingCount: 3 }, "未送信: 開発者トークンが未設定です（この機材に3件保存）"],
-  [{ kind: "localOnly", reason: "developerTokenUnreadable", pendingCount: 3 }, "未送信: 開発者トークンを読めません（この機材に3件保存）"],
-  [{ kind: "localOnly", reason: "steamNotRunning", pendingCount: 3 }, "未送信: Steamが起動していません（この機材に3件保存）"],
-  [{ kind: "pending", pendingCount: 3 }, "送信待ち 3件"],
-  [{ kind: "refused", pendingCount: 3 }, "受け口に拒否されました。トークン失効の可能性があります（送信待ち3件）"],
+  [{ kind: "localOnly", reason: "developerTokenMissing", pendingCount: 3, failedCount: 0 }, "未送信: 開発者トークンが未設定です（この機材に3件保存）"],
+  [{ kind: "localOnly", reason: "developerTokenUnreadable", pendingCount: 3, failedCount: 0 }, "未送信: 開発者トークンを読めません（この機材に3件保存）"],
+  [{ kind: "localOnly", reason: "steamNotRunning", pendingCount: 3, failedCount: 0 }, "未送信: Steamが起動していません（この機材に3件保存）"],
+  [{ kind: "pending", pendingCount: 3, failedCount: 0 }, "送信待ち 3件"],
+  [{ kind: "refused", pendingCount: 3, failedCount: 0 }, "受け口に拒否されました。トークン失効の可能性があります（送信待ち3件）"],
   [{ kind: "allSent" }, "すべての報告を送信しました"],
 ];
 
@@ -17,5 +17,16 @@ it.each(cases)("送信状況 %j と送信可否を同時に表示する", async 
   await act(async () => loadProductionDictionaries("japanese"));
   expect(renderer.root.findByProps({ "data-testid": "bug-report-delivery" }).children.join("")).toBe(expected);
   expect(statusTexts(renderer)).toHaveLength(1);
+  act(() => renderer.unmount());
+});
+
+
+it.each(["japanese", "english", "german", "korean"])("%s辞書で配送不能件数と復旧案内を出す", async locale => {
+  const renderer = await renderDelivery({ kind: "ready", missing: [] }, { kind: "pending", pendingCount: 0, failedCount: 2 });
+  await act(async () => loadProductionDictionaries(locale));
+  const text = renderer.root.findByProps({ "data-testid": "bug-report-delivery" }).children.join("");
+  expect(text).toContain("2");
+  expect(text).not.toContain("ui.bugReport.deliveryFailed");
+  expect(text).toMatch(/再送復旧|recover|Wiederherstellung|재전송 복구/);
   act(() => renderer.unmount());
 });

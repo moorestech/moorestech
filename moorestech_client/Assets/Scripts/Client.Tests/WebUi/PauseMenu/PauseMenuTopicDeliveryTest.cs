@@ -20,14 +20,14 @@ namespace Client.Tests.WebUi
         [TestCase(PlaytestLocalOnlyReason.SteamNotRunning, "steamNotRunning")]
         public void ローカル保存理由を契約どおりに送る(PlaytestLocalOnlyReason reason, string wireReason)
         {
-            AssertDelivery(new PlaytestDeliveryLocalOnly(reason, 3), new JObject { ["kind"] = "localOnly", ["pendingCount"] = 3, ["reason"] = wireReason });
+            AssertDelivery(new PlaytestDeliveryLocalOnly(reason, 3, 2), new JObject { ["kind"] = "localOnly", ["pendingCount"] = 3, ["failedCount"] = 2, ["reason"] = wireReason });
         }
 
         [Test]
         public void 送信待ちと拒否と完了を区別して送る()
         {
-            AssertDelivery(new PlaytestDeliveryPending(2), new JObject { ["kind"] = "pending", ["pendingCount"] = 2 });
-            AssertDelivery(new PlaytestDeliveryRefused(1), new JObject { ["kind"] = "refused", ["pendingCount"] = 1 });
+            AssertDelivery(new PlaytestDeliveryPending(2, 3), new JObject { ["kind"] = "pending", ["pendingCount"] = 2, ["failedCount"] = 3 });
+            AssertDelivery(new PlaytestDeliveryRefused(1, 4), new JObject { ["kind"] = "refused", ["pendingCount"] = 1, ["failedCount"] = 4 });
             AssertDelivery(PlaytestDeliveryAllSent.Instance, new JObject { ["kind"] = "allSent" });
         }
 

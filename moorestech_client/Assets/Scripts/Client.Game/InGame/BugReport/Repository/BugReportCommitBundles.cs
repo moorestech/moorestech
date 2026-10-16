@@ -1,12 +1,48 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
+using Newtonsoft.Json.Linq;
 using Game.Paths;
 
 namespace Client.Game.InGame.BugReport
 {
     public static class BugReportCommitBundles
     {
+        // 旧箱は元のmanifestのSHAだけを補完し、記録時のメタデータを変えない
+        // Complete legacy evidence using only original manifest SHAs without changing capture metadata
+        public static string CompleteExisting(string boxDirectory, string repositoryRoot, string masterDataRoot)
+        {
+            var path = Path.Combine(boxDirectory, BugReportBundleLayout.ManifestFileName);
+            var original = JObject.Parse(File.ReadAllText(path));
+            if (original["isEditor"]?.Type != JTokenType.Boolean) return "manifest.isEditor が不明のため元repoを特定できません";
+            if (!(bool)original["isEditor"]) return null; // silent-ok: ビルド箱にEditorのgit資料を足さない / buildInfoで出所を表示
+            var repoDirectory = Path.Combine(boxDirectory, BugReportBundleLayout.RepositoryDirectoryName);
+            if (File.Exists(Path.Combine(repoDirectory, BugReportBundleLayout.BundleStatusFileName))) return null;
+            var repository = original["repository"]?.ToObject<RepositoryState>();
+            var master = original["masterData"]?.ToObject<RepositoryState>();
+            var failure = Validate(repositoryRoot, repository?.Commit) ?? Validate(masterDataRoot, master?.Commit);
+            if (failure != null) return failure;
+            if (original["missing"] is not JArray missing) return "manifest.missing が配列でないため資料欠損を記録できません";
+            var manifest = new BugReportManifest { Repository = repository, MasterData = master };
+            Write(repoDirectory, Path.GetFileName(boxDirectory), manifest, repositoryRoot, masterDataRoot);
+            foreach (var item in manifest.Missing) missing.Add(new JObject { ["item"] = item.Item, ["reason"] = item.Reason });
+            File.WriteAllText(path, original.ToString());
+            return manifest.Missing.Count == 0 ? null : "元コミットの資料補完に失敗しました。manifest.missing を確認してください";
+
+            #region Internal
+
+            string Validate(string root, string commit)
+            {
+                if (!Directory.Exists(root) || commit == null || !Regex.IsMatch(commit, "^[0-9a-fA-F]{40}$"))
+                    return "元repoまたはmanifestのSHAを特定できないため送信を保留しました";
+                return RepositoryStateProbe.TryGit(root, $"cat-file -e {commit}^{{commit}}", out _, out var reason)
+                    ? null : $"元SHA {commit} を指定repoで確認できません: {reason}";
+            }
+
+            #endregion
+        }
+
         public static void Write(string repoDirectory, string bundleId, BugReportManifest manifest, string repositoryRoot, string masterDataRoot)
         {
             var status = new StringBuilder();

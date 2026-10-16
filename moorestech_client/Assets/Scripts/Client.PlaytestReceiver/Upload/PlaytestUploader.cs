@@ -135,6 +135,10 @@ namespace Client.PlaytestReceiver.Upload
                     Debug.Log($"[PlaytestReceiver] uploaded {PlaytestUploadPath.KindSegment(box.Kind)}/{box.BundleId} ({declaration.Files.Count} files, {declaration.Skipped.Count} skipped)");
                     return (BoxOutcome.Sent, null);
                 }
+                catch (Newtonsoft.Json.JsonException exception)
+                {
+                    return (null, PlaytestUploadAttemptFailure.AtLocalFiles(PlaytestApiResult.LocalFileUnavailable($"invalid evidence manifest: {exception.Message}")));
+                }
                 catch (IOException exception)
                 {
                     return (null, PlaytestUploadAttemptFailure.AtLocalFiles(PlaytestApiResult.LocalFileUnavailable($"{exception.GetType().Name}: {exception.Message}")));
@@ -163,6 +167,7 @@ namespace Client.PlaytestReceiver.Upload
             // A box missing a file its policy ranks required, or with nothing to send, never reaches the receiver and is counted as permanent (no forged HTTP response)
             bool IsUnsendable(PlaytestBoxDeclaration candidate)
             {
+                PlaytestCommitEvidenceFailure.Record(box, candidate);
                 if (candidate.MissingRequiredReason != null)
                 {
                     PlaytestUploadAttemptLog.Increment(box.Directory, $"not sending a box without its required files: {candidate.MissingRequiredReason}");

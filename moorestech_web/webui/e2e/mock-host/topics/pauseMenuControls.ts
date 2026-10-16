@@ -9,10 +9,10 @@ function pause(delivery: Delivery, disconnected: boolean) {
 export const pauseMenuControls = {
   pauseConnected: () => pause({ kind: "allSent" }, false),
   pauseDisconnected: () => pause({ kind: "allSent" }, true),
-  deliveryMissing: () => pause({ kind: "localOnly", reason: "developerTokenMissing", pendingCount: 3 }, false),
-  deliveryUnreadable: () => pause({ kind: "localOnly", reason: "developerTokenUnreadable", pendingCount: 3 }, false),
-  deliverySteamStopped: () => pause({ kind: "localOnly", reason: "steamNotRunning", pendingCount: 3 }, false),
-  deliveryPending: () => pause({ kind: "pending", pendingCount: 3 }, false),
-  deliveryRefused: () => pause({ kind: "refused", pendingCount: 3 }, false),
+  deliveryMissing: () => pause({ kind: "localOnly", reason: "developerTokenMissing", pendingCount: 3, failedCount: 0 }, false),
+  deliveryUnreadable: () => pause({ kind: "localOnly", reason: "developerTokenUnreadable", pendingCount: 3, failedCount: 0 }, false),
+  deliverySteamStopped: () => pause({ kind: "localOnly", reason: "steamNotRunning", pendingCount: 3, failedCount: 0 }, false),
+  deliveryPending: () => pause({ kind: "pending", pendingCount: 3, failedCount: 0 }, false),
+  deliveryRefused: () => pause({ kind: "refused", pendingCount: 3, failedCount: 0 }, false),
   deliveryAllSent: () => pause({ kind: "allSent" }, false),
 };

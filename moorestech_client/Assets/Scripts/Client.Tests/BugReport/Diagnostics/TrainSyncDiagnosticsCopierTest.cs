@@ -1,6 +1,8 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using Client.Game.InGame.Train.Network.Diagnostics;
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Diagnostics;
 using NUnit.Framework;
@@ -22,6 +24,19 @@ namespace Client.Tests.BugReport.Diagnostics
         public void TearDown()
         {
             Directory.Delete(_root, true);
+        }
+
+        [Test]
+        public void 再生を越えると診断ディレクトリを分離し同じ再生では共有する()
+        {
+            var initialize = typeof(TrainSynchronizationDiagnosticDirectory).GetMethod("RecordPlayStart", BindingFlags.NonPublic | BindingFlags.Static);
+            initialize.Invoke(null, null);
+            var first = TrainSynchronizationDiagnosticDirectory.Resolve();
+            Assert.AreEqual(first, TrainSynchronizationDiagnosticDirectory.Resolve());
+            initialize.Invoke(null, null);
+            var second = TrainSynchronizationDiagnosticDirectory.Resolve();
+            Assert.AreNotEqual(first, second);
+            Assert.AreEqual(Path.GetDirectoryName(first), Path.GetDirectoryName(second));
         }
 
         [Test]

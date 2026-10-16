@@ -6,6 +6,7 @@ namespace Client.Game.InGame.Train.Network.Diagnostics
 {
     public static class TrainSynchronizationDiagnosticDirectory
     {
+        private static string _playSessionId = Guid.NewGuid().ToString("N");
         internal static DateTime PlayStartedAtUtc { get; private set; }
 
         // 今回の再生で書かれた診断だけを選ぶため、実世界の開始日時を記録する
@@ -14,11 +15,12 @@ namespace Client.Game.InGame.Train.Network.Diagnostics
         private static void RecordPlayStart()
         {
             PlayStartedAtUtc = DateTime.UtcNow;
+            _playSessionId = Guid.NewGuid().ToString("N");
         }
 
         public static string Resolve()
         {
-            return Path.Combine(Application.persistentDataPath, "Logs", "TrainSynchronization");
+            return Path.Combine(Application.persistentDataPath, "Logs", "TrainSynchronization", _playSessionId);
         }
     }
 }

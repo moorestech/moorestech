@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Diagnostics;
 using System.Reflection;
 using Client.PlaytestReceiver.Credentials;
 using NUnit.Framework;
@@ -42,14 +43,61 @@ namespace Client.Tests.PlaytestReceiver.Credentials
             File.WriteAllText(_path, Token);
             Assert.AreEqual("InvalidToken", Invoke("Write", _path, "invalid"));
             Assert.AreEqual(Token, File.ReadAllText(_path));
-            // 公開先をディレクトリで塞ぎ、書込み後の公開だけを失敗させる
-            // Block publication with a directory so failure happens after the temporary write
-            var blocked = Path.Combine(_directory, "blocked");
-            Directory.CreateDirectory(blocked);
-            File.WriteAllText(Path.Combine(blocked, "original"), Token);
-            Assert.AreEqual("SaveFailed", Invoke("Write", blocked, Token));
-            Assert.AreEqual(Token, File.ReadAllText(Path.Combine(blocked, "original")));
-            CollectionAssert.AreEquivalent(new[] { _path }, Directory.GetFiles(_directory));
+        }
+
+        [Test]
+        public void 同じ保存先の書込み失敗でも旧トークンを維持する()
+        {
+            if (Path.DirectorySeparatorChar == '\\') Assert.Ignore("Unixディレクトリ権限の障害注入。Windowsの同等検証は未実施");
+            File.WriteAllText(_path, Token);
+            var replacement = "mdt_" + new string('b', 64);
+            SetDirectoryMode("500");
+            try
+            {
+                // 直接上書きは可能だが一時ファイルを作れない同じ保存先で保証を検証する
+                // The same destination permits direct overwrite but rejects staging a temporary file
+                File.WriteAllText(_path, replacement);
+                File.WriteAllText(_path, Token);
+                Assert.AreEqual("SaveFailed", Invoke("Write", _path, replacement));
+                Assert.AreEqual(Token, ((PlaytestDeveloperTokenPresent)PlaytestDeveloperTokenFile.Read(_path)).Token);
+                CollectionAssert.AreEquivalent(new[] { _path }, Directory.GetFiles(_directory));
+            }
+            finally { SetDirectoryMode("700"); }
+
+            #region Internal
+
+            void SetDirectoryMode(string mode)
+            {
+                using var process = Process.Start(new ProcessStartInfo("/bin/chmod", mode + " \"" + _directory + "\"") { UseShellExecute = false });
+                process.WaitForExit();
+                Assert.AreEqual(0, process.ExitCode);
+            }
+
+            #endregion
+        }
+
+        [Test]
+        public void Unixの保存先と置換後ファイルは所有者限定になる()
+        {
+            if (UnityEngine.Application.platform != UnityEngine.RuntimePlatform.OSXEditor) Assert.Ignore("macOS statの実測。Windows ACLとLinux modeの検証は未実施");
+            Assert.AreEqual("Saved", Invoke("Write", _path, Token));
+            AssertMode(_directory, "700");
+            AssertMode(_path, "600");
+            Assert.AreEqual("Saved", Invoke("Write", _path, "mdt_" + new string('c', 64)));
+            AssertMode(_path, "600");
+
+            #region Internal
+
+            void AssertMode(string path, string expected)
+            {
+                using var process = Process.Start(new ProcessStartInfo("/usr/bin/stat", "-f %OLp \"" + path + "\"") { UseShellExecute = false, RedirectStandardOutput = true });
+                var actual = process.StandardOutput.ReadToEnd().Trim();
+                process.WaitForExit();
+                Assert.AreEqual(0, process.ExitCode);
+                Assert.AreEqual(expected, actual);
+            }
+
+            #endregion
         }
 
         private static string Invoke(string method, params object[] arguments)

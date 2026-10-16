@@ -35,6 +35,20 @@ namespace Client.Tests.PlaytestReceiver
         }
 
         [Test]
+        public void 恒久失敗箱は完了とせずローカル保存時も失敗件数を残す()
+        {
+            var box = Directory.GetDirectories(_directories.ReportOutbox)[0];
+            File.WriteAllText(Path.Combine(box, PlaytestOutboxScanner.FailedMarker), "failed");
+            var runner = new PlaytestUploadRunner(new FakeUploadApi(), _directories, new FakeTicketProvider("aabb"));
+            runner.RequestUploadWith(new PlaytestDeveloperTokenRoute("token"));
+            var pending = (PlaytestDeliveryPending)PlaytestDeliveryStatusBoard.Current.Value;
+            Assert.AreEqual(0, pending.PendingCount);
+            Assert.AreEqual(1, pending.FailedCount);
+            runner.RequestUploadWith(new PlaytestLocalOnlyRoute(PlaytestLocalOnlyReason.DeveloperTokenMissing, PlaytestOutboxScope.ReportsOnly, "removed"));
+            Assert.AreEqual(1, ((PlaytestDeliveryLocalOnly)PlaytestDeliveryStatusBoard.Current.Value).FailedCount);
+        }
+
+        [Test]
         public void 別の走行役も期限内のトークンを再利用する()
         {
             var api = new FakeUploadApi();
@@ -97,8 +111,11 @@ namespace Client.Tests.PlaytestReceiver
             runner.RequestUploadWith(new PlaytestDeveloperTokenRoute("first"));
             PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_140000_cccc", ("manifest.json", "{}"));
             runner.RequestUploadWith(new PlaytestDeveloperTokenRoute("replacement"));
+            api.SessionResult = PlaytestApiResult.Responded(200, PlaytestSessionBodies.Allowed("token-replacement", "2999-01-01T00:00:00.000Z"));
             gate.TrySetResult(PlaytestApiResult.Responded(200, "{}"));
             Assert.AreEqual(2, api.DeveloperSessionCallCount);
+            CollectionAssert.AreEqual(new[] { "first", "replacement" }, api.DeveloperTokens);
+            CollectionAssert.AreEqual(new[] { "tok", "token-replacement" }, api.PrepareBearerTokens);
             Assert.AreEqual(2, api.CompleteCount);
         }
 

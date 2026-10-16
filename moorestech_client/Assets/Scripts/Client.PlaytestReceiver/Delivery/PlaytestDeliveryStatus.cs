@@ -5,17 +5,20 @@ namespace Client.PlaytestReceiver.Delivery
     {
         public readonly PlaytestLocalOnlyReason Reason;
         public readonly int PendingCount;
-        public PlaytestDeliveryLocalOnly(PlaytestLocalOnlyReason reason, int pendingCount) { Reason = reason; PendingCount = pendingCount; }
+        public readonly int FailedCount;
+        public PlaytestDeliveryLocalOnly(PlaytestLocalOnlyReason reason, int pendingCount, int failedCount) { Reason = reason; PendingCount = pendingCount; FailedCount = failedCount; }
     }
     public sealed class PlaytestDeliveryPending : PlaytestDeliveryStatus
     {
         public readonly int PendingCount;
-        public PlaytestDeliveryPending(int pendingCount) { PendingCount = pendingCount; }
+        public readonly int FailedCount;
+        public PlaytestDeliveryPending(int pendingCount, int failedCount) { PendingCount = pendingCount; FailedCount = failedCount; }
     }
     public sealed class PlaytestDeliveryRefused : PlaytestDeliveryStatus
     {
         public readonly int PendingCount;
-        public PlaytestDeliveryRefused(int pendingCount) { PendingCount = pendingCount; }
+        public readonly int FailedCount;
+        public PlaytestDeliveryRefused(int pendingCount, int failedCount) { PendingCount = pendingCount; FailedCount = failedCount; }
     }
     public sealed class PlaytestDeliveryAllSent : PlaytestDeliveryStatus
     {

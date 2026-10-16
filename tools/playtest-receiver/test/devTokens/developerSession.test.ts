@@ -1,9 +1,10 @@
-import { beforeEach, expect, it } from "vitest";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { verifyToken } from "../../src/token";
 import { clean, declaration, handle, ID, noNetwork, putDirect, workerEnv } from "../support/uploadsFixture";
 import { admin, exchange, issue, upload } from "../support/developerFixture";
 
 beforeEach(clean);
+afterEach(() => vi.restoreAllMocks());
 
 it("発行・交換したセッションで開発機の報告を完成できる", async () => {
   const credential = await issue("macbook");
@@ -47,6 +48,7 @@ it("署名設定が欠けたら500", async () => {
 
 
 it("同秒に同名再発行しても旧JWTはprepareとcompleteへ復活しない", async () => {
+  vi.spyOn(Date, "now").mockReturnValue(1792123200000);
   const first = await issue("macbook");
   const old = await (await exchange(JSON.stringify({ token: first }))).json() as { token: string };
   expect((await upload("prepare", "report", old.token, declaration({ "manifest.json": 2 }))).status).toBe(200);
