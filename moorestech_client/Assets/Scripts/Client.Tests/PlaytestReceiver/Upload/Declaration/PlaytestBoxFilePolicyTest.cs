@@ -1,3 +1,4 @@
+using Client.PlaytestReceiver.Credentials;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -45,7 +46,7 @@ namespace Client.Tests.PlaytestReceiver
             var attempts = 1 + PlaytestUploadRetrySchedule.Default.Delays.Count;
             for (var i = 0; i < attempts; i++) api.EnqueuePut("record.json", PlaytestApiResult.Responded(400, "<Error><Code>InvalidArgument</Code></Error>"));
 
-            var session = new PlaytestSession(api, new FakeTicketProvider("aabb"));
+            var session = new PlaytestSession(api, new SteamTicketSessionCredential(new FakeTicketProvider("aabb")));
             var sent = new PlaytestUploader(api, session, directories, PlaytestNoWaitRetrySchedule.Create()).UploadPendingAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             Assert.AreEqual(0, sent);

@@ -1,3 +1,4 @@
+using Client.PlaytestReceiver.Credentials;
 using Client.Game.InGame.BugReport.Submit;
 using Client.PlaytestReceiver.Launch;
 using Client.PlaytestReceiver.Steam;
@@ -31,7 +32,7 @@ namespace Client.PlaytestReceiver.Upload
             // Share the first runner's auth boundary and log why later dependencies are unused
             if (_sharedSession == null)
             {
-                _sharedSession = new PlaytestSession(api, ticketProvider);
+                _sharedSession = new PlaytestSession(api, new SteamTicketSessionCredential(ticketProvider));
             }
             else
             {

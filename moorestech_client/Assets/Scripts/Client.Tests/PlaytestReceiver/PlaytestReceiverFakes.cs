@@ -65,6 +65,8 @@ namespace Client.Tests.PlaytestReceiver
 
     internal sealed class FakeApi : IPlaytestReceiverApi
     {
+        public readonly List<PlaytestApiResult> DeveloperSessionResponses = new();
+        public readonly List<string> DeveloperTokens = new();
         public readonly List<PlaytestApiResult> SessionResponses = new();
         public readonly List<string> Events = new();
         public int SessionCallCount;
@@ -78,6 +80,13 @@ namespace Client.Tests.PlaytestReceiver
             var response = SessionResponses[SessionCallCount];
             SessionCallCount++;
             return UniTask.FromResult(response);
+        }
+
+        public UniTask<PlaytestApiResult> PostDeveloperSessionAsync(string developerToken, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+            DeveloperTokens.Add(developerToken);
+            return UniTask.FromResult(DeveloperSessionResponses[DeveloperTokens.Count - 1]);
         }
 
         public UniTask<PlaytestApiResult> PostPrepareAsync(string bearerToken, PlaytestUploadKind kind, string bundleId, int generation, IReadOnlyList<PlaytestDeclaredFile> files, CancellationToken token)
@@ -128,6 +137,11 @@ namespace Client.Tests.PlaytestReceiver
         {
             SessionCallCount++;
             return UniTask.FromResult(SessionResult);
+        }
+
+        public UniTask<PlaytestApiResult> PostDeveloperSessionAsync(string developerToken, CancellationToken token)
+        {
+            return PostSessionAsync(developerToken, token);
         }
 
         public UniTask<PlaytestApiResult> PostPrepareAsync(string bearerToken, PlaytestUploadKind kind, string bundleId, int generation, IReadOnlyList<PlaytestDeclaredFile> files, CancellationToken token)

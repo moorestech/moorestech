@@ -297,7 +297,7 @@ git commit -m "feat(receiver): 機材ごとの開発者トークンでセッシ�
   - 終了コードは成功0・失敗1。
   - `steam_persona.py developer <steamId> <out>`: `{"steamPersonaName":"開発機 <machine>","steamProfileUrl":"","steamPersonaMissing":""}`
 
-- [ ] **Step 1: API ラッパを足す**
+- [x] **Step 1: API ラッパを足す**
 
 `receiver-api.sh` の `receiver_curl` は余分な curl 引数をそのまま通すので、次のように書く:
 ```bash
@@ -316,13 +316,13 @@ receiver_dev_token_revoke() {
 ```
 呼び方は `receiver_dev_token_list <out>`。
 
-- [ ] **Step 2: dev-token.sh を書く**
+- [x] **Step 2: dev-token.sh を書く**
 
 - env の読み込み順は `ingest.sh` L15-29 と同じにする（`PLAYTEST_ENV_FILE` か `$REPO/../../services/playtest/env.sh` → `lib/receiver-api.sh`）。
 - 機材名は `^[a-z0-9][a-z0-9-]{0,31}$` で先に検証し、外れたら理由を stderr に出して1で終わる。
 - issue はトークンだけを標準出力へ出し、案内（Editor のメニュー名）は stderr へ出す。
 
-- [ ] **Step 3: 表示名を開発機に切り替える**
+- [x] **Step 3: 表示名を開発機に切り替える**
 
 `steam_persona_resolve` の先頭（キャッシュ確認より前）に足す:
 ```bash
@@ -337,7 +337,7 @@ receiver_dev_token_revoke() {
 ```
 `steam_persona.py` には `developer(steam_id)` を足し、`{"steamPersonaName": f"開発機 {steam_id[4:]}", "steamProfileUrl": "", "steamPersonaMissing": ""}` を返す。CLI の分岐にも `developer` を足す。
 
-- [ ] **Step 4: テストを書いて通す**
+- [x] **Step 4: テストを書いて通す**
 
 `tests/test-dev-token.sh`:
 - 既存の `test-ingest.sh` と同じく `CURL_CMD` を偽物に差し替える。
@@ -350,7 +350,7 @@ receiver_dev_token_revoke() {
 Run: `bash scripts/playtest/tests/test-dev-token.sh && bash scripts/playtest/tests/test-ingest.sh && python3 -m pytest scripts/playtest/tests/test_digest_reporters.py -q`
 Expected: 全 PASS。
 
-- [ ] **Step 5: README を更新してコミットする**
+- [x] **Step 5: README を更新してコミットする**
 
 ```bash
 git add scripts/playtest

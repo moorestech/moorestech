@@ -1,3 +1,4 @@
+using Client.PlaytestReceiver.Credentials;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -158,7 +159,7 @@ namespace Client.Tests.PlaytestReceiver
 
         private int Upload(FakeUploadApi api)
         {
-            var session = new PlaytestSession(api, new FakeTicketProvider("aabb"));
+            var session = new PlaytestSession(api, new SteamTicketSessionCredential(new FakeTicketProvider("aabb")));
             var uploader = new PlaytestUploader(api, session, _directories, PlaytestNoWaitRetrySchedule.Create());
             return uploader.UploadPendingAsync(CancellationToken.None).GetAwaiter().GetResult();
         }

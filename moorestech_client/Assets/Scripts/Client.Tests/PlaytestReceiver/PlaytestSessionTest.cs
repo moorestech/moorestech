@@ -1,3 +1,4 @@
+using Client.PlaytestReceiver.Credentials;
 using System;
 using System.Threading;
 using Client.PlaytestReceiver;
@@ -15,7 +16,7 @@ namespace Client.Tests.PlaytestReceiver
         public void 許可されればトークンを保持する()
         {
             var api = ApiAnswering(PlaytestSessionBodies.Allowed("tok-1", "2026-09-13T01:00:00.000Z"));
-            var session = new PlaytestSession(api, new FakeTicketProvider("aabb"));
+            var session = new PlaytestSession(api, new SteamTicketSessionCredential(new FakeTicketProvider("aabb")));
 
             var result = Authenticate(session, IssuedAt);
 
@@ -30,7 +31,7 @@ namespace Client.Tests.PlaytestReceiver
             // 更新時刻は受け口が名乗った期限から逆算する。クライアント側にトークン寿命の複製を持たない
             // The refresh time is derived from the stated expiry; the client keeps no copy of the token lifetime
             var api = ApiAnswering(PlaytestSessionBodies.Allowed("tok-1", "2026-09-13T01:00:00.000Z"), PlaytestSessionBodies.Allowed("tok-2", "2026-09-13T02:00:00.000Z"));
-            var session = new PlaytestSession(api, new FakeTicketProvider("aabb"));
+            var session = new PlaytestSession(api, new SteamTicketSessionCredential(new FakeTicketProvider("aabb")));
             Authenticate(session, IssuedAt);
             var refreshAt = IssuedAt.AddHours(1).AddSeconds(-PlaytestReceiverConfig.TokenRefreshMarginSeconds);
 
@@ -73,7 +74,7 @@ namespace Client.Tests.PlaytestReceiver
         public void チケットが取れなければ受け口を叩かない()
         {
             var api = new FakeApi();
-            var session = new PlaytestSession(api, new FakeTicketProvider(null));
+            var session = new PlaytestSession(api, new SteamTicketSessionCredential(new FakeTicketProvider(null)));
 
             Assert.AreEqual(PlaytestSessionOutcome.TicketUnavailable, Authenticate(session, IssuedAt).Outcome);
             Assert.AreEqual(0, api.SessionCallCount);
@@ -84,7 +85,7 @@ namespace Client.Tests.PlaytestReceiver
         {
             var api = ApiAnswering(PlaytestSessionBodies.AllowedFarFuture);
             var gate = new UniTaskCompletionSource<string>();
-            var session = new PlaytestSession(api, new GatedTicketProvider(gate));
+            var session = new PlaytestSession(api, new SteamTicketSessionCredential(new GatedTicketProvider(gate)));
 
             var first = session.AuthenticateAsync(IssuedAt, CancellationToken.None);
             var second = session.AuthenticateAsync(IssuedAt, CancellationToken.None);
@@ -101,7 +102,7 @@ namespace Client.Tests.PlaytestReceiver
             // 走行フラグが例外経路で残ると以後の認証が恒久に拒否され、解放漏れはSteam側にチケットを溜める
             // A flag left on the exception path would refuse every later authentication, and a missed release piles tickets up on Steam
             var api = ApiAnswering(PlaytestSessionBodies.AllowedFarFuture);
-            var session = new PlaytestSession(api, new TrackingTicketProvider("aabb", api.Events));
+            var session = new PlaytestSession(api, new SteamTicketSessionCredential(new TrackingTicketProvider("aabb", api.Events)));
             var cancelled = new CancellationTokenSource();
             cancelled.Cancel();
 
@@ -117,7 +118,7 @@ namespace Client.Tests.PlaytestReceiver
             // 検証前に解放するとSteam側でチケットが無効になり、受け口が401で拒否する
             // Releasing before verification invalidates the ticket on Steam's side, so the receiver would answer 401
             var api = ApiAnswering(PlaytestSessionBodies.AllowedFarFuture);
-            var session = new PlaytestSession(api, new TrackingTicketProvider("aabb", api.Events));
+            var session = new PlaytestSession(api, new SteamTicketSessionCredential(new TrackingTicketProvider("aabb", api.Events)));
 
             Authenticate(session, IssuedAt);
 
@@ -140,7 +141,7 @@ namespace Client.Tests.PlaytestReceiver
         {
             var api = new FakeApi();
             api.SessionResponses.Add(response);
-            var result = Authenticate(new PlaytestSession(api, new FakeTicketProvider("aabb")), IssuedAt);
+            var result = Authenticate(new PlaytestSession(api, new SteamTicketSessionCredential(new FakeTicketProvider("aabb"))), IssuedAt);
             Assert.AreEqual(expected, result.Outcome, result.Detail);
         }
     }

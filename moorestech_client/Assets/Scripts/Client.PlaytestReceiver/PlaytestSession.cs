@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using Client.PlaytestReceiver.Http;
 using Client.PlaytestReceiver.Http.Responses;
-using Client.PlaytestReceiver.Steam;
+using Client.PlaytestReceiver.Credentials;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -13,16 +13,16 @@ namespace Client.PlaytestReceiver
     public sealed class PlaytestSession
     {
         private readonly IPlaytestReceiverApi _api;
-        private readonly IPlaytestSteamTicketProvider _ticketProvider;
+        private readonly IPlaytestSessionCredential _credential;
 
         private string _token;
         private DateTime _tokenRefreshAtUtc;
         private UniTaskCompletionSource<PlaytestSessionResult> _inFlight;
 
-        public PlaytestSession(IPlaytestReceiverApi api, IPlaytestSteamTicketProvider ticketProvider)
+        public PlaytestSession(IPlaytestReceiverApi api, IPlaytestSessionCredential credential)
         {
             _api = api;
-            _ticketProvider = ticketProvider;
+            _credential = credential;
         }
 
         // 認証は常に1本。重なった呼び手は実行中の認証に相乗りし、同じ結果を受け取る
@@ -52,20 +52,9 @@ namespace Client.PlaytestReceiver
 
             async UniTask<PlaytestSessionResult> AuthenticateOnceAsync()
             {
-                var ticketHex = await _ticketProvider.RequestWebApiTicketHexAsync(token);
-                if (ticketHex == null) return PlaytestSessionResult.Failed(PlaytestSessionOutcome.TicketUnavailable, "no web api ticket");
-
-                // 受け口の検証が終わった直後に解放する。打ち切りで抜けても発行済みチケットを残さない
-                // Released right after the receiver's verification; a cancelled request never leaves the issued ticket behind
-                PlaytestApiResult response;
-                try
-                {
-                    response = await _api.PostSessionAsync(ticketHex, token);
-                }
-                finally
-                {
-                    _ticketProvider.ReleaseWebApiTicket();
-                }
+                var post = await _credential.PostSessionAsync(_api, token);
+                if (post is PlaytestCredentialNotSent notSent) return notSent.Failure;
+                var response = ((PlaytestCredentialSent)post).Response;
 
                 if (response.Kind != PlaytestApiResultKind.Responded) return PlaytestSessionResult.Failed(PlaytestSessionOutcome.Unreachable, response.Detail);
 
