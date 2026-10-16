@@ -35,8 +35,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             return TryGetRayHitPlacePointBySize(mainCamera, rotatedSize, heightOffset, out pos, out surface);
         }
 
-        // 地形ゲート付き設置系の1セル版。地面ヒットのYを占有セルの地形最高点で決め直す（ADR 0082・0080）
-        // Single-cell entry for terrain-gated placements; a ground hit's Y is re-decided from the footprint terrain max (ADR 0082, 0080)
+        // 地形ゲート付き1セル版。Yは占有セル最高点で決める
+        // Single-cell terrain-gated entry; Y comes from the footprint max
         public static FootprintGroundedCellResult ResolveFootprintGroundedRayHitBlockPosition(Camera mainCamera, int heightOffset, BlockDirection currentBlockDirection, BlockMasterElement holdingBlock, out Vector3Int pos, out BlockPreviewBoundingBoxSurface surface)
         {
             if (!TryGetRayHitBlockPosition(mainCamera, heightOffset, currentBlockDirection, holdingBlock, out var rayHitCell, out surface))
@@ -130,8 +130,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
                 point.x = Mathf.FloorToInt(hitPoint.x + (rotatedSize.x % 2 == 0 ? 0.5f : 0));
                 point.z = Mathf.FloorToInt(hitPoint.z + (rotatedSize.z % 2 == 0 ? 0.5f : 0));
 
-                // 地面ヒットのYは地形追従と同じ沈み許容量の規約で決める
-                // A ground hit's Y follows the same sink-allowance rule as terrain following
+                // Yは地形追従と同じ許容量規約で決める
+                // Y follows the same allowance rule as terrain following
                 point.y = PlacementGroundCellResolver.ResolveCellY(hitPoint.y, heightOffset);
                 point -= new Vector3Int(rotatedSize.x, 0, rotatedSize.z) / 2;
 

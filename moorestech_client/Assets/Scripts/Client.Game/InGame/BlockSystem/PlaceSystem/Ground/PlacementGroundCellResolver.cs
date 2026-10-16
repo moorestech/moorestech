@@ -9,8 +9,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Ground
     /// </summary>
     public static class PlacementGroundCellResolver
     {
-        // 地形への沈みとして許容する底面からの深さ（ADR 0082）
-        // The depth below the bottom that a terrain sink may reach (ADR 0082)
+        // 底面からの沈み許容量（ADR 0082）
+        // Allowed sink depth below the bottom (ADR 0082)
         private const float AllowedTerrainSinkMeters = 1f / 3f;
 
         // 浮動小数点誤差の余裕。y≈1000から約1000m落とすRaycastのfloat刻み（約6e-5m）の10倍以上をとる

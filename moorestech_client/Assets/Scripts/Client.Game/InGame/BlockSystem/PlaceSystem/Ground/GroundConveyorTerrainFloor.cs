@@ -5,8 +5,8 @@ using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Ground
 {
-    // 端点と同じ既定セル（沈み許容量の規則・ADR 0082）にQ/E補正を加える
-    // Adds the Q/E offset to the same default cell as endpoints (sink-allowance rule, ADR 0082)
+    // 端点と同じ既定セルにQ/E補正を加える
+    // Adds the Q/E offset to the same default cell as endpoints
     public class GroundConveyorTerrainFloor : IConveyorTerrainFloor
     {
         private readonly PlacementHeightOffset _placementHeightOffset;

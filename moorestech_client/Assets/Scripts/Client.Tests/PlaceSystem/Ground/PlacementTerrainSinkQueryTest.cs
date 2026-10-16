@@ -7,8 +7,8 @@ using UnityEngine;
 
 namespace Client.Tests.PlaceSystem.Ground
 {
-    // 底面から1/3mより深い沈みだけを埋まりとする（ADR 0082）
-    // Only a sink deeper than 1/3 m below the bottom counts as buried (ADR 0082)
+    // 1/3m超の沈みだけを埋まりとする
+    // Only a sink deeper than 1/3 m counts as buried
     public class PlacementTerrainSinkQueryTest
     {
         private readonly List<GameObject> _slabs = new();

@@ -21,8 +21,8 @@ namespace Client.Tests.PlaceSystem.Ground
             _slabs.Clear();
         }
 
-        // 地表32.4はY32だと0.4m沈むので1段上のY33へ上げる
-        // Ground at 32.4 would sink Y 32 by 0.4 m, so it is raised one cell to Y 33
+        // 地表32.4はY32だと沈みすぎ、Y33へ
+        // Ground 32.4 sinks Y 32 too much, so Y 33
         [Test]
         public void 沈みが3分の1mを超える地表は1段上げる()
         {
@@ -32,8 +32,8 @@ namespace Client.Tests.PlaceSystem.Ground
             Assert.AreEqual(new Vector3Int(100, 33, 200), resolved);
         }
 
-        // 地表32.2はY32で0.2m沈むだけなので上げない
-        // Ground at 32.2 only sinks Y 32 by 0.2 m, so it stays
+        // 地表32.2は0.2m沈みなので据置
+        // Ground 32.2 sinks only 0.2 m, so it stays
         [Test]
         public void 沈みが3分の1m以内の地表はそのセルに置く()
         {
@@ -54,8 +54,8 @@ namespace Client.Tests.PlaceSystem.Ground
             Assert.AreEqual(32, resolved.y);
         }
 
-        // 沈み許容量1/3m＋浮動小数余裕の境界を直接固定する
-        // Pin the boundary of the 1/3 m sink allowance plus the float margin directly
+        // 許容量1/3m＋余裕の境界を固定
+        // Pin the 1/3 m allowance plus margin boundary
         [TestCase(32f, 32)]
         [TestCase(32.2f, 32)]
         [TestCase(32.333f, 32)]
@@ -69,8 +69,8 @@ namespace Client.Tests.PlaceSystem.Ground
             Assert.AreEqual(expectedCellY, PlacementGroundCellResolver.ResolveCellY(groundMax, 0));
         }
 
-        // 整数を格子数段だけ下回って格納された地表（鉱脈パッド）は1段浮かず整数セルになる
-        // Ground stored a few lattice steps under an integer (a vein pad) lands on the integer without floating a cell
+        // 鉱脈パッド相当の地表は整数セルになる
+        // Vein-pad-like ground lands on the integer cell
         [Test]
         public void 格子数段ぶん整数を下回る地表は整数セルへ収める()
         {
@@ -96,8 +96,8 @@ namespace Client.Tests.PlaceSystem.Ground
             Assert.AreEqual(19, resolvedDown.y);
         }
 
-        // 負の高さでも同じ沈み許容量で決める（地表-3.4はY-4だと0.6m沈むのでY-3）
-        // Negative heights follow the same sink allowance (ground -3.4 sinks Y -4 by 0.6 m, so Y -3)
+        // 負の高さも同規則（地表-3.4はY-3）
+        // Negative heights follow the same rule (ground -3.4 gives Y -3)
         [Test]
         public void 負の高さでも同じ沈み許容量で決める()
         {

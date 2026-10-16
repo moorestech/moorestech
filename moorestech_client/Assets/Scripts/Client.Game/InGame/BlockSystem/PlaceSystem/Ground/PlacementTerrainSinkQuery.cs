@@ -7,8 +7,8 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Ground
 {
     /// <summary>
-    ///     地形めり込みの唯一の判定。底面から許容量より深く沈んだら埋まり（ADR 0082）
-    ///     The single terrain-sink judgement: buried when sunk deeper than the allowance below the bottom (ADR 0082)
+    ///     地形めり込みの唯一の判定（ADR 0082）
+    ///     The single terrain-sink judgement (ADR 0082)
     /// </summary>
     public static class PlacementTerrainSinkQuery
     {
@@ -32,8 +32,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Ground
             return sinks;
         }
 
-        // 設置Y決定と同じ規則で「沈みが許容量に収まる最低セル」を出し、底セルがそれより下なら埋まり
-        // Derive the lowest cell within the sink allowance with the Y-resolution rule; a base cell below it is buried
+        // 設置Y決定と同じ最低セルより下なら埋まり
+        // Buried if below the lowest cell the Y-resolution rule gives
         internal static bool IsSunkAbove(int blockBaseCellY, float groundMaxHeight)
         {
             return blockBaseCellY < PlacementGroundCellResolver.ResolveCellY(groundMaxHeight, 0);

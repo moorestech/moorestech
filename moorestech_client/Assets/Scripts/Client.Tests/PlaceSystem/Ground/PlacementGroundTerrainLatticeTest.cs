@@ -63,8 +63,8 @@ namespace Client.Tests.PlaceSystem.Ground
             var productionPadHeight = SurfaceQuantization.PadHeight(boxBottom, config, "fixture");
             var padHeight = CreatePadTerrain(Mathf.RoundToInt(productionPadHeight / TerrainHeightRange * TerrainHeightStorage.Steps));
 
-            // 前提: 格納された地表は整数を1段より多く下回る
-            // Premise: the stored surface is more than one step under the integer
+            // 前提: 地表は整数を1段超下回る
+            // Premise: surface is over one step under the integer
             var step = TerrainHeightRange / TerrainHeightStorage.Steps;
             Assert.AreEqual(productionPadHeight, padHeight, 1e-4f);
             Assert.That(boxBottom - productionPadHeight, Is.GreaterThan(step));

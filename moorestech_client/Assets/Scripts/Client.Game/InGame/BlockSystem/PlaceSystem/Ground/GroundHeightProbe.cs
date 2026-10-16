@@ -50,8 +50,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Ground
             return groundPoint;
         }
 
-        // ブロックが占有するセルの地形だけから最高点を出す。占有していない隣接セルの地形でYを持ち上げない
-        // Takes the max height from the occupied cells only, so a neighbouring cell never lifts Y
+        // 占有セルの地形だけから最高点を出す（隣接で持ち上げない）
+        // Max height from occupied cells only; neighbours never lift Y
         public static bool TryGetFootprintMaxGroundHeight(Vector3Int blockPos, BlockDirection blockDirection, Vector3Int blockSize, out float maxHeight)
         {
             maxHeight = float.NegativeInfinity;

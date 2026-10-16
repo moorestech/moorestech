@@ -1,8 +1,8 @@
 namespace Game.MapGeneration.Surface
 {
     /// <summary>
-    ///     UnityのTerrainDataが高さを格納する16bit格子。生成側の量子化が参照する
-    ///     The 16-bit lattice TerrainData stores heights on; generation quantization refers to it
+    ///     TerrainDataが高さを格納する16bit格子
+    ///     The 16-bit lattice TerrainData stores heights on
     /// </summary>
     public static class TerrainHeightStorage
     {
