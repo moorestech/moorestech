@@ -355,6 +355,7 @@ ui.tooltip.blueprintCopyEmptyRange,No blocks in range,No blocks in range,範囲�
 ui.tooltip.deleteBoxTargetsInRange,Targets in range: {p0},Targets in range: {p0},範囲内の対象: {p0},Ziele im Bereich: {p0},범위 내 대상: {p0}
 ui.tooltip.deleteBoxEmptyRange,No targets in range,No targets in range,範囲に対象がありません,Keine Ziele im Bereich,범위에 대상이 없습니다
 ui.tooltip.deleteSelectedCount,Selected: {p0},Selected: {p0},選択中: {p0}件,Ausgewählt: {p0},선택 중: {p0}개
+ui.tooltip.holdToDelete,Hold F to delete,Hold F to delete,F長押しで削除,F gedrückt halten zum Entfernen,F를 길게 눌러 삭제
 ui.notification.blueprintCreateRequestFailed,Blueprint could not be created because the request failed,Blueprint could not be created because the request failed,通信に失敗したためブループリントを作成できませんでした,Der Bauplan konnte wegen eines Verbindungsfehlers nicht erstellt werden,요청에 실패하여 설계도를 만들지 못했습니다
 ui.notification.blueprintCreateInvalidName,Blueprint name is invalid,Blueprint name is invalid,ブループリント名が無効です,Der Bauplanname ist ungültig,설계도 이름이 올바르지 않습니다
 ui.notification.blueprintCreateEmptyArea,No blocks in the selected area,No blocks in the selected area,選択範囲にブロックがありません,Keine Blöcke im ausgewählten Bereich,선택한 범위에 블록이 없습니다
