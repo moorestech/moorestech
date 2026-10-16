@@ -50,7 +50,10 @@ return PlaytestRunner.Run("delete-selection-animation", new PlaytestRunOptions {
         SemanticInput.MouseMoveTo(Camera.main.WorldToScreenPoint(clickCollider.bounds.center));
         await p.WaitSeconds(0.5f);
         p.Assert(DeleteTargetRaycaster.AimAt(DeleteAimFilter.Frontmost).Target is BlockGameObjectChild aimed && ReferenceEquals(aimed.BlockGameObject, owner), "実レイが設置中の本体を拾う");
-        await Click();
+        SemanticInput.MouseButtonDown(0);
+        await UniTask.DelayFrame(2);
+        SemanticInput.MouseButtonUp(0);
+        await UniTask.DelayFrame(1);
         p.Assert(!finished, "アニメ終了前になぞり選択が完了");
         p.Assert(ReadRequiredTooltipCount(LocalizationKeys.Ui.Tooltip.DeleteSelectedCount) == 1, "左解放後も選択1件");
         p.Note($"選択時刻:{Time.time-start:F3}s renderer数:{renderers.Length}");
@@ -85,7 +88,18 @@ return PlaytestRunner.Run("delete-selection-animation", new PlaytestRunOptions {
         p.Assert(cancelEarly ? redCount == 0 : redCount > 0, "実本体の赤表示が選択/取消状態と一致");
         p.Assert(p.GetBlock(cell) != null, "プレビュー検証中はサーバー対象を保持");
         await p.Screenshot(cancelEarly ? "02-cancelled-no-red" : "01-selection-red-after-animation");
-        if (!cancelEarly) await p.PressKey(Key.Escape);
+        if (!cancelEarly)
+        {
+            // 完了後に適用された本体色もESCで解除できることを確認する
+            // Verify Escape also clears body colors applied after animation completion
+            await p.PressKey(Key.Escape);
+            p.Assert(!HasTooltipLine(LocalizationKeys.Ui.Tooltip.DeleteSelectedCount), "完了後ESCで選択件数が消える");
+            var redAfterCancel = renderers.SelectMany(r => r.sharedMaterials).Count(m => m.shader == previewShader && m.HasProperty(MaterialConst.PreviewColorPropertyName) && Vector4.Distance(m.GetColor(MaterialConst.PreviewColorPropertyName), MaterialConst.NotPlaceableColor) < 0.01f);
+            p.Note($"完了後ESC: red材質数={redAfterCancel}");
+            p.Assert(redAfterCancel == 0, "完了後ESCで同じ本体Renderer群の赤が消える");
+            p.Assert(p.GetBlock(cell) != null, "完了後ESCでもサーバー対象を保持");
+            await p.Screenshot("03-completed-then-cancelled-no-red");
+        }
         await p.PressKey(Key.G);
         await p.WaitUiState(UIStateEnum.GameScreen, 5f);
     }
