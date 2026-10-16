@@ -14,6 +14,10 @@ namespace Game.Paths
         public const string WorldDirectoryName = "world";
         public const string ManifestFileName = "manifest.json";
         public const string RepositoryDirectoryName = "repo";
+        public const string CommitsBundleFileName = "commits.bundle";
+        public const string MasterCommitsBundleFileName = "master-commits.bundle";
+        public const string BundleStatusFileName = "bundle-status.txt";
+        public const string TrainSyncDiagnosticsDirectoryName = "train-sync";
         public const string RemoteExecDirectoryName = "remote-exec";
         public const string LogsDirectoryName = "logs";
         public const string UnityLogFileName = "unity.log";

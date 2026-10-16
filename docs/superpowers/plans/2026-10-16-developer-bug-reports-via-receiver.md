@@ -723,7 +723,7 @@ public static class TrainSynchronizationDiagnosticDirectory
 - 9件目以降は `manifest.AddMissing("logs/train-sync", "停滞診断が多すぎるため新しい8件だけ入れた（全N件）")`。
 - コピー失敗は AddMissing する。
 
-- [ ] **Step 1: テストを書く**
+- [x] **Step 1: テストを書く**
 
 `BugReportCommitBundlesTest`:
 - 一時ディレクトリに `git init --bare origin.git` と、それを clone した作業 repo を作る。初回コミットを push し、2つ目を push しない。
@@ -738,13 +738,13 @@ public static class TrainSynchronizationDiagnosticDirectory
 - 古い mtime の1件、新しい10件を置くと、新しい8件だけが入り、Missing が1件。
 - 置き場が無ければ何も起きない。
 
-- [ ] **Step 2: 実装を書く**
-- [ ] **Step 3: コンパイルしテストを通す**
+- [x] **Step 2: 実装を書く**
+- [x] **Step 3: コンパイルしテストを通す**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "BugReportCommitBundles|TrainSyncDiagnosticsCopier|BuildInfoReaderTest|BugReportBundleWriterIdentityTest|CrashBundleWriterTest"` → `bash scripts/bugreport/tests/test-prepare-run.sh`
 Expected: 全 PASS。
 
-- [ ] **Step 4: コミットする**
+- [x] **Step 4: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game moorestech_client/Assets/Scripts/Client.Starter moorestech_client/Assets/Scripts/Client.Tests moorestech_server/Assets/Scripts/Game.Paths

@@ -5,8 +5,8 @@ using Game.Paths;
 
 namespace Client.Game.InGame.BugReport
 {
-    // 未コミットのファイル変更まで再現対象に含めるため、差分と未追跡ファイルをバンドルへ写す（読み取りのみ）
-    // Copies the diff and untracked files into the bundle so uncommitted edits stay reproducible; read-only throughout
+    // 未コミットのファイル変更まで再現対象に含めるため、差分と未追跡ファイルをバンドルへ写す（作業ツリーは変更しない）
+    // Copies the diff and untracked files into the bundle so uncommitted edits stay reproducible; without modifying the working tree
     public static class BugReportRepositoryFiles
     {
         private const string HeadDiffFileName = "head.diff";
@@ -20,12 +20,12 @@ namespace Client.Game.InGame.BugReport
         // The roots derive from Application.dataPath, readable only on the main thread, so the caller passes what it read
         // 分岐は出所の3状態だけを見る。Editor以外で git probe に入ると、配布先に偶然ある無関係な作業ツリーを名乗ってしまう（F01）
         // The branch looks only at the three origin states; entering the git probe outside the Editor would claim some unrelated working tree on the player's machine (F01)
-        public static void Write(string directory, BugReportManifest manifest, BuildOriginReading buildOrigin, string repositoryRoot, string masterDataRoot)
+        public static void Write(string directory, string bundleId, BugReportManifest manifest, BuildOriginReading buildOrigin, string repositoryRoot, string masterDataRoot)
         {
             switch (buildOrigin.Kind)
             {
                 case BuildOriginKind.Editor:
-                    WriteWorkingTreeState(directory, manifest, repositoryRoot, masterDataRoot);
+                    WriteWorkingTreeState(directory, bundleId, manifest, repositoryRoot, masterDataRoot);
                     return;
                 case BuildOriginKind.BakedBuild:
                     WriteBakedState(manifest, buildOrigin);
@@ -40,11 +40,12 @@ namespace Client.Game.InGame.BugReport
 
         // ディスクは外部資源。本体repoとマスタrepoを別々に隔離し、片方の失敗でもう片方の状態まで落とさない
         // Disk is an external resource; the two repositories are isolated separately so one failure never drops the other's state
-        private static void WriteWorkingTreeState(string directory, BugReportManifest manifest, string repositoryRoot, string masterDataRoot)
+        private static void WriteWorkingTreeState(string directory, string bundleId, BugReportManifest manifest, string repositoryRoot, string masterDataRoot)
         {
             var repo = Path.Combine(directory, BugReportBundleLayout.RepositoryDirectoryName);
             manifest.Repository = WriteIsolated(repositoryRoot, repo, HeadDiffFileName, "untracked", manifest);
             manifest.MasterData = WriteIsolated(masterDataRoot, repo, MasterDiffFileName, "master-untracked", manifest);
+            BugReportCommitBundles.Write(repo, bundleId, manifest, repositoryRoot, masterDataRoot);
         }
 
         // ビルド実行にはgitも作業ツリーも無い。焼き込んだ状態だけを載せ、取れない分は理由付きで欠損に残す

@@ -39,8 +39,8 @@ namespace Client.Game.InGame.BugReport
         // The pin's relativePath is the sole definition of where the master repo sits; guessing the neighbour's name would report another repo as the master
         public static string MasterDataRoot => MasterDataRootLocator.ResolveForPrimaryRepository();
 
-        // 読み取り専用の問い合わせだけを行う。作業ツリーを書き換えるgitコマンドはここに足してはならない
-        // Runs read-only queries only; a git command that mutates the working tree must never be added here
+        // 作業ツリーは書き換えない。bundle作成時だけ refs/bugreport/* の一時ref操作を許す
+        // Never modifies the working tree; temporary refs/bugreport/* mutations are allowed only for bundle creation
         public static RepositoryProbeResult ProbeGit(string repositoryRoot)
         {
             var result = new RepositoryProbeResult();
