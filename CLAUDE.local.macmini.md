@@ -28,7 +28,7 @@ moores-wt status [--json]
 - `rm` … 未コミット/未pushがあれば拒否（`--force`で破棄）→ Editor終了 → `worktree remove --force` → 未参照masterピンと孤児Editorを報告。
 - `status` … worktree一覧（branch/Library有無/Editor pid/dirty）、Editor本数、孤児Editor、未参照masterピン。`--json`は機械可読（unity-modal-watchdogとの突き合わせ用）。
 - 孤児Editorの定義: Unityプロセスの`-projectPath`の親を worktree root とみなし、`git worktree list`に無ければ`orphan-unregistered`、パス自体が消えていれば`orphan-missing`。watchdogはこの2つを再launch対象外とする。
-- pr-review の baseline clone（`~/hermes-agent/data/repos/moorestech-pr-review-baseline`）は別経路: sparse-checkout で `Assets/Dependencies` を外し、pr-independent-review が生やす `pr-<N>` / `skills-canon-<sha8>` へ継承させる。置き場は moores-wt と同じ `~/hermes-agent/data/worktrees/moorestech/`（canon_setup.py が固定）だが moores-wt status の一覧には出ない（baseline clone の worktree のため。`git -C ~/hermes-agent/data/repos/moorestech-pr-review-baseline worktree list` で見る）（詳細は `~/hermes-agent/data/services/pr-review/README.md`）。
+- pr-review の baseline clone（`~/hermes-agent/data/worktrees/moorestech/pr-review-baseline`）は別経路: sparse-checkout で `Assets/Dependencies` を外し、pr-independent-review が生やす `pr-<N>` / `skills-canon-<sha8>` へ継承させる。置き場は moores-wt と同じ `~/hermes-agent/data/worktrees/moorestech/`（canon_setup.py が固定）だが moores-wt status の一覧には出ない（baseline clone の worktree のため。`git -C ~/hermes-agent/data/worktrees/moorestech/pr-review-baseline worktree list` で見る）（詳細は `~/hermes-agent/data/services/pr-review/README.md`）。
 
 ## 運用上の注意
 
