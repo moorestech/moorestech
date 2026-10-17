@@ -13,6 +13,7 @@ from unittest.mock import Mock, patch
 BASE = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(BASE / 'steam_auth'))
 import check_login
+from owned_process import reap_group
 
 HELPER = BASE.parents[1] / '.agents/skills/moores-playtest-release/scripts/steam_upload_with_vault.py'
 sys.path.insert(0, str(HELPER.parent))
@@ -97,3 +98,65 @@ class ProcessCleanupTests(unittest.TestCase):
                 function()
         kill.assert_any_call(4321, signal.SIGTERM)
         child.wait.assert_called_once_with(timeout=10)
+
+    def test_spawn_interruption_reaps_runner_and_releases_lock(self):
+        for caller in ('checker', 'helper'):
+            for signum in (signal.SIGTERM, signal.SIGINT):
+                with self.subTest(caller=caller, signum=signum), tempfile.TemporaryDirectory() as temporary:
+                    root = Path(temporary).resolve()
+                    marker = root / 'ready'
+                    fake = root / 'steamcmd'
+                    fake.write_text('#!/usr/bin/env python3\nimport signal, time\n'
+                                    f'open({str(marker)!r}, "w").write("ready")\n'
+                                    'while True: time.sleep(0.1)\n')
+                    fake.chmod(0o700)
+                    env = dict(MOORESTECH_STEAMCMD_EXECUTABLE=str(fake),
+                               MOORESTECH_STEAM_STATE_ROOT=str(root / 'state'))
+                    children = []
+                    real_popen = subprocess.Popen
+                    previous_term = signal.getsignal(signal.SIGTERM)
+                    previous_int = signal.getsignal(signal.SIGINT)
+
+                    def spawn_and_interrupt(*args, **kwargs):
+                        child = real_popen(*args, **kwargs)
+                        children.append(child)
+                        deadline = time.monotonic() + 5
+                        while not marker.exists() and child.poll() is None and time.monotonic() < deadline:
+                            time.sleep(0.02)
+                        self.assertTrue(marker.exists())
+                        # Popenが戻る直前に実シグナルを送り、未登録区間を検証する。
+                        # Inject a real signal before Popen returns to cover the unregistered window.
+                        with (root / 'state/steamcmd.lock').open('a') as lock:
+                            with self.assertRaises(BlockingIOError):
+                                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                        os.kill(os.getpid(), signum)
+                        return child
+
+                    function = self.helper()['run']
+                    error = SystemExit if signum == signal.SIGTERM else KeyboardInterrupt
+                    try:
+                        with patch.dict(os.environ, env), \
+                             patch('subprocess.Popen', side_effect=spawn_and_interrupt), \
+                             patch.dict(function.__globals__, ROOT=root, configure=Mock(), report=Mock(),
+                                        credential=Mock(return_value=('user', 'secret')),
+                                        required=Mock(return_value='user')):
+                            with self.assertRaises(error) as interrupted:
+                                if caller == 'checker':
+                                    check_login.check('user')
+                                else:
+                                    function()
+                            if signum == signal.SIGTERM:
+                                self.assertEqual(143, interrupted.exception.code)
+                        self.assertEqual(1, len(children))
+                        self.assertIsNotNone(children[0].poll())
+                        with (root / 'state/steamcmd.lock').open('a') as lock:
+                            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                        self.assertEqual(previous_term, signal.getsignal(signal.SIGTERM))
+                        self.assertEqual(previous_int, signal.getsignal(signal.SIGINT))
+                    finally:
+                        # 失敗した検証でも、記録済みの所有PIDだけを回収する。
+                        # Reap only recorded owned process groups even when an assertion fails.
+                        for child in children:
+                            reap_group(child)
+                            if child.stdout is not None:
+                                child.stdout.close()

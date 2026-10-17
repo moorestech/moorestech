@@ -16,11 +16,10 @@ def check(username):
     # 外部プロセス境界を囲み、中断・通信失敗でも所有グループを回収する。
     # Bound the process lifetime across interruptions and communication failures.
     try:
-        with owned_session() as children:
-            child = subprocess.Popen([str(Path(__file__).with_name('run.py')), '+login', username, '+quit'],
+        with owned_session() as owner:
+            child = owner.spawn([str(Path(__file__).with_name('run.py')), '+login', username, '+quit'],
                                      stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
                                      stderr=subprocess.STDOUT, text=True, start_new_session=True)
-            children.append(child)
             output, _ = child.communicate(timeout=120)
     except subprocess.TimeoutExpired:
         print('ERROR: cached Steam login timed out; check connectivity and retry', file=sys.stderr)

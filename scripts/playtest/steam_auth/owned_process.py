@@ -2,6 +2,7 @@
 from contextlib import contextmanager
 import os
 import signal
+import subprocess
 import time
 
 
@@ -29,22 +30,48 @@ def reap_group(child):
     child.wait(timeout=10)
 
 
-@contextmanager
-def owned_session():
-    def interrupted(signum, frame):
+class OwnedProcesses:
+    def __init__(self):
+        self.children = []
+        self.spawning = False
+        self.pending_signal = None
+
+    def interrupted(self, signum, frame):
+        if self.spawning:
+            # 所有登録まで中断を延期し、子にシグナルマスクを継承させない。
+            # Defer interruption until registration without masking child signals.
+            self.pending_signal = signum
+            return
+        if signum == signal.SIGINT:
+            raise KeyboardInterrupt
         raise SystemExit(128 + signum)
 
-    previous = signal.signal(signal.SIGTERM, interrupted)
-    children = []
+    def spawn(self, command, **options):
+        self.spawning = True
+        try:
+            child = subprocess.Popen(command, **options)
+            self.children.append(child)
+        finally:
+            self.spawning = False
+        if self.pending_signal is not None:
+            self.interrupted(self.pending_signal, None)
+        return child
+
+
+@contextmanager
+def owned_session():
+    owner = OwnedProcesses()
+    previous = signal.signal(signal.SIGTERM, owner.interrupted)
+    previous_int = signal.signal(signal.SIGINT, owner.interrupted)
     try:
-        yield children
+        yield owner
     finally:
         # 回収中の再中断で子を残さない。
         # Do not let a second interruption abandon cleanup.
-        previous_int = signal.signal(signal.SIGINT, signal.SIG_IGN)
+        signal.signal(signal.SIGINT, signal.SIG_IGN)
         signal.signal(signal.SIGTERM, signal.SIG_IGN)
         try:
-            for child in children:
+            for child in owner.children:
                 reap_group(child)
         finally:
             signal.signal(signal.SIGINT, previous_int)

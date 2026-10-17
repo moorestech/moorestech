@@ -135,10 +135,9 @@ def run():
         attributes = termios.tcgetattr(child_fd)
         attributes[3] &= ~termios.ECHO
         termios.tcsetattr(child_fd, termios.TCSANOW, attributes)
-        with owned_session() as children:
-            child = subprocess.Popen(command + ['+quit'], stdin=child_fd, stdout=child_fd,
+        with owned_session() as owner:
+            child = owner.spawn(command + ['+quit'], stdin=child_fd, stdout=child_fd,
                                      stderr=child_fd, start_new_session=True)
-            children.append(child)
             os.close(child_fd)
             child_fd = None
             report('steam_started', steamPid=child.pid)
