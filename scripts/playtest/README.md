@@ -45,14 +45,26 @@ Windows と Mac（Apple Silicon）の配布ビルドを焼き、1つの Steam �
 #### Mac mini 側
 
 1. steamcmd を入れる: `brew install --cask steamcmd`（`steamcmd` が PATH に載る）。
-2. 初回だけ対話で Steam Guard を通す: `steamcmd +login <user> +quit`（以降は保存された資格で無人ログインできる）。
+2. 次項の env を設定後、専用ホームで初回認証する（手順は下記）。
 3. `~/hermes-agent/data/services/playtest/env.sh` に次を追記して export する（このファイルは封じ込め env の外に置かず、値をログへ出さない）:
    - `MOORESTECH_STEAM_USER`
+   - `MOORESTECH_STEAM_STATE_ROOT`（専用の永続ディレクトリ。実HOME・Desktop Steam配下・symlinkは不可）
+   - `MOORESTECH_STEAMCMD_EXECUTABLE`（任意。実SteamCMDのパス。既定はPATHのsteamcmd）
    - `MOORESTECH_STEAM_DEPOT_ID_WINDOWS`
    - `MOORESTECH_STEAM_DEPOT_ID_MAC`
    - `STEAM_WEB_API_KEY`（取り込み時の報告者名解決に使う。未設定でも箱は取り込み、未解決理由を記録する）
    - `MOORESTECH_BUILD_BRANCH`（任意。build-info.json の `branch` に焼く配布元 ref。既定 `master`）
    - 検証機向けの変数（「検証機」節の「Mac mini 側の env」を参照）
+
+### Steam 認証の分離と検証
+
+SteamCMD は `scripts/playtest/steam_auth/run.py` を通す。子プロセスだけの HOME を `$MOORESTECH_STEAM_STATE_ROOT/home` にし、Desktop Steam の設定と分離する。同じ state root の実行は排他制御する。手動で通常の `steamcmd +login` を使っても、この専用ホームへ認証は保存されない。
+
+1. `python3 .agents/skills/moores-playtest-release/scripts/steam_upload_with_vault.py <認証状態の保存先> --login-only` を実行し、必要な初回 Steam Guard 承認を行う。
+2. 同コマンドの `--check-login` で保存資格だけのログインを確認する。1Password とパスワードは使用しない。
+3. Desktop Steam を起動してから `--check-login` を再実行する。成功を確認してから配布工程へ進む。
+
+通常リリースもビルド前にこの保存資格検査を実施する。資格拒否が確認された場合は初回認証をやり直す。使用中なら先行処理の終了を待ち、接続失敗・タイムアウトなら通信を確認する。設定不備・実行先不在は設定を直して再検査する。隔離はDesktopとの設定衝突を防ぐもので、Steam側のトークン失効を防ぐものではない。秘密値・生のPTY出力を共有ログへ残さない。
 
 ### 使い方
 
