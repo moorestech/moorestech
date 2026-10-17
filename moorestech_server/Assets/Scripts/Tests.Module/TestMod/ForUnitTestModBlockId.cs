@@ -92,5 +92,24 @@ namespace Tests.Module.TestMod
         public static BlockId CleanRoomPipeHatchId => GetBlock("8e425510-aa34-4a1b-9f40-5f8079183ab2");
         public static BlockId CleanRoomAirFilterId => GetBlock("21e760d0-54b2-41a5-8cef-d78e1efb8fb8");
         public static BlockId CleanRoomMachineId => GetBlock("e08acf92-9d43-4db0-b43a-bcec773f22dc");
+
+        // スループット回帰テスト用の本番速度ベルト族(木1.0 / 鉄2.222222 / 電気6.666667 / 高速10)
+        // Production-speed belt families for the throughput regression suite (wood 1.0 / iron 2.222222 / electric 6.666667 / fast 10)
+        public static BlockId WoodGearBelt => GetBlock("7b3e1a10-0001-4000-8000-000000000001");
+        public static BlockId WoodGearBeltUp => GetBlock("7b3e1a10-0001-4000-8000-000000000002");
+        public static BlockId WoodGearBeltDown => GetBlock("7b3e1a10-0001-4000-8000-000000000003");
+        public static BlockId WoodGearBeltSplitter => GetBlock("7b3e1a10-0001-4000-8000-000000000004");
+        public static BlockId IronGearBelt => GetBlock("7b3e1a10-0001-4000-8000-000000000005");
+        public static BlockId IronGearBeltUp => GetBlock("7b3e1a10-0001-4000-8000-000000000006");
+        public static BlockId IronGearBeltDown => GetBlock("7b3e1a10-0001-4000-8000-000000000007");
+        public static BlockId IronGearBeltSplitter => GetBlock("7b3e1a10-0001-4000-8000-000000000008");
+        public static BlockId ElectricBelt => GetBlock("7b3e1a10-0001-4000-8000-000000000009");
+        public static BlockId ElectricBeltUp => GetBlock("7b3e1a10-0001-4000-8000-000000000010");
+        public static BlockId ElectricBeltDown => GetBlock("7b3e1a10-0001-4000-8000-000000000011");
+        public static BlockId ElectricBeltSplitter => GetBlock("7b3e1a10-0001-4000-8000-000000000012");
+        public static BlockId FastBelt => GetBlock("7b3e1a10-0001-4000-8000-000000000013");
+        public static BlockId FastBeltUp => GetBlock("7b3e1a10-0001-4000-8000-000000000014");
+        public static BlockId FastBeltDown => GetBlock("7b3e1a10-0001-4000-8000-000000000015");
+        public static BlockId FastBeltSplitter => GetBlock("7b3e1a10-0001-4000-8000-000000000016");
     }
 }

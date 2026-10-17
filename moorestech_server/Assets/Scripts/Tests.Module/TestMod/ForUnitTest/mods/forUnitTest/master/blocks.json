@@ -5433,6 +5433,1744 @@
       "category": "テスト",
       "subCategory": "ElectricPump",
       "placementsPerCost": 1
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "WoodGearBelt",
+      "blockType": "GearBeltConveyor",
+      "blockParam": {
+        "beltSpeedPerSecond": 1.0,
+        "slopeType": "Straight",
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  -1,
+                  0
+                ],
+                [
+                  1,
+                  -1,
+                  0
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000001"
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000002"
+            }
+          ]
+        },
+        "overloadMaxRpm": 0,
+        "overloadMaxTorque": 0,
+        "destructionCheckInterval": 1,
+        "baseDestructionProbability": 0,
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000003",
+              "option": {
+                "isReverse": false
+              }
+            },
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  -1,
+                  0
+                ],
+                [
+                  1,
+                  -1,
+                  0
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000004",
+              "option": {
+                "isReverse": false
+              }
+            }
+          ]
+        },
+        "gearConsumption": {
+          "baseRpm": 10,
+          "minimumRpm": 0,
+          "baseTorque": 0.1685,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
+        }
+      },
+      "blockGuid": "7b3e1a10-0001-4000-8000-000000000001",
+      "category": "テスト",
+      "subCategory": "GearBeltConveyor",
+      "placementsPerCost": 1,
+      "openable": false
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "WoodGearBeltUp",
+      "blockType": "GearBeltConveyor",
+      "blockParam": {
+        "beltSpeedPerSecond": 1.0,
+        "slopeType": "Up",
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000005"
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  1,
+                  1
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000006"
+            }
+          ]
+        },
+        "overloadMaxRpm": 0,
+        "overloadMaxTorque": 0,
+        "destructionCheckInterval": 1,
+        "baseDestructionProbability": 0,
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  1,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000007",
+              "option": {
+                "isReverse": false
+              }
+            }
+          ]
+        },
+        "gearConsumption": {
+          "baseRpm": 10,
+          "minimumRpm": 0,
+          "baseTorque": 0.1685,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
+        }
+      },
+      "blockGuid": "7b3e1a10-0001-4000-8000-000000000002",
+      "category": "テスト",
+      "subCategory": "GearBeltConveyor",
+      "placementsPerCost": 1,
+      "openable": false
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "WoodGearBeltDown",
+      "blockType": "GearBeltConveyor",
+      "blockParam": {
+        "beltSpeedPerSecond": 1.0,
+        "slopeType": "Down",
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  1,
+                  -1
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000008"
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000009"
+            }
+          ]
+        },
+        "overloadMaxRpm": 0,
+        "overloadMaxTorque": 0,
+        "destructionCheckInterval": 1,
+        "baseDestructionProbability": 0,
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  1,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000010",
+              "option": {
+                "isReverse": false
+              }
+            }
+          ]
+        },
+        "gearConsumption": {
+          "baseRpm": 10,
+          "minimumRpm": 0,
+          "baseTorque": 0.1685,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
+        }
+      },
+      "blockGuid": "7b3e1a10-0001-4000-8000-000000000003",
+      "category": "テスト",
+      "subCategory": "GearBeltConveyor",
+      "placementsPerCost": 1,
+      "openable": false
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "WoodGearBeltSplitter",
+      "blockType": "GearBeltConveyor",
+      "blockParam": {
+        "beltSpeedPerSecond": 1.0,
+        "slopeType": "Straight",
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000011"
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000012"
+            },
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  -1,
+                  0
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000013"
+            },
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  -1,
+                  0
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000014"
+            }
+          ]
+        },
+        "overloadMaxRpm": 0,
+        "overloadMaxTorque": 0,
+        "destructionCheckInterval": 1,
+        "baseDestructionProbability": 0,
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000015",
+              "option": {
+                "isReverse": false
+              }
+            },
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  -1,
+                  0
+                ],
+                [
+                  1,
+                  -1,
+                  0
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000016",
+              "option": {
+                "isReverse": false
+              }
+            }
+          ]
+        },
+        "gearConsumption": {
+          "baseRpm": 10,
+          "minimumRpm": 0,
+          "baseTorque": 0.1685,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
+        }
+      },
+      "blockGuid": "7b3e1a10-0001-4000-8000-000000000004",
+      "category": "テスト",
+      "subCategory": "GearBeltConveyor",
+      "placementsPerCost": 1,
+      "openable": false
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "IronGearBelt",
+      "blockType": "GearBeltConveyor",
+      "blockParam": {
+        "beltSpeedPerSecond": 2.222222,
+        "slopeType": "Straight",
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  -1,
+                  0
+                ],
+                [
+                  1,
+                  -1,
+                  0
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000017"
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000018"
+            }
+          ]
+        },
+        "overloadMaxRpm": 0,
+        "overloadMaxTorque": 0,
+        "destructionCheckInterval": 1,
+        "baseDestructionProbability": 0,
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000019",
+              "option": {
+                "isReverse": false
+              }
+            },
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  -1,
+                  0
+                ],
+                [
+                  1,
+                  -1,
+                  0
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000020",
+              "option": {
+                "isReverse": false
+              }
+            }
+          ]
+        },
+        "gearConsumption": {
+          "baseRpm": 10,
+          "minimumRpm": 0,
+          "baseTorque": 0.1685,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
+        }
+      },
+      "blockGuid": "7b3e1a10-0001-4000-8000-000000000005",
+      "category": "テスト",
+      "subCategory": "GearBeltConveyor",
+      "placementsPerCost": 1,
+      "openable": false
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "IronGearBeltUp",
+      "blockType": "GearBeltConveyor",
+      "blockParam": {
+        "beltSpeedPerSecond": 2.222222,
+        "slopeType": "Up",
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000021"
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  1,
+                  1
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000022"
+            }
+          ]
+        },
+        "overloadMaxRpm": 0,
+        "overloadMaxTorque": 0,
+        "destructionCheckInterval": 1,
+        "baseDestructionProbability": 0,
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  1,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000023",
+              "option": {
+                "isReverse": false
+              }
+            }
+          ]
+        },
+        "gearConsumption": {
+          "baseRpm": 10,
+          "minimumRpm": 0,
+          "baseTorque": 0.1685,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
+        }
+      },
+      "blockGuid": "7b3e1a10-0001-4000-8000-000000000006",
+      "category": "テスト",
+      "subCategory": "GearBeltConveyor",
+      "placementsPerCost": 1,
+      "openable": false
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "IronGearBeltDown",
+      "blockType": "GearBeltConveyor",
+      "blockParam": {
+        "beltSpeedPerSecond": 2.222222,
+        "slopeType": "Down",
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  1,
+                  -1
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000024"
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000025"
+            }
+          ]
+        },
+        "overloadMaxRpm": 0,
+        "overloadMaxTorque": 0,
+        "destructionCheckInterval": 1,
+        "baseDestructionProbability": 0,
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  1,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000026",
+              "option": {
+                "isReverse": false
+              }
+            }
+          ]
+        },
+        "gearConsumption": {
+          "baseRpm": 10,
+          "minimumRpm": 0,
+          "baseTorque": 0.1685,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
+        }
+      },
+      "blockGuid": "7b3e1a10-0001-4000-8000-000000000007",
+      "category": "テスト",
+      "subCategory": "GearBeltConveyor",
+      "placementsPerCost": 1,
+      "openable": false
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "IronGearBeltSplitter",
+      "blockType": "GearBeltConveyor",
+      "blockParam": {
+        "beltSpeedPerSecond": 2.222222,
+        "slopeType": "Straight",
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000027"
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000028"
+            },
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  -1,
+                  0
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000029"
+            },
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  -1,
+                  0
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000030"
+            }
+          ]
+        },
+        "overloadMaxRpm": 0,
+        "overloadMaxTorque": 0,
+        "destructionCheckInterval": 1,
+        "baseDestructionProbability": 0,
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000031",
+              "option": {
+                "isReverse": false
+              }
+            },
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  -1,
+                  0
+                ],
+                [
+                  1,
+                  -1,
+                  0
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000032",
+              "option": {
+                "isReverse": false
+              }
+            }
+          ]
+        },
+        "gearConsumption": {
+          "baseRpm": 10,
+          "minimumRpm": 0,
+          "baseTorque": 0.1685,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
+        }
+      },
+      "blockGuid": "7b3e1a10-0001-4000-8000-000000000008",
+      "category": "テスト",
+      "subCategory": "GearBeltConveyor",
+      "placementsPerCost": 1,
+      "openable": false
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "ElectricBelt",
+      "blockType": "BeltConveyor",
+      "blockParam": {
+        "beltSpeedPerSecond": 6.666667,
+        "slopeType": "Straight",
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  -1,
+                  0
+                ],
+                [
+                  1,
+                  -1,
+                  0
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000033"
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000034"
+            }
+          ]
+        }
+      },
+      "blockGuid": "7b3e1a10-0001-4000-8000-000000000009",
+      "category": "テスト",
+      "subCategory": "BeltConveyor",
+      "placementsPerCost": 1,
+      "openable": false
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "ElectricBeltUp",
+      "blockType": "BeltConveyor",
+      "blockParam": {
+        "beltSpeedPerSecond": 6.666667,
+        "slopeType": "Up",
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000035"
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  1,
+                  1
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000036"
+            }
+          ]
+        }
+      },
+      "blockGuid": "7b3e1a10-0001-4000-8000-000000000010",
+      "category": "テスト",
+      "subCategory": "BeltConveyor",
+      "placementsPerCost": 1,
+      "openable": false
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "ElectricBeltDown",
+      "blockType": "BeltConveyor",
+      "blockParam": {
+        "beltSpeedPerSecond": 6.666667,
+        "slopeType": "Down",
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  1,
+                  -1
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000037"
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000038"
+            }
+          ]
+        }
+      },
+      "blockGuid": "7b3e1a10-0001-4000-8000-000000000011",
+      "category": "テスト",
+      "subCategory": "BeltConveyor",
+      "placementsPerCost": 1,
+      "openable": false
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "ElectricBeltSplitter",
+      "blockType": "BeltConveyor",
+      "blockParam": {
+        "beltSpeedPerSecond": 6.666667,
+        "slopeType": "Straight",
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000039"
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000040"
+            },
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  -1,
+                  0
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000041"
+            },
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  -1,
+                  0
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000042"
+            }
+          ]
+        }
+      },
+      "blockGuid": "7b3e1a10-0001-4000-8000-000000000012",
+      "category": "テスト",
+      "subCategory": "BeltConveyor",
+      "placementsPerCost": 1,
+      "openable": false
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "FastBelt",
+      "blockType": "BeltConveyor",
+      "blockParam": {
+        "beltSpeedPerSecond": 10,
+        "slopeType": "Straight",
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  -1,
+                  0
+                ],
+                [
+                  1,
+                  -1,
+                  0
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000043"
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000044"
+            }
+          ]
+        }
+      },
+      "blockGuid": "7b3e1a10-0001-4000-8000-000000000013",
+      "category": "テスト",
+      "subCategory": "BeltConveyor",
+      "placementsPerCost": 1,
+      "openable": false
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "FastBeltUp",
+      "blockType": "BeltConveyor",
+      "blockParam": {
+        "beltSpeedPerSecond": 10,
+        "slopeType": "Up",
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000045"
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  1,
+                  1
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000046"
+            }
+          ]
+        }
+      },
+      "blockGuid": "7b3e1a10-0001-4000-8000-000000000014",
+      "category": "テスト",
+      "subCategory": "BeltConveyor",
+      "placementsPerCost": 1,
+      "openable": false
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "FastBeltDown",
+      "blockType": "BeltConveyor",
+      "blockParam": {
+        "beltSpeedPerSecond": 10,
+        "slopeType": "Down",
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  1,
+                  -1
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000047"
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000048"
+            }
+          ]
+        }
+      },
+      "blockGuid": "7b3e1a10-0001-4000-8000-000000000015",
+      "category": "テスト",
+      "subCategory": "BeltConveyor",
+      "placementsPerCost": 1,
+      "openable": false
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "FastBeltSplitter",
+      "blockType": "BeltConveyor",
+      "blockParam": {
+        "beltSpeedPerSecond": 10,
+        "slopeType": "Straight",
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000049"
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000050"
+            },
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  -1,
+                  0
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000051"
+            },
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  -1,
+                  0
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c0-4000-8000-000000000052"
+            }
+          ]
+        }
+      },
+      "blockGuid": "7b3e1a10-0001-4000-8000-000000000016",
+      "category": "テスト",
+      "subCategory": "BeltConveyor",
+      "placementsPerCost": 1,
+      "openable": false
     }
   ],
   "connectorSettings": {
@@ -5474,6 +7212,38 @@
     },
     {
       "straightBlockGuid": "00000000-0000-0000-0000-0000000000b1"
+    },
+    {
+      "upBlockGuid": "7b3e1a10-0001-4000-8000-000000000002",
+      "downBlockGuid": "7b3e1a10-0001-4000-8000-000000000003",
+      "straightBlockGuid": "7b3e1a10-0001-4000-8000-000000000001"
+    },
+    {
+      "straightBlockGuid": "7b3e1a10-0001-4000-8000-000000000004"
+    },
+    {
+      "upBlockGuid": "7b3e1a10-0001-4000-8000-000000000006",
+      "downBlockGuid": "7b3e1a10-0001-4000-8000-000000000007",
+      "straightBlockGuid": "7b3e1a10-0001-4000-8000-000000000005"
+    },
+    {
+      "straightBlockGuid": "7b3e1a10-0001-4000-8000-000000000008"
+    },
+    {
+      "upBlockGuid": "7b3e1a10-0001-4000-8000-000000000010",
+      "downBlockGuid": "7b3e1a10-0001-4000-8000-000000000011",
+      "straightBlockGuid": "7b3e1a10-0001-4000-8000-000000000009"
+    },
+    {
+      "straightBlockGuid": "7b3e1a10-0001-4000-8000-000000000012"
+    },
+    {
+      "upBlockGuid": "7b3e1a10-0001-4000-8000-000000000014",
+      "downBlockGuid": "7b3e1a10-0001-4000-8000-000000000015",
+      "straightBlockGuid": "7b3e1a10-0001-4000-8000-000000000013"
+    },
+    {
+      "straightBlockGuid": "7b3e1a10-0001-4000-8000-000000000016"
     }
   ],
   "blockDestructionCategories": [
