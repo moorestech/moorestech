@@ -130,7 +130,17 @@ namespace Game.Train.RailPositions
             {
                 isCoverLength = totalListDistance >= distanceFromFront;//長さがたりてるか
                 var nodeleng = _railNodes[i + 1].GetDistanceToNode(_railNodes[i]);
-                if (nodeleng == 0) continue;
+                if (nodeleng == 0)
+                {
+                    // 最後尾まで長さを満たした後に続く距離0ノード（同座標の隣駅側）は本体の外なので落とし、位置の表現を1つに揃える
+                    // Zero-length nodes trailing past the rear (the neighbour station's coincident node) lie outside the body; drop them so one position has one representation
+                    if (isCoverLength)
+                    {
+                        _railNodes.RemoveRange(i + 1, _railNodes.Count - i - 1);
+                        break;
+                    }
+                    continue;
+                }
                 totalListDistance += nodeleng;
                 
                 //はじめてtotalListDistanceがdistanceFromFrontを超えたなら

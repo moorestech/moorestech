@@ -37,7 +37,7 @@ namespace Server.Protocol.PacketResponse.Util.TrainPlacement
             for (var i = 0; i < nodes.Count - 1; i++)
             {
                 var segmentDistance = nodes[i + 1].GetDistanceToNode(nodes[i]);
-                if (segmentDistance <= 0 || i == 0 && segmentDistance < saveData.DistanceToNextNode) return false;
+                if (segmentDistance < 0 || i == 0 && segmentDistance < saveData.DistanceToNextNode) return false;
                 totalDistance += segmentDistance;
             }
             if (totalDistance < saveData.TrainLength + saveData.DistanceToNextNode) return false;
