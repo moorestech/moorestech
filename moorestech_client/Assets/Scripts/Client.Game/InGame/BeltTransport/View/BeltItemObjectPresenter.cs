@@ -9,8 +9,8 @@ namespace Client.Game.InGame.BeltTransport.View
     // Whenever the replica has advanced, creates, moves and destroys the displayed objects of running items; no interpolation between ticks
     // 呼び出しは購読でなく、列車の描画更新と同じ場所(TrainUnitClientSimulator)から毎フレーム明示的に行う
     // Not driven by a subscription: TrainUnitClientSimulator calls this every frame in the same explicit order as the train visuals
-    // buffer内と、マスを持たない内部segment上のアイテムは表示しない(合流・分岐マスは箱で隠す前提)
-    // Items inside a buffer or on a cell-less internal segment are not displayed (merge and branch cells are meant to be hidden by a box)
+    // buffer内と、マスを持たない内部segment上のアイテムは表示しない(合流マスは同じファミリーの分岐器モデルで隠す前提)
+    // Items inside a buffer or on a cell-less internal segment are not displayed (merge cells are hidden by the family's splitter model)
     public sealed class BeltItemObjectPresenter
     {
         private readonly BeltTransportClientCache _cache;

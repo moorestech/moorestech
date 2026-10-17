@@ -9,7 +9,6 @@ using Game.Block.Interface.Extension;
 using Game.Gear.Common;
 using Game.World.Interface.DataStore;
 using Mooresmaster.Model.BlocksModule;
-using Mooresmaster.Model.InventoryConnectsModule;
 using UnityEngine;
 
 namespace Game.Block.Blocks.BeltConveyor.Topology
@@ -127,7 +126,7 @@ namespace Game.Block.Blocks.BeltConveyor.Topology
                     // 歯車を持つマスは組が回転数から速度を決める。segmentの結合条件にも使う
                     // A cell with a gear gets its speed from the rotation; the chain rule uses it too
                     var isGearDriven = block.ExistsComponent<IGearEnergyTransformer>();
-                    result.Add(new BeltTopologyCell(block.BlockPositionInfo.OriginalPos, block.BlockInstanceId, block, works[i].Forward, speed, isGearDriven, IsSplitter(param),
+                    result.Add(new BeltTopologyCell(block.BlockPositionInfo.OriginalPos, block.BlockInstanceId, block, works[i].Forward, speed, isGearDriven, BeltSplitterCounterpart.IsSplitter(param),
                         inputs[i], outputs[i]));
                 }
                 return result;
@@ -136,19 +135,6 @@ namespace Game.Block.Blocks.BeltConveyor.Topology
             bool IsBelt(IBlock block)
             {
                 return block.BlockMasterElement.BlockParam is IBeltSpeedParam;
-            }
-
-            bool IsSplitter(IBlockParam param)
-            {
-                var connectors = ((IInventoryConnectors)param).InventoryConnectors;
-                return 1 < OutputConnectorCount(connectors);
-            }
-
-            int OutputConnectorCount(InventoryConnects connectors)
-            {
-                // 未定義の出力は搬出口なしとして0個に数える
-                // Undefined outputs mean no emitting port and count as zero
-                return connectors.OutputConnects == null ? 0 : connectors.OutputConnects.Length;
             }
 
             Vector3Int EndpointCell(IBlock block, bool isBelt, IBlockConnector connector)

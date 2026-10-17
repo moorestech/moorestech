@@ -1,4 +1,5 @@
 using System;
+using Client.Game.InGame.BeltTransport.Cover;
 using Client.Game.InGame.BeltTransport.View;
 using Client.Game.InGame.Train.Network;
 using Client.Game.InGame.Train.View;
@@ -28,6 +29,7 @@ namespace Client.Game.InGame.Train.Unit
         private readonly TrainUnitFutureMessageBuffer _futureMessageBuffer;
         private readonly TrainUnitVisualUpdateSystem _visualUpdateSystem;
         private readonly BeltItemObjectPresenter _beltItemObjectPresenter;
+        private readonly BeltMergeCellCoverPresenter _beltMergeCellCoverPresenter;
 
         private double _estimatedClientTick;
         private double _modifyTick = 0.1;
@@ -40,13 +42,15 @@ namespace Client.Game.InGame.Train.Unit
             ITrainUnitHashTickGate hashTickGate,
             TrainUnitFutureMessageBuffer futureMessageBuffer,
             TrainUnitVisualUpdateSystem visualUpdateSystem,
-            BeltItemObjectPresenter beltItemObjectPresenter)
+            BeltItemObjectPresenter beltItemObjectPresenter,
+            BeltMergeCellCoverPresenter beltMergeCellCoverPresenter)
         {
             _tickState = tickState;
             _hashTickGate = hashTickGate;
             _futureMessageBuffer = futureMessageBuffer;
             _visualUpdateSystem = visualUpdateSystem;
             _beltItemObjectPresenter = beltItemObjectPresenter;
+            _beltMergeCellCoverPresenter = beltMergeCellCoverPresenter;
         }
 
         public void Tick()
@@ -125,6 +129,10 @@ namespace Client.Game.InGame.Train.Unit
             // ベルト上のアイテムの表示は列車の描画更新の後に同じ順で更新する(複製が進んだ回だけ作り直す)
             // Belt item display updates after the train visuals in this same fixed order (rebuilt only when the replica advanced)
             _beltItemObjectPresenter.UpdateAll();
+
+            // 合流マスの覆いはアイテム表示の後に同じ順で更新する(複製が進んだ回に合流マスを取り直す)
+            // Merge-cell covers update after the item display in this same fixed order (merge cells re-read when the replica advanced)
+            _beltMergeCellCoverPresenter.UpdateAll();
         }
     }
 }
