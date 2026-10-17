@@ -27,6 +27,7 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
 
             var run = scenario.Run(order);
             BeltThroughputAssert.Throughput(Expected(run), run, "A4a");
+            BeltThroughputAssert.WatchedSegmentsAtFullThroughput(run, Period, "A4a exit");
             BeltThroughputAssert.EachWithinOne(run.SourceCounts, Expected(run) / 2, "A4a shares");
         }
 
@@ -43,6 +44,7 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
 
             var run = scenario.Run(order);
             BeltThroughputAssert.Throughput(Expected(run), run, "A4b");
+            BeltThroughputAssert.WatchedSegmentsAtFullThroughput(run, Period, "A4b exit");
             BeltThroughputAssert.EachWithinOne(run.SourceCounts, Expected(run) / 2, "A4b shares");
         }
 
@@ -59,17 +61,18 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
 
             var run = scenario.Run(order);
             BeltThroughputAssert.Throughput(Expected(run), run, "A5a");
+            BeltThroughputAssert.WatchedSegmentsAtFullThroughput(run, Period, "A5a exit");
             BeltThroughputAssert.EachWithinOne(run.SourceCounts, Expected(run) / 2, "A5a shares");
         }
 
-        // B7(旧 A5b): 左右から入る合流の前方が直接受けチェスト。合流bufferは段階1で回収し同じtickの段階3で機械へ渡すので、1マスを19tickで通過し理論最大(144)を超える
+        // B7(旧 A5b): 左右から入る合流の前方が直接受けチェスト。合流bufferは段階1で回収し同じtickの段階3で機械へ渡すので、1マスを19tickで通過し理論最大(2880/20=144)を超える(2880/19=151)
         // B7 (was A5b): a merge fed from both sides whose front is the sink itself; the buffer collects in stage 1 and hands to the machine in stage 3 of the same tick, so a cell takes 19 ticks and the count exceeds the nominal maximum (144)
         // 特性値としてピン止め。変えるPRは理由をADRに書く(出所: ユーザー裁定 2026-10-18「F2は許容します」)
         // Pinned as a characteristic value; a PR that changes it records the reason in an ADR (user ruling 2026-10-18 "F2 is accepted")
         [Test]
         public void B7_MergeIntoMachineRunsNineteenTicksPerItem([Values] BeltPlacementOrder order)
         {
-            const int pinnedTotal = 152;
+            const int pinnedTotal = 151;
             var scenario = new BeltThroughputScenario();
             SideFeeder(scenario, BlockDirection.East);
             SideFeeder(scenario, BlockDirection.West);
@@ -77,7 +80,7 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
             Generator(scenario, new Vector3Int(0, 0, -1));
 
             var run = scenario.Run(order);
-            BeltThroughputAssert.Throughput(pinnedTotal, run, "B7 pinned (2888 ticks / 19)");
+            BeltThroughputAssert.Throughput(pinnedTotal, run, "B7 pinned (2880 ticks / 19)");
         }
 
         // A6: 機械(チェスト)2台が左右から入る合流。ベルト入力なし
@@ -91,6 +94,7 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
 
             var run = scenario.Run(order);
             BeltThroughputAssert.Throughput(Expected(run), run, "A6");
+            BeltThroughputAssert.WatchedSegmentsAtFullThroughput(run, Period, "A6 exit");
             BeltThroughputAssert.EachWithinOne(run.SourceCounts, Expected(run) / 2, "A6 shares");
         }
 
@@ -108,11 +112,12 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
                 scenario.Block(ForUnitTestModBlockId.WoodGearBelt, new Vector3Int(0, 0, z), BlockDirection.North);
             }
             var exit = Line(scenario, ForUnitTestModBlockId.WoodGearBelt, new Vector3Int(0, 0, 5), BlockDirection.North, 10);
-            scenario.Sink(exit);
+            scenario.Sink(exit).Watch(new Vector3Int(0, 0, 9));
             Generator(scenario, new Vector3Int(1, 0, 0));
 
             var run = scenario.Run(order);
             BeltThroughputAssert.Throughput(Expected(run), run, "A18");
+            BeltThroughputAssert.WatchedSegmentsAtFullThroughput(run, Period, "A18 exit");
             BeltThroughputAssert.NoSourceStarves(run, "A18");
         }
 
@@ -136,10 +141,12 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
             Line(scenario, ForUnitTestModBlockId.WoodGearBelt, new Vector3Int(0, 0, -5), BlockDirection.North, 5);
         }
 
+        // 出口の列は常に100%でなければならないので監視する
+        // The exit run must always run at 100%, so it is watched
         private static void MergeAndExit(BeltThroughputScenario scenario, int exitLength)
         {
             var exit = Line(scenario, ForUnitTestModBlockId.WoodGearBelt, Merge, BlockDirection.North, exitLength);
-            scenario.Sink(exit);
+            scenario.Sink(exit).Watch(Merge + new Vector3Int(0, 0, exitLength / 2));
         }
     }
 }

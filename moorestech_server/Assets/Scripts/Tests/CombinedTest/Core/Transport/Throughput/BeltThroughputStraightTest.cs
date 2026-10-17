@@ -48,11 +48,12 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
             BeltThroughputLayout.Line(scenario, ForUnitTestModBlockId.WoodGearBelt, new Vector3Int(0, 1, 6), BlockDirection.North, 5);
             scenario.Block(ForUnitTestModBlockId.WoodGearBeltDown, new Vector3Int(0, 0, 11), BlockDirection.North);
             var exit = BeltThroughputLayout.Line(scenario, ForUnitTestModBlockId.WoodGearBelt, new Vector3Int(0, 0, 12), BlockDirection.North, 5);
-            scenario.Sink(exit);
+            scenario.Sink(exit).Watch(new Vector3Int(0, 1, 8));
             BeltThroughputLayout.Generator(scenario, new Vector3Int(1, 0, 0));
 
             var run = scenario.Run(order);
             BeltThroughputAssert.Throughput(BeltThroughputWindow.ExpectedTotal(run.Window, 20), run, $"A10 order={order}");
+            BeltThroughputAssert.WatchedSegmentsAtFullThroughput(run, 20, $"A10 order={order}");
         }
 
         // 供給(0,0,-1) → 北向き直線 z=0..99 → 受け(0,0,100)。歯車族は先頭マスの東隣に無限トルクの発電機
@@ -61,11 +62,12 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
         {
             var scenario = new BeltThroughputScenario().Source(new Vector3Int(0, 0, -1));
             for (var z = 0; z < Length; z++) scenario.Block(belt, new Vector3Int(0, 0, z), BlockDirection.North);
-            scenario.Sink(new Vector3Int(0, 0, Length));
+            scenario.Sink(new Vector3Int(0, 0, Length)).Watch(new Vector3Int(0, 0, Length / 2));
             if (gearDriven) scenario.Block(ForUnitTestModBlockId.InfinityTorqueSimpleGearGenerator, new Vector3Int(1, 0, 0), BlockDirection.North);
 
             var run = scenario.Run(order);
             BeltThroughputAssert.Throughput(BeltThroughputWindow.ExpectedTotal(run.Window, periodTicks), run, $"A1 order={order}");
+            BeltThroughputAssert.WatchedSegmentsAtFullThroughput(run, periodTicks, $"A1 order={order}");
         }
     }
 }

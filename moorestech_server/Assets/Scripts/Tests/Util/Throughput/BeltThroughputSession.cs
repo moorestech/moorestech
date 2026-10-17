@@ -26,10 +26,11 @@ namespace Tests.Util.Throughput
         private readonly List<IOpenableBlockInventoryComponent> _sources = new();
         private readonly List<IOpenableBlockInventoryComponent> _sinks = new();
         private readonly BeltTransportReplica _replica;
+        private readonly BeltSegmentExitCounter _exitCounter;
         public int DefaultWindow { get; }
         public int Tick { get; private set; }
 
-        public BeltThroughputSession(IReadOnlyList<Vector3Int> sources, IReadOnlyList<Vector3Int> sinks, IReadOnlyList<Vector3Int> blockedSinks, int defaultWindow)
+        public BeltThroughputSession(IReadOnlyList<Vector3Int> sources, IReadOnlyList<Vector3Int> sinks, IReadOnlyList<Vector3Int> blockedSinks, IReadOnlyList<Vector3Int> watchedCells, int defaultWindow)
         {
             DefaultWindow = defaultWindow;
             foreach (var position in sources)
@@ -46,6 +47,7 @@ namespace Tests.Util.Throughput
             BeltDiffReplayTestUtil.TickServer();
             Tick++;
             _replica = BeltDiffReplayTestUtil.StartReplica();
+            _exitCounter = new BeltSegmentExitCounter(watchedCells);
         }
 
         public static IOpenableBlockInventoryComponent InventoryAt(Vector3Int position)
@@ -58,6 +60,7 @@ namespace Tests.Util.Throughput
             var diff = BeltDiffReplayTestUtil.TickServer();
             Tick++;
             BeltDiffReplayTestUtil.ReplayAndAssert(_replica, diff, Tick);
+            _exitCounter.Observe();
         }
 
         public void TickMany(int count)
@@ -65,25 +68,25 @@ namespace Tests.Util.Throughput
             for (var i = 0; i < count; i++) TickOnce();
         }
 
-        // 全受けチェストが今より2個以上増えるまで進める。受けが無い配置は即座に戻る
-        // Advance until every sink has received at least two more items than now; returns at once for layouts without sinks
-        public void TickUntilEverySinkReceived()
+        // 定常状態まで進める: 全受けチェストが今より2個以上増え、監視 segment がそれぞれ2個以上搬出するまで。何tick目かの厳密性は求めない(ユーザー裁定 2026-10-18)
+        // Advance to the steady state: every sink has received two more items and every watched segment has emitted two; the exact tick is not demanded (user ruling 2026-10-18)
+        public void TickUntilSteady()
         {
-            var floor = SinkCounts();
+            var sinkFloor = SinkCounts();
+            var exitFloor = _exitCounter.Exits();
             var deadline = Tick + StartDeadlineTicks;
-            while (!EverySinkReceived())
+            while (!Reached(SinkCounts(), sinkFloor) || !Reached(_exitCounter.Exits(), exitFloor))
             {
                 TickOnce();
-                if (deadline < Tick) Assert.Fail($"no measurement start within {StartDeadlineTicks} ticks: sinks={string.Join(",", SinkCounts())}");
+                if (deadline < Tick) Assert.Fail($"no steady state within {StartDeadlineTicks} ticks: sinks={string.Join(",", SinkCounts())} watchedExits={string.Join(",", _exitCounter.Exits())}");
             }
             return;
 
-            bool EverySinkReceived()
+            bool Reached(List<int> now, List<int> floor)
             {
-                var counts = SinkCounts();
-                for (var i = 0; i < counts.Count; i++)
+                for (var i = 0; i < now.Count; i++)
                 {
-                    if (counts[i] - floor[i] < MinimumArrivalsBeforeStart) return false;
+                    if (now[i] - floor[i] < MinimumArrivalsBeforeStart) return false;
                 }
                 return true;
             }
@@ -100,12 +103,15 @@ namespace Tests.Util.Throughput
             var sinkBaseline = SinkCounts();
             var sourceBaseline = SourceCounts();
             var onBeltsBaseline = ItemsOnBelts();
+            var exitBaseline = _exitCounter.Exits();
             TickMany(window);
             var sinkCounts = SinkCounts();
             var sourceCounts = SourceCounts();
             for (var i = 0; i < sinkCounts.Count; i++) sinkCounts[i] -= sinkBaseline[i];
             for (var i = 0; i < sourceCounts.Count; i++) sourceCounts[i] = sourceBaseline[i] - sourceCounts[i];
-            return new BeltThroughputRun(window, startTick, sinkCounts, sourceCounts, ItemsOnBelts() - onBeltsBaseline);
+            var watchedExits = _exitCounter.Exits();
+            for (var i = 0; i < watchedExits.Count; i++) watchedExits[i] -= exitBaseline[i];
+            return new BeltThroughputRun(window, startTick, sinkCounts, sourceCounts, ItemsOnBelts() - onBeltsBaseline, watchedExits);
         }
 
         // どれかの供給から1個出た tick まで進める。供給が無い配置は即座に戻る

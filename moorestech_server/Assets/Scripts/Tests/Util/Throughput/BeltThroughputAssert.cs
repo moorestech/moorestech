@@ -15,6 +15,15 @@ namespace Tests.Util.Throughput
             Assert.AreEqual(run.SourceTotal - run.SinkTotal, run.OnBeltsDelta, $"{context}: conservation; sources={string.Join(",", run.SourceCounts)} sinks={string.Join(",", run.SinkCounts)} onBeltsDelta={run.OnBeltsDelta}");
         }
 
+        // 監視 segment のスループット100%: 窓(周期の倍数)の間の搬出数が W/P にちょうど一致。位相に依らない
+        // 100% throughput of the watched segments: exits over the window (a multiple of the period) equal W/P exactly, regardless of phase
+        public static void WatchedSegmentsAtFullThroughput(BeltThroughputRun run, int periodTicks, string context)
+        {
+            Assert.AreEqual(0, run.Window % periodTicks, $"{context}: window {run.Window} must be a multiple of the period {periodTicks}");
+            for (var i = 0; i < run.WatchedExits.Count; i++)
+                Assert.AreEqual(run.Window / periodTicks, run.WatchedExits[i], $"{context}: watched segment #{i} exits over {run.Window} ticks; watched={string.Join(",", run.WatchedExits)}");
+        }
+
         public static void EachWithinOne(IReadOnlyList<int> counts, int expectedEach, string context)
         {
             for (var i = 0; i < counts.Count; i++)

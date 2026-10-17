@@ -29,6 +29,7 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
 
             var run = scenario.Run(order);
             BeltThroughputAssert.Throughput(Expected(run), run, "A7");
+            BeltThroughputAssert.WatchedSegmentsAtFullThroughput(run, Period, "A7 feeder");
             BeltThroughputAssert.EachWithinOne(run.SinkCounts, Expected(run) / 3, "A7 shares");
         }
 
@@ -46,11 +47,12 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
                 scenario.Block(ForUnitTestModBlockId.WoodGearBelt, new Vector3Int(x, 0, 3), x == 1 ? BlockDirection.West : BlockDirection.East);
             }
             var exit = Line(scenario, ForUnitTestModBlockId.WoodGearBelt, new Vector3Int(0, 0, 3), BlockDirection.North, 6);
-            scenario.Sink(exit);
+            scenario.Sink(exit).Watch(new Vector3Int(0, 0, 6));
             Generator(scenario, new Vector3Int(2, 0, 0));
 
             var run = scenario.Run(order);
             BeltThroughputAssert.Throughput(Expected(run), run, "A8a");
+            BeltThroughputAssert.WatchedSegmentsAtFullThroughput(run, Period, "A8a feeder and exit");
         }
 
         // A8b: 分岐マスの直後が合流マス。前方は直結、左右は1マスで折り返して横から入る
@@ -67,11 +69,12 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
                 scenario.Block(ForUnitTestModBlockId.WoodGearBelt, new Vector3Int(x, 0, 1), x == 1 ? BlockDirection.West : BlockDirection.East);
             }
             var exit = Line(scenario, ForUnitTestModBlockId.WoodGearBelt, new Vector3Int(0, 0, 1), BlockDirection.North, 6);
-            scenario.Sink(exit);
+            scenario.Sink(exit).Watch(new Vector3Int(0, 0, 4));
             Generator(scenario, new Vector3Int(2, 0, 0));
 
             var run = scenario.Run(order);
             BeltThroughputAssert.Throughput(Expected(run), run, "A8b");
+            BeltThroughputAssert.WatchedSegmentsAtFullThroughput(run, Period, "A8b feeder and exit");
         }
 
         // A3: 分岐マス100個の直列(残り2出力は未接続)。分岐bufferを100回通る
@@ -81,11 +84,12 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
         {
             var scenario = NewScenario().Source(new Vector3Int(0, 0, -1));
             var exit = Line(scenario, ForUnitTestModBlockId.WoodGearBeltSplitter, Splitter, BlockDirection.North, 100);
-            scenario.Sink(exit);
+            scenario.Sink(exit).Watch(new Vector3Int(0, 0, 50));
             Generator(scenario, new Vector3Int(1, 0, 0));
 
             var run = scenario.Run(order);
             BeltThroughputAssert.Throughput(Expected(run), run, "A3");
+            BeltThroughputAssert.WatchedSegmentsAtFullThroughput(run, Period, "A3 middle splitter");
         }
 
         // A17: 分岐マス5連。接続出力数と詰まりの組み合わせで、合計は常に入力の100%
@@ -115,6 +119,7 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
 
             var run = scenario.Run(order);
             BeltThroughputAssert.Throughput(Expected(run), run, $"A17 outputs={outputs} blocked={blockedSides} order={order}");
+            BeltThroughputAssert.WatchedSegmentsAtFullThroughput(run, Period, $"A17 feeder outputs={outputs} blocked={blockedSides}");
         }
 
         private static BeltThroughputScenario NewScenario()
@@ -127,10 +132,13 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
             return BeltThroughputWindow.ExpectedTotal(run.Window, Period);
         }
 
+        // 供給直後の列(最初の分岐マスまで)は常に100%でなければならないので監視する
+        // The feeder run up to the first splitter must always run at 100%, so it is watched
         private static void BackFeeder(BeltThroughputScenario scenario)
         {
             scenario.Source(new Vector3Int(0, 0, -6));
             Line(scenario, ForUnitTestModBlockId.WoodGearBelt, new Vector3Int(0, 0, -5), BlockDirection.North, 5);
+            scenario.Watch(new Vector3Int(0, 0, -3));
         }
 
         // 分岐マスの1出力の先に length マスの列と受けを置く。blocked なら最初から詰まった1スロット受け

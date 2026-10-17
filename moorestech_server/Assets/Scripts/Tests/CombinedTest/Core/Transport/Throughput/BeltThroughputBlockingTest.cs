@@ -22,7 +22,7 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
         {
             var sink = new Vector3Int(0, 0, Length);
             var session = StraightLine(new BeltThroughputScenario(), 0, sink).Start(order);
-            session.TickUntilEverySinkReceived();
+            session.TickUntilSteady();
             var before = session.Measure(session.DefaultWindow);
             BeltThroughputAssert.Throughput(Expected(before), before, "A13 before blocking");
 
@@ -36,7 +36,7 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
             Assert.AreEqual(0, session.SinkCounts()[0], "A13 nothing enters the blocked sink");
 
             session.UnblockSink(sink);
-            session.TickUntilEverySinkReceived();
+            session.TickUntilSteady();
             var after = session.Measure(session.DefaultWindow);
             BeltThroughputAssert.Throughput(Expected(after), after, "A13 after release");
         }
@@ -51,7 +51,7 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
             var scenario = StraightLine(new BeltThroughputScenario(), 0, sinkA);
             StraightLine(scenario, 10, sinkB);
             var session = scenario.Start(order);
-            session.TickUntilEverySinkReceived();
+            session.TickUntilSteady();
 
             session.BlockSink(sinkB);
             var run = session.Measure(session.DefaultWindow);

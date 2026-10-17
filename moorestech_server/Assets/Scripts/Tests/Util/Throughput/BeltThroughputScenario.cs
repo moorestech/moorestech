@@ -17,6 +17,7 @@ namespace Tests.Util.Throughput
         private readonly List<Vector3Int> _sources = new();
         private readonly List<Vector3Int> _sinks = new();
         private readonly List<Vector3Int> _blockedSinks = new();
+        private readonly List<Vector3Int> _watchedCells = new();
         private int _window = BeltThroughputWindow.Plain;
 
         // ブロックIDの解決(ForUnitTestModBlockId)がマスタ読込済みを前提にするので、配置を組む前にサーバーを起こす
@@ -66,6 +67,14 @@ namespace Tests.Util.Throughput
             return Block(ForUnitTestModBlockId.ThroughputOneSlotSinkChest, position, BlockDirection.North);
         }
 
+        // 定常状態で100%でなければならない segment を、そのマスで指定する(ユーザー裁定 2026-10-18)
+        // Names a segment, by one of its cells, that must run at 100% in the steady state (user ruling 2026-10-18)
+        public BeltThroughputScenario Watch(Vector3Int cell)
+        {
+            _watchedCells.Add(cell);
+            return this;
+        }
+
         public BeltThroughputScenario Window(int ticks)
         {
             _window = ticks;
@@ -75,7 +84,7 @@ namespace Tests.Util.Throughput
         public BeltThroughputRun Run(BeltPlacementOrder order)
         {
             var session = Start(order);
-            session.TickUntilEverySinkReceived();
+            session.TickUntilSteady();
             return session.Measure(_window);
         }
 
@@ -85,7 +94,7 @@ namespace Tests.Util.Throughput
         {
             foreach (var (blockId, position, direction) in order.Apply(_placements))
                 Assert.IsNotNull(Place(blockId, position, direction), $"placed {MasterHolder.BlockMaster.GetBlockMaster(blockId).Name} at {position}");
-            return new BeltThroughputSession(_sources, _sinks, _blockedSinks, _window);
+            return new BeltThroughputSession(_sources, _sinks, _blockedSinks, _watchedCells, _window);
         }
     }
 }
