@@ -52,7 +52,7 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
             BeltThroughputLayout.Generator(scenario, new Vector3Int(1, 0, 0));
 
             var run = scenario.Run(order);
-            BeltThroughputAssert.Total(BeltThroughputWindow.ExpectedTotal(run.Window, 20), run, $"A10 order={order}");
+            BeltThroughputAssert.Throughput(BeltThroughputWindow.ExpectedTotal(run.Window, 20), run, $"A10 order={order}");
         }
 
         // 供給(0,0,-1) → 北向き直線 z=0..99 → 受け(0,0,100)。歯車族は先頭マスの東隣に無限トルクの発電機
@@ -65,7 +65,7 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
             if (gearDriven) scenario.Block(ForUnitTestModBlockId.InfinityTorqueSimpleGearGenerator, new Vector3Int(1, 0, 0), BlockDirection.North);
 
             var run = scenario.Run(order);
-            Assert.AreEqual(BeltThroughputWindow.ExpectedTotal(run.Window, periodTicks), run.Total, $"order={order} start={run.StartTick}");
+            BeltThroughputAssert.Throughput(BeltThroughputWindow.ExpectedTotal(run.Window, periodTicks), run, $"A1 order={order}");
         }
     }
 }

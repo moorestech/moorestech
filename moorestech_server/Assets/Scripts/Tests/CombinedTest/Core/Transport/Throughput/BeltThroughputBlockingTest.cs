@@ -24,7 +24,7 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
             var session = StraightLine(new BeltThroughputScenario(), 0, sink).Start(order);
             session.TickUntilEverySinkReceived();
             var before = session.Measure(session.DefaultWindow);
-            BeltThroughputAssert.Total(Expected(before), before, "A13 before blocking");
+            BeltThroughputAssert.Throughput(Expected(before), before, "A13 before blocking");
 
             // 詰まり中: 供給から出た分はすべてベルト上に残る(消えない)
             // While blocked, everything the source emitted stays on the belts (nothing vanishes)
@@ -38,7 +38,7 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
             session.UnblockSink(sink);
             session.TickUntilEverySinkReceived();
             var after = session.Measure(session.DefaultWindow);
-            BeltThroughputAssert.Total(Expected(after), after, "A13 after release");
+            BeltThroughputAssert.Throughput(Expected(after), after, "A13 after release");
         }
 
         // A14: 2系統を離して置き、片方だけ詰まらせても、もう片方は窓の間ずっと100%
@@ -55,7 +55,8 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
 
             session.BlockSink(sinkB);
             var run = session.Measure(session.DefaultWindow);
-            Assert.AreEqual(Expected(run), run.SinkCounts[0], $"A14 line A while B is blocked; sinks={string.Join(",", run.SinkCounts)}");
+            Assert.AreEqual(Expected(run), run.SourceCounts[0], $"A14 line A accepted at full rate while B is blocked; sources={string.Join(",", run.SourceCounts)} sinks={string.Join(",", run.SinkCounts)}");
+            Assert.AreEqual(run.SourceTotal - run.SinkTotal, run.OnBeltsDelta, "A14 conservation");
             Assert.AreEqual(0, run.SinkCounts[1], "A14 blocked line B receives nothing");
         }
 

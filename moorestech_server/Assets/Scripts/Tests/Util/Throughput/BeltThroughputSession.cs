@@ -89,19 +89,42 @@ namespace Tests.Util.Throughput
             }
         }
 
-        // 窓の間の各受けの増分と各供給の減分を数える
-        // Count each sink's increase and each source's decrease over the window
+        // 窓の開始を次の供給の tick に揃えてから、窓の間の各供給の減分・各受けの増分・ベルト上の増減を数える
+        // Align the window start to the next source emission, then count each source's decrease, each sink's increase and the change on the belts
+        // 供給は周期 P ごとに1個出るので、供給の tick から数えれば窓の供給数は floor(W/P) でちょうど決まる。受けの合計は経路や buffer の位相で ±1 揺れるので保存則で見る
+        // A source emits once per period P, so counting from an emission tick gives exactly floor(W/P) emissions; sink totals wobble by ±1 with route and buffer phase, so they are checked by conservation
         public BeltThroughputRun Measure(int window)
         {
+            TickUntilSourceEmission();
             var startTick = Tick;
             var sinkBaseline = SinkCounts();
             var sourceBaseline = SourceCounts();
+            var onBeltsBaseline = ItemsOnBelts();
             TickMany(window);
             var sinkCounts = SinkCounts();
             var sourceCounts = SourceCounts();
             for (var i = 0; i < sinkCounts.Count; i++) sinkCounts[i] -= sinkBaseline[i];
             for (var i = 0; i < sourceCounts.Count; i++) sourceCounts[i] = sourceBaseline[i] - sourceCounts[i];
-            return new BeltThroughputRun(window, startTick, sinkCounts, sourceCounts);
+            return new BeltThroughputRun(window, startTick, sinkCounts, sourceCounts, ItemsOnBelts() - onBeltsBaseline);
+        }
+
+        // どれかの供給から1個出た tick まで進める。供給が無い配置は即座に戻る
+        // Advance to the tick on which any source emitted one item; returns at once for layouts without sources
+        private void TickUntilSourceEmission()
+        {
+            if (_sources.Count == 0) return;
+            var before = SourceCounts();
+            var deadline = Tick + StartDeadlineTicks;
+            while (true)
+            {
+                TickOnce();
+                var now = SourceCounts();
+                for (var i = 0; i < now.Count; i++)
+                {
+                    if (now[i] < before[i]) return;
+                }
+                if (deadline < Tick) Assert.Fail($"no source emission within {StartDeadlineTicks} ticks");
+            }
         }
 
         // 1スロットのチェストを別アイテムで埋めて受け付けなくする／空にして受け付けに戻す

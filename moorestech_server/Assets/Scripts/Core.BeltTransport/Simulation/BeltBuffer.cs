@@ -63,8 +63,8 @@ namespace Core.BeltTransport
                 == (int)BeltDirections.Opposite(inputDirection);
         }
 
-        // 段階1。出口でクランプしてから回収する。回収後に残りの移動量を使わない
-        // Stage 1. Clamp at the exit, then collect. The remaining advance is not used after collecting
+        // 段階1。先頭がこのtickで出口に届けば回収し、後続は満額進む。満杯のときだけ出口でクランプする
+        // Stage 1. Collect the head when it reaches the exit this tick while the followers advance the full speed; only a full buffer clamps at the exit
         internal void Collect()
         {
             if (!Segment.CollectForBuffer(out var collected)) return;

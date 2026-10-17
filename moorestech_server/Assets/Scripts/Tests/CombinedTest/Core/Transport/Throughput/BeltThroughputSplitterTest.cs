@@ -16,7 +16,7 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
 
         // A7: 3方向分岐、3出口とも無限受け
         // A7: a three-way splitter with all three exits open
-        [Test, Ignore("未裁定(ADR 0084 §計測結果 F1): 直線5マス＋分岐マスが1本の分岐segmentに畳まれ、出口のクランプで後続が進行量を失う。実測 5776tick で 286/288 (A7・A8)、A17 は出力数・詰まりで 282〜288")]
+        [Test]
         public void A7_ThreeWayAllOpen([Values] BeltPlacementOrder order)
         {
             var scenario = NewScenario();
@@ -28,13 +28,13 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
             Generator(scenario, new Vector3Int(1, 0, 1));
 
             var run = scenario.Run(order);
-            BeltThroughputAssert.Total(Expected(run), run, "A7");
+            BeltThroughputAssert.Throughput(Expected(run), run, "A7");
             BeltThroughputAssert.EachWithinOne(run.SinkCounts, Expected(run) / 3, "A7 shares");
         }
 
         // A8a: 菱形。左右出力を迂回させて合流で戻す。前方出力は未接続
         // A8a: a diamond; the side outputs detour and rejoin at a merge, the front output unconnected
-        [Test, Ignore("未裁定(ADR 0084 §計測結果 F1): 直線5マス＋分岐マスが1本の分岐segmentに畳まれ、出口のクランプで後続が進行量を失う。実測 5776tick で 286/288 (A7・A8)、A17 は出力数・詰まりで 282〜288")]
+        [Test]
         public void A8a_Diamond([Values] BeltPlacementOrder order)
         {
             var scenario = NewScenario();
@@ -50,12 +50,12 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
             Generator(scenario, new Vector3Int(2, 0, 0));
 
             var run = scenario.Run(order);
-            BeltThroughputAssert.Total(Expected(run), run, "A8a");
+            BeltThroughputAssert.Throughput(Expected(run), run, "A8a");
         }
 
         // A8b: 分岐マスの直後が合流マス。前方は直結、左右は1マスで折り返して横から入る
         // A8b: a merge cell right after the splitter; the front links directly, the sides fold back in one cell and enter from the side
-        [Test, Ignore("未裁定(ADR 0084 §計測結果 F1): 直線5マス＋分岐マスが1本の分岐segmentに畳まれ、出口のクランプで後続が進行量を失う。実測 5776tick で 286/288 (A7・A8)、A17 は出力数・詰まりで 282〜288")]
+        [Test]
         public void A8b_SplitterThenMergeAdjacent([Values] BeltPlacementOrder order)
         {
             var scenario = NewScenario();
@@ -71,7 +71,7 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
             Generator(scenario, new Vector3Int(2, 0, 0));
 
             var run = scenario.Run(order);
-            BeltThroughputAssert.Total(Expected(run), run, "A8b");
+            BeltThroughputAssert.Throughput(Expected(run), run, "A8b");
         }
 
         // A3: 分岐マス100個の直列(残り2出力は未接続)。分岐bufferを100回通る
@@ -85,7 +85,7 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
             Generator(scenario, new Vector3Int(1, 0, 0));
 
             var run = scenario.Run(order);
-            BeltThroughputAssert.Total(Expected(run), run, "A3");
+            BeltThroughputAssert.Throughput(Expected(run), run, "A3");
         }
 
         // A17: 分岐マス5連。接続出力数と詰まりの組み合わせで、合計は常に入力の100%
@@ -97,7 +97,7 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
                 yield return new TestCaseData(outputs, blockedSides, order).SetName($"A17_FiveSplitters_Outputs{outputs}_Blocked{blockedSides}_{order}");
         }
 
-        [TestCaseSource(nameof(A17Cases)), Ignore("未裁定(ADR 0084 §計測結果 F1): 直線5マス＋分岐マスが1本の分岐segmentに畳まれ、出口のクランプで後続が進行量を失う。実測 5776tick で 286/288 (A7・A8)、A17 は出力数・詰まりで 282〜288")]
+        [TestCaseSource(nameof(A17Cases))]
         public void A17_FiveSplittersInARow(int outputs, int blockedSides, BeltPlacementOrder order)
         {
             var scenario = NewScenario();
@@ -114,7 +114,7 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
             Generator(scenario, outputs == 3 ? new Vector3Int(1, 0, -1) : new Vector3Int(-1, 0, 0));
 
             var run = scenario.Run(order);
-            BeltThroughputAssert.Total(Expected(run), run, $"A17 outputs={outputs} blocked={blockedSides} order={order}");
+            BeltThroughputAssert.Throughput(Expected(run), run, $"A17 outputs={outputs} blocked={blockedSides} order={order}");
         }
 
         private static BeltThroughputScenario NewScenario()

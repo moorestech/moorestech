@@ -26,7 +26,7 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
             Generator(scenario, new Vector3Int(0, 0, -1));
 
             var run = scenario.Run(order);
-            BeltThroughputAssert.Total(Expected(run), run, "A4a");
+            BeltThroughputAssert.Throughput(Expected(run), run, "A4a");
             BeltThroughputAssert.EachWithinOne(run.SourceCounts, Expected(run) / 2, "A4a shares");
         }
 
@@ -42,7 +42,7 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
             Generator(scenario, new Vector3Int(1, 0, 0));
 
             var run = scenario.Run(order);
-            BeltThroughputAssert.Total(Expected(run), run, "A4b");
+            BeltThroughputAssert.Throughput(Expected(run), run, "A4b");
             BeltThroughputAssert.EachWithinOne(run.SourceCounts, Expected(run) / 2, "A4b shares");
         }
 
@@ -58,7 +58,7 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
             Generator(scenario, new Vector3Int(1, 0, 0));
 
             var run = scenario.Run(order);
-            BeltThroughputAssert.Total(Expected(run), run, "A5a");
+            BeltThroughputAssert.Throughput(Expected(run), run, "A5a");
             BeltThroughputAssert.EachWithinOne(run.SourceCounts, Expected(run) / 2, "A5a shares");
         }
 
@@ -77,7 +77,7 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
             Generator(scenario, new Vector3Int(0, 0, -1));
 
             var run = scenario.Run(order);
-            BeltThroughputAssert.Total(pinnedTotal, run, "B7 pinned (2888 ticks / 19)");
+            BeltThroughputAssert.Throughput(pinnedTotal, run, "B7 pinned (2888 ticks / 19)");
         }
 
         // A6: 機械(チェスト)2台が左右から入る合流。ベルト入力なし
@@ -90,7 +90,7 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
             Generator(scenario, new Vector3Int(0, 0, -1));
 
             var run = scenario.Run(order);
-            BeltThroughputAssert.Total(Expected(run), run, "A6");
+            BeltThroughputAssert.Throughput(Expected(run), run, "A6");
             BeltThroughputAssert.EachWithinOne(run.SourceCounts, Expected(run) / 2, "A6 shares");
         }
 
@@ -112,7 +112,7 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
             Generator(scenario, new Vector3Int(1, 0, 0));
 
             var run = scenario.Run(order);
-            BeltThroughputAssert.Total(Expected(run), run, "A18");
+            BeltThroughputAssert.Throughput(Expected(run), run, "A18");
             BeltThroughputAssert.NoSourceStarves(run, "A18");
         }
 

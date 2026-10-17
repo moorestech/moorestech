@@ -7,9 +7,12 @@ namespace Tests.Util.Throughput
     // Asserts for throughput (exact total) and distribution fairness (±1); fairness allows the round-robin phase slack (user ruling 2026-10-18 "keep it light")
     public static class BeltThroughputAssert
     {
-        public static void Total(int expected, BeltThroughputRun run, string context)
+        // スループット100%: 供給が窓の間に理論値どおり受け入れられ(1個も止まらず)、出た分は受けとベルト上の増減で全部説明できる(1個も消えない)
+        // 100% throughput: the sources were accepted at the theoretical rate (nothing stalled) and every emitted item is accounted for by the sinks plus the change on the belts (nothing vanished)
+        public static void Throughput(int expectedSourceTotal, BeltThroughputRun run, string context)
         {
-            Assert.AreEqual(expected, run.Total, $"{context}: total over {run.Window} ticks from tick {run.StartTick}; sinks={string.Join(",", run.SinkCounts)} sources={string.Join(",", run.SourceCounts)}");
+            Assert.AreEqual(expectedSourceTotal, run.SourceTotal, $"{context}: source emissions over {run.Window} ticks from tick {run.StartTick}; sources={string.Join(",", run.SourceCounts)} sinks={string.Join(",", run.SinkCounts)} onBeltsDelta={run.OnBeltsDelta}");
+            Assert.AreEqual(run.SourceTotal - run.SinkTotal, run.OnBeltsDelta, $"{context}: conservation; sources={string.Join(",", run.SourceCounts)} sinks={string.Join(",", run.SinkCounts)} onBeltsDelta={run.OnBeltsDelta}");
         }
 
         public static void EachWithinOne(IReadOnlyList<int> counts, int expectedEach, string context)

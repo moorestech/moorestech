@@ -12,7 +12,7 @@ namespace Tests.UnitTest.Core.BeltTransport.Connection
         private const int Init = BeltPriority.InitializeFromDirection;
 
         [Test]
-        public void 出口でクランプし先頭が出口ちょうどでbufferが空のときだけ回収する()
+        public void 先頭が出口に届いたtickに回収し後続は満額進み満杯なら出口でクランプする()
         {
             var branch = CreateBranch(2, Init, BeltDirection.Front);
             EnqueueTail(branch, 100, MakeItem(1));
@@ -23,16 +23,16 @@ namespace Tests.UnitTest.Core.BeltTransport.Connection
             Assert.IsFalse(branch.Buffer.HasItem);
             AssertDistances(branch, 50, 50 + W);
 
-            // 先頭は出口で止まって回収され、後続は回収後に追加で進まない
-            // The head stops at the exit and is collected; the follower does not advance further afterwards
+            // 先頭は出口に届いたこのtickに回収され、後続は速度128をまるごと進む(50+W-128)。超過分78はクランプで失われない
+            // The head is collected on the tick it reaches the exit and the follower advances the whole 128 (50+W-128); the 78 overshoot is not lost to a clamp
             BeginTickAt(branch, 128);
             Collect(branch.Buffer);
             Assert.IsTrue(branch.Buffer.TryGetItem(out var collected));
             Assert.AreEqual(1, collected.ItemInstanceId.AsPrimitive());
-            AssertDistances(branch, W);
+            AssertDistances(branch, 50 + W - 128);
 
-            // bufferが満杯なら出口に着いても回収しない。速度W/2の2tickで出口に着く
-            // With a full buffer the head is not collected even at the exit; it reaches the exit in two ticks at speed W/2
+            // bufferが満杯なら出口でクランプして回収しない。残り282は速度W/2の2tickで出口に着く
+            // With a full buffer the head clamps at the exit and is not collected; the remaining 282 reaches the exit in two ticks at speed W/2
             BeginTickAt(branch, W / 2);
             Collect(branch.Buffer);
             BeginTickAt(branch, W / 2);
