@@ -3,6 +3,7 @@ from contextlib import contextmanager
 import os
 import signal
 import subprocess
+import sys
 import time
 
 
@@ -76,3 +77,12 @@ def owned_session():
         finally:
             signal.signal(signal.SIGINT, previous_int)
             signal.signal(signal.SIGTERM, previous)
+
+
+if __name__ == '__main__':
+    # 通常アップロードも専用グループで所有し、終了時に子孫を回収する。
+    # Own normal uploads in a separate group and reap descendants on exit.
+    with owned_session() as owner:
+        child = owner.spawn(sys.argv[1:], start_new_session=True)
+        result = child.wait()
+    sys.exit(result if result >= 0 else 128 - result)

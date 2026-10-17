@@ -5,6 +5,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 BASE = Path(__file__).resolve().parents[2]
 RUNNER = BASE / 'steam_auth/run.py'
@@ -96,6 +97,30 @@ sys.exit(5)
         binary.touch(mode=0o755)
         self.run_runner()
         self.assertEqual(0o700, binary.stat().st_mode & 0o777)
+
+    def test_case_alias_boundaries_rejected_before_mutation(self):
+        spec = importlib.util.spec_from_file_location('steam_runner', RUNNER)
+        runner = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(runner)
+        home = self.root / 'RealHome'
+        desktop = home / 'Library/Application Support/Steam'
+        desktop.mkdir(parents=True)
+        alias = self.root / 'REALHOME'
+        if not alias.exists():
+            self.skipTest('case-sensitive filesystem')
+        candidates = (alias, alias / 'Library', alias / 'Library/Application Support',
+                      alias / 'Library/Application Support/STEAM',
+                      alias / 'Library/Application Support/STEAM/new/state')
+        for candidate in candidates:
+            with self.subTest(root=candidate), \
+                 patch.object(runner.pwd, 'getpwuid') as user, \
+                 patch.dict(os.environ, MOORESTECH_STEAM_STATE_ROOT=str(candidate)), \
+                 patch.object(Path, 'mkdir') as mkdir, patch.object(runner.os, 'chmod') as chmod:
+                user.return_value.pw_dir = str(home)
+                with self.assertRaises(ValueError):
+                    runner.private_home()
+                mkdir.assert_not_called()
+                chmod.assert_not_called()
 
 
 if __name__ == '__main__':

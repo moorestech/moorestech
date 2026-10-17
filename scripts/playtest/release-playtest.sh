@@ -140,7 +140,7 @@ release_build_player MacOsSteamPlaytestBuild "$RUN_DIR/build-mac" "$RUN_DIR/unit
 release_require_mac_artifact "$RUN_DIR/build-mac"
 release_render_steam_vdfs "$RUN_DIR" "$STEAM_DIR"
 
-"$STEAMCMD_BIN" +login "$MOORESTECH_STEAM_USER" +run_app_build "$STEAM_DIR/app_build_playtest.vdf" +quit
+python3 "$SCRIPT_DIR/steam_auth/owned_process.py" "$STEAMCMD_BIN" +login "$MOORESTECH_STEAM_USER" +run_app_build "$STEAM_DIR/app_build_playtest.vdf" +quit
 
 # Steamに格納済みの本体だけを消し、調査ログと検証資料は残す
 # Remove only uploaded build payloads, keeping logs and verification evidence

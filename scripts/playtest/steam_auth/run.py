@@ -19,6 +19,13 @@ def private_home():
     desktop = real_home / 'Library/Application Support/Steam'
     if root == real_home or root in real_home.parents or root == desktop or root in desktop.parents or desktop in root.parents:
         raise ValueError('state root must not reuse the real HOME or Desktop Steam directory')
+    # 大小文字の別表記も、作成や権限変更の前に実体で拒否する。
+    # Reject filesystem aliases before creating directories or changing permissions.
+    forbidden = (real_home, *real_home.parents, desktop, *desktop.parents)
+    if root.exists() and any(p.exists() and root.samefile(p) for p in forbidden):
+        raise ValueError('state root aliases the real HOME or Desktop Steam boundary')
+    if desktop.exists() and any(p.exists() and desktop.samefile(p) for p in root.parents):
+        raise ValueError('state root is inside Desktop Steam')
     # 既存のリンク経由で共有状態へ戻る設定を拒否する。
     # Reject links that could redirect private state into shared storage.
     if any(p.is_symlink() for p in (root, *root.parents)):
