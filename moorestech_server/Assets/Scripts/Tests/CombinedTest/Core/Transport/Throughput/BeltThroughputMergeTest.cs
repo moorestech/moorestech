@@ -62,11 +62,14 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
             BeltThroughputAssert.EachWithinOne(run.SourceCounts, Expected(run) / 2, "A5a shares");
         }
 
-        // A5b: 左右から入る合流の前方が直接受けチェスト
-        // A5b: a merge fed from both sides whose front is the sink chest itself
-        [Test, Ignore("未裁定(ADR 0084 §計測結果 F2): 合流bufferから機械へ直接搬出すると1マスを19tickで通過し、実測 2888tick で 152/144 と理論最大を超える")]
-        public void A5b_MergeIntoMachine([Values] BeltPlacementOrder order)
+        // B7(旧 A5b): 左右から入る合流の前方が直接受けチェスト。合流bufferは段階1で回収し同じtickの段階3で機械へ渡すので、1マスを19tickで通過し理論最大(144)を超える
+        // B7 (was A5b): a merge fed from both sides whose front is the sink itself; the buffer collects in stage 1 and hands to the machine in stage 3 of the same tick, so a cell takes 19 ticks and the count exceeds the nominal maximum (144)
+        // 特性値としてピン止め。変えるPRは理由をADRに書く(出所: ユーザー裁定 2026-10-18「F2は許容します」)
+        // Pinned as a characteristic value; a PR that changes it records the reason in an ADR (user ruling 2026-10-18 "F2 is accepted")
+        [Test]
+        public void B7_MergeIntoMachineRunsNineteenTicksPerItem([Values] BeltPlacementOrder order)
         {
+            const int pinnedTotal = 152;
             var scenario = new BeltThroughputScenario();
             SideFeeder(scenario, BlockDirection.East);
             SideFeeder(scenario, BlockDirection.West);
@@ -74,7 +77,7 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
             Generator(scenario, new Vector3Int(0, 0, -1));
 
             var run = scenario.Run(order);
-            BeltThroughputAssert.Total(Expected(run), run, "A5b");
+            BeltThroughputAssert.Total(pinnedTotal, run, "B7 pinned (2888 ticks / 19)");
         }
 
         // A6: 機械(チェスト)2台が左右から入る合流。ベルト入力なし
