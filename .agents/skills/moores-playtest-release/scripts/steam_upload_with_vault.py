@@ -13,7 +13,7 @@ import sys
 import termios
 import time
 from pathlib import Path
-from steam_vault_environment import configure, required
+from steam_vault_environment import MissingEnvironmentError, configure, required
 
 PARSER = argparse.ArgumentParser(description=__doc__)
 PARSER.add_argument('run_dir', type=Path)
@@ -23,7 +23,11 @@ MODES.add_argument('--check-login', action='store_true')
 ARGS = PARSER.parse_args()
 ROOT = ARGS.run_dir.expanduser()
 RUNNER = Path(__file__).resolve().parents[4] / 'scripts/playtest/steam_auth/run.py'
-STATUS = ROOT / 'steam-upload-status.json'
+sys.path.insert(0, str(RUNNER.parent))
+from check_login import check, STATES
+from owned_process import owned_session
+
+STATUS = ROOT / ('steam-auth-status.json' if ARGS.login_only or ARGS.check_login else 'steam-upload-status.json')
 GUARD_CODE = ROOT / 'steam-guard-code.txt'
 
 
@@ -45,7 +49,14 @@ def conversation(child, parent_fd, password):
     buffer, sent_password, authenticated, guard_reported = '', False, False, False
     deadline = time.monotonic() + 3600
     disconnected = False
+    drain_deadline = None
     while time.monotonic() < deadline:
+        # リーダー終了後は最終出力だけを期限付きで排出する。
+        # Drain final output for a bounded interval after the leader exits.
+        if child.poll() is not None and drain_deadline is None:
+            drain_deadline = time.monotonic() + 2
+        if drain_deadline is not None and time.monotonic() >= drain_deadline:
+            break
         ready, _, _ = select.select([parent_fd], [], [], 1)
         if ready:
             # PTY切断と実際の期限超過を分けるため、EOFまで残り出力を読む。
@@ -100,10 +111,9 @@ def run():
     ROOT.mkdir(parents=True, exist_ok=True)
     configure()
     if ARGS.check_login:
-        result = subprocess.run([sys.executable, str(RUNNER.with_name('check_login.py')),
-                                 required('MOORESTECH_STEAM_USER')])
-        report('cached_login_ok' if result.returncode == 0 else 'cached_login_unavailable')
-        return result.returncode
+        result = check(required('MOORESTECH_STEAM_USER'))
+        report(STATES[result])
+        return result
     GUARD_CODE.unlink(missing_ok=True)
     report('reading_credential')
     username, password = credential()
@@ -121,34 +131,41 @@ def run():
             return 2
         command += ['+run_app_build', str(vdf)]
     parent_fd, child_fd = pty.openpty()
-    attributes = termios.tcgetattr(child_fd)
-    attributes[3] &= ~termios.ECHO
-    termios.tcsetattr(child_fd, termios.TCSANOW, attributes)
-    child = subprocess.Popen(command + ['+quit'], stdin=child_fd, stdout=child_fd,
-                             stderr=child_fd, start_new_session=True)
-    os.close(child_fd)
-    report('steam_started', steamPid=child.pid)
     try:
-        return conversation(child, parent_fd, password)
+        attributes = termios.tcgetattr(child_fd)
+        attributes[3] &= ~termios.ECHO
+        termios.tcsetattr(child_fd, termios.TCSANOW, attributes)
+        with owned_session() as children:
+            child = subprocess.Popen(command + ['+quit'], stdin=child_fd, stdout=child_fd,
+                                     stderr=child_fd, start_new_session=True)
+            children.append(child)
+            os.close(child_fd)
+            child_fd = None
+            report('steam_started', steamPid=child.pid)
+            return conversation(child, parent_fd, password)
     finally:
-        if child.poll() is None:
-            # セッションごと止め、孫のSteamCMDを残さない。
-            # Terminate the owned process group so SteamCMD cannot outlive this attempt.
-            import signal
-            os.killpg(child.pid, signal.SIGTERM)
-            try:
-                child.wait(timeout=10)
-            except subprocess.TimeoutExpired:
-                os.killpg(child.pid, signal.SIGKILL)
-                child.wait()
+        if child_fd is not None:
+            os.close(child_fd)
         os.close(parent_fd)
+
+
+def report_failure(state, **extra):
+    # 状態保存も外部IO境界なので、失敗時はstdoutへ保存不能を明示する。
+    # If status persistence fails at the disk boundary, disclose it on stdout.
+    try:
+        report(state, **extra)
+    except OSError:
+        print(json.dumps({'state': state, 'statusSaved': False, **extra}), flush=True)
 
 
 if __name__ == '__main__':
     try:
         sys.exit(run())
+    except MissingEnvironmentError as error:
+        report_failure('env_missing', name=error.name)
+        sys.exit(2)
     except (OSError, ValueError, subprocess.SubprocessError):
         # 外部IO境界の失敗は生の例外に含まれる秘密値を出さず明示する。
         # Surface external IO failures without leaking secrets embedded in exceptions.
-        print('{"state":"steam_helper_io_failed"}', flush=True)
+        report_failure('steam_helper_io_failed')
         sys.exit(2)

@@ -8,6 +8,12 @@ NAMES = ('MOORESTECH_STEAM_USER', 'MOORESTECH_STEAM_STATE_ROOT',
          'MOORESTECH_STEAMCMD_EXECUTABLE', 'MOORESTECH_STEAM_OP_HELPER', 'MOORESTECH_STEAM_OP_ITEM')
 
 
+class MissingEnvironmentError(ValueError):
+    def __init__(self, name):
+        super().__init__("required environment setting is missing")
+        self.name = name
+
+
 def configure():
     filename = os.environ.get('MOORESTECH_PLAYTEST_ENV_FILE')
     if filename is None:
@@ -21,15 +27,13 @@ def configure():
         raise ValueError('deployment environment could not be loaded')
     values = result.stdout.decode().split('\0')
     for name, value in zip(NAMES, values):
-        if value:
-            os.environ[name] = value
+        os.environ[name] = value
     for name in NAMES[:2]:
-        if not os.environ.get(name):
-            raise ValueError(f'{name} is required')
+        required(name)
 
 
 def required(name):
     value = os.environ.get(name)
     if not value:
-        raise ValueError(f'{name} is required')
+        raise MissingEnvironmentError(name)
     return value

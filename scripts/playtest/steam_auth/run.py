@@ -48,9 +48,10 @@ def main():
     # Report disk/process boundary failures without exposing credentials.
     try:
         root = private_home()
-        executable = shutil.which(os.environ.get('MOORESTECH_STEAMCMD_EXECUTABLE', 'steamcmd'))
+        executable = shutil.which(os.environ.get('MOORESTECH_STEAMCMD_EXECUTABLE') or 'steamcmd')
         if not executable or Path(executable).resolve() == Path(__file__).resolve():
-            raise ValueError('real SteamCMD executable is missing or points to this runner')
+            print('STEAM_RUNNER_ERROR:executable_missing', file=sys.stderr)
+            return 2
         lock_path = root / 'steamcmd.lock'
         if lock_path.is_symlink() or lock_path.exists() and lock_path.stat().st_nlink != 1:
             raise ValueError('state lock must not be linked')
@@ -58,7 +59,7 @@ def main():
             try:
                 fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
             except BlockingIOError:
-                print('ERROR: SteamCMD state is already in use; wait for the active process', file=sys.stderr)
+                print('STEAM_RUNNER_ERROR:state_in_use; already in use; wait for the active process', file=sys.stderr)
                 return 2
             home = prepare_home(root)
             environment = dict(os.environ, HOME=str(home))
@@ -69,8 +70,8 @@ def main():
             signal.signal(signal.SIGINT, forward)
             result = child.wait()
             return result if result >= 0 else 128 - result
-    except (OSError, ValueError) as error:
-        print(f'ERROR: isolated SteamCMD setup failed: {error}', file=sys.stderr)
+    except (OSError, ValueError):
+        print('STEAM_RUNNER_ERROR:setup_failed', file=sys.stderr)
         return 2
 
 

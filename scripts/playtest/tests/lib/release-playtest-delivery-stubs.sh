@@ -24,7 +24,10 @@ write_delivery_stubs() {
 set -eu
 if [ "\$#" -eq 3 ]; then
     echo "steam-auth \$*" >>"$sandbox/calls.log"
-    [ "\${STEAM_AUTH_EXIT:-0}" = 0 ] || exit "\$STEAM_AUTH_EXIT"
+    if [ "\${STEAM_AUTH_EXIT:-0}" != 0 ]; then
+        echo "Cached credentials not found"
+        exit "\$STEAM_AUTH_EXIT"
+    fi
     echo "Logged in OK"
     exit 0
 fi

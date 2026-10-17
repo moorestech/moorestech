@@ -53,11 +53,12 @@ class LifecycleTests(unittest.TestCase):
         child = Mock(pid=4321)
         child.communicate.side_effect = [subprocess.TimeoutExpired('fake', 120), ('', '')]
         with patch.object(self.checker.subprocess, 'Popen', return_value=child) as spawn, \
-             patch.object(self.checker.os, 'killpg') as kill:
-            self.assertEqual(4, self.checker.check('/fake', 'user'))
+             patch('owned_process.signal_group', return_value=False) as kill:
+            self.assertEqual(4, self.checker.check('user'))
         self.assertTrue(spawn.call_args.kwargs['start_new_session'])
-        kill.assert_called_once_with(4321, self.checker.signal.SIGKILL)
-        self.assertEqual(2, child.communicate.call_count)
+        self.assertEqual(4321, kill.call_args.args[0])
+        self.assertEqual(1, child.communicate.call_count)
+        child.wait.assert_called_once_with(timeout=10)
 
 
 if __name__ == '__main__':

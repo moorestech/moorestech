@@ -17,7 +17,7 @@ COMMIT="${1:?usage: release-playtest.sh <commit>}"
 GIT_BIN="${GIT_BIN:-git}"
 MOORES_WT_BIN="${MOORES_WT_BIN:-moores-wt}"
 UNITY_BIN="${UNITY_BIN:-/Applications/Unity/Hub/Editor/6000.3.8f1/Unity.app/Contents/MacOS/Unity}"
-STEAMCMD_BIN="${STEAMCMD_BIN:-$SCRIPT_DIR/steam_auth/run.py}"
+STEAMCMD_BIN="$SCRIPT_DIR/steam_auth/run.py"
 CODESIGN_BIN="${CODESIGN_BIN:-/usr/bin/codesign}"
 LIPO_BIN="${LIPO_BIN:-/usr/bin/lipo}"
 VERIFY_SCRIPT="${VERIFY_SCRIPT:-$SCRIPT_DIR/verify-on-windows.sh}"
@@ -42,7 +42,7 @@ BUILD_LABEL="${MOORESTECH_STEAM_BUILD_LABEL:-playtest-$(date +%Y%m%d-%H%M)}"
 playtest_require_build_label "$BUILD_LABEL"
 # 保存資格が無ければ長時間ビルドへ進まない。
 # Reject missing cached authentication before the lengthy build.
-python3 "$SCRIPT_DIR/steam_auth/check_login.py" "$MOORESTECH_STEAM_USER" "$STEAMCMD_BIN"
+python3 "$SCRIPT_DIR/steam_auth/check_login.py" "$MOORESTECH_STEAM_USER"
 
 # 解決の前にfetchする。マージ直後のコミットや古いorigin/masterのrefを掴まないため
 # Fetch before resolving, so a just-merged commit or a stale origin/master ref is never used
