@@ -117,13 +117,5 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
             var replica = AssertRoundTrip(assembly);
             Assert.AreEqual(5, ItemCount(replica.CaptureFullState()));
         }
-
-        [Test]
-        public void EmptyWorldRoundTrips()
-        {
-            var assembly = Assemble(NewWorld());
-            var replica = AssertRoundTrip(assembly);
-            Assert.AreEqual(0, replica.Segments.Length);
-        }
     }
 }

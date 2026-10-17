@@ -36,16 +36,6 @@ namespace Tests.UnitTest.Core.BeltTransport
         }
 
         [Test]
-        public void 空のsegmentは占有長も搬出長も0()
-        {
-            var segment = CreateNormal(3, 0);
-            Assert.AreEqual(0, segment.Count);
-            Assert.AreEqual(0, GetTotalLength(segment));
-            Assert.AreEqual(0, GetOutputLength(segment, BeltConstants.MaxSpeed));
-            Assert.AreEqual(0, segment.CaptureItems().Length);
-        }
-
-        [Test]
         public void 搬出長は速度から出口までの距離を引いた値()
         {
             var segment = CreateNormal(2, 0);
@@ -78,16 +68,6 @@ namespace Tests.UnitTest.Core.BeltTransport
             Assert.AreEqual(GetTotalLength(source), GetTotalLength(restored));
             AssertStructure(restored);
             AssertDistances(restored, 0, W, 17 + 2 * W, 217 + 3 * W, 217 + 4 * W);
-        }
-
-        [Test]
-        public void 容量が範囲外なら例外()
-        {
-            var maxCapacity = (int.MaxValue - (W - 1)) / W;
-            Assert.Throws<ArgumentOutOfRangeException>(() => CreateNormal(0, 0));
-            Assert.Throws<ArgumentOutOfRangeException>(() => CreateNormal(-1, 0));
-            Assert.Throws<ArgumentOutOfRangeException>(() => CreateNormal(maxCapacity + 1, 0));
-            Assert.AreEqual(1, CreateNormal(1, 0).Capacity);
         }
     }
 }

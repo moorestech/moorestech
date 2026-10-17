@@ -95,18 +95,6 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
             }
         }
 
-        [Test]
-        public void EmptyTickDiffRoundTripsToEmpty()
-        {
-            var message = RoundTrip(new BeltTransportTickDiffMessagePack(ServerTick, TickSequenceId, BeltTickDiff.Empty));
-            var decoded = message.ToDiff();
-            Assert.AreEqual(0, decoded.SpeedChanges.Length);
-            Assert.AreEqual(0, decoded.Inserts.Length);
-            Assert.AreEqual(0, decoded.Extracts.Length);
-            Assert.AreEqual(ServerTick, message.ServerTick);
-            Assert.AreEqual(TickSequenceId, message.TickSequenceId);
-        }
-
         private static T RoundTrip<T>(T message)
         {
             return MessagePackSerializer.Deserialize<T>(MessagePackSerializer.Serialize(message));

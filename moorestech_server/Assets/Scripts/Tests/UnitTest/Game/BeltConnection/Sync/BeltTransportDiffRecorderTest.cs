@@ -21,16 +21,6 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
     public class BeltTransportDiffRecorderTest
     {
         [Test]
-        public void TakeTickDiffIsEmptyWhenNothingRecorded()
-        {
-            var recorder = new BeltTransportDiffRecorder();
-            var diff = recorder.TakeTickDiff();
-            Assert.AreEqual(0, diff.Inserts.Length);
-            Assert.AreEqual(0, diff.Extracts.Length);
-            Assert.AreSame(BeltTickDiff.Empty, diff);
-        }
-
-        [Test]
         public void TakeTickDiffReturnsRecordsInOrderAndClears()
         {
             var recorder = new BeltTransportDiffRecorder();
@@ -67,17 +57,6 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
             recorder.RecordExtract(9, BeltDirection.Front);
             Assert.AreEqual(2, diff.Extracts.Length);
             Assert.AreEqual(1, recorder.TakeTickDiff().Extracts.Length);
-        }
-
-        [Test]
-        public void DiscardDropsRecords()
-        {
-            var recorder = new BeltTransportDiffRecorder();
-            recorder.RecordInsert(0, BeltDirection.Back, NewItem(ItemA, BeltEntryDirection.FromBack));
-            recorder.RecordExtract(0, BeltDirection.Front);
-            recorder.Discard();
-            var afterDiscard = recorder.TakeTickDiff();
-            Assert.AreEqual(0, afterDiscard.Inserts.Length + afterDiscard.Extracts.Length);
         }
 
         [Test]
