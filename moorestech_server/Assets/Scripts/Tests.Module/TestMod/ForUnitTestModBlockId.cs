@@ -111,5 +111,11 @@ namespace Tests.Module.TestMod
         public static BlockId FastBeltUp => GetBlock("7b3e1a10-0001-4000-8000-000000000014");
         public static BlockId FastBeltDown => GetBlock("7b3e1a10-0001-4000-8000-000000000015");
         public static BlockId FastBeltSplitter => GetBlock("7b3e1a10-0001-4000-8000-000000000016");
+
+        // スループット回帰テスト用の純粋な供給・受け(供給は出力口だけ、受けは入力口だけ。隣り合うチェストやベルトへ漏れない)
+        // Pure source and sink chests for the throughput suite (outputs only / inputs only, so nothing leaks into neighbouring chests or belts)
+        public static BlockId ThroughputSourceChest => GetBlock("7b3e1a10-0004-4000-8000-000000000001");
+        public static BlockId ThroughputSinkChest => GetBlock("7b3e1a10-0004-4000-8000-000000000002");
+        public static BlockId ThroughputOneSlotSinkChest => GetBlock("7b3e1a10-0004-4000-8000-000000000003");
     }
 }

@@ -7171,6 +7171,162 @@
       "subCategory": "BeltConveyor",
       "placementsPerCost": 1,
       "openable": false
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "ThroughputSourceChest",
+      "blockType": "Chest",
+      "blockParam": {
+        "itemSlotCount": 5,
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c5-4000-8000-000000000001"
+            }
+          ]
+        }
+      },
+      "blockGuid": "7b3e1a10-0004-4000-8000-000000000001",
+      "category": "テスト",
+      "subCategory": "Chest",
+      "placementsPerCost": 1,
+      "openable": false
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "ThroughputSinkChest",
+      "blockType": "Chest",
+      "blockParam": {
+        "itemSlotCount": 5,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c4-4000-8000-000000000002"
+            }
+          ],
+          "outputConnects": []
+        }
+      },
+      "blockGuid": "7b3e1a10-0004-4000-8000-000000000002",
+      "category": "テスト",
+      "subCategory": "Chest",
+      "placementsPerCost": 1,
+      "openable": false
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "ThroughputOneSlotSinkChest",
+      "blockType": "Chest",
+      "blockParam": {
+        "itemSlotCount": 1,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c4-4000-8000-000000000003"
+            }
+          ],
+          "outputConnects": []
+        }
+      },
+      "blockGuid": "7b3e1a10-0004-4000-8000-000000000003",
+      "category": "テスト",
+      "subCategory": "Chest",
+      "placementsPerCost": 1,
+      "openable": false
     }
   ],
   "connectorSettings": {

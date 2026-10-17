@@ -1,31 +1,30 @@
 using System.Collections.Generic;
 using Core.Master;
 using Game.Block.Interface;
-using Game.Block.Interface.Component;
-using Game.Context;
 using NUnit.Framework;
 using Server.Boot;
-using Tests.CombinedTest.Core.Transport;
 using Tests.Module.TestMod;
 using UnityEngine;
 using static Tests.Util.BeltWorldTestUtil;
 
 namespace Tests.Util.Throughput
 {
-    // スループット計測の配置と手順（ADR 0084）。ブロックの世界だけを通し、毎tick複製のハッシュ一致も要求する
-    // A throughput measurement layout and procedure (ADR 0084): goes only through the block world and demands the replica hash to match every tick
-    // 計測開始は全受けチェストが2個以上受けた tick、そこから Window tick の増分を数える
-    // Measurement starts on the tick every sink has received at least two items, then counts the increments over Window ticks
+    // スループット計測の配置（ADR 0084）。Run は「設置→計測開始→窓」を一息に行い、途中で手を入れる配置は Start でセッションを取る
+    // A throughput measurement layout (ADR 0084). Run does place -> start -> window in one go; layouts that intervene midway take a session via Start
     public sealed class BeltThroughputScenario
     {
-        private const int SourceStackCount = 1_000_000;
-        private const int MinimumArrivalsBeforeStart = 2;
-        private const int StartDeadlineTicks = 20_000;
-
         private readonly List<(BlockId blockId, Vector3Int position, BlockDirection direction)> _placements = new();
         private readonly List<Vector3Int> _sources = new();
         private readonly List<Vector3Int> _sinks = new();
+        private readonly List<Vector3Int> _blockedSinks = new();
         private int _window = BeltThroughputWindow.Plain;
+
+        // ブロックIDの解決(ForUnitTestModBlockId)がマスタ読込済みを前提にするので、配置を組む前にサーバーを起こす
+        // Block id lookups (ForUnitTestModBlockId) need the master loaded, so the server is booted before the layout is built
+        public BeltThroughputScenario()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+        }
 
         public BeltThroughputScenario Block(BlockId blockId, Vector3Int position, BlockDirection direction)
         {
@@ -33,18 +32,38 @@ namespace Tests.Util.Throughput
             return this;
         }
 
-        // 供給チェスト。設置後に1スロットへ大スタックを入れ、毎tick空きがあれば1個押し込む
-        // A source chest; after placement one slot gets a huge stack, and it pushes one item per tick whenever the belt has room
+        // 供給チェスト(出力口だけ)。設置後に1スロットへ大スタックを入れ、毎tick空きがあれば1個押し込む
+        // A source chest (outputs only); after placement one slot gets a huge stack, and it pushes one item per tick whenever the belt has room
+        // 通常のチェストは全面に出力口があり、隣のチェストやベルトの横面へ勝手に押し込むので使わない
+        // Ordinary chests emit on every face and would push into neighbouring chests or belt sides, so they are not used
         public BeltThroughputScenario Source(Vector3Int position)
         {
             _sources.Add(position);
-            return Block(ForUnitTestModBlockId.ChestId, position, BlockDirection.North);
+            return Block(ForUnitTestModBlockId.ThroughputSourceChest, position, BlockDirection.North);
         }
 
+        // 受けチェスト(入力口だけ)
+        // A sink chest (inputs only)
         public BeltThroughputScenario Sink(Vector3Int position)
         {
             _sinks.Add(position);
-            return Block(ForUnitTestModBlockId.ChestId, position, BlockDirection.North);
+            return Block(ForUnitTestModBlockId.ThroughputSinkChest, position, BlockDirection.North);
+        }
+
+        // 1スロットの受け。計測中に BlockSink/UnblockSink で詰まらせたり戻したりする配置が使う
+        // A one-slot sink, for layouts that block and unblock it mid-measurement via BlockSink/UnblockSink
+        public BeltThroughputScenario OneSlotSink(Vector3Int position)
+        {
+            _sinks.Add(position);
+            return Block(ForUnitTestModBlockId.ThroughputOneSlotSinkChest, position, BlockDirection.North);
+        }
+
+        // 最初から詰まっている受け。1スロットのチェストを別アイテムで埋め、計測開始の条件には数えない
+        // A sink that is blocked from the start: a one-slot chest filled with another item, not counted for the measurement start
+        public BeltThroughputScenario BlockedSink(Vector3Int position)
+        {
+            _blockedSinks.Add(position);
+            return Block(ForUnitTestModBlockId.ThroughputOneSlotSinkChest, position, BlockDirection.North);
         }
 
         public BeltThroughputScenario Window(int ticks)
@@ -55,85 +74,18 @@ namespace Tests.Util.Throughput
 
         public BeltThroughputRun Run(BeltPlacementOrder order)
         {
-            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            PlaceAll();
-            FillSources();
-            var sinks = SinkInventories();
+            var session = Start(order);
+            session.TickUntilEverySinkReceived();
+            return session.Measure(_window);
+        }
 
-            // 最初のtickで組が作られる。複製はその組の全量から起こし、以後は差分だけで追従させる
-            // The first tick builds the assembly; the replica starts from that full state and follows diffs only
-            var tick = 0;
-            BeltDiffReplayTestUtil.TickServer();
-            tick++;
-            var replica = BeltDiffReplayTestUtil.StartReplica();
-
-            var startTick = TickUntilEverySinkReceived();
-            var baseline = Counts();
-            for (var i = 0; i < _window; i++) TickOnce();
-            var counts = Counts();
-            for (var i = 0; i < counts.Count; i++) counts[i] -= baseline[i];
-            return new BeltThroughputRun(_window, startTick, counts);
-
-            #region Internal
-
-            void PlaceAll()
-            {
-                foreach (var (blockId, position, direction) in order.Apply(_placements))
-                    Assert.IsNotNull(Place(blockId, position, direction), $"placed {MasterHolder.BlockMaster.GetBlockMaster(blockId).Name} at {position}");
-            }
-
-            void FillSources()
-            {
-                foreach (var position in _sources)
-                {
-                    var inventory = Inventory(ServerContext.WorldBlockDatastore.GetBlock(position));
-                    inventory.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ThroughputTestItem, SourceStackCount));
-                }
-            }
-
-            List<IOpenableBlockInventoryComponent> SinkInventories()
-            {
-                var result = new List<IOpenableBlockInventoryComponent>();
-                foreach (var position in _sinks) result.Add(Inventory(ServerContext.WorldBlockDatastore.GetBlock(position)));
-                return result;
-            }
-
-            void TickOnce()
-            {
-                var diff = BeltDiffReplayTestUtil.TickServer();
-                tick++;
-                BeltDiffReplayTestUtil.ReplayAndAssert(replica, diff, tick);
-            }
-
-            // 受けチェストが1つも無い配置は不変条件だけを見る配置なので、即座に計測へ入る
-            // A layout without sinks only checks invariants, so measurement starts at once
-            int TickUntilEverySinkReceived()
-            {
-                while (!EverySinkReceived())
-                {
-                    TickOnce();
-                    if (StartDeadlineTicks < tick) Assert.Fail($"no measurement start within {StartDeadlineTicks} ticks: sinks={string.Join(",", Counts())}");
-                }
-                return tick;
-            }
-
-            bool EverySinkReceived()
-            {
-                foreach (var count in Counts())
-                {
-                    if (count < MinimumArrivalsBeforeStart) return false;
-                }
-                return true;
-            }
-
-            List<int> Counts()
-            {
-                var result = new List<int>(sinks.Count);
-                foreach (var sink in sinks) result.Add(CountOf(sink, ForUnitTestItemId.ThroughputTestItem));
-                return result;
-            }
-
-            #endregion
+        // 設置し、供給を満たし、最初のtickで組を作って複製を起こした状態で返す
+        // Places everything, fills the sources, builds the assembly on the first tick and starts the replica
+        public BeltThroughputSession Start(BeltPlacementOrder order)
+        {
+            foreach (var (blockId, position, direction) in order.Apply(_placements))
+                Assert.IsNotNull(Place(blockId, position, direction), $"placed {MasterHolder.BlockMaster.GetBlockMaster(blockId).Name} at {position}");
+            return new BeltThroughputSession(_sources, _sinks, _blockedSinks, _window);
         }
     }
 }
