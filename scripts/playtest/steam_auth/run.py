@@ -26,6 +26,15 @@ def private_home():
         raise ValueError('state root aliases the real HOME or Desktop Steam boundary')
     if desktop.exists() and any(p.exists() and desktop.samefile(p) for p in root.parents):
         raise ValueError('state root is inside Desktop Steam')
+    # HOMEの実体を起点に未作成部分も比較する。
+    # Compare missing components from the actual HOME boundary as well.
+    desktop_parts = tuple(part.casefold() for part in desktop.relative_to(real_home).parts)
+    for ancestor in root.parents:
+        if ancestor.exists() and ancestor.samefile(real_home):
+            root_parts = tuple(part.casefold() for part in root.relative_to(ancestor).parts)
+            common_length = min(len(root_parts), len(desktop_parts))
+            if root_parts[:common_length] == desktop_parts[:common_length]:
+                raise ValueError('state root aliases the Desktop Steam boundary, including missing directories')
     # 既存のリンク経由で共有状態へ戻る設定を拒否する。
     # Reject links that could redirect private state into shared storage.
     if any(p.is_symlink() for p in (root, *root.parents)):

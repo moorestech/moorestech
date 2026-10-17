@@ -102,25 +102,27 @@ sys.exit(5)
         spec = importlib.util.spec_from_file_location('steam_runner', RUNNER)
         runner = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(runner)
-        home = self.root / 'RealHome'
-        desktop = home / 'Library/Application Support/Steam'
-        desktop.mkdir(parents=True)
-        alias = self.root / 'REALHOME'
-        if not alias.exists():
-            self.skipTest('case-sensitive filesystem')
-        candidates = (alias, alias / 'Library', alias / 'Library/Application Support',
-                      alias / 'Library/Application Support/STEAM',
-                      alias / 'Library/Application Support/STEAM/new/state')
-        for candidate in candidates:
-            with self.subTest(root=candidate), \
-                 patch.object(runner.pwd, 'getpwuid') as user, \
-                 patch.dict(os.environ, MOORESTECH_STEAM_STATE_ROOT=str(candidate)), \
-                 patch.object(Path, 'mkdir') as mkdir, patch.object(runner.os, 'chmod') as chmod:
-                user.return_value.pw_dir = str(home)
-                with self.assertRaises(ValueError):
-                    runner.private_home()
-                mkdir.assert_not_called()
-                chmod.assert_not_called()
+        for existing in ('', 'Library/Application Support', 'Library/Application Support/Steam'):
+            with self.subTest(existing=existing):
+                home = self.root / ('RealHome' + str(len(existing)))
+                (home / existing).mkdir(parents=True)
+                alias = home.with_name(home.name.upper())
+                if not alias.exists():
+                    self.skipTest('case-sensitive filesystem')
+                candidates = (alias, alias / 'Library', alias / 'Library/Application Support',
+                              alias / 'Library/Application Support/STEAM',
+                              alias / 'Library/Application Support/STEAM/new/state')
+                for candidate in candidates:
+                    with self.subTest(root=candidate), \
+                         patch.object(runner.pwd, 'getpwuid') as user, \
+                         patch.dict(os.environ, MOORESTECH_STEAM_STATE_ROOT=str(candidate)), \
+                         patch.object(Path, 'mkdir') as mkdir, patch.object(runner.os, 'chmod') as chmod:
+                        user.return_value.pw_dir = str(home)
+                        with self.assertRaises(ValueError):
+                            runner.private_home()
+                        mkdir.assert_not_called()
+                        chmod.assert_not_called()
+
 
 
 if __name__ == '__main__':
