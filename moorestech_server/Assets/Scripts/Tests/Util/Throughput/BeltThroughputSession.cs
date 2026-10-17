@@ -159,6 +159,11 @@ namespace Tests.Util.Throughput
             return total;
         }
 
+        public List<int> WatchedExits()
+        {
+            return _exitCounter.Exits();
+        }
+
         public List<int> SinkCounts()
         {
             var result = new List<int>(_sinks.Count);

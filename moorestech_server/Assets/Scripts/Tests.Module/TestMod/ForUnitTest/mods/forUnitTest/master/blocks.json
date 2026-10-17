@@ -7327,6 +7327,86 @@
       "subCategory": "Chest",
       "placementsPerCost": 1,
       "openable": false
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockType": "FuelGearGenerator",
+      "blockParam": {
+        "fluidCapacity": 0,
+        "timeToMaxEasing": "Linear",
+        "timeToMax": 3,
+        "generateMaxTorque": 1.7,
+        "generateMaxRpm": 10,
+        "teethCount": 10,
+        "requiredFluids": [],
+        "fuelItemSlotCount": 2,
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "option": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectorGuid": "7b3e1a10-00c6-4000-8000-000000000001"
+            }
+          ]
+        },
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        },
+        "gearFuelItems": [
+          {
+            "itemGuid": "00000000-0000-0000-1234-000000000001",
+            "amount": 1,
+            "consumptionTime": 3
+          }
+        ],
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        },
+        "overloadMaxRpm": 0,
+        "overloadMaxTorque": 0,
+        "destructionCheckInterval": 1,
+        "baseDestructionProbability": 0
+      },
+      "name": "ThroughputFuelWindmill",
+      "blockGuid": "7b3e1a10-0005-4000-8000-000000000001",
+      "category": "テスト",
+      "subCategory": "FuelGearGenerator",
+      "placementsPerCost": 1,
+      "openable": false
     }
   ],
   "connectorSettings": {

@@ -117,5 +117,9 @@ namespace Tests.Module.TestMod
         public static BlockId ThroughputSourceChest => GetBlock("7b3e1a10-0004-4000-8000-000000000001");
         public static BlockId ThroughputSinkChest => GetBlock("7b3e1a10-0004-4000-8000-000000000002");
         public static BlockId ThroughputOneSlotSinkChest => GetBlock("7b3e1a10-0004-4000-8000-000000000003");
+
+        // スループット回帰テスト用の燃料式風車(10 RPM・トルク1.7・timeToMax 3秒・燃料は Test1 を3秒に1個)。木の歯車ベルト10マス(需要16.85)に対し1台で約101%
+        // Fuel windmill for the throughput suite (10 RPM, torque 1.7, timeToMax 3 s, burns one Test1 per 3 s); one supplies about 101% of ten wood gear belts (demand 16.85)
+        public static BlockId ThroughputFuelWindmill => GetBlock("7b3e1a10-0005-4000-8000-000000000001");
     }
 }
