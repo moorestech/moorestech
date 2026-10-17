@@ -22,6 +22,12 @@ write_delivery_stubs() {
     cat >"$sandbox/bin/steamcmd" <<EOF_STEAM
 #!/bin/bash
 set -eu
+if [ "\$#" -eq 3 ]; then
+    echo "steam-auth \$*" >>"$sandbox/calls.log"
+    [ "\${STEAM_AUTH_EXIT:-0}" = 0 ] || exit "\$STEAM_AUTH_EXIT"
+    echo "Logged in OK"
+    exit 0
+fi
 echo "steamcmd \$*" >>"$sandbox/calls.log"
 while [ "\$1" != +run_app_build ]; do shift; done
 run="\$(dirname "\$(dirname "\$2")")"
