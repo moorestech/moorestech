@@ -4,6 +4,7 @@ using Core.Item;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.BeltConveyor.Sync.Replica;
+using Game.Block.Blocks.BeltConveyor.Sync.State;
 using Game.Block.Interface.Component;
 using Game.Context;
 using NUnit.Framework;
@@ -25,7 +26,7 @@ namespace Tests.Util.Throughput
 
         private readonly List<IOpenableBlockInventoryComponent> _sources = new();
         private readonly List<IOpenableBlockInventoryComponent> _sinks = new();
-        private readonly BeltTransportReplica _replica;
+        private BeltTransportReplica _replica;
         private readonly BeltSegmentExitCounter _exitCounter;
         public int DefaultWindow { get; }
         public int Tick { get; private set; }
@@ -55,11 +56,22 @@ namespace Tests.Util.Throughput
             return Inventory(ServerContext.WorldBlockDatastore.GetBlock(position));
         }
 
+        // 組み直しが起きた tick は差分でなく全量から複製を組み直す(クライアントと同じ手順)。それ以外は差分を再生してハッシュ一致を要求する
+        // On a tick that rebuilt the assembly the replica is re-assembled from the full state (as the client does); otherwise the diff is replayed and the hash must match
         public void TickOnce()
         {
+            var before = BeltDiffReplayTestUtil.Datastore().Assembly;
             var diff = BeltDiffReplayTestUtil.TickServer();
             Tick++;
-            BeltDiffReplayTestUtil.ReplayAndAssert(_replica, diff, Tick);
+            if (ReferenceEquals(before, BeltDiffReplayTestUtil.Datastore().Assembly))
+            {
+                BeltDiffReplayTestUtil.ReplayAndAssert(_replica, diff, Tick);
+            }
+            else
+            {
+                _replica = BeltTransportReplicaAssembler.Assemble(BeltDiffReplayTestUtil.Datastore().CaptureFullState());
+                Assert.AreEqual(BeltDiffReplayTestUtil.ServerHash(), BeltTransportStateHash.Compute(_replica.CaptureFullState()), $"hash right after the rebuild at tick {Tick}");
+            }
             _exitCounter.Observe();
         }
 
