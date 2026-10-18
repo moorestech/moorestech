@@ -74,3 +74,12 @@
 - 歯車網の回転数は RunTick で原点を選んだ時点の原点 RPM を `GearNetworkRuntimeState.OriginRpm` に凍結し、`TryResolveRotation` はその値から導出する。tick の順序（需要 → 需給・原点選定 → 燃料消費）と計算回数は変えない。同じ tick の燃料消費で原点の `GenerateRpm` が下がっても、その tick の網は RunTick が需給計算に使った値で回り、変化は次 tick の RunTick で原点交代として反映される。
   出所: ユーザー裁定 2026-10-18「3でいいとおもうが、だからそもそも最速rpmのgeneratorを歯車のtickの最初にやればいいってことでしょ？」。「燃料消費の後に原点だけ選び直す」案は、RPM が変われば要求動力も変わり需給を回し直す必要があるためユーザー指摘で棄却
 - 回帰: A11 ② は2台の燃料を抜いてから減速が終わるまでの全 tick でベルト速度が 18 のままであることを要求する。
+
+## 裁定 F3 追記: 電気→歯車モーター単独の網（2026-10-18）
+
+- 旧コード（原点の `GenerateRpm` を生で読む導出方式、2458377c7 以降）では、電気→歯車モーター `ElectricToGearGeneratorComponent` 1台だけで回す歯車網は、ブロック更新・ベルト搬送の時点で常に RPM 0 を読んでいた。モーターは歯車 tick 末尾の `ConsumeGeneratorTick` で 1 tick 分のバッテリーを使い切り `GenerateRpm` を 0 に戻すため。master にも同じ行がある（電力 tick 一元化 806c13630 以降）。既存テストはモーター自身の `GenerateRpm` しか見ておらず検出されていなかった。
+  出所: 実測（旧コード: モーター→木の歯車ベルト10マス 300 tick で受け 0 個、モーター→歯車機械 受け 0 個。新コード: 67 個 / 70 個）
+- 原点 RPM の snapshot（`GearNetworkRuntimeState.OriginRpm`）でこれも同時に解消する。電力 tick で満充電 → 歯車 tick の RunTick で原点に選ばれ需給確定 → 以降その tick の読みは定格、という 1 tick バッテリーの意図どおりの挙動になる。
+  出所: ユーザー裁定 2026-10-18「副作用了解 修正実装をおねがい」（副作用: 電力不足時のモーターは脈動する、燃料風車の出力変化は次 tick 反映、過負荷チェックは RunTick と燃料消費の間なので不変、クライアント表示も同じ導出を通る）
+- 歯車 tick の需要について（調査結果）: 需要 = Σ 要求トルク(その歯車の RPM) × RPM で、RPM は最速 generator の `GenerateRpm` × 歯数比。generator にドループは無いので需要は RPM が決まれば供給量と無関係に確定し、供給不足なら網ごと停止（部分供給なし）。歯車→電気のバッテリーは消費者で要求倍率が前 tick の不足量で決まるため tick 内の循環は無い。`GearDemandSnapshot` は全消費者を固定 (有効, 1.0) で返す置き場所で、可変部分は `GearEnergyTransformer._torqueRequestRate`。
+- 回帰: `BeltThroughputMotorTest` A19a（モーター→木の歯車ベルト10マス、60 RPM で速度 108・周期 4、3順 100%）、A19b（モーター→ベルト3→素通し機→ベルト3、3順 100%）、`ElectricToGearGeneratorTest.MotorAloneKeepsConsumersTurningAfterTheGearTick`（tick 末尾でモーターの `GenerateRpm` は 0 だが `CurrentRpm` は定格、噛み合う軸も回る）。テスト mod の小歯車は overloadMaxRpm 10 で 60 RPM だと破断するので軸を使う。

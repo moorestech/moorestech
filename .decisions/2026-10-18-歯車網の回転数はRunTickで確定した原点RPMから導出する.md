@@ -6,3 +6,5 @@
 棄却案: 燃料消費を RunTick の前に移す（燃料消費に渡す負荷率が前 tick の値になる）。燃料消費の後に出力が変わった網の原点だけ選び直す（RPM が変われば要求動力も変わるので需給を回し直さないと整合しない、ユーザー指摘）。需給計算を2パス回す（継続駆動の網が毎 tick 二重計算）。
 理由: 需要 → 需給・原点選定 → 燃料消費 の依存を保ったまま、tick の途中で値が混ざることだけを消せる。generator の出力変化が次 tick に反映される 1 tick の遅れは今も全体がそうで、新しい遅れは増えない。
 リンク: docs/adr/0084 §裁定 F3、`BeltThroughputGearTest.A11_FuelWindmillsRunningDry`（②の全 tick で速度 18）
+
+追記（2026-10-18）: 同じ生読みが電気→歯車モーター単独の網を常時 RPM 0 にしていた（モーターは歯車 tick 末尾の `ConsumeGeneratorTick` でバッテリーを使い切り `GenerateRpm` を 0 に戻す）。snapshot で同時に解消。ユーザー裁定「副作用了解 修正実装をおねがい」。回帰: `BeltThroughputMotorTest`（A19a/A19b）、`ElectricToGearGeneratorTest.MotorAloneKeepsConsumersTurningAfterTheGearTick`。
