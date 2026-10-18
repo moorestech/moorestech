@@ -17,6 +17,10 @@ description: moorestech のプレイテスト配布を通しで行う。最新 o
 
 ### 1. ビルド（約70分）
 
+先に `MOORESTECH_STEAM_STATE_ROOT`（専用永続ディレクトリ）を env.sh に設定する。認証は共通ランナー `scripts/playtest/steam_auth/run.py` の専用HOMEに保存され、Desktop Steamから分離される。
+
+初回は `python3 .agents/skills/moores-playtest-release/scripts/steam_upload_with_vault.py <認証状態の保存先> --login-only` で認証する。続けて `--check-login` を実行し、Desktop Steam起動後ももう一度成功することを確認する。`--check-login` は保存資格だけを使い、1Passwordを読まない。通常リリースもビルド前に同じ検査を実行し、失敗時はビルドを開始しない。
+
 ```bash
 cd ~/hermes-agent/data/repos/moorestech && git fetch -q origin
 . ~/hermes-agent/data/services/playtest/env.sh
@@ -31,7 +35,7 @@ scripts/playtest/release-playtest.sh "$(git rev-parse origin/master)" > $RUNS/$M
 
 ### 2. アップロード（steamcmd が `Invalid Password` で止まったとき）
 
-`release-playtest.sh` はビルドを終えたあと、steamcmd のログインで落ちることがある。ログに `Cached credentials not found` → `ERROR (Invalid Password)` と出た場合がそれで、promotion.md は作られず、worktree も削除済みで終わっている。成果物は run-dir に残っているので、再ビルドはしない。代わりに次を Bash の run_in_background で起動する。
+`release-playtest.sh` はビルド前に保存資格を確認する。ビルド中に資格が失効すると、完了後のログインで落ちることがある。ログに `Cached credentials not found` → `ERROR (Invalid Password)` と出た場合がそれで、promotion.md は作られず、worktree も削除済みで終わっている。成果物は run-dir に残っているので、再ビルドはしない。代わりに次を Bash の run_in_background で起動する。
 
 ```bash
 .agents/skills/moores-playtest-release/scripts/upload_and_verify.sh $RUNS/<label> > $RUNS/<label>.upload-verify.log 2>&1   # run_in_background
@@ -72,7 +76,7 @@ python3 .agents/skills/moores-playtest-release/scripts/promote_playtest.py <run-
 
 ## Gotchas
 
-- **steamcmd のログインは、Mac でデスクトップの Steam を起動すると消える。** 両者が `~/Library/Application Support/Steam/config/config.vdf` を共用しているため（起動前後で ConnectCache が 1→0 になったのを実測済み）。Mac 版の手動確認をすると、次回のアップロードで必ずスマホ承認が要る。前回ログインしたのに切れた、とユーザーに言われたらこれを説明する。
+- SteamCMDの通常配布と認証ヘルパーは共通の隔離ランナーを使う。実HOMEやDesktop設定へのsymlinkを指定しない。同じstate rootで並行実行すると理由を示して停止する。Desktop起動後に失敗したら、保存先と実行経路を照合し、実測せず「毎回承認が必要」と説明しない。
 - Steam Guard の承認待ちは約 1 分しかない。バックグラウンドで黙って待つと承認が間に合わず、2 回失敗する。プロンプトを検知したらすぐ伝える。
 - 検証機の通し検証中は、検証用の報告を本番の取り込みに拾わせないこと。README は `services.json` から playtest-ingest を外す方法を書いているが、このスキルではその代わりに、`upload_and_verify.sh` で `ingest.sh` と同じロックを握る。`ingest.sh` は受け口に触れる前にロックを取れなければ終わるので、これで防げる。共有設定の書き換えも supervisor の再起動も要らない。
 - `release-playtest.sh` は終了時に `moores-wt rm` を呼ぶが、未登録の残骸ディレクトリ（`worktrees/moorestech/build-<sha8>`）が残ることがある。残っていても報告だけにする。
@@ -81,7 +85,7 @@ python3 .agents/skills/moores-playtest-release/scripts/promote_playtest.py <run-
 ## Available scripts
 
 - `scripts/upload_and_verify.sh <run-dir> [--skip-upload]` — アップロード、staging 検証、ingest ロック、Windows 検証、promotion.md の書き出しを順に行う
-- `scripts/steam_upload_with_vault.py <run-dir>` — 1Password の資格で steamcmd にログインして VDF を上げる（Steam Guard 対応）
+- `scripts/steam_upload_with_vault.py <run-dir> [--login-only|--check-login]` — 1Password の資格で steamcmd にログインして VDF を上げる（Steam Guard 対応）
 - `scripts/validate_staging.py <run-dir>` — staging の Win/Mac depot が今回アップロードしたビルドと一致するか確かめる
 - `scripts/find_live_playtest.py [runs-dir]` — 配信中の playtest ビルドと、その run・コミットを返す
 - `scripts/promote_playtest.py <run-dir> --mac-checked|--skip-mac-check "<引用>"` — playtest へ反映し、読み戻しで確認する

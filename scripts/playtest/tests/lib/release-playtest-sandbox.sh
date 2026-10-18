@@ -31,6 +31,7 @@ finish_contract() {
 
 make_sandbox() {
     SANDBOX="$(mktemp -d)"
+    SANDBOX="$(cd "$SANDBOX" && pwd -P)"
     SANDBOXES+=("$SANDBOX")
     # ピンに一致する master worktree の名前。moores-wt は既存の一致 worktree を再利用するため pin-<8桁> 以外にもなる
     # Name of the master worktree at the pin; moores-wt reuses any matching worktree, so it need not be pin-<8>
@@ -120,6 +121,8 @@ EOF
     chmod +x "$SANDBOX/bin/"*
 }
 
+# 所有権競合試験は別の認証領域で配布先の競合まで進める。
+# Use distinct auth stores so ownership races reach the shared release directory.
 run_target() {
     ( cd "$SANDBOX" && \
       PATH="$SANDBOX/bin:$PATH" CLEANUP_FAILURE="${CLEANUP_FAILURE-none}" \
@@ -140,9 +143,10 @@ run_target() {
       FFMPEG_STATE="${FFMPEG_STATE-real}" \
       GIT_BIN="$SANDBOX/bin/git" \
       MOORES_WT_BIN="$SANDBOX/bin/moores-wt" UNITY_BIN="$SANDBOX/bin/unity" \
-      STEAMCMD_BIN="$SANDBOX/bin/steamcmd" VERIFY_SCRIPT="$SANDBOX/bin/verify" \
+      STEAMCMD_BIN=/must-not-be-called MOORESTECH_STEAMCMD_EXECUTABLE="$SANDBOX/bin/steamcmd" \
+      MOORESTECH_STEAM_STATE_ROOT="$SANDBOX/steam-state-${RACE_ID-default}" VERIFY_SCRIPT="$SANDBOX/bin/verify" \
       PLAYTEST_RUN_ROOT="${PLAYTEST_RUN_ROOT-$SANDBOX/runs}" \
-      UNITY_EXIT="${UNITY_EXIT-0}" STEAMCMD_EXIT="${STEAMCMD_EXIT-0}" VERIFY_EXIT="${VERIFY_EXIT-0}" \
+      STEAM_AUTH_EXIT="${STEAM_AUTH_EXIT-0}" UNITY_EXIT="${UNITY_EXIT-0}" STEAMCMD_EXIT="${STEAMCMD_EXIT-0}" VERIFY_EXIT="${VERIFY_EXIT-0}" \
       MOORES_WT_EXIT="${MOORES_WT_EXIT-0}" MOORES_WT_RM_EXIT="${MOORES_WT_RM_EXIT-0}" \
       GIT_VERIFY_EXIT="${GIT_VERIFY_EXIT-0}" GIT_VERIFY_OUTPUT="${GIT_VERIFY_OUTPUT-}" GIT_HEAD_OUTPUT="${GIT_HEAD_OUTPUT-}" \
       GIT_ANCESTOR_EXIT="${GIT_ANCESTOR_EXIT-0}" MASTER_HEAD_EXIT="${MASTER_HEAD_EXIT-0}" MASTER_HEAD_OUTPUT="${MASTER_HEAD_OUTPUT-}" \
