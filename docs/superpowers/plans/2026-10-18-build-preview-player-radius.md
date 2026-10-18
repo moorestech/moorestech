@@ -236,6 +236,7 @@ git commit -m "refactor: 距離カリングのチャンクテーブルをドメ�
 ### Task 3: ブロックのプレビュー表示を「表示モード×半径内」で決める View を入れる
 
 **Files:**
+- Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/PlaceBlock/PlaceBlockPreviewDisplay.cs`（既存Stateが199行のため表示購読を分離）
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/Block/Preview/PreviewOnlyObjectsDisplay.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/Block/Preview/BlockPreviewOnlyObjectsView.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Block/BlockGameObject.cs:42,86,94-97,148-155`
@@ -244,13 +245,14 @@ git commit -m "refactor: 距離カリングのチャンクテーブルをドメ�
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/BlockPreview/BlockPreviewOnlyObjectsViewTest.cs`
 
 **Interfaces:**
+- Internal: `PlaceBlockPreviewDisplay(BlockGameObjectDataStore)` / `OnEnter()` / `OnExit()`（Stateの表示購読を委譲。退出時に購読を解除）
 - Consumes: `IPreviewOnlyObject`（既存: `SetActive(bool)`, `SetEnableRenderers(bool)`）
 - Produces:
   - `public enum PreviewOnlyObjectsDisplay { Hidden, CollidersOnly, Rendered, RenderedWithinPlayerRadius }`
   - `public class BlockPreviewOnlyObjectsView { public BlockPreviewOnlyObjectsView(List<IPreviewOnlyObject> previewOnlyObjects); public void Add(IPreviewOnlyObject previewOnlyObject); public void SetDisplay(PreviewOnlyObjectsDisplay display); public void SetWithinPlayerRadius(bool withinPlayerRadius); }`
   - `BlockGameObject.SetPreviewOnlyObjectsDisplay(PreviewOnlyObjectsDisplay display)`／`BlockGameObject.SetPreviewOnlyObjectsWithinPlayerRadius(bool withinPlayerRadius)`（`EnablePreviewOnlyObjects` は削除）
 
-- [ ] **Step 1: enum と View を書く**
+- [x] **Step 1: enum と View を書く**
 
 `PreviewOnlyObjectsDisplay.cs`:
 
@@ -346,7 +348,7 @@ namespace Client.Game.InGame.Block.Preview
 
 `BlockPreviewOnlyObjects.Initialize(gameObject, BlockId, false)` は `SetActive(false)` 済みのリストを返すので、View のコンストラクタで Hidden を再適用しても状態は同じ。
 
-- [ ] **Step 2: BlockGameObject を View へ置き換える**
+- [x] **Step 2: BlockGameObject を View へ置き換える**
 
 - フィールド: `private List<IPreviewOnlyObject> _previewOnlyObjects = new();` → `private BlockPreviewOnlyObjectsView _previewOnlyObjectsView;`
 - Initialize 内: `_previewOnlyObjects = BlockPreviewOnlyObjects.Initialize(gameObject, BlockId, false);` → `_previewOnlyObjectsView = new BlockPreviewOnlyObjectsView(BlockPreviewOnlyObjects.Initialize(gameObject, BlockId, false));`
@@ -374,7 +376,7 @@ namespace Client.Game.InGame.Block.Preview
 
 不要になった `using` は残さない。行数が200未満であることを `wc -l` で確認する。
 
-- [ ] **Step 3: 呼び出し側を差し替える**
+- [x] **Step 3: 呼び出し側を差し替える**
 
 PlaceBlockState.OnEnter（コメント「ここが重くなったら近いブロックだけ…」は削除）:
 
@@ -413,7 +415,7 @@ PlaceBlockState.OnEnter（コメント「ここが重くなったら近いブロ
 PlaceBlockState.OnExit: `EnablePreviewOnlyObjects(false, false)` → `SetPreviewOnlyObjectsDisplay(PreviewOnlyObjectsDisplay.Hidden)`。
 DebugBlockInfoState: `EnablePreviewOnlyObjects(false, false)`（2箇所）→ `SetPreviewOnlyObjectsDisplay(PreviewOnlyObjectsDisplay.Hidden)`、`EnablePreviewOnlyObjects(true, true)` → `SetPreviewOnlyObjectsDisplay(PreviewOnlyObjectsDisplay.Rendered)`。両ファイルに `using Client.Game.InGame.Block.Preview;` を足す。
 
-- [ ] **Step 4: View のテストを書く**
+- [x] **Step 4: View のテストを書く**
 
 `Client.Tests/BlockPreview/BlockPreviewOnlyObjectsViewTest.cs`:
 
@@ -512,13 +514,13 @@ namespace Client.Tests
 }
 ```
 
-- [ ] **Step 5: コンパイルしテストを実行する**
+- [x] **Step 5: コンパイルしテストを実行する**
 
 Run: `grep -rn "EnablePreviewOnlyObjects" moorestech_client/Assets/Scripts` → 0件
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Client.Tests.BlockPreviewOnlyObjectsViewTest"`
 Expected: ErrorCount 0 / 5件PASS
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/Block moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/PlaceBlockState.cs moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DebugBlockInfoState.cs moorestech_client/Assets/Scripts/Client.Tests/BlockPreview moorestech_client/Assets/Scripts/Client.Tests/BlockPreview.meta

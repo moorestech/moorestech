@@ -21,8 +21,7 @@ namespace Client.Game.InGame.UI.UIState.State
     public class PlaceBlockState : IUIState, IApplicationFocusRestorer
     {
         private readonly SkitManager _skitManager;
-        private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
-        private readonly List<IDisposable> _blockPlacedDisposable = new();
+        private readonly PlaceBlockPreviewDisplay _previewDisplay;
         private readonly PlaceSystemStateController _placeSystemStateController;
         private readonly PlacementTargetPickService _placementTargetPickService;
         private readonly UiStateCameraPolicyService _cameraPolicyService;
@@ -45,7 +44,7 @@ namespace Client.Game.InGame.UI.UIState.State
             RightShortPressInputService rightShortPressInputService)
         {
             _skitManager = skitManager;
-            _blockGameObjectDataStore = blockGameObjectDataStore;
+            _previewDisplay = new PlaceBlockPreviewDisplay(blockGameObjectDataStore);
             _placeSystemStateController = placeSystemStateController;
             _placementTargetPickService = placementTargetPickService;
             _cameraPolicyService = cameraPolicyService;
@@ -75,26 +74,9 @@ namespace Client.Game.InGame.UI.UIState.State
             // Apply the per-view-mode cursor/rotation policy
             _cameraPolicyService.EnterBuildMode();
 
-            // ここが重くなったら近いブロックだけプレビューをオンにするなどする
-            foreach (var blockGameObject in _blockGameObjectDataStore.BlockGameObjectDictionary.Values)
-            {
-                blockGameObject.EnablePreviewOnlyObjects(true, true);
-            }
-            _blockPlacedDisposable.Add(_blockGameObjectDataStore.OnBlockPlaced.Subscribe(OnPlaceBlock));
-
-            #region Internal
-
-            void OnPlaceBlock(BlockGameObject blockGameObject)
-            {
-                blockGameObject.EnablePreviewOnlyObjects(true, false);
-
-                _blockPlacedDisposable.Add(blockGameObject.OnFinishedPlaceAnimation.Subscribe(_ =>
-                {
-                    blockGameObject.EnablePreviewOnlyObjects(true, true);
-                }));
-            }
-
-            #endregion
+            // 既設と新規ブロックの表示購読を開始する
+            // Start preview display subscriptions for existing and newly placed blocks
+            _previewDisplay.OnEnter();
         }
         public UITransitContext GetNextUpdate()
         {
@@ -171,13 +153,7 @@ namespace Client.Game.InGame.UI.UIState.State
             // Discard the press state as of this exit so a later re-entry can't misfire a long press
             _hotbarInputService.ResetKeyState();
 
-            foreach (var blockGameObject in _blockGameObjectDataStore.BlockGameObjectDictionary.Values)
-            {
-                blockGameObject.EnablePreviewOnlyObjects(false, false);
-            }
-
-            _blockPlacedDisposable.ForEach(d => d.Dispose());
-            _blockPlacedDisposable.Clear();
+            _previewDisplay.OnExit();
         }
 
         public void RestoreAfterApplicationFocus()

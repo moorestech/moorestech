@@ -5,7 +5,6 @@ using Client.Common;
 using Client.Game.Common;
 using Client.Game.InGame.Block.Interact;
 using Client.Game.InGame.Block.Preview;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Map.NearestSearch;
@@ -39,7 +38,8 @@ namespace Client.Game.InGame.Block
         private RendererShaderAnimation _rendererShaderAnimation;
         private RendererMaterialReplacerController _rendererMaterialReplacerController;
         private List<VisualEffect> _visualEffects = new();
-        private List<IPreviewOnlyObject> _previewOnlyObjects = new();
+        private BlockPreviewOnlyObjectsView _previewOnlyObjectsView;
+        public bool IsPlayingPlaceAnimation { get; private set; }
         private BlockStateMessagePack _blockStateMessagePack;
         private bool _isShaderAnimating;
         // 索引の構築時に1度だけ読まれる座標。ブロックは動かないので設置位置をそのまま返す
@@ -83,7 +83,7 @@ namespace Client.Game.InGame.Block
             foreach (var state in gameObject.GetComponentsInChildren<IBlockGameObjectInnerComponent>()) state.Initialize(this);
             // プレビュー限定オブジェクトをオフに
             // Turn off preview-only object
-            _previewOnlyObjects = BlockPreviewOnlyObjects.Initialize(gameObject, BlockId, false);
+            _previewOnlyObjectsView = new BlockPreviewOnlyObjectsView(BlockPreviewOnlyObjects.Initialize(gameObject, BlockId, false));
             
             // ブロックのステート変化を購読
             // Subscribe to block state changes
@@ -120,16 +120,18 @@ namespace Client.Game.InGame.Block
             }
             async UniTask AddBoundingBox()
             {
-                _previewOnlyObjects.Add(await BlockPreviewBoundingBoxLoader.LoadAsync(this, blockMasterElement, posInfo, this.GetCancellationTokenOnDestroy()));
+                _previewOnlyObjectsView.Add(await BlockPreviewBoundingBoxLoader.LoadAsync(this, blockMasterElement, posInfo, this.GetCancellationTokenOnDestroy()));
             }
             #endregion
         }
         public async UniTask PlayPlaceAnimation()
         {
             _isShaderAnimating = true;
+            IsPlayingPlaceAnimation = true;
             SetVfxActive(false);
             await _rendererShaderAnimation.PlaceAnimation();
             _isShaderAnimating = false;
+            IsPlayingPlaceAnimation = false;
             SetVfxActive(true);
             _onFinishedPlaceAnimation.OnNext(this);
         }
@@ -145,13 +147,13 @@ namespace Client.Game.InGame.Block
             if (_isShaderAnimating) return;
             _rendererMaterialReplacerController.ResetMaterial();
         }
-        public void EnablePreviewOnlyObjects(bool active, bool renderEnable)
+        public void SetPreviewOnlyObjectsDisplay(PreviewOnlyObjectsDisplay display)
         {
-            _previewOnlyObjects.ForEach(obj =>
-            {
-                obj.SetActive(active);
-                obj.SetEnableRenderers(renderEnable);
-            });
+            _previewOnlyObjectsView.SetDisplay(display);
+        }
+        public void SetPreviewOnlyObjectsWithinPlayerRadius(bool withinPlayerRadius)
+        {
+            _previewOnlyObjectsView.SetWithinPlayerRadius(withinPlayerRadius);
         }
         public async UniTask DestroyBlock()
         {
