@@ -176,8 +176,10 @@ namespace Tests.UnitTest.Game.SaveLoad
             var stateService = GetStateService(steamGeneratorComponent);
             
             // 最大出力まで加速
-            var startTime = System.DateTime.Now;
-            while (System.DateTime.Now < startTime.AddSeconds(param.TimeToMax + 1))
+            // 加速に要する時間 + 1 秒ぶんの tick を上限に回す(壁時計ではなく tick 数)
+            // Loop up to the ticks of the ramp time plus one second (ticks, not wall-clock time)
+            var rampTicks = GameUpdater.SecondsToTicks(param.TimeToMax + 1);
+            for (var tick = 0; tick < rampTicks; tick++)
             {
                 SetSteam();
                 GameUpdater.UpdateOneTick();
