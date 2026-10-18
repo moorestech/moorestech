@@ -9,10 +9,10 @@ namespace Client.Game.InGame.Block.DistanceCulling
     /// </summary>
     public readonly struct BlockDistanceCullingEntry
     {
-        public readonly Bounds WorldBounds;
-        public readonly IDistanceCullingTarget Target;
+        internal readonly Bounds WorldBounds;
+        internal readonly IDistanceCullingTarget Target;
 
-        public BlockDistanceCullingEntry(Bounds worldBounds, IDistanceCullingTarget target)
+        internal BlockDistanceCullingEntry(Bounds worldBounds, IDistanceCullingTarget target)
         {
             WorldBounds = worldBounds;
             Target = target;

@@ -16,7 +16,7 @@ namespace Client.Game.InGame.ColliderStreaming
         private const float ActiveRadius = 120f;
         private const float ReevalMoveDistance = 8f;
 
-        public readonly PlayerCenteredDistanceCulling Culling;
+        internal readonly PlayerCenteredDistanceCulling Culling;
 
         public ColliderDistanceCullingManager(PlayerSystemContainer playerSystemContainer)
         {

@@ -10,7 +10,7 @@ namespace Client.Game.InGame.Block.Preview
     {
         private readonly BlockGameObject _block;
 
-        public BlockPreviewRadiusCullingTarget(BlockGameObject block)
+        internal BlockPreviewRadiusCullingTarget(BlockGameObject block)
         {
             _block = block;
         }

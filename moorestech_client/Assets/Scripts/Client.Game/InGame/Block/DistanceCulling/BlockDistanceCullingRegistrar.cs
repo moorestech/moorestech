@@ -17,31 +17,35 @@ namespace Client.Game.InGame.Block.DistanceCulling
         private readonly IBlockDistanceCullingSource _source;
         private readonly Dictionary<Vector3Int, IDisposable> _registrations = new();
 
-        public BlockDistanceCullingRegistrar(BlockGameObjectDataStore dataStore, PlayerCenteredDistanceCulling culling, IBlockDistanceCullingSource source)
+        internal BlockDistanceCullingRegistrar(BlockGameObjectDataStore dataStore, PlayerCenteredDistanceCulling culling, IBlockDistanceCullingSource source)
         {
             _dataStore = dataStore;
             _culling = culling;
             _source = source;
         }
 
-        public void Start()
+        internal void Initialize()
         {
             // 設置・削除を購読し、既存ブロックも登録する
             // Subscribe to place/remove, and register existing blocks
             _dataStore.OnBlockPlaced.Subscribe(Register);
             _dataStore.OnBlockRemoved.Subscribe(Unregister);
             foreach (var block in _dataStore.BlockGameObjectDictionary.Values) Register(block);
-        }
 
-        private void Register(BlockGameObject block)
-        {
-            // 置き換え等で既登録なら先に解除する
-            // Unregister first if already registered (e.g. block replacement)
-            var pos = block.BlockPosInfo.OriginalPos;
-            Unregister(pos);
+            #region Internal
 
-            var entry = _source.CreateEntry(block);
-            _registrations[pos] = _culling.Register(entry.WorldBounds, entry.Target);
+            void Register(BlockGameObject block)
+            {
+                // 置き換え等で既登録なら先に解除する
+                // Unregister first if already registered (e.g. block replacement)
+                var pos = block.BlockPosInfo.OriginalPos;
+                Unregister(pos);
+
+                var entry = _source.CreateEntry(block);
+                _registrations[pos] = _culling.Register(entry.WorldBounds, entry.Target);
+            }
+
+            #endregion
         }
 
         private void Unregister(Vector3Int pos)

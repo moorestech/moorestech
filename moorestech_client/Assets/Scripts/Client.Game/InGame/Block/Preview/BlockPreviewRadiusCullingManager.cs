@@ -16,7 +16,7 @@ namespace Client.Game.InGame.Block.Preview
         private const float ActiveRadius = 20f;
         private const float ReevalMoveDistance = 1f;
 
-        public readonly PlayerCenteredDistanceCulling Culling;
+        internal readonly PlayerCenteredDistanceCulling Culling;
 
         public BlockPreviewRadiusCullingManager(PlayerSystemContainer playerSystemContainer)
         {

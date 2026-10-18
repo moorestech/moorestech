@@ -35,11 +35,20 @@ namespace Client.Game.InGame.DistanceCulling
         // Enumerate chunk coords inside the square that bounds the active radius (occupancy checked by caller)
         public static void CollectChunksInRadiusBox(Vector3 center, float radius, float chunkSize, List<long> result)
         {
-            FillChunkBox(center.x - radius, center.x + radius, center.z - radius, center.z + radius, chunkSize, result);
+            // 閉区間の接線チャンクを負側にも含める
+            // Include negative-side tangent chunks for the closed radius test
+            result.Clear();
+            var minCx = Mathf.CeilToInt((center.x - radius) / chunkSize) - 1;
+            var maxCx = Mathf.FloorToInt((center.x + radius) / chunkSize);
+            var minCz = Mathf.CeilToInt((center.z - radius) / chunkSize) - 1;
+            var maxCz = Mathf.FloorToInt((center.z + radius) / chunkSize);
+            for (var cx = minCx; cx <= maxCx; cx++)
+            for (var cz = minCz; cz <= maxCz; cz++)
+                result.Add(PackChunk(cx, cz));
         }
 
-        // XZ範囲を覆うチャンク座標をresultに詰める。両列挙が差分計算へ供給するため唯一の実装に集約
-        // Fill result with chunk coords covering an XZ range; single implementation since both feed the delta
+        // 登録AABBの占有チャンクを列挙する
+        // Enumerate occupied chunks for a registration AABB
         private static void FillChunkBox(float minX, float maxX, float minZ, float maxZ, float chunkSize, List<long> result)
         {
             result.Clear();

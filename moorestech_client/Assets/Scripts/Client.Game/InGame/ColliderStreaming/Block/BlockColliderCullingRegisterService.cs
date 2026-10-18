@@ -20,7 +20,7 @@ namespace Client.Game.InGame.ColliderStreaming.Block
 
         public void Start()
         {
-            _registrar.Start();
+            _registrar.Initialize();
         }
 
         public BlockDistanceCullingEntry CreateEntry(BlockGameObject block)

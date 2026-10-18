@@ -19,7 +19,7 @@ namespace Client.Game.InGame.Block.Preview
 
         public void Start()
         {
-            _registrar.Start();
+            _registrar.Initialize();
         }
 
         public BlockDistanceCullingEntry CreateEntry(BlockGameObject block)

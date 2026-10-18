@@ -11,6 +11,22 @@ namespace Client.Tests
     /// </summary>
     public class DistanceCullingChunkUtilTest
     {
+        [TestCase(4f, 20f, false)]
+        [TestCase(4f, 20f, true)]
+        [TestCase(32f, 120f, false)]
+        [TestCase(32f, 120f, true)]
+        public void RadiusBox_IncludesNegativeTangent(float chunkSize, float radius, bool zAxis)
+        {
+            // 登録側と再評価側で接線の包含を揃える
+            // Registration and reevaluation must agree on tangent membership
+            var center = zAxis ? new Vector3(chunkSize / 2, 0, radius) : new Vector3(radius, 0, chunkSize / 2);
+            var key = DistanceCullingChunkUtil.PackChunk(zAxis ? 0 : -1, zAxis ? -1 : 0);
+            var result = new List<long>();
+            DistanceCullingChunkUtil.CollectChunksInRadiusBox(center, radius, chunkSize, result);
+            Assert.IsTrue(DistanceCullingChunkUtil.ChunkWithinRadius(key, center, radius, chunkSize));
+            Assert.Contains(key, result);
+        }
+
         [Test]
         public void PackChunk_RoundTrips_IncludingNegatives()
         {

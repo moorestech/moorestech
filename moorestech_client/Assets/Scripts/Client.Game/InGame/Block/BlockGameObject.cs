@@ -147,11 +147,11 @@ namespace Client.Game.InGame.Block
             if (_isShaderAnimating) return;
             _rendererMaterialReplacerController.ResetMaterial();
         }
-        public void SetPreviewOnlyObjectsDisplay(PreviewOnlyObjectsDisplay display)
+        internal void SetPreviewOnlyObjectsDisplay(PreviewOnlyObjectsDisplay display)
         {
             _previewOnlyObjectsView.SetDisplay(display);
         }
-        public void SetPreviewOnlyObjectsWithinPlayerRadius(bool withinPlayerRadius)
+        internal void SetPreviewOnlyObjectsWithinPlayerRadius(bool withinPlayerRadius)
         {
             _previewOnlyObjectsView.SetWithinPlayerRadius(withinPlayerRadius);
         }

@@ -18,7 +18,7 @@ namespace Client.Game.InGame.DistanceCulling
         private Vector3 _lastEvalPosition;
         private bool _hasEvaluated;
 
-        public PlayerCenteredDistanceCulling(PlayerSystemContainer playerSystemContainer, float chunkSize, float radius, float reevalMoveDistance)
+        internal PlayerCenteredDistanceCulling(PlayerSystemContainer playerSystemContainer, float chunkSize, float radius, float reevalMoveDistance)
         {
             _playerSystemContainer = playerSystemContainer;
             _chunkTable = new DistanceCullingChunkTable(chunkSize);
@@ -26,12 +26,12 @@ namespace Client.Game.InGame.DistanceCulling
             _reevalMoveDistance = reevalMoveDistance;
         }
 
-        public IDisposable Register(Bounds worldBounds, IDistanceCullingTarget target)
+        internal IDisposable Register(Bounds worldBounds, IDistanceCullingTarget target)
         {
             return _chunkTable.Add(worldBounds, target);
         }
 
-        public void Tick()
+        internal void Tick()
         {
             var player = _playerSystemContainer.PlayerObjectController;
             if (player == null) return; // silent-ok: プレイヤー生成前の数フレームだけ / 生成後のTickで評価が走り録画テストで確認

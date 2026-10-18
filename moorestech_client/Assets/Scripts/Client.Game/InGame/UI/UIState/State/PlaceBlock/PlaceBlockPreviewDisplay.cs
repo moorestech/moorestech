@@ -25,6 +25,27 @@ namespace Client.Game.InGame.UI.UIState.State.PlaceBlock
                 OnPlaceBlock(block);
             }
             _subscriptions.Add(_blockGameObjectDataStore.OnBlockPlaced.Subscribe(OnPlaceBlock));
+
+            #region Internal
+
+            void OnPlaceBlock(BlockGameObject block)
+            {
+                // アニメーション無しの設置は完了通知が来ないので即座に半径判定へ
+                // A placement without animation never gets the finish notice, so follow the radius right away
+                if (!block.IsPlayingPlaceAnimation)
+                {
+                    block.SetPreviewOnlyObjectsDisplay(PreviewOnlyObjectsDisplay.RenderedWithinPlayerRadius);
+                    return;
+                }
+
+                // 設置中は当たり判定だけ残し、完了時に半径に従って描画する
+                // Keep only colliders during placement and render according to the radius on completion
+                block.SetPreviewOnlyObjectsDisplay(PreviewOnlyObjectsDisplay.CollidersOnly);
+                _subscriptions.Add(block.OnFinishedPlaceAnimation.Subscribe(_ =>
+                    block.SetPreviewOnlyObjectsDisplay(PreviewOnlyObjectsDisplay.RenderedWithinPlayerRadius)));
+            }
+
+            #endregion
         }
 
         public void OnExit()
@@ -37,23 +58,6 @@ namespace Client.Game.InGame.UI.UIState.State.PlaceBlock
             {
                 block.SetPreviewOnlyObjectsDisplay(PreviewOnlyObjectsDisplay.Hidden);
             }
-        }
-
-        private void OnPlaceBlock(BlockGameObject block)
-        {
-            // アニメーション無しの設置は完了通知が来ないので即座に半径判定へ
-            // A placement without animation never gets the finish notice, so follow the radius right away
-            if (!block.IsPlayingPlaceAnimation)
-            {
-                block.SetPreviewOnlyObjectsDisplay(PreviewOnlyObjectsDisplay.RenderedWithinPlayerRadius);
-                return;
-            }
-
-            // 設置中は当たり判定だけ残し、完了時に半径に従って描画する
-            // Keep only colliders during placement and render according to the radius on completion
-            block.SetPreviewOnlyObjectsDisplay(PreviewOnlyObjectsDisplay.CollidersOnly);
-            _subscriptions.Add(block.OnFinishedPlaceAnimation.Subscribe(_ =>
-                block.SetPreviewOnlyObjectsDisplay(PreviewOnlyObjectsDisplay.RenderedWithinPlayerRadius)));
         }
     }
 }
