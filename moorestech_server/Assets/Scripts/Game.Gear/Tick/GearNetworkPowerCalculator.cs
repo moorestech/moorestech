@@ -58,14 +58,14 @@ namespace Game.Gear.Tick
             // 負荷率を確定してnetwork自身のstateへ書く。各gearの供給値はこのstateとギア比から導出される
             // Settle the load rate and write the network's own state; each gear's supply is derived from this state and its ratio
             var networkLoadRate = Mathf.Min(1, demandPower / availablePower);
-            network.SetRuntimeState(new GearNetworkRuntimeState(false, GearNetworkStopReason.None, demandPower, availablePower, networkLoadRate));
+            network.SetRuntimeState(new GearNetworkRuntimeState(false, GearNetworkStopReason.None, demandPower, availablePower, networkLoadRate, originRpm));
         }
 
         // 停止理由と需給値をnetwork自身のstateへ書く。gearの停止はstateのIsStoppedから導出される
         // Write the stop reason and power figures as the network's own state; each gear's stopped-ness is derived from state.IsStopped
         internal static void StopNetwork(GearNetwork network, GearNetworkStopReason stopReason, float demandPower, float availablePower)
         {
-            network.SetRuntimeState(new GearNetworkRuntimeState(true, stopReason, demandPower, availablePower, 0f));
+            network.SetRuntimeState(new GearNetworkRuntimeState(true, stopReason, demandPower, availablePower, 0f, 0f));
         }
     }
 }

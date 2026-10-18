@@ -60,11 +60,15 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
 
             // ② 2台が尽きて約100%: 網の回転数は最速の風車のものなので、残る1台が回す限り100%のまま
             // ② Two run dry, about 100%: the network turns at the fastest windmill, so one fuelled windmill keeps 100%
-            // 燃料を抜いても装填済みの1個を負荷率ぶんゆっくり燃やし切ってから減速する。最速だった風車が落ち始める tick に網の回転数が1 tick だけ落ちる(ADR 0084 F3)ので、落ち着いてから測る
-            // After the fuel is removed the loaded item still burns, slowly at the load rate, before deceleration; the network RPM dips for one tick when the formerly fastest windmill starts to slow (ADR 0084 F3), so measure once settled
+            // 燃料を抜いても装填済みの1個を負荷率ぶんゆっくり燃やし切ってから減速する。減速に入る tick も含め、残る1台が回す限りベルトは 18 のまま(F3 の回帰: 原点 RPM は RunTick の snapshot)
+            // After the fuel is removed the loaded item still burns, slowly at the load rate, before deceleration; the belt stays at 18 throughout, including the tick the others start slowing (F3 regression: origin RPM is the RunTick snapshot)
             RunDry(Windmills[1]);
             RunDry(Windmills[2]);
-            session.TickMany(DrySettleTicks);
+            for (var tick = 0; tick < DrySettleTicks; tick++)
+            {
+                session.TickOnce();
+                Assert.AreEqual(WoodSpeed, BeltWorldTestUtil.SegmentAt(WatchedCell).Speed, $"A11 (2) speed must not dip while two windmills run dry (tick {session.Tick})");
+            }
             var single = session.Measure(session.DefaultWindow);
             BeltThroughputAssert.Throughput(single.Window / WoodPeriod, single, "A11 (2) 100%");
             BeltThroughputAssert.WatchedSegmentsAtFullThroughput(single, WoodPeriod, "A11 (2) 100%");

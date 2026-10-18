@@ -79,7 +79,9 @@ namespace Game.Gear.Common
             var origin = _rotationCache.Origin;
             isClockwise = rotation.IsSameDirectionAsOrigin ? origin.GenerateIsClockwise : !origin.GenerateIsClockwise;
 
-            rpm = _runtimeState.IsStopped ? new RPM(0) : new RPM(Math.Abs(rotation.SignedRpmRatio) * origin.GenerateRpm.AsPrimitive());
+            // 原点の GenerateRpm を生で読むと、同じ tick の燃料消費で下がった値が原点交代前の 1 tick だけ網に漏れる(ADR 0084 F3)。RunTick で確定した値を使う
+            // Reading the origin's GenerateRpm live leaked the value lowered by this tick's fuel consumption for the one tick before the origin switched (ADR 0084 F3); use the value settled at RunTick
+            rpm = _runtimeState.IsStopped ? new RPM(0) : new RPM(Math.Abs(rotation.SignedRpmRatio) * _runtimeState.OriginRpm);
             return true;
         }
 
