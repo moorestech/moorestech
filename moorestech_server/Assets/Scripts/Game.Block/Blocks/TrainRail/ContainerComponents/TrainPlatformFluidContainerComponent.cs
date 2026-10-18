@@ -1,24 +1,27 @@
 using System;
 using System.Collections.Generic;
 using Core.Master;
-using Core.Update;
 using Game.Block.Blocks.Fluid;
 using Game.Block.Component;
 using Game.Block.Interface.Component;
 using Game.Context;
 using Game.Fluid;
 using Game.Train.Event;
-using Mooresmaster.Model.FluidInventoryConnectsModule;
 using Game.Train.Unit;
 using Game.Train.Unit.Containers;
 using JetBrains.Annotations;
-using Newtonsoft.Json;
 using Game.Block.Interface.Component.ConnectJudge;
+using Game.Block.Interface.State;
+using MessagePack;
+using UniRx;
 
 namespace Game.Block.Blocks.TrainRail.ContainerComponents
 {
-    public class TrainPlatformFluidContainerComponent : IUpdatableBlockComponent, IFluidInventory, IBlockSaveState
+    public class TrainPlatformFluidContainerComponent : IUpdatableBlockComponent, IFluidInventory, IBlockSaveState, IBlockStateObservable
     {
+        public IObservable<Unit> OnChangeBlockState => _onChangeBlockState;
+        private readonly Subject<Unit> _onChangeBlockState = new();
+
         public bool IsDestroy { get; private set; }
         [CanBeNull] public FluidTrainCarContainer Container { get; private set; }
 
@@ -62,12 +65,14 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
 
         public void Update()
         {
-            PushFluidToAdjacentBlocks();
+            // 液体を移した操作で通知する
+            // Notify directly after moving fluid
+            if (Container != null && 0 < TrainPlatformFluidTransfer.PushToAdjacent(Container.Container, _fluidConnector)) NotifyFluidChanged();
 
             var dockedCar = _dockingComponent.DockedTrainCar;
-            if (dockedCar == null) return;
+            if (dockedCar == null) return; // silent-ok: 未停車は通常状態 / PF表示で確認
 
-            if (!IsTargetContainer(out var targetContainer)) return;
+            if (!TrainPlatformFluidTransfer.IsTargetContainer(dockedCar, Container, out var targetContainer)) return; // silent-ok: 非対象貨車は通常状態 / 貨車表示で確認
 
             switch (_transferComponent.Mode)
             {
@@ -99,7 +104,25 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
         {
             if (Container == null) Container = new FluidTrainCarContainer(new FluidContainer(_capacity));
 
-            return Container.Container.AddLiquid(fluidStack).Remainder;
+            var result = Container.Container.AddLiquid(fluidStack);
+            if (0 < result.AcceptedAmount) NotifyFluidChanged();
+            return result.Remainder;
+        }
+
+        public BlockStateDetail[] GetBlockStateDetails()
+        {
+            // PF自身の液体を出力タンクとして配信する
+            // Publish the platform's own fluid as an output tank
+            var tank = Container == null
+                ? new FluidMessagePack(FluidMaster.EmptyFluidId, 0, _capacity)
+                : new FluidMessagePack(Container.Container.FluidId, Container.Container.Amount, Container.Container.Capacity);
+            var detail = new FluidMachineInventoryStateDetail(new List<FluidMessagePack>(), new List<FluidMessagePack> { tank });
+            return new[] { new BlockStateDetail(FluidMachineInventoryStateDetail.BlockStateDetailKey, MessagePackSerializer.Serialize(detail)) };
+        }
+
+        private void NotifyFluidChanged()
+        {
+            _onChangeBlockState.OnNext(Unit.Default);
         }
 
         public void Destroy()
@@ -132,12 +155,13 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
             {
                 dockedCar.SetContainer(Container);
                 Container = null;
+                NotifyFluidChanged();
                 ServerContext.GetService<ITrainUnitSnapshotNotifyEvent>().NotifySnapshotByCar(dockedCar);
                 _dockingComponent.StartRetracting();
                 return;
             }
             
-            TransferFluid(Container.Container, trainContainer.Container);
+            if (0 < TrainPlatformFluidTransfer.Transfer(Container.Container, trainContainer.Container)) NotifyFluidChanged();
             _dockingComponent.StartRetracting();
         }
 
@@ -155,115 +179,16 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
             if (Container == null)
             {
                 Container = trainContainer;
+                NotifyFluidChanged();
                 dockedCar.SetContainer(null);
                 ServerContext.GetService<ITrainUnitSnapshotNotifyEvent>().NotifySnapshotByCar(dockedCar);
                 _dockingComponent.StartRetracting();
                 return;
             }
 
-            TransferFluid(trainContainer.Container, Container.Container);
+            if (0 < TrainPlatformFluidTransfer.Transfer(trainContainer.Container, Container.Container)) NotifyFluidChanged();
             _dockingComponent.StartRetracting();
         }
 
-        private static void TransferFluid(FluidContainer from, FluidContainer to)
-        {
-            if (from.Amount < double.Epsilon) return;
-
-            var fluidStack = new FluidStack(from.Amount, from.FluidId);
-            var transferred = to.AddLiquid(fluidStack).AcceptedAmount;
-            from.Amount -= transferred;
-
-            if (from.Amount < double.Epsilon)
-            {
-                from.FluidId = FluidMaster.EmptyFluidId;
-            }
-        }
-
-        private bool IsTargetContainer([CanBeNull] out FluidTrainCarContainer fluidContainer)
-        {
-            var trainContainer = _dockingComponent.DockedTrainCar?.Container;
-            if (trainContainer is FluidTrainCarContainer f)
-            {
-                // 異液体の場合はアーム展開前に弾く
-                // Reject before arm extension when fluids are incompatible
-                if (HasIncompatibleFluids(f))
-                {
-                    fluidContainer = null;
-                    return false;
-                }
-                fluidContainer = f;
-                return true;
-            }
-
-            if (trainContainer is null)
-            {
-                fluidContainer = null;
-                return true;
-            }
-
-            fluidContainer = null;
-            return false;
-        }
-
-        private bool HasIncompatibleFluids(FluidTrainCarContainer trainFluidContainer)
-        {
-            if (Container == null) return false;
-
-            var platformFluid = Container.Container;
-            var trainFluid = trainFluidContainer.Container;
-
-            if (platformFluid.Amount < double.Epsilon || trainFluid.Amount < double.Epsilon) return false;
-
-            return platformFluid.FluidId != trainFluid.FluidId;
-        }
-
-        private void PushFluidToAdjacentBlocks()
-        {
-            if (Container == null) return;
-
-            var fluidContainer = Container.Container;
-            if (fluidContainer.Amount < double.Epsilon) return;
-
-            foreach (var (inventory, info) in _fluidConnector.ConnectedTargets)
-            {
-                if (fluidContainer.Amount < double.Epsilon) break;
-
-                var flowRate = GetFlowRate(info);
-                var transferAmount = Math.Min(fluidContainer.Amount, flowRate * GameUpdater.SecondsPerTick);
-                if (transferAmount < double.Epsilon) continue;
-
-                var fluidStack = new FluidStack(transferAmount, fluidContainer.FluidId);
-                var remain = inventory.AddLiquid(fluidStack, info);
-                var transferred = transferAmount - remain.Amount;
-                if (transferred > 0)
-                {
-                    fluidContainer.Amount -= transferred;
-                }
-            }
-
-            if (fluidContainer.Amount < double.Epsilon)
-            {
-                fluidContainer.FluidId = FluidMaster.EmptyFluidId;
-            }
-
-            #region Internal
-
-            double GetFlowRate(ConnectedInfo info)
-            {
-                if (info.SelfConnector is IFluidConnector fluidConnector)
-                {
-                    return fluidConnector.Option.FlowCapacity;
-                }
-                throw new ArgumentException("FluidConnectOption is not set on connector");
-            }
-
-            #endregion
-        }
-
-        public class TrainPlatformFluidContainerSaveJsonObject
-        {
-            [JsonProperty("fluid")]
-            public FluidContainerSaveJsonObject Fluid;
-        }
     }
 }
