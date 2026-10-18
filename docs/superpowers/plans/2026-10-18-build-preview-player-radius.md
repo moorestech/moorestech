@@ -1027,13 +1027,20 @@ git commit -m "test: プレビュー半径・半径外への設置・フレー�
 
 ## 計測結果
 
+- **レビュー反映後の採用値: 変更後23.56ms**（対象コードHEAD `0e1c47042b`、Record=false、run `20261018_215014`、14/14 PASS、ErrorLogs=[]）。ベース25.22msとの差-1.66ms。並走Editor負荷・単回測定のため改善率/因果効果は断定しない。
+- **最終提出録画（レビュー反映後）**: `moorestech_client/PlaytestResults/20261018_215155/build-preview-radius/recording.mp4`（14.5秒・6,212,135 bytes）、14/14 PASS、ErrorLogs=[]。録画時35.36msは比較に使わない。3画像と動画の中盤/終盤フレームを目視し、アバター・床・HUD、移動後の近傍枠線と遠方非表示、半径外上面への積み重ねを確認。
+- 再検証の焦点テスト31/31 PASS（境界の新規ケース含む）。CLIは受理後EOFだったが、自run時刻12:45:10Z〜12:45:45ZのXMLで完了を回収。生出力/結果XMLは `.superpowers/sdd/task-5-final-focused-tests-attempt1.json` / `task-5-final-focused-tests.xml`。
+- 最新成果物: https://sakastudiomac-mini.tail3a5aa5.ts.net:8443/2026-10-18-build-preview-radius-final/ （共有先動画SHA256と原本一致確認済み）。
+- 再実行中のディスク不足は `WorldSnapshotStore.CopyDirectory:131` のIOExceptionで観測。自Taskの使い捨てworldのみ診断を保存後回収し復旧。他セッション/共有cache/ユーザーworld/Libraryは変更しない。詳細は `.superpowers/sdd/task-5-disk-cleanup.md`。
+
+
 - ベース: 25.22ms（1600個、XZ=-40..38・2m間隔、40個配置ごとにYield、設置モード遷移後0.6秒待機して3秒計測、Record=false）
 - ベース結果: `moorestech_client/PlaytestResults/20261018_203315/build-preview-radius/result.json`。Success=true、2/2 PASS、ErrorLogs=[]。
 - ベース画像: 同ディレクトリ `01-build-mode-dense.png`（アバター・床・HUDと遠方までの全枠線を目視確認）。
 - 建築メニューの注入B入力が不成立のため、既存 `PlaceSystemStateController.SetTarget` と `UIStateControl.RequestTransition(PlaceBlock)` による本番状態遷移へ変更。Task 5でも同じ条件を維持する。
 
-- 変更後: 19.81ms（Record=false、20261018_205615、Success=true、11/11 PASS、ErrorLogs=[]）。ベース25.22msとの差は-5.41ms。ただし並走Editor負荷・単回測定のため改善率や因果効果は断定しない。
-- 最終録画: `moorestech_client/PlaytestResults/20261018_205843/build-preview-radius/recording.mp4`（6,292,629 bytes、14.833秒）、Success=true、14/14 PASS、ErrorLogs=[]。Record=trueの計測34.12msは録画負荷があるため前後比較に使わない。
+- レビュー前参考値: 19.81ms（Record=false、20261018_205615、Success=true、11/11 PASS、ErrorLogs=[]）。ベース25.22msとの差は-5.41ms。ただし並走Editor負荷・単回測定のため改善率や因果効果は断定しない。
+- レビュー前録画: `moorestech_client/PlaytestResults/20261018_205843/build-preview-radius/recording.mp4`（6,292,629 bytes、14.833秒）、Success=true、14/14 PASS、ErrorLogs=[]。Record=trueの計測34.12msは録画負荷があるため前後比較に使わない。
 - 最終画像: 同ディレクトリの `01-build-mode-dense.png` / `02-after-move.png` / `03-place-on-far-block.png`。3枚と動画の照準・設置前後フレームを目視確認。アバター/床/HUD、移動後の近傍白枠と遠方非表示、中央遠方の積み重ねを確認。03はクライアント出現とアニメーション完了後に取得。
 - 半径外上面の検証対象は北側 `(0,32,28)`、設置先 `(0,33,28)`。元の東側対象は画面外 `(3841.08,204.72,4.57)` だったため同じ距離に変更。名目y33は前面に当たるのでy33.1へ照準し、上面法線(0,1,0)と本番算出セル(0,33,28)を観測した。
 - 提出物: https://sakastudiomac-mini.tail3a5aa5.ts.net:8443/2026-10-18-build-preview-radius-final/
