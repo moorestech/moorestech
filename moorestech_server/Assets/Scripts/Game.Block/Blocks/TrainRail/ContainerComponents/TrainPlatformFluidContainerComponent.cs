@@ -14,22 +14,18 @@ using Game.Block.Interface.Component.ConnectJudge;
 using Game.Block.Interface.State;
 using MessagePack;
 using UniRx;
-
 namespace Game.Block.Blocks.TrainRail.ContainerComponents
 {
     public class TrainPlatformFluidContainerComponent : IUpdatableBlockComponent, IFluidInventory, IBlockSaveState, IBlockStateObservable
     {
         public IObservable<Unit> OnChangeBlockState => _onChangeBlockState;
         private readonly Subject<Unit> _onChangeBlockState = new();
-
         public bool IsDestroy { get; private set; }
         [CanBeNull] public FluidTrainCarContainer Container { get; private set; }
-
         private readonly TrainPlatformDockingComponent _dockingComponent;
         private readonly TrainPlatformTransferComponent _transferComponent;
         private readonly BlockConnectorComponent<IFluidInventory, DefaultContext<IFluidInventory>> _fluidConnector;
         private readonly double _capacity;
-
         public TrainPlatformFluidContainerComponent(
             TrainPlatformDockingComponent dockingComponent,
             TrainPlatformTransferComponent transferComponent,
@@ -41,7 +37,6 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
             _fluidConnector = fluidConnector;
             _capacity = capacity;
         }
-
         public TrainPlatformFluidContainerComponent(
             TrainPlatformDockingComponent dockingComponent,
             TrainPlatformTransferComponent transferComponent,
@@ -161,7 +156,11 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
                 return;
             }
             
-            if (0 < TrainPlatformFluidTransfer.Transfer(Container.Container, trainContainer.Container)) NotifyFluidChanged();
+            if (0 < TrainPlatformFluidTransfer.Transfer(Container.Container, trainContainer.Container))
+            {
+                NotifyFluidChanged();
+                trainContainer.NotifyFluidChanged();
+            }
             _dockingComponent.StartRetracting();
         }
 
@@ -186,7 +185,11 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
                 return;
             }
 
-            if (0 < TrainPlatformFluidTransfer.Transfer(trainContainer.Container, Container.Container)) NotifyFluidChanged();
+            if (0 < TrainPlatformFluidTransfer.Transfer(trainContainer.Container, Container.Container))
+            {
+                NotifyFluidChanged();
+                trainContainer.NotifyFluidChanged();
+            }
             _dockingComponent.StartRetracting();
         }
 

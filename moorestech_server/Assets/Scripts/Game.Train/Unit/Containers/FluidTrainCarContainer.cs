@@ -1,5 +1,7 @@
 using System;
 using Core.Master;
+using Game.Context;
+using Game.Train.Event;
 using Game.Fluid;
 using Mooresmaster.Model.TrainModule;
 using Newtonsoft.Json;
@@ -42,9 +44,26 @@ namespace Game.Train.Unit.Containers
             return Container.Amount < double.Epsilon;
         }
 
-        // 液体コンテナは現状通知バインドを持たないためno-op
-        // Fluid container has no notification binding today; both hooks are no-op.
-        public void OnAttachedToCar(TrainCar trainCar) { }
-        public void OnDetachedFromCar() { }
+        private TrainCar _attachedCar;
+
+        public void OnAttachedToCar(TrainCar trainCar)
+        {
+            _attachedCar = trainCar;
+            NotifyFluidChanged();
+        }
+
+        public void OnDetachedFromCar()
+        {
+            // 外れる前の貨車に再取得を送る
+            // Request a refresh before leaving the car
+            NotifyFluidChanged();
+            _attachedCar = null;
+        }
+
+        public void NotifyFluidChanged()
+        {
+            if (_attachedCar == null) return; // silent-ok: 貨車に載っていない容器には開いている貨車画面が無い / 液体PF側は自分の OnChangeBlockState で通知済み
+            ((TrainUpdateEvent)ServerContext.GetService<ITrainUpdateEvent>()).InvokeContentRefresh(_attachedCar.TrainCarInstanceId);
+        }
     }
 }

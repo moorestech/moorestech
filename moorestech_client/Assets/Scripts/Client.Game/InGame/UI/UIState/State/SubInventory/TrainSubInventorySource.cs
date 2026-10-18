@@ -55,6 +55,7 @@ namespace Client.Game.InGame.UI.UIState.State.SubInventory
                 case InventoryRequestResult.Success:
                     LastOpenMessage = null;
                     model.SetItems(inventoryResponse.Items);
+                    model.SetFluids(inventoryResponse.Fluids);
                     return model;
                 case InventoryRequestResult.ContainerNotFound:
                     LastOpenMessage = TrainInventoryMessageType.ContainerMissing;

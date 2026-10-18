@@ -1,3 +1,4 @@
+using Game.Block.Interface.State;
 using Server.Protocol.PacketResponse.Util.InventoryService;
 using System;
 using System.Collections.Generic;
@@ -5,6 +6,7 @@ using System.Linq;
 using Core.Item.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
+using Game.Fluid;
 using Game.Train.Unit;
 using Game.Train.Unit.Containers;
 using MessagePack;
@@ -64,7 +66,7 @@ namespace Server.Protocol.PacketResponse
                     return ResponseInventoryRequestProtocolMessagePack.CreateContainerNotFound(InventoryType.Block, identifier);
 
                 var items = _inventoryResolver.Resolve(identifier, requesterPlayerId).InventoryItems;
-                return ResponseInventoryRequestProtocolMessagePack.CreateSuccess(InventoryType.Block, identifier, items);
+                return ResponseInventoryRequestProtocolMessagePack.CreateSuccess(InventoryType.Block, identifier, items, Array.Empty<FluidMessagePack>());
             }
 
             ResponseInventoryRequestProtocolMessagePack CreateTrainResponse(InventoryIdentifierMessagePack identifier)
@@ -78,7 +80,12 @@ namespace Server.Protocol.PacketResponse
                 // 列車カーのインベントリを生成
                 // Build the train car inventory
                 if (trainCar.Container is ItemTrainCarContainer)
-                    return ResponseInventoryRequestProtocolMessagePack.CreateSuccess(InventoryType.Train, identifier, _inventoryResolver.Resolve(identifier, requesterPlayerId).InventoryItems.ToArray());
+                    return ResponseInventoryRequestProtocolMessagePack.CreateSuccess(InventoryType.Train, identifier, _inventoryResolver.Resolve(identifier, requesterPlayerId).InventoryItems.ToArray(), Array.Empty<FluidMessagePack>());
+                if (trainCar.Container is FluidTrainCarContainer fluidCar)
+                {
+                    var fluid = new FluidMessagePack(fluidCar.Container.FluidId, fluidCar.Container.Amount, fluidCar.Container.Capacity);
+                    return ResponseInventoryRequestProtocolMessagePack.CreateSuccess(InventoryType.Train, identifier, Array.Empty<IItemStack>(), new[] { fluid });
+                }
                 return ResponseInventoryRequestProtocolMessagePack.CreateContainerNotFound(InventoryType.Train, identifier);
             }
 
@@ -109,38 +116,40 @@ namespace Server.Protocol.PacketResponse
             [Key(3)] public InventoryIdentifierMessagePack Identifier { get; set; }
             [Key(4)] public ItemMessagePack[] Items { get; set; }
             [Key(5)] public InventoryRequestResult Result { get; set; }
+            [Key(6)] public FluidMessagePack[] Fluids { get; set; }
 
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public ResponseInventoryRequestProtocolMessagePack() { }
 
-            public ResponseInventoryRequestProtocolMessagePack(InventoryType inventoryType, InventoryIdentifierMessagePack identifier, IReadOnlyList<IItemStack> items, InventoryRequestResult result = InventoryRequestResult.Success)
+            public ResponseInventoryRequestProtocolMessagePack(InventoryType inventoryType, InventoryIdentifierMessagePack identifier, IReadOnlyList<IItemStack> items, IReadOnlyList<FluidMessagePack> fluids, InventoryRequestResult result)
             {
                 Tag = ProtocolTag;
                 InventoryType = inventoryType;
                 Identifier = identifier;
                 Items = items.Select(item => new ItemMessagePack(item)).ToArray();
                 Result = result;
+                Fluids = fluids.ToArray();
             }
 
-            public static ResponseInventoryRequestProtocolMessagePack CreateSuccess(InventoryType inventoryType, InventoryIdentifierMessagePack identifier, IReadOnlyList<IItemStack> items)
+            public static ResponseInventoryRequestProtocolMessagePack CreateSuccess(InventoryType inventoryType, InventoryIdentifierMessagePack identifier, IReadOnlyList<IItemStack> items, IReadOnlyList<FluidMessagePack> fluids)
             {
-                return new ResponseInventoryRequestProtocolMessagePack(inventoryType, identifier, items, InventoryRequestResult.Success);
+                return new ResponseInventoryRequestProtocolMessagePack(inventoryType, identifier, items, fluids, InventoryRequestResult.Success);
             }
 
             public static ResponseInventoryRequestProtocolMessagePack CreateContainerNotFound(InventoryType inventoryType, InventoryIdentifierMessagePack identifier)
             {
-                return new ResponseInventoryRequestProtocolMessagePack(inventoryType, identifier, Array.Empty<IItemStack>(), InventoryRequestResult.ContainerNotFound);
+                return new ResponseInventoryRequestProtocolMessagePack(inventoryType, identifier, Array.Empty<IItemStack>(), Array.Empty<FluidMessagePack>(), InventoryRequestResult.ContainerNotFound);
             }
 
             public static ResponseInventoryRequestProtocolMessagePack CreateTrainCarNotFound(InventoryIdentifierMessagePack identifier)
             {
-                return new ResponseInventoryRequestProtocolMessagePack(InventoryType.Train, identifier, Array.Empty<IItemStack>(), InventoryRequestResult.TrainCarNotFound);
+                return new ResponseInventoryRequestProtocolMessagePack(InventoryType.Train, identifier, Array.Empty<IItemStack>(), Array.Empty<FluidMessagePack>(), InventoryRequestResult.TrainCarNotFound);
             }
 
             public static ResponseInventoryRequestProtocolMessagePack CreateBlockNotFound(InventoryIdentifierMessagePack identifier)
             {
-                return new ResponseInventoryRequestProtocolMessagePack(InventoryType.Block, identifier, Array.Empty<IItemStack>(), InventoryRequestResult.BlockNotFound);
+                return new ResponseInventoryRequestProtocolMessagePack(InventoryType.Block, identifier, Array.Empty<IItemStack>(), Array.Empty<FluidMessagePack>(), InventoryRequestResult.BlockNotFound);
             }
         }
     }

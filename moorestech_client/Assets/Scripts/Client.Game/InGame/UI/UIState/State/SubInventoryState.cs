@@ -69,6 +69,12 @@ namespace Client.Game.InGame.UI.UIState.State
                 // Notify external subscribers (e.g. Web UI)
                 _onSubInventoryUpdated.OnNext(Unit.Default);
             }
+            else if (packet.EventType == InventoryEventType.Refresh)
+            {
+                // 液体と容器の変化をサーバーから取り直す
+                // Refetch fluid and container changes from the server
+                LoadInventory().Forget();
+            }
             else if (packet.EventType == InventoryEventType.Remove)
             {
                 // 開いているインベントリが削除された場合は閉じる
@@ -121,35 +127,24 @@ namespace Client.Game.InGame.UI.UIState.State
 
             // サブインベントリを生成し、データを取得、表示する
             // Create sub inventory, fetch data, and display
+            _loadInventoryCts = new CancellationTokenSource();
+            InputManager.MouseCursorVisible(true);
+            ClientContext.VanillaApi.SendOnly.SubscribeInventory(CurrentSubInventorySource.InventoryIdentifier, true);
             LoadInventory().Forget();
 
-            #region Internal
+        }
 
-            async UniTask LoadInventory()
-            {
-                _loadInventoryCts = new CancellationTokenSource();
-                var ct = _loadInventoryCts.Token;
-
-                // カーソルを表示
-                // Show cursor
-                InputManager.MouseCursorVisible(true);
-
-                // インベントリデータを取得し真データを組み立てる
-                // Fetch inventory data and build the authoritative model
-                var inventoryResponse = await ClientContext.VanillaApi.Response.Inventory.GetInventory(CurrentSubInventorySource.InventoryIdentifier, ct);
-                CurrentSubInventory = CurrentSubInventorySource.CreateModel(inventoryResponse);
-                _localPlayerInventoryController.SetSubInventory(CurrentSubInventory);
-
-                // インベントリの更新を購読
-                // Subscribe to inventory updates
-                ClientContext.VanillaApi.SendOnly.SubscribeInventory(CurrentSubInventorySource.InventoryIdentifier, true);
-
-                // ロード完了を外部購読者（Web UI など）へ通知する
-                // Notify external subscribers (e.g. Web UI) that loading has finished
-                _onSubInventoryUpdated.OnNext(Unit.Default);
-            }
-
-            #endregion
+        private async UniTask LoadInventory()
+        {
+            // 初回と更新で同じ取得経路を使う
+            // Use the same load path for opening and refreshing
+            var source = CurrentSubInventorySource;
+            var ct = _loadInventoryCts.Token;
+            var model = await SubInventoryLoader.Load(source, ct);
+            ct.ThrowIfCancellationRequested();
+            CurrentSubInventory = model;
+            _localPlayerInventoryController.SetSubInventory(model);
+            _onSubInventoryUpdated.OnNext(Unit.Default);
         }
 
         public void OnExit()

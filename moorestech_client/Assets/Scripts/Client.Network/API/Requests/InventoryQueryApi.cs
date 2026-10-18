@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Client.Network.API;
 using Core.Item.Interface;
@@ -32,7 +33,7 @@ namespace Client.Network.API.Requests
         {
             var request = new InventoryRequestProtocol.RequestInventoryRequestProtocolMessagePack(identifier);
             var response = await _packetExchangeManager.GetPacketResponse<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(request, ct);
-            return new InventoryResponse(response.Identifier, CreateStacks(response.Items), response.Result);
+            return new InventoryResponse(response.Identifier, CreateStacks(response.Items), response.Fluids.ToList(), response.Result);
 
             #region Internal
 

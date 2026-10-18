@@ -1,5 +1,7 @@
+using Game.Block.Interface.State;
 using System.Collections.Generic;
 using Core.Item.Interface;
+using Game.Fluid;
 using Game.PlayerInventory.Interface.Subscription;
 using UnityEngine;
 
@@ -12,12 +14,19 @@ namespace Client.Game.InGame.UI.Inventory
     public class SubInventoryModel : ISubInventory
     {
         public List<IItemStack> SubInventory { get; } = new();
+        public List<FluidMessagePack> Fluids { get; private set; } = new();
+
         public int Count => SubInventory.Count;
         public ISubInventoryIdentifier ISubInventoryIdentifier { get; }
 
         public SubInventoryModel(ISubInventoryIdentifier identifier)
         {
             ISubInventoryIdentifier = identifier;
+        }
+
+        public void SetFluids(IReadOnlyList<FluidMessagePack> fluids)
+        {
+            Fluids = new List<FluidMessagePack>(fluids);
         }
 
         public void SetItems(IReadOnlyList<IItemStack> items)

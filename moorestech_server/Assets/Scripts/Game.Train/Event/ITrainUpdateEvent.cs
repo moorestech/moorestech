@@ -10,6 +10,7 @@ namespace Game.Train.Event
     public interface ITrainUpdateEvent
     {
         IObservable<TrainInventoryUpdateEventProperties> OnInventoryUpdated { get; }
+        IObservable<TrainCarInstanceId> OnContentRefreshRequested { get; }
         IObservable<TrainCarInstanceId> OnTrainCarRemoved { get; }
     }
 }
