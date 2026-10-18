@@ -12,6 +12,7 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
 {
     // A9: ベルト → 素通し機(レシピ「A 1個 → A 1個、1 tick」) → ベルト。機械の受理・処理・搬出でベルトに空白が出ない(ADR 0084、シナリオ案 §2 A9)
     // A9: belt -> pass-through machine (recipe "1 A -> 1 A, one tick") -> belt; the machine's accept, process and emit leave no bubble on the belts (ADR 0084, scenario §2 A9)
+    [Category("CiShardServerBeltThroughput")]
     public class BeltThroughputMachineTest
     {
         private const int Period = 20;

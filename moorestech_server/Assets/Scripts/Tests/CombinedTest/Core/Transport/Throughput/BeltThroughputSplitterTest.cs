@@ -9,6 +9,7 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
 {
     // 分岐マスのスループット(ADR 0084、シナリオ案 §2 A3・A7・A8・A17)。木の歯車ベルト、周期20tick。合計は入力の W/20、分配は ±1
     // Splitter-cell throughput (ADR 0084, scenario §2 A3, A7, A8, A17): wood gear belts, 20-tick period; the total equals the input's W/20, shares within ±1
+    [Category("CiShardServerBeltThroughput")]
     public class BeltThroughputSplitterTest
     {
         private const int Period = 20;

@@ -9,6 +9,7 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
 {
     // 詰まりと独立性(ADR 0084、シナリオ案 §2 A13・A14)。詰まり中は個数が保存され、解消後は次の着荷から100%に戻る。別系統は影響を受けない
     // Blocking and independence (ADR 0084, scenario §2 A13, A14): items are conserved while blocked, 100% resumes from the next arrival, and another line is unaffected
+    [Category("CiShardServerBeltThroughput")]
     public class BeltThroughputBlockingTest
     {
         private const int Period = 20;

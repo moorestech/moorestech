@@ -9,6 +9,7 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
 {
     // A1: 直線100マス。供給→ベルト→受けで、窓の個数が周期からの理論値にちょうど一致する(ADR 0084、シナリオ案 §2 A1)
     // A1: a 100-cell straight line; source -> belt -> sink, and the window count equals the period-derived maximum exactly (ADR 0084, scenario §2 A1)
+    [Category("CiShardServerBeltThroughput")]
     public class BeltThroughputStraightTest
     {
         private const int Length = 100;

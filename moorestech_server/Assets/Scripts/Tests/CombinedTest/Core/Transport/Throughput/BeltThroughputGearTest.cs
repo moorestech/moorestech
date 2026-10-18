@@ -21,6 +21,7 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
 {
     // 歯車の動力に左右される配置(ADR 0084、シナリオ案 §2 A11・A12)
     // Layouts governed by gear power (ADR 0084, scenario §2 A11, A12)
+    [Category("CiShardServerBeltThroughput")]
     public class BeltThroughputGearTest
     {
         private const int WoodPeriod = 20;

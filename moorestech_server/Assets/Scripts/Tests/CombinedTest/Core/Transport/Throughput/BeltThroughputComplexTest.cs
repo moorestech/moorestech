@@ -11,6 +11,7 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
 {
     // C: 複雑系。期待値は手計算せず、組から作った容量グラフの最大流で出す(ADR 0084、シナリオ案 §2 C)
     // C: complex layouts; the expectation is the max flow of a capacity graph built from the assembly rather than a hand calculation (ADR 0084, scenario §2 C)
+    [Category("CiShardServerBeltThroughput")]
     public class BeltThroughputComplexTest
     {
         private const int Period = 20;

@@ -26,3 +26,7 @@ ADR: `docs/adr/0084-belt-throughput-and-parallelism-regression-suite.md`。シ�
 ## segment の内部を固定するテストは置かない（2026-10-18）
 
 `BeltConveyorSegment` の非公開メンバーをリフレクションで叩くテスト（Advance / DequeueHead / ブロック合体 / 段階ごとの予約プロトコル）は 2026-10-18 に削除した。再実装（Segment2）で丸ごと書き直しになる一方、挙動はこのスイートと B のピン値で世界経由に固定されているため。新しい挙動を守りたいときは、ここに配置を足すか B にピン値を足す。クラス直叩きで残っているのは、世界から届かない契約（坂の進入方向、保存値の定義、停止した分岐・合流の buffer）だけ。
+
+## CI では専用 shard で走る（2026-10-18）
+
+このディレクトリの固定具は `[Category("CiShardServerBeltThroughput")]` を持ち、CI では `server-belt-throughput` shard（`.github/scripts/unity-test-shard-filter.sh` の `dedicated_shards`）として server-remainder と並列に走る。1 件あたり約 3000 tick 回すので remainder に置くと約 20 秒を占めるため。新しい固定具を足すときは同じ Category を付ける。ローカルでは従来どおり regex で選んで実行する。

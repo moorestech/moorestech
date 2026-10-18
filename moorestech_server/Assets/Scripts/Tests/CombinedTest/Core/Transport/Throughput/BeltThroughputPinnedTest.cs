@@ -17,6 +17,7 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
     // Basis: README §1tick order 4, "capture every offer, then advance": at a normal-to-normal boundary the space the downstream head frees this tick is unusable until the next
     // 値を変える PR は理由を ADR に書く(ユーザー裁定 2026-10-18「1 正確な個数をピン止め」)
     // A PR that changes a value records the reason in an ADR (user ruling 2026-10-18 "pin the exact count")
+    [Category("CiShardServerBeltThroughput")]
     public class BeltThroughputPinnedTest
     {
         private const int WoodPeriod = 20;

@@ -16,6 +16,7 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
     // A19: a gear network driven by a single electric-to-gear motor (ADR 0084, F3 ruling addendum)
     // モーターは歯車 tick の末尾で 1 tick 分のバッテリーを使い切り出力 0 に戻る。消費側が原点を生で読むとブロック更新・搬送は毎 tick 0 を見て何も動かない
     // The motor empties its one-tick battery at the end of the gear tick and drops to zero output; consumers reading the origin live saw zero at every block update and transport, so nothing moved
+    [Category("CiShardServerBeltThroughput")]
     public class BeltThroughputMotorTest
     {
         // モード0 は 60 RPM。木の歯車ベルト(基準 10 RPM、速度 18)は floor(18×60/10)=108 で回り、360 幅のアイテムは 4 tick に 1 個出る

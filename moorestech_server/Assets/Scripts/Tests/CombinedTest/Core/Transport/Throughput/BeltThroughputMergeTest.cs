@@ -9,6 +9,7 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
 {
     // 合流マスのスループット(ADR 0084、シナリオ案 §2 A4〜A6・A18)。木の歯車ベルト、周期20tick、出口側が律速で合計は W/20
     // Merge-cell throughput (ADR 0084, scenario §2 A4-A6, A18): wood gear belts, 20-tick period, the exit bounds the total at W/20
+    [Category("CiShardServerBeltThroughput")]
     public class BeltThroughputMergeTest
     {
         private const int Period = 20;

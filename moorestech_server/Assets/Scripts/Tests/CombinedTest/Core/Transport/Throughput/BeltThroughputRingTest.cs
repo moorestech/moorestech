@@ -11,6 +11,7 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
     // A16: a ring with a side-input merge and a splitter exit; the ring is cut at the merge and the splitter, both buffered, so the merge-to-splitter run turns at 100% (ADR 0084, scenario §2 A16 / §3 D2)
     // 下流から順に更新する実装は、順序を定義できない輪の切れ目で100%を下回ってここで落ちる(判別器 D2)
     // An implementation that updates downstream first cannot order the ring's seam and falls below 100% here (discriminator D2)
+    [Category("CiShardServerBeltThroughput")]
     public class BeltThroughputRingTest
     {
         private const int Period = 20;
