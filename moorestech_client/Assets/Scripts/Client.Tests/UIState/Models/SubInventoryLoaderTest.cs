@@ -20,7 +20,7 @@ namespace Client.Tests.UIState.Models
             var source = new TrainSubInventorySource(new TrainCarInstanceId(1), null);
             var loader = new SubInventoryLoader(query, source, CancellationToken.None);
             var published = new List<SubInventoryModel>();
-            loader.OnLoaded.Subscribe(published.Add);
+            loader.OnSubInventoryLoaded.Subscribe(published.Add);
             loader.RequestRefresh();
             loader.RequestRefresh();
             loader.RequestRefresh();
@@ -39,7 +39,6 @@ namespace Client.Tests.UIState.Models
             query.Complete(latest);
             Assert.AreEqual(1, published.Count);
             Assert.AreSame(latest, published[0]);
-            Assert.IsFalse(loader.IsLoading);
             Assert.AreEqual(1, query.MaximumActiveRequests);
         }
 
@@ -50,12 +49,12 @@ namespace Client.Tests.UIState.Models
             using var closed = new CancellationTokenSource();
             var first = new SubInventoryLoader(query, new TrainSubInventorySource(new TrainCarInstanceId(1), null), closed.Token);
             var published = new List<SubInventoryModel>();
-            first.OnLoaded.Subscribe(published.Add);
+            first.OnSubInventoryLoaded.Subscribe(published.Add);
             first.RequestRefresh();
             first.RequestRefresh();
             closed.Cancel();
             var second = new SubInventoryLoader(query, new TrainSubInventorySource(new TrainCarInstanceId(2), null), CancellationToken.None);
-            second.OnLoaded.Subscribe(published.Add);
+            second.OnSubInventoryLoaded.Subscribe(published.Add);
             second.RequestRefresh();
 
             // 閉じた車両の応答が後着しても次の画面を変えない
@@ -66,9 +65,9 @@ namespace Client.Tests.UIState.Models
             var current = Model(2);
             query.Complete(current);
             Assert.AreSame(current, published[0]);
-            Assert.IsFalse(second.Matches(InventoryIdentifierMessagePack.CreateTrainMessage(1)));
-            Assert.IsTrue(second.Matches(InventoryIdentifierMessagePack.CreateTrainMessage(2)));
-            Assert.IsFalse(second.Matches(InventoryIdentifierMessagePack.CreateBlockMessage(UnityEngine.Vector3Int.zero)));
+            Assert.AreEqual(InventoryEventDisposition.Ignored, second.HandleEvent(InventoryIdentifierMessagePack.CreateTrainMessage(1), InventoryEventType.Update));
+            Assert.AreEqual(InventoryEventDisposition.ApplyItemUpdate, second.HandleEvent(InventoryIdentifierMessagePack.CreateTrainMessage(2), InventoryEventType.Update));
+            Assert.AreEqual(InventoryEventDisposition.Ignored, second.HandleEvent(InventoryIdentifierMessagePack.CreateBlockMessage(UnityEngine.Vector3Int.zero), InventoryEventType.Update));
         }
 
         [Test]
@@ -78,7 +77,7 @@ namespace Client.Tests.UIState.Models
             var source = new TrainSubInventorySource(new TrainCarInstanceId(1), null);
             var loader = new SubInventoryLoader(query, source, CancellationToken.None);
             var published = new List<SubInventoryModel>();
-            loader.OnLoaded.Subscribe(published.Add);
+            loader.OnSubInventoryLoaded.Subscribe(published.Add);
             loader.RequestRefresh();
             loader.RequestRefresh();
 
@@ -86,7 +85,6 @@ namespace Client.Tests.UIState.Models
             // Failures reach Forget's exception log without preventing the next request
             UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Exception, new System.Text.RegularExpressions.Regex("inventory request failed"));
             query.Fail(new System.InvalidOperationException("inventory request failed"));
-            Assert.IsFalse(loader.IsLoading);
             Assert.AreEqual(0, published.Count);
             Assert.AreEqual(1, query.RequestCount);
             loader.RequestRefresh();
@@ -94,7 +92,6 @@ namespace Client.Tests.UIState.Models
             var recovered = Model(1);
             query.Complete(recovered);
             Assert.AreSame(recovered, published[0]);
-            Assert.IsFalse(loader.IsLoading);
         }
 
         private static SubInventoryModel Model(long carId) => new(new TrainInventorySubInventoryIdentifier(carId));

@@ -57,7 +57,6 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
                 }
             }
         }
-
         public void Update()
         {
             // 液体を移した操作で通知する
@@ -72,16 +71,77 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
             switch (_transferComponent.Mode)
             {
                 case TrainPlatformTransferComponent.TransferMode.LoadToTrain:
-                    LoadFluidToTrain(dockedCar, targetContainer);
+                    LoadFluidToTrain();
                     break;
                 case TrainPlatformTransferComponent.TransferMode.UnloadToPlatform:
-                    UnloadFluidFromTrain(dockedCar, targetContainer);
+                    UnloadFluidFromTrain();
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-        }
 
+            #region Internal
+
+            void LoadFluidToTrain()
+            {
+                if (Container == null || Container.Container.Amount < double.Epsilon)
+                {
+                    _dockingComponent.StartRetracting();
+                    return;
+                }
+
+                _dockingComponent.StartExtending();
+                if (_dockingComponent.ArmState != ArmState.Extended) return;
+
+                if (targetContainer == null)
+                {
+                    dockedCar.SetContainer(Container);
+                    Container = null;
+                    NotifyFluidChanged();
+                    ServerContext.GetService<ITrainUnitSnapshotNotifyEvent>().NotifySnapshotByCar(dockedCar);
+                    _dockingComponent.StartRetracting();
+                    return;
+                }
+
+                if (0 < TrainPlatformFluidTransfer.Transfer(Container.Container, targetContainer.Container))
+                {
+                    NotifyFluidChanged();
+                    targetContainer.NotifyFluidChanged();
+                }
+                _dockingComponent.StartRetracting();
+            }
+
+            void UnloadFluidFromTrain()
+            {
+                if (targetContainer == null || targetContainer.Container.Amount < double.Epsilon)
+                {
+                    _dockingComponent.StartRetracting();
+                    return;
+                }
+
+                _dockingComponent.StartExtending();
+                if (_dockingComponent.ArmState != ArmState.Extended) return;
+
+                if (Container == null)
+                {
+                    Container = targetContainer;
+                    NotifyFluidChanged();
+                    dockedCar.SetContainer(null);
+                    ServerContext.GetService<ITrainUnitSnapshotNotifyEvent>().NotifySnapshotByCar(dockedCar);
+                    _dockingComponent.StartRetracting();
+                    return;
+                }
+
+                if (0 < TrainPlatformFluidTransfer.Transfer(targetContainer.Container, Container.Container))
+                {
+                    NotifyFluidChanged();
+                    targetContainer.NotifyFluidChanged();
+                }
+                _dockingComponent.StartRetracting();
+            }
+
+            #endregion
+        }
         public List<FluidStack> GetFluidInventory()
         {
             if (Container == null) return new List<FluidStack>();
@@ -94,7 +154,6 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
             }
             return result;
         }
-
         public FluidStack AddLiquid(FluidStack fluidStack, ConnectedInfo connectedInfo)
         {
             if (Container == null) Container = new FluidTrainCarContainer(new FluidContainer(_capacity));
@@ -103,7 +162,6 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
             if (0 < result.AcceptedAmount) NotifyFluidChanged();
             return result.Remainder;
         }
-
         public BlockStateDetail[] GetBlockStateDetails()
         {
             // PF自身の液体を出力タンクとして配信する
@@ -119,78 +177,17 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
         {
             _onChangeBlockState.OnNext(Unit.Default);
         }
-
         public void Destroy()
         {
             IsDestroy = true;
         }
-
         public string SaveKey { get; } = typeof(TrainPlatformFluidContainerComponent).FullName;
-
         public object GetSaveState()
         {
             // コンテナ未生成時はnull、ある時は内部FluidContainerをGUIDで保存する
             // Persist null when no container exists; otherwise persist the inner FluidContainer by GUID
             var fluid = Container != null ? new FluidContainerSaveJsonObject(Container.Container) : null;
             return new TrainPlatformFluidContainerSaveJsonObject { Fluid = fluid };
-        }
-
-        private void LoadFluidToTrain(TrainCar dockedCar, FluidTrainCarContainer trainContainer)
-        {
-            if (Container == null || Container.Container.Amount < double.Epsilon)
-            {
-                _dockingComponent.StartRetracting();
-                return;
-            }
-
-            _dockingComponent.StartExtending();
-            if (_dockingComponent.ArmState != ArmState.Extended) return;
-
-            if (trainContainer == null)
-            {
-                dockedCar.SetContainer(Container);
-                Container = null;
-                NotifyFluidChanged();
-                ServerContext.GetService<ITrainUnitSnapshotNotifyEvent>().NotifySnapshotByCar(dockedCar);
-                _dockingComponent.StartRetracting();
-                return;
-            }
-            
-            if (0 < TrainPlatformFluidTransfer.Transfer(Container.Container, trainContainer.Container))
-            {
-                NotifyFluidChanged();
-                trainContainer.NotifyFluidChanged();
-            }
-            _dockingComponent.StartRetracting();
-        }
-
-        private void UnloadFluidFromTrain(TrainCar dockedCar, FluidTrainCarContainer trainContainer)
-        {
-            if (trainContainer == null || trainContainer.Container.Amount < double.Epsilon)
-            {
-                _dockingComponent.StartRetracting();
-                return;
-            }
-
-            _dockingComponent.StartExtending();
-            if (_dockingComponent.ArmState != ArmState.Extended) return;
-
-            if (Container == null)
-            {
-                Container = trainContainer;
-                NotifyFluidChanged();
-                dockedCar.SetContainer(null);
-                ServerContext.GetService<ITrainUnitSnapshotNotifyEvent>().NotifySnapshotByCar(dockedCar);
-                _dockingComponent.StartRetracting();
-                return;
-            }
-
-            if (0 < TrainPlatformFluidTransfer.Transfer(trainContainer.Container, Container.Container))
-            {
-                NotifyFluidChanged();
-                trainContainer.NotifyFluidChanged();
-            }
-            _dockingComponent.StartRetracting();
         }
 
     }

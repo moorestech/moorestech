@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Core.Master;
 using Game.Block.Blocks.TrainRail.ContainerComponents;
 using Game.Block.Interface;
+using Game.Block.Blocks.Fluid;
+using Game.Context;
 using Game.Block.Interface.Extension;
 using Game.Block.Interface.State;
 using Game.Fluid;
@@ -67,6 +69,30 @@ namespace Tests.UnitTest.Game
             component.AddLiquid(new FluidStack(10.0, waterId), default);
 
             Assert.AreEqual(0, notifyCount);
+        }
+
+        [Test]
+        public void AdjacentPushNotifiesAndPublishesEmptyTankOnlyOnChange()
+        {
+            var component = PlacePlatform();
+            Assert.IsTrue(ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe,
+                new Vector3Int(-1, 0, 5), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pipeBlock));
+            var pipe = pipeBlock.GetComponent<FluidPipeComponent>();
+            var water = MasterHolder.FluidMaster.GetFluidId(WaterGuid);
+            component.AddLiquid(new FluidStack(0.25, water), default);
+            var notifications = 0;
+            using var subscription = component.OnChangeBlockState.Subscribe(_ => notifications++);
+
+            // 実Updateの押出しと空タンクへの遷移を確認する
+            // Exercise the actual Update push and transition to an empty tank
+            component.Update();
+            Assert.AreEqual(0.25, pipe.Node.Amount, 0.001);
+            Assert.AreEqual(1, notifications);
+            var tank = ReadDetail(component).OutputTanks[0];
+            Assert.AreEqual(0, tank.Amount, 0.001);
+            Assert.AreEqual(FluidMaster.EmptyFluidId.AsPrimitive(), tank.FluidId);
+            component.Update();
+            Assert.AreEqual(1, notifications);
         }
 
         #region Helper

@@ -9,7 +9,6 @@ using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.UIState.State.CancelInput;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Input;
-using Cysharp.Threading.Tasks;
 using Game.Context;
 using MessagePack;
 using UniRx;
@@ -57,13 +56,10 @@ namespace Client.Game.InGame.UI.UIState.State
         private void OnUnifiedInventoryEvent(byte[] payload)
         {
             var packet = MessagePackSerializer.Deserialize<UnifiedInventoryEventMessagePack>(payload);
-            if (_shouldClose || _loader == null || !_loader.Matches(packet.Identifier)) return; // silent-ok: 閉鎖中や別対象の通知 / 開いている対象の通知だけを適用する
+            if (_shouldClose || _loader == null) return; // silent-ok: 閉鎖中の通知 / 開いている対象の通知だけを適用する
 
-            if (packet.EventType == InventoryEventType.Refresh || packet.EventType == InventoryEventType.Update && (_loader.IsLoading || CurrentSubInventory == null))
-            {
-                _loader.RequestRefresh();
-            }
-            else if (packet.EventType == InventoryEventType.Update)
+            var disposition = _loader.HandleEvent(packet.Identifier, packet.EventType);
+            if (disposition == InventoryEventDisposition.ApplyItemUpdate)
             {
                 // アイテムを更新
                 var item = ServerContext.ItemStackFactory.Create(packet.Item.Id, packet.Item.Count);
@@ -73,7 +69,7 @@ namespace Client.Game.InGame.UI.UIState.State
                 // Notify external subscribers (e.g. Web UI)
                 _onSubInventoryUpdated.OnNext(Unit.Default);
             }
-            else if (packet.EventType == InventoryEventType.Remove)
+            else if (disposition == InventoryEventDisposition.Remove)
             {
                 // 開いているインベントリが削除された場合は閉じる
                 // Close if the opened inventory is removed
@@ -128,7 +124,7 @@ namespace Client.Game.InGame.UI.UIState.State
             // Create sub inventory, fetch data, and display
             _loadInventoryCts = new CancellationTokenSource();
             _loader = new SubInventoryLoader(new SubInventoryServerQuery(), CurrentSubInventorySource, _loadInventoryCts.Token);
-            _loader.OnLoaded.Subscribe(ApplyInventory);
+            _loader.OnSubInventoryLoaded.Subscribe(ApplyInventory);
             InputManager.MouseCursorVisible(true);
             ClientContext.VanillaApi.SendOnly.SubscribeInventory(CurrentSubInventorySource.InventoryIdentifier, true);
             _loader.RequestRefresh();

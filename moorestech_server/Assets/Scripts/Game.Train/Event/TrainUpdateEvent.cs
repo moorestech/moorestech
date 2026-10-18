@@ -15,7 +15,7 @@ namespace Game.Train.Event
         public IObservable<TrainCarInstanceId> OnContentRefreshRequested => _refreshSubject;
         private readonly Subject<TrainCarInstanceId> _refreshSubject = new();
 
-        public void InvokeContentRefresh(TrainCarInstanceId id)
+        internal void InvokeContentRefresh(TrainCarInstanceId id)
         {
             _refreshSubject.OnNext(id);
         }

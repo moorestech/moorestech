@@ -27,6 +27,18 @@ namespace Server.Event.EventReceive.UnifiedInventoryEvent
             trainUpdateEvent.OnInventoryUpdated.Subscribe(OnTrainInventoryUpdate);
             trainUpdateEvent.OnTrainCarRemoved.Subscribe(OnTrainCarRemoved);
             trainUpdateEvent.OnContentRefreshRequested.Subscribe(OnTrainContentRefresh);
+
+            #region Internal
+
+            void OnTrainContentRefresh(TrainCarInstanceId id)
+            {
+                // 開いたプレイヤーだけに再取得を要求する
+                // Request a refetch only from players viewing this car
+                var (identifier, playerIds) = GetSubscribers(id);
+                AddEvent(UnifiedInventoryEventMessagePack.CreateRefresh(identifier), playerIds);
+            }
+
+            #endregion
         }
         
         private void OnTrainInventoryUpdate(TrainInventoryUpdateEventProperties properties)
@@ -40,14 +52,6 @@ namespace Server.Event.EventReceive.UnifiedInventoryEvent
             AddEvent(message, playerIds);
         }
         
-        private void OnTrainContentRefresh(TrainCarInstanceId id)
-        {
-            // 開いたプレイヤーだけに再取得を要求する
-            // Request a refetch only from players viewing this car
-            var (identifier, playerIds) = GetSubscribers(id);
-            AddEvent(UnifiedInventoryEventMessagePack.CreateRefresh(identifier), playerIds);
-        }
-
         private void OnTrainCarRemoved(TrainCarInstanceId trainCarInstanceId)
         {
             // サブスクライバーを取得

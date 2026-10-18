@@ -10,7 +10,6 @@ using Game.Train.Event;
 using Game.Train.SaveLoad;
 using Game.Train.Unit.Containers;
 using JetBrains.Annotations;
-using Newtonsoft.Json;
 using Mooresmaster.Model.TrainModule;
 using UnityEngine;
 using FluidContainer = Game.Fluid.FluidContainer;
@@ -74,7 +73,12 @@ namespace Game.Train.Unit
 
             // マスタ指定のデフォルトコンテナを装着する(セーブ復元時はRestoreTrainCar内のSetContainerで上書きされる)
             // Attach the default container per master spec; RestoreTrainCar's SetContainer overrides it on load.
-            SetContainer(TrainCarContainerFactory.CreateDefault(trainCarMaster));
+            SetContainer(trainCarMaster.DefaultContainerType switch
+            {
+                "Item" => ItemTrainCarContainer.CreateWithEmptySlots(trainCarMaster.InventorySlots),
+                "Fluid" => new FluidTrainCarContainer(new FluidContainer(trainCarMaster.FluidCapacity)),
+                _ => null, // silent-ok: None指定は容器を持たない車両 / 在庫要求はContainerNotFoundを返す
+            });
         }
 
         // 加速時入力masconlevelから消費燃料を考慮しtrainunitが最後に使用するためのmasconlevelを算出するため

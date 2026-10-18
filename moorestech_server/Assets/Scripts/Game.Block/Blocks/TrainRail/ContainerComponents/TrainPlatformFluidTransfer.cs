@@ -13,9 +13,9 @@ using Mooresmaster.Model.FluidInventoryConnectsModule;
 
 namespace Game.Block.Blocks.TrainRail.ContainerComponents
 {
-    public static class TrainPlatformFluidTransfer
+    internal static class TrainPlatformFluidTransfer
     {
-        public static double Transfer(FluidContainer from, FluidContainer to)
+        internal static double Transfer(FluidContainer from, FluidContainer to)
         {
             if (from.Amount < double.Epsilon) return 0; // silent-ok: 空タンクは通常状態 / 呼出元が移動量で通知を判断
 
@@ -32,7 +32,7 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
             return transferred;
         }
 
-        public static bool IsTargetContainer(TrainCar dockedCar, [CanBeNull] FluidTrainCarContainer platformContainer, [CanBeNull] out FluidTrainCarContainer fluidContainer)
+        internal static bool IsTargetContainer(TrainCar dockedCar, [CanBeNull] FluidTrainCarContainer platformContainer, [CanBeNull] out FluidTrainCarContainer fluidContainer)
         {
             var trainContainer = dockedCar.Container;
             if (trainContainer is FluidTrainCarContainer f)
@@ -58,13 +58,13 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
             return false; // silent-ok: 非液体貨車は通常の非対象 / 貨車表示で確認
         }
 
-        public static bool HasIncompatibleFluids(FluidContainer platformFluid, FluidContainer trainFluid)
+        private static bool HasIncompatibleFluids(FluidContainer platformFluid, FluidContainer trainFluid)
         {
             if (platformFluid.Amount < double.Epsilon || trainFluid.Amount < double.Epsilon) return false;
             return platformFluid.FluidId != trainFluid.FluidId;
         }
 
-        public static double PushToAdjacent(FluidContainer fluidContainer, BlockConnectorComponent<IFluidInventory, DefaultContext<IFluidInventory>> connector)
+        internal static double PushToAdjacent(FluidContainer fluidContainer, BlockConnectorComponent<IFluidInventory, DefaultContext<IFluidInventory>> connector)
         {
             if (fluidContainer.Amount < double.Epsilon) return 0; // silent-ok: 空タンクは通常状態 / 呼出元が移動量で通知を判断
 
@@ -83,7 +83,7 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
                 var fluidStack = new FluidStack(transferAmount, fluidContainer.FluidId);
                 var remain = inventory.AddLiquid(fluidStack, info);
                 var transferred = transferAmount - remain.Amount;
-                if (transferred > 0)
+                if (0 < transferred)
                 {
                     fluidContainer.Amount -= transferred;
                     totalTransferred += transferred;

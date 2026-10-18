@@ -5,7 +5,7 @@ using Game.Fluid;
 
 namespace Client.WebUiHost.Game.Topics.BlockDetail
 {
-    public static class FluidSlotDtoBuilder
+    internal static class FluidSlotDtoBuilder
     {
         public static void Append(List<BlockFluidSlotDto> slots, IEnumerable<FluidMessagePack> tanks)
         {

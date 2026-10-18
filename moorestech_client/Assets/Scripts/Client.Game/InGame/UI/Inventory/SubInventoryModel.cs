@@ -24,7 +24,7 @@ namespace Client.Game.InGame.UI.Inventory
             ISubInventoryIdentifier = identifier;
         }
 
-        public void SetFluids(IReadOnlyList<FluidMessagePack> fluids)
+        internal void SetFluids(IReadOnlyList<FluidMessagePack> fluids)
         {
             Fluids = new List<FluidMessagePack>(fluids);
         }

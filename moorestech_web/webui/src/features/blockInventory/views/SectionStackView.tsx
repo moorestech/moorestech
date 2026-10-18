@@ -17,21 +17,22 @@ type SectionStackViewConfig = {
   fluidRowTestId: string | null;
   renderEmptyGrid: boolean;
   showFluidProgress: boolean;
+  showFluidDetails: boolean;
 };
 
 const configByBlockType: Record<string, SectionStackViewConfig> = {
-  FluidPipe: { itemGridTestId: null, fluidRowTestId: "fluid-pipe-fluid-slots", renderEmptyGrid: false, showFluidProgress: false },
-  Chest: { itemGridTestId: "chest-grid", fluidRowTestId: null, renderEmptyGrid: true, showFluidProgress: true },
-  ElectricMachine: { itemGridTestId: null, fluidRowTestId: "machine-fluid-slots", renderEmptyGrid: false, showFluidProgress: false },
-  GearMachine: { itemGridTestId: null, fluidRowTestId: "machine-fluid-slots", renderEmptyGrid: false, showFluidProgress: false },
-  ElectricGenerator: { itemGridTestId: "generator-fuel-grid", fluidRowTestId: null, renderEmptyGrid: true, showFluidProgress: true },
-  FuelGearGenerator: { itemGridTestId: "generator-fuel-grid", fluidRowTestId: null, renderEmptyGrid: true, showFluidProgress: true },
-  SimpleGearGenerator: { itemGridTestId: "generator-fuel-grid", fluidRowTestId: null, renderEmptyGrid: true, showFluidProgress: true },
-  GearToElectricGenerator: { itemGridTestId: null, fluidRowTestId: null, renderEmptyGrid: false, showFluidProgress: false },
-  ElectricMiner: { itemGridTestId: "miner-output-grid", fluidRowTestId: null, renderEmptyGrid: true, showFluidProgress: true },
-  GearMiner: { itemGridTestId: "gear-miner-output-grid", fluidRowTestId: null, renderEmptyGrid: true, showFluidProgress: true },
-  ElectricPump: { itemGridTestId: null, fluidRowTestId: "pump-fluid-slots", renderEmptyGrid: false, showFluidProgress: false },
-  GearPump: { itemGridTestId: null, fluidRowTestId: "pump-fluid-slots", renderEmptyGrid: false, showFluidProgress: false },
+  FluidPipe: { itemGridTestId: null, fluidRowTestId: "fluid-pipe-fluid-slots", renderEmptyGrid: false, showFluidProgress: false, showFluidDetails: true },
+  Chest: { itemGridTestId: "chest-grid", fluidRowTestId: null, renderEmptyGrid: true, showFluidProgress: true, showFluidDetails: false },
+  ElectricMachine: { itemGridTestId: null, fluidRowTestId: "machine-fluid-slots", renderEmptyGrid: false, showFluidProgress: false, showFluidDetails: false },
+  GearMachine: { itemGridTestId: null, fluidRowTestId: "machine-fluid-slots", renderEmptyGrid: false, showFluidProgress: false, showFluidDetails: false },
+  ElectricGenerator: { itemGridTestId: "generator-fuel-grid", fluidRowTestId: null, renderEmptyGrid: true, showFluidProgress: true, showFluidDetails: false },
+  FuelGearGenerator: { itemGridTestId: "generator-fuel-grid", fluidRowTestId: null, renderEmptyGrid: true, showFluidProgress: true, showFluidDetails: false },
+  SimpleGearGenerator: { itemGridTestId: "generator-fuel-grid", fluidRowTestId: null, renderEmptyGrid: true, showFluidProgress: true, showFluidDetails: false },
+  GearToElectricGenerator: { itemGridTestId: null, fluidRowTestId: null, renderEmptyGrid: false, showFluidProgress: false, showFluidDetails: false },
+  ElectricMiner: { itemGridTestId: "miner-output-grid", fluidRowTestId: null, renderEmptyGrid: true, showFluidProgress: true, showFluidDetails: false },
+  GearMiner: { itemGridTestId: "gear-miner-output-grid", fluidRowTestId: null, renderEmptyGrid: true, showFluidProgress: true, showFluidDetails: false },
+  ElectricPump: { itemGridTestId: null, fluidRowTestId: "pump-fluid-slots", renderEmptyGrid: false, showFluidProgress: false, showFluidDetails: false },
+  GearPump: { itemGridTestId: null, fluidRowTestId: "pump-fluid-slots", renderEmptyGrid: false, showFluidProgress: false, showFluidDetails: false },
 };
 
 const genericConfig: SectionStackViewConfig = {
@@ -39,6 +40,7 @@ const genericConfig: SectionStackViewConfig = {
   fluidRowTestId: "generic-block-fluids",
   renderEmptyGrid: false,
   showFluidProgress: true,
+  showFluidDetails: false,
 };
 
 function resolveSectionStackViewConfig(blockType: string): SectionStackViewConfig {
@@ -65,8 +67,8 @@ export default function SectionStackView({ data, fillsPanelHeight }: { data: Blo
       <GearSection data={data} />
       <ElectricNetworkSection data={data} />
       <GearNetworkSection data={data} />
-      {data.blockType === "FluidPipe" ? <FluidInventoryContents fluids={data.fluidSlots} testId="fluid-pipe-fluid-slots" /> : null}
-      {config.fluidRowTestId && !data.machine && data.blockType !== "FluidPipe" ? <FluidSlotRow fluids={data.fluidSlots.map((fluid) => ({ fluid }))} progress={config.showFluidProgress ? data.progress : null} testId={config.fluidRowTestId} /> : null}
+      {config.showFluidDetails && config.fluidRowTestId ? <FluidInventoryContents fluids={data.fluidSlots} testId={config.fluidRowTestId} /> : null}
+      {config.fluidRowTestId && !data.machine && !config.showFluidDetails ? <FluidSlotRow fluids={data.fluidSlots.map((fluid) => ({ fluid }))} progress={config.showFluidProgress ? data.progress : null} testId={config.fluidRowTestId} /> : null}
     </Stack>
   );
 }

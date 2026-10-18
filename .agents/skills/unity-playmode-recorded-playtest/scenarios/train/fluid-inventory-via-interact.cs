@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
@@ -81,7 +82,11 @@ return PlaytestRunner.Run("fluid-inventory-via-interact", options, async p =>
     await p.WaitSeconds(1f);
     await Close();
     var reserve = new FluidContainer(100);
-    p.Assert(TrainPlatformFluidTransfer.Transfer(pf.Container.Container,reserve)==80,"準備用にPF水80を退避");
+    // 非公開の準備処理は反射で呼び、製品APIの公開範囲を広げない
+    // Invoke internal setup through reflection without widening the product API
+    var transferType = typeof(TrainPlatformFluidContainerComponent).Assembly.GetType("Game.Block.Blocks.TrainRail.ContainerComponents.TrainPlatformFluidTransfer", true);
+    var transfer = transferType.GetMethod("Transfer", BindingFlags.Static | BindingFlags.NonPublic);
+    p.Assert((double)transfer.Invoke(null, new object[] { pf.Container.Container, reserve })==80,"準備用にPF水80を退避");
 
     // 貨車を空のPFへドッキングし初期在庫を開く
     // Dock the car at the empty platform and open its initial inventory

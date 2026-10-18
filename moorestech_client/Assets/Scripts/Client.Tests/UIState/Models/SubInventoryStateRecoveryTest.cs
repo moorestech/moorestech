@@ -9,6 +9,7 @@ using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Cysharp.Threading.Tasks;
 using Game.Context;
+using Game.Block.Interface.State;
 using Game.PlayerInventory.Interface.Subscription;
 using Game.Train.Unit;
 using MessagePack;
@@ -48,8 +49,14 @@ namespace Client.Tests.UIState.Models
             SetField("_loadInventoryCts", _cts);
             SetField("_onSubInventoryUpdated", new Subject<Unit>());
             SetField("_localPlayerInventoryController", new LocalPlayerInventoryController(new LocalPlayerInventory(), null));
-            _loader.OnLoaded.Subscribe(model => typeof(SubInventoryState).GetMethod("ApplyInventory", PrivateInstance).Invoke(_state, new object[] { model }));
+            _loader.OnSubInventoryLoaded.Subscribe(model => typeof(SubInventoryState).GetMethod("ApplyInventory", PrivateInstance).Invoke(_state, new object[] { model }));
             _loader.RequestRefresh();
+
+            #region Internal
+
+            void SetField(string name, object value) => typeof(SubInventoryState).GetField(name, PrivateInstance).SetValue(_state, value);
+
+            #endregion
         }
 
         [TearDown]
@@ -65,7 +72,6 @@ namespace Client.Tests.UIState.Models
         {
             Fail();
             Assert.IsNull(_state.CurrentSubInventory);
-            Assert.IsFalse(_loader.IsLoading);
             Receive(type);
             Assert.AreEqual(2, _query.RequestCount);
             var model = Model();
@@ -110,19 +116,32 @@ namespace Client.Tests.UIState.Models
             Receive(InventoryEventType.Remove);
             _query.Complete(Model());
             Assert.IsNull(_state.CurrentSubInventory);
-            Assert.IsFalse(_loader.IsLoading);
         }
 
-        [Test]
-        public void UpdateAfterRefreshFailureCanStillUpdateAnExistingModel()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void UpdateAfterRefreshFailureRefetchesBeforeApplyingItemSlots(bool hadFluid)
         {
-            var model = Model();
+            var model = new SubInventoryModel(_identifier);
+            if (hadFluid) model.SetFluids(new[] { new FluidMessagePack(1, 20, 100) });
             _query.Complete(model);
             Receive(InventoryEventType.Refresh);
             Fail();
             Receive(InventoryEventType.Update);
+            Receive(InventoryEventType.Update);
             Assert.AreSame(model, _state.CurrentSubInventory);
-            Assert.AreEqual(7, model.SubInventory[0].Count);
+            Assert.AreEqual(0, model.Count);
+            Assert.AreEqual(3, _query.RequestCount);
+            _query.Complete(Model());
+            Assert.AreEqual(4, _query.RequestCount);
+            var current = Model();
+            current.SetItems(new[] { ServerContext.ItemStackFactory.CreatEmpty(), ServerContext.ItemStackFactory.CreatEmpty() });
+            _query.Complete(current);
+            Receive(InventoryEventType.Update);
+            var secondSlot = UnifiedInventoryEventMessagePack.CreateUpdate(_identifier, 1, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 9));
+            typeof(SubInventoryState).GetMethod("OnUnifiedInventoryEvent", PrivateInstance).Invoke(_state, new object[] { MessagePackSerializer.Serialize(secondSlot) });
+            Assert.AreEqual(7, current.SubInventory[0].Count);
+            Assert.AreEqual(9, current.SubInventory[1].Count);
         }
 
         private void Receive(InventoryEventType type)
@@ -148,8 +167,6 @@ namespace Client.Tests.UIState.Models
             model.SetItems(new[] { ServerContext.ItemStackFactory.CreatEmpty() });
             return model;
         }
-
-        private void SetField(string name, object value) => typeof(SubInventoryState).GetField(name, PrivateInstance).SetValue(_state, value);
 
         private sealed class ControlledQuery : ISubInventoryQuery
         {

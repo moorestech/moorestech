@@ -12,10 +12,11 @@ namespace Client.Game.InGame.UI.UIState.State.SubInventory
         private readonly ISubInventoryQuery _query;
         private readonly ISubInventorySource _source;
         private readonly CancellationToken _ct;
-        private readonly Subject<SubInventoryModel> _onLoaded = new();
+        private readonly Subject<SubInventoryModel> _onSubInventoryLoaded = new();
         private bool _pending;
-        public bool IsLoading { get; private set; }
-        public IObservable<SubInventoryModel> OnLoaded => _onLoaded;
+        private bool _hasCurrentSnapshot;
+        private bool _isLoading;
+        public IObservable<SubInventoryModel> OnSubInventoryLoaded => _onSubInventoryLoaded;
 
         public SubInventoryLoader(ISubInventoryQuery query, ISubInventorySource source, CancellationToken ct)
         {
@@ -24,45 +25,79 @@ namespace Client.Game.InGame.UI.UIState.State.SubInventory
             _ct = ct;
         }
 
-        public bool Matches(InventoryIdentifierMessagePack identifier)
+        public InventoryEventDisposition HandleEvent(InventoryIdentifierMessagePack identifier, InventoryEventType eventType)
         {
-            var own = _source.InventoryIdentifier;
-            if (own.InventoryType != identifier.InventoryType) return false;
-            return own.InventoryType == InventoryType.Train
-                ? own.TrainCarInstanceId == identifier.TrainCarInstanceId
-                : own.BlockPosition.Vector3Int == identifier.BlockPosition.Vector3Int;
+            if (_ct.IsCancellationRequested || !Matches(identifier)) return InventoryEventDisposition.Ignored; // silent-ok: 閉鎖済みや別対象 / Stateは開いた対象だけ更新する
+            if (eventType == InventoryEventType.Remove) return InventoryEventDisposition.Remove;
+            if (eventType == InventoryEventType.Update && _hasCurrentSnapshot) return InventoryEventDisposition.ApplyItemUpdate;
+            if (eventType == InventoryEventType.Refresh || eventType == InventoryEventType.Update)
+            {
+                RequestRefresh();
+                return InventoryEventDisposition.RefreshQueued;
+            }
+            return InventoryEventDisposition.Ignored; // silent-ok: 対象外イベント / 対応するイベントだけStateに渡す
+
+            #region Internal
+
+            bool Matches(InventoryIdentifierMessagePack identifier)
+            {
+                var own = _source.InventoryIdentifier;
+                if (own.InventoryType != identifier.InventoryType) return false;
+                return own.InventoryType == InventoryType.Train
+                    ? own.TrainCarInstanceId == identifier.TrainCarInstanceId
+                    : own.BlockPosition.Vector3Int == identifier.BlockPosition.Vector3Int;
+            }
+
+            #endregion
         }
 
         public void RequestRefresh()
         {
             // 取得中の複数通知は次の1要求へ集約する
             // Coalesce notifications during a load into the next request
+            _hasCurrentSnapshot = false;
             _pending = true;
-            if (IsLoading) return; // silent-ok: 次の要求を予約済み / 成功完了後に取り直し、失敗時は次通知で再開する
-            IsLoading = true;
+            if (_isLoading) return; // silent-ok: 次の要求を予約済み / 成功完了後に取り直し、失敗時は次通知で再開する
+            _isLoading = true;
             LoadPending().Forget();
-        }
 
-        private async UniTask LoadPending()
-        {
-            try
+            #region Internal
+
+            async UniTask LoadPending()
             {
-                while (_pending)
+                try
                 {
-                    _pending = false;
-                    var model = await _query.Load(_source, _ct);
-                    _ct.ThrowIfCancellationRequested();
-                    // 途中で更新された応答は表示せず最新を再取得する
-                    // Refetch rather than display a response invalidated during its request
-                    if (!_pending) _onLoaded.OnNext(model);
+                    while (_pending)
+                    {
+                        _pending = false;
+                        var model = await _query.Load(_source, _ct);
+                        _ct.ThrowIfCancellationRequested();
+                        // 途中で更新された応答は表示せず最新を再取得する
+                        // Refetch rather than display a response invalidated during its request
+                        if (!_pending)
+                        {
+                            _hasCurrentSnapshot = true;
+                            _onSubInventoryLoaded.OnNext(model);
+                        }
+                    }
+                }
+                finally
+                {
+                    // 失敗はForgetへ伝え、次通知による再取得を可能にする
+                    // Propagate failures to Forget and allow the next notification to retry
+                    _isLoading = false;
                 }
             }
-            finally
-            {
-                // 失敗はForgetへ伝え、次通知による再取得を可能にする
-                // Propagate failures to Forget and allow the next notification to retry
-                IsLoading = false;
-            }
+
+            #endregion
         }
+    }
+
+    internal enum InventoryEventDisposition
+    {
+        Ignored,
+        RefreshQueued,
+        ApplyItemUpdate,
+        Remove,
     }
 }
