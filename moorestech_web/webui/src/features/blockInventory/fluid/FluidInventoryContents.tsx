@@ -17,7 +17,7 @@ export default function FluidInventoryContents({ fluids, testId }: { fluids: Flu
           {fluid.kind === "filled" ? (
             <Stack gap={0}>
               <Text size="sm">{t(fluidNameKey(fluid.fluidGuid))}</Text>
-              <Text size="sm">{formatSlotAmount(fluid.amount)} / {formatSlotAmount(fluid.capacity)}</Text>
+              <Text size="sm">{`${formatSlotAmount(fluid.amount)} / ${formatSlotAmount(fluid.capacity)}`}</Text>
             </Stack>
           ) : null}
         </Group>
