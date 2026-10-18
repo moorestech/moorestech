@@ -648,7 +648,7 @@ unity-playmode-recorded-playtest スキルを使い、プレイテストDSLの1�
 
 ### Task 4: 全ブランチレビュー
 
-- [ ] 必ずmoores-code-reviewスキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）
+- [x] 必ずmoores-code-reviewスキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）
 
 ### Task 5: PR作成
 
