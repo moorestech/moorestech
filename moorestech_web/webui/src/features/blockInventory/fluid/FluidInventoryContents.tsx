@@ -11,17 +11,20 @@ export default function FluidInventoryContents({ fluids, testId }: { fluids: Flu
   if (fluids.length === 0) return null;
   return (
     <Stack gap="xs" data-testid={testId}>
-      {fluids.map((fluid, index) => (
-        <Group key={index} gap="sm" align="center" wrap="nowrap">
-          <FluidSlotRow fluids={[{ fluid }]} progress={null} testId={`${testId}-slot-${index}`} />
-          {fluid.kind === "filled" ? (
-            <Stack gap={0}>
-              <Text size="sm">{t(fluidNameKey(fluid.fluidGuid))}</Text>
-              <Text size="sm">{`${formatSlotAmount(fluid.amount)} / ${formatSlotAmount(fluid.capacity)}`}</Text>
-            </Stack>
-          ) : null}
-        </Group>
-      ))}
+      {fluids.map((fluid, index) => {
+        const amountText = fluid.kind === "filled" ? `${formatSlotAmount(fluid.amount)} / ${formatSlotAmount(fluid.capacity)}` : "";
+        return (
+          <Group key={index} gap="sm" align="center" wrap="nowrap">
+            <FluidSlotRow fluids={[{ fluid }]} progress={null} testId={`${testId}-slot-${index}`} />
+            {fluid.kind === "filled" ? (
+              <Stack gap={0}>
+                <Text size="sm">{t(fluidNameKey(fluid.fluidGuid))}</Text>
+                <Text size="sm">{amountText}</Text>
+              </Stack>
+            ) : null}
+          </Group>
+        );
+      })}
     </Stack>
   );
 }
