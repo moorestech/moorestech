@@ -18,11 +18,11 @@ namespace Client.Game.InGame.UI.UIState.State.PlaceBlock
 
         public void OnEnter()
         {
-            // 当たり判定は全ブロック有効にし、描画はプレイヤー半径内だけにする
-            // Enable colliders on every block, but render only within the player radius
+            // 入場時の既設ブロックも設置途中なら完了まで描画を待つ
+            // Existing blocks entering mid-placement also wait for completion before rendering
             foreach (var block in _blockGameObjectDataStore.BlockGameObjectDictionary.Values)
             {
-                block.SetPreviewOnlyObjectsDisplay(PreviewOnlyObjectsDisplay.RenderedWithinPlayerRadius);
+                OnPlaceBlock(block);
             }
             _subscriptions.Add(_blockGameObjectDataStore.OnBlockPlaced.Subscribe(OnPlaceBlock));
         }

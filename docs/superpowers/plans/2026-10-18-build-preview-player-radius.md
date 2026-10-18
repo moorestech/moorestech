@@ -243,6 +243,7 @@ git commit -m "refactor: 距離カリングのチャンクテーブルをドメ�
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/PlaceBlockState.cs:77-97,174-177`
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DebugBlockInfoState.cs:71-72,118`
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/BlockPreview/BlockPreviewOnlyObjectsViewTest.cs`
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/BlockPreview/PlaceBlockPreviewDisplayTest.cs`（入場時の進行中アニメーション／退出・再入場の完了待ち）
 
 **Interfaces:**
 - Internal: `PlaceBlockPreviewDisplay(BlockGameObjectDataStore)` / `OnEnter()` / `OnExit()`（Stateの表示購読を委譲。退出時に購読を解除）
@@ -381,11 +382,11 @@ namespace Client.Game.InGame.Block.Preview
 PlaceBlockState.OnEnter（コメント「ここが重くなったら近いブロックだけ…」は削除）:
 
 ```csharp
-            // 当たり判定は全ブロック有効にし、描画はプレイヤー半径内だけにする
-            // Enable colliders on every block, but render only within the player radius
+            // 入場時の既設ブロックも設置途中なら完了まで描画を待つ
+            // Existing blocks entering mid-placement also wait for completion before rendering
             foreach (var blockGameObject in _blockGameObjectDataStore.BlockGameObjectDictionary.Values)
             {
-                blockGameObject.SetPreviewOnlyObjectsDisplay(PreviewOnlyObjectsDisplay.RenderedWithinPlayerRadius);
+                OnPlaceBlock(blockGameObject);
             }
             _blockPlacedDisposable.Add(_blockGameObjectDataStore.OnBlockPlaced.Subscribe(OnPlaceBlock));
 
