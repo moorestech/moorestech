@@ -6,6 +6,7 @@ using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
+using Game.Block.Blocks.Machine.Inventory.Input;
 using Game.Block.Blocks.Machine.State;
 using Game.Context;
 using Mooresmaster.Model.MachineRecipesModule;

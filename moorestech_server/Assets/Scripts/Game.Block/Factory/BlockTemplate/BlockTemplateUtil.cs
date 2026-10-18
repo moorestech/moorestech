@@ -6,6 +6,7 @@ using Core.Update;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.BeltConveyor.Connection;
 using Game.Block.Blocks.Machine.Inventory;
+using Game.Block.Blocks.Machine.Inventory.Input;
 using Game.Block.Blocks.Machine.Module;
 using Game.Block.Component;
 using Game.Block.Event;
