@@ -1023,7 +1023,7 @@ git commit -m "test: プレビュー半径・半径外への設置・フレー�
 ### Task 7: PR作成とセッション終了可能状態
 
 - [x] セッション終了可能状態にすること: pr-createスキルでPRを作成し、masterとのコンフリクトがあればmasterをマージして解消・コンパイル確認のうえpushする（解消の実作業はpr-create経由でopus subagentに委譲される）。全作業がコミット・push済みで、このセッションをそのまま閉じてもPRがマージ可能な状態になっていることを確認して終える。PR本文に「計測結果」のベース/変更後 avgFrameMs を載せる
-- [ ] PR作成後 `moores-wt rm build-preview-player-radius` でworktreeとEditorを畳む
+- [x] PR作成後 `moores-wt rm build-preview-player-radius` でworktreeとEditorを畳む
 
 ## 計測結果
 
