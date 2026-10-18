@@ -30,6 +30,7 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly SubInventoryOutOfReachDetector _outOfReachDetector = new();
 
         private CancellationTokenSource _loadInventoryCts;
+        private SubInventoryLoader _loader;
         private bool _shouldClose = false;
 
         // 開いているサブと発生元の公開口
@@ -55,11 +56,14 @@ namespace Client.Game.InGame.UI.UIState.State
 
         private void OnUnifiedInventoryEvent(byte[] payload)
         {
-            if (CurrentSubInventory == null) return;
-
             var packet = MessagePackSerializer.Deserialize<UnifiedInventoryEventMessagePack>(payload);
+            if (_loader == null || !_loader.Matches(packet.Identifier)) return; // silent-ok: 閉じた在庫や別対象の通知 / 開いている対象の通知だけを適用する
 
-            if (packet.EventType == InventoryEventType.Update)
+            if (packet.EventType == InventoryEventType.Refresh || packet.EventType == InventoryEventType.Update && _loader.IsLoading)
+            {
+                _loader.RequestRefresh();
+            }
+            else if (packet.EventType == InventoryEventType.Update)
             {
                 // アイテムを更新
                 var item = ServerContext.ItemStackFactory.Create(packet.Item.Id, packet.Item.Count);
@@ -69,17 +73,12 @@ namespace Client.Game.InGame.UI.UIState.State
                 // Notify external subscribers (e.g. Web UI)
                 _onSubInventoryUpdated.OnNext(Unit.Default);
             }
-            else if (packet.EventType == InventoryEventType.Refresh)
-            {
-                // 液体と容器の変化をサーバーから取り直す
-                // Refetch fluid and container changes from the server
-                LoadInventory().Forget();
-            }
             else if (packet.EventType == InventoryEventType.Remove)
             {
                 // 開いているインベントリが削除された場合は閉じる
                 // Close if the opened inventory is removed
                 _shouldClose = true;
+                _loadInventoryCts.Cancel();
             }
         }
 
@@ -128,20 +127,16 @@ namespace Client.Game.InGame.UI.UIState.State
             // サブインベントリを生成し、データを取得、表示する
             // Create sub inventory, fetch data, and display
             _loadInventoryCts = new CancellationTokenSource();
+            _loader = new SubInventoryLoader(new SubInventoryServerQuery(), CurrentSubInventorySource, _loadInventoryCts.Token);
+            _loader.OnLoaded.Subscribe(ApplyInventory);
             InputManager.MouseCursorVisible(true);
             ClientContext.VanillaApi.SendOnly.SubscribeInventory(CurrentSubInventorySource.InventoryIdentifier, true);
-            LoadInventory().Forget();
+            _loader.RequestRefresh();
 
         }
 
-        private async UniTask LoadInventory()
+        private void ApplyInventory(SubInventoryModel model)
         {
-            // 初回と更新で同じ取得経路を使う
-            // Use the same load path for opening and refreshing
-            var source = CurrentSubInventorySource;
-            var ct = _loadInventoryCts.Token;
-            var model = await SubInventoryLoader.Load(source, ct);
-            ct.ThrowIfCancellationRequested();
             CurrentSubInventory = model;
             _localPlayerInventoryController.SetSubInventory(model);
             _onSubInventoryUpdated.OnNext(Unit.Default);
@@ -154,6 +149,7 @@ namespace Client.Game.InGame.UI.UIState.State
             _loadInventoryCts?.Cancel();
             _loadInventoryCts?.Dispose();
             _loadInventoryCts = null;
+            _loader = null;
 
             // OnEnterがソース未指定で早期returnしていた場合はここで終える
             // Bail out here if OnEnter returned early with no source

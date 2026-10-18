@@ -49,14 +49,10 @@ namespace Game.Train.Unit.Containers
         public void OnAttachedToCar(TrainCar trainCar)
         {
             _attachedCar = trainCar;
-            NotifyFluidChanged();
         }
 
         public void OnDetachedFromCar()
         {
-            // 外れる前の貨車に再取得を送る
-            // Request a refresh before leaving the car
-            NotifyFluidChanged();
             _attachedCar = null;
         }
 
