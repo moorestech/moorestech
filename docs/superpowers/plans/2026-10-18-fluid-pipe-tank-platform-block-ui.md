@@ -535,13 +535,13 @@ git commit -m "パイプ・タンク・液体PFのブロックUIに液体を表�
   - `SubInventoryModel.Fluids : List<FluidMessagePack> { get; private set; }`、`SubInventoryModel.SetFluids(IReadOnlyList<FluidMessagePack>)`
   - `FluidSlotDtoBuilder.Append(List<BlockFluidSlotDto> slots, IEnumerable<FluidMessagePack> tanks)`（`BlockDetailDtoBuilder.AppendFluidSlots` の移設。中身は同じ）
 
-- [ ] **Step 1: サーバーのテストを書く**
+- [x] **Step 1: サーバーのテストを書く**
 
 `RequestTrainInventoryTest` に `TrainInventoryRequestWithFluidContainer` を足す。既存 `TrainInventoryRequest` と同じ組み立てで、車両だけ `TrainTestCarFactory.CreateTrainCarWithFluidContainer(0, 400000, 1000, distance, true)` にし、返る `fluidContainer` に水 300 を `AddLiquid` してから要求する。期待: `Result == Success`、`Items.Length == 0`、`Fluids.Length == 1`、`Fluids[0].FluidId == 水のFluidId`、`Fluids[0].Amount == 300`、`Fluids[0].MaxCapacity == 1000`。既存 `TrainInventoryRequest` に `Assert.AreEqual(0, data.Fluids.Length)` を足す。
 
 `TrainFluidRefreshEventTest`: 液体PF（`ForUnitTestModBlockId.TestTrainFluidPlatform`）に水を入れ、液体貨車をドッキングさせ（`TrainStationDockingFluidTransferTest.FluidPlatformTransfersFluidToDockedTrainCar` と同じ組み立て）、プレイヤーがその貨車の在庫を購読した状態（`SubscribeInventoryProtocol` を `RequestTrainInventoryTest` の購読前例どおりに送る）で、転送が終わるまで Update を回す。期待: そのプレイヤー宛てのイベントに `UnifiedInventoryEventPacket.EventTag` の `EventType == InventoryEventType.Refresh` が1件以上あり、`Identifier` がその貨車。購読していない別プレイヤーには来ない。イベントの取り出しは既存の統合在庫イベントのテスト（`grep -rln "UnifiedInventoryEventMessagePack" moorestech_server/Assets/Scripts/Tests` で探す）の書き方に合わせる。
 
-- [ ] **Step 2: サーバーを実装する**
+- [x] **Step 2: サーバーを実装する**
 
 1. `InventoryEventType` に `Refresh = 2` を足す（`/// 開いている在庫を取り直させるイベント` の日英 summary を既存に倣って付ける）。
 2. `UnifiedInventoryEventMessagePack.CreateRefresh(identifier)` を `CreateRemove` と同じ形で足す（EventType だけ Refresh）。
@@ -590,16 +590,16 @@ git commit -m "パイプ・タンク・液体PFのブロックUIに液体を表�
 ```
    - ブロック側の `CreateSuccess` 呼び出しは `Array.Empty<FluidMessagePack>()` を渡す。
 
-- [ ] **Step 3: サーバーをコンパイルしテストを実行する**
+- [x] **Step 3: サーバーをコンパイルしテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "RequestTrainInventoryTest|TrainFluidRefreshEventTest|RequestBlockInventory|UnifiedInventory|TrainStationDockingFluidTransferTest"`
 Expected: ErrorCount 0 / 全PASS
 
-- [ ] **Step 4: クライアントのテストを書く**
+- [x] **Step 4: クライアントのテストを書く**
 
 `TrainInventoryFluidDtoTest`: `SubInventoryModel` に `SetFluids` で水 300/1000 を1本入れ、`TrainSubInventorySource`（`new TrainSubInventorySource(new TrainCarInstanceId(1), <ITrainCarViewRegistry の既存テスト用実装または null>)`）と合わせて `TrainInventoryDtoFactory.Create` を呼び、`dto.FluidSlots.Count == 1`・`Amount == 300`・`Capacity == 1000`・`FluidGuid == 水のGuid` を確かめる。`Create` が要求する `TrainUnitClientCache` などの組み立ては `grep -rln "TrainInventoryDtoFactory.Create" moorestech_client/Assets/Scripts/Client.Tests` の既存テストに合わせる。既存テストが無ければ、`TrainTimetableDtoBuilder.Build` が null 許容かを読んで最小の実体を渡す。もう1ケース: `TrainSubInventorySource.CreateModel` に `Fluids` 1本・`Result = Success` の `InventoryResponse` を渡すと `model.Fluids.Count == 1`。
 
-- [ ] **Step 5: クライアントを実装する**
+- [x] **Step 5: クライアントを実装する**
 
 1. `InventoryResponse` に `public List<FluidMessagePack> Fluids { get; }` とコンストラクタ引数を足し、`InventoryQueryApi.cs:35` で `response.Fluids.ToList()` を渡す。
 2. `SubInventoryModel` に `public List<FluidMessagePack> Fluids { get; private set; } = new();` と `public void SetFluids(IReadOnlyList<FluidMessagePack> fluids) { Fluids = new List<FluidMessagePack>(fluids); }`。
@@ -617,18 +617,18 @@ Expected: ErrorCount 0 / 全PASS
 `SubInventoryLoader` の形は `public async UniTask Load(ISubInventorySource source, CancellationToken ct)` とし、結果のモデルは `SubInventoryState` が受け取って `CurrentSubInventory` に入れる（戻り値 `UniTask<SubInventoryModel>` にして呼び出し側で代入・登録・通知する形でもよい。どちらでも `SubInventoryState.cs` が200行未満になること）。取り直し中に画面を閉じたら `_loadInventoryCts` のキャンセルで止まる（OnExit の既存処理）。
 6. `TrainInventoryBody.tsx` のインベントリタブで、`data.fluidSlots.length > 0` のときアイテムグリッドの代わりに `<FluidSlotRow fluids={data.fluidSlots.map((fluid) => ({ fluid }))} progress={null} testId="train-inventory-fluids" />` を出す（`TrainPlatformInventory.tsx:21-23` と同じ書き方）。
 
-- [ ] **Step 6: コンパイルしテストを実行する**
+- [x] **Step 6: コンパイルしテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "TrainInventoryFluidDtoTest|FluidBlockDetailDtoBuilderTest|SubInventory|TrainInventory"`
 Run: `cd moorestech_web/webui && npx vitest run src/features/blockInventory src/bridge`
 Run: `wc -l moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/SubInventoryState.cs moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/InventoryRequestProtocol.cs`
 Expected: ErrorCount 0 / 全PASS / 両ファイル200行未満
 
-- [ ] **Step 7: 実画面で確かめる**
+- [x] **Step 7: 実画面で確かめる**
 
 Task 2 Step 6 と同じPlayModeで、液体貨車を置いて液体PFから水を積ませ、貨車をFで開いて `uloop screenshot` で撮る。確認点: 液体のアイコン・名前・量/容量が出ている／「この列車にはアイテムコンテナがありません」が出ていない／開いたまま積み込みが進むと量が変わる（2枚撮る）。
 
-- [ ] **Step 8: コミットする**
+- [x] **Step 8: コミットする**
 
 ```bash
 git add moorestech_server/Assets/Scripts moorestech_client/Assets/Scripts moorestech_web/webui/src
@@ -639,12 +639,12 @@ git commit -m "液体貨車の在庫画面に液体を表示する"
 
 unity-playmode-recorded-playtest スキルを使い、プレイテストDSLの1シナリオで検証する。
 
-- [ ] 複雑シナリオのscoutで前提・入力経路・API・座標を確認する。
-- [ ] 液体タンクに水を入れてクリックで開き、液体アイコン・名前・量/容量を確認する。
-- [ ] 液体PFに水を入れて開き、液体表示と積込/卸し切替を確認する。
-- [ ] 液体貨車をドッキングさせ、Fで貨車画面を開いたまま積み込みを進め、Refresh取り直しで量が変わることを確認する。
-- [ ] 画面を閉じる。
-- [ ] Record=trueの最終実行でAsserts全PASS、0 byteでない録画と実プレイ視点を確認する。result.jsonと録画パスを報告ファイルへ残し、シナリオと作業をコミットする。
+- [x] 複雑シナリオのscoutで前提・入力経路・API・座標を確認する。
+- [x] 液体タンクに水を入れ、現行の照準→F操作で開いて液体アイコン・名前・量/容量を確認する（左クリック開封は現行操作ではない）。
+- [x] 液体PFに水を入れて開き、液体表示と積込/卸し切替を確認する。
+- [x] 液体貨車をドッキングさせ、Fで貨車画面を開いたまま積み込みを進め、Refresh取り直しで量が変わることを確認する。
+- [x] 画面を閉じる。
+- [x] Record=trueの最終実行でAsserts全PASS、0 byteでない録画と実プレイ視点を確認する。result.jsonと録画パスを報告ファイルへ残し、シナリオと作業をコミットする。
 
 ### Task 4: 全ブランチレビュー
 
