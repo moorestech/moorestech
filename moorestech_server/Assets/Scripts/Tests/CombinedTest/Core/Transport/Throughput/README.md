@@ -22,3 +22,7 @@ ADR: `docs/adr/0084-belt-throughput-and-parallelism-regression-suite.md`。シ�
 - 段階(`IBeltTickStage`)を増やす PR は、増えた段が網の大きさによらず定数であることを並列性テストで示す。
 - 供給・受けには `ThroughputSourceChest` / `ThroughputSinkChest`(出力口だけ / 入力口だけ)を使う。普通のチェストは全面に出力口があり、隣のチェストやベルトの横面へ漏れて計測が壊れる。
 - ブロック ID(`ForUnitTestModBlockId`)はサーバー起動後(`BeltThroughputScenario` 生成後)に解決する。
+
+## segment の内部を固定するテストは置かない（2026-10-18）
+
+`BeltConveyorSegment` の非公開メンバーをリフレクションで叩くテスト（Advance / DequeueHead / ブロック合体 / 段階ごとの予約プロトコル）は 2026-10-18 に削除した。再実装（Segment2）で丸ごと書き直しになる一方、挙動はこのスイートと B のピン値で世界経由に固定されているため。新しい挙動を守りたいときは、ここに配置を足すか B にピン値を足す。クラス直叩きで残っているのは、世界から届かない契約（坂の進入方向、保存値の定義、停止した分岐・合流の buffer）だけ。

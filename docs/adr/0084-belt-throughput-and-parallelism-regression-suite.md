@@ -93,3 +93,24 @@
   3. BeltEdgePatternTest（master 由来）は通常ベルト 4 向き ＋ 歯車ベルト北のみ。歯車ベルトはブロック ID が違うだけで接続の経路は同じ。
   4. BeltConnectionVerticalOrientationTest（master 由来）は UpNorth / DownNorth の 2 向き × 7 種。向きの対称性は 3. が担保。
 - 計測の注意: uloop は失敗があるときだけ結果 XML を書くので、所要時間を採るときは必ず落ちる仮テストを 1 本混ぜて XML を得る（計測後に削除）。同じ内容でも並行作業や直前のコンパイルで ±50% ぶれるので、比較は静かな状態で同じ回に取る。
+
+## segment 内部を固定するクラステストの削除（2026-10-18、ユーザー裁定「削除推奨は削除して…これも削除して」）
+
+- 監査結果: segment 実装時に書いたクラステストの大半は、`BeltConveyorSegment` の非公開メソッド（Advance / DequeueHead / BeginTick）や内部データ構造（ブロック合体、リングバッファの折り返し、段階ごとの予約プロトコル）をリフレクションで直接叩いていた。Segment2 では丸ごと書き直しになる一方、守っている挙動は A〜C と B のピン値で世界経由にすでに固定されている。
+- 削除（15 ファイル・75 メソッド）: `UnitTest/Core/BeltTransport` の SegmentAdvance / SegmentDequeue / SegmentModel / BeltConveyorSegment / Connection の Buffer・Merge・Port・Transfer / Simulation の Branch・Loop・Merge・StageOrder / RandomNetwork の RandomInvariant（不変条件は `BeltSimulationParallelismTest` が毎 tick 同じ検査をする）、`Game/BeltConnection/Transport/BeltTransportMachineTest`、世界レベルだが A1/A7/A11/A12/A13 と重複する `GearBeltConveyorTest` 全部と `BeltConveyorTest` の 2 件（満杯解放・分岐 2 分配）。部分削除: BeltPriorityTest 1、BeltSimulationBufferMergeTest 2、BeltSimulationNormalTest 5。未使用になった `FakeBeltSource`・`BeltConnectionTestUtil` と `BeltConveyorSegmentTestUtil` のリフレクション補助も削除。
+- 残したもの: Save / Sync / Topology / Layout / Rebuild（セーブ契約、差分・ハッシュ・MessagePack、配置からの組み立て、設置撤去時の持ち越し）、EntryDirection 6 件（坂の進入方向の規則）、BeltPriority の保存値の定義 2 件、BeltTransportMergeTest 2 件（合流の初期順・飢餓なし）、BeltConveyorTest の 2 件（到着 tick・満杯時の InsertItem 契約）。
+- 世界にシナリオが無いために残したもの 3 件: `BeltSimulationNormalTest.速度0のbufferは段階1で回収できるが段階3で搬出しない`、`BeltSimulationBufferMergeTest.速度0の分岐bufferは段階2で搬出不可と答え合流は次の搬入元を予約する`（停止した分岐・合流）、同 `予約した方向は同じtick内で選び直さず空の合流でも予約外のbufferは搬入できない`（README 容認の癖）。A7/A8b に停止フェーズを足すか B のピン値にすれば消せる。
+- 削除後: UnitTest/Core/BeltTransport + UnitTest/Game/BeltConnection + CombinedTest/Core/Transport（Throughput 以外）230 件 pass。
+
+## サーバー 1 tick の内訳（2026-10-18、仮計測。MasterTickUpdater に一時的な Stopwatch を入れて 2880 tick の平均、計測後に元へ戻した）
+
+| 世界 | 合計 | 主な内訳 |
+|---|---|---|
+| 空 | 50 µs | belt updater 22、train 16 |
+| A17 3出力・供給なし（約 45 block） | 69 µs | block TickUpdate 26、belt 14、**全 block の sort 15**、train 5 |
+| 同・供給あり | 77 µs | block TickUpdate 32、belt 15、sort 14 |
+| 木ベルト 361 直線・供給あり | 249 µs | **sort 132**、block TickUpdate 73、belt 10 |
+
+- ベルト搬送そのものは 10〜15 µs で、6 百万アイテム・4 万 segment の Core ベンチと矛盾しない。
+- 支配的なのは `MasterTickUpdater.Update` が毎 tick 行う「全 block を BlockInstanceId 昇順に List へ詰めて Sort」（block 数 n の n log n、361 block で 132 µs）と、各 block の `TickUpdate`（更新 component の無いベルコンでも Profiler マーカーと空ループで約 0.2 µs/block）。空の世界の belt updater 22 µs と train 16 µs は固定費（差分の生成と Subject 通知、乗車コマンド集計と diff 集約）。
+- 改善案（未実施、ユーザー判断待ち）: 昇順リストは設置・撤去の tick 末尾でだけ作り直す（毎 tick の sort と確保を消す）。TickUpdate は更新 component を持つ block だけを回す。

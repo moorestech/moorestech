@@ -31,20 +31,6 @@ namespace Tests.UnitTest.Core.BeltTransport
             Assert.AreEqual(order, unchanged);
         }
 
-        [Test]
-        public void 未接続方向を飛ばして最優先の接続済み方向を返す()
-        {
-            var order = MakeOrder(0, 2, 3);
-            Assert.AreEqual(0, BeltPriority.FirstConnected(order, (1 << 0) | (1 << 3)));
-            Assert.AreEqual(3, BeltPriority.FirstConnected(order, 1 << 3));
-            Assert.AreEqual(2, BeltPriority.FirstConnected(order, (1 << 2) | (1 << 3)));
-
-            // 候補外の方向（1）だけが接続されていても選ばない
-            // A connected direction outside the three candidates (1) is never chosen
-            Assert.AreEqual(-1, BeltPriority.FirstConnected(order, 1 << 1));
-            Assert.AreEqual(-1, BeltPriority.FirstConnected(order, 0));
-        }
-
         private static int MakeOrder(int first, int second, int third)
         {
             return first | (second << 2) | (third << 4);

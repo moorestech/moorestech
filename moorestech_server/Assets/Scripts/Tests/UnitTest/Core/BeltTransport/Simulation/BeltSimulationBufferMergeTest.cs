@@ -20,31 +20,6 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation
         private BeltSimulation _simulation;
 
         [Test]
-        public void 最優先出力が合流でない分岐bufferは選ばれず合流は次の搬入元を予約する()
-        {
-            Build(Order(BeltDirection.Left, BeltDirection.Front, BeltDirection.Right), true);
-
-            // 分岐の最優先はLeft(機械)なのでBackは候補外。Left搬入の通常segmentを予約し、分岐は機械へ出す
-            // The branch's top is Left (machine), so Back is not offered. The merge reserves the Left belt; the branch outputs to the machine
-            _simulation.Tick();
-            CollectionAssert.AreEqual(new long[] { 1 }, Serials(_machine.ReceivedItems));
-            AssertItems(_merge, (10, W / 2));
-            AssertItems(_belt, (11, W / 2));
-            Assert.AreEqual(Order(BeltDirection.Back, BeltDirection.Right, BeltDirection.Left), _merge.PriorityOrder);
-            Assert.AreEqual(Order(BeltDirection.Front, BeltDirection.Right, BeltDirection.Left), _branch.PriorityOrder);
-
-            // tick2: 分岐の最優先が合流になり、そのtickの予約でBackが選ばれて#2は合流へ入る（前tickの予約は使わない）
-            // Tick2: the branch's top is now the merge, this tick's reservation picks Back and #2 enters the merge (not last tick's reservation)
-            _branch.Buffer.RestoreItem(MakeItem(2));
-            _simulation.Tick();
-            AssertItems(_merge, (2, W / 2));
-            CollectionAssert.AreEqual(new long[] { 1 }, Serials(_machine.ReceivedItems));
-            CollectionAssert.AreEqual(new long[] { 10 }, Serials(_sink.ReceivedItems));
-            Assert.AreEqual(Order(BeltDirection.Right, BeltDirection.Left, BeltDirection.Back), _merge.PriorityOrder);
-            Assert.AreEqual(Order(BeltDirection.Right, BeltDirection.Left, BeltDirection.Front), _branch.PriorityOrder);
-        }
-
-        [Test]
         public void 予約した方向は同じtick内で選び直さず空の合流でも予約外のbufferは搬入できない()
         {
             Build(Order(BeltDirection.Left, BeltDirection.Front, BeltDirection.Right), false);
@@ -72,21 +47,6 @@ namespace Tests.UnitTest.Core.BeltTransport.Simulation
             _machine.SetAccepts(true);
             _simulation.Tick();
             CollectionAssert.AreEqual(new long[] { 1 }, Serials(_machine.ReceivedItems));
-        }
-
-        [Test]
-        public void 最優先出力が合流の分岐bufferを予約するとそのtickは通常segmentを受けない()
-        {
-            Build(Order(BeltDirection.Front, BeltDirection.Left, BeltDirection.Right), true);
-
-            // 合流はBack(分岐)を予約し、進入距離min(W/2,W)=W/2で隙間W/2へ受ける。通常segmentは空き0で出口に止まる
-            // The merge reserves Back (branch) and takes it with entry min(W/2,W)=W/2 at gap W/2. The belt gets offer 0 and parks at the exit
-            _simulation.Tick();
-            AssertItems(_merge, (1, W / 2));
-            AssertItems(_belt, (10, 0), (11, W));
-            Assert.AreEqual(0, _machine.ReceiveAttempts.Count);
-            Assert.AreEqual(Order(BeltDirection.Left, BeltDirection.Right, BeltDirection.Back), _merge.PriorityOrder);
-            Assert.AreEqual(Order(BeltDirection.Left, BeltDirection.Right, BeltDirection.Front), _branch.PriorityOrder);
         }
 
         [Test]
