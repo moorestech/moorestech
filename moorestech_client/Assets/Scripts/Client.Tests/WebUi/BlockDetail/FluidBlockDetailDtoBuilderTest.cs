@@ -20,8 +20,6 @@ namespace Client.Tests.WebUi.BlockDetail
     {
         private static readonly System.Guid WaterGuid = System.Guid.Parse("00000000-0000-0000-1234-000000000001");
 
-        // パイプの状態が液体スロット1本になる
-        // A pipe state becomes a single fluid slot
         [Test]
         public void PipeStateFillsOneFluidSlot()
         {
@@ -50,8 +48,8 @@ namespace Client.Tests.WebUi.BlockDetail
             Assert.AreEqual("", dto.FluidSlots[0].FluidGuid);
         }
 
-        // 液体PFの出力タンクが液体スロット1本になる
-        // The fluid platform's output tank becomes a single fluid slot
+        // PF出力タンクを1スロット化
+        // Map the platform output tank to one slot
         [Test]
         public void FluidPlatformStateFillsOneFluidSlot()
         {

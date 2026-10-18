@@ -21,8 +21,6 @@ namespace Tests.UnitTest.Game
     {
         private static readonly Guid WaterGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
 
-        // 空のPFは空の出力タンクを1本出す
-        // An empty platform publishes one empty output tank
         [Test]
         public void EmptyPlatformPublishesOneEmptyOutputTank()
         {
@@ -36,8 +34,8 @@ namespace Tests.UnitTest.Game
             Assert.Greater(detail.OutputTanks[0].MaxCapacity, 0);
         }
 
-        // 注入すると量が状態に載り、変化通知が1回出る
-        // Injecting fluid shows up in the state and fires one change notification
+        // 注入時の状態更新と通知1回を検証
+        // Verify updated state and one notification on injection
         [Test]
         public void AddLiquidPublishesAmountAndNotifies()
         {
@@ -83,8 +81,8 @@ namespace Tests.UnitTest.Game
             var notifications = 0;
             using var subscription = component.OnChangeBlockState.Subscribe(_ => notifications++);
 
-            // 実Updateの押出しと空タンクへの遷移を確認する
-            // Exercise the actual Update push and transition to an empty tank
+            // 実Updateで押出しと空遷移を確認
+            // Verify pushing and empty transition through Update
             component.Update();
             Assert.AreEqual(0.25, pipe.Node.Amount, 0.001);
             Assert.AreEqual(1, notifications);

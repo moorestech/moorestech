@@ -41,8 +41,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             var train = new TrainUnit(position, new List<TrainCar> { car }, env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
             env.GetITrainUnitMutationDatastore().RegisterTrain(train);
 
-            // 在庫を開いた人と開いていない人の通知を捕捉する
-            // Capture events for a viewer and a non-viewer
+            // 閲覧者と非閲覧者の通知を捕捉
+            // Capture events for viewers and non-viewers
             var viewer = EventTestUtil.RegisterCaptureSink(env.ServiceProvider, 1);
             var other = EventTestUtil.RegisterCaptureSink(env.ServiceProvider, 2);
             var identifier = InventoryIdentifierMessagePack.CreateTrainMessage(car.TrainCarInstanceId.AsPrimitive());

@@ -70,8 +70,8 @@ namespace Tests.CombinedTest.Server.PacketTest
                 platform.Update();
             }
 
-            // 実際に転送した後のRefreshと宛先を確認する
-            // Verify refresh and recipient after an actual transfer
+            // 実転送後のRefreshと宛先を確認
+            // Verify refresh and recipient after real transfer
             if (!moveContainer) Assert.AreEqual(unload ? 0 : 700, fluid.Container.Amount, 0.001);
             Assert.AreEqual(1, platformNotifications);
             var tank = MessagePackSerializer.Deserialize<FluidMachineInventoryStateDetail>(platform.GetBlockStateDetails()[0].Value).OutputTanks[0];

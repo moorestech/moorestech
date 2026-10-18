@@ -73,8 +73,6 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void TrainInventoryRequestWithFluidContainer()
         {
-            // テスト環境を構築
-            // Build test environment
             var environment = TrainTestHelper.CreateEnvironment();
             var railA = TrainTestHelper.PlaceRail(environment, new Vector3Int(0, 0, 0), BlockDirection.North);
             var railB = TrainTestHelper.PlaceRail(environment, new Vector3Int(100, 0, 0), BlockDirection.North);
@@ -93,8 +91,6 @@ namespace Tests.CombinedTest.Server.PacketTest
             var (trainCar, fluidContainer) = TrainTestCarFactory.CreateTrainCarWithFluidContainer(0, 400000, 1000, distance, true);
             var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
 
-            // 列車をTrainUpdateServiceに登録
-            // Register the train to TrainUpdateService
             environment.GetITrainUnitMutationDatastore().RegisterTrain(trainUnit);
 
             var waterId = MasterHolder.FluidMaster.GetFluidId(Guid.Parse("00000000-0000-0000-1234-000000000001"));
@@ -103,8 +99,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestTrain(trainCar.TrainCarInstanceId), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1))[0];
             var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(responseBytes);
 
-            Assert.AreEqual(InventoryType.Train, data.InventoryType); // inventory type
-            Assert.AreEqual(InventoryRequestResult.Success, data.Result); // request result
+            Assert.AreEqual(InventoryType.Train, data.InventoryType);
+            Assert.AreEqual(InventoryRequestResult.Success, data.Result);
             Assert.AreEqual(0, data.Items.Length);
             Assert.AreEqual(1, data.Fluids.Length);
             Assert.AreEqual(waterId.AsPrimitive(), data.Fluids[0].FluidId);
