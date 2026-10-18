@@ -154,6 +154,7 @@ const TrainStationDetailSchema = z.object({ name: z.string() });
 export const BlockInventoryOpenSchema = z.object({
   open: z.literal(true),
   source: z.literal("block"),
+  error: z.literal("openFailed").optional(),
   blockType: z.string(),
   identifier: z.string(),
   blockGuid: GuidSchema,

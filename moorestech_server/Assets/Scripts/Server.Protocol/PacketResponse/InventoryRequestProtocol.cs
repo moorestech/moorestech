@@ -159,6 +159,8 @@ namespace Server.Protocol.PacketResponse
         Success = 0,
         ContainerNotFound = 1,
         TrainCarNotFound = 2,
-        BlockNotFound = 3
+        BlockNotFound = 3,
+        Timeout = 4,
+        DeserializeFailed = 5
     }
 }

@@ -16,6 +16,10 @@ namespace Client.Game.InGame.UI.Inventory
         public List<IItemStack> SubInventory { get; } = new();
         public List<FluidMessagePack> Fluids { get; private set; } = new();
 
+        public Server.Protocol.PacketResponse.InventoryRequestResult Result { get; private set; }
+
+        internal void SetResult(Server.Protocol.PacketResponse.InventoryRequestResult result) => Result = result;
+
         public int Count => SubInventory.Count;
         public ISubInventoryIdentifier ISubInventoryIdentifier { get; }
 

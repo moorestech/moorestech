@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+// @ts-expect-error -- The build script is intentionally a plain ESM module.
+import { parseLocalizationCsv } from "../../../scripts/generate-localization-keys.mjs";
 import { createElement } from "react";
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { describe, expect, it, vi } from "vitest";
@@ -6,6 +9,7 @@ import { setDictionaries } from "@/shared/i18n/i18nStore";
 
 const topicState = vi.hoisted(() => ({
   blockInventory: {
+    error: undefined as "openFailed" | undefined,
     open: true,
     source: "block",
     blockType: "Chest",
@@ -69,4 +73,20 @@ describe("BlockInventoryPanel localization", () => {
     }));
     expect(renderer!.root.findByType("mock-game-panel" as never).props.title).toBe("Source Machine");
   });
+  it("取得失敗はブロック本文を隠し、失敗文を表示する", () => {
+    topicState.blockInventory.error = "openFailed";
+    const csv = parseLocalizationCsv(readFileSync(new URL("../../../../../Localization/localization.csv", import.meta.url), "utf8"));
+    const failure = csv.rows.find((row: { key: string }) => row.key === L.ui.blockInventory.inventoryOpenFailed);
+    const text = failure.texts[csv.languageCodes.indexOf("japanese")];
+    expect(text).toBe("インベントリを取得できませんでした");
+    expect(failure.source).toBe("Could not load inventory");
+    act(() => setDictionaries("japanese", { [L.ui.blockInventory.inventoryOpenFailed]: text, [L.ui.common.close]: "閉じる", [blockNameKey(topicState.blockInventory.blockGuid)]: "タンク" }, {}, {}));
+    let renderer: ReactTestRenderer;
+    act(() => { renderer = create(createElement(BlockInventoryPanel)); });
+    expect(renderer!.root.findByProps({ "data-testid": "block-inventory-error" }).children).toEqual([text]);
+    expect(renderer!.root.findAllByType("mock-block-body" as never)).toHaveLength(0);
+    act(() => renderer!.unmount());
+    topicState.blockInventory.error = undefined;
+  });
+
 });

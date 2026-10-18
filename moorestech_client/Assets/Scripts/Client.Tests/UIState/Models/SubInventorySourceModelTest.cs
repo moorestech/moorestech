@@ -43,6 +43,21 @@ namespace Client.Tests.UIState.Models
             Assert.AreEqual(0, model.Count);
         }
 
+        [TestCase(InventoryRequestResult.Timeout)]
+        [TestCase(InventoryRequestResult.DeserializeFailed)]
+        public void 通信失敗は両ソースの表示モデルへ残る(InventoryRequestResult result)
+        {
+            var source = new TrainSubInventorySource(new TrainCarInstanceId(7), _trainCarViewRegistry);
+            var response = new InventoryResponse(source.InventoryIdentifier, new List<IItemStack>(), new List<FluidMessagePack>(), result);
+            var model = source.CreateModel(response);
+            Assert.AreEqual(result, model.Result);
+            Assert.AreEqual(TrainInventoryMessageType.OpenFailed, source.LastOpenMessage);
+            var block = new BlockSubInventorySource(null, Vector3Int.zero);
+            var blockModel = block.CreateModel(response);
+            Assert.AreEqual(result, blockModel.Result);
+            Assert.AreEqual(0, blockModel.Count);
+        }
+
         [Test]
         public void 列車ソースは成功応答のアイテムをそのまま載せる()
         {

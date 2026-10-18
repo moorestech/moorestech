@@ -57,7 +57,7 @@ namespace Client.Game.InGame.UI.UIState.State.SubInventory
             // Coalesce notifications during a load into the next request
             _hasCurrentSnapshot = false;
             _pending = true;
-            if (_isLoading) return; // silent-ok: 次の要求を予約済み / 成功完了後に取り直し、失敗時は次通知で再開する
+            if (_isLoading) return; // silent-ok: 次の要求を予約済み / 応答後に予約を消化し、新通知で再開する
             _isLoading = true;
             LoadPending().Forget();
 
@@ -72,13 +72,10 @@ namespace Client.Game.InGame.UI.UIState.State.SubInventory
                         _pending = false;
                         var model = await _query.Load(_source, _ct);
                         _ct.ThrowIfCancellationRequested();
-                        // 途中で更新された応答は表示せず最新を再取得する
-                        // Refetch rather than display a response invalidated during its request
-                        if (!_pending)
-                        {
-                            _hasCurrentSnapshot = true;
-                            _onSubInventoryLoaded.OnNext(model);
-                        }
+                        // 各応答を公開し、鮮度が無効なら次要求だけ予約する
+                        // Publish each response while reserving a newer snapshot separately
+                        _hasCurrentSnapshot = !_pending && model.Result == Server.Protocol.PacketResponse.InventoryRequestResult.Success;
+                        _onSubInventoryLoaded.OnNext(model);
                     }
                 }
                 finally

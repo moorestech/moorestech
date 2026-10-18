@@ -26,19 +26,19 @@ namespace Client.Tests.UIState.Models
             loader.RequestRefresh();
             Assert.AreEqual(1, query.RequestCount);
 
-            // 古い初回応答を返す前に通知を送り、表示せず取り直す
-            // Notify before returning the stale initial response, then refetch without publishing it
+            // 取得中の通知が続いても各成功応答を表示する
+            // Publish each success even when notifications continue during requests
             query.Complete(Model(1));
             Assert.AreEqual(2, query.RequestCount);
-            Assert.AreEqual(0, published.Count);
+            Assert.AreEqual(1, published.Count);
             loader.RequestRefresh();
             loader.RequestRefresh();
             query.Complete(Model(1));
             Assert.AreEqual(3, query.RequestCount);
             var latest = Model(1);
             query.Complete(latest);
-            Assert.AreEqual(1, published.Count);
-            Assert.AreSame(latest, published[0]);
+            Assert.AreEqual(3, published.Count);
+            Assert.AreSame(latest, published[2]);
             Assert.AreEqual(1, query.MaximumActiveRequests);
         }
 
@@ -81,17 +81,21 @@ namespace Client.Tests.UIState.Models
             loader.RequestRefresh();
             loader.RequestRefresh();
 
-            // 失敗は既存Forgetの例外ログに現れ、再取得を妨げない
-            // Failures reach Forget's exception log without preventing the next request
-            UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Exception, new System.Text.RegularExpressions.Regex("inventory request failed"));
-            query.Fail(new System.InvalidOperationException("inventory request failed"));
-            Assert.AreEqual(0, published.Count);
-            Assert.AreEqual(1, query.RequestCount);
-            loader.RequestRefresh();
+            // 型付き失敗も公開し、受信済み予約を有限回だけ消化する
+            // Publish typed failures and consume only already queued refreshes
+            var failed = Model(1);
+            failed.SetResult(Server.Protocol.PacketResponse.InventoryRequestResult.Timeout);
+            query.Complete(failed);
+            Assert.AreSame(failed, published[0]);
             Assert.AreEqual(2, query.RequestCount);
+            query.Complete(failed);
+            Assert.AreEqual(2, published.Count);
+            Assert.AreEqual(2, query.RequestCount);
+            loader.RequestRefresh();
+            Assert.AreEqual(3, query.RequestCount);
             var recovered = Model(1);
             query.Complete(recovered);
-            Assert.AreSame(recovered, published[0]);
+            Assert.AreSame(recovered, published[2]);
         }
 
         private static SubInventoryModel Model(long carId) => new(new TrainInventorySubInventoryIdentifier(carId));
