@@ -1,24 +1,26 @@
-using Client.Game.InGame.ColliderStreaming;
+using Client.Game.InGame.DistanceCulling;
 using UnityEngine;
 
 namespace Client.Tests
 {
     /// <summary>
-    /// SetColliderの呼び出し回数と最終指示を記録するテスト用ターゲット
-    /// Test target that records SetCollider call counts and the last instruction
+    /// - 範囲内外の通知回数を記録
+    /// - 最後の通知値を保持
+    /// - Record within/outside-range notification counts
+    /// - Keep the last notification value
     /// </summary>
-    internal sealed class FakeCullingTarget : IColliderDistanceCullingTarget
+    internal sealed class FakeCullingTarget : IDistanceCullingTarget
     {
         public int OnCount;
         public int OffCount;
         public bool? Last;
         public int TotalCalls => OnCount + OffCount;
 
-        public void SetCollider(bool on)
+        public void SetWithinRange(bool withinRange)
         {
-            if (on) OnCount++;
+            if (withinRange) OnCount++;
             else OffCount++;
-            Last = on;
+            Last = withinRange;
         }
     }
 

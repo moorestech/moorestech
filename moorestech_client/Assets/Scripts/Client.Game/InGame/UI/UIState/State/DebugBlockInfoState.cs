@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Mooresmaster.Localization.Generated;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.Block.Preview;
 using Client.Game.InGame.Control;
 using Client.Input;
 using Client.Localization;
@@ -68,8 +69,8 @@ namespace Client.Game.InGame.UI.UIState.State
 
                 if (_hoveredBlock == hovered) return;
 
-                if (_hoveredBlock != null) _hoveredBlock.EnablePreviewOnlyObjects(false, false);
-                if (hovered != null) hovered.EnablePreviewOnlyObjects(true, true);
+                if (_hoveredBlock != null) _hoveredBlock.SetPreviewOnlyObjectsDisplay(PreviewOnlyObjectsDisplay.Hidden);
+                if (hovered != null) hovered.SetPreviewOnlyObjectsDisplay(PreviewOnlyObjectsDisplay.Rendered);
 
                 _hoveredBlock = hovered;
             }
@@ -115,7 +116,7 @@ namespace Client.Game.InGame.UI.UIState.State
             // Hide the hovered bounding box before exiting
             if (_hoveredBlock != null)
             {
-                _hoveredBlock.EnablePreviewOnlyObjects(false, false);
+                _hoveredBlock.SetPreviewOnlyObjectsDisplay(PreviewOnlyObjectsDisplay.Hidden);
                 _hoveredBlock = null;
             }
             InputManager.MouseCursorVisible(false);
