@@ -377,7 +377,7 @@ git commit -m "feat: ブロックからの自動搬入で機械入力をレシ�
 
 ### Task 3: moores-code-review で全ブランチレビューを実行する
 
-- [ ] 必ずmoores-code-reviewスキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）。Codex ホストでは同スキルの `references/codex-host.md` の runner で実行する
+- [x] 必ずmoores-code-reviewスキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）。Codex ホストでは同スキルの `references/codex-host.md` の runner で実行する
 
 ### Task 4: PR を作成しセッション終了可能状態にする
 
