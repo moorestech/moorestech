@@ -26,7 +26,7 @@ namespace Client.Tests.BeltTransport
         {
             var factory = new FakeBeltItemObjectFactory();
             var cache = new BeltTransportClientCache();
-            var presenter = new BeltItemObjectPresenter(cache, factory);
+            var presenter = new BeltItemObjectPresenter(cache, factory, new FakeBeltItemViewpoint(Vector3.zero));
 
             // 直線に2個、分岐のbufferに1個、内部segmentに1個
             // Two items on a straight line, one in a branch buffer, one on an internal segment
@@ -49,7 +49,7 @@ namespace Client.Tests.BeltTransport
         {
             var factory = new FakeBeltItemObjectFactory();
             var cache = new BeltTransportClientCache();
-            var presenter = new BeltItemObjectPresenter(cache, factory);
+            var presenter = new BeltItemObjectPresenter(cache, factory, new FakeBeltItemViewpoint(Vector3.zero));
             cache.ApplyFullState(new BeltTransportFullState(new[] { Line(Running(1, 2 * Cell), Running(2, 0)) }));
             presenter.UpdateAll();
 
@@ -75,7 +75,7 @@ namespace Client.Tests.BeltTransport
         {
             var factory = new FakeBeltItemObjectFactory();
             var cache = new BeltTransportClientCache();
-            var presenter = new BeltItemObjectPresenter(cache, factory);
+            var presenter = new BeltItemObjectPresenter(cache, factory, new FakeBeltItemViewpoint(Vector3.zero));
 
             // 複製が無い間は何もしない
             // Nothing happens while there is no replica yet
@@ -90,6 +90,70 @@ namespace Client.Tests.BeltTransport
             presenter.UpdateAll();
             Assert.AreEqual(1, factory.Created.Count);
             Assert.AreEqual(Vector3.one, factory.Created[1].Position, "untouched while the replica version is unchanged");
+        }
+
+        // 基準点から遠い segment のアイテムは具現化せず、近づけば作り、入る側と出る側の間では状態を保ち、離れれば即破棄する(ADR 0085)
+        // Items on a segment far from the viewpoint are not materialized; they are created when it comes near, kept between the enter and leave distances, and destroyed at once when it moves away (ADR 0085)
+        [Test]
+        public void OnlySegmentsWithinRangeOfTheViewpointGetObjects()
+        {
+            var factory = new FakeBeltItemObjectFactory();
+            var cache = new BeltTransportClientCache();
+            var viewpoint = new FakeBeltItemViewpoint(new Vector3(0.5f, 0f, 1000f));
+            var presenter = new BeltItemObjectPresenter(cache, factory, viewpoint);
+
+            // 原点の直線(マス中心 z=0.5..2.5)。基準点は z=1000 で範囲外
+            // A line at the origin (cell centers z = 0.5..2.5); the viewpoint at z = 1000 is out of range
+            cache.ApplyFullState(new BeltTransportFullState(new[] { Line(Running(1, 2 * Cell), Running(2, 0)) }));
+            presenter.UpdateAll();
+            Assert.AreEqual(0, factory.Created.Count, "nothing materialized out of range");
+
+            // 入る側(340 m)の内側へ: 作られる
+            // Inside the enter distance (340 m): created
+            viewpoint.Position = new Vector3(0.5f, 0f, 1.5f + 330f);
+            cache.ApplyTickDiff(BeltTickDiff.Empty);
+            presenter.UpdateAll();
+            Assert.AreEqual(2, factory.Created.Count, "materialized once within the enter distance");
+
+            // 入る側と出る側の間(345 m 前後): 内側のまま
+            // Between the enter and leave distances (about 345 m): stays inside
+            viewpoint.Position = new Vector3(0.5f, 0f, 1.5f + 346f);
+            cache.ApplyTickDiff(BeltTickDiff.Empty);
+            presenter.UpdateAll();
+            Assert.IsFalse(factory.Created[1].IsDestroyed, "kept between the enter and leave distances");
+
+            // 出る側(350 m)の外へ: 即破棄
+            // Beyond the leave distance (350 m): destroyed at once
+            viewpoint.Position = new Vector3(0.5f, 0f, 1.5f + 360f);
+            cache.ApplyTickDiff(BeltTickDiff.Empty);
+            presenter.UpdateAll();
+            Assert.IsTrue(factory.Created[1].IsDestroyed && factory.Created[2].IsDestroyed, "destroyed once beyond the leave distance");
+
+            // 戻ると別の表示物として作り直される(プールなし)
+            // Coming back re-creates them as new objects (no pool)
+            viewpoint.Position = new Vector3(0.5f, 0f, 1.5f);
+            cache.ApplyTickDiff(BeltTickDiff.Empty);
+            presenter.UpdateAll();
+            Assert.AreEqual(4, factory.Created.Count, "re-created on return");
+        }
+
+        // 基準点が無い間(カメラ未生成)は何も具現化しない
+        // Nothing is materialized while there is no viewpoint (camera not created yet)
+        [Test]
+        public void NothingIsMaterializedWithoutAViewpoint()
+        {
+            var factory = new FakeBeltItemObjectFactory();
+            var cache = new BeltTransportClientCache();
+            var viewpoint = new FakeBeltItemViewpoint(Vector3.zero) { HasPosition = false };
+            var presenter = new BeltItemObjectPresenter(cache, factory, viewpoint);
+            cache.ApplyFullState(new BeltTransportFullState(new[] { Line(Running(1, 2 * Cell)) }));
+            presenter.UpdateAll();
+            Assert.AreEqual(0, factory.Created.Count);
+
+            viewpoint.HasPosition = true;
+            cache.ApplyTickDiff(BeltTickDiff.Empty);
+            presenter.UpdateAll();
+            Assert.AreEqual(1, factory.Created.Count, "materialized once the viewpoint exists");
         }
 
         private static void AssertPosition(Vector3 expected, FakeBeltItemObject itemObject)
@@ -144,6 +208,23 @@ namespace Client.Tests.BeltTransport
                 Created.Add(instanceId, itemObject);
                 CreatedItemIds.Add(instanceId, itemId);
                 return itemObject;
+            }
+        }
+
+        private sealed class FakeBeltItemViewpoint : IBeltItemViewpoint
+        {
+            public Vector3 Position;
+            public bool HasPosition = true;
+
+            public FakeBeltItemViewpoint(Vector3 position)
+            {
+                Position = position;
+            }
+
+            public bool TryGetPosition(out Vector3 position)
+            {
+                position = Position;
+                return HasPosition;
             }
         }
 

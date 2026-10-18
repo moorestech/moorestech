@@ -190,6 +190,7 @@ namespace Client.Starter.Registration
             builder.Register<TrainUnitClientCache>(Lifetime.Singleton);
             builder.Register<BeltTransportClientCache>(Lifetime.Singleton);
             builder.Register<AddressableBeltItemObjectFactory>(Lifetime.Singleton).As<IBeltItemObjectFactory>().As<ISkitEntityObjectControl>();
+            builder.Register<CameraBeltItemViewpoint>(Lifetime.Singleton).As<IBeltItemViewpoint>();
             builder.Register<BeltItemObjectPresenter>(Lifetime.Singleton);
             builder.Register<BlockGameObjectBeltMergeCellCoverFactory>(Lifetime.Singleton).As<IBeltMergeCellCoverFactory>();
             builder.Register<BeltMergeCellCoverPresenter>(Lifetime.Singleton);
