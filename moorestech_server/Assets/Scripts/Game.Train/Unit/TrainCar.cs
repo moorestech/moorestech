@@ -140,6 +140,11 @@ namespace Game.Train.Unit
             Container?.OnAttachedToCar(this);
             // 容器の種類とスロット構成を確定してから通知する
             // Notify after the container type and slot layout are finalized
+            NotifyContentRefresh();
+        }
+
+        internal void NotifyContentRefresh()
+        {
             _trainUpdateEvent.InvokeContentRefresh(_trainCarInstanceId);
         }
 

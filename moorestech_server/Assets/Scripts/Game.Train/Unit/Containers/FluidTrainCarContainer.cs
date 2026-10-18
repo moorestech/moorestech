@@ -1,7 +1,5 @@
 using System;
 using Core.Master;
-using Game.Context;
-using Game.Train.Event;
 using Game.Fluid;
 using Mooresmaster.Model.TrainModule;
 using Newtonsoft.Json;
@@ -59,7 +57,7 @@ namespace Game.Train.Unit.Containers
         public void NotifyFluidChanged()
         {
             if (_attachedCar == null) return; // silent-ok: 貨車に載っていない容器には開いている貨車画面が無い / 液体PF側は自分の OnChangeBlockState で通知済み
-            ((TrainUpdateEvent)ServerContext.GetService<ITrainUpdateEvent>()).InvokeContentRefresh(_attachedCar.TrainCarInstanceId);
+            _attachedCar.NotifyContentRefresh();
         }
     }
 }
