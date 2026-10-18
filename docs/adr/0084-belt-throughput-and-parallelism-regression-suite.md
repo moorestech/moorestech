@@ -83,3 +83,13 @@
   出所: ユーザー裁定 2026-10-18「副作用了解 修正実装をおねがい」（副作用: 電力不足時のモーターは脈動する、燃料風車の出力変化は次 tick 反映、過負荷チェックは RunTick と燃料消費の間なので不変、クライアント表示も同じ導出を通る）
 - 歯車 tick の需要について（調査結果）: 需要 = Σ 要求トルク(その歯車の RPM) × RPM で、RPM は最速 generator の `GenerateRpm` × 歯数比。generator にドループは無いので需要は RPM が決まれば供給量と無関係に確定し、供給不足なら網ごと停止（部分供給なし）。歯車→電気のバッテリーは消費者で要求倍率が前 tick の不足量で決まるため tick 内の循環は無い。`GearDemandSnapshot` は全消費者を固定 (有効, 1.0) で返す置き場所で、可変部分は `GearEnergyTransformer._torqueRequestRate`。
 - 回帰: `BeltThroughputMotorTest` A19a（モーター→木の歯車ベルト10マス、60 RPM で速度 108・周期 4、3順 100%）、A19b（モーター→ベルト3→素通し機→ベルト3、3順 100%）、`ElectricToGearGeneratorTest.MotorAloneKeepsConsumersTurningAfterTheGearTick`（tick 末尾でモーターの `GenerateRpm` は 0 だが `CurrentRpm` は定格、噛み合う軸も回る）。テスト mod の小歯車は overloadMaxRpm 10 で 60 RPM だと破断するので軸を使う。
+
+## 所要時間の削減（2026-10-18、ユーザー裁定）
+
+- 計測: サーバー側のベルト関連テスト 490 件で 85 秒。内訳の上位は BeltThroughputSplitterTest 20.5 秒（A3 5.2・A17 12）、BeltEdgePatternTest 10.6 秒、BeltConnectionVerticalOrientationTest 8.7 秒（56 ケース × サーバー起動 2 回）。1 tick の実測は TickOnce（サーバー tick ＋ 複製の差分再生 ＋ ハッシュ ＋ 搬出観測）0.125 ms、サーバー tick だけで 0.083 ms、ハッシュだけで 0.016 ms（A17 3出力の配置）。5760 tick ≒ 0.7 秒で、ベルトではなくサーバー 1 tick 全体の費用。
+- 裁定（「1 ok 2 ok 3 ok 4 ok」）:
+  1. A3（分岐 100 直列）は正順のみ。狙いは buffer 100 段と段階数一定で、設置順の差は A7/A8/A17 が見る。「全シナリオ 3 順」の唯一の例外。
+  2. 窓は 2880 に統一し `BeltThroughputWindow.WithSplitter`（5760）を廃止。周期の倍数である限り検出力は変わらず、時間だけ倍だった。
+  3. BeltEdgePatternTest（master 由来）は通常ベルト 4 向き ＋ 歯車ベルト北のみ。歯車ベルトはブロック ID が違うだけで接続の経路は同じ。
+  4. BeltConnectionVerticalOrientationTest（master 由来）は UpNorth / DownNorth の 2 向き × 7 種。向きの対称性は 3. が担保。
+- 計測の注意: uloop は失敗があるときだけ結果 XML を書くので、所要時間を採るときは必ず落ちる仮テストを 1 本混ぜて XML を得る（計測後に削除）。同じ内容でも並行作業や直前のコンパイルで ±50% ぶれるので、比較は静かな状態で同じ回に取る。

@@ -17,8 +17,9 @@ namespace Tests.UnitTest.Game.BeltConnection
 
         private static IEnumerable<TestCaseData> VerticalCases()
         {
-            var directions = new[] { BlockDirection.UpNorth, BlockDirection.UpEast, BlockDirection.UpSouth, BlockDirection.UpWest,
-                BlockDirection.DownNorth, BlockDirection.DownEast, BlockDirection.DownSouth, BlockDirection.DownWest };
+            // 向きの対称性は BeltEdgePatternTest が4向きで見るので、ここは上り・下りを1向きずつ(2026-10-18、所要時間の削減。1ケースにつきサーバーを2回起動する)
+            // BeltEdgePatternTest covers directional symmetry in all four facings, so only one up and one down facing here (2026-10-18, run-time reduction; each case boots the server twice)
+            var directions = new[] { BlockDirection.UpNorth, BlockDirection.DownNorth };
             foreach (var direction in directions)
                 foreach (BeltKind kind in Enum.GetValues(typeof(BeltKind)))
                     yield return new TestCaseData(direction, kind);

@@ -79,9 +79,12 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
 
         // A3: 分岐マス100個の直列(残り2出力は未接続)。分岐bufferを100回通る
         // A3: one hundred splitters in series (the other two outputs unconnected); items pass through one hundred branch buffers
+        // 設置順は正順だけ(ユーザー裁定 2026-10-18)。A3 の狙いは buffer 100 段と段階数一定で、設置順の差は A7/A8/A17 が見る
+        // Forward placement only (user ruling 2026-10-18); A3 is about one hundred buffers and a constant stage count, and placement order is covered by A7/A8/A17
         [Test]
-        public void A3_HundredSplittersInSeries([Values] BeltPlacementOrder order)
+        public void A3_HundredSplittersInSeries()
         {
+            const BeltPlacementOrder order = BeltPlacementOrder.Forward;
             var scenario = NewScenario().Source(new Vector3Int(0, 0, -1));
             var exit = Line(scenario, ForUnitTestModBlockId.WoodGearBeltSplitter, Splitter, BlockDirection.North, 100);
             scenario.Sink(exit).Watch(new Vector3Int(0, 0, 50));
@@ -125,7 +128,7 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
 
         private static BeltThroughputScenario NewScenario()
         {
-            return new BeltThroughputScenario().Window(BeltThroughputWindow.WithSplitter);
+            return new BeltThroughputScenario();
         }
 
         private static int Expected(BeltThroughputRun run)

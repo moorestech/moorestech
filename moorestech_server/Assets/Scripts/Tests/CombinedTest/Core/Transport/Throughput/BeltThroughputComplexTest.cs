@@ -25,7 +25,7 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
         {
             // ブロックIDの解決はサーバー起動後(Scenario 生成後)でないとマスタが無い
             // Block ids resolve only after the server boots (after the Scenario is created), when the master is loaded
-            var scenario = new BeltThroughputScenario().Window(BeltThroughputWindow.WithSplitter);
+            var scenario = new BeltThroughputScenario();
             var belt = ForUnitTestModBlockId.WoodGearBelt;
             var splitter = ForUnitTestModBlockId.WoodGearBeltSplitter;
 
