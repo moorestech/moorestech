@@ -71,6 +71,32 @@ namespace Client.Tests.UIState.Models
             Assert.IsFalse(second.Matches(InventoryIdentifierMessagePack.CreateBlockMessage(UnityEngine.Vector3Int.zero)));
         }
 
+        [Test]
+        public void FailedRequestIsReportedAndTheNextRefreshRetries()
+        {
+            var query = new ControlledQuery();
+            var source = new TrainSubInventorySource(new TrainCarInstanceId(1), null);
+            var loader = new SubInventoryLoader(query, source, CancellationToken.None);
+            var published = new List<SubInventoryModel>();
+            loader.OnLoaded.Subscribe(published.Add);
+            loader.RequestRefresh();
+            loader.RequestRefresh();
+
+            // 失敗は既存Forgetの例外ログに現れ、再取得を妨げない
+            // Failures reach Forget's exception log without preventing the next request
+            UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Exception, new System.Text.RegularExpressions.Regex("inventory request failed"));
+            query.Fail(new System.InvalidOperationException("inventory request failed"));
+            Assert.IsFalse(loader.IsLoading);
+            Assert.AreEqual(0, published.Count);
+            Assert.AreEqual(1, query.RequestCount);
+            loader.RequestRefresh();
+            Assert.AreEqual(2, query.RequestCount);
+            var recovered = Model(1);
+            query.Complete(recovered);
+            Assert.AreSame(recovered, published[0]);
+            Assert.IsFalse(loader.IsLoading);
+        }
+
         private static SubInventoryModel Model(long carId) => new(new TrainInventorySubInventoryIdentifier(carId));
 
         private sealed class ControlledQuery : ISubInventoryQuery
@@ -86,6 +112,11 @@ namespace Client.Tests.UIState.Models
                 _pending.Enqueue(completion);
                 MaximumActiveRequests = System.Math.Max(MaximumActiveRequests, _pending.Count);
                 return completion.Task;
+            }
+
+            public void Fail(System.Exception exception)
+            {
+                _pending.Dequeue().TrySetException(exception);
             }
 
             public void Complete(SubInventoryModel model)
