@@ -58,7 +58,7 @@
 **Interfaces:**
 - Produces: namespace `Game.Block.Blocks.Machine.Inventory.Input`。`internal static class MachineInputFluidInsertUtil { public static FluidStack InsertFluid(FluidContainer[] tanks, MachineInputSlotBinding slotBinding, FluidStack fluidStack, int designatedTankIndex, out bool changed) }`
 
-- [ ] **Step 1: ファイルを .meta ごと移動する**
+- [x] **Step 1: ファイルを .meta ごと移動する**
 
 ```bash
 cd moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Inventory
@@ -68,7 +68,7 @@ for f in MachineInputSlotBinding VanillaMachineInputInventory VanillaMachineInpu
 
 3ファイルの `namespace Game.Block.Blocks.Machine.Inventory` を `namespace Game.Block.Blocks.Machine.Inventory.Input` に変え、`VanillaMachineInputInventory.cs` に `using Game.Block.Blocks.Machine.Inventory;`（`IVanillaMachineSubInventory`・`MachineSlotPlacementCheck` 用）を足す。参照側全ファイルへ `using Game.Block.Blocks.Machine.Inventory.Input;` を足す。
 
-- [ ] **Step 2: `InsertFluid` の本体を `MachineInputFluidInsertUtil` へ移す**
+- [x] **Step 2: `InsertFluid` の本体を `MachineInputFluidInsertUtil` へ移す**
 
 `VanillaMachineInputInventory.InsertFluid` の中身（`IsBound` 判定・`InsertIntoDesignatedTank`・`FillBoundTanks` を含むローカル関数ごと）を次の形で移し、`_slotBinding` → `slotBinding`、`FluidInputSlot`/`_fluidContainers` → `tanks` に置換する。コメントは移動元のものをそのまま持っていく。
 
@@ -101,12 +101,12 @@ public FluidStack InsertFluid(FluidStack fluidStack, int designatedTankIndex, ou
 
 （上のコードブロック中の括弧書きは「移動元の本体をそのまま貼る」指示であり、新しく書くコードは無い。）
 
-- [ ] **Step 3: コンパイルし既存の機械テストが通ることを確認する**
+- [x] **Step 3: コンパイルし既存の機械テストが通ることを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Tests\.CombinedTest\.Core\.Machine\."`
 Expected: ErrorCount 0 / 全PASS。`wc -l` で `VanillaMachineInputInventory.cs` が170行前後になっていること。Unity が生成した `Input.meta` と `MachineInputFluidInsertUtil.cs.meta` を確認する
 
-- [ ] **Step 4: コミットする**
+- [x] **Step 4: コミットする**
 
 ```bash
 git add -A moorestech_server/Assets/Scripts
@@ -126,7 +126,7 @@ git commit -m "refactor: 機械の入力系をInput/へ移し液体挿入をMach
 - Consumes: Task 1 の namespace `Game.Block.Blocks.Machine.Inventory.Input`
 - Produces: `public const int MachineInputSlotBinding.AutoInsertCraftCount = 3`、`public int MachineInputSlotBinding.AutoInsertLimitAt(int slotIndex)`、`VanillaMachineInputSimulationUtil.SimulateAutoInsert(IReadOnlyList<IItemStack> currentSlots, IReadOnlyList<IItemStack> itemStacks, MachineInputSlotBinding slotBinding)`（戻り値は `SimulateInsert` と同じタプル）、`public IItemStack VanillaMachineInputInventory.InsertItemFromBlock(IItemStack itemStack)`、`public bool VanillaMachineInputInventory.InsertionCheckFromBlock(List<IItemStack> itemStacks)`
 
-- [ ] **Step 1: `MachineInputSlotBinding` に上限を足す**（`RequiredCountAt` の直後）
+- [x] **Step 1: `MachineInputSlotBinding` に上限を足す**（`RequiredCountAt` の直後）
 
 ```csharp
 // 自動搬入はレシピ3回分で止める（マニホールド配置で高コスト素材を1機ごとに溜め込ませない）
@@ -144,7 +144,7 @@ public int AutoInsertLimitAt(int slotIndex)
 }
 ```
 
-- [ ] **Step 2: `VanillaMachineInputSimulationUtil` に `SimulateAutoInsert` を足す**
+- [x] **Step 2: `VanillaMachineInputSimulationUtil` に `SimulateAutoInsert` を足す**
 
 既存の `SimulateInsert` 本体を `private static ... Simulate(currentSlots, itemStacks, slotBinding, bool capAtAutoInsertLimit)` へ移し、公開口を2本にする:
 
@@ -195,7 +195,7 @@ IItemStack FillToSecondPassLimit(IItemStack remaining)
 }
 ```
 
-- [ ] **Step 3: `VanillaMachineInputInventory` に自動搬入の口を足す**（`InsertionCheck` の直後）
+- [x] **Step 3: `VanillaMachineInputInventory` に自動搬入の口を足す**（`InsertionCheck` の直後）
 
 ```csharp
 // ブロックからの自動搬入。各スロットはAutoInsertLimitAtで止まる（手動投入はInsertItem側でスタック上限まで）
@@ -217,7 +217,7 @@ public bool InsertionCheckFromBlock(List<IItemStack> itemStacks)
 }
 ```
 
-- [ ] **Step 4: `VanillaMachineBlockInventoryComponent` の `IBlockInventory` 入口を差し替える**
+- [x] **Step 4: `VanillaMachineBlockInventoryComponent` の `IBlockInventory` 入口を差し替える**
 
 `InsertItem(IItemStack, InsertItemContext)` を次に置き換える:
 
@@ -248,7 +248,7 @@ bool IBlockInventory.InsertionCheck(List<IItemStack> itemStacks)
 - `InsertItem(IItemStack)` と `InsertItem(List<IItemStack>)` にある「プロセス開始できるなら開始」コメント（実際には開始しない誤記）を削除する
 - `CreateCopiedItems` の本体を `return new ReadOnlyCollection<IItemStack>(InventoryItems.ToList());` に畳む
 
-- [ ] **Step 5: テストを書く** — `Tests/CombinedTest/Core/Machine/MachineAutoInsertCapTest.cs`
+- [x] **Step 5: テストを書く** — `Tests/CombinedTest/Core/Machine/MachineAutoInsertCapTest.cs`
 
 テスト用レシピ: `MachineRecipes.Data[0]`（素材0=要求3・素材1=要求1）と `machineRecipeGuid f79c7ee0-1ebe-4fcc-b1ec-5bcb296d9c1a`（素材0=要求2・素材1=要求1 isRemain）。
 
@@ -358,17 +358,17 @@ namespace Tests.CombinedTest.Core.Machine
 
 `InsertItemContext.Empty` は `Game.Block.Interface/Component/InsertItemContext.cs:36` の既存値、スタック上限は `Core.Item/ItemStackLevelDataStore.cs:31` の `GetMaxStack`（`using Core.Item;` が要る）。
 
-- [ ] **Step 6: コンパイルしテストを実行する**
+- [x] **Step 6: コンパイルしテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Tests.CombinedTest.Core.Machine.MachineAutoInsertCapTest"`
 Expected: ErrorCount 0 / 4件PASS
 
-- [ ] **Step 7: 回帰を確認する**
+- [x] **Step 7: 回帰を確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Tests\.(CombinedTest|UnitTest)\."`（`--timeout-seconds 1500`）
 Expected: 失敗が master と同じ集合（新規失敗0）。ベルト経由で機械へ「要求数×3」を超えて入る前提の既存テストが落ちた場合は、その期待値を新仕様（R1）へ直し、どのテストをなぜ直したかをコミットメッセージに書く。master で既に落ちているテスト（bd の P0 `moorestech-szeu` 等）は対象外として報告に列挙する
 
-- [ ] **Step 8: コミットする**
+- [x] **Step 8: コミットする**
 
 ```bash
 git add -A moorestech_server/Assets/Scripts
