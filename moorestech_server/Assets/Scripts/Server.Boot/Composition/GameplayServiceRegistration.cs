@@ -108,6 +108,7 @@ namespace Server.Boot.Composition
             var railGraphDatastore = initializerProvider.GetService<RailGraphDatastore>();
             var trainUnitDatastore = initializerProvider.GetService<TrainUnitDatastore>();
             services.AddSingleton(initializerProvider.GetService<IWorldBlockDatastore>());
+            services.AddSingleton(initializerProvider.GetService<IWorldBlockUpdateEvent>());
             services.AddSingleton(initializerProvider.GetService<GearNetworkDatastore>());
             services.AddSingleton<IGearNetworkDatastore>(provider => provider.GetRequiredService<GearNetworkDatastore>());
             services.AddSingleton(initializerProvider.GetService<FluidNetworkDatastore>());

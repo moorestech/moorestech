@@ -11,13 +11,14 @@ using Game.Train.Unit;
 using Game.World.Interface.DataStore;
 using Server.Boot.Loop;
 using Server.Boot.Loop.PacketProcessing;
+using UniRx;
 
 namespace Server.Boot
 {
     // 1tickの全順序を1箇所で明示する。本体(仕様2.1①〜④＋拡張: 電力網→歯車網→流体網→ベルト搬送再構築→電力→歯車→流体→鉄道tick→ブロック更新→ベルト搬送)→チャレンジ・クリーンルーム→末尾(操作の一括適用→別スレッド処理)→境界(ハッシュ・tick++)→セーブ→スナップショット
     // Declares the whole tick order in one place: the body (spec 2.1 ①-④ plus extensions: rebuild electric, gear, fluid and belt transport topologies, then settle electric, gear, fluid, train, update blocks, belt transport), then challenge and clean room, the tick end (apply input, drain other-thread work), the boundary (hash, tick++), save, snapshot
-    // 購読や登録順に頼る処理はここには無い。GameUpdaterにはこのUpdateを1本だけ登録する
-    // Nothing here relies on subscriptions or registration order; GameUpdater registers only this Update
+    // 処理順を購読や登録順に頼る箇所はここには無い(設置・撤去の購読は正準順の作り直し予約だけ)。GameUpdaterにはこのUpdateを1本だけ登録する
+    // Nothing here derives its order from subscriptions or registration order (the place/remove subscription only schedules the canonical-order rebuild); GameUpdater registers only this Update
     public class MasterTickUpdater
     {
         private readonly ElectricWireNetworkDatastore _electricWireNetworkDatastore;
@@ -37,9 +38,10 @@ namespace Server.Boot
         private readonly WorldSaveCoordinator _worldSaveCoordinator;
         private readonly WorldSnapshotRing _worldSnapshotRing;
 
-        // 正準順の反復に使う再利用バッファ。毎tickの確保を避ける
-        // Reusable buffer for the canonical-order iteration, avoiding a per-tick allocation
+        // 正準順(BlockInstanceId昇順)の block 列。block の増減があった tick の次の先頭でだけ作り直す
+        // Blocks in canonical order (ascending BlockInstanceId); rebuilt only at the head of the tick after the block set changed
         private readonly List<WorldBlockData> _tickOrderedBlocks = new();
+        private bool _isTickOrderDirty = true;
 
         public MasterTickUpdater(
             ElectricWireNetworkDatastore electricWireNetworkDatastore,
@@ -50,6 +52,7 @@ namespace Server.Boot
             FluidTickUpdater fluidTickUpdater,
             TrainUpdateService trainUpdateService,
             IWorldBlockDatastore worldBlockDatastore,
+            IWorldBlockUpdateEvent worldBlockUpdateEvent,
             IBeltTransportMutation beltTransportMutation,
             BeltTransportTickUpdater beltTransportTickUpdater,
             ChallengeDatastore challengeDatastore,
@@ -75,6 +78,11 @@ namespace Server.Boot
             _serverThreadActionQueue = serverThreadActionQueue;
             _worldSaveCoordinator = worldSaveCoordinator;
             _worldSnapshotRing = worldSnapshotRing;
+
+            // 設置・撤去は全てこの2イベントを通るので、購読で正準順の作り直しを予約する(毎tickの全件sortを避ける)
+            // Every placement and removal passes through these two events, so subscribe to schedule the canonical-order rebuild (avoids sorting everything every tick)
+            worldBlockUpdateEvent.OnBlockPlaceEvent.Subscribe(_ => _isTickOrderDirty = true);
+            worldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(_ => _isTickOrderDirty = true);
         }
 
         public void Update()
@@ -94,9 +102,17 @@ namespace Server.Boot
             // Drive block updates from one place; self-driven transport components are excluded
             // Dictionaryの列挙順は設置・破壊の履歴で変わる。セーブがBlockInstanceId昇順で並ぶため更新順もそれに揃え、ロード後も同じ順序で回す
             // Dictionary order follows placement and removal history; saves are ordered by BlockInstanceId, so update in that same order to keep a loaded world identical to a live one
-            _tickOrderedBlocks.Clear();
-            _tickOrderedBlocks.AddRange(_worldBlockDatastore.BlockMasterDictionary.Values);
-            _tickOrderedBlocks.Sort((left, right) => left.Block.BlockInstanceId.CompareTo(right.Block.BlockInstanceId));
+            // block 更新フェーズは隣のインベントリへ直接押し込むので更新順で結果が変わる(機械→チェスト→機械の段数、同じ空きの取り合い)。順を履歴から切り離すのがこの並びの役目
+            // The block update phase pushes straight into neighbouring inventories, so its order changes results (hops of machine→chest→machine, contention for one free slot); this ordering detaches it from history
+            // 並べ替えは block の増減があったときだけ。毎tickの全件sortは block 数の n log n で、ベルト搬送より重かった(ADR 0084 §サーバー1tickの内訳)
+            // Re-sort only after the block set changed; sorting everything every tick cost n log n in the block count and outweighed belt transport (ADR 0084, tick breakdown)
+            if (_isTickOrderDirty)
+            {
+                _tickOrderedBlocks.Clear();
+                _tickOrderedBlocks.AddRange(_worldBlockDatastore.BlockMasterDictionary.Values);
+                _tickOrderedBlocks.Sort((left, right) => left.Block.BlockInstanceId.CompareTo(right.Block.BlockInstanceId));
+                _isTickOrderDirty = false;
+            }
 
             // 設置・破壊はtick末尾で確定するため、この反復中に増減は起きない
             // Placement and removal settle at tick end, so the collection never mutates during this iteration
