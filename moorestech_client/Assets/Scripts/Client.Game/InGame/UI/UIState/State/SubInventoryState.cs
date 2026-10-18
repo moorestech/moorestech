@@ -57,9 +57,9 @@ namespace Client.Game.InGame.UI.UIState.State
         private void OnUnifiedInventoryEvent(byte[] payload)
         {
             var packet = MessagePackSerializer.Deserialize<UnifiedInventoryEventMessagePack>(payload);
-            if (_loader == null || !_loader.Matches(packet.Identifier)) return; // silent-ok: 閉じた在庫や別対象の通知 / 開いている対象の通知だけを適用する
+            if (_shouldClose || _loader == null || !_loader.Matches(packet.Identifier)) return; // silent-ok: 閉鎖中や別対象の通知 / 開いている対象の通知だけを適用する
 
-            if (packet.EventType == InventoryEventType.Refresh || packet.EventType == InventoryEventType.Update && _loader.IsLoading)
+            if (packet.EventType == InventoryEventType.Refresh || packet.EventType == InventoryEventType.Update && (_loader.IsLoading || CurrentSubInventory == null))
             {
                 _loader.RequestRefresh();
             }
