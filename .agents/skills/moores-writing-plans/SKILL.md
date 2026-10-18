@@ -210,7 +210,7 @@ git commit -m "feat: <specific feature>"
 
 ## 設計検査 — required, after Self-Review
 
-Self-Review（内容）の次に、このファイル後半の **spec-architecture-review** を plan に対して実行する。Phase 1〜2.5（配置検査。本体が行い、違反はその場で直す）と **Phase 2.6（型閉包・重複・ADR矛盾。fresh-context subagent に委譲し、発火をユーザーへ質問する）** の両方が対象で、どちらも省略しない。終えたら plan の `## 設計検査記録` の2行を `実施済み` と件数・要約へ書き換える。
+Self-Review（内容）の次に、このファイル後半の **spec-architecture-review** を plan に対して実行する。Phase 1〜2.5（配置検査。fresh-context subagent が違反を返し、本体がその場で直す）と **Phase 2.6（型閉包・重複・ADR矛盾。fresh-context subagent に委譲し、発火をユーザーへ質問する）** の両方が対象で、どちらも省略しない。どちらも全タスクを書き終えてから回す。検査後にタスクの追加・機構の変更をしたら、変えた範囲に両方を fresh-context で回し直す（本体の再照合で済ませない。書いた本人は自分の書いた前例引用を理由ごと読んで通すため）。終えたら plan の `## 設計検査記録` の2行を `実施済み` と件数・要約へ書き換える。
 
 ## Simulator Review + 判断記録（ADR）— required, after 設計検査
 
@@ -290,6 +290,8 @@ plan に対して毎回実行する（設計文書を別途書いた場合はそ
   「前例自体が漏出形」と注記してユーザー注目点へ回す
 
 レビューの信頼はfalse positiveで最も速く壊れる。迷ったら ok に倒し、注目点として書く。
+
+**実行形態（Phase 1〜2.5）**: 本体ではなく fresh-context の subagent（opus）に委譲する。渡すのは plan のパス・`references/moorestech-layer-map.md`・このスキル本文の Phase 1〜2.5 だけ。subagent は plan を書き換えず違反を返し、本体が直す。
 
 検査1〜4（配置・機構）は前例が明確なら修正まで行う。検査5〜7（型閉包・重複・ADR矛盾、Phase 2.6）は**修正せず問いを出すだけ**の検査であり、findings とは別枠で扱う。
 
