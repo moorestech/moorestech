@@ -381,7 +381,9 @@ git commit -m "feat: ブロックからの自動搬入で機械入力をレシ�
 
 ### Task 4: PR を作成しセッション終了可能状態にする
 
-- [ ] セッション終了可能状態にすること: pr-createスキルでPRを作成し、masterとのコンフリクトがあればmasterをマージして解消・コンパイル確認のうえpushする（解消の実作業はpr-create経由でopus subagentに委譲される）。全作業がコミット・push済みで、このセッションをそのまま閉じてもPRがマージ可能な状態になっていることを確認して終える。PR本文に Discord 要望リンク https://discord.com/channels/888315641709330433/1560698281200324702 を入れる
+- [x] セッション終了可能状態にすること: pr-createスキルでPRを作成し、masterとのコンフリクトがあればmasterをマージして解消・コンパイル確認のうえpushする（解消の実作業はpr-create経由でopus subagentに委譲される）。全作業がコミット・push済みで、このセッションをそのまま閉じてもPRがマージ可能な状態になっていることを確認して終える。PR本文に Discord 要望リンク https://discord.com/channels/888315641709330433/1560698281200324702 を入れる
+
+完了記録: PR #1526 https://github.com/moorestech/moorestech/pull/1526 ／報告 https://review.moores.tech/pr/1526/report/ を公開。GitHub の mergeable は MERGEABLE（コンフリクトなし）。非visual変更のため画像0枚・動画0本。検証の未完了範囲はPR本文と報告ページへ明記。
 
 ## 判断記録（ADR）
 
