@@ -89,6 +89,7 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
 
             var run = scenario.Run(order);
             BeltThroughputAssert.Throughput(Expected(run), run, "A3");
+            BeltThroughputAssert.StageCountIsConstant("A3 (D1: 100 segments in series)");
             BeltThroughputAssert.WatchedSegmentsAtFullThroughput(run, Period, "A3 middle splitter");
         }
 

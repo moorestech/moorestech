@@ -7,6 +7,8 @@ namespace Tests.Util.Throughput
     // Asserts for throughput (exact total) and distribution fairness (±1); fairness allows the round-robin phase slack (user ruling 2026-10-18 "keep it light")
     public static class BeltThroughputAssert
     {
+        private const int ExpectedStageCount = 7;
+
         // スループット100%: 供給が窓の間に理論値どおり受け入れられ(1個も止まらず)、出た分は受けとベルト上の増減で全部説明できる(1個も消えない)
         // 100% throughput: the sources were accepted at the theoretical rate (nothing stalled) and every emitted item is accounted for by the sinks plus the change on the belts (nothing vanished)
         public static void Throughput(int expectedSourceTotal, BeltThroughputRun run, string context)
@@ -22,6 +24,13 @@ namespace Tests.Util.Throughput
             Assert.AreEqual(0, run.Window % periodTicks, $"{context}: window {run.Window} must be a multiple of the period {periodTicks}");
             for (var i = 0; i < run.WatchedExits.Count; i++)
                 Assert.AreEqual(run.Window / periodTicks, run.WatchedExits[i], $"{context}: watched segment #{i} exits over {run.Window} ticks; watched={string.Join(",", run.WatchedExits)}");
+        }
+
+        // 1 tick の段数は網の大きさによらず一定(ADR 0084 §3-1、判別器 D1/D2)。下流から順に更新する実装は直列長に比例して増える
+        // The stage count of a tick does not depend on the network size (ADR 0084 §3-1, discriminators D1/D2); downstream-first implementations grow with the chain
+        public static void StageCountIsConstant(string context)
+        {
+            Assert.AreEqual(ExpectedStageCount, BeltWorldTestUtil.Assembly().Simulation.Stages.Count, $"{context}: stage count");
         }
 
         public static void EachWithinOne(IReadOnlyList<int> counts, int expectedEach, string context)

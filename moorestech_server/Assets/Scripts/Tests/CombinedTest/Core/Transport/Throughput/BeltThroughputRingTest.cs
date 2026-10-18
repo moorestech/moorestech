@@ -44,6 +44,7 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
             session.TickMany(2000);
             var run = session.Measure(session.DefaultWindow);
             BeltThroughputAssert.WatchedSegmentsAtFullThroughput(run, Period, $"A16 merge-to-splitter run order={order}");
+            BeltThroughputAssert.StageCountIsConstant("A16 (D2: ring)");
             Assert.AreEqual(run.Window / Period / 2, run.SourceTotal, $"A16 side input gets its alternate share; sources={string.Join(",", run.SourceCounts)} sinks={string.Join(",", run.SinkCounts)}");
             Assert.AreEqual(run.SourceTotal - run.SinkTotal, run.OnBeltsDelta, "A16 conservation");
         }

@@ -8,13 +8,12 @@ namespace Core.BeltTransport
     // Runs 0: fix speed, 1: buffer collect, 2: merge reservation, 3: buffer output, 4: offer capture, normal advance, transfer apply, sequentially
     // Each stage finishes for all targets before the next. Supply, speed and wiring changes happen outside Tick
     // Rebuild this update list whenever connections or segments change
+    // 段階は Stages として公開する。段階内の要素は独立で、段数は網の大きさによらず一定(ADR 0084 §3。テストが順序入れ替え・並列実行・段数で確かめる)
+    // The stages are exposed as Stages; elements within a stage are independent and the stage count does not grow with the network (ADR 0084 §3; tests reorder, parallelize and count them)
     public sealed class BeltSimulation
     {
-        private readonly BeltConveyorSegment[] _segments;
-        private readonly BeltMergeSegment[] _merges;
-        private readonly BeltNormalSegment[] _normal;
-        private readonly BeltSegmentTransfer[] _transfers;
-        private readonly BeltBuffer[] _buffers;
+        public IReadOnlyList<IBeltTickStage> Stages => _stages;
+        private readonly IBeltTickStage[] _stages;
 
         public BeltSimulation(IEnumerable<BeltConveyorSegment> segments)
         {
@@ -34,27 +33,27 @@ namespace Core.BeltTransport
 
             // 通常→通常の接続はここでキャッシュし、tick中に探索しない
             // Cache normal-to-normal connections here so a tick never searches them
-            _segments = all.ToArray();
-            _merges = mergeList.ToArray();
-            _normal = normalList.ToArray();
-            _transfers = BeltSegmentTransfer.Cache(_normal);
-            _buffers = bufferList.ToArray();
+            var normals = normalList.ToArray();
+            var buffers = bufferList.ToArray();
+            var transfers = BeltSegmentTransfer.Cache(normals);
+            _stages = new IBeltTickStage[]
+            {
+                new BeltBeginTickStage(all.ToArray()),
+                new BeltBufferCollectStage(buffers),
+                new BeltMergeResolveStage(mergeList.ToArray()),
+                new BeltBufferTransferStage(buffers),
+                new BeltOfferCaptureStage(transfers),
+                new BeltNormalAdvanceStage(normals),
+                new BeltTransferApplyStage(transfers),
+            };
         }
 
         public void Tick()
         {
-            // 段階0〜3: 速度固定、buffer回収、合流予約、buffer搬出
-            // Stages 0-3: fix speed, buffer collect, merge reservation, buffer output
-            foreach (var segment in _segments) segment.BeginTick();
-            foreach (var buffer in _buffers) buffer.Collect();
-            foreach (var merge in _merges) merge.ResolveInput();
-            foreach (var buffer in _buffers) buffer.Transfer();
-
-            // 段階4: 全接続の空き記録 → 全通常segmentの前進・搬出 → 成立した搬送の反映
-            // Stage 4: capture every offer, advance all normal segments, then apply settled transfers
-            foreach (var transfer in _transfers) transfer.CaptureOffer();
-            foreach (var segment in _normal) segment.AdvanceAndTransfer();
-            foreach (var transfer in _transfers) transfer.Apply();
+            foreach (var stage in _stages)
+            {
+                for (var i = 0; i < stage.Count; i++) stage.Run(i);
+            }
         }
     }
 }
