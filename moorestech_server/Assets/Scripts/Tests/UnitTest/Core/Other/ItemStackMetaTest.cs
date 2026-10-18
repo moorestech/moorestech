@@ -58,6 +58,27 @@ namespace Tests.UnitTest.Core.Other
             Assert.AreEqual(1, result2.RemainderItemStack.Count);
         }
         
+        [TestCase(true)]
+        [TestCase(false)]
+        public void SuccessfulAdditionPreservesMetadataWithNewInstance(bool emptyDestination)
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var factory = ServerContext.ItemStackFactory;
+            var itemId = ForUnitTestItemId.ItemId1;
+            var metadata = new Dictionary<string, ItemStackMetaData> { { "test1", new TestMeta1() } };
+
+            // 空枠・通常加算とも属性と輸送用IDの契約を保つ
+            // Preserve metadata and transport identity contracts for both successful paths
+            var incoming = factory.Create(itemId, 2, metadata);
+            var destination = emptyDestination ? factory.CreatEmpty() : factory.Create(itemId, 1, metadata);
+            var result = destination.AddItem(incoming);
+            Assert.AreEqual(emptyDestination ? 2 : 3, result.ProcessResultItemStack.Count);
+            Assert.AreEqual(0, result.RemainderItemStack.Count);
+            Assert.IsInstanceOf<TestMeta1>(result.ProcessResultItemStack.GetMeta("test1"));
+            Assert.AreNotEqual(incoming.ItemInstanceId, result.ProcessResultItemStack.ItemInstanceId);
+            Assert.AreNotEqual(destination.ItemInstanceId, result.ProcessResultItemStack.ItemInstanceId);
+        }
+
         [Test]
         // セーブ、ロードの評価
         public void SaveLoadTest()

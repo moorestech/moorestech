@@ -54,5 +54,49 @@ namespace Tests.CombinedTest.Core.Machine
             Assert.AreEqual(incomingCount - accepted, remainder.Count);
             if (0 < remainder.Count) Assert.IsInstanceOf<TestMeta1>(remainder.GetMeta("test1"));
         }
+        [TestCase(false, 0, 9, 0)]
+        [TestCase(true, 0, 9, 0)]
+        [TestCase(false, 1, 8, 0)]
+        [TestCase(true, 1, 8, 0)]
+        [TestCase(false, 0, 3, 6)]
+        [TestCase(true, 0, 3, 6)]
+        [TestCase(false, 0, 4, 5)]
+        [TestCase(true, 0, 4, 5)]
+        public void MetadataSurvivesBothInsertionPasses(bool automatic, int storedCount, int firstCount, int secondCount)
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var recipe = MasterHolder.MachineRecipesMaster.GetRecipeElement(new Guid("bd3d4d7d-9c3b-4ae1-875b-950327eedd9d"));
+            var blockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
+            ServerContext.WorldBlockDatastore.TryAddBlock(blockId, Vector3Int.one, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
+            MachineRecipeSelectTestUtil.SelectRecipe(block, recipe);
+            var inventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
+
+            // 同じ属性の素材を空枠または必要数未満の枠へ渡す
+            // Supply matching metadata to an empty or underfilled slot
+            var factory = ServerContext.ItemStackFactory;
+            var itemId = MasterHolder.ItemMaster.GetItemId(recipe.InputItems[0].ItemGuid);
+            var metadata = new Dictionary<string, ItemStackMetaData> { { "test1", new TestMeta1() } };
+            if (0 < storedCount) inventory.SetItem(0, factory.Create(itemId, storedCount, metadata));
+            var stored = inventory.GetItem(0);
+            var batch = new List<IItemStack> { factory.Create(itemId, firstCount, metadata) };
+            if (0 < secondCount) batch.Add(factory.Create(itemId, secondCount, metadata));
+
+            // batch判定の無書込みと、実挿入時の数量を別々に観測する
+            // Observe batch check purity and actual insertion quantities separately
+            var canInsert = automatic ? ((IBlockInventory)inventory).InsertionCheck(batch) : inventory.InsertionCheck(batch);
+            Assert.AreSame(stored, inventory.GetItem(0));
+            var remainderCount = 0;
+            foreach (var incoming in batch)
+            {
+                var remainder = automatic ? ((IBlockInventory)inventory).InsertItem(incoming, InsertItemContext.Empty) : inventory.InsertItem(incoming);
+                remainderCount += remainder.Count;
+                if (0 < remainder.Count) Assert.IsInstanceOf<TestMeta1>(remainder.GetMeta("test1"));
+            }
+            var observed = $"check={canInsert}, stored={inventory.GetItem(0).Count}, remainder={remainderCount}";
+            Assert.IsTrue(canInsert, observed);
+            Assert.AreEqual(storedCount + firstCount + secondCount, inventory.GetItem(0).Count, observed);
+            Assert.AreEqual(0, remainderCount, observed);
+            Assert.IsInstanceOf<TestMeta1>(inventory.GetItem(0).GetMeta("test1"));
+        }
     }
 }
