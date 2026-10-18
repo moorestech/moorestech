@@ -10,7 +10,6 @@ using Game.Train.Event;
 using Game.Train.SaveLoad;
 using Game.Train.Unit.Containers;
 using JetBrains.Annotations;
-using Newtonsoft.Json;
 using Mooresmaster.Model.TrainModule;
 using UnityEngine;
 using FluidContainer = Game.Fluid.FluidContainer;
@@ -74,28 +73,14 @@ namespace Game.Train.Unit
 
             // マスタ指定のデフォルトコンテナを装着する(セーブ復元時はRestoreTrainCar内のSetContainerで上書きされる)
             // Attach the default container per master spec; RestoreTrainCar's SetContainer overrides it on load.
-            AttachDefaultContainerFromMaster();
-
-            #region Internal
-
-            void AttachDefaultContainerFromMaster()
+            SetContainer(trainCarMaster.DefaultContainerType switch
             {
-                switch (trainCarMaster.DefaultContainerType)
-                {
-                    case "Item":
-                        SetContainer(ItemTrainCarContainer.CreateWithEmptySlots(trainCarMaster.InventorySlots));
-                        break;
-                    case "Fluid":
-                        SetContainer(new FluidTrainCarContainer(new FluidContainer(trainCarMaster.FluidCapacity)));
-                        break;
-                    // None または未指定はコンテナ無し
-                    // None or unspecified leaves the car without a container.
-                }
-            }
-
-            #endregion
+                "Item" => ItemTrainCarContainer.CreateWithEmptySlots(trainCarMaster.InventorySlots),
+                "Fluid" => new FluidTrainCarContainer(new FluidContainer(trainCarMaster.FluidCapacity)),
+                _ => null, // silent-ok: None指定は容器を持たない車両 / 在庫要求はContainerNotFoundを返す
+            });
         }
-        
+
         // 加速時入力masconlevelから消費燃料を考慮しtrainunitが最後に使用するためのmasconlevelを算出するため
         public (double tractionForce, double baseTractionForce) ConsumeFuelAndResolveTraction(int masconLevel)
         {
@@ -153,6 +138,14 @@ namespace Game.Train.Unit
             Container?.OnDetachedFromCar();
             Container = container;
             Container?.OnAttachedToCar(this);
+            // 容器の種類とスロット構成を確定してから通知する
+            // Notify after the container type and slot layout are finalized
+            NotifyContentRefresh();
+        }
+
+        internal void NotifyContentRefresh()
+        {
+            _trainUpdateEvent.InvokeContentRefresh(_trainCarInstanceId);
         }
 
         internal void NotifyInventoryUpdate(int slot, IItemStack itemStack)
@@ -160,54 +153,8 @@ namespace Game.Train.Unit
             _trainUpdateEvent.InvokeInventoryUpdate(new TrainInventoryUpdateEventProperties(_trainCarInstanceId, slot, itemStack));
         }
 
-        public TrainCarSaveData CreateTrainCarSaveData()
-        {
-            SerializableVector3Int? dockingPosition = null;
-            if (dockingblock != null)
-            {
-                var blockPosition = dockingblock.BlockPositionInfo.OriginalPos;
-                dockingPosition = new SerializableVector3Int(blockPosition.x, blockPosition.y, blockPosition.z);
-            }
-
-            return new TrainCarSaveData
-            {
-                TrainCarInstanceId = _trainCarInstanceId.AsPrimitive(),
-                TrainCarMasterId = TrainCarMasterElement.TrainCarGuid,
-                IsFacingForward = IsFacingForward,
-                DockingBlockPosition = dockingPosition,
-                ContainerSaveData = JsonConvert.SerializeObject(TrainCarContainerSaveJsonObject.FromContainer(Container)),
-                RemainFuelTime = RemainFuelTime
-            };
-        }
-
-
-        public static TrainCar RestoreTrainCar(TrainCarSaveData data)
-        {
-            if (data == null)
-                return null;
-
-            if (!MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(data.TrainCarMasterId, out var trainCarMaster)) throw new Exception("trainCarMaster is not found");
-            var isFacingForward = data.IsFacingForward;
-            var car = new TrainCar(trainCarMaster, isFacingForward, new TrainCarInstanceId(data.TrainCarInstanceId));
-
-            if (data.DockingBlockPosition.HasValue)
-            {
-                var block = ServerContext.WorldBlockDatastore.GetBlock(data.DockingBlockPosition.Value);
-                if (block != null)
-                {
-                    car.dockingblock = block;
-                }
-            }
-            
-            // ロード時もSetContainer経由で通知バインドを行う
-            // Restore via SetContainer so the notification binding is established on load.
-            var restoredContainer = JsonConvert.DeserializeObject<TrainCarContainerSaveJsonObject>(data.ContainerSaveData)?.ToContainer(trainCarMaster);
-            car.SetContainer(restoredContainer);
-
-            car.SetRemainFuelTime(data.RemainFuelTime);
-            
-            return car;
-        }
+        public TrainCarSaveData CreateTrainCarSaveData() => TrainCarSaveDataConverter.Create(this);
+        public static TrainCar RestoreTrainCar(TrainCarSaveData data) => TrainCarSaveDataConverter.Restore(data);
 
         public void Destroy()
         {

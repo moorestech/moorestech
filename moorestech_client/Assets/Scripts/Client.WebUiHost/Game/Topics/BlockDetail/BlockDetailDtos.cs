@@ -173,6 +173,5 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
     {
         public string Mode;
         public int? ItemSlotCount;
-        public double? FluidCapacity;
     }
 }

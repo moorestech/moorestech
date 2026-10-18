@@ -9,7 +9,6 @@ using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.UIState.State.CancelInput;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Input;
-using Cysharp.Threading.Tasks;
 using Game.Context;
 using MessagePack;
 using UniRx;
@@ -30,6 +29,7 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly SubInventoryOutOfReachDetector _outOfReachDetector = new();
 
         private CancellationTokenSource _loadInventoryCts;
+        private SubInventoryLoader _loader;
         private bool _shouldClose = false;
 
         // 開いているサブと発生元の公開口
@@ -55,11 +55,11 @@ namespace Client.Game.InGame.UI.UIState.State
 
         private void OnUnifiedInventoryEvent(byte[] payload)
         {
-            if (CurrentSubInventory == null) return;
-
             var packet = MessagePackSerializer.Deserialize<UnifiedInventoryEventMessagePack>(payload);
+            if (_shouldClose || _loader == null) return; // silent-ok: 閉鎖中の通知 / 開いている対象の通知だけを適用する
 
-            if (packet.EventType == InventoryEventType.Update)
+            var disposition = _loader.HandleEvent(packet.Identifier, packet.EventType);
+            if (disposition == InventoryEventDisposition.ApplyItemUpdate)
             {
                 // アイテムを更新
                 var item = ServerContext.ItemStackFactory.Create(packet.Item.Id, packet.Item.Count);
@@ -69,11 +69,12 @@ namespace Client.Game.InGame.UI.UIState.State
                 // Notify external subscribers (e.g. Web UI)
                 _onSubInventoryUpdated.OnNext(Unit.Default);
             }
-            else if (packet.EventType == InventoryEventType.Remove)
+            else if (disposition == InventoryEventDisposition.Remove)
             {
                 // 開いているインベントリが削除された場合は閉じる
                 // Close if the opened inventory is removed
                 _shouldClose = true;
+                _loadInventoryCts.Cancel();
             }
         }
 
@@ -121,35 +122,20 @@ namespace Client.Game.InGame.UI.UIState.State
 
             // サブインベントリを生成し、データを取得、表示する
             // Create sub inventory, fetch data, and display
-            LoadInventory().Forget();
+            _loadInventoryCts = new CancellationTokenSource();
+            _loader = new SubInventoryLoader(new SubInventoryServerQuery(), CurrentSubInventorySource, _loadInventoryCts.Token);
+            _loader.OnSubInventoryLoaded.Subscribe(ApplyInventory);
+            InputManager.MouseCursorVisible(true);
+            ClientContext.VanillaApi.SendOnly.SubscribeInventory(CurrentSubInventorySource.InventoryIdentifier, true);
+            _loader.RequestRefresh();
 
-            #region Internal
+        }
 
-            async UniTask LoadInventory()
-            {
-                _loadInventoryCts = new CancellationTokenSource();
-                var ct = _loadInventoryCts.Token;
-
-                // カーソルを表示
-                // Show cursor
-                InputManager.MouseCursorVisible(true);
-
-                // インベントリデータを取得し真データを組み立てる
-                // Fetch inventory data and build the authoritative model
-                var inventoryResponse = await ClientContext.VanillaApi.Response.Inventory.GetInventory(CurrentSubInventorySource.InventoryIdentifier, ct);
-                CurrentSubInventory = CurrentSubInventorySource.CreateModel(inventoryResponse);
-                _localPlayerInventoryController.SetSubInventory(CurrentSubInventory);
-
-                // インベントリの更新を購読
-                // Subscribe to inventory updates
-                ClientContext.VanillaApi.SendOnly.SubscribeInventory(CurrentSubInventorySource.InventoryIdentifier, true);
-
-                // ロード完了を外部購読者（Web UI など）へ通知する
-                // Notify external subscribers (e.g. Web UI) that loading has finished
-                _onSubInventoryUpdated.OnNext(Unit.Default);
-            }
-
-            #endregion
+        private void ApplyInventory(SubInventoryModel model)
+        {
+            CurrentSubInventory = model;
+            _localPlayerInventoryController.SetSubInventory(model);
+            _onSubInventoryUpdated.OnNext(Unit.Default);
         }
 
         public void OnExit()
@@ -159,6 +145,7 @@ namespace Client.Game.InGame.UI.UIState.State
             _loadInventoryCts?.Cancel();
             _loadInventoryCts?.Dispose();
             _loadInventoryCts = null;
+            _loader = null;
 
             // OnEnterがソース未指定で早期returnしていた場合はここで終える
             // Bail out here if OnEnter returned early with no source

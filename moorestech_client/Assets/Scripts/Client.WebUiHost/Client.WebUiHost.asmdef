@@ -18,6 +18,7 @@
         "Game.Block",
         "Game.Block.Interface",
         "Game.Gear",
+        "Game.Fluid",
         "Game.Train",
         "Game.Context",
         "Game.Construction",

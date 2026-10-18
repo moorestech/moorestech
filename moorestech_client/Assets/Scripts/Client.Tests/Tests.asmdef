@@ -10,6 +10,7 @@
         "Client.MapScene.Editor",
         "Game.Block",
         "Game.Gear",
+        "Game.Fluid",
         "Game.EnergySystem",
         "Game.Block.Interface",
         "Game.Blueprint",

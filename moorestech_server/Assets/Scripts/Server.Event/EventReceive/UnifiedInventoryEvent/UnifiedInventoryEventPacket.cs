@@ -38,8 +38,8 @@ namespace Server.Event.EventReceive.UnifiedInventoryEvent
             new TrainInventoryUpdateService(_eventProtocolProvider, _inventorySubscriptionStore, _trainUpdateEvent);
         }
     }
-    
-    
+
+
     [MessagePackObject]
     public class UnifiedInventoryEventMessagePack
     {
@@ -48,10 +48,10 @@ namespace Server.Event.EventReceive.UnifiedInventoryEvent
         [Key(3)] public InventoryIdentifierMessagePack Identifier { get; set; }
         [Key(4)] public int Slot { get; set; }
         [Key(5)] public ItemMessagePack Item { get; set; }
-        
-        
+
+
         public UnifiedInventoryEventMessagePack() { Tag = UnifiedInventoryEventPacket.EventTag; }
-        
+
         public static UnifiedInventoryEventMessagePack CreateUpdate(ISubInventoryIdentifier identifier, int slot, IItemStack item)
         {
             return new UnifiedInventoryEventMessagePack
@@ -62,9 +62,9 @@ namespace Server.Event.EventReceive.UnifiedInventoryEvent
                 Slot = slot,
                 Item = new ItemMessagePack(item),
             };
-            
+
         }
-        
+
         public static UnifiedInventoryEventMessagePack CreateRemove(ISubInventoryIdentifier identifier)
         {
             return new UnifiedInventoryEventMessagePack
@@ -76,7 +76,19 @@ namespace Server.Event.EventReceive.UnifiedInventoryEvent
                 Item = null,
             };
         }
-        
+
+        public static UnifiedInventoryEventMessagePack CreateRefresh(ISubInventoryIdentifier identifier)
+        {
+            return new UnifiedInventoryEventMessagePack
+            {
+                Tag = UnifiedInventoryEventPacket.EventTag,
+                EventType = InventoryEventType.Refresh,
+                Identifier = CreateMessagePack(identifier),
+                Slot = -1,
+                Item = null,
+            };
+        }
+
         private static InventoryIdentifierMessagePack CreateMessagePack(ISubInventoryIdentifier identifier)
         {
             return identifier switch

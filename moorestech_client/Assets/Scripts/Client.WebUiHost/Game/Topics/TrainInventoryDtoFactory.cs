@@ -30,6 +30,7 @@ namespace Client.WebUiHost.Game.Topics
             {
                 dto.ItemSlots.Add(new BlockItemSlotDto { ItemId = stack.Id.AsPrimitive(), Count = stack.Count });
             }
+            FluidSlotDtoBuilder.Append(dto.FluidSlots, inventory.Fluids);
             return dto;
         }
 

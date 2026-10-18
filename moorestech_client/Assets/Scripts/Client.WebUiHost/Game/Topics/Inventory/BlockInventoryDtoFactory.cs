@@ -15,6 +15,7 @@ namespace Client.WebUiHost.Game.Topics
             var dto = new BlockInventoryDto
             {
                 Open = true,
+                Error = sub.Result == Server.Protocol.PacketResponse.InventoryRequestResult.Success ? null : "openFailed",
                 Source = "block",
                 BlockType = block.BlockMasterElement.BlockType,
                 BlockGuid = block.BlockMasterElement.BlockGuid.ToString("D"),
