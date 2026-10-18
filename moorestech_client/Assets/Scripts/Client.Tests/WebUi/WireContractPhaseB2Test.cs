@@ -80,7 +80,6 @@ namespace Client.Tests.WebUi
                 TrainPlatform = new TrainPlatformDetailDto
                 {
                     Mode = "unloadToPlatform",
-                    FluidCapacity = 1000,
                 },
             };
 

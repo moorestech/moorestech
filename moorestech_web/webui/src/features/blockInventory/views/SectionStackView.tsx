@@ -1,6 +1,7 @@
 import { Stack } from "@mantine/core";
 import type { BlockInventoryOpen } from "@/bridge";
 import { FluidSlotRow } from "@/shared/ui";
+import FluidInventoryContents from "../fluid/FluidInventoryContents";
 import BlockItemGrid from "../BlockItemGrid";
 import styles from "../style.module.css";
 import GearSection from "../details/GearSection";
@@ -19,6 +20,7 @@ type SectionStackViewConfig = {
 };
 
 const configByBlockType: Record<string, SectionStackViewConfig> = {
+  FluidPipe: { itemGridTestId: null, fluidRowTestId: "fluid-pipe-fluid-slots", renderEmptyGrid: false, showFluidProgress: false },
   Chest: { itemGridTestId: "chest-grid", fluidRowTestId: null, renderEmptyGrid: true, showFluidProgress: true },
   ElectricMachine: { itemGridTestId: null, fluidRowTestId: "machine-fluid-slots", renderEmptyGrid: false, showFluidProgress: false },
   GearMachine: { itemGridTestId: null, fluidRowTestId: "machine-fluid-slots", renderEmptyGrid: false, showFluidProgress: false },
@@ -63,7 +65,8 @@ export default function SectionStackView({ data, fillsPanelHeight }: { data: Blo
       <GearSection data={data} />
       <ElectricNetworkSection data={data} />
       <GearNetworkSection data={data} />
-      {config.fluidRowTestId && !data.machine ? <FluidSlotRow fluids={data.fluidSlots.map((fluid) => ({ fluid }))} progress={config.showFluidProgress ? data.progress : null} testId={config.fluidRowTestId} /> : null}
+      {data.blockType === "FluidPipe" ? <FluidInventoryContents fluids={data.fluidSlots} testId="fluid-pipe-fluid-slots" /> : null}
+      {config.fluidRowTestId && !data.machine && data.blockType !== "FluidPipe" ? <FluidSlotRow fluids={data.fluidSlots.map((fluid) => ({ fluid }))} progress={config.showFluidProgress ? data.progress : null} testId={config.fluidRowTestId} /> : null}
     </Stack>
   );
 }

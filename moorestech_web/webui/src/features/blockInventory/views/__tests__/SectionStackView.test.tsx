@@ -11,6 +11,7 @@ vi.mock("@/shared/i18n", async (importOriginal) => ({
 }));
 vi.mock("@mantine/core", () => ({
   Stack: ({ children, ...props }: { children: unknown }) => createElement("mock-stack", props, children as never),
+  Group: ({ children, ...props }: { children: unknown }) => createElement("mock-group", props, children as never),
   Text: ({ children, ...props }: { children: unknown }) => createElement("mock-text", props, children as never),
 }));
 vi.mock("../../BlockItemGrid", () => ({
@@ -58,6 +59,25 @@ describe("SectionStackView", () => {
     const populated = render(dataFor(blockType, [{ itemId: 1, count: 1 }]));
     expect(populated.root.findAll((n) => n.type === "div").map((n) => n.props["data-testid"])).toEqual(itemGridTestId ? [itemGridTestId] : []);
     act(() => { populated.unmount(); });
+  });
+
+  it("パイプは液体だけを進捗なしで描画する", () => {
+    const data = dataFor("FluidPipe", []);
+    data.fluidSlots = [{ kind: "filled", fluidGuid: "water", amount: 40, capacity: 100 }];
+    const tree = render(data);
+    expect(tree.root.findByProps({ "data-testid": "fluid-pipe-fluid-slots-slot-0" }).props.progress).toBeNull();
+    expect(tree.root.findAll((n) => String(n.type) === "mock-text").map((n) => Array.isArray(n.props.children) ? n.props.children.join("") : n.props.children)).toEqual(["fluid.water.name|undefined", "40 / 100"]);
+    expect(tree.root.findAllByProps({ "data-testid": "generic-block-grid" })).toHaveLength(0);
+    act(() => { tree.unmount(); });
+  });
+
+  it("空のパイプは名前や容量を表示せず空スロットを残す", () => {
+    const data = dataFor("FluidPipe", []);
+    data.fluidSlots = [{ kind: "empty", capacity: 100 }];
+    const tree = render(data);
+    expect(tree.root.findByProps({ "data-testid": "fluid-pipe-fluid-slots-slot-0" })).toBeDefined();
+    expect(tree.root.findAll((n) => String(n.type) === "mock-text")).toHaveLength(0);
+    act(() => { tree.unmount(); });
   });
 
   it("親から状態・供給・歯車・電力網・歯車網を順に描画する", () => {

@@ -3,6 +3,7 @@ using Client.Game.InGame.Block;
 using Core.Master;
 using Game.Block.Blocks.PowerGenerator;
 using Game.Block.Interface.State;
+using Game.Fluid;
 using Mooresmaster.Model.BlocksModule;
 using System;
 
@@ -82,6 +83,14 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             {
                 AppendFluidSlots(dto.FluidSlots, fluid.InputTanks);
                 AppendFluidSlots(dto.FluidSlots, fluid.OutputTanks);
+            }
+
+            // パイプとタンクの単一液体を表示する
+            // Display the single fluid held by a pipe or tank
+            var pipe = block.GetStateDetail<FluidPipeStateDetail>(FluidPipeStateDetail.BlockStateDetailKey);
+            if (pipe != null)
+            {
+                AppendFluidSlots(dto.FluidSlots, new List<FluidMessagePack> { new(pipe.FluidId, pipe.Amount, pipe.Capacity) });
             }
 
             ApplyNetworkCaches(dto, cache);

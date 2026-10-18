@@ -22,7 +22,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             {
                 TrainItemPlatformBlockParam item => CreateItemDetail(state, item.ItemSlotCount),
                 TrainStationBlockParam station => CreateItemDetail(state, station.ItemSlotCount),
-                TrainFluidPlatformBlockParam fluid => CreateFluidDetail(state, (double)fluid.Capacity),
+                TrainFluidPlatformBlockParam => new TrainPlatformDetailDto { Mode = ToWireMode(state.Mode) },
                 _ => null,
             };
         }
@@ -35,17 +35,6 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             {
                 Mode = ToWireMode(state.Mode),
                 ItemSlotCount = itemSlotCount,
-            };
-        }
-
-        private static TrainPlatformDetailDto CreateFluidDetail(
-            TrainPlatformTransferStateDetail state,
-            double fluidCapacity)
-        {
-            return new TrainPlatformDetailDto
-            {
-                Mode = ToWireMode(state.Mode),
-                FluidCapacity = fluidCapacity,
             };
         }
 
