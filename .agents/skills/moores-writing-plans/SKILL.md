@@ -117,13 +117,11 @@ explicit closing task pair — 実行者はこれを無条件に実行する。p
 plan 内の**unityプレイ録画テスト**（無ければ EditModeInPlayingTest）を反映後のバイナリで
 再実施してから完了とする。ユニットテスト通過・ログ無音は代替にならない。
 
-**unityプレイ録画テストの実行を検討する（moorestech, required check）:** plan作成時、
-ランタイム挙動（ゲームプレイ・入力・カメラ・UI・エンティティ表示等）に触れる変更なら、
-ユニットテストに加えて**unityプレイ録画テスト**（`unity-playmode-recorded-playtest`スキル。
-PlayModeを録画付きで通しプレイ検証するもの。「PlayModeテスト」と曖昧に書かず必ずこのスキル名で指す）
-をタスクとしてplanに含めるか必ず検討する。録画付き通し検証まで不要な場合の軽量代替は
-EditModeInPlayingTest（editmode-in-playing-testスキル・uloop run-testsで実行）。
-含めない場合はその判断理由を `## 判断記録（ADR）` に1行残す（無言の省略は禁止）。
+**unityプレイ録画テスト（moorestech, required）:** ランタイム挙動（ゲームプレイ・入力・カメラ・UI・
+エンティティ表示等）に触れる変更は、unityプレイ録画テスト（`unity-playmode-recorded-playtest`スキル）の
+タスクをplanに含める。置き換えてよいのは EditModeInPlayingTest（editmode-in-playing-testスキル）だけで、
+スクショ・ユニットテストは代替にならない。どちらも入れないのは「ランタイム挙動に触れない」ときだけで、
+その旨を `## 判断記録（ADR）` に1行書く。planにタスクを足したらこの判定をやり直す。
 
 ## Task Structure
 
