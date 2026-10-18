@@ -20,8 +20,8 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
         [Test]
         public void A16_RingWithMergeAndSplitterExit([Values] BeltPlacementOrder order)
         {
-            var belt = ForUnitTestModBlockId.WoodGearBelt;
             var scenario = new BeltThroughputScenario().Window(BeltThroughputWindow.WithSplitter);
+            var belt = ForUnitTestModBlockId.WoodGearBelt;
             Line(scenario, belt, new Vector3Int(0, 0, 0), BlockDirection.East, 4);
             Line(scenario, belt, new Vector3Int(4, 0, 0), BlockDirection.North, 2);
             scenario.Block(ForUnitTestModBlockId.WoodGearBeltSplitter, new Vector3Int(4, 0, 2), BlockDirection.North);

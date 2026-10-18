@@ -91,8 +91,8 @@ namespace Tests.CombinedTest.Core.Transport.Throughput
         // Feed a 4×4 counter-clockwise ring of wood gear belts from a side chest for seedTicks, then remove the chest so the ring becomes one self-linked segment
         private static BeltThroughputSession SeededRing(BeltPlacementOrder order, int seedTicks)
         {
-            var belt = ForUnitTestModBlockId.WoodGearBelt;
             var scenario = new BeltThroughputScenario().Source(RingFeeder);
+            var belt = ForUnitTestModBlockId.WoodGearBelt;
             Line(scenario, belt, new Vector3Int(0, 0, 0), BlockDirection.East, 3);
             Line(scenario, belt, new Vector3Int(3, 0, 0), BlockDirection.North, 3);
             Line(scenario, belt, new Vector3Int(3, 0, 3), BlockDirection.West, 3);
