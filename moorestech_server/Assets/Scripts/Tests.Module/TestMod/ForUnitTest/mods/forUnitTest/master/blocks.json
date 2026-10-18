@@ -1164,7 +1164,7 @@
       "category": "テスト",
       "subCategory": "Gear",
       "placementsPerCost": 1,
-      "openable": false
+      "openable": true
     },
     {
       "modelTransform": {
@@ -3366,7 +3366,7 @@
       "category": "テスト",
       "subCategory": "FluidPipe",
       "placementsPerCost": 1,
-      "openable": false
+      "openable": true
     },
     {
       "blockGuid": "019f1a00-0000-7000-8000-00000000f1d0",
@@ -4309,7 +4309,7 @@
       "category": "テスト",
       "subCategory": "TrainFluidPlatform",
       "placementsPerCost": 1,
-      "openable": false
+      "openable": true
     },
     {
       "blockSize": [

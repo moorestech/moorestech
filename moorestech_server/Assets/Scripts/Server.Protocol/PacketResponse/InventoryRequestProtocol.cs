@@ -63,7 +63,13 @@ namespace Server.Protocol.PacketResponse
                 // インベントリ要素を抽出
                 // Collect inventory items
                 if (!datastore.ExistsComponent<IOpenableBlockInventoryComponent>(position))
-                    return ResponseInventoryRequestProtocolMessagePack.CreateContainerNotFound(InventoryType.Block, identifier);
+                {
+                    // 表示専用の開けるブロックは空スロットで成功する
+                    // Openable display-only blocks succeed with empty inventory slots
+                    return block.BlockMasterElement.Openable
+                        ? ResponseInventoryRequestProtocolMessagePack.CreateSuccess(InventoryType.Block, identifier, Array.Empty<IItemStack>(), Array.Empty<FluidMessagePack>())
+                        : ResponseInventoryRequestProtocolMessagePack.CreateContainerNotFound(InventoryType.Block, identifier);
+                }
 
                 var items = _inventoryResolver.Resolve(identifier, requesterPlayerId).InventoryItems;
                 return ResponseInventoryRequestProtocolMessagePack.CreateSuccess(InventoryType.Block, identifier, items, Array.Empty<FluidMessagePack>());
