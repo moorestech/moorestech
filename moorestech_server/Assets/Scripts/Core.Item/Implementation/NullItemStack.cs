@@ -14,8 +14,9 @@ namespace Core.Item.Implementation
         
         public ItemProcessResult AddItem(IItemStack receiveItemStack)
         {
-            //そのまま足すとインスタスIDが同じになってベルトコンベアなどで運ぶときに問題が生じるので、新しいインスタンスを生成する
-            var tmpItem = InternalItemContext.ItemStackFactory.Create(receiveItemStack.Id, receiveItemStack.Count);
+            // 輸送用IDを更新し、受け取った属性を保つ
+            // Renew transport identity while retaining received metadata
+            var tmpItem = receiveItemStack.SubItem(0);
             var empty = InternalItemContext.ItemStackFactory.CreatEmpty();
             return new ItemProcessResult(tmpItem, empty);
         }

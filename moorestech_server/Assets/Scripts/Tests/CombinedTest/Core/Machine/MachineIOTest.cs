@@ -1,7 +1,8 @@
+using static Tests.CombinedTest.Core.Machine.MachineInventoryTestHelper;
+using Game.Block.Blocks.Machine.Inventory.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using Core.Item;
 using Core.Item.Interface;
 using Core.Master;
@@ -189,31 +190,5 @@ namespace Tests.CombinedTest.Core.Machine
             Assert.AreEqual(recipe.OutputItems[0].Count, blockInventory.GetItem(inputSlotCount).Count);
         }
 
-        private int GetInputSlotCount(VanillaMachineBlockInventoryComponent vanillaMachineInventory)
-        {
-            var vanillaMachineInputInventory = (VanillaMachineInputInventory)typeof(VanillaMachineBlockInventoryComponent)
-                .GetField("_vanillaMachineInputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(vanillaMachineInventory);
-            return vanillaMachineInputInventory.InputSlot.Count;
-        }
-
-        public (List<IItemStack>, List<IItemStack>) GetInputOutputSlot(VanillaMachineBlockInventoryComponent vanillaMachineInventory)
-        {
-            // 非公開フィールドからインプット／アウトプットスロットを取り出し、テスト用に整形して返す
-            var vanillaMachineInputInventory = (VanillaMachineInputInventory)typeof(VanillaMachineBlockInventoryComponent)
-                .GetField("_vanillaMachineInputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(vanillaMachineInventory);
-            var vanillaMachineOutputInventory = (VanillaMachineOutputInventory)typeof(VanillaMachineBlockInventoryComponent)
-                .GetField("_vanillaMachineOutputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(vanillaMachineInventory);
-            
-            var inputSlot = vanillaMachineInputInventory.InputSlot.Where(i => i.Count != 0).ToList();
-            inputSlot.Sort((a, b) => a.Id.AsPrimitive() - b.Id.AsPrimitive());
-            
-            var outputSlot = vanillaMachineOutputInventory.OutputSlot.Where(i => i.Count != 0).ToList();
-            outputSlot.Sort((a, b) => a.Id.AsPrimitive() - b.Id.AsPrimitive());
-            
-            return (inputSlot, outputSlot);
-        }
     }
 }

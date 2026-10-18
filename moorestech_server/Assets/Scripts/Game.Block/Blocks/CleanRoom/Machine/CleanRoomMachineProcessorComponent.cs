@@ -5,6 +5,7 @@ using Core.Inventory;
 using Game.Block.Blocks.CleanRoom.Machine.RecipeSelection;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
+using Game.Block.Blocks.Machine.Inventory.Input;
 using Game.Block.Blocks.Machine.Module;
 using Game.Block.Blocks.Machine.RecipeSelection;
 using Game.Block.Blocks.Machine.State;

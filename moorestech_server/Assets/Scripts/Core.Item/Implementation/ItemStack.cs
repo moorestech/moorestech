@@ -64,7 +64,9 @@ namespace Core.Item.Implementation
                 return new ItemProcessResult(tmpItem, tmpReceive);
             }
             
-            return new ItemProcessResult(factory.Create(Id, newCount), factory.CreatEmpty());
+            // 通常加算でも一致済みの属性を保つ
+            // Preserve matching metadata on ordinary successful addition
+            return new ItemProcessResult(factory.Create(Id, newCount, _metaData), factory.CreatEmpty());
         }
         
         public IItemStack SubItem(int subCount)
