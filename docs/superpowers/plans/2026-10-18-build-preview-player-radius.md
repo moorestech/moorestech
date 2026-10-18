@@ -1001,7 +1001,10 @@ git commit -m "test: プレビュー半径・半径外への設置・フレー�
 
 ## 計測結果
 
-（Task 1・Task 5 で追記）
+- ベース: 25.22ms（1600個、XZ=-40..38・2m間隔、40個配置ごとにYield、設置モード遷移後0.6秒待機して3秒計測、Record=false）
+- ベース結果: `moorestech_client/PlaytestResults/20261018_203315/build-preview-radius/result.json`。Success=true、2/2 PASS、ErrorLogs=[]。
+- ベース画像: 同ディレクトリ `01-build-mode-dense.png`（アバター・床・HUDと遠方までの全枠線を目視確認）。
+- 建築メニューの注入B入力が不成立のため、既存 `PlaceSystemStateController.SetTarget` と `UIStateControl.RequestTransition(PlaceBlock)` による本番状態遷移へ変更。Task 5でも同じ条件を維持する。
 
 ## 判断記録（ADR）
 
