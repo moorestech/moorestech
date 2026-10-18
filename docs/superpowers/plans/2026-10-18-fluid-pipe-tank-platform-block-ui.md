@@ -66,7 +66,7 @@
   - `public static bool HasIncompatibleFluids(FluidContainer platformFluid, FluidContainer trainFluid)`
   - `public static bool IsTargetContainer(TrainCar dockedCar, FluidTrainCarContainer platformContainer, out FluidTrainCarContainer fluidContainer)`（既存 private `IsTargetContainer` の移設。`platformContainer` は null 可）
 
-- [ ] **Step 1: テストを書く**
+- [x] **Step 1: テストを書く**
 
 ```csharp
 using System;
@@ -164,7 +164,7 @@ namespace Tests.UnitTest.Game
 
 （`BlockStateDetail` は `Game.Block.Interface/Component/IBlockStateDetail.cs` の struct で `Key`/`Value` を持つ。ヘルパーの `#region Helper` はクラス直下だが名前が Internal ではないので規約上可）
 
-- [ ] **Step 2: 受け渡し計算を `TrainPlatformFluidTransfer.cs` へ切り出す**
+- [x] **Step 2: 受け渡し計算を `TrainPlatformFluidTransfer.cs` へ切り出す**
 
 既存の `TransferFluid`・`PushFluidToAdjacentBlocks`・`HasIncompatibleFluids` の本体をそのまま移し、移した量を返すようにする。
 
@@ -253,7 +253,7 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
 
 （`using` は元ファイルが使っていたものに合わせる。`ConnectedInfo`・`IFluidConnector` の名前空間は元ファイルの `using` を写す）
 
-- [ ] **Step 3: `TrainPlatformFluidContainerComponent` を状態発行に対応させる**
+- [x] **Step 3: `TrainPlatformFluidContainerComponent` を状態発行に対応させる**
 
 1. クラス宣言に `IBlockStateObservable` を足し、フィールドとプロパティを足す:
 ```csharp
@@ -303,7 +303,7 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
 ```
 容量はコンテナがあればそのコンテナの容量を出す（貨車から受け取ったコンテナは貨車側の容量を持つため、PFのマスタ容量で割ると量が容量を超えて見える）。`using` に `Game.Block.Interface.State`・`MessagePack`・`UniRx` を足す。
 
-- [ ] **Step 4: さらに分割して200行未満にする（必ず行う）**
+- [x] **Step 4: さらに分割して200行未満にする（必ず行う）**
 
 Step 3 までだと約233行になる（予測レビューで実測）。次の2つを両方行う。
 1. `IsTargetContainer` を `TrainPlatformFluidTransfer.IsTargetContainer(TrainCar dockedCar, FluidTrainCarContainer platformContainer, out FluidTrainCarContainer fluidContainer)` へ移す。本体は既存のまま、`_dockingComponent.DockedTrainCar` を `dockedCar`、`HasIncompatibleFluids(f)` を `platformContainer != null && HasIncompatibleFluids(platformContainer.Container, f.Container)` に置き換える。呼び出し側は `TrainPlatformFluidTransfer.IsTargetContainer(dockedCar, Container, out var targetContainer)`。コンポーネント側の `HasIncompatibleFluids(FluidTrainCarContainer)` ラッパーは削除する（Step 3 の 5 は不要になる）。
@@ -312,12 +312,12 @@ Step 3 までだと約233行になる（予測レビューで実測）。次の2
 Run: `wc -l moorestech_server/Assets/Scripts/Game.Block/Blocks/TrainRail/ContainerComponents/*.cs`
 Expected: すべて200未満。
 
-- [ ] **Step 5: コンパイルしテストを実行する**
+- [x] **Step 5: コンパイルしテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "TrainFluidPlatformStateDetailTest|TrainStationDockingFluidTransferTest|TrainFluidPlatformSaveLoadTest|TrainBidirectionalFluidLoopSaveDataTest"`
 Expected: ErrorCount 0 / 全PASS（既存3クラスは挙動不変の確認）
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Game.Block/Blocks/TrainRail/ContainerComponents moorestech_server/Assets/Scripts/Tests/UnitTest/Game/TrainFluidPlatformStateDetailTest.cs*
@@ -339,7 +339,7 @@ git commit -m "液体PFが自分の液体を状態として配信する"
 - Consumes: Task 1 の `FluidMachineInventoryStateDetail`（液体PF）。`Game.Fluid.FluidPipeStateDetail(FluidId fluidId, float amount, float capacity)` と `BlockStateDetailKey = "FluidPipeStateData"`（既存）
 - Produces: なし
 
-- [ ] **Step 1: テストを書く**
+- [x] **Step 1: テストを書く**
 
 `GearToElectricDetailDtoBuilderTest.ParentApplyIncludesGenerationStateSupplyAndMaximum` と同じ注入方法で、親の `BlockDetailDtoBuilder.Apply` を通す。
 
@@ -433,7 +433,7 @@ namespace Client.Tests.WebUi.BlockDetail
 
 （`FluidSlots` 要素の型名・プロパティ名は `BlockInventoryDtos.cs` の `BlockFluidSlotDto` に合わせる。`BlockId` の名前空間が違えば実ファイルに合わせる。TestTrainFluidPlatform の DtoBuilder が他の詳細を詰める際に必要な状態が無くて例外になる場合は、そのビルダーの前例テスト `TrainStationDetailDtoBuilderTest` の注入方法に合わせて必要な状態を足す）
 
-- [ ] **Step 2: `BlockDetailDtoBuilder.Apply` にパイプの分岐を足す**
+- [x] **Step 2: `BlockDetailDtoBuilder.Apply` にパイプの分岐を足す**
 
 FluidMachineInventory 分岐（`:78-85`）の直後に足す。`using Game.Fluid;` を追加する。
 
@@ -447,7 +447,7 @@ FluidMachineInventory 分岐（`:78-85`）の直後に足す。`using Game.Fluid
             }
 ```
 
-- [ ] **Step 3: WebUIのビュー設定を足す**
+- [x] **Step 3: WebUIのビュー設定を足す**
 
 `SectionStackView.tsx` の `configByBlockType` に1行足す（アイテムグリッド無し・進捗無し）:
 
@@ -457,13 +457,13 @@ FluidMachineInventory 分岐（`:78-85`）の直後に足す。`using Game.Fluid
 
 `views/__tests__/SectionStackView.test.tsx` に、既存テストの書き方（モックデータの作り方・render方法）に合わせて1ケース足す: `blockType: "FluidPipe"`、`fluidSlots` 1要素、`itemSlots` 空のとき、`fluid-pipe-fluid-slots` が描かれ、`generic-block-grid` が無いこと。
 
-- [ ] **Step 3.5: 液体PFの容量文字表示を撤去する**
+- [x] **Step 3.5: 液体PFの容量文字表示を撤去する**
 
 `TrainPlatformSection.tsx` から `capacityText`/`capacityElement`/`TRAIN_PLATFORM_CAPACITY_TEST_ID` を消す。続いて `TrainPlatformDetailDto.FluidCapacity`（`BlockDetailDtos.cs`）と、それを詰める `TrainPlatformDetailDtoBuilder.CreateFluidDetail` の引数・代入、webui スキーマ `inventory.ts` の `fluidCapacity`、fixture 2本（`logisticsFixtures.ts`・`block_inventory_train_fluid_platform.json`）の `fluidCapacity`、`WireContractPhaseB2Test.cs` の該当アサート、`Localization/localization.csv` の `ui.blockInventory.trainPlatformCapacity` 行を消す。`CreateFluidDetail` が他の値を詰めなくなったら貨物PFと同じ生成へ畳む。
 Run: `grep -rn "fluidCapacity\|FluidCapacity\|trainPlatformCapacity" moorestech_client/Assets/Scripts moorestech_web/webui/src moorestech_web/webui/e2e Localization`
 Expected: 0件（i18n の生成キー `L.ui...` が自動生成なら生成手順を `moorestech_web/webui` の README に従って回す）
 
-- [ ] **Step 4: マスタの openable を true にする（別repo）**
+- [x] **Step 4: マスタの openable を true にする（別repo）**
 
 ```bash
 cd /Users/sakastudio/hermes-agent/data/repos/moorestech_master
@@ -481,17 +481,17 @@ git rev-parse HEAD
 ```
 本repoの `.moorestech-external-revisions.json` の `moorestech_master` の `commitHash` を上の `git rev-parse HEAD` の値にする。ピンの反映手順（pinワークツリーの作り直し等）は `docs/development/worktree-and-review-pitfalls.md` に従う。
 
-- [ ] **Step 5: コンパイルしテストを実行する**
+- [x] **Step 5: コンパイルしテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Client.Tests.WebUi.BlockDetail.FluidBlockDetailDtoBuilderTest"`
 Run: `cd moorestech_web/webui && npx vitest run src/features/blockInventory src/bridge`
 Expected: ErrorCount 0 / 全PASS
 
-- [ ] **Step 6: 実画面で確かめる**
+- [x] **Step 6: 実画面で確かめる**
 
 Step 4 のピン反映（masterデータの読み込み先が新しいコミットになっていること）が済んでから行う。uloop で PlayMode を起動し、`uloop execute-dynamic-code` でプレイヤーの近くに液体タンクを置いて水を注入（サーバーの `FluidPipeComponent.AddLiquid`）し、タンクをクリックしてUIを開いた状態を `uloop screenshot` で撮る。同様に液体PFへ `AddLiquid` してUIを開き撮る。確認点: 液体アイコン・名前・量/容量が出ている／パイプのUIにアイテムグリッドが出ていない／液体PFの積む・降ろす切り替えが残っている。スクショのパスを報告に書く。
 
-- [ ] **Step 7: コミットする**
+- [x] **Step 7: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts moorestech_web/webui/src moorestech_web/webui/e2e Localization/localization.csv .moorestech-external-revisions.json
@@ -635,6 +635,17 @@ git add moorestech_server/Assets/Scripts moorestech_client/Assets/Scripts moores
 git commit -m "液体貨車の在庫画面に液体を表示する"
 ```
 
+### Task 3.5: unityプレイ録画テスト
+
+unity-playmode-recorded-playtest スキルを使い、プレイテストDSLの1シナリオで検証する。
+
+- [ ] 複雑シナリオのscoutで前提・入力経路・API・座標を確認する。
+- [ ] 液体タンクに水を入れてクリックで開き、液体アイコン・名前・量/容量を確認する。
+- [ ] 液体PFに水を入れて開き、液体表示と積込/卸し切替を確認する。
+- [ ] 液体貨車をドッキングさせ、Fで貨車画面を開いたまま積み込みを進め、Refresh取り直しで量が変わることを確認する。
+- [ ] 画面を閉じる。
+- [ ] Record=trueの最終実行でAsserts全PASS、0 byteでない録画と実プレイ視点を確認する。result.jsonと録画パスを報告ファイルへ残し、シナリオと作業をコミットする。
+
 ### Task 4: 全ブランチレビュー
 
 - [ ] 必ずmoores-code-reviewスキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）
@@ -658,4 +669,4 @@ git commit -m "液体貨車の在庫画面に液体を表示する"
 - 貨車の液体の同期は、初期データ＝在庫要求の応答に `Fluids`、変化＝統合在庫イベントの `Refresh`（取り直し）にする。差分イベントにしないのは、貨車の液体が液体PFの受け渡しでしか変わらず頻度が低く、容器の付け外し（アイテム⇔液体⇔無し）も同じ取り直しで閉じられるため。出所: agent前提（ADR 0083 決定7）
 - `FluidTrainCarContainer` からの通知は `TrainCar` を経由せず、`TrainCar.cs:73` と同じキャストで `TrainUpdateEvent` を直接呼ぶ。`TrainCar.cs` は251行で、触ると分割が要るため。出所: agent前提
 - `SubInventoryState.cs`（194行）は取り直しの分岐で200行を超えるので、読み込み処理を `SubInventoryLoader` へ出す。出所: agent前提（200行規約）
-- unityプレイ録画テストは入れない。表示は既存の液体スロット部品と既存のUIを開く経路（液体PFで実績あり）に乗るだけで、新しい入力・遷移を作らないため。代わりに Task 2 Step 6 で PlayMode の実画面スクショを撮る。出所: agent前提
+- Task 3 の開いたまま更新（Refresh取り直し）は実動でしか検証できないため録画テストを入れる。出所: ユーザー指摘 2026-10-18「録画付きのプレイテストは入れません ←なんで？」
