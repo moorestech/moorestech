@@ -41,7 +41,7 @@ namespace Tests.CombinedTest.Core.Machine
             var processingRateBefore = 0f;
             for (int i = 0; i < 20; i++)
             {
-                machineComponent.SupplyExternalPower(requiredPower / 2); // 半分の電力
+                machineComponent.SupplyExternalPower(requiredPower / 2);
                 GameUpdater.UpdateOneTick();
                 var details = stateObservable.GetBlockStateDetails();
                 var (state, current, requested, rate) = ExtractMachineDetails(details);

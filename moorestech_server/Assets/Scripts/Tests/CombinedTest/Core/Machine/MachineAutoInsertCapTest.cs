@@ -22,8 +22,8 @@ using UnityEngine;
 
 namespace Tests.CombinedTest.Core.Machine
 {
-    // ブロックからの自動搬入はレシピ3回分で止まり、手動投入はスタック上限まで入る
-    // Automated inflow from blocks stops at three crafts' worth; manual input still fills to the stack limit
+    // 自動は3回分、手動はスタック上限
+    // Automatic: three crafts; manual: the stack limit.
     public class MachineAutoInsertCapTest
     {
         private static readonly Guid BasicRecipeGuid = new("bd3d4d7d-9c3b-4ae1-875b-950327eedd9d");
@@ -54,8 +54,8 @@ namespace Tests.CombinedTest.Core.Machine
             blockInventory.InsertItem(ServerContext.ItemStackFactory.Create(recipe.InputItems[0].ItemGuid, 100), InsertItemContext.Empty);
             blockInventory.InsertItem(ServerContext.ItemStackFactory.Create(recipe.InputItems[1].ItemGuid, 100), InsertItemContext.Empty);
 
-            // 消費素材は2×3=6個、消費しない素材は要求数1個で止まる
-            // The consumed input stops at 2x3=6, the non-consumed one at its requirement of 1
+            // 消費素材は6個、非消費素材は1個
+            // Consumed input: six items; non-consumed input: one item.
             Assert.AreEqual(6, inventory.GetItem(0).Count);
             Assert.AreEqual(1, inventory.GetItem(1).Count);
         }
@@ -124,8 +124,8 @@ namespace Tests.CombinedTest.Core.Machine
             var (inventory, recipe) = Setup(BasicRecipeGuid);
             var itemId = MasterHolder.ItemMaster.GetItemId(recipe.InputItems[0].ItemGuid);
             var stackLimit = ItemStackLevelDataStore.Instance.GetMaxStack(itemId);
-            // 通常レシピを複製し、要求数をスタック上限より大きくする
-            // Clone a normal recipe and make its requirement exceed the stack limit
+            // 複製レシピの要求数をスタック上限超へ
+            // Raise the cloned recipe requirement above the stack limit.
             var json = JObject.FromObject(recipe);
             var items = (JArray)json.GetValue("inputItems", StringComparison.OrdinalIgnoreCase);
             var input = (JObject)items[0];

@@ -14,8 +14,8 @@ namespace Tests.CombinedTest.Core.Machine
 {
     internal static class MachineStateDetailsTestHelper
     {
-        // レシピが要求する液体を入力タンクへ1回分投入する（液体を使わないレシピでは何もしない）
-        // Insert one recipe's worth of required fluids into the input tanks (no-op for recipes without fluids)
+        // 入力液体を1回分投入。液体不要なら無操作
+        // Insert one craft of input fluids; do nothing if none are required.
         public static void InsertRecipeFluids(Mooresmaster.Model.MachineRecipesModule.MachineRecipeMasterElement recipe, VanillaMachineBlockInventoryComponent inventoryComponent)
         {
             if (recipe.InputFluids == null || recipe.InputFluids.Length == 0) return;

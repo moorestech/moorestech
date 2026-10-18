@@ -30,22 +30,17 @@ namespace Tests.CombinedTest.Core.Machine
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var itemStackFactory = ServerContext.ItemStackFactory;
-            // ブロック情報を取得
             var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.MachineId);
-            // 機械を設置
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var machineBlock);
-            // コンポーネントを取得
             var machineComponent = machineBlock.GetComponent<VanillaMachineProcessorComponent>();
             var inventoryComponent = machineBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
             var stateObservable = machineBlock.GetComponent<IBlockStateObservable>();
-            // OnChangeBlockStateの発火を記録
             var counter = new MachineStateNotificationCounter();
             var disposable = stateObservable.OnChangeBlockState.Subscribe(_ =>
             {
                 counter.Count++;
                 Debug.Log($"Machine state changed! Count: {counter.Count}");
             });
-            // 初期状態のBlockStateDetailsを確認
             var initialDetails = stateObservable.GetBlockStateDetails();
             // マスタの型が変わったら欠損補完せず即座に落とす（フォールバック値でテストが空回りするのを防ぐ）
             // Fail immediately if the master type changes instead of papering over it with fallback values
@@ -74,14 +69,13 @@ namespace Tests.CombinedTest.Core.Machine
             {
                 Debug.Log($"No recipes found for block {blockMaster.BlockGuid}. Looking for any machine recipe...");
                 // テスト用マシンレシピを使用
-                disposable.Dispose(); // 古いサブスクリプションを解除
+                disposable.Dispose();
                 worldBlockDatastore.RemoveBlock(Vector3Int.zero, BlockRemoveReason.ManualRemove);
                 worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineRecipeTest1, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out machineBlock);
                 blockMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.MachineRecipeTest1);
                 machineComponent = machineBlock.GetComponent<VanillaMachineProcessorComponent>();
                 inventoryComponent = machineBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
                 stateObservable = machineBlock.GetComponent<IBlockStateObservable>();
-                // 新しいサブスクリプションを設定
                 counter.Count = 0;
                 disposable = stateObservable.OnChangeBlockState.Subscribe(_ =>
                 {
@@ -100,7 +94,8 @@ namespace Tests.CombinedTest.Core.Machine
             var recipe = recipes.First();
             Debug.Log($"Using recipe: Block={blockMaster.BlockGuid}, Input={recipe.InputItems[0].ItemGuid}, Output={recipe.OutputItems[0].ItemGuid}");
             MachineRecipeSelectTestUtil.SelectRecipe(machineBlock, recipe);
-            // 材料を投入（レシピに必要なアイテムをすべて投入）
+            // 全素材をレシピ1回分投入
+            // Insert every ingredient for one craft.
             foreach (var inputItemInfo in recipe.InputItems)
             {
                 var inputItem = itemStackFactory.Create(inputItemInfo.ItemGuid, inputItemInfo.Count);

@@ -25,8 +25,6 @@ namespace Tests.CombinedTest.Core.Machine
             var blockFactory = ServerContext.BlockFactory;
             var itemStackFactory = ServerContext.ItemStackFactory;
             var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data[7];
-            // マシンブロックの配置
-            // Place the machine block
             var blockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
             ServerContext.WorldBlockDatastore.TryAddBlock(blockId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
             MachineRecipeSelectTestUtil.SelectRecipe(block, recipe);
@@ -60,8 +58,6 @@ namespace Tests.CombinedTest.Core.Machine
                 blockMachineComponent.SupplyExternalPower(10000);
                 GameUpdater.UpdateOneTick();
             }
-            // 検証
-            // Verification
             for (var i = 0; i < recipe.InputFluids.Length; i++)
             {
                 Assert.AreEqual(0, inputFluidContainers[i].Amount, $"Fluid in container {i} should be consumed");

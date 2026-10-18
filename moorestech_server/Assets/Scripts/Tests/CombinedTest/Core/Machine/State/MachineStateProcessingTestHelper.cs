@@ -29,14 +29,12 @@ namespace Tests.CombinedTest.Core.Machine
                     break;
                 }
             }
-            // 処理中の状態を確認
             var processingDetails = stateObservable.GetBlockStateDetails();
             var (procState, currentPower, requestedPower, procRate) = ExtractMachineDetails(processingDetails);
             Assert.AreEqual("processing", procState, "処理状態になっていません");
             Assert.Greater(currentPower, 0f, "現在の電力が0より大きくありません");
             Assert.Greater(requestedPower, 0f, "要求電力が0より大きくありません");
             Assert.Greater(procRate, 0f, "処理率が0より大きくありません");
-            // 処理中に状態変化があることを確認
             Assert.Greater(counter.Count, previousCount, "処理開始後のOnChangeBlockStateが発火していません");
             previousCount = counter.Count;
             // 処理を完了まで進める
@@ -52,7 +50,6 @@ namespace Tests.CombinedTest.Core.Machine
                     var (state, _, _, rate) = ExtractMachineDetails(details);
                     Debug.Log($"Process Update {i}: State={state}, Rate={rate}");
                 }
-                // 出力スロットにアイテムが生成されたか確認
                 var (_, outputSlot) = GetInputOutputSlot(inventoryComponent);
                 if (0 < outputSlot.Count)
                 {
@@ -74,7 +71,6 @@ namespace Tests.CombinedTest.Core.Machine
                     break;
                 }
             }
-            // 処理完了後の状態を確認
             var completedDetails = stateObservable.GetBlockStateDetails();
             var (completeState, _, _, completeRate) = ExtractMachineDetails(completedDetails);
             Assert.AreEqual("idle", completeState, "処理完了後にアイドル状態に戻っていません");

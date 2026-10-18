@@ -46,8 +46,8 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
                 return result.Remainder;
             }
 
-            // limitToRequirementがtrueならレシピ必要量まで、falseならタンク容量まで満たす
-            // With limitToRequirement the fill stops at the recipe requirement; otherwise it runs to the tank capacity
+            // 制限時は必要量、非制限時は容量まで充填
+            // Fill to the requirement when limited; otherwise fill to capacity.
             FluidStack FillBoundTanks(FluidStack incoming, bool limitToRequirement)
             {
                 foreach (var tankIndex in slotBinding.ResolveBoundTanks(incoming.FluidId))
