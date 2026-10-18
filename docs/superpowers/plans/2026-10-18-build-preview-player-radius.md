@@ -1022,7 +1022,7 @@ git commit -m "test: プレビュー半径・半径外への設置・フレー�
 
 ### Task 7: PR作成とセッション終了可能状態
 
-- [ ] セッション終了可能状態にすること: pr-createスキルでPRを作成し、masterとのコンフリクトがあればmasterをマージして解消・コンパイル確認のうえpushする（解消の実作業はpr-create経由でopus subagentに委譲される）。全作業がコミット・push済みで、このセッションをそのまま閉じてもPRがマージ可能な状態になっていることを確認して終える。PR本文に「計測結果」のベース/変更後 avgFrameMs を載せる
+- [x] セッション終了可能状態にすること: pr-createスキルでPRを作成し、masterとのコンフリクトがあればmasterをマージして解消・コンパイル確認のうえpushする（解消の実作業はpr-create経由でopus subagentに委譲される）。全作業がコミット・push済みで、このセッションをそのまま閉じてもPRがマージ可能な状態になっていることを確認して終える。PR本文に「計測結果」のベース/変更後 avgFrameMs を載せる
 - [ ] PR作成後 `moores-wt rm build-preview-player-radius` でworktreeとEditorを畳む
 
 ## 計測結果
@@ -1064,3 +1064,5 @@ git commit -m "test: プレビュー半径・半径外への設置・フレー�
 - 厳密距離への変更・移動通知全面化は指定planの4mチャンク/1m移動/ITickable構成を優先して追加しない。アニメ待機の所有者再設計は現行不具合でなく将来入口の仮定として追加しない。新規ユーザー裁定ではなく委任範囲内のcontroller判断。
 - 名目半径20mのチャンク近似であり、空間的超過と再評価までの移動遅れがある。厳密20mを保証しない。
 - 反映後:焦点31/31、録画14/14、エラーログ0。全シナリオ診断差分の比較未確認21件と、線/チェーン含むセーブからのクライアント起動未確認はレビュー記録に残す。
+
+- Task 7 PR公開: https://github.com/moorestech/moorestech/pull/1530 、報告 https://review.moores.tech/pr/1530/report/ （画像3枚・動画1本）。masterとのコンフリクトなし（MERGEABLE）。worktree/Editor整理は次工程。
