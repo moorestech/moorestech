@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Core.Item.Interface;
 using Game.Context;
 
-namespace Game.Block.Blocks.Machine.Inventory
+namespace Game.Block.Blocks.Machine.Inventory.Input
 {
     // 束縛規則に基づく入力スロットへの仮想挿入シミュレーション（VanillaMachineInputInventoryの内部詰め物）。副作用を持たず結果のみ返す
     // Virtual insertion simulation into input slots under the binding rule (internal helper for VanillaMachineInputInventory); side-effect-free, returns only the result

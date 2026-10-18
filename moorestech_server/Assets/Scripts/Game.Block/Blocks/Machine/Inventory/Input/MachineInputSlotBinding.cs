@@ -4,7 +4,7 @@ using Core.Master;
 using Game.Block.Blocks.Machine.RecipeSelection;
 using Mooresmaster.Model.MachineRecipesModule;
 
-namespace Game.Block.Blocks.Machine.Inventory
+namespace Game.Block.Blocks.Machine.Inventory.Input
 {
     /// <summary>
     ///     入力スロット・入力タンクを選択レシピへ束縛する判定器。未選択は何も受け入れない（ADR 0042）。

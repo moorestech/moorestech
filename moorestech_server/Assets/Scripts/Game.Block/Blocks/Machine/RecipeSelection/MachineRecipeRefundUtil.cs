@@ -4,6 +4,7 @@ using Core.Inventory;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.Machine.Inventory;
+using Game.Block.Blocks.Machine.Inventory.Input;
 using Game.Context;
 using Mooresmaster.Model.MachineRecipesModule;
 

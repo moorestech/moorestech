@@ -4,6 +4,7 @@ using Core.Update;
 using Game.Block.Blocks.Gear;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
+using Game.Block.Blocks.Machine.Inventory.Input;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;

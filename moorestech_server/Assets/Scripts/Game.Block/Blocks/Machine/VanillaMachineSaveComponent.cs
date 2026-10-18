@@ -5,6 +5,7 @@ using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.Machine.Inventory;
+using Game.Block.Blocks.Machine.Inventory.Input;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Fluid;
