@@ -542,16 +542,18 @@ git commit -m "feat: ブロックのプレビュー表示を表示モードと�
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/Block/Preview/BlockPreviewRadiusRegisterService.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Starter/Registration/MainGameModelRegistration.cs:94-95`
 
+ゲーム寿命の登録サービスには IDisposable を付けない。購読はゲーム寿命で保持し、ブロック削除・置換時の登録ハンドルのみ解除する。
+
 **Interfaces:**
 - Consumes: `DistanceCullingChunkTable`・`IDistanceCullingTarget`（Task 2）、`BlockGameObject.SetPreviewOnlyObjectsWithinPlayerRadius(bool)`（Task 3）
 - Produces:
   - `public sealed class PlayerCenteredDistanceCulling { public PlayerCenteredDistanceCulling(PlayerSystemContainer playerSystemContainer, float chunkSize, float radius, float reevalMoveDistance); public IDisposable Register(Bounds worldBounds, IDistanceCullingTarget target); public void Tick(); }`
   - `public readonly struct BlockDistanceCullingEntry { public readonly Bounds WorldBounds; public readonly IDistanceCullingTarget Target; }`
   - `public interface IBlockDistanceCullingSource { BlockDistanceCullingEntry CreateEntry(BlockGameObject block); }`
-  - `public sealed class BlockDistanceCullingRegistrar : IDisposable { public BlockDistanceCullingRegistrar(BlockGameObjectDataStore dataStore, PlayerCenteredDistanceCulling culling, IBlockDistanceCullingSource source); public void Start(); public void Dispose(); }`
+  - `public sealed class BlockDistanceCullingRegistrar { public BlockDistanceCullingRegistrar(BlockGameObjectDataStore dataStore, PlayerCenteredDistanceCulling culling, IBlockDistanceCullingSource source); public void Start(); }`
   - `ColliderDistanceCullingManager` / `BlockPreviewRadiusCullingManager`: 共に `ITickable`、`public readonly PlayerCenteredDistanceCulling Culling;`（コンストラクタで生成）
 
-- [ ] **Step 1: 再評価ドライバを書く**（`ColliderDistanceCullingManager.Tick` の本体をここへ移す）
+- [x] **Step 1: 再評価ドライバを書く**（`ColliderDistanceCullingManager.Tick` の本体をここへ移す）
 
 ```csharp
 using System;
@@ -593,6 +595,8 @@ namespace Client.Game.InGame.DistanceCulling
             if (player == null) return; // silent-ok: プレイヤー生成前の数フレームだけ / 生成後のTickで評価が走り録画テストで確認
 
             var center = player.Position;
+            // silent-ok: 移動閾値以内は直前の評価を維持 / 閾値を超えたTickで再評価される
+            // Keep the previous evaluation until movement exceeds the threshold
             if (_hasEvaluated && (center - _lastEvalPosition).sqrMagnitude <= _reevalMoveDistance * _reevalMoveDistance) return;
             _hasEvaluated = true;
             _lastEvalPosition = center;
@@ -603,7 +607,7 @@ namespace Client.Game.InGame.DistanceCulling
 }
 ```
 
-- [ ] **Step 2: ブロック登録の共通部品を書く**（`BlockColliderCullingRegisterService` の購読・辞書管理をここへ移す）
+- [x] **Step 2: ブロック登録の共通部品を書く**（`BlockColliderCullingRegisterService` の購読・辞書管理をここへ移す）
 
 `Block/DistanceCulling/BlockDistanceCullingEntry.cs`:
 
@@ -662,12 +666,11 @@ namespace Client.Game.InGame.Block.DistanceCulling
     /// ブロックの設置/削除に合わせて距離カリングへ登録・解除する
     /// Registers/unregisters blocks with a distance culling as they are placed/removed
     /// </summary>
-    public sealed class BlockDistanceCullingRegistrar : IDisposable
+    public sealed class BlockDistanceCullingRegistrar
     {
         private readonly BlockGameObjectDataStore _dataStore;
         private readonly PlayerCenteredDistanceCulling _culling;
         private readonly IBlockDistanceCullingSource _source;
-        private readonly CompositeDisposable _disposables = new();
         private readonly Dictionary<Vector3Int, IDisposable> _registrations = new();
 
         public BlockDistanceCullingRegistrar(BlockGameObjectDataStore dataStore, PlayerCenteredDistanceCulling culling, IBlockDistanceCullingSource source)
@@ -681,14 +684,9 @@ namespace Client.Game.InGame.Block.DistanceCulling
         {
             // 設置・削除を購読し、既存ブロックも登録する
             // Subscribe to place/remove, and register existing blocks
-            _dataStore.OnBlockPlaced.Subscribe(Register).AddTo(_disposables);
-            _dataStore.OnBlockRemoved.Subscribe(Unregister).AddTo(_disposables);
+            _dataStore.OnBlockPlaced.Subscribe(Register);
+            _dataStore.OnBlockRemoved.Subscribe(Unregister);
             foreach (var block in _dataStore.BlockGameObjectDictionary.Values) Register(block);
-        }
-
-        public void Dispose()
-        {
-            _disposables.Dispose();
         }
 
         private void Register(BlockGameObject block)
@@ -704,7 +702,7 @@ namespace Client.Game.InGame.Block.DistanceCulling
 
         private void Unregister(Vector3Int pos)
         {
-            if (!_registrations.TryGetValue(pos, out var registration)) return;
+            if (!_registrations.TryGetValue(pos, out var registration)) return; // silent-ok: 未登録位置の置換前解除は不要 / 新規登録は直後に実行する
             registration.Dispose();
             _registrations.Remove(pos);
         }
@@ -712,7 +710,7 @@ namespace Client.Game.InGame.Block.DistanceCulling
 }
 ```
 
-- [ ] **Step 3: コライダー側を共通部品へ載せ替える**
+- [x] **Step 3: コライダー側を共通部品へ載せ替える**
 
 `ColliderDistanceCullingManager.cs` を次に置換（定数とコメントは既存のまま）:
 
@@ -753,7 +751,18 @@ namespace Client.Game.InGame.ColliderStreaming
 `BlockColliderCullingRegisterService.cs`: 購読・辞書・`Unregister` を削除し、`IBlockDistanceCullingSource` を実装して `BlockDistanceCullingRegistrar` に委ねる。`CalcWorldBounds` ローカル関数（有効コライダーだけで AABB を作る既存ロジック）は `CreateEntry` 内へそのまま移す:
 
 ```csharp
-    public sealed class BlockColliderCullingRegisterService : IStartable, IDisposable, IBlockDistanceCullingSource
+using Client.Game.InGame.Block;
+using Client.Game.InGame.Block.DistanceCulling;
+using UnityEngine;
+using VContainer.Unity;
+
+namespace Client.Game.InGame.ColliderStreaming.Block
+{
+    /// <summary>
+    /// ブロックの設置・削除を共通登録へ委ねる
+    /// Delegates block placement and removal to the shared registrar
+    /// </summary>
+    public sealed class BlockColliderCullingRegisterService : IStartable, IBlockDistanceCullingSource
     {
         private readonly BlockDistanceCullingRegistrar _registrar;
 
@@ -767,30 +776,50 @@ namespace Client.Game.InGame.ColliderStreaming
             _registrar.Start();
         }
 
-        public void Dispose()
-        {
-            _registrar.Dispose();
-        }
-
         public BlockDistanceCullingEntry CreateEntry(BlockGameObject block)
         {
-            // ブロック配下のコライダーを対象化し、AABBでチャンクをまたぐ大きなブロックも網羅して登録する
-            // Wrap the block's colliders as a target and register with an AABB so multi-chunk blocks are covered
+            // 有効コライダーの範囲と切り替え対象を登録する
+            // Register the enabled collider bounds and toggle target
             var colliders = block.GetComponentsInChildren<Collider>(true);
             return new BlockDistanceCullingEntry(CalcWorldBounds(colliders, block.transform.position), new BlockColliderCullingTarget(colliders));
 
             #region Internal
 
-            // （既存 CalcWorldBounds ローカル関数の本体をコメントごと逐語で移す）
+            Bounds CalcWorldBounds(Collider[] targetColliders, Vector3 fallbackCenter)
+            {
+                // 有効かつアクティブなコライダーのみで足場を算出する。無効/非アクティブは原点の縮退boundsを返し足場を壊すため除外
+                // Build the footprint from enabled+active colliders only; disabled/inactive ones return origin-degenerate bounds that corrupt it
+                var encapsulated = false;
+
+                // 初期値は有効コライダーが無い場合のフォールバック（ブロック原点の1チャンク＝旧来の点登録相当）
+                // Initial value is the fallback when no valid collider exists (single chunk at block origin, like the legacy point registration)
+                var result = new Bounds(fallbackCenter, Vector3.zero);
+                foreach (var collider in targetColliders)
+                {
+                    if (!collider.enabled || !collider.gameObject.activeInHierarchy) continue;
+                    if (!encapsulated)
+                    {
+                        result = collider.bounds;
+                        encapsulated = true;
+                    }
+                    else
+                    {
+                        result.Encapsulate(collider.bounds);
+                    }
+                }
+
+                return result;
+            }
 
             #endregion
         }
     }
+}
 ```
 
 最後の `#region Internal` の中身は既存ファイルの `Bounds CalcWorldBounds(Collider[] targetColliders, Vector3 fallbackCenter) { ... }` を1文字も変えずに移す（挙動不変のリファクタ）。
 
-- [ ] **Step 4: プレビュー半径側を書く**
+- [x] **Step 4: プレビュー半径側を書く**
 
 `Block/Preview/BlockPreviewRadiusCullingManager.cs`:
 
@@ -859,7 +888,6 @@ namespace Client.Game.InGame.Block.Preview
 `Block/Preview/BlockPreviewRadiusRegisterService.cs`:
 
 ```csharp
-using System;
 using Client.Game.InGame.Block.DistanceCulling;
 using UnityEngine;
 using VContainer.Unity;
@@ -870,7 +898,7 @@ namespace Client.Game.InGame.Block.Preview
     /// ブロックをプレビュー半径判定へ占有セルの範囲で登録する
     /// Registers blocks with the preview radius culling using their occupied cells
     /// </summary>
-    public sealed class BlockPreviewRadiusRegisterService : IStartable, IDisposable, IBlockDistanceCullingSource
+    public sealed class BlockPreviewRadiusRegisterService : IStartable, IBlockDistanceCullingSource
     {
         private readonly BlockDistanceCullingRegistrar _registrar;
 
@@ -882,11 +910,6 @@ namespace Client.Game.InGame.Block.Preview
         public void Start()
         {
             _registrar.Start();
-        }
-
-        public void Dispose()
-        {
-            _registrar.Dispose();
         }
 
         public BlockDistanceCullingEntry CreateEntry(BlockGameObject block)
@@ -902,7 +925,7 @@ namespace Client.Game.InGame.Block.Preview
 }
 ```
 
-- [ ] **Step 5: DI登録する**
+- [x] **Step 5: DI登録する**
 
 `MainGameModelRegistration.cs` の `builder.RegisterEntryPoint<BlockColliderCullingRegisterService>();` の直後:
 
@@ -913,12 +936,12 @@ namespace Client.Game.InGame.Block.Preview
 
 `using Client.Game.InGame.Block.Preview;` を足す。
 
-- [ ] **Step 6: コンパイルしテストを実行する**
+- [x] **Step 6: コンパイルしテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "DistanceCulling|BlockPreviewOnlyObjectsView"`
 Expected: ErrorCount 0 / 全PASS。`wc -l` で触った全 .cs が200行未満
 
-- [ ] **Step 7: コミットする**
+- [x] **Step 7: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/DistanceCulling moorestech_client/Assets/Scripts/Client.Game/InGame/Block moorestech_client/Assets/Scripts/Client.Game/InGame/ColliderStreaming moorestech_client/Assets/Scripts/Client.Starter/Registration/MainGameModelRegistration.cs
