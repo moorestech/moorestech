@@ -26,8 +26,8 @@ namespace Client.Game.InGame.Block.DistanceCulling
 
         internal void Initialize()
         {
-            // 設置・削除を購読し、既存ブロックも登録する
-            // Subscribe to place/remove, and register existing blocks
+            // 既設登録と設置・削除の購読
+            // Register existing blocks and subscribe to placement/removal
             _dataStore.OnBlockPlaced.Subscribe(Register);
             _dataStore.OnBlockRemoved.Subscribe(Unregister);
             foreach (var block in _dataStore.BlockGameObjectDictionary.Values) Register(block);

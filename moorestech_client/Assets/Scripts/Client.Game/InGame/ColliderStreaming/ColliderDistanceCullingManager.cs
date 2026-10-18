@@ -5,8 +5,10 @@ using VContainer.Unity;
 namespace Client.Game.InGame.ColliderStreaming
 {
     /// <summary>
-    /// コライダーの距離カリング。プレイヤー周囲120mのブロックだけコライダーを有効にする
-    /// Collider distance culling: only blocks within 120m of the player keep colliders enabled
+    /// - コライダーの有効状態を制御
+    /// - プレイヤー周囲120mが基準
+    /// - Control collider activation
+    /// - Use a 120m radius around the player
     /// </summary>
     public sealed class ColliderDistanceCullingManager : ITickable
     {

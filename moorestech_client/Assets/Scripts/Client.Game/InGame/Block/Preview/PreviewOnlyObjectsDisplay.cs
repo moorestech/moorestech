@@ -9,8 +9,8 @@ namespace Client.Game.InGame.Block.Preview
         // 非アクティブ（当たり判定も無し）
         // Inactive, no colliders either
         Hidden,
-        // 当たり判定だけ有効で描画しない（設置アニメーション中）
-        // Colliders active but not rendered (during place animation)
+        // 設置アニメ中は当たり判定のみ
+        // Keep only colliders during placement animation
         CollidersOnly,
         // 距離に関係なく描画（デバッグのホバー）
         // Rendered regardless of distance (debug hover)

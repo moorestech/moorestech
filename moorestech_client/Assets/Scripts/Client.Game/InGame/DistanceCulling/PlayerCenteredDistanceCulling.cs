@@ -5,8 +5,10 @@ using UnityEngine;
 namespace Client.Game.InGame.DistanceCulling
 {
     /// <summary>
-    /// プレイヤーが一定距離動くたびにチャンクテーブルへ半径内/外の差分を指示する
-    /// Each time the player moves a set distance, drives the chunk table's within/outside-range delta
+    /// - 一定距離の移動で再評価
+    /// - チャンクの半径内外差分を反映
+    /// - Reevaluate after a set movement distance
+    /// - Apply the chunk range-membership delta
     /// </summary>
     public sealed class PlayerCenteredDistanceCulling
     {

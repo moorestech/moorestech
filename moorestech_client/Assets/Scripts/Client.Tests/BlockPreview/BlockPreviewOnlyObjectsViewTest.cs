@@ -7,8 +7,10 @@ using NUnit.Framework;
 namespace Client.Tests
 {
     /// <summary>
-    /// 表示モードと半径内フラグの組み合わせで有効・描画が決まることを確かめる
-    /// Verifies active/render state follows the display mode and the within-radius flag
+    /// - 表示モードと半径の組合せ検証
+    /// - 有効状態と描画状態を確認
+    /// - Test combinations of display mode and radius
+    /// - Check activation and rendering
     /// </summary>
     public class BlockPreviewOnlyObjectsViewTest
     {
@@ -43,8 +45,8 @@ namespace Client.Tests
         [Test]
         public void EnteringBuildModeOutsideRadius_StartsUnrendered()
         {
-            // 設置モード外で半径外になったブロックは、設置モードに入っても描画しない
-            // A block that went out of range outside build mode stays unrendered on entering it
+            // モード外の半径外判定を入場後も維持
+            // Preserve the out-of-range decision when entering build mode
             var fake = new FakePreviewOnlyObject();
             var view = new BlockPreviewOnlyObjectsView(new List<IPreviewOnlyObject> { fake });
             view.SetWithinPlayerRadius(false);

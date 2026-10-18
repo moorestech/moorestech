@@ -4,8 +4,10 @@ using UnityEngine;
 namespace Client.Tests
 {
     /// <summary>
-    /// SetWithinRangeの呼び出し回数と最終指示を記録するテスト用ターゲット
-    /// Test target that records SetWithinRange call counts and the last instruction
+    /// - 範囲内外の通知回数を記録
+    /// - 最後の通知値を保持
+    /// - Record within/outside-range notification counts
+    /// - Keep the last notification value
     /// </summary>
     internal sealed class FakeCullingTarget : IDistanceCullingTarget
     {

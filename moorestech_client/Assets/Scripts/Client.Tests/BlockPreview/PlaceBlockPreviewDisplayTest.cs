@@ -42,8 +42,8 @@ namespace Client.Tests
                 var manager = new BlockPreviewRadiusCullingManager(player);
                 var blockId = FindBlockIdByName("直進高速ベルトコンベア");
 
-                // 既設登録と初回評価を本番の登録サービスで通す
-                // Exercise existing registration and initial evaluation through the real service
+                // 本番サービスで既設登録と初回評価
+                // Register existing blocks and evaluate through the real service
                 store.PlaceBlock(Vector3Int.zero, blockId, BlockDirection.North, new BlockInstanceId(900001), false);
                 var farPosition = new Vector3Int(40, 0, 0);
                 store.PlaceBlock(farPosition, blockId, BlockDirection.North, new BlockInstanceId(900002), false);
@@ -58,8 +58,8 @@ namespace Client.Tests
                 AssertPreview(near, true);
                 AssertPreview(far, false);
 
-                // 入場後の非アニメ設置も配置通知から表示を更新する
-                // New nonanimated placements update display through placement notifications
+                // 入場後の非アニメ設置通知で表示更新
+                // Update display on nonanimated placement notifications after entry
                 var newNearPosition = new Vector3Int(0, 0, 4);
                 var newFarPosition = new Vector3Int(40, 0, 4);
                 store.PlaceBlock(newNearPosition, blockId, BlockDirection.North, new BlockInstanceId(900003), false);
@@ -71,8 +71,8 @@ namespace Client.Tests
                 AssertPreview(newNear, true);
                 AssertPreview(newFar, false);
 
-                // 実プレイヤーを移動し、登録済み対象の半径状態を入れ替える
-                // Move the real player and reverse range membership of registered targets
+                // 実プレイヤー移動で登録対象の内外を反転
+                // Reverse registered targets’ range membership by moving the real player
                 player.PlayerObjectController.SetPlayerPosition(new Vector3(40, 0, 0));
                 manager.Tick();
                 AssertPreview(near, false);

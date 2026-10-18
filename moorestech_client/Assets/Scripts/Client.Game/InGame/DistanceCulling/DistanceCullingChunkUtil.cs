@@ -31,8 +31,8 @@ namespace Client.Game.InGame.DistanceCulling
             FillChunkBox(bounds.min.x, bounds.max.x, bounds.min.z, bounds.max.z, chunkSize, result);
         }
 
-        // 評価中心の有効半径を包む正方内のチャンク座標を列挙（占有判定は呼び出し側）
-        // Enumerate chunk coords inside the square that bounds the active radius (occupancy checked by caller)
+        // 半径の外接正方を列挙。占有判定は呼出側
+        // Enumerate the radius bounding square; the caller checks occupancy
         public static void CollectChunksInRadiusBox(Vector3 center, float radius, float chunkSize, List<long> result)
         {
             // 閉区間の接線チャンクを負側にも含める

@@ -5,8 +5,10 @@ using VContainer.Unity;
 namespace Client.Game.InGame.Block.Preview
 {
     /// <summary>
-    /// 設置モードのプレビュー表示の距離カリング。プレイヤー周囲20mのブロックだけ描画する
-    /// Preview distance culling for build mode: only blocks within 20m of the player render
+    /// - 設置モードの表示制御
+    /// - プレイヤー周囲20mが基準
+    /// - Control build-mode preview display
+    /// - Use a 20m radius around the player
     /// </summary>
     public sealed class BlockPreviewRadiusCullingManager : ITickable
     {

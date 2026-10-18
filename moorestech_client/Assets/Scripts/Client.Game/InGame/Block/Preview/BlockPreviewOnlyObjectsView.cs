@@ -4,8 +4,10 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
 namespace Client.Game.InGame.Block.Preview
 {
     /// <summary>
-    /// 表示モードと半径内フラグから各プレビュー専用部品の有効・描画を決める
-    /// Decides each preview-only object's active/render state from the display mode and the within-radius flag
+    /// - 表示モードと半径で描画制御
+    /// - 部品の有効状態も制御
+    /// - Control rendering by display mode and radius
+    /// - Also control object activation
     /// </summary>
     public class BlockPreviewOnlyObjectsView
     {

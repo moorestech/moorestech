@@ -25,8 +25,8 @@ namespace Client.Game.InGame.ColliderStreaming.Block
 
         public BlockDistanceCullingEntry CreateEntry(BlockGameObject block)
         {
-            // 有効コライダーの範囲と切り替え対象を登録する
-            // Register the enabled collider bounds and toggle target
+            // 有効コライダー範囲と対象を登録
+            // Register enabled collider bounds and the target
             var colliders = block.GetComponentsInChildren<Collider>(true);
             return new BlockDistanceCullingEntry(CalcWorldBounds(colliders, block.transform.position), new BlockColliderCullingTarget(colliders));
 
