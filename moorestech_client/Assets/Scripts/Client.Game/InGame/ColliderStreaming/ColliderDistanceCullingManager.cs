@@ -1,4 +1,5 @@
 using System;
+using Client.Game.InGame.DistanceCulling;
 using Client.Game.InGame.Player;
 using UnityEngine;
 using VContainer.Unity;
@@ -18,7 +19,7 @@ namespace Client.Game.InGame.ColliderStreaming
         private const float ReevalMoveDistance = 8f;
 
         private readonly PlayerSystemContainer _playerSystemContainer;
-        private readonly ColliderCullingChunkTable _chunkTable = new(ChunkSize);
+        private readonly DistanceCullingChunkTable _chunkTable = new(ChunkSize);
 
         private Vector3 _lastEvalPosition;
         private bool _hasEvaluated;
@@ -30,7 +31,7 @@ namespace Client.Game.InGame.ColliderStreaming
 
         // 対象を登録し解除ハンドルを返す（登録/解除の主体は各サービスクラス）
         // Register a target and return a removal handle (register/unregister is driven by service classes)
-        public IDisposable Register(Bounds worldBounds, IColliderDistanceCullingTarget target)
+        public IDisposable Register(Bounds worldBounds, IDistanceCullingTarget target)
         {
             return _chunkTable.Add(worldBounds, target);
         }

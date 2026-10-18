@@ -2,24 +2,24 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Client.Game.InGame.ColliderStreaming
+namespace Client.Game.InGame.DistanceCulling
 {
     /// <summary>
     /// 抽象ターゲットをチャンク単位に登録し、アクティブチャンク集合の差分だけをオンオフに反映する中央テーブル
     /// Central table: buckets targets by chunk and toggles only the delta of the active-chunk set
     /// </summary>
-    public sealed class ColliderCullingChunkTable
+    public sealed class DistanceCullingChunkTable
     {
         private readonly float _chunkSize;
 
-        // チャンク→登録エントリ群。大きなコライダーは重なる全チャンクに重複登録される
-        // chunk -> entries. large colliders are registered into every chunk they overlap
+        // チャンク→登録エントリ群。大きな対象は重なる全チャンクに重複登録される
+        // chunk -> entries. large targets are registered into every chunk they overlap
         private readonly Dictionary<long, List<Entry>> _chunkToEntries = new();
         private readonly HashSet<long> _activeChunks = new();
         private bool _initialized;
 
-        // 直近の評価に使ったプレイヤー中心と有効半径（初期化後の即時登録判定に使う）
-        // Last player center/radius used for evaluation (drives immediate decision on post-init registration)
+        // 直近の評価に使った中心と有効半径（初期化後の即時登録判定に使う）
+        // Last center/radius used for evaluation (drives immediate decision on post-init registration)
         private Vector3 _lastCenter;
         private float _lastRadius;
 
@@ -28,16 +28,16 @@ namespace Client.Game.InGame.ColliderStreaming
         private readonly List<long> _chunkBuffer = new();
         private readonly HashSet<long> _nextActive = new();
 
-        public ColliderCullingChunkTable(float chunkSize)
+        public DistanceCullingChunkTable(float chunkSize)
         {
             _chunkSize = chunkSize;
         }
 
         // 対象を登録し解除ハンドルを返す。初期化後は現在のアクティブ集合で即オンオフ判定する
         // Register a target and return a removal handle. After init, decide on/off immediately against the active set
-        public IDisposable Add(Bounds worldBounds, IColliderDistanceCullingTarget target)
+        public IDisposable Add(Bounds worldBounds, IDistanceCullingTarget target)
         {
-            ColliderCullingChunkUtil.CollectOverlappingChunks(worldBounds, _chunkSize, _chunkBuffer);
+            DistanceCullingChunkUtil.CollectOverlappingChunks(worldBounds, _chunkSize, _chunkBuffer);
             var chunkKeys = _chunkBuffer.ToArray();
 
             var entry = new Entry(chunkKeys, target);
@@ -52,7 +52,7 @@ namespace Client.Game.InGame.ColliderStreaming
 
                 // 初期化後は直近中心で範囲内判定し、新規占有チャンクはアクティブ集合へ加えて差分計算と整合させる
                 // After init, test the last center; add newly occupied in-range chunks to the active set so delta stays consistent
-                if (_initialized && ColliderCullingChunkUtil.ChunkWithinRadius(key, _lastCenter, _lastRadius, _chunkSize))
+                if (_initialized && DistanceCullingChunkUtil.ChunkWithinRadius(key, _lastCenter, _lastRadius, _chunkSize))
                 {
                     _activeChunks.Add(key);
                     entry.ActiveChunkCount++;
@@ -63,8 +63,8 @@ namespace Client.Game.InGame.ColliderStreaming
             return new Registration(this, entry);
         }
 
-        // プレイヤー位置と有効半径から新アクティブ集合を求め、切り替わるチャンクのエントリだけをオンオフする
-        // Compute the new active set from player pos/radius and toggle only entries in chunks that flip
+        // 中心位置と有効半径から新アクティブ集合を求め、切り替わるチャンクのエントリだけをオンオフする
+        // Compute the new active set from center pos/radius and toggle only entries in chunks that flip
         public void UpdateForCenter(Vector3 center, float radius)
         {
             _lastCenter = center;
@@ -126,11 +126,11 @@ namespace Client.Game.InGame.ColliderStreaming
         private void BuildNextActive(Vector3 center, float radius)
         {
             _nextActive.Clear();
-            ColliderCullingChunkUtil.CollectChunksInRadiusBox(center, radius, _chunkSize, _chunkBuffer);
+            DistanceCullingChunkUtil.CollectChunksInRadiusBox(center, radius, _chunkSize, _chunkBuffer);
             foreach (var key in _chunkBuffer)
             {
                 if (!_chunkToEntries.ContainsKey(key)) continue;
-                if (ColliderCullingChunkUtil.ChunkWithinRadius(key, center, radius, _chunkSize)) _nextActive.Add(key);
+                if (DistanceCullingChunkUtil.ChunkWithinRadius(key, center, radius, _chunkSize)) _nextActive.Add(key);
             }
         }
 
@@ -155,11 +155,11 @@ namespace Client.Game.InGame.ColliderStreaming
         private sealed class Entry
         {
             public readonly long[] ChunkKeys;
-            public readonly IColliderDistanceCullingTarget Target;
+            public readonly IDistanceCullingTarget Target;
             public int ActiveChunkCount;
             private bool _active = true; // 既定はon（シーン配置時の状態）/ default on (as authored in scene)
 
-            public Entry(long[] chunkKeys, IColliderDistanceCullingTarget target)
+            public Entry(long[] chunkKeys, IDistanceCullingTarget target)
             {
                 ChunkKeys = chunkKeys;
                 Target = target;
@@ -171,17 +171,17 @@ namespace Client.Game.InGame.ColliderStreaming
             {
                 if (_active == on) return;
                 _active = on;
-                Target.SetCollider(on);
+                Target.SetWithinRange(on);
             }
         }
 
         private sealed class Registration : IDisposable
         {
-            private readonly ColliderCullingChunkTable _table;
+            private readonly DistanceCullingChunkTable _table;
             private readonly Entry _entry;
             private bool _disposed;
 
-            public Registration(ColliderCullingChunkTable table, Entry entry)
+            public Registration(DistanceCullingChunkTable table, Entry entry)
             {
                 _table = table;
                 _entry = entry;

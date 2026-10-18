@@ -100,7 +100,7 @@
 **Interfaces:**
 - Produces: シナリオ名 `build-preview-radius`。result.json の Timeline に NOTE `avgFrameMs=<値>` を出す
 
-- [ ] **Step 1: 計測部分だけのシナリオを書く**（Task 5 で半径の検証を足す。手順は `.agents/skills/unity-playmode-recorded-playtest/references/write-scenario.md` と `run-scenario.md`）
+- [x] **Step 1: 計測部分だけのシナリオを書く**（Task 5 で半径の検証を足す。手順は `.agents/skills/unity-playmode-recorded-playtest/references/write-scenario.md` と `run-scenario.md`）
 
 ```csharp
 using Client.Game.InGame.Context;
@@ -142,12 +142,12 @@ return PlaytestRunner.Run("build-preview-radius", options, async p =>
 
 `ClientDIContext.BlockGameObjectDataStore` は既存シナリオ `scenarios/train/train-station-default-name.cs` と同じ参照経路。足場は `Client.Playtest/Operations/PlaytestSetup.cs` の x,z=-25..25 固定。ブロックは `PlaceBlockDirect`（サーバー直置き）なので足場外に置いてよいが、プレイヤーのワープ先は必ず足場内にする（半径20m内に入るのは全体の一部に保ち、前後比較を効かせるため配置範囲は縮めない）。
 
-- [ ] **Step 2: ベース（Task 2 以降の変更前）で実行し、`avgFrameMs` を記録する**
+- [x] **Step 2: ベース（Task 2 以降の変更前）で実行し、`avgFrameMs` を記録する**
 
 Run: `.agents/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh ./moorestech_client .agents/skills/unity-playmode-recorded-playtest/scenarios/building/build-preview-radius.cs`（引数は `<unity-project-path> <scenario.cs> [master-server-dir]`。`references/run-scenario.md` を正とする）
 Expected: result.json `Success: true`、`Timeline` の `NOTE` 行に `avgFrameMs=...`。値を plan 末尾「計測結果」へ `ベース: <値>ms` と追記
 
-- [ ] **Step 3: コミットする**
+- [x] **Step 3: コミットする**
 
 ```bash
 git add .agents/skills/unity-playmode-recorded-playtest/scenarios/building/build-preview-radius.cs docs/superpowers/plans/2026-10-18-build-preview-player-radius.md
@@ -174,7 +174,7 @@ git commit -m "test: 設置モードのフレーム時間を測る録画シナ�
   - `public sealed class DistanceCullingChunkTable { public DistanceCullingChunkTable(float chunkSize); public IDisposable Add(Bounds worldBounds, IDistanceCullingTarget target); public void UpdateForCenter(Vector3 center, float radius); }`
   - `public static class DistanceCullingChunkUtil`（メソッドは既存と同名同引数）
 
-- [ ] **Step 1: git mv でファイルと .meta を移す**
+- [x] **Step 1: git mv でファイルと .meta を移す**
 
 ```bash
 C=moorestech_client/Assets/Scripts/Client.Game/InGame
@@ -194,7 +194,7 @@ done
 
 `Client.Tests/ColliderStreaming/` が空になったらそのフォルダと `ColliderStreaming.meta` を `git rm` する（Unity生成の既存metaの削除であり手動作成ではない）。
 
-- [ ] **Step 2: 名前を置換する**
+- [x] **Step 2: 名前を置換する**
 
 - 3本の本体: `namespace Client.Game.InGame.ColliderStreaming` → `namespace Client.Game.InGame.DistanceCulling`、クラス名・ファイル内参照を `ColliderCullingChunkTable`→`DistanceCullingChunkTable`、`ColliderCullingChunkUtil`→`DistanceCullingChunkUtil`、`IColliderDistanceCullingTarget`→`IDistanceCullingTarget`
 - インターフェース本体を次に置換:
@@ -220,13 +220,13 @@ namespace Client.Game.InGame.DistanceCulling
 - `BlockColliderCullingTarget.cs`: `: IDistanceCullingTarget`、`public void SetCollider(bool on)` → `public void SetWithinRange(bool withinRange)`（本体の `on` を `withinRange` に改名、挙動不変）
 - テスト3本: `using Client.Game.InGame.ColliderStreaming;` → `using Client.Game.InGame.DistanceCulling;`、型名追従、`FakeCullingTarget` を `: IDistanceCullingTarget` と `public void SetWithinRange(bool withinRange)` へ、テストクラス名をファイル名に合わせる
 
-- [ ] **Step 3: 旧名の残りが無いことを確認しコンパイル・テスト**
+- [x] **Step 3: 旧名の残りが無いことを確認しコンパイル・テスト**
 
 Run: `grep -rn "ColliderCullingChunk\|IColliderDistanceCullingTarget\|SetCollider(" moorestech_client/Assets/Scripts` → 0件
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "DistanceCullingChunk"`
 Expected: ErrorCount 0 / 全PASS（既存テスト本数と同数）
 
-- [ ] **Step 4: コミットする**（Unity が生成したフォルダ .meta を含める）
+- [x] **Step 4: コミットする**（Unity が生成したフォルダ .meta を含める）
 
 ```bash
 git add -A moorestech_client/Assets/Scripts/Client.Game/InGame/DistanceCulling moorestech_client/Assets/Scripts/Client.Game/InGame/DistanceCulling.meta moorestech_client/Assets/Scripts/Client.Game/InGame/ColliderStreaming moorestech_client/Assets/Scripts/Client.Tests

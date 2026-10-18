@@ -1,4 +1,4 @@
-using Client.Game.InGame.ColliderStreaming;
+using Client.Game.InGame.DistanceCulling;
 using NUnit.Framework;
 using UnityEngine;
 using static Client.Tests.CullingBounds;
@@ -9,7 +9,7 @@ namespace Client.Tests
     /// チャンクテーブルの差分オンオフ・参照カウント・多重チャンク挙動を網羅するテスト
     /// Covers the chunk table's delta on/off, refcounting, and multi-chunk behavior
     /// </summary>
-    public class ColliderCullingChunkTableTest
+    public class DistanceCullingChunkTableTest
     {
         private const float ChunkSize = 10f;
         private const float Radius = 15f;
@@ -19,7 +19,7 @@ namespace Client.Tests
         {
             // 初回評価前は既存の有効状態を尊重し一切触らない
             // Before the first evaluation, respect the authored enabled state and touch nothing
-            var table = new ColliderCullingChunkTable(ChunkSize);
+            var table = new DistanceCullingChunkTable(ChunkSize);
             var far = new FakeCullingTarget();
             table.Add(Point(1000f, 1000f), far);
 
@@ -31,7 +31,7 @@ namespace Client.Tests
         {
             // 初回評価で遠方をoffにし、近傍は既定onのまま触らない
             // First evaluation turns off far entries and leaves near ones on (untouched)
-            var table = new ColliderCullingChunkTable(ChunkSize);
+            var table = new DistanceCullingChunkTable(ChunkSize);
             var near = new FakeCullingTarget();
             var far = new FakeCullingTarget();
             table.Add(Point(0f, 0f), near);
@@ -49,7 +49,7 @@ namespace Client.Tests
         {
             // 遠方へ移動でoff、再接近でonへ戻る
             // Move away -> off, come back -> on again
-            var table = new ColliderCullingChunkTable(ChunkSize);
+            var table = new DistanceCullingChunkTable(ChunkSize);
             var target = new FakeCullingTarget();
             table.Add(Point(0f, 0f), target);
 
@@ -70,7 +70,7 @@ namespace Client.Tests
         {
             // メンバーシップが変わらない再評価では余計なオンオフを出さない
             // Re-evaluations that don't change membership emit no redundant toggles
-            var table = new ColliderCullingChunkTable(ChunkSize);
+            var table = new DistanceCullingChunkTable(ChunkSize);
             var near = new FakeCullingTarget();
             var far = new FakeCullingTarget();
             table.Add(Point(0f, 0f), near);
@@ -94,7 +94,7 @@ namespace Client.Tests
         {
             // チャンク境界をまたぐ大きなコライダーは1チャンクでも範囲内なら点灯を保つ
             // A collider spanning chunk borders stays on while any one chunk is in range
-            var table = new ColliderCullingChunkTable(ChunkSize);
+            var table = new DistanceCullingChunkTable(ChunkSize);
             var big = new FakeCullingTarget();
             // z 0..35 spans chunks (0,0),(0,1),(0,2),(0,3)
             table.Add(Span(0f, 0f, 5f, 35f), big);
@@ -114,7 +114,7 @@ namespace Client.Tests
         {
             // 一部チャンクが範囲外になっても、残りが範囲内なら状態は変わらない
             // Partial exit (some chunks leave) keeps state unchanged while others remain in range
-            var table = new ColliderCullingChunkTable(ChunkSize);
+            var table = new DistanceCullingChunkTable(ChunkSize);
             var big = new FakeCullingTarget();
             table.Add(Span(0f, 0f, 5f, 35f), big);
 
@@ -131,7 +131,7 @@ namespace Client.Tests
         {
             // 初期化後に登録された対象は現在位置で即オンオフ判定される
             // Targets registered after init are evaluated immediately against the current position
-            var table = new ColliderCullingChunkTable(ChunkSize);
+            var table = new DistanceCullingChunkTable(ChunkSize);
             table.UpdateForCenter(Vector3.zero, Radius); // initialize with empty table
 
             var far = new FakeCullingTarget();
@@ -148,7 +148,7 @@ namespace Client.Tests
         {
             // 解除後はプレイヤーが動いても対象に指示が飛ばない
             // After removal, no instructions reach the target even as the player moves
-            var table = new ColliderCullingChunkTable(ChunkSize);
+            var table = new DistanceCullingChunkTable(ChunkSize);
             var target = new FakeCullingTarget();
             var handle = table.Add(Point(0f, 0f), target);
 
@@ -165,7 +165,7 @@ namespace Client.Tests
         {
             // 多数エントリのうち、実際に境界を跨いだ側だけがトグルされる
             // Among many entries, only those whose chunk actually flips get toggled
-            var table = new ColliderCullingChunkTable(ChunkSize);
+            var table = new DistanceCullingChunkTable(ChunkSize);
             var stayNear = new FakeCullingTarget();
             var boundary = new FakeCullingTarget();
             table.Add(Point(0f, 0f), stayNear);   // chunk (0,0)

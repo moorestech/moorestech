@@ -1,13 +1,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Client.Game.InGame.ColliderStreaming
+namespace Client.Game.InGame.DistanceCulling
 {
     /// <summary>
-    /// チャンクグリッドの座標計算とプレイヤー半径判定を担う純粋関数群
-    /// Pure helpers for chunk-grid coordinate math and player-radius tests
+    /// チャンクグリッドの座標計算と中心半径判定を担う純粋関数群
+    /// Pure helpers for chunk-grid coordinate math and center-radius tests
     /// </summary>
-    public static class ColliderCullingChunkUtil
+    public static class DistanceCullingChunkUtil
     {
         public static long PackChunk(int cx, int cz)
         {
@@ -24,14 +24,14 @@ namespace Client.Game.InGame.ColliderStreaming
             return (int)(key & 0xffffffff);
         }
 
-        // AABBが重なる全チャンクキーを列挙（チャンク境界をまたぐ大きなコライダー対応）
-        // Enumerate every chunk key an AABB overlaps (covers colliders spanning chunk borders)
+        // AABBが重なる全チャンクキーを列挙（チャンク境界をまたぐ大きな対象対応）
+        // Enumerate every chunk key an AABB overlaps (covers targets spanning chunk borders)
         public static void CollectOverlappingChunks(Bounds bounds, float chunkSize, List<long> result)
         {
             FillChunkBox(bounds.min.x, bounds.max.x, bounds.min.z, bounds.max.z, chunkSize, result);
         }
 
-        // プレイヤー中心の有効半径を包む正方内のチャンク座標を列挙（占有判定は呼び出し側）
+        // 評価中心の有効半径を包む正方内のチャンク座標を列挙（占有判定は呼び出し側）
         // Enumerate chunk coords inside the square that bounds the active radius (occupancy checked by caller)
         public static void CollectChunksInRadiusBox(Vector3 center, float radius, float chunkSize, List<long> result)
         {
@@ -52,8 +52,8 @@ namespace Client.Game.InGame.ColliderStreaming
                 result.Add(PackChunk(cx, cz));
         }
 
-        // チャンクの最近点がプレイヤーから半径内か（XZ平面・厳密）
-        // Whether the chunk's nearest point is within the radius of the player (XZ plane, exact)
+        // チャンクの最近点が中心から半径内か（XZ平面・厳密）
+        // Whether the chunk's nearest point is within the radius of the center (XZ plane, exact)
         public static bool ChunkWithinRadius(long chunkKey, Vector3 center, float radius, float chunkSize)
         {
             var minX = ChunkX(chunkKey) * chunkSize;
