@@ -956,7 +956,7 @@ git commit -m "feat: 距離カリングの再評価と登録を共通化し設�
 **Interfaces:**
 - Consumes: Task 1 のシナリオ、`BlockPreviewBoundingBox`（既存コンポーネント）、`BlockPreviewRadiusCullingManager.ActiveRadius`
 
-- [ ] **Step 1: 計測の後ろへ半径と隣接設置の検証を足す**（`p.Note($"avgFrameMs=...")` の直後に挿入）
+- [x] **Step 1: 計測の後ろへ半径と隣接設置の検証を足す**（`p.Note($"avgFrameMs=...")` の直後に挿入）
 
 ```csharp
     // 枠線レンダラーの有効数で半径内だけ描画されていることを確かめる
@@ -964,7 +964,7 @@ git commit -m "feat: 距離カリングの再評価と登録を共通化し設�
     // 枠線は非同期ロードなので、判定対象のロード完了を先に待つ
     // The bounding box loads asynchronously, so wait for it before judging
     bool HasBox(Vector3Int pos) => ClientDIContext.BlockGameObjectDataStore.GetBlockGameObject(pos).GetComponentInChildren<Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject.BlockPreviewBoundingBox>(true) != null;
-    foreach (var probe in new[] { new Vector3Int(0, 32, 0), new Vector3Int(-30, 32, -30), new Vector3Int(28, 32, 0) })
+    foreach (var probe in new[] { new Vector3Int(0, 32, 0), new Vector3Int(-30, 32, -30), new Vector3Int(0, 32, 28) })
         await p.Until(() => HasBox(probe), 30f, $"枠線ロード {probe}");
     bool IsBoxRendered(Vector3Int pos)
     {
@@ -987,11 +987,11 @@ git commit -m "feat: 距離カリングの再評価と登録を共通化し設�
 
     // 半径外ブロックの上面へ照準して設置できる（当たり判定が残っている）
     // Placement on top of an out-of-radius block still works (colliders remain)
-    var farTarget = new Vector3Int(28, 32, 0);
+    var farTarget = new Vector3Int(0, 32, 28);
     p.WarpPlayer(new Vector3(0, 33.5f, 0));
     await UniTask.DelayFrame(5);
     p.Assert(!IsBoxRendered(farTarget), "照準先は半径外");
-    await p.AimAt(new Vector3(28.5f, 33f, 0.5f));
+    await p.AimAt(new Vector3(0.5f, 33.1f, 28.5f));
     await p.ClickPlace();
     await p.Until(() => p.GetBlock(farTarget + Vector3Int.up) != null, 10f, "半径外ブロックの上へ設置できた");
     await p.Screenshot("03-place-on-far-block");
@@ -999,16 +999,16 @@ git commit -m "feat: 距離カリングの再評価と登録を共通化し設�
 
 `AimAt`・`ClickPlace` が同期メソッドの場合は `await` を外す（`references/write-scenario.md` の Driver API 表と実装を確認）。`GetBlock` の戻り値の存在判定も同表に合わせる。半径判定はチャンク近似で最大約25.7mまで描画され得るため、「なし」を見る対象は26m超（farTarget は28m）、「あり」を見る対象は16m未満にする。28m先の上面が画面外で照準できない場合は、プレイヤーを `(-2, 33.5, 0)` など足場内で farTarget との距離が26m超を保つ位置へ寄せ、カメラ向きを farTarget へ向けてから照準する。
 
-- [ ] **Step 2: 調査実行（Record=false）で全Assertを通す**
+- [x] **Step 2: 調査実行（Record=false）で全Assertを通す**
 
-Run: `.agents/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh .agents/skills/unity-playmode-recorded-playtest/scenarios/building/build-preview-radius.cs`
+Run: `.agents/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh ./moorestech_client .agents/skills/unity-playmode-recorded-playtest/scenarios/building/build-preview-radius.cs`
 Expected: result.json `Success: true`、Asserts 全 pass、Timeline NOTE の `avgFrameMs` を plan 末尾「計測結果」に `変更後: <値>ms` で追記
 
-- [ ] **Step 3: 提出用に `Record = true` で再実行し、動画とスクショ3枚を目視確認する**
+- [x] **Step 3: 提出用に `Record = true` で再実行し、動画とスクショ3枚を目視確認する**
 
 Expected: 02 で足元周辺だけ枠線、03 で半径外ブロックの上に設置されている。動画・スクショのパスを plan 末尾「計測結果」に書く
 
-- [ ] **Step 4: コミットする**
+- [x] **Step 4: コミットする**
 
 ```bash
 git add .agents/skills/unity-playmode-recorded-playtest/scenarios/building/build-preview-radius.cs docs/superpowers/plans/2026-10-18-build-preview-player-radius.md
@@ -1031,6 +1031,12 @@ git commit -m "test: プレビュー半径・半径外への設置・フレー�
 - ベース結果: `moorestech_client/PlaytestResults/20261018_203315/build-preview-radius/result.json`。Success=true、2/2 PASS、ErrorLogs=[]。
 - ベース画像: 同ディレクトリ `01-build-mode-dense.png`（アバター・床・HUDと遠方までの全枠線を目視確認）。
 - 建築メニューの注入B入力が不成立のため、既存 `PlaceSystemStateController.SetTarget` と `UIStateControl.RequestTransition(PlaceBlock)` による本番状態遷移へ変更。Task 5でも同じ条件を維持する。
+
+- 変更後: 19.81ms（Record=false、20261018_205615、Success=true、11/11 PASS、ErrorLogs=[]）。ベース25.22msとの差は-5.41ms。ただし並走Editor負荷・単回測定のため改善率や因果効果は断定しない。
+- 最終録画: `moorestech_client/PlaytestResults/20261018_205843/build-preview-radius/recording.mp4`（6,292,629 bytes、14.833秒）、Success=true、14/14 PASS、ErrorLogs=[]。Record=trueの計測34.12msは録画負荷があるため前後比較に使わない。
+- 最終画像: 同ディレクトリの `01-build-mode-dense.png` / `02-after-move.png` / `03-place-on-far-block.png`。3枚と動画の照準・設置前後フレームを目視確認。アバター/床/HUD、移動後の近傍白枠と遠方非表示、中央遠方の積み重ねを確認。03はクライアント出現とアニメーション完了後に取得。
+- 半径外上面の検証対象は北側 `(0,32,28)`、設置先 `(0,33,28)`。元の東側対象は画面外 `(3841.08,204.72,4.57)` だったため同じ距離に変更。名目y33は前面に当たるのでy33.1へ照準し、上面法線(0,1,0)と本番算出セル(0,33,28)を観測した。
+- 提出物: https://sakastudiomac-mini.tail3a5aa5.ts.net:8443/2026-10-18-build-preview-radius-final/
 
 ## 判断記録（ADR）
 
