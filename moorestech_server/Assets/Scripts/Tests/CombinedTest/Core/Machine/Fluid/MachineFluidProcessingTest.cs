@@ -12,7 +12,7 @@ using Server.Boot;
 using Tests.Module.TestMod;
 using Tests.Util;
 using UnityEngine;
-using static Tests.CombinedTest.Core.Machine.MachineFluidInventoryTestHelper;
+using static Tests.CombinedTest.Core.Machine.MachineInventoryTestHelper;
 
 namespace Tests.CombinedTest.Core.Machine
 {

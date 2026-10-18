@@ -114,14 +114,14 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
 
         // ブロック搬入だけ自動搬入上限を適用する
         // Apply the automated cap only to inflow from blocks
-        public IItemStack InsertItemFromBlock(IItemStack itemStack)
+        internal IItemStack InsertItemFromBlock(IItemStack itemStack)
         {
             var (slots, touchedSlots, remainders) = VanillaMachineInputSimulationUtil.SimulateAutoInsert(InputSlot, new List<IItemStack> { itemStack }, _slotBinding);
             foreach (var slot in touchedSlots) _itemDataStoreService.SetItem(slot, slots[slot]);
             return remainders[0];
         }
 
-        public bool InsertionCheckFromBlock(List<IItemStack> itemStacks)
+        internal bool InsertionCheckFromBlock(List<IItemStack> itemStacks)
         {
             foreach (var remainder in VanillaMachineInputSimulationUtil.SimulateAutoInsert(InputSlot, itemStacks, _slotBinding).remainders)
             {

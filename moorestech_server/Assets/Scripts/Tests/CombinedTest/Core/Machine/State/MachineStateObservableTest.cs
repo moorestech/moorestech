@@ -17,7 +17,7 @@ using Tests.Module.TestMod;
 using Tests.Util;
 using UniRx;
 using UnityEngine;
-using static Tests.CombinedTest.Core.Machine.MachineFluidInventoryTestHelper;
+using static Tests.CombinedTest.Core.Machine.MachineInventoryTestHelper;
 using static Tests.CombinedTest.Core.Machine.MachineStateDetailsTestHelper;
 
 namespace Tests.CombinedTest.Core.Machine

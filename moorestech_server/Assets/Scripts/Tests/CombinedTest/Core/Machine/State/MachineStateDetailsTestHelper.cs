@@ -8,7 +8,7 @@ using Game.Block.Interface.State;
 using Game.Fluid;
 using MessagePack;
 using NUnit.Framework;
-using static Tests.CombinedTest.Core.Machine.MachineFluidInventoryTestHelper;
+using static Tests.CombinedTest.Core.Machine.MachineInventoryTestHelper;
 
 namespace Tests.CombinedTest.Core.Machine
 {

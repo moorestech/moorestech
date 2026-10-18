@@ -8,8 +8,16 @@ using Game.Fluid;
 
 namespace Tests.CombinedTest.Core.Machine
 {
-    internal static class MachineFluidInventoryTestHelper
+    internal static class MachineInventoryTestHelper
     {
+        public static int GetInputSlotCount(VanillaMachineBlockInventoryComponent vanillaMachineInventory)
+        {
+            var vanillaMachineInputInventory = (VanillaMachineInputInventory)typeof(VanillaMachineBlockInventoryComponent)
+                .GetField("_vanillaMachineInputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(vanillaMachineInventory);
+            return vanillaMachineInputInventory.InputSlot.Count;
+        }
+
         public static IReadOnlyList<FluidContainer> GetInputFluidContainers(VanillaMachineBlockInventoryComponent blockInventory)
         {
             var vanillaMachineInputInventory = (VanillaMachineInputInventory)typeof(VanillaMachineBlockInventoryComponent)

@@ -1,9 +1,8 @@
-using static Tests.CombinedTest.Core.Machine.MachineItemInventoryTestHelper;
+using static Tests.CombinedTest.Core.Machine.MachineInventoryTestHelper;
 using Game.Block.Blocks.Machine.Inventory.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using Core.Item;
 using Core.Item.Interface;
 using Core.Master;

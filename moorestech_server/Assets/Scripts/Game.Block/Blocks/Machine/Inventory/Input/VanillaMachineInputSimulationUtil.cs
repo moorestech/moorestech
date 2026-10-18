@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Core.Item.Interface;
-using Game.Context;
 
 namespace Game.Block.Blocks.Machine.Inventory.Input
 {
@@ -40,8 +39,8 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
                 // 貪欲に先頭から詰めると、同一素材を複数枠が要求するレシピで先頭枠だけが太り加工が始まらない
                 // Fill every slot up to its recipe requirement first, then top up to the entry-specific limit.
                 // Greedy front-filling would fatten only the first slot when several slots want the same item, and processing never starts
-                var remaining = FillToRequirement(stack);
-                remaining = FillToSecondPassLimit(remaining);
+                var remaining = FillBoundSlots(stack, true);
+                remaining = FillBoundSlots(remaining, false);
                 remainders.Add(remaining);
             }
 
@@ -49,28 +48,7 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
 
             #region Internal
 
-            IItemStack FillToRequirement(IItemStack remaining)
-            {
-                foreach (var slot in slotBinding.ResolveBoundSlots(remaining.Id))
-                {
-                    if (remaining.Count == 0) break;
-
-                    var room = slotBinding.RequiredCountAt(slot) - slots[slot].Count;
-                    if (room <= 0) continue;
-
-                    var portion = ServerContext.ItemStackFactory.Create(remaining.Id, Math.Min(remaining.Count, room));
-                    var result = slots[slot].AddItem(portion);
-                    var added = portion.Count - result.RemainderItemStack.Count;
-                    if (added == 0) continue;
-
-                    slots[slot] = result.ProcessResultItemStack;
-                    remaining = remaining.SubItem(added);
-                    if (!touchedSlots.Contains(slot)) touchedSlots.Add(slot);
-                }
-                return remaining;
-            }
-
-            IItemStack FillToSecondPassLimit(IItemStack remaining)
+            IItemStack FillBoundSlots(IItemStack remaining, bool limitToRequirement)
             {
                 foreach (var slot in slotBinding.ResolveBoundSlots(remaining.Id))
                 {
@@ -78,12 +56,17 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
 
                     // 既に上限超の在庫は保持し、追加分だけ制限する
                     // Preserve existing over-cap stock and limit only the new inflow
-                    var room = capAtAutoInsertLimit ? slotBinding.AutoInsertLimitAt(slot) - slots[slot].Count : remaining.Count;
+                    var room = limitToRequirement ? slotBinding.RequiredCountAt(slot) - slots[slot].Count :
+                        capAtAutoInsertLimit ? slotBinding.AutoInsertLimitAt(slot) - slots[slot].Count : remaining.Count;
                     if (room <= 0) continue; // silent-ok: 通常の満杯判定 / 呼び出し元が残余で検知する
-                    var portion = ServerContext.ItemStackFactory.Create(remaining.Id, Math.Min(room, remaining.Count));
+
+                    // 分割しても元スタックの受入条件を保つ
+                    // Preserve the original stack's acceptance conditions when splitting
+                    var acceptedCount = Math.Min(room, remaining.Count);
+                    var portion = acceptedCount == remaining.Count ? remaining : remaining.SubItem(remaining.Count - acceptedCount);
                     var result = slots[slot].AddItem(portion);
                     var added = portion.Count - result.RemainderItemStack.Count;
-                    if (added == 0) continue;
+                    if (added == 0) continue; // silent-ok: 属性不一致や満杯は正常な拒否 / 呼び出し元が残余で検知する
 
                     slots[slot] = result.ProcessResultItemStack;
                     remaining = remaining.SubItem(added);

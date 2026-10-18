@@ -51,7 +51,7 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
 
         // 自動搬入はレシピ3回分で止める
         // Automated inflow stops at three crafts' worth
-        public const int AutoInsertCraftCount = 3;
+        private const int AutoInsertCraftCount = 3;
 
         // 消費しない素材は要求数、それ以外は3回分まで受け入れる
         // Non-consumed inputs accept the requirement; other inputs accept three crafts
