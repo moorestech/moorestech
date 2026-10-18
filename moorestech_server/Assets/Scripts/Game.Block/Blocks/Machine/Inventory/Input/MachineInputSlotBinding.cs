@@ -49,6 +49,19 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
             return _recipe.InputItems[slotIndex].Count;
         }
 
+        // 自動搬入はレシピ3回分で止める
+        // Automated inflow stops at three crafts' worth
+        public const int AutoInsertCraftCount = 3;
+
+        // 消費しない素材は要求数、それ以外は3回分まで受け入れる
+        // Non-consumed inputs accept the requirement; other inputs accept three crafts
+        public int AutoInsertLimitAt(int slotIndex)
+        {
+            if (_recipe == null || slotIndex < 0 || _recipe.InputItems.Length <= slotIndex) return 0;
+            var input = _recipe.InputItems[slotIndex];
+            return input.IsRemain.HasValue && input.IsRemain.Value ? input.Count : input.Count * AutoInsertCraftCount;
+        }
+
         // タンクiが要求する液体量（第一パスの充填上限）。束縛外は0
         // The fluid amount tank i requires (the first pass's fill limit); unbound tanks return 0
         public double RequiredFluidAmountAt(int tankIndex)

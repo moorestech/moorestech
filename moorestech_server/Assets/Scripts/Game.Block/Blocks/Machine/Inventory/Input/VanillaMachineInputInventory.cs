@@ -112,6 +112,24 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
             return true;
         }
 
+        // ブロック搬入だけ自動搬入上限を適用する
+        // Apply the automated cap only to inflow from blocks
+        public IItemStack InsertItemFromBlock(IItemStack itemStack)
+        {
+            var (slots, touchedSlots, remainders) = VanillaMachineInputSimulationUtil.SimulateAutoInsert(InputSlot, new List<IItemStack> { itemStack }, _slotBinding);
+            foreach (var slot in touchedSlots) _itemDataStoreService.SetItem(slot, slots[slot]);
+            return remainders[0];
+        }
+
+        public bool InsertionCheckFromBlock(List<IItemStack> itemStacks)
+        {
+            foreach (var remainder in VanillaMachineInputSimulationUtil.SimulateAutoInsert(InputSlot, itemStacks, _slotBinding).remainders)
+            {
+                if (remainder.Count != 0) return false;
+            }
+            return true;
+        }
+
         // 束縛タンクへ液体を挿入する。指定タンクは束縛時のみ受け、指定無しは必要量→余剰容量の2パスで束縛タンクを満たす（ADR 0042 R5）
         // Insert fluid into the bound tanks; a designated tank only when bound, undesignated inflow fills bound tanks in two passes: requirement first, spare capacity second (ADR 0042 R5)
         public FluidStack InsertFluid(FluidStack fluidStack, int designatedTankIndex, out bool changed)

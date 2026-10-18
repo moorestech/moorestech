@@ -62,23 +62,18 @@ namespace Game.Block.Blocks.Machine.Inventory
         {
             BlockException.CheckDestroy(this);
 
-            // アイテムをインプットスロットに入れた後、プロセス開始できるなら開始
-            // Insert item into input slot, then start process if possible
-            var item = _vanillaMachineInputInventory.InsertItem(itemStack);
-            return item;
+            return _vanillaMachineInputInventory.InsertItem(itemStack);
         }
 
         public IItemStack InsertItem(IItemStack itemStack, InsertItemContext context)
         {
-            return InsertItem(itemStack);
+            BlockException.CheckDestroy(this);
+            return _vanillaMachineInputInventory.InsertItemFromBlock(itemStack);
         }
 
         public IItemStack InsertItem(ItemId itemId, int count)
         {
-            BlockException.CheckDestroy(this);
-
-            var item = ServerContext.ItemStackFactory.Create(itemId, count);
-            return _vanillaMachineInputInventory.InsertItem(item);
+            return InsertItem(ServerContext.ItemStackFactory.Create(itemId, count));
         }
 
         public IItemStack GetItem(int slot)
@@ -130,16 +125,13 @@ namespace Game.Block.Blocks.Machine.Inventory
         {
             BlockException.CheckDestroy(this);
 
-            var items = new List<IItemStack>();
-            foreach (var subInventory in _subInventories) items.AddRange(subInventory.Items);
-            return new ReadOnlyCollection<IItemStack>(items);
+            return new ReadOnlyCollection<IItemStack>(InventoryItems.ToList());
         }
 
         public List<IItemStack> InsertItem(List<IItemStack> itemStacks)
         {
             BlockException.CheckDestroy(this);
 
-            //アイテムをインプットスロットに入れた後、プロセス開始できるなら開始
             return _vanillaMachineInputInventory.InsertItem(itemStacks);
         }
 
@@ -148,6 +140,14 @@ namespace Game.Block.Blocks.Machine.Inventory
             BlockException.CheckDestroy(this);
 
             return _vanillaMachineInputInventory.InsertionCheck(itemStacks);
+        }
+
+        // ベルトの振り分け判定は自動搬入と同じ上限を参照する
+        // Belt routing checks the same cap as automated insertion
+        bool IBlockInventory.InsertionCheck(List<IItemStack> itemStacks)
+        {
+            BlockException.CheckDestroy(this);
+            return _vanillaMachineInputInventory.InsertionCheckFromBlock(itemStacks);
         }
 
         /// <summary>
