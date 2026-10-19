@@ -57,6 +57,7 @@ namespace Client.Game.InGame.Train.Network
                 _futureMessageBuffer.EnqueueHash(
                     bundleMessage.UnitsHash,
                     bundleMessage.RailGraphHash,
+                    bundleMessage.BeltTransportHash,
                     hashTick,
                     bundleMessage.HashTickSequenceId);
             }

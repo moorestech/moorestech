@@ -16,6 +16,9 @@ namespace Server.Util.MessagePack
         [Key(3)] public uint UnitsHash { get; set; }
         [Key(4)] public uint RailGraphHash { get; set; }
         [Key(5)] public List<TrainUnitTickDiffMessagePack> Diffs { get; set; }
+        // ベルト搬送の全量ハッシュ。列車・レールと同じtickの値で、間引きtickはuint.MaxValueのダミー
+        // The belt transport full-state hash for the same tick as train and rail; uint.MaxValue as a dummy on skipped ticks
+        [Key(6)] public uint BeltTransportHash { get; set; }
 
         [Obsolete("Reserved for MessagePack.")]
         public TrainUnitTickDiffBundleMessagePack()
@@ -28,6 +31,7 @@ namespace Server.Util.MessagePack
             uint diffTickSequenceId,
             uint unitsHash,
             uint railGraphHash,
+            uint beltTransportHash,
             IReadOnlyList<TrainUpdateService.TrainTickDiffData> diffs)
         {
             ServerTick = serverTick;
@@ -35,6 +39,7 @@ namespace Server.Util.MessagePack
             DiffTickSequenceId = diffTickSequenceId;
             UnitsHash = unitsHash;
             RailGraphHash = railGraphHash;
+            BeltTransportHash = beltTransportHash;
             Diffs = BuildDiffs(diffs);
         }
 

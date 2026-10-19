@@ -17,7 +17,7 @@ namespace Client.Game.InGame.Train.Network
         private readonly TrainUnitTickState _tickState;
         private readonly TrainSynchronizationDiagnostics _diagnostics;
         private readonly SortedDictionary<ulong, ITrainTickBufferedEvent> _futureEvents = new();
-        private readonly SortedDictionary<ulong, (uint unitsHash, uint railGraphHash, uint serverTick, uint tickSequenceId)> _futureHashStates = new();
+        private readonly SortedDictionary<ulong, TrainTickHashState> _futureHashStates = new();
 
         public TrainUnitFutureMessageBuffer(TrainUnitTickState tickState, TrainSynchronizationDiagnostics diagnostics)
         {
@@ -49,7 +49,7 @@ namespace Client.Game.InGame.Train.Network
 
         // ハッシュイベントをtick基準でキューへ積む。
         // Queue hash states by tick for tick-aligned verification.
-        public void EnqueueHash(uint unitsHash, uint railGraphHash, uint serverTick, uint tickSequenceId)
+        public void EnqueueHash(uint unitsHash, uint railGraphHash, uint beltTransportHash, uint serverTick, uint tickSequenceId)
         {
             _diagnostics.RecordReceived("Hash", serverTick, tickSequenceId);
             _tickState.SetMaxBufferedTickUnifiedId(TrainTickUnifiedIdUtility.CreateTickUnifiedId(serverTick, tickSequenceId));
@@ -67,12 +67,12 @@ namespace Client.Game.InGame.Train.Network
                 // Drop hash states already covered.
                 return;
             }
-            _futureHashStates[messageTickUnifiedId] = (unitsHash, railGraphHash, serverTick, tickSequenceId);
+            _futureHashStates[messageTickUnifiedId] = new TrainTickHashState(unitsHash, railGraphHash, beltTransportHash, serverTick, tickSequenceId);
         }
 
         // 指定tickのハッシュを取り出す。
         // Dequeue hash state at the specified tick.
-        public bool TryDequeueHashAtTickSequenceId(ulong tickUnifiedId, out (uint unitsHash, uint railGraphHash, uint serverTick, uint tickSequenceId) message)
+        public bool TryDequeueHashAtTickSequenceId(ulong tickUnifiedId, out TrainTickHashState message)
         {
             return _futureHashStates.TryGetValue(tickUnifiedId, out message);
         }

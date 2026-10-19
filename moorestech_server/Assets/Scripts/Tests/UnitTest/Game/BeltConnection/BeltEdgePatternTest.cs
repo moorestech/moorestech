@@ -8,14 +8,13 @@ namespace Tests.UnitTest.Game.BeltConnection
 {
     public class BeltEdgePatternTest
     {
+        // 向きの対称性は通常ベルトの4向きで見る。歯車ベルトはブロックIDが違うだけで接続の経路は同じなので北だけ(2026-10-18、所要時間の削減)
+        // Directional symmetry is checked with the normal belt in all four facings; the gear belt only differs in block id and shares the connection path, so North alone (2026-10-18, run-time reduction)
         [TestCase(false, BlockDirection.North)]
         [TestCase(false, BlockDirection.East)]
         [TestCase(false, BlockDirection.South)]
         [TestCase(false, BlockDirection.West)]
         [TestCase(true, BlockDirection.North)]
-        [TestCase(true, BlockDirection.East)]
-        [TestCase(true, BlockDirection.South)]
-        [TestCase(true, BlockDirection.West)]
         public void Approved2401Patterns(bool gear, BlockDirection direction)
         {
             var world = new BeltEdgeTestWorld(gear, direction);

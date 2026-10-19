@@ -44,7 +44,7 @@ namespace Tests.UnitTest.Game
             Assert.IsNotNull(trainPlatformItemTransferComponent, "trainPlatformItemTransferComponentの取得に失敗しました。");
             Assert.IsNotNull(trainPlatformDockingComponent, "trainPlatformDockingComponentの取得に失敗しました。");
 
-            Assert.IsTrue(stationBlock.ComponentManager.TryGetComponent<IBlockInventory>(out var stationInventory), "駅ブロックのインベントリコンポーネントが見つかりません。");
+            Assert.IsTrue(stationBlock.ComponentManager.TryGetComponent<IOpenableBlockInventoryComponent>(out var stationInventory), "駅ブロックのインベントリコンポーネントが見つかりません。");
 
             var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.ItemId1);
 
@@ -109,7 +109,7 @@ namespace Tests.UnitTest.Game
             Assert.IsNotNull(trainPlatformItemTransferComponent, "trainPlatformItemTransferComponentの取得に失敗しました。");
             Assert.IsNotNull(trainPlatformDockingComponent, "trainPlatformDockingComponentの取得に失敗しました。");
 
-            Assert.IsTrue(cargoPlatformBlock.ComponentManager.TryGetComponent<IBlockInventory>(out var cargoInventory), "貨物プラットフォームのインベントリコンポーネントが見つかりません。");
+            Assert.IsTrue(cargoPlatformBlock.ComponentManager.TryGetComponent<IOpenableBlockInventoryComponent>(out var cargoInventory), "貨物プラットフォームのインベントリコンポーネントが見つかりません。");
 
             var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.ItemId1);
 
@@ -164,7 +164,7 @@ namespace Tests.UnitTest.Game
 
             var trainPlatformItemTransferComponent = cargoPlatformBlock.GetComponent<TrainPlatformItemContainerComponent>();
             var trainPlatformDockingComponent = cargoPlatformBlock.GetComponent<TrainPlatformDockingComponent>();
-            Assert.IsTrue(cargoPlatformBlock.ComponentManager.TryGetComponent<IBlockInventory>(out var cargoInventory));
+            Assert.IsTrue(cargoPlatformBlock.ComponentManager.TryGetComponent<IOpenableBlockInventoryComponent>(out var cargoInventory));
 
             var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.ItemId1);
             cargoInventory.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, maxStack));
@@ -230,7 +230,7 @@ namespace Tests.UnitTest.Game
             Assert.IsNotNull(trainPlatformDockingComponentStation, "trainPlatformDockingComponentの取得に失敗しました。");
             Assert.IsNotNull(trainPlatformTransferComponentStation, "trainPlatformDockingComponentの取得に失敗しました。");
 
-            Assert.IsTrue(cargoPlatformBlock.ComponentManager.TryGetComponent<IBlockInventory>(out var cargoInventory),
+            Assert.IsTrue(cargoPlatformBlock.ComponentManager.TryGetComponent<IOpenableBlockInventoryComponent>(out var cargoInventory),
                 "貨物プラットフォームのインベントリコンポーネントが見つかりません。");
 
             var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.ItemId1);
@@ -298,7 +298,7 @@ namespace Tests.UnitTest.Game
             Assert.IsNotNull(trainPlatformDockingComponentStation, "trainPlatformDockingComponentの取得に失敗しました。");
             Assert.IsNotNull(trainPlatformTransferComponentStation, "trainPlatformDockingComponentの取得に失敗しました。");
             
-            Assert.IsTrue(stationBlock.ComponentManager.TryGetComponent<IBlockInventory>(out var stationInventory),
+            Assert.IsTrue(stationBlock.ComponentManager.TryGetComponent<IOpenableBlockInventoryComponent>(out var stationInventory),
                 "駅ブロックのインベントリコンポーネントが見つかりません。");
 
             var entryNode = railComponents[0].FrontNode;

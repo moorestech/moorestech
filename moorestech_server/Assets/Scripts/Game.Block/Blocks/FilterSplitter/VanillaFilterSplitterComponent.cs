@@ -19,7 +19,7 @@ namespace Game.Block.Blocks.FilterSplitter
     /// Whitelist/Blacklist で明示マッチした方向を優先、Default は fallback として使う。
     /// Filter splitter that routes items per direction. Explicit (Whitelist/Blacklist) directions take priority, Default acts as fallback.
     /// </summary>
-    public class VanillaFilterSplitterComponent : IBlockInventory, IBlockSaveState, IUpdatableBlockComponent, IBlockBlueprintSettings
+    public class VanillaFilterSplitterComponent : IBlockInventory, IBlockSaveState, IUpdatableBlockComponent, IBlockBlueprintSettings, IGetRefundItemsInfo
     {
         public string SaveKey { get; } = typeof(VanillaFilterSplitterComponent).FullName;
         public bool IsDestroy { get; private set; }
@@ -115,31 +115,15 @@ namespace Game.Block.Blocks.FilterSplitter
             return false;
         }
 
-        public int GetSlotSize()
+        // 撤去時は方向ごとのバッファに残るアイテムを返す
+        // On removal the item buffered in each direction is refunded
+        public IReadOnlyList<IItemStack> GetRefundItems()
         {
             BlockException.CheckDestroy(this);
-            return _directions.Length;
-        }
-
-        public IItemStack GetItem(int slot)
-        {
-            BlockException.CheckDestroy(this);
-            return _directions[slot].BufferedItem ?? ServerContext.ItemStackFactory.CreatEmpty();
-        }
-
-        public void SetItem(int slot, IItemStack itemStack)
-        {
-            BlockException.CheckDestroy(this);
-            // empty / 不正カウントは null 化、count >= 2 は 1 に丸めて格納
-            // Normalize: empty/invalid count to null, clamp count to 1
-            if (itemStack == null || itemStack.Id == ItemMaster.EmptyItemId || itemStack.Count <= 0)
-            {
-                _directions[slot].BufferedItem = null;
-                return;
-            }
-            _directions[slot].BufferedItem = itemStack.Count == 1
-                ? itemStack
-                : ServerContext.ItemStackFactory.Create(itemStack.Id, 1, itemStack.ItemInstanceId);
+            var items = new List<IItemStack>();
+            foreach (var direction in _directions)
+                if (direction.BufferedItem != null) items.Add(direction.BufferedItem);
+            return items;
         }
 
         #endregion

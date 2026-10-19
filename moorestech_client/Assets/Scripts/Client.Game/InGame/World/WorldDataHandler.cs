@@ -3,7 +3,6 @@ using Client.Common;
 using Client.Common.Server;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
-using Client.Game.InGame.Entity;
 using Client.Game.InGame.SoundEffect;
 using Client.Network.API;
 using Core.Master;
@@ -23,12 +22,10 @@ namespace Client.Game.InGame.World
     public class WorldDataHandler : IInitializable
     {
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
-        private readonly EntityObjectDatastore _entitiesDatastore;
         
-        public WorldDataHandler(BlockGameObjectDataStore blockGameObjectDataStore, EntityObjectDatastore entitiesDatastore, InitialHandshakeResponse initialHandshakeResponse)
+        public WorldDataHandler(BlockGameObjectDataStore blockGameObjectDataStore, InitialHandshakeResponse initialHandshakeResponse)
         {
             _blockGameObjectDataStore = blockGameObjectDataStore;
-            _entitiesDatastore = entitiesDatastore;
             //イベントをサブスクライブする
             ClientContext.VanillaApi.Event.SubscribeEventResponse(PlaceBlockEventPacket.EventTag, OnBlockUpdate);
             ClientContext.VanillaApi.Event.SubscribeEventResponse(RemoveBlockToSetEventPacket.EventTag, OnBlockRemove);
@@ -99,13 +96,6 @@ namespace Client.Game.InGame.World
                 // Suppress initial placement animation for bulk world synchronization
                 PlaceBlock(block.BlockPos, block.BlockId, block.BlockDirection, block.BlockInstanceId, false);
             }
-
-            if (worldData.Entities == null)
-            {
-                return;
-            }
-
-            _entitiesDatastore.OnEntitiesUpdate(worldData.Entities);
         }
 
         private void PlaceBlock(Vector3Int position, BlockId id, BlockDirection blockDirection, BlockInstanceId blockInstanceId, bool playPlaceAnimation)

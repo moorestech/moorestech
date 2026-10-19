@@ -1,6 +1,5 @@
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
-using Client.Game.InGame.Entity;
 using Client.Game.InGame.Hotbar;
 using Client.Game.InGame.Map.Outcrop;
 using Client.Game.InGame.Player;
@@ -24,7 +23,6 @@ namespace Client.Starter.Registration
             resolver.Resolve<BlockGameObjectDataStore>();
             resolver.Resolve<OutcropGameObjectDatastore>();
             resolver.Resolve<UIStateControl>();
-            resolver.Resolve<EntityObjectDatastore>();
             resolver.Resolve<TrainCarObjectDatastore>();
             resolver.Resolve<ChallengeManager>();
             resolver.Resolve<PlayerSystemContainer>();

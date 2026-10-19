@@ -20,14 +20,18 @@ namespace Game.Gear.Tick
         // demandPower / availablePower を1以下にクランプした負荷率。停止時は0
         // Load rate = demand / available clamped to 1; zero while stopped
         public readonly float NetworkLoadRate;
+        // RunTick が原点に選んだ generator のその時点の回転数。各 gear はこの値から導出し、原点の生の値を tick の途中で読まない(ADR 0084 F3)
+        // RPM of the generator chosen as origin at RunTick; every gear derives from this value instead of reading the origin live mid-tick (ADR 0084 F3)
+        public readonly float OriginRpm;
 
-        public GearNetworkRuntimeState(bool isStopped, GearNetworkStopReason stopReason, float demandPower, float availablePower, float networkLoadRate)
+        public GearNetworkRuntimeState(bool isStopped, GearNetworkStopReason stopReason, float demandPower, float availablePower, float networkLoadRate, float originRpm)
         {
             IsStopped = isStopped;
             StopReason = stopReason;
             DemandPower = demandPower;
             AvailablePower = availablePower;
             NetworkLoadRate = networkLoadRate;
+            OriginRpm = originRpm;
         }
     }
 }

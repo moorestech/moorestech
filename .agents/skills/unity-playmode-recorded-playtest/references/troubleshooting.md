@@ -97,7 +97,7 @@ EditModeInPlayingTestを一括実行すると、後半のテストが
   サーバーテストと同経路でcreate param付き生成）。クライアント側の橋脚出現をWaitBlockGameObjectで待てば
   PlaceBlockイベント同期の検証を兼ねられる
 
-- **連続ドラッグ設置の2本目が稀に始点タイルだけ設置されない**（実ゲームバグ・タイミング依存）。belt-line-via-uiの`UIドラッグ設置反映: ... (2, 32, 7)->(4, 32, 7)`タイムアウトが典型。ドラッグ直後にマウスを0.5秒静止させると高確率で誘発するためDriver側は`DragPlaceViaUi`のみインターバル除外済みだが、それでも稀に出る。**同一コードで再実行して通れば変更起因ではない**と判定してよい
+- **連続ドラッグ設置の2本目が稀に始点タイルだけ設置されない**（実ゲームバグ・タイミング依存）。ドラッグ設置反映を待つ`p.Until`のタイムアウトが典型（旧belt-line-via-uiシナリオで観測）。ドラッグ直後にマウスを0.5秒静止させると高確率で誘発するためDriver側は`DragPlaceViaUi`のみインターバル除外済みだが、それでも稀に出る。**同一コードで再実行して通れば変更起因ではない**と判定してよい
 
 - PlayMode中のスキーマ再コンパイル発火→ドメインリロードで初期化破壊。worktree初回はPlayMode前に`uloop compile`
 - `.moorestech-external-revisions.json` / `_CompileRequester.cs` はUnityが自動書き換え。スキーマ未更新なら`git checkout --`

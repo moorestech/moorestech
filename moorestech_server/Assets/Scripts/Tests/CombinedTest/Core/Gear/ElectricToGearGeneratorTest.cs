@@ -8,6 +8,7 @@ using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.EnergySystem;
+using Game.Gear.Common;
 using Game.Paths;
 using Game.SaveLoad;
 using Game.SaveLoad.Interface;
@@ -16,6 +17,7 @@ using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
+using Tests.Util.EnergySystem;
 using UniRx;
 using UnityEngine;
 
@@ -152,6 +154,37 @@ namespace Tests.CombinedTest.Core.Gear
 
             Assert.AreNotEqual(240f, motor.CurrentRpm.AsPrimitive());
             Assert.AreEqual(0f, motor.GenerateRpm.AsPrimitive(), 0.001f);
+        }
+
+        // モーター1台だけの網でも、歯車 tick の後(ブロック更新・搬送・tick 末尾)に消費側が読む回転数は定格のまま
+        // Even in a network driven by a single motor, the RPM consumers read after the gear tick (block updates, transport, tick end) stays at the rated value
+        // ConsumeGeneratorTick がバッテリーを使い切って GenerateRpm を 0 に戻しても、網は RunTick で凍結した原点 RPM(ADR 0084 F3)で回る
+        // Although ConsumeGeneratorTick empties the battery and returns GenerateRpm to 0, the network turns at the origin RPM frozen at RunTick (ADR 0084 F3)
+        [Test]
+        public void MotorAloneKeepsConsumersTurningAfterTheGearTick()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var world = ServerContext.WorldBlockDatastore;
+
+            world.TryAddBlock(ForUnitTestModBlockId.TestElectricToGearGenerator, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var motorBlock);
+            // 小歯車は 10 RPM 超で過負荷破断するので、破断しない軸を噛ませる
+            // The small gear breaks from overload above 10 RPM, so a shaft that never breaks is meshed instead
+            world.TryAddBlock(ForUnitTestModBlockId.Shaft, new Vector3Int(0, 0, 1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var gearBlock);
+            var motor = motorBlock.GetComponent<ElectricToGearGeneratorComponent>();
+            var gear = gearBlock.GetComponent<IGearEnergyTransformer>();
+            var param = (ElectricToGearGeneratorBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestElectricToGearGenerator).BlockParam;
+            var mode0 = param.OutputModes[0];
+            ElectricWireTestUtil.WirePower(Vector3Int.zero, new Vector3Int(0, 0, 5), mode0.RequiredPower);
+
+            // 電力 tick で満充電 → 歯車 tick で原点に選ばれる → 歯車 tick 末尾でバッテリー 0。それでも tick 末尾の読みは定格
+            // Charged full on the electric tick -> chosen as origin on the gear tick -> battery emptied at its end; the read at tick end is still the rated value
+            for (var tick = 0; tick < 3; tick++)
+            {
+                GameUpdater.UpdateOneTick();
+                Assert.AreEqual(0f, motor.GenerateRpm.AsPrimitive(), 0.001f, $"battery is spent by the end of tick {tick}");
+                Assert.AreEqual(mode0.Rpm, motor.CurrentRpm.AsPrimitive(), 0.001f, $"motor turns at the rated RPM at the end of tick {tick}");
+                Assert.Greater(gear.CurrentRpm.AsPrimitive(), 0f, $"the meshed gear turns at the end of tick {tick}");
+            }
         }
 
         [Test]

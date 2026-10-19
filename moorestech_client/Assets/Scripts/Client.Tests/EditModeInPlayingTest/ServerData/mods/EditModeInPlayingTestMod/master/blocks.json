@@ -574,8 +574,6 @@
             }
           ]
         },
-        "beltConveyorItemCount": 1,
-        "timeOfItemEnterToExit": 1,
         "inputSlotCount": 1,
         "teethCount": 10,
         "outputSlotCount": 1,
@@ -931,8 +929,7 @@
       "name": "直線歯車ベルトコンベア",
       "blockType": "GearBeltConveyor",
       "blockParam": {
-        "timeOfItemEnterToExit": 100,
-        "beltConveyorItemCount": 4,
+        "beltSpeedPerSecond": 0.055556,
         "gear": {
           "gearConnects": [
             {
@@ -1086,8 +1083,7 @@
       "name": "上り歯車ベルトコンベア",
       "blockType": "GearBeltConveyor",
       "blockParam": {
-        "timeOfItemEnterToExit": 100,
-        "beltConveyorItemCount": 4,
+        "beltSpeedPerSecond": 0.055556,
         "gear": {
           "gearConnects": [
             {
@@ -1191,8 +1187,7 @@
       "name": "下り歯車ベルトコンベア",
       "blockType": "GearBeltConveyor",
       "blockParam": {
-        "timeOfItemEnterToExit": 100,
-        "beltConveyorItemCount": 4,
+        "beltSpeedPerSecond": 0.055556,
         "gear": {
           "gearConnects": [
             {
@@ -1970,8 +1965,7 @@
       "openable": false,
       "blockParam": {
         "slopeType": "Straight",
-        "timeOfItemEnterToExit": 0.75,
-        "beltConveyorItemCount": 6,
+        "beltSpeedPerSecond": 1.0,
         "inventoryConnectors": {
           "inputConnects": [
             {
@@ -2056,8 +2050,7 @@
       "openable": false,
       "blockParam": {
         "slopeType": "Up",
-        "timeOfItemEnterToExit": 0.75,
-        "beltConveyorItemCount": 6,
+        "beltSpeedPerSecond": 1.0,
         "inventoryConnectors": {
           "outputConnects": [
             {
@@ -2116,8 +2109,7 @@
       "blockPrefabAddressablesPath": "Vanilla/Block/Fast_BeltConveyor_Down",
       "openable": false,
       "blockParam": {
-        "beltConveyorItemCount": 6,
-        "timeOfItemEnterToExit": 0.75,
+        "beltSpeedPerSecond": 1.0,
         "slopeType": "Down",
         "inventoryConnectors": {
           "outputConnects": [

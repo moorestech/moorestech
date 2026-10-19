@@ -11,6 +11,7 @@ using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.EnergySystem;
 using Game.Gear.Common;
+using Game.Train.Unit;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Mooresmaster.Model.BlocksModule;
@@ -28,16 +29,23 @@ namespace Tests.CombinedTest.Game
     /// </summary>
     public class ElectricTickUnificationTest
     {
+        // GameUpdaterが回すのは最後に作ったサーバーのMasterTickUpdater1本だけで、作り直すと前のサーバーは進まない
+        // GameUpdater drives only the last created server's single MasterTickUpdater; after re-creation the previous server no longer advances
         [Test]
-        public void tick順序はMasterTickUpdaterに集約される()
+        public void tick本体は最後に作ったサーバーのMasterTickUpdater1本だけ()
         {
-            var (_, provider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var masterTickUpdater = provider.GetRequiredService<MasterTickUpdater>();
+            var (_, previousProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var previousTrain = previousProvider.GetRequiredService<TrainUpdateService>();
+            var (_, currentProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var currentTrain = currentProvider.GetRequiredService<TrainUpdateService>();
+            var previousTick = previousTrain.GetCurrentTick();
+            var currentTick = currentTrain.GetCurrentTick();
 
-            // AdditionalUpdatesへの登録はMasterTickUpdater1本だけ（内部順序は仕様2.1）
-            // MasterTickUpdater is the only AdditionalUpdates entry; its body carries the spec 2.1 order
-            Assert.AreEqual(1, GameUpdater.AdditionalUpdates.Count);
-            Assert.AreEqual((Action)masterTickUpdater.Update, GameUpdater.AdditionalUpdates[0]);
+            // 1tickにつき今のサーバーだけがちょうど1回進む
+            // Per tick only the current server advances, exactly once
+            GameUpdater.RunFrames(3);
+            Assert.AreEqual(previousTick, previousTrain.GetCurrentTick());
+            Assert.AreEqual(currentTick + 3, currentTrain.GetCurrentTick());
         }
 
         // 発電機を撤去された機械は、供給率0の導出により自然に停止する
@@ -84,20 +92,6 @@ namespace Tests.CombinedTest.Game
 
             var detail = MessagePackSerializer.Deserialize<ElectricToGearGeneratorBlockStateDetail>(converterBlock.GetComponent<ElectricToGearGeneratorComponent>().GetBlockStateDetails()[0].Value);
             Assert.AreEqual(mode0.RequiredPower * 0.5f, detail.BatteryRemaining, 0.01f);
-        }
-
-        // tick登録がMasterTickUpdaterの1本に集約されていることを検証する（電力→歯車の順序はMasterTickUpdater内のコードで固定）
-        // Verify tick registration is consolidated into the single MasterTickUpdater entry (electric-before-gear order is fixed inside it)
-        [Test]
-        public void ElectricTickIsRegisteredBeforeGearTick()
-        {
-            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-
-            // 個別Updaterの直接登録は存在せず、MasterTickUpdaterだけが1本登録される
-            // No individual updater registrations remain; only the single MasterTickUpdater entry exists
-            Assert.AreEqual(1, GameUpdater.AdditionalUpdates.FindAll(update => update.Target is MasterTickUpdater).Count);
-            Assert.AreEqual(0, GameUpdater.AdditionalUpdates.FindAll(update => update.Target is ElectricTickUpdater).Count);
-            Assert.AreEqual(0, GameUpdater.AdditionalUpdates.FindAll(update => update.Target is GearTickUpdater).Count);
         }
 
         // 歯車→電力変換機のバッテリー残量はセーブ・ロードを跨いで維持される

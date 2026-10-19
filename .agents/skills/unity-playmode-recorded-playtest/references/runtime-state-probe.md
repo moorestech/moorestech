@@ -36,7 +36,7 @@ return ctx == null ? "null" : $"OK count={ctx.BlockMasterDictionary.Count}";
 | コンポーネント | namespace | 主フィールド |
 |---|---|---|
 | `VanillaChestComponent` | `Game.Block.Blocks.Chest` | `InventoryItems`（= `_itemDataStoreService._inventory`） |
-| `VanillaBeltConveyorComponent` | `Game.Block.Blocks.BeltConveyor` | `BeltConveyorItems`, `_inventoryItems` |
+| `BeltTransportDatastore` | `Game.Block.Blocks.BeltConveyor.Transport` | `Assembly`（`BeltTransportAssembly`: `Segments`, `Layouts`, `Locator`） |
 | `BlockConnectorComponent<IBlockInventory>` | `Game.Block.Component` | `ConnectedTargets` (`IReadOnlyDictionary<IBlockInventory, ConnectedInfo>`) |
 
 ### インベントリ中身のダンプパターン

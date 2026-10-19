@@ -37,14 +37,14 @@ cd <repo-root>   # 必ずpwd確認（worktree頻用）
 SKILL=.claude/skills/unity-playmode-recorded-playtest
 SCRATCH="$PWD/moorestech_client/PlaytestResults/scratch"
 mkdir -p "$SCRATCH"
-cp "$SKILL/scenarios/building/belt-line-via-ui.cs" "$SCRATCH/belt-line-via-ui.cs"
+cp "$SKILL/scenarios/building/belt-segment-flow.cs" "$SCRATCH/belt-segment-flow.cs"
 ```
 
 調査・環境確認ではコピー内の`PlaytestRunOptions.Record`を`false`へ変更してから、次を実行する。
 
 ```bash
 uloop control-play-mode --project-path ./moorestech_client --action stop   # 前回状態の持ち越し防止
-"$SKILL/scripts/run-scenario.sh" ./moorestech_client "$SCRATCH/belt-line-via-ui.cs"
+"$SKILL/scripts/run-scenario.sh" ./moorestech_client "$SCRATCH/belt-segment-flow.cs"
 ```
 
 これが通れば環境は健全。通らなければ troubleshooting.md。提出用の最終実行は`Record=true`のシナリオを使い、動画・スクショ・実プレイ視点の目視も完了する。
@@ -87,4 +87,4 @@ uloop control-play-mode --project-path ./moorestech_client --action stop   # 前
 
 - `scripts/run-scenario.sh <unity-project-path> <scenario.cs> [master-server-dir]` — preflight→boot→シナリオ投入→result.json回収の一発実行
 - `scripts/preflight.sh <unity-project-path> [master-server-dir]` — 疎通/コンパイル/master実在/マスタロードドライラン/ポート空き（run-scenario.shが自動で呼ぶ。単体診断にも使える）
-- `scenarios/<カテゴリ>/*.cs` — 実証済みシナリオ集（カテゴリ別サブディレクトリ: `building/`=設置・BP・スポイト・アンドゥ / `connect/`=手持ち/ツール結線 / `train/`=レール・列車 / `misc/`=サンプル・CEF・視点・cleanroom）。`building/belt-line.cs`(direct構築) / `building/belt-line-via-ui.cs`(UI経路) / `connect/gear-chain-pole-via-ui.cs`(ホットバー駆動) / `connect/gear-chain-connect-via-ui.cs`(クリック結線) / `train/train-rail-connect-via-ui.cs`(レール結線) / `misc/sample-chest.cs`(最小例)。新規シナリオも適切なカテゴリへ追加する。**冒頭に「⚠ 現行masterでは動かない」と書かれたシナリオ（削除済みuGUI型参照・ピン先マスタに無いGUID待ち。2026-09-19棚卸し）は雛形にしない**
+- `scenarios/<カテゴリ>/*.cs` — 実証済みシナリオ集（カテゴリ別サブディレクトリ: `building/`=設置・BP・スポイト・アンドゥ / `connect/`=手持ち/ツール結線 / `train/`=レール・列車 / `misc/`=サンプル・CEF・視点・cleanroom）。`building/belt-segment-flow.cs`(direct構築・ベルト搬送) / `connect/gear-chain-pole-via-ui.cs`(ホットバー駆動) / `connect/gear-chain-connect-via-ui.cs`(クリック結線) / `train/train-rail-connect-via-ui.cs`(レール結線) / `misc/sample-chest.cs`(最小例)。新規シナリオも適切なカテゴリへ追加する。**冒頭に「⚠ 現行masterでは動かない」と書かれたシナリオ（削除済みuGUI型参照・ピン先マスタに無いGUID待ち。2026-09-19棚卸し）は雛形にしない**

@@ -11,6 +11,7 @@ dedicated_shards=(
   server-map-1
   server-map-2
   server-map-3
+  server-belt-throughput
 )
 remainder_shards=(
   client-remainder

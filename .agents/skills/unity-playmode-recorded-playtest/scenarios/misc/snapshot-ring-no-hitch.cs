@@ -1,15 +1,17 @@
 // スナップショットリング有効時にtickを取りこぼさないことと、取り込み時間を実測する（ADR 0057 の初版条件）
 // Measures that the snapshot ring drops no ticks and how long a capture takes (ADR 0057 v1 condition)
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 using Client.Playtest;
 using Core.Update;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using Game.Context;
+using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
 using Game.SaveLoad.Snapshot;
+using UniRx;
 using UnityEngine;
 
 var options = new PlaytestRunOptions { Record = false, ScenarioTimeoutSeconds = 380f };
@@ -19,26 +21,10 @@ return PlaytestRunner.Run("snapshot-ring-no-hitch", options, async p =>
     await p.WaitSeconds(3f);
     var assembler = ServerContext.GetService<AssembleSaveJsonText>();
 
-    // Capture()はtickスレッド専用の契約なので、計測もtick末尾フックの中で行う（この計測専用フックはシナリオ終了時に外す）
-    // Capture() is contracted to the tick thread, so timing happens inside a tick-end hook (this measurement-only hook is removed at the end)
-    var probeLock = new object();
-    var probeRequested = false;
-    var probeMilliseconds = -1d;
-    Action captureProbe = () =>
-    {
-        lock (probeLock)
-        {
-            if (!probeRequested) return;
-            var probeWatch = Stopwatch.StartNew();
-            assembler.Capture();
-            probeMilliseconds = probeWatch.Elapsed.TotalMilliseconds;
-            probeRequested = false;
-        }
-    };
-
-    // 走行中のtickスレッドが列挙している最中に足すと列挙例外になるため、新しいリストへ差し替える
-    // Adding while the running tick thread enumerates would throw, so the list reference is swapped instead
-    GameUpdater.FinalTickEndUpdates = new List<Action>(GameUpdater.FinalTickEndUpdates) { captureProbe };
+    // tickへ差し込む購読口・末尾リストは無いので、取り込み時間はシナリオ側からCapture()を直接呼んで測る
+    // There is no tick hook or tick-end list to inject into, so capture time is measured by calling Capture() directly from the scenario
+    // Capture()はtickスレッド専用の契約だが、建設を終えた静止ワールドで読むだけなので計測用途に限り許す（tick進行と重なった回は値が膨らむ）
+    // Capture() is contracted to the tick thread, but reading a settled world is tolerated for measurement only (runs overlapping a tick read high)
 
     // 取り込み時間のブロック数依存を見るため、素のワールド→土台のみ→チェスト込みの3段で測る
     // Measure captures at three scales (bare world, foundations only, plus chests) to expose the per-block dependency
@@ -73,8 +59,15 @@ return PlaytestRunner.Run("snapshot-ring-no-hitch", options, async p =>
     var baselineDropped = baselineExpectedTicks - baselineElapsedTicks;
     p.Note($"baseline(ring off) elapsed={baselineElapsedTicks} expected={baselineExpectedTicks:F1} dropped={baselineDropped:F1}");
 
+    // 書き出し完了はtickスレッドから通知されるので、開始時の基準取り込みを含む成功数を原子的に数える
+    // Write completions arrive on the tick thread, so successes including the start baseline are counted atomically
     var ring = ServerContext.GetService<WorldSnapshotRing>();
-    ring.Start(SnapshotRingConfig.PeriodTicks, SnapshotRingConfig.Generations);
+    var writtenSnapshotCount = 0;
+    var writtenSubscription = ring.OnSnapshotWritten.Subscribe(written =>
+    {
+        if (written.Success) Interlocked.Increment(ref writtenSnapshotCount);
+    });
+    ring.Start(null, null, null);
     p.Note("ring started");
     var worst = await MeasureCaptures("ring-on");
     p.Assert(worst <= 20d, $"取り込みが20ms以内 (worst {worst:F1}ms)");
@@ -88,14 +81,13 @@ return PlaytestRunner.Run("snapshot-ring-no-hitch", options, async p =>
     var expectedTicks = wall.Elapsed.TotalSeconds * GameUpdater.TicksPerSecond;
     var dropped = expectedTicks - elapsedTicks;
     var ringAttributedDropped = dropped - baselineDropped * (expectedTicks / baselineExpectedTicks);
-    p.Note($"ticks elapsed={elapsedTicks} expected={expectedTicks:F1} dropped={dropped:F1} ringAttributed={ringAttributedDropped:F1} snapshots={ring.CopyWrittenTicks().Count}");
-    p.Assert(ring.CopyWrittenTicks().Count >= 3, "90秒で3回以上スナップショットが書かれた");
+    var writtenSnapshots = Volatile.Read(ref writtenSnapshotCount);
+    p.Note($"ticks elapsed={elapsedTicks} expected={expectedTicks:F1} dropped={dropped:F1} ringAttributed={ringAttributedDropped:F1} snapshots={writtenSnapshots}");
+    p.Assert(3 <= writtenSnapshots, "開始時の基準＋90秒の周期で3回以上スナップショットが書かれた");
     p.Assert(dropped < 3d, $"取りこぼしが3tick未満 (dropped {dropped:F1})");
     p.Assert(ringAttributedDropped < 3d, $"リング起因の取りこぼしが3tick未満 (ringAttributed {ringAttributedDropped:F1})");
 
-    var withoutProbe = new List<Action>(GameUpdater.FinalTickEndUpdates);
-    withoutProbe.Remove(captureProbe);
-    GameUpdater.FinalTickEndUpdates = withoutProbe;
+    writtenSubscription.Dispose();
 
     #region Internal
 
@@ -104,35 +96,14 @@ return PlaytestRunner.Run("snapshot-ring-no-hitch", options, async p =>
         var worstMilliseconds = 0d;
         for (var i = 0; i < 5; i++)
         {
-            var milliseconds = await MeasureOneCaptureOnTickThread();
+            var captureWatch = Stopwatch.StartNew();
+            assembler.Capture();
+            var milliseconds = captureWatch.Elapsed.TotalMilliseconds;
             if (worstMilliseconds < milliseconds) worstMilliseconds = milliseconds;
             p.Note($"capture[{label}]#{i}: {milliseconds:F1}ms");
             await p.WaitSeconds(0.5f);
         }
         return worstMilliseconds;
-    }
-
-    async UniTask<double> MeasureOneCaptureOnTickThread()
-    {
-        lock (probeLock)
-        {
-            probeMilliseconds = -1d;
-            probeRequested = true;
-        }
-
-        for (var waited = 0; waited < 100; waited++)
-        {
-            await p.WaitSeconds(0.1f);
-            lock (probeLock)
-            {
-                if (probeMilliseconds >= 0d) return probeMilliseconds;
-            }
-        }
-
-        // 10秒待ってもtick末尾フックが走らないのはtickループ停止なので、黙って0msを返さず失敗として残す
-        // If the tick-end hook has not run in 10 seconds the tick loop is stopped, so fail loudly instead of reporting 0ms
-        p.Assert(false, "計測用フックがtickスレッドで実行されなかった");
-        return 0d;
     }
 
     #endregion

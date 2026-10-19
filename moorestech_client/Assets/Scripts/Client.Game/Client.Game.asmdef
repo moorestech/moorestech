@@ -72,7 +72,8 @@
         "Game.PlacementTarget",
         "Game.Hotbar",
         "Game.Construction",
-        "Game.PlayerIdentity"
+        "Game.PlayerIdentity",
+        "Core.BeltTransport"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

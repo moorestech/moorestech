@@ -100,13 +100,11 @@ namespace Tests.CombinedTest.Core.Gear
             Assert.AreEqual(0f, generatorComponent.OutputEnergy().AsPrimitive(), 0.01f);
         }
 
+        // ゲーム内秒数ぶんの tick を進める(壁時計ではなく tick 数)
+        // Advance the ticks worth of the given in-game seconds (ticks, not wall-clock time)
         private static void AdvanceTime(double seconds)
         {
-            var start = DateTime.Now;
-            while ((DateTime.Now - start).TotalSeconds < seconds)
-            {
-                GameUpdater.UpdateOneTick();
-            }
+            GameUpdater.RunFrames(GameUpdater.SecondsToTicks(seconds));
         }
 
     }

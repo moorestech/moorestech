@@ -34,7 +34,7 @@ namespace Tests.CombinedTest.Game
         {
             var reportStore = new MissingMasterPruneReportStore();
             var preparer = new SaveLoadPreparer(
-                SaveMigrationChain.ForCurrentVersion(new ISaveMigrationStep[] { new SaveMigrationStepV1ToV2(), new SaveMigrationStepV2ToV3(), new SaveMigrationStepV3ToV4(), new SaveMigrationStepV4ToV5() }),
+                SaveMigrationChain.ForCurrentVersion(new ISaveMigrationStep[] { new SaveMigrationStepV1ToV2(), new SaveMigrationStepV2ToV3(), new SaveMigrationStepV3ToV4(), new SaveMigrationStepV4ToV5(), new SaveMigrationStepV5ToV6() }),
                 new MissingMasterPruner(),
                 new SaveArchiveWriter(WorldDataDirectory.FromWorldRoot(archiveRoot)),
                 reportStore);

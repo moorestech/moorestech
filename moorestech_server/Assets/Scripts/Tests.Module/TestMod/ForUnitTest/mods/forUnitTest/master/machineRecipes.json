@@ -356,6 +356,27 @@
         }
       ],
       "machineRecipeGuid": "aa000000-0000-4000-8000-00000000fee1"
+    },
+    {
+      "time": 0.05,
+      "blockGuid": "00000000-0000-0000-0000-00000000000f",
+      "initialUnlocked": true,
+      "inputItems": [
+        {
+          "count": 1,
+          "itemGuid": "7b3e1a10-0002-4000-8000-000000000001"
+        }
+      ],
+      "inputFluids": [],
+      "outputItems": [
+        {
+          "percent": 1,
+          "count": 1,
+          "itemGuid": "7b3e1a10-0002-4000-8000-000000000001"
+        }
+      ],
+      "outputFluids": [],
+      "machineRecipeGuid": "7b3e1a10-0006-4000-8000-000000000001"
     }
   ]
 }

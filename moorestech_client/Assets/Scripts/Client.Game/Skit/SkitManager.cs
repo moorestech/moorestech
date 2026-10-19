@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Client.Common;
 using Client.Common.Asset;
 using Client.Game.InGame.Block;
-using Client.Game.InGame.Entity;
 using Client.Game.InGame.Environment;
 using Client.Game.InGame.Tutorial;
 using Client.Game.Skit.Localization;
@@ -33,7 +32,7 @@ namespace Client.Game.Skit
         [Inject] private ISkitActionController _skitActionController;
         [Inject] private EnvironmentRoot environmentRoot;
         [Inject] private BlockGameObjectDataStore blockGameObjectDataStore;
-        [Inject] private EntityObjectDatastore entityObjectDatastore;
+        [Inject] private IReadOnlyList<ISkitEntityObjectControl> entityObjectControls;
         [Inject] private IReadOnlyList<ITutorialWorldPin> worldPins;
         [Inject] private IReadOnlyList<ISkitWorldObjectControl> worldObjectControls;
         [Inject] private SkitOrigin skitOrigin;
@@ -185,7 +184,7 @@ namespace Client.Game.Skit
                     environmentRoot,
                     blockGameObjectDataStore,
                     new SkitWorldObjectControlGroup(worldObjectControls),
-                    entityObjectDatastore);
+                    new SkitEntityObjectControlGroup(entityObjectControls));
                 builder.RegisterInstance<ISkitEnvironmentRoot>(visibilityLedger);
                 builder.RegisterInstance<ISkitBlockObjectControl>(visibilityLedger);
                 builder.RegisterInstance<ISkitWorldObjectControl>(visibilityLedger);

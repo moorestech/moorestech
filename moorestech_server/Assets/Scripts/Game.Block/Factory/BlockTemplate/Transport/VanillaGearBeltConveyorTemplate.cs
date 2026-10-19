@@ -2,6 +2,7 @@ using Game.Block.Blocks.BeltConveyor.Connection;
 using System.Collections.Generic;
 using Game.Block.Blocks;
 using Game.Block.Blocks.BeltConveyor;
+using Game.Block.Blocks.BeltConveyor.Save;
 using Game.Block.Blocks.Gear;
 using Game.Block.Component;
 using Game.Block.Interface;
@@ -17,16 +18,16 @@ namespace Game.Block.Factory.BlockTemplate.Transport
         {
             return GetBlock(null, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
-        
+
         public IBlock Load(Dictionary<string, object> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             return GetBlock(componentStates, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
-        
+
         private static BlockSystem GetBlock(Dictionary<string, object> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var gearBeltParam = blockMasterElement.BlockParam as GearBeltConveyorBlockParam;
-            
+
             var gearEnergyTransformerConnector = new BlockConnectorComponent<IGearEnergyTransformer, GearContext>(
                 gearBeltParam.Gear.GearConnects,
                 gearBeltParam.Gear.GearConnects,
@@ -39,29 +40,23 @@ namespace Game.Block.Factory.BlockTemplate.Transport
                 GearBeltConveyorBlockParam.SlopeTypeConst.Straight => BeltConveyorSlopeType.Straight
             };
             var inventoryConnector = BeltInventoryConnectionContext.Create(gearBeltParam.InventoryConnectors, blockPositionInfo, slopeType);
-            var beltConveyorConnector = new VanillaBeltConveyorBlockInventoryInserter(blockInstanceId, inventoryConnector);
 
-            var itemCount = gearBeltParam.BeltConveyorItemCount;
-            
-            // RPM供給前は搬送を停止させるため、無限大の時間を設定する
-            // Use infinite time to stop transport before RPM is supplied
-            var time = float.PositiveInfinity;
-            
-            var vanillaBeltConveyorComponent = componentStates == null ? 
-                    new VanillaBeltConveyorComponent(itemCount, time, beltConveyorConnector, slopeType) :
-                    new VanillaBeltConveyorComponent(componentStates, itemCount, time, beltConveyorConnector,slopeType, gearBeltParam.InventoryConnectors);
-            
-            var gearBeltConveyorComponent = new GearBeltConveyorComponent(vanillaBeltConveyorComponent, blockInstanceId, gearBeltParam.TimeOfItemEnterToExit, gearBeltParam.GearConsumption, gearEnergyTransformerConnector);
-            
-            // 過負荷破壊コンポーネントを追加
-            // Add overload breakage component
+            // 搬送の実体はワールド全体の組が持ち、速度は歯車の回転数から組が毎tick決める。歯車側は回転数の受け手と過負荷破壊を担う
+            // Transport lives in the world-wide assembly, which derives the speed from the gear rotation each tick; the gear side receives rotation and handles overload breakage
+            // 要求トルクは載っているアイテムの数によらずマスタの基準トルクのまま（倍率1）
+            // The torque request stays at the master base torque regardless of the items carried (rate 1)
+            var gearEnergyTransformer = new GearEnergyTransformer(gearBeltParam.GearConsumption, blockInstanceId, gearEnergyTransformerConnector);
             var overloadParam = gearBeltParam as IGearOverloadParam;
-            var overloadBreakageComponent = new GearOverloadBreakageComponent(blockInstanceId, gearBeltConveyorComponent, overloadParam);
+            var overloadBreakageComponent = new GearOverloadBreakageComponent(blockInstanceId, gearEnergyTransformer, overloadParam);
+            var saveStateComponent = componentStates == null
+                ? new BeltConveyorSaveStateComponent(blockInstanceId)
+                : new BeltConveyorSaveStateComponent(componentStates, blockInstanceId);
 
             var blockComponents = new List<IBlockComponent>
             {
-                gearBeltConveyorComponent,
-                vanillaBeltConveyorComponent,
+                gearEnergyTransformer,
+                new BeltConveyorInventoryComponent(blockInstanceId),
+                saveStateComponent,
                 gearEnergyTransformerConnector,
                 inventoryConnector,
                 overloadBreakageComponent

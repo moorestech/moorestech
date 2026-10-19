@@ -10,7 +10,5 @@ namespace Game.Entity.Interface
         Vector3 Position { get; }
         
         void SetPosition(Vector3 serverVector3);
-        
-        byte[] GetEntityData();
     }
 }

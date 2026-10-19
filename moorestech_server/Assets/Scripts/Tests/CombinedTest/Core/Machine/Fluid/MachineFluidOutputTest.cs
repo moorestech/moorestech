@@ -21,6 +21,10 @@ namespace Tests.CombinedTest.Core.Machine
 {
     public class MachineFluidOutputTest
     {
+        // 流体の速度モデルが落ち着くのに十分な tick 数(ゲーム内 60 秒)
+        // Enough ticks for the fluid velocity model to settle (60 in-game seconds)
+        private static readonly uint FluidSettleTicks = GameUpdater.SecondsToTicks(60);
+
         [Test]
         public void FluidMachineOutputTest()
         {
@@ -40,13 +44,9 @@ namespace Tests.CombinedTest.Core.Machine
             var fluidMachineConnector = fluidMachineBlock.GetComponent<BlockConnectorComponent<IFluidInventory, DefaultContext<IFluidInventory>>>();
             Assert.AreEqual(2, fluidMachineConnector.ConnectedTargets.Count);
             // アップデート（液体が流れるのを待つ）
-            var startTime = DateTime.Now;
-            while (true)
-            {
-                GameUpdater.UpdateOneTick();
-                var elapsedTime = DateTime.Now - startTime;
-                if (10 < elapsedTime.TotalSeconds) break;
-            }
+            // 液体が流れ切るまで tick を進める。壁時計の待ちは速い PC でも秒数ぶん必ず払うので tick 数に置き換えた
+            // Advance ticks until the fluid has flowed through; the wall-clock wait cost its full seconds even on a fast PC, so it is counted in ticks
+            GameUpdater.RunFrames(FluidSettleTicks);
             // 液体がパイプに転送されていることを確認
             var fluidPipe1 = fluidPipeBlock1.GetComponent<FluidPipeComponent>();
             var fluidPipe2 = fluidPipeBlock2.GetComponent<FluidPipeComponent>();
