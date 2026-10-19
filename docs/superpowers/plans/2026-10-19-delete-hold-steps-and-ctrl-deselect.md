@@ -4,7 +4,7 @@
 
 **Goal:** 削除ツールの F 長押し満了時間を選択件数で 0.75／1.25／1.75 秒の3段にし、Ctrl を押して始めたなぞり・箱で削除候補を選択から外せるようにする。
 
-**Architecture:** 長押し対象 `DeleteHoldSubject` が件数を運び、`DeleteHoldConfirm` が `DeleteHoldDuration.SecondsFor(件数)` で満了時間を引く（件数は選択側から購読でプッシュ済みの subject に乗る）。選択モデル `DeleteSelection` の内部集合を `DeleteSelectedTargetSet` へ切り出して除外（赤戻し・変更通知）を足し、なぞり・箱の「追加か除外か」は押下瞬間の Ctrl を `DeleteSelectionIntent` として固定する。箱の対象解決 `DeleteBoxTargetResolver` は意図で「撤去可能」か「選択済み」かを切り替える1本の問い合わせのまま。
+**Architecture:** 長押し対象 `DeleteHoldSubject` が件数を運び、`DeleteHoldConfirm` が `DeleteHoldDuration.SecondsFor(件数)` で満了時間を引く（件数は選択側から購読でプッシュ済みの subject に乗る）。選択モデル `DeleteSelection` の内部集合を `DeleteSelectedTargetSet` へ切り出して除外（赤戻し・変更通知）を足す。なぞり・箱の「追加か除外か」は押下瞬間の Ctrl を `DeleteSelectionIntent` として選択モデルの入口（`BeginStroke(intent)`・`ApplyBoxTargets(targets, intent)`）へ渡し、意図による分岐は選択モデルに閉じる。Ctrl はサービスが1フレーム1回だけ読む。箱の対象解決 `DeleteBoxTargetResolver` は撤去可能な対象を返す1本の問い合わせのまま、除外の箱ではそのうち選択済みだけに絞る。箱の意図ごとの表示（文言キー・色・名前）は `DeleteBoxIntentView` にまとめる。
 
 **Tech Stack:** Unity (C#)、UniRx、Unity InputSystem（`HybridInput`）、NUnit EditMode（`Client.Tests`）、unity-playmode-recorded-playtest（プレイテスト DSL）。
 
@@ -13,8 +13,8 @@
 - R1 F 長押しの満了時間は選択件数で 1〜4件 0.75秒／5〜19件 1.25秒／20件以上 1.75秒。受け入れ: `DeleteHoldDurationTest` の境界 1・4・5・19・20・500、`DeleteHoldConfirmTest` の 5件・20件ケース、録画で5件選択の1秒長押しでは消えない。
 - R2 件数はツールチップの選択件数（`DeleteSelection.Count`。種類を問わず1候補=1件、巻き込みの接続線は数えない）。選択が空のホバー1件削除は1件として 0.75秒。受け入れ: `DeleteHoldSubject.Hovered` の件数が1、`DeleteHoldConfirmTest` のホバーケースが 0.75秒で満了。
 - R3 Ctrl（Mac は Command も。Ctrl+Z 判定と同じキー）を押して始めたなぞり（Ctrl+左ドラッグ、動かさない Ctrl+左クリックは1件分）は、通った選択済み対象を選択から外し赤を戻す。未選択は無視。照準は追加のなぞりと同じ（最前面・最初に外した対象のカテゴリーに固定）。受け入れ: `DeleteSelectionDeselectTest`、録画 Step 3。
-- R4 Ctrl+Shift+2点の箱は、箱内の選択済み対象（カテゴリーを問わず・接続線は入らない）を選択から外す。終点待ちのツールチップは「範囲内の選択済み: N件」、0件の終点クリックは理由（「範囲に選択済みの対象がありません」）をツールチップとログへ出して拒否。除外の箱は青（`MaterialConst.PlaceableColor`）で描く。受け入れ: `DeleteBoxSelectionTest` の意図保持、`DeleteSelectionDeselectTest` の箱ケース、録画 Step 4。
-- R5 追加か除外かは押下の瞬間（なぞり開始・箱の始点クリック）の Ctrl で決め、途中で Ctrl を離しても変わらない。受け入れ: `DeleteBoxSelection.Intent` が終点まで保たれる、`BeginStroke` は除外を引き継がない。
+- R4 Ctrl+Shift+2点の箱は、追加の箱と同じ解決結果（撤去可能・カテゴリーを問わず・接続線は入らない）のうち選択済みの対象を選択から外す（選択後に撤去不可になった候補は箱では外れない）。終点待ちのツールチップは「範囲内の選択済み: N件」、0件の終点クリックは理由（「範囲に選択済みの対象がありません」）をツールチップとログへ出して拒否。除外の箱は青（`MaterialConst.PlaceableColor`）で描く。受け入れ: `DeleteBoxSelectionTest` の意図保持、`DeleteSelectionDeselectTest` の箱ケース、録画 Step 4。
+- R5 追加か除外かは押下の瞬間（なぞり開始・箱の始点クリック）の Ctrl で決め、途中で Ctrl を離しても変わらない。受け入れ: `DeleteBoxSelection.Intent` が終点まで保たれる、`BeginStroke(Add)` は前回の除外を引き継がない。
 - R6 除外で選択が変わると長押し進捗は 0 に戻る（ADR 0079 の既存規則。Revision が進む）。受け入れ: `DeleteSelectionDeselectTest` で Revision が変わる、録画 Step 2→3。
 - R7 通常の左操作は追加のまま、ESC／パネル外右短押しの全解除も残す。既存テストがすべて通る。
 - R8 破壊モードのキーヒントに「Ctrl+左ドラッグ 選択から外す」を足す（12件）。ADR 0032 の表と `UIStateKeyHintCatalogTest` を同時更新。
@@ -32,8 +32,8 @@
 
 ## 設計検査記録
 
-- 配置検査（spec-architecture-review Phase 1〜2.5）: 未実施
-- Phase 2.6（型閉包・重複・ADR矛盾）: 未実施
+- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反1件・修正1件 / なぞりと箱で意図の分岐が呼び出し側に分散→選択モデルの入口 `BeginStroke(intent)`・`ApplyBoxTargets(targets, intent)` に集約
+- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強2・弱5・第3バケツ1 / 強: 件数の型はこのまま（前提宣言）・除外の箱の判定は ADR に揃える（ユーザー裁定）、弱: ①②④を直す（ユーザー裁定）、第3バケツ: Ctrl||Command 判定の共通化を PR 外提案へ
 
 ---
 
@@ -44,14 +44,16 @@
 | Create | `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Confirm/DeleteHoldDuration.cs` | 件数→満了秒数の3段表 |
 | Modify | `.../State/DragDelete/Confirm/DeleteHoldSubject.cs` | 選択対象が件数を運ぶ（ホバーは1） |
 | Modify | `.../State/DragDelete/Confirm/DeleteHoldConfirm.cs` | 固定 2 秒を `DeleteHoldDuration` に置換 |
-| Modify | `.../State/DragDelete/DeleteObjectService.cs` | subject に件数を載せる・なぞり開始の Ctrl 判定 |
+| Modify | `.../State/DragDelete/DeleteObjectService.cs` | subject に件数を載せる・Ctrl を1フレーム1回読み箱となぞりへ渡す |
 | Create | `.../State/DragDelete/Selection/DeleteSelectedTargetSet.cs` | 選択集合・赤表示・赤戻し待ち・変更通知（DeleteSelection から切り出し＋除外） |
 | Create | `.../State/DragDelete/Selection/DeleteSelectionIntent.cs` | 追加／除外の判別子 |
 | Create | `.../State/DragDelete/Selection/DeleteSelectionModifierKey.cs` | Ctrl/Command を意図へ読む |
-| Modify | `.../State/DragDelete/DeleteSelection.cs` | 除外のなぞり・箱の除外 API、集合の委譲 |
+| Create | `.../State/DragDelete/Box/DeleteBoxIntentView.cs` | 箱の意図ごとの表示一式（件数・0件の文言キー、ログ名、色、可視化） |
+| Modify | `.../State/DragDelete/DeleteSelection.cs` | `BeginStroke(intent)`・`ApplyBoxTargets(targets, intent)`・除外のなぞり、集合の委譲 |
+| Modify | `moorestech_client/Assets/Scripts/Client.Tests/` 配下 13 ファイル（`BeginStroke()` の呼び出し） | 新シグネチャ `BeginStroke(DeleteSelectionIntent.Add)` へ一括置換 |
 | Modify | `.../State/DragDelete/Box/DeleteBoxSelection.cs` | 箱の意図を始点で保持 |
-| Modify | `.../State/DragDelete/Box/DeleteBoxTargetResolver.cs` | 意図で「撤去可能」「選択済み」を切替 |
-| Modify | `.../State/DragDelete/Box/DeleteBoxInput.cs` | 押下時の意図・除外の表示/件数/反映・青い箱 |
+| Modify | `.../State/DragDelete/Box/DeleteBoxTargetResolver.cs` | 撤去可能な対象を返し、除外の箱では選択済みに絞る |
+| Modify | `.../State/DragDelete/Box/DeleteBoxInput.cs` | 押下時の意図の保持・意図ごとの表示の選び分け（1か所）・反映は `ApplyBoxTargets` |
 | Modify | `.../State/DeleteObjectState.cs` | キーヒント追加 |
 | Modify | `Localization/localization.csv`、`moorestech_web/webui/src/shared/i18n/generated/localizationKeys.ts` | キー4件追加・再生成 |
 | Modify | `docs/adr/0032-key-hint-hud-owned-by-ui-state.md` | 破壊モードのヒント表 |
@@ -61,8 +63,8 @@
 ## 配置と前例
 
 - 満了時間を件数で決める判断は削除ツール側（Confirm）に閉じ、進捗バー `ProgressBarState` は値を受けるだけ（汎用基盤にドメイン語彙を入れない。ADR 0079「長押し Advance はキー状態と時間のみ扱う」）。件数は既存の `OnSelectionChanged` 購読で subject に乗せてプッシュする（毎フレームの同値判定を足さない）。
-- 除外は選択モデルが持つ（ADR 0079「選択モデルがストローク・ホバー可否・確定・取消手順を所有する」）。サービスは入力（Ctrl）を読んで `BeginStroke`／`BeginDeselectStroke` を呼び分けるだけ。
-- 箱の除外も「AABB を受け取り IDeleteTarget の列を返す1本の問い合わせ」（ADR 0079 呼び出し側の線引き）を保ち、意図は引数で渡す。呼び出し側は結果を `AddBoxTargets`／`RemoveBoxTargets` へ渡すだけ。
+- 除外は選択モデルが持つ（ADR 0079「選択モデルがストローク・ホバー可否・確定・取消手順を所有する」）。サービスは入力（Ctrl）を1回読んだ意図を `BeginStroke(intent)` と箱の `Update(..., heldIntent)` へ渡すだけで、意図による分岐を書かない。箱入力は結果を `ApplyBoxTargets(targets, intent)` へ渡すだけ。
+- 箱の除外も「AABB を受け取り IDeleteTarget の列を返す1本の問い合わせ」（ADR 0079 呼び出し側の線引き）を保ち、撤去可能の判定は追加と共有したうえで、除外のときだけ選択済みに絞る（ADR 0084 の裁定）。
 - 修飾キーの読み方は `BuildUndoService.cs:36` と同じ Ctrl||Command。
 - データフロー: （左押下＋Ctrl）→ `DeleteObjectService`／`DeleteBoxInput`（書き手）→［`DeleteSelection` の選択集合］→ `OnSelectionChanged` →（`DeleteHoldConfirm`・ツールチップ＝読み手）。除外は既存の書き手に「外す」操作が1つ増えるだけで、新しい経路は無い。
 
@@ -74,8 +76,9 @@
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Confirm/DeleteHoldDuration.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Confirm/DeleteHoldSubject.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Confirm/DeleteHoldConfirm.cs`
-- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DeleteObjectService.cs`（subject の件数のみ。なぞり開始の Ctrl 判定は Task 3）
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DeleteObjectService.cs`（subject の件数のみ。Ctrl の配線は Task 3）
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDelete/Confirm/DeleteHoldDurationTest.cs`（新規）、`moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDelete/DeleteHoldConfirmTest.cs`（全面書き換え）
+- Modify: `moorestech_client/Assets/Scripts/Client.Tests/Input/PlayableInteractInputTest.cs:55,62,78`（`DeleteHoldSubject.Selection(1)`→`Selection(1, 1)`、`Selection(2)`→`Selection(2, 1)`。待ち秒数 `2f`/`3f` は1件の段 0.75 秒以上なので据え置き）
 
 **Interfaces:**
 - Produces: `public static float DeleteHoldDuration.SecondsFor(int targetCount)`（1未満は `ArgumentOutOfRangeException`）／`public static DeleteHoldSubject DeleteHoldSubject.Selection(int revision, int targetCount)`（旧 `Selection(int revision)` は削除）／`internal int DeleteHoldSubject.TargetCount`（None=0・Hovered=1）／`private DeleteHoldSubject DeleteObjectService.SelectionHoldSubject()`
@@ -414,7 +417,7 @@ index 5a8d5be..dbeacc4 100644
 
 - [ ] **Step 3: サービスが subject に選択件数を載せる**
 
-`moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DeleteObjectService.cs` の `DeleteHoldSubject.Selection(_selection.Revision)` 2箇所（ctor の購読・`UpdateHoldConfirm`）を `SelectionHoldSubject()` に置き換え、`TryCancel` の直前へ次を足す（Task 3 のパッチにも同じ差分が含まれる。Task 1 では using・`HandleStrokeStart` の差分は当てない）:
+`moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DeleteObjectService.cs` の `DeleteHoldSubject.Selection(_selection.Revision)` 2箇所（ctor の購読・`UpdateHoldConfirm`）を `SelectionHoldSubject()` に置き換え、`TryCancel` のコメントの直前へ次を足す。Task 3 のパッチはこの差分を含むので、Task 3 では Task 1 で入れた分を除いて当てる（`git apply` が失敗したら手で残りの差分だけ入れる）:
 
 ```csharp
         // 選択集合の長押し対象（件数が満了時間を決める）
@@ -422,43 +425,50 @@ index 5a8d5be..dbeacc4 100644
         private DeleteHoldSubject SelectionHoldSubject() => DeleteHoldSubject.Selection(_selection.Revision, _selection.Count);
 ```
 
-- [ ] **Step 4: コンパイルしテストを実行する**
+- [ ] **Step 4: 既存の呼び出しテストを新シグネチャへ直す**
 
-Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "DeleteHoldDurationTest|DeleteHoldConfirmTest|DeleteSelection|DragDelete"`
+`moorestech_client/Assets/Scripts/Client.Tests/Input/PlayableInteractInputTest.cs` の 55・62・78 行を `DeleteHoldSubject.Selection(1, 1)`／`DeleteHoldSubject.Selection(2, 1)`／`DeleteHoldSubject.Selection(2, 1)` にする。
+
+- [ ] **Step 5: コンパイルしテストを実行する**
+
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "DeleteHoldDurationTest|DeleteHoldConfirmTest|DeleteSelection|DragDelete|PlayableInteractInputTest"`
 Expected: ErrorCount 0 / 全 PASS
 
-- [ ] **Step 5: コミットする**
+- [ ] **Step 6: コミットする**
 
 ```bash
-git add moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Confirm moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DeleteObjectService.cs moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDelete/Confirm moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDelete/DeleteHoldConfirmTest.cs
+git add moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Confirm moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DeleteObjectService.cs moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDelete/Confirm moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDelete/DeleteHoldConfirmTest.cs moorestech_client/Assets/Scripts/Client.Tests/Input/PlayableInteractInputTest.cs
 git commit -m "feat: 削除のF長押しを選択件数で0.75/1.25/1.75秒の3段にする"
 ```
 
-### Task 2: 選択モデルに除外（なぞり・箱）を足す
+### Task 2: 選択モデルに追加／除外の意図と除外（なぞり・箱）を足す
 
 **Files:**
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Selection/DeleteSelectedTargetSet.cs`、`moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Selection/DeleteSelectionIntent.cs`、`moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Selection/DeleteSelectionModifierKey.cs`
-- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DeleteSelection.cs`（内部 Dictionary・設置演出購読・解除キュー・Revision 通知を `DeleteSelectedTargetSet` へ移し、除外 API を足す。196行）
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DeleteSelection.cs`（内部 Dictionary・設置演出購読・解除キュー・Revision 通知を `DeleteSelectedTargetSet` へ移し、`BeginStroke(intent)`・`TryRemoveStrokeTarget`・`ApplyBoxTargets`・`IsSelected` を足す。193行）
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DeleteObjectService.cs:92`（`_selection.BeginStroke()` → `_selection.BeginStroke(DeleteSelectionIntent.Add)` と using 追加。Ctrl の配線は Task 3 で置き換える）
+- Modify: `moorestech_client/Assets/Scripts/Client.Tests/` 配下の `BeginStroke()` 呼び出し 13 ファイル（`BuildUndo/RemoveOperationHistoryTest.cs`、`UIState/DeleteSelectionCategoryTest.cs`、`UIState/DeleteSelectionTest.cs`、`UIState/DragDelete/Completion/DeleteCompletionBatchTest.cs`、`UIState/DragDelete/Completion/LateRemovalUndoTest.cs`、`UIState/DragDelete/DeleteSelectionPreviewTest.cs`、`UIState/DragDelete/DestroyedSelectionTest.cs`、`UIState/DragDelete/Recovery/PendingPreviewReleaseTest.cs`、`UIState/DragDelete/Recovery/SharedPreviewKeyTest.cs`、`UIState/DragDelete/ResetFailureRecoveryTest.cs`、`UIState/DragDelete/SharedResetRecoveryTest.cs`、`UIState/DragDeleteDenyReasonTest.cs`、`UIState/UIStateControlTest.cs`）
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDelete/Selection/DeleteSelectionDeselectTest.cs`（新規）
 
 **Interfaces:**
 - Consumes: なし（Task 1 と独立）
-- Produces: `public enum DeleteSelectionIntent { Add, Remove }`（namespace `Client.Game.InGame.UI.UIState.State.DragDelete.Selection`）／`internal static DeleteSelectionIntent DeleteSelectionModifierKey.ReadIntent()`／`public void DeleteSelection.BeginDeselectStroke()`／`public bool DeleteSelection.TryRemoveStrokeTarget(IDeleteTarget target)`／`public int DeleteSelection.RemoveBoxTargets(IReadOnlyList<IDeleteTarget> targets)`／`internal bool DeleteSelection.IsSelected(IDeleteTarget target)`。`UpdateStroke(DeleteAimResult)` は `BeginDeselectStroke` 後なら除外する。`Revision`・`OnSelectionChanged` の外形は不変（中身は集合へ委譲）。
+- Produces: `public enum DeleteSelectionIntent { Add, Remove }`（namespace `Client.Game.InGame.UI.UIState.State.DragDelete.Selection`）／`internal static DeleteSelectionIntent DeleteSelectionModifierKey.ReadIntent()`／`public void DeleteSelection.BeginStroke(DeleteSelectionIntent intent)`（旧 `BeginStroke()` は削除）／`public bool DeleteSelection.TryRemoveStrokeTarget(IDeleteTarget target)`／`public int DeleteSelection.ApplyBoxTargets(IReadOnlyList<IDeleteTarget> targets, DeleteSelectionIntent intent)`（意図による分岐はここだけ。`AddBoxTargets` は公開のまま残し内部から呼ぶ）／`internal bool DeleteSelection.IsSelected(IDeleteTarget target)`。`UpdateStroke(DeleteAimResult)` は `BeginStroke(Remove)` 後なら除外する。`Revision`・`OnSelectionChanged` の外形は不変（中身は集合へ委譲）。
 
 - [ ] **Step 1: テストを書く**
 
 ```diff
 diff --git a/moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDelete/Selection/DeleteSelectionDeselectTest.cs b/moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDelete/Selection/DeleteSelectionDeselectTest.cs
 new file mode 100644
-index 0000000..b993dd7
+index 0000000..5f415fb
 --- /dev/null
 +++ b/moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDelete/Selection/DeleteSelectionDeselectTest.cs
-@@ -0,0 +1,116 @@
+@@ -0,0 +1,117 @@
 +using System.Collections.Generic;
 +using Client.Game.Common;
 +using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 +using Client.Game.InGame.UI.UIState.State;
 +using Client.Game.InGame.UI.UIState.State.DragDelete;
++using Client.Game.InGame.UI.UIState.State.DragDelete.Selection;
 +using Client.Tests.BuildUndo;
 +using Client.Tests.UIState.Fakes;
 +using NUnit.Framework;
@@ -477,7 +487,7 @@ index 0000000..b993dd7
 +            var removed = new FakeDeleteTarget { Removable = true };
 +            selection.AddBoxTargets(new List<IDeleteTarget> { kept, removed });
 +            var revision = selection.Revision;
-+            selection.BeginDeselectStroke();
++            selection.BeginStroke(DeleteSelectionIntent.Remove);
 +            Assert.IsTrue(selection.TryRemoveStrokeTarget(removed));
 +            Assert.AreEqual(1, selection.Count);
 +            Assert.AreEqual(1, removed.ResetCount);
@@ -495,7 +505,7 @@ index 0000000..b993dd7
 +            selection.AddBoxTargets(new List<IDeleteTarget> { new FakeDeleteTarget { Removable = true } });
 +            var unselected = new FakeDeleteTarget { Removable = true };
 +            var revision = selection.Revision;
-+            selection.BeginDeselectStroke();
++            selection.BeginStroke(DeleteSelectionIntent.Remove);
 +            Assert.IsFalse(selection.TryRemoveStrokeTarget(unselected));
 +            Assert.AreEqual(revision, selection.Revision);
 +            Assert.AreEqual(0, unselected.ResetCount);
@@ -508,14 +518,14 @@ index 0000000..b993dd7
 +            var selection = Create();
 +            var line = new FakeDeleteTarget { Removable = true, Category = BlockMasterElementExtension.ConnectionLineDestructionCategory };
 +            var block = new FakeDeleteTarget { Removable = true };
-+            selection.BeginStroke();
++            selection.BeginStroke(DeleteSelectionIntent.Add);
 +            selection.TryAddTarget(line);
 +            selection.AddBoxTargets(new List<IDeleteTarget> { block });
-+            selection.BeginDeselectStroke();
++            selection.BeginStroke(DeleteSelectionIntent.Remove);
 +            Assert.IsTrue(selection.TryRemoveStrokeTarget(line));
 +            Assert.IsFalse(selection.TryRemoveStrokeTarget(block), "a deselect stroke stays in the first category");
 +            selection.EndStroke();
-+            selection.BeginDeselectStroke();
++            selection.BeginStroke(DeleteSelectionIntent.Remove);
 +            Assert.IsTrue(selection.TryRemoveStrokeTarget(block));
 +            Assert.IsFalse(selection.HasSelection());
 +        }
@@ -526,7 +536,7 @@ index 0000000..b993dd7
 +            var selection = Create();
 +            var block = new FakeDeleteTarget { Removable = true };
 +            selection.AddBoxTargets(new List<IDeleteTarget> { block });
-+            selection.BeginDeselectStroke();
++            selection.BeginStroke(DeleteSelectionIntent.Remove);
 +            Assert.IsTrue(selection.TryRemoveStrokeTarget(new FakeDeleteTarget { Removable = true, Key = block }));
 +            Assert.AreEqual(1, block.ResetCount, "the selected instance is un-redded");
 +        }
@@ -539,7 +549,7 @@ index 0000000..b993dd7
 +            var b = new FakeDeleteTarget { Removable = true };
 +            var c = new FakeDeleteTarget { Removable = true };
 +            selection.AddBoxTargets(new List<IDeleteTarget> { a, b, c });
-+            Assert.AreEqual(2, selection.RemoveBoxTargets(new List<IDeleteTarget> { a, b, new FakeDeleteTarget { Removable = true } }));
++            Assert.AreEqual(2, selection.ApplyBoxTargets(new List<IDeleteTarget> { a, b, new FakeDeleteTarget { Removable = true } }, DeleteSelectionIntent.Remove));
 +            Assert.AreEqual(1, selection.Count);
 +            Assert.IsTrue(selection.IsSelected(c));
 +            Assert.IsFalse(selection.IsSelected(a));
@@ -550,9 +560,9 @@ index 0000000..b993dd7
 +        {
 +            var selection = Create();
 +            var target = new FakeDeleteTarget { Removable = true };
-+            selection.BeginDeselectStroke();
++            selection.BeginStroke(DeleteSelectionIntent.Remove);
 +            selection.EndStroke();
-+            selection.BeginStroke();
++            selection.BeginStroke(DeleteSelectionIntent.Add);
 +            Assert.IsTrue(selection.TryAddTarget(target).IsAdded);
 +            Assert.AreEqual(1, selection.Count);
 +        }
@@ -563,7 +573,7 @@ index 0000000..b993dd7
 +            var selection = Create();
 +            var target = new FakeDeleteTarget { Removable = true };
 +            selection.AddBoxTargets(new List<IDeleteTarget> { target });
-+            selection.BeginDeselectStroke();
++            selection.BeginStroke(DeleteSelectionIntent.Remove);
 +            selection.TryRemoveStrokeTarget(target);
 +            Assert.IsFalse(selection.TryCancelSelection());
 +            Assert.AreEqual(1, target.ResetCount);
@@ -717,7 +727,7 @@ index 0000000..4f23915
 +    }
 +}
 diff --git a/moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DeleteSelection.cs b/moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DeleteSelection.cs
-index b069464..d8c95d5 100644
+index b069464..4d87931 100644
 --- a/moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DeleteSelection.cs
 +++ b/moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DeleteSelection.cs
 @@ -1,6 +1,6 @@
@@ -755,7 +765,7 @@ index b069464..d8c95d5 100644
          public int Count => _selectedTargets.Count;
          // 今赤くしているホバー対象（選択済みとは別管理）
          // The hovered target currently shown red (tracked apart from the selection)
-@@ -38,9 +33,8 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
+@@ -38,17 +33,17 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
          {
              _buildOperationHistory = buildOperationHistory;
              _restoreSender = restoreSender;
@@ -765,23 +775,20 @@ index b069464..d8c95d5 100644
 +            _selectedTargets = new DeleteSelectedTargetSet(resetRecovery);
              _deleteCompleted.Subscribe(_results.Receive);
          }
-         // ストローク開始: キャンセル解除とカテゴリー固定のリセットだけで、選択は消さない
-@@ -49,6 +43,14 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
+-        // ストローク開始: キャンセル解除とカテゴリー固定のリセットだけで、選択は消さない
+-        // Stroke start: only revives the stroke and resets the category fix; the selection survives
+-        public void BeginStroke()
++        // ストローク開始: キャンセル解除・カテゴリー固定のリセット・追加か除外かの固定だけで、選択は消さない
++        // Stroke start: revives the stroke, resets the category fix and fixes add/remove; the selection survives
++        public void BeginStroke(DeleteSelectionIntent intent)
          {
              _strokeCanceled = false;
              AimFilter = DeleteAimFilter.Frontmost;
-+            _strokeIntent = DeleteSelectionIntent.Add;
-+        }
-+        // Ctrl押下で始めたなぞりは通った選択済み対象を外す
-+        // A stroke started with Ctrl removes the selected targets it passes
-+        public void BeginDeselectStroke()
-+        {
-+            BeginStroke();
-+            _strokeIntent = DeleteSelectionIntent.Remove;
++            _strokeIntent = intent;
          }
          // 左ボタン解放: カテゴリー固定を最前面へ戻す（離した直後のホバーが別カテゴリーも拾えるように）
          // Button release: return the category fix to frontmost so the next hover can pick any category
-@@ -76,12 +78,23 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
+@@ -76,12 +71,26 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
              }
              return added;
          }
@@ -793,9 +800,12 @@ index b069464..d8c95d5 100644
 +            if (!AimFilter.IsCategoryRequired) AimFilter = DeleteAimFilter.Category(target.GetDestructionCategory());
 +            return true;
 +        }
-+        // 箱の対象のうち選択済みを外し、外した件数を返す
-+        // Remove the selected ones among box targets; returns how many were removed
-+        public int RemoveBoxTargets(IReadOnlyList<IDeleteTarget> targets) => _selectedTargets.RemoveAll(targets);
++        // 箱の対象を意図どおり足すか外し、変わった件数を返す（意図による分岐はここ1か所）
++        // Add or remove box targets per intent and return how many changed (the only intent branch for boxes)
++        public int ApplyBoxTargets(IReadOnlyList<IDeleteTarget> targets, DeleteSelectionIntent intent)
++        {
++            return intent == DeleteSelectionIntent.Remove ? _selectedTargets.RemoveAll(targets) : AddBoxTargets(targets);
++        }
          // ホバー替え: 旧ホバーが選択済みでなければ赤を戻し、新ホバーを赤にする（null で解除）
          // Hover swap: un-red the previous hover unless it is selected, then red the new one (null clears)
          public void SetHoverPreview(IDeleteTarget hovered)
@@ -806,7 +816,7 @@ index b069464..d8c95d5 100644
              else _hoverPreview.Hover(hovered);
          }
          public void CancelSelection()
-@@ -93,18 +106,14 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
+@@ -93,18 +102,14 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
          {
              // 戻し処理より先に論理状態と長押しsubjectを解除する
              // Clear logical state and the hold subject before any reset can throw
@@ -827,7 +837,7 @@ index b069464..d8c95d5 100644
              finally { _hoverPreview.Release(); }
          }
          public void CommitDelete()
-@@ -126,7 +135,10 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
+@@ -126,7 +131,10 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
          internal LocalizationKey? UpdateStroke(DeleteAimResult aim)
          {
              if (_strokeCanceled) return null; // silent-ok: 取消済みストローク / ESCで選択表示を解除済み
@@ -839,7 +849,16 @@ index b069464..d8c95d5 100644
          }
          internal DeleteHoldSubject UpdateHoverPreview(IDeleteTarget target, out LocalizationKey? reason)
          {
-@@ -168,29 +180,17 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
+@@ -141,7 +149,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
+             reason = null;
+             if (subject.Kind == DeleteHoldSubjectKind.Hovered)
+             {
+-                BeginStroke();
++                BeginStroke(DeleteSelectionIntent.Add);
+                 var outcome = TryAddTarget(_hoverTarget);
+                 if (!outcome.IsAdded)
+                 {
+@@ -168,29 +176,17 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
              return !_results.IsPending(target.GetDeleteTargetKey()) && target.IsRemovable(out reason);
          }
          public bool HasSelection() => 0 < _selectedTargets.Count;
@@ -850,7 +869,7 @@ index b069464..d8c95d5 100644
          {
              var key = target.GetDeleteTargetKey();
 -            if (_selectedTargets.ContainsKey(key) || !IsTargetSelectable(target, out _)) return false; // silent-ok: 選択済み/結果待ちの対象を重複送信しない / 選択赤と結果ツールチップで表示
-+            if (_selectedTargets.Contains(key) || !IsTargetSelectable(target, out _)) return false; // silent-ok: 選択済み/結果待ちの対象を重複送信しない / 選択赤と結果ツールチップで表示
++            if (IsSelected(target) || !IsTargetSelectable(target, out _)) return false; // silent-ok: 選択済み/結果待ちの対象を重複送信しない / 選択赤と結果ツールチップで表示
              // 同一論理対象への移譲前に旧ホバーを必ず手放す
              // Release the old hover before transferring ownership of the same logical target
              if (HoverPreview != null && ((HoverPreview is UnityEngine.Object view && view == null) || Equals(HoverPreview.GetDeleteTargetKey(), key))) _hoverPreview.Release();
@@ -875,22 +894,41 @@ index b069464..d8c95d5 100644
 
 注意: `ClearSelectionState` は「論理状態を先に空にしてから赤戻し」の順を保つ（`_selectedTargets.Clear()` が解除キューへ積み通知まで済ませ、`ReleasePreviews` が `DrainReleases` する）。`TryRemove` も通知を赤戻しより先に行う。
 
-- [ ] **Step 3: コンパイルしテストを実行する**
+- [ ] **Step 3: 既存の `BeginStroke()` 呼び出しを一括で新シグネチャにする**
 
-Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "DeleteSelection|DragDelete|RemoveOperationHistoryTest|CascadePreviewRedTest"`
-Expected: ErrorCount 0 / 全 PASS（既存の選択・プレビュー・回復テストが無変更で通ること）
-
-- [ ] **Step 4: コミットする**
+worktree ルートで次を実行する（`BeginStroke()` を `BeginStroke(DeleteSelectionIntent.Add)` に置き換え、名前空間の using を足す）:
 
 ```bash
-git add moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Selection moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DeleteSelection.cs moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDelete/Selection
-git commit -m "feat: 削除ツールの選択から外すなぞりと箱のAPIを足す"
+python3 - <<'PY'
+import pathlib
+using = "using Client.Game.InGame.UI.UIState.State.DragDelete.Selection;\n"
+paths = [p for p in pathlib.Path("moorestech_client/Assets/Scripts").rglob("*.cs") if "BeginStroke()" in p.read_text() and "public void BeginStroke" not in p.read_text()]
+for p in paths:
+    s = p.read_text().replace("BeginStroke()", "BeginStroke(DeleteSelectionIntent.Add)")
+    if using not in s: s = using + s
+    p.write_text(s)
+    print(p)
+PY
+```
+Expected: 13 個のテストファイルと `DeleteObjectService.cs` の計14ファイルが出力される。`grep -rn "BeginStroke()" moorestech_client/Assets/Scripts` が0件になる。
+
+- [ ] **Step 4: コンパイルしテストを実行する**
+
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "DeleteSelection|DragDelete|RemoveOperationHistoryTest|CascadePreviewRedTest|UIStateControlTest"`
+Expected: ErrorCount 0 / 全 PASS（既存の選択・プレビュー・回復テストが呼び出しの置換だけで通ること）
+
+- [ ] **Step 5: コミットする**
+
+```bash
+git add moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Selection moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DeleteSelection.cs moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DeleteObjectService.cs moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDelete/Selection moorestech_client/Assets/Scripts/Client.Tests/
+git commit -m "feat: 削除ツールの選択モデルに追加と除外の意図を入れる"
 ```
 
 ### Task 3: Ctrl の入力・箱の除外・キーヒント・ローカライズを配線する
 
 **Files:**
-- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DeleteObjectService.cs`（`HandleStrokeStart` の Ctrl 判定と using）
+- Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Box/DeleteBoxIntentView.cs`
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DeleteObjectService.cs`（Ctrl を1フレーム1回読み、箱となぞりへ渡す）
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Box/DeleteBoxSelection.cs`、`moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Box/DeleteBoxTargetResolver.cs`、`moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Box/DeleteBoxInput.cs`（177行）
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DeleteObjectState.cs`
 - Modify: `Localization/localization.csv`、`moorestech_web/webui/src/shared/i18n/generated/localizationKeys.ts`（再生成）
@@ -898,8 +936,8 @@ git commit -m "feat: 削除ツールの選択から外すなぞりと箱のAPI�
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDelete/DeleteBoxSelectionTest.cs`、`moorestech_client/Assets/Scripts/Client.Tests/UIState/UIStateKeyHintCatalogTest.cs`
 
 **Interfaces:**
-- Consumes: Task 2 の `DeleteSelectionIntent`・`DeleteSelectionModifierKey.ReadIntent()`・`BeginDeselectStroke()`・`RemoveBoxTargets(...)`・`IsSelected(...)`、Task 1 の `SelectionHoldSubject()`
-- Produces: `public void DeleteBoxSelection.SelectStart(Vector3Int cell, DeleteSelectionIntent intent)`／`public DeleteSelectionIntent DeleteBoxSelection.Intent { get; private set; }`／`internal IReadOnlyList<IDeleteTarget> DeleteBoxTargetResolver.Resolve(Vector3Int min, Vector3Int max, DeleteSelection selection, DeleteSelectionIntent intent)`／ローカライズキー `LocalizationKeys.Ui.KeyHint.Key.CtrlLeftDrag`・`LocalizationKeys.Ui.KeyHint.Text.DeselectDrag`・`LocalizationKeys.Ui.Tooltip.DeleteBoxSelectedInRange`・`LocalizationKeys.Ui.Tooltip.DeleteBoxNoSelectedInRange`／除外の箱の GameObject 名接頭辞 `DeleteDeselectBox`（`DeleteDeselectBoxRangeBox` 等。録画が参照）
+- Consumes: Task 2 の `DeleteSelectionIntent`・`DeleteSelectionModifierKey.ReadIntent()`・`BeginStroke(DeleteSelectionIntent)`・`ApplyBoxTargets(...)`・`IsSelected(...)`、Task 1 の `SelectionHoldSubject()`
+- Produces: `public void DeleteBoxSelection.SelectStart(Vector3Int cell, DeleteSelectionIntent intent)`／`public DeleteSelectionIntent DeleteBoxSelection.Intent { get; private set; }`／`internal IReadOnlyList<IDeleteTarget> DeleteBoxTargetResolver.Resolve(Vector3Int min, Vector3Int max, DeleteSelection selection, DeleteSelectionIntent intent)`（撤去可能な対象。Remove のときはそのうち選択済みだけ）／`internal void DeleteBoxInput.Update(DeleteSelection deleteSelection, List<TooltipLine> tooltipLines, bool isPointerOverUi, DeleteSelectionIntent heldIntent)`／`internal sealed class DeleteBoxIntentView`（`CreateAdd()`・`CreateRemove()`・`CountKey`・`EmptyRangeKey`・`TargetLabelForLog`・`GetVisualizer()`・`Hide()`）／ローカライズキー `LocalizationKeys.Ui.KeyHint.Key.CtrlLeftDrag`・`LocalizationKeys.Ui.KeyHint.Text.DeselectDrag`・`LocalizationKeys.Ui.Tooltip.DeleteBoxSelectedInRange`・`LocalizationKeys.Ui.Tooltip.DeleteBoxNoSelectedInRange`／除外の箱の GameObject 名接頭辞 `DeleteDeselectBox`（`DeleteDeselectBoxRangeBox` 等。録画が参照）
 
 - [ ] **Step 1: ローカライズ行を足して再生成する**
 
@@ -1003,9 +1041,56 @@ index 06a9ee8..bbf0d32 100644
              Assert.AreEqual(2, ResearchTreeStateHints.Hints.Count);
 ```
 
-- [ ] **Step 3: 実装を書く（箱の意図・解決の切替・入力・サービス・キーヒント）**
+- [ ] **Step 3: 実装を書く（箱の意図・解決・表示一式・入力・サービス・キーヒント）**
 
 ```diff
+diff --git a/moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Box/DeleteBoxIntentView.cs b/moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Box/DeleteBoxIntentView.cs
+new file mode 100644
+index 0000000..fb8d171
+--- /dev/null
++++ b/moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Box/DeleteBoxIntentView.cs
+@@ -0,0 +1,41 @@
++using Client.Common;
++using Client.Game.InGame.BlockSystem.PlaceSystem.Common.RangeBox;
++using Mooresmaster.Localization.Generated;
++using UnityEngine;
++
++namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
++{
++    /// <summary>
++    ///     箱の意図（追加／除外）ごとの表示一式。件数と0件理由の文言キー、ログ上の対象名、範囲の色と可視化オブジェクトを持つ
++    ///     Per-intent (add / remove) box presentation: count and empty-range text keys, the target label for logs, the range color and its visualizer
++    /// </summary>
++    internal sealed class DeleteBoxIntentView
++    {
++        internal static DeleteBoxIntentView CreateAdd() => new("DeleteBox", MaterialConst.NotPlaceableColor, LocalizationKeys.Ui.Tooltip.DeleteBoxTargetsInRange, LocalizationKeys.Ui.Tooltip.DeleteBoxEmptyRange, "removable");
++        // 除外の箱は追加の赤と見分けるため設置可の青で描く
++        // A remove box is drawn in the placeable blue to tell it from the red add box
++        internal static DeleteBoxIntentView CreateRemove() => new("DeleteDeselectBox", MaterialConst.PlaceableColor, LocalizationKeys.Ui.Tooltip.DeleteBoxSelectedInRange, LocalizationKeys.Ui.Tooltip.DeleteBoxNoSelectedInRange, "selected");
++
++        internal LocalizationKey CountKey { get; }
++        internal LocalizationKey EmptyRangeKey { get; }
++        internal string TargetLabelForLog { get; }
++        private readonly string _objectNamePrefix;
++        private readonly Color _rangeColor;
++        private CellRangeBoxVisualizer _visualizer;
++
++        private DeleteBoxIntentView(string objectNamePrefix, Color rangeColor, LocalizationKey countKey, LocalizationKey emptyRangeKey, string targetLabelForLog)
++        {
++            _objectNamePrefix = objectNamePrefix;
++            _rangeColor = rangeColor;
++            CountKey = countKey;
++            EmptyRangeKey = emptyRangeKey;
++            TargetLabelForLog = targetLabelForLog;
++        }
++
++        // 実際に表示するときだけ可視化オブジェクトを作る
++        // Create the visualizer only when something is actually shown
++        internal CellRangeBoxVisualizer GetVisualizer() => _visualizer ??= new CellRangeBoxVisualizer(_objectNamePrefix, _rangeColor);
++
++        internal void Hide() => _visualizer?.HideAll();
++    }
++}
 diff --git a/moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Box/DeleteBoxSelection.cs b/moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Box/DeleteBoxSelection.cs
 index 823647f..f0f318e 100644
 --- a/moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Box/DeleteBoxSelection.cs
@@ -1043,7 +1128,7 @@ index 823647f..f0f318e 100644
              EndCell = cell;
              Phase = DeleteBoxPhase.SelectingEnd;
 diff --git a/moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Box/DeleteBoxTargetResolver.cs b/moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Box/DeleteBoxTargetResolver.cs
-index 2d26679..d9e6047 100644
+index 2d26679..6bdda7c 100644
 --- a/moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Box/DeleteBoxTargetResolver.cs
 +++ b/moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Box/DeleteBoxTargetResolver.cs
 @@ -5,13 +5,14 @@ using Client.Game.InGame.Train.RailGraph;
@@ -1058,8 +1143,8 @@ index 2d26679..d9e6047 100644
      /// <summary>
 -    ///     AABBに入る撤去可能な削除対象（ブロック・レール edge・列車車両）の列を返す1本の問い合わせ。撤去不可は件数と理由をログして除く。接続線は端点ブロックの撤去に巻き込まれるので含めない
 -    ///     One query returning the removable delete targets (blocks, rail edges, train cars) inside an AABB; non-removable ones are logged and dropped, connection lines ride on their endpoint blocks
-+    ///     AABBに入る削除対象（ブロック・レール edge・列車車両）の列を返す1本の問い合わせ。追加の箱は撤去可能なものだけ（撤去不可は理由をログして除く）、除外の箱は選択済みのものだけを返す。接続線は端点ブロックの撤去に巻き込まれるので含めない
-+    ///     One query returning delete targets (blocks, rail edges, train cars) inside an AABB: an add box returns only removable ones (logging why others are dropped), a remove box only selected ones; connection lines ride on their endpoint blocks
++    ///     AABBに入る撤去可能な削除対象（ブロック・レール edge・列車車両）の列を返す1本の問い合わせ。撤去不可は件数と理由をログして除き、除外の箱はそのうち選択済みだけを返す。接続線は端点ブロックの撤去に巻き込まれるので含めない
++    ///     One query returning the removable delete targets (blocks, rail edges, train cars) inside an AABB; non-removable ones are logged and dropped, a remove box keeps only the selected ones, connection lines ride on their endpoint blocks
      /// </summary>
      public class DeleteBoxTargetResolver
      {
@@ -1090,7 +1175,7 @@ index 2d26679..d9e6047 100644
                  }
              }
  
-@@ -86,14 +87,19 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
+@@ -86,17 +87,17 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
                          LogWarningOnce($"[DeleteBox] train car has no TrainCarEntityChildrenObject: {car.TrainCarInstanceId}");
                          continue;
                      }
@@ -1102,23 +1187,27 @@ index 2d26679..d9e6047 100644
 -            // 撤去不可は理由をログして除く（表示件数・0件拒否・追加が同じ列を使う）
 -            // Drop non-removable targets with their reason logged so count, empty-check and add share one list
 -            void AddIfRemovable(IDeleteTarget target)
-+            // 除外は選択済みだけ、追加は撤去可能だけを拾う（表示件数・0件拒否・反映が同じ列を使う）
-+            // Removal keeps selected targets, addition keeps removable ones, so count, empty-check and apply share one list
++            // 撤去不可は理由をログして除き、除外の箱はさらに選択済みだけに絞る（表示件数・0件拒否・反映が同じ列を使う）
++            // Drop non-removable targets with their reason logged and keep only selected ones for a remove box, so count, empty-check and apply share one list
 +            void AddIfMatchesIntent(IDeleteTarget target)
              {
-+                if (intent == DeleteSelectionIntent.Remove)
-+                {
-+                    if (selection.IsSelected(target)) targets.Add(target);
-+                    return; // silent-ok: 未選択は外す物が無い / 範囲内の選択済み件数のツールチップで見える
-+                }
                  if (selection.IsTargetSelectable(target, out var denyReason))
                  {
-                     targets.Add(target);
+-                    targets.Add(target);
++                    if (intent == DeleteSelectionIntent.Add || selection.IsSelected(target)) targets.Add(target); // silent-ok: 除外の箱で未選択は外す物が無い / 範囲内の選択済み件数のツールチップで見える
+                     return;
+                 }
+                 var diagnostic = $"[DeleteBox] skipped non-removable target key={target.GetDeleteTargetKey()} reason={denyReason?.Key ?? "(none)"}";
 diff --git a/moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Box/DeleteBoxInput.cs b/moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Box/DeleteBoxInput.cs
-index d9832a2..66ee4a1 100644
+index d9832a2..7736385 100644
 --- a/moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Box/DeleteBoxInput.cs
 +++ b/moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Box/DeleteBoxInput.cs
-@@ -6,6 +6,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Common.RangeBox;
+@@ -1,11 +1,11 @@
+ using System.Collections.Generic;
+-using Client.Common;
+ using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
+ using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Height;
+ using Client.Game.InGame.BlockSystem.PlaceSystem.Common.RangeBox;
  using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
  using Client.Game.InGame.Control;
  using Client.Game.InGame.UI.Tooltip;
@@ -1126,39 +1215,50 @@ index d9832a2..66ee4a1 100644
  using Client.Input;
  using Mooresmaster.Localization.Generated;
  using UnityEngine;
-@@ -20,8 +21,8 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
+@@ -20,8 +20,8 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
      }
  
      /// <summary>
 -    ///     Shift+左クリックで始点、次の左クリックで終点を取る箱選択の入力・セル解決・可視化。終点確定時に選択へ直接足す。高さは設置モードと共用のオフセット
 -    ///     Box-selection input (Shift+click start, click end), cell resolution and visuals; adds to the selection directly on end confirm. Height shares the placement offset
-+    ///     Shift+左クリックで始点、次の左クリックで終点を取る箱選択の入力・セル解決・可視化。終点確定時に選択へ直接足す（始点押下で Ctrl なら選択から外す）。高さは設置モードと共用のオフセット
-+    ///     Box-selection input (Shift+click start, click end), cell resolution and visuals; adds to the selection on end confirm (removes when Ctrl was held at the start press). Height shares the placement offset
++    ///     Shift+左クリックで始点、次の左クリックで終点を取る箱選択の入力・セル解決・可視化。終点確定時に選択へ直接反映する（始点押下で Ctrl なら選択から外す）。高さは設置モードと共用のオフセット
++    ///     Box-selection input (Shift+click start, click end), cell resolution and visuals; applies to the selection on end confirm (removes when Ctrl was held at the start press). Height shares the placement offset
      /// </summary>
      public class DeleteBoxInput
      {
-@@ -29,8 +30,10 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
+@@ -29,8 +29,10 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
          private readonly DeleteBoxTargetResolver _resolver;
          private readonly PlacementHeightOffset _heightOffset;
          private readonly DeleteBoxSelection _selection = new();
 -        private CellRangeBoxVisualizer _visualizer;
-+        private CellRangeBoxVisualizer _addVisualizer;
-+        private CellRangeBoxVisualizer _removeVisualizer;
++        private readonly DeleteBoxIntentView _addView = DeleteBoxIntentView.CreateAdd();
++        private readonly DeleteBoxIntentView _removeView = DeleteBoxIntentView.CreateRemove();
          private bool _isPressRegistered;
 +        private DeleteSelectionIntent _pressIntent = DeleteSelectionIntent.Add;
  
          private bool IsSelectingEnd => _selection.Phase == DeleteBoxPhase.SelectingEnd;
  
-@@ -60,7 +63,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
+@@ -48,7 +50,9 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
+             return IsSelectingEnd || HybridInput.GetKey(KeyCode.LeftShift);
+         }
+ 
+-        internal void Update(DeleteSelection deleteSelection, List<TooltipLine> tooltipLines, bool isPointerOverUi)
++        // heldIntent は呼び出し側がこのフレームに1回読んだ Ctrl の意図
++        // heldIntent is the Ctrl intent the caller read once this frame
++        internal void Update(DeleteSelection deleteSelection, List<TooltipLine> tooltipLines, bool isPointerOverUi, DeleteSelectionIntent heldIntent)
+         {
+             PlacementHeightKeyInput.Apply(_heightOffset);
+             var isShiftHeld = HybridInput.GetKey(KeyCode.LeftShift);
+@@ -60,7 +64,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
              if (!hasCursorCell)
              {
                  if (isClicked) Debug.Log("[DeleteBox] click refused: cursor has no placement surface");
 -                if (!IsSelectingEnd) { _visualizer?.HideAll(); return; } // silent-ok: 始点未選択で指す面なし / 始点表示を隠して未選択を示す
-+                if (!IsSelectingEnd) { HideVisualizers(); return; } // silent-ok: 始点未選択で指す面なし / 始点表示を隠して未選択を示す
++                if (!IsSelectingEnd) { HideViewsExcept(null); return; } // silent-ok: 始点未選択で指す面なし / 始点表示を隠して未選択を示す
                  tooltipLines.Add(new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceGroundNotFound));
                  isClicked = false;
              }
-@@ -75,7 +78,13 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
+@@ -75,7 +79,13 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
              // Fold a press the box owns (ClaimsLeftPress) and a release outside UI into one click; a release over UI is dropped with a reason
              DeleteBoxClick ConsumeClick()
              {
@@ -1168,19 +1268,17 @@ index d9832a2..66ee4a1 100644
 +                if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !isPointerOverUi && ClaimsLeftPress())
 +                {
 +                    _isPressRegistered = true;
-+                    _pressIntent = DeleteSelectionModifierKey.ReadIntent();
++                    _pressIntent = heldIntent;
 +                }
                  if (!InputManager.Playable.ScreenLeftClick.GetKeyUp || !_isPressRegistered) return DeleteBoxClick.None;
                  _isPressRegistered = false;
                  return isPointerOverUi ? DeleteBoxClick.ReleasedOverUi : DeleteBoxClick.Confirmed;
-@@ -85,11 +94,11 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
-             {
+@@ -86,10 +96,10 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
                  // Shift中だけ始点候補を表示
                  // Show the start candidate only while Shift is held
--                if (isShiftHeld) ShowStart(cursorCell);
+                 if (isShiftHeld) ShowStart(cursorCell);
 -                else _visualizer?.HideAll();
-+                if (isShiftHeld) ShowStart(cursorCell, DeleteSelectionModifierKey.ReadIntent());
-+                else HideVisualizers();
++                else HideViewsExcept(null);
                  if (isClicked)
                  {
 -                    _selection.SelectStart(cursorCell);
@@ -1188,7 +1286,7 @@ index d9832a2..66ee4a1 100644
                      isClicked = false;
                      UpdateSelectingEnd();
                  }
-@@ -98,34 +107,41 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
+@@ -98,34 +108,34 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
              void UpdateSelectingEnd()
              {
                  var (min, max) = CellRangeBox.Calc(_selection.StartCell, _selection.EndCell);
@@ -1197,12 +1295,12 @@ index d9832a2..66ee4a1 100644
 -                if (targets.Count == 0) tooltipLines.Add(new TooltipLine(LocalizationKeys.Ui.Tooltip.DeleteBoxEmptyRange));
 -                GetVisualizer().ShowSelectingEnd(_selection.StartCell, _selection.EndCell, min, max);
 +                var intent = _selection.Intent;
-+                var isRemoving = intent == DeleteSelectionIntent.Remove;
++                var view = ViewFor(intent);
 +                var targets = _resolver.Resolve(min, max, deleteSelection, intent);
-+                var countKey = isRemoving ? LocalizationKeys.Ui.Tooltip.DeleteBoxSelectedInRange : LocalizationKeys.Ui.Tooltip.DeleteBoxTargetsInRange;
-+                tooltipLines.Add(new TooltipLine(countKey, new[] { targets.Count.ToString() }));
-+                if (targets.Count == 0) tooltipLines.Add(new TooltipLine(isRemoving ? LocalizationKeys.Ui.Tooltip.DeleteBoxNoSelectedInRange : LocalizationKeys.Ui.Tooltip.DeleteBoxEmptyRange));
-+                GetVisualizer(intent).ShowSelectingEnd(_selection.StartCell, _selection.EndCell, min, max);
++                tooltipLines.Add(new TooltipLine(view.CountKey, new[] { targets.Count.ToString() }));
++                if (targets.Count == 0) tooltipLines.Add(new TooltipLine(view.EmptyRangeKey));
++                HideViewsExcept(view);
++                view.GetVisualizer().ShowSelectingEnd(_selection.StartCell, _selection.EndCell, min, max);
                  if (!isClicked) return;
  
                  // 空範囲拒否を表示とログへ記録
@@ -1210,56 +1308,57 @@ index d9832a2..66ee4a1 100644
                  if (targets.Count == 0)
                  {
 -                    Debug.Log($"[DeleteBox] end click refused: no removable targets in {min}-{max}");
-+                    Debug.Log($"[DeleteBox] end click refused: no {(isRemoving ? "selected" : "removable")} targets in {min}-{max}");
++                    Debug.Log($"[DeleteBox] end click refused: no {view.TargetLabelForLog} targets in {min}-{max}");
                      return;
                  }
 -                var added = deleteSelection.AddBoxTargets(targets);
 -                Debug.Log($"[DeleteBox] added={added} of {targets.Count} selected={deleteSelection.Count}");
-+                var changed = isRemoving ? deleteSelection.RemoveBoxTargets(targets) : deleteSelection.AddBoxTargets(targets);
++                var changed = deleteSelection.ApplyBoxTargets(targets, intent);
 +                Debug.Log($"[DeleteBox] {intent} changed={changed} of {targets.Count} selected={deleteSelection.Count}");
                  Clear();
              }
  
 -            // 始点を実際に表示するときだけ可視化オブジェクトを作る
 -            // Create the visualizer only when the start marker is actually shown
--            void ShowStart(Vector3Int cell)
-+            // 始点を実際に表示するときだけ可視化オブジェクトを作り、もう一方の意図の表示は隠す
-+            // Create the visualizer only when the start marker is shown, hiding the other intent's visuals
-+            void ShowStart(Vector3Int cell, DeleteSelectionIntent intent)
++            // 押す前の始点表示は今押している Ctrl の意図で描く
++            // Before the press, the start marker follows the Ctrl intent currently held
+             void ShowStart(Vector3Int cell)
              {
 -                GetVisualizer().ShowSelectingStart(cell);
-+                (intent == DeleteSelectionIntent.Remove ? _addVisualizer : _removeVisualizer)?.HideAll();
-+                GetVisualizer(intent).ShowSelectingStart(cell);
-             }
- 
+-            }
+-
 -            CellRangeBoxVisualizer GetVisualizer()
-+            // 除外の箱は追加の赤と見分けるため設置可の青で描く
-+            // A remove box is drawn in the placeable blue to tell it from the red add box
-+            CellRangeBoxVisualizer GetVisualizer(DeleteSelectionIntent intent)
-             {
+-            {
 -                return _visualizer ??= new CellRangeBoxVisualizer("DeleteBox", MaterialConst.NotPlaceableColor);
-+                if (intent == DeleteSelectionIntent.Remove) return _removeVisualizer ??= new CellRangeBoxVisualizer("DeleteDeselectBox", MaterialConst.PlaceableColor);
-+                return _addVisualizer ??= new CellRangeBoxVisualizer("DeleteBox", MaterialConst.NotPlaceableColor);
++                var view = ViewFor(heldIntent);
++                HideViewsExcept(view);
++                view.GetVisualizer().ShowSelectingStart(cell);
              }
  
              #endregion
-@@ -149,7 +165,13 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
+@@ -149,7 +159,19 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
              _resolver.ClearDiagnostics();
              _heightOffset.ResetToGround();
              _isPressRegistered = false;
 -            _visualizer?.HideAll();
-+            HideVisualizers();
++            HideViewsExcept(null);
 +        }
 +
-+        private void HideVisualizers()
++        // 意図による表示の選び分けはここ1か所
++        // The only place that picks presentation by intent
++        private DeleteBoxIntentView ViewFor(DeleteSelectionIntent intent) => intent == DeleteSelectionIntent.Remove ? _removeView : _addView;
++
++        // 指定以外の意図の表示を隠す（null で両方）
++        // Hide every intent's visuals except the given one (null hides both)
++        private void HideViewsExcept(DeleteBoxIntentView kept)
 +        {
-+            _addVisualizer?.HideAll();
-+            _removeVisualizer?.HideAll();
++            if (!ReferenceEquals(_addView, kept)) _addView.Hide();
++            if (!ReferenceEquals(_removeView, kept)) _removeView.Hide();
          }
      }
  }
 diff --git a/moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DeleteObjectService.cs b/moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DeleteObjectService.cs
-index 6b0eaf8..212d5ee 100644
+index 6b0eaf8..e253aba 100644
 --- a/moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DeleteObjectService.cs
 +++ b/moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DeleteObjectService.cs
 @@ -9,6 +9,7 @@ using Client.Game.InGame.UI.ProgressBar;
@@ -1279,19 +1378,35 @@ index 6b0eaf8..212d5ee 100644
          }
  
          public void Update(float deltaTime, bool isPointerOverUi)
-@@ -89,7 +90,10 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
+@@ -54,9 +55,13 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
+             var aim = DeleteTargetRaycaster.AimAt(_selection.AimFilter);
+             var hovered = aim.Target;
+ 
+-            // 箱は終点確定のフレームに選択へ直接足す
+-            // The box adds to the selection itself on the frame the end point is confirmed
+-            _box.Update(_selection, _lines, isPointerOverUi);
++            // Ctrl の意図はこのフレームに1回だけ読み、箱となぞりで共有する
++            // Read the Ctrl intent once this frame and share it between the box and the stroke
++            var heldIntent = DeleteSelectionModifierKey.ReadIntent();
++
++            // 箱は終点確定のフレームに選択へ直接反映する
++            // The box applies to the selection itself on the frame the end point is confirmed
++            _box.Update(_selection, _lines, isPointerOverUi, heldIntent);
+ 
+             HandleStrokeStart();
+             if (_isStroking) AddDenyLine(_selection.UpdateStroke(aim));
+@@ -89,7 +94,9 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
                  // ホバーの赤は選択側が引き継ぐ（追加時に再び赤になる）
                  // The selection takes over the hover red (adding re-reds it)
                  _selection.SetHoverPreview(null);
 -                _selection.BeginStroke();
 +                // 押下の瞬間の Ctrl で追加か除外かを決める
 +                // Ctrl at the press decides whether the stroke adds or removes
-+                if (DeleteSelectionModifierKey.ReadIntent() == DeleteSelectionIntent.Remove) _selection.BeginDeselectStroke();
-+                else _selection.BeginStroke();
++                _selection.BeginStroke(heldIntent);
                  _isStroking = true;
              }
  
-@@ -104,7 +108,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
+@@ -104,7 +111,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
              void UpdateHoldConfirm()
              {
                  if (!_hold.Advance(InputManager.Playable.Interact.GetKey, deltaTime)) return;
@@ -1300,7 +1415,7 @@ index 6b0eaf8..212d5ee 100644
                  _isStroking = false;
                  if (!_selection.TryCommit(confirmedSubject, out var reason)) AddDenyLine(reason);
              }
-@@ -118,6 +122,10 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
+@@ -118,6 +125,10 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
              #endregion
          }
  
@@ -1325,7 +1440,7 @@ index d0bab8d..fd5f9b9 100644
              new KeyHint(LocalizationKeys.Ui.KeyHint.Key.E, LocalizationKeys.Ui.KeyHint.Text.RaiseBoxHeight),
 ```
 
-`DeleteObjectService.cs` のパッチは Task 1 Step 3 の差分を含む。Task 1 で手で当てた場合は `SelectionHoldSubject` の重複を避け、using と `HandleStrokeStart` の差分だけを当てる。
+`DeleteObjectService.cs` のパッチは plan 作成時点の HEAD からの全差分（Task 1 Step 3・Task 2 Step 3 の分を含む）。Task 1・2 で入れた分は除き、`heldIntent` を1回読んで `_box.Update(..., heldIntent)` と `_selection.BeginStroke(heldIntent)` に渡す差分だけを当てる。
 
 - [ ] **Step 4: ADR 0032 の表を更新する**
 
@@ -1337,7 +1452,7 @@ index d0bab8d..fd5f9b9 100644
 
 - [ ] **Step 5: コンパイルしテストを実行する**
 
-Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "DeleteBox|DeleteSelection|DragDelete|DeleteHold|UIStateKeyHintCatalogTest|RightShortPressTransitionTest|UIStateFocusRestorationTest"`
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "DeleteBox|DeleteSelection|DragDelete|DeleteHold|UIStateKeyHintCatalogTest|RightShortPressTransitionTest|UIStateFocusRestorationTest|UIStateControlTest"`
 Expected: ErrorCount 0 / 全 PASS
 
 - [ ] **Step 6: コミットする**
@@ -1498,15 +1613,21 @@ git commit -m "test: 削除ツールのCtrl除外とF長押し段階の録画シ
 
 ### Task 6: PR 作成
 
-- [ ] セッション終了可能状態にすること: pr-createスキルでPRを作成し、masterとのコンフリクトがあればmasterをマージして解消・コンパイル確認のうえpushする（解消の実作業はpr-create経由でopus subagentに委譲される）。全作業がコミット・push済みで、このセッションをそのまま閉じてもPRがマージ可能な状態になっていることを確認して終える。PR本文に ADR 0084・録画のスクショ/動画パスを載せる。PR を出したら worktree は `moores-wt rm delete-hold-steps-and-ctrl-deselect` で畳む。
+- [ ] セッション終了可能状態にすること: pr-createスキルでPRを作成し、masterとのコンフリクトがあればmasterをマージして解消・コンパイル確認のうえpushする（解消の実作業はpr-create経由でopus subagentに委譲される）。全作業がコミット・push済みで、このセッションをそのまま閉じてもPRがマージ可能な状態になっていることを確認して終える。PR本文に ADR 0084・録画のスクショ/動画パスと「本PR外のリファクタ提案」節（下記）を載せる。PR を出したら worktree は `moores-wt rm delete-hold-steps-and-ctrl-deselect` で畳む。
+
+## 本PR外のリファクタ提案
+
+- 既存側 `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Undo/BuildUndoService.cs:36`（`HybridInput.GetKey(KeyCode.LeftControl) || HybridInput.GetKey(KeyCode.LeftCommand)`）／新設側 `DragDelete/Selection/DeleteSelectionModifierKey.ReadIntent()`／同じ Ctrl・Command の修飾キー判定。共通の入力ヘルパーへ寄せるかは人間が決める（plan のタスクには入れない）。
 
 ## 判断記録（ADR）
 
-- 設計 ADR: `docs/adr/0084-delete-tool-hold-time-steps-by-count-and-ctrl-deselect.md`（ADR 0079 の「件数に関係なく2秒」「個別除外なし」を覆す）。裁定: `.decisions/2026-10-19-削除ツールのF長押しは件数で0.75秒1.25秒1.75秒の3段にする.md`、`.decisions/2026-10-19-削除ツールの候補はCtrl押下中のなぞりと箱で外す.md`。
-- 件数は `DeleteHoldSubject` に載せてプッシュする（`DeleteHoldConfirm` に `SetTargetCount` を別に生やさない）。理由: 件数が変わるのは選択が変わるときだけで、その瞬間に subject は既に作り直されている。同じ選択版は同じ件数なので等値判定に件数を含めても同一性は変わらない。出所: agent前提（ADR 0079 の「選択変更は UniRx で長押しへ通知」に乗る）。
-- `DeleteSelection` は 197 行で除外を足すと 200 行を超えるため、内部集合（Dictionary・設置演出の赤復元購読・赤戻し待ちキュー・Revision 通知）を `DeleteSelectedTargetSet` へ切り出した。公開 API（`Revision`・`OnSelectionChanged`・`Count`・`HasSelection`）の外形は変えず、既存テストは無変更。出所: agent前提（200行規約）。
-- 除外の意図は選択モデル側（`BeginDeselectStroke`）に持たせ、サービスは Ctrl を読んで呼び分けるだけ。出所: agent前提（ADR 0079「選択モデルがストロークを所有」）。
-- 箱の除外は撤去可否を問わず「選択済み」だけを拾う（選択後に撤去不可になった対象も外せるように）。出所: agent前提。
-- 除外の箱は `MaterialConst.PlaceableColor`（青）で描き、GameObject 名接頭辞を `DeleteDeselectBox` にする。始点マーカーは既存どおり赤。出所: agent前提（追加の赤と見分ける最小の手段）。
-- Ctrl 単独押下中のツールチップ案内・除外の箱専用キーヒントは足さない（ADR 0084 の「キーヒントは Ctrl+左ドラッグ 1件」）。出所: agent前提。
+- 設計 ADR: `docs/adr/0084-delete-tool-hold-time-steps-by-count-and-ctrl-deselect.md`（ADR 0079 の「件数に関係なく2秒」「個別除外なし」を覆す）。裁定: `.decisions/2026-10-19-削除ツールのF長押しは件数で0.75秒1.25秒1.75秒の3段にする.md`、`.decisions/2026-10-19-削除ツールの候補はCtrl押下中のなぞりと箱で外す.md`、`.decisions/2026-10-19-削除ツールの除外の箱は撤去可能な選択済みだけを外す.md`。
+- 件数は `DeleteHoldSubject` に載せてプッシュする（`DeleteHoldConfirm` に `SetTargetCount` を別に生やさない）。件数が変わるのは選択が変わるときだけで、その瞬間に subject は既に作り直されている。出所: agent前提（ADR 0079 の「選択変更は UniRx で長押しへ通知」に乗る）。
+- `DeleteHoldSubject.TargetCount` は判別子つき struct のまま置き、None は 0（`Advance` が None で満了時間を引く前に抜けるので読まれない）。種類別の型に分けない。出所: シミュレーター予測・確信高（前提宣言として提示 2026-10-19。拒否権つき）。
+- 意図による分岐は選択モデルの入口に集める: なぞりは `BeginStroke(DeleteSelectionIntent)`（旧 `BeginStroke()` を廃し既存テスト 13 ファイルを一括置換）、箱は `ApplyBoxTargets(targets, intent)`。サービスと箱入力は意図を渡すだけ。出所: agent前提（配置検査の違反是正。ADR 0079「選択モデルがストロークを所有」・AGENTS.md「同種の条件分岐は一箇所へ」）。
+- 除外の箱は追加の箱と同じ解決（撤去可能）のうち選択済みだけを外す。出所: ユーザー裁定 2026-10-19 選択「撤去できる物だけ外す」。
+- 型閉包検査の弱い指摘は ①Ctrl を1フレーム1回だけ読む（サービスが読み、箱へ `heldIntent` で渡す）②箱の意図ごとの表示を `DeleteBoxIntentView` にまとめ、選び分けを `DeleteBoxInput.ViewFor` 1か所にする ④`Add` 内の `Contains` を `IsSelected` に寄せる、を直す。③（長押し対象の式2回）⑤（外すなぞりの失敗理由が bool）は据え置く。出所: ユーザー裁定 2026-10-19 選択「①②④を直す」。
+- `DeleteSelection` は 197 行で除外を足すと 200 行を超えるため、内部集合（Dictionary・設置演出の赤復元購読・赤戻し待ちキュー・Revision 通知）を `DeleteSelectedTargetSet` へ切り出した。出所: agent前提（200行規約）。
+- 除外の箱は `MaterialConst.PlaceableColor`（青）、GameObject 名接頭辞 `DeleteDeselectBox`。始点マーカーは既存どおり赤。出所: agent前提（追加の赤と見分ける最小の手段）。
+- Ctrl 単独押下中のツールチップ案内・除外の箱専用キーヒントは足さない（ADR 0084「キーヒントは Ctrl+左ドラッグ 1件」）。出所: agent前提。
 - ランタイム挙動（入力・UI）に触れるため unityプレイ録画テスト（Task 4）を含める。
