@@ -1,3 +1,4 @@
+using Client.Game.InGame.UI.UIState.State.DragDelete.Selection;
 using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.UI.UIState.State.DragDelete;
@@ -65,7 +66,7 @@ namespace Client.Tests.UIState
         {
             var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             var broken = new FakeDeleteTarget { Removable = true, ThrowOnReset = true };
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             Assert.IsTrue(selection.TryAddTarget(broken).IsAdded);
 
             // 例外が出ても選択は空になり、2回目のキャンセルは触れない
@@ -82,7 +83,7 @@ namespace Client.Tests.UIState
         {
             var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             var broken = new FakeDeleteTarget { Removable = true, ThrowOnReset = true };
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             Assert.IsTrue(selection.TryAddTarget(broken).IsAdded);
 
             // 確定で例外が出ても選択は空になり、再確定で二重送信しない
@@ -102,7 +103,7 @@ namespace Client.Tests.UIState
             var tool = Guid.NewGuid();
             var targets = new[] { new FakeDeleteTarget { Removable = true }, new FakeDeleteTarget { Removable = true } };
             targets[failingIndex].ThrowOnReset = true;
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
 
             // 各対象に別の復元可能な線を記録する
             // Give each target a distinct restorable connection

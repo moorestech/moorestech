@@ -1,3 +1,4 @@
+using Client.Game.InGame.UI.UIState.State.DragDelete.Selection;
 using Client.Tests.BuildUndo;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.UI.UIState.State.DragDelete;
@@ -20,7 +21,7 @@ namespace Client.Tests.UIState
             var first = new FakeDeleteTarget { Removable = true, Category = "default" };
             var second = new FakeDeleteTarget { Removable = true, Category = "default" };
 
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             Assert.IsTrue(selection.TryAddTarget(first).IsAdded);
             Assert.IsTrue(selection.TryAddTarget(second).IsAdded);
             selection.CommitDelete();
@@ -38,7 +39,7 @@ namespace Client.Tests.UIState
             var start = new FakeDeleteTarget { Removable = true, Category = "default" };
             var foundation = new FakeDeleteTarget { Removable = true, Category = "foundation" };
 
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             Assert.IsTrue(selection.TryAddTarget(start).IsAdded);
             var outcome = selection.TryAddTarget(foundation);
             Assert.IsFalse(outcome.IsAdded);
@@ -61,7 +62,7 @@ namespace Client.Tests.UIState
             var foundationB = new FakeDeleteTarget { Removable = true, Category = "foundation" };
             var defaultTarget = new FakeDeleteTarget { Removable = true, Category = "default" };
 
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             Assert.IsTrue(selection.TryAddTarget(foundationA).IsAdded);
             Assert.IsTrue(selection.TryAddTarget(foundationB).IsAdded);
             Assert.IsFalse(selection.TryAddTarget(defaultTarget).IsAdded);
@@ -79,12 +80,12 @@ namespace Client.Tests.UIState
             var foundation = new FakeDeleteTarget { Removable = true, Category = "foundation" };
             var defaultTarget = new FakeDeleteTarget { Removable = true, Category = "default" };
 
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             Assert.IsTrue(selection.TryAddTarget(foundation).IsAdded);
             selection.CommitDelete();
             Assert.IsFalse(selection.AimFilter.IsCategoryRequired);
 
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             Assert.IsTrue(selection.TryAddTarget(defaultTarget).IsAdded);
             selection.CommitDelete();
 
@@ -98,12 +99,12 @@ namespace Client.Tests.UIState
             var foundation = new FakeDeleteTarget { Removable = true, Category = "foundation" };
             var defaultTarget = new FakeDeleteTarget { Removable = true, Category = "default" };
 
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             Assert.IsTrue(selection.TryAddTarget(foundation).IsAdded);
             selection.CancelSelection();
             Assert.IsFalse(selection.AimFilter.IsCategoryRequired);
 
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             Assert.IsTrue(selection.TryAddTarget(defaultTarget).IsAdded);
             selection.CommitDelete();
 
@@ -114,7 +115,7 @@ namespace Client.Tests.UIState
         public void AimFilterIsFixedByFirstTargetAndResetOnNewDrag()
         {
             var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             Assert.IsFalse(selection.AimFilter.IsCategoryRequired);
 
             var line = new FakeDeleteTarget { Removable = true, Category = "connectionLine" };
@@ -123,7 +124,7 @@ namespace Client.Tests.UIState
             Assert.IsTrue(selection.AimFilter.Accepts(line));
             Assert.IsFalse(selection.AimFilter.Accepts(new FakeDeleteTarget { Category = "default" }));
 
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             Assert.IsFalse(selection.AimFilter.IsCategoryRequired);
         }
     }

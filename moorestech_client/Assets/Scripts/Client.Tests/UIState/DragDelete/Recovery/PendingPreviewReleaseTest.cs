@@ -1,3 +1,4 @@
+using Client.Game.InGame.UI.UIState.State.DragDelete.Selection;
 using System;
 using System.Reflection;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
@@ -22,7 +23,7 @@ namespace Client.Tests.UIState
             var selection = (DeleteSelection)typeof(DeleteObjectService).GetField("_selection", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(service);
             var first = new FakeDeleteTarget { Removable = true, ThrowOnDelete = deleteFails, ThrowOnReset = !deleteFails };
             var next = new FakeDeleteTarget { Removable = true };
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             Assert.IsTrue(selection.TryAddTarget(first).IsAdded);
             Assert.IsTrue(selection.TryAddTarget(next).IsAdded);
 
@@ -51,11 +52,11 @@ namespace Client.Tests.UIState
             var first = new FakeDeleteTarget { Removable = true, ThrowOnReset = true };
             var second = new FakeDeleteTarget { Removable = true, ThrowOnReset = true };
             var third = new FakeDeleteTarget { Removable = true };
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             foreach (var target in new[] { first, second, third }) Assert.IsTrue(selection.TryAddTarget(target).IsAdded);
             Assert.Throws<InvalidOperationException>(() => selection.CancelSelection());
             foreach (var target in new[] { first, second, third }) Assert.AreEqual(1, target.ResetCount);
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             var fourth = new FakeDeleteTarget { Removable = true };
             Assert.IsTrue(selection.TryAddTarget(fourth).IsAdded);
 
@@ -77,7 +78,7 @@ namespace Client.Tests.UIState
             var broken = new FakeDeleteTarget { Removable = true, ThrowOnReset = true };
             var healthy = new FakeDeleteTarget { Removable = true };
             var gameObject = new GameObject("PendingDestroyedTarget");
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             Assert.IsTrue(selection.TryAddTarget(broken).IsAdded);
             Assert.IsTrue(selection.TryAddTarget(gameObject.AddComponent<DestroyableDeleteTarget>()).IsAdded);
             Assert.IsTrue(selection.TryAddTarget(healthy).IsAdded);

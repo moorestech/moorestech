@@ -84,7 +84,7 @@
 - Produces: `public static float DeleteHoldDuration.SecondsFor(int targetCount)`（1未満は `ArgumentOutOfRangeException`）／`public static DeleteHoldSubject DeleteHoldSubject.Selection(int revision, int targetCount)`（旧 `Selection(int revision)` は削除）／`internal int DeleteHoldSubject.TargetCount`（None=0・Hovered=1）／`private DeleteHoldSubject DeleteObjectService.SelectionHoldSubject()`
 - Consumes: なし
 
-- [ ] **Step 1: テストを書く（新規 `DeleteHoldDurationTest.cs`・`DeleteHoldConfirmTest.cs` 全文置換）**
+- [x] **Step 1: テストを書く（新規 `DeleteHoldDurationTest.cs`・`DeleteHoldConfirmTest.cs` 全文置換）**
 
 ```diff
 diff --git a/moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDelete/Confirm/DeleteHoldDurationTest.cs b/moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDelete/Confirm/DeleteHoldDurationTest.cs
@@ -291,7 +291,7 @@ index 8a9fd6f..9b1b611 100644
              Assert.IsFalse(bar.IsShown);
 ```
 
-- [ ] **Step 2: 実装を書く（`DeleteHoldDuration` 新設・subject に件数・Confirm の時間を差し替え）**
+- [x] **Step 2: 実装を書く（`DeleteHoldDuration` 新設・subject に件数・Confirm の時間を差し替え）**
 
 ```diff
 diff --git a/moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Confirm/DeleteHoldDuration.cs b/moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Confirm/DeleteHoldDuration.cs
@@ -415,7 +415,7 @@ index 5a8d5be..dbeacc4 100644
              _awaitRelease = true;
 ```
 
-- [ ] **Step 3: サービスが subject に選択件数を載せる**
+- [x] **Step 3: サービスが subject に選択件数を載せる**
 
 `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DeleteObjectService.cs` の `DeleteHoldSubject.Selection(_selection.Revision)` 2箇所（ctor の購読・`UpdateHoldConfirm`）を `SelectionHoldSubject()` に置き換え、`TryCancel` のコメントの直前へ次を足す。Task 3 のパッチはこの差分を含むので、Task 3 では Task 1 で入れた分を除いて当てる（`git apply` が失敗したら手で残りの差分だけ入れる）:
 
@@ -425,16 +425,16 @@ index 5a8d5be..dbeacc4 100644
         private DeleteHoldSubject SelectionHoldSubject() => DeleteHoldSubject.Selection(_selection.Revision, _selection.Count);
 ```
 
-- [ ] **Step 4: 既存の呼び出しテストを新シグネチャへ直す**
+- [x] **Step 4: 既存の呼び出しテストを新シグネチャへ直す**
 
 `moorestech_client/Assets/Scripts/Client.Tests/Input/PlayableInteractInputTest.cs` の 55・62・78 行を `DeleteHoldSubject.Selection(1, 1)`／`DeleteHoldSubject.Selection(2, 1)`／`DeleteHoldSubject.Selection(2, 1)` にする。
 
-- [ ] **Step 5: コンパイルしテストを実行する**
+- [x] **Step 5: コンパイルしテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "DeleteHoldDurationTest|DeleteHoldConfirmTest|DeleteSelection|DragDelete|PlayableInteractInputTest"`
 Expected: ErrorCount 0 / 全 PASS
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Confirm moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DeleteObjectService.cs moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDelete/Confirm moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDelete/DeleteHoldConfirmTest.cs moorestech_client/Assets/Scripts/Client.Tests/Input/PlayableInteractInputTest.cs

@@ -1,3 +1,4 @@
+using Client.Game.InGame.UI.UIState.State.DragDelete.Selection;
 using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
@@ -23,18 +24,18 @@ namespace Client.Tests.UIState.DragDelete.Completion
             var selection = new DeleteSelection(history, sender, new DeletePreviewResetRecovery());
             var immediate = Target(1);
             var late = Target(2);
-            selection.AddBoxTargets(new[] { immediate, late });
+            selection.ApplyBoxTargets(new[] { immediate, late }, DeleteSelectionIntent.Add);
             selection.CommitDelete();
             immediate.Complete(DeleteCompletionKind.Succeeded, null);
             late.Complete(DeleteCompletionKind.Unconfirmed, LocalizationKeys.Ui.Tooltip.DeleteUndoAwaitingResult);
             // 未確認のバッチはUndo消費前に固定し、再送も防ぐ
             // Keep the unknown batch unconsumable and prevent duplicate sends
             Assert.IsFalse(history.TryPop(out _));
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.DeleteRequestPending, selection.TryAddTarget(late).DenyReason);
             Assert.AreEqual(DeleteHoldSubjectKind.None, selection.UpdateHoverPreview(late, out var reason).Kind);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.DeleteRequestPending, reason);
-            Assert.AreEqual(0, selection.AddBoxTargets(new[] { late }));
+            Assert.AreEqual(0, selection.ApplyBoxTargets(new[] { late }, DeleteSelectionIntent.Add));
             Assert.AreEqual(1, late.DeleteCount);
 
             // 確定後にだけ同じ履歴枠を完成し、成功分を一度だけ戻す
@@ -46,7 +47,7 @@ namespace Client.Tests.UIState.DragDelete.Completion
             Assert.IsFalse(history.TryPop(out _));
             if (!success)
             {
-                selection.BeginStroke();
+                selection.BeginStroke(DeleteSelectionIntent.Add);
                 Assert.IsTrue(selection.TryAddTarget(late).IsAdded);
             }
         }
@@ -58,11 +59,11 @@ namespace Client.Tests.UIState.DragDelete.Completion
             var sender = new FakeRemovalRestoreSender();
             var selection = new DeleteSelection(history, sender, new DeletePreviewResetRecovery());
             var first = Target(1);
-            selection.AddBoxTargets(new[] { first });
+            selection.ApplyBoxTargets(new[] { first }, DeleteSelectionIntent.Add);
             selection.CommitDelete();
             first.Complete(DeleteCompletionKind.Unconfirmed, LocalizationKeys.Ui.Tooltip.DeleteUndoAwaitingResult);
             var second = Target(2);
-            selection.AddBoxTargets(new[] { second });
+            selection.ApplyBoxTargets(new[] { second }, DeleteSelectionIntent.Add);
             selection.CommitDelete();
             second.Complete(DeleteCompletionKind.Succeeded, null);
             Assert.IsTrue(history.TryPop(out var newer));

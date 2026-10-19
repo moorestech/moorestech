@@ -1,3 +1,4 @@
+using Client.Game.InGame.UI.UIState.State.DragDelete.Selection;
 using System.Collections.Generic;
 using Client.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
@@ -111,7 +112,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
                     Debug.Log($"[DeleteBox] end click refused: no removable targets in {min}-{max}");
                     return;
                 }
-                var added = deleteSelection.AddBoxTargets(targets);
+                var added = deleteSelection.ApplyBoxTargets(targets, DeleteSelectionIntent.Add);
                 Debug.Log($"[DeleteBox] added={added} of {targets.Count} selected={deleteSelection.Count}");
                 Clear();
             }

@@ -1,3 +1,4 @@
+using Client.Game.InGame.UI.UIState.State.DragDelete.Selection;
 using UniRx;
 using Client.Game.InGame.UI.UIState.State.DragDelete.Completion;
 using System.Collections.Generic;
@@ -89,7 +90,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
                 // ホバーの赤は選択側が引き継ぐ（追加時に再び赤になる）
                 // The selection takes over the hover red (adding re-reds it)
                 _selection.SetHoverPreview(null);
-                _selection.BeginStroke();
+                _selection.BeginStroke(DeleteSelectionIntent.Add);
                 _isStroking = true;
             }
 
