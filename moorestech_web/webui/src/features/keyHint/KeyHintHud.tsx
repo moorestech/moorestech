@@ -20,7 +20,7 @@ export function KeyHintHud() {
   // キー名も文言もホスト由来の外部キーなので、辞書に無ければ声高なplaceholderへ落とす
   // Both the key name and the text are host-supplied external keys, so an unknown one falls back to a loud placeholder
   return (
-    <div className={`keyHintText ${styles.keyHints}`} data-testid="key-hints">
+    <div className={`keyHintText ${styles.keyHints}`} data-testid="key-hints" data-delete-mode={uiState?.state === "DeleteBar"}>
       {hints.map((hint) => (
         <div key={`${hint.keyNameKey}:${hint.textKey}`} className={styles.hint}>
           <kbd>{translateExternalKey(hint.keyNameKey, t, {})}</kbd>
