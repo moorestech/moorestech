@@ -17,6 +17,7 @@ var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("delete-tool-box-select-hold-confirm", options, async p =>
 {
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
+    await p.SkipOpeningSkit();
     await PlaytestUiOps.FocusGameViewAndEnableInput(p);
     p.WarpPlayer(new Vector3(2.5f, 33.5f, -2f));
 

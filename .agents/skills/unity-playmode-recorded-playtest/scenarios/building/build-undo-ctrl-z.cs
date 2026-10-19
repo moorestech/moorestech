@@ -18,6 +18,7 @@ return PlaytestRunner.Run("build-undo-ctrl-z", options, async p =>
     // 足場+ワープ+無料設置
     // Ground + warp + free placement
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
+    await p.SkipOpeningSkit();
     await PlaytestUiOps.FocusGameViewAndEnableInput(p);
 
     // 設置カメラは北向き・浅いピッチのため、設置セルの南側に立つ

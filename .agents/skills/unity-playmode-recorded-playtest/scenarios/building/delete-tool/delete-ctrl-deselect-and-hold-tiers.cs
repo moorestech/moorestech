@@ -18,6 +18,7 @@ using VContainer;
 return PlaytestRunner.Run("delete-ctrl-deselect-and-hold-tiers", new PlaytestRunOptions { Record = true }, async p =>
 {
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
+    await p.SkipOpeningSkit();
     p.WarpPlayer(new Vector3(4.5f, 33.5f, -2f));
     var progress = ClientDIContext.DIContainer.DIContainerResolver.Resolve<ProgressBarState>();
 
