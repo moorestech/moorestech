@@ -6,8 +6,12 @@ using UniRx;
 namespace Client.Game.InGame.UI.UIState.State.DragDelete.Selection
 {
     /// <summary>
-    ///     選択済みの削除対象を論理キーで保持し、赤表示・設置演出後の赤の復元・解除待ちの赤戻し・変更通知を持つ
-    ///     Holds selected delete targets by logical key, owning their red preview, its restore after placement, pending un-red releases and change notification
+    ///     - 論理キーで選択を保持・通知
+    ///     - 赤表示と設置演出後の復元
+    ///     - 解除待ちの赤戻しを管理
+    ///     - Store selection by logical key and notify changes
+    ///     - Own red previews and restore them after placement
+    ///     - Manage pending preview releases
     /// </summary>
     internal sealed class DeleteSelectedTargetSet
     {
@@ -49,8 +53,8 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Selection
             NotifySelectionChanged();
         }
 
-        // 選択済みなら外して赤を戻す。未選択は外す物が無いので false
-        // Remove and un-red a selected target; false when it was not selected
+        // 赤表示も解除。未選択ならfalse
+        // Also release the red preview; false when not selected
         internal bool TryRemove(IDeleteTarget target)
         {
             if (!RemoveLogicalTarget(target)) return false; // silent-ok: 未選択は変更不要 / 選択件数に反映済み

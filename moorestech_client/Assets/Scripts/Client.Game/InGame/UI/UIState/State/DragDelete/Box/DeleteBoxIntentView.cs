@@ -6,8 +6,12 @@ using UnityEngine;
 namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
 {
     /// <summary>
-    ///     箱の意図（追加／除外）ごとの表示一式。件数と0件理由の文言キー、ログ上の対象名、範囲の色と可視化オブジェクトを持つ
-    ///     Per-intent (add / remove) box presentation: count and empty-range text keys, the target label for logs, the range color and its visualizer
+    ///     - 追加・除外別の表示一式
+    ///     - 件数・空範囲の文言とログ名
+    ///     - 範囲の色と可視化を保持
+    ///     - Presentation for add/remove intent
+    ///     - Count/empty-range text and log labels
+    ///     - Range color and visualizer ownership
     /// </summary>
     internal sealed class DeleteBoxIntentView
     {

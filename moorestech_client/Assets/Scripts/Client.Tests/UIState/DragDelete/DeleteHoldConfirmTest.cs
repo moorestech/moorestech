@@ -6,8 +6,8 @@ namespace Client.Tests.UIState.DragDelete
 {
     public class DeleteHoldConfirmTest
     {
-        // 1件=0.75秒 / 5件=1.25秒 / 20件=1.75秒（DeleteHoldDuration の段）
-        // One target = 0.75s / five = 1.25s / twenty = 1.75s (DeleteHoldDuration tiers)
+        // 1件0.75秒／5件1.25秒／20件1.75秒
+        // 1 target: 0.75s / 5 targets: 1.25s / 20 targets: 1.75s
         private static readonly DeleteHoldSubject SelectionRev1 = DeleteHoldSubject.Selection(1, 1);
 
         [Test]
