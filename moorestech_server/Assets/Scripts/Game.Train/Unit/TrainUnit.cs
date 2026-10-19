@@ -257,7 +257,28 @@ namespace Game.Train.Unit
                 Reverse();
             }
             masconLevel = ConvertManualMasconCommandToMasconLevel(manualCommand.MasconCommand);
-            _manualBranchSelectionIndex += manualCommand.BranchSelectionIndexDelta;
+            if (manualCommand.BranchSelectionIndexDelta != 0)
+            {
+                ApplyBranchSelectionIndexDelta(manualCommand.BranchSelectionIndexDelta);
+            }
+
+            #region Internal
+
+            // 次の分岐で選べる範囲へクランプする。分岐が前方3node以内に無ければA/Dは無効
+            // Clamp into the range of the next branch; A/D is ignored when no branch is within three nodes ahead
+            void ApplyBranchSelectionIndexDelta(int delta)
+            {
+                var approaching = _railPosition.GetNodeApproaching();
+                if (approaching == null) return;
+                if (!TrainUnitNextBranchFinder.TryFindNextBranch(_railPosition.GetNodeJustPassed(), approaching, new List<IRailNode>(), out var nextBranch)) return;
+                _manualBranchSelectionIndex = TrainUnitBranchSelector.ClampManualBranchSelectionIndex(
+                    nextBranch.JustPassedNode,
+                    nextBranch.JunctionNode,
+                    nextBranch.CandidateNodes,
+                    _manualBranchSelectionIndex + delta);
+            }
+
+            #endregion
         }
 
         private static int ConvertManualMasconCommandToMasconLevel(TrainUnitMasconCommand masconCommand)

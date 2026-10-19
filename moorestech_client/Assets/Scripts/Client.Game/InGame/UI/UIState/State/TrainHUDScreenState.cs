@@ -88,7 +88,9 @@ namespace Client.Game.InGame.UI.UIState.State
             }
 
             _branchRoutePreviewController.Update(ridingTrainUnit);
-            var selectedBranchIndex = ridingTrainUnit.GetManualBranchSelectionIndex();
+            // 表示は内部の直進基準オフセットではなく、左から何番目かを渡す
+            // Present the left-to-right position, not the internal straight-relative offset
+            var selectedBranchIndex = _branchRoutePreviewController.SelectedBranchPosition;
             var branchCandidateCount = _branchRoutePreviewController.BranchCandidateCount;
             if (SelectedBranchIndex != selectedBranchIndex || _lastBranchCandidateCount != branchCandidateCount)
             {

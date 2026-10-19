@@ -9,14 +9,12 @@ namespace Client.Game.InGame.UI.UIState.State.TrainHUDScreen
 {
     public sealed class TrainBranchRoutePreviewController
     {
-        private const int BranchRoutePreviewSearchNodeLimit = 3;
         private const int BranchRoutePreviewSamplesPerSegment = 18;
         private const float BranchRoutePreviewHeightOffset = 0.22f;
         private const float BranchRoutePreviewWidth = 0.18f;
         private static readonly Color BranchRoutePreviewColor = new(1f, 0.78f, 0.18f, 0.92f);
 
         private readonly List<IRailNode> _branchRouteNodes = new();
-        private readonly List<IRailNode> _branchCandidateNodes = new();
         private readonly List<Vector3> _branchRoutePoints = new();
 
         private GameObject _branchRoutePreviewObject;
@@ -24,6 +22,9 @@ namespace Client.Game.InGame.UI.UIState.State.TrainHUDScreen
         private Material _branchRoutePreviewMaterial;
 
         public int BranchCandidateCount { get; private set; }
+        // 選択中の分岐が左から何番目か(0始まり)
+        // 0-based left-to-right position of the selected branch
+        public int SelectedBranchPosition { get; private set; }
 
         public void Update(ClientTrainUnit trainUnit)
         {
@@ -65,6 +66,7 @@ namespace Client.Game.InGame.UI.UIState.State.TrainHUDScreen
             _branchRouteNodes.Clear();
             _branchRoutePoints.Clear();
             BranchCandidateCount = 0;
+            SelectedBranchPosition = 0;
             var railPosition = trainUnit?.RailPosition;
             if (railPosition == null) return false;
 
@@ -95,36 +97,15 @@ namespace Client.Game.InGame.UI.UIState.State.TrainHUDScreen
 
         private bool TryAppendRouteToNextBranch(IRailNode previousNode, IRailNode currentNode, int branchSelectionIndex)
         {
-            for (var nodeIndex = 0; nodeIndex < BranchRoutePreviewSearchNodeLimit; nodeIndex++)
-            {
-                CopyConnectedNodes(currentNode);
-                if (_branchCandidateNodes.Count >= 2)
-                {
-                    BranchCandidateCount = _branchCandidateNodes.Count;
-                    var selectedNode = TrainUnitBranchSelector.SelectManualBranchNode(previousNode, currentNode, _branchCandidateNodes, branchSelectionIndex);
-                    _branchRouteNodes.Add(selectedNode);
-                    return true;
-                }
+            // サーバーのA/Dクランプと同じ探索で次の分岐を探す
+            // Find the next branch with the same search the server clamp uses
+            if (!TrainUnitNextBranchFinder.TryFindNextBranch(previousNode, currentNode, _branchRouteNodes, out var nextBranch)) return false;
 
-                // 分岐ではない単一路線だけを先へ進む。
-                // Continue only through a single non-branch route.
-                if (_branchCandidateNodes.Count != 1) return false;
-                var nextNode = _branchCandidateNodes[0];
-                if (nextNode == null || nextNode == previousNode) return false;
-                previousNode = currentNode;
-                currentNode = nextNode;
-                _branchRouteNodes.Add(currentNode);
-            }
-            return false;
-        }
-
-        private void CopyConnectedNodes(IRailNode node)
-        {
-            _branchCandidateNodes.Clear();
-            foreach (var connectedNode in node.ConnectedNodes)
-            {
-                _branchCandidateNodes.Add(connectedNode);
-            }
+            BranchCandidateCount = nextBranch.CandidateNodes.Count;
+            SelectedBranchPosition = TrainUnitBranchSelector.ResolveManualBranchPosition(nextBranch.JustPassedNode, nextBranch.JunctionNode, nextBranch.CandidateNodes, branchSelectionIndex);
+            var selectedNode = TrainUnitBranchSelector.SelectManualBranchNode(nextBranch.JustPassedNode, nextBranch.JunctionNode, nextBranch.CandidateNodes, branchSelectionIndex);
+            _branchRouteNodes.Add(selectedNode);
+            return true;
         }
 
         private void BuildBranchRoutePoints(float firstSegmentStart)
